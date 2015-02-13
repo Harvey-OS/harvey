@@ -16,8 +16,8 @@ enum {
 	Logqueries = 0,
 };
 
-static int	udpannounce(char*);
-static void	reply(int, uchar*, DNSmsg*, Request*);
+static int	udpannounce(int8_t*);
+static void	reply(int, uint8_t*, DNSmsg*, Request*);
 
 typedef struct Inprogress Inprogress;
 struct Inprogress
@@ -25,29 +25,29 @@ struct Inprogress
 	int	inuse;
 	Udphdr	uh;
 	DN	*owner;
-	ushort	type;
+	uint16_t	type;
 	int	id;
 };
 Inprogress inprog[Maxactive+2];
 
 typedef struct Forwtarg Forwtarg;
 struct Forwtarg {
-	char	*host;
-	uchar	addr[IPaddrlen];
+	int8_t	*host;
+	uint8_t	addr[IPaddrlen];
 	int	fd;
-	ulong	lastdial;
+	uint32_t	lastdial;
 };
 Forwtarg forwtarg[10];
 int currtarg;
 
-static char *hmsg = "headers";
+static int8_t *hmsg = "headers";
 
 /*
  *  record client id and ignore retransmissions.
  *  we're still single thread at this point.
  */
 static Inprogress*
-clientrxmit(DNSmsg *req, uchar *buf)
+clientrxmit(DNSmsg *req, uint8_t *buf)
 {
 	Inprogress *p, *empty;
 	Udphdr *uh;
@@ -82,7 +82,7 @@ clientrxmit(DNSmsg *req, uchar *buf)
 }
 
 int
-addforwtarg(char *host)
+addforwtarg(int8_t *host)
 {
 	Forwtarg *tp;
 
@@ -111,11 +111,11 @@ addforwtarg(char *host)
  * intended primarily for debugging.
  */
 static void
-redistrib(uchar *buf, int len)
+redistrib(uint8_t *buf, int len)
 {
 	Forwtarg *tp;
 	Udphdr *uh;
-	static uchar outpkt[1500];
+	static uint8_t outpkt[1500];
 
 	assert(len <= sizeof outpkt);
 	memmove(outpkt, buf, len);
@@ -138,12 +138,12 @@ redistrib(uchar *buf, int len)
  *  a process to act as a dns server for outside reqeusts
  */
 void
-dnudpserver(char *mntpt)
+dnudpserver(int8_t *mntpt)
 {
 	volatile int fd, len, op, rcode;
-	char *volatile err;
-	volatile char tname[32];
-	volatile uchar buf[Udphdrsize + Maxpayload];
+	int8_t *volatile err;
+	volatile int8_t tname[32];
+	volatile uint8_t buf[Udphdrsize + Maxpayload];
 	volatile DNSmsg reqmsg, repmsg;
 	Inprogress *volatile p;
 	volatile Request req;
@@ -283,10 +283,10 @@ freereq:
  *  announce on well-known dns udp port and set message style interface
  */
 static int
-udpannounce(char *mntpt)
+udpannounce(int8_t *mntpt)
 {
 	int data, ctl;
-	char dir[64], datafile[64+6];
+	int8_t dir[64], datafile[64+6];
 	static int whined;
 
 	/* get a udp port */
@@ -317,10 +317,10 @@ udpannounce(char *mntpt)
 }
 
 static void
-reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
+reply(int fd, uint8_t *buf, DNSmsg *rep, Request *reqp)
 {
 	int len;
-	char tname[32];
+	int8_t tname[32];
 
 	if(debug || (trace && subsume(trace, rep->qd->owner->name)))
 		dnslog("%d: reply (%I/%d) %d %s %s qd %R an %R ns %R ar %R",

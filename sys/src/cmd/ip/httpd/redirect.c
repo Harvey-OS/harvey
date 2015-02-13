@@ -22,30 +22,30 @@ typedef struct Redir	Redir;
 struct Redir
 {
 	Redir	*next;
-	char	*pat;
-	char	*repl;
+	int8_t	*pat;
+	int8_t	*repl;
 	uint	flags;		/* generated from repl's decorations */
 };
 
 static Redir *redirtab[HASHSIZE];
 static Redir *vhosttab[HASHSIZE];
-static char emptystring[1];
+static int8_t emptystring[1];
 /* these two arrays must be kept in sync */
-static char decorations[] = { Modsilent, Modperm, Modsubord, Modonly, '\0' };
+static int8_t decorations[] = { Modsilent, Modperm, Modsubord, Modonly, '\0' };
 static uint redirflags[] = { Redirsilent, Redirperm, Redirsubord, Redironly, };
 
 /* replacement field decorated with redirection modifiers? */
 static int
-isdecorated(char *repl)
+isdecorated(int8_t *repl)
 {
 	return strchr(decorations, repl[0]) != nil;
 }
 
 static uint
-decor2flags(char *repl)
+decor2flags(int8_t *repl)
 {
 	uint flags;
-	char *p;
+	int8_t *p;
 
 	flags = 0;
 	while ((p = strchr(decorations, *repl++)) != nil)
@@ -54,8 +54,8 @@ decor2flags(char *repl)
 }
 
 /* return replacement without redirection modifiers */
-char *
-undecorated(char *repl)
+int8_t *
+undecorated(int8_t *repl)
 {
 	while (isdecorated(repl))
 		repl++;
@@ -63,22 +63,22 @@ undecorated(char *repl)
 }
 
 static int
-hashasu(char *key, int n)
+hashasu(int8_t *key, int n)
 {
-        ulong h;
+        uint32_t h;
 
 	h = 0;
         while(*key != 0)
-                h = 65599*h + *(uchar*)key++;
+                h = 65599*h + *(uint8_t*)key++;
         return h % n;
 }
 
 static void
-insert(Redir **tab, char *pat, char *repl)
+insert(Redir **tab, int8_t *pat, int8_t *repl)
 {
 	Redir **l;
 	Redir *srch;
-	ulong hash;
+	uint32_t hash;
 
 	hash = hashasu(pat, HASHSIZE);
 	for(l = &tab[hash]; *l; l = &(*l)->next)
@@ -111,8 +111,8 @@ redirectinit(void)
 {
 	static Biobuf *b = nil;
 	static Qid qid;
-	char *file, *line, *s, *host, *field[3];
-	static char pfx[] = "http://";
+	int8_t *file, *line, *s, *host, *field[3];
+	static int8_t pfx[] = "http://";
 
 	file = "/sys/lib/httpd.rewrite";
 	if(b != nil){
@@ -152,10 +152,10 @@ redirectinit(void)
 }
 
 static Redir*
-lookup(Redir **tab, char *pat, int count)
+lookup(Redir **tab, int8_t *pat, int count)
 {
 	Redir *srch;
-	ulong hash;
+	uint32_t hash;
 
 	hash = hashasu(pat,HASHSIZE);
 	for(srch = tab[hash]; srch != nil; srch = srch->next)
@@ -167,8 +167,8 @@ lookup(Redir **tab, char *pat, int count)
 	return nil;
 }
 
-static char*
-prevslash(char *p, char *s)
+static int8_t*
+prevslash(int8_t *p, int8_t *s)
 {
 	while(--s > p)
 		if(*s == '/')
@@ -190,11 +190,11 @@ prevslash(char *p, char *s)
  * subordinate ones.  if Redirsubord, map the named patch and any
  * subordinate ones to the same replacement URL.
  */
-char*
-redirect(HConnect *hc, char *path, uint *flagp)
+int8_t*
+redirect(HConnect *hc, int8_t *path, uint *flagp)
 {
 	Redir *redir;
-	char *s, *newpath, *repl;
+	int8_t *s, *newpath, *repl;
 	int c, n, count;
 
 	count = 0;
@@ -224,8 +224,8 @@ redirect(HConnect *hc, char *path, uint *flagp)
  * if not, return empty string.
  * return value should not be freed by caller.
  */
-char*
-masquerade(char *host)
+int8_t*
+masquerade(int8_t *host)
 {
 	Redir *redir;
 

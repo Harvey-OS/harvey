@@ -21,10 +21,10 @@
 typedef struct Sym Sym;
 struct Sym
 {
-	char *name;
-	char *newname;
-	short type;
-	short version;
+	int8_t *name;
+	int8_t *newname;
+	int16_t type;
+	int16_t version;
 	Sym *link;
 };
 
@@ -33,9 +33,9 @@ struct Obj
 {
 	int fd;
 	int version;
-	uchar *bp;
-	uchar *ep;
-	char *name;
+	uint8_t *bp;
+	uint8_t *ep;
+	int8_t *name;
 };
 
 enum
@@ -51,19 +51,19 @@ int version = 1;
 Obj **obj;
 int nobj;
 Biobuf bout;
-char *prefix;
+int8_t *prefix;
 int verbose;
 
 void *emalloc(ulong);
-Sym *lookup(char*, int);
-Obj *openobj(char*);
-void walkobj(Obj*, void (*fn)(int, Sym*, uchar*, int));
-void walkobjs(void (*fn)(int, Sym*, uchar*, int));
-void dump(int, Sym*, uchar*, int);
-void nop(int, Sym*, uchar*, int);
-void owrite(int, Sym*, uchar*, int);
-int zaddr(uchar*, Sym**);
-void renamesyms(int, Sym*, uchar*, int);
+Sym *lookup(int8_t*, int);
+Obj *openobj(int8_t*);
+void walkobj(Obj*, void (*fn)(int, Sym*, uint8_t*, int));
+void walkobjs(void (*fn)(int, Sym*, uint8_t*, int));
+void dump(int, Sym*, uint8_t*, int);
+void nop(int, Sym*, uint8_t*, int);
+void owrite(int, Sym*, uint8_t*, int);
+int zaddr(uint8_t*, Sym**);
+void renamesyms(int, Sym*, uint8_t*, int);
 
 void
 usage(void)
@@ -117,7 +117,7 @@ main(int argc, char **argv)
 }
 
 void
-renamesyms(int op, Sym *sym, uchar*, int)
+renamesyms(int op, Sym *sym, uint8_t*, int)
 {
 	if(sym && sym->version==0 && !sym->newname)
 	switch(op){
@@ -133,7 +133,7 @@ renamesyms(int op, Sym *sym, uchar*, int)
 }
 
 void
-dump(int op, Sym *sym, uchar*, int)
+dump(int op, Sym *sym, uint8_t*, int)
 {
 	if(sym && sym->version==0)
 	switch(op){
@@ -147,12 +147,12 @@ dump(int op, Sym *sym, uchar*, int)
 }
 
 void
-nop(int, Sym*, uchar*, int)
+nop(int, Sym*, uint8_t*, int)
 {
 }
 
 void
-owrite(int op, Sym *sym, uchar *p, int l)
+owrite(int op, Sym *sym, uint8_t *p, int l)
 {
 	switch(op){
 	case ASIGNAME:
@@ -172,7 +172,7 @@ owrite(int op, Sym *sym, uchar *p, int l)
 }
 
 int
-zaddr(uchar *p, Sym **symp)
+zaddr(uint8_t *p, Sym **symp)
 {
 	int c, t;
 	
@@ -197,7 +197,7 @@ zaddr(uchar *p, Sym **symp)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *v;
 	
@@ -208,11 +208,11 @@ emalloc(ulong n)
 }
 
 Sym*
-lookup(char *symb, int v)
+lookup(int8_t *symb, int v)
 {
 	Sym *s;
-	char *p;
-	long h;
+	int8_t *p;
+	int32_t h;
 	int l, c;
 
 	h = v;
@@ -240,7 +240,7 @@ lookup(char *symb, int v)
 }
 
 Obj*
-openobj(char *name)
+openobj(int8_t *name)
 {
 	Dir *d;
 	Obj *obj;
@@ -260,7 +260,7 @@ openobj(char *name)
 }
 
 void
-walkobjs(void (*fn)(int, Sym*, uchar*, int))
+walkobjs(void (*fn)(int, Sym*, uint8_t*, int))
 {
 	int i;
 	
@@ -269,11 +269,11 @@ walkobjs(void (*fn)(int, Sym*, uchar*, int))
 }
 
 void
-walkobj(Obj *obj, void (*fn)(int, Sym*, uchar*, int))
+walkobj(Obj *obj, void (*fn)(int, Sym*, uint8_t*, int))
 {
 	int op, type;
 	Sym *sym;
-	uchar *p, *p0;
+	uint8_t *p, *p0;
 
 	for(p=obj->bp; p+4<=obj->ep; ){
 		op = p[0] | (p[1]<<8);
@@ -285,7 +285,8 @@ walkobj(Obj *obj, void (*fn)(int, Sym*, uchar*, int))
 			p += 4;	/* sign */
 		case ANAME:
 			type = p[2];
-			sym = lookup((char*)p+4, type==D_STATIC ? obj->version : 0);
+			sym = lookup((int8_t*)p+4,
+				     type==D_STATIC ? obj->version : 0);
 			xsym[p[3]] = sym;
 			p += 4+strlen(sym->name)+1;
 			fn(op, sym, p0, p-p0);

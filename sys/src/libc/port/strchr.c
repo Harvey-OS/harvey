@@ -10,11 +10,11 @@
 #include <u.h>
 #include <libc.h>
 
-char*
-strchr(char *s, int c)
+int8_t*
+strchr(int8_t *s, int c)
 {
-	char c0 = c;
-	char c1;
+	int8_t c0 = c;
+	int8_t c1;
 
 	if(c == 0) {
 		while(*s++)

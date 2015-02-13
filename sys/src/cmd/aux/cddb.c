@@ -12,7 +12,7 @@
 #include <bio.h>
 #include <ctype.h>
 
-char *server = "freedb.freedb.org";
+int8_t *server = "freedb.freedb.org";
 
 int debug;
 #define DPRINT if(debug)fprint
@@ -22,7 +22,7 @@ int Tflag;
 typedef struct Track Track;
 struct Track {
 	int n;
-	char *title;
+	int8_t *title;
 };
 
 enum {
@@ -31,9 +31,9 @@ enum {
 
 typedef struct Toc Toc;
 struct Toc {
-	ulong diskid;
+	uint32_t diskid;
 	int ntrack;
-	char *title;
+	int8_t *title;
 	Track track[MTRACK];
 };
 
@@ -49,10 +49,10 @@ emalloc(uint n)
 	return p;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 
 	t = emalloc(strlen(s)+1);
 	strcpy(t, s);
@@ -82,10 +82,10 @@ dumpcddb(Toc *t)
 	}
 }
 
-char*
-append(char *a, char *b)
+int8_t*
+append(int8_t *a, int8_t *b)
 {
-	char *c;
+	int8_t *c;
 
 	c = emalloc(strlen(a)+strlen(b)+1);
 	strcpy(c, a);
@@ -98,11 +98,11 @@ cddbfilltoc(Toc *t)
 {
 	int fd;
 	int i;
-	char *p, *q;
+	int8_t *p, *q;
 	Biobuf bin;
-	char *f[10];
+	int8_t *f[10];
 	int nf;
-	char *id, *categ;
+	int8_t *id, *categ;
 
 	fd = dial(netmkaddr(server, "tcp", "888"), 0, 0, 0);
 	if(fd < 0) {

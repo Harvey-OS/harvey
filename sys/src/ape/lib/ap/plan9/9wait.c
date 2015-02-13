@@ -14,13 +14,13 @@
 #include "sys9.h"
 #include "dir.h"
 
-static char qsep[] = " \t\r\n";
+static int8_t qsep[] = " \t\r\n";
 
-static char*
-qtoken(char *s)
+static int8_t*
+qtoken(int8_t *s)
 {
 	int quoting;
-	char *t;
+	int8_t *t;
 
 	quoting = 0;
 	t = s;	/* s is output string, t is input string */
@@ -55,7 +55,7 @@ qtoken(char *s)
 }
 
 static int
-tokenize(char *s, char **args, int maxargs)
+tokenize(int8_t *s, int8_t **args, int maxargs)
 {
 	int nargs;
 
@@ -75,7 +75,7 @@ Waitmsg*
 _WAIT(void)
 {
 	int n, l;
-	char buf[512], *fld[5];
+	int8_t buf[512], *fld[5];
 	Waitmsg *w;
 
 	n = _AWAIT(buf, sizeof buf-1);
@@ -95,7 +95,7 @@ _WAIT(void)
 	w->time[0] = atoi(fld[1]);
 	w->time[1] = atoi(fld[2]);
 	w->time[2] = atoi(fld[3]);
-	w->msg = (char*)&w[1];
+	w->msg = (int8_t*)&w[1];
 	memmove(w->msg, fld[4], l);
 	return w;
 }

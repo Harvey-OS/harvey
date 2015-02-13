@@ -52,7 +52,7 @@ typedef struct {
   int ac_tbl_no;		/* the table number of the single component */
   unsigned int EOBRUN;		/* run length of EOBs */
   unsigned int BE;		/* # of buffered correction bits before MCU */
-  char * bit_buffer;		/* buffer for correction bits (1 per char) */
+  int8_t * bit_buffer;		/* buffer for correction bits (1 per char) */
   /* packing correction bits tightly would save some space but cost time... */
 
   unsigned int restarts_to_go;	/* MCUs left in this restart interval */
@@ -65,7 +65,7 @@ typedef struct {
   c_derived_tbl * derived_tbls[NUM_HUFF_TBLS];
 
   /* Statistics tables for optimization; again, one set is enough */
-  long * count_ptrs[NUM_HUFF_TBLS];
+  int32_t * count_ptrs[NUM_HUFF_TBLS];
 } phuff_entropy_encoder;
 
 typedef phuff_entropy_encoder * phuff_entropy_ptr;

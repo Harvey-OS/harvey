@@ -18,7 +18,7 @@ dorfmt(Fmt *f, const Rune *fmt)
 {
 	Rune *rt, *rs;
 	int r;
-	char *t, *s;
+	int8_t *t, *s;
 	int nfmt;
 
 	nfmt = f->nfmt;
@@ -40,7 +40,7 @@ dorfmt(Fmt *f, const Rune *fmt)
 			while((r = *fmt++) && r != '%'){
 				FMTRUNE(f, t, f->stop, r);
 			}
-			f->nfmt += t - (char *)f->to;
+			f->nfmt += t - (int8_t *)f->to;
 			f->to = t;
 			if(!r)
 				return f->nfmt - nfmt;

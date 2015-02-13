@@ -20,7 +20,7 @@
  */
 static int
 regexec1(Reprog *progp,	/* program to run */
-	char *bol,	/* string to run machine on */
+	int8_t *bol,	/* string to run machine on */
 	Resub *mp,	/* subexpression elements */
 	int ms,		/* number of elements at mp */
 	Reljunk *j
@@ -29,7 +29,7 @@ regexec1(Reprog *progp,	/* program to run */
 	int flag=0;
 	Reinst *inst;
 	Relist *tlp;
-	char *s;
+	int8_t *s;
 	int i, checkstart;
 	Rune r, *rp, *ep;
 	int n;
@@ -38,7 +38,7 @@ regexec1(Reprog *progp,	/* program to run */
 	Relist* tle;		/* ends of this and next list */
 	Relist* nle;
 	int match;
-	char *p;
+	int8_t *p;
 
 	match = 0;
 	checkstart = j->starttype;
@@ -72,7 +72,7 @@ regexec1(Reprog *progp,	/* program to run */
 				break;
 			}
 		}
-		r = *(uchar*)s;
+		r = *(uint8_t*)s;
 		if(r < Runeself)
 			n = 1;
 		else
@@ -166,7 +166,7 @@ regexec1(Reprog *progp,	/* program to run */
 
 static int
 regexec2(Reprog *progp,	/* program to run */
-	char *bol,	/* string to run machine on */
+	int8_t *bol,	/* string to run machine on */
 	Resub *mp,	/* subexpression elements */
 	int ms,		/* number of elements at mp */
 	Reljunk *j
@@ -197,7 +197,7 @@ regexec2(Reprog *progp,	/* program to run */
 
 extern int
 regexec(Reprog *progp,	/* program to run */
-	char *bol,	/* string to run machine on */
+	int8_t *bol,	/* string to run machine on */
 	Resub *mp,	/* subexpression elements */
 	int ms)		/* number of elements at mp */
 {

@@ -74,7 +74,7 @@ Node*	nodmmv;
 
 Node*	nodvasop;
 
-char	etconv[NTYPE];	/* for _vasop */
+int8_t	etconv[NTYPE];	/* for _vasop */
 Init	initetconv[] =
 {
 	TCHAR,		1,	0,
@@ -91,7 +91,7 @@ Init	initetconv[] =
 };
 
 Node*
-fvn(char *name, int type)
+fvn(int8_t *name, int type)
 {
 	Node *n;
 
@@ -587,7 +587,7 @@ bool64(Node *n)
  * this is common for ieee machines.
  */
 double
-convvtof(vlong v)
+convvtof(int64_t v)
 {
 	double d;
 
@@ -595,10 +595,10 @@ convvtof(vlong v)
 	return d;
 }
 
-vlong
+int64_t
 convftov(double d)
 {
-	vlong v;
+	int64_t v;
 
 
 	v = d;		/* BOTCH */
@@ -614,8 +614,8 @@ convftox(double d, int et)
 	return d;
 }
 
-vlong
-convvtox(vlong c, int et)
+int64_t
+convvtox(int64_t c, int et)
 {
 	int n;
 

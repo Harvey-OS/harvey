@@ -38,7 +38,7 @@ static char *binop[] =
 	[OASGN]	" = ",
 };
 
-static char *tabs = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+static int8_t *tabs = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 char *typenames[] =
 {
 	[TINT]		"integer",
@@ -51,8 +51,8 @@ char *typenames[] =
 int
 cmp(void *va, void *vb)
 {
-	char **a = va;
-	char **b = vb;
+	int8_t **a = va;
+	int8_t **b = vb;
 
 	return strcmp(*a, *b);
 }
@@ -61,13 +61,13 @@ void
 fundefs(void)
 {
 	Lsym *l;
-	char **vec;
+	int8_t **vec;
 	int i, j, n, max, col, f, g, s;
 
 	max = 0;
 	f = 0;
 	g = 100;
-	vec = malloc(sizeof(char*)*g);
+	vec = malloc(sizeof(int8_t*)*g);
 	if(vec == 0)
 		fatal("out of memory");
 
@@ -80,14 +80,14 @@ fundefs(void)
 				max = n;
 			if(f >= g) {
 				g *= 2;
-				vec = realloc(vec, sizeof(char*)*g);
+				vec = realloc(vec, sizeof(int8_t*)*g);
 				if(vec == 0)
 					fatal("out of memory");
 			}
 			vec[f++] = l->name;
 		}
 	}
-        qsort(vec, f, sizeof(char*), cmp);
+        qsort(vec, f, sizeof(int8_t*), cmp);
 	max++;
 	col = 60/max;
 	s = (f+col-1)/col;

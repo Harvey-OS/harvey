@@ -121,7 +121,7 @@ private void capture_spot_equivalent_cmyk_colors(gx_device * pdev,
 
 #define compare_color_names(name, name_size, str, str_size) \
     (name_size == str_size && \
-	(strncmp((const char *)name, (const char *)str, name_size) == 0))
+	(strncmp((const int8_t *)name, (const int8_t *)str, name_size) == 0))
 
 private void
 update_Separation_spot_equivalent_cmyk_colors(gx_device * pdev,

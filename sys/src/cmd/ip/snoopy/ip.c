@@ -16,16 +16,16 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* ip->identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	cksum[2];	/* Header checksum */
-	uchar	src[4];		/* IP source */
-	uchar	dst[4];		/* IP destination */
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* ip->identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	ttl;		/* Time to live */
+	uint8_t	proto;		/* Protocol */
+	uint8_t	cksum[2];	/* Header checksum */
+	uint8_t	src[4];		/* IP source */
+	uint8_t	dst[4];		/* IP destination */
 };
 
 enum
@@ -201,7 +201,7 @@ static int
 p_seprint(Msg *m)
 {
 	int f, len, hl;
-	uchar *p;
+	uint8_t *p;
 	Hdr *h;
 
 	if(m->pe - m->ps < IPHDR)
@@ -228,7 +228,7 @@ p_seprint(Msg *m)
 		(h->vihl & 0xf) << 2);
 
 	m->ps += hl;
-	p = (uchar *)(h + 1);
+	p = (uint8_t *)(h + 1);
 	if(p < m->ps){
 		m->p = seprint(m->p, m->e, " opts=(");
 		while(p < m->ps)

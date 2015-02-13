@@ -96,8 +96,8 @@ uchar kbtabesc1[] =
 
 struct latin
 {
-	uchar	l;
-	char	c[2];
+	uint8_t	l;
+	int8_t	c[2];
 }latintab[] = {
 	L'¡',	"!!",	/* spanish initial ! */
 	L'¢',	"c|",	/* cent */
@@ -233,7 +233,7 @@ enum
 	Ckbdint=	(1<<0),		/* kbd interrupt enable */
 };
 
-static uchar ccc;
+static uint8_t ccc;
 static int nokbd = 1;
 
 int
@@ -303,7 +303,7 @@ i8042reset(void)
 	if(nokbd)
 		return;
 
-	*((ushort*)KADDR(0x472)) = 0x1234;	/* BIOS warm-boot flag */
+	*((uint16_t*)KADDR(0x472)) = 0x1234;	/* BIOS warm-boot flag */
 
 	/*
 	 *  newer reset the machine command
@@ -457,7 +457,7 @@ i8042intr(Ureg*, void*)
 	kbdchar(c);
 }
 
-static char *initfailed = "i8042: kbdinit failed\n";
+static int8_t *initfailed = "i8042: kbdinit failed\n";
 
 static int
 outbyte(int port, int c)

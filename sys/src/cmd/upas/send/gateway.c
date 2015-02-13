@@ -19,7 +19,7 @@
 extern void
 gateway(message *mp)
 {
-	char *base;
+	int8_t *base;
 	String *s;
 
 	/* first remove all systems equivalent to us */

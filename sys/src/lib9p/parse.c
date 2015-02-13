@@ -17,10 +17,10 @@
  * Generous estimate of number of fields, including terminal nil pointer
  */
 static int
-ncmdfield(char *p, int n)
+ncmdfield(int8_t *p, int n)
 {
 	int white, nwhite;
-	char *ep;
+	int8_t *ep;
 	int nf;
 
 	if(p == nil)
@@ -42,19 +42,19 @@ ncmdfield(char *p, int n)
  *  parse a command written to a device
  */
 Cmdbuf*
-parsecmd(char *p, int n)
+parsecmd(int8_t *p, int n)
 {
 	Cmdbuf *cb;
 	int nf;
-	char *sp;
+	int8_t *sp;
 
 	nf = ncmdfield(p, n);
 
 	/* allocate Cmdbuf plus string pointers plus copy of string including \0 */
-	sp = emalloc9p(sizeof(*cb) + nf * sizeof(char*) + n + 1);
+	sp = emalloc9p(sizeof(*cb) + nf * sizeof(int8_t*) + n + 1);
 	cb = (Cmdbuf*)sp;
-	cb->f = (char**)(&cb[1]);
-	cb->buf = (char*)(&cb->f[nf]);
+	cb->f = (int8_t**)(&cb[1]);
+	cb->buf = (int8_t*)(&cb->f[nf]);
 
 	memmove(cb->buf, p, n);
 
@@ -73,12 +73,12 @@ parsecmd(char *p, int n)
  * Reconstruct original message, for error diagnostic
  */
 void
-respondcmderror(Req *r, Cmdbuf *cb, char *fmt, ...)
+respondcmderror(Req *r, Cmdbuf *cb, int8_t *fmt, ...)
 {
 	int i;
 	va_list arg;
-	char *p, *e;
-	char err[ERRMAX];
+	int8_t *p, *e;
+	int8_t err[ERRMAX];
 	
 	e = err+ERRMAX-10;
 	va_start(arg, fmt);

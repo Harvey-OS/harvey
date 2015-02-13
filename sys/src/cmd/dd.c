@@ -21,49 +21,49 @@
 int	cflag;
 int	fflag;
 
-char	*string;
-char	*ifile;
-char	*ofile;
-char	*ibuf;
-char	*obuf;
+int8_t	*string;
+int8_t	*ifile;
+int8_t	*ofile;
+int8_t	*ibuf;
+int8_t	*obuf;
 
-vlong	skip;
-vlong	oseekn;
-vlong	iseekn;
-vlong	oseekb;
-vlong	iseekb;
-vlong	count;
+int64_t	skip;
+int64_t	oseekn;
+int64_t	iseekn;
+int64_t	oseekb;
+int64_t	iseekb;
+int64_t	count;
 
-long	files	= 1;
-long	ibs	= 512;
-long	obs	= 512;
-long	bs;
-long	cbs;
-long	ibc;
-long	obc;
-long	cbc;
-long	nifr;
-long	nipr;
-long	nofr;
-long	nopr;
-long	ntrunc;
+int32_t	files	= 1;
+int32_t	ibs	= 512;
+int32_t	obs	= 512;
+int32_t	bs;
+int32_t	cbs;
+int32_t	ibc;
+int32_t	obc;
+int32_t	cbc;
+int32_t	nifr;
+int32_t	nipr;
+int32_t	nofr;
+int32_t	nopr;
+int32_t	ntrunc;
 
 int dotrunc = 1;
 int	ibf;
 int	obf;
 
-char	*op;
+int8_t	*op;
 int	nspace;
 
-uchar	etoa[256];
-uchar	atoe[256];
-uchar	atoibm[256];
+uint8_t	etoa[256];
+uint8_t	atoe[256];
+uint8_t	atoibm[256];
 
 int	quiet;
 
 void	flsh(void);
-int	match(char *s);
-vlong	number(vlong big);
+int	match(int8_t *s);
+int64_t	number(int64_t big);
 void	cnull(int cc);
 void	null(int c);
 void	ascii(int cc);
@@ -71,17 +71,17 @@ void	unblock(int cc);
 void	ebcdic(int cc);
 void	ibm(int cc);
 void	block(int cc);
-void	term(char*);
+void	term(int8_t*);
 void	stats(void);
 
 #define	iskey(s)	((key[0] == '-') && (strcmp(key+1, s) == 0))
 
 int
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	void (*conv)(int);
-	char *ip;
-	char *key;
+	int8_t *ip;
+	int8_t *key;
 	int a, c;
 
 	conv = null;
@@ -244,7 +244,7 @@ main(int argc, char *argv[])
 	else
 		obuf = sbrk(obs);
 	sbrk(64);	/* For good measure */
-	if(ibuf == (char *)-1 || obuf == (char *)-1) {
+	if(ibuf == (int8_t *)-1 || obuf == (int8_t *)-1) {
 		fprint(2, "dd: not enough memory: %r\n");
 		exits("memory");
 	}
@@ -347,9 +347,9 @@ flsh(void)
 }
 
 int
-match(char *s)
+match(int8_t *s)
 {
-	char *cs;
+	int8_t *cs;
 
 	cs = string;
 	while(*cs++ == *s)
@@ -364,11 +364,11 @@ true:
 	return 1;
 }
 
-vlong
-number(vlong big)
+int64_t
+number(int64_t big)
 {
-	char *cs;
-	uvlong n;
+	int8_t *cs;
+	uint64_t n;
 
 	cs = string;
 	n = 0;
@@ -572,7 +572,7 @@ block(int cc)
 }
 
 void
-term(char *status)
+term(int8_t *status)
 {
 	stats();
 	exits(status);
@@ -589,7 +589,7 @@ stats(void)
 		fprint(2, "%lud truncated records\n", ntrunc);
 }
 
-uchar	etoa[] =
+uint8_t	etoa[] =
 {
 	0000,0001,0002,0003,0234,0011,0206,0177,
 	0227,0215,0216,0013,0014,0015,0016,0017,
@@ -624,7 +624,7 @@ uchar	etoa[] =
 	0060,0061,0062,0063,0064,0065,0066,0067,
 	0070,0071,0372,0373,0374,0375,0376,0377,
 };
-uchar	atoe[] =
+uint8_t	atoe[] =
 {
 	0000,0001,0002,0003,0067,0055,0056,0057,
 	0026,0005,0045,0013,0014,0015,0016,0017,
@@ -659,7 +659,7 @@ uchar	atoe[] =
 	0334,0335,0336,0337,0352,0353,0354,0355,
 	0356,0357,0372,0373,0374,0375,0376,0377,
 };
-uchar	atoibm[] =
+uint8_t	atoibm[] =
 {
 	0000,0001,0002,0003,0067,0055,0056,0057,
 	0026,0005,0045,0013,0014,0015,0016,0017,

@@ -65,7 +65,7 @@ void
 vAdd2RowInfoList(const row_block_type *pRowBlock)
 {
 	row_desc_type	*pListMember;
-	short		*psTmp;
+	int16_t		*psTmp;
 	int		iIndex;
 
 	fail(pRowBlock == NULL);

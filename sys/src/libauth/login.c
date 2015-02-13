@@ -12,7 +12,7 @@
 #include <auth.h>
 
 int
-login(char *user, char *password, char *namespace)
+login(int8_t *user, int8_t *password, int8_t *namespace)
 {
 	int rv;
 	AuthInfo *ai;

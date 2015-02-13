@@ -72,7 +72,7 @@ runtabs(int lform, int ldata)
 
 
 int
-ifline(char *s)
+ifline(int8_t *s)
 {
 	if (!point(s)) 
 		return(0);

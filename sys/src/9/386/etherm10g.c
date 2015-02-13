@@ -40,7 +40,7 @@
 #include "etherm10g4k.i"
 
 static int 	debug		= 0;
-static char	Etimeout[]	= "timeout";
+static int8_t	Etimeout[]	= "timeout";
 
 enum {
 	Epromsz	= 256,
@@ -102,10 +102,10 @@ enum {
 
 typedef union {
 	uint	i[2];
-	uchar	c[8];
+	uint8_t	c[8];
 } Cmd;
 
-typedef ulong Slot;
+typedef uint32_t Slot;
 typedef struct {
 	u16int	cksum;
 	u16int	len;
@@ -123,10 +123,10 @@ typedef struct {
 	u32int	low;
 	u16int	hdroff;
 	u16int	len;
-	uchar	pad;
-	uchar	nrdma;
-	uchar	chkoff;
-	uchar	flags;
+	uint8_t	pad;
+	uint8_t	nrdma;
+	uint8_t	chkoff;
+	uint8_t	flags;
 } Send;
 
 typedef struct {
@@ -171,19 +171,19 @@ typedef struct {
 
 /* dma mapped.  unix network byte order. */
 typedef struct {
-	uchar	txcnt[4];
-	uchar	linkstat[4];
-	uchar	dlink[4];
-	uchar	derror[4];
-	uchar	drunt[4];
-	uchar	doverrun[4];
-	uchar	dnosm[4];
-	uchar	dnobg[4];
-	uchar	nrdma[4];
-	uchar	txstopped;
-	uchar	down;
-	uchar	updated;
-	uchar	valid;
+	uint8_t	txcnt[4];
+	uint8_t	linkstat[4];
+	uint8_t	dlink[4];
+	uint8_t	derror[4];
+	uint8_t	drunt[4];
+	uint8_t	doverrun[4];
+	uint8_t	dnosm[4];
+	uint8_t	dnobg[4];
+	uint8_t	nrdma[4];
+	uint8_t	txstopped;
+	uint8_t	down;
+	uint8_t	updated;
+	uint8_t	valid;
 } Stats;
 
 enum {
@@ -340,7 +340,7 @@ setpcie(Pcidev *p)
 static int
 whichfw(Pcidev *p)
 {
-	char *s;
+	int8_t *s;
 	int i, off, lanes, ecrc;
 	u32int cap;
 
@@ -388,7 +388,7 @@ static int
 parseeprom(Ctlr *c)
 {
 	int i, j, k, l, bits;
-	char *s;
+	int8_t *s;
 
 	dprint("m10g eprom:\n");
 	s = c->eprom;
@@ -416,16 +416,16 @@ static u16int
 pbit16(u16int i)
 {
 	u16int j;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)&j;
+	p = (uint8_t*)&j;
 	p[1] = i;
 	p[0] = i>>8;
 	return j;
 }
 
 static u16int
-gbit16(uchar i[2])
+gbit16(uint8_t i[2])
 {
 	u16int j;
 
@@ -438,9 +438,9 @@ static u32int
 pbit32(u32int i)
 {
 	u32int j;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)&j;
+	p = (uint8_t*)&j;
 	p[3] = i;
 	p[2] = i>>8;
 	p[1] = i>>16;
@@ -449,7 +449,7 @@ pbit32(u32int i)
 }
 
 static u32int
-gbit32(uchar i[4])
+gbit32(uint8_t i[4])
 {
 	u32int j;
 
@@ -518,7 +518,7 @@ cmd(Ctlr *c, int type, u64int data)
 }
 
 u32int
-maccmd(Ctlr *c, int type, uchar *m)
+maccmd(Ctlr *c, int type, uint8_t *m)
 {
 	u32int buf[16], i;
 	Cmd *cmd;
@@ -704,13 +704,13 @@ kickthebaby(Pcidev *p, Ctlr *c)
 }
 
 typedef struct {
-	uchar	len[4];
-	uchar	type[4];
-	char	version[128];
-	uchar	globals[4];
-	uchar	ramsz[4];
-	uchar	specs[4];
-	uchar	specssz[4];
+	uint8_t	len[4];
+	uint8_t	type[4];
+	int8_t	version[128];
+	uint8_t	globals[4];
+	uint8_t	ramsz[4];
+	uint8_t	specs[4];
+	uint8_t	specssz[4];
 } Fwhdr;
 
 enum {
@@ -720,7 +720,7 @@ enum {
 	Tmcp0	= 0x4d435030,
 };
 
-static char *
+static int8_t *
 fwtype(u32int type)
 {
 	switch(type){
@@ -889,7 +889,7 @@ smbfree(Block *b)
 {
 	Bpool *p;
 
-	b->rp = b->wp = (uchar*)ROUNDUP((uintptr)b->base, 4*KiB);
+	b->rp = b->wp = (uint8_t*)ROUNDUP((uintptr)b->base, 4*KiB);
  	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
 
 	p = &smpool;
@@ -906,7 +906,7 @@ bgbfree(Block *b)
 {
 	Bpool *p;
 
-	b->rp = b->wp = (uchar*)ROUNDUP((uintptr)b->base, 4*KiB);
+	b->rp = b->wp = (uint8_t*)ROUNDUP((uintptr)b->base, 4*KiB);
  	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
 
 	p = &bgpool;
@@ -1052,7 +1052,7 @@ nextblock(Ctlr *c)
 	k = sp->cksum;
 	s[i] = 0;
 	d->i++;
-	l = gbit16((uchar*)&l);
+	l = gbit16((uint8_t*)&l);
 //dprint("nextb: i=%d l=%d\n", d->i, l);
 	rx = whichrx(c, l);
 	if(rx->i >= rx->cnt){
@@ -1211,7 +1211,7 @@ m10gtransmit(Ether *e)
 {
 	u16int slen;
 	u32int i, cnt, rdma, nseg, count, end, bus, len, segsz;
-	uchar flags;
+	uint8_t flags;
 	Block *b;
 	Ctlr *c;
 	Send *s, *s0, *s0m8;
@@ -1329,7 +1329,7 @@ static void
 m10gattach(Ether *e)
 {
 	Ctlr *c;
-	char name[12];
+	int8_t name[12];
 
 	dprint("m10gattach\n");
 
@@ -1380,11 +1380,11 @@ lstcount(Block *b)
 	return i;
 }
 
-static long
-m10gifstat(Ether *e, void *v, long n, ulong off)
+static int32_t
+m10gifstat(Ether *e, void *v, int32_t n, uint32_t off)
 {
 	int l, lim;
-	char *p;
+	int8_t *p;
 	Ctlr *c;
 	Stats s;
 
@@ -1417,7 +1417,7 @@ m10gifstat(Ether *e, void *v, long n, ulong off)
 		c->tx.cnt, c->tx.n, c->tx.i,
 		c->sm.cnt, c->sm.i, c->sm.pool->n, lstcount(c->sm.pool->head),
 		c->bg.cnt, c->bg.i, c->bg.pool->n, lstcount(c->bg.pool->head),
-		c->tx.segsz, gbit32((uchar*)c->coal));
+		c->tx.segsz, gbit32((uint8_t*)c->coal));
 
 	n = readstr(off, v, n, p);
 	free(p);
@@ -1484,8 +1484,8 @@ static Cmdtab ctab[] = {
 	CMrxring,	"rxring",	1,
 };
 
-static long
-m10gctl(Ether *e, void *v, long n)
+static int32_t
+m10gctl(Ether *e, void *v, int32_t n)
 {
 	int i;
 	Cmdbuf *c;
@@ -1554,10 +1554,10 @@ m10gpromiscuous(void *v, int on)
 }
 
 static int	mcctab[]  = { CSleavemc, CSjoinmc };
-static char	*mcntab[] = { "leave", "join" };
+static int8_t	*mcntab[] = { "leave", "join" };
 
 static void
-m10gmulticast(void *v, uchar *ea, int on)
+m10gmulticast(void *v, uint8_t *ea, int on)
 {
 	Ether *e;
 	int i;

@@ -11,27 +11,27 @@
 #include <libc.h>
 #include <ip.h>
 
-static uchar classmask[4][16] = {
+static uint8_t classmask[4][16] = {
 	0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,  0xff,0x00,0x00,0x00,
 	0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,  0xff,0x00,0x00,0x00,
 	0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,  0xff,0xff,0x00,0x00,
 	0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0x00,
 };
 
-static uchar v6loopback[IPaddrlen] = {
+static uint8_t v6loopback[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01
 };
 
-static uchar v6linklocal[IPaddrlen] = {
+static uint8_t v6linklocal[IPaddrlen] = {
 	0xfe, 0x80, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-static uchar v6linklocalmask[IPaddrlen] = {
+static uint8_t v6linklocalmask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0, 0, 0, 0,
@@ -39,13 +39,13 @@ static uchar v6linklocalmask[IPaddrlen] = {
 };
 static int v6llpreflen = 8;	/* link-local prefix length in bytes */
 
-static uchar v6multicast[IPaddrlen] = {
+static uint8_t v6multicast[IPaddrlen] = {
 	0xff, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-static uchar v6multicastmask[IPaddrlen] = {
+static uint8_t v6multicastmask[IPaddrlen] = {
 	0xff, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
@@ -53,13 +53,13 @@ static uchar v6multicastmask[IPaddrlen] = {
 };
 static int v6mcpreflen = 1;	/* multicast prefix length */
 
-static uchar v6solicitednode[IPaddrlen] = {
+static uint8_t v6solicitednode[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01,
 	0xff, 0, 0, 0
 };
-static uchar v6solicitednodemask[IPaddrlen] = {
+static uint8_t v6solicitednodemask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
@@ -67,8 +67,8 @@ static uchar v6solicitednodemask[IPaddrlen] = {
 };
 static int v6snpreflen = 13;
 
-uchar*
-defmask(uchar *ip)
+uint8_t*
+defmask(uint8_t *ip)
 {
 	if(isv4(ip))
 		return classmask[ip[IPv4off]>>6];
@@ -86,7 +86,7 @@ defmask(uchar *ip)
 }
 
 void
-maskip(uchar *from, uchar *mask, uchar *to)
+maskip(uint8_t *from, uint8_t *mask, uint8_t *to)
 {
 	int i;
 

@@ -45,13 +45,13 @@
 /* can't handle output redirection (sigh). */
 
 private void
-section(FILE * f, const char *str)
+section(FILE * f, const int8_t *str)
 {
     fprintf(f, "\n\t /* ---------------- %s ---------------- */\n\n", str);
 }
 
 private clock_t
-time_clear(char *buf, int bsize, int nreps)
+time_clear(int8_t *buf, int bsize, int nreps)
 {
     clock_t t = clock();
     int i;
@@ -93,54 +93,54 @@ ilog2(int n)
 }
 
 int
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-    char *fname = argv[1];
-    long one = 1;
+    int8_t *fname = argv[1];
+    int32_t one = 1;
     struct {
-	char c;
-	short s;
+	int8_t c;
+	int16_t s;
     } ss;
     struct {
-	char c;
+	int8_t c;
 	int i;
     } si;
     struct {
-	char c;
-	long l;
+	int8_t c;
+	int32_t l;
     } sl;
     struct {
-	char c;
-	char *p;
+	int8_t c;
+	int8_t *p;
     } sp;
     struct {
-	char c;
+	int8_t c;
 	float f;
     } sf;
     struct {
-	char c;
+	int8_t c;
 	double d;
     } sd;
     /* Some architectures have special alignment requirements for jmpbuf. */
     struct {
-	char c;
+	int8_t c;
 	jmp_buf j;
     } sj;
-    long lm1 = -1;
-    long lr1 = lm1 >> 1, lr2 = lm1 >> 2;
+    int32_t lm1 = -1;
+    int32_t lr1 = lm1 >> 1, lr2 = lm1 >> 2;
     unsigned long um1 = ~(unsigned long)0;
     int im1 = -1;
     int ir1 = im1 >> 1, ir2 = im1 >> 2;
     union {
-	long l;
-	char *p;
+	int32_t l;
+	int8_t *p;
     } pl0, pl1;
     int ars;
-    int lwidth = size_of(long) * 8;
+    int lwidth = size_of(int32_t) * 8;
     union {
 	float f;
 	int i;
-	long l;
+	int32_t l;
     } f0, f1, fm1;
     int floats_are_IEEE;
     FILE *f = fopen(fname, "w");
@@ -174,14 +174,14 @@ main(int argc, char *argv[])
 
     section(f, "Scalar sizes");
 
-    define_int(f, "ARCH_LOG2_SIZEOF_CHAR", ilog2(size_of(char)));
-    define_int(f, "ARCH_LOG2_SIZEOF_SHORT", ilog2(size_of(short)));
+    define_int(f, "ARCH_LOG2_SIZEOF_CHAR", ilog2(size_of(int8_t)));
+    define_int(f, "ARCH_LOG2_SIZEOF_SHORT", ilog2(size_of(int16_t)));
     define_int(f, "ARCH_LOG2_SIZEOF_INT", ilog2(size_of(int)));
-    define_int(f, "ARCH_LOG2_SIZEOF_LONG", ilog2(size_of(long)));
+    define_int(f, "ARCH_LOG2_SIZEOF_LONG", ilog2(size_of(int32_t)));
 #ifdef HAVE_LONG_LONG
     define_int(f, "ARCH_LOG2_SIZEOF_LONG_LONG", ilog2(size_of(long long)));
 #endif
-    define_int(f, "ARCH_SIZEOF_PTR", size_of(char *));
+    define_int(f, "ARCH_SIZEOF_PTR", size_of(int8_t *));
     define_int(f, "ARCH_SIZEOF_FLOAT", size_of(float));
     define_int(f, "ARCH_SIZEOF_DOUBLE", size_of(double));
     if (floats_are_IEEE) {
@@ -233,7 +233,7 @@ main(int argc, char *argv[])
     {
 #define MAX_BLOCK (1 << 22)	/* max 4M cache */
 #define MAX_NREPS (1 << 10)	/* limit the number of reps we try */
-	static char buf[MAX_BLOCK];
+	static int8_t buf[MAX_BLOCK];
 	int bsize = 1 << 10;
 	int nreps = 1;
 	clock_t t = 0;
@@ -288,7 +288,7 @@ main(int argc, char *argv[])
 
     section(f, "Miscellaneous");
 
-    define_int(f, "ARCH_IS_BIG_ENDIAN", 1 - *(char *)&one);
+    define_int(f, "ARCH_IS_BIG_ENDIAN", 1 - *(int8_t *)&one);
     pl0.l = 0;
     pl1.l = -1;
     define_int(f, "ARCH_PTRS_ARE_SIGNED", (pl1.p < pl0.p));

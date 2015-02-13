@@ -37,16 +37,16 @@ enum
 
 struct Ip4hdr
 {
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* ip->identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	cksum[2];	/* Header checksum */
-	uchar	src[4];		/* IP source */
-	uchar	dst[4];		/* IP destination */
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* ip->identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	ttl;		/* Time to live */
+	uint8_t	proto;		/* Protocol */
+	uint8_t	cksum[2];	/* Header checksum */
+	uint8_t	src[4];		/* IP source */
+	uint8_t	dst[4];		/* IP destination */
 };
 
 /* MIB II counters */
@@ -79,32 +79,32 @@ struct Fragment4
 {
 	Block*	blist;
 	Fragment4*	next;
-	ulong 	src;
-	ulong 	dst;
-	ushort	id;
-	ulong 	age;
+	uint32_t 	src;
+	uint32_t 	dst;
+	uint16_t	id;
+	uint32_t 	age;
 };
 
 struct Fragment6
 {
 	Block*	blist;
 	Fragment6*	next;
-	uchar 	src[IPaddrlen];
-	uchar 	dst[IPaddrlen];
+	uint8_t 	src[IPaddrlen];
+	uint8_t 	dst[IPaddrlen];
 	uint	id;
-	ulong 	age;
+	uint32_t 	age;
 };
 
 struct Ipfrag
 {
-	ushort	foff;
-	ushort	flen;
+	uint16_t	foff;
+	uint16_t	flen;
 };
 
 /* an instance of IP */
 struct IP
 {
-	ulong		stats[Nstats];
+	uint32_t		stats[Nstats];
 
 	QLock		fraglock4;
 	Fragment4*	flisthead4;
@@ -149,7 +149,7 @@ static char *statnames[] =
  */
 #define BKFG(xp)	((Ipfrag*)((xp)->base))
 
-ushort		ipcsum(uchar*);
+uint16_t		ipcsum(uint8_t*);
 Block*		ip4reassemble(IP*, int, Block*, Ip4hdr*);
 void		ipfragfree4(IP*, Fragment4*);
 Fragment4*	ipfragallo4(IP*);
@@ -233,8 +233,8 @@ int
 ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 {
 	Ipifc *ifc;
-	uchar *gate;
-	ulong fragoff;
+	uint8_t *gate;
+	uint32_t fragoff;
 	Block *xp, *nb;
 	Ip4hdr *eh, *feh;
 	int lid, len, seglen, chunk, dlen, blklen, offset, medialen;
@@ -420,9 +420,9 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 	int hop, tos, proto, olen;
 	Ip4hdr *h;
 	Proto *p;
-	ushort frag;
+	uint16_t frag;
 	int notforme;
-	uchar *dp, v6dst[IPaddrlen];
+	uint8_t *dp, v6dst[IPaddrlen];
 	IP *ip;
 	Route *r;
 
@@ -560,10 +560,10 @@ if(r->ifc == nil) panic("nil route rfc");
 }
 
 int
-ipstats(Fs *f, char *buf, int len)
+ipstats(Fs *f, int8_t *buf, int len)
 {
 	IP *ip;
-	char *p, *e;
+	int8_t *p, *e;
 	int i;
 
 	ip = f->ip;
@@ -580,9 +580,9 @@ Block*
 ip4reassemble(IP *ip, int offset, Block *bp, Ip4hdr *ih)
 {
 	int fend;
-	ushort id;
+	uint16_t id;
 	Fragment4 *f, *fnext;
-	ulong src, dst;
+	uint32_t src, dst;
 	Block *bl, **l, *last, *prev;
 	int ovlap, len, fragsize, pktposn;
 
@@ -792,11 +792,11 @@ ipfragallo4(IP *ip)
 	return f;
 }
 
-ushort
-ipcsum(uchar *addr)
+uint16_t
+ipcsum(uint8_t *addr)
 {
 	int len;
-	ulong sum;
+	uint32_t sum;
 
 	sum = 0;
 	len = (addr[0]&0xf)<<2;

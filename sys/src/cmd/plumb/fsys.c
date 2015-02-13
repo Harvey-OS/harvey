@@ -30,8 +30,8 @@ typedef struct Sendreq Sendreq;
 
 struct Dirtab
 {
-	char		*name;
-	uchar	type;
+	int8_t		*name;
+	uint8_t	type;
 	uint		qid;
 	uint		perm;
 	int		nopen;		/* #fids open on this port */
@@ -49,8 +49,8 @@ struct Fid
 	int		mode;
 	Qid		qid;
 	Dirtab	*dir;
-	long		offset;		/* zeroed at beginning of each message, read or write */
-	char		*writebuf;		/* partial message written so far; offset tells how much */
+	int32_t		offset;		/* zeroed at beginning of each message, read or write */
+	int8_t		*writebuf;		/* partial message written so far; offset tells how much */
 	Fid		*next;
 	Fid		*nextopen;
 };
@@ -59,7 +59,7 @@ struct Readreq
 {
 	Fid		*fid;
 	Fcall		*fcall;
-	uchar	*buf;
+	uint8_t	*buf;
 	Readreq	*next;
 };
 
@@ -69,7 +69,7 @@ struct Sendreq
 	int			nleft;		/* number left that haven't received it */
 	Fid			**fid;	/* fid[nfid] */
 	Plumbmsg	*msg;
-	char			*pack;	/* plumbpack()ed message */
+	int8_t			*pack;	/* plumbpack()ed message */
 	int			npack;	/* length of pack */
 	Sendreq		*next;
 };
@@ -114,28 +114,28 @@ static int		clock;
 static Fid		*fids[Nhash];
 static QLock	readlock;
 static QLock	queue;
-static char	srvfile[128];
+static int8_t	srvfile[128];
 static int		messagesize = 8192+IOHDRSZ;	/* good start */
 
 static void	fsysproc(void*);
-static void fsysrespond(Fcall*, uchar*, char*);
+static void fsysrespond(Fcall*, uint8_t*, int8_t*);
 static Fid*	newfid(int);
 
-static Fcall* fsysflush(Fcall*, uchar*, Fid*);
-static Fcall* fsysversion(Fcall*, uchar*, Fid*);
-static Fcall* fsysauth(Fcall*, uchar*, Fid*);
-static Fcall* fsysattach(Fcall*, uchar*, Fid*);
-static Fcall* fsyswalk(Fcall*, uchar*, Fid*);
-static Fcall* fsysopen(Fcall*, uchar*, Fid*);
-static Fcall* fsyscreate(Fcall*, uchar*, Fid*);
-static Fcall* fsysread(Fcall*, uchar*, Fid*);
-static Fcall* fsyswrite(Fcall*, uchar*, Fid*);
-static Fcall* fsysclunk(Fcall*, uchar*, Fid*);
-static Fcall* fsysremove(Fcall*, uchar*, Fid*);
-static Fcall* fsysstat(Fcall*, uchar*, Fid*);
-static Fcall* fsyswstat(Fcall*, uchar*, Fid*);
+static Fcall* fsysflush(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysversion(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysauth(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysattach(Fcall*, uint8_t*, Fid*);
+static Fcall* fsyswalk(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysopen(Fcall*, uint8_t*, Fid*);
+static Fcall* fsyscreate(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysread(Fcall*, uint8_t*, Fid*);
+static Fcall* fsyswrite(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysclunk(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysremove(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysstat(Fcall*, uint8_t*, Fid*);
+static Fcall* fsyswstat(Fcall*, uint8_t*, Fid*);
 
-Fcall* 	(*fcall[Tmax])(Fcall*, uchar*, Fid*) =
+Fcall* 	(*fcall[Tmax])(Fcall*, uint8_t*, Fid*) =
 {
 	[Tflush]	= fsysflush,
 	[Tversion]	= fsysversion,
@@ -152,22 +152,22 @@ Fcall* 	(*fcall[Tmax])(Fcall*, uchar*, Fid*) =
 	[Twstat]	= fsyswstat,
 };
 
-char	Ebadfcall[] =	"bad fcall type";
-char	Eperm[] = 	"permission denied";
-char	Enomem[] =	"malloc failed for buffer";
-char	Enotdir[] =	"not a directory";
-char	Enoexist[] =	"plumb file does not exist";
-char	Eisdir[] =		"file is a directory";
-char	Ebadmsg[] =	"bad plumb message format";
-char Enosuchport[] ="no such plumb port";
-char Enoport[] =	"couldn't find destination for message";
-char	Einuse[] = 	"file already open";
+int8_t	Ebadfcall[] =	"bad fcall type";
+int8_t	Eperm[] = 	"permission denied";
+int8_t	Enomem[] =	"malloc failed for buffer";
+int8_t	Enotdir[] =	"not a directory";
+int8_t	Enoexist[] =	"plumb file does not exist";
+int8_t	Eisdir[] =		"file is a directory";
+int8_t	Ebadmsg[] =	"bad plumb message format";
+int8_t Enosuchport[] ="no such plumb port";
+int8_t Enoport[] =	"couldn't find destination for message";
+int8_t	Einuse[] = 	"file already open";
 
 /*
  * Add new port.  A no-op if port already exists or is the null string
  */
 void
-addport(char *port)
+addport(int8_t *port)
 {
 	int i;
 
@@ -185,14 +185,14 @@ addport(char *port)
 	dir[i].qid = i;
 	dir[i].perm = 0400;
 	nports++;
-	ports = erealloc(ports, nports*sizeof(char*));
+	ports = erealloc(ports, nports*sizeof(int8_t*));
 	ports[nports-1] = dir[i].name;
 }
 
-static ulong
+static uint32_t
 getclock(void)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	seek(clockfd, 0, 0);
 	read(clockfd, buf, sizeof buf);
@@ -236,7 +236,7 @@ fsysproc(void*)
 	int n;
 	Fcall *t;
 	Fid *f;
-	uchar *buf;
+	uint8_t *buf;
 
 	close(srvclosefd);
 	srvclosefd = -1;
@@ -274,7 +274,7 @@ fsysproc(void*)
 }
 
 static void
-fsysrespond(Fcall *t, uchar *buf, char *err)
+fsysrespond(Fcall *t, uint8_t *buf, int8_t *err)
 {
 	int n;
 
@@ -324,7 +324,7 @@ newfid(int fid)
 }
 
 static uint
-dostat(Dirtab *dir, uchar *buf, uint nbuf, uint clock)
+dostat(Dirtab *dir, uint8_t *buf, uint nbuf, uint clock)
 {
 	Dir d;
 
@@ -370,7 +370,7 @@ queuesend(Dirtab *d, Plumbmsg *m)
 }
 
 static void
-queueread(Dirtab *d, Fcall *t, uchar *buf, Fid *f)
+queueread(Dirtab *d, Fcall *t, uint8_t *buf, Fid *f)
 {
 	Readreq *r;
 
@@ -530,10 +530,10 @@ queueheld(Dirtab *d)
 }
 
 static void
-dispose(Fcall *t, uchar *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
+dispose(Fcall *t, uint8_t *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
 {
 	int i;
-	char *err;
+	int8_t *err;
 
 	qlock(&queue);
 	err = nil;
@@ -564,7 +564,7 @@ dispose(Fcall *t, uchar *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
 }
 
 static Fcall*
-fsysversion(Fcall *t, uchar *buf, Fid*)
+fsysversion(Fcall *t, uint8_t *buf, Fid*)
 {
 	if(t->msize < 256){
 		fsysrespond(t, buf, "version: message size too small");
@@ -583,14 +583,14 @@ fsysversion(Fcall *t, uchar *buf, Fid*)
 }
 
 static Fcall*
-fsysauth(Fcall *t, uchar *buf, Fid*)
+fsysauth(Fcall *t, uint8_t *buf, Fid*)
 {
 	fsysrespond(t, buf, "plumber: authentication not required");
 	return t;
 }
 
 static Fcall*
-fsysattach(Fcall *t, uchar *buf, Fid *f)
+fsysattach(Fcall *t, uint8_t *buf, Fid *f)
 {
 	Fcall out;
 
@@ -614,7 +614,7 @@ fsysattach(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsysflush(Fcall *t, uchar *buf, Fid*)
+fsysflush(Fcall *t, uint8_t *buf, Fid*)
 {
 	int i;
 
@@ -627,16 +627,16 @@ fsysflush(Fcall *t, uchar *buf, Fid*)
 }
 
 static Fcall*
-fsyswalk(Fcall *t, uchar *buf, Fid *f)
+fsyswalk(Fcall *t, uint8_t *buf, Fid *f)
 {
 	Fcall out;
 	Fid *nf;
-	ulong path;
+	uint32_t path;
 	Dirtab *d, *dir;
 	Qid q;
 	int i;
-	uchar type;
-	char *err;
+	uint8_t type;
+	int8_t *err;
 
 	if(f->open){
 		fsysrespond(t, buf, "clone of an open fid");
@@ -707,7 +707,7 @@ fsyswalk(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsysopen(Fcall *t, uchar *buf, Fid *f)
+fsysopen(Fcall *t, uint8_t *buf, Fid *f)
 {
 	int m, clearrules, mode;
 
@@ -770,16 +770,16 @@ fsysopen(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsyscreate(Fcall *t, uchar *buf, Fid*)
+fsyscreate(Fcall *t, uint8_t *buf, Fid*)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
 }
 
 static Fcall*
-fsysreadrules(Fcall *t, uchar *buf)
+fsysreadrules(Fcall *t, uint8_t *buf)
 {
-	char *p;
+	int8_t *p;
 	int n;
 
 	p = printrules();
@@ -798,9 +798,9 @@ fsysreadrules(Fcall *t, uchar *buf)
 }
 
 static Fcall*
-fsysread(Fcall *t, uchar *buf, Fid *f)
+fsysread(Fcall *t, uint8_t *buf, Fid *f)
 {
-	uchar *b;
+	uint8_t *b;
 	int i, n, o, e;
 	uint len;
 	Dirtab *d;
@@ -839,7 +839,7 @@ fsysread(Fcall *t, uchar *buf, Fid *f)
 			n += len;
 		d++;
 	}
-	t->data = (char*)b;
+	t->data = (int8_t*)b;
 	t->count = n;
 	fsysrespond(t, buf, nil);
 	free(b);
@@ -847,12 +847,12 @@ fsysread(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsyswrite(Fcall *t, uchar *buf, Fid *f)
+fsyswrite(Fcall *t, uint8_t *buf, Fid *f)
 {
 	Plumbmsg *m;
 	int i, n;
-	long count;
-	char *data;
+	int32_t count;
+	int8_t *data;
 	Exec *e;
 
 	switch((int)f->qid.path){
@@ -914,7 +914,7 @@ fsyswrite(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsysstat(Fcall *t, uchar *buf, Fid *f)
+fsysstat(Fcall *t, uint8_t *buf, Fid *f)
 {
 	t->stat = emalloc(messagesize-IOHDRSZ);
 	t->nstat = dostat(f->dir, t->stat, messagesize-IOHDRSZ, clock);
@@ -925,21 +925,21 @@ fsysstat(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsyswstat(Fcall *t, uchar *buf, Fid*)
+fsyswstat(Fcall *t, uint8_t *buf, Fid*)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
 }
 
 static Fcall*
-fsysremove(Fcall *t, uchar *buf, Fid*)
+fsysremove(Fcall *t, uint8_t *buf, Fid*)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
 }
 
 static Fcall*
-fsysclunk(Fcall *t, uchar *buf, Fid *f)
+fsysclunk(Fcall *t, uint8_t *buf, Fid *f)
 {
 	Fid *prev, *p;
 	Dirtab *d;

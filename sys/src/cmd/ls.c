@@ -16,7 +16,7 @@ typedef struct NDir NDir;
 struct NDir
 {
 	Dir *d;
-	char	*prefix;
+	int8_t	*prefix;
 };
 
 int	errs = 0;
@@ -36,17 +36,17 @@ int	Fflag;
 int	ndirbuf;
 int	ndir;
 NDir*	dirbuf;
-int	ls(char*, int);
+int	ls(int8_t*, int);
 int	compar(NDir*, NDir*);
-char*	asciitime(long);
-char*	darwx(long);
-void	rwx(long, char*);
-void	growto(long);
+int8_t*	asciitime(int32_t);
+int8_t*	darwx(int32_t);
+void	rwx(int32_t, int8_t*);
+void	growto(int32_t);
 void	dowidths(Dir*);
-void	format(Dir*, char*);
+void	format(Dir*, int8_t*);
 void	output(void);
-char*	xcleanname(char*);
-ulong	clk;
+int8_t*	xcleanname(int8_t*);
+uint32_t	clk;
 int	swidth;			/* max width of -s size */
 int	qwidth;			/* max width of -q version */
 int	vwidth;			/* max width of dev */
@@ -95,11 +95,11 @@ main(int argc, char *argv[])
 }
 
 int
-ls(char *s, int multi)
+ls(int8_t *s, int multi)
 {
 	int fd;
-	long i, n;
-	char *p;
+	int32_t i, n;
+	int8_t *p;
 	Dir *db;
 
 	db = dirstat(s);
@@ -145,8 +145,8 @@ void
 output(void)
 {
 	int i;
-	char buf[4096];
-	char *s;
+	int8_t buf[4096];
+	int8_t *s;
 
 	if(!nflag)
 		qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(void*, void*))compar);
@@ -168,7 +168,7 @@ output(void)
 void
 dowidths(Dir *db)
 {
-	char buf[256];
+	int8_t buf[256];
 	int n;
 
 	if(sflag) {
@@ -202,7 +202,7 @@ dowidths(Dir *db)
 	}
 }
 
-char*
+int8_t*
 fileflag(Dir *db)
 {
 	if(Fflag == 0)
@@ -215,7 +215,7 @@ fileflag(Dir *db)
 }
 
 void
-format(Dir *db, char *name)
+format(Dir *db, int8_t *name)
 {
 	int i;
 
@@ -247,7 +247,7 @@ format(Dir *db, char *name)
 }
 
 void
-growto(long n)
+growto(int32_t n)
 {
 	if(n <= ndirbuf)
 		return;
@@ -262,7 +262,7 @@ growto(long n)
 int
 compar(NDir *a, NDir *b)
 {
-	long i;
+	int32_t i;
 	Dir *ad, *bd;
 
 	ad = a->d;
@@ -296,11 +296,11 @@ compar(NDir *a, NDir *b)
 	return i;
 }
 
-char*
-asciitime(long l)
+int8_t*
+asciitime(int32_t l)
 {
-	static char buf[32];
-	char *t;
+	static int8_t buf[32];
+	int8_t *t;
 
 	t = ctime(l);
 	/* 6 months in the past or a day in the future */
@@ -316,10 +316,10 @@ asciitime(long l)
 /*
  * Compress slashes, remove trailing slash.  Don't worry about . and ..
  */
-char*
-xcleanname(char *name)
+int8_t*
+xcleanname(int8_t *name)
 {
-	char *r, *w;
+	int8_t *r, *w;
 
 	for(r=w=name; *r; r++){
 		if(*r=='/' && r>name && *(r-1)=='/')

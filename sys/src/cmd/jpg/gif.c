@@ -20,7 +20,7 @@ int		eflag = 0;
 int		nineflag = 0;
 int		threeflag = 0;
 int		output = 0;
-ulong	outchan = CMAP8;
+uint32_t	outchan = CMAP8;
 Image	**allims;
 Image	**allmasks;
 Rawimage	**allimages;
@@ -32,7 +32,7 @@ enum{
 	Edge		= 5
 };
 
-char	*show(int, char*);
+int8_t	*show(int, int8_t*);
 
 Rectangle
 imager(void)
@@ -144,11 +144,11 @@ main(int argc, char *argv[])
 }
 
 Image*
-transparency(Rawimage *r, char *name)
+transparency(Rawimage *r, int8_t *name)
 {
 	Image *i;
 	int j, index;
-	uchar *pic, *mpic, *mask;
+	uint8_t *pic, *mpic, *mask;
 
 	if((r->gifflags&TRANSP) == 0)
 		return nil;
@@ -182,11 +182,11 @@ transparency(Rawimage *r, char *name)
 }
 
 /* interleave alpha values of 0xFF in data stream. alpha value comes first, then b g r */
-uchar*
-expand(uchar *u, int chanlen, int nchan)
+uint8_t*
+expand(uint8_t *u, int chanlen, int nchan)
 {
 	int j, k;
-	uchar *v, *up, *vp;
+	uint8_t *v, *up, *vp;
 
 	v = malloc(chanlen*(nchan+1));
 	if(v == nil){
@@ -206,7 +206,7 @@ expand(uchar *u, int chanlen, int nchan)
 void
 addalpha(Rawimage *i)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	switch(outchan){
 	case CMAP8:
@@ -247,7 +247,7 @@ void
 blackout(Rawimage *r, Rawimage *c)
 {
 	int i, trindex;
-	uchar *rp, *cp;
+	uint8_t *rp, *cp;
 
 	rp = r->chans[0];
 	cp = c->chans[0];
@@ -294,14 +294,14 @@ init(void)
 	return 1;
 }
 
-char*
-show(int fd, char *name)
+int8_t*
+show(int fd, int8_t *name)
 {
 	Rawimage **images, **rgbv;
 	Image **ims, **masks;
 	int j, k, n, ch, nloop, loopcount, dt;
-	char *err;
-	char buf[32];
+	int8_t *err;
+	int8_t buf[32];
 
 	err = nil;
 	images = readgif(fd, CRGB);

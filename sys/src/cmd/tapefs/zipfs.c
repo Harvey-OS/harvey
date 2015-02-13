@@ -33,29 +33,29 @@ enum {
 
 typedef struct Block Block;
 struct Block{
-	uchar *pos;
-	uchar *limit;
+	uint8_t *pos;
+	uint8_t *limit;
 };
 
 static Biobuf *bin;
-static ulong *crctab;
-static ulong crc;
+static uint32_t *crctab;
+static uint32_t crc;
 
 static int findCDir(Biobuf *);
 static int header(Biobuf *, ZipHead *);
 static int cheader(Biobuf *, ZipHead *);
 static void trailer(Biobuf *, ZipHead *);
-static char *getname(Biobuf *, int);
+static int8_t *getname(Biobuf *, int);
 static int blwrite(void *, void *, int);
-static ulong get4(Biobuf *);
+static uint32_t get4(Biobuf *);
 static int get2(Biobuf *);
 static int get1(Biobuf *);
-static long msdos2time(int, int);
+static int32_t msdos2time(int, int);
 
 void
-populate(char *name)
+populate(int8_t *name)
 {
-	char *p;
+	int8_t *p;
 	Fileinf f;
 	ZipHead zh;
 	int ok, entries;
@@ -109,15 +109,15 @@ docreate(Ram *r)
 	USED(r);
 }
 
-char *
-doread(Ram *r, vlong off, long cnt)
+int8_t *
+doread(Ram *r, int64_t off, int32_t cnt)
 {
 	int i, err;
 	Block bs;
 	ZipHead zh;
 	static Qid oqid;
-	static char buf[Maxbuf];
-	static uchar *cache = nil;
+	static int8_t buf[Maxbuf];
+	static uint8_t *cache = nil;
 
 	if (cnt > Maxbuf)
 		sysfatal("file too big (>%d)", Maxbuf);
@@ -174,7 +174,7 @@ popdir(Ram *r)
 }
 
 void
-dowrite(Ram *r, char *buf, long off, long cnt)
+dowrite(Ram *r, int8_t *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }
@@ -191,8 +191,8 @@ dopermw(Ram *r)
 static int
 findCDir(Biobuf *bin)
 {
-	vlong ecoff;
-	long off;
+	int64_t ecoff;
+	int32_t off;
 	int entries, zclen;
 
 	ecoff = Bseek(bin, -ZECHeadSize, 2);
@@ -222,7 +222,7 @@ findCDir(Biobuf *bin)
 static int
 header(Biobuf *bin, ZipHead *zh)
 {
-	ulong v;
+	uint32_t v;
 	int flen, xlen;
 
 	v = get4(bin);
@@ -253,7 +253,7 @@ header(Biobuf *bin, ZipHead *zh)
 static int
 cheader(Biobuf *bin, ZipHead *zh)
 {
-	ulong v;
+	uint32_t v;
 	int flen, xlen, fclen;
 
 	v = get4(bin);
@@ -314,10 +314,10 @@ trailer(Biobuf *bin, ZipHead *zh)
 	}
 }
 
-static char*
+static int8_t*
 getname(Biobuf *bin, int len)
 {
-	char *s;
+	int8_t *s;
 	int i, c;
 
 	s = emalloc(len + 1);
@@ -332,10 +332,10 @@ getname(Biobuf *bin, int len)
 }
 
 
-static ulong
+static uint32_t
 get4(Biobuf *b)
 {
-	ulong v;
+	uint32_t v;
 	int i, c;
 
 	v = 0;
@@ -374,7 +374,7 @@ get1(Biobuf *b)
 	return c;
 }
 
-static long
+static int32_t
 msdos2time(int time, int date)
 {
 	Tm tm;

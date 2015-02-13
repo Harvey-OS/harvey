@@ -29,12 +29,12 @@ static int half;
 static int ll, llh, mustwr;
 static int pcp = 0;
 
-static char *page[PL];
-static char *line;
-static char lbuff[LINELN];
+static int8_t *page[PL];
+static int8_t *line;
+static int8_t lbuff[LINELN];
 static Biobuf bin, bout;
 
-void	emit(char *s, int lineno);
+void	emit(int8_t *s, int lineno);
 void	incr(void), decr(void);
 void	outc(Rune);
 
@@ -188,7 +188,7 @@ outc(Rune c)
 	if (bflag || *line == '\0' || *line == ' ')
 		cp += runetochar(line, &c) - 1;
 	else {
-		char c1, c2, c3;
+		int8_t c1, c2, c3;
 
 		c1 = *++line;
 		*line++ = '\b';
@@ -220,7 +220,7 @@ store(int lno)
 void
 fetch(int lno)
 {
-	char *p;
+	int8_t *p;
 
 	lno %= PL;
 	p = lbuff;
@@ -233,10 +233,10 @@ fetch(int lno)
 }
 
 void
-emit(char *s, int lineno)
+emit(int8_t *s, int lineno)
 {
 	int ncp;
-	char *p;
+	int8_t *p;
 	static int cline = 0;
 
 	if (*s) {

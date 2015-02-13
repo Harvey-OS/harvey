@@ -10,7 +10,7 @@
 #include "headers.h"
 
 static void
-smblogprintattr(int cmd, ushort attr)
+smblogprintattr(int cmd, uint16_t attr)
 {
 	if (attr & SMB_ATTR_READ_ONLY)
 		smblogprint(cmd, " readonly");
@@ -25,17 +25,21 @@ smblogprintattr(int cmd, ushort attr)
 }
 
 static SmbFile *
-openfile(SmbSession *s, SmbTree *t, char *path, ushort mode, ushort attr, ushort ofun, ulong createoptions, uvlong createsize,
-	ushort *fidp, Dir **dp, ushort *actionp)
+openfile(SmbSession *s, SmbTree *t, int8_t *path, uint16_t mode,
+	 uint16_t attr,
+	 uint16_t ofun,
+	 uint32_t createoptions,
+	 uint64_t createsize,
+	uint16_t *fidp, Dir **dp, uint16_t *actionp)
 {
 	int p9mode;
 	int share;
 	Dir *d = nil;
 	int fd = -1;
-	ushort action;
+	uint16_t action;
 	SmbFile *f = nil;
 	SmbSharedFile *sf = nil;
-	char *fullpath = nil;
+	int8_t *fullpath = nil;
 	int diropen = 0;
 
 //smblogprint(-1, "%s A %r", path);
@@ -91,7 +95,7 @@ openfile(SmbSession *s, SmbTree *t, char *path, ushort mode, ushort attr, ushort
 	}
 	else {
 		/* file does not exist */
-		ulong p9attr;
+		uint32_t p9attr;
 		action = 3;
 		if ((ofun & SMB_OFUN_NOEXIST_CREATE) == 0) {
 			smbseterror(s, ERRDOS, ERRbadfile);
@@ -166,21 +170,21 @@ done:
 }
 
 SmbProcessResult
-smbcomopenandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomopenandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
-	uchar andxcommand;
-	ushort andxoffset, flags, mode, sattr, attr;
-	ulong createtime;	
-	ushort ofun;
-	ulong createsize, timeout;
-	char *path = nil;
-	ulong andxoffsetfixupoffset;
+	uint8_t andxcommand;
+	uint16_t andxoffset, flags, mode, sattr, attr;
+	uint32_t createtime;	
+	uint16_t ofun;
+	uint32_t createsize, timeout;
+	int8_t *path = nil;
+	uint32_t andxoffsetfixupoffset;
 	SmbProcessResult pr;
-	ushort action;
+	uint16_t action;
 	Dir *d = nil;
 	SmbFile *f;
 	SmbTree *t;
-	ushort fid;
+	uint16_t fid;
 
 	if (!smbcheckwordcount("comopenandx", h, 15))
 		return SmbProcessResultFormat;
@@ -318,13 +322,13 @@ done:
 }
 
 SmbProcessResult
-smbcomopen(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomopen(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
-	uchar fmt;
-	char *path;
-	ushort mode, attr;
+	uint8_t fmt;
+	int8_t *path;
+	uint16_t mode, attr;
 	SmbTree *t;
-	ushort fid;
+	uint16_t fid;
 	Dir *d = nil;
 	SmbFile *f;
 	SmbProcessResult pr;
@@ -381,15 +385,15 @@ done:
 */
 
 SmbProcessResult
-smbcomcreate(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomcreate(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	int ofun, attr, mode;
-	long createtime;
-	char *path;
-	uchar fmt;
+	int32_t createtime;
+	int8_t *path;
+	uint8_t fmt;
 	SmbFile *f;
 	SmbTree *t;
-	ushort fid;
+	uint16_t fid;
 	SmbProcessResult pr;
 
 	path = nil;
@@ -445,8 +449,8 @@ done:
 
 
 typedef struct SmbSblut {
-	char *s;
-	ulong mask;
+	int8_t *s;
+	uint32_t mask;
 } SmbSblut;
 
 static SmbSblut dasblut[] = {
@@ -517,7 +521,7 @@ static SmbSlut cdslut[] = {
 };
 
 static void
-smbsblutlogprint(uchar cmd, SmbSblut *sblut, ulong mask)
+smbsblutlogprint(uint8_t cmd, SmbSblut *sblut, uint32_t mask)
 {
 	while (sblut->s) {
 		if (mask && (sblut->mask & mask) || (mask == 0 && sblut->mask == 0))
@@ -527,29 +531,29 @@ smbsblutlogprint(uchar cmd, SmbSblut *sblut, ulong mask)
 }
 
 SmbProcessResult
-smbcomntcreateandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomntcreateandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
-	uchar andxcommand;
-	ushort andxoffset;
-	char *path = nil;
+	uint8_t andxcommand;
+	uint16_t andxoffset;
+	int8_t *path = nil;
 	SmbProcessResult pr;
-	ulong namelength;
-	ulong flags;
-	ulong rootdirectoryfid, desiredaccess;
-	uvlong allocationsize;
-	ulong extfileattributes, shareaccess, createdisposition, createoptions, impersonationlevel;
-	uchar securityflags;
+	uint32_t namelength;
+	uint32_t flags;
+	uint32_t rootdirectoryfid, desiredaccess;
+	uint64_t allocationsize;
+	uint32_t extfileattributes, shareaccess, createdisposition, createoptions, impersonationlevel;
+	uint8_t securityflags;
 	int p9mode;
 	int sharemode;
-	ushort mode;
+	uint16_t mode;
 	SmbTree *t;
-	ushort ofun;
+	uint16_t ofun;
 	SmbFile *f;
-	ushort fid;
+	uint16_t fid;
 	Dir *d = nil;
-	ushort action;
-	uvlong mtime;
-	ulong andxoffsetfixup;
+	uint16_t action;
+	uint64_t mtime;
+	uint32_t andxoffsetfixup;
 
 	if (!smbcheckwordcount("comntcreateandx", h, 24))
 		return SmbProcessResultFormat;

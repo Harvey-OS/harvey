@@ -10,7 +10,7 @@
 #include "astro.h"
 
 
-char*	month[] =
+int8_t*	month[] =
 {
 	"January",
 	"February",
@@ -89,7 +89,7 @@ void
 ptime(double d)
 {
 	int h, m, s;
-	char *mer;
+	int8_t *mer;
 	Tim t;
 
 	if(flags['s']) {
@@ -125,7 +125,7 @@ ptime(double d)
 	print("%.2d:%.2d:%.2d %.*s", h, m, s, utfnlen(t.tz, 3), t.tz);
 }
 
-char*	unit[] =
+int8_t*	unit[] =
 {
 	"zero",
 	"one",
@@ -148,7 +148,7 @@ char*	unit[] =
 	"eighteen",
 	"nineteen"
 };
-char*	decade[] =
+int8_t*	decade[] =
 {
 	"twenty",
 	"thirty",
@@ -223,8 +223,8 @@ tzone(double y, Tim *z)
 	/*
 	 * convert by both local and gmt
 	 */
-	t1 = *localtime((long)t);
-	t2 = *gmtime((long)t);
+	t1 = *localtime((int32_t)t);
+	t2 = *gmtime((int32_t)t);
 
 	/*
 	 * pick up year crossings

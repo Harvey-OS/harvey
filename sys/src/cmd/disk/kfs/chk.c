@@ -12,31 +12,31 @@
 #define	DSIZE		546000
 #define	MAXDEPTH	100
 
-static	char*	abits;
-static	long	sizabits;
-static	char*	qbits;
-static	long	sizqbits;
-static	char*	name;
-static	long	sizname;
-static	long	fstart;
-static	long	fsize;
-static	long	nfiles;
-static	long	maxq;
-static	char*	fence;
-static	char*	fencebase;
+static	int8_t*	abits;
+static	int32_t	sizabits;
+static	int8_t*	qbits;
+static	int32_t	sizqbits;
+static	int8_t*	name;
+static	int32_t	sizname;
+static	int32_t	fstart;
+static	int32_t	fsize;
+static	int32_t	nfiles;
+static	int32_t	maxq;
+static	int8_t*	fence;
+static	int8_t*	fencebase;
 static	Device	dev;
-static	long	ndup;
-static	long	nused;
-static	long	nfdup;
-static	long	nqbad;
-static	long	nfree;
-static	long	nbad;
+static	int32_t	ndup;
+static	int32_t	nused;
+static	int32_t	nfdup;
+static	int32_t	nqbad;
+static	int32_t	nfree;
+static	int32_t	nbad;
 static	int	mod;
 static	int	flags;
 static	int	ronly;
 static	int	cwflag;
-static	long	sbaddr;
-static	long	oldblock;
+static	int32_t	sbaddr;
+static	int32_t	oldblock;
 static	int	depth;
 static	int	maxdepth;
 
@@ -44,22 +44,22 @@ static	int	maxdepth;
 static	int	fsck(Dentry*);
 static	void	ckfreelist(Superb*);
 static	void	mkfreelist(Superb*);
-static	Dentry*	maked(long, int, long);
-static	void	modd(long, int, Dentry*);
-static	void	xread(long, long);
-static	int	amark(long);
-static	int	fmark(long);
+static	Dentry*	maked(int32_t, int, int32_t);
+static	void	modd(int32_t, int, Dentry*);
+static	void	xread(int32_t, int32_t);
+static	int	amark(int32_t);
+static	int	fmark(int32_t);
 static	void	missing(void);
-static	void	qmark(long);
+static	void	qmark(int32_t);
 static	void*	zalloc(ulong);
 static	void*	dalloc(ulong);
-static	Iobuf*	xtag(long, int, long);
+static	Iobuf*	xtag(int32_t, int, int32_t);
 
 static
 void*
-zalloc(ulong n)
+zalloc(uint32_t n)
 {
-	char *p;
+	int8_t *p;
 
 	p = malloc(n);
 	if(p == 0)
@@ -70,9 +70,9 @@ zalloc(ulong n)
 
 static
 void*
-dalloc(ulong n)
+dalloc(uint32_t n)
 {
-	char *p;
+	int8_t *p;
 
 	if(fencebase == 0)
 		fence = fencebase = zalloc(MAXDEPTH*sizeof(Dentry));
@@ -84,13 +84,13 @@ dalloc(ulong n)
 }
 
 void
-check(Filsys *fs, long flag)
+check(Filsys *fs, int32_t flag)
 {
 	Iobuf *p;
 	Superb *sb;
 	Dentry *d;
-	long raddr;
-	long nqid;
+	int32_t raddr;
+	int32_t nqid;
 
 	wlock(&mainlock);
 	dev = fs->dev;
@@ -218,7 +218,7 @@ out:
 
 static
 int
-touch(long a)
+touch(int32_t a)
 {
 	Iobuf *p;
 
@@ -233,7 +233,7 @@ touch(long a)
 
 static
 int
-checkdir(long a, long qpath)
+checkdir(int32_t a, int32_t qpath)
 {
 	Dentry *nd;
 	int i, ns, dmod;
@@ -258,7 +258,7 @@ checkdir(long a, long qpath)
 
 static
 int
-checkindir(long a, Dentry *d, long qpath)
+checkindir(int32_t a, Dentry *d, int32_t qpath)
 {
 	Iobuf *p;
 	int i, dmod;
@@ -268,12 +268,12 @@ checkindir(long a, Dentry *d, long qpath)
 	if(!p)
 		return dmod;
 	for(i=0; i<INDPERBUF; i++) {
-		a = ((long*)p->iobuf)[i];
+		a = ((int32_t*)p->iobuf)[i];
 		if(!a)
 			continue;
 		if(amark(a)) {
 			if(flags & Cbad) {
-				((long*)p->iobuf)[i] = 0;
+				((int32_t*)p->iobuf)[i] = 0;
 				p->flags |= Bmod;
 			}
 			continue;
@@ -291,11 +291,11 @@ static
 int
 fsck(Dentry *d)
 {
-	char *s;
+	int8_t *s;
 	Rune r;
 	Iobuf *p;
 	int l, i, ns, dmod;
-	long a, qpath;
+	int32_t a, qpath;
 
 	depth++;
 	if(depth >= maxdepth){
@@ -376,12 +376,12 @@ fsck(Dentry *d)
 	dmod += touch(a);
 	if(p = xtag(a, Tind2, qpath)){
 		for(i=0; i<INDPERBUF; i++){
-			a = ((long*)p->iobuf)[i];
+			a = ((int32_t*)p->iobuf)[i];
 			if(!a)
 				continue;
 			if(amark(a)) {
 				if(flags & Cbad) {
-					((long*)p->iobuf)[i] = 0;
+					((int32_t*)p->iobuf)[i] = 0;
 					p->flags |= Bmod;
 				}
 				continue;
@@ -397,7 +397,7 @@ static
 void
 ckfreelist(Superb *sb)
 {
-	long a, lo, hi;
+	int32_t a, lo, hi;
 	int n, i;
 	Iobuf *p;
 	Fbuf *fb;
@@ -453,7 +453,7 @@ static
 void
 mkfreelist(Superb *sb)
 {
-	long a;
+	int32_t a;
 	int i, b;
 
 	strcpy(name, "free list");
@@ -474,7 +474,7 @@ mkfreelist(Superb *sb)
 
 static
 Dentry*
-maked(long a, int s, long qpath)
+maked(int32_t a, int s, int32_t qpath)
 {
 	Iobuf *p;
 	Dentry *d, *d1;
@@ -491,7 +491,7 @@ maked(long a, int s, long qpath)
 
 static
 void
-modd(long a, int s, Dentry *d1)
+modd(int32_t a, int s, Dentry *d1)
 {
 	Iobuf *p;
 	Dentry *d;
@@ -512,7 +512,7 @@ modd(long a, int s, Dentry *d1)
 
 static
 void
-xread(long a, long qpath)
+xread(int32_t a, int32_t qpath)
 {
 	Iobuf *p;
 
@@ -523,7 +523,7 @@ xread(long a, long qpath)
 
 static
 Iobuf*
-xtag(long a, int tag, long qpath)
+xtag(int32_t a, int tag, int32_t qpath)
 {
 	Iobuf *p;
 
@@ -558,9 +558,9 @@ xtag(long a, int tag, long qpath)
 
 static
 int
-amark(long a)
+amark(int32_t a)
 {
-	long i;
+	int32_t i;
 	int b;
 
 	if(a < fstart || a >= fsize) {
@@ -591,9 +591,9 @@ amark(long a)
 
 static
 int
-fmark(long a)
+fmark(int32_t a)
 {
-	long i;
+	int32_t i;
 	int b;
 
 	if(a < fstart || a >= fsize) {
@@ -620,7 +620,7 @@ static
 void
 missing(void)
 {
-	long a, i;
+	int32_t a, i;
 	int b, n;
 
 	n = 0;
@@ -640,7 +640,7 @@ missing(void)
 
 static
 void
-qmark(long qpath)
+qmark(int32_t qpath)
 {
 	int i, b;
 

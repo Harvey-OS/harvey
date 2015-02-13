@@ -20,7 +20,7 @@ void m_clrwin(int x0, int y0, int x1, int y1, int c){
  * Use color c.  Centered if cen is non-zero, right-justified if right is non-zero.
  * Returns the y coordinate for any following line of text.
  */
-int m_text(int x, int y, char *p, char *q, int c, int cen, int right){
+int m_text(int x, int y, int8_t *p, int8_t *q, int c, int cen, int right){
 	Point tsize;
 	USED(c);
 	tsize=stringsize(font, p);
@@ -36,7 +36,7 @@ int m_text(int x, int y, char *p, char *q, int c, int cen, int right){
 void m_vector(int x0, int y0, int x1, int y1, int c){
 	line(offscreen, Pt(x0, y0), Pt(x1, y1), Endsquare, Endsquare, 0, getcolor(c), ZP);
 }
-char *scanint(char *s, int *n){
+int8_t *scanint(int8_t *s, int *n){
 	while(*s<'0' || '9'<*s){
 		if(*s=='\0'){
 			fprint(2, "plot: bad -Wxmin,ymin,xmax,ymax\n");
@@ -51,8 +51,8 @@ char *scanint(char *s, int *n){
 	}
 	return s;
 }
-char *rdenv(char *name){
-	char *v;
+int8_t *rdenv(int8_t *name){
+	int8_t *v;
 	int fd, size;
 	fd=open(name, OREAD);
 	if(fd<0) return 0;
@@ -71,7 +71,7 @@ char *rdenv(char *name){
 /*
  * Startup initialization
  */
-void m_initialize(char *s){
+void m_initialize(int8_t *s){
 	static int first=1;
 	int dx, dy;
 	USED(s);

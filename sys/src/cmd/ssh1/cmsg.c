@@ -29,7 +29,7 @@ send_ssh_cmsg_session_key(Conn *c)
 {
 	int i, n, buflen, serverkeylen, hostkeylen;
 	mpint *b;
-	uchar *buf;
+	uint8_t *buf;
 	Msg *m;
 	RSApub *ksmall, *kbig;
 
@@ -110,11 +110,11 @@ authuser(Conn *c)
 	return -1;
 }
 
-static char
-ask(Conn *c, char *answers, char *question)
+static int8_t
+ask(Conn *c, int8_t *answers, int8_t *question)
 {
 	int fd;
-	char buf[256];
+	int8_t buf[256];
 
 	if(!c->interactive)
 		return answers[0];
@@ -133,7 +133,7 @@ ask(Conn *c, char *answers, char *question)
 static void
 checkkey(Conn *c)
 {
-	char *home, *keyfile;
+	int8_t *home, *keyfile;
 
 	debug(DBG_CRYPTO, "checking key %B %B\n", c->hostkey->n, c->hostkey->ek);
 	switch(findkey("/sys/lib/ssh/keyring", c->aliases, c->hostkey)){
@@ -201,7 +201,7 @@ checkkey(Conn *c)
 void
 sshclienthandshake(Conn *c)
 {
-	char buf[128], *p;
+	int8_t buf[128], *p;
 	int i;
 	Msg *m;
 
@@ -247,9 +247,9 @@ sshclienthandshake(Conn *c)
 }
 
 static int
-intgetenv(char *name, int def)
+intgetenv(int8_t *name, int def)
 {
-	char *s;
+	int8_t *s;
 	int n, val;
 
 	val = def;
@@ -269,7 +269,7 @@ int
 readgeom(int *nrow, int *ncol, int *width, int *height)
 {
 	static int fd = -1;
-	char buf[64];
+	int8_t buf[64];
 
 	if(fd < 0 && (fd = open("/dev/wctl", OREAD)) < 0)
 		return -1;
@@ -301,7 +301,7 @@ sendwindowsize(Conn *c, int nrow, int ncol, int width, int height)
  * and the second is either a boolean bit or actually an
  * ASCII code.
  */
-static uchar ptyopt[] =
+static uint8_t ptyopt[] =
 {
 	0x01, 0x7F,	/* interrupt = DEL */
 	0x02, 0x11,	/* quit = ^Q */
@@ -314,7 +314,7 @@ static uchar ptyopt[] =
 	0x00,		/* end options */
 };
 
-static uchar rawptyopt[] = 
+static uint8_t rawptyopt[] = 
 {
 	30,	0,		/* ignpar */
 	31,	0,		/* parmrk */
@@ -347,7 +347,7 @@ static uchar rawptyopt[] =
 void
 requestpty(Conn *c)
 {
-	char *term;
+	int8_t *term;
 	int nrow, ncol, width, height;
 	Msg *m;
 

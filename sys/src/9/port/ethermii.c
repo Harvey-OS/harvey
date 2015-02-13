@@ -246,8 +246,8 @@ miistatus(Mii* mii)
 	return 0;
 }
 
-char*
-miidumpphy(Mii* mii, char* p, char* e)
+int8_t*
+miidumpphy(Mii* mii, int8_t* p, int8_t* e)
 {
 	int i, r;
 

@@ -43,7 +43,7 @@ growbuf(Bufblock *p)
 {
 	int n;
 	Bufblock *f;
-	char *cp;
+	int8_t *cp;
 
 	n = p->end-p->start+QUANTA;
 		/* search the free list for a big buffer */
@@ -68,7 +68,7 @@ growbuf(Bufblock *p)
 }
 
 void
-bufcpy(Bufblock *buf, char *cp, int n)
+bufcpy(Bufblock *buf, int8_t *cp, int n)
 {
 
 	while (n--)

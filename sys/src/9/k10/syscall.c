@@ -25,8 +25,8 @@
 typedef struct {
 	uintptr	ip;
 	Ureg*	arg0;
-	char*	arg1;
-	char	msg[ERRMAX];
+	int8_t*	arg1;
+	int8_t	msg[ERRMAX];
 	Ureg*	old;
 	Ureg	ureg;
 } NFrame;
@@ -233,10 +233,10 @@ void
 syscall(int badscallnr, Ureg* ureg)
 {
 	unsigned int scallnr = (unsigned int) badscallnr;
-	char *e;
+	int8_t *e;
 	uintptr	sp;
 	int s;
-	vlong startns, stopns;
+	int64_t startns, stopns;
 	Ar0 ar0;
 	static Ar0 zar0;
 
@@ -389,7 +389,7 @@ sysexecstack(uintptr stack, int argc)
 }
 
 void*
-sysexecregs(uintptr entry, ulong ssize, ulong nargs)
+sysexecregs(uintptr entry, uint32_t ssize, uint32_t nargs)
 {
 	uintptr *sp;
 	Ureg *ureg;

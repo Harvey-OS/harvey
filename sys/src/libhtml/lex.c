@@ -18,7 +18,7 @@ typedef struct TokenSource TokenSource;
 struct TokenSource
 {
 	int			i;		// index of next byte to use
-	uchar*		data;		// all the data
+	uint8_t*		data;		// all the data
 	int			edata;	// data[0:edata] is valid
 	int			chset;	// one of US_Ascii, etc.
 	int			mtype;	// TextHtml or TextPlain
@@ -577,7 +577,7 @@ lexinit(void)
 }
 
 static TokenSource*
-newtokensource(uchar* data, int edata, int chset, int mtype)
+newtokensource(uint8_t* data, int edata, int chset, int mtype)
 {
 	TokenSource*	ans;
 
@@ -599,7 +599,7 @@ enum {
 // Call this to get the tokens.
 //  The number of returned tokens is returned in *plen.
 Token*
-_gettoks(uchar* data, int datalen, int chset, int mtype, int* plen)
+_gettoks(uint8_t* data, int datalen, int chset, int mtype, int* plen)
 {
 	TokenSource*	ts;
 	Token*		a;
@@ -1294,7 +1294,7 @@ ampersand(TokenSource* ts)
 static int
 getchar(TokenSource* ts)
 {
-	uchar*	buf;
+	uint8_t*	buf;
 	int	c;
 	int	n;
 	int	ok;
@@ -1318,8 +1318,8 @@ getchar(TokenSource* ts)
 		ts->i++;
 		break;
 	case UTF_8:
-		ok = fullrune((char*)(buf+ts->i), ts->edata-ts->i);
-		n = chartorune(&r, (char*)(buf+ts->i));
+		ok = fullrune((int8_t*)(buf+ts->i), ts->edata-ts->i);
+		n = chartorune(&r, (int8_t*)(buf+ts->i));
 		if(ok) {
 			if(warn && c == 0x80)
 				fprint(2, "warning: invalid utf-8 sequence (starts with %x)\n", ts->data[ts->i]);
@@ -1357,7 +1357,7 @@ ungetchar(TokenSource* ts, int c)
 {
 	int	n;
 	Rune	r;
-	char	a[UTFmax];
+	int8_t	a[UTFmax];
 
 	n = 1;
 	switch(ts->chset) {
@@ -1419,11 +1419,11 @@ Tconv(Fmt *f)
 	Token*	t;
 	int	i;
 	int	tag;
-	char*	srbra;
+	int8_t*	srbra;
 	Rune*	aname;
 	Rune*	tname;
 	Attr*	a;
-	char	buf[BIGBUFSIZE];
+	int8_t	buf[BIGBUFSIZE];
 
 	t = va_arg(f->args, Token*);
 	if(t == nil)

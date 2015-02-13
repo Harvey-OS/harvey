@@ -13,19 +13,19 @@
 #include	"fns.h"
 #include	"error.h"
 
-long
-sysexits(ulong *arg)
+int32_t
+sysexits(uint32_t *arg)
 {
-	char *status;
-	char *inval = "invalid exit string";
-	char buf[ERRMAX];
+	int8_t *status;
+	int8_t *inval = "invalid exit string";
+	int8_t buf[ERRMAX];
 
-	status = (char*)arg[0];
+	status = (int8_t*)arg[0];
 	if(status){
 		if(waserror())
 			status = inval;
 		else{
-			validaddr((ulong)status, 1, 0);
+			validaddr((uint32_t)status, 1, 0);
 			if(vmemchr(status, 0, ERRMAX) == 0){
 				memmove(buf, status, ERRMAX);
 				buf[ERRMAX-1] = 0;

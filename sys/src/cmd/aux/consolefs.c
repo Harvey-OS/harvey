@@ -40,8 +40,8 @@ enum
 	Nhash=		64,		/* Fid hash buckets */
 };
 
-#define TYPE(x)		(((ulong)x.path) & 0xf)
-#define CONS(x)		((((ulong)x.path) >> 4)&0xfff)
+#define TYPE(x)		(((uint32_t)x.path) & 0xf)
+#define CONS(x)		((((uint32_t)x.path) >> 4)&0xfff)
 #define QID(c, x)	(((c)<<4) | (x))
 
 struct Request
@@ -50,7 +50,7 @@ struct Request
 	Fid	*fid;
 	Fs	*fs;
 	Fcall	f;
-	uchar	buf[1];
+	uint8_t	buf[1];
 };
 
 struct Reqlist
@@ -116,15 +116,15 @@ struct Fs
 	int	ncons;
 };
 
-extern	void	console(Fs*, char*, char*, int, int, int);
-extern	Fs*	fsmount(char*);
+extern	void	console(Fs*, int8_t*, int8_t*, int, int, int);
+extern	Fs*	fsmount(int8_t*);
 
 extern	void	fsreader(void*);
 extern	void	fsrun(void*);
 extern	Fid*	fsgetfid(Fs*, int);
 extern	void	fsputfid(Fs*, Fid*);
-extern	int	fsdirgen(Fs*, Qid, int, Dir*, uchar*, int);
-extern	void	fsreply(Fs*, Request*, char*);
+extern	int	fsdirgen(Fs*, Qid, int, Dir*, uint8_t*, int);
+extern	void	fsreply(Fs*, Request*, int8_t*);
 extern	void	fskick(Fs*, Fid*);
 extern	int	fsreopen(Fs*, Console*);
 
@@ -161,23 +161,23 @@ void 	(*fcall[])(Fs*, Request*, Fid*) =
 	[Twstat]	fswstat
 };
 
-char Eperm[] = "permission denied";
-char Eexist[] = "file does not exist";
-char Enotdir[] = "not a directory";
-char Eisopen[] = "file already open";
-char Ebadcount[] = "bad read/write count";
-char Enofid[] = "no such fid";
+int8_t Eperm[] = "permission denied";
+int8_t Eexist[] = "file does not exist";
+int8_t Enotdir[] = "not a directory";
+int8_t Eisopen[] = "file already open";
+int8_t Ebadcount[] = "bad read/write count";
+int8_t Enofid[] = "no such fid";
 
-char *consoledb = "/lib/ndb/consoledb";
-char *mntpt = "/mnt/consoles";
+int8_t *consoledb = "/lib/ndb/consoledb";
+int8_t *mntpt = "/mnt/consoles";
 
 int messagesize = 8192+IOHDRSZ;
 
 void
-fatal(char *fmt, ...)
+fatal(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[1024];
+	int8_t buf[1024];
 
 	write(2, "consolefs: ", 10);
 	va_start(arg, fmt);
@@ -282,10 +282,10 @@ parentqid(Qid q)
 }
 
 int
-fsdirgen(Fs *fs, Qid parent, int i, Dir *d, uchar *buf, int nbuf)
+fsdirgen(Fs *fs, Qid parent, int i, Dir *d, uint8_t *buf, int nbuf)
 {
-	static char name[64];
-	char *p;
+	static int8_t name[64];
+	int8_t *p;
 	int xcons;
 
 	d->uid = d->gid = d->muid = "network";
@@ -350,11 +350,11 @@ fsdirgen(Fs *fs, Qid parent, int i, Dir *d, uchar *buf, int nbuf)
  *  mount the user interface and start a request processor
  */
 Fs*
-fsmount(char *mntpt)
+fsmount(int8_t *mntpt)
 {
 	Fs *fs;
 	int pfd[2], srv;
-	char buf[32];
+	int8_t buf[32];
 	int n;
 	static void *v[2];
 
@@ -392,7 +392,7 @@ fsmount(char *mntpt)
 int
 fsreopen(Fs* fs, Console *c)
 {
-	char buf[128];
+	int8_t buf[128];
 	static void *v[2];
 
 	if(c->pid){
@@ -455,10 +455,11 @@ change(Fs *fs, Console *c, int doreopen, int speed, int cronly, int ondemand)
  *  create a console interface
  */
 void
-console(Fs* fs, char *name, char *dev, int speed, int cronly, int ondemand)
+console(Fs* fs, int8_t *name, int8_t *dev, int speed, int cronly,
+	int ondemand)
 {
 	Console *c;
-	char *x;
+	int8_t *x;
 	int i, doreopen;
 
 	if(fs->ncons >= Maxcons)
@@ -525,9 +526,9 @@ console(Fs* fs, char *name, char *dev, int speed, int cronly, int ondemand)
  *  the reader may miss data but always sees an in order sequence.
  */
 void
-fromconsole(Fid *f, char *p, int n)
+fromconsole(Fid *f, int8_t *p, int n)
 {
-	char *rp, *wp, *ep;
+	int8_t *rp, *wp, *ep;
 	int pass;
 
 	lock(f);
@@ -561,11 +562,11 @@ fromconsole(Fid *f, char *p, int n)
  *  broadcast a list of members to all listeners
  */
 void
-bcastmembers(Fs *fs, Console *c, char *msg, Fid *f)
+bcastmembers(Fs *fs, Console *c, int8_t *msg, Fid *f)
 {
 	int n;
 	Fid *fl;
-	char buf[512];
+	int8_t buf[512];
 
 	sprint(buf, "[%s%s", msg, f->user);
 	for(fl = c->flist; fl != nil && strlen(buf) + 64 < sizeof(buf); fl = fl->cnext){
@@ -584,7 +585,7 @@ bcastmembers(Fs *fs, Console *c, char *msg, Fid *f)
 }
 
 void
-handler(void*, char *msg)
+handler(void*, int8_t *msg)
 {
 	if(strstr(msg, "reopen") != nil ||
 	   strstr(msg, "write on closed pipe") != nil)
@@ -600,7 +601,7 @@ fsreader(void *v)
 {
 	int n;
 	Fid *fl;
-	char buf[1024];
+	int8_t buf[1024];
 	Fs *fs;
 	Console *c;
 	void **a;
@@ -629,7 +630,7 @@ void
 readdb(Fs *fs)
 {
 	Ndbtuple *t, *nt;
-	char *dev, *cons;
+	int8_t *dev, *cons;
 	int cronly, speed, ondemand;
 
 	ndbreopen(db);
@@ -823,12 +824,12 @@ fsattach(Fs *fs, Request *r, Fid *f)
 void
 fswalk(Fs *fs, Request *r, Fid *f)
 {
-	char *name;
+	int8_t *name;
 	Dir d;
 	int i, n, nqid, nwname;
 	Qid qid, wqid[MAXWELEM];
 	Fid *nf;
-	char *err;
+	int8_t *err;
 
 	if(f->attached == 0){
 		fsreply(fs, r, Enofid);
@@ -888,7 +889,7 @@ fswalk(Fs *fs, Request *r, Fid *f)
 }
 
 int
-ingroup(char *user, char *group)
+ingroup(int8_t *user, int8_t *group)
 {
 	Ndbtuple *t, *nt;
 	Ndbs s;
@@ -906,7 +907,7 @@ ingroup(char *user, char *group)
 }
 
 int
-userok(char *u, char *cname)
+userok(int8_t *u, int8_t *cname)
 {
 	Ndbtuple *t, *nt;
 	Ndbs s;
@@ -938,7 +939,7 @@ int m2p[] ={
  *  broadcast a message to all listeners
  */
 void
-bcastmsg(Fs *fs, Console *c, char *msg, int n)
+bcastmsg(Fs *fs, Console *c, int8_t *msg, int n)
 {
 	Fid *fl;
 
@@ -1025,11 +1026,11 @@ fscreate(Fs *fs, Request *r, Fid*)
 void
 fsread(Fs *fs, Request *r, Fid *f)
 {
-	uchar *p, *e;
+	uint8_t *p, *e;
 	int i, m, off;
-	vlong offset;
+	int64_t offset;
 	Dir d;
-	char sbuf[ERRMAX];
+	int8_t sbuf[ERRMAX];
 
 	if(f->attached == 0){
 		fsreply(fs, r, Enofid);
@@ -1053,8 +1054,8 @@ fsread(Fs *fs, Request *r, Fid *f)
 			if(m > BIT16SZ && off >= offset)
 				p += m;
 		}
-		r->f.data = (char*)r->buf + IOHDRSZ;
-		r->f.count = (char*)p - r->f.data;
+		r->f.data = (int8_t*)r->buf + IOHDRSZ;
+		r->f.count = (int8_t*)p - r->f.data;
 	} else {
 		switch(TYPE(f->qid)){
 		case Qdata:
@@ -1062,7 +1063,7 @@ fsread(Fs *fs, Request *r, Fid *f)
 			fskick(fs, f);
 			return;
 		case Qctl:
-			r->f.data = (char*)r->buf+IOHDRSZ;
+			r->f.data = (int8_t*)r->buf+IOHDRSZ;
 			r->f.count = 0;
 			break;
 		case Qstat:
@@ -1212,10 +1213,10 @@ fswstat(Fs *fs, Request *r, Fid*)
 }
 
 void
-fsreply(Fs *fs, Request *r, char *err)
+fsreply(Fs *fs, Request *r, int8_t *err)
 {
 	int n;
-	uchar buf[8192+IOHDRSZ];
+	uint8_t buf[8192+IOHDRSZ];
 
 	if(err){
 		r->f.type = Rerror;
@@ -1237,7 +1238,7 @@ void
 fskick(Fs *fs, Fid *f)
 {
 	Request *r;
-	char *p, *rp, *wp, *ep;
+	int8_t *p, *rp, *wp, *ep;
 	int i;
 
 	lock(f);
@@ -1245,7 +1246,7 @@ fskick(Fs *fs, Fid *f)
 		r = remreq(&f->r);
 		if(r == nil)
 			break;
-		p = (char*)r->buf;
+		p = (int8_t*)r->buf;
 		rp = f->rp;
 		wp = f->wp;
 		ep = &f->buf[Bufsize];
@@ -1255,8 +1256,8 @@ fskick(Fs *fs, Fid *f)
 				rp = f->buf;
 		}
 		f->rp = rp;
-		r->f.data = (char*)r->buf;
-		r->f.count = p - (char*)r->buf;
+		r->f.data = (int8_t*)r->buf;
+		r->f.count = p - (int8_t*)r->buf;
 		fsreply(fs, r, nil);
 	}
 	unlock(f);

@@ -17,11 +17,11 @@
  * the simple command tail -c, legal in v10, is illegal
  */
 
-long	count;
+int32_t	count;
 int	anycount;
 int	follow;
 int	file	= 0;
-char*	umsg	= "usage: tail [-n N] [-c N] [-f] [-r] [+-N[bc][fr]] [file]";
+int8_t*	umsg	= "usage: tail [-n N] [-c N] [-f] [-r] [+-N[bc][fr]] [file]";
 
 Biobuf	bout;
 enum
@@ -41,23 +41,23 @@ enum
 } dir = FWD;
 
 extern	void	copy(void);
-extern	void	fatal(char*);
-extern	int	getnumber(char*);
+extern	void	fatal(int8_t*);
+extern	int	getnumber(int8_t*);
 extern	void	keep(void);
 extern	void	reverse(void);
 extern	void	skip(void);
-extern	void	suffix(char*);
-extern	long	tread(char*, long);
+extern	void	suffix(int8_t*);
+extern	int32_t	tread(int8_t*, int32_t);
 extern	void	trunc(Dir*, Dir**);
-extern	vlong	tseek(vlong, int);
-extern	void	twrite(char*, long);
+extern	int64_t	tseek(int64_t, int);
+extern	void	twrite(int8_t*, int32_t);
 extern	void	usage(void);
 static	int	isseekable(int fd);
 
 #define JUMP(o,p) tseek(o,p), copy()
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	int seekable, c;
 
@@ -135,7 +135,7 @@ void
 trunc(Dir *old, Dir **new)
 {
 	Dir *d;
-	vlong olength;
+	int64_t olength;
 
 	d = dirfstat(file);
 	if(d == nil)
@@ -150,7 +150,7 @@ trunc(Dir *old, Dir **new)
 }
 
 void
-suffix(char *s)
+suffix(int8_t *s)
 {
 	while(*s && strchr("0123456789+-", *s))
 		s++;
@@ -183,8 +183,8 @@ void
 skip(void)
 {
 	int i;
-	long n;
-	char buf[Bsize];
+	int32_t n;
+	int8_t buf[Bsize];
 	if(units == CHARS) {
 		for( ; count>0; count -=n) {
 			n = count<Bsize? count: Bsize;
@@ -208,8 +208,8 @@ skip(void)
 void
 copy(void)
 {
-	long n;
-	char buf[Bsize];
+	int32_t n;
+	int8_t buf[Bsize];
 	while((n=tread(buf, Bsize)) > 0) {
 		twrite(buf, n);
 		Bflush(&bout);	/* for FWD on pipe; else harmless */
@@ -225,8 +225,8 @@ void
 keep(void)
 {
 	int len = 0;
-	long bufsiz = 0;
-	char *buf = 0;
+	int32_t bufsiz = 0;
+	int8_t *buf = 0;
 	int j, k, n;
 
 	for(n=1; n;) {
@@ -273,14 +273,14 @@ void
 reverse(void)
 {
 	int first;
-	long len = 0;
-	long n = 0;
-	long bufsiz = 0;
-	char *buf = 0;
-	vlong pos = tseek(0LL, 2);
+	int32_t len = 0;
+	int32_t n = 0;
+	int32_t bufsiz = 0;
+	int8_t *buf = 0;
+	int64_t pos = tseek(0LL, 2);
 
 	for(first=1; pos>0 && count>0; first=0) {
-		n = pos>Bsize? Bsize: (long)pos;
+		n = pos>Bsize? Bsize: (int32_t)pos;
 		pos -= n;
 		if(len+n > bufsiz) {
 			bufsiz += 2*Bsize;
@@ -313,8 +313,8 @@ reverse(void)
 		twrite(buf, len);
 }
 
-vlong
-tseek(vlong o, int p)
+int64_t
+tseek(int64_t o, int p)
 {
 	o = seek(file, o, p);
 	if(o == -1)
@@ -322,8 +322,8 @@ tseek(vlong o, int p)
 	return o;
 }
 
-long
-tread(char *buf, long n)
+int32_t
+tread(int8_t *buf, int32_t n)
 {
 	int r = read(file, buf, n);
 	if(r == -1)
@@ -332,14 +332,14 @@ tread(char *buf, long n)
 }
 
 void
-twrite(char *s, long n)
+twrite(int8_t *s, int32_t n)
 {
 	if(Bwrite(&bout, s, n) != n)
 		fatal("");
 }
 
 int
-getnumber(char *s)
+getnumber(int8_t *s)
 {
 	if(*s=='-' || *s=='+')
 		s++;
@@ -358,9 +358,9 @@ getnumber(char *s)
 }	
 
 void		
-fatal(char *s)
+fatal(int8_t *s)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	errstr(buf, sizeof buf);
 	fprint(2, "tail: %s: %s\n", s, buf);
@@ -381,7 +381,7 @@ usage(void)
 static int
 isseekable(int fd)
 {	
-	vlong m;
+	int64_t m;
 
 	m = seek(fd, 0, 1);
 	if(m < 0)

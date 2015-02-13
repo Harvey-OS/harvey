@@ -221,7 +221,7 @@ enum {
 };
 
 static int
-ftdiread(Serialport *p, int index, int req, uchar *buf, int len)
+ftdiread(Serialport *p, int index, int req, uint8_t *buf, int len)
 {
 	int res;
 	Serial *ser;
@@ -267,11 +267,11 @@ ftmodemctl(Serialport *p, int set)
 	return 0;
 }
 
-static ushort
+static uint16_t
 ft232ambaudbase2div(int baud, int base)
 {
 	int divisor3;
-	ushort divisor;
+	uint16_t divisor;
 
 	divisor3 = (base / 2) / baud;
 	if((divisor3 & 7) == 7)
@@ -297,15 +297,15 @@ enum{
 	UirtDiv		= 77,
 };
 
-static ushort
+static uint16_t
 ft232ambaud2div(int baud)
 {
 	return ft232ambaudbase2div(baud, ClockNew);
 }
 
-static ulong divfrac[8] = { 0, 3, 2, 4, 1, 5, 6, 7};
+static uint32_t divfrac[8] = { 0, 3, 2, 4, 1, 5, 6, 7};
 
-static ulong
+static uint32_t
 ft232bmbaudbase2div(int baud, int base)
 {
 	int divisor3;
@@ -322,7 +322,7 @@ ft232bmbaudbase2div(int baud, int base)
 	return divisor;
 }
 
-static ulong
+static uint32_t
 ft232bmbaud2div (int baud)
 {
 	return ft232bmbaudbase2div (baud, ClockNew);
@@ -340,11 +340,11 @@ customdiv(Serial *ser)
 	return 0;		/* shouldn't happen, break as much as I can */
 }
 
-static ulong
+static uint32_t
 ftbaudcalcdiv(Serial *ser, int baud)
 {
 	int cusdiv;
-	ulong divval;
+	uint32_t divval;
 
 	if(baud == 38400 && (cusdiv = customdiv(ser)) != 0)
 		baud = ser->baudbase / cusdiv;
@@ -417,8 +417,8 @@ static int
 ftsetparam(Serialport *p)
 {
 	int res;
-	ushort val;
-	ulong bauddiv;
+	uint16_t val;
+	uint32_t bauddiv;
 
 	val = 0;
 	if(p->stop == 1)
@@ -476,7 +476,7 @@ static void
 ftgettype(Serial *ser)
 {
 	int i, outhdrsz, dno, pksz;
-	ulong baudbase;
+	uint32_t baudbase;
 	Conf *cnf;
 
 	pksz = Packsz;
@@ -540,10 +540,10 @@ ftgettype(Serial *ser)
 }
 
 int
-ftmatch(Serial *ser, char *info)
+ftmatch(Serial *ser, int8_t *info)
 {
 	Cinfo *ip;
-	char buf[50];
+	int8_t buf[50];
 
 	for(ip = ftinfo; ip->vid != 0; ip++){
 		snprint(buf, sizeof buf, "vid %#06x did %#06x", ip->vid, ip->did);
@@ -561,7 +561,7 @@ ftmatch(Serial *ser, char *info)
 }
 
 static int
-ftuseinhdr(Serialport *p, uchar *b)
+ftuseinhdr(Serialport *p, uint8_t *b)
 {
 	if(b[0] & FTICTS)
 		p->cts = 1;
@@ -592,7 +592,7 @@ ftuseinhdr(Serialport *p, uchar *b)
 }
 
 static int
-ftsetouthdr(Serialport *p, uchar *b, int len)
+ftsetouthdr(Serialport *p, uint8_t *b, int len)
 {
 	if(p->s->outhdrsz != 0)
 		b[0] = FTOPORT | (FTOLENMSK & len);
@@ -600,7 +600,7 @@ ftsetouthdr(Serialport *p, uchar *b, int len)
 }
 
 static int
-wait4data(Serialport *p, uchar *data, int count)
+wait4data(Serialport *p, uint8_t *data, int count)
 {
 	int d;
 	Serial *ser;
@@ -629,10 +629,10 @@ wait4data(Serialport *p, uchar *data, int count)
 }
 
 static int
-wait4write(Serialport *p, uchar *data, int count)
+wait4write(Serialport *p, uint8_t *data, int count)
 {
 	int off, fd;
-	uchar *b;
+	uint8_t *b;
 	Serial *ser;
 
 	ser = p->s;
@@ -652,7 +652,7 @@ wait4write(Serialport *p, uchar *data, int count)
 typedef struct Packser Packser;
 struct Packser{
 	int	nb;
-	uchar	b[Bufsiz];
+	uint8_t	b[Bufsiz];
 };
 
 typedef struct Areader Areader;
@@ -672,7 +672,7 @@ shutdownchan(Channel *c)
 }
 
 int
-cpdata(Serial *ser, Serialport *port, uchar *out, uchar *in, int sz)
+cpdata(Serial *ser, Serialport *port, uint8_t *out, uint8_t *in, int sz)
 {
 	int i, ncp, ntotcp, pksz;
 
@@ -696,7 +696,7 @@ static void
 epreader(void *u)
 {
 	int dfd, rcount, cl, ntries, recov;
-	char err[40];
+	int8_t err[40];
 	Areader *a;
 	Channel *c;
 	Packser *pk;
@@ -845,14 +845,14 @@ ftinit(Serialport *p)
 		res = ftdiwrite(p, FTSETFLOWCTRL, 0, FTDISABLEFLOWCTRL);
 		if(res < 0)
 			return -1;
-		res = ftdiread(p, FTSETLATENCYTIMER, 0, (uchar *)&timerval,
+		res = ftdiread(p, FTSETLATENCYTIMER, 0, (uint8_t *)&timerval,
 			FTLATENCYTIMERSZ);
 		if(res < 0)
 			return -1;
 		dsprint(2, "serial: jtag latency timer is %d\n", timerval);
 		timerval = 2;
 		ftdiwrite(p, FTLATENCYDEFAULT, 0, FTSETLATENCYTIMER);
-		res = ftdiread(p, FTSETLATENCYTIMER, 0, (uchar *)&timerval,
+		res = ftdiread(p, FTSETLATENCYTIMER, 0, (uint8_t *)&timerval,
 			FTLATENCYTIMERSZ);
 		if(res < 0)
 			return -1;
@@ -885,7 +885,7 @@ ftclearpipes(Serialport *p)
 }
 
 static int
-setctlline(Serialport *p, uchar val)
+setctlline(Serialport *p, uint8_t val)
 {
 	return ftdiwrite(p, val | (val << 8), 0, FTSETMODEMCTRL);
 }
@@ -942,7 +942,7 @@ ftsendlines(Serialport *p)
 static int
 ftseteps(Serialport *p)
 {
-	char *s;
+	int8_t *s;
 	Serial *ser;
 
 	ser = p->s;

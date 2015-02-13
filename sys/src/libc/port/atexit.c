@@ -52,7 +52,7 @@ atexitdont(void (*f)(void))
 #pragma profile off
 
 void
-exits(char *s)
+exits(int8_t *s)
 {
 	int i, pid;
 	void (*f)(void);

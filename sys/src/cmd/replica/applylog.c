@@ -11,56 +11,56 @@
 
 #define	Nwork	16
 
-int localdirstat(char*, Dir*);
-int ismatch(char*);
-void conflict(char*, char*, ...);
-void error(char*, ...);
-int isdir(char*);
+int localdirstat(int8_t*, Dir*);
+int ismatch(int8_t*);
+void conflict(int8_t*, int8_t*, ...);
+void error(int8_t*, ...);
+int isdir(int8_t*);
 
-void worker(int fdf, int fdt, char *from, char *to);
-vlong	nextoff(void);
-void	failure(void *, char *note);
+void worker(int fdf, int fdt, int8_t *from, int8_t *to);
+int64_t	nextoff(void);
+void	failure(void *, int8_t *note);
 
 QLock	lk;
-vlong	off;
+int64_t	off;
 
 int errors;
 int nconf;
 int donothing;
 int verbose;
-char **match;
+int8_t **match;
 int nmatch;
 int tempspool = 1;
 int safeinstall = 1;
-char *lroot;
-char *rroot;
+int8_t *lroot;
+int8_t *rroot;
 Db *clientdb;
 int skip;
 int douid;
-char *mkname(char*, int, char*, char*);
-char localbuf[10240];
-char remotebuf[10240];
-int copyfile(char*, char*, char*, Dir*, int, int*);
-ulong maxnow;
+int8_t *mkname(int8_t*, int, int8_t*, int8_t*);
+int8_t localbuf[10240];
+int8_t remotebuf[10240];
+int copyfile(int8_t*, int8_t*, int8_t*, Dir*, int, int*);
+uint32_t maxnow;
 int maxn;
-char *timefile;
+int8_t *timefile;
 int timefd;
-int samecontents(char*, char*);
+int samecontents(int8_t*, int8_t*);
 
 Db *copyerr;
 
 typedef struct Res Res;
 struct Res
 {
-	char c;
-	char *name;
+	int8_t c;
+	int8_t *name;
 };
 
 Res *res;
 int nres;
 
 void 
-addresolve(int c, char *name)
+addresolve(int c, int8_t *name)
 {
 	if(name[0] == '/')
 		name++;
@@ -71,7 +71,7 @@ addresolve(int c, char *name)
 }
 
 int
-resolve(char *name)
+resolve(int8_t *name)
 {
 	int i, len;
 
@@ -89,7 +89,7 @@ void
 readtimefile(void)
 {
 	int n;
-	char buf[24];
+	int8_t buf[24];
 
 	if((timefd = open(timefile, ORDWR)) < 0
 	&& (timefd = create(timefile, ORDWR|OEXCL, 0666)) < 0)
@@ -106,18 +106,18 @@ readtimefile(void)
 void
 writetimefile(void)
 {
-	char buf[24+1];
+	int8_t buf[24+1];
 
 	snprint(buf, sizeof buf, "%11lud %11d ", maxnow, maxn);
 	pwrite(timefd, buf, 24, 0);
 }
 
-static void membogus(char**);
+static void membogus(int8_t**);
 
 void
-addce(char *local)
+addce(int8_t *local)
 {
-	char e[ERRMAX];
+	int8_t e[ERRMAX];
 	Dir d;
 
 	memset(&d, 0, sizeof d);
@@ -129,16 +129,16 @@ addce(char *local)
 }
 
 void
-delce(char *local)
+delce(int8_t *local)
 {
 	removedb(copyerr, local);
 }
 
 void
-chat(char *f, ...)
+chat(int8_t *f, ...)
 {
 	Fmt fmt;
-	char buf[256];
+	int8_t buf[256];
 	va_list arg;
 
 	if(!verbose)
@@ -159,9 +159,9 @@ usage(void)
 }
 
 int
-notexists(char *path)
+notexists(int8_t *path)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	if(access(path, AEXIST) >= 0)
 		return 0;
@@ -175,7 +175,7 @@ notexists(char *path)
 }
 
 int
-prstopped(int skip, char *name)
+prstopped(int skip, int8_t *name)
 {
 	if(!skip) {
 		fprint(2, "stopped updating log apply time because of %s\n",
@@ -719,8 +719,8 @@ main(int argc, char **argv)
 }
 
 
-char*
-mkname(char *buf, int nbuf, char *a, char *b)
+int8_t*
+mkname(int8_t *buf, int nbuf, int8_t *a, int8_t *b)
 {
 	if(strlen(a)+strlen(b)+2 > nbuf)
 		sysfatal("name too long");
@@ -733,9 +733,9 @@ mkname(char *buf, int nbuf, char *a, char *b)
 }
 
 int
-isdir(char *s)
+isdir(int8_t *s)
 {
-	ulong m;
+	uint32_t m;
 	Dir *d;
 
 	if((d = dirstat(s)) == nil)
@@ -746,9 +746,9 @@ isdir(char *s)
 }
 
 void
-conflict(char *name, char *f, ...)
+conflict(int8_t *name, int8_t *f, ...)
 {
-	char *s;
+	int8_t *s;
 	va_list arg;
 
 	va_start(arg, f);
@@ -762,9 +762,9 @@ conflict(char *name, char *f, ...)
 }
 
 void
-error(char *f, ...)
+error(int8_t *f, ...)
 {
-	char *s;
+	int8_t *s;
 	va_list arg;
 
 	va_start(arg, f);
@@ -776,7 +776,7 @@ error(char *f, ...)
 }
 
 int
-ismatch(char *s)
+ismatch(int8_t *s)
 {
 	int i, len;
 
@@ -793,7 +793,7 @@ ismatch(char *s)
 }
 
 int
-localdirstat(char *name, Dir *d)
+localdirstat(int8_t *name, Dir *d)
 {
 	static Dir *d2;
 
@@ -809,8 +809,8 @@ enum { DEFB = 8192 };
 static int
 cmp1(int fd1, int fd2)
 {
-	char buf1[DEFB];
-	char buf2[DEFB];
+	int8_t buf1[DEFB];
+	int8_t buf2[DEFB];
 	int n1, n2;
 	
 	for(;;){
@@ -828,7 +828,7 @@ cmp1(int fd1, int fd2)
 }
 
 static int
-copy1(int fdf, int fdt, char *from, char *to)
+copy1(int fdf, int fdt, int8_t *from, int8_t *to)
 {
 	int i, n, rv, pid[Nwork];
 	Waitmsg *w;
@@ -866,11 +866,11 @@ copy1(int fdf, int fdt, char *from, char *to)
 }
 
 void
-worker(int fdf, int fdt, char *from, char *to)
+worker(int fdf, int fdt, int8_t *from, int8_t *to)
 {
-	char buf[DEFB], *bp;
-	long len, n;
-	vlong o;
+	int8_t buf[DEFB], *bp;
+	int32_t len, n;
+	int64_t o;
 
 	len = sizeof(buf);
 	bp = buf;
@@ -897,10 +897,10 @@ worker(int fdf, int fdt, char *from, char *to)
 	_exits(nil);
 }
 
-vlong
+int64_t
 nextoff(void)
 {
-	vlong o;
+	int64_t o;
 
 	qlock(&lk);
 	o = off;
@@ -911,7 +911,7 @@ nextoff(void)
 }
 
 void
-failure(void*, char *note)
+failure(void*, int8_t *note)
 {
 	if(strcmp(note, "failure") == 0)
 		_exits(nil);
@@ -920,10 +920,10 @@ failure(void*, char *note)
 
 
 static int
-opentemp(char *template)
+opentemp(int8_t *template)
 {
 	int fd, i;
-	char *p;
+	int8_t *p;
 
 	p = estrdup(template);
 	fd = -1;
@@ -941,10 +941,10 @@ opentemp(char *template)
 }
 
 static int
-copytotemp(char *remote, int rfd, Dir *d0)
+copytotemp(int8_t *remote, int rfd, Dir *d0)
 {
 	int tfd;
-	char tmp[32];
+	int8_t tmp[32];
 	Dir *d1;
 
 	strcpy(tmp, "/tmp/replicaXXXXXXXX");
@@ -970,14 +970,14 @@ copytotemp(char *remote, int rfd, Dir *d0)
 }
 
 int
-copyfile(char *local, char *remote, char *name, Dir *d, int dowstat,
+copyfile(int8_t *local, int8_t *remote, int8_t *name, Dir *d, int dowstat,
 	int *printerror)
 {
 	Dir *d0, *dl;
 	Dir nd;
 	int rfd, tfd, wfd, didcreate;
-	char tmp[32], *p, *safe;
-	char err[ERRMAX];
+	int8_t tmp[32], *p, *safe;
+	int8_t err[ERRMAX];
 
 	do {
 		*printerror = 0;
@@ -1115,7 +1115,7 @@ okay:
 }
 
 int
-samecontents(char *local, char *remote)
+samecontents(int8_t *local, int8_t *remote)
 {
 	Dir *d0, *d1;
 	int rfd, tfd, lfd, ret;
@@ -1172,7 +1172,7 @@ samecontents(char *local, char *remote)
  * To avoid problems with this, we copy ourselves
  * into /tmp and then re-exec.
  */
-char *rmargv0;
+int8_t *rmargv0;
 
 static void
 rmself(void)
@@ -1181,10 +1181,10 @@ rmself(void)
 }
 
 static int
-genopentemp(char *template, int mode, int perm)
+genopentemp(int8_t *template, int mode, int perm)
 {
 	int fd, i;
-	char *p;	
+	int8_t *p;	
 
 	p = estrdup(template);
 	fd = -1;
@@ -1204,10 +1204,10 @@ genopentemp(char *template, int mode, int perm)
 }
 
 static void
-membogus(char **argv)
+membogus(int8_t **argv)
 {
 	int n, fd, wfd;
-	char template[50], buf[1024];
+	int8_t template[50], buf[1024];
 
 	if(strncmp(argv[0], "/tmp/_applylog_", 1+3+1+1+8+1)==0) {
 		rmargv0 = argv[0];

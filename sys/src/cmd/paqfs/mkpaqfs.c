@@ -19,29 +19,29 @@ enum {
 	OffsetSize = 4,	/* size of block offset */
 };
 
-void paqfs(char *root, char *label);
-PaqDir *paqFile(char *name, Dir *dir);
-PaqDir *paqDir(char *name, Dir *dir);
-PaqDir *paqDirAlloc(Dir *d, ulong offset);
+void paqfs(int8_t *root, int8_t *label);
+PaqDir *paqFile(int8_t *name, Dir *dir);
+PaqDir *paqDir(int8_t *name, Dir *dir);
+PaqDir *paqDirAlloc(Dir *d, uint32_t offset);
 void paqDirFree(PaqDir *pd);
-void writeHeader(char *label);
-void writeTrailer(ulong root);
-ulong writeBlock(uchar *buf, int type);
+void writeHeader(int8_t *label);
+void writeTrailer(uint32_t root);
+uint32_t writeBlock(uint8_t *buf, int type);
 void usage(void);
 void outWrite(void *buf, int n);
 int paqDirSize(PaqDir *dir);
-void putDir(uchar *p, PaqDir *dir);
-void putHeader(uchar *p, PaqHeader *h);
-void putBlock(uchar *p, PaqBlock *h);
-void putTrailer(uchar *p, PaqTrailer *t);
-void putl(uchar *p, ulong v);
-void puts(uchar *p, int x);
-uchar *putstr(uchar *p, char *s);
+void putDir(uint8_t *p, PaqDir *dir);
+void putHeader(uint8_t *p, PaqHeader *h);
+void putBlock(uint8_t *p, PaqBlock *h);
+void putTrailer(uint8_t *p, PaqTrailer *t);
+void putl(uint8_t *p, uint32_t v);
+void puts(uint8_t *p, int x);
+uint8_t *putstr(uint8_t *p, int8_t *s);
 void *emallocz(int size);
-void warn(char *fmt, ...);
+void warn(int8_t *fmt, ...);
 
 int uflag=0;			/* uncompressed */
-long blocksize = 4*1024;
+int32_t blocksize = 4*1024;
 
 Biobuf *out;
 DigestState *outdg;
@@ -119,12 +119,12 @@ usage(void)
 }
 
 void
-paqfs(char *root, char *label)
+paqfs(int8_t *root, int8_t *label)
 {
 	Dir *dir;
 	PaqDir *pd;
-	ulong offset;
-	uchar *buf;
+	uint32_t offset;
+	uint8_t *buf;
 
 	dir = dirstat(root);
 	if(dir == nil)
@@ -144,12 +144,12 @@ paqfs(char *root, char *label)
 
 
 PaqDir *
-paqFile(char *name, Dir *dir)
+paqFile(int8_t *name, Dir *dir)
 {
 	int fd, n, nn, nb;
-	vlong tot;
-	uchar *block, *pointer;
-	ulong offset;
+	int64_t tot;
+	uint8_t *block, *pointer;
+	uint32_t offset;
 
 	fd = open(name, OREAD);
 	if(fd < 0) {
@@ -204,14 +204,14 @@ Err:
 }
 
 PaqDir *
-paqDir(char *name, Dir *dir)
+paqDir(int8_t *name, Dir *dir)
 {
 	Dir *dirs, *p;
 	PaqDir *pd;
 	int i, n, nb, fd, ndir;
-	uchar *block, *pointer;
-	char *nname;
-	ulong offset;
+	uint8_t *block, *pointer;
+	int8_t *nname;
+	uint32_t offset;
 
 	fd = open(name, OREAD);
 	if(fd < 0) {
@@ -298,10 +298,10 @@ Err:
 }
 
 PaqDir *
-paqDirAlloc(Dir *dir, ulong offset)
+paqDirAlloc(Dir *dir, uint32_t offset)
 {
 	PaqDir *pd;
-	static ulong qid = 1;
+	static uint32_t qid = 1;
 
 	pd = emallocz(sizeof(PaqDir));
 	
@@ -330,10 +330,10 @@ paqDirFree(PaqDir *pd)
 
 
 void
-writeHeader(char *label)
+writeHeader(int8_t *label)
 {
 	PaqHeader hdr;
-	uchar buf[HeaderSize];
+	uint8_t buf[HeaderSize];
 
 	memset(&hdr, 0, sizeof(hdr));
 	hdr.magic = HeaderMagic;
@@ -347,10 +347,10 @@ writeHeader(char *label)
 }
 
 void
-writeTrailer(ulong root)
+writeTrailer(uint32_t root)
 {
 	PaqTrailer tlr;
-	uchar buf[TrailerSize];
+	uint8_t buf[TrailerSize];
 
 	memset(&tlr, 0, sizeof(tlr));
 	tlr.magic = TrailerMagic;
@@ -359,14 +359,14 @@ writeTrailer(ulong root)
 	outWrite(buf, sizeof(buf));
 }
 
-ulong
-writeBlock(uchar *b, int type)
+uint32_t
+writeBlock(uint8_t *b, int type)
 {
-	uchar *cb, *ob;
+	uint8_t *cb, *ob;
 	int n;
 	PaqBlock bh;
-	uchar buf[BlockSize];
-	ulong offset;
+	uint8_t buf[BlockSize];
+	uint32_t offset;
 
 	offset = Boffset(out);
 
@@ -402,7 +402,7 @@ outWrite(void *buf, int n)
 {
 	if(Bwrite(out, buf, n) < n)
 		sysfatal("write failed: %r");
-	outdg = sha1((uchar*)buf, n, nil, outdg);
+	outdg = sha1((uint8_t*)buf, n, nil, outdg);
 }
 
 int
@@ -412,7 +412,7 @@ paqDirSize(PaqDir *d)
 }
 
 void
-putHeader(uchar *p, PaqHeader *h)
+putHeader(uint8_t *p, PaqHeader *h)
 {
 	if(h->blocksize < 65536){
 		putl(p, h->magic);
@@ -429,7 +429,7 @@ putHeader(uchar *p, PaqHeader *h)
 }
 
 void
-putTrailer(uchar *p, PaqTrailer *h)
+putTrailer(uint8_t *p, PaqTrailer *h)
 {
 	putl(p, h->magic);
 	putl(p+4, h->root);
@@ -437,7 +437,7 @@ putTrailer(uchar *p, PaqTrailer *h)
 }
 
 void
-putBlock(uchar *p, PaqBlock *b)
+putBlock(uint8_t *p, PaqBlock *b)
 {
 	if(b->size < 65536){
 		putl(p, b->magic);
@@ -453,9 +453,9 @@ putBlock(uchar *p, PaqBlock *b)
 }
 
 void
-putDir(uchar *p, PaqDir *d)
+putDir(uint8_t *p, PaqDir *d)
 {
-	uchar *q;
+	uint8_t *q;
 
 	puts(p, paqDirSize(d));
 	putl(p+2, d->qid);	
@@ -470,7 +470,7 @@ putDir(uchar *p, PaqDir *d)
 }
 
 void
-putl(uchar *p, ulong v)
+putl(uint8_t *p, uint32_t v)
 {
 	p[0] = v>>24;
 	p[1] = v>>16;
@@ -479,15 +479,15 @@ putl(uchar *p, ulong v)
 }
 
 void
-puts(uchar *p, int v)
+puts(uint8_t *p, int v)
 {
 	assert(v < (1<<16));
 	p[0] = v>>8;
 	p[1] = v;
 }
 
-uchar *
-putstr(uchar *p, char *s)
+uint8_t *
+putstr(uint8_t *p, int8_t *s)
 {
 	int n = strlen(s);
 	puts(p, n+2);
@@ -509,9 +509,9 @@ emallocz(int size)
 }
 
 void
-warn(char *fmt, ...)
+warn(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);

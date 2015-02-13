@@ -30,7 +30,7 @@ extern int rtl8169pnp(Ether*);
 extern int vgbepnp(Ether*);
 
 struct {
-	char	*type;
+	int8_t	*type;
 	int	(*reset)(Ether*);
 	int	noprobe;
 } ethercards[] = {
@@ -126,7 +126,7 @@ etherinit(void)
 }
 
 void
-etherinitdev(int i, char *s)
+etherinitdev(int i, int8_t *s)
 {
 	sprint(s, "ether%d", i);
 }
@@ -169,7 +169,7 @@ xetherdetach(void)
 	splx(x);
 }
 
-uchar*
+uint8_t*
 etheraddr(int ctlrno)
 {
 	Ether *ctlr;
@@ -181,9 +181,9 @@ etheraddr(int ctlrno)
 }
 
 static int
-wait(RingBuf* ring, uchar owner, int timo)
+wait(RingBuf* ring, uint8_t owner, int timo)
 {
-	ulong start;
+	uint32_t start;
 	extern void hlt(void);
 
 	start = m->ticks;

@@ -76,26 +76,26 @@
 #include "ext.h"			/* external variable declarations */
 #include "download.h"			/* a few special definitions */
 
-char	*temp_dir = TEMPDIR;		/* temp directory - for copying stdin */
-char	*hostfontdir = HOSTDIR;		/* host resident directory */
-char	*mapname = "map";		/* map table - usually in *hostfontdir */
-char	*suffix = "";			/* appended to the map table pathname */
+int8_t	*temp_dir = TEMPDIR;		/* temp directory - for copying stdin */
+int8_t	*hostfontdir = HOSTDIR;		/* host resident directory */
+int8_t	*mapname = "map";		/* map table - usually in *hostfontdir */
+int8_t	*suffix = "";			/* appended to the map table pathname */
 Map	*map = NULL;			/* device font map table */
-char	*stringspace = NULL;		/* for storing font and file strings */
+int8_t	*stringspace = NULL;		/* for storing font and file strings */
 int	next = 0;			/* next free slot in map[] */
 
-char	*residentfonts = NULL;		/* list of printer resident fonts */
-char	*printer = NULL;		/* printer name - only for Unix 4.0 lp */
+int8_t	*residentfonts = NULL;		/* list of printer resident fonts */
+int8_t	*printer = NULL;		/* printer name - only for Unix 4.0 lp */
 
-char	buf[2048];			/* input file line buffer */
-char	*comment = DOCUMENTFONTS;	/* look for this comment */
+int8_t	buf[2048];			/* input file line buffer */
+int8_t	*comment = DOCUMENTFONTS;	/* look for this comment */
 int	atend = FALSE;			/* TRUE only if a comment says so */
 
 FILE	*fp_in = stdin;			/* next input file */
 FILE	*fp_temp = NULL;		/* for copying stdin */
 
 void	arguments(void);
-void	copyfonts(char *);
+void	copyfonts(int8_t *);
 void	copyinput(void);
 void	done(void);
 void	download(void);
@@ -153,9 +153,9 @@ void
 options(void)
 {
     int		ch;			/* return value from getopt() */
-    char	*optnames = "c:fm:p:r:H:T:DI";
+    int8_t	*optnames = "c:fm:p:r:H:T:DI";
 
-    extern char	*optarg;		/* used by getopt() */
+    extern int8_t	*optarg;		/* used by getopt() */
     extern int	optind;
 
 /*
@@ -219,8 +219,8 @@ options(void)
 void
 readmap(void)
 {
-    char	*path;
-    char	*ptr;
+    int8_t	*path;
+    int8_t	*ptr;
     int		fd;
     struct stat	sbuf;
 
@@ -277,7 +277,7 @@ void
 readresident(void)
 {
     FILE	*fp;
-    char	*path;
+    int8_t	*path;
     int		ch;
     int		n;
 
@@ -394,10 +394,10 @@ download(void)
 
 void
 copyfonts(list)
-    char	*list;
+    int8_t	*list;
 {
-    char	*font;
-    char	*path;
+    int8_t	*font;
+    int8_t	*path;
     int		n;
 
 /*

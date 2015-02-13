@@ -15,11 +15,11 @@
  * Alpha-specific debugger interface
  */
 
-static 	char	*alphaexcep(Map*, Rgetter);
-static	int	alphafoll(Map*, uvlong, Rgetter, uvlong*);
-static	int	alphainst(Map*, uvlong, char, char*, int);
-static	int	alphadas(Map*, uvlong, char*, int);
-static	int	alphainstlen(Map*, uvlong);
+static 	int8_t	*alphaexcep(Map*, Rgetter);
+static	int	alphafoll(Map*, uint64_t, Rgetter, uint64_t*);
+static	int	alphainst(Map*, uint64_t, int8_t, int8_t*, int);
+static	int	alphadas(Map*, uint64_t, int8_t*, int);
+static	int	alphainstlen(Map*, uint64_t);
 /*
  *	Debugger interface
  */
@@ -43,7 +43,7 @@ Machdata alphamach =
 	alphainstlen,		/* instruction size */
 };
 
-static char *illegaltype[] = {
+static int8_t *illegaltype[] = {
 	"breakpoint",
 	"bugchk",
 	"gentrap",
@@ -51,11 +51,11 @@ static char *illegaltype[] = {
 	"illegal instruction",
 };
 
-static char *
+static int8_t *
 alphaexcep(Map *map, Rgetter rget)
 {
-	ulong type, a0, a1;
-	static char buf[256];
+	uint32_t type, a0, a1;
+	static int8_t buf[256];
 
 	type = (*rget)(map, "TYPE");
 	a0 = (*rget)(map, "A0");
@@ -92,35 +92,35 @@ alphaexcep(Map *map, Rgetter rget)
 
 	/* alpha disassembler and related functions */
 
-static	char FRAMENAME[] = ".frame";
+static	int8_t FRAMENAME[] = ".frame";
 
 typedef struct {
-	uvlong addr;
-	uchar op;			/* bits 31-26 */
-	uchar ra;			/* bits 25-21 */
-	uchar rb;			/* bits 20-16 */
-	uchar rc;			/* bits 4-0 */
-	long mem;			/* bits 15-0 */
-	long branch;			/* bits 20-0 */
-	uchar function;			/* bits 11-5 */
-	uchar literal;			/* bits 20-13 */
-	uchar islit;			/* bit 12 */
-	uchar fpfn;			/* bits 10-5 */
-	uchar fpmode;			/* bits 15-11 */
-	long w0;
-	long w1;
+	uint64_t addr;
+	uint8_t op;			/* bits 31-26 */
+	uint8_t ra;			/* bits 25-21 */
+	uint8_t rb;			/* bits 20-16 */
+	uint8_t rc;			/* bits 4-0 */
+	int32_t mem;			/* bits 15-0 */
+	int32_t branch;			/* bits 20-0 */
+	uint8_t function;			/* bits 11-5 */
+	uint8_t literal;			/* bits 20-13 */
+	uint8_t islit;			/* bit 12 */
+	uint8_t fpfn;			/* bits 10-5 */
+	uint8_t fpmode;			/* bits 15-11 */
+	int32_t w0;
+	int32_t w1;
 	int size;			/* instruction size */
-	char *curr;			/* fill point in buffer */
-	char *end;			/* end of buffer */
-	char *err;			/* error message */
+	int8_t *curr;			/* fill point in buffer */
+	int8_t *end;			/* end of buffer */
+	int8_t *err;			/* error message */
 } Instr;
 
 static Map *mymap;
 
 static int
-decode(uvlong pc, Instr *i)
+decode(uint64_t pc, Instr *i)
 {
-	ulong w;
+	uint32_t w;
 
 	if (get4(mymap, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -149,7 +149,7 @@ decode(uvlong pc, Instr *i)
 }
 
 static int
-mkinstr(uvlong pc, Instr *i)
+mkinstr(uint64_t pc, Instr *i)
 {
 /*	Instr x; */
 
@@ -181,7 +181,7 @@ mkinstr(uvlong pc, Instr *i)
 #pragma	varargck	argpos	bprint		2
 
 static void
-bprint(Instr *i, char *fmt, ...)
+bprint(Instr *i, int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -193,18 +193,18 @@ bprint(Instr *i, char *fmt, ...)
 typedef struct Opcode Opcode;
 
 struct Opcode {
-	char *mnemonic;
+	int8_t *mnemonic;
 	void (*f)(Opcode *, Instr *);
-	char *ken;
+	int8_t *ken;
 };
 
-static void format(char *, Instr *, char *);
+static void format(int8_t *, Instr *, int8_t *);
 
 static int
-plocal(Instr *i, char *m, char r, int store)
+plocal(Instr *i, int8_t *m, int8_t r, int store)
 {
 	int offset;
-	char *reg;
+	int8_t *reg;
 	Symbol s;
 
 	if (!findsym(i->addr, CTEXT, &s) || !findlocal(&s, FRAMENAME, &s))
@@ -228,9 +228,9 @@ plocal(Instr *i, char *m, char r, int store)
 }
 
 static void
-_load(Opcode *o, Instr *i, char r)
+_load(Opcode *o, Instr *i, int8_t r)
 {
-	char *m;
+	int8_t *m;
 
 	m = o->mnemonic;
 	if (i->rb == 30 && plocal(i, m, r, 0))
@@ -257,9 +257,9 @@ loadf(Opcode *o, Instr *i)
 }
 
 static void
-_store(Opcode *o, Instr *i, char r)
+_store(Opcode *o, Instr *i, int8_t r)
 {
-	char *m;
+	int8_t *m;
 
 	m = o->mnemonic;
 	if (i->rb == 30 && plocal(i, m, r, 1))
@@ -288,7 +288,7 @@ storef(Opcode *o, Instr *i)
 static void
 misc(Opcode *o, Instr *i)
 {
-	char *f;
+	int8_t *f;
 
 	USED(o);
 	switch (i->mem&0xFFFF) {
@@ -319,13 +319,13 @@ misc(Opcode *o, Instr *i)
 	format(0, i, f);
 }
 
-static char	*jmpcode[4] = { "JMP", "JSR", "RET", "JSR_COROUTINE" };
+static int8_t	*jmpcode[4] = { "JMP", "JSR", "RET", "JSR_COROUTINE" };
 
 static void
 jmp(Opcode *o, Instr *i)
 {
 	int hint;
-	char *m;
+	int8_t *m;
 
 	USED(o);
 	hint = (i->mem >> 14) & 3;
@@ -361,7 +361,7 @@ bsr(Opcode *o, Instr *i)
 static void
 mult(Opcode *o, Instr *i)
 {
-	char *m;
+	int8_t *m;
 
 	switch (i->function) {
 	case 0x00:
@@ -386,16 +386,16 @@ mult(Opcode *o, Instr *i)
 	format(m, i, o->ken);
 }
 
-static char	alphaload[] = "%l,R%a";
-static char	alphafload[] = "%l,F%a";
-static char	alphastore[] = "R%a,%l";
-static char	alphafstore[] = "F%a,%l";
-static char	alphabranch[] = "R%a,%B";
-static char	alphafbranch[] = "F%a,%B";
-static char	alphaint[] = "%v,R%a,R%c";
-static char	alphafp[] = "F%b,F%a,F%c";
-static char	alphafp2[] = "F%b,F%c";
-static char	alphaxxx[] = "%w";
+static int8_t	alphaload[] = "%l,R%a";
+static int8_t	alphafload[] = "%l,F%a";
+static int8_t	alphastore[] = "R%a,%l";
+static int8_t	alphafstore[] = "F%a,%l";
+static int8_t	alphabranch[] = "R%a,%B";
+static int8_t	alphafbranch[] = "F%a,%B";
+static int8_t	alphaint[] = "%v,R%a,R%c";
+static int8_t	alphafp[] = "F%b,F%a,F%c";
+static int8_t	alphafp2[] = "F%b,F%c";
+static int8_t	alphaxxx[] = "%w";
 
 static Opcode opcodes[64] = {
 	"PAL",		0,	alphaxxx,
@@ -750,7 +750,7 @@ static Opcode shiftopcodes[64] = {
 };
 
 static void
-format(char *mnemonic, Instr *i, char *f)
+format(int8_t *mnemonic, Instr *i, int8_t *f)
 {
 	if (mnemonic)
 		format(0, i, mnemonic);
@@ -815,11 +815,11 @@ format(char *mnemonic, Instr *i, char *f)
 }
 
 static int
-printins(Map *map, uvlong pc, char *buf, int n)
+printins(Map *map, uint64_t pc, int8_t *buf, int n)
 {
 	Instr i;
 	Opcode *o;
-	uchar op;
+	uint8_t op;
 
 	i.curr = buf;
 	i.end = buf+n-1;
@@ -866,14 +866,14 @@ printins(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-alphainst(Map *map, uvlong pc, char modifier, char *buf, int n)
+alphainst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
 {
 	USED(modifier);
 	return printins(map, pc, buf, n);
 }
 
 static int
-alphadas(Map *map, uvlong pc, char *buf, int n)
+alphadas(Map *map, uint64_t pc, int8_t *buf, int n)
 {
 	Instr i;
 
@@ -893,7 +893,7 @@ alphadas(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-alphainstlen(Map *map, uvlong pc)
+alphainstlen(Map *map, uint64_t pc)
 {
 	Instr i;
 
@@ -904,9 +904,9 @@ alphainstlen(Map *map, uvlong pc)
 }
 
 static int
-alphafoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
+alphafoll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
-	char buf[8];
+	int8_t buf[8];
 	Instr i;
 
 	mymap = map;

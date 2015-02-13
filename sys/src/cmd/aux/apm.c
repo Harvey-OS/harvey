@@ -112,10 +112,10 @@ static char* eventstr[] = {
 [NotifyCapabilitiesChange]	"capabilities change",
 };
 
-static char*
+static int8_t*
 apmevent(int e)
 {
-	static char buf[32];
+	static int8_t buf[32];
 
 	if(0 <= e && e < nelem(eventstr) && eventstr[e])
 		return eventstr[e];
@@ -142,11 +142,11 @@ static char *error[256] = {
 [0x86]	"apm not present",
 };
 
-static char*
+static int8_t*
 apmerror(int id)
 {
-	char *e;
-	static char buf[64];
+	int8_t *e;
+	static int8_t buf[64];
 
 	if(e = error[id&0xFF])
 		return e;
@@ -256,27 +256,27 @@ powerstatestr[] = {
 [PowerEnabled]	"on",
 };
 
-static char*
-xstatus(char **str, int nstr, int x)
+static int8_t*
+xstatus(int8_t **str, int nstr, int x)
 {
 	if(0 <= x && x < nstr && str[x])
 		return str[x];
 	return "unknown";
 }
 
-static char*
+static int8_t*
 batterystatus(int b)
 {
 	return xstatus(batterystatusstr, nelem(batterystatusstr), b);
 }
 
-static char*
+static int8_t*
 powerstate(int s)
 {
 	return xstatus(powerstatestr, nelem(powerstatestr), s);
 }
 
-static char*
+static int8_t*
 acstatus(int a)
 {
 	return xstatus(acstatusstr, nelem(acstatusstr), a);
@@ -547,7 +547,7 @@ powerprint(void)
 }
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -557,7 +557,7 @@ erealloc(void *v, ulong n)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *v;
 
@@ -569,11 +569,11 @@ emalloc(ulong n)
 	return v;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	int l;
-	char *t;
+	int8_t *t;
 
 	if (s == nil)
 		return nil;
@@ -584,11 +584,11 @@ estrdup(char *s)
 	return t;
 }
 
-char*
-estrdupn(char *s, int n)
+int8_t*
+estrdupn(int8_t *s, int n)
 {
 	int l;
-	char *t;
+	int8_t *t;
 
 	l = strlen(s);
 	if(l > n)
@@ -616,8 +616,8 @@ static void batteryread(Req*);
 typedef struct Dfile Dfile;
 struct Dfile {
 	Qid qid;
-	char *name;
-	ulong mode;
+	int8_t *name;
+	uint32_t mode;
 	void (*read)(Req*);
 	void (*write)(Req*);
 };
@@ -630,7 +630,7 @@ Dfile dfile[] = {
 };
 
 static int
-fillstat(uvlong path, Dir *d, int doalloc)
+fillstat(uint64_t path, Dir *d, int doalloc)
 {
 	int i;
 
@@ -651,8 +651,8 @@ fillstat(uvlong path, Dir *d, int doalloc)
 	return 0;
 }
 
-static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+static int8_t*
+fswalk1(Fid *fid, int8_t *name, Qid *qid)
 {
 	int i;
 
@@ -675,7 +675,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 static void
 fsopen(Req *r)
 {
-	switch((ulong)r->fid->qid.path){
+	switch((uint32_t)r->fid->qid.path){
 	case Qroot:
 		r->fid->aux = (void*)0;
 		respond(r, nil);
@@ -723,14 +723,14 @@ static void
 rootread(Req *r)
 {
 	int n;
-	uvlong offset;
-	char *p, *ep;
+	uint64_t offset;
+	int8_t *p, *ep;
 	Dir d;
 
 	if(r->ifcall.offset == 0)
 		offset = 0;
 	else
-		offset = (uvlong)r->fid->aux;
+		offset = (uint64_t)r->fid->aux;
 
 	p = r->ofcall.data;
 	ep = r->ofcall.data+r->ifcall.count;
@@ -740,7 +740,7 @@ rootread(Req *r)
 	for(; p+2 < ep; p+=n){
 		if(fillstat(offset, &d, 0) < 0)
 			break;
-		n = convD2M(&d, (uchar*)p, ep-p);
+		n = convD2M(&d, (uint8_t*)p, ep-p);
 		if(n <= BIT16SZ)
 			break;
 		offset++;
@@ -753,7 +753,7 @@ rootread(Req *r)
 static void
 batteryread(Req *r)
 {
-	char buf[Mbattery*80], *ep, *p;
+	int8_t buf[Mbattery*80], *ep, *p;
 	int i;
 
 	apmgetpowerstatus(&apm, DevAll);
@@ -771,7 +771,7 @@ batteryread(Req *r)
 }
 
 int
-iscmd(char *p, char *cmd)
+iscmd(int8_t *p, int8_t *cmd)
 {
 	int l;
 
@@ -779,8 +779,8 @@ iscmd(char *p, char *cmd)
 	return strncmp(p, cmd, l)==0 && p[l]=='\0' || p[l]==' ' || p[l]=='\t';
 }
 
-char*
-skip(char *p, char *cmd)
+int8_t*
+skip(int8_t *p, int8_t *cmd)
 {
 	p += strlen(cmd);
 	while(*p==' ' || *p=='\t')
@@ -791,7 +791,7 @@ skip(char *p, char *cmd)
 static void
 respondx(Req *r, int c)
 {
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 
 	if(c == 0)
 		respond(r, nil);
@@ -808,9 +808,9 @@ respondx(Req *r, int c)
 static void
 ctlwrite(Req *r)
 {
-	char buf[80], *p, *q;
+	int8_t buf[80], *p, *q;
 	int dev;
-	long count;
+	int32_t count;
 
 	count = r->ifcall.count;
 	if(count > sizeof(buf)-1)
@@ -868,10 +868,10 @@ ctlwrite(Req *r)
 }
 
 static int
-statusline(char *buf, int nbuf, char *name, int dev)
+statusline(int8_t *buf, int nbuf, int8_t *name, int dev)
 {
 	int s;
-	char *state;
+	int8_t *state;
 
 	state = "unknown";
 	if((s = apmgetpowerstate(&apm, dev)) >= 0)
@@ -882,7 +882,7 @@ statusline(char *buf, int nbuf, char *name, int dev)
 static void
 ctlread(Req *r)
 {
-	char buf[256+7*50], *ep, *p;
+	int8_t buf[256+7*50], *ep, *p;
 
 	p = buf;
 	ep = buf+sizeof buf;
@@ -920,7 +920,7 @@ Channel *cevent;
 Req *rlist, **tailp;
 int rp, wp;
 int nopoll;
-char eventq[32][80];
+int8_t eventq[32][80];
 
 static void
 flushthread(void*)
@@ -946,7 +946,7 @@ flushthread(void*)
 static void
 answerany(void)
 {
-	char *buf;
+	int8_t *buf;
 	int l, m;
 	Req *r;
 
@@ -1028,7 +1028,7 @@ eventproc(void*)
 	threadsetname("eventproc");
 
 	creq = chancreate(sizeof(Req*), 0);
-	cevent = chancreate(sizeof(ulong), 0);
+	cevent = chancreate(sizeof(uint32_t), 0);
 	cflush = chancreate(sizeof(Req*), 0);
 
 	tailp = &rlist;
@@ -1060,7 +1060,7 @@ eventread(Req *r)
 static void
 fsattach(Req *r)
 {
-	char *spec;
+	int8_t *spec;
 	static int first = 1;
 
 	spec = r->ifcall.aname;

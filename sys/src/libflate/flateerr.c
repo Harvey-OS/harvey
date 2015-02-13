@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <flate.h>
 
-char *
+int8_t *
 flateerr(int err)
 {
 	switch(err){

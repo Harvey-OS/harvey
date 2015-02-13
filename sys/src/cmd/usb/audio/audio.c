@@ -27,8 +27,8 @@
 
 #define STACKSIZE 16*1024
 
-extern char* srvpost;
-char * mntpt;
+extern int8_t* srvpost;
+int8_t * mntpt;
 
 Channel *controlchan;
 
@@ -41,9 +41,9 @@ Dev *epdev[2];
 static void
 audio_endpoint(Dev *, Desc *dd)
 {
-	byte *b = (uchar*)&dd->data;
+	byte *b = (uint8_t*)&dd->data;
 	int n = dd->data.bLength;
-	char *hd;
+	int8_t *hd;
 
 	switch(b[2]){
 	case 0x01:
@@ -103,9 +103,9 @@ controlproc(void *)
 {
 	/* Proc that looks after /dev/usb/%d/ctl */
 	int i, nf;
-	char *req, *args[8];
+	int8_t *req, *args[8];
 	Audiocontrol *c;
-	long value[8];
+	int32_t value[8];
 	Channel *replchan;
 
 	while(req = recvp(controlchan)){
@@ -166,7 +166,7 @@ void
 buttonproc(void *)
 {
 	int	i, fd, b;
-	char err[32];
+	int8_t err[32];
 	byte buf[1];
 	Audiocontrol *c;
 

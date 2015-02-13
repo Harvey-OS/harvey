@@ -9,15 +9,15 @@
 
 #include "astro.h"
 
-char*	startab = "/lib/sky/estartab";
+int8_t*	startab = "/lib/sky/estartab";
 
 void
 stars(void)
 {
 	double lomoon, himoon, sd;
 	int wrap, f, i;
-	char *saop;
-	static char saoa[100];
+	int8_t *saop;
+	static int8_t saoa[100];
 
 	sd = 1000*radsec;
 	lomoon = omoon.point[0].ra - sd;

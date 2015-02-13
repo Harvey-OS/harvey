@@ -111,7 +111,7 @@ sysclose(int fd)
 }
 
 int
-syscreate(char *path, int mode, ulong perm)
+syscreate(int8_t *path, int mode, uint32_t perm)
 {
 	int fd;
 	Chan *c = 0;
@@ -166,7 +166,7 @@ sysdup(int old, int new)
 }
 
 int
-sysfstat(int fd, char *buf)
+sysfstat(int fd, int8_t *buf)
 {
 	Chan *c = 0;
 
@@ -182,7 +182,7 @@ sysfstat(int fd, char *buf)
 }
 
 int
-sysfwstat(int fd, char *buf)
+sysfwstat(int fd, int8_t *buf)
 {
 	Chan *c = 0;
 
@@ -199,13 +199,13 @@ sysfwstat(int fd, char *buf)
 }
 
 int
-syschdir(char *dir)
+syschdir(int8_t *dir)
 {
 	return 0;
 }
 
-long
-bindmount(Chan *c0, char *old, int flag, char *spec)
+int32_t
+bindmount(Chan *c0, int8_t *old, int flag, int8_t *spec)
 {
 	int ret;
 	Chan *c1 = 0;
@@ -227,9 +227,9 @@ bindmount(Chan *c0, char *old, int flag, char *spec)
 }
 
 int
-sysbind(char *new, char *old, int flags)
+sysbind(int8_t *new, int8_t *old, int flags)
 {
-	long r;
+	int32_t r;
 	Chan *c0 = 0;
 
 	if(waserror()) {
@@ -244,13 +244,13 @@ sysbind(char *new, char *old, int flags)
 }
 
 int
-sysmount(int fd, char *old, int flags, char *spec)
+sysmount(int fd, int8_t *old, int flags, int8_t *spec)
 {
-	long r;
+	int32_t r;
 	Chan *c0 = 0, *bc = 0;
 	struct {
 		Chan*	chan;
-		char*	spec;
+		int8_t*	spec;
 		int	flags;
 	} mntparam;
 
@@ -273,7 +273,7 @@ sysmount(int fd, char *old, int flags, char *spec)
 }
 
 int
-sysunmount(char *old, char *new)
+sysunmount(int8_t *old, int8_t *new)
 {
 	Chan *cmount = 0, *cmounted = 0;
 
@@ -295,7 +295,7 @@ sysunmount(char *old, char *new)
 }
 
 int
-sysopen(char *path, int mode)
+sysopen(int8_t *path, int mode)
 {
 	int fd;
 	Chan *c = 0;
@@ -311,10 +311,10 @@ sysopen(char *path, int mode)
 	return fd;
 }
 
-long
-unionread(Chan *c, void *va, long n)
+int32_t
+unionread(Chan *c, void *va, int32_t n)
 {
-	long nr;
+	int32_t nr;
 	Chan *nc = 0;
 	Pgrp *pg = 0;
 
@@ -365,8 +365,8 @@ unionread(Chan *c, void *va, long n)
 	return 0;
 }
 
-long
-sysread(int fd, void *va, long n)
+int32_t
+sysread(int fd, void *va, int32_t n)
 {
 	int dir;
 	Lock *cl;
@@ -402,7 +402,7 @@ sysread(int fd, void *va, long n)
 }
 
 int
-sysremove(char *path)
+sysremove(int8_t *path)
 {
 	Chan *c = 0;
 
@@ -424,12 +424,12 @@ sysremove(char *path)
 	return 0;
 }
 
-long
-sysseek(int fd, long off, int whence)
+int32_t
+sysseek(int fd, int32_t off, int whence)
 {
 	Dir dir;
 	Chan *c;
-	char buf[DIRLEN];
+	int8_t buf[DIRLEN];
 
 	if(waserror())
 		return -1;
@@ -462,7 +462,7 @@ sysseek(int fd, long off, int whence)
 }
 
 int
-sysstat(char *path, char *buf)
+sysstat(int8_t *path, int8_t *buf)
 {
 	Chan *c = 0;
 
@@ -477,8 +477,8 @@ sysstat(char *path, char *buf)
 	return 0;
 }
 
-long
-syswrite(int fd, void *va, long n)
+int32_t
+syswrite(int fd, void *va, int32_t n)
 {
 	Lock *cl;
 	Chan *c = 0;
@@ -505,7 +505,7 @@ syswrite(int fd, void *va, long n)
 }
 
 int
-syswstat(char *path, char *buf)
+syswstat(int8_t *path, int8_t *buf)
 {
 	Chan *c = 0;
 
@@ -523,9 +523,9 @@ syswstat(char *path, char *buf)
 }
 
 int
-sysdirstat(char *name, Dir *dir)
+sysdirstat(int8_t *name, Dir *dir)
 {
-	char buf[DIRLEN];
+	int8_t buf[DIRLEN];
 
 	if(sysstat(name, buf) == -1)
 		return -1;
@@ -536,7 +536,7 @@ sysdirstat(char *name, Dir *dir)
 int
 sysdirfstat(int fd, Dir *dir)
 {
-	char buf[DIRLEN];
+	int8_t buf[DIRLEN];
 
 	if(sysfstat(fd, buf) == -1)
 		return -1;
@@ -546,9 +546,9 @@ sysdirfstat(int fd, Dir *dir)
 }
 
 int
-sysdirwstat(char *name, Dir *dir)
+sysdirwstat(int8_t *name, Dir *dir)
 {
-	char buf[DIRLEN];
+	int8_t buf[DIRLEN];
 
 	convD2M(dir, buf);
 	return syswstat(name, buf);
@@ -557,17 +557,17 @@ sysdirwstat(char *name, Dir *dir)
 int
 sysdirfwstat(int fd, Dir *dir)
 {
-	char buf[DIRLEN];
+	int8_t buf[DIRLEN];
 
 	convD2M(dir, buf);
 	return sysfwstat(fd, buf);
 }
 
-long
-sysdirread(int fd, Dir *dbuf, long count)
+int32_t
+sysdirread(int fd, Dir *dbuf, int32_t count)
 {
 	int c, n, i, r;
-	char buf[DIRLEN*50];
+	int8_t buf[DIRLEN*50];
 
 	n = 0;
 	count = (count/sizeof(Dir)) * DIRLEN;
@@ -593,10 +593,10 @@ sysdirread(int fd, Dir *dbuf, long count)
 }
 
 static int
-call(char *clone, char *dest, int *cfdp, char *dir, char *local)
+call(int8_t *clone, int8_t *dest, int *cfdp, int8_t *dir, int8_t *local)
 {
 	int fd, cfd, n;
-	char *p, name[3*NAMELEN+5], data[3*NAMELEN+10];
+	int8_t *p, name[3*NAMELEN+5], data[3*NAMELEN+10];
 
 	cfd = sysopen(clone, ORDWR);
 	if(cfd < 0){
@@ -645,10 +645,10 @@ call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 }
 
 int
-sysdial(char *dest, char *local, char *dir, int *cfdp)
+sysdial(int8_t *dest, int8_t *local, int8_t *dir, int *cfdp)
 {
 	int n, fd, rv;
-	char *p, net[128], clone[NAMELEN+12];
+	int8_t *p, net[128], clone[NAMELEN+12];
 
 	/* go for a standard form net!... */
 	p = strchr(dest, '!');
@@ -699,10 +699,10 @@ sysdial(char *dest, char *local, char *dir, int *cfdp)
 }
 
 static int
-identtrans(char *addr, char *naddr, int na, char *file, int nf)
+identtrans(int8_t *addr, int8_t *naddr, int na, int8_t *file, int nf)
 {
-	char *p;
-	char reply[4*NAMELEN];
+	int8_t *p;
+	int8_t reply[4*NAMELEN];
 
 	/* parse the network */
 	strncpy(reply, addr, sizeof(reply));
@@ -718,12 +718,12 @@ identtrans(char *addr, char *naddr, int na, char *file, int nf)
 }
 
 static int
-nettrans(char *addr, char *naddr, int na, char *file, int nf)
+nettrans(int8_t *addr, int8_t *naddr, int na, int8_t *file, int nf)
 {
-	long n;
+	int32_t n;
 	int fd;
-	char *cp;
-	char reply[4*NAMELEN];
+	int8_t *cp;
+	int8_t reply[4*NAMELEN];
 
 	/*
 	 *  ask the connection server
@@ -757,14 +757,14 @@ nettrans(char *addr, char *naddr, int na, char *file, int nf)
 }
 
 int
-sysannounce(char *addr, char *dir)
+sysannounce(int8_t *addr, int8_t *dir)
 {
-	char *cp;
+	int8_t *cp;
 	int ctl, n, m;
-	char buf[3*NAMELEN];
-	char buf2[3*NAMELEN];
-	char netdir[2*NAMELEN];
-	char naddr[3*NAMELEN];
+	int8_t buf[3*NAMELEN];
+	int8_t buf2[3*NAMELEN];
+	int8_t netdir[2*NAMELEN];
+	int8_t naddr[3*NAMELEN];
 
 	/*
 	 *  translate the address
@@ -813,11 +813,11 @@ sysannounce(char *addr, char *dir)
 }
 
 int
-syslisten(char *dir, char *newdir)
+syslisten(int8_t *dir, int8_t *newdir)
 {
-	char *cp;
+	int8_t *cp;
 	int ctl, n, m;
-	char buf[3*NAMELEN];
+	int8_t buf[3*NAMELEN];
 
 	/*
 	 *  open listen, wait for a call

@@ -16,7 +16,7 @@ typedef struct Arg Arg;
 struct Arg
 {
 	int fd;
-	char adir[40];
+	int8_t adir[40];
 	SunSrv *srv;
 };
 
@@ -24,7 +24,7 @@ static void
 sunNetListen(void *v)
 {
 	int fd, lcfd;
-	char ldir[40];
+	int8_t ldir[40];
 	Arg *a = v;
 
 	for(;;){
@@ -43,7 +43,7 @@ sunNetListen(void *v)
 }
 
 int
-sunSrvNet(SunSrv *srv, char *addr)
+sunSrvNet(SunSrv *srv, int8_t *addr)
 {
 	Arg *a;
 
@@ -57,7 +57,7 @@ sunSrvNet(SunSrv *srv, char *addr)
 }
 
 int
-sunSrvAnnounce(SunSrv *srv, char *addr)
+sunSrvAnnounce(SunSrv *srv, int8_t *addr)
 {
 	if(strstr(addr, "udp!"))
 		return sunSrvUdp(srv, addr);

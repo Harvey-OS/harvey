@@ -18,7 +18,7 @@
  *  mpdigits long.
  */
 mpint*
-uvtomp(uvlong v, mpint *b)
+uvtomp(uint64_t v, mpint *b)
 {
 	int s;
 
@@ -37,10 +37,10 @@ uvtomp(uvlong v, mpint *b)
 	return b;
 }
 
-uvlong
+uint64_t
 mptouv(mpint *b)
 {
-	uvlong v;
+	uint64_t v;
 	int s;
 
 	if(b->top == 0)
@@ -52,7 +52,7 @@ mptouv(mpint *b)
 
 	v = 0ULL;
 	for(s = 0; s < b->top; s++)
-		v |= (uvlong)b->p[s]<<(s*sizeof(mpdigit)*8);
+		v |= (uint64_t)b->p[s]<<(s*sizeof(mpdigit)*8);
 
 	return v;
 }

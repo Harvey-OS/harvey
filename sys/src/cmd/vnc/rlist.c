@@ -275,7 +275,7 @@ rprint(Rlist *r)
 
 int verbose = 10;
 
-void main(int argc, char * argv[])
+void main(int argc, int8_t * argv[])
 {
 	Rectangle r1 = Rect(0, 0, 300, 200);
 	Rectangle r2 = Rect(100, 100, 400, 300);

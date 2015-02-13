@@ -37,11 +37,11 @@ typedef struct Type Type;
 struct Fid
 {
 	Qid	qid;
-	short	busy;
-	short	open;
+	int16_t	busy;
+	int16_t	open;
 	int	fid;
 	Fid	*next;
-	char	*user;
+	int8_t	*user;
 };
 
 struct Request
@@ -49,7 +49,7 @@ struct Request
 	Request	*next;
 
 	Fid	*fid;
-	ulong	tag;
+	uint32_t	tag;
 	int	count;
 	int	flushed;
 };
@@ -113,8 +113,8 @@ char *names[] =
 [Qctl]		"ctl",
 };
 
-#define DEV(q) ((((ulong)(q).path)&Devmask)>>8)
-#define TYPE(q) (((ulong)(q).path)&((1<<8)-1))
+#define DEV(q) ((((uint32_t)(q).path)&Devmask)>>8)
+#define TYPE(q) (((uint32_t)(q).path)&((1<<8)-1))
 #define MKQID(t, i) ((((i)<<8)&Devmask) | (t))
 
 enum
@@ -133,12 +133,12 @@ enum
 
 struct Type
 {
-	char	*name;
-	char	*ident;		/* inquire request */
-	char	*response;	/* inquire response (strstr) */
-	char	*basetype;	/* name of base type */
+	int8_t	*name;
+	int8_t	*ident;		/* inquire request */
+	int8_t	*response;	/* inquire response (strstr) */
+	int8_t	*basetype;	/* name of base type */
 
-	char	*commands[Ncommand];
+	int8_t	*commands[Ncommand];
 };
 
 /*
@@ -231,7 +231,7 @@ enum
 typedef struct Msg	Msg;
 struct Msg
 {
-	char	*text;
+	int8_t	*text;
 	int	type;
 };
 
@@ -251,41 +251,41 @@ Fid	*fids;
 Dev	*dev;
 int	ndev;
 int	mfd[2];
-char	*user;
-uchar	mdata[8192+IOHDRSZ];
+int8_t	*user;
+uint8_t	mdata[8192+IOHDRSZ];
 int	messagesize = sizeof mdata;
 Fcall	thdr;
 Fcall	rhdr;
-char	errbuf[ERRMAX];
-uchar	statbuf[STATMAX];
+int8_t	errbuf[ERRMAX];
+uint8_t	statbuf[STATMAX];
 int	pulsed;
 int	verbose;
 int	maxspeed = 56000;
-char	*srcid = "plan9";
+int8_t	*srcid = "plan9";
 int	answer = 1;
 
 Fid	*newfid(int);
-int	devstat(Dir*, uchar*, int);
-int	devgen(Qid, int, Dir*, uchar*, int);
-void	error(char*);
+int	devstat(Dir*, uint8_t*, int);
+int	devgen(Qid, int, Dir*, uint8_t*, int);
+void	error(int8_t*);
 void	io(void);
-void	*erealloc(void*, ulong);
-void	*emalloc(ulong);
+void	*erealloc(void*, uint32_t);
+void	*emalloc(uint32_t);
 void	usage(void);
 int	perm(Fid*, Dev*, int);
 void	setspeed(Dev*, int);
-int	getspeed(char*, int);
-char	*dialout(Dev*, char*);
+int	getspeed(int8_t*, int);
+int8_t	*dialout(Dev*, int8_t*);
 void	onhook(Dev*);
-int	readmsg(Dev*, int, char*);
+int	readmsg(Dev*, int, int8_t*);
 void	monitor(Dev*);
-int	getinput(Dev*, char*, int);
+int	getinput(Dev*, int8_t*, int);
 void	serve(Dev*);
 void	receiver(Dev*);
-char*	modemtype(Dev*, int, int);
+int8_t*	modemtype(Dev*, int, int);
 
 
-char	*rflush(Fid*), *rversion(Fid*),
+int8_t	*rflush(Fid*), *rversion(Fid*),
 	*rattach(Fid*), *rauth(Fid*), *rwalk(Fid*),
 	*ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
@@ -307,16 +307,16 @@ char 	*(*fcalls[])(Fid*) = {
 	[Twstat]	rwstat,
 };
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enotexist[] =	"file does not exist";
-char	Ebadaddr[] = 	"bad address";
-char	Eattn[] = 	"can't get modem's attention";
-char	Edial[] = 	"can't dial";
-char	Enoauth[] =	"telco: authentication not required";
-char	Eisopen[] = 	"file already open for I/O";
-char	Enodev[] = 	"no free modems";
-char	Enostream[] =	"stream closed prematurely";
+int8_t	Eperm[] =	"permission denied";
+int8_t	Enotdir[] =	"not a directory";
+int8_t	Enotexist[] =	"file does not exist";
+int8_t	Ebadaddr[] = 	"bad address";
+int8_t	Eattn[] = 	"can't get modem's attention";
+int8_t	Edial[] = 	"can't dial";
+int8_t	Enoauth[] =	"telco: authentication not required";
+int8_t	Eisopen[] = 	"file already open for I/O";
+int8_t	Enodev[] = 	"no free modems";
+int8_t	Enostream[] =	"stream closed prematurely";
 
 void
 usage(void)
@@ -326,7 +326,7 @@ usage(void)
 }
 
 void
-notifyf(void *a, char *s)
+notifyf(void *a, int8_t *s)
 {
 	USED(a);
 	if(strncmp(s, "interrupt", 9) == 0)
@@ -413,11 +413,11 @@ main(int argc, char *argv[])
  *  generate a stat structure for a qid
  */
 int
-devstat(Dir *dir, uchar *buf, int nbuf)
+devstat(Dir *dir, uint8_t *buf, int nbuf)
 {
 	Dev *d;
 	int t;
-	static char tmp[10][32];
+	static int8_t tmp[10][32];
 	static int ntmp;
 
 	t = TYPE(dir->qid);
@@ -459,9 +459,9 @@ devstat(Dir *dir, uchar *buf, int nbuf)
  *  enumerate file's we can walk to from q
  */
 int
-devgen(Qid q, int i, Dir *d, uchar *buf, int nbuf)
+devgen(Qid q, int i, Dir *d, uint8_t *buf, int nbuf)
 {
-	static ulong v;
+	static uint32_t v;
 
 	d->qid.vers = v++;
 	switch(TYPE(q)){
@@ -513,7 +513,7 @@ devgen(Qid q, int i, Dir *d, uchar *buf, int nbuf)
 	return devstat(d, buf, nbuf);
 }
 
-char*
+int8_t*
 rversion(Fid *)
 {
 	Fid *f;
@@ -534,7 +534,7 @@ rversion(Fid *)
 	return 0;
 }
 
-char*
+int8_t*
 rflush(Fid *f)
 {
 	Request *r, **l;
@@ -554,14 +554,14 @@ rflush(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 rauth(Fid *f)
 {
 	USED(f);
 	return Enoauth;
 }
 
-char*
+int8_t*
 rattach(Fid *f)
 {
 	f->busy = 1;
@@ -576,12 +576,12 @@ rattach(Fid *f)
 	return 0;
 }
 
-char*
+int8_t*
 rwalk(Fid *f)
 {
 	Fid *nf;
 	int i, nqid;
-	char *name, *err;
+	int8_t *name, *err;
 	Dir dir;
 	Qid q;
 
@@ -639,7 +639,7 @@ rwalk(Fid *f)
 	return err;
 }
 
-char *
+int8_t *
 ropen(Fid *f)
 {
 	Dev *d;
@@ -691,7 +691,7 @@ ropen(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 rcreate(Fid *f)
 {
 	USED(f);
@@ -702,7 +702,7 @@ rcreate(Fid *f)
  *  intercept a note
  */
 void
-takeanote(void *u, char *note)
+takeanote(void *u, int8_t *note)
 {
 	USED(u);
 	if(strstr(note, "flushed"))
@@ -710,14 +710,14 @@ takeanote(void *u, char *note)
 	noted(NDFLT);
 }
 
-char*
+int8_t*
 rread(Fid *f)
 {
-	char *buf;
-	long off, start;
+	int8_t *buf;
+	int32_t off, start;
 	int i, m, n, cnt, t;
 	Dir dir;
-	char num[32];
+	int8_t num[32];
 	Dev *d;
 	Request *r;
 
@@ -731,7 +731,7 @@ rread(Fid *f)
 	default:
 		start = 0;
 		for(i = 0; n < cnt; i++){
-			m = devgen(f->qid, i, &dir, (uchar*)buf+n, cnt-n);
+			m = devgen(f->qid, i, &dir, (uint8_t*)buf+n, cnt-n);
 			if(m <= BIT16SZ)
 				break;
 			if(start >= off)
@@ -770,17 +770,17 @@ rread(Fid *f)
 	return 0;
 }
 
-char *cmsg = "connect ";
+int8_t *cmsg = "connect ";
 int clen;
 
-char*
+int8_t*
 rwrite(Fid *f)
 {
 	Dev *d;
-	ulong off;
+	uint32_t off;
 	int cnt;
-	char *cp;
-	char buf[64];
+	int8_t *cp;
+	int8_t buf[64];
 
 	off = thdr.offset;
 	cnt = thdr.count;
@@ -827,7 +827,7 @@ rwrite(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 rclunk(Fid *f)
 {
 	Dev *d;
@@ -848,14 +848,14 @@ rclunk(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 rremove(Fid *f)
 {
 	USED(f);
 	return Eperm;
 }
 
-char *
+int8_t *
 rstat(Fid *f)
 {
 	Dir d;
@@ -866,7 +866,7 @@ rstat(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 rwstat(Fid *f)
 {
 	Dev *d;
@@ -920,7 +920,7 @@ newfid(int fid)
 void
 io(void)
 {
-	char *err;
+	int8_t *err;
 	int n;
 
 	for(;;){
@@ -940,7 +940,7 @@ io(void)
 		if(convM2S(mdata, n, &thdr) != n)
 			error("convM2S error");
 
-		rhdr.data = (char*)mdata + IOHDRSZ;
+		rhdr.data = (int8_t*)mdata + IOHDRSZ;
 		if(!fcalls[thdr.type])
 			err = "bad fcall type";
 		else
@@ -975,7 +975,7 @@ perm(Fid *f, Dev *d, int p)
 }
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	fprint(2, "%s: %s: %r\n", argv0, s);
 	syslog(0, LOGFILE, "%s: %r", s);
@@ -985,7 +985,7 @@ error(char *s)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -996,7 +996,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(!p)
@@ -1008,7 +1008,7 @@ erealloc(void *p, ulong n)
  *  send bytes to modem
  */
 int
-send(Dev *d, char *x)
+send(Dev *d, int8_t *x)
 {
 	if(verbose)
 		syslog(0, LOGFILE, "->%s", x);
@@ -1019,10 +1019,10 @@ send(Dev *d, char *x)
  *  apply a string of commands to modem
  */
 int
-apply(Dev *d, char *s, char *substr, int secs)
+apply(Dev *d, int8_t *s, int8_t *substr, int secs)
 {
-	char buf[128];
-	char *p;
+	int8_t buf[128];
+	int8_t *p;
 	int c, m;
 
 	p = buf;
@@ -1048,7 +1048,7 @@ apply(Dev *d, char *s, char *substr, int secs)
 int
 applyspecial(Dev *d, int index)
 {
-	char *cmd;
+	int8_t *cmd;
 
 	cmd = d->t->commands[index];
 	if(cmd == 0 && d->baset)
@@ -1090,12 +1090,12 @@ int portspeed[] = { 56000, 38400, 19200, 14400, 9600, 4800, 2400, 1200, 600, 300
 /*
  *  get the modem's type and speed
  */
-char*
+int8_t*
 modemtype(Dev *d, int limit,  int fax)
 {
 	int *p;
 	Type *t, *bt;
-	char buf[28];
+	int8_t buf[28];
 
 	d->t = typetab;
 	d->baset = 0;
@@ -1177,8 +1177,8 @@ void
 monitor(Dev *d)
 {
 	int n;
-	char *p;
-	char file[256];
+	int8_t *p;
+	int8_t file[256];
 	int background;
 
 	background = 0;
@@ -1262,9 +1262,9 @@ monitor(Dev *d)
  *  get bytes input by monitor() (only routine that changes d->rp)
  */
 int
-getinput(Dev *d, char *buf, int n)
+getinput(Dev *d, int8_t *buf, int n)
 {
-	char *p;
+	int8_t *p;
 	int i;
 
 	p = buf;
@@ -1297,8 +1297,8 @@ serve(Dev *d)
 	Request *r;
 	int n;
 	Fcall rhdr;
-	uchar *mdata;
-	char *buf;
+	uint8_t *mdata;
+	int8_t *buf;
 
 	mdata = malloc(messagesize);
 	buf = malloc(messagesize-IOHDRSZ);
@@ -1332,13 +1332,13 @@ serve(Dev *d)
 /*
  *  dial a number
  */
-char*
-dialout(Dev *d, char *number)
+int8_t*
+dialout(Dev *d, int8_t *number)
 {
 	int i, m, compress, rateadjust, speed, fax;
-	char *err;
-	char *field[5];
-	char dialstr[128];
+	int8_t *err;
+	int8_t *field[5];
+	int8_t dialstr[128];
 
 	compress = Ok;
 	rateadjust = Failure;
@@ -1404,11 +1404,11 @@ void
 receiver(Dev *d)
 {
 	int fd;
-	char file[256];
-	char *argv[8];
+	int8_t file[256];
+	int8_t *argv[8];
 	int argc;
 	int pfd[2];
-	char *prog;
+	int8_t *prog;
 
 	pipe(pfd);
 	switch(rfork(RFPROC|RFMEM|RFFDG|RFNAMEG)){
@@ -1490,10 +1490,10 @@ onhook(Dev *d)
  *  read till we see a message or we time out
  */
 int
-readmsg(Dev *d, int secs, char *substr)
+readmsg(Dev *d, int secs, int8_t *substr)
 {
-	ulong start;
-	char *p;
+	uint32_t start;
+	int8_t *p;
 	int i, len;
 	Msg *pp;
 	int found = 0;
@@ -1533,9 +1533,9 @@ readmsg(Dev *d, int secs, char *substr)
  *  get baud rate from a connect message
  */
 int
-getspeed(char *msg, int speed)
+getspeed(int8_t *msg, int speed)
 {
-	char *p;
+	int8_t *p;
 	int s;
 
 	p = msg + sizeof("CONNECT") - 1;
@@ -1554,7 +1554,7 @@ getspeed(char *msg, int speed)
 void
 setspeed(Dev *d, int baud)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	if(d->ctl < 0)
 		return;

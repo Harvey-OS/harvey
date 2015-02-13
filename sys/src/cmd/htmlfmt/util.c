@@ -15,7 +15,7 @@
 #include "dat.h"
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -27,7 +27,7 @@ emalloc(ulong n)
 }
 
 void*
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -35,21 +35,21 @@ erealloc(void *p, ulong n)
 	return p;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 
 	t = emalloc(strlen(s)+1);
 	strcpy(t, s);
 	return t;
 }
 
-char*
-estrstrdup(char *s, char *t)
+int8_t*
+estrstrdup(int8_t *s, int8_t *t)
 {
-	long ns, nt;
-	char *u;
+	int32_t ns, nt;
+	int8_t *u;
 
 	ns = strlen(s);
 	nt = strlen(t);
@@ -63,11 +63,11 @@ estrstrdup(char *s, char *t)
 	return u;
 }
 
-char*
-eappend(char *s, char *sep, char *t)
+int8_t*
+eappend(int8_t *s, int8_t *sep, int8_t *t)
 {
-	long ns, nsep, nt;
-	char *u;
+	int32_t ns, nsep, nt;
+	int8_t *u;
 
 	if(t == nil)
 		u = estrstrdup(s, sep);
@@ -88,8 +88,8 @@ eappend(char *s, char *sep, char *t)
 	return u;
 }
 
-char*
-egrow(char *s, char *sep, char *t)
+int8_t*
+egrow(int8_t *s, int8_t *sep, int8_t *t)
 {
 	s = eappend(s, sep, t);
 	free(t);
@@ -97,10 +97,10 @@ egrow(char *s, char *sep, char *t)
 }
 
 void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[256];
+	int8_t buf[256];
 	Fmt f;
 
 	fmtfdinit(&f, 2, buf, sizeof buf);
@@ -114,7 +114,7 @@ error(char *fmt, ...)
 }
 
 void
-growbytes(Bytes *b, char *s, long ns)
+growbytes(Bytes *b, int8_t *s, int32_t ns)
 {
 	if(b->nalloc < b->n + ns + 1){
 		b->nalloc = b->n + ns + 8000;

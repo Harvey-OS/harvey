@@ -82,7 +82,7 @@ gs_param_list_puts(stream *dest, gs_param_list *list)
 
 	/* Get next datum & put its type & key to stream */
 	gs_param_typed_value value;
-	char string_key[MAX_PARAM_KEY + 1];
+	int8_t string_key[MAX_PARAM_KEY + 1];
 
 	if (sizeof(string_key) < key.size + 1) {
 	    code = gs_note_error(gs_error_rangecheck);
@@ -220,7 +220,7 @@ gs_param_list_gets(stream *src, gs_param_list *list, gs_memory_t *mem)
 	void *data;
 	uint size;
 	gs_param_type type;
-	char string_key[MAX_PARAM_KEY + 1];
+	int8_t string_key[MAX_PARAM_KEY + 1];
 
 	/* key length 0 indicates end of data */
 	if ((code = sget_word(src, &key_sizeof)) < 0 ||

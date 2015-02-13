@@ -25,7 +25,7 @@ enum
 };
 
 int
-iscomment(char *name)
+iscomment(int8_t *name)
 {
 	return *name == '#';
 }
@@ -34,7 +34,7 @@ iscomment(char *name)
  *  is this a fully specified datakit name?
  */
 int
-isdk(char *name)
+isdk(int8_t *name)
 {
 	int slash;
 
@@ -55,7 +55,7 @@ isdk(char *name)
  *  Is this an internet domain name?
  */
 int
-isdomain(char *name)
+isdomain(int8_t *name)
 {
 	int dot = 0;
 	int alpha = 0;
@@ -80,7 +80,7 @@ isdomain(char *name)
  *  is this an ip address?
  */
 int
-isip(char *name)
+isip(int8_t *name)
 {
 	int dot = 0;
 
@@ -96,7 +96,7 @@ isip(char *name)
 	return dot;
 }
 
-char tup[64][64];
+int8_t tup[64][64];
 int ttype[64];
 int ntup;
 
@@ -104,7 +104,7 @@ void
 tprint(void)
 {
 	int i, tab;
-	char *p;
+	int8_t *p;
 
 	tab = 0;
 	for(i = 0; i < ntup; i++){
@@ -155,8 +155,8 @@ void
 main(void)
 {
 	int n, i, j;
-	char *l;
-	char *fields[NFIELDS];
+	int8_t *l;
+	int8_t *fields[NFIELDS];
 	int ftype[NFIELDS];
 	int same, match;
 

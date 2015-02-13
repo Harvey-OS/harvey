@@ -16,7 +16,7 @@
 
 int whatpos(obj *p, int corner, double *px, double *py);
 void makeattr(int type, int sub, YYSTYPE val);
-YYSTYPE getblk(obj *, char *);
+YYSTYPE getblk(obj *, int8_t *);
 
 setdir(int n)	/* set direction (hvmode) from LEFT, RIGHT, etc. */
 {
@@ -97,9 +97,9 @@ void exprsave(double f)
 	exprlist[nexpr++] = f;
 }
 
-char *sprintgen(char *fmt)
+int8_t *sprintgen(int8_t *fmt)
 {
-	char buf[1000];
+	int8_t buf[1000];
 
 	sprintf(buf, fmt, exprlist[0], exprlist[1], exprlist[2], exprlist[3], exprlist[4]);
 	nexpr = 0;
@@ -128,7 +128,7 @@ void makeiattr(int type, int i)	/* int attr */
 	makeattr(type, 0, val);
 }
 
-void maketattr(int sub, char *p)	/* text attribute: takes two */
+void maketattr(int sub, int8_t *p)	/* text attribute: takes two */
 {
 	YYSTYPE val;
 	val.p = p;
@@ -140,7 +140,7 @@ void addtattr(int sub)		/* add text attrib to existing item */
 	attr[nattr-1].a_sub |= sub;
 }
 
-void makevattr(char *p)	/* varname attribute */
+void makevattr(int8_t *p)	/* varname attribute */
 {
 	YYSTYPE val;
 	val.p = p;
@@ -154,7 +154,8 @@ void makeattr(int type, int sub, YYSTYPE val)	/* add attribute type and val */
 		return;
 	}
 	if (nattr >= nattrlist)
-		attr = (Attr *) grow((char *)attr, "attr", nattrlist += 100, sizeof(Attr));
+		attr = (Attr *) grow((int8_t *)attr, "attr",
+				     nattrlist += 100, sizeof(Attr));
 	dprintf("attr %d:  %d %d %d\n", nattr, type, sub, val.i);
 	attr[nattr].a_type = type;
 	attr[nattr].a_sub = sub;
@@ -358,7 +359,7 @@ obj *getfirst(int n, int t)	/* find n-th occurrence of type t */
 	return(NULL);
 }
 
-double getblkvar(obj *p, char *s)	/* find variable s2 in block p */
+double getblkvar(obj *p, int8_t *s)	/* find variable s2 in block p */
 {
 	YYSTYPE y;
 
@@ -366,7 +367,7 @@ double getblkvar(obj *p, char *s)	/* find variable s2 in block p */
 	return y.f;
 }
 
-obj *getblock(obj *p, char *s)	/* find variable s in block p */
+obj *getblock(obj *p, int8_t *s)	/* find variable s in block p */
 {
 	YYSTYPE y;
 

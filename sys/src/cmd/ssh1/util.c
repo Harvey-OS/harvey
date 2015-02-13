@@ -11,19 +11,19 @@
 #include <bio.h>
 #include <ndb.h>
 
-char Edecode[] = "error decoding input packet";
-char Eencode[] = "out of space encoding output packet (BUG)";
-char Ehangup[] = "hungup connection";
-char Ememory[] = "out of memory";
+int8_t Edecode[] = "error decoding input packet";
+int8_t Eencode[] = "out of space encoding output packet (BUG)";
+int8_t Ehangup[] = "hungup connection";
+int8_t Ememory[] = "out of memory";
 
 int debuglevel;
 int doabort;
 
 void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[2048];
+	int8_t buf[2048];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -35,7 +35,7 @@ error(char *fmt, ...)
 }
 
 void
-debug(int level, char *fmt, ...)
+debug(int level, int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -47,7 +47,7 @@ debug(int level, char *fmt, ...)
 }
 
 void*
-emalloc(long n)
+emalloc(int32_t n)
 {
 	void *a;
 
@@ -59,7 +59,7 @@ emalloc(long n)
 }
 
 void*
-erealloc(void *v, long n)
+erealloc(void *v, int32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -91,7 +91,7 @@ atexitkill(int pid)
 }
 
 int
-readstrnl(int fd, char *buf, int nbuf)
+readstrnl(int fd, int8_t *buf, int nbuf)
 {
 	int i;
 
@@ -118,7 +118,7 @@ void
 calcsessid(Conn *c)
 {
 	int n;
-	uchar buf[1024];
+	uint8_t buf[1024];
 
 	n = mptobe(c->hostkey->n, buf, sizeof buf, nil);
 	n += mptobe(c->serverkey->n, buf+n, sizeof buf-n, nil);
@@ -128,9 +128,9 @@ calcsessid(Conn *c)
 }
 
 void
-sshlog(char *f, ...)
+sshlog(int8_t *f, ...)
 {
-	char *s;
+	int8_t *s;
 	va_list arg;
 	Fmt fmt;
 	static int pid;
@@ -160,16 +160,16 @@ sshlog(char *f, ...)
 static int
 pstrcmp(const void *a, const void *b)
 {
-	return strcmp(*(char**)a, *(char**)b);
+	return strcmp(*(int8_t**)a, *(int8_t**)b);
 }
 
-static char*
-trim(char *s)
+static int8_t*
+trim(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 	int i, last, n, nf;
-	char **f;
-	char *p;
+	int8_t **f;
+	int8_t *p;
 
 	t = emalloc(strlen(s)+1);
 	t[0] = '\0';
@@ -197,7 +197,7 @@ usetuple(Conn *c, Ndbtuple *t, int scanentries)
 {
 	int first;
 	Ndbtuple *l, *e;
-	char *s;
+	int8_t *s;
 
 	first=1;
 	s = c->host;
@@ -224,10 +224,10 @@ usetuple(Conn *c, Ndbtuple *t, int scanentries)
 }
 
 void
-setaliases(Conn *c, char *name)
+setaliases(Conn *c, int8_t *name)
 {
-	char *p, *net;
-	char *attr[2];
+	int8_t *p, *net;
+	int8_t *attr[2];
 	Ndbtuple *t;
 
 	net = "/net";
@@ -263,7 +263,7 @@ setaliases(Conn *c, char *name)
 void
 privatefactotum(void)
 {
-	char *user;
+	int8_t *user;
 	Dir *d;
 
 	if((user=getuser()) && (d=dirstat("/mnt/factotum/rpc")) && strcmp(user, d->uid)!=0){

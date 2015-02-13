@@ -92,7 +92,7 @@ find_fontmap(x11fontmap *fmps, const byte *fname, uint len)
 
     while (fmp) {
 	if (len == strlen(fmp->ps_name) &&
-	    strncmp(fmp->ps_name, (const char *)fname, len) == 0)
+	    strncmp(fmp->ps_name, (const int8_t *)fname, len) == 0)
 	    break;
 	fmp = fmp->next;
     }
@@ -146,8 +146,8 @@ x_lookup_font(gx_device * dev, const byte * fname, uint len,
 {
     gx_device_X *xdev = (gx_device_X *) dev;
     x_xfont *xxf;
-    char x11template[256];
-    char *x11fontname = NULL;
+    int8_t x11template[256];
+    int8_t *x11fontname = NULL;
     XFontStruct *x11font;
     x11fontmap *fmp;
     double height;

@@ -18,7 +18,7 @@
 
 #include "iolib.h"
 
-char *sys_errlist[] = {
+int8_t *sys_errlist[] = {
 	"Error 0",
 	"Too big",
 	"Access denied",
@@ -90,9 +90,9 @@ char *sys_errlist[] = {
 };
 #define	_IO_nerr	(sizeof sys_errlist/sizeof sys_errlist[0])
 int sys_nerr = _IO_nerr;
-extern char _plan9err[];
+extern int8_t _plan9err[];
 
-char *
+int8_t *
 strerror(int n)
 {
 	if(n == EPLAN9)
@@ -107,8 +107,8 @@ strerror(int n)
 		return "Unknown error";
 }
 
-char *
-strerror_r(int n, char *buf, int len)
+int8_t *
+strerror_r(int n, int8_t *buf, int len)
 {
 	strncpy(buf, strerror(n), len);
 	buf[len-1] = 0;

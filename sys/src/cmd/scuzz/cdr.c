@@ -12,10 +12,10 @@
 #include <disk.h>
 #include "scsireq.h"
 
-long
-SRblank(ScsiReq *rp, uchar type, uchar track)
+int32_t
+SRblank(ScsiReq *rp, uint8_t type, uint8_t track)
 {
-	uchar cmd[12];
+	uint8_t cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdBlank;
@@ -32,10 +32,10 @@ SRblank(ScsiReq *rp, uchar type, uchar track)
 	return SRrequest(rp);
 }
 
-long
+int32_t
 SRsynccache(ScsiReq *rp)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdSynccache;
@@ -47,10 +47,10 @@ SRsynccache(ScsiReq *rp)
 	return SRrequest(rp);
 }
 
-long
-SRTOC(ScsiReq *rp, void *data, int nbytes, uchar format, uchar track)
+int32_t
+SRTOC(ScsiReq *rp, void *data, int nbytes, uint8_t format, uint8_t track)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRTOC;
@@ -66,10 +66,10 @@ SRTOC(ScsiReq *rp, void *data, int nbytes, uchar format, uchar track)
 	return SRrequest(rp);
 }
 
-long
+int32_t
 SRrdiscinfo(ScsiReq *rp, void *data, int nbytes)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRdiscinfo;
@@ -83,10 +83,10 @@ SRrdiscinfo(ScsiReq *rp, void *data, int nbytes)
 	return SRrequest(rp);
 }
 
-long
+int32_t
 SRrtrackinfo(ScsiReq *rp, void *data, int nbytes, int track)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRtrackinfo;
@@ -105,10 +105,11 @@ SRrtrackinfo(ScsiReq *rp, void *data, int nbytes, int track)
 	return SRrequest(rp);
 }
 
-long
-SRfwaddr(ScsiReq *rp, uchar track, uchar mode, uchar npa, uchar *data)
+int32_t
+SRfwaddr(ScsiReq *rp, uint8_t track, uint8_t mode, uint8_t npa,
+	 uint8_t *data)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdFwaddr;
@@ -123,11 +124,11 @@ SRfwaddr(ScsiReq *rp, uchar track, uchar mode, uchar npa, uchar *data)
 	return SRrequest(rp);
 }
 
-long
-SRtreserve(ScsiReq *rp, long nbytes)
+int32_t
+SRtreserve(ScsiReq *rp, int32_t nbytes)
 {
-	uchar cmd[10];
-	long n;
+	uint8_t cmd[10];
+	int32_t n;
 
 	if((nbytes % rp->lbsize)){
 		rp->status = Status_BADARG;
@@ -148,10 +149,10 @@ SRtreserve(ScsiReq *rp, long nbytes)
 	return SRrequest(rp);
 }
 
-long
-SRtinfo(ScsiReq *rp, uchar track, uchar *data)
+int32_t
+SRtinfo(ScsiReq *rp, uint8_t track, uint8_t *data)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdTinfo;
@@ -165,11 +166,11 @@ SRtinfo(ScsiReq *rp, uchar track, uchar *data)
 	return SRrequest(rp);
 }
 
-long
-SRwtrack(ScsiReq *rp, void *buf, long nbytes, uchar track, uchar mode)
+int32_t
+SRwtrack(ScsiReq *rp, void *buf, int32_t nbytes, uint8_t track, uint8_t mode)
 {
-	uchar cmd[10];
-	long m, n;
+	uint8_t cmd[10];
+	int32_t m, n;
 
 	if((nbytes % rp->lbsize) || nbytes > maxiosize){
 		rp->status = Status_BADARG;
@@ -194,10 +195,10 @@ SRwtrack(ScsiReq *rp, void *buf, long nbytes, uchar track, uchar mode)
 	return m;
 }
 
-long
-SRmload(ScsiReq *rp, uchar code)
+int32_t
+SRmload(ScsiReq *rp, uint8_t code)
 {
-	uchar cmd[12];
+	uint8_t cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdMload;
@@ -210,10 +211,10 @@ SRmload(ScsiReq *rp, uchar code)
 	return SRrequest(rp);
 }
 
-long
-SRfixation(ScsiReq *rp, uchar type)
+int32_t
+SRfixation(ScsiReq *rp, uint8_t type)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdFixation;

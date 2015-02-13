@@ -42,8 +42,8 @@
 #include <mp.h>
 #include <libsec.h>
 
-typedef uchar	u8;
-typedef ulong	u32;
+typedef uint8_t	u8;
+typedef uint32_t	u32;
 
 #define FULL_UNROLL
 #define const
@@ -53,7 +53,7 @@ static const u32 Td1[256];
 static const u32 Td2[256];
 static const u32 Td3[256];
 static const u8  Te4[256];
-static uchar basekey[3][16] = {
+static uint8_t basekey[3][16] = {
 	{
 	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
 	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -68,18 +68,23 @@ static uchar basekey[3][16] = {
 	},
 };
 
-static int aes_setupEnc(ulong rk[/*4*(Nr + 1)*/], const uchar cipherKey[],
+static int aes_setupEnc(uint32_t rk[/*4*(Nr + 1)*/],
+			const uint8_t cipherKey[],
 		int keyBits);
-static int aes_setupDec(ulong rk[/*4*(Nr + 1)*/], const uchar cipherKey[],
+static int aes_setupDec(uint32_t rk[/*4*(Nr + 1)*/],
+			const uint8_t cipherKey[],
 		int keyBits);
-static int aes_setup(ulong erk[/*4*(Nr + 1)*/], ulong drk[/*4*(Nr + 1)*/],
-		const uchar cipherKey[], int keyBits);
+static int aes_setup(uint32_t erk[/*4*(Nr + 1)*/],
+		     uint32_t drk[/*4*(Nr + 1)*/],
+		const uint8_t cipherKey[], int keyBits);
 
-void	aes_encrypt(const ulong rk[], int Nr, const uchar pt[16], uchar ct[16]);
-void	aes_decrypt(const ulong rk[], int Nr, const uchar ct[16], uchar pt[16]);
+void	aes_encrypt(const uint32_t rk[], int Nr, const uint8_t pt[16],
+			uint8_t ct[16]);
+void	aes_decrypt(const uint32_t rk[], int Nr, const uint8_t ct[16],
+			uint8_t pt[16]);
 
 void
-setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec)
+setupAESstate(AESstate *s, uint8_t key[], int keybytes, uint8_t *ivec)
 {
 	memset(s, 0, sizeof(*s));
 	if(keybytes > AESmaxkey)
@@ -103,7 +108,7 @@ setupAESXCBCstate(AESstate *s)		/* was setupmac96 */
 {
 	int i, j;
 	uint q[16 / sizeof(uint)];
-	uchar *p;
+	uint8_t *p;
 
 	assert(s->keybytes == 16);
 	for(i = 0; i < 3; i++)
@@ -132,11 +137,11 @@ setupAESXCBCstate(AESstate *s)		/* was setupmac96 */
  * Not dealing with > 128-bit keys, not dealing with strange corner cases like
  * empty message.  Should be fine for AES-XCBC-MAC-96.
  */
-uchar*
-aesXCBCmac(uchar *p, int len, AESstate *s)
+uint8_t*
+aesXCBCmac(uint8_t *p, int len, AESstate *s)
 {
-	uchar *p2, *ip, *eip, *mackey;
-	uchar q[AESbsize];
+	uint8_t *p2, *ip, *eip, *mackey;
+	uint8_t q[AESbsize];
 
 	assert(s->keybytes == 16);	/* more complicated for bigger */
 	memset(s->ivec, 0, AESbsize);	/* E[0] is 0+ */
@@ -147,7 +152,7 @@ aesXCBCmac(uchar *p, int len, AESstate *s)
 		ip = s->ivec;
 		for(eip = ip + AESbsize; ip < eip; )
 			*p2++ ^= *ip++;
-		aes_encrypt((ulong *)s->mackey, s->rounds, q, s->ivec);
+		aes_encrypt((uint32_t *)s->mackey, s->rounds, q, s->ivec);
 		p += AESbsize;
 	}
 	/* the last one */
@@ -167,7 +172,7 @@ aesXCBCmac(uchar *p, int len, AESstate *s)
 	p2 = q;
 	for(eip = ip + AESbsize; ip < eip; )
 		*p2++ ^= *ip++ ^ *mackey++;
-	aes_encrypt((ulong *)s->mackey, s->rounds, q, s->ivec);
+	aes_encrypt((uint32_t *)s->mackey, s->rounds, q, s->ivec);
 	return s->ivec;			/* only the 12 bytes leftmost */
 }
 
@@ -177,10 +182,10 @@ aesXCBCmac(uchar *p, int len, AESstate *s)
  * the decryptor must be fed buffers of the same size as the encryptor.
  */
 void
-aesCBCencrypt(uchar *p, int len, AESstate *s)
+aesCBCencrypt(uint8_t *p, int len, AESstate *s)
 {
-	uchar *p2, *ip, *eip;
-	uchar q[AESbsize];
+	uint8_t *p2, *ip, *eip;
+	uint8_t q[AESbsize];
 
 	for(; len >= AESbsize; len -= AESbsize){
 		p2 = p;
@@ -203,10 +208,10 @@ aesCBCencrypt(uchar *p, int len, AESstate *s)
 }
 
 void
-aesCBCdecrypt(uchar *p, int len, AESstate *s)
+aesCBCdecrypt(uint8_t *p, int len, AESstate *s)
 {
-	uchar *ip, *eip, *tp;
-	uchar tmp[AESbsize], q[AESbsize];
+	uint8_t *ip, *eip, *tp;
+	uint8_t tmp[AESbsize], q[AESbsize];
 
 	for(; len >= AESbsize; len -= AESbsize){
 		memmove(tmp, p, AESbsize);
@@ -236,10 +241,10 @@ aesCBCdecrypt(uchar *p, int len, AESstate *s)
  */
 
 static void
-incrementCTR(uchar *p, uint ctrsz)
+incrementCTR(uint8_t *p, uint ctrsz)
 {
 	int len;
-	uchar *ctr;
+	uint8_t *ctr;
 	mpint *mpctr, *mpctrsz;
 
 	ctr = p + AESbsize - ctrsz;
@@ -254,10 +259,10 @@ incrementCTR(uchar *p, uint ctrsz)
 }
 
 void
-aesCTRencrypt(uchar *p, int len, AESstate *s)
+aesCTRencrypt(uint8_t *p, int len, AESstate *s)
 {
-	uchar q[AESbsize];
-	uchar *ip, *eip, *ctr;
+	uint8_t q[AESbsize];
+	uint8_t *ip, *eip, *ctr;
 
 	ctr = s->ivec;
 	for(; len >= AESbsize; len -= AESbsize){
@@ -278,7 +283,7 @@ aesCTRencrypt(uchar *p, int len, AESstate *s)
 }
 
 void
-aesCTRdecrypt(uchar *p, int len, AESstate *s)
+aesCTRdecrypt(uint8_t *p, int len, AESstate *s)
 {
 	aesCTRencrypt(p, len, s);
 }
@@ -290,10 +295,10 @@ aesCTRdecrypt(uchar *p, int len, AESstate *s)
  *	a multiple of 4.
  */
 static void
-encode(uchar *output, ulong *input, ulong len)
+encode(uint8_t *output, uint32_t *input, uint32_t len)
 {
-	ulong x;
-	uchar *e;
+	uint32_t x;
+	uint8_t *e;
 
 	for(e = output + len; output < e;) {
 		x = *input++;
@@ -306,12 +311,12 @@ encode(uchar *output, ulong *input, ulong len)
 
 /* TODO: verify use of aes_encrypt here */
 AEShstate*
-aes(uchar *p, ulong len, uchar *digest, AEShstate *s)
+aes(uint8_t *p, uint32_t len, uint8_t *digest, AEShstate *s)
 {
-	uchar buf[128];
-	ulong x[16];
+	uint8_t buf[128];
+	uint32_t x[16];
 	int i;
-	uchar *e;
+	uint8_t *e;
 
 	if(s == nil){
 		s = malloc(sizeof(*s));
@@ -344,7 +349,8 @@ aes(uchar *p, ulong len, uchar *digest, AEShstate *s)
 		if(s->blen == 64){
 			/* encrypt s->buf into s->state */
 			// _sha1block(s->buf, s->blen, s->state);
-			aes_encrypt((ulong *)s->buf, 1, s->buf, (uchar *)s->state);
+			aes_encrypt((uint32_t *)s->buf, 1, s->buf,
+				    (uint8_t *)s->state);
 			s->len += s->blen;
 			s->blen = 0;
 		}
@@ -355,7 +361,7 @@ aes(uchar *p, ulong len, uchar *digest, AEShstate *s)
 	if(i){
 		/* encrypt p into s->state */
 		// _sha1block(p, i, s->state);
-		aes_encrypt((ulong *)s->buf, 1, p, (uchar *)s->state);
+		aes_encrypt((uint32_t *)s->buf, 1, p, (uint8_t *)s->state);
 		s->len += i;
 		len -= i;
 		p += i;
@@ -399,18 +405,19 @@ aes(uchar *p, ulong len, uchar *digest, AEShstate *s)
 	/* digest the last part */
 	/* encrypt p into s->state */
 	// _sha1block(p, len+8, s->state);
-	aes_encrypt((ulong *)s->buf, 1, p, (uchar *)s->state);
+	aes_encrypt((uint32_t *)s->buf, 1, p, (uint8_t *)s->state);
 	s->len += len+8;		/* sha1: +8 */
 
 	/* return result and free state */
-	encode((uchar *)digest, (ulong *)s->state, AESdlen);
+	encode((uint8_t *)digest, (uint32_t *)s->state, AESdlen);
 	if(s->malloced == 1)
 		free(s);
 	return nil;
 }
 
 DigestState*
-hmac_aes(uchar *p, ulong len, uchar *key, ulong klen, uchar *digest,
+hmac_aes(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
+	 uint8_t *digest,
 	DigestState *s)
 {
 	return hmac_x(p, len, key, klen, digest, s, aes, AESdlen);
@@ -425,8 +432,8 @@ hmac_aes(uchar *p, ulong len, uchar *key, ulong klen, uchar *digest,
  * @return	the number of rounds for the given cipher key size.
  */
 static int
-aes_setup(ulong erk[/* 4*(Nr + 1) */], ulong drk[/* 4*(Nr + 1) */],
-	const uchar cipherKey[], int keyBits)
+aes_setup(uint32_t erk[/* 4*(Nr + 1) */], uint32_t drk[/* 4*(Nr + 1) */],
+	const uint8_t cipherKey[], int keyBits)
 {
 	int Nr, i;
 
@@ -1168,7 +1175,8 @@ static const u32 rcon[] = {
  * @return	the number of rounds for the given cipher key size.
  */
 static int
-aes_setupEnc(ulong rk[/*4*(Nr + 1)*/], const uchar cipherKey[], int keyBits)
+aes_setupEnc(uint32_t rk[/*4*(Nr + 1)*/], const uint8_t cipherKey[],
+	     int keyBits)
 {
 	int i = 0;
 	u32 temp;
@@ -1255,10 +1263,11 @@ aes_setupEnc(ulong rk[/*4*(Nr + 1)*/], const uchar cipherKey[], int keyBits)
  * @return	the number of rounds for the given cipher key size.
  */
 static int
-aes_setupDec(ulong rk[/* 4*(Nr + 1) */], const uchar cipherKey[], int keyBits)
+aes_setupDec(uint32_t rk[/* 4*(Nr + 1) */], const uint8_t cipherKey[],
+	     int keyBits)
 {
 	int Nr, i, j;
-	ulong temp;
+	uint32_t temp;
 
 	/* expand the cipher key: */
 	Nr = aes_setupEnc(rk, cipherKey, keyBits);
@@ -1301,10 +1310,10 @@ aes_setupDec(ulong rk[/* 4*(Nr + 1) */], const uchar cipherKey[], int keyBits)
 
 /* using round keys in rk, perform Nr rounds of encrypting pt into ct */
 void
-aes_encrypt(const ulong rk[/* 4*(Nr + 1) */], int Nr, const uchar pt[16],
-	uchar ct[16])
+aes_encrypt(const uint32_t rk[/* 4*(Nr + 1) */], int Nr, const uint8_t pt[16],
+	uint8_t ct[16])
 {
-	ulong s0, s1, s2, s3, t0, t1, t2, t3;
+	uint32_t s0, s1, s2, s3, t0, t1, t2, t3;
 #ifndef FULL_UNROLL
 	int r;
 #endif /* ?FULL_UNROLL */
@@ -1484,10 +1493,10 @@ aes_encrypt(const ulong rk[/* 4*(Nr + 1) */], int Nr, const uchar pt[16],
 }
 
 void
-aes_decrypt(const ulong rk[/* 4*(Nr + 1) */], int Nr, const uchar ct[16],
-	uchar pt[16])
+aes_decrypt(const uint32_t rk[/* 4*(Nr + 1) */], int Nr, const uint8_t ct[16],
+	uint8_t pt[16])
 {
-	ulong s0, s1, s2, s3, t0, t1, t2, t3;
+	uint32_t s0, s1, s2, s3, t0, t1, t2, t3;
 #ifndef FULL_UNROLL
 	int r;
 #endif		/* ?FULL_UNROLL */

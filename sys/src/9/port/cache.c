@@ -25,7 +25,7 @@ typedef struct Extent Extent;
 struct Extent
 {
 	int	bid;
-	ulong	start;
+	uint32_t	start;
 	int	len;
 	Page	*cache;
 	Extent	*next;
@@ -274,14 +274,14 @@ cdev(Mntcache *mc, Chan *c)
 }
 
 int
-cread(Chan *c, uchar *buf, int len, vlong off)
+cread(Chan *c, uint8_t *buf, int len, int64_t off)
 {
 	KMap *k;
 	Page *p;
 	Mntcache *mc;
 	Extent *e, **t;
 	int o, l, total;
-	ulong offset;
+	uint32_t offset;
 
 	if(off+len > maxcache)
 		return 0;
@@ -332,7 +332,7 @@ cread(Chan *c, uchar *buf, int len, vlong off)
 			nexterror();
 		}
 
-		memmove(buf, (uchar*)VA(k) + o, l);
+		memmove(buf, (uint8_t*)VA(k) + o, l);
 
 		poperror();
 		kunmap(k);
@@ -354,7 +354,7 @@ cread(Chan *c, uchar *buf, int len, vlong off)
 }
 
 Extent*
-cchain(uchar *buf, ulong offset, int len, Extent **tail)
+cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
 {
 	int l;
 	Page *p;
@@ -421,7 +421,7 @@ cchain(uchar *buf, ulong offset, int len, Extent **tail)
 }
 
 int
-cpgmove(Extent *e, uchar *buf, int boff, int len)
+cpgmove(Extent *e, uint8_t *buf, int boff, int len)
 {
 	Page *p;
 	KMap *k;
@@ -436,7 +436,7 @@ cpgmove(Extent *e, uchar *buf, int boff, int len)
 		nexterror();
 	}
 
-	memmove((uchar*)VA(k)+boff, buf, len);
+	memmove((uint8_t*)VA(k)+boff, buf, len);
 
 	poperror();
 	kunmap(k);
@@ -446,13 +446,13 @@ cpgmove(Extent *e, uchar *buf, int boff, int len)
 }
 
 void
-cupdate(Chan *c, uchar *buf, int len, vlong off)
+cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
 {
 	Mntcache *mc;
 	Extent *tail;
 	Extent *e, *f, *p;
 	int o, ee, eblock;
-	ulong offset;
+	uint32_t offset;
 
 	if(off > maxcache || len == 0)
 		return;
@@ -537,13 +537,13 @@ if(f && p->start + p->len > f->start) print("CACHE: p->start=%uld p->len=%d f->s
 }
 
 void
-cwrite(Chan* c, uchar *buf, int len, vlong off)
+cwrite(Chan* c, uint8_t *buf, int len, int64_t off)
 {
 	int o, eo;
 	Mntcache *mc;
-	ulong eblock, ee;
+	uint32_t eblock, ee;
 	Extent *p, *f, *e, *tail;
-	ulong offset;
+	uint32_t offset;
 
 	if(off > maxcache || len == 0)
 		return;

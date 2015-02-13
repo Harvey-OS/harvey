@@ -10,7 +10,7 @@
 #include	"mk.h"
 
 void
-setvar(char *name, void *value)
+setvar(int8_t *name, void *value)
 {
 	symlook(name, S_VAR, value)->u.ptr = value;
 	symlook(name, S_MAKEVAR, (void*)"");
@@ -28,14 +28,14 @@ print1(Symtab *s)
 }
 
 void
-dumpv(char *s)
+dumpv(int8_t *s)
 {
 	Bprint(&bout, "%s:\n", s);
 	symtraverse(S_VAR, print1);
 }
 
-char *
-shname(char *a)
+int8_t *
+shname(int8_t *a)
 {
 	Rune r;
 	int n;

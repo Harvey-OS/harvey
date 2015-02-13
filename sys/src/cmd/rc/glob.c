@@ -10,7 +10,7 @@
 #include "rc.h"
 #include "exec.h"
 #include "fns.h"
-char *globname;
+int8_t *globname;
 struct word *globv;
 /*
  * delete all the GLOB marks from s, in place
@@ -19,8 +19,8 @@ struct word *globv;
 void
 deglob(void *as)
 {
-	char *s = as;
-	char *t = s;
+	int8_t *s = as;
+	int8_t *t = s;
 	do{
 		if(*t==GLOB)
 			t++;
@@ -31,21 +31,21 @@ deglob(void *as)
 int
 globcmp(const void *s, const void *t)
 {
-	return strcmp(*(char**)s, *(char**)t);
+	return strcmp(*(int8_t**)s, *(int8_t**)t);
 }
 
 void
 globsort(word *left, word *right)
 {
-	char **list;
+	int8_t **list;
 	word *a;
 	int n = 0;
 	for(a = left;a!=right;a = a->next) n++;
-	list = (char **)emalloc(n*sizeof(char *));
+	list = (int8_t **)emalloc(n*sizeof(int8_t *));
 	for(a = left,n = 0;a!=right;a = a->next,n++) list[n] = a->word;
 	qsort((void *)list, n, sizeof(void *), globcmp);
 	for(a = left,n = 0;a!=right;a = a->next,n++) a->word = list[n];
-	efree((char *)list);
+	efree((int8_t *)list);
 }
 /*
  * Push names prefixed by globname and suffixed by a match of p onto the astack.
@@ -53,9 +53,9 @@ globsort(word *left, word *right)
  */
 
 void
-globdir(uchar *p, uchar *namep)
+globdir(uint8_t *p, uint8_t *namep)
 {
-	uchar *t, *newp;
+	uint8_t *t, *newp;
 	int f;
 	/* scan the pattern looking for a component with a metacharacter in it */
 	if(*p=='\0'){
@@ -100,22 +100,22 @@ globdir(uchar *p, uchar *namep)
 void
 glob(void *ap)
 {
-	uchar *p = ap;
+	uint8_t *p = ap;
 	word *svglobv = globv;
 	int globlen = Globsize(ap);
 
 	if(!globlen){
 		deglob(p);
-		globv = newword((char *)p, globv);
+		globv = newword((int8_t *)p, globv);
 		return;
 	}
 	globname = emalloc(globlen);
 	globname[0]='\0';
-	globdir(p, (uchar *)globname);
+	globdir(p, (uint8_t *)globname);
 	efree(globname);
 	if(svglobv==globv){
 		deglob(p);
-		globv = newword((char *)p, globv);
+		globv = newword((int8_t *)p, globv);
 	}
 	else
 		globsort(globv, svglobv);
@@ -125,14 +125,14 @@ glob(void *ap)
  * Do p and q point at equal utf codes
  */
 int
-equtf(uchar *p, uchar *q)
+equtf(uint8_t *p, uint8_t *q)
 {
 	Rune pr, qr;
 	if(*p!=*q)
 		return 0;
 	
-	chartorune(&pr, (char*)p);
-	chartorune(&qr, (char*)q);
+	chartorune(&pr, (int8_t*)p);
+	chartorune(&qr, (int8_t*)q);
 	return pr == qr;
 }
 
@@ -141,11 +141,11 @@ equtf(uchar *p, uchar *q)
  * not jumping past nuls in broken utf codes!
  */
 
-uchar*
-nextutf(uchar *p)
+uint8_t*
+nextutf(uint8_t *p)
 {
 	Rune dummy;
-	return p + chartorune(&dummy, (char*)p);
+	return p + chartorune(&dummy, (int8_t*)p);
 }
 
 /*
@@ -153,11 +153,11 @@ nextutf(uchar *p)
  */
 
 int
-unicode(uchar *p)
+unicode(uint8_t *p)
 {
 	Rune r;
 
-	chartorune(&r, (char*)p);
+	chartorune(&r, (int8_t*)p);
 	return r;
 }
 
@@ -172,7 +172,7 @@ unicode(uchar *p)
 int
 matchfn(void *as, void *ap)
 {
-	uchar *s = as, *p = ap;
+	uint8_t *s = as, *p = ap;
 
 	if(s[0]=='.' && (s[1]=='\0' || s[1]=='.' && s[2]=='\0') && p[0]!='.')
 		return 0;
@@ -183,7 +183,7 @@ int
 match(void *as, void *ap, int stop)
 {
 	int compl, hit, lo, hi, t, c;
-	uchar *s = as, *p = ap;
+	uint8_t *s = as, *p = ap;
 
 	for(; *p!=stop && *p!='\0'; s = nextutf(s), p = nextutf(p)){
 		if(*p!=GLOB){

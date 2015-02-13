@@ -37,14 +37,14 @@ struct Input
 	int	(*w)(void*, void*, int);
 	void	*getr;
 	int	(*get)(void*);
-	ulong	sreg;
+	uint32_t	sreg;
 	int	nbits;
 };
 
 struct History
 {
-	uchar	his[HistorySize];
-	uchar	*cp;		/* current pointer in history */
+	uint8_t	his[HistorySize];
+	uint8_t	*cp;		/* current pointer in history */
 	int	full;		/* his has been filled up at least once */
 };
 
@@ -53,10 +53,10 @@ struct Huff
 	int	maxbits;	/* max bits for any code */
 	int	minbits;	/* min bits to get before looking in flat */
 	int	flatmask;	/* bits used in "flat" fast decoding table */
-	ulong	flat[1<<MaxFlatBits];
-	ulong	maxcode[MaxHuffBits];
-	ulong	last[MaxHuffBits];
-	ulong	decode[MaxLeaf];
+	uint32_t	flat[1<<MaxFlatBits];
+	uint32_t	maxcode[MaxHuffBits];
+	uint32_t	last[MaxHuffBits];
+	uint32_t	decode[MaxLeaf];
 };
 
 /* litlen code words 257-285 extra bits */
@@ -89,7 +89,7 @@ static int clenorder[Nclen] =
 /* for static huffman tables */
 static	Huff	litlentab;
 static	Huff	offtab;
-static	uchar	revtab[256];
+static	uint8_t	revtab[256];
 
 static int	uncblock(Input *in, History*);
 static int	fixedblock(Input *in, History*);
@@ -97,13 +97,13 @@ static int	dynamicblock(Input *in, History*);
 static int	sregfill(Input *in, int n);
 static int	sregunget(Input *in);
 static int	decode(Input*, History*, Huff*, Huff*);
-static int	hufftab(Huff*, char*, int, int);
+static int	hufftab(Huff*, int8_t*, int, int);
 static int	hdecsym(Input *in, Huff *h, int b);
 
 int
 inflateinit(void)
 {
-	char *len;
+	int8_t *len;
 	int i, j, base;
 
 	/* byte reverse table */
@@ -225,7 +225,7 @@ static int
 uncblock(Input *in, History *his)
 {
 	int len, nlen, c;
-	uchar *hs, *hp, *he;
+	uint8_t *hs, *hp, *he;
 
 	if(!sregunget(in))
 		return 0;
@@ -273,7 +273,7 @@ static int
 dynamicblock(Input *in, History *his)
 {
 	Huff *lentab, *offtab;
-	char *len;
+	int8_t *len;
 	int i, j, n, c, nlit, ndist, nclen, res, nb;
 
 	if(!sregfill(in, 14))
@@ -403,7 +403,7 @@ static int
 decode(Input *in, History *his, Huff *litlentab, Huff *offtab)
 {
 	int len, off;
-	uchar *hs, *hp, *hq, *he;
+	uint8_t *hs, *hp, *hq, *he;
 	int c;
 	int nb;
 
@@ -554,10 +554,10 @@ revcode(int c, int b)
  * are needed for an answer.
  */
 static int
-hufftab(Huff *h, char *hb, int maxleaf, int flatbits)
+hufftab(Huff *h, int8_t *hb, int maxleaf, int flatbits)
 {
-	ulong bitcount[MaxHuffBits];
-	ulong c, fc, ec, mincode, code, nc[MaxHuffBits];
+	uint32_t bitcount[MaxHuffBits];
+	uint32_t c, fc, ec, mincode, code, nc[MaxHuffBits];
 	int i, b, minbits, maxbits;
 
 	for(i = 0; i < MaxHuffBits; i++)
@@ -648,7 +648,7 @@ hufftab(Huff *h, char *hb, int maxleaf, int flatbits)
 static int
 hdecsym(Input *in, Huff *h, int nb)
 {
-	long c;
+	int32_t c;
 
 	if((nb & 0xff) == 0xff)
 		nb = nb >> 8;

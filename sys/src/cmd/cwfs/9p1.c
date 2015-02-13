@@ -13,11 +13,11 @@
 extern Nvrsafe	nvr;
 
 typedef struct {
-	uchar	chal[CHALLEN];		/* locally generated challenge */
-	uchar	rchal[CHALLEN];		/* remotely generated challenge */
+	uint8_t	chal[CHALLEN];		/* locally generated challenge */
+	uint8_t	rchal[CHALLEN];		/* remotely generated challenge */
 	Lock	idlock;
-	ulong	idoffset;		/* offset of id vector */
-	ulong	idvec;			/* vector of acceptable id's */
+	uint32_t	idoffset;		/* offset of id vector */
+	uint32_t	idvec;			/* vector of acceptable id's */
 } Authinfo;
 
 static void
@@ -84,7 +84,7 @@ authorize(Chan *cp, Fcall *in, Fcall *ou)
 	Ticket t;
 	Authenticator a;
 	int x;
-	ulong bit;
+	uint32_t bit;
 	Authinfo *aip;
 
 	if(noauth || wstatallow)	/* set to allow entry during boot */
@@ -1607,7 +1607,7 @@ serve9p1(Msgbuf* mb)
 	 */
 	if(t == Tread) {
 		mb1 = mballoc(MAXMSG+MAXDAT, cp, Mbreply2);
-		fo.data = (char*)(mb1->data + 8);
+		fo.data = (int8_t*)(mb1->data + 8);
 	} else
 		mb1 = mballoc(MAXMSG, cp, Mbreply3);
 

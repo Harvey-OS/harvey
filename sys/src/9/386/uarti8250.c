@@ -162,12 +162,12 @@ static Uart i8250uart[2] = {
 #define csr8w(c, r, v)	outb((c)->io+(r), (c)->sticky[(r)]|(v))
 #define csr8o(c, r, v)	outb((c)->io+(r), (v))
 
-static long
-i8250status(Uart* uart, void* buf, long n, long offset)
+static int32_t
+i8250status(Uart* uart, void* buf, int32_t n, int32_t offset)
 {
-	char *p;
+	int8_t *p;
 	Ctlr *ctlr;
-	uchar ier, lcr, mcr, msr;
+	uint8_t ier, lcr, mcr, msr;
 
 	ctlr = uart->regs;
 	p = malloc(READSTR);
@@ -404,7 +404,7 @@ i8250bits(Uart* uart, int bits)
 static int
 i8250baud(Uart* uart, int baud)
 {
-	ulong bgc;
+	uint32_t bgc;
 	Ctlr *ctlr;
 
 	/*
@@ -740,12 +740,12 @@ PhysUart i8250physuart = {
 };
 
 Uart*
-i8250console(char* cfg)
+i8250console(int8_t* cfg)
 {
 	int i;
 	Uart *uart;
 	Ctlr *ctlr;
-	char *cmd, *p;
+	int8_t *cmd, *p;
 
 	/*
 	 * Before i8250pnp() is run can only set the console

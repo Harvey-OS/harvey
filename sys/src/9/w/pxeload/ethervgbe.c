@@ -244,24 +244,24 @@ enum
 typedef struct Frag Frag;
 struct Frag
 {
-	ulong	addr_lo;
-	ushort	addr_hi;
-	ushort	length;
+	uint32_t	addr_lo;
+	uint16_t	addr_hi;
+	uint16_t	length;
 };
 
 typedef struct Rd Rd;
 struct Rd
 {
-	ulong	status;
-	ulong	control;
+	uint32_t	status;
+	uint32_t	control;
 	Frag;
 };
 
 typedef struct Td Td;
 struct Td
 {
-	ulong	status;
-	ulong	control;
+	uint32_t	status;
+	uint32_t	control;
 	Frag	frags[7];
 };
 
@@ -304,10 +304,10 @@ enum
 typedef struct Stats Stats;
 struct Stats
 {
-	ulong	rx;
-	ulong	tx;
-	ulong	txe;
-	ulong	intr;
+	uint32_t	rx;
+	uint32_t	tx;
+	uint32_t	txe;
+	uint32_t	intr;
 };
 
 enum {
@@ -328,20 +328,20 @@ struct Ctlr
 	int	inited;
 	Lock	ilock;
 
-	ulong	debugflags;
-	ulong	debugcount;
+	uint32_t	debugflags;
+	uint32_t	debugcount;
 
 	Mii*	mii;
 	int	active;
-	uchar	ea[6];
+	uint8_t	ea[6];
 
 	Rd*	rdring;
-	uchar*	rxbuf[RxCount];
+	uint8_t*	rxbuf[RxCount];
 
 	Lock	tlock;
 	Td*	td;
-	uchar	txpkt[TxCount][sizeof(Etherpkt)];
-	ulong	tx_count;
+	uint8_t	txpkt[TxCount][sizeof(Etherpkt)];
+	uint32_t	tx_count;
 
 	Stats	stats;
 };
@@ -377,7 +377,7 @@ vgbemiiw(Mii* mii, int phy, int addr, int data)
 	// write our addr to the Mii
 	wiob(ctlr, MiiAddr, addr);
 	// write our data to the Mii data reg
-	wiow(ctlr, MiiData, (ushort) data);
+	wiow(ctlr, MiiData, (uint16_t) data);
 	wiob(ctlr, MiiCmd, MiiCmd_write);
 
 	// poll the mii
@@ -420,7 +420,7 @@ vgbemiir(Mii* mii, int phy, int addr)
 }
 
 
-static char* vgbeisr_info[] = {
+static int8_t* vgbeisr_info[] = {
 	"hi prio Rx int",
 	"hi prio Tx int",
 	"Rx queue completed",
@@ -456,10 +456,10 @@ static char* vgbeisr_info[] = {
 };
 
 static void
-vgbedumpisr(ulong isr)
+vgbedumpisr(uint32_t isr)
 {
 	int i;
-	ulong mask;
+	uint32_t mask;
 
 	for(i = 0; i < 32; i++){
 		mask = 1<<i;
@@ -478,7 +478,7 @@ static int
 vgbenewrx(Ether* edev, int i)
 {
 	Rd* rd;
-	uchar *rb;
+	uint8_t *rb;
 	Ctlr* ctlr;
 
 	ctlr = edev->ctlr;
@@ -489,7 +489,7 @@ vgbenewrx(Ether* edev, int i)
 	 * to actually free them, thus we set block->free.
 	 */
 	rb = mallocz(RxSize, 1);
-	rb = (uchar*)ROUNDUP((ulong)rb, 64);
+	rb = (uint8_t*)ROUNDUP((uint32_t)rb, 64);
 	ctlr->rxbuf[i] = rb;
 
 	/* Initialize Rx descriptor. (TODO: 48/64 bits support ?) */
@@ -497,7 +497,7 @@ vgbenewrx(Ether* edev, int i)
 	rd->status = htole32(Own);
 	rd->control = htole32(0);
 
-	rd->addr_lo = htole32((ulong)PADDR(rb));
+	rd->addr_lo = htole32((uint32_t)PADDR(rb));
 	rd->addr_hi = htole16(0);
 	rd->length = htole16(RxSize | 0x8000);
 
@@ -505,7 +505,7 @@ vgbenewrx(Ether* edev, int i)
 }
 
 static void
-toringbuf(Ether* edev, uchar* data, int len)
+toringbuf(Ether* edev, uint8_t* data, int len)
 {
 	RingBuf *rb;
 	extern int interesting(void*);
@@ -533,9 +533,9 @@ vgberxeof(Ether* edev)
 {
 	Ctlr* ctlr;
 	int i;
-	ulong length, status;
+	uint32_t length, status;
 	Rd* rd;
-	uchar *rb;
+	uint8_t *rb;
 
 	ctlr = edev->ctlr;
 
@@ -590,7 +590,7 @@ vgbetxeof(Ether* edev)
 {
 	Ctlr* ctlr;
 	int i, count;
-	ulong status;
+	uint32_t status;
 
 	ctlr = edev->ctlr;
 
@@ -623,12 +623,12 @@ vgbetxeof(Ether* edev)
 static void
 vgbetransmit(Ether* edev)
 {
-	uchar *pkt;
+	uint8_t *pkt;
 	Ctlr* ctlr;
 	int i, index, start, count;
 	Td* desc;
 	RingBuf *rb;
-	ulong status, length;
+	uint32_t status, length;
 
 	ctlr = edev->ctlr;
 
@@ -658,7 +658,7 @@ vgbetransmit(Ether* edev)
 		desc->status = htole32((length<<16)|Own);
 		desc->control = htole32(Td_Control_Intr|Td_Control_Normal|((1+1)<<28));
 
-		desc->frags[0].addr_lo = htole32((ulong) PCIWADDR(pkt));
+		desc->frags[0].addr_lo = htole32((uint32_t) PCIWADDR(pkt));
 		desc->frags[0].addr_hi = htole16(0);
 		desc->frags[0].length = htole16(length);
 		rb->owner = Host;
@@ -728,7 +728,7 @@ vgbeattach(Ether* edev)
 	wiob(ctlr, RxConfig, RxConfig_VlanOpt0);
 
 	/* Load Rx ring. */
-	wiol(ctlr, RdLo, (ulong) PCIWADDR(rd));
+	wiol(ctlr, RdLo, (uint32_t) PCIWADDR(rd));
 	wiow(ctlr, Rdcsize, RxCount - 1);
 	wiow(ctlr, Rdindex, 0);
 	wiow(ctlr, RxResCnt, RxCount);
@@ -750,7 +750,7 @@ vgbeattach(Ether* edev)
 	wiob(ctlr, TxConfig, TxConfig_NonBlk|TxConfig_ArbPrio);
 
 	/* Load Tx ring. */
-	wiol(ctlr, TdLo, (ulong) PCIWADDR(td));
+	wiol(ctlr, TdLo, (uint32_t) PCIWADDR(td));
 	wiow(ctlr, TxNum, TxCount - 1);
 	wiow(ctlr, TxDscIdx, 0);
 
@@ -871,8 +871,8 @@ vgbeinterrupt(Ureg *, void* arg)
 	/* now we need to do something special to empty the ring buffer since we don't have the process */
 	Ether* edev;
 	Ctlr* ctlr;
-	ulong status;
-	ulong err;
+	uint32_t status;
+	uint32_t err;
 
 //	print("vgbe: Intr: entering interrupt\n");
 	edev = arg;

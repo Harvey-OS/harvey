@@ -111,8 +111,8 @@ yylex(cf)
 	State_info state_info;
 	register int c, state;
 	XString ws;		/* expandable output word */
-	register char *wp;	/* output word pointer */
-	char *sp, *dp;
+	register int8_t *wp;	/* output word pointer */
+	int8_t *sp, *dp;
 	int c2;
 
 
@@ -173,7 +173,7 @@ yylex(cf)
 				*wp = EOS; /* temporary */
 				if (is_wdvarname(Xstring(ws, wp), FALSE))
 				{
-					char *p, *tmp;
+					int8_t *p, *tmp;
 
 					if (arraysub(&tmp)) {
 						*wp++ = CHAR;
@@ -457,7 +457,7 @@ yylex(cf)
 						*wp++ = 0; /* end of EXPRSUB */
 						break;
 					} else {
-						char *s;
+						int8_t *s;
 
 						ungetsc(c2);
 						/* mismatched parenthesis -
@@ -669,9 +669,9 @@ Done:
 				ungetsc(c2);
 		}
 
-		iop->name = (char *) 0;
-		iop->delim = (char *) 0;
-		iop->heredoc = (char *) 0;
+		iop->name = (int8_t *) 0;
+		iop->delim = (int8_t *) 0;
+		iop->heredoc = (int8_t *) 0;
 		Xfree(ws, wp);	/* free word */
 		yylval.iop = iop;
 		return REDIR;
@@ -791,11 +791,11 @@ readhere(iop)
 	struct ioword *iop;
 {
 	register int c;
-	char *volatile eof;
-	char *eofp;
+	int8_t *volatile eof;
+	int8_t *eofp;
 	int skiptabs;
 	XString xs;
-	char *xp;
+	int8_t *xp;
 	int xpos;
 
 	eof = evalstr(iop->delim, 0);
@@ -847,7 +847,7 @@ readhere(iop)
 
 void
 #ifdef HAVE_PROTOTYPES
-yyerror(const char *fmt, ...)
+yyerror(const int8_t *fmt, ...)
 #else
 yyerror(fmt, va_alist)
 	const char *fmt;
@@ -890,7 +890,7 @@ pushs(type, areap)
 	s->next = NULL;
 	s->areap = areap;
 	if (type == SFILE || type == SSTDIN) {
-		char *dummy;
+		int8_t *dummy;
 		Xinit(s->xs, dummy, 256, s->areap);
 	} else
 		memset(&s->xs, 0, sizeof(s->xs));
@@ -1002,7 +1002,7 @@ static void
 getsc_line(s)
 	Source *s;
 {
-	char *xp = Xstring(s->xs, xp);
+	int8_t *xp = Xstring(s->xs, xp);
 	int interactive = Flag(FTALKING) && s->type == SSTDIN;
 	int have_tty = interactive && (s->flags & SF_TTY);
 
@@ -1044,7 +1044,7 @@ getsc_line(s)
 			s->line++;
 
 		while (1) {
-			char *p = shf_getse(xp, Xnleft(s->xs, xp), s->u.shf);
+			int8_t *p = shf_getse(xp, Xnleft(s->xs, xp), s->u.shf);
 
 			if (!p && shf_error(s->u.shf)
 			    && shf_errno(s->u.shf) == EINTR)
@@ -1090,7 +1090,7 @@ getsc_line(s)
 		s->str = NULL;
 	} else if (interactive) {
 #ifdef HISTORY
-		char *p = Xstring(s->xs, xp);
+		int8_t *p = Xstring(s->xs, xp);
 		if (cur_prompt == PS1)
 			while (*p && ctype(*p, C_IFS) && ctype(*p, C_IFSWS))
 				p++;
@@ -1128,11 +1128,11 @@ set_prompt(to, s)
 		 */
 		{
 			struct shf *shf;
-			char *ps1;
+			int8_t *ps1;
 			Area *saved_atemp;
 
 			ps1 = str_val(global("PS1"));
-			shf = shf_sopen((char *) 0, strlen(ps1) * 2,
+			shf = shf_sopen((int8_t *) 0, strlen(ps1) * 2,
 				SHF_WR | SHF_DYNAMIC, (struct shf *) 0);
 			while (*ps1) {
 				if (*ps1 != '!' || *++ps1 == '!')
@@ -1171,7 +1171,7 @@ set_prompt(to, s)
 /* See also related routine, promptlen() in edit.c */
 void
 pprompt(cp, ntruncate)
-	const char *cp;
+	const int8_t *cp;
 	int ntruncate;
 {
 #if 0
@@ -1215,17 +1215,17 @@ pprompt(cp, ntruncate)
 /* Read the variable part of a ${...} expression (ie, up to but not including
  * the :[-+?=#%] or close-brace.
  */
-static char *
+static int8_t *
 get_brace_var(wsp, wp)
 	XString *wsp;
-	char *wp;
+	int8_t *wp;
 {
 	enum parse_state {
 			   PS_INITIAL, PS_SAW_HASH, PS_IDENT,
 			   PS_NUMBER, PS_VAR1, PS_END
 			 }
 		state;
-	char c;
+	int8_t c;
 
 	state = PS_INITIAL;
 	while (1) {
@@ -1252,7 +1252,7 @@ get_brace_var(wsp, wp)
 			if (!letnum(c)) {
 				state = PS_END;
 				if (c == '[') {
-					char *tmp, *p;
+					int8_t *tmp, *p;
 
 					if (!arraysub(&tmp))
 						yyerror("missing ]\n");
@@ -1294,11 +1294,11 @@ get_brace_var(wsp, wp)
  */
 static int
 arraysub(strp)
-	char **strp;
+	int8_t **strp;
 {
 	XString ws;
-	char	*wp;
-	char	c;
+	int8_t	*wp;
+	int8_t	c;
 	int 	depth = 1;	/* we are just past the initial [ */
 
 	Xinit(ws, wp, 32, ATEMP);
@@ -1320,7 +1320,7 @@ arraysub(strp)
 }
 
 /* Unget a char: handles case when we are already at the start of the buffer */
-static const char *
+static const int8_t *
 ungetsc(c)
 	int c;
 {

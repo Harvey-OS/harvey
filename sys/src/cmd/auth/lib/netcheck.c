@@ -16,8 +16,8 @@
  * compute the key verification checksum
  */
 void
-checksum(char key[], char csum[]) {
-	uchar buf[8];
+checksum(int8_t key[], int8_t csum[]) {
+	uint8_t buf[8];
 
 	memset(buf, 0, 8);
 	encrypt(key, buf, 8);
@@ -30,13 +30,13 @@ checksum(char key[], char csum[]) {
  * This process was derived empirically.
  * this was copied from inet's guard.
  */
-char *
-netresp(char *key, long chal, char *answer)
+int8_t *
+netresp(int8_t *key, int32_t chal, int8_t *answer)
 {
-	uchar buf[8];
+	uint8_t buf[8];
 
 	memset(buf, 0, 8);
-	snprint((char *)buf, sizeof buf, "%lud", chal);
+	snprint((int8_t *)buf, sizeof buf, "%lud", chal);
 	if(encrypt(key, buf, 8) < 0)
 		error("can't encrypt response");
 	chal = (buf[0]<<24)+(buf[1]<<16)+(buf[2]<<8)+buf[3];
@@ -45,8 +45,8 @@ netresp(char *key, long chal, char *answer)
 	return answer;
 }
 
-char *
-netdecimal(char *answer)
+int8_t *
+netdecimal(int8_t *answer)
 {
 	int i;
 
@@ -63,9 +63,9 @@ netdecimal(char *answer)
 }
 
 int
-netcheck(void *key, long chal, char *response)
+netcheck(void *key, int32_t chal, int8_t *response)
 {
-	char answer[32], *p;
+	int8_t answer[32], *p;
 	int i;
 
 	if(smartcheck(key, chal, response))
@@ -91,12 +91,12 @@ netcheck(void *key, long chal, char *response)
 }
 
 int
-smartcheck(void *key, long chal, char *response)
+smartcheck(void *key, int32_t chal, int8_t *response)
 {
-	uchar buf[2*8];
+	uint8_t buf[2*8];
 	int i, c, cslo, cshi;
 
-	snprint((char*)buf, sizeof buf, "%lud        ", chal);
+	snprint((int8_t*)buf, sizeof buf, "%lud        ", chal);
 	cslo = 0x52;
 	cshi = cslo;
 	for(i = 0; i < 8; i++){

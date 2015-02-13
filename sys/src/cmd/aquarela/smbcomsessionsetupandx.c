@@ -12,24 +12,25 @@
 #include <libsec.h>
 
 SmbProcessResult
-smbcomsessionsetupandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomsessionsetupandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
+		       SmbBuffer *b)
 {
-	uchar andxcommand;
-	ushort andxoffset;
-	ulong andxfixupoffset;
-	ushort vcnumber;
-	ulong sessionkey;
-	ushort caseinsensitivepasswordlength;
-	ushort casesensitivepasswordlength;
-	ushort bytecountfixup, offset;
-	uchar *mschapreply;
+	uint8_t andxcommand;
+	uint16_t andxoffset;
+	uint32_t andxfixupoffset;
+	uint16_t vcnumber;
+	uint32_t sessionkey;
+	uint16_t caseinsensitivepasswordlength;
+	uint16_t casesensitivepasswordlength;
+	uint16_t bytecountfixup, offset;
+	uint8_t *mschapreply;
 	AuthInfo *ai;
-	char *sp;
+	int8_t *sp;
 	SmbProcessResult pr;
-	char *accountname = nil;
-	char *primarydomain = nil;
-	char *nativeos = nil;
-	char *nativelanman = nil;
+	int8_t *accountname = nil;
+	int8_t *primarydomain = nil;
+	int8_t *nativeos = nil;
+	int8_t *nativelanman = nil;
 
 	if (!smbcheckwordcount("comsessionsetupandx", h, 13)) {
 	fmtfail:

@@ -31,12 +31,12 @@ struct Ahdr {
 
 typedef struct Arch Arch;
 struct Arch {
-	vlong off;
-	vlong length;
+	int64_t off;
+	int64_t length;
 };
 
 static void*
-emalloc(long sz)
+emalloc(int32_t sz)
 {
 	void *v;
 
@@ -47,8 +47,8 @@ emalloc(long sz)
 	return v;
 }
 
-static char*
-estrdup(char *s)
+static int8_t*
+estrdup(int8_t *s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -56,10 +56,10 @@ estrdup(char *s)
 	return s;
 }
 
-static char*
+static int8_t*
 Bgetline(Biobuf *b)
 {
-	char *p;
+	int8_t *p;
 
 	if(p = Brdline(b, '\n'))
 		p[Blinelen(b)-1] = '\0';
@@ -70,7 +70,7 @@ Ahdr*
 gethdr(Biobuf *b)
 {
 	Ahdr *a;
-	char *p, *f[10];
+	int8_t *p, *f[10];
 
 	if((p = Bgetline(b)) == nil)
 		return nil;
@@ -96,7 +96,7 @@ gethdr(Biobuf *b)
 }
 
 static Arch*
-newarch(vlong off, vlong length)
+newarch(int64_t off, int64_t length)
 {
 	static Arch *abuf;
 	static int nabuf;
@@ -113,9 +113,9 @@ newarch(vlong off, vlong length)
 }
 
 static File*
-createpath(File *f, char *name, char *u, ulong m)
+createpath(File *f, int8_t *name, int8_t *u, uint32_t m)
 {
-	char *p;
+	int8_t *p;
 	File *nf;
 
 	if(verbose)
@@ -145,7 +145,7 @@ createpath(File *f, char *name, char *u, ulong m)
 }
 
 static void
-archcreatefile(char *name, Arch *arch, Dir *d)
+archcreatefile(int8_t *name, Arch *arch, Dir *d)
 {
 	File *f;
 	f = createpath(archtree->root, name, d->uid, d->mode);
@@ -163,7 +163,7 @@ static void
 fsread(Req *r)
 {
 	Arch *a;
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 	int n;
 
 	a = r->fid->file->aux;

@@ -18,8 +18,8 @@
 #define	U8GET(p)	((p)[0])
 #define	U16GET(p)	(((p)[0]<<8)|(p)[1])
 #define	U32GET(p)	(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3])
-#define	U48GET(p)	(((uvlong)U16GET(p)<<32)|(uvlong)U32GET((p)+2))
-#define	U64GET(p)	(((uvlong)U32GET(p)<<32)|(uvlong)U32GET((p)+4))
+#define	U48GET(p)	(((uint64_t)U16GET(p)<<32)|(uint64_t)U32GET((p)+2))
+#define	U64GET(p)	(((uint64_t)U32GET(p)<<32)|(uint64_t)U32GET((p)+4))
 
 #define	U8PUT(p,v)	(p)[0]=(v)
 #define	U16PUT(p,v)	(p)[0]=(v)>>8;(p)[1]=(v)
@@ -28,7 +28,7 @@
 #define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
 
 void
-headerPack(Header *h, uchar *p)
+headerPack(Header *h, uint8_t *p)
 {
 	memset(p, 0, HeaderSize);
 	U32PUT(p, HeaderMagic);
@@ -41,7 +41,7 @@ headerPack(Header *h, uchar *p)
 }
 
 int
-headerUnpack(Header *h, uchar *p)
+headerUnpack(Header *h, uint8_t *p)
 {
 	if(U32GET(p) != HeaderMagic){
 		vtSetError("vac header bad magic");
@@ -61,7 +61,7 @@ headerUnpack(Header *h, uchar *p)
 }
 
 void
-labelPack(Label *l, uchar *p, int i)
+labelPack(Label *l, uint8_t *p, int i)
 {
 	p += i*LabelSize;
 	U8PUT(p, l->state);
@@ -72,7 +72,7 @@ labelPack(Label *l, uchar *p, int i)
 }
 
 int
-labelUnpack(Label *l, uchar *p, int i)
+labelUnpack(Label *l, uint8_t *p, int i)
 {
 	p += i*LabelSize;
 	l->state = p[0];
@@ -104,7 +104,7 @@ Bad:
 }
 
 u32int
-globalToLocal(uchar score[VtScoreSize])
+globalToLocal(uint8_t score[VtScoreSize])
 {
 	int i;
 
@@ -116,16 +116,16 @@ globalToLocal(uchar score[VtScoreSize])
 }
 
 void
-localToGlobal(u32int addr, uchar score[VtScoreSize])
+localToGlobal(u32int addr, uint8_t score[VtScoreSize])
 {
 	memset(score, 0, VtScoreSize-4);
 	U32PUT(score+VtScoreSize-4, addr);
 }
 
 void
-entryPack(Entry *e, uchar *p, int index)
+entryPack(Entry *e, uint8_t *p, int index)
 {
-	ulong t32;
+	uint32_t t32;
 	int flags;
 
 	p += index * VtEntrySize;
@@ -151,7 +151,7 @@ entryPack(Entry *e, uchar *p, int index)
 }
 
 int
-entryUnpack(Entry *e, uchar *p, int index)
+entryUnpack(Entry *e, uint8_t *p, int index)
 {
 	p += index * VtEntrySize;
 
@@ -187,7 +187,7 @@ entryType(Entry *e)
 
 
 void
-superPack(Super *s, uchar *p)
+superPack(Super *s, uint8_t *p)
 {
 	u32int t32;
 
@@ -206,7 +206,7 @@ superPack(Super *s, uchar *p)
 }
 
 int
-superUnpack(Super *s, uchar *p)
+superUnpack(Super *s, uint8_t *p)
 {
 	memset(s, 0, sizeof(*s));
 	if(U32GET(p) != SuperMagic)

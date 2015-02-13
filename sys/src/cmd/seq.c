@@ -15,7 +15,7 @@ double	max = 0.0;
 double	incr = 1.0;
 int	constant = 0;
 int	nsteps;
-char	*format;
+int8_t	*format;
 
 void
 usage(void)
@@ -27,10 +27,10 @@ usage(void)
 void
 buildfmt(void)
 {
-	char *dp;
+	int8_t *dp;
 	int w, p, maxw, maxp;
-	static char fmt[16];
-	char buf[32];
+	static int8_t fmt[16];
+	int8_t buf[32];
 	double val;
 
 	format = "%g\n";

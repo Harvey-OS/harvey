@@ -14,9 +14,9 @@
  */
 
 /* 1.3 - Numerical parameter input.  */
-char *units = "icPmnpuvx";
+int8_t *units = "icPmnpuvx";
 int
-scale2units(char c)
+scale2units(int8_t c)
 {
 	int x;
 	
@@ -54,10 +54,10 @@ eval(Rune *s)
 {
 	return eval0(&s, 1, 1);
 }
-long
+int32_t
 runestrtol(Rune *a, Rune **p)
 {
-	long n;
+	int32_t n;
 	
 	n = 0;
 	while('0' <= *a && *a <= '9'){

@@ -47,7 +47,7 @@ int
 gx_8bit_map_rgb_color(const gx_8bit_color_map * pcm, gx_color_value r,
 		      gx_color_value g, gx_color_value b)
 {
-    ushort rgb = gx_8bit_rgb_key(r, g, b);
+    uint16_t rgb = gx_8bit_rgb_key(r, g, b);
     const gx_8bit_map_entry *pme =
     &pcm->map[(rgb * gx_8bit_map_spreader) % gx_8bit_map_size];
 

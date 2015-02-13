@@ -17,12 +17,12 @@
 #include <disk.h>
 #include "edit.h"
 
-char*
+int8_t*
 getline(Edit *edit)
 {
 	static int inited;
 	static Biobuf bin;
-	char *p;
+	int8_t *p;
 	int n;
 
 	if(!inited){
@@ -43,7 +43,7 @@ getline(Edit *edit)
 }
 
 Part*
-findpart(Edit *edit, char *name)
+findpart(Edit *edit, int8_t *name)
 {
 	int i;
 
@@ -53,11 +53,11 @@ findpart(Edit *edit, char *name)
 	return nil;
 }
 
-static char*
-okname(Edit *edit, char *name)
+static int8_t*
+okname(Edit *edit, int8_t *name)
 {
 	int i;
-	static char msg[100];
+	static int8_t msg[100];
 
 	if(name[0] == '\0')
 		return "partition has no name";
@@ -74,12 +74,12 @@ okname(Edit *edit, char *name)
 	return nil;
 }
 
-char*
+int8_t*
 addpart(Edit *edit, Part *p)
 {
 	int i;
-	static char msg[100];
-	char *err;
+	static int8_t msg[100];
+	int8_t *err;
 
 	if(err = okname(edit, p->name))
 		return err;
@@ -107,7 +107,7 @@ addpart(Edit *edit, Part *p)
 	return nil;
 }
 
-char*
+int8_t*
 delpart(Edit *edit, Part *p)
 {
 	int i;
@@ -124,11 +124,11 @@ delpart(Edit *edit, Part *p)
 	return nil;
 }
 
-static char*
-editdot(Edit *edit, int argc, char **argv)
+static int8_t*
+editdot(Edit *edit, int argc, int8_t **argv)
 {
-	char *err;
-	vlong ndot;
+	int8_t *err;
+	int64_t ndot;
 
 	if(argc == 1) {
 		print("\t. %lld\n", edit->dot);
@@ -145,12 +145,12 @@ editdot(Edit *edit, int argc, char **argv)
 	return nil;
 }
 
-static char*
-editadd(Edit *edit, int argc, char **argv)
+static int8_t*
+editadd(Edit *edit, int argc, int8_t **argv)
 {
-	char *name, *err, *q;
-	static char msg[100];
-	vlong start, end, maxend;
+	int8_t *name, *err, *q;
+	static int8_t msg[100];
+	int64_t start, end, maxend;
 	int i;
 
 	if(argc < 2)
@@ -209,8 +209,8 @@ editadd(Edit *edit, int argc, char **argv)
 	return nil;
 }
 
-static char*
-editdel(Edit *edit, int argc, char **argv)
+static int8_t*
+editdel(Edit *edit, int argc, int8_t **argv)
 {
 	Part *p;
 
@@ -223,7 +223,7 @@ editdel(Edit *edit, int argc, char **argv)
 	return edit->del(edit, p);
 }
 
-static char *helptext = 
+static int8_t *helptext = 
 	". [newdot] - display or set value of dot\n"
 	"a name [start [end]] - add partition\n"
 	"d name - delete partition\n"
@@ -233,8 +233,8 @@ static char *helptext =
 	"w - write partition table\n"
 	"q - quit\n";
 
-static char*
-edithelp(Edit *edit, int, char**)
+static int8_t*
+edithelp(Edit *edit, int, int8_t**)
 {
 	print("%s", helptext);
 	if(edit->help)
@@ -242,10 +242,10 @@ edithelp(Edit *edit, int, char**)
 	return nil;
 }
 
-static char*
-editprint(Edit *edit, int argc, char**)
+static int8_t*
+editprint(Edit *edit, int argc, int8_t**)
 {
-	vlong lastend;
+	int64_t lastend;
 	int i;
 	Part **part;
 
@@ -265,11 +265,11 @@ editprint(Edit *edit, int argc, char**)
 	return nil;
 }
 
-char*
-editwrite(Edit *edit, int argc, char**)
+int8_t*
+editwrite(Edit *edit, int argc, int8_t**)
 {
 	int i;
-	char *err;
+	int8_t *err;
 
 	if(argc != 1)
 		return "args";
@@ -286,8 +286,8 @@ editwrite(Edit *edit, int argc, char**)
 	return nil;
 }
 
-static char*
-editquit(Edit *edit, int argc, char**)
+static int8_t*
+editquit(Edit *edit, int argc, int8_t**)
 {
 	static int warned;
 
@@ -305,8 +305,8 @@ editquit(Edit *edit, int argc, char**)
 	return nil;	/* not reached */
 }
 
-char*
-editctlprint(Edit *edit, int argc, char **)
+int8_t*
+editctlprint(Edit *edit, int argc, int8_t **)
 {
 	if(argc != 1)
 		return "args";
@@ -320,8 +320,8 @@ editctlprint(Edit *edit, int argc, char **)
 
 typedef struct Cmd Cmd;
 struct Cmd {
-	char c;
-	char *(*fn)(Edit*, int ,char**);
+	int8_t c;
+	int8_t *(*fn)(Edit*, int ,int8_t**);
 };
 
 Cmd cmds[] = {
@@ -337,9 +337,9 @@ Cmd cmds[] = {
 };
 
 void
-runcmd(Edit *edit, char *cmd)
+runcmd(Edit *edit, int8_t *cmd)
 {
-	char *f[10], *err;
+	int8_t *f[10], *err;
 	int i, nf;
 
 	while(*cmd && isspace(*cmd))
@@ -377,7 +377,7 @@ runcmd(Edit *edit, char *cmd)
 }
 
 static Part*
-ctlmkpart(char *name, vlong start, vlong end, int changed)
+ctlmkpart(int8_t *name, int64_t start, int64_t end, int changed)
 {
 	Part *p;
 
@@ -394,10 +394,10 @@ static void
 rdctlpart(Edit *edit)
 {
 	int i, nline, nf;
-	char *line[128];
-	char buf[4096];
-	vlong a, b;
-	char *f[5];
+	int8_t *line[128];
+	int8_t buf[4096];
+	int64_t a, b;
+	int8_t *f[5];
 	Disk *disk;
 
 	disk = edit->disk;
@@ -441,7 +441,7 @@ rdctlpart(Edit *edit)
 	}
 }
 
-static vlong
+static int64_t
 ctlstart(Part *p)
 {
 	if(p->ctlstart)
@@ -449,7 +449,7 @@ ctlstart(Part *p)
 	return p->start;
 }
 
-static vlong
+static int64_t
 ctlend(Part *p)
 {
 	if(p->ctlend)
@@ -487,7 +487,7 @@ ctldiff(Edit *edit, int ctlfd)
 {
 	int i, j, waserr;
 	Part *p;
-	vlong offset;
+	int64_t offset;
 
 	rdctlpart(edit);
 
@@ -538,7 +538,7 @@ ctldiff(Edit *edit, int ctlfd)
 }
 
 void*
-emalloc(ulong sz)
+emalloc(uint32_t sz)
 {
 	void *v;
 
@@ -549,8 +549,8 @@ emalloc(ulong sz)
 	return v;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	s = strdup(s);
 	if(s == nil)

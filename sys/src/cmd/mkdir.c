@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-char *e;
-ulong mode = 0777L;
+int8_t *e;
+uint32_t mode = 0777L;
 
 void
 usage(void)
@@ -21,7 +21,7 @@ usage(void)
 }
 
 int
-makedir(char *s)
+makedir(int8_t *s)
 {
 	int f;
 
@@ -41,9 +41,9 @@ makedir(char *s)
 }
 
 void
-mkdirp(char *s)
+mkdirp(int8_t *s)
 {
-	char *p;
+	int8_t *p;
 
 	for(p=strchr(s+1, '/'); p; p=strchr(p+1, '/')){
 		*p = 0;

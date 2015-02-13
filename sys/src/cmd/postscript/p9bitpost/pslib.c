@@ -49,7 +49,7 @@ struct iteminfo {
 	int ascent;		/* ascent of the item */
 	int font;		/* font */
 	int line;		/* line its on */
-	char *buf;	
+	int8_t *buf;	
 };
 
 struct lineinfo {
@@ -68,7 +68,7 @@ struct lineinfo {
 /* PTPI : con 100;
 /* 
 */
-char *noinit = "pslib not properly initialized";
+int8_t *noinit = "pslib not properly initialized";
 /* 
 */
 static int boxes;
@@ -76,7 +76,7 @@ static int debug;
 static int totitems;
 static int totlines;
 static int curfont;
-static char *def_font;
+static int8_t *def_font;
 static int def_font_type;
 static int curfonttype;
 static int pagestart;
@@ -92,12 +92,12 @@ static int ystart;
 static double xmagnification = 1.0, ymagnification = 1.0;
 static int rotation = 0;
 static int landscape = 0;
-static char *Patch = nil;
+static int8_t *Patch = nil;
 
 /* ctxt 		: ref Draw->Context;
 /* t 		: ref Toplevel;
 */
-char*
+int8_t*
 psinit(int box, int deb) { /* d: ref Toplevel, */
 /* 	t=d; */
 	debug = deb;
@@ -136,7 +136,7 @@ psinit(int box, int deb) { /* d: ref Toplevel, */
 /* }
 /* 
 */
-static char *username;
+static int8_t *username;
 
 int
 preamble(Biobuf *ioutb, Rectangle bb) {
@@ -619,7 +619,7 @@ printnewpage(int pagenum, int end, Biobuf *ioutb)
 */
 
 void
-cmap2ascii85(uchar *b, uchar *c) {
+cmap2ascii85(uint8_t *b, uint8_t *c) {
 	int i;
 	unsigned long i1;
 
@@ -639,8 +639,8 @@ cmap2ascii85(uchar *b, uchar *c) {
 	c[6] = '\0';
 }
 
-static uchar *arr = nil;
-ulong	onesbits = ~0;
+static uint8_t *arr = nil;
+uint32_t	onesbits = ~0;
 void
 imagebits(Biobuf *ioutb, Memimage *im)
 {
@@ -648,7 +648,7 @@ imagebits(Biobuf *ioutb, Memimage *im)
 	int bitoff;
 	int j, n, n4, i, bpl, nrest;
 	int lsf;
-	uchar c85[6], *data, *src, *dst;
+	uint8_t c85[6], *data, *src, *dst;
 	Memimage *tmp;
 	Rectangle r;
 
@@ -696,8 +696,8 @@ imagebits(Biobuf *ioutb, Memimage *im)
 	n4 = (n / 4) * 4;
 	for (i = 0; i < n4; i += 4){
 		cmap2ascii85(data+i, c85);
-		lsf += strlen((char *)c85);
-		Bprint(ioutb, "%s", (char *)c85);
+		lsf += strlen((int8_t *)c85);
+		Bprint(ioutb, "%s", (int8_t *)c85);
 		if (lsf > 74) {
 			Bprint(ioutb, "\n");
 			lsf = 0;
@@ -705,16 +705,16 @@ imagebits(Biobuf *ioutb, Memimage *im)
 	}
 	nrest = n - n4;
 	if (nrest != 0) {
-		uchar foo[4];
+		uint8_t foo[4];
 
 		for (i=0; i<nrest; i++)
 			foo[i] = data[n4+i];
 		for (i=nrest; i<4; i++)
 			foo[i] = '\0';
 		cmap2ascii85(foo, c85);
-		if (strcmp((char *)c85, "z") == 0 )
-			strcpy((char *)c85, "!!!!!");
-		Bprint(ioutb, "%.*s", nrest+1, (char *)c85);
+		if (strcmp((int8_t *)c85, "z") == 0 )
+			strcpy((int8_t *)c85, "!!!!!");
+		Bprint(ioutb, "%.*s", nrest+1, (int8_t *)c85);
 	}
 	Bprint(ioutb, "\n~>");
 	Bprint(ioutb, "\n");
@@ -807,7 +807,7 @@ image2psfile(int fd, Memimage *im, int dpi) {
  *   char *Patch
  */
 void
-psopt(char *s, void *val)
+psopt(int8_t *s, void *val)
 {
 	if(s == nil)
 		return;
@@ -818,5 +818,5 @@ psopt(char *s, void *val)
 	if(strcmp("landscape", s) == 0)
 		landscape = *((int *)val);
 	if(strcmp("Patch", s) == 0)
-		Patch = *((char **)val);
+		Patch = *((int8_t **)val);
 }

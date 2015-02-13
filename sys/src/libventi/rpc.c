@@ -43,7 +43,7 @@ Packet*
 _vtrpc(VtConn *z, Packet *p, VtFcall *tx)
 {
 	int i;
-	uchar tag, buf[2], *top;
+	uint8_t tag, buf[2], *top;
 	Rwait *r, *rr;
 
 	if(z == nil){
@@ -164,7 +164,7 @@ puttag(VtConn *z, Rwait *r, int tag)
 static void
 muxrpc(VtConn *z, Packet *p)
 {
-	uchar tag, buf[2], *top;
+	uint8_t tag, buf[2], *top;
 	Rwait *r;
 
 	if((top = packetpeek(p, buf, 0, 2)) == nil){

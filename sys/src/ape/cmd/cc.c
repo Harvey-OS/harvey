@@ -25,11 +25,11 @@
  */
 
 typedef struct Objtype {
-	char	*name;
-	char	*cc;
-	char	*ld;
-	char	*o;
-	char	*oname;		/* compatibility with pcc.c; unused */
+	int8_t	*name;
+	int8_t	*cc;
+	int8_t	*ld;
+	int8_t	*o;
+	int8_t	*oname;		/* compatibility with pcc.c; unused */
 } Objtype;
 
 /* sync with /sys/src/cmd/pcc.c */
@@ -43,7 +43,7 @@ Objtype objtype[] = {
 	{"power",	"qc", "ql", "q", "q.out"},
 	{"mips",	"vc", "vl", "v", "v.out"},
 };
-char	*allos = "05689kqv";
+int8_t	*allos = "05689kqv";
 
 enum {
 	Nobjs = (sizeof objtype)/(sizeof objtype[0]),
@@ -51,21 +51,21 @@ enum {
 };
 
 typedef struct List {
-	char	*strings[Maxlist];
+	int8_t	*strings[Maxlist];
 	int	n;
 } List;
 
 List	srcs, objs, cpp, cc, ld, ldargs, srchlibs;
 int	cflag, vflag, Eflag, Sflag, Aflag;
 
-void	append(List *, char *);
-char	*changeext(char *, char *);
-void	doexec(char *, List *);
-void	dopipe(char *, List *, char *, List *);
-void	fatal(char *);
+void	append(List *, int8_t *);
+int8_t	*changeext(int8_t *, int8_t *);
+void	doexec(int8_t *, List *);
+void	dopipe(int8_t *, List *, int8_t *, List *);
+void	fatal(int8_t *);
 Objtype	*findoty(void);
 void	printlist(List *);
-char *searchlib(char *, char*);
+int8_t *searchlib(int8_t *, int8_t*);
 
 void
 main(int argc, char *argv[])
@@ -228,10 +228,10 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
-char *
-searchlib(char *s, char *objtype)
+int8_t *
+searchlib(int8_t *s, int8_t *objtype)
 {
-	char *l;
+	int8_t *l;
 	int i;
 
 	if(!s)
@@ -264,7 +264,7 @@ searchlib(char *s, char *objtype)
 }
 
 void
-append(List *l, char *s)
+append(List *l, int8_t *s)
 {
 	if(l->n >= Maxlist-1)
 		fatal("too many arguments");
@@ -273,7 +273,7 @@ append(List *l, char *s)
 }
 
 void
-doexec(char *c, List *a)
+doexec(int8_t *c, List *a)
 {
 	Waitmsg *w;
 
@@ -296,7 +296,7 @@ doexec(char *c, List *a)
 }
 
 void
-dopipe(char *c1, List *a1, char *c2, List *a2)
+dopipe(int8_t *c1, List *a1, int8_t *c2, List *a2)
 {
 	Waitmsg *w;
 	int pid1, got;
@@ -345,7 +345,7 @@ dopipe(char *c1, List *a1, char *c2, List *a2)
 Objtype *
 findoty(void)
 {
-	char *o;
+	int8_t *o;
 	Objtype *oty;
 
 	o = getenv("objtype");
@@ -359,17 +359,17 @@ findoty(void)
 }
 
 void
-fatal(char *msg)
+fatal(int8_t *msg)
 {
 	fprint(2, "cc: %s\n", msg);
 	exits(msg);
 }
 
 /* src ends in .something; return copy of basename with .ext added */
-char *
-changeext(char *src, char *ext)
+int8_t *
+changeext(int8_t *src, int8_t *ext)
 {
-	char *b, *e, *ans;
+	int8_t *b, *e, *ans;
 
 	b = utfrrune(src, '/');
 	if(b)

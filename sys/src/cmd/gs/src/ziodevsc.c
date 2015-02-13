@@ -38,7 +38,7 @@
 #include "store.h"
 
 /* Define the special devices. */
-const char iodev_dtype_stdio[] = "Special";
+const int8_t iodev_dtype_stdio[] = "Special";
 #define iodev_special(dname, init, open) {\
     dname, iodev_dtype_stdio,\
 	{ init, open, iodev_no_open_file, iodev_no_fopen, iodev_no_fclose,\

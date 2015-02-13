@@ -21,10 +21,10 @@
 static Ether *etherxx[MaxEther];
 
 Chan*
-etherattach(char* spec)
+etherattach(int8_t* spec)
 {
-	ulong ctlrno;
-	char *p;
+	uint32_t ctlrno;
+	int8_t *p;
 	Chan *chan;
 
 	ctlrno = 0;
@@ -49,13 +49,13 @@ etherattach(char* spec)
 }
 
 static Walkqid*
-etherwalk(Chan* chan, Chan* nchan, char** name, int nname)
+etherwalk(Chan* chan, Chan* nchan, int8_t** name, int nname)
 {
 	return netifwalk(etherxx[chan->devno], chan, nchan, name, nname);
 }
 
-static long
-etherstat(Chan* chan, uchar* dp, long n)
+static int32_t
+etherstat(Chan* chan, uint8_t* dp, int32_t n)
 {
 	return netifstat(etherxx[chan->devno], chan, dp, n);
 }
@@ -67,7 +67,7 @@ etheropen(Chan* chan, int omode)
 }
 
 static void
-ethercreate(Chan*, char*, int, int)
+ethercreate(Chan*, int8_t*, int, int)
 {
 }
 
@@ -77,11 +77,11 @@ etherclose(Chan* chan)
 	netifclose(etherxx[chan->devno], chan);
 }
 
-static long
-etherread(Chan* chan, void* buf, long n, vlong off)
+static int32_t
+etherread(Chan* chan, void* buf, int32_t n, int64_t off)
 {
 	Ether *ether;
-	ulong offset = off;
+	uint32_t offset = off;
 
 	ether = etherxx[chan->devno];
 	if((chan->qid.type & QTDIR) == 0 && ether->ifstat){
@@ -99,13 +99,13 @@ etherread(Chan* chan, void* buf, long n, vlong off)
 }
 
 static Block*
-etherbread(Chan* chan, long n, vlong offset)
+etherbread(Chan* chan, int32_t n, int64_t offset)
 {
 	return netifbread(etherxx[chan->devno], chan, n, offset);
 }
 
-static long
-etherwstat(Chan* chan, uchar* dp, long n)
+static int32_t
+etherwstat(Chan* chan, uint8_t* dp, int32_t n)
 {
 	return netifwstat(etherxx[chan->devno], chan, dp, n);
 }
@@ -141,7 +141,7 @@ Block*
 etheriq(Ether* ether, Block* bp, int fromwire)
 {
 	Etherpkt *pkt;
-	ushort type;
+	uint16_t type;
 	int len, multi, tome, fromme;
 	Netfile **ep, *f, **fp, *fx;
 	Block *xbp;
@@ -249,8 +249,8 @@ etheroq(Ether* ether, Block* bp)
 	return len;
 }
 
-static long
-etherwrite(Chan* chan, void* buf, long n, vlong)
+static int32_t
+etherwrite(Chan* chan, void* buf, int32_t n, int64_t)
 {
 	Ether *ether;
 	Block *bp;
@@ -298,11 +298,11 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 	return etheroq(ether, bp);
 }
 
-static long
-etherbwrite(Chan* chan, Block* bp, vlong)
+static int32_t
+etherbwrite(Chan* chan, Block* bp, int64_t)
 {
 	Ether *ether;
-	long n;
+	int32_t n;
 
 	n = BLEN(bp);
 	if(NETTYPE(chan->qid.path) != Ndataqid){
@@ -330,12 +330,12 @@ etherbwrite(Chan* chan, Block* bp, vlong)
 }
 
 static struct {
-	char*	type;
+	int8_t*	type;
 	int	(*reset)(Ether*);
 } cards[MaxEther+1];
 
 void
-addethercard(char* t, int (*r)(Ether*))
+addethercard(int8_t* t, int (*r)(Ether*))
 {
 	static int ncard;
 
@@ -347,10 +347,10 @@ addethercard(char* t, int (*r)(Ether*))
 }
 
 int
-parseether(uchar *to, char *from)
+parseether(uint8_t *to, int8_t *from)
 {
-	char nip[4];
-	char *p;
+	int8_t nip[4];
+	int8_t *p;
 	int i;
 
 	p = from;
@@ -374,7 +374,7 @@ etherprobe(int cardno, int ctlrno)
 {
 	int i, j;
 	Ether *ether;
-	char buf[128], name[32];
+	int8_t buf[128], name[32];
 
 	ether = malloc(sizeof(Ether));
 	memset(ether, 0, sizeof(Ether));
@@ -491,7 +491,7 @@ etherreset(void)
 static void
 ethershutdown(void)
 {
-	char name[32];
+	int8_t name[32];
 	int i;
 	Ether *ether;
 
@@ -515,11 +515,11 @@ ethershutdown(void)
 #define POLY 0xedb88320
 
 /* really slow 32 bit crc for ethers */
-ulong
-ethercrc(uchar *p, int len)
+uint32_t
+ethercrc(uint8_t *p, int len)
 {
 	int i, j;
-	ulong crc, b;
+	uint32_t crc, b;
 
 	crc = 0xffffffff;
 	for(i = 0; i < len; i++){

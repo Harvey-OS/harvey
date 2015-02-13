@@ -17,10 +17,10 @@
 #define	CHUNK	16
 #define	ROUNDUP(n)	((n+CHUNK)&~(CHUNK-1))
 
-uchar *
+uint8_t *
 _frallocstr(Frame *f, unsigned n)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = malloc(ROUNDUP(n));
 	if(p == 0)
@@ -32,7 +32,7 @@ void
 _frinsure(Frame *f, int bn, unsigned n)
 {
 	Frbox *b;
-	uchar *p;
+	uint8_t *p;
 
 	b = &f->box[bn];
 	if(b->nrune < 0)

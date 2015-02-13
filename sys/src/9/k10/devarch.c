@@ -21,9 +21,9 @@ struct IOMap
 {
 	IOMap	*next;
 	int	reserved;
-	char	tag[13];
-	ulong	start;
-	ulong	end;
+	int8_t	tag[13];
+	uint32_t	start;
+	uint32_t	end;
 };
 
 static struct
@@ -48,7 +48,7 @@ enum {
 	Qmax = 16,
 };
 
-typedef long Rdwrfn(Chan*, void*, long, vlong);
+typedef int32_t Rdwrfn(Chan*, void*, int32_t, int64_t);
 
 static Rdwrfn *readfn[Qmax];
 static Rdwrfn *writefn[Qmax];
@@ -71,7 +71,7 @@ int narchdir = Qbase;
  * like change the Qid version.  Changing the Qid path is disallowed.
  */
 Dirtab*
-addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
+addarchfile(int8_t *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 {
 	int i;
 	Dirtab d;
@@ -106,7 +106,7 @@ addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 void
 ioinit(void)
 {
-	char *excluded;
+	int8_t *excluded;
 	int i;
 
 	for(i = 0; i < nelem(iomap.maps)-1; i++)
@@ -121,11 +121,11 @@ ioinit(void)
 					// entry is needed for swappable devs.
 
 	if ((excluded = getconf("ioexclude")) != nil) {
-		char *s;
+		int8_t *s;
 
 		s = excluded;
 		while (s && *s != '\0' && *s != '\n') {
-			char *ends;
+			int8_t *ends;
 			int io_s, io_e;
 
 			io_s = (int)strtol(s, &ends, 0);
@@ -150,7 +150,7 @@ ioinit(void)
 // This is in particular useful for exchangable cards, such
 // as pcmcia and cardbus cards.
 int
-ioreserve(int, int size, int align, char *tag)
+ioreserve(int, int size, int align, int8_t *tag)
 {
 	IOMap *map, **l;
 	int i, port;
@@ -200,7 +200,7 @@ ioreserve(int, int size, int align, char *tag)
 //	alloced to.  if port < 0, find a free region.
 //
 int
-ioalloc(int port, int size, int align, char *tag)
+ioalloc(int port, int size, int align, int8_t *tag)
 {
 	IOMap *map, **l;
 	int i;
@@ -316,19 +316,19 @@ checkport(int start, int end)
 }
 
 static Chan*
-archattach(char* spec)
+archattach(int8_t* spec)
 {
 	return devattach('P', spec);
 }
 
 Walkqid*
-archwalk(Chan* c, Chan *nc, char** name, int nname)
+archwalk(Chan* c, Chan *nc, int8_t** name, int nname)
 {
 	return devwalk(c, nc, name, nname, archdir, narchdir, devgen);
 }
 
-static long
-archstat(Chan* c, uchar* dp, long n)
+static int32_t
+archstat(Chan* c, uint8_t* dp, int32_t n)
 {
 	return devstat(c, dp, n, archdir, narchdir, devgen);
 }
@@ -447,16 +447,16 @@ archread(Chan *c, void *a, long n, vlong offset)
 	return n;
 }
 
-static long
-archwrite(Chan *c, void *a, long n, vlong offset)
+static int32_t
+archwrite(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	char *p;
+	int8_t *p;
 	int port;
-	ushort *sp;
-	ulong *lp;
+	uint16_t *sp;
+	uint32_t *lp;
 	Rdwrfn *fn;
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 
 	case Qiob:
 		p = a;
@@ -522,10 +522,10 @@ nop(void)
 
 void (*coherence)(void) = mfence;
 
-static long
-cputyperead(Chan*, void *a, long n, vlong off)
+static int32_t
+cputyperead(Chan*, void *a, int32_t n, int64_t off)
 {
-	char buf[512], *s, *e;
+	int8_t buf[512], *s, *e;
 	int i, k;
 
 	e = buf+sizeof buf;
@@ -572,8 +572,8 @@ archreset(void)
 /*
  *  return value and speed of timer
  */
-uvlong
-fastticks(uvlong* hz)
+uint64_t
+fastticks(uint64_t* hz)
 {
 	if(hz != nil)
 		*hz = m->cpuhz;
@@ -590,15 +590,15 @@ ulong
  *  set next timer interrupt
  */
 void
-timerset(uvlong x)
+timerset(uint64_t x)
 {
-	extern void apictimerset(uvlong);
+	extern void apictimerset(uint64_t);
 
 	apictimerset(x);
 }
 
 void
-cycles(uvlong* t)
+cycles(uint64_t* t)
 {
 	*t = rdtsc();
 }
@@ -619,10 +619,10 @@ delay(int millisecs)
  *  performance measurement ticks.  must be low overhead.
  *  doesn't have to count over a second.
  */
-ulong
+uint32_t
 perfticks(void)
 {
-	uvlong x;
+	uint64_t x;
 
 //	if(m->havetsc)
 		cycles(&x);

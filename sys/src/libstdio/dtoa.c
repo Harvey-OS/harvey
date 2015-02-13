@@ -84,8 +84,8 @@ struct Bigint {
 };
 
 struct Ulongs {
-	ulong	hi;
-	ulong	lo;
+	uint32_t	hi;
+	uint32_t	lo;
 };
 
 static Bigint *freelist[Kmax+1];
@@ -150,7 +150,7 @@ Bfree(Bigint *v)
 	}
 }
 
-#define Bcopy(x,y) memcpy((char *)&x->sign, (char *)&y->sign, \
+#define Bcopy(x,y) memcpy((int8_t *)&x->sign, (int8_t *)&y->sign, \
 y->wds*sizeof(int) + 2*sizeof(int))
 
 static Bigint *
@@ -186,7 +186,7 @@ multadd(Bigint *b, int m, int a)	/* multiply by m and add a */
 }
 
 static Bigint *
-s2b(const char *s, int nd0, int nd, unsigned int y9)
+s2b(const int8_t *s, int nd0, int nd, unsigned int y9)
 {
 	Bigint * b;
 	int	i, k;
@@ -520,7 +520,7 @@ diff(Bigint *a, Bigint *b)
 static double	
 ulp(double x)
 {
-	ulong L;
+	uint32_t L;
 	Ulongs uls;
 
 	uls = double2ulongs(x);
@@ -533,7 +533,7 @@ b2d(Bigint *a, int *e)
 {
 	unsigned *xa, *xa0, w, y, z;
 	int	k;
-	ulong d0, d1;
+	uint32_t d0, d1;
 
 	xa0 = a->x;
 	xa = xa0 + a->wds;
@@ -641,10 +641,10 @@ static const double tinytens[] = {
 #define NAN_WORD1 0
 
 static int	
-match(const char **sp, char *t)
+match(const int8_t **sp, int8_t *t)
 {
 	int	c, d;
-	const char * s = *sp;
+	const int8_t * s = *sp;
 
 	while (d = *t++) {
 		if ((c = *++s) >= 'A' && c <= 'Z')
@@ -657,10 +657,10 @@ match(const char **sp, char *t)
 }
 
 static void	
-gethex(double *rvp, const char **sp)
+gethex(double *rvp, const int8_t **sp)
 {
 	unsigned int c, x[2];
-	const char * s;
+	const int8_t * s;
 	int	havedig, udx0, xshift;
 
 	x[0] = x[1] = 0;
@@ -764,7 +764,7 @@ quorem(Bigint *b, Bigint *S)
 	return q;
 }
 
-static char	*
+static int8_t	*
 rv_alloc(int i)
 {
 	int	j, k, *r;
@@ -777,13 +777,13 @@ rv_alloc(int i)
 	r = (int * )Balloc(k);
 	*r = k;
 	return
-	    (char *)(r + 1);
+	    (int8_t *)(r + 1);
 }
 
-static char	*
-nrv_alloc(char *s, char **rve, int n)
+static int8_t	*
+nrv_alloc(int8_t *s, int8_t **rve, int n)
 {
-	char	*rv, *t;
+	int8_t	*rv, *t;
 
 	t = rv = rv_alloc(n);
 	while (*t = *s++) 
@@ -800,7 +800,7 @@ nrv_alloc(char *s, char **rve, int n)
  */
 
 void
-freedtoa(char *s)
+freedtoa(int8_t *s)
 {
 	Bigint * b = (Bigint * )((int *)s - 1);
 	b->maxwds = 1 << (b->k = *(int * )b);
@@ -841,8 +841,8 @@ freedtoa(char *s)
  *	   calculation.
  */
 
-char	*
-dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve)
+int8_t	*
+dtoa(double d, int mode, int ndigits, int *decpt, int *sign, int8_t **rve)
 {
 	/*	Arguments ndigits, decpt, sign are similar to those
 	of ecvt and fcvt; trailing zeros are suppressed from
@@ -883,7 +883,7 @@ dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve)
 		spec_case, try_quick;
 	Bigint * b, *b1, *delta, *mlo=nil, *mhi, *S;
 	double	d2, ds, eps;
-	char	*s, *s0;
+	int8_t	*s, *s0;
 	Ulongs ulsd, ulsd2;
 
 	ulsd = double2ulongs(d);

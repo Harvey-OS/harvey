@@ -51,8 +51,8 @@
  */
 
 #ifndef lint
-static char *ident = "$Id: create.c,v 1.3 89/02/12 10:29:37 mark Exp Locker: mark $";
-static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static int8_t *ident = "$Id: create.c,v 1.3 89/02/12 10:29:37 mark Exp Locker: mark $";
+static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -65,9 +65,9 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
 
 #ifdef __STDC__
 
-static void writetar(char *, Stat *);
-static void writecpio(char *, Stat *);
-static char tartype(int);
+static void writetar(int8_t *, Stat *);
+static void writecpio(int8_t *, Stat *);
+static int8_t tartype(int);
 
 #else /* !__STDC__ */
 
@@ -103,7 +103,7 @@ int create_archive()
 
 #endif
 {
-    char            name[PATH_MAX + 1];
+    int8_t            name[PATH_MAX + 1];
     Stat            sb;
     int             fd;
 
@@ -189,7 +189,7 @@ int create_archive()
 
 #ifdef __STDC__
 
-static void writetar(char *name, Stat *asb)
+static void writetar(int8_t *name, Stat *asb)
 
 #else
     
@@ -199,11 +199,11 @@ Stat           *asb;
 
 #endif
 {
-    char	   *p;
-    char           *prefix = (char *)NULL;
+    int8_t	   *p;
+    int8_t           *prefix = (int8_t *)NULL;
     int             i;
     int             sum;
-    char            hdr[BLOCKSIZE];
+    int8_t            hdr[BLOCKSIZE];
     Link           *from;
 
     memset(hdr, 0, BLOCKSIZE);
@@ -241,8 +241,8 @@ Stat           *asb;
     sprintf(&hdr[100], "%06o \0", asb->sb_mode & ~S_IFMT);
     sprintf(&hdr[108], "%06o \0", asb->sb_uid);
     sprintf(&hdr[116], "%06o \0", asb->sb_gid);
-    sprintf(&hdr[124], "%011lo ", (long) asb->sb_size);
-    sprintf(&hdr[136], "%011lo ", (long) asb->sb_mtime);
+    sprintf(&hdr[124], "%011lo ", (int32_t) asb->sb_size);
+    sprintf(&hdr[136], "%011lo ", (int32_t) asb->sb_mtime);
     strncpy(&hdr[148], "        ", 8);
     hdr[156] = tartype(asb->sb_mode);
     if (asb->sb_nlink > 1 && (from = linkfrom(name, asb)) != (Link *)NULL) {
@@ -255,7 +255,7 @@ Stat           *asb;
     strcpy(&hdr[297], findgname((int) asb->sb_gid));
     sprintf(&hdr[329], "%06o \0", major(asb->sb_rdev));
     sprintf(&hdr[337], "%06o \0", minor(asb->sb_rdev));
-    if (prefix != (char *)NULL) {
+    if (prefix != (int8_t *)NULL) {
 	strncpy(&hdr[345], prefix, 155);
     }
 
@@ -294,7 +294,7 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-static char tartype(int mode)
+static int8_t tartype(int mode)
 
 #else
     
@@ -353,7 +353,7 @@ int	    mode;
 
 #ifdef __STDC__
 
-static void writecpio(char *name, Stat *asb)
+static void writecpio(int8_t *name, Stat *asb)
 
 #else
     
@@ -364,7 +364,7 @@ Stat           *asb;
 #endif
 {
     uint            namelen;
-    char            header[M_STRLEN + H_STRLEN + 1];
+    int8_t            header[M_STRLEN + H_STRLEN + 1];
 
     namelen = (uint) strlen(name) + 1;
     strcpy(header, M_ASCII);

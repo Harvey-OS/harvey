@@ -11,7 +11,7 @@
 #include "t.h"
 
 int
-match (char *s1, char *s2)
+match (int8_t *s1, int8_t *s2)
 {
 	while (*s1 == *s2)
 		if (*s1++ == '\0')
@@ -23,7 +23,7 @@ match (char *s1, char *s2)
 
 
 int
-prefix(char *small, char *big)
+prefix(int8_t *small, int8_t *big)
 {
 	int	c;
 
@@ -46,7 +46,7 @@ letter (int ch)
 
 
 int
-numb(char *str)
+numb(int8_t *str)
 {
 				/* convert to integer */
 	int	k;
@@ -71,7 +71,7 @@ max(int a, int b)
 
 
 void
-tcopy (char *s, char *t)
+tcopy (int8_t *s, int8_t *t)
 {
 	while (*s++ = *t++)
 		;

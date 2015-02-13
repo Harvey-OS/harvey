@@ -18,7 +18,7 @@
 	field is font dependent.
 */
 
-static char *field(Biobuf *, char *);
+static int8_t *field(Biobuf *, int8_t *);
 
 Bitmap *
 greadbits(char *file, int n, long *chars, int size, uchar *bits, int **doneptr)
@@ -125,10 +125,10 @@ greadbits(char *file, int n, long *chars, int size, uchar *bits, int **doneptr)
 	return(bm);
 }
 
-static char *
-field(Biobuf *bf, char *name)
+static int8_t *
+field(Biobuf *bf, int8_t *name)
 {
-	char *s;
+	int8_t *s;
 	int n;
 
 	n = strlen(name);

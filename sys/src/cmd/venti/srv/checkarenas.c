@@ -71,7 +71,7 @@ usage(void)
 }
 
 int
-should(char *name, int argc, char **argv)
+should(int8_t *name, int argc, int8_t **argv)
 {
 	int i;
 

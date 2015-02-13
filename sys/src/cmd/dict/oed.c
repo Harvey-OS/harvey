@@ -996,17 +996,17 @@ static Rune suptab[128] = {
 };
 
 static int	tagstarts;
-static char	tag[Buflen];
+static int8_t	tag[Buflen];
 static int	naux;
-static char	auxname[Maxaux][Buflen];
-static char	auxval[Maxaux][Buflen];
-static char	spec[Buflen];
-static char	*auxstate[Naux];	/* vals for most recent tag */
+static int8_t	auxname[Maxaux][Buflen];
+static int8_t	auxval[Maxaux][Buflen];
+static int8_t	spec[Buflen];
+static int8_t	*auxstate[Naux];	/* vals for most recent tag */
 static Entry	curentry;
 #define cursize (curentry.end-curentry.start)
 
-static char	*getspec(char *, char *);
-static char	*gettag(char *, char *);
+static int8_t	*getspec(int8_t *, int8_t *);
+static int8_t	*gettag(int8_t *, int8_t *);
 static void	dostatus(void);
 
 /*
@@ -1018,9 +1018,9 @@ static void	dostatus(void);
 void
 oedprintentry(Entry e, int cmd)
 {
-	char *p, *pe;
+	int8_t *p, *pe;
 	int t, a, i;
-	long r, rprev, rlig;
+	int32_t r, rprev, rlig;
 	Rune *transtab;
 
 	p = e.start;
@@ -1210,10 +1210,10 @@ oedprintentry(Entry e, int cmd)
  * Return offset into bdict where next oed entry after fromoff starts.
  * Oed entries start with <e>, <ve>, <e st=...>, or <ve st=...>
  */
-long
-oednextoff(long fromoff)
+int32_t
+oednextoff(int32_t fromoff)
 {
-	long a, n;
+	int32_t a, n;
 	int c;
 
 	a = Bseek(bdict, fromoff, 0);
@@ -1242,7 +1242,7 @@ oednextoff(long fromoff)
 	return (Boffset(bdict)-n);
 }
 
-static char *prkey =
+static int8_t *prkey =
 "KEY TO THE PRONUNCIATION\n"
 "\n"
 "I. CONSONANTS\n"
@@ -1347,10 +1347,10 @@ oedprintkey(void)
  * and continuing until the next '.', in spec[].
  * Return pointer to char after '.'.
  */
-static char *
-getspec(char *f, char *fe)
+static int8_t *
+getspec(int8_t *f, int8_t *fe)
 {
-	char *t;
+	int8_t *t;
 	int c, i;
 
 	t = spec;
@@ -1376,10 +1376,10 @@ getspec(char *f, char *fe)
  * Set naux to the number of aux pairs found.
  * Return pointer to after final '>'.
  */
-static char *
-gettag(char *f, char *fe)
+static int8_t *
+gettag(int8_t *f, int8_t *fe)
 {
-	char *t;
+	int8_t *t;
 	int c, i;
 
 	t = tag;
@@ -1416,7 +1416,7 @@ gettag(char *f, char *fe)
 static void
 dostatus(void)
 {
-	char *s;
+	int8_t *s;
 
 	s = auxstate[St];
 	if(s) {

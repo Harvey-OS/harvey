@@ -53,7 +53,7 @@ flstart(Rectangle r)
 }
 
 void
-flnew(Flayer *l, Rune *(*fn)(Flayer*, long, ulong*), int u0, void *u1)
+flnew(Flayer *l, Rune *(*fn)(Flayer*, int32_t, uint32_t*), int u0, void *u1)
 {
 	if(nllist == nlalloc){
 		nlalloc += DELTA;
@@ -80,7 +80,7 @@ flrect(Flayer *l, Rectangle r)
 }
 
 static void
-fontbuggered(char *name)
+fontbuggered(int8_t *name)
 {
 	fprint(2, "samterm: font %s has zero-width \"0\" character\n", name);
 	threadexits("font zero-width");
@@ -240,7 +240,7 @@ lldelete(Flayer *l)
 }
 
 void
-flinsert(Flayer *l, Rune *sp, Rune *ep, long p0)
+flinsert(Flayer *l, Rune *sp, Rune *ep, int32_t p0)
 {
 	if(flprepare(l)){
 		frinsert(&l->f, sp, ep, p0-l->origin);
@@ -251,7 +251,7 @@ flinsert(Flayer *l, Rune *sp, Rune *ep, long p0)
 }
 
 void
-fldelete(Flayer *l, long p0, long p1)
+fldelete(Flayer *l, int32_t p0, int32_t p1)
 {
 	if(flprepare(l)){
 		p0 -= l->origin;
@@ -288,9 +288,9 @@ flselect(Flayer *l)
 }
 
 void
-flsetselect(Flayer *l, long p0, long p1)
+flsetselect(Flayer *l, int32_t p0, int32_t p1)
 {
-	ulong fp0, fp1;
+	uint32_t fp0, fp1;
 
 	l->click = 0;
 	if(l->visible==None || !flprepare(l)){
@@ -332,9 +332,9 @@ flsetselect(Flayer *l, long p0, long p1)
 }
 
 void
-flfp0p1(Flayer *l, ulong *pp0, ulong *pp1)
+flfp0p1(Flayer *l, uint32_t *pp0, uint32_t *pp1)
 {
-	long p0 = l->p0-l->origin, p1 = l->p1-l->origin;
+	int32_t p0 = l->p0-l->origin, p1 = l->p1-l->origin;
 
 	if(p0 < 0)
 		p0 = 0;
@@ -416,7 +416,7 @@ int
 flprepare(Flayer *l)
 {
 	Frame *f;
-	ulong n;
+	uint32_t n;
 	Rune *r;
 
 	if(l->visible == None)
@@ -435,7 +435,7 @@ flprepare(Flayer *l)
 		if(f->maxtab == 0)
 			fontbuggered(f->font->name);
 		r = (*l->textfn)(l, n, &n);
-		frinsert(f, r, r+n, (ulong)0);
+		frinsert(f, r, r+n, (uint32_t)0);
 		frdrawsel(f, frptofchar(f, f->p0), f->p0, f->p1, 0);
 		flfp0p1(l, &f->p0, &f->p1);
 		frdrawsel(f, frptofchar(f, f->p0), f->p0, f->p1, 1);

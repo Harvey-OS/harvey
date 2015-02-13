@@ -12,9 +12,9 @@
 #include <oventi.h>
 #include "session.h"
 
-static char EProtocolBotch[] = "venti protocol botch";
-static char ELumpSize[] = "illegal lump size";
-static char ENotConnected[] = "not connected to venti server";
+static int8_t EProtocolBotch[] = "venti protocol botch";
+static int8_t ELumpSize[] = "illegal lump size";
+static int8_t ENotConnected[] = "not connected to venti server";
 
 static Packet *vtRPC(VtSession *z, int op, Packet *p);
 
@@ -26,12 +26,12 @@ vtClientAlloc(void)
 }
 
 VtSession *
-vtDial(char *host, int canfail)
+vtDial(int8_t *host, int canfail)
 {
 	VtSession *z;
 	int fd;
-	char *na;
-	char e[ERRMAX];
+	int8_t *na;
+	int8_t e[ERRMAX];
 
 	if(host == nil) 
 		host = getenv("venti");
@@ -62,10 +62,10 @@ vtDial(char *host, int canfail)
 }
 
 int
-vtRedial(VtSession *z, char *host)
+vtRedial(VtSession *z, int8_t *host)
 {
 	int fd;
-	char *na;
+	int8_t *na;
 
 	if(host == nil) 
 		host = getenv("venti");
@@ -84,7 +84,7 @@ vtRedial(VtSession *z, char *host)
 }
 
 VtSession *
-vtStdioServer(char *server)
+vtStdioServer(int8_t *server)
 {
 	int pfd[2];
 	VtSession *z;
@@ -138,8 +138,8 @@ int
 vtHello(VtSession *z)
 {
 	Packet *p;
-	uchar buf[10];
-	char *sid;
+	uint8_t buf[10];
+	int8_t *sid;
 	int crypto, codec;
 
 	sid = nil;
@@ -209,7 +209,8 @@ Err:
 }
 
 int
-vtWrite(VtSession *z, uchar score[VtScoreSize], int type, uchar *buf, int n)
+vtWrite(VtSession *z, uint8_t score[VtScoreSize], int type, uint8_t *buf,
+	int n)
 {
 	Packet *p = packetAlloc();
 
@@ -218,10 +219,10 @@ vtWrite(VtSession *z, uchar score[VtScoreSize], int type, uchar *buf, int n)
 }
 
 int
-vtWritePacket(VtSession *z, uchar score[VtScoreSize], int type, Packet *p)
+vtWritePacket(VtSession *z, uint8_t score[VtScoreSize], int type, Packet *p)
 {
 	int n = packetSize(p);
-	uchar *hdr;
+	uint8_t *hdr;
 
 	if(n > VtMaxLumpSize || n < 0) {
 		vtSetError(ELumpSize);
@@ -255,7 +256,8 @@ Err:
 }
 
 int
-vtRead(VtSession *z, uchar score[VtScoreSize], int type, uchar *buf, int n)
+vtRead(VtSession *z, uint8_t score[VtScoreSize], int type, uint8_t *buf,
+       int n)
 {
 	Packet *p;
 
@@ -269,10 +271,10 @@ vtRead(VtSession *z, uchar score[VtScoreSize], int type, uchar *buf, int n)
 }
 
 Packet *
-vtReadPacket(VtSession *z, uchar score[VtScoreSize], int type, int n)
+vtReadPacket(VtSession *z, uint8_t score[VtScoreSize], int type, int n)
 {
 	Packet *p;
-	uchar buf[10];
+	uint8_t buf[10];
 
 	if(n < 0 || n > VtMaxLumpSize) {
 		vtSetError(ELumpSize);
@@ -296,8 +298,8 @@ vtReadPacket(VtSession *z, uchar score[VtScoreSize], int type, int n)
 static Packet *
 vtRPC(VtSession *z, int op, Packet *p)
 {
-	uchar *hdr, buf[2];
-	char *err;
+	uint8_t *hdr, buf[2];
+	int8_t *err;
 
 	if(z == nil){
 		vtSetError(ENotConnected);

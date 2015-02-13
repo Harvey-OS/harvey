@@ -21,10 +21,10 @@ struct Queue
 
 	Lock	lock;
 	int	notempty;
-	char	buf[1024];
-	char	*w;
-	char	*r;
-	char	*e;
+	int8_t	buf[1024];
+	int8_t	*w;
+	int8_t	*r;
+	int8_t	*e;
 };
 
 Queue*	kbdq;			/* unprocessed console input */
@@ -39,7 +39,7 @@ static struct
 	int	raw;		/* true if we shouldn't process input */
 	int	ctl;		/* number of opens to the control file */
 	int	x;		/* index into line */
-	char	line[1024];	/* current input line */
+	int8_t	line[1024];	/* current input line */
 } kbd;
 
 /*
@@ -48,7 +48,7 @@ static struct
 static void
 qwrite(Queue *q, void *v, int n)
 {
-	char *buf, *next;
+	int8_t *buf, *next;
 	int i;
 
 	buf = v;
@@ -83,7 +83,7 @@ qcanread(void *vq)
 static int
 qread(Queue *q, void *v, int n)
 {
-	char *a;
+	int8_t *a;
 	int nn, notempty;
 
 	if(n == 0)
@@ -134,10 +134,10 @@ mkqueue(void)
 }
 
 static void
-echoscreen(char *buf, int n)
+echoscreen(int8_t *buf, int n)
 {
-	char *e, *p;
-	char ebuf[128];
+	int8_t *e, *p;
+	int8_t ebuf[128];
 	int x;
 
 	p = ebuf;
@@ -167,7 +167,7 @@ void
 kbdputc(int ch)
 {
 	int n;
-	char buf[UTFmax];
+	int8_t buf[UTFmax];
 	Rune r;
 
 	r = ch;
@@ -210,19 +210,19 @@ consinit(void)
 }
 
 static Chan*
-consattach(char *spec)
+consattach(int8_t *spec)
 {
 	return devattach('c', spec);
 }
 
 static Walkqid*
-conswalk(Chan *c, Chan *nc, char **name, int nname)
+conswalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name,nname, consdir, nelem(consdir), devgen);
 }
 
 static int
-consstat(Chan *c, uchar *dp, int n)
+consstat(Chan *c, uint8_t *dp, int n)
 {
 	return devstat(c, dp, n, consdir, nelem(consdir), devgen);
 }
@@ -232,7 +232,7 @@ consopen(Chan *c, int omode)
 {
 	c->aux = nil;
 	c = devopen(c, omode, consdir, nelem(consdir), devgen);
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qconsctl:
 		qlock(&kbd);
 		kbd.ctl++;
@@ -247,7 +247,7 @@ consopen(Chan *c, int omode)
 }
 
 void
-setsnarf(char *buf, int n, int *vers)
+setsnarf(int8_t *buf, int n, int *vers)
 {
 	int i;
 
@@ -272,7 +272,7 @@ consclose(Chan *c)
 {
 	Snarf *t;
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	/* last close of control file turns off raw */
 	case Qconsctl:
 		if(c->flag&COPEN){
@@ -295,15 +295,15 @@ consclose(Chan *c)
 	}
 }
 
-static long
-consread(Chan *c, void *buf, long n, vlong off)
+static int32_t
+consread(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	char ch;
+	int8_t ch;
 	int	send;
 
 	if(n <= 0)
 		return n;
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qsnarf:
 		qlock(&snarf);
 		if(off < snarf.n){
@@ -369,14 +369,14 @@ consread(Chan *c, void *buf, long n, vlong off)
 	return -1;		/* never reached */
 }
 
-static long
-conswrite(Chan *c, void *va, long n, vlong)
+static int32_t
+conswrite(Chan *c, void *va, int32_t n, int64_t)
 {
 	Snarf *t;
-	char buf[256], *a;
-	char ch;
+	int8_t buf[256], *a;
+	int8_t ch;
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qcons:
 		screenputs(va, n);
 		break;

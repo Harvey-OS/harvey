@@ -11,7 +11,7 @@
  * pANS stdio -- sscanf
  */
 #include "iolib.h"
-int sscanf(const char *s, const char *fmt, ...){
+int sscanf(const int8_t *s, const int8_t *fmt, ...){
 	int n;
 	FILE *f=_IO_sopenr(s);
 	va_list args;

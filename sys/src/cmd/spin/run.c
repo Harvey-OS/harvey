@@ -29,7 +29,7 @@ extern int	Rvous, lineno, Tval, interactive, MadeChoice;
 extern int	TstOnly, verbose, s_trail, xspin, jumpsteps, depth;
 extern int	analyze, nproc, nstop, no_print, like_java;
 
-static long	Seed = 1;
+static int32_t	Seed = 1;
 static int	E_Check = 0, Escape_Check = 0;
 
 static int	eval_sync(Element *);
@@ -41,7 +41,7 @@ Srand(unsigned int s)
 {	Seed = s;
 }
 
-long
+int32_t
 Rand(void)
 {	/* CACM 31(10), Oct 1988 */
 	Seed = 16807*(Seed%127773) - 2836*(Seed/127773);
@@ -151,7 +151,7 @@ eval_sub(Element *e)
 		&& !(e->status&(D_ATOM))
 		&& !E_Check)
 		{	if (!MadeChoice)
-			{	char buf[256];
+			{	int8_t buf[256];
 				if (xspin)
 					printf("Make Selection %d\n\n", j);
 				else
@@ -436,7 +436,7 @@ eval(Lextok *now)
 		     return 1; /* uninterpreted */
 
 	case ASSERT: if (TstOnly || eval(now->lft)) return 1;
-		     non_fatal("assertion violated", (char *) 0);
+		     non_fatal("assertion violated", (int8_t *) 0);
 			printf("spin: text of failed assertion: assert(");
 			comment(stdout, now->lft, 0);
 			printf(")\n");
@@ -456,7 +456,7 @@ eval(Lextok *now)
 
 int
 printm(FILE *fd, Lextok *n)
-{	extern char Buf[];
+{	extern int8_t Buf[];
 	int j;
 
 	Buf[0] = '\0';
@@ -475,10 +475,10 @@ printm(FILE *fd, Lextok *n)
 int
 interprint(FILE *fd, Lextok *n)
 {	Lextok *tmp = n->lft;
-	char c, *s = n->sym->name;
-	int i, j; char lbuf[512]; /* matches value in sr_buf() */
-	extern char Buf[];	/* global, size 4096 */
-	char tBuf[4096];	/* match size of global Buf[] */
+	int8_t c, *s = n->sym->name;
+	int i, j; int8_t lbuf[512]; /* matches value in sr_buf() */
+	extern int8_t Buf[];	/* global, size 4096 */
+	int8_t tBuf[4096];	/* match size of global Buf[] */
 
 	Buf[0] = '\0';
 	if (!no_print)

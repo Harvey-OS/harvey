@@ -83,33 +83,33 @@ int	eqnflag	= 0;
 
 #define	MAX_ASCII	0X80
 
-char	chars[MAX_ASCII];	/* SPECIAL, PUNCT, APOS, DIGIT, or LETTER */
+int8_t	chars[MAX_ASCII];	/* SPECIAL, PUNCT, APOS, DIGIT, or LETTER */
 
 Rune	line[30000];
 Rune*	lp;
 
-long	c;
-long	pc;
+int32_t	c;
+int32_t	pc;
 int	ldelim	= NOCHAR;
 int	rdelim	= NOCHAR;
 
 
-char**	argv;
+int8_t**	argv;
 
-char	fname[50];
+int8_t	fname[50];
 Biobuf*	files[15];
 Biobuf**filesp;
 Biobuf*	infile;
-char*	devnull	= "/dev/null";
+int8_t*	devnull	= "/dev/null";
 Biobuf	*infile;
 Biobuf	bout;
 
-long	skeqn(void);
-Biobuf*	opn(char *p);
+int32_t	skeqn(void);
+Biobuf*	opn(int8_t *p);
 int	eof(void);
 int	charclass(int);
 void	getfname(void);
-void	fatal(char *s, char *p);
+void	fatal(int8_t *s, int8_t *p);
 void	usage(void);
 void	work(void);
 void	putmac(Rune *rp, int vconst);
@@ -120,10 +120,10 @@ void	macro(void);
 void	eqn(void);
 void	tbl(void);
 void	stbl(void);
-void	sdis(char a1, char a2);
+void	sdis(int8_t a1, int8_t a2);
 void	sce(void);
 void	backsl(void);
-char*	copys(char *s);
+int8_t*	copys(int8_t *s);
 void	refer(int c1);
 void	inpic(void);
 
@@ -212,7 +212,7 @@ main(int argc, char *av[])
 	work();
 }
 
-long
+int32_t
 skeqn(void)
 {
 	while(C1 != rdelim)
@@ -228,7 +228,7 @@ skeqn(void)
 }
 
 Biobuf*
-opn(char *p)
+opn(int8_t *p)
 {
 	Biobuf *fd;
 
@@ -262,13 +262,13 @@ eof(void)
 void
 getfname(void)
 {
-	char *p;
+	int8_t *p;
 	Rune r;
 	Dir *dir;
 	struct chain
 	{ 
 		struct	chain*	nextp; 
-		char*	datap; 
+		int8_t*	datap; 
 	} *q;
 
 	static struct chain *namechain= 0;
@@ -315,7 +315,7 @@ usage(void)
 }
 
 void
-fatal(char *s, char *p)
+fatal(int8_t *s, int8_t *p)
 {
 	fprint(2, "deroff: ");
 	fprint(2, s, p);
@@ -455,7 +455,7 @@ putwords(void)
 void
 comline(void)
 {
-	long c1, c2;
+	int32_t c1, c2;
 
 	while(C==' ' || c=='\t')
 		;
@@ -622,7 +622,7 @@ macro(void)
 }
 
 void
-sdis(char a1, char a2)
+sdis(int8_t a1, int8_t a2)
 {
 	int c1, c2;
 	int eqnf;
@@ -711,9 +711,9 @@ stbl(void)
 void
 eqn(void)
 {
-	long c1, c2;
+	int32_t c1, c2;
 	int dflg;
-	char last;
+	int8_t last;
 
 	last = 0;
 	dflg = 1;
@@ -839,13 +839,13 @@ sw:
 	}
 }
 
-char*
-copys(char *s)
+int8_t*
+copys(int8_t *s)
 {
-	char *t, *t0;
+	int8_t *t, *t0;
 
 	if((t0 = t = malloc((strlen(s)+1))) == 0)
-		fatal("Cannot allocate memory", (char*)0);
+		fatal("Cannot allocate memory", (int8_t*)0);
 	while(*t++ = *s++)
 		;
 	return(t0);

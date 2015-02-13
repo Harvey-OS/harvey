@@ -16,9 +16,9 @@ typedef struct Error	Error;
 
 struct Error
 {
-	char	*num;
-	char	*concise;
-	char	*verbose;
+	int8_t	*num;
+	int8_t	*concise;
+	int8_t	*verbose;
 };
 
 Error errormsg[] =
@@ -59,7 +59,7 @@ int
 hfail(HConnect *c, int reason, ...)
 {
 	Hio *hout;
-	char makeup[HBufSize], err[ERRMAX];
+	int8_t makeup[HBufSize], err[ERRMAX];
 	va_list arg;
 	int n;
 

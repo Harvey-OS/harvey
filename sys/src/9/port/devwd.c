@@ -40,19 +40,19 @@ addwatchdog(Watchdog *watchdog)
 }
 
 static Chan*
-wdattach(char *spec)
+wdattach(int8_t *spec)
 {
 	return devattach('w', spec);
 }
 
 static Walkqid*
-wdwalk(Chan *c, Chan *nc, char **name, int nname)
+wdwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, wddir, nelem(wddir), devgen);
 }
 
-static long
-wdstat(Chan *c, uchar *dp, long n)
+static int32_t
+wdstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return devstat(c, dp, n, wddir, nelem(wddir), devgen);
 }
@@ -68,14 +68,14 @@ wdclose(Chan*)
 {
 }
 
-static long
-wdread(Chan* c, void* a, long n, vlong off)
+static int32_t
+wdread(Chan* c, void* a, int32_t n, int64_t off)
 {
-	long offset;
-	char s[READSTR];
+	int32_t offset;
+	int8_t s[READSTR];
 
 	offset = off;
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qdir:
 		return devdirread(c, a, n, wddir, nelem(wddir), devgen);
 
@@ -93,12 +93,12 @@ wdread(Chan* c, void* a, long n, vlong off)
 	return 0;
 }
 
-static long
-wdwrite(Chan* c, void* a, long n, vlong off)
+static int32_t
+wdwrite(Chan* c, void* a, int32_t n, int64_t off)
 {
-	char *p;
+	int8_t *p;
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qdir:
 		error(Eperm);
 

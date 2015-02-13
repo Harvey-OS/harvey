@@ -23,13 +23,13 @@ typedef struct Dict	Dict;
 struct Dict
 {
 	struct {
-		ushort	offset;		/* pointer to packed name in message */
-		char	*name;		/* pointer to unpacked name in buf */
+		uint16_t	offset;		/* pointer to packed name in message */
+		int8_t	*name;		/* pointer to unpacked name in buf */
 	} x[Ndict];
 	int	n;		/* size of dictionary */
-	uchar	*start;		/* start of packed message */
-	char	buf[16*1024];	/* buffer for unpacked names (was 4k) */
-	char	*ep;		/* first free char in buf */
+	uint8_t	*start;		/* start of packed message */
+	int8_t	buf[16*1024];	/* buffer for unpacked names (was 4k) */
+	int8_t	*ep;		/* first free char in buf */
 };
 
 #define NAME(x)		p = pname(p, ep, x, dp)
@@ -42,8 +42,8 @@ struct Dict
 #define V4ADDR(x)	p = pv4addr(p, ep, x)
 #define V6ADDR(x)	p = pv6addr(p, ep, x)
 
-static uchar*
-psym(uchar *p, uchar *ep, char *np)
+static uint8_t*
+psym(uint8_t *p, uint8_t *ep, int8_t *np)
 {
 	int n;
 
@@ -57,14 +57,14 @@ psym(uchar *p, uchar *ep, char *np)
 	return p + n;
 }
 
-static uchar*
-pstr(uchar *p, uchar *ep, char *np)
+static uint8_t*
+pstr(uint8_t *p, uint8_t *ep, int8_t *np)
 {
 	return psym(p, ep, np);
 }
 
-static uchar*
-pbytes(uchar *p, uchar *ep, uchar *np, int n)
+static uint8_t*
+pbytes(uint8_t *p, uint8_t *ep, uint8_t *np, int n)
 {
 	if(ep - p < n)
 		return ep+1;
@@ -72,8 +72,8 @@ pbytes(uchar *p, uchar *ep, uchar *np, int n)
 	return p + n;
 }
 
-static uchar*
-puchar(uchar *p, uchar *ep, int val)
+static uint8_t*
+puchar(uint8_t *p, uint8_t *ep, int val)
 {
 	if(ep - p < 1)
 		return ep+1;
@@ -81,8 +81,8 @@ puchar(uchar *p, uchar *ep, int val)
 	return p;
 }
 
-static uchar*
-pushort(uchar *p, uchar *ep, int val)
+static uint8_t*
+pushort(uint8_t *p, uint8_t *ep, int val)
 {
 	if(ep - p < 2)
 		return ep+1;
@@ -91,8 +91,8 @@ pushort(uchar *p, uchar *ep, int val)
 	return p;
 }
 
-static uchar*
-pulong(uchar *p, uchar *ep, int val)
+static uint8_t*
+pulong(uint8_t *p, uint8_t *ep, int val)
 {
 	if(ep - p < 4)
 		return ep+1;
@@ -103,10 +103,10 @@ pulong(uchar *p, uchar *ep, int val)
 	return p;
 }
 
-static uchar*
-pv4addr(uchar *p, uchar *ep, char *name)
+static uint8_t*
+pv4addr(uint8_t *p, uint8_t *ep, int8_t *name)
 {
-	uchar ip[IPaddrlen];
+	uint8_t ip[IPaddrlen];
 
 	if(ep - p < 4)
 		return ep+1;
@@ -115,8 +115,8 @@ pv4addr(uchar *p, uchar *ep, char *name)
 	return p + 4;
 }
 
-static uchar*
-pv6addr(uchar *p, uchar *ep, char *name)
+static uint8_t*
+pv6addr(uint8_t *p, uint8_t *ep, int8_t *name)
 {
 	if(ep - p < IPaddrlen)
 		return ep+1;
@@ -124,12 +124,12 @@ pv6addr(uchar *p, uchar *ep, char *name)
 	return p + IPaddrlen;
 }
 
-static uchar*
-pname(uchar *p, uchar *ep, char *np, Dict *dp)
+static uint8_t*
+pname(uint8_t *p, uint8_t *ep, int8_t *np, Dict *dp)
 {
 	int i;
-	char *cp;
-	char *last;		/* last component packed */
+	int8_t *cp;
+	int8_t *last;		/* last component packed */
 
 	if(strlen(np) >= Domlen) /* make sure we don't exceed DNS limits */
 		return ep+1;
@@ -196,10 +196,10 @@ pname(uchar *p, uchar *ep, char *np, Dict *dp)
 	return p;
 }
 
-static uchar*
-convRR2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
+static uint8_t*
+convRR2M(RR *rp, uint8_t *p, uint8_t *ep, Dict *dp)
 {
-	uchar *lp, *data;
+	uint8_t *lp, *data;
 	int len, ttl;
 	Txt *t;
 
@@ -315,8 +315,8 @@ convRR2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
 	return p;
 }
 
-static uchar*
-convQ2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
+static uint8_t*
+convQ2M(RR *rp, uint8_t *p, uint8_t *ep, Dict *dp)
 {
 	NAME(rp->owner->name);
 	USHORT(rp->type);
@@ -324,10 +324,10 @@ convQ2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
 	return p;
 }
 
-static uchar*
-rrloop(RR *rp, int *countp, uchar *p, uchar *ep, Dict *dp, int quest)
+static uint8_t*
+rrloop(RR *rp, int *countp, uint8_t *p, uint8_t *ep, Dict *dp, int quest)
 {
-	uchar *np;
+	uint8_t *np;
 
 	*countp = 0;
 	for(; rp && p < ep; rp = rp->next){
@@ -347,10 +347,10 @@ rrloop(RR *rp, int *countp, uchar *p, uchar *ep, Dict *dp, int quest)
  *  convert into a message
  */
 int
-convDNS2M(DNSmsg *m, uchar *buf, int len)
+convDNS2M(DNSmsg *m, uint8_t *buf, int len)
 {
-	ulong trunc = 0;
-	uchar *p, *ep, *np;
+	uint32_t trunc = 0;
+	uint8_t *p, *ep, *np;
 	Dict d;
 
 	d.n = 0;

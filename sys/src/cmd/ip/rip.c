@@ -42,18 +42,18 @@ enum
 typedef struct Rip	Rip;
 struct Rip
 {
-	uchar	family[2];
-	uchar	port[2];
-	uchar	addr[Pasize];
-	uchar	pad[8];
-	uchar	metric[4];
+	uint8_t	family[2];
+	uint8_t	port[2];
+	uint8_t	addr[Pasize];
+	uint8_t	pad[8];
+	uint8_t	metric[4];
 };
 typedef struct Ripmsg	Ripmsg;
 struct Ripmsg
 {
-	uchar	type;
-	uchar	vers;
-	uchar	pad[2];
+	uint8_t	type;
+	uint8_t	vers;
+	uint8_t	pad[2];
 	Rip	rip[1];		/* the rest of the packet consists of routes */
 };
 
@@ -77,12 +77,12 @@ struct Route
 {
 	Route	*next;
 
-	uchar	dest[Pasize];
-	uchar	mask[Pasize];
-	uchar	gate[Pasize];
+	uint8_t	dest[Pasize];
+	uint8_t	mask[Pasize];
+	uint8_t	gate[Pasize];
 	int	metric;
 	int	inuse;
-	long	time;
+	int32_t	time;
 };
 struct {
 	Route	route[Nroute];
@@ -95,11 +95,11 @@ typedef struct Ifc	Ifc;
 struct Ifc
 {
 	int	bcast;
-	uchar	addr[Pasize];	/* my address */
-	uchar	mask[Pasize];	/* subnet mask */
-	uchar	net[Pasize];	/* subnet */
-	uchar	*cmask;		/* class mask */
-	uchar	cnet[Pasize];	/* class net */
+	uint8_t	addr[Pasize];	/* my address */
+	uint8_t	mask[Pasize];	/* subnet mask */
+	uint8_t	net[Pasize];	/* subnet */
+	uint8_t	*cmask;		/* class mask */
+	uint8_t	cnet[Pasize];	/* class net */
 };
 struct {
 	Ifc	ifc[Nifc];
@@ -113,16 +113,16 @@ typedef struct Bnet Bnet;
 struct Bnet
 {
 	Bnet	*next;
-	uchar	addr[Pasize];
+	uint8_t	addr[Pasize];
 };
 Bnet	*bnets;
 
 int	ripfd;
-long	now;
+int32_t	now;
 int	debug;
 int	readonly;
-char	routefile[256];
-char	netdir[256];
+int8_t	routefile[256];
+int8_t	netdir[256];
 
 int	openport(void);
 void	readroutes(void);
@@ -130,14 +130,14 @@ void	readifcs(void);
 void	considerroute(Route*);
 void	installroute(Route*);
 void	removeroute(Route*);
-uchar	*getmask(uchar*);
+uint8_t	*getmask(uint8_t*);
 void	broadcast(void);
 void	timeoutroutes(void);
 
 void
-fatal(int syserr, char *fmt, ...)
+fatal(int syserr, int8_t *fmt, ...)
 {
-	char buf[ERRMAX], sysbuf[ERRMAX];
+	int8_t buf[ERRMAX], sysbuf[ERRMAX];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -152,21 +152,21 @@ fatal(int syserr, char *fmt, ...)
 	exits(buf);
 }
 
-ulong
-v4parseipmask(uchar *ip, char *p)
+uint32_t
+v4parseipmask(uint8_t *ip, int8_t *p)
 {
-	ulong x;
-	uchar v6ip[IPaddrlen];
+	uint32_t x;
+	uint8_t v6ip[IPaddrlen];
 
 	x = parseipmask(v6ip, p);
 	memmove(ip, v6ip+IPv4off, 4);
 	return x;
 }
 
-uchar*
-v4defmask(uchar *ip)
+uint8_t*
+v4defmask(uint8_t *ip)
 {
-	uchar v6ip[IPaddrlen];
+	uint8_t v6ip[IPaddrlen];
 
 	v4tov6(v6ip, ip);
 	ip = defmask(v6ip);
@@ -174,7 +174,7 @@ v4defmask(uchar *ip)
 }
 
 void
-v4maskip(uchar *from, uchar *mask, uchar *to)
+v4maskip(uint8_t *from, uint8_t *mask, uint8_t *to)
 {
 	int i;
 
@@ -183,7 +183,7 @@ v4maskip(uchar *from, uchar *mask, uchar *to)
 }
 
 void
-v6tov4mask(uchar *v4, uchar *v6)
+v6tov4mask(uint8_t *v4, uint8_t *v6)
 {
 	memmove(v4, v6+IPv4off, 4);
 }
@@ -191,7 +191,7 @@ v6tov4mask(uchar *v4, uchar *v6)
 #define equivip(a, b) (memcmp((a), (b), Pasize) == 0)
 
 void
-ding(void *u, char *msg)
+ding(void *u, int8_t *msg)
 {
 	USED(u);
 
@@ -332,7 +332,7 @@ int
 openport(void)
 {
 	int ripctl, rip;
-	char data[128], devdir[40];
+	int8_t data[128], devdir[40];
 
 	snprint(data, sizeof(data), "%s/udp!*!rip", netdir);
 	ripctl = announce(data, devdir);
@@ -399,9 +399,9 @@ void
 readroutes(void)
 {
 	int n;
-	char *p;
+	int8_t *p;
 	Biobuf *b;
-	char *f[6];
+	int8_t *f[6];
 	Route route;
 
 	b = Bopen(routefile, OREAD);
@@ -428,11 +428,11 @@ readroutes(void)
 /*
  *  route's hashed by net, not subnet
  */
-ulong
-rhash(uchar *d)
+uint32_t
+rhash(uint8_t *d)
 {
-	ulong h;
-	uchar net[Pasize];
+	uint32_t h;
+	uint8_t net[Pasize];
 
 	v4maskip(d, v4defmask(d), net);
 	h = net[0] + net[1] + net[2];
@@ -446,7 +446,7 @@ rhash(uchar *d)
 void
 considerroute(Route *r)
 {
-	ulong h;
+	uint32_t h;
 	Route *hp;
 
 	if(debug)
@@ -520,9 +520,9 @@ void
 installroute(Route *r)
 {
 	int fd;
-	ulong h;
+	uint32_t h;
 	Route *hp;
-	uchar net[Pasize];
+	uint8_t net[Pasize];
 
 	/*
 	 *  don't install routes whose gateway is 00000000
@@ -573,9 +573,9 @@ installroute(Route *r)
  *  return true of dest is on net
  */
 int
-onnet(uchar *dest, uchar *net, uchar *netmask)
+onnet(uint8_t *dest, uint8_t *net, uint8_t *netmask)
 {
-	uchar dnet[Pasize];
+	uint8_t dnet[Pasize];
 
 	v4maskip(dest, netmask, dnet);
 	return equivip(dnet, net);
@@ -585,13 +585,13 @@ onnet(uchar *dest, uchar *net, uchar *netmask)
  *  figure out what mask to use, if we have a direct connected network
  *  with the same class net use its subnet mask.
  */
-uchar*
-getmask(uchar *dest)
+uint8_t*
+getmask(uint8_t *dest)
 {
 	int i;
 	Ifc *ip;
-	ulong mask, nmask;
-	uchar *m;
+	uint32_t mask, nmask;
+	uint8_t *m;
 
 	m = 0;
 	mask = 0xffffffff;
@@ -618,7 +618,7 @@ void
 sendto(Ifc *ip)
 {
 	int h, n;
-	uchar raddr[Pasize], mbuf[Udphdrsize+512];
+	uint8_t raddr[Pasize], mbuf[Udphdrsize+512];
 	Ripmsg *m;
 	Route *r;
 	Udphdr *u;
@@ -698,7 +698,7 @@ void
 timeoutroutes(void)
 {
 	int h;
-	long now;
+	int32_t now;
 	Route *r, **l;
 
 	now = time(0);

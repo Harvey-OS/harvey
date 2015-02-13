@@ -56,7 +56,7 @@ gs_stack_modal_fonts(gs_text_enum_t *pte)
 	pte->fstack.items[fdepth].font = cfont;
 	pte->fstack.items[fdepth].index = 0;
 	if_debug2('j', "[j]stacking depth=%d font=0x%lx\n",
-		  fdepth, (ulong) cfont);
+		  fdepth, (uint32_t) cfont);
     }
     pte->fstack.depth = fdepth;
     return 0;
@@ -69,7 +69,7 @@ gs_type0_init_fstack(gs_text_enum_t *pte, gs_font * pfont)
     if (!(pte->text.operation & (TEXT_FROM_STRING | TEXT_FROM_BYTES)))
 	return_error(gs_error_invalidfont);
     if_debug1('j', "[j]stacking depth=0 font=0x%lx\n",
-	      (ulong) pfont);
+	      (uint32_t) pfont);
     pte->fstack.depth = 0;
     pte->fstack.items[0].font = pfont;
     pte->fstack.items[0].index = 0;
@@ -155,7 +155,7 @@ gs_type0_next_char_glyph(gs_text_enum_t *pte, gs_char *pchr, gs_glyph *pglyph)
 		    if_debug1('j', "[j]from root: escape %d\n", fidx);
 		  rdown:select_descendant(pfont, pdata, fidx, idepth);
 		    if_debug2('j', "[j]... new depth=%d, new font=0x%lx\n",
-			      idepth, (ulong) pfont);
+			      idepth, (uint32_t) pfont);
 		    continue;
 		case fmap_double_escape:
 		    if (chr != root_esc_char(pte))
@@ -230,7 +230,7 @@ gs_type0_next_char_glyph(gs_text_enum_t *pte, gs_char *pchr, gs_glyph *pglyph)
 		do {
 		    select_descendant(pfont, pdata, fidx, fdepth);
 		    if_debug3('j', "[j]down from modal: new depth=%d, index=%d, new font=0x%lx\n",
-			      fdepth, fidx, (ulong) pfont);
+			      fdepth, fidx, (uint32_t) pfont);
 		    if (pfont->FontType != ft_composite)
 			break;
 		    pdata = &pfont0->data;
@@ -330,7 +330,7 @@ gs_type0_next_char_glyph(gs_text_enum_t *pte, gs_char *pchr, gs_glyph *pglyph)
 			    need_left(1);
 #define w2(p) (((ushort)*p << 8) + p[1])
 			    {
-				ushort tchr = ((ushort) chr << 8) + *p,
+				uint16_t tchr = ((uint16_t) chr << 8) + *p,
 				       schr;
 
 				subs_loop(w2(psv), 2);
@@ -339,7 +339,7 @@ gs_type0_next_char_glyph(gs_text_enum_t *pte, gs_char *pchr, gs_glyph *pglyph)
 			    need_left(2);
 #define w3(p) (((ulong)*p << 16) + ((uint)p[1] << 8) + p[2])
 			    {
-				ulong tchr = ((ulong) chr << 16) + w2(p),
+				uint32_t tchr = ((uint32_t) chr << 16) + w2(p),
 				      schr;
 
 				subs_loop(w3(psv), 3);
@@ -348,7 +348,7 @@ gs_type0_next_char_glyph(gs_text_enum_t *pte, gs_char *pchr, gs_glyph *pglyph)
 			    need_left(3);
 #define w4(p) (((ulong)*p << 24) + ((ulong)p[1] << 16) + ((uint)p[2] << 8) + p[3])
 			    {
-				ulong tchr = ((ulong) chr << 24) + w3(p),
+				uint32_t tchr = ((uint32_t) chr << 24) + w3(p),
 				      schr;
 
 				subs_loop(w4(psv), 4);
@@ -409,7 +409,7 @@ gs_type0_next_char_glyph(gs_text_enum_t *pte, gs_char *pchr, gs_glyph *pglyph)
 		    pte->cmap_code = code; /* hack for widthshow */
 		    p = str + mindex;
 		    if_debug3('J', "[J]CMap returns %d, chr=0x%lx, glyph=0x%lx\n",
-			      code, (ulong) chr, (ulong) glyph);
+			      code, (uint32_t) chr, (uint32_t) glyph);
 		    if (code == 0) {
 			if (glyph == gs_no_glyph) {
 			    glyph = gs_min_cid_glyph;
@@ -425,7 +425,7 @@ gs_type0_next_char_glyph(gs_text_enum_t *pte, gs_char *pchr, gs_glyph *pglyph)
 
 	select_descendant(pfont, pdata, fidx, fdepth);
 	if_debug2('J', "... new depth=%d, new font=0x%lx\n",
-		  fdepth, (ulong) pfont);
+		  fdepth, (uint32_t) pfont);
 	/* FontBBox may be used as metrics2 with WMode=1 :
 	*/
 	if (pfont->FontType == ft_CID_encrypted ||
@@ -445,7 +445,7 @@ done:
 	pte->index = p - str;
     pte->fstack.depth = fdepth;
     if_debug4('J', "[J]depth=%d font=0x%lx index=%d changed=%d\n",
-	      fdepth, (ulong) pte->fstack.items[fdepth].font,
+	      fdepth, (uint32_t) pte->fstack.items[fdepth].font,
 	      pte->fstack.items[fdepth].index, changed);
     return changed;
 }

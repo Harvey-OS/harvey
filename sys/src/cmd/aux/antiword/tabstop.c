@@ -20,7 +20,7 @@
 
 #define HALF_INCH	36000L	/* In millipoints */
 
-static long	lDefaultTabWidth = HALF_INCH;
+static int32_t	lDefaultTabWidth = HALF_INCH;
 
 
 /*

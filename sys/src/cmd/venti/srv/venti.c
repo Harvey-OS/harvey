@@ -34,13 +34,13 @@ VtSrv *ventisrv;
 
 static void	ventiserver(void*);
 
-static ulong
+static uint32_t
 freemem(void)
 {
 	int nf, pgsize = 0;
-	uvlong size, userpgs = 0, userused = 0;
-	char *ln, *sl;
-	char *fields[2];
+	uint64_t size, userpgs = 0, userused = 0;
+	int8_t *ln, *sl;
+	int8_t *fields[2];
 	Biobuf *bp;
 
 	size = 64*1024*1024;
@@ -87,7 +87,7 @@ static Allocs
 allocbypcnt(u32int mempcnt, u32int stfree)
 {
 	u32int avail;
-	vlong blmsize;
+	int64_t blmsize;
 	Allocs all;
 	static u32int free;
 
@@ -101,7 +101,7 @@ allocbypcnt(u32int mempcnt, u32int stfree)
 	blmsize = stfree - free;
 	if (blmsize <= 0)
 		blmsize = 0;
-	avail = ((vlong)stfree * mempcnt) / 100;
+	avail = ((int64_t)stfree * mempcnt) / 100;
 	if (blmsize >= avail || (avail -= blmsize) <= (1 + 2 + 6) * 1024 * 1024)
 		fprint(2, "%s: bloom filter bigger than mem pcnt; "
 			"resorting to minimum values (9MB total)\n", argv0);
@@ -355,7 +355,7 @@ threadmain(int argc, char *argv[])
 }
 
 static void
-vtrerror(VtReq *r, char *error)
+vtrerror(VtReq *r, int8_t *error)
 {
 	r->rx.msgtype = VtRerror;
 	r->rx.error = estrdup(error);
@@ -366,7 +366,7 @@ ventiserver(void *v)
 {
 	Packet *p;
 	VtReq *r;
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 	uint ms;
 	int cached, ok;
 

@@ -21,7 +21,7 @@ usage(void)
 }
 
 void
-ding(void*, char *s)
+ding(void*, int8_t *s)
 {
 	if(strstr(s, "alarm")){
 		alarmed = 1;

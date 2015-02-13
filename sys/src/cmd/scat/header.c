@@ -16,8 +16,8 @@
 
 struct
 {
-	char	name[9];
-	char	offset;
+	int8_t	name[9];
+	int8_t	offset;
 } Hproto[] =
 {
 	"ppo1",		Pppo1,
@@ -83,10 +83,10 @@ struct
 };
 
 Header*
-getheader(char *rgn)
+getheader(int8_t *rgn)
 {
-	char rec[81], name[81], value[81];
-	char *p;
+	int8_t rec[81], name[81], value[81];
+	int8_t *p;
 	Biobuf *bin;
 	Header hd, *h;
 	int i, j, decsn, dss;
@@ -177,7 +177,7 @@ getheader(char *rgn)
 void
 getplates(void)
 {
-	char rec[81], *q;
+	int8_t rec[81], *q;
 	Plate *p;
 	Biobuf *bin;
 	int c, i, dss;
@@ -247,10 +247,10 @@ getplates(void)
 		Bprint(&bout, "%d plates\n", nplate);
 }
 
-char*
+int8_t*
 dssmount(int dskno)
 {
-	char dssname[100];
+	int8_t dssname[100];
 	int s1, s2, count;
 	static int sdiskno = -1;
 

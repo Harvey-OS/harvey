@@ -33,12 +33,12 @@ clrbio(Acctbio *a)
 }
 
 void
-rdbio(char *file, char *user, Acctbio *a)
+rdbio(int8_t *file, int8_t *user, Acctbio *a)
 {
 	int i,n;
 	Biobuf *b;
-	char *p;
-	char *field[20];
+	int8_t *p;
+	int8_t *field[20];
 
 	memset(a, 0, sizeof(Acctbio));
 	b = Bopen(file, OREAD);

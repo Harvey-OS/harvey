@@ -32,10 +32,10 @@ struct State
 	Key *key;
 	Ticket t;
 	Ticketreq tr;
-	char cchal[CHALLEN];
-	char tbuf[TICKETLEN+AUTHENTLEN];
-	char authkey[DESKEYLEN];
-	uchar *secret;
+	int8_t cchal[CHALLEN];
+	int8_t tbuf[TICKETLEN+AUTHENTLEN];
+	int8_t authkey[DESKEYLEN];
+	uint8_t *secret;
 	int speakfor;
 };
 
@@ -69,7 +69,7 @@ static char *phasenames[Maxphase] =
 [SHaveAuth]		"SHaveAuth",
 };
 
-static int gettickets(State*, char*, char*);
+static int gettickets(State*, int8_t*, int8_t*);
 
 static int
 p9skinit(Proto *p, Fsstate *fss)
@@ -179,7 +179,7 @@ p9skread(Fsstate *fss, void *a, uint *n)
 		fss->ai.cuid = s->t.cuid;
 		fss->ai.suid = s->t.suid;
 		s->secret = emalloc(8);
-		des56to64((uchar*)s->t.key, s->secret);
+		des56to64((uint8_t*)s->t.key, s->secret);
 		fss->ai.secret = s->secret;
 		fss->ai.nsecret = 8;
 		fss->haveai = 1;
@@ -192,7 +192,7 @@ static int
 p9skwrite(Fsstate *fss, void *a, uint n)
 {
 	int m, ret, sret;
-	char tbuf[2*TICKETLEN], trbuf[TICKREQLEN], *user;
+	int8_t tbuf[2*TICKETLEN], trbuf[TICKREQLEN], *user;
 	Attr *attr;
 	Authenticator auth;
 	State *s;
@@ -280,7 +280,7 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 			return failure(fss, nil);
 		}
 
-		convM2T(tbuf, &s->t, (char*)s->key->priv);
+		convM2T(tbuf, &s->t, (int8_t*)s->key->priv);
 		if(s->t.num != AuthTc){
 			if(s->key->successes == 0 && !s->speakfor)
 				disablekey(s->key);
@@ -309,11 +309,11 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 		m = TICKETLEN+AUTHENTLEN;
 		if(n < m)
 			return toosmall(fss, m);
-		convM2T(a, &s->t, (char*)s->key->priv);
+		convM2T(a, &s->t, (int8_t*)s->key->priv);
 		if(s->t.num != AuthTs
 		|| memcmp(s->t.chal, s->tr.chal, CHALLEN) != 0)
 			return failure(fss, Easproto);
-		convM2A((char*)a+TICKETLEN, &auth, s->t.key);
+		convM2A((int8_t*)a+TICKETLEN, &auth, s->t.key);
 		if(auth.num != AuthAc
 		|| memcmp(auth.chal, s->tr.chal, CHALLEN) != 0
 		|| auth.id != 0)
@@ -337,7 +337,7 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 		fss->ai.cuid = s->t.cuid;
 		fss->ai.suid = s->t.suid;
 		s->secret = emalloc(8);
-		des56to64((uchar*)s->t.key, s->secret);
+		des56to64((uint8_t*)s->t.key, s->secret);
 		fss->ai.secret = s->secret;
 		fss->ai.nsecret = 8;
 		fss->haveai = 1;
@@ -364,7 +364,7 @@ p9skclose(Fsstate *fss)
 }
 
 static int
-unhex(char c)
+unhex(int8_t c)
 {
 	if('0' <= c && c <= '9')
 		return c-'0';
@@ -377,7 +377,7 @@ unhex(char c)
 }
 
 static int
-hexparse(char *hex, uchar *dat, int ndat)
+hexparse(int8_t *hex, uint8_t *dat, int ndat)
 {
 	int i;
 
@@ -393,7 +393,7 @@ hexparse(char *hex, uchar *dat, int ndat)
 static int
 p9skaddkey(Key *k, int before)
 {
-	char *s;
+	int8_t *s;
 
 	k->priv = emalloc(DESKEYLEN);
 	if(s = _strfindattr(k->privattr, "!hex")){
@@ -404,7 +404,7 @@ p9skaddkey(Key *k, int before)
 			return -1;
 		}
 	}else if(s = _strfindattr(k->privattr, "!password")){
-		passtokey((char*)k->priv, s);
+		passtokey((int8_t*)k->priv, s);
 	}else{
 		werrstr("no key data");
 		free(k->priv);
@@ -421,10 +421,10 @@ p9skclosekey(Key *k)
 }
 
 static int
-getastickets(State *s, char *trbuf, char *tbuf)
+getastickets(State *s, int8_t *trbuf, int8_t *tbuf)
 {
 	int asfd, rv;
-	char *dom;
+	int8_t *dom;
 
 	if((dom = _strfindattr(s->key->attr, "dom")) == nil){
 		werrstr("auth key has no domain");
@@ -439,7 +439,7 @@ getastickets(State *s, char *trbuf, char *tbuf)
 }
 
 static int
-mkserverticket(State *s, char *tbuf)
+mkserverticket(State *s, int8_t *tbuf)
 {
 	Ticketreq *tr = &s->tr;
 	Ticket t;
@@ -463,7 +463,7 @@ mkserverticket(State *s, char *tbuf)
 }
 
 static int
-gettickets(State *s, char *trbuf, char *tbuf)
+gettickets(State *s, int8_t *trbuf, int8_t *tbuf)
 {
 /*
 	if(mktickets(s, trbuf, tbuf) >= 0)

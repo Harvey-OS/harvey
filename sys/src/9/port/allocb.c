@@ -29,7 +29,7 @@ static Block*
 _allocb(int size)
 {
 	Block *b;
-	uchar *p;
+	uint8_t *p;
 	int n;
 
 	n = BLOCKALIGN + ROUNDUP(size+Hdrspc, BLOCKALIGN) + sizeof(Block);
@@ -44,7 +44,7 @@ _allocb(int size)
 	b->flag = 0;
 
 	/* align base and bounds of data */
-	b->lim = (uchar*)(PTR2UINT(b) & ~(BLOCKALIGN-1));
+	b->lim = (uint8_t*)(PTR2UINT(b) & ~(BLOCKALIGN-1));
 
 	/* align start of writable data, leaving space below for added headers */
 	b->rp = b->lim - ROUNDUP(size, BLOCKALIGN);
@@ -117,7 +117,7 @@ void
 freeb(Block *b)
 {
 	void *dead = (void*)Bdead;
-	uchar *p;
+	uint8_t *p;
 
 	if(b == nil)
 		return;
@@ -149,7 +149,7 @@ freeb(Block *b)
 }
 
 void
-checkb(Block *b, char *msg)
+checkb(Block *b, int8_t *msg)
 {
 	void *dead = (void*)Bdead;
 

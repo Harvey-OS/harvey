@@ -11,10 +11,10 @@
 #include <libc.h>
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-	long n;
-	char *p, *q;
+	int32_t n;
+	int8_t *p, *q;
 
 	if(argc>1){
 		for(n = strtol(argv[1], &p, 0); n > 0; n--)

@@ -17,12 +17,12 @@
 #include "io.h"
 #include "fns.h"
 #include "getflags.h"
-char *Signame[] = {
+int8_t *Signame[] = {
 	"sigexit",	"sighup",	"sigint",	"sigquit",
 	"sigalrm",	"sigkill",	"sigfpe",	"sigterm",
 	0
 };
-char *syssigname[] = {
+int8_t *syssigname[] = {
 	"exit",		/* can't happen */
 	"hangup",
 	"interrupt",
@@ -33,8 +33,8 @@ char *syssigname[] = {
 	"term",
 	0
 };
-char *Rcmain = "/rc/lib/rcmain";
-char *Fdprefix = "/fd/";
+int8_t *Rcmain = "/rc/lib/rcmain";
+int8_t *Fdprefix = "/fd/";
 
 void execfinit(void);
 void execbind(void);
@@ -58,10 +58,10 @@ Vinit(void)
 {
 	int dir, f, len;
 	word *val;
-	char *buf, *s;
+	int8_t *buf, *s;
 	Dir *ent;
 	int i, nent;
-	char envname[256];
+	int8_t envname[256];
 	dir = open("/env", OREAD);
 	if(dir<0){
 		pfmt(err, "rc: can't open /env: %r\n");
@@ -78,7 +78,7 @@ Vinit(void)
 				snprint(envname, sizeof envname, "/env/%s", ent[i].name);
 				if((f = open(envname, 0))>=0){
 					buf = emalloc((int)len+1);
-					read(f, buf, (long)len);
+					read(f, buf, (int32_t)len);
 					val = 0;
 					/* Charitably add a 0 at the end if need be */
 					if(buf[len-1])
@@ -111,7 +111,7 @@ Xrdfn(void)
 	static Dir *ent, *allocent;
 	static int nent;
 	Dir *e;
-	char envname[256];
+	int8_t envname[256];
 
 	for(;;){
 		if(nent == 0){
@@ -164,7 +164,7 @@ Waitfor(int pid, int persist)
 {
 	thread *p;
 	Waitmsg *w;
-	char errbuf[ERRMAX];
+	int8_t errbuf[ERRMAX];
 
 	while((w = wait()) != nil){
 		if(w->pid==pid){
@@ -185,11 +185,11 @@ Waitfor(int pid, int persist)
 	return 0;
 }
 
-char*
+int8_t*
 *mkargv(word *a)
 {
-	char **argv = (char **)emalloc((count(a)+2)*sizeof(char *));
-	char **argp = argv+1;	/* leave one at front for runcoms */
+	int8_t **argv = (int8_t **)emalloc((count(a)+2)*sizeof(int8_t *));
+	int8_t **argp = argv+1;	/* leave one at front for runcoms */
 	for(;a;a = a->next) *argp++=a->word;
 	*argp = 0;
 	return argv;
@@ -198,7 +198,7 @@ char*
 void
 addenv(var *v)
 {
-	char envname[256];
+	int8_t envname[256];
 	word *w;
 	int f;
 	io *fd;
@@ -250,7 +250,7 @@ Updenv(void)
 }
 
 int
-ForkExecute(char *file, char **argv, int sin, int sout, int serr)
+ForkExecute(int8_t *file, int8_t **argv, int sin, int sout, int serr)
 {
 	int pid;
 
@@ -289,8 +289,8 @@ fprint(2, "exec: %r\n");
 void
 Execute(word *args, word *path)
 {
-	char **argv = mkargv(args);
-	char file[1024];
+	int8_t **argv = mkargv(args);
+	int8_t file[1024];
 	int nc;
 	Updenv();
 	for(;path;path = path->next){
@@ -310,12 +310,12 @@ Execute(word *args, word *path)
 	}
 	rerrstr(file, sizeof file);
 	pfmt(err, "%s: %s\n", argv[1], file);
-	efree((char *)argv);
+	efree((int8_t *)argv);
 }
 #define	NDIR	256		/* shoud be a better way */
 
 int
-Globsize(char *p)
+Globsize(int8_t *p)
 {
 	int isglob = 0, globlen = NDIR+1;
 	for(;*p;p++){
@@ -339,7 +339,7 @@ struct{
 }dir[NFD];
 
 int
-Opendir(char *name)
+Opendir(int8_t *name)
 {
 	Dir *db;
 	int f;
@@ -421,7 +421,7 @@ Closedir(int f)
 }
 int interrupted = 0;
 void
-notifyf(void*, char *s)
+notifyf(void*, int8_t *s)
 {
 	int i;
 	for(i = 0;syssigname[i];i++) if(strncmp(s, syssigname[i], strlen(syssigname[i]))==0){
@@ -450,31 +450,31 @@ Trapinit(void)
 }
 
 void
-Unlink(char *name)
+Unlink(int8_t *name)
 {
 	remove(name);
 }
 
-long
-Write(int fd, void *buf, long cnt)
+int32_t
+Write(int fd, void *buf, int32_t cnt)
 {
-	return write(fd, buf, (long)cnt);
+	return write(fd, buf, (int32_t)cnt);
 }
 
-long
-Read(int fd, void *buf, long cnt)
+int32_t
+Read(int fd, void *buf, int32_t cnt)
 {
 	return read(fd, buf, cnt);
 }
 
-long
-Seek(int fd, long cnt, long whence)
+int32_t
+Seek(int fd, int32_t cnt, int32_t whence)
 {
 	return seek(fd, cnt, whence);
 }
 
 int
-Executable(char *file)
+Executable(int8_t *file)
 {
 	Dir *statbuf;
 	int ret;
@@ -488,7 +488,7 @@ Executable(char *file)
 }
 
 int
-Creat(char *file)
+Creat(int8_t *file)
 {
 	return create(file, 1, 0666L);
 }
@@ -506,7 +506,7 @@ Dup1(int)
 }
 
 void
-Exit(char *stat)
+Exit(int8_t *stat)
 {
 	Updenv();
 	setstatus(stat);
@@ -558,13 +558,13 @@ Abort(void)
 }
 
 void
-Memcpy(void *a, void *b, long n)
+Memcpy(void *a, void *b, int32_t n)
 {
 	memmove(a, b, n);
 }
 
 void*
-Malloc(ulong n)
+Malloc(uint32_t n)
 {
 	return malloc(n);
 }

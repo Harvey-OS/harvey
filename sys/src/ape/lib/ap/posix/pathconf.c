@@ -12,8 +12,8 @@
 #include	<errno.h>
 #include	<sys/limits.h>
 
-long
-pathconf(const char *, int name)
+int32_t
+pathconf(const int8_t *, int name)
 {
 	switch(name)
 	{
@@ -52,7 +52,7 @@ pathconf(const char *, int name)
 	return -1;
 }
 
-long
+int32_t
 fpathconf(int, int name)
 {
 	return pathconf(0, name);

@@ -65,43 +65,43 @@ enum
 
 struct Ticketreq
 {
-	char	type;
-	char	authid[NAMELEN];	/* server's encryption id */
-	char	authdom[DOMLEN];	/* server's authentication domain */
-	char	chal[CHALLEN];		/* challenge from server */
-	char	hostid[NAMELEN];	/* host's encryption id */
-	char	uid[NAMELEN];		/* uid of requesting user on host */
+	int8_t	type;
+	int8_t	authid[NAMELEN];	/* server's encryption id */
+	int8_t	authdom[DOMLEN];	/* server's authentication domain */
+	int8_t	chal[CHALLEN];		/* challenge from server */
+	int8_t	hostid[NAMELEN];	/* host's encryption id */
+	int8_t	uid[NAMELEN];		/* uid of requesting user on host */
 };
 #define	TICKREQLEN	(3*NAMELEN+CHALLEN+DOMLEN+1)
 
 struct Ticket
 {
-	char	num;			/* replay protection */
-	char	chal[CHALLEN];		/* server challenge */
-	char	cuid[NAMELEN];		/* uid on client */
-	char	suid[NAMELEN];		/* uid on server */
-	char	key[DESKEYLEN];		/* nonce DES key */
+	int8_t	num;			/* replay protection */
+	int8_t	chal[CHALLEN];		/* server challenge */
+	int8_t	cuid[NAMELEN];		/* uid on client */
+	int8_t	suid[NAMELEN];		/* uid on server */
+	int8_t	key[DESKEYLEN];		/* nonce DES key */
 };
 #define	TICKETLEN	(CHALLEN+2*NAMELEN+DESKEYLEN+1)
 
 struct Authenticator
 {
-	char	num;			/* replay protection */
-	char	chal[CHALLEN];
-	ulong	id;			/* authenticator id, ++'d with each auth */
+	int8_t	num;			/* replay protection */
+	int8_t	chal[CHALLEN];
+	uint32_t	id;			/* authenticator id, ++'d with each auth */
 };
 #define	AUTHENTLEN	(CHALLEN+4+1)
 
 extern int chatty9p;
 
-static	int	convT2M(Ticket*, char*, char*);
-static	void	convM2T(char*, Ticket*, char*);
-static	void	convM2Tnoenc(char*, Ticket*);
-static	int	convA2M(Authenticator*, char*, char*);
-static	void	convM2A(char*, Authenticator*, char*);
-static	int	convTR2M(Ticketreq*, char*);
-static	void	convM2TR(char*, Ticketreq*);
-static	int	passtokey(char*, char*);
+static	int	convT2M(Ticket*, int8_t*, int8_t*);
+static	void	convM2T(int8_t*, Ticket*, int8_t*);
+static	void	convM2Tnoenc(int8_t*, Ticket*);
+static	int	convA2M(Authenticator*, int8_t*, int8_t*);
+static	void	convM2A(int8_t*, Authenticator*, int8_t*);
+static	int	convTR2M(Ticketreq*, int8_t*);
+static	void	convM2TR(int8_t*, Ticketreq*);
+static	int	passtokey(int8_t*, int8_t*);
 
 /*
  * destructively encrypt the buffer, which
@@ -110,7 +110,7 @@ static	int	passtokey(char*, char*);
 static int
 encrypt9p(void *key, void *vbuf, int n)
 {
-	char ekey[128], *buf;
+	int8_t ekey[128], *buf;
 	int i, r;
 
 	if(n < 8)
@@ -136,7 +136,7 @@ encrypt9p(void *key, void *vbuf, int n)
 static int
 decrypt9p(void *key, void *vbuf, int n)
 {
-	char ekey[128], *buf;
+	int8_t ekey[128], *buf;
 	int i, r;
 
 	if(n < 8)
@@ -163,51 +163,51 @@ decrypt9p(void *key, void *vbuf, int n)
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 static int
-convTR2M(Ticketreq *f, char *ap)
+convTR2M(Ticketreq *f, int8_t *ap)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(type);
 	STRING(authid, NAMELEN);
 	STRING(authdom, DOMLEN);
 	STRING(chal, CHALLEN);
 	STRING(hostid, NAMELEN);
 	STRING(uid, NAMELEN);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	return n;
 }
 
 static int
-convT2M(Ticket *f, char *ap, char *key)
+convT2M(Ticket *f, int8_t *ap, int8_t *key)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	STRING(cuid, NAMELEN);
 	STRING(suid, NAMELEN);
 	STRING(key, DESKEYLEN);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	if(key)
 		encrypt9p(key, ap, n);
 	return n;
 }
 
 int
-convA2M(Authenticator *f, char *ap, char *key)
+convA2M(Authenticator *f, int8_t *ap, int8_t *key)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	LONG(id);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	if(key)
 		encrypt9p(key, ap, n);
 	return n;
@@ -226,13 +226,13 @@ convA2M(Authenticator *f, char *ap, char *key)
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 void
-convM2A(char *ap, Authenticator *f, char *key)
+convM2A(int8_t *ap, Authenticator *f, int8_t *key)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(key)
 		decrypt9p(key, ap, AUTHENTLEN);
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	LONG(id);
@@ -240,13 +240,13 @@ convM2A(char *ap, Authenticator *f, char *key)
 }
 
 void
-convM2T(char *ap, Ticket *f, char *key)
+convM2T(int8_t *ap, Ticket *f, int8_t *key)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(key)
 		decrypt9p(key, ap, TICKETLEN);
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	STRING(cuid, NAMELEN);
@@ -264,9 +264,9 @@ convM2T(char *ap, Ticket *f, char *key)
 #undef STRING
 
 static int
-passtokey(char *key, char *p)
+passtokey(int8_t *key, int8_t *p)
 {
-	uchar buf[NAMELEN], *t;
+	uint8_t buf[NAMELEN], *t;
 	int i, n;
 
 	n = strlen(p);
@@ -274,7 +274,7 @@ passtokey(char *key, char *p)
 		n = NAMELEN-1;
 	memset(buf, ' ', 8);
 	t = buf;
-	strncpy((char*)t, p, n);
+	strncpy((int8_t*)t, p, n);
 	t[n] = 0;
 	memset(key, 0, DESKEYLEN);
 	for(;;){
@@ -293,18 +293,18 @@ passtokey(char *key, char *p)
 	return 1;	/* not reached */
 }
 
-static char authkey[DESKEYLEN];
-static char *authid;
-static char *authdom;
-static char *haveprotosmsg;
-static char *needprotomsg;
+static int8_t authkey[DESKEYLEN];
+static int8_t *authid;
+static int8_t *authdom;
+static int8_t *haveprotosmsg;
+static int8_t *needprotomsg;
 
 static void
 p9anyinit(void)
 {
 	int n, fd;
-	char abuf[200];
-	char *af, *f[4];
+	int8_t abuf[200];
+	int8_t *af, *f[4];
 
 	af = autharg;
 	if(af == nil)
@@ -333,19 +333,19 @@ p9anyinit(void)
 
 typedef struct AuthSession {
 	int state;
-	char *uname;
-	char *aname;
-	char cchal[CHALLEN];
+	int8_t *uname;
+	int8_t *aname;
+	int8_t cchal[CHALLEN];
 	Ticketreq tr;
 	Ticket t;
 } AuthSession;
 
-static char*
+static int8_t*
 p9anyauth(Fcall *rx, Fcall *tx)
 {
 	AuthSession *sp;
 	Fid *f;
-	char *ep;
+	int8_t *ep;
 
 	sp = malloc(sizeof(AuthSession));
 	f = newauthfid(rx->afid, sp, &ep);
@@ -364,12 +364,12 @@ p9anyauth(Fcall *rx, Fcall *tx)
 	return nil;
 }
 
-static char *
+static int8_t *
 p9anyattach(Fcall *rx, Fcall *tx)
 {
 	AuthSession *sp;
 	Fid *f;
-	char *ep;
+	int8_t *ep;
 
 	f = oldauthfid(rx->afid, (void **)&sp, &ep);
 	if (f == nil)
@@ -383,7 +383,7 @@ p9anyattach(Fcall *rx, Fcall *tx)
 }
 
 static int
-readstr(Fcall *rx, Fcall *tx, char *s, int len)
+readstr(Fcall *rx, Fcall *tx, int8_t *s, int len)
 {
 	if (rx->offset >= len)
 		return 0;
@@ -394,11 +394,11 @@ readstr(Fcall *rx, Fcall *tx, char *s, int len)
 	return tx->count;
 }
 
-static char *
+static int8_t *
 p9anyread(Fcall *rx, Fcall *tx)
 {
 	AuthSession *sp;
-	char *ep;
+	int8_t *ep;
 
 	Fid *f;
 	f = oldauthfid(rx->afid, (void **)&sp, &ep);
@@ -426,7 +426,7 @@ p9anyread(Fcall *rx, Fcall *tx)
 		a.num = AuthAs;
 		memmove(a.chal, sp->cchal, CHALLEN);
 		a.id = 0;
-		convA2M(&a, (char*)tx->data, sp->t.key);
+		convA2M(&a, (int8_t*)tx->data, sp->t.key);
 		memset(sp->t.key, 0, sizeof(sp->t.key));
 		tx->count = rx->count;
 		sp->state = Established;
@@ -438,11 +438,11 @@ p9anyread(Fcall *rx, Fcall *tx)
 	}
 }
 
-static char *
+static int8_t *
 p9anywrite(Fcall *rx, Fcall *tx)
 {
 	AuthSession *sp;
-	char *ep;
+	int8_t *ep;
 
 	Fid *f;
 
@@ -467,7 +467,7 @@ p9anywrite(Fcall *rx, Fcall *tx)
 		sp->tr.type = AuthTreq;
 		safecpy(sp->tr.authid, authid, sizeof(sp->tr.authid));
 		safecpy(sp->tr.authdom, authdom, sizeof(sp->tr.authdom));
-		randombytes((uchar *)sp->tr.chal, CHALLEN);
+		randombytes((uint8_t *)sp->tr.chal, CHALLEN);
 		safecpy(sp->tr.hostid, "", sizeof(sp->tr.hostid));
 		safecpy(sp->tr.uid, "", sizeof(sp->tr.uid));
 		tx->count = rx->count;
@@ -480,7 +480,7 @@ p9anywrite(Fcall *rx, Fcall *tx)
 			fprint(2, "bad length in attach");
 			goto botch;
 		}
-		convM2T((char*)rx->data, &sp->t, authkey);
+		convM2T((int8_t*)rx->data, &sp->t, authkey);
 		if (sp->t.num != AuthTs) {
 			fprint(2, "bad AuthTs in attach\n");
 			goto botch;
@@ -489,7 +489,7 @@ p9anywrite(Fcall *rx, Fcall *tx)
 			fprint(2, "bad challenge in attach\n");
 			goto botch;
 		}
-		convM2A((char*)rx->data + TICKETLEN, &a, sp->t.key);
+		convM2A((int8_t*)rx->data + TICKETLEN, &a, sp->t.key);
 		if (a.num != AuthAc) {
 			fprint(2, "bad AuthAs in attach\n");
 			goto botch;
@@ -509,7 +509,7 @@ p9anywrite(Fcall *rx, Fcall *tx)
 }
 
 static void
-safefree(char *p)
+safefree(int8_t *p)
 {
 	if (p) {
 		memset(p, 0, strlen(p));
@@ -517,12 +517,12 @@ safefree(char *p)
 	}
 }
 
-static char *
+static int8_t *
 p9anyclunk(Fcall *rx, Fcall *tx)
 {
 	Fid *f;
 	AuthSession *sp;
-	char *ep;
+	int8_t *ep;
 
 	f = oldauthfid(rx->afid, (void **)&sp, &ep);
 	if (f == nil)

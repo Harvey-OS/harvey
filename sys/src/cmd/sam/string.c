@@ -80,7 +80,7 @@ Straddc(String *p, int c)
 }
 
 void
-Strinsure(String *p, ulong n)
+Strinsure(String *p, uint32_t n)
 {
 	if(n > STRSIZE)
 		error(Etoolong);
@@ -142,11 +142,11 @@ Strispre(String *a, String *b)
 	return i == a->n;
 }
 
-char*
+int8_t*
 Strtoc(String *s)
 {
 	int i;
-	char *c, *d;
+	int8_t *c, *d;
 	Rune *r;
 	c = emalloc(s->n*UTFmax + 1);  /* worst case UTFmax bytes per rune, plus NUL */
 	d = c;
@@ -177,7 +177,7 @@ tmprstr(Rune *r, int n)
  * Convert null-terminated char* into String
  */
 String*
-tmpcstr(char *s)
+tmpcstr(int8_t *s)
 {
 	String *p;
 	Rune *r;

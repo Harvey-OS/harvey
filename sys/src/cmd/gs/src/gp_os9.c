@@ -38,7 +38,7 @@ int interrupted;
 
 /* Forward declarations */
 private void signalhandler(int);
-private FILE *rbfopen(char *, char *);
+private FILE *rbfopen(int8_t *, int8_t *);
 
 /* Do platform-dependent initialization */
 void
@@ -85,10 +85,10 @@ signalhandler(int sig)
 #define PS_MONTH_0 1
 #define PS_DAY_0 1
 void
-gp_get_realtime(long *pdt)
+gp_get_realtime(int32_t *pdt)
 {
-    long date, time, pstime, psdate, tick;
-    short day;
+    int32_t date, time, pstime, psdate, tick;
+    int16_t day;
 
     _sysdate(0, &time, &date, &day, &tick);
     _julian(&time, &date);
@@ -108,7 +108,7 @@ gp_get_realtime(long *pdt)
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(long *pdt)
+gp_get_usertime(int32_t *pdt)
 {
     return gp_get_realtime(pdt);	/* not yet implemented */
 }
@@ -138,7 +138,7 @@ int gp_cache_query(int type, byte* key, int keylen, void **buffer,
 /* "|command" opens an output pipe. */
 /* Return NULL if the connection could not be opened. */
 FILE *
-gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
+gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
 {
     return
 	(strlen(fname) == 0 ? 0 :
@@ -147,7 +147,7 @@ gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 }
 
 FILE *
-rbfopen(char *fname, char *perm)
+rbfopen(int8_t *fname, int8_t *perm)
 {
     FILE *file = fopen(fname, perm);
 
@@ -157,7 +157,7 @@ rbfopen(char *fname, char *perm)
 
 /* Close the connection to the printer. */
 void
-gp_close_printer(FILE * pfile, const char *fname)
+gp_close_printer(FILE * pfile, const int8_t *fname)
 {
     if (fname[0] == '|')
 	pclose(pfile);
@@ -190,7 +190,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, int8_t **fontname,
+                            int8_t **path)
 {
     return 0;
 }

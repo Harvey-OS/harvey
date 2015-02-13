@@ -837,7 +837,7 @@ vPrepareFootnoteText(FILE *pFile)
 /*
  * szGetFootnootText - get the text of the spefified footnote
  */
-const char *
+const int8_t *
 szGetFootnootText(UINT uiFootnoteIndex)
 {
 	if ((size_t)uiFootnoteIndex >= tFootnoteTextLength) {

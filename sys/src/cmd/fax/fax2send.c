@@ -14,10 +14,10 @@
 #include "modem.h"
 
 int
-faxsend(Modem *m, int argc, char *argv[])
+faxsend(Modem *m, int argc, int8_t *argv[])
 {
 	int c, count, r, flow;
-	char buf[128];
+	int8_t buf[128];
 
 	verbose("faxsend");
 	if((r = initfaxmodem(m)) != Eok)

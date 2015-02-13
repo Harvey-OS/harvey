@@ -9,7 +9,7 @@
 
 #include	"kuten212.h"
 
-long tabkuten212[KUTEN212MAX] = {
+int32_t tabkuten212[KUTEN212MAX] = {
     -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
     -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
     -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,

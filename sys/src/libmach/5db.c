@@ -17,7 +17,7 @@ static int debug = 0;
 #define	BITS(a, b)	((1<<(b+1))-(1<<a))
 
 #define LSR(v, s)	((ulong)(v) >> (s))
-#define ASR(v, s)	((long)(v) >> (s))
+#define ASR(v, s)	((int32_t)(v) >> (s))
 #define ROR(v, s)	(LSR((v), (s)) | (((v) & ((1 << (s))-1)) << (32 - (s))))
 
 
@@ -26,44 +26,44 @@ typedef struct	Instr	Instr;
 struct	Instr
 {
 	Map	*map;
-	ulong	w;
-	uvlong	addr;
-	uchar	op;			/* super opcode */
+	uint32_t	w;
+	uint64_t	addr;
+	uint8_t	op;			/* super opcode */
 
-	uchar	cond;			/* bits 28-31 */
-	uchar	store;			/* bit 20 */
+	uint8_t	cond;			/* bits 28-31 */
+	uint8_t	store;			/* bit 20 */
 
-	uchar	rd;			/* bits 12-15 */
-	uchar	rn;			/* bits 16-19 */
-	uchar	rs;			/* bits 0-11 (shifter operand) */
+	uint8_t	rd;			/* bits 12-15 */
+	uint8_t	rn;			/* bits 16-19 */
+	uint8_t	rs;			/* bits 0-11 (shifter operand) */
 
-	long	imm;			/* rotated imm */
-	char*	curr;			/* fill point in buffer */
-	char*	end;			/* end of buffer */
-	char*	err;			/* error message */
+	int32_t	imm;			/* rotated imm */
+	int8_t*	curr;			/* fill point in buffer */
+	int8_t*	end;			/* end of buffer */
+	int8_t*	err;			/* error message */
 };
 
 typedef struct Opcode Opcode;
 struct Opcode
 {
-	char*	o;
+	int8_t*	o;
 	void	(*fmt)(Opcode*, Instr*);
-	uvlong	(*foll)(Map*, Rgetter, Instr*, uvlong);
-	char*	a;
+	uint64_t	(*foll)(Map*, Rgetter, Instr*, uint64_t);
+	int8_t*	a;
 };
 
-static	void	format(char*, Instr*, char*);
-static	char	FRAMENAME[] = ".frame";
+static	void	format(int8_t*, Instr*, int8_t*);
+static	int8_t	FRAMENAME[] = ".frame";
 
 /*
  * Arm-specific debugger interface
  */
 
-static	char	*armexcep(Map*, Rgetter);
-static	int	armfoll(Map*, uvlong, Rgetter, uvlong*);
-static	int	arminst(Map*, uvlong, char, char*, int);
-static	int	armdas(Map*, uvlong, char*, int);
-static	int	arminstlen(Map*, uvlong);
+static	int8_t	*armexcep(Map*, Rgetter);
+static	int	armfoll(Map*, uint64_t, Rgetter, uint64_t*);
+static	int	arminst(Map*, uint64_t, int8_t, int8_t*, int);
+static	int	armdas(Map*, uint64_t, int8_t*, int);
+static	int	arminstlen(Map*, uint64_t);
 
 /*
  *	Debugger interface
@@ -88,10 +88,10 @@ Machdata armmach =
 	arminstlen,		/* instruction size */
 };
 
-static char*
+static int8_t*
 armexcep(Map *map, Rgetter rget)
 {
-	uvlong c;
+	uint64_t c;
 
 	c = (*rget)(map, "TYPE");
 	switch ((int)c&0x1f) {
@@ -115,7 +115,7 @@ armexcep(Map *map, Rgetter rget)
 }
 
 static
-char*	cond[16] =
+int8_t*	cond[16] =
 {
 	"EQ",	"NE",	"CS",	"CC",
 	"MI",	"PL",	"VS",	"VC",
@@ -124,25 +124,25 @@ char*	cond[16] =
 };
 
 static
-char*	shtype[4] =
+int8_t*	shtype[4] =
 {
 	"<<",	">>",	"->",	"@>"
 };
 
 static
-char *hb[4] =
+int8_t *hb[4] =
 {
 	"???",	"HU", "B", "H"
 };
 
 static
-char*	addsub[2] =
+int8_t*	addsub[2] =
 {
 	"-",	"+",
 };
 
 int
-armclass(long w)
+armclass(int32_t w)
 {
 	int op, done, cp;
 
@@ -303,9 +303,9 @@ armclass(long w)
 }
 
 static int
-decode(Map *map, uvlong pc, Instr *i)
+decode(Map *map, uint64_t pc, Instr *i)
 {
-	ulong w;
+	uint32_t w;
 
 	if(get4(map, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -322,7 +322,7 @@ decode(Map *map, uvlong pc, Instr *i)
 #pragma	varargck	argpos	bprint		2
 
 static void
-bprint(Instr *i, char *fmt, ...)
+bprint(Instr *i, int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -334,9 +334,9 @@ bprint(Instr *i, char *fmt, ...)
 static int
 plocal(Instr *i)
 {
-	char *reg;
+	int8_t *reg;
 	Symbol s;
-	char *fn;
+	int8_t *fn;
 	int class;
 	int offset;
 
@@ -371,11 +371,11 @@ plocal(Instr *i)
  * Print value v as name[+offset]
  */
 static int
-gsymoff(char *buf, int n, ulong v, int space)
+gsymoff(int8_t *buf, int n, uint32_t v, int space)
 {
 	Symbol s;
 	int r;
-	long delta;
+	int32_t delta;
 
 	r = delta = 0;		/* to shut compiler up */
 	if (v) {
@@ -440,7 +440,7 @@ armdps(Opcode *o, Instr *i)
 static void
 armdpi(Opcode *o, Instr *i)
 {
-	ulong v;
+	uint32_t v;
 	int c;
 
 	v = (i->w >> 0) & 0xff;
@@ -470,7 +470,7 @@ armdpi(Opcode *o, Instr *i)
 static void
 armsdti(Opcode *o, Instr *i)
 {
-	ulong v;
+	uint32_t v;
 
 	v = i->w & 0xfff;
 	if(!(i->w & (1<<23)))
@@ -491,7 +491,7 @@ armsdti(Opcode *o, Instr *i)
 static void
 armvstdi(Opcode *o, Instr *i)
 {
-	ulong v;
+	uint32_t v;
 
 	v = (i->w & 0xff) << 2;
 	if(!(i->w & (1<<23)))
@@ -559,7 +559,7 @@ armunk(Opcode *o, Instr *i)
 static void
 armb(Opcode *o, Instr *i)
 {
-	ulong v;
+	uint32_t v;
 
 	v = i->w & 0xffffff;
 	if(v & 0x800000)
@@ -580,7 +580,7 @@ armco(Opcode *o, Instr *i)		/* coprocessor instructions */
 {
 	int op, p, cp;
 
-	char buf[1024];
+	int8_t buf[1024];
 
 	i->rn = (i->w >> 16) & 0xf;
 	i->rd = (i->w >> 12) & 0xf;
@@ -598,13 +598,13 @@ armco(Opcode *o, Instr *i)		/* coprocessor instructions */
 }
 
 static int
-armcondpass(Map *map, Rgetter rget, uchar cond)
+armcondpass(Map *map, Rgetter rget, uint8_t cond)
 {
-	uvlong psr;
-	uchar n;
-	uchar z;
-	uchar c;
-	uchar v;
+	uint64_t psr;
+	uint8_t n;
+	uint8_t z;
+	uint8_t c;
+	uint8_t v;
 
 	psr = rget(map, "PSR");
 	n = (psr >> 31) & 1;
@@ -633,17 +633,17 @@ armcondpass(Map *map, Rgetter rget, uchar cond)
 	}
 }
 
-static ulong
+static uint32_t
 armshiftval(Map *map, Rgetter rget, Instr *i)
 {
 	if(i->w & (1 << 25)) {				/* immediate */
-		ulong imm = i->w & BITS(0, 7);
-		ulong s = (i->w & BITS(8, 11)) >> 7; /* this contains the *2 */
+		uint32_t imm = i->w & BITS(0, 7);
+		uint32_t s = (i->w & BITS(8, 11)) >> 7; /* this contains the *2 */
 		return ROR(imm, s);
 	} else {
-		char buf[8];
-		ulong v;
-		ulong s = (i->w & BITS(7,11)) >> 7;
+		int8_t buf[8];
+		uint32_t v;
+		uint32_t s = (i->w & BITS(7,11)) >> 7;
 
 		sprint(buf, "R%ld", i->w & 0xf);
 		v = rget(map, buf);
@@ -682,7 +682,7 @@ armshiftval(Map *map, Rgetter rget, Instr *i)
 			return ASR(v, s);
 		case 6:					/* RORIMM */
 			if(s == 0) {
-				ulong c = (rget(map, "PSR") >> 29) & 1;
+				uint32_t c = (rget(map, "PSR") >> 29) & 1;
 
 				return (c << 31) | LSR(v, 1);
 			}
@@ -698,7 +698,7 @@ armshiftval(Map *map, Rgetter rget, Instr *i)
 }
 
 static int
-nbits(ulong v)
+nbits(uint32_t v)
 {
 	int n = 0;
 	int i;
@@ -711,13 +711,13 @@ nbits(ulong v)
 	return n;
 }
 
-static ulong
+static uint32_t
 armmaddr(Map *map, Rgetter rget, Instr *i)
 {
-	ulong v;
-	ulong nb;
-	char buf[8];
-	ulong rn;
+	uint32_t v;
+	uint32_t nb;
+	int8_t buf[8];
+	uint32_t rn;
 
 	rn = (i->w >> 16) & 0xf;
 	sprint(buf,"R%ld", rn);
@@ -734,11 +734,11 @@ armmaddr(Map *map, Rgetter rget, Instr *i)
 	}
 }
 
-static uvlong
+static uint64_t
 armaddr(Map *map, Rgetter rget, Instr *i)
 {
-	char buf[8];
-	ulong rn;
+	int8_t buf[8];
+	uint32_t rn;
 
 	snprint(buf, sizeof(buf), "R%ld", (i->w >> 16) & 0xf);
 	rn = rget(map, buf);
@@ -751,9 +751,9 @@ armaddr(Map *map, Rgetter rget, Instr *i)
 			return rn + (i->w & BITS(0,11));
 		return rn - (i->w & BITS(0,11));
 	} else {					/* REGOFF */
-		ulong index = 0;
-		uchar c;
-		uchar rm;
+		uint32_t index = 0;
+		uint8_t c;
+		uint8_t rm;
 
 		sprint(buf, "R%ld", i->w & 0xf);
 		rm = rget(map, buf);
@@ -777,10 +777,10 @@ armaddr(Map *map, Rgetter rget, Instr *i)
 	}
 }
 
-static uvlong
-armfadd(Map *map, Rgetter rget, Instr *i, uvlong pc)
+static uint64_t
+armfadd(Map *map, Rgetter rget, Instr *i, uint64_t pc)
 {
-	char buf[8];
+	int8_t buf[8];
 	int r;
 
 	r = (i->w >> 12) & 0xf;
@@ -793,10 +793,10 @@ armfadd(Map *map, Rgetter rget, Instr *i, uvlong pc)
 	return rget(map, buf) + armshiftval(map, rget, i);
 }
 
-static uvlong
-armfbx(Map *map, Rgetter rget, Instr *i, uvlong pc)
+static uint64_t
+armfbx(Map *map, Rgetter rget, Instr *i, uint64_t pc)
 {
-	char buf[8];
+	int8_t buf[8];
 	int r;
 
 	if(!armcondpass(map, rget, (i->w>>28)&0xf))
@@ -806,11 +806,11 @@ armfbx(Map *map, Rgetter rget, Instr *i, uvlong pc)
 	return rget(map, buf);
 }
 
-static uvlong
-armfmovm(Map *map, Rgetter rget, Instr *i, uvlong pc)
+static uint64_t
+armfmovm(Map *map, Rgetter rget, Instr *i, uint64_t pc)
 {
-	ulong v;
-	ulong addr;
+	uint32_t v;
+	uint32_t addr;
 
 	v = i->w & 1<<15;
 	if(!v || !armcondpass(map, rget, (i->w>>28)&0xf))
@@ -824,8 +824,8 @@ armfmovm(Map *map, Rgetter rget, Instr *i, uvlong pc)
 	return v;
 }
 
-static uvlong
-armfbranch(Map *map, Rgetter rget, Instr *i, uvlong pc)
+static uint64_t
+armfbranch(Map *map, Rgetter rget, Instr *i, uint64_t pc)
 {
 	if(!armcondpass(map, rget, (i->w >> 28) & 0xf))
 		return pc+4;
@@ -833,10 +833,10 @@ armfbranch(Map *map, Rgetter rget, Instr *i, uvlong pc)
 	return pc + (((signed long)i->w << 8) >> 6) + 8;
 }
 
-static uvlong
-armfmov(Map *map, Rgetter rget, Instr *i, uvlong pc)
+static uint64_t
+armfmov(Map *map, Rgetter rget, Instr *i, uint64_t pc)
 {
-	ulong rd, v;
+	uint32_t rd, v;
 
 	rd = (i->w >> 12) & 0xf;
 	if(rd != 15 || !armcondpass(map, rget, (i->w>>28)&0xf))
@@ -1036,16 +1036,16 @@ gaddr(Instr *i)
 	i->curr += gsymoff(i->curr, i->end-i->curr, i->imm, CANY);
 }
 
-static	char *mode[] = { 0, "IA", "DB", "IB" };
-static	char *pw[] = { "P", "PW", 0, "W" };
-static	char *sw[] = { 0, "W", "S", "SW" };
+static	int8_t *mode[] = { 0, "IA", "DB", "IB" };
+static	int8_t *pw[] = { "P", "PW", 0, "W" };
+static	int8_t *sw[] = { 0, "W", "S", "SW" };
 
 static void
-format(char *mnemonic, Instr *i, char *f)
+format(int8_t *mnemonic, Instr *i, int8_t *f)
 {
 	int j, k, m, n;
 	int g;
-	char *fmt;
+	int8_t *fmt;
 
 	if(mnemonic)
 		format(0, i, mnemonic);
@@ -1116,7 +1116,7 @@ format(char *mnemonic, Instr *i, char *f)
 			fmt = "#%lx(R%d)";
 			if (i->rn == 15) {
 				/* convert load of offset(PC) to a load immediate */
-				if (get4(i->map, i->addr+i->imm+8, (ulong*)&i->imm) > 0)
+				if (get4(i->map, i->addr+i->imm+8, (uint32_t*)&i->imm) > 0)
 				{
 					g = 1;
 					fmt = "";
@@ -1125,7 +1125,7 @@ format(char *mnemonic, Instr *i, char *f)
 			if (mach->sb)
 			{
 				if (i->rd == 11) {
-					ulong nxti;
+					uint32_t nxti;
 
 					if (get4(i->map, i->addr+4, &nxti) > 0) {
 						if ((nxti & 0x0e0f0fff) == 0x060c000b) {
@@ -1168,7 +1168,7 @@ format(char *mnemonic, Instr *i, char *f)
 
 		case 'b':
 			i->curr += symoff(i->curr, i->end-i->curr,
-				(ulong)i->imm, CTEXT);
+				(uint32_t)i->imm, CTEXT);
 			break;
 
 		case 'g':
@@ -1275,7 +1275,7 @@ format(char *mnemonic, Instr *i, char *f)
 }
 
 static int
-printins(Map *map, uvlong pc, char *buf, int n)
+printins(Map *map, uint64_t pc, int8_t *buf, int n)
 {
 	Instr i;
 
@@ -1289,14 +1289,14 @@ printins(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-arminst(Map *map, uvlong pc, char modifier, char *buf, int n)
+arminst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
 {
 	USED(modifier);
 	return printins(map, pc, buf, n);
 }
 
 static int
-armdas(Map *map, uvlong pc, char *buf, int n)
+armdas(Map *map, uint64_t pc, int8_t *buf, int n)
 {
 	Instr i;
 
@@ -1311,7 +1311,7 @@ armdas(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-arminstlen(Map *map, uvlong pc)
+arminstlen(Map *map, uint64_t pc)
 {
 	Instr i;
 
@@ -1321,9 +1321,9 @@ arminstlen(Map *map, uvlong pc)
 }
 
 static int
-armfoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
+armfoll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
-	uvlong d;
+	uint64_t d;
 	Instr i;
 
 	if(decode(map, pc, &i) < 0)

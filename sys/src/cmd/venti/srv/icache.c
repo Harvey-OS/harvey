@@ -86,7 +86,7 @@ ihashlookup(IHash *ih, u8int score[VtScoreSize], int type)
 }
 
 static void
-ihashdelete(IHash *ih, IEntry *ie, char *what)
+ihashdelete(IHash *ih, IEntry *ie, int8_t *what)
 {
 	u32int h;
 	IEntry **l;
@@ -486,10 +486,10 @@ hashbits(u8int *sc, int bits)
 	return v;
 }
 
-ulong
+uint32_t
 icachedirtyfrac(void)
 {
-	return (vlong)icache.ndirty*IcacheFrac / icache.nentries;
+	return (int64_t)icache.ndirty*IcacheFrac / icache.nentries;
 }
 
 /*

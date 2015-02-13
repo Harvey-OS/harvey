@@ -13,7 +13,7 @@
 #include <sunrpc.h>
 #include <nfs3.h>
 
-char*
+int8_t*
 nfs3StatusStr(Nfs3Status x)
 {
 	switch(x){
@@ -88,7 +88,7 @@ nfs3StatusStr(Nfs3Status x)
 
 static struct {
 	SunStatus status;
-	char *msg;
+	int8_t *msg;
 } etab[] = {
 	Nfs3ErrNotOwner,	"not owner",
 	Nfs3ErrNoEnt,		"directory entry not found",
@@ -137,7 +137,7 @@ nfs3Errstr(SunStatus status)
 	werrstr("unknown nfs3 error %d", (int)status);
 }
 
-char*
+int8_t*
 nfs3FileTypeStr(Nfs3FileType x)
 {
 	switch(x){
@@ -180,7 +180,7 @@ nfs3HandleSize(Nfs3Handle *x)
 	return a;
 }
 int
-nfs3HandlePack(uchar *a, uchar *ea, uchar **pa, Nfs3Handle *x)
+nfs3HandlePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Handle *x)
 {
 	if(x->len > Nfs3MaxHandleSize || sunUint32Pack(a, ea, &a, &x->len) < 0
 	|| sunFixedOpaquePack(a, ea, &a, x->h, x->len) < 0)
@@ -192,9 +192,9 @@ Err:
 	return -1;
 }
 int
-nfs3HandleUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3Handle *x)
+nfs3HandleUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Handle *x)
 {
-	uchar *ha;
+	uint8_t *ha;
 	u32int n;
 
 	if(sunUint32Unpack(a, ea, &a, &n) < 0 || n > Nfs3MaxHandleSize)
@@ -231,7 +231,7 @@ nfs3TimeSize(Nfs3Time *x)
 	return a;
 }
 int
-nfs3TimePack(uchar *a, uchar *ea, uchar **pa, Nfs3Time *x)
+nfs3TimePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Time *x)
 {
 	if(sunUint32Pack(a, ea, &a, &x->sec) < 0) goto Err;
 	if(sunUint32Pack(a, ea, &a, &x->nsec) < 0) goto Err;
@@ -242,7 +242,7 @@ Err:
 	return -1;
 }
 int
-nfs3TimeUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3Time *x)
+nfs3TimeUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Time *x)
 {
 	if(sunUint32Unpack(a, ea, &a, &x->sec) < 0) goto Err;
 	if(sunUint32Unpack(a, ea, &a, &x->nsec) < 0) goto Err;
@@ -308,7 +308,7 @@ nfs3AttrSize(Nfs3Attr *x)
 	return a;
 }
 int
-nfs3AttrPack(uchar *a, uchar *ea, uchar **pa, Nfs3Attr *x)
+nfs3AttrPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Attr *x)
 {
 	int i;
 
@@ -333,7 +333,7 @@ Err:
 	return -1;
 }
 int
-nfs3AttrUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3Attr *x)
+nfs3AttrUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Attr *x)
 {
 	int i;
 	if(sunEnumUnpack(a, ea, &a, &i) < 0) goto Err; x->type = i;
@@ -379,7 +379,7 @@ nfs3WccAttrSize(Nfs3WccAttr *x)
 	return a;
 }
 int
-nfs3WccAttrPack(uchar *a, uchar *ea, uchar **pa, Nfs3WccAttr *x)
+nfs3WccAttrPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3WccAttr *x)
 {
 	if(sunUint64Pack(a, ea, &a, &x->size) < 0) goto Err;
 	if(nfs3TimePack(a, ea, &a, &x->mtime) < 0) goto Err;
@@ -391,7 +391,7 @@ Err:
 	return -1;
 }
 int
-nfs3WccAttrUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3WccAttr *x)
+nfs3WccAttrUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3WccAttr *x)
 {
 	if(sunUint64Unpack(a, ea, &a, &x->size) < 0) goto Err;
 	if(nfs3TimeUnpack(a, ea, &a, &x->mtime) < 0) goto Err;
@@ -447,7 +447,7 @@ nfs3WccSize(Nfs3Wcc *x)
 	return a;
 }
 int
-nfs3WccPack(uchar *a, uchar *ea, uchar **pa, Nfs3Wcc *x)
+nfs3WccPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Wcc *x)
 {
 	if(sunUint1Pack(a, ea, &a, &x->haveWccAttr) < 0) goto Err;
 	switch(x->haveWccAttr){
@@ -468,7 +468,7 @@ Err:
 	return -1;
 }
 int
-nfs3WccUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3Wcc *x)
+nfs3WccUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Wcc *x)
 {
 	if(sunUint1Unpack(a, ea, &a, &x->haveWccAttr) < 0) goto Err;
 	switch(x->haveWccAttr){
@@ -488,7 +488,7 @@ Err:
 	*pa = ea;
 	return -1;
 }
-char*
+int8_t*
 nfs3SetTimeStr(Nfs3SetTime x)
 {
 	switch(x){
@@ -612,7 +612,7 @@ nfs3SetAttrSize(Nfs3SetAttr *x)
 	return a;
 }
 int
-nfs3SetAttrPack(uchar *a, uchar *ea, uchar **pa, Nfs3SetAttr *x)
+nfs3SetAttrPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3SetAttr *x)
 {
 	int i;
 
@@ -659,7 +659,7 @@ Err:
 	return -1;
 }
 int
-nfs3SetAttrUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3SetAttr *x)
+nfs3SetAttrUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3SetAttr *x)
 {
 	int i;
 
@@ -720,7 +720,7 @@ nfs3TNullSize(Nfs3TNull *x)
 	return a;
 }
 int
-nfs3TNullPack(uchar *a, uchar *ea, uchar **pa, Nfs3TNull *x)
+nfs3TNullPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TNull *x)
 {
 	USED(x);
 	USED(ea);
@@ -728,7 +728,7 @@ nfs3TNullPack(uchar *a, uchar *ea, uchar **pa, Nfs3TNull *x)
 	return 0;
 }
 int
-nfs3TNullUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TNull *x)
+nfs3TNullUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TNull *x)
 {
 	USED(x);
 	USED(ea);
@@ -750,7 +750,7 @@ nfs3RNullSize(Nfs3RNull *x)
 	return a;
 }
 int
-nfs3RNullPack(uchar *a, uchar *ea, uchar **pa, Nfs3RNull *x)
+nfs3RNullPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RNull *x)
 {
 	USED(ea);
 	USED(x);
@@ -758,7 +758,7 @@ nfs3RNullPack(uchar *a, uchar *ea, uchar **pa, Nfs3RNull *x)
 	return 0;
 }
 int
-nfs3RNullUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RNull *x)
+nfs3RNullUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RNull *x)
 {
 	USED(ea);
 	USED(x);
@@ -782,7 +782,7 @@ nfs3TGetattrSize(Nfs3TGetattr *x)
 	return a;
 }
 int
-nfs3TGetattrPack(uchar *a, uchar *ea, uchar **pa, Nfs3TGetattr *x)
+nfs3TGetattrPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TGetattr *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	*pa = a;
@@ -792,7 +792,7 @@ Err:
 	return -1;
 }
 int
-nfs3TGetattrUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TGetattr *x)
+nfs3TGetattrUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TGetattr *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	*pa = a;
@@ -830,7 +830,7 @@ nfs3RGetattrSize(Nfs3RGetattr *x)
 	return a;
 }
 int
-nfs3RGetattrPack(uchar *a, uchar *ea, uchar **pa, Nfs3RGetattr *x)
+nfs3RGetattrPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RGetattr *x)
 {
 	int i;
 
@@ -847,7 +847,7 @@ Err:
 	return -1;
 }
 int
-nfs3RGetattrUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RGetattr *x)
+nfs3RGetattrUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RGetattr *x)
 {
 	int i;
 
@@ -898,7 +898,7 @@ nfs3TSetattrSize(Nfs3TSetattr *x)
 	return a;
 }
 int
-nfs3TSetattrPack(uchar *a, uchar *ea, uchar **pa, Nfs3TSetattr *x)
+nfs3TSetattrPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TSetattr *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(nfs3SetAttrPack(a, ea, &a, &x->attr) < 0) goto Err;
@@ -915,7 +915,7 @@ Err:
 	return -1;
 }
 int
-nfs3TSetattrUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TSetattr *x)
+nfs3TSetattrUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TSetattr *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(nfs3SetAttrUnpack(a, ea, &a, &x->attr) < 0) goto Err;
@@ -951,7 +951,7 @@ nfs3RSetattrSize(Nfs3RSetattr *x)
 	return a;
 }
 int
-nfs3RSetattrPack(uchar *a, uchar *ea, uchar **pa, Nfs3RSetattr *x)
+nfs3RSetattrPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RSetattr *x)
 {
 	int i;
 
@@ -964,7 +964,7 @@ Err:
 	return -1;
 }
 int
-nfs3RSetattrUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RSetattr *x)
+nfs3RSetattrUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RSetattr *x)
 {
 	int i;
 
@@ -996,7 +996,7 @@ nfs3TLookupSize(Nfs3TLookup *x)
 	return a;
 }
 int
-nfs3TLookupPack(uchar *a, uchar *ea, uchar **pa, Nfs3TLookup *x)
+nfs3TLookupPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TLookup *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunStringPack(a, ea, &a, &x->name, -1) < 0) goto Err;
@@ -1007,7 +1007,7 @@ Err:
 	return -1;
 }
 int
-nfs3TLookupUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TLookup *x)
+nfs3TLookupUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TLookup *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunStringUnpack(a, ea, &a, &x->name, -1) < 0) goto Err;
@@ -1077,7 +1077,7 @@ nfs3RLookupSize(Nfs3RLookup *x)
 	return a;
 }
 int
-nfs3RLookupPack(uchar *a, uchar *ea, uchar **pa, Nfs3RLookup *x)
+nfs3RLookupPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RLookup *x)
 {
 	int i;
 
@@ -1106,7 +1106,7 @@ Err:
 	return -1;
 }
 int
-nfs3RLookupUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RLookup *x)
+nfs3RLookupUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RLookup *x)
 {
 	int i;
 
@@ -1154,7 +1154,7 @@ nfs3TAccessSize(Nfs3TAccess *x)
 	return a;
 }
 int
-nfs3TAccessPack(uchar *a, uchar *ea, uchar **pa, Nfs3TAccess *x)
+nfs3TAccessPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TAccess *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunUint32Pack(a, ea, &a, &x->access) < 0) goto Err;
@@ -1165,7 +1165,7 @@ Err:
 	return -1;
 }
 int
-nfs3TAccessUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TAccess *x)
+nfs3TAccessUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TAccess *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunUint32Unpack(a, ea, &a, &x->access) < 0) goto Err;
@@ -1219,7 +1219,7 @@ nfs3RAccessSize(Nfs3RAccess *x)
 	return a;
 }
 int
-nfs3RAccessPack(uchar *a, uchar *ea, uchar **pa, Nfs3RAccess *x)
+nfs3RAccessPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RAccess *x)
 {
 	int i;
 
@@ -1242,7 +1242,7 @@ Err:
 	return -1;
 }
 int
-nfs3RAccessUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RAccess *x)
+nfs3RAccessUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RAccess *x)
 {
 	int i;
 
@@ -1281,7 +1281,7 @@ nfs3TReadlinkSize(Nfs3TReadlink *x)
 	return a;
 }
 int
-nfs3TReadlinkPack(uchar *a, uchar *ea, uchar **pa, Nfs3TReadlink *x)
+nfs3TReadlinkPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TReadlink *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	*pa = a;
@@ -1291,7 +1291,7 @@ Err:
 	return -1;
 }
 int
-nfs3TReadlinkUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TReadlink *x)
+nfs3TReadlinkUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TReadlink *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	*pa = a;
@@ -1344,7 +1344,7 @@ nfs3RReadlinkSize(Nfs3RReadlink *x)
 	return a;
 }
 int
-nfs3RReadlinkPack(uchar *a, uchar *ea, uchar **pa, Nfs3RReadlink *x)
+nfs3RReadlinkPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RReadlink *x)
 {
 	int i;
 
@@ -1367,7 +1367,7 @@ Err:
 	return -1;
 }
 int
-nfs3RReadlinkUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RReadlink *x)
+nfs3RReadlinkUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RReadlink *x)
 {
 	int i;
 
@@ -1412,7 +1412,7 @@ nfs3TReadSize(Nfs3TRead *x)
 	return a;
 }
 int
-nfs3TReadPack(uchar *a, uchar *ea, uchar **pa, Nfs3TRead *x)
+nfs3TReadPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TRead *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunUint64Pack(a, ea, &a, &x->offset) < 0) goto Err;
@@ -1424,7 +1424,7 @@ Err:
 	return -1;
 }
 int
-nfs3TReadUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TRead *x)
+nfs3TReadUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TRead *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunUint64Unpack(a, ea, &a, &x->offset) < 0) goto Err;
@@ -1488,7 +1488,7 @@ nfs3RReadSize(Nfs3RRead *x)
 	return a;
 }
 int
-nfs3RReadPack(uchar *a, uchar *ea, uchar **pa, Nfs3RRead *x)
+nfs3RReadPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RRead *x)
 {
 	int i;
 
@@ -1513,7 +1513,7 @@ Err:
 	return -1;
 }
 int
-nfs3RReadUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RRead *x)
+nfs3RReadUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RRead *x)
 {
 	int i;
 
@@ -1537,7 +1537,7 @@ Err:
 	*pa = ea;
 	return -1;
 }
-char*
+int8_t*
 nfs3SyncStr(Nfs3Sync x)
 {
 	switch(x){
@@ -1584,7 +1584,7 @@ nfs3TWriteSize(Nfs3TWrite *x)
 	return a;
 }
 int
-nfs3TWritePack(uchar *a, uchar *ea, uchar **pa, Nfs3TWrite *x)
+nfs3TWritePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TWrite *x)
 {
 	int i;
 
@@ -1600,7 +1600,7 @@ Err:
 	return -1;
 }
 int
-nfs3TWriteUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TWrite *x)
+nfs3TWriteUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TWrite *x)
 {
 	int i;
 
@@ -1653,7 +1653,7 @@ nfs3RWriteSize(Nfs3RWrite *x)
 	return a;
 }
 int
-nfs3RWritePack(uchar *a, uchar *ea, uchar **pa, Nfs3RWrite *x)
+nfs3RWritePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RWrite *x)
 {
 	int i;
 
@@ -1673,7 +1673,7 @@ Err:
 	return -1;
 }
 int
-nfs3RWriteUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RWrite *x)
+nfs3RWriteUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RWrite *x)
 {
 	int i;
 
@@ -1692,7 +1692,7 @@ Err:
 	*pa = ea;
 	return -1;
 }
-char*
+int8_t*
 nfs3CreateStr(Nfs3Create x)
 {
 	switch(x){
@@ -1752,7 +1752,7 @@ nfs3TCreateSize(Nfs3TCreate *x)
 	return a;
 }
 int
-nfs3TCreatePack(uchar *a, uchar *ea, uchar **pa, Nfs3TCreate *x)
+nfs3TCreatePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TCreate *x)
 {
 	int i;
 
@@ -1775,7 +1775,7 @@ Err:
 	return -1;
 }
 int
-nfs3TCreateUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TCreate *x)
+nfs3TCreateUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TCreate *x)
 {
 	int i;
 
@@ -1858,7 +1858,7 @@ nfs3RCreateSize(Nfs3RCreate *x)
 	return a;
 }
 int
-nfs3RCreatePack(uchar *a, uchar *ea, uchar **pa, Nfs3RCreate *x)
+nfs3RCreatePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RCreate *x)
 {
 	int i;
 
@@ -1887,7 +1887,7 @@ Err:
 	return -1;
 }
 int
-nfs3RCreateUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RCreate *x)
+nfs3RCreateUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RCreate *x)
 {
 	int i;
 
@@ -1938,7 +1938,7 @@ nfs3TMkdirSize(Nfs3TMkdir *x)
 	return a;
 }
 int
-nfs3TMkdirPack(uchar *a, uchar *ea, uchar **pa, Nfs3TMkdir *x)
+nfs3TMkdirPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TMkdir *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunStringPack(a, ea, &a, &x->name, -1) < 0) goto Err;
@@ -1950,7 +1950,7 @@ Err:
 	return -1;
 }
 int
-nfs3TMkdirUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TMkdir *x)
+nfs3TMkdirUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TMkdir *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunStringUnpack(a, ea, &a, &x->name, -1) < 0) goto Err;
@@ -2022,7 +2022,7 @@ nfs3RMkdirSize(Nfs3RMkdir *x)
 	return a;
 }
 int
-nfs3RMkdirPack(uchar *a, uchar *ea, uchar **pa, Nfs3RMkdir *x)
+nfs3RMkdirPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMkdir *x)
 {
 	int i;
 
@@ -2051,7 +2051,7 @@ Err:
 	return -1;
 }
 int
-nfs3RMkdirUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RMkdir *x)
+nfs3RMkdirUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMkdir *x)
 {
 	int i;
 
@@ -2105,7 +2105,7 @@ nfs3TSymlinkSize(Nfs3TSymlink *x)
 	return a;
 }
 int
-nfs3TSymlinkPack(uchar *a, uchar *ea, uchar **pa, Nfs3TSymlink *x)
+nfs3TSymlinkPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TSymlink *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunStringPack(a, ea, &a, &x->name, -1) < 0) goto Err;
@@ -2118,7 +2118,7 @@ Err:
 	return -1;
 }
 int
-nfs3TSymlinkUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TSymlink *x)
+nfs3TSymlinkUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TSymlink *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunStringUnpack(a, ea, &a, &x->name, -1) < 0) goto Err;
@@ -2191,7 +2191,7 @@ nfs3RSymlinkSize(Nfs3RSymlink *x)
 	return a;
 }
 int
-nfs3RSymlinkPack(uchar *a, uchar *ea, uchar **pa, Nfs3RSymlink *x)
+nfs3RSymlinkPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RSymlink *x)
 {
 	int i;
 
@@ -2220,7 +2220,7 @@ Err:
 	return -1;
 }
 int
-nfs3RSymlinkUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RSymlink *x)
+nfs3RSymlinkUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RSymlink *x)
 {
 	int i;
 
@@ -2301,7 +2301,7 @@ nfs3TMknodSize(Nfs3TMknod *x)
 	return a;
 }
 int
-nfs3TMknodPack(uchar *a, uchar *ea, uchar **pa, Nfs3TMknod *x)
+nfs3TMknodPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TMknod *x)
 {
 	int i;
 
@@ -2327,7 +2327,7 @@ Err:
 	return -1;
 }
 int
-nfs3TMknodUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TMknod *x)
+nfs3TMknodUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TMknod *x)
 {
 	int i;
 
@@ -2413,7 +2413,7 @@ nfs3RMknodSize(Nfs3RMknod *x)
 	return a;
 }
 int
-nfs3RMknodPack(uchar *a, uchar *ea, uchar **pa, Nfs3RMknod *x)
+nfs3RMknodPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMknod *x)
 {
 	int i;
 
@@ -2442,7 +2442,7 @@ Err:
 	return -1;
 }
 int
-nfs3RMknodUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RMknod *x)
+nfs3RMknodUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RMknod *x)
 {
 	int i;
 
@@ -2490,7 +2490,7 @@ nfs3TRemoveSize(Nfs3TRemove *x)
 	return a;
 }
 int
-nfs3TRemovePack(uchar *a, uchar *ea, uchar **pa, Nfs3TRemove *x)
+nfs3TRemovePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TRemove *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunStringPack(a, ea, &a, &x->name, -1) < 0) goto Err;
@@ -2501,7 +2501,7 @@ Err:
 	return -1;
 }
 int
-nfs3TRemoveUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TRemove *x)
+nfs3TRemoveUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TRemove *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunStringUnpack(a, ea, &a, &x->name, -1) < 0) goto Err;
@@ -2531,7 +2531,7 @@ nfs3RRemoveSize(Nfs3RRemove *x)
 	return a;
 }
 int
-nfs3RRemovePack(uchar *a, uchar *ea, uchar **pa, Nfs3RRemove *x)
+nfs3RRemovePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RRemove *x)
 {
 	int i;
 
@@ -2544,7 +2544,7 @@ Err:
 	return -1;
 }
 int
-nfs3RRemoveUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RRemove *x)
+nfs3RRemoveUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RRemove *x)
 {
 	int i;
 
@@ -2576,7 +2576,7 @@ nfs3TRmdirSize(Nfs3TRmdir *x)
 	return a;
 }
 int
-nfs3TRmdirPack(uchar *a, uchar *ea, uchar **pa, Nfs3TRmdir *x)
+nfs3TRmdirPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TRmdir *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunStringPack(a, ea, &a, &x->name, -1) < 0) goto Err;
@@ -2587,7 +2587,7 @@ Err:
 	return -1;
 }
 int
-nfs3TRmdirUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TRmdir *x)
+nfs3TRmdirUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TRmdir *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunStringUnpack(a, ea, &a, &x->name, -1) < 0) goto Err;
@@ -2617,7 +2617,7 @@ nfs3RRmdirSize(Nfs3RRmdir *x)
 	return a;
 }
 int
-nfs3RRmdirPack(uchar *a, uchar *ea, uchar **pa, Nfs3RRmdir *x)
+nfs3RRmdirPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RRmdir *x)
 {
 	int i;
 
@@ -2630,7 +2630,7 @@ Err:
 	return -1;
 }
 int
-nfs3RRmdirUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RRmdir *x)
+nfs3RRmdirUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RRmdir *x)
 {
 	int i;
 
@@ -2676,7 +2676,7 @@ nfs3TRenameSize(Nfs3TRename *x)
 	return a;
 }
 int
-nfs3TRenamePack(uchar *a, uchar *ea, uchar **pa, Nfs3TRename *x)
+nfs3TRenamePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TRename *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->from.handle) < 0) goto Err;
 	if(sunStringPack(a, ea, &a, &x->from.name, -1) < 0) goto Err;
@@ -2689,7 +2689,7 @@ Err:
 	return -1;
 }
 int
-nfs3TRenameUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TRename *x)
+nfs3TRenameUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TRename *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->from.handle) < 0) goto Err;
 	if(sunStringUnpack(a, ea, &a, &x->from.name, -1) < 0) goto Err;
@@ -2724,7 +2724,7 @@ nfs3RRenameSize(Nfs3RRename *x)
 	return a;
 }
 int
-nfs3RRenamePack(uchar *a, uchar *ea, uchar **pa, Nfs3RRename *x)
+nfs3RRenamePack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RRename *x)
 {
 	int i;
 
@@ -2738,7 +2738,7 @@ Err:
 	return -1;
 }
 int
-nfs3RRenameUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RRename *x)
+nfs3RRenameUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RRename *x)
 {
 	int i;
 
@@ -2778,7 +2778,7 @@ nfs3TLinkSize(Nfs3TLink *x)
 	return a;
 }
 int
-nfs3TLinkPack(uchar *a, uchar *ea, uchar **pa, Nfs3TLink *x)
+nfs3TLinkPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TLink *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(nfs3HandlePack(a, ea, &a, &x->link.handle) < 0) goto Err;
@@ -2790,7 +2790,7 @@ Err:
 	return -1;
 }
 int
-nfs3TLinkUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TLink *x)
+nfs3TLinkUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TLink *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(nfs3HandleUnpack(a, ea, &a, &x->link.handle) < 0) goto Err;
@@ -2837,7 +2837,7 @@ nfs3RLinkSize(Nfs3RLink *x)
 	return a;
 }
 int
-nfs3RLinkPack(uchar *a, uchar *ea, uchar **pa, Nfs3RLink *x)
+nfs3RLinkPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RLink *x)
 {
 	int i;
 
@@ -2856,7 +2856,7 @@ Err:
 	return -1;
 }
 int
-nfs3RLinkUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RLink *x)
+nfs3RLinkUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RLink *x)
 {
 	int i;
 
@@ -2900,7 +2900,7 @@ nfs3TReadDirSize(Nfs3TReadDir *x)
 	return a;
 }
 int
-nfs3TReadDirPack(uchar *a, uchar *ea, uchar **pa, Nfs3TReadDir *x)
+nfs3TReadDirPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TReadDir *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunUint64Pack(a, ea, &a, &x->cookie) < 0) goto Err;
@@ -2913,7 +2913,7 @@ Err:
 	return -1;
 }
 int
-nfs3TReadDirUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TReadDir *x)
+nfs3TReadDirUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TReadDir *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunUint64Unpack(a, ea, &a, &x->cookie) < 0) goto Err;
@@ -2948,7 +2948,7 @@ nfs3EntrySize(Nfs3Entry *x)
 	return a;
 }
 int
-nfs3EntryPack(uchar *a, uchar *ea, uchar **pa, Nfs3Entry *x)
+nfs3EntryPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Entry *x)
 {
 	u1int one;
 
@@ -2964,7 +2964,7 @@ Err:
 	return -1;
 }
 int
-nfs3EntryUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3Entry *x)
+nfs3EntryUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Entry *x)
 {
 	u1int one;
 
@@ -3029,7 +3029,7 @@ nfs3RReadDirSize(Nfs3RReadDir *x)
 	return a;
 }
 int
-nfs3RReadDirPack(uchar *a, uchar *ea, uchar **pa, Nfs3RReadDir *x)
+nfs3RReadDirPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RReadDir *x)
 {
 	int i;
 	u1int zero;
@@ -3057,9 +3057,9 @@ Err:
 	return -1;
 }
 static int
-countEntry(uchar *a, uchar *ea, uchar **pa, u32int *n)
+countEntry(uint8_t *a, uint8_t *ea, uint8_t **pa, u32int *n)
 {
-	uchar *oa;
+	uint8_t *oa;
 	u64int u64;
 	u32int u32;
 	u1int u1;
@@ -3084,7 +3084,7 @@ countEntry(uchar *a, uchar *ea, uchar **pa, u32int *n)
 	return 0;
 }
 int
-nfs3RReadDirUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RReadDir *x)
+nfs3RReadDirUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RReadDir *x)
 {
 	int i;
 
@@ -3136,7 +3136,8 @@ nfs3TReadDirPlusSize(Nfs3TReadDirPlus *x)
 	return a;
 }
 int
-nfs3TReadDirPlusPack(uchar *a, uchar *ea, uchar **pa, Nfs3TReadDirPlus *x)
+nfs3TReadDirPlusPack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     Nfs3TReadDirPlus *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunUint64Pack(a, ea, &a, &x->cookie) < 0) goto Err;
@@ -3150,7 +3151,8 @@ Err:
 	return -1;
 }
 int
-nfs3TReadDirPlusUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TReadDirPlus *x)
+nfs3TReadDirPlusUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		       Nfs3TReadDirPlus *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunUint64Unpack(a, ea, &a, &x->cookie) < 0) goto Err;
@@ -3217,7 +3219,7 @@ nfs3EntryPlusSize(Nfs3Entry *x)
 	return a;
 }
 int
-nfs3EntryPlusPack(uchar *a, uchar *ea, uchar **pa, Nfs3Entry *x)
+nfs3EntryPlusPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Entry *x)
 {
 	u1int u1;
 
@@ -3244,7 +3246,7 @@ Err:
 	return -1;
 }
 int
-nfs3EntryPlusUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3Entry *x)
+nfs3EntryPlusUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Entry *x)
 {
 	u1int u1;
 
@@ -3320,7 +3322,8 @@ nfs3RReadDirPlusSize(Nfs3RReadDirPlus *x)
 	return a;
 }
 int
-nfs3RReadDirPlusPack(uchar *a, uchar *ea, uchar **pa, Nfs3RReadDirPlus *x)
+nfs3RReadDirPlusPack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     Nfs3RReadDirPlus *x)
 {
 	int i;
 	u1int zero;
@@ -3348,9 +3351,9 @@ Err:
 	return -1;
 }
 static int
-countEntryPlus(uchar *a, uchar *ea, uchar **pa, u32int *n)
+countEntryPlus(uint8_t *a, uint8_t *ea, uint8_t **pa, u32int *n)
 {
-	uchar *oa;
+	uint8_t *oa;
 	u64int u64;
 	u32int u32;
 	u1int u1;
@@ -3382,7 +3385,8 @@ countEntryPlus(uchar *a, uchar *ea, uchar **pa, u32int *n)
 }
 		
 int
-nfs3RReadDirPlusUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RReadDirPlus *x)
+nfs3RReadDirPlusUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		       Nfs3RReadDirPlus *x)
 {
 	int i;
 
@@ -3422,7 +3426,7 @@ nfs3TFsStatSize(Nfs3TFsStat *x)
 	return a;
 }
 int
-nfs3TFsStatPack(uchar *a, uchar *ea, uchar **pa, Nfs3TFsStat *x)
+nfs3TFsStatPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TFsStat *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	*pa = a;
@@ -3432,7 +3436,7 @@ Err:
 	return -1;
 }
 int
-nfs3TFsStatUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TFsStat *x)
+nfs3TFsStatUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TFsStat *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	*pa = a;
@@ -3503,7 +3507,7 @@ nfs3RFsStatSize(Nfs3RFsStat *x)
 	return a;
 }
 int
-nfs3RFsStatPack(uchar *a, uchar *ea, uchar **pa, Nfs3RFsStat *x)
+nfs3RFsStatPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsStat *x)
 {
 	int i;
 
@@ -3532,7 +3536,7 @@ Err:
 	return -1;
 }
 int
-nfs3RFsStatUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RFsStat *x)
+nfs3RFsStatUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsStat *x)
 {
 	int i;
 
@@ -3577,7 +3581,7 @@ nfs3TFsInfoSize(Nfs3TFsInfo *x)
 	return a;
 }
 int
-nfs3TFsInfoPack(uchar *a, uchar *ea, uchar **pa, Nfs3TFsInfo *x)
+nfs3TFsInfoPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TFsInfo *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	*pa = a;
@@ -3587,7 +3591,7 @@ Err:
 	return -1;
 }
 int
-nfs3TFsInfoUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TFsInfo *x)
+nfs3TFsInfoUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TFsInfo *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	*pa = a;
@@ -3667,7 +3671,7 @@ nfs3RFsInfoSize(Nfs3RFsInfo *x)
 	return a;
 }
 int
-nfs3RFsInfoPack(uchar *a, uchar *ea, uchar **pa, Nfs3RFsInfo *x)
+nfs3RFsInfoPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsInfo *x)
 {
 	int i;
 
@@ -3699,7 +3703,7 @@ Err:
 	return -1;
 }
 int
-nfs3RFsInfoUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RFsInfo *x)
+nfs3RFsInfoUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RFsInfo *x)
 {
 	int i;
 
@@ -3747,7 +3751,7 @@ nfs3TPathconfSize(Nfs3TPathconf *x)
 	return a;
 }
 int
-nfs3TPathconfPack(uchar *a, uchar *ea, uchar **pa, Nfs3TPathconf *x)
+nfs3TPathconfPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TPathconf *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	*pa = a;
@@ -3757,7 +3761,7 @@ Err:
 	return -1;
 }
 int
-nfs3TPathconfUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TPathconf *x)
+nfs3TPathconfUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TPathconf *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	*pa = a;
@@ -3825,7 +3829,7 @@ nfs3RPathconfSize(Nfs3RPathconf *x)
 	return a;
 }
 int
-nfs3RPathconfPack(uchar *a, uchar *ea, uchar **pa, Nfs3RPathconf *x)
+nfs3RPathconfPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RPathconf *x)
 {
 	int i;
 
@@ -3853,7 +3857,7 @@ Err:
 	return -1;
 }
 int
-nfs3RPathconfUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RPathconf *x)
+nfs3RPathconfUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RPathconf *x)
 {
 	int i;
 
@@ -3903,7 +3907,7 @@ nfs3TCommitSize(Nfs3TCommit *x)
 	return a;
 }
 int
-nfs3TCommitPack(uchar *a, uchar *ea, uchar **pa, Nfs3TCommit *x)
+nfs3TCommitPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TCommit *x)
 {
 	if(nfs3HandlePack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunUint64Pack(a, ea, &a, &x->offset) < 0) goto Err;
@@ -3915,7 +3919,7 @@ Err:
 	return -1;
 }
 int
-nfs3TCommitUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3TCommit *x)
+nfs3TCommitUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3TCommit *x)
 {
 	if(nfs3HandleUnpack(a, ea, &a, &x->handle) < 0) goto Err;
 	if(sunUint64Unpack(a, ea, &a, &x->offset) < 0) goto Err;
@@ -3958,7 +3962,7 @@ nfs3RCommitSize(Nfs3RCommit *x)
 	return a;
 }
 int
-nfs3RCommitPack(uchar *a, uchar *ea, uchar **pa, Nfs3RCommit *x)
+nfs3RCommitPack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RCommit *x)
 {
 	int i;
 
@@ -3976,7 +3980,7 @@ Err:
 	return -1;
 }
 int
-nfs3RCommitUnpack(uchar *a, uchar *ea, uchar **pa, Nfs3RCommit *x)
+nfs3RCommitUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3RCommit *x)
 {
 	int i;
 
@@ -3994,7 +3998,7 @@ Err:
 	return -1;
 }
 
-typedef int (*P)(uchar*, uchar*, uchar**, SunCall*);
+typedef int (*P)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
 typedef void (*F)(Fmt*, SunCall*);
 typedef uint (*S)(SunCall*);
 

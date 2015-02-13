@@ -17,10 +17,10 @@
  */
 
 int
-pushssl(int fd, char *alg, char *secin, char *secout, int *cfd)
+pushssl(int fd, int8_t *alg, int8_t *secin, int8_t *secout, int *cfd)
 {
-	char buf[8];
-	char dname[64];
+	int8_t buf[8];
+	int8_t dname[64];
 	int n, data, ctl;
 
 	ctl = open("#D/ssl/clone", ORDWR);

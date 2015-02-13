@@ -23,17 +23,17 @@
  *	Looks for the file in a list of directories (given below).
  */
 
-char *cmapdir[] = {
+int8_t *cmapdir[] = {
 	"",
 	"/lib/cmap/",
 	0
 };
 
 int
-getcmap(int id, char *f, unsigned char *buf)
+getcmap(int id, int8_t *f, unsigned char *buf)
 {
-	char name[512];
-	char *s, *lines[256], *fields[4];
+	int8_t name[512];
+	int8_t *s, *lines[256], *fields[4];
 	int cmap, i, j, n, v, rev;
 	double gamma;
 
@@ -98,11 +98,11 @@ getcmap(int id, char *f, unsigned char *buf)
 }
 
 /* replicate (from top) value in v (n bits) until it fills a ulong */
-ulong
-rep(ulong v, int n)
+uint32_t
+rep(uint32_t v, int n)
 {
 	int o;
-	ulong rv;
+	uint32_t rv;
 
 	rv = 0;
 	for(o=32-n; o>=0; o-=n)
@@ -113,11 +113,11 @@ rep(ulong v, int n)
 }
 
 void
-putcmap(int id, uchar cmap[256*3])
+putcmap(int id, uint8_t cmap[256*3])
 {
-	char *s, *t;
+	int8_t *s, *t;
 	int i, fd;
-	char name[64];
+	int8_t name[64];
 
 	snprint(name, sizeof name, "/dev/draw/%d/colormap", id);
 	fd = open(name, OWRITE);
@@ -133,10 +133,10 @@ putcmap(int id, uchar cmap[256*3])
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-	uchar cmapbuf[256*3];
-	char *map, buf[12*12+1];
+	uint8_t cmapbuf[256*3];
+	int8_t *map, buf[12*12+1];
 	int fd, id;
 
 	if(argc>2){

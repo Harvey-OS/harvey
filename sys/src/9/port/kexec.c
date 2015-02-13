@@ -26,22 +26,22 @@ enum {
 	Maxslot = 32,
 };
 
-static uvlong
-vl2be(uvlong v)
+static uint64_t
+vl2be(uint64_t v)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)&v;
-	return ((uvlong)((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3])<<32)
-	      |((uvlong)(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
+	p = (uint8_t*)&v;
+	return ((uint64_t)((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3])<<32)
+	      |((uint64_t)(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
 }
 
-static ulong
-l2be(long l)
+static uint32_t
+l2be(int32_t l)
 {
-	uchar *cp;
+	uint8_t *cp;
 
-	cp = (uchar*)&l;
+	cp = (uint8_t*)&l;
 	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
 }
 
@@ -140,14 +140,14 @@ setupseg(int core)
 }
 
 void
-kforkexecac(Proc *p, int core, char *ufile, char **argv)
+kforkexecac(Proc *p, int core, int8_t *ufile, int8_t **argv)
 {
 	Khdr hdr;
 	Tos *tos;
 	Chan *chan;
 	int argc, i, n;
-	char *a, *elem, *file, *args;
-	long hdrsz, magic, textsz, datasz, bsssz;
+	int8_t *a, *elem, *file, *args;
+	int32_t hdrsz, magic, textsz, datasz, bsssz;
 	uintptr textlim, datalim, bsslim, entry, tbase, tsize, dbase, dsize, bbase, bsize, sbase, ssize, stack;
 	Mach *mp;
 	static Pgrp *kpgrp;
@@ -290,7 +290,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	  */
 	tos = (Tos*)stack;
 	tos->cyclefreq = m->cyclefreq;
-	cycles((uvlong*)&tos->pcycles);
+	cycles((uint64_t*)&tos->pcycles);
 	tos->pcycles = -tos->pcycles;
 	tos->kcycles = tos->pcycles;
 	tos->clock = 0;
@@ -298,11 +298,11 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	DBG("kexec: argument processing\n");
 	if(0)
 	for(i = 0;; i++, argv++){
-		a = *(char**)validaddr(argv, sizeof(char**), 0);
+		a = *(int8_t**)validaddr(argv, sizeof(int8_t**), 0);
 		if(a == nil)
 			break;
 		a = validaddr(a, 1, 0);
-		n = ((char*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
+		n = ((int8_t*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
 
 		if(argc > 0 && i == 0)
 			continue;
@@ -326,10 +326,10 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	// YYY: this looks like a Jimism for 9k.
 	// DBG("kexec: ensuring the stack \n");
 	if(0)
-	if(stack-(argc+1)*sizeof(char**)-BIGPGSZ < sbase+ssize-4096)
+	if(stack-(argc+1)*sizeof(int8_t**)-BIGPGSZ < sbase+ssize-4096)
 		error(Ebadexec);
 
-	argv = (char**)stack;
+	argv = (int8_t**)stack;
 	*--argv = nil;
 	// XXX: replace USTKTOP with a new variable representing the top of stack.
 	if(0)
@@ -457,7 +457,7 @@ printhello(void)
 }
 
 void
-printargs(char *arg)
+printargs(int8_t *arg)
 {
 	print("%#p %s\n", arg, arg);
 }

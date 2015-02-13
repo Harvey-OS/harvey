@@ -780,7 +780,7 @@ void storeword(Tchar c, int w)
 	if (wordp >= word + wdsize - 2) {
 		wdsize += WDSIZE;
 		savp = word;
-		if (( word = (Tchar *)realloc((char *)word, wdsize * sizeof(Tchar))) != NULL) {
+		if (( word = (Tchar *)realloc((int8_t *)word, wdsize * sizeof(Tchar))) != NULL) {
 			if (wordp)
 				wordp = word + (wordp - savp);
 			if (pendw)

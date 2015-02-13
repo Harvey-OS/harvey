@@ -15,8 +15,8 @@ typedef struct Srv Srv;
 struct Srv {
 	int	fd;
 	int	srvfd;
-	char*	service;
-	char*	mntpnt;
+	int8_t*	service;
+	int8_t*	mntpnt;
 
 	Srv*	next;
 	Srv*	prev;
@@ -30,10 +30,10 @@ static struct {
 } sbox;
 
 static int
-srvFd(char* name, int mode, int fd, char** mntpnt)
+srvFd(int8_t* name, int mode, int fd, int8_t** mntpnt)
 {
 	int n, srvfd;
-	char *p, buf[10];
+	int8_t *p, buf[10];
 
 	/*
 	 * Drop a file descriptor with given name and mode into /srv.
@@ -84,12 +84,12 @@ srvFree(Srv* srv)
 }
 
 static Srv*
-srvAlloc(char* service, int mode, int fd)
+srvAlloc(int8_t* service, int mode, int fd)
 {
 	Dir *dir;
 	Srv *srv;
 	int srvfd;
-	char *mntpnt;
+	int8_t *mntpnt;
 
 	vtLock(sbox.lock);
 	for(srv = sbox.head; srv != nil; srv = srv->next){

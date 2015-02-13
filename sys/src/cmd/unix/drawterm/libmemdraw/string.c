@@ -14,20 +14,21 @@
 #include <memlayer.h>
 
 Point
-memimagestring(Memimage *b, Point p, Memimage *color, Point cp, Memsubfont *f, char *cs)
+memimagestring(Memimage *b, Point p, Memimage *color, Point cp, Memsubfont *f,
+	       int8_t *cs)
 {
 	int w, width;
-	uchar *s;
+	uint8_t *s;
 	Rune c;
 	Fontchar *i;
 
-	s = (uchar*)cs;
+	s = (uint8_t*)cs;
 	for(; (c=*s); p.x+=width, cp.x+=width){
 		width = 0;
 		if(c < Runeself)
 			s++;
 		else{
-			w = chartorune(&c, (char*)s);
+			w = chartorune(&c, (int8_t*)s);
 			if(w == 0){
 				s++;
 				continue;
@@ -46,22 +47,22 @@ memimagestring(Memimage *b, Point p, Memimage *color, Point cp, Memsubfont *f, c
 }
 
 Point
-memsubfontwidth(Memsubfont *f, char *cs)
+memsubfontwidth(Memsubfont *f, int8_t *cs)
 {
 	Rune c;
 	Point p;
-	uchar *s;
+	uint8_t *s;
 	Fontchar *i;
 	int w, width;
 
 	p = Pt(0, f->height);
-	s = (uchar*)cs;
+	s = (uint8_t*)cs;
 	for(; (c=*s); p.x+=width){
 		width = 0;
 		if(c < Runeself)
 			s++;
 		else{
-			w = chartorune(&c, (char*)s);
+			w = chartorune(&c, (int8_t*)s);
 			if(w == 0){
 				s++;
 				continue;

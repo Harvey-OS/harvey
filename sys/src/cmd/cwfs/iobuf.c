@@ -12,7 +12,7 @@
 
 enum { DEBUG = 0 };
 
-extern	long nhiob;
+extern	int32_t nhiob;
 extern	Hiob *hiob;
 
 Iobuf*
@@ -139,7 +139,7 @@ syncblock(void)
 {
 	Iobuf *p, *s, *q;
 	Hiob *hp;
-	long h;
+	int32_t h;
 	int flag;
 
 	flag = 0;
@@ -181,9 +181,9 @@ syncblock(void)
 }
 
 void
-sync(char *reason)
+sync(int8_t *reason)
 {
-	long i;
+	int32_t i;
 
 	print("sync: %s\n", reason);
 	for(i=10*nhiob; i>0; i--)
@@ -246,7 +246,7 @@ checktag(Iobuf *p, int tag, Off qpath)
 }
 
 void
-settag(Iobuf *p, int tag, long qpath)
+settag(Iobuf *p, int tag, int32_t qpath)
 {
 	Tag *t;
 
@@ -270,7 +270,7 @@ iobufql(QLock *q)
 	Iobuf *p, *s;
 	Hiob *hp;
 	Tag *t;
-	long h;
+	int32_t h;
 	int tag;
 
 	for(h=0; h<nhiob; h++) {

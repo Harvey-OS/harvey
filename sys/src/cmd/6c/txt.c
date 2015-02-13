@@ -173,7 +173,7 @@ nextpc(void)
 void
 gargs(Node *n, Node *tn1, Node *tn2)
 {
-	long regs;
+	int32_t regs;
 	Node fnxargs[20], *fnxp;
 
 	regs = cursafe;
@@ -260,16 +260,16 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 }
 
 Node*
-nodgconst(vlong v, Type *t)
+nodgconst(int64_t v, Type *t)
 {
 	if(!typev[t->etype])
-		return nodconst((long)v);
+		return nodconst((int32_t)v);
 	vconstnode.vconst = v;
 	return &vconstnode;
 }
 
 Node*
-nodconst(long v)
+nodconst(int32_t v)
 {
 	constnode.vconst = v;
 	return &constnode;
@@ -460,7 +460,7 @@ regind(Node *n, Node *nn)
 void
 naddr(Node *n, Adr *a)
 {
-	long v;
+	int32_t v;
 
 	a->type = D_NONE;
 	if(n == Z)
@@ -585,7 +585,7 @@ naddr(Node *n, Adr *a)
 }
 
 void
-gcmp(int op, Node *n, vlong val)
+gcmp(int op, Node *n, int64_t val)
 {
 	Node *cn, nod;
 
@@ -840,9 +840,9 @@ gmove(Node *f, Node *t)
 	case CASE(	TLONG,	TIND):
 		a = AMOVLQSX;
 		if(f->op == OCONST) {
-			f->vconst &= (uvlong)0xffffffffU;
+			f->vconst &= (uint64_t)0xffffffffU;
 			if(f->vconst & 0x80000000)
-				f->vconst |= (vlong)0xffffffff << 32;
+				f->vconst |= (int64_t)0xffffffff << 32;
 			a = AMOVQ;
 		}
 		break;
@@ -855,7 +855,7 @@ gmove(Node *f, Node *t)
 	case CASE(	TULONG,	TIND):
 		a = AMOVL;	/* same effect as AMOVLQZX */
 		if(f->op == OCONST) {
-			f->vconst &= (uvlong)0xffffffffU;
+			f->vconst &= (uint64_t)0xffffffffU;
 			a = AMOVQ;
 		}
 		break;
@@ -893,7 +893,7 @@ gmove(Node *f, Node *t)
 			f->vconst &= 0xffff;
 			if(f->vconst & 0x8000){
 				f->vconst |= 0xffff0000;
-				f->vconst |= (vlong)~0 << 32;
+				f->vconst |= (int64_t)~0 << 32;
 			}
 			a = AMOVL;
 		}
@@ -943,7 +943,7 @@ gmove(Node *f, Node *t)
 			f->vconst &= 0xff;
 			if(f->vconst & 0x80){
 				f->vconst |= 0xffffff00;
-				f->vconst |= (vlong)~0 << 32;
+				f->vconst |= (int64_t)~0 << 32;
 			}
 			a = AMOVQ;
 		}
@@ -1128,7 +1128,7 @@ void
 doindex(Node *n)
 {
 	Node nod, nod1;
-	long v;
+	int32_t v;
 
 if(debug['Y'])
 prtree(n, "index");
@@ -1432,7 +1432,7 @@ gbranch(int o)
 }
 
 void
-patch(Prog *op, long pc)
+patch(Prog *op, int32_t pc)
 {
 
 	op->to.offset = pc;
@@ -1458,7 +1458,7 @@ gpseudo(int a, Sym *s, Node *n)
 int
 sconst(Node *n)
 {
-	long v;
+	int32_t v;
 
 	if(n->op == OCONST && !typefd[n->type->etype]) {
 		v = n->vconst;
@@ -1468,10 +1468,10 @@ sconst(Node *n)
 	return 0;
 }
 
-long
+int32_t
 exreg(Type *t)
 {
-	long o;
+	int32_t o;
 
 	if(typechlpv[t->etype]) {
 		if(exregoffset <= REGEXT-4)
@@ -1506,7 +1506,7 @@ schar	ewidth[NTYPE] =
 	-1,		/*[TUNION]*/
 	SZ_INT,		/*[TENUM]*/
 };
-long	ncast[NTYPE] =
+int32_t	ncast[NTYPE] =
 {
 	0,				/*[TXXX]*/
 	BCHAR|BUCHAR,			/*[TCHAR]*/

@@ -9,10 +9,10 @@
 
 #include "astro.h"
 
-char*	herefile = "/lib/sky/here";
+int8_t*	herefile = "/lib/sky/here";
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int i, j;
 	double d;
@@ -202,7 +202,7 @@ readdt(void)
 }
 
 double
-etdate(long year, int mo, double day)
+etdate(int32_t year, int mo, double day)
 {
 	Tim t;
 

@@ -49,7 +49,7 @@ private boolean
 dctd_fill_input_buffer(j_decompress_ptr dinfo)
 {
     jpeg_decompress_data *jddp =
-    (jpeg_decompress_data *) ((char *)dinfo -
+    (jpeg_decompress_data *) ((int8_t *)dinfo -
 			      offset_of(jpeg_decompress_data, dinfo));
 
     if (!jddp->input_eod)

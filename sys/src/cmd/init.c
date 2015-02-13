@@ -12,19 +12,19 @@
 #include <auth.h>
 #include <authsrv.h>
 
-char*	readenv(char*);
-void	setenv(char*, char*);
-void	cpenv(char*, char*);
+int8_t*	readenv(int8_t*);
+void	setenv(int8_t*, int8_t*);
+void	cpenv(int8_t*, int8_t*);
 void	closefds(void);
 void	fexec(void(*)(void));
 void	rcexec(void);
 void	cpustart(void);
 void	pass(int);
 
-char	*service;
-char	*cmd;
-char	*cpu;
-char	*systemname;
+int8_t	*service;
+int8_t	*cmd;
+int8_t	*cpu;
+int8_t	*systemname;
 int	manual;
 int	iscpu;
 
@@ -87,9 +87,9 @@ main(int argc, char *argv[])
 void
 pass(int fd)
 {
-	char key[DESKEYLEN];
-	char typed[32];
-	char crypted[DESKEYLEN];
+	int8_t key[DESKEYLEN];
+	int8_t typed[32];
+	int8_t crypted[DESKEYLEN];
 	int i;
 
 	for(;;){
@@ -125,7 +125,7 @@ pass(int fd)
 static int gotnote;
 
 void
-pinhead(void*, char *msg)
+pinhead(void*, int8_t *msg)
 {
 	gotnote = 1;
 	fprint(2, "init got note '%s'\n", msg);
@@ -195,12 +195,12 @@ cpustart(void)
 	execl("/bin/rc", "rc", "-c", "/rc/bin/cpurc", nil);
 }
 
-char*
-readenv(char *name)
+int8_t*
+readenv(int8_t *name)
 {
 	int f, len;
 	Dir *d;
-	char *val;
+	int8_t *val;
 
 	f = open(name, OREAD);
 	if(f < 0){
@@ -232,7 +232,7 @@ readenv(char *name)
 }
 
 void
-setenv(char *var, char *val)
+setenv(int8_t *var, int8_t *val)
 {
 	int fd;
 
@@ -246,10 +246,10 @@ setenv(char *var, char *val)
 }
 
 void
-cpenv(char *file, char *var)
+cpenv(int8_t *file, int8_t *var)
 {
 	int i, fd;
-	char buf[8192];
+	int8_t buf[8192];
 
 	fd = open(file, OREAD);
 	if(fd < 0)

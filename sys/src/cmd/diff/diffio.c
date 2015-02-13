@@ -19,21 +19,21 @@ struct line {
 };
 extern struct line *file[2];
 extern int len[2];
-extern long *ixold, *ixnew;
+extern int32_t *ixold, *ixnew;
 extern int *J;
 
 static Biobuf *input[2];
-static char *file1, *file2;
+static int8_t *file1, *file2;
 static int firstchange;
 
 #define MAXLINELEN	4096
 #define MIN(x, y)	((x) < (y) ? (x): (y))
 
 static int
-readline(Biobuf *bp, char *buf)
+readline(Biobuf *bp, int8_t *buf)
 {
 	int c;
-	char *p, *e;
+	int8_t *p, *e;
 
 	p = buf;
 	e = p + MAXLINELEN-1;
@@ -66,11 +66,11 @@ readline(Biobuf *bp, char *buf)
  * summing 1-s complement in 16-bit hunks 
  */
 static int
-readhash(Biobuf *bp, char *buf)
+readhash(Biobuf *bp, int8_t *buf)
 {
-	long sum;
+	int32_t sum;
 	unsigned shift;
-	char *p;
+	int8_t *p;
 	int len, space;
 
 	sum = 1;
@@ -82,7 +82,7 @@ readhash(Biobuf *bp, char *buf)
 	{
 	case 0:
 		while (len--) {
-			sum += (long)*p++ << (shift &= (HALFLONG-1));
+			sum += (int32_t)*p++ << (shift &= (HALFLONG-1));
 			shift += 7;
 		}
 		break;
@@ -99,7 +99,7 @@ readhash(Biobuf *bp, char *buf)
 				shift += 7;
 				space = 0;
 			}
-			sum += (long)*p << (shift &= (HALFLONG-1));
+			sum += (int32_t)*p << (shift &= (HALFLONG-1));
 			shift += 7;
 		}
 		break;
@@ -112,22 +112,22 @@ readhash(Biobuf *bp, char *buf)
 				p++;
 				continue;
 			}
-			sum += (long)*p++ << (shift &= (HALFLONG-1));
+			sum += (int32_t)*p++ << (shift &= (HALFLONG-1));
 			shift += 7;
 		}
 		break;
 	}
 	sum = low(sum) + high(sum);
-	return ((short)low(sum) + (short)high(sum));
+	return ((int16_t)low(sum) + (int16_t)high(sum));
 }
 
 Biobuf *
-prepare(int i, char *arg)
+prepare(int i, int8_t *arg)
 {
 	struct line *p;
 	int j, h;
 	Biobuf *bp;
-	char *cp, buf[MAXLINELEN];
+	int8_t *cp, buf[MAXLINELEN];
 	int nbytes;
 	Rune r;
 
@@ -170,9 +170,9 @@ prepare(int i, char *arg)
 }
 
 static int
-squishspace(char *buf)
+squishspace(int8_t *buf)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	int space;
 
 	for (space = 0, q = p = buf; *q; q++) {
@@ -197,7 +197,7 @@ void
 check(Biobuf *bf, Biobuf *bt)
 {
 	int f, t, flen, tlen;
-	char fbuf[MAXLINELEN], tbuf[MAXLINELEN];
+	int8_t fbuf[MAXLINELEN], tbuf[MAXLINELEN];
 
 	ixold[0] = ixnew[0] = 0;
 	for (f = t = 1; f < len[0]; f++) {
@@ -224,7 +224,7 @@ check(Biobuf *bf, Biobuf *bt)
 }
 
 static void
-range(int a, int b, char *separator)
+range(int a, int b, int8_t *separator)
 {
 	Bprint(&stdout, "%d", a > b ? b: a);
 	if (a < b)
@@ -232,9 +232,9 @@ range(int a, int b, char *separator)
 }
 
 static void
-fetch(long *f, int a, int b, Biobuf *bp, char *s)
+fetch(int32_t *f, int a, int b, Biobuf *bp, int8_t *s)
 {
-	char buf[MAXLINELEN];
+	int8_t buf[MAXLINELEN];
 	int maxb;
 
 	if(a <= 1)
@@ -269,8 +269,8 @@ int nchanges;
 void
 change(int a, int b, int c, int d)
 {
-	char verb;
-	char buf[4];
+	int8_t verb;
+	int8_t buf[4];
 	Change *ch;
 
 	if (a > b && c > d)

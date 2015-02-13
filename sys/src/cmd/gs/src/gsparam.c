@@ -118,8 +118,8 @@ gs_param_read_items(gs_param_list * plist, void *obj,
     int ecode = 0;
 
     for (pi = items; pi->key != 0; ++pi) {
-	const char *key = pi->key;
-	void *pvalue = (void *)((char *)obj + pi->offset);
+	const int8_t *key = pi->key;
+	void *pvalue = (void *)((int8_t *)obj + pi->offset);
 	gs_param_typed_value typed;
 	int code;
 
@@ -147,14 +147,14 @@ gs_param_write_items(gs_param_list * plist, const void *obj,
     int ecode = 0;
 
     for (pi = items; pi->key != 0; ++pi) {
-	const char *key = pi->key;
-	const void *pvalue = (const void *)((const char *)obj + pi->offset);
+	const int8_t *key = pi->key;
+	const void *pvalue = (const void *)((const int8_t *)obj + pi->offset);
 	int size = xfer_item_sizes[pi->type];
 	gs_param_typed_value typed;
 	int code;
 
 	if (default_obj != 0 &&
-	    !memcmp((const void *)((const char *)default_obj + pi->offset),
+	    !memcmp((const void *)((const int8_t *)default_obj + pi->offset),
 		    pvalue, size)
 	    )
 	    continue;
@@ -310,7 +310,7 @@ param_read_int(gs_param_list * plist, gs_param_name pkey, int *pvalue)
     RETURN_READ_TYPED(i, gs_param_type_int);
 }
 int
-param_read_long(gs_param_list * plist, gs_param_name pkey, long *pvalue)
+param_read_long(gs_param_list * plist, gs_param_name pkey, int32_t *pvalue)
 {
     RETURN_READ_TYPED(l, gs_param_type_long);
 }
@@ -386,7 +386,8 @@ param_write_int(gs_param_list * plist, gs_param_name pkey, const int *pvalue)
     RETURN_WRITE_TYPED(i, gs_param_type_int);
 }
 int
-param_write_long(gs_param_list * plist, gs_param_name pkey, const long *pvalue)
+param_write_long(gs_param_list * plist, gs_param_name pkey,
+                 const int32_t *pvalue)
 {
     RETURN_WRITE_TYPED(l, gs_param_type_long);
 }

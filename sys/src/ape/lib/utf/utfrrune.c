@@ -25,19 +25,19 @@
 #include "utf.h"
 #include "utfdef.h"
 
-char*
-utfrrune(char *s, long c)
+int8_t*
+utfrrune(int8_t *s, int32_t c)
 {
-	long c1;
+	int32_t c1;
 	Rune r;
-	char *s1;
+	int8_t *s1;
 
 	if(c < Runesync)		/* not part of utf sequence */
 		return strrchr(s, c);
 
 	s1 = 0;
 	for(;;) {
-		c1 = *(uchar*)s;
+		c1 = *(uint8_t*)s;
 		if(c1 < Runeself) {	/* one byte rune */
 			if(c1 == 0)
 				return s1;

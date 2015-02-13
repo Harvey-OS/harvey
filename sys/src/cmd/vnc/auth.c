@@ -11,7 +11,7 @@
 #include <libsec.h>
 #include <auth.h>
 
-char *serveraddr;
+int8_t *serveraddr;
 
 /*
  * Encrypt n bytes using the password
@@ -22,9 +22,9 @@ enum
 	VerLen	= 12
 };
 
-static char version[VerLen+1] = "RFB 003.003\n";
+static int8_t version[VerLen+1] = "RFB 003.003\n";
 
-static uchar tab[256];
+static uint8_t tab[256];
 
 /* VNC reverses the bits of each byte before using as a des key */
 static void
@@ -48,15 +48,15 @@ mktab(void)
 }
 
 static void
-vncencrypt(uchar *buf, int n, char *pw)
+vncencrypt(uint8_t *buf, int n, int8_t *pw)
 {
-	uchar *p;
-	uchar key[9];
+	uint8_t *p;
+	uint8_t key[9];
 	DESstate s;
 
 	mktab();
 	memset(key, 0, sizeof key);
-	strncpy((char*)key, pw, 8);
+	strncpy((int8_t*)key, pw, 8);
 	for(p=key; *p; p++)
 		*p = tab[*p];
 
@@ -65,9 +65,9 @@ vncencrypt(uchar *buf, int n, char *pw)
 }
 
 static int
-readln(char *prompt, char *line, int len)
+readln(int8_t *prompt, int8_t *line, int len)
 {
-	char *p;
+	int8_t *p;
 	int fd, ctl, n, nr;
 
 	fd = open("/dev/cons", ORDWR);
@@ -118,7 +118,7 @@ readln(char *prompt, char *line, int len)
 int
 vncsrvhandshake(Vnc *v)
 {
-	char msg[VerLen+1];
+	int8_t msg[VerLen+1];
 
 	strecpy(msg, msg+sizeof msg, version);
 	if(verbose)
@@ -135,7 +135,7 @@ vncsrvhandshake(Vnc *v)
 int
 vnchandshake(Vnc *v)
 {
-	char msg[VerLen+1];
+	int8_t msg[VerLen+1];
 
 	msg[VerLen] = 0;
 	vncrdbytes(v, msg, VerLen);
@@ -152,12 +152,12 @@ vnchandshake(Vnc *v)
 }
 
 int
-vncauth(Vnc *v, char *keypattern)
+vncauth(Vnc *v, int8_t *keypattern)
 {
-	char pw[128], *reason;
-	uchar chal[VncChalLen];
-	ulong auth;
-	char *p, *server;
+	int8_t pw[128], *reason;
+	uint8_t chal[VncChalLen];
+	uint32_t auth;
+	int8_t *p, *server;
 
 	if(keypattern == nil)
 		keypattern = "";

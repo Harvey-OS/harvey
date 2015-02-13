@@ -42,7 +42,7 @@
 /* Define a node for the Huffman code tree. */
 typedef struct count_node_s count_node;
 struct count_node_s {
-    long freq;			/* frequency of value */
+    int32_t freq;			/* frequency of value */
     uint value;			/* data value being encoded */
     uint code_length;		/* length of Huffman code */
     count_node *next;		/* next node in freq-sorted list */
@@ -54,7 +54,8 @@ struct count_node_s {
 #  define debug_print_nodes(nodes, n, tag, lengths)\
      if ( gs_debug_c('W') ) print_nodes_proc(nodes, n, tag, lengths);
 private void
-print_nodes_proc(const count_node * nodes, int n, const char *tag, int lengths)
+print_nodes_proc(const count_node * nodes, int n, const int8_t *tag,
+                 int lengths)
 {
     int i;
 
@@ -86,7 +87,7 @@ print_nodes_proc(const count_node * nodes, int n, const char *tag, int lengths)
 private int
 compare_freqs(const void *p1, const void *p2)
 {
-    long diff = pn2->freq - pn1->freq;
+    int32_t diff = pn2->freq - pn1->freq;
 
     return (diff < 0 ? -1 : diff > 0 ? 1 : 0);
 }
@@ -175,7 +176,7 @@ hc_limit_code_lengths(count_node * nodes, uint num_values, int max_length)
 /* Compute an optimal Huffman code from an input data set. */
 /* The client must have set all the elements of *def. */
 int
-hc_compute(hc_definition * def, const long *freqs, gs_memory_t * mem)
+hc_compute(hc_definition * def, const int32_t *freqs, gs_memory_t * mem)
 {
     uint num_values = def->num_values;
     count_node *nodes =
@@ -208,7 +209,7 @@ hc_compute(hc_definition * def, const long *freqs, gs_memory_t * mem)
 	) {
 	count_node *pn1 = lowest;
 	count_node *pn2 = pn1->next;
-	long freq = pn1->freq + pn2->freq;
+	int32_t freq = pn1->freq + pn2->freq;
 
 	/* Create a parent for the two lowest-frequency nodes. */
 	lowest = pn2->next;
@@ -307,7 +308,7 @@ hc_bytes_from_definition(byte * dbytes, const hc_definition * def)
     byte *bp = dbytes;
     const byte *lp = dbytes;
     const byte *end = dbytes + def->num_values;
-    const ushort *values = def->values;
+    const uint16_t *values = def->values;
 
     /* Temporarily use the output string as a map from */
     /* values to code lengths. */
@@ -354,7 +355,7 @@ void
 hc_definition_from_bytes(hc_definition * def, const byte * dbytes)
 {
     int v, i;
-    ushort counts[max_hc_length + 1];
+    uint16_t counts[max_hc_length + 1];
 
     /* Make a first pass to set the counts for each code length. */
     memset(counts, 0, sizeof(counts[0]) * (def->num_counts + 1));
@@ -392,7 +393,7 @@ void
 hc_make_encoding(hce_code * encode, const hc_definition * def)
 {
     uint next = 0;
-    const ushort *pvalue = def->values;
+    const uint16_t *pvalue = def->values;
     uint i, k;
 
     for (i = 1; i <= def->num_counts; i++) {
@@ -435,7 +436,7 @@ hc_make_decoding(hcd_code * decode, const hc_definition * def,
 {				/* Make entries for single-dispatch codes. */
     {
 	hcd_code *pcd = decode;
-	const ushort *pvalue = def->values;
+	const uint16_t *pvalue = def->values;
 	uint i, k, d;
 
 	for (i = 0; i <= initial_bits; i++) {
@@ -455,7 +456,7 @@ hc_make_decoding(hcd_code * decode, const hc_definition * def,
 	uint dsize = hc_sizeof_decoding(def, initial_bits);
 	hcd_code *pcd = decode + (1 << initial_bits);
 	hcd_code *pcd2 = decode + dsize;
-	const ushort *pvalue = def->values + def->num_values;
+	const uint16_t *pvalue = def->values + def->num_values;
 	uint entries_left = 0, slots_left = 0, mult_shift = 0;
 	uint i = def->num_counts + 1, j;
 

@@ -16,8 +16,8 @@
 #include <9p.h>
 
 /* little endian */
-#define SHORT(p)	(((uchar*)(p))[0] | (((uchar*)(p))[1] << 8))
-#define LONG(p)	((ulong)SHORT(p) |(((ulong)SHORT((p)+2)) << 16))
+#define SHORT(p)	(((uint8_t*)(p))[0] | (((uint8_t*)(p))[1] << 8))
+#define LONG(p)	((uint32_t)SHORT(p) |(((uint32_t)SHORT((p)+2)) << 16))
 
 typedef struct Ofile	Ofile;
 typedef struct Odir	Odir;
@@ -48,11 +48,11 @@ enum {
  */
 struct Ofile {
 	Biobuf *b;
-	ulong nblock;
-	ulong *blockmap;
-	ulong rootblock;
-	ulong smapblock;
-	ulong *smallmap;
+	uint32_t nblock;
+	uint32_t *blockmap;
+	uint32_t rootblock;
+	uint32_t smapblock;
+	uint32_t *smallmap;
 };
 
 /* Odir headers are found in directory listings in the Olefile */
@@ -60,17 +60,17 @@ struct Ofile {
 struct Odir {
 	Ofile *f;
 	Rune name[32+1];
-	uchar type;
-	uchar isroot;
-	ulong left;
-	ulong right;
-	ulong dir;
-	ulong start;
-	ulong size;
+	uint8_t type;
+	uint8_t isroot;
+	uint32_t left;
+	uint32_t right;
+	uint32_t dir;
+	uint32_t start;
+	uint32_t size;
 };
 
 void*
-emalloc(ulong sz)
+emalloc(uint32_t sz)
 {
 	void *v;
 
@@ -83,7 +83,7 @@ int
 convM2OD(Odir *f, void *buf, int nbuf)
 {
 	int i;
-	char *p;
+	int8_t *p;
 	int len;
 
 	if(nbuf < Odirsize)
@@ -118,7 +118,7 @@ convM2OD(Odir *f, void *buf, int nbuf)
 }
 
 int
-oreadblock(Ofile *f, int block, ulong off, char *buf, int nbuf)
+oreadblock(Ofile *f, int block, uint32_t off, int8_t *buf, int nbuf)
 {
 	int n;
 
@@ -150,7 +150,7 @@ oreadblock(Ofile *f, int block, ulong off, char *buf, int nbuf)
 }
 
 int
-chainlen(Ofile *f, ulong start)
+chainlen(Ofile *f, uint32_t start)
 {
 	int i;
 	for(i=0; start < 0xFFFF0000; i++)
@@ -166,7 +166,7 @@ chainlen(Ofile *f, ulong start)
  * like the MS-DOS file allocation tables.
  */
 int
-oreadchain(Ofile *f, ulong block, int off, char *buf, int nbuf)
+oreadchain(Ofile *f, uint32_t block, int off, int8_t *buf, int nbuf)
 {
 	int i;
 	int offblock;
@@ -178,7 +178,7 @@ oreadchain(Ofile *f, ulong block, int off, char *buf, int nbuf)
 }
 
 int 
-oreadfile(Odir *d, int off, char *buf, int nbuf)
+oreadfile(Odir *d, int off, int8_t *buf, int nbuf)
 {
 	/*
 	 * if d->size < 0x1000 then d->start refers
@@ -204,7 +204,7 @@ oreadfile(Odir *d, int off, char *buf, int nbuf)
 int
 oreaddir(Ofile *f, int entry, Odir *d)
 {
-	char buf[Odirsize];
+	int8_t buf[Odirsize];
 
 	if(oreadchain(f, f->rootblock, entry*Odirsize, buf, Odirsize) != Odirsize)
 		return -1;
@@ -214,7 +214,7 @@ oreaddir(Ofile *f, int entry, Odir *d)
 }
 
 void
-dumpdir(Ofile *f, ulong dnum)
+dumpdir(Ofile *f, uint32_t dnum)
 {
 	Odir d;
 
@@ -224,27 +224,27 @@ dumpdir(Ofile *f, ulong dnum)
 	}
 
 	fprint(2, "%.8lux type %d size %lud l %.8lux r %.8lux d %.8lux (%S)\n", dnum, d.type, d.size, d.left, d.right, d.dir, d.name);
-	if(d.left != (ulong)-1) 
+	if(d.left != (uint32_t)-1) 
 		dumpdir(f, d.left);
-	if(d.right != (ulong)-1)
+	if(d.right != (uint32_t)-1)
 		dumpdir(f, d.right);
-	if(d.dir != (ulong)-1)
+	if(d.dir != (uint32_t)-1)
 		dumpdir(f, d.dir);
 }
 
 Ofile*
-oleopen(char *fn)
+oleopen(int8_t *fn)
 {
 	int i, j, k, block;
 	int ndepot;
-	ulong u;
+	uint32_t u;
 	Odir rootdir;
-	ulong extrablock;
-	uchar buf[Blocksize];
+	uint32_t extrablock;
+	uint8_t buf[Blocksize];
 
 	Ofile *f;
 	Biobuf *b;
-	static char magic[] = {
+	static int8_t magic[] = {
 		0xD0, 0xCF, 0x11, 0xE0,
 		0xA1, 0xB1, 0x1A, 0xE1
 	};
@@ -295,7 +295,7 @@ oleopen(char *fn)
 			goto Die;
 		}
 		block = LONG(buf);
-		if((ulong)block == Bendchain) {
+		if((uint32_t)block == Bendchain) {
 			ndepot = i;
 			f->nblock = ndepot*(Blocksize/4);
 			break;
@@ -326,7 +326,7 @@ oleopen(char *fn)
 				goto Die;
 			}
 			block = LONG(buf);
-			if((ulong)block == Bendchain) {
+			if((uint32_t)block == Bendchain) {
 				ndepot = i;
 				f->nblock = ndepot*(Blocksize/4);
 				goto Break2;
@@ -372,10 +372,10 @@ void
 oleread(Req *r)
 {
 	Odir *d;
-	char *p;
+	int8_t *p;
 	int e, n;
-	long c;
-	vlong o;
+	int32_t c;
+	int64_t o;
 
 	o = r->ifcall.offset;
 	d = r->fid->file->aux;
@@ -431,7 +431,7 @@ filldir(File *t, Ofile *f, int dnum, int nrecur)
 	Odir d;
 	int i;
 	Rune rbuf[40];
-	char buf[UTFmax*nelem(rbuf)];
+	int8_t buf[UTFmax*nelem(rbuf)];
 	File *nt;
 
 	if(dnum == 0xFFFFFFFF || oreaddir(f, dnum, &d) != 1)

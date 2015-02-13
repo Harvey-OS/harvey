@@ -11,7 +11,7 @@
 
 #define		MKFILE		"mkfile"
 
-static char *version = "@(#)mk general release 4 (plan 9)";
+static int8_t *version = "@(#)mk general release 4 (plan 9)";
 int debug;
 Rule *rules, *metarules;
 int nflag = 0;
@@ -20,7 +20,7 @@ int iflag = 0;
 int kflag = 0;
 int aflag = 0;
 int uflag = 0;
-char *explain = 0;
+int8_t *explain = 0;
 Word *target1;
 int nreps = 1;
 Job *jobs;
@@ -28,15 +28,15 @@ Biobuf bout;
 Rule *patrule;
 void badusage(void);
 #ifdef	PROF
-short buf[10000];
+int16_t buf[10000];
 #endif
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Word *w;
-	char *s, *temp;
-	char *files[256], **f = files, **ff;
+	int8_t *s, *temp;
+	int8_t *files[256], **f = files, **ff;
 	int sflag = 0;
 	int i;
 	int tfd = -1;
@@ -278,7 +278,7 @@ Realloc(void *s, int n)
 }
 
 void
-regerror(char *s)
+regerror(int8_t *s)
 {
 	if(patrule)
 		fprint(2, "mk: %s:%d: regular expression error; %s\n",

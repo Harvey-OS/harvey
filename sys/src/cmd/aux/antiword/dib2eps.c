@@ -460,7 +460,7 @@ vCopy2File(FILE *pInFile, ULONG ulFileOffset, size_t tPictureLen)
 	FILE	*pOutFile;
 	size_t	tIndex;
 	int	iTmp;
-	char	szFilename[30];
+	int8_t	szFilename[30];
 
 	if (!bSetDataOffset(pInFile, ulFileOffset)) {
 		return;

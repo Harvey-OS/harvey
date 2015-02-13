@@ -22,14 +22,14 @@
 Fcall	*req;
 Fcall	*rep;
 
-uchar	mdata[Maxiosize];
-char	repdata[Maxfdata];
-uchar	statbuf[STATMAX];
+uint8_t	mdata[Maxiosize];
+int8_t	repdata[Maxfdata];
+uint8_t	statbuf[STATMAX];
 int	errno;
-char	errbuf[ERRMAX];
+int8_t	errbuf[ERRMAX];
 void	rmservice(void);
-char	srvfile[64];
-char	*deffile;
+int8_t	srvfile[64];
+int8_t	*deffile;
 int	doabort;
 int	trspaces;
 
@@ -194,7 +194,7 @@ rmservice(void)
 	remove(srvfile);
 }
 
-char *
+int8_t *
 xerrstr(int e)
 {
 	if (e < 0 || e >= sizeof errmsg/sizeof errmsg[0])

@@ -55,8 +55,8 @@
 #include "gdevdsp.h"
 
 
-static const char szImgName2[] = "Ghostscript Image";
-static const char szTrcName2[] = "Ghostscript Graphical Trace";
+static const int8_t szImgName2[] = "Ghostscript Image";
+static const int8_t szTrcName2[] = "Ghostscript Graphical Trace";
 
 /* Forward references */
 LRESULT CALLBACK WndImg2Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -331,7 +331,7 @@ image_size(IMAGE *img, int new_width, int new_height, int new_raster,
 
 int 
 image_separation(IMAGE *img,
-    int comp_num, const char *name,
+    int comp_num, const int8_t *name,
     unsigned short c, unsigned short m,
     unsigned short y, unsigned short k)
 {
@@ -403,7 +403,7 @@ register_class(void)
 
 void image_separations(IMAGE *img)
 {
-    char buf[64];
+    int8_t buf[64];
     int i;
     int exist;
     int num_visible = 0;
@@ -466,8 +466,8 @@ create_window(IMAGE *img)
 {
     HMENU sysmenu;
     LOGBRUSH lb;
-    char winposbuf[256];
-    char window_title[256];
+    int8_t winposbuf[256];
+    int8_t window_title[256];
     int len = sizeof(winposbuf);
 
     /* create background brush */
@@ -509,7 +509,7 @@ create_window(IMAGE *img)
 	*
 	*   It is useful to compare images generated with different revisions.
 	*/
-        char ini_path[MAX_PATH];
+        int8_t ini_path[MAX_PATH];
 	DWORD ini_path_length;
 
 	ini_path_length = GetModuleFileName(NULL, ini_path, sizeof(ini_path));
@@ -1437,11 +1437,11 @@ WndImg2Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    if (hwndtext)
 		SendMessage(hwndtext, message, wParam, lParam);
 	    else {
-		char szFile[256];
+		int8_t szFile[256];
 		int i, cFiles;
-		const char *p;
-		const char *szDragPre = "\r(";
-		const char *szDragPost = ") run\r";
+		const int8_t *p;
+		const int8_t *szDragPre = "\r(";
+		const int8_t *szDragPost = ") run\r";
 		HDROP hdrop = (HDROP)wParam;
 		cFiles = DragQueryFile(hdrop, (UINT)(-1), (LPSTR)NULL, 0);
 		for (i=0; i<cFiles; i++) {
@@ -1462,7 +1462,7 @@ WndImg2Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    break;
 	case WM_DESTROY:
 	    {   /* Save the text window size */
-		char winposbuf[64];
+		int8_t winposbuf[64];
 		sprintf(winposbuf, "%d %d %d %d", img->x, img->y, 
 		    img->cx, img->cy);
 		win_set_reg_value((img->device != NULL ? "Image" : "Tracer"), winposbuf);
@@ -1489,7 +1489,7 @@ draw(IMAGE *img, HDC hdc, int dx, int dy, int wx, int wy,
     int i;
     UINT which_colors;
     unsigned char *line = NULL;
-    long ny;
+    int32_t ny;
     unsigned char *bits;
     BOOL directcopy = FALSE;
 

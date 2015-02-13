@@ -23,13 +23,13 @@ enum
 
 struct HttpObj
 {
-	char	name[ObjNameSize];
+	int8_t	name[ObjNameSize];
 	int	(*f)(HConnect*);
 };
 
 static HttpObj	objs[MaxObjs];
 
-static char *webroot;
+static int8_t *webroot;
 
 static	void		listenproc(void*);
 static	int		estats(HConnect *c);
@@ -45,13 +45,13 @@ static	int		hicachekick(HConnect *c);
 static	int		hdcachekick(HConnect *c);
 static	int		hicacheflush(HConnect *c);
 static	int		hdcacheflush(HConnect *c);
-static	int		httpdobj(char *name, int (*f)(HConnect*));
+static	int		httpdobj(int8_t *name, int (*f)(HConnect*));
 static	int		xgraph(HConnect *c);
 static	int		xset(HConnect *c);
 static	int		fromwebdir(HConnect *c);
 
 int
-httpdinit(char *address, char *dir)
+httpdinit(int8_t *address, int8_t *dir)
 {
 	fmtinstall('D', hdatefmt);
 /*	fmtinstall('H', httpfmt); */
@@ -86,7 +86,7 @@ httpdinit(char *address, char *dir)
 }
 
 static int
-httpdobj(char *name, int (*f)(HConnect*))
+httpdobj(int8_t *name, int (*f)(HConnect*))
 {
 	int i;
 
@@ -124,7 +124,7 @@ static void
 listenproc(void *vaddress)
 {
 	HConnect *c;
-	char *address, ndir[NETPATHLEN], dir[NETPATHLEN];
+	int8_t *address, ndir[NETPATHLEN], dir[NETPATHLEN];
 	int ctl, nctl, data;
 
 	address = vaddress;
@@ -201,8 +201,8 @@ httpproc(void *v)
 	free(c);
 }
 
-char*
-hargstr(HConnect *c, char *name, char *def)
+int8_t*
+hargstr(HConnect *c, int8_t *name, int8_t *def)
 {
 	HSPairs *p;
 	
@@ -212,10 +212,10 @@ hargstr(HConnect *c, char *name, char *def)
 	return def;
 }
 
-vlong
-hargint(HConnect *c, char *name, vlong def)
+int64_t
+hargint(HConnect *c, int8_t *name, int64_t def)
 {
-	char *a;
+	int8_t *a;
 	
 	if((a = hargstr(c, name, nil)) == nil)
 		return def;
@@ -223,7 +223,7 @@ hargint(HConnect *c, char *name, vlong def)
 }
 
 static int
-percent(ulong v, ulong total)
+percent(uint32_t v, uint32_t total)
 {
 	if(total == 0)
 		total = 1;
@@ -249,7 +249,7 @@ preq(HConnect *c)
 }
 
 int
-hsettype(HConnect *c, char *type)
+hsettype(HConnect *c, int8_t *type)
 {
 	Hio *hout;
 	int r;
@@ -323,8 +323,8 @@ hnotfound(HConnect *c)
 }
 
 struct {
-	char *ext;
-	char *type;
+	int8_t *ext;
+	int8_t *type;
 } exttab[] = {
 	".html",	"text/html",
 	".txt",	"text/plain",
@@ -337,7 +337,7 @@ struct {
 static int
 fromwebdir(HConnect *c)
 {
-	char buf[4096], *p, *ext, *type;
+	int8_t buf[4096], *p, *ext, *type;
 	int i, fd, n, defaulted;
 	Dir *d;
 	
@@ -388,7 +388,7 @@ reopen:
 
 static struct
 {
-	char *name;
+	int8_t *name;
 	int *p;
 } namedints[] =
 {
@@ -412,7 +412,7 @@ static int
 xset(HConnect *c)
 {
 	int i, old;
-	char *name, *value;
+	int8_t *name, *value;
 
 	if(hsettext(c) < 0)
 		return -1;
@@ -524,7 +524,7 @@ sindex(HConnect *c)
 	Hio *hout;
 	Index *ix;
 	Arena *arena;
-	vlong clumps, cclumps, uncsize, used, size;
+	int64_t clumps, cclumps, uncsize, used, size;
 	int i, r, active;
 
 	r = hsettext(c);
@@ -757,7 +757,7 @@ struct Arg
 	int index2;
 };
 
-static long
+static int32_t
 rawgraph(Stats *s, Stats *t, void *va)
 {
 	Arg *a;
@@ -767,7 +767,7 @@ rawgraph(Stats *s, Stats *t, void *va)
 	return t->n[a->index];
 }
 
-static long
+static int32_t
 diffgraph(Stats *s, Stats *t, void *va)
 {
 	Arg *a;
@@ -776,7 +776,7 @@ diffgraph(Stats *s, Stats *t, void *va)
 	return t->n[a->index] - s->n[a->index];
 }
 
-static long
+static int32_t
 pctgraph(Stats *s, Stats *t, void *va)
 {
 	Arg *a;
@@ -786,7 +786,7 @@ pctgraph(Stats *s, Stats *t, void *va)
 	return percent(t->n[a->index], t->n[a->index2]);
 }
 
-static long
+static int32_t
 pctdiffgraph(Stats *s, Stats *t, void *va)
 {
 	Arg *a;
@@ -795,15 +795,15 @@ pctdiffgraph(Stats *s, Stats *t, void *va)
 	return percent(t->n[a->index]-s->n[a->index], t->n[a->index2]-s->n[a->index2]);
 }
 
-static long
-xdiv(long a, long b)
+static int32_t
+xdiv(int32_t a, int32_t b)
 {
 	if(b == 0)
 		b++;
 	return a/b;
 }
 
-static long
+static int32_t
 divdiffgraph(Stats *s, Stats *t, void *va)
 {
 	Arg *a;
@@ -812,19 +812,19 @@ divdiffgraph(Stats *s, Stats *t, void *va)
 	return xdiv(t->n[a->index] - s->n[a->index], t->n[a->index2] - s->n[a->index2]);
 }
 
-static long
+static int32_t
 netbw(Stats *s)
 {
-	ulong *n;
+	uint32_t *n;
 
 	n = s->n;
 	return n[StatRpcReadBytes]+n[StatRpcWriteBytes];	/* not exactly right */
 }
 
-static long
+static int32_t
 diskbw(Stats *s)
 {
-	ulong *n;
+	uint32_t *n;
 
 	n = s->n;
 	return n[StatApartReadBytes]+n[StatApartWriteBytes]	
@@ -832,27 +832,27 @@ diskbw(Stats *s)
 		+ n[StatSumReadBytes];
 }
 
-static long
+static int32_t
 iobw(Stats *s)
 {
 	return netbw(s)+diskbw(s);
 }
 
-static long
+static int32_t
 diskgraph(Stats *s, Stats *t, void *va)
 {
 	USED(va);
 	return diskbw(t)-diskbw(s);
 }
 
-static long
+static int32_t
 netgraph(Stats *s, Stats *t, void *va)
 {
 	USED(va);
 	return netbw(t)-netbw(s);
 }
 
-static long
+static int32_t
 iograph(Stats *s, Stats *t, void *va)
 {
 	USED(va);
@@ -860,7 +860,7 @@ iograph(Stats *s, Stats *t, void *va)
 }
 
 
-static char* graphname[] =
+static int8_t* graphname[] =
 {
 	"rpctotal",
 	"rpcread",
@@ -943,7 +943,7 @@ static char* graphname[] =
 };
 
 static int
-findname(char *s)
+findname(int8_t *s)
 {
 	int i;
 
@@ -974,13 +974,13 @@ dotextbin(Hio *io, Graph *g)
 static int
 xgraph(HConnect *c)
 {
-	char *name;
+	int8_t *name;
 	Hio *hout;
 	Memimage *m;
 	int dotext;
 	Graph g;
 	Arg arg;
-	char *graph, *a;
+	int8_t *graph, *a;
 
 	name = hargstr(c, "arg", "");
 	if((arg.index = findname(name)) == -1 && strcmp(name, "*") != 0){
@@ -1063,7 +1063,7 @@ xloglist(HConnect *c)
 static int
 xlog(HConnect *c)
 {
-	char *name;
+	int8_t *name;
 	VtLog *l;
 
 	name = hargstr(c, "log", "");
@@ -1102,13 +1102,13 @@ xmlindent(Hio *hout, int indent)
 }
 
 void
-xmlaname(Hio *hout, char *v, char *tag)
+xmlaname(Hio *hout, int8_t *v, int8_t *tag)
 {
 	hprint(hout, " %s=\"%s\"", tag, v);
 }
 
 void
-xmlscore(Hio *hout, u8int *v, char *tag)
+xmlscore(Hio *hout, u8int *v, int8_t *tag)
 {
 	if(scorecmp(zeroscore, v) == 0)
 		return;
@@ -1116,7 +1116,7 @@ xmlscore(Hio *hout, u8int *v, char *tag)
 }
 
 void
-xmlsealed(Hio *hout, int v, char *tag)
+xmlsealed(Hio *hout, int v, int8_t *tag)
 {
 	if(!v)
 		return;
@@ -1124,13 +1124,13 @@ xmlsealed(Hio *hout, int v, char *tag)
 }
 
 void
-xmlu32int(Hio *hout, u32int v, char *tag)
+xmlu32int(Hio *hout, u32int v, int8_t *tag)
 {
 	hprint(hout, " %s=\"%ud\"", tag, v);
 }
 
 void
-xmlu64int(Hio *hout, u64int v, char *tag)
+xmlu64int(Hio *hout, u64int v, int8_t *tag)
 {
 	hprint(hout, " %s=\"%llud\"", tag, v);
 }
@@ -1140,7 +1140,7 @@ vtloghdump(Hio *h, VtLog *l)
 {
 	int i;
 	VtLogChunk *c;
-	char *name;
+	int8_t *name;
 	
 	name = l ? l->name : "&lt;nil&gt;";
 
@@ -1163,13 +1163,13 @@ vtloghdump(Hio *h, VtLog *l)
 static int
 strpcmp(const void *va, const void *vb)
 {
-	return strcmp(*(char**)va, *(char**)vb);
+	return strcmp(*(int8_t**)va, *(int8_t**)vb);
 }
 
 void
 vtloghlist(Hio *h)
 {
-	char **p;
+	int8_t **p;
 	int i, n;
 	
 	hprint(h, "<html><head>\n");

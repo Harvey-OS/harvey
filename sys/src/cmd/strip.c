@@ -13,10 +13,10 @@
 #include <mach.h>
 
 void
-error(char* fmt, ...)
+error(int8_t* fmt, ...)
 {
 	va_list arg;
-	char *e, s[256];
+	int8_t *e, s[256];
 
 	va_start(arg, fmt);
 	e = seprint(s, s+sizeof(s), "%s: ", argv0);
@@ -35,15 +35,15 @@ usage(void)
 }
 
 static int
-strip(char* file, char* out)
+strip(int8_t* file, int8_t* out)
 {
 	Dir *dir;
 	int fd, i;
 	Fhdr fhdr;
 	Exec *exec;
-	ulong mode;
+	uint32_t mode;
 	void *data;
-	vlong length;
+	int64_t length;
 
 	if((fd = open(file, OREAD)) < 0){
 		error("%s: open: %r", file);

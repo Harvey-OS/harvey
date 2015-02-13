@@ -14,7 +14,7 @@
 #include "fns.h"
 
 static int spinning;
-static char* wheel[4] = { "\b|", "\b/", "\b-", "\b\\", };
+static int8_t* wheel[4] = { "\b|", "\b/", "\b-", "\b\\", };
 static int spoke;
 
 void
@@ -42,10 +42,10 @@ stopwheel(void)
 }
 
 int
-print(char* fmt, ...)
+print(int8_t* fmt, ...)
 {
 	va_list arg;
-	char buf[PRINTSIZE], *e, *p;
+	int8_t buf[PRINTSIZE], *e, *p;
 
 	p = buf;
 	if(spinning)

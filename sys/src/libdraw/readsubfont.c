@@ -12,11 +12,11 @@
 #include <draw.h>
 
 Subfont*
-readsubfonti(Display*d, char *name, int fd, Image *ai, int dolock)
+readsubfonti(Display*d, int8_t *name, int fd, Image *ai, int dolock)
 {
-	char hdr[3*12+4+1];
+	int8_t hdr[3*12+4+1];
 	int n;
-	uchar *p;
+	uint8_t *p;
 	Fontchar *fc;
 	Subfont *f;
 	Image *i;
@@ -63,7 +63,7 @@ readsubfonti(Display*d, char *name, int fd, Image *ai, int dolock)
 }
 
 Subfont*
-readsubfont(Display *d, char *name, int fd, int dolock)
+readsubfont(Display *d, int8_t *name, int fd, int dolock)
 {
 	return readsubfonti(d, name, fd, nil, dolock);
 }

@@ -35,7 +35,7 @@
 
 
 /* Read bytes from stdin, unbuffered if possible. */
-int gp_stdin_read(char *buf, int len, int interactive, FILE *f)
+int gp_stdin_read(int8_t *buf, int len, int interactive, FILE *f)
 {
     return read(fileno(f), buf, len);
 }

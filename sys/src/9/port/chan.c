@@ -32,17 +32,17 @@ typedef struct Elemlist Elemlist;
 
 struct Elemlist
 {
-	char	*aname;	/* original name */
-	char	*name;	/* copy of name, so '/' can be overwritten */
+	int8_t	*aname;	/* original name */
+	int8_t	*name;	/* copy of name, so '/' can be overwritten */
 	int	nelems;
-	char	**elems;
+	int8_t	**elems;
 	int	*off;
 	int	mustbedir;
 	int	nerror;
 	int	prefix;
 };
 
-char*
+int8_t*
 chanpath(Chan *c)
 {
 	if(c == nil)
@@ -55,7 +55,7 @@ chanpath(Chan *c)
 }
 
 int
-isdotdot(char *p)
+isdotdot(int8_t *p)
 {
 	return p[0]=='.' && p[1]=='.' && p[2]=='\0';
 }
@@ -67,7 +67,7 @@ isdotdot(char *p)
  * save a string in up->genbuf;
  */
 void
-kstrcpy(char *s, char *t, int ns)
+kstrcpy(int8_t *s, int8_t *t, int ns)
 {
 	int nt;
 
@@ -93,7 +93,7 @@ kstrcpy(char *s, char *t, int ns)
 }
 
 int
-emptystr(char *s)
+emptystr(int8_t *s)
 {
 	if(s == nil)
 		return 1;
@@ -106,10 +106,10 @@ emptystr(char *s)
  * Atomically replace *p with copy of s
  */
 void
-kstrdup(char **p, char *s)
+kstrdup(int8_t **p, int8_t *s)
 {
 	int n;
-	char *t, *prev;
+	int8_t *t, *prev;
 
 	n = strlen(s)+1;
 	/* if it's a user, we can wait for memory; if not, something's very wrong */
@@ -171,7 +171,7 @@ newchan(void)
 Ref npath;
 
 Path*
-newpath(char *s)
+newpath(int8_t *s)
 {
 	int i;
 	Path *p;
@@ -259,7 +259,7 @@ pathclose(Path *p)
 static void
 fixdotdotname(Path *p)
 {
-	char *r;
+	int8_t *r;
 
 	if(p->s[0] == '#'){
 		r = strchr(p->s, '/');
@@ -293,9 +293,9 @@ uniquepath(Path *p)
 }
 
 static Path*
-addelem(Path *p, char *s, Chan *from)
+addelem(Path *p, int8_t *s, Chan *from)
 {
-	char *t;
+	int8_t *t;
 	int a, i;
 	Chan *c, **tt;
 
@@ -543,7 +543,7 @@ newmhead(Chan *from)
 }
 
 int
-cmount(Chan **newp, Chan *old, int flag, char *spec)
+cmount(Chan **newp, Chan *old, int flag, int8_t *spec)
 {
 	int order, flg;
 	Chan *new;
@@ -846,7 +846,7 @@ undomount(Chan *c, Path *path)
  * Call dev walk but catch errors.
  */
 static Walkqid*
-ewalk(Chan *c, Chan *nc, char **name, int nname)
+ewalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	Walkqid *wq;
 
@@ -861,9 +861,9 @@ ewalk(Chan *c, Chan *nc, char **name, int nname)
  * Either walks all the way or not at all.  No partial results in *cp.
  * *nerror is the number of names to display in an error message.
  */
-static char Edoesnotexist[] = "does not exist";
+static int8_t Edoesnotexist[] = "does not exist";
 int
-walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
+walk(Chan **cp, int8_t **names, int nnames, int nomount, int *nerror)
 {
 	int dc, devno, didmount, dotdot, i, n, nhave, ntry;
 	Chan *c, *nc, *mtpt;
@@ -1069,13 +1069,13 @@ saveregisters(void)
 static void
 growparse(Elemlist *e)
 {
-	char **new;
+	int8_t **new;
 	int *inew;
 	enum { Delta = 8 };
 
 	if(e->nelems % Delta == 0){
-		new = smalloc((e->nelems+Delta) * sizeof(char*));
-		memmove(new, e->elems, e->nelems*sizeof(char*));
+		new = smalloc((e->nelems+Delta) * sizeof(int8_t*));
+		memmove(new, e->elems, e->nelems*sizeof(int8_t*));
 		free(e->elems);
 		e->elems = new;
 		inew = smalloc((e->nelems+Delta+1) * sizeof(int));
@@ -1095,9 +1095,9 @@ growparse(Elemlist *e)
  * rather than a directory.
  */
 static void
-parsename(char *aname, Elemlist *e)
+parsename(int8_t *aname, Elemlist *e)
 {
-	char *name, *slash;
+	int8_t *name, *slash;
 
 	kstrdup(&e->name, aname);
 	name = e->name;
@@ -1136,9 +1136,9 @@ parsename(char *aname, Elemlist *e)
 }
 
 static void*
-memrchr(void *va, int c, long n)
+memrchr(void *va, int c, int32_t n)
 {
-	uchar *a, *e;
+	uint8_t *a, *e;
 
 	a = va;
 	for(e=a+n-1; e>a; e--)
@@ -1148,9 +1148,9 @@ memrchr(void *va, int c, long n)
 }
 
 static void
-namelenerror(char *aname, int len, char *err)
+namelenerror(int8_t *aname, int len, int8_t *err)
 {
-	char *ename, *name, *next;
+	int8_t *ename, *name, *next;
 	int i, errlen;
 
 	/*
@@ -1193,7 +1193,7 @@ namelenerror(char *aname, int len, char *err)
 }
 
 void
-nameerror(char *name, char *err)
+nameerror(int8_t *name, int8_t *err)
 {
 	namelenerror(name, strlen(name), err);
 }
@@ -1215,7 +1215,7 @@ nameerror(char *name, char *err)
  * correct name so they can rewrite the stat info.
  */
 Chan*
-namec(char *aname, int amode, int omode, int perm)
+namec(int8_t *aname, int amode, int omode, int perm)
 {
 	int len, n, nomount;
 	Chan *c, *cnew;
@@ -1223,8 +1223,8 @@ namec(char *aname, int amode, int omode, int perm)
 	Elemlist e;
 	Rune r;
 	Mhead *mh;
-	char *createerr, tmperrbuf[ERRMAX];
-	char *name;
+	int8_t *createerr, tmperrbuf[ERRMAX];
+	int8_t *name;
 	Dev *dev;
 
 	if(aname[0] == '\0')
@@ -1583,8 +1583,8 @@ if(c->umh != nil){
 /*
  * name is valid. skip leading / and ./ as much as possible
  */
-char*
-skipslash(char *name)
+int8_t*
+skipslash(int8_t *name)
 {
 	while(name[0]=='/' || (name[0]=='.' && (name[1]==0 || name[1]=='/')))
 		name++;
@@ -1615,10 +1615,10 @@ char isfrog[256]={
  * (Otherwise a malicious thread could remove the NUL, causing us
  * to access unchecked addresses.)
  */
-static char*
-validname0(char *aname, int slashok, int dup, uintptr pc)
+static int8_t*
+validname0(int8_t *aname, int slashok, int dup, uintptr pc)
 {
-	char *ename, *name, *s;
+	int8_t *ename, *name, *s;
 	int c, n;
 	Rune r;
 
@@ -1646,7 +1646,7 @@ validname0(char *aname, int slashok, int dup, uintptr pc)
 
 	while(*name){
 		/* all characters above '~' are ok */
-		c = *(uchar*)name;
+		c = *(uint8_t*)name;
 		if(c >= Runeself)
 			name += chartorune(&r, name);
 		else{
@@ -1663,13 +1663,13 @@ validname0(char *aname, int slashok, int dup, uintptr pc)
 }
 
 void
-validname(char *aname, int slashok)
+validname(int8_t *aname, int slashok)
 {
 	validname0(aname, slashok, 0, getcallerpc(&aname));
 }
 
-char*
-validnamedup(char *aname, int slashok)
+int8_t*
+validnamedup(int8_t *aname, int slashok)
 {
 	return validname0(aname, slashok, 1, getcallerpc(&aname));
 }

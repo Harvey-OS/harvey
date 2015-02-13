@@ -32,8 +32,8 @@ static	void	mboxGone(Box *box);
 static	MbLock	*openImp(Box *box, int new);
 static	int	parseImp(Biobuf *b, Box *box);
 static	int	readBox(Box *box);
-static	ulong	uidRenumber(Msg *m, ulong uid, int force);
-static	int	impFlags(Box *box, Msg *m, char *flags);
+static	uint32_t	uidRenumber(Msg *m, uint32_t uid, int force);
+static	int	impFlags(Box *box, Msg *m, int8_t *flags);
 
 /*
  * strategy:
@@ -79,7 +79,7 @@ static	int	impFlags(Box *box, Msg *m, char *flags);
  *	MDraft		d
  */
 Box*
-openBox(char *name, char *fsname, int writable)
+openBox(int8_t *name, int8_t *fsname, int writable)
 {
 	Box *box;
 	MbLock *ml;
@@ -95,7 +95,7 @@ openBox(char *name, char *fsname, int writable)
 
 	if(fprint(fsCtl, "open '/mail/box/%s/%s' %s", username, name, fsname) < 0){
 //ZZZ
-		char err[ERRMAX];
+		int8_t err[ERRMAX];
 
 		rerrstr(err, sizeof err);
 		if(strstr(err, "file does not exist") == nil)
@@ -214,8 +214,8 @@ readBox(Box *box)
 {
 	Msg *msgs, *m, *last;
 	Dir *d;
-	char *s;
-	long max, id;
+	int8_t *s;
+	int32_t max, id;
 	int i, nd, fd, new;
 
 	fd = cdOpen(box->fsDir, ".", OREAD);
@@ -326,7 +326,7 @@ openImp(Box *box, int new)
 ZZZhack:
 	if(fd < 0 || fqid(fd, &qid) < 0){
 		if(fd < 0){
-			char buf[ERRMAX];
+			int8_t buf[ERRMAX];
 
 			errstr(buf, sizeof buf);
 			if(cistrstr(buf, "does not exist") == nil)
@@ -376,7 +376,7 @@ closeImp(Box *box, MbLock *ml)
 	Msg *m;
 	Qid qid;
 	Biobuf b;
-	char buf[NFlags+1];
+	int8_t buf[NFlags+1];
 	int fd;
 
 	if(ml == nil)
@@ -411,7 +411,7 @@ closeImp(Box *box, MbLock *ml)
 }
 
 void
-wrImpFlags(char *buf, int flags, int killRecent)
+wrImpFlags(int8_t *buf, int flags, int killRecent)
 {
 	int i;
 
@@ -426,10 +426,10 @@ wrImpFlags(char *buf, int flags, int killRecent)
 }
 
 int
-emptyImp(char *mbox)
+emptyImp(int8_t *mbox)
 {
 	Dir *d;
-	long mode;
+	int32_t mode;
 	int fd;
 
 	fd = cdCreate(mboxDir, impName(mbox), OWRITE, 0664);
@@ -456,7 +456,7 @@ static int
 createImp(Box *box, Qid *qid)
 {
 	Dir *d;
-	long mode;
+	int32_t mode;
 	int fd;
 
 	fd = cdCreate(mboxDir, box->imp, OREAD, 0664);
@@ -499,8 +499,8 @@ static int
 parseImp(Biobuf *b, Box *box)
 {
 	Msg *m, *mm;
-	char *s, *t, *toks[3];
-	ulong uid, u;
+	int8_t *s, *t, *toks[3];
+	uint32_t uid, u;
 	int match, n;
 
 	m = box->msgs;
@@ -615,7 +615,7 @@ parseImp(Biobuf *b, Box *box)
  * parse .imp flags
  */
 static int
-impFlags(Box *box, Msg *m, char *flags)
+impFlags(Box *box, Msg *m, int8_t *flags)
 {
 	int i, f;
 
@@ -669,8 +669,8 @@ boxFlags(Box *box)
 	}
 }
 
-static ulong
-uidRenumber(Msg *m, ulong uid, int force)
+static uint32_t
+uidRenumber(Msg *m, uint32_t uid, int force)
 {
 	for(; m != nil; m = m->next){
 		if(!force && m->uid != 0)
@@ -713,7 +713,7 @@ int
 deleteMsgs(Box *box)
 {
 	Msg *m;
-	char buf[BufSize], *p, *start;
+	int8_t buf[BufSize], *p, *start;
 	int ok;
 
 	if(!box->writable)
@@ -752,7 +752,7 @@ int
 expungeMsgs(Box *box, int send)
 {
 	Msg *m, *next, *last;
-	ulong n;
+	uint32_t n;
 
 	n = 0;
 	last = nil;
@@ -792,7 +792,7 @@ fsInit(void)
 		bye("can't initialize mail file system");
 }
 
-static char *stoplist[] =
+static int8_t *stoplist[] =
 {
 	"mbox",
 	"pipeto",
@@ -809,8 +809,8 @@ enum {
 	Maxfolders	= Maxokbytes / 4,
 };
 
-static char *folders[Maxfolders];
-static char *folderbuff;
+static int8_t *folders[Maxfolders];
+static int8_t *folderbuff;
 
 static void
 readokfolders(void)
@@ -840,9 +840,9 @@ readokfolders(void)
  * reject bad mailboxes based on mailbox name
  */
 int
-okMbox(char *path)
+okMbox(int8_t *path)
 {
-	char *name;
+	int8_t *name;
 	int i;
 
 	if(folderbuff == nil && access("imap.ok", AREAD) == 0)

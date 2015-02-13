@@ -32,14 +32,14 @@ enum
 
 struct DS {
 	/* dist string */
-	char	buf[Maxstring];
-	char	*netdir;
-	char	*proto;
-	char	*rem;
+	int8_t	buf[Maxstring];
+	int8_t	*netdir;
+	int8_t	*proto;
+	int8_t	*rem;
 
 	/* other args */
-	char	*local;
-	char	*dir;
+	int8_t	*local;
+	int8_t	*dir;
 	int	*cfdp;
 };
 
@@ -54,38 +54,38 @@ struct Conn {
 
 	int	dfd;
 	int	cfd;
-	char	dir[NETPATHLEN+1];
-	char	err[ERRMAX];
+	int8_t	dir[NETPATHLEN+1];
+	int8_t	err[ERRMAX];
 };
 struct Dest {
 	Conn	*conn;			/* allocated array */
 	Conn	*connend;
 	int	nkid;
 
-	long	oalarm;
+	int32_t	oalarm;
 	int	naddrs;
 
 	QLock	winlck;
 	int	winner;			/* index into conn[] */
 
-	char	*nextaddr;
-	char	addrlist[Maxcsreply];
+	int8_t	*nextaddr;
+	int8_t	addrlist[Maxcsreply];
 };
 
-static int	call(char*, char*, DS*, Dest*, Conn*);
+static int	call(int8_t*, int8_t*, DS*, Dest*, Conn*);
 static int	csdial(DS*);
-static void	_dial_string_parse(char*, DS*);
+static void	_dial_string_parse(int8_t*, DS*);
 
 
 /*
  *  the dialstring is of the form '[/net/]proto!dest'
  */
 static int
-dialimpl(char *dest, char *local, char *dir, int *cfdp)
+dialimpl(int8_t *dest, int8_t *local, int8_t *dir, int *cfdp)
 {
 	DS ds;
 	int rv;
-	char err[ERRMAX], alterr[ERRMAX];
+	int8_t err[ERRMAX], alterr[ERRMAX];
 
 	ds.local = local;
 	ds.dir = dir;
@@ -123,10 +123,10 @@ dialimpl(char *dest, char *local, char *dir, int *cfdp)
  * the thread library can't cope with rfork(RFMEM|RFPROC),
  * so it must override this with a private version of dial.
  */
-int (*_dial)(char *, char *, char *, int *) = dialimpl;
+int (*_dial)(int8_t *, int8_t *, int8_t *, int *) = dialimpl;
 
 int
-dial(char *dest, char *local, char *dir, int *cfdp)
+dial(int8_t *dest, int8_t *local, int8_t *dir, int *cfdp)
 {
 	return (*_dial)(dest, local, dir, cfdp);
 }
@@ -152,7 +152,7 @@ connsalloc(Dest *dp, int addrs)
 static void
 freedest(Dest *dp)
 {
-	long oalarm;
+	int32_t oalarm;
 
 	if (dp == nil)
 		return;
@@ -173,10 +173,10 @@ closeopenfd(int *fdp)
 }
 
 static void
-notedeath(Dest *dp, char *exitsts)
+notedeath(Dest *dp, int8_t *exitsts)
 {
 	int i, n, pid;
-	char *fields[5];			/* pid + 3 times + error */
+	int8_t *fields[5];			/* pid + 3 times + error */
 	Conn *conn;
 
 	for (i = 0; i < nelem(fields); i++)
@@ -215,7 +215,7 @@ outstandingprocs(Dest *dp)
 static int
 reap(Dest *dp)
 {
-	char exitsts[2*ERRMAX];
+	int8_t exitsts[2*ERRMAX];
 
 	if (outstandingprocs(dp) && await(exitsts, sizeof exitsts) >= 0) {
 		notedeath(dp, exitsts);
@@ -242,7 +242,7 @@ fillinds(DS *ds, Dest *dp)
 }
 
 static int
-connectwait(Dest *dp, char *besterr)
+connectwait(Dest *dp, int8_t *besterr)
 {
 	Conn *conn;
 
@@ -269,9 +269,9 @@ connectwait(Dest *dp, char *besterr)
 }
 
 static int
-parsecs(Dest *dp, char **clonep, char **destp)
+parsecs(Dest *dp, int8_t **clonep, int8_t **destp)
 {
-	char *dest, *p;
+	int8_t *dest, *p;
 
 	dest = strchr(dp->nextaddr, ' ');
 	if(dest == nil) {
@@ -295,7 +295,7 @@ parsecs(Dest *dp, char **clonep, char **destp)
 }
 
 static void
-pickuperr(char *besterr, char *err)
+pickuperr(int8_t *besterr, int8_t *err)
 {
 	err[0] = '\0';
 	errstr(err, ERRMAX);
@@ -304,7 +304,7 @@ pickuperr(char *besterr, char *err)
 }
 
 static int
-catcher(void *, char *s)
+catcher(void *, int8_t *s)
 {
 	return strstr(s, "alarm") != nil;
 }
@@ -318,8 +318,8 @@ static int
 dialmulti(DS *ds, Dest *dp)
 {
 	int rv, kid, kidme;
-	char *clone, *dest;
-	char besterr[ERRMAX];
+	int8_t *clone, *dest;
+	int8_t besterr[ERRMAX];
 
 	dp->winner = -1;
 	dp->nkid = 0;
@@ -330,7 +330,7 @@ dialmulti(DS *ds, Dest *dp)
 		if (kid < 0)
 			--dp->nkid;
 		else if (kid == 0) {
-			char err[ERRMAX];
+			int8_t err[ERRMAX];
 
 			/* only in kid, to avoid atnotify callbacks in parent */
 			atnotify(catcher, 1);
@@ -353,9 +353,9 @@ static int
 csdial(DS *ds)
 {
 	int n, fd, rv, addrs, bleft;
-	char c;
-	char *addrp, *clone2, *dest;
-	char buf[Maxstring], clone[Maxpath], err[ERRMAX], besterr[ERRMAX];
+	int8_t c;
+	int8_t *addrp, *clone2, *dest;
+	int8_t buf[Maxstring], clone[Maxpath], err[ERRMAX], besterr[ERRMAX];
 	Dest *dp;
 
 	werrstr("");
@@ -447,10 +447,10 @@ csdial(DS *ds)
 }
 
 static int
-call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
+call(int8_t *clone, int8_t *dest, DS *ds, Dest *dp, Conn *conn)
 {
 	int fd, cfd, n, calleralarm, oalarm;
-	char cname[Maxpath], name[Maxpath], data[Maxpath], *p;
+	int8_t cname[Maxpath], name[Maxpath], data[Maxpath], *p;
 
 	/* because cs is in a different name space, replace the mount point */
 	if(*clone == '/'){
@@ -530,9 +530,9 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
  *  parse a dial string
  */
 static void
-_dial_string_parse(char *str, DS *ds)
+_dial_string_parse(int8_t *str, DS *ds)
 {
-	char *p, *p2;
+	int8_t *p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
 	ds->buf[Maxstring-1] = 0;

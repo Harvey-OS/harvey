@@ -48,8 +48,8 @@
  */
 
 #ifndef lint
-static char *ident = "$Id: append.c,v 1.2 89/02/12 10:03:58 mark Exp $";
-static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static int8_t *ident = "$Id: append.c,v 1.2 89/02/12 10:03:58 mark Exp $";
+static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -80,7 +80,7 @@ void append_archive()
 #endif
 {
     Stat            sb;
-    char            name[PATH_MAX + 1];
+    int8_t            name[PATH_MAX + 1];
 
     name[0] = '\0';
     while (get_header(name, &sb) == 0) {

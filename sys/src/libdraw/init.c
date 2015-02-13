@@ -16,7 +16,7 @@ Font	*font;
 Image	*screen;
 int	_drawdebug = 0;
 
-static char deffontname[] = "*default*";
+static int8_t deffontname[] = "*default*";
 Screen	*_screen;
 
 int		debuglockdisplay = 0;
@@ -37,11 +37,12 @@ drawshutdown(void)
 }
 
 int
-geninitdraw(char *devdir, void(*error)(Display*, char*), char *fontname, char *label, char *windir, int ref)
+geninitdraw(int8_t *devdir, void(*error)(Display*, int8_t*),
+	    int8_t *fontname, int8_t *label, int8_t *windir, int ref)
 {
 	int fd, n;
 	Subfont *df;
-	char buf[128];
+	int8_t buf[128];
 
 	display = initdisplay(devdir, windir, error);
 	if(display == nil)
@@ -119,9 +120,9 @@ geninitdraw(char *devdir, void(*error)(Display*, char*), char *fontname, char *l
 }
 
 int
-initdraw(void(*error)(Display*, char*), char *fontname , char *label)
+initdraw(void(*error)(Display*, int8_t*), int8_t *fontname , int8_t *label)
 {
-	char *dev = "/dev";
+	int8_t *dev = "/dev";
 
 	if(access("/dev/draw/new", AEXIST)<0 && bind("#i", "/dev", MAFTER)<0){
 		fprint(2, "imageinit: can't bind /dev/draw: %r\n");
@@ -135,10 +136,11 @@ initdraw(void(*error)(Display*, char*), char *fontname , char *label)
  * If reattaching, maintain value of screen pointer.
  */
 int
-gengetwindow(Display *d, char *winname, Image **winp, Screen **scrp, int ref)
+gengetwindow(Display *d, int8_t *winname, Image **winp, Screen **scrp,
+	     int ref)
 {
 	int n, fd;
-	char buf[64+1];
+	int8_t buf[64+1];
 	Image *image;
 	Rectangle r;
 
@@ -198,7 +200,7 @@ gengetwindow(Display *d, char *winname, Image **winp, Screen **scrp, int ref)
 int
 getwindow(Display *d, int ref)
 {
-	char winname[128];
+	int8_t winname[128];
 
 	snprint(winname, sizeof winname, "%s/winname", d->windir);
 	return gengetwindow(d, winname, &screen, &_screen, ref);
@@ -207,9 +209,9 @@ getwindow(Display *d, int ref)
 #define	NINFO	12*12
 
 Display*
-initdisplay(char *dev, char *win, void(*error)(Display*, char*))
+initdisplay(int8_t *dev, int8_t *win, void(*error)(Display*, int8_t*))
 {
-	char buf[128], info[NINFO+1], *t, isnew;
+	int8_t buf[128], info[NINFO+1], *t, isnew;
 	int n, datafd, ctlfd, reffd;
 	Display *disp;
 	Dir *dir;
@@ -354,7 +356,7 @@ static void
 _closedisplay(Display *disp, int isshutdown)
 {
 	int fd;
-	char buf[128];
+	int8_t buf[128];
 
 	if(disp == nil)
 		return;
@@ -410,9 +412,9 @@ unlockdisplay(Display *disp)
 }
 
 void
-drawerror(Display *d, char *s)
+drawerror(Display *d, int8_t *s)
 {
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 
 	if(d && d->error)
 		d->error(d, s);
@@ -458,10 +460,10 @@ flushimage(Display *d, int visible)
 	return doflush(d);
 }
 
-uchar*
+uint8_t*
 bufimage(Display *d, int n)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(n<0 || n>d->bufsize){
 		werrstr("bad count in bufimage");

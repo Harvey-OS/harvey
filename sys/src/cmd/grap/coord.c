@@ -13,8 +13,8 @@
 #include "grap.h"
 #include "y.tab.h"
 
-char	*dflt_coord = "gg";
-char	*curr_coord = "gg";
+int8_t	*dflt_coord = "gg";
+int8_t	*curr_coord = "gg";
 int	ncoord	= 0;	/* number of explicit coord's given */
 
 Point	xcoord;

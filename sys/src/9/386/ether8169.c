@@ -257,7 +257,7 @@ typedef struct Ctlr {
 	int	phyv;			/* PHY version */
 	int	pcie;			/* flag: pci-express device? */
 
-	uvlong	mchash;			/* multicast hash */
+	uint64_t	mchash;			/* multicast hash */
 
 	Mii*	mii;
 
@@ -422,11 +422,11 @@ enum {
 	Bytemask = (1<<8) - 1,
 };
 
-static ulong
-ethercrcbe(uchar *addr, long len)
+static uint32_t
+ethercrcbe(uint8_t *addr, int32_t len)
 {
 	int i, j;
-	ulong c, crc, carry;
+	uint32_t c, crc, carry;
 
 	crc = ~0UL;
 	for (i = 0; i < len; i++) {
@@ -442,15 +442,15 @@ ethercrcbe(uchar *addr, long len)
 	return crc;
 }
 
-static ulong
-swabl(ulong l)
+static uint32_t
+swabl(uint32_t l)
 {
 	return l>>24 | (l>>8) & (Bytemask<<8) |
 		(l<<8) & (Bytemask<<16) | l<<24;
 }
 
 static void
-rtl8169multicast(void* ether, uchar *eaddr, int add)
+rtl8169multicast(void* ether, uint8_t *eaddr, int add)
 {
 	Ether *edev;
 	Ctlr *ctlr;
@@ -479,13 +479,13 @@ rtl8169multicast(void* ether, uchar *eaddr, int add)
 	iunlock(&ctlr->ilock);
 }
 
-static long
-rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
+static int32_t
+rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 {
 	Ctlr *ctlr;
 	Dtcc *dtcc;
 	int timeo;
-	char *alloc, *e, *p;
+	int8_t *alloc, *e, *p;
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
@@ -1151,7 +1151,7 @@ rtl8169pnp(Ether* edev)
 {
 	u32int r;
 	Ctlr *ctlr;
-	uchar ea[Eaddrlen];
+	uint8_t ea[Eaddrlen];
 
 	if(rtl8169ctlrhead == nil)
 		rtl8169pci();

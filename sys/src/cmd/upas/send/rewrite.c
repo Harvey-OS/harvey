@@ -42,11 +42,11 @@ static rule *findrule(String *, int);
  *  the name of the local system.
  */
 extern String *
-rule_parse(String *line, char *system, int *backl)
+rule_parse(String *line, int8_t *system, int *backl)
 {
 	String *token;
 	String *expanded;
-	char *cp;
+	int8_t *cp;
 
 	token = s_parse(line, 0);
 	if(token == 0)
@@ -76,7 +76,7 @@ rule_parse(String *line, char *system, int *backl)
 }
 
 static int
-getrule(String *line, String *type, char *system)
+getrule(String *line, String *type, int8_t *system)
 {
 	rule	*rp;
 	String	*re;
@@ -117,7 +117,7 @@ getrule(String *line, String *type, char *system)
 		s_free(rp->matchre);
 		s_free(rp->repl1);
 		s_free(rp->repl2);
-		free((char *)rp);
+		free((int8_t *)rp);
 		fprint(2,"illegal rewrite rule: %s\n", s_to_c(line));
 		return 0;
 	}
@@ -228,8 +228,8 @@ static String *
 substitute(String *source, Resub *subexp, message *mp)
 {
 	int i;
-	char *s;
-	char *sp;
+	int8_t *s;
+	int8_t *sp;
 	String *stp;
 	
 	if(source == 0)
@@ -289,7 +289,7 @@ substitute(String *source, Resub *subexp, message *mp)
 }
 
 extern void
-regerror(char* s)
+regerror(int8_t* s)
 {
 	fprint(2, "rewrite: %s\n", s);
 	/* make sure the message is seen locally */

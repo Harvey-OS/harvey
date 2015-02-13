@@ -81,9 +81,9 @@ private int dict_create_contents(uint size, const ref * pdref, bool pack);
 /* Debugging statistics */
 #ifdef DEBUG
 struct stats_dict_s {
-    long lookups;		/* total lookups */
-    long probe1;		/* successful lookups on only 1 probe */
-    long probe2;		/* successful lookups on 2 probes */
+    int32_t lookups;		/* total lookups */
+    int32_t probe1;		/* successful lookups on only 1 probe */
+    int32_t probe2;		/* successful lookups on 2 probes */
 } stats_dict;
 
 /* Wrapper for dict_find */
@@ -327,7 +327,7 @@ dict_find(const ref * pdref, const ref * pkey,
 	     * or else expt == mant == 0.
 	     */
 
-	    if (expt < sizeof(long) * 8 || pkey->value.realval == min_long)
+	    if (expt < sizeof(int32_t) * 8 || pkey->value.realval == min_long)
 		i = (int)pkey->value.realval;
 	    else
 		i = (int)(mant * min_long); /* MSVC 6.00.8168.0 cannot compile this */
@@ -422,7 +422,7 @@ dict_find(const ref * pdref, const ref * pkey,
  * Return 1 if found, <= 0 if not.
  */
 int
-dict_find_string(const ref * pdref, const char *kstr, ref ** ppvalue)
+dict_find_string(const ref * pdref, const int8_t *kstr, ref ** ppvalue)
 {
     int code;
     ref kname;
@@ -506,7 +506,7 @@ dict_put(ref * pdref /* t_dictionary */ , const ref * pkey, const ref * pvalue,
 	    ref *kp = pdict->keys.value.refs + index;
 
 	    if_debug2('d', "[d]0x%lx: fill key at 0x%lx\n",
-		      (ulong) pdict, (ulong) kp);
+		      (uint32_t) pdict, (uint32_t) kp);
 	    store_check_dest(pdref, pkey);
 	    ref_assign_old_in(mem, &pdict->keys, kp, pkey,
 			      "dict_put(key)");	/* set key of pair */
@@ -530,11 +530,11 @@ dict_put(ref * pdref /* t_dictionary */ , const ref * pkey, const ref * pvalue,
 	rcode = 1;
     }
     if_debug8('d', "[d]0x%lx: put key 0x%lx 0x%lx\n  value at 0x%lx: old 0x%lx 0x%lx, new 0x%lx 0x%lx\n",
-	      (ulong) pdref->value.pdict,
-	      ((const ulong *)pkey)[0], ((const ulong *)pkey)[1],
-	      (ulong) pvslot,
-	      ((const ulong *)pvslot)[0], ((const ulong *)pvslot)[1],
-	      ((const ulong *)pvalue)[0], ((const ulong *)pvalue)[1]);
+	      (uint32_t) pdref->value.pdict,
+	      ((const uint32_t *)pkey)[0], ((const uint32_t *)pkey)[1],
+	      (uint32_t) pvslot,
+	      ((const uint32_t *)pvslot)[0], ((const uint32_t *)pvslot)[1],
+	      ((const uint32_t *)pvalue)[0], ((const uint32_t *)pvalue)[1]);
     ref_assign_old_in(mem, &pdref->value.pdict->values, pvslot, pvalue,
 		      "dict_put(value)");
     return rcode;
@@ -544,7 +544,7 @@ dict_put(ref * pdref /* t_dictionary */ , const ref * pkey, const ref * pvalue,
  * Enter a key-value pair where the key is a (constant) C string.
  */
 int
-dict_put_string(ref * pdref, const char *kstr, const ref * pvalue,
+dict_put_string(ref * pdref, const int8_t *kstr, const ref * pvalue,
 		dict_stack_t *pds)
 {
     int code;
@@ -576,7 +576,7 @@ dict_undef(ref * pdref, const ref * pkey, dict_stack_t *pds)
 	ref_packed *pkp = pdict->keys.value.writable_packed + index;
 
 	if_debug3('d', "[d]0x%lx: removing key at 0%lx: 0x%x\n",
-		  (ulong)pdict, (ulong)pkp, (uint)*pkp);
+		  (uint32_t)pdict, (uint32_t)pkp, (uint)*pkp);
 	/* See the initial comment for why it is safe not to save */
 	/* the change if the keys array itself is new. */
 	if (ref_must_save_in(mem, &pdict->keys))
@@ -603,7 +603,8 @@ dict_undef(ref * pdref, const ref * pkey, dict_stack_t *pds)
 	ref *kp = pdict->keys.value.refs + index;
 
 	if_debug4('d', "[d]0x%lx: removing key at 0%lx: 0x%lx 0x%lx\n",
-		  (ulong)pdict, (ulong)kp, ((ulong *)kp)[0], ((ulong *)kp)[1]);
+		  (uint32_t)pdict, (uint32_t)kp, ((uint32_t *)kp)[0],
+                  ((uint32_t *)kp)[1]);
 	make_null_old_in(mem, &pdict->keys, kp, "dict_undef(key)");
 	/*
 	 * Accumulating deleted entries slows down lookup.
@@ -627,7 +628,7 @@ dict_undef(ref * pdref, const ref * pkey, dict_stack_t *pds)
 	    /* Check the the cache is correct. */
 	    if (!(pds && dstack_dict_is_permanent(pds, pdref)))
 		lprintf1("dict_undef: cached name value pointer 0x%lx is incorrect!\n",
-			 (ulong) pname->pvalue);
+			 (uint32_t) pname->pvalue);
 #endif
 	    /* Clear the cache */
 	    pname->pvalue = pv_no_defn;
@@ -794,7 +795,7 @@ dict_grow(ref * pdref, dict_stack_t *pds)
     dict *pdict = pdref->value.pdict;
     /* We might have maxlength < npairs, if */
     /* dict_round_size increased the size. */
-    ulong new_size = (ulong) d_maxlength(pdict) * 3 / 2 + 2;
+    uint32_t new_size = (uint32_t) d_maxlength(pdict) * 3 / 2 + 2;
 
 #if arch_sizeof_int < arch_sizeof_long
     if (new_size > max_uint)
@@ -839,16 +840,16 @@ dict_next(const ref * pdref, int index, ref * eltp /* ref eltp[2] */ )
     ref *vp = pdict->values.value.refs + index;
 
     while (vp--, --index >= 0) {
-	array_get(dict_mem(pdict), &pdict->keys, (long)index, eltp);
+	array_get(dict_mem(pdict), &pdict->keys, (int32_t)index, eltp);
 	/* Make sure this is a valid entry. */
 	if (r_has_type(eltp, t_name) ||
 	    (!dict_is_packed(pdict) && !r_has_type(eltp, t_null))
 	    ) {
 	    eltp[1] = *vp;
 	    if_debug6('d', "[d]0x%lx: index %d: %lx %lx, %lx %lx\n",
-		      (ulong) pdict, index,
-		      ((ulong *) eltp)[0], ((ulong *) eltp)[1],
-		      ((ulong *) vp)[0], ((ulong *) vp)[1]);
+		      (uint32_t) pdict, index,
+		      ((uint32_t *) eltp)[0], ((uint32_t *) eltp)[1],
+		      ((uint32_t *) vp)[0], ((uint32_t *) vp)[1]);
 	    return index;
 	}
     }
@@ -869,7 +870,7 @@ dict_index_entry(const ref * pdref, int index, ref * eltp /* ref eltp[2] */ )
 {
     const dict *pdict = pdref->value.pdict;
 
-    array_get(dict_mem(pdict), &pdict->keys, (long)(index + 1), eltp);
+    array_get(dict_mem(pdict), &pdict->keys, (int32_t)(index + 1), eltp);
     if (r_has_type(eltp, t_name) ||
 	(!dict_is_packed(pdict) && !r_has_type(eltp, t_null))
 	) {

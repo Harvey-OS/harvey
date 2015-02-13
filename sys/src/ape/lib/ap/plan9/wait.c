@@ -66,7 +66,7 @@ static int
 waitstatus(Waitmsg *w)
 {
 	int r, t;
-	char *bp, *ep;
+	int8_t *bp, *ep;
 
 	r = 0;
 	t = 0;
@@ -123,7 +123,7 @@ wait3(int *status, int options, struct rusage *res)
 pid_t
 wait4(pid_t wpid, int *status, int options, struct rusage *res)
 {
-	char pname[50];
+	int8_t pname[50];
 	Dir *d;
 	Waitmsg *w;
 

@@ -13,7 +13,7 @@
 #include <thread.h>
 #include "netbios.h"
 
-static char *
+static int8_t *
 opname(int opcode)
 {
 	switch (opcode) {
@@ -57,7 +57,7 @@ nbnsdumpmessagequestion(NbnsMessageQuestion *q)
 }
 
 void
-nbnsdumpmessageresource(NbnsMessageResource *r, char *name)
+nbnsdumpmessageresource(NbnsMessageResource *r, int8_t *name)
 {
 	print("%s: ", name);
 	nbnsdumpname(r->name);
@@ -114,10 +114,10 @@ nbnsdumpmessage(NbnsMessage *s)
 }
 
 void
-nbdumpdata(void *ap, long n)
+nbdumpdata(void *ap, int32_t n)
 {
-	uchar *p = ap;
-	long i;
+	uint8_t *p = ap;
+	int32_t i;
 	i = 0;
 	while (i < n) {
 		int l = n - i < 16 ? n - i : 16;

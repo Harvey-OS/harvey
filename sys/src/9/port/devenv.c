@@ -25,7 +25,7 @@ static int	envwriteable(Chan *c);
 static Egrp	confegrp;	/* global environment group containing the kernel configuration */
 
 static Evalue*
-envlookup(Egrp *eg, char *name, ulong qidpath)
+envlookup(Egrp *eg, int8_t *name, uint32_t qidpath)
 {
 	Evalue *e;
 	int i;
@@ -39,7 +39,7 @@ envlookup(Egrp *eg, char *name, ulong qidpath)
 }
 
 static int
-envgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+envgen(Chan *c, int8_t *name, Dirtab*, int, int s, Dir *dp)
 {
 	Egrp *eg;
 	Evalue *e;
@@ -70,7 +70,7 @@ envgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 }
 
 static Chan*
-envattach(char *spec)
+envattach(int8_t *spec)
 {
 	Chan *c;
 	Egrp *egrp = nil;
@@ -88,13 +88,13 @@ envattach(char *spec)
 }
 
 static Walkqid*
-envwalk(Chan *c, Chan *nc, char **name, int nname)
+envwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, envgen);
 }
 
-static long
-envstat(Chan *c, uchar *db, long n)
+static int32_t
+envstat(Chan *c, uint8_t *db, int32_t n)
 {
 	if(c->qid.type & QTDIR)
 		c->qid.vers = envgrp(c)->vers;
@@ -147,7 +147,7 @@ envopen(Chan *c, int omode)
 }
 
 static void
-envcreate(Chan *c, char *name, int omode, int)
+envcreate(Chan *c, int8_t *name, int omode, int)
 {
 	Egrp *eg;
 	Evalue *e;
@@ -237,12 +237,12 @@ envclose(Chan *c)
 		envremove(c);
 }
 
-static long
-envread(Chan *c, void *a, long n, vlong off)
+static int32_t
+envread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	Egrp *eg;
 	Evalue *e;
-	long offset;
+	int32_t offset;
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, envgen);
@@ -268,13 +268,13 @@ envread(Chan *c, void *a, long n, vlong off)
 	return n;
 }
 
-static long
-envwrite(Chan *c, void *a, long n, vlong off)
+static int32_t
+envwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
-	char *s;
+	int8_t *s;
 	Egrp *eg;
 	Evalue *e;
-	long len, offset;
+	int32_t len, offset;
 
 	if(n <= 0)
 		return 0;
@@ -391,10 +391,10 @@ envwriteable(Chan *c)
  *  to let the kernel set environment variables
  */
 void
-ksetenv(char *ename, char *eval, int conf)
+ksetenv(int8_t *ename, int8_t *eval, int conf)
 {
 	Chan *c;
-	char buf[2*KNAMELEN];
+	int8_t buf[2*KNAMELEN];
 
 	snprint(buf, sizeof(buf), "#e%s/%s", conf?"c":"", ename);
 	c = namec(buf, Acreate, OWRITE, 0600);
@@ -407,12 +407,12 @@ ksetenv(char *ename, char *eval, int conf)
  * The strings alternate between name and value.  A zero length name string
  * indicates the end of the list
  */
-char *
+int8_t *
 getconfenv(void)
 {
 	Egrp *eg = &confegrp;
 	Evalue *e;
-	char *p, *q;
+	int8_t *p, *q;
 	int i, n;
 
 	rlock(eg);

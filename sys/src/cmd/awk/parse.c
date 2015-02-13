@@ -201,7 +201,7 @@ Node *makearr(Node *p)
 			SYNTAX( "%s is a function, not an array", cp->nval );
 		else if (!isarr(cp)) {
 			xfree(cp->sval);
-			cp->sval = (char *) makesymtab(NSYMTAB);
+			cp->sval = (int8_t *) makesymtab(NSYMTAB);
 			cp->tval = ARR;
 		}
 	}
@@ -249,7 +249,7 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 		return;
 	}
 	v->tval = FCN;
-	v->sval = (char *) st;
+	v->sval = (int8_t *) st;
 	n = 0;	/* count arguments */
 	for (p = vl; p; p = p->nnext)
 		n++;
@@ -257,7 +257,7 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 	dprintf( ("defining func %s (%d args)\n", v->nval, n) );
 }
 
-int isarg(char *s)		/* is s in argument list for current function? */
+int isarg(int8_t *s)		/* is s in argument list for current function? */
 {			/* return -1 if not, otherwise arg # */
 	extern Node *arglist;
 	Node *p = arglist;
@@ -271,10 +271,10 @@ int isarg(char *s)		/* is s in argument list for current function? */
 
 int ptoi(void *p)	/* convert pointer to integer */
 {
-	return (int) (long) p;	/* swearing that p fits, of course */
+	return (int) (int32_t) p;	/* swearing that p fits, of course */
 }
 
 Node *itonp(int i)	/* and vice versa */
 {
-	return (Node *) (long) i;
+	return (Node *) (int32_t) i;
 }

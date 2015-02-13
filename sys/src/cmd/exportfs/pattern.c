@@ -16,14 +16,14 @@
 #include "exportfs.h"
 
 Reprog	**exclude, **include;
-char	*patternfile;
+int8_t	*patternfile;
 
 void
 exclusions(void)
 {
 	Biobuf *f;
 	int ni, nmaxi, ne, nmaxe;
-	char *line;
+	int8_t *line;
 
 	if(patternfile == nil)
 		return;
@@ -79,10 +79,10 @@ exclusions(void)
 }
 
 int
-excludefile(char *path)
+excludefile(int8_t *path)
 {
 	Reprog **re;
-	char *p;
+	int8_t *p;
 
 	if(*(path+1) == 0)
 		p = "/";
@@ -106,7 +106,7 @@ excludefile(char *path)
 }
 
 int
-preaddir(Fid *f, uchar *data, int n, vlong offset)
+preaddir(Fid *f, uint8_t *data, int n, int64_t offset)
 {
 	int r = 0, m;
 	Dir *d;
@@ -133,7 +133,7 @@ preaddir(Fid *f, uchar *data, int n, vlong offset)
 		}
 		d = &f->dir[f->cdir++];
 		if(exclude){
-			char *p = makepath(f->f, d->name);
+			int8_t *p = makepath(f->f, d->name);
 			if(excludefile(p)){
 				free(p);
 				goto skipentry;

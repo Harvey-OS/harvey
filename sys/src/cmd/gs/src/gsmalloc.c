@@ -167,8 +167,8 @@ gs_heap_alloc_bytes(gs_memory_t * mem, uint size, client_name_t cname)
     byte *ptr = 0;
 
 #ifdef DEBUG
-    const char *msg;
-    static const char *const ok_msg = "OK";
+    const int8_t *msg;
+    static const int8_t *const ok_msg = "OK";
 
 #  define set_msg(str) (msg = (str))
 #else
@@ -213,7 +213,7 @@ gs_heap_alloc_bytes(gs_memory_t * mem, uint size, client_name_t cname)
 #ifdef DEBUG
     if (gs_debug_c('a') || msg != ok_msg)
 	dlprintf4("[a+]gs_malloc(%s)(%u) = 0x%lx: %s\n",
-		  client_name_string(cname), size, (ulong) ptr, msg);
+		  client_name_string(cname), size, (uint32_t) ptr, msg);
 #endif
     return ptr;
 #undef set_msg
@@ -234,7 +234,7 @@ private byte *
 gs_heap_alloc_byte_array(gs_memory_t * mem, uint num_elements, uint elt_size,
 			 client_name_t cname)
 {
-    ulong lsize = (ulong) num_elements * elt_size;
+    uint32_t lsize = (uint32_t) num_elements * elt_size;
 
     if (lsize != (uint) lsize)
 	return 0;
@@ -362,7 +362,7 @@ gs_heap_resize_string(gs_memory_t * mem, byte * data, uint old_num, uint new_num
 {
     if (gs_heap_object_type(mem, data) != &st_bytes)
 	lprintf2("%s: resizing non-string 0x%lx!\n",
-		 client_name_string(cname), (ulong) data);
+		 client_name_string(cname), (uint32_t) data);
     return gs_heap_resize_object(mem, data, new_num, cname);
 }
 private void

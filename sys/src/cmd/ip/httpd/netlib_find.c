@@ -15,9 +15,9 @@
 #include "httpd.h"
 #include "httpsrv.h"
 
-void bib_fmt(char*,char*);
-void index_fmt(char*,char*);
-void no_fmt(char*,char*);
+void bib_fmt(int8_t*,int8_t*);
+void index_fmt(int8_t*,int8_t*);
+void no_fmt(int8_t*,int8_t*);
 int send(HConnect*);
 
 Hio *hout;
@@ -28,11 +28,11 @@ typedef struct DB	DB;
 struct DB 
 {
 	int	SELECT;	/* value from search.html */
-	char	*log;	/* abbreviation for logfile */
+	int8_t	*log;	/* abbreviation for logfile */
 	int	maxhit;	/* maximum number of hits to return */
-	char	*file;	/* searchfs database */
-	void	(*fmt)(char*,char*); /* convert one record to HTML */
-	char	*postlude;	/* trailer text */
+	int8_t	*file;	/* searchfs database */
+	void	(*fmt)(int8_t*,int8_t*); /* convert one record to HTML */
+	int8_t	*postlude;	/* trailer text */
 };
 
 DB db[] =
@@ -53,10 +53,10 @@ DB db[] =
 /********** reformat database record as HTML ************/
 
 void /* tr '\015' '\012' ("uncombline") */
-no_fmt(char*s,char*e)
+no_fmt(int8_t*s,int8_t*e)
 {
 	/* s = start, e = (one past) end of database record */
-	char *p;
+	int8_t *p;
 	for(p = s; p<e; p++)
 		if(*p=='\r'){
 			hwrite(hout, s,p-s);
@@ -66,10 +66,10 @@ no_fmt(char*s,char*e)
 }
 
 int /* should the filename have .gz appended? */
-suffix(char*filename)
+suffix(int8_t*filename)
 {
 	int n;
-	char *z;
+	int8_t *z;
 
 	if(!filename || *filename==0)
 		return(0);
@@ -91,9 +91,9 @@ suffix(char*filename)
 }
 
 void /* add HREF to "file:" lines */
-index_fmt(char*s,char*e)
+index_fmt(int8_t*s,int8_t*e)
 {
-	char *p, *filename;
+	int8_t *p, *filename;
 	if(strncmp(s,"file",4)==0 && (s[4]==' '||s[4]=='\t')){
 		for(filename = s+4; strchr(" \t",*filename); filename++){}
 		for(s = filename; *s && strchr("\r\n",*s)==nil; s++){}
@@ -128,9 +128,9 @@ index_fmt(char*s,char*e)
 }
 
 void /* add HREF to "URL" lines */
-bib_fmt(char*s,char*e)
+bib_fmt(int8_t*s,int8_t*e)
 {
-	char *p, *filename;
+	int8_t *p, *filename;
 	for(p = s; p<e; p++)
 		if(*p=='\r'){
 			hwrite(hout, s,p-s);
@@ -152,7 +152,7 @@ bib_fmt(char*s,char*e)
 /********** main() calls httpheadget() calls send() ************/
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	HConnect *c;
 
@@ -166,10 +166,10 @@ main(int argc, char **argv)
 Biobuf Blist;
 
 Biobuf*
-init800fs(char*name,char*pat)
+init800fs(int8_t*name,int8_t*pat)
 {
 	int fd800fs, n;
-	char*search;
+	int8_t*search;
 
 	fd800fs = open(name, ORDWR);
 	if(fd800fs < 0)
@@ -188,11 +188,11 @@ init800fs(char*name,char*pat)
 }
 
 
-static char *
-hq(char *text)
+static int8_t *
+hq(int8_t *text)
 {
 	int textlen = strlen(text), escapedlen = textlen;
-	char *escaped, *s, *w;
+	int8_t *escaped, *s, *w;
 
 	for(s = text; *s; s++)
 		if(*s=='<' || *s=='>' || *s=='&')
@@ -220,7 +220,7 @@ send(HConnect *c)
 {
 	Biobuf*blist;
 	int m, n, dbi, nmatch;
-	char *pat, *s, *e;
+	int8_t *pat, *s, *e;
 	HSPairs *q;
 
 	if(strcmp(c->req.meth, "GET") != 0 && strcmp(c->req.meth, "HEAD") != 0)

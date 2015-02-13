@@ -15,18 +15,23 @@
 
 #define SUBSCRIBED	"imap.subscribed"
 
-static int	matches(char *ref, char *pat, char *name);
-static int	mayMatch(char *pat, char *name, int star);
-static int	checkMatch(char *cmd, char *ref, char *pat, char *mbox, long mtime, int isdir);
-static int	listAll(char *cmd, char *ref, char *pat, char *mbox, long mtime);
-static int	listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm);
+static int	matches(int8_t *ref, int8_t *pat, int8_t *name);
+static int	mayMatch(int8_t *pat, int8_t *name, int star);
+static int	checkMatch(int8_t *cmd, int8_t *ref, int8_t *pat,
+			     int8_t *mbox,
+			     int32_t mtime, int isdir);
+static int	listAll(int8_t *cmd, int8_t *ref, int8_t *pat,
+			  int8_t *mbox,
+			  int32_t mtime);
+static int	listMatch(int8_t *cmd, int8_t *ref, int8_t *pat,
+			    int8_t *mbox, int8_t *mm);
 static int	mkSubscribed(void);
 
-static long
-listMtime(char *file)
+static int32_t
+listMtime(int8_t *file)
 {
 	Dir *d;
-	long mtime;
+	int32_t mtime;
 
 	d = cdDirstat(mboxDir, file);
 	if(d == nil)
@@ -42,13 +47,13 @@ listMtime(char *file)
  * or is a subscribed mailbox name
  */
 int
-lsubBoxes(char *cmd, char *ref, char *pat)
+lsubBoxes(int8_t *cmd, int8_t *ref, int8_t *pat)
 {
 	MbLock *mb;
 	Dir *d;
 	Biobuf bin;
-	char *s;
-	long mtime;
+	int8_t *s;
+	int32_t mtime;
 	int fd, ok, isdir;
 
 	mb = mbLock();
@@ -109,10 +114,10 @@ mkSubscribed(void)
  * either subscribe or unsubscribe to a mailbox
  */
 int
-subscribe(char *mbox, int how)
+subscribe(int8_t *mbox, int how)
 {
 	MbLock *mb;
-	char *s, *in, *ein;
+	int8_t *s, *in, *ein;
 	int fd, tfd, ok, nmbox;
 
 	if(cistrcmp(mbox, "inbox") == 0)
@@ -163,7 +168,7 @@ subscribe(char *mbox, int how)
  * but here INBOX is checked for a case-sensitve match.
  */
 int
-listBoxes(char *cmd, char *ref, char *pat)
+listBoxes(int8_t *cmd, int8_t *ref, int8_t *pat)
 {
 	int ok;
 
@@ -176,11 +181,11 @@ listBoxes(char *cmd, char *ref, char *pat)
  * punt when a * is reached
  */
 static int
-listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
+listMatch(int8_t *cmd, int8_t *ref, int8_t *pat, int8_t *mbox, int8_t *mm)
 {
 	Dir *dir, *dirs;
-	char *mdir, *m, *mb, *wc;
-	long mode;
+	int8_t *mdir, *m, *mb, *wc;
+	int32_t mode;
 	int c, i, nmb, nmdir, nd, ok, fd;
 
 	mdir = nil;
@@ -279,10 +284,10 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
  * and list checkMatch figure it out
  */
 static int
-listAll(char *cmd, char *ref, char *pat, char *mbox, long mtime)
+listAll(int8_t *cmd, int8_t *ref, int8_t *pat, int8_t *mbox, int32_t mtime)
 {
 	Dir *dirs;
-	char *mb;
+	int8_t *mb;
 	int i, nmb, nd, ok, fd;
 
 	ok = checkMatch(cmd, ref, pat, mbox, mtime, 1);
@@ -309,13 +314,13 @@ listAll(char *cmd, char *ref, char *pat, char *mbox, long mtime)
 }
 
 static int
-mayMatch(char *pat, char *name, int star)
+mayMatch(int8_t *pat, int8_t *name, int star)
 {
 	Rune r;
 	int i, n;
 
 	for(; *pat && *pat != '/'; pat += n){
-		r = *(uchar*)pat;
+		r = *(uint8_t*)pat;
 		if(r < Runeself)
 			n = 1;
 		else
@@ -348,9 +353,11 @@ mayMatch(char *pat, char *name, int star)
  * generates response
  */
 static int
-checkMatch(char *cmd, char *ref, char *pat, char *mbox, long mtime, int isdir)
+checkMatch(int8_t *cmd, int8_t *ref, int8_t *pat, int8_t *mbox,
+	   int32_t mtime,
+	   int isdir)
 {
-	char *s, *flags;
+	int8_t *s, *flags;
 
 	if(!matches(ref, pat, mbox) || !okMbox(mbox))
 		return 0;
@@ -374,7 +381,7 @@ checkMatch(char *cmd, char *ref, char *pat, char *mbox, long mtime, int isdir)
 }
 
 static int
-matches(char *ref, char *pat, char *name)
+matches(int8_t *ref, int8_t *pat, int8_t *name)
 {
 	Rune r;
 	int i, n;
@@ -383,7 +390,7 @@ matches(char *ref, char *pat, char *name)
 		if(*name++ != *ref++)
 			return 0;
 	for(; *pat; pat += n){
-		r = *(uchar*)pat;
+		r = *(uint8_t*)pat;
 		if(r < Runeself)
 			n = 1;
 		else

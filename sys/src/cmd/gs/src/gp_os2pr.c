@@ -83,8 +83,8 @@ const gx_io_device gs_iodev_printer = {
 };
 
 typedef struct os2_printer_s {
-    char queue[gp_file_name_sizeof];
-    char filename[gp_file_name_sizeof];
+    int8_t queue[gp_file_name_sizeof];
+    int8_t filename[gp_file_name_sizeof];
 } os2_printer_t;
 
 /* The file device procedures */

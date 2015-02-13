@@ -18,8 +18,8 @@ erealloc(void *a, int n)
 	return a;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -45,7 +45,7 @@ emalloc(int n)
 typedef struct Stringtab	Stringtab;
 struct Stringtab {
 	Stringtab *link;
-	char *str;
+	int8_t *str;
 };
 static Stringtab*
 taballoc(void)
@@ -63,12 +63,12 @@ taballoc(void)
 	return t++;
 }
 
-static char*
-xstrdup(char *s)
+static int8_t*
+xstrdup(int8_t *s)
 {
-	char *r;
+	int8_t *r;
 	int len;
-	static char *t;
+	static int8_t *t;
 	static int nt;
 
 	len = strlen(s)+1;
@@ -98,19 +98,19 @@ xstrdup(char *s)
 static Stringtab *stab[1024];
 
 static uint
-hash(char *s)
+hash(int8_t *s)
 {
 	uint h;
-	uchar *p;
+	uint8_t *p;
 
 	h = 0;
-	for(p=(uchar*)s; *p; p++)
+	for(p=(uint8_t*)s; *p; p++)
 		h = h*37 + *p;
 	return h;
 }
 
-char*
-atom(char *str)
+int8_t*
+atom(int8_t *str)
 {
 	uint h;
 	Stringtab *tab;
@@ -127,11 +127,11 @@ atom(char *str)
 	return tab->str;
 }
 
-char*
-unroot(char *path, char *root)
+int8_t*
+unroot(int8_t *path, int8_t *root)
 {
 	int len;
-	char *s;
+	int8_t *s;
 
 	len = strlen(root);
 	while(len >= 1 && root[len-1]=='/')

@@ -1,12 +1,12 @@
 #include <u.h>
 #include <libc.h>
 
-extern int _seek(vlong*, int, vlong, int);
+extern int _seek(int64_t*, int, int64_t, int);
 
-vlong
-seek(int fd, vlong o, int p)
+int64_t
+seek(int fd, int64_t o, int p)
 {
-	vlong l;
+	int64_t l;
 
 	if(_seek(&l, fd, o, p) < 0)
 		l = -1LL;

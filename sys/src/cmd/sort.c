@@ -55,7 +55,7 @@ struct	Line
 {
 	Key*	key;
 	int	llen;		/* always >= 1 */
-	uchar	line[1];	/* always ends in '\n' */
+	uint8_t	line[1];	/* always ends in '\n' */
 };
 
 struct	Merge
@@ -69,7 +69,7 @@ struct	Merge
 struct	Key
 {
 	int	klen;
-	uchar	key[1];
+	uint8_t	key[1];
 };
 
 struct	Field
@@ -79,43 +79,43 @@ struct	Field
 	int	end1;
 	int	end2;
 
-	long	flags;
-	uchar	mapto[1+255];
+	int32_t	flags;
+	uint8_t	mapto[1+255];
 
-	void	(*dokey)(Key*, uchar*, uchar*, Field*);
+	void	(*dokey)(Key*, uint8_t*, uint8_t*, Field*);
 };
 
 struct args
 {
-	char*	ofile;
-	char*	tname;
+	int8_t*	ofile;
+	int8_t*	tname;
 	Rune	tabchar;
-	char	cflag;
-	char	uflag;
-	char	vflag;
+	int8_t	cflag;
+	int8_t	uflag;
+	int8_t	vflag;
 	int	nfield;
 	int	nfile;
 	Field	field[Nfield];
 
 	Line**	linep;
-	long	nline;			/* number of lines in this temp file */
-	long	lineno;			/* overall ordinal for -s option */
+	int32_t	nline;			/* number of lines in this temp file */
+	int32_t	lineno;			/* overall ordinal for -s option */
 	int	ntemp;
-	long	mline;			/* max lines per file */
+	int32_t	mline;			/* max lines per file */
 } args;
 
 extern	Rune*	month[12];
 
 void	buildkey(Line*);
-void	doargs(int, char*[]);
-void	dofield(char*, int*, int*, int, int);
+void	doargs(int, int8_t*[]);
+void	dofield(int8_t*, int*, int*, int, int);
 void	dofile(Biobuf*);
-void	dokey_(Key*, uchar*, uchar*, Field*);
-void	dokey_dfi(Key*, uchar*, uchar*, Field*);
-void	dokey_gn(Key*, uchar*, uchar*, Field*);
-void	dokey_m(Key*, uchar*, uchar*, Field*);
-void	dokey_r(Key*, uchar*, uchar*, Field*);
-void	done(char*);
+void	dokey_(Key*, uint8_t*, uint8_t*, Field*);
+void	dokey_dfi(Key*, uint8_t*, uint8_t*, Field*);
+void	dokey_gn(Key*, uint8_t*, uint8_t*, Field*);
+void	dokey_m(Key*, uint8_t*, uint8_t*, Field*);
+void	dokey_r(Key*, uint8_t*, uint8_t*, Field*);
+void	done(int8_t*);
 int	kcmp(Key*, Key*);
 void	makemapd(Field*);
 void	makemapm(Field*);
@@ -124,21 +124,21 @@ void	mergeout(Biobuf*);
 void	newfield(void);
 Line*	newline(Biobuf*);
 void	nomem(void);
-void	notifyf(void*, char*);
+void	notifyf(void*, int8_t*);
 void	printargs(void);
 void	printout(Biobuf*);
 void	setfield(int, int);
-uchar*	skip(uchar*, int, int, int, int);
-void	sort4(void*, ulong);
-char*	tempfile(int);
+uint8_t*	skip(uint8_t*, int, int, int, int);
+void	sort4(void*, uint32_t);
+int8_t*	tempfile(int);
 void	tempout(void);
 void	lineout(Biobuf*, Line*);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int i, f;
-	char *s;
+	int8_t *s;
 	Biobuf bbuf;
 
 	notify(notifyf);	/**/
@@ -240,7 +240,7 @@ dofile(Biobuf *b)
 }
 
 void
-notifyf(void*, char *s)
+notifyf(void*, int8_t *s)
 {
 
 	if(strcmp(s, "interrupt") == 0)
@@ -259,7 +259,7 @@ Line*
 newline(Biobuf *b)
 {
 	Line *l;
-	char *p;
+	int8_t *p;
 	int n, c;
 
 	p = Brdline(b, '\n');
@@ -312,9 +312,9 @@ lineout(Biobuf *b, Line *l)
 void
 tempout(void)
 {
-	long n;
+	int32_t n;
 	Line **lp, *l;
-	char *tf;
+	int8_t *tf;
 	int f;
 	Biobuf tb;
 
@@ -341,7 +341,7 @@ tempout(void)
 }
 
 void
-done(char *xs)
+done(int8_t *xs)
 {
 	int i;
 
@@ -357,12 +357,12 @@ nomem(void)
 	done("mem");
 }
 
-char*
+int8_t*
 tempfile(int n)
 {
-	static char file[100];
+	static int8_t file[100];
 	static uint pid;
-	char *dir;
+	int8_t *dir;
 
 	dir = "/tmp";
 	if(args.tname)
@@ -389,7 +389,7 @@ void
 mergeout(Biobuf *b)
 {
 	int n, i, f;
-	char *tf;
+	int8_t *tf;
 	Biobuf tb;
 
 	for(i=0; i<args.ntemp; i+=n) {
@@ -420,7 +420,7 @@ mergefiles(int t, int n, Biobuf *b)
 	Merge *m, *mp, **mmp;
 	Key *ok;
 	Line *l;
-	char *tf;
+	int8_t *tf;
 	int i, f, nn;
 
 	mmp = malloc(n*sizeof(*mmp));
@@ -511,7 +511,7 @@ kcmp(Key *ka, Key *kb)
 void
 printout(Biobuf *b)
 {
-	long n;
+	int32_t n;
 	Line **lp, *l;
 	Key *ok;
 
@@ -568,7 +568,7 @@ setfield(int n, int c)
 }
 
 void
-dofield(char *s, int *n1, int *n2, int off1, int off2)
+dofield(int8_t *s, int *n1, int *n2, int off1, int off2)
 {
 	int c, n;
 
@@ -613,7 +613,7 @@ printargs(void)
 {
 	int i, n;
 	Field *f;
-	char *prefix;
+	int8_t *prefix;
 
 	fprint(2, "sort");
 	for(i=0; i<=args.nfield; i++) {
@@ -696,10 +696,10 @@ newfield(void)
 }
 
 void
-doargs(int argc, char *argv[])
+doargs(int argc, int8_t *argv[])
 {
 	int i, c, hadplus;
-	char *s, *p, *q;
+	int8_t *s, *p, *q;
 	Field *f;
 
 	hadplus = 0;
@@ -941,8 +941,8 @@ doargs(int argc, char *argv[])
 	return;
 }
 
-uchar*
-skip(uchar *l, int n1, int n2, int bflag, int endfield)
+uint8_t*
+skip(uint8_t *l, int n1, int n2, int bflag, int endfield)
 {
 	int i, c, tc;
 	Rune r;
@@ -965,15 +965,15 @@ skip(uchar *l, int n1, int n2, int bflag, int endfield)
 			}
 		} else {
 			l--;
-			l += chartorune(&r, (char*)l);
+			l += chartorune(&r, (int8_t*)l);
 			for(i=n1; i>0; i--) {
 				while(r != tc) {
 					if(r == '\n')
 						return 0;
-					l += chartorune(&r, (char*)l);
+					l += chartorune(&r, (int8_t*)l);
 				}
 				if(!(endfield && i == 1))
-					l += chartorune(&r, (char*)l);
+					l += chartorune(&r, (int8_t*)l);
 			}
 			c = r;
 		}
@@ -1002,15 +1002,15 @@ skip(uchar *l, int n1, int n2, int bflag, int endfield)
 			l++;
 			continue;
 		}
-		l += chartorune(&r, (char*)l);
+		l += chartorune(&r, (int8_t*)l);
 	}
 	return l;
 }
 
 void
-dokey_gn(Key *k, uchar *lp, uchar *lpe, Field *f)
+dokey_gn(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 {
-	uchar *kp;
+	uint8_t *kp;
 	int c, cl, dp;
 	int state, nzero, exp, expsign, rflag;
 
@@ -1208,9 +1208,9 @@ dokey_gn(Key *k, uchar *lp, uchar *lpe, Field *f)
 }
 
 void
-dokey_m(Key *k, uchar *lp, uchar *lpe, Field *f)
+dokey_m(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 {
-	uchar *kp;
+	uint8_t *kp;
 	Rune r, place[3];
 	int c, cl, pc;
 	int rflag;
@@ -1229,7 +1229,7 @@ dokey_m(Key *k, uchar *lp, uchar *lpe, Field *f)
 			break;
 		c = *lp;
 		if(c >= Runeself) {
-			lp += chartorune(&r, (char*)lp);
+			lp += chartorune(&r, (int8_t*)lp);
 			c = r;
 		} else
 			lp++;
@@ -1261,9 +1261,9 @@ dokey_m(Key *k, uchar *lp, uchar *lpe, Field *f)
 }
 
 void
-dokey_dfi(Key *k, uchar *lp, uchar *lpe, Field *f)
+dokey_dfi(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 {
-	uchar *kp;
+	uint8_t *kp;
 	Rune r;
 	int c, cl, n, rflag;
 
@@ -1279,7 +1279,7 @@ dokey_dfi(Key *k, uchar *lp, uchar *lpe, Field *f)
 			break;
 		c = *lp;
 		if(c >= Runeself) {
-			lp += chartorune(&r, (char*)lp);
+			lp += chartorune(&r, (int8_t*)lp);
 			c = r;
 		} else
 			lp++;
@@ -1326,7 +1326,7 @@ dokey_dfi(Key *k, uchar *lp, uchar *lpe, Field *f)
 		 * put it in the key
 		 */
 		r = c;
-		n = runetochar((char*)kp, &r);
+		n = runetochar((int8_t*)kp, &r);
 		kp += n;
 		cl += n;
 		if(rflag)
@@ -1348,10 +1348,10 @@ dokey_dfi(Key *k, uchar *lp, uchar *lpe, Field *f)
 }
 
 void
-dokey_r(Key *k, uchar *lp, uchar *lpe, Field*)
+dokey_r(Key *k, uint8_t *lp, uint8_t *lpe, Field*)
 {
 	int cl, n;
-	uchar *kp;
+	uint8_t *kp;
 
 	n = lpe - lp;
 	if(n < 0)
@@ -1377,10 +1377,10 @@ dokey_r(Key *k, uchar *lp, uchar *lpe, Field*)
 }
 
 void
-dokey_(Key *k, uchar *lp, uchar *lpe, Field*)
+dokey_(Key *k, uint8_t *lp, uint8_t *lpe, Field*)
 {
 	int n, cl;
-	uchar *kp;
+	uint8_t *kp;
 
 	n = lpe - lp;
 	if(n < 0)
@@ -1396,7 +1396,7 @@ void
 buildkey(Line *l)
 {
 	Key *k;
-	uchar *lp, *lpe;
+	uint8_t *lp, *lpe;
 	int ll, kl, cl, i, n;
 	Field *f;
 
@@ -1544,11 +1544,11 @@ enum
 	Threshold	= 14,
 };
 
-void	rsort4(Key***, ulong, int);
-void	bsort4(Key***, ulong, int);
+void	rsort4(Key***, uint32_t, int);
+void	bsort4(Key***, uint32_t, int);
 
 void
-sort4(void *a, ulong n)
+sort4(void *a, uint32_t n)
 {
 	if(n > Threshold)
 		rsort4((Key***)a, n, 0);
@@ -1557,12 +1557,12 @@ sort4(void *a, ulong n)
 }
 
 void
-rsort4(Key ***a, ulong n, int b)
+rsort4(Key ***a, uint32_t n, int b)
 {
 	Key ***ea, ***t, ***u, **t1, **u1, *k;
 	Key ***part[257];
-	static long count[257];
-	long clist[257+257], *cp, *cp1;
+	static int32_t count[257];
+	int32_t clist[257+257], *cp, *cp1;
 	int c, lowc, higc;
 
 	/*
@@ -1668,7 +1668,7 @@ rsort4(Key ***a, ulong n, int b)
  * the pieces.
  */
 void
-bsort4(Key ***a, ulong n, int b)
+bsort4(Key ***a, uint32_t n, int b)
 {
 	Key ***i, ***j, ***k, ***l, **t;
 	Key *ka, *kb;

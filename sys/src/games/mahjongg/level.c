@@ -23,10 +23,10 @@ consumeline(Biobuf *b)
 
 /* parse a level file */
 int
-parse(char *layout)
+parse(int8_t *layout)
 {
 	int x = 0, y = 0, depth = 0;
-	char c;
+	int8_t c;
 	Biobuf *b;
 
 	b = Bopen(layout, OREAD);

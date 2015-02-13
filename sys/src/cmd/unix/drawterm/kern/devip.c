@@ -17,8 +17,8 @@
 #include "devip.h"
 
 void	csclose(Chan*);
-long	csread(Chan*, void*, long, vlong);
-long	cswrite(Chan*, void*, long, vlong);
+int32_t	csread(Chan*, void*, int32_t, int64_t);
+int32_t	cswrite(Chan*, void*, int32_t, int64_t);
 
 void osipinit(void);
 
@@ -52,14 +52,14 @@ struct Conv
 	Ref	r;
 	int	sfd;
 	int	perm;
-	char	owner[KNAMELEN];
-	char*	state;
-	uchar	laddr[IPaddrlen];
-	ushort	lport;
-	uchar	raddr[IPaddrlen];
-	ushort	rport;
+	int8_t	owner[KNAMELEN];
+	int8_t*	state;
+	uint8_t	laddr[IPaddrlen];
+	uint16_t	lport;
+	uint8_t	raddr[IPaddrlen];
+	uint16_t	rport;
 	int	restricted;
-	char	cerr[KNAMELEN];
+	int8_t	cerr[KNAMELEN];
 	Proto*	p;
 };
 
@@ -68,7 +68,7 @@ struct Proto
 	Lock	l;
 	int	x;
 	int	stype;
-	char	name[KNAMELEN];
+	int8_t	name[KNAMELEN];
 	int	nc;
 	int	maxconv;
 	Conv**	conv;
@@ -78,15 +78,15 @@ struct Proto
 static	int	np;
 static	Proto	proto[MAXPROTO];
 
-static	Conv*	protoclone(Proto*, char*, int);
+static	Conv*	protoclone(Proto*, int8_t*, int);
 static	void	setladdr(Conv*);
 
 int
-ipgen(Chan *c, char *nname, Dirtab *d, int nd, int s, Dir *dp)
+ipgen(Chan *c, int8_t *nname, Dirtab *d, int nd, int s, Dir *dp)
 {
 	Qid q;
 	Conv *cv;
-	char *p;
+	int8_t *p;
 
 	USED(nname);
 	q.vers = 0;
@@ -163,7 +163,7 @@ ipgen(Chan *c, char *nname, Dirtab *d, int nd, int s, Dir *dp)
 }
 
 static void
-newproto(char *name, int type, int maxconv)
+newproto(int8_t *name, int type, int maxconv)
 {
 	int l;
 	Proto *p;
@@ -200,7 +200,7 @@ ipinit(void)
 }
 
 Chan *
-ipattach(char *spec)
+ipattach(int8_t *spec)
 {
 	Chan *c;
 
@@ -212,13 +212,13 @@ ipattach(char *spec)
 }
 
 static Walkqid*
-ipwalk(Chan *c, Chan *nc, char **name, int nname)
+ipwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, ipgen);
 }
 
 int
-ipstat(Chan *c, uchar *dp, int n)
+ipstat(Chan *c, uint8_t *dp, int n)
 {
 	return devstat(c, dp, n, 0, 0, ipgen);
 }
@@ -227,8 +227,8 @@ Chan *
 ipopen(Chan *c, int omode)
 {
 	Proto *p;
-	uchar raddr[IPaddrlen];
-	ushort rport;
+	uint8_t raddr[IPaddrlen];
+	uint16_t rport;
 	int perm, sfd;
 	Conv *cv, *lcv;
 
@@ -338,14 +338,14 @@ ipclose(Chan *c)
 	}
 }
 
-long
-ipread(Chan *ch, void *a, long n, vlong offset)
+int32_t
+ipread(Chan *ch, void *a, int32_t n, int64_t offset)
 {
 	int r;
 	Conv *c;
 	Proto *x;
-	uchar ip[IPaddrlen];
-	char buf[128], *p;
+	uint8_t ip[IPaddrlen];
+	int8_t buf[128], *p;
 
 /*print("ipread %s %lux\n", c2name(ch), (long)ch->qid.path);*/
 	p = a;
@@ -407,10 +407,10 @@ setlport(Conv *c)
 }
 
 static void
-setladdrport(Conv *c, char *str)
+setladdrport(Conv *c, int8_t *str)
 {
-	char *p;
-	uchar addr[IPaddrlen];
+	int8_t *p;
+	uint8_t addr[IPaddrlen];
 
 	p = strchr(str, '!');
 	if(p == 0) {
@@ -430,11 +430,11 @@ setladdrport(Conv *c, char *str)
 	setlport(c);
 }
 
-static char*
-setraddrport(Conv *c, char *str)
+static int8_t*
+setraddrport(Conv *c, int8_t *str)
 {
-	char *p;
-	uchar addr[IPaddrlen];
+	int8_t *p;
+	uint8_t addr[IPaddrlen];
 
 	p = strchr(str, '!');
 	if(p == 0)
@@ -451,13 +451,13 @@ setraddrport(Conv *c, char *str)
 	return 0;
 }
 
-long
-ipwrite(Chan *ch, void *a, long n, vlong offset)
+int32_t
+ipwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 {
 	Conv *c;
 	Proto *x;
 	int r, nf;
-	char *p, *fields[3], buf[128];
+	int8_t *p, *fields[3], buf[128];
 
 	switch(TYPE(ch->qid)) {
 	default:
@@ -535,7 +535,7 @@ ipwrite(Chan *ch, void *a, long n, vlong offset)
 }
 
 static Conv*
-protoclone(Proto *p, char *user, int nfd)
+protoclone(Proto *p, int8_t *user, int nfd)
 {
 	Conv *c, **pp, **ep;
 
@@ -595,8 +595,8 @@ csclose(Chan *c)
 	free(c->aux);
 }
 
-long
-csread(Chan *c, void *a, long n, vlong offset)
+int32_t
+csread(Chan *c, void *a, int32_t n, int64_t offset)
 {
 	if(c->aux == nil)
 		return 0;
@@ -605,7 +605,7 @@ csread(Chan *c, void *a, long n, vlong offset)
 
 static struct
 {
-	char *name;
+	int8_t *name;
 	uint num;
 } tab[] = {
 	"cs", 1,
@@ -709,10 +709,10 @@ static struct
 };
 
 static int
-lookupport(char *s)
+lookupport(int8_t *s)
 {
 	int i;
-	char buf[10], *p;
+	int8_t buf[10], *p;
 
 	i = strtol(s, &p, 0);
 	if(*s && *p == 0)
@@ -728,7 +728,7 @@ lookupport(char *s)
 }
 
 static int
-lookuphost(char *s, uchar *to)
+lookuphost(int8_t *s, uint8_t *to)
 {
 	ipzero(to);
 	if(parseip(to, s) != -1)
@@ -740,12 +740,12 @@ lookuphost(char *s, uchar *to)
 	return 0;
 }
 
-long
-cswrite(Chan *c, void *a, long n, vlong offset)
+int32_t
+cswrite(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	char *f[4];
-	char *s, *ns;
-	uchar ip[IPaddrlen];
+	int8_t *f[4];
+	int8_t *s, *ns;
+	uint8_t ip[IPaddrlen];
 	int nf, port;
 
 	s = malloc(n+1);

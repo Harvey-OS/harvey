@@ -20,7 +20,7 @@ line(Image *dst, Point p0, Point p1, int end0, int end1, int radius, Image *src,
 void
 lineop(Image *dst, Point p0, Point p1, int end0, int end1, int radius, Image *src, Point sp, Drawop op)
 {
-	uchar *a;
+	uint8_t *a;
 
 	_setdrawop(dst->display, op);
 

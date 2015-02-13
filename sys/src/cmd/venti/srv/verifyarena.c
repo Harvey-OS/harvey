@@ -13,10 +13,10 @@
 
 static int	verbose;
 static int	fd;
-static uchar	*data;
+static uint8_t	*data;
 static int	blocksize;
 static int	sleepms;
-static vlong offset0;
+static int64_t offset0;
 
 void
 usage(void)
@@ -26,7 +26,7 @@ usage(void)
 }
 
 static int
-preadblock(uchar *buf, int n, vlong off)
+preadblock(uint8_t *buf, int n, int64_t off)
 {
 	int nr, m;
 
@@ -43,7 +43,7 @@ preadblock(uchar *buf, int n, vlong off)
 }
 
 static int
-readblock(uchar *buf, int n)
+readblock(uint8_t *buf, int n)
 {
 	int nr, m;
 
@@ -60,7 +60,7 @@ readblock(uchar *buf, int n)
 }
 
 static void
-verifyarena(char *name, vlong len)
+verifyarena(int8_t *name, int64_t len)
 {
 	Arena arena;
 	ArenaHead head;
@@ -162,7 +162,7 @@ verifyarena(char *name, vlong len)
 }
 
 static int
-shouldcheck(char *name, char **s, int n)
+shouldcheck(int8_t *name, int8_t **s, int n)
 {
 	int i;
 	

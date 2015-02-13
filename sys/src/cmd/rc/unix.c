@@ -18,8 +18,8 @@
 #include "getflags.h"
 #include <errno.h>
 
-char *Rcmain = "/usr/lib/rcmain";
-char *Fdprefix = "/dev/fd/";
+int8_t *Rcmain = "/usr/lib/rcmain";
+int8_t *Fdprefix = "/dev/fd/";
 
 void execfinit(void);
 
@@ -38,11 +38,11 @@ struct builtin Builtin[] = {
 	0
 };
 #define	SEP	'\1'
-char **environp;
+int8_t **environp;
 
 struct word*
 enval(s)
-register char *s;
+register int8_t *s;
 {
 	char *t, c;
 	struct word *v;
@@ -57,9 +57,9 @@ register char *s;
 void
 Vinit(void)
 {
-	extern char **environ;
-	char *s;
-	char **env = environ;
+	extern int8_t **environ;
+	int8_t *s;
+	int8_t **env = environ;
 	environp = env;
 	for(;*env;env++){
 		for(s=*env;*s && *s!='(' && *s!='=';s++);
@@ -78,12 +78,12 @@ Vinit(void)
 	}
 }
 
-char **envp;
+int8_t **envp;
 
 void
 Xrdfn(void)
 {
-	char *s;
+	int8_t *s;
 	int len;
 	for(;*envp;envp++){
 		for(s=*envp;*s && *s!='(' && *s!='=';s++);
@@ -127,15 +127,15 @@ execfinit(void)
 int
 cmpenv(const void *aa, const void *ab)
 {
-	char **a = aa, **b = ab;
+	int8_t **a = aa, **b = ab;
 
 	return strcmp(*a, *b);
 }
 
-char **
+int8_t **
 mkenv(void)
 {
-	char **env, **ep, *p, *q;
+	int8_t **env, **ep, *p, *q;
 	struct var **h, *v;
 	struct word *a;
 	int nvar = 0, nchr = 0, sep;
@@ -157,9 +157,9 @@ mkenv(void)
 			nchr+=strlen(v->name)+strlen(v->fn[v->pc-1].s)+8;
 		}
 	}
-	env = (char **)emalloc((nvar+1)*sizeof(char *)+nchr);
+	env = (int8_t **)emalloc((nvar+1)*sizeof(int8_t *)+nchr);
 	ep = env;
-	p = (char *)&env[nvar+1];
+	p = (int8_t *)&env[nvar+1];
 	for(h = gvar-1; h != &gvar[NVAR]; h++)
 	for(v = h >= gvar? *h: runq->local;v;v = v->next){
 		if((v==vlook(v->name)) && v->val){
@@ -191,7 +191,7 @@ mkenv(void)
 	qsort((void *)env, nvar, sizeof ep[0], cmpenv);
 	return env;	
 }
-char *sigmsg[] = {
+int8_t *sigmsg[] = {
 /*  0 normal  */ 0,
 /*  1 SIGHUP  */ "Hangup",
 /*  2 SIGINT  */ 0,
@@ -221,7 +221,7 @@ Waitfor(int pid, int persist)
 	int wpid, sig;
 	struct thread *p;
 	int wstat;
-	char wstatstr[12];
+	int8_t wstatstr[12];
 
 	for(;;){
 		errno = 0;
@@ -283,11 +283,11 @@ Updenv(void)
 void
 Execute(struct word *args, struct word *path)
 {
-	char *msg="not found";
+	int8_t *msg="not found";
 	int txtbusy = 0;
-	char **env = mkenv();
-	char **argv = mkargv(args);
-	char file[512];
+	int8_t **env = mkenv();
+	int8_t **argv = mkargv(args);
+	int8_t file[512];
 
 	for(;path;path = path->next){
 		strcpy(file, path->word);
@@ -320,14 +320,14 @@ ReExec:
 	}
 Bad:
 	pfmt(err, "%s: %s\n", argv[1], msg);
-	efree((char *)env);
-	efree((char *)argv);
+	efree((int8_t *)env);
+	efree((int8_t *)argv);
 }
 
 #define	NDIR	14		/* should get this from param.h */
 
 Globsize(p)
-register char *p;
+register int8_t *p;
 {
 	int isglob = 0, globlen = NDIR+1;
 	for(;*p;p++){
@@ -351,7 +351,7 @@ register char *p;
 DIR *dirlist[NDIRLIST];
 
 Opendir(name)
-char *name;
+int8_t *name;
 {
 	DIR **dp;
 	for(dp = dirlist;dp!=&dirlist[NDIRLIST];dp++)
@@ -363,7 +363,7 @@ char *name;
 }
 
 int
-Readdir(int f, char *p, int onlydirs)
+Readdir(int f, int8_t *p, int onlydirs)
 {
 	struct dirent *dp = readdir(dirlist[f]);
 
@@ -380,7 +380,7 @@ Closedir(int f)
 	dirlist[f] = 0;
 }
 
-char *Signame[] = {
+int8_t *Signame[] = {
 	"sigexit",	"sighup",	"sigint",	"sigquit",
 	"sigill",	"sigtrap",	"sigiot",	"sigemt",
 	"sigfpe",	"sigkill",	"sigbus",	"sigsegv",
@@ -426,32 +426,32 @@ Trapinit(void)
 }
 
 Unlink(name)
-char *name;
+int8_t *name;
 {
 	return unlink(name);
 }
 Write(fd, buf, cnt)
-char *buf;
+int8_t *buf;
 {
 	return write(fd, buf, cnt);
 }
 Read(fd, buf, cnt)
-char *buf;
+int8_t *buf;
 {
 	return read(fd, buf, cnt);
 }
 Seek(fd, cnt, whence)
-long cnt;
+int32_t cnt;
 {
 	return lseek(fd, cnt, whence);
 }
 Executable(file)
-char *file;
+int8_t *file;
 {
 	return(access(file, 01)==0);
 }
 Creat(file)
-char *file;
+int8_t *file;
 {
 	return creat(file, 0666);
 }
@@ -465,7 +465,7 @@ Dup1(a){
  * Wrong:  should go through components of a|b|c and return the maximum.
  */
 void
-Exit(char *stat)
+Exit(int8_t *stat)
 {
 	int n = 0;
 
@@ -527,7 +527,7 @@ execumask(void)		/* wrong -- should fork before writing */
 
 void
 Memcpy(a, b, n)
-char *a, *b;
+int8_t *a, *b;
 {
 	memmove(a, b, n);
 }
@@ -539,7 +539,7 @@ Malloc(unsigned long n)
 }
 
 void
-errstr(char *buf, int len)
+errstr(int8_t *buf, int len)
 {
 	strncpy(buf, strerror(errno), len);
 }

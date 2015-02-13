@@ -20,11 +20,11 @@ usage(void)
 	exits("usage");
 }
 
-char*
+int8_t*
 snapnow(void)
 {
 	Tm t;
-	static char buf[100];
+	static int8_t buf[100];
 
 	t = *localtime(time(0)-5*60*60);	/* take dumps at 5:00 am */
 

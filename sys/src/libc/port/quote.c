@@ -12,13 +12,13 @@
 
 int	(*doquote)(int);
 
-extern int _needsquotes(char*, int*);
+extern int _needsquotes(int8_t*, int*);
 extern int _runeneedsquotes(Rune*, int*);
 
-char*
-unquotestrdup(char *s)
+int8_t*
+unquotestrdup(int8_t *s)
 {
-	char *t, *ret;
+	int8_t *t, *ret;
 	int quoting;
 
 	ret = s = strdup(s);	/* return unquoted copy */
@@ -91,10 +91,10 @@ unquoterunestrdup(Rune *s)
 	return ret;
 }
 
-char*
-quotestrdup(char *s)
+int8_t*
+quotestrdup(int8_t *s)
 {
-	char *t, *u, *ret;
+	int8_t *t, *u, *ret;
 	int quotelen;
 	Rune r;
 

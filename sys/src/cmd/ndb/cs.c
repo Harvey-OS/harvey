@@ -43,24 +43,24 @@ struct Mfile
 {
 	int		busy;
 
-	char		*user;
+	int8_t		*user;
 	Qid		qid;
 	int		fid;
 
 	/*
 	 *  current request
 	 */
-	char		*net;
-	char		*host;
-	char		*serv;
-	char		*rem;
+	int8_t		*net;
+	int8_t		*host;
+	int8_t		*serv;
+	int8_t		*rem;
 
 	/*
 	 *  result of the last lookup
 	 */
 	Network		*nextnet;
 	int		nreply;
-	char		*reply[Nreply];
+	int8_t		*reply[Nreply];
 	int		replylen[Nreply];
 };
 
@@ -91,13 +91,13 @@ int	paranoia;
 int	ipv6lookups = 1;
 jmp_buf	masterjmp;	/* return through here after a slave process has been created */
 int	*isslave;	/* *isslave non-zero means this is a slave process */
-char	*dbfile;
+int8_t	*dbfile;
 Ndb	*db, *netdb;
 
 void	rversion(Job*);
 void	rflush(Job*);
 void	rattach(Job*, Mfile*);
-char*	rwalk(Job*, Mfile*);
+int8_t*	rwalk(Job*, Mfile*);
 void	ropen(Job*, Mfile*);
 void	rcreate(Job*, Mfile*);
 void	rread(Job*, Mfile*);
@@ -107,25 +107,25 @@ void	rremove(Job*, Mfile*);
 void	rstat(Job*, Mfile*);
 void	rwstat(Job*, Mfile*);
 void	rauth(Job*);
-void	sendmsg(Job*, char*);
-void	error(char*);
-void	mountinit(char*, char*);
+void	sendmsg(Job*, int8_t*);
+void	error(int8_t*);
+void	mountinit(int8_t*, int8_t*);
 void	io(void);
 void	ndbinit(void);
 void	netinit(int);
-void	netadd(char*);
-char	*genquery(Mfile*, char*);
-char*	ipinfoquery(Mfile*, char**, int);
+void	netadd(int8_t*);
+int8_t	*genquery(Mfile*, int8_t*);
+int8_t*	ipinfoquery(Mfile*, int8_t**, int);
 int	needproto(Network*, Ndbtuple*);
 int	lookup(Mfile*);
 Ndbtuple*	reorder(Ndbtuple*, Ndbtuple*);
 void	ipid(void);
 void	readipinterfaces(void);
 void*	emalloc(int);
-char*	estrdup(char*);
+int8_t*	estrdup(int8_t*);
 Job*	newjob(void);
 void	freejob(Job*);
-void	setext(char*, int, char*);
+void	setext(int8_t*, int, int8_t*);
 void	cleanmf(Mfile*);
 
 extern void	paralloc(void);
@@ -133,26 +133,28 @@ extern void	paralloc(void);
 Lock	dblock;		/* mutex on database operations */
 Lock	netlock;	/* mutex for netinit() */
 
-char	*logfile = "cs";
-char	*paranoiafile = "cs.paranoia";
+int8_t	*logfile = "cs";
+int8_t	*paranoiafile = "cs.paranoia";
 
-char	mntpt[Maxpath];
-char	netndb[Maxpath];
+int8_t	mntpt[Maxpath];
+int8_t	netndb[Maxpath];
 
 /*
  *  Network specific translators
  */
-Ndbtuple*	iplookup(Network*, char*, char*, int);
-char*		iptrans(Ndbtuple*, Network*, char*, char*, int);
-Ndbtuple*	telcolookup(Network*, char*, char*, int);
-char*		telcotrans(Ndbtuple*, Network*, char*, char*, int);
-Ndbtuple*	dnsiplookup(char*, Ndbs*);
+Ndbtuple*	iplookup(Network*, int8_t*, int8_t*, int);
+int8_t*		iptrans(Ndbtuple*, Network*, int8_t*, int8_t*, int);
+Ndbtuple*	telcolookup(Network*, int8_t*, int8_t*, int);
+int8_t*		telcotrans(Ndbtuple*, Network*, int8_t*, int8_t*,
+				  int);
+Ndbtuple*	dnsiplookup(int8_t*, Ndbs*);
 
 struct Network
 {
-	char		*net;
-	Ndbtuple	*(*lookup)(Network*, char*, char*, int);
-	char		*(*trans)(Ndbtuple*, Network*, char*, char*, int);
+	int8_t		*net;
+	Ndbtuple	*(*lookup)(Network*, int8_t*, int8_t*, int);
+	int8_t		*(*trans)(Ndbtuple*, Network*, int8_t*,
+					int8_t*, int);
 	int		considered;		/* flag: ignored for "net!"? */
 	int		fasttimeouthack;	/* flag. was for IL */
 	Network		*next;
@@ -180,16 +182,16 @@ Network network[] = {
 Lock ipifclock;
 Ipifc *ipifcs;
 
-char	eaddr[16];		/* ascii ethernet address */
-char	ipaddr[64];		/* ascii internet address */
-uchar	ipa[IPaddrlen];		/* binary internet address */
-char	*mysysname;
+int8_t	eaddr[16];		/* ascii ethernet address */
+int8_t	ipaddr[64];		/* ascii internet address */
+uint8_t	ipa[IPaddrlen];		/* binary internet address */
+int8_t	*mysysname;
 
 Network *netlist;		/* networks ordered by preference */
 Network *last;
 
 static void
-nstrcpy(char *to, char *from, int len)
+nstrcpy(int8_t *to, int8_t *from, int len)
 {
 	strncpy(to, from, len);
 	to[len-1] = 0;
@@ -207,11 +209,11 @@ usage(void)
  * actually just sets the arguments displayed.
  */
 void
-procsetname(char *fmt, ...)
+procsetname(int8_t *fmt, ...)
 {
 	int fd;
-	char *cmdname;
-	char buf[128];
+	int8_t *cmdname;
+	int8_t buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -284,7 +286,7 @@ main(int argc, char *argv[])
  *  with '_'s replacing '/'s
  */
 void
-setext(char *ext, int n, char *p)
+setext(int8_t *ext, int n, int8_t *p)
 {
 	int i, c;
 
@@ -301,11 +303,11 @@ setext(char *ext, int n, char *p)
 }
 
 void
-mountinit(char *service, char *mntpt)
+mountinit(int8_t *service, int8_t *mntpt)
 {
 	int f;
 	int p[2];
-	char buf[32];
+	int8_t buf[32];
 
 	if(pipe(p) < 0)
 		error("pipe failed");
@@ -424,10 +426,10 @@ flushjob(int tag)
 void
 io(void)
 {
-	long n;
+	int32_t n;
 	Mfile *mf;
 	int slaveflag;
-	uchar mdata[IOHDRSZ + Maxfdata];
+	uint8_t mdata[IOHDRSZ + Maxfdata];
 	Job *job;
 
 	/*
@@ -565,11 +567,11 @@ rattach(Job *job, Mfile *mf)
 }
 
 
-char*
+int8_t*
 rwalk(Job *job, Mfile *mf)
 {
-	char *err;
-	char **elems;
+	int8_t *err;
+	int8_t **elems;
 	int nelems;
 	int i;
 	Mfile *nmf;
@@ -641,7 +643,7 @@ void
 ropen(Job *job, Mfile *mf)
 {
 	int mode;
-	char *err;
+	int8_t *err;
 
 	err = 0;
 	mode = job->request.mode;
@@ -665,10 +667,10 @@ void
 rread(Job *job, Mfile *mf)
 {
 	int i, n, cnt;
-	long off, toff, clock;
+	int32_t off, toff, clock;
 	Dir dir;
-	uchar buf[Maxfdata];
-	char *err;
+	uint8_t buf[Maxfdata];
+	int8_t *err;
 
 	n = 0;
 	err = 0;
@@ -691,7 +693,7 @@ rread(Job *job, Mfile *mf)
 			dir.mtime = clock;	/* wrong */
 			n = convD2M(&dir, buf, sizeof buf);
 		}
-		job->reply.data = (char*)buf;
+		job->reply.data = (int8_t*)buf;
 	} else {
 		for(;;){
 			/* look for an answer at the right offset */
@@ -758,9 +760,9 @@ void
 rwrite(Job *job, Mfile *mf)
 {
 	int cnt, n;
-	char *err;
-	char *field[4];
-	char curerr[64];
+	int8_t *err;
+	int8_t *field[4];
+	int8_t curerr[64];
 
 	err = 0;
 	cnt = job->request.count;
@@ -891,7 +893,7 @@ void
 rstat(Job *job, Mfile *mf)
 {
 	Dir dir;
-	uchar buf[IOHDRSZ+Maxfdata];
+	uint8_t buf[IOHDRSZ+Maxfdata];
 
 	memset(&dir, 0, sizeof dir);
 	if(mf->qid.type & QTDIR){
@@ -920,11 +922,11 @@ rwstat(Job *job, Mfile *mf)
 }
 
 void
-sendmsg(Job *job, char *err)
+sendmsg(Job *job, int8_t *err)
 {
 	int n;
-	uchar mdata[IOHDRSZ + Maxfdata];
-	char ename[ERRMAX];
+	uint8_t mdata[IOHDRSZ + Maxfdata];
+	int8_t ename[ERRMAX];
 
 	if(err){
 		job->reply.type = Rerror;
@@ -949,25 +951,25 @@ sendmsg(Job *job, char *err)
 }
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	syslog(1, "cs", "%s: %r", s);
 	_exits(0);
 }
 
 static int
-isvalidip(uchar *ip)
+isvalidip(uint8_t *ip)
 {
 	return ipcmp(ip, IPnoaddr) != 0 && ipcmp(ip, v4prefix) != 0;
 }
 
-static uchar loopbacknet[IPaddrlen] = {
+static uint8_t loopbacknet[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0xff, 0xff,
 	127, 0, 0, 0
 };
-static uchar loopbackmask[IPaddrlen] = {
+static uint8_t loopbackmask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
@@ -990,12 +992,12 @@ readipinterfaces(void)
 void
 ipid(void)
 {
-	uchar addr[6];
+	uint8_t addr[6];
 	Ndbtuple *t, *tt;
-	char *p, *attr;
+	int8_t *p, *attr;
 	Ndbs s;
 	int f;
-	char buf[Maxpath];
+	int8_t buf[Maxpath];
 
 	/* use environment, ether addr, or ipaddr to get system name */
 	if(mysysname == 0){
@@ -1077,7 +1079,7 @@ ipid(void)
 void
 netinit(int background)
 {
-	char clone[Maxpath];
+	int8_t clone[Maxpath];
 	Network *np;
 	static int working;
 
@@ -1127,10 +1129,10 @@ netinit(int background)
  *  add networks to the standard list
  */
 void
-netadd(char *p)
+netadd(int8_t *p)
 {
 	Network *np;
-	char *field[12];
+	int8_t *field[12];
 	int i, n;
 
 	n = getfields(p, field, 12, 1, " ");
@@ -1152,7 +1154,7 @@ netadd(char *p)
 }
 
 int
-lookforproto(Ndbtuple *t, char *proto)
+lookforproto(Ndbtuple *t, int8_t *proto)
 {
 	for(; t != nil; t = t->entry)
 		if(strcmp(t->attr, "proto") == 0 && strcmp(t->val, proto) == 0)
@@ -1168,9 +1170,9 @@ int
 lookup(Mfile *mf)
 {
 	Network *np;
-	char *cp;
+	int8_t *cp;
 	Ndbtuple *nt, *t;
-	char reply[Maxreply];
+	int8_t reply[Maxreply];
 	int i, rv;
 	int hack;
 
@@ -1270,13 +1272,13 @@ lookup(Mfile *mf)
  *
  *  the service '*' needs no translation.
  */
-char*
-ipserv(Network *np, char *name, char *buf, int blen)
+int8_t*
+ipserv(Network *np, int8_t *name, int8_t *buf, int blen)
 {
-	char *p;
+	int8_t *p;
 	int alpha = 0;
 	int restr = 0;
-	char port[10];
+	int8_t port[10];
 	Ndbtuple *t, *nt;
 	Ndbs s;
 
@@ -1328,11 +1330,11 @@ ipserv(Network *np, char *name, char *buf, int blen)
  *  lookup an ip attribute
  */
 int
-ipattrlookup(Ndb *db, char *ipa, char *attr, char *val, int vlen)
+ipattrlookup(Ndb *db, int8_t *ipa, int8_t *attr, int8_t *val, int vlen)
 {
 
 	Ndbtuple *t, *nt;
-	char *alist[2];
+	int8_t *alist[2];
 
 	alist[0] = attr;
 	t = ndbipinfo(db, "ip", ipa, alist, 1);
@@ -1355,16 +1357,16 @@ ipattrlookup(Ndb *db, char *ipa, char *attr, char *val, int vlen)
  *  lookup (and translate) an ip destination
  */
 Ndbtuple*
-iplookup(Network *np, char *host, char *serv, int nolookup)
+iplookup(Network *np, int8_t *host, int8_t *serv, int nolookup)
 {
-	char *attr, *dnsname;
+	int8_t *attr, *dnsname;
 	Ndbtuple *t, *nt;
 	Ndbs s;
-	char ts[Maxservice];
-	char dollar[Maxhost];
-	uchar ip[IPaddrlen];
-	uchar net[IPaddrlen];
-	uchar tnet[IPaddrlen];
+	int8_t ts[Maxservice];
+	int8_t dollar[Maxhost];
+	uint8_t ip[IPaddrlen];
+	uint8_t net[IPaddrlen];
+	uint8_t tnet[IPaddrlen];
 	Ipifc *ifc;
 	Iplifc *lifc;
 
@@ -1470,12 +1472,12 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 /*
  *  translate an ip address
  */
-char*
-iptrans(Ndbtuple *t, Network *np, char *serv, char *rem, int hack)
+int8_t*
+iptrans(Ndbtuple *t, Network *np, int8_t *serv, int8_t *rem, int hack)
 {
-	char ts[Maxservice];
-	char reply[Maxreply];
-	char x[Maxservice];
+	int8_t ts[Maxservice];
+	int8_t reply[Maxreply];
+	int8_t x[Maxservice];
 
 	if(strcmp(t->attr, "ip") != 0)
 		return 0;
@@ -1503,7 +1505,7 @@ iptrans(Ndbtuple *t, Network *np, char *serv, char *rem, int hack)
  *  lookup a telephone number
  */
 Ndbtuple*
-telcolookup(Network *np, char *host, char *serv, int nolookup)
+telcolookup(Network *np, int8_t *host, int8_t *serv, int nolookup)
 {
 	Ndbtuple *t;
 	Ndbs s;
@@ -1521,11 +1523,11 @@ telcolookup(Network *np, char *host, char *serv, int nolookup)
 /*
  *  translate a telephone address
  */
-char*
-telcotrans(Ndbtuple *t, Network *np, char *serv, char *rem, int)
+int8_t*
+telcotrans(Ndbtuple *t, Network *np, int8_t *serv, int8_t *rem, int)
 {
-	char reply[Maxreply];
-	char x[Maxservice];
+	int8_t reply[Maxreply];
+	int8_t x[Maxservice];
 
 	if(strcmp(t->attr, "telco") != 0)
 		return 0;
@@ -1576,7 +1578,7 @@ reorder(Ndbtuple *t, Ndbtuple *x)
  *  another.  parent returns to job loop.
  */
 void
-slave(char *host)
+slave(int8_t *host)
 {
 	if(*isslave)
 		return;		/* we're already a slave process */
@@ -1597,7 +1599,7 @@ slave(char *host)
 }
 
 static Ndbtuple*
-dnsip6lookup(char *mntpt, char *buf, Ndbtuple *t)
+dnsip6lookup(int8_t *mntpt, int8_t *buf, Ndbtuple *t)
 {
 	Ndbtuple *t6, *tt;
 
@@ -1624,9 +1626,9 @@ dnsip6lookup(char *mntpt, char *buf, Ndbtuple *t)
  *  call the dns process and have it try to translate a name
  */
 Ndbtuple*
-dnsiplookup(char *host, Ndbs *s)
+dnsiplookup(int8_t *host, Ndbs *s)
 {
-	char buf[Maxreply];
+	int8_t buf[Maxreply];
 	Ndbtuple *t;
 
 	unlock(&dblock);
@@ -1659,7 +1661,7 @@ dnsiplookup(char *host, Ndbs *s)
 }
 
 int
-qmatch(Ndbtuple *t, char **attr, char **val, int n)
+qmatch(Ndbtuple *t, int8_t **attr, int8_t **val, int n)
 {
 	int i, found;
 	Ndbtuple *nt;
@@ -1719,13 +1721,13 @@ enum
  *  is like ipinfo and returns the attr{1-n}
  *  associated with the ip address.
  */
-char*
-genquery(Mfile *mf, char *query)
+int8_t*
+genquery(Mfile *mf, int8_t *query)
 {
 	int i, n;
-	char *p;
-	char *attr[Maxattr];
-	char *val[Maxattr];
+	int8_t *p;
+	int8_t *attr[Maxattr];
+	int8_t *val[Maxattr];
 	Ndbtuple *t;
 	Ndbs s;
 
@@ -1780,7 +1782,7 @@ genquery(Mfile *mf, char *query)
  *  resolve an ip address
  */
 static Ndbtuple*
-ipresolve(char *attr, char *host)
+ipresolve(int8_t *attr, int8_t *host)
 {
 	Ndbtuple *t, *nt, **l;
 
@@ -1799,13 +1801,13 @@ ipresolve(char *attr, char *host)
 	return t;
 }
 
-char*
-ipinfoquery(Mfile *mf, char **list, int n)
+int8_t*
+ipinfoquery(Mfile *mf, int8_t **list, int n)
 {
 	int i, nresolve;
 	int resolve[Maxattr];
 	Ndbtuple *t, *nt, **l;
-	char *attr, *val;
+	int8_t *attr, *val;
 
 	/* skip 'ipinfo' */
 	list++; n--;
@@ -1899,11 +1901,11 @@ emalloc(int size)
 	return x;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	int size;
-	char *p;
+	int8_t *p;
 
 	size = strlen(s)+1;
 	p = malloc(size);

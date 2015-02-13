@@ -28,7 +28,7 @@ machinit(void)
  * Put a string on the console.
  */
 void
-puts(char *s, int n)
+puts(int8_t *s, int n)
 {
 	print("%.*s", n, s);
 }
@@ -42,7 +42,7 @@ prflush(void)
  * Print a string on the console.
  */
 void
-putstrn(char *str, int n)
+putstrn(int8_t *str, int n)
 {
 	puts(str, n);
 }
@@ -57,11 +57,11 @@ getc(void)
 }
 
 void
-panic(char *fmt, ...)
+panic(int8_t *fmt, ...)
 {
 	int n;
 	va_list arg;
-	char buf[PRINTSIZE];
+	int8_t buf[PRINTSIZE];
 
 	va_start(arg, fmt);
 	n = vseprint(buf, buf + sizeof buf, fmt, arg) - buf;
@@ -72,9 +72,9 @@ panic(char *fmt, ...)
 }
 
 int
-okay(char *quest)
+okay(int8_t *quest)
 {
-	char *ln;
+	int8_t *ln;
 
 	print("okay to %s? ", quest);
 	if ((ln = Brdline(&bin, '\n')) == nil)
@@ -86,11 +86,11 @@ okay(char *quest)
 }
 
 static void
-mapinit(char *mapfile)
+mapinit(int8_t *mapfile)
 {
 	int nf;
-	char *ln;
-	char *fields[2];
+	int8_t *ln;
+	int8_t *fields[2];
 	Biobuf *bp;
 	Map *map;
 
@@ -162,31 +162,31 @@ confinit(void)
  * while watching for overflow; in that case, return 0.
  */
 
-static uvlong
-adduvlongov(uvlong a, uvlong b)
+static uint64_t
+adduvlongov(uint64_t a, uint64_t b)
 {
-	uvlong r = a + b;
+	uint64_t r = a + b;
 
 	if (r < a || r < b)
 		return 0;
 	return r;
 }
 
-static uvlong
-muluvlongov(uvlong a, uvlong b)
+static uint64_t
+muluvlongov(uint64_t a, uint64_t b)
 {
-	uvlong r = a * b;
+	uint64_t r = a * b;
 
 	if (a != 0 && r/a != b || r < a || r < b)
 		return 0;
 	return r;
 }
 
-static uvlong
+static uint64_t
 maxsize(void)
 {
 	int i;
-	uvlong max = NDBLOCK, ind = 1;
+	uint64_t max = NDBLOCK, ind = 1;
 
 	for (i = 0; i < NIBLOCK; i++) {
 		ind = muluvlongov(ind, INDPERBUF);	/* power of INDPERBUF */
@@ -566,11 +566,11 @@ synccopy(void)
 }
 
 Devsize
-inqsize(char *file)
+inqsize(int8_t *file)
 {
 	int nf;
-	char *ln, *end, *data = malloc(strlen(file) + 5 + 1);
-	char *fields[4];
+	int8_t *ln, *end, *data = malloc(strlen(file) + 5 + 1);
+	int8_t *fields[4];
 	Devsize rv = -1;
 	Biobuf *bp;
 

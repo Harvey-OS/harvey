@@ -12,11 +12,11 @@
 #include <draw.h>
 
 Font*
-openfont(Display *d, char *name)
+openfont(Display *d, int8_t *name)
 {
 	Font *fnt;
 	int fd, i, n;
-	char *buf;
+	int8_t *buf;
 	Dir *dir;
 
 	fd = open(name, OREAD);

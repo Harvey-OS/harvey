@@ -120,7 +120,7 @@ static void
 flcreate(Req *r)
 {
 	State *s;
-	char *err;
+	int8_t *err;
 	Entry *e, *f;
 
 	if(readonly) {
@@ -224,7 +224,7 @@ flwalk(Req *r)
 {
 	int i;
 	State *s;
-	char *err;
+	int8_t *err;
 	Entry *e, *f;
 
 	if(readonly) {
@@ -270,7 +270,7 @@ flwalk(Req *r)
 }
 
 void
-serve(char *mount)
+serve(int8_t *mount)
 {
 	flashsrv.attach = flattach;
 	flashsrv.open = flopen;

@@ -90,7 +90,7 @@ bcastmsg(Channel *q, Wmsg *m)
 }
 
 void
-readbuf(Req *r, void *s, long n)
+readbuf(Req *r, void *s, int32_t n)
 {
 	r->ofcall.count = r->ifcall.count;
 	if(r->ifcall.offset >= n){
@@ -99,11 +99,11 @@ readbuf(Req *r, void *s, long n)
 	}
 	if(r->ifcall.offset+r->ofcall.count > n)
 		r->ofcall.count = n - r->ifcall.offset;
-	memmove(r->ofcall.data, (char*)s+r->ifcall.offset, r->ofcall.count);
+	memmove(r->ofcall.data, (int8_t*)s+r->ifcall.offset, r->ofcall.count);
 }
 
 void
-readstr(Req *r, char *s)
+readstr(Req *r, int8_t *s)
 {
 	readbuf(r, s, strlen(s));
 }

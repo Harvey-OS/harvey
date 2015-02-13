@@ -14,7 +14,7 @@ enum {
 	INVAL=	255
 };
 
-static uchar t64d[256] = {
+static uint8_t t64d[256] = {
    INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,
    INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,
    INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,   62,INVAL,INVAL,INVAL,   63,
@@ -32,21 +32,21 @@ static uchar t64d[256] = {
    INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,
    INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL
 };
-static char t64e[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static int8_t t64e[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 int
-dec64(uchar *out, int lim, char *in, int n)
+dec64(uint8_t *out, int lim, int8_t *in, int n)
 {
-	ulong b24;
-	uchar *start = out;
-	uchar *e = out + lim;
+	uint32_t b24;
+	uint8_t *start = out;
+	uint8_t *e = out + lim;
 	int i, c;
 
 	b24 = 0;
 	i = 0;
 	while(n-- > 0){
  
-		c = t64d[*(uchar*)in++];
+		c = t64d[*(uint8_t*)in++];
 		if(c == INVAL)
 			continue;
 		switch(i){
@@ -90,12 +90,12 @@ exhausted:
 }
 
 int
-enc64(char *out, int lim, uchar *in, int n)
+enc64(int8_t *out, int lim, uint8_t *in, int n)
 {
 	int i;
-	ulong b24;
-	char *start = out;
-	char *e = out + lim;
+	uint32_t b24;
+	int8_t *start = out;
+	int8_t *e = out + lim;
 
 	for(i = n/3; i > 0; i--){
 		b24 = (*in++)<<16;

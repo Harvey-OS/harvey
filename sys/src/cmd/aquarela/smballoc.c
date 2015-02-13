@@ -11,7 +11,7 @@
 
 #ifndef LEAK
 void *
-smbemallocz(ulong size, int clear)
+smbemallocz(uint32_t size, int clear)
 {
 	void *p = nbemalloc(size);
 	if (clear && p)
@@ -20,15 +20,15 @@ smbemallocz(ulong size, int clear)
 }
 
 void *
-smbemalloc(ulong size)
+smbemalloc(uint32_t size)
 {
 	return smbemallocz(size, 0);
 }
 
-char *
-smbestrdup(char *p)
+int8_t *
+smbestrdup(int8_t *p)
 {
-	char *q;
+	int8_t *q;
 	q = smbemalloc(strlen(p) + 1);
 	return strcpy(q, p);
 }
@@ -45,7 +45,7 @@ smbfree(void **pp)
 }
 
 void
-smberealloc(void **pp, ulong size)
+smberealloc(void **pp, uint32_t size)
 {
 	*pp = realloc(*pp, size);
 	assert(size == 0 || *pp);

@@ -33,20 +33,20 @@ enum {
 };
 
 typedef struct Tdfx {
-	ulong	io;
+	uint32_t	io;
 	Pcidev*	pci;
 
-	ulong	r[Nior];
+	uint32_t	r[Nior];
 } Tdfx;
 
-static ulong
+static uint32_t
 io32r(Tdfx* tdfx, int r)
 {
 	return inportl(tdfx->io+(r*4));
 }
 
 static void
-io32w(Tdfx* tdfx, int r, ulong l)
+io32w(Tdfx* tdfx, int r, uint32_t l)
 {
 	outportl(tdfx->io+(r*4), l);
 }
@@ -55,7 +55,7 @@ static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	ulong v;
+	uint32_t v;
 	Tdfx *tdfx;
 
 	if(vga->private == nil){

@@ -18,18 +18,18 @@
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 int
-convT2M(Ticket *f, char *ap, char *key)
+convT2M(Ticket *f, int8_t *ap, int8_t *key)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	STRING(cuid, ANAMELEN);
 	STRING(suid, ANAMELEN);
 	STRING(key, DESKEYLEN);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	if(key)
 		encrypt(key, ap, n);
 	return n;

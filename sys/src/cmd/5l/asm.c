@@ -9,14 +9,14 @@
 
 #include	"l.h"
 
-long	OFFSET;
+int32_t	OFFSET;
 
 static Prog *PP;
 
-long
+int32_t
 entryvalue(void)
 {
-	char *a;
+	int8_t *a;
 	Sym *s;
 
 	a = INITENTRY;
@@ -42,7 +42,7 @@ void
 asmb(void)
 {
 	Prog *p;
-	long t, etext;
+	int32_t t, etext;
 	Optab *o;
 
 	if(debug['v'])
@@ -100,7 +100,7 @@ asmb(void)
 		break;
 	}
 	if(dlm){
-		char buf[8];
+		int8_t buf[8];
 
 		write(cout, buf, INITDAT-textsize);
 		textsize = INITDAT;
@@ -233,7 +233,7 @@ asmb(void)
 }
 
 void
-strnput(char *s, int n)
+strnput(int8_t *s, int n)
 {
 	for(; *s; s++){
 		cput(*s);
@@ -254,7 +254,7 @@ cput(int c)
 }
 
 void
-wput(long l)
+wput(int32_t l)
 {
 
 	cbp[0] = l>>8;
@@ -266,7 +266,7 @@ wput(long l)
 }
 
 void
-wputl(long l)
+wputl(int32_t l)
 {
 
 	cbp[0] = l;
@@ -278,7 +278,7 @@ wputl(long l)
 }
 
 void
-lput(long l)
+lput(int32_t l)
 {
 
 	cbp[0] = l>>24;
@@ -292,7 +292,7 @@ lput(long l)
 }
 
 void
-lputl(long l)
+lputl(int32_t l)
 {
 
 	cbp[3] = l>>24;
@@ -306,14 +306,14 @@ lputl(long l)
 }
 
 void
-llput(vlong v)
+llput(int64_t v)
 {
 	lput(v>>32);
 	lput(v);
 }
 
 void
-llputl(vlong v)
+llputl(int64_t v)
 {
 	lputl(v);
 	lputl(v>>32);
@@ -332,7 +332,7 @@ cflush(void)
 }
 
 void
-nopstat(char *f, Count *c)
+nopstat(int8_t *f, Count *c)
 {
 	if(c->outof)
 	Bprint(&bso, "%s delay %ld/%ld (%.2f)\n", f,
@@ -409,7 +409,7 @@ asmsym(void)
 }
 
 void
-putsymb(char *s, int t, long v, int ver)
+putsymb(int8_t *s, int t, int32_t v, int ver)
 {
 	int i, f;
 
@@ -458,9 +458,9 @@ putsymb(char *s, int t, long v, int ver)
 void
 asmlc(void)
 {
-	long oldpc, oldlc;
+	int32_t oldpc, oldlc;
 	Prog *p;
-	long v, s;
+	int32_t v, s;
 
 	oldpc = INITTEXT;
 	oldlc = 0;
@@ -536,12 +536,12 @@ asmlc(void)
 }
 
 void
-datblk(long s, long n, int str)
+datblk(int32_t s, int32_t n, int str)
 {
 	Sym *v;
 	Prog *p;
-	char *cast;
-	long a, l, fl, j, d;
+	int8_t *cast;
+	int32_t a, l, fl, j, d;
 	int i, c;
 
 	memset(buf.dbuf, 0, n+100);
@@ -581,14 +581,14 @@ datblk(long s, long n, int str)
 			default:
 			case 4:
 				fl = ieeedtof(p->to.ieee);
-				cast = (char*)&fl;
+				cast = (int8_t*)&fl;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi4[i]];
 					l++;
 				}
 				break;
 			case 8:
-				cast = (char*)p->to.ieee;
+				cast = (int8_t*)p->to.ieee;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i]];
 					l++;
@@ -623,7 +623,7 @@ datblk(long s, long n, int str)
 				if(dlm)
 					dynreloc(v, a+INITDAT, 1);
 			}
-			cast = (char*)&d;
+			cast = (int8_t*)&d;
 			switch(c) {
 			default:
 				diag("bad nuxi %d %d%P", c, i, curp);
@@ -656,7 +656,7 @@ datblk(long s, long n, int str)
 void
 asmout(Prog *p, Optab *o)
 {
-	long o1, o2, o3, o4, o5, o6, v;
+	int32_t o1, o2, o3, o4, o5, o6, v;
 	int r, rf, rt, rt2;
 	Sym *s;
 
@@ -738,7 +738,7 @@ PP = p;
 			s = p->to.sym;
 			if(s->type != SUNDEF)
 				diag("bad branch sym type");
-			v = (ulong)s->value >> (Roffset-2);
+			v = (uint32_t)s->value >> (Roffset-2);
 			dynreloc(s, p->pc, 0);
 		}
 		else if(p->cond != P)
@@ -1459,10 +1459,10 @@ PP = p;
 	}
 }
 
-long
+int32_t
 oprrr(int a, int sc)
 {
-	long o;
+	int32_t o;
 
 	o = (sc & C_SCOND) << 28;
 	if(sc & C_SBIT)
@@ -1525,10 +1525,10 @@ oprrr(int a, int sc)
 	return 0;
 }
 
-long
+int32_t
 opvfprrr(int a, int sc)
 {
-	long o;
+	int32_t o;
 
 	o = (sc & C_SCOND) << 28;
 	if(sc & (C_SBIT|C_PBIT|C_WBIT))
@@ -1559,7 +1559,7 @@ opvfprrr(int a, int sc)
 	return 0;
 }
 
-long
+int32_t
 opbra(int a, int sc)
 {
 
@@ -1594,10 +1594,10 @@ opbra(int a, int sc)
 	return 0;
 }
 
-long
-olr(long v, int b, int r, int sc)
+int32_t
+olr(int32_t v, int b, int r, int sc)
 {
-	long o;
+	int32_t o;
 
 	if(sc & C_SBIT)
 		diag(".S on LDR/STR instruction");
@@ -1621,10 +1621,10 @@ olr(long v, int b, int r, int sc)
 	return o;
 }
 
-long
-olhr(long v, int b, int r, int sc)
+int32_t
+olhr(int32_t v, int b, int r, int sc)
 {
-	long o;
+	int32_t o;
 
 	if(sc & C_SBIT)
 		diag(".S on LDRH/STRH instruction");
@@ -1646,10 +1646,10 @@ olhr(long v, int b, int r, int sc)
 	return o;
 }
 
-long
-osr(int a, int r, long v, int b, int sc)
+int32_t
+osr(int a, int r, int32_t v, int b, int sc)
 {
-	long o;
+	int32_t o;
 
 	o = olr(v, b, r, sc) ^ (1<<20);
 	if(a != AMOVW)
@@ -1657,46 +1657,46 @@ osr(int a, int r, long v, int b, int sc)
 	return o;
 }
 
-long
-oshr(int r, long v, int b, int sc)
+int32_t
+oshr(int r, int32_t v, int b, int sc)
 {
-	long o;
+	int32_t o;
 
 	o = olhr(v, b, r, sc) ^ (1<<20);
 	return o;
 }
 	
 
-long
+int32_t
 osrr(int r, int i, int b, int sc)
 {
 
 	return olr(i, b, r, sc) ^ ((1<<25) | (1<<20));
 }
 
-long
+int32_t
 oshrr(int r, int i, int b, int sc)
 {
 	return olhr(i, b, r, sc) ^ ((1<<22) | (1<<20));
 }
 
-long
+int32_t
 olrr(int i, int b, int r, int sc)
 {
 
 	return olr(i, b, r, sc) ^ (1<<25);
 }
 
-long
+int32_t
 olhrr(int i, int b, int r, int sc)
 {
 	return olhr(i, b, r, sc) ^ (1<<22);
 }
 
-long
-ovfpmem(int a, int r, long v, int b, int sc, Prog *p)
+int32_t
+ovfpmem(int a, int r, int32_t v, int b, int sc, Prog *p)
 {
-	long o;
+	int32_t o;
 
 	if(sc & (C_SBIT|C_PBIT|C_WBIT))
 		diag(".S/.P/.W on VLDR/VSTR instruction");
@@ -1726,10 +1726,10 @@ ovfpmem(int a, int r, long v, int b, int sc, Prog *p)
 	return o;
 }
 
-long
-ofsr(int a, int r, long v, int b, int sc, Prog *p)
+int32_t
+ofsr(int a, int r, int32_t v, int b, int sc, Prog *p)
 {
-	long o;
+	int32_t o;
 
 	if(vfp)
 		return ovfpmem(a, r, v, b, sc, p);
@@ -1765,10 +1765,10 @@ ofsr(int a, int r, long v, int b, int sc, Prog *p)
 	return o;
 }
 
-long
+int32_t
 omvl(Prog *p, Adr *a, int dr)
 {	
-	long v, o1;
+	int32_t v, o1;
 	if(!p->cond) {
 		aclass(a);
 		v = immrot(~instoffset);

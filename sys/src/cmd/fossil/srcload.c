@@ -26,7 +26,7 @@ void new(Source*, int trace, int);
 int delete(Source*);
 int count(Source *s, int);
 void stats(Source *s);
-void dump(Source *s, int ident, ulong entry);
+void dump(Source *s, int ident, uint32_t entry);
 static void bench(Source *r);
 
 void
@@ -110,7 +110,7 @@ main(int argc, char *argv[])
 static void
 bench(Source *r)
 {
-	vlong t;
+	int64_t t;
 	Entry e;
 	int i;
 
@@ -203,9 +203,9 @@ delete(Source *s)
 }
 
 void
-dump(Source *s, int ident, ulong entry)
+dump(Source *s, int ident, uint32_t entry)
 {
-	ulong i, n;
+	uint32_t i, n;
 	Source *ss;
 	Entry e;
 
@@ -238,7 +238,7 @@ dump(Source *s, int ident, ulong entry)
 int
 count(Source *s, int rec)
 {
-	ulong i, n;
+	uint32_t i, n;
 	int c;
 	Source *ss;
 

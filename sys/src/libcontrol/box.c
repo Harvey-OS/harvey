@@ -39,7 +39,7 @@ enum{
 	ESize,
 };
 
-static char *cmds[] = {
+static int8_t *cmds[] = {
 	[EAlign] =		"align",
 	[EBorder] =	"border",
 	[EBordercolor] ="bordercolor",
@@ -174,7 +174,7 @@ boxctl(Control *c, CParse *cp)
 }
 
 Control*
-createbox(Controlset *cs, char *name)
+createbox(Controlset *cs, int8_t *name)
 {
 	Box *b;
 

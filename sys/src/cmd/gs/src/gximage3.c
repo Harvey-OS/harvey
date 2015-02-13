@@ -283,7 +283,7 @@ gx_begin_image3_generic(gx_device * dev,
     penum->mask_data = 0;
     penum->pixel_data = 0;
     if (prect) {
-	long lmw = pim->MaskDict.Width, lmh = pim->MaskDict.Height;
+	int32_t lmw = pim->MaskDict.Width, lmh = pim->MaskDict.Height;
 
 	data_rect = *prect;
 	mask_rect.p.x = (int)(data_rect.p.x * lmw / pim->Width);

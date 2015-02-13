@@ -17,9 +17,9 @@
 #include "ip.h"
 
 
-static void	pktbind(Ipifc*, int, char**);
+static void	pktbind(Ipifc*, int, int8_t**);
 static void	pktunbind(Ipifc*);
-static void	pktbwrite(Ipifc*, Block*, int, uchar*);
+static void	pktbwrite(Ipifc*, Block*, int, uint8_t*);
 static void	pktin(Fs*, Ipifc*, Block*);
 
 Medium pktmedium =
@@ -41,7 +41,7 @@ Medium pktmedium =
  *  called with ifc wlock'd
  */
 static void
-pktbind(Ipifc*, int, char**)
+pktbind(Ipifc*, int, int8_t**)
 {
 }
 
@@ -57,7 +57,7 @@ pktunbind(Ipifc*)
  *  called by ipoput with a single packet to write
  */
 static void
-pktbwrite(Ipifc *ifc, Block *bp, int, uchar*)
+pktbwrite(Ipifc *ifc, Block *bp, int, uint8_t*)
 {
 	/* enqueue onto the conversation's rq */
 	bp = concatblock(bp);

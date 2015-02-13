@@ -75,12 +75,12 @@ const gx_device_printer far_data gs_lips3_device =
 
 /* ------ Internal routines ------ */
 
-#define ESC (char)0x1b
+#define ESC (int8_t)0x1b
 #define CSI '\233'
 #define DCS '\220'
 #define ST '\234'
 
-static const char lbp8_init[] = {
+static const int8_t lbp8_init[] = {
   ESC, ';', ESC, 'c', ESC, ';', /* reset, ISO */
   ESC, '[', '2', '&', 'z',	/* fullpaint mode */
   ESC, '[', '1', '4', 'p',	/* select page type (A4) */
@@ -89,9 +89,9 @@ static const char lbp8_init[] = {
   ESC, '[', '6', '3', 'k', 	/* Move 63 dots up (to top of printable area) */ 
 };
 
-static const char *lbp8_end = NULL;
+static const int8_t *lbp8_end = NULL;
 
-static const char lips3_init[] = {
+static const int8_t lips3_init[] = {
   ESC, '<', /* soft reset */
   DCS, '0', 'J', ST, /* JOB END */
   DCS, '3', '1', ';', '3', '0', '0', ';', '2', 'J', ST, /* 300dpi, LIPS3 JOB START */
@@ -104,7 +104,7 @@ static const char lips3_init[] = {
   ESC, '[', 'f' /* move to home position */
 };
 
-static const char lips3_end[] = {
+static const int8_t lips3_end[] = {
   DCS, '0', 'J', ST  /* JOB END */
 };
 

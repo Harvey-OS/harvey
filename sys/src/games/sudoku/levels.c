@@ -78,10 +78,10 @@ fprintbrd(int fd, Cell *board)
 }
 
 int
-loadlevel(char *name, Cell *board)
+loadlevel(int8_t *name, Cell *board)
 {
 	Biobuf *b;
-	char c;
+	int8_t c;
 	int i;
 	
 	b = Bopen(name, OREAD);

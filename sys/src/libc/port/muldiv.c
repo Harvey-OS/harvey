@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-ulong
-umuldiv(ulong a, ulong b, ulong c)
+uint32_t
+umuldiv(uint32_t a, uint32_t b, uint32_t c)
 {
 	double d;
 
@@ -21,11 +21,11 @@ umuldiv(ulong a, ulong b, ulong c)
 	return d;
 }
 
-long
-muldiv(long a, long b, long c)
+int32_t
+muldiv(int32_t a, int32_t b, int32_t c)
 {
 	int s;
-	long v;
+	int32_t v;
 
 	s = 0;
 	if(a < 0) {

@@ -38,14 +38,14 @@ static int fontslant = 0;
  * should not be limited.
  */
 int fontmnt = 0;
-char **fontmtab;
+int8_t **fontmtab;
 
 struct troffont *troffontab = 0;
 
 int troffontcnt = 0;
 
 void
-mountfont(int pos, char *fontname) {
+mountfont(int pos, int8_t *fontname) {
 	int i;
 
 	if (debug) fprint(2, "mountfont(%d, %s)\n", pos, fontname);
@@ -106,8 +106,8 @@ setpsfont(int psftid, int fontsize) {
  * and the name is not found in the table, insert it.
  */
 int
-findpfn(char *fontname, int insflg) {
-	char *tp;
+findpfn(int8_t *fontname, int insflg) {
+	int8_t *tp;
 	int i;
 
 	for (i=0; i<pfnamcnt; i++) {
@@ -129,18 +129,18 @@ findpfn(char *fontname, int insflg) {
 	return(-1);
 }
 
-char postroffdirname[] = "/sys/lib/postscript/troff"; /* "/sys/lib/postscript/troff/"; */
-char troffmetricdirname[] = "/sys/lib/troff/font"; /* "/sys/lib/troff/font/devutf/"; */
+int8_t postroffdirname[] = "/sys/lib/postscript/troff"; /* "/sys/lib/postscript/troff/"; */
+int8_t troffmetricdirname[] = "/sys/lib/troff/font"; /* "/sys/lib/troff/font/devutf/"; */
 
 int
-readpsfontdesc(char *fontname, int trindex) {
+readpsfontdesc(int8_t *fontname, int trindex) {
 	int errorflg = 0, line = 1, rv, start, end, offset;
 	int startfont, endfont, startchar, endchar, i, pfid;
-	char psfontnam[128];
+	int8_t psfontnam[128];
 	struct troffont *tp;
 	Biobuf *bfd;
 	Biobufhdr *Bfd;
-	static char *filename = 0;
+	static int8_t *filename = 0;
 
 	if (debug)
 		fprint(2, "readpsfontdesc(%s,%d)\n", fontname, trindex);
@@ -223,16 +223,16 @@ readpsfontdesc(char *fontname, int trindex) {
 }
 
 int
-readtroffmetric(char *fontname, int trindex) {
+readtroffmetric(int8_t *fontname, int trindex) {
 	int ntoken, errorflg = 0, line = 1, rv;
 	int width, flag, charnum, thisfont, thischar;
-	char stoken[128], *str;
+	int8_t stoken[128], *str;
 	struct charent **cp;
 	BOOLEAN specharflag;
 	Biobuf *bfd;
 	Biobufhdr *Bfd;
 	Rune troffchar, quote;
-	static char *filename = 0;
+	static int8_t *filename = 0;
 
 	if (debug)
 		fprint(2, "readtroffmetric(%s,%d)\n", fontname, trindex);
@@ -401,7 +401,7 @@ flush:
  * and the name is not found in the table, insert it.
  */
 int
-findtfn(char *fontname, BOOLEAN insflg) {
+findtfn(int8_t *fontname, BOOLEAN insflg) {
 	struct troffont *tp;
 	int i, j;
 

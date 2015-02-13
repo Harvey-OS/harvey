@@ -23,7 +23,7 @@ static Xfile*	xfiles[FIDMOD];
 static Xfile*	freelist;
 
 Xdata*
-getxdata(char *name)
+getxdata(int8_t *name)
 {
 	int fd;
 	Dir *dir;

@@ -26,25 +26,25 @@ static int	doautox;
 static int	printflag;
 static Part	**opart;
 static int	nopart;
-static char	*osecbuf;
-static char	*secbuf;
+static int8_t	*osecbuf;
+static int8_t	*secbuf;
 static int	rdonly;
 static int	dowrite;
 static int	docache;
 static int	donvram;
 
 static void	autoxpart(Edit*);
-static Part	*mkpart(char*, vlong, vlong, int);
+static Part	*mkpart(int8_t*, int64_t, int64_t, int);
 static void	rdpart(Edit*);
 static void	wrpart(Edit*);
 static void	checkfat(Disk*);
 
-static void 	cmdsum(Edit*, Part*, vlong, vlong);
-static char 	*cmdadd(Edit*, char*, vlong, vlong);
-static char 	*cmddel(Edit*, Part*);
-static char 	*cmdokname(Edit*, char*);
-static char 	*cmdwrite(Edit*);
-static char	*cmdctlprint(Edit*, int, char**);
+static void 	cmdsum(Edit*, Part*, int64_t, int64_t);
+static int8_t 	*cmdadd(Edit*, int8_t*, int64_t, int64_t);
+static int8_t 	*cmddel(Edit*, Part*);
+static int8_t 	*cmdokname(Edit*, int8_t*);
+static int8_t 	*cmdwrite(Edit*);
+static int8_t	*cmdctlprint(Edit*, int, int8_t**);
 
 Edit edit = {
 	.add=	cmdadd,
@@ -59,12 +59,12 @@ Edit edit = {
 typedef struct Auto Auto;
 struct Auto
 {
-	char	*name;
-	uvlong	min;
-	uvlong	max;
+	int8_t	*name;
+	uint64_t	min;
+	uint64_t	max;
 	uint	weight;
-	uchar	alloc;
-	uvlong	size;
+	uint8_t	alloc;
+	uint64_t	size;
 };
 
 #define TB (1024LL*GB)
@@ -205,11 +205,11 @@ main(int argc, char **argv)
 }
 
 static void
-cmdsum(Edit *edit, Part *p, vlong a, vlong b)
+cmdsum(Edit *edit, Part *p, int64_t a, int64_t b)
 {
-	vlong sz, div;
-	char *suf, *name;
-	char c;
+	int64_t sz, div;
+	int8_t *suf, *name;
+	int8_t c;
 
 	c = p && p->changed ? '\'' : ' ';
 	name = p ? p->name : "empty";
@@ -243,8 +243,8 @@ cmdsum(Edit *edit, Part *p, vlong a, vlong b)
 			sz/div, (int)(((sz%div)*100)/div), suf);
 }
 
-static char*
-cmdadd(Edit *edit, char *name, vlong start, vlong end)
+static int8_t*
+cmdadd(Edit *edit, int8_t *name, int64_t start, int64_t end)
 {
 	if(start < 2 && strcmp(name, "9fat") != 0)
 		return "overlaps with the pbs and/or the partition table";
@@ -252,13 +252,13 @@ cmdadd(Edit *edit, char *name, vlong start, vlong end)
 	return addpart(edit, mkpart(name, start, end, 1));
 }
 
-static char*
+static int8_t*
 cmddel(Edit *edit, Part *p)
 {
 	return delpart(edit, p);
 }
 
-static char*
+static int8_t*
 cmdwrite(Edit *edit)
 {
 	wrpart(edit);
@@ -275,17 +275,17 @@ static char isfrog[256]={
 	[0x7f]	1,
 };
 
-static char*
-cmdokname(Edit*, char *elem)
+static int8_t*
+cmdokname(Edit*, int8_t *elem)
 {
 	for(; *elem; elem++)
-		if(isfrog[*(uchar*)elem])
+		if(isfrog[*(uint8_t*)elem])
 			return "bad character in name";
 	return nil;
 }
 
 static Part*
-mkpart(char *name, vlong start, vlong end, int changed)
+mkpart(int8_t *name, int64_t start, int64_t end, int changed)
 {
 	Part *p;
 
@@ -303,10 +303,10 @@ static void
 rdpart(Edit *edit)
 {
 	int i, nline, nf, waserr;
-	vlong a, b;
-	char *line[128];
-	char *f[5];
-	char *err;
+	int64_t a, b;
+	int8_t *line[128];
+	int8_t *f[5];
+	int8_t *err;
 	Disk *disk;
 
 	disk = edit->disk;
@@ -348,8 +348,8 @@ rdpart(Edit *edit)
 	}
 }
 
-static vlong
-min(vlong a, vlong b)
+static int64_t
+min(int64_t a, int64_t b)
 {
 	if(a < b)
 		return a;
@@ -360,8 +360,8 @@ static void
 autoxpart(Edit *edit)
 {
 	int i, totw, futz;
-	vlong secs, secsize, s;
-	char *err;
+	int64_t secs, secsize, s;
+	int8_t *err;
 
 	if(edit->npart > 0) {
 		if(doautox)
@@ -450,7 +450,7 @@ static void
 restore(Edit *edit, int ctlfd)
 {
 	int i;
-	vlong offset;
+	int64_t offset;
 
 	offset = edit->disk->offset;
 	fprint(2, "attempting to restore partitions to previous state\n");
@@ -513,7 +513,7 @@ wrpart(Edit *edit)
 static void
 checkfat(Disk *disk)
 {
-	uchar buf[32];
+	uint8_t buf[32];
 
 	if(seek(disk->fd, disk->secsize, 0) < 0
 	|| read(disk->fd, buf, sizeof(buf)) < sizeof(buf))

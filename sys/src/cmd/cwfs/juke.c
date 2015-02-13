@@ -99,7 +99,7 @@ static	Side*	wormunit(Device*);
 
 /* create a new label and try to write it */
 static void
-newlabel(Device *d, Off labelblk, char *labelbuf, unsigned vord)
+newlabel(Device *d, Off labelblk, int8_t *labelbuf, unsigned vord)
 {
 	Label *label = (Label *)labelbuf;
 
@@ -123,7 +123,7 @@ wormlabel(Device *d, Side *v)
 {
 	int vord;
 	Off labelblk = v->max - 1;	/* last block */
-	char labelbuf[RBUFSIZE];
+	int8_t labelbuf[RBUFSIZE];
 	Label *label = (Label *)labelbuf;
 	Juke *w = d->private;
 
@@ -306,7 +306,7 @@ static int
 waitready(Juke *w, Device *d)
 {
 	int p, e, rv;
-	char *datanm;
+	int8_t *datanm;
 
 	if (w->magic != Jukemagic)
 		panic("waitready: bad magic in Juke (d->private) for %Z", d);
@@ -663,8 +663,8 @@ int
 wormread(Device *d, Off b, void *c)
 {
 	int r = 0;
-	long max;
-	char name[128];
+	int32_t max;
+	int8_t name[128];
 	Side *v = wormunit(d);
 	Juke *w = d->private;
 	Device *dr;
@@ -678,7 +678,7 @@ wormread(Device *d, Off b, void *c)
 	if(b >= max) {
 		print("wormread: block out of range %Z(%lld)\n", d, (Wideoff)b);
 		r = 0x071;
-	} else if (pread(dr->wren.fd, c, RBUFSIZE, (vlong)b*RBUFSIZE) != RBUFSIZE) {
+	} else if (pread(dr->wren.fd, c, RBUFSIZE, (int64_t)b*RBUFSIZE) != RBUFSIZE) {
 		fd2path(dr->wren.fd, name, sizeof name);
 		print("wormread: error on %Z(%lld) on %s in %s: %r\n",
 			d, (Wideoff)b, name, dr->wren.sddir);
@@ -693,8 +693,8 @@ int
 wormwrite(Device *d, Off b, void *c)
 {
 	int r = 0;
-	long max;
-	char name[128];
+	int32_t max;
+	int8_t name[128];
 	Side *v = wormunit(d);
 	Juke *w = d->private;
 	Device *dr;
@@ -709,7 +709,7 @@ wormwrite(Device *d, Off b, void *c)
 		print("wormwrite: block out of range %Z(%lld)\n",
 			d, (Wideoff)b);
 		r = 0x071;
-	} else if (pwrite(dr->wren.fd, c, RBUFSIZE, (vlong)b*RBUFSIZE) != RBUFSIZE) {
+	} else if (pwrite(dr->wren.fd, c, RBUFSIZE, (int64_t)b*RBUFSIZE) != RBUFSIZE) {
 		fd2path(dr->wren.fd, name, sizeof name);
 		print("wormwrwite: error on %Z(%lld) on %s in %s: %r\n",
 			d, (Wideoff)b, name, dr->wren.sddir);
@@ -724,7 +724,7 @@ static int
 mmove(Juke *w, int trans, int from, int to, int rot)
 {
 	int s;
-	uchar cmd[12], buf[4];
+	uint8_t cmd[12], buf[4];
 	static int recur = 0;
 
 	memset(cmd, 0, sizeof cmd);
@@ -762,7 +762,7 @@ static void
 geometry(Juke *w)
 {
 	int s;
-	uchar cmd[6], buf[4+20];
+	uint8_t cmd[6], buf[4+20];
 
 	memset(cmd, 0, sizeof cmd);
 	memset(buf, 0, sizeof buf);
@@ -810,7 +810,7 @@ geometry(Juke *w)
 static void
 element(Juke *w, int e)
 {
-	uchar cmd[12], buf[8+8+88];
+	uint8_t cmd[12], buf[8+8+88];
 	int s, t;
 
 	memset(cmd, 0, sizeof cmd);
@@ -996,7 +996,7 @@ jinit(Juke *w, Device *d, int o)
 }
 
 Side*
-wormi(char *arg)
+wormi(int8_t *arg)
 {
 	int i, j;
 	Juke *w;
@@ -1042,7 +1042,7 @@ wormi(char *arg)
 }
 
 static void
-cmd_wormoffline(int argc, char *argv[])
+cmd_wormoffline(int argc, int8_t *argv[])
 {
 	int u, i;
 	Juke *w;
@@ -1068,7 +1068,7 @@ cmd_wormoffline(int argc, char *argv[])
 }
 
 static void
-cmd_wormonline(int argc, char *argv[])
+cmd_wormonline(int argc, int8_t *argv[])
 {
 	int u;
 	Juke *w;
@@ -1089,7 +1089,7 @@ cmd_wormonline(int argc, char *argv[])
 }
 
 void
-cmd_wormreset(int, char *[])
+cmd_wormreset(int, int8_t *[])
 {
 	Juke *w;
 
@@ -1101,7 +1101,7 @@ cmd_wormreset(int, char *[])
 }
 
 static void
-cmd_wormeject(int argc, char *argv[])
+cmd_wormeject(int argc, int8_t *argv[])
 {
 	Juke *w;
 	Side *v;
@@ -1119,7 +1119,7 @@ cmd_wormeject(int argc, char *argv[])
 }
 
 static void
-cmd_wormingest(int argc, char *argv[])
+cmd_wormingest(int argc, int8_t *argv[])
 {
 	Juke *w;
 	Side *v;

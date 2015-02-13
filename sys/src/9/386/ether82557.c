@@ -111,12 +111,12 @@ enum {					/* Mcr */
 
 typedef struct Rfd {
 	int	field;
-	ulong	link;
-	ulong	rbd;
-	ushort	count;
-	ushort	size;
+	uint32_t	link;
+	uint32_t	rbd;
+	uint16_t	count;
+	uint16_t	size;
 
-	uchar	data[1700];
+	uint8_t	data[1700];
 } Rfd;
 
 enum {					/* field */
@@ -147,20 +147,20 @@ enum {					/* count */
 
 typedef struct Cb Cb;
 typedef struct Cb {
-	ushort	status;
-	ushort	command;
-	ulong	link;
+	uint16_t	status;
+	uint16_t	command;
+	uint32_t	link;
 	union {
-		uchar	data[24];	/* CbIAS + CbConfigure */
+		uint8_t	data[24];	/* CbIAS + CbConfigure */
 		struct {
-			ulong	tbd;
-			ushort	count;
-			uchar	threshold;
-			uchar	number;
+			uint32_t	tbd;
+			uint16_t	count;
+			uint8_t	threshold;
+			uint8_t	number;
 
-			ulong	tba;
-			ushort	tbasz;
-			ushort	pad;
+			uint32_t	tba;
+			uint16_t	tbasz;
+			uint16_t	pad;
 		};
 	};
 
@@ -204,7 +204,7 @@ typedef struct Ctlr {
 	int	active;
 
 	int	eepromsz;		/* address size in bits */
-	ushort*	eeprom;
+	uint16_t*	eeprom;
 
 	Lock	miilock;
 
@@ -220,7 +220,7 @@ typedef struct Ctlr {
 	Lock	cblock;			/* transmit side */
 	int	action;
 	int	nop;
-	uchar	configdata[24];
+	uint8_t	configdata[24];
 	int	threshold;
 	int	ncb;
 	Cb*	cbr;
@@ -231,13 +231,13 @@ typedef struct Ctlr {
 	int	cbqmaxhw;
 
 	Lock	dlock;			/* dump statistical counters */
-	ulong	dump[17];
+	uint32_t	dump[17];
 } Ctlr;
 
 static Ctlr* ctlrhead;
 static Ctlr* ctlrtail;
 
-static uchar configdata[24] = {
+static uint8_t configdata[24] = {
 	0x16,				/* byte count */
 	0x08,				/* Rx/Tx FIFO limit */
 	0x00,				/* adaptive IFS */
@@ -268,8 +268,8 @@ static uchar configdata[24] = {
 #define csr16r(c, r)	(ins((c)->port+(r)))
 #define csr32r(c, r)	(inl((c)->port+(r)))
 #define csr8w(c, r, b)	(outb((c)->port+(r), (int)(b)))
-#define csr16w(c, r, w)	(outs((c)->port+(r), (ushort)(w)))
-#define csr32w(c, r, l)	(outl((c)->port+(r), (ulong)(l)))
+#define csr16w(c, r, w)	(outs((c)->port+(r), (uint16_t)(w)))
+#define csr32w(c, r, l)	(outl((c)->port+(r), (uint32_t)(l)))
 
 static void
 command(Ctlr* ctlr, int c, int v)
@@ -332,7 +332,7 @@ command(Ctlr* ctlr, int c, int v)
 }
 
 static Block*
-rfdalloc(ulong link)
+rfdalloc(uint32_t link)
 {
 	Block *bp;
 	Rfd *rfd;
@@ -384,7 +384,7 @@ static void
 attach(Ether* ether)
 {
 	Ctlr *ctlr;
-	char name[KNAMELEN];
+	int8_t name[KNAMELEN];
 
 	ctlr = ether->ctlr;
 	lock(&ctlr->slock);
@@ -408,13 +408,13 @@ attach(Ether* ether)
 	unlock(&ctlr->slock);
 }
 
-static long
-ifstat(Ether* ether, void* a, long n, ulong offset)
+static int32_t
+ifstat(Ether* ether, void* a, int32_t n, uint32_t offset)
 {
-	char *p;
+	int8_t *p;
 	int i, len, phyaddr;
 	Ctlr *ctlr;
-	ulong dump[17];
+	uint32_t dump[17];
 
 	ctlr = ether->ctlr;
 	lock(&ctlr->dlock);
@@ -593,7 +593,7 @@ promiscuous(void* arg, int on)
 }
 
 static void
-multicast(void* ether, uchar *addr, int add)
+multicast(void* ether, uint8_t *addr, int add)
 {
 	USED(addr);
 	/*
@@ -773,7 +773,7 @@ ctlrinit(Ctlr* ctlr)
 	int i;
 	Block *bp;
 	Rfd *rfd;
-	ulong link;
+	uint32_t link;
 
 	/*
 	 * Create the Receive Frame Area (RFA) as a ring of allocated
@@ -919,7 +919,7 @@ reread:
 
 	if(ctlr->eepromsz == 0){
 		ctlr->eepromsz = 8-size;
-		ctlr->eeprom = malloc((1<<ctlr->eepromsz)*sizeof(ushort));
+		ctlr->eeprom = malloc((1<<ctlr->eepromsz)*sizeof(uint16_t));
 		goto reread;
 	}
 
@@ -992,7 +992,7 @@ i82557pci(void)
 	}
 }
 
-static char* mediatable[9] = {
+static int8_t* mediatable[9] = {
 	"10BASE-T",				/* TP */
 	"10BASE-2",				/* BNC */
 	"10BASE-5",				/* AUI */
@@ -1047,7 +1047,7 @@ reset(Ether* ether)
 {
 	int anar, anlpar, bmcr, bmsr, i, k, medium, phyaddr, x;
 	unsigned short sum;
-	uchar ea[Eaddrlen];
+	uint8_t ea[Eaddrlen];
 	Ctlr *ctlr;
 
 	if(ctlrhead == nil)

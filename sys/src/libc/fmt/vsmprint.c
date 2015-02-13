@@ -14,7 +14,7 @@
 static int
 fmtStrFlush(Fmt *f)
 {
-	char *s;
+	int8_t *s;
 	int n;
 
 	if(f->start == nil)
@@ -31,8 +31,8 @@ fmtStrFlush(Fmt *f)
 		return 0;
 	}
 	f->farg = (void*)n;
-	f->to = (char*)f->start + ((char*)f->to - s);
-	f->stop = (char*)f->start + n - 1;
+	f->to = (int8_t*)f->start + ((int8_t*)f->to - s);
+	f->stop = (int8_t*)f->start + n - 1;
 	return 1;
 }
 
@@ -49,7 +49,7 @@ fmtstrinit(Fmt *f)
 		return -1;
 	setmalloctag(f->start, getcallerpc(&f));
 	f->to = f->start;
-	f->stop = (char*)f->start + n - 1;
+	f->stop = (int8_t*)f->start + n - 1;
 	f->flush = fmtStrFlush;
 	f->farg = (void*)n;
 	f->nfmt = 0;
@@ -59,8 +59,8 @@ fmtstrinit(Fmt *f)
 /*
  * print into an allocated string buffer
  */
-char*
-vsmprint(char *fmt, va_list args)
+int8_t*
+vsmprint(int8_t *fmt, va_list args)
 {
 	Fmt f;
 	int n;
@@ -76,6 +76,6 @@ vsmprint(char *fmt, va_list args)
 		return nil;
 	}
 	setmalloctag(f.start, getcallerpc(&fmt));
-	*(char*)f.to = '\0';
+	*(int8_t*)f.to = '\0';
 	return f.start;
 }

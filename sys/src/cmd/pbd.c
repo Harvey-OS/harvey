@@ -13,7 +13,7 @@
 void
 main(void)
 {
-	char buf[512], *p;
+	int8_t buf[512], *p;
 
 	p = "???";
 	if(getwd(buf, sizeof buf)){

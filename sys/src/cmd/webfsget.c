@@ -14,7 +14,7 @@
 void
 xfer(int from, int to)
 {
-	char buf[12*1024];
+	int8_t buf[12*1024];
 	int n;
 
 	while((n = read(from, buf, sizeof buf)) > 0)

@@ -15,19 +15,19 @@ enum {
 	Timeout =	2*60*60,	/* seconds until temporarily trusted addr times out */
 };
 
-static	int	accountmatch(char*, char**, int, char*);
-static	Node*	acctwalk(char*,  Node*);
-static	int	dommatch(char*, char*);
-static	Address* ipsearch(ulong, Address*, int);
-static	Node*	ipwalk(char*,  Node*);
-static	Node*	trwalk(char*, Node*);
-static	int	usermatch(char*, char*);
+static	int	accountmatch(int8_t*, int8_t**, int, int8_t*);
+static	Node*	acctwalk(int8_t*,  Node*);
+static	int	dommatch(int8_t*, int8_t*);
+static	Address* ipsearch(uint32_t, Address*, int);
+static	Node*	ipwalk(int8_t*,  Node*);
+static	Node*	trwalk(int8_t*, Node*);
+static	int	usermatch(int8_t*, int8_t*);
 
 /*
  *	Do a walk
  */
-char*
-walk(char *name, Fid *fidp)
+int8_t*
+walk(int8_t *name, Fid *fidp)
 {
 	Node *np;
 
@@ -71,7 +71,7 @@ walk(char *name, Fid *fidp)
  *	Walk to a subdirectory
  */
 Node*
-dirwalk(char *name, Node *np)
+dirwalk(int8_t *name, Node *np)
 {
 	Node *p;
 
@@ -85,11 +85,11 @@ dirwalk(char *name, Node *np)
  *	Walk the directory of trusted files
  */
 static Node*
-trwalk(char *name, Node *np)
+trwalk(int8_t *name, Node *np)
 {
 	Node *p;
-	ulong peerip;
-	uchar addr[IPv4addrlen];
+	uint32_t peerip;
+	uint8_t addr[IPv4addrlen];
 
 	v4parseip(addr, name);
 	peerip = nhgetl(addr);
@@ -104,11 +104,11 @@ trwalk(char *name, Node *np)
  *	Walk a directory of IP addresses
  */
 static Node*
-ipwalk(char *name,  Node *np)
+ipwalk(int8_t *name,  Node *np)
 {
 	Address *ap;
-	ulong peerip;
-	uchar addr[IPv4addrlen];
+	uint32_t peerip;
+	uint8_t addr[IPv4addrlen];
 
 	v4parseip(addr, name);
 	peerip = nhgetl(addr);
@@ -128,13 +128,13 @@ ipwalk(char *name,  Node *np)
  *	Walk a directory of account names
  */
 static Node*
-acctwalk(char *name, Node *np)
+acctwalk(int8_t *name, Node *np)
 {
 	int i, n;
 	Address *ap;
-	char *p, *cp, *user;
-	char buf[512];
-	char *doms[Maxdoms];
+	int8_t *p, *cp, *user;
+	int8_t buf[512];
+	int8_t *doms[Maxdoms];
 
 	strecpy(buf, buf+sizeof buf, name);
 	subslash(buf);
@@ -165,9 +165,9 @@ acctwalk(char *name, Node *np)
  */
 
 static Address*
-ipsearch(ulong addr, Address *base, int n)
+ipsearch(uint32_t addr, Address *base, int n)
 {
-	ulong top, bot, mid;
+	uint32_t top, bot, mid;
 	Address *ap;
 
 	bot = 0;
@@ -192,7 +192,7 @@ ipsearch(ulong addr, Address *base, int n)
 int
 dread(Fid *fidp, int cnt)
 {
-	uchar *q, *eq, *oq;
+	uint8_t *q, *eq, *oq;
 	int n, skip;
 	Node *np;
 
@@ -228,7 +228,7 @@ dread(Fid *fidp, int cnt)
 int
 hread(Fid *fidp, int cnt)
 {
-	uchar *q, *eq, *oq;
+	uint8_t *q, *eq, *oq;
 	int i, n, path;
 	Address *p;
 	Node *np;
@@ -277,7 +277,7 @@ void
 cleantrusted(void)
 {
 	Node *np, **l;
-	ulong t;
+	uint32_t t;
 
 	np = finddir(Trusted);
 	if (np == 0)
@@ -313,9 +313,9 @@ cleantrusted(void)
  * true for the *.domain!* form of the pattern.
  */
 static int
-accountmatch(char *spec, char **doms, int ndoms, char *user)
+accountmatch(int8_t *spec, int8_t **doms, int ndoms, int8_t *user)
 {
-	char *cp, *userp;
+	int8_t *cp, *userp;
 	int i, ret;
 
 	userp = 0;
@@ -353,7 +353,7 @@ accountmatch(char *spec, char **doms, int ndoms, char *user)
  *	trailing characters.
  */
 static int
-usermatch(char *pathuser, char *specuser)
+usermatch(int8_t *pathuser, int8_t *specuser)
 {
 	int n;
 
@@ -370,7 +370,7 @@ usermatch(char *pathuser, char *specuser)
  *	Match a domain specification
  */
 static int
-dommatch(char *pathdom, char *specdom)
+dommatch(int8_t *pathdom, int8_t *specdom)
 {
 	int n;
 
@@ -393,7 +393,7 @@ dommatch(char *pathdom, char *specdom)
 typedef struct Stringtab	Stringtab;
 struct Stringtab {
 	Stringtab *link;
-	char *str;
+	int8_t *str;
 };
 static Stringtab*
 taballoc(void)
@@ -411,12 +411,12 @@ taballoc(void)
 	return t++;
 }
 
-static char*
-xstrdup(char *s)
+static int8_t*
+xstrdup(int8_t *s)
 {
-	char *r;
+	int8_t *r;
 	int len;
-	static char *t;
+	static int8_t *t;
 	static int nt;
 
 	len = strlen(s)+1;
@@ -446,19 +446,19 @@ xstrdup(char *s)
 static Stringtab *stab[1024];
 
 static uint
-hash(char *s)
+hash(int8_t *s)
 {
 	uint h;
-	uchar *p;
+	uint8_t *p;
 
 	h = 0;
-	for(p=(uchar*)s; *p; p++)
+	for(p=(uint8_t*)s; *p; p++)
 		h = h*37 + *p;
 	return h;
 }
 
-char*
-atom(char *str)
+int8_t*
+atom(int8_t *str)
 {
 	uint h;
 	Stringtab *tab;

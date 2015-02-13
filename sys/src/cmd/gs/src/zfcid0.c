@@ -57,7 +57,7 @@ font_proc_glyph_outline(zcharstring_glyph_outline);
 
 /* Parse a multi-byte integer from a string. */
 private int
-get_index(gs_glyph_data_t *pgd, int count, ulong *pval)
+get_index(gs_glyph_data_t *pgd, int count, uint32_t *pval)
 {
     int i;
 
@@ -73,7 +73,7 @@ get_index(gs_glyph_data_t *pgd, int count, ulong *pval)
 
 /* Get bytes from GlyphData or DataSource. */
 private int
-cid0_read_bytes(gs_font_cid0 *pfont, ulong base, uint count, byte *buf,
+cid0_read_bytes(gs_font_cid0 *pfont, uint32_t base, uint count, byte *buf,
 		gs_glyph_data_t *pgd)
 {
     const font_data *pfdata = pfont_data(pfont);
@@ -82,7 +82,7 @@ cid0_read_bytes(gs_font_cid0 *pfont, ulong base, uint count, byte *buf,
     int code = 0;
 
     /* Check for overflow. */
-    if (base != (long)base || base > base + count)
+    if (base != (int32_t)base || base > base + count)
 	return_error(e_rangecheck);
     if (r_has_type(&pfdata->u.cid0.DataSource, t_null)) {
 	/* Get the bytes from GlyphData (a string or array of strings). */
@@ -101,7 +101,7 @@ cid0_read_bytes(gs_font_cid0 *pfont, ulong base, uint count, byte *buf,
 	     * deal with the case where the requested string crosses array
 	     * elements.
 	     */
-	    ulong skip = base;
+	    uint32_t skip = base;
 	    uint copied = 0;
 	    uint index = 0;
 	    ref rstr;
@@ -184,9 +184,9 @@ z9_glyph_data(gs_font_base *pbfont, gs_glyph glyph, gs_glyph_data_t *pgd,
 {
     gs_font_cid0 *pfont = (gs_font_cid0 *)pbfont;
     const font_data *pfdata = pfont_data(pfont);
-    long glyph_index = (long)(glyph - gs_min_cid_glyph);
+    int32_t glyph_index = (int32_t)(glyph - gs_min_cid_glyph);
     gs_glyph_data_t gdata;
-    ulong fidx;
+    uint32_t fidx;
     int code;
 
     gdata.memory = pfont->memory;
@@ -219,9 +219,10 @@ z9_glyph_data(gs_font_base *pbfont, gs_glyph glyph, gs_glyph_data_t *pgd,
     {
 	byte fd_gd[(MAX_FDBytes + MAX_GDBytes) * 2];
 	uint num_bytes = pfont->cidata.FDBytes + pfont->cidata.common.GDBytes;
-	ulong base = pfont->cidata.CIDMapOffset + glyph_index * num_bytes;
-	ulong gidx, fidx_next, gidx_next;
-	int rcode = cid0_read_bytes(pfont, base, (ulong)(num_bytes * 2), fd_gd,
+	uint32_t base = pfont->cidata.CIDMapOffset + glyph_index * num_bytes;
+	uint32_t gidx, fidx_next, gidx_next;
+	int rcode = cid0_read_bytes(pfont, base, (uint32_t)(num_bytes * 2),
+                                    fd_gd,
 				    &gdata);
 	gs_glyph_data_t orig_data;
 
@@ -472,7 +473,7 @@ zbuildfont9(i_ctx_t *i_ctx_p)
     for (i = 0; i < FDArray_size; ++i) {
 	ref rfd;
 
-	array_get(imemory, prfda, (long)i, &rfd);
+	array_get(imemory, prfda, (int32_t)i, &rfd);
 	code = fd_array_element(i_ctx_p, &FDArray[i], &rfd);
 	if (code < 0)
 	    goto fail;

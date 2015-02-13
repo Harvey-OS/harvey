@@ -253,7 +253,7 @@ run(void)
 void
 ilock(int rd)
 {
-	ulong ir;
+	uint32_t ir;
 
 	ir = getmem_4(reg.pc+4);
 	switch(ir>>30) {
@@ -277,9 +277,9 @@ ilock(int rd)
 }
 
 void
-delay(ulong npc)
+delay(uint32_t npc)
 {
-	ulong opc;
+	uint32_t opc;
 
 	reg.r[0] = 0;
 	if(reg.ir != NOP)
@@ -315,7 +315,7 @@ delay(ulong npc)
 }
 
 void
-undef(ulong ir)
+undef(uint32_t ir)
 {
 /*	Bprint(bioout, "op=%d op2=%d op3=%d\n", ir>>30, (ir>>21)&0x7, (ir>>19)&0x3f); */
 	Bprint(bioout, "illegal_instruction IR #%.8lux\n", ir);
@@ -323,9 +323,9 @@ undef(ulong ir)
 }
 
 void
-sub(ulong ir)
+sub(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -343,9 +343,9 @@ sub(ulong ir)
 }
 
 void
-sll(ulong ir)
+sll(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -363,9 +363,9 @@ sll(ulong ir)
 }
 
 void
-srl(ulong ir)
+srl(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -379,13 +379,13 @@ srl(ulong ir)
 		if(trace)
 			itrace("srl\tr%d,r%d,r%d", rs1, rs2, rd);
 	}
-	reg.r[rd] = (ulong)reg.r[rs1] >> v;
+	reg.r[rd] = (uint32_t)reg.r[rs1] >> v;
 }
 
 void
-sra(ulong ir)
+sra(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -406,9 +406,9 @@ sra(ulong ir)
 }
 
 void
-subcc(ulong ir)
+subcc(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int b31rs1, b31op2, b31res, r, rd, rs1, rs2;
 
 	getrop23(ir);
@@ -444,9 +444,9 @@ subcc(ulong ir)
 }
 
 void
-add(ulong ir)
+add(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -464,9 +464,9 @@ add(ulong ir)
 }
 
 void
-addcc(ulong ir)
+addcc(uint32_t ir)
 {
-	long v, r;
+	int32_t v, r;
 	int rd, rs1, rs2, b31rs1, b31op2, b31r;
 
 	getrop23(ir);
@@ -499,9 +499,9 @@ addcc(ulong ir)
 }
 
 void
-addx(ulong ir)
+addx(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -521,9 +521,9 @@ addx(ulong ir)
 }
 
 void
-addxcc(ulong ir)
+addxcc(uint32_t ir)
 {
-	long r, v;
+	int32_t r, v;
 	int rd, rs1, rs2, b31rs1, b31op2, b31r;
 
 	getrop23(ir);
@@ -559,9 +559,9 @@ addxcc(ulong ir)
 }
 
 void
-wry(ulong ir)
+wry(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -581,7 +581,7 @@ wry(ulong ir)
 }
 
 void
-rdy(ulong ir)
+rdy(uint32_t ir)
 {
 	int rd, rs1, rs2;
 
@@ -597,9 +597,9 @@ rdy(ulong ir)
 }
 
 void
-and(ulong ir)
+and(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -617,9 +617,9 @@ and(ulong ir)
 }
 
 void
-andcc(ulong ir)
+andcc(uint32_t ir)
 {
-	long v, r;
+	int32_t v, r;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -644,9 +644,9 @@ andcc(ulong ir)
 }
 
 void
-orcc(ulong ir)
+orcc(uint32_t ir)
 {
-	long v, r;
+	int32_t v, r;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -671,10 +671,10 @@ orcc(ulong ir)
 }
 
 void
-mulscc(ulong ir)
+mulscc(uint32_t ir)
 {
 	int b, n, v, rd, rs1, rs2;
-	long o1, o2, r, b31o1, b31o2, b31r;
+	int32_t o1, o2, r, b31o1, b31o2, b31r;
 
 	getrop23(ir);
 	if(ir&IMMBIT) {
@@ -716,9 +716,9 @@ mulscc(ulong ir)
 }
 
 void
-or(ulong ir)
+or(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -736,9 +736,9 @@ or(ulong ir)
 }
 
 void
-xor(ulong ir)
+xor(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -756,9 +756,9 @@ xor(ulong ir)
 }
 
 void
-xorcc(ulong ir)
+xorcc(uint32_t ir)
 {
-	long v, r;
+	int32_t v, r;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -783,9 +783,9 @@ xorcc(ulong ir)
 }
 
 void
-andn(ulong ir)
+andn(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -803,9 +803,9 @@ andn(ulong ir)
 }
 
 void
-andncc(ulong ir)
+andncc(uint32_t ir)
 {
-	long v, r;
+	int32_t v, r;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -830,9 +830,9 @@ andncc(ulong ir)
 }
 
 void
-orn(ulong ir)
+orn(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -853,9 +853,9 @@ orn(ulong ir)
 }
 
 void
-orncc(ulong ir)
+orncc(uint32_t ir)
 {
-	long r, v;
+	int32_t r, v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -880,9 +880,9 @@ orncc(ulong ir)
 }
 
 void
-xnor(ulong ir)
+xnor(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -900,9 +900,9 @@ xnor(ulong ir)
 }
 
 void
-xnorcc(ulong ir)
+xnorcc(uint32_t ir)
 {
-	long v, r;
+	int32_t v, r;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -927,9 +927,9 @@ xnorcc(ulong ir)
 }
 
 void
-st(ulong ir)
+st(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -951,9 +951,9 @@ st(ulong ir)
 }
 
 void
-std(ulong ir)
+std(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -976,9 +976,9 @@ std(ulong ir)
 }
 
 void
-stb(ulong ir)
+stb(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -1000,9 +1000,9 @@ stb(ulong ir)
 }
 
 void
-sth(ulong ir)
+sth(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -1024,9 +1024,9 @@ sth(ulong ir)
 }
 
 void
-ld(ulong ir)
+ld(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -1047,9 +1047,9 @@ ld(ulong ir)
 }
 
 void
-swap(ulong ir)
+swap(uint32_t ir)
 {
-	ulong t, ea;
+	uint32_t t, ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -1072,9 +1072,9 @@ swap(ulong ir)
 }
 
 void
-ldd(ulong ir)
+ldd(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -1095,9 +1095,9 @@ ldd(ulong ir)
 }
 
 void
-ldub(ulong ir)
+ldub(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -1119,9 +1119,9 @@ ldub(ulong ir)
 }
 
 void
-ldstub(ulong ir)
+ldstub(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -1143,9 +1143,9 @@ ldstub(ulong ir)
 }
 
 void
-ldsb(ulong ir)
+ldsb(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -1167,9 +1167,9 @@ ldsb(ulong ir)
 }
 
 void
-lduh(ulong ir)
+lduh(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -1191,9 +1191,9 @@ lduh(ulong ir)
 }
 
 void
-ldsh(ulong ir)
+ldsh(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -1210,15 +1210,15 @@ ldsh(ulong ir)
 			itrace("ldsh\tr%d,[r%d+r%d] ea=%lux", rd, rs1, rs2, ea);
 	}
 
-	reg.r[rd] = (short)getmem_h(ea);
+	reg.r[rd] = (int16_t)getmem_h(ea);
 	ilock(rd);
 }
 
 void
-sethi(ulong ir)
+sethi(uint32_t ir)
 {
 	int rd;
-	ulong v;
+	uint32_t v;
 
 	rd = (ir>>25)&0x1f;
 	v = (ir&0x3FFFFF)<<10;
@@ -1233,10 +1233,10 @@ sethi(ulong ir)
 }
 
 void
-call(ulong ir)
+call(uint32_t ir)
 {
 	Symbol s;
-	ulong npc;
+	uint32_t npc;
 
 	npc = (ir<<2) + reg.pc;
 	if(trace)
@@ -1260,9 +1260,9 @@ call(ulong ir)
 }
 
 void
-jmpl(ulong ir)
+jmpl(uint32_t ir)
 {
-	ulong ea, o;
+	uint32_t ea, o;
 	Symbol s;
 	int rd, rs1, rs2;
 
@@ -1294,10 +1294,10 @@ jmpl(ulong ir)
 }
 
 void
-bicc(ulong ir)
+bicc(uint32_t ir)
 {
-	char *op;
-	ulong npc, anul, ba;
+	int8_t *op;
+	uint32_t npc, anul, ba;
 	int takeit, z, v, n, c;
 
 	SET(op, takeit);

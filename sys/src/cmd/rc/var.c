@@ -12,13 +12,13 @@
 #include "fns.h"
 
 unsigned
-hash(char *as, int n)
+hash(int8_t *as, int n)
 {
 	int i = 1;
 	unsigned h = 0;
-	uchar *s;
+	uint8_t *s;
 
-	s = (uchar *)as;
+	s = (uint8_t *)as;
 	while (*s)
 		h += *s++ * i++;
 	return h % n;
@@ -26,13 +26,13 @@ hash(char *as, int n)
 
 #define	NKW	30
 struct kw{
-	char *name;
+	int8_t *name;
 	int type;
 	struct kw *next;
 }*kw[NKW];
 
 void
-kenter(int type, char *name)
+kenter(int type, int8_t *name)
 {
 	int h = hash(name, NKW);
 	struct kw *p = new(struct kw);
@@ -58,7 +58,7 @@ kinit(void)
 }
 
 tree*
-klook(char *name)
+klook(int8_t *name)
 {
 	struct kw *p;
 	tree *t = token(name, WORD);
@@ -72,7 +72,7 @@ klook(char *name)
 }
 
 var*
-gvlook(char *name)
+gvlook(int8_t *name)
 {
 	int h = hash(name, NVAR);
 	var *v;
@@ -81,7 +81,7 @@ gvlook(char *name)
 }
 
 var*
-vlook(char *name)
+vlook(int8_t *name)
 {
 	var *v;
 	if(runq)
@@ -91,7 +91,7 @@ vlook(char *name)
 }
 
 void
-setvar(char *name, word *val)
+setvar(int8_t *name, word *val)
 {
 	struct var *v = vlook(name);
 	freewords(v->val);

@@ -30,7 +30,7 @@ typedef struct ZlibW ZlibW;
 
 struct ZlibR
 {
-	uchar *data;
+	uint8_t *data;
 	int width;
 	int dx;
 	int dy;
@@ -42,16 +42,16 @@ struct ZlibR
 struct ZlibW
 {
 	Biobuf *io;
-	uchar *buf;
-	uchar *b;
-	uchar *e;
+	uint8_t *buf;
+	uint8_t *b;
+	uint8_t *e;
 };
 
-static ulong *crctab;
-static uchar PNGmagic[] = { 137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
+static uint32_t *crctab;
+static uint8_t PNGmagic[] = { 137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
 
 static void
-put4(uchar *a, ulong v)
+put4(uint8_t *a, uint32_t v)
 {
 	a[0] = v>>24;
 	a[1] = v>>16;
@@ -60,10 +60,10 @@ put4(uchar *a, ulong v)
 }
 
 static void
-chunk(Biobuf *bo, char *type, uchar *d, int n)
+chunk(Biobuf *bo, int8_t *type, uint8_t *d, int n)
 {
-	uchar buf[4];
-	ulong crc = 0;
+	uint8_t buf[4];
+	uint32_t crc = 0;
 
 	if(strlen(type) != 4)
 		return;
@@ -81,7 +81,7 @@ static int
 zread(void *va, void *buf, int n)
 {
 	int a, i, pixels, pixwid;
-	uchar *b, *e, *img;
+	uint8_t *b, *e, *img;
 	ZlibR *z;
 
 	z = va;
@@ -127,7 +127,7 @@ zread(void *va, void *buf, int n)
 			z->y++;
 		}
 	}
-	return b - (uchar*)buf;
+	return b - (uint8_t*)buf;
 }
 
 static void
@@ -141,7 +141,7 @@ static int
 zwrite(void *va, void *buf, int n)
 {
 	int m;
-	uchar *b, *e;
+	uint8_t *b, *e;
 	ZlibW *z;
 
 	z = va;
@@ -165,8 +165,8 @@ static Memimage*
 memRGBA(Memimage *i)
 {
 	Memimage *ni;
-	char buf[32];
-	ulong dst;
+	int8_t buf[32];
+	uint32_t dst;
 	
 	/*
 	 * [A]BGR because we want R,G,B,[A] in big-endian order.  Sigh.
@@ -187,12 +187,12 @@ memRGBA(Memimage *i)
 	return ni;
 }
 
-char*
+int8_t*
 memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
 {
 	int err, n;
-	uchar buf[200], *h;
-	ulong vgamma;
+	uint8_t buf[200], *h;
+	uint32_t vgamma;
 	Tm *tm;
 	Memimage *rgb;
 	ZlibR zr;
@@ -244,16 +244,16 @@ memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
 
 	/* comment */
 	if(II->fields_set & II_COMMENT){
-		strncpy((char*)buf, "Comment", sizeof buf);
-		n = strlen((char*)buf)+1; // leave null between Comment and text
-		strncpy((char*)(buf+n), II->comment, sizeof buf - n);
-		chunk(io, "tEXt", buf, n+strlen((char*)buf+n));
+		strncpy((int8_t*)buf, "Comment", sizeof buf);
+		n = strlen((int8_t*)buf)+1; // leave null between Comment and text
+		strncpy((int8_t*)(buf+n), II->comment, sizeof buf - n);
+		chunk(io, "tEXt", buf, n+strlen((int8_t*)buf+n));
 	}
 
 	/* image data */
 	zr.dx = Dx(m->r);
 	zr.dy = Dy(m->r);
-	zr.width = rgb->width * sizeof(ulong);
+	zr.width = rgb->width * sizeof(uint32_t);
 	zr.data = rgb->data->bdata;
 	zr.x = 0;
 	zr.y = 0;

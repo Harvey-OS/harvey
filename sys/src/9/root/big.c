@@ -11,10 +11,10 @@
 #include <libc.h>
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-	ulong num = 1;
-	uvlong size;
+	uint32_t num = 1;
+	uint64_t size;
 	u8int *c;
 
 	if (argc > 1)

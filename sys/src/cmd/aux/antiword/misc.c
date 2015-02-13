@@ -39,10 +39,10 @@
 /*
  * szGetHomeDirectory - get the name of the home directory
  */
-const char *
+const int8_t *
 szGetHomeDirectory(void)
 {
-	const char	*szHome;
+	const int8_t	*szHome;
 
 #if defined(__vms)
 	szHome = decc$translate_vms(getenv("HOME"));
@@ -68,7 +68,7 @@ szGetHomeDirectory(void)
 /*
  * szGetAntiwordDirectory - get the name of the Antiword directory
  */
-const char *
+const int8_t *
 szGetAntiwordDirectory(void)
 {
 #if defined(__vms)
@@ -83,8 +83,8 @@ szGetAntiwordDirectory(void)
  * Get the size of the specified file.
  * Returns -1 if the file does not exist or is not a proper file.
  */
-long
-lGetFilesize(const char *szFilename)
+int32_t
+lGetFilesize(const int8_t *szFilename)
 {
 #if defined(__riscos)
 	os_error	*e;
@@ -102,7 +102,7 @@ lGetFilesize(const char *szFilename)
 		/* It's not a proper file or the file does not exist */
 		return -1;
 	}
-	return (long)iSize;
+	return (int32_t)iSize;
 #else
 	struct stat	tBuffer;
 
@@ -115,13 +115,13 @@ lGetFilesize(const char *szFilename)
 		/* It's not a regular file */
 		return -1;
 	}
-	return (long)tBuffer.st_size;
+	return (int32_t)tBuffer.st_size;
 #endif /* __riscos */
 } /* end of lGetFilesize */
 
 #if defined(DEBUG)
 void
-vPrintBlock(const char	*szFile, int iLine,
+vPrintBlock(const int8_t	*szFile, int iLine,
 		const UCHAR *aucBlock, size_t tLength)
 {
 	int i, j;
@@ -145,9 +145,10 @@ vPrintBlock(const char	*szFile, int iLine,
 } /* end of vPrintBlock */
 
 void
-vPrintUnicode(const char *szFile, int iLine, const UCHAR *aucUni, size_t tLen)
+vPrintUnicode(const int8_t *szFile, int iLine, const UCHAR *aucUni,
+	      size_t tLen)
 {
-	char	*szASCII;
+	int8_t	*szASCII;
 
 	fail(tLen % 2 != 0);
 
@@ -196,7 +197,7 @@ bReadBytes(UCHAR *aucBytes, size_t tMemb, ULONG ulOffset, FILE *pFile)
 	if (ulOffset > (ULONG)LONG_MAX) {
 		return FALSE;
 	}
-	if (fseek(pFile, (long)ulOffset, SEEK_SET) != 0) {
+	if (fseek(pFile, (int32_t)ulOffset, SEEK_SET) != 0) {
 		return FALSE;
 	}
 	if (fread(aucBytes, sizeof(UCHAR), tMemb, pFile) != tMemb) {
@@ -296,7 +297,7 @@ ulColor2Color(UCHAR ucFontColor)
  * returns the index of the split character or -1 if no split found.
  */
 static int
-iFindSplit(const char *szString, size_t tStringLen)
+iFindSplit(const int8_t *szString, size_t tStringLen)
 {
 	size_t	tSplit;
 
@@ -393,9 +394,9 @@ pSplitList(output_type *pAnchor)
  * returns the number of characters written
  */
 size_t
-tNumber2Roman(UINT uiNumber, BOOL bUpperCase, char *szOutput)
+tNumber2Roman(UINT uiNumber, BOOL bUpperCase, int8_t *szOutput)
 {
-	char	*outp, *p, *q;
+	int8_t	*outp, *p, *q;
 	UINT	uiNextVal, uiValue;
 
 	fail(szOutput == NULL);
@@ -440,9 +441,9 @@ tNumber2Roman(UINT uiNumber, BOOL bUpperCase, char *szOutput)
  * returns the number of characters written
  */
 size_t
-tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, char *szOutput)
+tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, int8_t *szOutput)
 {
-	char	*outp;
+	int8_t	*outp;
 	UINT	uiTmp;
 
 	fail(szOutput == NULL);
@@ -456,16 +457,16 @@ tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, char *szOutput)
 	uiTmp = (UINT)(bUpperCase ? 'A': 'a');
 	if (uiNumber <= 26) {
 		uiNumber -= 1;
-		*outp++ = (char)(uiTmp + uiNumber);
+		*outp++ = (int8_t)(uiTmp + uiNumber);
 	} else if (uiNumber <= 26U + 26U*26U) {
 		uiNumber -= 26 + 1;
-		*outp++ = (char)(uiTmp + uiNumber / 26);
-		*outp++ = (char)(uiTmp + uiNumber % 26);
+		*outp++ = (int8_t)(uiTmp + uiNumber / 26);
+		*outp++ = (int8_t)(uiTmp + uiNumber % 26);
 	} else if (uiNumber <= 26U + 26U*26U + 26U*26U*26U) {
 		uiNumber -= 26 + 26*26 + 1;
-		*outp++ = (char)(uiTmp + uiNumber / (26*26));
-		*outp++ = (char)(uiTmp + uiNumber / 26 % 26);
-		*outp++ = (char)(uiTmp + uiNumber % 26);
+		*outp++ = (int8_t)(uiTmp + uiNumber / (26*26));
+		*outp++ = (int8_t)(uiTmp + uiNumber / 26 % 26);
+		*outp++ = (int8_t)(uiTmp + uiNumber % 26);
 	}
 	*outp = '\0';
 	fail(outp < szOutput);
@@ -475,10 +476,10 @@ tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, char *szOutput)
 /*
  * unincpy - copy a counted Unicode string to an single-byte string
  */
-char *
-unincpy(char *s1, const UCHAR *s2, size_t n)
+int8_t *
+unincpy(int8_t *s1, const UCHAR *s2, size_t n)
 {
-	char	*pcDest;
+	int8_t	*pcDest;
 	ULONG	ulChar;
 	size_t	tLen;
 	USHORT	usUni;
@@ -493,7 +494,7 @@ unincpy(char *s1, const UCHAR *s2, size_t n)
 		if (ulChar == IGNORE_CHARACTER) {
 			ulChar = (ULONG)'?';
 		}
-		*pcDest = (char)ulChar;
+		*pcDest = (int8_t)ulChar;
 	}
 	for (; tLen < n; tLen++) {
 		*pcDest++ = '\0';
@@ -525,10 +526,10 @@ unilen(const UCHAR *s)
 /*
  * szBaseName - get the basename of the specified filename
  */
-const char *
-szBasename(const char *szFilename)
+const int8_t *
+szBasename(const int8_t *szFilename)
 {
-	const char	*szTmp;
+	const int8_t	*szTmp;
 
 	fail(szFilename == NULL);
 
@@ -550,12 +551,12 @@ szBasename(const char *szFilename)
  *
  * Returns the leading in drawunits
  */
-long
+int32_t
 lComputeLeading(USHORT usFontSize)
 {
-	long	lLeading;
+	int32_t	lLeading;
 
-	lLeading = (long)usFontSize * 500L;
+	lLeading = (int32_t)usFontSize * 500L;
 	if (usFontSize < 18) {		/* Small text: 112% */
 		lLeading *= 112;
 	} else if (usFontSize < 28) {	/* Normal text: 124% */
@@ -577,35 +578,35 @@ lComputeLeading(USHORT usFontSize)
  * Returns the string length of the result
  */
 size_t
-tUcs2Utf8(ULONG ulChar, char *szResult, size_t tMaxResultLen)
+tUcs2Utf8(ULONG ulChar, int8_t *szResult, size_t tMaxResultLen)
 {
 	if (szResult == NULL || tMaxResultLen == 0) {
 		return 0;
 	}
 
 	if (ulChar < 0x80 && tMaxResultLen >= 2) {
-		szResult[0] = (char)ulChar;
+		szResult[0] = (int8_t)ulChar;
 		szResult[1] = '\0';
 		return 1;
 	}
 	if (ulChar < 0x800 && tMaxResultLen >= 3) {
-		szResult[0] = (char)(0xc0 | ulChar >> 6);
-		szResult[1] = (char)(0x80 | (ulChar & 0x3f));
+		szResult[0] = (int8_t)(0xc0 | ulChar >> 6);
+		szResult[1] = (int8_t)(0x80 | (ulChar & 0x3f));
 		szResult[2] = '\0';
 		return 2;
 	}
 	if (ulChar < 0x10000 && tMaxResultLen >= 4) {
-		szResult[0] = (char)(0xe0 | ulChar >> 12);
-		szResult[1] = (char)(0x80 | (ulChar >> 6 & 0x3f));
-		szResult[2] = (char)(0x80 | (ulChar & 0x3f));
+		szResult[0] = (int8_t)(0xe0 | ulChar >> 12);
+		szResult[1] = (int8_t)(0x80 | (ulChar >> 6 & 0x3f));
+		szResult[2] = (int8_t)(0x80 | (ulChar & 0x3f));
 		szResult[3] = '\0';
 		return 3;
 	}
 	if (ulChar < 0x200000 && tMaxResultLen >= 5) {
-		szResult[0] = (char)(0xf0 | ulChar >> 18);
-		szResult[1] = (char)(0x80 | (ulChar >> 12 & 0x3f));
-		szResult[2] = (char)(0x80 | (ulChar >> 6 & 0x3f));
-		szResult[3] = (char)(0x80 | (ulChar & 0x3f));
+		szResult[0] = (int8_t)(0xf0 | ulChar >> 18);
+		szResult[1] = (int8_t)(0x80 | (ulChar >> 12 & 0x3f));
+		szResult[2] = (int8_t)(0x80 | (ulChar >> 6 & 0x3f));
+		szResult[3] = (int8_t)(0x80 | (ulChar & 0x3f));
 		szResult[4] = '\0';
 		return 4;
 	}
@@ -618,7 +619,7 @@ tUcs2Utf8(ULONG ulChar, char *szResult, size_t tMaxResultLen)
  */
 void
 vGetBulletValue(conversion_type eConversionType, encoding_type eEncoding,
-	char *szResult, size_t tMaxResultLen)
+	int8_t *szResult, size_t tMaxResultLen)
 {
 	fail(szResult == NULL);
 	fail(tMaxResultLen < 2);
@@ -626,7 +627,7 @@ vGetBulletValue(conversion_type eConversionType, encoding_type eEncoding,
 	if (eEncoding == encoding_utf_8) {
 		(void)tUcs2Utf8(UNICODE_BULLET, szResult, tMaxResultLen);
 	} else {
-		szResult[0] = (char)ucGetBulletCharacter(eConversionType,
+		szResult[0] = (int8_t)ucGetBulletCharacter(eConversionType,
 							eEncoding);
 		szResult[1] = '\0';
 	}
@@ -663,13 +664,14 @@ bAllZero(const UCHAR *aucBytes, size_t tLength)
  * Returns TRUE when sucessful, otherwise FALSE
  */
 static BOOL
-bGetCodesetFromLocale(char *szCodeset, size_t tMaxCodesetLength, BOOL *pbEuro)
+bGetCodesetFromLocale(int8_t *szCodeset, size_t tMaxCodesetLength,
+		      BOOL *pbEuro)
 {
 #if !defined(__dos)
-	const char	*szLocale;
-	const char	*pcTmp;
+	const int8_t	*szLocale;
+	const int8_t	*pcTmp;
 	size_t		tIndex;
-	char		szModifier[6];
+	int8_t		szModifier[6];
 #endif /* __dos */
 
 	if (pbEuro != NULL) {
@@ -751,12 +753,13 @@ bGetCodesetFromLocale(char *szCodeset, size_t tMaxCodesetLength, BOOL *pbEuro)
  * Returns TRUE when sucessful, otherwise FALSE
  */
 BOOL
-bGetNormalizedCodeset(char *szCodeset, size_t tMaxCodesetLength, BOOL *pbEuro)
+bGetNormalizedCodeset(int8_t *szCodeset, size_t tMaxCodesetLength,
+		      BOOL *pbEuro)
 {
 	BOOL	bOnlyDigits;
-	const char	*pcSrc;
-	char	*pcDest;
-	char	*szTmp, *szCodesetNorm;
+	const int8_t	*pcSrc;
+	int8_t	*pcDest;
+	int8_t	*szTmp, *szCodesetNorm;
 
 	if (pbEuro != NULL) {
 		*pbEuro = FALSE;	/* Until proven otherwise */
@@ -807,12 +810,12 @@ bGetNormalizedCodeset(char *szCodeset, size_t tMaxCodesetLength, BOOL *pbEuro)
  *
  * Returns the basename of the default mapping file
  */
-const char *
+const int8_t *
 szGetDefaultMappingFile(void)
 {
 	static const struct {
-		const char	*szCodeset;
-		const char	*szMappingFile;
+		const int8_t	*szCodeset;
+		const int8_t	*szMappingFile;
 	} atMappingFile[] = {
 		{ "iso88591",	MAPPING_FILE_8859_1 },
 		{ "iso88592",	MAPPING_FILE_8859_2 },
@@ -843,7 +846,7 @@ szGetDefaultMappingFile(void)
 	};
 	size_t	tIndex;
 	BOOL	bEuro;
-	char	szCodeset[20];
+	int8_t	szCodeset[20];
 
 	szCodeset[0] = '\0';
 	bEuro = FALSE;

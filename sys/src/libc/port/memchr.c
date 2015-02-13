@@ -11,9 +11,9 @@
 #include	<libc.h>
 
 void*
-memchr(void *ap, int c, ulong n)
+memchr(void *ap, int c, uint32_t n)
 {
-	uchar *sp;
+	uint8_t *sp;
 
 	sp = ap;
 	c &= 0xFF;

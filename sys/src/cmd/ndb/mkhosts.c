@@ -22,13 +22,13 @@ typedef struct x
 
 X x[4096];
 int nx;
-char *domname = "research.att.com";
+int8_t *domname = "research.att.com";
 int domnamlen;
 
-char*
-upper(char *x)
+int8_t*
+upper(int8_t *x)
 {
-	char *p;
+	int8_t *p;
 	int c;
 
 	for(p = x; c = *p; p++)
@@ -40,9 +40,9 @@ void
 printArecord(int fd, X *p)
 {
 	Ndbtuple *nt;
-	char *c;
-	char *dom = 0;
-	char *curdom = 0;
+	int8_t *c;
+	int8_t *dom = 0;
+	int8_t *curdom = 0;
 	int i, cdlen = 0;
 	int mxweight = 0;
 
@@ -127,12 +127,12 @@ printtxt(int fd, X *p)
 }
 
 void
-parse(char *file)
+parse(int8_t *file)
 {
 	int i;
 	Ndb *db;
 	Ndbtuple *t, *nt, *tt, *ipnett;
-	char *p;
+	int8_t *p;
 
 	db = ndbopen(file);
 	if(db == 0)
@@ -180,10 +180,10 @@ parse(char *file)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int i, fd;
-	char fn[128];
+	int8_t fn[128];
 
 	if (argc>1)
 		domname = argv[1];

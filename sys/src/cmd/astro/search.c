@@ -9,7 +9,7 @@
 
 #include "astro.h"
 
-char*	solstr[] =
+int8_t*	solstr[] =
 {
 	"Fall equinox",
 	"Winter solstice",
@@ -22,7 +22,7 @@ struct
 	double	beta;
 	int	rta;
 	int	dec;
-	char	*betstr;
+	int8_t	*betstr;
 } bettab[] =
 {
 	-1.3572, 231,	50,	"Quadrantid",

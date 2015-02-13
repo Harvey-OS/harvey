@@ -15,38 +15,38 @@
 	/* mips native disassembler */
 
 typedef struct {
-	uvlong addr;			/* pc of instr */
-	uchar op;			/* bits 31-26 */
-	uchar rs;			/* bits 25-21 */
-	uchar rt;			/* bits 20-16 */
-	uchar rd;			/* bits 15-11 */
-	uchar sa;			/* bits 10-6 */
-	uchar function;			/* bits 5-0 */
-	long immediate;			/* bits 15-0 */
-	ulong cofun;			/* bits 24-0 */
-	ulong target;			/* bits 25-0 */
-	long w0;
-	char *curr;			/* current fill point */
-	char *end;			/* end of buffer */
-	char *err;
+	uint64_t addr;			/* pc of instr */
+	uint8_t op;			/* bits 31-26 */
+	uint8_t rs;			/* bits 25-21 */
+	uint8_t rt;			/* bits 20-16 */
+	uint8_t rd;			/* bits 15-11 */
+	uint8_t sa;			/* bits 10-6 */
+	uint8_t function;			/* bits 5-0 */
+	int32_t immediate;			/* bits 15-0 */
+	uint32_t cofun;			/* bits 24-0 */
+	uint32_t target;			/* bits 25-0 */
+	int32_t w0;
+	int8_t *curr;			/* current fill point */
+	int8_t *end;			/* end of buffer */
+	int8_t *err;
 } Instr;
 
 typedef struct {
-	char *mnemonic;
-	char *mipsco;
+	int8_t *mnemonic;
+	int8_t *mipsco;
 } Opcode;
 
-static char mipscoload[] = "r%t,%l";
-static char mipscoalui[] = "r%t,r%s,%i";
-static char mipscoalu3op[] = "r%d,r%s,r%t";
-static char mipscoboc[] = "r%s,r%t,%b";
-static char mipscoboc0[] = "r%s,%b";
-static char mipscorsrt[] = "r%s,r%t";
-static char mipscorsi[] = "r%s,%i";
-static char mipscoxxx[] = "%w";
-static char mipscofp3[] = "f%a,f%d,f%t";	/* fd,fs,ft */
-static char mipscofp2[] = "f%a,f%d";		/* fd,fs */
-static char mipscofpc[] = "f%d,f%t";		/* fs,ft */
+static int8_t mipscoload[] = "r%t,%l";
+static int8_t mipscoalui[] = "r%t,r%s,%i";
+static int8_t mipscoalu3op[] = "r%d,r%s,r%t";
+static int8_t mipscoboc[] = "r%s,r%t,%b";
+static int8_t mipscoboc0[] = "r%s,%b";
+static int8_t mipscorsrt[] = "r%s,r%t";
+static int8_t mipscorsi[] = "r%s,%i";
+static int8_t mipscoxxx[] = "%w";
+static int8_t mipscofp3[] = "f%a,f%d,f%t";	/* fd,fs,ft */
+static int8_t mipscofp2[] = "f%a,f%d";		/* fd,fs */
+static int8_t mipscofpc[] = "f%d,f%t";		/* fs,ft */
 
 static Opcode opcodes[64] = {
 	0,		0,
@@ -284,16 +284,16 @@ static Opcode fopcodes[64] = {
 	"c.ngt.%f",	mipscofpc,
 };
 
-static char fsub[16] = {
+static int8_t fsub[16] = {
 	's', 'd', 'e', 'q', 'w', '?', '?', '?',
 	'?', '?', '?', '?', '?', '?', '?', '?'
 };
 
 
 static int
-mkinstr(Instr *i, Map *map, uvlong pc)
+mkinstr(Instr *i, Map *map, uint64_t pc)
 {
-	ulong w;
+	uint32_t w;
 
 	if (get4(map, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -318,7 +318,7 @@ mkinstr(Instr *i, Map *map, uvlong pc)
 #pragma	varargck	argpos	bprint		2
 
 static void
-bprint(Instr *i, char *fmt, ...)
+bprint(Instr *i, int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -328,7 +328,7 @@ bprint(Instr *i, char *fmt, ...)
 }
 
 static void
-format(char *mnemonic, Instr *i, char *f)
+format(int8_t *mnemonic, Instr *i, int8_t *f)
 {
 	if (mnemonic)
 		format(0, i, mnemonic);
@@ -414,7 +414,7 @@ format(char *mnemonic, Instr *i, char *f)
 static void
 copz(int cop, Instr *i)
 {
-	char *f, *m, buf[16];
+	int8_t *f, *m, buf[16];
 
 	m = buf;
 	f = "%t,%d";
@@ -477,7 +477,7 @@ copz(int cop, Instr *i)
 static void
 cop0(Instr *i)
 {
-	char *m = 0;
+	int8_t *m = 0;
 
 	if (i->rs >= 0x10) {
 		switch (i->cofun) {
@@ -521,11 +521,11 @@ cop0(Instr *i)
 }
 
 int
-_mipscoinst(Map *map, uvlong pc, char *buf, int n)
+_mipscoinst(Map *map, uint64_t pc, int8_t *buf, int n)
 {
 	Instr i;
 	Opcode *o;
-	uchar op;
+	uint8_t op;
 
 	i.curr = buf;
 	i.end = buf+n-1;

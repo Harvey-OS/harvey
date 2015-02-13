@@ -20,7 +20,7 @@ void
 configsac(Method *mp)
 {
 	int fd;
-	char cmd[64];
+	int8_t cmd[64];
 
 	USED(mp);
 

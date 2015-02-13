@@ -14,13 +14,13 @@
 #include "dat.h"
 #include "fns.h"
 
-char	Enonexist[] =	"file does not exist";
-char	Eperm[] =	"permission denied";
-char	Enofile[] =	"no file system specified";
-char	Eauth[] =	"authentication failed";
+int8_t	Enonexist[] =	"file does not exist";
+int8_t	Eperm[] =	"permission denied";
+int8_t	Enofile[] =	"no file system specified";
+int8_t	Eauth[] =	"authentication failed";
 
-char	*srvname = "9660";
-char	*deffile = 0;
+int8_t	*srvname = "9660";
+int8_t	*deffile = 0;
 
 extern Xfsub	isosub;
 

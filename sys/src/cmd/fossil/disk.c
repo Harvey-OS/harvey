@@ -133,9 +133,9 @@ partEnd(Disk *disk, int part)
 }
 
 int
-diskReadRaw(Disk *disk, int part, u32int addr, uchar *buf)
+diskReadRaw(Disk *disk, int part, u32int addr, uint8_t *buf)
 {
-	ulong start, end;
+	uint32_t start, end;
 	u64int offset;
 	int n, nn;
 
@@ -167,9 +167,9 @@ diskReadRaw(Disk *disk, int part, u32int addr, uchar *buf)
 }
 
 int
-diskWriteRaw(Disk *disk, int part, u32int addr, uchar *buf)
+diskWriteRaw(Disk *disk, int part, u32int addr, uint8_t *buf)
 {
-	ulong start, end;
+	uint32_t start, end;
 	u64int offset;
 	int n;
 
@@ -298,10 +298,10 @@ mypc(int x)
 	return getcallerpc(&x);
 }
 
-static char *
+static int8_t *
 disk2file(Disk *disk)
 {
-	static char buf[256];
+	static int8_t buf[256];
 
 	if (fd2path(disk->fd, buf, sizeof buf) < 0)
 		strncpy(buf, "GOK", sizeof buf);
@@ -313,7 +313,7 @@ diskThread(void *a)
 {
 	Disk *disk = a;
 	Block *b;
-	uchar *buf, *p;
+	uint8_t *buf, *p;
 	double t;
 	int nio;
 

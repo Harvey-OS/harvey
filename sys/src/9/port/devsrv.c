@@ -18,12 +18,12 @@
 typedef struct Srv Srv;
 struct Srv
 {
-	char	*name;
-	char	*owner;
-	ulong	perm;
+	int8_t	*name;
+	int8_t	*owner;
+	uint32_t	perm;
 	Chan	*chan;
 	Srv	*link;
-	ulong	path;
+	uint32_t	path;
 };
 
 static QLock	srvlk;
@@ -31,7 +31,7 @@ static Srv	*srv;
 static int	qidpath;
 
 static int
-srvgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+srvgen(Chan *c, int8_t*, Dirtab*, int, int s, Dir *dp)
 {
 	Srv *sp;
 	Qid q;
@@ -65,19 +65,19 @@ srvinit(void)
 }
 
 static Chan*
-srvattach(char *spec)
+srvattach(int8_t *spec)
 {
 	return devattach('s', spec);
 }
 
 static Walkqid*
-srvwalk(Chan *c, Chan *nc, char **name, int nname)
+srvwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, srvgen);
 }
 
 static Srv*
-srvlookup(char *name, ulong qidpath)
+srvlookup(int8_t *name, uint32_t qidpath)
 {
 	Srv *sp;
 	for(sp = srv; sp; sp = sp->link)
@@ -86,17 +86,17 @@ srvlookup(char *name, ulong qidpath)
 	return nil;
 }
 
-static long
-srvstat(Chan *c, uchar *db, long n)
+static int32_t
+srvstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, 0, 0, srvgen);
 }
 
-char*
+int8_t*
 srvname(Chan *c)
 {
 	Srv *sp;
-	char *s;
+	int8_t *s;
 
 	for(sp = srv; sp; sp = sp->link)
 		if(sp->chan == c){
@@ -146,10 +146,10 @@ srvopen(Chan *c, int omode)
 }
 
 static void
-srvcreate(Chan *c, char *name, int omode, int perm)
+srvcreate(Chan *c, int8_t *name, int omode, int perm)
 {
 	Srv *sp;
-	char *sname;
+	int8_t *sname;
 
 	if(openmode(omode) != OWRITE)
 		error(Eperm);
@@ -238,12 +238,12 @@ srvremove(Chan *c)
 	free(sp);
 }
 
-static long
-srvwstat(Chan *c, uchar *dp, long n)
+static int32_t
+srvwstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	Dir d;
 	Srv *sp;
-	char *strs;
+	int8_t *strs;
 
 	if(c->qid.type & QTDIR)
 		error(Eperm);
@@ -299,20 +299,20 @@ srvclose(Chan *c)
 	}
 }
 
-static long
-srvread(Chan *c, void *va, long n, vlong)
+static int32_t
+srvread(Chan *c, void *va, int32_t n, int64_t)
 {
 	isdir(c);
 	return devdirread(c, va, n, 0, 0, srvgen);
 }
 
-static long
-srvwrite(Chan *c, void *va, long n, vlong)
+static int32_t
+srvwrite(Chan *c, void *va, int32_t n, int64_t)
 {
 	Srv *sp;
 	Chan *c1;
 	int fd;
-	char buf[32];
+	int8_t buf[32];
 
 	if(n >= sizeof buf)
 		error(Egreg);

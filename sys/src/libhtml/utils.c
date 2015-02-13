@@ -411,11 +411,11 @@ _Stradd(Rune* s1, Rune* s2, int n)
 #define LONG_MAX	2147483647L
 #define LONG_MIN	-2147483648L
 
-long
+int32_t
 _Strtol(Rune* nptr, Rune** endptr, int base)
 {
 	Rune* p;
-	long n, nn;
+	int32_t n, nn;
 	int c, ovfl, v, neg, ndig;
 
 	p = nptr;
@@ -504,7 +504,7 @@ _Strtol(Rune* nptr, Rune** endptr, int base)
 // Convert buf[0:n], bytes whose character set is chset,
 // into a emalloc'd null-terminated Unicode string.
 Rune*
-toStr(uchar* buf, int n, int chset)
+toStr(uint8_t* buf, int n, int chset)
 {
 	int i;
 	int m;
@@ -523,13 +523,13 @@ toStr(uchar* buf, int n, int chset)
 	case UTF_8:
 		m = 0;
 		for(i = 0; i < n; ) {
-			i += chartorune(&ch, (char*)(buf+i));
+			i += chartorune(&ch, (int8_t*)(buf+i));
 			m++;
 		}
 		ans = (Rune*)emalloc((m+1)*sizeof(Rune));
 		m = 0;
 		for(i = 0; i < n; ) {
-			i += chartorune(&ch, (char*)(buf+i));
+			i += chartorune(&ch, (int8_t*)(buf+i));
 			ans[m++] = ch;
 		}
 		ans[m] = 0;
@@ -545,20 +545,20 @@ toStr(uchar* buf, int n, int chset)
 // Convert buf[0:n], Unicode characters,
 // into an emalloc'd null-terminated string in character set chset.
 // Use 0x80 for unconvertable characters.
-uchar*
+uint8_t*
 fromStr(Rune* buf, int n, int chset)
 {
-	uchar* ans;
+	uint8_t* ans;
 	int i, lim, m;
 	Rune ch;
-	uchar* p;
-	uchar s[UTFmax];
+	uint8_t* p;
+	uint8_t s[UTFmax];
 
 	ans = nil;
 	switch(chset) {
 	case US_Ascii:
 	case ISO_8859_1:
-		ans = (uchar*)emalloc(n+1);
+		ans = (uint8_t*)emalloc(n+1);
 		lim = (chset==US_Ascii)? 127 : 255;
 		for(i = 0; i < n; i++) {
 			ch = buf[i];
@@ -572,12 +572,12 @@ fromStr(Rune* buf, int n, int chset)
 	case UTF_8:
 		m = 0;
 		for(i = 0; i < n; i++) {
-			m += runetochar((char*)s, &buf[i]);
+			m += runetochar((int8_t*)s, &buf[i]);
 		}
-		ans = (uchar*)emalloc(m+1);
+		ans = (uint8_t*)emalloc(m+1);
 		p = ans;
 		for(i = 0; i < n; i++)
-			p += runetochar((char*)p, &buf[i]);
+			p += runetochar((int8_t*)p, &buf[i]);
 		*p = 0;
 		break;
 

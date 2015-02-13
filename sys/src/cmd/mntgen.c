@@ -22,14 +22,14 @@ usage(void)
 	exits("usage");
 }
 
-ulong time0;
+uint32_t time0;
 
 typedef struct Tab Tab;
 struct Tab
 {
-	char *name;
-	vlong qid;
-	ulong time;
+	int8_t *name;
+	int64_t qid;
+	uint32_t time;
 	int ref;
 };
 
@@ -38,7 +38,7 @@ int ntab;
 int mtab;
 
 static Tab*
-findtab(vlong path)
+findtab(int64_t path)
 {
 	int i;
 
@@ -48,11 +48,11 @@ findtab(vlong path)
 	return nil;
 }
 
-static vlong
-hash(char *name)
+static int64_t
+hash(int8_t *name)
 {
-	vlong digest[MD5dlen / sizeof(vlong) + 1];
-	md5((uchar *)name, strlen(name), (uchar *)digest, nil);
+	int64_t digest[MD5dlen / sizeof(int64_t) + 1];
+	md5((uint8_t *)name, strlen(name), (uint8_t *)digest, nil);
 	return digest[0] & ((1ULL<<48)-1);
 }
 
@@ -101,7 +101,7 @@ static void
 fsstat(Req *r)
 {
 	Tab *t;
-	vlong qid;
+	int64_t qid;
 
 	qid = r->fid->qid.path;
 	if(qid == 0)
@@ -116,12 +116,12 @@ fsstat(Req *r)
 	respond(r, nil);
 }
 
-static char*
-fswalk1(Fid *fid, char *name, void*)
+static int8_t*
+fswalk1(Fid *fid, int8_t *name, void*)
 {
 	int i;
 	Tab *t;
-	vlong h;
+	int64_t h;
 
 	if(fid->qid.path != 0){
 		/* nothing in child directory */
@@ -164,7 +164,7 @@ fswalk1(Fid *fid, char *name, void*)
 	return nil;
 }
 
-static char*
+static int8_t*
 fsclone(Fid *fid, Fid*, void*)
 {
 	Tab *t;
@@ -184,7 +184,7 @@ static void
 fsclunk(Fid *fid)
 {
 	Tab *t;
-	vlong qid;
+	int64_t qid;
 
 	qid = fid->qid.path;
 	if(qid == 0)
@@ -203,7 +203,7 @@ fsclunk(Fid *fid)
 static void
 fsattach(Req *r)
 {
-	char *spec;
+	int8_t *spec;
 
 	spec = r->ifcall.aname;
 	if(spec && spec[0]){

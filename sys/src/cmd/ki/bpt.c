@@ -19,7 +19,7 @@ void
 dobplist(void)
 {
 	Breakpoint *b;
-	char buf[512];
+	int8_t buf[512];
 
 	for(b = bplist; b; b = b->next) {
 		switch(b->type) {
@@ -58,7 +58,7 @@ dobplist(void)
 }
 
 void
-breakpoint(char *addr, char *cp)
+breakpoint(int8_t *addr, int8_t *cp)
 {
 	Breakpoint *b;
 	int type;
@@ -94,10 +94,10 @@ breakpoint(char *addr, char *cp)
 }
 
 void
-delbpt(char *addr)
+delbpt(int8_t *addr)
 {
 	Breakpoint *b, **l;
-	ulong baddr;
+	uint32_t baddr;
 
 	baddr = expr(addr);
 	l = &bplist;
@@ -116,7 +116,7 @@ delbpt(char *addr)
 }
 
 void
-brkchk(ulong addr, int type)
+brkchk(uint32_t addr, int type)
 {
 	Breakpoint *b;
 

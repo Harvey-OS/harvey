@@ -9,15 +9,17 @@
 
 #include	"mk.h"
 
-static	Word		*subsub(Word*, char*, char*);
-static	Word		*expandvar(char**);
-static	Bufblock	*varname(char**);
-static	Word		*extractpat(char*, char**, char*, char*);
-static	int		submatch(char*, Word*, Word*, int*, char**);
-static	Word		*varmatch(char *);
+static	Word		*subsub(Word*, int8_t*, int8_t*);
+static	Word		*expandvar(int8_t**);
+static	Bufblock	*varname(int8_t**);
+static	Word		*extractpat(int8_t*, int8_t**, int8_t*,
+					      int8_t*);
+static	int		submatch(int8_t*, Word*, Word*, int*,
+					  int8_t**);
+static	Word		*varmatch(int8_t *);
 
 Word *
-varsub(char **s)
+varsub(int8_t **s)
 {
 	Bufblock *b;
 	Word *w;
@@ -38,10 +40,10 @@ varsub(char **s)
  *	extract a variable name
  */
 static Bufblock*
-varname(char **s)
+varname(int8_t **s)
 {
 	Bufblock *b;
-	char *cp;
+	int8_t *cp;
 	Rune r;
 	int n;
 
@@ -66,7 +68,7 @@ varname(char **s)
 }
 
 static Word*
-varmatch(char *name)
+varmatch(int8_t *name)
 {
 	Word *w;
 	Symtab *sym;
@@ -82,12 +84,12 @@ varmatch(char *name)
 }
 
 static Word*
-expandvar(char **s)
+expandvar(int8_t **s)
 {
 	Word *w;
 	Bufblock *buf;
 	Symtab *sym;
-	char *cp, *begin, *end;
+	int8_t *cp, *begin, *end;
 
 	begin = *s;
 	(*s)++;						/* skip the '{' */
@@ -127,10 +129,10 @@ expandvar(char **s)
 }
 
 static Word*
-extractpat(char *s, char **r, char *term, char *end)
+extractpat(int8_t *s, int8_t **r, int8_t *term, int8_t *end)
 {
 	int save;
-	char *cp;
+	int8_t *cp;
 	Word *w;
 
 	cp = charin(s, term);
@@ -150,13 +152,13 @@ extractpat(char *s, char **r, char *term, char *end)
 }
 
 static Word*
-subsub(Word *v, char *s, char *end)
+subsub(Word *v, int8_t *s, int8_t *end)
 {
 	int nmid;
 	Word *head, *tail, *w, *h;
 	Word *a, *b, *c, *d;
 	Bufblock *buf;
-	char *cp, *enda;
+	int8_t *cp, *enda;
 
 	a = extractpat(s, &cp, "=%&", end);
 	b = c = d = 0;
@@ -230,11 +232,11 @@ subsub(Word *v, char *s, char *end)
 }
 
 static int
-submatch(char *s, Word *a, Word *b, int *nmid, char **enda)
+submatch(int8_t *s, Word *a, Word *b, int *nmid, int8_t **enda)
 {
 	Word *w;
 	int n;
-	char *end;
+	int8_t *end;
 
 	n = 0;
 	for(w = a; w; w = w->next){

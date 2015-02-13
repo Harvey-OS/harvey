@@ -20,7 +20,7 @@ void
 alarmkproc(void*)
 {
 	Proc *rp;
-	ulong now;
+	uint32_t now;
 
 	for(;;){
 		now = sys->ticks;
@@ -52,7 +52,7 @@ void
 checkalarms(void)
 {
 	Proc *p;
-	ulong now;
+	uint32_t now;
 
 	p = alarms.head;
 	now = sys->ticks;
@@ -61,11 +61,11 @@ checkalarms(void)
 		wakeup(&alarmr);
 }
 
-ulong
-procalarm(ulong time)
+uint32_t
+procalarm(uint32_t time)
 {
 	Proc **l, *f;
-	ulong when, old;
+	uint32_t when, old;
 
 	if(up->alarm)
 		old = tk2ms(up->alarm - sys->ticks);

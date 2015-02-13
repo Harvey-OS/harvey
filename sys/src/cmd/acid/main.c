@@ -18,14 +18,14 @@
 extern int _ifmt(Fmt*);
 
 static Biobuf	bioout;
-static char	prog[128];
-static char*	lm[16];
+static int8_t	prog[128];
+static int8_t*	lm[16];
 static int	nlm;
-static char*	mtype;
+static int8_t*	mtype;
 
-static	int attachfiles(char*, int);
+static	int attachfiles(int8_t*, int);
 int	xfmt(Fmt*);
-int	isnumeric(char*);
+int	isnumeric(int8_t*);
 void	die(void);
 void	loadmoduleobjtype(void);
 
@@ -168,7 +168,7 @@ main(int argc, char *argv[])
 }
 
 static int
-attachfiles(char *aout, int pid)
+attachfiles(int8_t *aout, int pid)
 {
 	interactive = 0;
 	if(setjmp(err))
@@ -208,7 +208,7 @@ die(void)
 void
 loadmoduleobjtype(void)
 {
-	char *buf;
+	int8_t *buf;
 
 	buf = smprint("/sys/lib/acid/%s", mach->name);
 	loadmodule(buf);
@@ -220,7 +220,7 @@ userinit(void)
 {
 	Lsym *l;
 	Node *n;
-	char *buf, *p;
+	int8_t *buf, *p;
 
 	p = getenv("home");
 	if(p != 0) {
@@ -245,7 +245,7 @@ userinit(void)
 }
 
 void
-loadmodule(char *s)
+loadmodule(int8_t *s)
 {
 	interactive = 0;
 	if(setjmp(err)) {
@@ -260,12 +260,12 @@ loadmodule(char *s)
 }
 
 void
-readtext(char *s)
+readtext(int8_t *s)
 {
 	Dir *d;
 	Lsym *l;
 	Value *v;
-	uvlong length;
+	uint64_t length;
 	Symbol sym;
 	extern Machdata mipsmach;
 
@@ -356,7 +356,7 @@ al(int t)
 }
 
 Node*
-con(vlong v)
+con(int64_t v)
 {
 	Node *n;
 
@@ -368,9 +368,9 @@ con(vlong v)
 }
 
 void
-fatal(char *fmt, ...)
+fatal(int8_t *fmt, ...)
 {
-	char buf[128];
+	int8_t buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -381,9 +381,9 @@ fatal(char *fmt, ...)
 }
 
 void
-yyerror(char *fmt, ...)
+yyerror(int8_t *fmt, ...)
 {
-	char buf[128];
+	int8_t buf[128];
 	va_list arg;
 
 	if(strcmp(fmt, "syntax error") == 0) {
@@ -495,7 +495,7 @@ gc(void)
 }
 
 void*
-gmalloc(long l)
+gmalloc(int32_t l)
 {
 	void *p;
 
@@ -511,7 +511,7 @@ checkqid(int f1, int pid)
 {
 	int fd;
 	Dir *d1, *d2;
-	char buf[128];
+	int8_t buf[128];
 
 	if(kernel)
 		return;
@@ -544,7 +544,7 @@ checkqid(int f1, int pid)
 }
 
 void
-catcher(void *junk, char *s)
+catcher(void *junk, int8_t *s)
 {
 	USED(junk);
 
@@ -555,11 +555,11 @@ catcher(void *junk, char *s)
 	noted(NDFLT);
 }
 
-char*
+int8_t*
 system(void)
 {
-	char *cpu, *p, *q;
-	static char *kernel;
+	int8_t *cpu, *p, *q;
+	static int8_t *kernel;
 
 	cpu = getenv("cputype");
 	if(cpu == 0) {
@@ -586,7 +586,7 @@ system(void)
 }
 
 int
-isnumeric(char *s)
+isnumeric(int8_t *s)
 {
 	while(*s) {
 		if(*s < '0' || *s > '9')

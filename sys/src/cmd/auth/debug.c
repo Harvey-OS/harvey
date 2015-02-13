@@ -20,9 +20,9 @@
 
 /* private copy with added debugging */
 int
-authdial(char *netroot, char *dom)
+authdial(int8_t *netroot, int8_t *dom)
 {
-	char *p;
+	int8_t *p;
 	int rv;
 	
 	if(dom != nil){
@@ -53,11 +53,11 @@ usage(void)
 	exits("usage");
 }
 
-static char*
-readcons(char *prompt, char *def, int raw, char *buf, int nbuf)
+static int8_t*
+readcons(int8_t *prompt, int8_t *def, int raw, int8_t *buf, int nbuf)
 {
 	int fdin, fdout, ctl, n, m;
-	char line[10];
+	int8_t line[10];
 
 	fdin = open("/dev/cons", OREAD);
 	if(fdin < 0)
@@ -125,14 +125,14 @@ readcons(char *prompt, char *def, int raw, char *buf, int nbuf)
 	}
 }
 
-void authdialfutz(char*, char*);
-void authfutz(char*, char*);
+void authdialfutz(int8_t*, int8_t*);
+void authfutz(int8_t*, int8_t*);
 
 /* scan factotum for p9sk1 keys; check them */
 void
 debugfactotumkeys(void)
 {
-	char *s, *dom, *proto, *user;
+	int8_t *s, *dom, *proto, *user;
 	int found;
 	Attr *a;
 	Biobuf *b;
@@ -176,11 +176,11 @@ debugfactotumkeys(void)
 }
 
 void
-authdialfutz(char *dom, char *user)
+authdialfutz(int8_t *dom, int8_t *user)
 {
 	int fd;
-	char *server;
-	char *addr;
+	int8_t *server;
+	int8_t *addr;
 
 	fd = authdial(nil, dom);
 	if(fd >= 0){
@@ -215,10 +215,10 @@ authdialfutz(char *dom, char *user)
 }
 
 void
-authfutz(char *dom, char *user)
+authfutz(int8_t *dom, int8_t *user)
 {
 	int fd, nobootes;
-	char pw[128], prompt[128], key[DESKEYLEN], booteskey[DESKEYLEN], tbuf[2*TICKETLEN],
+	int8_t pw[128], prompt[128], key[DESKEYLEN], booteskey[DESKEYLEN], tbuf[2*TICKETLEN],
 		trbuf[TICKREQLEN];
 	Ticket t;
 	Ticketreq tr;

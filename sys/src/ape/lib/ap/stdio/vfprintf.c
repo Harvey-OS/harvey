@@ -158,7 +158,7 @@ ocvt_x,	0,	0,	0,	0,	0,	0,	0,	/*  x  y  z  {  |  }  ~ ^? */
 static int nprint;
 
 int
-vfprintf(FILE *f, const char *s, va_list args)
+vfprintf(FILE *f, const int8_t *s, va_list args)
 {
 	int tfl, flags, width, precision;
 
@@ -230,9 +230,9 @@ static int
 ocvt_s(FILE *f, va_list *args, int flags, int width, int precision)
 {
 	int i, n = 0;
-	char *s;
+	int8_t *s;
 
-	s = va_arg(*args, char *);
+	s = va_arg(*args, int8_t *);
 	if(!s)
 		s = "";
 	if(!(flags&LEFT)){
@@ -272,9 +272,9 @@ ocvt_n(FILE *f, va_list *args, int flags, int width, int precision)
 #pragma ref width
 #pragma ref precision
 	if(flags&SHORT)
-		*va_arg(*args, short *) = nprint;
+		*va_arg(*args, int16_t *) = nprint;
 	else if(flags&LONG)
-		*va_arg(*args, long *) = nprint;
+		*va_arg(*args, int32_t *) = nprint;
 	else if(flags&VLONG)
 		*va_arg(*args, long long*) = nprint;
 	else
@@ -294,19 +294,19 @@ ocvt_n(FILE *f, va_list *args, int flags, int width, int precision)
  */
 static int
 ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
-	int radix, int sgned, char alphabet[], char *prefix)
+	int radix, int sgned, int8_t alphabet[], int8_t *prefix)
 {
-	char digits[128];	/* no reasonable machine will ever overflow this */
-	char *sign;
-	char *dp;
+	int8_t digits[128];	/* no reasonable machine will ever overflow this */
+	int8_t *sign;
+	int8_t *dp;
 	long long snum;
 	unsigned long long num;
 	int nout, npad, nlzero;
 
 	if(sgned){
-		if(flags&PTR) snum = (long)va_arg(*args, void *);
-		else if(flags&SHORT) snum = va_arg(*args, short);
-		else if(flags&LONG) snum = va_arg(*args, long);
+		if(flags&PTR) snum = (int32_t)va_arg(*args, void *);
+		else if(flags&SHORT) snum = va_arg(*args, int16_t);
+		else if(flags&LONG) snum = va_arg(*args, int32_t);
 		else if(flags&VLONG) snum = va_arg(*args, long long);
 		else snum = va_arg(*args, int);
 		if(snum < 0){
@@ -320,7 +320,7 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 		}
 	} else {
 		sign = "";
-		if(flags&PTR) num = (long)va_arg(*args, void *);
+		if(flags&PTR) num = (int32_t)va_arg(*args, void *);
 		else if(flags&SHORT) num = va_arg(*args, unsigned short);
 		else if(flags&LONG) num = va_arg(*args, unsigned long);
 		else if(flags&VLONG) num = va_arg(*args, unsigned long long);
@@ -419,7 +419,7 @@ ocvt_x(FILE *f, va_list *args, int flags, int width, int precision)
 	return ocvt_fixed(f, args, flags, width, precision, 16, 0, "0123456789abcdef", "0x");
 }
 
-static int ocvt_flt(FILE *, va_list *, int, int, int, char);
+static int ocvt_flt(FILE *, va_list *, int, int, int, int8_t);
 
 static int
 ocvt_E(FILE *f, va_list *args, int flags, int width, int precision)
@@ -452,18 +452,19 @@ ocvt_g(FILE *f, va_list *args, int flags, int width, int precision)
 }
 
 static int
-ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
+ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision,
+	 int8_t afmt)
 {
-	extern char *_dtoa(double, int, int, int*, int*, char **);
+	extern int8_t *_dtoa(double, int, int, int*, int*, int8_t **);
 	int echr;
-	char *digits, *edigits;
+	int8_t *digits, *edigits;
 	int exponent;
-	char fmt;
+	int8_t fmt;
 	int sign;
 	int ndig;
 	int nout, i;
-	char ebuf[20];	/* no sensible machine will overflow this */
-	char *eptr;
+	int8_t ebuf[20];	/* no sensible machine will overflow this */
+	int8_t *eptr;
 	double d;
 
 	echr = 'e';

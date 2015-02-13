@@ -8,7 +8,7 @@
  */
 
 #include "iplot.h"
-char *
+int8_t *
 whoami(void){
 	return("general");
 }

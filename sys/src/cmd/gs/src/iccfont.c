@@ -51,16 +51,16 @@
 /* ------ Private code ------ */
 
 /* Forward references */
-private int cfont_ref_from_string(i_ctx_t *, ref *, const char *, uint);
+private int cfont_ref_from_string(i_ctx_t *, ref *, const int8_t *, uint);
 
 typedef struct {
     i_ctx_t *i_ctx_p;
-    const char *str_array;
+    const int8_t *str_array;
     ref next;
 } str_enum;
 
 inline private void
-init_str_enum(str_enum *pse, i_ctx_t *i_ctx_p, const char *ksa)
+init_str_enum(str_enum *pse, i_ctx_t *i_ctx_p, const int8_t *ksa)
 {
     pse->i_ctx_p = i_ctx_p;
     pse->str_array = ksa;
@@ -73,7 +73,7 @@ typedef struct {
 
 inline private void
 init_key_enum(key_enum *pke, i_ctx_t *i_ctx_p, const cfont_dict_keys *pkeys,
-	      const char *ksa)
+	      const int8_t *ksa)
 {
     pke->keys = *pkeys;
     init_str_enum(&pke->strings, i_ctx_p, ksa);

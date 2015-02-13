@@ -63,12 +63,12 @@ x ...\n	device control functions:
 
 int	hpos;	/* horizontal position where we are supposed to be next (left = 0) */
 int	vpos;	/* current vertical position (down positive) */
-char	*fontfile	= "/lib/font/bit/pelm/unicode.9x24.font";
+int8_t	*fontfile	= "/lib/font/bit/pelm/unicode.9x24.font";
 
-char	*pschar(char *, char *hex, int *wid, int *ht);
-int	kanji(char *);
-void	Bgetstr(Biobuf *bp, char *s);
-void	Bgetline(Biobuf *bp, char *s);
+int8_t	*pschar(int8_t *, int8_t *hex, int *wid, int *ht);
+int	kanji(int8_t *);
+void	Bgetstr(Biobuf *bp, int8_t *s);
+void	Bgetline(Biobuf *bp, int8_t *s);
 void	Bgetint(Biobuf *bp, int *n);
 
 Biobuf bin, bout;
@@ -77,7 +77,7 @@ void
 main(void)
 {
 	int c, n;
-	char str[100], *args[10];
+	int8_t str[100], *args[10];
 	int jfont, curfont;
 
 	if(initdraw(0, fontfile, 0) < 0){
@@ -186,10 +186,10 @@ main(void)
 	}
 }
 
-int kanji(char *s)	/* very special pleading */
+int kanji(int8_t *s)	/* very special pleading */
 {			/* dump as kanji char if looks like one */
 	Rune r;
-	char hex[500];
+	int8_t hex[500];
 	int size = 10, ht, wid;
 
 	chartorune(&r, s);
@@ -203,12 +203,12 @@ int kanji(char *s)	/* very special pleading */
 	return 1;
 }
 
-char *pschar(char *s, char *hex, int *wid, int *ht)
+int8_t *pschar(int8_t *s, int8_t *hex, int *wid, int *ht)
 {
 	Point chpt, spt;
 	Image *b;
-	uchar rowdata[100];
-	char *hp = hex;
+	uint8_t rowdata[100];
+	int8_t *hp = hex;
 	int y, i;
 
 	chpt = stringsize(font, s);		/* bounding box of char */
@@ -233,7 +233,7 @@ char *pschar(char *s, char *hex, int *wid, int *ht)
 }
 
 
-void	Bgetstr(Biobuf *bp, char *s)	/* get a string */
+void	Bgetstr(Biobuf *bp, int8_t *s)	/* get a string */
 {
 	int c;
 
@@ -247,7 +247,7 @@ void	Bgetstr(Biobuf *bp, char *s)	/* get a string */
 	*s = 0;
 }
 
-void	Bgetline(Biobuf *bp, char *s)	/* get a line, including newline */
+void	Bgetline(Biobuf *bp, int8_t *s)	/* get a line, including newline */
 {
 	int c;
 

@@ -11,9 +11,9 @@
 #include <libc.h>
 
 int
-postnote(int group, int pid, char *note)
+postnote(int group, int pid, int8_t *note)
 {
-	char file[128];
+	int8_t file[128];
 	int f, r;
 
 	switch(group) {

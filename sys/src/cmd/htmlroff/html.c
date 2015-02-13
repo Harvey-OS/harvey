@@ -266,7 +266,7 @@ r_html(Rune *name)
 	free(line);
 }
 
-char defaultfont[] =
+int8_t defaultfont[] =
 	".ihtml f1\n"
 	".ihtml f\n"
 	".ihtml f <span style=\"font-size: \\n(.spt\">\n"

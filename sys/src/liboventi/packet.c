@@ -18,12 +18,12 @@ static void fragFree(Frag*);
 
 static Mem *memAlloc(int, int);
 static void memFree(Mem*);
-static int memHead(Mem *m, uchar *rp, int n);
-static int memTail(Mem *m, uchar *wp, int n);
+static int memHead(Mem *m, uint8_t *rp, int n);
+static int memTail(Mem *m, uint8_t *wp, int n);
 
-static char EPacketSize[] = "bad packet size";
-static char EPacketOffset[] = "bad packet offset";
-static char EBadSize[] = "bad size";
+static int8_t EPacketSize[] = "bad packet size";
+static int8_t EPacketOffset[] = "bad packet offset";
+static int8_t EBadSize[] = "bad size";
 
 static struct {
 	Lock lk;
@@ -180,7 +180,7 @@ packetSplit(Packet *p, int n)
 }
 
 int
-packetConsume(Packet *p, uchar *buf, int n)
+packetConsume(Packet *p, uint8_t *buf, int n)
 {
 	NOTFREE(p);
 	if(buf && !packetCopy(p, buf, 0, n))
@@ -248,7 +248,7 @@ packetTrim(Packet *p, int offset, int n)
 	return 1;
 }
 
-uchar *
+uint8_t *
 packetHeader(Packet *p, int n)
 {
 	Frag *f;
@@ -282,7 +282,7 @@ packetHeader(Packet *p, int n)
 	return f->rp;
 }
 
-uchar *
+uint8_t *
 packetTrailer(Packet *p, int n)
 {
 	Mem *m;
@@ -319,7 +319,7 @@ packetTrailer(Packet *p, int n)
 }
 
 int
-packetPrefix(Packet *p, uchar *buf, int n)
+packetPrefix(Packet *p, uint8_t *buf, int n)
 {
 	Frag *f;
 	int nn;
@@ -361,7 +361,7 @@ packetPrefix(Packet *p, uchar *buf, int n)
 }
 
 int
-packetAppend(Packet *p, uchar *buf, int n)
+packetAppend(Packet *p, uint8_t *buf, int n)
 {
 	Frag *f;
 	int nn;
@@ -427,12 +427,12 @@ packetConcat(Packet *p, Packet *pp)
 	return 1;
 }
 
-uchar *
-packetPeek(Packet *p, uchar *buf, int offset, int n)
+uint8_t *
+packetPeek(Packet *p, uint8_t *buf, int offset, int n)
 {
 	Frag *f;
 	int nn;
-	uchar *b;
+	uint8_t *b;
 
 	NOTFREE(p);
 	if(n == 0)
@@ -470,9 +470,9 @@ packetPeek(Packet *p, uchar *buf, int offset, int n)
 }
 
 int
-packetCopy(Packet *p, uchar *buf, int offset, int n)
+packetCopy(Packet *p, uint8_t *buf, int offset, int n)
 {
-	uchar *b;
+	uint8_t *b;
 
 	NOTFREE(p);
 	b = packetPeek(p, buf, offset, n);
@@ -583,7 +583,7 @@ packetAllocatedSize(Packet *p)
 }
 
 void
-packetSha1(Packet *p, uchar sha1[VtScoreSize])
+packetSha1(Packet *p, uint8_t sha1[VtScoreSize])
 {
 	Frag *f;
 	VtSha1 *s;
@@ -831,7 +831,7 @@ memFree(Mem *m)
 }
 
 static int
-memHead(Mem *m, uchar *rp, int n)
+memHead(Mem *m, uint8_t *rp, int n)
 {
 	lock(&m->lk);
 	if(m->rp != rp) {
@@ -844,7 +844,7 @@ memHead(Mem *m, uchar *rp, int n)
 }
 
 static int
-memTail(Mem *m, uchar *wp, int n)
+memTail(Mem *m, uint8_t *wp, int n)
 {
 	lock(&m->lk);
 	if(m->wp != wp) {

@@ -53,7 +53,7 @@
 
 
 /* The name of this program */
-static char	*szTask = "!Antiword";
+static int8_t	*szTask = "!Antiword";
 
 /* The window handle of the choices window */
 static window_handle	tChoicesWindow = 0;
@@ -194,7 +194,7 @@ bSaveSelect(event_pollblock *pEvent, void *pvReference)
  * Create the window for the text from the given file
  */
 static diagram_type *
-pCreateTextWindow(const char *szFilename)
+pCreateTextWindow(const int8_t *szFilename)
 {
 	diagram_type	*pDiag;
 
@@ -251,12 +251,12 @@ pCreateTextWindow(const char *szFilename)
  * vProcessFile - process one file
  */
 static void
-vProcessFile(const char *szFilename, int iFiletype)
+vProcessFile(const int8_t *szFilename, int iFiletype)
 {
 	options_type	tOptions;
 	FILE		*pFile;
 	diagram_type	*pDiag;
-	long		lFilesize;
+	int32_t		lFilesize;
 	int		iWordVersion;
 
 	TRACE_MSG("vProcessFile");
@@ -502,7 +502,7 @@ vInitialise(void)
 } /* end of vInitialise */
 
 int
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	int	iFirst, iFiletype;
 

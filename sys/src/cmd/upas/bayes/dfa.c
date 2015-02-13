@@ -43,7 +43,7 @@ struct Deter
 	uint nhash;
 
 	Reiset *tmp;	/* temporaries for walk */
-	uchar *bits;
+	uint8_t *bits;
 
 	Rune *c;		/* ``interesting'' characters */
 	uint nc;
@@ -111,7 +111,7 @@ findreiset(Deter *d, Reiset *s)
 
 /* convert bits to a real reiset */
 static Reiset*
-bits2reiset(Deter *d, uchar *bits)
+bits2reiset(Deter *d, uint8_t *bits)
 {
 	int k;
 	Reiset *s;
@@ -126,7 +126,7 @@ bits2reiset(Deter *d, uchar *bits)
 
 /* add n to state set; if n < k, need to go around again */
 static int
-add(int n, uchar *bits, int k)
+add(int n, uint8_t *bits, int k)
 {
 	if(bits[n])
 		return 0;
@@ -136,7 +136,7 @@ add(int n, uchar *bits, int k)
 
 /* update bits to follow all the empty (non-character-related) transitions possible */
 static void
-followempty(Deter *d, uchar *bits, int bol, int eol)
+followempty(Deter *d, uint8_t *bits, int bol, int eol)
 {
 	int again, k;
 	Reinst *i;
@@ -195,7 +195,7 @@ static Reiset*
 transition(Deter *d, Reiset *s, Rune r, uint eol)
 {
 	int k;
-	uchar *bits;
+	uint8_t *bits;
 	Reinst *i, *inst0;
 	Rune *rp, *ep;
 
@@ -402,7 +402,7 @@ buildprog(Deter *d, Reiset **id2set, int nid, Dreprog *dp, Drecase *c)
 Dreprog*
 dregcvt(Reprog *p)
 {
-	uchar *bits;
+	uint8_t *bits;
 	uint again, n, nid, id;
 	Deter d;
 	Reiset **id2set, *s, *t, *start[4];
@@ -529,14 +529,14 @@ dregcvt(Reprog *p)
 }
 
 int
-dregexec(Dreprog *p, char *s, int bol)
+dregexec(Dreprog *p, int8_t *s, int bol)
 {
 	Rune r;
-	ulong rr;
+	uint32_t rr;
 	Dreinst *i;
 	Drecase *c, *ec;
 	int best, n;
-	char *os;
+	int8_t *os;
 
 	i = p->start[(bol ? 1 : 0) | (s[1]=='\n' ? 2 : 0)];
 	best = -1;
@@ -665,7 +665,7 @@ dump(Dreprog *pp)
 
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	int i;
 	Reprog *p;
@@ -708,10 +708,10 @@ Bprintdfa(Biobuf *b, Dreprog *p)
 	}
 }
 
-static char*
+static int8_t*
 egetline(Biobuf *b, int c, jmp_buf jb)
 {
-	char *p;
+	int8_t *p;
 
 	p = Brdline(b, c);
 	if(p == nil)
@@ -758,7 +758,7 @@ egetnum(Biobuf *b, int want, jmp_buf jb)
 Dreprog*
 Breaddfa(Biobuf *b)
 {
-	char *s;
+	int8_t *s;
 	int ninst, nc;
 	jmp_buf jb;
 	Dreprog *p;

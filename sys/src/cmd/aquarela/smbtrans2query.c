@@ -10,12 +10,13 @@
 #include "headers.h"
 
 static SmbProcessResult
-query(SmbSession *s, char *cmdname, char *filename, ushort infolevel, vlong cbo, Dir *d)
+query(SmbSession *s, int8_t *cmdname, int8_t *filename, uint16_t infolevel,
+      int64_t cbo, Dir *d)
 {
-	vlong ntatime, ntmtime;
-	ushort dosmode;
-	ulong fnlfixupoffset;
-	vlong allocsize;
+	int64_t ntatime, ntmtime;
+	uint16_t dosmode;
+	uint32_t fnlfixupoffset;
+	int64_t allocsize;
 
 	if (d == nil) {
 		smbseterror(s, ERRDOS, ERRbadfile);
@@ -120,10 +121,10 @@ smbtrans2querypathinformation(SmbSession *s, SmbHeader *h)
 	SmbTree *t;
 	SmbBuffer *b = nil;
 	SmbProcessResult pr;
-	ushort infolevel;
+	uint16_t infolevel;
 	Dir *d;
-	char *path = nil;
-	char *fullpath;
+	int8_t *path = nil;
+	int8_t *fullpath;
 
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {
@@ -159,9 +160,9 @@ smbtrans2queryfileinformation(SmbSession *s, SmbHeader *h)
 	SmbFile *f;
 	SmbBuffer *b = nil;
 	SmbProcessResult pr;
-	ushort fid;
-	ushort infolevel;
-	vlong o;
+	uint16_t fid;
+	uint16_t infolevel;
+	int64_t o;
 	Dir *d;
 
 	t = smbidmapfind(s->tidmap, h->tid);
@@ -187,7 +188,7 @@ smbtrans2queryfileinformation(SmbSession *s, SmbHeader *h)
 		o = seek(f->fd, 0, 1);
 		d = dirfstat(f->fd);
 	} else {
-		char *fullpath = nil;
+		int8_t *fullpath = nil;
 
 		o = 0;
 		smbstringprint(&fullpath, "%s%s", f->t->serv->path, f->name);
@@ -205,11 +206,11 @@ SmbProcessResult
 smbtrans2queryfsinformation(SmbSession *s, SmbHeader *h)
 {
 	SmbTree *t;
-	ushort infolevel;
+	uint16_t infolevel;
 	SmbBuffer *b;
 	SmbProcessResult pr;
-	ulong fixup;
-	ulong vnbase;
+	uint32_t fixup;
+	uint32_t vnbase;
 
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {

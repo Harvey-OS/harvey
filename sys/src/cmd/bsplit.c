@@ -22,16 +22,16 @@ enum {
 };
 
 /* disk address (in bytes or sectors), also type of 2nd arg. to seek */
-typedef uvlong Daddr;
+typedef uint64_t Daddr;
 
 #define BLEN(s)	((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)
 
 typedef struct {
-	uchar*	rp;		/* first unconsumed byte */
-	uchar*	wp;		/* first empty byte */
-	uchar*	lim;		/* 1 past the end of the buffer */
-	uchar*	base;		/* start of the buffer */
+	uint8_t*	rp;		/* first unconsumed byte */
+	uint8_t*	wp;		/* first empty byte */
+	uint8_t*	lim;		/* 1 past the end of the buffer */
+	uint8_t*	base;		/* start of the buffer */
 } Buffer;
 
 typedef struct {
@@ -39,17 +39,17 @@ typedef struct {
 	Daddr	maxoutsz;	/* maximum size of output file(s) */
 
 	Daddr	fileout;	/* bytes written to the current output file */
-	char	*filenm;
+	int8_t	*filenm;
 	int	filesz;		/* size of filenm */
-	char	*prefix;
-	long	filenum;
+	int8_t	*prefix;
+	int32_t	filenum;
 	int	outf;		/* open output file */
 
 	Buffer	buff;
 } Copy;
 
 /* global data */
-char *argv0;
+int8_t *argv0;
 
 /* private data */
 static Copy cp = { 512*1024*1024 };	/* default maximum size */
@@ -62,7 +62,7 @@ bufreset(Buffer *bp)
 }
 
 static void
-bufinit(Buffer *bp, uchar *block, unsigned size)
+bufinit(Buffer *bp, uint8_t *block, unsigned size)
 {
 	bp->base = block;
 	bp->lim = bp->base + size;
@@ -70,7 +70,7 @@ bufinit(Buffer *bp, uchar *block, unsigned size)
 }
 
 static int 
-eopen(char *file, int mode)
+eopen(int8_t *file, int mode)
 {
 	int fd = open(file, mode);
 
@@ -80,7 +80,7 @@ eopen(char *file, int mode)
 }
 
 static int 
-ecreate(char *file, int mode)
+ecreate(int8_t *file, int mode)
 {
 	int fd = create(file, mode, 0666);
 
@@ -89,7 +89,7 @@ ecreate(char *file, int mode)
 	return fd;
 }
 
-static char *
+static int8_t *
 filename(Copy *cp)
 {
 	return cp->filenm;
@@ -122,7 +122,7 @@ closeout(Copy *cp)
  * process - process input file
  */
 static void
-process(int in, char *inname)
+process(int in, int8_t *inname)
 {
 	int n = 1;
 	unsigned avail, tolim, wsz;

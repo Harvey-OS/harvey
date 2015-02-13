@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-vlong
-atoll(char *s)
+int64_t
+atoll(int8_t *s)
 {
 	return strtoll(s, nil, 0);
 }

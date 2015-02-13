@@ -29,7 +29,7 @@ static SmbService ipc = {
 SmbService *smbservices = &ipc;
 
 static int
-run9fs(char *arg)
+run9fs(int8_t *arg)
 {
 	int rv;
 	Waitmsg *w;
@@ -38,7 +38,7 @@ run9fs(char *arg)
 	if (rv < 0)
 		return -1;
 	if (rv == 0) {
-		char *argv[3];
+		int8_t *argv[3];
 		argv[0] = "/rc/bin/9fs";
 		argv[1] = arg;
 		argv[2] = 0;
@@ -64,9 +64,11 @@ run9fs(char *arg)
 }
 
 SmbService *
-smbservicefind(SmbSession *s, char *uncpath, char *servicetype, uchar *errclassp, ushort *errorp)
+smbservicefind(SmbSession *s, int8_t *uncpath, int8_t *servicetype,
+	       uint8_t *errclassp,
+	       uint16_t *errorp)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	if ((uncpath[0] == '/' && uncpath[1] == '/')
 	||  (uncpath[0] == '\\' && uncpath[1] == '\\')) {
 		/* check that the server name matches mine */

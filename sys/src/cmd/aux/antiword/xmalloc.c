@@ -19,10 +19,10 @@
 #include <string.h>
 #include "antiword.h"
 
-static char *szMessage =
+static int8_t *szMessage =
 	"Memory allocation failed, unable to continue";
 #if defined(__dos) && !defined(__DJGPP__)
-static char *szDosMessage =
+static int8_t *szDosMessage =
 	"DOS can't allocate this kind of memory, unable to continue";
 #endif /* __dos && !__DJGPP__ */
 
@@ -113,10 +113,10 @@ xrealloc(void *pvArg, size_t tSize)
  * NOTE:
  * Does not use strdup(3), because some systems don't have it.
  */
-char *
-xstrdup(const char *szArg)
+int8_t *
+xstrdup(const int8_t *szArg)
 {
-	char	*szTmp;
+	int8_t	*szTmp;
 
 	TRACE_MSG("xstrdup");
 

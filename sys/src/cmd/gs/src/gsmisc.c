@@ -63,10 +63,10 @@ orig_sqrt(double x)
 #include <stdarg.h>
 #define PRINTF_BUF_LENGTH 1024
 
-int outprintf(const gs_memory_t *mem, const char *fmt, ...)
+int outprintf(const gs_memory_t *mem, const int8_t *fmt, ...)
 {
     int count;
-    char buf[PRINTF_BUF_LENGTH];
+    int8_t buf[PRINTF_BUF_LENGTH];
     va_list args;
 
     va_start(args, fmt);
@@ -83,10 +83,10 @@ int outprintf(const gs_memory_t *mem, const char *fmt, ...)
     return count;
 }
 
-int errprintf(const char *fmt, ...)
+int errprintf(const int8_t *fmt, ...)
 {
     int count;
-    char buf[PRINTF_BUF_LENGTH];
+    int8_t buf[PRINTF_BUF_LENGTH];
     va_list args;
 
     va_start(args, fmt);
@@ -108,7 +108,7 @@ int errprintf(const char *fmt, ...)
 /* Ghostscript writes debugging output to gs_debug_out. */
 /* We define gs_debug and gs_debug_out even if DEBUG isn't defined, */
 /* so that we can compile individual modules with DEBUG set. */
-char gs_debug[128];
+int8_t gs_debug[128];
 FILE *gs_debug_out;
 
 /* Test whether a given debugging option is selected. */
@@ -121,8 +121,8 @@ gs_debug_c(int c)
 }
 
 /* Define the formats for debugging printout. */
-const char *const dprintf_file_and_line_format = "%10s(%4d): ";
-const char *const dprintf_file_only_format = "%10s(unkn): ";
+const int8_t *const dprintf_file_and_line_format = "%10s(%4d): ";
+const int8_t *const dprintf_file_only_format = "%10s(unkn): ";
 
 /*
  * Define the trace printout procedures.  We always include these, in case
@@ -135,10 +135,10 @@ dflush(void)
 {
     errflush();
 }
-private const char *
-dprintf_file_tail(const char *file)
+private const int8_t *
+dprintf_file_tail(const int8_t *file)
 {
-    const char *tail = file + strlen(file);
+    const int8_t *tail = file + strlen(file);
 
     while (tail > file &&
 	   (isalnum(tail[-1]) || tail[-1] == '.' || tail[-1] == '_')
@@ -148,7 +148,7 @@ dprintf_file_tail(const char *file)
 }
 #if __LINE__			/* compiler provides it */
 void
-dprintf_file_and_line(const char *file, int line)
+dprintf_file_and_line(const int8_t *file, int line)
 {
     if (gs_debug['/'])
 	dpf(dprintf_file_and_line_format,
@@ -156,14 +156,15 @@ dprintf_file_and_line(const char *file, int line)
 }
 #else
 void
-dprintf_file_only(const char *file)
+dprintf_file_only(const int8_t *file)
 {
     if (gs_debug['/'])
 	dpf(dprintf_file_only_format, dprintf_file_tail(file));
 }
 #endif
 void
-printf_program_ident(const gs_memory_t *mem, const char *program_name, long revision_number)
+printf_program_ident(const gs_memory_t *mem, const int8_t *program_name,
+                     int32_t revision_number)
 {
     if (program_name)
         outprintf(mem, (revision_number ? "%s " : "%s"), program_name);
@@ -174,8 +175,8 @@ printf_program_ident(const gs_memory_t *mem, const char *program_name, long revi
     }
 }
 void
-eprintf_program_ident(const char *program_name,
-		      long revision_number)
+eprintf_program_ident(const int8_t *program_name,
+		      int32_t revision_number)
 {
     if (program_name) {
 	epf((revision_number ? "%s " : "%s"), program_name);
@@ -189,13 +190,13 @@ eprintf_program_ident(const char *program_name,
 }
 #if __LINE__			/* compiler provides it */
 void
-lprintf_file_and_line(const char *file, int line)
+lprintf_file_and_line(const int8_t *file, int line)
 {
     epf("%s(%d): ", file, line);
 }
 #else
 void
-lprintf_file_only(FILE * f, const char *file)
+lprintf_file_only(FILE * f, const int8_t *file)
 {
     epf("%s(?): ", file);
 }
@@ -205,14 +206,14 @@ lprintf_file_only(FILE * f, const char *file)
 /* modules were compiled with DEBUG set. */
 #undef gs_log_error		/* in case DEBUG isn't set */
 int
-gs_log_error(int err, const char *file, int line)
+gs_log_error(int err, const int8_t *file, int line)
 {
     if (gs_log_errors) {
 	if (file == NULL)
 	    dprintf1("Returning error %d.\n", err);
 	else
 	    dprintf3("%s(%d): Returning error %d.\n",
-		     (const char *)file, line, err);
+		     (const int8_t *)file, line, err);
     }
     return err;
 }
@@ -320,11 +321,11 @@ void *
 gs_memchr(const void *ptr, int ch, size_t len)
 {
     if (len > 0) {
-	register const char *p = ptr;
+	register const int8_t *p = ptr;
 	register uint count = len;
 
 	do {
-	    if (*p == (char)ch)
+	    if (*p == (int8_t)ch)
 		return (void *)p;
 	    p++;
 	} while (--count);
@@ -343,28 +344,28 @@ gs_memset(void *dest, register int ch, size_t len)
      * This procedure is used a lot to fill large regions of images,
      * so we take some trouble to optimize it.
      */
-    register char *p = dest;
+    register int8_t *p = dest;
     register size_t count = len;
 
     ch &= 255;
-    if (len >= sizeof(long) * 3) {
-	long wd = (ch << 24) | (ch << 16) | (ch << 8) | ch;
+    if (len >= sizeof(int32_t) * 3) {
+	int32_t wd = (ch << 24) | (ch << 16) | (ch << 8) | ch;
 
-	while (ALIGNMENT_MOD(p, sizeof(long)))
-	    *p++ = (char)ch, --count;
-	for (; count >= sizeof(long) * 4;
-	     p += sizeof(long) * 4, count -= sizeof(long) * 4
+	while (ALIGNMENT_MOD(p, sizeof(int32_t)))
+	    *p++ = (int8_t)ch, --count;
+	for (; count >= sizeof(int32_t) * 4;
+	     p += sizeof(int32_t) * 4, count -= sizeof(int32_t) * 4
 	     )
-	    ((long *)p)[3] = ((long *)p)[2] = ((long *)p)[1] =
-		((long *)p)[0] = wd;
+	    ((int32_t *)p)[3] = ((int32_t *)p)[2] = ((int32_t *)p)[1] =
+		((int32_t *)p)[0] = wd;
 	switch (count >> ARCH_LOG2_SIZEOF_LONG) {
 	case 3:
-	    *((long *)p) = wd; p += sizeof(long);
+	    *((int32_t *)p) = wd; p += sizeof(int32_t);
 	case 2:
-	    *((long *)p) = wd; p += sizeof(long);
+	    *((int32_t *)p) = wd; p += sizeof(int32_t);
 	case 1:
-	    *((long *)p) = wd; p += sizeof(long);
-	    count &= sizeof(long) - 1;
+	    *((int32_t *)p) = wd; p += sizeof(int32_t);
+	    count &= sizeof(int32_t) - 1;
 	case 0:
 	default:		/* can't happen */
 	    DO_NOTHING;
@@ -372,7 +373,7 @@ gs_memset(void *dest, register int ch, size_t len)
     }
     /* Do any leftover bytes. */
     for (; count > 0; --count)
-	*p++ = (char)ch;
+	*p++ = (int8_t)ch;
     return dest;
 }
 #endif
@@ -405,7 +406,7 @@ gs_realloc(void *old_ptr, size_t old_size, size_t new_size)
 
 /* Dump a region of memory. */
 void
-debug_dump_bytes(const byte * from, const byte * to, const char *msg)
+debug_dump_bytes(const byte * from, const byte * to, const int8_t *msg)
 {
     const byte *p = from;
 
@@ -414,7 +415,7 @@ debug_dump_bytes(const byte * from, const byte * to, const char *msg)
     while (p != to) {
 	const byte *q = min(p + 16, to);
 
-	dprintf1("0x%lx:", (ulong) p);
+	dprintf1("0x%lx:", (uint32_t) p);
 	while (p != q)
 	    dprintf1(" %02x", *p++);
 	dputc('\n');
@@ -423,7 +424,8 @@ debug_dump_bytes(const byte * from, const byte * to, const char *msg)
 
 /* Dump a bitmap. */
 void
-debug_dump_bitmap(const byte * bits, uint raster, uint height, const char *msg)
+debug_dump_bitmap(const byte * bits, uint raster, uint height,
+		  const int8_t *msg)
 {
     uint y;
     const byte *data = bits;
@@ -559,18 +561,18 @@ ilog2(int n)
  * language version of this code is over 10 times as fast as the emulated FPU.
  */
 int
-set_fmul2fixed_(fixed * pr, long /*float */ a, long /*float */ b)
+set_fmul2fixed_(fixed * pr, int32_t /*float */ a, int32_t /*float */ b)
 {
-    ulong ma = (ushort)(a >> 8) | 0x8000;
-    ulong mb = (ushort)(b >> 8) | 0x8000;
+    uint32_t ma = (uint16_t)(a >> 8) | 0x8000;
+    uint32_t mb = (uint16_t)(b >> 8) | 0x8000;
     int e = 260 + _fixed_shift - ( ((byte)(a >> 23)) + ((byte)(b >> 23)) );
-    ulong p1 = ma * (b & 0xff);
-    ulong p = ma * mb;
+    uint32_t p1 = ma * (b & 0xff);
+    uint32_t p = ma * mb;
 
 #define p_bits (size_of(p) * 8)
 
     if ((byte) a) {		/* >16 mantissa bits */
-	ulong p2 = (a & 0xff) * mb;
+	uint32_t p2 = (a & 0xff) * mb;
 
 	p += ((((uint) (byte) a * (uint) (byte) b) >> 8) + p1 + p2) >> 8;
     } else
@@ -588,7 +590,9 @@ set_fmul2fixed_(fixed * pr, long /*float */ a, long /*float */ b)
     return 0;
 }
 int
-set_dfmul2fixed_(fixed * pr, ulong /*double lo */ xalo, long /*float */ b, long /*double hi */ xahi)
+set_dfmul2fixed_(fixed * pr, uint32_t /*double lo */ xalo,
+                 int32_t /*float */ b,
+                 int32_t /*double hi */ xahi)
 {
     return set_fmul2fixed_(pr,
 			   (xahi & (3L << 30)) +
@@ -608,7 +612,7 @@ set_dfmul2fixed_(fixed * pr, ulong /*double lo */ xalo, long /*float */ b, long 
 #define mbits_float 23
 #define mbits_double 20
 int
-set_float2fixed_(fixed * pr, long /*float */ vf, int frac_bits)
+set_float2fixed_(fixed * pr, int32_t /*float */ vf, int frac_bits)
 {
     fixed mantissa;
     int shift;
@@ -632,8 +636,8 @@ set_float2fixed_(fixed * pr, long /*float */ vf, int frac_bits)
     return 0;
 }
 int
-set_double2fixed_(fixed * pr, ulong /*double lo */ lo,
-		  long /*double hi */ hi, int frac_bits)
+set_double2fixed_(fixed * pr, uint32_t /*double lo */ lo,
+		  int32_t /*double hi */ hi, int frac_bits)
 {
     fixed mantissa;
     int shift;
@@ -679,7 +683,7 @@ static const byte f2f_shifts[] =
 	{ int shift = f2f_shifts[v >> 28];\
 	  v <<= shift, f -= shift << mbits;\
 	}
-long
+int32_t
 fixed2float_(fixed x, int frac_bits)
 {
     f2f_declare(v, f);
@@ -695,12 +699,12 @@ set_fixed2double_(double *pd, fixed x, int frac_bits)
     f2f_declare(v, f);
 
     if (x == 0) {
-	((long *)pd)[1 - arch_is_big_endian] = 0;
-	((ulong *) pd)[arch_is_big_endian] = 0;
+	((int32_t *)pd)[1 - arch_is_big_endian] = 0;
+	((uint32_t *) pd)[arch_is_big_endian] = 0;
     } else {
 	f2f(x, v, f, mbits_double, frac_bits);
-	((long *)pd)[1 - arch_is_big_endian] = f + (v >> 11);
-	((ulong *) pd)[arch_is_big_endian] = v << 21;
+	((int32_t *)pd)[1 - arch_is_big_endian] = f + (v >> 11);
+	((uint32_t *) pd)[arch_is_big_endian] = v << 21;
     }
 }
 
@@ -731,7 +735,7 @@ set_fixed2double_(double *pd, fixed x, int frac_bits)
 
 #ifdef DEBUG
 struct {
-    long mnanb, mnab, manb, mab, mnc, mdq, mde, mds, mqh, mql;
+    int32_t mnanb, mnab, manb, mab, mnc, mdq, mde, mds, mqh, mql;
 } fmq_stat;
 #  define mincr(x) ++fmq_stat.x
 #else
@@ -741,15 +745,15 @@ fixed
 fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 {
     /* First compute A * B in double-fixed precision. */
-    ulong A = (signed_A < 0 ? -signed_A : signed_A);
-    long msw;
-    ulong lsw;
-    ulong p1;
+    uint32_t A = (signed_A < 0 ? -signed_A : signed_A);
+    int32_t msw;
+    uint32_t lsw;
+    uint32_t p1;
 
     if (B <= half_mask) {
 	if (A <= half_mask) {
-	    ulong P = A * B;
-	    fixed Q = P / (ulong)C;
+	    uint32_t P = A * B;
+	    fixed Q = P / (uint32_t)C;
 
 	    mincr(mnanb);
 	    /* If A < 0 and the division isn't exact, take the floor. */
@@ -763,8 +767,8 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 	p1 = (A >> half_bits) * B;
 	if (C <= half_mask) {
 	    fixed q0 = (p1 += lsw >> half_bits) / C;
-	    ulong rem = ((p1 - C * q0) << half_bits) + (lsw & half_mask);
-	    ulong q1 = rem / (ulong)C;
+	    uint32_t rem = ((p1 - C * q0) << half_bits) + (lsw & half_mask);
+	    uint32_t q1 = rem / (uint32_t)C;
 	    fixed Q = (q0 << half_bits) + q1;
 
 	    mincr(mnc);
@@ -779,11 +783,11 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 	lsw = A * (B & half_mask);
 	mincr(mnab);
     } else {			/* We have to compute all 4 products.  :-( */
-	ulong lo_A = A & half_mask;
-	ulong hi_A = A >> half_bits;
-	ulong lo_B = B & half_mask;
-	ulong hi_B = B >> half_bits;
-	ulong p1x = hi_A * lo_B;
+	uint32_t lo_A = A & half_mask;
+	uint32_t hi_A = A >> half_bits;
+	uint32_t lo_B = B & half_mask;
+	uint32_t hi_B = B >> half_bits;
+	uint32_t p1x = hi_A * lo_B;
 
 	msw = hi_A * hi_B;
 	lsw = lo_A * lo_B;
@@ -808,7 +812,7 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
      * (msw,lsw) and C left until C >= 1 << (num_bits - 1).
      */
     {
-	ulong denom = C;
+	uint32_t denom = C;
 	int shift = 0;
 
 #define bits_4th (num_bits / 4)
@@ -834,14 +838,14 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 #endif
 	/* Compute a trial upper-half quotient. */
 	{
-	    ulong hi_D = denom >> half_bits;
-	    ulong lo_D = denom & half_mask;
-	    ulong hi_Q = (ulong) msw / hi_D;
+	    uint32_t hi_D = denom >> half_bits;
+	    uint32_t lo_D = denom & half_mask;
+	    uint32_t hi_Q = (uint32_t) msw / hi_D;
 
 	    /* hi_Q might be too high by 1 or 2, but it isn't too low. */
-	    ulong p0 = hi_Q * hi_D;
-	    ulong p1 = hi_Q * lo_D;
-	    ulong hi_P;
+	    uint32_t p0 = hi_Q * hi_D;
+	    uint32_t p1 = hi_Q * lo_D;
+	    uint32_t hi_P;
 
 	    while ((hi_P = p0 + (p1 >> half_bits)) > msw ||
 		   (hi_P == msw && ((p1 & half_mask) << half_bits) > lsw)
@@ -863,8 +867,8 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 #endif
 	    lsw <<= half_bits;
 	    {
-		ulong lo_Q = (ulong) msw / hi_D;
-		long Q;
+		uint32_t lo_Q = (uint32_t) msw / hi_D;
+		int32_t Q;
 
 		p1 = lo_Q * lo_D;
 		p0 = lo_Q * hi_D;
@@ -941,10 +945,10 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 
 /* Trace calls on sqrt when debugging. */
 double
-gs_sqrt(double x, const char *file, int line)
+gs_sqrt(double x, const int8_t *file, int line)
 {
     if (gs_debug_c('~')) {
-	dprintf3("[~]sqrt(%g) at %s:%d\n", x, (const char *)file, line);
+	dprintf3("[~]sqrt(%g) at %s:%d\n", x, (const int8_t *)file, line);
 	dflush();
     }
     return orig_sqrt(x);

@@ -16,14 +16,14 @@
 #include <fcall.h>
 #include "plumber.h"
 
-char	*plumbfile;
-char *user;
-char *home;
-char *progname;
+int8_t	*plumbfile;
+int8_t *user;
+int8_t *home;
+int8_t *progname;
 Ruleset **rules;
 int	printerrors=1;
 jmp_buf	parsejmp;
-char	*lasterror;
+int8_t	*lasterror;
 int mainstacksize = 20*1024;
 
 void
@@ -92,9 +92,9 @@ threadmain(int argc, char *argv[])
 }
 
 void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
-	char buf[512];
+	int8_t buf[512];
 	va_list args;
 
 	va_start(args, fmt);
@@ -106,9 +106,9 @@ error(char *fmt, ...)
 }
 
 void
-parseerror(char *fmt, ...)
+parseerror(int8_t *fmt, ...)
 {
-	char buf[512];
+	int8_t buf[512];
 	va_list args;
 
 	va_start(args, fmt);
@@ -125,7 +125,7 @@ parseerror(char *fmt, ...)
 }
 
 void*
-emalloc(long n)
+emalloc(int32_t n)
 {
 	void *p;
 
@@ -137,7 +137,7 @@ emalloc(long n)
 }
 
 void*
-erealloc(void *p, long n)
+erealloc(void *p, int32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -145,10 +145,10 @@ erealloc(void *p, long n)
 	return p;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 
 	t = strdup(s);
 	if(t == nil)

@@ -40,9 +40,9 @@
  * saving, so it does not have to be restored.
  */
 
-extern char* acfpunm(Ureg* ureg, void*);
-extern char* acfpumf(Ureg* ureg, void*);
-extern char* acfpuxf(Ureg* ureg, void*);
+extern int8_t* acfpunm(Ureg* ureg, void*);
+extern int8_t* acfpumf(Ureg* ureg, void*);
+extern int8_t* acfpuxf(Ureg* ureg, void*);
 extern void acfpusysprocsetup(Proc*);
 
 extern void _acsysret(void);
@@ -57,7 +57,7 @@ ACVctl *acvctl[256];
 static void
 testiccfn(void)
 {
-	print("called: %s\n", (char*)m->icc->data);
+	print("called: %s\n", (int8_t*)m->icc->data);
 }
 
 void
@@ -72,7 +72,7 @@ testicc(int i)
 		}
 		print("calling core %d... ", i);
 		mp->icc->flushtlb = 0;
-		snprint((char*)mp->icc->data, ICCLNSZ, "<%d>", i);
+		snprint((int8_t*)mp->icc->data, ICCLNSZ, "<%d>", i);
 		mfence();
 		mp->icc->fn = testiccfn;
 		mwait(&mp->icc->fn);
@@ -86,10 +86,10 @@ testicc(int i)
 static void
 acstackok(void)
 {
-	char dummy;
-	char *sstart;
+	int8_t dummy;
+	int8_t *sstart;
 
-	sstart = (char *)m - PGSZ - 4*PTSZ - MACHSTKSZ;
+	sstart = (int8_t *)m - PGSZ - 4*PTSZ - MACHSTKSZ;
 	if(&dummy < sstart + 4*KiB){
 		print("ac kernel stack overflow, cpu%d stopped\n", m->machno);
 		DONE();
@@ -168,7 +168,7 @@ actrapret(void)
 void
 actrap(Ureg *u)
 {
-	char *n;
+	int8_t *n;
 	ACVctl *v;
 
 	n = nil;

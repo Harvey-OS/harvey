@@ -55,21 +55,21 @@ static Dev mmcdev;
 
 struct Mmcaux {
 	/* drive characteristics */
-	uchar	page05[Pagesz];		/* write parameters */
+	uint8_t	page05[Pagesz];		/* write parameters */
 	int	page05ok;
 	int	pagecmdsz;
 
 	/* disc characteristics */
-	long	mmcnwa;			/* next writable address (block #) */
+	int32_t	mmcnwa;			/* next writable address (block #) */
 	int	nropen;
 	int	nwopen;
-	vlong	ntotby;
-	long	ntotbk;
+	int64_t	ntotby;
+	int32_t	ntotbk;
 };
 
 struct Intfeat {
 	int	numb;
-	char	*name;
+	int8_t	*name;
 };
 
 enum {
@@ -93,7 +93,7 @@ Intfeat intfeats[] = {
 };
 
 /* these will be printed as user ids, so no spaces please */
-static char *dvdtype[] = {
+static int8_t *dvdtype[] = {
 	"dvd-rom",
 	"dvd-ram",
 	"dvd-r",
@@ -115,25 +115,25 @@ static char *dvdtype[] = {
 static int format(Drive *drive);
 static int getinvistrack(Drive *drive);
 
-static ulong
+static uint32_t
 bige(void *p)
 {
-	uchar *a;
+	uint8_t *a;
 
 	a = p;
 	return (a[0]<<24)|(a[1]<<16)|(a[2]<<8)|(a[3]<<0);
 }
 
-static ushort
+static uint16_t
 biges(void *p)
 {
-	uchar *a;
+	uint8_t *a;
 
 	a = p;
 	return (a[0]<<8) | a[1];
 }
 
-ulong
+uint32_t
 getnwa(Drive *drive)
 {
 	Mmcaux *aux;
@@ -146,7 +146,7 @@ static void
 hexdump(void *v, int n)
 {
 	int i;
-	uchar *p;
+	uint8_t *p;
 
 	p = v;
 	for(i=0; i<n; i++){
@@ -159,7 +159,7 @@ hexdump(void *v, int n)
 }
 
 static void
-initcdb(uchar *cdb, int len, int cmd)
+initcdb(uint8_t *cdb, int len, int cmd)
 {
 	memset(cdb, 0, len);
 	cdb[0] = cmd;
@@ -204,7 +204,7 @@ enum {
 static int
 mmcgetpage10(Drive *drive, int page, void *v)
 {
-	uchar cmd[10], resp[512];
+	uint8_t cmd[10], resp[512];
 	int n, r;
 
 	initcdb(cmd, sizeof cmd, ScmdMsense10);
@@ -229,7 +229,7 @@ mmcgetpage10(Drive *drive, int page, void *v)
 static int
 mmcgetpage6(Drive *drive, int page, void *v)
 {
-	uchar cmd[6], resp[512];
+	uint8_t cmd[6], resp[512];
 	int n;
 
 	initcdb(cmd, sizeof cmd, ScmdMsense6);
@@ -253,7 +253,7 @@ mmcgetpage6(Drive *drive, int page, void *v)
 static int
 mmcsetpage10(Drive *drive, int page, void *v)
 {
-	uchar cmd[10], *p, *pagedata;
+	uint8_t cmd[10], *p, *pagedata;
 	int len, n;
 
 	/* allocate parameter list, copy in mode page, fill in header */
@@ -292,7 +292,7 @@ mmcsetpage10(Drive *drive, int page, void *v)
 static int
 mmcsetpage6(Drive *drive, int page, void *v)
 {
-	uchar cmd[6], *p, *pagedata;
+	uint8_t cmd[6], *p, *pagedata;
 	int len, n;
 
 	if (vflag)
@@ -351,7 +351,7 @@ mmcsetpage(Drive *drive, int page, void *v)
 int
 mmcstatus(Drive *drive)
 {
-	uchar cmd[12];
+	uint8_t cmd[12];
 
 	initcdb(cmd, sizeof cmd, ScmdCDstatus);		/* mechanism status */
 	return scsi(drive, cmd, sizeof(cmd), nil, 0, Sread);
@@ -361,7 +361,7 @@ void
 mmcgetspeed(Drive *drive)
 {
 	int n, maxread, curread, maxwrite, curwrite;
-	uchar buf[Pagesz];
+	uint8_t buf[Pagesz];
 
 	memset(buf, 0, 22);
 	n = mmcgetpage(drive, Pagcapmechsts, buf);	/* legacy page */
@@ -388,7 +388,7 @@ static int
 getdevtype(Drive *drive)
 {
 	int n;
-	uchar cmd[6], resp[Pagesz];
+	uint8_t cmd[6], resp[Pagesz];
 
 	initcdb(cmd, sizeof cmd, ScmdInq);
 	cmd[3] = sizeof resp >> 8;
@@ -402,7 +402,7 @@ getdevtype(Drive *drive)
 static int
 start(Drive *drive, int code)
 {
-	uchar cmd[6];
+	uint8_t cmd[6];
 
 	initcdb(cmd, sizeof cmd, ScmdStart);
 	cmd[4] = code;
@@ -413,7 +413,7 @@ static int
 setcaching(Drive *drive)
 {
 	int n;
-	uchar buf[Pagesz];
+	uint8_t buf[Pagesz];
 
 	/*
 	 * we can't actually control caching much.
@@ -442,7 +442,7 @@ mmcprobe(Scsi *scsi)
 {
 	Mmcaux *aux;
 	Drive *drive;
-	uchar buf[Pagesz];
+	uint8_t buf[Pagesz];
 	int cap;
 
 	if (vflag)
@@ -515,7 +515,7 @@ mmcprobe(Scsi *scsi)
 	return drive;
 }
 
-static char *tracktype[] = {	/* indices are track modes (Tm*) */
+static int8_t *tracktype[] = {	/* indices are track modes (Tm*) */
 	"audio cdda",
 	"2 audio channels",
 	"2",
@@ -528,10 +528,10 @@ static char *tracktype[] = {	/* indices are track modes (Tm*) */
  * figure out the first writable block, if we can, into drive->aux->mmcnwa.
  * resp must be from ScmdRtrackinfo.
  */
-static long
-gettracknwa(Drive *drive, int t, ulong beg, uchar *resp)
+static int32_t
+gettracknwa(Drive *drive, int t, uint32_t beg, uint8_t *resp)
 {
-	long newnwa;
+	int32_t newnwa;
 	Mmcaux *aux;
 
 	aux = drive->aux;
@@ -560,7 +560,7 @@ gettracknwa(Drive *drive, int t, ulong beg, uchar *resp)
  * map tmode to type & bs.
  */
 static void
-gettypebs(uchar tmode, int t, int i, int *typep, int *bsp)
+gettypebs(uint8_t tmode, int t, int i, int *typep, int *bsp)
 {
 	int type, bs;
 
@@ -600,9 +600,9 @@ static int
 mmctrackinfo(Drive *drive, int t, int i)
 {
 	int n, type, bs;
-	ulong beg, size;
-	uchar tmode;
-	uchar cmd[10], resp[255];
+	uint32_t beg, size;
+	uint8_t tmode;
+	uint8_t cmd[10], resp[255];
 	Track *track;
 
 	initcdb(cmd, sizeof cmd, ScmdRtrackinfo);
@@ -634,7 +634,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 	track->end = beg + size;
 	track->type = type;
 	track->bs = bs;
-	track->size = (vlong)(size-2) * bs;	/* -2: skip lead out */
+	track->size = (int64_t)(size-2) * bs;	/* -2: skip lead out */
 
 	if(resp[6] & (1<<6)) {			/* blank? */
 		track->type = TypeBlank;
@@ -653,7 +653,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 static int
 mmcreadtoc(Drive *drive, int type, int track, void *data, int nbytes)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	initcdb(cmd, sizeof cmd, ScmdRTOC);
 	cmd[1] = type;				/* msf bit & reserved */
@@ -671,7 +671,7 @@ mmcreadtoc(Drive *drive, int type, int track, void *data, int nbytes)
 }
 
 static Msf
-rdmsf(uchar *p)
+rdmsf(uint8_t *p)
 {
 	Msf msf;
 
@@ -682,10 +682,10 @@ rdmsf(uchar *p)
 }
 
 static int
-getdiscinfo(Drive *drive, uchar resp[], int resplen)
+getdiscinfo(Drive *drive, uint8_t resp[], int resplen)
 {
 	int n;
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	initcdb(cmd, sizeof cmd, ScmdRdiscinfo);
 	cmd[7] = resplen>>8;
@@ -706,7 +706,7 @@ getdiscinfo(Drive *drive, uchar resp[], int resplen)
 }
 
 int
-isbitset(uint bit, uchar *map)
+isbitset(uint bit, uint8_t *map)
 {
 	return map[bit/8] & (1 << (bit%8));
 }
@@ -723,7 +723,7 @@ static int
 seterrrecov(Drive *drive)
 {
 	int n;
-	uchar buf[Pagesz];
+	uint8_t buf[Pagesz];
 
 	if (!isbitset(Featdfctmgmt, drive->features) &&
 	    !isbitset(Featedfctrpt, drive->features)) {
@@ -769,7 +769,7 @@ seterrrecov(Drive *drive)
 	return 0;
 }
 
-char *
+int8_t *
 featname(int feat)
 {
 	Intfeat *ifp;
@@ -781,7 +781,7 @@ featname(int feat)
 }
 
 static int
-prof2mmctype(Drive *drive, ushort prof)
+prof2mmctype(Drive *drive, uint16_t prof)
 {
 	if(prof == 0 || prof == 0xffff)		/* none or whacko? */
 		return -1;
@@ -829,11 +829,11 @@ prof2mmctype(Drive *drive, ushort prof)
 }
 
 static void
-notefeats(Drive *drive, uchar *p, ulong datalen)
+notefeats(Drive *drive, uint8_t *p, uint32_t datalen)
 {
 	int left, len;
 	uint feat;
-	char *ftnm;
+	int8_t *ftnm;
 
 	if (vflag)
 		fprint(2, "features: ");
@@ -853,11 +853,11 @@ notefeats(Drive *drive, uchar *p, ulong datalen)
 }
 
 static int
-getconfcmd(Drive *drive, uchar *resp, int respsz)
+getconfcmd(Drive *drive, uint8_t *resp, int respsz)
 {
 	int n;
-	ulong datalen;
-	uchar cmd[10];
+	uint32_t datalen;
+	uint8_t cmd[10];
 
 	initcdb(cmd, sizeof cmd, Scmdgetconf);
 	cmd[3] = 0;			/* start with profile list feature */
@@ -880,9 +880,9 @@ getconfcmd(Drive *drive, uchar *resp, int respsz)
 static int
 getconf(Drive *drive)
 {
-	ushort prof;
-	long datalen;
-	uchar resp[64*1024 - 8];		/* 64k-8 max, 450 typical */
+	uint16_t prof;
+	int32_t datalen;
+	uint8_t resp[64*1024 - 8];		/* 64k-8 max, 450 typical */
 
 	memset(drive->features, 0, sizeof drive->features);
 	datalen = getconfcmd(drive, resp, sizeof resp);
@@ -929,7 +929,7 @@ static int
 getdvdstruct(Drive *drive)
 {
 	int n, cat;
-	uchar cmd[12], resp[Pagesz];
+	uint8_t cmd[12], resp[Pagesz];
 
 	initcdb(cmd, sizeof cmd, ScmdReadDVD); /* actually, read disc structure */
 	cmd[1] = 0;			/* media type: dvd */
@@ -1006,8 +1006,8 @@ static int
 getbdstruct(Drive *drive)
 {
 	int n;
-	uchar cmd[12], resp[4+4096];
-	uchar *di, *body;
+	uint8_t cmd[12], resp[4+4096];
+	uint8_t *di, *body;
 
 	initcdb(cmd, sizeof cmd, ScmdReadDVD); /* actually, read disc structure */
 	cmd[1] = 1;			/* media type: bd */
@@ -1071,8 +1071,8 @@ static int
 mmcinfertracks(Drive *drive, int first, int last)
 {
 	int i;
-	uchar resp[1024];
-	ulong tot;
+	uint8_t resp[1024];
+	uint32_t tot;
 	Track *t;
 
 	if (vflag)
@@ -1096,7 +1096,7 @@ mmcinfertracks(Drive *drive, int first, int last)
 		}
 	}
 
-	if((long)drive->track[0].beg < 0)  /* i've seen negative track 0's */
+	if((int32_t)drive->track[0].beg < 0)  /* i've seen negative track 0's */
 		drive->track[0].beg = 0;
 
 	tot = 0;
@@ -1115,7 +1115,7 @@ mmcinfertracks(Drive *drive, int first, int last)
 		if(t->end <= t->beg)
 			t->beg = t->end = 0;
 		/* -2: skip lead out */
-		t->size = (t->end - t->beg - 2) * (vlong)t->bs;
+		t->size = (t->end - t->beg - 2) * (int64_t)t->bs;
 	}
 	fprint(2, "infertracks: nwa should be %,lld; tot = %,ld\n", t->size, tot);
 	return last;
@@ -1146,11 +1146,11 @@ initdrive(Drive *drive)
 	}
 }
 
-static long
+static int32_t
 computenwa(Drive *drive, int first, int last)
 {
 	int i;
-	ulong nwa;
+	uint32_t nwa;
 	Track *t;
 
 	/*
@@ -1169,7 +1169,7 @@ static int
 findntracks(Drive *drive, int *firstp, int *lastp)
 {
 	int i, n, first, last;
-	uchar resp[1024];
+	uint8_t resp[1024];
 
 	if((n = mmcreadtoc(drive, Msfbit, 0, resp, sizeof(resp))) < 4) {
 		/*
@@ -1223,9 +1223,9 @@ static int
 alltrackinfo(Drive *drive, int first, int last)
 {
 	int i;
-	long nwa;
-	vlong cap;
-	char *osfx;
+	int32_t nwa;
+	int64_t cap;
+	int8_t *osfx;
 	Mmcaux *aux;
 	Track *track;
 
@@ -1240,7 +1240,7 @@ alltrackinfo(Drive *drive, int first, int last)
 	drive->end = track->end;
 	if (drive->mmctype == Mmcbd) {
 		/* allow for lower apparent capacity due to reserved spares */
-		cap = (vlong)track->end * track->bs;
+		cap = (int64_t)track->end * track->bs;
 		osfx = drive->laysfx;
 		if (cap >= 101*GB)
 			drive->laysfx = "-ql";		/* 128GB nominal */
@@ -1307,7 +1307,7 @@ findtracks(Drive *drive, int first, int last)
 static void
 finddisctype(Drive *drive, int first, int last)
 {
-	char *ty;
+	int8_t *ty;
 
 	/* deduce disc type */
 	drive->mmctype = Mmcnone;
@@ -1349,7 +1349,7 @@ static int
 mmcgettoc(Drive *drive)
 {
 	int first, last;
-	uchar resp[1024];
+	uint8_t resp[1024];
 
 	/*
 	 * if someone has swapped the cd,
@@ -1396,7 +1396,7 @@ mmcgettoc(Drive *drive)
 }
 
 static void
-settrkmode(uchar *p, int mode)
+settrkmode(uint8_t *p, int mode)
 {
 	p[Wptrkmode] &= ~0xf;
 	p[Wptrkmode] |= mode;
@@ -1408,7 +1408,7 @@ settrkmode(uchar *p, int mode)
 static int
 mmcsetbs(Drive *drive, int bs)
 {
-	uchar *p;
+	uint8_t *p;
 	Mmcaux *aux;
 
 	aux = drive->aux;
@@ -1476,7 +1476,8 @@ mmcsetbs(Drive *drive, int bs)
  * (e.g., reading audio).
  */
 static int
-fillread12cdb(Drive *drive, uchar *cmd, long nblock, ulong off, int bs)
+fillread12cdb(Drive *drive, uint8_t *cmd, int32_t nblock, uint32_t off,
+	      int bs)
 {
 	if (drive->type == TypeCD && drive->mmctype == Mmccd && bs != BScdrom) {
 		initcdb(cmd, 12, ScmdReadcd);
@@ -1514,12 +1515,12 @@ fillread12cdb(Drive *drive, uchar *cmd, long nblock, ulong off, int bs)
 }
 
 /* off is a block number */
-static long
-mmcread(Buf *buf, void *v, long nblock, ulong off)
+static int32_t
+mmcread(Buf *buf, void *v, int32_t nblock, uint32_t off)
 {
 	int bs;
-	long n, nn;
-	uchar cmd[12];
+	int32_t n, nn;
+	uint8_t cmd[12];
 	Drive *drive;
 	Otrack *o;
 
@@ -1620,9 +1621,9 @@ static int
 format(Drive *drive)
 {
 	int setblksz;
-	ulong nblks, blksize;
-	uchar *fmtdesc;
-	uchar cmd[6], parms[Flhlen+Fdlen];
+	uint32_t nblks, blksize;
+	uint8_t *fmtdesc;
+	uint8_t cmd[6], parms[Flhlen+Fdlen];
 
 	if (drive->recordable == Yes && drive->mmctype != Mmcbd) {
 		werrstr("don't format write-once cd or dvd media");
@@ -1687,12 +1688,12 @@ dvdcanverify(Drive *drive)
 		isbitset(Featdvdrw, drive->features);
 }
 
-static long
-mmcxwrite(Otrack *o, void *v, long nblk)
+static int32_t
+mmcxwrite(Otrack *o, void *v, int32_t nblk)
 {
 	int r;
-	long bs;
-	uchar cmd[10];
+	int32_t bs;
+	uint8_t cmd[10];
 	Drive *drive;
 	Mmcaux *aux;
 
@@ -1743,14 +1744,14 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 	if (r < 0)
 		fprint(2, "%s: write+verify error at blk offset %,ld = "
 			"offset %,lld / bs %ld: %r\n",
-			argv0, aux->mmcnwa, (vlong)aux->mmcnwa * bs, bs);
+			argv0, aux->mmcnwa, (int64_t)aux->mmcnwa * bs, bs);
 	else
 		aux->mmcnwa += nblk;
 	return r;
 }
 
-static long
-mmcwrite(Buf *buf, void *v, long nblk, ulong)
+static int32_t
+mmcwrite(Buf *buf, void *v, int32_t nblk, uint32_t)
 {
 	return mmcxwrite(buf->otrack, v, nblk);
 }
@@ -1763,8 +1764,8 @@ enum {
 static int
 reserve(Drive *drive, int track)
 {
-	ulong sz;
-	uchar cmd[10];
+	uint32_t sz;
+	uint8_t cmd[10];
 
 	initcdb(cmd, sizeof cmd, ScmdReserve);
 	track -= drive->firsttrack;		/* switch to zero-origin */
@@ -1777,7 +1778,7 @@ reserve(Drive *drive, int track)
 			argv0, track, drive->ntrack);
 	}
 	sz -= sz % Eccblk;		/* round down to ecc-block multiple */
-	if ((long)sz < 0) {
+	if ((int32_t)sz < 0) {
 		fprint(2, "%s: reserve: bogus size %lud\n", argv0, sz);
 		return -1;
 	}
@@ -1792,7 +1793,7 @@ static int
 getinvistrack(Drive *drive)
 {
 	int n;
-	uchar cmd[10], resp[Pagesz];
+	uint8_t cmd[10], resp[Pagesz];
 
 	initcdb(cmd, sizeof(cmd), ScmdRtrackinfo);
 	cmd[1] = 1<<2 | 1;	/* open; address below is logical track # */
@@ -1902,7 +1903,7 @@ mmccreate(Drive *drive, int type)
 static int
 mmcxclose(Drive *drive, int clf, int trackno)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	initcdb(cmd, sizeof cmd, ScmdClosetracksess);
 	/* cmd[1] & 1 is the immediate bit */
@@ -1916,7 +1917,7 @@ mmcxclose(Drive *drive, int clf, int trackno)
 void
 mmcsynccache(Drive *drive)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 	Mmcaux *aux;
 
 	initcdb(cmd, sizeof cmd, ScmdSynccache);
@@ -1961,7 +1962,7 @@ static void
 mmcclose(Otrack *o)
 {
 	Mmcaux *aux;
-	static uchar zero[2*BSmax];
+	static uint8_t zero[2*BSmax];
 
 	aux = o->drive->aux;
 	if(o->omode == OREAD)
@@ -1978,7 +1979,7 @@ mmcclose(Otrack *o)
 static int
 setonesess(Drive *drive)
 {
-	uchar *p;
+	uint8_t *p;
 	Mmcaux *aux;
 
 	/* page 5 is legacy and now read-only; see MMC-6 §7.5.4.1 */
@@ -2034,7 +2035,7 @@ mmcfixate(Drive *drive)
 static int
 mmcblank(Drive *drive, int quick)
 {
-	uchar cmd[12];
+	uint8_t cmd[12];
 
 	drive->nchange = -1;		/* force reread toc */
 
@@ -2046,7 +2047,7 @@ mmcblank(Drive *drive, int quick)
 	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
 }
 
-static char*
+static int8_t*
 e(int status)
 {
 	if(status < 0)
@@ -2054,10 +2055,10 @@ e(int status)
 	return nil;
 }
 
-static char*
-mmcctl(Drive *drive, int argc, char **argv)
+static int8_t*
+mmcctl(Drive *drive, int argc, int8_t **argv)
 {
-	char *cmd;
+	int8_t *cmd;
 
 	if(argc < 1)
 		return nil;
@@ -2075,11 +2076,11 @@ mmcctl(Drive *drive, int argc, char **argv)
 	return "bad arg";
 }
 
-static char*
+static int8_t*
 mmcsetspeed(Drive *drive, int r, int w)
 {
-	char *rv;
-	uchar cmd[12];
+	int8_t *rv;
+	uint8_t cmd[12];
 
 	initcdb(cmd, sizeof cmd, ScmdSetcdspeed);
 	cmd[2] = r>>8;

@@ -64,11 +64,11 @@ cpuidinfo(u32int eax, u32int ecx, u32int info[4])
 	return 1;
 }
 
-static vlong
+static int64_t
 cpuidhz(u32int info[2][4])
 {
 	int f, r;
-	vlong hz;
+	int64_t hz;
 	u64int msr;
 
 	if(memcmp(&info[0][1], "GenuntelineI", 12) == 0){
@@ -218,10 +218,10 @@ cpuiddump(void)
 	}
 }
 
-vlong
+int64_t
 archhz(void)
 {
-	vlong hz;
+	int64_t hz;
 	u32int info[2][4];
 
 	if(!cpuidinfo(0, 0, info[0]) || !cpuidinfo(1, 0, info[1]))

@@ -95,8 +95,9 @@ screeninit(void)
 	ksleep(&rend, isready, 0);
 }
 
-uchar*
-attachscreen(Rectangle *r, ulong *chan, int *depth, int *width, int *softscreen, void **X)
+uint8_t*
+attachscreen(Rectangle *r, uint32_t *chan, int *depth, int *width,
+	     int *softscreen, void **X)
 {
 	*r = gscreen->r;
 	*chan = gscreen->chan;
@@ -111,12 +112,12 @@ void
 flushmemscreen(Rectangle r)
 {
 	screenload(r, gscreen->depth, byteaddr(gscreen, ZP), ZP,
-		gscreen->width*sizeof(ulong));
+		gscreen->width*sizeof(uint32_t));
 //	Sleep(100);
 }
 
 void
-screenload(Rectangle r, int depth, uchar *p, Point pt, int step)
+screenload(Rectangle r, int depth, uint8_t *p, Point pt, int step)
 {
 	int dx, dy, delx;
 	HDC hdc;
@@ -133,7 +134,7 @@ screenload(Rectangle r, int depth, uchar *p, Point pt, int step)
 	if(rectclip(&r, gscreen->r) == 0)
 		return;
 
-	if((step&3) != 0 || ((pt.x*depth)%32) != 0 || ((ulong)p&3) != 0)
+	if((step&3) != 0 || ((pt.x*depth)%32) != 0 || ((uint32_t)p&3) != 0)
 		panic("screenload: bad params %d %d %ux", step, pt.x, p);
 	dx = r.max.x - r.min.x;
 	dy = r.max.y - r.min.y;
@@ -293,7 +294,7 @@ paletteinit(void)
 
 
 void
-getcolor(ulong i, ulong *r, ulong *g, ulong *b)
+getcolor(uint32_t i, uint32_t *r, uint32_t *g, uint32_t *b)
 {
 	PALETTEENTRY *pal;
 
@@ -306,7 +307,7 @@ getcolor(ulong i, ulong *r, ulong *g, ulong *b)
 void
 bmiinit(void)
 {
-	ushort *p;
+	uint16_t *p;
 	int i;
 
 	bmi = mallocz(sizeof(BITMAPINFOHEADER) + 256*sizeof(RGBQUAD), 1);
@@ -324,7 +325,7 @@ bmiinit(void)
 	bmi->bmiHeader.biClrUsed = 0;
 	bmi->bmiHeader.biClrImportant = 0;	/* number of important colors: 0 means all */
 
-	p = (ushort*)bmi->bmiColors;
+	p = (uint16_t*)bmi->bmiColors;
 	for(i = 0; i < 256; i++)
 		p[i] = i;
 }
@@ -496,8 +497,8 @@ setcursor(void)
 {
 	HCURSOR nh;
 	int x, y, h, w;
-	uchar *sp, *cp;
-	uchar *and, *xor;
+	uint8_t *sp, *cp;
+	uint8_t *and, *xor;
 
 	h = GetSystemMetrics(SM_CYCURSOR);
 	w = (GetSystemMetrics(SM_CXCURSOR)+7)/8;
@@ -545,17 +546,17 @@ cursorarrow(void)
 
 
 void
-setcolor(ulong index, ulong red, ulong green, ulong blue)
+setcolor(uint32_t index, uint32_t red, uint32_t green, uint32_t blue)
 {
 }
 
 
-uchar*
+uint8_t*
 clipreadunicode(HANDLE h)
 {
 	Rune *p;
 	int n;
-	uchar *q;
+	uint8_t *q;
 	
 	p = GlobalLock(h);
 	n = wstrutflen(p)+1;
@@ -566,10 +567,10 @@ clipreadunicode(HANDLE h)
 	return q;
 }
 
-uchar *
+uint8_t *
 clipreadutf(HANDLE h)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = GlobalLock(h);
 	p = strdup(p);
@@ -578,11 +579,11 @@ clipreadutf(HANDLE h)
 	return p;
 }
 
-char*
+int8_t*
 clipread(void)
 {
 	HANDLE h;
-	uchar *p;
+	uint8_t *p;
 
 	if(!OpenClipboard(window)) {
 		oserror();
@@ -603,10 +604,10 @@ clipread(void)
 }
 
 int
-clipwrite(char *buf)
+clipwrite(int8_t *buf)
 {
 	HANDLE h;
-	char *p, *e;
+	int8_t *p, *e;
 	Rune *rp;
 	int n = strlen(buf);
 

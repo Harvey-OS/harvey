@@ -22,9 +22,9 @@
 
 void buildre(Dreprog*[3]);
 int debug;
-char *refile = "/mail/lib/classify.re";
+int8_t *refile = "/mail/lib/classify.re";
 int maxtoklen = 20;
-int trim(char*);
+int trim(int8_t*);
 
 void
 usage(void)
@@ -187,9 +187,9 @@ buildre(Dreprog *re[3])
 
 /* perhaps this belongs in the tokenizer */
 int
-trim(char *s)
+trim(int8_t *s)
 {
-	char *p, *op;
+	int8_t *p, *op;
 	int mix, mix1;
 
 	if(*s == '*')
@@ -210,7 +210,7 @@ trim(char *s)
 	/* strip suffix of punctuation */
 	p = s+strlen(s);
 	op = p;
-	while(p > s && (uchar)p[-1]<0x80 && !isalpha(p[-1]))
+	while(p > s && (uint8_t)p[-1]<0x80 && !isalpha(p[-1]))
 		p--;
 
 	/* chop punctuation */

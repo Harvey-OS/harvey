@@ -20,11 +20,11 @@ extern PhysUart pciphysuart;
 extern void* i8250alloc(int, int, int);
 
 static Uart*
-uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name)
+uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, int8_t* name)
 {
 	int i, io;
 	void *ctlr;
-	char buf[64];
+	int8_t buf[64];
 	Uart *head, *uart;
 
 	io = p->mem[barno].bar & ~0x01;
@@ -59,7 +59,7 @@ static Uart*
 uartpcipnp(void)
 {
 	Pcidev *p;
-	char *name;
+	int8_t *name;
 	int ctlrno, n, subid;
 	Uart *head, *tail, *uart;
 

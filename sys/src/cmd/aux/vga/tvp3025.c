@@ -39,7 +39,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uchar crt5c, x;
+	uint8_t crt5c, x;
 
 	crt5c = vgaxi(Crtx, 0x5C) & ~0x20;
 	vgaxo(Crtx, 0x5C, crt5c);
@@ -54,10 +54,10 @@ load(Vga* vga, Ctlr* ctlr)
 	ctlr->flag |= Fload;
 }
 
-static ulong
-dumpclock(ulong d, ulong n, ulong p)
+static uint32_t
+dumpclock(uint32_t d, uint32_t n, uint32_t p)
 {
-	ulong f;
+	uint32_t f;
 
 	f = RefFreq*((n+2)*8);
 	f /= (d+2);
@@ -69,9 +69,9 @@ dumpclock(ulong d, ulong n, ulong p)
 static void
 dump(Vga* vga, Ctlr* ctlr)
 {
-	uchar crt5c;
+	uint8_t crt5c;
 	int i;
-	ulong clock[4];
+	uint32_t clock[4];
 
 	crt5c = vgaxi(Crtx, 0x5C);
 	vgaxo(Crtx, 0x5C, crt5c & ~0x20);

@@ -13,19 +13,19 @@
 #include "fns.h"
 #include "error.h"
 
-char ENoDir[] = "directory entry is not allocated";
-char ENoFile[] = "no such file or directory";
-char EBadPath[] = "bad path";
-char EBadDir[] = "corrupted directory entry";
-char EBadMeta[] = "corrupted meta data";
-char ENotDir[] = "not a directory";
-char ENotFile[] = "not a file";
-char EIO[] = "i/o error";
-char EBadOffset[] = "illegal offset";
-char ETooBig[] = "file too big";
-char EReadOnly[] = "read only";
-char ERemoved[] = "file has been removed";
-char ENilBlock[] = "illegal block address";
-char ENotEmpty[] = "directory not empty";
-char EExists[] = "file already exists";
-char ERoot[] = "cannot remove root";
+int8_t ENoDir[] = "directory entry is not allocated";
+int8_t ENoFile[] = "no such file or directory";
+int8_t EBadPath[] = "bad path";
+int8_t EBadDir[] = "corrupted directory entry";
+int8_t EBadMeta[] = "corrupted meta data";
+int8_t ENotDir[] = "not a directory";
+int8_t ENotFile[] = "not a file";
+int8_t EIO[] = "i/o error";
+int8_t EBadOffset[] = "illegal offset";
+int8_t ETooBig[] = "file too big";
+int8_t EReadOnly[] = "read only";
+int8_t ERemoved[] = "file has been removed";
+int8_t ENilBlock[] = "illegal block address";
+int8_t ENotEmpty[] = "directory not empty";
+int8_t EExists[] = "file already exists";
+int8_t ERoot[] = "cannot remove root";

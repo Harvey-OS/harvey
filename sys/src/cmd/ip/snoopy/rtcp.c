@@ -15,24 +15,24 @@
 
 typedef struct Hdr Hdr;
 struct Hdr {
-	uchar	hdr;		/* RTCP header */
-	uchar	pt;		/* Packet type */
-	uchar	len[2];		/* Report length */
-	uchar	ssrc[4];	/* Synchronization source identifier */
-	uchar	ntp[8];		/* NTP time stamp */
-	uchar	rtp[4];		/* RTP time stamp */
-	uchar	pktc[4];	/* Sender's packet count */
-	uchar	octc[4];	/* Sender's octet count */
+	uint8_t	hdr;		/* RTCP header */
+	uint8_t	pt;		/* Packet type */
+	uint8_t	len[2];		/* Report length */
+	uint8_t	ssrc[4];	/* Synchronization source identifier */
+	uint8_t	ntp[8];		/* NTP time stamp */
+	uint8_t	rtp[4];		/* RTP time stamp */
+	uint8_t	pktc[4];	/* Sender's packet count */
+	uint8_t	octc[4];	/* Sender's octet count */
 };
 
 typedef struct Report Report;
 struct Report {
-	uchar	ssrc[4];	/* SSRC identifier */
-	uchar	lost[4];	/* Fraction + cumu lost */
-	uchar	seqhi[4];	/* Highest seq number received */
-	uchar	jitter[4];	/* Interarrival jitter */
-	uchar	lsr[4];		/* Last SR */
-	uchar	dlsr[4];	/* Delay since last SR */
+	uint8_t	ssrc[4];	/* SSRC identifier */
+	uint8_t	lost[4];	/* Fraction + cumu lost */
+	uint8_t	seqhi[4];	/* Highest seq number received */
+	uint8_t	jitter[4];	/* Interarrival jitter */
+	uint8_t	lsr[4];		/* Last SR */
+	uint8_t	dlsr[4];	/* Delay since last SR */
 };
 
 enum{

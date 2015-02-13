@@ -10,14 +10,14 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomcheckdirectory(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
+smbcomcheckdirectory(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 {
-	char *path;
+	int8_t *path;
 	Dir *d;
-	uchar fmt;
+	uint8_t fmt;
 	SmbProcessResult pr;
 	SmbTree *t;
-	char *fullpath = nil;
+	int8_t *fullpath = nil;
 
 	if (!smbcheckwordcount("comcheckdirectory", h, 0))
 		return SmbProcessResultFormat;

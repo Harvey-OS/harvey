@@ -11,7 +11,7 @@
 #include <string.h>
 #include <stdio.h>
 
-extern long read(int, void*, long);
+extern int32_t read(int, void*, int32_t);
 typedef unsigned char uchar;
 typedef unsigned long ulong;
 #define NAMELEN 28
@@ -53,60 +53,60 @@ enum
 
 struct Ticketreq
 {
-	char	type;
-	char	authid[NAMELEN];	/* server's encryption id */
-	char	authdom[DOMLEN];	/* server's authentication domain */
-	char	chal[CHALLEN];		/* challenge from server */
-	char	hostid[NAMELEN];	/* host's encryption id */
-	char	uid[NAMELEN];		/* uid of requesting user on host */
+	int8_t	type;
+	int8_t	authid[NAMELEN];	/* server's encryption id */
+	int8_t	authdom[DOMLEN];	/* server's authentication domain */
+	int8_t	chal[CHALLEN];		/* challenge from server */
+	int8_t	hostid[NAMELEN];	/* host's encryption id */
+	int8_t	uid[NAMELEN];		/* uid of requesting user on host */
 };
 #define	TICKREQLEN	(3*NAMELEN+CHALLEN+DOMLEN+1)
 
 struct Ticket
 {
-	char	num;			/* replay protection */
-	char	chal[CHALLEN];		/* server challenge */
-	char	cuid[NAMELEN];		/* uid on client */
-	char	suid[NAMELEN];		/* uid on server */
-	char	key[DESKEYLEN];		/* nonce DES key */
+	int8_t	num;			/* replay protection */
+	int8_t	chal[CHALLEN];		/* server challenge */
+	int8_t	cuid[NAMELEN];		/* uid on client */
+	int8_t	suid[NAMELEN];		/* uid on server */
+	int8_t	key[DESKEYLEN];		/* nonce DES key */
 };
 #define	TICKETLEN	(CHALLEN+2*NAMELEN+DESKEYLEN+1)
 
 struct Authenticator
 {
-	char	num;			/* replay protection */
-	char	chal[CHALLEN];
-	ulong	id;			/* authenticator id, ++'d with each auth */
+	int8_t	num;			/* replay protection */
+	int8_t	chal[CHALLEN];
+	uint32_t	id;			/* authenticator id, ++'d with each auth */
 };
 #define	AUTHENTLEN	(CHALLEN+4+1)
 
 struct Passwordreq
 {
-	char	num;
-	char	old[NAMELEN];
-	char	new[NAMELEN];
+	int8_t	num;
+	int8_t	old[NAMELEN];
+	int8_t	new[NAMELEN];
 };
 #define	PASSREQLEN	(2*NAMELEN+1)
 
 struct Nvrsafe
 {
-	char	machkey[DESKEYLEN];
-	uchar	machsum;
-	char	authkey[DESKEYLEN];
-	uchar	authsum;
-	char	config[CONFIGLEN];
-	uchar	configsum;
-	char	authid[NAMELEN];
-	uchar	authidsum;
-	char	authdom[DOMLEN];
-	uchar	authdomsum;
+	int8_t	machkey[DESKEYLEN];
+	uint8_t	machsum;
+	int8_t	authkey[DESKEYLEN];
+	uint8_t	authsum;
+	int8_t	config[CONFIGLEN];
+	uint8_t	configsum;
+	int8_t	authid[NAMELEN];
+	uint8_t	authidsum;
+	int8_t	authdom[DOMLEN];
+	uint8_t	authdomsum;
 };
 
 struct Chalstate
 {
 	int	afd;			/* /dev/authenticate */
 	int	asfd;			/* authdial() */
-	char	chal[NETCHLEN];		/* challenge/response */
+	int8_t	chal[NETCHLEN];		/* challenge/response */
 };
 
 
@@ -117,11 +117,11 @@ struct Chalstate
  *
  *	block_cipher(key, block, decrypting)
  */
-static	long	ip_low(char [8]);
-static	long	ip_high(char [8]);
-static	void	fp(long, long, char[8]);
-static	void	key_setup(char[DESKEYLEN], char[128]);
-static	void	block_cipher(char[128], char[8], int);
+static	int32_t	ip_low(int8_t [8]);
+static	int32_t	ip_high(int8_t [8]);
+static	void	fp(int32_t, int32_t, int8_t[8]);
+static	void	key_setup(int8_t[DESKEYLEN], int8_t[128]);
+static	void	block_cipher(int8_t[128], int8_t[8], int);
 
 /*
  * destructively encrypt the buffer, which
@@ -130,7 +130,7 @@ static	void	block_cipher(char[128], char[8], int);
 int
 encrypt9(void *key, void *vbuf, int n)
 {
-	char ekey[128], *buf;
+	int8_t ekey[128], *buf;
 	int i, r;
 
 	if(n < 8)
@@ -156,7 +156,7 @@ encrypt9(void *key, void *vbuf, int n)
 int
 decrypt(void *key, void *vbuf, int n)
 {
-	char ekey[128], *buf;
+	int8_t ekey[128], *buf;
 	int i, r;
 
 	if(n < 8)
@@ -180,7 +180,7 @@ decrypt(void *key, void *vbuf, int n)
  *	Tables for Combined S and P Boxes
  */
 
-static long  s0p[] = {
+static int32_t  s0p[] = {
 0x00410100,0x00010000,0x40400000,0x40410100,0x00400000,0x40010100,0x40010000,0x40400000,
 0x40010100,0x00410100,0x00410000,0x40000100,0x40400100,0x00400000,0x00000000,0x40010000,
 0x00010000,0x40000000,0x00400100,0x00010100,0x40410100,0x00410000,0x40000100,0x00400100,
@@ -191,7 +191,7 @@ static long  s0p[] = {
 0x00010000,0x00400000,0x40400100,0x00410100,0x40000000,0x40410000,0x00000100,0x40010100,
 };
 
-static long  s1p[] = {
+static int32_t  s1p[] = {
 0x08021002,0x00000000,0x00021000,0x08020000,0x08000002,0x00001002,0x08001000,0x00021000,
 0x00001000,0x08020002,0x00000002,0x08001000,0x00020002,0x08021000,0x08020000,0x00000002,
 0x00020000,0x08001002,0x08020002,0x00001000,0x00021002,0x08000000,0x00000000,0x00020002,
@@ -202,7 +202,7 @@ static long  s1p[] = {
 0x08020002,0x00020000,0x00001002,0x08001000,0x08001002,0x00000002,0x08020000,0x00021000,
 };
 
-static long  s2p[] = {
+static int32_t  s2p[] = {
 0x20800000,0x00808020,0x00000020,0x20800020,0x20008000,0x00800000,0x20800020,0x00008020,
 0x00800020,0x00008000,0x00808000,0x20000000,0x20808020,0x20000020,0x20000000,0x20808000,
 0x00000000,0x20008000,0x00808020,0x00000020,0x20000020,0x20808020,0x00008000,0x20800000,
@@ -213,7 +213,7 @@ static long  s2p[] = {
 0x00800020,0x00000000,0x20808000,0x20000020,0x20800000,0x20008020,0x00000020,0x00808000,
 };
 
-static long  s3p[] = {
+static int32_t  s3p[] = {
 0x00080201,0x02000200,0x00000001,0x02080201,0x00000000,0x02080000,0x02000201,0x00080001,
 0x02080200,0x02000001,0x02000000,0x00000201,0x02000001,0x00080201,0x00080000,0x02000000,
 0x02080001,0x00080200,0x00000200,0x00000001,0x00080200,0x02000201,0x02080000,0x00000200,
@@ -224,7 +224,7 @@ static long  s3p[] = {
 0x00080001,0x00080200,0x02080000,0x02000201,0x00000201,0x02000000,0x02000001,0x02080200,
 };
 
-static long  s4p[] = {
+static int32_t  s4p[] = {
 0x01000000,0x00002000,0x00000080,0x01002084,0x01002004,0x01000080,0x00002084,0x01002000,
 0x00002000,0x00000004,0x01000004,0x00002080,0x01000084,0x01002004,0x01002080,0x00000000,
 0x00002080,0x01000000,0x00002004,0x00000084,0x01000080,0x00002084,0x00000000,0x01000004,
@@ -235,7 +235,7 @@ static long  s4p[] = {
 0x00002080,0x01002004,0x01000080,0x00000084,0x00000004,0x00002084,0x01002000,0x01000004,
 };
 
-static long  s5p[] = {
+static int32_t  s5p[] = {
 0x10000008,0x00040008,0x00000000,0x10040400,0x00040008,0x00000400,0x10000408,0x00040000,
 0x00000408,0x10040408,0x00040400,0x10000000,0x10000400,0x10000008,0x10040000,0x00040408,
 0x00040000,0x10000408,0x10040008,0x00000000,0x00000400,0x00000008,0x10040400,0x10040008,
@@ -246,7 +246,7 @@ static long  s5p[] = {
 0x00000400,0x10000008,0x10000408,0x10040400,0x10040000,0x00000408,0x00000008,0x10040008,
 };
 
-static long  s6p[] = {
+static int32_t  s6p[] = {
 0x00000800,0x00000040,0x00200040,0x80200000,0x80200840,0x80000800,0x00000840,0x00000000,
 0x00200000,0x80200040,0x80000040,0x00200800,0x80000000,0x00200840,0x00200800,0x80000040,
 0x80200040,0x00000800,0x80000800,0x80200840,0x00000000,0x00200040,0x80200000,0x00000840,
@@ -257,7 +257,7 @@ static long  s6p[] = {
 0x00200840,0x80000000,0x80000800,0x80200840,0x80200000,0x00200840,0x00200800,0x80000800,
 };
 
-static long  s7p[] = {
+static int32_t  s7p[] = {
 0x04100010,0x04104000,0x00004010,0x00000000,0x04004000,0x00100010,0x04100000,0x04104010,
 0x00000010,0x04000000,0x00104000,0x00004010,0x00104010,0x04004010,0x04000010,0x04100000,
 0x00004000,0x00104010,0x00100010,0x04004000,0x04104010,0x04000010,0x00000000,0x00104000,
@@ -272,10 +272,10 @@ static long  s7p[] = {
  *	DES electronic codebook encryption of one block
  */
 static void
-block_cipher(char expanded_key[128], char text[8], int decrypting)
+block_cipher(int8_t expanded_key[128], int8_t text[8], int decrypting)
 {
-	char *key;
-	long crypto, temp, right, left;
+	int8_t *key;
+	int32_t crypto, temp, right, left;
 	int i, key_offset;
 
 	key = expanded_key;
@@ -312,16 +312,16 @@ block_cipher(char expanded_key[128], char text[8], int decrypting)
 /*
  *	Initial Permutation
  */
-static long iptab[] = {
+static int32_t iptab[] = {
 	0x00000000, 0x00008000, 0x00000000, 0x00008000,
 	0x00000080, 0x00008080, 0x00000080, 0x00008080
 };
 
-static long
-ip_low(char block[8])
+static int32_t
+ip_low(int8_t block[8])
 {
 	int i;
-	long l;
+	int32_t l;
 
 	l = 0;
 	for(i = 0; i < 8; i++){
@@ -331,11 +331,11 @@ ip_low(char block[8])
 	return l;
 }
 
-static long
-ip_high(char block[8])
+static int32_t
+ip_high(int8_t block[8])
 {
 	int i;
-	long l;
+	int32_t l;
 
 	l = 0;
 	for(i = 0; i < 8; i++){
@@ -354,7 +354,7 @@ static unsigned long	fptab[] = {
 };
 
 static void
-fp(long left, long right, char text[8])
+fp(int32_t left, int32_t right, int8_t text[8])
 {
 	unsigned long ta[2], t, v[2];
 	int i, j, sh;
@@ -375,7 +375,7 @@ fp(long left, long right, char text[8])
 	}
 	for(i = 0; i < 2; i++)
 		for(j = 0; j < 4; j++){
-			*text++ = (char)(v[i]&0xff);
+			*text++ = (int8_t)(v[i]&0xff);
 			v[i] >>= 8;
 		}
 }
@@ -383,7 +383,7 @@ fp(long left, long right, char text[8])
 /*
  *	Key set-up
  */
-static uchar keyexpand[][15][2] = {
+static uint8_t keyexpand[][15][2] = {
 	{   3,  2,   9,  8,  18,  8,  27, 32,  33,  2,  42, 16,  48,  8,  65, 16, 
 	   74,  2,  80,  2,  89,  4,  99, 16, 104,  4, 122, 32,   0,  0, },
 	{   1,  4,   8,  1,  18,  4,  25, 32,  34, 32,  41,  8,  50,  8,  59, 32, 
@@ -499,10 +499,10 @@ static uchar keyexpand[][15][2] = {
 };
 
 static void
-key_setup(char key[DESKEYLEN], char *ek)
+key_setup(int8_t key[DESKEYLEN], int8_t *ek)
 {
 	int i, j, k, mask;
-	uchar (*x)[2];
+	uint8_t (*x)[2];
 
 	memset(ek, 0, 128);
 	x = keyexpand[0];
@@ -520,9 +520,9 @@ key_setup(char key[DESKEYLEN], char *ek)
 
 /************ netkey main.c *************/
 int
-passtokey(char *key, char *p)
+passtokey(int8_t *key, int8_t *p)
 {
-	uchar buf[NAMELEN], *t;
+	uint8_t buf[NAMELEN], *t;
 	int i, n;
 
 	n = strlen(p);
@@ -530,7 +530,7 @@ passtokey(char *key, char *p)
 		n = NAMELEN-1;
 	memset(buf, ' ', 8);
 	t = buf;
-	strncpy((char*)t, p, n);
+	strncpy((int8_t*)t, p, n);
 	t[n] = '\0';
 	memset(key, 0, DESKEYLEN);
 	for(;;){
@@ -551,9 +551,9 @@ passtokey(char *key, char *p)
 int
 netcrypt(void *key, void *chal)
 {
-        uchar buf[8], *p;
+        uint8_t buf[8], *p;
 
-        strncpy((char*)buf, chal, 7);
+        strncpy((int8_t*)buf, chal, 7);
         buf[7] = '\0';
         for(p = buf; *p && *p != '\n'; p++)
                 ;
@@ -564,9 +564,9 @@ netcrypt(void *key, void *chal)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-	char buf[32], pass[32], key[DESKEYLEN];
+	int8_t buf[32], pass[32], key[DESKEYLEN];
 	int n;
 
 	printf("Run this directly on the local processor, NOT in a\n");

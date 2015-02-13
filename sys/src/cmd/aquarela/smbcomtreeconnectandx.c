@@ -9,23 +9,24 @@
 
 #include "headers.h"
 
-static char *s9p2000 = "9p2000";
+static int8_t *s9p2000 = "9p2000";
 
 SmbProcessResult
-smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
+		      SmbBuffer *b)
 {
-	uchar andxcommand;
-	ushort andxoffset;
-	char *path = nil;
-	char *service = nil;
-	ushort flags;
-	ushort passwordlength;
+	uint8_t andxcommand;
+	uint16_t andxoffset;
+	int8_t *path = nil;
+	int8_t *service = nil;
+	uint16_t flags;
+	uint16_t passwordlength;
 //	ushort bytecount;
-	uchar errclass;
-	ushort error;
+	uint8_t errclass;
+	uint16_t error;
 	SmbService *serv;
 	SmbTree *tree;
-	ulong andxfixupoffset, bytecountfixup;
+	uint32_t andxfixupoffset, bytecountfixup;
 	SmbProcessResult pr;
 
 	if (!smbcheckwordcount("comtreeconnectandx", h, 4)) {

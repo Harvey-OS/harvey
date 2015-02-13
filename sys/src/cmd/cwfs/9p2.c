@@ -13,7 +13,7 @@
 enum { MSIZE = MAXDAT+MAXMSG };
 
 static int
-mkmode9p1(ulong mode9p2)
+mkmode9p1(uint32_t mode9p2)
 {
 	int mode;
 
@@ -58,10 +58,10 @@ mktype9p2(int mode9p1)
 	return type;
 }
 
-static ulong
+static uint32_t
 mkmode9p2(int mode9p1)
 {
-	ulong mode;
+	uint32_t mode;
 
 	mode = mode9p1 & 0777;
 	if(mode9p1 & DLOCK)
@@ -77,7 +77,7 @@ mkmode9p2(int mode9p1)
 void
 mkqid9p2(Qid* qid, Qid9p1* qid9p1, int mode9p1)
 {
-	qid->path = (ulong)(qid9p1->path & ~QPDIR);
+	qid->path = (uint32_t)(qid9p1->path & ~QPDIR);
 	qid->vers = qid9p1->version;
 	qid->type = mktype9p2(mode9p1);
 }
@@ -85,7 +85,7 @@ mkqid9p2(Qid* qid, Qid9p1* qid9p1, int mode9p1)
 static int
 mkdir9p2(Dir* dir, Dentry* dentry, void* strs)
 {
-	char *op, *p;
+	int8_t *op, *p;
 
 	memset(dir, 0, sizeof(Dir));
 	mkqid(&dir->qid, dentry, 1);
@@ -114,9 +114,9 @@ mkdir9p2(Dir* dir, Dentry* dentry, void* strs)
 }
 
 static int
-checkname9p2(char* name)
+checkname9p2(int8_t* name)
 {
-	char *p;
+	int8_t *p;
 
 	/*
 	 * Return error or 0 if OK.
@@ -169,7 +169,7 @@ struct {
 static int
 auth(Chan* chan, Fcall* f, Fcall* r)
 {
-	char *aname;
+	int8_t *aname;
 	File *file;
 	Filsys *fs;
 	int error;
@@ -279,7 +279,7 @@ out:
 static int
 attach(Chan* chan, Fcall* f, Fcall* r)
 {
-	char *aname;
+	int8_t *aname;
 	Iobuf *p;
 	Dentry *d;
 	File *file;
@@ -399,7 +399,7 @@ clone(File* nfile, File* file)
 }
 
 static int
-walkname(File* file, char* wname, Qid* wqid)
+walkname(File* file, int8_t* wname, Qid* wqid)
 {
 	Wpath *w;
 	Iobuf *p, *p1;
@@ -998,7 +998,7 @@ out:
 }
 
 static int
-fs_read(Chan* chan, Fcall* f, Fcall* r, uchar* data)
+fs_read(Chan* chan, Fcall* f, Fcall* r, uint8_t* data)
 {
 	Iobuf *p, *p1;
 	File *file;
@@ -1034,7 +1034,7 @@ fs_read(Chan* chan, Fcall* f, Fcall* r, uchar* data)
 		goto out;
 	}
 	if(file->qid.type & QTAUTH){
-		nread = authread(file, (uchar*)data, count);
+		nread = authread(file, (uint8_t*)data, count);
 		if(nread < 0)
 			error = Eauth2;
 		goto out;
@@ -1190,7 +1190,7 @@ out:
 	if(file != nil)
 		qunlock(file);
 	r->count = nread;
-	r->data = (char*)data;
+	r->data = (int8_t*)data;
 
 	return error;
 }
@@ -1231,7 +1231,7 @@ fs_write(Chan* chan, Fcall* f, Fcall* r)
 	}
 
 	if(file->qid.type & QTAUTH){
-		nwrite = authwrite(file, (uchar*)f->data, count);
+		nwrite = authwrite(file, (uint8_t*)f->data, count);
 		if(nwrite < 0)
 			error = Eauth2;
 		goto out;
@@ -1356,7 +1356,7 @@ fs_remove(Chan* chan, Fcall* f, Fcall*)
 }
 
 static int
-fs_stat(Chan* chan, Fcall* f, Fcall* r, uchar* data)
+fs_stat(Chan* chan, Fcall* f, Fcall* r, uint8_t* data)
 {
 	Dir dir;
 	Iobuf *p;
@@ -1413,13 +1413,13 @@ out:
 }
 
 static int
-fs_wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
+fs_wstat(Chan* chan, Fcall* f, Fcall*, int8_t* strs)
 {
 	Iobuf *p, *p1;
 	Dentry *d, *d1;
 	File *file;
 	int error, err, gid, gl, muid, op, slot, tsync, uid;
-	long addr;
+	int32_t addr;
 	Dir dir;
 
 	if(convM2D(f->stat, f->nstat, &dir, strs) == 0)
@@ -1499,7 +1499,7 @@ fs_wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
 	 * if there are changes to the bits also encoded in .qid.type
 	 * then file->qid must be updated appropriately later.
 	 */
-	if(dir.qid.type == (uchar)~0){
+	if(dir.qid.type == (uint8_t)~0){
 		if(dir.mode == ~0)
 			dir.qid.type = mktype9p2(d->mode);
 		else
@@ -1735,7 +1735,7 @@ serve9p2(Msgbuf* mb)
 	Chan *chan;
 	Fcall f, r;
 	Msgbuf *data, *rmb;
-	char ename[64];
+	int8_t ename[64];
 	int error, n, type;
 	static int once;
 
@@ -1812,7 +1812,7 @@ print("didn't like %d byte message\n", mb->count);
 		break;
 	case Twstat:
 		data = mballoc(chan->msize, chan, Mbreply1);
-		error = fs_wstat(chan, &f, &r, (char*)data->data);
+		error = fs_wstat(chan, &f, &r, (int8_t*)data->data);
 		break;
 	}
 

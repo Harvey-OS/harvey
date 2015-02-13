@@ -18,18 +18,18 @@
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 int
-convPR2M(Passwordreq *f, char *ap, char *key)
+convPR2M(Passwordreq *f, int8_t *ap, int8_t *key)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(old, ANAMELEN);
 	STRING(new, ANAMELEN);
 	CHAR(changesecret);
 	STRING(secret, SECRETLEN);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	if(key)
 		encrypt(key, ap, n);
 	return n;

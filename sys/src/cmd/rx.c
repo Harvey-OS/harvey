@@ -14,17 +14,17 @@
 int	eof;		/* send an eof if true */
 int	crtonl;		/* convert all received \r to \n */
 int	returns;	/* strip \r on reception */
-char	*note = "die: yankee dog";
-char	*ruser;		/* for BSD authentication */
-char *key;
+int8_t	*note = "die: yankee dog";
+int8_t	*ruser;		/* for BSD authentication */
+int8_t *key;
 
-void	rex(int, char*, char*);
-void	tcpexec(int, char*, char*);
-int	call(char *, char*, char*, char**);
-char	*buildargs(char*[]);
+void	rex(int, int8_t*, int8_t*);
+void	tcpexec(int, int8_t*, int8_t*);
+int	call(int8_t *, int8_t*, int8_t*, int8_t**);
+int8_t	*buildargs(int8_t*[]);
 int	send(int);
-void	error(char*, char*);
-void	sshexec(char*, char*);
+void	error(int8_t*, int8_t*);
+void	sshexec(int8_t*, int8_t*);
 
 void
 usage(void)
@@ -34,7 +34,7 @@ usage(void)
 }
 
 static int
-catch(void *, char *s)
+catch(void *, int8_t *s)
 {
 	return strstr(s, "alarm") != nil;
 }
@@ -103,16 +103,16 @@ main(int argc, char *argv[])
 }
 
 int
-call(char *net, char *host, char *service, char **na)
+call(int8_t *net, int8_t *host, int8_t *service, int8_t **na)
 {
 	*na = netmkaddr(host, net, service);
 	return dial(*na, 0, 0, 0);
 }
 
 void
-rex(int fd, char *cmd, char *proto)
+rex(int fd, int8_t *cmd, int8_t *proto)
 {
-	char buf[4096];
+	int8_t buf[4096];
 	int kid, n, oalarm;
 	AuthInfo *ai;
 
@@ -136,9 +136,9 @@ rex(int fd, char *cmd, char *proto)
 }
 
 void
-tcpexec(int fd, char *addr, char *cmd)
+tcpexec(int fd, int8_t *addr, int8_t *cmd)
 {
-	char *cp, *ep, *u, *ru, buf[4096];
+	int8_t *cp, *ep, *u, *ru, buf[4096];
 	int kid, n;
 
 	/*
@@ -198,9 +198,9 @@ tcpexec(int fd, char *addr, char *cmd)
 }
 
 void
-sshexec(char *host, char *cmd)
+sshexec(int8_t *host, int8_t *cmd)
 {
-	char *argv[10];
+	int8_t *argv[10];
 	int n;
 
 	n = 0;
@@ -221,7 +221,7 @@ sshexec(char *host, char *cmd)
 int
 send(int fd)
 {
-	char buf[4096];
+	int8_t buf[4096];
 	int n;
 	int kid;
 	switch(kid = fork()){
@@ -243,7 +243,7 @@ send(int fd)
 }
 
 void
-error(char *s, char *z)
+error(int8_t *s, int8_t *z)
 {
 	if(z == 0)
 		fprint(2, "%s: %s: %r\n", argv0, s);
@@ -252,10 +252,10 @@ error(char *s, char *z)
 	exits(s);
 }
 
-char *
-buildargs(char *argv[])
+int8_t *
+buildargs(int8_t *argv[])
 {
-	char *args;
+	int8_t *args;
 	int m, n;
 
 	args = malloc(1);

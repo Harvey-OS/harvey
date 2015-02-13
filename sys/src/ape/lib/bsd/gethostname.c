@@ -15,10 +15,10 @@
 #include <string.h>
 
 int
-gethostname(char *name, int namelen)
+gethostname(int8_t *name, int namelen)
 {
 	int n, fd;
-	char buf[128];
+	int8_t buf[128];
 
 	fd = open("/dev/sysname", O_RDONLY);
 	if(fd < 0)

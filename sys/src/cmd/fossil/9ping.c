@@ -10,15 +10,15 @@
 #include <u.h>
 #include <libc.h>
 
-typedef uvlong u64int;
+typedef uint64_t u64int;
 
 #define TWID64	((u64int)~(u64int)0)
 
 
 u64int
-unittoull(char *s)
+unittoull(int8_t *s)
 {
-	char *es;
+	int8_t *es;
 	u64int n;
 
 	if(s == nil)

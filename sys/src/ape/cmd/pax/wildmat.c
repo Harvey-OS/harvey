@@ -54,8 +54,8 @@
  */
 
 #ifndef lint
-static char *ident = "$Id: wildmat.c,v 1.2 89/02/12 10:06:20 mark Exp $";
-static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static int8_t *ident = "$Id: wildmat.c,v 1.2 89/02/12 10:06:20 mark Exp $";
+static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -67,7 +67,7 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
 /* Function Prototypes */
 
 #ifdef __STDC__
-static int star(char *, char *);
+static int star(int8_t *, int8_t *);
 #else  /* !__STDC__ */
 static int      star();
 #endif /* __STDC__ */
@@ -99,7 +99,7 @@ static int      star();
 
 #ifdef __STDC__
 
-static int star(char *source, char *pattern)
+static int star(int8_t *source, int8_t *pattern)
 
 #else
 
@@ -144,7 +144,7 @@ char           *pattern;	/* regular expression to match */
 
 #ifdef __STDC__
 
-int wildmat(char *pattern, char *source)
+int wildmat(int8_t *pattern, int8_t *source)
 
 #else
 

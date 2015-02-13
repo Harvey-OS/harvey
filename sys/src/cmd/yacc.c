@@ -148,9 +148,9 @@ Biobuf*	foutput;	/* y.output file */
 
 	/* communication variables between various I/O routines */
 
-char*	infile;			/* input file name */
+int8_t*	infile;			/* input file name */
 int	numbval;		/* value of an input number */
-char	tokname[NAMESIZE+UTFmax+1]; /* input token name, slop for runes and 0 */
+int8_t	tokname[NAMESIZE+UTFmax+1]; /* input token name, slop for runes and 0 */
 
 	/* structure declarations */
 
@@ -170,7 +170,7 @@ struct
 typedef
 struct
 {
-	char*	name;
+	int8_t*	name;
 	int	value;
 } Symb;
 
@@ -184,20 +184,20 @@ struct
 
 	/* storage of names */
 
-char	cnames[CNAMSZ];		/* place where token and nonterminal names are stored */
+int8_t	cnames[CNAMSZ];		/* place where token and nonterminal names are stored */
 int	cnamsz = CNAMSZ;	/* size of cnames */
-char*	cnamp = cnames;		/* place where next name is to be put in */
+int8_t*	cnamp = cnames;		/* place where next name is to be put in */
 int	ndefout = 4;		/* number of defined symbols output */
-char*	tempname;
-char*	actname;
-char	ttempname[] = TEMPNAME;
-char	tactname[] = ACTNAME;
-char*	parser = PARSER;
-char*	yydebug;
+int8_t*	tempname;
+int8_t*	actname;
+int8_t	ttempname[] = TEMPNAME;
+int8_t	tactname[] = ACTNAME;
+int8_t*	parser = PARSER;
+int8_t*	yydebug;
 
 	/* storage of types */
 int	ntypes;			/* number of types defined */
-char*	typeset[NTYPES];	/* pointers to type tags */
+int8_t*	typeset[NTYPES];	/* pointers to type tags */
 
 	/* token information */
 
@@ -214,7 +214,7 @@ int	start;			/* start symbol */
 	/* assigned token type values */
 int	extval = 0;
 
-char*	ytabc = OFILE;	/* name of y.tab.c */
+int8_t*	ytabc = OFILE;	/* name of y.tab.c */
 
 	/* grammar rule information */
 
@@ -311,8 +311,8 @@ int	g2debug = 0;
 
 struct
 {
-	char*	name;
-	long	value;
+	int8_t*	name;
+	int32_t	value;
 } resrv[] =
 {
 	"binary",	BINARY,
@@ -330,13 +330,13 @@ struct
 
 	/* define functions */
 
-void	main(int, char**);
+void	main(int, int8_t**);
 void	others(void);
-char*	chcopy(char*, char*);
-char*	writem(int*);
-char*	symnam(int);
+int8_t*	chcopy(int8_t*, int8_t*);
+int8_t*	writem(int*);
+int8_t*	symnam(int);
 void	summary(void);
-void	error(char*, ...);
+void	error(int8_t*, ...);
 void	aryfil(int*, int, int);
 int	setunion(int*, int*);
 void	prlook(Lkset*);
@@ -350,19 +350,19 @@ void	closure(int);
 Lkset*	flset(Lkset*);
 void	cleantmp(void);
 void	intr(void);
-void	setup(int, char**);
+void	setup(int, int8_t**);
 void	finact(void);
-int	defin(int, char*);
+int	defin(int, int8_t*);
 void	defout(int);
-char*	cstash(char*);
-long	gettok(void);
+int8_t*	cstash(int8_t*);
+int32_t	gettok(void);
 int	fdtype(int);
-int	chfind(int, char*);
+int	chfind(int, int8_t*);
 void	cpyunion(void);
 void	cpycode(void);
 int	skipcom(void);
 void	cpyact(int);
-void	openup(char*, int, int, int, char*);
+void	openup(int8_t*, int, int, int, int8_t*);
 void	output(void);
 int	apack(int*, int);
 void	go2out(void);
@@ -370,7 +370,7 @@ void	go2gen(int);
 void	precftn(int, int, int);
 void	wract(int);
 void	wrstate(int);
-void	warray(char*, int*, int);
+void	warray(int8_t*, int*, int);
 void	hideprod(void);
 void	callopt(void);
 void	gin(int);
@@ -378,11 +378,11 @@ void	stin(int);
 int	nxti(void);
 void	osummary(void);
 void	aoutput(void);
-void	arout(char*, int*, int);
+void	arout(int8_t*, int*, int);
 int	gtnm(void);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 
 	setup(argc, argv);	/* initialize and read productions */
@@ -505,8 +505,8 @@ others(void)
 /*
  * copies string q into p, returning next free char ptr
  */
-char*
-chcopy(char* p, char* q)
+int8_t*
+chcopy(int8_t* p, int8_t* q)
 {
 	int c;
 
@@ -523,12 +523,12 @@ chcopy(char* p, char* q)
 /*
  * creates output string for item pointed to by pp
  */
-char*
+int8_t*
 writem(int *pp)
 {
 	int i,*p;
-	static char sarr[ISIZE];
-	char* q;
+	static int8_t sarr[ISIZE];
+	int8_t* q;
 
 	for(p=pp; *p>0; p++)
 		;
@@ -562,10 +562,10 @@ writem(int *pp)
 /*
  * return a pointer to the name of symbol i
  */
-char*
+int8_t*
 symnam(int i)
 {
-	char* cp;
+	int8_t* cp;
 
 	cp = (i >= NTBASE)? nontrst[i-NTBASE].name: tokset[i].name;
 	if(*cp == ' ')
@@ -621,7 +621,7 @@ summary(void)
  * write out error comment -- NEEDS WORK
  */
 void
-error(char *s, ...)
+error(int8_t *s, ...)
 {
 
 	nerrors++;
@@ -1536,7 +1536,7 @@ finact(void)
  * or a nonterminal if t=1
  */
 int
-defin(int nt, char *s)
+defin(int nt, int8_t *s)
 {
 	int val;
 	Rune rune;
@@ -1614,7 +1614,7 @@ void
 defout(int last)
 {
 	int i, c;
-	char sar[NAMESIZE+10];
+	int8_t sar[NAMESIZE+10];
 
 	for(i=ndefout; i<=ntokens; i++) {
 		/* non-literals */
@@ -1642,10 +1642,10 @@ defout(int last)
 	}
 }
 
-char*
-cstash(char *s)
+int8_t*
+cstash(int8_t *s)
 {
-	char *temp;
+	int8_t *temp;
 
 	temp = cnamp;
 	do {
@@ -1657,10 +1657,10 @@ cstash(char *s)
 	return temp;
 }
 
-long
+int32_t
 gettok(void)
 {
-	long c;
+	int32_t c;
 	Rune rune;
 	int i, base, match, reserve;
 	static int peekline;
@@ -1820,7 +1820,7 @@ fdtype(int t)
 }
 
 int
-chfind(int t, char *s)
+chfind(int t, int8_t *s)
 {
 	int i;
 
@@ -1845,7 +1845,7 @@ chfind(int t, char *s)
 void
 cpyunion(void)
 {
-	long c;
+	int32_t c;
 	int level;
 
 	Bprint(ftable, "\n#line\t%d\t\"%s\"\n", lineno, infile);
@@ -1888,7 +1888,7 @@ void
 cpycode(void)
 {
 
-	long c;
+	int32_t c;
 
 	c = Bgetrune(finput);
 	if(c == '\n') {
@@ -1922,7 +1922,7 @@ cpycode(void)
 int
 skipcom(void)
 {
-	long c;
+	int32_t c;
 	int i;
 
 	/* i is the number of lines skipped */
@@ -1953,7 +1953,7 @@ skipcom(void)
 void
 cpyact(int offset)
 {
-	long c;
+	int32_t c;
 	int brac, match, j, s, fnd, tok;
 
 	Bprint(faction, "\n#line\t%d\t\"%s\"\n", lineno, infile);
@@ -2127,9 +2127,9 @@ lcopy:
 }
 
 void
-openup(char *stem, int dflag, int vflag, int ytab, char *ytabc)
+openup(int8_t *stem, int dflag, int vflag, int ytab, int8_t *ytabc)
 {
-	char buf[256];
+	int8_t buf[256];
 
 	if(vflag) {
 		snprint(buf, sizeof buf, "%s.%s", stem, FILEU);
@@ -2575,7 +2575,7 @@ wrstate(int i)
 }
 
 void
-warray(char *s, int *v, int n)
+warray(int8_t *s, int *v, int n)
 {
 	int i;
 
@@ -2905,7 +2905,7 @@ aoutput(void)
 }
 
 void
-arout(char *s, int *v, int n)
+arout(int8_t *s, int *v, int n)
 {
 	int i;
 

@@ -15,10 +15,10 @@
 
 extern Biobuf bout;
 
-long
+int32_t
 SRcdpause(ScsiReq *rp, int resume)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdCDpause;
@@ -31,10 +31,10 @@ SRcdpause(ScsiReq *rp, int resume)
 	return SRrequest(rp);
 }
 
-long
+int32_t
 SRcdstop(ScsiReq *rp)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdCDstop;
@@ -46,10 +46,10 @@ SRcdstop(ScsiReq *rp)
 	return SRrequest(rp);
 }
 
-static long
-_SRcdplay(ScsiReq *rp, long lba, long length)
+static int32_t
+_SRcdplay(ScsiReq *rp, int32_t lba, int32_t length)
 {
-	uchar cmd[12];
+	uint8_t cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdCDplay;
@@ -72,15 +72,15 @@ _SRcdplay(ScsiReq *rp, long lba, long length)
 
 static struct {
 	int	trackno;
-	long	lba;
-	long	length;
+	int32_t	lba;
+	int32_t	length;
 } tracks[100];
 static int ntracks;
 
-long
-SRcdplay(ScsiReq *rp, int raw, long start, long length)
+int32_t
+SRcdplay(ScsiReq *rp, int raw, int32_t start, int32_t length)
 {
-	uchar d[100*8+4], *p;
+	uint8_t d[100*8+4], *p;
 	int lba, n, tdl;
 
 	if(raw || start == 0)
@@ -113,10 +113,10 @@ SRcdplay(ScsiReq *rp, int raw, long start, long length)
 	return -1;
 }
 
-long
+int32_t
 SRcdload(ScsiReq *rp, int load, int slot)
 {
-	uchar cmd[12];
+	uint8_t cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdCDload;
@@ -133,10 +133,10 @@ SRcdload(ScsiReq *rp, int load, int slot)
 	return SRrequest(rp);
 }
 
-long
-SRcdstatus(ScsiReq *rp, uchar *list, int nbytes)
+int32_t
+SRcdstatus(ScsiReq *rp, uint8_t *list, int nbytes)
 {
-	uchar cmd[12];
+	uint8_t cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdCDstatus;
@@ -150,10 +150,10 @@ SRcdstatus(ScsiReq *rp, uchar *list, int nbytes)
 	return SRrequest(rp);
 }
 
-long
-SRgetconf(ScsiReq *rp, uchar *list, int nbytes)
+int32_t
+SRgetconf(ScsiReq *rp, uint8_t *list, int nbytes)
 {
-	uchar cmd[10];
+	uint8_t cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = Scmdgetconf;

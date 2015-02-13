@@ -18,16 +18,16 @@
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 int
-convA2M(Authenticator *f, char *ap, char *key)
+convA2M(Authenticator *f, int8_t *ap, int8_t *key)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	LONG(id);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	if(key)
 		encrypt(key, ap, n);
 	return n;

@@ -16,18 +16,18 @@
 #include <bio.h>
 #include <mach.h>
 
-static	int	mget(Map*, uvlong, void*, int);
-static	int	mput(Map*, uvlong, void*, int);
-static	struct	segment*	reloc(Map*, uvlong, vlong*);
+static	int	mget(Map*, uint64_t, void*, int);
+static	int	mput(Map*, uint64_t, void*, int);
+static	struct	segment*	reloc(Map*, uint64_t, int64_t*);
 
 /*
  * routines to get/put various types
  */
 int
-geta(Map *map, uvlong addr, uvlong *x)
+geta(Map *map, uint64_t addr, uint64_t *x)
 {
-	ulong l;
-	uvlong vl;
+	uint32_t l;
+	uint64_t vl;
 
 	if (mach->szaddr == 8){
 		if (get8(map, addr, &vl) < 0)
@@ -44,7 +44,7 @@ geta(Map *map, uvlong addr, uvlong *x)
 }
 
 int
-get8(Map *map, uvlong addr, uvlong *x)
+get8(Map *map, uint64_t addr, uint64_t *x)
 {
 	if (!map) {
 		werrstr("get8: invalid map");
@@ -62,7 +62,7 @@ get8(Map *map, uvlong addr, uvlong *x)
 }
 
 int
-get4(Map *map, uvlong addr, ulong *x)
+get4(Map *map, uint64_t addr, uint32_t *x)
 {
 	if (!map) {
 		werrstr("get4: invalid map");
@@ -80,7 +80,7 @@ get4(Map *map, uvlong addr, ulong *x)
 }
 
 int
-get2(Map *map, uvlong addr, ushort *x)
+get2(Map *map, uint64_t addr, uint16_t *x)
 {
 	if (!map) {
 		werrstr("get2: invalid map");
@@ -98,9 +98,9 @@ get2(Map *map, uvlong addr, ushort *x)
 }
 
 int
-get1(Map *map, uvlong addr, uchar *x, int size)
+get1(Map *map, uint64_t addr, uint8_t *x, int size)
 {
-	uchar *cp;
+	uint8_t *cp;
 
 	if (!map) {
 		werrstr("get1: invalid map");
@@ -108,8 +108,8 @@ get1(Map *map, uvlong addr, uchar *x, int size)
 	}
 
 	if (map->nsegs == 1 && map->seg[0].fd < 0) {
-		cp = (uchar*)&addr;
-		while (cp < (uchar*)(&addr+1) && size-- > 0)
+		cp = (uint8_t*)&addr;
+		while (cp < (uint8_t*)(&addr+1) && size-- > 0)
 			*x++ = *cp++;
 		while (size-- > 0)
 			*x++ = 0;
@@ -119,7 +119,7 @@ get1(Map *map, uvlong addr, uchar *x, int size)
 }
 
 int
-puta(Map *map, uvlong addr, uvlong v)
+puta(Map *map, uint64_t addr, uint64_t v)
 {
 	if (mach->szaddr == 8)
 		return put8(map, addr, v);
@@ -128,7 +128,7 @@ puta(Map *map, uvlong addr, uvlong v)
 }
 
 int
-put8(Map *map, uvlong addr, uvlong v)
+put8(Map *map, uint64_t addr, uint64_t v)
 {
 	if (!map) {
 		werrstr("put8: invalid map");
@@ -139,7 +139,7 @@ put8(Map *map, uvlong addr, uvlong v)
 }
 
 int
-put4(Map *map, uvlong addr, ulong v)
+put4(Map *map, uint64_t addr, uint32_t v)
 {
 	if (!map) {
 		werrstr("put4: invalid map");
@@ -150,7 +150,7 @@ put4(Map *map, uvlong addr, ulong v)
 }
 
 int
-put2(Map *map, uvlong addr, ushort v)
+put2(Map *map, uint64_t addr, uint16_t v)
 {
 	if (!map) {
 		werrstr("put2: invalid map");
@@ -161,7 +161,7 @@ put2(Map *map, uvlong addr, ushort v)
 }
 
 int
-put1(Map *map, uvlong addr, uchar *v, int size)
+put1(Map *map, uint64_t addr, uint8_t *v, int size)
 {
 	if (!map) {
 		werrstr("put1: invalid map");
@@ -171,14 +171,14 @@ put1(Map *map, uvlong addr, uchar *v, int size)
 }
 
 static int
-spread(struct segment *s, void *buf, int n, uvlong off)
+spread(struct segment *s, void *buf, int n, uint64_t off)
 {
-	uvlong base;
+	uint64_t base;
 
 	static struct {
 		struct segment *s;
-		char a[8192];
-		uvlong off;
+		int8_t a[8192];
+		uint64_t off;
 	} cache;
 
 	if(s->cache){
@@ -204,13 +204,13 @@ spread(struct segment *s, void *buf, int n, uvlong off)
 }
 
 static int
-mget(Map *map, uvlong addr, void *buf, int size)
+mget(Map *map, uint64_t addr, void *buf, int size)
 {
-	uvlong off;
+	uint64_t off;
 	int i, j, k;
 	struct segment *s;
 
-	s = reloc(map, addr, (vlong*)&off);
+	s = reloc(map, addr, (int64_t*)&off);
 	if (!s)
 		return -1;
 	if (s->fd < 0) {
@@ -218,7 +218,7 @@ mget(Map *map, uvlong addr, void *buf, int size)
 		return -1;
 	}
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
-		k = spread(s, (void*)((uchar *)buf+j), size-j, off+j);
+		k = spread(s, (void*)((uint8_t *)buf+j), size-j, off+j);
 		if (k < 0) {
 			werrstr("can't read address %llux: %r", addr);
 			return -1;
@@ -232,9 +232,9 @@ mget(Map *map, uvlong addr, void *buf, int size)
 }
 
 static int
-mput(Map *map, uvlong addr, void *buf, int size)
+mput(Map *map, uint64_t addr, void *buf, int size)
 {
-	vlong off;
+	int64_t off;
 	int i, j, k;
 	struct segment *s;
 
@@ -265,7 +265,7 @@ mput(Map *map, uvlong addr, void *buf, int size)
  *	convert address to file offset; returns nonzero if ok
  */
 static struct segment*
-reloc(Map *map, uvlong addr, vlong *offp)
+reloc(Map *map, uint64_t addr, int64_t *offp)
 {
 	int i;
 

@@ -28,7 +28,7 @@
 #include <time.h>
 #ifdef PC
 #include <io.h>
-extern int unlink(const char *);
+extern int unlink(const int8_t *);
 #else
 #include <unistd.h>
 #endif
@@ -37,10 +37,10 @@ extern int unlink(const char *);
 extern int	DstepStart, lineno, tl_terse;
 extern FILE	*yyin, *yyout, *tl_out;
 extern Symbol	*context;
-extern char	*claimproc;
+extern int8_t	*claimproc;
 extern void	repro_src(void);
 extern void	qhide(int);
-extern char	CurScope[MAXSCOPESZ];
+extern int8_t	CurScope[MAXSCOPESZ];
 
 Symbol	*Fname, *oFname;
 
@@ -74,19 +74,19 @@ meaning of flags on verbose:
 	64	-w very verbose
 #endif
 
-static char	Operator[] = "operator: ";
-static char	Keyword[]  = "keyword: ";
-static char	Function[] = "function-name: ";
-static char	**add_ltl  = (char **) 0;
-static char	**ltl_file = (char **) 0;
-static char	**nvr_file = (char **) 0;
-static char	*ltl_claims = (char *) 0;
+static int8_t	Operator[] = "operator: ";
+static int8_t	Keyword[]  = "keyword: ";
+static int8_t	Function[] = "function-name: ";
+static int8_t	**add_ltl  = (int8_t **) 0;
+static int8_t	**ltl_file = (int8_t **) 0;
+static int8_t	**nvr_file = (int8_t **) 0;
+static int8_t	*ltl_claims = (int8_t *) 0;
 static FILE	*fd_ltl = (FILE *) 0;
-static char	*PreArg[64];
+static int8_t	*PreArg[64];
 static int	PreCnt = 0;
-static char	out1[64];
+static int8_t	out1[64];
 
-char	**trailfilename;	/* new option 'k' */
+int8_t	**trailfilename;	/* new option 'k' */
 
 void	explain(int);
 
@@ -115,7 +115,7 @@ void	explain(int);
 	#endif
 #endif
 
-static char	*PreProc = CPP;
+static int8_t	*PreProc = CPP;
 extern int	depth; /* at least some steps were made */
 
 void
@@ -123,7 +123,7 @@ alldone(int estatus)
 {
 	if (preprocessonly == 0
 	&&  strlen(out1) > 0)
-		(void) unlink((const char *)out1);
+		(void) unlink((const int8_t *)out1);
 
 	if (seedy && !analyze && !export_ast
 	&& !s_trail && !preprocessonly && depth > 0)
@@ -140,14 +140,14 @@ alldone(int estatus)
 }
 
 void
-preprocess(char *a, char *b, int a_tmp)
-{	char precmd[1024], cmd[2048]; int i;
+preprocess(int8_t *a, int8_t *b, int a_tmp)
+{	int8_t precmd[1024], cmd[2048]; int i;
 #if defined(WIN32) || defined(WIN64)
 	struct _stat x;
 /*	struct stat x;	*/
 #endif
 #ifdef PC
-	extern int try_zpp(char *, char *);
+	extern int try_zpp(int8_t *, int8_t *);
 	if (PreCnt == 0 && try_zpp(a, b))
 	{	goto out;
 	}
@@ -172,16 +172,16 @@ preprocess(char *a, char *b, int a_tmp)
 		alldone(1);
 	}
 	sprintf(cmd, "%s %s > %s", precmd, a, b);
-	if (system((const char *)cmd))
-	{	(void) unlink((const char *) b);
-		if (a_tmp) (void) unlink((const char *) a);
+	if (system((const int8_t *)cmd))
+	{	(void) unlink((const int8_t *) b);
+		if (a_tmp) (void) unlink((const int8_t *) a);
 		fprintf(stdout, "spin: preprocessing failed\n");	/* 4.1.2 was stderr */
 		alldone(1); /* no return, error exit */
 	}
 #ifdef PC
 out:
 #endif
-	if (a_tmp) (void) unlink((const char *) a);
+	if (a_tmp) (void) unlink((const int8_t *) a);
 }
 
 void
@@ -286,7 +286,7 @@ optimizations(int nr)
 }
 
 int
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {	Symbol *s;
 	int T = (int) time((time_t *)0);
 	int usedopts = 0;
@@ -309,15 +309,15 @@ main(int argc, char *argv[])
 		case 'b': no_print = 1; break;
 		case 'C': Caccess = 1; break;
 		case 'c': columns = 1; break;
-		case 'D': PreArg[++PreCnt] = (char *) &argv[1][0];
+		case 'D': PreArg[++PreCnt] = (int8_t *) &argv[1][0];
 			  break;	/* define */
 		case 'd': dumptab =  1; break;
-		case 'E': PreArg[++PreCnt] = (char *) &argv[1][2];
+		case 'E': PreArg[++PreCnt] = (int8_t *) &argv[1][2];
 			  break;
 		case 'e': product++; break; /* see also 'L' */
-		case 'F': ltl_file = (char **) (argv+2);
+		case 'F': ltl_file = (int8_t **) (argv+2);
 			  argc--; argv++; break;
-		case 'f': add_ltl = (char **) argv;
+		case 'f': add_ltl = (int8_t **) argv;
 			  argc--; argv++; break;
 		case 'g': verbose +=  1; break;
 		case 'h': seedy = 1; break;
@@ -326,19 +326,19 @@ main(int argc, char *argv[])
 		case 'J': like_java = 1; break;
 		case 'j': jumpsteps = atoi(&argv[1][2]); break;
 		case 'k': s_trail = 1;
-			  trailfilename = (char **) (argv+2);
+			  trailfilename = (int8_t **) (argv+2);
 			  argc--; argv++; break;
 		case 'L': Strict++; break; /* modified -e */
 		case 'l': verbose +=  2; break;
 		case 'M': columns = 2; break;
 		case 'm': m_loss   =  1; break;
-		case 'N': nvr_file = (char **) (argv+2);
+		case 'N': nvr_file = (int8_t **) (argv+2);
 			  argc--; argv++; break;
 		case 'n': T = atoi(&argv[1][2]); tl_terse = 1; break;
 		case 'O': old_scope_rules = 1; break;
 		case 'o': optimizations(argv[1][2]);
 			  usedopts = 1; break;
-		case 'P': PreProc = (char *) &argv[1][2]; break;
+		case 'P': PreProc = (int8_t *) &argv[1][2]; break;
 		case 'p': verbose +=  4; break;
 		case 'q': if (isdigit((int) argv[1][2]))
 				qhide(atoi(&argv[1][2]));
@@ -350,7 +350,7 @@ main(int argc, char *argv[])
 			  if (isdigit((int)argv[1][2]))
 				ntrail = atoi(&argv[1][2]);
 			  break;
-		case 'U': PreArg[++PreCnt] = (char *) &argv[1][0];
+		case 'U': PreArg[++PreCnt] = (int8_t *) &argv[1][0];
 			  break;	/* undefine */
 		case 'u': cutoff = atoi(&argv[1][2]); break;	/* new 3.4.14 */
 		case 'v': verbose += 32; break;
@@ -378,7 +378,7 @@ main(int argc, char *argv[])
 		printf("spin: warning -o[123] option ignored in simulations\n");
 
 	if (ltl_file)
-	{	char formula[4096];
+	{	int8_t formula[4096];
 		add_ltl = ltl_file-2; add_ltl[1][1] = 'f';
 		if (!(tl_out = fopen(*ltl_file, "r")))
 		{	printf("spin: cannot open %s\n", *ltl_file);
@@ -389,11 +389,11 @@ main(int argc, char *argv[])
 		}
 		fclose(tl_out);
 		tl_out = stdout;
-		*ltl_file = (char *) formula;
+		*ltl_file = (int8_t *) formula;
 	}
 	if (argc > 1)
 	{	FILE *fd = stdout;
-		char cmd[512], out2[512];
+		int8_t cmd[512], out2[512];
 
 		/* must remain in current dir */
 		strcpy(out1, "pan.pre");
@@ -510,7 +510,7 @@ main(int argc, char *argv[])
 }
 
 void
-ltl_list(char *nm, char *fm)
+ltl_list(int8_t *nm, int8_t *fm)
 {
 	if (analyze || dumptab)	/* when generating pan.c only */
 	{	if (!ltl_claims)
@@ -521,11 +521,11 @@ ltl_list(char *nm, char *fm)
 			tl_out = fd_ltl;
 		}
 
-		add_ltl = (char **) emalloc(5 * sizeof(char *));
+		add_ltl = (int8_t **) emalloc(5 * sizeof(int8_t *));
 		add_ltl[1] = "-c";
 		add_ltl[2] = nm;
 		add_ltl[3] = "-f";
-		add_ltl[4] = (char *) emalloc(strlen(fm)+4);
+		add_ltl[4] = (int8_t *) emalloc(strlen(fm)+4);
 		strcpy(add_ltl[4], "!(");
 		strcat(add_ltl[4], fm);
 		strcat(add_ltl[4], ")");
@@ -545,8 +545,8 @@ yywrap(void)	/* dummy routine */
 }
 
 void
-non_fatal(char *s1, char *s2)
-{	extern char yytext[];
+non_fatal(int8_t *s1, int8_t *s2)
+{	extern int8_t yytext[];
 
 	printf("spin: %s:%d, Error: ",
 		oFname?oFname->name:"nofilename", lineno);
@@ -561,7 +561,7 @@ non_fatal(char *s1, char *s2)
 }
 
 void
-fatal(char *s1, char *s2)
+fatal(int8_t *s1, int8_t *s2)
 {
 	non_fatal(s1, s2);
 	(void) unlink("pan.b");
@@ -573,18 +573,18 @@ fatal(char *s1, char *s2)
 	alldone(1);
 }
 
-char *
+int8_t *
 emalloc(size_t n)
-{	char *tmp;
+{	int8_t *tmp;
 	static unsigned long cnt = 0;
 
 	if (n == 0)
 		return NULL;	/* robert shelton 10/20/06 */
 
-	if (!(tmp = (char *) malloc(n)))
+	if (!(tmp = (int8_t *) malloc(n)))
 	{	printf("spin: allocated %ld Gb, wanted %d bytes more\n",
 			cnt/(1024*1024*1024), (int) n);
-		fatal("not enough memory", (char *)0);
+		fatal("not enough memory", (int8_t *)0);
 	}
 	cnt += (unsigned long) n;
 	memset(tmp, 0, n);
@@ -594,7 +594,7 @@ emalloc(size_t n)
 void
 trapwonly(Lextok *n /* , char *unused */)
 {	extern int realread;
-	short i = (n->sym)?n->sym->type:0;
+	int16_t i = (n->sym)?n->sym->type:0;
 
 	if (i != MTYPE
 	&&  i != BIT
@@ -634,7 +634,7 @@ nn(Lextok *s, int t, Lextok *ll, Lextok *rl)
 	static int warn_nn = 0;
 
 	n->uiid = is_inline();	/* record origin of the statement */
-	n->ntyp = (short) t;
+	n->ntyp = (int16_t) t;
 	if (s && s->fn)
 	{	n->ln = s->ln;
 		n->fn = s->fn;
@@ -669,7 +669,7 @@ nn(Lextok *s, int t, Lextok *ll, Lextok *rl)
 			printf("spin: Warning, never claim has side-effect\n");
 			break;
 		case 'r': case 's':
-			non_fatal("never claim contains i/o stmnts",(char *)0);
+			non_fatal("never claim contains i/o stmnts",(int8_t *)0);
 			break;
 		case TIMEOUT:
 			/* never claim polls timeout */
@@ -698,14 +698,15 @@ nn(Lextok *s, int t, Lextok *ll, Lextok *rl)
 		}
 		if (forbidden)
 		{	printf("spin: never, saw "); explain(t); printf("\n");
-			fatal("incompatible with separate compilation",(char *)0);
+			fatal("incompatible with separate compilation",(int8_t *)0);
 		}
 	} else if ((t == ENABLED || t == PC_VAL) && !(warn_nn&t))
 	{	printf("spin: Warning, using %s outside never claim\n",
 			(t == ENABLED)?"enabled()":"pc_value()");
 		warn_nn |= t;
 	} else if (t == NONPROGRESS)
-	{	fatal("spin: Error, using np_ outside never claim\n", (char *)0);
+	{	fatal("spin: Error, using np_ outside never claim\n",
+		       (int8_t *)0);
 	}
 	return n;
 }

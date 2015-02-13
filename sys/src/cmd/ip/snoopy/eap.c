@@ -16,11 +16,11 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uchar	code;
-	uchar	id;
-	uchar	len[2];	/* length including this header */
+	uint8_t	code;
+	uint8_t	id;
+	uint8_t	len[2];	/* length including this header */
 
-	uchar	tp;	/* optional, only for Request/Response */
+	uint8_t	tp;	/* optional, only for Request/Response */
 };
 
 enum
@@ -127,10 +127,10 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static char*
+static int8_t*
 op(int i)
 {
-	static char x[20];
+	static int8_t x[20];
 
 	switch(i){
 	case Request:
@@ -147,10 +147,10 @@ op(int i)
 	}
 }
 
-static char*
-subop(uchar val)
+static int8_t*
+subop(uint8_t val)
 {
-	static char x[20], *p;
+	static int8_t x[20], *p;
 
 	p = eapsubtype[val];
 	if(p != nil)
@@ -166,7 +166,7 @@ p_seprint(Msg *m)
 {
 	Hdr *h;
 	int len;
-	char *p, *e;
+	int8_t *p, *e;
 
 	if(m->pe - m->ps < EAPHDR)
 		return -1;
@@ -204,12 +204,12 @@ p_seprint(Msg *m)
 static int
 p_seprintidentity(Msg *m)
 {
-	char *ps, *pe, *z;
+	int8_t *ps, *pe, *z;
 	int len;
 
 	m->pr = nil;
-	ps = (char*)m->ps;
-	pe = (char*)m->pe;
+	ps = (int8_t*)m->ps;
+	pe = (int8_t*)m->pe;
 
 	/* we would like to do this depending on the 'context':
 	 *  - one for eap_identity request and

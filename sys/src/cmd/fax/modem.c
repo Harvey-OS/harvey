@@ -14,8 +14,8 @@
 #include "modem.h"
 
 typedef struct {
-	char	*terse;
-	char	*verbose;
+	int8_t	*terse;
+	int8_t	*verbose;
 	int	result;
 	int	(*f)(Modem*);
 } ResultCode;
@@ -49,7 +49,7 @@ static ResultCode results[] = {
 };
 
 void
-initmodem(Modem *m, int fd, int cfd, char *type, char *id)
+initmodem(Modem *m, int fd, int cfd, int8_t *type, int8_t *id)
 {
 	m->fd = fd;
 	m->cfd = cfd;
@@ -60,7 +60,7 @@ initmodem(Modem *m, int fd, int cfd, char *type, char *id)
 }
 
 int
-rawmchar(Modem *m, char *p)
+rawmchar(Modem *m, int8_t *p)
 {
 	Dir *d;
 	int n;
@@ -99,7 +99,7 @@ rawmchar(Modem *m, char *p)
 }
 
 int
-getmchar(Modem *m, char *buf, long timeout)
+getmchar(Modem *m, int8_t *buf, int32_t timeout)
 {
 	int r, t;
 
@@ -124,7 +124,7 @@ getmchar(Modem *m, char *buf, long timeout)
 }
 
 int
-putmchar(Modem *m, char *p)
+putmchar(Modem *m, int8_t *p)
 {
 	if(write(m->fd, p, 1) < 0)
 		return seterror(m, Esys);
@@ -135,11 +135,11 @@ putmchar(Modem *m, char *p)
  *  lines terminate with cr-lf
  */
 static int
-getmline(Modem *m, char *buf, int len, long timeout)
+getmline(Modem *m, int8_t *buf, int len, int32_t timeout)
 {
 	int r, t;
-	char *e = buf+len-1;
-	char last = 0;
+	int8_t *e = buf+len-1;
+	int8_t last = 0;
 
 	timeout += time(0);
 	while((t = time(0)) <= timeout){
@@ -181,7 +181,7 @@ getmline(Modem *m, char *buf, int len, long timeout)
 }
 
 int
-command(Modem *m, char *s)
+command(Modem *m, int8_t *s)
 {
 	verbose("m->: %s", s);
 	if(fprint(m->fd, "%s\r", s) < 0)
@@ -221,7 +221,7 @@ response(Modem *m, int timeout)
 void
 xonoff(Modem *m, int i)
 {
-	char buf[8];
+	int8_t buf[8];
 
 	sprint(buf, "x%d", i);
 	i = strlen(buf);

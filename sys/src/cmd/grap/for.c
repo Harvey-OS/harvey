@@ -17,7 +17,7 @@ typedef struct {
 	double	to;	/* limit */
 	double	by;
 	int	op;	/* operator */
-	char	*str;	/* string to push back */
+	int8_t	*str;	/* string to push back */
 } For;
 
 #define	MAXFOR	10
@@ -25,7 +25,7 @@ typedef struct {
 For	forstk[MAXFOR];	/* stack of for loops */
 For	*forp = forstk;	/* pointer to current top */
 
-void forloop(Obj *var, double from, double to, int op, double by, char *str)	/* set up a for loop */
+void forloop(Obj *var, double from, double to, int op, double by, int8_t *str)	/* set up a for loop */
 {
 	fprintf(tfd, "# for %s from %g to %g by %c %g \n",
 		var->name, from, to, op, by);
@@ -74,7 +74,7 @@ void endfor(void)	/* end one iteration of for loop */
 	nextfor();
 }
 
-char *ifstat(double expr, char *thenpart, char *elsepart)
+int8_t *ifstat(double expr, int8_t *thenpart, int8_t *elsepart)
 {
 	dprintf("if %g then <%s> else <%s>\n", expr, thenpart, elsepart? elsepart : "");
 	if (expr) {

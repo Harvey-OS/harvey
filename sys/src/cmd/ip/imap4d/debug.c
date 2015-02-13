@@ -14,7 +14,7 @@
 #include "imap4d.h"
 
 void
-debuglog(char *fmt, ...)
+debuglog(int8_t *fmt, ...)
 {
 	va_list arg;
 	static int logfd;
@@ -35,7 +35,7 @@ void
 boxVerify(Box *box)
 {
 	Msg *m;
-	ulong seq, uid, recent;
+	uint32_t seq, uid, recent;
 
 	if(box == nil)
 		return;
@@ -82,7 +82,7 @@ openfiles(void)
 }
 
 void
-ls(char *file)
+ls(int8_t *file)
 {
 	Dir *d;
 	int fd, i, nd;

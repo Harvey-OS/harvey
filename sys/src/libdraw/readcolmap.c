@@ -12,11 +12,11 @@
 #include <draw.h>
 #include <bio.h>
 
-static ulong
-getval(char **p)
+static uint32_t
+getval(int8_t **p)
 {
-	ulong v;
-	char *q;
+	uint32_t v;
+	int8_t *q;
 
 	v = strtoul(*p, &q, 0);
 	v |= v<<8;
@@ -29,9 +29,9 @@ void
 readcolmap(Display *d, RGB *colmap)
 {
 	int i;
-	char *p, *q;
+	int8_t *p, *q;
 	Biobuf *b;
-	char buf[128];
+	int8_t buf[128];
 
 	USED(screen);
 

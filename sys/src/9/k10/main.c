@@ -36,18 +36,18 @@ usize sizeofSys = sizeof(Sys);
  * set it all up.
  */
 static int oargc;
-static char* oargv[20];
-static char oargb[128];
+static int8_t* oargv[20];
+static int8_t oargb[128];
 static int oargblen;
 
 static int maxcores = 1024;	/* max # of cores given as an argument */
 static int numtcs = 32;		/* initial # of TCs */
 
-char dbgflg[256];
+int8_t dbgflg[256];
 static int vflag = 0;
 
 void
-optionsinit(char* s)
+optionsinit(int8_t* s)
 {
 	oargblen = strecpy(oargb, oargb+sizeof(oargb), s) - oargb;
 	oargc = tokenize(oargb, oargv, nelem(oargv)-1);
@@ -55,9 +55,9 @@ optionsinit(char* s)
 }
 
 static void
-options(int argc, char* argv[])
+options(int argc, int8_t* argv[])
 {
-	char *p;
+	int8_t *p;
 	int n, o;
 
 	/*
@@ -94,7 +94,7 @@ options(int argc, char* argv[])
 void
 squidboy(int apicno)
 {
-	vlong hz;
+	int64_t hz;
 
 	sys->machptr[m->machno] = m;
 	/*
@@ -200,7 +200,7 @@ nixsquids(void)
 {
 	Mach *mp;
 	int i;
-	uvlong now, start;
+	uint64_t now, start;
 
 	for(i = 1; i < MACHMAX; i++)
 		if((mp = sys->machptr[i]) != nil && mp->online){
@@ -253,7 +253,7 @@ HERE(void)
 void
 main(u32int ax, u32int bx)
 {
-	vlong hz;
+	int64_t hz;
 
 	memset(edata, 0, end - edata);
 
@@ -369,7 +369,7 @@ print("schedinit...\n");
 void
 init0(void)
 {
-	char buf[2*KNAMELEN];
+	int8_t buf[2*KNAMELEN];
 
 	up->nerrlab = 0;
 
@@ -408,8 +408,8 @@ void
 bootargs(uintptr base)
 {
 	int i;
-	ulong ssize;
-	char **av, *p;
+	uint32_t ssize;
+	int8_t **av, *p;
 
 	/*
 	 * Push the boot args onto the stack.
@@ -430,9 +430,9 @@ bootargs(uintptr base)
 	 * not the usual (int argc, char* argv[]), but argv0 is
 	 * unused so it doesn't matter (at the moment...).
 	 */
-	av = (char**)(p - (oargc+2)*sizeof(char*));
+	av = (int8_t**)(p - (oargc+2)*sizeof(int8_t*));
 	ssize = base + BIGPGSZ - PTR2UINT(av);
-	*av++ = (char*)oargc;
+	*av++ = (int8_t*)oargc;
 	for(i = 0; i < oargc; i++)
 		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BIGPGSZ);
 	*av = nil;
@@ -555,7 +555,7 @@ shutdown(int ispanic)
 }
 
 void
-reboot(void*, void*, long)
+reboot(void*, void*, int32_t)
 {
 	panic("reboot\n");
 }

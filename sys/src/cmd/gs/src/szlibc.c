@@ -122,7 +122,7 @@ s_zlib_free(void *zmem, void *data)
     gs_free_object(mem, data, "s_zlib_free(data)");
     for (; ; block = block->next) {
 	if (block == 0) {
-	    lprintf1("Freeing unrecorded data 0x%lx!\n", (ulong)data);
+	    lprintf1("Freeing unrecorded data 0x%lx!\n", (uint32_t)data);
 	    return;
 	}
 	if (block->data == data)

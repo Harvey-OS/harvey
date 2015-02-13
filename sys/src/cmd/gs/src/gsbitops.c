@@ -327,7 +327,7 @@ void
 bits_bounding_box(const byte * data, uint height, uint raster,
 		  gs_int_rect * pbox)
 {
-    register const ulong *lp;
+    register const uint32_t *lp;
     static const byte first_1[16] = {
 	4, 3, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0
     };
@@ -339,7 +339,7 @@ bits_bounding_box(const byte * data, uint height, uint raster,
     /* Since the raster is a multiple of sizeof(long), */
     /* we don't need to scan by bytes, only by longs. */
 
-    lp = (const ulong *)(data + raster * height);
+    lp = (const uint32_t *)(data + raster * height);
     while ((const byte *)lp > data && !lp[-1])
 	--lp;
     if ((const byte *)lp == data) {
@@ -350,7 +350,7 @@ bits_bounding_box(const byte * data, uint height, uint raster,
 
     /* Count leading blank rows. */
 
-    lp = (const ulong *)data;
+    lp = (const uint32_t *)data;
     while (!*lp)
 	++lp;
     {
@@ -367,12 +367,12 @@ bits_bounding_box(const byte * data, uint height, uint raster,
     {
 	uint raster_longs = raster >> arch_log2_sizeof_long;
 	uint left = raster_longs - 1, right = 0;
-	ulong llong = 0, rlong = 0;
+	uint32_t llong = 0, rlong = 0;
 	const byte *q;
 	uint h, n;
 
 	for (q = data, h = height; h-- > 0; q += raster) {	/* Work from the left edge by longs. */
-	    for (lp = (const ulong *)q, n = 0;
+	    for (lp = (const uint32_t *)q, n = 0;
 		 n < left && !*lp; lp++, n++
 		);
 	    if (n < left)
@@ -380,7 +380,7 @@ bits_bounding_box(const byte * data, uint height, uint raster,
 	    else
 		llong |= *lp;
 	    /* Work from the right edge by longs. */
-	    for (lp = (const ulong *)(q + raster - sizeof(long)),
+	    for (lp = (const uint32_t *)(q + raster - sizeof(int32_t)),
 		 n = raster_longs - 1;
 
 		 n > right && !*lp; lp--, n--

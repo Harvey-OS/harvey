@@ -24,17 +24,17 @@
 #define arrayLength(A) ((sizeof A)/ (sizeof A[0]))
 
 FILE *infile;
-char *fname;
+int8_t *fname;
 
 /* Routines to print error messages of varying severity */
 
 /* externally visible variables */
 int   warncnt;
-char *myname;
+int8_t *myname;
 
-void getname (char *arg) {
+void getname (int8_t *arg) {
 	/* Save name of invoking program for use by error routines */
-	register char *p;
+	register int8_t *p;
 	p = strrchr (arg, '/');
 	if (p == NULL)
 		myname = arg;
@@ -49,7 +49,7 @@ static void introduction (void) {
 		fprintf (stderr, "%s: ", myname);
 }
 
-void warn (char *fmt, ...) {
+void warn (int8_t *fmt, ...) {
 	va_list args;
 	introduction ();
 	va_start (args, fmt);
@@ -59,7 +59,7 @@ void warn (char *fmt, ...) {
 	fflush (stderr);
 }
 
-void quit (char *fmt, ...) {
+void quit (int8_t *fmt, ...) {
 	va_list args;
 	introduction ();
 	va_start (args, fmt);
@@ -70,7 +70,7 @@ void quit (char *fmt, ...) {
 	exit (1);
 }
 
-void fatal (char *fmt, ...) {
+void fatal (int8_t *fmt, ...) {
 	va_list args;
 	introduction ();
 	va_start (args, fmt);
@@ -106,7 +106,7 @@ void eatmarker (int kind) {
 		get1();
 }
 
-char *sofName[16] = {
+int8_t *sofName[16] = {
 	"Baseline sequential DCT - Huffman coding",
 	"Extended sequential DCT - Huffman coding",
 	"Progressive DCT - Huffman coding",
@@ -156,7 +156,7 @@ void get_com (int kind) {
 
 void get_app (int kind) {
 	int l, c, first;
-	char buf[6];
+	int8_t buf[6];
 	int nbuf, nok;
 	l = get2();
 	printf ("APP%d len=%d\n", kind - 0xe0, l);

@@ -30,7 +30,7 @@ prasm(Prog *p)
 int
 Pconv(Fmt *fp)
 {
-	char str[STRINGSZ], *s;
+	int8_t str[STRINGSZ], *s;
 	Prog *p;
 	int a;
 
@@ -72,7 +72,7 @@ Pconv(Fmt *fp)
 int
 Aconv(Fmt *fp)
 {
-	char *s;
+	int8_t *s;
 	int a;
 
 	a = va_arg(fp->args, int);
@@ -82,7 +82,7 @@ Aconv(Fmt *fp)
 	return fmtstrcpy(fp, s);
 }
 
-char*	strcond[16] =
+int8_t*	strcond[16] =
 {
 	".EQ",
 	".NE",
@@ -105,7 +105,7 @@ char*	strcond[16] =
 int
 Cconv(Fmt *fp)
 {
-	char s[20];
+	int8_t s[20];
 	int c;
 
 	c = va_arg(fp->args, int);
@@ -124,10 +124,10 @@ Cconv(Fmt *fp)
 int
 Dconv(Fmt *fp)
 {
-	char str[STRINGSZ];
-	char *op;
+	int8_t str[STRINGSZ];
+	int8_t *op;
 	Adr *a;
-	long v;
+	int32_t v;
 
 	a = va_arg(fp->args, Adr*);
 	switch(a->type) {
@@ -252,7 +252,7 @@ Dconv(Fmt *fp)
 int
 Nconv(Fmt *fp)
 {
-	char str[STRINGSZ];
+	int8_t str[STRINGSZ];
 	Adr *a;
 	Sym *s;
 
@@ -302,11 +302,11 @@ int
 Sconv(Fmt *fp)
 {
 	int i, c;
-	char str[STRINGSZ], *p, *a;
+	int8_t str[STRINGSZ], *p, *a;
 
-	a = va_arg(fp->args, char*);
+	a = va_arg(fp->args, int8_t*);
 	p = str;
-	for(i=0; i<sizeof(long); i++) {
+	for(i=0; i<sizeof(int32_t); i++) {
 		c = a[i] & 0xff;
 		if(c >= 'a' && c <= 'z' ||
 		   c >= 'A' && c <= 'Z' ||
@@ -340,9 +340,9 @@ Sconv(Fmt *fp)
 }
 
 void
-diag(char *fmt, ...)
+diag(int8_t *fmt, ...)
 {
-	char buf[STRINGSZ], *tn;
+	int8_t buf[STRINGSZ], *tn;
 	va_list arg;
 
 	tn = "??none??";

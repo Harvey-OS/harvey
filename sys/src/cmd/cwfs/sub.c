@@ -15,7 +15,7 @@ enum {
 };
 
 Filsys*
-fsstr(char *p)
+fsstr(int8_t *p)
 {
 	Filsys *fs;
 
@@ -43,7 +43,7 @@ dev2fs(Device *dev)
 Chan*
 fs_chaninit(int type, int count, int data)
 {
-	uchar *p;
+	uint8_t *p;
 	Chan *cp, *icp;
 	int i;
 
@@ -111,13 +111,13 @@ loop:
 	unlock(&flock);
 }
 
-enum { NOFID = (ulong)~0 };
+enum { NOFID = (uint32_t)~0 };
 
 /*
  * returns a locked file structure
  */
 File*
-filep(Chan *cp, ulong fid, int flag)
+filep(Chan *cp, uint32_t fid, int flag)
 {
 	File *f;
 	int h;
@@ -125,7 +125,7 @@ filep(Chan *cp, ulong fid, int flag)
 	if(fid == NOFID)
 		return 0;
 
-	h = (long)(uintptr)cp + fid;
+	h = (int32_t)(uintptr)cp + fid;
 	if(h < 0)
 		h = ~h;
 	h %= nelem(flist);
@@ -210,7 +210,7 @@ freefp(File *fp)
 	if(!fp || !(cp = fp->cp))
 		return;
 
-	h = (long)(uintptr)cp + fp->fid;
+	h = (int32_t)(uintptr)cp + fp->fid;
 	if(h < 0)
 		h = ~h;
 	h %= nelem(flist);
@@ -467,7 +467,7 @@ buffree(Device *dev, Off addr, int d, Truncstate *ts)
 }
 
 Off
-bufalloc(Device *dev, int tag, long qid, int uid)
+bufalloc(Device *dev, int tag, int32_t qid, int uid)
 {
 	Iobuf *bp, *p;
 	Superb *sb;
@@ -539,7 +539,7 @@ loop:
  * b) '/' may not be the separator
  */
 int
-checkname(char *n)
+checkname(int8_t *n)
 {
 	int i, c;
 
@@ -601,7 +601,7 @@ Zfmt(Fmt* fmt)
 {
 	Device *d;
 	int c, c1;
-	char s[100];
+	int8_t s[100];
 
 	d = va_arg(fmt->args, Device*);
 	if(d == nil) {
@@ -681,7 +681,7 @@ static int
 Gfmt(Fmt* fmt)
 {
 	int t;
-	char *s;
+	int8_t *s;
 
 	t = va_arg(fmt->args, int);
 	s = "<badtag>";
@@ -873,22 +873,22 @@ mbfree(Msgbuf *mb)
  * there is no need to be clever
  */
 int
-prime(vlong n)
+prime(int64_t n)
 {
-	long i;
+	int32_t i;
 
 	if((n%2) == 0)
 		return 0;
 	for(i=3;; i+=2) {
 		if((n%i) == 0)
 			return 0;
-		if((vlong)i*i >= n)
+		if((int64_t)i*i >= n)
 			return 1;
 	}
 }
 
-char*
-getwrd(char *word, char *line)
+int8_t*
+getwrd(int8_t *word, int8_t *line)
 {
 	int c, n;
 
@@ -908,8 +908,8 @@ getwrd(char *word, char *line)
 void
 hexdump(void *a, int n)
 {
-	char s1[30], s2[4];
-	uchar *p;
+	int8_t s1[30], s2[4];
+	uint8_t *p;
 	int i;
 
 	p = a;
@@ -979,7 +979,7 @@ fs_send(Queue *q, void *a)
 }
 
 Queue*
-newqueue(int size, char *name)
+newqueue(int size, int8_t *name)
 {
 	Queue *q;
 
@@ -1152,10 +1152,10 @@ devsize(Device *d)
 }
 
 /* result is malloced */
-char *
+int8_t *
 sdof(Device *d)
 {
-	static char name[256];
+	static int8_t name[256];
 
 	for (;;)
 		switch(d->type) {
@@ -1355,7 +1355,7 @@ devinit(Device *d)
 void
 swab2(void *c)
 {
-	uchar *p;
+	uint8_t *p;
 	int t;
 
 	p = c;
@@ -1368,7 +1368,7 @@ swab2(void *c)
 void
 swab4(void *c)
 {
-	uchar *p;
+	uint8_t *p;
 	int t;
 
 	p = c;
@@ -1385,7 +1385,7 @@ swab4(void *c)
 void
 swab8(void *c)
 {
-	uchar *p;
+	uint8_t *p;
 	int t;
 
 	p = c;
@@ -1415,7 +1415,7 @@ swab8(void *c)
 void
 swab(void *c, int flag)
 {
-	uchar *p;
+	uint8_t *p;
 	Tag *t;
 	int i, j;
 	Dentry *d;
@@ -1426,7 +1426,7 @@ swab(void *c, int flag)
 	Off *l;
 
 	/* swab the tag */
-	p = (uchar*)c;
+	p = (uint8_t*)c;
 	t = (Tag*)(p + BUFSIZE);
 	if(!flag) {
 		swab2(&t->pad);

@@ -20,23 +20,23 @@
 #include <libsec.h>
 #include <authsrv.h>
 
-extern char* getpassm(char*);
+extern int8_t* getpassm(int8_t*);
 
 enum{ CHK = 16, BUF = 4096 };
 
-uchar v2hdr[AESbsize+1] = "AES CBC SHA1  2\n";
+uint8_t v2hdr[AESbsize+1] = "AES CBC SHA1  2\n";
 Biobuf bin;
 Biobuf bout;
 
 void
-safewrite(uchar *buf, int n)
+safewrite(uint8_t *buf, int n)
 {
 	if(Bwrite(&bout, buf, n) != n)
 		sysfatal("write error");
 }
 
 void
-saferead(uchar *buf, int n)
+saferead(uint8_t *buf, int n)
 {
 	if(Bread(&bin, buf, n) != n)
 		sysfatal("read error");

@@ -112,8 +112,8 @@ typedef size_t my_size_t;	/* The payoff: do we have size_t now? */
 int testfunction (int arg1, int * arg2); /* check prototypes */
 
 struct methods_struct {		/* check method-pointer declarations */
-  int (*error_exit) (char *msgtext);
-  int (*trace_message) (char *msgtext);
+  int (*error_exit) (int8_t *msgtext);
+  int (*trace_message) (int8_t *msgtext);
   int (*another_method) (void);
 };
 
@@ -176,7 +176,7 @@ void test3function (arg1, arg2)
      void_func arg2;
 #endif
 {
-  char * locptr = (char *) arg1; /* check casting to and from void * */
+  int8_t * locptr = (int8_t *) arg1; /* check casting to and from void * */
   arg1 = (void *) locptr;
   (*arg2) (1, 2);		/* check call of fcn returning void */
 }
@@ -267,14 +267,14 @@ int is_char_signed (arg)
 
 
 #ifdef HAVE_PROTOTYPES
-int is_shifting_signed (long arg)
+int is_shifting_signed (int32_t arg)
 #else
 int is_shifting_signed (arg)
      long arg;
 #endif
 /* See whether right-shift on a long is signed or not. */
 {
-  long res = arg >> 4;
+  int32_t res = arg >> 4;
 
   if (res == -0x7F7E80CL) {	/* expected result for signed shift */
     return 1;			/* right shift is signed */
@@ -292,14 +292,14 @@ int is_shifting_signed (arg)
 
 
 #ifdef HAVE_PROTOTYPES
-int main (int argc, char ** argv)
+int main (int argc, int8_t ** argv)
 #else
 int main (argc, argv)
      int argc;
      char ** argv;
 #endif
 {
-  char signed_char_check = (char) (-67);
+  int8_t signed_char_check = (int8_t) (-67);
   FILE *outfile;
 
   /* Attempt to write jconfig.h */

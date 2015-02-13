@@ -31,7 +31,7 @@ enum
 static AHash	*ahash[AHashSize];
 
 static u32int
-hashstr(char *s)
+hashstr(int8_t *s)
 {
 	u32int h;
 	int c;
@@ -63,7 +63,7 @@ addarena(Arena *arena)
 }
 
 Arena*
-findarena(char *name)
+findarena(int8_t *name)
 {
 	AHash *a;
 	u32int h;
@@ -277,7 +277,7 @@ freearenapart(ArenaPart *ap, int freearenas)
 }
 
 int
-okamap(AMap *am, int n, u64int start, u64int stop, char *what)
+okamap(AMap *am, int n, u64int start, u64int stop, int8_t *what)
 {
 	u64int last;
 	u32int i;
@@ -305,7 +305,7 @@ okamap(AMap *am, int n, u64int start, u64int stop, char *what)
 }
 
 int
-maparenas(AMap *am, Arena **arenas, int n, char *what)
+maparenas(AMap *am, Arena **arenas, int n, int8_t *what)
 {
 	u32int i;
 
@@ -370,7 +370,7 @@ parseamap(IFile *f, AMapN *amn)
 	AMap *am;
 	u64int v64;
 	u32int v;
-	char *s, *t, *flds[4];
+	int8_t *s, *t, *flds[4];
 	int i, n;
 
 	/*

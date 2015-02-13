@@ -13,7 +13,7 @@
 #pragma profile off
 
 void
-cycles(uvlong*u)
+cycles(uint64_t*u)
 {
 	*u = 0LL;
 }

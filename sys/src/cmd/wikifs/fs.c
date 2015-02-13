@@ -32,7 +32,7 @@ enum {
 	Nfile,
 };
 
-static char *filelist[] = {
+static int8_t *filelist[] = {
 	"index.html",
 	"index.txt",
 	"current",
@@ -64,32 +64,32 @@ enum {		/* <8-bit type> */
 	F2nd,
 };
 
-uvlong
+uint64_t
 mkqid(int type, int num, int vers, int file)
 {
-	return ((uvlong)type<<40) | ((uvlong)num<<24) | (vers<<8) | file;
+	return ((uint64_t)type<<40) | ((uint64_t)num<<24) | (vers<<8) | file;
 }
 
 int
-qidtype(uvlong path)
+qidtype(uint64_t path)
 {
 	return (path>>40)&0xFF;
 }
 
 int
-qidnum(uvlong path)
+qidnum(uint64_t path)
 {
 	return (path>>24)&0xFFFF;
 }
 
 int
-qidvers(uvlong path)
+qidvers(uint64_t path)
 {
 	return (path>>8)&0xFFFF;
 }
 
 int
-qidfile(uvlong path)
+qidfile(uint64_t path)
 {
 	return path&0xFF;
 }
@@ -99,7 +99,7 @@ struct Aux {
 	String *name;
 	Whist *w;
 	int n;
-	ulong t;
+	uint32_t t;
 	String *s;
 	Map *map;
 };
@@ -140,12 +140,12 @@ Return:
 	return s;
 }
 
-static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+static int8_t*
+fswalk1(Fid *fid, int8_t *name, Qid *qid)
 {
-	char *q;
+	int8_t *q;
 	int i, isdotdot, n, t;
-	uvlong path;
+	uint64_t path;
 	Aux *a;
 	Whist *wh;
 	String *s;
@@ -293,7 +293,7 @@ static void
 fsopen(Req *r)
 {
 	int t;
-	uvlong path;
+	uint64_t path;
 	Aux *a;
 	Fid *fid;
 	Whist *wh;
@@ -352,7 +352,7 @@ fsopen(Req *r)
 	}
 }
 
-static char*
+static int8_t*
 fsclone(Fid *old, Fid *new)
 {
 	Aux *a;
@@ -395,9 +395,9 @@ fsdestroyfid(Fid *fid)
 }
 
 static void
-fillstat(Dir *d, uvlong path, ulong tm, ulong length)
+fillstat(Dir *d, uint64_t path, uint32_t tm, uint32_t length)
 {
-	char tmp[32], *p;
+	int8_t tmp[32], *p;
 	int type;
 
 	memset(d, 0, sizeof(Dir));
@@ -474,7 +474,7 @@ fsstat(Req *r)
 {
 	Aux *a;
 	Fid *fid;
-	ulong t;
+	uint32_t t;
 
 	t = 0;
 	fid = r->fid;
@@ -487,7 +487,7 @@ fsstat(Req *r)
 
 typedef struct Bogus Bogus;
 struct Bogus {
-	uvlong path;
+	uint64_t path;
 	Aux *a;
 };
 
@@ -518,7 +518,7 @@ rootgen(int i, Dir *d, void *aux)
 static int
 firstgen(int i, Dir *d, void *aux)
 {
-	ulong t;
+	uint32_t t;
 	Bogus *b;
 	int num;
 	Aux *a;
@@ -547,7 +547,7 @@ static int
 secondgen(int i, Dir *d, void *aux)
 {
 	Bogus *b;
-	uvlong path;
+	uint64_t path;
 	Aux *a;
 
 	b = aux;
@@ -566,8 +566,8 @@ secondgen(int i, Dir *d, void *aux)
 static void
 fsread(Req *r)
 {
-	char *t, *s;
-	uvlong path;
+	int8_t *t, *s;
+	uint64_t path;
 	Aux *a;
 	Bogus b;
 
@@ -637,13 +637,13 @@ fsread(Req *r)
 
 typedef struct Sread Sread;
 struct Sread {
-	char *rp;
+	int8_t *rp;
 };
 
-static char*
+static int8_t*
 Srdline(void *v, int c)
 {
-	char *p, *rv;
+	int8_t *p, *rv;
 	Sread *s;
 
 	s = v;
@@ -663,7 +663,7 @@ Srdline(void *v, int c)
 static void
 responderrstr(Req *r)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	rerrstr(buf, sizeof buf);
 	if(buf[0] == '\0')
@@ -674,9 +674,9 @@ responderrstr(Req *r)
 static void
 fswrite(Req *r)
 {
-	char *author, *comment, *net, *err, *p, *title, tmp[40];
+	int8_t *author, *comment, *net, *err, *p, *title, tmp[40];
 	int rv, n;
-	ulong t;
+	uint32_t t;
 	Aux *a;
 	Fid *fid;
 	Sread s;

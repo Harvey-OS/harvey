@@ -157,7 +157,7 @@ __fmtdispatch(Fmt *f, void *fmt, int isrunes)
 			r = *(Rune*)fmt;
 			fmt = (Rune*)fmt + 1;
 		}else{
-			fmt = (char*)fmt + chartorune(&rune, (char*)fmt);
+			fmt = (int8_t*)fmt + chartorune(&rune, (int8_t*)fmt);
 			r = rune;
 		}
 		f->r = r;
@@ -182,14 +182,14 @@ __fmtdispatch(Fmt *f, void *fmt, int isrunes)
 					r = *(Rune*)fmt;
 					fmt = (Rune*)fmt + 1;
 				}else{
-					r = *(char*)fmt;
-					fmt = (char*)fmt + 1;
+					r = *(int8_t*)fmt;
+					fmt = (int8_t*)fmt + 1;
 				}
 			}
 			if(isrunes)
 				fmt = (Rune*)fmt - 1;
 			else
-				fmt = (char*)fmt - 1;
+				fmt = (int8_t*)fmt - 1;
 		numflag:
 			if(f->flags & FmtWidth){
 				f->flags |= FmtPrec;

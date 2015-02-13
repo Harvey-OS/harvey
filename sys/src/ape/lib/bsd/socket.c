@@ -69,11 +69,12 @@ _sock_newrock(int fd)
 }
 
 int
-_sock_data(int cfd, char *net, int domain, int stype, int protocol, Rock **rp)
+_sock_data(int cfd, int8_t *net, int domain, int stype, int protocol,
+	   Rock **rp)
 {
 	int n, fd;
 	Rock *r;
-	char name[Ctlsize];
+	int8_t name[Ctlsize];
 
 	/* get the data file name */
 	n = read(cfd, name, sizeof(name)-1);
@@ -120,7 +121,7 @@ socket(int domain, int stype, int protocol)
 	Rock *r;
 	int cfd;
 	int pfd[2];
-	char *net;
+	int8_t *net;
 
 	switch(domain){
 	case PF_INET:

@@ -60,8 +60,8 @@ Dirtab rtcdir[]={
 	"rtc",		{Qrtc, 0},	0,	0664,
 };
 
-static ulong rtc2sec(Rtc*);
-static void sec2rtc(ulong, Rtc*);
+static uint32_t rtc2sec(Rtc*);
+static void sec2rtc(uint32_t, Rtc*);
 
 void
 rtcinit(void)
@@ -71,19 +71,19 @@ rtcinit(void)
 }
 
 static Chan*
-rtcattach(char* spec)
+rtcattach(int8_t* spec)
 {
 	return devattach('r', spec);
 }
 
 static Walkqid*	 
-rtcwalk(Chan* c, Chan *nc, char** name, int nname)
+rtcwalk(Chan* c, Chan *nc, int8_t** name, int nname)
 {
 	return devwalk(c, nc, name, nname, rtcdir, nelem(rtcdir), devgen);
 }
 
-static long	 
-rtcstat(Chan* c, uchar* dp, long n)
+static int32_t	 
+rtcstat(Chan* c, uint8_t* dp, int32_t n)
 {
 	return devstat(c, dp, n, rtcdir, nelem(rtcdir), devgen);
 }
@@ -92,7 +92,7 @@ static Chan*
 rtcopen(Chan* c, int omode)
 {
 	omode = openmode(omode);
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qrtc:
 		if(strcmp(up->user, eve)!=0 && omode!=OREAD)
 			error(Eperm);
@@ -111,10 +111,10 @@ rtcclose(Chan*)
 
 #define GETBCD(o) ((bcdclock[o]&0xf) + 10*(bcdclock[o]>>4))
 
-static long	 
+static int32_t	 
 rtcextract(void)
 {
-	uchar bcdclock[Nbcd];
+	uint8_t bcdclock[Nbcd];
 	Rtc rtc;
 	int i;
 
@@ -159,11 +159,11 @@ rtcextract(void)
 
 static Lock nvrtlock;
 
-long
+int32_t
 rtctime(void)
 {
 	int i;
-	long t, ot;
+	int32_t t, ot;
 
 	ilock(&nvrtlock);
 
@@ -181,17 +181,17 @@ rtctime(void)
 	return t;
 }
 
-static long	 
-rtcread(Chan* c, void* buf, long n, vlong off)
+static int32_t	 
+rtcread(Chan* c, void* buf, int32_t n, int64_t off)
 {
-	ulong t;
-	char *a, *start;
-	ulong offset = off;
+	uint32_t t;
+	int8_t *a, *start;
+	uint32_t offset = off;
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, buf, n, rtcdir, nelem(rtcdir), devgen);
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qrtc:
 		t = rtctime();
 		n = readnum(offset, buf, n, t, 12);
@@ -228,22 +228,22 @@ rtcread(Chan* c, void* buf, long n, vlong off)
 
 #define PUTBCD(n,o) bcdclock[o] = (n % 10) | (((n / 10) % 10)<<4)
 
-static long	 
-rtcwrite(Chan* c, void* buf, long n, vlong off)
+static int32_t	 
+rtcwrite(Chan* c, void* buf, int32_t n, int64_t off)
 {
 	int t;
-	char *a, *start;
+	int8_t *a, *start;
 	Rtc rtc;
-	ulong secs;
-	uchar bcdclock[Nbcd];
-	char *cp, *ep;
-	ulong offset = off;
+	uint32_t secs;
+	uint8_t bcdclock[Nbcd];
+	int8_t *cp, *ep;
+	uint32_t offset = off;
 
 	if(offset!=0)
 		error(Ebadarg);
 
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qrtc:
 		/*
 		 *  read the time
@@ -362,10 +362,10 @@ yrsize(int y)
 /*
  *  compute seconds since Jan 1 1970
  */
-static ulong
+static uint32_t
 rtc2sec(Rtc *rtc)
 {
-	ulong secs;
+	uint32_t secs;
 	int i;
 	int *d2m;
 
@@ -398,10 +398,10 @@ rtc2sec(Rtc *rtc)
  *  compute rtc from seconds since Jan 1 1970
  */
 static void
-sec2rtc(ulong secs, Rtc *rtc)
+sec2rtc(uint32_t secs, Rtc *rtc)
 {
 	int d;
-	long hms, day;
+	int32_t hms, day;
 	int *d2m;
 
 	/*
@@ -446,10 +446,10 @@ sec2rtc(ulong secs, Rtc *rtc)
 	return;
 }
 
-uchar
+uint8_t
 nvramread(int addr)
 {
-	uchar data;
+	uint8_t data;
 
 	ilock(&nvrtlock);
 	outb(Paddr, addr);
@@ -460,7 +460,7 @@ nvramread(int addr)
 }
 
 void
-nvramwrite(int addr, uchar data)
+nvramwrite(int addr, uint8_t data)
 {
 	ilock(&nvrtlock);
 	outb(Paddr, addr);

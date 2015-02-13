@@ -15,7 +15,7 @@
 static Symbol *symlist = 0;  /* symbol table: linked list */
 
 Symbol*
-lookup(char* s)	/* find s in symbol table */
+lookup(int8_t* s)	/* find s in symbol table */
 {
 	Symbol *sp;
 
@@ -26,7 +26,7 @@ lookup(char* s)	/* find s in symbol table */
 }
 
 Symbol*
-install(char* s, int t, double d)  /* install s in symbol table */
+install(int8_t* s, int t, double d)  /* install s in symbol table */
 {
 	Symbol *sp;
 
@@ -43,11 +43,11 @@ install(char* s, int t, double d)  /* install s in symbol table */
 void*
 emalloc(unsigned n)	/* check return from malloc */
 {
-	char *p;
+	int8_t *p;
 
 	p = malloc(n);
 	if (p == 0)
-		execerror("out of memory", (char *) 0);
+		execerror("out of memory", (int8_t *) 0);
 	return p;
 }
 

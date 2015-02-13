@@ -55,7 +55,7 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 }
 
 static int
-pcigen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
+pcigen(Chan *c, int8_t *, Dirtab*, int, int s, Dir *dp)
 {
 	int tbdf;
 	Pcidev *p;
@@ -87,7 +87,7 @@ pcigen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 		return pcidirgen(c, s+Qpcictl, p->tbdf, dp);
 	case Qpcictl:
 	case Qpciraw:
-		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((ulong)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((uint32_t)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			return -1;
@@ -99,19 +99,19 @@ pcigen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 }
 
 static Chan*
-pciattach(char *spec)
+pciattach(int8_t *spec)
 {
 	return devattach(pcidevtab.dc, spec);
 }
 
 Walkqid*
-pciwalk(Chan* c, Chan *nc, char** name, int nname)
+pciwalk(Chan* c, Chan *nc, int8_t** name, int nname)
 {
 	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, pcigen);
 }
 
-static long
-pcistat(Chan* c, uchar* dp, long n)
+static int32_t
+pcistat(Chan* c, uint8_t* dp, int32_t n)
 {
 	return devstat(c, dp, n, (Dirtab *)0, 0L, pcigen);
 }
@@ -132,12 +132,12 @@ pciclose(Chan*)
 {
 }
 
-static long
-pciread(Chan *c, void *va, long n, vlong offset)
+static int32_t
+pciread(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	char buf[256], *ebuf, *w, *a;
+	int8_t buf[256], *ebuf, *w, *a;
 	int i, tbdf, r;
-	ulong x;
+	uint32_t x;
 	Pcidev *p;
 
 	a = va;
@@ -146,7 +146,7 @@ pciread(Chan *c, void *va, long n, vlong offset)
 	case Qpcidir:
 		return devdirread(c, a, n, (Dirtab *)0, 0L, pcigen);
 	case Qpcictl:
-		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((ulong)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((uint32_t)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			error(Egreg);
@@ -162,7 +162,7 @@ pciread(Chan *c, void *va, long n, vlong offset)
 		*w = '\0';
 		return readstr(offset, a, n, buf);
 	case Qpciraw:
-		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((ulong)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((uint32_t)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			error(Egreg);
@@ -194,24 +194,24 @@ pciread(Chan *c, void *va, long n, vlong offset)
 	return n;
 }
 
-static long
-pciwrite(Chan *c, void *va, long n, vlong offset)
+static int32_t
+pciwrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	char buf[256];
-	uchar *a;
+	int8_t buf[256];
+	uint8_t *a;
 	int i, r, tbdf;
-	ulong x;
+	uint32_t x;
 	Pcidev *p;
 
 	if(n >= sizeof(buf))
 		n = sizeof(buf)-1;
 	a = va;
-	strncpy(buf, (char*)a, n);
+	strncpy(buf, (int8_t*)a, n);
 	buf[n] = 0;
 
 	switch(TYPE(c->qid)){
 	case Qpciraw:
-		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((ulong)c->qid.path);
+		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((uint32_t)c->qid.path);
 		p = pcimatchtbdf(tbdf);
 		if(p == nil)
 			error(Egreg);

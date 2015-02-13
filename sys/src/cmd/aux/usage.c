@@ -14,8 +14,8 @@ void
 main(void)
 {
 	Fmt fmt;
-	char buf[512];
-	char *argv0, *args, *flags, *p, *p0;
+	int8_t buf[512];
+	int8_t *argv0, *args, *flags, *p, *p0;
 	int single;
 	Rune r;
 	

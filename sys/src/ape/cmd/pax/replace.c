@@ -48,8 +48,8 @@
  */
 
 #ifndef lint
-static char *ident = "$Id: replace.c,v 1.2 89/02/12 10:05:59 mark Exp $";
-static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static int8_t *ident = "$Id: replace.c,v 1.2 89/02/12 10:05:59 mark Exp $";
+static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* not lint */
 
 /* Headers */
@@ -71,7 +71,7 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
 
 #ifdef __STDC__
 
-void add_replstr(char *pattern)
+void add_replstr(int8_t *pattern)
 
 #else
 
@@ -80,8 +80,8 @@ char           *pattern;
 
 #endif
 {
-    char           *p;
-    char            sep;
+    int8_t           *p;
+    int8_t            sep;
     Replstr        *rptr;
     int             len;
 
@@ -175,7 +175,7 @@ char           *pattern;
 
 #ifdef __STDC__
 
-void rpl_name(char *name)
+void rpl_name(int8_t *name)
 
 #else
 
@@ -187,11 +187,11 @@ char           *name;
     int             found = 0;
     int             ret;
     Replstr        *rptr;
-    char            buff[PATH_MAX + 1];
-    char            buff1[PATH_MAX + 1];
-    char            buff2[PATH_MAX + 1];
-    char           *p;
-    char           *b;
+    int8_t            buff[PATH_MAX + 1];
+    int8_t            buff1[PATH_MAX + 1];
+    int8_t            buff2[PATH_MAX + 1];
+    int8_t           *p;
+    int8_t           *b;
 
     strcpy(buff, name);
     for (rptr = rplhead; !found && rptr != (Replstr *)NULL; rptr = rptr->next) {
@@ -243,7 +243,7 @@ char           *name;
 
 #ifdef __STDC__
 
-int get_disposition(char *mode, char *name)
+int get_disposition(int8_t *mode, int8_t *name)
 
 #else
 
@@ -253,8 +253,8 @@ char	*name;
 
 #endif
 {
-    char	ans[2];
-    char	buf[PATH_MAX + 10];
+    int8_t	ans[2];
+    int8_t	buf[PATH_MAX + 10];
 
     if (f_disposition) {
 	sprintf(buf, "%s %s? ", mode, name);
@@ -292,7 +292,7 @@ char	*name;
 
 #ifdef __STDC__
 
-int get_newname(char *name, int size)
+int get_newname(int8_t *name, int size)
 
 #else
 
@@ -302,7 +302,7 @@ int	size;
 
 #endif
 {
-    char	buf[PATH_MAX + 10];
+    int8_t	buf[PATH_MAX + 10];
 
     if (f_interactive) {
 	sprintf(buf, "rename %s? ", name);

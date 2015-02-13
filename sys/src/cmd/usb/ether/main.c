@@ -39,10 +39,10 @@ usage(void)
  * that we know are ethernets.
  */
 static int
-matchether(char *info, void*)
+matchether(int8_t *info, void*)
 {
 	Cinfo *ip;
-	char buf[50];
+	int8_t buf[50];
 
 	/*
 	 * I have an ether reporting comms.0.0

@@ -25,11 +25,11 @@ int	ctlfd;
 int	ctlrcvtime;
 int	debug;
 int	grefd;
-uchar localip[IPaddrlen];
+uint8_t localip[IPaddrlen];
 int	localwin;
-char	*keyspec;
+int8_t	*keyspec;
 int	now;
-char	*pppnetmntpt;
+int8_t	*pppnetmntpt;
 int	pid;
 Channel *pidchan;
 int	pppfd;
@@ -38,26 +38,26 @@ int	rack;
 Channel	*rdchan;
 int	rdexpect;
 int	remid;
-uchar remoteip[IPaddrlen];
+uint8_t remoteip[IPaddrlen];
 int	remwin;
 int	rseq;
 int	seq;
-char	tcpdir[40];
+int8_t	tcpdir[40];
 Channel *tickchan;
 int	topppfd;
 
 int	aread(int, int, void*, int);
-int	catchalarm(void*, char*);
-void	dumpctlpkt(uchar*);
+int	catchalarm(void*, int8_t*);
+void	dumpctlpkt(uint8_t*);
 void	getaddrs(void);
-void	*emalloc(long);
+void	*emalloc(int32_t);
 void	ewrite(int, void*, int);
-void	myfatal(char*, ...);
+void	myfatal(int8_t*, ...);
 #pragma varargck argpos myfatal 1
-int	pptp(char*);
+int	pptp(int8_t*);
 void	pushppp(int);
 void	recordack(int);
-int	schedack(int, uchar*, int);
+int	schedack(int, uint8_t*, int);
 void	waitacks(void);
 
 void
@@ -106,7 +106,7 @@ threadmain(int argc, char **argv)
 }
 
 int
-catchalarm(void *a, char *msg)
+catchalarm(void *a, int8_t *msg)
 {
 	USED(a);
 
@@ -162,9 +162,9 @@ enum {
 };
 
 void
-recho(uchar *in)
+recho(uint8_t *in)
 {
-	uchar out[20];
+	uint8_t out[20];
 
 	if(nhgets(in) < 16)
 		return;
@@ -183,7 +183,7 @@ recho(uchar *in)
 void
 sendecho(void)
 {
-	uchar out[16];
+	uint8_t out[16];
 
 	ctlechotime = now;	
 	memset(out, 0, sizeof out);
@@ -198,7 +198,7 @@ sendecho(void)
 void
 pptpctlproc(void*)
 {
-	uchar pkt[1600], *p;
+	uint8_t pkt[1600], *p;
 	int len;
 
 	for(;;){
@@ -259,8 +259,8 @@ void
 grereadproc(void*)
 {
 	int datoff, flags, len, n, pass;
-	uchar pkt[1600];
-	uchar src[IPaddrlen], dst[IPaddrlen];
+	uint8_t pkt[1600];
+	uint8_t src[IPaddrlen], dst[IPaddrlen];
 
 	rfork(RFFDG);
 	close(pppfd);
@@ -316,7 +316,7 @@ void
 pppreadproc(void*)
 {
 	int n, myrseq;
-	uchar pkt[1600];
+	uint8_t pkt[1600];
 	enum {
 		Hdr = 8+16,
 	};
@@ -352,7 +352,7 @@ void
 sendack(void)
 {
 	int myrseq;
-	uchar pkt[20];
+	uint8_t pkt[20];
 
 	v6tov4(pkt+0, localip);
 	v6tov4(pkt+4, remoteip);
@@ -369,9 +369,9 @@ sendack(void)
 }
 
 int
-schedack(int n, uchar *dat, int len)
+schedack(int n, uint8_t *dat, int len)
 {
-	static uchar sdat[1600];
+	static uint8_t sdat[1600];
 	static int srseq, slen;
 
 	if(n-rseq <= 0){
@@ -443,8 +443,8 @@ waitacks(void)
 void
 tstart(void)
 {
-	char *name;
-	uchar pkt[200], *rpkt;
+	int8_t *name;
+	uint8_t pkt[200], *rpkt;
 
 	memset(pkt, 0, sizeof pkt);
 
@@ -459,8 +459,8 @@ tstart(void)
 	name = sysname();
 	if(name == nil)
 		name = "gnot";
-	strcpy((char*)pkt+28, name);
-	strcpy((char*)pkt+92, "plan 9");
+	strcpy((int8_t*)pkt+28, name);
+	strcpy((int8_t*)pkt+92, "plan 9");
 
 	if(debug)
 		dumpctlpkt(pkt);
@@ -481,7 +481,7 @@ tstart(void)
 void
 tcallout(void)
 {
-	uchar pkt[200], *rpkt;
+	uint8_t pkt[200], *rpkt;
 
 	pid = getpid();
 
@@ -573,10 +573,10 @@ acallcon(void)
 */
 
 int
-pptp(char *addr)
+pptp(int8_t *addr)
 {
 	int p[2];
-	char greaddr[128];
+	int8_t greaddr[128];
 
 	addr = netmkaddr(addr, "net", "pptp");
 	ctlfd = dial(addr, nil, tcpdir, nil);
@@ -623,7 +623,7 @@ pptp(char *addr)
 void
 pushppp(int fd)
 {
-	char *argv[16];
+	int8_t *argv[16];
 	int argc;
 
 	argc = 0;
@@ -678,7 +678,7 @@ aread(int timeout, int fd, void *buf, int nbuf)
 void
 ewrite(int fd, void *buf, int nbuf)
 {
-	char e[ERRMAX], path[64];
+	int8_t e[ERRMAX], path[64];
 
 	if(write(fd, buf, nbuf) != nbuf){
 		rerrstr(e, sizeof e);
@@ -689,7 +689,7 @@ ewrite(int fd, void *buf, int nbuf)
 }
 
 void*
-emalloc(long n)
+emalloc(int32_t n)
 {
 	void *v;
 
@@ -714,7 +714,7 @@ thread(void(*f)(void*), void *a)
 }
 
 void
-dumpctlpkt(uchar *pkt)
+dumpctlpkt(uint8_t *pkt)
 {
 	fprint(2, "pkt len %d mtype %d cookie 0x%.8ux type %d\n",
 		nhgets(pkt), nhgets(pkt+2),
@@ -729,8 +729,8 @@ dumpctlpkt(uchar *pkt)
 			nhgets(pkt+12), nhgetl(pkt+16),
 			nhgetl(pkt+20), nhgets(pkt+24),
 			nhgets(pkt+26));
-		fprint(2, "\thost %.64s\n", (char*)pkt+28);
-		fprint(2, "\tvendor %.64s\n", (char*)pkt+92);
+		fprint(2, "\thost %.64s\n", (int8_t*)pkt+28);
+		fprint(2, "\tvendor %.64s\n", (int8_t*)pkt+92);
 		break;
 	case Rstart:
 		fprint(2, "\tRstart proto %d res %d err %d framing %d bearer %d maxchan %d firmware %d\n",
@@ -738,8 +738,8 @@ dumpctlpkt(uchar *pkt)
 			nhgetl(pkt+16),
 			nhgetl(pkt+20), nhgets(pkt+24),
 			nhgets(pkt+26));
-		fprint(2, "\thost %.64s\n", (char*)pkt+28);
-		fprint(2, "\tvendor %.64s\n", (char*)pkt+92);
+		fprint(2, "\thost %.64s\n", (int8_t*)pkt+28);
+		fprint(2, "\tvendor %.64s\n", (int8_t*)pkt+92);
 		break;
 
 	case Tstop:
@@ -766,8 +766,8 @@ dumpctlpkt(uchar *pkt)
 			nhgetl(pkt+24), nhgetl(pkt+28),
 			nhgets(pkt+32), nhgets(pkt+34));
 		fprint(2, "\tphone len %d num %.64s\n", 
-			nhgets(pkt+36), (char*)pkt+40);
-		fprint(2, "\tsubaddr %.64s\n", (char*)pkt+104);
+			nhgets(pkt+36), (int8_t*)pkt+40);
+		fprint(2, "\tsubaddr %.64s\n", (int8_t*)pkt+104);
 		break;
 
 	case Rcallout:
@@ -784,10 +784,10 @@ dumpctlpkt(uchar *pkt)
 			nhgets(pkt+12), nhgets(pkt+14),
 			nhgetl(pkt+16), nhgetl(pkt+20));
 		fprint(2, "\tdialed len %d num %.64s\n",
-			nhgets(pkt+24), (char*)pkt+28);
+			nhgets(pkt+24), (int8_t*)pkt+28);
 		fprint(2, "\tdialing len %d num %.64s\n",
-			nhgets(pkt+26), (char*)pkt+92);
-		fprint(2, "\tsubaddr %.64s\n", (char*)pkt+156);
+			nhgets(pkt+26), (int8_t*)pkt+92);
+		fprint(2, "\tsubaddr %.64s\n", (int8_t*)pkt+156);
 		break;
 
 	case Rcallreq:
@@ -813,7 +813,7 @@ dumpctlpkt(uchar *pkt)
 		fprint(2, "\tAcalldis callid %d res %d err %d cause %d\n",
 			nhgets(pkt+12), pkt[14], pkt[15],
 			nhgets(pkt+16));
-		fprint(2, "\tstats %.128s\n", (char*)pkt+20);
+		fprint(2, "\tstats %.128s\n", (int8_t*)pkt+20);
 		break;
 
 	case Awaninfo:
@@ -837,7 +837,7 @@ dumpctlpkt(uchar *pkt)
 void
 getaddrs(void)
 {
-	char buf[128];
+	int8_t buf[128];
 	int fd, n;
 
 	sprint(buf, "%s/local", tcpdir);
@@ -860,11 +860,11 @@ getaddrs(void)
 }
 
 void
-myfatal(char *fmt, ...)
+myfatal(int8_t *fmt, ...)
 {
-	char sbuf[512];
+	int8_t sbuf[512];
 	va_list arg;
-	uchar buf[16];
+	uint8_t buf[16];
 
 	memset(buf, 0, sizeof(buf));
 	hnputs(buf+0, sizeof(buf));	/* length */

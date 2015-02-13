@@ -426,7 +426,8 @@ dict_spot_params(const ref * pdict, gs_spot_halftone * psp,
 
 /* Set actual frequency and angle in a dictionary. */
 private int
-dict_real_result(i_ctx_t *i_ctx_p, ref * pdict, const char *kstr, floatp val)
+dict_real_result(i_ctx_t *i_ctx_p, ref * pdict, const int8_t *kstr,
+                 floatp val)
 {
     int code = 0;
     ref *ignore;
@@ -489,7 +490,7 @@ dict_threshold_params(const ref * pdict, gs_threshold_halftone * ptp,
     if (code < 0)
 	return code;
     check_read_type_only(*tstring, t_string);
-    if (r_size(tstring) != (long)ptp->width * ptp->height)
+    if (r_size(tstring) != (int32_t)ptp->width * ptp->height)
 	return_error(e_rangecheck);
     ptp->thresholds.data = tstring->value.const_bytes;
     ptp->thresholds.size = r_size(tstring);

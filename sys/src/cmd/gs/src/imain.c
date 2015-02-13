@@ -101,7 +101,7 @@ gs_main_alloc_instance(gs_memory_t *mem)
 
 private int gs_run_init_file(gs_main_instance *, int *, ref *);
 private void print_resource_usage(const gs_main_instance *,
-				  gs_dual_memory_t *, const char *);
+				  gs_dual_memory_t *, const int8_t *);
 
 /* ------ Initialization ------ */
 
@@ -191,7 +191,8 @@ gs_main_init1(gs_main_instance * minst)
 
 /* Initialization to be done before running any files. */
 private void
-init2_make_string_array(i_ctx_t *i_ctx_p, const ref * srefs, const char *aname)
+init2_make_string_array(i_ctx_t *i_ctx_p, const ref * srefs,
+                        const int8_t *aname)
 {
     const ref *ifp = srefs;
     ref ifa;
@@ -235,7 +236,7 @@ gs_main_interpret(gs_main_instance *minst, ref * pref, int user_errors,
 	     * We print the string then pop these 4 items.
 	     */
 	    if (r_type(&esp[0]) == t_string) {
-		const char *str = (const char *)(esp[0].value.const_bytes); 
+		const int8_t *str = (const int8_t *)(esp[0].value.const_bytes); 
 		int count = esp[0].tas.rsize;
 		int rcode = 0;
 		if (str != NULL)
@@ -257,7 +258,7 @@ gs_main_interpret(gs_main_instance *minst, ref * pref, int user_errors,
 	}
 	else if (code == e_NeedStderr) {
 	    if (r_type(&esp[0]) == t_string) {
-		const char *str = (const char *)(esp[0].value.const_bytes); 
+		const int8_t *str = (const int8_t *)(esp[0].value.const_bytes); 
 		int count = esp[0].tas.rsize;
 		int rcode = 0;
 		if (str != NULL)
@@ -383,15 +384,15 @@ gs_main_init2(gs_main_instance * minst)
 /* Internal routine to add a set of directories to a search list. */
 /* Returns 0 or an error code. */
 private int
-file_path_add(gs_file_path * pfp, const char *dirs)
+file_path_add(gs_file_path * pfp, const int8_t *dirs)
 {
     uint len = r_size(&pfp->list);
-    const char *dpath = dirs;
+    const int8_t *dpath = dirs;
 
     if (dirs == 0)
 	return 0;
     for (;;) {			/* Find the end of the next directory name. */
-	const char *npath = dpath;
+	const int8_t *npath = dpath;
 
 	while (*npath != 0 && *npath != gp_file_name_list_separator)
 	    npath++;
@@ -413,7 +414,7 @@ file_path_add(gs_file_path * pfp, const char *dirs)
 
 /* Add a library search path to the list. */
 int
-gs_main_add_lib_path(gs_main_instance * minst, const char *lpath)
+gs_main_add_lib_path(gs_main_instance * minst, const int8_t *lpath)
 {
     /* Account for the possibility that the first element */
     /* is gp_current_directory name added by set_lib_paths. */
@@ -475,7 +476,8 @@ gs_main_set_lib_paths(gs_main_instance * minst)
 
 /* Open a file, using the search paths. */
 int
-gs_main_lib_open(gs_main_instance * minst, const char *file_name, ref * pfile)
+gs_main_lib_open(gs_main_instance * minst, const int8_t *file_name,
+                 ref * pfile)
 {
     /* This is a separate procedure only to avoid tying up */
     /* extra stack space while running the file. */
@@ -493,7 +495,8 @@ gs_main_lib_open(gs_main_instance * minst, const char *file_name, ref * pfile)
 
 /* Open and execute a file. */
 int
-gs_main_run_file(gs_main_instance * minst, const char *file_name, int user_errors, int *pexit_code, ref * perror_object)
+gs_main_run_file(gs_main_instance * minst, const int8_t *file_name,
+                 int user_errors, int *pexit_code, ref * perror_object)
 {
     ref initial_file;
     int code = gs_main_run_file_open(minst, file_name, &initial_file);
@@ -504,7 +507,8 @@ gs_main_run_file(gs_main_instance * minst, const char *file_name, int user_error
 			pexit_code, perror_object);
 }
 int
-gs_main_run_file_open(gs_main_instance * minst, const char *file_name, ref * pfref)
+gs_main_run_file_open(gs_main_instance * minst, const int8_t *file_name,
+                      ref * pfref)
 {
     gs_main_set_lib_paths(minst);
     if (gs_main_lib_open(minst, file_name, pfref) < 0) {
@@ -554,7 +558,8 @@ gs_run_init_file(gs_main_instance * minst, int *pexit_code, ref * perror_object)
 
 /* Run a string. */
 int
-gs_main_run_string(gs_main_instance * minst, const char *str, int user_errors,
+gs_main_run_string(gs_main_instance * minst, const int8_t *str,
+                   int user_errors,
 		   int *pexit_code, ref * perror_object)
 {
     return gs_main_run_string_with_length(minst, str, (uint) strlen(str),
@@ -562,7 +567,7 @@ gs_main_run_string(gs_main_instance * minst, const char *str, int user_errors,
 					  pexit_code, perror_object);
 }
 int
-gs_main_run_string_with_length(gs_main_instance * minst, const char *str,
+gs_main_run_string_with_length(gs_main_instance * minst, const int8_t *str,
 	 uint length, int user_errors, int *pexit_code, ref * perror_object)
 {
     int code;
@@ -584,7 +589,7 @@ int
 gs_main_run_string_begin(gs_main_instance * minst, int user_errors,
 			 int *pexit_code, ref * perror_object)
 {
-    const char *setup = ".runstringbegin";
+    const int8_t *setup = ".runstringbegin";
     ref rstr;
     int code;
 
@@ -597,7 +602,7 @@ gs_main_run_string_begin(gs_main_instance * minst, int user_errors,
 }
 /* Continue running a string with the option of suspending. */
 int
-gs_main_run_string_continue(gs_main_instance * minst, const char *str,
+gs_main_run_string_continue(gs_main_instance * minst, const int8_t *str,
 	 uint length, int user_errors, int *pexit_code, ref * perror_object)
 {
     ref rstr;
@@ -647,7 +652,7 @@ gs_push_boolean(gs_main_instance * minst, bool value)
 }
 
 int
-gs_push_integer(gs_main_instance * minst, long value)
+gs_push_integer(gs_main_instance * minst, int32_t value)
 {
     ref vref;
 
@@ -700,7 +705,7 @@ gs_pop_boolean(gs_main_instance * minst, bool * result)
 }
 
 int
-gs_pop_integer(gs_main_instance * minst, long *result)
+gs_pop_integer(gs_main_instance * minst, int32_t *result)
 {
     i_ctx_t *i_ctx_p = minst->i_ctx_p;
     ref vref;
@@ -772,13 +777,13 @@ gs_pop_string(gs_main_instance * minst, gs_string * result)
  * the interpreter finishes, and then delete the files 
  * after the interpreter has closed all files.
  */
-private char *gs_main_tempnames(gs_main_instance *minst)
+private int8_t *gs_main_tempnames(gs_main_instance *minst)
 {
     i_ctx_t *i_ctx_p = minst->i_ctx_p;
     ref *SAFETY;
     ref *tempfiles;
     ref keyval[2];	/* for key and value */
-    char *tempnames = NULL;
+    int8_t *tempnames = NULL;
     int i;
     int idict;
     int len = 0;
@@ -795,7 +800,7 @@ private char *gs_main_tempnames(gs_main_instance *minst)
 		len += size + 1;
 	}
 	if (len != 0)
-	    tempnames = (char *)malloc(len+1);
+	    tempnames = (int8_t *)malloc(len+1);
 	if (tempnames) {
 	    memset(tempnames, 0, len+1);
 	    /* copy temporary filenames */
@@ -803,7 +808,7 @@ private char *gs_main_tempnames(gs_main_instance *minst)
 	    i = 0;
 	    while ((idict = dict_next(tempfiles, idict, &keyval[0])) >= 0) {
 	        if (obj_string_data(minst->heap, &keyval[0], &data, &size) >= 0) {
-		    memcpy(tempnames+i, (const char *)data, size);
+		    memcpy(tempnames+i, (const int8_t *)data, size);
 		    i+= size;
 		    tempnames[i++] = '\0';
 		}
@@ -820,7 +825,7 @@ gs_main_finit(gs_main_instance * minst, int exit_status, int code)
     i_ctx_t *i_ctx_p = minst->i_ctx_p;
     int exit_code;
     ref error_object;
-    char *tempnames;
+    int8_t *tempnames;
 
     /* NB: need to free gs_name_table
      */
@@ -891,7 +896,7 @@ gs_main_finit(gs_main_instance * minst, int exit_status, int code)
     minst->heap->gs_lib_ctx->stdout_to_stderr = 0;
     /* remove any temporary files, after ghostscript has closed files */
     if (tempnames) {
-	char *p = tempnames;
+	int8_t *p = tempnames;
 	while (*p) {
 	    unlink(p);
 	    p += strlen(p) + 1;
@@ -924,10 +929,10 @@ gs_abort(const gs_memory_t *mem)
 /* Print resource usage statistics. */
 private void
 print_resource_usage(const gs_main_instance * minst, gs_dual_memory_t * dmem,
-		     const char *msg)
+		     const int8_t *msg)
 {
-    ulong allocated = 0, used = 0;
-    long utime[2];
+    uint32_t allocated = 0, used = 0;
+    int32_t utime[2];
 
     gp_get_usertime(utime);
     {

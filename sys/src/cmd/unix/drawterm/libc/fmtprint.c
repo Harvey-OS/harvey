@@ -17,7 +17,7 @@
  * but ignore any width flags
  */
 int
-fmtprint(Fmt *f, char *fmt, ...)
+fmtprint(Fmt *f, int8_t *fmt, ...)
 {
 	va_list va;
 	int n;

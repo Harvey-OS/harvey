@@ -14,7 +14,7 @@
 typedef struct Mode Mode;
 struct Mode
 {
-	char*	name;
+	int8_t*	name;
 	int	bit;
 };
 
@@ -80,10 +80,10 @@ Mode cc[] =
 int	getmode(int, Termios*);
 int	setmode(int, Termios*);
 
-char*
-ctlchar(char c)
+int8_t*
+ctlchar(int8_t c)
 {
-	static char buf[10];
+	static int8_t buf[10];
 
 	if(c == 0x7f)
 		return "DEL";
@@ -135,7 +135,7 @@ showmode(Termios *t)
 }
 
 int
-setreset(char *mode, int *bits, Mode *t)
+setreset(int8_t *mode, int *bits, Mode *t)
 {
 	int i, clr;
 
@@ -158,7 +158,7 @@ setreset(char *mode, int *bits, Mode *t)
 }
 
 int
-ccname(char *name)
+ccname(int8_t *name)
 {
 	int i;
 
@@ -170,7 +170,7 @@ ccname(char *name)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Termios t;
 	int i, stdin, wmo, cc;
@@ -231,7 +231,7 @@ int
 setmode(int fd, Termios *t)
 {
 	int n, i;
-	char buf[256];
+	int8_t buf[256];
 
 	n = sprint(buf, "IOW %4.4ux %4.4ux %4.4ux %4.4ux ",
 		t->iflag, t->oflag, t->cflag, t->lflag);
@@ -254,7 +254,7 @@ int
 getmode(int fd, Termios *t)
 {
 	int n;
-	char buf[256];
+	int8_t buf[256];
 
 	if(seek(fd, -2, 0) != -2)
 		return -1;

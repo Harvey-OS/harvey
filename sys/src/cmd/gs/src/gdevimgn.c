@@ -103,14 +103,14 @@
 
 /* Byte stream quote character (ImageStation config# 15).
    Only needed when using byte stream */
-#define QUOTE_CHAR (char) 0x02
+#define QUOTE_CHAR (int8_t) 0x02
 /* Byte stream end-of-file character (ImageStation config# 14). */
-#define EOF_CHAR   (char) 0x04 
+#define EOF_CHAR   (int8_t) 0x04 
 /* Other special characters to quote.  Put them here if spooler or
    hardware uses flow control, etc.   If not needed, set to
    a redundant value such as EOF_CHAR */
-#define EXTRA_QUOTE1 (char) 0x11   /* ^Q */
-#define EXTRA_QUOTE2 (char) 0x13   /* ^S */
+#define EXTRA_QUOTE1 (int8_t) 0x11   /* ^Q */
+#define EXTRA_QUOTE2 (int8_t) 0x13   /* ^S */
 #define EXTRA_QUOTE3 EOF_CHAR
 #define EXTRA_QUOTE4 EOF_CHAR
 

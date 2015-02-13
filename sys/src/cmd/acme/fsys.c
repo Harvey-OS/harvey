@@ -64,9 +64,9 @@ Xfid* 	(*fcall[Tmax])(Xfid*, Fid*) =
 	[Twstat]	= fsyswstat,
 };
 
-char Eperm[] = "permission denied";
-char Eexist[] = "file does not exist";
-char Enotdir[] = "not a directory";
+int8_t Eperm[] = "permission denied";
+int8_t Eexist[] = "file does not exist";
+int8_t Enotdir[] = "not a directory";
 
 Dirtab dirtab[]=
 {
@@ -109,11 +109,11 @@ struct Mnt
 
 Mnt	mnt;
 
-Xfid*	respond(Xfid*, Fcall*, char*);
-int		dostat(int, Dirtab*, uchar*, int, uint);
+Xfid*	respond(Xfid*, Fcall*, int8_t*);
+int		dostat(int, Dirtab*, uint8_t*, int, uint);
 uint	getclock(void);
 
-char	*user = "Wile E. Coyote";
+int8_t	*user = "Wile E. Coyote";
 int	clockfd;
 static int closing = 0;
 int	messagesize = Maxblock+IOHDRSZ;	/* good start */
@@ -125,7 +125,7 @@ fsysinit(void)
 {
 	int p[2];
 	int n, fd;
-	char buf[256];
+	int8_t buf[256];
 
 	if(pipe(p) < 0)
 		error("can't create pipe");
@@ -152,7 +152,7 @@ fsysproc(void *)
 	Xfid *x;
 	Fid *f;
 	Fcall t;
-	uchar *buf;
+	uint8_t *buf;
 
 	threadsetname("fsysproc");
 
@@ -235,7 +235,7 @@ fsysdelid(Mntdir *idm)
 {
 	Mntdir *m, *prev;
 	int i;
-	char buf[64];
+	int8_t buf[64];
 
 	if(idm == nil)
 		return;
@@ -272,7 +272,7 @@ fsysdelid(Mntdir *idm)
 Mntdir*
 fsysmount(Rune *dir, int ndir, Rune **incl, int nincl)
 {
-	char buf[256];
+	int8_t buf[256];
 	Mntdir *m;
 
 	/* close server side so don't hang if acme is half-exited */
@@ -301,7 +301,7 @@ fsysclose(void)
 }
 
 Xfid*
-respond(Xfid *x, Fcall *t, char *err)
+respond(Xfid *x, Fcall *t, int8_t *err)
 {
 	int n;
 
@@ -401,12 +401,12 @@ fsyswalk(Xfid *x, Fid *f)
 	Fcall t;
 	int c, i, j, id;
 	Qid q;
-	uchar type;
-	ulong path;
+	uint8_t type;
+	uint32_t path;
 	Fid *nf;
 	Dirtab *d, *dir;
 	Window *w;
-	char *err;
+	int8_t *err;
 
 	nf = nil;
 	w = nil;
@@ -597,12 +597,12 @@ Xfid*
 fsysread(Xfid *x, Fid *f)
 {
 	Fcall t;
-	uchar *b;
+	uint8_t *b;
 	int i, id, n, o, e, j, k, *ids, nids;
 	Dirtab *d, dt;
 	Column *c;
 	uint clock, len;
-	char buf[16];
+	int8_t buf[16];
 
 	if(f->qid.type & QTDIR){
 		if(FILE(f->qid) == Qacme){	/* empty dir */
@@ -660,7 +660,7 @@ fsysread(Xfid *x, Fid *f)
 			}
 			free(ids);
 		}
-		t.data = (char*)b;
+		t.data = (int8_t*)b;
 		t.count = n;
 		respond(x, &t, nil);
 		free(b);
@@ -744,7 +744,7 @@ newfid(int fid)
 uint
 getclock()
 {
-	char buf[32];
+	int8_t buf[32];
 
 	buf[0] = '\0';
 	pread(clockfd, buf, sizeof buf, 0);
@@ -752,7 +752,7 @@ getclock()
 }
 
 int
-dostat(int id, Dirtab *dir, uchar *buf, int nbuf, uint clock)
+dostat(int id, Dirtab *dir, uint8_t *buf, int nbuf, uint clock)
 {
 	Dir d;
 

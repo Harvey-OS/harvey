@@ -32,13 +32,13 @@
 #include "gp.h"
 
 /* Import the C getenv function. */
-extern char *getenv(const char *);
+extern int8_t *getenv(const int8_t *);
 
 /* Get the value of an environment variable.  See gp.h for details. */
 int
-gp_getenv(const char *key, char *ptr, int *plen)
+gp_getenv(const int8_t *key, int8_t *ptr, int *plen)
 {
-    const char *str = getenv(key);
+    const int8_t *str = getenv(key);
 
     if (str) {
 	int len = strlen(str);

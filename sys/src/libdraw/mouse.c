@@ -56,7 +56,7 @@ void
 _ioproc(void *arg)
 {
 	int n, nerr, one;
-	char buf[1+5*12];
+	int8_t buf[1+5*12];
 	Mouse m;
 	Mousectl *mc;
 
@@ -98,10 +98,10 @@ _ioproc(void *arg)
 }
 
 Mousectl*
-initmouse(char *file, Image *i)
+initmouse(int8_t *file, Image *i)
 {
 	Mousectl *mc;
-	char *t, *sl;
+	int8_t *t, *sl;
 
 	mc = mallocz(sizeof(Mousectl), 1);
 	if(file == nil)
@@ -140,7 +140,7 @@ initmouse(char *file, Image *i)
 void
 setcursor(Mousectl *mc, Cursor *c)
 {
-	char curs[2*4+2*2*16];
+	int8_t curs[2*4+2*2*16];
 
 	if(c == nil)
 		write(mc->cfd, curs, 0);

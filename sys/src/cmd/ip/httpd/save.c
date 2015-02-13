@@ -30,7 +30,7 @@ enum
 };
 
 static int
-dangerous(char *s)
+dangerous(int8_t *s)
 {
 	if(s == nil)
 		return 1;
@@ -53,9 +53,9 @@ dangerous(char *s)
  * if it is, spin until available
  */
 int
-openLocked(char *file, int mode)
+openLocked(int8_t *file, int mode)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 	int tries, fd;
 
 	for(tries = 0; tries < LockSecs*2; tries++){
@@ -71,12 +71,12 @@ openLocked(char *file, int mode)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	HConnect *c;
 	Dir *dir;
 	Hio *hin, *hout;
-	char *s, *t, *fn;
+	int8_t *s, *t, *fn;
 	int n, nfn, datafd, htmlfd;
 
 	c = init(argc, argv);

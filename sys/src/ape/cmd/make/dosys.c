@@ -13,13 +13,13 @@
 #include <fcntl.h>
 #include <errno.h>
 
-static int	metas(char *);
+static int	metas(int8_t *);
 static int	waitproc(int *);
-static int	doshell(char *, int);
-static int	doexec(char *);
+static int	doshell(int8_t *, int);
+static int	doexec(int8_t *);
 
 int
-dosys(char *comstring, int nohalt, int nowait, char *prefix)
+dosys(int8_t *comstring, int nohalt, int nowait, int8_t *prefix)
 {
 int status;
 struct process *procp;
@@ -68,9 +68,9 @@ return waitstack(nproc-1);
 }
 
 static int
-metas(char *s)   /* Are there are any  Shell meta-characters? */
+metas(int8_t *s)   /* Are there are any  Shell meta-characters? */
 {
-char c;
+int8_t c;
 
 while( (funny[c = *s++] & META) == 0 )
 	;
@@ -123,7 +123,7 @@ pid_t pid;
 int status;
 int i;
 struct process *procp;
-char junk[50];
+int8_t junk[50];
 static int inwait = NO;
 
 if(inwait)	/* avoid infinite recursions on errors */
@@ -178,7 +178,7 @@ return -1;
 }
 
 static int
-doshell(char *comstring, int nohalt)
+doshell(int8_t *comstring, int nohalt)
 {
 pid_t pid;
 
@@ -195,11 +195,11 @@ return pid;
 }
 
 static int
-doexec(char *str)
+doexec(int8_t *str)
 {
-char *t, *tend;
-char **argv;
-char **p;
+int8_t *t, *tend;
+int8_t **argv;
+int8_t **p;
 int nargs;
 pid_t pid;
 
@@ -222,7 +222,7 @@ for(t = str ; *t ; )
 /* now allocate args array, copy pointer to start of each string,
    then terminate array with a null
 */
-p = argv = (char **) ckalloc(nargs*sizeof(char *));
+p = argv = (int8_t **) ckalloc(nargs*sizeof(int8_t *));
 tend = t;
 for(t = str ; t<tend ; )
 	{
@@ -246,15 +246,15 @@ if((pid = fork()) == 0)
 	fatal1("Cannot load %s",str);
 	}
 
-free( (char *) argv);
+free( (int8_t *) argv);
 return pid;
 }
 
 void
-touch(int force, char *name)
+touch(int force, int8_t *name)
 {
 struct stat stbuff;
-char junk[1];
+int8_t junk[1];
 int fd;
 
 if( stat(name,&stbuff) < 0)

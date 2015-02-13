@@ -18,19 +18,19 @@
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 int
-convTR2M(Ticketreq *f, char *ap)
+convTR2M(Ticketreq *f, int8_t *ap)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(type);
 	STRING(authid, 28);	/* BUG */
 	STRING(authdom, DOMLEN);
 	STRING(chal, CHALLEN);
 	STRING(hostid, 28);	/* BUG */
 	STRING(uid, 28);	/* BUG */
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	return n;
 }
 

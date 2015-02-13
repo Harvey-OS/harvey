@@ -73,10 +73,10 @@ archFree(Arch *a)
 }
 
 static int
-ventiSend(Arch *a, Block *b, uchar *data)
+ventiSend(Arch *a, Block *b, uint8_t *data)
 {
 	uint n;
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 
 	if(DEBUG > 1)
 		fprint(2, "ventiSend: sending %#ux %L to venti\n", b->addr, &b->l);
@@ -88,7 +88,7 @@ ventiSend(Arch *a, Block *b, uchar *data)
 		return 0;
 	}
 	if(!vtSha1Check(score, data, n)){
-		uchar score2[VtScoreSize];
+		uint8_t score2[VtScoreSize];
 		vtSha1(score2, data, n);
 		fprint(2, "ventiSend: vtWrite block %#ux failed vtSha1Check %V %V\n",
 			b->addr, score, score2);
@@ -132,11 +132,11 @@ struct Param
 
 	/* return value; avoids using stack space */
 	Label l;
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 };
 
 static void
-shaBlock(uchar score[VtScoreSize], Block *b, uchar *data, uint bsize)
+shaBlock(uint8_t score[VtScoreSize], Block *b, uint8_t *data, uint bsize)
 {
 	vtSha1(score, data, vtZeroTruncate(vtType[b->l.type], data, bsize));
 }
@@ -153,10 +153,10 @@ etype(Entry *e)
 	return t+e->depth;
 }
 
-static uchar*
+static uint8_t*
 copyBlock(Block *b, u32int blockSize)
 {
-	uchar *data;
+	uint8_t *data;
 
 	data = vtMemAlloc(blockSize);
 	if(data == nil)
@@ -184,10 +184,10 @@ enum
 	ArchFaked,
 };
 static int
-archWalk(Param *p, u32int addr, uchar type, u32int tag)
+archWalk(Param *p, u32int addr, uint8_t type, u32int tag)
 {
 	int ret, i, x, psize, dsize;
-	uchar *data, score[VtScoreSize];
+	uint8_t *data, score[VtScoreSize];
 	Block *b;
 	Label l;
 	Entry *e;
@@ -355,7 +355,7 @@ archThread(void *v)
 	Super super;
 	int ret;
 	u32int addr;
-	uchar rbuf[VtRootSize];
+	uint8_t rbuf[VtRootSize];
 	VtRoot root;
 
 	vtThreadSetName("arch");

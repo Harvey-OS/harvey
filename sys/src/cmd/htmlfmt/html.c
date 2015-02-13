@@ -16,7 +16,7 @@
 #include <ctype.h>
 #include "dat.h"
 
-char urlexpr[] =
+int8_t urlexpr[] =
 	"^(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|prospero)"
 	"://([a-zA-Z0-9_@\\-]+([.:][a-zA-Z0-9_@\\-]+)*)";
 Reprog	*urlprog;
@@ -26,13 +26,13 @@ int inword = 0;
 int col = 0;
 int wordi = 0;
 
-char*
+int8_t*
 loadhtml(int fd)
 {
 	URLwin *u;
 	Bytes *b;
 	int n;
-	char buf[4096];
+	int8_t buf[4096];
 
 	u = emalloc(sizeof(URLwin));
 	u->infd = fd;
@@ -50,10 +50,10 @@ loadhtml(int fd)
 	return nil;
 }
 
-char*
+int8_t*
 runetobyte(Rune *r, int n)
 {
-	char *s;
+	int8_t *s;
 
 	if(n == 0)
 		return emalloc(1);
@@ -64,7 +64,7 @@ runetobyte(Rune *r, int n)
 }
 
 int
-closingpunct(char c)
+closingpunct(int8_t c)
 {
 	return strchr(".,:;'\")]}>!?", c) != nil;
 }
@@ -72,7 +72,7 @@ closingpunct(char c)
 void
 emitword(Bytes *b, Rune *r, int nr)
 {
-	char *s;
+	int8_t *s;
 	int space;
 
 	if(nr == 0)
@@ -130,7 +130,7 @@ renderrunes(Bytes *b, Rune *r)
 }
 
 void
-renderbytes(Bytes *b, char *fmt, ...)
+renderbytes(Bytes *b, int8_t *fmt, ...)
 {
 	Rune *r;
 	va_list arg;
@@ -142,10 +142,10 @@ renderbytes(Bytes *b, char *fmt, ...)
 	free(r);
 }
 
-char*
-baseurl(char *url)
+int8_t*
+baseurl(int8_t *url)
 {
-	char *base, *slash;
+	int8_t *base, *slash;
 	Resub rs[10];
 
 	if(url == nil)
@@ -167,11 +167,11 @@ baseurl(char *url)
 	return base;
 }
 
-char*
+int8_t*
 fullurl(URLwin *u, Rune *rhref)
 {
-	char *base, *href, *hrefbase;
-	char *result;
+	int8_t *base, *href, *hrefbase;
+	int8_t *result;
 
 	if(rhref == nil)
 		return estrdup("NULL URL");
@@ -208,7 +208,7 @@ render(URLwin *u, Bytes *t, Item *items, int curanchor)
 	Anchor *a;
 	Table *tab;
 	Tablecell *cell;
-	char *href;
+	int8_t *href;
 
 	inword = 0;
 	col = 0;
@@ -295,7 +295,7 @@ rerender(URLwin *u)
 	render(u, t, u->items, 0);
 
 	if(t->n)
-		write(u->outfd, (char*)t->b, t->n);
+		write(u->outfd, (int8_t*)t->b, t->n);
 	free(t->b);
 	free(t);
 }
@@ -305,9 +305,9 @@ rerender(URLwin *u)
  * of the document (cistrstr only looks at first somewhat bytes).
  */
 int
-charset(char *s)
+charset(int8_t *s)
 {
-	char *meta, *emeta, *charset;
+	int8_t *meta, *emeta, *charset;
 
 	if(defcharset == 0)
 		defcharset = ISO_8859_1;
@@ -332,8 +332,9 @@ rendertext(URLwin *u, Bytes *b)
 {
 	Rune *rurl;
 
-	rurl = toStr((uchar*)u->url, strlen(u->url), ISO_8859_1);
-	u->items = parsehtml(b->b, b->n, rurl, u->type, charset((char*)b->b), &u->docinfo);
+	rurl = toStr((uint8_t*)u->url, strlen(u->url), ISO_8859_1);
+	u->items = parsehtml(b->b, b->n, rurl, u->type,
+			     charset((int8_t*)b->b), &u->docinfo);
 //	free(rurl);
 
 	rerender(u);

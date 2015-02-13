@@ -45,14 +45,14 @@ smbsessionfree(SmbSession *s)
 }
 
 int
-smbsessionwrite(SmbSession *smbs, void *p, long n)
+smbsessionwrite(SmbSession *smbs, void *p, int32_t n)
 {
 	SmbHeader h;
 	SmbOpTableEntry *ote;
-	uchar *pdata;
+	uint8_t *pdata;
 	int rv;
 	SmbBuffer *b = nil;
-	ushort bytecount;
+	uint16_t bytecount;
 	SmbProcessResult pr;
 
 	if (smbs->response == nil)
@@ -147,13 +147,13 @@ done:
 }
 
 static int
-nbwrite(NbSession *nbss, void *p, long n)
+nbwrite(NbSession *nbss, void *p, int32_t n)
 {
 	return smbsessionwrite((SmbSession *)nbss->magic, p, n);
 }
 
 static int
-cifswrite(SmbCifsSession *cifs, void *p, long n)
+cifswrite(SmbCifsSession *cifs, void *p, int32_t n)
 {
 	return smbsessionwrite((SmbSession *)cifs->magic, p, n);
 }
@@ -190,7 +190,7 @@ usage(void)
 }
 
 static void
-logset(char *cmd)
+logset(int8_t *cmd)
 {
 	int x;
 	if (strcmp(cmd, "allcmds") == 0) {

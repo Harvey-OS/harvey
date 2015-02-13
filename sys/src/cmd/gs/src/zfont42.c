@@ -42,7 +42,7 @@
 #include "store.h"
 
 /* Forward references */
-private int z42_string_proc(gs_font_type42 *, ulong, uint, const byte **);
+private int z42_string_proc(gs_font_type42 *, uint32_t, uint, const byte **);
 private uint z42_get_glyph_index(gs_font_type42 *, gs_glyph);
 private int z42_gdir_get_outline(gs_font_type42 *, uint, gs_glyph_data_t *);
 private font_proc_enumerate_glyph(z42_enumerate_glyph);
@@ -56,7 +56,7 @@ private font_proc_glyph_outline(z42_glyph_outline);
 int
 build_gs_TrueType_font(i_ctx_t *i_ctx_p, os_ptr op, gs_font_type42 **ppfont,
 		       font_type ftype, gs_memory_type_ptr_t pstype,
-		       const char *bcstr, const char *bgstr,
+		       const int8_t *bcstr, const int8_t *bgstr,
 		       build_font_options_t options)
 {
     build_proc_refs build;
@@ -87,7 +87,7 @@ build_gs_TrueType_font(i_ctx_t *i_ctx_p, os_ptr op, gs_font_type42 **ppfont,
     make_null_new(&pdata->u.type42.CIDMap);
     ref_assign(&pdata->u.type42.GlyphDirectory, &GlyphDirectory);
     pfont->data.string_proc = z42_string_proc;
-    pfont->data.proc_data = (char *)pdata;
+    pfont->data.proc_data = (int8_t *)pdata;
     code = gs_type42_font_init(pfont);
     if (code < 0)
 	return code;
@@ -130,7 +130,8 @@ zbuildfont42(i_ctx_t *i_ctx_p)
  * value even if it is of the wrong type.
  */
 int
-font_string_array_param(const gs_memory_t *mem, os_ptr op, const char *kstr, ref *psa)
+font_string_array_param(const gs_memory_t *mem, os_ptr op, const int8_t *kstr,
+                        ref *psa)
 {
     ref *pvsa;
     ref rstr0;
@@ -177,10 +178,10 @@ font_GlyphDirectory_param(os_ptr op, ref *pGlyphDirectory)
  */
 int
 string_array_access_proc(const gs_memory_t *mem, 
-			 const ref *psa, int modulus, ulong offset,
+			 const ref *psa, int modulus, uint32_t offset,
 			 uint length, const byte **pdata)
 {
-    ulong left = offset;
+    uint32_t left = offset;
     uint index = 0;
 
     if (length == 0)
@@ -253,7 +254,7 @@ z42_get_glyph_index(gs_font_type42 *pfont, gs_glyph glyph)
 int
 font_gdir_get_outline(const gs_memory_t *mem, 
 		      const ref *pgdir, 
-		      long glyph_index,
+		      int32_t glyph_index,
 		      gs_glyph_data_t *pgd)
 {
     ref iglyph;

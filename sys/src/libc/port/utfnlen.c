@@ -11,16 +11,16 @@
 #include <libc.h>
 
 int
-utfnlen(char *s, long m)
+utfnlen(int8_t *s, int32_t m)
 {
 	int c;
-	long n;
+	int32_t n;
 	Rune rune;
-	char *es;
+	int8_t *es;
 
 	es = s + m;
 	for(n = 0; s < es; n++) {
-		c = *(uchar*)s;
+		c = *(uint8_t*)s;
 		if(c < Runeself){
 			if(c == '\0')
 				break;

@@ -23,8 +23,8 @@
 
 typedef struct mbox {
 	struct mbox    *mb_next;	/* next mbox in list */
-	char	       *mb_path;	/* path to mail file */
-	char	       *mb_msg;		/* to announce arrival of new mail */
+	int8_t	       *mb_path;	/* path to mail file */
+	int8_t	       *mb_msg;		/* to announce arrival of new mail */
 	time_t		mb_mtime;	/* mtime of mail file */
 } mbox_t;
 
@@ -89,14 +89,14 @@ mcheck()
 
 void
 mcset(interval)
-	long interval;
+	int32_t interval;
 {
 	mailcheck_interval = interval;
 }
 
 void
 mbset(p)
-	register char	*p;
+	register int8_t	*p;
 {
 	struct stat	stbuf;
 
@@ -115,11 +115,11 @@ mbset(p)
 
 void
 mpset(mptoparse)
-	register char	*mptoparse;
+	register int8_t	*mptoparse;
 {
 	register mbox_t	*mbp;
-	register char	*mpath, *mmsg, *mval;
-	char *p;
+	register int8_t	*mpath, *mmsg, *mval;
+	int8_t *p;
 
 	munset( mplist );
 	mplist = NULL;
@@ -170,8 +170,8 @@ register mbox_t	*mlist;
 
 static mbox_t *
 mballoc(p, m)
-	char	*p;
-	char	*m;
+	int8_t	*p;
+	int8_t	*m;
 {
 	struct stat	stbuf;
 	register mbox_t	*mbp;

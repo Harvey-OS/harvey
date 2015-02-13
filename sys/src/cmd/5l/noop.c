@@ -448,7 +448,7 @@ noops(void)
 }
 
 static void
-sigdiv(char *n)
+sigdiv(int8_t *n)
 {
 	Sym *s;
 

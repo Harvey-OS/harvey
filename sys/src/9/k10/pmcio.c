@@ -140,8 +140,8 @@ static int
 setctl(PmcCtl *p, int regno)
 {
 	u64int v, e, u;
-	char *toks[2];
-	char str[KNAMELEN];
+	int8_t *toks[2];
+	int8_t str[KNAMELEN];
 
 	if (regno >= pmcnregs())
 		error("invalid reg");
@@ -194,7 +194,7 @@ setctl(PmcCtl *p, int regno)
 }
 
 int
-pmcctlstr(char *str, int nstr, PmcCtl *p)
+pmcctlstr(int8_t *str, int nstr, PmcCtl *p)
 {
 	int ns;
 
@@ -218,7 +218,7 @@ pmcctlstr(char *str, int nstr, PmcCtl *p)
 }
 
 int
-pmcdescstr(char *str, int nstr)
+pmcdescstr(int8_t *str, int nstr)
 {
 	PmcCtlCtrId *pi;
 	int ns;

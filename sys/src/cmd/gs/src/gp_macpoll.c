@@ -71,7 +71,8 @@ int gp_check_interrupts(const gs_memory_t *mem)
 		 * to the DLL is returned in every gsdll_poll message 
 		 * in the count parameter
 		 */
-		iRetVal = (*pgsdll_callback)(GSDLL_POLL, 0, (long) hwndtext);
+		iRetVal = (*pgsdll_callback)(GSDLL_POLL, 0,
+					     (int32_t) hwndtext);
 	    } else {
 	    	if (mem == NULL) {
 	    		/* this is not thread safe */

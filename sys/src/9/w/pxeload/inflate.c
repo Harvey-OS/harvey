@@ -19,18 +19,18 @@ typedef struct Biobuf	Biobuf;
 
 struct Biobuf
 {
-	uchar *bp;
-	uchar *p;
-	uchar *ep;
+	uint8_t *bp;
+	uint8_t *p;
+	uint8_t *ep;
 };
 
 static int	header(Biobuf*);
 static int	trailer(Biobuf*, Biobuf*);
 static int	getc(void*);
-static ulong	offset(Biobuf*);
+static uint32_t	offset(Biobuf*);
 static int	crcwrite(void *out, void *buf, int n);
-static ulong	get4(Biobuf *b);
-static ulong	Boffset(Biobuf *bp);
+static uint32_t	get4(Biobuf *b);
+static uint32_t	Boffset(Biobuf *bp);
 
 /* GZIP flags */
 enum {
@@ -43,12 +43,12 @@ enum {
 	GZCRCPOLY	= 0xedb88320UL,
 };
 
-static ulong	*crctab;
-static ulong	crc;
+static uint32_t	*crctab;
+static uint32_t	crc;
 
-extern void diff(char*);	//XXX
+extern void diff(int8_t*);	//XXX
 int
-gunzip(uchar *out, int outn, uchar *in, int inn)
+gunzip(uint8_t *out, int outn, uint8_t *in, int inn)
 {
 	Biobuf bin, bout;
 	int err;
@@ -144,10 +144,10 @@ trailer(Biobuf *bout, Biobuf *bin)
 	return FlateOk;
 }
 
-static ulong
+static uint32_t
 get4(Biobuf *b)
 {
-	ulong v;
+	uint32_t v;
 	int i, c;
 
 	v = 0;
@@ -170,7 +170,7 @@ getc(void *in)
 	return *bp->p++;
 }
 
-static ulong
+static uint32_t
 Boffset(Biobuf *bp)
 {
 	return bp->p - bp->bp;
@@ -197,7 +197,7 @@ crcwrite(void *out, void *buf, int n)
 #undef free
 
 void *
-malloc(ulong n)
+malloc(uint32_t n)
 {
 	return ialloc(n, 8);
 }

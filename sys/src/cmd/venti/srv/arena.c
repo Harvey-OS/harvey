@@ -31,7 +31,7 @@ static QLock	sumlock;
 static Rendez	sumwait;
 static ASum	*sumq;
 static ASum	*sumqtail;
-static uchar zero[8192];
+static uint8_t zero[8192];
 
 int	arenasumsleeptime;
 
@@ -89,7 +89,8 @@ freearena(Arena *arena)
 }
 
 Arena*
-newarena(Part *part, u32int vers, char *name, u64int base, u64int size, u32int blocksize)
+newarena(Part *part, u32int vers, int8_t *name, u64int base, u64int size,
+	 u32int blocksize)
 {
 	int bsize;
 	Arena *arena;
@@ -196,12 +197,12 @@ arenadirsize(Arena *arena, u32int clumps)
  * make sure it won't run off the end, then return the number of bytes actually read
  */
 u32int
-readarena(Arena *arena, u64int aa, u8int *buf, long n)
+readarena(Arena *arena, u64int aa, u8int *buf, int32_t n)
 {
 	DBlock *b;
 	u64int a;
 	u32int blocksize, off, m;
-	long nn;
+	int32_t nn;
 
 	if(n == 0)
 		return -1;
@@ -249,7 +250,7 @@ writearena(Arena *arena, u64int aa, u8int *clbuf, u32int n)
 	DBlock *b;
 	u64int a;
 	u32int blocksize, off, m;
-	long nn;
+	int32_t nn;
 	int ok;
 
 	if(n == 0)
@@ -693,8 +694,8 @@ loadarena(Arena *arena)
 				arena->name, head.name);
 		else if(arena->clumpmagic != head.clumpmagic)
 			logerr(ECorrupt, "arena %d tail clumpmagic 0x%lux head 0x%lux",
-				debugarena, (ulong)arena->clumpmagic,
-				(ulong)head.clumpmagic);
+				debugarena, (uint32_t)arena->clumpmagic,
+				(uint32_t)head.clumpmagic);
 		else if(arena->version != head.version)
 			logerr(ECorrupt, "arena tail version %d head version %d",
 				arena->version, head.version);
@@ -703,7 +704,8 @@ loadarena(Arena *arena)
 				arena->blocksize, head.blocksize);
 		else if(arena->size+2*arena->blocksize != head.size)
 			logerr(ECorrupt, "arena tail size %lud head %lud",
-				(ulong)arena->size+2*arena->blocksize, head.size);
+				(uint32_t)arena->size+2*arena->blocksize,
+			       head.size);
 		else
 			logerr(ECorrupt, "arena header inconsistent with arena data");
 	}

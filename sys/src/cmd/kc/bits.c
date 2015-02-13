@@ -77,7 +77,7 @@ int
 bnum(Bits a)
 {
 	int i;
-	long b;
+	int32_t b;
 
 	for(i=0; i<BITS; i++)
 		if(b = a.b[i])
@@ -111,7 +111,7 @@ bset(Bits a, unsigned n)
 int
 Bconv(va_list *arg, Fconv *fp)
 {
-	char str[STRINGSZ], ss[STRINGSZ], *s;
+	int8_t str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
 	int i;
 

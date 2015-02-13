@@ -29,8 +29,8 @@ int lastc = '\n';
 int inpre = 0;
 
 /* stack for fonts */
-char *fontstack[SSIZE];
-char *font = "R";
+int8_t *fontstack[SSIZE];
+int8_t *font = "R";
 int fsp;
 
 /* stack for lists */
@@ -46,15 +46,15 @@ int quoting;
 typedef struct Goobie Goobie;
 struct Goobie
 {
-	char *name;
-	void (*f)(Goobie*, char*);
-	void (*ef)(Goobie*, char*);
+	int8_t *name;
+	void (*f)(Goobie*, int8_t*);
+	void (*ef)(Goobie*, int8_t*);
 };
 
 void	eatwhite(void);
 void	escape(void);
 
-typedef void Action(Goobie*, char*);
+typedef void Action(Goobie*, int8_t*);
 
 Action	g_ignore;
 Action	g_unexpected;
@@ -142,7 +142,7 @@ Goobie gtab[] =
 typedef struct Entity Entity;
 struct Entity
 {
-	char *name;
+	int8_t *name;
 	Rune value;
 };
 
@@ -167,7 +167,7 @@ Entity pl_entity[]=
 };
 
 int
-cistrcmp(char *a, char *b)
+cistrcmp(int8_t *a, int8_t *b)
 {
 	int c, d;
 
@@ -183,9 +183,9 @@ cistrcmp(char *a, char *b)
 }
 
 int
-readupto(char *buf, int n, char d, char notme)
+readupto(int8_t *buf, int n, int8_t d, int8_t notme)
 {
-	char *p;
+	int8_t *p;
 	int c;
 
 	buf[0] = 0;
@@ -215,9 +215,9 @@ readupto(char *buf, int n, char d, char notme)
 void
 dogoobie(void)
 {
-	char *arg, *type;
+	int8_t *arg, *type;
 	Goobie *g;
-	char buf[1024];
+	int8_t buf[1024];
 	int closing;
 
 	if(readupto(buf, sizeof(buf), '>', '<') < 0){
@@ -313,7 +313,7 @@ escape(void)
 {
 	int c;
 	Entity *e;
-	char buf[8];
+	int8_t buf[8];
 
 	if(readupto(buf, sizeof(buf), ';', '\n') < 0){
 		Bprint(&out, "&%s", buf);
@@ -358,7 +358,7 @@ eatwhite(void)
  *  print at start of line
  */
 void
-printsol(char *fmt, ...)
+printsol(int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -375,41 +375,41 @@ printsol(char *fmt, ...)
 }
 
 void
-g_ignore(Goobie *g, char *arg)
+g_ignore(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 }
 
 void
-g_unexpected(Goobie *g, char *arg)
+g_unexpected(Goobie *g, int8_t *arg)
 {
 	USED(arg);
 	fprint(2, "unexpected %s ending\n", g->name);
 }
 
 void
-g_title(Goobie *g, char *arg)
+g_title(Goobie *g, int8_t *arg)
 {
 	USED(arg);
 	printsol(".TL\n", g->name);
 }
 
 void
-g_p(Goobie *g, char *arg)
+g_p(Goobie *g, int8_t *arg)
 {
 	USED(arg);
 	printsol(".LP\n", g->name);
 }
 
 void
-g_h(Goobie *g, char *arg)
+g_h(Goobie *g, int8_t *arg)
 {
 	USED(arg);
 	printsol(".SH %c\n", g->name[1]);
 }
 
 void
-g_list(Goobie *g, char *arg)
+g_list(Goobie *g, int8_t *arg)
 {
 	USED(arg);
 
@@ -428,14 +428,14 @@ g_list(Goobie *g, char *arg)
 }
 
 void
-g_br(Goobie *g, char *arg)
+g_br(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	printsol(".br\n");
 }
 
 void
-g_li(Goobie *g, char *arg)
+g_li(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	if(lsp <= 0 || lsp > SSIZE){
@@ -453,7 +453,7 @@ g_li(Goobie *g, char *arg)
 }
 
 void
-g_listend(Goobie *g, char *arg)
+g_listend(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	if(--lsp < 0)
@@ -462,14 +462,14 @@ g_listend(Goobie *g, char *arg)
 }
 
 void
-g_display(Goobie *g, char *arg)
+g_display(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	printsol(".DS\n");
 }
 
 void
-g_pre(Goobie *g, char *arg)
+g_pre(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	printsol(".DS L\n");
@@ -477,7 +477,7 @@ g_pre(Goobie *g, char *arg)
 }
 
 void
-g_displayend(Goobie *g, char *arg)
+g_displayend(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	printsol(".DE\n");
@@ -485,7 +485,7 @@ g_displayend(Goobie *g, char *arg)
 }
 
 void
-g_fpush(Goobie *g, char *arg)
+g_fpush(Goobie *g, int8_t *arg)
 {
 	USED(arg);
 	if(fsp < SSIZE)
@@ -507,7 +507,7 @@ g_fpush(Goobie *g, char *arg)
 }
 
 void
-g_fpop(Goobie *g, char *arg)
+g_fpop(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	fsp--;
@@ -520,21 +520,21 @@ g_fpop(Goobie *g, char *arg)
 }
 
 void
-g_indent(Goobie *g, char *arg)
+g_indent(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	printsol(".RS\n");
 }
 
 void
-g_exdent(Goobie *g, char *arg)
+g_exdent(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	printsol(".RE\n");
 }
 
 void
-g_dt(Goobie *g, char *arg)
+g_dt(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	printsol(".IP \"");
@@ -542,7 +542,7 @@ g_dt(Goobie *g, char *arg)
 }
 
 void
-g_hr(Goobie *g, char *arg)
+g_hr(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	printsol(".br\n");
@@ -588,27 +588,27 @@ g_hr(Goobie *g, char *arg)
 */
 
 void
-g_table(Goobie *g, char *arg)
+g_table(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	printsol(".TS\ncenter ;\n");
 }
 
 void
-g_tableend(Goobie *g, char *arg)
+g_tableend(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 	printsol(".TE\n");
 }
 
 void
-g_caption(Goobie *g, char *arg)
+g_caption(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 }
 
 void
-g_captionend(Goobie *g, char *arg)
+g_captionend(Goobie *g, int8_t *arg)
 {
 	USED(g, arg);
 }

@@ -40,7 +40,7 @@ Bskipws(Biobufhdr *bp) {
 }
 
 int
-asc2dig(char c, int base) {
+asc2dig(int8_t c, int base) {
 	if (c >= '0' && c <= '9')
 		if (base == 8 && c > '7')
 			return(-1);
@@ -68,11 +68,11 @@ Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
 	int dig;
 	int negate = 0;
 	int sindex = 0, i, j, n = 0;
-	long r;
+	int32_t r;
 	Rune R;
 	unsigned u = 0;
 	BOOLEAN bailout = FALSE;
-	char c[UTFmax];
+	int8_t c[UTFmax];
 
 	/* skip over initial white space */
 	if (Bskipws(bp) < 0)
@@ -145,11 +145,11 @@ Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
 		while (size > j+UTFmax && (r = Bgetrune(bp)) >= 0 &&
 		    !isspace(r)) {
 			R = r;
-			i = runetochar(&(((char *)thing)[j]), &R);
+			i = runetochar(&(((int8_t *)thing)[j]), &R);
 			j += i;
 			sindex++;
 		}
-		((char *)thing)[j] = '\0';
+		((int8_t *)thing)[j] = '\0';
 		if (r < 0)
 			return(-1);
 		Bungetrune(bp);

@@ -21,7 +21,7 @@ extern	int	maxpos;
 
 /* general printing routines ($) */
 
-char	*Ipath = INCDIR;
+int8_t	*Ipath = INCDIR;
 static	int	tracetype;
 static void	printfp(Map*, int);
 
@@ -29,9 +29,9 @@ static void	printfp(Map*, int);
  *	callback on stack trace
  */
 static void
-ptrace(Map *map, uvlong pc, uvlong sp, Symbol *sym)
+ptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 {
-	char buf[512];
+	int8_t buf[512];
 
 	USED(map);
 	dprint("%s(", sym->name);
@@ -51,13 +51,13 @@ void
 printtrace(int modif)
 {
 	int i;
-	uvlong pc, sp, link;
-	ulong w;
+	uint64_t pc, sp, link;
+	uint32_t w;
 	BKPT *bk;
 	Symbol s;
 	int stack;
-	char *fname;
-	char buf[512];
+	int8_t *fname;
+	int8_t buf[512];
 
 	if (cntflg==0)
 		cntval = -1;
@@ -190,11 +190,11 @@ printtrace(int modif)
 
 }
 
-char *
+int8_t *
 getfname(void)
 {
-	static char fname[ARB];
-	char *p;
+	static int8_t fname[ARB];
+	int8_t *p;
 
 	if (rdc() == EOR) {
 		reread();
@@ -217,7 +217,7 @@ printfp(Map *map, int modif)
 	Reglist *rp;
 	int i;
 	int ret;
-	char buf[512];
+	int8_t buf[512];
 
 	for (i = 0, rp = mach->reglist; rp->rname; rp += ret) {
 		ret = 1;
@@ -238,9 +238,9 @@ printfp(Map *map, int modif)
 }
 
 void
-redirin(int stack, char *file)
+redirin(int stack, int8_t *file)
 {
-	char *pfile;
+	int8_t *pfile;
 
 	if (file == 0) {
 		iclose(-1, 0);
@@ -259,7 +259,7 @@ redirin(int stack, char *file)
 }
 
 void
-printmap(char *s, Map *map)
+printmap(int8_t *s, Map *map)
 {
 	int i;
 
@@ -321,7 +321,7 @@ printsym(void)
 void
 printsource(ADDR dot)
 {
-	char str[STRINGSZ];
+	int8_t str[STRINGSZ];
 
 	if (fileline(str, STRINGSZ, dot))
 		dprint("%s", str);
@@ -330,13 +330,13 @@ printsource(ADDR dot)
 void
 printpc(void)
 {
-	char buf[512];
+	int8_t buf[512];
 
 	dot = rget(cormap, mach->pc);
 	if(dot){
-		printsource((long)dot);
+		printsource((int32_t)dot);
 		printc(' ');
-		symoff(buf, sizeof(buf), (long)dot, CTEXT);
+		symoff(buf, sizeof(buf), (int32_t)dot, CTEXT);
 		dprint("%s/", buf);
 		if (machdata->das(cormap, dot, 'i', buf, sizeof(buf)) < 0)
 			error("%r");
@@ -348,7 +348,7 @@ void
 printlocals(Symbol *fn, ADDR fp)
 {
 	int i;
-	ulong w;
+	uint32_t w;
 	Symbol s;
 
 	s = *fn;
@@ -367,7 +367,7 @@ printparams(Symbol *fn, ADDR fp)
 {
 	int i;
 	Symbol s;
-	ulong w;
+	uint32_t w;
 	int first = 0;
 
 	fp += mach->szaddr;			/* skip saved pc */

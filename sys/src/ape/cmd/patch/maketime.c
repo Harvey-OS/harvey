@@ -67,7 +67,7 @@
 #include <partime.h>
 #include <maketime.h>
 
-char const maketId[] =
+int8_t const maketId[] =
   "$Id: maketime.c,v 5.15 1997/06/17 16:54:36 eggert Exp $";
 
 static int isleap P ((int));
@@ -113,7 +113,7 @@ time2tm (unixtime, localzone)
 {
   struct tm *tm;
 #ifdef TZ_is_unset
-  static char const *TZ;
+  static int8_t const *TZ;
   if (!TZ && !(TZ = getenv ("TZ")))
     TZ_is_unset ("The TZ environment variable is not set; please set it to your timezone");
 #endif
@@ -156,7 +156,7 @@ difftm (a, b)
 void
 adjzone (t, seconds)
      register struct tm *t;
-     long seconds;
+     int32_t seconds;
 {
   /*
      * This code can be off by a second if SECONDS is not a multiple of 60,
@@ -166,7 +166,7 @@ adjzone (t, seconds)
      * switched to UTC in May 1972; the first leap second was in June 1972.
    */
   int leap_second = t->tm_sec == 60;
-  long sec = seconds + (t->tm_sec - leap_second);
+  int32_t sec = seconds + (t->tm_sec - leap_second);
   if (sec < 0)
     {
       if ((t->tm_min -= (59 - sec) / 60) < 0)
@@ -367,9 +367,9 @@ maketime (pt, default_time)
 /* Parse a free-format date in SOURCE, yielding a Unix format time.  */
 time_t
 str2time (source, default_time, default_zone)
-     char const *source;
+     int8_t const *source;
      time_t default_time;
-     long default_zone;
+     int32_t default_zone;
 {
   struct partime pt;
 
@@ -385,11 +385,11 @@ str2time (source, default_time, default_zone)
 int
 main (argc, argv)
      int argc;
-     char **argv;
+     int8_t **argv;
 {
   time_t default_time = time ((time_t *) 0);
-  long default_zone = argv[1] ? atol (argv[1]) : 0;
-  char buf[1000];
+  int32_t default_zone = argv[1] ? atol (argv[1]) : 0;
+  int8_t buf[1000];
   while (fgets (buf, sizeof (buf), stdin))
     {
       time_t t = str2time (buf, default_time, default_zone);

@@ -28,12 +28,12 @@
 #include "gen.h"
 #include "postio.h"
 
-extern char	*block;
+extern int8_t	*block;
 extern int	blocksize;
 extern int	head;
 extern int	tail;
-extern char	*line;
-extern char	mesg[];
+extern int8_t	*line;
+extern int8_t	mesg[];
 extern int	ttyo;
 
 /*****************************************************************************/

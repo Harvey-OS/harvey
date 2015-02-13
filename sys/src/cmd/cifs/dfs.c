@@ -73,12 +73,12 @@ enum {
 typedef struct Dfscache Dfscache;
 struct Dfscache {
 	Dfscache*next;		/* next entry */
-	char	*src;
-	char	*host;
-	char	*share;
-	char	*path;
-	long	expiry;		/* expiry time in sec */
-	long	rtt;		/* round trip time, nsec */
+	int8_t	*src;
+	int8_t	*host;
+	int8_t	*share;
+	int8_t	*path;
+	int32_t	expiry;		/* expiry time in sec */
+	int32_t	rtt;		/* round trip time, nsec */
 	int	prox;		/* proximity, lower = closer */
 };
 
@@ -87,7 +87,7 @@ Dfscache *Cache;
 int
 dfscacheinfo(Fmt *f)
 {
-	long ex;
+	int32_t ex;
 	Dfscache *cp;
 
 	for(cp = Cache; cp; cp = cp->next){
@@ -101,11 +101,11 @@ dfscacheinfo(Fmt *f)
 	return 0;
 }
 
-char *
-trimshare(char *s)
+int8_t *
+trimshare(int8_t *s)
 {
-	char *p;
-	static char name[128];
+	int8_t *p;
+	static int8_t name[128];
 
 	strncpy(name, s, sizeof(name));
 	name[sizeof(name)-1] = 0;
@@ -115,7 +115,7 @@ trimshare(char *s)
 }
 
 static Dfscache *
-lookup(char *path, int *match)
+lookup(int8_t *path, int *match)
 {
 	int len, n, m;
 	Dfscache *cp, *best;
@@ -145,13 +145,13 @@ lookup(char *path, int *match)
 	return best;
 }
 
-char *
-mapfile(char *opath)
+int8_t *
+mapfile(int8_t *opath)
 {
 	int exact;
 	Dfscache *cp;
-	char *p, *path;
-	static char npath[MAX_DFS_PATH];
+	int8_t *p, *path;
+	static int8_t npath[MAX_DFS_PATH];
 
 	path = opath;
 	if((cp = lookup(path, &exact)) != nil){
@@ -168,13 +168,13 @@ mapfile(char *opath)
 }
 
 int
-mapshare(char *path, Share **osp)
+mapshare(int8_t *path, Share **osp)
 {
 	int i;
 	Share *sp;
 	Dfscache *cp;
-	char *s, *try;
-	char *tail[] = { "", "$" };
+	int8_t *s, *try;
+	int8_t *tail[] = { "", "$" };
 
 	if((cp = lookup(path, nil)) == nil)
 		return 0;
@@ -231,8 +231,8 @@ static int
 remap(Dfscache *cp, Refer *re)
 {
 	int n;
-	long rtt;
-	char *p, *a[4];
+	int32_t rtt;
+	int8_t *p, *a[4];
 	enum {
 		Hostname = 1,
 		Sharename = 2,
@@ -291,7 +291,7 @@ remap(Dfscache *cp, Refer *re)
 }
 
 static int
-redir1(Session *s, char *path, Dfscache *cp, int level)
+redir1(Session *s, int8_t *path, Dfscache *cp, int level)
 {
 	Refer retab[16], *re;
 	int n, gflags, used, found;
@@ -337,10 +337,10 @@ redir1(Session *s, char *path, Dfscache *cp, int level)
  * ome and we a time and we always walk before any other file operations
  */
 int
-redirect(Session *s, Share *sp, char *path)
+redirect(Session *s, Share *sp, int8_t *path)
 {
 	int match;
-	char *unc;
+	int8_t *unc;
 	Dfscache *cp;
 
 	if(Debug && strstr(Debug, "dfs") != nil)

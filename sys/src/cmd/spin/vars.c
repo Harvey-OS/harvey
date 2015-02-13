@@ -24,10 +24,10 @@
 extern Ordered	*all_names;
 extern RunList	*X, *LastX;
 extern Symbol	*Fname;
-extern char	Buf[];
+extern int8_t	Buf[];
 extern int	lineno, depth, verbose, xspin, limited_vis;
 extern int	analyze, jumpsteps, nproc, nstop, columns;
-extern short	no_arrays, Have_claim;
+extern int16_t	no_arrays, Have_claim;
 extern void	sr_mesg(FILE *, int, int);
 extern void	sr_buf(int, int);
 
@@ -141,21 +141,21 @@ getglobal(Lextok *sn)
 
 int
 cast_val(int t, int v, int w)
-{	int i=0; short s=0; unsigned int u=0;
+{	int i=0; int16_t s=0; unsigned int u=0;
 
 	if (t == PREDEF || t == INT || t == CHAN) i = v;	/* predef means _ */
-	else if (t == SHORT) s = (short) v;
+	else if (t == SHORT) s = (int16_t) v;
 	else if (t == BYTE || t == MTYPE)  u = (unsigned char)v;
 	else if (t == BIT)   u = (unsigned char)(v&1);
 	else if (t == UNSIGNED)
 	{	if (w == 0)
-			fatal("cannot happen, cast_val", (char *)0);
+			fatal("cannot happen, cast_val", (int8_t *)0);
 	/*	u = (unsigned)(v& ((1<<w)-1));		problem when w=32	*/
 		u = (unsigned)(v& (~0u>>(8*sizeof(unsigned)-w)));	/* doug */
 	}
 
 	if (v != i+s+ (int) u)
-	{	char buf[64]; sprintf(buf, "%d->%d (%d)", v, i+s+u, t);
+	{	int8_t buf[64]; sprintf(buf, "%d->%d (%d)", v, i+s+u, t);
 		non_fatal("value (%s) truncated in assignment", buf);
 	}
 	return (int)(i+s+u);
@@ -179,9 +179,9 @@ setglobal(Lextok *v, int m)
 }
 
 void
-dumpclaims(FILE *fd, int pid, char *s)
+dumpclaims(FILE *fd, int pid, int8_t *s)
 {	extern Lextok *Xu_List; extern int Pid;
-	extern short terse;
+	extern int16_t terse;
 	Lextok *m; int cnt = 0; int oPid = Pid;
 
 	for (m = Xu_List; m; m = m->rgt)

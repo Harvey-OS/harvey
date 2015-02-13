@@ -13,7 +13,7 @@
 #include <fcall.h>
 #include <thread.h>
 
-#define NS(x)		((vlong)x)
+#define NS(x)		((int64_t)x)
 #define US(x)		(NS(x) * 1000LL)
 #define MS(x)		(US(x) * 1000LL)
 #define S(x)		(MS(x) * 1000LL)
@@ -34,28 +34,28 @@ enum {
 
 typedef struct Endpoints Endpoints;
 struct Endpoints {
-	char	*lsys;
-	char	*lserv;
-	char	*rsys;
-	char	*rserv;
+	int8_t	*lsys;
+	int8_t	*lserv;
+	int8_t	*rsys;
+	int8_t	*rserv;
 };
 
 typedef struct {
-	ulong	nb;		/* Number of data bytes in this message */
-	ulong	msg;		/* Message number */
-	ulong	acked;		/* Number of messages acked */
+	uint32_t	nb;		/* Number of data bytes in this message */
+	uint32_t	msg;		/* Message number */
+	uint32_t	acked;		/* Number of messages acked */
 } Hdr;
 
 typedef struct {
 	Hdr	hdr;
-	uchar	buf[Bufsize];
+	uint8_t	buf[Bufsize];
 } Buf;
 
-static char	*Logname = LOGNAME;
+static int8_t	*Logname = LOGNAME;
 static int	client;
 static int	debug;
-static char	*devdir;
-static char	*dialstring;
+static int8_t	*devdir;
+static int8_t	*dialstring;
 static int	done;
 static int	inmsg;
 static int	maxto = Maxto;
@@ -72,18 +72,18 @@ static Alt a[] = {
 	{ 	nil,	nil,	CHANEND	},
 };
 
-static void	dmessage(int, char *, ...);
+static void	dmessage(int, int8_t *, ...);
 static void	freeendpoints(Endpoints *);
 static void	fromclient(void*);
 static void	fromnet(void*);
-static Endpoints *getendpoints(char *);
-static void	packhdr(Hdr *, uchar *);
+static Endpoints *getendpoints(int8_t *);
+static void	packhdr(Hdr *, uint8_t *);
 static void	reconnect(void);
-static void	showmsg(int, char *, Buf *);
+static void	showmsg(int, int8_t *, Buf *);
 static void	synchronize(void);
 static void	timerproc(void *);
-static void	unpackhdr(Hdr *, uchar *);
-static int	writen(int, uchar *, int);
+static void	unpackhdr(Hdr *, uint8_t *);
+static int	writen(int, uint8_t *, int);
 
 static void
 usage(void)
@@ -93,7 +93,7 @@ usage(void)
 }
 
 static int
-catch(void *, char *s)
+catch(void *, int8_t *s)
 {
 	if (strstr(s, "alarm") != nil) {
 		syslog(0, Logname, "Timed out waiting for client on %s, exiting...",
@@ -257,7 +257,7 @@ static void
 fromnet(void*)
 {
 	int len, acked, i;
-	uchar buf[Hdrsz];
+	uint8_t buf[Hdrsz];
 	Buf *b, *rb;
 	static int lastacked;
 
@@ -286,7 +286,7 @@ fromnet(void*)
 			len, b->hdr.nb, b->hdr.msg);
 
 		if (b->hdr.nb == 0) {
-			if  ((long)b->hdr.msg >= 0) {
+			if  ((int32_t)b->hdr.msg >= 0) {
 				dmessage(1, "fromnet; network closed\n");
 				break;
 			}
@@ -334,7 +334,7 @@ fromnet(void*)
 static void
 reconnect(void)
 {
-	char err[32], ldir[40];
+	int8_t err[32], ldir[40];
 	int lcfd, fd;
 	Endpoints *ep;
 
@@ -375,7 +375,7 @@ synchronize(void)
 {
 	Channel *tmp;
 	Buf *b;
-	uchar buf[Hdrsz];
+	uint8_t buf[Hdrsz];
 
 	/*
 	 * Ignore network errors here.  If we fail during
@@ -394,7 +394,7 @@ synchronize(void)
 }
 
 static void
-showmsg(int level, char *s, Buf *b)
+showmsg(int level, int8_t *s, Buf *b)
 {
 	if (b == nil) {
 		dmessage(level, "%s; b == nil\n", s);
@@ -408,7 +408,7 @@ showmsg(int level, char *s, Buf *b)
 }
 
 static int
-writen(int fd, uchar *buf, int nb)
+writen(int fd, uint8_t *buf, int nb)
 {
 	int n, len = nb;
 
@@ -438,7 +438,7 @@ timerproc(void *x)
 }
 
 static void
-dmessage(int level, char *fmt, ...)
+dmessage(int level, int8_t *fmt, ...)
 {
 	va_list arg; 
 
@@ -450,11 +450,11 @@ dmessage(int level, char *fmt, ...)
 }
 
 static void
-getendpoint(char *dir, char *file, char **sysp, char **servp)
+getendpoint(int8_t *dir, int8_t *file, int8_t **sysp, int8_t **servp)
 {
 	int fd, n;
-	char buf[128];
-	char *sys, *serv;
+	int8_t buf[128];
+	int8_t *sys, *serv;
 
 	sys = serv = 0;
 	snprint(buf, sizeof buf, "%s/%s", dir, file);
@@ -481,7 +481,7 @@ getendpoint(char *dir, char *file, char **sysp, char **servp)
 }
 
 static Endpoints *
-getendpoints(char *dir)
+getendpoints(int8_t *dir)
 {
 	Endpoints *ep;
 
@@ -507,9 +507,9 @@ freeendpoints(Endpoints *ep)
 			(p)[2] = (v)>>16; (p)[3] = (v)>>24
 
 static void
-packhdr(Hdr *hdr, uchar *buf)
+packhdr(Hdr *hdr, uint8_t *buf)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = buf;
 	U32PUT(p, hdr->nb);
@@ -520,9 +520,9 @@ packhdr(Hdr *hdr, uchar *buf)
 }
 
 static void
-unpackhdr(Hdr *hdr, uchar *buf)
+unpackhdr(Hdr *hdr, uint8_t *buf)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = buf;
 	hdr->nb = U32GET(p);

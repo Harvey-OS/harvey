@@ -14,10 +14,12 @@
 #include <libc.h>
 #include <libsec.h>
 
-static void encode64(uchar*, u64int*, ulong);
-static DigestState* sha2_128(uchar *, ulong, uchar *, SHA2_256state *, int);
+static void encode64(uint8_t*, u64int*, uint32_t);
+static DigestState* sha2_128(uint8_t *, uint32_t, uint8_t *,
+			     SHA2_256state *,
+			     int);
 
-extern void _sha2block128(uchar*, ulong, u64int*);
+extern void _sha2block128(uint8_t*, uint32_t, u64int*);
 
 /*
  *  for sha2_384 and sha2_512, len must be multiple of 128 for all but
@@ -28,7 +30,7 @@ extern void _sha2block128(uchar*, ulong, u64int*);
  *  it's the same as sha2_512.
  */
 SHA2_384state*
-sha2_384(uchar *p, ulong len, uchar *digest, SHA2_384state *s)
+sha2_384(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_384state *s)
 {
 	if(s == nil) {
 		s = mallocz(sizeof(*s), 1);
@@ -55,7 +57,7 @@ sha2_384(uchar *p, ulong len, uchar *digest, SHA2_384state *s)
 }
 
 SHA2_512state*
-sha2_512(uchar *p, ulong len, uchar *digest, SHA2_512state *s)
+sha2_512(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_512state *s)
 {
 
 	if(s == nil) {
@@ -84,12 +86,13 @@ sha2_512(uchar *p, ulong len, uchar *digest, SHA2_512state *s)
 
 /* common 128 byte block padding and count code for SHA2_384 and SHA2_512 */
 static DigestState*
-sha2_128(uchar *p, ulong len, uchar *digest, SHA2_512state *s, int dlen)
+sha2_128(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_512state *s,
+	 int dlen)
 {
 	int i;
 	u64int x[16];
-	uchar buf[256];
-	uchar *e;
+	uint8_t buf[256];
+	uint8_t *e;
 
 	/* fill out the partial 128 byte block from previous calls */
 	if(s->blen){
@@ -167,10 +170,10 @@ sha2_128(uchar *p, ulong len, uchar *digest, SHA2_512state *s, int dlen)
  * Assumes len is a multiple of 8.
  */
 static void
-encode64(uchar *output, u64int *input, ulong len)
+encode64(uint8_t *output, u64int *input, uint32_t len)
 {
 	u64int x;
-	uchar *e;
+	uint8_t *e;
 
 	for(e = output + len; output < e;) {
 		x = *input++;
@@ -186,14 +189,16 @@ encode64(uchar *output, u64int *input, ulong len)
 }
 
 DigestState*
-hmac_sha2_384(uchar *p, ulong len, uchar *key, ulong klen, uchar *digest,
+hmac_sha2_384(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
+	      uint8_t *digest,
 	DigestState *s)
 {
 	return hmac_x(p, len, key, klen, digest, s, sha2_384, SHA2_384dlen);
 }
 
 DigestState*
-hmac_sha2_512(uchar *p, ulong len, uchar *key, ulong klen, uchar *digest,
+hmac_sha2_512(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
+	      uint8_t *digest,
 	DigestState *s)
 {
 	return hmac_x(p, len, key, klen, digest, s, sha2_512, SHA2_512dlen);

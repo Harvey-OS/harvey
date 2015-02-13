@@ -56,7 +56,7 @@ enum state {
 
 struct	fsm {
 	int	state;		/* if in this state */
-	uchar	ch[4];		/* and see one of these characters */
+	uint8_t	ch[4];		/* and see one of these characters */
 	int	nextstate;	/* enter this state if +ve */
 };
 
@@ -244,7 +244,7 @@ struct	fsm {
 
 /* first index is char, second is state */
 /* increase #states to power of 2 to encourage use of shift */
-short	bigfsm[256][MAXSTATE];
+int16_t	bigfsm[256][MAXSTATE];
 
 void
 expandlex(void)
@@ -311,12 +311,12 @@ int
 gettokens(Tokenrow *trp, int reset)
 {
 	register int c, state, oldstate;
-	register uchar *ip;
+	register uint8_t *ip;
 	register Token *tp, *maxp;
 	int runelen;
 	Source *s = cursource;
 	int nmac = 0;
-	extern char outbuf[];
+	extern int8_t outbuf[];
 
 	tp = trp->lp;
 	ip = s->inp;
@@ -543,7 +543,7 @@ fillbuf(Source *s)
 {
 	int n;
 
-	while((char *)s->inl+s->ins/8 > (char *)s->inb+s->ins) {
+	while((int8_t *)s->inl+s->ins/8 > (int8_t *)s->inb+s->ins) {
 		int l = s->inl - s->inb;
 		int p = s->inp - s->inb;
 		if(l < 0) 
@@ -556,7 +556,7 @@ fillbuf(Source *s)
 		s->inl = s->inb + l;
 		s->inp = s->inb + p;
 	}
-	if (s->fd<0 || (n=read(s->fd, (char *)s->inl, s->ins/8)) <= 0)
+	if (s->fd<0 || (n=read(s->fd, (int8_t *)s->inl, s->ins/8)) <= 0)
 		n = 0;
 	if ((*s->inp&0xff) == EOB) /* sentinel character appears in input */
 		*s->inp = EOFC;
@@ -575,7 +575,7 @@ fillbuf(Source *s)
  * if fd==-1 and str, then from the string.
  */
 Source *
-setsource(char *name, int fd, char *str)
+setsource(int8_t *name, int fd, int8_t *str)
 {
 	Source *s = new(Source);
 	int len;
@@ -592,11 +592,11 @@ setsource(char *name, int fd, char *str)
 		len = strlen(str);
 		s->inb = domalloc(len+4);
 		s->inp = s->inb;
-		strncpy((char *)s->inp, str, len);
+		strncpy((int8_t *)s->inp, str, len);
 	} else {
 		Dir *d;
 		int junk;
-		ulong length = 0;
+		uint32_t length = 0;
 		d = dirfstat(fd);
 		if (d != nil) {
 			length = d->length;

@@ -35,7 +35,7 @@
 /* Forward declarations */
 private void update_strip(gx_image_enum *penum);
 private void repack_bit_planes(const gx_image_plane_t *src_planes,
-			       const ulong *offsets, int num_planes,
+			       const uint32_t *offsets, int num_planes,
 			       byte *buffer, int width,
 			       const sample_lookup_t * ptab, int spread);
 private gx_device *setup_image_device(const gx_image_enum *penum);
@@ -59,7 +59,7 @@ gx_image1_plane_data(gx_image_enum_common_t * info,
     + 7) >> 3)
 
     fixed adjust = penum->adjust;
-    ulong offsets[gs_image_max_planes];
+    uint32_t offsets[gs_image_max_planes];
     int ignore_data_x;
     bool bit_planar = penum->num_planes > penum->spp;
     int code;

@@ -322,7 +322,7 @@ gdev_pdf_put_params(gx_device * dev, gs_param_list * plist)
 	     * has just been opened and nothing has been written,
 	     * or if we are setting it to the same value.
 	     */
-	    long fon = pdev->FirstObjectNumber;
+	    int32_t fon = pdev->FirstObjectNumber;
 
 	    if (fon != save_dev.FirstObjectNumber) {
 		if (fon <= 0 || fon > 0x7fff0000 ||
@@ -340,7 +340,7 @@ gdev_pdf_put_params(gx_device * dev, gs_param_list * plist)
 	     * Set ProcessColorModel now, because gx_default_put_params checks
 	     * it.
 	     */
-	    static const char *const pcm_names[] = {
+	    static const int8_t *const pcm_names[] = {
 		"DeviceGray", "DeviceRGB", "DeviceCMYK", "DeviceN", 0
 	    };
 	    int pcm = -1;
@@ -423,8 +423,8 @@ gdev_pdf_put_params(gx_device * dev, gs_param_list * plist)
 	const gs_param_item_t *ppi = pdf_param_items;
 
 	for (; ppi->key; ++ppi)
-	    memcpy((char *)pdev + ppi->offset,
-		   (char *)&save_dev + ppi->offset,
+	    memcpy((int8_t *)pdev + ppi->offset,
+		   (int8_t *)&save_dev + ppi->offset,
 		   gs_param_type_sizes[ppi->type]);
     }
     return ecode;
@@ -453,7 +453,7 @@ pdf_dsc_process(gx_device_pdf * pdev, const gs_param_string_array * pma)
     for (i = 0; i + 1 < pma->size && code >= 0; i += 2) {
 	const gs_param_string *pkey = &pma->data[i];
 	const gs_param_string *pvalue = &pma->data[i + 1];
-	const char *key;
+	const int8_t *key;
 	int code;
 
 	/*
@@ -494,7 +494,7 @@ pdf_dsc_process(gx_device_pdf * pdev, const gs_param_string_array * pma)
 		gs_matrix mat;
 		int orient;
 
-		if (sscanf((const char *)pvalue->data, "[%g %g %g %g]",
+		if (sscanf((const int8_t *)pvalue->data, "[%g %g %g %g]",
 			   &mat.xx, &mat.xy, &mat.yx, &mat.yy) != 4
 		    )
 		    continue;	/* error */
@@ -523,7 +523,7 @@ pdf_dsc_process(gx_device_pdf * pdev, const gs_param_string_array * pma)
 		    ppdi = &pdev->page_dsc_info;
 		else
 		    continue;
-		if (sscanf((const char *)pvalue->data, "[%lg %lg %lg %lg]",
+		if (sscanf((const int8_t *)pvalue->data, "[%lg %lg %lg %lg]",
 			   &box.p.x, &box.p.y, &box.q.x, &box.q.y) != 4
 		    )
 		    continue;	/* error */

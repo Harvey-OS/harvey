@@ -35,14 +35,14 @@ enum
 	Freq=	1193182,	/* Real clock frequency */
 };
 
-static uvlong cpuhz = 66000000;
+static uint64_t cpuhz = 66000000;
 static int cpumhz = 66;
 static int loopconst = 100;
 int cpuidax, cpuiddx;
 int havetsc;
 
-extern void _cycles(uvlong*);		/* in l.s */
-extern void wrmsr(int, vlong);
+extern void _cycles(uint64_t*);		/* in l.s */
+extern void wrmsr(int, int64_t);
 
 static void
 clockintr(Ureg*, void*)
@@ -68,7 +68,7 @@ typedef struct
 	int family;
 	int model;
 	int aalcycles;
-	char *name;
+	int8_t *name;
 } X86type;
 
 X86type x86intel[] =
@@ -162,14 +162,14 @@ microdelay(int microsecs)
 	aamloop(microsecs);
 }
 
-extern void cpuid(char*, int*, int*);
+extern void cpuid(int8_t*, int*, int*);
 
 X86type*
 cpuidentify(void)
 {
 	int family, model;
 	X86type *t;
-	char cpuidid[16];
+	int8_t cpuidid[16];
 	int cpuidax, cpuiddx;
 
 	cpuid(cpuidid, &cpuidax, &cpuiddx);
@@ -204,7 +204,7 @@ cpuidentify(void)
 void
 clockinit(void)
 {
-	uvlong a, b, cpufreq;
+	uint64_t a, b, cpufreq;
 	int loops, incr, x, y;
 	X86type *t;
 
@@ -279,7 +279,7 @@ clockinit(void)
 	 *  counter  goes at twice the frequency, once per transition,
 	 *  i.e., twice per square wave
 	 */
-	cpufreq = (vlong)loops*((t->aalcycles*2*Freq)/x);
+	cpufreq = (int64_t)loops*((t->aalcycles*2*Freq)/x);
 	loopconst = (cpufreq/1000)/t->aalcycles;	/* AAM+LOOP's for 1 ms */
 
 	if(havetsc){

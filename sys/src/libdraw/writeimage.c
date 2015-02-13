@@ -17,33 +17,33 @@
 #define	hupdate(h, c)	((((h)<<HSHIFT)^(c))&HMASK)
 typedef struct Hlist Hlist;
 struct Hlist{
-	uchar *s;
+	uint8_t *s;
 	Hlist *next, *prev;
 };
 
 int
 writeimage(int fd, Image *i, int dolock)
 {
-	uchar *outbuf, *outp, *eout;		/* encoded data, pointer, end */
-	uchar *loutp;				/* start of encoded line */
+	uint8_t *outbuf, *outp, *eout;		/* encoded data, pointer, end */
+	uint8_t *loutp;				/* start of encoded line */
 	Hlist *hash;				/* heads of hash chains of past strings */
 	Hlist *chain, *hp;			/* hash chain members, pointer */
 	Hlist *cp;				/* next Hlist to fall out of window */
 	int h;					/* hash value */
-	uchar *line, *eline;			/* input line, end pointer */
-	uchar *data, *edata;			/* input buffer, end pointer */
-	ulong n;				/* length of input buffer */
-	ulong nb;				/* # of bytes returned by unloadimage */
+	uint8_t *line, *eline;			/* input line, end pointer */
+	uint8_t *data, *edata;			/* input buffer, end pointer */
+	uint32_t n;				/* length of input buffer */
+	uint32_t nb;				/* # of bytes returned by unloadimage */
 	int bpl;				/* input line length */
 	int offs, runlen;			/* offset, length of consumed data */
-	uchar dumpbuf[NDUMP];			/* dump accumulator */
+	uint8_t dumpbuf[NDUMP];			/* dump accumulator */
 	int ndump;				/* length of dump accumulator */
 	int miny, dy;				/* y values while unloading input */
 	int chunk, ncblock;
 	Rectangle r;
-	uchar *p, *q, *s, *es, *t;
-	char hdr[11+5*12+1];
-	char cbuf[20];
+	uint8_t *p, *q, *s, *es, *t;
+	int8_t hdr[11+5*12+1];
+	int8_t cbuf[20];
 
 	chunk = i->display->bufsize - 32;	/* a little room for header */
 	r = i->r;

@@ -11,18 +11,18 @@
 #include "dat.h"
 #include "fns.h"
 
-char TraceDisk[] = "disk";
-char TraceLump[] = "lump";
-char TraceBlock[] = "block";
-char TraceProc[] = "proc";
-char TraceWork[] = "work";
-char TraceQuiet[] = "quiet";
-char TraceRpc[] = "rpc";
+int8_t TraceDisk[] = "disk";
+int8_t TraceLump[] = "lump";
+int8_t TraceBlock[] = "block";
+int8_t TraceProc[] = "proc";
+int8_t TraceWork[] = "work";
+int8_t TraceQuiet[] = "quiet";
+int8_t TraceRpc[] = "rpc";
 
 void
-trace(char *level, char *fmt, ...)
+trace(int8_t *level, int8_t *fmt, ...)
 {
-	char buf[512];
+	int8_t buf[512];
 	va_list arg;
 
 	if(level == nil || !ventilogging)
@@ -42,7 +42,7 @@ traceinit(void)
 }
 
 void
-settrace(char *trace)
+settrace(int8_t *trace)
 {
 	USED(trace);
 }

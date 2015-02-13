@@ -11,8 +11,9 @@
 #include	<libc.h>
 #include	<bio.h>
 
-static char*
-badd(char *p, int *np, char *data, int ndata, int delim, int nulldelim)
+static int8_t*
+badd(int8_t *p, int *np, int8_t *data, int ndata, int delim,
+     int nulldelim)
 {
 	int n;
 
@@ -30,10 +31,10 @@ badd(char *p, int *np, char *data, int ndata, int delim, int nulldelim)
 	return p;
 }
 
-char*
+int8_t*
 Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 {
-	char *ip, *ep, *p;
+	int8_t *ip, *ep, *p;
 	int i, j;
 
 	i = -bp->icount;
@@ -53,7 +54,7 @@ Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 	/*
 	 * first try in remainder of buffer (gbuf doesn't change)
 	 */
-	ip = (char*)bp->ebuf - i;
+	ip = (int8_t*)bp->ebuf - i;
 	ep = memchr(ip, delim, i);
 	if(ep) {
 		j = (ep - ip) + 1;
@@ -73,7 +74,7 @@ Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 	 */
 	p = nil;
 	for(;;){
-		ip = (char*)bp->bbuf + i;
+		ip = (int8_t*)bp->bbuf + i;
 		while(i < bp->bsize) {
 			j = read(bp->fid, ip, bp->bsize-i);
 			if(j <= 0 && i == 0)
@@ -98,12 +99,12 @@ Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 				 * found in new piece
 				 * copy back up and reset everything
 				 */
-				ip = (char*)bp->ebuf - i;
+				ip = (int8_t*)bp->ebuf - i;
 				if(i < bp->bsize){
 					memmove(ip, bp->bbuf, i);
-					bp->gbuf = (uchar*)ip;
+					bp->gbuf = (uint8_t*)ip;
 				}
-				j = (ep - (char*)bp->bbuf) + 1;
+				j = (ep - (int8_t*)bp->bbuf) + 1;
 				bp->icount = j - i;
 				return badd(p, &bp->rdline, ip, j, delim, nulldelim);
 			}
@@ -113,7 +114,8 @@ Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 		/*
 		 * full buffer without finding; add to user string and continue
 		 */
-		p = badd(p, &bp->rdline, (char*)bp->bbuf, bp->bsize, 0, 0);
+		p = badd(p, &bp->rdline, (int8_t*)bp->bbuf, bp->bsize, 0,
+			 0);
 		i = 0;
 		bp->icount = 0;
 		bp->gbuf = bp->ebuf;

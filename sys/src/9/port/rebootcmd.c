@@ -16,21 +16,21 @@
 
 #include	<a.out.h>
 
-static ulong
-l2be(long l)
+static uint32_t
+l2be(int32_t l)
 {
-	uchar *cp;
+	uint8_t *cp;
 
-	cp = (uchar*)&l;
+	cp = (uint8_t*)&l;
 	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
 }
 
 
 static void
-readn(Chan *c, void *vp, long n)
+readn(Chan *c, void *vp, int32_t n)
 {
-	char *p;
-	long nn;
+	int8_t *p;
+	int32_t nn;
 
 	p = vp;
 	while(n > 0) {
@@ -44,9 +44,9 @@ readn(Chan *c, void *vp, long n)
 }
 
 static void
-setbootcmd(int argc, char *argv[])
+setbootcmd(int argc, int8_t *argv[])
 {
-	char *buf, *p, *ep;
+	int8_t *buf, *p, *ep;
 	int i;
 
 	buf = malloc(1024);
@@ -62,12 +62,12 @@ setbootcmd(int argc, char *argv[])
 }
 
 void
-rebootcmd(int argc, char *argv[])
+rebootcmd(int argc, int8_t *argv[])
 {
 	Chan *c;
 	Exec exec;
-	ulong magic, text, rtext, entry, data, size;
-	uchar *p;
+	uint32_t magic, text, rtext, entry, data, size;
+	uint8_t *p;
 
 	if(argc == 0)
 		exit(0);

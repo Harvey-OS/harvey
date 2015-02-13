@@ -42,7 +42,7 @@ private int next_dc_index;
 
 #define dc_hash_size 293	/* prime, >num_dc */
 typedef struct {
-    ushort rgb, index;
+    uint16_t rgb, index;
 } dc_entry;
 private dc_entry dynamic_colors[dc_hash_size + 1];
 
@@ -189,7 +189,7 @@ svga_close(gx_device * dev)
 gx_color_index
 svga_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
-    ushort rgb;
+    uint16_t rgb;
     gx_color_value r = cv[0], g = cv[1], b = cv[2];
 
     if (fb_dev->fixed_colors) {
@@ -199,7 +199,7 @@ svga_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 	/* the old color map... but we don't yet. */
 	return ci;
     } {
-	ushort r5 = cv_bits(r, 5), g5 = cv_bits(g, 5), b5 = cv_bits(b, 5);
+	uint16_t r5 = cv_bits(r, 5), g5 = cv_bits(g, 5), b5 = cv_bits(b, 5);
 	static const byte cube_bits[32] =
 	{0, 128, 128, 128, 128, 128, 128, 128, 128, 128,
 	 8, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
@@ -273,7 +273,7 @@ svga_fill_rectangle(gx_device * dev, int x, int y, int w, int h,
 		    gx_color_index color)
 {
     uint raster = fb_dev->raster;
-    ushort limit = (ushort) - raster;
+    uint16_t limit = (uint16_t) - raster;
     int yi;
     fb_ptr ptr;
 
@@ -325,7 +325,7 @@ svga_fill_rectangle(gx_device * dev, int x, int y, int w, int h,
 	if (PTR_OFF(ptr) < limit) {
 	    memset(ptr, (byte) color, w);
 	    ptr += raster;
-	} else if (PTR_OFF(ptr) <= (ushort) (-w)) {
+	} else if (PTR_OFF(ptr) <= (uint16_t) (-w)) {
 	    memset(ptr, (byte) color, w);
 	    if (yi > 0)
 		set_pixel_write_ptr(ptr, fb_dev, x, y + h - yi);
@@ -349,7 +349,7 @@ svga_copy_mono(gx_device * dev,
       int x, int y, int w, int h, gx_color_index czero, gx_color_index cone)
 {
     uint raster = fb_dev->raster;
-    ushort limit;
+    uint16_t limit;
     register int wi;
     uint skip;
     int yi;
@@ -358,7 +358,7 @@ svga_copy_mono(gx_device * dev,
     uint invert;
 
     fit_copy(dev, base, sourcex, sraster, id, x, y, w, h);
-    limit = (ushort) - w;
+    limit = (uint16_t) - w;
     skip = raster - w + 1;
     srow = base + (sourcex >> 3);
 #define izero (int)czero
@@ -389,7 +389,7 @@ svga_copy_mono(gx_device * dev,
 	} else if (PTR_OFF(ptr) > limit) {	/* We're crossing a page boundary. */
 	    /* This is extremely rare, so it doesn't matter */
 	    /* how slow it is. */
-	    int xi = (ushort) - PTR_OFF(ptr);
+	    int xi = (uint16_t) - PTR_OFF(ptr);
 
 	    svga_copy_mono(dev, srow, sourcex & 7, sraster,
 			   gx_no_bitmap_id, x, y + yi, xi, 1,
@@ -465,7 +465,7 @@ svga_put_params(gx_device * dev, gs_param_list * plist)
 {
     int ecode = 0;
     int code;
-    const char *param_name;
+    const int8_t *param_name;
 
     if ((code = ecode) < 0 ||
 	(code = gx_default_put_params(dev, plist)) < 0
@@ -479,7 +479,7 @@ int
 svga_get_bits(gx_device * dev, int y, byte * data, byte ** actual_data)
 {
     uint bytes_per_row = dev->width;
-    ushort limit = (ushort) - bytes_per_row;
+    uint16_t limit = (uint16_t) - bytes_per_row;
     fb_ptr src;
 
     if (y < 0 || y >= dev->height)
@@ -591,10 +591,10 @@ svga_device(vesa_procs, "vesa", vesa_get_mode, vesa_set_mode, vesa_set_page);
 /* Information about the BIOS capabilities. */
 typedef struct {
     byte vesa_signature[4];	/* "VESA" */
-    ushort vesa_version;
-    char *product_info;		/* product name string */
+    uint16_t vesa_version;
+    int8_t *product_info;		/* product name string */
     byte capabilities[4];	/* (undefined) */
-    ushort *mode_list;		/* supported video modes, -1 ends */
+    uint16_t *mode_list;		/* supported video modes, -1 ends */
 } vga_bios_info;
 
 /* Information about an individual VESA mode. */
@@ -608,18 +608,18 @@ typedef enum {
     w_writable = 4
 } win_attribute;
 typedef struct {
-    ushort mode_attributes;
+    uint16_t mode_attributes;
     byte win_a_attributes;
     byte win_b_attributes;
-    ushort win_granularity;
-    ushort win_size;
-    ushort win_a_segment;
-    ushort win_b_segment;
+    uint16_t win_granularity;
+    uint16_t win_size;
+    uint16_t win_a_segment;
+    uint16_t win_b_segment;
     void (*win_func_ptr) (int, int);
-    ushort bytes_per_line;
+    uint16_t bytes_per_line;
     /* Optional information */
-    ushort x_resolution;
-    ushort y_resolution;
+    uint16_t x_resolution;
+    uint16_t y_resolution;
     byte x_char_size;
     byte y_char_size;
     byte number_of_planes;

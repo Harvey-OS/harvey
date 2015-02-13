@@ -34,8 +34,8 @@ struct Pstate
 	int		curfg;		// current foreground color
 	Background	curbg;	// current background
 	int		curvoff;		// current baseline offset
-	uchar	curul;		// current underline/strike state
-	uchar	curjust;		// current justify state
+	uint8_t	curul;		// current underline/strike state
+	uint8_t	curjust;		// current justify state
 	int		curanchor;	// current (href) anchor id (if in one), or 0
 	int		curstate;		// current value of item state
 	int		literal;		// current literal state
@@ -259,7 +259,7 @@ static void			changehang(Pstate* ps, int delta);
 static void			changeindent(Pstate* ps, int delta);
 static int			color(Rune* s, int dflt);
 static void			copystack(Stack* tostk, Stack* fromstk);
-static int			dimprint(char* buf, int nbuf, Dimen d);
+static int			dimprint(int8_t* buf, int nbuf, Dimen d);
 static Pstate*		finishcell(Table* curtab, Pstate* psstk);
 static void			finish_table(Table* t);
 static void			freeanchor(Anchor* a);
@@ -274,7 +274,7 @@ static void			freetable(Table* t);
 static Map*		getmap(Docinfo* di, Rune* name);
 static Rune*		getpcdata(Token* toks, int tokslen, int* ptoki);
 static Pstate*		lastps(Pstate* psl);
-static Rune*		listmark(uchar ty, int n);
+static Rune*		listmark(uint8_t ty, int n);
 static int			listtyval(Token* tok, int dflt);
 static Align		makealign(int halign, int valign);
 static Background	makebackground(Rune* imgurl, int color);
@@ -374,7 +374,7 @@ newitemsource(Docinfo* di)
 	return is;
 }
 
-static Item *getitems(ItemSource* is, uchar* data, int datalen);
+static Item *getitems(ItemSource* is, uint8_t* data, int datalen);
 
 // Parse an html document and create a list of layout items.
 // Allocate and return document info in *pdi.
@@ -382,7 +382,8 @@ static Item *getitems(ItemSource* is, uchar* data, int datalen);
 // freeitems on the returned result, and then
 // freedocinfo(*pdi).
 Item*
-parsehtml(uchar* data, int datalen, Rune* pagesrc, int mtype, int chset, Docinfo** pdi)
+parsehtml(uint8_t* data, int datalen, Rune* pagesrc, int mtype, int chset,
+	  Docinfo** pdi)
 {
 	Item *it;
 	Docinfo*	di;
@@ -406,7 +407,7 @@ parsehtml(uchar* data, int datalen, Rune* pagesrc, int mtype, int chset, Docinfo
 // When caller is done with the items, it should call
 // freeitems on the returned result.
 static Item*
-getitems(ItemSource* is, uchar* data, int datalen)
+getitems(ItemSource* is, uint8_t* data, int datalen)
 {
 	int	i;
 	int	j;
@@ -433,12 +434,12 @@ getitems(ItemSource* is, uchar* data, int datalen)
 	int	tag;
 	int	brksp;
 	int	target;
-	uchar	brk;
-	uchar	flags;
-	uchar	align;
-	uchar	al;
-	uchar	ty;
-	uchar	ty2;
+	uint8_t	brk;
+	uint8_t	flags;
+	uint8_t	align;
+	uint8_t	al;
+	uint8_t	ty;
+	uint8_t	ty2;
 	Pstate*	ps;
 	Pstate*	nextps;
 	Pstate*	outerps;
@@ -2623,7 +2624,7 @@ trim_cell(Tablecell* c)
 
 // Caller must free answer (eventually).
 static Rune*
-listmark(uchar ty, int n)
+listmark(uint8_t ty, int n)
 {
 	Rune*	s;
 	Rune*	t;
@@ -3482,13 +3483,13 @@ Iconv(Fmt *f)
 	Rune*	ty;
 	Tablecell*	c;
 	Table*	tab;
-	char*	p;
+	int8_t*	p;
 	int	cl;
 	int	hang;
 	int	indent;
 	int	bi;
 	int	nbuf;
-	char	buf[BIGBUFSIZE];
+	int8_t	buf[BIGBUFSIZE];
 
 	it = va_arg(f->args, Item*);
 	bi = 0;
@@ -3617,7 +3618,7 @@ stringalign(int a)
 // Put at most nbuf chars of representation of d into buf,
 // and return number of characters put
 static int
-dimprint(char* buf, int nbuf, Dimen d)
+dimprint(int8_t* buf, int nbuf, Dimen d)
 {
 	int	n;
 	int	k;
@@ -3633,7 +3634,7 @@ dimprint(char* buf, int nbuf, Dimen d)
 }
 
 void
-printitems(Item* items, char* msg)
+printitems(Item* items, int8_t* msg)
 {
 	Item*	il;
 
@@ -4209,9 +4210,9 @@ validptr(void* p)
 	// TODO: a better job of this.
 	// For now, just dereference, which cause a bomb
 	// if not valid
-	static char c;
+	static int8_t c;
 
-	c = *((char*)p);
+	c = *((int8_t*)p);
 	return 1;
 }
 

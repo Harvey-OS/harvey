@@ -11,7 +11,7 @@
 #include <libc.h>
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	Plumbmsg *m;
 	int fd;

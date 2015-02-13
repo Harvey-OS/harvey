@@ -120,7 +120,7 @@ enum {
 	Djumbo	= 1<<7,
 };
 
-static char *flagname[] = {
+static int8_t *flagname[] = {
 	"llba",
 	"smart",
 	"power",
@@ -133,28 +133,28 @@ static char *flagname[] = {
 };
 
 typedef struct {
-	uchar	flag;
-	uchar	lostjumbo;
+	uint8_t	flag;
+	uint8_t	lostjumbo;
 	int	datamtu;
 
 	Chan	*cc;
 	Chan	*dc;
 	Chan	*mtu;		/* open early to prevent bind issues. */
-	char	path[Maxpath];
-	uchar	ea[Eaddrlen];
+	int8_t	path[Maxpath];
+	uint8_t	ea[Eaddrlen];
 } Netlink;
 
 typedef struct {
 	Netlink	*nl;
 	int	nea;
-	ulong	eaidx;
-	uchar	eatab[Nea][Eaddrlen];
-	ulong	npkt;
-	ulong	resent;
-	uchar	flag;
+	uint32_t	eaidx;
+	uint8_t	eatab[Nea][Eaddrlen];
+	uint32_t	npkt;
+	uint32_t	resent;
+	uint8_t	flag;
 
-	ulong	rttavg;
-	ulong	mintimer;
+	uint32_t	rttavg;
+	uint32_t	mintimer;
 } Devlink;
 
 typedef struct Srb Srb;
@@ -173,12 +173,12 @@ struct Srb {
 
 typedef struct {
 	int	tag;
-	ulong	bcnt;
-	ulong	dlen;
-	vlong	lba;
-	ulong	ticksent;
+	uint32_t	bcnt;
+	uint32_t	dlen;
+	int64_t	lba;
+	uint32_t	ticksent;
 	int	nhdr;
-	uchar	hdr[ETHERMINTU];
+	uint8_t	hdr[ETHERMINTU];
 	void	*dp;
 	Devlink	*dl;
 	Netlink	*nl;
@@ -259,11 +259,11 @@ static int	debug;
 static int	autodiscover	= 1;
 static int	rediscover;
 
-char 	Enotup[] 	= "aoe device is down";
-char	Echange[]	= "media or partition has changed";
+int8_t 	Enotup[] 	= "aoe device is down";
+int8_t	Echange[]	= "media or partition has changed";
 
 static Srb*
-srballoc(ulong sz)
+srballoc(uint32_t sz)
 {
 	Srb *srb;
 
@@ -274,7 +274,7 @@ srballoc(ulong sz)
 }
 
 static Srb*
-srbkalloc(void *db, ulong)
+srbkalloc(void *db, uint32_t)
 {
 	Srb *srb;
 
@@ -287,7 +287,7 @@ srbkalloc(void *db, ulong)
 #define srbfree(srb) free(srb)
 
 static void
-srberror(Srb *srb, char *s)
+srberror(Srb *srb, int8_t *s)
 {
 	srb->error = s;
 	srb->nout--;
@@ -296,7 +296,7 @@ srberror(Srb *srb, char *s)
 }
 
 static void
-frameerror(Aoedev *d, Frame *f, char *s)
+frameerror(Aoedev *d, Frame *f, int8_t *s)
 {
 	Srb *srb;
 
@@ -309,7 +309,7 @@ frameerror(Aoedev *d, Frame *f, char *s)
 	d->nout--;
 }
 
-static char*
+static int8_t*
 unitname(Aoedev *d)
 {
 	uprint("%d.%d", d->major, d->minor);
@@ -322,11 +322,11 @@ eventlogready(void*)
 	return *events.rp;
 }
 
-static long
-eventlogread(void *a, long n)
+static int32_t
+eventlogread(void *a, int32_t n)
 {
 	int len;
-	char *p, *buf;
+	int8_t *p, *buf;
 
 	buf = smalloc(Eventlen);
 	qlock(&events);
@@ -362,10 +362,10 @@ eventlogread(void *a, long n)
 }
 
 static int
-eventlog(char *fmt, ...)
+eventlog(int8_t *fmt, ...)
 {
 	int dragrp, n;
-	char *p;
+	int8_t *p;
 	va_list arg;
 
 	lock(&events);
@@ -425,7 +425,7 @@ newtag(Aoedev *d)
 }
 
 static void
-downdev(Aoedev *d, char *err)
+downdev(Aoedev *d, int8_t *err)
 {
 	Frame *f, *e;
 
@@ -456,9 +456,9 @@ allocfb(Frame *f)
 }
 
 static void
-putlba(Aoeata *a, vlong lba)
+putlba(Aoeata *a, int64_t lba)
 {
-	uchar *c;
+	uint8_t *c;
 
 	c = a->lba;
 	c[0] = lba;
@@ -472,7 +472,7 @@ putlba(Aoeata *a, vlong lba)
 static Devlink*
 pickdevlink(Aoedev *d)
 {
-	ulong i, n;
+	uint32_t i, n;
 	Devlink *l;
 
 	for(i = 0; i < d->ndl; i++){
@@ -532,7 +532,7 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 static int
 resend(Aoedev *d, Frame *f)
 {
-	ulong n;
+	uint32_t n;
 	Aoeata *a;
 
 	a = (Aoeata*)f->hdr;
@@ -594,10 +594,10 @@ discover(int major, int minor)
 static void
 aoesweepproc(void*)
 {
-	ulong i, tx, timeout, nbc;
-	vlong starttick;
+	uint32_t i, tx, timeout, nbc;
+	int64_t starttick;
 	enum { Nms = 100, Nbcms = 30*1000, };
-	uchar *ea;
+	uint8_t *ea;
 	Aoeata *a;
 	Aoedev *d;
 	Devlink *l;
@@ -678,13 +678,13 @@ fmtæ(Fmt *f)
 	return fmtstrcpy(f, buf);
 }
 
-static void netbind(char *path);
+static void netbind(int8_t *path);
 
 static void
 aoecfg(void)
 {
 	int n, i;
-	char *p, *f[32], buf[24];
+	int8_t *p, *f[32], buf[24];
 
 	if((p = getconf("aoeif")) == nil || (n = tokenize(p, f, nelem(f))) < 1)
 		return;
@@ -723,7 +723,7 @@ aoeinit(void)
 }
 
 static Chan*
-aoeattach(char *spec)
+aoeattach(int8_t *spec)
 {
 	Chan *c;
 
@@ -736,7 +736,7 @@ aoeattach(char *spec)
 }
 
 static Aoedev*
-unit2dev(ulong unit)
+unit2dev(uint32_t unit)
 {
 	int i;
 	Aoedev *d;
@@ -755,12 +755,12 @@ unit2dev(ulong unit)
 }
 
 static int
-unitgen(Chan *c, ulong type, Dir *dp)
+unitgen(Chan *c, uint32_t type, Dir *dp)
 {
 	int perm, t;
-	ulong vers;
-	vlong size;
-	char *p;
+	uint32_t vers;
+	int64_t size;
+	int8_t *p;
 	Aoedev *d;
 	Qid q;
 
@@ -804,11 +804,11 @@ unitgen(Chan *c, ulong type, Dir *dp)
 }
 
 static int
-topgen(Chan *c, ulong type, Dir *d)
+topgen(Chan *c, uint32_t type, Dir *d)
 {
 	int perm;
-	vlong size;
-	char *p;
+	int64_t size;
+	int8_t *p;
 	Qid q;
 
 	perm = 0444;
@@ -831,7 +831,7 @@ topgen(Chan *c, ulong type, Dir *d)
 }
 
 static int
-aoegen(Chan *c, char *, Dirtab *, int, int s, Dir *dp)
+aoegen(Chan *c, int8_t *, Dirtab *, int, int s, Dir *dp)
 {
 	int i;
 	Aoedev *d;
@@ -914,13 +914,13 @@ aoegen(Chan *c, char *, Dirtab *, int, int s, Dir *dp)
 }
 
 static Walkqid*
-aoewalk(Chan *c, Chan *nc, char **name, int nname)
+aoewalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, nil, 0, aoegen);
 }
 
-static long
-aoestat(Chan *c, uchar *db, long n)
+static int32_t
+aoestat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, nil, 0, aoegen);
 }
@@ -968,8 +968,8 @@ aoeclose(Chan *c)
 static void
 atarw(Aoedev *d, Frame *f)
 {
-	ulong bcnt;
-	char extbit, writebit;
+	uint32_t bcnt;
+	int8_t extbit, writebit;
 	Aoeata *ah;
 	Srb *srb;
 
@@ -1010,7 +1010,7 @@ atarw(Aoedev *d, Frame *f)
 
 	/* mark tracking fields and load out */
 	srb->nout++;
-	srb->dp = (uchar*)srb->dp + bcnt;
+	srb->dp = (uint8_t*)srb->dp + bcnt;
 	srb->len -= bcnt;
 	srb->sector += bcnt / Aoesectsz;
 	if(srb->len == 0)
@@ -1026,11 +1026,11 @@ atarw(Aoedev *d, Frame *f)
 	poperror();
 }
 
-static char*
+static int8_t*
 aoeerror(Aoehdr *h)
 {
 	int n;
-	static char *errs[] = {
+	static int8_t *errs[] = {
 		"aoe protocol error: unknown",
 		"aoe protocol error: bad command code",
 		"aoe protocol error: bad argument param",
@@ -1144,10 +1144,10 @@ strategy(Aoedev *d, Srb *srb)
 
 #define iskaddr(a)	((uintptr)(a) > KZERO)
 
-static long
-rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
+static int32_t
+rw(Aoedev *d, int write, uint8_t *db, int32_t len, uint64_t off)
 {
-	long n, nlen, copy;
+	int32_t n, nlen, copy;
 	enum { Srbsz = 1<<18, };
 	Srb *srb;
 
@@ -1194,21 +1194,21 @@ rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 	return len;
 }
 
-static long
-readmem(ulong off, void *dst, long n, void *src, long size)
+static int32_t
+readmem(uint32_t off, void *dst, int32_t n, void *src, int32_t size)
 {
 	if(off >= size)
 		return 0;
 	if(off + n > size)
 		n = size - off;
-	memmove(dst, (uchar*)src + off, n);
+	memmove(dst, (uint8_t*)src + off, n);
 	return n;
 }
 
-static char *
-pflag(char *s, char *e, uchar f)
+static int8_t *
+pflag(int8_t *s, int8_t *e, uint8_t f)
 {
-	uchar i, m;
+	uint8_t i, m;
 
 	for(i = 0; i < 8; i++){
 		m = 1 << i;
@@ -1219,10 +1219,10 @@ pflag(char *s, char *e, uchar f)
 }
 
 static int
-pstat(Aoedev *d, char *db, int len, int off)
+pstat(Aoedev *d, int8_t *db, int len, int off)
 {
 	int i;
-	char *state, *s, *p, *e;
+	int8_t *state, *s, *p, *e;
 
 	s = p = malloc(READSTR);
 	e = p + READSTR;
@@ -1250,8 +1250,8 @@ pstat(Aoedev *d, char *db, int len, int off)
 	return i;
 }
 
-static long
-unitread(Chan *c, void *db, long len, vlong off)
+static int32_t
+unitread(Chan *c, void *db, int32_t len, int64_t off)
 {
 	Aoedev *d;
 
@@ -1280,7 +1280,7 @@ static int
 devlinkread(Chan *c, void *db, int len, int off)
 {
 	int i;
-	char *s, *p, *e;
+	int8_t *s, *p, *e;
 	Aoedev *d;
 	Devlink *l;
 
@@ -1316,11 +1316,11 @@ devlinkread(Chan *c, void *db, int len, int off)
 	return i;
 }
 
-static long
+static int32_t
 topctlread(Chan *, void *db, int len, int off)
 {
 	int i;
-	char *s, *p, *e;
+	int8_t *s, *p, *e;
 	Netlink *n;
 
 	s = p = malloc(READSTR);
@@ -1348,8 +1348,8 @@ topctlread(Chan *, void *db, int len, int off)
 	return i;
 }
 
-static long
-aoeread(Chan *c, void *db, long n, vlong off)
+static int32_t
+aoeread(Chan *c, void *db, int32_t n, int64_t off)
 {
 	switch(TYPE(c->qid)){
 	default:
@@ -1373,10 +1373,10 @@ aoeread(Chan *c, void *db, long n, vlong off)
 	}
 }
 
-static long
-configwrite(Aoedev *d, void *db, long len)
+static int32_t
+configwrite(Aoedev *d, void *db, int32_t len)
 {
-	char *s;
+	int8_t *s;
 	Aoeqc *ch;
 	Frame *f;
 	Srb *srb;
@@ -1478,7 +1478,7 @@ devmaxdata(Aoedev *d)
 }
 
 static int
-toggle(char *s, int init)
+toggle(int8_t *s, int init)
 {
 	if(s == nil)
 		return init ^ 1;
@@ -1487,11 +1487,11 @@ toggle(char *s, int init)
 
 static void ataident(Aoedev*);
 
-static long
-unitctlwrite(Aoedev *d, void *db, long n)
+static int32_t
+unitctlwrite(Aoedev *d, void *db, int32_t n)
 {
 	uint maxbcnt, m;
-	uvlong bsize;
+	uint64_t bsize;
 	enum {
 		Failio,
 		Ident,
@@ -1575,11 +1575,11 @@ unitctlwrite(Aoedev *d, void *db, long n)
 	return n;
 }
 
-static long
-unitwrite(Chan *c, void *db, long n, vlong off)
+static int32_t
+unitwrite(Chan *c, void *db, int32_t n, int64_t off)
 {
-	long rv;
-	char *buf;
+	int32_t rv;
+	int8_t *buf;
 	Aoedev *d;
 
 	d = unit2dev(UNIT(c->qid));
@@ -1605,7 +1605,7 @@ unitwrite(Chan *c, void *db, long n, vlong off)
 }
 
 static Netlink*
-addnet(char *path, Chan *cc, Chan *dc, Chan *mtu, uchar *ea)
+addnet(int8_t *path, Chan *cc, Chan *dc, Chan *mtu, uint8_t *ea)
 {
 	Netlink *nl, *e;
 
@@ -1657,7 +1657,7 @@ dropunit(void)
 }
 
 static Aoedev*
-newdev(long major, long minor, int n)
+newdev(int32_t major, int32_t minor, int n)
 {
 	Aoedev *d;
 	Frame *f, *e;
@@ -1706,7 +1706,7 @@ mm2dev(int major, int minor)
 
 /* Find the device in our list.  If not known, add it */
 static Aoedev*
-getdev(long major, long minor, int n)
+getdev(int32_t major, int32_t minor, int n)
 {
 	Aoedev *d;
 
@@ -1728,10 +1728,10 @@ getdev(long major, long minor, int n)
 	return d;
 }
 
-static ushort
+static uint16_t
 gbit16(void *a)
 {
-	uchar *i;
+	uint8_t *i;
 
 	i = a;
 	return i[1] << 8 | i[0];
@@ -1741,7 +1741,7 @@ static u32int
 gbit32(void *a)
 {
 	u32int j;
-	uchar *i;
+	uint8_t *i;
 
 	i = a;
 	j  = i[3] << 24;
@@ -1751,13 +1751,13 @@ gbit32(void *a)
 	return j;
 }
 
-static uvlong
+static uint64_t
 gbit64(void *a)
 {
-	uchar *i;
+	uint8_t *i;
 
 	i = a;
-	return (uvlong)gbit32(i+4) << 32 | gbit32(a);
+	return (uint64_t)gbit32(i+4) << 32 | gbit32(a);
 }
 
 static void
@@ -1790,7 +1790,7 @@ static int
 getmtu(Chan *m)
 {
 	int n, mtu;
-	char buf[36];
+	int8_t buf[36];
 
 	mtu = 1514;
 	if(m == nil || waserror())
@@ -1805,10 +1805,10 @@ getmtu(Chan *m)
 }
 
 static int
-newdlea(Devlink *l, uchar *ea)
+newdlea(Devlink *l, uint8_t *ea)
 {
 	int i;
-	uchar *t;
+	uint8_t *t;
 
 	for(i = 0; i < Nea; i++){
 		t = l->eatab[i];
@@ -1847,7 +1847,7 @@ newdevlink(Aoedev *d, Netlink *n, Aoeqc *c)
 }
 
 static void
-errrsp(Block *b, char *s)
+errrsp(Block *b, int8_t *s)
 {
 	int n;
 	Aoedev *d;
@@ -1959,10 +1959,10 @@ qcfgrsp(Block *b, Netlink *nl)
 }
 
 void
-aoeidmove(char *p, ushort *u, unsigned n)
+aoeidmove(int8_t *p, uint16_t *u, unsigned n)
 {
 	int i;
-	char *op, *e, *s;
+	int8_t *op, *e, *s;
 
 	op = p;
 	/*
@@ -1970,7 +1970,7 @@ aoeidmove(char *p, ushort *u, unsigned n)
 	 * so dereferencing a[i] would cause an alignment exception on
 	 * some machines.
 	 */
-	s = (char *)u;
+	s = (int8_t *)u;
 	for(i = 0; i < n; i += 2){
 		*p++ = s[i + 1];
 		*p++ = s[i];
@@ -1985,11 +1985,11 @@ aoeidmove(char *p, ushort *u, unsigned n)
 	memmove(op, p, n - (e - p));
 }
 
-static vlong
-aoeidentify(Aoedev *d, ushort *id)
+static int64_t
+aoeidentify(Aoedev *d, uint16_t *id)
 {
 	int i;
-	vlong s;
+	int64_t s;
 
 	d->flag &= ~(Dllba|Dpower|Dsmart|Dnop|Dup);
 
@@ -2025,10 +2025,10 @@ newvers(Aoedev *d)
 }
 
 static int
-identify(Aoedev *d, ushort *id)
+identify(Aoedev *d, uint16_t *id)
 {
-	vlong osectors, s;
-	uchar oserial[21];
+	int64_t osectors, s;
+	uint8_t oserial[21];
 
 	s = aoeidentify(d, id);
 	if(s == -1)
@@ -2055,7 +2055,7 @@ static void
 atarsp(Block *b)
 {
 	unsigned n;
-	short major;
+	int16_t major;
 	Aoeata *ahin, *ahout;
 	Aoedev *d;
 	Frame *f;
@@ -2096,14 +2096,14 @@ atarsp(Block *b)
 					d, BLEN(b), n);
 				goto bail;
 			}
-			memmove(f->dp, (uchar *)ahin + AOEATASZ, n);
+			memmove(f->dp, (uint8_t *)ahin + AOEATASZ, n);
 		case Cwr:
 		case Cwrext:
 			if(n > Dbcnt)
 				f->nl->lostjumbo = 0;
 			if(f->bcnt -= n){
 				f->lba += n / Aoesectsz;
-				f->dp = (uchar*)f->dp + n;
+				f->dp = (uint8_t*)f->dp + n;
 				resend(d, f);
 				goto bail;
 			}
@@ -2114,7 +2114,7 @@ atarsp(Block *b)
 					d, BLEN(b), n);
 				goto bail;
 			}
-			identify(d, (ushort*)((uchar *)ahin + AOEATASZ));
+			identify(d, (uint16_t*)((uint8_t *)ahin + AOEATASZ));
 			break;
 		default:
 			eventlog("%æ: unknown ata command %.2ux \n",
@@ -2138,7 +2138,7 @@ static void
 netrdaoeproc(void *v)
 {
 	int idx;
-	char name[Maxpath+1], *s;
+	int8_t name[Maxpath+1], *s;
 	Aoehdr *h;
 	Block *b;
 	Netlink *nl;
@@ -2191,12 +2191,12 @@ netrdaoeproc(void *v)
 }
 
 static void
-getaddr(char *path, uchar *ea)
+getaddr(int8_t *path, uint8_t *ea)
 {
 	int n;
-	char buf[2*Eaddrlen+1];
+	int8_t buf[2*Eaddrlen+1];
 	Chan *c;
-	extern int parseether(uchar*, char*);
+	extern int parseether(uint8_t*, int8_t*);
 
 	uprint("%s/addr", path);
 	c = namec(up->genbuf, Aopen, OREAD, 0);
@@ -2215,10 +2215,10 @@ getaddr(char *path, uchar *ea)
 }
 
 static void
-netbind(char *path)
+netbind(int8_t *path)
 {
-	char addr[Maxpath];
-	uchar ea[2*Eaddrlen+1];
+	int8_t addr[Maxpath];
+	uint8_t ea[2*Eaddrlen+1];
 	Chan *dc, *cc, *mtu;
 	Netlink *nl;
 
@@ -2255,7 +2255,7 @@ unbound(void *v)
 }
 
 static void
-netunbind(char *path)
+netunbind(int8_t *path)
 {
 	int i, idx;
 	Aoedev *d, *p, *next;
@@ -2355,7 +2355,7 @@ netunbind(char *path)
 }
 
 static void
-removedev(char *name)
+removedev(int8_t *name)
 {
 	int i;
 	Aoedev *d, *p;
@@ -2385,11 +2385,11 @@ found:
 }
 
 static void
-discoverstr(char *f)
+discoverstr(int8_t *f)
 {
-	ushort shelf, slot;
-	ulong sh;
-	char *s;
+	uint16_t shelf, slot;
+	uint32_t sh;
+	int8_t *s;
 
 	if(f == 0){
 		discover(0xffff, 0xff);
@@ -2410,8 +2410,8 @@ discoverstr(char *f)
 }
 
 
-static long
-topctlwrite(void *db, long n)
+static int32_t
+topctlwrite(void *db, int32_t n)
 {
 	enum {
 		Autodiscover,
@@ -2423,7 +2423,7 @@ topctlwrite(void *db, long n)
 		Remove,
 		Unbind,
 	};
-	char *f;
+	int8_t *f;
 	Cmdbuf *cb;
 	Cmdtab *ct;
 	static Cmdtab cmds[] = {
@@ -2473,8 +2473,8 @@ topctlwrite(void *db, long n)
 	return n;
 }
 
-static long
-aoewrite(Chan *c, void *db, long n, vlong off)
+static int32_t
+aoewrite(Chan *c, void *db, int32_t n, int64_t off)
 {
 	switch(TYPE(c->qid)){
 	default:

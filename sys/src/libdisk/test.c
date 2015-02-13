@@ -11,9 +11,9 @@
 #include <libc.h>
 #include <disk.h>
 
-char *src[] = { "part", "disk", "guess" };
+int8_t *src[] = { "part", "disk", "guess" };
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Disk *disk;
 

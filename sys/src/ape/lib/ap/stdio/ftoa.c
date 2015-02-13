@@ -19,7 +19,7 @@ double pow10(int);
  * be '+' or '-', and bp[1] to bp[NFTOA-2]
  * will be appropriate digits of g. bp[NFTOA-1] will be '\0'
  */
-int ftoa(double f, char *bp){
+int ftoa(double f, int8_t *bp){
 	int e, e1, e2, i;
 	double digit, g, p;
 	if(f>=0) *bp++='+';

@@ -25,7 +25,7 @@ struct Trace {
 	void *start;
 	void *end;
 	int enabled;
-	char name[16];
+	int8_t name[16];
 };
 
 enum {
@@ -47,7 +47,7 @@ enum {
 /* This represents a trace "hit" or event */
 typedef struct Tracelog Tracelog;
 struct Tracelog {
-	uvlong ticks;
+	uint64_t ticks;
 	int info;
 	uintptr pc;
 	/* these are different depending on type */
@@ -85,11 +85,11 @@ static const PIDWATCHSIZE = 32; /* The number of PIDS that can be watched. Prett
 
 int codesize = 0;
 
-static uvlong lastestamp; /* last entry timestamp */
-static uvlong lastxstamp; /* last exit timestamp */
+static uint64_t lastestamp; /* last entry timestamp */
+static uint64_t lastxstamp; /* last exit timestamp */
 
 /* Trace events can be either Entries or Exits */
-static char eventname[] = {
+static int8_t eventname[] = {
 	[TraceEntry] = 'E',
 	[TraceExit] = 'X',
 };
@@ -100,7 +100,7 @@ static Dirtab tracedir[]={
 	"trace",	{Qdata},	0,		0440,
 };
 
-char hex[] = {
+int8_t hex[] = {
 	'0',
 	'1',
 	'2',
@@ -121,7 +121,7 @@ char hex[] = {
 
 /* big-endian ... */
 void
-hex8(u32int l, char *c)
+hex8(u32int l, int8_t *c)
 {
 	int i;
 	for(i = 2; i; i--){
@@ -131,7 +131,7 @@ hex8(u32int l, char *c)
 }
 
 void
-hex16(u32int l, char *c)
+hex16(u32int l, int8_t *c)
 {
 	int i;
 	for(i = 4; i; i--){
@@ -141,7 +141,7 @@ hex16(u32int l, char *c)
 }
 
 void
-hex32(u32int l, char *c)
+hex32(u32int l, int8_t *c)
 {
 	int i;
 	for(i = 8; i; i--){
@@ -151,7 +151,7 @@ hex32(u32int l, char *c)
 }
 
 void
-hex64(u64int l, char *c)
+hex64(u64int l, int8_t *c)
 {
 	hex32(l>>32, c);
 	hex32(l, &c[8]);
@@ -452,19 +452,19 @@ freetrace(Trace *p)
 
 
 static Chan*
-traceattach(char *spec)
+traceattach(int8_t *spec)
 {
 	return devattach('T', spec);
 }
 
 static Walkqid*
-tracewalk(Chan *c, Chan *nc, char **name, int nname)
+tracewalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, tracedir, nelem(tracedir), devgen);
 }
 
-static long
-tracestat(Chan *c, uchar *db, long n)
+static int32_t
+tracestat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, tracedir, nelem(tracedir), devgen);
 }
@@ -506,11 +506,11 @@ traceclose(Chan *)
  * The data reading involves deep rminnich magic so we don't have
  * to call print(), which is traced.
  */
-static long
-traceread(Chan *c, void *a, long n, vlong offset)
+static int32_t
+traceread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	char *buf;
-	char *cp = a;
+	int8_t *buf;
+	int8_t *cp = a;
 	struct Tracelog *pl;
 	Trace *p;
 	int i, j;
@@ -524,7 +524,7 @@ traceread(Chan *c, void *a, long n, vlong offset)
 	}
 
 	if(c->qid.type == QTDIR) {
-		long l = devdirread(c, a, n, tracedir, nelem(tracedir), devgen);
+		int32_t l = devdirread(c, a, n, tracedir, nelem(tracedir), devgen);
 		poperror();
 		traceactive = saveactive;
 		return l;
@@ -657,11 +657,11 @@ traceread(Chan *c, void *a, long n, vlong offset)
 /*
  * Process commands sent to the ctl file.
  */
-static long
-tracewrite(Chan *c, void *a, long n, vlong)
+static int32_t
+tracewrite(Chan *c, void *a, int32_t n, int64_t)
 {
-	char *tok[6]; //changed this so "tracein" works with the new 4th arg
-	char *ep, *s = nil;
+	int8_t *tok[6]; //changed this so "tracein" works with the new 4th arg
+	int8_t *ep, *s = nil;
 	Trace *p, **pp, *foo;
 	int ntok;
 	int saveactive = traceactive;

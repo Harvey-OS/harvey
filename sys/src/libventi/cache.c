@@ -49,16 +49,17 @@ struct VtCache
 	int		nheap;
 	VtBlock	*block;	/* all allocated blocks */
 	int		nblock;
-	uchar	*mem;	/* memory for all blocks and data */
-	int		(*write)(VtConn*, uchar[VtScoreSize], uint, uchar*, int);
+	uint8_t	*mem;	/* memory for all blocks and data */
+	int		(*write)(VtConn*, uint8_t[VtScoreSize], uint,
+				    uint8_t*, int);
 };
 
 static void cachecheck(VtCache*);
 
 VtCache*
-vtcachealloc(VtConn *z, int blocksize, ulong nblock)
+vtcachealloc(VtConn *z, int blocksize, uint32_t nblock)
 {
-	uchar *p;
+	uint8_t *p;
 	VtCache *c;
 	int i;
 	VtBlock *b;
@@ -96,7 +97,8 @@ vtcachealloc(VtConn *z, int blocksize, ulong nblock)
  * cache itself should be providing this functionality.
  */
 void
-vtcachesetwrite(VtCache *c, int (*write)(VtConn*, uchar[VtScoreSize], uint, uchar*, int))
+vtcachesetwrite(VtCache *c,
+		int (*write)(VtConn*, uint8_t[VtScoreSize], uint, uint8_t*, int))
 {
 	if(write == nil)
 		write = vtwrite;
@@ -365,10 +367,10 @@ vtcacheallocblock(VtCache *c, int type)
  * if it's not there, load it, bumping some other block.
  */
 VtBlock*
-vtcacheglobal(VtCache *c, uchar score[VtScoreSize], int type)
+vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 {
 	VtBlock *b;
-	ulong h;
+	uint32_t h;
 	int n;
 	u32int addr;
 
@@ -532,7 +534,7 @@ if(0)fprint(2, "vtblockput: %d: %x %d %d\n", getpid(), b->addr, c->nheap, b->ios
 int
 vtblockwrite(VtBlock *b)
 {
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 	VtCache *c;
 	uint h;
 	int n;
@@ -587,7 +589,7 @@ vtblockcopy(VtBlock *b)
 }
 
 void
-vtlocaltoglobal(u32int addr, uchar score[VtScoreSize])
+vtlocaltoglobal(u32int addr, uint8_t score[VtScoreSize])
 {
 	memset(score, 0, 16);
 	score[16] = addr>>24;
@@ -598,9 +600,9 @@ vtlocaltoglobal(u32int addr, uchar score[VtScoreSize])
 
 
 u32int
-vtglobaltolocal(uchar score[VtScoreSize])
+vtglobaltolocal(uint8_t score[VtScoreSize])
 {
-	static uchar zero[16];
+	static uint8_t zero[16];
 	if(memcmp(score, zero, 16) != 0)
 		return NilBlock;
 	return (score[16]<<24)|(score[17]<<16)|(score[18]<<8)|score[19];

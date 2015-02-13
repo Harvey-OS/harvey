@@ -31,7 +31,7 @@ smblogunlock(void)
 }
 
 static int
-smbloglockedvprint(char *fmt, va_list ap)
+smbloglockedvprint(int8_t *fmt, va_list ap)
 {
 	if (smbglobals.log.fd >= 0)
 		vfprint(smbglobals.log.fd, fmt, ap);
@@ -41,7 +41,7 @@ smbloglockedvprint(char *fmt, va_list ap)
 }
 
 int
-smblogvprint(int cmd, char *fmt, va_list ap)
+smblogvprint(int cmd, int8_t *fmt, va_list ap)
 {
 	if (cmd < 0 || smboptable[cmd].debug) {
 		smbloglock();
@@ -52,7 +52,7 @@ smblogvprint(int cmd, char *fmt, va_list ap)
 }
 
 int
-smblogprint(int cmd, char *fmt, ...)
+smblogprint(int cmd, int8_t *fmt, ...)
 {
 	if (cmd < 0 || smbtrans2optable[cmd].debug) {
 		va_list ap;
@@ -64,7 +64,7 @@ smblogprint(int cmd, char *fmt, ...)
 }
 
 int
-translogprint(int cmd, char *fmt, ...)
+translogprint(int cmd, int8_t *fmt, ...)
 {
 	if (cmd < 0 || smboptable[cmd].debug) {
 		va_list ap;
@@ -76,7 +76,7 @@ translogprint(int cmd, char *fmt, ...)
 }
 
 int
-smblogprintif(int v, char *fmt, ...)
+smblogprintif(int v, int8_t *fmt, ...)
 {
 	if (v) {
 		va_list ap;
@@ -90,11 +90,12 @@ smblogprintif(int v, char *fmt, ...)
 }
 
 void
-smblogdata(int cmd, int (*print)(int cmd, char *fmt, ...), void *ap, long n, long limit)
+smblogdata(int cmd, int (*print)(int cmd, int8_t *fmt, ...), void *ap,
+           int32_t n, int32_t limit)
 {
-	uchar *p = ap;
-	long i;
-	long saven;
+	uint8_t *p = ap;
+	int32_t i;
+	int32_t saven;
 	i = 0;
 	saven = n;
 	if (saven > limit)

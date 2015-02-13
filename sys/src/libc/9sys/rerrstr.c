@@ -11,9 +11,9 @@
 #include <libc.h>
 
 void
-rerrstr(char *buf, uint nbuf)
+rerrstr(int8_t *buf, uint nbuf)
 {
-	char tmp[ERRMAX];
+	int8_t tmp[ERRMAX];
 
 	tmp[0] = 0;
 	errstr(tmp, sizeof tmp);

@@ -53,7 +53,7 @@ struct Rectangle {
 };
 private Point ZP = { 0, 0 };
 
-private WImage* initwriteimage(FILE *f, Rectangle r, char*, int depth);
+private WImage* initwriteimage(FILE *f, Rectangle r, int8_t*, int depth);
 private int writeimageblock(WImage *w, uchar *data, int ndata);
 private int bytesperline(Rectangle, int);
 private int rgb2cmap(int, int, int);
@@ -119,7 +119,7 @@ plan9_rgb2cmap(gx_device *dev, gx_color_value *rgb)
 	gx_color_value r, g, b;
 	int shift;
 	plan9_device *idev;
-	ulong red, green, blue;
+	uint32_t red, green, blue;
 
 	r = rgb[0];
 	g = rgb[1];
@@ -406,14 +406,14 @@ typedef struct Dump	Dump;
 typedef struct Hlist Hlist;
 
 struct Hlist{
-	ulong p;
+	uint32_t p;
 	Hlist *next, *prev;
 };
 
 struct Dump {
 	int ndump;
-	uchar *dumpbuf;
-	uchar buf[1+NDUMP];
+	uint8_t *dumpbuf;
+	uint8_t buf[1+NDUMP];
 };
 
 struct WImage {
@@ -424,7 +424,7 @@ struct WImage {
 	int bpl;
 
 	/* output buffer */
-	uchar outbuf[NCBLOCK], *outp, *eout, *loutp;
+	uint8_t outbuf[NCBLOCK], *outp, *eout, *loutp;
 
 	/* sliding input window */
 	/*
@@ -435,11 +435,11 @@ struct WImage {
 	 * the ulongs in the Hlist structures are just
 	 * pointers relative to ibase.
 	 */
-	uchar *inbuf;	/* inbuf should be at least NMEM+NRUN+NMATCH long */
-	uchar *ibase;
+	uint8_t *inbuf;	/* inbuf should be at least NMEM+NRUN+NMATCH long */
+	uint8_t *ibase;
 	int minbuf;	/* size of inbuf (malloc'ed bytes) */
 	int ninbuf;	/* size of inbuf (filled bytes) */
-	ulong line;	/* the beginning of the line we are currently encoding,
+	uint32_t line;	/* the beginning of the line we are currently encoding,
 			 * relative to inbuf (NOT relative to ibase) */
 
 	/* raw dump buffer */
@@ -637,7 +637,7 @@ gobbleline(WImage *w)
 }
 
 private uchar*
-shiftwindow(WImage *w, uchar *data, uchar *edata)
+shiftwindow(WImage *w, uint8_t *data, uint8_t *edata)
 {
 	int n, m;
 
@@ -664,7 +664,7 @@ shiftwindow(WImage *w, uchar *data, uchar *edata)
 }
 
 private WImage*
-initwriteimage(FILE *f, Rectangle r, char *chanstr, int depth)
+initwriteimage(FILE *f, Rectangle r, int8_t *chanstr, int depth)
 {
 	WImage *w;
 	int n, bpl;
@@ -679,7 +679,7 @@ initwriteimage(FILE *f, Rectangle r, char *chanstr, int depth)
 	w = malloc(n+sizeof(*w));
 	if(w == nil)
 		return nil;
-	w->inbuf = (uchar*) &w[1];
+	w->inbuf = (uint8_t*) &w[1];
 	w->ibase = w->inbuf;
 	w->line = 0;
 	w->minbuf = n;
@@ -738,7 +738,7 @@ static
 int
 unitsperline(Rectangle r, int d, int bitsperunit)
 {
-	ulong l, t;
+	uint32_t l, t;
 
 	if(d <= 0 || d > 32)	/* being called wrong.  d is image depth. */
 		abort();
@@ -756,7 +756,7 @@ unitsperline(Rectangle r, int d, int bitsperunit)
 int
 wordsperline(Rectangle r, int d)
 {
-	return unitsperline(r, d, 8*sizeof(ulong));
+	return unitsperline(r, d, 8*sizeof(uint32_t));
 }
 
 int

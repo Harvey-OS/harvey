@@ -10,29 +10,30 @@
 #include <time.h>
 #include <string.h>
 
-static char *awday[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-static char *wday[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
+static int8_t *awday[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+static int8_t *wday[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
 			"Friday", "Saturday"};
-static char *amon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+static int8_t *amon[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 			    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-static char *mon[12] = {"January", "February", "March", "April", "May", "June",
+static int8_t *mon[12] = {"January", "February", "March", "April", "May", "June",
 		"July", "August", "September", "October", "November", "December"};
-static char *ampm[2] = {"AM", "PM"};
-static char *tz[2] = {"EST", "EDT"};
+static int8_t *ampm[2] = {"AM", "PM"};
+static int8_t *tz[2] = {"EST", "EDT"};
 
 static int jan1(int);
-static char *strval(char *, char *, char **, int, int);
-static char *dval(char *, char *, int, int);
+static int8_t *strval(int8_t *, int8_t *, int8_t **, int, int);
+static int8_t *dval(int8_t *, int8_t *, int, int);
 
 size_t
-strftime(char *s, size_t maxsize, const char *format, const struct tm *t)
+strftime(int8_t *s, size_t maxsize, const int8_t *format,
+	 const struct tm *t)
 {
-	char *sp, *se, *fp;
+	int8_t *sp, *se, *fp;
 	int i;
 
 	sp = s;
 	se = s+maxsize;
-	for(fp=(char *)format; *fp && sp<se; fp++){
+	for(fp=(int8_t *)format; *fp && sp<se; fp++){
 		if(*fp != '%')
 			*sp++ = *fp;
 		else switch(*++fp){
@@ -137,8 +138,8 @@ strftime(char *s, size_t maxsize, const char *format, const struct tm *t)
 	return sp-s;
 }
 
-static char *
-strval(char *start, char *end, char **array, int index, int alen)
+static int8_t *
+strval(int8_t *start, int8_t *end, int8_t **array, int index, int alen)
 {
 	int n;
 
@@ -153,10 +154,10 @@ strval(char *start, char *end, char **array, int index, int alen)
 	return start+n;
 }
 
-static char *
-dval(char *start, char *end, int val, int width)
+static int8_t *
+dval(int8_t *start, int8_t *end, int val, int width)
 {
-	char *p;
+	int8_t *p;
 
 	if(val<0 || end-start<width){
 		*start = '?';

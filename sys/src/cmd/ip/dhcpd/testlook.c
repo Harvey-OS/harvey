@@ -13,14 +13,14 @@
 #include <bio.h>
 #include <ndb.h>
 
-static uchar noether[6];
+static uint8_t noether[6];
 
 /*
  *  Look for a pair with the given attribute.  look first on the same line,
  *  then in the whole entry.
  */
 static Ndbtuple*
-lookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
+lookval(Ndbtuple *entry, Ndbtuple *line, int8_t *attr, int8_t *to)
 {
 	Ndbtuple *nt;
 
@@ -46,14 +46,14 @@ lookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
 /*
  *  lookup an ip address
  */
-static uchar*
-lookupip(Ndb *db, char *name, uchar *to, Ipinfo *iip)
+static uint8_t*
+lookupip(Ndb *db, int8_t *name, uint8_t *to, Ipinfo *iip)
 {
 	Ndbtuple *t, *nt;
-	char buf[Ndbvlen];
-	uchar subnet[IPaddrlen];
+	int8_t buf[Ndbvlen];
+	uint8_t subnet[IPaddrlen];
 	Ndbs s;
-	char *attr;
+	int8_t *attr;
 
 	attr = ipattr(name);
 	if(strcmp(attr, "ip") == 0){
@@ -85,12 +85,13 @@ lookupip(Ndb *db, char *name, uchar *to, Ipinfo *iip)
  *  lookup a subnet and fill in anything we can
  */
 static void
-recursesubnet(Ndb *db, uchar *mask, Ipinfo *iip, char *fs, char *gw, char *au)
+recursesubnet(Ndb *db, uint8_t *mask, Ipinfo *iip, int8_t *fs, int8_t *gw,
+	      int8_t *au)
 {
 	Ndbs s;
 	Ndbtuple *t;
-	uchar submask[IPaddrlen];
-	char ip[Ndbvlen];
+	uint8_t submask[IPaddrlen];
+	int8_t ip[Ndbvlen];
 
 	memmove(iip->ipmask, mask, 4);
 	maskip(iip->ipaddr, iip->ipmask, iip->ipnet);
@@ -125,15 +126,15 @@ print("%s->", ip);
  *  specified.
  */
 int
-ipinfo(Ndb *db, char *etherin, char *ipin, char *name, Ipinfo *iip)
+ipinfo(Ndb *db, int8_t *etherin, int8_t *ipin, int8_t *name, Ipinfo *iip)
 {
 	Ndbtuple *t;
 	Ndbs s;
-	char ether[Ndbvlen];
-	char ip[Ndbvlen];
-	char fsname[Ndbvlen];
-	char gwname[Ndbvlen];
-	char auname[Ndbvlen];
+	int8_t ether[Ndbvlen];
+	int8_t ip[Ndbvlen];
+	int8_t fsname[Ndbvlen];
+	int8_t gwname[Ndbvlen];
+	int8_t auname[Ndbvlen];
 
 	memset(iip, 0, sizeof(Ipinfo));
 	fsname[0] = 0;
@@ -208,7 +209,7 @@ ipinfo(Ndb *db, char *etherin, char *ipin, char *name, Ipinfo *iip)
 }
 #endif
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Ipinfo ii;
 	Ndb *db;

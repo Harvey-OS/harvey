@@ -14,15 +14,15 @@
 
 #define	NETCHLEN	16		/* max network challenge length	*/
 
-char *	argv0;
+int8_t *	argv0;
 int	debug;
 int	delete;
 
-char *	root = "/n/emelie";
-char *	user;
-char	file[64];
-char	challenge[NETCHLEN];
-char	response[NETCHLEN];
+int8_t *	root = "/n/emelie";
+int8_t *	user;
+int8_t	file[64];
+int8_t	challenge[NETCHLEN];
+int8_t	response[NETCHLEN];
 
 void
 usage(void)
@@ -32,7 +32,7 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	int fd, n;
 

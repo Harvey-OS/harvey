@@ -61,7 +61,7 @@ void laserbar();
 #ifdef MAIN
 
 main(argc, argv)
-char **argv;
+int8_t **argv;
 {
 	int c, flags = 0, error = 0;
 	double rotate = 0, xoffset = 0, yoffset = 0, xscale = 1, yscale = 1;
@@ -119,7 +119,7 @@ static int right = 0;
 void
 laserbar(fp, str, rotate, xoffset, yoffset, xscale, yscale, flags)
 FILE *fp;
-char *str;
+int8_t *str;
 double rotate, xoffset, yoffset, xscale, yscale;
 int flags;
 {

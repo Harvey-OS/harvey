@@ -19,22 +19,22 @@ typedef struct URL URL;
 struct URL
 {
 	int	method;
-	char	*host;
-	char	*port;
-	char	*page;
-	char	*etag;
-	char	*redirect;
-	char	*postbody;
-	char	*cred;
-	char *rhead;
-	long	mtime;
+	int8_t	*host;
+	int8_t	*port;
+	int8_t	*page;
+	int8_t	*etag;
+	int8_t	*redirect;
+	int8_t	*postbody;
+	int8_t	*cred;
+	int8_t *rhead;
+	int32_t	mtime;
 };
 
 typedef struct Range Range;
 struct Range
 {
-	long	start;	/* only 2 gig supported, tdb */
-	long	end;
+	int32_t	start;	/* only 2 gig supported, tdb */
+	int32_t	end;
 };
 
 typedef struct Out Out;
@@ -64,29 +64,29 @@ enum
 };
 
 int debug;
-char *ofile;
+int8_t *ofile;
 
 
-int	doftp(URL*, URL*, Range*, Out*, long);
-int	dohttp(URL*, URL*,  Range*, Out*, long);
-int	crackurl(URL*, char*);
-Range*	crackrange(char*);
-int	getheader(int, char*, int);
+int	doftp(URL*, URL*, Range*, Out*, int32_t);
+int	dohttp(URL*, URL*,  Range*, Out*, int32_t);
+int	crackurl(URL*, int8_t*);
+Range*	crackrange(int8_t*);
+int	getheader(int, int8_t*, int);
 int	httpheaders(int, int, URL*, Range*);
 int	httprcode(int);
-int	cistrncmp(char*, char*, int);
-int	cistrcmp(char*, char*);
+int	cistrncmp(int8_t*, int8_t*, int);
+int	cistrcmp(int8_t*, int8_t*);
 void	initibuf(void);
-int	readline(int, char*, int);
-int	readibuf(int, char*, int);
-int	dfprint(int, char*, ...);
-void	unreadline(char*);
-int	output(Out*, char*, int);
+int	readline(int, int8_t*, int);
+int	readibuf(int, int8_t*, int);
+int	dfprint(int, int8_t*, ...);
+void	unreadline(int8_t*);
+int	output(Out*, int8_t*, int);
 void	setoffset(Out*, int);
 
 int	verbose;
-char	*net;
-char	tcpdir[NETPATHLEN];
+int8_t	*net;
+int8_t	tcpdir[NETPATHLEN];
 int	headerprint;
 
 struct {
@@ -230,9 +230,9 @@ main(int argc, char **argv)
 }
 
 int
-crackurl(URL *u, char *s)
+crackurl(URL *u, int8_t *s)
 {
-	char *p;
+	int8_t *p;
 	int i;
 
 	if(u->page != nil){
@@ -301,22 +301,22 @@ crackurl(URL *u, char *s)
 	return 0;
 }
 
-char *day[] = {
+int8_t *day[] = {
 	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 };
 
-char *month[] = {
+int8_t *month[] = {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
 struct
 {
 	int	fd;
-	long	mtime;
+	int32_t	mtime;
 } note;
 
 void
-catch(void*, char*)
+catch(void*, int8_t*)
 {
 	Dir d;
 
@@ -328,15 +328,15 @@ catch(void*, char*)
 }
 
 int
-dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
+dohttp(URL *u, URL *px, Range *r, Out *out, int32_t mtime)
 {
 	int fd, cfd;
 	int redirect, auth, loop;
 	int n, rv, code;
-	long tot, vtime;
+	int32_t tot, vtime;
 	Tm *tm;
-	char buf[1024];
-	char err[ERRMAX];
+	int8_t buf[1024];
+	int8_t err[ERRMAX];
 
 
 	/*  always move back to a previous 512 byte bound because some
@@ -571,8 +571,8 @@ int
 httprcode(int fd)
 {
 	int n;
-	char *p;
-	char buf[256];
+	int8_t *p;
+	int8_t buf[256];
 
 	n = readline(fd, buf, sizeof(buf)-1);
 	if(n <= 0)
@@ -589,17 +589,17 @@ httprcode(int fd)
 }
 
 /* read in and crack the http headers, update u and r */
-void	hhetag(char*, URL*, Range*);
-void	hhmtime(char*, URL*, Range*);
-void	hhclen(char*, URL*, Range*);
-void	hhcrange(char*, URL*, Range*);
-void	hhuri(char*, URL*, Range*);
-void	hhlocation(char*, URL*, Range*);
-void	hhauth(char*, URL*, Range*);
+void	hhetag(int8_t*, URL*, Range*);
+void	hhmtime(int8_t*, URL*, Range*);
+void	hhclen(int8_t*, URL*, Range*);
+void	hhcrange(int8_t*, URL*, Range*);
+void	hhuri(int8_t*, URL*, Range*);
+void	hhlocation(int8_t*, URL*, Range*);
+void	hhauth(int8_t*, URL*, Range*);
 
 struct {
-	char *name;
-	void (*f)(char*, URL*, Range*);
+	int8_t *name;
+	void (*f)(int8_t*, URL*, Range*);
 } headers[] = {
 	{ "etag:", hhetag },
 	{ "last-modified:", hhmtime },
@@ -612,8 +612,8 @@ struct {
 int
 httpheaders(int fd, int cfd, URL *u, Range *r)
 {
-	char buf[2048];
-	char *p;
+	int8_t buf[2048];
+	int8_t *p;
 	int i, n;
 
 	for(;;){
@@ -646,9 +646,9 @@ httpheaders(int fd, int cfd, URL *u, Range *r)
  *  be lost.
  */
 int
-getheader(int fd, char *buf, int n)
+getheader(int fd, int8_t *buf, int n)
 {
-	char *p, *e;
+	int8_t *p, *e;
 	int i;
 
 	n--;
@@ -680,7 +680,7 @@ getheader(int fd, char *buf, int n)
 }
 
 void
-hhetag(char *p, URL *u, Range*)
+hhetag(int8_t *p, URL *u, Range*)
 {
 	if(u->etag != nil){
 		if(strcmp(u->etag, p) != 0)
@@ -689,13 +689,13 @@ hhetag(char *p, URL *u, Range*)
 		u->etag = strdup(p);
 }
 
-char*	monthchars = "janfebmaraprmayjunjulaugsepoctnovdec";
+int8_t*	monthchars = "janfebmaraprmayjunjulaugsepoctnovdec";
 
 void
-hhmtime(char *p, URL *u, Range*)
+hhmtime(int8_t *p, URL *u, Range*)
 {
-	char *month, *day, *yr, *hms;
-	char *fields[6];
+	int8_t *month, *day, *yr, *hms;
+	int8_t *fields[6];
 	Tm tm, now;
 	int i;
 
@@ -759,16 +759,16 @@ hhmtime(char *p, URL *u, Range*)
 }
 
 void
-hhclen(char *p, URL*, Range *r)
+hhclen(int8_t *p, URL*, Range *r)
 {
 	r->end = atoi(p);
 }
 
 void
-hhcrange(char *p, URL*, Range *r)
+hhcrange(int8_t *p, URL*, Range *r)
 {
-	char *x;
-	vlong l;
+	int8_t *x;
+	int64_t l;
 
 	l = 0;
 	x = strchr(p, '/');
@@ -784,7 +784,7 @@ hhcrange(char *p, URL*, Range *r)
 }
 
 void
-hhuri(char *p, URL *u, Range*)
+hhuri(int8_t *p, URL *u, Range*)
 {
 	if(*p != '<')
 		return;
@@ -795,17 +795,17 @@ hhuri(char *p, URL *u, Range*)
 }
 
 void
-hhlocation(char *p, URL *u, Range*)
+hhlocation(int8_t *p, URL *u, Range*)
 {
 	u->redirect = strdup(p);
 }
 
 void
-hhauth(char *p, URL *u, Range*)
+hhauth(int8_t *p, URL *u, Range*)
 {
-	char *f[4];
+	int8_t *f[4];
 	UserPasswd *up;
-	char *s, cred[64];
+	int8_t *s, cred[64];
 
 	if (cistrncmp(p, "basic ", 6) != 0)
 		sysfatal("only Basic authentication supported");
@@ -818,7 +818,7 @@ hhauth(char *p, URL *u, Range*)
 			sysfatal("cannot authenticate");
 
 	s = smprint("%s:%s", up->user, up->passwd);
-	if(enc64(cred, sizeof(cred), (uchar *)s, strlen(s)) == -1)
+	if(enc64(cred, sizeof(cred), (uint8_t *)s, strlen(s)) == -1)
 		sysfatal("enc64");
   		free(s);
 
@@ -838,26 +838,26 @@ enum
 	Ndialstr=	64,		/* max length of dial strings */
 };
 
-int ftpcmd(int, char*, ...);
-int ftprcode(int, char*, int);
+int ftpcmd(int, int8_t*, ...);
+int ftprcode(int, int8_t*, int);
 int hello(int);
 int logon(int);
-int xfertype(int, char*);
+int xfertype(int, int8_t*);
 int passive(int, URL*);
 int active(int, URL*);
 int ftpxfer(int, Out*, Range*);
 int terminateftp(int, int);
-int getaddrport(char*, uchar*, uchar*);
-int ftprestart(int, Out*, URL*, Range*, long);
+int getaddrport(int8_t*, uint8_t*, uint8_t*);
+int ftprestart(int, Out*, URL*, Range*, int32_t);
 
 int
-doftp(URL *u, URL *px, Range *r, Out *out, long mtime)
+doftp(URL *u, URL *px, Range *r, Out *out, int32_t mtime)
 {
 	int pid, ctl, data, rv;
 	Waitmsg *w;
-	char msg[64];
-	char conndir[NETPATHLEN];
-	char *p;
+	int8_t msg[64];
+	int8_t conndir[NETPATHLEN];
+	int8_t *p;
 
 	/* untested, proxy doesn't work with ftp (I think) */
 	if(px->host == nil){
@@ -949,10 +949,10 @@ doftp(URL *u, URL *px, Range *r, Out *out, long mtime)
 }
 
 int
-ftpcmd(int ctl, char *fmt, ...)
+ftpcmd(int ctl, int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[2*1024], *s;
+	int8_t buf[2*1024], *s;
 
 	va_start(arg, fmt);
 	s = vseprint(buf, buf + (sizeof(buf)-4) / sizeof(*buf), fmt, arg);
@@ -967,11 +967,11 @@ ftpcmd(int ctl, char *fmt, ...)
 }
 
 int
-ftprcode(int ctl, char *msg, int len)
+ftprcode(int ctl, int8_t *msg, int len)
 {
 	int rv;
 	int i;
-	char *p;
+	int8_t *p;
 
 	len--;	/* room for terminating null */
 	for(;;){
@@ -995,7 +995,7 @@ ftprcode(int ctl, char *msg, int len)
 int
 hello(int ctl)
 {
-	char msg[1024];
+	int8_t msg[1024];
 
 	/* wait for hello from other side */
 	if(ftprcode(ctl, msg, sizeof(msg)) != Success){
@@ -1006,7 +1006,7 @@ hello(int ctl)
 }
 
 int
-getdec(char *p, int n)
+getdec(int8_t *p, int n)
 {
 	int x = 0;
 	int i;
@@ -1017,11 +1017,11 @@ getdec(char *p, int n)
 }
 
 int
-ftprestart(int ctl, Out *out, URL *u, Range *r, long mtime)
+ftprestart(int ctl, Out *out, URL *u, Range *r, int32_t mtime)
 {
 	Tm tm;
-	char msg[1024];
-	long x, rmtime;
+	int8_t msg[1024];
+	int32_t x, rmtime;
 
 	ftpcmd(ctl, "MDTM %s", u->page);
 	if(ftprcode(ctl, msg, sizeof(msg)) != Success){
@@ -1070,7 +1070,7 @@ ftprestart(int ctl, Out *out, URL *u, Range *r, long mtime)
 int
 logon(int ctl)
 {
-	char msg[1024];
+	int8_t msg[1024];
 
 	/* login anonymous */
 	ftpcmd(ctl, "USER anonymous");
@@ -1096,9 +1096,9 @@ logon(int ctl)
 }
 
 int
-xfertype(int ctl, char *t)
+xfertype(int ctl, int8_t *t)
 {
-	char msg[1024];
+	int8_t msg[1024];
 
 	ftpcmd(ctl, "TYPE %s", t);
 	if(ftprcode(ctl, msg, sizeof(msg)) != Success){
@@ -1112,13 +1112,13 @@ xfertype(int ctl, char *t)
 int
 passive(int ctl, URL *u)
 {
-	char msg[1024];
-	char ipaddr[32];
-	char *f[6];
-	char *p;
+	int8_t msg[1024];
+	int8_t ipaddr[32];
+	int8_t *f[6];
+	int8_t *p;
 	int fd;
 	int port;
-	char aport[12];
+	int8_t aport[12];
 
 	ftpcmd(ctl, "PASV");
 	if(ftprcode(ctl, msg, sizeof(msg)) != Success)
@@ -1160,10 +1160,10 @@ passive(int ctl, URL *u)
 int
 active(int ctl, URL *u)
 {
-	char msg[1024];
-	char dir[40], ldir[40];
-	uchar ipaddr[4];
-	uchar port[2];
+	int8_t msg[1024];
+	int8_t dir[40], ldir[40];
+	uint8_t ipaddr[4];
+	uint8_t port[2];
 	int lcfd, dfd, afd;
 
 	/* announce a port for the call back */
@@ -1216,8 +1216,8 @@ active(int ctl, URL *u)
 int
 ftpxfer(int in, Out *out, Range *r)
 {
-	char buf[1024];
-	long vtime;
+	int8_t buf[1024];
+	int32_t vtime;
 	int i, n;
 
 	vtime = 0;
@@ -1249,7 +1249,7 @@ terminateftp(int ctl, int rv)
  * case insensitive strcmp (why aren't these in libc?)
  */
 int
-cistrncmp(char *a, char *b, int n)
+cistrncmp(int8_t *a, int8_t *b, int n)
 {
 	while(n-- > 0){
 		if(tolower(*a++) != tolower(*b++))
@@ -1259,7 +1259,7 @@ cistrncmp(char *a, char *b, int n)
 }
 
 int
-cistrcmp(char *a, char *b)
+cistrcmp(int8_t *a, int8_t *b)
 {
 	while(*a || *b)
 		if(tolower(*a++) != tolower(*b++))
@@ -1273,9 +1273,9 @@ cistrcmp(char *a, char *b)
  */
 struct
 {
-	char *rp;
-	char *wp;
-	char buf[4*1024];
+	int8_t *rp;
+	int8_t *wp;
+	int8_t buf[4*1024];
 } b;
 
 void
@@ -1288,10 +1288,10 @@ initibuf(void)
  *  read a possibly buffered line, strip off trailing while
  */
 int
-readline(int fd, char *buf, int len)
+readline(int fd, int8_t *buf, int len)
 {
 	int n;
-	char *p;
+	int8_t *p;
 	int eof = 0;
 
 	len--;
@@ -1334,7 +1334,7 @@ readline(int fd, char *buf, int len)
 }
 
 void
-unreadline(char *line)
+unreadline(int8_t *line)
 {
 	int i, n;
 
@@ -1348,7 +1348,7 @@ unreadline(char *line)
 }
 
 int
-readibuf(int fd, char *buf, int len)
+readibuf(int fd, int8_t *buf, int len)
 {
 	int n;
 
@@ -1364,9 +1364,9 @@ readibuf(int fd, char *buf, int len)
 }
 
 int
-dfprint(int fd, char *fmt, ...)
+dfprint(int fd, int8_t *fmt, ...)
 {
-	char buf[4*1024];
+	int8_t buf[4*1024];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1378,11 +1378,11 @@ dfprint(int fd, char *fmt, ...)
 }
 
 int
-getaddrport(char *dir, uchar *ipaddr, uchar *port)
+getaddrport(int8_t *dir, uint8_t *ipaddr, uint8_t *port)
 {
-	char buf[256];
+	int8_t buf[256];
 	int fd, i;
-	char *p;
+	int8_t *p;
 
 	snprint(buf, sizeof(buf), "%s/local", dir);
 	fd = open(buf, OREAD);
@@ -1406,14 +1406,14 @@ getaddrport(char *dir, uchar *ipaddr, uchar *port)
 void
 md5free(DigestState *state)
 {
-	uchar x[MD5dlen];
+	uint8_t x[MD5dlen];
 	md5(nil, 0, x, state);
 }
 
 DigestState*
 md5dup(DigestState *state)
 {
-	char *p;
+	int8_t *p;
 
 	p = md5pickle(state);
 	if(p == nil)
@@ -1448,10 +1448,10 @@ setoffset(Out *out, int offset)
  * output.
  */
 int
-output(Out *out, char *buf, int nb)
+output(Out *out, int8_t *buf, int nb)
 {
 	int n, d;
-	uchar m0[MD5dlen], m1[MD5dlen];
+	uint8_t m0[MD5dlen], m1[MD5dlen];
 
 	n = nb;
 	d = out->written - out->offset;
@@ -1459,12 +1459,12 @@ output(Out *out, char *buf, int nb)
 	if(d > 0){
 		if(n < d){
 			if(out->curr != nil)
-				md5((uchar*)buf, n, nil, out->curr);
+				md5((uint8_t*)buf, n, nil, out->curr);
 			out->offset += n;
 			return n;
 		}
 		if(out->curr != nil){
-			md5((uchar*)buf, d, m0, out->curr);
+			md5((uint8_t*)buf, d, m0, out->curr);
 			out->curr = nil;
 			md5(nil, 0, m1, md5dup(out->hiwat));
 			if(memcmp(m0, m1, MD5dlen) != 0){
@@ -1477,7 +1477,7 @@ output(Out *out, char *buf, int nb)
 		out->offset += d;
 	}
 	if(n > 0){
-		out->hiwat = md5((uchar*)buf, n, nil, out->hiwat);
+		out->hiwat = md5((uint8_t*)buf, n, nil, out->hiwat);
 		n = write(out->fd, buf, n);
 		if(n > 0){
 			out->offset += n;

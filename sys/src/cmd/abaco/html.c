@@ -575,14 +575,14 @@ selectmouse(Box *b, Page *p, int but)
 	Formfield *f;
 	Option *o;
 	Menu m;
-	char **item;
+	int8_t **item;
 	int i, n;
 
 	f = ((Iformfield *)b->i)->formfield;
 	n = 0;
 	item = nil;
 	for(o=f->options; o!=nil; o=o->next){
-		item = erealloc(item, ++n*sizeof(char *));
+		item = erealloc(item, ++n*sizeof(int8_t *));
 		if(o->display)
 			item[n-1] = smprint("%S", o->display);
 		else

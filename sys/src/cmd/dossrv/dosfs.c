@@ -267,7 +267,7 @@ out:
 }
 
 static int
-mk8dot3name(Xfile *f, Dosptr *ndp, char *name, char *sname)
+mk8dot3name(Xfile *f, Dosptr *ndp, int8_t *name, int8_t *sname)
 {
 	Dosptr tmpdp;
 	int i, longtype;
@@ -314,7 +314,9 @@ mk8dot3name(Xfile *f, Dosptr *ndp, char *name, char *sname)
  * fill in a directory entry for a new file
  */
 static int
-mkdentry(Xfs *xf, Dosptr *ndp, char *name, char *sname, int longtype, int nattr, long start, long length)
+mkdentry(Xfs *xf, Dosptr *ndp, int8_t *name, int8_t *sname, int longtype,
+	 int nattr,
+	 int32_t start, int32_t length)
 {
 	Dosdir *nd;
 
@@ -357,8 +359,8 @@ rcreate(void)
 	Dosptr *pdp, *ndp;
 	Iosect *xp;
 	Dosdir *pd, *xd;
-	char sname[13];
-	long start;
+	int8_t sname[13];
+	int32_t start;
 	int longtype, attr, omode, nattr;
 
 	f = xfile(req->fid, Asis);
@@ -528,7 +530,7 @@ error:
 		errno = Eio;
 	}else{
 		rep->count = r;
-		rep->data = (char*)repdata;
+		rep->data = (int8_t*)repdata;
 	}
 }
 
@@ -648,7 +650,7 @@ dostat(Xfile *f, Dir *d)
 {
 	Dosptr *dp;
 	Iosect *p;
-	char *name, namebuf[DOSNAMELEN];
+	int8_t *name, namebuf[DOSNAMELEN];
 	int islong, sum, prevdo;
 
 	dp = f->ptr;
@@ -716,9 +718,9 @@ rwstat(void)
 	Dosptr *dp, ndp, pdp;
 	Iosect *parp;
 	Dosdir *pard, *d, od;
-	char sname[13];
-	ulong oaddr, ooffset;
-	long start, length;
+	int8_t sname[13];
+	uint32_t oaddr, ooffset;
+	int32_t start, length;
 	int i, longtype, changes, attr;
 
 	f = xfile(req->fid, Asis);
@@ -736,7 +738,7 @@ rwstat(void)
 	changes = 0;
 	dir.name = repdata;
 	dostat(f, &dir);
-	if(convM2D(req->stat, req->nstat, &wdir, (char*)statbuf) != req->nstat){
+	if(convM2D(req->stat, req->nstat, &wdir, (int8_t*)statbuf) != req->nstat){
 		errno = Ebadstat;
 		goto out;
 	}

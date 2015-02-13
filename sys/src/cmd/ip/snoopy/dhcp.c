@@ -115,15 +115,15 @@ enum
 /*
  *  convert a byte array to hex
  */
-static char
+static int8_t
 hex(int x)
 {
 	if(x < 10)
 		return x + '0';
 	return x - 10 + 'a';
 }
-static char*
-phex(char *p, char *e, char *tag, uchar *o, int n)
+static int8_t*
+phex(int8_t *p, int8_t *e, int8_t *tag, uint8_t *o, int n)
 {
 	p = seprint(p, e, "%s=", tag);
 
@@ -135,10 +135,10 @@ phex(char *p, char *e, char *tag, uchar *o, int n)
 	return p;
 }
 
-static char*
-pstring(char *p, char *e, char *tag, uchar *o, int n)
+static int8_t*
+pstring(int8_t *p, int8_t *e, int8_t *tag, uint8_t *o, int n)
 {
-	char msg[256];
+	int8_t msg[256];
 
 	if(n > sizeof msg - 1)
 		n = sizeof msg - 1;
@@ -147,19 +147,19 @@ pstring(char *p, char *e, char *tag, uchar *o, int n)
 	return seprint(p, e, "%s=%s", tag, msg);
 }
 
-static char*
-pint(char *p, char *e, char *tag, uchar *o, int n)
+static int8_t*
+pint(int8_t *p, int8_t *e, int8_t *tag, uint8_t *o, int n)
 {
 	int x;
 
-	x = *(char*)o++;
+	x = *(int8_t*)o++;
 	for(; n > 1; n--)
 		x = x<<8 | *o++;
 	return seprint(p, e, "%s=%d", tag, x);
 }
 
-static char*
-puint(char *p, char *e, char *tag, uchar *o, int n)
+static int8_t*
+puint(int8_t *p, int8_t *e, int8_t *tag, uint8_t *o, int n)
 {
 	uint x;
 
@@ -169,8 +169,8 @@ puint(char *p, char *e, char *tag, uchar *o, int n)
 	return seprint(p, e, "%s=%ud", tag, x);
 }
 
-static char*
-pserver(char *p, char *e, char *tag, uchar *o, int n)
+static int8_t*
+pserver(int8_t *p, int8_t *e, int8_t *tag, uint8_t *o, int n)
 {
 	p = seprint(p, e, "%s=(", tag);
 	while(n >= 4){
@@ -195,10 +195,10 @@ static char *dhcptype[256] =
 };
 
 
-static char*
-ptype(char *p, char *e, uchar val)
+static int8_t*
+ptype(int8_t *p, int8_t *e, uint8_t val)
 {
-	char *x;
+	int8_t *x;
 
 	x = dhcptype[val];
 	if(x != nil)
@@ -211,9 +211,9 @@ static int
 p_seprint(Msg *m)
 {
 	int i, n, code;
-	uchar *o, *ps;
-	char *p, *e;
-	char msg[64];
+	uint8_t *o, *ps;
+	int8_t *p, *e;
+	int8_t msg[64];
 
 	/* no next proto */
 	m->pr = nil;

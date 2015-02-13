@@ -142,17 +142,17 @@ enum {					/* count */
 
 typedef struct Cb {
 	int	command;
-	ulong	link;
-	uchar	data[24];	/* CbIAS + CbConfigure */
+	uint32_t	link;
+	uint8_t	data[24];	/* CbIAS + CbConfigure */
 } Cb;
 
 typedef struct TxCB {
 	int	command;
-	ulong	link;
-	ulong	tbd;
-	ushort	count;
-	uchar	threshold;
-	uchar	number;
+	uint32_t	link;
+	uint32_t	tbd;
+	uint16_t	count;
+	uint8_t	threshold;
+	uint8_t	number;
 } TxCB;
 
 enum {					/* action command */
@@ -187,12 +187,12 @@ typedef struct Ctlr {
 	int	active;
 
 	int	eepromsz;		/* address size in bits */
-	ushort*	eeprom;
+	uint16_t*	eeprom;
 
 	int	ctlrno;
-	char*	type;
+	int8_t*	type;
 
-	uchar	configdata[24];
+	uint8_t	configdata[24];
 
 	Rfd	rfd[Nrfd];
 	int	rfdl;
@@ -206,7 +206,7 @@ typedef struct Ctlr {
 static Ctlr* ctlrhead;
 static Ctlr* ctlrtail;
 
-static uchar configdata[24] = {
+static uint8_t configdata[24] = {
 	0x16,				/* byte count */
 	0x44,				/* Rx/Tx FIFO limit */
 	0x00,				/* adaptive IFS */
@@ -236,8 +236,8 @@ static uchar configdata[24] = {
 #define csr16r(c, r)	(ins((c)->port+(r)))
 #define csr32r(c, r)	(inl((c)->port+(r)))
 #define csr8w(c, r, b)	(outb((c)->port+(r), (int)(b)))
-#define csr16w(c, r, w)	(outs((c)->port+(r), (ushort)(w)))
-#define csr32w(c, r, l)	(outl((c)->port+(r), (ulong)(l)))
+#define csr16w(c, r, w)	(outs((c)->port+(r), (uint16_t)(w)))
+#define csr32w(c, r, l)	(outl((c)->port+(r), (uint32_t)(l)))
 
 static void
 custart(Ctlr* ctlr)
@@ -426,7 +426,7 @@ ctlrinit(Ctlr* ctlr)
 {
 	int i;
 	Rfd *rfd;
-	ulong link;
+	uint32_t link;
 
 	link = NullPointer;
 	for(i = Nrfd-1; i >= 0; i--){
@@ -542,7 +542,7 @@ reread:
 
 	if(ctlr->eepromsz == 0){
 		ctlr->eepromsz = 8-size;
-		ctlr->eeprom = malloc((1<<ctlr->eepromsz)*sizeof(ushort));
+		ctlr->eeprom = malloc((1<<ctlr->eepromsz)*sizeof(uint16_t));
 		goto reread;
 	}
 
@@ -638,7 +638,7 @@ i82557reset(Ether* ether)
 	int anar, anlpar, bmcr, bmsr, force, i, phyaddr, x;
 	unsigned short sum;
 	Block *bp;
-	uchar ea[Eaddrlen];
+	uint8_t ea[Eaddrlen];
 	Ctlr *ctlr;
 	Cb *cb;
 

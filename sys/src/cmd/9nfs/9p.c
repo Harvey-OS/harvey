@@ -55,8 +55,8 @@ again:
 	}
 	if(convM2S(s->data, n, &s->f) <= 0){
 		clog("xmesg bad convM2S %d %.2x %.2x %.2x %.2x\n",
-			n, ((uchar*)s->data)[0], ((uchar*)s->data)[1],
-			((uchar*)s->data)[2], ((uchar*)s->data)[3]);
+			n, ((uint8_t*)s->data)[0], ((uint8_t*)s->data)[1],
+			((uint8_t*)s->data)[2], ((uint8_t*)s->data)[3]);
 		return -1;
 	}
 	if(p9debug)
@@ -175,7 +175,7 @@ putfid(Session *s, Fid *f)
 }
 
 void
-fidtimer(Session *s, long now)
+fidtimer(Session *s, int32_t now)
 {
 	Fid *f, *t;
 	int n;

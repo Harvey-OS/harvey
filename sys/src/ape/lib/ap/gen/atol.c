@@ -9,8 +9,8 @@
 
 #include	<stdlib.h>
 
-long
-atol(const char *s)
+int32_t
+atol(const int8_t *s)
 {
-	return(strtol(s, (char **)0, 10));
+	return(strtol(s, (int8_t **)0, 10));
 }

@@ -15,8 +15,8 @@ typedef struct Lstn Lstn;
 struct Lstn {
 	int	afd;
 	int	flags;
-	char*	address;
-	char	dir[NETPATHLEN];
+	int8_t*	address;
+	int8_t	dir[NETPATHLEN];
 
 	Lstn*	next;
 	Lstn*	prev;
@@ -54,7 +54,7 @@ lstnListen(void* a)
 {
 	Lstn *lstn;
 	int dfd, lfd;
-	char newdir[NETPATHLEN];
+	int8_t newdir[NETPATHLEN];
 	
  	vtThreadSetName("listen");
 
@@ -74,11 +74,11 @@ lstnListen(void* a)
 }
 
 static Lstn*
-lstnAlloc(char* address, int flags)
+lstnAlloc(int8_t* address, int flags)
 {
 	int afd;
 	Lstn *lstn;
-	char dir[NETPATHLEN];
+	int8_t dir[NETPATHLEN];
 
 	vtLock(lbox.lock);
 	for(lstn = lbox.head; lstn != nil; lstn = lstn->next){

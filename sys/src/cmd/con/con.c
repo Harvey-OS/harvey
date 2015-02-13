@@ -20,41 +20,41 @@ int cooked;		/* non-zero forces cooked mode */
 int returns;		/* non-zero forces carriage returns not to be filtered out */
 int crtonl;			/* non-zero forces carriage returns to be converted to nls coming from net */
 int	strip;		/* strip off parity bits */
-char firsterr[2*ERRMAX];
-char transerr[2*ERRMAX];
+int8_t firsterr[2*ERRMAX];
+int8_t transerr[2*ERRMAX];
 int limited;
-char *remuser;		/* for BSD rlogin authentication */
+int8_t *remuser;		/* for BSD rlogin authentication */
 int verbose;
 int baud;
 int notkbd;
 int nltocr;		/* translate kbd nl to cr  and vice versa */
 
-static char *srv;
+static int8_t *srv;
 
 #define MAXMSG (2*8192)
 
-int	dodial(char*, char*, char*);
+int	dodial(int8_t*, int8_t*, int8_t*);
 void	fromkbd(int);
 void	fromnet(int);
-long	iread(int, void*, int);
-long	iwrite(int, void*, int);
+int32_t	iread(int, void*, int);
+int32_t	iwrite(int, void*, int);
 int	menu(int);
-void	notifyf(void*, char*);
+void	notifyf(void*, int8_t*);
 void	pass(int, int, int);
 void	rawoff(void);
 void	rawon(void);
 void	stdcon(int);
-char*	system(int, char*);
-void	dosystem(int, char*);
+int8_t*	system(int, int8_t*);
+void	dosystem(int, int8_t*);
 int	wasintr(void);
-void	punt(char*);
-char*	syserr(void);
-void	seterr(char*);
+void	punt(int8_t*);
+int8_t*	syserr(void);
+void	seterr(int8_t*);
 
 /* protocols */
-void	device(char*, char*);
-void	rlogin(char*, char*);
-void	simple(char*, char*);
+void	device(int8_t*, int8_t*);
+void	rlogin(int8_t*, int8_t*);
+void	simple(int8_t*, int8_t*);
 
 void
 usage(void)
@@ -136,7 +136,7 @@ main(int argc, char *argv[])
  *  just dial and use as a byte stream with remote echo
  */
 void
-simple(char *dest, char *cmd)
+simple(int8_t *dest, int8_t *cmd)
 {
 	int net;
 
@@ -159,12 +159,12 @@ simple(char *dest, char *cmd)
  *  return if dial failed
  */
 void
-rlogin(char *dest, char *cmd)
+rlogin(int8_t *dest, int8_t *cmd)
 {
 	int net;
-	char buf[128];
-	char *p;
-	char *localuser;
+	int8_t buf[128];
+	int8_t *p;
+	int8_t *localuser;
 
 	/* only useful on TCP */
 	if(strchr(dest, '!')
@@ -221,10 +221,10 @@ rlogin(char *dest, char *cmd)
  *  just open a device and use it as a connection
  */
 void
-device(char *dest, char *cmd)
+device(int8_t *dest, int8_t *cmd)
 {
 	int net;
-	char cname[128];
+	int8_t cname[128];
 
 	net = open(dest, ORDWR);
 	if(net < 0) {
@@ -255,7 +255,7 @@ device(char *dest, char *cmd)
  *  ignore interrupts
  */
 void
-notifyf(void *a, char *msg)
+notifyf(void *a, int8_t *msg)
 {
 	USED(a);
 
@@ -316,8 +316,8 @@ rawoff(void)
 int
 menu(int net)
 {
-	char buf[MAXMSG];
-	long n;
+	int8_t buf[MAXMSG];
+	int32_t n;
 	int done;
 	int wasraw = raw;
 
@@ -372,10 +372,10 @@ menu(int net)
 }
 
 void
-post(char *srv, int fd)
+post(int8_t *srv, int fd)
 {
 	int f;
-	char buf[32];
+	int8_t buf[32];
 
 	f = create(srv, OWRITE /* |ORCLOSE */ , 0666);
 	if(f < 0)
@@ -395,7 +395,7 @@ stdcon(int net)
 {
 	int netpid;
 	int p[2];
-	char *svc;
+	int8_t *svc;
 
 	svc = nil;
 	if (srv) {
@@ -443,9 +443,9 @@ stdcon(int net)
 void
 fromkbd(int net)
 {
-	long n;
-	char buf[MAXMSG];
-	char *p, *ep;
+	int32_t n;
+	int8_t buf[MAXMSG];
+	int8_t *p, *ep;
 	int eofs;
 
 	eofs = 0;
@@ -499,9 +499,9 @@ fromkbd(int net)
 void
 fromnet(int net)
 {
-	long n;
-	char buf[MAXMSG];
-	char *cp, *ep;
+	int32_t n;
+	int8_t buf[MAXMSG];
+	int8_t *cp, *ep;
 
 	for(;;){
 		n = iread(net, buf, sizeof(buf));
@@ -545,10 +545,10 @@ fromnet(int net)
  *  dial and return a data connection
  */
 int
-dodial(char *dest, char *net, char *service)
+dodial(int8_t *dest, int8_t *net, int8_t *service)
 {
-	char name[128];
-	char devdir[128];
+	int8_t name[128];
+	int8_t devdir[128];
 	int data;
 
 	devdir[0] = 0;
@@ -563,9 +563,9 @@ dodial(char *dest, char *net, char *service)
 }
 
 void
-dosystem(int fd, char *cmd)
+dosystem(int fd, int8_t *cmd)
 {
-	char *p;
+	int8_t *p;
 
 	p = system(fd, cmd);
 	if(p){
@@ -577,15 +577,15 @@ dosystem(int fd, char *cmd)
 /*
  *  run a command with the network connection as standard IO
  */
-char *
-system(int fd, char *cmd)
+int8_t *
+system(int fd, int8_t *cmd)
 {
 	int pid;
 	int p;
 	static Waitmsg msg;
 	int pfd[2];
 	int n;
-	char buf[4096];
+	int8_t buf[4096];
 
 	if(pipe(pfd) < 0){
 		perror("pipe");
@@ -635,7 +635,7 @@ wasintr(void)
 }
 
 void
-punt(char *msg)
+punt(int8_t *msg)
 {
 	if(*msg == 0)
 		msg = transerr;
@@ -643,18 +643,18 @@ punt(char *msg)
 	exits(msg);
 }
 
-char*
+int8_t*
 syserr(void)
 {
-	static char err[ERRMAX];
+	static int8_t err[ERRMAX];
 	errstr(err, sizeof err);
 	return err;
 }
 
 void
-seterr(char *addr)
+seterr(int8_t *addr)
 {
-	char *se = syserr();
+	int8_t *se = syserr();
 
 	if(verbose)
 		fprint(2, "'%s' calling %s\n", se, addr);
@@ -667,10 +667,10 @@ seterr(char *addr)
 }
 
 
-long
+int32_t
 iread(int f, void *a, int n)
 {
-	long m;
+	int32_t m;
 
 	for(;;){
 		m = read(f, a, n);
@@ -680,10 +680,10 @@ iread(int f, void *a, int n)
 	return m;
 }
 
-long
+int32_t
 iwrite(int f, void *a, int n)
 {
-	long m;
+	int32_t m;
 
 	m = write(f, a, n);
 	if(m < 0 && wasintr())

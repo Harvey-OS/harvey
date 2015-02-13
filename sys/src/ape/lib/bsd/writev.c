@@ -21,8 +21,8 @@ int
 writev(int fd, struct iovec *v, int ent)
 {
 	int i, n, written;
-	char *t, *e, *f;
-	char buf[10*1024];
+	int8_t *t, *e, *f;
+	int8_t buf[10*1024];
 
 	written = 0;
 	t = buf;

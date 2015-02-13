@@ -19,10 +19,10 @@ enum
 };
 
 Dir*
-_dirstat(char *name)
+_dirstat(int8_t *name)
 {
 	Dir *d;
-	uchar *buf;
+	uint8_t *buf;
 	int n, nd, i;
 
 	nd = DIRSIZE;
@@ -30,15 +30,15 @@ _dirstat(char *name)
 		d = malloc(sizeof(Dir) + BIT16SZ +nd);
 		if(d == nil)
 			return nil;
-		buf = (uchar*)&d[1];
+		buf = (uint8_t*)&d[1];
 		n = _STAT(name, buf, BIT16SZ+nd);
 		if(n < BIT16SZ){
 			free(d);
 			return nil;
 		}
-		nd = GBIT16((uchar*)buf);	/* size needed to store whole stat buffer */
+		nd = GBIT16((uint8_t*)buf);	/* size needed to store whole stat buffer */
 		if(nd <= n){
-			_convM2D(buf, n, d, (char*)&d[1]);
+			_convM2D(buf, n, d, (int8_t*)&d[1]);
 			return d;
 		}
 		/* else sizeof(Dir)+BIT16SZ+nd is plenty */
@@ -48,9 +48,9 @@ _dirstat(char *name)
 }
 
 int
-_dirwstat(char *name, Dir *d)
+_dirwstat(int8_t *name, Dir *d)
 {
-	uchar *buf;
+	uint8_t *buf;
 	int r;
 
 	r = _sizeD2M(d);
@@ -67,7 +67,7 @@ Dir*
 _dirfstat(int fd)
 {
 	Dir *d;
-	uchar *buf;
+	uint8_t *buf;
 	int n, nd, i;
 
 	nd = DIRSIZE;
@@ -75,7 +75,7 @@ _dirfstat(int fd)
 		d = malloc(sizeof(Dir) + nd);
 		if(d == nil)
 			return nil;
-		buf = (uchar*)&d[1];
+		buf = (uint8_t*)&d[1];
 		n = _FSTAT(fd, buf, nd);
 		if(n < BIT16SZ){
 			free(d);
@@ -83,7 +83,7 @@ _dirfstat(int fd)
 		}
 		nd = GBIT16(buf);	/* size needed to store whole stat buffer */
 		if(nd <= n){
-			_convM2D(buf, n, d, (char*)&d[1]);
+			_convM2D(buf, n, d, (int8_t*)&d[1]);
 			return d;
 		}
 		/* else sizeof(Dir)+nd is plenty */
@@ -95,7 +95,7 @@ _dirfstat(int fd)
 int
 _dirfwstat(int fd, Dir *d)
 {
-	uchar *buf;
+	uint8_t *buf;
 	int r;
 
 	r = _sizeD2M(d);

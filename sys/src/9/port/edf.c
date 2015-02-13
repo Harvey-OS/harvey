@@ -25,12 +25,12 @@ enum {
 
 #define DPRINT	if(Dontprint){}else print
 
-static long	now;	/* Low order 32 bits of time in µs */
+static int32_t	now;	/* Low order 32 bits of time in µs */
 
 /* Statistics stuff */
-ulong		nilcount;
-ulong		scheds;
-ulong		edfnrun;
+uint32_t		nilcount;
+uint32_t		scheds;
+uint32_t		edfnrun;
 int		misseddeadlines;
 
 /* Edfschedlock protects modification of admission params */
@@ -43,7 +43,7 @@ enum{
 	Rl,
 };
 
-static char *testschedulability(Proc*);
+static int8_t *testschedulability(Proc*);
 static Proc *qschedulability;
 
 enum {
@@ -56,8 +56,8 @@ enum {
 static int
 timeconv(Fmt *f)
 {
-	char buf[128], *sign;
-	vlong t;
+	int8_t buf[128], *sign;
+	int64_t t;
 
 	buf[0] = 0;
 	switch(f->r) {
@@ -65,7 +65,7 @@ timeconv(Fmt *f)
 		t = va_arg(f->args, uvlong);
 		break;
 	case 't':			/* vlong in nanoseconds */
-		t = va_arg(f->args, long);
+		t = va_arg(f->args, int32_t);
 		break;
 	default:
 		return fmtstrcpy(f, "(timeconv)");
@@ -88,7 +88,7 @@ timeconv(Fmt *f)
 	return fmtstrcpy(f, buf);
 }
 
-long edfcycles;
+int32_t edfcycles;
 
 Edf*
 edflock(Proc *p)
@@ -171,8 +171,8 @@ release(Proc *p)
 {
 	/* Called with edflock held */
 	Edf *e;
-	long n;
-	vlong nowns;
+	int32_t n;
+	int64_t nowns;
 
 	e = p->edf;
 	e->flags &= ~Yield;
@@ -277,7 +277,7 @@ releaseintr(Ureg*, Timer *t)
 void
 edfrecord(Proc *p)
 {
-	long used;
+	int32_t used;
 	Edf *e;
 
 	if((e = edflock(p)) == nil)
@@ -305,7 +305,7 @@ void
 edfrun(Proc *p, int edfpri)
 {
 	Edf *e;
-	long tns;
+	int32_t tns;
 	Sched *sch;
 
 	e = p->edf;
@@ -344,14 +344,14 @@ edfrun(Proc *p, int edfpri)
 	e->s = now;
 }
 
-char *
+int8_t *
 edfadmit(Proc *p)
 {
-	char *err;
+	int8_t *err;
 	Edf *e;
 	int i;
 	Proc *r;
-	long tns;
+	int32_t tns;
 
 	e = p->edf;
 	if (e->flags & Admitted)
@@ -469,7 +469,7 @@ edfyield(void)
 {
 	/* sleep until next release */
 	Edf *e;
-	long n;
+	int32_t n;
 
 	if((e = edflock(up)) == nil)
 		return;
@@ -507,7 +507,7 @@ edfready(Proc *p)
 	Sched *sch;
 	Schedq *rq;
 	Proc *l, *pp;
-	long n;
+	int32_t n;
 
 	if((e = edflock(p)) == nil)
 		return 0;
@@ -623,11 +623,11 @@ testenq(Proc *p)
 	xp->edf->testnext = p;
 }
 
-static char *
+static int8_t *
 testschedulability(Proc *theproc)
 {
 	Proc *p;
-	long H, G, Cb, ticks;
+	int32_t H, G, Cb, ticks;
 	int steps, i;
 
 	/* initialize */

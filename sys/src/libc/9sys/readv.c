@@ -11,12 +11,12 @@
 #include <libc.h>
 
 static
-long
-ioreadv(int fd, IOchunk *io, int nio, vlong offset)
+int32_t
+ioreadv(int fd, IOchunk *io, int nio, int64_t offset)
 {
 	int i;
-	long m, n, tot;
-	char *buf, *p;
+	int32_t m, n, tot;
+	int8_t *buf, *p;
 
 	tot = 0;
 	for(i=0; i<nio; i++)
@@ -45,14 +45,14 @@ ioreadv(int fd, IOchunk *io, int nio, vlong offset)
 	return tot;
 }
 
-long
+int32_t
 readv(int fd, IOchunk *io, int nio)
 {
 	return ioreadv(fd, io, nio, -1LL);
 }
 
-long
-preadv(int fd, IOchunk *io, int nio, vlong off)
+int32_t
+preadv(int fd, IOchunk *io, int nio, int64_t off)
 {
 	return ioreadv(fd, io, nio, off);
 }

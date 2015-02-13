@@ -84,7 +84,7 @@ static Ref ncname;
 void cleancname(Cname*);
 
 int
-isdotdot(char *p)
+isdotdot(int8_t *p)
 {
 	return p[0]=='.' && p[1]=='.' && p[2]=='\0';
 }
@@ -115,7 +115,7 @@ decref(Ref *r)
 }
 
 Cname*
-newcname(char *s)
+newcname(int8_t *s)
 {
 	Cname *n;
 	int i;
@@ -144,10 +144,10 @@ cnameclose(Cname *n)
 }
 
 Cname*
-addelem(Cname *n, char *s)
+addelem(Cname *n, int8_t *s)
 {
 	int i, a;
-	char *t;
+	int8_t *t;
 	Cname *new;
 
 	if(s[0]=='.' && s[1]=='\0')
@@ -184,7 +184,7 @@ addelem(Cname *n, char *s)
 void
 cleancname(Cname *n)
 {
-	char *p;
+	int8_t *p;
 
 	if(n->s[0] == '#'){
 		p = strchr(n->s, '/');

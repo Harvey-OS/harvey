@@ -21,7 +21,7 @@ int interrupted;
 int localecho;
 int notkbd;
 
-static char *srv;
+static int8_t *srv;
 
 typedef struct Comm Comm;
 struct Comm {
@@ -30,18 +30,18 @@ struct Comm {
 };
 Comm *comm;
 
-int	dodial(char*);
+int	dodial(int8_t*);
 void	fromkbd(int);
 void	fromnet(int);
 int	menu(Biobuf*,  int);
-void	notifyf(void*, char*);
+void	notifyf(void*, int8_t*);
 void	rawoff(void);
 void	rawon(void);
 void	telnet(int);
-char*	system(int, char*);
+int8_t*	system(int, int8_t*);
 int	echochange(Biobuf*, int);
-int	termsub(Biobuf*, uchar*, int);
-int	xlocsub(Biobuf*, uchar*, int);
+int	termsub(Biobuf*, uint8_t*, int);
+int	xlocsub(Biobuf*, uint8_t*, int);
 void*	share(ulong);
 
 static int islikeatty(int);
@@ -96,11 +96,11 @@ main(int argc, char *argv[])
  *  dial and return a data connection
  */
 int
-dodial(char *dest)
+dodial(int8_t *dest)
 {
-	char *name;
+	int8_t *name;
 	int data;
-	char devdir[NETPATHLEN];
+	int8_t devdir[NETPATHLEN];
 
 	name = netmkaddr(dest, "tcp", "telnet");
 	data = dial(name, 0, devdir, 0);
@@ -111,10 +111,10 @@ dodial(char *dest)
 }
 
 void
-post(char *srv, int fd)
+post(int8_t *srv, int fd)
 {
 	int f;
-	char buf[32];
+	int8_t buf[32];
 
 	f = create(srv, OWRITE, 0666);
 	if(f < 0)
@@ -134,7 +134,7 @@ telnet(int net)
 {
 	int pid;
 	int p[2];
-	char *svc;
+	int8_t *svc;
 
 	rawoff();
 	svc = nil;
@@ -368,7 +368,7 @@ rawoff(void)
 int
 menu(Biobuf *bp, int net)
 {
-	char *cp;
+	int8_t *cp;
 	int done;
 
 	comm->stopped = 1;
@@ -430,7 +430,7 @@ menu(Biobuf *bp, int net)
  *  ignore interrupts
  */
 void
-notifyf(void *a, char *msg)
+notifyf(void *a, int8_t *msg)
 {
 	USED(a);
 	if(strcmp(msg, "interrupt") == 0){
@@ -445,8 +445,8 @@ notifyf(void *a, char *msg)
 /*
  *  run a command with the network connection as standard IO
  */
-char *
-system(int fd, char *cmd)
+int8_t *
+system(int fd, int8_t *cmd)
 {
 	int pid;
 	int p;
@@ -497,11 +497,11 @@ echochange(Biobuf *bp, int cmd)
  *  send terminal type to the other side
  */
 int
-termsub(Biobuf *bp, uchar *sub, int n)
+termsub(Biobuf *bp, uint8_t *sub, int n)
 {
-	char buf[64];
-	char *term;
-	char *p = buf;
+	int8_t buf[64];
+	int8_t *term;
+	int8_t *p = buf;
 
 	if(n < 1)
 		return 0;
@@ -527,11 +527,11 @@ termsub(Biobuf *bp, uchar *sub, int n)
  *  send an x display location to the other side
  */
 int
-xlocsub(Biobuf *bp, uchar *sub, int n)
+xlocsub(Biobuf *bp, uint8_t *sub, int n)
 {
-	char buf[64];
-	char *term;
-	char *p = buf;
+	int8_t buf[64];
+	int8_t *term;
+	int8_t *p = buf;
 
 	if(n < 1)
 		return 0;
@@ -555,7 +555,7 @@ xlocsub(Biobuf *bp, uchar *sub, int n)
 static int
 islikeatty(int fd)
 {
-	char buf[64];
+	int8_t buf[64];
 
 	if(fd2path(fd, buf, sizeof buf) != 0)
 		return 0;
@@ -569,9 +569,9 @@ islikeatty(int fd)
  *  end of process memory.
  */
 void*
-share(ulong len)
+share(uint32_t len)
 {
-	uchar *vastart;
+	uint8_t *vastart;
 
 	vastart = sbrk(0);
 	if(vastart == (void*)-1)

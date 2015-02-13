@@ -16,10 +16,10 @@
 #include "defs.h"
 #include "fns.h"
 
-static long	round(long, long);
+static int32_t	round(int32_t, int32_t);
 
 extern	ADDR	ditto;
-uvlong	expv;
+uint64_t	expv;
 
 static WORD
 ascval(void)
@@ -40,7 +40,7 @@ ascval(void)
  */
 
 static WORD
-fpin(char *buf)
+fpin(int8_t *buf)
 {
 	union {
 		WORD w;
@@ -321,9 +321,9 @@ getnum(int (*rdf)(void))
 }
 
 void
-readsym(char *isymbol)
+readsym(int8_t *isymbol)
 {
-	char	*p;
+	int8_t	*p;
 	Rune r;
 
 	p = isymbol;
@@ -338,9 +338,9 @@ readsym(char *isymbol)
 }
 
 void
-readfname(char *filename)
+readfname(int8_t *filename)
 {
-	char	*p;
+	int8_t	*p;
 	Rune	c;
 
 	/* snarf chars until un-escaped char in terminal char set */
@@ -375,10 +375,10 @@ symchar(int dig)
 	return(isalpha(lastc) || lastc>0x80 || lastc=='_' || dig && isdigit(lastc));
 }
 
-static long
-round(long a, long b)
+static int32_t
+round(int32_t a, int32_t b)
 {
-	long w;
+	int32_t w;
 
 	w = (a/b)*b;
 	if (a!=w)

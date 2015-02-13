@@ -37,8 +37,8 @@ struct Pgnd
 #define pghash(daddr)	pga.hash[(daddr>>PGSHFT)&(PGHSIZE-1)]
 Pgalloc pga;		/* new allocator */
 
-char*
-seprintpagestats(char *s, char *e)
+int8_t*
+seprintpagestats(int8_t *s, int8_t *e)
 {
 	int i;
 
@@ -214,7 +214,7 @@ newpage(int clear, Segment **s, uintptr va, usize size, int color)
 {
 	Page *p;
 	KMap *k;
-	uchar ct;
+	uint8_t ct;
 	Pgsza *pa;
 	int i, dontalloc, si;
 	static int once;
@@ -532,7 +532,7 @@ cachepage(Page *p, Image *i)
 }
 
 void
-cachedel(Image *i, ulong daddr)
+cachedel(Image *i, uint32_t daddr)
 {
 	Page *f, **l;
 
@@ -556,7 +556,7 @@ cachedel(Image *i, ulong daddr)
 }
 
 Page *
-lookpage(Image *i, ulong daddr)
+lookpage(Image *i, uint32_t daddr)
 {
 	Page *f;
 
@@ -590,11 +590,11 @@ lookpage(Image *i, ulong daddr)
  * The argument shows the preferred image to release pages from.
  * All images will be tried, from lru to mru.
  */
-uvlong
+uint64_t
 pagereclaim(Image *i)
 {
 	Page *p;
-	uvlong ticks;
+	uint64_t ticks;
 
 	lock(&pga);
 	ticks = fastticks(nil);

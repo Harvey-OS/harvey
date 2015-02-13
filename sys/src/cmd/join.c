@@ -36,24 +36,24 @@ int 	a2;
 int	olist[NIN*NFLD];  /* output these fields */
 int	olistf[NIN*NFLD]; /* from these files */
 int	no;		/* number of entries in olist */
-char *sepstr	= " ";
+int8_t *sepstr	= " ";
 int	discard;	/* count of truncated lines */
 Rune	null[Bsize]	= L"";
 Biobuf binbuf, boutbuf;
 Biobuf *bin, *bout;
 
-char	*getoptarg(int*, char***);
+int8_t	*getoptarg(int*, int8_t***);
 int	input(int);
 void	join(int);
-void	oparse(char*);
+void	oparse(int8_t*);
 void	output(int, int);
-Rune	*strtorune(Rune *, char *);
+Rune	*strtorune(Rune *, int8_t *);
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	int i;
-	vlong off1, off2;
+	int64_t off1, off2;
 
 	bin = &binbuf;
 	bout = &boutbuf;
@@ -168,10 +168,10 @@ proceed:
 	exits("");
 }
 
-char *
-runetostr(char *buf, Rune *r)
+int8_t *
+runetostr(int8_t *buf, Rune *r)
 {
-	char *s;
+	int8_t *s;
 
 	for(s = buf; *r; r++)
 		s += runetochar(s, r);
@@ -180,7 +180,7 @@ runetostr(char *buf, Rune *r)
 }
 
 Rune *
-strtorune(Rune *buf, char *s)
+strtorune(Rune *buf, int8_t *s)
 {
 	Rune *r;
 
@@ -198,7 +198,7 @@ readboth(int n[])
 }
 
 void
-seekbotreadboth(int seekf, vlong bot, int n[])
+seekbotreadboth(int seekf, int64_t bot, int n[])
 {
 	Bseek(f[seekf], bot, 0);
 	readboth(n);
@@ -209,7 +209,7 @@ join(int seekf)
 {
 	int cmp, less;
 	int n[NIN];
-	vlong top, bot;
+	int64_t top, bot;
 
 	less = seekf == F2;
 	top = 0;
@@ -266,7 +266,7 @@ int
 input(int n)		/* get input line and split into fields */
 {
 	int c, i, len;
-	char *line;
+	int8_t *line;
 	Rune *bp;
 	Rune **pp;
 
@@ -303,7 +303,7 @@ void
 prfields(int f, int on, int jn)
 {
 	int i;
-	char buf[Bsize];
+	int8_t buf[Bsize];
 
 	for (i = 0; i < on; i++)
 		if (i != jn)
@@ -315,7 +315,7 @@ output(int on1, int on2)	/* print items from olist */
 {
 	int i;
 	Rune *temp;
-	char buf[Bsize];
+	int8_t buf[Bsize];
 
 	if (no <= 0) {	/* default case */
 		Bprint(bout, "%s", runetostr(buf, on1? ppi[F1][j1]: ppi[F2][j2]));
@@ -344,11 +344,11 @@ output(int on1, int on2)	/* print items from olist */
 	}
 }
 
-char *
-getoptarg(int *argcp, char ***argvp)
+int8_t *
+getoptarg(int *argcp, int8_t ***argvp)
 {
 	int argc = *argcp;
-	char **argv = *argvp;
+	int8_t **argv = *argvp;
 	if(argv[1][2] != 0)
 		return &argv[1][2];
 	if(argc<=2 || argv[2][0]=='-')
@@ -359,7 +359,7 @@ getoptarg(int *argcp, char ***argvp)
 }
 
 void
-oparse(char *s)
+oparse(int8_t *s)
 {
 	for (no = 0; no<2*NFLD && *s; no++, s++) {
 		switch(*s) {

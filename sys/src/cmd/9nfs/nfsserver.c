@@ -54,8 +54,8 @@ Procmap nfsproc[] = {
 	0, 0
 };
 
-void	nfsinit(int, char**);
-extern void	mntinit(int, char**);
+void	nfsinit(int, int8_t**);
+extern void	mntinit(int, int8_t**);
 extern Procmap	mntproc[];
 
 Progmap progmap[] = {
@@ -65,11 +65,11 @@ Progmap progmap[] = {
 };
 
 int	myport = 2049;
-long	nfstime;
+int32_t	nfstime;
 int	conftime;
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	server(argc, argv, myport, progmap);
 }
@@ -86,7 +86,7 @@ doalarm(void)
 }
 
 void
-nfsinit(int argc, char **argv)
+nfsinit(int argc, int8_t **argv)
 {
 	/*
 	 * mntinit will have already parsed our options.
@@ -112,7 +112,7 @@ nfsgetattr(int n, Rpccall *cmd, Rpccall *reply)
 {
 	Xfid *xf;
 	Dir dir;
-	uchar *dataptr = reply->results;
+	uint8_t *dataptr = reply->results;
 
 	chat("getattr...");
 	if(n != FHSIZE)
@@ -124,7 +124,7 @@ nfsgetattr(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(NFS_OK);
 	dataptr += dir2fattr(cmd->up, &dir, dataptr);
 	chat("OK\n");
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
@@ -134,8 +134,8 @@ nfssetattr(int n, Rpccall *cmd, Rpccall *reply)
 	Dir dir, nd;
 	Sattr sattr;
 	int r;
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 
 	chat("setattr...");
 	if(n <= FHSIZE)
@@ -143,7 +143,7 @@ nfssetattr(int n, Rpccall *cmd, Rpccall *reply)
 	xf = rpc2xfid(cmd, &dir);
 	argptr += FHSIZE;
 	argptr += convM2sattr(argptr, &sattr);
-	if(argptr != &((uchar *)cmd->args)[n])
+	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	chat("mode=0%lo,u=%ld,g=%ld,size=%ld,atime=%ld,mtime=%ld...",
 		sattr.mode, sattr.uid, sattr.gid, sattr.size,
@@ -179,7 +179,7 @@ nfssetattr(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(NFS_OK);
 	dataptr += dir2fattr(cmd->up, &dir, dataptr);
 	chat("OK\n");
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
@@ -199,8 +199,8 @@ nfslookup(int n, Rpccall *cmd, Rpccall *reply)
 	Xfid *xf, *newxf;
 	String elem;
 	Dir dir;
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 
 	chat("lookup...");
 	if(n <= FHSIZE)
@@ -208,7 +208,7 @@ nfslookup(int n, Rpccall *cmd, Rpccall *reply)
 	xf = rpc2xfid(cmd, 0);
 	argptr += FHSIZE;
 	argptr += string2S(argptr, &elem);
-	if(argptr != &((uchar *)cmd->args)[n])
+	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	if(xf == 0)
 		return error(reply, NFSERR_STALE);
@@ -228,7 +228,7 @@ nfslookup(int n, Rpccall *cmd, Rpccall *reply)
 	dataptr += xp2fhandle(newxf->xp, dataptr);
 	dataptr += dir2fattr(cmd->up, &dir, dataptr);
 	chat("OK\n");
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
@@ -247,9 +247,9 @@ nfsread(int n, Rpccall *cmd, Rpccall *reply)
 	Xfid *xf;
 	Dir dir;
 	int offset, count;
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
-	uchar *readptr = dataptr + 4 + 17*4 + 4;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
+	uint8_t *readptr = dataptr + 4 + 17*4 + 4;
 
 	chat("read...");
 	if(n != FHSIZE+12)
@@ -285,7 +285,7 @@ nfsread(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(count);
 	dataptr += ROUNDUP(count);
 	chat("%d OK\n", count);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
@@ -305,8 +305,8 @@ nfswrite(int n, Rpccall *cmd, Rpccall *reply)
 	Xfid *xf;
 	Dir dir;
 	int offset, count;
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 
 	chat("write...");
 	if(n < FHSIZE+16)
@@ -330,7 +330,7 @@ nfswrite(int n, Rpccall *cmd, Rpccall *reply)
 		xf->opfid->tstale = nfstime + 60;
 		s->f.offset = offset;
 		s->f.count = count;
-		s->f.data = (char *)argptr;
+		s->f.data = (int8_t *)argptr;
 		if(xmesg(s, Twrite) < 0)
 			return error(reply, NFSERR_IO);
 	}
@@ -339,7 +339,7 @@ nfswrite(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(NFS_OK);
 	dataptr += dir2fattr(cmd->up, &dir, dataptr);
 	chat("OK\n");
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
@@ -349,8 +349,8 @@ creat(int n, Rpccall *cmd, Rpccall *reply, int chdir)
 	Xfile *xp;
 	String elem;
 	Dir dir; Sattr sattr;
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 	int trunced;
 
 	if(n <= FHSIZE)
@@ -359,7 +359,7 @@ creat(int n, Rpccall *cmd, Rpccall *reply, int chdir)
 	argptr += FHSIZE;
 	argptr += string2S(argptr, &elem);
 	argptr += convM2sattr(argptr, &sattr);
-	if(argptr != &((uchar *)cmd->args)[n])
+	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	if(xf == 0)
 		return error(reply, NFSERR_STALE);
@@ -397,7 +397,7 @@ creat(int n, Rpccall *cmd, Rpccall *reply, int chdir)
 	dataptr += xp2fhandle(newxf->xp, dataptr);
 	dataptr += dir2fattr(cmd->up, &dir, dataptr);
 	chat("OK\n");
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
@@ -415,15 +415,15 @@ remov(int n, Rpccall *cmd, Rpccall *reply)
 	Xfid *xf, *newxf;
 	String elem;
 	Fid *nfid;
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 
 	if(n <= FHSIZE)
 		return garbage(reply, "count too small");
 	xf = rpc2xfid(cmd, 0);
 	argptr += FHSIZE;
 	argptr += string2S(argptr, &elem);
-	if(argptr != &((uchar *)cmd->args)[n])
+	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	if(xf == 0)
 		return error(reply, NFSERR_STALE);
@@ -454,7 +454,7 @@ remov(int n, Rpccall *cmd, Rpccall *reply)
 	xpclear(newxf->xp);
 	PLONG(NFS_OK);
 	chat("OK\n");
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
@@ -469,11 +469,11 @@ nfsrename(int n, Rpccall *cmd, Rpccall *reply)
 {
 	Xfid *xf, *newxf;
 	Xfile *xp;
-	uchar *fromdir, *todir;
+	uint8_t *fromdir, *todir;
 	String fromelem, toelem;
 	Dir dir;
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 
 	chat("rename...");
 	if(n <= FHSIZE)
@@ -485,7 +485,7 @@ nfsrename(int n, Rpccall *cmd, Rpccall *reply)
 	todir = argptr;
 	argptr += FHSIZE;
 	argptr += string2S(argptr, &toelem);
-	if(argptr != &((uchar *)cmd->args)[n])
+	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	if(xf == 0)
 		return error(reply, NFSERR_STALE);
@@ -508,7 +508,7 @@ nfsrename(int n, Rpccall *cmd, Rpccall *reply)
 		return error(reply, NFSERR_PERM);
 	PLONG(NFS_OK);
 	chat("OK\n");
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
@@ -549,10 +549,10 @@ nfsreaddir(int n, Rpccall *cmd, Rpccall *reply)
 	Session *s;
 	Xfid *xf;
 	Dir dir;
-	char *rdata;
+	int8_t *rdata;
 	int k, offset, count, sfcount, entries, dsize;
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 
 	chat("readdir...");
 	if(n != FHSIZE+8)
@@ -605,7 +605,8 @@ chat("count %d data 0x%p\n", s->f.count, s->f.data);
 		rdata = s->f.data;
 		/* now have a buffer of Plan 9 directories; unpack into NFS thingies */
 		while(sfcount >= 0){
-			dsize = convM2D((uchar*)rdata, sfcount, &dir, (char*)s->statbuf);
+			dsize = convM2D((uint8_t*)rdata, sfcount, &dir,
+					(int8_t*)s->statbuf);
 			if(dsize <= BIT16SZ){
 				count = 0;	/* force break from outer loop */
 				break;
@@ -634,16 +635,16 @@ chat("count %d data 0x%p\n", s->f.count, s->f.data);
 	}else
 		PLONG(FALSE);
 	chat("%d OK\n", entries);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
 nfsstatfs(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *dataptr = reply->results;
+	uint8_t *dataptr = reply->results;
 	enum {
 		Xfersize = 2048,
-		Maxlong = (long)((1ULL<<31) - 1),
+		Maxlong = (int32_t)((1ULL<<31) - 1),
 		Maxfreeblks = Maxlong / Xfersize,
 	};
 
@@ -660,5 +661,5 @@ nfsstatfs(int n, Rpccall *cmd, Rpccall *reply)
 	chat("OK\n");
 	/*conftime = 0;
 	readunixidmaps(config);*/
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }

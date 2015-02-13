@@ -25,8 +25,8 @@ enum {
 typedef struct Carena Carena;
 struct Carena
 {
-	uchar	*pos;			/* current place, also amount of history filled */
-	uchar	buf[HistorySize];
+	uint8_t	*pos;			/* current place, also amount of history filled */
+	uint8_t	buf[HistorySize];
 };
 
 typedef struct Cstate Cstate;
@@ -62,11 +62,11 @@ struct Uncstate
 {
 	int	count;	 	/* packet count - detects missing packets */
 	int	resetid;	/* id of reset requests */
-	uchar	his[HistorySize];
+	uint8_t	his[HistorySize];
 	int	indx;		/* current indx in history */
 	int	size;		/* current history size */
-	uchar	startkey[16];
-	uchar	key[16];
+	uint8_t	startkey[16];
+	uint8_t	key[16];
 	RC4state rc4key;
 };
 
@@ -108,28 +108,28 @@ int decode[16] = {
 	
 
 static	void		*compinit(PPP*);
-static	Block*		comp(PPP*, ushort, Block*, int*);
-static	void		comp2(Cstate*, uchar*, int);
+static	Block*		comp(PPP*, uint16_t, Block*, int*);
+static	void		comp2(Cstate*, uint8_t*, int);
 static	Block		*compresetreq(void*, Block*);
 static	void		compfini(void*);
 static	void		complit(Cstate*, int);
 static	void		compcopy(Cstate*, int, int);
-static	void		compout(Cstate*, ulong, int);
+static	void		compout(Cstate*, uint32_t, int);
 static	void		compfront(Cstate*);
 static	void		hashcheck(Cstate*);
 static	void		compreset(Cstate*);
-static	int		hashit(uchar*);
+static	int		hashit(uint8_t*);
 
 
 static	void		*uncinit(PPP*);
 static	Block*		uncomp(PPP*, Block*, int *protop, Block**);
-static	Block		*uncomp2(Uncstate *s, Block*, ushort);
+static	Block		*uncomp2(Uncstate *s, Block*, uint16_t);
 static	void		uncfini(void*);
 static	void		uncresetack(void*, Block*);
-static  int		ipcheck(uchar*, int);
+static  int		ipcheck(uint8_t*, int);
 static  void		hischeck(Uncstate*);
 
-static	void		setkey(uchar *key, uchar *startkey);
+static	void		setkey(uint8_t *key, uint8_t *startkey);
 
 Comptype cmppc = {
 	compinit,
@@ -184,11 +184,11 @@ compfini(void *as)
 
 
 static Block*
-comp(PPP *ppp, ushort proto, Block *b, int *protop)
+comp(PPP *ppp, uint16_t proto, Block *b, int *protop)
 {
 	Cstate *s;
 	int n, n2;
-	ushort count;
+	uint16_t count;
 
 	s = ppp->cstate;
 	*protop = 0;
@@ -290,11 +290,11 @@ netlog("mppc: comp: reset request\n");
 }
 
 static void
-comp2(Cstate *cs, uchar *p, int n)
+comp2(Cstate *cs, uint8_t *p, int n)
 {
 	Carena *hist, *ohist;
-	ulong *hash, me, split, you, last;
-	uchar *s, *t, *et, *buf, *obuf, *pos, *opos;
+	uint32_t *hash, me, split, you, last;
+	uint8_t *s, *t, *et, *buf, *obuf, *pos, *opos;
 	int i, h, m;
 
 	/*
@@ -391,7 +391,7 @@ compfront(Cstate *cs)
 static void
 compreset(Cstate *cs)
 {
-	ulong me;
+	uint32_t me;
 
 	cs->reset = 1;
 
@@ -419,7 +419,7 @@ static void
 compcopy(Cstate *s, int off, int len)
 {
 	int i;
-	ulong mask;
+	uint32_t mask;
 
 	if(off<64)
 		compout(s, 0x3c0|off, 10);
@@ -440,9 +440,9 @@ compcopy(Cstate *s, int off, int len)
 }
 
 static void
-compout(Cstate *s, ulong data, int bits)
+compout(Cstate *s, uint32_t data, int bits)
 {
-	ulong sreg;
+	uint32_t sreg;
 
 	sreg = s->sreg;
 	sreg <<= bits;
@@ -457,9 +457,9 @@ compout(Cstate *s, ulong data, int bits)
 }
 
 void
-printkey(uchar *key)
+printkey(uint8_t *key)
 {
-	char buf[200], *p;
+	int8_t buf[200], *p;
 	int i;
 
 	p = buf;
@@ -488,8 +488,8 @@ static	Block*
 uncomp(PPP *ppp, Block *b, int *protop, Block **r)
 {
 	Uncstate *s;
-	ushort proto;
-	ushort count;
+	uint16_t proto;
+	uint16_t count;
 	Lcpmsg *m;
 
 	*r = nil;
@@ -537,12 +537,12 @@ uncomp(PPP *ppp, Block *b, int *protop, Block **r)
 int	maxoff;
 	
 static	Block*
-uncomp2(Uncstate *s, Block *b, ushort count)
+uncomp2(Uncstate *s, Block *b, uint16_t count)
 {
 	int ecount, n, bits, off, len, ones;
-	ulong sreg;
+	uint32_t sreg;
 	int t;
-	uchar *p, c, *hp, *hs, *he, *hq;
+	uint8_t *p, c, *hp, *hs, *he, *hq;
 
 	if(count&Preset) {
 //netlog("mppc reset\n");
@@ -739,11 +739,11 @@ uncfini(void *as)
 }
 
 static void
-setkey(uchar *key, uchar *startkey)
+setkey(uint8_t *key, uint8_t *startkey)
 {
-	uchar pad[40];
+	uint8_t pad[40];
 	SHAstate *s;
-	uchar digest[SHA1dlen];
+	uint8_t digest[SHA1dlen];
 
 	s = sha1(startkey, 16, nil, nil);
 	memset(pad, 0, 40);
@@ -760,16 +760,16 @@ setkey(uchar *key, uchar *startkey)
 typedef struct Iphdr Iphdr;
 struct Iphdr
 {
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	cksum[2];	/* Header checksum */
-	uchar	src[4];		/* Ip source */
-	uchar	dst[4];		/* Ip destination */
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* Identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	ttl;		/* Time to live */
+	uint8_t	proto;		/* Protocol */
+	uint8_t	cksum[2];	/* Header checksum */
+	uint8_t	src[4];		/* Ip source */
+	uint8_t	dst[4];		/* Ip destination */
 };
 
 enum
@@ -800,54 +800,54 @@ typedef struct UDPhdr UDPhdr;
 struct UDPhdr
 {
 	/* ip header */
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	Unused;	
-	uchar	udpproto;	/* Protocol */
-	uchar	udpplen[2];	/* Header plus data length */
-	uchar	udpsrc[4];	/* Ip source */
-	uchar	udpdst[4];	/* Ip destination */
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* Identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	Unused;	
+	uint8_t	udpproto;	/* Protocol */
+	uint8_t	udpplen[2];	/* Header plus data length */
+	uint8_t	udpsrc[4];	/* Ip source */
+	uint8_t	udpdst[4];	/* Ip destination */
 
 	/* udp header */
-	uchar	udpsport[2];	/* Source port */
-	uchar	udpdport[2];	/* Destination port */
-	uchar	udplen[2];	/* data length */
-	uchar	udpcksum[2];	/* Checksum */
+	uint8_t	udpsport[2];	/* Source port */
+	uint8_t	udpdport[2];	/* Destination port */
+	uint8_t	udplen[2];	/* data length */
+	uint8_t	udpcksum[2];	/* Checksum */
 };
 
 typedef struct TCPhdr TCPhdr;
 struct TCPhdr
 {
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	Unused;
-	uchar	proto;
-	uchar	tcplen[2];
-	uchar	tcpsrc[4];
-	uchar	tcpdst[4];
-	uchar	tcpsport[2];
-	uchar	tcpdport[2];
-	uchar	tcpseq[4];
-	uchar	tcpack[4];
-	uchar	tcpflag[2];
-	uchar	tcpwin[2];
-	uchar	tcpcksum[2];
-	uchar	tcpurg[2];
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* Identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	Unused;
+	uint8_t	proto;
+	uint8_t	tcplen[2];
+	uint8_t	tcpsrc[4];
+	uint8_t	tcpdst[4];
+	uint8_t	tcpsport[2];
+	uint8_t	tcpdport[2];
+	uint8_t	tcpseq[4];
+	uint8_t	tcpack[4];
+	uint8_t	tcpflag[2];
+	uint8_t	tcpwin[2];
+	uint8_t	tcpcksum[2];
+	uint8_t	tcpurg[2];
 	/* Options segment */
-	uchar	tcpopt[2];
-	uchar	tcpmss[2];
+	uint8_t	tcpopt[2];
+	uint8_t	tcpmss[2];
 };
 
 static void
 hischeck(Uncstate *s)
 {
-	uchar *p;
+	uint8_t *p;
 	Iphdr *iph;
 	int len;
 
@@ -870,14 +870,14 @@ netlog("off = %ld ", p-s->his);
 
 
 static int
-ipcheck(uchar *p, int len)
+ipcheck(uint8_t *p, int len)
 {
 	Iphdr *iph;
 	TCPhdr *tcph;
-	ushort length;
+	uint16_t length;
 	UDPhdr *uh;
 	Block *bp;
-	ushort cksum;
+	uint16_t cksum;
 	int good;
 
 	bp = allocb(len);

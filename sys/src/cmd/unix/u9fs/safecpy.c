@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 void
-safecpy(char *to, char *from, int tolen)
+safecpy(int8_t *to, int8_t *from, int tolen)
 {
 	int fromlen;
 	memset(to, 0, tolen);

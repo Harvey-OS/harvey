@@ -16,7 +16,7 @@
  *  read exactly len bytes
  */
 int
-readn(int fd, char *buf, int len)
+readn(int fd, int8_t *buf, int len)
 {
 	int m, n;
 

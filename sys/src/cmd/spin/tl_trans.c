@@ -32,24 +32,24 @@ static Mapping	*Mapped = (Mapping *) 0;
 static Graph	*Nodes_Set = (Graph *) 0;
 static Graph	*Nodes_Stack = (Graph *) 0;
 
-static char	dumpbuf[2048];
+static int8_t	dumpbuf[2048];
 static int	Red_cnt  = 0;
 static int	Lab_cnt  = 0;
 static int	Base     = 0;
 static int	Stack_sz = 0;
 
-static Graph	*findgraph(char *);
+static Graph	*findgraph(int8_t *);
 static Graph	*pop_stack(void);
 static Node	*Duplicate(Node *);
 static Node	*flatten(Node *);
 static Symbol	*catSlist(Symbol *, Symbol *);
 static Symbol	*dupSlist(Symbol *);
-static char	*newname(void);
+static int8_t	*newname(void);
 static int	choueka(Graph *, int);
 static int	not_new(Graph *);
-static int	set_prefix(char *, int, Graph *);
-static void	Addout(char *, char *);
-static void	fsm_trans(Graph *, int, char *);
+static int	set_prefix(int8_t *, int, Graph *);
+static void	Addout(int8_t *, int8_t *);
+static void	fsm_trans(Graph *, int, int8_t *);
 static void	mkbuchi(void);
 static void	expand_g(Graph *);
 static void	fixinit(Node *);
@@ -126,9 +126,9 @@ pop_stack(void)
 	return g;
 }
 
-static char *
+static int8_t *
 newname(void)
-{	static char buf[32];
+{	static int8_t buf[32];
 	sprintf(buf, "S%d", state_cnt++);
 	return buf;
 }
@@ -183,7 +183,7 @@ mk_red(Node *n)
 	{	if (p->outgoing
 		&&  has_clause(0, p, n))
 		{	if (p->redcnt >= 63)
-				Fatal("too many Untils", (char *)0);
+				Fatal("too many Untils", (int8_t *)0);
 			p->isred[p->redcnt++] =
 				(unsigned char) Red_cnt;
 			Lab_cnt++; Max_Red = Red_cnt;
@@ -214,7 +214,7 @@ liveness(Node *n)
 }
 
 static Graph *
-findgraph(char *nm)
+findgraph(int8_t *nm)
 {	Graph	*p;
 	Mapping *m;
 
@@ -230,7 +230,7 @@ findgraph(char *nm)
 }
 
 static void
-Addout(char *to, char *from)
+Addout(int8_t *to, int8_t *from)
 {	Graph	*p = findgraph(from);
 	Symbol	*s;
 
@@ -346,7 +346,7 @@ choueka(Graph *p, int count)
 }
 
 static int
-set_prefix(char *pref, int count, Graph *r2)
+set_prefix(int8_t *pref, int count, Graph *r2)
 {	int incr_cnt = 0;	/* acceptance class 'count' */
 
 	if (Lab_cnt == 0
@@ -365,10 +365,10 @@ set_prefix(char *pref, int count, Graph *r2)
 }
 
 static void
-fsm_trans(Graph *p, int count, char *curnm)
+fsm_trans(Graph *p, int count, int8_t *curnm)
 {	Graph	*r;
 	Symbol	*s;
-	char	prefix[128], nwnm[256];
+	int8_t	prefix[128], nwnm[256];
 
 	if (!p->outgoing)
 		addtrans(p, curnm, False, "accept_all");
@@ -397,7 +397,7 @@ static void
 mkbuchi(void)
 {	Graph	*p;
 	int	k;
-	char	curnm[64];
+	int8_t	curnm[64];
 
 	for (k = 0; k <= Max_Red; k++)
 	for (p = Nodes_Set; p; p = p->nxt)

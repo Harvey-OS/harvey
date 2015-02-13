@@ -88,7 +88,7 @@ sunSrvThreadCreate(SunSrv *srv, void (*fn)(void*), void *arg)
 static void
 sunRpcRequestThread(void *v)
 {
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 	Channel *c;
 	SunSrv *srv = v;
 	SunMsg *m;
@@ -197,7 +197,7 @@ sunRpcReplyThread(void *v)
 int
 sunMsgReplyError(SunMsg *m, SunStatus error)
 {
-	uchar *p, *bp, *ep;
+	uint8_t *p, *bp, *ep;
 	int n;
 
 	m->rpc.status = error;
@@ -234,7 +234,7 @@ int
 sunMsgReply(SunMsg *m, SunCall *c)
 {
 	int n1, n2;
-	uchar *bp, *p, *ep;
+	uint8_t *bp, *p, *ep;
 
 	c->type = m->call->type+1;
 	c->rpc.iscall = 0;

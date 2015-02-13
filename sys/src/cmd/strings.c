@@ -17,7 +17,7 @@ Biobuf	fout;
 #define	MINSPAN		6		/* Min characters in string (default) */
 #define BUFSIZE		70
 
-void stringit(char *);
+void stringit(int8_t *);
 int isprint(Rune);
 
 static int minspan = MINSPAN;
@@ -59,11 +59,11 @@ main(int argc, char **argv)
 }
 
 void
-stringit(char *str)
+stringit(int8_t *str)
 {
-	long posn, start;
+	int32_t posn, start;
 	int cnt = 0;
-	long c;
+	int32_t c;
 
 	Rune buf[BUFSIZE];
 

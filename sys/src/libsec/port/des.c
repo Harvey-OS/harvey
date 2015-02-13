@@ -98,7 +98,7 @@ static u32int spbox[] = {
  * DES electronic codebook encryption of one block
  */
 void
-block_cipher(ulong key[32], uchar text[8], int decrypting)
+block_cipher(uint32_t key[32], uint8_t text[8], int decrypting)
 {
 	u32int right, left, v0, v1;
 	int i, keystep;
@@ -189,9 +189,9 @@ block_cipher(ulong key[32], uchar text[8], int decrypting)
  * triple DES electronic codebook encryption of one block
  */
 void
-triple_block_cipher(ulong expanded_key[3][32], uchar text[8], int ende)
+triple_block_cipher(uint32_t expanded_key[3][32], uint8_t text[8], int ende)
 {
-	ulong *key;
+	uint32_t *key;
 	u32int right, left, v0, v1;
 	int i, j, keystep;
 
@@ -341,7 +341,7 @@ static int keysh[] =
 };
 
 static void
-keycompperm(u32int left, u32int right, ulong *ek)
+keycompperm(u32int left, u32int right, uint32_t *ek)
 {
 	u32int v0, v1;
 	int i;
@@ -378,7 +378,7 @@ keycompperm(u32int left, u32int right, ulong *ek)
 }
 
 void
-des_key_setup(uchar key[8], ulong *ek)
+des_key_setup(uint8_t key[8], uint32_t *ek)
 {
 	u32int left, right, v0, v1;
 
@@ -416,7 +416,7 @@ des_key_setup(uchar key[8], ulong *ek)
 	keycompperm(left, right, ek);
 }
 
-static uchar parity[128] =
+static uint8_t parity[128] =
 {
 	0x01, 0x02, 0x04, 0x07, 0x08, 0x0b, 0x0d, 0x0e, 
 	0x10, 0x13, 0x15, 0x16, 0x19, 0x1a, 0x1c, 0x1f, 
@@ -440,7 +440,7 @@ static uchar parity[128] =
  *  convert a 7 byte key to an 8 byte one
  */
 void
-des56to64(uchar *k56, uchar *k64)
+des56to64(uint8_t *k56, uint8_t *k64)
 {
 	u32int hi, lo;
 
@@ -461,7 +461,7 @@ des56to64(uchar *k56, uchar *k64)
  *  convert an 8 byte key to a 7 byte one
  */
 void
-des64to56(uchar *k64, uchar *k56)
+des64to56(uint8_t *k64, uint8_t *k56)
 {
 	u32int hi, lo;
 
@@ -480,9 +480,9 @@ des64to56(uchar *k64, uchar *k56)
 }
 
 void
-key_setup(uchar key[7], ulong *ek)
+key_setup(uint8_t key[7], uint32_t *ek)
 {
-	uchar k64[8];
+	uint8_t k64[8];
 
 	des56to64(key, k64);
 	des_key_setup(k64, ek);	

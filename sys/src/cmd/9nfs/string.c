@@ -13,11 +13,11 @@
 
 static Strnode *	stab[STRHASH];
 
-static long	hashfun(void*);
+static int32_t	hashfun(void*);
 static Strnode*	nalloc(int);
 
-char *
-strfind(char *a)
+int8_t *
+strfind(int8_t *a)
 {
 	Strnode **bin, *x, *xp;
 
@@ -35,8 +35,8 @@ strfind(char *a)
 	return x->str;
 }
 
-char *
-strstore(char *a)
+int8_t *
+strstore(int8_t *a)
 {
 	Strnode **bin, *x, *xp;
 	int n;
@@ -69,11 +69,11 @@ strprint(int fd)
 			fprint(fd, "%ld %s\n", bin-stab, x->str);
 }
 
-static long
+static int32_t
 hashfun(void *v)
 {
-	ulong a = 0, b;
-	uchar *s = v;
+	uint32_t a = 0, b;
+	uint8_t *s = v;
 
 	while(*s){
 		a = (a << 4) + *s++;
@@ -90,10 +90,10 @@ hashfun(void *v)
 static Strnode *
 nalloc(int n)	/* get permanent storage for Strnode */
 {
-	static char *curstp;
+	static int8_t *curstp;
 	static int nchleft;
 	int k;
-	char *p;
+	int8_t *p;
 
 	if(n < 4)
 		n = 4;

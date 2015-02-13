@@ -27,13 +27,13 @@ struct tap {
 } dir[192];
 
 int	tapefile;
-char	buffer[8192];
-long	cvtime(unsigned char *);
+int8_t	buffer[8192];
+int32_t	cvtime(unsigned char *);
 extern	int verbose;
 extern	int newtap;
 
 void
-populate(char *name)
+populate(int8_t *name)
 {
 	int i, isabs;
 	struct tap *tpp;
@@ -64,14 +64,14 @@ populate(char *name)
 		f.mode = tpp->mode[0]&0777;
 		f.uid = tpp->uid[0]&0377;
 		isabs = tpp->name[0]=='/';
-		f.name = (char *)tpp->name+isabs;
+		f.name = (int8_t *)tpp->name+isabs;
 		if (verbose)
 			print("%s mode %o uid %d, %s", f.name, f.mode, f.uid, ctime(f.mdate));
 		poppath(f, 1);
 	}
 }
 
-long
+int32_t
 cvtime(unsigned char *tp)
 {
 	unsigned long t = (tp[1]<<24)+(tp[0]<<16)+(tp[3]<<8)+(tp[2]<<0);
@@ -100,8 +100,8 @@ docreate(Ram *r)
 	USED(r);
 }
 
-char *
-doread(Ram *r, vlong off, long cnt)
+int8_t *
+doread(Ram *r, int64_t off, int32_t cnt)
 {
 	if (cnt>sizeof(buffer))
 		print("count too big\n");
@@ -111,7 +111,7 @@ doread(Ram *r, vlong off, long cnt)
 }
 
 void
-dowrite(Ram *r, char *buf, long off, long cnt)
+dowrite(Ram *r, int8_t *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }

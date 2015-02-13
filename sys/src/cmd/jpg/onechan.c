@@ -18,7 +18,7 @@
 
 static
 int
-notrans(ulong chan)
+notrans(uint32_t chan)
 {
 	switch(chan){
 	case GREY1:
@@ -33,7 +33,7 @@ notrans(ulong chan)
 
 static
 int
-easycase(ulong chan)
+easycase(uint32_t chan)
 {
 	switch(chan){
 	case RGB16:
@@ -50,13 +50,13 @@ easycase(ulong chan)
  */
 
 static
-uchar*
+uint8_t*
 load(Image *image, Memimage *memimage)
 {
-	uchar *data, *p, *q0, *q1, *q2;
-	uchar *rgbv;
+	uint8_t *data, *p, *q0, *q1, *q2;
+	uint8_t *rgbv;
 	int depth, ndata, dx, dy, i, v;
-	ulong chan, pixel;
+	uint32_t chan, pixel;
 	Rectangle r;
 	Rawimage ri, *nri;
 
@@ -174,7 +174,7 @@ load(Image *image, Memimage *memimage)
 Image*
 onechan(Image *i)
 {
-	uchar *data;
+	uint8_t *data;
 	Image *ni;
 
 	if(notrans(i->chan))
@@ -207,7 +207,7 @@ onechan(Image *i)
 Memimage*
 memonechan(Memimage *i)
 {
-	uchar *data;
+	uint8_t *data;
 	Memimage *ni;
 
 	if(notrans(i->chan))

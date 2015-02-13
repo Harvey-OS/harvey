@@ -45,7 +45,7 @@ int z2copy(i_ctx_t *);
 
 /* Forward references */
 private int z2copy_gstate(i_ctx_t *);
-private int push_callout(i_ctx_t *, const char *);
+private int push_callout(i_ctx_t *, const int8_t *);
 
 /* Extend the `copy' operator to deal with gstates. */
 /* This is done with a hack -- we know that gstates are the only */

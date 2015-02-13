@@ -102,7 +102,7 @@ sortrawientries(Index *ix, Part *tmp, u64int *base, Bloom *bloom)
 	return clumps;
 }
 
-#define CHECK(cis)	if(((ulong*)cis)[-4] != 0xA110C09) xabort();
+#define CHECK(cis)	if(((uint32_t*)cis)[-4] != 0xA110C09) xabort();
 
 void
 xabort(void)

@@ -28,15 +28,15 @@ enum {
 typedef struct {
 	Pcidev* pci;
 
-	uchar	fr[256];
-	uchar	mr[256];
-	uchar	xr[256];
+	uint8_t	fr[256];
+	uint8_t	mr[256];
+	uint8_t	xr[256];
 } HiQVideo;
 
-static uchar
-hiqvideoxi(long port, uchar index)
+static uint8_t
+hiqvideoxi(int32_t port, uint8_t index)
 {
-	uchar data;
+	uint8_t data;
 
 	outportb(port, index);
 	data = inportb(port+1);
@@ -45,7 +45,7 @@ hiqvideoxi(long port, uchar index)
 }
 
 static void
-hiqvideoxo(long port, uchar index, uchar data)
+hiqvideoxo(int32_t port, uint8_t index, uint8_t data)
 {
 	outportb(port, index);
 	outportb(port+1, data);
@@ -134,7 +134,7 @@ static void
 clock(Vga* vga, Ctlr* ctlr)
 {
 	double f, fmin, fvco, m;
-	ulong n, nmin, nmax, pd, rd;
+	uint32_t n, nmin, nmax, pd, rd;
 
 	/*
 	 * Constraints:
@@ -356,8 +356,8 @@ load(Vga* vga, Ctlr* ctlr)
 	ctlr->flag |= Fload;
 }
 
-static ulong
-dumpmclk(uchar data[4])
+static uint32_t
+dumpmclk(uint8_t data[4])
 {
 	double f, m, n;
 	int pds, rds;
@@ -375,8 +375,8 @@ dumpmclk(uchar data[4])
 	return f;
 }
 
-static ulong
-dumpvclk(uchar data[4])
+static uint32_t
+dumpvclk(uint8_t data[4])
 {
 	double f, m, n;
 	int pds, rds;
@@ -398,7 +398,7 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	char *name;
+	int8_t *name;
 	HiQVideo *hqv;
 
 	name = ctlr->name;

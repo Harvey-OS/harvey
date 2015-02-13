@@ -12,25 +12,29 @@
 #include <draw.h>
 
 Point
-stringbg(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Image *bg, Point bgp)
+stringbg(Image *dst, Point pt, Image *src, Point sp, Font *f, int8_t *s,
+	 Image *bg, Point bgp)
 {
 	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, bg, bgp, SoverD);
 }
 
 Point
-stringbgop(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, Image *bg, Point bgp, int op)
+stringbgop(Image *dst, Point pt, Image *src, Point sp, Font *f, int8_t *s,
+	   Image *bg, Point bgp, int op)
 {
 	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, bg, bgp, op);
 }
 
 Point
-stringnbg(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, int len, Image *bg, Point bgp)
+stringnbg(Image *dst, Point pt, Image *src, Point sp, Font *f, int8_t *s,
+	  int len, Image *bg, Point bgp)
 {
 	return _string(dst, pt, src, sp, f, s, nil, len, dst->clipr, bg, bgp, SoverD);
 }
 
 Point
-stringnbgop(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s, int len, Image *bg, Point bgp, int op)
+stringnbgop(Image *dst, Point pt, Image *src, Point sp, Font *f, int8_t *s,
+	    int len, Image *bg, Point bgp, int op)
 {
 	return _string(dst, pt, src, sp, f, s, nil, len, dst->clipr, bg, bgp, op);
 }

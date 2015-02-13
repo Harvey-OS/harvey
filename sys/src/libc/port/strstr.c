@@ -14,10 +14,10 @@
  * Return pointer to first occurrence of s2 in s1,
  * 0 if none
  */
-char*
-strstr(char *s1, char *s2)
+int8_t*
+strstr(int8_t *s1, int8_t *s2)
 {
-	char *p, *pa, *pb;
+	int8_t *p, *pa, *pb;
 	int c0, c;
 
 	c0 = *s2;

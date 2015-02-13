@@ -27,13 +27,13 @@ initblowfish(Conn *c, int)
 }
 
 static void
-encryptblowfish(CipherState *cs, uchar *buf, int nbuf)
+encryptblowfish(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	bfCBCencrypt(buf, nbuf, &cs->enc);
 }
 
 static void
-decryptblowfish(CipherState *cs, uchar *buf, int nbuf)
+decryptblowfish(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	bfCBCdecrypt(buf, nbuf, &cs->dec);
 }

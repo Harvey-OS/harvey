@@ -35,7 +35,7 @@ typedef struct P9fs P9fs;
 struct Mfile
 {
 	Qid	qid;
-	char	busy;
+	int8_t	busy;
 };
 
 Mfile	mfile[Nfid];
@@ -47,23 +47,23 @@ struct P9fs
 	int	fd[2];
 	Fcall	rhdr;
 	Fcall	thdr;
-	long	len;
-	char	*name;
+	int32_t	len;
+	int8_t	*name;
 };
 
 P9fs	c;	/* client conversation */
 P9fs	s;	/* server conversation */
 
 struct Cfsstat  cfsstat, cfsprev;
-char	statbuf[2048];
+int8_t	statbuf[2048];
 int	statlen;
 
 #define	MAXFDATA	8192	/* i/o size for read/write */
 
 int		messagesize = MAXFDATA+IOHDRSZ;
 
-uchar	datasnd[MAXFDATA + IOHDRSZ];
-uchar	datarcv[MAXFDATA + IOHDRSZ];
+uint8_t	datasnd[MAXFDATA + IOHDRSZ];
+uint8_t	datarcv[MAXFDATA + IOHDRSZ];
 
 Qid	rootqid;
 Qid	ctlqid = {0x5555555555555555LL, 0, 0};
@@ -81,16 +81,16 @@ void	rclunk(Mfile*);
 void	rremove(Mfile*);
 void	rstat(Mfile*);
 void	rwstat(Mfile*);
-void	error(char*, ...);
-void	warning(char*);
-void	mountinit(char*, char*);
+void	error(int8_t*, ...);
+void	warning(int8_t*);
+void	mountinit(int8_t*, int8_t*);
 void	io(void);
-void	sendreply(char*);
+void	sendreply(int8_t*);
 void	sendmsg(P9fs*, Fcall*);
 void	rcvmsg(P9fs*, Fcall*);
 int	delegate(void);
 int	askserver(void);
-void	cachesetup(int, char*, char*);
+void	cachesetup(int, int8_t*, int8_t*);
 int	ctltest(Mfile*);
 void	genstats(void);
 
@@ -216,7 +216,7 @@ main(int argc, char *argv[])
 }
 
 void
-cachesetup(int format, char *name, char *partition)
+cachesetup(int format, int8_t *name, int8_t *partition)
 {
 	int f;
 	int secsize;
@@ -243,7 +243,7 @@ cachesetup(int format, char *name, char *partition)
 }
 
 void
-mountinit(char *server, char *mountpoint)
+mountinit(int8_t *server, int8_t *mountpoint)
 {
 	int err;
 	int p[2];
@@ -499,10 +499,10 @@ void
 rread(Mfile *mf)
 {
 	int cnt, done;
-	long n;
-	vlong off, first;
-	char *cp;
-	char data[MAXFDATA];
+	int32_t n;
+	int64_t off, first;
+	int8_t *cp;
+	int8_t data[MAXFDATA];
 	Ibuf *b;
 
 	off = c.thdr.offset;
@@ -614,7 +614,7 @@ void
 rwrite(Mfile *mf)
 {
 	Ibuf *b;
-	char buf[MAXFDATA];
+	int8_t buf[MAXFDATA];
 
 	if(statson && ctltest(mf)){
 		sendreply("read only");
@@ -669,7 +669,7 @@ rstat(Mfile *mf)
 		d.atime = time(nil);
 		d.mtime = d.atime;
 		c.rhdr.nstat = convD2M(&d, c.rhdr.stat,
-			sizeof c.rhdr - (c.rhdr.stat - (uchar*)&c.rhdr));
+			sizeof c.rhdr - (c.rhdr.stat - (uint8_t*)&c.rhdr));
 		sendreply(0);
 		return;
 	}
@@ -699,10 +699,10 @@ rwstat(Mfile *mf)
 }
 
 void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
 	va_list arg;
-	static char buf[2048];
+	static int8_t buf[2048];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -712,7 +712,7 @@ error(char *fmt, ...)
 }
 
 void
-warning(char *s)
+warning(int8_t *s)
 {
 	fprint(2, "cfs: %s: %r\n", s);
 }
@@ -721,7 +721,7 @@ warning(char *s)
  *  send a reply to the client
  */
 void
-sendreply(char *err)
+sendreply(int8_t *err)
 {
 
 	if(err){
@@ -801,7 +801,7 @@ sendmsg(P9fs *p, Fcall *f)
 }
 
 void
-dump(uchar *p, int len)
+dump(uint8_t *p, int len)
 {
 	fprint(2, "%d bytes", len);
 	while(len-- > 0)
@@ -813,7 +813,7 @@ void
 rcvmsg(P9fs *p, Fcall *f)
 {
 	int olen, rlen;
-	char buf[128];
+	int8_t buf[128];
 
 	olen = p->len;
 	p->len = read9pmsg(p->fd[0], datarcv, sizeof(datarcv));
@@ -829,8 +829,8 @@ rcvmsg(P9fs *p, Fcall *f)
 	if(f->fid >= Nfid){
 		fprint(2, "<-%s: %d %s on %d\n", p->name, f->type,
 			mname[f->type]? mname[f->type]: "mystery", f->fid);
-		dump((uchar*)datasnd, olen);
-		dump((uchar*)datarcv, p->len);
+		dump((uint8_t*)datasnd, olen);
+		dump((uint8_t*)datarcv, p->len);
 		error("rcvmsg fid out of range");
 	}
 	DPRINT(2, "<-%s: %F\n", p->name, f);
@@ -847,7 +847,7 @@ void
 genstats(void)
 {
 	int i;
-	char *p;
+	int8_t *p;
 
 	p = statbuf;
 

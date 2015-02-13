@@ -11,9 +11,9 @@
  * pANS stdio -- fgets
  */
 #include "iolib.h"
-char *fgets(char *as, int n, FILE *f){
+int8_t *fgets(int8_t *as, int n, FILE *f){
 	int c=0;
-	char *s=as;
+	int8_t *s=as;
 	while(n>1 && (c=getc(f))!=EOF){
 		*s++=c;
 		--n;

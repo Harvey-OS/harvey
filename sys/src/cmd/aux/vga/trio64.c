@@ -47,7 +47,7 @@ void
 trio64clock(Vga* vga, Ctlr* ctlr)
 {
 	int d;
-	ulong f, fmax, fmin, n, m, r;
+	uint32_t f, fmax, fmin, n, m, r;
 	double trouble;
 
 	/*
@@ -124,7 +124,7 @@ trio64clock(Vga* vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong pclk, x;
+	uint32_t pclk, x;
 
 	s3generic.init(vga, ctlr);
 
@@ -226,7 +226,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	ushort advfunc;
+	uint16_t advfunc;
 
 	s3generic.load(vga, ctlr);
 	vgaxo(Crtx, 0x60, vga->crt[0x60]);
@@ -256,7 +256,7 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	ulong dclk, m, n, r;
+	uint32_t dclk, m, n, r;
 
 	s3generic.dump(vga, ctlr);
 

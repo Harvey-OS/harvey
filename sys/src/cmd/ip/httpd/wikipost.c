@@ -25,10 +25,10 @@ HSPriv *hp;
 
 
 /* go from possibly-latin1 url with escapes to utf */
-char *
-_urlunesc(char *s)
+int8_t *
+_urlunesc(int8_t *s)
 {
-	char *t, *v, *u;
+	int8_t *t, *v, *u;
 	Rune r;
 	int c, n;
 
@@ -84,7 +84,7 @@ enum
 };
 
 static int
-dangerous(char *s)
+dangerous(int8_t *s)
 {
 	if(s == nil)
 		return 1;
@@ -102,10 +102,10 @@ dangerous(char *s)
 	return 0;
 }
 
-char*
-unhttp(char *s)
+int8_t*
+unhttp(int8_t *s)
 {
-	char *p, *r, *w;
+	int8_t *p, *r, *w;
 
 	if(s == nil)
 		return nil;
@@ -124,9 +124,9 @@ unhttp(char *s)
 }
 
 void
-mountwiki(HConnect *c, char *service)
+mountwiki(HConnect *c, int8_t *service)
 {
-	char buf[128];
+	int8_t buf[128];
 	int fd;
 
 	/* already in (possibly private) namespace? */
@@ -156,11 +156,13 @@ mountwiki(HConnect *c, char *service)
 	close(fd);
 }
 
-char*
-dowiki(HConnect *c, char *title, char *author, char *comment, char *base, ulong version, char *text)
+int8_t*
+dowiki(HConnect *c, int8_t *title, int8_t *author, int8_t *comment,
+       int8_t *base,
+       uint32_t version, int8_t *text)
 {
 	int fd, l, n, err;
-	char *p, tmp[256];
+	int8_t *p, tmp[256];
 int i;
 
 	if((fd = open("/mnt/wiki/new", ORDWR)) < 0){
@@ -201,13 +203,13 @@ i=0;
 
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Hio *hin, *hout;
-	char *s, *t, *p, *f[10];
-	char *text, *title, *service, *base, *author, *comment, *url;
+	int8_t *s, *t, *p, *f[10];
+	int8_t *text, *title, *service, *base, *author, *comment, *url;
 	int i, nf;
-	ulong version;
+	uint32_t version;
 
 	hc = init(argc, argv);
 	hp = hc->private;
@@ -284,7 +286,8 @@ main(int argc, char **argv)
 	}
 
 	syslog(0, LOG, "%s post s %s t '%s' v %ld a %s c %s b %s t 0x%p",
-		hp->remotesys, service, title, (long)version, author, comment, base, text);
+		hp->remotesys, service, title, (int32_t)version, author,
+	       comment, base, text);
 
 	title = unhttp(title);
 	comment = unhttp(comment);
@@ -302,7 +305,8 @@ main(int argc, char **argv)
 	}
 
 	syslog(0, LOG, "%s post s %s t '%s' v %ld a %s c %s",
-		hp->remotesys, service, title, (long)version, author, comment);
+		hp->remotesys, service, title, (int32_t)version, author,
+	       comment);
 
 	if(strlen(text) > MaxLog)
 		text[MaxLog] = '\0';

@@ -28,11 +28,11 @@
  */
 
 void
-mul64fract(uvlong *r, uvlong a, uvlong b)
+mul64fract(uint64_t *r, uint64_t a, uint64_t b)
 {
-	uvlong bh, bl;
-	uvlong ah, al;
-	uvlong res;
+	uint64_t bh, bl;
+	uint64_t ah, al;
+	uint64_t res;
 
 	bl = b & 0xffffffffULL;
 	bh = b >> 32;

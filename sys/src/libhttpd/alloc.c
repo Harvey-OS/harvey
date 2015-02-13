@@ -18,10 +18,10 @@
  * note this memory is wiped out at the start of each new request
  * note: these routines probably shouldn't fatal.
  */
-char*
-hstrdup(HConnect *c, char *s)
+int8_t*
+hstrdup(HConnect *c, int8_t *s)
 {
-	char *t;
+	int8_t *t;
 	int n;
 
 	n = strlen(s) + 1;
@@ -33,7 +33,7 @@ hstrdup(HConnect *c, char *s)
 }
 
 void*
-halloc(HConnect *c, ulong n)
+halloc(HConnect *c, uint32_t n)
 {
 	void *p;
 

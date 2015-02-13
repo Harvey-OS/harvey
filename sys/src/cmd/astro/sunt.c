@@ -133,7 +133,7 @@ double	sunfp[]	=
 	 0.36e-6, 0,
 	0,
 };
-char	suncp[]	=
+int8_t	suncp[]	=
 {
 	4, -7, 3, 0,
 	-8, 4, 0, 3,

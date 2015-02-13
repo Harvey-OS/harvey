@@ -38,7 +38,7 @@ static void
 sunUdpRead(void *v)
 {
 	int n;
-	uchar *buf;
+	uint8_t *buf;
 	Arg arg = *(Arg*)v;
 	SunMsgUdp *msg;
 
@@ -64,7 +64,7 @@ sunUdpRead(void *v)
 static void
 sunUdpWrite(void *v)
 {
-	uchar *buf;
+	uint8_t *buf;
 	Arg arg = *(Arg*)v;
 	SunMsgUdp *msg;
 
@@ -83,10 +83,10 @@ sunUdpWrite(void *v)
 }
 
 int
-sunSrvUdp(SunSrv *srv, char *address)
+sunSrvUdp(SunSrv *srv, int8_t *address)
 {
 	int acfd, fd;
-	char adir[40], data[60];
+	int8_t adir[40], data[60];
 	Arg *arg;
 
 	acfd = announce(address, adir);

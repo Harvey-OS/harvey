@@ -12,7 +12,7 @@
 
 #include "hoc.h"
 
-double	errcheck(double, char*);
+double	errcheck(double, int8_t*);
 
 double
 Log(double x)
@@ -70,11 +70,11 @@ integer(double x)
 {
 	if(x<-2147483648.0 || x>2147483647.0)
 		execerror("argument out of domain", 0);
-	return (double)(long)x;
+	return (double)(int32_t)x;
 }
 
 double
-errcheck(double d, char* s)	/* check result of library call */
+errcheck(double d, int8_t* s)	/* check result of library call */
 {
 	if(isNaN(d))
 		execerror(s, "argument out of domain");

@@ -12,14 +12,14 @@
 #define	N	256
 
 size_t
-strspn(const char *s, const char *b)
+strspn(const int8_t *s, const int8_t *b)
 {
-	char map[N], *os;
+	int8_t map[N], *os;
 
 	memset(map, 0, N);
 	while(*b)
 		map[*(unsigned char *)b++] = 1;
-	os = (char *)s;
+	os = (int8_t *)s;
 	while(map[*(unsigned char *)s++])
 		;
 	return s - os - 1;

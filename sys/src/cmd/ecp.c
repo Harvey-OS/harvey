@@ -47,19 +47,19 @@ enum {
 #define badsect(errno) ((errno) != Enone)  /* was last transfer in error? */
 
 /* disk address (in bytes or sectors), also type of 2nd arg. to seek */
-typedef uvlong Daddr;
-typedef vlong Sdaddr;				/* signed disk address */
-typedef long Rdwrfn(int, void *, long);		/* plan 9 read or write */
+typedef uint64_t Daddr;
+typedef int64_t Sdaddr;				/* signed disk address */
+typedef int32_t Rdwrfn(int, void *, int32_t);		/* plan 9 read or write */
 
 typedef struct {
-	char	*name;
+	int8_t	*name;
 	int	fd;
 	Daddr	startsect;
 	int	fast;
 	int	seekable;
 
-	ulong	maxconerrs;		/* maximum consecutive errors */
-	ulong	conerrs;		/* current consecutive errors */
+	uint32_t	maxconerrs;		/* maximum consecutive errors */
+	uint32_t	conerrs;		/* current consecutive errors */
 	Daddr	congoodblks;
 
 	Daddr	harderrs;
@@ -68,25 +68,25 @@ typedef struct {
 } File;
 
 /* exports */
-char *argv0;
+int8_t *argv0;
 
 /* privates */
 static int reblock = No, progress = No, swizzle = No;
 static int reverse = No;
-static ulong sectsz = Defsectsz;
-static ulong blocksize = Defblksz;
+static uint32_t sectsz = Defsectsz;
+static uint32_t blocksize = Defblksz;
 
-static char *buf, *vfybuf;
+static int8_t *buf, *vfybuf;
 static int blksects;
 
 /*
  * warning - print best error message possible and clear errno
  */
 void
-warning(char *s1, char *s2)
+warning(int8_t *s1, int8_t *s2)
 {
-	char err[100], msg[256];
-	char *np, *ep = msg + sizeof msg - 1;
+	int8_t err[100], msg[256];
+	int8_t *np, *ep = msg + sizeof msg - 1;
 
 	errstr(err, sizeof err);		/* save error string */
 	np = seprint(msg, ep, "%s: ", argv0);
@@ -98,7 +98,7 @@ warning(char *s1, char *s2)
 }
 
 int
-eopen(char *file, int mode)
+eopen(int8_t *file, int mode)
 {
 	int fd = open(file, mode);
 
@@ -111,7 +111,7 @@ static int					/* boolean */
 confirm(File *src, File *dest)
 {
 	int absent, n, tty = eopen(TTY, 2);
-	char c, junk;
+	int8_t c, junk;
 	Dir *stp;
 
 	if ((stp = dirstat(src->name)) == nil)
@@ -134,10 +134,10 @@ confirm(File *src, File *dest)
 	return c == 'y';
 }
 
-static char *
+static int8_t *
 sectid(File *fp, Daddr sect)
 {
-	static char sectname[256];
+	static int8_t sectname[256];
 
 	if (fp->startsect == 0)
 		snprint(sectname, sizeof sectname, "%s sector %llud",
@@ -150,11 +150,11 @@ sectid(File *fp, Daddr sect)
 }
 
 static void
-io_expl(File *fp, char *rw, Daddr sect)		/* explain an i/o error */
+io_expl(File *fp, int8_t *rw, Daddr sect)		/* explain an i/o error */
 {
 	/* print only first 2 bad sectors in a range, if going forward */
 	if (reverse || fp->conerrs == 0) {
-		char msg[128];
+		int8_t msg[128];
 
 		snprint(msg, sizeof msg, "%s %s", rw, sectid(fp, sect));
 		warning("%s", msg);
@@ -177,11 +177,11 @@ rewind(File *fp)
 	repos(fp, 0);
 }
 
-static char magic[] = "\235any old ☺ rubbish\173";
-static char uniq[sizeof magic + 2*sizeof(ulong)];
+static int8_t magic[] = "\235any old ☺ rubbish\173";
+static int8_t uniq[sizeof magic + 2*sizeof(uint32_t)];
 
-static char *
-putbe(char *p, ulong ul)
+static int8_t *
+putbe(int8_t *p, uint32_t ul)
 {
 	*p++ = ul>>24;
 	*p++ = ul>>16;
@@ -194,11 +194,11 @@ putbe(char *p, ulong ul)
  * generate magic + unique string, add to start & end of buff.
  * return tail pointer.
  */
-static char *
-addmagic(char *buff, int bytes)
+static int8_t *
+addmagic(int8_t *buff, int bytes)
 {
-	char *p, *tail;
-	static ulong seq;
+	int8_t *p, *tail;
+	static uint32_t seq;
 
 	strcpy(uniq, magic);
 	p = putbe(uniq + sizeof magic - 1, time(0));
@@ -212,7 +212,7 @@ addmagic(char *buff, int bytes)
 
 /* verify magic + unique strings in buff */
 static int
-ismagicok(char *buff, char *tail)
+ismagicok(int8_t *buff, int8_t *tail)
 {
 	return  memcmp(buff, uniq, sizeof uniq) == 0 ||
 		memcmp(tail, uniq, sizeof uniq) == 0;
@@ -223,11 +223,12 @@ ismagicok(char *buff, char *tail)
  * returns Enone if no failures, others on failure with errstr set.
  */
 static int
-bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects, int mustseek)
+bio(File *fp, Rdwrfn *rdwr, int8_t *buff, Daddr stsect, int sects,
+    int mustseek)
 {
 	int xfered;
-	char *tail;
-	ulong toread, bytes = sects * sectsz;
+	int8_t *tail;
+	uint32_t toread, bytes = sects * sectsz;
 	static int reblocked = 0;
 
 	if (mustseek) {
@@ -236,7 +237,7 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects, int mustseek)
 				fp->name);
 		repos(fp, stsect);
 	}
-	if ((long)blocksize != blocksize || (long)bytes != bytes)
+	if ((int32_t)blocksize != blocksize || (int32_t)bytes != bytes)
 		sysfatal("i/o count too big: %lud", bytes);
 
 	SET(tail);
@@ -308,7 +309,7 @@ ckendrange(File *fp)
 }
 
 static int
-transfer(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
+transfer(File *fp, Rdwrfn *rdwr, int8_t *buff, Daddr stsect, int sects,
 	int mustseek)
 {
 	int res = bio(fp, rdwr, buff, stsect, sects, mustseek);
@@ -326,11 +327,11 @@ transfer(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
  * If it fails, retry the individual sectors and report errors.
  */
 static void
-bigxfer(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
+bigxfer(File *fp, Rdwrfn *rdwr, int8_t *buff, Daddr stsect, int sects,
 	int mustseek)
 {
 	int i, badsects = 0, wasfast = fp->fast;
-	char *rw = (rdwr == read? "read": "write");
+	int8_t *rw = (rdwr == read? "read": "write");
 
 	if (fp->fast) {
 		if (!badsect(transfer(fp, rdwr, buff, stsect, sects, mustseek)))
@@ -376,7 +377,7 @@ bigxfer(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects,
 static void
 vrfyfailed(File *src, File *dest, Daddr stsect)
 {
-	char *srcsect = strdup(sectid(src, stsect));
+	int8_t *srcsect = strdup(sectid(src, stsect));
 
 	fprint(2, "%s: verify failed at %s (%s)\n", argv0, srcsect,
 		sectid(dest, stsect));
@@ -389,7 +390,7 @@ vrfyfailed(File *src, File *dest, Daddr stsect)
  * break it up and verify each sector separately to isolate the bad sector(s).
  */
 int						/* error count */
-verify(File *src, File *dest, char *buff, char *buft, Daddr stsect,
+verify(File *src, File *dest, int8_t *buff, int8_t *buft, Daddr stsect,
 	int sectors)
 {
 	int i, errors = 0;
@@ -420,7 +421,7 @@ verify(File *src, File *dest, char *buff, char *buft, Daddr stsect,
 		}
 	}
 	if (errors == 0) {
-		char *srcsect = strdup(sectid(src, stsect));
+		int8_t *srcsect = strdup(sectid(src, stsect));
 
 		fprint(2, "%s: verification failed on big read at %s (%s) "
 			"but not on retries!\n", argv0, srcsect,
@@ -456,12 +457,12 @@ enum {
 };
 
 void
-swizzlebits(char *buff, int sects)
+swizzlebits(int8_t *buff, int sects)
 {
-	uchar *bp, *endbp;
+	uint8_t *bp, *endbp;
 
-	endbp = (uchar *)(buff+sects*sectsz);
-	for (bp = (uchar *)buff; bp < endbp; bp++)
+	endbp = (uint8_t *)(buff+sects*sectsz);
+	for (bp = (uint8_t *)buff; bp < endbp; bp++)
 		*bp = ~(*bp>>Rotbits | *bp<<(8-Rotbits));
 }
 

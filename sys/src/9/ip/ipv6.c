@@ -45,7 +45,7 @@ Fragment6*	ipfragallo6(IP*);
 void		ipfragfree6(IP*, Fragment6*);
 Block*		procopts(Block *bp);
 static Block*	procxtns(IP *ip, Block *bp, int doreasm);
-int		unfraglen(Block *bp, uchar *nexthdr, int setfh);
+int		unfraglen(Block *bp, uint8_t *nexthdr, int setfh);
 
 /* MIB II counters */
 enum
@@ -100,32 +100,32 @@ struct Fragment4
 {
 	Block*	blist;
 	Fragment4*	next;
-	ulong 	src;
-	ulong 	dst;
-	ushort	id;
-	ulong 	age;
+	uint32_t 	src;
+	uint32_t 	dst;
+	uint16_t	id;
+	uint32_t 	age;
 };
 
 struct Fragment6
 {
 	Block*	blist;
 	Fragment6*	next;
-	uchar 	src[IPaddrlen];
-	uchar 	dst[IPaddrlen];
+	uint8_t 	src[IPaddrlen];
+	uint8_t 	dst[IPaddrlen];
 	uint	id;
-	ulong 	age;
+	uint32_t 	age;
 };
 
 struct Ipfrag
 {
-	ushort	foff;
-	ushort	flen;
+	uint16_t	foff;
+	uint16_t	flen;
 };
 
 /* an instance of IP */
 struct IP
 {
-	ulong		stats[Nstats];
+	uint32_t		stats[Nstats];
 
 	QLock		fraglock4;
 	Fragment4*	flisthead4;
@@ -145,7 +145,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 {
 	int medialen, len, chunk, uflen, flen, seglen, lid, offset, fragoff;
 	int morefrags, blklen, rv = 0, tentative;
-	uchar *gate, nexthdr;
+	uint8_t *gate, nexthdr;
 	Block *xp, *nb;
 	Fraghdr6 fraghdr;
 	IP *ip;
@@ -339,8 +339,8 @@ void
 ipiput6(Fs *f, Ipifc *ifc, Block *bp)
 {
 	int hl, hop, tos, notforme, tentative;
-	uchar proto;
-	uchar v6dst[IPaddrlen];
+	uint8_t proto;
+	uint8_t v6dst[IPaddrlen];
 	IP *ip;
 	Ip6hdr *h;
 	Proto *p;
@@ -506,7 +506,7 @@ static Block*
 procxtns(IP *ip, Block *bp, int doreasm)
 {
 	int offset;
-	uchar proto;
+	uint8_t proto;
 	Ip6hdr *h;
 
 	h = (Ip6hdr *)bp->rp;
@@ -531,9 +531,9 @@ procxtns(IP *ip, Block *bp, int doreasm)
  * field of the last header in the "Unfragmentable part" is set to FH.
  */
 int
-unfraglen(Block *bp, uchar *nexthdr, int setfh)
+unfraglen(Block *bp, uint8_t *nexthdr, int setfh)
 {
-	uchar *p, *q;
+	uint8_t *p, *q;
 	int ufl, hs;
 
 	p = bp->rp;
@@ -572,7 +572,7 @@ ip6reassemble(IP* ip, int uflen, Block* bp, Ip6hdr* ih)
 {
 	int fend, offset, ovlap, len, fragsize, pktposn;
 	uint id;
-	uchar src[IPaddrlen], dst[IPaddrlen];
+	uint8_t src[IPaddrlen], dst[IPaddrlen];
 	Block *bl, **l, *last, *prev;
 	Fraghdr6 *fraghdr;
 	Fragment6 *f, *fnext;

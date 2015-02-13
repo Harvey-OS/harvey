@@ -27,7 +27,7 @@ struct Bucket
 	int	magic;
 	Bucket	*next;
 	int	pad;
-	char	data[1];
+	int8_t	data[1];
 };
 
 typedef struct Arena Arena;

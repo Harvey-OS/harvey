@@ -16,11 +16,11 @@
 #include <auth.h>
 #include "ssh2.h"
 
-int doauth(int, char *);
+int doauth(int, int8_t *);
 int isatty(int);
 
-char *user, *remote;
-char *netdir = "/net";
+int8_t *user, *remote;
+int8_t *netdir = "/net";
 int debug = 0;
 
 static int stripcr = 0;
@@ -65,16 +65,16 @@ shutdown(void)
 }
 
 static void
-bail(char *sts)
+bail(int8_t *sts)
 {
 	shutdown();
 	exits(sts);
 }
 
 int
-handler(void *, char *s)
+handler(void *, int8_t *s)
 {
-	char *nf;
+	int8_t *nf;
 	int fd;
 
 	if (strstr(s, "alarm") != nil)
@@ -94,7 +94,7 @@ static void
 parseargs(void)
 {
 	int n;
-	char *p, *q;
+	int8_t *p, *q;
 
 	q = strchr(remote, '@');
 	if (q != nil) {
@@ -125,13 +125,13 @@ parseargs(void)
 }
 
 static int
-catcher(void *, char *s)
+catcher(void *, int8_t *s)
 {
 	return strstr(s, "alarm") != nil;
 }
 
 static int
-timedmount(int fd, int afd, char *mntpt, int flag, char *aname)
+timedmount(int fd, int afd, int8_t *mntpt, int flag, int8_t *aname)
 {
 	int oalarm, ret;
 
@@ -144,7 +144,7 @@ timedmount(int fd, int afd, char *mntpt, int flag, char *aname)
 }
 
 static void
-mounttunnel(char *srv)
+mounttunnel(int8_t *srv)
 {
 	int fd;
 
@@ -161,7 +161,7 @@ mounttunnel(char *srv)
 }
 
 static void
-newtunnel(char *myname)
+newtunnel(int8_t *myname)
 {
 	int kid, pid;
 
@@ -182,7 +182,7 @@ newtunnel(char *myname)
 static void
 starttunnel(void)
 {
-	char *keys, *mysrv, *myname;
+	int8_t *keys, *mysrv, *myname;
 
 	keys = esmprint("%s/ssh/keys", netdir);
 	myname = esmprint("ssh.%s", getuser());
@@ -212,7 +212,7 @@ int
 cmdmode(void)
 {
 	int n, m;
-	char buf[Arbbufsz];
+	int8_t buf[Arbbufsz];
 
 	for(;;) {
 reprompt:
@@ -253,7 +253,7 @@ reprompt:
 }
 
 static void
-keyprompt(char *buf, int size, int n)
+keyprompt(int8_t *buf, int size, int n)
 {
 	if (*buf == 'c') {
 		fprint(kconsfd, "The following key has been offered by the server:\n");
@@ -293,10 +293,10 @@ keyprompt(char *buf, int size, int n)
 
 /* talk the undocumented /net/ssh/keys protocol */
 static void
-keyproc(char *buf, int size)
+keyproc(int8_t *buf, int size)
 {
 	int n;
-	char *p;
+	int8_t *p;
 
 	if (size < 6)
 		exits("keyproc buffer too small");
@@ -349,10 +349,10 @@ keyproc(char *buf, int size)
  * while we copy from stdin to network.
  */
 static void
-bidircopy(char *buf, int size)
+bidircopy(int8_t *buf, int size)
 {
 	int i, n, lstart;
-	char *path, *p, *q;
+	int8_t *path, *p, *q;
 
 	rfork(RFNOTEG);
 	path = esmprint("/proc/%d/notepg", getpid());
@@ -404,10 +404,10 @@ bidircopy(char *buf, int size)
 }
 
 static int
-connect(char *buf, int size)
+connect(int8_t *buf, int size)
 {
 	int nfd, n;
-	char *dir, *ds, *nf;
+	int8_t *dir, *ds, *nf;
 
 	dir = esmprint("%s/ssh", netdir);
 	ds = netmkaddr(remote, dir, "22");		/* tcp port 22 is ssh */
@@ -432,10 +432,10 @@ connect(char *buf, int size)
 }
 
 static int
-chanconnect(int conn, char *buf, int size)
+chanconnect(int conn, int8_t *buf, int size)
 {
 	int n;
-	char *path;
+	int8_t *path;
 
 	path = esmprint("%s/ssh/%d!session", netdir, conn);
 	dfd2 = dial(path, nil, nil, &cfd2);
@@ -451,10 +451,11 @@ chanconnect(int conn, char *buf, int size)
 }
 
 static void
-remotecmd(int argc, char *argv[], int conn, int chan, char *buf, int size)
+remotecmd(int argc, int8_t *argv[], int conn, int chan, int8_t *buf,
+	  int size)
 {
 	int i;
-	char *path, *q, *ep;
+	int8_t *path, *q, *ep;
 
 	path = esmprint("%s/ssh/%d/%d/request", netdir, conn, chan);
 	reqfd = open(path, OWRITE);
@@ -584,7 +585,7 @@ main(int argc, char *argv[])
 int
 isatty(int fd)
 {
-	char buf[64];
+	int8_t buf[64];
 
 	buf[0] = '\0';
 	fd2path(fd, buf, sizeof buf);
@@ -592,11 +593,11 @@ isatty(int fd)
 }
 
 int
-doauth(int cfd1, char *whichkey)
+doauth(int cfd1, int8_t *whichkey)
 {
 	UserPasswd *up;
 	int n;
-	char path[Arbpathlen];
+	int8_t path[Arbpathlen];
 
  	if (!nopka) {
 		if (whichkey)

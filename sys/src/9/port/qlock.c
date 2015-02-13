@@ -17,13 +17,13 @@
 QLockstats qlockstats;
 
 static void
-lockstat(uintptr pc, uvlong w)
+lockstat(uintptr pc, uint64_t w)
 {
 	addwaitstat(pc, w, WSqlock);
 }
 
 static void
-slockstat(uintptr pc, uvlong w)
+slockstat(uintptr pc, uint64_t w)
 {
 	addwaitstat(pc, w, WSslock);
 }
@@ -32,7 +32,7 @@ void
 qlock(QLock *q)
 {
 	Proc *p;
-	uvlong t0;
+	uint64_t t0;
 
 	cycles(&t0);
 	if(m->ilockdepth != 0)
@@ -90,7 +90,7 @@ void
 qunlock(QLock *q)
 {
 	Proc *p;
-	uvlong t0;
+	uint64_t t0;
 
 	if(!canlock(&q->use)){
 		cycles(&t0);
@@ -119,7 +119,7 @@ void
 rlock(RWlock *q)
 {
 	Proc *p;
-	uvlong t0;
+	uint64_t t0;
 
 	cycles(&t0);
 	if(!canlock(&q->use)){
@@ -156,7 +156,7 @@ void
 runlock(RWlock *q)
 {
 	Proc *p;
-	uvlong t0;
+	uint64_t t0;
 
 	if(!canlock(&q->use)){
 		cycles(&t0);
@@ -184,7 +184,7 @@ void
 wlock(RWlock *q)
 {
 	Proc *p;
-	uvlong t0;
+	uint64_t t0;
 
 	cycles(&t0);
 	if(!canlock(&q->use)){
@@ -224,7 +224,7 @@ void
 wunlock(RWlock *q)
 {
 	Proc *p;
-	uvlong t0;
+	uint64_t t0;
 
 	if(!canlock(&q->use)){
 		cycles(&t0);
@@ -267,7 +267,7 @@ wunlock(RWlock *q)
 int
 canrlock(RWlock *q)
 {
-	uvlong t0;
+	uint64_t t0;
 
 	if(!canlock(&q->use)){
 		cycles(&t0);

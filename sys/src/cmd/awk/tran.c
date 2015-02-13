@@ -45,18 +45,18 @@ THIS SOFTWARE.
 
 Array	*symtab;	/* main symbol table */
 
-char	**FS;		/* initial field sep */
-char	**RS;		/* initial record sep */
-char	**OFS;		/* output field sep */
-char	**ORS;		/* output record sep */
-char	**OFMT;		/* output format for numbers */
-char	**CONVFMT;	/* format for conversions in getsval */
+int8_t	**FS;		/* initial field sep */
+int8_t	**RS;		/* initial record sep */
+int8_t	**OFS;		/* output field sep */
+int8_t	**ORS;		/* output record sep */
+int8_t	**OFMT;		/* output format for numbers */
+int8_t	**CONVFMT;	/* format for conversions in getsval */
 Awkfloat *NF;		/* number of fields in current record */
 Awkfloat *NR;		/* number of current record */
 Awkfloat *FNR;		/* number of current record in current file */
-char	**FILENAME;	/* current filename argument */
+int8_t	**FILENAME;	/* current filename argument */
 Awkfloat *ARGC;		/* number of arguments from command line */
-char	**SUBSEP;	/* subscript separator for a[i,j,k]; default \034 */
+int8_t	**SUBSEP;	/* subscript separator for a[i,j,k]; default \034 */
 Awkfloat *RSTART;	/* start of re matched with ~; origin 1 (!) */
 Awkfloat *RLENGTH;	/* length of same */
 
@@ -101,19 +101,19 @@ void syminit(void)	/* initialize symbol table with builtin vars */
 	rlengthloc = setsymtab("RLENGTH", "", 0.0, NUM, symtab);
 	RLENGTH = &rlengthloc->fval;
 	symtabloc = setsymtab("SYMTAB", "", 0.0, ARR, symtab);
-	symtabloc->sval = (char *) symtab;
+	symtabloc->sval = (int8_t *) symtab;
 }
 
-void arginit(int ac, char **av)	/* set up ARGV and ARGC */
+void arginit(int ac, int8_t **av)	/* set up ARGV and ARGC */
 {
 	Cell *cp;
 	int i;
-	char temp[50];
+	int8_t temp[50];
 
 	ARGC = &setsymtab("ARGC", "", (Awkfloat) ac, NUM, symtab)->fval;
 	cp = setsymtab("ARGV", "", 0.0, ARR, symtab);
 	ARGVtab = makesymtab(NSYMTAB);	/* could be (int) ARGC as well */
-	cp->sval = (char *) ARGVtab;
+	cp->sval = (int8_t *) ARGVtab;
 	for (i = 0; i < ac; i++) {
 		sprintf(temp, "%d", i);
 		if (is_number(*av))
@@ -124,14 +124,14 @@ void arginit(int ac, char **av)	/* set up ARGV and ARGC */
 	}
 }
 
-void envinit(char **envp)	/* set up ENVIRON variable */
+void envinit(int8_t **envp)	/* set up ENVIRON variable */
 {
 	Cell *cp;
-	char *p;
+	int8_t *p;
 
 	cp = setsymtab("ENVIRON", "", 0.0, ARR, symtab);
 	ENVtab = makesymtab(NSYMTAB);
-	cp->sval = (char *) ENVtab;
+	cp->sval = (int8_t *) ENVtab;
 	for ( ; *envp; envp++) {
 		if ((p = strchr(*envp, '=')) == NULL)
 			continue;
@@ -184,7 +184,7 @@ void freesymtab(Cell *ap)	/* free a symbol table */
 	free(tp);
 }
 
-void freeelem(Cell *ap, char *s)	/* free elem s from ap (i.e., ap["s"] */
+void freeelem(Cell *ap, int8_t *s)	/* free elem s from ap (i.e., ap["s"] */
 {
 	Array *tp;
 	Cell *p, *prev = NULL;
@@ -207,7 +207,7 @@ void freeelem(Cell *ap, char *s)	/* free elem s from ap (i.e., ap["s"] */
 		}
 }
 
-Cell *setsymtab(char *n, char *s, Awkfloat f, unsigned t, Array *tp)
+Cell *setsymtab(int8_t *n, int8_t *s, Awkfloat f, unsigned t, Array *tp)
 {
 	int h;
 	Cell *p;
@@ -237,7 +237,7 @@ Cell *setsymtab(char *n, char *s, Awkfloat f, unsigned t, Array *tp)
 	return(p);
 }
 
-int hash(char *s, int n)	/* form hash value for string s */
+int hash(int8_t *s, int n)	/* form hash value for string s */
 {
 	unsigned hashval;
 
@@ -268,7 +268,7 @@ void rehash(Array *tp)	/* rehash items in small table into big one */
 	tp->size = nsz;
 }
 
-Cell *lookup(char *s, Array *tp)	/* look for s in tp */
+Cell *lookup(int8_t *s, Array *tp)	/* look for s in tp */
 {
 	Cell *p;
 	int h;
@@ -304,7 +304,7 @@ Awkfloat setfval(Cell *vp, Awkfloat f)	/* set float val of a Cell */
 	return vp->fval = f;
 }
 
-void funnyvar(Cell *vp, char *rw)
+void funnyvar(Cell *vp, int8_t *rw)
 {
 	if (isarr(vp))
 		FATAL("can't %s %s; it's an array name.", rw, vp->nval);
@@ -314,9 +314,9 @@ void funnyvar(Cell *vp, char *rw)
 		vp, vp->nval, vp->sval, vp->fval, vp->tval);
 }
 
-char *setsval(Cell *vp, char *s)	/* set string val of a Cell */
+int8_t *setsval(Cell *vp, int8_t *s)	/* set string val of a Cell */
 {
-	char *t;
+	int8_t *t;
 	int fldno;
 
 	   dprintf( ("starting setsval %p: %s = \"%s\", t=%o\n", vp, vp->nval, s, vp->tval) );
@@ -359,9 +359,9 @@ Awkfloat getfval(Cell *vp)	/* get float val of a Cell */
 	return(vp->fval);
 }
 
-char *getsval(Cell *vp)	/* get string val of a Cell */
+int8_t *getsval(Cell *vp)	/* get string val of a Cell */
 {
-	char s[100];	/* BUG: unchecked */
+	int8_t s[100];	/* BUG: unchecked */
 	double dtemp;
 
 	if ((vp->tval & (NUM | STR)) == 0)
@@ -385,24 +385,24 @@ char *getsval(Cell *vp)	/* get string val of a Cell */
 	return(vp->sval);
 }
 
-char *tostring(char *s)	/* make a copy of string s */
+int8_t *tostring(int8_t *s)	/* make a copy of string s */
 {
-	char *p;
+	int8_t *p;
 
-	p = (char *) malloc(strlen(s)+1);
+	p = (int8_t *) malloc(strlen(s)+1);
 	if (p == NULL)
 		FATAL("out of space in tostring on %s", s);
 	strcpy(p, s);
 	return(p);
 }
 
-char *qstring(char *s, int delim)	/* collect string up to next delim */
+int8_t *qstring(int8_t *s, int delim)	/* collect string up to next delim */
 {
-	char *os = s;
+	int8_t *os = s;
 	int c, n;
-	char *buf, *bp;
+	int8_t *buf, *bp;
 
-	if ((buf = (char *) malloc(strlen(s)+3)) == NULL)
+	if ((buf = (int8_t *) malloc(strlen(s)+3)) == NULL)
 		FATAL( "out of space in qstring(%s)", s);
 	for (bp = buf; (c = *s) != delim; s++) {
 		if (c == '\n')

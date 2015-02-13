@@ -11,7 +11,7 @@
 #include <libv.h>
 #include <string.h>
 
-static char is_sep[256] = {
+static int8_t is_sep[256] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -21,7 +21,7 @@ static char is_sep[256] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
-static char is_field[256] = {
+static int8_t is_field[256] = {
 	0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -31,10 +31,10 @@ static char is_field[256] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 };
-static char last_sep[256];
+static int8_t last_sep[256];
 
-char *
-setfields(char *arg)
+int8_t *
+setfields(int8_t *arg)
 {
 	register unsigned char *s;
 	register i;
@@ -54,7 +54,7 @@ setfields(char *arg)
 }
 
 int
-getfields(char *ss, char **sp, int nptrs)
+getfields(int8_t *ss, int8_t **sp, int nptrs)
 {
 	register unsigned char *s = (unsigned char *)ss;
 	register unsigned char **p = (unsigned char **)sp;
@@ -77,7 +77,7 @@ getfields(char *ss, char **sp, int nptrs)
 }
 
 int
-getmfields(char *ss, char **sp, int nptrs)
+getmfields(int8_t *ss, int8_t **sp, int nptrs)
 {
 	register unsigned char *s = (unsigned char *)ss;
 	register unsigned char **p = (unsigned char **)sp;

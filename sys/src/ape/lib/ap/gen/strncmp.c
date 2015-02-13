@@ -10,10 +10,10 @@
 #include <string.h>
 
 int
-strncmp(const char *s1, const char *s2, size_t n)
+strncmp(const int8_t *s1, const int8_t *s2, size_t n)
 {
 	unsigned c1, c2;
-	long nn;
+	int32_t nn;
 
 	nn = n;
 	while(nn > 0) {

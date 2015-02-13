@@ -35,11 +35,11 @@ int*	addr2;
 int	anymarks;
 Biobuf	bcons;
 int	col;
-long	count;
+int32_t	count;
 int*	dol;
 int*	dot;
 int	fchange;
-char	file[FNSIZE];
+int8_t	file[FNSIZE];
 Rune	genbuf[LBSIZE];
 int	given;
 Rune*	globp;
@@ -48,7 +48,7 @@ int	ichanged;
 int	io;
 Biobuf	iobuf;
 int	lastc;
-char	line[70];
+int8_t	line[70];
 Rune*	linebp;
 Rune	linebuf[LBSIZE];
 int	listf;
@@ -64,24 +64,24 @@ int	peekc;
 int	pflag;
 int	rescuing;
 Rune	rhsbuf[LBSIZE/sizeof(Rune)];
-char	savedfile[FNSIZE];
+int8_t	savedfile[FNSIZE];
 jmp_buf	savej;
 int	subnewa;
 int	subolda;
 Resub	subexp[MAXSUB];
-char*	tfname;
+int8_t*	tfname;
 int	tline;
 int	waiting;
 int	wrapp;
 int*	zero;
 
-char	Q[]	= "";
-char	T[]	= "TMP";
-char	WRERR[]	= "WRITE ERROR";
+int8_t	Q[]	= "";
+int8_t	T[]	= "TMP";
+int8_t	WRERR[]	= "WRITE ERROR";
 int	bpagesize = 20;
-char	hex[]	= "0123456789abcdef";
-char*	linp	= line;
-ulong	nlall = 128;
+int8_t	hex[]	= "0123456789abcdef";
+int8_t*	linp	= line;
+uint32_t	nlall = 128;
 int	tfile	= -1;
 int	vflag	= 1;
 
@@ -94,7 +94,7 @@ void	commands(void);
 void	compile(int);
 int	compsub(void);
 void	dosub(void);
-void	error(char*);
+void	error(int8_t*);
 int	match(int*);
 void	exfile(int);
 void	filename(int);
@@ -112,7 +112,7 @@ void	join(void);
 void	move(int);
 void	newline(void);
 void	nonzero(void);
-void	notifyf(void*, char*);
+void	notifyf(void*, int8_t*);
 Rune*	place(Rune*, Rune*, Rune*);
 void	printcom(void);
 void	putchr(int);
@@ -120,10 +120,10 @@ void	putd(void);
 void	putfile(void);
 int	putline(void);
 void	putshst(Rune*);
-void	putst(char*);
+void	putst(int8_t*);
 void	quit(void);
 void	rdelete(int*, int*);
-void	regerror(char *);
+void	regerror(int8_t *);
 void	reverse(int*, int*);
 void	setnoaddr(void);
 void	setwide(void);
@@ -176,7 +176,7 @@ void
 commands(void)
 {
 	int *a1, c, temp;
-	char lastsep;
+	int8_t lastsep;
 	Dir *d;
 
 	for(;;) {
@@ -580,7 +580,7 @@ newline(void)
 void
 filename(int comm)
 {
-	char *p1, *p2;
+	int8_t *p1, *p2;
 	Rune rune;
 	int c;
 
@@ -633,7 +633,7 @@ exfile(int om)
 }
 
 void
-error1(char *s)
+error1(int8_t *s)
 {
 	int c;
 
@@ -662,7 +662,7 @@ error1(char *s)
 }
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	error1(s);
 	longjmp(savej, 1);
@@ -686,7 +686,7 @@ rescue(void)
 }
 
 void
-notifyf(void *a, char *s)
+notifyf(void *a, int8_t *s)
 {
 	if(strcmp(s, "interrupt") == 0){
 		if(rescuing || waiting)
@@ -794,7 +794,7 @@ putfile(void)
 {
 	int *a1;
 	Rune *lp;
-	long c;
+	int32_t c;
 
 	a1 = addr1;
 	do {
@@ -905,8 +905,8 @@ callunix(void)
 {
 	int c, pid;
 	Rune rune;
-	char buf[512];
-	char *p;
+	int8_t buf[512];
+	int8_t *p;
 
 	setnoaddr();
 	p = buf;
@@ -1040,7 +1040,7 @@ putline(void)
 }
 
 void
-blkio(int b, uchar *buf, long (*iofcn)(int, void *, long))
+blkio(int b, uint8_t *buf, int32_t (*iofcn)(int, void *, int32_t))
 {
 	seek(tfile, b*BLKSIZE, 0);
 	if((*iofcn)(tfile, buf, BLKSIZE) != BLKSIZE) {
@@ -1053,8 +1053,8 @@ getblock(int atl, int iof)
 {
 	int bno, off;
 	
-	static uchar ibuff[BLKSIZE];
-	static uchar obuff[BLKSIZE];
+	static uint8_t ibuff[BLKSIZE];
+	static uint8_t obuff[BLKSIZE];
 
 	bno = atl / (BLKSIZE/sizeof(Rune));
 	/* &~3 so the ptr is aligned to 4 (?) */
@@ -1409,8 +1409,8 @@ void
 compile(int eof)
 {
 	Rune c;
-	char *ep;
-	char expbuf[ESIZE];
+	int8_t *ep;
+	int8_t expbuf[ESIZE];
 
 	if((c = getchr()) == '\n') {
 		peekc = c;
@@ -1485,7 +1485,7 @@ putd(void)
 }
 
 void
-putst(char *sp)
+putst(int8_t *sp)
 {
 	Rune r;
 
@@ -1511,7 +1511,7 @@ putshst(Rune *sp)
 void
 putchr(int ac)
 {
-	char *lp;
+	int8_t *lp;
 	int c;
 	Rune rune;
 
@@ -1563,10 +1563,10 @@ putchr(int ac)
 	linp = lp;
 }
 
-char*
-mktemp(char *as)
+int8_t*
+mktemp(int8_t *as)
 {
-	char *s;
+	int8_t *s;
 	unsigned pid;
 	int i;
 
@@ -1590,7 +1590,7 @@ mktemp(char *as)
 }
 
 void
-regerror(char *s)
+regerror(int8_t *s)
 {
 	USED(s);
 	error(Q);

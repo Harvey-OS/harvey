@@ -478,7 +478,7 @@ otop:
 	     pfont = pfont->next
 	    ) {
 	    mem = pfont->memory;
-	    if (alloc_is_since_save((char *)pfont, save)) {
+	    if (alloc_is_since_save((int8_t *)pfont, save)) {
 		gs_purge_font(pfont);
 		goto otop;
 	    }
@@ -494,7 +494,7 @@ top:
 	for (pfont = pdir->scaled_fonts; pfont != 0;
 	     pfont = pfont->next
 	    ) {
-	    if (alloc_is_since_save((char *)pfont, save)) {
+	    if (alloc_is_since_save((int8_t *)pfont, save)) {
 		gs_purge_font(pfont);
 		goto top;
 	    }
@@ -512,14 +512,14 @@ top:
 	    )
 	    if (!fm_pair_is_free(pair)) {
 		if ((uid_is_XUID(&pair->UID) &&
-		     alloc_is_since_save((char *)pair->UID.xvalues,
+		     alloc_is_since_save((int8_t *)pair->UID.xvalues,
 					 save))
 		    ) {
 		    gs_purge_fm_pair(pdir, pair, 0);
 		    continue;
 		}
 		if (pair->font != 0 &&
-		    alloc_is_since_save((char *)pair->font, save)
+		    alloc_is_since_save((int8_t *)pair->font, save)
 		    ) {
 		    if (!uid_is_valid(&pair->UID)) {
 			gs_purge_fm_pair(pdir, pair, 0);
@@ -529,7 +529,7 @@ top:
 		    pair->font = 0;
 		}
 		if (pair->xfont != 0 &&
-		    alloc_is_since_save((char *)pair->xfont, save)
+		    alloc_is_since_save((int8_t *)pair->xfont, save)
 		    )
 		    gs_purge_fm_pair(pdir, pair, 1);
 	    }
@@ -549,7 +549,8 @@ top:
 
 /* font_info procedure */
 private bool
-zfont_info_has(const ref *pfidict, const char *key, gs_const_string *pmember)
+zfont_info_has(const ref *pfidict, const int8_t *key,
+               gs_const_string *pmember)
 {
     ref *pvalue;
 

@@ -47,7 +47,7 @@ int	brackcnt  = 0;
 int	parencnt = 0;
 
 typedef struct Keyword {
-	char	*word;
+	int8_t	*word;
 	int	sub;
 	int	type;
 } Keyword;
@@ -113,12 +113,12 @@ int peek(void)
 	return c;
 }
 
-int gettok(char **pbuf, int *psz)	/* get next input token */
+int gettok(int8_t **pbuf, int *psz)	/* get next input token */
 {
 	int c;
-	char *buf = *pbuf;
+	int8_t *buf = *pbuf;
 	int sz = *psz;
-	char *bp = buf;
+	int8_t *bp = buf;
 
 	c = input();
 	if (c == 0)
@@ -143,7 +143,7 @@ int gettok(char **pbuf, int *psz)	/* get next input token */
 			}
 		}
 	} else {	/* it's a number */
-		char *rem;
+		int8_t *rem;
 		/* read input until can't be a number */
 		for ( ; (c = input()) != 0; ) {
 			if (bp-buf >= sz)
@@ -167,7 +167,7 @@ int gettok(char **pbuf, int *psz)	/* get next input token */
 	return buf[0];
 }
 
-int	word(char *);
+int	word(int8_t *);
 int	string(void);
 int	regexpr(void);
 int	sc	= 0;	/* 1 => return a } right now */
@@ -176,10 +176,10 @@ int	reg	= 0;	/* 1 => return a REGEXPR now */
 int yylex(void)
 {
 	int c;
-	static char *buf = 0;
+	static int8_t *buf = 0;
 	static int bufsize = 500;
 
-	if (buf == 0 && (buf = (char *) malloc(bufsize)) == NULL)
+	if (buf == 0 && (buf = (int8_t *) malloc(bufsize)) == NULL)
 		FATAL( "out of space in yylex" );
 	if (sc) {
 		sc = 0;
@@ -358,11 +358,11 @@ int yylex(void)
 int string(void)
 {
 	int c, n;
-	char *s, *bp;
-	static char *buf = 0;
+	int8_t *s, *bp;
+	static int8_t *buf = 0;
 	static int bufsz = 500;
 
-	if (buf == 0 && (buf = (char *) malloc(bufsz)) == NULL)
+	if (buf == 0 && (buf = (int8_t *) malloc(bufsz)) == NULL)
 		FATAL("out of space for strings");
 	for (bp = buf; (c = input()) != '"'; ) {
 		if (!adjbuf(&buf, &bufsz, bp-buf+2, 500, &bp, 0))
@@ -399,7 +399,7 @@ int string(void)
 				break;
 
 			case 'x':	/* hex  \x0-9a-fA-F + */
-			    {	char xbuf[100], *px;
+			    {	int8_t xbuf[100], *px;
 				for (px = xbuf; (c = input()) != 0 && px-xbuf < 100-2; ) {
 					if (isdigit(c)
 					 || (c >= 'a' && c <= 'f')
@@ -433,7 +433,7 @@ int string(void)
 }
 
 
-int binsearch(char *w, Keyword *kp, int n)
+int binsearch(int8_t *w, Keyword *kp, int n)
 {
 	int cond, low, mid, high;
 
@@ -451,7 +451,7 @@ int binsearch(char *w, Keyword *kp, int n)
 	return -1;
 }
 
-int word(char *w) 
+int word(int8_t *w) 
 {
 	Keyword *kp;
 	int c, n;
@@ -502,11 +502,11 @@ void startreg(void)	/* next call to yyles will return a regular expression */
 int regexpr(void)
 {
 	int c;
-	static char *buf = 0;
+	static int8_t *buf = 0;
 	static int bufsz = 500;
-	char *bp;
+	int8_t *bp;
 
-	if (buf == 0 && (buf = (char *) malloc(bufsz)) == NULL)
+	if (buf == 0 && (buf = (int8_t *) malloc(bufsz)) == NULL)
 		FATAL("out of space for rex expr");
 	bp = buf;
 	for ( ; (c = input()) != '/' && c != 0; ) {
@@ -531,16 +531,16 @@ int regexpr(void)
 
 /* low-level lexical stuff, sort of inherited from lex */
 
-char	ebuf[300];
-char	*ep = ebuf;
-char	yysbuf[100];	/* pushback buffer */
-char	*yysptr = yysbuf;
+int8_t	ebuf[300];
+int8_t	*ep = ebuf;
+int8_t	yysbuf[100];	/* pushback buffer */
+int8_t	*yysptr = yysbuf;
 FILE	*yyin = 0;
 
 int input(void)	/* get next lexical input character */
 {
 	int c;
-	extern char *lexprog;
+	extern int8_t *lexprog;
 
 	if (yysptr > yysbuf)
 		c = *--yysptr;
@@ -569,7 +569,7 @@ void unput(int c)	/* put lexical character back on input */
 		ep = ebuf + sizeof(ebuf) - 1;
 }
 
-void unputstr(char *s)	/* put a string back on input */
+void unputstr(int8_t *s)	/* put a string back on input */
 {
 	int i;
 

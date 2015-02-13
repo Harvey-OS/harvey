@@ -22,15 +22,15 @@ typedef struct Aux Aux;
 struct Aux {
 	Aux	*next;
 	Aux	*prev;
-	char	*path;		/* full path fo file */
+	int8_t	*path;		/* full path fo file */
 	Share	*sp;		/* this share's info */
-	long	expire;		/* expiration time of cache */
-	long	off;		/* file pos of start of cache */
-	long	end;		/* file pos of end of cache */
-	char	*cache;
+	int32_t	expire;		/* expiration time of cache */
+	int32_t	off;		/* file pos of start of cache */
+	int32_t	end;		/* file pos of end of cache */
+	int8_t	*cache;
 	int	fh;		/* file handle */
 	int	sh;		/* search handle */
-	long	srch;		/* find first's internal state */
+	int32_t	srch;		/* find first's internal state */
 };
 
 extern int chatty9p;
@@ -39,7 +39,7 @@ int Checkcase = 1;		/* enforce case significance on filenames */
 int Dfstout = 100;		/* timeout (in ms) for ping of dfs servers (assume they are local)  */
 int Billtrog = 1;		/* enable file owner/group resolution */
 int Attachpid;			/* pid of proc that attaches (ugh !) */
-char *Debug = nil;		/* messages */
+int8_t *Debug = nil;		/* messages */
 Qid Root;			/* root of remote system */
 Share Ipc;			/* Share info of IPC$ share */
 Session *Sess;			/* current session */
@@ -48,9 +48,9 @@ static int Keeppid;		/* process ID of keepalive thread */
 Share Shares[MAX_SHARES]; 	/* table of connected shares */
 int Nshares = 0;		/* number of Shares connected */
 Aux *Auxroot = nil;		/* linked list of Aux structs */
-char *Host = nil;		/* host we are connected to */
+int8_t *Host = nil;		/* host we are connected to */
 
-static char *Ipcname = "IPC$";
+static int8_t *Ipcname = "IPC$";
 
 #define ptype(x)	(((x) & 0xf))
 #define pindex(x)	(((x) & 0xff0) >> 4)
@@ -59,7 +59,7 @@ void
 setup(void)
 {
 	int fd;
-	char buf[32];
+	int8_t buf[32];
 
 	/*
 	 * This is revolting but I cannot see any other way to get
@@ -80,7 +80,7 @@ int
 filetableinfo(Fmt *f)
 {
 	Aux *ap;
-	char *type;
+	int8_t *type;
 
 	if((ap = Auxroot) != nil)
 		do{
@@ -96,24 +96,24 @@ filetableinfo(Fmt *f)
 }
 
 Qid
-mkqid(char *s, int is_dir, long vers, int subtype, long path)
+mkqid(int8_t *s, int is_dir, int32_t vers, int subtype, int32_t path)
 {
 	Qid q;
 	union {				/* align digest suitably */
-		uchar	digest[SHA1dlen];
-		uvlong	uvl;
+		uint8_t	digest[SHA1dlen];
+		uint64_t	uvl;
 	} u;
 
-	sha1((uchar *)s, strlen(s), u.digest, nil);
+	sha1((uint8_t *)s, strlen(s), u.digest, nil);
 	q.type = (is_dir)? QTDIR: 0;
 	q.vers = vers;
 	if(subtype){
-		q.path = *((uvlong *)u.digest) & ~0xfffL;
+		q.path = *((uint64_t *)u.digest) & ~0xfffL;
 		q.path |= ((path & 0xff) << 4);
 		q.path |= (subtype & 0xf);
 	}
 	else
-		q.path = *((uvlong *)u.digest) & ~0xfL;
+		q.path = *((uint64_t *)u.digest) & ~0xfL;
 	return q;
 }
 
@@ -121,7 +121,7 @@ mkqid(char *s, int is_dir, long vers, int subtype, long path)
  * used only for root dir and shares
  */
 static void
-V2D(Dir *d, Qid qid, char *name)
+V2D(Dir *d, Qid qid, int8_t *name)
 {
 	memset(d, 0, sizeof(Dir));
 	d->type = 'C';
@@ -138,9 +138,9 @@ V2D(Dir *d, Qid qid, char *name)
 }
 
 static void
-I2D(Dir *d, Share *sp, char *path, FInfo *fi)
+I2D(Dir *d, Share *sp, int8_t *path, FInfo *fi)
 {
-	char *name;
+	int8_t *name;
 
 	if((name = strrchr(fi->name, '\\')) != nil)
 		name++;
@@ -172,17 +172,17 @@ I2D(Dir *d, Share *sp, char *path, FInfo *fi)
 static void
 responderrstr(Req *r)
 {
-	char e[ERRMAX];
+	int8_t e[ERRMAX];
 
 	*e = 0;
 	rerrstr(e, sizeof e);
 	respond(r, e);
 }
 
-static char *
-newpath(char *path, char *name)
+static int8_t *
+newpath(int8_t *path, int8_t *name)
 {
-	char *p, *q;
+	int8_t *p, *q;
 
 	assert((p = strrchr(path, '/')) != nil);
 
@@ -201,11 +201,11 @@ newpath(char *path, char *name)
 static int
 dirgen(int slot, Dir *d, void *aux)
 {
-	long off;
+	int32_t off;
 	FInfo *fi;
 	int rc, got;
 	Aux *a = aux;
-	char *npath;
+	int8_t *npath;
 	int numinf = numinfo();
 	int slots = min(Sess->mtu, MTU) / sizeof(FInfo);
 
@@ -284,7 +284,7 @@ fsattach(Req *r)
 {
 	Aux *a;
 	static int first = 1;
-	char *spec = r->ifcall.aname;
+	int8_t *spec = r->ifcall.aname;
 
 	if(first)
 		setup();
@@ -317,7 +317,7 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-static char*
+static int8_t*
 fsclone(Fid *ofid, Fid *fid)
 {
 	Aux *oa = ofid->aux;
@@ -360,9 +360,9 @@ fsclone(Fid *ofid, Fid *fid)
  * be correct, having been enforced in the dfs layer.
  */
 static int
-validfile(char *found, char *want, char *winpath, Share *sp)
+validfile(int8_t *found, int8_t *want, int8_t *winpath, Share *sp)
 {
-	char *share;
+	int8_t *share;
 
 	if(strcmp(want, "..") == 0)
 		return 1;
@@ -387,14 +387,14 @@ validfile(char *found, char *want, char *winpath, Share *sp)
 }
 
 
-static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+static int8_t*
+fswalk1(Fid *fid, int8_t *name, Qid *qid)
 {
 	FInfo fi;
 	int rc, n, i;
 	Aux *a = fid->aux;
-	static char e[ERRMAX];
-	char *p, *npath, *winpath;
+	static int8_t e[ERRMAX];
+	int8_t *p, *npath, *winpath;
 
 	*e = 0;
 	npath = newpath(a->path, name);
@@ -510,7 +510,7 @@ fsstat(Req *r)
 }
 
 static int
-smbcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
+smbcreateopen(Aux *a, int8_t *path, int mode, int perm, int is_create,
 	int is_dir, FInfo *fip)
 {
 	int rc, action, attrs, access, result;
@@ -584,7 +584,7 @@ smbcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
 
 /* Uncle Bill, you have a lot to answer for... */
 static int
-ntcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
+ntcreateopen(Aux *a, int8_t *path, int mode, int perm, int is_create,
 	int is_dir, FInfo *fip)
 {
 	int options, result, attrs, flags, access, action, share;
@@ -671,7 +671,7 @@ fscreate(Req *r)
 {
 	FInfo fi;
 	int rc, is_dir;
-	char *npath;
+	int8_t *npath;
 	Aux *a = r->fid->aux;
 
 	a->end = a->off = 0;
@@ -740,11 +740,11 @@ fsopen(Req *r)
 static void
 fswrite(Req *r)
 {
-	vlong n, m, got;
+	int64_t n, m, got;
 	Aux *a = r->fid->aux;
-	vlong len = r->ifcall.count;
-	vlong off = r->ifcall.offset;
-	char *buf = r->ifcall.data;
+	int64_t len = r->ifcall.count;
+	int64_t off = r->ifcall.offset;
+	int8_t *buf = r->ifcall.data;
 
 	got = 0;
 	n = Sess->mtu -OVERHEAD;
@@ -766,11 +766,11 @@ fswrite(Req *r)
 static void
 fsread(Req *r)
 {
-	vlong n, m, got;
+	int64_t n, m, got;
 	Aux *a = r->fid->aux;
-	char *buf = r->ofcall.data;
-	vlong len = r->ifcall.count;
-	vlong off = r->ifcall.offset;
+	int8_t *buf = r->ofcall.data;
+	int64_t len = r->ifcall.count;
+	int64_t off = r->ifcall.offset;
 
 	if(ptype(r->fid->qid.path) == Pinfo){
 		r->ofcall.count = readinfo(pindex(r->fid->qid.path), buf, len,
@@ -835,7 +835,7 @@ fsdestroyfid(Fid *f)
 }
 
 int
-rdonly(Session *s, Share *sp, char *path, int rdonly)
+rdonly(Session *s, Share *sp, int8_t *path, int rdonly)
 {
 	int rc;
 	FInfo fi;
@@ -860,7 +860,7 @@ static void
 fsremove(Req *r)
 {
 	int try, rc;
-	char e[ERRMAX];
+	int8_t e[ERRMAX];
 	Aux *ap, *a = r->fid->aux;
 
 	*e = 0;
@@ -905,7 +905,7 @@ fswstat(Req *r)
 {
 	int fh, result, rc;
 	FInfo fi, tmpfi;
-	char *p, *from, *npath;
+	int8_t *p, *from, *npath;
 	Aux *a = r->fid->aux;
 
 	if(ptype(r->fid->qid.path) == Proot ||
@@ -1096,8 +1096,8 @@ usage(void)
 static void
 keepalive(void)
 {
-	char buf[32];
-	uvlong tot, fre;
+	int8_t buf[32];
+	uint64_t tot, fre;
 	int fd, i, slot, rc;
 
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
@@ -1124,7 +1124,7 @@ keepalive(void)
 
 
 static void
-ding(void *u, char *msg)
+ding(void *u, int8_t *msg)
 {
 	USED(u);
 	if(strstr(msg, "alarm") != nil)
@@ -1133,7 +1133,7 @@ ding(void *u, char *msg)
 }
 
 void
-dmpkey(char *s, void *v, int n)
+dmpkey(int8_t *s, void *v, int n)
 {
 	int i;
 	unsigned char *p = (unsigned char *)v;

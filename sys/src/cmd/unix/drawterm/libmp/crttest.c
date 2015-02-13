@@ -47,7 +47,7 @@ main(void)
 {
 	int i;
 	mpint *p[2];
-	long start;
+	int32_t start;
 
 	start = time(0);
 	for(i = 0; i < 10; i++){

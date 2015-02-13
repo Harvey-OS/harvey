@@ -19,7 +19,7 @@
 static int syren;
 
 Lsym*
-unique(char *buf, Sym *s)
+unique(int8_t *buf, Sym *s)
 {
 	Lsym *l;
 	int i, renamed;
@@ -56,10 +56,10 @@ varsym(void)
 {
 	int i;
 	Sym *s;
-	long n;
+	int32_t n;
 	Lsym *l;
-	uvlong v;
-	char buf[1024];
+	uint64_t v;
+	int8_t buf[1024];
 	List *list, **tail, *l2, *tl;
 
 	tail = &l2;
@@ -187,12 +187,12 @@ loadvars(void)
 	l->v->type = TLIST;
 }
 
-uvlong
-rget(Map *map, char *reg)
+uint64_t
+rget(Map *map, int8_t *reg)
 {
 	Lsym *s;
-	ulong x;
-	uvlong v;
+	uint32_t x;
+	uint64_t v;
 	int ret;
 
 	s = look(reg);
@@ -217,12 +217,12 @@ rget(Map *map, char *reg)
 }
 
 String*
-strnodlen(char *name, int len)
+strnodlen(int8_t *name, int len)
 {
 	String *s;
 
 	s = gmalloc(sizeof(String)+len+1);
-	s->string = (char*)s+sizeof(String);
+	s->string = (int8_t*)s+sizeof(String);
 	s->len = len;
 	if(name != 0)
 		memmove(s->string, name, len);
@@ -235,7 +235,7 @@ strnodlen(char *name, int len)
 }
 
 String*
-strnode(char *name)
+strnode(int8_t *name)
 {
 	return strnodlen(name, strlen(name));
 }
@@ -254,7 +254,7 @@ runenode(Rune *name)
 	len++;
 	len *= sizeof(Rune);
 	s = gmalloc(sizeof(String)+len);
-	s->string = (char*)s+sizeof(String);
+	s->string = (int8_t*)s+sizeof(String);
 	s->len = len;
 	memmove(s->string, name, len);
 
@@ -275,7 +275,7 @@ stradd(String *l, String *r)
 	s->gclink = gcl;
 	gcl = s;
 	s->len = len;
-	s->string = (char*)s+sizeof(String);
+	s->string = (int8_t*)s+sizeof(String);
 	memmove(s->string, l->string, l->len);
 	memmove(s->string+l->len, r->string, r->len);
 	s->string[s->len] = 0;
@@ -293,7 +293,7 @@ straddrune(String *l, Rune r)
 	s->gclink = gcl;
 	gcl = s;
 	s->len = len;
-	s->string = (char*)s+sizeof(String);
+	s->string = (int8_t*)s+sizeof(String);
 	memmove(s->string, l->string, l->len);
 	runetochar(s->string+l->len, &r);
 	s->string[s->len] = 0;

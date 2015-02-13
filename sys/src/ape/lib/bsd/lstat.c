@@ -12,20 +12,20 @@
 #include <errno.h>
 
 int
-lstat(char *name, struct stat *ans)
+lstat(int8_t *name, struct stat *ans)
 {
 	return stat(name, ans);
 }
 
 int
-symlink(char *, char *)
+symlink(int8_t *, int8_t *)
 {
 	errno = EPERM;
 	return -1;
 }
 
 int
-readlink(char *, char *, int )
+readlink(int8_t *, int8_t *, int )
 {
 	errno = EIO;
 	return -1;

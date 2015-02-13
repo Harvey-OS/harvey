@@ -13,10 +13,11 @@
 #include <sunrpc.h>
 
 SunStatus
-sunCallPack(SunProg *prog, uchar *a, uchar *ea, uchar **pa, SunCall *c)
+sunCallPack(SunProg *prog, uint8_t *a, uint8_t *ea, uint8_t **pa,
+	    SunCall *c)
 {
-	uchar *x;
-	int (*pack)(uchar*, uchar*, uchar**, SunCall*);
+	uint8_t *x;
+	int (*pack)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
 
 	if(pa == nil)
 		pa = &x;
@@ -28,10 +29,11 @@ sunCallPack(SunProg *prog, uchar *a, uchar *ea, uchar **pa, SunCall *c)
 }
 
 SunStatus
-sunCallUnpack(SunProg *prog, uchar *a, uchar *ea, uchar **pa, SunCall *c)
+sunCallUnpack(SunProg *prog, uint8_t *a, uint8_t *ea, uint8_t **pa,
+	      SunCall *c)
 {
-	uchar *x;
-	int (*unpack)(uchar*, uchar*, uchar**, SunCall*);
+	uint8_t *x;
+	int (*unpack)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
 
 	if(pa == nil)
 		pa = &x;
@@ -45,11 +47,12 @@ sunCallUnpack(SunProg *prog, uchar *a, uchar *ea, uchar **pa, SunCall *c)
 }
 
 SunStatus
-sunCallUnpackAlloc(SunProg *prog, SunCallType type, uchar *a, uchar *ea, uchar **pa, SunCall **pc)
+sunCallUnpackAlloc(SunProg *prog, SunCallType type, uint8_t *a, uint8_t *ea,
+		   uint8_t **pa, SunCall **pc)
 {
-	uchar *x;
+	uint8_t *x;
 	uint size;
-	int (*unpack)(uchar*, uchar*, uchar**, SunCall*);
+	int (*unpack)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
 	SunCall *c;
 
 	if(pa == nil)

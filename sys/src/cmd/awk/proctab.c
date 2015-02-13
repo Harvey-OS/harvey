@@ -11,99 +11,99 @@
 #include "awk.h"
 #include "y.tab.h"
 
-static char *printname[92] = {
-	(char *) "FIRSTTOKEN",	/* 57346 */
-	(char *) "PROGRAM",	/* 57347 */
-	(char *) "PASTAT",	/* 57348 */
-	(char *) "PASTAT2",	/* 57349 */
-	(char *) "XBEGIN",	/* 57350 */
-	(char *) "XEND",	/* 57351 */
-	(char *) "NL",	/* 57352 */
-	(char *) "ARRAY",	/* 57353 */
-	(char *) "MATCH",	/* 57354 */
-	(char *) "NOTMATCH",	/* 57355 */
-	(char *) "MATCHOP",	/* 57356 */
-	(char *) "FINAL",	/* 57357 */
-	(char *) "DOT",	/* 57358 */
-	(char *) "ALL",	/* 57359 */
-	(char *) "CCL",	/* 57360 */
-	(char *) "NCCL",	/* 57361 */
-	(char *) "CHAR",	/* 57362 */
-	(char *) "OR",	/* 57363 */
-	(char *) "STAR",	/* 57364 */
-	(char *) "QUEST",	/* 57365 */
-	(char *) "PLUS",	/* 57366 */
-	(char *) "AND",	/* 57367 */
-	(char *) "BOR",	/* 57368 */
-	(char *) "APPEND",	/* 57369 */
-	(char *) "EQ",	/* 57370 */
-	(char *) "GE",	/* 57371 */
-	(char *) "GT",	/* 57372 */
-	(char *) "LE",	/* 57373 */
-	(char *) "LT",	/* 57374 */
-	(char *) "NE",	/* 57375 */
-	(char *) "IN",	/* 57376 */
-	(char *) "ARG",	/* 57377 */
-	(char *) "BLTIN",	/* 57378 */
-	(char *) "BREAK",	/* 57379 */
-	(char *) "CLOSE",	/* 57380 */
-	(char *) "CONTINUE",	/* 57381 */
-	(char *) "DELETE",	/* 57382 */
-	(char *) "DO",	/* 57383 */
-	(char *) "EXIT",	/* 57384 */
-	(char *) "FOR",	/* 57385 */
-	(char *) "FUNC",	/* 57386 */
-	(char *) "SUB",	/* 57387 */
-	(char *) "GSUB",	/* 57388 */
-	(char *) "IF",	/* 57389 */
-	(char *) "INDEX",	/* 57390 */
-	(char *) "LSUBSTR",	/* 57391 */
-	(char *) "MATCHFCN",	/* 57392 */
-	(char *) "NEXT",	/* 57393 */
-	(char *) "NEXTFILE",	/* 57394 */
-	(char *) "ADD",	/* 57395 */
-	(char *) "MINUS",	/* 57396 */
-	(char *) "MULT",	/* 57397 */
-	(char *) "DIVIDE",	/* 57398 */
-	(char *) "MOD",	/* 57399 */
-	(char *) "ASSIGN",	/* 57400 */
-	(char *) "ASGNOP",	/* 57401 */
-	(char *) "ADDEQ",	/* 57402 */
-	(char *) "SUBEQ",	/* 57403 */
-	(char *) "MULTEQ",	/* 57404 */
-	(char *) "DIVEQ",	/* 57405 */
-	(char *) "MODEQ",	/* 57406 */
-	(char *) "POWEQ",	/* 57407 */
-	(char *) "PRINT",	/* 57408 */
-	(char *) "PRINTF",	/* 57409 */
-	(char *) "SPRINTF",	/* 57410 */
-	(char *) "ELSE",	/* 57411 */
-	(char *) "INTEST",	/* 57412 */
-	(char *) "CONDEXPR",	/* 57413 */
-	(char *) "POSTINCR",	/* 57414 */
-	(char *) "PREINCR",	/* 57415 */
-	(char *) "POSTDECR",	/* 57416 */
-	(char *) "PREDECR",	/* 57417 */
-	(char *) "VAR",	/* 57418 */
-	(char *) "IVAR",	/* 57419 */
-	(char *) "VARNF",	/* 57420 */
-	(char *) "CALL",	/* 57421 */
-	(char *) "NUMBER",	/* 57422 */
-	(char *) "STRING",	/* 57423 */
-	(char *) "REGEXPR",	/* 57424 */
-	(char *) "GETLINE",	/* 57425 */
-	(char *) "RETURN",	/* 57426 */
-	(char *) "SPLIT",	/* 57427 */
-	(char *) "SUBSTR",	/* 57428 */
-	(char *) "WHILE",	/* 57429 */
-	(char *) "CAT",	/* 57430 */
-	(char *) "NOT",	/* 57431 */
-	(char *) "UMINUS",	/* 57432 */
-	(char *) "POWER",	/* 57433 */
-	(char *) "DECR",	/* 57434 */
-	(char *) "INCR",	/* 57435 */
-	(char *) "INDIRECT",	/* 57436 */
-	(char *) "LASTTOKEN",	/* 57437 */
+static int8_t *printname[92] = {
+	(int8_t *) "FIRSTTOKEN",	/* 57346 */
+	(int8_t *) "PROGRAM",	/* 57347 */
+	(int8_t *) "PASTAT",	/* 57348 */
+	(int8_t *) "PASTAT2",	/* 57349 */
+	(int8_t *) "XBEGIN",	/* 57350 */
+	(int8_t *) "XEND",	/* 57351 */
+	(int8_t *) "NL",	/* 57352 */
+	(int8_t *) "ARRAY",	/* 57353 */
+	(int8_t *) "MATCH",	/* 57354 */
+	(int8_t *) "NOTMATCH",	/* 57355 */
+	(int8_t *) "MATCHOP",	/* 57356 */
+	(int8_t *) "FINAL",	/* 57357 */
+	(int8_t *) "DOT",	/* 57358 */
+	(int8_t *) "ALL",	/* 57359 */
+	(int8_t *) "CCL",	/* 57360 */
+	(int8_t *) "NCCL",	/* 57361 */
+	(int8_t *) "CHAR",	/* 57362 */
+	(int8_t *) "OR",	/* 57363 */
+	(int8_t *) "STAR",	/* 57364 */
+	(int8_t *) "QUEST",	/* 57365 */
+	(int8_t *) "PLUS",	/* 57366 */
+	(int8_t *) "AND",	/* 57367 */
+	(int8_t *) "BOR",	/* 57368 */
+	(int8_t *) "APPEND",	/* 57369 */
+	(int8_t *) "EQ",	/* 57370 */
+	(int8_t *) "GE",	/* 57371 */
+	(int8_t *) "GT",	/* 57372 */
+	(int8_t *) "LE",	/* 57373 */
+	(int8_t *) "LT",	/* 57374 */
+	(int8_t *) "NE",	/* 57375 */
+	(int8_t *) "IN",	/* 57376 */
+	(int8_t *) "ARG",	/* 57377 */
+	(int8_t *) "BLTIN",	/* 57378 */
+	(int8_t *) "BREAK",	/* 57379 */
+	(int8_t *) "CLOSE",	/* 57380 */
+	(int8_t *) "CONTINUE",	/* 57381 */
+	(int8_t *) "DELETE",	/* 57382 */
+	(int8_t *) "DO",	/* 57383 */
+	(int8_t *) "EXIT",	/* 57384 */
+	(int8_t *) "FOR",	/* 57385 */
+	(int8_t *) "FUNC",	/* 57386 */
+	(int8_t *) "SUB",	/* 57387 */
+	(int8_t *) "GSUB",	/* 57388 */
+	(int8_t *) "IF",	/* 57389 */
+	(int8_t *) "INDEX",	/* 57390 */
+	(int8_t *) "LSUBSTR",	/* 57391 */
+	(int8_t *) "MATCHFCN",	/* 57392 */
+	(int8_t *) "NEXT",	/* 57393 */
+	(int8_t *) "NEXTFILE",	/* 57394 */
+	(int8_t *) "ADD",	/* 57395 */
+	(int8_t *) "MINUS",	/* 57396 */
+	(int8_t *) "MULT",	/* 57397 */
+	(int8_t *) "DIVIDE",	/* 57398 */
+	(int8_t *) "MOD",	/* 57399 */
+	(int8_t *) "ASSIGN",	/* 57400 */
+	(int8_t *) "ASGNOP",	/* 57401 */
+	(int8_t *) "ADDEQ",	/* 57402 */
+	(int8_t *) "SUBEQ",	/* 57403 */
+	(int8_t *) "MULTEQ",	/* 57404 */
+	(int8_t *) "DIVEQ",	/* 57405 */
+	(int8_t *) "MODEQ",	/* 57406 */
+	(int8_t *) "POWEQ",	/* 57407 */
+	(int8_t *) "PRINT",	/* 57408 */
+	(int8_t *) "PRINTF",	/* 57409 */
+	(int8_t *) "SPRINTF",	/* 57410 */
+	(int8_t *) "ELSE",	/* 57411 */
+	(int8_t *) "INTEST",	/* 57412 */
+	(int8_t *) "CONDEXPR",	/* 57413 */
+	(int8_t *) "POSTINCR",	/* 57414 */
+	(int8_t *) "PREINCR",	/* 57415 */
+	(int8_t *) "POSTDECR",	/* 57416 */
+	(int8_t *) "PREDECR",	/* 57417 */
+	(int8_t *) "VAR",	/* 57418 */
+	(int8_t *) "IVAR",	/* 57419 */
+	(int8_t *) "VARNF",	/* 57420 */
+	(int8_t *) "CALL",	/* 57421 */
+	(int8_t *) "NUMBER",	/* 57422 */
+	(int8_t *) "STRING",	/* 57423 */
+	(int8_t *) "REGEXPR",	/* 57424 */
+	(int8_t *) "GETLINE",	/* 57425 */
+	(int8_t *) "RETURN",	/* 57426 */
+	(int8_t *) "SPLIT",	/* 57427 */
+	(int8_t *) "SUBSTR",	/* 57428 */
+	(int8_t *) "WHILE",	/* 57429 */
+	(int8_t *) "CAT",	/* 57430 */
+	(int8_t *) "NOT",	/* 57431 */
+	(int8_t *) "UMINUS",	/* 57432 */
+	(int8_t *) "POWER",	/* 57433 */
+	(int8_t *) "DECR",	/* 57434 */
+	(int8_t *) "INCR",	/* 57435 */
+	(int8_t *) "INDIRECT",	/* 57436 */
+	(int8_t *) "LASTTOKEN",	/* 57437 */
 };
 
 
@@ -202,9 +202,9 @@ Cell *(*proctab[92])(Node **, int) = {
 	nullproc,	/* LASTTOKEN */
 };
 
-char *tokname(int n)
+int8_t *tokname(int n)
 {
-	static char buf[100];
+	static int8_t buf[100];
 
 	if (n < FIRSTTOKEN || n > LASTTOKEN) {
 		sprintf(buf, "token %d", n);

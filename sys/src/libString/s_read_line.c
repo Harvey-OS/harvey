@@ -17,10 +17,10 @@
  * Returns a pointer to the character string (or 0).
  * Trailing newline is left on.
  */ 
-extern char *
+extern int8_t *
 s_read_line(Biobuf *fp, String *to)
 {
-	char *cp;
+	int8_t *cp;
 	int llen;
 
 	if(to->ref > 1)

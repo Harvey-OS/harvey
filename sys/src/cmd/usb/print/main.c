@@ -29,7 +29,7 @@ usage(void)
 
 static int csps[] = { 0x020107, 0 };
 
-extern int printmain(Dev*, int, char**);
+extern int printmain(Dev*, int, int8_t**);
 
 void
 threadmain(int argc, char **argv)

@@ -46,11 +46,11 @@ int lidebug = 0;
 static void lialg_initialize(rClassifier *);
 static int lialg_read_classifier_digest(rClassifier *);
 static int lialg_canonicalize_examples(rClassifier *);
-static char *lialg_recognize_stroke(rClassifier *, point_list *);
+static int8_t *lialg_recognize_stroke(rClassifier *, point_list *);
 static void lialg_compute_lpf_parameters(void);
 
 
-char* li_err_msg = nil;
+int8_t* li_err_msg = nil;
 
 #define bcopy(s1,s2,n) memmove(s2,s1,n)
 
@@ -101,10 +101,10 @@ delete_examples(point_list* l)
  * recognize_internal-Form Vector, use Classifier to classify, return char.
  */
 
-static char*
+static int8_t*
 recognize_internal(rClassifier* rec, Stroke* str, int*)
 {
-	char *res;
+	int8_t *res;
 	point_list *stroke;
 
 	stroke = add_example(nil, str->npts, str->pts);
@@ -121,9 +121,9 @@ recognize_internal(rClassifier* rec, Stroke* str, int*)
  */
 
 static int
-  file_path(char* dir,char* filename,char* pathname)
+  file_path(int8_t* dir,int8_t* filename,int8_t* pathname)
 {
-	char* dot;
+	int8_t* dot;
 	
 	/*Check for proper extension on file name.*/
 	
@@ -151,12 +151,12 @@ static int
 /*read_classifier_points-Read points so classifier can be extended.*/
 
 static int 
-read_classifier_points(FILE* fd,int nclss,point_list** ex,char** cnames)
+read_classifier_points(FILE* fd,int nclss,point_list** ex,int8_t** cnames)
 {
 	int i,j,k;
-	char buf[BUFSIZ];
+	int8_t buf[BUFSIZ];
 	int nex = 0;
-	char* names[MAXSCLASSES];
+	int8_t* names[MAXSCLASSES];
 	point_list* examples[MAXSCLASSES];
 	pen_point* pts;
 	int npts;
@@ -266,11 +266,11 @@ static int read_classifier(FILE* fd,rClassifier* rc)
 /* getClasses and clearState are by Ari */
 
 static int
-recognizer_getClasses (recognizer r, char ***list, int *nc)
+recognizer_getClasses (recognizer r, int8_t ***list, int *nc)
 {
 	int i, nclasses;
 	li_recognizer* rec;
-	char **ret;
+	int8_t **ret;
 
 		rec = (li_recognizer*)r->recognizer_specific;
 
@@ -282,7 +282,7 @@ recognizer_getClasses (recognizer r, char ***list, int *nc)
 	}
 	
 	*nc = nclasses = rec->li_rc.nclasses;
-	ret = malloc(nclasses*sizeof(char*));
+	ret = malloc(nclasses*sizeof(int8_t*));
 
 	for (i = 0; i < nclasses; i++)
 				ret[i] = rec->li_rc.cnames[i];   /* only the 1st char of the cname */
@@ -317,7 +317,7 @@ int
 li_recognizer_get_example (recognizer r,
 						   int		class, 
 						   int		instance,
-						   char		**name, 
+						   int8_t		**name, 
 						   pen_point	**points,
 						   int		*npts)
 {
@@ -352,10 +352,10 @@ li_recognizer_get_example (recognizer r,
 
 /*li_recognizer_load-Load a classifier file.*/
 
-static int li_recognizer_load(recognizer r, char* dir, char* filename)
+static int li_recognizer_load(recognizer r, int8_t* dir, int8_t* filename)
 {
 		FILE *fd;
-		char* pathname;
+		int8_t* pathname;
 		li_recognizer* rec;
 		rClassifier* rc;
 		
@@ -388,7 +388,7 @@ static int li_recognizer_load(recognizer r, char* dir, char* filename)
 
 		/*Make full pathname and check filename*/
 
-		pathname = malloc((strlen(dir) + strlen(filename) + 2)*sizeof(char));
+		pathname = malloc((strlen(dir) + strlen(filename) + 2)*sizeof(int8_t));
 		if( file_path(dir, filename, pathname) == -1 ) {
 				free(pathname);
 				li_err_msg = "Not a LI recognizer classifier file";
@@ -443,7 +443,7 @@ static int li_recognizer_load(recognizer r, char* dir, char* filename)
 
 /*li_recognizer_save-Save a classifier file.*/
 
-static int li_recognizer_save(recognizer, char*, char*)
+static int li_recognizer_save(recognizer, int8_t*, int8_t*)
 { 
 		/*This operation isn't supported by the LI recognizer.*/
 
@@ -452,7 +452,7 @@ static int li_recognizer_save(recognizer, char*, char*)
 }
 
 static wordset
-li_recognizer_load_dictionary(recognizer, char*, char*)
+li_recognizer_load_dictionary(recognizer, int8_t*, int8_t*)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 
@@ -461,7 +461,7 @@ li_recognizer_load_dictionary(recognizer, char*, char*)
 }
 
 static int
-li_recognizer_save_dictionary(recognizer, char*, char*, wordset)
+li_recognizer_save_dictionary(recognizer, int8_t*, int8_t*, wordset)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Dictionaries are not supported by the LI recognizer";
@@ -495,10 +495,10 @@ li_recognizer_delete_from_dictionary(recognizer, letterset*, wordset)
 		return -1;
 }
 
-static char*
+static int8_t*
 li_recognizer_error(recognizer rec)
 {
-	char* ret = li_err_msg;
+	int8_t* ret = li_err_msg;
 
 	/*Check for LI recognizer.*/
 
@@ -559,7 +559,7 @@ li_recognizer_set_buffer(recognizer, uint, Stroke*)
 static int
 li_recognizer_translate(recognizer r, uint ncs, Stroke* tps, bool, int* nret, rec_alternative** ret)
 {
-	char* clss;
+	int8_t* clss;
 	li_recognizer* rec; 
 	int conf;
 	rClassifier* rc;
@@ -638,7 +638,7 @@ li_recognizer_get_extension_functions(recognizer rec)
 	return(ret);
 }
 
-static char**
+static int8_t**
 li_recognizer_get_gesture_names(recognizer)
 {
 		/*This operation isn't supported by the LI recognizer.*/
@@ -647,7 +647,7 @@ li_recognizer_get_gesture_names(recognizer)
 }
 
 static xgesture
-li_recognizer_set_gesture_action(recognizer, char*, xgesture, void*)
+li_recognizer_set_gesture_action(recognizer, int8_t*, xgesture, void*)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Gestures are not supported by the LI recognizer";
@@ -922,13 +922,13 @@ static void lialg_initialize(rClassifier *rec) {
 /*
  *  Main recognition routine -- called by HRE API.
  */
-static char *lialg_recognize_stroke(rClassifier *rec, point_list *stroke) {
+static int8_t *lialg_recognize_stroke(rClassifier *rec, point_list *stroke) {
 		int i;
-		char *name = nil;
+		int8_t *name = nil;
 		point_list *input_dompts = nil;
-		char *best_name = nil;
+		int8_t *best_name = nil;
 		int best_score = WORST_SCORE;
-		char *curr_name;
+		int8_t *curr_name;
 		point_list *curr_dompts;
 
 		/*    (void)gettimeofday(&stv, nil);*/
@@ -1760,12 +1760,12 @@ static int lialg_read_classifier_digest(rClassifier *rec) {
 
 	/* Try to open the corresponding digest file. */
 	{
-				char *clx_path;
-				char *dot;
+				int8_t *clx_path;
+				int8_t *dot;
 		
 				/* Get a copy of the filename, with some room on the end. */
 				/*	clx_path = safe_malloc(strlen(rec->file_name) + 5); */
-				clx_path = malloc((strlen(rec->file_name) + 5) *sizeof(char));
+				clx_path = malloc((strlen(rec->file_name) + 5) *sizeof(int8_t));
 				strcpy(clx_path, rec->file_name);
 		
 				/* Truncate the path after the last dot. */
@@ -1788,7 +1788,7 @@ static int lialg_read_classifier_digest(rClassifier *rec) {
 	/* Read-in the name and dominant points for each class. */
 	for (nclasses = 0; !feof(fp); nclasses++) {
 		point_list *dpts = nil;
-		char class[BUFSIZ];
+		int8_t class[BUFSIZ];
 		int npts;
 		int j;
 
@@ -1995,7 +1995,7 @@ static int lialg_canonicalize_examples(rClassifier *rec) {
 
 	/* Sanity check. */
 	for (i = 0; i < nclasses; i++) {
-		char *best_name = lialg_recognize_stroke(rec, rec->canonex[i]);
+		int8_t *best_name = lialg_recognize_stroke(rec, rec->canonex[i]);
 
 		if (best_name != rec->cnames[i])
 			fprint(2, "%s, best = %s\n", rec->cnames[i], best_name);
@@ -2282,7 +2282,7 @@ static void lialg_compute_lpf_parameters(void) {
 /* Code from Joseph Hall (jnhall@sat.mot.com). */
 static int isqrt(int n) {
 		register int i;
-		register long k0, k1, nn;
+		register int32_t k0, k1, nn;
 
 		for (nn = i = n, k0 = 2; i > 0; i >>= 2, k0 <<= 1)
 				;

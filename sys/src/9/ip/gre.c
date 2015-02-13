@@ -33,20 +33,20 @@ enum
 typedef struct GREhdr
 {
 	/* ip header */
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	len[2];		/* packet length (including headers) */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	Unused;
-	uchar	proto;		/* Protocol */
-	uchar	cksum[2];	/* checksum */
-	uchar	src[4];		/* Ip source */
-	uchar	dst[4];		/* Ip destination */
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	len[2];		/* packet length (including headers) */
+	uint8_t	id[2];		/* Identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	Unused;
+	uint8_t	proto;		/* Protocol */
+	uint8_t	cksum[2];	/* checksum */
+	uint8_t	src[4];		/* Ip source */
+	uint8_t	dst[4];		/* Ip destination */
 
 	/* gre header */
-	uchar	flags[2];
-	uchar	eproto[2];	/* encapsulation protocol */
+	uint8_t	flags[2];
+	uint8_t	eproto[2];	/* encapsulation protocol */
 } GREhdr;
 
 typedef struct GREpriv GREpriv;
@@ -55,17 +55,17 @@ struct GREpriv
 	int		raw;			/* Raw GRE mode */
 
 	/* non-MIB stats */
-	ulong		csumerr;		/* checksum errors */
-	ulong		lenerr;			/* short packet */
+	uint32_t		csumerr;		/* checksum errors */
+	uint32_t		lenerr;			/* short packet */
 };
 
 static void grekick(void *x, Block *bp);
 
-static char*
-greconnect(Conv *c, char **argv, int argc)
+static int8_t*
+greconnect(Conv *c, int8_t **argv, int argc)
 {
 	Proto *p;
-	char *err;
+	int8_t *err;
 	Conv *tc, **cp, **ecp;
 
 	err = Fsstdconnect(c, argv, argc);
@@ -106,14 +106,14 @@ grecreate(Conv *c)
 }
 
 static int
-grestate(Conv *c, char *state, int n)
+grestate(Conv *c, int8_t *state, int n)
 {
 	USED(c);
 	return snprint(state, n, "%s\n", "Datagram");
 }
 
-static char*
-greannounce(Conv*, char**, int)
+static int8_t*
+greannounce(Conv*, int8_t**, int)
 {
 	return "pktifc does not support announce";
 }
@@ -135,7 +135,7 @@ grekick(void *x, Block *bp)
 {
 	Conv *c = x;
 	GREhdr *ghp;
-	uchar laddr[IPaddrlen], raddr[IPaddrlen];
+	uint8_t laddr[IPaddrlen], raddr[IPaddrlen];
 
 	if(bp == nil)
 		return;
@@ -179,8 +179,8 @@ greiput(Proto *gre, Ipifc*, Block *bp)
 	int len;
 	GREhdr *ghp;
 	Conv *c, **p;
-	ushort eproto;
-	uchar raddr[IPaddrlen];
+	uint16_t eproto;
+	uint8_t raddr[IPaddrlen];
 	GREpriv *gpriv;
 
 	gpriv = gre->priv;
@@ -237,7 +237,7 @@ greiput(Proto *gre, Ipifc*, Block *bp)
 }
 
 int
-grestats(Proto *gre, char *buf, int len)
+grestats(Proto *gre, int8_t *buf, int len)
 {
 	GREpriv *gpriv;
 
@@ -246,8 +246,8 @@ grestats(Proto *gre, char *buf, int len)
 	return snprint(buf, len, "gre: len %lud\n", gpriv->lenerr);
 }
 
-char*
-grectl(Conv *c, char **f, int n)
+int8_t*
+grectl(Conv *c, int8_t **f, int n)
 {
 	GREpriv *gpriv;
 

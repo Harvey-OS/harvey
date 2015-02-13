@@ -44,19 +44,19 @@ typedef	struct	Err	Err;
 struct	Fils
 {
 	Biobuf*	f_f;
-	char*	f_name;
-	long	f_nextc;
+	int8_t*	f_name;
+	int32_t	f_nextc;
 };
 struct	Colp
 {
 	Rune*	c_ptr;
 	Rune*	c_ptr0;
-	long	c_lno;
+	int32_t	c_lno;
 };
 struct	Err
 {
 	Err*	e_nextp;
-	char*	e_mess;
+	int8_t*	e_mess;
 };
 
 int	Balance = 0;
@@ -74,7 +74,7 @@ int	Etabn = 0;
 Fils*	Files;
 int	Formfeed = 0;
 int	Fpage = 1;
-char*	Head = 0;
+int8_t*	Head = 0;
 int	Inpos;
 int	Itabc = '\t';
 int	Itabn = 0;
@@ -83,14 +83,14 @@ int	Lcolpos;
 int	Len = LENGTH;
 int	Line;
 int	Linew = 0;
-long	Lnumb = 0;
+int32_t	Lnumb = 0;
 int	Margin = MARGIN;
 int	Multi = 0;
 int	Ncols = 1;
 int	Nfiles = 0;
 int	Nsepc = NSEPC;
 int	Nspace;
-char	nulls[] = "";
+int8_t	nulls[] = "";
 int	Numw;
 int	Offset = 0;
 int	Outpos;
@@ -100,32 +100,32 @@ int	Pcolpos;
 int	Plength;
 int	Sepc = 0;
 
-extern	int	atoix(char**);
+extern	int	atoix(int8_t**);
 extern	void	balance(int);
-extern	void	die(char*);
+extern	void	die(int8_t*);
 extern	void	errprint(void);
-extern	char*	ffiler(char*);
-extern	int	findopt(int, char**);
+extern	int8_t*	ffiler(int8_t*);
+extern	int	findopt(int, int8_t**);
 extern	int	get(int);
 extern	void*	getspace(ulong);
-extern	int	intopt(char**, int*);
-extern	void	main(int, char**);
-extern	Biobuf*	mustopen(char*, Fils*);
+extern	int	intopt(int8_t**, int*);
+extern	void	main(int, int8_t**);
+extern	Biobuf*	mustopen(int8_t*, Fils*);
 extern	void	nexbuf(void);
-extern	int	pr(char*);
-extern	void	put(long);
+extern	int	pr(int8_t*);
+extern	void	put(int32_t);
 extern	void	putpage(void);
 extern	void	putspace(void);
 
 /*
  * return date file was last modified
  */
-char*
+int8_t*
 getdate(void)
 {
-	static char *now = 0;
+	static int8_t *now = 0;
 	static Dir *sbuf;
-	ulong mtime;
+	uint32_t mtime;
 
 	if(Nfiles > 1 || Files->f_name == nulls) {
 		if(now == 0) {
@@ -143,14 +143,14 @@ getdate(void)
 	return ctime(mtime);
 }
 
-char*
-ffiler(char *s)
+int8_t*
+ffiler(int8_t *s)
 {
 	return smprint("can't open %s\n", s);
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	Fils fstr[NFILES];
 	int nfdone = 0;
@@ -175,9 +175,9 @@ main(int argc, char *argv[])
 }
 
 int
-findopt(int argc, char *argv[])
+findopt(int argc, int8_t *argv[])
 {
-	char **eargv = argv;
+	int8_t **eargv = argv;
 	int eargc = 0, c;
 
 	while(--argc > 0) {
@@ -278,7 +278,7 @@ findopt(int argc, char *argv[])
 	if((Colw = (Linew - Ncols + 1)/Ncols) < 1)
 		die("width too small");
 	if(Ncols != 1 && Multi == 0) {
-		ulong buflen = ((ulong)(Plength/Dblspace + 1))*(Linew+1)*sizeof(char);
+		uint32_t buflen = ((uint32_t)(Plength/Dblspace + 1))*(Linew+1)*sizeof(int8_t);
 		Buffer = getspace(buflen*sizeof(*Buffer));
 		Bufend = &Buffer[buflen];
 		Colpts = getspace((Ncols+1)*sizeof(*Colpts));
@@ -287,7 +287,7 @@ findopt(int argc, char *argv[])
 }
 
 int
-intopt(char *argv[], int *optp)
+intopt(int8_t *argv[], int *optp)
 {
 	int c;
 
@@ -300,9 +300,9 @@ intopt(char *argv[], int *optp)
 }
 
 int
-pr(char *name)
+pr(int8_t *name)
 {
-	char *date = 0, *head = 0;
+	int8_t *date = 0, *head = 0;
 
 	if(Multi != 'm' && mustopen(name, &Files[0]) == 0)
 		return 0;
@@ -474,7 +474,7 @@ get(int colno)
 	static int peekc = 0;
 	Colp p;
 	Fils *q;
-	long c;
+	int32_t c;
 
 	if(peekc) {
 		peekc = 0;
@@ -521,7 +521,7 @@ get(int colno)
 }
 
 void
-put(long c)
+put(int32_t c)
 {
 	int move;
 
@@ -583,7 +583,7 @@ putspace(void)
 }
 
 int
-atoix(char **p)
+atoix(int8_t **p)
 {
 	int n = 0, c;
 
@@ -599,9 +599,9 @@ atoix(char **p)
  * Treat empty file as special case and report as diagnostic.
  */
 Biobuf*
-mustopen(char *s, Fils *f)
+mustopen(int8_t *s, Fils *f)
 {
-	char *tmp;
+	int8_t *tmp;
 
 	if(*s == '\0') {
 		f->f_name = STDINNAME();
@@ -612,13 +612,13 @@ mustopen(char *s, Fils *f)
 	} else
 	if((f->f_f = Bopen(f->f_name = s, OREAD)) == 0) {
 		tmp = ffiler(f->f_name);
-		s = strcpy((char*)getspace(strlen(tmp) + 1), tmp);
+		s = strcpy((int8_t*)getspace(strlen(tmp) + 1), tmp);
 		free(tmp);
 	}
 	if(f->f_f != 0) {
 		if((f->f_nextc = Bgetrune(f->f_f)) >= 0 || Multi == 'm')
 			return f->f_f;
-		sprint(s = (char*)getspace(strlen(f->f_name) + 1 + EMPTY),
+		sprint(s = (int8_t*)getspace(strlen(f->f_name) + 1 + EMPTY),
 			"%s -- empty file\n", f->f_name);
 		Bterm(f->f_f);
 	}
@@ -629,7 +629,7 @@ mustopen(char *s, Fils *f)
 }
 
 void*
-getspace(ulong n)
+getspace(uint32_t n)
 {
 	void *t;
 
@@ -639,7 +639,7 @@ getspace(ulong n)
 }
 
 void
-die(char *s)
+die(int8_t *s)
 {
 	error++;
 	errprint();

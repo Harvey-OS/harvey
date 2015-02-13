@@ -1311,7 +1311,7 @@ dump_thresh(const wts_screen_t *ws, int width, int height)
 }
 
 int
-main (int argc, char **argv)
+main (int argc, int8_t **argv)
 {
     gs_screen_halftone h;
     gs_matrix mat;

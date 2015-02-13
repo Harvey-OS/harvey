@@ -10,35 +10,36 @@
 #include "common.h"
 
 /* format of REMOTE FROM lines */
-char *REMFROMRE =
+int8_t *REMFROMRE =
 	"^>?From[ \t]+((\".*\")?[^\" \t]+?(\".*\")?[^\" \t]+?)[ \t]+(.+)[ \t]+remote[ \t]+from[ \t]+(.*)\n$";
 int REMSENDERMATCH = 1;
 int REMDATEMATCH = 4;
 int REMSYSMATCH = 5;
 
 /* format of LOCAL FROM lines */
-char *FROMRE =
+int8_t *FROMRE =
 	"^>?From[ \t]+((\".*\")?[^\" \t]+?(\".*\")?[^\" \t]+?)[ \t]+(.+)\n$";
 int SENDERMATCH = 1;
 int DATEMATCH = 4;
 
 /* output a unix style local header */
 int
-print_header(Biobuf *fp, char *sender, char *date)
+print_header(Biobuf *fp, int8_t *sender, int8_t *date)
 {
 	return Bprint(fp, "From %s %s\n", sender, date);
 }
 
 /* output a unix style remote header */
 int
-print_remote_header(Biobuf *fp, char *sender, char *date, char *system)
+print_remote_header(Biobuf *fp, int8_t *sender, int8_t *date,
+		    int8_t *system)
 {
 	return Bprint(fp, "From %s %s remote from %s\n", sender, date, system);
 }
 
 /* parse a mailbox style header */
 int
-parse_header(char *line, String *sender, String *date)
+parse_header(int8_t *line, String *sender, String *date)
 {
 	if (!IS_HEADER(line))
 		return -1;

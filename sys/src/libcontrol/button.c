@@ -52,7 +52,7 @@ enum{
 	EValue,
 };
 
-static char *cmds[] = {
+static int8_t *cmds[] = {
 	[EAlign] = 		"align",
 	[EBorder] = 	"border",
 	[EBordercolor] = "bordercolor",
@@ -250,7 +250,7 @@ buttonctl(Control *c, CParse *cp)
 }
 
 Control*
-createbutton(Controlset *cs, char *name)
+createbutton(Controlset *cs, int8_t *name)
 {
 	Button *b;
 	b = (Button*)_createctl(cs, "button", sizeof(Button), name);

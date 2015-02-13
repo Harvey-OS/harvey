@@ -35,7 +35,7 @@ static int flat[] = {	0x2C, 0x2D, 0x2E, 0x2F, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54
 
 typedef struct Group Group;
 struct Group {
-	char *name;
+	int8_t *name;
 	int *x;
 };
 static Group group[] = 
@@ -50,17 +50,17 @@ static Group group[] =
 	{ 0 },
 };
 
-static uchar greg[256];
+static uint8_t greg[256];
 
-static uchar
-ctxi(uchar index)
+static uint8_t
+ctxi(uint8_t index)
 {
 	outportb(X, index);
 	return inportb(D);
 }
 
 static void
-ctxo(uchar index, uchar data)
+ctxo(uint8_t index, uint8_t data)
 {
 	outportb(X, index);
 	outportb(D, data);
@@ -94,10 +94,10 @@ options(Vga*, Ctlr* ctlr)
 static int
 setclock(Vga* vga)
 {
-	ulong fvco, t;
-	ulong m, n;
-	ulong bestm, bestn, diff, bestdiff, lastdiff;
-	ulong p;
+	uint32_t fvco, t;
+	uint32_t m, n;
+	uint32_t bestm, bestn, diff, bestdiff, lastdiff;
+	uint32_t p;
 
 	if(vga->mode->frequency > 220000000)
 		return -1;
@@ -235,9 +235,9 @@ dump(Vga*, Ctlr* ctlr)
 {
 	Group *g;
 	int *xp;
-	char *name;
+	int8_t *name;
 	int lastx;
-	char item[32];
+	int8_t item[32];
 
 	name = ctlr->name;
 

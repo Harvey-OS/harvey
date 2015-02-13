@@ -13,17 +13,17 @@
 #include	<bio.h>
 
 static void usage(void);
-static void snarf(char *, int);
+static void snarf(int8_t *, int);
 static void choose(Fontchar *, Bitmap *, int, int, int);
 struct {
-	char *name;
+	int8_t *name;
 	Bitmap *bm;
 	Subfont *sf;
 } ft[1024];
 int nf;
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	int i, errs;
 	Fontchar *fc;
@@ -79,7 +79,7 @@ usage(void)
 }
 
 static void
-snarf(char *name, int i)
+snarf(int8_t *name, int i)
 {
 	int fd;
 	Bitmap *b;

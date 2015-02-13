@@ -10,8 +10,8 @@
 double
 cputime(void)
 {
-	long t[4];
-	long times(long*);
+	int32_t t[4];
+	int32_t times(int32_t*);
 	int i;
 
 	times(t);
@@ -20,18 +20,18 @@ cputime(void)
 	return t[0] / 100.;
 }
 
-long
-seek(int f, long o, int p)
+int32_t
+seek(int f, int32_t o, int p)
 {
-	long lseek(int, long, int);
+	int32_t lseek(int, int32_t, int);
 
 	return lseek(f, o, p);
 }
 
 int
-create(char *n, int m, long p)
+create(int8_t *n, int m, int32_t p)
 {
-	int creat(char*, int);
+	int creat(int8_t*, int);
 
 	if(m != 1)
 		return -1;

@@ -39,7 +39,7 @@
 #include "dwdll.h"
 
 /* We are static linking, so just store the function addresses */
-int load_dll(GSDLL *gsdll, char *last_error, int len)
+int load_dll(GSDLL *gsdll, int8_t *last_error, int len)
 {
     gsdll->new_instance = &gsapi_new_instance;
     gsdll->delete_instance = &gsapi_delete_instance;

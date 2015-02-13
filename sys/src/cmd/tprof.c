@@ -16,12 +16,12 @@
 
 struct COUNTER
 {
-	char 	*name;		/* function name */
-	long	time;		/* ticks spent there */
+	int8_t 	*name;		/* function name */
+	int32_t	time;		/* ticks spent there */
 };
 
 void
-error(int perr, char *s)
+error(int perr, int8_t *s)
 {
 	fprint(2, "tprof: %s", s);
 	if(perr){
@@ -46,20 +46,20 @@ compar(void *va, void *vb)
 	return 1;
 }
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int fd;
-	long i, j, k, n;
+	int32_t i, j, k, n;
 	Dir *d;
-	char *name;
-	ulong *data;
-	ulong tbase, sum;
-	long delta;
+	int8_t *name;
+	uint32_t *data;
+	uint32_t tbase, sum;
+	int32_t delta;
 	Symbol s;
 	Biobuf outbuf;
 	Fhdr f;
 	struct COUNTER *cp;
-	char filebuf[128], *file;
+	int8_t filebuf[128], *file;
 
 	if(argc != 2 && argc != 3)
 		error(0, "usage: tprof pid [binary]");

@@ -11,7 +11,7 @@
 #include "vncv.h"
 #include <libsec.h>
 
-char*	encodings = "copyrect hextile corre rre raw mousewarp";
+int8_t*	encodings = "copyrect hextile corre rre raw mousewarp";
 int		bpp12;
 int		shared;
 int		verbose;
@@ -27,7 +27,7 @@ enum
 };
 
 static int pids[NProcs];
-static char killkin[] = "die vnc kin";
+static int8_t killkin[] = "die vnc kin";
 
 /*
  * called by any proc when exiting to tear everything down.
@@ -49,10 +49,10 @@ shutdown(void)
 			postnote(PNPROC, pids[i], killkin);
 }
 
-char*
-netmkvncaddr(char *inserver)
+int8_t*
+netmkvncaddr(int8_t *inserver)
 {
-	char *p, portstr[NETPATHLEN], *server;
+	int8_t *p, portstr[NETPATHLEN], *server;
 	int port;
 
 	server = strdup(inserver);

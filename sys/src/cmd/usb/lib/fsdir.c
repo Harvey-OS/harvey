@@ -36,21 +36,21 @@ usbfsexits(int y)
 }
 
 static int
-qiddev(uvlong path)
+qiddev(uint64_t path)
 {
 	return (int)(path>>32) & 0xFF;
 }
 
 static int
-qidfile(uvlong path)
+qidfile(uint64_t path)
 {
 	return (int)(path & 0xFFFFFFFFULL);
 }
 
-static uvlong
+static uint64_t
 mkqid(int qd, int qf)
 {
-	return ((uvlong)qd << 32) | (uvlong)qf;
+	return ((uint64_t)qd << 32) | (uint64_t)qf;
 }
 
 void
@@ -143,7 +143,7 @@ fsend(Usbfs*)
 }
 
 void
-usbfsgone(char *dir)
+usbfsgone(int8_t *dir)
 {
 	int i;
 
@@ -182,7 +182,7 @@ fsclone(Usbfs*, Fid *o, Fid *n)
 }
 
 static int
-fswalk(Usbfs*, Fid *fid, char *name)
+fswalk(Usbfs*, Fid *fid, int8_t *name)
 {
 	Qid q;
 	int qd, qf;
@@ -190,7 +190,7 @@ fswalk(Usbfs*, Fid *fid, char *name)
 	int rc;
 	Dev *dev;
 	Dir d;
-	int (*xfswalk)(Usbfs *fs, Fid *f, char *name);
+	int (*xfswalk)(Usbfs *fs, Fid *f, int8_t *name);
 
 	q = fid->qid;
 	qd = qiddev(q.path);
@@ -271,7 +271,7 @@ dirgen(Usbfs*, Qid, int n, Dir *d, void *)
 {
 	int i;
 	Dev *dev;
-	char *nm;
+	int8_t *nm;
 
 	qlock(&fslck);
 	for(i = 0; i < nfs; i++)
@@ -295,14 +295,15 @@ dirgen(Usbfs*, Qid, int n, Dir *d, void *)
 	return -1;
 }
 
-static long
-fsread(Usbfs*, Fid *fid, void *data, long cnt, vlong off)
+static int32_t
+fsread(Usbfs*, Fid *fid, void *data, int32_t cnt, int64_t off)
 {
 	int qd;
 	int rc;
 	Dev *dev;
 	Qid q;
-	long (*xfsread)(Usbfs *fs, Fid *f, void *data, long count, vlong );
+	int32_t (*xfsread)(Usbfs *fs, Fid *f, void *data, int32_t count,
+			   int64_t );
 
 	q = fid->qid;
 	qd = qiddev(q.path);
@@ -325,13 +326,14 @@ fsread(Usbfs*, Fid *fid, void *data, long cnt, vlong off)
 	return rc;
 }
 
-static long
-fswrite(Usbfs*, Fid *fid, void *data, long cnt, vlong off)
+static int32_t
+fswrite(Usbfs*, Fid *fid, void *data, int32_t cnt, int64_t off)
 {
 	int qd;
 	int rc;
 	Dev *dev;
-	long (*xfswrite)(Usbfs *fs, Fid *f, void *data, long count, vlong );
+	int32_t (*xfswrite)(Usbfs *fs, Fid *f, void *data, int32_t count,
+			    int64_t );
 
 	qd = qiddev(fid->qid.path);
 	if(qd == Dtop)

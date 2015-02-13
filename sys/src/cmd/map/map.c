@@ -25,25 +25,25 @@ int normproj(double, double, double *, double *);
 int posproj(double, double, double *, double *);
 int picut(struct place *, struct place *, double *);
 double reduce(double);
-short getshort(FILE *);
-char *mapindex(char *);
+int16_t getshort(FILE *);
+int8_t *mapindex(int8_t *);
 proj projection;
 
 
-static char *mapdir = "/lib/map";	/* default map directory */
+static int8_t *mapdir = "/lib/map";	/* default map directory */
 struct file {
-	char *name;
-	char *color;
-	char *style;
+	int8_t *name;
+	int8_t *color;
+	int8_t *style;
 };
 static struct file dfltfile = {
 	"world", BLACK, SOLID	/* default map */
 };
 static struct file *file = &dfltfile;	/* list of map files */
 static int nfile = 1;			/* length of list */
-static char *currcolor = BLACK;		/* current color */
-static char *gridcolor = BLACK;
-static char *bordcolor = BLACK;
+static int8_t *currcolor = BLACK;		/* current color */
+static int8_t *gridcolor = BLACK;
+static int8_t *bordcolor = BLACK;
 
 extern struct index index[];
 int halfwidth = HALFWIDTH;
@@ -105,7 +105,7 @@ static double dlat, dlon;	/* resolution for tracing grid in lat and lon */
 static double scaling;	/* to compute final integer output */
 static struct file *track;	/* options -t and -u */
 static int ntrack;		/* number of tracks present */
-static char *symbolfile;	/* option -y */
+static int8_t *symbolfile;	/* option -y */
 
 void	clamp(double *px, double v);
 void	clipinit(void);
@@ -116,7 +116,7 @@ void	dogrid(double, double, double, double);
 int	duple(struct place *, double);
 double	fmax(double, double);
 double	fmin(double, double);
-void	getdata(char *);
+void	getdata(int8_t *);
 int	gridpt(double, double, int);
 int	inpoly(double, double);
 int	inwindow(struct place *);
@@ -130,7 +130,7 @@ void	windlim(void);
 void	realcut(void);
 
 int
-option(char *s) 
+option(int8_t *s) 
 {
 
 	if(s[0]=='-' && (s[1]<'0'||s[1]>'9'))
@@ -147,15 +147,15 @@ conv(int k, struct coord *g)
 }
 
 int
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int i,k;
-	char *s, *t, *style;
+	int8_t *s, *t, *style;
 	double x, y;
 	double lat, lon;
 	double *wlim;
 	double dd;
-	if(sizeof(short)!=2)
+	if(sizeof(int16_t)!=2)
 		abort();	/* getshort() won't work */
 	s = getenv("MAP");
 	if(s)
@@ -586,16 +586,16 @@ inlimits(struct place *g)
 }
 
 
-long patch[18][36];
+int32_t patch[18][36];
 
 void
-getdata(char *mapfile)
+getdata(int8_t *mapfile)
 {
-	char *indexfile;
+	int8_t *indexfile;
 	int kx,ky,c;
 	int k;
-	long b;
-	long *p;
+	int32_t b;
+	int32_t *p;
 	int ip, jp;
 	int n;
 	struct place g;
@@ -685,8 +685,8 @@ seeable(double lat0, double lon0)
 void
 satellite(struct file *t)
 {
-	char sym[50];
-	char lbl[50];
+	int8_t sym[50];
+	int8_t lbl[50];
 	double scale;
 	register conn;
 	double lat,lon;
@@ -751,23 +751,23 @@ pnorm(double x)
 }
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	fprintf(stderr,"map: \r\n%s\n",s);
 	exits("error");
 }
 
 void
-filerror(char *s, char *f)
+filerror(int8_t *s, int8_t *f)
 {
 	fprintf(stderr,"\r\n%s %s\n",s,f);
 	exits("error");
 }
 
-char *
-mapindex(char *s)
+int8_t *
+mapindex(int8_t *s)
 {
-	char *t = malloc(strlen(s)+3);
+	int8_t *t = malloc(strlen(s)+3);
 	strcpy(t,s);
 	strcat(t,".x");
 	return t;
@@ -1096,7 +1096,7 @@ windlim(void)
 }
 
 
-short
+int16_t
 getshort(FILE *f)
 {
 	int c, r;
@@ -1129,7 +1129,7 @@ void
 pathnames(void)
 {
 	int i;
-	char *t, *indexfile, *name;
+	int8_t *t, *indexfile, *name;
 	FILE *f, *fx;
 	for(i=0; i<nfile; i++) {
 		name = file[i].name;

@@ -14,7 +14,7 @@ int cflag;
 int aflag;
 int rflag;
 
-int createpipeto(char *alfile, char *user, char *listname, int owner);
+int createpipeto(int8_t *alfile, int8_t *user, int8_t *listname, int owner);
 
 void
 usage(void)
@@ -86,7 +86,7 @@ main(int argc, char **argv)
 }
 
 int
-createpipeto(char *alfile, char *user, char *listname, int owner)
+createpipeto(int8_t *alfile, int8_t *user, int8_t *listname, int owner)
 {
 	String *f;
 	int fd;

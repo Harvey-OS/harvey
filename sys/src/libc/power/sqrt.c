@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-static	long	sqtab[64] =
+static	int32_t	sqtab[64] =
 {
 	0x6cdb2, 0x726d4, 0x77ea3, 0x7d52f, 0x82a85, 0x87eb1, 0x8d1c0, 0x923bd,
 	0x974b2, 0x9c4a8, 0xa13a9, 0xa61be, 0xaaeee, 0xafb41, 0xb46bf, 0xb916e,
@@ -32,8 +32,8 @@ sqrt(double arg)
 		double	d;
 		struct
 		{
-			long	ms;
-			long	ls;
+			int32_t	ms;
+			int32_t	ls;
 		};
 	} u;
 
@@ -64,7 +64,7 @@ sqrt(double arg)
 	 * insert exponent/2 - 1.
 	 */
 	e = (((e - 1023) >> 1) + 1022) << 20;
-	u.ms = *(long*)((char*)sqtab + ((ms >> 13) & 0xfc)) | e;
+	u.ms = *(int32_t*)((int8_t*)sqtab + ((ms >> 13) & 0xfc)) | e;
 	u.ls = 0;
 
 	/*

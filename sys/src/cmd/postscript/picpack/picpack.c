@@ -70,7 +70,7 @@
 #include	"ext.h"			/* external variable definitions */
 #include	"path.h"		/* just for TEMPDIR definition */
 
-char		*keys[11] = {".BP", ".PI", NULL};
+int8_t		*keys[11] = {".BP", ".PI", NULL};
 int		quiet = FALSE;
 
 FILE		*fp_in = stdin;		/* input */
@@ -227,7 +227,7 @@ FILE *copystdin()
 
 {
 
-    char	*tfile;			/* temporary file name */
+    int8_t	*tfile;			/* temporary file name */
     int		fd_out;			/* and its file descriptor */
     FILE	*fp;			/* return value - the new input file */
 

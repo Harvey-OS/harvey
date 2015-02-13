@@ -85,24 +85,24 @@ static Rune subtab[] = {
 #define	GSHORT(p)	(((p)[0]<<8) | (p)[1])
 #define	GLONG(p)	(((p)[0]<<24) | ((p)[1]<<16) | ((p)[2]<<8) | (p)[3])
 
-static char	cfile[] = "/lib/dict/robert/cits.rob";
-static char	dfile[] = "/lib/dict/robert/defs.rob";
-static char	efile[] = "/lib/dict/robert/etym.rob";
-static char	kfile[] = "/lib/dict/robert/_phon";
+static int8_t	cfile[] = "/lib/dict/robert/cits.rob";
+static int8_t	dfile[] = "/lib/dict/robert/defs.rob";
+static int8_t	efile[] = "/lib/dict/robert/etym.rob";
+static int8_t	kfile[] = "/lib/dict/robert/_phon";
 
 static Biobuf *	cb;
 static Biobuf *	db;
 static Biobuf *	eb;
 
-static Biobuf *	Bouvrir(char*);
+static Biobuf *	Bouvrir(int8_t*);
 static void	citation(int, int);
 static void	robertprintentry(Entry*, Entry*, int);
 
 void
 robertindexentry(Entry e, int cmd)
 {
-	uchar *p = (uchar *)e.start;
-	long ea, el, da, dl, fa;
+	uint8_t *p = (uint8_t *)e.start;
+	int32_t ea, el, da, dl, fa;
 	Entry def, etym;
 
 	ea = GLONG(&p[0]);
@@ -140,14 +140,14 @@ robertindexentry(Entry e, int cmd)
 static void
 robertprintentry(Entry *def, Entry *etym, int cmd)
 {
-	uchar *p, *pe;
+	uint8_t *p, *pe;
 	Rune r; int c, n;
 	int baseline = 0;
 	int lineno = 0;
 	int cit = 0;
 
-	p = (uchar *)def->start;
-	pe = (uchar *)def->end;
+	p = (uint8_t *)def->start;
+	pe = (uint8_t *)def->end;
 	while(p < pe){
 		if(cmd == 'r'){
 			outchar(*p++);
@@ -237,8 +237,8 @@ citation(int addr, int cmd)
 	robertprintentry(&cit, 0, cmd);
 }
 
-long
-robertnextoff(long fromoff)
+int32_t
+robertnextoff(int32_t fromoff)
 {
 	return (fromoff & ~15) + 16;
 }
@@ -247,7 +247,7 @@ void
 robertprintkey(void)
 {
 	Biobuf *db;
-	char *l;
+	int8_t *l;
 
 	db = Bouvrir(kfile);
 	while(l = Brdline(db, '\n'))	/* assign = */
@@ -258,12 +258,12 @@ robertprintkey(void)
 void
 robertflexentry(Entry e, int cmd)
 {
-	uchar *p, *pe;
+	uint8_t *p, *pe;
 	Rune r; int c;
 	int lineno = 1;
 
-	p = (uchar *)e.start;
-	pe = (uchar *)e.end;
+	p = (uint8_t *)e.start;
+	pe = (uint8_t *)e.end;
 	while(p < pe){
 		if(cmd == 'r'){
 			Bputc(bout, *p++);
@@ -293,8 +293,8 @@ robertflexentry(Entry e, int cmd)
 	outnl(0);
 }
 
-long
-robertnextflex(long fromoff)
+int32_t
+robertnextflex(int32_t fromoff)
 {
 	int c;
 
@@ -308,7 +308,7 @@ robertnextflex(long fromoff)
 }
 
 static Biobuf *
-Bouvrir(char *fichier)
+Bouvrir(int8_t *fichier)
 {
 	Biobuf *db;
 

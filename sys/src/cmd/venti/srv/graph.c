@@ -32,7 +32,7 @@ static Memimage *lofill[6];
 static Memimage *hifill[6];
 static Memimage *grid;
 
-static ulong fill[] = {
+static uint32_t fill[] = {
 	0xFFAAAAFF,	0xBB5D5DFF,	/* peach */
 	DPalegreygreen, DPurpleblue,	/* aqua */
 	DDarkyellow, DYellowgreen,	/* yellow */
@@ -42,7 +42,7 @@ static ulong fill[] = {
 };
 
 Memimage*
-allocrepl(ulong color)
+allocrepl(uint32_t color)
 {
 	Memimage *m;
 	
@@ -80,7 +80,7 @@ ginit(void)
 }
 
 static void
-mklabel(char *str, int v)
+mklabel(int8_t *str, int v)
 {
 	if(v < 0){
 		v = -v;
@@ -97,7 +97,7 @@ mklabel(char *str, int v)
 static void
 drawlabel(Memimage *m, Point p, int n)
 {
-	char buf[30];
+	int8_t buf[30];
 	Point w;
 	
 	mklabel(buf, n);

@@ -2423,9 +2423,9 @@ gdev_cmyk_map_rgb_color(gx_device * pdev, gx_color_value rgb[3])
 	    break;
 
 	    case 8:
-	    return ((ulong) c * lum_red_weight * 10
-		    + (ulong) m * lum_green_weight * 10
-		    + (ulong) y * lum_blue_weight * 10)
+	    return ((uint32_t) c * lum_red_weight * 10
+		    + (uint32_t) m * lum_green_weight * 10
+		    + (uint32_t) y * lum_blue_weight * 10)
 		>> (gx_color_value_bits + 2);
 	    /*NOTREACHED */
 	    break;
@@ -2520,9 +2520,9 @@ gx_color_value r=rgb[0], g=rgb[1], b=rgb[2];
 #define red_weight 306
 #define green_weight 601
 #define blue_weight 117
-		return ((((ulong) c * red_weight +
-			  (ulong) m * green_weight +
-			  (ulong) y * blue_weight)
+		return ((((uint32_t) c * red_weight +
+			  (uint32_t) m * green_weight +
+			  (uint32_t) y * blue_weight)
 			 >> (gx_color_value_bits + 2)));
 	    case 16:
 #define gx_color_value_to_5bits(cv) ((cv) >> (gx_color_value_bits - 5))
@@ -2533,14 +2533,14 @@ gx_color_value r=rgb[0], g=rgb[1], b=rgb[2];
 	    case 24:
 	    return (gx_color_value_to_byte(y) +
 		    (gx_color_value_to_byte(m) << 8) +
-		    ((ulong) gx_color_value_to_byte(c) << 16));
+		    ((uint32_t) gx_color_value_to_byte(c) << 16));
 	    case 32:
 	    {
-		return ((c == m && c == y) ? ((ulong)
+		return ((c == m && c == y) ? ((uint32_t)
 					      gx_color_value_to_byte(c) << 24)
 			: (gx_color_value_to_byte(y) +
 			   (gx_color_value_to_byte(m) << 8) +
-			   ((ulong) gx_color_value_to_byte(c) << 16)));
+			   ((uint32_t) gx_color_value_to_byte(c) << 16)));
 	    }
 	}
     }

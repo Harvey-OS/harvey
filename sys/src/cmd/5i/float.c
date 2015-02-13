@@ -95,7 +95,7 @@ Inst cop1[] = {
 };
 
 void
-unimp(ulong inst)
+unimp(uint32_t inst)
 {
 	print("op %d\n", inst&0x3f);
 	Bprint(bioout, "Unimplemented floating point Trap IR %.8lux\n", inst);
@@ -103,7 +103,7 @@ unimp(ulong inst)
 }
 
 void
-inval(ulong inst)
+inval(uint32_t inst)
 {
 	Bprint(bioout, "Invalid Operation Exception IR %.8lux\n", inst);
 	longjmp(errjmp, 0);
@@ -127,86 +127,86 @@ doubop(int dst, int s1, int s2)
 }
 
 void
-Iswc1(ulong inst)
+Iswc1(uint32_t inst)
 {
 }
 
 void
-Ifsub(ulong ir)
+Ifsub(uint32_t ir)
 {
 }
 
 void
-Ifmov(ulong ir)
+Ifmov(uint32_t ir)
 {
 }
 
 void
-Ifabs(ulong ir)
+Ifabs(uint32_t ir)
 {
 }
 
 void
-Ifneg(ulong ir)
+Ifneg(uint32_t ir)
 {
 }
 
 void
-Icvtd(ulong ir)
+Icvtd(uint32_t ir)
 {
 }
 
 void
-Icvts(ulong ir)
+Icvts(uint32_t ir)
 {
 }
 
 void
-Icvtw(ulong ir)
+Icvtw(uint32_t ir)
 {
 }
 
 void
-Ifadd(ulong ir)
+Ifadd(uint32_t ir)
 {
 }
 
 void
-Ifmul(ulong ir)
+Ifmul(uint32_t ir)
 {
 }
 
 void
-Ifdiv(ulong ir)
+Ifdiv(uint32_t ir)
 {
 }
 
 void
-Ilwc1(ulong inst)
+Ilwc1(uint32_t inst)
 {
 }
 
 void
-Ibcfbct(ulong inst)
+Ibcfbct(uint32_t inst)
 {
 }
 
 void
-Imtct(ulong ir)
+Imtct(uint32_t ir)
 {
 }
 
 void
-Imfcf(ulong ir)
+Imfcf(uint32_t ir)
 {
 }
 
 void
-Icop1(ulong ir)
+Icop1(uint32_t ir)
 {
 }
 
 void
-Ifcmp(ulong ir)
+Ifcmp(uint32_t ir)
 {
 }

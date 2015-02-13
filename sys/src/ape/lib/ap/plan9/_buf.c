@@ -45,7 +45,7 @@ static void _copyproc(int, Muxbuf*);
 static void _timerproc(void);
 static void _resettimer(void);
 
-static int copynotehandler(void *, char *);
+static int copynotehandler(void *, int8_t *);
 
 /* assume FD_SETSIZE is 96 */
 #define FD_ANYSET(p)	((p)->fds_bits[0] || (p)->fds_bits[1] || (p)->fds_bits[2])
@@ -59,7 +59,7 @@ static int copynotehandler(void *, char *);
 int
 _startbuf(int fd)
 {
-	long i, slot;
+	int32_t i, slot;
 	int pid;
 	Fdinfo *f;
 	Muxbuf *b;
@@ -67,7 +67,7 @@ _startbuf(int fd)
 	if(mux == 0){
 		_RFORK(RFREND);
 		mux = (Muxseg*)_SEGATTACH(0, "shared", MUXADDR, sizeof(Muxseg));
-		if((long)mux == -1){
+		if((int32_t)mux == -1){
 			_syserrno();
 			return -1;
 		}
@@ -463,7 +463,7 @@ _detachbuf(void)
 }
 
 static int
-copynotehandler(void *, char *)
+copynotehandler(void *, int8_t *)
 {
 	if(_finishing)
 		_finish(0, 0);

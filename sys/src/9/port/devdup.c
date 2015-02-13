@@ -17,7 +17,7 @@
 /* Qid is (2*fd + (file is ctl))+1 */
 
 static int
-dupgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
+dupgen(Chan *c, int8_t *, Dirtab*, int, int s, Dir *dp)
 {
 	Fgrp *fgrp = up->fgrp;
 	Chan *f;
@@ -49,19 +49,19 @@ dupgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 }
 
 static Chan*
-dupattach(char *spec)
+dupattach(int8_t *spec)
 {
 	return devattach('d', spec);
 }
 
 static Walkqid*
-dupwalk(Chan *c, Chan *nc, char **name, int nname)
+dupwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, dupgen);
 }
 
-static long
-dupstat(Chan *c, uchar *db, long n)
+static int32_t
+dupstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, (Dirtab *)0, 0L, dupgen);
 }
@@ -105,10 +105,10 @@ dupclose(Chan*)
 {
 }
 
-static long
-dupread(Chan *c, void *va, long n, vlong off)
+static int32_t
+dupread(Chan *c, void *va, int32_t n, int64_t off)
 {
-	char buf[256];
+	int8_t buf[256];
 	int fd, twicefd;
 
 	if(c->qid.type & QTDIR)
@@ -125,8 +125,8 @@ dupread(Chan *c, void *va, long n, vlong off)
 	return 0;
 }
 
-static long
-dupwrite(Chan*, void*, long, vlong)
+static int32_t
+dupwrite(Chan*, void*, int32_t, int64_t)
 {
 	error(Eperm);
 	return 0;		/* not reached */

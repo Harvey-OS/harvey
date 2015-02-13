@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-long
-atol(char *s)
+int32_t
+atol(int8_t *s)
 {
-	long n;
+	int32_t n;
 	int f, c;
 
 	n = 0;
@@ -55,7 +55,7 @@ atol(char *s)
 }
 
 int
-atoi(char *s)
+atoi(int8_t *s)
 {
 
 	return atol(s);

@@ -23,7 +23,7 @@ getdir(Iobuf *p, int slot)
 void
 accessdir(Iobuf *p, Dentry *d, int f)
 {
-	long t;
+	int32_t t;
 
 	if(p && !isro(p->dev)) {
 		if(!(f & (FWRITE|FWSTAT)) && noatime)
@@ -42,15 +42,15 @@ accessdir(Iobuf *p, Dentry *d, int f)
 }
 
 void
-dbufread(Iobuf *p, Dentry *d, long a)
+dbufread(Iobuf *p, Dentry *d, int32_t a)
 {
 	USED(p, d, a);
 }
 
-long
-rel2abs(Iobuf *p, Dentry *d, long a, int tag, int putb)
+int32_t
+rel2abs(Iobuf *p, Dentry *d, int32_t a, int tag, int putb)
 {
-	long addr, qpath;
+	int32_t addr, qpath;
 	Device dev;
 
 	if(a < 0) {
@@ -104,9 +104,9 @@ rel2abs(Iobuf *p, Dentry *d, long a, int tag, int putb)
 }
 
 Iobuf*
-dnodebuf(Iobuf *p, Dentry *d, long a, int tag)
+dnodebuf(Iobuf *p, Dentry *d, int32_t a, int tag)
 {
-	long addr;
+	int32_t addr;
 
 	addr = rel2abs(p, d, a, tag, 0);
 	if(addr)
@@ -119,9 +119,9 @@ dnodebuf(Iobuf *p, Dentry *d, long a, int tag)
  * to reduce interference.
  */
 Iobuf*
-dnodebuf1(Iobuf *p, Dentry *d, long a, int tag)
+dnodebuf1(Iobuf *p, Dentry *d, int32_t a, int tag)
 {
-	long addr;
+	int32_t addr;
 	Device dev;
 
 	dev = p->dev;
@@ -132,8 +132,8 @@ dnodebuf1(Iobuf *p, Dentry *d, long a, int tag)
 
 }
 
-long
-indfetch(Iobuf *p, Dentry *d, long addr, long a, int itag, int tag)
+int32_t
+indfetch(Iobuf *p, Dentry *d, int32_t addr, int32_t a, int itag, int tag)
 {
 	Iobuf *bp;
 
@@ -149,11 +149,11 @@ indfetch(Iobuf *p, Dentry *d, long addr, long a, int itag, int tag)
 		putbuf(bp);
 		return 0;
 	}
-	addr = ((long*)bp->iobuf)[a];
+	addr = ((int32_t*)bp->iobuf)[a];
 	if(!addr && tag) {
 		addr = balloc(p->dev, tag, d->qid.path);
 		if(addr) {
-			((long*)bp->iobuf)[a] = addr;
+			((int32_t*)bp->iobuf)[a] = addr;
 			bp->flags |= Bmod;
 			if(localfs || tag == Tdir)
 				bp->flags |= Bimm;

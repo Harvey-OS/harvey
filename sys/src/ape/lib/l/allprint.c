@@ -19,7 +19,7 @@ printable(int c)
 }
 
 void
-allprint(char c)
+allprint(int8_t c)
 {
 
 	switch(c) {

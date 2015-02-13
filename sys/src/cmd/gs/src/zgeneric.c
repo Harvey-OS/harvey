@@ -83,13 +83,13 @@ zcopy_integer(i_ctx_t *i_ctx_p)
     int count, i;
     int code;
 
-    if ((ulong) op->value.intval > op - osbot) {
+    if ((uint32_t) op->value.intval > op - osbot) {
 	/* There might be enough elements in other blocks. */
 	check_int_ltu(*op, ref_stack_count(&o_stack));
 	count = op->value.intval;
     } else if (op1 + (count = op->value.intval) <= ostop) {
 	/* Fast case. */
-	memcpy((char *)op, (char *)(op - count), count * sizeof(ref));
+	memcpy((int8_t *)op, (int8_t *)(op - count), count * sizeof(ref));
 	push(count - 1);
 	return 0;
     }

@@ -11,9 +11,9 @@
 #include <libc.h>
 #include <fcall.h>
 
-static uint dumpsome(char*, char*, char*, long);
-static void fdirconv(char*, char*, Dir*);
-static char *qidtype(char*, uchar);
+static uint dumpsome(int8_t*, int8_t*, int8_t*, int32_t);
+static void fdirconv(int8_t*, int8_t*, Dir*);
+static int8_t *qidtype(int8_t*, uint8_t);
 
 #define	QIDFMT	"(%.16llux %lud %s)"
 
@@ -22,8 +22,8 @@ fcallfmt(Fmt *fmt)
 {
 	Fcall *f;
 	int fid, type, tag, i;
-	char buf[512], tmp[200];
-	char *p, *e;
+	int8_t buf[512], tmp[200];
+	int8_t *p, *e;
 	Dir *d;
 	Qid *q;
 
@@ -87,7 +87,8 @@ fcallfmt(Fmt *fmt)
 			f->qid.path, f->qid.vers, qidtype(tmp, f->qid.type), f->iounit);
 		break;
 	case Tcreate:	/* 114 */
-		seprint(buf, e, "Tcreate tag %ud fid %ud name %s perm %M mode %d", tag, fid, f->name, (ulong)f->perm, f->mode);
+		seprint(buf, e, "Tcreate tag %ud fid %ud name %s perm %M mode %d", tag, fid, f->name,
+			(uint32_t)f->perm, f->mode);
 		break;
 	case Rcreate:
 		seprint(buf, e, "Rcreate tag %ud qid " QIDFMT " iounit %ud ", tag,
@@ -130,7 +131,7 @@ fcallfmt(Fmt *fmt)
 			seprint(p, e, " stat(%d bytes)", f->nstat);
 		else{
 			d = (Dir*)tmp;
-			convM2D(f->stat, f->nstat, d, (char*)(d+1));
+			convM2D(f->stat, f->nstat, d, (int8_t*)(d+1));
 			seprint(p, e, " stat ");
 			fdirconv(p+6, e, d);
 		}
@@ -141,7 +142,7 @@ fcallfmt(Fmt *fmt)
 			seprint(p, e, " stat(%d bytes)", f->nstat);
 		else{
 			d = (Dir*)tmp;
-			convM2D(f->stat, f->nstat, d, (char*)(d+1));
+			convM2D(f->stat, f->nstat, d, (int8_t*)(d+1));
 			seprint(p, e, " stat ");
 			fdirconv(p+6, e, d);
 		}
@@ -155,10 +156,10 @@ fcallfmt(Fmt *fmt)
 	return fmtstrcpy(fmt, buf);
 }
 
-static char*
-qidtype(char *s, uchar t)
+static int8_t*
+qidtype(int8_t *s, uint8_t t)
 {
-	char *p;
+	int8_t *p;
 
 	p = s;
 	if(t & QTDIR)
@@ -176,16 +177,16 @@ qidtype(char *s, uchar t)
 int
 dirfmt(Fmt *fmt)
 {
-	char buf[160];
+	int8_t buf[160];
 
 	fdirconv(buf, buf+sizeof buf, va_arg(fmt->args, Dir*));
 	return fmtstrcpy(fmt, buf);
 }
 
 static void
-fdirconv(char *buf, char *e, Dir *d)
+fdirconv(int8_t *buf, int8_t *e, Dir *d)
 {
-	char tmp[16];
+	int8_t tmp[16];
 
 	seprint(buf, e, "'%s' '%s' '%s' '%s' "
 		"q " QIDFMT " m %#luo "
@@ -205,10 +206,10 @@ fdirconv(char *buf, char *e, Dir *d)
 #define DUMPL 64
 
 static uint
-dumpsome(char *ans, char *e, char *buf, long count)
+dumpsome(int8_t *ans, int8_t *e, int8_t *buf, int32_t count)
 {
 	int i, printable;
-	char *p;
+	int8_t *p;
 
 	if(buf == nil){
 		seprint(ans, e, "<no data>");
@@ -218,7 +219,7 @@ dumpsome(char *ans, char *e, char *buf, long count)
 	if(count > DUMPL)
 		count = DUMPL;
 	for(i=0; i<count && printable; i++)
-		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uchar)buf[i]>127)
+		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uint8_t)buf[i]>127)
 			printable = 0;
 	p = ans;
 	*p++ = '\'';
@@ -233,7 +234,7 @@ dumpsome(char *ans, char *e, char *buf, long count)
 		for(i=0; i<count; i++){
 			if(i>0 && i%4==0)
 				*p++ = ' ';
-			sprint(p, "%2.2ux", (uchar)buf[i]);
+			sprint(p, "%2.2ux", (uint8_t)buf[i]);
 			p += 2;
 		}
 	}

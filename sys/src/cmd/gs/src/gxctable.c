@@ -116,32 +116,32 @@ interpolate_accum(const fixed * pi, const gx_color_lookup_table * pclt,
 	    frac rv;
 
 	    frac v00 = v000 +
-		(frac) arith_rshift((long)fc * (v001 - v000),
+		(frac) arith_rshift((int32_t)fc * (v001 - v000),
 				    _fixed_shift);
 	    frac v01 = v010 +
-		(frac) arith_rshift((long)fc * (v011 - v010),
+		(frac) arith_rshift((int32_t)fc * (v011 - v010),
 				    _fixed_shift);
 	    frac v10 = v100 +
-		(frac) arith_rshift((long)fc * (v101 - v100),
+		(frac) arith_rshift((int32_t)fc * (v101 - v100),
 				    _fixed_shift);
 	    frac v11 = v110 +
-		(frac) arith_rshift((long)fc * (v111 - v110),
+		(frac) arith_rshift((int32_t)fc * (v111 - v110),
 				    _fixed_shift);
 
 	    frac v0 = v00 +
-		(frac) arith_rshift((long)fb * (v01 - v00),
+		(frac) arith_rshift((int32_t)fb * (v01 - v00),
 				    _fixed_shift);
 	    frac v1 = v10 +
-		(frac) arith_rshift((long)fb * (v11 - v10),
+		(frac) arith_rshift((int32_t)fb * (v11 - v10),
 				    _fixed_shift);
 
 	    rv = v0 +
-		(frac) arith_rshift((long)fa * (v1 - v0),
+		(frac) arith_rshift((int32_t)fa * (v1 - v0),
 				    _fixed_shift);
 	    if (factor == fixed_1)
 		pv[j] = rv;
 	    else
-		pv[j] += (frac) arith_rshift((long)factor * (rv - pv[j]),
+		pv[j] += (frac) arith_rshift((int32_t)factor * (rv - pv[j]),
 					     _fixed_shift);
 	}
     }

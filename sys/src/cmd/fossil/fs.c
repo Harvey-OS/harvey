@@ -17,10 +17,10 @@ static Snap *snapInit(Fs*);
 static void snapClose(Snap*);
 
 Fs *
-fsOpen(char *file, VtSession *z, long ncache, int mode)
+fsOpen(int8_t *file, VtSession *z, int32_t ncache, int mode)
 {
 	int fd, m;
-	uchar oscore[VtScoreSize];
+	uint8_t oscore[VtScoreSize];
 	Block *b, *bs;
 	Disk *disk;
 	Fs *fs;
@@ -168,7 +168,7 @@ fsClose(Fs *fs)
 }
 
 int
-fsRedial(Fs *fs, char *host)
+fsRedial(Fs *fs, int8_t *host)
 {
 	if(!vtRedial(fs->z, host))
 		return 0;
@@ -240,10 +240,10 @@ superWrite(Block* b, Super* super, int forceWrite)
  * TODO This should be rewritten to eliminate most of the duplication.
  */
 static File*
-fileOpenSnapshot(Fs *fs, char *dstpath, int doarchive)
+fileOpenSnapshot(Fs *fs, int8_t *dstpath, int doarchive)
 {
 	int n;
-	char buf[30], *s, *p, *elem;
+	int8_t buf[30], *s, *p, *elem;
 	File *dir, *f;
 	Tm now;
 
@@ -355,9 +355,9 @@ fsNeedArch(Fs *fs, uint archMinute)
 {
 	int need;
 	File *f;
-	char buf[100];
+	int8_t buf[100];
 	Tm now;
-	ulong then;
+	uint32_t then;
 
 	then = time(0);
 	now = *localtime(then);
@@ -410,7 +410,7 @@ fsEpochLow(Fs *fs, u32int low)
 static int
 bumpEpoch(Fs *fs, int doarchive)
 {
-	uchar oscore[VtScoreSize];
+	uint8_t oscore[VtScoreSize];
 	u32int oldaddr;
 	Block *b, *bs;
 	Entry e;
@@ -507,7 +507,7 @@ saveQid(Fs *fs)
 }
 
 int
-fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
+fsSnapshot(Fs *fs, int8_t *srcpath, int8_t *dstpath, int doarchive)
 {
 	File *src, *dst;
 
@@ -627,7 +627,7 @@ Err:
 }
 
 int
-fsVac(Fs *fs, char *name, uchar score[VtScoreSize])
+fsVac(Fs *fs, int8_t *name, uint8_t score[VtScoreSize])
 {
 	int r;
 	DirEntry de;
@@ -654,7 +654,8 @@ fsVac(Fs *fs, char *name, uchar score[VtScoreSize])
 }
 
 static int
-vtWriteBlock(VtSession *z, uchar *buf, uint n, uint type, uchar score[VtScoreSize])
+vtWriteBlock(VtSession *z, uint8_t *buf, uint n, uint type,
+	     uint8_t score[VtScoreSize])
 {
 	if(!vtWrite(z, score, type, buf, n))
 		return 0;
@@ -664,11 +665,12 @@ vtWriteBlock(VtSession *z, uchar *buf, uint n, uint type, uchar score[VtScoreSiz
 }
 
 int
-mkVac(VtSession *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde, uchar score[VtScoreSize])
+mkVac(VtSession *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde,
+      uint8_t score[VtScoreSize])
 {
-	uchar buf[8192];
+	uint8_t buf[8192];
 	int i;
-	uchar *p;
+	uint8_t *p;
 	uint n;
 	DirEntry de;
 	Entry e, ee, eee;
@@ -806,14 +808,14 @@ fsMetaFlush(void *a)
 }
 
 static int
-fsEsearch1(File *f, char *path, u32int savetime, u32int *plo)
+fsEsearch1(File *f, int8_t *path, u32int savetime, u32int *plo)
 {
 	int n, r;
 	DirEntry de;
 	DirEntryEnum *dee;
 	File *ff;
 	Entry e, ee;
-	char *t;
+	int8_t *t;
 
 	dee = deeOpen(f);
 	if(dee == nil)
@@ -851,7 +853,7 @@ fsEsearch1(File *f, char *path, u32int savetime, u32int *plo)
 }
 
 static int
-fsEsearch(Fs *fs, char *path, u32int savetime, u32int *plo)
+fsEsearch(Fs *fs, int8_t *path, u32int savetime, u32int *plo)
 {
 	int n;
 	File *f;
@@ -898,13 +900,13 @@ fsSnapshotCleanup(Fs *fs, u32int age)
 /* remove all snapshots that have expired */
 /* return number of directory entries remaining */
 static int
-fsRsearch1(File *f, char *s)
+fsRsearch1(File *f, int8_t *s)
 {
 	int n, r;
 	DirEntry de;
 	DirEntryEnum *dee;
 	File *ff;
-	char *t;
+	int8_t *t;
 
 	dee = deeOpen(f);
 	if(dee == nil)
@@ -944,7 +946,7 @@ fsRsearch1(File *f, char *s)
 }
 
 static int
-fsRsearch(Fs *fs, char *path)
+fsRsearch(Fs *fs, int8_t *path)
 {
 	File *f;
 	DirEntry de;

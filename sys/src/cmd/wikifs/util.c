@@ -16,7 +16,7 @@
 #include "wiki.h"
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -26,7 +26,7 @@ erealloc(void *v, ulong n)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *v;
 
@@ -38,11 +38,11 @@ emalloc(ulong n)
 	return v;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	int l;
-	char *t;
+	int8_t *t;
 
 	if (s == nil)
 		return nil;
@@ -53,11 +53,11 @@ estrdup(char *s)
 	return t;
 }
 
-char*
-estrdupn(char *s, int n)
+int8_t*
+estrdupn(int8_t *s, int n)
 {
 	int l;
-	char *t;
+	int8_t *t;
 
 	l = strlen(s);
 	if(l > n)
@@ -69,10 +69,10 @@ estrdupn(char *s, int n)
 	return t;
 }
 
-char*
-strlower(char *s)
+int8_t*
+strlower(int8_t *s)
 {
-	char *p;
+	int8_t *p;
 
 	for(p=s; *p; p++)
 		if('A' <= *p && *p <= 'Z')
@@ -81,10 +81,10 @@ strlower(char *s)
 }
 
 String*
-s_appendsub(String *s, char *p, int n, Sub *sub, int nsub)
+s_appendsub(String *s, int8_t *p, int n, Sub *sub, int nsub)
 {
 	int i, m;
-	char *q, *r, *ep;
+	int8_t *q, *r, *ep;
 
 	ep = p+n;
 	while(p<ep){
@@ -109,21 +109,21 @@ s_appendsub(String *s, char *p, int n, Sub *sub, int nsub)
 String*
 s_appendlist(String *s, ...)
 {
-	char *x;
+	int8_t *x;
 	va_list arg;
 
 	va_start(arg, s);
-	while(x = va_arg(arg, char*))
+	while(x = va_arg(arg, int8_t*))
 		s = s_append(s, x);
 	va_end(arg);
 	return s;
 }
 
 int
-opentemp(char *template)
+opentemp(int8_t *template)
 {
 	int fd, i;
-	char *p;
+	int8_t *p;
 
 	p = estrdup(template);
 	fd = -1;

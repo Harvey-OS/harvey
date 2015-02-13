@@ -19,7 +19,7 @@
 
 int debug;
 Ndb *db;
-char raddr[128];
+int8_t raddr[128];
 
 /* Microsoft auth constants */
 enum {
@@ -36,17 +36,18 @@ void	chap(Ticketreq*);
 void	mschap(Ticketreq*);
 void	http(Ticketreq*);
 void	vnc(Ticketreq*);
-int	speaksfor(char*, char*);
-void	replyerror(char*, ...);
-void	getraddr(char*);
-void	mkkey(char*);
-void	randombytes(uchar*, int);
-void	nthash(uchar hash[MShashlen], char *passwd);
-void	lmhash(uchar hash[MShashlen], char *passwd);
-void	mschalresp(uchar resp[MSresplen], uchar hash[MShashlen], uchar chal[MSchallen]);
-void	desencrypt(uchar data[8], uchar key[7]);
-int	tickauthreply(Ticketreq*, char*);
-void	safecpy(char*, char*, int);
+int	speaksfor(int8_t*, int8_t*);
+void	replyerror(int8_t*, ...);
+void	getraddr(int8_t*);
+void	mkkey(int8_t*);
+void	randombytes(uint8_t*, int);
+void	nthash(uint8_t hash[MShashlen], int8_t *passwd);
+void	lmhash(uint8_t hash[MShashlen], int8_t *passwd);
+void	mschalresp(uint8_t resp[MSresplen], uint8_t hash[MShashlen],
+		       uint8_t chal[MSchallen]);
+void	desencrypt(uint8_t data[8], uint8_t key[7]);
+int	tickauthreply(Ticketreq*, int8_t*);
+void	safecpy(int8_t*, int8_t*, int);
 
 
 void
@@ -115,10 +116,10 @@ main(int argc, char *argv[])
 int
 ticketrequest(Ticketreq *tr)
 {
-	char akey[DESKEYLEN];
-	char hkey[DESKEYLEN];
+	int8_t akey[DESKEYLEN];
+	int8_t hkey[DESKEYLEN];
 	Ticket t;
-	char tbuf[2*TICKETLEN+1];
+	int8_t tbuf[2*TICKETLEN+1];
 
 	if(findkey(KEYDB, tr->authid, akey) == 0){
 		/* make one up so caller doesn't know it was wrong */
@@ -169,11 +170,11 @@ ticketrequest(Ticketreq *tr)
 void
 challengebox(Ticketreq *tr)
 {
-	long chal;
-	char *key, *netkey;
-	char kbuf[DESKEYLEN], nkbuf[DESKEYLEN], hkey[DESKEYLEN];
-	char buf[NETCHLEN+1];
-	char *err;
+	int32_t chal;
+	int8_t *key, *netkey;
+	int8_t kbuf[DESKEYLEN], nkbuf[DESKEYLEN], hkey[DESKEYLEN];
+	int8_t buf[NETCHLEN+1];
+	int8_t *err;
 
 	key = findkey(KEYDB, tr->uid, kbuf);
 	netkey = findkey(NETKEYDB, tr->uid, nkbuf);
@@ -234,11 +235,11 @@ void
 changepasswd(Ticketreq *tr)
 {
 	Ticket t;
-	char tbuf[TICKETLEN+1];
-	char prbuf[PASSREQLEN];
+	int8_t tbuf[TICKETLEN+1];
+	int8_t prbuf[PASSREQLEN];
 	Passwordreq pr;
-	char okey[DESKEYLEN], nkey[DESKEYLEN];
-	char *err;
+	int8_t okey[DESKEYLEN], nkey[DESKEYLEN];
+	int8_t *err;
 
 	if(findkey(KEYDB, tr->uid, okey) == 0){
 		/* make one up so caller doesn't know it was wrong */
@@ -299,9 +300,9 @@ void
 http(Ticketreq *tr)
 {
 	Ticket t;
-	char tbuf[TICKETLEN+1];
-	char key[DESKEYLEN];
-	char *p;
+	int8_t tbuf[TICKETLEN+1];
+	int8_t key[DESKEYLEN];
+	int8_t *p;
 	Biobuf *b;
 	int n;
 
@@ -326,7 +327,7 @@ http(Ticketreq *tr)
 	}
 	Bterm(b);
 	if(p == nil) {
-		randombytes((uchar*)key, DESKEYLEN);
+		randombytes((uint8_t*)key, DESKEYLEN);
 	} else {
 		while(*p == ' ' || *p == '\t')
 			p++;
@@ -334,7 +335,7 @@ http(Ticketreq *tr)
 	}
 
 	/* send back a ticket encrypted with the key */
-	randombytes((uchar*)t.chal, CHALLEN);
+	randombytes((uint8_t*)t.chal, CHALLEN);
 	mkkey(t.key);
 	tbuf[0] = AuthOK;
 	t.num = AuthHr;
@@ -344,11 +345,11 @@ http(Ticketreq *tr)
 	write(1, tbuf, sizeof(tbuf));
 }
 
-static char*
+static int8_t*
 domainname(void)
 {
-	static char sysname[Maxpath];
-	static char *domain;
+	static int8_t sysname[Maxpath];
+	static int8_t *domain;
 	int n;
 
 	if(domain)
@@ -371,7 +372,7 @@ domainname(void)
 }
 
 static int
-h2b(char c)
+h2b(int8_t c)
 {
 	if(c >= '0' && c <= '9')
 		return c - '0';
@@ -386,22 +387,22 @@ void
 apop(Ticketreq *tr, int type)
 {
 	int challen, i, tries;
-	char *secret, *hkey, *p;
+	int8_t *secret, *hkey, *p;
 	Ticketreq treq;
 	DigestState *s;
-	char sbuf[SECRETLEN], hbuf[DESKEYLEN];
-	char tbuf[TICKREQLEN];
-	char buf[MD5dlen*2];
-	uchar digest[MD5dlen], resp[MD5dlen];
-	ulong rb[4];
-	char chal[256];
+	int8_t sbuf[SECRETLEN], hbuf[DESKEYLEN];
+	int8_t tbuf[TICKREQLEN];
+	int8_t buf[MD5dlen*2];
+	uint8_t digest[MD5dlen], resp[MD5dlen];
+	uint32_t rb[4];
+	int8_t chal[256];
 
 	USED(tr);
 
 	/*
 	 *  Create a challenge and send it.
 	 */
-	randombytes((uchar*)rb, sizeof(rb));
+	randombytes((uint8_t*)rb, sizeof(rb));
 	p = chal;
 	p += snprint(p, sizeof(chal), "<%lux%lux.%lux%lux@%s>",
 		rb[0], rb[1], rb[2], rb[3], domainname());
@@ -445,12 +446,12 @@ apop(Ticketreq *tr, int type)
 		 *  check for match
 		 */
 		if(type == AuthCram){
-			hmac_md5((uchar*)chal, challen,
-				(uchar*)secret, strlen(secret),
+			hmac_md5((uint8_t*)chal, challen,
+				(uint8_t*)secret, strlen(secret),
 				digest, nil);
 		} else {
-			s = md5((uchar*)chal, challen, 0, 0);
-			md5((uchar*)secret, strlen(secret), digest, s);
+			s = md5((uint8_t*)chal, challen, 0, 0);
+			md5((uint8_t*)secret, strlen(secret), digest, s);
 		}
 		if(memcmp(digest, resp, MD5dlen) != 0){
 			replyerror("apop-fail bad response %s", raddr);
@@ -483,7 +484,7 @@ enum {
 };
 
 /* VNC reverses the bits of each byte before using as a des key */
-uchar swizzletab[256] = {
+uint8_t swizzletab[256] = {
  0x0, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0, 0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
  0x8, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8, 0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
  0x4, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4, 0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
@@ -505,10 +506,10 @@ uchar swizzletab[256] = {
 void
 vnc(Ticketreq *tr)
 {
-	uchar chal[VNCchallen+6];
-	uchar reply[VNCchallen];
-	char *secret, *hkey;
-	char sbuf[SECRETLEN], hbuf[DESKEYLEN];
+	uint8_t chal[VNCchallen+6];
+	uint8_t reply[VNCchallen];
+	int8_t *secret, *hkey;
+	int8_t sbuf[SECRETLEN], hbuf[DESKEYLEN];
 	DESstate s;
 	int i;
 
@@ -517,7 +518,7 @@ vnc(Ticketreq *tr)
 	 */
 	randombytes(chal+6, VNCchallen);
 	chal[0] = AuthOKvar;
-	snprint((char*)chal+1, sizeof chal - 1, "%-5d", VNCchallen);
+	snprint((int8_t*)chal+1, sizeof chal - 1, "%-5d", VNCchallen);
 	if(write(1, chal, sizeof(chal)) != sizeof(chal))
 		return;
 
@@ -527,15 +528,15 @@ vnc(Ticketreq *tr)
 	memset(sbuf, 0, sizeof(sbuf));
 	secret = findsecret(KEYDB, tr->uid, sbuf);
 	if(secret == 0){
-		randombytes((uchar*)sbuf, sizeof(sbuf));
+		randombytes((uint8_t*)sbuf, sizeof(sbuf));
 		secret = sbuf;
 	}
 	for(i = 0; i < 8; i++)
-		secret[i] = swizzletab[(uchar)secret[i]];
+		secret[i] = swizzletab[(uint8_t)secret[i]];
 
 	hkey = findkey(KEYDB, tr->hostid, hbuf);
 	if(hkey == 0){
-		randombytes((uchar*)hbuf, sizeof(hbuf));
+		randombytes((uint8_t*)hbuf, sizeof(hbuf));
 		hkey = hbuf;
 	}
 
@@ -548,7 +549,7 @@ vnc(Ticketreq *tr)
 	/*
 	 *  decrypt response and compare
 	 */
-	setupDESstate(&s, (uchar*)secret, nil);
+	setupDESstate(&s, (uint8_t*)secret, nil);
 	desECBdecrypt(reply, sizeof(reply), &s);
 	if(memcmp(reply, chal+6, VNCchallen) != 0){
 		replyerror("vnc-fail bad response %s", raddr);
@@ -570,17 +571,17 @@ vnc(Ticketreq *tr)
 void
 chap(Ticketreq *tr)
 {
-	char *secret, *hkey;
+	int8_t *secret, *hkey;
 	DigestState *s;
-	char sbuf[SECRETLEN], hbuf[DESKEYLEN];
-	uchar digest[MD5dlen];
-	char chal[CHALLEN];
+	int8_t sbuf[SECRETLEN], hbuf[DESKEYLEN];
+	uint8_t digest[MD5dlen];
+	int8_t chal[CHALLEN];
 	OChapreply reply;
 
 	/*
 	 *  Create a challenge and send it.
 	 */
-	randombytes((uchar*)chal, sizeof(chal));
+	randombytes((uint8_t*)chal, sizeof(chal));
 	write(1, chal, sizeof(chal));
 
 	/*
@@ -605,8 +606,8 @@ chap(Ticketreq *tr)
 	 *  check for match
 	 */
 	s = md5(&reply.id, 1, 0, 0);
-	md5((uchar*)secret, strlen(secret), 0, s);
-	md5((uchar*)chal, sizeof(chal), digest, s);
+	md5((uint8_t*)secret, strlen(secret), 0, s);
+	md5((uint8_t*)chal, sizeof(chal), digest, s);
 
 	if(memcmp(digest, reply.resp, MD5dlen) != 0){
 		replyerror("chap-fail bad response %s", raddr);
@@ -627,9 +628,9 @@ chap(Ticketreq *tr)
 }
 
 void
-printresp(uchar resp[MSresplen])
+printresp(uint8_t resp[MSresplen])
 {
-	char buf[200], *p;
+	int8_t buf[200], *p;
 	int i;
 
 	p = buf;
@@ -643,21 +644,21 @@ void
 mschap(Ticketreq *tr)
 {
 
-	char *secret, *hkey;
-	char sbuf[SECRETLEN], hbuf[DESKEYLEN];
-	uchar chal[CHALLEN];
-	uchar hash[MShashlen];
-	uchar hash2[MShashlen];
-	uchar resp[MSresplen];
+	int8_t *secret, *hkey;
+	int8_t sbuf[SECRETLEN], hbuf[DESKEYLEN];
+	uint8_t chal[CHALLEN];
+	uint8_t hash[MShashlen];
+	uint8_t hash2[MShashlen];
+	uint8_t resp[MSresplen];
 	OMSchapreply reply;
 	int dupe, lmok, ntok;
 	DigestState *s;
-	uchar digest[SHA1dlen];
+	uint8_t digest[SHA1dlen];
 
 	/*
 	 *  Create a challenge and send it.
 	 */
-	randombytes((uchar*)chal, sizeof(chal));
+	randombytes((uint8_t*)chal, sizeof(chal));
 	write(1, chal, sizeof(chal));
 
 	/*
@@ -730,9 +731,9 @@ mschap(Ticketreq *tr)
 }
 
 void
-nthash(uchar hash[MShashlen], char *passwd)
+nthash(uint8_t hash[MShashlen], int8_t *passwd)
 {
-	uchar buf[512];
+	uint8_t buf[512];
 	int i;
 
 	for (i = 0; *passwd && i + 1 < sizeof(buf);) {
@@ -748,13 +749,13 @@ nthash(uchar hash[MShashlen], char *passwd)
 }
 
 void
-lmhash(uchar hash[MShashlen], char *passwd)
+lmhash(uint8_t hash[MShashlen], int8_t *passwd)
 {
-	uchar buf[14];
-	char *stdtext = "KGS!@#$%";
+	uint8_t buf[14];
+	int8_t *stdtext = "KGS!@#$%";
 	int i;
 
-	strncpy((char*)buf, passwd, sizeof(buf));
+	strncpy((int8_t*)buf, passwd, sizeof(buf));
 	for(i=0; i<sizeof(buf); i++)
 		if(buf[i] >= 'a' && buf[i] <= 'z')
 			buf[i] += 'A' - 'a';
@@ -768,10 +769,11 @@ lmhash(uchar hash[MShashlen], char *passwd)
 }
 
 void
-mschalresp(uchar resp[MSresplen], uchar hash[MShashlen], uchar chal[MSchallen])
+mschalresp(uint8_t resp[MSresplen], uint8_t hash[MShashlen],
+	   uint8_t chal[MSchallen])
 {
 	int i;
-	uchar buf[21];
+	uint8_t buf[21];
 
 	memset(buf, 0, sizeof(buf));
 	memcpy(buf, hash, MShashlen);
@@ -783,9 +785,9 @@ mschalresp(uchar resp[MSresplen], uchar hash[MShashlen], uchar chal[MSchallen])
 }
 
 void
-desencrypt(uchar data[8], uchar key[7])
+desencrypt(uint8_t data[8], uint8_t key[7])
 {
-	ulong ekey[32];
+	uint32_t ekey[32];
 
 	key_setup(key, ekey);
 	block_cipher(ekey, data, 0);
@@ -797,12 +799,12 @@ desencrypt(uchar data[8], uchar key[7])
  *  a speaker may always speak for himself/herself
  */
 int
-speaksfor(char *speaker, char *user)
+speaksfor(int8_t *speaker, int8_t *user)
 {
 	Ndbtuple *tp, *ntp;
 	Ndbs s;
 	int ok;
-	char notuser[Maxpath];
+	int8_t notuser[Maxpath];
 
 	if(strcmp(speaker, user) == 0)
 		return 1;
@@ -833,9 +835,9 @@ speaksfor(char *speaker, char *user)
  *  return an error reply
  */
 void
-replyerror(char *fmt, ...)
+replyerror(int8_t *fmt, ...)
 {
-	char buf[AERRLEN+1];
+	int8_t buf[AERRLEN+1];
 	va_list arg;
 
 	memset(buf, 0, sizeof(buf));
@@ -849,11 +851,11 @@ replyerror(char *fmt, ...)
 }
 
 void
-getraddr(char *dir)
+getraddr(int8_t *dir)
 {
 	int n;
-	char *cp;
-	char file[Maxpath];
+	int8_t *cp;
+	int8_t file[Maxpath];
 
 	raddr[0] = 0;
 	snprint(file, sizeof(file), "%s/remote", dir);
@@ -871,17 +873,17 @@ getraddr(char *dir)
 }
 
 void
-mkkey(char *k)
+mkkey(int8_t *k)
 {
-	randombytes((uchar*)k, DESKEYLEN);
+	randombytes((uint8_t*)k, DESKEYLEN);
 }
 
 void
-randombytes(uchar *buf, int len)
+randombytes(uint8_t *buf, int len)
 {
 	int i;
 
-	if(readfile("/dev/random", (char*)buf, len) >= 0)
+	if(readfile("/dev/random", (int8_t*)buf, len) >= 0)
 		return;
 
 	for(i = 0; i < len; i++)
@@ -892,11 +894,11 @@ randombytes(uchar *buf, int len)
  *  reply with ticket and authenticator
  */
 int
-tickauthreply(Ticketreq *tr, char *hkey)
+tickauthreply(Ticketreq *tr, int8_t *hkey)
 {
 	Ticket t;
 	Authenticator a;
-	char buf[TICKETLEN+AUTHENTLEN+1];
+	int8_t buf[TICKETLEN+AUTHENTLEN+1];
 
 	memset(&t, 0, sizeof(t));
 	memmove(t.chal, tr->chal, CHALLEN);
@@ -916,7 +918,7 @@ tickauthreply(Ticketreq *tr, char *hkey)
 }
 
 void
-safecpy(char *to, char *from, int len)
+safecpy(int8_t *to, int8_t *from, int len)
 {
 	strncpy(to, from, len);
 	to[len-1] = 0;

@@ -34,7 +34,7 @@ vCopy2File(FILE *pFile, ULONG ulFileOffset, size_t tPictureLen)
 	FILE	*pOutFile;
 	size_t	tIndex;
 	int	iTmp;
-	char	szFilename[30];
+	int8_t	szFilename[30];
 
 	if (!bSetDataOffset(pFile, ulFileOffset)) {
 		return;

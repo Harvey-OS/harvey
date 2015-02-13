@@ -13,5 +13,5 @@
 
 #include "sh.h"
 
-const char ksh_version [] =
+const int8_t ksh_version [] =
 	"@(#)PD KSH v5.2.14 99/07/13.2";

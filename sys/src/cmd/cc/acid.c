@@ -9,7 +9,7 @@
 
 #include "cc.h"
 
-static char *kwd[] =
+static int8_t *kwd[] =
 {
 	"$adt", "$aggr", "$append", "$builtin", "$complex", "$defn",
 	"$delete", "$do", "$else", "$eval", "$head", "$if",
@@ -17,8 +17,8 @@ static char *kwd[] =
 	"$union", "$whatis", "$while",
 };
 
-char*
-amap(char *s)
+int8_t*
+amap(int8_t *s)
 {
 	int i, bot, top, new;
 
@@ -65,7 +65,7 @@ acidfun(Type *t)
 	return 0;
 }
 
-char	acidchar[NTYPE];
+int8_t	acidchar[NTYPE];
 Init	acidcinit[] =
 {
 	TCHAR,		'C',	0,
@@ -105,7 +105,7 @@ acidinit(void)
 }
 
 void
-acidmember(Type *t, long off, int flag)
+acidmember(Type *t, int32_t off, int flag)
 {
 	Sym *s, *s1;
 	Type *l;
@@ -209,7 +209,7 @@ acidtype(Type *t)
 	Type *l;
 	Io *i;
 	int n;
-	char *an;
+	int8_t *an;
 
 	if(!debug['a'])
 		return;

@@ -54,10 +54,10 @@ vCreateDocumentInfoList(const document_block_type *pDocument)
 /*
  * lGetDefaultTabWidth - get the default tabwidth in millipoints
  */
-long
+int32_t
 lGetDefaultTabWidth(void)
 {
-	long	lDefaultTabWidth;
+	int32_t	lDefaultTabWidth;
 	USHORT	usTmp;
 
 	if (pAnchor == NULL) {

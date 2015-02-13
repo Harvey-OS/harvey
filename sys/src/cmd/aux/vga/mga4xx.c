@@ -181,131 +181,131 @@ typedef struct {
 	int	devid;
 	int	revid;
 	
-	uchar*	mmio;
-	uchar*	mmfb;
+	uint8_t*	mmio;
+	uint8_t*	mmfb;
 	int	fbsize;
-	ulong	iload;
+	uint32_t	iload;
 
-	uchar	syspll_m;
-	uchar	syspll_n;
-	uchar	syspll_p;
-	uchar	syspll_s;
+	uint8_t	syspll_m;
+	uint8_t	syspll_n;
+	uint8_t	syspll_p;
+	uint8_t	syspll_s;
 
-	uchar	pixpll_m;
-	uchar	pixpll_n;
-	uchar	pixpll_p;
-	uchar	pixpll_s;
+	uint8_t	pixpll_m;
+	uint8_t	pixpll_n;
+	uint8_t	pixpll_p;
+	uint8_t	pixpll_s;
 
-	ulong	option1;
-	ulong	option2;
-	ulong	option3;
+	uint32_t	option1;
+	uint32_t	option2;
+	uint32_t	option3;
 
-	ulong	Fneeded;
+	uint32_t	Fneeded;
 
 	/* From plan9.ini ... later */
-	uchar	sdram;
-	uchar	colorkey;
-	uchar	maskkey;
-	ulong	maxpclk;
+	uint8_t	sdram;
+	uint8_t	colorkey;
+	uint8_t	maskkey;
+	uint32_t	maxpclk;
 
-	uchar	graphics[9];	
-	uchar	attribute[0x14];	
-	uchar	sequencer[5];
-	uchar	crtc[0x19];
-	uchar	crtcext[9];
+	uint8_t	graphics[9];	
+	uint8_t	attribute[0x14];	
+	uint8_t	sequencer[5];
+	uint8_t	crtc[0x19];
+	uint8_t	crtcext[9];
 
-	ulong	htotal;
-	ulong	hdispend;
-	ulong	hblkstr;
-	ulong	hblkend;
-	ulong	hsyncstr;
-	ulong	hsyncend;
-	ulong	vtotal;
-	ulong	vdispend;
-	ulong	vblkstr;
-	ulong	vblkend;
-	ulong	vsyncstr;
-	ulong	vsyncend;
-	ulong	linecomp;
-	ulong	hsyncsel;
-	ulong	startadd;
-	ulong	offset;
-	ulong	maxscan;
-	ulong 	curloc;
-	ulong	prowscan;
-	ulong	currowstr;
-	ulong	currowend;
-	ulong	curoff;
-	ulong	undrow;
-	ulong	curskew;
-	ulong	conv2t4;
-	ulong	interlace;
-	ulong	hsyncdel;
-	ulong	hdispskew;
-	ulong	bytepan;
-	ulong	dotclkrt;
-	ulong	dword;
-	ulong	wbmode;
-	ulong	addwrap;
-	ulong	selrowscan;
-	ulong	cms;
-	ulong	csynccen;
-	ulong	hrsten;
-	ulong	vrsten;
-	ulong	vinten;
-	ulong	vintclr;
-	ulong	hsyncoff;
-	ulong	vsyncoff;
-	ulong	crtcrstN;
-	ulong	mgamode;
-	ulong	scale;
-	ulong	hiprilvl;
-	ulong	maxhipri;
-	ulong	c2hiprilvl;
-	ulong	c2maxhipri;
-	ulong	misc;
-	ulong	crtcprotect;
-	ulong	winsize;
-	ulong	winfreq;
+	uint32_t	htotal;
+	uint32_t	hdispend;
+	uint32_t	hblkstr;
+	uint32_t	hblkend;
+	uint32_t	hsyncstr;
+	uint32_t	hsyncend;
+	uint32_t	vtotal;
+	uint32_t	vdispend;
+	uint32_t	vblkstr;
+	uint32_t	vblkend;
+	uint32_t	vsyncstr;
+	uint32_t	vsyncend;
+	uint32_t	linecomp;
+	uint32_t	hsyncsel;
+	uint32_t	startadd;
+	uint32_t	offset;
+	uint32_t	maxscan;
+	uint32_t 	curloc;
+	uint32_t	prowscan;
+	uint32_t	currowstr;
+	uint32_t	currowend;
+	uint32_t	curoff;
+	uint32_t	undrow;
+	uint32_t	curskew;
+	uint32_t	conv2t4;
+	uint32_t	interlace;
+	uint32_t	hsyncdel;
+	uint32_t	hdispskew;
+	uint32_t	bytepan;
+	uint32_t	dotclkrt;
+	uint32_t	dword;
+	uint32_t	wbmode;
+	uint32_t	addwrap;
+	uint32_t	selrowscan;
+	uint32_t	cms;
+	uint32_t	csynccen;
+	uint32_t	hrsten;
+	uint32_t	vrsten;
+	uint32_t	vinten;
+	uint32_t	vintclr;
+	uint32_t	hsyncoff;
+	uint32_t	vsyncoff;
+	uint32_t	crtcrstN;
+	uint32_t	mgamode;
+	uint32_t	scale;
+	uint32_t	hiprilvl;
+	uint32_t	maxhipri;
+	uint32_t	c2hiprilvl;
+	uint32_t	c2maxhipri;
+	uint32_t	misc;
+	uint32_t	crtcprotect;
+	uint32_t	winsize;
+	uint32_t	winfreq;
 	
-	ulong	mgaapsize;
+	uint32_t	mgaapsize;
 } Mga;
 
 static void
-mgawrite32(Mga* mga, int index, ulong val)
+mgawrite32(Mga* mga, int index, uint32_t val)
 {
-	((ulong*)mga->mmio)[index] = val;
+	((uint32_t*)mga->mmio)[index] = val;
 }
 
-static ulong
+static uint32_t
 mgaread32(Mga* mga, int index)
 {
-	return ((ulong*)mga->mmio)[index];
+	return ((uint32_t*)mga->mmio)[index];
 }
 
 static void
-mgawrite8(Mga* mga, int index, uchar val)
+mgawrite8(Mga* mga, int index, uint8_t val)
 {
 	mga->mmio[index] = val;
 }
 
-static uchar
+static uint8_t
 mgaread8(Mga* mga, int index)
 {
 	return mga->mmio[index];
 }
 
-static uchar
+static uint8_t
 seqget(Mga* mga, int index)
 {
 	mgawrite8(mga, SEQIDX, index);
 	return mgaread8(mga, SEQDATA);
 }
 
-static uchar
-seqset(Mga* mga, int index, uchar set, uchar clr)
+static uint8_t
+seqset(Mga* mga, int index, uint8_t set, uint8_t clr)
 {
-	uchar	tmp;
+	uint8_t	tmp;
 
 	mgawrite8(mga, SEQIDX, index);
 	tmp = mgaread8(mga, SEQDATA);
@@ -314,17 +314,17 @@ seqset(Mga* mga, int index, uchar set, uchar clr)
 	return tmp;
 }
 
-static uchar
+static uint8_t
 crtcget(Mga* mga, int index)
 {
 	mgawrite8(mga, CRTCIDX, index);
 	return mgaread8(mga, CRTCDATA);
 }
 
-static uchar
-crtcset(Mga* mga, int index, uchar set, uchar clr)
+static uint8_t
+crtcset(Mga* mga, int index, uint8_t set, uint8_t clr)
 {
-	uchar	tmp;
+	uint8_t	tmp;
 
 	mgawrite8(mga, CRTCIDX, index);
 	tmp = mgaread8(mga, CRTCDATA);
@@ -333,17 +333,17 @@ crtcset(Mga* mga, int index, uchar set, uchar clr)
 	return tmp;
 }
 
-static uchar
+static uint8_t
 crtcextget(Mga* mga, int index)
 {
 	mgawrite8(mga, CRTCEXTIDX, index);
 	return mgaread8(mga, CRTCEXTDATA);
 }
 
-static uchar
-crtcextset(Mga* mga, int index, uchar set, uchar clr)
+static uint8_t
+crtcextset(Mga* mga, int index, uint8_t set, uint8_t clr)
 {
-	uchar	tmp;
+	uint8_t	tmp;
 
 	mgawrite8(mga, CRTCEXTIDX, index);
 	tmp = mgaread8(mga, CRTCEXTDATA);
@@ -352,17 +352,17 @@ crtcextset(Mga* mga, int index, uchar set, uchar clr)
 	return tmp;
 }
 
-static uchar
+static uint8_t
 dacget(Mga* mga, int index)
 {
 	mgawrite8(mga, RAMDACIDX, index);
 	return mgaread8(mga, RAMDACDATA);
 }
 
-static uchar
-dacset(Mga* mga, int index, uchar set, uchar clr)
+static uint8_t
+dacset(Mga* mga, int index, uint8_t set, uint8_t clr)
 {
-	uchar	tmp;
+	uint8_t	tmp;
 
 	mgawrite8(mga, RAMDACIDX, index);
 	tmp = mgaread8(mga, RAMDACDATA);
@@ -371,17 +371,17 @@ dacset(Mga* mga, int index, uchar set, uchar clr)
 	return	tmp;
 }
 
-static uchar
+static uint8_t
 gctlget(Mga* mga, int index)
 {
 	mgawrite8(mga, GCTLIDX, index);
 	return mgaread8(mga, GCTLDATA);
 }
 
-static uchar
-gctlset(Mga* mga, int index, uchar set, uchar clr)
+static uint8_t
+gctlset(Mga* mga, int index, uint8_t set, uint8_t clr)
 {
-	uchar	tmp;
+	uint8_t	tmp;
 
 	mgawrite8(mga, GCTLIDX, index);
 	tmp = mgaread8(mga, GCTLDATA);
@@ -390,17 +390,17 @@ gctlset(Mga* mga, int index, uchar set, uchar clr)
 	return	tmp;
 }
 
-static uchar
+static uint8_t
 attrget(Mga* mga, int index)
 {
 	mgawrite8(mga, ATTRIDX, index);
 	return mgaread8(mga, ATTRDATA);
 }
 
-static uchar
-attrset(Mga* mga, int index, uchar set, uchar clr)
+static uint8_t
+attrset(Mga* mga, int index, uint8_t set, uint8_t clr)
 {
-	uchar	tmp;
+	uint8_t	tmp;
 
 	mgawrite8(mga, ATTRIDX, index);
 	tmp = mgaread8(mga, ATTRDATA);
@@ -409,16 +409,16 @@ attrset(Mga* mga, int index, uchar set, uchar clr)
 	return	tmp;
 }
 
-static uchar
+static uint8_t
 miscget(Mga* mga)
 {
 	return mgaread8(mga, MISC_R);
 }
 
-static uchar
-miscset(Mga* mga, uchar set, uchar clr)
+static uint8_t
+miscset(Mga* mga, uint8_t set, uint8_t clr)
 {
-	uchar	tmp;
+	uint8_t	tmp;
 
 	tmp = mgaread8(mga, MISC_R);
 	mgawrite8(mga, MISC_W, (tmp & ~clr) | set);
@@ -458,7 +458,7 @@ static void
 setpalettedepth(int depth)
 {
 	int	fd;
-	char *cmd = strdup("palettedepth X");
+	int8_t *cmd = strdup("palettedepth X");
 
 	if ((depth != 8) && (depth != 6) && (depth != 16))
 		error("mga: invalid palette depth %d\n", depth);
@@ -478,7 +478,7 @@ static void
 mapmga4xx(Vga* vga, Ctlr* ctlr)
 {
 	int 	f;
-	uchar* 	m;
+	uint8_t* 	m;
 	Mga *	mga;
 
 	if(vga->private == nil)
@@ -517,12 +517,12 @@ static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
 	int 	i, k, n;
-	uchar *	p;
-	uchar	x[16];
+	uint8_t *	p;
+	uint8_t	x[16];
 	Pcidev *	pci;
 	Mga *	mga;
-	uchar	crtcext3;
-	uchar	rid;
+	uint8_t	crtcext3;
+	uint8_t	rid;
 
 	trace("%s->snarf\n", ctlr->name);
 	if(vga->private == nil) {
@@ -595,7 +595,7 @@ options(Vga* vga, Ctlr* ctlr)
 /* ************************************************************ */
 
 static void 
-G450ApplyPFactor(Mga*, uchar ucP, ulong *pulFIn)
+G450ApplyPFactor(Mga*, uint8_t ucP, uint32_t *pulFIn)
 {
 	if(!(ucP & 0x40))
 	{
@@ -605,7 +605,7 @@ G450ApplyPFactor(Mga*, uchar ucP, ulong *pulFIn)
 
 
 static void 
-G450RemovePFactor(Mga*, uchar ucP, ulong *pulFIn)
+G450RemovePFactor(Mga*, uint8_t ucP, uint32_t *pulFIn)
 {
 	if(!(ucP & 0x40))
 	{
@@ -614,12 +614,12 @@ G450RemovePFactor(Mga*, uchar ucP, ulong *pulFIn)
 }
 
 static void 
-G450CalculVCO(Mga*, ulong ulMNP, ulong *pulF)
+G450CalculVCO(Mga*, uint32_t ulMNP, uint32_t *pulF)
 {
-	uchar ucM, ucN;
+	uint8_t ucM, ucN;
 
-	ucM = (uchar)((ulMNP >> 16) & 0xff);
-	ucN = (uchar)((ulMNP >>  8) & 0xff);
+	ucM = (uint8_t)((ulMNP >> 16) & 0xff);
+	ucN = (uint8_t)((ulMNP >>  8) & 0xff);
 
 	*pulF = (27000 * (2 * (ucN + 2)) + ((ucM + 1) >> 1)) / (ucM + 1);
 	trace("G450CalculVCO: ulMNP %lx, pulF %ld\n", ulMNP, *pulF);
@@ -627,7 +627,7 @@ G450CalculVCO(Mga*, ulong ulMNP, ulong *pulF)
 
 
 static void 
-G450CalculDeltaFreq(Mga*, ulong ulF1, ulong ulF2, ulong *pulDelta)
+G450CalculDeltaFreq(Mga*, uint32_t ulF1, uint32_t ulF2, uint32_t *pulDelta)
 {
 	if(ulF2 < ulF1)
 	{
@@ -641,14 +641,14 @@ G450CalculDeltaFreq(Mga*, ulong ulF1, ulong ulF2, ulong *pulDelta)
 }
 
 static void 
-G450FindNextPLLParam(Mga* mga, ulong ulFout, ulong *pulPLLMNP)
+G450FindNextPLLParam(Mga* mga, uint32_t ulFout, uint32_t *pulPLLMNP)
 {
-	uchar ucM, ucN, ucP, ucS;
-	ulong ulVCO, ulVCOMin;
+	uint8_t ucM, ucN, ucP, ucS;
+	uint32_t ulVCO, ulVCOMin;
 
-	ucM = (uchar)((*pulPLLMNP >> 16) & 0xff);
+	ucM = (uint8_t)((*pulPLLMNP >> 16) & 0xff);
 	/* ucN = (uchar)((*pulPLLMNP >>  8) & 0xff); */
-	ucP = (uchar)(*pulPLLMNP &  0x43);
+	ucP = (uint8_t)(*pulPLLMNP &  0x43);
 
 	ulVCOMin = 256000;
 
@@ -688,7 +688,7 @@ G450FindNextPLLParam(Mga* mga, ulong ulFout, ulong *pulPLLMNP)
 
 	if(*pulPLLMNP != 0xffffffff)
 	{
-		ucN = (uchar)(((ulVCO * (ucM+1) + 27000)/(27000 * 2)) - 2);
+		ucN = (uint8_t)(((ulVCO * (ucM+1) + 27000)/(27000 * 2)) - 2);
 
 		ucS = 5;
 		if(ulVCO < 1300000) ucS = 4;
@@ -697,21 +697,21 @@ G450FindNextPLLParam(Mga* mga, ulong ulFout, ulong *pulPLLMNP)
 		if(ulVCO <  700000) ucS = 1;
 		if(ulVCO <  550000) ucS = 0;
 
-		ucP |= (uchar)(ucS << 3);
+		ucP |= (uint8_t)(ucS << 3);
 
 		*pulPLLMNP &= 0xff000000;
-		*pulPLLMNP |= (ulong)ucM << 16;
-		*pulPLLMNP |= (ulong)ucN << 8;
-		*pulPLLMNP |= (ulong)ucP;
+		*pulPLLMNP |= (uint32_t)ucM << 16;
+		*pulPLLMNP |= (uint32_t)ucN << 8;
+		*pulPLLMNP |= (uint32_t)ucP;
 	}
 }
 
 static void 
-G450FindFirstPLLParam(Mga* mga, ulong ulFout, ulong *pulPLLMNP)
+G450FindFirstPLLParam(Mga* mga, uint32_t ulFout, uint32_t *pulPLLMNP)
 {
-	uchar ucP;
-	ulong ulVCO;
-	ulong ulVCOMax;
+	uint8_t ucP;
+	uint32_t ulVCO;
+	uint32_t ulVCOMax;
 
 	/* Default value */
 	ulVCOMax = 1300000;
@@ -748,27 +748,27 @@ G450FindFirstPLLParam(Mga* mga, ulong ulFout, ulong *pulPLLMNP)
 
 
 static void 
-G450WriteMNP(Mga* mga, ulong ulMNP)
+G450WriteMNP(Mga* mga, uint32_t ulMNP)
 {
 	if (0) trace("G450WriteMNP : 0x%lx\n", ulMNP);
-	dacset(mga, Dac_Xpixpllcm, (uchar)(ulMNP >> 16), 0xff);
-	dacset(mga, Dac_Xpixpllcn, (uchar)(ulMNP >>  8), 0xff);   
-	dacset(mga, Dac_Xpixpllcp, (uchar)ulMNP, 0xff);   
+	dacset(mga, Dac_Xpixpllcm, (uint8_t)(ulMNP >> 16), 0xff);
+	dacset(mga, Dac_Xpixpllcn, (uint8_t)(ulMNP >>  8), 0xff);   
+	dacset(mga, Dac_Xpixpllcp, (uint8_t)ulMNP, 0xff);   
 }
 
 
 static void 
-G450CompareMNP(Mga* mga, ulong ulFout, ulong ulMNP1,
-			    ulong ulMNP2, long *pulResult)
+G450CompareMNP(Mga* mga, uint32_t ulFout, uint32_t ulMNP1,
+			    uint32_t ulMNP2, int32_t *pulResult)
 {
-	ulong ulFreq, ulDelta1, ulDelta2;
+	uint32_t ulFreq, ulDelta1, ulDelta2;
 
 	G450CalculVCO(mga, ulMNP1, &ulFreq);
-	G450ApplyPFactor(mga, (uchar) ulMNP1, &ulFreq);
+	G450ApplyPFactor(mga, (uint8_t) ulMNP1, &ulFreq);
 	G450CalculDeltaFreq(mga, ulFout, ulFreq, &ulDelta1);
 
 	G450CalculVCO(mga, ulMNP2, &ulFreq);
-	G450ApplyPFactor(mga, (uchar) ulMNP2, &ulFreq);
+	G450ApplyPFactor(mga, (uint8_t) ulMNP2, &ulFreq);
 	G450CalculDeltaFreq(mga, ulFout, ulFreq, &ulDelta2);
 
 	if(ulDelta1 < ulDelta2)
@@ -801,8 +801,8 @@ G450CompareMNP(Mga* mga, ulong ulFout, ulong ulMNP1,
 static void 
 G450IsPllLocked(Mga* mga, int *lpbLocked)
 {
-	ulong ulFallBackCounter, ulLockCount, ulCount;
-	uchar  ucPLLStatus;
+	uint32_t ulFallBackCounter, ulLockCount, ulCount;
+	uint8_t  ucPLLStatus;
 
 	/* Pixel PLL */
 	mgawrite8(mga, 0x3c00, 0x4f);    
@@ -833,16 +833,16 @@ G450IsPllLocked(Mga* mga, int *lpbLocked)
 }
 
 static void 
-G450SetPLLFreq(Mga* mga, long f_out) 
+G450SetPLLFreq(Mga* mga, int32_t f_out) 
 {
 	int bFoundValidPLL;
 	int bLocked;
-	ulong ulMaxIndex;
-	ulong ulMNP;
-	ulong ulMNPTable[MNP_TABLE_SIZE];
-	ulong ulIndex;
-	ulong ulTryMNP;
-	long lCompareResult;
+	uint32_t ulMaxIndex;
+	uint32_t ulMNP;
+	uint32_t ulMNPTable[MNP_TABLE_SIZE];
+	uint32_t ulIndex;
+	uint32_t ulTryMNP;
+	int32_t lCompareResult;
 
 	trace("f_out : %ld\n", f_out);
 
@@ -988,7 +988,7 @@ G450SetPLLFreq(Mga* mga, long f_out)
 	calcclock - Calculate the PLL settings (m, n, p, s).
 */
 static double
-g400_calcclock(Mga* mga, long Fneeded)
+g400_calcclock(Mga* mga, int32_t Fneeded)
 {
 	double	Fpll;
 	double	Fvco;
@@ -1078,7 +1078,7 @@ init(Vga* vga, Ctlr* ctlr)
 	double	Fpll;
 	Ctlr*	c;
 	int	i;
-	ulong	t;
+	uint32_t	t;
 	int     bppShift;
 
 	mga = vga->private;
@@ -1443,9 +1443,9 @@ load(Vga* vga, Ctlr* ctlr)
 {
 	Mga*	mga;
 	int	i;
-	uchar*	p;
+	uint8_t*	p;
 	Mode*	mode;
-	uchar	cursor;
+	uint8_t	cursor;
 
 	mga = vga->private;
 	mode = vga->mode;
@@ -1540,7 +1540,7 @@ load(Vga* vga, Ctlr* ctlr)
 			;
 		trace("mga: pixpll locked !\n");
 
-		G450SetPLLFreq(mga, (long) mga->Fneeded / 1000);
+		G450SetPLLFreq(mga, (int32_t) mga->Fneeded / 1000);
 	}
 
 	/* Enable Pixel Clock Oscillation */

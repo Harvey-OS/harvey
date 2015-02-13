@@ -13,7 +13,7 @@
 int	yylex(void);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	USED(argc, argv);
 	yylex();

@@ -106,7 +106,7 @@ struct proc {
 	int	state;
 	WAIT_T	status;		/* wait status */
 	pid_t	pid;		/* process id */
-	char	command[48];	/* process command string */
+	int8_t	command[48];	/* process command string */
 };
 
 /* Notify/print flag - j_print() argument */
@@ -169,12 +169,12 @@ struct job {
 #define JL_AMBIG	2	/* %foo or %?foo is ambiguous */
 #define JL_INVALID	3	/* non-pid, non-% job id */
 
-static const char	*const lookup_msgs[] = {
+static const int8_t	*const lookup_msgs[] = {
 				null,
 				"no such job",
 				"ambiguous",
 				"argument must be %job or process id",
-				(char *) 0
+				(int8_t *) 0
 			    };
 clock_t	j_systime, j_usrtime;	/* user and system time of last j_waitjed job */
 
@@ -583,7 +583,7 @@ exchild(t, flags, close_fd)
 # endif /* TTY_PGRP */
 # ifdef NEED_PGRP_SYNC
 		if (first_child_sync) {
-			char c;
+			int8_t c;
 			while (read(j_sync_pipe[0], &c, 1) == -1
 			       && errno == EINTR)
 				;
@@ -747,7 +747,7 @@ waitlast()
 /* wait for child, interruptable. */
 int
 waitfor(cp, sigp)
-	const char *cp;
+	const int8_t *cp;
 	int	*sigp;
 {
 	int	rv;
@@ -762,7 +762,7 @@ waitfor(cp, sigp)
 
 	*sigp = 0;
 
-	if (cp == (char *) 0) {
+	if (cp == (int8_t *) 0) {
 		/* wait for an unspecified job - always returns 0, so
 		 * don't have to worry about exited/signaled jobs
 		 */
@@ -810,7 +810,7 @@ waitfor(cp, sigp)
 /* kill (built-in) a job */
 int
 j_kill(cp, sig)
-	const char *cp;
+	const int8_t *cp;
 	int	sig;
 {
 	Job	*j;
@@ -859,7 +859,7 @@ j_kill(cp, sig)
 /* fg and bg built-ins: called only if Flag(FMONITOR) set */
 int
 j_resume(cp, bg)
-	const char *cp;
+	const int8_t *cp;
 	int	bg;
 {
 	Job	*j;
@@ -994,7 +994,7 @@ j_stopped_running()
 /* list jobs for jobs built-in */
 int
 j_jobs(cp, slp, nflag)
-	const char *cp;
+	const int8_t *cp;
 	int	slp;		/* 0: short, 1: long, 2: pgrp */
 	int	nflag;
 {
@@ -1174,7 +1174,7 @@ static int
 j_waitj(j, flags, where)
 	Job	*j;
 	int	flags;		/* see JW_* */
-	const char *where;
+	const int8_t *where;
 {
 	int	rv;
 
@@ -1514,9 +1514,9 @@ j_print(j, how, shf)
 	int	state;
 	WAIT_T	status;
 	int	coredumped;
-	char	jobchar = ' ';
-	char	buf[64];
-	const char *filler;
+	int8_t	jobchar = ' ';
+	int8_t	buf[64];
+	const int8_t *filler;
 	int	output = 0;
 
 	if (how == JP_PGRP) {
@@ -1615,7 +1615,7 @@ j_print(j, how, shf)
  */
 static Job *
 j_lookup(cp, ecodep)
-	const char *cp;
+	const int8_t *cp;
 	int	*ecodep;
 {
 	Job		*j, *last_match;
@@ -1668,7 +1668,7 @@ j_lookup(cp, ecodep)
 		last_match = (Job *) 0;
 		for (j = job_list; j != (Job *) 0; j = j->next)
 			for (p = j->proc_list; p != (Proc *) 0; p = p->next)
-				if (strstr(p->command, cp+1) != (char *) 0) {
+				if (strstr(p->command, cp+1) != (int8_t *) 0) {
 					if (last_match) {
 						if (ecodep)
 							*ecodep = JL_AMBIG;
@@ -1758,7 +1758,7 @@ new_proc()
 static void
 remove_job(j, where)
 	Job	*j;
-	const char *where;
+	const int8_t *where;
 {
 	Proc	*p, *tmp;
 	Job	**prev, *curr;
@@ -1848,12 +1848,12 @@ kill_job(j)
 /* put a more useful name on a process than snptreef does (in certain cases) */
 static void
 fill_command(c, len, t)
-	char		*c;
+	int8_t		*c;
 	int		len;
 	struct op	*t;
 {
 	int		alen;
-	char		**ap;
+	int8_t		**ap;
 
 	if (t->type == TEXEC || t->type == TCOM) {
 		/* Causes problems when set -u is in effect, can also
@@ -1865,7 +1865,7 @@ fill_command(c, len, t)
 		*/
 		ap = t->args;
 		--len; /* save room for the null */
-		while (len > 0 && *ap != (char *) 0) {
+		while (len > 0 && *ap != (int8_t *) 0) {
 			alen = strlen(*ap);
 			if (alen > len)
 				alen = len;

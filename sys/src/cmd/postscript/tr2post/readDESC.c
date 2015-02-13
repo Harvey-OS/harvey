@@ -16,15 +16,15 @@
 #include "comments.h"
 #include "path.h"
 
-char *printdesclang = 0;
-char *encoding = 0;
+int8_t *printdesclang = 0;
+int8_t *encoding = 0;
 int devres;
 int unitwidth;
 int nspechars = 0;
 struct charent spechars[MAXSPECHARS];
 
 #define NDESCTOKS 9
-static char *desctoks[NDESCTOKS] = {
+static int8_t *desctoks[NDESCTOKS] = {
 	"PDL",
 	"Encoding",
 	"fonts",
@@ -36,10 +36,10 @@ static char *desctoks[NDESCTOKS] = {
 	"charset"
 };
 
-char *spechar[MAXSPECHARS];
+int8_t *spechar[MAXSPECHARS];
 
 int
-hash(char *s, int l) {
+hash(int8_t *s, int l) {
     unsigned i;
 
     for (i=0; *s; s++)
@@ -50,9 +50,9 @@ hash(char *s, int l) {
 BOOLEAN
 readDESC(void)
 {
-	char token[MAXTOKENSIZE];
-	char *descnameformat = "%s/dev%s/DESC";
-	char *descfilename = 0;
+	int8_t token[MAXTOKENSIZE];
+	int8_t *descnameformat = "%s/dev%s/DESC";
+	int8_t *descfilename = 0;
 	Biobuf *bfd;
 	Biobufhdr *Bfd;
 	int i, state = -1;
@@ -94,7 +94,9 @@ readDESC(void)
 					return FALSE;
 				}
 				fontmnt = atoi(token) + 1;
-				fontmtab = galloc(fontmtab, fontmnt*sizeof(char *), "readdesc:");
+				fontmtab = galloc(fontmtab,
+						  fontmnt*sizeof(int8_t *),
+						  "readdesc:");
 				
 				for (i=0; i<fontmnt; i++)
 					fontmtab[i] = 0;

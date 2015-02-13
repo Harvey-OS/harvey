@@ -10,7 +10,7 @@
 #include	<stdlib.h>
 
 long long
-atoll(const char *s)
+atoll(const int8_t *s)
 {
-	return(strtoll(s, (char **)0, 10));
+	return(strtoll(s, (int8_t **)0, 10));
 }

@@ -17,7 +17,7 @@
 #define Extern
 #include "statfs.h"
 
-void	runprog(char**);
+void	runprog(int8_t**);
 
 void (*fcalls[])(Fsrpc*) =
 {
@@ -268,9 +268,9 @@ main(int argc, char **argv)
 }
 
 void
-reply(Fcall *r, Fcall *t, char *err)
+reply(Fcall *r, Fcall *t, int8_t *err)
 {
-	uchar data[IOHDRSZ+Maxfdata];
+	uint8_t data[IOHDRSZ+Maxfdata];
 	int n;
 
 	t->tag = r->tag;
@@ -386,10 +386,10 @@ getsbuf(void)
 	return wb;
 }
 
-char *
-strcatalloc(char *p, char *n)
+int8_t *
+strcatalloc(int8_t *p, int8_t *n)
 {
-	char *v;
+	int8_t *v;
 
 	v = realloc(p, strlen(p)+strlen(n)+1);
 	if(v == 0)
@@ -399,9 +399,9 @@ strcatalloc(char *p, char *n)
 }
 
 File *
-file(File *parent, char *name)
+file(File *parent, int8_t *name)
 {
-	char buf[128];
+	int8_t buf[128];
 	File *f, *new;
 	Dir *dir;
 
@@ -467,11 +467,11 @@ initroot(void)
 }
 
 void
-makepath(char *as, File *p, char *name)
+makepath(int8_t *as, File *p, int8_t *name)
 {
-	char *c, *seg[100];
+	int8_t *c, *seg[100];
 	int i;
-	char *s;
+	int8_t *s;
 
 	seg[0] = name;
 	for(i = 1; i < 100 && p; i++, p = p->parent){
@@ -494,7 +494,7 @@ makepath(char *as, File *p, char *name)
 }
 
 void
-fatal(char *s)
+fatal(int8_t *s)
 {
 	Proc *m;
 
@@ -507,11 +507,11 @@ fatal(char *s)
 	exits("fatal");
 }
 
-char*
-rdenv(char *v, char **end)
+int8_t*
+rdenv(int8_t *v, int8_t **end)
 {
 	int fd, n;
-	char *buf;
+	int8_t *buf;
 	Dir *d;
 	if((fd = open(v, OREAD)) == -1)
 		return nil;
@@ -533,12 +533,12 @@ rdenv(char *v, char **end)
 	return buf;
 }
 
-char Defaultpath[] = ".\0/bin";
+int8_t Defaultpath[] = ".\0/bin";
 void
-runprog(char *argv[])
+runprog(int8_t *argv[])
 {
-	char *path, *ep, *p;
-	char arg0[256];
+	int8_t *path, *ep, *p;
+	int8_t arg0[256];
 
 	path = rdenv("/env/path", &ep);
 	if(path == nil){
@@ -553,7 +553,7 @@ runprog(char *argv[])
 }
 
 void
-catcher(void *a, char *msg)
+catcher(void *a, int8_t *msg)
 {
 	USED(a);
 	if(strcmp(msg, DONESTR) == 0) {
@@ -569,7 +569,7 @@ catcher(void *a, char *msg)
 void
 fidreport(Fid *f)
 {
-	char *p, path[128];
+	int8_t *p, path[128];
 	Frec *fr;
 
 	p = path;

@@ -219,8 +219,8 @@ private fixed_colorant_name DeviceRGBComponents[] = {
 #define psd_device_body(procs, dname, ncomp, pol, depth, mg, mc, cn)\
     std_device_full_body_type_extended(psd_device, &procs, dname,\
 	  &st_psd_device,\
-	  (int)((long)(DEFAULT_WIDTH_10THS) * (X_DPI) / 10),\
-	  (int)((long)(DEFAULT_HEIGHT_10THS) * (Y_DPI) / 10),\
+	  (int)((int32_t)(DEFAULT_WIDTH_10THS) * (X_DPI) / 10),\
+	  (int)((int32_t)(DEFAULT_HEIGHT_10THS) * (Y_DPI) / 10),\
 	  X_DPI, Y_DPI,\
     	  GX_DEVICE_COLOR_MAX_COMPONENTS,	/* MaxComponents */\
 	  ncomp,		/* NumComp */\
@@ -649,10 +649,10 @@ psd_param_read_fn(gs_param_list *plist, const char *name,
 
 /* Compare a C string and a gs_param_string. */
 static bool
-param_string_eq(const gs_param_string *pcs, const char *str)
+param_string_eq(const gs_param_string *pcs, const int8_t *str)
 {
     return (strlen(str) == pcs->size &&
-	    !strncmp(str, (const char *)pcs->data, pcs->size));
+	    !strncmp(str, (const int8_t *)pcs->data, pcs->size));
 }
 
 private int

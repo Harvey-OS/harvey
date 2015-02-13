@@ -24,11 +24,11 @@ void eresized(int);
 void resize(int i);
 void afaces(void);
 void allocblocks(void);
-Image *openface(char *path);
+Image *openface(int8_t *path);
 
 Image *face[18];
-char buf[100];
-ushort winflag, level;
+int8_t buf[100];
+uint16_t winflag, level;
 Image *back;
 Image *fore;
 
@@ -47,7 +47,7 @@ struct
 	int	flag;
 }block[36];
 
-char *buttons[] =
+int8_t *buttons[] =
 {
 	"restart",
 	"easy",
@@ -250,7 +250,7 @@ redraw(void)
 	}
 }
 
-char *facepaths[] = {
+int8_t *facepaths[] = {
 	/* logos */
 	"/lib/face/48x48x4/g/glenda.1",
 	"/lib/face/48x48x2/p/pjw+9ball.2",
@@ -298,7 +298,7 @@ resize(int i)
 }
 
 Image *
-openimage(char *path)
+openimage(int8_t *path)
 {
 	Image *i;
 	int fd;
@@ -317,7 +317,7 @@ void
 allocblocks(void)
 {
 	Rectangle r, b;
-	ushort i, x, y, sq;
+	uint16_t i, x, y, sq;
 
 	sq = sqrt(level);
 	r = insetrect(screen->r, 5);
@@ -337,10 +337,10 @@ allocblocks(void)
 }
 
 Image*
-readbit(int fd, ulong chan, char *path)
+readbit(int fd, uint32_t chan, int8_t *path)
 {
-	char buf[4096], hx[4], *p;
-	uchar data[Facesize*Facesize];	/* more than enough */
+	int8_t buf[4096], hx[4], *p;
+	uint8_t data[Facesize*Facesize];	/* more than enough */
 	int nhx, i, n, ndata, nbit;
 	Image *img;
 
@@ -383,9 +383,9 @@ readbit(int fd, ulong chan, char *path)
 }
 
 Image*
-openface(char *path)
+openface(int8_t *path)
 {
-	char *p;
+	int8_t *p;
 	int fd, n;
 
 	p = strstr(path, "48x48x");

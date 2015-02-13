@@ -22,9 +22,9 @@ enum {
 };
 
 struct Parg {
-	char*	args;
+	int8_t*	args;
 	Dev*	dev;
-	int 	(*f)(Dev*,int,char**);
+	int 	(*f)(Dev*,int,int8_t**);
 	Channel*rc;
 };
 
@@ -32,12 +32,12 @@ static void
 workproc(void *a)
 {
 	Parg *pa;
-	char args[Arglen];
-	char *argv[Nargs];
+	int8_t args[Arglen];
+	int8_t *argv[Nargs];
 	int argc;
 	Channel *rc;
 	Dev *d;
-	int (*f)(Dev*,int,char**);
+	int (*f)(Dev*,int,int8_t**);
 
 	pa = a;
 	threadsetname("workproc %s", pa->dev->dir);
@@ -61,9 +61,9 @@ workproc(void *a)
 }
 
 int
-matchdevcsp(char *info, void *a)
+matchdevcsp(int8_t *info, void *a)
 {
-	char sbuf[40];
+	int8_t sbuf[40];
 	int *csps;
 
 	csps = a;
@@ -76,11 +76,11 @@ matchdevcsp(char *info, void *a)
 }
 
 int
-finddevs(int (*matchf)(char*,void*), void *farg, char** dirs, int ndirs)
+finddevs(int (*matchf)(int8_t*,void*), void *farg, int8_t** dirs, int ndirs)
 {
 	int fd, i, n, nd, nr;
-	char *nm;
-	char dbuf[512], fbuf[40];
+	int8_t *nm;
+	int8_t dbuf[512], fbuf[40];
 	Dir *d;
 
 	fd = open("/dev/usb", OREAD);
@@ -115,12 +115,12 @@ finddevs(int (*matchf)(char*,void*), void *farg, char** dirs, int ndirs)
 }
 
 void
-startdevs(char *args, char *argv[], int argc, int (*mf)(char*, void*),
-	void *ma, int (*df)(Dev*, int, char**))
+startdevs(int8_t *args, int8_t *argv[], int argc, int (*mf)(int8_t*, void*),
+	void *ma, int (*df)(Dev*, int, int8_t**))
 {
 	int i, ndirs, ndevs;
-	char *dirs[Ndevs];
-	char **dp;
+	int8_t *dirs[Ndevs];
+	int8_t **dp;
 	Parg *parg;
 	Dev *dev;
 	Channel *rc;

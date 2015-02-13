@@ -18,13 +18,13 @@
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 void
-convM2A(char *ap, Authenticator *f, char *key)
+convM2A(int8_t *ap, Authenticator *f, int8_t *key)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(key)
 		decrypt(key, ap, AUTHENTLEN);
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	LONG(id);

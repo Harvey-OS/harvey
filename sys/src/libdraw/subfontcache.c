@@ -15,11 +15,11 @@
  * Easy versions of the cache routines; may be substituted by fancier ones for other purposes
  */
 
-static char	*lastname;
+static int8_t	*lastname;
 Subfont	*lastsubfont;
 
 Subfont*
-lookupsubfont(Display *d, char *name)
+lookupsubfont(Display *d, int8_t *name)
 {
 	if(d && strcmp(name, "*default*") == 0)
 		return d->defaultsubfont;
@@ -32,7 +32,7 @@ lookupsubfont(Display *d, char *name)
 }
 
 void
-installsubfont(char *name, Subfont *subfont)
+installsubfont(int8_t *name, Subfont *subfont)
 {
 	free(lastname);
 	lastname = strdup(name);

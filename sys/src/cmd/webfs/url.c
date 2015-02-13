@@ -37,7 +37,7 @@ int urldebug;
 #define RemoveExtraRelDotDots	0
 #define ExpandCurrentDocUrls	1
 
-static char*
+static int8_t*
 schemestrtab[] =
 {
 	nil,
@@ -48,7 +48,7 @@ schemestrtab[] =
 };
 
 static int
-ischeme(char *s)
+ischeme(int8_t *s)
 {
 	int i;
 
@@ -137,7 +137,7 @@ ischeme(char *s)
 typedef struct Retab Retab;
 struct Retab
 {
-	char	*str;
+	int8_t	*str;
 	Reprog	*prog;
 	int		size;
 	int		ind[5];
@@ -218,7 +218,7 @@ Retab retab[] =	/* view in constant width Font */
 };
 
 static int
-countleftparen(char *s)
+countleftparen(int8_t *s)
 {
 	int n;
 
@@ -252,8 +252,8 @@ typedef struct SplitUrl SplitUrl;
 struct SplitUrl
 {
 	struct {
-		char *s;
-		char *e;
+		int8_t *s;
+		int8_t *e;
 	} url, scheme, authority, path, query, fragment;
 };
 
@@ -263,9 +263,9 @@ struct SplitUrl
  * dest is known to be >= strlen(base)+rel_len.
  */
 static void
-merge_relative_path(char *base, char *rel_st, int rel_len, char *dest)
+merge_relative_path(int8_t *base, int8_t *rel_st, int rel_len, int8_t *dest)
 {
-	char *s, *p, *e, *pdest;
+	int8_t *s, *p, *e, *pdest;
 
 	pdest = dest;
 
@@ -356,8 +356,8 @@ merge_relative_path(char *base, char *rel_st, int rel_len, char *dest)
 static int
 resolve_relative(SplitUrl *su, Url *base, Url *u)
 {
-	char *url, *path;
-	char *purl, *ppath;
+	int8_t *url, *path;
+	int8_t *purl, *ppath;
 	int currentdoc, ulen, plen;
 
 	if(base == nil){
@@ -497,7 +497,7 @@ resolve_relative(SplitUrl *su, Url *base, Url *u)
 }
 
 int
-regx(Reprog *prog, char *s, Resub *m, int nm)
+regx(Reprog *prog, int8_t *s, Resub *m, int nm)
 {
 	int i;
 
@@ -514,7 +514,7 @@ regx(Reprog *prog, char *s, Resub *m, int nm)
 }
 
 static int
-ismatch(int i, char *s, char *desc)
+ismatch(int i, int8_t *s, int8_t *desc)
 {
 	Resub m[1];
 
@@ -527,7 +527,7 @@ ismatch(int i, char *s, char *desc)
 }
 
 static int
-spliturl(char *url, SplitUrl *su)
+spliturl(int8_t *url, SplitUrl *su)
 {
 	Resub m[MaxResub];
 	Retab *t;
@@ -610,7 +610,7 @@ parse_scheme(SplitUrl *su, Url *u)
 static int
 parse_unknown_part(SplitUrl *su, Url *u)
 {
-	char *s, *e;
+	int8_t *s, *e;
 
 	assert(u->ischeme == USunknown);
 	assert(su->scheme.e[0] == ':');
@@ -629,7 +629,7 @@ parse_unknown_part(SplitUrl *su, Url *u)
 }
 
 static int
-parse_userinfo(char *s, char *e, Url *u)
+parse_userinfo(int8_t *s, int8_t *e, Url *u)
 {
 	Resub m[MaxResub];
 	Retab *t;
@@ -649,7 +649,7 @@ parse_userinfo(char *s, char *e, Url *u)
 }
 
 static int
-parse_host(char *s, char *e, Url *u)
+parse_host(int8_t *s, int8_t *e, Url *u)
 {
 	Resub m[MaxResub];
 	Retab *t;
@@ -676,8 +676,8 @@ parse_authority(SplitUrl *su, Url *u)
 {
 	Resub m[MaxResub];
 	Retab *t;
-	char *host;
-	char *userinfo;
+	int8_t *host;
+	int8_t *userinfo;
 
 	if(su->authority.s == nil)
 		return 0;
@@ -869,7 +869,7 @@ static int (*postparse[])(Url*) = {
 };
 
 Url*
-parseurl(char *url, Url *base)
+parseurl(int8_t *url, Url *base)
 {
 	Url *u;
 	SplitUrl su;
@@ -953,7 +953,7 @@ freeurl(Url *u)
 void
 rewriteurl(Url *u)
 {
-	char *s;
+	int8_t *s;
 
 	if(u->schemedata)
 		s = estrmanydup(u->scheme, ":", u->schemedata, nil);
@@ -972,7 +972,7 @@ rewriteurl(Url *u)
 }
 
 int
-seturlquery(Url *u, char *query)
+seturlquery(Url *u, int8_t *query)
 {
 	if(query == nil){
 		free(u->query);
@@ -989,7 +989,7 @@ seturlquery(Url *u, char *query)
 }
 
 static void
-dupp(char **p)
+dupp(int8_t **p)
 {
 	if(*p)
 		*p = estrdup(*p);
@@ -1027,7 +1027,7 @@ copyurl(Url *u)
 }
 
 static int
-dhex(char c)
+dhex(int8_t c)
 {
 	if('0' <= c && c <= '9')
 		return c-'0';
@@ -1038,13 +1038,13 @@ dhex(char c)
 	return 0;
 }
 
-char*
-escapeurl(char *s, int (*needesc)(int))
+int8_t*
+escapeurl(int8_t *s, int (*needesc)(int))
 {
 	int n;
-	char *t, *u;
+	int8_t *t, *u;
 	Rune r;
-	static char *hex = "0123456789abcdef";
+	static int8_t *hex = "0123456789abcdef";
 
 	n = 0;
 	for(t=s; *t; t++)
@@ -1071,10 +1071,10 @@ escapeurl(char *s, int (*needesc)(int))
 	return t;
 }
 
-char*
-unescapeurl(char *s)
+int8_t*
+unescapeurl(int8_t *s)
 {
-	char *r, *w;
+	int8_t *r, *w;
 	Rune rune;
 
 	s = estrdup(s);

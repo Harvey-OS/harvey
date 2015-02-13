@@ -29,7 +29,7 @@
 #define	sgn(v)		((v) < 0 ? -1 : ((v) > 0 ? 1 : 0))
 
 #define	WORDSIZ	4000
-char	*filename = "/lib/words";
+int8_t	*filename = "/lib/words";
 Biobuf	*dfile;
 Biobuf	bout;
 Biobuf	bin;
@@ -71,7 +71,7 @@ Rune	latin_fold_tab[] =
 int	locate(void);
 int	acomp(Rune*, Rune*);
 int	getword(Biobuf*, Rune *rp, int n);
-void	torune(char*, Rune*);
+void	torune(int8_t*, Rune*);
 void	rcanon(Rune*, Rune*);
 int	ncomp(Rune*, Rune*);
 
@@ -168,8 +168,8 @@ main(int argc, char *argv[])
 int
 locate(void)
 {
-	vlong top, bot, mid;
-	long c;
+	int64_t top, bot, mid;
+	int32_t c;
 	int n;
 
 	bot = 0;
@@ -254,7 +254,7 @@ acomp(Rune *s, Rune *t)
 }
 
 void
-torune(char *old, Rune *new)
+torune(int8_t *old, Rune *new)
 {
 	do old += chartorune(new, old);
 	while(*new++);
@@ -338,7 +338,7 @@ ncomp(Rune *s, Rune *t)
 int
 getword(Biobuf *f, Rune *rp, int n)
 {
-	long c;
+	int32_t c;
 
 	while(n-- > 0) {
 		c = Bgetrune(f);

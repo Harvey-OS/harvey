@@ -13,9 +13,9 @@
 
 extern int old9p;
 
-static uint dumpsome(char*, char*, long);
-static void fdirconv(char*, Dir*);
-static char *qidtype(char*, uchar);
+static uint dumpsome(int8_t*, int8_t*, int32_t);
+static void fdirconv(int8_t*, Dir*);
+static int8_t *qidtype(int8_t*, uint8_t);
 
 #define	QIDFMT	"(%.16llux %lud %s)"
 
@@ -24,7 +24,7 @@ fcallconv(va_list *arg, Fconv *f1)
 {
 	Fcall *f;
 	int fid, type, tag, n, i;
-	char buf[512], tmp[200];
+	int8_t buf[512], tmp[200];
 	Dir *d;
 	Qid *q;
 
@@ -86,7 +86,7 @@ fcallconv(va_list *arg, Fconv *f1)
 		break;
 	case Tcreate:	/* 114 */
 		sprint(buf, "Tcreate tag %ud fid %ud name %s perm %M mode %d",
-			tag, fid, f->name, (ulong)f->perm, f->mode);
+			tag, fid, f->name, (uint32_t)f->perm, f->mode);
 		break;
 	case Rcreate:
 		sprint(buf, "Rcreate tag %ud qid " QIDFMT " iounit %ud ", tag,
@@ -129,7 +129,8 @@ fcallconv(va_list *arg, Fconv *f1)
 			sprint(buf+n, " stat(%d bytes)", f->nstat);
 		else{
 			d = (Dir*)tmp;
-			(old9p?convM2Dold:convM2D)(f->stat, f->nstat, d, (char*)(d+1));
+			(old9p?convM2Dold:convM2D)(f->stat, f->nstat, d,
+						   (int8_t*)(d+1));
 			sprint(buf+n, " stat ");
 			fdirconv(buf+n+6, d);
 		}
@@ -140,7 +141,8 @@ fcallconv(va_list *arg, Fconv *f1)
 			sprint(buf+n, " stat(%d bytes)", f->nstat);
 		else{
 			d = (Dir*)tmp;
-			(old9p?convM2Dold:convM2D)(f->stat, f->nstat, d, (char*)(d+1));
+			(old9p?convM2Dold:convM2D)(f->stat, f->nstat, d,
+						   (int8_t*)(d+1));
 			sprint(buf+n, " stat ");
 			fdirconv(buf+n+6, d);
 		}
@@ -155,10 +157,10 @@ fcallconv(va_list *arg, Fconv *f1)
 	return(sizeof(Fcall*));
 }
 
-static char*
-qidtype(char *s, uchar t)
+static int8_t*
+qidtype(int8_t *s, uint8_t t)
 {
-	char *p;
+	int8_t *p;
 
 	p = s;
 	if(t & QTDIR)
@@ -178,7 +180,7 @@ qidtype(char *s, uchar t)
 int
 dirconv(va_list *arg, Fconv *f)
 {
-	char buf[160];
+	int8_t buf[160];
 
 	fdirconv(buf, va_arg(*arg, Dir*));
 	strconv(buf, f);
@@ -186,9 +188,9 @@ dirconv(va_list *arg, Fconv *f)
 }
 
 static void
-fdirconv(char *buf, Dir *d)
+fdirconv(int8_t *buf, Dir *d)
 {
-	char tmp[16];
+	int8_t tmp[16];
 
 	sprint(buf, "'%s' '%s' '%s' '%s' "
 		"q " QIDFMT " m %#luo "
@@ -208,16 +210,16 @@ fdirconv(char *buf, Dir *d)
 #define DUMPL 64
 
 static uint
-dumpsome(char *ans, char *buf, long count)
+dumpsome(int8_t *ans, int8_t *buf, int32_t count)
 {
 	int i, printable;
-	char *p;
+	int8_t *p;
 
 	printable = 1;
 	if(count > DUMPL)
 		count = DUMPL;
 	for(i=0; i<count && printable; i++)
-		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uchar)buf[i]>127)
+		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uint8_t)buf[i]>127)
 			printable = 0;
 	p = ans;
 	*p++ = '\'';
@@ -228,7 +230,7 @@ dumpsome(char *ans, char *buf, long count)
 		for(i=0; i<count; i++){
 			if(i>0 && i%4==0)
 				*p++ = ' ';
-			sprint(p, "%2.2ux", (uchar)buf[i]);
+			sprint(p, "%2.2ux", (uint8_t)buf[i]);
 			p += 2;
 		}
 	}

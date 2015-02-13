@@ -11,7 +11,7 @@
 #include <float.h>
 #include <math.h>
 
-static	long	tab[] =
+static	int32_t	tab[] =
 {
 	1L, 10L, 100L, 1000L, 10000L,
 	100000L, 1000000L, 10000000L

@@ -70,35 +70,35 @@ int forceshell	= NO;
 int okdel	= YES;
 int envlast	= NO;
 int inarglist	= NO;
-char **envpp	= NULL;
+int8_t **envpp	= NULL;
 
-extern char *dfltmacro[];
-extern char *dfltpat[];
-extern char *dfltsuff[];
-extern char **environ;
-char **linesptr;
+extern int8_t *dfltmacro[];
+extern int8_t *dfltpat[];
+extern int8_t *dfltsuff[];
+extern int8_t **environ;
+int8_t **linesptr;
 
-char *prompt	= "";
+int8_t *prompt	= "";
 int nopdir	= 0;
-char funny[128];
+int8_t funny[128];
 
 static void	loadenv(void);
-static int	isprecious(char *);
-static int	rddescf(char *);
-static void	rdarray(char **);
+static int	isprecious(int8_t *);
+static int	rddescf(int8_t *);
+static void	rdarray(int8_t **);
 static void	printdesc(int);
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 nameblkp p;
 int i, j;
 int descset, nfargs;
 int nowait = NO;
 time_t tjunk;
-char c, *s, *mkflagp;
-static char makeflags[30] = "-";
-static char onechar[2] = "X";
+int8_t c, *s, *mkflagp;
+static int8_t makeflags[30] = "-";
+static int8_t onechar[2] = "X";
 
 descset = 0;
 mkflagp = makeflags+1;
@@ -227,7 +227,7 @@ if(	!rddescf("makefile") &&
 	!rddescf("Makefile") &&
 	(exists(s = "s.makefile") || exists(s = "s.Makefile")) )
 		{
-		char junk[20];
+		int8_t junk[20];
 		concat("get ", s, junk);
 		(void) dosys(junk, NO, NO, junk);
 		rddescf(s+2);
@@ -302,7 +302,7 @@ exit(0);
 void
 intrupt(int sig)
 {
-char *p;
+int8_t *p;
 
 if(okdel && !noexflag && !touchflag &&
 	(p = varptr("@")->varval) && exists(p)>0 && !isprecious(p) )
@@ -318,7 +318,7 @@ exit(2);
 
 
 static int
-isprecious(char *p)
+isprecious(int8_t *p)
 {
 lineblkp lp;
 depblkp dp;
@@ -344,7 +344,7 @@ if(sigqvalue == 0)
 }
 
 static int
-rddescf(char *descfile)
+rddescf(int8_t *descfile)
 {
 static int firstrd = YES;
 
@@ -368,7 +368,7 @@ return  parse(descfile);
 }
 
 static void
-rdarray(char **s)
+rdarray(int8_t **s)
 {
 linesptr = s;
 parse(CHNULL);

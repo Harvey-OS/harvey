@@ -33,7 +33,7 @@ enum
 };
 
 int
-chartorune(Rune *rune, char *str)
+chartorune(Rune *rune, int8_t *str)
 {
 	int c[UTFmax], i;
 	Rune l;
@@ -46,7 +46,7 @@ chartorune(Rune *rune, char *str)
 	 *	10000-10FFFF => T4 Tx Tx Tx
 	 */
 
-	c[0] = *(uchar*)(str);
+	c[0] = *(uint8_t*)(str);
 	if(c[0] < Tx){
 		*rune = c[0];
 		return 1;
@@ -54,7 +54,7 @@ chartorune(Rune *rune, char *str)
 	l = c[0];
 
 	for(i = 1; i < UTFmax; i++) {
-		c[i] = *(uchar*)(str+i);
+		c[i] = *(uint8_t*)(str+i);
 		c[i] ^= Tx;
 		if(c[i] & Testx)
 			goto bad;
@@ -82,7 +82,7 @@ bad:
 }
 
 int
-runetochar(char *str, Rune *rune)
+runetochar(int8_t *str, Rune *rune)
 {
 	int i, j;
 	Rune c;
@@ -126,10 +126,10 @@ runetochar(char *str, Rune *rune)
 }
 
 int
-runelen(long c)
+runelen(int32_t c)
 {
 	Rune rune;
-	char str[10];
+	int8_t str[10];
 
 	rune = c;
 	return runetochar(str, &rune);
@@ -158,14 +158,14 @@ runenlen(Rune *r, int nrune)
 }
 
 int
-fullrune(char *str, int n)
+fullrune(int8_t *str, int n)
 {
 	int  i;
 	Rune c;
 
 	if(n <= 0)
 		return 0;
-	c = *(uchar*)str;
+	c = *(uint8_t*)str;
 	if(c < Tx)
 		return 1;
 	for(i = 3; i < UTFmax + 1; i++)

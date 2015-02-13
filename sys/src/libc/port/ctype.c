@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <ctype.h>
 
-uchar	_ctype[256] =
+uint8_t	_ctype[256] =
 {
 /*	 0	 1	 2	 3	 4	 5	 6	 7  */
 

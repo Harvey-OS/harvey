@@ -25,10 +25,10 @@
 #include "fmtdef.h"
 
 int
-vfprint(int fd, char *fmt, va_list args)
+vfprint(int fd, int8_t *fmt, va_list args)
 {
 	Fmt f;
-	char buf[256];
+	int8_t buf[256];
 	int n;
 
 	fmtfdinit(&f, fd, buf, sizeof(buf));

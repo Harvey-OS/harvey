@@ -56,7 +56,7 @@ initaes256(Conn *c, int dir)
 }
 
 static void
-encryptaes(CipherState *cs, uchar *buf, int nbuf)
+encryptaes(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	if(cs->state.setup != 0xcafebabe || cs->state.rounds > AESmaxrounds)
 		return;
@@ -66,7 +66,7 @@ encryptaes(CipherState *cs, uchar *buf, int nbuf)
 }
 
 static void
-decryptaes(CipherState *cs, uchar *buf, int nbuf)
+decryptaes(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	if(cs->state.setup != 0xcafebabe || cs->state.rounds > AESmaxrounds)
 		return;

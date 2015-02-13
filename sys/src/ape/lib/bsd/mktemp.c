@@ -14,12 +14,12 @@
 #include <string.h>
 #include <stdio.h>
 
-char*
-mktemp(char *template)
+int8_t*
+mktemp(int8_t *template)
 {
 	int n;
-	long x;
-	char *p;
+	int32_t x;
+	int8_t *p;
 	int c;
 	struct stat stbuf;
 

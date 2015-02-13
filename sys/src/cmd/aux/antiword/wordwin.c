@@ -174,7 +174,7 @@ vGetDocumentData(FILE *pFile, const UCHAR *aucHeader)
  * Returns the version of Word that made the document or -1
  */
 int
-iInitDocumentWIN(FILE *pFile, long lFilesize)
+iInitDocumentWIN(FILE *pFile, int32_t lFilesize)
 {
 	int	iWordVersion;
 	BOOL	bSuccess;

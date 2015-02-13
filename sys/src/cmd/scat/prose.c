@@ -14,8 +14,8 @@
 
 extern	Biobuf	bout;
 
-char*
-append(char *p, char *s)
+int8_t*
+append(int8_t *p, int8_t *s)
 {
 	while(*s)
 		*p++ = *s++;
@@ -23,7 +23,7 @@ append(char *p, char *s)
 }
 
 int
-matchlen(char *a, char *b)
+matchlen(int8_t *a, int8_t *b)
 {
 	int n;
 
@@ -35,11 +35,11 @@ matchlen(char *a, char *b)
 	return 0;
 }
 
-char*
-prose(char *s, char *desc[][2], short index[])
+int8_t*
+prose(int8_t *s, int8_t *desc[][2], int16_t index[])
 {
-	static char buf[512];
-	char *p=buf;
+	static int8_t buf[512];
+	int8_t *p=buf;
 	int i, j, k, max;
 
 	j = 0;
@@ -154,7 +154,7 @@ prose(char *s, char *desc[][2], short index[])
 }
 
 void
-prdesc(char *s, char *desc[][2], short index[])
+prdesc(int8_t *s, int8_t *desc[][2], int16_t index[])
 {
 	int c, j;
 

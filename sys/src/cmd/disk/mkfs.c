@@ -27,54 +27,54 @@ enum{
 typedef struct File	File;
 
 struct File{
-	char	*new;
-	char	*elem;
-	char	*old;
-	char	*uid;
-	char	*gid;
-	ulong	mode;
+	int8_t	*new;
+	int8_t	*elem;
+	int8_t	*old;
+	int8_t	*uid;
+	int8_t	*gid;
+	uint32_t	mode;
 };
 
 void	arch(Dir*);
 void	copy(Dir*);
 int	copyfile(File*, Dir*, int);
-void*	emalloc(ulong);
-void	error(char *, ...);
+void*	emalloc(uint32_t);
+void	error(int8_t *, ...);
 void	freefile(File*);
 File*	getfile(File*);
-char*	getmode(char*, ulong*);
-char*	getname(char*, char**);
-char*	getpath(char*);
-void	kfscmd(char *);
+int8_t*	getmode(int8_t*, uint32_t*);
+int8_t*	getname(int8_t*, int8_t**);
+int8_t*	getpath(int8_t*);
+void	kfscmd(int8_t *);
 void	mkdir(Dir*);
 int	mkfile(File*);
 void	mkfs(File*, int);
-char*	mkpath(char*, char*);
+int8_t*	mkpath(int8_t*, int8_t*);
 void	mktree(File*, int);
-void	mountkfs(char*);
+void	mountkfs(int8_t*);
 void	printfile(File*);
 void	setnames(File*);
 void	setusers(void);
 void	skipdir(void);
-char*	strdup(char*);
-int	uptodate(Dir*, char*);
+int8_t*	strdup(int8_t*);
+int	uptodate(Dir*, int8_t*);
 void	usage(void);
-void	warn(char *, ...);
+void	warn(int8_t *, ...);
 
 Biobuf	*b;
 Biobufhdr bout;			/* stdout when writing archive */
-uchar	boutbuf[2*LEN];
-char	newfile[LEN];
-char	oldfile[LEN];
-char	*proto;
-char	*cputype;
-char	*users;
-char	*oldroot;
-char	*newroot;
-char	*prog = "mkfs";
+uint8_t	boutbuf[2*LEN];
+int8_t	newfile[LEN];
+int8_t	oldfile[LEN];
+int8_t	*proto;
+int8_t	*cputype;
+int8_t	*users;
+int8_t	*oldroot;
+int8_t	*newroot;
+int8_t	*prog = "mkfs";
 int	lineno;
-char	*buf;
-char	*zbuf;
+int8_t	*buf;
+int8_t	*zbuf;
 int	buflen = 1024-8;
 int	indent;
 int	verb;
@@ -85,7 +85,7 @@ int	xflag;
 int	sfd;
 int	fskind;			/* Kfs, Fs, Archive */
 int	setuid;			/* on Fs: set uid and gid? */
-char	*user;
+int8_t	*user;
 
 void
 main(int argc, char **argv)
@@ -278,7 +278,7 @@ mkfile(File *f)
 int
 copyfile(File *f, Dir *d, int permonly)
 {
-	ulong mode;
+	uint32_t mode;
 	Dir nd;
 
 	if(xflag){
@@ -338,7 +338,7 @@ copyfile(File *f, Dir *d, int permonly)
  * respect to the file represented by df
  */
 int
-uptodate(Dir *df, char *to)
+uptodate(Dir *df, int8_t *to)
 {
 	int ret;
 	Dir *dt;
@@ -353,9 +353,9 @@ uptodate(Dir *df, char *to)
 void
 copy(Dir *d)
 {
-	char cptmp[LEN], *p;
+	int8_t cptmp[LEN], *p;
 	int f, t, n, needwrite, nowarnyet = 1;
-	vlong tot, len;
+	int64_t tot, len;
 	Dir nd;
 
 	f = open(oldfile, OREAD);
@@ -487,10 +487,10 @@ arch(Dir *d)
 		newfile, d->mode, d->uid, d->gid, d->mtime, d->length);
 }
 
-char *
-mkpath(char *prefix, char *elem)
+int8_t *
+mkpath(int8_t *prefix, int8_t *elem)
 {
-	char *p;
+	int8_t *p;
 	int n;
 
 	n = strlen(prefix) + strlen(elem) + 2;
@@ -499,10 +499,10 @@ mkpath(char *prefix, char *elem)
 	return p;
 }
 
-char *
-strdup(char *s)
+int8_t *
+strdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 
 	t = emalloc(strlen(s) + 1);
 	return strcpy(t, s);
@@ -541,7 +541,7 @@ freefile(File *f)
 void
 skipdir(void)
 {
-	char *p, c;
+	int8_t *p, c;
 	int level;
 
 	if(indent < 0 || b == nil)	/* b is nil when copying adm/users */
@@ -574,8 +574,8 @@ File*
 getfile(File *old)
 {
 	File *f;
-	char *elem;
-	char *p;
+	int8_t *elem;
+	int8_t *p;
 	int c;
 
 	if(indent < 0)
@@ -624,10 +624,10 @@ loop:
 	return f;
 }
 
-char*
-getpath(char *p)
+int8_t*
+getpath(int8_t *p)
 {
-	char *q, *new;
+	int8_t *q, *new;
 	int c, n;
 
 	while((c = *p) == ' ' || c == '\t')
@@ -644,10 +644,10 @@ getpath(char *p)
 	return new;
 }
 
-char*
-getname(char *p, char **buf)
+int8_t*
+getname(int8_t *p, int8_t **buf)
 {
-	char *s, *start;
+	int8_t *s, *start;
 	int c;
 
 	while((c = *p) == ' ' || c == '\t')
@@ -677,11 +677,11 @@ getname(char *p, char **buf)
 	return p;
 }
 
-char*
-getmode(char *p, ulong *xmode)
+int8_t*
+getmode(int8_t *p, uint32_t *xmode)
 {
-	char *buf, *s;
-	ulong m;
+	int8_t *buf, *s;
+	uint32_t m;
 
 	*xmode = ~0;
 	p = getname(p, &buf);
@@ -757,9 +757,9 @@ setusers(void)
 }
 
 void
-mountkfs(char *name)
+mountkfs(int8_t *name)
 {
-	char kname[64];
+	int8_t kname[64];
 
 	if(fskind != Kfs)
 		return;
@@ -786,9 +786,9 @@ mountkfs(char *name)
 }
 
 void
-kfscmd(char *cmd)
+kfscmd(int8_t *cmd)
 {
-	char buf[4*1024];
+	int8_t buf[4*1024];
 	int n;
 
 	if(fskind != Kfs)
@@ -812,7 +812,7 @@ kfscmd(char *cmd)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -822,9 +822,9 @@ emalloc(ulong n)
 }
 
 void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: %q:%d: ", prog, proto, lineno);
@@ -838,9 +838,9 @@ error(char *fmt, ...)
 }
 
 void
-warn(char *fmt, ...)
+warn(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: %q:%d: ", prog, proto, lineno);

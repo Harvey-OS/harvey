@@ -31,7 +31,7 @@ yetmore(void)
 
 
 int
-domore(char *dataln)
+domore(int8_t *dataln)
 {
 	int	icol, ch;
 
@@ -42,7 +42,7 @@ domore(char *dataln)
 		return(1);
 	}
 	fullbot[0] = 0;
-	instead[0] = (char *)0;
+	instead[0] = (int8_t *)0;
 	if (dataln[1] == 0)
 		switch (dataln[0]) {
 		case '_': 

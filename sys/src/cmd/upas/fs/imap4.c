@@ -20,28 +20,28 @@
 int	doublequote(Fmt*);
 int	pipeline = 1;
 
-static char Eio[] = "i/o error";
+static int8_t Eio[] = "i/o error";
 
 typedef struct Imap Imap;
 struct Imap {
-	char *freep;	// free this to free the strings below
+	int8_t *freep;	// free this to free the strings below
 
-	char *host;
-	char *user;
-	char *mbox;
+	int8_t *host;
+	int8_t *user;
+	int8_t *mbox;
 
 	int mustssl;
 	int refreshtime;
 	int debug;
 
-	ulong tag;
-	ulong validity;
+	uint32_t tag;
+	uint32_t validity;
 	int nmsg;
 	int size;
-	char *base;
-	char *data;
+	int8_t *base;
+	int8_t *data;
 
-	vlong *uid;
+	int64_t *uid;
 	int nuid;
 	int muid;
 
@@ -53,10 +53,10 @@ struct Imap {
 	int fd;
 };
 
-static char*
-removecr(char *s)
+static int8_t*
+removecr(int8_t *s)
 {
-	char *r, *w;
+	int8_t *r, *w;
 
 	for(r=w=s; *r; r++)
 		if(*r != '\r')
@@ -69,9 +69,9 @@ removecr(char *s)
 // send imap4 command
 //
 static void
-imap4cmd(Imap *imap, char *fmt, ...)
+imap4cmd(Imap *imap, int8_t *fmt, ...)
 {
-	char buf[128], *p;
+	int8_t buf[128], *p;
 	va_list va;
 
 	va_start(va, fmt);
@@ -112,10 +112,10 @@ static char *verblist[] = {
 };
 
 static int
-verbcode(char *verb)
+verbcode(int8_t *verb)
 {
 	int i;
-	char *q;
+	int8_t *q;
 
 	if(q = strchr(verb, ' '))
 		*q = '\0';
@@ -132,7 +132,7 @@ verbcode(char *verb)
 }
 
 static void
-strupr(char *s)
+strupr(int8_t *s)
 {
 	for(; *s; s++)
 		if('a' <= *s && *s <= 'z')
@@ -163,12 +163,12 @@ imapgrow(Imap *imap, int n)
 // get imap4 response line.  there might be various 
 // data or other informational lines mixed in.
 //
-static char*
+static int8_t*
 imap4resp(Imap *imap)
 {
-	char *line, *p, *ep, *op, *q, *r, *en, *verb;
+	int8_t *line, *p, *ep, *op, *q, *r, *en, *verb;
 	int i, n;
-	static char error[256];
+	static int8_t error[256];
 
 	while(p = Brdline(&imap->bin, '\n')){
 		ep = p+Blinelen(&imap->bin);
@@ -317,7 +317,7 @@ imap4resp(Imap *imap)
 				// * 2 FETCH (UID 6)
 				if(q = strstr(p, "UID")){
 					if(imap->nuid < imap->muid)
-						imap->uid[imap->nuid++] = ((vlong)imap->validity<<32)|strtoul(q+3, nil, 10);
+						imap->uid[imap->nuid++] = ((int64_t)imap->validity<<32)|strtoul(q+3, nil, 10);
 					break;
 				}
 			}
@@ -347,7 +347,7 @@ imap4resp(Imap *imap)
 }
 
 static int
-isokay(char *resp)
+isokay(int8_t *resp)
 {
 	return strncmp(resp, "OK", 2)==0;
 }
@@ -355,10 +355,10 @@ isokay(char *resp)
 //
 // log in to IMAP4 server, select mailbox, no SSL at the moment
 //
-static char*
+static int8_t*
 imap4login(Imap *imap)
 {
-	char *s;
+	int8_t *s;
 	UserPasswd *up;
 
 	imap->tag = 0;
@@ -386,15 +386,15 @@ imap4login(Imap *imap)
 	return nil;
 }
 
-static char*
-imaperrstr(char *host, char *port)
+static int8_t*
+imaperrstr(int8_t *host, int8_t *port)
 {
 	/*
 	 * make mess big enough to hold a TLS certificate fingerprint
 	 * plus quite a bit of slop.
 	 */
-	static char mess[3 * Errlen];
-	char err[Errlen];
+	static int8_t mess[3 * Errlen];
+	int8_t err[Errlen];
 
 	err[0] = '\0';
 	errstr(err, sizeof(err));
@@ -406,7 +406,7 @@ static int
 starttls(Imap *imap, TLSconn *connp)
 {
 	int sfd;
-	uchar digest[SHA1dlen];
+	uint8_t digest[SHA1dlen];
 
 	fmtinstall('H', encodefmt);
 	memset(connp, 0, sizeof *connp);
@@ -439,10 +439,10 @@ starttls(Imap *imap, TLSconn *connp)
 //
 // dial and handshake with the imap server
 //
-static char*
+static int8_t*
 imap4dial(Imap *imap)
 {
-	char *err, *port;
+	int8_t *err, *port;
 	int sfd;
 	TLSconn conn;
 
@@ -469,7 +469,7 @@ imap4dial(Imap *imap)
 			return imaperrstr(imap->host, port);
 		}
 		if(imap->debug){
-			char fn[128];
+			int8_t fn[128];
 			int fd;
 
 			snprint(fn, sizeof fn, "%s/ctl", conn.dir);
@@ -506,11 +506,11 @@ imap4hangup(Imap *imap)
 //
 // download a single message
 //
-static char*
+static int8_t*
 imap4fetch(Mailbox *mb, Message *m)
 {
 	int i;
-	char *p, *s, sdigest[2*SHA1dlen+1];
+	int8_t *p, *s, sdigest[2*SHA1dlen+1];
 	Imap *imap;
 
 	imap = mb->aux;
@@ -537,7 +537,7 @@ imap4fetch(Mailbox *mb, Message *m)
 	parse(m, 0, mb, 1);
 
 	// digest headers
-	sha1((uchar*)m->start, m->end - m->start, m->digest, nil);
+	sha1((uint8_t*)m->start, m->end - m->start, m->digest, nil);
 	for(i = 0; i < SHA1dlen; i++)
 		sprint(sdigest+2*i, "%2.2ux", m->digest[i]);
 	m->sdigest = s_copy(sdigest);
@@ -549,10 +549,10 @@ imap4fetch(Mailbox *mb, Message *m)
 // check for new messages on imap4 server
 // download new messages, mark deleted messages
 //
-static char*
+static int8_t*
 imap4read(Imap *imap, Mailbox *mb, int doplumb)
 {
-	char *s;
+	int8_t *s;
 	int i, ignore, nnew, t;
 	Message *m, *next, **l;
 
@@ -624,9 +624,9 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 				continue;
 			if(imap->debug)
 				fprint(2, "9X%d UID FETCH %lud (UID RFC822.SIZE BODY[])\r\n",
-					t, (ulong)m->imapuid);
+					t, (uint32_t)m->imapuid);
 			Bprint(&imap->bout, "9X%d UID FETCH %lud (UID RFC822.SIZE BODY[])\r\n",
-				t++, (ulong)m->imapuid);
+				t++, (uint32_t)m->imapuid);
 		}
 		Bflush(&imap->bout);
 		_exits(nil);
@@ -640,13 +640,14 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 
 		if(!pipeline){
 			Bprint(&imap->bout, "9X%lud UID FETCH %lud (UID RFC822.SIZE BODY[])\r\n",
-				(ulong)imap->tag, (ulong)m->imapuid);
+				(uint32_t)imap->tag, (uint32_t)m->imapuid);
 			Bflush(&imap->bout);
 		}
 
 		if(s = imap4fetch(mb, m)){
 			// message disappeared?  unchain
-			fprint(2, "download %lud: %s\n", (ulong)m->imapuid, s);
+			fprint(2, "download %lud: %s\n", (uint32_t)m->imapuid,
+			       s);
 			delmessage(mb, m);
 			mb->root->subname--;
 			continue;
@@ -679,8 +680,9 @@ imap4purge(Imap *imap, Mailbox *mb)
 	for(m=mb->root->part; m!=nil; m=next){
 		next = m->next;
 		if(m->deleted && m->refs==0){
-			if(m->inmbox && (ulong)(m->imapuid>>32)==imap->validity){
-				imap4cmd(imap, "UID STORE %lud +FLAGS (\\Deleted)", (ulong)m->imapuid);
+			if(m->inmbox && (uint32_t)(m->imapuid>>32)==imap->validity){
+				imap4cmd(imap, "UID STORE %lud +FLAGS (\\Deleted)",
+					 (uint32_t)m->imapuid);
 				if(isokay(imap4resp(imap))){
 					ndel++;
 					delmessage(mb, m);
@@ -699,10 +701,10 @@ imap4purge(Imap *imap, Mailbox *mb)
 //
 // connect to imap4 server, sync mailbox
 //
-static char*
+static int8_t*
 imap4sync(Mailbox *mb, int doplumb)
 {
-	char *err;
+	int8_t *err;
 	Imap *imap;
 
 	imap = mb->aux;
@@ -724,10 +726,10 @@ imap4sync(Mailbox *mb, int doplumb)
 	return err;
 }
 
-static char Eimap4ctl[] = "bad imap4 control message";
+static int8_t Eimap4ctl[] = "bad imap4 control message";
 
-static char*
-imap4ctl(Mailbox *mb, int argc, char **argv)
+static int8_t*
+imap4ctl(Mailbox *mb, int argc, int8_t **argv)
 {
 	int n;
 	Imap *imap;
@@ -788,10 +790,10 @@ imap4close(Mailbox *mb)
 //
 // open mailboxes of the form /imap/host/user
 //
-char*
-imap4mbox(Mailbox *mb, char *path)
+int8_t*
+imap4mbox(Mailbox *mb, int8_t *path)
 {
-	char *f[10];
+	int8_t *f[10];
 	int mustssl, nf;
 	Imap *imap;
 
@@ -863,11 +865,11 @@ needtoquote(Rune r)
 int
 doublequote(Fmt *f)
 {
-	char *s, *t;
+	int8_t *s, *t;
 	int w, quotes;
 	Rune r;
 
-	s = va_arg(f->args, char*);
+	s = va_arg(f->args, int8_t*);
 	if(s == nil || *s == '\0')
 		return fmtstrcpy(f, "\"\"");
 

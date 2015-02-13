@@ -9,10 +9,10 @@
 
 #include <lib9.h>
 
-extern	int	_BIND(char*, char*, int);
+extern	int	_BIND(int8_t*, int8_t*, int);
 
 int
-bind(char *name, char *old, int flag)
+bind(int8_t *name, int8_t *old, int flag)
 {
 	return _BIND(name, old, flag);
 }

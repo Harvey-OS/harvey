@@ -16,11 +16,11 @@
 
 /* see also: ../stdio/strerror.c, with errno-> string mapping */
 
-char _plan9err[ERRMAX];
+int8_t _plan9err[ERRMAX];
 
 static struct errmap {
 	int	errno;
-	char	*ename;
+	int8_t	*ename;
 } map[] = {
 	/* from /sys/src/9/port/errstr.h */
 	{EINVAL,	"inconsistent mount"},

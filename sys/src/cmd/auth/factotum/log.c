@@ -12,7 +12,7 @@
 void
 logbufproc(Logbuf *lb)
 {
-	char *s;
+	int8_t *s;
 	int n;
 	Req *r;
 
@@ -78,7 +78,7 @@ logbufflush(Logbuf *lb, Req *r)
 }
 
 void
-logbufappend(Logbuf *lb, char *buf)
+logbufappend(Logbuf *lb, int8_t *buf)
 {
 	if(debug)
 		fprint(2, "%s\n", buf);
@@ -106,9 +106,9 @@ logflush(Req *r)
 }
 
 void
-flog(char *fmt, ...)
+flog(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);

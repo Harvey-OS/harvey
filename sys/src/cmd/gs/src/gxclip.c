@@ -137,7 +137,7 @@ gx_make_clip_path_device(gx_device_clip * dev, const gx_clip_path * pcpath)
 /* Define debugging statistics for the clipping loops. */
 #ifdef DEBUG
 struct stats_clip_s {
-    long
+    int32_t
          loops, out, in_y, in, in1, down, up, x, no_x;
 } stats_clip;
 

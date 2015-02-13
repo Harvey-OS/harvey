@@ -11,11 +11,11 @@
 #include <libc.h>
 
 int
-putenv(char *name, char *val)
+putenv(int8_t *name, int8_t *val)
 {
 	int f;
-	char ename[100];
-	long s;
+	int8_t ename[100];
+	int32_t s;
 
 	if(strchr(name, '/') != nil)
 		return -1;

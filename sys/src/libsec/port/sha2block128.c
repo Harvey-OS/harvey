@@ -53,12 +53,12 @@ static u64int K512[80] = {
 	0x4cc5d4becb3e42b6LL, 0x597f299cfc657e2aLL, 0x5fcb6fab3ad6faecLL, 0x6c44198c4a475817LL };
 
 void
-_sha2block128(uchar *p, ulong len, u64int *s)
+_sha2block128(uint8_t *p, uint32_t len, u64int *s)
 {
 	u64int a, b, c, d, e, f, g, h, t1, t2;
 	u64int *kp, *wp;
 	u64int w[80];
-	uchar *end;
+	uint8_t *end;
 
 	/* at this point, we have a multiple of 64 bytes */
 	for(end = p+len; p < end;){
@@ -72,8 +72,8 @@ _sha2block128(uchar *p, ulong len, u64int *s)
 		h = s[7];
 
 		for(wp = w; wp < &w[16]; wp++, p += 8)
-			wp[0] = ((vlong)p[0])<<56 | ((vlong)p[1])<<48 |
-				((vlong)p[2])<<40 | ((vlong)p[3])<<32 |
+			wp[0] = ((int64_t)p[0])<<56 | ((int64_t)p[1])<<48 |
+				((int64_t)p[2])<<40 | ((int64_t)p[3])<<32 |
 				p[4] << 24 | p[5] << 16 | p[6] << 8 | p[7];
 		for(; wp < &w[80]; wp++) {
 			u64int s0, s1;

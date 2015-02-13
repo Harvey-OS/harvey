@@ -360,7 +360,7 @@ comwork(FILE *fd, Lextok *now, int m)
 			comwork(fd,now->rgt,m);
 			break;
 
-	case PRINT:	{	char c, buf[512];
+	case PRINT:	{	int8_t c, buf[512];
 				strncpy(buf, now->sym->name, 510);
 				for (i = j = 0; i < 510; i++, j++)
 				{	c = now->sym->name[i];
@@ -431,7 +431,7 @@ comwork(FILE *fd, Lextok *now, int m)
 
 void
 comment(FILE *fd, Lextok *now, int m)
-{	extern short terse, nocast;
+{	extern int16_t terse, nocast;
 
 	terse=nocast=1;
 	comwork(fd, now, m);

@@ -12,7 +12,7 @@
 #include "flashfs.h"
 
 int
-convJ2M(Jrec *j, uchar *buff)
+convJ2M(Jrec *j, uint8_t *buff)
 {
 	int m, n;
 
@@ -86,7 +86,7 @@ convJ2M(Jrec *j, uchar *buff)
 }
 
 int
-convM2J(Jrec *j, uchar *buff)
+convM2J(Jrec *j, uint8_t *buff)
 {
 	int m, n;
 

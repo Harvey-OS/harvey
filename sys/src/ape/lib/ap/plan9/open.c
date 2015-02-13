@@ -20,10 +20,10 @@
  * O_NOCTTY has no effect
  */
 int
-open(const char *path, int flags, ...)
+open(const int8_t *path, int flags, ...)
 {
 	int n;
-	long f;
+	int32_t f;
 	int mode;
 	Fdinfo *fi;
 	va_list va;

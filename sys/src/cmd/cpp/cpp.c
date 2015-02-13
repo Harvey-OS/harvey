@@ -13,23 +13,23 @@
 #include "cpp.h"
 
 #define	OUTS	16384
-char	outbuf[OUTS];
-char	*outp = outbuf;
+int8_t	outbuf[OUTS];
+int8_t	*outp = outbuf;
 Source	*cursource;
 int	nerrs;
-struct	token nltoken = { NL, 0, 0, 0, 1, (uchar*)"\n" };
-char	*curtime;
+struct	token nltoken = { NL, 0, 0, 0, 1, (uint8_t*)"\n" };
+int8_t	*curtime;
 int	incdepth;
 int	ifdepth;
 int	ifsatisfied[NIF];
 int	skipping;
 
 int
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Tokenrow tr;
-	long t;
-	char ebuf[BUFSIZ];
+	int32_t t;
+	int8_t ebuf[BUFSIZ];
 
 	setbuf(stderr, ebuf);
 	t = time(NULL);
@@ -235,12 +235,12 @@ control(Tokenrow *trp)
 			error(ERROR, "Syntax error in #line");
 			return;
 		}
-		cursource->line = atol((char*)tp->t)-1;
+		cursource->line = atol((int8_t*)tp->t)-1;
 		if (cursource->line<0 || cursource->line>=32768)
 			error(WARNING, "#line specifies number out of range");
 		tp = tp+1;
 		if (tp+1<trp->lp)
-			cursource->filename=(char*)newstring(tp->t+1,tp->len-2,0);
+			cursource->filename=(int8_t*)newstring(tp->t+1,tp->len-2,0);
 		return;
 
 	case KDEFINED:
@@ -291,10 +291,10 @@ dofree(void *p)
 }
 
 void
-error(enum errtype type, char *string, ...)
+error(enum errtype type, int8_t *string, ...)
 {
 	va_list ap;
-	char *cp, *ep;
+	int8_t *cp, *ep;
 	Token *tp;
 	Tokenrow *trp;
 	Source *s;
@@ -311,7 +311,7 @@ error(enum errtype type, char *string, ...)
 			switch (*++ep) {
 
 			case 's':
-				cp = va_arg(ap, char *);
+				cp = va_arg(ap, int8_t *);
 				fprintf(stderr, "%s", cp);
 				break;
 			case 'd':

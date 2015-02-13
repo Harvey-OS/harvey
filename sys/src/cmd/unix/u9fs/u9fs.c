@@ -35,7 +35,7 @@
 #define DEFAULTLOG "/tmp/u9fs.log"
 #endif
 
-char *logfile = DEFAULTLOG;
+int8_t *logfile = DEFAULTLOG;
 
 #define S_ISSPECIAL(m) (S_ISCHR(m) || S_ISBLK(m) || S_ISFIFO(m))
 
@@ -53,15 +53,15 @@ typedef struct User User;
 struct User {
 	int id;
 	gid_t defaultgid;
-	char *name;
-	char **mem;	/* group members */
+	int8_t *name;
+	int8_t **mem;	/* group members */
 	int nmem;
 	User *next;
 };
 
 struct Fid {
 	int fid;
-	char *path;
+	int8_t *path;
 	struct stat st;
 	User *u;
 	int omode;
@@ -78,10 +78,10 @@ struct Fid {
 
 void*	emalloc(size_t);
 void*	erealloc(void*, size_t);
-char*	estrdup(char*);
-char*	estrpath(char*, char*, int);
-void	sysfatal(char*, ...);
-int	okuser(char*);
+int8_t*	estrdup(int8_t*);
+int8_t*	estrpath(int8_t*, int8_t*, int);
+void	sysfatal(int8_t*, ...);
+int	okuser(int8_t*);
 
 void	rversion(Fcall*, Fcall*);
 void	rauth(Fcall*, Fcall*);
@@ -99,23 +99,23 @@ void	rwstat(Fcall*, Fcall*);
 void	rclwalk(Fcall*, Fcall*);
 void	rremove(Fcall*, Fcall*);
 
-User*	uname2user(char*);
-User*	gname2user(char*);
+User*	uname2user(int8_t*);
+User*	gname2user(int8_t*);
 User*	uid2user(int);
 User*	gid2user(int);
 
-Fid*	newfid(int, char**);
-Fid*	oldfidex(int, int, char**);
-Fid*	oldfid(int, char**);
-int	fidstat(Fid*, char**);
+Fid*	newfid(int, int8_t**);
+Fid*	oldfidex(int, int, int8_t**);
+Fid*	oldfid(int, int8_t**);
+int	fidstat(Fid*, int8_t**);
 void	freefid(Fid*);
 
-int	userchange(User*, char**);
-int	userwalk(User*, char**, char*, Qid*, char**);
-int	useropen(Fid*, int, char**);
-int	usercreate(Fid*, char*, int, long, char**);
-int	userremove(Fid*, char**);
-int	userperm(User*, char*, int, int);
+int	userchange(User*, int8_t**);
+int	userwalk(User*, int8_t**, int8_t*, Qid*, int8_t**);
+int	useropen(Fid*, int, int8_t**);
+int	usercreate(Fid*, int8_t*, int, int32_t, int8_t**);
+int	userremove(Fid*, int8_t**);
+int	userperm(User*, int8_t*, int, int);
 int	useringroup(User*, User*);
 
 Qid	stat2qid(struct stat*);
@@ -123,35 +123,35 @@ Qid	stat2qid(struct stat*);
 void	getfcallold(int, Fcall*, int);
 void	putfcallold(int, Fcall*);
 
-char	Eauth[] =	"authentication failed";
-char	Ebadfid[] =	"fid unknown or out of range";
-char	Ebadoffset[] =	"bad offset in directory read";
-char	Ebadusefid[] =	"bad use of fid";
-char	Edirchange[] =	"wstat can't convert between files and directories";
-char	Eexist[] =	"file or directory already exists";
-char	Efidactive[] =	"fid already in use";
-char	Enotdir[] =	"not a directory";
-char	Enotingroup[] =	"not a member of proposed group";
-char	Enotowner[] = 	"only owner can change group in wstat";
-char	Eperm[] =	"permission denied";
-char	Especial0[] =	"already attached without access to special files";
-char	Especial1[] =	"already attached with access to special files";
-char	Especial[] =	"no access to special file";
-char	Etoolarge[] =	"i/o count too large";
-char	Eunknowngroup[] = "unknown group";
-char	Eunknownuser[] = "unknown user";
-char	Ewstatbuffer[] = "bogus wstat buffer";
+int8_t	Eauth[] =	"authentication failed";
+int8_t	Ebadfid[] =	"fid unknown or out of range";
+int8_t	Ebadoffset[] =	"bad offset in directory read";
+int8_t	Ebadusefid[] =	"bad use of fid";
+int8_t	Edirchange[] =	"wstat can't convert between files and directories";
+int8_t	Eexist[] =	"file or directory already exists";
+int8_t	Efidactive[] =	"fid already in use";
+int8_t	Enotdir[] =	"not a directory";
+int8_t	Enotingroup[] =	"not a member of proposed group";
+int8_t	Enotowner[] = 	"only owner can change group in wstat";
+int8_t	Eperm[] =	"permission denied";
+int8_t	Especial0[] =	"already attached without access to special files";
+int8_t	Especial1[] =	"already attached with access to special files";
+int8_t	Especial[] =	"no access to special file";
+int8_t	Etoolarge[] =	"i/o count too large";
+int8_t	Eunknowngroup[] = "unknown group";
+int8_t	Eunknownuser[] = "unknown user";
+int8_t	Ewstatbuffer[] = "bogus wstat buffer";
 
-ulong	msize = IOHDRSZ+8192;
-uchar*	rxbuf;
-uchar*	txbuf;
+uint32_t	msize = IOHDRSZ+8192;
+uint8_t*	rxbuf;
+uint8_t*	txbuf;
 void*	databuf;
 int	connected;
 int	devallowed;
-char*	autharg;
-char*	defaultuser;
-char	hostname[256];
-char	remotehostname[256];
+int8_t*	autharg;
+int8_t*	defaultuser;
+int8_t	hostname[256];
+int8_t	remotehostname[256];
 int	chatty9p = 0;
 int	network = 1;
 int	old9p = -1;
@@ -279,7 +279,7 @@ getfcall(int fd, Fcall *fc)
 }
 
 void
-seterror(Fcall *f, char *error)
+seterror(Fcall *f, int8_t *error)
 {
 	f->type = Rerror;
 	f->ename = error ? error : "programmer error";
@@ -376,7 +376,7 @@ rversion(Fcall *rx, Fcall *tx)
 void
 rauth(Fcall *rx, Fcall *tx)
 {
-	char *e;
+	int8_t *e;
 
 	if((e = auth->auth(rx, tx)) != nil)
 		seterror(tx, e);
@@ -385,7 +385,7 @@ rauth(Fcall *rx, Fcall *tx)
 void
 rattach(Fcall *rx, Fcall *tx)
 {
-	char *e;
+	int8_t *e;
 	Fid *fid;
 	User *u;
 
@@ -451,7 +451,7 @@ void
 rwalk(Fcall *rx, Fcall *tx)
 {
 	int i;
-	char *path, *e;
+	int8_t *path, *e;
 	Fid *fid, *nfid;
 
 	e = nil;
@@ -512,7 +512,7 @@ rwalk(Fcall *rx, Fcall *tx)
 void
 ropen(Fcall *rx, Fcall *tx)
 {
-	char *e;
+	int8_t *e;
 	Fid *fid;
 
 	if((fid = oldfid(rx->fid, &e)) == nil){
@@ -547,7 +547,7 @@ ropen(Fcall *rx, Fcall *tx)
 void
 rcreate(Fcall *rx, Fcall *tx)
 {
-	char *e;
+	int8_t *e;
 	Fid *fid;
 
 	if((fid = oldfid(rx->fid, &e)) == nil){
@@ -584,10 +584,10 @@ rcreate(Fcall *rx, Fcall *tx)
 	tx->qid = stat2qid(&fid->st);
 }
 
-uchar
+uint8_t
 modebyte(struct stat *st)
 {
-	uchar b;
+	uint8_t b;
 
 	b = 0;
 
@@ -602,10 +602,10 @@ modebyte(struct stat *st)
 	return b;
 }
 
-ulong
+uint32_t
 plan9mode(struct stat *st)
 {
-	return ((ulong)modebyte(st)<<24) | (st->st_mode & 0777);
+	return ((uint32_t)modebyte(st)<<24) | (st->st_mode & 0777);
 }
 
 /* 
@@ -620,14 +620,14 @@ unixmode(Dir *d)
 Qid
 stat2qid(struct stat *st)
 {
-	uchar *p, *ep, *q;
+	uint8_t *p, *ep, *q;
 	Qid qid;
 
 	/*
 	 * For now, ignore the device number.
 	 */
 	qid.path = 0;
-	p = (uchar*)&qid.path;
+	p = (uint8_t*)&qid.path;
 	ep = p+sizeof(qid.path);
 	q = p+sizeof(ino_t);
 	if(q > ep){
@@ -653,14 +653,14 @@ stat2qid(struct stat *st)
 	return qid;
 }
 
-char *
-enfrog(char *src)
+int8_t *
+enfrog(int8_t *src)
 {
-	char *d, *dst;
-	uchar *s;
+	int8_t *d, *dst;
+	uint8_t *s;
 
 	d = dst = emalloc(strlen(src)*3 + 1);
-	for (s = (uchar *)src; *s; s++)
+	for (s = (uint8_t *)src; *s; s++)
 		if(isfrog[*s] || *s == '\\')
 			d += sprintf(d, "\\%02x", *s);
 		else
@@ -669,10 +669,10 @@ enfrog(char *src)
 	return dst;
 }
 
-char *
-defrog(char *s)
+int8_t *
+defrog(int8_t *s)
 {
-	char *d, *dst, buf[3];
+	int8_t *d, *dst, buf[3];
 
 	d = dst = emalloc(strlen(s) + 1);
 	for(; *s; s++)
@@ -688,10 +688,10 @@ defrog(char *s)
 }
 
 void
-stat2dir(char *path, struct stat *st, Dir *d)
+stat2dir(int8_t *path, struct stat *st, Dir *d)
 {
 	User *u;
-	char *q, *p, *npath;
+	int8_t *q, *p, *npath;
 
 	memset(d, 0, sizeof(*d));
 	d->qid = stat2qid(st);
@@ -713,8 +713,8 @@ stat2dir(char *path, struct stat *st, Dir *d)
 void
 rread(Fcall *rx, Fcall *tx)
 {
-	char *e, *path;
-	uchar *p, *ep;
+	int8_t *e, *path;
+	uint8_t *p, *ep;
 	int n;
 	Fid *fid;
 	Dir d;
@@ -731,7 +731,7 @@ rread(Fcall *rx, Fcall *tx)
 	}
 
 	if (fid->auth) {
-		char *e;
+		int8_t *e;
 		e = auth->read(rx, tx);
 		if (e)
 			seterror(tx, e);
@@ -758,8 +758,8 @@ rread(Fcall *rx, Fcall *tx)
 			return;
 		}
 
-		p = (uchar*)tx->data;
-		ep = (uchar*)tx->data+rx->count;
+		p = (uint8_t*)tx->data;
+		ep = (uint8_t*)tx->data+rx->count;
 		for(;;){
 			if(p+BIT16SZ >= ep)
 				break;
@@ -788,7 +788,7 @@ rread(Fcall *rx, Fcall *tx)
 			p += n;
 			fid->dirent = nil;
 		}
-		tx->count = p - (uchar*)tx->data;
+		tx->count = p - (uint8_t*)tx->data;
 		fid->diroffset += tx->count;
 	}else{
 		if((n = pread(fid->fd, tx->data, rx->count, rx->offset)) < 0){
@@ -802,7 +802,7 @@ rread(Fcall *rx, Fcall *tx)
 void
 rwrite(Fcall *rx, Fcall *tx)
 {
-	char *e;
+	int8_t *e;
 	Fid *fid;
 	int n;
 
@@ -817,7 +817,7 @@ rwrite(Fcall *rx, Fcall *tx)
 	}
 
 	if (fid->auth) {
-		char *e;
+		int8_t *e;
 		e = auth->write(rx, tx);
 		if (e)
 			seterror(tx, e);
@@ -839,7 +839,7 @@ rwrite(Fcall *rx, Fcall *tx)
 void
 rclunk(Fcall *rx, Fcall *tx)
 {
-	char *e;
+	int8_t *e;
 	Fid *fid;
 
 	if((fid = oldfidex(rx->fid, -1, &e)) == nil){
@@ -863,7 +863,7 @@ rclunk(Fcall *rx, Fcall *tx)
 void
 rremove(Fcall *rx, Fcall *tx)
 {
-	char *e;
+	int8_t *e;
 	Fid *fid;
 
 	if((fid = oldfid(rx->fid, &e)) == nil){
@@ -878,7 +878,7 @@ rremove(Fcall *rx, Fcall *tx)
 void
 rstat(Fcall *rx, Fcall *tx)
 {
-	char *e;
+	int8_t *e;
 	Fid *fid;
 	Dir d;
 
@@ -900,8 +900,8 @@ rstat(Fcall *rx, Fcall *tx)
 void
 rwstat(Fcall *rx, Fcall *tx)
 {
-	char *e;
-	char *p, *old, *new, *dir;
+	int8_t *e;
+	int8_t *p, *old, *new, *dir;
 	gid_t gid;
 	Dir d;
 	Fid *fid;
@@ -918,7 +918,7 @@ rwstat(Fcall *rx, Fcall *tx)
 	 * one works, we're screwed.  in such cases we leave things
 	 * half broken and return an error.  it's hardly perfect.
 	 */
-	if((old9p ? convM2Dold : convM2D)(rx->stat, rx->nstat, &d, (char*)rx->stat) <= BIT16SZ){
+	if((old9p ? convM2Dold : convM2D)(rx->stat, rx->nstat, &d, (int8_t*)rx->stat) <= BIT16SZ){
 		seterror(tx, Ewstatbuffer);
 		return;
 	}
@@ -1073,7 +1073,7 @@ User*
 addgroup(struct group *g)
 {
 	User *u;
-	char **p;
+	int8_t **p;
 	int n;
 
 	u = emalloc(sizeof(*u));
@@ -1093,7 +1093,7 @@ addgroup(struct group *g)
 }
 
 User*
-uname2user(char *name)
+uname2user(int8_t *name)
 {
 	int i;
 	User *u;
@@ -1125,7 +1125,7 @@ uid2user(int id)
 }
 
 User*
-gname2user(char *name)
+gname2user(int8_t *name)
 {
 	int i;
 	User *u;
@@ -1157,9 +1157,9 @@ gid2user(int id)
 }
 
 void
-sysfatal(char *fmt, ...)
+sysfatal(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list va, temp;
 
 	va_start(va, fmt);
@@ -1181,7 +1181,7 @@ emalloc(size_t n)
 		n = 1;
 	p = malloc(n);
 	if(p == 0)
-		sysfatal("malloc(%ld) fails", (long)n);
+		sysfatal("malloc(%ld) fails", (int32_t)n);
 	memset(p, 0, n);
 	return p;
 }
@@ -1194,12 +1194,12 @@ erealloc(void *p, size_t n)
 	else
 		p = realloc(p, n);
 	if(p == 0)
-		sysfatal("realloc(..., %ld) fails", (long)n);
+		sysfatal("realloc(..., %ld) fails", (int32_t)n);
 	return p;
 }
 
-char*
-estrdup(char *p)
+int8_t*
+estrdup(int8_t *p)
 {
 	p = strdup(p);
 	if(p == 0)
@@ -1207,10 +1207,10 @@ estrdup(char *p)
 	return p;
 }
 
-char*
-estrpath(char *p, char *q, int frog)
+int8_t*
+estrpath(int8_t *p, int8_t *q, int frog)
 {
-	char *r, *s;
+	int8_t *r, *s;
 
 	if(strcmp(q, "..") == 0){
 		r = estrdup(p);
@@ -1248,7 +1248,7 @@ lookupfid(int fid)
 }
 
 Fid*
-newfid(int fid, char **ep)
+newfid(int fid, int8_t **ep)
 {
 	Fid *f;
 
@@ -1269,7 +1269,7 @@ newfid(int fid, char **ep)
 }
 
 Fid*
-newauthfid(int fid, void *magic, char **ep)
+newauthfid(int fid, void *magic, int8_t **ep)
 {
 	Fid *af;
 	af = newfid(fid, ep);
@@ -1281,7 +1281,7 @@ newauthfid(int fid, void *magic, char **ep)
 }
 
 Fid*
-oldfidex(int fid, int auth, char **ep)
+oldfidex(int fid, int auth, int8_t **ep)
 {
 	Fid *f;
 
@@ -1304,13 +1304,13 @@ oldfidex(int fid, int auth, char **ep)
 }
 
 Fid*
-oldfid(int fid, char **ep)
+oldfid(int fid, int8_t **ep)
 {
 	return oldfidex(fid, 0, ep);
 }
 
 Fid*
-oldauthfid(int fid, void **magic, char **ep)
+oldauthfid(int fid, void **magic, int8_t **ep)
 {
 	Fid *af;
 	af = oldfidex(fid, 1, ep);
@@ -1338,7 +1338,7 @@ freefid(Fid *f)
 }
 
 int
-fidstat(Fid *fid, char **ep)
+fidstat(Fid *fid, int8_t **ep)
 {
 	if(stat(fid->path, &fid->st) < 0){
 		fprint(2, "fidstat(%s) failed\n", fid->path);
@@ -1352,7 +1352,7 @@ fidstat(Fid *fid, char **ep)
 }
 
 int
-userchange(User *u, char **ep)
+userchange(User *u, int8_t **ep)
 {
 	if(defaultuser)
 		return 0;
@@ -1395,7 +1395,7 @@ userchange(User *u, char **ep)
  * change your own group without our help.
  */
 int
-groupchange(User *u, User *g, char **ep)
+groupchange(User *u, User *g, int8_t **ep)
 {
 	if(g == nil)
 		return -1;
@@ -1428,9 +1428,9 @@ groupchange(User *u, User *g, char **ep)
  * on open(ORCLOSE) in some cases.
  */
 int
-userperm(User *u, char *path, int type, int need)
+userperm(User *u, int8_t *path, int type, int need)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	int i, have;
 	struct stat st;
 	User *g;
@@ -1493,9 +1493,9 @@ userperm(User *u, char *path, int type, int need)
 }
 
 int
-userwalk(User *u, char **path, char *elem, Qid *qid, char **ep)
+userwalk(User *u, int8_t **path, int8_t *elem, Qid *qid, int8_t **ep)
 {
-	char *npath;
+	int8_t *npath;
 	struct stat st;
 
 	npath = estrpath(*path, elem, 1);
@@ -1511,7 +1511,7 @@ userwalk(User *u, char **path, char *elem, Qid *qid, char **ep)
 }
 
 int
-useropen(Fid *fid, int omode, char **ep)
+useropen(Fid *fid, int omode, int8_t **ep)
 {
 	int a, o;
 
@@ -1580,10 +1580,10 @@ useropen(Fid *fid, int omode, char **ep)
 }
 
 int
-usercreate(Fid *fid, char *elem, int omode, long perm, char **ep)
+usercreate(Fid *fid, int8_t *elem, int omode, int32_t perm, int8_t **ep)
 {
 	int o, m;
-	char *opath, *npath;
+	int8_t *opath, *npath;
 	struct stat st, parent;
 
 	if(stat(fid->path, &parent) < 0){
@@ -1677,7 +1677,7 @@ usercreate(Fid *fid, char *elem, int omode, long perm, char **ep)
 }
 
 int
-userremove(Fid *fid, char **ep)
+userremove(Fid *fid, int8_t **ep)
 {
 	if(remove(fid->path) < 0){
 		*ep = strerror(errno);

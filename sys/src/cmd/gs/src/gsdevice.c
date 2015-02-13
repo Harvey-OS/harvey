@@ -192,7 +192,7 @@ gs_currentdevice(const gs_state * pgs)
 }
 
 /* Get the name of a device. */
-const char *
+const int8_t *
 gs_devicename(const gx_device * dev)
 {
     return dev->dname;
@@ -537,7 +537,7 @@ gx_set_device_only(gs_state * pgs, gx_device * dev)
 uint
 gx_device_raster(const gx_device * dev, bool pad)
 {
-    ulong bits = (ulong) dev->width * dev->color_info.depth;
+    uint32_t bits = (uint32_t) dev->width * dev->color_info.depth;
 
     return (pad ? bitmap_raster(bits) : (uint) ((bits + 7) >> 3));
 }
@@ -725,7 +725,7 @@ gx_device_copy_params(gx_device *dev, const gx_device *target)
  * If there was a format, then return the max_width
  */
 private int
-gx_parse_output_format(gs_parsed_file_name_t *pfn, const char **pfmt)
+gx_parse_output_format(gs_parsed_file_name_t *pfn, const int8_t **pfmt)
 {
     bool have_format = false, field = 0;
     int width[2], int_width = sizeof(int) * 3, w = 0;
@@ -745,7 +745,7 @@ gx_parse_output_format(gs_parsed_file_name_t *pfn, const char **pfmt)
 		return_error(gs_error_undefinedfilename);
 	    switch (pfn->fname[i]) {
 		case 'l':
-		    int_width = sizeof(long) * 3;
+		    int_width = sizeof(int32_t) * 3;
 		case ' ': case '#': case '+': case '-':
 		    goto sw;
 		case '.':
@@ -780,8 +780,8 @@ gx_parse_output_format(gs_parsed_file_name_t *pfn, const char **pfmt)
  * is currently allowed.
  */
 int
-gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const char **pfmt,
-			  const char *fname, uint fnlen)
+gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const int8_t **pfmt,
+			  const int8_t *fname, uint fnlen)
 {
     int code;
 
@@ -831,12 +831,12 @@ gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const char **pfmt,
 
 /* Open the output file for a device. */
 int
-gx_device_open_output_file(const gx_device * dev, char *fname,
+gx_device_open_output_file(const gx_device * dev, int8_t *fname,
 			   bool binary, bool positionable, FILE ** pfile)
 {
     gs_parsed_file_name_t parsed;
-    const char *fmt;
-    char pfname[gp_file_name_sizeof];
+    const int8_t *fmt;
+    int8_t pfname[gp_file_name_sizeof];
     int code = gx_parse_output_file_name(&parsed, &fmt, fname, strlen(fname));
 
     if (code < 0)
@@ -849,7 +849,7 @@ gx_device_open_output_file(const gx_device * dev, char *fname,
 	return gp_setmode_binary(*pfile, true);
     }
     if (fmt) {
-	long count1 = dev->PageCount + 1;
+	int32_t count1 = dev->PageCount + 1;
 
 	while (*fmt != 'l' && *fmt != '%')
 	    --fmt;
@@ -861,7 +861,7 @@ gx_device_open_output_file(const gx_device * dev, char *fname,
 	parsed.len = strlen(parsed.fname);
     }
     if (positionable || (parsed.iodev && parsed.iodev != iodev_default)) {
-	char fmode[4];
+	int8_t fmode[4];
 
 	if (!parsed.fname)
 	    return_error(gs_error_undefinedfilename);
@@ -883,11 +883,11 @@ gx_device_open_output_file(const gx_device * dev, char *fname,
 
 /* Close the output file for a device. */
 int
-gx_device_close_output_file(const gx_device * dev, const char *fname,
+gx_device_close_output_file(const gx_device * dev, const int8_t *fname,
 			    FILE *file)
 {
     gs_parsed_file_name_t parsed;
-    const char *fmt;
+    const int8_t *fmt;
     int code = gx_parse_output_file_name(&parsed, &fmt, fname, strlen(fname));
 
     if (code < 0)

@@ -48,7 +48,7 @@ decref(Ref *r)
 void
 procrestore(Proc *p)
 {
-	uvlong t;
+	uint64_t t;
 
 	if(p->kp)
 		return;
@@ -67,7 +67,7 @@ procrestore(Proc *p)
 void
 procsave(Proc *p)
 {
-	uvlong t;
+	uint64_t t;
 
 	cycles(&t);
 	p->pcycles += t;

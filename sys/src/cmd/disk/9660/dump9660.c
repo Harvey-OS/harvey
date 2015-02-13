@@ -14,19 +14,19 @@
 #include <libsec.h>
 #include "iso9660.h"
 
-ulong now;
+uint32_t now;
 int chatty;
 int doabort;
 int docolon;
 int mk9660;
-vlong dataoffset;
+int64_t dataoffset;
 int blocksize;
 Conform *map;
 
-static void addprotofile(char *new, char *old, Dir *d, void *a);
+static void addprotofile(int8_t *new, int8_t *old, Dir *d, void *a);
 void usage(void);
 
-char *argv0;
+int8_t *argv0;
 
 void
 usage(void)
@@ -414,9 +414,9 @@ Dofix:
 }
 
 static void
-addprotofile(char *new, char *old, Dir *d, void *a)
+addprotofile(int8_t *new, int8_t *old, Dir *d, void *a)
 {
-	char *name, *p;
+	int8_t *name, *p;
 	Direc *direc;
 	XDir xd;
 

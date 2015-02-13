@@ -11,12 +11,12 @@
 #include <libc.h>
 
 #define	NFN	33
-static	int	(*onnot[NFN])(void*, char*);
+static	int	(*onnot[NFN])(void*, int8_t*);
 static	Lock	onnotlock;
 
 static
 void
-notifier(void *v, char *s)
+notifier(void *v, int8_t *s)
 {
 	int i;
 
@@ -29,7 +29,7 @@ notifier(void *v, char *s)
 }
 
 int
-atnotify(int (*f)(void*, char*), int in)
+atnotify(int (*f)(void*, int8_t*), int in)
 {
 	int i, n, ret;
 	static int init;

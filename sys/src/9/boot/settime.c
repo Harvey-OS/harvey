@@ -13,17 +13,17 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-static long lusertime(char*);
+static int32_t lusertime(int8_t*);
 
-char *timeserver = "#s/boot";
+int8_t *timeserver = "#s/boot";
 
 void
-settime(int islocal, int afd, char *rp)
+settime(int islocal, int afd, int8_t *rp)
 {
 	int n, f;
 	int timeset;
 	Dir dir[2];
-	char timebuf[64];
+	int8_t timebuf[64];
 
 	print("time...");
 	timeset = 0;
@@ -58,7 +58,7 @@ settime(int islocal, int afd, char *rp)
 		close(f);
 		if(stat("/tmp", statbuf, sizeof statbuf) < 0)
 			fatal("stat");
-		convM2D(statbuf, sizeof statbuf, &dir[0], (char*)&dir[1]);
+		convM2D(statbuf, sizeof statbuf, &dir[0], (int8_t*)&dir[1]);
 		sprint(timebuf, "%ld", dir[0].atime);
 		unmount(0, "/tmp");
 	}
@@ -75,7 +75,7 @@ settime(int islocal, int afd, char *rp)
 #define SEC2DAY (24L*SEC2HOUR)
 
 int
-g2(char **pp)
+g2(int8_t **pp)
 {
 	int v;
 
@@ -112,11 +112,11 @@ yrsize(int y)
 /*
  *  compute seconds since Jan 1 1970
  */
-static long
-lusertime(char *argbuf)
+static int32_t
+lusertime(int8_t *argbuf)
 {
-	char *buf;
-	ulong secs;
+	int8_t *buf;
+	uint32_t secs;
 	int i, y, m;
 	int *d2m;
 

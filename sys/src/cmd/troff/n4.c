@@ -34,7 +34,7 @@ void setn(void)
 	int i, j, f;
 	Tchar ii;
 	Uchar *p;
-	char buf[NTM];		/* for \n(.S */
+	int8_t buf[NTM];		/* for \n(.S */
 
 	f = nform = 0;
 	if ((i = cbits(ii = getach())) == '+')
@@ -367,7 +367,7 @@ int roman(int i, int (*f)(Tchar))
 }
 
 
-int roman0(int i, int (*f)(Tchar), char *onesp, char *fivesp)
+int roman0(int i, int (*f)(Tchar), int8_t *onesp, int8_t *fivesp)
 {
 	int q, rem, k;
 
@@ -411,11 +411,11 @@ int abc0(int i, int (*f)(Tchar))
 	return(k + (*f)((i % 26 + nform) | nrbits));
 }
 
-long atoi0(void)
+int32_t atoi0(void)
 {
 	int c, k, cnt;
 	Tchar ii;
-	long i, acc;
+	int32_t i, acc;
 
 	acc = 0;
 	nonumb = 0;
@@ -537,10 +537,10 @@ a0:
 }
 
 
-long ckph(void)
+int32_t ckph(void)
 {
 	Tchar i;
-	long j;
+	int32_t j;
 
 	if (cbits(i = getch()) == '(')
 		j = atoi0();
@@ -556,8 +556,8 @@ long ckph(void)
  */
 void prnumerr(void)
 {
-	char err_buf[40];
-	static char warn[] = "Numeric argument expected";
+	int8_t err_buf[40];
+	static int8_t warn[] = "Numeric argument expected";
 	int savcd = numtabp[CD].val;
 
 	if (numerr.type == RQERR)
@@ -573,7 +573,7 @@ void prnumerr(void)
 }
 
 
-long atoi1(Tchar ii)
+int32_t atoi1(Tchar ii)
 {
 	int i, j, digits;
 	double acc;	/* this is the only double in troff! */

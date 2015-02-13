@@ -11,10 +11,10 @@
 #include <libc.h>
 #include <auth.h>
 
-uchar
+uint8_t
 nvcsum(void *vmem, int n)
 {
-	uchar *mem, sum;
+	uint8_t *mem, sum;
 	int i;
 
 	sum = 9;

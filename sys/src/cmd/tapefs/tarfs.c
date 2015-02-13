@@ -43,27 +43,27 @@ enum {
 };
 
 typedef union {
-	char	dummy[Tblock];
-	char	tbuf[Maxbuf];
+	int8_t	dummy[Tblock];
+	int8_t	tbuf[Maxbuf];
 	struct Header {
-		char	name[Namsiz];
-		char	mode[8];
-		char	uid[8];
-		char	gid[8];
-		char	size[12];
-		char	mtime[12];
-		char	chksum[8];
-		char	linkflag;
-		char	linkname[Namsiz];
+		int8_t	name[Namsiz];
+		int8_t	mode[8];
+		int8_t	uid[8];
+		int8_t	gid[8];
+		int8_t	size[12];
+		int8_t	mtime[12];
+		int8_t	chksum[8];
+		int8_t	linkflag;
+		int8_t	linkname[Namsiz];
 
 		/* rest are defined by POSIX's ustar format; see p1003.2b */
-		char	magic[6];	/* "ustar" */
-		char	version[2];
-		char	uname[32];
-		char	gname[32];
-		char	devmajor[8];
-		char	devminor[8];
-		char	prefix[Maxpfx]; /* if non-null, path= prefix "/" name */
+		int8_t	magic[6];	/* "ustar" */
+		int8_t	version[2];
+		int8_t	uname[32];
+		int8_t	gname[32];
+		int8_t	devmajor[8];
+		int8_t	devminor[8];
+		int8_t	prefix[Maxpfx]; /* if non-null, path= prefix "/" name */
 	};
 } Hdr;
 
@@ -84,17 +84,17 @@ isustar(Hdr *hp)
  * be NUL.
  */
 static int
-strnlen(char *s, int n)
+strnlen(int8_t *s, int n)
 {
 	return s[n - 1] != '\0'? n: strlen(s);
 }
 
 /* set fullname from header */
-static char *
+static int8_t *
 tarname(Hdr *hp)
 {
 	int pfxlen, namlen;
-	static char fullname[Maxname+1];
+	static int8_t fullname[Maxname+1];
 
 	namlen = strnlen(hp->name, sizeof hp->name);
 	if (hp->prefix[0] == '\0' || !isustar(hp)) {	/* old-style name? */
@@ -113,11 +113,11 @@ tarname(Hdr *hp)
 }
 
 void
-populate(char *name)
+populate(int8_t *name)
 {
-	long chksum, linkflg;
-	vlong blkno;
-	char *fname;
+	int32_t chksum, linkflg;
+	int64_t blkno;
+	int8_t *fname;
 	Fileinf f;
 	Hdr *hp;
 
@@ -139,7 +139,7 @@ populate(char *name)
 		f.mode = strtoul(hp->mode, 0, 8);
 		f.uid  = strtoul(hp->uid, 0, 8);
 		f.gid  = strtoul(hp->gid, 0, 8);
-		if((uchar)hp->size[0] == 0x80)
+		if((uint8_t)hp->size[0] == 0x80)
 			f.size = b8byte(hp->size+3);
 		else
 			f.size = strtoull(hp->size, 0, 8);
@@ -195,8 +195,8 @@ docreate(Ram *r)
 	USED(r);
 }
 
-char *
-doread(Ram *r, vlong off, long cnt)
+int8_t *
+doread(Ram *r, int64_t off, int32_t cnt)
 {
 	int n;
 
@@ -216,7 +216,7 @@ popdir(Ram *r)
 }
 
 void
-dowrite(Ram *r, char *buf, long off, long cnt)
+dowrite(Ram *r, int8_t *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }
@@ -232,10 +232,10 @@ int
 checksum(void)
 {
 	int i, n;
-	uchar *cp;
+	uint8_t *cp;
 
 	memset(dblock.chksum, ' ', sizeof dblock.chksum);
-	cp = (uchar *)dblock.dummy;
+	cp = (uint8_t *)dblock.dummy;
 	i = 0;
 	for (n = Tblock; n-- > 0; )
 		i += *cp++;

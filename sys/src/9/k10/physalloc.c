@@ -39,8 +39,8 @@ enum {
 
 typedef struct Buddy Buddy;
 struct Buddy {
-	short	tag;		/* Used or Avail */
-	short	kval;
+	int16_t	tag;		/* Used or Avail */
+	int16_t	kval;
 	uint	next;
 	uint	prev;
 	void	*p;
@@ -71,8 +71,8 @@ static Bal bal[Ndoms];
 static int ndoms;
 static Lock budlock;
 
-char*
-seprintphysstats(char *s,  char *e)
+int8_t*
+seprintphysstats(int8_t *s,  int8_t *e)
 {
 	Bal *b;
 	int i;
@@ -224,7 +224,7 @@ phystag(uintmem data)
 	return nil;
 }
 
-static uchar lg2table[256] = {
+static uint8_t lg2table[256] = {
 	0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
 	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
 	5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,

@@ -106,7 +106,7 @@ doredir(redir *rp)
 }
 
 word*
-searchpath(char *w)
+searchpath(int8_t *w)
 {
 	word *path;
 	if(strncmp(w, "/", 1)==0
@@ -146,7 +146,7 @@ execfunc(var *func)
 }
 
 int
-dochdir(char *word)
+dochdir(int8_t *word)
 {
 	/* report to /dev/wdir if it exists and we're interactive */
 	static int wdirfd = -2;
@@ -162,11 +162,11 @@ dochdir(char *word)
 	return 1;
 }
 
-static char *
-appfile(char *dir, char *comp)
+static int8_t *
+appfile(int8_t *dir, int8_t *comp)
 {
 	int dirlen, complen;
-	char *s, *p;
+	int8_t *s, *p;
 
 	dirlen = strlen(dir);
 	complen = strlen(comp);
@@ -184,7 +184,7 @@ execcd(void)
 {
 	word *a = runq->argv->words;
 	word *cdpath;
-	char *dir;
+	int8_t *dir;
 
 	setstatus("can't cd");
 	cdpath = vlook("cdpath")->val;
@@ -264,7 +264,7 @@ execshift(void)
 	for(;n && star->val;--n){
 		a = star->val->next;
 		efree(star->val->word);
-		efree((char *)star->val);
+		efree((int8_t *)star->val);
 		star->val = a;
 		star->changed = 1;
 	}
@@ -273,7 +273,7 @@ execshift(void)
 }
 
 int
-octal(char *s)
+octal(int8_t *s)
 {
 	int n = 0;
 	while(*s==' ' || *s=='\t' || *s=='\n') s++;
@@ -320,7 +320,7 @@ execcmds(io *f)
 void
 execeval(void)
 {
-	char *cmdline, *s, *t;
+	int8_t *cmdline, *s, *t;
 	int len = 0;
 	word *ap;
 	if(count(runq->argv->words)<=1){
@@ -350,7 +350,7 @@ execdot(void)
 	int fd;
 	list *av;
 	thread *p = runq;
-	char *zero, *file;
+	int8_t *zero, *file;
 	word *path;
 	static int first = 1;
 
@@ -420,7 +420,7 @@ execdot(void)
 	/* free caller's copy of $* */
 	av = p->argv;
 	p->argv = av->next;
-	efree((char *)av);
+	efree((int8_t *)av);
 	/* push $0 value */
 	pushlist();
 	pushword(zero);
@@ -430,21 +430,21 @@ execdot(void)
 void
 execflag(void)
 {
-	char *letter, *val;
+	int8_t *letter, *val;
 	switch(count(runq->argv->words)){
 	case 2:
-		setstatus(flag[(uchar)runq->argv->words->next->word[0]]?"":"flag not set");
+		setstatus(flag[(uint8_t)runq->argv->words->next->word[0]]?"":"flag not set");
 		break;
 	case 3:
 		letter = runq->argv->words->next->word;
 		val = runq->argv->words->next->next->word;
 		if(strlen(letter)==1){
 			if(strcmp(val, "+")==0){
-				flag[(uchar)letter[0]] = flagset;
+				flag[(uint8_t)letter[0]] = flagset;
 				break;
 			}
 			if(strcmp(val, "-")==0){
-				flag[(uchar)letter[0]] = 0;
+				flag[(uint8_t)letter[0]] = 0;
 				break;
 			}
 		}
@@ -460,7 +460,7 @@ execwhatis(void){	/* mildly wrong -- should fork before writing */
 	word *a, *b, *path;
 	var *v;
 	struct builtin *bp;
-	char *file;
+	int8_t *file;
 	struct io out[1];
 	int found, sep;
 	a = runq->argv->words->next;

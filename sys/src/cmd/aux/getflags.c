@@ -17,13 +17,13 @@ usage(void)
 	exits(0);
 }
 
-char*
-findarg(char *flags, Rune r)
+int8_t*
+findarg(int8_t *flags, Rune r)
 {
-	char *p;
+	int8_t *p;
 	Rune rr;
 	
-	for(p=flags; p!=(char*)1; p=strchr(p, ',')+1){
+	for(p=flags; p!=(int8_t*)1; p=strchr(p, ',')+1){
 		chartorune(&rr, p);
 		if(rr == r)
 			return p;
@@ -32,7 +32,7 @@ findarg(char *flags, Rune r)
 }
 
 int
-countargs(char *p)
+countargs(int8_t *p)
 {
 	int n;
 

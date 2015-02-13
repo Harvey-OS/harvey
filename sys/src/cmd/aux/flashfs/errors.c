@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-char	Edirnotempty[]	= "directory not empty on deletion";
-char	Eexists[]	= "file already exists";
-char	Enonexist[]	= "file does not exist";
-char	Eisdir[]	= "is a directory";
-char	Enotdir[]	= "not a directory";
-char	Eperm[]		= "permission denied";
-char	Erofs[]		= "read only filesystem";
+int8_t	Edirnotempty[]	= "directory not empty on deletion";
+int8_t	Eexists[]	= "file already exists";
+int8_t	Enonexist[]	= "file does not exist";
+int8_t	Eisdir[]	= "is a directory";
+int8_t	Enotdir[]	= "not a directory";
+int8_t	Eperm[]		= "permission denied";
+int8_t	Erofs[]		= "read only filesystem";

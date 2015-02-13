@@ -213,7 +213,7 @@ jpeg_free_large (j_common_ptr cinfo, void FAR * object, size_t sizeofobject)
 #define DEFAULT_MAX_MEM		300000L /* for total usage about 450K */
 #endif
 
-GLOBAL(long)
+GLOBAL(int32_t)
 jpeg_mem_available (j_common_ptr cinfo, long min_bytes_needed,
 		    long max_bytes_needed, long already_allocated)
 {
@@ -323,12 +323,12 @@ open_file_store (j_common_ptr cinfo, backing_store_ptr info,
 static XMSDRIVER xms_driver;	/* saved address of XMS driver */
 
 typedef union {			/* either long offset or real-mode pointer */
-	long offset;
+	int32_t offset;
 	void far * ptr;
       } XMSPTR;
 
 typedef struct {		/* XMS move specification structure */
-	long length;
+	int32_t length;
 	XMSH src_handle;
 	XMSPTR src;
 	XMSH dst_handle;
@@ -473,18 +473,18 @@ open_xms_store (j_common_ptr cinfo, backing_store_ptr info,
 typedef void far * EMSPTR;
 
 typedef union {			/* EMS move specification structure */
-	long length;		/* It's easy to access first 4 bytes */
-	char bytes[18];		/* Misaligned fields in here! */
+	int32_t length;		/* It's easy to access first 4 bytes */
+	int8_t bytes[18];		/* Misaligned fields in here! */
       } EMSspec;
 
 /* Macros for accessing misaligned fields */
 #define FIELD_AT(spec,offset,type)  (*((type *) &(spec.bytes[offset])))
-#define SRC_TYPE(spec)		FIELD_AT(spec,4,char)
+#define SRC_TYPE(spec)		FIELD_AT(spec,4,int8_t)
 #define SRC_HANDLE(spec)	FIELD_AT(spec,5,EMSH)
 #define SRC_OFFSET(spec)	FIELD_AT(spec,7,unsigned short)
 #define SRC_PAGE(spec)		FIELD_AT(spec,9,unsigned short)
 #define SRC_PTR(spec)		FIELD_AT(spec,7,EMSPTR)
-#define DST_TYPE(spec)		FIELD_AT(spec,11,char)
+#define DST_TYPE(spec)		FIELD_AT(spec,11,int8_t)
 #define DST_HANDLE(spec)	FIELD_AT(spec,12,EMSH)
 #define DST_OFFSET(spec)	FIELD_AT(spec,14,unsigned short)
 #define DST_PAGE(spec)		FIELD_AT(spec,16,unsigned short)
@@ -628,7 +628,7 @@ jpeg_open_backing_store (j_common_ptr cinfo, backing_store_ptr info,
  * cleanup required.
  */
 
-GLOBAL(long)
+GLOBAL(int32_t)
 jpeg_mem_init (j_common_ptr cinfo)
 {
   next_file_num = 0;		/* initialize temp file name generator */

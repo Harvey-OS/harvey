@@ -21,29 +21,29 @@ enum {
 
 Cfg cfg;
 
-static char *servername;
+static int8_t *servername;
 static RR *serverrr;
 static RR *serveraddrs;
 
-char	*dbfile;
+int8_t	*dbfile;
 int	debug;
-uchar	ipaddr[IPaddrlen];	/* my ip address */
-char	*logfile = "dnsdebug";
+uint8_t	ipaddr[IPaddrlen];	/* my ip address */
+int8_t	*logfile = "dnsdebug";
 int	maxage  = 60*60;
-char	mntpt[Maxpath];
+int8_t	mntpt[Maxpath];
 int	needrefresh;
-ulong	now;
-vlong	nowns;
+uint32_t	now;
+int64_t	nowns;
 int	testing;
-char	*trace;
+int8_t	*trace;
 int	traceactivity;
-char	*zonerefreshprogram;
+int8_t	*zonerefreshprogram;
 
-void	docmd(int, char**);
-void	doquery(char*, char*);
+void	docmd(int, int8_t**);
+void	doquery(int8_t*, int8_t*);
 void	preloadserveraddrs(void);
 int	prettyrrfmt(Fmt*);
-int	setserver(char*);
+int	setserver(int8_t*);
 void	squirrelserveraddrs(void);
 
 void
@@ -109,11 +109,11 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
-static char*
-longtime(long t)
+static int8_t*
+longtime(int32_t t)
 {
 	int d, h, m, n;
-	static char x[128];
+	static int8_t x[128];
 
 	for(d = 0; t >= 24*60*60; t -= 24*60*60)
 		d++;
@@ -137,8 +137,8 @@ int
 prettyrrfmt(Fmt *f)
 {
 	RR *rp;
-	char buf[3*Domlen];
-	char *p, *e;
+	int8_t buf[3*Domlen];
+	int8_t *p, *e;
 	Txt *t;
 
 	rp = va_arg(f->args, RR*);
@@ -229,7 +229,7 @@ out:
 }
 
 void
-logsection(char *flag, RR *rp)
+logsection(int8_t *flag, RR *rp)
 {
 	if(rp == nil)
 		return;
@@ -239,10 +239,10 @@ logsection(char *flag, RR *rp)
 }
 
 void
-logreply(int id, uchar *addr, DNSmsg *mp)
+logreply(int id, uint8_t *addr, DNSmsg *mp)
 {
 	RR *rp;
-	char buf[12], resp[32];
+	int8_t buf[12], resp[32];
 
 	switch(mp->flags & Rmask){
 	case Rok:
@@ -283,9 +283,10 @@ logreply(int id, uchar *addr, DNSmsg *mp)
 }
 
 void
-logsend(int id, int subid, uchar *addr, char *sname, char *rname, int type)
+logsend(int id, int subid, uint8_t *addr, int8_t *sname, int8_t *rname,
+	int type)
 {
-	char buf[12];
+	int8_t buf[12];
 
 	print("%d.%d: sending to %I/%s %s %s\n", id, subid,
 		addr, sname, rname, rrname(type, buf, sizeof buf));
@@ -310,7 +311,7 @@ void
 squirrelserveraddrs(void)
 {
 	int v4;
-	char *attr;
+	int8_t *attr;
 	RR *rr, *rp, **l;
 	Request req;
 
@@ -361,7 +362,7 @@ preloadserveraddrs(void)
 }
 
 int
-setserver(char *server)
+setserver(int8_t *server)
 {
 	if(servername != nil){
 		free(servername);
@@ -381,11 +382,11 @@ setserver(char *server)
 }
 
 void
-doquery(char *name, char *tstr)
+doquery(int8_t *name, int8_t *tstr)
 {
 	int len, type, rooted;
-	char *p, *np;
-	char buf[1024];
+	int8_t *p, *np;
+	int8_t buf[1024];
 	RR *rr, *rp;
 	Request req;
 
@@ -454,10 +455,10 @@ doquery(char *name, char *tstr)
 }
 
 void
-docmd(int n, char **f)
+docmd(int n, int8_t **f)
 {
 	int tmpsrv;
-	char *name, *type;
+	int8_t *name, *type;
 
 	name = type = nil;
 	tmpsrv = 0;

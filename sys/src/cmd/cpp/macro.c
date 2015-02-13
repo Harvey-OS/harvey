@@ -57,7 +57,7 @@ dodefine(Tokenrow *trp)
 					growtokenrow(args);
 				for (atp=args->bp; atp<args->lp; atp++)
 					if (atp->len==tp->len
-					 && strncmp((char*)atp->t, (char*)tp->t, tp->len)==0)
+					 && strncmp((int8_t*)atp->t, (int8_t*)tp->t, tp->len)==0)
 						error(ERROR, "Duplicate macro argument");
 				*args->lp++ = *tp;
 				narg++;
@@ -147,7 +147,7 @@ syntax:
  * Flag is NULL if more input can be gathered.
  */
 void
-expandrow(Tokenrow *trp, char *flag, int inmacro)
+expandrow(Tokenrow *trp, int8_t *flag, int inmacro)
 {
 	Token *tp;
 	Nlist *np;
@@ -393,7 +393,7 @@ doconcat(Tokenrow *trp)
 		if (trp->tp->type==DSHARP1)
 			trp->tp->type = DSHARP;
 		else if (trp->tp->type==DSHARP) {
-			char tt[128];
+			int8_t tt[128];
 			ltp = trp->tp-1;
 			ntp = trp->tp+1;
 			if (ltp<trp->bp || ntp>=trp->lp) {
@@ -401,8 +401,9 @@ doconcat(Tokenrow *trp)
 				continue;
 			}
 			len = ltp->len + ntp->len;
-			strncpy((char*)tt, (char*)ltp->t, ltp->len);
-			strncpy((char*)tt+ltp->len, (char*)ntp->t, ntp->len);
+			strncpy((int8_t*)tt, (int8_t*)ltp->t, ltp->len);
+			strncpy((int8_t*)tt+ltp->len, (int8_t*)ntp->t,
+				ntp->len);
 			tt[len] = '\0';
 			setsource("<##>", -1, tt);
 			maketokenrow(3, &ntr);
@@ -432,10 +433,10 @@ lookuparg(Nlist *mac, Token *tp)
 
 	if (tp->type!=NAME || mac->ap==NULL)
 		return -1;
-	if((mac->flag & ISVARMAC) && strcmp((char*)tp->t, "__VA_ARGS__") == 0)
+	if((mac->flag & ISVARMAC) && strcmp((int8_t*)tp->t, "__VA_ARGS__") == 0)
 		return rowlen(mac->ap) - 1;
 	for (ap=mac->ap->bp; ap<mac->ap->lp; ap++) {
-		if (ap->len==tp->len && strncmp((char*)ap->t,(char*)tp->t,ap->len)==0)
+		if (ap->len==tp->len && strncmp((int8_t*)ap->t,(int8_t*)tp->t,ap->len)==0)
 			return ap - mac->ap->bp;
 	}
 	return -1;
@@ -451,8 +452,8 @@ stringify(Tokenrow *vp)
 	static Token t = { STRING };
 	static Tokenrow tr = { &t, &t, &t+1, 1 };
 	Token *tp;
-	uchar s[STRLEN];
-	uchar *sp = s, *cp;
+	uint8_t s[STRLEN];
+	uint8_t *sp = s, *cp;
 	int i, instring;
 
 	*sp++ = '"';
@@ -473,7 +474,7 @@ stringify(Tokenrow *vp)
 	*sp++ = '"';
 	*sp = '\0';
 	sp = s;
-	t.len = strlen((char*)sp);
+	t.len = strlen((int8_t*)sp);
 	t.t = newstring(sp, t.len, 0);
 	return &tr;
 }
@@ -484,7 +485,7 @@ stringify(Tokenrow *vp)
 void
 builtin(Tokenrow *trp, int biname)
 {
-	char *op;
+	int8_t *op;
 	Token *tp;
 	Source *s;
 
@@ -533,7 +534,7 @@ builtin(Tokenrow *trp, int biname)
 	}
 	if (tp->type==STRING)
 		*op++ = '"';
-	tp->t = (uchar*)outp;
+	tp->t = (uint8_t*)outp;
 	tp->len = op - outp;
 	outp = op;
 }

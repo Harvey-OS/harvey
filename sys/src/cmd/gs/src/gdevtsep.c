@@ -718,9 +718,9 @@ tiffsep_prn_close(gx_device * pdev)
     int num_std_colorants = pdevn->devn_params.num_std_colorant_names;
     int num_order = pdevn->devn_params.num_separation_order_names;
     int num_spot = pdevn->devn_params.separations.num_separations;
-    char name[MAX_FILE_NAME_SIZE];
+    int8_t name[MAX_FILE_NAME_SIZE];
     int code = gdev_prn_close(pdev);
-    short map_comp_to_sep[GX_DEVICE_COLOR_MAX_COMPONENTS];
+    int16_t map_comp_to_sep[GX_DEVICE_COLOR_MAX_COMPONENTS];
     int comp_num;
     int num_comp = number_output_separations(num_dev_comp, num_std_colorants,
 					num_order, num_spot);

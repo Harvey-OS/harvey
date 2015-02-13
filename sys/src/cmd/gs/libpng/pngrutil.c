@@ -25,7 +25,7 @@
 #if defined(_WIN32_WCE)
 /* strtod() function is not supported on WindowsCE */
 #  ifdef PNG_FLOATING_POINT_SUPPORTED
-__inline double strtod(const char *nptr, char **endptr)
+__inline double strtod(const int8_t *nptr, int8_t **endptr)
 {
    double result = 0;
    int len;
@@ -38,7 +38,7 @@ __inline double strtod(const char *nptr, char **endptr)
       MultiByteToWideChar(CP_ACP, 0, nptr, -1, str, len);
       result = wcstod(str, &end);
       len = WideCharToMultiByte(CP_ACP, 0, end, -1, NULL, 0, NULL, NULL);
-      *endptr = (char *)nptr + (png_strlen(nptr) - len + 1);
+      *endptr = (int8_t *)nptr + (png_strlen(nptr) - len + 1);
       free(str);
    }
    return result;
@@ -186,7 +186,7 @@ png_decompress_chunk(png_structp png_ptr, int comp_type,
                               png_charp chunkdata, png_size_t chunklength,
                               png_size_t prefix_size, png_size_t *newlength)
 {
-   static char msg[] = "Error decoding compressed text";
+   static int8_t msg[] = "Error decoding compressed text";
    png_charp text;
    png_size_t text_size;
 
@@ -284,7 +284,7 @@ png_decompress_chunk(png_structp png_ptr, int comp_type,
       if (ret != Z_STREAM_END)
       {
 #if !defined(PNG_NO_STDIO) && !defined(_WIN32_WCE)
-         char umsg[50];
+         int8_t umsg[50];
 
          if (ret == Z_BUF_ERROR)
             sprintf(umsg,"Buffer error in compressed datastream in %s chunk",
@@ -324,7 +324,7 @@ png_decompress_chunk(png_structp png_ptr, int comp_type,
    else /* if (comp_type != PNG_COMPRESSION_TYPE_BASE) */
    {
 #if !defined(PNG_NO_STDIO) && !defined(_WIN32_WCE)
-      char umsg[50];
+      int8_t umsg[50];
 
       sprintf(umsg, "Unknown zTXt compression type %d", comp_type);
       png_warning(png_ptr, umsg);
@@ -2878,7 +2878,7 @@ png_read_finish_row(png_structp png_ptr)
 #ifdef PNG_USE_LOCAL_ARRAYS
       PNG_IDAT;
 #endif
-      char extra;
+      int8_t extra;
       int ret;
 
       png_ptr->zstream.next_out = (Byte *)&extra;

@@ -11,7 +11,7 @@
 #include <libc.h>
 
 void
-ding(void*, char *s)
+ding(void*, int8_t *s)
 {
 	if(strstr(s, "alarm"))
 		noted(NCONT);
@@ -22,7 +22,7 @@ ding(void*, char *s)
 void
 main(void)
 {
-	char buf[256];
+	int8_t buf[256];
 
 	alarm(100);
 	while(read(0, buf, sizeof(buf)) > 0)

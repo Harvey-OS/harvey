@@ -26,7 +26,7 @@ typedef struct pps_entry_tag {
 	ULONG	ulSB;
 	ULONG	ulSize;
 	int	iLevel;
-	char	szName[32];
+	int8_t	szName[32];
 	UCHAR	ucType;
 } pps_entry_type;
 
@@ -66,9 +66,9 @@ ulReadLong(FILE *pFile, ULONG ulOffset)
  * vName2String - turn the name into a proper string.
  */
 static void
-vName2String(char *szName, const UCHAR *aucBytes, size_t tNameSize)
+vName2String(int8_t *szName, const UCHAR *aucBytes, size_t tNameSize)
 {
-	char	*pcChar;
+	int8_t	*pcChar;
 	size_t	tIndex;
 
 	fail(aucBytes == NULL || szName == NULL);
@@ -80,7 +80,7 @@ vName2String(char *szName, const UCHAR *aucBytes, size_t tNameSize)
 	for (tIndex = 0, pcChar = szName;
 	     tIndex < 2 * tNameSize;
 	     tIndex += 2, pcChar++) {
-		*pcChar = (char)aucBytes[tIndex];
+		*pcChar = (int8_t)aucBytes[tIndex];
 	}
 	szName[tNameSize - 1] = '\0';
 } /* end of vName2String */
@@ -627,7 +627,7 @@ vGetDocumentData(FILE *pFile, const pps_info_type *pPPS,
  * Returns the version of Word that made the document or -1
  */
 int
-iInitDocumentOLE(FILE *pFile, long lFilesize)
+iInitDocumentOLE(FILE *pFile, int32_t lFilesize)
 {
 	pps_info_type	PPS_info;
 	ULONG	*aulBBD, *aulSBD;
@@ -635,7 +635,7 @@ iInitDocumentOLE(FILE *pFile, long lFilesize)
 	ULONG	ulBdbListStart, ulAdditionalBBDlist;
 	ULONG	ulRootStartblock, ulSbdStartblock, ulSBLstartblock;
 	ULONG	ulStart, ulTmp;
-	long	lMaxBlock;
+	int32_t	lMaxBlock;
 	size_t	tBBDLen, tSBDLen, tNumBbdBlocks, tRootListLen;
 	int	iWordVersion, iIndex, iToGo;
 	BOOL	bSuccess;

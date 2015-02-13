@@ -42,11 +42,11 @@
 int
 px_write_file_header(stream *s, const gx_device *dev)
 {
-    static const char *const enter_pjl_header =
+    static const int8_t *const enter_pjl_header =
         "\033%-12345X@PJL SET RENDERMODE=";
-    static const char *const rendermode_gray = "GRAYSCALE";
-    static const char *const rendermode_color = "COLOR";
-    static const char *const file_header =
+    static const int8_t *const rendermode_gray = "GRAYSCALE";
+    static const int8_t *const rendermode_color = "COLOR";
+    static const int8_t *const file_header =
 	"\n@PJL ENTER LANGUAGE = PCLXL\n\
 ) HP-PCL XL;1;1;Comment Copyright artofcode LLC 2005\000\n";
     static const byte stream_header[] = {
@@ -249,7 +249,7 @@ px_put_ssp(stream * s, int ix, int iy)
 }
 
 void
-px_put_l(stream * s, ulong l)
+px_put_l(stream * s, uint32_t l)
 {
     px_put_s(s, (uint) l);
     px_put_s(s, (uint) (l >> 16));
@@ -259,7 +259,7 @@ void
 px_put_r(stream * s, floatp r)
 {				/* Convert to single-precision IEEE float. */
     int exp;
-    long mantissa = (long)(frexp(r, &exp) * 0x1000000);
+    int32_t mantissa = (int32_t)(frexp(r, &exp) * 0x1000000);
 
     if (exp < -126)
 	mantissa = 0, exp = 0;	/* unnormalized */
@@ -283,7 +283,7 @@ px_put_data_length(stream * s, uint num_bytes)
 {
     if (num_bytes > 255) {
 	spputc(s, pxt_dataLength);
-	px_put_l(s, (ulong) num_bytes);
+	px_put_l(s, (uint32_t) num_bytes);
     } else {
 	spputc(s, pxt_dataLengthByte);
 	spputc(s, (byte) num_bytes);

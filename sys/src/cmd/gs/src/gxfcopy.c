@@ -204,7 +204,7 @@ struct gs_copied_font_data_s {
     byte *data;			/* (TrueType and CID fonts) copied data */
     uint data_size;		/* (TrueType and CID fonts) */
     gs_glyph *Encoding;		/* (Type 1/2 and Type 42) [256] */
-    ushort *CIDMap;		/* (CIDFontType 2) [CIDCount] */
+    uint16_t *CIDMap;		/* (CIDFontType 2) [CIDCount] */
     gs_subr_info_t subrs;	/* (Type 1/2 and CIDFontType 0) */
     gs_subr_info_t global_subrs; /* (Type 2 and CIDFontType 0) */
     gs_font_cid0 *parent;	/* (Type 1 subfont) => parent CIDFontType 0 */

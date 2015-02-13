@@ -55,7 +55,7 @@ enum{
 	EVis,
 };
 
-static char *cmds[] = {
+static int8_t *cmds[] = {
 	[EAbsolute] =		"absolute",
 	[EBorder] =		"border",
 	[EBordercolor] =	"bordercolor",
@@ -317,7 +317,7 @@ slidermouse(Control *c, Mouse *m)
 }
 
 Control*
-createslider(Controlset *cs, char *name)
+createslider(Controlset *cs, int8_t *name)
 {
 	Slider *s;
 

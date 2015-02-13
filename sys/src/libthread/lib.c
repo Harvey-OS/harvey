@@ -12,10 +12,10 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-static long totalmalloc;
+static int32_t totalmalloc;
 
 void*
-_threadmalloc(long size, int z)
+_threadmalloc(int32_t size, int z)
 {
 	void *m;
 
@@ -34,9 +34,9 @@ _threadmalloc(long size, int z)
 }
 
 void
-_threadsysfatal(char *fmt, va_list arg)
+_threadsysfatal(int8_t *fmt, va_list arg)
 {
-	char buf[1024];	/* size doesn't matter; we're about to exit */
+	int8_t buf[1024];	/* size doesn't matter; we're about to exit */
 
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	if(argv0)

@@ -14,7 +14,7 @@
 #include "a.h"
 
 Biobuf	bout;
-char*	tmacdir;
+int8_t*	tmacdir;
 int		verbose;
 int		utf8 = 0;
 

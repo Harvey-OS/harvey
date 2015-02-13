@@ -18,9 +18,9 @@
 #include <auth.h>
 #include "../smtp/y.tab.h"
 
-char	*me;
-char	*him="";
-char	*dom;
+int8_t	*me;
+int8_t	*him="";
+int8_t	*dom;
 process	*pp;
 String	*mailer;
 NetConnInfo *nci;
@@ -31,7 +31,7 @@ int	logged;
 int	rejectcount;
 int	hardreject;
 
-ulong	starttime;
+uint32_t	starttime;
 
 Biobuf	bin;
 
@@ -44,26 +44,26 @@ int	sflag;
 int	authenticate;
 int	authenticated;
 int	passwordinclear;
-char	*tlscert;
+int8_t	*tlscert;
 
-uchar	rsysip[IPaddrlen];
+uint8_t	rsysip[IPaddrlen];
 
 List	senders;
 List	rcvers;
 
-char	pipbuf[ERRMAX];
-char	*piperror;
+int8_t	pipbuf[ERRMAX];
+int8_t	*piperror;
 
-String*	mailerpath(char*);
+String*	mailerpath(int8_t*);
 int	pipemsg(int*);
 int	rejectcheck(void);
 String*	startcmd(void);
 
-static void	logmsg(char *action);
+static void	logmsg(int8_t *action);
 static int	delaysecs(void);
 
 static int
-catchalarm(void *a, char *msg)
+catchalarm(void *a, int8_t *msg)
 {
 	int rv;
 
@@ -99,9 +99,9 @@ catchalarm(void *a, char *msg)
 
 /* override string error functions to do something reasonable */
 void
-s_error(char *f, char *status)
+s_error(int8_t *f, int8_t *status)
 {
-	char errbuf[Errlen];
+	int8_t errbuf[Errlen];
 
 	errbuf[0] = 0;
 	rerrstr(errbuf, sizeof(errbuf));
@@ -260,10 +260,10 @@ stamp(void)
 #define	SIZE	4096
 
 int
-reply(char *fmt, ...)
+reply(int8_t *fmt, ...)
 {
-	long n;
-	char buf[SIZE], *out;
+	int32_t n;
+	int8_t buf[SIZE], *out;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -356,8 +356,8 @@ delaysecs(void)
 void
 hello(String *himp, int extended)
 {
-	char **mynames;
-	char *ldot, *rdot;
+	int8_t **mynames;
+	int8_t *ldot, *rdot;
 
 	him = s_to_c(himp);
 	syslog(0, "smtpd", "%s from %s as %s", extended? "ehlo": "helo",
@@ -438,7 +438,7 @@ Liarliar:
 	 * among other bogosities.
 	 */
 	if (!trusted && him[0] != '[') {
-		char *p;
+		int8_t *p;
 
 		for (p = him; *p != '\0'; p++)
 			if (isascii(*p) && isalpha(*p))
@@ -467,7 +467,7 @@ void
 sender(String *path)
 {
 	String *s;
-	static char *lastsender;
+	static int8_t *lastsender;
 
 	if(rejectcheck())
 		return;
@@ -555,8 +555,8 @@ enum { Rcpt, Domain, Ntoks };
 typedef struct Sender Sender;
 struct Sender {
 	Sender	*next;
-	char	*rcpt;
-	char	*domain;
+	int8_t	*rcpt;
+	int8_t	*domain;
 };
 static Sender *sendlist, *sendlast;
 
@@ -564,8 +564,8 @@ static int
 rdsenders(void)
 {
 	int lnlen, nf, ok = 1;
-	char *line, *senderfile;
-	char *toks[Ntoks];
+	int8_t *line, *senderfile;
+	int8_t *toks[Ntoks];
 	Biobuf *sf;
 	Sender *snd;
 	static int beenhere = 0;
@@ -618,10 +618,10 @@ rdsenders(void)
  * A recipient not mentioned in the file is always permitted.
  */
 static int
-senderok(char *rcpt)
+senderok(int8_t *rcpt)
 {
 	int mentioned = 0, matched = 0;
-	uchar dnsip[IPaddrlen];
+	uint8_t dnsip[IPaddrlen];
 	Sender *snd;
 	Ndbtuple *nt, *next, *first;
 
@@ -663,7 +663,7 @@ senderok(char *rcpt)
 void
 receiver(String *path)
 {
-	char *sender, *rcpt;
+	int8_t *sender, *rcpt;
 
 	if(rejectcheck())
 		return;
@@ -746,8 +746,8 @@ help(String *cmd)
 void
 verify(String *path)
 {
-	char *p, *q;
-	char *av[4];
+	int8_t *p, *q;
+	int8_t *av[4];
 
 	if(rejectcheck())
 		return;
@@ -858,7 +858,7 @@ logcall(int nbytes)
 }
 
 static void
-logmsg(char *action)
+logmsg(int8_t *action)
 {
 	Link *l;
 
@@ -893,8 +893,8 @@ String*
 startcmd(void)
 {
 	int n;
-	char *filename;
-	char **av;
+	int8_t *filename;
+	int8_t **av;
 	Link *l;
 	String *cmd;
 
@@ -966,7 +966,7 @@ startcmd(void)
 		n = 3;
 		for(l = rcvers.first; l; l = l->next)
 			n++;
-		av = malloc(n * sizeof(char*));
+		av = malloc(n * sizeof(int8_t*));
 		if(av == nil){
 			reply("450 4.3.2 We're busy right now, try later\r\n");
 			s_free(cmd);
@@ -999,7 +999,7 @@ startcmd(void)
  *  print out a header line, expanding any domainless addresses into
  *  address@him
  */
-char*
+int8_t*
 bprintnode(Biobuf *b, Node *p, int *cntp)
 {
 	int len;
@@ -1093,7 +1093,7 @@ int
 pipemsg(int *byteswritten)
 {
 	int n, nbytes, sawdot, status, nonhdr, bpr;
-	char *cp;
+	int8_t *cp;
 	Field *f;
 	Link *l;
 	Node *p;
@@ -1265,11 +1265,11 @@ pipemsg(int *byteswritten)
 	return status;
 }
 
-char*
-firstline(char *x)
+int8_t*
+firstline(int8_t *x)
 {
-	char *p;
-	static char buf[128];
+	int8_t *p;
+	static int8_t buf[128];
 
 	strncpy(buf, x, sizeof(buf));
 	buf[sizeof(buf)-1] = 0;
@@ -1283,7 +1283,7 @@ int
 sendermxcheck(void)
 {
 	int pid;
-	char *cp, *senddom, *user, *who;
+	int8_t *cp, *senddom, *user, *who;
 	Waitmsg *w;
 
 	who = s_to_c(senders.first->p);
@@ -1357,8 +1357,8 @@ void
 data(void)
 {
 	int status, nbytes;
-	char *cp, *ep;
-	char errx[ERRMAX];
+	int8_t *cp, *ep;
+	int8_t errx[ERRMAX];
 	Link *l;
 	String *cmd, *err;
 
@@ -1440,7 +1440,7 @@ data(void)
 	 */
 	if(status){
 		int code;
-		char *ecode;
+		int8_t *ecode;
 
 		if(strstr(s_to_c(err), "mail refused")){
 			syslog(0, "smtpd", "++[%s/%s] %s %s refused: %s",
@@ -1529,7 +1529,7 @@ rejectcheck(void)
  *  create abs path of the mailer
  */
 String*
-mailerpath(char *p)
+mailerpath(int8_t *p)
 {
 	String *s;
 
@@ -1559,7 +1559,7 @@ s_dec64(String *sin)
 	if (*(s_to_c(sin)+lin-1) == '\n')
 		lin--;
 	sout = s_newalloc(lin+1);
-	lout = dec64((uchar *)s_to_c(sout), lin, s_to_c(sin), lin);
+	lout = dec64((uint8_t *)s_to_c(sout), lin, s_to_c(sin), lin);
 	if (lout < 0) {
 		s_free(sout);
 		return nil;
@@ -1573,7 +1573,7 @@ void
 starttls(void)
 {
 	int certlen, fd;
-	uchar *cert;
+	uint8_t *cert;
 	TLSconn *conn;
 
 	if (tlscert == nil) {
@@ -1613,7 +1613,7 @@ starttls(void)
 void
 auth(String *mech, String *resp)
 {
-	char *user, *pass, *scratch = nil;
+	int8_t *user, *pass, *scratch = nil;
 	AuthInfo *ai = nil;
 	Chalstate *chs = nil;
 	String *s_resp1_64 = nil, *s_resp2_64 = nil, *s_resp1 = nil;
@@ -1701,7 +1701,7 @@ windup:
 	}
 	else if (cistrcmp(s_to_c(mech), "cram-md5") == 0) {
 		int chal64n;
-		char *resp, *t;
+		int8_t *resp, *t;
 
 		chs = auth_challenge("proto=cram role=server");
 		if (chs == nil) {
@@ -1710,7 +1710,7 @@ windup:
 			goto bomb_out;
 		}
 		scratch = malloc(chs->nchal * 2 + 1);
-		chal64n = enc64(scratch, chs->nchal * 2, (uchar *)chs->chal,
+		chal64n = enc64(scratch, chs->nchal * 2, (uint8_t *)chs->chal,
 			chs->nchal);
 		scratch[chal64n] = 0;
 		reply("334 %s\r\n", scratch);

@@ -26,29 +26,29 @@
 
 enum {NAMEMAX = 20, MEMOMAX = 40 };
 
-static char *admusers = "/adm/users";
+static int8_t *admusers = "/adm/users";
 
 /* we hold a fixed-length memo list of past lookups, and use a move-to-front
     strategy to organize the list
 */
 typedef struct Memo {
-	char		name[NAMEMAX];
+	int8_t		name[NAMEMAX];
 	int		num;
-	char		*glist;
+	int8_t		*glist;
 } Memo;
 
 static Memo *memo[MEMOMAX];
 static int nmemo = 0;
 
 int
-_getpw(int *pnum, char **pname, char **plist)
+_getpw(int *pnum, int8_t **pname, int8_t **plist)
 {
 	Dir *d;
 	int f, n, i, j, matchnum, m, matched;
-	char *eline, *f1, *f2, *f3, *f4;
+	int8_t *eline, *f1, *f2, *f3, *f4;
 	Memo *mem;
-	static char *au = NULL;
-	vlong length;
+	static int8_t *au = NULL;
+	int64_t length;
 
 	if(!pname)
 		return 0;
@@ -58,7 +58,7 @@ _getpw(int *pnum, char **pname, char **plist)
 			return 0;
 		length = d->length;
 		free(d);
-		if((au = (char *)malloc(length+2)) == NULL)
+		if((au = (int8_t *)malloc(length+2)) == NULL)
 			return 0;
 		f = open(admusers, O_RDONLY);
 		if(f < 0)
@@ -123,7 +123,7 @@ _getpw(int *pnum, char **pname, char **plist)
 				mem->num = atoi(f1);
 				m = n-(f4-f1);
 				if(m > 0){
-					mem->glist = (char*)malloc(m+1);
+					mem->glist = (int8_t*)malloc(m+1);
 					if(mem->glist) {
 						memcpy(mem->glist, f4, m);
 						mem->glist[m] = 0;
@@ -157,13 +157,13 @@ _getpw(int *pnum, char **pname, char **plist)
 	return 0;
 }
 
-char **
-_grpmems(char *list)
+int8_t **
+_grpmems(int8_t *list)
 {
-	char **v;
-	char *p;
-	static char *holdvec[200];
-	static char holdlist[1000];
+	int8_t **v;
+	int8_t *p;
+	static int8_t *holdvec[200];
+	static int8_t holdlist[1000];
 
 	p = list;
 	v = holdvec;

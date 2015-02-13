@@ -49,7 +49,7 @@
 typedef int PixelWeight;
 
 #  if arch_ints_are_short
-typedef long AccumTmp;
+typedef int32_t AccumTmp;
 #  else
 typedef int AccumTmp;
 #  endif

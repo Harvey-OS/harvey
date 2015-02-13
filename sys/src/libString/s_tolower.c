@@ -16,7 +16,7 @@
 void
 s_tolower(String *sp)
 {
-	char *cp;
+	int8_t *cp;
 
 	for(cp=sp->ptr; *cp; cp++)
 		*cp = tolower(*cp);

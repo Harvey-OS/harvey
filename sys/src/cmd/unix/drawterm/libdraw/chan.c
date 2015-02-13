@@ -11,12 +11,12 @@
 #include <libc.h>
 #include <draw.h>
 
-static char channames[] = "rgbkamx";
-char*
-chantostr(char *buf, ulong cc)
+static int8_t channames[] = "rgbkamx";
+int8_t*
+chantostr(int8_t *buf, uint32_t cc)
 {
-	ulong c, rc;
-	char *p;
+	uint32_t c, rc;
+	int8_t *p;
 
 	if(chantodepth(cc) == 0)
 		return nil;
@@ -40,16 +40,16 @@ chantostr(char *buf, ulong cc)
 
 /* avoid pulling in ctype when using with drawterm etc. */
 static int
-xisspace(char c)
+xisspace(int8_t c)
 {
 	return c==' ' || c== '\t' || c=='\r' || c=='\n';
 }
 
-ulong
-strtochan(char *s)
+uint32_t
+strtochan(int8_t *s)
 {
-	char *p, *q;
-	ulong c;
+	int8_t *p, *q;
+	uint32_t c;
 	int t, n;
 
 	c = 0;
@@ -71,7 +71,7 @@ strtochan(char *s)
 }
 
 int
-chantodepth(ulong c)
+chantodepth(uint32_t c)
 {
 	int n;
 

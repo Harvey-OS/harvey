@@ -49,7 +49,7 @@
 #define zrand_state (i_ctx_p->rand_state)
 
 /* Initialize the random number generator. */
-const long rand_state_initial = 1;
+const int32_t rand_state_initial = 1;
 
 /****** NOTE: none of these operators currently ******/
 /****** check for floating over- or underflow.	******/
@@ -236,7 +236,7 @@ private int
 zsrand(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
-    long state;
+    int32_t state;
 
     check_type(*op, t_integer);
     state = op->value.intval;

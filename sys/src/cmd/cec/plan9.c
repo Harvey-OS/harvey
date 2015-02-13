@@ -17,9 +17,9 @@ int	cfd = -1;
 int	efd = -1;
 
 int
-netopen0(char *e)
+netopen0(int8_t *e)
 {
-	char buf[128], ctl[13];
+	int8_t buf[128], ctl[13];
 	int n;
 
 	snprint(buf, sizeof buf, "%s/clone", e);
@@ -55,7 +55,7 @@ netclose(void)
 }
 
 int
-netopen(char *e)
+netopen(int8_t *e)
 {
 	int r;
 
@@ -75,7 +75,7 @@ netget(void *v, int len)
 	l = read(fd, v, len);
 	if(debug && l > 0){
 		fprint(2, "read %d bytes\n", l);
-		dump((uchar*)v, l);
+		dump((uint8_t*)v, l);
 	}
 	if (l <= 0)
 		return 0;
@@ -85,7 +85,7 @@ netget(void *v, int len)
 int
 netsend(void *v, int len)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = v;
 	if (debug) {

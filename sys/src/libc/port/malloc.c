@@ -16,8 +16,8 @@ static void*	sbrkalloc(ulong);
 static int		sbrkmerge(void*, void*);
 static void		plock(Pool*);
 static void		punlock(Pool*);
-static void		pprint(Pool*, char*, ...);
-static void		ppanic(Pool*, char*, ...);
+static void		pprint(Pool*, int8_t*, ...);
+static void		ppanic(Pool*, int8_t*, ...);
 
 typedef struct Private Private;
 struct Private {
@@ -51,11 +51,11 @@ Pool *imagmem = &sbrkmem;
  * whether two blocks are adjacent and thus mergeable.
  */
 static void*
-sbrkalloc(ulong n)
+sbrkalloc(uint32_t n)
 {
-	ulong *x;
+	uint32_t *x;
 
-	n += 2*sizeof(ulong);	/* two longs for us */
+	n += 2*sizeof(uint32_t);	/* two longs for us */
 	x = sbrk(n);
 	if(x == (void*)-1)
 		return nil;
@@ -67,13 +67,13 @@ sbrkalloc(ulong n)
 static int
 sbrkmerge(void *x, void *y)
 {
-	ulong *lx, *ly;
+	uint32_t *lx, *ly;
 
 	lx = x;
 	if(lx[-1] != 0xDeadBeef)
 		abort();
 
-	if((uchar*)lx+lx[-2] == (uchar*)y) {
+	if((uint8_t*)lx+lx[-2] == (uint8_t*)y) {
 		ly = y;
 		lx[-2] += ly[-2];
 		return 1;
@@ -107,7 +107,7 @@ static int
 checkenv(void)
 {
 	int n, fd;
-	char buf[20];
+	int8_t buf[20];
 	fd = open("/env/MALLOCFD", OREAD);
 	if(fd < 0)
 		return -1;
@@ -125,7 +125,7 @@ checkenv(void)
 }
 
 static void
-pprint(Pool *p, char *fmt, ...)
+pprint(Pool *p, int8_t *fmt, ...)
 {
 	va_list v;
 	Private *pv;
@@ -142,13 +142,13 @@ pprint(Pool *p, char *fmt, ...)
 	va_end(v);
 }
 
-static char panicbuf[256];
+static int8_t panicbuf[256];
 static void
-ppanic(Pool *p, char *fmt, ...) 
+ppanic(Pool *p, int8_t *fmt, ...) 
 {
 	va_list v;
 	int n;
-	char *msg;
+	int8_t *msg;
 	Private *pv;
 
 	pv = p->private;
@@ -209,13 +209,13 @@ enum {
 };
 
 void*
-malloc(ulong size)
+malloc(uint32_t size)
 {
 	void *v;
 
-	v = poolalloc(mainmem, size+Npadlong*sizeof(ulong));
+	v = poolalloc(mainmem, size+Npadlong*sizeof(uint32_t));
 	if(Npadlong && v != nil) {
-		v = (ulong*)v+Npadlong;
+		v = (uint32_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -223,13 +223,13 @@ malloc(ulong size)
 }
 
 void*
-mallocz(ulong size, int clr)
+mallocz(uint32_t size, int clr)
 {
 	void *v;
 
-	v = poolalloc(mainmem, size+Npadlong*sizeof(ulong));
+	v = poolalloc(mainmem, size+Npadlong*sizeof(uint32_t));
 	if(Npadlong && v != nil){
-		v = (ulong*)v+Npadlong;
+		v = (uint32_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -239,13 +239,14 @@ mallocz(ulong size, int clr)
 }
 
 void*
-mallocalign(ulong size, ulong align, long offset, ulong span)
+mallocalign(uint32_t size, uint32_t align, int32_t offset, uint32_t span)
 {
 	void *v;
 
-	v = poolallocalign(mainmem, size+Npadlong*sizeof(ulong), align, offset-Npadlong*sizeof(ulong), span);
+	v = poolallocalign(mainmem, size+Npadlong*sizeof(uint32_t), align,
+			   offset-Npadlong*sizeof(uint32_t), span);
 	if(Npadlong && v != nil){
-		v = (ulong*)v+Npadlong;
+		v = (uint32_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -256,11 +257,11 @@ void
 free(void *v)
 {
 	if(v != nil)
-		poolfree(mainmem, (ulong*)v-Npadlong);
+		poolfree(mainmem, (uint32_t*)v-Npadlong);
 }
 
 void*
-realloc(void *v, ulong size)
+realloc(void *v, uint32_t size)
 {
 	void *nv;
 
@@ -270,11 +271,11 @@ realloc(void *v, ulong size)
 	}
 
 	if(v)
-		v = (ulong*)v-Npadlong;
-	size += Npadlong*sizeof(ulong);
+		v = (uint32_t*)v-Npadlong;
+	size += Npadlong*sizeof(uint32_t);
 
 	if(nv = poolrealloc(mainmem, v, size)){
-		nv = (ulong*)nv+Npadlong;
+		nv = (uint32_t*)nv+Npadlong;
 		setrealloctag(nv, getcallerpc(&v));
 		if(v == nil)
 			setmalloctag(nv, getcallerpc(&v));
@@ -282,14 +283,14 @@ realloc(void *v, ulong size)
 	return nv;
 }
 
-ulong
+uint32_t
 msize(void *v)
 {
-	return poolmsize(mainmem, (ulong*)v-Npadlong)-Npadlong*sizeof(ulong);
+	return poolmsize(mainmem, (uint32_t*)v-Npadlong)-Npadlong*sizeof(uint32_t);
 }
 
 void*
-calloc(ulong n, ulong szelem)
+calloc(uint32_t n, uint32_t szelem)
 {
 	void *v;
 	if(v = mallocz(n*szelem, 1))
@@ -298,9 +299,9 @@ calloc(ulong n, ulong szelem)
 }
 
 void
-setmalloctag(void *v, ulong pc)
+setmalloctag(void *v, uint32_t pc)
 {
-	ulong *u;
+	uint32_t *u;
 	USED(v, pc);
 	if(Npadlong <= MallocOffset || v == nil)
 		return;
@@ -309,9 +310,9 @@ setmalloctag(void *v, ulong pc)
 }
 
 void
-setrealloctag(void *v, ulong pc)
+setrealloctag(void *v, uint32_t pc)
 {
-	ulong *u;
+	uint32_t *u;
 	USED(v, pc);
 	if(Npadlong <= ReallocOffset || v == nil)
 		return;
@@ -319,21 +320,21 @@ setrealloctag(void *v, ulong pc)
 	u[-Npadlong+ReallocOffset] = pc;
 }
 
-ulong
+uint32_t
 getmalloctag(void *v)
 {
 	USED(v);
 	if(Npadlong <= MallocOffset)
 		return ~0;
-	return ((ulong*)v)[-Npadlong+MallocOffset];
+	return ((uint32_t*)v)[-Npadlong+MallocOffset];
 }
 
-ulong
+uint32_t
 getrealloctag(void *v)
 {
 	USED(v);
 	if(Npadlong <= ReallocOffset)
-		return ((ulong*)v)[-Npadlong+ReallocOffset];
+		return ((uint32_t*)v)[-Npadlong+ReallocOffset];
 	return ~0;
 }
 
@@ -343,5 +344,5 @@ malloctopoolblock(void *v)
 	if(v == nil)
 		return nil;
 
-	return &((ulong*)v)[-Npadlong];
+	return &((uint32_t*)v)[-Npadlong];
 }

@@ -45,19 +45,19 @@ static void	usage(void);
 Fcall *req;
 Fcall *rep;
 
-uchar mdata[Maxiosize];
-char fdata[Maxfdata];
-uchar statbuf[STATMAX];
+uint8_t mdata[Maxiosize];
+int8_t fdata[Maxfdata];
+uint8_t statbuf[STATMAX];
 int errno;
 
-static char	srvfile[64];
+static int8_t	srvfile[64];
 
 extern Xfsub	*xsublist[];
 extern int	nclust;
 
 jmp_buf	err_lab[16];
 int	nerr_lab;
-char	err_msg[ERRMAX];
+int8_t	err_msg[ERRMAX];
 
 int	chatty;
 int	nojoliet;
@@ -235,7 +235,7 @@ usage(void)
 }
 
 void
-error(char *p)
+error(int8_t *p)
 {
 	strecpy(err_msg, err_msg+sizeof err_msg, p);
 	nexterror();
@@ -248,7 +248,7 @@ nexterror(void)
 }
 
 void*
-ealloc(long n)
+ealloc(int32_t n)
 {
 	void *p;
 
@@ -259,7 +259,7 @@ ealloc(long n)
 }
 
 void
-setnames(Dir *d, char *n)
+setnames(Dir *d, int8_t *n)
 {
 	d->name = n;
 	d->uid = n+Maxname;
@@ -464,7 +464,8 @@ rread(void)
 	if (!(f->flags&Oread))
 		error("file not opened for reading");
 	if(f->qid.type & QTDIR)
-		rep->count = (*f->xf->s->readdir)(f, (uchar*)fdata, req->offset, req->count);
+		rep->count = (*f->xf->s->readdir)(f, (uint8_t*)fdata,
+						  req->offset, req->count);
 	else
 		rep->count = (*f->xf->s->read)(f, fdata, req->offset, req->count);
 	rep->data = fdata;
@@ -544,8 +545,8 @@ openflags(int mode)
 void
 showdir(int fd, Dir *s)
 {
-	char a_time[32], m_time[32];
-	char *p;
+	int8_t a_time[32], m_time[32];
+	int8_t *p;
 
 	strcpy(a_time, ctime(s->atime));
 	if(p=strchr(a_time, '\n'))	/* assign = */
@@ -563,7 +564,7 @@ mode=0x%8.8lux=0%luo atime=%s mtime=%s length=%lld uid=\"%s\" gid=\"%s\"...",
 #define	SIZE	1024
 
 void
-chat(char *fmt, ...)
+chat(int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -575,10 +576,10 @@ chat(char *fmt, ...)
 }
 
 void
-panic(int rflag, char *fmt, ...)
+panic(int rflag, int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[SIZE]; int n;
+	int8_t buf[SIZE]; int n;
 
 	n = sprint(buf, "%s %d: ", argv0, getpid());
 	va_start(arg, fmt);

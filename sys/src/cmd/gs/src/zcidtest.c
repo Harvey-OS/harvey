@@ -62,7 +62,7 @@ zwrapfont(i_ctx_t *i_ctx_p)
 	 */
 	{
 	    font_data *pdata = pfont_data(font);
-	    const char *bgstr = "%Type11BuildGlyph";
+	    const int8_t *bgstr = "%Type11BuildGlyph";
 	    ref temp;
 
 	    make_int(&temp, 0);

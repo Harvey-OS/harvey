@@ -67,16 +67,16 @@ THIS SOFTWARE.
 
 #define	MAXRE	512
 
-static char	re[MAXRE];	/* copy buffer */
+static int8_t	re[MAXRE];	/* copy buffer */
 
-char	*patbeg;
+int8_t	*patbeg;
 int	patlen;			/* number of chars in pattern */
 
 #define	NPATS	20		/* number of slots in pattern cache */
 
 static struct pat_list		/* dynamic pattern cache */
 {
-	char	*re;
+	int8_t	*re;
 	int	use;
 	Reprog	*program;
 } pattern[NPATS];
@@ -85,10 +85,10 @@ static int npats;		/* cache fill level */
 
 	/* Compile a pattern */
 void
-*compre(char *pat)
+*compre(int8_t *pat)
 {
 	int i, j, inclass;
-	char c, *p, *s;
+	int8_t c, *p, *s;
 	Reprog *program;
 
 	if (!compile_time) {	/* search cache for dynamic pattern */
@@ -196,20 +196,20 @@ void
 
 	/* T/F match indication - matched string not exported */
 int
-match(void *p, char *s, char *)
+match(void *p, int8_t *s, int8_t *)
 {
-	return regexec((Reprog *) p, (char *) s, 0, 0);
+	return regexec((Reprog *) p, (int8_t *) s, 0, 0);
 }
 
 	/* match and delimit the matched string */
 int
-pmatch(void *p, char *s, char *start)
+pmatch(void *p, int8_t *s, int8_t *start)
 {
 	Resub m;
 
 	m.s.sp = start;
 	m.e.ep = 0;
-	if (regexec((Reprog *) p, (char *) s, &m, 1)) {
+	if (regexec((Reprog *) p, (int8_t *) s, &m, 1)) {
 		patbeg = m.s.sp;
 		patlen = m.e.ep-m.s.sp;
 		return 1;
@@ -221,7 +221,7 @@ pmatch(void *p, char *s, char *start)
 
 	/* perform a non-empty match */
 int
-nematch(void *p, char *s, char *start)
+nematch(void *p, int8_t *s, int8_t *start)
 {
 	if (pmatch(p, s, start) == 1 && patlen > 0)
 		return 1;
@@ -255,10 +255,10 @@ hexstr(char **pp)	/* find and eval hex string at pp, return new p */
 #define isoctdigit(c) ((c) >= '0' && (c) <= '7') /* multiple use of arg */
 
 void
-quoted(char **s, char **to, char *end)	/* handle escaped sequence */
+quoted(int8_t **s, int8_t **to, int8_t *end)	/* handle escaped sequence */
 {
-	char *p = *s;
-	char *t = *to;
+	int8_t *p = *s;
+	int8_t *t = *to;
 	wchar_t c;
 
 	switch(c = *p++) {
@@ -305,10 +305,10 @@ quoted(char **s, char **to, char *end)	/* handle escaped sequence */
 }
 	/* count rune positions */
 int
-countposn(char *s, int n)
+countposn(int8_t *s, int n)
 {
 	int i, j;
-	char *end;
+	int8_t *end;
 
 	for (i = 0, end = s+n; *s && s < end; i++){
 		j = mblen(s, n);
@@ -322,7 +322,7 @@ countposn(char *s, int n)
 	/* pattern package error handler */
 
 void
-regerror(char *s)
+regerror(int8_t *s)
 {
 	FATAL("%s", s);
 }

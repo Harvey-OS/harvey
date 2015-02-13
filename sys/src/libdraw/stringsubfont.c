@@ -12,20 +12,20 @@
 #include <draw.h>
 
 Point
-stringsubfont(Image *b, Point p, Image *color, Subfont *f, char *cs)
+stringsubfont(Image *b, Point p, Image *color, Subfont *f, int8_t *cs)
 {
 	int w, width;
-	uchar *s;
+	uint8_t *s;
 	Rune c;
 	Fontchar *i;
 
-	s = (uchar*)cs;
+	s = (uint8_t*)cs;
 	for(; c=*s; p.x+=width){
 		width = 0;
 		if(c < Runeself)
 			s++;
 		else{
-			w = chartorune(&c, (char*)s);
+			w = chartorune(&c, (int8_t*)s);
 			if(w == 0){
 				s++;
 				continue;
@@ -43,22 +43,22 @@ stringsubfont(Image *b, Point p, Image *color, Subfont *f, char *cs)
 }
 
 Point
-strsubfontwidth(Subfont *f, char *cs)
+strsubfontwidth(Subfont *f, int8_t *cs)
 {
 	Rune c;
 	Point p;
-	uchar *s;
+	uint8_t *s;
 	Fontchar *i;
 	int w, width;
 
 	p = Pt(0, f->height);
-	s = (uchar*)cs;
+	s = (uint8_t*)cs;
 	for(; c=*s; p.x+=width){
 		width = 0;
 		if(c < Runeself)
 			s++;
 		else{
-			w = chartorune(&c, (char*)s);
+			w = chartorune(&c, (int8_t*)s);
 			if(w == 0){
 				s++;
 				continue;

@@ -149,7 +149,7 @@ gx_compute_cell_values(gx_ht_cell_params_t * phcp)
     const int M = phcp->M, N = phcp->N, M1 = phcp->M1, N1 = phcp->N1;
     const uint m = any_abs(M), n = any_abs(N);
     const uint m1 = any_abs(M1), n1 = any_abs(N1);
-    const ulong C = phcp->C = (ulong)m * m1 + (ulong)n * n1;
+    const uint32_t C = phcp->C = (uint32_t)m * m1 + (uint32_t)n * n1;
     const int D = phcp->D = igcd(m1, n);
     const int D1 = phcp->D1 = igcd(m, n1);
 
@@ -232,7 +232,7 @@ gs_screen_order_alloc(gx_ht_order *porder, gs_memory_t *mem)
     int code;
 
     if (!FORCE_STRIP_HALFTONES &&
-        ((ulong)porder->params.W1 * bitmap_raster(porder->params.W) +
+        ((uint32_t)porder->params.W1 * bitmap_raster(porder->params.W) +
            num_levels * sizeof(*porder->levels) +
            porder->params.W * porder->params.W1 * sizeof(gx_ht_bit)) <=
         porder->screen_params.max_size) {
@@ -261,7 +261,7 @@ gs_screen_order_init_memory(gx_ht_order * porder, const gs_state * pgs,
                             gs_memory_t * mem)
 {
     gs_matrix imat;
-    ulong max_size = max_tile_cache_bytes;
+    uint32_t max_size = max_tile_cache_bytes;
     int code;
 
     if (phsp->frequency < 0.1)
@@ -524,7 +524,7 @@ gs_screen_enum_init_memory(gs_screen_enum * penum, const gx_ht_order * porder,
 	{
 	    const int M = porder->params.M, N = porder->params.N, R = porder->params.R;
 	    const int M1 = porder->params.M1, N1 = porder->params.N1, R1 = porder->params.R1;
-	    double Q = 2.0 / ((long)M * M1 + (long)N * N1);
+	    double Q = 2.0 / ((int32_t)M * M1 + (int32_t)N * N1);
 
 	    penum->mat.xx = Q * (R * M1);
 	    penum->mat.xy = Q * (-R1 * N);

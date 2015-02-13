@@ -15,13 +15,13 @@
 
 /* Roget's Thesaurus from project Gutenberg */
 
-static long Last = 0;
+static int32_t Last = 0;
 
 void
 rogetprintentry(Entry e, int cmd)
 {
 	int spc;
-	char c, *p;
+	int8_t c, *p;
 
 	spc = 0;
 	p = e.start;
@@ -129,12 +129,12 @@ rogetprintentry(Entry e, int cmd)
 	outnl(0);
 }
 
-long
-rogetnextoff(long fromoff)
+int32_t
+rogetnextoff(int32_t fromoff)
 {
 	int i;
-	vlong l;
-	char *p;
+	int64_t l;
+	int8_t *p;
 
 	Bseek(bdict, fromoff, 0);
 	Brdline(bdict, '\n');

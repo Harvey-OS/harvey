@@ -13,10 +13,10 @@
 #include "dir.h"
 
 uint
-_convD2M(Dir *d, uchar *buf, uint nbuf)
+_convD2M(Dir *d, uint8_t *buf, uint nbuf)
 {
-	uchar *p, *ebuf;
-	char *sv[4];
+	uint8_t *p, *ebuf;
+	int8_t *sv[4];
 	int i, ns, nsv[4], ss;
 
 	if(nbuf < BIT16SZ)
@@ -84,7 +84,7 @@ _convD2M(Dir *d, uchar *buf, uint nbuf)
 uint
 _sizeD2M(Dir *d)
 {
-	char *sv[4];
+	int8_t *sv[4];
 	int i, ns;
 
 	sv[0] = d->name;

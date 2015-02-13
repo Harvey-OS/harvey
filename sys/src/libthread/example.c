@@ -29,7 +29,7 @@ enum
 void
 mouseproc(void *arg)
 {
-	char m[48];
+	int8_t m[48];
 	int mfd;
 	Channel *mc;
 
@@ -60,9 +60,9 @@ clockproc(void *arg)
 
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, int8_t *argv[])
 {
-	char m[48];
+	int8_t m[48];
 	int t;
 	Alt a[] = {
 	/*	 c		v		op   */

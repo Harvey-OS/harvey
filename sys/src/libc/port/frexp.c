@@ -46,7 +46,7 @@ ldexp(double d, int deltae)
 {
 	int e, bits;
 	FPdbleword x;
-	ulong z;
+	uint32_t z;
 
 	if(d == 0)
 		return 0;
@@ -88,7 +88,7 @@ ldexp(double d, int deltae)
 		}
 	}
 	x.hi &= ~(MASK << SHIFT);
-	x.hi |= (long)e << SHIFT;
+	x.hi |= (int32_t)e << SHIFT;
 	return x.x;
 }
 

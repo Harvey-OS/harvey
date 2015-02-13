@@ -19,10 +19,10 @@ typedef struct Ubox Ubox;
 typedef struct User User;
 
 struct User {
-	char*	uid;
-	char*	uname;
-	char*	leader;
-	char**	group;
+	int8_t*	uid;
+	int8_t*	uname;
+	int8_t*	leader;
+	int8_t**	group;
 	int	ngroup;
 
 	User*	next;			/* */
@@ -48,7 +48,7 @@ static struct {
 	Ubox*	box;
 } ubox;
 
-static char usersDefault[] = {
+static int8_t usersDefault[] = {
 	"adm:adm:adm:sys\n"
 	"none:none::\n"
 	"noworld:noworld::\n"
@@ -56,7 +56,7 @@ static char usersDefault[] = {
 	"glenda:glenda:glenda:\n"
 };
 
-static char* usersMandatory[] = {
+static int8_t* usersMandatory[] = {
 	"adm",
 	"none",
 	"noworld",
@@ -64,25 +64,25 @@ static char* usersMandatory[] = {
 	nil,
 };
 
-char* uidadm = "adm";
-char* unamenone = "none";
-char* uidnoworld = "noworld";
+int8_t* uidadm = "adm";
+int8_t* unamenone = "none";
+int8_t* uidnoworld = "noworld";
 
 static u32int
-userHash(char* s)
+userHash(int8_t* s)
 {
-	uchar *p;
+	uint8_t *p;
 	u32int hash;
 
 	hash = 0;
-	for(p = (uchar*)s; *p != '\0'; p++)
+	for(p = (uint8_t*)s; *p != '\0'; p++)
 		hash = hash*7 + *p;
 
 	return hash % NUserHash;
 }
 
 static User*
-_userByUid(Ubox* box, char* uid)
+_userByUid(Ubox* box, int8_t* uid)
 {
 	User *u;
 
@@ -96,11 +96,11 @@ _userByUid(Ubox* box, char* uid)
 	return nil;
 }
 
-char*
-unameByUid(char* uid)
+int8_t*
+unameByUid(int8_t* uid)
 {
 	User *u;
-	char *uname;
+	int8_t *uname;
 
 	vtRLock(ubox.lock);
 	if((u = _userByUid(ubox.box, uid)) == nil){
@@ -114,7 +114,7 @@ unameByUid(char* uid)
 }
 
 static User*
-_userByUname(Ubox* box, char* uname)
+_userByUname(Ubox* box, int8_t* uname)
 {
 	User *u;
 
@@ -128,11 +128,11 @@ _userByUname(Ubox* box, char* uname)
 	return nil;
 }
 
-char*
-uidByUname(char* uname)
+int8_t*
+uidByUname(int8_t* uname)
 {
 	User *u;
-	char *uid;
+	int8_t *uid;
 
 	vtRLock(ubox.lock);
 	if((u = _userByUname(ubox.box, uname)) == nil){
@@ -146,7 +146,7 @@ uidByUname(char* uname)
 }
 
 static int
-_groupMember(Ubox* box, char* group, char* member, int whenNoGroup)
+_groupMember(Ubox* box, int8_t* group, int8_t* member, int whenNoGroup)
 {
 	int i;
 	User *g, *m;
@@ -170,7 +170,7 @@ _groupMember(Ubox* box, char* group, char* member, int whenNoGroup)
 }
 
 int
-groupWriteMember(char* uname)
+groupWriteMember(int8_t* uname)
 {
 	int ret;
 
@@ -198,7 +198,7 @@ groupWriteMember(char* uname)
 }
 
 static int
-_groupRemMember(Ubox* box, User* g, char* member)
+_groupRemMember(Ubox* box, User* g, int8_t* member)
 {
 	int i;
 
@@ -233,7 +233,7 @@ _groupRemMember(Ubox* box, User* g, char* member)
 		for(; i < g->ngroup; i++)
 			g->group[i] = g->group[i+1];
 		g->group[i] = nil;		/* prevent accidents */
-		g->group = vtMemRealloc(g->group, g->ngroup * sizeof(char*));
+		g->group = vtMemRealloc(g->group, g->ngroup * sizeof(int8_t*));
 		break;
 	}
 
@@ -241,7 +241,7 @@ _groupRemMember(Ubox* box, User* g, char* member)
 }
 
 static int
-_groupAddMember(Ubox* box, User* g, char* member)
+_groupAddMember(Ubox* box, User* g, int8_t* member)
 {
 	User *u;
 
@@ -256,7 +256,7 @@ _groupAddMember(Ubox* box, User* g, char* member)
 		return 0;
 	}
 
-	g->group = vtMemRealloc(g->group, (g->ngroup+1)*sizeof(char*));
+	g->group = vtMemRealloc(g->group, (g->ngroup+1)*sizeof(int8_t*));
 	g->group[g->ngroup] = vtStrDup(member);
 	box->len += strlen(member);
 	g->ngroup++;
@@ -267,7 +267,7 @@ _groupAddMember(Ubox* box, User* g, char* member)
 }
 
 int
-groupMember(char* group, char* member)
+groupMember(int8_t* group, int8_t* member)
 {
 	int r;
 
@@ -282,7 +282,7 @@ groupMember(char* group, char* member)
 }
 
 int
-groupLeader(char* group, char* member)
+groupLeader(int8_t* group, int8_t* member)
 {
 	int r;
 	User *g;
@@ -332,7 +332,7 @@ userFree(User* u)
 }
 
 static User*
-userAlloc(char* uid, char* uname)
+userAlloc(int8_t* uid, int8_t* uname)
 {
 	User *u;
 
@@ -344,7 +344,7 @@ userAlloc(char* uid, char* uname)
 }
 
 int
-validUserName(char* name)
+validUserName(int8_t* name)
 {
 	Rune *r;
 	static Rune invalid[] = L"#:,()";
@@ -384,7 +384,7 @@ usersFileWrite(Ubox* box)
 	User *u;
 	int i, r;
 	Fsys *fsys;
-	char *p, *q, *s;
+	int8_t *p, *q, *s;
 	File *dir, *file;
 
 	if((fsys = fsysGet("main")) == nil)
@@ -519,12 +519,12 @@ uboxFree(Ubox* box)
 }
 
 static int
-uboxInit(char* users, int len)
+uboxInit(int8_t* users, int len)
 {
 	User *g, *u;
 	Ubox *box, *obox;
 	int blank, comment, i, nline, nuser;
-	char *buf, *f[5], **line, *p, *q, *s;
+	int8_t *buf, *f[5], **line, *p, *q, *s;
 
 	/*
 	 * Strip out whitespace and comments.
@@ -558,7 +558,7 @@ uboxInit(char* users, int len)
 	}
 	*p = '\0';
 
-	line = vtMemAllocZ((nline+2)*sizeof(char*));
+	line = vtMemAllocZ((nline+2)*sizeof(int8_t*));
 	if((i = gettokens(buf, line, nline+2, "\n")) != nline){
 		fprint(2, "nline %d (%d) botch\n", nline, i);
 		vtMemFree(line);
@@ -673,13 +673,13 @@ uboxInit(char* users, int len)
 }
 
 int
-usersFileRead(char* path)
+usersFileRead(int8_t* path)
 {
-	char *p;
+	int8_t *p;
 	File *file;
 	Fsys *fsys;
 	int len, r;
-	uvlong size;
+	uint64_t size;
 
 	if((fsys = fsysGet("main")) == nil)
 		return 0;

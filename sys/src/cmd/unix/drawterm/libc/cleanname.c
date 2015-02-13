@@ -14,10 +14,10 @@
  * In place, rewrite name to compress multiple /, eliminate ., and process ..
  */
 #define SEP(x)	((x)=='/' || (x) == 0)
-char*
-cleanname(char *name)
+int8_t*
+cleanname(int8_t *name)
 {
-	char *p, *q, *dotdot;
+	int8_t *p, *q, *dotdot;
 	int rooted;
 
 	rooted = name[0] == '/';

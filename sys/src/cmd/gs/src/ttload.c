@@ -132,7 +132,7 @@
 
   TT_Error  Load_TrueType_CVT( PFace  face )
   {
-    long  n;
+    int32_t  n;
     Int  limit;
 
     ttfReader *r = face->r;

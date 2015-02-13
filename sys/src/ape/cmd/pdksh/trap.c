@@ -52,7 +52,7 @@ inittraps()
 {
 #ifdef HAVE_SYS_SIGLIST
 # ifndef SYS_SIGLIST_DECLARED
-	extern char	*sys_siglist[];
+	extern int8_t	*sys_siglist[];
 # endif
 	int	i;
 
@@ -111,7 +111,7 @@ alarm_catcher(sig)
 
 Trap *
 gettrap(name, igncase)
-	const char *name;
+	const int8_t *name;
 	int igncase;
 {
 	int i;
@@ -233,7 +233,7 @@ runtraps(flag)
 		fatal_trap = 0;
 	for (p = sigtraps, i = SIGNALS+1; --i >= 0; p++)
 		if (p->set && (!flag
-			       || ((p->flags & flag) && p->trap == (char *) 0)))
+			       || ((p->flags & flag) && p->trap == (int8_t *) 0)))
 			runtrap(p);
 }
 
@@ -242,12 +242,12 @@ runtrap(p)
 	Trap *p;
 {
 	int	i = p->signal;
-	char	*trapstr = p->trap;
+	int8_t	*trapstr = p->trap;
 	int	oexstat;
 	int	UNINITIALIZED(old_changed);
 
 	p->set = 0;
-	if (trapstr == (char *) 0) { /* SIG_DFL */
+	if (trapstr == (int8_t *) 0) { /* SIG_DFL */
 		if (p->flags & TF_FATAL) {
 			/* eg, SIGHUP */
 			exstat = 128 + i;
@@ -265,7 +265,7 @@ runtrap(p)
 	if (i == SIGEXIT_ || i == SIGERR_) {	/* avoid recursion on these */
 		old_changed = p->flags & TF_CHANGED;
 		p->flags &= ~TF_CHANGED;
-		p->trap = (char *) 0;
+		p->trap = (int8_t *) 0;
 	}
 	oexstat = exstat;
 	/* Note: trapstr is fully parsed before anything is executed, thus
@@ -296,7 +296,7 @@ cleartraps()
 	for (i = SIGNALS+1, p = sigtraps; --i >= 0; p++) {
 		p->set = 0;
 		if ((p->flags & TF_USER_SET) && (p->trap && p->trap[0]))
-			settrap(p, (char *) 0);
+			settrap(p, (int8_t *) 0);
 	}
 }
 
@@ -316,7 +316,7 @@ restoresigs()
 void
 settrap(p, s)
 	Trap *p;
-	char *s;
+	int8_t *s;
 {
 	handler_t f;
 

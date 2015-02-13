@@ -22,10 +22,10 @@ enum {
 };
 
 static int
-parsepubkey(char *s, RSApub *key, char **sp, int base)
+parsepubkey(int8_t *s, RSApub *key, int8_t **sp, int base)
 {
 	int n;
-	char *host, *p, *z;
+	int8_t *host, *p, *z;
 
 	z = nil;
 	n = strtoul(s, &p, 10);
@@ -74,9 +74,9 @@ parsepubkey(char *s, RSApub *key, char **sp, int base)
 }
 
 RSApub*
-readpublickey(Biobuf *b, char **sp)
+readpublickey(Biobuf *b, int8_t **sp)
 {
-	char *s;
+	int8_t *s;
 	RSApub *key;
 
 	key = emalloc9p(sizeof(RSApub));
@@ -96,9 +96,9 @@ readpublickey(Biobuf *b, char **sp)
 }
 
 static int
-match(char *pattern, char *aliases)
+match(int8_t *pattern, int8_t *aliases)
 {
-	char *s, *snext, *a, *anext, *ae;
+	int8_t *s, *snext, *a, *anext, *ae;
 
 	for(s = pattern; s && *s; s = snext){
 		if((snext = strchr(s, ',')) != nil)
@@ -117,9 +117,9 @@ match(char *pattern, char *aliases)
 }
 
 int
-findkey(char *keyfile, char *host, RSApub *key)
+findkey(int8_t *keyfile, int8_t *host, RSApub *key)
 {
-	char *h;
+	int8_t *h;
 	Biobuf *b;
 	RSApub *k;
 	int res;
@@ -147,10 +147,10 @@ findkey(char *keyfile, char *host, RSApub *key)
 }
 
 int
-replacekey(char *keyfile, char *host, RSApub *hostkey)
+replacekey(int8_t *keyfile, int8_t *host, RSApub *hostkey)
 {
 	int ret;
-	char *h, *nkey, *p;
+	int8_t *h, *nkey, *p;
 	Biobuf *br, *bw;
 	Dir *d, nd;
 	RSApub *k;
@@ -213,7 +213,7 @@ out:
 }
 
 int
-appendkey(char *keyfile, char *host, RSApub *key)
+appendkey(int8_t *keyfile, int8_t *host, RSApub *key)
 {
 	int fd, ret;
 

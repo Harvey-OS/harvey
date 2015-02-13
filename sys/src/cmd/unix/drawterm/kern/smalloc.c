@@ -14,13 +14,13 @@
 #include "error.h"
 
 void*
-smalloc(ulong n)
+smalloc(uint32_t n)
 {
 	return mallocz(n, 1);
 }
 
 void*
-malloc(ulong n)
+malloc(uint32_t n)
 {
 	return mallocz(n, 1);
 }

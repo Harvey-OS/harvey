@@ -36,11 +36,11 @@ enum {
 Image *mtmp;
 
 void
-writefile(char *name, Image *im, int gran)
+writefile(int8_t *name, Image *im, int gran)
 {
 	static int c = 100;
 	int fd;
-	char buf[200];
+	int8_t buf[200];
 
 	snprint(buf, sizeof buf, "%d%s%d", c++, name, gran);
 	fd = create(buf, OWRITE, 0666);
@@ -324,7 +324,7 @@ kaiser(double x, double τ, double α)
 
 
 void
-resamplex(uchar *in, int off, int d, int inx, uchar *out, int outx)
+resamplex(uint8_t *in, int off, int d, int inx, uint8_t *out, int outx)
 {
 	int i, x, k;
 	double X, xx, v, rat;
@@ -353,7 +353,7 @@ resamplex(uchar *in, int off, int d, int inx, uchar *out, int outx)
 }
 
 void
-resampley(uchar **in, int off, int iny, uchar **out, int outy)
+resampley(uint8_t **in, int off, int iny, uint8_t **out, int outy)
 {
 	int y, i, k;
 	double Y, yy, v, rat;
@@ -385,12 +385,12 @@ Image*
 resample(Image *from, Image *to)
 {
 	int i, j, bpl, nchan;
-	uchar **oscan, **nscan;
-	char tmp[20];
+	uint8_t **oscan, **nscan;
+	int8_t tmp[20];
 	int xsize, ysize;
 	double v;
 	Image *t1, *t2;
-	ulong tchan;
+	uint32_t tchan;
 
 	for(i=-K2; i<=K2; i++){
 		K[K2+i] = kaiser(i/10., K2/10., 4.);
@@ -446,8 +446,8 @@ resample(Image *from, Image *to)
 
 	xsize = Dx(to->r);
 	ysize = Dy(to->r);
-	oscan = malloc(Dy(from->r)*sizeof(uchar*));
-	nscan = malloc(max(ysize, Dy(from->r))*sizeof(uchar*));
+	oscan = malloc(Dy(from->r)*sizeof(uint8_t*));
+	nscan = malloc(max(ysize, Dy(from->r))*sizeof(uint8_t*));
 	if(oscan == nil || nscan == nil)
 		sysfatal("can't allocate: %r");
 

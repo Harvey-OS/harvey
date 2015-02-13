@@ -26,7 +26,7 @@ listinit(void)
 int
 Bconv(Fmt *fp)
 {
-	char str[STRINGSZ], ss[STRINGSZ], *s;
+	int8_t str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
 	int i;
 
@@ -49,7 +49,7 @@ Bconv(Fmt *fp)
 	return fmtstrcpy(fp, str);
 }
 
-char *extra [] = {
+int8_t *extra [] = {
 	".EQ", ".NE", ".CS", ".CC", 
 	".MI", ".PL", ".VS", ".VC", 
 	".HI", ".LS", ".GE", ".LT", 
@@ -59,7 +59,7 @@ char *extra [] = {
 int
 Pconv(Fmt *fp)
 {
-	char str[STRINGSZ], sc[20];
+	int8_t str[STRINGSZ], sc[20];
 	Prog *p;
 	int a, s;
 
@@ -103,7 +103,7 @@ Pconv(Fmt *fp)
 int
 Aconv(Fmt *fp)
 {
-	char *s;
+	int8_t *s;
 	int a;
 
 	a = va_arg(fp->args, int);
@@ -116,9 +116,9 @@ Aconv(Fmt *fp)
 int
 Dconv(Fmt *fp)
 {
-	char str[STRINGSZ];
+	int8_t str[STRINGSZ];
 	Adr *a;
-	char *op;
+	int8_t *op;
 	int v;
 
 	a = va_arg(fp->args, Adr*);
@@ -195,7 +195,7 @@ Dconv(Fmt *fp)
 int
 Rconv(Fmt *fp)
 {
-	char str[STRINGSZ], *p, *e;
+	int8_t str[STRINGSZ], *p, *e;
 	Adr *a;
 	int i, v;
 
@@ -227,9 +227,9 @@ int
 Sconv(Fmt *fp)
 {
 	int i, c;
-	char str[STRINGSZ], *p, *a;
+	int8_t str[STRINGSZ], *p, *a;
 
-	a = va_arg(fp->args, char*);
+	a = va_arg(fp->args, int8_t*);
 	p = str;
 	for(i=0; i<NSNAME; i++) {
 		c = a[i] & 0xff;
@@ -273,7 +273,7 @@ Sconv(Fmt *fp)
 int
 Nconv(Fmt *fp)
 {
-	char str[STRINGSZ];
+	int8_t str[STRINGSZ];
 	Adr *a;
 	Sym *s;
 

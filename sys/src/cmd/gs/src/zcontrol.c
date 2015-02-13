@@ -38,7 +38,7 @@
 /* Forward references */
 private int no_cleanup(i_ctx_t *);
 private uint count_exec_stack(i_ctx_t *, bool);
-private uint count_to_stopped(i_ctx_t *, long);
+private uint count_to_stopped(i_ctx_t *, int32_t);
 private int unmatched_exit(os_ptr, op_proc_t);
 
 /* See the comment in opdef.h for an invariant which allows */
@@ -325,7 +325,7 @@ zfor(i_ctx_t *i_ctx_p)
 		make_int(ep - 2, op[-1].value.intval);
 		break;
 	    case t_real:
-		make_int(ep - 2, (long)op[-1].value.realval);
+		make_int(ep - 2, (int32_t)op[-1].value.realval);
 		break;
 	    default:
 		return_op_typecheck(op - 1);
@@ -986,7 +986,7 @@ count_exec_stack(i_ctx_t *i_ctx_p, bool include_marks)
 	uint i;
 
 	for (i = count; i--;)
-	    if (r_has_type_attrs(ref_stack_index(&e_stack, (long)i),
+	    if (r_has_type_attrs(ref_stack_index(&e_stack, (int32_t)i),
 				 t_null, a_executable))
 		--count;
     }
@@ -999,7 +999,7 @@ count_exec_stack(i_ctx_t *i_ctx_p, bool include_marks)
  * mark.
  */
 private uint
-count_to_stopped(i_ctx_t *i_ctx_p, long mask)
+count_to_stopped(i_ctx_t *i_ctx_p, int32_t mask)
 {
     ref_stack_enum_t rsenum;
     uint scanned = 0;

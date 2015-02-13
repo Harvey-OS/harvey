@@ -10,9 +10,9 @@
 #include	"all.h"
 #include	"9p1.h"
 
-static	char	elem[NAMELEN];
+static	int8_t	elem[NAMELEN];
 static	Filsys*	cur_fs;
-static	char	conline[100];
+static	int8_t	conline[100];
 
 void
 consserve(void)
@@ -23,9 +23,9 @@ consserve(void)
 }
 
 int
-cmd_exec(char *arg)
+cmd_exec(int8_t *arg)
 {
-	char *s, *c;
+	int8_t *s, *c;
 	int i;
 
 	for(i=0; s = command[i].string; i++) {
@@ -45,7 +45,7 @@ cmd_exec(char *arg)
 void
 cmd_check(void)
 {
-	char *s;
+	int8_t *s;
 	int flags;
 
 	flags = 0;
@@ -144,9 +144,9 @@ void
 cmd_create(void)
 {
 	int uid, gid, err;
-	long perm;
-	char oelem[NAMELEN];
-	char name[NAMELEN];
+	int32_t perm;
+	int8_t oelem[NAMELEN];
+	int8_t name[NAMELEN];
 
 	if(err = con_clone(FID1, FID2)){
 		cprint("clone failed: %s\n", errstring[err]);
@@ -214,10 +214,10 @@ cmd_clri(void)
 void
 cmd_rename(void)
 {
-	ulong perm;
+	uint32_t perm;
 	Dentry d;
-	char stat[DIRREC];
-	char oelem[NAMELEN], noelem[NAMELEN], nxelem[NAMELEN];
+	int8_t stat[DIRREC];
+	int8_t oelem[NAMELEN], noelem[NAMELEN], nxelem[NAMELEN];
 	int err;
 
 	if(con_clone(FID1, FID2))
@@ -348,24 +348,24 @@ cmd_cfs(void)
  * we call this because convM2D is different
  * for the file system than in the os
  */
-static uvlong
-statlen(char *ap)
+static uint64_t
+statlen(int8_t *ap)
 {
-	uchar *p;
-	ulong ll, hl;
+	uint8_t *p;
+	uint32_t ll, hl;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	p += 3*28+5*4;
 	ll = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
 	hl = p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24);
-	return ll | ((uvlong) hl << 32);
+	return ll | ((uint64_t) hl << 32);
 }
 
 int
-adduser(char *user, int isgroup)
+adduser(int8_t *user, int isgroup)
 {
-	char stat[DIRREC];
-	char msg[100];
+	int8_t stat[DIRREC];
+	int8_t msg[100];
 	Uid *u;
 	int i, c, nu;
 
@@ -432,7 +432,7 @@ adduser(char *user, int isgroup)
 void
 cmd_newuser(void)
 {
-	char user[NAMELEN], param[NAMELEN], msg[100];
+	int8_t user[NAMELEN], param[NAMELEN], msg[100];
 	int i, c;
 
 	/*
@@ -503,13 +503,13 @@ cmd_newuser(void)
 void
 cmd_checkuser(void)
 {
-	uchar buf[DIRREC], *p;
-	static char utime[4];
+	uint8_t buf[DIRREC], *p;
+	static int8_t utime[4];
 
 	if(con_clone(FID1, FID2)
 	|| con_path(FID2, "/adm/users")
 	|| con_open(FID2, 0)
-	|| con_stat(FID2, (char*)buf))
+	|| con_stat(FID2, (int8_t*)buf))
 		return;
 	p = buf + 3*NAMELEN + 4*4;
 	if(memcmp(utime, p, 4) == 0)
@@ -559,7 +559,7 @@ cmd_noneattach(void)
 void
 cmd_listen(void)
 {
-	char addr[NAMELEN];
+	int8_t addr[NAMELEN];
 
 	if(skipbl(0))
 		strcpy(addr, "tcp!*!564");	/* 9fs */
@@ -617,8 +617,8 @@ skipbl(int err)
 	return 0;
 }
 
-char*
-_cname(char *name)
+int8_t*
+_cname(int8_t *name)
 {
 	int i, c;
 
@@ -638,8 +638,8 @@ _cname(char *name)
 	}
 }
 
-char*
-cname(char *name)
+int8_t*
+cname(int8_t *name)
 {
 	skipbl(0);
 	return _cname(name);
@@ -648,7 +648,7 @@ cname(char *name)
 int
 nextelem(void)
 {
-	char *e;
+	int8_t *e;
 	int i, c;
 
 	e = elem;
@@ -671,11 +671,11 @@ nextelem(void)
 	return 1;
 }
 
-long
+int32_t
 number(int d, int base)
 {
 	int c, sign, any;
-	long n;
+	int32_t n;
 
 	sign = 0;
 	any = 0;

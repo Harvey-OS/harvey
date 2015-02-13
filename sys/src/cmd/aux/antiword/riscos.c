@@ -33,12 +33,12 @@
  * werr - write an error message and exit if needed
  */
 void
-werr(int iFatal, const char *szFormat, ...)
+werr(int iFatal, const int8_t *szFormat, ...)
 {
 	va_list tArg;
 
 	va_start(tArg, szFormat);
-	Error_Report(iFatal, (char *)szFormat, tArg);
+	Error_Report(iFatal, (int8_t *)szFormat, tArg);
 	va_end(tArg);
 	switch (iFatal) {
 	case 0:		/* The message is just a warning, so no exit */
@@ -56,7 +56,7 @@ werr(int iFatal, const char *szFormat, ...)
  * returns the filetype.
  */
 int
-iGetFiletype(const char *szFilename)
+iGetFiletype(const int8_t *szFilename)
 {
 	os_error	*e;
 	int		iType;
@@ -79,7 +79,7 @@ iGetFiletype(const char *szFilename)
  * type.
  */
 void
-vSetFiletype(const char *szFilename, int iFiletype)
+vSetFiletype(const int8_t *szFilename, int iFiletype)
 {
 	os_error	*e;
 
@@ -112,12 +112,12 @@ vSetFiletype(const char *szFilename, int iFiletype)
  * Returns TRUE in case of success, otherwise FALSE.
  */
 BOOL
-bMakeDirectory(const char *szFilename)
+bMakeDirectory(const int8_t *szFilename)
 {
 	os_error	*e;
-	char	*pcLastDot;
+	int8_t	*pcLastDot;
 	int	iObjectType;
-	char	szDirectory[PATH_MAX+1];
+	int8_t	szDirectory[PATH_MAX+1];
 
 	DBG_MSG("bMakeDirectory");
 	fail(szFilename == NULL || szFilename[0] == '\0');

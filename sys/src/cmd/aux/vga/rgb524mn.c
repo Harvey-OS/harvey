@@ -18,8 +18,8 @@
  * IBM RGB52x and compatibles.
  * High Performance Palette DAC.
  */
-uchar (*rgb524mnxi)(Vga*, int);
-void (*rgb524mnxo)(Vga*, int, uchar);
+uint8_t (*rgb524mnxi)(Vga*, int);
+void (*rgb524mnxo)(Vga*, int, uint8_t);
 
 enum {						/* index registers */
 	MiscClock	= 0x02,
@@ -43,10 +43,10 @@ enum {						/* index registers */
 };
 
 static void
-clock(Vga* vga, Ctlr*, ulong fref, ulong maxpclk)
+clock(Vga* vga, Ctlr*, uint32_t fref, uint32_t maxpclk)
 {
 	int d, mind;
-	ulong df, f, m, n, vrf;
+	uint32_t df, f, m, n, vrf;
 
 	mind = vga->f[0]+1;
 	for(df = 0; df < 4; df++){
@@ -98,8 +98,8 @@ clock(Vga* vga, Ctlr*, ulong fref, ulong maxpclk)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong fref, maxpclk;
-	char *p, *val;
+	uint32_t fref, maxpclk;
+	int8_t *p, *val;
 
 	/*
 	 * Part comes in at least a -170MHz speed-grade.
@@ -135,7 +135,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	char *val;
+	int8_t *val;
 	int hsyncdelay, x;
 
 	if(rgb524mnxi == nil && rgb524mnxo == nil)
@@ -223,9 +223,10 @@ sleep(50);
 }
 
 static void
-dumpclock(Vga*, Ctlr* ctlr, ulong fref, ulong m, ulong n, char* name)
+dumpclock(Vga*, Ctlr* ctlr, uint32_t fref, uint32_t m, uint32_t n,
+	  int8_t* name)
 {
-	ulong df, f;
+	uint32_t df, f;
 
 	df = (m>>6) & 0x03;
 	m &= 0x3F;
@@ -254,9 +255,9 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	char *val;
-	uchar x[256];
-	ulong fref, fs;
+	int8_t *val;
+	uint8_t x[256];
+	uint32_t fref, fs;
 
 	if(rgb524mnxi == nil && rgb524mnxo == nil)
 		error("%s->dump: no access routines\n", ctlr->name);

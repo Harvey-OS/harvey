@@ -16,8 +16,8 @@
 #include	"../ip/ip.h"
 
 typedef struct DS DS;
-static Chan*	call(char*, char*, DS*);
-static void	_dial_string_parse(char*, DS*);
+static Chan*	call(int8_t*, int8_t*, DS*);
+static void	_dial_string_parse(int8_t*, DS*);
 
 enum
 {
@@ -26,12 +26,12 @@ enum
 
 struct DS
 {
-	char	buf[Maxstring];			/* dist string */
-	char	*netdir;
-	char	*proto;
-	char	*rem;
-	char	*local;				/* other args */
-	char	*dir;
+	int8_t	buf[Maxstring];			/* dist string */
+	int8_t	*netdir;
+	int8_t	*proto;
+	int8_t	*rem;
+	int8_t	*local;				/* other args */
+	int8_t	*dir;
 	Chan	**ctlp;
 };
 
@@ -39,10 +39,10 @@ struct DS
  *  the dialstring is of the form '[/net/]proto!dest'
  */
 Chan*
-chandial(char *dest, char *local, char *dir, Chan **ctlp)
+chandial(int8_t *dest, int8_t *local, int8_t *dir, Chan **ctlp)
 {
 	DS ds;
-	char clone[Maxpath];
+	int8_t clone[Maxpath];
 
 	ds.local = local;
 	ds.dir = dir;
@@ -58,11 +58,11 @@ chandial(char *dest, char *local, char *dir, Chan **ctlp)
 }
 
 static Chan*
-call(char *clone, char *dest, DS *ds)
+call(int8_t *clone, int8_t *dest, DS *ds)
 {
 	int n;
 	Chan *dchan, *cchan;
-	char name[Maxpath], data[Maxpath], *p;
+	int8_t name[Maxpath], data[Maxpath], *p;
 
 	cchan = namec(clone, Aopen, ORDWR, 0);
 
@@ -104,9 +104,9 @@ call(char *clone, char *dest, DS *ds)
  *  parse a dial string
  */
 static void
-_dial_string_parse(char *str, DS *ds)
+_dial_string_parse(int8_t *str, DS *ds)
 {
-	char *p, *p2;
+	int8_t *p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
 	ds->buf[Maxstring-1] = 0;

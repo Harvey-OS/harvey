@@ -10,7 +10,7 @@
 #include <plan9.h>
 #include <fcall.h>
 
-static char *modes[] =
+static int8_t *modes[] =
 {
 	"---",
 	"--x",
@@ -23,7 +23,7 @@ static char *modes[] =
 };
 
 static void
-rwx(long m, char *s)
+rwx(int32_t m, int8_t *s)
 {
 	strncpy(s, modes[m], 3);
 }
@@ -31,10 +31,10 @@ rwx(long m, char *s)
 int
 dirmodeconv(va_list *arg, Fconv *f)
 {
-	static char buf[16];
-	ulong m;
+	static int8_t buf[16];
+	uint32_t m;
 
-	m = va_arg(*arg, ulong);
+	m = va_arg(*arg, uint32_t);
 
 	if(m & DMDIR)
 		buf[0]='d';

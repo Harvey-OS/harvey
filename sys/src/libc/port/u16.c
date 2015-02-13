@@ -9,14 +9,14 @@
 
 #include <u.h>
 #include <libc.h>
-static char t16e[] = "0123456789ABCDEF";
+static int8_t t16e[] = "0123456789ABCDEF";
 
 int
-dec16(uchar *out, int lim, char *in, int n)
+dec16(uint8_t *out, int lim, int8_t *in, int n)
 {
 	int c, w = 0, i = 0;
-	uchar *start = out;
-	uchar *eout = out + lim;
+	uint8_t *start = out;
+	uint8_t *eout = out + lim;
 
 	while(n-- > 0){
 		c = *in++;
@@ -43,11 +43,11 @@ exhausted:
 }
 
 int
-enc16(char *out, int lim, uchar *in, int n)
+enc16(int8_t *out, int lim, uint8_t *in, int n)
 {
 	uint c;
-	char *eout = out + lim;
-	char *start = out;
+	int8_t *eout = out + lim;
+	int8_t *start = out;
 
 	while(n-- > 0){
 		c = *in++;

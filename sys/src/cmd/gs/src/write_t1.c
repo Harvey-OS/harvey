@@ -41,21 +41,21 @@ Public structures and functions in this file are prefixed with FF_ because they 
 the FAPI FreeType implementation.
 */
 
-static void write_word_entry(FAPI_font* a_fapi_font,WRF_output* a_output,const char* a_name,int a_index,int a_divisor)
+static void write_word_entry(FAPI_font* a_fapi_font,WRF_output* a_output,const int8_t* a_name,int a_index,int a_divisor)
 	{
-	short x;
+	int16_t x;
 	WRF_wbyte(a_output,'/');
 	WRF_wstring(a_output,a_name);
 	WRF_wbyte(a_output,' ');
 	/* Get the value and convert it from unsigned to signed by assigning it to a short. */
 	x = a_fapi_font->get_word(a_fapi_font,a_index,0);
 	/* Divide by the divisor to bring it back to font units. */
-	x = (short)(x / a_divisor);
+	x = (int16_t)(x / a_divisor);
 	WRF_wint(a_output,x);
 	WRF_wstring(a_output," def\n");
 	}
 
-static void write_array_entry_with_count(FAPI_font* a_fapi_font,WRF_output* a_output,const char* a_name,int a_index,int a_count,int a_divisor)
+static void write_array_entry_with_count(FAPI_font* a_fapi_font,WRF_output* a_output,const int8_t* a_name,int a_index,int a_count,int a_divisor)
 	{
 	int i;
 
@@ -69,9 +69,9 @@ static void write_array_entry_with_count(FAPI_font* a_fapi_font,WRF_output* a_ou
 	for (i = 0; i < a_count; i++)
 		{
 		/* Get the value and convert it from unsigned to signed by assigning it to a short. */
-		short x = a_fapi_font->get_word(a_fapi_font,a_index,i);
+		int16_t x = a_fapi_font->get_word(a_fapi_font,a_index,i);
 		/* Divide by the divisor to bring it back to font units. */
-		x = (short)(x / a_divisor);
+		x = (int16_t)(x / a_divisor);
 		WRF_wint(a_output,x);
 		WRF_wbyte(a_output,(byte)(i == a_count - 1 ? ']' : ' '));
 		}
@@ -79,7 +79,7 @@ static void write_array_entry_with_count(FAPI_font* a_fapi_font,WRF_output* a_ou
 	}
 
 
-static void write_array_entry(FAPI_font* a_fapi_font,WRF_output* a_output,const char* a_name,int a_index,int a_divisor)
+static void write_array_entry(FAPI_font* a_fapi_font,WRF_output* a_output,const int8_t* a_name,int a_index,int a_divisor)
 	{
 	/* NOTE that the feature index must be preceded by the count index for this to work. */
 	int count = a_fapi_font->get_word(a_fapi_font,a_index - 1,0);
@@ -100,8 +100,8 @@ static void write_subrs(FAPI_font* a_fapi_font,WRF_output* a_output)
 
 	for (i = 0; i < count; i++)
 		{
-		long length = a_fapi_font->get_subr(a_fapi_font,i,0,0);
-		long buffer_size;
+		int32_t length = a_fapi_font->get_subr(a_fapi_font,i,0,0);
+		int32_t buffer_size;
 		WRF_wstring(a_output,"dup ");
 		WRF_wint(a_output,i);
 		WRF_wbyte(a_output,' ');
@@ -112,7 +112,7 @@ static void write_subrs(FAPI_font* a_fapi_font,WRF_output* a_output)
 		buffer_size = a_output->m_limit - a_output->m_count;
 		if (buffer_size >= length)
 			{
-			a_fapi_font->get_subr(a_fapi_font,i,a_output->m_pos,(ushort)length);
+			a_fapi_font->get_subr(a_fapi_font,i,a_output->m_pos,(uint16_t)length);
 			WRF_wtext(a_output,a_output->m_pos,length);
 			}
 		else
@@ -179,7 +179,7 @@ static void write_main_dictionary(FAPI_font* a_fapi_font,WRF_output* a_output)
 	WRF_wstring(a_output,"/FontBBox {");
 	for (i = 0; i < 4; i++)
 		{
-		short x = a_fapi_font->get_word(a_fapi_font,FAPI_FONT_FEATURE_FontBBox,i);
+		int16_t x = a_fapi_font->get_word(a_fapi_font,FAPI_FONT_FEATURE_FontBBox,i);
 		WRF_wint(a_output,x);
 		WRF_wbyte(a_output,(byte)(i == 3 ? '}' : ' '));
 		}
@@ -197,7 +197,7 @@ The PostScript is non-standard. The main dictionary contains no /Charstrings dic
 is supplied to FreeType using the incremental interface, There is also no /PaintType entry. This is required
 by PostScript but FreeType doesn't use it.
 */
-long FF_serialize_type1_font(FAPI_font* a_fapi_font,unsigned char* a_buffer,long a_buffer_size)
+int32_t FF_serialize_type1_font(FAPI_font* a_fapi_font,unsigned char* a_buffer,int32_t a_buffer_size)
 	{
 	WRF_output output;
 	WRF_init(&output,a_buffer,a_buffer_size);

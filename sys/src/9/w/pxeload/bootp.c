@@ -17,32 +17,32 @@
 #include "ip.h"
 
 int debugload;
-extern char *persist;
+extern int8_t *persist;
 
-uchar broadcast[Eaddrlen] = {
+uint8_t broadcast[Eaddrlen] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 };
 
-static ushort tftpport = 5000;
+static uint16_t tftpport = 5000;
 static int Id = 1;
 static Netaddr myaddr;
 static Netaddr server;
 
 typedef struct {
-	uchar	header[4];
-	uchar	data[TFTP_SEGSIZE];
+	uint8_t	header[4];
+	uint8_t	data[TFTP_SEGSIZE];
 } Tftp;
 static Tftp tftpb;
 
 static void
-hnputs(uchar *ptr, ushort val)
+hnputs(uint8_t *ptr, uint16_t val)
 {
 	ptr[0] = val>>8;
 	ptr[1] = val;
 }
 
 static void
-hnputl(uchar *ptr, ulong val)
+hnputl(uint8_t *ptr, uint32_t val)
 {
 	ptr[0] = val>>24;
 	ptr[1] = val>>16;
@@ -50,28 +50,28 @@ hnputl(uchar *ptr, ulong val)
 	ptr[3] = val;
 }
 
-static ulong
-nhgetl(uchar *ptr)
+static uint32_t
+nhgetl(uint8_t *ptr)
 {
 	return ((ptr[0]<<24) | (ptr[1]<<16) | (ptr[2]<<8) | ptr[3]);
 }
 
-static ushort
-nhgets(uchar *ptr)
+static uint16_t
+nhgets(uint8_t *ptr)
 {
 	return ((ptr[0]<<8) | ptr[1]);
 }
 
-static	short	endian	= 1;
-static	char*	aendian	= (char*)&endian;
+static	int16_t	endian	= 1;
+static	int8_t*	aendian	= (int8_t*)&endian;
 #define	LITTLE	*aendian
 
-static ushort
+static uint16_t
 ptcl_csum(void *a, int len)
 {
-	uchar *addr;
-	ulong t1, t2;
-	ulong losum, hisum, mdsum, x;
+	uint8_t *addr;
+	uint32_t t1, t2;
+	uint32_t losum, hisum, mdsum, x;
 
 	addr = a;
 	losum = 0;
@@ -79,7 +79,7 @@ ptcl_csum(void *a, int len)
 	mdsum = 0;
 
 	x = 0;
-	if((ulong)addr & 1) {
+	if((uint32_t)addr & 1) {
 		if(len) {
 			hisum += addr[0];
 			len--;
@@ -88,20 +88,20 @@ ptcl_csum(void *a, int len)
 		x = 1;
 	}
 	while(len >= 16) {
-		t1 = *(ushort*)(addr+0);
-		t2 = *(ushort*)(addr+2);	mdsum += t1;
-		t1 = *(ushort*)(addr+4);	mdsum += t2;
-		t2 = *(ushort*)(addr+6);	mdsum += t1;
-		t1 = *(ushort*)(addr+8);	mdsum += t2;
-		t2 = *(ushort*)(addr+10);	mdsum += t1;
-		t1 = *(ushort*)(addr+12);	mdsum += t2;
-		t2 = *(ushort*)(addr+14);	mdsum += t1;
+		t1 = *(uint16_t*)(addr+0);
+		t2 = *(uint16_t*)(addr+2);	mdsum += t1;
+		t1 = *(uint16_t*)(addr+4);	mdsum += t2;
+		t2 = *(uint16_t*)(addr+6);	mdsum += t1;
+		t1 = *(uint16_t*)(addr+8);	mdsum += t2;
+		t2 = *(uint16_t*)(addr+10);	mdsum += t1;
+		t1 = *(uint16_t*)(addr+12);	mdsum += t2;
+		t2 = *(uint16_t*)(addr+14);	mdsum += t1;
 		mdsum += t2;
 		len -= 16;
 		addr += 16;
 	}
 	while(len >= 2) {
-		mdsum += *(ushort*)addr;
+		mdsum += *(uint16_t*)addr;
 		len -= 2;
 		addr += 2;
 	}
@@ -129,11 +129,11 @@ ptcl_csum(void *a, int len)
 	return ~losum;
 }
 
-static ushort
-ip_csum(uchar *addr)
+static uint16_t
+ip_csum(uint8_t *addr)
 {
 	int len;
-	ulong sum = 0;
+	uint32_t sum = 0;
 
 	len = (addr[0]&0xf)<<2;
 
@@ -220,10 +220,10 @@ if(debug) {
 }
 
 static void
-nak(int ctlrno, Netaddr *a, int code, char *msg, int report)
+nak(int ctlrno, Netaddr *a, int code, int8_t *msg, int report)
 {
 	int n;
-	char buf[128];
+	int8_t buf[128];
 
 	buf[0] = 0;
 	buf[1] = Tftp_ERROR;
@@ -240,10 +240,10 @@ static int
 udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 {
 	int n, len, olen;
-	uchar *dp;
-	ushort csm;
+	uint8_t *dp;
+	uint16_t csm;
 	Udphdr *h;
-	ulong addr, timo;
+	uint32_t addr, timo;
 	Etherpkt pkt;
 	static int rxactive;
 
@@ -280,7 +280,7 @@ udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 			}
 			/* strip off the options */
 			olen = nhgets(h->length);
-			dp = (uchar*)h + (len - (IP_HLEN<<2));
+			dp = (uint8_t*)h + (len - (IP_HLEN<<2));
 
 			memmove(dp, h, IP_HLEN<<2);
 			h = (Udphdr*)dp;
@@ -356,10 +356,10 @@ static int tftpblockno;
             ------------------------------------------------
  */
 static int
-tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
+tftpopen(int ctlrno, Netaddr *a, int8_t *name, Tftp *tftp)
 {
 	int i, len, rlen, oport;
-	char buf[TFTP_SEGSIZE+2];
+	int8_t buf[TFTP_SEGSIZE+2];
 
 	buf[0] = 0;
 	buf[1] = Tftp_READ;
@@ -378,7 +378,8 @@ tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 
 		case Tftp_ERROR:
 			print("tftpopen: error (%d): %s\n",
-				(tftp->header[2]<<8)|tftp->header[3], (char*)tftp->data);
+				(tftp->header[2]<<8)|tftp->header[3],
+			      (int8_t*)tftp->data);
 			return -1;
 
 		case Tftp_DATA:
@@ -409,7 +410,7 @@ tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 static int
 tftpread(int ctlrno, Netaddr *a, Tftp *tftp, int dlen)
 {
-	uchar buf[4];
+	uint8_t buf[4];
 	int try, blockno, len;
 
 	dlen += sizeof(tftp->header);
@@ -456,12 +457,12 @@ tftpread(int ctlrno, Netaddr *a, Tftp *tftp, int dlen)
 }
 
 static int
-bootpopen(int ctlrno, char *file, Bootp *brep, int dotftpopen)
+bootpopen(int ctlrno, int8_t *file, Bootp *brep, int dotftpopen)
 {
 	Bootp req, *rep;
 	int i, n;
-	uchar *ea, rpkt[1024];
-	char name[128], *filename, *sysname;
+	uint8_t *ea, rpkt[1024];
+	int8_t name[128], *filename, *sysname;
 
 	if (debugload)
 		print("bootpopen: ether%d!%s...", ctlrno, file);
@@ -550,7 +551,7 @@ bootpopen(int ctlrno, char *file, Bootp *brep, int dotftpopen)
 }
 
 int
-bootpboot(int ctlrno, char *file, Boot *b)
+bootpboot(int ctlrno, int8_t *file, Boot *b)
 {
 	int n;
 	Bootp rep;
@@ -578,27 +579,27 @@ bootpboot(int ctlrno, char *file, Boot *b)
 
 static struct {
 	Fs	fs;
-	char	ini[INIPATHLEN];
+	int8_t	ini[INIPATHLEN];
 } pxether[MaxEther];
 
-static vlong
-pxediskseek(Fs*, vlong)
+static int64_t
+pxediskseek(Fs*, int64_t)
 {
 	return -1LL;
 }
 
-static long
-pxediskread(Fs*, void*, long)
+static int32_t
+pxediskread(Fs*, void*, int32_t)
 {
 	return -1;
 }
 
-static long
-pxeread(File* f, void* va, long len)
+static int32_t
+pxeread(File* f, void* va, int32_t len)
 {
 	int n;
 	Bootp rep;
-	char *p, *v;
+	int8_t *p, *v;
 
 	if((n = bootpopen(f->fs->dev, pxether[f->fs->dev].ini, &rep, 1)) < 0)
 		return -1;
@@ -618,10 +619,10 @@ pxeread(File* f, void* va, long len)
 }
 
 static int
-pxewalk(File* f, char* name)
+pxewalk(File* f, int8_t* name)
 {
-	char *ini;
-	uchar *ea;
+	int8_t *ini;
+	uint8_t *ea;
 
 	switch(f->walked){
 	default:
@@ -659,7 +660,7 @@ pxewalk(File* f, char* name)
 }
 
 void*
-pxegetfspart(int ctlrno, char* part, int)
+pxegetfspart(int ctlrno, int8_t* part, int)
 {
 	if(!pxe)
 		return nil;
@@ -691,7 +692,7 @@ int
 interesting(void* data)
 {
 	int len;
-	ulong addr;
+	uint32_t addr;
 	Netaddr *a = &server;
 	Udphdr *h;
 
@@ -728,7 +729,7 @@ interesting(void* data)
 		 * but only looking at udp stuff
 		 * from here on.
 		 */
-		h = (Udphdr*)((uchar*)h + (len - (IP_HLEN<<2)));
+		h = (Udphdr*)((uint8_t*)h + (len - (IP_HLEN<<2)));
 
 		if(debug)
 			print("fudge %d\n", len);

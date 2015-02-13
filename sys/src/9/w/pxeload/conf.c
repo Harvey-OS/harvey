@@ -26,24 +26,24 @@
  * which we pick up before reading the plan9.ini file.
  */
 #define BOOTLINELEN	64
-#define BOOTARGS	((char*)(CONFADDR+BOOTLINELEN))
+#define BOOTARGS	((int8_t*)(CONFADDR+BOOTLINELEN))
 #define	BOOTARGSLEN	(3584-0x200-BOOTLINELEN)
 #define	MAXCONF		100
 
-static char *confname[MAXCONF];
-static char *confval[MAXCONF];
+static int8_t *confname[MAXCONF];
+static int8_t *confval[MAXCONF];
 static int nconf;
 
-extern char **ini;
+extern int8_t **ini;
 
 typedef struct {
-	char*	name;
+	int8_t*	name;
 	int	start;
 	int	end;
 } Mblock;
 
 typedef struct {
-	char*	tag;
+	int8_t*	tag;
 	Mblock*	mb;
 } Mitem;
 
@@ -51,14 +51,14 @@ static Mblock mblock[MAXCONF];
 static int nmblock;
 static Mitem mitem[MAXCONF];
 static int nmitem;
-static char* mdefault;
-static char mdefaultbuf[10];
+static int8_t* mdefault;
+static int8_t mdefaultbuf[10];
 static int mtimeout;
 
-static char*
-comma(char* line, char** residue)
+static int8_t*
+comma(int8_t* line, int8_t** residue)
 {
-	char *q, *r;
+	int8_t *q, *r;
 
 	if((q = strchr(line, ',')) != nil){
 		*q++ = 0;
@@ -76,10 +76,10 @@ comma(char* line, char** residue)
 }
 
 static Mblock*
-findblock(char* name, char** residue)
+findblock(int8_t* name, int8_t** residue)
 {
 	int i;
-	char *p;
+	int8_t *p;
 
 	p = comma(name, residue);
 	for(i = 0; i < nmblock; i++){
@@ -90,10 +90,10 @@ findblock(char* name, char** residue)
 }
 
 static Mitem*
-finditem(char* name, char** residue)
+finditem(int8_t* name, int8_t** residue)
 {
 	int i;
-	char *p;
+	int8_t *p;
 
 	p = comma(name, residue);
 	for(i = 0; i < nmitem; i++){
@@ -104,11 +104,11 @@ finditem(char* name, char** residue)
 }
 
 static void
-parsemenu(char* str, char* scratch, int len)
+parsemenu(int8_t* str, int8_t* scratch, int len)
 {
 	Mitem *mi;
 	Mblock *mb, *menu;
-	char buf[20], *p, *q, *line[MAXCONF];
+	int8_t buf[20], *p, *q, *line[MAXCONF];
 	int i, inblock, n, show;
 
 	inblock = 0;
@@ -255,22 +255,22 @@ void
 readlsconf(void)
 {
 	int i, n;
-	uchar *p;
+	uint8_t *p;
 	MMap *map;
 	u64int addr, len;
 
-	p = (uchar*)ROUND((ulong)end, BY2PG);
+	p = (uint8_t*)ROUND((uint32_t)end, BY2PG);
 	for(n = 0; n < 20; n++){
 		if(*p == 0)
 			break;
 		if(memcmp(p, "APM\0", 4) == 0){
 			apm.haveinfo = 1;
-			apm.ax = *(ushort*)(p+4);
-			apm.cx = *(ushort*)(p+6);
-			apm.dx = *(ushort*)(p+8);
-			apm.di = *(ushort*)(p+10);
-			apm.ebx = *(ulong*)(p+12);
-			apm.esi = *(ulong*)(p+16);
+			apm.ax = *(uint16_t*)(p+4);
+			apm.cx = *(uint16_t*)(p+6);
+			apm.dx = *(uint16_t*)(p+8);
+			apm.di = *(uint16_t*)(p+10);
+			apm.ebx = *(uint32_t*)(p+12);
+			apm.esi = *(uint32_t*)(p+16);
 			print("apm ax=%x cx=%x dx=%x di=%x ebx=%x esi=%x\n",
 				apm.ax, apm.cx, apm.dx,
 				apm.di, apm.ebx, apm.esi);
@@ -325,11 +325,11 @@ readlsconf(void)
 	}
 }
 
-char*
-getconf(char *name)
+int8_t*
+getconf(int8_t *name)
 {
 	int i, n, nmatch;
-	char buf[20];
+	int8_t buf[20];
 
 	nmatch = 0;
 	for(i = 0; i < nconf; i++)
@@ -368,7 +368,7 @@ getconf(char *name)
 }
 
 void
-addconf(char *fmt, ...)
+addconf(int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -378,10 +378,10 @@ addconf(char *fmt, ...)
 }
 
 void
-changeconf(char *fmt, ...)
+changeconf(int8_t *fmt, ...)
 {
 	va_list arg;
-	char *p, *q, pref[20], buf[128];
+	int8_t *p, *q, pref[20], buf[128];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof buf, fmt, arg);
@@ -413,15 +413,15 @@ changeconf(char *fmt, ...)
 /*
  *  read configuration file
  */
-static char inibuf[BOOTARGSLEN];
-static char id[8] = "ZORT 0\r\n";
+static int8_t inibuf[BOOTARGSLEN];
+static int8_t id[8] = "ZORT 0\r\n";
 
 int
 dotini(Fs *fs)
 {
 	File rc;
 	int blankline, i, incomment, inspace, n;
-	char *cp, *p, *q, *line[MAXCONF];
+	int8_t *cp, *p, *q, *line[MAXCONF];
 
 	if(fswalk(fs, *ini, &rc) <= 0)
 		return -1;
@@ -515,10 +515,10 @@ dotini(Fs *fs)
 }
 
 static int
-parseether(uchar *to, char *from)
+parseether(uint8_t *to, int8_t *from)
 {
-	char nip[4];
-	char *p;
+	int8_t nip[4];
+	int8_t *p;
 	int i;
 
 	p = from;
@@ -540,10 +540,10 @@ parseether(uchar *to, char *from)
 }
 
 int
-isaconfig(char *class, int ctlrno, ISAConf *isa)
+isaconfig(int8_t *class, int ctlrno, ISAConf *isa)
 {
 	int i;
-	char cc[NAMELEN], *p, *r;
+	int8_t cc[NAMELEN], *p, *r;
 
 	snprint(cc, sizeof cc, "%s%d", class, ctlrno);
 	if((p = getconf(cc)) == nil)

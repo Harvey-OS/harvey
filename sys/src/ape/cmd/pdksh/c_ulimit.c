@@ -34,7 +34,7 @@
 # include <ulimit.h>
 #else /* HAVE_ULIMIT_H */
 # ifdef HAVE_ULIMIT
-extern	long ulimit();
+extern	int32_t ulimit();
 # endif /* HAVE_ULIMIT */
 #endif /* HAVE_ULIMIT_H */
 
@@ -49,15 +49,15 @@ extern	long ulimit();
 
 int
 c_ulimit(wp)
-	char **wp;
+	int8_t **wp;
 {
 	static const struct limits {
-		const char	*name;
+		const int8_t	*name;
 		enum { RLIMIT, ULIMIT } which;
 		int	gcmd;	/* get command */
 		int	scmd;	/* set command (or -1, if no set command) */
 		int	factor;	/* multiply by to get rlim_{cur,max} values */
-		char	option;
+		int8_t	option;
 	} limits[] = {
 		/* Do not use options -H, -S or -a */
 #ifdef RLIMIT_CPU
@@ -120,9 +120,9 @@ c_ulimit(wp)
 #ifdef RLIMIT_SWAP
 		{ "swap(kbytes)", RLIMIT_SWAP, RLIMIT_SWAP, 1024, 'w' },
 #endif
-		{ (char *) 0 }
+		{ (int8_t *) 0 }
 	    };
-	static char	options[3 + NELEM(limits)];
+	static int8_t	options[3 + NELEM(limits)];
 	rlim_t		UNINITIALIZED(val);
 	int		how = SOFT | HARD;
 	const struct limits	*l;
@@ -134,7 +134,7 @@ c_ulimit(wp)
 
 	if (!options[0]) {
 		/* build options string on first call - yuck */
-		char *p = options;
+		int8_t *p = options;
 
 		*p++ = 'H'; *p++ = 'S'; *p++ = 'a';
 		for (l = limits; l->name; l++)
@@ -176,7 +176,7 @@ c_ulimit(wp)
 		if (strcmp(wp[0], "unlimited") == 0)
 			val = KSH_RLIM_INFINITY;
 		else {
-			long rval;
+			int32_t rval;
 
 			if (!evaluate(wp[0], &rval, KSH_RETURN_ERROR))
 				return 1;
@@ -220,7 +220,7 @@ c_ulimit(wp)
 #endif /* RLIM_INFINITY */
 			{
 				val /= l->factor;
-				shprintf("%ld\n", (long) val);
+				shprintf("%ld\n", (int32_t) val);
 			}
 		}
 		return 0;
@@ -273,7 +273,7 @@ c_ulimit(wp)
 #endif /* RLIM_INFINITY */
 		{
 			val /= l->factor;
-			shprintf("%ld\n", (long) val);
+			shprintf("%ld\n", (int32_t) val);
 		}
 	}
 	return 0;

@@ -41,7 +41,7 @@ enum {
 	Postlen		= Poststrlen+Postcodelen,
 };
 
-#define CGA		((uchar*)KADDR(0xB8000))
+#define CGA		((uint8_t*)KADDR(0xB8000))
 
 static Lock cgalock;
 static int cgapos;
@@ -64,7 +64,7 @@ cgaregw(int index, int data)
 static void
 cgacursor(void)
 {
-	uchar *cga;
+	uint8_t *cga;
 
 	cgaregw(0x0E, (cgapos/2>>8) & 0xFF);
 	cgaregw(0x0F, cgapos/2 & 0xFF);
@@ -77,7 +77,7 @@ static void
 cgaputc(int c)
 {
 	int i;
-	uchar *cga, *p;
+	uint8_t *cga, *p;
 
 	cga = CGA;
 
@@ -113,7 +113,7 @@ cgaputc(int c)
 }
 
 void
-cgaconsputs(char* s, int n)
+cgaconsputs(int8_t* s, int n)
 {
 	ilock(&cgalock);
 	while(n-- > 0)
@@ -124,9 +124,9 @@ cgaconsputs(char* s, int n)
 void
 cgapost(int code)
 {
-	uchar *cga;
+	uint8_t *cga;
 
-	static char hex[] = "0123456789ABCDEF";
+	static int8_t hex[] = "0123456789ABCDEF";
 
 	cga = CGA;
 	cga[Width*Height-Postcodelen*2] = hex[(code>>4) & 0x0F];

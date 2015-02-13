@@ -12,14 +12,14 @@
 
 int	multi;
 int	nlines;
-char	*status = nil;
+int8_t	*status = nil;
 
 int
-line(int fd, char *file)
+line(int fd, int8_t *file)
 {
-	char c;
+	int8_t c;
 	int m, n, nalloc;
-	char *buf;
+	int8_t *buf;
 
 	nalloc = 0;
 	buf = nil;
@@ -53,7 +53,7 @@ line(int fd, char *file)
 }
 
 void
-lines(int fd, char *file)
+lines(int fd, int8_t *file)
 {
 	do{
 		if(line(fd, file) == 0)

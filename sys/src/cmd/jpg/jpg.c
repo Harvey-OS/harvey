@@ -24,7 +24,7 @@ int		nineflag = 0;
 int		threeflag = 0;
 int		colorspace = CYCbCr;	/* default for 8-bit displays: combine color rotation with dither */
 int		output = 0;
-ulong	outchan = CMAP8;
+uint32_t	outchan = CMAP8;
 Image	*image;
 int		defaultcolor = 1;
 
@@ -33,7 +33,7 @@ enum{
 	Edge		= 5
 };
 
-char	*show(int, char*, int);
+int8_t	*show(int, int8_t*, int);
 
 void
 eresized(int new)
@@ -207,7 +207,7 @@ vidmerge(Rawimage **aa1, Rawimage **aa2)
 		}
 		row = Dx(a1->r);
 		for (c = 0; c < ao->nchans; c++) {
-			uchar *po, *p1, *p2;
+			uint8_t *po, *p1, *p2;
 
 			ao->chans[c] = malloc(ao->chanlen);
 			po = ao->chans[c];
@@ -234,15 +234,15 @@ vidmerge(Rawimage **aa1, Rawimage **aa2)
 	return aao;
 }
 
-char*
-show(int fd, char *name, int outc)
+int8_t*
+show(int fd, int8_t *name, int outc)
 {
 	Rawimage **array, *r, *c;
 	static int inited;
 	Image *i;
 	int j, ch, outchan;
 	Biobuf b;
-	char buf[32];
+	int8_t buf[32];
 
 	if(Binit(&b, fd, OREAD) < 0)
 		return nil;

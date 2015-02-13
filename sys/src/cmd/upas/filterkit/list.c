@@ -28,7 +28,7 @@ struct Pattern
 {
 	Pattern	*next;
 	int	type;
-	char	*arg;
+	int8_t	*arg;
 	int	bang;
 };
 
@@ -47,7 +47,7 @@ usage(void)
  *  convert string to lower case
  */
 static void
-mklower(char *p)
+mklower(int8_t *p)
 {
 	int c;
 
@@ -62,10 +62,10 @@ mklower(char *p)
  *  simplify an address, reduce to a domain
  */
 static String*
-simplify(char *addr)
+simplify(int8_t *addr)
 {
 	int dots, dotlim;
-	char *p, *at;
+	int8_t *p, *at;
 	String *s;
 
 	mklower(addr);
@@ -118,7 +118,7 @@ simplify(char *addr)
  *  link patterns in order
  */
 static int
-newpattern(int type, char *arg, int bang)
+newpattern(int type, int8_t *arg, int bang)
 {
 	Pattern *p;
 	static Pattern *last;
@@ -164,11 +164,11 @@ newpattern(int type, char *arg, int bang)
  *  all comparisons are case insensitive
  */
 static int
-readpatterns(char *path)
+readpatterns(int8_t *path)
 {
 	Biobuf *b;
-	char *p;
-	char *token[2];
+	int8_t *p;
+	int8_t *token[2];
 	int n;
 	int bang;
 
@@ -203,7 +203,7 @@ readpatterns(char *path)
 }
 
 /* fuck, shit, bugger, damn */
-void regerror(char*)
+void regerror(int8_t*)
 {
 }
 
@@ -211,7 +211,7 @@ void regerror(char*)
  *  check lower case version of address agains patterns
  */
 static Pattern*
-checkaddr(char *arg)
+checkaddr(int8_t *arg)
 {
 	Pattern *p;
 	Reprog *rp;
@@ -243,8 +243,8 @@ checkaddr(char *arg)
 	s_free(s);
 	return 0;
 }
-static char*
-check(int argc, char **argv)
+static int8_t*
+check(int argc, int8_t **argv)
 {
 	int i;
 	Addr *a;
@@ -273,12 +273,12 @@ check(int argc, char **argv)
 /*
  *  add anything that isn't already matched, all matches are lower case
  */
-static char*
-add(char *pp, int argc, char **argv)
+static int8_t*
+add(int8_t *pp, int argc, int8_t **argv)
 {
 	int fd, i;
 	String *s;
-	char *cp;
+	int8_t *cp;
 	Addr *a;
 
 	a = nil;

@@ -28,7 +28,7 @@ struct Tnode
 {
 	Point offset;
 
-	char *str;
+	int8_t *str;
 //	char *(*strfn)(Tnode*);
 //	uint (*draw)(Tnode*, Image*, Image*, Point);
 	void (*expand)(Tnode*);
@@ -47,18 +47,18 @@ struct Atree
 	Tnode *root;
 };
 
-Atree *atreeinit(char*);
+Atree *atreeinit(int8_t*);
 
 /* --- visfossil.c */
 Tnode *initxheader(void);
-Tnode *initxcache(char *name);
+Tnode *initxcache(int8_t *name);
 Tnode *initxsuper(void);
-Tnode *initxlocalroot(char *name, u32int addr);
+Tnode *initxlocalroot(int8_t *name, u32int addr);
 Tnode *initxentry(Entry);
 Tnode *initxsource(Entry, int);
 Tnode *initxentryblock(Block*, Entry*);
 Tnode *initxdatablock(Block*, uint);
-Tnode *initxroot(char *name, uchar[VtScoreSize]);
+Tnode *initxroot(int8_t *name, uint8_t[VtScoreSize]);
 
 int fd;
 Header h;
@@ -70,10 +70,10 @@ int showinactive;
 /*
  * dumbed down versions of fossil routines
  */
-char*
+int8_t*
 bsStr(int state)
 {
-	static char s[100];
+	static int8_t s[100];
 
 	if(state == BsFree)
 		return "Free";
@@ -90,7 +90,7 @@ bsStr(int state)
 	return s;
 }
 
-char *bttab[] = {
+int8_t *bttab[] = {
 	"BtData",
 	"BtData+1",
 	"BtData+2",
@@ -109,7 +109,7 @@ char *bttab[] = {
 	"BtDir+7",
 };
 
-char*
+int8_t*
 btStr(int type)
 {
 	if(type < nelem(bttab))
@@ -172,7 +172,7 @@ readBlock(int part, u32int addr)
 	u64int offset;
 	int n, nn;
 	Block *b;
-	uchar *buf;
+	uint8_t *buf;
 
 	start = partStart(part);
 	end = partEnd(part);
@@ -224,7 +224,7 @@ int vtType[BtMax] = {
 };
 
 Block*
-ventiBlock(uchar score[VtScoreSize], uint type)
+ventiBlock(uint8_t score[VtScoreSize], uint type)
 {
 	int n;
 	Block *b;
@@ -248,7 +248,7 @@ ventiBlock(uchar score[VtScoreSize], uint type)
 }
 
 Block*
-dataBlock(uchar score[VtScoreSize], uint type, uint tag)
+dataBlock(uint8_t score[VtScoreSize], uint type, uint tag)
 {
 	Block *b, *bl;
 	int lpb;
@@ -338,7 +338,7 @@ xcacheexpand(Tnode *t)
 }
 
 Tnode*
-initxcache(char *name)
+initxcache(int8_t *name)
 {
 	Tnode *t;
 
@@ -443,10 +443,10 @@ xvacrootexpand(Tnode *t)
 }
 
 Tnode*
-initxvacroot(uchar score[VtScoreSize])
+initxvacroot(uint8_t score[VtScoreSize])
 {
 	Tnode *t;
-	uchar buf[VtRootSize];
+	uint8_t buf[VtRootSize];
 	int n;
 
 	if((n = vtRead(z, score, VtRootType, buf, VtRootSize)) < 0)
@@ -520,7 +520,8 @@ nilgen(void*, Block*, int, Tnode**)
 }
 
 Tnode*
-initxblock(Block *b, char *s, int (*gen)(void*, Block*, int, Tnode**), void *arg)
+initxblock(Block *b, int8_t *s, int (*gen)(void*, Block*, int, Tnode**),
+	   void *arg)
 {
 	Xblock *t;
 
@@ -680,9 +681,9 @@ xlocalrootgen(void*, Block *b, int o, Tnode **tp)
 }
 
 Tnode*
-initxlocalroot(char *name, u32int addr)
+initxlocalroot(int8_t *name, u32int addr)
 {
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 	Block *b;
 
 	localToGlobal(addr, score);
@@ -705,7 +706,7 @@ xvacrootgen(void*, Block *b, int o, Tnode **tp)
 }
 
 Tnode*
-initxroot(char *name, uchar score[VtScoreSize])
+initxroot(int8_t *name, uint8_t score[VtScoreSize])
 {
 	Block *b;
 
@@ -801,7 +802,7 @@ initxdatablock(Block *b, uint n)
 }
 
 int
-parseScore(uchar *score, char *buf, int n)
+parseScore(uint8_t *score, int8_t *buf, int n)
 {
 	int i, c;
 
@@ -831,11 +832,11 @@ parseScore(uchar *score, char *buf, int n)
 int
 scoreFmt(Fmt *f)
 {
-	uchar *v;
+	uint8_t *v;
 	int i;
 	u32int addr;
 
-	v = va_arg(f->args, uchar*);
+	v = va_arg(f->args, uint8_t*);
 	if(v == nil){
 		fmtprint(f, "*");
 	}else if((addr = globalToLocal(v)) != NilBlock)
@@ -849,10 +850,10 @@ scoreFmt(Fmt *f)
 }
 
 Atree*
-atreeinit(char *arg)
+atreeinit(int8_t *arg)
 {
 	Atree *a;
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 
 	vtAttach();
 
@@ -888,9 +889,9 @@ enum
 };
 
 uint
-drawtext(char *s, Image *m, Image *clipr, Point o)
+drawtext(int8_t *s, Image *m, Image *clipr, Point o)
 {
-	char *t, *nt, *e;
+	int8_t *t, *nt, *e;
 	uint dy;
 
 	if(s == nil)
@@ -941,7 +942,7 @@ uint
 drawnode(Tnode *t, Image *m, Image *clipr, Point o)
 {
 	int i;
-	char *fs, *s;
+	int8_t *fs, *s;
 	uint dy;
 	Point oo;
 
@@ -1033,7 +1034,7 @@ enum
 	MMenu = 2,
 };
 
-char *items[] = { "exit", 0 };
+int8_t *items[] = { "exit", 0 };
 enum { IExit, };
 
 Menu menu;

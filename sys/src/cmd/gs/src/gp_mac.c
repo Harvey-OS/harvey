@@ -72,8 +72,8 @@
 HWND hwndtext;	/* used as identifier for the dll instance */
 
 
-char *
-mygetenv(const char * env)
+int8_t *
+mygetenv(const int8_t * env)
 {
 	return (NULL);	
 }
@@ -81,8 +81,8 @@ mygetenv(const char * env)
 void
 gp_init (void)
 {
-	extern char    *gs_lib_default_path;
-	extern char    *gs_init_file;
+	extern int8_t    *gs_lib_default_path;
+	extern int8_t    *gs_init_file;
 	
 #if 0
 	/*...Initialize Ghostscript's default library paths and initialization file...*/
@@ -125,14 +125,14 @@ int
 gettimeofday(struct timeval *tvp)
 {
     struct tm tms;
-    static long offset = 0;
-    long ticks;
+    static int32_t offset = 0;
+    int32_t ticks;
 
     if (!offset) {
 	time(&offset);
-	offset -= (time((long *)&tms) / HZ);
+	offset -= (time((int32_t *)&tms) / HZ);
     }
-    ticks = time((long *)&tms);
+    ticks = time((int32_t *)&tms);
     tvp->tv_sec = ticks / HZ + offset;
     tvp->tv_usec = (ticks % HZ) * (1000 * 1000 / HZ);
     return 0;
@@ -145,7 +145,7 @@ gettimeofday(struct timeval *tvp)
 /* Read the current time (in seconds since Jan. 1, 1970) */
 /* and fraction (in nanoseconds). */
 void
-gp_get_realtime(long *pdt)
+gp_get_realtime(int32_t *pdt)
 {
     struct timeval tp;
 
@@ -170,10 +170,10 @@ gp_get_realtime(long *pdt)
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(long *pdt)
+gp_get_usertime(int32_t *pdt)
 {
     gp_get_realtime(pdt);	/* Use an approximation on other hosts.  */
-	pdt[0] -= (char)rand(); // was needed, if used for random generator seed (g3 is too fast)
+	pdt[0] -= (int8_t)rand(); // was needed, if used for random generator seed (g3 is too fast)
 }
 
 
@@ -182,7 +182,7 @@ gp_get_usertime(long *pdt)
  * If no string is available, return NULL.  The caller may assume
  * the string is allocated statically and permanently.
  */
-const char *	gp_strerror(int)
+const int8_t *	gp_strerror(int)
 {
 	return NULL;
 }
@@ -194,21 +194,22 @@ const char *	gp_strerror(int)
 /* and time (in milliseconds since midnight). */
 
 void
-gp_get_clock (long *pdt) {
+gp_get_clock (int32_t *pdt) {
 
    gp_get_realtime(pdt);	/* Use an approximation on other hosts.  */
   
 }
 
 void
-gpp_get_clock (long *pdt)
+gpp_get_clock (int32_t *pdt)
 
 {
-	long				secs;
+	int32_t				secs;
 	DateTimeRec			dateRec;
 	static DateTimeRec	baseDateRec = {1980, 1, 1, 0, 0, 0, 1};
-	long				pdtmp[2];
-	void 				do_get_clock (DateTimeRec *dateRec, long *pdt);
+	int32_t				pdtmp[2];
+	void 				do_get_clock (DateTimeRec *dateRec,
+							   int32_t *pdt);
 
 
 	GetDateTime ((unsigned long *) &secs);
@@ -233,19 +234,20 @@ UnsignedWide beginMicroTickCount={0,0};
 /* and time (in nanoseconds since midnight). */
 
 void
-gpp_get_realtime (long *pdt)
+gpp_get_realtime (int32_t *pdt)
 {
 
     UnsignedWide microTickCount,
     	nMicroTickCount;
 
-	long idate;
+	int32_t idate;
 	static const int mstart[12] =
 	   { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
-	long				secs;
+	int32_t				secs;
 	DateTimeRec			dateRec;
 	static DateTimeRec	baseDateRec = {1980, 1, 1, 0, 0, 0, 1};
-	void 				do_get_clock (DateTimeRec *dateRec, long *pdt);
+	void 				do_get_clock (DateTimeRec *dateRec,
+							   int32_t *pdt);
 
 
     if ((beginMicroTickCount.lo == 0)&&(beginMicroTickCount.hi == 0) )  {
@@ -264,10 +266,10 @@ gpp_get_realtime (long *pdt)
 
 	/* If the date is reasonable, subtract the days since Jan. 1, 1980 */
 
-	idate = ((long) dateRec.year - 1980) * 365 +	/* days per year */
-	  	(((long) dateRec.year - 1)/4 - 1979/4) +	/* intervening leap days */
-		(1979/100 - ((long) dateRec.year - 1)/100) +
-		(((long) dateRec.month - 1)/400 - 1979/400) +
+	idate = ((int32_t) dateRec.year - 1980) * 365 +	/* days per year */
+	  	(((int32_t) dateRec.year - 1)/4 - 1979/4) +	/* intervening leap days */
+		(1979/100 - ((int32_t) dateRec.year - 1)/100) +
+		(((int32_t) dateRec.month - 1)/400 - 1979/400) +
 		mstart[dateRec.month - 1] +		/* month is 1-origin */
 		dateRec.day - 1;			/* day of month is 1-origin */
 	idate += (2 < dateRec.month
@@ -286,18 +288,18 @@ gpp_get_realtime (long *pdt)
 
 
 static void
-do_get_clock (DateTimeRec *dateRec, long *pdt)
+do_get_clock (DateTimeRec *dateRec, int32_t *pdt)
 
 {
-long idate;
+int32_t idate;
 static const int mstart[12] =
    { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
 	/* This gets UTC, not local time */
 	/* We have no way of knowing the time zone correction */
-	idate = ((long) dateRec->year - 1980) * 365 +	/* days per year */
-	  	(((long) dateRec->year - 1)/4 - 1979/4) +	/* intervening leap days */
-		(1979/100 - ((long) dateRec->year - 1)/100) +
-		(((long) dateRec->month - 1)/400 - 1979/400) +
+	idate = ((int32_t) dateRec->year - 1980) * 365 +	/* days per year */
+	  	(((int32_t) dateRec->year - 1)/4 - 1979/4) +	/* intervening leap days */
+		(1979/100 - ((int32_t) dateRec->year - 1)/100) +
+		(((int32_t) dateRec->month - 1)/400 - 1979/400) +
 		mstart[dateRec->month - 1] +		/* month is 1-origin */
 		dateRec->day - 1;			/* day of month is 1-origin */
 	idate += (2 < dateRec->month
@@ -309,7 +311,7 @@ static const int mstart[12] =
 }
 
 void
-gpp_get_usertime(long *pdt)
+gpp_get_usertime(int32_t *pdt)
 {
 	gp_get_realtime(pdt);	/* Use an approximation for now.  */
 }
@@ -346,13 +348,13 @@ gp_init_console(void)
 /* Write a string to the console. */
 
 void
-gp_console_puts (const char *str, uint size)
+gp_console_puts (const int8_t *str, uint size)
 {
 /*	fwrite (str, 1, size, stdout);*/
 	return;
 }
 
-const char *
+const int8_t *
 gp_getenv_display(void)
 {
 	return NULL;

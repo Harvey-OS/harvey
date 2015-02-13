@@ -20,9 +20,9 @@
 static Ureg ureg;
 
 static void
-scrprint(char *fmt, ...)
+scrprint(int8_t *fmt, ...)
 {
-	char buf[128];
+	int8_t buf[128];
 	va_list va;
 	int n;
 
@@ -32,10 +32,10 @@ scrprint(char *fmt, ...)
 	putstrn(buf, n);
 }
 
-static char*
+static int8_t*
 getline(void)
 {
-	static char buf[128];
+	static int8_t buf[128];
 	int i, c;
 
 	for(;;){
@@ -52,21 +52,21 @@ getline(void)
 }
 
 static void*
-addr(char *s, Ureg *ureg, char **p)
+addr(int8_t *s, Ureg *ureg, int8_t **p)
 {
-	ulong a;
+	uint32_t a;
 
 	a = strtoul(s, p, 16);
 	if(a < sizeof(Ureg))
-		return ((uchar*)ureg)+a;
+		return ((uint8_t*)ureg)+a;
 	return (void*)a;
 }
 
 static void
 talkrdb(Ureg *ureg)
 {
-	uchar *a;
-	char *p, *req;
+	uint8_t *a;
+	int8_t *p, *req;
 
 	delconsdevs();		/* turn off serial console and kprint */
 //	scrprint("Plan 9 debugger\n");
@@ -83,7 +83,7 @@ talkrdb(Ureg *ureg)
 
 		case 'w':
 			a = addr(req+1, ureg, &p);
-			*(ulong*)a = strtoul(p, nil, 16);
+			*(uint32_t*)a = strtoul(p, nil, 16);
 			iprint("W\n");
 			break;
 /*

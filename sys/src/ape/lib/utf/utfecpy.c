@@ -25,10 +25,10 @@
 #include "utf.h"
 #include "utfdef.h"
 
-char*
-utfecpy(char *to, char *e, char *from)
+int8_t*
+utfecpy(int8_t *to, int8_t *e, int8_t *from)
 {
-	char *end;
+	int8_t *end;
 
 	if(to >= e)
 		return to;

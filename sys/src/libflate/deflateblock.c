@@ -15,8 +15,8 @@ typedef struct Block	Block;
 
 struct Block
 {
-	uchar	*pos;
-	uchar	*limit;
+	uint8_t	*pos;
+	uint8_t	*limit;
 };
 
 static int
@@ -47,7 +47,8 @@ blwrite(void *vb, void *buf, int n)
 }
 
 int
-deflateblock(uchar *dst, int dsize, uchar *src, int ssize, int level, int debug)
+deflateblock(uint8_t *dst, int dsize, uint8_t *src, int ssize, int level,
+	     int debug)
 {
 	Block bd, bs;
 	int ok;

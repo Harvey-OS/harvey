@@ -11,8 +11,8 @@
 #include <libc.h>
 #include <bio.h>
 
-char *server;
-char *status;
+int8_t *server;
+int8_t *status;
 int statusonly;
 
 void
@@ -23,9 +23,9 @@ usage(void)
 }
 
 void
-query(char *addr)
+query(int8_t *addr)
 {
-	char buf[128];
+	int8_t buf[128];
 	int fd, n;
 
 	fd = open(server, ORDWR);

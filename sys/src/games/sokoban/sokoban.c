@@ -16,22 +16,22 @@
 
 #define SOKOTREE "/sys/games/lib/sokoban/"
 
-char *LEasy = SOKOTREE "levels/easy.slc";
-char *LHard = SOKOTREE "levels/hard.slc";
-char *levelfile;
+int8_t *LEasy = SOKOTREE "levels/easy.slc";
+int8_t *LHard = SOKOTREE "levels/hard.slc";
+int8_t *levelfile;
 
 #define SOKOIMG SOKOTREE "images/"
 
-char	*GRImage =	SOKOIMG "right.bit";
-char	*GLImage =	SOKOIMG "left.bit";
-char	*WallImage =	SOKOIMG "wall.bit";
-char	*EmptyImage =	SOKOIMG "empty.bit";
-char	*CargoImage =	SOKOIMG "cargo.bit";
-char	*GoalCargoImage= SOKOIMG "goalcargo.bit";
-char	*GoalImage =	SOKOIMG "goal.bit";
-char	*WinImage =	SOKOIMG "win.bit";
+int8_t	*GRImage =	SOKOIMG "right.bit";
+int8_t	*GLImage =	SOKOIMG "left.bit";
+int8_t	*WallImage =	SOKOIMG "wall.bit";
+int8_t	*EmptyImage =	SOKOIMG "empty.bit";
+int8_t	*CargoImage =	SOKOIMG "cargo.bit";
+int8_t	*GoalCargoImage= SOKOIMG "goalcargo.bit";
+int8_t	*GoalImage =	SOKOIMG "goal.bit";
+int8_t	*WinImage =	SOKOIMG "win.bit";
 
-char *buttons[] = 
+int8_t *buttons[] = 
 {
 	"restart",
 	"easy",
@@ -41,7 +41,7 @@ char *buttons[] =
 	0
 };
 
-char **levelnames;
+int8_t **levelnames;
 
 Menu menu = 
 {
@@ -62,7 +62,7 @@ buildmenu(void)
 		for(i=0; levelnames[i] != 0; i++)
 			free(levelnames[i]);
 	}
-	levelnames = realloc(levelnames, sizeof(char*)*(numlevels+1));
+	levelnames = realloc(levelnames, sizeof(int8_t*)*(numlevels+1));
 	if (levelnames == nil)
 		sysfatal("cannot allocate levelnames");
 	for(i=0; i < numlevels; i++)
@@ -84,7 +84,7 @@ eallocimage(Rectangle r, int repl, uint color)
 }
 
 Image *
-eloadfile(char *path)
+eloadfile(int8_t *path)
 {
 	Image *img;
 	int fd;
@@ -181,7 +181,7 @@ mouse2route(Mouse m)
 	return findroute(level.glenda, p);
 }
 
-char *
+int8_t *
 genlevels(int i)
 {
 	
@@ -221,7 +221,7 @@ eresized(int new)
 }
 
 void 
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Mouse m;
 	Event ev;

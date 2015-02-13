@@ -73,7 +73,8 @@ extern const gx_device_color_type_t gx_dc_pattern2;
 
 /* Write a matrix parameter. */
 private int
-cos_dict_put_matrix(cos_dict_t *pscd, const char *key, const gs_matrix *pmat)
+cos_dict_put_matrix(cos_dict_t *pscd, const int8_t *key,
+                    const gs_matrix *pmat)
 {
     float matrix[6];
 
@@ -212,7 +213,7 @@ pdf_store_pattern1_params(gx_device_pdf *pdev, pdf_resource_t *pres,
     double scale_y = pdev->HWResolution[1] / 72.0;
     cos_dict_t *pcd = cos_stream_dict((cos_stream_t *)pres->object);
     cos_dict_t *pcd_Resources = cos_dict_alloc(pdev, "pdf_pattern(Resources)");
-    char buf[60];
+    int8_t buf[60];
     int code;
 
     if (pcd == NULL || pcd_Resources == NULL)

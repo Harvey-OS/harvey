@@ -23,13 +23,13 @@ struct Timers
 
 static Timers timers[MACHMAX];
 
-ulong intrcount[MACHMAX];
-ulong fcallcount[MACHMAX];
+uint32_t intrcount[MACHMAX];
+uint32_t fcallcount[MACHMAX];
 
-static vlong
+static int64_t
 tadd(Timers *tt, Timer *nt)
 {
-	vlong when;
+	int64_t when;
 	Timer *t, **last;
 
 	/* Called with tt locked */
@@ -87,7 +87,7 @@ tadd(Timers *tt, Timer *nt)
 	return 0;
 }
 
-static vlong
+static int64_t
 tdel(Timer *dt)
 {
 	Timer *t, **last;
@@ -114,7 +114,7 @@ void
 timeradd(Timer *nt)
 {
 	Timers *tt;
-	vlong when;
+	int64_t when;
 
 	/* Must lock Timer struct before Timers struct */
 	ilock(nt);
@@ -137,7 +137,7 @@ void
 timerdel(Timer *dt)
 {
 	Timers *tt;
-	vlong when;
+	int64_t when;
 
 	ilock(dt);
 	if(tt = dt->tt){
@@ -190,11 +190,11 @@ hzclock(Ureg *ur)
 }
 
 void
-timerintr(Ureg *u, vlong)
+timerintr(Ureg *u, int64_t)
 {
 	Timer *t;
 	Timers *tt;
-	vlong when, now;
+	int64_t when, now;
 	int callhzclock;
 
 	intrcount[m->machno]++;
@@ -254,13 +254,13 @@ Timer*
 addclock0link(void (*f)(void), int ms)
 {
 	Timer *nt;
-	vlong when;
+	int64_t when;
 
 	/* Synchronize to hztimer if ms is 0 */
 	nt = malloc(sizeof(Timer));
 	if(ms == 0)
 		ms = 1000/HZ;
-	nt->tns = (vlong)ms*1000000LL;
+	nt->tns = (int64_t)ms*1000000LL;
 	nt->tmode = Tperiodic;
 	nt->tt = nil;
 	nt->tf = (void (*)(Ureg*, Timer*))f;
@@ -278,10 +278,10 @@ addclock0link(void (*f)(void), int ms)
  *  It is a LOT slower so shouldn't be used if you're just converting
  *  a delta.
  */
-ulong
-tk2ms(ulong ticks)
+uint32_t
+tk2ms(uint32_t ticks)
 {
-	uvlong t, hz;
+	uint64_t t, hz;
 
 	t = ticks;
 	hz = HZ;
@@ -291,8 +291,8 @@ tk2ms(ulong ticks)
 	return ticks;
 }
 
-ulong
-ms2tk(ulong ms)
+uint32_t
+ms2tk(uint32_t ms)
 {
 	/* avoid overflows at the cost of precision */
 	if(ms >= 1000000000/HZ)

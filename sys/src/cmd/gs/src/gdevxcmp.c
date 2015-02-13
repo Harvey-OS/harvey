@@ -257,7 +257,7 @@ setup_cube(gx_device_X * xdev, int ramp_size, bool colors)
 int
 gdev_x_setup_colors(gx_device_X * xdev)
 {
-    char palette =
+    int8_t palette =
 	((xdev->vinfo->class != StaticGray) &&
 	 (xdev->vinfo->class != GrayScale) ? 'C' :	/* Color */
 	 (xdev->vinfo->colormap_size > 2) ? 'G' :		/* GrayScale */
@@ -268,7 +268,7 @@ gdev_x_setup_colors(gx_device_X * xdev)
 	Atom type;
 	int format;
 	unsigned long nitems, bytes_after;
-	char *buf;
+	int8_t *buf;
 
 	/* Delete property if explicit dest is given */
 	if (XGetWindowProperty(xdev->dpy, xdev->win, gv_colors, 0,
@@ -591,7 +591,7 @@ gdev_x_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 
 	if ((mr | mg | mb) == 0) {	/* i.e., all 0 */
 	    if_debug4('C', "[cX]%u,%u,%u => foreground = %lu\n",
-		      r, g, b, (ulong) xdev->foreground);
+		      r, g, b, (uint32_t) xdev->foreground);
 	    return xdev->foreground;
 	}
 	if (mr == xdev->cman.match_mask.red &&
@@ -599,7 +599,7 @@ gdev_x_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 	    mb == xdev->cman.match_mask.blue
 	    ) {
 	    if_debug4('C', "[cX]%u,%u,%u => background = %lu\n",
-		      r, g, b, (ulong) xdev->background);
+		      r, g, b, (uint32_t) xdev->background);
 	    return xdev->background;
 	}
     }
@@ -675,7 +675,7 @@ gdev_x_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 	    cg = g * dither_rgb / CV_DENOM;
 	    cb = b * dither_rgb / CV_DENOM;
 	    if (max_rgb < countof(cv_tables)) {
-		const ushort *cv_tab = cv_tables[max_rgb];
+		const uint16_t *cv_tab = cv_tables[max_rgb];
 
 		cvr = cv_tab[cr];
 		cvg = cv_tab[cg];
@@ -732,7 +732,7 @@ gdev_x_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 		}
 		if (xcp->color.pad) {
 		    if_debug4('C', "[cX]%u,%u,%u (dynamic) => %lu\n",
-			      r, g, b, (ulong) xcp->color.pixel);
+			      r, g, b, (uint32_t) xcp->color.pixel);
 		    return xcp->color.pixel;
 		} else {
 		    if_debug3('C', "[cX]%u,%u,%u (dynamic) => missing\n",
@@ -763,7 +763,7 @@ gdev_x_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 	    xcp->color.pad = true;
 	    if_debug5('c', "[cX]0x%x,0x%x,0x%x (dynamic) => added [%d]%lu\n",
 		      dr, dg, db, xdev->cman.dynamic.used - 1,
-		      (ulong)xc.pixel);
+		      (uint32_t)xc.pixel);
 	    return xc.pixel;
 	} else {
 	    xcp->color.pad = false;

@@ -32,7 +32,7 @@
 
 /* Global data for all instances : */
 vd_trace_interface * vd_trace0 = NULL, * vd_trace1 = NULL;
-char vd_flags[128] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+int8_t vd_flags[128] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
                      "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
                      "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
                      "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0""\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
@@ -196,12 +196,12 @@ void vd_impl_round(double x, double y, int r, unsigned long c)
     vd_trace1->round(vd_trace1, SX(x), SY(y), r);
 }
 
-void vd_impl_text(double x, double y, char *s, unsigned long c)
+void vd_impl_text(double x, double y, int8_t *s, unsigned long c)
 {   NullRET;
     vd_trace1->setcolor(vd_trace1, c);
     vd_trace1->text(vd_trace1, SX(x), SY(y), s);
 }
 
-void vd_setflag(char f, char v)
+void vd_setflag(int8_t f, int8_t v)
 {   vd_flags[f & 127] = v;
 }

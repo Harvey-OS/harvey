@@ -18,7 +18,7 @@ typedef struct Args Args;
 
 struct Args {
 	int	argc;
-	char	**argv;
+	int8_t	**argv;
 };
 
 typedef struct Dfile Dfile;
@@ -39,10 +39,10 @@ enum{
 int messagesize = MAXSIZE;
 
 void
-fatal(char *fmt, ...)
+fatal(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[1024];
+	int8_t buf[1024];
 
 	write(2, "depend: ", 8);
 	va_start(arg, fmt);
@@ -62,7 +62,7 @@ enum
 struct Symbol
 {
 	Symbol	*next;		/* hash list chaining */
-	char	*sym;
+	int8_t	*sym;
 	int	fno;		/* file symbol is defined in */
 };
 
@@ -111,7 +111,7 @@ struct Fid
 	int	attached;
 	int	open;
 	Qid	qid;
-	char	*path;
+	int8_t	*path;
 	Dfile	*df;
 	Symbol	*dp;
 	int	fd;
@@ -125,7 +125,7 @@ struct Request
 	Request	*next;
 	Fid	*fid;
 	Fcall	f;
-	uchar	buf[1];
+	uint8_t	buf[1];
 };
 
 enum
@@ -136,15 +136,15 @@ enum
 
 struct Tardir
 {
-	char	name[Tnamesize];
-	char	mode[8];
-	char	uid[8];
-	char	gid[8];
-	char	size[12];
-	char	mtime[12];
-	char	chksum[8];
-	char	linkflag;
-	char	linkname[Tnamesize];
+	int8_t	name[Tnamesize];
+	int8_t	mode[8];
+	int8_t	uid[8];
+	int8_t	gid[8];
+	int8_t	size[12];
+	int8_t	mtime[12];
+	int8_t	chksum[8];
+	int8_t	linkflag;
+	int8_t	linkname[Tnamesize];
 };
 
 struct Fs
@@ -162,14 +162,14 @@ struct Fsarg
 {
 	Fs	*fs;
 	int	fd;
-	char *root;
+	int8_t *root;
 };
 
 
 extern	void	fsrun(void*);
 extern	Fid*	fsgetfid(Fs*, int);
 extern	void	fsputfid(Fs*, Fid*);
-extern	void	fsreply(Fs*, Request*, char*);
+extern	void	fsreply(Fs*, Request*, int8_t*);
 extern	void	fsversion(Fs*, Request*, Fid*);
 extern	void	fsauth(Fs*, Request*, Fid*);
 extern	void	fsflush(Fs*, Request*, Fid*);
@@ -201,15 +201,15 @@ void 	(*fcall[])(Fs*, Request*, Fid*) =
 	[Twstat]	fswstat
 };
 
-char Eperm[]   = "permission denied";
-char Eexist[]  = "file does not exist";
-char Enotdir[] = "not a directory";
-char Eisopen[] = "file already open";
-char Enofid[] = "no such fid";
-char mallocerr[]	= "malloc: %r";
-char Etoolong[]	= "name too long";
+int8_t Eperm[]   = "permission denied";
+int8_t Eexist[]  = "file does not exist";
+int8_t Enotdir[] = "not a directory";
+int8_t Eisopen[] = "file already open";
+int8_t Enofid[] = "no such fid";
+int8_t mallocerr[]	= "malloc: %r";
+int8_t Etoolong[]	= "name too long";
 
-char *dependlog = "depend";
+int8_t *dependlog = "depend";
 
 int debug;
 Dfile *dfhash[Ndfhash];		/* dependency file hash */
@@ -217,12 +217,12 @@ QLock dfhlock[Ndfhash];
 QLock iolock;
 
 Request*	allocreq(int);
-Dfile*	getdf(char*);
+Dfile*	getdf(int8_t*);
 void	releasedf(Dfile*);
-Symbol*	dfsearch(Dfile*, char*);
+Symbol*	dfsearch(Dfile*, int8_t*);
 void	dfresolve(Dfile*, int);
-char*	mkpath(char*, char*);
-int	mktar(Dfile*, Symbol*, uchar*, uint, int);
+int8_t*	mkpath(int8_t*, int8_t*);
+int	mktar(Dfile*, Symbol*, uint8_t*, uint, int);
 void	closetar(Dfile*, Symbol*);
 
 void*
@@ -249,10 +249,10 @@ erealloc(void *ReallocP, int ReallocN)
 	return(ReallocP);
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *d, *d0;
+	int8_t *d, *d0;
 
 	if(!s)
 		return 0;
@@ -323,7 +323,7 @@ realmain(void *a)
 }
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, int8_t *argv[])
 {
 	static Args args;
 
@@ -333,11 +333,11 @@ threadmain(int argc, char *argv[])
 	proccreate(realmain, &args, 16*1024);
 }
 
-char*
-mkpath(char *dir, char *file)
+int8_t*
+mkpath(int8_t *dir, int8_t *file)
 {
 	int len;
-	char *path;
+	int8_t *path;
 
 	len = strlen(dir) + 1;
 	if(file != nil)
@@ -355,7 +355,7 @@ fsrun(void *a)
 {
 	struct Fsarg *fsarg;
 	Fs* fs;
-	char *root;
+	int8_t *root;
 	int n, t;
 	Request *r;
 	Fid *f;
@@ -456,10 +456,10 @@ fsputfid(Fs *fs, Fid *f)
 }
 
 void
-fsreply(Fs *fs, Request *r, char *err)
+fsreply(Fs *fs, Request *r, int8_t *err)
 {
 	int n;
-	uchar buf[MAXSIZE];
+	uint8_t buf[MAXSIZE];
 
 	if(err){
 		r->f.type = Rerror;
@@ -521,12 +521,12 @@ void
 fswalk(Fs *fs, Request *r, Fid *f)
 {
 	Fid *nf;
-	char *name, *tmp;
+	int8_t *name, *tmp;
 	int i, nqid, nwname;
-	char errbuf[ERRMAX], *err;
+	int8_t errbuf[ERRMAX], *err;
 	Qid qid[MAXWELEM];
 	Dfile *lastdf;
-	char *path, *npath;
+	int8_t *path, *npath;
 	Dir *d;
 	Symbol *dp;
 
@@ -634,7 +634,7 @@ fswalk(Fs *fs, Request *r, Fid *f)
 				err = Eexist;
 				break;
 			}
-			qid[nqid].path = (uvlong)dp;
+			qid[nqid].path = (uint64_t)dp;
 			qid[nqid].vers = 0;
 		}
 		if(nqid == 0 && err == nil)
@@ -708,11 +708,11 @@ fsclone(Fs *fs, Request *r, Fid *f)
 void
 fswalk(Fs *fs, Request *r, Fid *f)
 {
-	char *name;
+	int8_t *name;
 	int i;
 	Dir d;
-	char errbuf[ERRLEN];
-	char *path;
+	int8_t errbuf[ERRLEN];
+	int8_t *path;
 	Symbol *dp;
 
 	if(f->attached == 0){
@@ -788,7 +788,7 @@ void
 fsopen(Fs *fs, Request *r, Fid *f)
 {
 	int mode;
-	char errbuf[ERRMAX];
+	int8_t errbuf[ERRMAX];
 	
 	if(f->attached == 0){
 		fsreply(fs, r, Enofid);
@@ -831,7 +831,7 @@ fsread(Fs *fs, Request *r, Fid *f)
 	int i, n, len,skip;
 	Dir d;
 	Symbol *dp;
-	char buf[512];
+	int8_t buf[512];
 
 	if(f->attached == 0){
 		fsreply(fs, r, Enofid);
@@ -874,7 +874,7 @@ fsread(Fs *fs, Request *r, Fid *f)
 					d.gid = "none";
 					d.muid = "none";
 					d.qid.type = QTFILE;
-					d.qid.path = (uvlong)dp;
+					d.qid.path = (uint64_t)dp;
 					d.qid.vers = 0;
 					d.length = f->df->file[dp->fno].tarlen;
 					d.mode = 0444;
@@ -891,7 +891,7 @@ fsread(Fs *fs, Request *r, Fid *f)
 		n = mktar(f->df, f->dp, r->buf, r->f.offset, r->f.count);
 
     Return:
-	r->f.data = (char*)r->buf;
+	r->f.data = (int8_t*)r->buf;
 	r->f.count = n;
 	fsreply(fs, r, nil);
 }
@@ -935,11 +935,11 @@ fsremove(Fs *fs, Request *r, Fid*)
 void
 fsstat(Fs *fs, Request *r, Fid *f)
 {
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 	Dir d;
 	Symbol *dp;
 	int n;
-	uchar statbuf[Nstat];
+	uint8_t statbuf[Nstat];
 
 	if(f->qid.type & QTDIR)
 		n = stat(f->path, statbuf, sizeof statbuf);
@@ -950,7 +950,7 @@ fsstat(Fs *fs, Request *r, Fid *f)
 		d.gid = "none";
 		d.muid = "none";
 		d.qid.type = QTFILE;
-		d.qid.path = (uvlong)dp;
+		d.qid.path = (uint64_t)dp;
 		d.qid.vers = 0;
 		d.length = f->df->file[dp->fno].tarlen;
 		d.mode = 0444;
@@ -978,10 +978,10 @@ fswstat(Fs *fs, Request *r, Fid*)
  *  string hash
  */
 uint
-shash(char *str, int len)
+shash(int8_t *str, int len)
 {
 	uint	hash;
-	char	*val; 
+	int8_t	*val; 
 
 	hash = 0;
 	for(val = str; *val; val++)
@@ -1028,7 +1028,7 @@ freedf(Dfile *df)
  *  crack a dependency file
  */
 void
-newsym(char *name, int fno, Symbol **l)
+newsym(int8_t *name, int fno, Symbol **l)
 {
 	Symbol *dp;
 
@@ -1041,9 +1041,9 @@ newsym(char *name, int fno, Symbol **l)
 	*l = dp;
 }
 int
-awk(Biobuf *b, char **field, int n)
+awk(Biobuf *b, int8_t **field, int n)
 {
-	char *line;
+	int8_t *line;
 	int i;
 
 	while(line = Brdline(b, '\n')){
@@ -1067,11 +1067,11 @@ awk(Biobuf *b, char **field, int n)
 }
 
 void
-crackdf(Dfile *df, Biobuf *b, uint len, char *dpath)
+crackdf(Dfile *df, Biobuf *b, uint len, int8_t *dpath)
 {
-	char *name;
-	char *field[3];
-	char path[512];
+	int8_t *name;
+	int8_t *field[3];
+	int8_t path[512];
 	int n, inc, ok, npath;
 	Symbol **l, *dp, *next;
 	File *f, *ef;
@@ -1178,7 +1178,7 @@ crackdf(Dfile *df, Biobuf *b, uint len, char *dpath)
  *  get a cracked dependency file
  */
 Dfile*
-getdf(char *path)
+getdf(int8_t *path)
 {
 	Dfile *df, **l;
 	QLock *lk;
@@ -1278,7 +1278,7 @@ releasedf(Dfile *df)
  *  search a dependency file for a symbol
  */
 Symbol*
-dfsearch(Dfile *df, char *name)
+dfsearch(Dfile *df, int8_t *name)
 {
 	Symbol *dp;
 
@@ -1296,7 +1296,7 @@ dfsearch(Dfile *df, char *name)
  */
 /* set a bit in the referenced file vector */
 int
-set(uchar *vec, int fno)
+set(uint8_t *vec, int fno)
 {
 	if(vec[fno/8] & (1<<(fno&7)))
 		return 1;
@@ -1305,14 +1305,14 @@ set(uchar *vec, int fno)
 }
 /* merge two referenced file vectors */
 void
-merge(uchar *vec, uchar *ovec, int nfile)
+merge(uint8_t *vec, uint8_t *ovec, int nfile)
 {
 	nfile = (nfile+7)/8;
 	while(nfile-- > 0)
 		*vec++ |= *ovec++;
 }
 uint
-res(Dfile *df, uchar *vec, int fno)
+res(Dfile *df, uint8_t *vec, int fno)
 {
 	File *f;
 	Symbol *rp, *dp;
@@ -1338,7 +1338,7 @@ res(Dfile *df, uchar *vec, int fno)
 void
 dfresolve(Dfile *df, int fno)
 {
-	uchar *vec;
+	uint8_t *vec;
 	File *f;
 
 	f = &df->file[fno];
@@ -1350,13 +1350,13 @@ dfresolve(Dfile *df, int fno)
 /*
  *  make the tar directory block for a file
  */
-uchar*
+uint8_t*
 mktardir(File *f)
 {
-	uchar *ep;
+	uint8_t *ep;
 	Tardir *tp;
 	uint sum;
-	uchar *p, *cp;
+	uint8_t *p, *cp;
 
 	p = emalloc(Tblocksize);
 	tp = (Tardir*)p;
@@ -1386,7 +1386,7 @@ int
 getfile(Dfile *df, File *f)
 {
 	int n;
-	char path[512], *name;
+	int8_t path[512], *name;
 
 	qlock(f);
 	f->use++;
@@ -1425,11 +1425,11 @@ closefile(File *f)
  *  return a block of a tar file
  */
 int
-mktar(Dfile *df, Symbol *dp, uchar *area, uint offset, int len)
+mktar(Dfile *df, Symbol *dp, uint8_t *area, uint offset, int len)
 {
 	int fd, i, j, n, off;
-	uchar *p, *buf;
-	uchar *vec;
+	uint8_t *p, *buf;
+	uint8_t *vec;
 	File *f;
 
 	f = &df->file[dp->fno];
@@ -1516,7 +1516,7 @@ void
 closetar(Dfile *df, Symbol *dp)
 {
 	int i;
-	uchar *vec;
+	uint8_t *vec;
 	File *f;
 
 	f = &df->file[dp->fno];

@@ -301,7 +301,7 @@ static inline sample_t  read_opposite_float64 ( OUT uint8_t* const src )
 static sample_t  read_float80_le ( OUT uint8_t* const src )
 {
     int         sign     = src [9] & 128  ?  -1  :  +1;
-    long        exponent =(src [9] & 127) * 256 +
+    int32_t        exponent =(src [9] & 127) * 256 +
                            src [8] - 16384 - 62;
     long double mantisse = src [7] * 72057594037927936.L +
                            src [6] * 281474976710656.L +
@@ -317,7 +317,7 @@ static sample_t  read_float80_le ( OUT uint8_t* const src )
 static sample_t  read_float80_be ( OUT uint8_t* const src )
 {
     int         sign     = src [0] & 128  ?  -1  :  +1;
-    long        exponent =(src [0] & 127) * 256 +
+    int32_t        exponent =(src [0] & 127) * 256 +
                            src [1] - 16384 - 62;
     long double mantisse = src [2] * 72057594037927936.L +
                            src [3] * 281474976710656.L +
@@ -481,9 +481,9 @@ const demux_info_t  demux_info [] = {
     { -1, NULL        , NULL         }, /* 1F: */
     { 16, copy_f80_be , copy_f80_le  }, /* 20: */
 
-    { sizeof(short)      , NULL        , NULL         }, /* 21: */
+    { sizeof(int16_t)      , NULL        , NULL         }, /* 21: */
     { sizeof(int)        , NULL        , NULL         }, /* 22: */
-    { sizeof(long)       , NULL        , NULL         }, /* 23: */
+    { sizeof(int32_t)       , NULL        , NULL         }, /* 23: */
     { sizeof(float)      , copy_f32_be , copy_f32_le  }, /* 24: */
     { sizeof(double)     , copy_f64_be , copy_f64_le  }, /* 25: */
     { sizeof(long double), NULL        , NULL         }, /* 26: */
@@ -1042,21 +1042,21 @@ int  lame_encode_flush (
 /*}}}*/
 /*{{{ sin/cos/sinc/rounding functions */
 
-static inline long  round_nearest ( long double x )
+static inline int32_t  round_nearest ( long double x )
 {
     if ( x >= 0. )
-        return (long)(x+0.5);
+        return (int32_t)(x+0.5);
     else
-        return (long)(x-0.5);
+        return (int32_t)(x-0.5);
 }
 
 
-static inline long  round_down ( long double x )
+static inline int32_t  round_down ( long double x )
 {
     if ( x >= 0. )
-        return +(long)(+x);
+        return +(int32_t)(+x);
     else
-        return -(long)(-x);
+        return -(int32_t)(-x);
 }
 
 

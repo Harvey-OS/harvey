@@ -16,7 +16,7 @@
 #include "defs.h"
 #include "fns.h"
 
-char	NOPCS[] = "no process";
+int8_t	NOPCS[] = "no process";
 
 /* sub process control */
 
@@ -27,9 +27,9 @@ subpcs(int modif)
 	int	runmode;
 	int	keepnote;
 	int	n, r;
-	long line, curr;
+	int32_t line, curr;
 	BKPT *bk;
-	char *comptr;
+	int8_t *comptr;
 
 	runmode=SINGLE;
 	r = 0;

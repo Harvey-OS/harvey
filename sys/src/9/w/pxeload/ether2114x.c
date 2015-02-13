@@ -125,7 +125,7 @@ enum {					/* CSR12 - General-Purpose Port */
 typedef struct Des {
 	int	status;
 	int	control;
-	ulong	addr;
+	uint32_t	addr;
 	void*	bp;
 } Des;
 
@@ -207,16 +207,16 @@ typedef struct Ctlr {
 	int	active;
 	int	id;			/* (pcidev->did<<16)|pcidev->vid */
 
-	uchar	*srom;
+	uint8_t	*srom;
 	int	sromsz;
-	uchar*	sromea;			/* MAC address */
-	uchar*	leaf;
+	uint8_t*	sromea;			/* MAC address */
+	uint8_t*	leaf;
 	int	sct;			/* selected connection type */
 	int	k;			/* info block count */
-	uchar*	infoblock[16];
+	uint8_t*	infoblock[16];
 	int	sctk;			/* sct block index */
 	int	curk;			/* current block index */
-	uchar*	type5block;
+	uint8_t*	type5block;
 
 	int	phy[32];		/* logical to physical map */
 	int	phyreset;		/* reset bitmap */
@@ -224,7 +224,7 @@ typedef struct Ctlr {
 	int	fdx;
 	int	ttm;
 
-	uchar	fd;			/* option */
+	uint8_t	fd;			/* option */
 	int	medium;			/* option */
 
 	int	csr6;			/* CSR6 - operating mode */
@@ -242,19 +242,19 @@ typedef struct Ctlr {
 	int	ntq;			/* descriptors active */
 	Block*	setupbp;
 
-	ulong	of;			/* receive statistics */
-	ulong	ce;
-	ulong	cs;
-	ulong	tl;
-	ulong	rf;
-	ulong	de;
+	uint32_t	of;			/* receive statistics */
+	uint32_t	ce;
+	uint32_t	cs;
+	uint32_t	tl;
+	uint32_t	rf;
+	uint32_t	de;
 
-	ulong	uf;			/* transmit statistics */
-	ulong	ec;
-	ulong	lc;
-	ulong	nc;
-	ulong	lo;
-	ulong	to;
+	uint32_t	uf;			/* transmit statistics */
+	uint32_t	ec;
+	uint32_t	lc;
+	uint32_t	nc;
+	uint32_t	lo;
+	uint32_t	to;
 
 } Ctlr;
 
@@ -262,7 +262,7 @@ static Ctlr* ctlrhead;
 static Ctlr* ctlrtail;
 
 #define csr32r(c, r)	(inl((c)->port+((r)*8)))
-#define csr32w(c, r, l)	(outl((c)->port+((r)*8), (ulong)(l)))
+#define csr32w(c, r, l)	(outl((c)->port+((r)*8), (uint32_t)(l)))
 
 static void
 attach(Ether* ether)
@@ -456,7 +456,7 @@ ctlrinit(Ether* ether)
 	Des *des;
 	Block *bp;
 	int i;
-	uchar bi[Eaddrlen*2];
+	uint8_t bi[Eaddrlen*2];
 
 	ctlr = ether->ctlr;
 
@@ -698,7 +698,7 @@ softreset(Ctlr* ctlr)
 }
 
 static int
-type5block(Ctlr* ctlr, uchar* block)
+type5block(Ctlr* ctlr, uint8_t* block)
 {
 	int csr15, i, len;
 
@@ -734,7 +734,7 @@ type5block(Ctlr* ctlr, uchar* block)
 }
 
 static int
-typephylink(Ctlr* ctlr, uchar*)
+typephylink(Ctlr* ctlr, uint8_t*)
 {
 	int an, bmcr, bmsr, csr6, x;
 
@@ -803,9 +803,9 @@ typephylink(Ctlr* ctlr, uchar*)
 }
 
 static int
-typephymode(Ctlr* ctlr, uchar* block, int wait)
+typephymode(Ctlr* ctlr, uint8_t* block, int wait)
 {
-	uchar *p;
+	uint8_t *p;
 	int len, mc, nway, phyx, timeo;
 
 	if(DEBUG){
@@ -893,7 +893,7 @@ typephymode(Ctlr* ctlr, uchar* block, int wait)
 }
 
 static int
-typesymmode(Ctlr *ctlr, uchar *block, int wait)
+typesymmode(Ctlr *ctlr, uint8_t *block, int wait)
 {
 	uint gpmode, gpdata, command;
 
@@ -913,9 +913,9 @@ typesymmode(Ctlr *ctlr, uchar *block, int wait)
 }
 
 static int
-type2mode(Ctlr* ctlr, uchar* block, int)
+type2mode(Ctlr* ctlr, uint8_t* block, int)
 {
-	uchar *p;
+	uint8_t *p;
 	int csr6, csr13, csr14, csr15, gpc, gpd;
 
 	csr6 = Sc|Mbo|Ca|TrMODE|Sb;
@@ -990,7 +990,7 @@ type2mode(Ctlr* ctlr, uchar* block, int)
 }
 
 static int
-type0link(Ctlr* ctlr, uchar* block)
+type0link(Ctlr* ctlr, uint8_t* block)
 {
 	int m, polarity, sense;
 
@@ -1005,7 +1005,7 @@ type0link(Ctlr* ctlr, uchar* block)
 }
 
 static int
-type0mode(Ctlr* ctlr, uchar* block, int wait)
+type0mode(Ctlr* ctlr, uint8_t* block, int wait)
 {
 	int csr6, m, timeo;
 
@@ -1060,7 +1060,7 @@ static int
 media21041(Ether* ether, int wait)
 {
 	Ctlr* ctlr;
-	uchar *block;
+	uint8_t *block;
 	int csr6, csr13, csr14, csr15, medium, timeo;
 
 	ctlr = ether->ctlr;
@@ -1139,7 +1139,7 @@ static int
 mediaxx(Ether* ether, int wait)
 {
 	Ctlr* ctlr;
-	uchar *block;
+	uint8_t *block;
 
 	ctlr = ether->ctlr;
 	block = ctlr->infoblock[ctlr->curk];
@@ -1226,7 +1226,7 @@ media(Ether* ether, int wait)
 	return 0;
 }
 
-static char* mediatable[9] = {
+static int8_t* mediatable[9] = {
 	"10BASE-T",			/* TP */
 	"10BASE-2",			/* BNC */
 	"10BASE-5",			/* AUI */
@@ -1238,7 +1238,7 @@ static char* mediatable[9] = {
 	"100BASE-FXFD",
 };
 
-static uchar en1207[] = {		/* Accton EN1207-COMBO */
+static uint8_t en1207[] = {		/* Accton EN1207-COMBO */
 	0x00, 0x00, 0xE8,		/* [0]  vendor ethernet code */
 	0x00,				/* [3]  spare */
 
@@ -1257,7 +1257,7 @@ static uchar en1207[] = {		/* Accton EN1207-COMBO */
 					/* There is 10BASE-2 as well, but... */
 };
 
-static uchar ana6910fx[] = {		/* Adaptec (Cogent) ANA-6910FX */
+static uint8_t ana6910fx[] = {		/* Adaptec (Cogent) ANA-6910FX */
 	0x00, 0x00, 0x92,		/* [0]  vendor ethernet code */
 	0x00,				/* [3]  spare */
 
@@ -1270,7 +1270,7 @@ static uchar ana6910fx[] = {		/* Adaptec (Cogent) ANA-6910FX */
 	0x2D, 0x00			/* [10] command (LSB+MSB = 0x000D) */
 };
 
-static uchar smc9332[] = {		/* SMC 9332 */
+static uint8_t smc9332[] = {		/* SMC 9332 */
 	0x00, 0x00, 0xC0,		/* [0]  vendor ethernet code */
 	0x00,				/* [3]  spare */
 
@@ -1287,7 +1287,7 @@ static uchar smc9332[] = {		/* SMC 9332 */
 	0x6D, 0x00,			/* [10] command (LSB+MSB = 0x006D) */
 };
 
-static uchar* leaf21140[] = {
+static uint8_t* leaf21140[] = {
 	en1207,				/* Accton EN1207-COMBO */
 	ana6910fx,			/* Adaptec (Cogent) ANA-6910FX */
 	smc9332,			/* SMC 9332 */
@@ -1297,7 +1297,7 @@ static uchar* leaf21140[] = {
 /*
  * Copied to ctlr->srom at offset 20.
  */
-static uchar leafpnic[] = {
+static uint8_t leafpnic[] = {
 	0x00, 0x00, 0x00, 0x00,		/* MAC address */
 	0x00, 0x00,
 	0x00,				/* controller 0 device number */
@@ -1322,7 +1322,7 @@ static int
 srom(Ctlr* ctlr)
 {
 	int i, k, oui, phy, x;
-	uchar *p;
+	uint8_t *p;
 
 	/*
 	 * This is a partial decoding of the SROM format described in
@@ -1595,7 +1595,7 @@ ether2114xreset(Ether* ether)
 {
 	Ctlr *ctlr;
 	int i, x;
-	uchar ea[Eaddrlen];
+	uint8_t ea[Eaddrlen];
 	static int scandone;
 
 	if(scandone == 0){

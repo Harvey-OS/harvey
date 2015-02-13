@@ -22,26 +22,26 @@
 typedef	struct	Dict	Dict;
 struct	Dict
 {
-	char*	word;
+	int8_t*	word;
 	int	encode;
 };
 
 Dict	words[200000];
-char	space[500000];
-long	encodes[4094];
-long	nspace;
-long	nwords;
+int8_t	space[500000];
+int32_t	encodes[4094];
+int32_t	nspace;
+int32_t	nwords;
 int	ncodes;
 Biobuf	bout;
 
 void	readinput(int f);
-long	typecode(char *str);
+int32_t	typecode(int8_t *str);
 int	wcmp(void*, void*);
 void	pdict(void);
 void	sput(int);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int f;
 
@@ -77,10 +77,10 @@ wcmp(void *a, void *b)
 void
 readinput(int f)
 {
-	long i;
-	char *code, *line, *bword;
+	int32_t i;
+	int8_t *code, *line, *bword;
 	Biobuf buf;
-	long lineno = 0;
+	int32_t lineno = 0;
 
 	Binit(&buf, f, OREAD);
 	while(line = Brdline(&buf, '\n')) {
@@ -123,8 +123,8 @@ readinput(int f)
 typedef	struct	Class	Class;
 struct	Class
 {
-	char*	codename;
-	long	bits;
+	int8_t*	codename;
+	int32_t	bits;
 };
 Class	codea[]  =
 {
@@ -231,13 +231,13 @@ Class*	codetab[] =
 	codez,
 };
 
-long
-typecode(char *str)
+int32_t
+typecode(int8_t *str)
 {
 	Class *p;
-	long code;
+	int32_t code;
 	int n, i;
-	char *s, *sp, *st;
+	int8_t *s, *sp, *st;
 
 	code = 0;
 
@@ -280,7 +280,7 @@ sput(int s)
 }
 
 void
-lput(long l)
+lput(int32_t l)
 {
 	Bputc(&bout, l>>24);
 	Bputc(&bout, l>>16);
@@ -308,9 +308,9 @@ lput(long l)
 void
 pdict(void)
 {
-	long i, count;
+	int32_t i, count;
 	int encode, j, c;
-	char *lastword, *thisword, *word;
+	int8_t *lastword, *thisword, *word;
 
 	sput(ncodes);
 	for(i=0; i<ncodes; i++)

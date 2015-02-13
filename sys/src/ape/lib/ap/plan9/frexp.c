@@ -23,11 +23,11 @@ typedef	union
 	struct
 	{
 #ifdef IEEE_8087
-		long	ls;
-		long	ms;
+		int32_t	ls;
+		int32_t	ms;
 #else
-		long	ms;
-		long	ls;
+		int32_t	ms;
+		int32_t	ls;
 #endif
 	};
 } Cheat;
@@ -71,7 +71,7 @@ ldexp(double d, int e)
 		return HUGE_VAL;
 	}
 	x.ms &= ~(MASK << SHIFT);
-	x.ms |= (long)e << SHIFT;
+	x.ms |= (int32_t)e << SHIFT;
 	return x.d;
 }
 

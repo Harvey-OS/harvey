@@ -14,11 +14,11 @@
 
 #define BIGN (BUFSIZ/2)
 
-long fread(void *p, long recl, long nrec, FILE *f){
-	char *s;
+int32_t fread(void *p, int32_t recl, int32_t nrec, FILE *f){
+	int8_t *s;
 	int n, d, c;
 
-	s=(char *)p;
+	s=(int8_t *)p;
 	n=recl*nrec;
 	while(n>0){
 		d=f->wp-f->rp;
@@ -46,5 +46,5 @@ long fread(void *p, long recl, long nrec, FILE *f){
 		n-=d;
 	}
     ret:
-	return (s-(char *)p)/(recl?recl:1);
+	return (s-(int8_t *)p)/(recl?recl:1);
 }

@@ -28,7 +28,7 @@ struct Dirlist
 {
 	uint base;
 	Dirtab *dir;
-	uchar **data;
+	uint8_t **data;
 	int ndir;
 	int mdir;
 };
@@ -37,7 +37,7 @@ static Dirtab rootdir[Nrootfiles] = {
 	"#/",	{Qdir, 0, QTDIR},	0,		DMDIR|0555,
 	"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555,
 };
-static uchar *rootdata[Nrootfiles];
+static uint8_t *rootdata[Nrootfiles];
 static Dirlist rootlist =
 {
 	0,
@@ -50,7 +50,7 @@ static Dirlist rootlist =
 static Dirtab bootdir[Nbootfiles] = {
 	"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555,
 };
-static uchar *bootdata[Nbootfiles];
+static uint8_t *bootdata[Nbootfiles];
 static Dirlist bootlist =
 {
 	Qboot,
@@ -64,7 +64,8 @@ static Dirlist bootlist =
  *  add a file to the list
  */
 static void
-addlist(Dirlist *l, char *name, uchar *contents, ulong len, int perm)
+addlist(Dirlist *l, int8_t *name, uint8_t *contents, uint32_t len,
+        int perm)
 {
 	Dirtab *d;
 
@@ -86,7 +87,7 @@ addlist(Dirlist *l, char *name, uchar *contents, ulong len, int perm)
  *  add a root file
  */
 void
-addbootfile(char *name, uchar *contents, ulong len)
+addbootfile(int8_t *name, uint8_t *contents, uint32_t len)
 {
 	addlist(&bootlist, name, contents, len, 0555);
 }
@@ -95,7 +96,7 @@ addbootfile(char *name, uchar *contents, ulong len)
  *  add a root directory
  */
 static void
-addrootdir(char *name)
+addrootdir(int8_t *name)
 {
 	addlist(&rootlist, name, nil, 0, DMDIR|0555);
 }
@@ -116,13 +117,13 @@ rootreset(void)
 }
 
 static Chan*
-rootattach(char *spec)
+rootattach(int8_t *spec)
 {
 	return devattach('/', spec);
 }
 
 static int
-rootgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+rootgen(Chan *c, int8_t *name, Dirtab*, int, int s, Dir *dp)
 {
 	int t;
 	Dirtab *d;
@@ -171,13 +172,13 @@ panic("whoops");
 }
 
 static Walkqid*
-rootwalk(Chan *c, Chan *nc, char **name, int nname)
+rootwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c,  nc, name, nname, nil, 0, rootgen);
 }
 
-static long
-rootstat(Chan *c, uchar *dp, long n)
+static int32_t
+rootstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return devstat(c, dp, n, nil, 0, rootgen);
 }
@@ -196,14 +197,14 @@ rootclose(Chan*)
 {
 }
 
-static long
-rootread(Chan *c, void *buf, long n, vlong off)
+static int32_t
+rootread(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	ulong t;
+	uint32_t t;
 	Dirtab *d;
 	Dirlist *l;
-	uchar *data;
-	ulong offset = off;
+	uint8_t *data;
+	uint32_t offset = off;
 
 	t = c->qid.path;
 	switch(t){
@@ -233,8 +234,8 @@ rootread(Chan *c, void *buf, long n, vlong off)
 	return n;
 }
 
-static long
-rootwrite(Chan*, void*, long, vlong)
+static int32_t
+rootwrite(Chan*, void*, int32_t, int64_t)
 {
 	error(Egreg);
 	return 0;

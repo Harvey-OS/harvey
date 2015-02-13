@@ -44,7 +44,7 @@ Req *rpcwait;
 
 typedef struct Verb Verb;
 struct Verb {
-	char *verb;
+	int8_t *verb;
 	int iverb;
 };
 
@@ -66,7 +66,7 @@ Verb rpctab[] = {
 };
 
 static int
-classify(char *s, Verb *verbtab, int nverbtab)
+classify(int8_t *s, Verb *verbtab, int nverbtab)
 {
 	int i;
 
@@ -107,7 +107,7 @@ rpcwrite(Req *r)
 }
 
 static void
-retstring(Req *r, Fsstate *fss, char *s)
+retstring(Req *r, Fsstate *fss, int8_t *s)
 {
 	int n;
 
@@ -187,7 +187,7 @@ rdwrcheck(Req *r, Fsstate *fss)
 }
 
 static void
-logret(char *pre, Fsstate *fss, int ret)
+logret(int8_t *pre, Fsstate *fss, int ret)
 {
 	switch(ret){
 	default:
@@ -218,9 +218,9 @@ logret(char *pre, Fsstate *fss, int ret)
 }
 
 void
-rpcrdwrlog(Fsstate *fss, char *rdwr, uint n, int ophase, int ret)
+rpcrdwrlog(Fsstate *fss, int8_t *rdwr, uint n, int ophase, int ret)
 {
-	char buf0[40], buf1[40], pre[300];
+	int8_t buf0[40], buf1[40], pre[300];
 
 	if(!debug)
 		return;
@@ -232,7 +232,7 @@ rpcrdwrlog(Fsstate *fss, char *rdwr, uint n, int ophase, int ret)
 void
 rpcstartlog(Attr *attr, Fsstate *fss, int ret)
 {
-	char pre[300], tmp[40];
+	int8_t pre[300], tmp[40];
 
 	if(!debug)
 		return;
@@ -247,9 +247,9 @@ void
 rpcread(Req *r)
 {
 	Attr *attr;
-	char *p;
+	int8_t *p;
 	int ophase, ret;
-	uchar *e;
+	uint8_t *e;
 	uint count;
 	Fsstate *fss;
 	Proto *proto;
@@ -314,7 +314,8 @@ rpcread(Req *r)
 			break;
 		count = r->ifcall.count - 3;
 		ophase = fss->phase;
-		ret = fss->proto->read(fss, (uchar*)r->ofcall.data+3, &count);
+		ret = fss->proto->read(fss, (uint8_t*)r->ofcall.data+3,
+				       &count);
 		rpcrdwrlog(fss, "read", count, ophase, ret);
 		if(ret == RpcOk){
 			memmove(r->ofcall.data, "ok ", 3);
@@ -348,14 +349,15 @@ rpcread(Req *r)
 		}
 		memmove(r->ofcall.data, "ok ", 3);
 		fss->ai.cap = mkcap(r->fid->uid, fss->ai.suid);
-		e = convAI2M(&fss->ai, (uchar*)r->ofcall.data+3, r->ifcall.count-3);
+		e = convAI2M(&fss->ai, (uint8_t*)r->ofcall.data+3,
+			     r->ifcall.count-3);
 		free(fss->ai.cap);
 		fss->ai.cap = nil;
 		if(e == nil){
 			retstring(r, fss, "error read too small");
 			break;
 		}
-		r->ofcall.count = e - (uchar*)r->ofcall.data;
+		r->ofcall.count = e - (uint8_t*)r->ofcall.data;
 		fss->pending = 0;
 		respond(r, nil);
 		break;
@@ -391,9 +393,9 @@ Verb ctltab[] = {
  */
 
 int
-ctlwrite(char *a, int atzero)
+ctlwrite(int8_t *a, int atzero)
 {
-	char *p;
+	int8_t *p;
 	int i, nmatch, ret;
 	Attr *attr, **l, **lpriv, **lprotos, *pa, *priv, *protos;
 	Key *k;

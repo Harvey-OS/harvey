@@ -25,13 +25,13 @@ static int log2[] = {
  * Write data
  */
 static
-char*
+int8_t*
 writedata(Biobuf *fd, Image *image, Memimage *memimage)
 {
-	char *err;
-	uchar *data;
+	int8_t *err;
+	uint8_t *data;
 	int i, x, y, ndata, depth, col, pix, xmask, pmask;
-	ulong chan;
+	uint32_t chan;
 	Rectangle r;
 
 	if(memimage != nil){
@@ -116,10 +116,11 @@ writedata(Biobuf *fd, Image *image, Memimage *memimage)
 }
 
 static
-char*
-writeppm0(Biobuf *fd, Image *image, Memimage *memimage, Rectangle r, int chan, char *comment)
+int8_t*
+writeppm0(Biobuf *fd, Image *image, Memimage *memimage, Rectangle r, int chan,
+	  int8_t *comment)
 {
-	char *err;
+	int8_t *err;
 
 	switch(chan){
 	case GREY1:
@@ -165,14 +166,14 @@ writeppm0(Biobuf *fd, Image *image, Memimage *memimage, Rectangle r, int chan, c
 	return err;
 }
 
-char*
-writeppm(Biobuf *fd, Image *image, char *comment)
+int8_t*
+writeppm(Biobuf *fd, Image *image, int8_t *comment)
 {
 	return writeppm0(fd, image, nil, image->r, image->chan, comment);
 }
 
-char*
-memwriteppm(Biobuf *fd, Memimage *memimage, char *comment)
+int8_t*
+memwriteppm(Biobuf *fd, Memimage *memimage, int8_t *comment)
 {
 	return writeppm0(fd, nil, memimage, memimage->r, memimage->chan, comment);
 }

@@ -22,7 +22,7 @@ int	nineflag = 0;
 int	threeflag = 0;
 int	colorspace = CRGB;
 int	output = 0;
-ulong	outchan = CMAP8;
+uint32_t	outchan = CMAP8;
 Image	*image;
 int	defaultcolor = 1;
 
@@ -31,7 +31,7 @@ enum{
 	Edge	= 5
 };
 
-char	*show(int, char*, int);
+int8_t	*show(int, int8_t*, int);
 
 void
 eresized(int new)
@@ -141,15 +141,15 @@ main(int argc, char *argv[])
 	exits(err);
 }
 
-char*
-show(int fd, char *name, int outc)
+int8_t*
+show(int fd, int8_t *name, int outc)
 {
 	Rawimage **array, *r, *c;
 	Image *i, *i2;
 	int j, ch, outchan;
-	long len;
+	int32_t len;
 	Biobuf b;
-	char buf[32];
+	int8_t buf[32];
 	static int inited;
 
 	if(Binit(&b, fd, OREAD) < 0)

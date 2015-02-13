@@ -12,11 +12,11 @@
 #include <bin.h>
 #include <httpd.h>
 
-char*
-hlower(char *p)
+int8_t*
+hlower(int8_t *p)
 {
-	char c;
-	char *x;
+	int8_t c;
+	int8_t *x;
 
 	if(p == nil)
 		return p;

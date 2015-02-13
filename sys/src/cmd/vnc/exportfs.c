@@ -42,7 +42,7 @@ struct Fid
 	Fid*	next;
 	Fid**	last;
 	Chan*	chan;
-	long	offset;
+	int32_t	offset;
 	int	fid;
 	int	ref;		/* fcalls using the fid; locked by Export.Lock */
 	int	attached;	/* fid attached or cloned but not clunked */
@@ -58,7 +58,7 @@ struct Exq
 	Export*	export;
 	void*	slave;
 	Fcall	rpc;
-	uchar	buf[Maxrpc];
+	uint8_t	buf[Maxrpc];
 };
 
 struct Exwork
@@ -83,25 +83,25 @@ static void	exslave(void*);
 static void	exfree(Export*);
 static void	exportproc(Export*);
 
-static char*	Exattach(Export*, Fcall*, uchar*);
-static char*	Exauth(Export*, Fcall*, uchar*);
-static char*	Exclunk(Export*, Fcall*, uchar*);
-static char*	Excreate(Export*, Fcall*, uchar*);
-static char*	Exversion(Export*, Fcall*, uchar*);
-static char*	Exopen(Export*, Fcall*, uchar*);
-static char*	Exread(Export*, Fcall*, uchar*);
-static char*	Exremove(Export*, Fcall*, uchar*);
-static char*	Exsession(Export*, Fcall*, uchar*);
-static char*	Exstat(Export*, Fcall*, uchar*);
-static char*	Exwalk(Export*, Fcall*, uchar*);
-static char*	Exwrite(Export*, Fcall*, uchar*);
-static char*	Exwstat(Export*, Fcall*, uchar*);
+static int8_t*	Exattach(Export*, Fcall*, uint8_t*);
+static int8_t*	Exauth(Export*, Fcall*, uint8_t*);
+static int8_t*	Exclunk(Export*, Fcall*, uint8_t*);
+static int8_t*	Excreate(Export*, Fcall*, uint8_t*);
+static int8_t*	Exversion(Export*, Fcall*, uint8_t*);
+static int8_t*	Exopen(Export*, Fcall*, uint8_t*);
+static int8_t*	Exread(Export*, Fcall*, uint8_t*);
+static int8_t*	Exremove(Export*, Fcall*, uint8_t*);
+static int8_t*	Exsession(Export*, Fcall*, uint8_t*);
+static int8_t*	Exstat(Export*, Fcall*, uint8_t*);
+static int8_t*	Exwalk(Export*, Fcall*, uint8_t*);
+static int8_t*	Exwrite(Export*, Fcall*, uint8_t*);
+static int8_t*	Exwstat(Export*, Fcall*, uint8_t*);
 
-static char	*(*fcalls[Tmax])(Export*, Fcall*, uchar*);
+static int8_t	*(*fcalls[Tmax])(Export*, Fcall*, uint8_t*);
 
-static char	Enofid[]   = "no such fid";
-static char	Eseekdir[] = "can't seek on a directory";
-static char	Ereaddir[] = "unaligned read of a directory";
+static int8_t	Enofid[]   = "no such fid";
+static int8_t	Eseekdir[] = "can't seek on a directory";
+static int8_t	Ereaddir[] = "unaligned read of a directory";
 static int	exdebug = 0;
 
 int
@@ -202,7 +202,7 @@ exflush(Export *fs, int flushtag, int tag)
 {
 	Exq *q, **last;
 	Fcall fc;
-	uchar buf[Maxrpc];
+	uint8_t buf[Maxrpc];
 	int n;
 
 	/* hasn't been started? */
@@ -319,7 +319,7 @@ exslave(void *)
 {
 	Export *fs;
 	Exq *q, *t, **last;
-	char *volatile err;
+	int8_t *volatile err;
 	int n, ed;
 
 	while(waserror())
@@ -438,7 +438,7 @@ exslave(void *)
 Fid*
 Exmkfid(Export *fs, int fid)
 {
-	ulong h;
+	uint32_t h;
 	Fid *f, *nf;
 
 	nf = mallocz(sizeof(Fid), 1);
@@ -473,7 +473,7 @@ Fid*
 Exgetfid(Export *fs, int fid)
 {
 	Fid *f;
-	ulong h;
+	uint32_t h;
 
 	lock(&fs->fidlock);
 	h = fid % Nfidhash;
@@ -509,8 +509,8 @@ Exputfid(Export *fs, Fid *f)
 	unlock(&fs->fidlock);
 }
 
-static char*
-Exversion(Export *fs, Fcall *rpc, uchar *)
+static int8_t*
+Exversion(Export *fs, Fcall *rpc, uint8_t *)
 {
 	if(rpc->msize > Maxrpc)
 		rpc->msize = Maxrpc;
@@ -524,14 +524,14 @@ Exversion(Export *fs, Fcall *rpc, uchar *)
 	return nil;
 }
 
-static char*
-Exauth(Export *, Fcall *, uchar *)
+static int8_t*
+Exauth(Export *, Fcall *, uint8_t *)
 {
 	return "vnc: authentication not required";
 }
 
-static char*
-Exattach(Export *fs, Fcall *rpc, uchar *)
+static int8_t*
+Exattach(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
 	int w;
@@ -556,8 +556,8 @@ Exattach(Export *fs, Fcall *rpc, uchar *)
 	return nil;
 }
 
-static char*
-Exclunk(Export *fs, Fcall *rpc, uchar *)
+static int8_t*
+Exclunk(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
 
@@ -569,8 +569,8 @@ Exclunk(Export *fs, Fcall *rpc, uchar *)
 	return nil;
 }
 
-static char*
-Exwalk(Export *fs, Fcall *rpc, uchar *)
+static int8_t*
+Exwalk(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *volatile f, *volatile nf;
 	Walkqid *wq;
@@ -635,8 +635,8 @@ Exwalk(Export *fs, Fcall *rpc, uchar *)
 	return nil;
 }
 
-static char*
-Exopen(Export *fs, Fcall *rpc, uchar *)
+static int8_t*
+Exopen(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *volatile f;
 	Chan *c;
@@ -664,8 +664,8 @@ Exopen(Export *fs, Fcall *rpc, uchar *)
 	return nil;
 }
 
-static char*
-Excreate(Export *fs, Fcall *rpc, uchar *)
+static int8_t*
+Excreate(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
 	Chan *c;
@@ -692,12 +692,12 @@ Excreate(Export *fs, Fcall *rpc, uchar *)
 	return nil;
 }
 
-static char*
-Exread(Export *fs, Fcall *rpc, uchar *buf)
+static int8_t*
+Exread(Export *fs, Fcall *rpc, uint8_t *buf)
 {
 	Fid *f;
 	Chan *c;
-	long off;
+	int32_t off;
 
 	f = Exgetfid(fs, rpc->fid);
 	if(f == nil)
@@ -710,7 +710,7 @@ Exread(Export *fs, Fcall *rpc, uchar *buf)
 		return up->error;
 	}
 
-	rpc->data = (char*)buf;
+	rpc->data = (int8_t*)buf;
 	off = rpc->offset;
 	c->offset = off;
 	rpc->count = (*devtab[c->type]->read)(c, rpc->data, rpc->count, off);
@@ -719,8 +719,8 @@ Exread(Export *fs, Fcall *rpc, uchar *buf)
 	return nil;
 }
 
-static char*
-Exwrite(Export *fs, Fcall *rpc, uchar *)
+static int8_t*
+Exwrite(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
 	Chan *c;
@@ -741,8 +741,8 @@ Exwrite(Export *fs, Fcall *rpc, uchar *)
 	return nil;
 }
 
-static char*
-Exstat(Export *fs, Fcall *rpc, uchar *buf)
+static int8_t*
+Exstat(Export *fs, Fcall *rpc, uint8_t *buf)
 {
 	Fid *f;
 	Chan *c;
@@ -762,8 +762,8 @@ Exstat(Export *fs, Fcall *rpc, uchar *buf)
 	return nil;
 }
 
-static char*
-Exwstat(Export *fs, Fcall *rpc, uchar *)
+static int8_t*
+Exwstat(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
 	Chan *c;
@@ -782,8 +782,8 @@ Exwstat(Export *fs, Fcall *rpc, uchar *)
 	return nil;
 }
 
-static char*
-Exremove(Export *fs, Fcall *rpc, uchar *)
+static int8_t*
+Exremove(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
 	Chan *c;

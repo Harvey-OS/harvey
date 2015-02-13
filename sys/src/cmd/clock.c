@@ -72,12 +72,12 @@ eresized(int new)
 }
 
 void
-main(int, char**)
+main(int, int8_t**)
 {
 	Event e;
 	Mouse m;
 	Menu menu;
-	char *mstr[] = {"exit", 0};
+	int8_t *mstr[] = {"exit", 0};
 	int key, timer;
 	int t;
 

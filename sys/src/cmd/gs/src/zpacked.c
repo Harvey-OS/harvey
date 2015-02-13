@@ -199,7 +199,7 @@ make_packed_array(ref * parr, ref_stack_t * pstack, uint size,
 		    )
 		    break;
 		*pdest++ = pt_tag(pt_integer) +
-		    ((short)pref->value.intval - packed_min_intval);
+		    ((int16_t)pref->value.intval - packed_min_intval);
 		continue;
 	    case t_oparray:
 	    case t_operator:

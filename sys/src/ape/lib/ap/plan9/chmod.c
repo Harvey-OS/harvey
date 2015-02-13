@@ -21,7 +21,7 @@ seterrno(void)
 }
 
 int
-chmod(const char *path, mode_t mode)
+chmod(const int8_t *path, mode_t mode)
 {
 	Dir d, *dir;
 

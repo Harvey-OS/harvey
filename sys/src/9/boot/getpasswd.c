@@ -12,9 +12,9 @@
 #include <../boot/boot.h>
 
 void
-getpasswd(char *p, int len)
+getpasswd(int8_t *p, int len)
 {
-	char c;
+	int8_t c;
 	int i, n, fd;
 
 	fd = open("#c/consctl", OWRITE);

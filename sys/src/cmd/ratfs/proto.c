@@ -30,7 +30,7 @@ static void	rflush(Fcall*),		rnop(Fcall*),
 		rwstat(Fcall*),	rversion(Fcall*);
 
 static	Fid*	newfid(int);
-static	void	reply(Fcall*, char*);
+static	void	reply(Fcall*, int8_t*);
 
 static	void 	(*fcalls[])(Fcall*) = {
 	[Tversion]	rversion,
@@ -89,7 +89,7 @@ io(void)
  *	write a protocol reply to the client
  */
 static void
-reply(Fcall *r, char *error)
+reply(Fcall *r, int8_t *error)
 {
 	int n;
 
@@ -209,7 +209,7 @@ rwalk(Fcall *f)
 	int i, j;
 	Fcall r;
 	Fid *fidp, *nf;
-	char *err;
+	int8_t *err;
 
 	fidp = newfid(f->fid);
 	if(fidp->node && fidp->node->d.type == Dummynode){
@@ -348,13 +348,13 @@ rcreate(Fcall *f)
 static void
 rread(Fcall *f)
 {
-	long cnt;
+	int32_t cnt;
 	Fid *fidp;
 
 	cnt = f->count;
 	f->count = 0;
 	fidp = newfid(f->fid);
-	f->data = (char*)rbuf+IOHDRSZ;
+	f->data = (int8_t*)rbuf+IOHDRSZ;
 	if(fidp->open == 0) {
 		reply(f, "file not open");
 		return;
@@ -396,7 +396,7 @@ rwrite(Fcall *f)
 {
 	Fid *fidp;
 	int n;
-	char *err, *argv[10];
+	int8_t *err, *argv[10];
 
 	fidp = newfid(f->fid);
 	if(fidp->node->d.mode & DMDIR){
@@ -504,7 +504,7 @@ rstat(Fcall *f)
 	fidp = newfid(f->fid);
 	if (fidp->node->d.type == Dummynode)
 		dummy.d.name = fidp->name;
-	f->stat = (uchar*)rbuf+4+1+2+2;	/* knows about stat(5) */
+	f->stat = (uint8_t*)rbuf+4+1+2+2;	/* knows about stat(5) */
 	f->nstat = convD2M(&fidp->node->d, f->stat, MAXRPC);
 	if(f->nstat <= BIT16SZ)
 		reply(f, "ratfs: convD2M");

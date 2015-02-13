@@ -477,7 +477,7 @@ check_Separation_component_name(const gs_color_space * pcs, gs_state * pgs)
 
 /* ---------------- Notes on real Separation colors ---------------- */
 
-typedef ulong gs_separation;	/* BOGUS */
+typedef uint32_t gs_separation;	/* BOGUS */
 
 #define gs_no_separation ((gs_separation)(-1L))
 

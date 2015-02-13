@@ -101,11 +101,11 @@ randominit(void)
 /*
  *  consume random bytes from a circular buffer
  */
-ulong
-randomread(void *xp, ulong n)
+uint32_t
+randomread(void *xp, uint32_t n)
 {
-	uchar *e, *p;
-	ulong x;
+	uint8_t *e, *p;
+	uint32_t x;
 
 	p = xp;
 

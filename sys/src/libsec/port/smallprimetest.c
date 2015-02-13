@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-static ulong smallprimes[] = {
+static uint32_t smallprimes[] = {
 	2,	3,	5,	7,	11,	13,	17,	19,	23,	29,
 	31,	37,	41,	43,	47,	53,	59,	61,	67,	71,
 	73,	79,	83,	89,	97,	101,	103,	107,	109,	113,
@@ -1016,7 +1016,7 @@ static ulong smallprimes[] = {
 
 //  return 1 if p is divisable by sp, 0 otherwise
 static int
-divides(mpint *dividend, ulong divisor)
+divides(mpint *dividend, uint32_t divisor)
 {
 	mpdigit d[2], q;
 	int i;
@@ -1035,7 +1035,7 @@ int
 smallprimetest(mpint *p)
 {
 	int i;
-	ulong sp;
+	uint32_t sp;
 
 	for(i = 0; i < nelem(smallprimes); i++){
 		sp = smallprimes[i];

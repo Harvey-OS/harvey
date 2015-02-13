@@ -26,25 +26,25 @@ enum
 
 typedef struct Tab
 {
-	ushort	run;
-	ushort	bits;
+	uint16_t	run;
+	uint16_t	bits;
 	int		code;
 } Tab;
 
 Tab	wtab[8192];
 Tab	btab[8192];
-uchar	bitrev[256];
-uchar	bitnonrev[256];
+uint8_t	bitrev[256];
+uint8_t	bitnonrev[256];
 
-int	readrow(uchar *rev, int*);
+int	readrow(uint8_t *rev, int*);
 void	initwbtab(void);
-void	sync(uchar*);
-int	readfile(int, char*, char*);
+void	sync(uint8_t*);
+int	readfile(int, int8_t*, int8_t*);
 
 int		nbytes;
-uchar	*bytes;
-uchar	*pixels;
-uchar	*buf;
+uint8_t	*bytes;
+uint8_t	*pixels;
+uint8_t	*buf;
 int		y;
 uint		bitoffset;
 uint		word24;
@@ -57,9 +57,9 @@ enum
 };
 
 void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
-	char buf[256];
+	int8_t buf[256];
 	va_list arg;
 
 	if(fmt){
@@ -168,12 +168,12 @@ int	defhdr[8] = {
 };
 
 int
-crackhdr(uchar *ap, int *hdr)
+crackhdr(uint8_t *ap, int *hdr)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	int i;
 
-	p = (char*)ap;
+	p = (int8_t*)ap;
 	q = p;
 	for(i=0; i<8; i++){
 		if(*p<'0' || '9'<*p)
@@ -181,14 +181,14 @@ crackhdr(uchar *ap, int *hdr)
 		hdr[i] = strtol(p, &q, 0);
 		p = q+1;
 	}
-	return p-(char*)ap;
+	return p-(int8_t*)ap;
 }
 
 int
-readfile(int f, char *file, char *err)
+readfile(int f, int8_t *file, int8_t *err)
 {
 	int i, r, lines;
-	uchar *rev;
+	uint8_t *rev;
 	int hdr[8];
 
 	err[0] = 0;
@@ -205,7 +205,7 @@ readfile(int f, char *file, char *err)
 		nbytes -= 0xf3;
 		rev = bitrev;
 		memmove(hdr, defhdr, sizeof defhdr);
-	}else if(bytes[0] == 0 && strcmp((char*)bytes+1, "PC Research, Inc") == 0){	/* digifax format */
+	}else if(bytes[0] == 0 && strcmp((int8_t*)bytes+1, "PC Research, Inc") == 0){	/* digifax format */
 		memmove(hdr, defhdr, sizeof defhdr);
 		if(bytes[45] == 0x40 && bytes[29] == 1)	/* high resolution */
 			hdr[Hvres] = 1;
@@ -219,7 +219,7 @@ readfile(int f, char *file, char *err)
 	}else{
 		while(nbytes > 2){
 			if(bytes[0]=='\n'){
-				if(strncmp((char*)bytes+1, "FDCS=", 5) == 0){
+				if(strncmp((int8_t*)bytes+1, "FDCS=", 5) == 0){
 					i = crackhdr(bytes+6, hdr);
 					if(i < 0){
 						sprint(err, "g3: bad FDCS in header: %s", file);
@@ -271,13 +271,13 @@ readfile(int f, char *file, char *err)
 }
 
 int
-readrow(uchar *rev, int *hdr)
+readrow(uint8_t *rev, int *hdr)
 {
 	int bo, state;
 	Tab *tab, *t;
 	int x, oldx, x2, oldx2, dx, xx;
 	uint w24;
-	uchar *p, *q;
+	uint8_t *p, *q;
 
 	state = White;
 	oldx = 0;
@@ -355,7 +355,7 @@ loop:
 
 
 void
-sync(uchar *rev)
+sync(uint8_t *rev)
 {
 	Tab *t;
 	int c;
@@ -383,7 +383,7 @@ loop:
 
 typedef struct File
 {
-	char	*val;
+	int8_t	*val;
 	int	code;
 }File;
 
@@ -398,7 +398,7 @@ File iwtab[] = {
 };
 
 int
-binary(char *s)
+binary(int8_t *s)
 {
 	int n;
 
@@ -412,7 +412,7 @@ void
 tabinit(File *file, Tab *tab)
 {
 	int i, j, v, r, l;
-	char *b;
+	int8_t *b;
 
 	for(v=0; v<8192; v++) {
 		tab[v].run = 0;

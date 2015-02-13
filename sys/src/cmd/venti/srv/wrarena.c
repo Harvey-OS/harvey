@@ -12,7 +12,7 @@
 #include "fns.h"
 
 QLock godot;
-char *host;
+int8_t *host;
 int readonly = 1;	/* for part.c */
 int mainstacksize = 256*1024;
 Channel *c;
@@ -71,7 +71,7 @@ rdarena(Arena *arena, u64int offset)
 {
 	int i;
 	u64int a, aa, e;
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 	Clump cl;
 	ClumpInfo ci;
 	ZBlock *lump;

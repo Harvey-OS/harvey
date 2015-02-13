@@ -115,7 +115,7 @@ struct pdf_font_descriptor_s {
     bool embed;
     struct cid_ {		/* (CIDFonts only) */
 	cos_dict_t *Style;
-	char Lang[3];		/* 2 chars + \0 */
+	int8_t Lang[3];		/* 2 chars + \0 */
 	cos_dict_t *FD;		/* value = COS_VALUE_RESOURCE */
     } cid;
 };
@@ -156,7 +156,7 @@ gs_public_st_basic_super(st_pdf_sub_font_descriptor,
 /* ---------------- Private ---------------- */
 
 /* Get the ID of font descriptor metrics. */
-inline private long
+inline private int32_t
 pdf_font_descriptor_common_id(const pdf_font_descriptor_common_t *pfdc)
 {
     return pdf_resource_id((const pdf_resource_t *)pfdc);
@@ -248,7 +248,7 @@ pdf_font_descriptor_alloc(gx_device_pdf *pdev, pdf_font_descriptor_t **ppfd,
 }
 
 /* Get the object ID of a FontDescriptor. */
-long
+int32_t
 pdf_font_descriptor_id(const pdf_font_descriptor_t *pfd)
 {
     return pdf_resource_id((const pdf_resource_t *)pfd);
@@ -580,7 +580,7 @@ int
 pdf_write_FontDescriptor(gx_device_pdf *pdev, pdf_font_descriptor_t *pfd)
 {
     font_type ftype = pfd->FontType;
-    long cidset_id = 0;
+    int32_t cidset_id = 0;
     int code = 0;
     stream *s;
 

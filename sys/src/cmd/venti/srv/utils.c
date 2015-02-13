@@ -12,22 +12,22 @@
 #include "fns.h"
 
 int
-namecmp(char *s, char *t)
+namecmp(int8_t *s, int8_t *t)
 {
 	return strncmp(s, t, ANameSize);
 }
 
 void
-namecp(char *dst, char *src)
+namecp(int8_t *dst, int8_t *src)
 {
 	strncpy(dst, src, ANameSize - 1);
 	dst[ANameSize - 1] = '\0';
 }
 
 int
-nameok(char *name)
+nameok(int8_t *name)
 {
-	char *t;
+	int8_t *t;
 	int c;
 
 	if(name == nil)
@@ -40,9 +40,9 @@ nameok(char *name)
 }
 
 int
-stru32int(char *s, u32int *r)
+stru32int(int8_t *s, u32int *r)
 {
-	char *t;
+	int8_t *t;
 	u32int n, nn, m;
 	int c;
 
@@ -64,9 +64,9 @@ stru32int(char *s, u32int *r)
 }
 
 int
-stru64int(char *s, u64int *r)
+stru64int(int8_t *s, u64int *r)
 {
-	char *t;
+	int8_t *t;
 	u64int n, nn, m;
 	int c;
 
@@ -93,10 +93,10 @@ vttypevalid(int type)
 	return type < VtMaxType;
 }
 
-static char*
-logit(int severity, char *fmt, va_list args)
+static int8_t*
+logit(int severity, int8_t *fmt, va_list args)
 {
-	char *s;
+	int8_t *s;
 
 	s = vsmprint(fmt, args);
 	if(s == nil)
@@ -111,9 +111,9 @@ logit(int severity, char *fmt, va_list args)
 }
 
 void
-seterr(int severity, char *fmt, ...)
+seterr(int severity, int8_t *fmt, ...)
 {
-	char *s;
+	int8_t *s;
 	va_list args;
 
 	va_start(args, fmt);
@@ -128,9 +128,9 @@ seterr(int severity, char *fmt, ...)
 }
 
 void
-logerr(int severity, char *fmt, ...)
+logerr(int severity, int8_t *fmt, ...)
 {
-	char *s;
+	int8_t *s;
 	va_list args;
 
 	va_start(args, fmt);
@@ -148,7 +148,7 @@ now(void)
 int abortonmem = 1;
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -160,12 +160,12 @@ emalloc(ulong n)
 	}
 	memset(p, 0xa5, n);
 	setmalloctag(p, getcallerpc(&n));
-if(0)print("emalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&n));
+if(0)print("emalloc %p-%p by %#p\n", p, (int8_t*)p+n, getcallerpc(&n));
 	return p;
 }
 
 void *
-ezmalloc(ulong n)
+ezmalloc(uint32_t n)
 {
 	void *p;
 
@@ -177,12 +177,12 @@ ezmalloc(ulong n)
 	}
 	memset(p, 0, n);
 	setmalloctag(p, getcallerpc(&n));
-if(0)print("ezmalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&n));
+if(0)print("ezmalloc %p-%p by %#p\n", p, (int8_t*)p+n, getcallerpc(&n));
 	return p;
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil){
@@ -191,21 +191,21 @@ erealloc(void *p, ulong n)
 		sysfatal("out of memory allocating %lud", n);
 	}
 	setrealloctag(p, getcallerpc(&p));
-if(0)print("erealloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&p));
+if(0)print("erealloc %p-%p by %#p\n", p, (int8_t*)p+n, getcallerpc(&p));
 	return p;
 }
 
-char *
-estrdup(char *s)
+int8_t *
+estrdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 	int n;
 
 	n = strlen(s) + 1;
 	t = emalloc(n);
 	memmove(t, s, n);
 	setmalloctag(t, getcallerpc(&s));
-if(0)print("estrdup %p-%p by %#p\n", t, (char*)t+n, getcallerpc(&s));
+if(0)print("estrdup %p-%p by %#p\n", t, (int8_t*)t+n, getcallerpc(&s));
 	return t;
 }
 

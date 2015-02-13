@@ -35,10 +35,10 @@ enum {
 typedef struct Hdr Hdr;
 struct Hdr			/* ICMP v4 & v6 header */
 {
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];	/* Checksum */
-	uchar	data[];
+	uint8_t	type;
+	uint8_t	code;
+	uint8_t	cksum[2];	/* Checksum */
+	uint8_t	data[];
 };
 
 char *icmpmsg6[Maxtype6+1] =
@@ -82,49 +82,49 @@ static char *icmp6opts[] =
 [V6nd_9auth]		"9auth",
 };
 
-uchar v6allroutersL[IPaddrlen] = {
+uint8_t v6allroutersL[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x02
 };
 
-uchar v6allnodesL[IPaddrlen] = {
+uint8_t v6allnodesL[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01
 };
 
-uchar v6Unspecified[IPaddrlen] = {
+uint8_t v6Unspecified[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
 
-uchar v6loopback[IPaddrlen] = {
+uint8_t v6loopback[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 1
 };
 
-uchar v6glunicast[IPaddrlen] = {
+uint8_t v6glunicast[IPaddrlen] = {
 	0x08, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
 
-uchar v6linklocal[IPaddrlen] = {
+uint8_t v6linklocal[IPaddrlen] = {
 	0xfe, 0x80, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
 
-uchar v6solpfx[IPaddrlen] = {
+uint8_t v6solpfx[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 1,
@@ -132,7 +132,7 @@ uchar v6solpfx[IPaddrlen] = {
 	0xff, 0, 0, 0,
 };
 
-uchar v6defmask[IPaddrlen] = {
+uint8_t v6defmask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0, 0, 0, 0,
@@ -149,9 +149,9 @@ enum
 };
 
 static void
-ralog(char *fmt, ...)
+ralog(int8_t *fmt, ...)
 {
-	char msg[512];
+	int8_t msg[512];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -161,7 +161,7 @@ ralog(char *fmt, ...)
 }
 
 extern void
-ea2lla(uchar *lla, uchar *ea)
+ea2lla(uint8_t *lla, uint8_t *ea)
 {
 	assert(IPaddrlen == 16);
 	memset(lla, 0, IPaddrlen);
@@ -178,7 +178,7 @@ ea2lla(uchar *lla, uchar *ea)
 }
 
 extern void
-ipv62smcast(uchar *smcast, uchar *a)
+ipv62smcast(uint8_t *smcast, uint8_t *a)
 {
 	assert(IPaddrlen == 16);
 	memset(smcast, 0, IPaddrlen);
@@ -212,10 +212,10 @@ v6paraminit(Conf *cf)
 	cf->validlt = cf->preflt = ~0L;
 }
 
-static char *
+static int8_t *
 optname(unsigned opt)
 {
-	static char buf[32];
+	static int8_t buf[32];
 
 	if (opt >= nelem(icmp6opts) || icmp6opts[opt] == nil) {
 		snprint(buf, sizeof buf, "unknown option %d", opt);
@@ -224,12 +224,12 @@ optname(unsigned opt)
 		return icmp6opts[opt];
 }
 
-static char*
-opt_seprint(uchar *ps, uchar *pe, char *sps, char *spe)
+static int8_t*
+opt_seprint(uint8_t *ps, uint8_t *pe, int8_t *sps, int8_t *spe)
 {
 	int otype, osz, pktsz;
-	uchar *a;
-	char *p = sps, *e = spe;
+	uint8_t *a;
+	int8_t *p = sps, *e = spe;
 
 	a = ps;
 	for (pktsz = pe - ps; pktsz > 0; pktsz -= osz) {
@@ -268,11 +268,11 @@ opt_seprint(uchar *ps, uchar *pe, char *sps, char *spe)
 }
 
 static void
-pkt2str(uchar *ps, uchar *pe, char *sps, char *spe)
+pkt2str(uint8_t *ps, uint8_t *pe, int8_t *sps, int8_t *spe)
 {
 	int pktlen;
-	char *tn, *p, *e;
-	uchar *a;
+	int8_t *tn, *p, *e;
+	uint8_t *a;
 	Hdr *h;
 
 	h = (Hdr*)ps;
@@ -289,10 +289,10 @@ pkt2str(uchar *ps, uchar *pe, char *sps, char *spe)
 	tn = icmpmsg6[h->type];
 	if(tn == nil)
 		p = seprint(p, e, "t=%ud c=%d ck=%4.4ux", h->type,
-			h->code, (ushort)NetS(h->cksum));
+			h->code, (uint16_t)NetS(h->cksum));
 	else
 		p = seprint(p, e, "t=%s c=%d ck=%4.4ux", tn,
-			h->code, (ushort)NetS(h->cksum));
+			h->code, (uint16_t)NetS(h->cksum));
 
 	switch(h->type){
 	case RouterSolicit:
@@ -318,7 +318,7 @@ pkt2str(uchar *ps, uchar *pe, char *sps, char *spe)
 }
 
 static void
-catch(void *a, char *msg)
+catch(void *a, int8_t *msg)
 {
 	USED(a);
 	if(strstr(msg, "alarm"))
@@ -332,11 +332,11 @@ catch(void *a, char *msg)
  * actually just sets the arguments displayed.
  */
 void
-procsetname(char *fmt, ...)
+procsetname(int8_t *fmt, ...)
 {
 	int fd;
-	char *cmdname;
-	char buf[128];
+	int8_t *cmdname;
+	int8_t buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -353,11 +353,11 @@ procsetname(char *fmt, ...)
 }
 
 int
-dialicmp(uchar *dst, int dport, int *ctlfd)
+dialicmp(uint8_t *dst, int dport, int *ctlfd)
 {
 	int fd, cfd, n, m;
-	char cmsg[100], name[128], connind[40];
-	char hdrs[] = "headers";
+	int8_t cmsg[100], name[128], connind[40];
+	int8_t hdrs[] = "headers";
 
 	snprint(name, sizeof name, "%s/icmpv6/clone", conf.mpoint);
 	cfd = open(name, ORDWR);
@@ -395,9 +395,9 @@ int
 ip6cfg(int autoconf)
 {
 	int dupfound = 0, n;
-	char *p;
-	char buf[256];
-	uchar ethaddr[6];
+	int8_t *p;
+	int8_t buf[256];
+	uint8_t ethaddr[6];
 	Biobuf *bp;
 
 	if (autoconf) {			/* create link-local addr */
@@ -466,7 +466,7 @@ ip6cfg(int autoconf)
 }
 
 static int
-recvra6on(char *net, int conn)
+recvra6on(int8_t *net, int conn)
 {
 	Ipifc* ifc;
 
@@ -486,7 +486,7 @@ static void
 sendrs(int fd)
 {
 	Routersol *rs;
-	uchar buff[sizeof *rs];
+	uint8_t buff[sizeof *rs];
 
 	memset(buff, 0, sizeof buff);
 	rs = (Routersol *)buff;
@@ -510,7 +510,7 @@ sendrs(int fd)
  * doing nothing for now since I don't know where to log this yet.
  */
 static void
-recvrarouter(uchar buf[], int pktlen)
+recvrarouter(uint8_t buf[], int pktlen)
 {
 	USED(buf, pktlen);
 	ralog("i am a router and got a router advert");
@@ -519,7 +519,7 @@ recvrarouter(uchar buf[], int pktlen)
 /* host receiving a router advertisement calls this */
 
 static void
-ewrite(int fd, char *str)
+ewrite(int fd, int8_t *str)
 {
 	int n;
 
@@ -531,7 +531,7 @@ ewrite(int fd, char *str)
 static void
 issuebasera6(Conf *cf)
 {
-	char *cfg;
+	int8_t *cfg;
 
 	cfg = smprint("ra6 mflag %d oflag %d reachtime %d rxmitra %d "
 		"ttl %d routerlt %d",
@@ -544,7 +544,7 @@ issuebasera6(Conf *cf)
 static void
 issuerara6(Conf *cf)
 {
-	char *cfg;
+	int8_t *cfg;
 
 	cfg = smprint("ra6 sendra %d recvra %d maxraint %d minraint %d "
 		"linkmtu %d",
@@ -557,7 +557,7 @@ issuerara6(Conf *cf)
 static void
 issueadd6(Conf *cf)
 {
-	char *cfg;
+	int8_t *cfg;
 
 	cfg = smprint("add6 %I %d %d %d %lud %lud", cf->v6pref, cf->prefixlen,
 		cf->onlink, cf->autoflag, cf->validlt, cf->preflt);
@@ -566,11 +566,11 @@ issueadd6(Conf *cf)
 }
 
 static void
-recvrahost(uchar buf[], int pktlen)
+recvrahost(uint8_t buf[], int pktlen)
 {
 	int arpfd, m, n;
-	char abuf[100];
-	uchar optype;
+	int8_t abuf[100];
+	uint8_t optype;
 	Lladdropt *llao;
 	Mtuopt *mtuo;
 	Prefixopt *prfo;
@@ -676,7 +676,7 @@ void
 recvra6(void)
 {
 	int fd, cfd, n, sendrscnt, sleepfor;
-	uchar buf[4096];
+	uint8_t buf[4096];
 
 	/* TODO: why not v6allroutersL? */
 	fd = dialicmp(v6allnodesL, ICMP6_RA, &cfd);
@@ -752,10 +752,10 @@ recvra6(void)
  *         1 -- successful arp table update
  */
 int
-recvrs(uchar *buf, int pktlen, uchar *sol)
+recvrs(uint8_t *buf, int pktlen, uint8_t *sol)
 {
 	int n, optsz, arpfd;
-	char abuf[256];
+	int8_t abuf[256];
 	Routersol *rs;
 	Lladdropt *llao;
 
@@ -797,11 +797,11 @@ recvrs(uchar *buf, int pktlen, uchar *sol)
 }
 
 void
-sendra(int fd, uchar *dst, int rlt)
+sendra(int fd, uint8_t *dst, int rlt)
 {
 	int pktsz, preflen;
-	char abuf[1024], tmp[40];
-	uchar buf[1024], macaddr[6], src[IPaddrlen];
+	int8_t abuf[1024], tmp[40];
+	uint8_t buf[1024], macaddr[6], src[IPaddrlen];
 	Ipifc *ifc = nil;
 	Iplifc *lifc, *nlifc;
 	Lladdropt *llao;
@@ -882,8 +882,8 @@ void
 sendra6(void)
 {
 	int fd, cfd, n, dstknown = 0, sendracnt, sleepfor, nquitmsgs;
-	long lastra, now;
-	uchar buf[4096], dst[IPaddrlen];
+	int32_t lastra, now;
+	uint8_t buf[4096], dst[IPaddrlen];
 	Ipifc *ifc = nil;
 
 	fd = dialicmp(v6allnodesL, ICMP6_RS, &cfd);
@@ -961,7 +961,7 @@ sendra6(void)
 void
 startra6(void)
 {
-	static char routeon[] = "iprouting 1";
+	static int8_t routeon[] = "iprouting 1";
 
 	if (conf.recvra > 0)
 		recvra6();

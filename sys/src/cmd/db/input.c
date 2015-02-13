@@ -55,7 +55,7 @@ clrinp(void)
 int
 readrune(int fd, Rune *r)
 {
-	char buf[UTFmax+1];
+	int8_t buf[UTFmax+1];
 	int i;
 
 	for(i=0; i<UTFmax && !fullrune(buf, i); i++)
@@ -126,9 +126,9 @@ quotchar(void)
 }
 
 void
-getformat(char *deformat)
+getformat(int8_t *deformat)
 {
-	char *fptr;
+	int8_t *fptr;
 	BOOL	quote;
 	Rune r;
 

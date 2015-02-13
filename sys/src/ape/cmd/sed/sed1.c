@@ -17,16 +17,16 @@
 #define Read(f, buf, n)	(fflush(stdout), read(f, buf, n))
 
 void
-execute(uchar *file)
+execute(uint8_t *file)
 {
-	uchar *p1, *p2;
+	uint8_t *p1, *p2;
 	union reptr	*ipc;
 	int	c;
-	long	l;
-	uchar	*execp;
+	int32_t	l;
+	uint8_t	*execp;
 
 	if (file) {
-		if ((f = open((char*)file, O_RDONLY)) < 0) {
+		if ((f = open((int8_t*)file, O_RDONLY)) < 0) {
 			fprintf(stderr, "sed: Can't open %s\n", file);
 		}
 	} else
@@ -143,9 +143,9 @@ execute(uchar *file)
 	}
 }
 int
-match(uchar *expbuf, int gf)
+match(uint8_t *expbuf, int gf)
 {
-	uchar	*p1, *p2;
+	uint8_t	*p1, *p2;
 	int c;
 
 	if(gf) {
@@ -191,11 +191,11 @@ match(uchar *expbuf, int gf)
 	return(0);
 }
 int
-advance(uchar *alp, uchar *aep)
+advance(uint8_t *alp, uint8_t *aep)
 {
-	uchar *lp, *ep, *curlp;
-	uchar	c;
-	uchar *bbeg;
+	uint8_t *lp, *ep, *curlp;
+	uint8_t	c;
+	uint8_t *bbeg;
 	int	ct;
 
 /*fprintf(stderr, "*lp = %c, %o\n*ep = %c, %o\n", *lp, *lp, *ep, *ep);	/*DEBUG*/
@@ -325,7 +325,7 @@ advance(uchar *alp, uchar *aep)
 int
 substitute(union reptr *ipc)
 {
-	uchar	*oloc2;
+	uint8_t	*oloc2;
 
 	if(match(ipc->r1.re1, 0)) {
 
@@ -353,9 +353,9 @@ substitute(union reptr *ipc)
 }
 
 void
-dosub(uchar *rhsbuf)
+dosub(uint8_t *rhsbuf)
 {
-	uchar *lp, *sp, *rp;
+	uint8_t *lp, *sp, *rp;
 	int c;
 
 	lp = linebuf;
@@ -389,10 +389,10 @@ dosub(uchar *rhsbuf)
 	while (*lp++ = *sp++);
 	spend = lp-1;
 }
-uchar *
-place(uchar *asp, uchar *al1, uchar *al2)
+uint8_t *
+place(uint8_t *asp, uint8_t *al1, uint8_t *al2)
 {
-	uchar *sp, *l1, *l2;
+	uint8_t *sp, *l1, *l2;
 
 	sp = asp;
 	l1 = al1;
@@ -409,8 +409,8 @@ void
 command(union reptr *ipc)
 {
 	int	i;
-	uchar	*p1, *p2;
-	uchar	*execp;
+	uint8_t	*p1, *p2;
+	uint8_t	*execp;
 
 
 	switch(ipc->r1.command) {
@@ -565,7 +565,7 @@ command(union reptr *ipc)
 			}
 			if(aptr > abuf)	arout();
 			fclose(stdout);
-			lseek(f,(long)(cbp-ebp),2);
+			lseek(f,(int32_t)(cbp-ebp),2);
 			exit(0);
 		case RCOM:
 
@@ -626,10 +626,10 @@ command(union reptr *ipc)
 
 }
 
-uchar *
-gline(uchar *addr)
+uint8_t *
+gline(uint8_t *addr)
 {
-	uchar	*p1, *p2;
+	uint8_t	*p1, *p2;
 	int	c;
 	sflag = 0;
 	p1 = addr;
@@ -666,7 +666,7 @@ gline(uchar *addr)
 	return(p1);
 }
 int
-ecmp(uchar *a, uchar *b, int count)
+ecmp(uint8_t *a, uint8_t *b, int count)
 {
 	while(count--)
 		if(*a++ != *b++)	return(0);
@@ -676,9 +676,9 @@ ecmp(uchar *a, uchar *b, int count)
 void
 arout(void)
 {
-	uchar	*p1;
+	uint8_t	*p1;
 	FILE	*fi;
-	uchar	c;
+	uint8_t	c;
 	int	t;
 
 	aptr = abuf - 1;
@@ -688,7 +688,7 @@ arout(void)
 				putc(*p1++, stdout);
 			putc('\n', stdout);
 		} else {
-			if((fi = fopen((char*)((*aptr)->r1.re1), "r")) == NULL)
+			if((fi = fopen((int8_t*)((*aptr)->r1.re1), "r")) == NULL)
 				continue;
 			while((t = getc(fi)) != EOF) {
 				c = t;
@@ -701,8 +701,8 @@ arout(void)
 	*aptr = 0;
 }
 
-uchar *
-lformat(int c, uchar *p)
+uint8_t *
+lformat(int c, uint8_t *p)
 {
 	int trans = 
 		c=='\b'? 'b':

@@ -75,7 +75,7 @@ zsave(i_ctx_t *i_ctx_p)
     os_ptr op = osp;
     uint space = icurrent_space;
     vm_save_t *vmsave;
-    ulong sid;
+    uint32_t sid;
     int code;
     gs_state *prev;
 
@@ -92,7 +92,7 @@ zsave(i_ctx_t *i_ctx_p)
 	return_error(e_VMerror);
     }
     if_debug2('u', "[u]vmsave 0x%lx, id = %lu\n",
-	      (ulong) vmsave, (ulong) sid);
+	      (uint32_t) vmsave, (uint32_t) sid);
     code = gs_gsave_for_save(igs, &prev);
     if (code < 0)
 	return code;
@@ -123,8 +123,8 @@ zrestore(i_ctx_t *i_ctx_p)
     if (code < 0)
 	return code;
     if_debug2('u', "[u]vmrestore 0x%lx, id = %lu\n",
-	      (ulong) alloc_save_client_data(asave),
-	      (ulong) op->value.saveid);
+	      (uint32_t) alloc_save_client_data(asave),
+	      (uint32_t) op->value.saveid);
     if (I_VALIDATE_BEFORE_RESTORE)
 	ivalidate_clean_spaces(i_ctx_p);
     /* Check the contents of the stacks. */
@@ -188,7 +188,7 @@ restore_check_operand(os_ptr op, alloc_save_t ** pasave,
 		      gs_dual_memory_t *idmem)
 {
     vm_save_t *vmsave;
-    ulong sid;
+    uint32_t sid;
     alloc_save_t *asave;
 
     check_type(*op, t_save);

@@ -24,59 +24,59 @@
 #define DLEV		2
 #define DSIZ		40
 
-typedef	long	Bits;
-#define	Set(h, f)	((long)(h) & (f))
+typedef	int32_t	Bits;
+#define	Set(h, f)	((int32_t)(h) & (f))
 
-Bits 	nop(char*, char*, char*, int, int);
-Bits 	strip(char*, char*, char*, int, int);
-Bits 	ize(char*, char*, char*, int, int);
-Bits 	i_to_y(char*, char*, char*, int, int);
-Bits 	ily(char*, char*, char*, int, int);
-Bits 	subst(char*, char*, char*, int, int);
-Bits 	CCe(char*, char*, char*, int, int);
-Bits 	tion(char*, char*, char*, int, int);
-Bits 	an(char*, char*, char*, int, int);
-Bits 	s(char*, char*, char*, int, int);
-Bits 	es(char*, char*, char*, int, int);
-Bits 	bility(char*, char*, char*, int, int);
-Bits 	y_to_e(char*, char*, char*, int, int);
-Bits 	VCe(char*, char*, char*, int, int);
+Bits 	nop(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	strip(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	ize(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	i_to_y(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	ily(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	subst(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	CCe(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	tion(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	an(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	s(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	es(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	bility(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	y_to_e(int8_t*, int8_t*, int8_t*, int, int);
+Bits 	VCe(int8_t*, int8_t*, int8_t*, int, int);
 
-Bits 	trypref(char*, char*, int, int);
-Bits	tryword(char*, char*, int, int);
-Bits 	trysuff(char*, int, int);
-Bits	dict(char*, char*);
+Bits 	trypref(int8_t*, int8_t*, int, int);
+Bits	tryword(int8_t*, int8_t*, int, int);
+Bits 	trysuff(int8_t*, int, int);
+Bits	dict(int8_t*, int8_t*);
 void	typeprint(Bits);
-void	pcomma(char*);
+void	pcomma(int8_t*);
 
 void	ise(void);
 int	ordinal(void);
-char*	skipv(char*);
-int	inun(char*, Bits);
-char*	ztos(char*);
-void	readdict(char*);
+int8_t*	skipv(int8_t*);
+int	inun(int8_t*, Bits);
+int8_t*	ztos(int8_t*);
+void	readdict(int8_t*);
 
 typedef	struct	Ptab	Ptab;
 struct	Ptab
 {
-	char*	s;
+	int8_t*	s;
 	int	flag;
 };
 
 typedef	struct	Suftab	Suftab;
 struct	Suftab
 {
-	char	*suf;
-	Bits	(*p1)(char*, char*, char*, int, int);
+	int8_t	*suf;
+	Bits	(*p1)(int8_t*, int8_t*, int8_t*, int, int);
 	int	n1;
-	char	*d1;
-	char	*a1;
+	int8_t	*d1;
+	int8_t	*a1;
 	int	flag;
 	int	affixable;
-	Bits	(*p2)(char*, char*, char*, int, int);
+	Bits	(*p2)(int8_t*, int8_t*, int8_t*, int, int);
 	int	n2;
-	char	*d2;
-	char	*a2;
+	int8_t	*d2;
+	int8_t	*a2;
 };
 
 Suftab	staba[] = {
@@ -430,7 +430,7 @@ Ptab*	preftab[] =
 };
 
 typedef struct {
-	char *mesg;
+	int8_t *mesg;
 	enum { NONE, SUFF, PREF} type;
 } Deriv;
 
@@ -440,31 +440,31 @@ int	fflag;
 int	vflag;
 int	xflag;
 int 	nflag;
-char	word[500];
-char*	original;
+int8_t	word[500];
+int8_t*	original;
 Deriv	emptyderiv;
 Deriv	deriv[DSIZ+3];
-char	affix[DSIZ*10];	/* 10 is longest affix message */
+int8_t	affix[DSIZ*10];	/* 10 is longest affix message */
 int	prefcount;
 int 	suffcount;
-char*	acmeid;
-char	space[300000];	/* must be as large as "words"+"space" in pcode run */
+int8_t*	acmeid;
+int8_t	space[300000];	/* must be as large as "words"+"space" in pcode run */
 Bits	encode[2048];	/* must be as long as "codes" in pcode run */
 int	nencode;
-char	voweltab[256];
-char*	spacep[128*128+1];	/* pointer to words starting with 'xx' */
+int8_t	voweltab[256];
+int8_t*	spacep[128*128+1];	/* pointer to words starting with 'xx' */
 Biobuf	bin;
 Biobuf	bout;
 
-char*	codefile = "/sys/lib/amspell";
-char*	brfile = "/sys/lib/brspell";
-char*	Usage = "usage";
+int8_t*	codefile = "/sys/lib/amspell";
+int8_t*	brfile = "/sys/lib/brspell";
+int8_t*	Usage = "usage";
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-	char *ep, *cp;
-	char *dp;
+	int8_t *ep, *cp;
+	int8_t *dp;
 	int j, i, c;
 	int low;
 	Bits h;
@@ -605,10 +605,10 @@ main(int argc, char *argv[])
  *	strip suffixes
  */
 Bits
-trysuff(char* ep, int lev, int flag)
+trysuff(int8_t* ep, int lev, int flag)
 {
 	Suftab *t;
-	char *cp, *sp;
+	int8_t *cp, *sp;
 	Bits h = 0;
 	int initchar = ep[-1];
 
@@ -646,14 +646,14 @@ trysuff(char* ep, int lev, int flag)
 }
 
 Bits
-nop(char* ep, char* d, char* a, int lev, int flag)
+nop(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	USED(ep, d, a, lev, flag);
 	return 0;
 }
 
 Bits
-cstrip(char* ep, char* d, char* a, int lev, int flag)
+cstrip(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	int temp = ep[0];
 
@@ -676,7 +676,7 @@ cstrip(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Bits
-strip(char* ep, char* d, char* a, int lev, int flag)
+strip(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	Bits h = trypref(ep, a, lev, flag);
 
@@ -694,7 +694,7 @@ strip(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Bits
-s(char* ep, char* d, char* a, int lev, int flag)
+s(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	if(lev > DLEV+1)
 		return 0;
@@ -719,7 +719,7 @@ s(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Bits
-an(char* ep, char* d, char* a, int lev, int flag)
+an(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	USED(d);
 	if(!ISUPPER(*word))	/*must be proper name*/
@@ -728,7 +728,7 @@ an(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Bits
-ize(char* ep, char* d, char* a, int lev, int flag)
+ize(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	int temp = ep[-1];
 	Bits h;
@@ -741,7 +741,7 @@ ize(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Bits
-y_to_e(char* ep, char* d, char* a, int lev, int flag)
+y_to_e(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	Bits h;
 	int  temp;
@@ -761,10 +761,10 @@ y_to_e(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Bits
-ily(char* ep, char* d, char* a, int lev, int flag)
+ily(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	int temp = ep[0];
-	char *cp = ep;
+	int8_t *cp = ep;
 
 	if(temp==ep[-1]&&temp==ep[-2])		/* sillly */
 		return 0;
@@ -778,14 +778,14 @@ ily(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Bits
-bility(char* ep, char* d, char* a, int lev, int flag)
+bility(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	*ep++ = 'l';
 	return y_to_e(ep,d,a,lev,flag);
 }
 
 Bits
-i_to_y(char* ep, char* d, char* a, int lev, int flag)
+i_to_y(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	Bits h;
 	int temp;
@@ -802,7 +802,7 @@ i_to_y(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Bits
-es(char* ep, char* d, char* a, int lev, int flag)
+es(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	if(lev>DLEV)
 		return 0;
@@ -827,9 +827,9 @@ es(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Bits
-subst(char* ep, char* d, char* a, int lev, int flag)
+subst(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
-	char *u,*t;
+	int8_t *u,*t;
 	Bits h;
 
 	USED(a);
@@ -848,7 +848,7 @@ subst(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Bits
-tion(char* ep, char* d, char* a, int lev, int flag)
+tion(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	switch(ep[-2]) {
 	default:
@@ -866,7 +866,7 @@ tion(char* ep, char* d, char* a, int lev, int flag)
  * possible consonant-consonant-e ending
  */
 Bits
-CCe(char* ep, char* d, char* a, int lev, int flag)
+CCe(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	Bits h;
 
@@ -907,7 +907,7 @@ CCe(char* ep, char* d, char* a, int lev, int flag)
  * possible consonant-vowel-consonant-e ending
  */
 Bits
-VCe(char* ep, char* d, char* a, int lev, int flag)
+VCe(int8_t* ep, int8_t* d, int8_t* a, int lev, int flag)
 {
 	int c;
 	Bits h;
@@ -930,20 +930,20 @@ VCe(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Ptab*
-lookuppref(uchar** wp, char* ep)
+lookuppref(uint8_t** wp, int8_t* ep)
 {
 	Ptab *sp;
-	uchar *bp,*cp;
+	uint8_t *bp,*cp;
 	unsigned int initchar = Tolower(**wp);
 
 	if(!ISALPHA(initchar))
 		return 0;
 	for(sp=preftab[initchar-'a'];sp->s;sp++) {
 		bp = *wp;
-		for(cp= (uchar*)sp->s;*cp; )
+		for(cp= (uint8_t*)sp->s;*cp; )
 			if(*bp++!=*cp++)
 				goto next;
-		for(cp=bp;cp<(uchar*)ep;cp++)
+		for(cp=bp;cp<(uint8_t*)ep;cp++)
 			if(ISVOWEL(*cp)) {
 				*wp = bp;
 				return sp;
@@ -957,13 +957,13 @@ lookuppref(uchar** wp, char* ep)
  *	prefixes. Fail if no more prefixes.
  */
 Bits
-trypref(char* ep, char* a, int lev, int flag)
+trypref(int8_t* ep, int8_t* a, int lev, int flag)
 {
 	Ptab *tp;
-	char *bp, *cp;
-	char *pp;
+	int8_t *bp, *cp;
+	int8_t *pp;
 	Bits h;
-	char space[20];
+	int8_t space[20];
 
 	if(lev<DSIZ) {
 		deriv[lev].mesg = a;
@@ -980,7 +980,7 @@ trypref(char* ep, char* a, int lev, int flag)
 		deriv[lev+1].mesg = pp;
 		deriv[lev+1].type = 0;
 	}
-	while(tp=lookuppref((uchar**)&bp,ep)) {
+	while(tp=lookuppref((uint8_t**)&bp,ep)) {
 		*pp++ = '+';
 		cp = tp->s;
 		while(pp<space+sizeof(space) && (*pp = *cp++))
@@ -1004,11 +1004,11 @@ trypref(char* ep, char* a, int lev, int flag)
 }
 
 Bits
-tryword(char* bp, char* ep, int lev, int flag)
+tryword(int8_t* bp, int8_t* ep, int lev, int flag)
 {
 	int  j;
 	Bits h = 0;
-	char duple[3];
+	int8_t duple[3];
 
 	if(ep-bp <= 1)
 		return h;
@@ -1043,7 +1043,7 @@ tryword(char* bp, char* ep, int lev, int flag)
 }
 
 int
-inun(char* bp, Bits h)
+inun(int8_t* bp, Bits h)
 {
 	if(*bp == 'u')
 		return Set(h, IN) == 0;
@@ -1060,8 +1060,8 @@ inun(char* bp, Bits h)
 	return bp[1] == 'n';
 }
 
-char*
-skipv(char *s)
+int8_t*
+skipv(int8_t *s)
 {
 	if(s >= word && ISVOWEL(*s))
 		s--;
@@ -1087,10 +1087,10 @@ ise(void)
 		}
 }
 
-char*
-ztos(char *as)
+int8_t*
+ztos(int8_t *as)
 {
-	char *s, *ds;
+	int8_t *s, *ds;
 
 	for(s=as; *s; s++)
 		if(*s == 'z')
@@ -1106,9 +1106,9 @@ copy:
 }
 
 Bits
-dict(char* bp, char* ep)
+dict(int8_t* bp, int8_t* ep)
 {
-	char *cp, *cp1, *w, *wp, *we;
+	int8_t *cp, *cp1, *w, *wp, *we;
 	int n, f;
 
 	w = bp;
@@ -1230,7 +1230,7 @@ typeprint(Bits h)
 }
 
 void
-pcomma(char *s)
+pcomma(int8_t *s)
 {
 	static flag;
 
@@ -1256,8 +1256,8 @@ pcomma(char *s)
 int
 ordinal(void)
 {
-	char *cp = word;
-	static char sp[4];
+	int8_t *cp = word;
+	static int8_t sp[4];
 
 	while(ISDIGIT(*cp))
 		cp++;
@@ -1296,12 +1296,12 @@ ordinal(void)
  * all ints are big endians in the file.
  */
 void
-readdict(char *file)
+readdict(int8_t *file)
 {
-	char *s, *is, *lasts, *ls;
+	int8_t *s, *is, *lasts, *ls;
 	int c, i, sp, p;
 	int f;
-	long l;
+	int32_t l;
 
 	lasts = 0;
 	f = open(file, 0);
@@ -1316,7 +1316,7 @@ readdict(char *file)
 		goto bad;
 	s = space;
 	for(i=0; i<nencode; i++) {
-		l = (long)(s[0] & 0xff) << 24;
+		l = (int32_t)(s[0] & 0xff) << 24;
 		l |= (s[1] & 0xff) << 16;
 		l |= (s[2] & 0xff) << 8;
 		l |= s[3] & 0xff;

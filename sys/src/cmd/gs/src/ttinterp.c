@@ -4798,7 +4798,7 @@ static int nInstrCount=0;
   }
 
 
-  static struct { const char *sName; TInstruction_Function p; }  Instruct_Dispatch[256] =
+  static struct { const int8_t *sName; TInstruction_Function p; }  Instruct_Dispatch[256] =
   {
     /* Opcodes are gathered in groups of 16. */
     /* Please keep the spaces as they are.   */

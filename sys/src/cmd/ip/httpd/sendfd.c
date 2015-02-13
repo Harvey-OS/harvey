@@ -37,11 +37,11 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 	HRange *r;
 	HContents conts;
 	Hio *hout;
-	char *boundary, etag[32];
-	long mtime;
-	ulong tr;
+	int8_t *boundary, etag[32];
+	int32_t mtime;
+	uint32_t tr;
 	int n, nw, multir, ok;
-	vlong wrote, length;
+	int64_t wrote, length;
 
 	hout = &c->hout;
 	length = dir->length;
@@ -259,9 +259,9 @@ printtype(Hio *hout, HContent *type, HContent *enc)
 }
 
 int
-etagmatch(int strong, HETag *tags, char *e)
+etagmatch(int strong, HETag *tags, int8_t *e)
 {
-	char *s, *t;
+	int8_t *s, *t;
 
 	for(; tags != nil; tags = tags->next){
 		if(strong && tags->weak)
@@ -284,10 +284,10 @@ etagmatch(int strong, HETag *tags, char *e)
 	return 0;
 }
 
-static char *
-acceptcont(char *s, char *e, HContent *ok, char *which)
+static int8_t *
+acceptcont(int8_t *s, int8_t *e, HContent *ok, int8_t *which)
 {
-	char *sep;
+	int8_t *sep;
 
 	if(ok == nil)
 		return seprint(s, e, "Your browser accepts any %s.<br>\n", which);
@@ -309,10 +309,10 @@ acceptcont(char *s, char *e, HContent *ok, char *which)
  * and turn off Show Friendly HTTP Error Messages under the Browsing category
  */
 static int
-notaccept(HConnect *c, HContent *type, HContent *enc, char *which)
+notaccept(HConnect *c, HContent *type, HContent *enc, int8_t *which)
 {
 	Hio *hout;
-	char *s, *e;
+	int8_t *s, *e;
 
 	hout = &c->hout;
 	e = &c->xferbuf[HBufSize];
@@ -349,7 +349,8 @@ notaccept(HConnect *c, HContent *type, HContent *enc, char *which)
  * check time and entity tag conditions.
  */
 int
-checkreq(HConnect *c, HContent *type, HContent *enc, long mtime, char *etag)
+checkreq(HConnect *c, HContent *type, HContent *enc, int32_t mtime,
+	 int8_t *etag)
 {
 	Hio *hout;
 	int m;
@@ -413,7 +414,7 @@ checkreq(HConnect *c, HContent *type, HContent *enc, long mtime, char *etag)
  * rewrite suffix requests
  */
 HRange*
-fixrange(HRange *h, long length)
+fixrange(HRange *h, int32_t length)
 {
 	HRange *r, *rr;
 

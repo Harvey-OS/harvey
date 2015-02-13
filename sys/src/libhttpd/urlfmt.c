@@ -15,12 +15,12 @@
 int
 hurlfmt(Fmt *f)
 {
-	char buf[HMaxWord*2];
+	int8_t buf[HMaxWord*2];
 	Rune r;
-	char *s;
+	int8_t *s;
 	int t;
 
-	s = va_arg(f->args, char*);
+	s = va_arg(f->args, int8_t*);
 	for(t = 0; t < sizeof(buf) - 8; ){
 		s += chartorune(&r, s);
 		if(r == 0)

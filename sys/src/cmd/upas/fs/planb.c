@@ -25,11 +25,11 @@
 #include "dat.h"
 
 static int
-readmessage(Message *m, char *msg)
+readmessage(Message *m, int8_t *msg)
 {
 	int fd, i, n;
-	char *buf, *name, *p;
-	char hdr[128], sdigest[SHA1dlen*2+1];
+	int8_t *buf, *name, *p;
+	int8_t hdr[128], sdigest[SHA1dlen*2+1];
 	Dir *d;
 
 	buf = nil;
@@ -84,7 +84,7 @@ readmessage(Message *m, char *msg)
 		m->end--;
 	*m->end = 0;
 	m->bend = m->rbend = m->end;
-	sha1((uchar*)m->start, m->end - m->start, m->digest, nil);
+	sha1((uint8_t*)m->start, m->end - m->start, m->digest, nil);
 	for(i = 0; i < SHA1dlen; i++)
 		sprint(sdigest+2*i, "%2.2ux", m->digest[i]);
 	m->sdigest = s_copy(sdigest);
@@ -104,7 +104,7 @@ Fail:
 static void
 archive(Message *m)
 {
-	char *dir, *p, *nname;
+	int8_t *dir, *p, *nname;
 	Dir d;
 
 	dir = strdup(s_to_c(m->filename));
@@ -159,7 +159,7 @@ purgembox(Mailbox *mb, int virtual)
 }
 
 static int
-mustshow(char* name)
+mustshow(int8_t* name)
 {
 	if(isdigit(name[0]))
 		return 1;
@@ -171,10 +171,10 @@ mustshow(char* name)
 }
 
 static int
-readpbmessage(Mailbox *mb, char *msg, int doplumb)
+readpbmessage(Mailbox *mb, int8_t *msg, int doplumb)
 {
 	Message *m, **l;
-	char *x;
+	int8_t *x;
 
 	m = newmessage(mb->root);
 	m->mallocd = 1;
@@ -213,7 +213,7 @@ readpbmessage(Mailbox *mb, char *msg, int doplumb)
 static int
 dcmp(Dir *a, Dir *b)
 {
-	char *an, *bn;
+	int8_t *an, *bn;
 
 	an = a->name;
 	bn = b->name;
@@ -228,7 +228,7 @@ static void
 readpbmbox(Mailbox *mb, int doplumb)
 {
 	int fd, i, j, nd, nmd;
-	char *month, *msg;
+	int8_t *month, *msg;
 	Dir *d, *md;
 
 	fd = open(mb->path, OREAD);
@@ -274,8 +274,8 @@ static void
 readpbvmbox(Mailbox *mb, int doplumb)
 {
 	int fd, nr;
-	long sz;
-	char *data, *ln, *p, *nln, *msg;
+	int32_t sz;
+	int8_t *data, *ln, *p, *nln, *msg;
 	Dir *d;
 
 	fd = open(mb->path, OREAD);
@@ -336,13 +336,13 @@ readpbvmbox(Mailbox *mb, int doplumb)
 	free(data);
 }
 
-static char*
+static int8_t*
 readmbox(Mailbox *mb, int doplumb, int virt)
 {
 	int fd;
 	Dir *d;
 	Message *m;
-	static char err[Errlen];
+	static int8_t err[Errlen];
 
 	if(debug)
 		fprint(2, "read mbox %s\n", mb->path);
@@ -396,31 +396,31 @@ readmbox(Mailbox *mb, int doplumb, int virt)
 	return nil;
 }
 
-static char*
+static int8_t*
 mbsync(Mailbox *mb, int doplumb)
 {
-	char *rv;
+	int8_t *rv;
 
 	rv = readmbox(mb, doplumb, 0);
 	purgembox(mb, 0);
 	return rv;
 }
 
-static char*
+static int8_t*
 mbvsync(Mailbox *mb, int doplumb)
 {
-	char *rv;
+	int8_t *rv;
 
 	rv = readmbox(mb, doplumb, 1);
 	purgembox(mb, 1);
 	return rv;
 }
 
-char*
-planbmbox(Mailbox *mb, char *path)
+int8_t*
+planbmbox(Mailbox *mb, int8_t *path)
 {
-	char *list;
-	static char err[64];
+	int8_t *list;
+	static int8_t err[64];
 
 	if(access(path, AEXIST) < 0)
 		return Enotme;
@@ -436,12 +436,12 @@ planbmbox(Mailbox *mb, char *path)
 	return nil;
 }
 
-char*
-planbvmbox(Mailbox *mb, char *path)
+int8_t*
+planbvmbox(Mailbox *mb, int8_t *path)
 {
 	int fd, nr, i;
-	char buf[64];
-	static char err[64];
+	int8_t buf[64];
+	static int8_t err[64];
 
 	fd = open(path, OREAD);
 	if(fd < 0)

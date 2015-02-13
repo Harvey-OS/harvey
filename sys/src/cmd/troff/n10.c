@@ -26,9 +26,9 @@ int	esct;
 
 enum	{ Notype = 0, Type = 1 };
 
-static char *parse(char *s, int typeit)	/* convert \0, etc to nroff driving table format */
+static int8_t *parse(int8_t *s, int typeit)	/* convert \0, etc to nroff driving table format */
 {		/* typeit => add a type id to the front for later use */
-	static char buf[100], *t, *obuf;
+	static int8_t buf[100], *t, *obuf;
 	int quote = 0;
 	wchar_t wc;
 
@@ -86,7 +86,7 @@ static int getnrfont(FILE *fp)	/* read the nroff description file */
 	Chwid chtemp[NCHARS];
 	static Chwid chinit;
 	int i, nw, n, wid, code, type;
-	char buf[100], ch[100], s1[100], s2[100];
+	int8_t buf[100], ch[100], s1[100], s2[100];
 	wchar_t wc;
 
 	code = 0;			/* no idea what this should be */
@@ -315,7 +315,7 @@ void n_ptout(Tchar i)
 void ptout1(void)
 {
 	int k;
-	char *codep;
+	int8_t *codep;
 	int w, j, phyw;
 	Tchar *q, i;
 	static int oxfont = FT;	/* start off in roman */
@@ -426,10 +426,10 @@ void ptout1(void)
 }
 
 
-char *plot(char *x)
+int8_t *plot(int8_t *x)
 {
 	int	i;
-	char	*j, *k;
+	int8_t	*j, *k;
 
 	oputs(t.ploton);
 	k = x;
@@ -467,8 +467,8 @@ char *plot(char *x)
 void move(void)
 {
 	int k;
-	char *i, *j;
-	char *p, *q;
+	int8_t *i, *j;
+	int8_t *p, *q;
 	int iesct, dt;
 
 	iesct = esct;
@@ -551,7 +551,7 @@ void n_ptlead(void)
 
 void n_ptpause(void )
 {
-	char	junk;
+	int8_t	junk;
 
 	flusho();
 	read(2, &junk, 1);

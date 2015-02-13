@@ -51,7 +51,7 @@
 
 typedef struct {
     fixed v0, v1;		/* coordinates */
-    ushort index;		/* sequential index of hint */
+    uint16_t index;		/* sequential index of hint */
 } cv_stem_hint;
 typedef struct {
     int count;
@@ -139,7 +139,7 @@ type1_stem1(gs_type1_state *pcis, cv_stem_hint_table *psht, const fixed *pv,
     }
     if (top > bot && v0 == top[-1].v0 && v1 == top[-1].v1) {
 	/* Duplicate hint, don't add it. */
-	memmove(top, top + 1, (char *)orig_top - (char *)top);
+	memmove(top, top + 1, (int8_t *)orig_top - (int8_t *)top);
 	if (active_hints) {
 	    uint index = top[-1].index;
 
@@ -192,7 +192,7 @@ type1_next(gs_type1_state *pcis)
 	    } else if (c < cx_num4) {	/* 2-byte number */
 		decode_push_num2(csp, pcis->ostack, c, cip, state, encrypted);
 	    } else if (c == cx_num4) {	/* 4-byte number */
-		long lw;
+		int32_t lw;
 
 		decode_num4(lw, cip, state, encrypted);
 		CS_CHECK_PUSH(csp, pcis->ostack);

@@ -67,7 +67,7 @@ Alarm*
 alarm(int ms, void (*f)(Alarm*), void *arg)
 {
 	Alarm *a, *w, *pw;
-	ulong s;
+	uint32_t s;
 
 	if(ms < 0)
 		ms = 0;

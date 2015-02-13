@@ -32,11 +32,11 @@ void
 writef(File *f)
 {
 	Posn n;
-	char *name;
+	int8_t *name;
 	int i, samename, newfile;
-	ulong dev;
-	uvlong qid;
-	long mtime, appendonly, length;
+	uint32_t dev;
+	uint64_t qid;
+	int32_t mtime, appendonly, length;
 
 	newfile = 0;
 	samename = Strcmp(&genstr, &f->name) == 0;
@@ -88,10 +88,10 @@ readio(File *f, int *nulls, int setdate, int toterm)
 	Rune *r;
 	Posn nt;
 	Posn p = addr.r.p2;
-	ulong dev;
-	uvlong qid;
-	long mtime;
-	char buf[BLOCKSIZE+1], *s;
+	uint32_t dev;
+	uint64_t qid;
+	int32_t mtime;
+	int8_t buf[BLOCKSIZE+1], *s;
 
 	*nulls = FALSE;
 	b = 0;
@@ -106,7 +106,7 @@ readio(File *f, int *nulls, int setdate, int toterm)
 			r = genbuf;
 			s = buf;
 			while(n > 0){
-				if((*r = *(uchar*)s) < Runeself){
+				if((*r = *(uint8_t*)s) < Runeself){
 					if(*r)
 						r++;
 					else
@@ -151,7 +151,7 @@ writeio(File *f)
 {
 	int m, n;
 	Posn p = addr.r.p1;
-	char *c;
+	int8_t *c;
 
 	while(p < addr.r.p2){
 		if(addr.r.p2-p>BLOCKSIZE)
@@ -185,7 +185,7 @@ int	remotefd0 = 0;
 int	remotefd1 = 1;
 
 void
-bootterm(char *machine, char **argv)
+bootterm(int8_t *machine, int8_t **argv)
 {
 	int ph2t[2], pt2h[2];
 
@@ -227,16 +227,16 @@ bootterm(char *machine, char **argv)
 }
 
 void
-connectto(char *machine, char **argv)
+connectto(int8_t *machine, int8_t **argv)
 {
 	int p1[2], p2[2];
-	char **av;
+	int8_t **av;
 	int ac;
 	
 	// count args
 	for(av = argv; *av; av++)
 		;
-	av = malloc(sizeof(char*)*((av-argv) + 5));
+	av = malloc(sizeof(int8_t*)*((av-argv) + 5));
 	if(av == nil){
 		dprint("out of memory\n");
 		exits("fork/exec");
@@ -277,7 +277,7 @@ connectto(char *machine, char **argv)
 }
 
 void
-startup(char *machine, int Rflag, char **argv, char **files)
+startup(int8_t *machine, int Rflag, int8_t **argv, int8_t **files)
 {
 	if(machine)
 		connectto(machine, files);

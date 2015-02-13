@@ -28,7 +28,7 @@ clumpinfoeq(ClumpInfo *c, ClumpInfo *d)
 }
 
 int
-findscore(Arena *arena, uchar *score)
+findscore(Arena *arena, uint8_t *score)
 {
 	IEntry ie;
 	ClumpInfo *ci, *cis;

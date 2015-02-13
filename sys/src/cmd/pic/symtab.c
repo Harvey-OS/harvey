@@ -30,7 +30,7 @@ YYSTYPE getvar(char *s)	/* return value of variable s (usually pointer) */
 	return(p->s_val);
 }
 
-double getfval(char *s)	/* return float value of variable s */
+double getfval(int8_t *s)	/* return float value of variable s */
 {
 	YYSTYPE y;
 
@@ -38,7 +38,7 @@ double getfval(char *s)	/* return float value of variable s */
 	return y.f;
 }
 
-void setfval(char *s, double f)	/* set variable s to f */
+void setfval(int8_t *s, double f)	/* set variable s to f */
 {
 	struct symtab *p;
 
@@ -67,7 +67,7 @@ struct symtab *makevar(char *s, int t, YYSTYPE v)	/* make variable named s in ta
 	return(p);
 }
 
-struct symtab *lookup(char *s)	/* find s in symtab */
+struct symtab *lookup(int8_t *s)	/* find s in symtab */
 {
 	int i;
 	struct symtab *p;
@@ -86,11 +86,11 @@ void freesymtab(struct symtab *p)	/* free space used by symtab at p */
 	for ( ; p != NULL; p = q) {
 		q = p->s_next;
 		free(p->s_name);	/* assumes done with tostring */
-		free((char *)p);
+		free((int8_t *)p);
 	}
 }
 
-void freedef(char *s)	/* free definition for string s */
+void freedef(int8_t *s)	/* free definition for string s */
 {
 	struct symtab *p, *q, *op;
 
@@ -104,7 +104,7 @@ void freedef(char *s)	/* free definition for string s */
 				q->s_next = p->s_next;
 			free(p->s_name);
 			free(p->s_val.p);
-			free((char *)p);
+			free((int8_t *)p);
 			return;
 		}
 		q = p;

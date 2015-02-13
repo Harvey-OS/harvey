@@ -15,9 +15,9 @@
 #include <9p.h>
 #include "flashfs.h"
 
-static	char*	file;
+static	int8_t*	file;
 static	int	fd;
-static	uchar	*ones;
+static	uint8_t	*ones;
 
 static	int	isdev;
 
@@ -27,10 +27,10 @@ struct {
 } flash;
 
 void
-initdata(char *f, int)
+initdata(int8_t *f, int)
 {
-	char err[ERRMAX];
-	char buf[1024], *fld[8];
+	int8_t err[ERRMAX];
+	int8_t buf[1024], *fld[8];
 	int n;
 	Dir *d;
 
@@ -92,10 +92,10 @@ clearsect(int sect)
 }
 
 void
-readdata(int sect, void *buff, ulong count, ulong off)
+readdata(int sect, void *buff, uint32_t count, uint32_t off)
 {
-	long n;
-	ulong m;
+	int32_t n;
+	uint32_t m;
 
 	m = sect * sectsize + off;
 	n = pread(flash.dfd, buff, count, m);
@@ -106,10 +106,10 @@ readdata(int sect, void *buff, ulong count, ulong off)
 }
 
 int
-writedata(int err, int sect, void *buff, ulong count, ulong off)
+writedata(int err, int sect, void *buff, uint32_t count, uint32_t off)
 {
-	long n;
-	ulong m;
+	int32_t n;
+	uint32_t m;
 
 	m = sect*sectsize + off;
 	n = pwrite(flash.dfd, buff, count, m);

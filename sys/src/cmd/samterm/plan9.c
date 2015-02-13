@@ -18,7 +18,7 @@
 #include "flayer.h"
 #include "samterm.h"
 
-static char exname[64];
+static int8_t exname[64];
 
 void
 usage(void)
@@ -54,7 +54,7 @@ int
 screensize(int *w, int *h)
 {
 	int fd, n;
-	char buf[5*12+1];
+	int8_t buf[5*12+1];
 
 	fd = open("/dev/screen", OREAD);
 	if(fd < 0)
@@ -78,9 +78,9 @@ screensize(int *w, int *h)
 }
 
 int
-snarfswap(char *fromsam, int nc, char **tosam)
+snarfswap(int8_t *fromsam, int nc, int8_t **tosam)
 {
-	char *s1;
+	int8_t *s1;
 	int f, n, ss;
 
 	f = open("/dev/snarf", 0);
@@ -151,7 +151,7 @@ extproc(void *argv)
 void
 extstart(void)
 {
-	char buf[32];
+	int8_t buf[32];
 	int fd;
 	static int p[2];
 	static void *arg[2];
@@ -185,10 +185,10 @@ int
 plumbformat(int i)
 {
 	Plumbmsg *m;
-	char *addr, *data, *act;
+	int8_t *addr, *data, *act;
 	int n;
 
-	data = (char*)plumbbuf[i].data;
+	data = (int8_t*)plumbbuf[i].data;
 	m = plumbunpack(data, plumbbuf[i].n);
 	if(m == nil)
 		return 0;

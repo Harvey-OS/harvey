@@ -28,10 +28,10 @@
 
 typedef struct	Arsymref
 {
-	char	*name;
+	int8_t	*name;
 	int	type;
 	int	len;
-	vlong	offset;
+	int64_t	offset;
 	struct	Arsymref *next;
 } Arsymref;
 
@@ -39,17 +39,17 @@ typedef struct	Armember	/* Temp file entry - one per archive member */
 {
 	struct Armember	*next;
 	struct ar_hdr	hdr;
-	long		size;
-	long		date;
+	int32_t		size;
+	int32_t		date;
 	void		*member;
 } Armember;
 
 typedef	struct Arfile		/* Temp file control block - one per tempfile */
 {
 	int	paged;		/* set when some data paged to disk */
-	char	*fname;		/* paging file name */
+	int8_t	*fname;		/* paging file name */
 	int	fd;		/* paging file descriptor */
-	vlong	size;
+	int64_t	size;
 	Armember *head;		/* head of member chain */
 	Armember *tail;		/* tail of member chain */
 	Arsymref *sym;		/* head of defined symbol chain */
@@ -57,7 +57,7 @@ typedef	struct Arfile		/* Temp file control block - one per tempfile */
 
 typedef struct Hashchain
 {
-	char	*name;
+	int8_t	*name;
 	struct Hashchain *next;
 } Hashchain;
 
@@ -76,12 +76,12 @@ typedef struct Hashchain
 				|| cmd(f, h.fmag, sizeof(h.fmag)) != sizeof(h.fmag)
 
 		/* constants and flags */
-char	*man =		"mrxtdpq";
-char	*opt =		"uvnbailo";
-char	artemp[] =	"/tmp/vXXXXX";
-char	movtemp[] =	"/tmp/v1XXXXX";
-char	tailtemp[] =	"/tmp/v2XXXXX";
-char	symdef[] =	"__.SYMDEF";
+int8_t	*man =		"mrxtdpq";
+int8_t	*opt =		"uvnbailo";
+int8_t	artemp[] =	"/tmp/vXXXXX";
+int8_t	movtemp[] =	"/tmp/v1XXXXX";
+int8_t	tailtemp[] =	"/tmp/v2XXXXX";
+int8_t	symdef[] =	"__.SYMDEF";
 
 int	aflag;				/* command line flags */
 int	bflag;
@@ -98,58 +98,58 @@ Hashchain	*hash[NHASH];		/* hash table of text symbols */
 	
 #define	ARNAMESIZE	sizeof(astart->tail->hdr.name)
 
-char	poname[ARNAMESIZE+1];		/* name of pivot member */
-char	*file;				/* current file or member being worked on */
+int8_t	poname[ARNAMESIZE+1];		/* name of pivot member */
+int8_t	*file;				/* current file or member being worked on */
 Biobuf	bout;
 Biobuf bar;
 
 void	arcopy(Biobuf*, Arfile*, Armember*);
-int	arcreate(char*);
+int	arcreate(int8_t*);
 void	arfree(Arfile*);
 void	arinsert(Arfile*, Armember*);
-char	*armalloc(int);
+int8_t	*armalloc(int);
 void	armove(Biobuf*, Arfile*, Armember*);
 void	arread(Biobuf*, Armember*, int);
 void	arstream(int, Arfile*);
 int	arwrite(int, Armember*);
-int	bamatch(char*, char*);
-int	duplicate(char*);
+int	bamatch(int8_t*, int8_t*);
+int	duplicate(int8_t*);
 Armember *getdir(Biobuf*);
 int	getspace(void);
-void	install(char*, Arfile*, Arfile*, Arfile*, int);
+void	install(int8_t*, Arfile*, Arfile*, Arfile*, int);
 void	longt(Armember*);
-int	match(int, char**);
-void	mesg(int, char*);
-Arfile	*newtempfile(char*);
+int	match(int, int8_t**);
+void	mesg(int, int8_t*);
+Arfile	*newtempfile(int8_t*);
 Armember *newmember(void);
 void	objsym(Sym*, void*);
-int	openar(char*, int, int);
+int	openar(int8_t*, int, int);
 int	page(Arfile*);
-void	pmode(long);
+void	pmode(int32_t);
 void	rl(int);
-void	scanobj(Biobuf*, Arfile*, long);
-void	select(int*, long);
-void	setcom(void(*)(char*, int, char**));
-void	skip(Biobuf*, vlong);
+void	scanobj(Biobuf*, Arfile*, int32_t);
+void	select(int*, int32_t);
+void	setcom(void(*)(int8_t*, int, int8_t**));
+void	skip(Biobuf*, int64_t);
 int	symcomp(void*, void*);
-void	trim(char*, char*, int);
+void	trim(int8_t*, int8_t*, int);
 void	usage(void);
 void	wrerr(void);
-void	wrsym(Biobuf*, long, Arsymref*);
+void	wrsym(Biobuf*, int32_t, Arsymref*);
 
-void	rcmd(char*, int, char**);		/* command processing */
-void	dcmd(char*, int, char**);
-void	xcmd(char*, int, char**);
-void	tcmd(char*, int, char**);
-void	pcmd(char*, int, char**);
-void	mcmd(char*, int, char**);
-void	qcmd(char*, int, char**);
-void	(*comfun)(char*, int, char**);
+void	rcmd(int8_t*, int, int8_t**);		/* command processing */
+void	dcmd(int8_t*, int, int8_t**);
+void	xcmd(int8_t*, int, int8_t**);
+void	tcmd(int8_t*, int, int8_t**);
+void	pcmd(int8_t*, int, int8_t**);
+void	mcmd(int8_t*, int, int8_t**);
+void	qcmd(int8_t*, int, int8_t**);
+void	(*comfun)(int8_t*, int, int8_t**);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-	char *cp;
+	int8_t *cp;
 
 	Binit(&bout, 1, OWRITE);
 	if(argc < 3)
@@ -216,7 +216,7 @@ main(int argc, char *argv[])
  *	select a command
  */
 void
-setcom(void (*fun)(char *, int, char**))
+setcom(void (*fun)(int8_t *, int, int8_t**))
 {
 
 	if(comfun != 0) {
@@ -229,7 +229,7 @@ setcom(void (*fun)(char *, int, char**))
  *	perform the 'r' and 'u' commands
  */
 void
-rcmd(char *arname, int count, char **files)
+rcmd(int8_t *arname, int count, int8_t **files)
 {
 	int fd;
 	int i;
@@ -320,7 +320,7 @@ rcmd(char *arname, int count, char **files)
 }
 
 void
-dcmd(char *arname, int count, char **files)
+dcmd(int8_t *arname, int count, int8_t **files)
 {
 	Armember *bp;
 	int fd, i;
@@ -349,7 +349,7 @@ dcmd(char *arname, int count, char **files)
 }
 
 void
-xcmd(char *arname, int count, char **files)
+xcmd(int8_t *arname, int count, int8_t **files)
 {
 	int fd, f, mode, i;
 	Armember *bp;
@@ -392,7 +392,7 @@ xcmd(char *arname, int count, char **files)
 	close(fd);
 }
 void
-pcmd(char *arname, int count, char **files)
+pcmd(int8_t *arname, int count, int8_t **files)
 {
 	int fd;
 	Armember *bp;
@@ -414,7 +414,7 @@ pcmd(char *arname, int count, char **files)
 	close(fd);
 }
 void
-mcmd(char *arname, int count, char **files)
+mcmd(int8_t *arname, int count, int8_t **files)
 {
 	int fd, i;
 	Arfile *ap;
@@ -457,11 +457,11 @@ mcmd(char *arname, int count, char **files)
 	install(arname, astart, amiddle, aend, 0);
 }
 void
-tcmd(char *arname, int count, char **files)
+tcmd(int8_t *arname, int count, int8_t **files)
 {
 	int fd;
 	Armember *bp;
-	char name[ARNAMESIZE+1];
+	int8_t name[ARNAMESIZE+1];
 
 	fd = openar(arname, OREAD, 0);
 	Binit(&bar, fd, OREAD);
@@ -479,7 +479,7 @@ tcmd(char *arname, int count, char **files)
 	close(fd);
 }
 void
-qcmd(char *arname, int count, char **files)
+qcmd(int8_t *arname, int count, int8_t **files)
 {
 	int fd, i;
 	Armember *bp;
@@ -525,10 +525,10 @@ qcmd(char *arname, int count, char **files)
  *	extract the symbol references from an object file
  */
 void
-scanobj(Biobuf *b, Arfile *ap, long size)
+scanobj(Biobuf *b, Arfile *ap, int32_t size)
 {
 	int obj;
-	vlong offset;
+	int64_t offset;
 	Dir *d;
 	static int lastobj = -1;
 
@@ -598,10 +598,10 @@ objsym(Sym *s, void *p)
  *	Check the symbol table for duplicate text symbols
  */
 int
-duplicate(char *name)
+duplicate(int8_t *name)
 {
 	Hashchain *p;
-	char *cp;
+	int8_t *cp;
 	int h;
 
 	h = 0;
@@ -625,10 +625,10 @@ duplicate(char *name)
  *	open an archive and validate its header
  */
 int
-openar(char *arname, int mode, int errok)
+openar(int8_t *arname, int mode, int errok)
 {
 	int fd;
-	char mbuf[SARMAG];
+	int8_t mbuf[SARMAG];
 
 	fd = open(arname, mode);
 	if(fd >= 0){
@@ -647,7 +647,7 @@ openar(char *arname, int mode, int errok)
  *	create an archive and set its header
  */
 int
-arcreate(char *arname)
+arcreate(int8_t *arname)
 {
 	int fd;
 
@@ -699,8 +699,8 @@ Armember *
 getdir(Biobuf *b)
 {
 	Armember *bp;
-	char *cp;
-	static char name[ARNAMESIZE+1];
+	int8_t *cp;
+	static int8_t name[ARNAMESIZE+1];
 
 	bp = newmember();
 	if(HEADER_IO(Bread, b, bp->hdr)) {
@@ -728,7 +728,7 @@ getdir(Biobuf *b)
 void
 armove(Biobuf *b, Arfile *ap, Armember *bp)
 {
-	char *cp;
+	int8_t *cp;
 	Dir *d;
 
 	d = dirfstat(Bfildes(b));
@@ -763,7 +763,7 @@ armove(Biobuf *b, Arfile *ap, Armember *bp)
 void
 arcopy(Biobuf *b, Arfile *ap, Armember *bp)
 {
-	long n;
+	int32_t n;
 
 	n = bp->size;
 	if (n & 01)
@@ -779,7 +779,7 @@ arcopy(Biobuf *b, Arfile *ap, Armember *bp)
  *	Skip an archive member
  */
 void
-skip(Biobuf *bp, vlong len)
+skip(Biobuf *bp, int64_t len)
 {
 	if (len & 01)
 		len++;
@@ -790,7 +790,8 @@ skip(Biobuf *bp, vlong len)
  *	Stream the three temp files to an archive
  */
 void
-install(char *arname, Arfile *astart, Arfile *amiddle, Arfile *aend, int createflag)
+install(int8_t *arname, Arfile *astart, Arfile *amiddle, Arfile *aend,
+	int createflag)
 {
 	int fd;
 
@@ -828,9 +829,9 @@ rl(int fd)
 {
 
 	Biobuf b;
-	char *cp;
+	int8_t *cp;
 	struct ar_hdr a;
-	long len;
+	int32_t len;
 
 	Binit(&b, fd, OWRITE);
 	Bseek(&b,seek(fd,0,1), 0);
@@ -872,7 +873,7 @@ rl(int fd)
  *	Write the defined symbols to the symdef file
  */
 void
-wrsym(Biobuf *bp, long offset, Arsymref *as)
+wrsym(Biobuf *bp, int32_t offset, Arsymref *as)
 {
 	int off;
 
@@ -893,10 +894,10 @@ wrsym(Biobuf *bp, long offset, Arsymref *as)
  *	Check if the archive member matches an entry on the command line.
  */
 int
-match(int count, char **files)
+match(int count, int8_t **files)
 {
 	int i;
-	char name[ARNAMESIZE+1];
+	int8_t name[ARNAMESIZE+1];
 
 	for(i=0; i<count; i++) {
 		if(files[i] == 0)
@@ -915,7 +916,7 @@ match(int count, char **files)
  *	compare the current member to the name of the pivot member
  */
 int
-bamatch(char *file, char *pivot)
+bamatch(int8_t *file, int8_t *pivot)
 {
 	static int state = 0;
 
@@ -945,7 +946,7 @@ bamatch(char *file, char *pivot)
  *	output a message, if 'v' option was specified
  */
 void
-mesg(int c, char *file)
+mesg(int c, int8_t *file)
 {
 
 	if(vflag)
@@ -956,9 +957,9 @@ mesg(int c, char *file)
  *	isolate file name by stripping leading directories and trailing slashes
  */
 void
-trim(char *s, char *buf, int n)
+trim(int8_t *s, int8_t *buf, int n)
 {
-	char *p;
+	int8_t *p;
 
 	for(;;) {
 		p = strrchr(s, '/');
@@ -993,7 +994,7 @@ trim(char *s, char *buf, int n)
 void
 longt(Armember *bp)
 {
-	char *cp;
+	int8_t *cp;
 
 	pmode(strtoul(bp->hdr.mode, 0, 8));
 	Bprint(&bout, "%3ld/%1ld", strtol(bp->hdr.uid, 0, 0), strtol(bp->hdr.gid, 0, 0));
@@ -1015,7 +1016,7 @@ int	m9[] = { 2, STXT, 't', XOTH, 'x', '-' };
 int	*m[] = { m1, m2, m3, m4, m5, m6, m7, m8, m9};
 
 void
-pmode(long mode)
+pmode(int32_t mode)
 {
 	int **mp;
 
@@ -1024,7 +1025,7 @@ pmode(long mode)
 }
 
 void
-select(int *ap, long mode)
+select(int *ap, int32_t mode)
 {
 	int n;
 
@@ -1045,7 +1046,7 @@ select(int *ap, long mode)
  *	block anchors a chain of buffers, each containing an archive member.
  */
 Arfile *
-newtempfile(char *name)		/* allocate a file control block */
+newtempfile(int8_t *name)		/* allocate a file control block */
 {
 	Arfile *ap;
 
@@ -1096,7 +1097,7 @@ arstream(int fd, Arfile *ap)
 {
 	Armember *bp;
 	int i;
-	char buf[8192];
+	int8_t buf[8192];
 
 	if (ap->paged) {		/* copy from disk */
 		seek(ap->fd, 0, 0);
@@ -1201,10 +1202,10 @@ arfree(Arfile *ap)		/* free a member buffer */
  *	fails we try to reclaim space by spilling previously allocated
  *	member buffers.
  */
-char *
+int8_t *
 armalloc(int n)
 {
-	char *cp;
+	int8_t *cp;
 
 	do {
 		cp = malloc(n);

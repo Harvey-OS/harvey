@@ -35,7 +35,7 @@ struct Entry
 struct IO
 {
 	Biobuf	*fd;
-	uchar	buf[Nbuf];
+	uint8_t	buf[Nbuf];
 	int		i;
 	int		nbits;	/* bits in right side of shift register */
 	int		sreg;		/* shift register */
@@ -43,22 +43,23 @@ struct IO
 
 static Rectangle	mainrect;
 static Entry	tbl[4096];
-static uchar	*colormap[5];	/* one for each ldepth: GREY1 GREY2 GREY4 CMAP8=rgbv plus GREY8 */
+static uint8_t	*colormap[5];	/* one for each ldepth: GREY1 GREY2 GREY4 CMAP8=rgbv plus GREY8 */
 #define	GREYMAP	4
 static int		colormapsize[] = { 2, 4, 16, 256, 256 };	/* 2 for zero is an odd property of GIF */
 
-static void		writeheader(Biobuf*, Rectangle, int, ulong, int);
+static void		writeheader(Biobuf*, Rectangle, int, uint32_t,
+				       int);
 static void		writedescriptor(Biobuf*, Rectangle);
-static char*	writedata(Biobuf*, Image*, Memimage*);
+static int8_t*	writedata(Biobuf*, Image*, Memimage*);
 static void		writetrailer(Biobuf *fd);
-static void		writecomment(Biobuf *fd, char*);
+static void		writecomment(Biobuf *fd, int8_t*);
 static void		writegraphiccontrol(Biobuf *fd, int, int);
-static void*	gifmalloc(ulong);
-static void		encode(Biobuf*, Rectangle, int, uchar*, uint);
+static void*	gifmalloc(uint32_t);
+static void		encode(Biobuf*, Rectangle, int, uint8_t*, uint);
 
 static
-char*
-startgif0(Biobuf *fd, ulong chan, Rectangle r, int depth, int loopcount)
+int8_t*
+startgif0(Biobuf *fd, uint32_t chan, Rectangle r, int depth, int loopcount)
 {
 	int i;
 
@@ -81,23 +82,24 @@ startgif0(Biobuf *fd, ulong chan, Rectangle r, int depth, int loopcount)
 	return nil;
 }
 
-char*
+int8_t*
 startgif(Biobuf *fd, Image *image, int loopcount)
 {
 	return startgif0(fd, image->chan, image->r, image->depth, loopcount);
 }
 
-char*
+int8_t*
 memstartgif(Biobuf *fd, Memimage *memimage, int loopcount)
 {
 	return startgif0(fd, memimage->chan, memimage->r, memimage->depth, loopcount);
 }
 
 static
-char*
-writegif0(Biobuf *fd, Image *image, Memimage *memimage, ulong chan, Rectangle r, char *comment, int dt, int trans)
+int8_t*
+writegif0(Biobuf *fd, Image *image, Memimage *memimage, uint32_t chan,
+	  Rectangle r, int8_t *comment, int dt, int trans)
 {
-	char *err;
+	int8_t *err;
 
 	switch(chan){
 	case GREY1:
@@ -121,14 +123,15 @@ writegif0(Biobuf *fd, Image *image, Memimage *memimage, ulong chan, Rectangle r,
 	return nil;
 }
 
-char*
-writegif(Biobuf *fd, Image *image, char *comment, int dt, int trans)
+int8_t*
+writegif(Biobuf *fd, Image *image, int8_t *comment, int dt, int trans)
 {
 	return writegif0(fd, image, nil, image->chan, image->r, comment, dt, trans);
 }
 
-char*
-memwritegif(Biobuf *fd, Memimage *memimage, char *comment, int dt, int trans)
+int8_t*
+memwritegif(Biobuf *fd, Memimage *memimage, int8_t *comment, int dt,
+	    int trans)
 {
 	return writegif0(fd, nil, memimage, memimage->chan, memimage->r, comment, dt, trans);
 }
@@ -152,8 +155,8 @@ void
 getcolormap(void)
 {
 	int i, col;
-	ulong rgb;
-	uchar *c;
+	uint32_t rgb;
+	uint8_t *c;
 
 	if(colormap[0] != nil)
 		return;
@@ -212,7 +215,7 @@ static int log2[] = {
  */
 static
 void
-writeheader(Biobuf *fd, Rectangle r, int depth, ulong chan, int loopcount)
+writeheader(Biobuf *fd, Rectangle r, int depth, uint32_t chan, int loopcount)
 {
 	/* Header */
 	Bprint(fd, "%s", "GIF89a");
@@ -252,7 +255,7 @@ writeheader(Biobuf *fd, Rectangle r, int depth, ulong chan, int loopcount)
  */
 static
 void
-writecomment(Biobuf *fd, char *comment)
+writecomment(Biobuf *fd, int8_t *comment)
 {
 	int n;
 
@@ -336,11 +339,11 @@ writedescriptor(Biobuf *fd, Rectangle r)
  * Write data
  */
 static
-char*
+int8_t*
 writedata(Biobuf *fd, Image *image, Memimage *memimage)
 {
-	char *err;
-	uchar *data;
+	int8_t *err;
+	uint8_t *data;
 	int ndata, depth;
 	Rectangle r;
 
@@ -442,7 +445,7 @@ output(IO *io, int c, int n)
  */
 static
 void
-encode(Biobuf *fd, Rectangle r, int depth, uchar *data, uint ndata)
+encode(Biobuf *fd, Rectangle r, int depth, uint8_t *data, uint ndata)
 {
 	int i, c, h, csize, prefix, first, sreg, nbits, bitsperpixel;
 	int CTM, EOD, codesize, ld0, datai, x, ld, pm;
@@ -570,7 +573,7 @@ Next:
 
 static
 void*
-gifmalloc(ulong sz)
+gifmalloc(uint32_t sz)
 {
 	void *v;
 	v = malloc(sz);

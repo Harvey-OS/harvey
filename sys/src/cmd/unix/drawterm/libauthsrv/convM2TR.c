@@ -18,11 +18,11 @@
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 void
-convM2TR(char *ap, Ticketreq *f)
+convM2TR(int8_t *ap, Ticketreq *f)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(type);
 	STRING(authid, ANAMELEN);
 	f->authid[ANAMELEN-1] = 0;

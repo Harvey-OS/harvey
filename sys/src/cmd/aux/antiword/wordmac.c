@@ -78,7 +78,7 @@ bGetDocumentText(FILE *pFile, const UCHAR *aucHeader)
  * Returns the version of Word that made the document or -1
  */
 int
-iInitDocumentMAC(FILE *pFile, long lFilesize)
+iInitDocumentMAC(FILE *pFile, int32_t lFilesize)
 {
 	int	iWordVersion;
 	BOOL	bSuccess;

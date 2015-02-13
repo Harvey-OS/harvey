@@ -51,7 +51,7 @@ enum {
 	Copen,
 };
 
-static char *cstate[] = {
+static int8_t *cstate[] = {
 	"unused",
 	"initb",
 	"login",
@@ -62,19 +62,19 @@ typedef struct {
 	Chan	*dc;
 	Chan	*cc;
 	Dev	*d;
-	uchar	ea[6];
-	char	path[32];
+	uint8_t	ea[6];
+	int8_t	path[32];
 } If;
 
 typedef struct {
-	uchar	dst[6];
-	uchar	src[6];
-	uchar	etype[2];
-	uchar	type;
-	uchar	conn;
-	uchar	seq;
-	uchar	len;
-	uchar	data[0x100];
+	uint8_t	dst[6];
+	uint8_t	src[6];
+	uint8_t	etype[2];
+	uint8_t	type;
+	uint8_t	conn;
+	uint8_t	seq;
+	uint8_t	len;
+	uint8_t	data[0x100];
 } Pkt;
 
 typedef struct {
@@ -97,8 +97,8 @@ typedef struct {
 	char	passwd[32];	/* password typed by connection */
 } Conn;
 
-extern int parseether(uchar *, char *);
-extern Chan *chandial(char *, char *, char *, Chan **);
+extern int parseether(uint8_t *, int8_t *);
+extern Chan *chandial(int8_t *, int8_t *, int8_t *, Chan **);
 
 enum {
 	Qdir = 0,
@@ -118,16 +118,16 @@ enum {
 };
 
 static 	If 	ifs[4];
-static 	char 	name[Namelen];
+static 	int8_t 	name[Namelen];
 static	int	shelf = -1;
 static 	Conn 	conn[Nconns];
 static	int	tflag;
-static	char	passwd[Namelen];
+static	int8_t	passwd[Namelen];
 static	int	xmit;
 static	int	rsnd;
 static	Rendez	trendez;
 static	int	tcond;
-static	uchar	broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+static	uint8_t	broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 static 	Dirtab	cecdir[] = {
 	".",		{ Qdir, 0, QTDIR },	0,	DMDIR | 0555,
 	"cecstat",	{ Qstat},		1,	0444,
@@ -152,9 +152,9 @@ static	Cmdtab	ceccmd[] = {
  * Avoid outputting debugging to ourselves. Assumes a serial port.
  */
 static int
-cecprint(char *fmt, ...)
+cecprint(int8_t *fmt, ...)
 {
-	char buf[PRINTSIZE];
+	int8_t buf[PRINTSIZE];
 	int n;
 	va_list arg;
 
@@ -166,9 +166,9 @@ cecprint(char *fmt, ...)
 }
 
 static void
-getaddr(char *path, uchar *ea)
+getaddr(int8_t *path, uint8_t *ea)
 {
-	char buf[6*2];
+	int8_t buf[6*2];
 	int n;
 	Chan *c;
 
@@ -187,7 +187,7 @@ getaddr(char *path, uchar *ea)
 	cclose(c);
 }
 
-static char *types[Tlast+1] = {
+static int8_t *types[Tlast+1] = {
 	"Tinita", "Tinitb", "Tinitc", "Tdata", "Tack",
 	"Tdiscover", "Toffer", "Treset", "*GOK*",
 };
@@ -230,7 +230,7 @@ trace(Block *bp)
 }
 
 static Block*
-sethdr(If *ifc, uchar *ea, Pkt **npp, int len)
+sethdr(If *ifc, uint8_t *ea, Pkt **npp, int len)
 {
 	Block *bp;
 	Pkt *np;
@@ -299,7 +299,7 @@ resend(Conn *cp)
 }
 
 static void
-reset(If *ifc, uchar conn)
+reset(If *ifc, uint8_t conn)
 {
 	Block *bp;
 	Pkt *p;
@@ -324,7 +324,7 @@ ack(Conn *cp)
 static void
 start(Conn *cp)
 {
-	char buf[250];
+	int8_t buf[250];
 	int n, c;
 
 	if(cp->bp)
@@ -341,7 +341,7 @@ start(Conn *cp)
 }
 
 static void
-cecputs(char *str, int n)
+cecputs(int8_t *str, int n)
 {
 	int i, c, wake;
 	Conn *cp;
@@ -370,7 +370,7 @@ cecputs(char *str, int n)
 }
 
 static void
-conputs(Conn *c, char *s)
+conputs(Conn *c, int8_t *s)
 {
 	for(; *s; s++)
 		cbput(c, *s);
@@ -438,7 +438,7 @@ cecqlen(void*)
 static void
 discover(If *ifc, Pkt *p)
 {
-	uchar *addr;
+	uint8_t *addr;
 	Block *bp;
 	Pkt *np;
 
@@ -448,7 +448,8 @@ discover(If *ifc, Pkt *p)
 		addr = broadcast;
 	bp = sethdr(ifc, addr, &np, 0);
 	np->type = Toffer;
-	np->len = snprint((char *)np->data, sizeof np->data, "%d %s", shelf, name);
+	np->len = snprint((int8_t *)np->data, sizeof np->data, "%d %s",
+			  shelf, name);
 	trace(bp);
 	ifc->d->bwrite(ifc->dc, bp, 0);
 }
@@ -467,7 +468,7 @@ connidx(int cno)
 }
 
 static Conn*
-findconn(uchar *ea, uchar cno)
+findconn(uint8_t *ea, uint8_t cno)
 {
 	Conn *cp, *ncp;
 
@@ -486,7 +487,7 @@ findconn(uchar *ea, uchar cno)
 }
 
 static void
-checkpw(Conn *cp, char *str, int len)
+checkpw(Conn *cp, int8_t *str, int len)
 {
 	int i, c;
 
@@ -542,9 +543,9 @@ incoming(Conn *cp, If *ifc, Pkt *p)
 	cp->rcvseq = p->seq;
 	if(cp->state == Copen){
 		for (i = 0; i < p->len; i++)
-			kbdcr2nl(nil, (char)p->data[i]);
+			kbdcr2nl(nil, (int8_t)p->data[i]);
 	}else if(cp->state == Clogin)
-		checkpw(cp, (char *)p->data, p->len);
+		checkpw(cp, (int8_t *)p->data, p->len);
 }
 
 static void
@@ -664,7 +665,7 @@ exit:
 }
 
 static Chan *
-cecattach(char *spec)
+cecattach(int8_t *spec)
 {
 	Chan *c;
 	static QLock q;
@@ -682,13 +683,13 @@ cecattach(char *spec)
 }
 
 static Walkqid*
-cecwalk(Chan *c, Chan *nc, char **name, int nname)
+cecwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, cecdir, nelem(cecdir), devgen);
 }
 
-static long
-cecstat(Chan *c, uchar *dp, long n)
+static int32_t
+cecstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return devstat(c, dp, n, cecdir, nelem(cecdir), devgen);
 }
@@ -704,10 +705,10 @@ cecclose(Chan*)
 {
 }
 
-static long
-cecread(Chan *c, void *a, long n, vlong offset)
+static int32_t
+cecread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	char *p;
+	int8_t *p;
 	int j;
 	Conn *cp;
 	If *ifc;
@@ -761,10 +762,10 @@ cecfixup(void)
 */
 
 static void
-cecon(char *path)
+cecon(int8_t *path)
 {
-	char buf[64];
-	uchar ea[6];
+	int8_t buf[64];
+	uint8_t ea[6];
 	Chan *dc, *cc;
 	If *ifc, *nifc;
 
@@ -799,7 +800,7 @@ cecon(char *path)
 }
 
 static void
-cecoff(char *path)
+cecoff(int8_t *path)
 {
 	int all, n;
 	If *ifc, *e;
@@ -831,8 +832,8 @@ rst(Conn *c)
 	qunlock(c);
 }
 
-static long
-cecwrite(Chan *c, void *a, long n, vlong)
+static int32_t
+cecwrite(Chan *c, void *a, int32_t n, int64_t)
 {
 	Cmdbuf *cb;
 	Cmdtab *cp;
@@ -867,7 +868,7 @@ cecwrite(Chan *c, void *a, long n, vlong)
 			shelf = atoi(cb->f[1]);
 			break;
 		case CMwrite:
-			cecputs((char*)a+6,n-6);
+			cecputs((int8_t*)a+6,n-6);
 			break;
 		case CMreset:
 			rst(connidx(atoi(cb->f[1])));

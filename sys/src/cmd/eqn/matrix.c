@@ -38,8 +38,8 @@ void matrix(int oct)	/* matrix is list of columns */
 {
 	int nrow, ncol, i, j, k, val[100];
 	double b, hb;
-	char *space;
-	extern char *Matspace;
+	int8_t *space;
+	extern int8_t *Matspace;
 
 	space = Matspace;	/* between columns of matrix */
 	nrow = lp[oct+1];	/* disaster if rows inconsistent */

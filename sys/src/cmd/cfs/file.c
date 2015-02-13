@@ -23,7 +23,7 @@
  *  data if the ranges don't overlap.
  */
 void
-fmerge(Dptr *p, char *to, char *from, int start, int len)
+fmerge(Dptr *p, int8_t *to, int8_t *from, int start, int len)
 {
 	int end;
 
@@ -58,10 +58,10 @@ fmerge(Dptr *p, char *to, char *from, int start, int len)
  *	N.B. ordering is everything
  */
 int
-fbwrite(Icache *ic, Ibuf *b, char *a, ulong off, int len)
+fbwrite(Icache *ic, Ibuf *b, int8_t *a, uint32_t off, int len)
 {
 	int wrinode;
-	ulong fbno;
+	uint32_t fbno;
 	Bbuf *dbb;	/* data block */
 	Bbuf *ibb;	/* indirect block */
 	Dptr *p;
@@ -166,11 +166,11 @@ dowrite:
  *
  *  return number of bytes written
  */
-long
-fwrite(Icache *ic, Ibuf *b, char *a, ulong off, long n)
+int32_t
+fwrite(Icache *ic, Ibuf *b, int8_t *a, uint32_t off, int32_t n)
 {
 	int len;
-	long sofar;
+	int32_t sofar;
 
 	for(sofar = 0; sofar < n; sofar += len){
 		len = ic->bsize - ((off+sofar)%ic->bsize);
@@ -186,10 +186,10 @@ fwrite(Icache *ic, Ibuf *b, char *a, ulong off, long n)
  *  get a pointer to the next valid data at or after `off'
  */
 Dptr *
-fpget(Icache *ic, Ibuf *b, ulong off)
+fpget(Icache *ic, Ibuf *b, uint32_t off)
 {
-	ulong fbno;
-	long doff;
+	uint32_t fbno;
+	int32_t doff;
 	Bbuf *ibb;	/* indirect block */
 	Dptr *p, *p0, *pf;
 
@@ -261,11 +261,11 @@ fpget(Icache *ic, Ibuf *b, ulong off)
  *
  *  if there are no bytes cached, return 0.
  */
-long
-fread(Icache *ic, Ibuf *b, char *a, ulong off, long n)
+int32_t
+fread(Icache *ic, Ibuf *b, int8_t *a, uint32_t off, int32_t n)
 {
 	int len, start;
-	long sofar, gap;
+	int32_t sofar, gap;
 	Dptr *p;
 	Bbuf *bb;
 

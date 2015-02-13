@@ -13,10 +13,10 @@
 #define ESTR		256
 
 static void
-error(char* fmt, ...)
+error(int8_t* fmt, ...)
 {
 	va_list v;
-	char *e, estr[ESTR], *p;
+	int8_t *e, estr[ESTR], *p;
 
 	va_start(v, fmt);
 	e = estr + ESTR;
@@ -29,10 +29,10 @@ error(char* fmt, ...)
 }
 
 static void
-fatal(char* fmt, ...)
+fatal(int8_t* fmt, ...)
 {
 	va_list v;
-	char *e, estr[ESTR], *p;
+	int8_t *e, estr[ESTR], *p;
 
 	va_start(v, fmt);
 	e = estr + ESTR;
@@ -48,7 +48,7 @@ fatal(char* fmt, ...)
 static void
 usage(void)
 {
-	char *e, estr[ESTR], *p;
+	int8_t *e, estr[ESTR], *p;
 
 	e = estr + ESTR;
 	p = seprint(estr, e, "usage: %s"
@@ -123,10 +123,10 @@ enum {
 };
 
 static int
-torusparse(u8int d[3], char* item, char* buf)
+torusparse(u8int d[3], int8_t* item, int8_t* buf)
 {
 	int n;
-	char *p;
+	int8_t *p;
 
 	if((p = strstr(buf, item)) == nil || (p != buf && *(p-1) != '\n'))
 		return -1;
@@ -152,9 +152,9 @@ torusparse(u8int d[3], char* item, char* buf)
 static void
 dumptpkt(Tpkt* tpkt, int hflag, int dflag)
 {
-	uchar *t;
+	uint8_t *t;
 	int i, j, n;
-	char buf[512], *e, *p;
+	int8_t buf[512], *e, *p;
 
 	n = ((tpkt->size>>5)+1) * Chunk;
 
@@ -173,14 +173,14 @@ dumptpkt(Tpkt* tpkt, int hflag, int dflag)
 			tpkt->_6_[0], tpkt->_6_[0]);
 		p = seprint(p, e, " _6_[1] %#2.2ux (crc)\n", tpkt->_6_[1]);
 #else
-		t = (uchar*)tpkt;
+		t = (uint8_t*)tpkt;
 		for(i = 0; i < 8; i++)
 			p = seprint(p, e, " %2.2ux", t[i]);
 		p = seprint(p, e, "\n");
 #endif /* notdef */
 
 		p = seprint(p, e, "Sw:");
-		t = (uchar*)tpkt->_8_;
+		t = (uint8_t*)tpkt->_8_;
 		for(i = 0; i < 8; i++)
 			p = seprint(p, e, " %#2.2ux", t[i]);
 		print("%s\n", buf);

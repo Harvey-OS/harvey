@@ -14,7 +14,7 @@
 #include <libsec.h>
 #include "9p1.h"
 
-char	*user;
+int8_t	*user;
 int	newfd;
 int	roldfd;
 int	woldfd;
@@ -26,7 +26,7 @@ QLock	taglock;
 int	mainpid;
 int	ntag;
 int	nfork;
-char FLUSHED[] = "FLUSHED";
+int8_t FLUSHED[] = "FLUSHED";
 
 enum{
 	Maxfdata = 8192
@@ -52,7 +52,7 @@ struct Tag
 typedef struct Message Message;
 struct Message
 {
-	char	*data;
+	int8_t	*data;
 	int	n;
 };
 
@@ -60,31 +60,31 @@ typedef struct Fid Fid;
 
 struct Fid
 {
-	short	busy;
-	short	allocated;
+	int16_t	busy;
+	int16_t	allocated;
 	int	fid;
 	Qid	qid;
-	ulong	newoffset;
-	ulong	oldoffset;
+	uint32_t	newoffset;
+	uint32_t	oldoffset;
 	Fid	*next;
 };
 
 Fid	*fids;
 Tag	*tags;
 
-char	*rflush(Fcall*, Fcall*, char*),
-	*rversion(Fcall*, Fcall*, char*),
-	*rauth(Fcall*, Fcall*, char*),
-	*rattach(Fcall*, Fcall*, char*),
-	*rwalk(Fcall*, Fcall*, char*),
-	*ropen(Fcall*, Fcall*, char*),
-	*rcreate(Fcall*, Fcall*, char*),
-	*rread(Fcall*, Fcall*, char*),
-	*rwrite(Fcall*, Fcall*, char*),
-	*rclunk(Fcall*, Fcall*, char*),
-	*rremove(Fcall*, Fcall*, char*),
-	*rstat(Fcall*, Fcall*, char*),
-	*rwstat(Fcall*, Fcall*, char*);
+int8_t	*rflush(Fcall*, Fcall*, int8_t*),
+	*rversion(Fcall*, Fcall*, int8_t*),
+	*rauth(Fcall*, Fcall*, int8_t*),
+	*rattach(Fcall*, Fcall*, int8_t*),
+	*rwalk(Fcall*, Fcall*, int8_t*),
+	*ropen(Fcall*, Fcall*, int8_t*),
+	*rcreate(Fcall*, Fcall*, int8_t*),
+	*rread(Fcall*, Fcall*, int8_t*),
+	*rwrite(Fcall*, Fcall*, int8_t*),
+	*rclunk(Fcall*, Fcall*, int8_t*),
+	*rremove(Fcall*, Fcall*, int8_t*),
+	*rstat(Fcall*, Fcall*, int8_t*),
+	*rwstat(Fcall*, Fcall*, int8_t*);
 
 char 	*(*fcalls[])(Fcall*, Fcall*, char*) = {
 	[Tversion]	rversion,
@@ -102,22 +102,22 @@ char 	*(*fcalls[])(Fcall*, Fcall*, char*) = {
 	[Twstat]	rwstat,
 };
 
-char Etoolong[] = "name too long";
+int8_t Etoolong[] = "name too long";
 
-void	connect(int, char*);
-void	post(int, char*);
+void	connect(int, int8_t*);
+void	post(int, int8_t*);
 void	serve(void);
 void	demux(void);
-void*	emalloc(ulong);
-char*	transact9p1(Fcall9p1*, Fcall9p1*, char*);
+void*	emalloc(uint32_t);
+int8_t*	transact9p1(Fcall9p1*, Fcall9p1*, int8_t*);
 Fid*	newfid(int);
 
 struct
 {
-	char	chal[CHALLEN];		/* my challenge */
-	char	rchal[CHALLEN];		/* his challenge */
-	char	authid[NAMEREC];
-	char	authdom[DOMLEN];
+	int8_t	chal[CHALLEN];		/* my challenge */
+	int8_t	rchal[CHALLEN];		/* his challenge */
+	int8_t	authid[NAMEREC];
+	int8_t	authdom[DOMLEN];
 	int	id;
 } ai;
 
@@ -259,10 +259,10 @@ int i;
 }
 
 void
-connect(int method, char *oldstring)
+connect(int method, int8_t *oldstring)
 {
-	char *s;
-	char dir[256];
+	int8_t *s;
+	int8_t dir[256];
 
 	switch(method){
 	default:
@@ -295,10 +295,10 @@ connect(int method, char *oldstring)
 }
 
 void
-post(int fd, char *srv)
+post(int fd, int8_t *srv)
 {
 	int f;
-	char buf[128];
+	int8_t buf[128];
 
 	snprint(buf, sizeof buf, "/srv/%s", srv);
 	f = create(buf, OWRITE, 0666);
@@ -348,7 +348,7 @@ void
 demux(void)
 {
 	int m, n;
-	char *data;
+	int8_t *data;
 	Fcall9p1 r;
 	Message *msg;
 	Tag *t;
@@ -426,12 +426,12 @@ freetag(Tag *tag)	/* called with taglock set */
 void
 serve(void)
 {
-	char *err;
+	int8_t *err;
 	int n;
 	Fcall thdr;
 	Fcall	rhdr;
-	uchar mdata[IOHDRSZ+Maxfdata];
-	char mdata9p1[IOHDRSZ+Maxfdata];
+	uint8_t mdata[IOHDRSZ+Maxfdata];
+	int8_t mdata9p1[IOHDRSZ+Maxfdata];
 	Tag *tag;
 
 	for(;;){
@@ -504,7 +504,7 @@ serve(void)
 }
 
 void
-send9p1(Fcall9p1 *t, char *data)
+send9p1(Fcall9p1 *t, int8_t *data)
 {
 	int m, n;
 
@@ -519,7 +519,7 @@ send9p1(Fcall9p1 *t, char *data)
 }
 
 int
-recv9p1(Fcall9p1 *r, int tag, char *data)
+recv9p1(Fcall9p1 *r, int tag, int8_t *data)
 {
 	int n;
 	Message *msg;
@@ -542,8 +542,8 @@ recv9p1(Fcall9p1 *r, int tag, char *data)
 	return 1;
 }
 
-char*
-transact9p1(Fcall9p1 *t, Fcall9p1 *r, char *mdata9p1)
+int8_t*
+transact9p1(Fcall9p1 *t, Fcall9p1 *r, int8_t *mdata9p1)
 {
 	send9p1(t, mdata9p1);
 	if(recv9p1(r, t->tag, mdata9p1) < 0)
@@ -555,8 +555,8 @@ transact9p1(Fcall9p1 *t, Fcall9p1 *r, char *mdata9p1)
 	return nil;
 }
 
-char*
-rflush(Fcall *t, Fcall *, char *mdata9p1)
+int8_t*
+rflush(Fcall *t, Fcall *, int8_t *mdata9p1)
 {
 	Fcall9p1 t9, r9;
 	Tag *oldt;
@@ -593,8 +593,8 @@ rflush(Fcall *t, Fcall *, char *mdata9p1)
 	return 0;
 }
 
-char*
-rversion(Fcall *t, Fcall *r, char*)
+int8_t*
+rversion(Fcall *t, Fcall *r, int8_t*)
 {
 	Fid *f;
 
@@ -617,8 +617,8 @@ rversion(Fcall *t, Fcall *r, char*)
 	return 0;
 }
 
-char*
-rauth(Fcall *, Fcall *, char *)
+int8_t*
+rauth(Fcall *, Fcall *, int8_t *)
 {
 	return "srvold9p: authentication not supported";
 }
@@ -628,19 +628,19 @@ rauth(Fcall *, Fcall *, char *)
 void
 memrandom(void *p, int n)
 {
-	ulong *lp;
-	uchar *cp;
+	uint32_t *lp;
+	uint8_t *cp;
 
-	for(lp = p; n >= sizeof(ulong); n -= sizeof(ulong))
+	for(lp = p; n >= sizeof(uint32_t); n -= sizeof(uint32_t))
 		*lp++ = fastrand();
-	for(cp = (uchar*)lp; n > 0; n--)
+	for(cp = (uint8_t*)lp; n > 0; n--)
 		*cp++ = fastrand();
 }
 
-char*
-rsession(Fcall *t, Fcall *r, char *mdata9p1)
+int8_t*
+rsession(Fcall *t, Fcall *r, int8_t *mdata9p1)
 {
-	char *err;
+	int8_t *err;
 	Fcall9p1 t9, r9;
 	Fid *f;
 
@@ -668,7 +668,7 @@ rsession(Fcall *t, Fcall *r, char *mdata9p1)
 		memmove(ai.chal, t9.chal, sizeof ai.chal);
 		r->authid = ai.authid;
 		r->authdom = ai.authdom;
-		r->chal = (uchar*)ai.rchal;
+		r->chal = (uint8_t*)ai.rchal;
 		r->nchal = CHALLEN;
 	} else {
 		r->authid = "";
@@ -680,10 +680,10 @@ rsession(Fcall *t, Fcall *r, char *mdata9p1)
 }
 #endif
 
-char*
-rattach(Fcall *t, Fcall *r, char *mdata9p1)
+int8_t*
+rattach(Fcall *t, Fcall *r, int8_t *mdata9p1)
 {
-	char *err;
+	int8_t *err;
 	Fcall9p1 t9, r9;
 	Fid *f;
 
@@ -712,10 +712,10 @@ rattach(Fcall *t, Fcall *r, char *mdata9p1)
 	return 0;
 }
 
-char*
-rwalk(Fcall *t, Fcall *r, char *mdata9p1)
+int8_t*
+rwalk(Fcall *t, Fcall *r, int8_t *mdata9p1)
 {
-	char *err;
+	int8_t *err;
 	Fcall9p1 t9, r9;
 	int i, fid;
 	Qid *q;
@@ -787,10 +787,10 @@ rwalk(Fcall *t, Fcall *r, char *mdata9p1)
 	return err;
 }
 
-char*
-ropen(Fcall *t, Fcall *r, char *mdata9p1)
+int8_t*
+ropen(Fcall *t, Fcall *r, int8_t *mdata9p1)
 {
-	char *err;
+	int8_t *err;
 	Fcall9p1 t9, r9;
 	Fid *f;
 
@@ -818,10 +818,10 @@ ropen(Fcall *t, Fcall *r, char *mdata9p1)
 	return 0;
 }
 
-char*
-rcreate(Fcall *t, Fcall *r, char *mdata9p1)
+int8_t*
+rcreate(Fcall *t, Fcall *r, int8_t *mdata9p1)
 {
-	char *err;
+	int8_t *err;
 	Fcall9p1 t9, r9;
 	Fid *f;
 
@@ -855,16 +855,16 @@ rcreate(Fcall *t, Fcall *r, char *mdata9p1)
 	return 0;
 }
 
-char*
-dirrread(Fcall *t, Fcall *r, char *mdata9p1)
+int8_t*
+dirrread(Fcall *t, Fcall *r, int8_t *mdata9p1)
 {
-	char *err;
+	int8_t *err;
 	Fcall9p1 t9, r9;
 	Fid *f;
 	int i, ndir, n, count;
 	Dir d;
-	uchar buf[Maxfdata];
-	char *old;
+	uint8_t buf[Maxfdata];
+	int8_t *old;
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -902,10 +902,10 @@ dirrread(Fcall *t, Fcall *r, char *mdata9p1)
 	return 0;
 }
 
-char*
-rread(Fcall *t, Fcall *r, char *mdata9p1)
+int8_t*
+rread(Fcall *t, Fcall *r, int8_t *mdata9p1)
 {
-	char *err;
+	int8_t *err;
 	Fcall9p1 t9, r9;
 	Fid *f;
 
@@ -930,10 +930,10 @@ rread(Fcall *t, Fcall *r, char *mdata9p1)
 	return 0;
 }
 
-char*
-rwrite(Fcall *t, Fcall *r, char *mdata9p1)
+int8_t*
+rwrite(Fcall *t, Fcall *r, int8_t *mdata9p1)
 {
-	char *err;
+	int8_t *err;
 	Fcall9p1 t9, r9;
 	Fid *f;
 
@@ -955,8 +955,8 @@ rwrite(Fcall *t, Fcall *r, char *mdata9p1)
 	return 0;
 }
 
-char*
-rclunk(Fcall *t, Fcall *, char *mdata9p1)
+int8_t*
+rclunk(Fcall *t, Fcall *, int8_t *mdata9p1)
 {
 	Fcall9p1 t9, r9;
 	Fid *f;
@@ -974,10 +974,10 @@ rclunk(Fcall *t, Fcall *, char *mdata9p1)
 	return 0;
 }
 
-char*
-rremove(Fcall *t, Fcall*, char *mdata9p1)
+int8_t*
+rremove(Fcall *t, Fcall*, int8_t *mdata9p1)
 {
-	char *err;
+	int8_t *err;
 	Fcall9p1 t9, r9;
 	Fid *f;
 
@@ -993,14 +993,14 @@ rremove(Fcall *t, Fcall*, char *mdata9p1)
 	return err;
 }
 
-char*
-rstat(Fcall *t, Fcall *r, char *mdata9p1)
+int8_t*
+rstat(Fcall *t, Fcall *r, int8_t *mdata9p1)
 {
 	Fcall9p1 t9, r9;
-	char *err;
+	int8_t *err;
 	Fid *f;
 	Dir d;
-	uchar buf[256];	/* big enough; there's no long names */
+	uint8_t buf[256];	/* big enough; there's no long names */
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -1036,12 +1036,12 @@ anydefault(Dir *d)
 	return 0;
 }
 
-char*
-rwstat(Fcall *t, Fcall *, char *mdata9p1)
+int8_t*
+rwstat(Fcall *t, Fcall *, int8_t *mdata9p1)
 {
 	Fcall9p1 t9, r9;
-	char strs[DIRREC];
-	char *err;
+	int8_t strs[DIRREC];
+	int8_t *err;
 	Fid *f;
 	Dir d, cd;
 
@@ -1099,7 +1099,7 @@ rwstat(Fcall *t, Fcall *, char *mdata9p1)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -1111,9 +1111,9 @@ emalloc(ulong n)
 }
 
 void
-fatal(char *fmt, ...)
+fatal(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	if(fmt){

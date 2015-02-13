@@ -266,7 +266,7 @@ checkpte(uintmem ppn, void *a)
 	int l;
 	PTE *pte, *pml4;
 	u64int addr;
-	char buf[240], *s;
+	int8_t buf[240], *s;
 
 	addr = PTR2UINT(a);
 	pml4 = UINT2PTR(m->pml4->va);
@@ -385,7 +385,7 @@ mmuput(uintptr va, Page *pg, uint attr)
 	Page *page, *prev;
 	Mpl pl;
 	uintmem pa, ppn;
-	char buf[80];
+	int8_t buf[80];
 
 	ppn = 0;
 	pa = pg->pa;
@@ -488,7 +488,7 @@ static Lock vmaplock;
 #define PTX(v)		PTLX((v), 0)
 
 int
-mmukmapsync(uvlong va)
+mmukmapsync(uint64_t va)
 {
 	USED(va);
 
@@ -777,7 +777,7 @@ Page mach0pml4;
 void
 mmuinit(void)
 {
-	uchar *p;
+	uint8_t *p;
 	Page *page;
 	u64int o, pa, r, sz;
 

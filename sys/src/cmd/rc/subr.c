@@ -13,7 +13,7 @@
 #include "fns.h"
 
 void *
-emalloc(long n)
+emalloc(int32_t n)
 {
 	void *p = Malloc(n);
 
@@ -34,7 +34,7 @@ efree(void *p)
 extern int lastword, lastdol;
 
 void
-yyerror(char *m)
+yyerror(int8_t *m)
 {
 	pfmt(err, "rc: ");
 	if(runq->cmdfile && !runq->iflag)
@@ -53,7 +53,7 @@ yyerror(char *m)
 	nerror++;
 	setvar("status", newword(m, (word *)0));
 }
-char *bp;
+int8_t *bp;
 
 static void
 iacvt(int n)
@@ -68,7 +68,7 @@ iacvt(int n)
 }
 
 void
-inttoascii(char *s, long n)
+inttoascii(int8_t *s, int32_t n)
 {
 	bp = s;
 	iacvt(n);
@@ -76,7 +76,7 @@ inttoascii(char *s, long n)
 }
 
 void
-panic(char *s, int n)
+panic(int8_t *s, int n)
 {
 	pfmt(err, "rc: ");
 	pfmt(err, s, n);

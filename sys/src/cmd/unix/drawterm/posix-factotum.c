@@ -24,10 +24,10 @@
 #undef getenv
 #undef access
 
-char*
+int8_t*
 getuser(void)
 {
-	static char user[64];
+	static int8_t user[64];
 	struct passwd *pw;
 
 	pw = getpwuid(getuid());
@@ -44,10 +44,10 @@ getuser(void)
  * this still seems reasonable.  Terminal-only sessions
  * can set $NAMESPACE.
  */
-static char*
+static int8_t*
 nsfromdisplay(void)
 {
-	char *disp, *p;
+	int8_t *disp, *p;
 
 	if((disp = getenv("DISPLAY")) == nil){
 		werrstr("$DISPLAY not set");
@@ -67,10 +67,10 @@ nsfromdisplay(void)
 	return smprint("/tmp/ns.%s.%s", getuser(), disp);
 }
 
-char*
+int8_t*
 getns(void)
 {
-	char *ns;
+	int8_t *ns;
 
 	ns = getenv("NAMESPACE");
 	if(ns == nil)
@@ -87,7 +87,7 @@ dialfactotum(void)
 {
 	int fd;
 	struct sockaddr_un su;
-	char *name;
+	int8_t *name;
 	
 	name = smprint("%s/factotum", getns());
 

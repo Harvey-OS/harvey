@@ -39,10 +39,10 @@ enum
  */
 struct DMAxfer
 {
-	ulong	bpa;		/* bounce buffer physical address */
+	uint32_t	bpa;		/* bounce buffer physical address */
 	void*	bva;		/* bounce buffer virtual address */
 	void*	va;		/* virtual address destination/src */
-	long	len;		/* bytes to be transferred */
+	int32_t	len;		/* bytes to be transferred */
 	int	isread;
 };
 
@@ -52,17 +52,17 @@ struct DMAxfer
  */
 struct DMAport
 {
-	uchar	addr[4];	/* current address (4 channels) */
-	uchar	count[4];	/* current count (4 channels) */
-	uchar	page[4];	/* page registers (4 channels) */
-	uchar	cmd;		/* command status register */
-	uchar	req;		/* request registers */
-	uchar	sbm;		/* single bit mask register */
-	uchar	mode;		/* mode register */
-	uchar	cbp;		/* clear byte pointer */
-	uchar	mc;		/* master clear */
-	uchar	cmask;		/* clear mask register */
-	uchar	wam;		/* write all mask register bit */
+	uint8_t	addr[4];	/* current address (4 channels) */
+	uint8_t	count[4];	/* current count (4 channels) */
+	uint8_t	page[4];	/* page registers (4 channels) */
+	uint8_t	cmd;		/* command status register */
+	uint8_t	req;		/* request registers */
+	uint8_t	sbm;		/* single bit mask register */
+	uint8_t	mode;		/* mode register */
+	uint8_t	cbp;		/* clear byte pointer */
+	uint8_t	mc;		/* master clear */
+	uint8_t	cmask;		/* clear mask register */
+	uint8_t	wam;		/* write all mask register bit */
 };
 
 struct DMA
@@ -97,7 +97,7 @@ dmainit(int chan)
 {
 	DMA *dp;
 	DMAxfer *xp;
-	ulong v;
+	uint32_t v;
 	static int once;
 
 	if(once == 0){
@@ -119,7 +119,7 @@ dmainit(int chan)
 	if(xp->bva != nil)
 		return;
 
-	v = (ulong)xalloc(BY2PG+BY2PG);
+	v = (uint32_t)xalloc(BY2PG+BY2PG);
 	if(v == 0 || PADDR(v) >= 16*MiB){
 		print("dmainit: chan %d: 0x%luX out of range\n", chan, v);
 		xfree((void*)v);
@@ -141,12 +141,12 @@ dmainit(int chan)
  *  return the updated transfer length (we can't transfer across 64k
  *  boundaries)
  */
-long
-dmasetup(int chan, void *va, long len, int isread)
+int32_t
+dmasetup(int chan, void *va, int32_t len, int isread)
 {
 	DMA *dp;
-	ulong pa;
-	uchar mode;
+	uint32_t pa;
+	uint8_t mode;
 	DMAxfer *xp;
 
 	dp = &dma[(chan>>2)&1];
@@ -158,7 +158,7 @@ dmasetup(int chan, void *va, long len, int isread)
 	 *  use the allocated low memory page.
 	 */
 	pa = PADDR(va);
-	if((((ulong)va)&0xF0000000) != KZERO
+	if((((uint32_t)va)&0xF0000000) != KZERO
 	|| (pa&0xFFFF0000) != ((pa+len)&0xFFFF0000)
 	|| pa > 16*MiB) {
 		if(xp->bva == nil)

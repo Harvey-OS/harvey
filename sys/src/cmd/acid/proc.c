@@ -37,7 +37,7 @@ void
 sproc(int pid)
 {
 	Lsym *s;
-	char buf[64];
+	int8_t buf[64];
 	int i, fcor;
 
 	if(symmap == 0)
@@ -67,9 +67,9 @@ sproc(int pid)
 }
 
 int
-nproc(char **argv)
+nproc(int8_t **argv)
 {
-	char buf[128];
+	int8_t buf[128];
 	int pid, i, fd;
 
 	pid = fork();
@@ -115,7 +115,7 @@ notes(int pid)
 	Lsym *s;
 	Value *v;
 	int i, fd;
-	char buf[128];
+	int8_t buf[128];
 	List *l, **tail;
 
 	s = look("notes");
@@ -170,7 +170,7 @@ install(int pid)
 {
 	Lsym *s;
 	List *l;
-	char buf[128];
+	int8_t buf[128];
 	int i, fd, new, p;
 
 	new = -1;
@@ -228,11 +228,11 @@ deinstall(int pid)
 }
 
 void
-msg(int pid, char *msg)
+msg(int pid, int8_t *msg)
 {
 	int i;
 	int l;
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 
 	for(i = 0; i < Maxproc; i++) {
 		if(ptab[i].pid == pid) {
@@ -249,12 +249,12 @@ msg(int pid, char *msg)
 	error("msg: pid=%d: not found for %s", pid, msg);
 }
 
-char *
+int8_t *
 getstatus(int pid)
 {
 	int fd, n;
-	char *argv[16], buf[64];
-	static char status[128];
+	int8_t *argv[16], buf[64];
+	static int8_t status[128];
 
 	snprint(buf, sizeof(buf), "/proc/%d/status", pid);
 	fd = open(buf, OREAD);

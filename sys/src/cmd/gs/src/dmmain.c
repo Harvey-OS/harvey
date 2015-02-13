@@ -64,7 +64,7 @@ Boolean   gRunningOnX = false;
 Boolean   gDone;
 ControlActionUPP gActionFunctionScrollUPP;
 
-const char start_string[] = "systemdict /start get exec\n";
+const int8_t start_string[] = "systemdict /start get exec\n";
 void *instance;
 
 const unsigned int display_format = DISPLAY_COLORS_RGB | DISPLAY_UNUSED_FIRST |
@@ -87,9 +87,9 @@ IMAGE *first_image;
 
 static IMAGE *image_find(void *handle, void *device);
 
-static int GSDLLCALL gsdll_stdin(void *instance, char *buf, int len);
-static int GSDLLCALL gsdll_stdout(void *instance, const char *str, int len);
-static int GSDLLCALL gsdll_stderr(void *instance, const char *str, int len);
+static int GSDLLCALL gsdll_stdin(void *instance, int8_t *buf, int len);
+static int GSDLLCALL gsdll_stdout(void *instance, const int8_t *str, int len);
+static int GSDLLCALL gsdll_stderr(void *instance, const int8_t *str, int len);
 static int GSDLLCALL gsdll_poll(void *handle);
 
 static int display_open(void *handle, void *device);
@@ -123,7 +123,7 @@ pascal void    actionFunctionScroll      (ControlRef,ControlPartCode);
 /*********************************************************************/
 /* stdio functions */
 static int GSDLLCALL
-gsdll_stdin(void *instance, char *buf, int len)
+gsdll_stdin(void *instance, int8_t *buf, int len)
 {
     if (isatty(fileno(stdin)))
        return get_input(buf, len);
@@ -132,7 +132,7 @@ gsdll_stdin(void *instance, char *buf, int len)
 }
 
 static int GSDLLCALL
-gsdll_stdout(void *instance, const char *str, int len)
+gsdll_stdout(void *instance, const int8_t *str, int len)
 {
     int n = fwrite(str, 1, len, stdout);
     fflush(stdout);
@@ -140,7 +140,7 @@ gsdll_stdout(void *instance, const char *str, int len)
 }
 
 static int GSDLLCALL
-gsdll_stderr(void *instance, const char *str, int len)
+gsdll_stderr(void *instance, const int8_t *str, int len)
 {
     return gsdll_stdout(instance, str, len);
 }
@@ -268,7 +268,7 @@ static int display_size(void *handle, void *device, int width, int height,
         img->pixmapHdl = NewPixMap();
 
     pixmap = *(img->pixmapHdl);
-    pixmap->baseAddr = (char*)pimage;
+    pixmap->baseAddr = (int8_t*)pimage;
     pixmap->rowBytes = (((SInt16)raster) & 0x3fff) | 0x8000;
     pixmap->bounds.right = width;
     pixmap->bounds.bottom = height;
@@ -372,7 +372,7 @@ static IMAGE * image_find(void *handle, void *device)
 
 /*********************************************************************/
 
-static char *stdin_buf = NULL;
+static int8_t *stdin_buf = NULL;
 static size_t stdin_bufpos = 0;
 static size_t stdin_bufsize = 0;
 
@@ -388,8 +388,8 @@ static size_t stdin_bufsize = 0;
 static size_t get_input(void *ptr, size_t size)
 {
     EventRecord eventStructure;
-    long charswaiting, old_charswaiting = 0;
-    char *text;
+    int32_t charswaiting, old_charswaiting = 0;
+    int8_t *text;
 
 #if SIOUX_USE_WASTE
     Handle textHandle;
@@ -600,8 +600,8 @@ void main(void)
     int code;
     int exit_code;
     int argc;
-    char **argv;
-    char dformat[64], ddevice[32];
+    int8_t **argv;
+    int8_t dformat[64], ddevice[32];
     SInt32        response;
 
     /* Initialize operating environment */
@@ -651,7 +651,7 @@ void main(void)
        return;
     }
 
-    memmove(&argv[3], &argv[1], (argc-1) * sizeof(char**));
+    memmove(&argv[3], &argv[1], (argc-1) * sizeof(int8_t**));
     argc += 2;
     argv[1] = ddevice;
     argv[2] = dformat;
@@ -772,7 +772,7 @@ void doMouseDown(EventRecord *eventStrucPtr)
     BitMap         screenBits;
     Rect           constraintRect, mainScreenRect;
     Point          standardStateHeightAndWidth;
-    long           newSize;
+    int32_t           newSize;
 
     partCode = FindWindow(eventStrucPtr->where,&windowRef);
 

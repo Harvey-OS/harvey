@@ -17,7 +17,7 @@ span(void)
 	Sym *setext;
 	Optab *o;
 	int m, bflag;
-	long c, otxt;
+	int32_t c, otxt;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f span\n", cputime());
@@ -125,7 +125,7 @@ span(void)
 }
 		
 void
-xdefine(char *p, int t, long v)
+xdefine(int8_t *p, int t, int32_t v)
 {
 	Sym *s;
 
@@ -136,7 +136,7 @@ xdefine(char *p, int t, long v)
 	}
 }
 
-long
+int32_t
 regoff(Adr *a)
 {
 
@@ -329,7 +329,7 @@ Optab*
 oplook(Prog *p)
 {
 	int a1, a2, a3, a4, r;
-	char *c1, *c3, *c4;
+	int8_t *c1, *c3, *c4;
 	Optab *o, *e;
 
 	a1 = p->optab;
@@ -918,8 +918,8 @@ struct Reloc
 {
 	int n;
 	int t;
-	uchar *m;
-	ulong *a;
+	uint8_t *m;
+	uint32_t *a;
 };
 
 Reloc rels;
@@ -928,27 +928,27 @@ static void
 grow(Reloc *r)
 {
 	int t;
-	uchar *m, *nm;
-	ulong *a, *na;
+	uint8_t *m, *nm;
+	uint32_t *a, *na;
 
 	t = r->t;
 	r->t += 64;
 	m = r->m;
 	a = r->a;
-	r->m = nm = malloc(r->t*sizeof(uchar));
-	r->a = na = malloc(r->t*sizeof(ulong));
-	memmove(nm, m, t*sizeof(uchar));
-	memmove(na, a, t*sizeof(ulong));
+	r->m = nm = malloc(r->t*sizeof(uint8_t));
+	r->a = na = malloc(r->t*sizeof(uint32_t));
+	memmove(nm, m, t*sizeof(uint8_t));
+	memmove(na, a, t*sizeof(uint32_t));
 	free(m);
 	free(a);
 }
 
 void
-dynreloc(Sym *s, long v, int abs, int split, int sext)
+dynreloc(Sym *s, int32_t v, int abs, int split, int sext)
 {
 	int i, k, n;
-	uchar *m;
-	ulong *a;
+	uint8_t *m;
+	uint32_t *a;
 	Reloc *r;
 
 	if(v&3)
@@ -984,9 +984,9 @@ dynreloc(Sym *s, long v, int abs, int split, int sext)
 }
 
 static int
-sput(char *s)
+sput(int8_t *s)
 {
-	char *p;
+	int8_t *p;
 
 	p = s;
 	while(*s)
@@ -1000,9 +1000,9 @@ asmdyn()
 {
 	int i, n, t, c;
 	Sym *s;
-	ulong la, ra, *a;
-	vlong off;
-	uchar *m;
+	uint32_t la, ra, *a;
+	int64_t off;
+	uint8_t *m;
 	Reloc *r;
 
 	cflush();

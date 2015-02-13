@@ -42,14 +42,14 @@ static void
 udplistener(void *)
 {	
 	for (;;) {
-		uchar msg[Udphdrsize + 576];
+		uint8_t msg[Udphdrsize + 576];
 		int len = read(udp.fd, msg, sizeof(msg));
 		if (len < 0)
 			break;
 		if (len >= nbudphdrsize) {
 			NbnsMessage *s;
 //			Udphdr *uh;
-			uchar *p;
+			uint8_t *p;
 
 //			uh = (Udphdr*)msg;
 			p = msg + nbudphdrsize;
@@ -77,12 +77,12 @@ udplistener(void *)
 	}
 }
 
-static char *
+static int8_t *
 startlistener(void)
 {
 	qlock(&udp);
 	if (udp.thread < 0) {
-		char *e;
+		int8_t *e;
 		e = nbudpannounce(NbnsPort, &udp.fd);
 		if (e) {
 			qunlock(&udp);
@@ -94,10 +94,10 @@ startlistener(void)
 	return nil;
 }
 
-ushort
+uint16_t
 nbnsnextid(void)
 {
-	ushort rv;
+	uint16_t rv;
 	lock(&id);
 	rv = id.id++;
 	unlock(&id);
@@ -105,10 +105,10 @@ nbnsnextid(void)
 }
 	
 NbnsTransaction *
-nbnstransactionnew(NbnsMessage *s, uchar *ipaddr)
+nbnstransactionnew(NbnsMessage *s, uint8_t *ipaddr)
 {
 	NbnsTransaction *t;
-	uchar msg[Udphdrsize + 576];
+	uint8_t msg[Udphdrsize + 576];
 	Udphdr *u;
 	int len;
 

@@ -99,9 +99,9 @@ readpixmap(int fd, int colorspace)
 {
 	Rawimage **array, *a;
 	Biobuf b;
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 	int i;
-	char *e;
+	int8_t *e;
 
 	USED(colorspace);
 	if(Binit(&b, fd, OREAD) < 0)
@@ -149,7 +149,7 @@ Error:
 
 typedef struct Pix	Pix;
 struct Pix {
-	char magic;
+	int8_t magic;
 	int	maxcol;
 	int	(*fetch)(Biobufhdr*);
 	int	nchan;
@@ -175,8 +175,8 @@ readppm(Biobuf *b, Rawimage *a)
 	int maxcol, nchan, invert;
 	int (*fetch)(Biobufhdr*);
 	uchar *rgb[3];
-	char buf[ERRMAX];
-	char *e;
+	int8_t buf[ERRMAX];
+	int8_t *e;
 	Pix *p;
 
 	e = "bad file format";

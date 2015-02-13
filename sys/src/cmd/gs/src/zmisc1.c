@@ -39,7 +39,7 @@
 /* <state> <from_string> <to_string> .type1encrypt <new_state> <substring> */
 /* <state> <from_string> <to_string> .type1decrypt <new_state> <substring> */
 private int type1crypt(i_ctx_t *,
-		       int (*)(byte *, const byte *, uint, ushort *));
+		       int (*)(byte *, const byte *, uint, uint16_t *));
 private int
 ztype1encrypt(i_ctx_t *i_ctx_p)
 {
@@ -52,7 +52,7 @@ ztype1decrypt(i_ctx_t *i_ctx_p)
 }
 private int
 type1crypt(i_ctx_t *i_ctx_p,
-	   int (*proc)(byte *, const byte *, uint, ushort *))
+	   int (*proc)(byte *, const byte *, uint, uint16_t *))
 {
     os_ptr op = osp;
     crypt_state state;
@@ -79,7 +79,7 @@ type1crypt(i_ctx_t *i_ctx_p,
 /* Get the seed parameter for eexecEncode/Decode. */
 /* Return npop if OK. */
 private int
-eexec_param(os_ptr op, ushort * pcstate)
+eexec_param(os_ptr op, uint16_t * pcstate)
 {
     int npop = 1;
 

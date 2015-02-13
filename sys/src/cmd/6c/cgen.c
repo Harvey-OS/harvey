@@ -20,8 +20,8 @@ cgen(Node *n, Node *nn)
 	Prog *p1;
 	Node nod, nod1, nod2, nod3, nod4;
 	int o, hardleft;
-	long v, curs;
-	vlong c;
+	int32_t v, curs;
+	int64_t c;
 
 	if(debug['g']) {
 		prtree(nn, "cgen lhs");
@@ -1033,7 +1033,7 @@ cgen(Node *n, Node *nn)
 			diag(n, "DOT and no offset");
 			break;
 		}
-		nod.xoffset += (long)r->vconst;
+		nod.xoffset += (int32_t)r->vconst;
 		nod.type = n->type;
 		cgen(&nod, nn);
 		break;
@@ -1135,7 +1135,7 @@ void
 reglcgen(Node *t, Node *n, Node *nn)
 {
 	Node *r;
-	long v;
+	int32_t v;
 
 	regialloc(t, n, nn);
 	if(n->op == OIND) {
@@ -1219,7 +1219,7 @@ boolgen(Node *n, int true, Node *nn)
 	int o;
 	Prog *p1, *p2;
 	Node *l, *r, nod, nod1;
-	long curs;
+	int32_t curs;
 
 	if(debug['g']) {
 		prtree(nn, "boolgen lhs");
@@ -1403,13 +1403,13 @@ boolgen(Node *n, int true, Node *nn)
 }
 
 void
-sugen(Node *n, Node *nn, long w)
+sugen(Node *n, Node *nn, int32_t w)
 {
 	Prog *p1;
 	Node nod0, nod1, nod2, nod3, nod4, *l, *r;
 	Type *t;
 	int c, mt, mo;
-	vlong o0, o1;
+	int64_t o0, o1;
 
 	if(n == Z || n->type == T)
 		return;
@@ -1445,7 +1445,7 @@ sugen(Node *n, Node *nn, long w)
 			diag(n, "DOT and no offset");
 			break;
 		}
-		nod1.xoffset += (long)r->vconst;
+		nod1.xoffset += (int32_t)r->vconst;
 		nod1.type = n->type;
 		sugen(&nod1, nn, w);
 		break;
@@ -1831,14 +1831,14 @@ layout(Node *f, Node *t, int c, int cv, Node *cn)
 int
 immconst(Node *n)
 {
-	long v;
+	int32_t v;
 
 	if(n->op != OCONST || !typechlpv[n->type->etype])
 		return 0;
 	if(typechl[n->type->etype])
 		return 1;
 	v = n->vconst;
-	return n->vconst == (vlong)v;
+	return n->vconst == (int64_t)v;
 }
 
 /*
@@ -1917,22 +1917,22 @@ vaddr(Node *n, int a)
 	return 0;
 }
 
-long
+int32_t
 hi64v(Node *n)
 {
 	if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-		return (long)(n->vconst) & ~0L;
+		return (int32_t)(n->vconst) & ~0L;
 	else
-		return (long)((uvlong)n->vconst>>32) & ~0L;
+		return (int32_t)((uint64_t)n->vconst>>32) & ~0L;
 }
 
-long
+int32_t
 lo64v(Node *n)
 {
 	if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-		return (long)((uvlong)n->vconst>>32) & ~0L;
+		return (int32_t)((uint64_t)n->vconst>>32) & ~0L;
 	else
-		return (long)(n->vconst) & ~0L;
+		return (int32_t)(n->vconst) & ~0L;
 }
 
 Node *

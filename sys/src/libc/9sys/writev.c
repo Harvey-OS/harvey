@@ -11,12 +11,12 @@
 #include <libc.h>
 
 static
-long
-iowritev(int fd, IOchunk *io, int nio, vlong offset)
+int32_t
+iowritev(int fd, IOchunk *io, int nio, int64_t offset)
 {
 	int i;
-	long tot;
-	char *buf, *p;
+	int32_t tot;
+	int8_t *buf, *p;
 
 	tot = 0;
 	for(i=0; i<nio; i++)
@@ -38,14 +38,14 @@ iowritev(int fd, IOchunk *io, int nio, vlong offset)
 	return tot;
 }
 
-long
+int32_t
 writev(int fd, IOchunk *io, int nio)
 {
 	return iowritev(fd, io, nio, -1LL);
 }
 
-long
-pwritev(int fd, IOchunk *io, int nio, vlong off)
+int32_t
+pwritev(int fd, IOchunk *io, int nio, int64_t off)
 {
 	return iowritev(fd, io, nio, off);
 }

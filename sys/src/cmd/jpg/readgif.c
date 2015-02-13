@@ -24,11 +24,11 @@ struct Entry{
 
 struct Header{
 	Biobuf	*fd;
-	char		err[256];
+	int8_t		err[256];
 	jmp_buf	errlab;
-	uchar 	buf[3*256];
-	char 		vers[8];
-	uchar 	*globalcmap;
+	uint8_t 	buf[3*256];
+	int8_t 		vers[8];
+	uint8_t 	*globalcmap;
 	int		screenw;
 	int		screenh;
 	int		fields;
@@ -42,19 +42,19 @@ struct Header{
 	Rawimage	**array;
 	Rawimage	*new;
 
-	uchar	*pic;
+	uint8_t	*pic;
 };
 
-static char		readerr[] = "ReadGIF: read error: %r";
-static char		extreaderr[] = "ReadGIF: can't read extension: %r";
-static char		memerr[] = "ReadGIF: malloc failed: %r";
+static int8_t		readerr[] = "ReadGIF: read error: %r";
+static int8_t		extreaderr[] = "ReadGIF: can't read extension: %r";
+static int8_t		memerr[] = "ReadGIF: malloc failed: %r";
 
 static Rawimage**	readarray(Header*);
 static Rawimage*	readone(Header*);
 static void			readheader(Header*);
 static void			skipextension(Header*);
-static uchar*		readcmap(Header*, int);
-static uchar*		decode(Header*, Rawimage*, Entry*);
+static uint8_t*		readcmap(Header*, int);
+static uint8_t*		decode(Header*, Rawimage*, Entry*);
 static void			interlace(Header*, Rawimage*);
 
 static
@@ -95,7 +95,7 @@ giffreeall(Header *h, int freeimage)
 
 static
 void
-giferror(Header *h, char *fmt, ...)
+giferror(Header *h, int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -115,7 +115,7 @@ readgif(int fd, int colorspace)
 	Rawimage **a;
 	Biobuf b;
 	Header *h;
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	buf[0] = '\0';
 	USED(colorspace);
@@ -248,10 +248,10 @@ readheader(Header *h)
 }
 
 static
-uchar*
+uint8_t*
 readcmap(Header *h, int size)
 {
-	uchar *map;
+	uint8_t *map;
 
 	if(size > 8)
 		giferror(h, "ReadGIF: can't handles %d bits per pixel", size);
@@ -295,7 +295,7 @@ readone(Header *h)
 
 static
 int
-readdata(Header *h, uchar *data)
+readdata(Header *h, uint8_t *data)
 {
 	int nbytes, n;
 
@@ -328,7 +328,7 @@ void
 skipextension(Header *h)
 {
 	int type, hsize, hasdata, n;
-	uchar data[256];
+	uint8_t data[256];
 
 	hsize = 0;
 	hasdata = 0;
@@ -380,13 +380,13 @@ skipextension(Header *h)
 }
 
 static
-uchar*
+uint8_t*
 decode(Header *h, Rawimage *i, Entry *tbl)
 {
 	int c, doclip, incode, codesize, CTM, EOD, pici, datai, stacki, nbits, sreg, fc, code, piclen;
 	int csize, nentry, maxentry, first, ocode, ndata, nb;
-	uchar clip, *p, *pic;
-	uchar stack[4096], data[256];
+	uint8_t clip, *p, *pic;
+	uint8_t stack[4096], data[256];
 
 	if(Bread(h->fd, h->buf, 1) != 1)
 		giferror(h, "ReadGIF: can't read data: %r");
@@ -511,10 +511,10 @@ static
 void
 interlace(Header *h, Rawimage *image)
 {
-	uchar *pic;
+	uint8_t *pic;
 	Rectangle r;
 	int dx, yy, y;
-	uchar *ipic;
+	uint8_t *ipic;
 
 	pic = image->chans[0];
 	r = image->r;

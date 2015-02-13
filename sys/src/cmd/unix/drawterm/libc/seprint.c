@@ -11,10 +11,10 @@
 #include <libc.h>
 #include "fmtdef.h"
 
-char*
-seprint(char *buf, char *e, char *fmt, ...)
+int8_t*
+seprint(int8_t *buf, int8_t *e, int8_t *fmt, ...)
 {
-	char *p;
+	int8_t *p;
 	va_list args;
 
 	va_start(args, fmt);

@@ -13,7 +13,7 @@
 #include "../icmp.h"
 
 static void
-catch(void *a, char *msg)
+catch(void *a, int8_t *msg)
 {
 	USED(a);
 	if(strstr(msg, "alarm"))
@@ -29,11 +29,11 @@ catch(void *a, char *msg)
  *  TODO: ipv6 ping
  */
 int
-icmpecho(uchar *a)
+icmpecho(uint8_t *a)
 {
 	int fd, i, n, len, rv;
-	ushort sseq, x;
-	char buf[512];
+	uint16_t sseq, x;
+	int8_t buf[512];
 	Icmphdr *ip;
 
 	rv = 0;
@@ -52,7 +52,7 @@ icmpecho(uchar *a)
 	for(i = 0; i < 3; i++){
 		ip->type = EchoRequest;
 		ip->code = 0;
-		strcpy((char*)ip->data, MSG);
+		strcpy((int8_t*)ip->data, MSG);
 		ip->seq[0] = sseq;
 		ip->seq[1] = sseq>>8;
 		len = IPV4HDR_LEN + ICMP_HDRSIZE + sizeof(MSG);
@@ -71,7 +71,7 @@ icmpecho(uchar *a)
 		/* an answer to our echo request? */
 		x = (ip->seq[1]<<8) | ip->seq[0];
 		if(n >= len && ip->type == EchoReply && x == sseq &&
-		    strcmp((char*)ip->data, MSG) == 0){
+		    strcmp((int8_t*)ip->data, MSG) == 0){
 			rv = 1;
 			break;
 		}

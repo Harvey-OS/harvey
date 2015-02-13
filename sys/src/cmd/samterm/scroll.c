@@ -36,7 +36,7 @@ scrtemps(void)
 }
 
 Rectangle
-scrpos(Rectangle r, long p0, long p1, long tot)
+scrpos(Rectangle r, int32_t p0, int32_t p1, int32_t tot)
 {
 	Rectangle q;
 	int h;
@@ -82,7 +82,7 @@ scrunmark(Flayer *l, Rectangle r)
 }
 
 void
-scrdraw(Flayer *l, long tot)
+scrdraw(Flayer *l, int32_t tot)
 {
 	Rectangle r, r1, r2;
 	Image *b;
@@ -115,10 +115,10 @@ void
 scroll(Flayer *l, int but)
 {
 	int in = 0, oin;
-	long tot = scrtotal(l);
+	int32_t tot = scrtotal(l);
 	Rectangle scr, r, s, rt;
 	int x, y, my, oy, h;
-	long p0;
+	int32_t p0;
 
 	s = l->scroll;
 	x = s.min.x+FLSCROLLWID/2;
@@ -167,7 +167,7 @@ scroll(Flayer *l, int but)
 		scrunmark(l, r);
 		p0 = 0;
 		if(but == 1)
-			p0 = (long)(my-s.min.y)/l->f.font->height+1;
+			p0 = (int32_t)(my-s.min.y)/l->f.font->height+1;
 		else if(but == 2){
 			if(tot > 1024L*1024L)
 				p0 = ((tot>>10)*(y-s.min.y)/h)<<10;

@@ -203,7 +203,7 @@ void unRLE_obuf_to_output_FAST ( DState* s )
       Int32         c_k0                 = s->k0;
       UInt32*       c_tt                 = s->tt;
       UInt32        c_tPos               = s->tPos;
-      char*         cs_next_out          = s->strm->next_out;
+      int8_t*         cs_next_out          = s->strm->next_out;
       unsigned int  cs_avail_out         = s->strm->avail_out;
       /* end restore */
 

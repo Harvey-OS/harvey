@@ -23,22 +23,22 @@ typedef struct Icon Icon;
 struct Icon
 {
 	Icon	*next;
-	char	*file;
+	int8_t	*file;
 
-	uchar	w;		/* icon width */
-	uchar	h;		/* icon height */
-	ushort	ncolor;		/* number of colors */
-	ushort	nplane;		/* number of bit planes */
-	ushort	bits;		/* bits per pixel */
-	ulong	len;		/* length of data */
-	ulong	offset;		/* file offset to data */
-	uchar	map[4*256];	/* color map */
+	uint8_t	w;		/* icon width */
+	uint8_t	h;		/* icon height */
+	uint16_t	ncolor;		/* number of colors */
+	uint16_t	nplane;		/* number of bit planes */
+	uint16_t	bits;		/* bits per pixel */
+	uint32_t	len;		/* length of data */
+	uint32_t	offset;		/* file offset to data */
+	uint8_t	map[4*256];	/* color map */
 
 	Image	*img;
 
-	uchar	*xor;
+	uint8_t	*xor;
 	int	xorlen;
-	uchar	*and;
+	uint8_t	*and;
 	int	andlen;
 };
 
@@ -51,14 +51,14 @@ struct Header
 };
 
 void
-Bputs(Biobuf *b, ushort x)
+Bputs(Biobuf *b, uint16_t x)
 {
 	Bputc(b, x&0xff);
 	Bputc(b, x>>8);
 }
 
 void
-Bputl(Biobuf *b, ulong x)
+Bputl(Biobuf *b, uint32_t x)
 {
 	Bputs(b, x&0xffff);
 	Bputs(b, x>>16);
@@ -69,7 +69,7 @@ Header h;
 void*	emalloc(int);
 void	mk8bit(Icon*, int);
 void	mkxorand(Icon*, int);
-void	readicon(char*);
+void	readicon(int8_t*);
 
 void
 main(int argc, char **argv)
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 }
 
 void
-readicon(char *file)
+readicon(int8_t *file)
 {
 	int fd;
 	Icon *icon;
@@ -228,15 +228,15 @@ void
 mkxorand(Icon *icon, int grey)
 {
 	int i, x, y, s, sa;
-	uchar xx[256];
-	uchar *data, *p, *e;
+	uint8_t xx[256];
+	uint8_t *data, *p, *e;
 	int ndata;
-	uchar *mp;
+	uint8_t *mp;
 	int ncolor;
-	ulong color;
+	uint32_t color;
 	int bits;
-	uchar andbyte, xorbyte;
-	uchar *ato, *xto;
+	uint8_t andbyte, xorbyte;
+	uint8_t *ato, *xto;
 	int xorrl, andrl;
 
 	ndata = icon->h * icon->w;

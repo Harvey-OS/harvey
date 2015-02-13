@@ -11,9 +11,9 @@
 #include <libc.h>
 
 Waitmsg*
-system(char *name, char **argv)
+system(int8_t *name, int8_t **argv)
 {
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 	Waitmsg *w;
 	int pid;
 
@@ -37,7 +37,7 @@ system(char *name, char **argv)
 }
 
 Waitmsg*
-systeml(char *name, ...)
+systeml(int8_t *name, ...)
 {
 	return system(name, &name+1);
 }

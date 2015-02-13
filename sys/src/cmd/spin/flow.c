@@ -23,8 +23,8 @@
 
 extern Symbol	*Fname;
 extern int	nr_errs, lineno, verbose, in_for;
-extern short	has_unless, has_badelse, has_xu;
-extern char CurScope[MAXSCOPESZ];
+extern int16_t	has_unless, has_badelse, has_xu;
+extern int8_t CurScope[MAXSCOPESZ];
 
 Element *Al_El = ZE;
 Label	*labtab = (Label *) 0;
@@ -98,7 +98,7 @@ cross_dsteps(Lextok *a, Lextok *b)
 	&&  a->indstep != b->indstep)
 	{	lineno = a->ln;
 		Fname  = a->fn;
-		fatal("jump into d_step sequence", (char *) 0);
+		fatal("jump into d_step sequence", (int8_t *) 0);
 	}
 }
 
@@ -146,7 +146,7 @@ void
 prune_opts(Lextok *n)
 {	SeqList *l;
 	extern Symbol *context;
-	extern char *claimproc;
+	extern int8_t *claimproc;
 
 	if (!n
 	|| (context && claimproc && strcmp(context->name, claimproc) == 0))
@@ -221,13 +221,14 @@ close_seq(int nottop)
 
 	if (nottop == 4
 	&& !Rjumpslocal(s->frst, s->last))
-		fatal("non_local jump in d_step sequence", (char *) 0);
+		fatal("non_local jump in d_step sequence", (int8_t *) 0);
 
 	cur_s = cur_s->nxt;
 	s->maxel = Elcnt;
 	s->extent = s->last;
 	if (!s->last)
-		fatal("sequence must have at least one statement", (char *) 0);
+		fatal("sequence must have at least one statement",
+		      (int8_t *) 0);
 	return s;
 }
 
@@ -353,7 +354,8 @@ loose_ends(void)	/* properly tie-up ends of sub-sequences */
 			else
 			{	if (e->n->sl->this->last->nxt->n->ntyp != GOTO)
 				{	if (!f || e->n->sl->this->last->nxt->seqno != f->seqno)
-					non_fatal("unexpected: loose ends", (char *)0);
+					non_fatal("unexpected: loose ends",
+						  (int8_t *)0);
 				} else
 					e->n->sl->this->last = e->n->sl->this->last->nxt;
 				/*
@@ -381,7 +383,7 @@ if_seq(Lextok *n)
 			continue;
 		if (z->this->frst->n->ntyp == ELSE)
 		{	if (move_else)
-				fatal("duplicate `else'", (char *) 0);
+				fatal("duplicate `else'", (int8_t *) 0);
 			if (z->nxt)	/* is not already at the end */
 			{	move_else = z;
 				if (prev_z)
@@ -397,7 +399,7 @@ if_seq(Lextok *n)
 	if (move_else)
 	{	move_else->nxt = (SeqList *) 0;
 		/* if there is no prev, then else was at the end */
-		if (!prev_z) fatal("cannot happen - if_seq", (char *) 0);
+		if (!prev_z) fatal("cannot happen - if_seq", (int8_t *) 0);
 		prev_z->nxt = move_else;
 		prev_z = move_else;
 	}
@@ -408,10 +410,10 @@ if_seq(Lextok *n)
 		has_badelse++;
 		if (has_xu)
 		{	fatal("invalid use of 'else' combined with i/o and xr/xs assertions,",
-				(char *)0);
+				(int8_t *)0);
 		} else
 		{	non_fatal("dubious use of 'else' combined with i/o,",
-				(char *)0);
+				(int8_t *)0);
 		}
 		nr_errs--;
 	}
@@ -499,7 +501,7 @@ unless_seq(Lextok *n)
 
 	/* need 2 sequences: normal execution and escape */
 	if (!s || !s->nxt || s->nxt->nxt)
-		fatal("unexpected unless structure", (char *)0);
+		fatal("unexpected unless structure", (int8_t *)0);
 
 	/* append the target state to both */
 	for (z = s; z; z = z->nxt)
@@ -751,7 +753,7 @@ void
 pushbreak(void)
 {	Lbreak *r = (Lbreak *) emalloc(sizeof(Lbreak));
 	Symbol *l;
-	char buf[64];
+	int8_t buf[64];
 
 	sprintf(buf, ":b%d", break_id++);
 	l = lookup(buf);
@@ -764,7 +766,7 @@ Symbol *
 break_dest(void)
 {
 	if (!breakstack)
-		fatal("misplaced break statement", (char *)0);
+		fatal("misplaced break statement", (int8_t *)0);
 	return breakstack->l;
 }
 
@@ -872,7 +874,7 @@ match_struct(Symbol *s, Symbol *t)
 }
 
 void
-valid_name(Lextok *a3, Lextok *a5, Lextok *a8, char *tp)
+valid_name(Lextok *a3, Lextok *a5, Lextok *a8, int8_t *tp)
 {
 	if (a3->ntyp != NAME)
 	{	fatal("%s ( .name : from .. to ) { ... }", tp);
@@ -902,11 +904,11 @@ Lextok *
 for_index(Lextok *a3, Lextok *a5)
 {	Lextok *z0, *z1, *z2, *z3;
 	Symbol *tmp_cnt;
-	char tmp_nm[MAXSCOPESZ];
+	int8_t tmp_nm[MAXSCOPESZ];
 	/* for ( a3 in a5 ) { ... } */
 
 	if (a3->ntyp != NAME)
-	{	fatal("for ( .name in name ) { ... }", (char *) 0);
+	{	fatal("for ( .name in name ) { ... }", (int8_t *) 0);
 	}
 
 	if (a5->ntyp != NAME)

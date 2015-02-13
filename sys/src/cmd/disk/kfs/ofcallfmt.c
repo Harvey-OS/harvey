@@ -10,13 +10,13 @@
 #include "all.h"
 #include "9p1.h"
 
-static void dumpsome(char*, char*, long);
-static void fdirconv(char*, Dentry*);
+static void dumpsome(int8_t*, int8_t*, int32_t);
+static void fdirconv(int8_t*, Dentry*);
 
 int
 ofcallfmt(Fmt *f1)
 {
-	char buf[512];
+	int8_t buf[512];
 	Oldfcall *f;
 	int fid, type, tag, n;
 	Dentry d;
@@ -143,7 +143,7 @@ ofcallfmt(Fmt *f1)
 }
 
 static void
-fdirconv(char *buf, Dentry *d)
+fdirconv(int8_t *buf, Dentry *d)
 {
 	sprint(buf, "'%s' uid=%d gid=%d "
 		"q %lux|%lux m %uo "
@@ -161,16 +161,16 @@ fdirconv(char *buf, Dentry *d)
 #define DUMPL 24
 
 static void
-dumpsome(char *ans, char *buf, long count)
+dumpsome(int8_t *ans, int8_t *buf, int32_t count)
 {
 	int i, printable;
-	char *p;
+	int8_t *p;
 
 	printable = 1;
 	if(count > DUMPL)
 		count = DUMPL;
 	for(i=0; i<count && printable; i++)
-		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uchar)buf[i]>127)
+		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uint8_t)buf[i]>127)
 			printable = 0;
 	p = ans;
 	*p++ = '\'';

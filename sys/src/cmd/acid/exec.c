@@ -16,10 +16,10 @@
 #include "acid.h"
 
 void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
 	int i;
-	char buf[2048];
+	int8_t buf[2048];
 	va_list arg;
 
 	/* Unstack io channels */
@@ -71,7 +71,7 @@ execute(Node *n)
 	Value *v;
 	Lsym *sl;
 	Node *l, *r;
-	vlong i, s, e;
+	int64_t i, s, e;
 	Node res, xx;
 	static int stmnt;
 
@@ -195,9 +195,9 @@ bool(Node *n)
 }
 
 void
-convflt(Node *r, char *flt)
+convflt(Node *r, int8_t *flt)
 {
-	char c;
+	int8_t c;
 
 	c = flt[0];
 	if(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
@@ -212,15 +212,15 @@ convflt(Node *r, char *flt)
 }
 
 void
-indir(Map *m, uvlong addr, char fmt, Node *r)
+indir(Map *m, uint64_t addr, int8_t fmt, Node *r)
 {
 	int i;
-	ulong lval;
-	uvlong uvval;
+	uint32_t lval;
+	uint64_t uvval;
 	int ret;
-	uchar cval;
-	ushort sval;
-	char buf[512], reg[12];
+	uint8_t cval;
+	uint16_t sval;
+	int8_t buf[512], reg[12];
 
 	r->op = OCONST;
 	r->fmt = fmt;
@@ -281,7 +281,7 @@ indir(Map *m, uvlong addr, char fmt, Node *r)
 	case 's':
 		r->type = TSTRING;
 		for(i = 0; i < sizeof(buf)-1; i++) {
-			ret = get1(m, addr, (uchar*)&buf[i], 1);
+			ret = get1(m, addr, (uint8_t*)&buf[i], 1);
 			if (ret < 0)
 				error("indir: %r");
 			addr++;
@@ -296,7 +296,7 @@ indir(Map *m, uvlong addr, char fmt, Node *r)
 	case 'R':
 		r->type = TSTRING;
 		for(i = 0; i < sizeof(buf)-2; i += 2) {
-			ret = get1(m, addr, (uchar*)&buf[i], 2);
+			ret = get1(m, addr, (uint8_t*)&buf[i], 2);
 			if (ret < 0)
 				error("indir: %r");
 			addr += 2;
@@ -316,14 +316,14 @@ indir(Map *m, uvlong addr, char fmt, Node *r)
 		r->string = strnode(buf);
 		break;
 	case 'f':
-		ret = get1(m, addr, (uchar*)buf, mach->szfloat);
+		ret = get1(m, addr, (uint8_t*)buf, mach->szfloat);
 		if (ret < 0)
 			error("indir: %r");
 		machdata->sftos(buf, sizeof(buf), (void*) buf);
 		convflt(r, buf);
 		break;
 	case 'g':
-		ret = get1(m, addr, (uchar*)buf, mach->szfloat);
+		ret = get1(m, addr, (uint8_t*)buf, mach->szfloat);
 		if (ret < 0)
 			error("indir: %r");
 		machdata->sftos(buf, sizeof(buf), (void*) buf);
@@ -331,14 +331,14 @@ indir(Map *m, uvlong addr, char fmt, Node *r)
 		r->string = strnode(buf);
 		break;
 	case 'F':
-		ret = get1(m, addr, (uchar*)buf, mach->szdouble);
+		ret = get1(m, addr, (uint8_t*)buf, mach->szdouble);
 		if (ret < 0)
 			error("indir: %r");
 		machdata->dftos(buf, sizeof(buf), (void*) buf);
 		convflt(r, buf);
 		break;
 	case '3':	/* little endian ieee 80 with hole in bytes 8&9 */
-		ret = get1(m, addr, (uchar*)reg, 10);
+		ret = get1(m, addr, (uint8_t*)reg, 10);
 		if (ret < 0)
 			error("indir: %r");
 		memmove(reg+10, reg+8, 2);	/* open hole */
@@ -347,14 +347,14 @@ indir(Map *m, uvlong addr, char fmt, Node *r)
 		convflt(r, buf);
 		break;
 	case '8':	/* big-endian ieee 80 */
-		ret = get1(m, addr, (uchar*)reg, 10);
+		ret = get1(m, addr, (uint8_t*)reg, 10);
 		if (ret < 0)
 			error("indir: %r");
 		beieee80ftos(buf, sizeof(buf), reg);
 		convflt(r, buf);
 		break;
 	case 'G':
-		ret = get1(m, addr, (uchar*)buf, mach->szdouble);
+		ret = get1(m, addr, (uint8_t*)buf, mach->szdouble);
 		if (ret < 0)
 			error("indir: %r");
 		machdata->dftos(buf, sizeof(buf), (void*) buf);
@@ -367,9 +367,9 @@ indir(Map *m, uvlong addr, char fmt, Node *r)
 void
 windir(Map *m, Node *addr, Node *rval, Node *r)
 {
-	uchar cval;
-	ushort sval;
-	long lval;
+	uint8_t cval;
+	uint16_t sval;
+	int32_t lval;
 	Node res, aes;
 	int ret;
 
@@ -427,7 +427,8 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 		break;
 	case 's':
 	case 'R':
-		ret = put1(m, aes.ival, (uchar*)res.string->string, res.string->len);
+		ret = put1(m, aes.ival, (uint8_t*)res.string->string,
+		           res.string->len);
 		break;
 	}
 	if (ret < 0)
@@ -435,7 +436,7 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 }
 
 void
-call(char *fn, Node *parameters, Node *local, Node *body, Node *retexp)
+call(int8_t *fn, Node *parameters, Node *local, Node *body, Node *retexp)
 {
 	int np, i;
 	Rplace rlab;

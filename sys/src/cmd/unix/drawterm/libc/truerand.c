@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-ulong
+uint32_t
 truerand(void)
 {
-	ulong x;
+	uint32_t x;
 	static int randfd = -1;
 
 	if(randfd < 0)

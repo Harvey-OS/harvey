@@ -24,7 +24,7 @@ struct internal_state      {int dummy;}; /* for buggy compilers */
 extern void exit OF((int));
 #endif
 
-const char * const z_errmsg[10] = {
+const int8_t * const z_errmsg[10] = {
 "need dictionary",     /* Z_NEED_DICT       2  */
 "stream end",          /* Z_STREAM_END      1  */
 "",                    /* Z_OK              0  */
@@ -37,7 +37,7 @@ const char * const z_errmsg[10] = {
 ""};
 
 
-const char * ZEXPORT zlibVersion()
+const int8_t * ZEXPORT zlibVersion()
 {
     return ZLIB_VERSION;
 }
@@ -133,7 +133,7 @@ uLong ZEXPORT zlibCompileFlags()
 int z_verbose = verbose;
 
 void z_error (m)
-    char *m;
+    int8_t *m;
 {
     fprintf(stderr, "%s\n", m);
     exit(1);
@@ -143,7 +143,7 @@ void z_error (m)
 /* exported to allow conversion of error code to string for compress() and
  * uncompress()
  */
-const char * ZEXPORT zError(err)
+const int8_t * ZEXPORT zError(err)
     int err;
 {
     return ERR_MSG(err);
@@ -285,7 +285,7 @@ void  zcfree (voidpf opaque, voidpf ptr)
 voidpf zcalloc (voidpf opaque, unsigned items, unsigned size)
 {
     if (opaque) opaque = 0; /* to make compiler happy */
-    return _halloc((long)items, size);
+    return _halloc((int32_t)items, size);
 }
 
 void  zcfree (voidpf opaque, voidpf ptr)

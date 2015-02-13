@@ -34,9 +34,9 @@ static Lock	dblock;
 static RR*	addrrr(Ndbtuple*, Ndbtuple*);
 static RR*	cnamerr(Ndbtuple*, Ndbtuple*);
 static void	createptrs(void);
-static RR*	dblookup1(char*, int, int, int);
-static RR*	doaxfr(Ndb*, char*);
-static Ndbtuple*look(Ndbtuple*, Ndbtuple*, char*);
+static RR*	dblookup1(int8_t*, int, int, int);
+static RR*	doaxfr(Ndb*, int8_t*);
+static Ndbtuple*look(Ndbtuple*, Ndbtuple*, int8_t*);
 static RR*	mxrr(Ndbtuple*, Ndbtuple*);
 static RR*	nsrr(Ndbtuple*, Ndbtuple*);
 static RR*	nullrr(Ndbtuple*, Ndbtuple*);
@@ -63,7 +63,7 @@ static int	implemented[Tall] =
 static Ndbtuple *indoms, *innmsrvs, *outnmsrvs;
 
 static void
-nstrcpy(char *to, char *from, int len)
+nstrcpy(int8_t *to, int8_t *from, int len)
 {
 	strncpy(to, from, len);
 	to[len-1] = 0;
@@ -72,7 +72,7 @@ nstrcpy(char *to, char *from, int len)
 int
 opendatabase(void)
 {
-	char netdbnm[256];
+	int8_t netdbnm[256];
 	Ndb *xdb, *netdb;
 
 	if (db)
@@ -102,11 +102,11 @@ opendatabase(void)
  *	 try *.research.bell-labs.com.
  */
 RR*
-dblookup(char *name, int class, int type, int auth, int ttl)
+dblookup(int8_t *name, int class, int type, int auth, int ttl)
 {
 	int err;
-	char *wild, *cp;
-	char buf[256];
+	int8_t *wild, *cp;
+	int8_t buf[256];
 	RR *rp, *tp;
 	DN *dp, *ndp;
 
@@ -186,8 +186,8 @@ out:
 	return rp;
 }
 
-static ulong
-intval(Ndbtuple *entry, Ndbtuple *pair, char *attr, ulong def)
+static uint32_t
+intval(Ndbtuple *entry, Ndbtuple *pair, int8_t *attr, uint32_t def)
 {
 	Ndbtuple *t = look(entry, pair, attr);
 
@@ -198,13 +198,13 @@ intval(Ndbtuple *entry, Ndbtuple *pair, char *attr, ulong def)
  *  lookup an RR in the network database
  */
 static RR*
-dblookup1(char *name, int type, int auth, int ttl)
+dblookup1(int8_t *name, int type, int auth, int ttl)
 {
 	Ndbtuple *t, *nt;
 	RR *rp, *list, **l;
 	Ndbs s;
-	char dname[Domlen];
-	char *attr;
+	int8_t dname[Domlen];
+	int8_t *attr;
 	DN *dp;
 	RR *(*f)(Ndbtuple*, Ndbtuple*);
 	int found, x;
@@ -346,7 +346,7 @@ static RR*
 addrrr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
-	uchar addr[IPaddrlen];
+	uint8_t addr[IPaddrlen];
 
 	USED(entry);
 	parseip(addr, pair->val);
@@ -364,8 +364,8 @@ nullrr(Ndbtuple *entry, Ndbtuple *pair)
 
 	USED(entry);
 	rp = rralloc(Tnull);
-	rp->null->data = (uchar*)estrdup(pair->val);
-	rp->null->dlen = strlen((char*)rp->null->data);
+	rp->null->data = (uint8_t*)estrdup(pair->val);
+	rp->null->dlen = strlen((int8_t*)rp->null->data);
 	return rp;
 }
 /*
@@ -452,9 +452,9 @@ soarr(Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
 	Ndbtuple *ns, *mb, *t;
-	char mailbox[Domlen];
+	int8_t mailbox[Domlen];
 	Ndb *ndb;
-	char *p;
+	int8_t *p;
 
 	rp = rralloc(Tsoa);
 	rp->soa->serial = 1;
@@ -527,7 +527,7 @@ srvrr(Ndbtuple *entry, Ndbtuple *pair)
  *  then in the whole entry.
  */
 static Ndbtuple*
-look(Ndbtuple *entry, Ndbtuple *line, char *attr)
+look(Ndbtuple *entry, Ndbtuple *line, int8_t *attr)
 {
 	Ndbtuple *nt;
 
@@ -558,7 +558,7 @@ linkrr(RR *rp, DN *dp, RR **l)
 
 /* these are answered specially by the tcp version */
 static RR*
-doaxfr(Ndb *db, char *name)
+doaxfr(Ndb *db, int8_t *name)
 {
 	USED(db, name);
 	return 0;
@@ -588,7 +588,7 @@ static void
 dbpair2cache(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
-	static ulong ord;
+	static uint32_t ord;
 
 	rp = 0;
 	if(cistrcmp(pair->attr, "ip") == 0 ||
@@ -683,10 +683,10 @@ loaddomsrvs(void)
 void
 db2cache(int doit)
 {
-	ulong youngest;
+	uint32_t youngest;
 	Ndb *ndb;
 	Dir *d;
-	static ulong lastcheck, lastyoungest;
+	static uint32_t lastcheck, lastyoungest;
 
 	/* no faster than once every 2 minutes */
 	if(now < lastcheck + 2*Min && !doit)
@@ -767,17 +767,17 @@ dnforceage(void)
 	unlock(&dblock);
 }
 
-extern uchar	ipaddr[IPaddrlen];	/* my ip address */
+extern uint8_t	ipaddr[IPaddrlen];	/* my ip address */
 
 /*
  *  get all my xxx
  *  caller ndbfrees the result
  */
 Ndbtuple*
-lookupinfo(char *attr)
+lookupinfo(int8_t *attr)
 {
-	char buf[64];
-	char *a[2];
+	int8_t buf[64];
+	int8_t *a[2];
 	Ndbtuple *t;
 
 	snprint(buf, sizeof buf, "%I", ipaddr);
@@ -793,14 +793,14 @@ lookupinfo(char *attr)
 	return t;
 }
 
-char *localservers =	  "local#dns#servers";
-char *localserverprefix = "local#dns#server";
+int8_t *localservers =	  "local#dns#servers";
+int8_t *localserverprefix = "local#dns#server";
 
 /*
  *  return non-zero if this is a bad delegation
  */
 int
-baddelegation(RR *rp, RR *nsrp, uchar *addr)
+baddelegation(RR *rp, RR *nsrp, uint8_t *addr)
 {
 	Ndbtuple *nt;
 	static int whined;
@@ -843,10 +843,10 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 }
 
 int
-myaddr(char *addr)
+myaddr(int8_t *addr)
 {
-	char *name, *line, *sp;
-	char buf[64];
+	int8_t *name, *line, *sp;
+	int8_t buf[64];
 	Biobuf *bp;
 
 	snprint(buf, sizeof buf, "%I", ipaddr);
@@ -876,17 +876,17 @@ myaddr(char *addr)
 	return 0;
 }
 
-static char *locdns[20];
+static int8_t *locdns[20];
 static QLock locdnslck;
 
 static void
-addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
+addlocaldnsserver(DN *dp, int class, int8_t *ipaddr, int i)
 {
 	int n;
 	DN *nsdp;
 	RR *rp;
-	char buf[32];
-	uchar ip[IPaddrlen];
+	int8_t buf[32];
+	uint8_t ip[IPaddrlen];
 
 	/* reject our own ip addresses so we don't query ourselves via udp */
 	if (myaddr(ipaddr))
@@ -941,8 +941,8 @@ RR*
 dnsservers(int class)
 {
 	int i, n;
-	char *p;
-	char *args[5];
+	int8_t *p;
+	int8_t *args[5];
 	Ndbtuple *t, *nt;
 	RR *nsrp;
 	DN *dp;
@@ -974,7 +974,7 @@ dnsservers(int class)
 }
 
 static void
-addlocaldnsdomain(DN *dp, int class, char *domain)
+addlocaldnsdomain(DN *dp, int class, int8_t *domain)
 {
 	RR *rp;
 
@@ -1012,10 +1012,10 @@ domainlist(int class)
 	return rrlookup(dp, Tptr, NOneg);
 }
 
-char *v4ptrdom = ".in-addr.arpa";
-char *v6ptrdom = ".ip6.arpa";		/* ip6.int deprecated, rfc 3152 */
+int8_t *v4ptrdom = ".in-addr.arpa";
+int8_t *v6ptrdom = ".ip6.arpa";		/* ip6.int deprecated, rfc 3152 */
 
-char *attribs[] = {
+int8_t *attribs[] = {
 	"ipmask",
 	0
 };
@@ -1027,10 +1027,10 @@ static void
 createv4ptrs(void)
 {
 	int len, dlen, n;
-	char *dom;
-	char buf[Domlen+1], ipa[48];
-	char *f[40];
-	uchar net[IPaddrlen], mask[IPaddrlen];
+	int8_t *dom;
+	int8_t buf[Domlen+1], ipa[48];
+	int8_t *f[40];
+	uint8_t net[IPaddrlen], mask[IPaddrlen];
 	Area *s;
 	Ndbtuple *t, *nt;
 
@@ -1101,7 +1101,7 @@ createv4ptrs(void)
 
 /* convert bytes to nibbles, big-endian */
 void
-bytes2nibbles(uchar *nibbles, uchar *bytes, int nbytes)
+bytes2nibbles(uint8_t *nibbles, uint8_t *bytes, int nbytes)
 {
 	while (nbytes-- > 0) {
 		*nibbles++ = *bytes >> Nibwidth;
@@ -1110,7 +1110,7 @@ bytes2nibbles(uchar *nibbles, uchar *bytes, int nbytes)
 }
 
 void
-nibbles2bytes(uchar *bytes, uchar *nibbles, int nnibs)
+nibbles2bytes(uint8_t *bytes, uint8_t *nibbles, int nnibs)
 {
 	for (; nnibs >= 2; nnibs -= 2) {
 		*bytes++ = nibbles[0] << Nibwidth | (nibbles[1]&Nibmask);
@@ -1127,11 +1127,11 @@ static void
 createv6ptrs(void)
 {
 	int len, dlen, i, n, pfxnibs;
-	char *dom;
-	char buf[Domlen+1];
-	char *f[40];
-	uchar net[IPaddrlen], mask[IPaddrlen];
-	uchar nibnet[IPaddrlen*2], nibmask[IPaddrlen*2];
+	int8_t *dom;
+	int8_t buf[Domlen+1];
+	int8_t *f[40];
+	uint8_t net[IPaddrlen], mask[IPaddrlen];
+	uint8_t nibnet[IPaddrlen*2], nibmask[IPaddrlen*2];
 	Area *s;
 
 	dlen = strlen(v6ptrdom);
@@ -1190,7 +1190,7 @@ createptrs(void)
  * so they'll use mntpt for their queries.
  */
 int
-insideaddr(char *dom)
+insideaddr(int8_t *dom)
 {
 	int domlen, vallen, rv;
 	Ndbtuple *t;
@@ -1227,9 +1227,9 @@ insideaddr(char *dom)
 }
 
 int
-insidens(uchar *ip)
+insidens(uint8_t *ip)
 {
-	uchar ipa[IPaddrlen];
+	uint8_t ipa[IPaddrlen];
 	Ndbtuple *t;
 
 	for (t = innmsrvs; t != nil; t = t->entry)
@@ -1241,12 +1241,12 @@ insidens(uchar *ip)
 	return 0;
 }
 
-uchar *
+uint8_t *
 outsidens(int n)
 {
 	int i;
 	Ndbtuple *t;
-	static uchar ipa[IPaddrlen];
+	static uint8_t ipa[IPaddrlen];
 
 	i = 0;
 	for (t = outnmsrvs; t != nil; t = t->entry)

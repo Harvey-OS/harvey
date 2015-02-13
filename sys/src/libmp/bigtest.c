@@ -12,7 +12,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-char *sfactors[] =
+int8_t *sfactors[] =
 {	"3", "5", "17", "257", "641", "65537", "274177", "2424833", "6700417", "45592577",
     "6487031809", "67280421310721", "1238926361552897", "59649589127497217",
     "5704689200685129054721", "4659775785220018543264560743076778192897",
@@ -24,13 +24,13 @@ char *sfactors[] =
     "130439874405488189727484768796509903946608530841611892186895295776832416251471863574140227977573104895898783928842923844831149032913798729088601617946094119449010595906710130531906171018354491609619193912488538116080712299672322806217820753127014424577"
 };
 
-long start;
+int32_t start;
 
 void
-printmp(mpint *b, char *tag)
+printmp(mpint *b, int8_t *tag)
 {
 	int n;
-	char *p;
+	int8_t *p;
 
 	print("%s (%d) ", tag, b->top);
 	p = mptoa(b, 10, nil, 0);
@@ -42,7 +42,7 @@ printmp(mpint *b, char *tag)
 int
 timing(void)
 {
-	long now, span;
+	int32_t now, span;
 
 	now = time(0);
 	span = now-start;
@@ -55,7 +55,7 @@ int expdebug;
 
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	mpint *p, *k, *d, *b, *e, *x, *r;
 	int i;

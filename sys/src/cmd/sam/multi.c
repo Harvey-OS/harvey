@@ -10,7 +10,7 @@
 #include "sam.h"
 
 List	file = { 'p' };
-ushort	tag;
+uint16_t	tag;
 
 File *
 newfile(void)
@@ -61,7 +61,7 @@ void
 fixname(String *name)
 {
 	String *t;
-	char *s;
+	int8_t *s;
 
 	fullname(name);
 	s = Strtoc(name);

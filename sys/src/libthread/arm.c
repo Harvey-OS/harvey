@@ -23,15 +23,15 @@ launcherarm(int, void (*f)(void *arg), void *arg)
 void
 _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 {
-	ulong *tos;
+	uint32_t *tos;
 
-	tos = (ulong*)&t->stk[t->stksize&~7];
-	*--tos = (ulong)arg;
-	*--tos = (ulong)f;
+	tos = (uint32_t*)&t->stk[t->stksize&~7];
+	*--tos = (uint32_t)arg;
+	*--tos = (uint32_t)f;
 	*--tos = 0;	/* first arg to launchermips */
 	*--tos = 0;	/* place to store return PC */
 
-	t->sched[JMPBUFPC] = (ulong)launcherarm+JMPBUFDPC;
-	t->sched[JMPBUFSP] = (ulong)tos;
+	t->sched[JMPBUFPC] = (uint32_t)launcherarm+JMPBUFDPC;
+	t->sched[JMPBUFSP] = (uint32_t)tos;
 }
 

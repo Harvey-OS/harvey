@@ -12,9 +12,9 @@
 #define TWID64	((u64int)~(u64int)0)
 
 u64int
-unittoull(char *s)
+unittoull(int8_t *s)
 {
-	char *es;
+	int8_t *es;
 	u64int n;
 
 	if(s == nil)

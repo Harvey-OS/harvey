@@ -35,7 +35,7 @@
 #include "gdevbbox.h"
 #include "gdevx.h"
 
-extern char *getenv(const char *);
+extern int8_t *getenv(const int8_t *);
 
 extern const gx_device_bbox gs_bbox_device;
 extern const gx_device_X gs_x11_device;
@@ -96,7 +96,7 @@ int
 gdev_x_open(gx_device_X * xdev)
 {
     XSizeHints sizehints;
-    char *window_id;
+    int8_t *window_id;
     XEvent event;
     XVisualInfo xvinfo;
     int nitems;
@@ -117,8 +117,8 @@ gdev_x_open(gx_device_X * xdev)
     }
 # endif
 #endif
-    if (!(xdev->dpy = XOpenDisplay((char *)NULL))) {
-	char *dispname = getenv("DISPLAY");
+    if (!(xdev->dpy = XOpenDisplay((int8_t *)NULL))) {
+	int8_t *dispname = getenv("DISPLAY");
 
 	eprintf1("Cannot open X display `%s'.\n",
 		 (dispname == NULL ? "(null)" : dispname));
@@ -152,7 +152,7 @@ gdev_x_open(gx_device_X * xdev)
 	Atom type;
 	int format;
 	unsigned long nitems, bytes_after;
-	char *buf;
+	int8_t *buf;
 	Atom ghostview_atom = XInternAtom(xdev->dpy, "GHOSTVIEW", False);
 
 	if (XGetWindowAttributes(xdev->dpy, xdev->win, &attrib)) {
@@ -381,7 +381,7 @@ gdev_x_open(gx_device_X * xdev)
 	     * scr, because that is a Screen*, and XWMGeometry wants
 	     * the screen number.
 	     */
-	    char gstr[40];
+	    int8_t gstr[40];
 	    int bitmask;
 
 	    sprintf(gstr, "%dx%d+%d+%d", sizehints.width,
@@ -560,7 +560,7 @@ x_set_buffer(gx_device_X * xdev)
 	}
 	if (mdev->width != xdev->width || mdev->height != xdev->height) {
 	    byte *buffer;
-	    ulong space;
+	    uint32_t space;
 
 	    space = gdev_mem_data_size(mdev, xdev->width, xdev->height);
 	    if (space > xdev->MaxBitmap) {
@@ -696,10 +696,10 @@ gdev_x_clear_window(gx_device_X * xdev)
 /* ------ Initialize font mapping ------ */
 
 /* Extract the PostScript font name from the font map resource. */
-private const char *
-get_ps_name(const char **cpp, int *len)
+private const int8_t *
+get_ps_name(const int8_t **cpp, int *len)
 {
-    const char *ret;
+    const int8_t *ret;
 
     *len = 0;
     /* skip over whitespace and newlines */
@@ -721,10 +721,10 @@ get_ps_name(const char **cpp, int *len)
 }
 
 /* Extract the X11 font name from the font map resource. */
-private const char *
-get_x11_name(const char **cpp, int *len)
+private const int8_t *
+get_x11_name(const int8_t **cpp, int *len)
 {
-    const char *ret;
+    const int8_t *ret;
     int dashes = 0;
 
     *len = 0;
@@ -755,14 +755,15 @@ get_x11_name(const char **cpp, int *len)
 
 /* Scan one resource and build font map records. */
 private void
-scan_font_resource(const char *resource, x11fontmap **pmaps, gs_memory_t *mem)
+scan_font_resource(const int8_t *resource, x11fontmap **pmaps,
+                   gs_memory_t *mem)
 {
-    const char *ps_name;
-    const char *x11_name;
+    const int8_t *ps_name;
+    const int8_t *x11_name;
     int ps_name_len;
     int x11_name_len;
     x11fontmap *font;
-    const char *cp = resource;
+    const int8_t *cp = resource;
 
     while ((ps_name = get_ps_name(&cp, &ps_name_len)) != 0) {
 	x11_name = get_x11_name(&cp, &x11_name_len);
@@ -771,8 +772,8 @@ scan_font_resource(const char *resource, x11fontmap **pmaps, gs_memory_t *mem)
 				   "scan_font_resource(font)");
 	    if (font == NULL)
 		continue;
-	    font->ps_name = (char *)
-		gs_alloc_byte_array(mem, ps_name_len + 1, sizeof(char),
+	    font->ps_name = (int8_t *)
+		gs_alloc_byte_array(mem, ps_name_len + 1, sizeof(int8_t),
 				    "scan_font_resource(ps_name)");
 	    if (font->ps_name == NULL) {
 		gs_free_object(mem, font, "scan_font_resource(font)");
@@ -780,8 +781,8 @@ scan_font_resource(const char *resource, x11fontmap **pmaps, gs_memory_t *mem)
 	    }
 	    strncpy(font->ps_name, ps_name, ps_name_len);
 	    font->ps_name[ps_name_len] = '\0';
-	    font->x11_name = (char *)
-		gs_alloc_byte_array(mem, x11_name_len, sizeof(char),
+	    font->x11_name = (int8_t *)
+		gs_alloc_byte_array(mem, x11_name_len, sizeof(int8_t),
 				    "scan_font_resource(x11_name)");
 	    if (font->x11_name == NULL) {
 		gs_free_object(mem, font->ps_name,
@@ -858,7 +859,7 @@ gdev_x_get_params(gx_device * dev, gs_param_list * plist)
 {
     gx_device_X *xdev = (gx_device_X *) dev;
     int code = gx_default_get_params(dev, plist);
-    long id = (long)xdev->pwin;
+    int32_t id = (int32_t)xdev->pwin;
 
     if (code < 0 ||
 	(code = param_write_long(plist, "WindowID", &id)) < 0 ||
@@ -887,7 +888,7 @@ gdev_x_put_params(gx_device * dev, gs_param_list * plist)
      */
     gx_device_X values;
 
-    long pwin = (long)xdev->pwin;
+    int32_t pwin = (int32_t)xdev->pwin;
     bool save_is_page = xdev->IsPageDevice;
     int ecode = 0, code;
     bool clear_window = false;
@@ -910,7 +911,7 @@ gdev_x_put_params(gx_device * dev, gs_param_list * plist)
 
     /* Unless we specified a new window ID, */
     /* prevent gx_default_put_params from closing the device. */
-    if (pwin == (long)xdev->pwin)
+    if (pwin == (int32_t)xdev->pwin)
 	dev->is_open = false;
     xdev->IsPageDevice = values.IsPageDevice;
     code = gx_default_put_params(dev, plist);
@@ -919,7 +920,7 @@ gdev_x_put_params(gx_device * dev, gs_param_list * plist)
 	xdev->IsPageDevice = save_is_page;
 	return code;
     }
-    if (pwin != (long)xdev->pwin) {
+    if (pwin != (int32_t)xdev->pwin) {
 	if (xdev->is_open)
 	    gs_closedevice(dev);
 	xdev->pwin = (Window) pwin;
@@ -1007,7 +1008,7 @@ gdev_x_close(gx_device_X *xdev)
     if (xdev->ghostview)
 	gdev_x_send_event(xdev, xdev->DONE);
     if (xdev->vinfo) {
-	XFree((char *)xdev->vinfo);
+	XFree((int8_t *)xdev->vinfo);
 	xdev->vinfo = NULL;
     }
     gdev_x_free_colors(xdev);

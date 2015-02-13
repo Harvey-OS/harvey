@@ -49,33 +49,33 @@
  enough to guarantee bug-free decoding. caveat emptor!
 */
 
-static short
+static int16_t
 r16(Biobuf*b)
 {
-	short s;
+	int16_t s;
 
 	s = Bgetc(b);
-	s |= ((short)Bgetc(b)) << 8;
+	s |= ((int16_t)Bgetc(b)) << 8;
 	return s;
 }
 
 
-static long
+static int32_t
 r32(Biobuf*b)
 {
-	long l;
+	int32_t l;
 
 	l = Bgetc(b);
-	l |= ((long)Bgetc(b)) << 8;
-	l |= ((long)Bgetc(b)) << 16;
-	l |= ((long)Bgetc(b)) << 24;
+	l |= ((int32_t)Bgetc(b)) << 8;
+	l |= ((int32_t)Bgetc(b)) << 16;
+	l |= ((int32_t)Bgetc(b)) << 24;
 	return l;
 }
 
 
 /* get highest bit set */
 static int
-msb(ulong x)
+msb(uint32_t x)
 {
 	int i;
 	for(i = 32; i; i--, x <<= 1)
@@ -86,9 +86,9 @@ msb(ulong x)
 
 /* Load a 1-Bit encoded BMP file (uncompressed) */
 static int
-load_1T(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
+load_1T(Biobuf *b, int32_t width, int32_t height, Rgb* buf, Rgb* clut)
 {
-	long ix, iy, i = 0, step_up = 0, padded_width = ((width + 31) / 32) * 32;
+	int32_t ix, iy, i = 0, step_up = 0, padded_width = ((width + 31) / 32) * 32;
 	int val = 0, n;
 
 	if(height > 0) {	/* bottom-up */
@@ -114,9 +114,9 @@ load_1T(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 
 /* Load a 4-Bit encoded BMP file (uncompressed) */
 static int
-load_4T(Biobuf* b, long width, long height, Rgb* buf, Rgb* clut)
+load_4T(Biobuf* b, int32_t width, int32_t height, Rgb* buf, Rgb* clut)
 {
-	long ix, iy, i = 0, step_up = 0, skip = (4 - (((width % 8) + 1) / 2)) & 3;
+	int32_t ix, iy, i = 0, step_up = 0, skip = (4 - (((width % 8) + 1) / 2)) & 3;
 	uint valH, valL;
 
 	if(height > 0) {	/* bottom-up */
@@ -146,9 +146,9 @@ load_4T(Biobuf* b, long width, long height, Rgb* buf, Rgb* clut)
 
 /* Load a 4-Bit encoded BMP file (RLE4-compressed) */
 static int
-load_4C(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
+load_4C(Biobuf *b, int32_t width, int32_t height, Rgb* buf, Rgb* clut)
 {
-	long ix, iy = height -1;
+	int32_t ix, iy = height -1;
 	uint val, valS, skip;
 	Rgb* p;
 
@@ -221,9 +221,9 @@ load_4C(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 
 /* Load a 8-Bit encoded BMP file (uncompressed) */
 static int
-load_8T(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
+load_8T(Biobuf *b, int32_t width, int32_t height, Rgb* buf, Rgb* clut)
 {
-	long ix, iy, i = 0, step_up = 0, skip = (4 - (width % 4)) & 3;
+	int32_t ix, iy, i = 0, step_up = 0, skip = (4 - (width % 4)) & 3;
 
 	if(height > 0) {	/* bottom-up */
 		i = (height - 1) * width;
@@ -241,9 +241,9 @@ load_8T(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 
 /* Load a 8-Bit encoded BMP file (RLE8-compressed) */
 static int
-load_8C(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
+load_8C(Biobuf *b, int32_t width, int32_t height, Rgb* buf, Rgb* clut)
 {
-	long ix, iy = height -1;
+	int32_t ix, iy = height -1;
 	int val, valS, skip;
 	Rgb* p;
 
@@ -304,10 +304,10 @@ load_8C(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 
 /* Load a 16-Bit encoded BMP file (uncompressed) */
 static int
-load_16(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
+load_16(Biobuf *b, int32_t width, int32_t height, Rgb* buf, Rgb* clut)
 {
-	uchar c[2];
-	long ix, iy, i = 0, step_up = 0;
+	uint8_t c[2];
+	int32_t ix, iy, i = 0, step_up = 0;
 
 	if(height > 0) {	/* bottom-up */
 		i = (height - 1) * width;
@@ -322,9 +322,9 @@ load_16(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 		                      ((unsigned)clut[1].green << 8);
 		unsigned mask_red =  (unsigned)clut[2].blue +
 		                    ((unsigned)clut[2].green << 8);
-		int shft_blue = msb((ulong)mask_blue) - 8;
-		int shft_green = msb((ulong)mask_green) - 8;
-		int shft_red = msb((ulong)mask_red) - 8;
+		int shft_blue = msb((uint32_t)mask_blue) - 8;
+		int shft_green = msb((uint32_t)mask_green) - 8;
+		int shft_red = msb((uint32_t)mask_red) - 8;
 
 		for(iy = height; iy; iy--, i += step_up)
 			for(ix = 0; ix < width; ix++, i++) {
@@ -334,35 +334,35 @@ load_16(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 
 				buf[i].alpha = 0;
 				if(shft_blue >= 0)
-					buf[i].blue = (uchar)((val & mask_blue) >> shft_blue);
+					buf[i].blue = (uint8_t)((val & mask_blue) >> shft_blue);
 				else
-					buf[i].blue = (uchar)((val & mask_blue) << -shft_blue);
+					buf[i].blue = (uint8_t)((val & mask_blue) << -shft_blue);
 				if(shft_green >= 0)
-					buf[i].green = (uchar)((val & mask_green) >> shft_green);
+					buf[i].green = (uint8_t)((val & mask_green) >> shft_green);
 				else
-					buf[i].green = (uchar)((val & mask_green) << -shft_green);
+					buf[i].green = (uint8_t)((val & mask_green) << -shft_green);
 				if(shft_red >= 0)
-					buf[i].red = (uchar)((val & mask_red) >> shft_red);
+					buf[i].red = (uint8_t)((val & mask_red) >> shft_red);
 				else
-					buf[i].red = (uchar)((val & mask_red) << -shft_red);
+					buf[i].red = (uint8_t)((val & mask_red) << -shft_red);
 			}
 	} else
 		for(iy = height; iy; iy--, i += step_up)
 			for(ix = 0; ix < width; ix++, i++) {
 				Bread(b, c, sizeof(c));
-				buf[i].blue = (uchar)((c[0] << 3) & 0xf8);
-				buf[i].green = (uchar)(((((unsigned)c[1] << 6) +
+				buf[i].blue = (uint8_t)((c[0] << 3) & 0xf8);
+				buf[i].green = (uint8_t)(((((unsigned)c[1] << 6) +
 				                        (((unsigned)c[0]) >> 2))) & 0xf8);
-				buf[i].red = (uchar)((c[1] << 1) & 0xf8);
+				buf[i].red = (uint8_t)((c[1] << 1) & 0xf8);
 			}
 	return 0;
 }
 
 /* Load a 24-Bit encoded BMP file (uncompressed) */
 static int
-load_24T(Biobuf* b, long width, long height, Rgb* buf)
+load_24T(Biobuf* b, int32_t width, int32_t height, Rgb* buf)
 {
-	long ix, iy, i = 0, step_up = 0, skip = (4 - ((width * 3) % 4)) & 3;
+	int32_t ix, iy, i = 0, step_up = 0, skip = (4 - ((width * 3) % 4)) & 3;
 
 	if(height > 0) {	/* bottom-up */
 		i = (height - 1) * width;
@@ -384,10 +384,10 @@ load_24T(Biobuf* b, long width, long height, Rgb* buf)
 
 /* Load a 32-Bit encoded BMP file (uncompressed) */
 static int
-load_32(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
+load_32(Biobuf *b, int32_t width, int32_t height, Rgb* buf, Rgb* clut)
 {
-	uchar c[4];
-	long ix, iy, i = 0, step_up = 0;
+	uint8_t c[4];
+	int32_t ix, iy, i = 0, step_up = 0;
 
 	if(height > 0) {	/* bottom-up */
 		i = (height - 1) * width;
@@ -396,42 +396,42 @@ load_32(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 		height = -height;
 
 	if(clut) {
-		ulong mask_blue =  (ulong)clut[0].blue +
-		                          ((ulong)clut[0].green << 8) +
-		                          ((ulong)clut[0].red << 16) +
-		                          ((ulong)clut[0].alpha << 24);
-		ulong mask_green =  (ulong)clut[1].blue +
-		                           ((ulong)clut[1].green << 8) +
-		                           ((ulong)clut[1].red << 16) +
-		                           ((ulong)clut[1].alpha << 24);
-		ulong mask_red =  (ulong)clut[2].blue +
-		                         ((ulong)clut[2].green << 8) +
-		                         ((ulong)clut[2].red << 16) +
-		                         ((ulong)clut[2].alpha << 24);
+		uint32_t mask_blue =  (uint32_t)clut[0].blue +
+		                          ((uint32_t)clut[0].green << 8) +
+		                          ((uint32_t)clut[0].red << 16) +
+		                          ((uint32_t)clut[0].alpha << 24);
+		uint32_t mask_green =  (uint32_t)clut[1].blue +
+		                           ((uint32_t)clut[1].green << 8) +
+		                           ((uint32_t)clut[1].red << 16) +
+		                           ((uint32_t)clut[1].alpha << 24);
+		uint32_t mask_red =  (uint32_t)clut[2].blue +
+		                         ((uint32_t)clut[2].green << 8) +
+		                         ((uint32_t)clut[2].red << 16) +
+		                         ((uint32_t)clut[2].alpha << 24);
 		int shft_blue = msb(mask_blue) - 8;
 		int shft_green = msb(mask_green) - 8;
 		int shft_red = msb(mask_red) - 8;
 
 		for(iy = height; iy; iy--, i += step_up)
 			for(ix = 0; ix < width; ix++, i++) {
-				ulong val;
+				uint32_t val;
 				Bread(b, c, sizeof(c));
-				val =  (ulong)c[0] + ((ulong)c[1] << 8) +
-				      ((ulong)c[2] << 16) + ((ulong)c[1] << 24);
+				val =  (uint32_t)c[0] + ((uint32_t)c[1] << 8) +
+				      ((uint32_t)c[2] << 16) + ((uint32_t)c[1] << 24);
 
 				buf[i].alpha = 0;
 				if(shft_blue >= 0)
-					buf[i].blue = (uchar)((val & mask_blue) >> shft_blue);
+					buf[i].blue = (uint8_t)((val & mask_blue) >> shft_blue);
 				else
-					buf[i].blue = (uchar)((val & mask_blue) << -shft_blue);
+					buf[i].blue = (uint8_t)((val & mask_blue) << -shft_blue);
 				if(shft_green >= 0)
-					buf[i].green = (uchar)((val & mask_green) >> shft_green);
+					buf[i].green = (uint8_t)((val & mask_green) >> shft_green);
 				else
-					buf[i].green = (uchar)((val & mask_green) << -shft_green);
+					buf[i].green = (uint8_t)((val & mask_green) << -shft_green);
 				if(shft_red >= 0)
-					buf[i].red = (uchar)((val & mask_red) >> shft_red);
+					buf[i].red = (uint8_t)((val & mask_red) >> shft_red);
 				else
-					buf[i].red = (uchar)((val & mask_red) << -shft_red);
+					buf[i].red = (uint8_t)((val & mask_red) << -shft_red);
 			}
 	} else
 		for(iy = height; iy; iy--, i += step_up)
@@ -501,10 +501,10 @@ ReadBMP(Biobuf *b, int *width, int *height)
 		Bseek(b, bmih.size + Filehdrsz, 0);
 
 		for(i = 0; i < num_coltab; i++) {
-			clut[i].blue  = (uchar)Bgetc(b);
-			clut[i].green = (uchar)Bgetc(b);
-			clut[i].red   = (uchar)Bgetc(b);
-			clut[i].alpha = (uchar)Bgetc(b);
+			clut[i].blue  = (uint8_t)Bgetc(b);
+			clut[i].green = (uint8_t)Bgetc(b);
+			clut[i].red   = (uint8_t)Bgetc(b);
+			clut[i].alpha = (uint8_t)Bgetc(b);
 		}
 	}
 
@@ -553,10 +553,10 @@ Breadbmp(Biobuf *bp, int colourspace)
 {
 	Rawimage *a, **array;
 	int c, width, height;
-	uchar *r, *g, *b;
+	uint8_t *r, *g, *b;
 	Rgb *s, *e;
 	Rgb *bmp;
-	char ebuf[128];
+	int8_t ebuf[128];
 
 	a = nil;
 	bmp = nil;

@@ -22,22 +22,22 @@ int	mainstacksize = 16*1024;
 
 Text	cmd;
 Rune	*scratch;
-long	nscralloc;
+int32_t	nscralloc;
 Cursor	*cursor;
 Flayer	*which = 0;
 Flayer	*work = 0;
-long	snarflen;
-long	typestart = -1;
-long	typeend = -1;
-long	typeesc = -1;
-long	modified = 0;		/* strange lookahead for menus */
-char	hostlock = 1;
-char	hasunlocked = 0;
+int32_t	snarflen;
+int32_t	typestart = -1;
+int32_t	typeend = -1;
+int32_t	typeesc = -1;
+int32_t	modified = 0;		/* strange lookahead for menus */
+int8_t	hostlock = 1;
+int8_t	hasunlocked = 0;
 int	maxtab = 8;
 int	autoindent;
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, int8_t *argv[])
 {
 	int i, got, scr;
 	Text *t;
@@ -169,7 +169,7 @@ closeup(Flayer *l)
 		work = 0;
 	if(--t->nwin == 0){
 		rclear(&t->rasp);
-		free((uchar *)t);
+		free((uint8_t *)t);
 		text[m] = 0;
 	}else if(l == &t->l[t->front]){
 		for(m=0; m<NL; m++)	/* find one; any one will do */
@@ -197,10 +197,10 @@ duplicate(Flayer *l, Rectangle r, Font *f, int close)
 	Text *t=(Text *)l->user1;
 	Flayer *nl = findl(t);
 	Rune *rp;
-	ulong n;
+	uint32_t n;
 
 	if(nl){
-		flnew(nl, gettext, l->user0, (char *)t);
+		flnew(nl, gettext, l->user0, (int8_t *)t);
 		flinit(nl, r, f, l->f.cols);
 		nl->origin = l->origin;
 		rp = (*l->textfn)(l, l->f.nchars, &n);
@@ -265,7 +265,7 @@ snarf(Text *t, int w)
 void
 cut(Text *t, int w, int save, int check)
 {
-	long p0, p1;
+	int32_t p0, p1;
 	Flayer *l;
 
 	l = &t->l[w];
@@ -296,7 +296,7 @@ paste(Text *t, int w)
 }
 
 void
-scrorigin(Flayer *l, int but, long p0)
+scrorigin(Flayer *l, int but, int32_t p0)
 {
 	Text *t=(Text *)l->user1;
 
@@ -330,17 +330,17 @@ alnum(int c)
 }
 
 int
-raspc(Rasp *r, long p)
+raspc(Rasp *r, int32_t p)
 {
-	ulong n;
+	uint32_t n;
 	rload(r, p, p+1, &n);
 	if(n)
 		return scratch[0];
 	return 0;
 }
 
-long
-ctlw(Rasp *r, long o, long p)
+int32_t
+ctlw(Rasp *r, int32_t o, int32_t p)
 {
 	int c;
 
@@ -356,8 +356,8 @@ ctlw(Rasp *r, long o, long p)
 	return p>=o? p : o;
 }
 
-long
-ctlu(Rasp *r, long o, long p)
+int32_t
+ctlu(Rasp *r, int32_t o, int32_t p)
 {
 	if(--p < o)
 		return o;
@@ -369,7 +369,7 @@ ctlu(Rasp *r, long o, long p)
 }
 
 int
-center(Flayer *l, long a)
+center(Flayer *l, int32_t a)
 {
 	Text *t;
 
@@ -384,11 +384,11 @@ center(Flayer *l, long a)
 }
 
 int
-onethird(Flayer *l, long a)
+onethird(Flayer *l, int32_t a)
 {
 	Text *t;
 	Rectangle s;
-	long lines;
+	int32_t lines;
 
 	t = l->user1;
 	if(!t->lock && (a<l->origin || l->origin+l->f.nchars<a)){
@@ -408,7 +408,7 @@ void
 flushtyping(int clearesc)
 {
 	Text *t;
-	ulong n;
+	uint32_t n;
 
 	if(clearesc)
 		typeesc = -1;	
@@ -469,7 +469,7 @@ type(Flayer *l, int res)	/* what a bloody mess this is */
 	Rune buf[100];
 	Rune *p = buf;
 	int c, backspacing;
-	long a, a0;
+	int32_t a, a0;
 	int scrollkey;
 
 	scrollkey = 0;
@@ -633,13 +633,13 @@ outcmd(void){
 }
 
 void
-panic(char *s)
+panic(int8_t *s)
 {
 	panic1(display, s);
 }
 
 void
-panic1(Display*, char *s)
+panic1(Display*, int8_t *s)
 {
 	fprint(2, "samterm:panic: ");
 	perror(s);
@@ -647,7 +647,7 @@ panic1(Display*, char *s)
 }
 
 Rune*
-gettext(Flayer *l, long n, ulong *np)
+gettext(Flayer *l, int32_t n, uint32_t *np)
 {
 	Text *t;
 
@@ -656,14 +656,14 @@ gettext(Flayer *l, long n, ulong *np)
 	return scratch;
 }
 
-long
+int32_t
 scrtotal(Flayer *l)
 {
 	return ((Text *)l->user1)->rasp.nrunes;
 }
 
 void*
-alloc(ulong n)
+alloc(uint32_t n)
 {
 	void *p;
 

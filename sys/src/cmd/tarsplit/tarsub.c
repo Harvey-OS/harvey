@@ -21,19 +21,19 @@ enum {
 };
 
 /* exports */
-char *thisnm, *lastnm;
+int8_t *thisnm, *lastnm;
 
 /* private data */
-static uvlong outoff = 0;		/* maintained by newarch, writetar */
+static uint64_t outoff = 0;		/* maintained by newarch, writetar */
 
 unsigned
 checksum(Hblock *hp)
 {
 	int i;
-	uchar *cp, *csum, *end;
+	uint8_t *cp, *csum, *end;
 
 	i = ' ' * sizeof hp->chksum;	/* pretend blank chksum field */
-	csum = (uchar *)hp->chksum;
+	csum = (uint8_t *)hp->chksum;
 	end = &hp->dummy[Tblock];
 	/*
 	 * Unixware gets this wrong; it adds *signed* chars.
@@ -48,7 +48,7 @@ checksum(Hblock *hp)
 }
 
 void
-readtar(int in, char *buffer, long size)
+readtar(int in, int8_t *buffer, int32_t size)
 {
 	int i;
 	unsigned bytes;
@@ -75,8 +75,8 @@ newarch(void)
 	outoff = 0;
 }
 
-uvlong
-writetar(int outf, char *buffer, ulong size)
+uint64_t
+writetar(int outf, int8_t *buffer, uint32_t size)
 {
 	if (write(outf, buffer, size) < size) {
 		fprint(2, "%s: archive write error: %r\n", argv0);
@@ -87,11 +87,11 @@ writetar(int outf, char *buffer, ulong size)
 	return outoff;
 }
 
-ulong
-otoi(char *s)
+uint32_t
+otoi(int8_t *s)
 {
 	int c;
-	ulong ul = 0;
+	uint32_t ul = 0;
 
 	while (isascii(*s) && isspace(*s))
 		s++;
@@ -103,10 +103,10 @@ otoi(char *s)
 }
 
 int
-getdir(Hblock *hp, int in, vlong *lenp)
+getdir(Hblock *hp, int in, int64_t *lenp)
 {
 	*lenp = 0;
-	readtar(in, (char*)hp, Tblock);
+	readtar(in, (int8_t*)hp, Tblock);
 	if (hp->name[0] == '\0') { /* zero block indicates end-of-archive */
 		lastnm = strdup(thisnm);
 		return 0;
@@ -121,18 +121,18 @@ getdir(Hblock *hp, int in, vlong *lenp)
 	return 1;
 }
 
-uvlong 
-passtar(Hblock *hp, int in, int outf, vlong len)
+uint64_t 
+passtar(Hblock *hp, int in, int outf, int64_t len)
 {
-	ulong bytes;
-	vlong off;
-	uvlong blks;
-	char bigbuf[Blocksxfr*Tblock];		/* 2*(8192 == MAXFDATA) */
+	uint32_t bytes;
+	int64_t off;
+	uint64_t blks;
+	int8_t bigbuf[Blocksxfr*Tblock];		/* 2*(8192 == MAXFDATA) */
 
 	off = outoff;
 	if (islink(hp->linkflag))
 		return off;
-	for (blks = TAPEBLKS((uvlong)len); blks >= Blocksxfr;
+	for (blks = TAPEBLKS((uint64_t)len); blks >= Blocksxfr;
 	    blks -= Blocksxfr) {
 		readtar(in, bigbuf, sizeof bigbuf);
 		off = writetar(outf, bigbuf, sizeof bigbuf);
@@ -148,14 +148,14 @@ passtar(Hblock *hp, int in, int outf, vlong len)
 void
 putempty(int out)
 {
-	static char buf[Tblock];
+	static int8_t buf[Tblock];
 
 	writetar(out, buf, sizeof buf);
 }
 
 /* emit zero blocks at end */
 int
-closeout(int outf, char *, int prflag)
+closeout(int outf, int8_t *, int prflag)
 {
 	if (outf < 0)
 		return -1;

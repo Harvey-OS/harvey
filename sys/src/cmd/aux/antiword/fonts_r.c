@@ -33,10 +33,10 @@ FILE *
 pOpenFontTableFile(void)
 {
 	FILE	*pFileR, *pFileW;
-	char	*szFontNamesFile;
+	int8_t	*szFontNamesFile;
 	size_t	tSize;
 	BOOL	bFailed;
-	char	acBuffer[256];
+	int8_t	acBuffer[256];
 
 	pFileR = fopen("<AntiWord$FontNamesFile>", "r");
 	if (pFileR != NULL) {
@@ -127,7 +127,7 @@ drawfile_fontref
 tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 {
 	os_error	*e;
-	const char	*szOurFontname;
+	const int8_t	*szOurFontname;
 	font_handle	tFont;
 	int	iFontnumber;
 
@@ -147,7 +147,7 @@ tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 		return (byte)0;
 	}
 	NO_DBG_MSG(szOurFontname);
-	e = Font_FindFont(&tFont, (char *)szOurFontname,
+	e = Font_FindFont(&tFont, (int8_t *)szOurFontname,
 			(int)usWordFontSize * 8, (int)usWordFontSize * 8,
 			0, 0);
 	if (e != NULL) {
@@ -195,8 +195,8 @@ tOpenTableFont(USHORT usWordFontSize)
  *
  * Returns the string width in millipoints
  */
-long
-lComputeStringWidth(const char *szString, size_t tStringLength,
+int32_t
+lComputeStringWidth(const int8_t *szString, size_t tStringLength,
 	drawfile_fontref tFontRef, USHORT usFontSize)
 {
 	font_string	tStr;
@@ -217,14 +217,14 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 		/* No current font, use systemfont */
 		return lChar2MilliPoints(tStringLength);
 	}
-	tStr.s = (char *)szString;
+	tStr.s = (int8_t *)szString;
 	tStr.x = INT_MAX;
 	tStr.y = INT_MAX;
 	tStr.split = -1;
 	tStr.term = tStringLength;
 	e = Font_StringWidth(&tStr);
 	if (e == NULL) {
-		return (long)tStr.x;
+		return (int32_t)tStr.x;
 	}
 	DBG_DEC(e->errnum);
 	DBG_MSG(e->errmess);
@@ -240,7 +240,7 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
  * Returns the number of columns
  */
 size_t
-tCountColumns(const char *szString, size_t tLength)
+tCountColumns(const int8_t *szString, size_t tLength)
 {
 	fail(szString == NULL);
 
@@ -254,7 +254,7 @@ tCountColumns(const char *szString, size_t tLength)
  * Returns the length in bytes
  */
 size_t
-tGetCharacterLength(const char *szString)
+tGetCharacterLength(const int8_t *szString)
 {
 	return 1;
 } /* end of tGetCharacterLength */

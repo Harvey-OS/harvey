@@ -10,20 +10,20 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomreadandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomreadandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
-	uchar andxcommand;
-	ushort andxoffset;
-	ulong andxoffsetfixup;
-	ulong datafixup;
-	ulong bytecountfixup;
-	ushort fid;
+	uint8_t andxcommand;
+	uint16_t andxoffset;
+	uint32_t andxoffsetfixup;
+	uint32_t datafixup;
+	uint32_t bytecountfixup;
+	uint16_t fid;
 	SmbTree *t;
 	SmbFile *f;
-	vlong offset;
-	ushort maxcount;
-	long toread;
-	long nb;
+	int64_t offset;
+	uint16_t maxcount;
+	int32_t toread;
+	int32_t nb;
 
 	if (h->wordcount != 10 && h->wordcount != 12)
 		return SmbProcessResultFormat;
@@ -38,7 +38,7 @@ smbcomreadandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 	pdata += 4;	// timeout ?
 	pdata += 2;	// remaining
 	if (h->wordcount == 12)
-		offset |= (vlong)smbnhgetl(pdata) << 32;
+		offset |= (int64_t)smbnhgetl(pdata) << 32;
 
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {

@@ -116,7 +116,7 @@ private void dsc_finalize(void *vptr);
 gs_private_st_simple_final(st_dsc_data_t, dsc_data_t, "dsc_data_struct", dsc_finalize);
 
 /* Define the key name for storing the instance pointer in a dictionary. */
-private const char * const dsc_dict_name = "DSC_struct";
+private const int8_t * const dsc_dict_name = "DSC_struct";
 
 /* ---------------- Initialization / finalization ---------------- */
 
@@ -126,7 +126,7 @@ private const char * const dsc_dict_name = "DSC_struct";
  */
 private int
 dsc_error_handler(void *caller_data, CDSC *dsc, unsigned int explanation,
-		  const char *line, unsigned int line_len)
+		  const int8_t *line, unsigned int line_len)
 {
     return CDSC_OK;
 }
@@ -178,15 +178,15 @@ dsc_finalize(void *vptr)
 
 /* Return an integer value. */
 private int
-dsc_put_int(gs_param_list *plist, const char *keyname, int value)
+dsc_put_int(gs_param_list *plist, const int8_t *keyname, int value)
 {
     return param_write_int(plist, keyname, &value);
 }
 
 /* Return a string value. */
 private int
-dsc_put_string(gs_param_list *plist, const char *keyname,
-	       const char *string)
+dsc_put_string(gs_param_list *plist, const int8_t *keyname,
+	       const int8_t *string)
 {
     gs_param_string str;
 
@@ -196,7 +196,7 @@ dsc_put_string(gs_param_list *plist, const char *keyname,
 
 /* Return a BoundingBox value. */
 private int
-dsc_put_bounding_box(gs_param_list *plist, const char *keyname,
+dsc_put_bounding_box(gs_param_list *plist, const int8_t *keyname,
 		     const CDSCBBOX *pbbox)
 {
     /* pbbox is NULL iff the bounding box values was "(atend)". */
@@ -325,7 +325,7 @@ private int
 dsc_viewing_orientation(gs_param_list *plist, const CDSC *pData)
 {
     int page_num = pData->page_count;
-    const char *key;
+    const int8_t *key;
     const CDSCCTM *pctm;
     float values[4];
     gs_param_float_array va;
@@ -357,7 +357,7 @@ dsc_viewing_orientation(gs_param_list *plist, const CDSC *pData)
  */
 typedef struct cmd_list_s {
     int code;			/* Russell's DSC parser code (see dsc.h) */
-    const char *comment_name;	/* A name to be returned to postscript caller */
+    const int8_t *comment_name;	/* A name to be returned to postscript caller */
     int (*dsc_proc) (gs_param_list *, const CDSC *);
 				/* A routine for transferring parameter values
 				   from C data structure to postscript dictionary
@@ -392,7 +392,7 @@ private const cmdlist_t DSCcmdlist[] = {
  * appropriate for our situation.  So we use this list to check for this
  * type of comment and do not send it to Russell's parser if found.
  */
-private const char * const BadCmdlist[] = {
+private const int8_t * const BadCmdlist[] = {
     "%%BeginData:",
     "%%EndData",
     "%%BeginBinary:",
@@ -410,9 +410,9 @@ zparse_dsc_comments(i_ctx_t *i_ctx_p)
     os_ptr const opDict = opString - 1;
     uint ssize;
     int comment_code, code;
-    char dsc_buffer[MAX_DSC_MSG_SIZE + 2];
+    int8_t dsc_buffer[MAX_DSC_MSG_SIZE + 2];
     const cmdlist_t *pCmdList = DSCcmdlist;
-    const char * const *pBadList = BadCmdlist;
+    const int8_t * const *pBadList = BadCmdlist;
     ref * pvalue;
     CDSC * dsc_data = NULL;
     dict_param_list list;

@@ -967,7 +967,7 @@ pdf_cs_Pattern_uncolored(gx_device_pdf *pdev, cos_value_t *pvalue)
 {
     /* Only for process colors. */
     int ncomp = pdev->color_info.num_components;
-    static const char *const pcs_names[5] = {
+    static const int8_t *const pcs_names[5] = {
 	0, "[/Pattern /DeviceGray]", 0, "[/Pattern /DeviceRGB]",
 	"[/Pattern /DeviceCMYK]"
     };

@@ -253,19 +253,19 @@ obj_string_data(const gs_memory_t *mem, const ref *op, const byte **pchars, uint
  * repeatedly to print on a stream, which may require suspending at any
  * point to handle stream callouts.
  */
-private void ensure_dot(char *);
+private void ensure_dot(int8_t *);
 int
 obj_cvp(const ref * op, byte * str, uint len, uint * prlen,
 	int full_print, uint start_pos, const gs_memory_t *mem)
 {
-    char buf[50];  /* big enough for any float, double, or struct name */
+    int8_t buf[50];  /* big enough for any float, double, or struct name */
     const byte *data = (const byte *)buf;
     uint size;
     int code;
     ref nref;
 
     if (full_print) {
-	static const char * const type_strings[] = { REF_TYPE_PRINT_STRINGS };
+	static const int8_t * const type_strings[] = { REF_TYPE_PRINT_STRINGS };
 
 	switch (r_btype(op)) {
 	case t_boolean:
@@ -413,7 +413,7 @@ obj_cvp(const ref * op, byte * str, uint len, uint * prlen,
 		gs_struct_type_name_string(
 		     gs_object_type((gs_memory_t *)mem,
 				    (const obj_header_t *)op->value.pstruct));
-	    size = strlen((const char *)data);
+	    size = strlen((const int8_t *)data);
 	    if (size > 4 && !memcmp(data + size - 4, "type", 4))
 		size -= 4;
 	    if (size > sizeof(buf) - 2)
@@ -479,7 +479,7 @@ other:
 	    break;
 	}
 	/* Internal operator, no name. */
-	sprintf(buf, "@0x%lx", (ulong) op->value.opproc);
+	sprintf(buf, "@0x%lx", (uint32_t) op->value.opproc);
 	break;
     }
     case t_real:
@@ -489,7 +489,7 @@ other:
     default:
 	data = (const byte *)"--nostringval--";
     }
-rs: size = strlen((const char *)data);
+rs: size = strlen((const int8_t *)data);
 nl: if (size < start_pos)
 	return_error(e_rangecheck);
     size -= start_pos;
@@ -502,16 +502,16 @@ nl: if (size < start_pos)
  * is needed for compatibility with Adobe (and other) interpreters.
  */
 private void
-ensure_dot(char *buf)
+ensure_dot(int8_t *buf)
 {
     if (strchr(buf, '.') == NULL) {
-	char *ept = strchr(buf, 'e');
+	int8_t *ept = strchr(buf, 'e');
 
 	if (ept == NULL)
 	    strcat(buf, ".0");
 	else {
 	    /* Insert the .0 before the exponent.  What a nuisance! */
-	    char buf1[30];
+	    int8_t buf1[30];
 
 	    strcpy(buf1, ept);
 	    strcpy(ept, ".0");
@@ -543,7 +543,7 @@ obj_cvs(const gs_memory_t *mem, const ref * op, byte * str, uint len, uint * prl
 }
 
 /* Find the index of an operator that doesn't have one stored in it. */
-ushort
+uint16_t
 op_find_index(const ref * pref /* t_operator */ )
 {
     op_proc_t proc = real_opproc(pref);
@@ -585,9 +585,10 @@ op_index_ref(uint index, ref * pref)
 /* This is also used to index into Encoding vectors, */
 /* the error name vector, etc. */
 int
-array_get(const gs_memory_t *mem, const ref * aref, long index_long, ref * pref)
+array_get(const gs_memory_t *mem, const ref * aref, int32_t index_long,
+          ref * pref)
 {
-    if ((ulong)index_long >= r_size(aref))
+    if ((uint32_t)index_long >= r_size(aref))
 	return_error(e_rangecheck);
     switch (r_type(aref)) {
 	case t_array:
@@ -668,7 +669,7 @@ refs_check_space(const ref * bot, uint size, uint space)
 
 /* Convert a C string to a Ghostscript string */
 int
-string_to_ref(const char *cstr, ref * pref, gs_ref_memory_t * mem,
+string_to_ref(const int8_t *cstr, ref * pref, gs_ref_memory_t * mem,
 	      client_name_t cname)
 {
     uint size = strlen(cstr);
@@ -682,15 +683,15 @@ string_to_ref(const char *cstr, ref * pref, gs_ref_memory_t * mem,
 
 /* Convert a Ghostscript string to a C string. */
 /* Return 0 iff the buffer can't be allocated. */
-char *
+int8_t *
 ref_to_string(const ref * pref, gs_memory_t * mem, client_name_t cname)
 {
     uint size = r_size(pref);
-    char *str = (char *)gs_alloc_string(mem, size + 1, cname);
+    int8_t *str = (int8_t *)gs_alloc_string(mem, size + 1, cname);
 
     if (str == 0)
 	return 0;
-    memcpy(str, (const char *)pref->value.bytes, size);
+    memcpy(str, (const int8_t *)pref->value.bytes, size);
     str[size] = 0;
     return str;
 }
@@ -768,7 +769,7 @@ process_float_array(const gs_memory_t *mem, const ref * parray, int count, float
 
         subcount = (count > countof(ref_buff) ? countof(ref_buff) : count);
         for (i = 0; i < subcount && code >= 0; i++)
-            code = array_get(mem, parray, (long)(i + indx0), &ref_buff[i]);
+            code = array_get(mem, parray, (int32_t)(i + indx0), &ref_buff[i]);
         if (code >= 0)
             code = float_params(ref_buff + subcount - 1, subcount, pval);
         count -= subcount;
@@ -872,7 +873,7 @@ read_matrix(const gs_memory_t *mem, const ref * op, gs_matrix * pmat)
 	int i;
 
 	for (i = 0; i < 6; ++i) {
-	    code = array_get(mem, op, (long)i, &values[i]);
+	    code = array_get(mem, op, (int32_t)i, &values[i]);
 	    if (code < 0)
 		return code;
 	}

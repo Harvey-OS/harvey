@@ -16,8 +16,8 @@
 
 #include	<authsrv.h>
 
-char	*eve;
-char	hostdomain[DOMLEN];
+int8_t	*eve;
+int8_t	hostdomain[DOMLEN];
 
 /*
  *  return true if current user is eve
@@ -32,7 +32,7 @@ void
 sysfversion(Ar0* ar0, va_list list)
 {
 	Chan *c;
-	char *version;
+	int8_t *version;
 	int fd;
 	u32int msize;
 	usize nversion;
@@ -44,7 +44,7 @@ sysfversion(Ar0* ar0, va_list list)
 	 */
 	fd = va_arg(list, int);
 	msize = va_arg(list, u32int);
-	version = va_arg(list, char*);
+	version = va_arg(list, int8_t*);
 	nversion = va_arg(list, usize);
 	version = validaddr(version, nversion, 1);
 	/* check there's a NUL in the version string */
@@ -67,7 +67,7 @@ void
 sys_fsession(Ar0* ar0, va_list list)
 {
 	int fd;
-	char *trbuf;
+	int8_t *trbuf;
 
 	/*
 	 * int fsession(int fd, char trbuf[TICKREQLEN]);
@@ -75,7 +75,7 @@ sys_fsession(Ar0* ar0, va_list list)
 	 * Deprecated; backwards compatibility only.
 	 */
 	fd = va_arg(list, int);
-	trbuf = va_arg(list, char*);
+	trbuf = va_arg(list, int8_t*);
 
 	USED(fd);
 	trbuf = validaddr(trbuf, 1, 1);
@@ -88,14 +88,14 @@ void
 sysfauth(Ar0* ar0, va_list list)
 {
 	Chan *c, *ac;
-	char *aname;
+	int8_t *aname;
 	int fd;
 
 	/*
 	 * int fauth(int fd, char *aname);
 	 */
 	fd = va_arg(list, int);
-	aname = va_arg(list, char*);
+	aname = va_arg(list, int8_t*);
 
 	aname = validaddr(aname, 1, 0);
 	aname = validnamedup(aname, 1);
@@ -137,8 +137,8 @@ sysfauth(Ar0* ar0, va_list list)
  *
  *  anyone can become none
  */
-long
-userwrite(char* a, long n)
+int32_t
+userwrite(int8_t* a, int32_t n)
 {
 	if(n != 4 || strncmp(a, "none", 4) != 0)
 		error(Eperm);
@@ -153,10 +153,10 @@ userwrite(char* a, long n)
  *
  *  writing hostowner also sets user
  */
-long
-hostownerwrite(char* a, long n)
+int32_t
+hostownerwrite(int8_t* a, int32_t n)
 {
-	char buf[128];
+	int8_t buf[128];
 
 	if(!iseve())
 		error(Eperm);
@@ -173,10 +173,10 @@ hostownerwrite(char* a, long n)
 	return n;
 }
 
-long
-hostdomainwrite(char* a, long n)
+int32_t
+hostdomainwrite(int8_t* a, int32_t n)
 {
-	char buf[DOMLEN];
+	int8_t buf[DOMLEN];
 
 	if(!iseve())
 		error(Eperm);

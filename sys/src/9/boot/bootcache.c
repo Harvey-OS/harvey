@@ -11,13 +11,13 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
-uchar statbuf[Statsz];
+uint8_t statbuf[Statsz];
 
 int
 cache(int fd)
 {
 	int argc, i, p[2];
-	char *argv[5], bd[32], buf[256], partition[64], *pp;
+	int8_t *argv[5], bd[32], buf[256], partition[64], *pp;
 
 	if(stat("/boot/cfs", statbuf, sizeof statbuf) < 0)
 		return fd;

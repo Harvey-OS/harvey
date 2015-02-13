@@ -38,7 +38,7 @@ typedef struct {
 	int height;
 	int bpp;		/* bits per pixel of image: 16, 24, or 32 */
 	int descriptor;
-	uchar *cmap;		/* colour map (optional) */
+	uint8_t *cmap;		/* colour map (optional) */
 } Tga;
 
 /*
@@ -131,15 +131,15 @@ rdhdr(Biobuf *bp)
 }
 
 static int
-luma(Biobuf *bp, uchar *l, int num)
+luma(Biobuf *bp, uint8_t *l, int num)
 {
 	return Bread(bp, l, num);
 }
 
 static int
-luma_rle(Biobuf *bp, uchar *l, int num)
+luma_rle(Biobuf *bp, uint8_t *l, int num)
 {
-	uchar len;
+	uint8_t len;
 	int i, got;
 
 	for(got = 0; got < num; got += len){
@@ -165,10 +165,10 @@ luma_rle(Biobuf *bp, uchar *l, int num)
 
 
 static int
-rgba(Biobuf *bp, int bpp, uchar *r, uchar *g, uchar *b, int num)
+rgba(Biobuf *bp, int bpp, uint8_t *r, uint8_t *g, uint8_t *b, int num)
 {
 	int i;
-	uchar x, y, buf[4];
+	uint8_t x, y, buf[4];
 
 	switch(bpp){
 	case 16:
@@ -208,9 +208,9 @@ rgba(Biobuf *bp, int bpp, uchar *r, uchar *g, uchar *b, int num)
 }
 
 static int
-rgba_rle(Biobuf *bp, int bpp, uchar *r, uchar *g, uchar *b, int num)
+rgba_rle(Biobuf *bp, int bpp, uint8_t *r, uint8_t *g, uint8_t *b, int num)
 {
-	uchar len;
+	uint8_t len;
 	int i, got;
 
 	for(got = 0; got < num; got += len){
@@ -243,7 +243,7 @@ int
 flip(Rawimage *ar)
 {
 	int w, h, c, l;
-	uchar *t, *s, *d;
+	uint8_t *t, *s, *d;
 
 	w = Dx(ar->r);
 	h = Dy(ar->r);
@@ -271,7 +271,7 @@ int
 reflect(Rawimage *ar)
 {
 	int w, h, c, l, p;
-	uchar t, *sol, *eol, *s, *d;
+	uint8_t t, *sol, *eol, *s, *d;
 
 	w = Dx(ar->r);
 	h = Dy(ar->r);
@@ -302,7 +302,7 @@ Breadtga(Biobuf *bp)
 {
 	Tga *h;
 	int n, c, num;
-	uchar *r, *g, *b;
+	uint8_t *r, *g, *b;
 	Rawimage *ar, **array;
 
 	if((h = rdhdr(bp)) == nil){

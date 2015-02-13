@@ -18,7 +18,7 @@ enum {
 };
 
 static int
-dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
+dorpc(AuthRpc *rpc, int8_t *verb, int8_t *val, int len, AuthGetkey *getkey)
 {
 	int ret;
 
@@ -33,9 +33,10 @@ dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
 }
 
 int
-auth_respond(void *chal, uint nchal, char *user, uint nuser, void *resp, uint nresp, AuthGetkey *getkey, char *fmt, ...)
+auth_respond(void *chal, uint nchal, int8_t *user, uint nuser, void *resp,
+	     uint nresp, AuthGetkey *getkey, int8_t *fmt, ...)
 {
-	char *p, *s;
+	int8_t *p, *s;
 	va_list arg;
 	int afd;
 	AuthRpc *rpc;

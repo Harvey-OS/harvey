@@ -9,10 +9,10 @@
 
 #include	"mk.h"
 
-static	Word	*nextword(char**);
+static	Word	*nextword(int8_t**);
 
 Word*
-newword(char *s)
+newword(int8_t *s)
 {
 	Word *w;
 
@@ -23,7 +23,7 @@ newword(char *s)
 }
 
 Word *
-stow(char *s)
+stow(int8_t *s)
 {
 	Word *head, *w, *new;
 
@@ -45,11 +45,11 @@ stow(char *s)
 	return(head);
 }
 
-char *
+int8_t *
 wtos(Word *w, int sep)
 {
 	Bufblock *buf;
-	char *cp;
+	int8_t *cp;
 
 	buf = newbuf();
 	for(; w; w = w->next){
@@ -100,12 +100,12 @@ delword(Word *w)
  *	and variable expansions.
  */
 static Word*
-nextword(char **s)
+nextword(int8_t **s)
 {
 	Bufblock *b;
 	Word *head, *tail, *w;
 	Rune r;
-	char *cp;
+	int8_t *cp;
 	int empty;
 
 	cp = *s;
@@ -189,7 +189,7 @@ out:
 }
 
 void
-dumpw(char *s, Word *w)
+dumpw(int8_t *s, Word *w)
 {
 	Bprint(&bout, "%s", s);
 	for(; w; w = w->next)

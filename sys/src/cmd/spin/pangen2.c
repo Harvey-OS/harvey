@@ -36,34 +36,34 @@
 extern ProcList	*rdy;
 extern RunList	*run;
 extern Symbol	*Fname, *oFname, *context;
-extern char	*claimproc, *eventmap;
+extern int8_t	*claimproc, *eventmap;
 extern int	lineno, verbose, Npars, Mpars, nclaims;
 extern int	m_loss, has_remote, has_remvar, merger, rvopt, separate;
 extern int	Ntimeouts, Etimeouts, deadvar, old_scope_rules;
 extern int	u_sync, u_async, nrRdy, Unique;
 extern int	GenCode, IsGuard, Level, TestOnly;
-extern short	has_stack;
-extern char	*NextLab[];
+extern int16_t	has_stack;
+extern int8_t	*NextLab[];
 
 FILE	*tc, *th, *tt, *tb;
 static FILE	*tm;
 
 int	OkBreak = -1, has_hidden = 0; /* has_hidden set in sym.c and structs.c */
-short	nocast=0;	/* to turn off casts in lvalues */
-short	terse=0;	/* terse printing of varnames */
-short	no_arrays=0;
-short	has_last=0;	/* spec refers to _last */
-short	has_badelse=0;	/* spec contains else combined with chan refs */
-short	has_enabled=0;	/* spec contains enabled() */
-short	has_pcvalue=0;	/* spec contains pc_value() */
-short	has_np=0;	/* spec contains np_ */
-short	has_sorted=0;	/* spec contains `!!' (sorted-send) operator */
-short	has_random=0;	/* spec contains `??' (random-recv) operator */
-short	has_xu=0;	/* spec contains xr or xs assertions */
-short	has_unless=0;	/* spec contains unless statements */
-short	has_provided=0;	/* spec contains PROVIDED clauses on procs */
-short	has_code=0;	/* spec contains c_code, c_expr, c_state */
-short	evalindex=0;	/* evaluate index of var names */
+int16_t	nocast=0;	/* to turn off casts in lvalues */
+int16_t	terse=0;	/* terse printing of varnames */
+int16_t	no_arrays=0;
+int16_t	has_last=0;	/* spec refers to _last */
+int16_t	has_badelse=0;	/* spec contains else combined with chan refs */
+int16_t	has_enabled=0;	/* spec contains enabled() */
+int16_t	has_pcvalue=0;	/* spec contains pc_value() */
+int16_t	has_np=0;	/* spec contains np_ */
+int16_t	has_sorted=0;	/* spec contains `!!' (sorted-send) operator */
+int16_t	has_random=0;	/* spec contains `??' (random-recv) operator */
+int16_t	has_xu=0;	/* spec contains xr or xs assertions */
+int16_t	has_unless=0;	/* spec contains unless statements */
+int16_t	has_provided=0;	/* spec contains PROVIDED clauses on procs */
+int16_t	has_code=0;	/* spec contains c_code, c_expr, c_state */
+int16_t	evalindex=0;	/* evaluate index of var names */
 int	mst=0;		/* max nr of state/process */
 int	claimnr = -1;	/* claim process, if any */
 int	eventmapnr = -1; /* event trace, if any */
@@ -72,7 +72,7 @@ int	multi_oval;	/* set in merges, used also in pangen4.c */
 
 #define MAXMERGE	256	/* max nr of bups per merge sequence */
 
-static short	CnT[MAXMERGE];
+static int16_t	CnT[MAXMERGE];
 static Lextok	XZ, YZ[MAXMERGE];
 static int	didcase, YZmax, YZcnt;
 
@@ -82,12 +82,12 @@ static int	T_sum, T_mus, t_cyc;
 static int	TPE[2], EPT[2];
 static int	uniq=1;
 static int	multi_needed, multi_undo;
-static short	AllGlobal=0;	/* set if process has provided clause */
-static short	withprocname=0;	/* prefix local varnames with procname */
-static short	_isok=0;	/* checks usage of predefined variable _ */
+static int16_t	AllGlobal=0;	/* set if process has provided clause */
+static int16_t	withprocname=0;	/* prefix local varnames with procname */
+static int16_t	_isok=0;	/* checks usage of predefined variable _ */
 
 int	has_global(Lextok *);
-void	Fatal(char *, char *);
+void	Fatal(int8_t *, int8_t *);
 static int	getweight(Lextok *);
 static int	scan_seq(Sequence *);
 static void	genconditionals(void);
@@ -99,7 +99,7 @@ static void	Tpe(Lextok *);
 extern void	spit_recvs(FILE *, FILE*);
 
 static int
-fproc(char *s)
+fproc(int8_t *s)
 {	ProcList *p;
 
 	for (p = rdy; p; p = p->nxt)
@@ -179,7 +179,7 @@ tt_predef_np(void)
 }
 
 static struct {
-	char *nm[3];
+	int8_t *nm[3];
 } Cfile[] = {
 	{ { "pan.c", "pan_s.c", "pan_t.c" } },
 	{ { "pan.h", "pan_s.h", "pan_t.h" } },
@@ -207,7 +207,7 @@ gensrc(void)
 	fprintf(th, "#define SpinVersion	\"%s\"\n", SpinVersion);
 	fprintf(th, "#define PanSource	\"");
 	for (i = 0; oFname->name[i] != '\0'; i++)
-	{	char c = oFname->name[i];
+	{	int8_t c = oFname->name[i];
 		if (c == '\\' || c == ' ') /* Windows path */
 		{	fprintf(th, "\\");
 		}
@@ -215,7 +215,7 @@ gensrc(void)
 	}
 	fprintf(th, "\"\n\n");
 
-	fprintf(th, "#define G_long	%d\n", (int) sizeof(long));
+	fprintf(th, "#define G_long	%d\n", (int) sizeof(int32_t));
 	fprintf(th, "#define G_int	%d\n", (int) sizeof(int));
 
 	fprintf(th, "#ifdef WIN64\n");
@@ -546,7 +546,7 @@ doless:
 		genunio();
 		genconditionals();
 		gensvmap();
-		if (!run) fatal("no runable process", (char *)0);
+		if (!run) fatal("no runable process", (int8_t *)0);
 		fprintf(tc, "void\n");
 		fprintf(tc, "active_procs(void)\n{\n");
 #if 1
@@ -630,7 +630,7 @@ find_id(Symbol *s)
 }
 
 static void
-dolen(Symbol *s, char *pre, int pid, int ai, int qln)
+dolen(Symbol *s, int8_t *pre, int pid, int ai, int qln)
 {
 	if (ai > 0)
 		fprintf(tc, "\n\t\t\t ||    ");
@@ -646,7 +646,7 @@ dolen(Symbol *s, char *pre, int pid, int ai, int qln)
 	fprintf(tc, ") )");
 }
 
-struct AA {	char TT[9];	char CC[8]; };
+struct AA {	int8_t TT[9];	int8_t CC[8]; };
 
 static struct AA BB[4] = {
 	{ "Q_FULL_F",	" q_full" },
@@ -688,7 +688,7 @@ bb_or_dd(int j, int which)
 }
 
 void
-Done_case(char *nm, Symbol *z)
+Done_case(int8_t *nm, Symbol *z)
 {	int j, k;
 	int nid = z->Nid;
 	int qln = z->nel;
@@ -1430,7 +1430,7 @@ dobackward(Element *e, int casenr)
 	{	CnT[YZcnt]--;
 		YZmax--;
 		if (YZmax < 0)
-			fatal("cannot happen, dobackward", (char *)0);
+			fatal("cannot happen, dobackward", (int8_t *)0);
 		fprintf(tb, ";\n\t/* %d */\t", YZmax);
 		putname(tb, "", &YZ[YZmax], 0, " = trpt->bup.oval");
 		if (multi_oval > 0)
@@ -1496,7 +1496,7 @@ lab_transfer(Element *to, Element *from)
 	for (ltp = 1; ltp < 8; ltp *= 2)	/* 1, 2, and 4 */
 		if ((s = has_lab(from, ltp)) != (Symbol *) 0)
 		{	ns = (Symbol *) emalloc(sizeof(Symbol));
-			ns->name = (char *) emalloc((int) strlen(s->name) + 4);
+			ns->name = (int8_t *) emalloc((int) strlen(s->name) + 4);
 			sprintf(ns->name, "%s%d", s->name, modifier);
 
 			context = s->context;
@@ -1506,7 +1506,7 @@ lab_transfer(Element *to, Element *from)
 	context = oc;	/* restore */
 	if (usedit)
 	{	if (modifier++ > 990)
-			fatal("modifier overflow error", (char *) 0);
+			fatal("modifier overflow error", (int8_t *) 0);
 	}
 }
 
@@ -1568,13 +1568,13 @@ case_cache(Element *e, int a)
 		e->merge_start, e->merge, nrbups, e->merge_in);
 
 	if (nrbups > MAXMERGE-1)
-		fatal("merge requires more than 256 bups", (char *)0);
+		fatal("merge requires more than 256 bups", (int8_t *)0);
 
 	if (e->n->ntyp != 'r' && !pid_is_claim(Pid) && Pid != eventmapnr)
 		fprintf(tm, "IfNotBlocked\n\t\t");
 
 	if (multi_needed != 0 || multi_undo != 0)
-		fatal("cannot happen, case_cache", (char *) 0);
+		fatal("cannot happen, case_cache", (int8_t *) 0);
 
 	if (nrbups > 1)
 	{	multi_oval = 1;
@@ -1970,7 +1970,7 @@ find_target(Element *e)
 	if (!e) return e;
 
 	if (t_cyc++ > 32)
-	{	fatal("cycle of goto jumps", (char *) 0);
+	{	fatal("cycle of goto jumps", (int8_t *) 0);
 	}
 	switch (e->n->ntyp) {
 	case  GOTO:
@@ -2167,7 +2167,7 @@ has_global(Lextok *n)
 }
 
 static void
-Bailout(FILE *fd, char *str)
+Bailout(FILE *fd, int8_t *str)
 {
 	if (!GenCode)
 		fprintf(fd, "continue%s", str);
@@ -2230,7 +2230,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 	case RUN:
 		if (now->sym == NULL)
-			Fatal("internal error pangen2.c", (char *) 0);
+			Fatal("internal error pangen2.c", (int8_t *) 0);
 		if (claimproc
 		&&  strcmp(now->sym->name, claimproc) == 0)
 			fatal("claim %s, (not runnable)", claimproc);
@@ -2240,7 +2240,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 		if (GenCode)
 		  fatal("'run' in d_step sequence (use atomic)",
-			(char *)0);
+			(int8_t *)0);
 
 		fprintf(fd,"addproc(II, %d", fproc(now->sym->name));
 		for (v = now->lft, i = 0; v; v = v->rgt, i++)
@@ -2617,7 +2617,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 			if (jj)
 			for (v = now->rgt, i = 0; v; v = v->rgt, i++)
-			{	char tempbuf[64];
+			{	int8_t tempbuf[64];
 
 				if ((v->lft->ntyp == CONST
 				||   v->lft->ntyp == EVAL))
@@ -2831,7 +2831,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 		if (!GenCode)
 		{	if (multi_oval)
-			{	char tempbuf[64];
+			{	int8_t tempbuf[64];
 				check_needed();
 				sprintf(tempbuf, "(trpt+1)->bup.ovals[%d] = ",
 					multi_oval-1);
@@ -2923,7 +2923,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		if (now->sym)
 			plunk_inline(fd, now->sym->name, 1, GenCode);
 		else
-			Fatal("internal error pangen2.c", (char *) 0);
+			Fatal("internal error pangen2.c", (int8_t *) 0);
 
 		if (!GenCode)
 		{	fprintf(fd, "\n");	/* state changed, capture it */
@@ -2973,9 +2973,9 @@ putstmnt(FILE *fd, Lextok *now, int m)
 	}
 }
 
-char *
-simplify_name(char *s)
-{	char *t = s;
+int8_t *
+simplify_name(int8_t *s)
+{	int8_t *t = s;
 
 	if (!old_scope_rules)
 	{	while (*t == '_' || isdigit((int)*t))
@@ -2986,14 +2986,14 @@ simplify_name(char *s)
 }
 
 void
-putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
+putname(FILE *fd, int8_t *pre, Lextok *n, int m, int8_t *suff) /* varref */
 {	Symbol *s = n->sym;
-	char *ptr;
+	int8_t *ptr;
 
 	lineno = n->ln; Fname = n->fn;
 
 	if (!s)
-		fatal("no name - putname", (char *) 0);
+		fatal("no name - putname", (int8_t *) 0);
 
 	if (s->context && context && s->type)
 		s = findloc(s);		/* it's a local var */
@@ -3047,7 +3047,7 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 	if (s->nel > 1 || s->isarray == 1)
 	{	if (no_arrays)
 		{	non_fatal("ref to array element invalid in this context",
-				(char *)0);
+				(int8_t *)0);
 			printf("\thint: instead of, e.g., x[rs] qu[3], use\n");
 			printf("\tchan nm_3 = qu[3]; x[rs] nm_3;\n");
 			printf("\tand use nm_3 in sends/recvs instead of qu[3]\n");
@@ -3093,7 +3093,8 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 	{	if (n->lft	/* effectively a scalar, but with an index */
 		&& (n->lft->ntyp != CONST
 		||  n->lft->val != 0))
-		{	fatal("ref to scalar '%s' using array index", (char *) ptr);
+		{	fatal("ref to scalar '%s' using array index",
+			       (int8_t *) ptr);
 	}	}
 
 	if (s->type == STRUCT && n->rgt && n->rgt->lft)

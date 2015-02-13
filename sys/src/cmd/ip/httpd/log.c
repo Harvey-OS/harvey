@@ -14,16 +14,16 @@
 
 int		logall[3];  /* logall[2] is in "Common Log Format" */
 
-static char *
+static int8_t *
 monname[12] =
 {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
 void
-logit(HConnect *c, char *fmt, ...)
+logit(HConnect *c, int8_t *fmt, ...)
 {
-	char buf[4096];
+	int8_t buf[4096];
 	va_list arg;
 	HSPriv *p;
 
@@ -40,13 +40,13 @@ logit(HConnect *c, char *fmt, ...)
 }
 
 void
-writelog(HConnect *c, char *fmt, ...)
+writelog(HConnect *c, int8_t *fmt, ...)
 {
 	HSPriv *p;
-	char buf[HBufSize+500], *bufp, *bufe;
-	char statuscode[4];
-	vlong objectsize;
-	ulong now, today;
+	int8_t buf[HBufSize+500], *bufp, *bufe;
+	int8_t statuscode[4];
+	int64_t objectsize;
+	uint32_t now, today;
 	int logfd;
 	va_list arg;
 	Tm *tm;
@@ -75,7 +75,8 @@ writelog(HConnect *c, char *fmt, ...)
 		va_end(arg);
 		if(c->req.uri != nil && c->req.uri[0] != 0)
 			bufp = seprint(bufp, bufe, "FinalURI: %s\n", c->req.uri);
-		bufp = seprint(bufp, bufe, "----------\n%s\n", (char*)c->header);
+		bufp = seprint(bufp, bufe, "----------\n%s\n",
+			       (int8_t*)c->header);
 		write(logfd, buf, bufp-buf);   /* append-only file */
 	}
 
@@ -92,17 +93,17 @@ writelog(HConnect *c, char *fmt, ...)
 			strcmp(fmt+7, "206 partial content %lld %lld\n") == 0 ||
 			strcmp(fmt+7, "206 partial content, early termination %lld %lld\n") == 0){
 			va_start(arg, fmt);
-			objectsize = va_arg(arg, vlong); /* length in sendfd.c */
+			objectsize = va_arg(arg, int64_t); /* length in sendfd.c */
 			USED(objectsize);
-			objectsize = va_arg(arg, vlong); /* wrote in sendfd.c */
+			objectsize = va_arg(arg, int64_t); /* wrote in sendfd.c */
 			va_end(arg);
 		}
 		bufp = seprint(buf, bufe, "%s - -", p->remotesys);
 		bufp = seprint(bufp, bufe, " [%.2d/%s/%d:%.2d:%.2d:%.2d +0000]", tm->mday, monname[tm->mon], tm->year+1900, tm->hour, tm->min, tm->sec);
 		if(c->req.uri == nil || c->req.uri[0] == 0){
 			bufp = seprint(bufp, bufe, " \"%.*s\"",
-				(int)utfnlen((char*)c->header, strcspn((char*)c->header, "\r\n")),
-				(char*)c->header);
+				(int)utfnlen((int8_t*)c->header, strcspn((int8_t*)c->header, "\r\n")),
+				(int8_t*)c->header);
 		}else{
 			/* use more canonical form of URI, if available */
 			bufp = seprint(bufp, bufe, " \"%s %s HTTP/%d.%d\"", c->req.meth, c->req.uri, c->req.vermaj,  c->req.vermin);

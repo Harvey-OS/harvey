@@ -11,12 +11,12 @@
 #include <libc.h>
 #include <venti.h>
 
-char *VtServerLog = "libventi/server";
+int8_t *VtServerLog = "libventi/server";
 
 int ventilogging;
 #define log	not_the_log_library_call
 
-static char Eremoved[] = "[removed]";
+static int8_t Eremoved[] = "[removed]";
 
 enum
 {	/* defaults */
@@ -30,23 +30,23 @@ static struct {
 } vl;
 
 static uint
-hash(char *s)
+hash(int8_t *s)
 {
 	uint h;
-	uchar *p;
+	uint8_t *p;
 
 	h = 0;
-	for(p=(uchar*)s; *p; p++)
+	for(p=(uint8_t*)s; *p; p++)
 		h = h*37 + *p;
 	return h;
 }
 
-char**
+int8_t**
 vtlognames(int *pn)
 {
 	int i, nname, size;
 	VtLog *l;
-	char **s, *a, *e;
+	int8_t **s, *a, *e;
 	
 	qlock(&vl.lk);
 	size = 0;
@@ -57,9 +57,9 @@ vtlognames(int *pn)
 		size += strlen(l->name)+1;
 	}
 	
-	s = vtmalloc(nname*sizeof(char*)+size);
-	a = (char*)(s+nname);
-	e = (char*)s+nname*sizeof(char*)+size;
+	s = vtmalloc(nname*sizeof(int8_t*)+size);
+	a = (int8_t*)(s+nname);
+	e = (int8_t*)s+nname*sizeof(int8_t*)+size;
 
 	nname = 0;
 	for(i=0; i<nelem(vl.hash); i++)
@@ -76,11 +76,11 @@ vtlognames(int *pn)
 }
 
 VtLog*
-vtlogopen(char *name, uint size)
+vtlogopen(int8_t *name, uint size)
 {
 	uint h;
 	int i, nc;
-	char *p;
+	int8_t *p;
 	VtLog *l, *last;
 
 	if(!ventilogging)
@@ -113,7 +113,7 @@ vtlogopen(char *name, uint size)
 	l->chunk = (VtLogChunk*)(l+1);
 	l->nchunk = nc;
 	l->w = l->chunk;
-	p = (char*)(l->chunk+nc);
+	p = (int8_t*)(l->chunk+nc);
 	for(i=0; i<nc; i++){
 		l->chunk[i].p = p;
 		l->chunk[i].wp = p;
@@ -150,7 +150,7 @@ vtlogclose(VtLog *l)
 }
 
 void
-vtlogremove(char *name)
+vtlogremove(int8_t *name)
 {
 	uint h;
 	VtLog *last, *l;
@@ -176,8 +176,8 @@ vtlogremove(char *name)
 static int
 timefmt(Fmt *fmt)
 {
-	static uvlong t0;
-	uvlong t;
+	static uint64_t t0;
+	uint64_t t;
 
 	if(t0 == 0)
 		t0 = nsec();
@@ -186,10 +186,10 @@ timefmt(Fmt *fmt)
 }
 
 void
-vtlogvprint(VtLog *l, char *fmt, va_list arg)
+vtlogvprint(VtLog *l, int8_t *fmt, va_list arg)
 {
 	int n;
-	char *p;
+	int8_t *p;
 	VtLogChunk *c;
 	static int first = 1;
 
@@ -219,7 +219,7 @@ vtlogvprint(VtLog *l, char *fmt, va_list arg)
 }
 
 void
-vtlogprint(VtLog *l, char *fmt, ...)
+vtlogprint(VtLog *l, int8_t *fmt, ...)
 {
 	va_list arg;
 	
@@ -232,7 +232,7 @@ vtlogprint(VtLog *l, char *fmt, ...)
 }
 
 void
-vtlog(char *name, char *fmt, ...)
+vtlog(int8_t *name, int8_t *fmt, ...)
 {
 	VtLog *l;
 	va_list arg;

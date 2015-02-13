@@ -17,14 +17,14 @@ static int verbose = 1;
 #define	SEP(c)	(((c)==' ')||((c)=='\t')||((c)=='\n'))
 
 typedef struct Slut {
-	char *name;
+	int8_t *name;
 	int val;
 } Slut;
 
-static char *
-tokenise(char *s, char **start, char **end)
+static int8_t *
+tokenise(int8_t *s, int8_t **start, int8_t **end)
 {
-	char *to;
+	int8_t *to;
 	Rune r;
 	int n;
 
@@ -67,10 +67,10 @@ tokenise(char *s, char **start, char **end)
 }
 
 static int
-parse(char *s, char *fields[], int nfields)
+parse(int8_t *s, int8_t *fields[], int nfields)
 {
 	int c, argc;
-	char *start, *end;
+	int8_t *start, *end;
 
 	argc = 0;
 	c = *s;
@@ -90,18 +90,18 @@ Bprint(&bout, "parse returns %d\n", argc);
 }
 
 typedef struct {
-	char *name;
-	long (*f)(SmbClient *, int, char *[]);
+	int8_t *name;
+	int32_t (*f)(SmbClient *, int, int8_t *[]);
 	int connected;
-	char *help;
+	int8_t *help;
 } Cmd;
 static Cmd cmd[];
 
-static long
-cmdhelp(SmbClient *, int argc, char *argv[])
+static int32_t
+cmdhelp(SmbClient *, int argc, int8_t *argv[])
 {
 	Cmd *cp;
-	char *p;
+	int8_t *p;
 
 	if(argc)
 		p = argv[0];
@@ -132,7 +132,7 @@ static Slut openmodeslut[] = {
 };
 
 static int
-slut(Slut *s, char *pat)
+slut(Slut *s, int8_t *pat)
 {
 	while (s->name) {
 		if (cistrcmp(s->name, pat) == 0)
@@ -143,17 +143,17 @@ slut(Slut *s, char *pat)
 	return -1;	
 }
 
-static long
-cmdopen(SmbClient *c, int argc, char *argv[])
+static int32_t
+cmdopen(SmbClient *c, int argc, int8_t *argv[])
 {
-	char *errmsg;
+	int8_t *errmsg;
 	int sm, om;
 	int rv;
-	uchar errclass;
-	ushort error;
-	ushort fid, attr;
-	ulong mtime, size;
-	ushort accessallowed;
+	uint8_t errclass;
+	uint16_t error;
+	uint16_t fid, attr;
+	uint32_t mtime, size;
+	uint16_t accessallowed;
 
 	if (argc != 3) {
 		Bprint(&bout, "wrong number of arguments\n");
@@ -187,13 +187,13 @@ static Cmd cmd[] = {
 };
 
 void
-threadmain(int argc, char *argv[])
+threadmain(int argc, int8_t *argv[])
 {
-	char *errmsg;
+	int8_t *errmsg;
 	int ac;
-	char *ap, *av[256];
+	int8_t *ap, *av[256];
 	Cmd *cp;
-	long status;
+	int32_t status;
 
 	if (argc > 3) {
 		print("usage: cifscmd [to [share]]\n");

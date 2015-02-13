@@ -8,7 +8,7 @@
  */
 
 #include "mplot.h"
-void openpl(char *s){
+void openpl(int8_t *s){
 	m_initialize(s);
 	e0->left=mapminx;
 	e0->bottom=mapmaxy;

@@ -26,7 +26,7 @@ struct Addr {
 	int	n;		/* number of offsets */
 	int	cur;		/* current position within doff array */
 	int	maxn;		/* actual current size of doff array */
-	ulong	doff[1];	/* doff[maxn], with 0..n-1 significant */
+	uint32_t	doff[1];	/* doff[maxn], with 0..n-1 significant */
 };
 
 Biobuf	binbuf;
@@ -35,7 +35,7 @@ Biobuf	*bin = &binbuf;		/* user cmd input */
 Biobuf	*bout = &boutbuf;	/* output */
 Biobuf	*bdict;			/* dictionary */
 Biobuf	*bindex;		/* index file */
-long	indextop;		/* index offset at end of file */
+int32_t	indextop;		/* index offset at end of file */
 int	lastcmd;		/* last executed command */
 Addr	*dot;			/* "current" address */
 Dict	*dict;			/* current dictionary */
@@ -45,14 +45,14 @@ int	outinhibit;
 int	debug;
 
 void	execcmd(int);
-int	getpref(char*, Rune*);
+int	getpref(int8_t*, Rune*);
 Entry	getentry(int);
 int	getfield(Rune*);
-long	locate(Rune*);
-int	parseaddr(char*, char**);
-int	parsecmd(char*);
-int	search(char*, int);
-long	seeknextline(Biobuf*, long);
+int32_t	locate(Rune*);
+int	parseaddr(int8_t*, int8_t**);
+int	parsecmd(int8_t*);
+int	search(int8_t*, int);
+int32_t	seeknextline(Biobuf*, int32_t);
 void	setdotnext(void);
 void	setdotprev(void);
 void	sortaddr(Addr*);
@@ -171,7 +171,7 @@ void
 usage(void)
 {
 	int i;
-	char *a, *b;
+	int8_t *a, *b;
 
 	Bprint(bout, "Usage: %s [-d dict] [-k] [-c cmd] [word]\n", argv0);
 	Bprint(bout, "dictionaries (brackets mark dictionaries not present on this system):\n");
@@ -187,9 +187,9 @@ usage(void)
 }
 
 int
-parsecmd(char *line)
+parsecmd(int8_t *line)
 {
-	char *e;
+	int8_t *e;
 	int cmd, ans;
 
 	if(parseaddr(line, &e) >= 0)
@@ -272,12 +272,12 @@ execcmd(int cmd)
  * Return 0 if no address.
  */
 int
-parseaddr(char *line, char **eptr)
+parseaddr(int8_t *line, int8_t **eptr)
 {
 	int delim, plen;
-	ulong v;
-	char *e;
-	char pat[Plen];
+	uint32_t v;
+	int8_t *e;
+	int8_t pat[Plen];
 
 	if(*line == '/' || *line == '!') {
 		/* anchored regular expression match; '!' means no folding */
@@ -351,15 +351,15 @@ parseaddr(char *line, char **eptr)
  * We know pat len < Plen, and that it is surrounded by ^..$
  */
 int
-search(char *pat, int dofold)
+search(int8_t *pat, int dofold)
 {
 	int needre, prelen, match, n;
 	Reprog *re;
-	long ioff, v;
+	int32_t ioff, v;
 	Rune pre[Plen];
 	Rune lit[Plen];
 	Rune entry[Fieldlen];
-	char fpat[Plen];
+	int8_t fpat[Plen];
 
 	prelen = getpref(pat+1, pre);
 	if(pat[prelen+1] == 0 || pat[prelen+1] == '$') {
@@ -398,7 +398,7 @@ search(char *pat, int dofold)
 			if(dot->n >= dot->maxn) {
 				n = 2*dot->maxn;
 				dot = realloc(dot,
-					sizeof(Addr)+(n-1)*sizeof(long));
+					sizeof(Addr)+(n-1)*sizeof(int32_t));
 				if(!dot) {
 					err("out of memory");
 					exits("nomem");
@@ -428,10 +428,10 @@ search(char *pat, int dofold)
  * Return offset in index file of first line whose folded
  * first field has pre as a prefix.  -1 if none found.
  */
-long
+int32_t
 locate(Rune *pre)
 {
-	long top, bot, mid;
+	int32_t top, bot, mid;
 	Rune entry[Fieldlen];
 
 	if(*pre == 0)
@@ -494,10 +494,10 @@ locate(Rune *pre)
  * and return length
  */
 int
-getpref(char *pat, Rune *pre)
+getpref(int8_t *pat, Rune *pre)
 {
 	int n, r;
-	char *p;
+	int8_t *p;
 
 	p = pat;
 	while(*p) {
@@ -522,10 +522,10 @@ getpref(char *pat, Rune *pre)
 	return p-pat;
 }
 
-long
-seeknextline(Biobuf *b, long off)
+int32_t
+seeknextline(Biobuf *b, int32_t off)
 {
-	long c;
+	int32_t c;
 
 	Bseek(b, off, 0);
 	do {
@@ -542,7 +542,7 @@ seeknextline(Biobuf *b, long off)
 int
 getfield(Rune *rp)
 {
-	long c;
+	int32_t c;
 	int n;
 
 	for(n=Fieldlen; n-- > 0; ) {
@@ -564,8 +564,8 @@ getfield(Rune *rp)
 static int
 longcmp(void *av, void *bv)
 {
-	long v;
-	long *a, *b;
+	int32_t v;
+	int32_t *a, *b;
 
 	a = av;
 	b = bv;
@@ -583,12 +583,12 @@ void
 sortaddr(Addr *a)
 {
 	int i, j;
-	long v;
+	int32_t v;
 
 	if(a->n <= 1)
 		return;
 
-	qsort(a->doff, a->n, sizeof(long), longcmp);
+	qsort(a->doff, a->n, sizeof(int32_t), longcmp);
 
 	/* remove duplicates */
 	for(i=0, j=0; j < a->n; j++) {
@@ -603,7 +603,7 @@ sortaddr(Addr *a)
 Entry
 getentry(int i)
 {
-	long b, e, n;
+	int32_t b, e, n;
 	static Entry ans;
 	static int anslen = 0;
 
@@ -635,7 +635,7 @@ getentry(int i)
 void
 setdotnext(void)
 {
-	long b;
+	int32_t b;
 
 	b = (*dict->nextoff)(dot->doff[dot->cur]+1);
 	if(b < 0) {
@@ -651,7 +651,7 @@ void
 setdotprev(void)
 {
 	int tryback;
-	long here, last, p;
+	int32_t here, last, p;
 
 	if(dot->cur < 0 || dot->cur >= dot->n)
 		return;

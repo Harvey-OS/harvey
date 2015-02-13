@@ -25,8 +25,8 @@ extern FILE	*tc, *tb;
 extern Queue	*qtab;
 extern Symbol	*Fname;
 extern int	lineno, m_loss, Pid, eventmapnr, multi_oval;
-extern short	nocast, has_provided, has_sorted;
-extern char	*R13[], *R14[], *R15[];
+extern int16_t	nocast, has_provided, has_sorted;
+extern int8_t	*R13[], *R14[], *R15[];
 
 static void	check_proc(Lextok *, int);
 
@@ -241,7 +241,7 @@ check_proc(Lextok *now, int m)
 
 void
 genunio(void)
-{	char buf1[256];
+{	int8_t buf1[256];
 	Queue *q; int i;
 
 	ntimes(tc, 0, 1, R13);

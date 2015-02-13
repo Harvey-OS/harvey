@@ -126,7 +126,7 @@ mkmach0pt(u64intptr kzero64)
 }
 
 void
-warp64(uvlong entry)
+warp64(uint64_t entry)
 {
 	u64intptr kzero64;
 	extern void _warp64(ulong);

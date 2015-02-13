@@ -11,11 +11,11 @@
 #include <limits.h>
 #include <errno.h>
 
-long
-strtol(const char *nptr, char **endptr, int base)
+int32_t
+strtol(const int8_t *nptr, int8_t **endptr, int base)
 {
-	const char *p;
-	long n, nn;
+	const int8_t *p;
+	int32_t n, nn;
 	int c, ovfl, v, neg, ndig;
 
 	p = nptr;
@@ -90,7 +90,7 @@ strtol(const char *nptr, char **endptr, int base)
 	if(ndig == 0)
 		p = nptr;
 	if(endptr)
-		*endptr = (char *)p;
+		*endptr = (int8_t *)p;
 	if(ovfl){
 		errno = ERANGE;
 		if(neg)

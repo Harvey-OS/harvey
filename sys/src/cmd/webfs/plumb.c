@@ -44,7 +44,7 @@ plumbstart(void)
 static void
 plumbwebthread(void*)
 {
-	char *base;
+	int8_t *base;
 	Plumbmsg *m;
 
 	for(;;){
@@ -73,7 +73,7 @@ plumbwebproc(void*)
 }
 
 static void
-addattr(Plumbmsg *m, char *name, char *value)
+addattr(Plumbmsg *m, int8_t *name, int8_t *value)
 {
 	Plumbattr *a;
 
@@ -99,8 +99,8 @@ freeattrs(Plumbmsg *m)
 
 static struct
 {
-	char	*ctype;
-	char	*ext;
+	int8_t	*ctype;
+	int8_t	*ext;
 }
 ctypes[] =
 {
@@ -123,7 +123,7 @@ replumb(Client *c)
 {
 	int i;
 	Plumbmsg *m;
-	char name[128], *ctype, *ext, *p;
+	int8_t name[128], *ctype, *ext, *p;
 
 	if(!c->plumbed)
 		return;

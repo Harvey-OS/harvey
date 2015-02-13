@@ -119,20 +119,20 @@ s_MTFD_process(stream_state * st, stream_cursor_read * pr,
 		    /* Move trailing entries individually. */
 		    for (;; bp--, b--) {
 			*bp = bp[-1];
-			if (!(b & (sizeof(long) - 1)))
+			if (!(b & (sizeof(int32_t) - 1)))
 			         break;
 		    }
 		    /* Move in long-size chunks. */
-		    for (; (b -= sizeof(long)) != 0;) {
-			bp -= sizeof(long);
+		    for (; (b -= sizeof(int32_t)) != 0;) {
+			bp -= sizeof(int32_t);
 
 #if arch_is_big_endian
-			*(ulong *) bp =
-			    (*(ulong *) bp >> 8) |
-			    ((ulong) bp[-1] << ((sizeof(long) - 1) * 8));
+			*(uint32_t *) bp =
+			    (*(uint32_t *) bp >> 8) |
+			    ((uint32_t) bp[-1] << ((sizeof(int32_t) - 1) * 8));
 
 #else
-			*(ulong *) bp = (*(ulong *) bp << 8) | bp[-1];
+			*(uint32_t *) bp = (*(uint32_t *) bp << 8) | bp[-1];
 #endif
 		    }
 		}

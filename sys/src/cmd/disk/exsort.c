@@ -11,7 +11,7 @@
 #include	<libc.h>
 
 int	ulcmp(void*, void*);
-void	swapem(ulong*, long);
+void	swapem(uint32_t*, int32_t);
 
 enum
 {
@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 int
 ulcmp(void *va, void *vb)
 {
-	ulong *a, *b;
+	uint32_t *a, *b;
 
 	a = va;
 	b = vb;
@@ -129,10 +129,10 @@ ulcmp(void *va, void *vb)
 }
 
 void
-swapem(ulong *b, long l)
+swapem(uint32_t *b, int32_t l)
 {
-	long i;
-	ulong x, a;
+	int32_t i;
+	uint32_t x, a;
 
 	for(i=0; i<l; i++, b++) {
 		a = *b;

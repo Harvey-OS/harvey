@@ -31,7 +31,7 @@ bcinit(Bcache *bc, int f, int bsize)
 		b->next = 0;
 		b->dirty = 0;
 		if(b->data == 0)
-			b->data = (char *)malloc(bc->bsize);
+			b->data = (int8_t *)malloc(bc->bsize);
 		if(b->data == 0)
 			return -1;
 		lruadd(bc, b);
@@ -44,7 +44,7 @@ bcinit(Bcache *bc, int f, int bsize)
  *  Find a buffer for block b.  If it's dirty, write it out.
  */
 Bbuf *
-bcfind(Bcache *bc, ulong bno)
+bcfind(Bcache *bc, uint32_t bno)
 {
 	Bbuf *b;
 
@@ -79,7 +79,7 @@ out:
  *  the next Nbcache bcread's.
  */
 Bbuf *
-bcalloc(Bcache *bc, ulong bno)
+bcalloc(Bcache *bc, uint32_t bno)
 {
 	Bbuf *b;
 
@@ -95,7 +95,7 @@ bcalloc(Bcache *bc, ulong bno)
  *  the next Nbcache bcread's.
  */
 Bbuf *
-bcread(Bcache *bc, ulong bno)
+bcread(Bcache *bc, uint32_t bno)
 {
 	Bbuf *b;
 
@@ -183,9 +183,9 @@ bcsync(Bcache *bc)
  *  read a block from disk
  */
 int
-bread(Bcache *bc, ulong bno, void *buf)
+bread(Bcache *bc, uint32_t bno, void *buf)
 {
-	uvlong x = (uvlong)bno * bc->bsize;
+	uint64_t x = (uint64_t)bno * bc->bsize;
 
 	if(pread(bc->f, buf, bc->bsize, x) != bc->bsize)
 		return -1;
@@ -196,9 +196,9 @@ bread(Bcache *bc, ulong bno, void *buf)
  *  write a block to disk
  */
 int
-bwrite(Bcache *bc, ulong bno, void *buf)
+bwrite(Bcache *bc, uint32_t bno, void *buf)
 {
-	uvlong x = (uvlong)bno * bc->bsize;
+	uint64_t x = (uint64_t)bno * bc->bsize;
 
 	if(pwrite(bc->f, buf, bc->bsize, x) != bc->bsize)
 		return -1;

@@ -17,32 +17,32 @@
 static void usage(void);
 static u64int fdsize(int fd);
 static void partition(int fd, int bsize, Header *h);
-static u64int unittoull(char *s);
+static u64int unittoull(int8_t *s);
 static u32int blockAlloc(int type, u32int tag);
 static void blockRead(int part, u32int addr);
 static void blockWrite(int part, u32int addr);
-static void superInit(char *label, u32int root, uchar[VtScoreSize]);
+static void superInit(int8_t *label, u32int root, uint8_t[VtScoreSize]);
 static void rootMetaInit(Entry *e);
 static u32int rootInit(Entry *e);
-static void topLevel(char *name);
-static int parseScore(uchar[VtScoreSize], char*);
-static u32int ventiRoot(char*, char*);
+static void topLevel(int8_t *name);
+static int parseScore(uint8_t[VtScoreSize], int8_t*);
+static u32int ventiRoot(int8_t*, int8_t*);
 static VtSession *z;
 
 #define TWID64	((u64int)~(u64int)0)
 
 Disk *disk;
 Fs *fs;
-uchar *buf;
+uint8_t *buf;
 int bsize = 8*1024;
 u64int qid = 1;
 int iso9660off;
-char *iso9660file;
+int8_t *iso9660file;
 
 int
-confirm(char *msg)
+confirm(int8_t *msg)
 {
-	char buf[100];
+	int8_t buf[100];
 	int n;
 
 	fprint(2, "%s [y/n]: ", msg);
@@ -195,8 +195,8 @@ usage(void)
 static void
 partition(int fd, int bsize, Header *h)
 {
-	ulong nblock, ndata, nlabel;
-	ulong lpb;
+	uint32_t nblock, ndata, nlabel;
+	uint32_t lpb;
 
 	if(bsize % 512 != 0)
 		sysfatal("block size must be a multiple of 512 bytes");
@@ -303,7 +303,7 @@ rootMetaInit(Entry *e)
 static u32int
 rootInit(Entry *e)
 {
-	ulong addr;
+	uint32_t addr;
 	u32int tag;
 
 	tag = tagGen();
@@ -364,7 +364,7 @@ blockAlloc(int type, u32int tag)
 }
 
 static void
-superInit(char *label, u32int root, uchar score[VtScoreSize])
+superInit(int8_t *label, u32int root, uint8_t score[VtScoreSize])
 {
 	Super s;
 
@@ -385,9 +385,9 @@ superInit(char *label, u32int root, uchar score[VtScoreSize])
 }
 
 static u64int
-unittoull(char *s)
+unittoull(int8_t *s)
 {
-	char *es;
+	int8_t *es;
 	u64int n;
 
 	if(s == nil)
@@ -423,7 +423,7 @@ blockWrite(int part, u32int addr)
 }
 
 static void
-addFile(File *root, char *name, uint mode)
+addFile(File *root, int8_t *name, uint mode)
 {
 	File *f;
 
@@ -434,7 +434,7 @@ addFile(File *root, char *name, uint mode)
 }
 
 static void
-topLevel(char *name)
+topLevel(int8_t *name)
 {
 	Fs *fs;
 	File *root;
@@ -458,7 +458,7 @@ topLevel(char *name)
 }
 
 static int
-ventiRead(uchar score[VtScoreSize], int type)
+ventiRead(uint8_t score[VtScoreSize], int type)
 {
 	int n;
 
@@ -470,10 +470,10 @@ ventiRead(uchar score[VtScoreSize], int type)
 }
 
 static u32int
-ventiRoot(char *host, char *s)
+ventiRoot(int8_t *host, int8_t *s)
 {
 	int i, n;
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 	u32int addr, tag;
 	DirEntry de;
 	MetaBlock mb;
@@ -553,7 +553,7 @@ ventiRoot(char *host, char *s)
 }
 
 static int
-parseScore(uchar *score, char *buf)
+parseScore(uint8_t *score, int8_t *buf)
 {
 	int i, c;
 

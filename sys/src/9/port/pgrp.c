@@ -18,11 +18,11 @@ static Ref pgrpid;
 static Ref mountid;
 
 void
-pgrpnote(ulong noteid, char *a, long n, int flag)
+pgrpnote(uint32_t noteid, int8_t *a, int32_t n, int flag)
 {
 	int i;
 	Proc *p;
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	if(n >= ERRMAX-1)
 		error(Etoobig);
@@ -270,7 +270,7 @@ forceclosefgrp(void)
 }
 
 Mount*
-newmount(Mhead *mh, Chan *to, int flag, char *spec)
+newmount(Mhead *mh, Chan *to, int flag, int8_t *spec)
 {
 	Mount *mount;
 
@@ -302,9 +302,9 @@ mountfree(Mount *mount)
 }
 
 void
-resrcwait(char *reason)
+resrcwait(int8_t *reason)
 {
-	char *p;
+	int8_t *p;
 
 	if(up == nil)
 		panic("resrcwait");

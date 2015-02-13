@@ -14,7 +14,7 @@
 #include "faces.h"
 
 void*
-emalloc(ulong sz)
+emalloc(uint32_t sz)
 {
 	void *v;
 	v = malloc(sz);
@@ -27,7 +27,7 @@ emalloc(ulong sz)
 }
 
 void*
-erealloc(void *v, ulong sz)
+erealloc(void *v, uint32_t sz)
 {
 	v = realloc(v, sz);
 	if(v == nil) {
@@ -37,10 +37,10 @@ erealloc(void *v, ulong sz)
 	return v;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 	if((t = strdup(s)) == nil) {
 		fprint(2, "out of memory in strdup(%.10s)\n", s);
 		exits("mem");

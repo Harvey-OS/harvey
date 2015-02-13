@@ -24,7 +24,7 @@
 #include "y.tab.h"
 #include <assert.h>
 #ifdef PC
-extern int unlink(const char *);
+extern int unlink(const int8_t *);
 #else
 #include <unistd.h>
 #endif
@@ -83,7 +83,7 @@ Element **Selfs;	/* self-loop states at end of claims */
 static void get_seq(int, Sequence *);
 static void set_el(int n, Element *e);
 static void gen_product(void);
-static void print_state_nm(char *, int *, char *);
+static void print_state_nm(int8_t *, int *, int8_t *);
 static SQueue *find_state(int *);
 static SQueue *retrieve_state(int *);
 
@@ -158,7 +158,7 @@ more:
 }
 
 static void
-wrap_text(char *pre, Lextok *t, char *post)
+wrap_text(int8_t *pre, Lextok *t, int8_t *post)
 {
 	printf(pre);
 	comment(stdout, t, 0);
@@ -282,7 +282,7 @@ state_body(OneState *s, Guard *guard)
 }
 
 static struct X {
-	char *s;	int n;
+	int8_t *s;	int n;
 } spl[] = {
 	{"end",		3 },
 	{"accept",	6 },
@@ -409,7 +409,7 @@ check_special(int *nrs)
 				&&  l->e->seqno == nrs[i]		 /* right state */
 				&&  strncmp(l->s->name, spl[j].s, spl[j].n) == 0)
 				{	if (j == 1)	/* accept state */
-					{	char buf[32];
+					{	int8_t buf[32];
 is_accepting:					if (strchr(p->n->name, ':'))
 						{	sprintf(buf, "N%d", i);
 						} else
@@ -653,7 +653,7 @@ nxt_trans(int n, int cs, int frst)
 }
 
 static void
-print_state_nm(char *p, int *s, char *a)
+print_state_nm(int8_t *p, int *s, int8_t *a)
 {	int i;
 	printf("%sP", p);
 	for (i = 0; i < nclaims; i++)

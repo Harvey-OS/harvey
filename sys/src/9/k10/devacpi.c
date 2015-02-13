@@ -29,12 +29,12 @@
 
 #define l16get(p)	(((p)[1]<<8)|(p)[0])
 #define l32get(p)	(((u32int)l16get(p+2)<<16)|l16get(p))
-static Atable* acpifadt(uchar*, int);
-static Atable* acpitable(uchar*, int);
-static Atable* acpimadt(uchar*, int);
-static Atable* acpimsct(uchar*, int);
-static Atable* acpisrat(uchar*, int);
-static Atable* acpislit(uchar*, int);
+static Atable* acpifadt(uint8_t*, int);
+static Atable* acpitable(uint8_t*, int);
+static Atable* acpimadt(uint8_t*, int);
+static Atable* acpimsct(uint8_t*, int);
+static Atable* acpisrat(uint8_t*, int);
+static Atable* acpislit(uint8_t*, int);
 
 #pragma	varargck	type	"G"	Gas*
 
@@ -82,15 +82,15 @@ static Reg*	reg;	/* region used for I/O */
 static Gpe*	gpes;	/* General purpose events */
 static int	ngpes;
 
-static char* regnames[] = {
+static int8_t* regnames[] = {
 	"mem", "io", "pcicfg", "embed",
 	"smb", "cmos", "pcibar",
 };
 
-static char*
+static int8_t*
 acpiregstr(int id)
 {
-	static char buf[20];	/* BUG */
+	static int8_t buf[20];	/* BUG */
 
 	if(id >= 0 && id < nelem(regnames))
 		return regnames[id];
@@ -99,7 +99,7 @@ acpiregstr(int id)
 }
 
 static int
-acpiregid(char *s)
+acpiregid(int8_t *s)
 {
 	int i;
 
@@ -297,8 +297,9 @@ static Regio cfgio =
 /*
  * Copy memory, 1/2/4/8-bytes at a time, to/from a region.
  */
-static long
-regcpy(Regio *dio, uintptr da, Regio *sio, uintptr sa, long len, int align)
+static int32_t
+regcpy(Regio *dio, uintptr da, Regio *sio, uintptr sa, int32_t len,
+       int align)
 {
 	int n, i;
 
@@ -337,8 +338,8 @@ regcpy(Regio *dio, uintptr da, Regio *sio, uintptr sa, long len, int align)
  * Perform I/O within region in access units of accsz bytes.
  * All units in bytes.
  */
-static long
-regio(Reg *r, void *p, ulong len, uintptr off, int iswr)
+static int32_t
+regio(Reg *r, void *p, uint32_t len, uintptr off, int iswr)
 {
 	Regio rio;
 	uintptr rp;
@@ -391,7 +392,7 @@ regio(Reg *r, void *p, ulong len, uintptr off, int iswr)
 }
 
 static Atable*
-newtable(uchar *p)
+newtable(uint8_t *p)
 {
 	Atable *t;
 	Sdthdr *h;
@@ -486,7 +487,7 @@ static void
 loaddsdt(uintptr pa)
 {
 	int n;
-	uchar *dsdtp;
+	uint8_t *dsdtp;
 
 	dsdtp = sdtmap(pa, &n, 1);
 	if(dsdtp == nil)
@@ -496,7 +497,7 @@ loaddsdt(uintptr pa)
 }
 
 static void
-gasget(Gas *gas, uchar *p)
+gasget(Gas *gas, uint8_t *p)
 {
 	gas->spc = p[0];
 	gas->len = p[1];
@@ -562,7 +563,7 @@ dumpfadt(Fadt *fp)
 }
 
 static Atable*
-acpifadt(uchar *p, int)
+acpifadt(uint8_t *p, int)
 {
 	Fadt *fp;
 
@@ -648,9 +649,9 @@ dumpmsct(Msct *msct)
  * Else we should remove this code.
  */
 static Atable*
-acpimsct(uchar *p, int len)
+acpimsct(uint8_t *p, int len)
 {
-	uchar *pe;
+	uint8_t *pe;
 	Mdom **stl, *st;
 	int off;
 
@@ -706,10 +707,10 @@ dumpsrat(Srat *st)
 }
 
 static Atable*
-acpisrat(uchar *p, int len)
+acpisrat(uint8_t *p, int len)
 {
 	Srat **stl, *st;
-	uchar *pe;
+	uint8_t *pe;
 	int stlen, flags;
 
 	if(srat != nil){
@@ -794,9 +795,9 @@ cmpslitent(void* v1, void* v2)
 }
 
 static Atable*
-acpislit(uchar *p, int len)
+acpislit(uint8_t *p, int len)
 {
-	uchar *pe;
+	uint8_t *pe;
 	int i, j, k;
 	SlEntry *se;
 
@@ -936,9 +937,9 @@ dumpmadt(Madt *apics)
 }
 
 static Atable*
-acpimadt(uchar *p, int len)
+acpimadt(uint8_t *p, int len)
 {
-	uchar *pe;
+	uint8_t *pe;
 	Apicst *st, *l, **stl;
 	int stlen, id;
 
@@ -1016,7 +1017,7 @@ acpimadt(uchar *p, int len)
 				free(st);
 				st = nil;
 			}else
-				kstrdup(&st->lsapic.puids, (char*)p+16);
+				kstrdup(&st->lsapic.puids, (int8_t*)p+16);
 			break;
 		case ASintsrc:
 			st->intsrc.flags = l16get(p+2);
@@ -1059,7 +1060,7 @@ acpimadt(uchar *p, int len)
  * Map the table and keep it there.
  */
 static Atable*
-acpitable(uchar *p, int len)
+acpitable(uint8_t *p, int len)
 {
 	if(len < Sdthdrsz)
 		return nil;
@@ -1067,7 +1068,7 @@ acpitable(uchar *p, int len)
 }
 
 static void
-dumptable(char *sig, uchar *p, int l)
+dumptable(int8_t *sig, uint8_t *p, int l)
 {
 	int n, i;
 
@@ -1089,13 +1090,13 @@ dumptable(char *sig, uchar *p, int l)
 	}
 }
 
-static char*
-seprinttable(char *s, char *e, Atable *t)
+static int8_t*
+seprinttable(int8_t *s, int8_t *e, Atable *t)
 {
-	uchar *p;
+	uint8_t *p;
 	int i, n;
 
-	p = (uchar*)t->tbl;	/* include header */
+	p = (uint8_t*)t->tbl;	/* include header */
 	n = Sdthdrsz + t->dlen;
 	s = seprint(s, e, "%s @ %#p\n", t->sig, p);
 	for(i = 0; i < n; i++){
@@ -1113,12 +1114,12 @@ seprinttable(char *s, char *e, Atable *t)
  * (XXX: should be able to search for sig, oemid, oemtblid)
  */
 static int
-acpixsdtload(char *sig)
+acpixsdtload(int8_t *sig)
 {
 	int i, l, t, unmap, found;
 	uintptr dhpa;
-	uchar *sdt;
-	char tsig[5];
+	uint8_t *sdt;
+	int8_t tsig[5];
 
 	found = 0;
 	for(i = 0; i < xsdt->len; i += xsdt->asize){
@@ -1148,7 +1149,7 @@ acpixsdtload(char *sig)
 }
 
 static void*
-rsdscan(u8int* addr, int len, char* signature)
+rsdscan(u8int* addr, int len, int8_t* signature)
 {
 	int sl;
 	u8int *e, *p;
@@ -1165,7 +1166,7 @@ rsdscan(u8int* addr, int len, char* signature)
 }
 
 static void*
-rsdsearch(char* signature)
+rsdsearch(int8_t* signature)
 {
 	uintptr p;
 	u8int *bda;
@@ -1176,7 +1177,7 @@ rsdsearch(char* signature)
 	 * 1) in the first KB of the EBDA;
 	 * 2) in the BIOS ROM between 0xE0000 and 0xFFFFF.
 	 */
-	if(strncmp((char*)KADDR(0xFFFD9), "EISA", 4) == 0){
+	if(strncmp((int8_t*)KADDR(0xFFFD9), "EISA", 4) == 0){
 		bda = BIOSSEG(0x40);
 		if((p = (bda[0x0F]<<8)|bda[0x0E])){
 			if(rsd = rsdscan(KADDR(p), 1024, signature))
@@ -1249,7 +1250,7 @@ acpirsdptr(void)
 }
 
 static int
-acpigen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
+acpigen(Chan *c, int8_t*, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid qid;
 
@@ -1272,7 +1273,7 @@ acpigen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 static int
 Gfmt(Fmt* f)
 {
-	static char* rnames[] = {
+	static int8_t* rnames[] = {
 			"mem", "io", "pcicfg", "embed",
 			"smb", "cmos", "pcibar", "ipmi"};
 	Gas *g;
@@ -1290,9 +1291,10 @@ Gfmt(Fmt* f)
 		break;
 	case Rpcicfg:
 		fmtprint(f, "[pci ");
-		fmtprint(f, "dev %#ulx ", (ulong)(g->addr >> 32) & 0xFFFF);
-		fmtprint(f, "fn %#ulx ", (ulong)(g->addr & 0xFFFF0000) >> 16);
-		fmtprint(f, "adr %#ulx ", (ulong)(g->addr &0xFFFF));
+		fmtprint(f, "dev %#ulx ", (uint32_t)(g->addr >> 32) & 0xFFFF);
+		fmtprint(f, "fn %#ulx ",
+			 (uint32_t)(g->addr & 0xFFFF0000) >> 16);
+		fmtprint(f, "adr %#ulx ", (uint32_t)(g->addr &0xFFFF));
 		break;
 	case Rfixedhw:
 		fmtprint(f, "[hw ");
@@ -1505,7 +1507,7 @@ acpiinit(void)
 }
 
 static Chan*
-acpiattach(char *spec)
+acpiattach(int8_t *spec)
 {
 	int i;
 
@@ -1551,13 +1553,13 @@ acpiattach(char *spec)
 }
 
 static Walkqid*
-acpiwalk(Chan *c, Chan *nc, char **name, int nname)
+acpiwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, acpidir, nelem(acpidir), acpigen);
 }
 
-static long
-acpistat(Chan *c, uchar *dp, long n)
+static int32_t
+acpistat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return devstat(c, dp, n, acpidir, nelem(acpidir), acpigen);
 }
@@ -1573,15 +1575,15 @@ acpiclose(Chan *)
 {
 }
 
-static char*ttext;
+static int8_t*ttext;
 static int tlen;
 
-static long
-acpiread(Chan *c, void *a, long n, vlong off)
+static int32_t
+acpiread(Chan *c, void *a, int32_t n, int64_t off)
 {
-	long q;
+	int32_t q;
 	Atable *t;
-	char *ns, *s, *e, *ntext;
+	int8_t *ns, *s, *e, *ntext;
 
 	q = c->qid.path;
 	switch(q){
@@ -1625,8 +1627,8 @@ acpiread(Chan *c, void *a, long n, vlong off)
 	return -1;
 }
 
-static long
-acpiwrite(Chan *c, void *a, long n, vlong off)
+static int32_t
+acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
 	Cmdtab *ct;
 	Cmdbuf *cb;

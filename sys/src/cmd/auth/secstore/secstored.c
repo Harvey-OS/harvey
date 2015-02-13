@@ -17,8 +17,8 @@
 #include "SConn.h"
 #include "secstore.h"
 
-char* secureidcheck(char *, char *);	/* from /sys/src/cmd/auth/ */
-extern char* dirls(char *path);
+int8_t* secureidcheck(int8_t *, int8_t *);	/* from /sys/src/cmd/auth/ */
+extern int8_t* dirls(int8_t *path);
 
 int verbose;
 Ndb *db;
@@ -32,10 +32,10 @@ usage(void)
 }
 
 static int
-getdir(SConn *conn, char *id)
+getdir(SConn *conn, int8_t *id)
 {
-	char *ls, *s;
-	uchar *msg;
+	int8_t *ls, *s;
+	uint8_t *msg;
 	int n, len;
 
 	s = emalloc(Maxmsg);
@@ -48,11 +48,11 @@ getdir(SConn *conn, char *id)
 
 	/* send file size */
 	snprint(s, Maxmsg, "%d", len);
-	conn->write(conn, (uchar*)s, strlen(s));
+	conn->write(conn, (uint8_t*)s, strlen(s));
 
 	/* send directory listing in Maxmsg chunks */
 	n = Maxmsg;
-	msg = (uchar*)ls;
+	msg = (uint8_t*)ls;
 	while(len > 0){
 		if(len < Maxmsg)
 			n = len;
@@ -66,11 +66,11 @@ getdir(SConn *conn, char *id)
 }
 
 static int
-getfile(SConn *conn, char *id, char *gf)
+getfile(SConn *conn, int8_t *id, int8_t *gf)
 {
 	int n, gd, len;
-	ulong mode;
-	char *s;
+	uint32_t mode;
+	int8_t *s;
 	Dir *st;
 
 	if(strcmp(gf,".")==0)
@@ -83,14 +83,14 @@ getfile(SConn *conn, char *id, char *gf)
 	if(gd < 0){
 		syslog(0, LOG, "can't open %s: %r", s);
 		free(s);
-		conn->write(conn, (uchar*)"-1", 2);
+		conn->write(conn, (uint8_t*)"-1", 2);
 		return -1;
 	}
 	st = dirfstat(gd);
 	if(st == nil){
 		syslog(0, LOG, "can't stat %s: %r", s);
 		free(s);
-		conn->write(conn, (uchar*)"-1", 2);
+		conn->write(conn, (uint8_t*)"-1", 2);
 		return -1;
 	}
 	mode = st->mode;
@@ -99,17 +99,17 @@ getfile(SConn *conn, char *id, char *gf)
 	if(mode & DMDIR) {
 		syslog(0, LOG, "%s should be a plain file, not a directory", s);
 		free(s);
-		conn->write(conn, (uchar*)"-1", 2);
+		conn->write(conn, (uint8_t*)"-1", 2);
 		return -1;
 	}
 	if(len < 0 || len > MAXFILESIZE){
 		syslog(0, LOG, "implausible filesize %d for %s", len, gf);
 		free(s);
-		conn->write(conn, (uchar*)"-3", 2);
+		conn->write(conn, (uint8_t*)"-3", 2);
 		return -1;
 	}
 	snprint(s, Maxmsg, "%d", len);
-	conn->write(conn, (uchar*)s, strlen(s));
+	conn->write(conn, (uint8_t*)s, strlen(s));
 
 	/* send file in Maxmsg chunks */
 	while(len > 0){
@@ -119,7 +119,7 @@ getfile(SConn *conn, char *id, char *gf)
 			free(s);
 			return -1;
 		}
-		conn->write(conn, (uchar*)s, n);
+		conn->write(conn, (uint8_t*)s, n);
 		len -= n;
 	}
 	close(gd);
@@ -128,11 +128,11 @@ getfile(SConn *conn, char *id, char *gf)
 }
 
 static int
-putfile(SConn *conn, char *id, char *pf)
+putfile(SConn *conn, int8_t *id, int8_t *pf)
 {
 	int n, nw, pd;
-	long len;
-	char s[Maxmsg+1];
+	int32_t len;
+	int8_t s[Maxmsg+1];
 
 	/* get file size */
 	n = readstr(conn, s);
@@ -156,7 +156,7 @@ putfile(SConn *conn, char *id, char *pf)
 		return -1;
 	}
 	while(len > 0){
-		n = conn->read(conn, (uchar*)s, Maxmsg);
+		n = conn->read(conn, (uint8_t*)s, Maxmsg);
 		if(n <= 0){
 			syslog(0, LOG, "empty file chunk");
 			return -1;
@@ -174,10 +174,10 @@ putfile(SConn *conn, char *id, char *pf)
 }
 
 static int
-removefile(SConn *conn, char *id, char *f)
+removefile(SConn *conn, int8_t *id, int8_t *f)
 {
 	Dir *d;
-	char buf[Maxmsg];
+	int8_t buf[Maxmsg];
 
 	snprint(buf, Maxmsg, "%s/store/%s/%s", SECSTORE_DIR, id, f);
 
@@ -202,11 +202,11 @@ removefile(SConn *conn, char *id, char *f)
 }
 
 /* given line directory from accept, returns ipaddr!port */
-static char*
-remoteIP(char *ldir)
+static int8_t*
+remoteIP(int8_t *ldir)
 {
 	int fd, n;
-	char rp[100], ap[500];
+	int8_t rp[100], ap[500];
 
 	snprint(rp, sizeof rp, "%s/remote", ldir);
 	fd = open(rp, OREAD);
@@ -225,11 +225,11 @@ remoteIP(char *ldir)
 }
 
 static int
-dologin(int fd, char *S, int forceSTA)
+dologin(int fd, int8_t *S, int forceSTA)
 {
 	int i, n, rv;
-	char *file, *mess, *nl;
-	char msg[Maxmsg+1];
+	int8_t *file, *mess, *nl;
+	int8_t msg[Maxmsg+1];
 	PW *pw;
 	SConn *conn;
 
@@ -252,7 +252,7 @@ dologin(int fd, char *S, int forceSTA)
 		goto Out;
 	}
 	if((forceSTA || pw->status&STA) != 0){
-		conn->write(conn, (uchar*)"STA", 3);
+		conn->write(conn, (uint8_t*)"STA", 3);
 		if(readstr(conn, msg) < 10 || strncmp(msg, "STA", 3) != 0){
 			syslog(0, LOG, "no STA from %s", pw->id);
 			goto Out;
@@ -263,7 +263,7 @@ dologin(int fd, char *S, int forceSTA)
 			goto Out;
 		}
 	}
-	conn->write(conn, (uchar*)"OK", 2);
+	conn->write(conn, (uint8_t*)"OK", 2);
 	syslog(0, LOG, "AUTH %s", pw->id);
 
 	/* perform operations as asked */

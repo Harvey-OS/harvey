@@ -13,16 +13,16 @@ static int
 deliver(void *, NbDgram *s)
 {
 	SmbHeader h;
-	uchar *pdata;
-	ushort bytecount;
+	uint8_t *pdata;
+	uint16_t bytecount;
 	SmbBuffer *b;
-	char *errmsg;
+	int8_t *errmsg;
 	SmbTransaction transaction;
 	int rv;
 //	int x;
-	char *comment, *servername;
+	int8_t *comment, *servername;
 	unsigned char opcode, updatecount, versionminor, versionmajor;
-	ulong periodicity, signature, type;
+	uint32_t periodicity, signature, type;
 
 	errmsg = nil;
 	comment = nil;
@@ -99,9 +99,9 @@ done:
 }
 
 void
-threadmain(int, char **)
+threadmain(int, int8_t **)
 {
-	char *e;
+	int8_t *e;
 	NbDgramSendParameters p;
 	nbinit();
 	smbglobalsguess(1);

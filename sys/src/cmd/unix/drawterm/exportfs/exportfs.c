@@ -19,8 +19,8 @@
 #include "exportfs.h"
 
 /* #define QIDPATH	((1LL<<48)-1) */
-#define QIDPATH	((((vlong)1)<<48)-1)
-vlong newqid = 0;
+#define QIDPATH	((((int64_t)1)<<48)-1)
+int64_t newqid = 0;
 
 void (*fcalls[256])(Fsrpc*);
 
@@ -35,7 +35,7 @@ int	netfd;
 int
 exportfs(int fd, int msgsz)
 {
-	char buf[ERRMAX], ebuf[ERRMAX];
+	int8_t buf[ERRMAX], ebuf[ERRMAX];
 	Fsrpc *r;
 	int i, n;
 
@@ -113,9 +113,9 @@ if(0) iprint("<- %F\n", &r->work);
 }
 
 void
-reply(Fcall *r, Fcall *t, char *err)
+reply(Fcall *r, Fcall *t, int8_t *err)
 {
-	uchar *data;
+	uint8_t *data;
 	int m, n;
 
 	t->tag = r->tag;
@@ -157,7 +157,7 @@ int
 freefid(int nr)
 {
 	Fid *f, **l;
-	char buf[128];
+	int8_t buf[128];
 
 	l = &fidhash(nr);
 	for(f = *l; f; f = f->next) {
@@ -284,10 +284,10 @@ Loop:
 }
 
 File *
-file(File *parent, char *name)
+file(File *parent, int8_t *name)
 {
 	Dir *dir;
-	char *path;
+	int8_t *path;
 	File *f;
 
 	DEBUG(DFD, "\tfile: 0x%p %s name %s\n", parent, parent->name, name);
@@ -364,11 +364,11 @@ initroot(void)
 	psmpt = file(psmpt, "exportfs");
 }
 
-char*
-makepath(File *p, char *name)
+int8_t*
+makepath(File *p, int8_t *name)
 {
 	int i, n;
-	char *c, *s, *path, *seg[256];
+	int8_t *c, *s, *path, *seg[256];
 
 	seg[0] = name;
 	n = strlen(name)+2;
@@ -394,7 +394,7 @@ makepath(File *p, char *name)
 }
 
 int
-qidhash(vlong path)
+qidhash(int64_t path)
 {
 	int h, n;
 
@@ -409,7 +409,7 @@ qidhash(vlong path)
 void
 freeqid(Qidtab *q)
 {
-	ulong h;
+	uint32_t h;
 	Qidtab *l;
 
 	q->ref--;
@@ -431,7 +431,7 @@ freeqid(Qidtab *q)
 Qidtab*
 qidlookup(Dir *d)
 {
-	ulong h;
+	uint32_t h;
 	Qidtab *q;
 
 	h = qidhash(d->qid.path);
@@ -442,7 +442,7 @@ qidlookup(Dir *d)
 }
 
 int
-qidexists(vlong path)
+qidexists(int64_t path)
 {
 	int h;
 	Qidtab *q;
@@ -457,8 +457,8 @@ qidexists(vlong path)
 Qidtab*
 uniqueqid(Dir *d)
 {
-	ulong h;
-	vlong path;
+	uint32_t h;
+	int64_t path;
 	Qidtab *q;
 
 	q = qidlookup(d);
@@ -496,9 +496,9 @@ uniqueqid(Dir *d)
 }
 
 void
-fatal(char *s, ...)
+fatal(int8_t *s, ...)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 	va_list arg;
 
 	if (s) {

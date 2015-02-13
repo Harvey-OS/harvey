@@ -163,7 +163,7 @@ iWcWidth(ULONG ucs)
  * Fills in the number of bytes in the UTF-8 character
  */
 static ULONG
-utf8_to_ucs(const char *p, int iStrLen, int *piUtfLen)
+utf8_to_ucs(const int8_t *p, int iStrLen, int *piUtfLen)
 {
 	ULONG	ulUcs;
 	int	iIndex, iCharLen;
@@ -209,11 +209,11 @@ utf8_to_ucs(const char *p, int iStrLen, int *piUtfLen)
  *
  * Returns the string width in columns
  */
-long
-utf8_strwidth(const char *pcString, size_t tNumchars)
+int32_t
+utf8_strwidth(const int8_t *pcString, size_t tNumchars)
 {
 	ULONG	ulUcs;
-	long	lTotal;
+	int32_t	lTotal;
 	int	iToGo, iWidth, iUtflen;
 
 	fail(pcString == NULL || tNumchars > (size_t)INT_MAX);
@@ -240,7 +240,7 @@ utf8_strwidth(const char *pcString, size_t tNumchars)
  * Returns the number of bytes
  */
 int
-utf8_chrlength(const char *p)
+utf8_chrlength(const int8_t *p)
 {
 	int	iUtflen;
 
@@ -258,7 +258,7 @@ utf8_chrlength(const char *p)
 BOOL
 is_locale_utf8(void)
 {
-	char	szCodeset[20];
+	int8_t	szCodeset[20];
 
 	szCodeset[0] = '\0';
 	if (!bGetNormalizedCodeset(szCodeset, sizeof(szCodeset), NULL)) {

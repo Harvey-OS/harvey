@@ -19,7 +19,7 @@
 #define	UNSMARK	0x1000
 
 struct value {
-	long	val;
+	int32_t	val;
 	int	type;
 };
 
@@ -33,9 +33,9 @@ struct value {
 
 /* operator priority, arity, and conversion type, indexed by tokentype */
 const struct pri {
-	char	pri;
-	char	arity;
-	char	ctype;
+	int8_t	pri;
+	int8_t	arity;
+	int8_t	ctype;
 } priority[] = {
 	{ 0, 0, 0 },		/* END */
 	{ 0, 0, 0 },		/* UNCLASS */
@@ -107,7 +107,7 @@ enum toktype ops[NSTAK + 1], *op;
 /*
  * Evaluate an #if #elif #ifdef #ifndef line.  trp->tp points to the keyword.
  */
-long
+int32_t
 eval(Tokenrow *trp, int kw)
 {
 	Token *tp;
@@ -227,7 +227,7 @@ int
 evalop(struct pri pri)
 {
 	struct value v1, v2;
-	long rv1, rv2;
+	int32_t rv1, rv2;
 	int rtype, oper;
 
 	rv2=0;
@@ -398,7 +398,7 @@ tokval(Token *tp)
 	int i, base, c, longcc;
 	unsigned long n;
 	Rune r;
-	uchar *p;
+	uint8_t *p;
 
 	v.type = SGN;
 	v.val = 0;
@@ -485,7 +485,7 @@ tokval(Token *tp)
 					n += i;
 				}
 			} else {
-				static char cvcon[]
+				static int8_t cvcon[]
 				  = "a\ab\bf\fn\nr\rt\tv\v''\"\"??\\\\";
 				for (i=0; i<sizeof(cvcon); i+=2) {
 					if (*p == cvcon[i]) {
@@ -501,7 +501,7 @@ tokval(Token *tp)
 		} else if (*p=='\'')
 			error(ERROR, "Empty character constant");
 		else {
-			i = chartorune(&r, (char*)p);
+			i = chartorune(&r, (int8_t*)p);
 			n = r;
 			p += i;
 			if (i>1 && longcc==0)

@@ -17,7 +17,7 @@ VacFs *fs;
 int tostdout;
 int diff;
 int nwant;
-char **want;
+int8_t **want;
 int *found;
 int chatty;
 VtConn *conn;
@@ -26,7 +26,7 @@ int settimes;
 int table;
 
 int mtimefmt(Fmt*);
-void unvac(VacFile*, char*, VacDir*);
+void unvac(VacFile*, int8_t*, VacDir*);
 
 void
 usage(void)
@@ -37,8 +37,8 @@ usage(void)
 
 struct
 {
-	vlong data;
-	vlong skipdata;
+	int64_t data;
+	int64_t skipdata;
 } stats;
 
 void
@@ -128,7 +128,7 @@ threadmain(int argc, char *argv[])
 }
 
 int
-writen(int fd, char *buf, int n)
+writen(int fd, int8_t *buf, int n)
 {
 	int m;
 	int oldn;
@@ -145,7 +145,7 @@ writen(int fd, char *buf, int n)
 }
 
 int
-wantfile(char *name)
+wantfile(int8_t *name)
 {
 	int i, namelen, n;
 	
@@ -170,14 +170,14 @@ wantfile(char *name)
 }
 
 void
-unvac(VacFile *f, char *name, VacDir *vdir)
+unvac(VacFile *f, int8_t *name, VacDir *vdir)
 {
-	static char buf[65536];
+	static int8_t buf[65536];
 	int fd, n, m,  bsize;
-	ulong mode, mode9;
-	char *newname;
-	char *what;
-	vlong off;
+	uint32_t mode, mode9;
+	int8_t *newname;
+	int8_t *what;
+	int64_t off;
 	Dir d, *dp;
 	VacDirEnum *vde;
 	VacDir newvdir;
@@ -280,7 +280,7 @@ unvac(VacFile *f, char *name, VacDir *vdir)
 			else if(diff && (fd = open(name, ORDWR)) >= 0){
 				bsize = vacfiledsize(f);
 				while((n = readn(fd, buf, bsize)) > 0){
-					if(sha1matches(f, off/bsize, (uchar*)buf, n)){
+					if(sha1matches(f, off/bsize, (uint8_t*)buf, n)){
 						off += n;
 						stats.skipdata += n;
 						continue;
@@ -338,7 +338,7 @@ mtimefmt(Fmt *f)
 {
 	Tm *tm;
 	
-	tm = localtime(va_arg(f->args, ulong));
+	tm = localtime(va_arg(f->args, uint32_t));
 	fmtprint(f, "%04d-%02d-%02d %02d:%02d",
 		tm->year+1900, tm->mon+1, tm->mday,
 		tm->hour, tm->min);

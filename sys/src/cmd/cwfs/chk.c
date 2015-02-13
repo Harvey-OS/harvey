@@ -16,13 +16,13 @@ typedef struct {
 	int	ns;
 } Extdentry;
 
-static	char*	abits;
-static	long	sizabits;
-static	char*	qbits;
-static	long	sizqbits;
+static	int8_t*	abits;
+static	int32_t	sizabits;
+static	int8_t*	qbits;
+static	int32_t	sizqbits;
 
-static	char*	name;
-static	long	sizname;
+static	int8_t*	name;
+static	int32_t	sizname;
 
 static	Off	fstart;
 static	Off	fsize;
@@ -44,7 +44,7 @@ static	Devsize	oldblock;
 
 static	int	depth;
 static	int	maxdepth;
-static	uchar	*lowstack, *startstack;
+static	uint8_t	*lowstack, *startstack;
 
 /* local prototypes */
 static	int	amark(Off);
@@ -65,9 +65,9 @@ static	void	xread(Off, Off);
 static	Iobuf*	xtag(Off, int, Off);
 
 static void *
-chkalloc(ulong n)
+chkalloc(uint32_t n)
 {
-	char *p = mallocz(n, 1);
+	int8_t *p = mallocz(n, 1);
 
 	if (p == nil)
 		panic("chkalloc: out of memory");
@@ -98,8 +98,8 @@ enum
 };
 
 static struct {
-	char*	option;
-	long	flag;
+	int8_t*	option;
+	int32_t	flag;
 } ckoption[] = {
 	"rdall",	Crdall,
 	"tag",		Ctag,
@@ -115,9 +115,9 @@ static struct {
 };
 
 void
-cmd_check(int argc, char *argv[])
+cmd_check(int argc, int8_t *argv[])
 {
-	long f, i, flag;
+	int32_t f, i, flag;
 	Off raddr;
 	Filsys *fs;
 	Iobuf *p;
@@ -237,9 +237,9 @@ cmd_check(int argc, char *argv[])
 	print("nbad   = %lld\n", (Wideoff)nbad);
 	print("nqbad  = %lld\n", (Wideoff)nqbad);
 	print("maxq   = %lld\n", (Wideoff)maxq);
-	print("base stack=%llud\n", (vlong)startstack);
+	print("base stack=%llud\n", (int64_t)startstack);
 	/* high-water mark of stack usage */
-	print("high stack=%llud\n", (vlong)lowstack);
+	print("high stack=%llud\n", (int64_t)lowstack);
 	print("deepest recursion=%d\n", maxdepth-1);	/* one-origin */
 	if(!cwflag)
 		missing();
@@ -396,10 +396,10 @@ fsck(Dentry *d)
 	if(depth >= maxdepth)
 		maxdepth = depth;
 	if (lowstack == nil)
-		startstack = lowstack = (uchar *)&edent;
+		startstack = lowstack = (uint8_t *)&edent;
 	/* more precise check, assumes downward-growing stack */
-	if ((uchar *)&edent < lowstack)
-		lowstack = (uchar *)&edent;
+	if ((uint8_t *)&edent < lowstack)
+		lowstack = (uint8_t *)&edent;
 
 	/* check that entry is allocated */
 	if(!(d->mode & DALLOC))

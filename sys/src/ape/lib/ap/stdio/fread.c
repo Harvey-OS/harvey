@@ -16,10 +16,10 @@
 #define BIGN (BUFSIZ/2)
 
 size_t fread(void *p, size_t recl, size_t nrec, FILE *f){
-	char *s;
+	int8_t *s;
 	int n, d, c;
 
-	s=(char *)p;
+	s=(int8_t *)p;
 	n=recl*nrec;
 	while(n>0){
 		d=f->wp-f->rp;
@@ -48,7 +48,7 @@ size_t fread(void *p, size_t recl, size_t nrec, FILE *f){
 	}
     ret:
 	if(recl)
-		return (s-(char*)p)/recl;
+		return (s-(int8_t*)p)/recl;
 	else
-		return s-(char*)p;
+		return s-(int8_t*)p;
 }

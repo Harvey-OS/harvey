@@ -78,7 +78,7 @@ pdf_find_named(gx_device_pdf * pdev, const gs_param_string * pname,
  */
 int
 pdf_create_named(gx_device_pdf *pdev, const gs_param_string *pname,
-		 cos_type_t cotype, cos_object_t **ppco, long id)
+		 cos_type_t cotype, cos_object_t **ppco, int32_t id)
 {
     cos_object_t *pco;
     cos_value_t value;
@@ -102,7 +102,7 @@ pdf_create_named(gx_device_pdf *pdev, const gs_param_string *pname,
 }
 int
 pdf_create_named_dict(gx_device_pdf *pdev, const gs_param_string *pname,
-		      cos_dict_t **ppcd, long id)
+		      cos_dict_t **ppcd, int32_t id)
 {
     cos_object_t *pco;
     int code = pdf_create_named(pdev, pname, cos_type_dict, &pco, id);
@@ -123,7 +123,7 @@ pdf_refer_named(gx_device_pdf * pdev, const gs_param_string * pname_orig,
 {
     const gs_param_string *pname = pname_orig;
     int code = pdf_find_named(pdev, pname, ppco);
-    char page_name_chars[6 + 10 + 2]; /* {Page<n>}, enough for an int */
+    int8_t page_name_chars[6 + 10 + 2]; /* {Page<n>}, enough for an int */
     gs_param_string pnstr;
     int page_number;
 
@@ -134,7 +134,7 @@ pdf_refer_named(gx_device_pdf * pdev, const gs_param_string * pname_orig,
      * to the appropriate Page<#> name.
      */
     if (pname->size >= 7 &&
-	sscanf((const char *)pname->data, "{Page%d}", &page_number) == 1
+	sscanf((const int8_t *)pname->data, "{Page%d}", &page_number) == 1
 	)
 	goto cpage;
     if (pdf_key_eq(pname, "{ThisPage}"))
@@ -451,7 +451,7 @@ pdf_replace_names(gx_device_pdf * pdev, const gs_param_string * from,
     cos_object_t *pco;
     bool any = false;
     byte *sto;
-    char ref[1 + 10 + 5 + 1];	/* max obj number is 10 digits */
+    int8_t ref[1 + 10 + 5 + 1];	/* max obj number is 10 digits */
 
     /* Do a first pass to compute the length of the result. */
     for (scan = start; scan < end;) {

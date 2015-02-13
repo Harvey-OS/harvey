@@ -176,7 +176,7 @@ int stream_size;
 
 int ZEXPORT inflateInit_(strm, version, stream_size)
 z_streamp strm;
-const char *version;
+const int8_t *version;
 int stream_size;
 {
     return inflateInit2_(strm, DEF_WBITS, version, stream_size);

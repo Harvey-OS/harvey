@@ -24,11 +24,11 @@
 int     opterr = 1;
 int     optind = 1;
 int	optopt;
-char    *optarg;
+int8_t    *optarg;
 
 int
 getopt (argc, argv, opts)
-char **argv, *opts;
+int8_t **argv, *opts;
 {
 	static int sp = 1;
 	register c;

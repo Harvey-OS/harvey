@@ -11,36 +11,36 @@
 #include <libc.h>
 #include <bio.h>
 
-char	dayw[] =
+int8_t	dayw[] =
 {
 	" S  M Tu  W Th  F  S"
 };
-char	*smon[] =
+int8_t	*smon[] =
 {
 	"January", "February", "March", "April",
 	"May", "June", "July", "August",
 	"September", "October", "November", "December",
 };
-char	mon[] =
+int8_t	mon[] =
 {
 	0,
 	31, 29, 31, 30,
 	31, 30, 31, 31,
 	30, 31, 30, 31,
 };
-char	string[432];
+int8_t	string[432];
 Biobuf	bout;
 
-void	main(int argc, char *argv[]);
-int	number(char *str);
-void	pstr(char *str, int n);
-void	cal(int m, int y, char *p, int w);
+void	main(int argc, int8_t *argv[]);
+int	number(int8_t *str);
+void	pstr(int8_t *str, int n);
+void	cal(int m, int y, int8_t *p, int w);
 int	jan1(int yr);
 int	curmo(void);
 int	curyr(void);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int y, i, j, m;
 
@@ -132,7 +132,7 @@ badarg:
 
 struct
 {
-	char*	word;
+	int8_t*	word;
 	int	val;
 } dict[] =
 {
@@ -169,10 +169,10 @@ struct
  * return negative  number
  */
 int
-number(char *str)
+number(int8_t *str)
 {
 	int n, c;
-	char *s;
+	int8_t *s;
 
 	for(n=0; s=dict[n].word; n++)
 		if(strcmp(s, str) == 0)
@@ -188,10 +188,10 @@ number(char *str)
 }
 
 void
-pstr(char *str, int n)
+pstr(int8_t *str, int n)
 {
 	int i;
-	char *s;
+	int8_t *s;
 
 	s = str;
 	i = n;
@@ -207,10 +207,10 @@ pstr(char *str, int n)
 }
 
 void
-cal(int m, int y, char *p, int w)
+cal(int m, int y, int8_t *p, int w)
 {
 	int d, i;
-	char *s;
+	int8_t *s;
 
 	s = p;
 	d = jan1(y);

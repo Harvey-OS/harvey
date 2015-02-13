@@ -135,7 +135,7 @@ seteps(Serialport *p)
 }
 
 static int
-wait4data(Serialport *p, uchar *data, int count)
+wait4data(Serialport *p, uint8_t *data, int count)
 {
 	int n;
 

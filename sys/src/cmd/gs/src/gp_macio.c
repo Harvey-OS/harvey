@@ -79,7 +79,7 @@
 
 
 extern void
-convertSpecToPath(FSSpec * s, char * p, int pLen)
+convertSpecToPath(FSSpec * s, int8_t * p, int pLen)
 {
 	OSStatus	err = noErr;
 	CInfoPBRec	params;
@@ -115,7 +115,7 @@ convertSpecToPath(FSSpec * s, char * p, int pLen)
 }
 
 OSErr
-convertPathToSpec(const char *path, const int pathlength, FSSpec * spec)
+convertPathToSpec(const int8_t *path, const int pathlength, FSSpec * spec)
 {
 	Str255 filename;
 	
@@ -131,16 +131,16 @@ convertPathToSpec(const char *path, const int pathlength, FSSpec * spec)
 /* ------ File name syntax ------ */
 
 /* Define the character used for separating file names in a list. */
-const char gp_file_name_list_separator = ',';
+const int8_t gp_file_name_list_separator = ',';
 
 /* Define the default scratch file name prefix. */
-const char gp_scratch_file_name_prefix[] = "tempgs_";
+const int8_t gp_scratch_file_name_prefix[] = "tempgs_";
 
 /* Define the name of the null output file. */
-const char gp_null_file_name[] = "????";
+const int8_t gp_null_file_name[] = "????";
 
 /* Define the name that designates the current directory. */
-extern const char gp_current_directory_name[] = ":";
+extern const int8_t gp_current_directory_name[] = ":";
 
 int fake_stdin = 0;
 
@@ -148,19 +148,19 @@ int fake_stdin = 0;
 /* Do platform-dependent initialization */
 
 void
-setenv(const char * env, char *p) {
+setenv(const int8_t * env, int8_t *p) {
 //	if ( strcmp(env,"outfile") == 0) {
 //	   sprintf((char *)&g_fcout[0],"%s",p);
 //	}
 }
 
-char *
-getenv(const char * env) {
+int8_t *
+getenv(const int8_t * env) {
 
-	char 			*p;
+	int8_t 			*p;
 	FSSpec			pFile;
 	OSErr			err = 0;
-	char			fpath[256]="";
+	int8_t			fpath[256]="";
 	
 	if ( strcmp(env,"GS_LIB") == 0) {
 	
@@ -173,10 +173,10 @@ getenv(const char * env) {
 //		FSMakeFSSpec(pFile.vRefNum, pFile.parID,thepfname, &pfile);
 		convertSpecToPath(&pFile, fpath, 256);
 //		sprintf(fpath,"%s",fpath);
-		p = (char*)malloc((size_t) ( 4*strlen(fpath) + 40));
+		p = (int8_t*)malloc((size_t) ( 4*strlen(fpath) + 40));
 		sprintf(p,"%s,%sGhostscript:lib,%sGhostscript:fonts",
-						(char *)&fpath[0],(char *)&fpath[0],
-						(char *)&fpath[0] );
+						(int8_t *)&fpath[0],(int8_t *)&fpath[0],
+						(int8_t *)&fpath[0] );
 
 		return p;
 failed:
@@ -340,7 +340,7 @@ mac_std_available(register stream * s, long *pl)
 /* Return NULL if the connection could not be opened. */
 
 FILE *
-gp_open_printer (char *fname, int binary_mode)
+gp_open_printer (int8_t *fname, int binary_mode)
 {
     if (strlen(fname) == 0)
         return gp_open_scratch_file(gp_scratch_file_name_prefix, fname, binary_mode ? "wb" : "w");
@@ -351,7 +351,7 @@ gp_open_printer (char *fname, int binary_mode)
 /* Close the connection to the printer. */
 
 void
-gp_close_printer (FILE *pfile, const char *fname)
+gp_close_printer (FILE *pfile, const int8_t *fname)
 {
     fclose(pfile);
 }
@@ -364,11 +364,11 @@ const int gp_file_names_ignore_case = 1;
 
 /* Define the string to be concatenated with the file mode */
 /* for opening files without end-of-line conversion. */
-const char gp_fmode_binary_suffix[] = "b";
+const int8_t gp_fmode_binary_suffix[] = "b";
 
 /* Define the file modes for binary reading or writing. */
-const char gp_fmode_rb[] = "rb";
-const char gp_fmode_wb[] = "wb";
+const int8_t gp_fmode_rb[] = "rb";
+const int8_t gp_fmode_wb[] = "wb";
 
 
 /* Set a file into binary or text mode. */
@@ -382,21 +382,22 @@ gp_setmode_binary(FILE *pfile, bool binary)
 /* Write the actual file name at fname. */
 
 FILE *
-gp_open_scratch_file (const char *prefix, char fname[gp_file_name_sizeof], const char *mode)
+gp_open_scratch_file (const int8_t *prefix, int8_t fname[gp_file_name_sizeof],
+                      const int8_t *mode)
 {
-    char thefname[256];
+    int8_t thefname[256];
     Str255 thepfname;
     OSErr myErr;
-    short foundVRefNum;
-    long foundDirID;
+    int16_t foundVRefNum;
+    int32_t foundDirID;
     FSSpec fSpec;
     FILE *f;
     int prefix_length = strlen(prefix);
 
     if (prefix_length > gp_file_name_sizeof) return NULL;
-    strcpy (fname, (char *) prefix);
+    strcpy (fname, (int8_t *) prefix);
       {
-	char newName[50];
+	int8_t newName[50];
 
 	tmpnam (newName);
 	if ( prefix_length + strlen(newName) > gp_file_name_sizeof ) return NULL;
@@ -405,7 +406,7 @@ gp_open_scratch_file (const char *prefix, char fname[gp_file_name_sizeof], const
 
    if ( strlen(fname) > 255 ) return NULL;
    if ( strrchr(fname,':') == NULL ) {
-       memmove((char*)&thepfname[1],(char *)&fname[0],strlen(fname));
+       memmove((int8_t*)&thepfname[1],(int8_t *)&fname[0],strlen(fname));
 	   thepfname[0]=strlen(fname);
 		myErr = FindFolder(kOnSystemDisk,kTemporaryFolderType,kCreateFolder,
 			&foundVRefNum, &foundDirID);
@@ -417,8 +418,8 @@ gp_open_scratch_file (const char *prefix, char fname[gp_file_name_sizeof], const
 		convertSpecToPath(&fSpec, thefname, sizeof(thefname) - 1);
 		sprintf(fname,"%s",thefname);
    } else {
-       sprintf((char*)&thefname[0],"%s\0",fname);
-       memmove((char*)&thepfname[1],(char *)&thefname[0],strlen(thefname));
+       sprintf((int8_t*)&thefname[0],"%s\0",fname);
+       memmove((int8_t*)&thepfname[1],(int8_t *)&thefname[0],strlen(thefname));
 	   thepfname[0]=strlen(thefname);
    }
 
@@ -436,7 +437,8 @@ gp_open_scratch_file (const char *prefix, char fname[gp_file_name_sizeof], const
 /* allocate the appropriate sized buffer, and then call us a second */
 /* time to actually transfer the data.                              */
 int
-gp_read_macresource(byte *buf, const char *fname, const uint type, const ushort id)
+gp_read_macresource(byte *buf, const int8_t *fname, const uint type,
+                    const uint16_t id)
 {
     Handle resource = NULL;
     SInt32 size = 0;
@@ -482,7 +484,7 @@ fin:
 /* return a list of font names and corresponding paths from 
  * the native system locations
  */
-int gp_native_fontmap(char *names[], char *paths[], int *count)
+int gp_native_fontmap(int8_t *names[], int8_t *paths[], int *count)
 {
     return 0;
 }
@@ -492,7 +494,7 @@ int gp_native_fontmap(char *names[], char *paths[], int *count)
 /****** THIS IS NOT SUPPORTED ON MACINTOSH SYSTEMS. ******/
 
 struct file_enum_s {
-	char *pattern;
+	int8_t *pattern;
 	int first_time;
 	gs_memory_t *memory;
 };
@@ -500,14 +502,14 @@ struct file_enum_s {
 /* Initialize an enumeration.  NEEDS WORK ON HANDLING * ? \. */
 
 file_enum *
-gp_enumerate_files_init (const char *pat, uint patlen, gs_memory_t *memory)
+gp_enumerate_files_init (const int8_t *pat, uint patlen, gs_memory_t *memory)
 
 {	file_enum *pfen = 
 		(file_enum *)gs_alloc_bytes(memory, sizeof(file_enum), "gp_enumerate_files");
-	char *pattern;
+	int8_t *pattern;
 	if ( pfen == 0 ) return 0;
 	pattern = 
-		(char *)gs_alloc_bytes(memory, patlen + 1, "gp_enumerate_files(pattern)");
+		(int8_t *)gs_alloc_bytes(memory, patlen + 1, "gp_enumerate_files(pattern)");
 	if ( pattern == 0 ) return 0;
 	memcpy(pattern, pat, patlen);
 	pattern[patlen] = 0;
@@ -520,7 +522,7 @@ gp_enumerate_files_init (const char *pat, uint patlen, gs_memory_t *memory)
 /* Enumerate the next file. */
 
 uint
-gp_enumerate_files_next (file_enum *pfen, char *ptr, uint maxlen)
+gp_enumerate_files_next (file_enum *pfen, int8_t *ptr, uint maxlen)
 
 {	if ( pfen->first_time )
 	   {	pfen->first_time = 0;
@@ -535,22 +537,23 @@ gp_enumerate_files_close (file_enum *pfen)
 
 {	
 	gs_free_object(pfen->memory, pfen->pattern, "gp_enumerate_files_close(pattern)");
-	gs_free_object(pfen->memory, (char *)pfen, "gp_enumerate_files_close");
+	gs_free_object(pfen->memory, (int8_t *)pfen,
+		       "gp_enumerate_files_close");
 }
 
 FILE * 
-gp_fopen (const char * fname, const char * mode) {
+gp_fopen (const int8_t * fname, const int8_t * mode) {
 
-   char thefname[256];
+   int8_t thefname[256];
    FILE *fid;
 
 //sprintf((char*)&thefname[0],"\n%s\n",fname);
 //(*pgsdll_callback) (GSDLL_STDOUT, thefname, strlen(fname));
    if ( strrchr(fname,':') == NULL ) 
 //      sprintf((char *)&thefname[0],"%s%s\0",g_homeDir,fname);
-      sprintf((char *)&thefname[0],"%s%s\0","",fname);
+      sprintf((int8_t *)&thefname[0],"%s%s\0","",fname);
    else
-       sprintf((char*)&thefname[0],"%s\0",fname);
+       sprintf((int8_t*)&thefname[0],"%s\0",fname);
        
    fid = fopen(thefname,mode);
    
@@ -559,7 +562,7 @@ gp_fopen (const char * fname, const char * mode) {
 }
 
 FILE * 
-popen (const char * fname, const char * mode ) {
+popen (const int8_t * fname, const int8_t * mode ) {
 	return gp_fopen (fname,  mode);
 }
 
@@ -573,7 +576,7 @@ pclose (FILE * pipe ) {
 #ifdef __CARBON__
 
 /* compare an HFSUnitStr255 with a C string */
-static int compare_UniStr(HFSUniStr255 u, const char *c, uint len)
+static int compare_UniStr(HFSUniStr255 u, const int8_t *c, uint len)
 {
 	int i,searchlen,unichar;
 	searchlen = min(len,u.length);
@@ -588,7 +591,7 @@ static int compare_UniStr(HFSUniStr255 u, const char *c, uint len)
 	return (i == u.length) ? i : 0;
 }
 
-uint gp_file_name_root(const char *fname, uint len)
+uint gp_file_name_root(const int8_t *fname, uint len)
 {
 	OSErr err = noErr;
    	HFSUniStr255 volumeName;
@@ -624,7 +627,7 @@ uint gp_file_name_root(const char *fname, uint len)
 
 /* FSGetVolumeInfo requires carbonlib or macos >= 9
    we essentially leave this unimplemented on Classic */
-uint gp_file_name_root(const char *fname, uint len)
+uint gp_file_name_root(const int8_t *fname, uint len)
 {
 	return 0;
 }
@@ -632,7 +635,8 @@ uint gp_file_name_root(const char *fname, uint len)
 #endif /* __CARBON__ */
 
 
-uint gs_file_name_check_separator(const char *fname, int len, const char *item)
+uint gs_file_name_check_separator(const int8_t *fname, int len,
+                                  const int8_t *item)
 {   if (len > 0) {
 	if (fname[0] == ':') {
 	    if (fname == item + 1 && item[0] == ':')
@@ -648,27 +652,27 @@ uint gs_file_name_check_separator(const char *fname, int len, const char *item)
     return 0;
 }
 
-bool gp_file_name_is_parent(const char *fname, uint len)
+bool gp_file_name_is_parent(const int8_t *fname, uint len)
 {   return len == 1 && fname[0] == ':';
 }
 
-bool gp_file_name_is_current(const char *fname, uint len)
+bool gp_file_name_is_current(const int8_t *fname, uint len)
 {   return (len == 0) || (len == 1 && fname[0] == ':');
 }
 
-const char *gp_file_name_separator(void)
+const int8_t *gp_file_name_separator(void)
 {   return ":";
 }
 
-const char *gp_file_name_directory_separator(void)
+const int8_t *gp_file_name_directory_separator(void)
 {   return ":";
 }
 
-const char *gp_file_name_parent(void)
+const int8_t *gp_file_name_parent(void)
 {   return "::";
 }
 
-const char *gp_file_name_current(void)
+const int8_t *gp_file_name_current(void)
 {   return ":";
 }
 
@@ -681,17 +685,18 @@ bool gp_file_name_is_empty_item_meanful(void)
 }
 
 gp_file_name_combine_result
-gp_file_name_combine(const char *prefix, uint plen, const char *fname, uint flen, 
-		    bool no_sibling, char *buffer, uint *blen)
+gp_file_name_combine(const int8_t *prefix, uint plen, const int8_t *fname,
+                     uint flen, 
+		    bool no_sibling, int8_t *buffer, uint *blen)
 {
     return gp_file_name_combine_generic(prefix, plen, 
 	    fname, flen, no_sibling, buffer, blen);
 }
 
 // FIXME: there must be a system util for this!
-static char *MacStr2c(char *pstring)
+static int8_t *MacStr2c(int8_t *pstring)
 {
-	char *cstring;
+	int8_t *cstring;
 	int len = (pstring[0] < 256) ? pstring[0] : 255;
 
 	if (len == 0) return NULL;
@@ -787,7 +792,7 @@ static fond_table * parse_fond(FSSpec *spec)
 	    result = ResError();
 	}
     if (result != noErr || ref <= 0) {
-    	char path[256];
+    	int8_t path[256];
     	convertSpecToPath(spec, path, 256);
       	dlprintf2("unable to open resource file '%s' for font enumeration (error %d)\n",
       		path, result);
@@ -830,20 +835,20 @@ fin:
 }
 
 /* FIXME: should check for uppercase as well */
-static int is_ttf_file(const char *path)
+static int is_ttf_file(const int8_t *path)
 {
     int len = strlen(path);
     return !memcmp(path+len-4,".ttf",4);
 }
-static int is_otf_file(const char *path)
+static int is_otf_file(const int8_t *path)
 {
     int len = strlen(path);
     return !memcmp(path+len-4,".otf",4);
 }
 
-static void strip_char(char *string, int len, const int c)
+static void strip_char(int8_t *string, int len, const int c)
 {
-    char *bit;
+    int8_t *bit;
     len += 1;
     while(bit = strchr(string,' ')) {
         memmove(bit, bit + 1, string + len - bit - 1);
@@ -852,13 +857,13 @@ static void strip_char(char *string, int len, const int c)
 
 /* get the macos name for the font instance and mangle it into a PS
    fontname */
-static char *makePSFontName(FMFontFamily Family, FMFontStyle Style)
+static int8_t *makePSFontName(FMFontFamily Family, FMFontStyle Style)
 {
 	Str255 Name;
 	OSStatus result;
 	int length;
-	char *stylename, *fontname;
-	char *psname;
+	int8_t *stylename, *fontname;
+	int8_t *psname;
 	
 	result = FMGetFontFamilyName(Family, Name);
 	if (result != noErr) return NULL;
@@ -889,10 +894,10 @@ static char *makePSFontName(FMFontFamily Family, FMFontStyle Style)
 typedef struct {
     int count;
     FMFontIterator Iterator;
-    char *name;
-    char *path;
+    int8_t *name;
+    int8_t *path;
     FSSpec last_container;
-    char *last_container_path;
+    int8_t *last_container_path;
     fond_table *last_table;
 } fontenum_t;
                                                                                 
@@ -934,7 +939,8 @@ void gp_enumerate_fonts_free(void *enum_state)
     
 }
                                    
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, int8_t **fontname,
+			    int8_t **path)
 {
     fontenum_t *state = (fontenum_t *)enum_state;
 	FMFontIterator *Iterator = &state->Iterator;
@@ -943,9 +949,9 @@ int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
 	FMFontFamily FontFamily;
 	FMFontStyle Style;
 	FSSpec FontContainer;
-	char type[5];
-	char fontpath[256];
-	char *psname;
+	int8_t type[5];
+	int8_t fontpath[256];
+	int8_t *psname;
 	fond_table *table = NULL;
 	OSStatus result;
     	
@@ -953,10 +959,10 @@ int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
     if (result != noErr) return 0; /* no more fonts */
 
 	result = FMGetFontFormat(Font, &Format);
-	type[0] = ((char*)&Format)[0];
-	type[1] = ((char*)&Format)[1];
-	type[2] = ((char*)&Format)[2];
-	type[3] = ((char*)&Format)[3];
+	type[0] = ((int8_t*)&Format)[0];
+	type[1] = ((int8_t*)&Format)[1];
+	type[2] = ((int8_t*)&Format)[2];
+	type[3] = ((int8_t*)&Format)[3];
 	type[4] = '\0';
 
  	FMGetFontFamilyInstanceFromFont(Font, &FontFamily, &Style);

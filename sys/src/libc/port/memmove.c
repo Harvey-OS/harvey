@@ -11,11 +11,11 @@
 #include	<libc.h>
 
 void*
-memmove(void *a1, void *a2, ulong n)
+memmove(void *a1, void *a2, uint32_t n)
 {
-	char *s1, *s2;
+	int8_t *s1, *s2;
 
-	if((long)n < 0)
+	if((int32_t)n < 0)
 		abort();
 	s1 = a1;
 	s2 = a2;
@@ -38,7 +38,7 @@ back:
 }
 
 void*
-memcpy(void *a1, void *a2, ulong n)
+memcpy(void *a1, void *a2, uint32_t n)
 {
 	return memmove(a1, a2, n);
 }

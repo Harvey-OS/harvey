@@ -18,7 +18,7 @@
 #include "dir.h"
 
 int
-chown(const char *path, uid_t owner, gid_t group)
+chown(const int8_t *path, uid_t owner, gid_t group)
 {
 	int num;
 	Dir d;

@@ -14,16 +14,16 @@
 #define Extern	extern
 #include "statfs.h"
 
-char Ebadfid[]	= "Bad fid";
-char Enotdir[]	="Not a directory";
-char Edupfid[]	= "Fid already in use";
-char Eopen[]	= "Fid already opened";
-char Exmnt[]	= "Cannot .. past mount point";
-char Enoauth[]	= "iostats: Authentication failed";
-char Ebadver[]	= "Unrecognized 9P version";
+int8_t Ebadfid[]	= "Bad fid";
+int8_t Enotdir[]	="Not a directory";
+int8_t Edupfid[]	= "Fid already in use";
+int8_t Eopen[]	= "Fid already opened";
+int8_t Exmnt[]	= "Cannot .. past mount point";
+int8_t Enoauth[]	= "iostats: Authentication failed";
+int8_t Ebadver[]	= "Unrecognized 9P version";
 
 int
-okfile(char *s, int mode)
+okfile(int8_t *s, int mode)
 {
 	if(strncmp(s, "/fd/", 3) == 0){
 		/* 0, 1, and 2 we handle ourselves */
@@ -41,9 +41,9 @@ okfile(char *s, int mode)
 }
 
 void
-update(Rpc *rpc, vlong t)
+update(Rpc *rpc, int64_t t)
 {
-	vlong t2;
+	int64_t t2;
 
 	t2 = nsec();
 	t = t2 - t;
@@ -61,7 +61,7 @@ void
 Xversion(Fsrpc *r)
 {
 	Fcall thdr;
-	vlong t;
+	int64_t t;
 
 	t = nsec();
 
@@ -87,7 +87,7 @@ void
 Xauth(Fsrpc *r)
 {
 	Fcall thdr;
-	vlong t;
+	int64_t t;
 
 	t = nsec();
 
@@ -129,7 +129,7 @@ Xattach(Fsrpc *r)
 {
 	Fcall thdr;
 	Fid *f;
-	vlong t;
+	int64_t t;
 
 	t = nsec();
 
@@ -151,11 +151,11 @@ Xattach(Fsrpc *r)
 void
 Xwalk(Fsrpc *r)
 {
-	char errbuf[ERRMAX], *err;
+	int8_t errbuf[ERRMAX], *err;
 	Fcall thdr;
 	Fid *f, *n;
 	File *nf;
-	vlong t;
+	int64_t t;
 	int i;
 
 	t = nsec();
@@ -226,7 +226,7 @@ Xclunk(Fsrpc *r)
 {
 	Fcall thdr;
 	Fid *f;
-	vlong t;
+	int64_t t;
 	int fid;
 
 	t = nsec();
@@ -256,12 +256,12 @@ Xclunk(Fsrpc *r)
 void
 Xstat(Fsrpc *r)
 {
-	char err[ERRMAX], path[128];
-	uchar statbuf[STATMAX];
+	int8_t err[ERRMAX], path[128];
+	uint8_t statbuf[STATMAX];
 	Fcall thdr;
 	Fid *f;
 	int s;
-	vlong t;
+	int64_t t;
 
 	t = nsec();
 
@@ -301,11 +301,11 @@ Xstat(Fsrpc *r)
 void
 Xcreate(Fsrpc *r)
 {
-	char err[ERRMAX], path[128];
+	int8_t err[ERRMAX], path[128];
 	Fcall thdr;
 	Fid *f;
 	File *nf;
-	vlong t;
+	int64_t t;
 
 	t = nsec();
 
@@ -348,10 +348,10 @@ Xcreate(Fsrpc *r)
 void
 Xremove(Fsrpc *r)
 {
-	char err[ERRMAX], path[128];
+	int8_t err[ERRMAX], path[128];
 	Fcall thdr;
 	Fid *f;
-	vlong t;
+	int64_t t;
 
 	t = nsec();
 
@@ -386,11 +386,11 @@ Xremove(Fsrpc *r)
 void
 Xwstat(Fsrpc *r)
 {
-	char err[ERRMAX], path[128];
+	int8_t err[ERRMAX], path[128];
 	Fcall thdr;
 	Fid *f;
 	int s;
-	vlong t;
+	int64_t t;
 
 	t = nsec();
 
@@ -509,10 +509,10 @@ blockingslave(void)
 void
 slaveopen(Fsrpc *p)
 {
-	char err[ERRMAX], path[128];
+	int8_t err[ERRMAX], path[128];
 	Fcall *work, thdr;
 	Fid *f;
-	vlong t;
+	int64_t t;
 
 	work = &p->work;
 
@@ -562,11 +562,11 @@ slaveopen(Fsrpc *p)
 void
 slaveread(Fsrpc *p)
 {
-	char data[Maxfdata], err[ERRMAX];
+	int8_t data[Maxfdata], err[ERRMAX];
 	Fcall *work, thdr;
 	Fid *f;
 	int n, r;
-	vlong t;
+	int64_t t;
 
 	work = &p->work;
 
@@ -624,11 +624,11 @@ slaveread(Fsrpc *p)
 void
 slavewrite(Fsrpc *p)
 {
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 	Fcall *work, thdr;
 	Fid *f;
 	int n;
-	vlong t;
+	int64_t t;
 
 	work = &p->work;
 
@@ -671,7 +671,7 @@ reopen(Fid *f)
 }
 
 void
-flushaction(void *a, char *cause)
+flushaction(void *a, int8_t *cause)
 {
 	USED(a);
 	if(strncmp(cause, "kill", 4) == 0)

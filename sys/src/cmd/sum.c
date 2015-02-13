@@ -10,9 +10,9 @@
 #include <u.h>
 #include <libc.h>
 
-typedef ulong	Sumfn(ulong, void*, uvlong);
+typedef uint32_t	Sumfn(uint32_t, void*, uint64_t);
 extern Sumfn	sumr, sum5, sum32;
-char		*sumfile(char*, Sumfn*);
+int8_t		*sumfile(int8_t*, Sumfn*);
 
 void
 usage(void)
@@ -47,14 +47,14 @@ main(int argc, char **argv)
 	exits(exitstr);
 }
 
-char*
-sumfile(char *file, Sumfn *fn)
+int8_t*
+sumfile(int8_t *file, Sumfn *fn)
 {
 	int fd;
 	int n;
-	ulong sum;
-	uvlong fsize;
-	char buf[8*1024];
+	uint32_t sum;
+	uint64_t fsize;
+	int8_t buf[8*1024];
 
 	if(file){
 		if((fd = open(file, OREAD)) < 0){
@@ -79,7 +79,7 @@ sumfile(char *file, Sumfn *fn)
 	}
 	if(file)
 		close(fd);
-	(*fn)(sum, (char*)0, fsize);
+	(*fn)(sum, (int8_t*)0, fsize);
 	if(file)
 		print(" %s", file);
 	print("\n");
@@ -88,10 +88,10 @@ sumfile(char *file, Sumfn *fn)
 
 #define	VBSIZE		512		/* system v */
 
-ulong
-sum5(ulong sum, void *buf, uvlong uvn)
+uint32_t
+sum5(uint32_t sum, void *buf, uint64_t uvn)
 {
-	uchar *s, *send;
+	uint8_t *s, *send;
 	int n;
 
 	if(buf == 0){
@@ -107,10 +107,10 @@ sum5(ulong sum, void *buf, uvlong uvn)
 
 #define	RBSIZE		1024		/* research */
 
-ulong
-sumr(ulong sum, void *buf, uvlong uvn)
+uint32_t
+sumr(uint32_t sum, void *buf, uint64_t uvn)
 {
-	uchar *s, *send;
+	uint8_t *s, *send;
 	int n;
 
 	if(buf == 0){
@@ -127,18 +127,18 @@ sumr(ulong sum, void *buf, uvlong uvn)
 	return sum;
 }
 
-extern ulong crc_table[256];
+extern uint32_t crc_table[256];
 
-ulong
-sum32(ulong lcrc, void *buf, uvlong uvn)
+uint32_t
+sum32(uint32_t lcrc, void *buf, uint64_t uvn)
 {
-	uchar *s = buf;
-	ulong crc = lcrc;
+	uint8_t *s = buf;
+	uint32_t crc = lcrc;
 	int n;
 
 	n = uvn;
 	if(buf == 0){
-		char x[4];
+		int8_t x[4];
 
 		x[0] = (n>>24)^0xCC;	/* encode the length but make n==0 not 0 */
 		x[1] = (n>>16)^0x55;
@@ -156,7 +156,7 @@ sum32(ulong lcrc, void *buf, uvlong uvn)
 /*
  *	CRC 035556101440
  */
-ulong crc_table[256] = {
+uint32_t crc_table[256] = {
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
 	0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
 	0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,

@@ -79,7 +79,7 @@ xsummary(void)
 }
 
 void
-rebootcmd(int argc, char **argv)
+rebootcmd(int argc, int8_t **argv)
 {
 	USED(argc);
 	USED(argv);
@@ -91,14 +91,14 @@ kickpager(void)
 }
 
 int
-userwrite(char *a, int n)
+userwrite(int8_t *a, int n)
 {
 	error(Eperm);
 	return 0;
 }
 
-vlong
-todget(vlong *p)
+int64_t
+todget(int64_t *p)
 {
 	if(p)
 		*p = 0;
@@ -106,7 +106,7 @@ todget(vlong *p)
 }
 
 void
-todset(vlong a, vlong b, int c)
+todset(int64_t a, int64_t b, int c)
 {
 	USED(a);
 	USED(b);
@@ -114,13 +114,13 @@ todset(vlong a, vlong b, int c)
 }
 
 void
-todsetfreq(vlong a)
+todsetfreq(int64_t a)
 {
 	USED(a);
 }
 
-long
-hostdomainwrite(char *a, int n)
+int32_t
+hostdomainwrite(int8_t *a, int n)
 {
 	USED(a);
 	USED(n);
@@ -128,8 +128,8 @@ hostdomainwrite(char *a, int n)
 	return 0;
 }
 
-long
-hostownerwrite(char *a, int n)
+int32_t
+hostownerwrite(int8_t *a, int n)
 {
 	USED(a);
 	USED(n);
@@ -155,7 +155,7 @@ setmalloctag(void *v, uintptr tag)
 }
 
 int
-postnote(Proc *p, int x, char *msg, int flag)
+postnote(Proc *p, int x, int8_t *msg, int flag)
 {
 	USED(p);
 	USED(x);
@@ -165,13 +165,13 @@ postnote(Proc *p, int x, char *msg, int flag)
 }
 
 void
-exhausted(char *s)
+exhausted(int8_t *s)
 {
 	panic("out of %s", s);
 }
 
-uvlong
-fastticks(uvlong *v)
+uint64_t
+fastticks(uint64_t *v)
 {
 	if(v)
 		*v = 1;

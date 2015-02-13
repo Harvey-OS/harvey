@@ -20,10 +20,11 @@
  * otherwise, that's an error
  */
 int
-forMsgs(Box *box, MsgSet *ms, ulong max, int uids, int (*f)(Box*, Msg*, int, void*), void *rock)
+forMsgs(Box *box, MsgSet *ms, uint32_t max, int uids,
+	int (*f)(Box*, Msg*, int, void*), void *rock)
 {
 	Msg *m;
-	ulong id;
+	uint32_t id;
 	int ok, rok;
 
 	ok = 1;
@@ -97,7 +98,7 @@ revFetch(Fetch *f)
 }
 
 NList*
-mkNList(ulong n, NList *next)
+mkNList(uint32_t n, NList *next)
 {
 	NList *nl;
 
@@ -124,7 +125,7 @@ revNList(NList *nl)
 }
 
 SList*
-mkSList(char *s, SList *next)
+mkSList(int8_t *s, SList *next)
 {
 	SList *sl;
 
@@ -151,9 +152,9 @@ revSList(SList *sl)
 }
 
 int
-BNList(Biobuf *b, NList *nl, char *sep)
+BNList(Biobuf *b, NList *nl, int8_t *sep)
 {
-	char *s;
+	int8_t *s;
 	int n;
 
 	s = "";
@@ -166,9 +167,9 @@ BNList(Biobuf *b, NList *nl, char *sep)
 }
 
 int
-BSList(Biobuf *b, SList *sl, char *sep)
+BSList(Biobuf *b, SList *sl, int8_t *sep)
 {
-	char *s;
+	int8_t *s;
 	int n;
 
 	s = "";
@@ -184,7 +185,7 @@ BSList(Biobuf *b, SList *sl, char *sep)
 int
 Bimapdate(Biobuf *b, Tm *tm)
 {
-	char buf[64];
+	int8_t buf[64];
 
 	if(tm == nil)
 		tm = localtime(time(nil));
@@ -195,7 +196,7 @@ Bimapdate(Biobuf *b, Tm *tm)
 int
 Brfc822date(Biobuf *b, Tm *tm)
 {
-	char buf[64];
+	int8_t buf[64];
 
 	if(tm == nil)
 		tm = localtime(time(nil));
@@ -204,9 +205,9 @@ Brfc822date(Biobuf *b, Tm *tm)
 }
 
 int
-Bimapstr(Biobuf *b, char *s)
+Bimapstr(Biobuf *b, int8_t *s)
 {
-	char *t;
+	int8_t *t;
 	int c;
 
 	if(s == nil)

@@ -33,14 +33,14 @@ enum {
  * permissions on the direct and index registers. Bits 4 and 5
  * are for the Tvp3025. The Tvp3020 has only 8 direct registers.
  */
-static uchar directreg[32] = {
+static uint8_t directreg[32] = {
 	0x33, 0x33, 0x33, 0x33, 0x00, 0x00, 0x33, 0x33,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
 	0x33, 0x33, 0x11, 0x33, 0x33, 0x33, 0x33, 0x33,
 };
 
-static uchar indexreg[64] = {
+static uint8_t indexreg[64] = {
 	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x00,
 	0x02, 0x02, 0x33, 0x00, 0x00, 0x00, 0x30, 0x30,
 	0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
@@ -55,11 +55,11 @@ static uchar indexreg[64] = {
  * Check the index register access is valid.
  * Return the number of direct registers.
  */
-static uchar
-checkindex(uchar index, uchar access)
+static uint8_t
+checkindex(uint8_t index, uint8_t access)
 {
-	uchar crt55;
-	static uchar id;
+	uint8_t crt55;
+	static uint8_t id;
 
 	if(id == 0){
 		crt55 = vgaxi(Crtx, 0x55) & 0xFC;
@@ -95,10 +95,10 @@ checkindex(uchar index, uchar access)
 	return id;
 }
 
-static uchar
-tvp3020io(uchar reg, uchar data)
+static uint8_t
+tvp3020io(uint8_t reg, uint8_t data)
 {
-	uchar crt55;
+	uint8_t crt55;
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
 	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
@@ -107,10 +107,10 @@ tvp3020io(uchar reg, uchar data)
 	return crt55;
 }
 
-uchar
-tvp3020i(uchar reg)
+uint8_t
+tvp3020i(uint8_t reg)
 {
-	uchar crt55, r;
+	uint8_t crt55, r;
 
 	crt55 = vgaxi(Crtx, 0x55) & 0xFC;
 	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
@@ -120,10 +120,10 @@ tvp3020i(uchar reg)
 	return r;
 }
 
-uchar
-tvp3020xi(uchar index)
+uint8_t
+tvp3020xi(uint8_t index)
 {
-	uchar crt55, r;
+	uint8_t crt55, r;
 
 	checkindex(index, 0x01);
 
@@ -135,18 +135,18 @@ tvp3020xi(uchar index)
 }
 
 void
-tvp3020o(uchar reg, uchar data)
+tvp3020o(uint8_t reg, uint8_t data)
 {
-	uchar crt55;
+	uint8_t crt55;
 
 	crt55 = tvp3020io(reg, data);
 	vgaxo(Crtx, 0x55, crt55);
 }
 
 void
-tvp3020xo(uchar index, uchar data)
+tvp3020xo(uint8_t index, uint8_t data)
 {
-	uchar crt55;
+	uint8_t crt55;
 
 	checkindex(index, 0x02);
 
@@ -164,8 +164,8 @@ options(Vga*, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong grade;
-	char *p;
+	uint32_t grade;
+	int8_t *p;
 
 	/*
 	 * Work out the part speed-grade from name. Name can have,
@@ -199,7 +199,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uchar x;
+	uint8_t x;
 
 	/*
 	 * Input Clock Selection:
@@ -283,7 +283,7 @@ load(Vga* vga, Ctlr* ctlr)
 static void
 dump(Vga*, Ctlr* ctlr)
 {
-	uchar access;
+	uint8_t access;
 	int i;
 
 	access = 0x01;

@@ -20,12 +20,12 @@
  */
 
 /* on some cards, savage4mem[1] == 8, but i don't know how to tell. -rsc */
-static uchar savage4mem[] = { 2, 4, 8, 12, 16, 32, 0, 32};
+static uint8_t savage4mem[] = { 2, 4, 8, 12, 16, 32, 0, 32};
 static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
 	int i, id;
-	char *p;
+	int8_t *p;
 
 	/*
 	 * The Trio/ViRGE variants have some extra sequencer registers
@@ -213,9 +213,9 @@ options(Vga *vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	char *p, *val;
+	int8_t *p, *val;
 	Mode *mode;
-	ulong pclk, x;
+	uint32_t pclk, x;
 	int id, noclockset, width;
 
 	id = (vga->crt[0x2D]<<8)|vga->crt[0x2E];
@@ -593,7 +593,7 @@ static void
 load(Vga* vga, Ctlr* ctlr)
 {
 	int id;
-	ushort advfunc;
+	uint16_t advfunc;
 
 	s3generic.load(vga, ctlr);
 
@@ -680,7 +680,7 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i, id;
-	ulong dclk, m, n, r;
+	uint32_t dclk, m, n, r;
 
 	s3generic.dump(vga, ctlr);
 	printitem(ctlr->name, "Crt70");

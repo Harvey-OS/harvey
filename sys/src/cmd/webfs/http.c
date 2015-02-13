@@ -20,7 +20,7 @@
 #include "dat.h"
 #include "fns.h"
 
-char PostContentType[] = "application/x-www-form-urlencoded";
+int8_t PostContentType[] = "application/x-www-form-urlencoded";
 int httpdebug;
 
 typedef struct HttpState HttpState;
@@ -28,23 +28,23 @@ struct HttpState
 {
 	int fd;
 	Client *c;
-	char *location;
-	char *setcookie;
-	char *netaddr;
-	char *credentials;
-	char autherror[ERRMAX];
+	int8_t *location;
+	int8_t *setcookie;
+	int8_t *netaddr;
+	int8_t *credentials;
+	int8_t autherror[ERRMAX];
 	Ibuf	b;
 };
 
 static void
-location(HttpState *hs, char *value)
+location(HttpState *hs, int8_t *value)
 {
 	if(hs->location == nil)
 		hs->location = estrdup(value);
 }
 
 static void
-contenttype(HttpState *hs, char *value)
+contenttype(HttpState *hs, int8_t *value)
 {
 	if(hs->c->contenttype != nil)
 		free(hs->c->contenttype);
@@ -52,9 +52,9 @@ contenttype(HttpState *hs, char *value)
 }
 
 static void
-setcookie(HttpState *hs, char *value)
+setcookie(HttpState *hs, int8_t *value)
 {
-	char *s, *t;
+	int8_t *s, *t;
 	Fmt f;
 
 	s = hs->setcookie;
@@ -71,10 +71,10 @@ setcookie(HttpState *hs, char *value)
 	}
 }
 
-static char*
-unquote(char *s, char **ps)
+static int8_t*
+unquote(int8_t *s, int8_t **ps)
 {
-	char *p;
+	int8_t *p;
 
 	if(*s != '"'){
 		p = strpbrk(s, " \t\r\n");
@@ -98,10 +98,10 @@ unquote(char *s, char **ps)
 	return s;
 }
 
-static char*
-servername(char *addr)
+static int8_t*
+servername(int8_t *addr)
 {
-	char *p;
+	int8_t *p;
 
 	if(strncmp(addr, "tcp!", 4) == 0
 	|| strncmp(addr, "net!", 4) == 0)
@@ -116,9 +116,9 @@ servername(char *addr)
 }
 
 void
-wwwauthenticate(HttpState *hs, char *line)
+wwwauthenticate(HttpState *hs, int8_t *line)
 {
-	char cred[64], *user, *pass, *realm, *s, *spec, *name;
+	int8_t cred[64], *user, *pass, *realm, *s, *spec, *name;
 	Fmt fmt;
 	UserPasswd *up;
 
@@ -157,7 +157,7 @@ wwwauthenticate(HttpState *hs, char *line)
 	if((s = smprint("%s:%s", user, pass)) == nil)
 		goto error;
 	free(up);
-	enc64(cred, sizeof(cred), (uchar*)s, strlen(s));
+	enc64(cred, sizeof(cred), (uint8_t*)s, strlen(s));
 	memset(s, 0, strlen(s));
 	free(s);
 	hs->credentials = smprint("Basic %s", cred);
@@ -173,8 +173,8 @@ error:
 }
 
 struct {
-	char *name;									/* Case-insensitive */
-	void (*fn)(HttpState *hs, char *value);
+	int8_t *name;									/* Case-insensitive */
+	void (*fn)(HttpState *hs, int8_t *value);
 } hdrtab[] = {
 	{ "location:", location },
 	{ "content-type:", contenttype },
@@ -186,8 +186,8 @@ static int
 httprcode(HttpState *hs)
 {
 	int n;
-	char *p;
-	char buf[256];
+	int8_t *p;
+	int8_t buf[256];
 
 	n = readline(&hs->b, buf, sizeof(buf)-1);
 	if(n <= 0)
@@ -211,9 +211,9 @@ httprcode(HttpState *hs)
  *  be lost.
  */
 static int
-getheader(HttpState *hs, char *buf, int n)
+getheader(HttpState *hs, int8_t *buf, int n)
 {
-	char *p, *e;
+	int8_t *p, *e;
 	int i;
 
 	n--;
@@ -245,8 +245,8 @@ getheader(HttpState *hs, char *buf, int n)
 static int
 httpheaders(HttpState *hs)
 {
-	char buf[2048];
-	char *p;
+	int8_t buf[2048];
+	int8_t *p;
 	int i, n;
 
 	for(;;){
@@ -274,10 +274,10 @@ int
 httpopen(Client *c, Url *url)
 {
 	int fd, code, redirect, authenticate;
-	char *cookies;
+	int8_t *cookies;
 	Ioproc *io;
 	HttpState *hs;
-	char *service;
+	int8_t *service;
 
 	if(httpdebug)
 		fprint(2, "httpopen\n");
@@ -517,7 +517,7 @@ int
 httpread(Client *c, Req *r)
 {
 	HttpState *hs;
-	long n;
+	int32_t n;
 
 	hs = c->aux;
 	n = readibuf(&hs->b, r->ofcall.data, r->ifcall.count);

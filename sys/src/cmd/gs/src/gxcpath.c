@@ -158,7 +158,7 @@ gx_cpath_init_contained_shared(gx_clip_path * pcpath,
     if (shared) {
 	if (shared->path.segments == &shared->path.local_segments) {
 	    lprintf1("Attempt to share (local) segments of clip path 0x%lx!\n",
-		     (ulong) shared);
+		     (uint32_t) shared);
 	    return_error(gs_error_Fatal);
 	}
 	*pcpath = *shared;
@@ -213,7 +213,7 @@ gx_cpath_init_local_shared(gx_clip_path * pcpath, const gx_clip_path * shared,
     if (shared) {
 	if (shared->path.segments == &shared->path.local_segments) {
 	    lprintf1("Attempt to share (local) segments of clip path 0x%lx!\n",
-		     (ulong) shared);
+		     (uint32_t) shared);
 	    return_error(gs_error_Fatal);
 	}
 	pcpath->path = shared->path;

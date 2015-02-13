@@ -57,7 +57,7 @@ s_AXE_process(stream_state * st, stream_cursor_read * pr,
     int wcount = pw->limit - q;
     int count;
     int pos = ss->count;
-    const char *hex_digits = "0123456789ABCDEF";
+    const int8_t *hex_digits = "0123456789ABCDEF";
     int status = 0;
 
     if (last && ss->EndOfData)
@@ -170,8 +170,8 @@ s_PSSE_process(stream_state * st, stream_cursor_read * pr,
 	int c = *++p;
 
 	if (c < 32 || c >= 127) {
-	    const char *pesc;
-	    const char *const esc = "\n\r\t\b\f";
+	    const int8_t *pesc;
+	    const int8_t *const esc = "\n\r\t\b\f";
 
 	    if (c < 32 && c != 0 && (pesc = strchr(esc, c)) != 0) {
 		if (wlimit - q < 2) {

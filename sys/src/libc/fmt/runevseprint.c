@@ -11,7 +11,7 @@
 #include <libc.h>
 
 Rune*
-runevseprint(Rune *buf, Rune *e, char *fmt, va_list args)
+runevseprint(Rune *buf, Rune *e, int8_t *fmt, va_list args)
 {
 	Fmt f;
 

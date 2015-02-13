@@ -20,15 +20,15 @@
  */
 
 static	int	multabp;
-static	long	mulval;
-static	char*	mulcp;
-static	long	valmax;
+static	int32_t	mulval;
+static	int8_t*	mulcp;
+static	int32_t	valmax;
 static	int	shmax;
 
-static int	docode(char *hp, char *cp, int r0, int r1);
+static int	docode(int8_t *hp, int8_t *cp, int r0, int r1);
 static int	gen1(int len);
-static int	gen2(int len, long r1);
-static int	gen3(int len, long r0, long r1, int flag);
+static int	gen2(int len, int32_t r1);
+static int	gen3(int len, int32_t r0, int32_t r1, int flag);
 enum
 {
 	SR1	= 1<<0,		/* r1 has been shifted */
@@ -38,11 +38,11 @@ enum
 };
 
 Multab*
-mulcon0(long v)
+mulcon0(int32_t v)
 {
 	int a1, a2, g;
 	Multab *m, *m1;
-	char hint[10];
+	int8_t hint[10];
 
 	if(v < 0)
 		v = -v;
@@ -135,7 +135,7 @@ no:
 }
 
 static int
-docode(char *hp, char *cp, int r0, int r1)
+docode(int8_t *hp, int8_t *cp, int r0, int r1)
 {
 	int c, i;
 
@@ -243,7 +243,7 @@ gen1(int len)
 }
 
 static int
-gen2(int len, long r1)
+gen2(int len, int32_t r1)
 {
 	int i;
 
@@ -293,10 +293,10 @@ out:
 }
 
 static int
-gen3(int len, long r0, long r1, int flag)
+gen3(int len, int32_t r0, int32_t r1, int flag)
 {
 	int i, f1, f2;
-	long x;
+	int32_t x;
 
 	if(r0 <= 0 ||
 	   r0 >= r1 ||

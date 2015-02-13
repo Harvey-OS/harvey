@@ -23,9 +23,9 @@ checksize(int n)
 }
 
 void
-vtrootpack(VtRoot *r, uchar *p)
+vtrootpack(VtRoot *r, uint8_t *p)
 {
-	uchar *op = p;
+	uint8_t *op = p;
 
 	U16PUT(p, VtRootVersion);
 	p += 2;
@@ -44,9 +44,9 @@ vtrootpack(VtRoot *r, uchar *p)
 }
 
 int
-vtrootunpack(VtRoot *r, uchar *p)
+vtrootunpack(VtRoot *r, uint8_t *p)
 {
-	uchar *op = p;
+	uint8_t *op = p;
 	uint vers;
 	memset(r, 0, sizeof(*r));
 

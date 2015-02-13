@@ -11,16 +11,16 @@
 
 #define	DEBUG	0
 
-long	niob;
-long	nhiob;
+int32_t	niob;
+int32_t	nhiob;
 Hiob	*hiob;
 
 Iobuf*
-getbuf(Device dev, long addr, int flag)
+getbuf(Device dev, int32_t addr, int flag)
 {
 	Iobuf *p, *s;
 	Hiob *hp;
-	long h;
+	int32_t h;
 
 	if(DEBUG)
 		print("getbuf %D(%ld) f=%x\n", dev, addr, flag);
@@ -120,7 +120,7 @@ xloop:
 			p->flags = 0;
 			p->dev = devnone;
 			p->addr = -1;
-			p->iobuf = (char*)-1;
+			p->iobuf = (int8_t*)-1;
 			qunlock(p);
 			return 0;
 		}
@@ -141,7 +141,7 @@ syncblock(void)
 {
 	Iobuf *p, *s, *q;
 	Hiob *hp;
-	long h;
+	int32_t h;
 	int flag;
 
 	flag = 0;
@@ -179,9 +179,9 @@ syncblock(void)
 }
 
 void
-sync(char *reason)
+sync(int8_t *reason)
 {
-	long i;
+	int32_t i;
 
 	print("sync: %s\n", reason);
 	for(i=10*nhiob; i>0; i--)
@@ -201,12 +201,12 @@ putbuf(Iobuf *p)
 		if(!devwrite(p->dev, p->addr, p->iobuf))
 			p->flags &= ~(Bmod|Bimm);
 	}
-	p->iobuf = (char*)-1;
+	p->iobuf = (int8_t*)-1;
 	qunlock(p);
 }
 
 int
-checktag(Iobuf *p, int tag, long qpath)
+checktag(Iobuf *p, int tag, int32_t qpath)
 {
 	Tag *t;
 
@@ -232,7 +232,7 @@ checktag(Iobuf *p, int tag, long qpath)
 }
 
 void
-settag(Iobuf *p, int tag, long qpath)
+settag(Iobuf *p, int tag, int32_t qpath)
 {
 	Tag *t;
 

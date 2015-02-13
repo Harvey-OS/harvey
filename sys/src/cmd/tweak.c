@@ -20,12 +20,12 @@ struct Thing
 {
 	Image	*b;
 	Subfont 	*s;
-	char		*name;	/* file name */
+	int8_t		*name;	/* file name */
 	int		face;		/* is 48x48 face file or cursor file*/
 	Rectangle r;		/* drawing region */
 	Rectangle tr;		/* text region */
 	Rectangle er;		/* entire region */
-	long		c;		/* character number in subfont */
+	int32_t		c;		/* character number in subfont */
 	int		mod;	/* modified */
 	int		mag;		/* magnification */
 	Rune		off;		/* offset for subfont indices */
@@ -159,29 +159,29 @@ Rectangle	editr;		/* editing region */
 Rectangle	textr;		/* text region */
 Thing		*thing;
 Mouse		mouse;
-char		hex[] = "0123456789abcdefABCDEF";
+int8_t		hex[] = "0123456789abcdefABCDEF";
 jmp_buf		err;
-char		*file;
+int8_t		*file;
 int		mag;
 int		but1val = 0;
 int		but2val = 255;
 int		invert = 0;
 Image		*values[256];
 Image		*greyvalues[256];
-uchar		data[8192];
+uint8_t		data[8192];
 
-Thing*	tget(char*);
-void	mesg(char*, ...);
+Thing*	tget(int8_t*);
+void	mesg(int8_t*, ...);
 void	drawthing(Thing*, int);
 void	select(void);
 void	menu(void);
-void	error(Display*, char*);
+void	error(Display*, int8_t*);
 void	buttons(int);
 void	drawall(void);
 void	tclose1(Thing*);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int i;
 	Event e;
@@ -227,7 +227,7 @@ main(int argc, char *argv[])
 }
 
 void
-error(Display*, char *s)
+error(Display*, int8_t *s)
 {
 	if(file)
 		mesg("can't read %s: %s: %r", file, s);
@@ -283,7 +283,7 @@ eresized(int new)
 }
 
 void
-mesgstr(Point p, int line, char *s)
+mesgstr(Point p, int line, int8_t *s)
 {
 	Rectangle c, r;
 
@@ -301,9 +301,9 @@ mesgstr(Point p, int line, char *s)
 }
 
 void
-mesg(char *fmt, ...)
+mesg(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -313,9 +313,9 @@ mesg(char *fmt, ...)
 }
 
 void
-tmesg(Thing *t, int line, char *fmt, ...)
+tmesg(Thing *t, int line, int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -326,7 +326,7 @@ tmesg(Thing *t, int line, char *fmt, ...)
 
 
 void
-scntl(char *l)
+scntl(int8_t *l)
 {
 	sprint(l, "mag: %d  but1: %d  but2: %d  invert-on-copy: %c", mag, but1val, but2val, "ny"[invert]);
 }
@@ -334,17 +334,17 @@ scntl(char *l)
 void
 cntl(void)
 {
-	char buf[256];
+	int8_t buf[256];
 
 	scntl(buf);
 	mesgstr(cntlr.min, 0, buf);
 }
 
 void
-stext(Thing *t, char *l0, char *l1)
+stext(Thing *t, int8_t *l0, int8_t *l1)
 {
 	Fontchar *fc;
-	char buf[256];
+	int8_t buf[256];
 
 	l1[0] = 0;
 	sprint(buf, "depth:%d r:%d %d  %d %d ", 
@@ -368,7 +368,7 @@ stext(Thing *t, char *l0, char *l1)
 void
 text(Thing *t)
 {
-	char l0[256], l1[256];
+	int8_t l0[256], l1[256];
 
 	stext(t, l0, l1);
 	tmesg(t, 0, l0);
@@ -396,7 +396,7 @@ int
 value(Image *b, int x)
 {
 	int v, l, w;
-	uchar mask;
+	uint8_t mask;
 
 	w = b->depth;
 	if(w > 8){
@@ -555,7 +555,7 @@ tohex(int c)
 }
 
 Thing*
-tget(char *file)
+tget(int8_t *file)
 {
 	int i, j, fd, face, x, y, c, chan;
 	Image *b;
@@ -563,11 +563,11 @@ tget(char *file)
 	Thing *t;
 	Dir *d;
 	jmp_buf oerr;
-	uchar buf[256];
-	char *data;
+	uint8_t buf[256];
+	int8_t *data;
 
 	buf[0] = '\0';
-	errstr((char*)buf, sizeof buf);	/* flush pending error message */
+	errstr((int8_t*)buf, sizeof buf);	/* flush pending error message */
 	memmove(oerr, err, sizeof err);
 	d = nil;
 	if(setjmp(err)){
@@ -593,7 +593,7 @@ tget(char *file)
 		goto Err;
 	}
 	seek(fd, 0, 0);
-	data = (char*)buf;
+	data = (int8_t*)buf;
 	if(*data == '{')
 		data++;
 	if(memcmp(data, "0x", 2)==0 && data[4]==','){
@@ -766,9 +766,9 @@ tget(char *file)
 }
 
 int
-atline(int x, Point p, char *line, char *buf)
+atline(int x, Point p, int8_t *line, int8_t *buf)
 {
-	char *s, *c, *word, *hit;
+	int8_t *s, *c, *word, *hit;
 	int w, wasblank;
 	Rune r;
 
@@ -798,9 +798,9 @@ atline(int x, Point p, char *line, char *buf)
 }
 
 int
-attext(Thing *t, Point p, char *buf)
+attext(Thing *t, Point p, int8_t *buf)
 {
-	char l0[256], l1[256];
+	int8_t l0[256], l1[256];
 
 	if(!ptinrect(p, t->tr))
 		return 0;
@@ -812,10 +812,10 @@ attext(Thing *t, Point p, char *buf)
 }
 
 int
-type(char *buf, char *tag)
+type(int8_t *buf, int8_t *tag)
 {
 	Rune r;
-	char *p;
+	int8_t *p;
 
 	esetcursor(&busy);
 	p = buf;
@@ -842,15 +842,15 @@ type(char *buf, char *tag)
 }
 
 void
-textedit(Thing *t, char *tag)
+textedit(Thing *t, int8_t *tag)
 {
-	char buf[256];
-	char *s;
+	int8_t buf[256];
+	int8_t *s;
 	Image *b;
 	Subfont *f;
 	Fontchar *fc, *nfc;
 	Rectangle r;
-	ulong chan;
+	uint32_t chan;
 	int i, ld, d, w, c, doredraw, fdx, x;
 	Thing *nt;
 
@@ -1177,10 +1177,10 @@ textedit(Thing *t, char *tag)
 }
 
 void
-cntledit(char *tag)
+cntledit(int8_t *tag)
 {
-	char buf[256];
-	long l;
+	int8_t buf[256];
+	int32_t l;
 
 	buttons(Up);
 	if(type(buf, tag) == 0)
@@ -1548,7 +1548,7 @@ void
 select(void)
 {
 	Thing *t;
-	char line[128], buf[128];
+	int8_t line[128], buf[128];
 	Point p;
 
 	if(ptinrect(mouse.xy, cntlr)){
@@ -1804,9 +1804,9 @@ tread(Thing *t)
 void
 tchar(Thing *t)
 {
-	char buf[256], *p;
+	int8_t buf[256], *p;
 	Rune r;
-	ulong c, d;
+	uint32_t c, d;
 
 	if(t->s == 0){
 		t = t->parent;
@@ -1871,7 +1871,7 @@ int
 complement(Image *t)
 {
 	int i, n;
-	uchar *buf;
+	uint8_t *buf;
 
 	n = Dy(t->r)*bytesperline(t->r, t->depth);
 	buf = malloc(n);
@@ -2002,9 +2002,9 @@ void
 menu(void)
 {
 	Thing *t;
-	char *mod;
+	int8_t *mod;
 	int sel;
-	char buf[256];
+	int8_t buf[256];
 
 	sel = emenuhit(3, &mouse, &menu3);
 	switch(sel){

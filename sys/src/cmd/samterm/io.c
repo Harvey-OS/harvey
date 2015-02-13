@@ -24,17 +24,17 @@ int	got;
 int	block;
 int	kbdc;
 int	resized;
-uchar	*hostp;
-uchar	*hoststop;
-uchar	*plumbbase;
-uchar	*plumbp;
-uchar	*plumbstop;
+uint8_t	*hostp;
+uint8_t	*hoststop;
+uint8_t	*plumbbase;
+uint8_t	*plumbp;
+uint8_t	*plumbstop;
 Channel	*plumbc;
 Channel	*hostc;
 Mousectl	*mousectl;
 Mouse	*mousep;
 Keyboardctl *keyboardctl;
-void	panic(char*);
+void	panic(int8_t*);
 
 void
 initio(void)
@@ -100,7 +100,7 @@ waitforio(void)
 	Alt alts[NRes+1];
 	Rune r;
 	int i;
-	ulong type;
+	uint32_t type;
 
 again:
 
@@ -178,12 +178,12 @@ rcvchar(void)
 	return c;
 }
 
-char*
+int8_t*
 rcvstring(void)
 {
 	*hoststop = 0;
 	got &= ~(1<<RHost);
-	return (char*)hostp;
+	return (int8_t*)hostp;
 }
 
 int
@@ -206,7 +206,7 @@ externchar(void)
 
     loop:
 	if(got & ((1<<RPlumb) & ~block)){
-		plumbp += chartorune(&r, (char*)plumbp);
+		plumbp += chartorune(&r, (int8_t*)plumbp);
 		if(plumbp >= plumbstop){
 			got &= ~(1<<RPlumb);
 			free(plumbbase);

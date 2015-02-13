@@ -44,18 +44,18 @@ struct Conv
 	int	fd[3];	/* stdin, stdout, and stderr */
 	int	count[3];	/* number of readers on stdin/stdout/stderr */
 	int	perm;
-	ulong esz;
-	char*	owner;
-	char*	state;
+	uint32_t esz;
+	int8_t*	owner;
+	int8_t*	state;
 	Cmdbuf*	cmd;
-	char*	dir;
+	int8_t*	dir;
 	QLock	l;	/* protects state changes */
 	Queue*	waitq;
 	void*	child;
-	char*	error;	/* on start up */
+	int8_t*	error;	/* on start up */
 	int	nice;
-	short	killonclose;
-	short	killed;
+	int16_t	killonclose;
+	int16_t	killed;
 	Rendez	startr;
 	Proc *p;
 };
@@ -68,7 +68,7 @@ static struct
 	Conv**	conv;
 } cmd;
 
-static	Conv*	cmdclone(char*);
+static	Conv*	cmdclone(int8_t*);
 static	void	cmdproc(void*);
 
 static int
@@ -113,7 +113,7 @@ cmd3gen(Chan *c, int i, Dir *dp)
 }
 
 static int
-cmdgen(Chan *c, char *name, Dirtab *d, int nd, int s, Dir *dp)
+cmdgen(Chan *c, int8_t *name, Dirtab *d, int nd, int s, Dir *dp)
 {
 	Qid q;
 	Conv *cv;
@@ -191,7 +191,7 @@ cmdinit(void)
 }
 
 static Chan *
-cmdattach(char *spec)
+cmdattach(int8_t *spec)
 {
 	Chan *c;
 
@@ -203,13 +203,13 @@ cmdattach(char *spec)
 }
 
 static Walkqid*
-cmdwalk(Chan *c, Chan *nc, char **name, int nname)
+cmdwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, cmdgen);
 }
 
-static long
-cmdstat(Chan *c, uchar *db, long n)
+static int32_t
+cmdstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, 0, 0, cmdgen);
 }
@@ -219,7 +219,7 @@ cmdopen(Chan *c, int omode)
 {
 	int perm;
 	Conv *cv;
-	char *user;
+	int8_t *user;
 
 	perm = 0;
 	omode = openmode(omode);
@@ -383,14 +383,14 @@ cmdclose(Chan *c)
 	}
 }
 
-static long
-cmdread(Chan *ch, void *a, long n, vlong offset)
+static int32_t
+cmdread(Chan *ch, void *a, int32_t n, int64_t offset)
 {
 	Conv *c;
 	Proc *p;
-	char *s, *cmds;
+	int8_t *s, *cmds;
 	int fd;
-	char buf[256];
+	int8_t buf[256];
 
 	USED(offset);
 
@@ -479,8 +479,8 @@ Cmdtab cmdtab[] = {
 	CMkillonclose, "killonclose", 0,
 };
 
-static long
-cmdwrite(Chan *ch, void *a, long n, vlong offset)
+static int32_t
+cmdwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 {
 	int i, r;
 	Conv *c;
@@ -580,8 +580,8 @@ cmdwrite(Chan *ch, void *a, long n, vlong offset)
 	return n;
 }
 
-static long
-cmdwstat(Chan *c, uchar *dp, long n)
+static int32_t
+cmdwstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	Dir *d;
 	Conv *cv;
@@ -599,7 +599,7 @@ cmdwstat(Chan *c, uchar *dp, long n)
 			free(d);
 			nexterror();
 		}
-		n = convM2D(dp, n, d, (char*)&d[1]);
+		n = convM2D(dp, n, d, (int8_t*)&d[1]);
 		if(n == 0)
 			error(Eshortstat);
 		cv = cmd.conv[CONV(c->qid)];
@@ -617,7 +617,7 @@ cmdwstat(Chan *c, uchar *dp, long n)
 }
 
 static Conv*
-cmdclone(char *user)
+cmdclone(int8_t *user)
 {
 	Conv *c, **pp, **ep;
 	int i;
@@ -666,7 +666,7 @@ cmdproc(void *a)
 {
 	Conv *c;
 	int n;
-	char status[ERRMAX];
+	int8_t status[ERRMAX];
 	void *t;
 
 	c = a;

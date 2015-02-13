@@ -27,11 +27,11 @@ Biobuf	bin;
 void	factor(double);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	double n;
 	int i;
-	char *l;
+	int8_t *l;
 
 	if(argc > 1) {
 		for(i=1; i<argc; i++) {

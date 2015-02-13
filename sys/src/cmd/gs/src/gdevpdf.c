@@ -273,7 +273,7 @@ pdf_initialize_ids(gx_device_pdf * pdev)
     param_string_from_string(nstr, "{DocInfo}");
     pdf_create_named_dict(pdev, &nstr, &pdev->Info, 0L);
     {
-	char buf[PDF_MAX_PRODUCER];
+	int8_t buf[PDF_MAX_PRODUCER];
 
 	pdf_store_default_Producer(buf);
 	cos_dict_put_c_key_string(pdev->Info, "/Producer", (byte *)buf,
@@ -287,7 +287,7 @@ pdf_initialize_ids(gx_device_pdf * pdev)
     {
 	struct tm tms;
 	time_t t;
-	char buf[1+2+4+2+2+2+2+2+2+1+1]; /* (D:yyyymmddhhmmss)\0 */
+	int8_t buf[1+2+4+2+2+2+2+2+2+1+1]; /* (D:yyyymmddhhmmss)\0 */
 
 	time(&t);
 	tms = *localtime(&t);

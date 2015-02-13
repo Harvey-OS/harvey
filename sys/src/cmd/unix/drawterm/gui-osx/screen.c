@@ -365,7 +365,7 @@ static OSStatus MainWindowEventHandler(EventHandlerCallRef nextHandler, EventRef
 	static uint32_t mouseY = 0; 
 
 	if(class == kEventClassKeyboard) {
-		char macCharCodes;
+		int8_t macCharCodes;
 		UInt32 macKeyCode;
 		UInt32 macKeyModifiers;
 
@@ -586,11 +586,12 @@ flushmemscreen(Rectangle r)
     if (r.max.x < r.min.x || r.max.y < r.min.y) return;
     
 	screenload(r, gscreen->depth, byteaddr(gscreen, ZP), ZP,
-		gscreen->width*sizeof(ulong));
+		gscreen->width*sizeof(uint32_t));
 }
 
-uchar*
-attachscreen(Rectangle *r, ulong *chan, int *depth, int *width, int *softscreen, void **X)
+uint8_t*
+attachscreen(Rectangle *r, uint32_t *chan, int *depth, int *width,
+	     int *softscreen, void **X)
 {
 	*r = gscreen->r;
 	*chan = gscreen->chan;
@@ -603,7 +604,7 @@ attachscreen(Rectangle *r, ulong *chan, int *depth, int *width, int *softscreen,
 
 // PAL - no palette handling.  Don't intend to either.
 void
-getcolor(ulong i, ulong *r, ulong *g, ulong *b)
+getcolor(uint32_t i, uint32_t *r, uint32_t *g, uint32_t *b)
 {
 
 // PAL: Certainly wrong to return a grayscale.
@@ -613,16 +614,16 @@ getcolor(ulong i, ulong *r, ulong *g, ulong *b)
 }
 
 void
-setcolor(ulong index, ulong red, ulong green, ulong blue)
+setcolor(uint32_t index, uint32_t red, uint32_t green, uint32_t blue)
 {
 	assert(0);
 }
 
 
-static char snarf[3*SnarfSize+1];
+static int8_t snarf[3*SnarfSize+1];
 static Rune rsnarf[SnarfSize+1];
 
-char*
+int8_t*
 clipread(void)
 {
 	CFDataRef cfdata;
@@ -668,7 +669,7 @@ clipread(void)
 				if (length > sizeof rsnarf) length = sizeof rsnarf;
 				CFDataGetBytes(cfdata, CFRangeMake(0, length), (uint8_t *)rsnarf);
 				snprint(snarf, sizeof snarf, "%.*S", length/sizeof(Rune), rsnarf);
-				char *s = snarf;
+				int8_t *s = snarf;
 				while (*s) {
 					if (*s == '\r') *s = '\n';
 					s++;
@@ -682,7 +683,7 @@ clipread(void)
 }
 
 int
-clipwrite(char *snarf)
+clipwrite(int8_t *snarf)
 {
 	CFDataRef cfdata;
 	PasteboardSyncFlags flags;
@@ -698,7 +699,7 @@ clipwrite(char *snarf)
 		return 0;
 	}
 	cfdata = CFDataCreate(kCFAllocatorDefault, 
-		(uchar*)rsnarf, runestrlen(rsnarf)*2);
+		(uint8_t*)rsnarf, runestrlen(rsnarf)*2);
 	if(cfdata == nil){
 		fprint(2, "apple pasteboard cfdatacreate failed\n");
 		return 0;
@@ -724,7 +725,7 @@ mouseset(Point xy)
 }
 
 void
-screenload(Rectangle r, int depth, uchar *p, Point pt, int step)
+screenload(Rectangle r, int depth, uint8_t *p, Point pt, int step)
 {
 	CGRect rbounds;
 	rbounds.size.width = r.max.x - r.min.x;
@@ -759,8 +760,8 @@ setcursor(void)
     int i;
     
 	for(i=0; i<16; i++){
-		crsr.data[i] = ((ushort*)cursor.set)[i];
-		crsr.mask[i] = crsr.data[i] | ((ushort*)cursor.clr)[i];
+		crsr.data[i] = ((uint16_t*)cursor.set)[i];
+		crsr.mask[i] = crsr.data[i] | ((uint16_t*)cursor.clr)[i];
 	}
 	crsr.hotSpot.h = -cursor.offset.x;
 	crsr.hotSpot.v = -cursor.offset.y;

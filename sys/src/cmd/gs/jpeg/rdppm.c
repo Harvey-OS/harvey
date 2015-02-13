@@ -52,10 +52,10 @@ typedef unsigned char U_CHAR;
 #define UCH(x)	((int) (x))
 #else /* !HAVE_UNSIGNED_CHAR */
 #ifdef CHAR_IS_UNSIGNED
-typedef char U_CHAR;
+typedef int8_t U_CHAR;
 #define UCH(x)	((int) (x))
 #else
-typedef char U_CHAR;
+typedef int8_t U_CHAR;
 #define UCH(x)	((int) (x) & 0xFF)
 #endif
 #endif /* HAVE_UNSIGNED_CHAR */

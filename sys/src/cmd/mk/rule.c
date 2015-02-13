@@ -10,11 +10,12 @@
 #include	"mk.h"
 
 static Rule *lr, *lmr;
-static rcmp(Rule *r, char *target, Word *tail);
+static rcmp(Rule *r, int8_t *target, Word *tail);
 static int nrules = 0;
 
 void
-addrule(char *head, Word *tail, char *body, Word *ahead, int attr, int hline, char *prog)
+addrule(int8_t *head, Word *tail, int8_t *body, Word *ahead, int attr,
+	int hline, int8_t *prog)
 {
 	Rule *r;
 	Rule *rr;
@@ -80,7 +81,7 @@ addrule(char *head, Word *tail, char *body, Word *ahead, int attr, int hline, ch
 }
 
 void
-dumpr(char *s, Rule *r)
+dumpr(int8_t *s, Rule *r)
 {
 	Bprint(&bout, "%s: start=%p\n", s, r);
 	for(; r; r = r->next){
@@ -94,7 +95,7 @@ dumpr(char *s, Rule *r)
 }
 
 static int
-rcmp(Rule *r, char *target, Word *tail)
+rcmp(Rule *r, int8_t *target, Word *tail)
 {
 	Word *w;
 
@@ -106,10 +107,10 @@ rcmp(Rule *r, char *target, Word *tail)
 	return(w || tail);
 }
 
-char *
+int8_t *
 rulecnt(void)
 {
-	char *s;
+	int8_t *s;
 
 	s = Malloc(nrules);
 	memset(s, 0, nrules);

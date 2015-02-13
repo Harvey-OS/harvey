@@ -48,14 +48,14 @@ void
 readspec(void)
 {
 	int	icol, c, sawchar, stopc, i;
-	char	sn[10], *snp, *temp;
+	int8_t	sn[10], *snp, *temp;
 
 	sawchar = icol = 0;
 	while (c = get1char()) {
 		switch (c) {
 		default:
 			if (c != tab) {
-				char buf[64];
+				int8_t buf[64];
 				sprint(buf, "bad table specification character %c", c);
 				error(buf);
 			}
@@ -314,7 +314,7 @@ findcol(void)
 {
 # define FLNLIM 200
 	/* this counts the number of columns and then puts the line back*/
-	char	*s, line[FLNLIM+2], *p;
+	int8_t	*s, line[FLNLIM+2], *p;
 	int	c, n = 0, inpar = 0;
 
 	while ((c = get1char()) != 0 && c == ' ')
@@ -364,11 +364,11 @@ garray(int qcol)
 	style =  (int (*)[]) getcore(MAXHEAD * qcol, sizeof(int));
 	evenup = (int *) getcore(qcol, sizeof(int));
 	lefline = (int (*)[]) getcore(MAXHEAD * (qcol + 1), sizeof (int)); /*+1 for sample55 loop - others may need it too*/
-	font = (char (*)[][2]) getcore(MAXHEAD * qcol, 2);
-	csize = (char (*)[MAXHEAD][4]) getcore(MAXHEAD * qcol, 4);
-	vsize = (char (*)[MAXHEAD][4]) getcore(MAXHEAD * qcol, 4);
+	font = (int8_t (*)[][2]) getcore(MAXHEAD * qcol, 2);
+	csize = (int8_t (*)[MAXHEAD][4]) getcore(MAXHEAD * qcol, 4);
+	vsize = (int8_t (*)[MAXHEAD][4]) getcore(MAXHEAD * qcol, 4);
 	flags =  (int (*)[]) getcore(MAXHEAD * qcol, sizeof(int));
-	cll = (char (*)[])getcore(qcol, CLLEN);
+	cll = (int8_t (*)[])getcore(qcol, CLLEN);
 	sep = (int *) getcore(qcol + 1, sizeof(int));
 	sep++; /* sep[-1] must be legal */
 	used = (int *) getcore(qcol + 1, sizeof(int));
@@ -380,10 +380,10 @@ garray(int qcol)
 }
 
 
-char	*
+int8_t	*
 getcore(int a, int b)
 {
-	char	*x;
+	int8_t	*x;
 	x = calloc(a, b);
 	if (x == 0)
 		error("Couldn't get memory");

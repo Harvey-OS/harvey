@@ -26,10 +26,10 @@ enum
 
 struct Fid
 {
-	short busy;
-	short open;
+	int16_t busy;
+	int16_t open;
 	int fid;
-	char *user;
+	int8_t *user;
 	Qid qid;
 	VacFile *file;
 	VacDirEnum *vde;
@@ -47,11 +47,11 @@ enum
 };
 
 Fid	*fids;
-uchar	*data;
+uint8_t	*data;
 int	mfd[2];
 int	srvfd = -1;
-char	*user;
-uchar	mdata[8192+IOHDRSZ];
+int8_t	*user;
+uint8_t	mdata[8192+IOHDRSZ];
 int messagesize = sizeof mdata;
 Fcall	rhdr;
 Fcall	thdr;
@@ -59,29 +59,29 @@ VacFs	*fs;
 VtConn  *conn;
 int	noperm;
 int	dotu;
-char *defmnt;
+int8_t *defmnt;
 
 Fid *	newfid(int);
-void	error(char*);
+void	error(int8_t*);
 void	io(void);
 void	vacshutdown(void);
 void	usage(void);
 int	perm(Fid*, int);
-int	permf(VacFile*, char*, int);
-ulong	getl(void *p);
-void	init(char*, char*, long, int);
-int	vacdirread(Fid *f, char *p, long off, long cnt);
-int	vacstat(VacFile *parent, VacDir *vd, uchar *p, int np);
+int	permf(VacFile*, int8_t*, int);
+uint32_t	getl(void *p);
+void	init(int8_t*, int8_t*, int32_t, int);
+int	vacdirread(Fid *f, int8_t *p, int32_t off, int32_t cnt);
+int	vacstat(VacFile *parent, VacDir *vd, uint8_t *p, int np);
 void 	srv(void* a);
 
 
-char	*rflush(Fid*), *rversion(Fid*),
+int8_t	*rflush(Fid*), *rversion(Fid*),
 	*rauth(Fid*), *rattach(Fid*), *rwalk(Fid*),
 	*ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
 	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
 
-char 	*(*fcalls[Tmax])(Fid*);
+int8_t 	*(*fcalls[Tmax])(Fid*);
 
 void
 initfcalls(void)
@@ -101,24 +101,24 @@ initfcalls(void)
 	fcalls[Twstat]=	rwstat;
 }
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enotexist[] =	"file does not exist";
-char	Einuse[] =	"file in use";
-char	Eexist[] =	"file exists";
-char	Enotowner[] =	"not owner";
-char	Eisopen[] = 	"file already open for I/O";
-char	Excl[] = 	"exclusive use file already open";
-char	Ename[] = 	"illegal name";
-char	Erdonly[] = 	"read only file system";
-char	Eio[] = 	"i/o error";
-char	Eempty[] = 	"directory is not empty";
-char	Emode[] =	"illegal mode";
+int8_t	Eperm[] =	"permission denied";
+int8_t	Enotdir[] =	"not a directory";
+int8_t	Enotexist[] =	"file does not exist";
+int8_t	Einuse[] =	"file in use";
+int8_t	Eexist[] =	"file exists";
+int8_t	Enotowner[] =	"not owner";
+int8_t	Eisopen[] = 	"file already open for I/O";
+int8_t	Excl[] = 	"exclusive use file already open";
+int8_t	Ename[] = 	"illegal name";
+int8_t	Erdonly[] = 	"read only file system";
+int8_t	Eio[] = 	"i/o error";
+int8_t	Eempty[] = 	"directory is not empty";
+int8_t	Emode[] =	"illegal mode";
 
 int dflag;
 
 void
-notifyf(void *a, char *s)
+notifyf(void *a, int8_t *s)
 {
 	USED(a);
 	if(strncmp(s, "interrupt", 9) == 0)
@@ -247,7 +247,7 @@ usage(void)
 	threadexitsall("usage");
 }
 
-char*
+int8_t*
 rversion(Fid *unused)
 {
 	Fid *f;
@@ -274,26 +274,26 @@ rversion(Fid *unused)
 	return nil;
 }
 
-char*
+int8_t*
 rflush(Fid *f)
 {
 	USED(f);
 	return 0;
 }
 
-char*
+int8_t*
 rauth(Fid *f)
 {
 	USED(f);
 	return vtstrdup("vacfs: authentication not required");
 }
 
-char*
+int8_t*
 rattach(Fid *f)
 {
 	/* no authentication for the momment */
 	VacFile *file;
-	char err[80];
+	int8_t err[80];
 
 	file = vacfsgetroot(fs);
 	if(file == nil) {
@@ -314,14 +314,14 @@ rattach(Fid *f)
 	return 0;
 }
 
-char*
+int8_t*
 rwalk(Fid *f)
 {
 	VacFile *file, *nfile;
 	Fid *nf;
 	int nqid, nwname;
 	Qid qid;
-	char *err = nil;
+	int8_t *err = nil;
 
 	if(f->busy == 0)
 		return Enotexist;
@@ -397,7 +397,7 @@ rwalk(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 ropen(Fid *f)
 {
 	int mode, trunc;
@@ -438,11 +438,11 @@ ropen(Fid *f)
 	return 0;
 }
 
-char*
+int8_t*
 rcreate(Fid* fid)
 {
 	VacFile *vf;
-	ulong mode;
+	uint32_t mode;
 
 	if(fid->open)
 		return vtstrdup(Eisopen);
@@ -475,7 +475,7 @@ rcreate(Fid* fid)
 	}
 	vf = vacfilecreate(vf, rhdr.name, mode);
 	if(vf == nil) {
-		char err[80];
+		int8_t err[80];
 		rerrstr(err, sizeof err);
 
 		return vtstrdup(err);
@@ -496,14 +496,14 @@ rcreate(Fid* fid)
 	return 0;
 }
 
-char*
+int8_t*
 rread(Fid *f)
 {
-	char *buf;
-	vlong off;
+	int8_t *buf;
+	int64_t off;
 	int cnt;
 	VacFile *vf;
-	char err[80];
+	int8_t err[80];
 	int n;
 
 	if(!f->busy)
@@ -531,14 +531,14 @@ rread(Fid *f)
 	return 0;
 }
 
-char*
+int8_t*
 rwrite(Fid *f)
 {
 	USED(f);
 	return vtstrdup(Erdonly);
 }
 
-char *
+int8_t *
 rclunk(Fid *f)
 {
 	f->busy = 0;
@@ -553,12 +553,12 @@ rclunk(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 rremove(Fid *f)
 {
 	VacFile *vf, *vfp;
-	char errbuf[80];
-	char *err = nil;
+	int8_t errbuf[80];
+	int8_t *err = nil;
 
 	if(!f->busy)
 		return vtstrdup(Enotexist);
@@ -581,11 +581,11 @@ Exit:
 	return vtstrdup(err);
 }
 
-char *
+int8_t *
 rstat(Fid *f)
 {
 	VacDir dir;
-	static uchar statbuf[1024];
+	static uint8_t statbuf[1024];
 	VacFile *parent;
 	
 	if(!f->busy)
@@ -599,7 +599,7 @@ rstat(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 rwstat(Fid *f)
 {
 	if(!f->busy)
@@ -608,7 +608,7 @@ rwstat(Fid *f)
 }
 
 int
-vacstat(VacFile *parent, VacDir *vd, uchar *p, int np)
+vacstat(VacFile *parent, VacDir *vd, uint8_t *p, int np)
 {
 	int ret;
 	Dir dir;
@@ -648,7 +648,7 @@ vacstat(VacFile *parent, VacDir *vd, uchar *p, int np)
 }
 
 int
-vacdirread(Fid *f, char *p, long off, long cnt)
+vacdirread(Fid *f, int8_t *p, int32_t off, int32_t cnt)
 {
 	int i, n, nb;
 	VacDir vd;
@@ -674,7 +674,7 @@ vacdirread(Fid *f, char *p, long off, long cnt)
 			return -1;
 		if(i == 0)
 			break;
-		n = vacstat(f->file, &vd, (uchar*)p, cnt-nb);
+		n = vacstat(f->file, &vd, (uint8_t*)p, cnt-nb);
 		if(n <= BIT16SZ) {
 			vdeunread(f->vde);
 			break;
@@ -710,7 +710,7 @@ newfid(int fid)
 void
 io(void)
 {
-	char *err;
+	int8_t *err;
 	int n;
 
 	for(;;){
@@ -723,7 +723,7 @@ io(void)
 		if(dflag)
 			fprint(2, "vacfs:<-%F\n", &rhdr);
 
-		thdr.data = (char*)mdata + IOHDRSZ;
+		thdr.data = (int8_t*)mdata + IOHDRSZ;
 		if(!fcalls[rhdr.type])
 			err = "bad fcall type";
 		else
@@ -750,10 +750,10 @@ io(void)
 }
 
 int
-permf(VacFile *vf, char *user, int p)
+permf(VacFile *vf, int8_t *user, int p)
 {
 	VacDir dir;
-	ulong perm;
+	uint32_t perm;
 
 	if(vacfilegetdir(vf, &dir))
 		return 0;

@@ -39,7 +39,7 @@ struct Ctlr {
 	u32int	*nic, *status;
 
 	u32int	*recvret, *recvprod, *sendr;
-	ulong	port;
+	uint32_t	port;
 	uint	recvreti, recvprodi, sendri, sendcleani;
 	Block	**sends;
 	Block	**rxs;
@@ -220,7 +220,7 @@ typedef struct Ctlrtype Ctlrtype;
 struct Ctlrtype {
 	int	mtu;
 	int	flag;
-	char	*name;
+	int8_t	*name;
 };
 
 static Ctlrtype cttab[Nctlrtype] = {
@@ -239,16 +239,16 @@ static Ctlrtype cttab[Nctlrtype] = {
 static Ctlr *bcmhead;
 static int debug=1;
 
-static char*
+static int8_t*
 cname(Ctlr *c)
 {
 	return cttab[c->type].name;
 }
 
-static long
-bcmifstat(Ether *edev, void *a, long n, ulong offset)
+static int32_t
+bcmifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 {
-	char *s, *p, *e;
+	int8_t *s, *p, *e;
 	Ctlr *c;
 
 	c = edev->ctlr;
@@ -813,7 +813,7 @@ bcmpci(void)
 		ctlr->port = p->mem[0].bar & ~0x0F;
 		mem = vmap(ctlr->port, p->mem[0].size);
 		if(mem == nil) {
-			print("bcm: can't map %#p\n", (uvlong)ctlr->port);
+			print("bcm: can't map %#p\n", (uint64_t)ctlr->port);
 			free(ctlr);
 			continue;
 		}
@@ -843,7 +843,7 @@ bcmpromiscuous(void* arg, int on)
 }
 
 static void
-bcmmulticast(void*, uchar*, int)
+bcmmulticast(void*, uint8_t*, int)
 {
 }
 

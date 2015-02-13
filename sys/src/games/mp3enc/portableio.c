@@ -337,13 +337,13 @@ Write32BitsHighLow(FILE *fp, int i)
 }
 
 #ifdef KLEMM_36
-void ReadBytes (FILE     *fp, char *p, int n) 
+void ReadBytes (FILE     *fp, int8_t *p, int n) 
 {
     memset ( p, 0, n );
     fread  ( p, 1, n, fp );
 }
 #else
-void ReadBytes(FILE	*fp, char *p, int n)
+void ReadBytes(FILE	*fp, int8_t *p, int n)
 {
 	/* What about fread? */
 	 
@@ -352,9 +352,9 @@ void ReadBytes(FILE	*fp, char *p, int n)
 }
 #endif
 
-void ReadBytesSwapped(FILE *fp, char *p, int n)
+void ReadBytesSwapped(FILE *fp, int8_t *p, int n)
 {
-	register char	*q = p;
+	register int8_t	*q = p;
 
 	/* What about fread? */
 	  
@@ -372,13 +372,13 @@ void ReadBytesSwapped(FILE *fp, char *p, int n)
 }
 
 #ifdef KLEMM_36
-void WriteBytes(FILE *fp, char *p, int n)
+void WriteBytes(FILE *fp, int8_t *p, int n)
 {
     /* return n == */
     fwrite ( p, 1, n, fp );
 }
 #else
-void WriteBytes(FILE *fp, char *p, int n)
+void WriteBytes(FILE *fp, int8_t *p, int n)
 {
         /* No error condition checking */
         while (n-- > 0)
@@ -386,14 +386,14 @@ void WriteBytes(FILE *fp, char *p, int n)
 }
 #endif
 #ifdef KLEMM_36
-void WriteBytesSwapped(FILE *fp, char *p, int n)
+void WriteBytesSwapped(FILE *fp, int8_t *p, int n)
 {
     p += n;
     while ( n-- > 0 )
 	putc ( *--p, fp );
 }
 #else
-void WriteBytesSwapped(FILE *fp, char *p, int n)
+void WriteBytesSwapped(FILE *fp, int8_t *p, int n)
 {
 	p += n-1;
 	while (n-- > 0)
@@ -415,25 +415,26 @@ void WriteBytesSwapped(FILE *fp, char *p, int n)
 # define FloatToUnsigned(f)	((unsigned long)(f))
 # define UnsignedToFloat(u)	((double)(u))
 #else /* applec */
-# define FloatToUnsigned(f)	((unsigned long)(((long)((f) - 2147483648.0)) + 2147483647L + 1))
-# define UnsignedToFloat(u)	(((double)((long)((u) - 2147483647L - 1))) + 2147483648.0)
+# define FloatToUnsigned(f)	((unsigned long)(((int32_t)((f) - 2147483648.0)) + 2147483647L + 1))
+# define UnsignedToFloat(u)	(((double)((int32_t)((u) - 2147483647L - 1))) + 2147483648.0)
 #endif /* applec */
 /****************************************************************
  * Extended precision IEEE floating-point conversion routines
  ****************************************************************/
 
 double
-ConvertFromIeeeExtended(char* bytes)
+ConvertFromIeeeExtended(int8_t* bytes)
 {
 	double	f;
-	long	expon;
+	int32_t	expon;
 	unsigned long hiMant, loMant;
 
 #ifdef	TEST
 printf("ConvertFromIEEEExtended(%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx\r",
-	(long)bytes[0], (long)bytes[1], (long)bytes[2], (long)bytes[3],
-	(long)bytes[4], (long)bytes[5], (long)bytes[6],
-	(long)bytes[7], (long)bytes[8], (long)bytes[9]);
+	(int32_t)bytes[0], (int32_t)bytes[1], (int32_t)bytes[2],
+       (int32_t)bytes[3],
+	(int32_t)bytes[4], (int32_t)bytes[5], (int32_t)bytes[6],
+	(int32_t)bytes[7], (int32_t)bytes[8], (int32_t)bytes[9]);
 #endif
 
 	expon = ((bytes[0] & 0x7F) << 8) | (bytes[1] & 0xFF);
@@ -478,7 +479,7 @@ printf("ConvertFromIEEEExtended(%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx\r",
 double
 ReadIeeeExtendedHighLow(FILE *fp)
 {
-	char	bytes [10];
+	int8_t	bytes [10];
 
 	ReadBytes ( fp, bytes, 10 );
 	return ConvertFromIeeeExtended ( bytes );

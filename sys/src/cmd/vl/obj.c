@@ -16,13 +16,13 @@
 #define	DEFAULT	'9'
 #endif
 
-char	*noname		= "<none>";
-char	symname[]	= SYMDEF;
-char	thechar		= 'v';
-char	*thestring 	= "mips";
+int8_t	*noname		= "<none>";
+int8_t	symname[]	= SYMDEF;
+int8_t	thechar		= 'v';
+int8_t	*thestring 	= "mips";
 int little;
 
-char**	libdir;
+int8_t**	libdir;
 int	nlibdir	= 0;
 static	int	maxlibdir = 0;
 
@@ -299,9 +299,9 @@ out:
 }
 
 void
-addlibpath(char *arg)
+addlibpath(int8_t *arg)
 {
-	char **p;
+	int8_t **p;
 
 	if(nlibdir >= maxlibdir) {
 		if(maxlibdir == 0)
@@ -320,11 +320,11 @@ addlibpath(char *arg)
 	libdir[nlibdir++] = strdup(arg);
 }
 
-char*
-findlib(char *file)
+int8_t*
+findlib(int8_t *file)
 {
 	int i;
-	char name[LIBNAMELEN];
+	int8_t name[LIBNAMELEN];
 
 	for(i = 0; i < nlibdir; i++) {
 		snprint(name, sizeof(name), "%s/%s", libdir[i], file);
@@ -338,7 +338,7 @@ void
 loadlib(void)
 {
 	int i;
-	long h;
+	int32_t h;
 	Sym *s;
 
 loop:
@@ -368,15 +368,15 @@ errorexit(void)
 }
 
 void
-objfile(char *file)
+objfile(int8_t *file)
 {
-	long off, esym, cnt, l;
+	int32_t off, esym, cnt, l;
 	int f, work;
 	Sym *s;
-	char magbuf[SARMAG];
-	char name[100], pname[150];
+	int8_t magbuf[SARMAG];
+	int8_t name[100], pname[150];
 	struct ar_hdr arhdr;
-	char *e, *start, *stop;
+	int8_t *e, *start, *stop;
 
 	if(file[0] == '-' && file[1] == 'l') {
 		if(debug['9'])
@@ -478,7 +478,7 @@ out:
 }
 
 int
-zaddr(uchar *p, Adr *a, Sym *h[])
+zaddr(uint8_t *p, Adr *a, Sym *h[])
 {
 	int i, c;
 	int l;
@@ -530,7 +530,7 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 	case D_SCONST:
 		while(nhunk < NSNAME)
 			gethunk();
-		a->sval = (char*)hunk;
+		a->sval = (int8_t*)hunk;
 		nhunk -= NSNAME;
 		hunk += NSNAME;
 
@@ -583,9 +583,9 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 }
 
 void
-addlib(char *obj)
+addlib(int8_t *obj)
 {
-	char fn1[LIBNAMELEN], fn2[LIBNAMELEN], comp[LIBNAMELEN], *p, *name;
+	int8_t fn1[LIBNAMELEN], fn2[LIBNAMELEN], comp[LIBNAMELEN], *p, *name;
 	int i, search;
 
 	if(histfrogp <= 0)
@@ -662,7 +662,7 @@ addlib(char *obj)
 }
 
 void
-addhist(long line, int type)
+addhist(int32_t line, int type)
 {
 	Auto *u;
 	Sym *s;
@@ -745,8 +745,8 @@ nopout(Prog *p)
 	p->to.type = D_NONE;
 }
 
-uchar*
-readsome(int f, uchar *buf, uchar *good, uchar *stop, int max)
+uint8_t*
+readsome(int f, uint8_t *buf, uint8_t *good, uint8_t *stop, int max)
 {
 	int n;
 
@@ -763,11 +763,11 @@ readsome(int f, uchar *buf, uchar *good, uchar *stop, int max)
 }
 
 void
-ldobj(int f, long c, char *pn)
+ldobj(int f, int32_t c, int8_t *pn)
 {
-	vlong ipc;
+	int64_t ipc;
 	Prog *p, *t;
-	uchar *bloc, *bsize, *stop;
+	uint8_t *bloc, *bsize, *stop;
 	Sym *h[NSYM], *s, *di;
 	int v, o, r, skip;
 
@@ -824,7 +824,7 @@ loop:
 		r = 0;
 		if(v == D_STATIC)
 			r = version;
-		s = lookup((char*)bloc, r);
+		s = lookup((int8_t*)bloc, r);
 		c -= &stop[1] - bloc;
 		bloc = stop + 1;
 
@@ -1104,11 +1104,11 @@ eof:
 }
 
 Sym*
-lookup(char *symb, int v)
+lookup(int8_t *symb, int v)
 {
 	Sym *s;
-	char *p;
-	long h;
+	int8_t *p;
+	int32_t h;
 	int c, l;
 
 	h = v;
@@ -1157,8 +1157,8 @@ prg(void)
 void
 gethunk(void)
 {
-	char *h;
-	long nh;
+	int8_t *h;
+	int32_t nh;
 
 	nh = NHUNK;
 	if(thunk >= 5L*NHUNK) {
@@ -1167,7 +1167,7 @@ gethunk(void)
 			nh = 25L*NHUNK;
 	}
 	h = mysbrk(nh);
-	if(h == (char*)-1) {
+	if(h == (int8_t*)-1) {
 		diag("out of memory");
 		errorexit();
 	}
@@ -1180,7 +1180,7 @@ void
 doprof1(void)
 {
 	Sym *s;
-	long n;
+	int32_t n;
 	Prog *p, *q;
 
 	if(debug['v'])
@@ -1441,11 +1441,11 @@ find1(long l, int c)
 	return 0;
 }
 
-long
+int32_t
 ieeedtof(Ieee *ieeep)
 {
 	int exp;
-	long v;
+	int32_t v;
 
 	if(ieeep->h == 0)
 		return 0;

@@ -12,19 +12,20 @@
 typedef struct Args Args;
 
 struct Args {
-	ulong pcount;
-	ulong poffset;
-	ulong pdisplacement;
-	ulong dcount;
-	ulong doffset;
-	ulong ddisplacement;
-	uchar scount;
+	uint32_t pcount;
+	uint32_t poffset;
+	uint32_t pdisplacement;
+	uint32_t dcount;
+	uint32_t doffset;
+	uint32_t ddisplacement;
+	uint8_t scount;
 };
 
 int
-_smbtransactiondecodeprimary(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbBuffer *b, int hasname, char **errmsgp)
+_smbtransactiondecodeprimary(SmbTransaction *t, SmbHeader *h, uint8_t *pdata,
+			     SmbBuffer *b, int hasname, int8_t **errmsgp)
 {
-	ushort poffset, doffset;
+	uint16_t poffset, doffset;
 
 	if (h->wordcount < 14) {
 		smbstringprint(errmsgp, "word count less than 14");
@@ -53,7 +54,7 @@ _smbtransactiondecodeprimary(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbB
 	smbfree(&t->in.setup);
 	if (t->in.scount) {
 		int x;
-		t->in.setup = smbemalloc(t->in.scount * sizeof(ushort));
+		t->in.setup = smbemalloc(t->in.scount * sizeof(uint16_t));
 		for (x = 0; x < t->in.scount; x++) {
 			t->in.setup[x] = smbnhgets(pdata);
 			pdata += 2;
@@ -92,7 +93,7 @@ _smbtransactiondecodeprimary(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbB
 }
 
 int
-decoderesponse(SmbTransaction *t, Args *a, SmbBuffer *b, char **errmsgp)
+decoderesponse(SmbTransaction *t, Args *a, SmbBuffer *b, int8_t **errmsgp)
 {
 	if (t->out.tpcount > smbbufferwritemaxoffset(t->out.parameters)) {
 		smbstringprint(errmsgp, "decoderesponse: too many parameters for buffer");
@@ -143,7 +144,8 @@ decoderesponse(SmbTransaction *t, Args *a, SmbBuffer *b, char **errmsgp)
 }
 
 int
-smbtransactiondecoderesponse(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbBuffer *b, char **errmsgp)
+smbtransactiondecoderesponse(SmbTransaction *t, SmbHeader *h, uint8_t *pdata,
+			     SmbBuffer *b, int8_t **errmsgp)
 {
 	Args a;
 
@@ -173,7 +175,8 @@ smbtransactiondecoderesponse(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbB
 }
 
 int
-smbtransactiondecoderesponse2(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbBuffer *b, char **errmsgp)
+smbtransactiondecoderesponse2(SmbTransaction *t, SmbHeader *h, uint8_t *pdata,
+			      SmbBuffer *b, int8_t **errmsgp)
 {
 	Args a;
 
@@ -203,13 +206,15 @@ smbtransactiondecoderesponse2(SmbTransaction *t, SmbHeader *h, uchar *pdata, Smb
 }
 
 int
-smbtransactiondecodeprimary(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbBuffer *b, char **errmsgp)
+smbtransactiondecodeprimary(SmbTransaction *t, SmbHeader *h, uint8_t *pdata,
+			    SmbBuffer *b, int8_t **errmsgp)
 {
 	return _smbtransactiondecodeprimary(t, h, pdata, b, 1, errmsgp);
 }
 
 int
-smbtransactiondecodeprimary2(SmbTransaction *t, SmbHeader *h, uchar *pdata, SmbBuffer *b, char **errmsgp)
+smbtransactiondecodeprimary2(SmbTransaction *t, SmbHeader *h, uint8_t *pdata,
+			     SmbBuffer *b, int8_t **errmsgp)
 {
 	return _smbtransactiondecodeprimary(t, h, pdata, b, 0, errmsgp);
 }
@@ -226,11 +231,12 @@ smbtransactionfree(SmbTransaction *t)
 }
 
 static int
-_transactionencodeprimary(SmbTransaction *t, uchar cmd, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob,
-	uchar *wordcountp, ushort *bytecountp, char **errmsgp)
+_transactionencodeprimary(SmbTransaction *t, uint8_t cmd, SmbHeader *h,
+			  SmbPeerInfo *p, SmbBuffer *ob,
+	uint8_t *wordcountp, uint16_t *bytecountp, int8_t **errmsgp)
 {
 	SmbHeader mh;
-	ulong countsfixupoffset, bytecountfixupoffset;
+	uint32_t countsfixupoffset, bytecountfixupoffset;
 	int x;
 	mh = *h;
 	*wordcountp = mh.wordcount = 14 + t->in.scount;
@@ -274,8 +280,8 @@ _transactionencodeprimary(SmbTransaction *t, uchar cmd, SmbHeader *h, SmbPeerInf
 	if (!smbbufferputstring(ob, p, SMB_STRING_UPCASE, t->in.name))
 		goto toosmall;
 	if (t->in.pcount < t->in.tpcount) {
-		ulong align = smbbufferwriteoffset(ob) & 1;
-		ulong pthistime;
+		uint32_t align = smbbufferwriteoffset(ob) & 1;
+		uint32_t pthistime;
 		pthistime = smbbufferwritespace(ob) - align;
 		if (pthistime > t->in.tpcount - t->in.pcount)
 			pthistime = t->in.tpcount - t->in.pcount;
@@ -292,8 +298,8 @@ _transactionencodeprimary(SmbTransaction *t, uchar cmd, SmbHeader *h, SmbPeerInf
 		t->in.pcount += pthistime;
 	}
 	if (t->in.dcount < t->in.tdcount) {
-		ulong align = smbbufferwriteoffset(ob) & 1;
-		ulong dthistime;
+		uint32_t align = smbbufferwriteoffset(ob) & 1;
+		uint32_t dthistime;
 		dthistime = smbbufferwritespace(ob) - align;
 		if (dthistime > t->in.tdcount - t->in.dcount)
 			dthistime = t->in.tdcount - t->in.dcount;
@@ -316,27 +322,28 @@ _transactionencodeprimary(SmbTransaction *t, uchar cmd, SmbHeader *h, SmbPeerInf
 
 int
 smbtransactionencodeprimary(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob,
-	uchar *wordcountp, ushort *bytecountp, char **errmsgp)
+	uint8_t *wordcountp, uint16_t *bytecountp, int8_t **errmsgp)
 {
 	return _transactionencodeprimary(t, SMB_COM_TRANSACTION, h, p,ob, wordcountp, bytecountp, errmsgp);
 };
 
 int
 smbtransactionencodeprimary2(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob,
-	uchar *wordcountp, ushort *bytecountp, char **errmsgp)
+	uint8_t *wordcountp, uint16_t *bytecountp, int8_t **errmsgp)
 {
 	return _transactionencodeprimary(t, SMB_COM_TRANSACTION2, h, p,ob, wordcountp, bytecountp, errmsgp);
 };
 
 int
-_transactionencoderesponse(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob, uchar cmd,
-	char **errmsgp)
+_transactionencoderesponse(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob,
+			   uint8_t cmd,
+	int8_t **errmsgp)
 {
 	SmbHeader mh;
-	ulong countsfixupoffset, bytecountfixupoffset;
+	uint32_t countsfixupoffset, bytecountfixupoffset;
 	int palign, dalign;
-	ulong pbytecount, dbytecount;
-	ulong poffset, doffset;
+	uint32_t pbytecount, dbytecount;
+	uint32_t poffset, doffset;
 
 	if (t->in.maxpcount > 65535 || t->in.maxdcount > 65535) {
 		smbstringprint(errmsgp, "counts too big");
@@ -357,7 +364,7 @@ _transactionencoderesponse(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbB
 		goto toosmall;
 	}
 	countsfixupoffset = smbbufferwriteoffset(ob);
-	if (!smbbufferputbytes(ob, nil, 6 * sizeof(ushort))
+	if (!smbbufferputbytes(ob, nil, 6 * sizeof(uint16_t))
 		|| !smbbufferputb(ob, 0)	// scount == 0
 		|| !smbbufferputb(ob, 0))	// reserved2
 		goto toosmall;
@@ -403,19 +410,22 @@ _transactionencoderesponse(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbB
 }
 
 int
-smbtransactionencoderesponse(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob, char **errmsgp)
+smbtransactionencoderesponse(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob,
+			     int8_t **errmsgp)
 {
 	return _transactionencoderesponse(t, h, p, ob, SMB_COM_TRANSACTION, errmsgp);
 }
 
 int
-smbtransactionencoderesponse2(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob, char **errmsgp)
+smbtransactionencoderesponse2(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob,
+			      int8_t **errmsgp)
 {
 	return _transactionencoderesponse(t, h, p, ob, SMB_COM_TRANSACTION2, errmsgp);
 }
 
 int
-smbtransactionrespond(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob, SmbTransactionMethod *method, void *magic, char **errmsgp)
+smbtransactionrespond(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *ob, SmbTransactionMethod *method, void *magic,
+		      int8_t **errmsgp)
 {
 	/* generate one or more responses */
 	while (smbbufferreadspace(t->out.parameters) || smbbufferreadspace(t->out.data)) {
@@ -430,7 +440,7 @@ smbtransactionrespond(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer
 }
 
 int
-smbtransactionnbdgramsend(void *magic, SmbBuffer *ob, char **errmsgp)
+smbtransactionnbdgramsend(void *magic, SmbBuffer *ob, int8_t **errmsgp)
 {
 	NbDgramSendParameters *p = magic;
 //print("sending to %B\n", p->to);
@@ -449,10 +459,11 @@ SmbTransactionMethod smbtransactionmethoddgram = {
 };
 
 int
-smbtransactionexecute(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *iob, SmbTransactionMethod *method, void *magic, SmbHeader *rhp, char **errmsgp)
+smbtransactionexecute(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer *iob, SmbTransactionMethod *method, void *magic, SmbHeader *rhp,
+		      int8_t **errmsgp)
 {
-	uchar sentwordcount;
-	ushort sentbytecount;
+	uint8_t sentwordcount;
+	uint16_t sentbytecount;
 	SmbHeader rh;
 	smbbufferreset(iob);
 	if (!(*method->encodeprimary)(t, h, p, iob, &sentwordcount, &sentbytecount, errmsgp))
@@ -462,8 +473,8 @@ smbtransactionexecute(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer
 	if (!(*method->sendrequest)(magic, iob, errmsgp))
 		return 0;
 	if (t->in.pcount < t->in.tpcount || t->in.dcount < t->in.tdcount) {
-		uchar wordcount;
-		ushort bytecount;
+		uint8_t wordcount;
+		uint16_t bytecount;
 		/* secondary needed */
 		if (method->encodesecondary == nil || method->receiveintermediate == nil) {
 			smbstringprint(errmsgp, "buffer too small and secondaries not allowed");
@@ -485,8 +496,8 @@ smbtransactionexecute(SmbTransaction *t, SmbHeader *h, SmbPeerInfo *p, SmbBuffer
 	if (method->receiveresponse == nil || method->decoderesponse == nil)
 		return 1;
 	do {
-		uchar *pdata;
-		ushort bytecount;
+		uint8_t *pdata;
+		uint16_t bytecount;
 
 		if (!(*method->receiveresponse)(magic, iob, errmsgp))
 			return 0;

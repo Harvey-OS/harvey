@@ -11,7 +11,7 @@
 #include "exec.h"
 #include "fns.h"
 #include "io.h"
-extern char *Signame[];
+extern int8_t *Signame[];
 
 void
 dotrap(void)

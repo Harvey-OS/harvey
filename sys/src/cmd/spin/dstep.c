@@ -23,7 +23,7 @@
 
 #define MAXDSTEP	2048	/* was 512 */
 
-char	*NextLab[64];
+int8_t	*NextLab[64];
 int	Level=0, GenCode=0, IsGuard=0, TestOnly=0;
 
 static int	Tj=0, Jt=0, LastGoto=0;
@@ -39,7 +39,7 @@ Sourced(int n, int special)
 		if (Tojump[i] == n)
 			return;
 	if (Tj >= MAXDSTEP)
-		fatal("d_step sequence too long", (char *)0);
+		fatal("d_step sequence too long", (int8_t *)0);
 	Special[Tj] = special;
 	Tojump[Tj++] = n;
 }
@@ -54,7 +54,7 @@ Dested(int n)
 		if (Jumpto[i] == n)
 			return;
 	if (Jt >= MAXDSTEP)
-		fatal("d_step sequence too long", (char *)0);
+		fatal("d_step sequence too long", (int8_t *)0);
 	Jumpto[Jt++] = n;
 	LastGoto = 1;
 }
@@ -68,7 +68,7 @@ Mopup(FILE *fd)
 			if (Tojump[j] == Jumpto[i])
 				break;
 		if (j == Tj)
-		{	char buf[16];
+		{	int8_t buf[16];
 			if (Jumpto[i] == OkBreak)
 			{	if (!LastGoto)
 				fprintf(fd, "S_%.3d_0:	/* break-dest */\n",
@@ -92,7 +92,7 @@ Mopup(FILE *fd)
 		{	Tojump[i] = Tojump[j];
 			Special[i] = 2;
 			if (i >= MAXDSTEP)
-			fatal("cannot happen (dstep.c)", (char *)0);
+			fatal("cannot happen (dstep.c)", (int8_t *)0);
 			i++;
 		}
 	Tj = i;	/* keep only the global exit-labels */
@@ -109,7 +109,7 @@ FirstTime(int n)
 }
 
 static void
-illegal(Element *e, char *str)
+illegal(Element *e, int8_t *str)
 {
 	printf("illegal operator in 'd_step:' '");
 	comment(stdout, e->n, 0);
@@ -311,7 +311,7 @@ static void
 putCode(FILE *fd, Element *f, Element *last, Element *next, int isguard)
 {	Element *e, *N;
 	SeqList *h; int i;
-	char NextOpt[64];
+	int8_t NextOpt[64];
 	static int bno = 0;
 
 	for (e = f; e; e = e->nxt)

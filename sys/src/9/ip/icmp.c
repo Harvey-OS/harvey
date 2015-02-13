@@ -17,22 +17,22 @@
 #include "ip.h"
 
 typedef struct Icmp {
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	ipcksum[2];	/* Header checksum */
-	uchar	src[4];		/* Ip source */
-	uchar	dst[4];		/* Ip destination */
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-	uchar	data[1];
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* Identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	ttl;		/* Time to live */
+	uint8_t	proto;		/* Protocol */
+	uint8_t	ipcksum[2];	/* Header checksum */
+	uint8_t	src[4];		/* Ip source */
+	uint8_t	dst[4];		/* Ip destination */
+	uint8_t	type;
+	uint8_t	code;
+	uint8_t	cksum[2];
+	uint8_t	icmpid[2];
+	uint8_t	seq[2];
+	uint8_t	data[1];
 } Icmp;
 
 enum {			/* Packet Types */
@@ -106,11 +106,11 @@ static char *statnames[Nstats] =
 typedef struct Icmppriv Icmppriv;
 struct Icmppriv
 {
-	ulong	stats[Nstats];
+	uint32_t	stats[Nstats];
 
 	/* message counts */
-	ulong	in[Maxtype+1];
-	ulong	out[Maxtype+1];
+	uint32_t	in[Maxtype+1];
+	uint32_t	out[Maxtype+1];
 };
 
 static void icmpkick(void *x, Block*);
@@ -122,10 +122,10 @@ icmpcreate(Conv *c)
 	c->wq = qbypass(icmpkick, c);
 }
 
-extern char*
-icmpconnect(Conv *c, char **argv, int argc)
+extern int8_t*
+icmpconnect(Conv *c, int8_t **argv, int argc)
 {
-	char *e;
+	int8_t *e;
 
 	e = Fsstdconnect(c, argv, argc);
 	if(e != nil)
@@ -136,7 +136,7 @@ icmpconnect(Conv *c, char **argv, int argc)
 }
 
 extern int
-icmpstate(Conv *c, char *state, int n)
+icmpstate(Conv *c, int8_t *state, int n)
 {
 	USED(c);
 	return snprint(state, n, "%s qin %d qout %d\n",
@@ -146,10 +146,10 @@ icmpstate(Conv *c, char *state, int n)
 	);
 }
 
-extern char*
-icmpannounce(Conv *c, char **argv, int argc)
+extern int8_t*
+icmpannounce(Conv *c, int8_t **argv, int argc)
 {
-	char *e;
+	int8_t *e;
 
 	e = Fsstdannounce(c, argv, argc);
 	if(e != nil)
@@ -200,7 +200,7 @@ icmpkick(void *x, Block *bp)
 }
 
 extern void
-icmpttlexceeded(Fs *f, uchar *ia, Block *bp)
+icmpttlexceeded(Fs *f, uint8_t *ia, Block *bp)
 {
 	Block	*nbp;
 	Icmp	*p, *np;
@@ -232,7 +232,7 @@ icmpunreachable(Fs *f, Block *bp, int code, int seq)
 	Block	*nbp;
 	Icmp	*p, *np;
 	int	i;
-	uchar	addr[IPaddrlen];
+	uint8_t	addr[IPaddrlen];
 
 	p = (Icmp *)bp->rp;
 
@@ -281,8 +281,8 @@ goticmpkt(Proto *icmp, Block *bp)
 {
 	Conv	**c, *s;
 	Icmp	*p;
-	uchar	dst[IPaddrlen];
-	ushort	recid;
+	uint8_t	dst[IPaddrlen];
+	uint16_t	recid;
 
 	p = (Icmp *) bp->rp;
 	v4tov6(dst, p->src);
@@ -305,7 +305,7 @@ static Block *
 mkechoreply(Block *bp)
 {
 	Icmp	*q;
-	uchar	ip[4];
+	uint8_t	ip[4];
 
 	q = (Icmp *)bp->rp;
 	q->vihl = IP_VER4;
@@ -336,8 +336,8 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 	Icmp	*p;
 	Block	*r;
 	Proto	*pr;
-	char	*msg;
-	char	m2[128];
+	int8_t	*msg;
+	int8_t	m2[128];
 	Icmppriv *ipriv;
 
 	ipriv = icmp->priv;
@@ -431,12 +431,12 @@ raise:
 }
 
 void
-icmpadvise(Proto *icmp, Block *bp, char *msg)
+icmpadvise(Proto *icmp, Block *bp, int8_t *msg)
 {
 	Conv	**c, *s;
 	Icmp	*p;
-	uchar	dst[IPaddrlen];
-	ushort	recid;
+	uint8_t	dst[IPaddrlen];
+	uint16_t	recid;
 
 	p = (Icmp *) bp->rp;
 	v4tov6(dst, p->dst);
@@ -455,10 +455,10 @@ icmpadvise(Proto *icmp, Block *bp, char *msg)
 }
 
 int
-icmpstats(Proto *icmp, char *buf, int len)
+icmpstats(Proto *icmp, int8_t *buf, int len)
 {
 	Icmppriv *priv;
-	char *p, *e;
+	int8_t *p, *e;
 	int i;
 
 	priv = icmp->priv;

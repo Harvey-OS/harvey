@@ -13,26 +13,26 @@
 #include <auth.h>
 #include "imap4d.h"
 
-char *
+int8_t *
 wdayname[7] =
 {
 	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 };
 
-char *
+int8_t *
 monname[12] =
 {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
-static void	time2tm(Tm *tm, char *s);
-static void	zone2tm(Tm *tm, char *s);
-static int	dateindex(char *d, char **tab, int n);
+static void	time2tm(Tm *tm, int8_t *s);
+static void	zone2tm(Tm *tm, int8_t *s);
+static int	dateindex(int8_t *d, int8_t **tab, int n);
 
 int
-rfc822date(char *s, int n, Tm *tm)
+rfc822date(int8_t *s, int n, Tm *tm)
 {
-	char *plus;
+	int8_t *plus;
 	int m;
 
 	plus = "+";
@@ -50,9 +50,9 @@ rfc822date(char *s, int n, Tm *tm)
 }
 
 int
-imap4date(char *s, int n, Tm *tm)
+imap4date(int8_t *s, int n, Tm *tm)
 {
-	char *plus;
+	int8_t *plus;
 
 	plus = "+";
 	if(tm->tzoff < 0)
@@ -62,9 +62,9 @@ imap4date(char *s, int n, Tm *tm)
 }
 
 int
-imap4Date(Tm *tm, char *date)
+imap4Date(Tm *tm, int8_t *date)
 {
-	char *flds[4];
+	int8_t *flds[4];
 
 	if(getfields(date, flds, 3, 0, "-") != 3)
 		return 0;
@@ -78,12 +78,12 @@ imap4Date(Tm *tm, char *date)
 /*
  * parse imap4 dates
  */
-ulong
-imap4DateTime(char *date)
+uint32_t
+imap4DateTime(int8_t *date)
 {
 	Tm tm;
-	char *flds[4], *sflds[4];
-	ulong t;
+	int8_t *flds[4], *sflds[4];
+	uint32_t t;
 
 	if(getfields(date, flds, 4, 0, " ") != 3)
 		return ~0;
@@ -114,10 +114,10 @@ imap4DateTime(char *date)
  * return nil for a failure
  */
 Tm*
-date2tm(Tm *tm, char *date)
+date2tm(Tm *tm, int8_t *date)
 {
 	Tm gmt, *atm;
-	char *flds[7], *s, dstr[64];
+	int8_t *flds[7], *s, dstr[64];
 	int n;
 
 	/*
@@ -245,7 +245,7 @@ static NamedInt zones[] =
 };
 
 static void
-zone2tm(Tm *tm, char *s)
+zone2tm(Tm *tm, int8_t *s)
 {
 	Tm aux, *atm;
 	int i;
@@ -294,7 +294,7 @@ zone2tm(Tm *tm, char *s)
  * hh[:mm[:ss]]
  */
 static void
-time2tm(Tm *tm, char *s)
+time2tm(Tm *tm, int8_t *s)
 {
 	tm->hour = strtoul(s, &s, 10);
 	if(*s++ != ':')
@@ -306,7 +306,7 @@ time2tm(Tm *tm, char *s)
 }
 
 static int
-dateindex(char *d, char **tab, int n)
+dateindex(int8_t *d, int8_t **tab, int n)
 {
 	int i;
 

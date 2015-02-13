@@ -13,8 +13,8 @@ enum{
 	MAXWREN = 7,
 };
 
-static char WMAGIC[] =	"kfs wren device\n";
-static char MMAGIC[] =	"kfs multi-wren device %4d/%4d\n";
+static int8_t WMAGIC[] =	"kfs wren device\n";
+static int8_t MMAGIC[] =	"kfs multi-wren device %4d/%4d\n";
 
 typedef struct Wren	Wren;
 
@@ -25,10 +25,10 @@ struct Wren{
 	int	fd;
 };
 
-static char	*wmagic = WMAGIC;
+static int8_t	*wmagic = WMAGIC;
 static Wren	*wrens;
 static int	maxwren;
-char		*wrenfile;
+int8_t		*wrenfile;
 int		nwren;
 int		badmagic;
 
@@ -50,24 +50,24 @@ wren(Device dev)
  * we call this because convM2D is different
  * for the file system than in the os
  */
-uvlong
-statlen(char *ap)
+uint64_t
+statlen(int8_t *ap)
 {
-	uchar *p;
-	ulong ll, hl;
+	uint8_t *p;
+	uint32_t ll, hl;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	p += 3*NAMELEN+5*4;
 	ll = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
 	hl = p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24);
-	return ll | ((uvlong) hl << 32);
+	return ll | ((uint64_t) hl << 32);
 }
 
 static void
 wrenpartinit(Device dev, int k)
 {
-	char buf[MAXBUFSIZE], d[DIRREC];
-	char file[128], magic[64];
+	int8_t buf[MAXBUFSIZE], d[DIRREC];
+	int8_t file[128], magic[64];
 	Wren *w;
 	int fd, i, nmagic;
 
@@ -124,7 +124,7 @@ static void
 wrenpartream(Device dev, int k)
 {
 	Wren *w;
-	char buf[MAXBUFSIZE], magic[64];
+	int8_t buf[MAXBUFSIZE], magic[64];
 	int fd, i;
 
 	if(RBUFSIZE % 512)
@@ -154,7 +154,7 @@ wrenream(Device dev)
 }
 
 static int
-wrentag(char *p, int tag, long qpath)
+wrentag(int8_t *p, int tag, int32_t qpath)
 {
 	Tag *t;
 
@@ -165,7 +165,7 @@ wrentag(char *p, int tag, long qpath)
 int
 wrencheck(Device dev)
 {
-	char buf[MAXBUFSIZE];
+	int8_t buf[MAXBUFSIZE];
 
 	if(badmagic)
 		return 1;
@@ -179,7 +179,7 @@ wrencheck(Device dev)
 	return 1;
 }
 
-long
+int32_t
 wrensize(Device dev)
 {
 	Wren *w;
@@ -194,14 +194,14 @@ wrensize(Device dev)
 	return nb;
 }
 
-long
+int32_t
 wrensuper(Device dev)
 {
 	USED(dev);
 	return 1;
 }
 
-long
+int32_t
 wrenroot(Device dev)
 {
 	USED(dev);
@@ -209,7 +209,7 @@ wrenroot(Device dev)
 }
 
 int
-wrenread(Device dev, long addr, void *b)
+wrenread(Device dev, int32_t addr, void *b)
 {
 	Wren *w;
 	int fd, i;
@@ -225,13 +225,13 @@ wrenread(Device dev, long addr, void *b)
 		addr++;
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (vlong)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	return i;
 }
 
 int
-wrenwrite(Device dev, long addr, void *b)
+wrenwrite(Device dev, int32_t addr, void *b)
 {
 	Wren *w;
 	int fd, i;
@@ -247,7 +247,7 @@ wrenwrite(Device dev, long addr, void *b)
 		addr++;
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (vlong)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	return i;
 }

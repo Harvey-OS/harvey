@@ -23,15 +23,15 @@
  */
 #include "iolib.h"
 
-static char tmpsmade[FOPEN_MAX][L_tmpnam+1];
+static int8_t tmpsmade[FOPEN_MAX][L_tmpnam+1];
 static int ntmps = 0;
 
 static void rmtmps(void);
 
 FILE *tmpfile(void){
 	FILE *f;
-	static char name[]="/tmp/tf0000000000000";
-	char *p;
+	static int8_t name[]="/tmp/tf0000000000000";
+	int8_t *p;
 	while(access(name, 0)==0){
 		p=name+7;
 		while(*p=='9') *p++='0';

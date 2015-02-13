@@ -31,7 +31,7 @@ usage(void)
 Config conf;
 
 int
-shoulddump(char *name, int argc, char **argv)
+shoulddump(int8_t *name, int argc, int8_t **argv)
 {
 	int i;
 

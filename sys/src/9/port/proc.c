@@ -44,7 +44,7 @@ static void updatecpu(Proc*);
 
 static void rebalance(void);
 
-char *statename[] =
+int8_t *statename[] =
 {	/* BUG: generate automatically */
 	"Dead",
 	"Moribund",
@@ -137,9 +137,9 @@ schedinit(void)		/* never returns */
 static void
 stackok(void)
 {
-	char dummy;
+	int8_t dummy;
 
-	if(&dummy < (char*)up->kstack + 4*KiB){
+	if(&dummy < (int8_t*)up->kstack + 4*KiB){
 		print("tc kernel stack overflow, cpu%d stopped\n", m->machno);
 		DONE();
 	}
@@ -566,7 +566,7 @@ another:
 static void
 preemptfor(Proc *p)
 {
-	ulong delta;
+	uint32_t delta;
 	uint i, j, rr;
 	Proc *mup;
 	Mach *mp;
@@ -615,7 +615,7 @@ mach0sched(void)
 	Schedq *rq;
 	Proc *p;
 	Mach *mp;
-	ulong start, now;
+	uint32_t start, now;
 	int n, i, j;
 
 	assert(m->machno == 0);
@@ -699,7 +699,7 @@ smprunproc(void)
 {
 	Schedq *rq;
 	Proc *p;
-	ulong start, now;
+	uint32_t start, now;
 	int i;
 
 	start = perfticks();
@@ -766,7 +766,7 @@ runproc(void)
 {
 	Schedq *rq;
 	Proc *p;
-	ulong start, now;
+	uint32_t start, now;
 
 	if(sys->nmach <= AMPmincores)
 		return smprunproc();
@@ -904,7 +904,7 @@ procwired(Proc *p, int bm)
 {
 	Proc *pp;
 	int i;
-	char nwired[MACHMAX];
+	int8_t nwired[MACHMAX];
 	Mach *wm;
 
 	if(bm < 0){
@@ -1062,7 +1062,7 @@ twakeup(Ureg*, Timer *t)
 }
 
 void
-tsleep(Rendez *r, int (*fn)(void*), void *arg, long ms)
+tsleep(Rendez *r, int (*fn)(void*), void *arg, int32_t ms)
 {
 	if (up->tt){
 		print("tsleep: timer active: mode %d, tf %#p\n",
@@ -1129,7 +1129,7 @@ wakeup(Rendez *r)
  *  lock if we can't get the r->lock and retrying.
  */
 int
-postnote(Proc *p, int dolock, char *n, int flag)
+postnote(Proc *p, int dolock, int8_t *n, int flag)
 {
 	Mpl pl;
 	int ret;
@@ -1279,11 +1279,11 @@ freebroken(void)
 }
 
 void
-pexit(char *exitstr, int freemem)
+pexit(int8_t *exitstr, int freemem)
 {
 	Proc *p;
 	Segment **s, **es;
-	long utime, stime;
+	int32_t utime, stime;
 	Waitq *wq, *f, *next;
 	Fgrp *fgrp;
 	Egrp *egrp;
@@ -1486,7 +1486,7 @@ void
 dumpaproc(Proc *p)
 {
 	uintptr bss;
-	char *s;
+	int8_t *s;
 
 	if(p == 0)
 		return;
@@ -1595,7 +1595,7 @@ scheddump(void)
 }
 
 void
-kproc(char *name, void (*func)(void *), void *arg)
+kproc(int8_t *name, void (*func)(void *), void *arg)
 {
 	Proc *p;
 	static Pgrp *kpgrp;
@@ -1653,7 +1653,7 @@ void
 procctl(Proc *p)
 {
 	Mpl pl;
-	char *state;
+	int8_t *state;
 
 	switch(p->procctl) {
 	case Proc_exitbig:
@@ -1710,7 +1710,7 @@ procctl(Proc *p)
 }
 
 void
-error(char *err)
+error(int8_t *err)
 {
 	spllo();
 
@@ -1727,9 +1727,9 @@ nexterror(void)
 }
 
 void
-exhausted(char *resource)
+exhausted(int8_t *resource)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	sprint(buf, "no free %s", resource);
 	iprint("%s\n", buf);
@@ -1737,11 +1737,11 @@ exhausted(char *resource)
 }
 
 void
-killbig(char *why)
+killbig(int8_t *why)
 {
 	int i, x;
 	Segment *s;
-	ulong l, max;
+	uint32_t l, max;
 	Proc *p, *kp;
 
 	max = 0;
@@ -1796,7 +1796,7 @@ killbig(char *why)
  *  eve changes.
  */
 void
-renameuser(char *old, char *new)
+renameuser(int8_t *old, int8_t *new)
 {
 	int i;
 	Proc *p;
@@ -1817,7 +1817,7 @@ void
 accounttime(void)
 {
 	Proc *p;
-	ulong n, per;
+	uint32_t n, per;
 
 	p = m->proc;
 	if(p) {

@@ -14,11 +14,11 @@
 #include <libc.h>
 #include <String.h>
 
-extern	vlong	du(char*, Dir*);
-extern	void	err(char*);
-extern	vlong	blkmultiple(vlong);
+extern	int64_t	du(int8_t*, Dir*);
+extern	void	err(int8_t*);
+extern	int64_t	blkmultiple(int64_t);
 extern	int	seen(Dir*);
-extern	int	warn(char*);
+extern	int	warn(int8_t*);
 
 enum {
 	Vkilo = 1024LL,
@@ -38,12 +38,12 @@ int	sflag;
 int	tflag;
 int	uflag;
 
-char	*fmt = "%llud\t%q\n";
-char	*readbuf;
-vlong	blocksize = Vkilo;	/* actually more likely to be 4K or 8K */
-vlong	unit;			/* scale factor for output */
+int8_t	*fmt = "%llud\t%q\n";
+int8_t	*readbuf;
+int64_t	blocksize = Vkilo;	/* actually more likely to be 4K or 8K */
+int64_t	unit;			/* scale factor for output */
 
-static char *pfxes[] = {	/* SI prefixes for units > 1 */
+static int8_t *pfxes[] = {	/* SI prefixes for units > 1 */
 	"",
 	"k", "M", "G",
 	"T", "P", "E",
@@ -59,7 +59,7 @@ usage(void)
 }
 
 void
-printamt(vlong amt, char *name)
+printamt(int64_t amt, int8_t *name)
 {
 	if (readflg)
 		return;
@@ -172,8 +172,8 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
-vlong
-dirval(Dir *d, vlong size)
+int64_t
+dirval(Dir *d, int64_t size)
 {
 	if(qflag)
 		return d->qid.path;
@@ -186,7 +186,7 @@ dirval(Dir *d, vlong size)
 }
 
 void
-readfile(char *name)
+readfile(int8_t *name)
 {
 	int n, fd = open(name, OREAD);
 
@@ -201,10 +201,10 @@ readfile(char *name)
 	close(fd);
 }
 
-vlong
-dufile(char *name, Dir *d)
+int64_t
+dufile(int8_t *name, Dir *d)
 {
-	vlong t = blkmultiple(d->length);
+	int64_t t = blkmultiple(d->length);
 
 	if(aflag || readflg) {
 		String *file = s_copy(name);
@@ -220,13 +220,13 @@ dufile(char *name, Dir *d)
 	return t;
 }
 
-vlong
-du(char *name, Dir *dir)
+int64_t
+du(int8_t *name, Dir *dir)
 {
 	int fd, i, n;
 	Dir *buf, *d;
 	String *file;
-	vlong nk, t;
+	int64_t nk, t;
 
 	if(dir == nil)
 		return warn(name);
@@ -309,14 +309,14 @@ seen(Dir *dir)
 }
 
 void
-err(char *s)
+err(int8_t *s)
 {
 	fprint(2, "du: %s: %r\n", s);
 	exits(s);
 }
 
 int
-warn(char *s)
+warn(int8_t *s)
 {
 	if(fflag == 0)
 		fprint(2, "du: %s: %r\n", s);
@@ -324,8 +324,8 @@ warn(char *s)
 }
 
 /* round up n to nearest block */
-vlong
-blkmultiple(vlong n)
+int64_t
+blkmultiple(int64_t n)
 {
 	if(blocksize == 1)		/* no quantization */
 		return n;

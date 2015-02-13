@@ -55,7 +55,7 @@ void	dofmtsize(Node*, Node*) ;
 typedef struct Btab Btab;
 struct Btab
 {
-	char	*name;
+	int8_t	*name;
 	void	(*fn)(Node*, Node*);
 } tab[] =
 {
@@ -96,7 +96,7 @@ struct Btab
 	0
 };
 
-char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ38";
+int8_t vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ38";
 
 void
 mkprint(Lsym *s)
@@ -197,8 +197,8 @@ newproc(Node *r, Node *args)
 {
 	int i;
 	Node res;
-	char *p, *e;
-	char *argv[Maxarg], buf[Strsize];
+	int8_t *p, *e;
+	int8_t *argv[Maxarg], buf[Strsize];
 
 	i = 1;
 	argv[0] = aout;
@@ -320,7 +320,7 @@ void
 status(Node *r, Node *args)
 {
 	Node res;
-	char *p;
+	int8_t *p;
 
 	USED(r);
 	if(args == 0)
@@ -358,7 +358,7 @@ follow(Node *r, Node *args)
 {
 	int n, i;
 	Node res;
-	uvlong f[10];
+	uint64_t f[10];
 	List **tail, *l;
 
 	if(args == 0)
@@ -385,7 +385,7 @@ funcbound(Node *r, Node *args)
 {
 	int n;
 	Node res;
-	uvlong bounds[2];
+	uint64_t bounds[2];
 	List *l;
 
 	if(args == 0)
@@ -426,7 +426,7 @@ void
 filepc(Node *r, Node *args)
 {
 	Node res;
-	char *p, c;
+	int8_t *p, c;
 
 	if(args == 0)
 		error("filepc(filename:line): arg count");
@@ -503,7 +503,7 @@ rc(Node *r, Node *args)
 {
 	Node res;
 	int pid;
-	char *p, *q, *argv[4];
+	int8_t *p, *q, *argv[4];
 	Waitmsg *w;
 
 	USED(r);
@@ -579,7 +579,7 @@ readfile(Node *r, Node *args)
 {
 	Node res;
 	int n, fd;
-	char *buf;
+	int8_t *buf;
 	Dir *db;
 
 	if(args == 0)
@@ -616,7 +616,7 @@ void
 getfile(Node *r, Node *args)
 {
 	int n;
-	char *p;
+	int8_t *p;
 	Node res;
 	String *s;
 	Biobuf *bp;
@@ -693,13 +693,13 @@ cvtatoi(Node *r, Node *args)
 	r->fmt = 'V';
 }
 
-static char *fmtflags = "-0123456789. #,u";
-static char *fmtverbs = "bdox";
+static int8_t *fmtflags = "-0123456789. #,u";
+static int8_t *fmtverbs = "bdox";
 
 static int
-acidfmt(char *fmt, char *buf, int blen)
+acidfmt(int8_t *fmt, int8_t *buf, int blen)
 {
-	char *r, *w, *e;
+	int8_t *r, *w, *e;
 	
 	w = buf;
 	e = buf+blen;
@@ -744,8 +744,8 @@ cvtitoa(Node *r, Node *args)
 {
 	Node res;
 	Node *av[Maxarg];
-	vlong ival;
-	char buf[128], fmt[32];
+	int64_t ival;
+	int8_t buf[128], fmt[32];
 
 	if(args == 0)
 err:
@@ -814,7 +814,7 @@ map(Node *r, Node *args)
 	int i;
 	Map *m;
 	List *l;
-	char *ent;
+	int8_t *ent;
 	Node *av[Maxarg], res;
 
 	na = 0;
@@ -893,7 +893,7 @@ void
 strace(Node *r, Node *args)
 {
 	Node *av[Maxarg], *n, res;
-	uvlong pc, sp;
+	uint64_t pc, sp;
 
 	na = 0;
 	flatten(av, args);
@@ -925,7 +925,7 @@ strace(Node *r, Node *args)
 }
 
 void
-regerror(char *msg)
+regerror(int8_t *msg)
 {
 	error(msg);
 }
@@ -970,17 +970,17 @@ fmt(Node *r, Node *args)
 		error("fmt(obj, fmt): arg count");
 	expr(av[1], &res);
 	if(res.type != TINT || strchr(vfmt, res.ival) == 0)
-		error("fmt(obj, fmt): bad format '%c'", (char)res.ival);
+		error("fmt(obj, fmt): bad format '%c'", (int8_t)res.ival);
 	expr(av[0], r);
 	r->fmt = res.ival;
 }
 
 void
-patom(char type, Store *res)
+patom(int8_t type, Store *res)
 {
 	int i;
-	char buf[512];
-	extern char *typenames[];
+	int8_t buf[512];
+	extern int8_t *typenames[];
 
 	switch(res->fmt) {
 	case 'c':
@@ -1009,22 +1009,22 @@ patom(char type, Store *res)
 		Bprint(bout, "%.2x", (int)res->ival&0xff);
 		break;
 	case 'X':
-		Bprint(bout, "%.8lux", (ulong)res->ival);
+		Bprint(bout, "%.8lux", (uint32_t)res->ival);
 		break;
 	case 'x':
-		Bprint(bout, "%.4lux", (ulong)res->ival&0xffff);
+		Bprint(bout, "%.4lux", (uint32_t)res->ival&0xffff);
 		break;
 	case 'D':
 		Bprint(bout, "%d", (int)res->ival);
 		break;
 	case 'd':
-		Bprint(bout, "%d", (ushort)res->ival);
+		Bprint(bout, "%d", (uint16_t)res->ival);
 		break;
 	case 'u':
 		Bprint(bout, "%d", (int)res->ival&0xffff);
 		break;
 	case 'U':
-		Bprint(bout, "%lud", (ulong)res->ival);
+		Bprint(bout, "%lud", (uint32_t)res->ival);
 		break;
 	case 'Z':
 		Bprint(bout, "%llud", res->ival);
@@ -1045,7 +1045,7 @@ patom(char type, Store *res)
 		Bprint(bout, "0%.6uo", (int)res->ival);
 		break;
 	case 'q':
-		Bprint(bout, "0%.11o", (short)(res->ival&0xffff));
+		Bprint(bout, "0%.11o", (int16_t)(res->ival&0xffff));
 		break;
 	case 'Q':
 		Bprint(bout, "0%.6o", (int)res->ival);
@@ -1233,7 +1233,7 @@ void
 pcfile(Node *r, Node *args)
 {
 	Node res;
-	char *p, buf[128];
+	int8_t *p, buf[128];
 
 	if(args == 0)
 		error("pcfile(addr): arg count");
@@ -1258,7 +1258,7 @@ void
 pcline(Node *r, Node *args)
 {
 	Node res;
-	char *p, buf[128];
+	int8_t *p, buf[128];
 
 	if(args == 0)
 		error("pcline(addr): arg count");

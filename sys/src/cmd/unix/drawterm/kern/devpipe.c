@@ -21,7 +21,7 @@ struct Pipe
 	QLock lk;
 	Pipe	*next;
 	int	ref;
-	ulong	path;
+	uint32_t	path;
 	Queue	*q[2];
 	int	qref[2];
 };
@@ -29,7 +29,7 @@ struct Pipe
 struct
 {
 	Lock lk;
-	ulong	path;
+	uint32_t	path;
 } pipealloc;
 
 enum
@@ -62,7 +62,7 @@ pipeinit(void)
  *  create a pipe, no streams are created until an open
  */
 static Chan*
-pipeattach(char *spec)
+pipeattach(int8_t *spec)
 {
 	Pipe *p;
 	Chan *c;
@@ -96,7 +96,7 @@ pipeattach(char *spec)
 }
 
 static int
-pipegen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
+pipegen(Chan *c, int8_t *name, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid q;
 	int len;
@@ -114,7 +114,7 @@ pipegen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
 
 	tab += i;
 	p = c->aux;
-	switch((ulong)tab->qid.path){
+	switch((uint32_t)tab->qid.path){
 	case Qdata0:
 		len = qlen(p->q[0]);
 		break;
@@ -132,7 +132,7 @@ pipegen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
 
 
 static Walkqid*
-pipewalk(Chan *c, Chan *nc, char **name, int nname)
+pipewalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	Walkqid *wq;
 	Pipe *p;
@@ -159,7 +159,7 @@ pipewalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-pipestat(Chan *c, uchar *db, int n)
+pipestat(Chan *c, uint8_t *db, int n)
 {
 	Pipe *p;
 	Dir dir;
@@ -273,8 +273,8 @@ pipeclose(Chan *c)
 		qunlock(&p->lk);
 }
 
-static long
-piperead(Chan *c, void *va, long n, vlong offset)
+static int32_t
+piperead(Chan *c, void *va, int32_t n, int64_t offset)
 {
 	Pipe *p;
 
@@ -296,7 +296,7 @@ piperead(Chan *c, void *va, long n, vlong offset)
 }
 
 static Block*
-pipebread(Chan *c, long n, ulong offset)
+pipebread(Chan *c, int32_t n, uint32_t offset)
 {
 	Pipe *p;
 
@@ -316,8 +316,8 @@ pipebread(Chan *c, long n, ulong offset)
  *  a write to a closed pipe causes a note to be sent to
  *  the process.
  */
-static long
-pipewrite(Chan *c, void *va, long n, vlong offset)
+static int32_t
+pipewrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
 	Pipe *p;
 
@@ -351,10 +351,10 @@ pipewrite(Chan *c, void *va, long n, vlong offset)
 	return n;
 }
 
-static long
-pipebwrite(Chan *c, Block *bp, ulong offset)
+static int32_t
+pipebwrite(Chan *c, Block *bp, uint32_t offset)
 {
-	long n;
+	int32_t n;
 	Pipe *p;
 
 	USED(offset);

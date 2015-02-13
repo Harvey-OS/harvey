@@ -15,7 +15,7 @@ dodata(void)
 	int i;
 	Sym *s;
 	Prog *p;
-	long t, u;
+	int32_t t, u;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f dodata\n", cputime());
@@ -295,10 +295,10 @@ doinit(void)
 void
 patch(void)
 {
-	long c;
+	int32_t c;
 	Prog *p, *q;
 	Sym *s;
-	long vexit;
+	int32_t vexit;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f mkfwd\n", cputime());
@@ -374,7 +374,7 @@ mkfwd(void)
 {
 	Prog *p;
 	int i;
-	long dwn[LOG], cnt[LOG];
+	int32_t dwn[LOG], cnt[LOG];
 	Prog *lst[LOG];
 
 	for(i=0; i<LOG; i++) {
@@ -423,7 +423,7 @@ void
 dostkoff(void)
 {
 	Prog *p, *q;
-	long autoffset, deltasp;
+	int32_t autoffset, deltasp;
 	int a, f, curframe, curbecome, maxbecome;
 
 	curframe = 0;
@@ -577,10 +577,10 @@ dostkoff(void)
 	}
 }
 
-long
-atolwhex(char *s)
+int32_t
+atolwhex(int8_t *s)
 {
-	long n;
+	int32_t n;
 	int f;
 
 	n = 0;
@@ -649,7 +649,7 @@ import(void)
 }
 
 void
-ckoff(Sym *s, long v)
+ckoff(Sym *s, int32_t v)
 {
 	if(v < 0 || v >= 1<<Roffset)
 		diag("relocation offset %ld for %s out of range", v, s->name);
@@ -682,7 +682,7 @@ export(void)
 	int i, j, n, off, nb, sv, ne;
 	Sym *s, *et, *str, **esyms;
 	Prog *p;
-	char buf[NSNAME], *t;
+	int8_t buf[NSNAME], *t;
 
 	n = 0;
 	for(i = 0; i < NHASH; i++)
@@ -721,13 +721,13 @@ export(void)
 		/* Bprint(&bso, "EXPORT: %s sig=%lux t=%d\n", s->name, s->sig, s->type); */
 
 		/* signature */
-		p = newdata(et, off, sizeof(long), D_EXTERN);
-		off += sizeof(long);
+		p = newdata(et, off, sizeof(int32_t), D_EXTERN);
+		off += sizeof(int32_t);
 		p->to.offset = s->sig;
 
 		/* address */
-		p = newdata(et, off, sizeof(long), D_EXTERN);
-		off += sizeof(long);
+		p = newdata(et, off, sizeof(int32_t), D_EXTERN);
+		off += sizeof(int32_t);
 		p->to.type = D_ADDR;
 		p->to.index = D_EXTERN;
 		p->to.sym = s;
@@ -749,8 +749,8 @@ export(void)
 		}
 
 		/* name */
-		p = newdata(et, off, sizeof(long), D_EXTERN);
-		off += sizeof(long);
+		p = newdata(et, off, sizeof(int32_t), D_EXTERN);
+		off += sizeof(int32_t);
 		p->to.type = D_ADDR;
 		p->to.index = D_STATIC;
 		p->to.sym = str;
@@ -764,8 +764,8 @@ export(void)
 	}
 
 	for(i = 0; i < 3; i++){
-		newdata(et, off, sizeof(long), D_EXTERN);
-		off += sizeof(long);
+		newdata(et, off, sizeof(int32_t), D_EXTERN);
+		off += sizeof(int32_t);
 	}
 	et->value = off;
 	if(sv == 0)

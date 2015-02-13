@@ -16,13 +16,13 @@ double	frame_ht;	/* default frame height */
 double	frame_wid;	/* and width */
 
 int	nsides	= 0;		/* how many sides given on this frame */
-char	*sides[] = {
+int8_t	*sides[] = {
 		"\tline from Frame.nw to Frame.ne",
 		"\tline from Frame.sw to Frame.se",
 		"\tline from Frame.sw to Frame.nw",
 		"\tline from Frame.se to Frame.ne"
 };
-char	*newsides[4] = { 0, 0, 0, 0 };	/* filled in later */
+int8_t	*newsides[4] = { 0, 0, 0, 0 };	/* filled in later */
 
 void frame(void)		/* pump out frame definition, reset for next */
 {
@@ -60,7 +60,7 @@ void framewid(double f)	/* set width of frame */
 void frameside(int type, Attr *desc)	/* create and remember sides */
 {
 	int n;
-	char buf[100];
+	int8_t buf[100];
 
 	nsides++;
 	n = 0;

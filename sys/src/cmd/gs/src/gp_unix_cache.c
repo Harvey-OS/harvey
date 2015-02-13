@@ -44,7 +44,7 @@ typedef struct gp_cache_entry_s {
     int keylen;
     byte *key;
     md5_byte_t hash[16];
-    char *filename;
+    int8_t *filename;
     int len;
     void *buffer;
     int dirty;
@@ -65,13 +65,13 @@ private void gp_cache_clear_entry(gp_cache_entry *item)
 }
 
 /* get the cache directory's path */
-private char *gp_cache_prefix(void)
+private int8_t *gp_cache_prefix(void)
 {
-    char *prefix = NULL;
+    int8_t *prefix = NULL;
     int plen = 0;
     
     /* get the cache directory path */
-    if (gp_getenv("GS_CACHE_DIR", (char *)NULL, &plen) < 0) {
+    if (gp_getenv("GS_CACHE_DIR", (int8_t *)NULL, &plen) < 0) {
         prefix = malloc(plen);
         gp_getenv("GS_CACHE_DIR", prefix, &plen);
         plen--;
@@ -86,12 +86,12 @@ private char *gp_cache_prefix(void)
     
     /* substitute $HOME for '~' */
     if (plen > 1 && prefix[0] == '~') {
-        char *home, *path;
+        int8_t *home, *path;
         int hlen = 0;
 	unsigned int pathlen = 0;
         gp_file_name_combine_result result;
         
-        if (gp_getenv("HOME", (char *)NULL, &hlen) < 0) {
+        if (gp_getenv("HOME", (int8_t *)NULL, &hlen) < 0) {
             home = malloc(hlen);
             if (home == NULL) return prefix;
             gp_getenv("HOME", home, &hlen);
@@ -122,11 +122,11 @@ private char *gp_cache_prefix(void)
 }
 
 /* compute the cache index file's path */
-private char *
-gp_cache_indexfilename(const char *prefix)
+private int8_t *
+gp_cache_indexfilename(const int8_t *prefix)
 {
-    const char *fn = "gs_cache";
-    char *path;
+    const int8_t *fn = "gs_cache";
+    int8_t *path;
     unsigned int len;
     gp_file_name_combine_result result;
     
@@ -160,10 +160,10 @@ private void gp_cache_hash(gp_cache_entry *entry)
 }
 
 /* compute and set cache item's filename */
-private void gp_cache_filename(const char *prefix, gp_cache_entry *item)
+private void gp_cache_filename(const int8_t *prefix, gp_cache_entry *item)
 {
-    const char hexmap[16] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
-    char *fn = malloc(gp_file_name_sizeof), *fni;
+    const int8_t hexmap[16] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    int8_t *fn = malloc(gp_file_name_sizeof), *fni;
     int i;
        
     fni = fn;
@@ -181,11 +181,11 @@ private void gp_cache_filename(const char *prefix, gp_cache_entry *item)
 }
 
 /* generate an access path for a cache item */
-private char *gp_cache_itempath(const char *prefix, gp_cache_entry *item)
+private int8_t *gp_cache_itempath(const int8_t *prefix, gp_cache_entry *item)
 {
-    const char *fn = item->filename;
+    const int8_t *fn = item->filename;
     gp_file_name_combine_result result;
-    char *path;
+    int8_t *path;
     unsigned int len;
     
     len = strlen(prefix) + strlen(fn) + 2;
@@ -270,9 +270,9 @@ private int gp_cache_loaditem(FILE *file, gp_cache_entry *item, gp_cache_alloc a
 }
 
 /* convert a two-character hex string to an integer */
-private int readhexbyte(const char *s)
+private int readhexbyte(const int8_t *s)
 {
-    const char hexmap[16] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    const int8_t hexmap[16] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
     int i,r;
     
     for (i = 0; i < 16; i++)
@@ -290,8 +290,8 @@ private int readhexbyte(const char *s)
 private int
 gp_cache_read_entry(FILE *file, gp_cache_entry *item)
 {
-    char line[256];
-    char fn[32];
+    int8_t line[256];
+    int8_t fn[32];
     int i;
     
     if (!fgets(line, 256, file)) return -1;
@@ -330,8 +330,8 @@ gp_cache_write_entry(FILE *file, gp_cache_entry *item)
 /* insert a buffer under a (type, key) pair */
 int gp_cache_insert(int type, byte *key, int keylen, void *buffer, int buflen)
 {
-    char *prefix, *path;
-    char *infn,*outfn;
+    int8_t *prefix, *path;
+    int8_t *infn,*outfn;
     FILE *file, *in, *out;
     gp_cache_entry item, item2;
     int code, hit = 0;
@@ -414,8 +414,8 @@ int gp_cache_insert(int type, byte *key, int keylen, void *buffer, int buflen)
 int gp_cache_query(int type, byte* key, int keylen, void **buffer,
     gp_cache_alloc alloc, void *userdata)
 {
-    char *prefix, *path;
-    char *infn,*outfn;
+    int8_t *prefix, *path;
+    int8_t *infn,*outfn;
     FILE *file, *in, *out;
     gp_cache_entry item, item2;
     int code, hit = 0;

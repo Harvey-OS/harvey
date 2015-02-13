@@ -47,7 +47,7 @@ static Pcidev* pciroot;
 static Pcidev* pcilist;
 static Pcidev* pcitail;
 
-static char* bustypes[] = {
+static int8_t* bustypes[] = {
 	"CBUSI",
 	"CBUSII",
 	"EISA",
@@ -73,7 +73,7 @@ static	int	pcicfgrw(int, int, int, int, int);
 static int
 tbdffmt(Fmt* fmt)
 {
-	char *p;
+	int8_t *p;
 	int l, r;
 	uint type, tbdf;
 
@@ -102,10 +102,10 @@ tbdffmt(Fmt* fmt)
 	return r;
 }
 
-static ulong
+static uint32_t
 pcibarsize(Pcidev *p, int rno)
 {
-	ulong v, size;
+	uint32_t v, size;
 
 	v = pcicfgr32(p, rno);
 	pcicfgw32(p, rno, 0xFFFFFFF0);
@@ -253,10 +253,10 @@ pcilscan(int bno, Pcidev** list)
 	return maxubn;
 }
 
-static uchar 
-pIIxget(Pcidev *router, uchar link)
+static uint8_t 
+pIIxget(Pcidev *router, uint8_t link)
 {
-	uchar pirq;
+	uint8_t pirq;
 
 	/* link should be 0x60, 0x61, 0x62, 0x63 */
 	pirq = pcicfgr8(router, link);
@@ -264,15 +264,15 @@ pIIxget(Pcidev *router, uchar link)
 }
 
 static void 
-pIIxset(Pcidev *router, uchar link, uchar irq)
+pIIxset(Pcidev *router, uint8_t link, uint8_t irq)
 {
 	pcicfgw8(router, link, irq);
 }
 
-static uchar 
-viaget(Pcidev *router, uchar link)
+static uint8_t 
+viaget(Pcidev *router, uint8_t link)
 {
-	uchar pirq;
+	uint8_t pirq;
 
 	/* link should be 1, 2, 3, 5 */
 	pirq = (link < 6)? pcicfgr8(router, 0x55 + (link>>1)): 0;
@@ -281,9 +281,9 @@ viaget(Pcidev *router, uchar link)
 }
 
 static void 
-viaset(Pcidev *router, uchar link, uchar irq)
+viaset(Pcidev *router, uint8_t link, uint8_t irq)
 {
-	uchar pirq;
+	uint8_t pirq;
 
 	pirq = pcicfgr8(router, 0x55 + (link >> 1));
 	pirq &= (link & 1)? 0x0f: 0xf0;
@@ -294,10 +294,10 @@ viaset(Pcidev *router, uchar link, uchar irq)
 typedef struct Bridge Bridge;
 struct Bridge
 {
-	ushort	vid;
-	ushort	did;
-	uchar	(*get)(Pcidev *, uchar);
-	void	(*set)(Pcidev *, uchar, uchar);	
+	uint16_t	vid;
+	uint16_t	did;
+	uint8_t	(*get)(Pcidev *, uint8_t);
+	void	(*set)(Pcidev *, uint8_t, uint8_t);	
 };
 
 static Bridge southbridges[] = {
@@ -312,32 +312,32 @@ static Bridge southbridges[] = {
 
 typedef struct Slot Slot;
 struct Slot {
-	uchar	bus;			// Pci bus number
-	uchar	dev;			// Pci device number
-	uchar	maps[12];		// Avoid structs!  Link and mask.
-	uchar	slot;			// Add-in/built-in slot
-	uchar	reserved;
+	uint8_t	bus;			// Pci bus number
+	uint8_t	dev;			// Pci device number
+	uint8_t	maps[12];		// Avoid structs!  Link and mask.
+	uint8_t	slot;			// Add-in/built-in slot
+	uint8_t	reserved;
 };
 
 typedef struct Router Router;
 struct Router {
-	uchar	signature[4];		// Routing table signature
-	uchar	version[2];		// Version number
-	uchar	size[2];		// Total table size
-	uchar	bus;			// Interrupt router bus number
-	uchar	devfn;			// Router's devfunc
-	uchar	pciirqs[2];		// Exclusive PCI irqs
-	uchar	compat[4];		// Compatible PCI interrupt router
-	uchar	miniport[4];		// Miniport data
-	uchar	reserved[11];
-	uchar	checksum;
+	uint8_t	signature[4];		// Routing table signature
+	uint8_t	version[2];		// Version number
+	uint8_t	size[2];		// Total table size
+	uint8_t	bus;			// Interrupt router bus number
+	uint8_t	devfn;			// Router's devfunc
+	uint8_t	pciirqs[2];		// Exclusive PCI irqs
+	uint8_t	compat[4];		// Compatible PCI interrupt router
+	uint8_t	miniport[4];		// Miniport data
+	uint8_t	reserved[11];
+	uint8_t	checksum;
 };
 
 
 static void
 pcirouting(void)
 {
-	uchar *p, pin, irq, link, *map;
+	uint8_t *p, pin, irq, link, *map;
 	int size, i, fn, tbdf;
 	Bridge *southbridge;
 	Pcidev *sbpci, *pci;
@@ -345,11 +345,11 @@ pcirouting(void)
 	Slot *e;
 
 	// Search for PCI interrupt routing table in BIOS
-	for(p = (uchar *)KADDR(0xf0000); p < (uchar *)KADDR(0xfffff); p += 16)
+	for(p = (uint8_t *)KADDR(0xf0000); p < (uint8_t *)KADDR(0xfffff); p += 16)
 		if(p[0] == '$' && p[1] == 'P' && p[2] == 'I' && p[3] == 'R')
 			break;
 
-	if(p >= (uchar *)KADDR(0xfffff))
+	if(p >= (uint8_t *)KADDR(0xfffff))
 		return;
 
 	r = (Router *)p;
@@ -379,11 +379,11 @@ pcirouting(void)
 		return;
 
 	size = (r->size[1] << 8)|r->size[0];
-	for(e = (Slot *)&r[1]; (uchar *)e < p + size; e++) {
+	for(e = (Slot *)&r[1]; (uint8_t *)e < p + size; e++) {
 		if(0){
 			print("%.2ux/%.2ux %.2ux: ", e->bus, e->dev, e->slot);
 			for (i = 0; i != 4; i++) {
-				uchar *m = &e->maps[i * 3];
+				uint8_t *m = &e->maps[i * 3];
 				print("[%d] %.2ux %.4ux ",
 					i, m[0], (m[2] << 8)|m[1]);
 			}

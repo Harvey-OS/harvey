@@ -14,10 +14,10 @@
 #include "protos.h"
 
 typedef struct{
-	uchar	type;
-	uchar	conn;
-	uchar	seq;
-	uchar	len;
+	uint8_t	type;
+	uint8_t	conn;
+	uint8_t	seq;
+	uint8_t	len;
 }Hdr;
 
 enum{
@@ -74,7 +74,7 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static char* ttab[] = {
+static int8_t* ttab[] = {
 	"Tinita",
 	"Tinitb",
 	"Tinitc",
@@ -88,7 +88,7 @@ static char* ttab[] = {
 static int
 p_seprint(Msg *m)
 {
-	char *s, *p, buf[4];
+	int8_t *s, *p, buf[4];
 	Hdr *h;
 
 	if(m->pe - m->ps < Hsize)
@@ -106,7 +106,7 @@ p_seprint(Msg *m)
 		s = buf;
 	}
 
-	p = (char*)m->ps;
+	p = (int8_t*)m->ps;
 	m->p = seprint(m->p, m->e, "type=%s conn=%d seq=%d len=%d %.*s",
 		s, h->conn, h->seq, h->len,
 		(int)utfnlen(p, h->len), p);

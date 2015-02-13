@@ -15,13 +15,13 @@
 #include "tapefs.h"
 
 Idmap *
-getpass(char *file)
+getpass(int8_t *file)
 {
 	Biobuf *bp;
-	char *cp;
+	int8_t *cp;
 	Idmap *up;
 	int nid, maxid;
-	char *line[4];
+	int8_t *line[4];
 
 	if ((bp = Bopen(file, OREAD)) == 0)
 		error("Can't open passwd/group");
@@ -49,10 +49,10 @@ getpass(char *file)
 	return up;
 }
 
-char *
+int8_t *
 mapid(Idmap *up, int id)
 {
-	char buf[16];
+	int8_t buf[16];
 
 	if (up)
 		while (up->name){
@@ -67,7 +67,7 @@ mapid(Idmap *up, int id)
 Ram *
 poppath(Fileinf fi, int new)
 {
-	char *suffix, *origname;
+	int8_t *suffix, *origname;
 	Ram *dir, *ent;
 	Fileinf f;
 
@@ -159,7 +159,7 @@ popfile(Ram *dir, Fileinf fi)
 }
 
 Ram *
-lookup(Ram *dir, char *name)
+lookup(Ram *dir, int8_t *name)
 {
 	Ram *r;
 

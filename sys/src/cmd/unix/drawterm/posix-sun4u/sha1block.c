@@ -12,10 +12,10 @@
 #include <libsec.h>
 
 void
-_sha1block(uchar *p, ulong len, u32int *s)
+_sha1block(uint8_t *p, uint32_t len, u32int *s)
 {
 	u32int a, b, c, d, e, x;
-	uchar *end;
+	uint8_t *end;
 	u32int *wp, *wend;
 	u32int w[80];
 

@@ -16,13 +16,13 @@ int		conftime;
 
 #define	NSIZE	128
 
-static char	nbuf[NSIZE];
+static int8_t	nbuf[NSIZE];
 static int	chatpid;
 
 static void
 killchat(void)
 {
-	char buf[NSIZE];
+	int8_t buf[NSIZE];
 	int fd;
 
 	remove(nbuf);
@@ -33,10 +33,10 @@ killchat(void)
 }
 
 void
-chatsrv(char *name)
+chatsrv(int8_t *name)
 {
 	int n, sfd, pfd[2];
-	char *p, buf[256];
+	int8_t *p, buf[256];
 
 	if(name && *name)
 		snprint(nbuf, sizeof nbuf, "/srv/%s", name);
@@ -87,9 +87,9 @@ chatsrv(char *name)
 }
 
 void
-chat(char *fmt, ...)
+chat(int8_t *fmt, ...)
 {
-	char buf[SIZE];
+	int8_t buf[SIZE];
 	va_list arg;
 	Fmt f;
 
@@ -104,9 +104,9 @@ chat(char *fmt, ...)
 }
 
 void
-clog(char *fmt, ...)
+clog(int8_t *fmt, ...)
 {
-	char buf[SIZE];
+	int8_t buf[SIZE];
 	va_list arg;
 	int n;
 
@@ -124,9 +124,9 @@ clog(char *fmt, ...)
 }
 
 void
-panic(char *fmt, ...)
+panic(int8_t *fmt, ...)
 {
-	char buf[SIZE];
+	int8_t buf[SIZE];
 	va_list arg;
 
 	va_start(arg, fmt);

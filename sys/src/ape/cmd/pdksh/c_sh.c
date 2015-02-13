@@ -22,19 +22,19 @@ static	char *clocktos ARGS((clock_t t));
 /* :, false and true */
 int
 c_label(wp)
-	char **wp;
+	int8_t **wp;
 {
 	return wp[0][0] == 'f' ? 1 : 0;
 }
 
 int
 c_shift(wp)
-	char **wp;
+	int8_t **wp;
 {
 	register struct block *l = e->loc;
 	register int n;
-	long val;
-	char *arg;
+	int32_t val;
+	int8_t *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -61,10 +61,10 @@ c_shift(wp)
 
 int
 c_umask(wp)
-	char **wp;
+	int8_t **wp;
 {
 	register int i;
-	register char *cp;
+	register int8_t *cp;
 	int symbolic = 0;
 	int old_umask;
 	int optc;
@@ -82,7 +82,7 @@ c_umask(wp)
 		old_umask = umask(0);
 		umask(old_umask);
 		if (symbolic) {
-			char buf[18];
+			int8_t buf[18];
 			int j;
 
 			old_umask = ~old_umask;
@@ -112,7 +112,7 @@ c_umask(wp)
 		} else {
 			/* symbolic format */
 			int positions, new_val;
-			char op;
+			int8_t op;
 
 			old_umask = umask(0);
 			umask(old_umask); /* in case of error */
@@ -181,10 +181,10 @@ c_umask(wp)
 
 int
 c_dot(wp)
-	char **wp;
+	int8_t **wp;
 {
-	char *file, *cp;
-	char **argv;
+	int8_t *file, *cp;
+	int8_t **argv;
 	int argc;
 	int i;
 	int err;
@@ -208,7 +208,7 @@ c_dot(wp)
 			;
 	} else {
 		argc = 0;
-		argv = (char **) 0;
+		argv = (int8_t **) 0;
 	}
 	i = include(file, argc, argv, 0);
 	if (i < 0) { /* should not happen */
@@ -220,7 +220,7 @@ c_dot(wp)
 
 int
 c_wait(wp)
-	char **wp;
+	int8_t **wp;
 {
 	int UNINITIALIZED(rv);
 	int sig;
@@ -228,8 +228,8 @@ c_wait(wp)
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
 	wp += builtin_opt.optind;
-	if (*wp == (char *) 0) {
-		while (waitfor((char *) 0, &sig) >= 0)
+	if (*wp == (int8_t *) 0) {
+		while (waitfor((int8_t *) 0, &sig) >= 0)
 			;
 		rv = sig;
 	} else {
@@ -429,7 +429,7 @@ c_read(wp)
 
 int
 c_eval(wp)
-	char **wp;
+	int8_t **wp;
 {
 	register struct source *s;
 
@@ -470,10 +470,10 @@ c_eval(wp)
 
 int
 c_trap(wp)
-	char **wp;
+	int8_t **wp;
 {
 	int i;
-	char *s;
+	int8_t *s;
 	register Trap *p;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
@@ -530,11 +530,11 @@ c_trap(wp)
 
 int
 c_exitreturn(wp)
-	char **wp;
+	int8_t **wp;
 {
 	int how = LEXIT;
 	int n;
-	char *arg;
+	int8_t *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -573,11 +573,11 @@ c_exitreturn(wp)
 
 int
 c_brkcont(wp)
-	char **wp;
+	int8_t **wp;
 {
 	int n, quit;
 	struct env *ep, *last_ep = (struct env *) 0;
-	char *arg;
+	int8_t *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
 		return 1;
@@ -628,15 +628,15 @@ c_brkcont(wp)
 
 int
 c_set(wp)
-	char **wp;
+	int8_t **wp;
 {
 	int argi, setargs;
 	struct block *l = e->loc;
-	register char **owp = wp;
+	register int8_t **owp = wp;
 
 	if (wp[1] == NULL) {
-		static const char *const args [] = { "set", "-", NULL };
-		return c_typeset((char **) args);
+		static const int8_t *const args [] = { "set", "-", NULL };
+		return c_typeset((int8_t **) args);
 	}
 
 	argi = parse_args(wp, OF_SET, &setargs);
@@ -649,7 +649,8 @@ c_set(wp)
 		while (*++wp != NULL)
 			*wp = str_save(*wp, &l->area);
 		l->argc = wp - owp - 1;
-		l->argv = (char **) alloc(sizeofN(char *, l->argc+2), &l->area);
+		l->argv = (int8_t **) alloc(sizeofN(int8_t *, l->argc+2),
+					    &l->area);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}
@@ -664,9 +665,9 @@ c_set(wp)
 
 int
 c_unset(wp)
-	char **wp;
+	int8_t **wp;
 {
-	register char *id;
+	register int8_t *id;
 	int optc, unset_var = 1;
 	int ret = 0;
 
@@ -702,7 +703,7 @@ c_unset(wp)
 
 int
 c_times(wp)
-	char **wp;
+	int8_t **wp;
 {
 	struct tms all;
 
@@ -731,7 +732,7 @@ timex(t, f)
 	clock_t t0t, t1t = 0;
 	int tf = 0;
 	extern clock_t j_usrtime, j_systime; /* computed by j_wait */
-	char opts[1];
+	int8_t opts[1];
 
 	t0t = ksh_times(&t0);
 	if (t->left) {
@@ -778,9 +779,9 @@ timex(t, f)
 void
 timex_hook(t, app)
 	struct op *t;
-	char ** volatile *app;
+	int8_t ** volatile *app;
 {
-	char **wp = *app;
+	int8_t **wp = *app;
 	int optc;
 	int i, j;
 	Getopt opt;
@@ -810,13 +811,13 @@ timex_hook(t, app)
 	*app = wp;
 }
 
-static char *
+static int8_t *
 clocktos(t)
 	clock_t t;
 {
-	static char temp[22]; /* enough for 64 bit clock_t */
+	static int8_t temp[22]; /* enough for 64 bit clock_t */
 	register int i;
-	register char *cp = temp + sizeof(temp);
+	register int8_t *cp = temp + sizeof(temp);
 
 	/* note: posix says must use max precision, ie, if clk_tck is
 	 * 1000, must print 3 places after decimal (if non-zero, else 1).
@@ -829,7 +830,7 @@ clocktos(t)
 	for (i = -2; i <= 0 || t > 0; i++) {
 		if (i == 0)
 			*--cp = '.';
-		*--cp = '0' + (char)(t%10);
+		*--cp = '0' + (int8_t)(t%10);
 		t /= 10;
 	}
 	return cp;
@@ -838,7 +839,7 @@ clocktos(t)
 /* exec with no args - args case is taken care of in comexec() */
 int
 c_exec(wp)
-	char ** wp;
+	int8_t ** wp;
 {
 	int i;
 
@@ -866,7 +867,7 @@ c_exec(wp)
 /* dummy function, special case in comexec() */
 int
 c_builtin(wp)
-	char ** wp;
+	int8_t ** wp;
 {
 	return 0;
 }

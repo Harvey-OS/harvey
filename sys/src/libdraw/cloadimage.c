@@ -12,10 +12,10 @@
 #include <draw.h>
 
 int
-cloadimage(Image *i, Rectangle r, uchar *data, int ndata)
+cloadimage(Image *i, Rectangle r, uint8_t *data, int ndata)
 {
 	int m, nb, miny, maxy, ncblock;
-	uchar *a;
+	uint8_t *a;
 
 	if(!rectinrect(r, i->r)){
 		werrstr("cloadimage: bad rectangle");
@@ -26,8 +26,8 @@ cloadimage(Image *i, Rectangle r, uchar *data, int ndata)
 	m = 0;
 	ncblock = _compblocksize(r, i->depth);
 	while(miny != r.max.y){
-		maxy = atoi((char*)data+0*12);
-		nb = atoi((char*)data+1*12);
+		maxy = atoi((int8_t*)data+0*12);
+		nb = atoi((int8_t*)data+1*12);
 		if(maxy<=miny || r.max.y<maxy){
 			werrstr("creadimage: bad maxy %d", maxy);
 			return -1;

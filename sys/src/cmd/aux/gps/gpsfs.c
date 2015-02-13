@@ -67,10 +67,10 @@ struct Fix {
 };
 
 struct GPSfile {
-	char	*name;
-	char*	(*rread)(Req*);
+	int8_t	*name;
+	int8_t*	(*rread)(Req*);
 	int	mode;
-	vlong	offset;		/* for raw: rawout - read-offset */
+	int64_t	offset;		/* for raw: rawout - read-offset */
 };
 
 enum {
@@ -86,22 +86,22 @@ enum {
 };
 
 struct Gpsmsg {
-	char *name;
+	int8_t *name;
 	int tokens;
-	ulong errors;
+	uint32_t errors;
 };
 
-char	raw[Rawbuf];
-vlong	rawin;
-vlong	rawout;
+int8_t	raw[Rawbuf];
+int64_t	rawin;
+int64_t	rawout;
 
-ulong	badlat, goodlat, suspectlat;
-ulong	badlon, goodlon, suspectlon;
-ulong	suspecttime, goodtime;
+uint32_t	badlat, goodlat, suspectlat;
+uint32_t	badlon, goodlon, suspectlon;
+uint32_t	suspecttime, goodtime;
 
-ulong histo[32];
+uint32_t histo[32];
 
-char *serial = "/dev/eia0";
+int8_t *serial = "/dev/eia0";
 
 Gpsmsg gpsmsg[] = {
 [ASTRAL]	= { "ASTRAL",	 0,	0},
@@ -119,10 +119,10 @@ Gpsmsg gpsmsg[] = {
 int ttyfd, ctlfd, debug;
 int setrtc;
 int baud = Baud;
-char *baudstr = "b%dd1r1pns1l8i9";
-ulong seconds;
-ulong starttime;
-ulong checksumerrors;
+int8_t *baudstr = "b%dd1r1pns1l8i9";
+uint32_t seconds;
+uint32_t starttime;
+uint32_t checksumerrors;
 int gpsplayback;	/* If set, return times and positions with `invalid' marker set */
 
 Place where = {-(74.0 + 23.9191/60.0), 40.0 + 41.1346/60.0};
@@ -130,33 +130,33 @@ Place where = {-(74.0 + 23.9191/60.0), 40.0 + 41.1346/60.0};
 Fix curfix;
 Lock fixlock;
 
-int	type(char*);
+int	type(int8_t*);
 void	setline(void);
-int	getonechar(vlong*);
-void	getline(char*, int, vlong*);
-void	putline(char*);
+int	getonechar(int64_t*);
+void	getline(int8_t*, int, int64_t*);
+void	putline(int8_t*);
 int	gettime(Fix*);
-int	getzulu(char *, Fix*);
-int	getalt(char*, char*, Fix*);
-int	getsea(char*, char*, Fix*);
-int	getlat(char*, char*, Fix*);
-int	getlon(char*, char*, Fix*);
-int	getgs(char*, Fix *);
-int	getkmh(char*, Fix*);
-int	getcrs(char*, Fix*);
-int	gethdg(char*, Fix*);
-int	getdate(char*, Fix*);
-int	getmagvar(char*, char*, Fix*);
+int	getzulu(int8_t *, Fix*);
+int	getalt(int8_t*, int8_t*, Fix*);
+int	getsea(int8_t*, int8_t*, Fix*);
+int	getlat(int8_t*, int8_t*, Fix*);
+int	getlon(int8_t*, int8_t*, Fix*);
+int	getgs(int8_t*, Fix *);
+int	getkmh(int8_t*, Fix*);
+int	getcrs(int8_t*, Fix*);
+int	gethdg(int8_t*, Fix*);
+int	getdate(int8_t*, Fix*);
+int	getmagvar(int8_t*, int8_t*, Fix*);
 void	printfix(int, Fix*);
 void	ropen(Req *r);
 void	rread(Req *r);
 void	rend(Srv *s);
 void	gpsinit(void);
-char*	readposn(Req*);
-char*	readtime(Req*);
-char*	readsats(Req*);
-char*	readstats(Req*);
-char*	readraw(Req*);
+int8_t*	readposn(Req*);
+int8_t*	readtime(Req*);
+int8_t*	readsats(Req*);
+int8_t*	readstats(Req*);
+int8_t*	readraw(Req*);
 
 GPSfile files[] = {
 	{ "time",	readtime,	0444,	0 },
@@ -201,7 +201,7 @@ rread(Req *r)
 void
 fsinit(void)
 {
-	char* user;
+	int8_t* user;
 	int i;
 
 	user = getuser();
@@ -262,9 +262,9 @@ static void
 gpstrack(void *)
 {
 	Fix fix;
-	static char buf[256], *t[32];
+	static int8_t buf[256], *t[32];
 	int n, i, k, tp;
-	vlong localtime;
+	int64_t localtime;
 	double d;
 
 	setline();
@@ -470,11 +470,11 @@ printfix(int f, Fix *fix){
 	}
 }
 
-char*
+int8_t*
 readposn(Req *r)
 {
 	Fix f;
-	char buf[256];
+	int8_t buf[256];
 
 	lock(&fixlock);
 	memmove(&f, &curfix, sizeof f);
@@ -486,11 +486,11 @@ readposn(Req *r)
 	return nil;
 }
 
-char*
+int8_t*
 readtime(Req *r)
 {
 	Fix f;
-	char buf[Numsize+Vlnumsize+Vlnumsize+8];
+	int8_t buf[Numsize+Vlnumsize+Vlnumsize+8];
 
 	lock(&fixlock);
 	memmove(&f, &curfix, sizeof f);
@@ -503,11 +503,11 @@ readtime(Req *r)
 	return nil;
 }
 
-char*
+int8_t*
 readstats(Req *r)
 {
 	int i;
-	char buf[1024], *p;
+	int8_t buf[1024], *p;
 
 	p = buf;
 	p = seprint(p, buf + sizeof buf, "%lld bytes read, %ld samples processed in %ld seconds\n",
@@ -534,12 +534,12 @@ readstats(Req *r)
 	return nil;
 }
 
-char*
+int8_t*
 readsats(Req *r)
 {
 	Fix f;
 	int i;
-	char buf[1024], *p;
+	int8_t buf[1024], *p;
 
 	lock(&fixlock);
 	memmove(&f, &curfix, sizeof f);
@@ -555,7 +555,7 @@ readsats(Req *r)
 	return nil;
 }
 
-char*
+int8_t*
 readraw(Req *r)
 {
 	int n;
@@ -580,12 +580,12 @@ readraw(Req *r)
 }
 
 void
-rtcset(long t)
+rtcset(int32_t t)
 {
 	static int fd;
-	long r;
+	int32_t r;
 	int n;
-	char buf[32];
+	int8_t buf[32];
 
 	if(fd <= 0 && (fd = open("#r/rtc", ORDWR)) < 0){
 		fprint(2, "Can't open #r/rtc: %r\n");
@@ -616,7 +616,7 @@ gettime(Fix *f){
 	Tm tm;
 	int zulu;
 	double d;
-	long t;
+	int32_t t;
 	static int count;
 
 	zulu = f->zulu;
@@ -649,7 +649,7 @@ gettime(Fix *f){
 }
 
 int
-getzulu(char *s, Fix *f){
+getzulu(int8_t *s, Fix *f){
 	double d;
 
 	if(*s == '\0') return 0;
@@ -663,7 +663,7 @@ getzulu(char *s, Fix *f){
 }
 
 int
-getdate(char *s, Fix *f){
+getdate(int8_t *s, Fix *f){
 	if(*s == 0) return 0;
 	if(isdigit(*s)){
 		f->date = strtol(s, nil, 10);
@@ -673,7 +673,7 @@ getdate(char *s, Fix *f){
 }
 
 int
-getgs(char *s, Fix *f){
+getgs(int8_t *s, Fix *f){
 	double d;
 
 	if(*s == 0) return 0;
@@ -687,7 +687,7 @@ getgs(char *s, Fix *f){
 }
 
 int
-getkmh(char *s, Fix *f){
+getkmh(int8_t *s, Fix *f){
 	double d;
 
 	if(*s == 0) return 0;
@@ -701,7 +701,7 @@ getkmh(char *s, Fix *f){
 }
 
 int
-getcrs(char *s1, Fix *f){
+getcrs(int8_t *s1, Fix *f){
 	double d;
 
 	if(*s1 == 0) return 0;
@@ -715,7 +715,7 @@ getcrs(char *s1, Fix *f){
 }
 
 int
-gethdg(char *s1, Fix *f){
+gethdg(int8_t *s1, Fix *f){
 	double d;
 
 	if(*s1 == 0) return 0;
@@ -729,7 +729,7 @@ gethdg(char *s1, Fix *f){
 }
 
 int
-getalt(char *s1, char *s2, Fix *f){
+getalt(int8_t *s1, int8_t *s2, Fix *f){
 	double alt;
 
 	if(*s1 == 0) return 0;
@@ -745,7 +745,7 @@ getalt(char *s1, char *s2, Fix *f){
 }
 
 int
-getsea(char *s1, char *s2, Fix *f){
+getsea(int8_t *s1, int8_t *s2, Fix *f){
 	double alt;
 
 	if(*s1 == 0) return 0;
@@ -761,7 +761,7 @@ getsea(char *s1, char *s2, Fix *f){
 }
 
 int
-getlat(char *s1, char *s2, Fix *f){
+getlat(int8_t *s1, int8_t *s2, Fix *f){
 	double lat;
 	static count;
 
@@ -801,7 +801,7 @@ getlat(char *s1, char *s2, Fix *f){
 }
 
 int
-getlon(char *s1, char *s2, Fix *f){
+getlon(int8_t *s1, int8_t *s2, Fix *f){
 	double lon;
 	static count;
 
@@ -841,7 +841,7 @@ getlon(char *s1, char *s2, Fix *f){
 }
 
 int
-getmagvar(char *s1, char *s2, Fix *f){
+getmagvar(int8_t *s1, int8_t *s2, Fix *f){
 	double magvar;
 
 	if(*s1 == 0) return 0;
@@ -865,13 +865,13 @@ getmagvar(char *s1, char *s2, Fix *f){
 }
 
 void
-putline(char *s){
+putline(int8_t *s){
 	write(ttyfd, s, strlen(s));
 	write(ttyfd, "\r\n", 2);
 }
 
 int
-type(char *s){
+type(int8_t *s){
 	int i;
 
 	for(i = 0; i < nelem(gpsmsg); i++){
@@ -882,7 +882,7 @@ type(char *s){
 
 void
 setline(void){
-	char *serialctl;
+	int8_t *serialctl;
 
 	serialctl = smprint("%sctl", serial);
 	if((ttyfd = open(serial, ORDWR)) < 0)
@@ -895,8 +895,8 @@ setline(void){
 	free(serialctl);
 }
 
-int getonechar(vlong *t){
-	static char buf[32], *p;
+int getonechar(int64_t *t){
+	static int8_t buf[32], *p;
 	static int n;
 
 	if(n == 0){
@@ -922,9 +922,9 @@ int getonechar(vlong *t){
 }
 
 void
-getline(char *s, int size, vlong *t){
-	uchar c;
-	char *p;
+getline(int8_t *s, int size, int64_t *t){
+	uint8_t c;
+	int8_t *p;
 	int n, cs;
 
 tryagain:

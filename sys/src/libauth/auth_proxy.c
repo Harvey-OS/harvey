@@ -17,8 +17,8 @@ enum {
 	ARgiveup = 100,
 };
 
-static uchar*
-gstring(uchar *p, uchar *ep, char **s)
+static uint8_t*
+gstring(uint8_t *p, uint8_t *ep, int8_t **s)
 {
 	uint n;
 
@@ -37,8 +37,8 @@ gstring(uchar *p, uchar *ep, char **s)
 	return p;
 }
 
-static uchar*
-gcarray(uchar *p, uchar *ep, uchar **s, int *np)
+static uint8_t*
+gcarray(uint8_t *p, uint8_t *ep, uint8_t **s, int *np)
 {
 	uint n;
 
@@ -71,10 +71,10 @@ auth_freeAI(AuthInfo *ai)
 	free(ai);
 }
 
-static uchar*
-convM2AI(uchar *p, int n, AuthInfo **aip)
+static uint8_t*
+convM2AI(uint8_t *p, int n, AuthInfo **aip)
 {
-	uchar *e = p+n;
+	uint8_t *e = p+n;
 	AuthInfo *ai;
 
 	ai = mallocz(sizeof(*ai), 1);
@@ -99,7 +99,7 @@ auth_getinfo(AuthRpc *rpc)
 
 	if(auth_rpc(rpc, "authinfo", nil, 0) != ARok)
 		return nil;
-	if(convM2AI((uchar*)rpc->arg, rpc->narg, &a) == nil){
+	if(convM2AI((uint8_t*)rpc->arg, rpc->narg, &a) == nil){
 		werrstr("bad auth info from factotum");
 		return nil;
 	}
@@ -107,7 +107,7 @@ auth_getinfo(AuthRpc *rpc)
 }
 
 static int
-dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
+dorpc(AuthRpc *rpc, int8_t *verb, int8_t *val, int len, AuthGetkey *getkey)
 {
 	int ret;
 
@@ -125,12 +125,12 @@ dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
  *  this just proxies what the factotum tells it to.
  */
 AuthInfo*
-fauth_proxy(int fd, AuthRpc *rpc, AuthGetkey *getkey, char *params)
+fauth_proxy(int fd, AuthRpc *rpc, AuthGetkey *getkey, int8_t *params)
 {
-	char *buf;
+	int8_t *buf;
 	int m, n, ret;
 	AuthInfo *a;
-	char oerr[ERRMAX];
+	int8_t oerr[ERRMAX];
 
 	if(rpc == nil){
 		werrstr("fauth_proxy - no factotum");
@@ -193,10 +193,10 @@ Error:
 }
 
 AuthInfo*
-auth_proxy(int fd, AuthGetkey *getkey, char *fmt, ...)
+auth_proxy(int fd, AuthGetkey *getkey, int8_t *fmt, ...)
 {
 	int afd;
-	char *p;
+	int8_t *p;
 	va_list arg;
 	AuthInfo *ai;
 	AuthRpc *rpc;

@@ -14,13 +14,13 @@
 #include <9p.h>
 #include "cifs.h"
 
-static char magic[] = { 0xff, 'S', 'M', 'B' };
+static int8_t magic[] = { 0xff, 'S', 'M', 'B' };
 
 Session *
-cifsdial(char *host, char *called, char *sysname)
+cifsdial(int8_t *host, int8_t *called, int8_t *sysname)
 {
 	int nbt, fd;
-	char *addr;
+	int8_t *addr;
 	Session *s;
 
 	if(Debug)
@@ -83,7 +83,7 @@ cifshdr(Session *s, Share *sp, int cmd)
 	p = emalloc9p(sizeof(Pkt) + MTU);
 	memset(p, 0, sizeof(Pkt) +MTU);
 
-	p->buf = (uchar *)p + sizeof(Pkt);
+	p->buf = (uint8_t *)p + sizeof(Pkt);
 	p->s = s;
 
 	qlock(&s->seqlock);
@@ -130,7 +130,7 @@ pbytes(Pkt *p)
 }
 
 static void
-dmp(int seq, uchar *buf)
+dmp(int seq, uint8_t *buf)
 {
 	int i;
 
@@ -148,8 +148,8 @@ cifsrpc(Pkt *p)
 {
 	int flags2, got, err;
 	uint tid, uid, seq;
-	uchar *pos;
-	char m[nelem(magic)];
+	uint8_t *pos;
+	int8_t m[nelem(magic)];
 
 	pos = p->pos;
 	if(p->bytebase){
@@ -236,12 +236,13 @@ print("MAC signature bad\n");
  * more modern ones, so we don't give them the choice.
  */
 int
-CIFSnegotiate(Session *s, long *svrtime, char *domain, int domlen, char *cname,
+CIFSnegotiate(Session *s, int32_t *svrtime, int8_t *domain, int domlen,
+	      int8_t *cname,
 	int cnamlen)
 {
 	int d, i;
-	char *ispeak = "NT LM 0.12";
-	static char *dialects[] = {
+	int8_t *ispeak = "NT LM 0.12";
+	static int8_t *dialects[] = {
 //		{ "PC NETWORK PROGRAM 1.0"},
 //		{ "MICROSOFT NETWORKS 1.03"},
 //		{ "MICROSOFT NETWORKS 3.0"},
@@ -286,14 +287,14 @@ CIFSnegotiate(Session *s, long *svrtime, char *domain, int domlen, char *cname,
 	gl32(p);				/* Session key */
 	s->caps = gl32(p);			/* Server capabilities */
 	*svrtime = gvtime(p);			/* fileserver time */
-	s->tz = (short)gl16(p) * 60; /* TZ in mins, is signed (SNIA doc is wrong) */
+	s->tz = (int16_t)gl16(p) * 60; /* TZ in mins, is signed (SNIA doc is wrong) */
 	s->challen = g8(p);			/* Encryption key length */
 	gl16(p);
 	gmem(p, s->chal, s->challen);		/* Get the challenge */
 	gstr(p, domain, domlen);		/* source domain */
 
 	{		/* NetApp Filer seem not to report its called name */
-		char *cn = emalloc9p(cnamlen);
+		int8_t *cn = emalloc9p(cnamlen);
 
 		gstr(p, cn, cnamlen);		/* their name */
 		if(strlen(cn) > 0)
@@ -311,7 +312,7 @@ CIFSnegotiate(Session *s, long *svrtime, char *domain, int domlen, char *cname,
 int
 CIFSsession(Session *s)
 {
-	char os[64], *q;
+	int8_t os[64], *q;
 	Rune r;
 	Pkt *p;
 	enum {
@@ -469,7 +470,7 @@ CIFStreedisconnect(Session *s, Share *sp)
 
 
 int
-CIFSdeletefile(Session *s, Share *sp, char *name)
+CIFSdeletefile(Session *s, Share *sp, int8_t *name)
 {
 	int rc;
 	Pkt *p;
@@ -486,7 +487,7 @@ CIFSdeletefile(Session *s, Share *sp, char *name)
 }
 
 int
-CIFSdeletedirectory(Session *s, Share *sp, char *name)
+CIFSdeletedirectory(Session *s, Share *sp, int8_t *name)
 {
 	int rc;
 	Pkt *p;
@@ -502,7 +503,7 @@ CIFSdeletedirectory(Session *s, Share *sp, char *name)
 }
 
 int
-CIFScreatedirectory(Session *s, Share *sp, char *name)
+CIFScreatedirectory(Session *s, Share *sp, int8_t *name)
 {
 	int rc;
 	Pkt *p;
@@ -518,7 +519,7 @@ CIFScreatedirectory(Session *s, Share *sp, char *name)
 }
 
 int
-CIFSrename(Session *s, Share *sp, char *old, char *new)
+CIFSrename(Session *s, Share *sp, int8_t *old, int8_t *new)
 {
 	int rc;
 	Pkt *p;
@@ -539,7 +540,8 @@ CIFSrename(Session *s, Share *sp, char *old, char *new)
 
 /* for NT4/Win2k/XP */
 int
-CIFS_NT_opencreate(Session *s, Share *sp, char *name, int flags, int options,
+CIFS_NT_opencreate(Session *s, Share *sp, int8_t *name, int flags,
+		   int options,
 	int attrs, int access, int share, int action, int *result, FInfo *fi)
 {
 	Pkt *p;
@@ -632,11 +634,11 @@ CIFS_SMB_opencreate(Session *s, Share *sp, char *name, int access,
 	return fh;
 }
 
-vlong
-CIFSwrite(Session *s, Share *sp, int fh, uvlong off, void *buf, vlong n)
+int64_t
+CIFSwrite(Session *s, Share *sp, int fh, uint64_t off, void *buf, int64_t n)
 {
 	Pkt *p;
-	vlong got;
+	int64_t got;
 
 	/* FIXME: Payload should be padded to long boundary */
 	assert((n   & 0xffffffff00000000LL) == 0 || s->caps & CAP_LARGE_FILES);
@@ -677,12 +679,12 @@ CIFSwrite(Session *s, Share *sp, int fh, uvlong off, void *buf, vlong n)
 	return got;
 }
 
-vlong
-CIFSread(Session *s, Share *sp, int fh, uvlong off, void *buf, vlong n,
-	vlong minlen)
+int64_t
+CIFSread(Session *s, Share *sp, int fh, uint64_t off, void *buf, int64_t n,
+	int64_t minlen)
 {
 	int doff;
-	vlong got;
+	int64_t got;
 	Pkt *p;
 
 	assert((n   & 0xffffffff00000000LL) == 0 || s->caps & CAP_LARGE_FILES);
@@ -794,7 +796,7 @@ CIFSecho(Session *s)
 
 
 int
-CIFSsetinfo(Session *s, Share *sp, char *path, FInfo *fip)
+CIFSsetinfo(Session *s, Share *sp, int8_t *path, FInfo *fip)
 {
 	int rc;
 	Pkt *p;

@@ -16,14 +16,14 @@ enum {
 typedef struct Inbuf Inbuf;
 struct Inbuf
 {
-	char buf[Buffersize];
-	char *wp;
-	char *rp;
+	int8_t buf[Buffersize];
+	int8_t *wp;
+	int8_t *rp;
 	int eof;
 	int in;
 	int out;
 	int last;
-	ulong bytes;
+	uint32_t bytes;
 };
 
 static Inbuf*
@@ -84,7 +84,7 @@ int
 appendfiletombox(int in, int out)
 {
 	int addspace, n, sol;
-	char *p;
+	int8_t *p;
 	Inbuf *b;
 
 	seek(out, 0, 2);

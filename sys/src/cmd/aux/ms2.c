@@ -12,7 +12,7 @@
 #include <bio.h>
 #include <mach.h>
 
-void	record(uchar*, long);
+void	record(uint8_t*, int32_t);
 void	usage(void);
 void	segment(vlong, vlong);
 
@@ -26,8 +26,8 @@ int	supressend;
 int	binary;
 int	halfswap;
 int	srec = 2;
-uvlong	addr;
-uvlong 	psize = 4096;
+uint64_t	addr;
+uint64_t 	psize = 4096;
 Biobuf 	stdout;
 Fhdr	exech;
 Biobuf *bio;
@@ -129,11 +129,11 @@ main(int argc, char **argv)
 }
 
 void
-segment(vlong foff, vlong len)
+segment(int64_t foff, int64_t len)
 {
 	int i;
-	long l, n;
-	uchar t, buf[2*Recordsize];
+	int32_t l, n;
+	uint8_t t, buf[2*Recordsize];
 
 	Bseek(bio, foff, 0);
 	for(;;) {
@@ -164,10 +164,10 @@ segment(vlong foff, vlong len)
 }
 
 void
-record(uchar *s, long l)
+record(uint8_t *s, int32_t l)
 {
 	int i;
-	ulong cksum = 0;
+	uint32_t cksum = 0;
 
 	switch(srec) {
 	case 1:

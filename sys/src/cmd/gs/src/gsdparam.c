@@ -104,7 +104,7 @@ gx_default_get_params(gx_device * dev, gs_param_list * plist)
 
     param_string_from_string(dns, dev->dname);
     {
-	const char *cms = get_process_color_model_name(dev);
+	const int8_t *cms = get_process_color_model_name(dev);
 
 	/* We might have an uninitialized device with */
 	/* color_info.num_components = 0.... */
@@ -178,7 +178,7 @@ gx_default_get_params(gx_device * dev, gs_param_list * plist)
 
     if (colors > 1) {
 	int RGBValues = dev->color_info.max_color + 1;
-	long ColorValues = (depth >= (8 * arch_sizeof_color_index) ? -1
+	int32_t ColorValues = (depth >= (8 * arch_sizeof_color_index) ? -1
 							: 1L << depth);
 
 	if ((code = param_write_int(plist, "RedValues", &RGBValues)) < 0 ||
@@ -273,7 +273,7 @@ int
 gdev_write_input_media(int index, gs_param_dict * pdict,
 		       const gdev_input_media_t * pim)
 {
-    char key[25];
+    int8_t key[25];
     gs_param_dict mdict;
     int code;
     gs_param_string as;
@@ -362,7 +362,7 @@ int
 gdev_write_output_media(int index, gs_param_dict * pdict,
 			const gdev_output_media_t * pom)
 {
-    char key[25];
+    int8_t key[25];
     gs_param_dict mdict;
     int code;
 
@@ -445,7 +445,7 @@ gx_default_put_params(gx_device * dev, gs_param_list * plist)
     int depth = dev->color_info.depth;
     int GrayValues = dev->color_info.max_gray + 1;
     int RGBValues = dev->color_info.max_color + 1;
-    long ColorValues = (depth >= 32 ? -1 : 1L << depth);
+    int32_t ColorValues = (depth >= 32 ? -1 : 1L << depth);
     int tab = dev->color_info.anti_alias.text_bits;
     int gab = dev->color_info.anti_alias.graphics_bits;
     gs_param_string cms;
@@ -644,7 +644,7 @@ nce:
 
     /* Separation, DeviceN Color, and ProcessColorModel related parameters. */
     {
-	const char * pcms = get_process_color_model_name(dev);
+	const int8_t * pcms = get_process_color_model_name(dev);
         /* the device should have set a process model name at this point */
 	if ((code = param_check_string(plist, "ProcessColorModel", pcms, (pcms != NULL))) < 0)
 	    ecode = code;

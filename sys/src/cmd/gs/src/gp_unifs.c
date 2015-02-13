@@ -54,24 +54,24 @@
 #endif
 
 /* Library routines not declared in a standard header */
-extern char *mktemp(char *);
+extern int8_t *mktemp(int8_t *);
 
 /* ------ File naming and accessing ------ */
 
 /* Define the default scratch file name prefix. */
-const char gp_scratch_file_name_prefix[] = "gs_";
+const int8_t gp_scratch_file_name_prefix[] = "gs_";
 
 /* Define the name of the null output file. */
-const char gp_null_file_name[] = "/dev/null";
+const int8_t gp_null_file_name[] = "/dev/null";
 
 /* Define the name that designates the current directory. */
-const char gp_current_directory_name[] = ".";
+const int8_t gp_current_directory_name[] = ".";
 
 /* Create and open a scratch file with a given name prefix. */
 /* Write the actual file name at fname. */
 FILE *
-gp_open_scratch_file(const char *prefix, char fname[gp_file_name_sizeof],
-		     const char *mode)
+gp_open_scratch_file(const int8_t *prefix, int8_t fname[gp_file_name_sizeof],
+		     const int8_t *mode)
 {	/* The -8 is for XXXXXX plus a possible final / and -. */
     int prefix_length = strlen(prefix);
     int len = gp_file_name_sizeof - prefix_length - 8;
@@ -96,7 +96,7 @@ gp_open_scratch_file(const char *prefix, char fname[gp_file_name_sizeof],
 #ifdef HAVE_MKSTEMP
     {
 	    int file;
-	    char ofname[gp_file_name_sizeof];
+	    int8_t ofname[gp_file_name_sizeof];
 
 	    /* save the old filename template in case mkstemp fails */
 	    memcpy(ofname, fname, gp_file_name_sizeof);
@@ -121,7 +121,7 @@ gp_open_scratch_file(const char *prefix, char fname[gp_file_name_sizeof],
 
 /* Open a file with the given name, as a stream of uninterpreted bytes. */
 FILE *
-gp_fopen(const char *fname, const char *mode)
+gp_fopen(const int8_t *fname, const int8_t *mode)
 {
     return fopen(fname, mode);
 }
@@ -150,8 +150,8 @@ gs_private_st_ptrs1(st_dirstack, dirstack, "dirstack",
 
 struct file_enum_s {
     DIR *dirp;			/* pointer to current open directory   */
-    char *pattern;		/* original pattern                    */
-    char *work;			/* current path                        */
+    int8_t *pattern;		/* original pattern                    */
+    int8_t *work;			/* current path                        */
     int worklen;		/* strlen (work)                       */
     dirstack *dstack;		/* directory stack                     */
     int patlen;
@@ -217,11 +217,11 @@ popdir(file_enum * pfen)
 
 /* Initialize an enumeration. */
 file_enum *
-gp_enumerate_files_init(const char *pat, uint patlen, gs_memory_t * mem)
+gp_enumerate_files_init(const int8_t *pat, uint patlen, gs_memory_t * mem)
 {
     file_enum *pfen;
-    char *p;
-    char *work;
+    int8_t *p;
+    int8_t *work;
 
     /* Reject attempts to enumerate paths longer than the */
     /* system-dependent limit. */
@@ -230,7 +230,7 @@ gp_enumerate_files_init(const char *pat, uint patlen, gs_memory_t * mem)
 
     /* Reject attempts to enumerate with a pattern containing zeroes. */
     {
-	const char *p1;
+	const int8_t *p1;
 
 	for (p1 = pat; p1 < pat + patlen; p1++)
 	    if (*p1 == 0)
@@ -248,14 +248,14 @@ gp_enumerate_files_init(const char *pat, uint patlen, gs_memory_t * mem)
     /* but it's simpler for GC and freeing to allocate them as bytes. */
 
     pfen->pattern =
-	(char *)gs_alloc_bytes(mem, patlen + 1,
+	(int8_t *)gs_alloc_bytes(mem, patlen + 1,
 			       "gp_enumerate_files(pattern)");
     if (pfen->pattern == 0)
 	return 0;
     memcpy(pfen->pattern, pat, patlen);
     pfen->pattern[patlen] = 0;
 
-    work = (char *)gs_alloc_bytes(mem, FILENAME_MAX + 1,
+    work = (int8_t *)gs_alloc_bytes(mem, FILENAME_MAX + 1,
 				  "gp_enumerate_files(work)");
     if (work == 0)
 	return 0;
@@ -300,12 +300,12 @@ gp_enumerate_files_init(const char *pat, uint patlen, gs_memory_t * mem)
 
 /* Enumerate the next file. */
 uint
-gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen)
+gp_enumerate_files_next(file_enum * pfen, int8_t *ptr, uint maxlen)
 {
     const dir_entry *de;
-    char *work = pfen->work;
+    int8_t *work = pfen->work;
     int worklen = pfen->worklen;
-    char *pattern = pfen->pattern;
+    int8_t *pattern = pfen->pattern;
     int pathead = pfen->pathead;
     int len;
     struct stat stbuf;
@@ -321,7 +321,7 @@ gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen)
     }
   top:de = readdir(pfen->dirp);
     if (de == 0) {		/* No more entries in this directory */
-	char *p;
+	int8_t *p;
 
 	if_debug0('e', "[e]file_enum:Closedir\n");
 	closedir(pfen->dirp);
@@ -400,7 +400,7 @@ gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen)
 	dp = opendir(work);
 #ifdef DEBUG
 	{
-	    char save_end = pattern[pathead];
+	    int8_t save_end = pattern[pathead];
 
 	    pattern[pathead] = 0;
 	    if_debug2('e', "[e]file_enum:fname='%s', p='%s'\n",
@@ -413,7 +413,7 @@ gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen)
 	    goto top;
 	else {			/* Advance to the next directory-delimiter */
 	    /* in pattern */
-	    char *p;
+	    int8_t *p;
 	    dirstack *d;
 
 	    for (p = pattern + pathead + 1;; p++) {

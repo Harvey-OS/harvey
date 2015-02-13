@@ -48,7 +48,7 @@
 #define MAGIC2		22719
 
 int	argc;
-char	**argv;
+int8_t	**argv;
 
 int	mode = DECRYPT;
 int	input = NOTSET;

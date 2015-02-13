@@ -24,12 +24,12 @@ typedef struct
 {
 	int	type;
 	int	dlen;
-	ulong	addr;
-	uchar	bytes[256+4];
-	uchar	csum;
+	uint32_t	addr;
+	uint8_t	bytes[256+4];
+	uint8_t	csum;
 } Cpline;
 
-char*	rdcpline(Biobuf*, Cpline*);
+int8_t*	rdcpline(Biobuf*, Cpline*);
 void	clearmem(int);
 
 void
@@ -40,9 +40,9 @@ usage(void)
 }
 
 static void
-loadimage(char* file, int mfd)
+loadimage(int8_t* file, int mfd)
 {
-	uchar buf[256];
+	uint8_t buf[256];
 	int fd, n, r;
 
 	if((fd = open(file, OREAD)) < 0)
@@ -61,15 +61,15 @@ loadimage(char* file, int mfd)
 }
 
 static void
-loadhex(char* file, int mfd)
+loadhex(int8_t* file, int mfd)
 {
 	int done;
 	Cpline c;
 	Biobuf *b;
-	char *err;
-	ulong addr, seg;
+	int8_t *err;
+	uint32_t addr, seg;
 	int lineno;
-	uchar buf[1024];
+	uint8_t buf[1024];
 
 	b = Bopen(file, OREAD);
 	if(b == 0)
@@ -195,8 +195,8 @@ main(int argc, char **argv)
 void
 clearmem(int fd)
 {
-	char buf[4096];
-	char buf2[4096];
+	int8_t buf[4096];
+	int8_t buf2[4096];
 	int i, n;
 
 	memset(buf, 0, sizeof buf);
@@ -218,7 +218,7 @@ clearmem(int fd)
 }
 
 int
-hex(char c)
+hex(int8_t c)
 {
 	if(c <= '9' && c >= '0')
 		return c - '0';
@@ -229,12 +229,12 @@ hex(char c)
 	return -1;
 }
 
-char*
+int8_t*
 rdcpline(Biobuf *b, Cpline *cpl)
 {
-	char *cp, *ep, *p;
-	uchar *up;
-	uchar csum;
+	int8_t *cp, *ep, *p;
+	uint8_t *up;
+	uint8_t csum;
 	int c;
 
 	cp = Brdline(b, '\n');

@@ -491,15 +491,15 @@ eGet8RowInfo(int iFodo,
 				werr(1, "The number of columns is corrupt");
 			}
 			pRow->ucNumberOfColumns = (UCHAR)iCol;
-			iPosPrev = (int)(short)usGetWord(
+			iPosPrev = (int)(int16_t)usGetWord(
 					iFodo + iFodoOff + 5,
 					aucGrpprl);
 			for (iIndex = 0; iIndex < iCol; iIndex++) {
-				iPosCurr = (int)(short)usGetWord(
+				iPosCurr = (int)(int16_t)usGetWord(
 					iFodo + iFodoOff + 7 + iIndex * 2,
 					aucGrpprl);
 				pRow->asColumnWidth[iIndex] =
-						(short)(iPosCurr - iPosPrev);
+						(int16_t)(iPosCurr - iPosPrev);
 				iPosPrev = iPosCurr;
 			}
 			bFoundd608 = TRUE;
@@ -543,7 +543,7 @@ vGet8StyleInfo(int iFodo,
 	int	iFodoOff, iInfoLen;
 	int	iTmp, iDel, iAdd, iBefore;
 	USHORT	usOpCode, usTmp;
-	short	sTmp;
+	int16_t	sTmp;
 
 	fail(iFodo < 0 || aucGrpprl == NULL || pStyle == NULL);
 
@@ -577,7 +577,7 @@ vGet8StyleInfo(int iFodo,
 			NO_DBG_DEC(pStyle->usListIndex);
 			break;
 		case 0x4610: /* Nest dxaLeft */
-			sTmp = (short)usGetWord(
+			sTmp = (int16_t)usGetWord(
 					iFodo + iFodoOff + 2, aucGrpprl);
 			pStyle->sLeftIndent += sTmp;
 			if (pStyle->sLeftIndent < 0) {
@@ -609,17 +609,17 @@ vGet8StyleInfo(int iFodo,
 			NO_DBG_DEC(iAdd);
 			break;
 		case 0x840e:	/* dxaRight */
-			pStyle->sRightIndent = (short)usGetWord(
+			pStyle->sRightIndent = (int16_t)usGetWord(
 					iFodo + iFodoOff + 2, aucGrpprl);
 			NO_DBG_DEC(pStyle->sRightIndent);
 			break;
 		case 0x840f:	/* dxaLeft */
-			pStyle->sLeftIndent = (short)usGetWord(
+			pStyle->sLeftIndent = (int16_t)usGetWord(
 					iFodo + iFodoOff + 2, aucGrpprl);
 			NO_DBG_DEC(pStyle->sLeftIndent);
 			break;
 		case 0x8411:	/* dxaLeft1 */
-			pStyle->sLeftIndent1 = (short)usGetWord(
+			pStyle->sLeftIndent1 = (int16_t)usGetWord(
 					iFodo + iFodoOff + 2, aucGrpprl);
 			NO_DBG_DEC(pStyle->sLeftIndent1);
 			break;
@@ -696,7 +696,7 @@ vGet8StyleInfo(int iFodo,
  *
  * Returns the value when found, otherwise 0
  */
-static short
+static int16_t
 sGetLeftIndent(const UCHAR *aucGrpprl, size_t tBytes)
 {
 	int	iOffset, iInfoLen;
@@ -711,7 +711,7 @@ sGetLeftIndent(const UCHAR *aucGrpprl, size_t tBytes)
 			usTmp = usGetWord(iOffset + 2, aucGrpprl);
 			if (usTmp <= 0x7fff) {
 				NO_DBG_DEC(usTmp);
-				return (short)usTmp;
+				return (int16_t)usTmp;
 			}
 		}
 		iInfoLen = iGet8InfoLength(iOffset, aucGrpprl);
@@ -1077,7 +1077,7 @@ void
 vGet8FontInfo(int iFodo, USHORT usIstd,
 	const UCHAR *aucGrpprl, int iBytes, font_block_type *pFont)
 {
-	long	lTmp;
+	int32_t	lTmp;
 	int	iFodoOff, iInfoLen;
 	USHORT	usFtc0, usFtc1, usFtc2, usTmp;
 	UCHAR	ucTmp;
@@ -1289,7 +1289,7 @@ vGet8FontInfo(int iFodo, USHORT usIstd,
 			break;
 		case 0xca4a:	/* cHpsInc1 */
 			usTmp = usGetWord(iFodo + iFodoOff + 2, aucGrpprl);
-			lTmp = (long)pFont->usFontSize + (long)usTmp;
+			lTmp = (int32_t)pFont->usFontSize + (int32_t)usTmp;
 			if (lTmp < 8) {
 				pFont->usFontSize = 8;
 			} else if (lTmp > 32766) {

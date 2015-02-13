@@ -16,7 +16,7 @@
 
 /* DEFAULT RULES FOR POSIX */
 
-char *dfltmacro[] =
+int8_t *dfltmacro[] =
 	{
 	".SUFFIXES : .o .c .y .l .a .sh .f",
 	"MAKE=make",
@@ -33,7 +33,7 @@ char *dfltmacro[] =
 	"FFLAGS=-O 1",
 	0 };
 
-char *dfltpat[] =
+int8_t *dfltpat[] =
 	{
 	"%.o : %.c",
 	"\t$(CC) $(CFLAGS) -c $<",
@@ -68,7 +68,7 @@ char *dfltpat[] =
 
 
 
-char *dfltsuff[] =
+int8_t *dfltsuff[] =
 	{
 	".SUFFIXES : .o .c .y .l .a .sh .f",
 	".c.o :",
@@ -120,19 +120,19 @@ char *dfltsuff[] =
 	0 };
 
 
-static struct dirhd	*opdir(char *, int);
+static struct dirhd	*opdir(int8_t *, int);
 static void		cldir(struct dirhd *, int);
-static int		amatch(char *, char *);
-static int		umatch(char *, char *);
+static int		amatch(int8_t *, int8_t *);
+static int		umatch(int8_t *, int8_t *);
 static void		clarch(void);
-static int		openarch(char *);
+static int		openarch(int8_t *);
 static int		getarch(void);
 
 time_t
-exists(char *filename)
+exists(int8_t *filename)
 {
 struct stat buf;
-char *s;
+int8_t *s;
 
 for(s = filename ; *s!='\0' && *s!='(' &&  *s!=')' ; ++s)
 	;
@@ -154,18 +154,18 @@ time(&t);
 return t;
 }
 
-static char nmtemp[MAXNAMLEN+1];	/* guarantees a null after the name */
-static char *tempend = nmtemp + MAXNAMLEN;
+static int8_t nmtemp[MAXNAMLEN+1];	/* guarantees a null after the name */
+static int8_t *tempend = nmtemp + MAXNAMLEN;
 
 
 
 depblkp
-srchdir(char *pat, int mkchain, depblkp nextdbl)
+srchdir(int8_t *pat, int mkchain, depblkp nextdbl)
 {
 DIR *dirf;
 struct dirhd *dirptr;
-char *dirname, *dirpref, *endir, *filepat, *p, temp[100];
-char fullname[100];
+int8_t *dirname, *dirpref, *endir, *filepat, *p, temp[100];
+int8_t fullname[100];
 nameblkp q;
 depblkp thisdbl;
 struct pattern *patp;
@@ -206,7 +206,7 @@ dirf = dirptr->dirfc;
 
 for( dptr = readdir(dirf) ; dptr ; dptr = readdir(dirf) )
 	{
-	char *p1, *p2;
+	int8_t *p1, *p2;
 	p1 = dptr->d_name;
 	p2 = nmtemp;
 	while( (p2<tempend) && (*p2++ = *p1++)!='\0')
@@ -236,7 +236,7 @@ return thisdbl;
 }
 
 static struct dirhd *
-opdir(char *dirname, int stopifbad)
+opdir(int8_t *dirname, int stopifbad)
 {
 struct dirhd *od;
 
@@ -278,7 +278,7 @@ else if(used)
 /* stolen from glob through find */
 
 static int
-amatch(char *s, char *p)
+amatch(int8_t *s, int8_t *p)
 {
 	int cc, scc, k;
 	int c, lc;
@@ -319,7 +319,7 @@ amatch(char *s, char *p)
 }
 
 static int
-umatch(char *s, char *p)
+umatch(int8_t *s, int8_t *p)
 {
 	if(*p==0) return 1;
 	while(*s)
@@ -331,10 +331,10 @@ umatch(char *s, char *p)
 #include <pwd.h>
 int meteron	= 0;	/* default: metering off */
 
-extern void meter(char *file)
+extern void meter(int8_t *file)
 {
 time_t tvec;
-char *p;
+int8_t *p;
 FILE * mout;
 struct passwd *pwd;
 
@@ -359,16 +359,16 @@ if( mout = fopen(file,"a") )
 	a(b)	is file member   b   in archive a
 */
 
-static long arflen;
-static long arfdate;
-static char arfname[16];
+static int32_t arflen;
+static int32_t arfdate;
+static int8_t arfname[16];
 FILE *arfd;
 long int arpos, arlen;
 
 time_t
-lookarch(char *filename)
+lookarch(int8_t *filename)
 {
-char *p, *q, *send, s[15], pad;
+int8_t *p, *q, *send, s[15], pad;
 int i, nc, nsym;
 
 for(p = filename; *p!= '(' ; ++p)
@@ -415,9 +415,9 @@ fclose( arfd );
 }
 
 static int
-openarch(char *f)
+openarch(int8_t *f)
 {
-char magic[SARMAG];
+int8_t magic[SARMAG];
 int word;
 struct stat buf;
 nameblkp p;
@@ -430,7 +430,7 @@ if(arfd == NULL)
 	return NO;
 	/* fatal1("cannot open %s", f); */
 
-fread( (char *) &word, sizeof(word), 1, arfd);
+fread( (int8_t *) &word, sizeof(word), 1, arfd);
 
 fseek(arfd, 0L, 0);
 fread(magic, SARMAG, 1, arfd);
@@ -456,7 +456,7 @@ if(arpos >= arlen)
 	return 0;
 fseek(arfd, arpos, 0);
 
-fread( (char *) &arhead, sizeof(arhead), 1, arfd);
+fread( (int8_t *) &arhead, sizeof(arhead), 1, arfd);
 arpos += sizeof(arhead);
 arflen = atol(arhead.ar_size);
 arfdate = atol(arhead.ar_date);
@@ -470,14 +470,14 @@ return 1;
 */
 
 void
-dirsrch(char *name)
+dirsrch(int8_t *name)
 {
 DIR *dirf;
 struct dirhd *dirp;
 time_t dirt, objt;
 int dirused, hasparen;
-char *dirname, *lastslash;
-char *fullname, *filepart, *fileend, *s;
+int8_t *dirname, *lastslash;
+int8_t *fullname, *filepart, *fileend, *s;
 struct dirent *dptr;
 
 lastslash = NULL;
@@ -520,19 +520,19 @@ dirused = YES;
 /* allocate buffer to hold full file name */
 if(lastslash)
 	{
-	fullname = (char *) ckalloc(strlen(dirname)+MAXNAMLEN+2);
+	fullname = (int8_t *) ckalloc(strlen(dirname)+MAXNAMLEN+2);
 	concat(dirname, "/", fullname);
 	filepart = fullname + strlen(fullname);
 	}
 else
-	filepart = fullname = (char *) ckalloc(MAXNAMLEN+1);
+	filepart = fullname = (int8_t *) ckalloc(MAXNAMLEN+1);
 
 
 fileend = filepart + MAXNAMLEN;
 *fileend = '\0';
 for(dptr = readdir(dirf) ; dptr ; dptr = readdir(dirf) )
 	{
-	char *p1, *p2;
+	int8_t *p1, *p2;
 	p1 = dptr->d_name;
 	p2 = filepart;
 	while( (p2<fileend) && (*p2++ = *p1++)!='\0')

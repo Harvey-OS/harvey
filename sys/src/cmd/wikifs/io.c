@@ -111,9 +111,9 @@ findcache(int n)
 }
 
 static int
-getlock(char *lock)
+getlock(int8_t *lock)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 	int i, fd;
 	enum { SECS = 200 };
 
@@ -132,7 +132,7 @@ getlock(char *lock)
 }
 
 static Whist*
-readwhist(char *file, char *lock, Qid *qid)
+readwhist(int8_t *file, int8_t *lock, Qid *qid)
 {
 	int lfd;
 	Biobuf *b;
@@ -164,7 +164,8 @@ readwhist(char *file, char *lock, Qid *qid)
 }
 
 static void
-gencurrent(Wcache *w, Qid *q, char *file, char *lock, ulong *t, Whist **wp, int n)
+gencurrent(Wcache *w, Qid *q, int8_t *file, int8_t *lock, uint32_t *t,
+	   Whist **wp, int n)
 {
 	Dir *d;
 	Whist *wh;
@@ -199,8 +200,8 @@ else fprint(2, "error file=%s lock=%s %r\n", file, lock);
 static void
 current(Wcache *w)
 {
-	char tmp[40];
-	char tmplock[40];
+	int8_t tmp[40];
+	int8_t tmplock[40];
 
 	sprint(tmplock, "d/L.%d", w->n);
 	sprint(tmp, "d/%d", w->n);
@@ -210,7 +211,7 @@ current(Wcache *w)
 static void
 currenthist(Wcache *w)
 {
-	char hist[40], lock[40];
+	int8_t hist[40], lock[40];
 
 	sprint(hist, "d/%d.hist", w->n);
 	sprint(lock, "d/L.%d", w->n);
@@ -242,7 +243,7 @@ static Whist*
 getcache(int n, int hist)
 {
 	int i, isw;
-	ulong t;
+	uint32_t t;
 	Wcache *c, **cp, **evict;
 	Whist *wh;
 
@@ -353,11 +354,11 @@ closemap(Map *m)
 void
 currentmap(int force)
 {
-	char *p, *q, *r;
+	int8_t *p, *q, *r;
 	int lfd, fd, m, n;
 	Dir *d;
 	Map *nmap;
-	char *err = nil;
+	int8_t *err = nil;
 
 	lfd = -1;
 	fd = -1;
@@ -448,9 +449,9 @@ Return:
 }
 
 int
-allocnum(char *title, int mustbenew)
+allocnum(int8_t *title, int mustbenew)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	int lfd, fd, n;
 	Biobuf b;
 
@@ -532,9 +533,9 @@ allocnum(char *title, int mustbenew)
 }
 
 int
-nametonum(char *s)
+nametonum(int8_t *s)
 {
-	char *p;
+	int8_t *p;
 	int i, lo, hi, m, rv;
 
 	s = estrdup(s);
@@ -564,11 +565,11 @@ nametonum(char *s)
 	return rv;
 }
 
-char*
+int8_t*
 numtoname(int n)
 {
 	int i;
-	char *s;
+	int8_t *s;
 
 	currentmap(0);
 	rlock(&maplock);
@@ -586,7 +587,7 @@ numtoname(int n)
 }
 
 Whist*
-getcurrentbyname(char *s)
+getcurrentbyname(int8_t *s)
 {
 	int n;
 
@@ -598,7 +599,7 @@ getcurrentbyname(char *s)
 static String*
 Brdstring(Biobuf *b)
 {
-	long len;
+	int32_t len;
 	String *s;
 	Dir *d;
 
@@ -623,9 +624,9 @@ Brdstring(Biobuf *b)
  * the history file, but mark it as a failed write.
  */
 int
-writepage(int num, ulong t, String *s, char *title)
+writepage(int num, uint32_t t, String *s, int8_t *title)
 {
-	char tmp[40], tmplock[40], err[ERRMAX], hist[40], *p;
+	int8_t tmp[40], tmplock[40], err[ERRMAX], hist[40], *p;
 	int conflict, lfd, fd;
 	Biobuf *b;
 	String *os;

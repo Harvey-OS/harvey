@@ -14,7 +14,7 @@
 int
 _attrfmt(Fmt *fmt)
 {
-	char *b, buf[1024], *ebuf;
+	int8_t *b, buf[1024], *ebuf;
 	Attr *a;
 
 	ebuf = buf+sizeof buf;
@@ -55,7 +55,7 @@ _copyattr(Attr *a)
 }
 
 Attr*
-_delattr(Attr *a, char *name)
+_delattr(Attr *a, int8_t *name)
 {
 	Attr *fa;
 	Attr **la;
@@ -73,7 +73,7 @@ _delattr(Attr *a, char *name)
 }
 
 Attr*
-_findattr(Attr *a, char *n)
+_findattr(Attr *a, int8_t *n)
 {
 	for(; a; a=a->next)
 		if(strcmp(a->name, n) == 0 && a->type != AttrQuery)
@@ -98,7 +98,7 @@ _freeattr(Attr *a)
 }
 
 Attr*
-_mkattr(int type, char *name, char *val, Attr *next)
+_mkattr(int type, int8_t *name, int8_t *val, Attr *next)
 {
 	Attr *a;
 
@@ -134,9 +134,9 @@ cleanattr(Attr *a)
 }
 
 Attr*
-_parseattr(char *s)
+_parseattr(int8_t *s)
 {
-	char *p, *t, *tok[256];
+	int8_t *p, *t, *tok[256];
 	int i, ntok, type;
 	Attr *a;
 
@@ -172,8 +172,8 @@ _parseattr(char *s)
 	return cleanattr(a);
 }
 
-char*
-_strfindattr(Attr *a, char *n)
+int8_t*
+_strfindattr(Attr *a, int8_t *n)
 {
 	a = _findattr(a, n);
 	if(a == nil)

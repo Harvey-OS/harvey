@@ -11,10 +11,10 @@
 #include <libc.h>
 #include <ctype.h>
 
-char*
-strupr(char *s)
+int8_t*
+strupr(int8_t *s)
 {
-	char *p;
+	int8_t *p;
 
 	for(p = s; *p; p++)
 		if(*p >= 0 && islower(*p))
@@ -22,10 +22,10 @@ strupr(char *s)
 	return s;
 }
 
-char*
-strlwr(char *s)
+int8_t*
+strlwr(int8_t *s)
 {
-	char *p;
+	int8_t *p;
 
 	for(p = s; *p; p++)
 		if(*p >= 0 && isupper(*p))

@@ -65,10 +65,10 @@ threadgetgrp(void)
 }
 
 void
-threadsetname(char *fmt, ...)
+threadsetname(int8_t *fmt, ...)
 {
 	int fd;
-	char buf[128];
+	int8_t buf[128];
 	va_list arg;
 	Proc *p;
 	Thread *t;
@@ -89,7 +89,7 @@ threadsetname(char *fmt, ...)
 	}
 }
 
-char*
+int8_t*
 threadgetname(void)
 {
 	Proc *p;

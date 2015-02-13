@@ -21,14 +21,14 @@ typedef struct Inbuf Inbuf;
 struct Inbuf
 {
 	int	fd;
-	uchar	*lim;
-	uchar	*rptr;
-	uchar	*wptr;
-	uchar	data[Buffersize+7];
+	uint8_t	*lim;
+	uint8_t	*rptr;
+	uint8_t	*wptr;
+	uint8_t	data[Buffersize+7];
 };
 
 static void
-addtomessage(Message *m, uchar *p, int n, int done)
+addtomessage(Message *m, uint8_t *p, int n, int done)
 {
 	int i, len;
 
@@ -66,9 +66,9 @@ static int
 readmessage(Message *m, Inbuf *inb)
 {
 	int i, n, done;
-	uchar *p, *np;
-	char sdigest[SHA1dlen*2+1];
-	char tmp[64];
+	uint8_t *p, *np;
+	int8_t sdigest[SHA1dlen*2+1];
+	int8_t tmp[64];
 
 	for(done = 0; !done;){
 		n = inb->wptr - inb->rptr;
@@ -113,7 +113,7 @@ readmessage(Message *m, Inbuf *inb)
 				break;
 			}
 
-			if(strncmp((char*)np, "\nFrom ", 6) == 0){
+			if(strncmp((int8_t*)np, "\nFrom ", 6) == 0){
 				done = 1;
 				p = np+1;
 				break;
@@ -138,7 +138,7 @@ readmessage(Message *m, Inbuf *inb)
 	m->bend = m->rbend = m->end;
 
 	// digest message
-	sha1((uchar*)m->start, m->end - m->start, m->digest, nil);
+	sha1((uint8_t*)m->start, m->end - m->start, m->digest, nil);
 	for(i = 0; i < SHA1dlen; i++)
 		sprint(sdigest+2*i, "%2.2ux", m->digest[i]);
 	m->sdigest = s_copy(sdigest);
@@ -170,16 +170,16 @@ purgedeleted(Mailbox *mb)
 //
 //  read in the mailbox and parse into messages.
 //
-static char*
+static int8_t*
 _readmbox(Mailbox *mb, int doplumb, Mlock *lk)
 {
 	int fd, n;
 	String *tmp;
 	Dir *d;
-	static char err[Errlen];
+	static int8_t err[Errlen];
 	Message *m, **l;
 	Inbuf *inb;
-	char *x;
+	int8_t *x;
 
 	l = &mb->root->part;
 
@@ -373,11 +373,11 @@ _writembox(Mailbox *mb, Mlock *lk)
 	mb->d = dirstat(mb->path);
 }
 
-char*
+int8_t*
 plan9syncmbox(Mailbox *mb, int doplumb)
 {
 	Mlock *lk;
-	char *rv;
+	int8_t *rv;
 
 	lk = nil;
 	if(mb->dolock){
@@ -399,10 +399,10 @@ plan9syncmbox(Mailbox *mb, int doplumb)
 //
 //  look to see if we can open this mail box
 //
-char*
-plan9mbox(Mailbox *mb, char *path)
+int8_t*
+plan9mbox(Mailbox *mb, int8_t *path)
 {
-	static char err[Errlen];
+	static int8_t err[Errlen];
 	String *tmp;
 
 	if(access(path, AEXIST) < 0){

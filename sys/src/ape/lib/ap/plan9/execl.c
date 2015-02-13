@@ -9,10 +9,10 @@
 
 #include <unistd.h>
 
-extern char **environ;
+extern int8_t **environ;
 
 int
-execl(const char *name, const char *arg0, ...)
+execl(const int8_t *name, const int8_t *arg0, ...)
 {
 	return execve(name, &arg0, environ);
 }

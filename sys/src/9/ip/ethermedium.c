@@ -20,34 +20,35 @@
 typedef struct Etherhdr Etherhdr;
 struct Etherhdr
 {
-	uchar	d[6];
-	uchar	s[6];
-	uchar	t[2];
+	uint8_t	d[6];
+	uint8_t	s[6];
+	uint8_t	t[2];
 };
 
-static uchar ipbroadcast[IPaddrlen] = {
+static uint8_t ipbroadcast[IPaddrlen] = {
 	0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff,
 };
 
-static uchar etherbroadcast[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+static uint8_t etherbroadcast[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 static void	etherread4(void *a);
 static void	etherread6(void *a);
-static void	etherbind(Ipifc *ifc, int argc, char **argv);
+static void	etherbind(Ipifc *ifc, int argc, int8_t **argv);
 static void	etherunbind(Ipifc *ifc);
-static void	etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip);
-static void	etheraddmulti(Ipifc *ifc, uchar *a, uchar *ia);
-static void	etherremmulti(Ipifc *ifc, uchar *a, uchar *ia);
-static Block*	multicastarp(Fs *f, Arpent *a, Medium*, uchar *mac);
+static void	etherbwrite(Ipifc *ifc, Block *bp, int version,
+			       uint8_t *ip);
+static void	etheraddmulti(Ipifc *ifc, uint8_t *a, uint8_t *ia);
+static void	etherremmulti(Ipifc *ifc, uint8_t *a, uint8_t *ia);
+static Block*	multicastarp(Fs *f, Arpent *a, Medium*, uint8_t *mac);
 static void	sendarp(Ipifc *ifc, Arpent *a);
-static void	sendgarp(Ipifc *ifc, uchar*);
-static int	multicastea(uchar *ea, uchar *ip);
+static void	sendgarp(Ipifc *ifc, uint8_t*);
+static int	multicastea(uint8_t *ea, uint8_t *ip);
 static void	recvarpproc(void*);
 static void	resolveaddr6(Ipifc *ifc, Arpent *a);
-static void	etherpref2addr(uchar *pref, uchar *ea);
+static void	etherpref2addr(uint8_t *pref, uint8_t *ea);
 
 Medium ethermedium =
 {
@@ -129,35 +130,35 @@ enum
 typedef struct Etherarp Etherarp;
 struct Etherarp
 {
-	uchar	d[6];
-	uchar	s[6];
-	uchar	type[2];
-	uchar	hrd[2];
-	uchar	pro[2];
-	uchar	hln;
-	uchar	pln;
-	uchar	op[2];
-	uchar	sha[6];
-	uchar	spa[4];
-	uchar	tha[6];
-	uchar	tpa[4];
+	uint8_t	d[6];
+	uint8_t	s[6];
+	uint8_t	type[2];
+	uint8_t	hrd[2];
+	uint8_t	pro[2];
+	uint8_t	hln;
+	uint8_t	pln;
+	uint8_t	op[2];
+	uint8_t	sha[6];
+	uint8_t	spa[4];
+	uint8_t	tha[6];
+	uint8_t	tpa[4];
 };
 
-static char *nbmsg = "nonblocking";
+static int8_t *nbmsg = "nonblocking";
 
 /*
  *  called to bind an IP ifc to an ethernet device
  *  called with ifc wlock'd
  */
 static void
-etherbind(Ipifc *ifc, int argc, char **argv)
+etherbind(Ipifc *ifc, int argc, int8_t **argv)
 {
 	Chan *mchan4, *cchan4, *achan, *mchan6, *cchan6, *schan;
-	char addr[Maxpath];	//char addr[2*KNAMELEN];
-	char dir[Maxpath];	//char dir[2*KNAMELEN];
-	char *buf;
+	int8_t addr[Maxpath];	//char addr[2*KNAMELEN];
+	int8_t dir[Maxpath];	//char dir[2*KNAMELEN];
+	int8_t *buf;
 	int n;
-	char *ptr;
+	int8_t *ptr;
 	Etherrock *er;
 
 	if(argc < 2)
@@ -297,11 +298,11 @@ etherunbind(Ipifc *ifc)
  *  called by ipoput with a single block to write with ifc rlock'd
  */
 static void
-etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
+etherbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip)
 {
 	Etherhdr *eh;
 	Arpent *a;
-	uchar mac[6];
+	uint8_t mac[6];
 	Etherrock *er = ifc->arg;
 
 	/* get mac address of destination */
@@ -432,10 +433,10 @@ etherread6(void *a)
 }
 
 static void
-etheraddmulti(Ipifc *ifc, uchar *a, uchar *)
+etheraddmulti(Ipifc *ifc, uint8_t *a, uint8_t *)
 {
-	uchar mac[6];
-	char buf[64];
+	uint8_t mac[6];
+	int8_t buf[64];
 	Etherrock *er = ifc->arg;
 	int version;
 
@@ -454,10 +455,10 @@ etheraddmulti(Ipifc *ifc, uchar *a, uchar *)
 }
 
 static void
-etherremmulti(Ipifc *ifc, uchar *a, uchar *)
+etherremmulti(Ipifc *ifc, uint8_t *a, uint8_t *)
 {
-	uchar mac[6];
-	char buf[64];
+	uint8_t mac[6];
+	int8_t buf[64];
 	Etherrock *er = ifc->arg;
 	int version;
 
@@ -534,7 +535,7 @@ resolveaddr6(Ipifc *ifc, Arpent *a)
 	int sflag;
 	Block *bp;
 	Etherrock *er = ifc->arg;
-	uchar ipsrc[IPaddrlen];
+	uint8_t ipsrc[IPaddrlen];
 
 	/* don't do anything if it's been less than a second since the last */
 	if(NOW - a->ctime < ReTransTimer){
@@ -569,7 +570,7 @@ resolveaddr6(Ipifc *ifc, Arpent *a)
  *  send a gratuitous arp to refresh arp caches
  */
 static void
-sendgarp(Ipifc *ifc, uchar *ip)
+sendgarp(Ipifc *ifc, uint8_t *ip)
 {
 	int n;
 	Block *bp;
@@ -609,8 +610,8 @@ recvarp(Ipifc *ifc)
 	int n;
 	Block *ebp, *rbp;
 	Etherarp *e, *r;
-	uchar ip[IPaddrlen];
-	static uchar eprinted[4];
+	uint8_t ip[IPaddrlen];
+	static uint8_t eprinted[4];
 	Etherrock *er = ifc->arg;
 
 	ebp = er->achan->dev->bread(er->achan, ifc->maxtu, 0);
@@ -716,7 +717,7 @@ recvarpproc(void *v)
 }
 
 static int
-multicastea(uchar *ea, uchar *ip)
+multicastea(uint8_t *ea, uint8_t *ip)
 {
 	int x;
 
@@ -747,7 +748,7 @@ multicastea(uchar *ea, uchar *ip)
  *  IP address.
  */
 static Block*
-multicastarp(Fs *f, Arpent *a, Medium *medium, uchar *mac)
+multicastarp(Fs *f, Arpent *a, Medium *medium, uint8_t *mac)
 {
 	/* is it broadcast? */
 	switch(ipforme(f, a->ip)){
@@ -781,7 +782,7 @@ ethermediumlink(void)
 
 
 static void
-etherpref2addr(uchar *pref, uchar *ea)
+etherpref2addr(uint8_t *pref, uint8_t *ea)
 {
 	pref[8] = ea[0] | 0x2;
 	pref[9] = ea[1];

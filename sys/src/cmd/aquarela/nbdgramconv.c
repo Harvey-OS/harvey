@@ -14,11 +14,11 @@
 #include "netbios.h"
 
 int
-nbdgramconvM2S(NbDgram *s, uchar *ap, uchar *ep)
+nbdgramconvM2S(NbDgram *s, uint8_t *ap, uint8_t *ep)
 {
-	uchar *p = ap;
+	uint8_t *p = ap;
 	int n;
-	ushort length;
+	uint16_t length;
 
 	if (ap + 6 + IPv4addrlen > ep)
 		return 0;
@@ -70,10 +70,10 @@ nbdgramconvM2S(NbDgram *s, uchar *ap, uchar *ep)
 }
 
 int
-nbdgramconvS2M(uchar *ap, uchar *ep, NbDgram *s)
+nbdgramconvS2M(uint8_t *ap, uint8_t *ep, NbDgram *s)
 {
-	uchar *p = ap;
-	uchar *fixup;
+	uint8_t *p = ap;
+	uint8_t *fixup;
 	int n;
 
 	if (p + 6 + IPv4addrlen > ep)

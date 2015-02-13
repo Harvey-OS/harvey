@@ -67,7 +67,7 @@ todinit(void)
 	if(tod.init)
 		return;
 	ilock(&tod);
-	tod.last = fastticks((uvlong *)&tod.hz);
+	tod.last = fastticks((uint64_t *)&tod.hz);
 	iunlock(&tod);
 	todsetfreq(tod.hz);
 	tod.init = 1;
@@ -78,7 +78,7 @@ todinit(void)
  *  calculate multiplier
  */
 void
-todsetfreq(vlong f)
+todsetfreq(int64_t f)
 {
 	ilock(&tod);
 	tod.hz = f;
@@ -95,7 +95,7 @@ todsetfreq(vlong f)
  *  Set the time of day struct
  */
 void
-todset(vlong t, vlong delta, int n)
+todset(int64_t t, int64_t delta, int n)
 {
 	if(!tod.init)
 		todinit();
@@ -126,12 +126,12 @@ todset(vlong t, vlong delta, int n)
 /*
  *  get time of day
  */
-vlong
-todget(vlong *ticksp)
+int64_t
+todget(int64_t *ticksp)
 {
-	uvlong x;
-	vlong ticks, diff;
-	ulong t;
+	uint64_t x;
+	int64_t ticks, diff;
+	uint32_t t;
 
 	if(!tod.init)
 		todinit();
@@ -178,10 +178,10 @@ todget(vlong *ticksp)
 /*
  *  convert time of day to ticks
  */
-uvlong
-tod2fastticks(vlong ns)
+uint64_t
+tod2fastticks(int64_t ns)
 {
-	uvlong x;
+	uint64_t x;
 
 	ilock(&tod);
 	mul64fract(&x, ns-tod.off, tod.divider);
@@ -196,8 +196,8 @@ tod2fastticks(vlong ns)
 static void
 todfix(void)
 {
-	vlong ticks, diff;
-	uvlong x;
+	int64_t ticks, diff;
+	uint64_t x;
 
 	ticks = fastticks(nil);
 
@@ -218,10 +218,10 @@ if(x > 30000000000ULL) print("todfix %llud\n", x);
 	}
 }
 
-long
+int32_t
 seconds(void)
 {
-	vlong x;
+	int64_t x;
 	int i;
 
 	x = todget(nil);
@@ -230,10 +230,10 @@ seconds(void)
 	return i;
 }
 
-uvlong
-fastticks2us(uvlong ticks)
+uint64_t
+fastticks2us(uint64_t ticks)
 {
-	uvlong res;
+	uint64_t res;
 
 	if(!tod.init)
 		todinit();
@@ -241,10 +241,10 @@ fastticks2us(uvlong ticks)
 	return res;
 }
 
-uvlong
-us2fastticks(uvlong us)
+uint64_t
+us2fastticks(uint64_t us)
 {
-	uvlong res;
+	uint64_t res;
 
 	if(!tod.init)
 		todinit();
@@ -255,8 +255,8 @@ us2fastticks(uvlong us)
 /*
  *  convert milliseconds to fast ticks
  */
-uvlong
-ms2fastticks(ulong ms)
+uint64_t
+ms2fastticks(uint32_t ms)
 {
 	if(!tod.init)
 		todinit();
@@ -266,10 +266,10 @@ ms2fastticks(ulong ms)
 /*
  *  convert nanoseconds to fast ticks
  */
-uvlong
-ns2fastticks(uvlong ns)
+uint64_t
+ns2fastticks(uint64_t ns)
 {
-	uvlong res;
+	uint64_t res;
 
 	if(!tod.init)
 		todinit();
@@ -280,10 +280,10 @@ ns2fastticks(uvlong ns)
 /*
  *  convert fast ticks to ns
  */
-uvlong
-fastticks2ns(uvlong ticks)
+uint64_t
+fastticks2ns(uint64_t ticks)
 {
-	uvlong res;
+	uint64_t res;
 
 	if(!tod.init)
 		todinit();
@@ -298,8 +298,8 @@ fastticks2ns(uvlong ticks)
  *
  *	multiplier = (to<<32)/from
  */
-uvlong
-mk64fract(uvlong to, uvlong from)
+uint64_t
+mk64fract(uint64_t to, uint64_t from)
 {
 /*
 	int shift;

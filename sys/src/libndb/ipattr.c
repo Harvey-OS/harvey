@@ -13,10 +13,10 @@
 /*
  *  return ndb attribute type of an ip name
  */
-char*
-ipattr(char *name)
+int8_t*
+ipattr(int8_t *name)
 {
-	char *p, c;
+	int8_t *p, c;
 	int dot = 0;
 	int alpha = 0;
 	int colon = 0;

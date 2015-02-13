@@ -22,7 +22,7 @@ struct Oproc {
 
 static int tlsx = TLS_OUT_OF_INDEXES;
 
-char	*argv0;
+int8_t	*argv0;
 
 Proc*
 _getproc(void)
@@ -147,23 +147,23 @@ procwakeup(Proc *p)
 }
 
 void
-random20(uchar *p)
+random20(uint8_t *p)
 {
 	LARGE_INTEGER ti;
 	int i, j;
 	FILETIME ft;
 	DigestState ds;
-	vlong tsc;
+	int64_t tsc;
 	
 	GetSystemTimeAsFileTime(&ft);
 	memset(&ds, 0, sizeof ds);
-	sha1((uchar*)&ft, sizeof(ft), 0, &ds);
+	sha1((uint8_t*)&ft, sizeof(ft), 0, &ds);
 	for(i=0; i<50; i++) {
 		for(j=0; j<10; j++) {
 			QueryPerformanceCounter(&ti);
-			sha1((uchar*)&ti, sizeof(ti), 0, &ds);
+			sha1((uint8_t*)&ti, sizeof(ti), 0, &ds);
 			tsc = GetTickCount();
-			sha1((uchar*)&tsc, sizeof(tsc), 0, &ds);
+			sha1((uint8_t*)&tsc, sizeof(tsc), 0, &ds);
 		}
 		Sleep(10);
 	}
@@ -175,29 +175,29 @@ randominit(void)
 {
 }
 
-ulong
-randomread(void *v, ulong n)
+uint32_t
+randomread(void *v, uint32_t n)
 {
 	int i;
-	uchar p[20];
+	uint8_t p[20];
 	
 	for(i=0; i<n; i+=20){
 		random20(p);
 		if(i+20 <= n)
-			memmove((char*)v+i, p, 20);
+			memmove((int8_t*)v+i, p, 20);
 		else
-			memmove((char*)v+i, p, n-i);
+			memmove((int8_t*)v+i, p, n-i);
 	}
 	return n;
 }
 
-long
+int32_t
 seconds(void)
 {
 	return time(0);
 }
 
-ulong
+uint32_t
 ticks(void)
 {
 	return GetTickCount();
@@ -216,7 +216,7 @@ fastticks(uvlong *v)
 }
 #endif
 
-extern int	main(int, char*[]);
+extern int	main(int, int8_t*[]);
 
 
 int
@@ -230,10 +230,10 @@ wstrutflen(Rune *s)
 }
 
 int
-wstrtoutf(char *s, Rune *t, int n)
+wstrtoutf(int8_t *s, Rune *t, int n)
 {
 	int i;
-	char *s0;
+	int8_t *s0;
 
 	s0 = s;
 	if(n <= 0)
@@ -286,13 +286,13 @@ wstrlen(Rune *s)
 		;
 	return n;
 }
-static int	args(char *argv[], int n, char *p);
+static int	args(int8_t *argv[], int n, int8_t *p);
 
 int APIENTRY
 WinMain(HINSTANCE x, HINSTANCE y, LPSTR z, int w)
 {
 	int argc, n;
-	char *arg, *p, **argv;
+	int8_t *arg, *p, **argv;
 	Rune *warg;
 
 	if(0 && win_hasunicode()){
@@ -307,7 +307,7 @@ WinMain(HINSTANCE x, HINSTANCE y, LPSTR z, int w)
 	for(argc=4,p=arg; *p; p++)
 		if(*p == ' ' || *p == '\t')
 			argc++;
-	argv = malloc(argc*sizeof(char*));
+	argv = malloc(argc*sizeof(int8_t*));
 	argc = args(argv, argc, arg);
 
 	mymain(argc, argv);
@@ -326,9 +326,9 @@ WinMain(HINSTANCE x, HINSTANCE y, LPSTR z, int w)
  * N backslashes not followed by " ==> N backslashes
  */
 static int
-args(char *argv[], int n, char *p)
+args(int8_t *argv[], int n, int8_t *p)
 {
-	char *p2;
+	int8_t *p2;
 	int i, j, quote, nbs;
 
 	for(i=0; *p && i<n-1; i++) {
@@ -370,7 +370,7 @@ args(char *argv[], int n, char *p)
  */
 static struct {
 	int e;
-	char *s;
+	int8_t *s;
 } tab[] = {
 	{ 10004, "interrupted function call" },
 	{ 10013, "permission denied" },
@@ -418,9 +418,9 @@ static struct {
 };
 
 void
-osrerrstr(char *buf, uint nbuf)
+osrerrstr(int8_t *buf, uint nbuf)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	int e, i, r;
 
 	e = GetLastError();
@@ -454,8 +454,8 @@ oserrstr(void)
 	osrerrstr(up->errstr, ERRMAX);
 }
 
-long
-showfilewrite(char *a, int n)
+int32_t
+showfilewrite(int8_t *a, int n)
 {
 	Rune *action, *arg, *cmd, *p;
 	static Rune Lopen[] = { 'o', 'p', 'e', 'n', 0 };

@@ -85,7 +85,7 @@ enum {
 	Nlcd,
 };
 
-static char* iorname[Nreg] = {
+static int8_t* iorname[Nreg] = {
 	"HTotalDisp",
 	"HSyncStrtWid",
 	"VTotalDisp",
@@ -136,7 +136,7 @@ static char* iorname[Nreg] = {
 	"LcdData",	
 };
 
-static char* lcdname[Nlcd] = {
+static int8_t* lcdname[Nlcd] = {
 	"LCD ConfigPanel",
 	"LCD GenCntl",
 	"LCD DstnCntl",
@@ -254,22 +254,22 @@ enum {
 
 typedef struct Mach64xx	Mach64xx;
 struct Mach64xx {
-	ulong	io;
+	uint32_t	io;
 	Pcidev*	pci;
 	int	bigmem;
 	int	lcdon;
 	int	lcdpanelid;
 
-	ulong	reg[Nreg];
-	ulong	lcd[Nlcd];
-	ulong	tv[Ntv];
-	uchar	pll[Npll];
+	uint32_t	reg[Nreg];
+	uint32_t	lcd[Nlcd];
+	uint32_t	tv[Ntv];
+	uint8_t	pll[Npll];
 
-	ulong	(*ior32)(Mach64xx*, int);
-	void	(*iow32)(Mach64xx*, int, ulong);
+	uint32_t	(*ior32)(Mach64xx*, int);
+	void	(*iow32)(Mach64xx*, int, uint32_t);
 };
 
-static ulong
+static uint32_t
 portior32(Mach64xx* mp, int r)
 {
 	if((ioregs[r] & IOREG) == 0)
@@ -279,7 +279,7 @@ portior32(Mach64xx* mp, int r)
 }
 
 static void
-portiow32(Mach64xx* mp, int r, ulong l)
+portiow32(Mach64xx* mp, int r, uint32_t l)
 {
 	if((ioregs[r] & IOREG) == 0)
 		return;
@@ -287,19 +287,19 @@ portiow32(Mach64xx* mp, int r, ulong l)
 	outportl(((ioregs[r] & ~IOREG)<<2)+mp->io, l);
 }
 
-static ulong
+static uint32_t
 pciior32(Mach64xx* mp, int r)
 {
 	return inportl((pciregs[r]<<2)+mp->io);
 }
 
 static void
-pciiow32(Mach64xx* mp, int r, ulong l)
+pciiow32(Mach64xx* mp, int r, uint32_t l)
 {
 	outportl((pciregs[r]<<2)+mp->io, l);
 }
 
-static uchar
+static uint8_t
 pllr(Mach64xx* mp, int r)
 {
 	int io;
@@ -314,7 +314,7 @@ pllr(Mach64xx* mp, int r)
 }
 
 static void
-pllw(Mach64xx* mp, int r, uchar b)
+pllw(Mach64xx* mp, int r, uint8_t b)
 {
 	int io;
 
@@ -327,10 +327,10 @@ pllw(Mach64xx* mp, int r, uchar b)
 	outportb(io+2, b);
 }
 
-static ulong
-lcdr32(Mach64xx *mp, ulong r)
+static uint32_t
+lcdr32(Mach64xx *mp, uint32_t r)
 {
-	ulong or;
+	uint32_t or;
 
 	or = mp->ior32(mp, LcdIndex);
 	mp->iow32(mp, LcdIndex, (or&~0x0F) | (r&0x0F));
@@ -338,24 +338,24 @@ lcdr32(Mach64xx *mp, ulong r)
 }
 
 static void
-lcdw32(Mach64xx *mp, ulong r, ulong v)
+lcdw32(Mach64xx *mp, uint32_t r, uint32_t v)
 {
-	ulong or;
+	uint32_t or;
 
 	or = mp->ior32(mp, LcdIndex);
 	mp->iow32(mp, LcdIndex, (or&~0x0F) | (r&0x0F));
 	mp->iow32(mp, LcdData, v);
 }
 
-static ulong
-tvr32(Mach64xx *mp, ulong r)
+static uint32_t
+tvr32(Mach64xx *mp, uint32_t r)
 {
 	outportb(mp->io+(TvIndex<<2), r&0x0F);
 	return inportl(mp->io+(TvData<<2));
 }
 
 static void
-tvw32(Mach64xx *mp, ulong r, ulong v)
+tvw32(Mach64xx *mp, uint32_t r, uint32_t v)
 {
 	outportb(mp->io+(TvIndex<<2), r&0x0F);
 	outportl(mp->io+(TvData<<2), v);
@@ -378,7 +378,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 {
 	Mach64xx *mp;
 	int i;
-	ulong v;
+	uint32_t v;
 
 	if(vga->private == nil){
 		vga->private = alloc(sizeof(Mach64xx));
@@ -648,12 +648,12 @@ static Meminfo meminfo[] = {
 [Mwram]		{ 1, 3 },	/* non TYPE_A */
 };
 
-static ushort looplatencytab[2][2] = {
+static uint16_t looplatencytab[2][2] = {
 	{ 8, 6 },		/* DRAM: ≤1M, > 1M */
 	{ 9, 8 },		/* SDRAM: ≤1M, > 1M */
 };
 
-static ushort cyclesperqwordtab[2][2] = {
+static uint16_t cyclesperqwordtab[2][2] = {
 	{ 3, 2 },		/* DRAM: ≤1M, > 1M */
 	{ 2, 1 },		/* SDRAM: ≤1M, > 1M */
 };
@@ -683,11 +683,11 @@ setdsp(Vga* vga, Ctlr*)
 {
 	Mach64xx *mp;
 	Meminfo *mem;
-	ushort table, memclk, memtyp;
+	uint16_t table, memclk, memtyp;
 	int i, prec, xprec, fprec;
-	ulong t;
+	uint32_t t;
 	double pw, x, fifosz, fifoon, fifooff;
-	ushort dspon, dspoff;
+	uint16_t dspon, dspoff;
 	int afifosz, lat, ncycle, pfc, rcc;
 
 	mp = vga->private;
@@ -695,11 +695,11 @@ setdsp(Vga* vga, Ctlr*)
 	/*
 	 * Get video ram configuration from BIOS and chip
 	 */
-	table = *(ushort*)readbios(sizeof table, 0xc0048);
+	table = *(uint16_t*)readbios(sizeof table, 0xc0048);
 	trace("rom table offset %uX\n", table);
-	table = *(ushort*)readbios(sizeof table, 0xc0000+table+16);
+	table = *(uint16_t*)readbios(sizeof table, 0xc0000+table+16);
 	trace("freq table offset %uX\n", table);
-	memclk = *(ushort*)readbios(sizeof memclk, 0xc0000+table+18);
+	memclk = *(uint16_t*)readbios(sizeof memclk, 0xc0000+table+18);
 	trace("memclk %ud\n", memclk);
 	memtyp = memtype[mp->reg[ConfigStat0]&07];
 	mem = &meminfo[memtyp];
@@ -806,13 +806,13 @@ setdsp(Vga* vga, Ctlr*)
 	 * x is stored in a 14 bit field with xprec bits of integer.
 	 */
 	pw = x * (1<<(14-xprec));
-	mp->reg[DspConfig] = (ulong)pw | (((lat+2)&0xF)<<16) | ((prec&7)<<20);
+	mp->reg[DspConfig] = (uint32_t)pw | (((lat+2)&0xF)<<16) | ((prec&7)<<20);
 
 	/*
 	 * These are stored in an 11 bit field with fprec bits of integer.
 	 */
-	dspon  = (ushort)fifoon << (11-fprec);
-	dspoff = (ushort)fifooff << (11-fprec);
+	dspon  = (uint16_t)fifoon << (11-fprec);
+	dspoff = (uint16_t)fifooff << (11-fprec);
 	mp->reg[DspOnOff] = ((dspon&0x7ff) << 16) | (dspoff&0x7ff);
 }
 
@@ -1099,7 +1099,7 @@ static void
 pixelclock(Vga* vga, Ctlr* ctlr)
 {
 	Mach64xx *mp;
-	ushort table, s;
+	uint16_t table, s;
 	int memclk, ref_freq, ref_divider, min_freq, max_freq;
 	int feedback, nmult, pd, post, value;
 	int clock;
@@ -1117,23 +1117,23 @@ pixelclock(Vga* vga, Ctlr* ctlr)
 	/*
 	 * GetPLLInfo()
 	 */
-	table = *(ushort*)readbios(sizeof table, 0xc0048);
+	table = *(uint16_t*)readbios(sizeof table, 0xc0048);
 	trace("rom table offset %uX\n", table);
-	table = *(ushort*)readbios(sizeof table, 0xc0000+table+16);
+	table = *(uint16_t*)readbios(sizeof table, 0xc0000+table+16);
 	trace("freq table offset %uX\n", table);
-	s = *(ushort*)readbios(sizeof s, 0xc0000+table+18);
+	s = *(uint16_t*)readbios(sizeof s, 0xc0000+table+18);
 	memclk = s*10000;
 	trace("memclk %ud\n", memclk);
-	s = *(ushort*)readbios(sizeof s, 0xc0000+table+8);
+	s = *(uint16_t*)readbios(sizeof s, 0xc0000+table+8);
 	ref_freq = s*10000;
 	trace("ref_freq %ud\n", ref_freq);
-	s = *(ushort*)readbios(sizeof s, 0xc0000+table+10);
+	s = *(uint16_t*)readbios(sizeof s, 0xc0000+table+10);
 	ref_divider = s;
 	trace("ref_divider %ud\n", ref_divider);
-	s = *(ushort*)readbios(sizeof s, 0xc0000+table+2);
+	s = *(uint16_t*)readbios(sizeof s, 0xc0000+table+2);
 	min_freq = s*10000;
 	trace("min_freq %ud\n", min_freq);
-	s = *(ushort*)readbios(sizeof s, 0xc0000+table+4);
+	s = *(uint16_t*)readbios(sizeof s, 0xc0000+table+4);
 	max_freq = s*10000;
 	trace("max_freq %ud\n", max_freq);
 
@@ -1290,13 +1290,13 @@ static void
 dumpmach64bios(Mach64xx *mp)
 {
 	int i, romtable, clocktable, freqtable, lcdtable, lcdpanel;
-	uchar bios[0x10000];
+	uint8_t bios[0x10000];
 
 	memmove(bios, readbios(sizeof bios, 0xC0000), sizeof bios);
 
 	/* find magic string */
 	for(i=0; i<1024; i++)
-		if(strncmp((char*)bios+i, " 761295520", 10) == 0)
+		if(strncmp((int8_t*)bios+i, " 761295520", 10) == 0)
 			break;
 
 	if(i==1024) {
@@ -1305,19 +1305,19 @@ dumpmach64bios(Mach64xx *mp)
 	}
 
 	/* this is horribly endian dependent.  sorry. */
-	romtable = *(ushort*)(bios+0x48);
+	romtable = *(uint16_t*)(bios+0x48);
 	if(romtable+0x12 > sizeof(bios)) {
 		Bprint(&stdout, "couldn't find ATI rom table\n");
 		return;
 	}
 
-	clocktable = *(ushort*)(bios+romtable+0x10);
+	clocktable = *(uint16_t*)(bios+romtable+0x10);
 	if(clocktable+0x0C > sizeof(bios)) {
 		Bprint(&stdout, "couldn't find ATI clock table\n");
 		return;
 	}
 
-	freqtable = *(ushort*)(bios+clocktable-2);
+	freqtable = *(uint16_t*)(bios+clocktable-2);
 	if(freqtable+0x20 > sizeof(bios)) {
 		Bprint(&stdout, "couldn't find ATI frequency table\n");
 		return;
@@ -1326,14 +1326,15 @@ dumpmach64bios(Mach64xx *mp)
 	Bprint(&stdout, "ATI BIOS rom 0x%x freq 0x%x clock 0x%x\n", romtable, freqtable, clocktable);
 	Bprint(&stdout, "clocks:");
 	for(i=0; i<16; i++)
-		Bprint(&stdout, " %d", *(ushort*)(bios+freqtable+2*i));
+		Bprint(&stdout, " %d", *(uint16_t*)(bios+freqtable+2*i));
 	Bprint(&stdout, "\n");
 
 	Bprint(&stdout, "programmable clock: %d\n", bios[clocktable]);
 	Bprint(&stdout, "clock to program: %d\n", bios[clocktable+6]);
 
-	if(*(ushort*)(bios+clocktable+8) != 1430) {
-		Bprint(&stdout, "reference numerator: %d\n", *(ushort*)(bios+clocktable+8)*10);
+	if(*(uint16_t*)(bios+clocktable+8) != 1430) {
+		Bprint(&stdout, "reference numerator: %d\n",
+		       *(uint16_t*)(bios+clocktable+8)*10);
 		Bprint(&stdout, "reference denominator: 1\n");
 	} else {
 		Bprint(&stdout, "default reference numerator: 157500\n");
@@ -1343,7 +1344,8 @@ dumpmach64bios(Mach64xx *mp)
 	switch(bios[clocktable]) {
 	case ClockIcs2595:
 		Bprint(&stdout, "ics2595\n");
-		Bprint(&stdout, "reference divider: %d\n", *(ushort*)(bios+clocktable+0x0A));
+		Bprint(&stdout, "reference divider: %d\n",
+		       *(uint16_t*)(bios+clocktable+0x0A));
 		break;
 	case ClockStg1703:
 		Bprint(&stdout, "stg1703\n");
@@ -1369,19 +1371,21 @@ dumpmach64bios(Mach64xx *mp)
 
 	USED(mp);
 	if(1 || mp->lcdpanelid) {
-		lcdtable = *(ushort*)(bios+0x78);
+		lcdtable = *(uint16_t*)(bios+0x78);
 		if(lcdtable+5 > sizeof bios || lcdtable+bios[lcdtable+5] > sizeof bios) {
 			Bprint(&stdout, "can't find lcd bios table\n");
 			goto NoLcd;
 		}
 
-		lcdpanel = *(ushort*)(bios+lcdtable+0x0A);
+		lcdpanel = *(uint16_t*)(bios+lcdtable+0x0A);
 		if(lcdpanel+0x1D > sizeof bios /*|| bios[lcdpanel] != mp->lcdpanelid*/) {
 			Bprint(&stdout, "can't find lcd bios table0\n");
 			goto NoLcd;
 		}
 
-		Bprint(&stdout, "panelid %d x %d y %d\n", bios[lcdpanel], *(ushort*)(bios+lcdpanel+0x19), *(ushort*)(bios+lcdpanel+0x1B));
+		Bprint(&stdout, "panelid %d x %d y %d\n", bios[lcdpanel],
+		       *(uint16_t*)(bios+lcdpanel+0x19),
+		       *(uint16_t*)(bios+lcdpanel+0x1B));
 	}
 NoLcd:;
 }

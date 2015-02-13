@@ -17,10 +17,10 @@
 
 Biobuf	stdout;
 
-static char *tmp[] = {"/tmp/diff1XXXXXXXXXXX", "/tmp/diff2XXXXXXXXXXX"};
+static int8_t *tmp[] = {"/tmp/diff1XXXXXXXXXXX", "/tmp/diff2XXXXXXXXXXX"};
 static int whichtmp;
-static char *progname;
-static char usage[] = "diff [-abcefmnrw] file1 ... file2\n";
+static int8_t *progname;
+static int8_t usage[] = "diff [-abcefmnrw] file1 ... file2\n";
 
 static void
 rmtmpfiles(void)
@@ -48,7 +48,7 @@ done(int status)
 }
 
 void
-panic(int status, char *fmt, ...)
+panic(int status, int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -64,7 +64,7 @@ panic(int status, char *fmt, ...)
 }
 
 static int
-catch(void *a, char *msg)
+catch(void *a, int8_t *msg)
 {
 	USED(a);
 	panic(2, msg);
@@ -72,7 +72,7 @@ catch(void *a, char *msg)
 }
 
 int
-mkpathname(char *pathname, char *path, char *name)
+mkpathname(int8_t *pathname, int8_t *path, int8_t *name)
 {
 	if (strlen(path) + strlen(name) > MAXPATHLEN) {
 		panic(0, "pathname %s/%s too long\n", path, name);
@@ -82,12 +82,12 @@ mkpathname(char *pathname, char *path, char *name)
 	return 0;
 }
 	
-static char *
+static int8_t *
 mktmpfile(int input, Dir **sb)
 {
 	int fd, i;
-	char *p;
-	char buf[8192];
+	int8_t *p;
+	int8_t buf[8192];
 
 	atnotify(catch, 1);
 	p = mktemp(tmp[whichtmp++]);
@@ -109,8 +109,8 @@ mktmpfile(int input, Dir **sb)
 	return p;
 }
 
-static char *
-statfile(char *file, Dir **sb)
+static int8_t *
+statfile(int8_t *file, Dir **sb)
 {
 	Dir *dir;
 	int input;
@@ -139,9 +139,9 @@ statfile(char *file, Dir **sb)
 }
 
 void
-diff(char *f, char *t, int level)
+diff(int8_t *f, int8_t *t, int level)
 {
-	char *fp, *tp, *p, fb[MAXPATHLEN+1], tb[MAXPATHLEN+1];
+	int8_t *fp, *tp, *p, fb[MAXPATHLEN+1], tb[MAXPATHLEN+1];
 	Dir *fsb, *tsb;
 
 	if ((fp = statfile(f, &fsb)) == 0)
@@ -184,9 +184,9 @@ Return:
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-	char *p;
+	int8_t *p;
 	int i;
 	Dir *fsb, *tsb;
 
@@ -250,7 +250,7 @@ main(int argc, char *argv[])
 	/*NOTREACHED*/
 }
 
-static char noroom[] = "out of memory - try diff -h\n";
+static int8_t noroom[] = "out of memory - try diff -h\n";
 
 void *
 emalloc(unsigned n)

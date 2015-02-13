@@ -121,7 +121,7 @@ png_create_read_struct_2(png_const_charp user_png_ver, png_voidp error_ptr,
          (user_png_ver[0] == '0' && user_png_ver[2] < '9'))
      {
 #if !defined(PNG_NO_STDIO) && !defined(_WIN32_WCE)
-        char msg[80];
+        int8_t msg[80];
         if (user_png_ver)
         {
           sprintf(msg, "Application was compiled with png.h from libpng-%.20s",
@@ -200,7 +200,7 @@ png_read_init_2(png_structp png_ptr, png_const_charp user_png_ver,
    if(png_sizeof(png_struct) > png_struct_size || 
       png_sizeof(png_info) > png_info_size)
    {
-      char msg[80];
+      int8_t msg[80];
       png_ptr->warning_fn=NULL;
       if (user_png_ver)
       {

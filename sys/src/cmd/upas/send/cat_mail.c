@@ -16,7 +16,7 @@ int
 cat_mail(dest *dp, message *mp)
 {
 	Biobuf *fp;
-	char *rcvr, *cp;
+	int8_t *rcvr, *cp;
 	Mlock *l;
 	String *tmp, *s;
 	int i, n;
@@ -53,7 +53,7 @@ cat_mail(dest *dp, message *mp)
 		sleep(1000);
 	}
 	s_free(s);
-	n = m_print(mp, fp, (char *)0, 1);
+	n = m_print(mp, fp, (int8_t *)0, 1);
 	if (Bprint(fp, "\n") < 0 || Bflush(fp) < 0 || n < 0){
 		sysclose(fp);
 		sysunlock(l);

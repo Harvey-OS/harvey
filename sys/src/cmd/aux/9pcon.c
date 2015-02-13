@@ -23,7 +23,7 @@ usage(void)
 }
 
 int
-connectcmd(char *cmd)
+connectcmd(int8_t *cmd)
 {
 	int p[2];
 
@@ -50,7 +50,7 @@ void
 watch(int fd)
 {
 	int n;
-	uchar *buf;
+	uint8_t *buf;
 	Fcall f;
 	
 	buf = malloc(messagesize);
@@ -70,8 +70,8 @@ watch(int fd)
 		print("read9pmsg from server: %r\n");
 }
 
-char*
-tversion(Fcall *f, int, char **argv)
+int8_t*
+tversion(Fcall *f, int, int8_t **argv)
 {
 	f->msize = atoi(argv[0]);
 	if(f->msize > messagesize)
@@ -80,8 +80,8 @@ tversion(Fcall *f, int, char **argv)
 	return nil;
 }
 
-char*
-tauth(Fcall *f, int, char **argv)
+int8_t*
+tauth(Fcall *f, int, int8_t **argv)
 {
 	f->afid = atoi(argv[0]);
 	f->uname = argv[1];
@@ -89,15 +89,15 @@ tauth(Fcall *f, int, char **argv)
 	return nil;
 }
 
-char*
-tflush(Fcall *f, int, char **argv)
+int8_t*
+tflush(Fcall *f, int, int8_t **argv)
 {
 	f->oldtag = atoi(argv[0]);
 	return nil;
 }
 
-char*
-tattach(Fcall *f, int, char **argv)
+int8_t*
+tattach(Fcall *f, int, int8_t **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->afid = atoi(argv[1]);
@@ -106,8 +106,8 @@ tattach(Fcall *f, int, char **argv)
 	return nil;
 }
 
-char*
-twalk(Fcall *f, int argc, char **argv)
+int8_t*
+twalk(Fcall *f, int argc, int8_t **argv)
 {
 	int i;
 
@@ -123,16 +123,16 @@ twalk(Fcall *f, int argc, char **argv)
 	return nil;
 }
 
-char*
-topen(Fcall *f, int, char **argv)
+int8_t*
+topen(Fcall *f, int, int8_t **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->mode = atoi(argv[1]);
 	return nil;
 }
 
-char*
-tcreate(Fcall *f, int, char **argv)
+int8_t*
+tcreate(Fcall *f, int, int8_t **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->name = argv[1];
@@ -141,8 +141,8 @@ tcreate(Fcall *f, int, char **argv)
 	return nil;
 }
 
-char*
-tread(Fcall *f, int, char **argv)
+int8_t*
+tread(Fcall *f, int, int8_t **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->offset = strtoll(argv[1], 0, 0);
@@ -150,8 +150,8 @@ tread(Fcall *f, int, char **argv)
 	return nil;
 }
 
-char*
-twrite(Fcall *f, int, char **argv)
+int8_t*
+twrite(Fcall *f, int, int8_t **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->offset = strtoll(argv[1], 0, 0);
@@ -160,47 +160,47 @@ twrite(Fcall *f, int, char **argv)
 	return nil;
 }
 
-char*
-tclunk(Fcall *f, int, char **argv)
+int8_t*
+tclunk(Fcall *f, int, int8_t **argv)
 {
 	f->fid = atoi(argv[0]);
 	return nil;
 }
 
-char*
-tremove(Fcall *f, int, char **argv)
+int8_t*
+tremove(Fcall *f, int, int8_t **argv)
 {
 	f->fid = atoi(argv[0]);
 	return nil;
 }
 
-char*
-tstat(Fcall *f, int, char **argv)
+int8_t*
+tstat(Fcall *f, int, int8_t **argv)
 {
 	f->fid = atoi(argv[0]);
 	return nil;
 }
 
-ulong
-xstrtoul(char *s)
+uint32_t
+xstrtoul(int8_t *s)
 {
 	if(strcmp(s, "~0") == 0)
 		return ~0UL;
 	return strtoul(s, 0, 0);
 }
 
-uvlong
-xstrtoull(char *s)
+uint64_t
+xstrtoull(int8_t *s)
 {
 	if(strcmp(s, "~0") == 0)
 		return ~0ULL;
 	return strtoull(s, 0, 0);
 }
 
-char*
-twstat(Fcall *f, int, char **argv)
+int8_t*
+twstat(Fcall *f, int, int8_t **argv)
 {
-	static uchar buf[DIRMAX];
+	static uint8_t buf[DIRMAX];
 	Dir d;
 
 	memset(&d, 0, sizeof d);
@@ -223,10 +223,10 @@ twstat(Fcall *f, int, char **argv)
 
 int taggen;
 
-char*
-settag(Fcall*, int, char **argv)
+int8_t*
+settag(Fcall*, int, int8_t **argv)
 {
-	static char buf[120];
+	static int8_t buf[120];
 
 	taggen = atoi(argv[0])-1;
 	snprint(buf, sizeof buf, "next tag is %d", taggen+1);
@@ -235,11 +235,11 @@ settag(Fcall*, int, char **argv)
 
 typedef struct Cmd Cmd;
 struct Cmd {
-	char *name;
+	int8_t *name;
 	int type;
 	int argc;
-	char *usage;
-	char *(*fn)(Fcall *f, int, char**);
+	int8_t *usage;
+	int8_t *(*fn)(Fcall *f, int, int8_t**);
 };
 
 Cmd msg9p[] = {
@@ -262,8 +262,8 @@ Cmd msg9p[] = {
 void
 shell9p(int fd)
 {
-	char *e, *f[10], *p;
-	uchar *buf;
+	int8_t *e, *f[10], *p;
+	uint8_t *buf;
 	int i, n, nf;
 	Biobuf b;
 	Fcall t;

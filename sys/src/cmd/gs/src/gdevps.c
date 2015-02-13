@@ -84,7 +84,7 @@ typedef struct psw_path_state_s {
 
 typedef struct psw_image_params_s {
     gx_bitmap_id id;
-    ushort width, height;
+    uint16_t width, height;
 } psw_image_params_t;
 
 typedef struct gx_device_pswrite_s {
@@ -663,7 +663,7 @@ psw_check_erasepage(gx_device_pswrite *pdev)
 private bool 
 psw_is_separate_pages(gx_device_vector *const vdev)
 {
-    const char *fmt;
+    const int8_t *fmt;
     gs_parsed_file_name_t parsed;
     int code = gx_parse_output_file_name(&parsed, &fmt, vdev->fname, strlen(vdev->fname));
     

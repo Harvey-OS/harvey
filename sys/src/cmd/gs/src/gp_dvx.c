@@ -54,7 +54,7 @@ gp_do_exit(int exit_status)
 
 /* Get the string corresponding to an OS error number. */
 /* All reasonable compilers support it. */
-const char *
+const int8_t *
 gp_strerror(int errnum)
 {
     return strerror(errnum);
@@ -65,7 +65,7 @@ gp_strerror(int errnum)
 /* Read the current time (in seconds since Jan. 1, 1970) */
 /* and fraction (in nanoseconds). */
 void
-gp_get_realtime(long *pdt)
+gp_get_realtime(int32_t *pdt)
 {
     struct timeval tp;
     struct timezone tzp;
@@ -87,7 +87,7 @@ gp_get_realtime(long *pdt)
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(long *pdt)
+gp_get_usertime(int32_t *pdt)
 {
     gp_get_realtime(pdt);	/* Use an approximation for now.  */
 }
@@ -116,7 +116,7 @@ int gp_cache_query(int type, byte* key, int keylen, void **buffer,
 /* Return NULL if the connection could not be opened. */
 extern void gp_set_file_binary(int, int);
 FILE *
-gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
+gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
 {
     if (strlen(fname) == 0 || !strcmp(fname, "PRN")) {
 	if (binary_mode)
@@ -129,7 +129,7 @@ gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 
 /* Close the connection to the printer. */
 void
-gp_close_printer(FILE * pfile, const char *fname)
+gp_close_printer(FILE * pfile, const int8_t *fname)
 {
     if (pfile == stdprn)
 	fflush(pfile);
@@ -149,7 +149,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, int8_t **fontname,
+                            int8_t **path)
 {
     return 0;
 }

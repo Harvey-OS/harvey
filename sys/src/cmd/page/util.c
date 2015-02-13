@@ -38,10 +38,10 @@ erealloc(void *v, int sz)
 	return v;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 	if((t = strdup(s)) == nil) {
 		fprint(2, "out of memory in strdup(%.10s)\n", s);
 		wexits("mem");
@@ -50,10 +50,10 @@ estrdup(char *s)
 }
 
 int
-opentemp(char *template)
+opentemp(int8_t *template)
 {
 	int fd, i;
-	char *p;
+	int8_t *p;
 
 	p = estrdup(template);
 	fd = -1;
@@ -78,11 +78,11 @@ opentemp(char *template)
  * we've already read the initial in bytes into ibuf.
  */
 int
-spooltodisk(uchar *ibuf, int in, char **name)
+spooltodisk(uint8_t *ibuf, int in, int8_t **name)
 {
-	uchar buf[8192];
+	uint8_t buf[8192];
 	int fd, n;
-	char temp[40];
+	int8_t temp[40];
 
 	strcpy(temp, "/tmp/pagespoolXXXXXXXXX");
 	fd = opentemp(temp);
@@ -109,9 +109,9 @@ spooltodisk(uchar *ibuf, int in, char **name)
  * we've already ready the first in bytes into ibuf
  */
 int
-stdinpipe(uchar *ibuf, int in)
+stdinpipe(uint8_t *ibuf, int in)
 {
-	uchar buf[8192];
+	uint8_t buf[8192];
 	int n;
 	int p[2];
 	if(pipe(p) < 0){
@@ -141,9 +141,9 @@ stdinpipe(uchar *ibuf, int in)
 
 /* try to update the label, but don't fail on any errors */
 void
-setlabel(char *label)
+setlabel(int8_t *label)
 {
-	char *s;
+	int8_t *s;
 	int fd;
 
 	s = smprint("%s/label", display->windir);

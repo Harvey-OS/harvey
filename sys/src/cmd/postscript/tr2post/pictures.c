@@ -54,17 +54,17 @@
 
 Biobuf	*bfp_pic = NULL;
 Biobufhdr	*Bfp_pic;
-Biobufhdr	*picopen(char *);
+Biobufhdr	*picopen(int8_t *);
 
 #define MAXGETFIELDS	16
-char *fields[MAXGETFIELDS];
+int8_t *fields[MAXGETFIELDS];
 int nfields;
 
 extern int	devres, hpos, vpos;
 extern int	picflag;
 
 void
-picture(Biobufhdr *inp, char *buf) {
+picture(Biobufhdr *inp, int8_t *buf) {
 	int	i;
 	int	indent;
 	int	length;		/* line length */
@@ -74,10 +74,10 @@ picture(Biobufhdr *inp, char *buf) {
 	int	scaleboth = 0;	/* scale both dimensions? */
 	int	totrap;		/* distance to next trap */
 	int	whiteout = 0;	/* white out the box? */
-	char	flags[20];	/* miscellaneous stuff */
-	char	hwo[40], *p;	/* height, width and offset strings */
-	char	name[100];	/* picture file and page string */
-	char	units;		/* scale indicator for frame dimensions */
+	int8_t	flags[20];	/* miscellaneous stuff */
+	int8_t	hwo[40], *p;	/* height, width and offset strings */
+	int8_t	name[100];	/* picture file and page string */
+	int8_t	units;		/* scale indicator for frame dimensions */
 	double	adjx = 0.5;	/* left-right adjustment */
 	double	adjy = 0.5;	/* top-bottom adjustment */
 	double	frame[4];	/* height, width, y, and x offsets from hwo[] */
@@ -192,7 +192,7 @@ picture(Biobufhdr *inp, char *buf) {
  * open file *path and return the resulting file pointer to the caller.
  */
 Biobufhdr *
-picopen(char *path) {
+picopen(int8_t *path) {
 /*	char	name[100];	/* pathnames */
 /*	long	pos;			/* current position */
 /*	long	total;			/* and sizes - from *fp_pic */
@@ -237,9 +237,9 @@ picopen(char *path) {
 
 #ifdef UNDEF
 void
-inlinepic(Biobufhdr *Bfp, char *buf) {
-	char	name[100];		/* picture file pathname */
-	long	total;			/* and size - both from *buf */
+inlinepic(Biobufhdr *Bfp, int8_t *buf) {
+	int8_t	name[100];		/* picture file pathname */
+	int32_t	total;			/* and size - both from *buf */
 
 	if (Bfp_pic == NULL ) {
 		tmpnam(pictmpname);
@@ -267,8 +267,8 @@ inlinepic(Biobufhdr *Bfp, char *buf) {
 /*	*fp_out;	and output file pointers */
 /*	total;		number of bytes to be copied */
 void
-piccopy(Biobufhdr *Bfp_in, Biobufhdr *Bfp_out, long total) {
-	long i;
+piccopy(Biobufhdr *Bfp_in, Biobufhdr *Bfp_out, int32_t total) {
+	int32_t i;
 
 	for (i = 0; i < total; i++)
 		if (Bputc(Bfp_out, Bgetc(Bfp_in)) < 0)

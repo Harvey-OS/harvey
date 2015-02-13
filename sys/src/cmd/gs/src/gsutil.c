@@ -38,10 +38,10 @@
 
 /* ------ Unique IDs ------ */
 
-ulong
+uint32_t
 gs_next_ids(const gs_memory_t *mem, uint count)
 {
-    ulong id = mem->gs_lib_ctx->gs_next_id;
+    uint32_t id = mem->gs_lib_ctx->gs_next_id;
 
     mem->gs_lib_ctx->gs_next_id += count;
     return id;
@@ -126,7 +126,7 @@ memflip8x8(const byte * inp, int line_size, byte * outp, int dist)
 #endif /* !USE_ASM */
 
 /* Get an unsigned, big-endian 32-bit value. */
-ulong
+uint32_t
 get_u32_msb(const byte *p)
 {
     return ((uint)p[0] << 24) + ((uint)p[1] << 16) + ((uint)p[2] << 8) + p[3];
@@ -230,9 +230,9 @@ uid_equal(register const gs_uid * puid1, register const gs_uid * puid2)
     if (puid1->id >= 0)
 	return true;		/* UniqueID */
     return
-	!memcmp((const char *)puid1->xvalues,
-		(const char *)puid2->xvalues,
-		(uint) - (puid1->id) * sizeof(long));
+	!memcmp((const int8_t *)puid1->xvalues,
+		(const int8_t *)puid2->xvalues,
+		(uint) - (puid1->id) * sizeof(int32_t));
 }
 
 /* Copy the XUID data for a uid, if needed, updating the uid in place. */
@@ -241,12 +241,12 @@ uid_copy(gs_uid *puid, gs_memory_t *mem, client_name_t cname)
 {
     if (uid_is_XUID(puid)) {
 	uint xsize = uid_XUID_size(puid);
-	long *xvalues = (long *)
-	    gs_alloc_byte_array(mem, xsize, sizeof(long), cname);
+	int32_t *xvalues = (int32_t *)
+	    gs_alloc_byte_array(mem, xsize, sizeof(int32_t), cname);
 
 	if (xvalues == 0)
 	    return_error(gs_error_VMerror);
-	memcpy(xvalues, uid_XUID_values(puid), xsize * sizeof(long));
+	memcpy(xvalues, uid_XUID_values(puid), xsize * sizeof(int32_t));
 	puid->xvalues = xvalues;
     }
     return 0;

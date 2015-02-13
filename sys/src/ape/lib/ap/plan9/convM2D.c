@@ -13,13 +13,13 @@
 #include "dir.h"
 #define nil ((void*)0)
 
-static char nullstring[] = "";
+static int8_t nullstring[] = "";
 
 uint
-_convM2D(uchar *buf, uint nbuf, Dir *d, char *strs)
+_convM2D(uint8_t *buf, uint nbuf, Dir *d, int8_t *strs)
 {
-	uchar *p, *ebuf;
-	char *sv[4];
+	uint8_t *p, *ebuf;
+	int8_t *sv[4];
 	int i, ns, nsv[4];
 
 	p = buf;

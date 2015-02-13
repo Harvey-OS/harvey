@@ -30,8 +30,8 @@ typedef struct IType {
 	Symbol *nm;		/* name of the type */
 	Lextok *cn;		/* contents */
 	Lextok *params;		/* formal pars if any */
-	char   **anms;		/* literal text for actual pars */
-	char   *prec;		/* precondition for c_code or c_expr */
+	int8_t   **anms;		/* literal text for actual pars */
+	int8_t   *prec;		/* precondition for c_code or c_expr */
 	int    uiid;		/* unique inline id */
 	int    dln, cln;	/* def and call linenr */
 	Symbol *dfn, *cfn;	/* def and call filename */
@@ -50,23 +50,23 @@ extern ProcList	*rdy;
 extern Symbol	*Fname, *oFname;
 extern Symbol	*context, *owner;
 extern YYSTYPE	yylval;
-extern short	has_last, has_code;
+extern int16_t	has_last, has_code;
 extern int	verbose, IArgs, hastrack, separate, ltl_mode;
 
-short	has_stack = 0;
+int16_t	has_stack = 0;
 int	lineno  = 1;
 int	scope_seq[128], scope_level = 0;
-char	CurScope[MAXSCOPESZ];
-char	yytext[2048];
+int8_t	CurScope[MAXSCOPESZ];
+int8_t	yytext[2048];
 FILE	*yyin, *yyout;
 
 static C_Added	*c_added, *c_tracked;
 static IType	*Inline_stub[MAXINL];
-static char	*ReDiRect;
-static char	*Inliner[MAXINL], IArg_cont[MAXPAR][MAXLEN];
+static int8_t	*ReDiRect;
+static int8_t	*Inliner[MAXINL], IArg_cont[MAXPAR][MAXLEN];
 static unsigned char	in_comment=0;
 static int	IArgno = 0, Inlining = -1;
-static int	check_name(char *);
+static int	check_name(int8_t *);
 
 #if 1
 #define Token(y)	{ if (in_comment) goto again; \
@@ -155,12 +155,12 @@ static void
 getword(int first, int (*tst)(int))
 {	int i=0, c;
 
-	yytext[i++]= (char) first;
+	yytext[i++]= (int8_t) first;
 	while (tst(c = Getchar()))
-	{	yytext[i++] = (char) c;
+	{	yytext[i++] = (int8_t) c;
 		if (c == '\\')
 		{	c = Getchar();
-			yytext[i++] = (char) c;	/* no tst */
+			yytext[i++] = (int8_t) c;	/* no tst */
 	}	}
 	yytext[i] = '\0';
 	Ungetch(c);
@@ -180,10 +180,10 @@ follow(int tok, int ifyes, int ifno)
 static IType *seqnames;
 
 static void
-def_inline(Symbol *s, int ln, char *ptr, char *prc, Lextok *nms)
+def_inline(Symbol *s, int ln, int8_t *ptr, int8_t *prc, Lextok *nms)
 {	IType *tmp;
 	int  cnt = 0;
-	char *nw = (char *) emalloc(strlen(ptr)+1);
+	int8_t *nw = (int8_t *) emalloc(strlen(ptr)+1);
 	strcpy(nw, ptr);
 
 	for (tmp = seqnames; tmp; cnt++, tmp = tmp->nxt)
@@ -201,7 +201,7 @@ def_inline(Symbol *s, int ln, char *ptr, char *prc, Lextok *nms)
 	tmp->cn = (Lextok *) nw;
 	tmp->params = nms;
 	if (strlen(prc) > 0)
-	{	tmp->prec = (char *) emalloc(strlen(prc)+1);
+	{	tmp->prec = (int8_t *) emalloc(strlen(prc)+1);
 		strcpy(tmp->prec, prc);
 	}
 	tmp->dln = ln;
@@ -214,7 +214,7 @@ def_inline(Symbol *s, int ln, char *ptr, char *prc, Lextok *nms)
 void
 gencodetable(FILE *fd)
 {	IType *tmp;
-	char *q;
+	int8_t *q;
 	int cnt;
 
 	if (separate == 2) return;
@@ -229,7 +229,7 @@ gencodetable(FILE *fd)
 		||  tmp->nm->type == CODE_DECL)
 		{	fprintf(fd, "\t{ \"%s\", ",
 				tmp->nm->name);
-			q = (char *) tmp->cn;
+			q = (int8_t *) tmp->cn;
 
 			while (*q == '\n' || *q == '\r' || *q == '\\')
 				q++;
@@ -263,7 +263,7 @@ gencodetable(FILE *fd)
 }
 
 static int
-iseqname(char *t)
+iseqname(int8_t *t)
 {	IType *tmp;
 
 	for (tmp = seqnames; tmp; tmp = tmp->nxt)
@@ -280,7 +280,7 @@ getinline(void)
 	if (ReDiRect)
 	{	c = *ReDiRect++;
 		if (c == '\0')
-		{	ReDiRect = (char *) 0;
+		{	ReDiRect = (int8_t *) 0;
 			c = *Inliner[Inlining]++;
 		}
 	} else
@@ -320,7 +320,7 @@ is_inline(void)
 }
 
 IType *
-find_inline(char *s)
+find_inline(int8_t *s)
 {	IType *tmp;
 
 	for (tmp = seqnames; tmp; tmp = tmp->nxt)
@@ -367,9 +367,9 @@ c_track(Symbol *s, Symbol *t, Symbol *stackonly)	/* name, size */
 	}
 }
 
-char *
-jump_etc(char *op)
-{	char *p = op;
+int8_t *
+jump_etc(int8_t *op)
+{	int8_t *p = op;
 
 	/* kludgy - try to get the type separated from the name */
 
@@ -390,7 +390,7 @@ jump_etc(char *op)
 	if (strchr(p, '[')
 	&&  !strchr(p, '{'))
 	{	non_fatal("array initialization error, c_state (%s)", p);
-		return (char *) 0;
+		return (int8_t *) 0;
 	}
 
 	return p;
@@ -399,7 +399,7 @@ jump_etc(char *op)
 void
 c_add_globinit(FILE *fd)
 {	C_Added *r;
-	char *p, *q;
+	int8_t *p, *q;
 
 	fprintf(fd, "void\nglobinit(void)\n{\n");
 	for (r = c_added; r; r = r->nxt)
@@ -434,9 +434,9 @@ c_add_globinit(FILE *fd)
 }
 
 void
-c_add_locinit(FILE *fd, int tpnr, char *pnm)
+c_add_locinit(FILE *fd, int tpnr, int8_t *pnm)
 {	C_Added *r;
-	char *p, *q, *s;
+	int8_t *p, *q, *s;
 	int frst = 1;
 
 	fprintf(fd, "void\nlocinit%d(int h)\n{\n", tpnr);
@@ -453,7 +453,7 @@ c_add_locinit(FILE *fd, int tpnr, char *pnm)
 			while (*q == ' ' || *q == '\t')
 				q++;			/* process name */
 
-			s = (char *) emalloc(strlen(q)+1);
+			s = (int8_t *) emalloc(strlen(q)+1);
 			strcpy(s, q);
 
 			q = &s[strlen(s)-1];
@@ -596,10 +596,10 @@ c_add_hidden(FILE *fd)
 }
 
 void
-c_add_loc(FILE *fd, char *s)	/* state vector entries for proctype s */
+c_add_loc(FILE *fd, int8_t *s)	/* state vector entries for proctype s */
 {	C_Added *r;
-	static char buf[1024];
-	char *p;
+	static int8_t buf[1024];
+	int8_t *p;
 
 	if (!c_added) return;
 
@@ -743,7 +743,7 @@ c_add_def(FILE *fd)	/* 3 - called in plunk_c_fcts() */
 
 void
 plunk_reverse(FILE *fd, IType *p, int matchthis)
-{	char *y, *z;
+{	int8_t *y, *z;
 
 	if (!p) return;
 	plunk_reverse(fd, p->nxt, matchthis);
@@ -751,7 +751,7 @@ plunk_reverse(FILE *fd, IType *p, int matchthis)
 	if (!p->nm->context
 	&&   p->nm->type == matchthis)
 	{	fprintf(fd, "\n/* start of %s */\n", p->nm->name);
-		z = (char *) p->cn;
+		z = (int8_t *) p->cn;
 		while (*z == '\n' || *z == '\r' || *z == '\\')
 			z++;
 		/* e.g.: \#include "..." */
@@ -797,7 +797,7 @@ plunk_c_fcts(FILE *fd)
 
 static void
 check_inline(IType *tmp)
-{	char buf[128];
+{	int8_t buf[128];
 	ProcList *p;
 
 	if (!X) return;
@@ -806,7 +806,7 @@ check_inline(IType *tmp)
 	{	if (strcmp(p->n->name, X->n->name) == 0)
 			continue;
 		sprintf(buf, "P%s->", p->n->name);
-		if (strstr((char *)tmp->cn, buf))
+		if (strstr((int8_t *)tmp->cn, buf))
 		{	printf("spin: in proctype %s, ref to object in proctype %s\n",
 				X->n->name, p->n->name);
 			fatal("invalid variable ref in '%s'", tmp->nm->name);
@@ -814,13 +814,13 @@ check_inline(IType *tmp)
 }
 
 void
-plunk_expr(FILE *fd, char *s)
+plunk_expr(FILE *fd, int8_t *s)
 {	IType *tmp;
 
 	tmp = find_inline(s);
 	check_inline(tmp);
 
-	fprintf(fd, "%s", (char *) tmp->cn);
+	fprintf(fd, "%s", (int8_t *) tmp->cn);
 }
 
 void
@@ -844,18 +844,18 @@ preruse(FILE *fd, Lextok *n)	/* check a condition for c_expr with preconditions 
 }
 
 int
-glob_inline(char *s)
+glob_inline(int8_t *s)
 {	IType *tmp;
-	char *bdy;
+	int8_t *bdy;
 
 	tmp = find_inline(s);
-	bdy = (char *) tmp->cn;
+	bdy = (int8_t *) tmp->cn;
 	return (strstr(bdy, "now.")		/* global ref or   */
 	||      strchr(bdy, '(') > bdy);	/* possible C-function call */
 }
 
 void
-plunk_inline(FILE *fd, char *s, int how, int gencode)	/* c_code with precondition */
+plunk_inline(FILE *fd, int8_t *s, int how, int gencode)	/* c_code with precondition */
 {	IType *tmp;
 
 	tmp = find_inline(s);
@@ -876,14 +876,14 @@ plunk_inline(FILE *fd, char *s, int how, int gencode)	/* c_code with preconditio
 	{	fprintf(fd, "\n\t\tsv_save();");
 	}
 
-	fprintf(fd, "%s", (char *) tmp->cn);
+	fprintf(fd, "%s", (int8_t *) tmp->cn);
 	fprintf(fd, " }\n");
 }
 
 void
-no_side_effects(char *s)
+no_side_effects(int8_t *s)
 {	IType *tmp;
-	char *t;
+	int8_t *t;
 
 	/* could still defeat this check via hidden
 	 * side effects in function calls,
@@ -891,7 +891,7 @@ no_side_effects(char *s)
 	 */
 
 	tmp = find_inline(s);
-	t = (char *) tmp->cn;
+	t = (int8_t *) tmp->cn;
 
 	if (strchr(t, ';')
 	||  strstr(t, "++")
@@ -932,15 +932,15 @@ pickup_inline(Symbol *t, Lextok *apars)
 	if (p || q)
 		fatal("wrong nr of params on call of '%s'", t->name);
 
-	tmp->anms  = (char **) emalloc(j * sizeof(char *));
+	tmp->anms  = (int8_t **) emalloc(j * sizeof(int8_t *));
 	for (p = apars, j = 0; p; p = p->rgt, j++)
-	{	tmp->anms[j] = (char *) emalloc(strlen(IArg_cont[j])+1);
+	{	tmp->anms[j] = (int8_t *) emalloc(strlen(IArg_cont[j])+1);
 		strcpy(tmp->anms[j], IArg_cont[j]);
 	}
 
 	lineno = tmp->dln;	/* linenr of def */
 	Fname = tmp->dfn;	/* filename of same */
-	Inliner[Inlining] = (char *)tmp->cn;
+	Inliner[Inlining] = (int8_t *)tmp->cn;
 	Inline_stub[Inlining] = tmp;
 #if 0
 	if (verbose&32)
@@ -993,7 +993,7 @@ done:
 }
 
 void
-precondition(char *q)
+precondition(int8_t *q)
 {	int c, nest = 1;
 
 	for (;;)
@@ -1014,16 +1014,16 @@ precondition(char *q)
 			break;
 		}
 	}
-	fatal("cannot happen", (char *) 0); /* unreachable */
+	fatal("cannot happen", (int8_t *) 0); /* unreachable */
 }
 
 
 Symbol *
 prep_inline(Symbol *s, Lextok *nms)
 {	int c, nest = 1, dln, firstchar, cnr;
-	char *p;
+	int8_t *p;
 	Lextok *t;
-	static char Buf1[SOMETHINGBIG], Buf2[RATHERSMALL];
+	static int8_t Buf1[SOMETHINGBIG], Buf2[RATHERSMALL];
 	static int c_code = 1;
 
 	for (t = nms; t; t = t->rgt)
@@ -1035,7 +1035,7 @@ prep_inline(Symbol *s, Lextok *nms)
 
 	if (!s)	/* C_Code fragment */
 	{	s = (Symbol *) emalloc(sizeof(Symbol));
-		s->name = (char *) emalloc(strlen("c_code")+26);
+		s->name = (int8_t *) emalloc(strlen("c_code")+26);
 		sprintf(s->name, "c_code%d", c_code++);
 		s->context = context;
 		s->type = CODE_FRAG;
@@ -1080,7 +1080,7 @@ bad:			 fatal("bad inline: %s", s->name);
 	cnr = 1; /* not zero */
 more:
 	c = Getchar();
-	*p++ = (char) c;
+	*p++ = (int8_t) c;
 	if (p - Buf1 >= SOMETHINGBIG)
 		fatal("inline text too long", 0);
 	switch (c) {
@@ -1130,7 +1130,7 @@ more:
 static void
 set_cur_scope(void)
 {	int i;
-	char tmpbuf[256];
+	int8_t tmpbuf[256];
 
 	strcpy(CurScope, "_");
 
@@ -1147,7 +1147,7 @@ lex(void)
 
 again:
 	c = Getchar();
-	yytext[0] = (char) c;
+	yytext[0] = (int8_t) c;
 	yytext[1] = '\0';
 	switch (c) {
 	case EOF:
@@ -1258,7 +1258,7 @@ again:
 }
 
 static struct {
-	char *s;	int tok;
+	int8_t *s;	int tok;
 } LTL_syms[] = {
 	/* [], <>, ->, and <-> are intercepted in lex() */
 	{ "U",		UNTIL   },
@@ -1278,7 +1278,7 @@ static struct {
 };
 
 static struct {
-	char *s;	int tok;	int val;	char *sym;
+	int8_t *s;	int tok;	int val;	int8_t *sym;
 } Names[] = {
 	{"active",	ACTIVE,		0,		0},
 	{"assert",	ASSERT,		0,		0},
@@ -1346,7 +1346,7 @@ static struct {
 };
 
 static int
-check_name(char *s)
+check_name(int8_t *s)
 {	int i;
 
 	yylval = nn(ZN, 0, ZN, ZN);
@@ -1401,7 +1401,7 @@ check_name(char *s)
 				}
 
 			/* check for occurrence of param as field of struct */
-			{ char *ptr = Inline_stub[Inlining]->anms[i];
+			{ int8_t *ptr = Inline_stub[Inlining]->anms[i];
 				while ((ptr = strstr(ptr, s)) != NULL)
 				{	if (*(ptr-1) == '.'
 					||  *(ptr+strlen(s)) == '.')

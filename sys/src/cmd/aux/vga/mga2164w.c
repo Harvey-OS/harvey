@@ -44,19 +44,19 @@ enum {
 typedef struct {
 	Pcidev*	pci;
 	int	devid;
-	uchar*	membase1;
-	uchar*	membase2;
-	ulong	devctrl;
-	ulong	option;
-	uchar	crtcext[6];
-	uchar	tvp[64];
-	uchar	pclk[3];
-	uchar	mclk[3];
-	uchar	lclk[3];
+	uint8_t*	membase1;
+	uint8_t*	membase2;
+	uint32_t	devctrl;
+	uint32_t	option;
+	uint8_t	crtcext[6];
+	uint8_t	tvp[64];
+	uint8_t	pclk[3];
+	uint8_t	mclk[3];
+	uint8_t	lclk[3];
 } Mga;
 
-static uchar
-_tvp3026i(Vga* vga, Ctlr* ctlr, uchar reg)
+static uint8_t
+_tvp3026i(Vga* vga, Ctlr* ctlr, uint8_t reg)
 {
 	Mga *mga;
 
@@ -71,7 +71,7 @@ _tvp3026i(Vga* vga, Ctlr* ctlr, uchar reg)
 }
 
 static void
-_tvp3026o(Vga* vga, Ctlr* ctlr, uchar reg, uchar data)
+_tvp3026o(Vga* vga, Ctlr* ctlr, uint8_t reg, uint8_t data)
 {
 	Mga *mga;
 
@@ -85,8 +85,8 @@ _tvp3026o(Vga* vga, Ctlr* ctlr, uchar reg, uchar data)
 	*(mga->membase1+RAMDAC+reg) = data;
 }
 
-static uchar
-_tvp3026xi(Vga* vga, Ctlr* ctlr, uchar index)
+static uint8_t
+_tvp3026xi(Vga* vga, Ctlr* ctlr, uint8_t index)
 {
 	if(index >= 0x40)
 		error("%s: tvp3026xi: reg 0x%uX out of range\n", ctlr->name, index);
@@ -97,7 +97,7 @@ _tvp3026xi(Vga* vga, Ctlr* ctlr, uchar index)
 }
 
 void
-_tvp3026xo(Vga* vga, Ctlr* ctlr, uchar index, uchar data)
+_tvp3026xo(Vga* vga, Ctlr* ctlr, uint8_t index, uint8_t data)
 {
 	if(index >= 0x40)
 		error("%s: tvp3026xo: reg 0x%uX out of range\n", ctlr->name, index);
@@ -106,10 +106,10 @@ _tvp3026xo(Vga* vga, Ctlr* ctlr, uchar index, uchar data)
 	_tvp3026o(vga, ctlr, 0x0A, data);
 }
 
-static uchar
-crtcexti(uchar index)
+static uint8_t
+crtcexti(uint8_t index)
 {
-	uchar data;
+	uint8_t data;
 
 	outportb(Crtcext, index);
 	data = inportb(Crtcext+1);
@@ -118,7 +118,7 @@ crtcexti(uchar index)
 }
 
 static void
-crtcexto(uchar index, uchar data)
+crtcexto(uint8_t index, uint8_t data)
 {
 	outportb(Crtcext, index);
 	outportb(Crtcext+1, data);
@@ -128,7 +128,7 @@ static void
 mapmga(Vga* vga, Ctlr* ctlr)
 {
 	int f;
-	uchar *m;
+	uint8_t *m;
 	Mga *mga;
 
 	if(vga->private == nil)
@@ -156,7 +156,7 @@ mapmga(Vga* vga, Ctlr* ctlr)
 static void
 clockcalc(Vga* vga, Ctlr* ctlr, int bpp)
 {
-	ulong m, n, p, q;
+	uint32_t m, n, p, q;
 	double z, fdiff, fmindiff, fvco, fgoal;
 	Mga *mga;
 
@@ -237,7 +237,7 @@ static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
 	int i, k, n;
-	uchar *p, x[8];
+	uint8_t *p, x[8];
 	Pcidev *pci;
 	Mga *mga;
 
@@ -540,7 +540,7 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	char *name;
+	int8_t *name;
 	Mga *mga;
 
 	name = ctlr->name;

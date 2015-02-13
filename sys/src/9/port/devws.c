@@ -72,19 +72,19 @@ collect(void)
 }
 
 static Chan*
-wsattach(char *spec)
+wsattach(int8_t *spec)
 {
 	return devattach('W', spec);
 }
 
 static Walkqid*
-wswalk(Chan *c, Chan *nc, char **name, int nname)
+wswalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, Wstab, nelem(Wstab), devgen);
 }
 
-static long
-wsstat(Chan *c, uchar *db, long n)
+static int32_t
+wsstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, Wstab, nelem(Wstab), devgen);
 }
@@ -111,8 +111,8 @@ wsclose(Chan *c)
 	free(c->aux);
 }
 
-static long
-wsread(Chan *c, void *va, long n, vlong off)
+static int32_t
+wsread(Chan *c, void *va, int32_t n, int64_t off)
 {
 
 	switch((int)c->qid.path){
@@ -128,10 +128,10 @@ wsread(Chan *c, void *va, long n, vlong off)
 	return n;
 }
 
-static long
-wswrite(Chan *c, void *a, long n, vlong)
+static int32_t
+wswrite(Chan *c, void *a, int32_t n, int64_t)
 {
-	char *buf;
+	int8_t *buf;
 
 	switch((int)(c->qid.path)){
 	case WSctlqid:

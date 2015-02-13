@@ -16,9 +16,9 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uchar	vi;		/* version */
-	uchar	type;
-	uchar	len[2];	/* length of data following this header */
+	uint8_t	vi;		/* version */
+	uint8_t	type;
+	uint8_t	len[2];	/* length of data following this header */
 };
 
 enum
@@ -83,10 +83,10 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static char*
+static int8_t*
 op(int i)
 {
-	static char x[20];
+	static int8_t x[20];
 
 	switch(i){
 	case Eap:

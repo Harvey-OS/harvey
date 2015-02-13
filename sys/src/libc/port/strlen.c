@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-long
-strlen(char *s)
+int32_t
+strlen(int8_t *s)
 {
 
 	return strchr(s, 0) - s;

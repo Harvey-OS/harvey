@@ -10,11 +10,11 @@
 #include <u.h>
 #include <libc.h>
 
-char	errbuf[ERRMAX];
+int8_t	errbuf[ERRMAX];
 int	ignerr = 0;
 
 void
-err(char *f)
+err(int8_t *f)
 {
 	if(!ignerr){
 		errbuf[0] = '\0';
@@ -27,9 +27,9 @@ err(char *f)
  * f is a non-empty directory. Remove its contents and then it.
  */
 void
-rmdir(char *f)
+rmdir(int8_t *f)
 {
-	char *name;
+	int8_t *name;
 	int fd, i, j, n, ndir, nname;
 	Dir *dirbuf;
 

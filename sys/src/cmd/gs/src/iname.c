@@ -65,7 +65,8 @@ private void name_scan_sub(name_table *, uint, bool);
 /* Debugging printout */
 #ifdef DEBUG
 private void
-name_print(const char *msg, const name_table *nt, uint nidx, const int *pflag)
+name_print(const int8_t *msg, const name_table *nt, uint nidx,
+           const int *pflag)
 {
     const name_string_t *pnstr = names_index_string_inline(nt, nidx);
     const name *pname = names_index_ptr_inline(nt, nidx);
@@ -74,9 +75,9 @@ name_print(const char *msg, const name_table *nt, uint nidx, const int *pflag)
     dlprintf1("[n]%s", msg);
     if (pflag)
 	dprintf1("(%d)", *pflag);
-    dprintf2(" (0x%lx#%u)", (ulong)pname, nidx);
+    dprintf2(" (0x%lx#%u)", (uint32_t)pname, nidx);
     debug_print_string(str, pnstr->string_size);
-    dprintf2("(0x%lx,%u)\n", (ulong)str, pnstr->string_size);
+    dprintf2("(0x%lx,%u)\n", (uint32_t)str, pnstr->string_size);
 }
 #  define if_debug_name(msg, nt, nidx, pflag)\
      if ( gs_debug_c('n') ) name_print(msg, nt, nidx, pflag)
@@ -86,7 +87,7 @@ name_print(const char *msg, const name_table *nt, uint nidx, const int *pflag)
 
 /* Initialize a name table */
 name_table *
-names_init(ulong count, gs_ref_memory_t *imem)
+names_init(uint32_t count, gs_ref_memory_t *imem)
 {
     gs_memory_t *mem = (gs_memory_t *)imem;
     name_table *nt;
@@ -263,7 +264,7 @@ names_from_string(name_table * nt, const ref * psref, ref * pnref)
 
 /* Enter a (permanently allocated) C string as a name. */
 int
-names_enter_string(name_table * nt, const char *str, ref * pref)
+names_enter_string(name_table * nt, const int8_t *str, ref * pref)
 {
     return names_ref(nt, (const byte *)str, strlen(str), pref, 0);
 }

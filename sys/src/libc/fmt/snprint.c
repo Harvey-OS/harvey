@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-snprint(char *buf, int len, char *fmt, ...)
+snprint(int8_t *buf, int len, int8_t *fmt, ...)
 {
 	int n;
 	va_list args;

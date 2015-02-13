@@ -47,17 +47,17 @@ struct v6dinode {
 };
 
 struct	v6dir {
-	uchar	ino[2];
-	char	name[V6NAMELEN];
+	uint8_t	ino[2];
+	int8_t	name[V6NAMELEN];
 };
 
 int	tapefile;
 Fileinf	iget(int ino);
-long	bmap(Ram *r, long bno);
-void	getblk(Ram *r, long bno, char *buf);
+int32_t	bmap(Ram *r, int32_t bno);
+void	getblk(Ram *r, int32_t bno, int8_t *buf);
 
 void
-populate(char *name)
+populate(int8_t *name)
 {
 	Fileinf f;
 
@@ -77,10 +77,10 @@ void
 popdir(Ram *r)
 {
 	int i, ino;
-	char *cp;
+	int8_t *cp;
 	struct v6dir *dp;
 	Fileinf f;
-	char name[V6NAMELEN+1];
+	int8_t name[V6NAMELEN+1];
 
 	cp = 0;
 	for (i=0; i<r->ndata; i+=sizeof(struct v6dir)) {
@@ -113,10 +113,10 @@ docreate(Ram *r)
 	USED(r);
 }
 
-char *
-doread(Ram *r, vlong off, long cnt)
+int8_t *
+doread(Ram *r, int64_t off, int32_t cnt)
 {
-	static char buf[Maxbuf+BLSIZE];
+	static int8_t buf[Maxbuf+BLSIZE];
 	int bno, i;
 
 	bno = off/BLSIZE;
@@ -136,7 +136,7 @@ doread(Ram *r, vlong off, long cnt)
 }
 
 void
-dowrite(Ram *r, char *buf, long off, long cnt)
+dowrite(Ram *r, int8_t *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }
@@ -157,9 +157,9 @@ dopermw(Ram *r)
 Fileinf
 iget(int ino)
 {
-	char buf[BLSIZE];
+	int8_t buf[BLSIZE];
 	struct v6dinode *dp;
-	long flags, i;
+	int32_t flags, i;
 	Fileinf f;
 
 	seek(tapefile, BLSIZE*((ino-1)/LINOPB + V6SUPERB + 1), 0);
@@ -170,9 +170,9 @@ iget(int ino)
 	f.size = (dp->hisize << 16) + (dp->losize[1]<<8) + dp->losize[0];
 	if ((flags&V6FMT)==V6IFCHR || (flags&V6FMT)==V6IFBLK)
 		f.size = 0;
-	f.data = emalloc(V6NADDR*sizeof(ushort));
+	f.data = emalloc(V6NADDR*sizeof(uint16_t));
 	for (i = 0; i < V6NADDR; i++)
-		((ushort*)f.data)[i] = (dp->addr[i][1]<<8) + dp->addr[i][0];
+		((uint16_t*)f.data)[i] = (dp->addr[i][1]<<8) + dp->addr[i][0];
 	f.mode = flags & V6MODE;
 	if ((flags&V6FMT)==V6IFDIR)
 		f.mode |= DMDIR;
@@ -184,9 +184,9 @@ iget(int ino)
 }
 
 void
-getblk(Ram *r, long bno, char *buf)
+getblk(Ram *r, int32_t bno, int8_t *buf)
 {
-	long dbno;
+	int32_t dbno;
 
 	if ((dbno = bmap(r, bno)) == 0) {
 		memset(buf, 0, BLSIZE);
@@ -202,19 +202,19 @@ getblk(Ram *r, long bno, char *buf)
  * only singly-indirect files for now
  */
 
-long
-bmap(Ram *r, long bno)
+int32_t
+bmap(Ram *r, int32_t bno)
 {
 	unsigned char indbuf[LNINDIR][2];
 
 	if (r->ndata <= V6NADDR*BLSIZE) {	/* assume size predicts largeness of file */
 		if (bno < V6NADDR)
-			return ((ushort*)r->data)[bno];
+			return ((uint16_t*)r->data)[bno];
 		return 0;
 	}
 	if (bno < V6NADDR*LNINDIR) {
-		seek(tapefile, ((ushort *)r->data)[bno/LNINDIR]*BLSIZE, 0);
-		if (read(tapefile, (char *)indbuf, BLSIZE) != BLSIZE)
+		seek(tapefile, ((uint16_t *)r->data)[bno/LNINDIR]*BLSIZE, 0);
+		if (read(tapefile, (int8_t *)indbuf, BLSIZE) != BLSIZE)
 			return 0;
 		return ((indbuf[bno%LNINDIR][1]<<8) + indbuf[bno%LNINDIR][0]);
 	}

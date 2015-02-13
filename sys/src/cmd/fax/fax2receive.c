@@ -13,13 +13,13 @@
 
 #include "modem.h"
 
-static char buf[102400];
+static int8_t buf[102400];
 
 static int
-page(Modem *m, char *spool)
+page(Modem *m, int8_t *spool)
 {
 	int count, r;
-	char c;
+	int8_t c;
 
 	/*
 	 * Start data reception. We should receive CONNECT in response
@@ -95,7 +95,7 @@ page(Modem *m, char *spool)
 }
 
 static int
-receive(Modem *m, char *spool)
+receive(Modem *m, int8_t *spool)
 {
 	int r;
 
@@ -177,7 +177,7 @@ receive(Modem *m, char *spool)
 }
 
 int
-faxreceive(Modem *m, char *spool)
+faxreceive(Modem *m, int8_t *spool)
 {
 	int r;
 

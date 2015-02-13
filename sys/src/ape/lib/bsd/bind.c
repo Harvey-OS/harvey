@@ -35,7 +35,7 @@ bind(int fd, void *a, int alen)
 {
 	int n, len, cfd;
 	Rock *r;
-	char msg[128];
+	int8_t msg[128];
 	struct sockaddr_in *lip;
 
 	/* assign the address */

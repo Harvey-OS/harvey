@@ -17,7 +17,7 @@ translate(dest *dp)
 	process *pp;
 	String *line;
 	dest *rv;
-	char *cp;
+	int8_t *cp;
 	int n;
 
 	pp = proc_start(s_to_c(dp->repl1), (stream *)0, outstream(), outstream(), 1, 0);

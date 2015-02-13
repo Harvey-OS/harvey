@@ -32,7 +32,7 @@ static int	kexecwriteable(Chan *c);
 static Kexecgrp	kgrp;	/* global kexec group containing the kernel configuration */
 
 static Kvalue*
-kexeclookup(Kexecgrp *kg, uintptr addr, ulong qidpath)
+kexeclookup(Kexecgrp *kg, uintptr addr, uint32_t qidpath)
 {
 	Kvalue *e;
 	int i;
@@ -46,7 +46,7 @@ kexeclookup(Kexecgrp *kg, uintptr addr, ulong qidpath)
 }
 
 static int
-kexecgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+kexecgen(Chan *c, int8_t *name, Dirtab*, int, int s, Dir *dp)
 {
 	Kexecgrp *kg;
 	Kvalue *e;
@@ -92,7 +92,7 @@ kexecgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 #define QPATH(p,d,t)    ((p)<<16 | (d)<<8 | (t)<<0)
 
 static Chan*
-kexecattach(char *spec)
+kexecattach(int8_t *spec)
 {
 	Chan *c;
 //	Kexecgrp *kgrp = nil;
@@ -105,16 +105,16 @@ kexecattach(char *spec)
 }
 
 static Walkqid*
-kexecwalk(Chan *c, Chan *nc, char **name, int nname)
+kexecwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, kexecgen);
 }
 
 
-static long
-kexecstat(Chan *c, uchar *db, long n)
+static int32_t
+kexecstat(Chan *c, uint8_t *db, int32_t n)
 {
-	long nn;
+	int32_t nn;
 
 	if(c->qid.type & QTDIR)
 		c->qid.vers = kexecgrp(c)->vers;
@@ -167,7 +167,7 @@ kexecopen(Chan *c, int omode)
 }
 
 static void
-kexeccreate(Chan *c, char *name, int omode, int)
+kexeccreate(Chan *c, int8_t *name, int omode, int)
 {
 	Kexecgrp *kg;
 	Kvalue *e;
@@ -256,12 +256,12 @@ kexecclose(Chan *c)
 		kexecremove(c);
 }
 
-static long
-kexecread(Chan *c, void *a, long n, vlong off)
+static int32_t
+kexecread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	Kexecgrp *kg;
 	Kvalue *e;
-	long offset;
+	int32_t offset;
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, kexecgen);
@@ -313,12 +313,12 @@ the first thing to do is to make this just work.
 
 */
 
-static long
-kexecwrite(Chan *c, void *a, long n, vlong off)
+static int32_t
+kexecwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
 	Kexecgrp *kg;
 	Kvalue *e;
-	long offset;
+	int32_t offset;
 
 	if(n <= 0)
 		return 0;

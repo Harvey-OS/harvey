@@ -55,17 +55,17 @@ enum { Outns, Inns, };
 
 struct Ipaddr {
 	Ipaddr *next;
-	uchar	ip[IPaddrlen];
+	uint8_t	ip[IPaddrlen];
 };
 
 struct Dest
 {
-	uchar	a[IPaddrlen];	/* ip address */
+	uint8_t	a[IPaddrlen];	/* ip address */
 	DN	*s;		/* name server */
 	int	nx;		/* number of transmissions */
 	int	code;		/* response code; used to clear dp->respcode */
 
-	ulong	magic;
+	uint32_t	magic;
 };
 
 /*
@@ -75,7 +75,7 @@ struct Dest
  */
 struct Query {
 	DN	*dp;		/* domain */
-	ushort	type;		/* and type to look up */
+	uint16_t	type;		/* and type to look up */
 	Request *req;
 	RR	*nsrp;		/* name servers to consult */
 
@@ -90,9 +90,9 @@ struct Query {
 	int	tcpset;
 	int	tcpfd;		/* if Tcp, read replies from here */
 	int	tcpctlfd;
-	uchar	tcpip[IPaddrlen];
+	uint8_t	tcpip[IPaddrlen];
 
-	ulong	magic;
+	uint32_t	magic;
 };
 
 /* estimated % probability of such a record existing at all */
@@ -110,19 +110,19 @@ int likely[] = {
 	[Tall]		95,
 };
 
-static RR*	dnresolve1(char*, int, int, Request*, int, int);
+static RR*	dnresolve1(int8_t*, int, int, Request*, int, int);
 static int	netquery(Query *, int);
 
 /*
  * reading /proc/pid/args yields either "name args" or "name [display args]",
  * so return only display args, if any.
  */
-static char *
+static int8_t *
 procgetname(void)
 {
 	int fd, n;
-	char *lp, *rp;
-	char buf[256];
+	int8_t *lp, *rp;
+	int8_t buf[256];
 
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
 	if((fd = open(buf, OREAD)) < 0)
@@ -162,14 +162,15 @@ rrfreelistptr(RR **rpp)
  *  retried several times until we get an answer or a time-out.
  */
 RR*
-dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
+dnresolve(int8_t *name, int class, int type, Request *req, RR **cn,
+	  int depth,
 	int recurse, int rooted, int *status)
 {
 	RR *rp, *nrp, *drp;
 	DN *dp;
 	int loops;
-	char *procname;
-	char nname[Domlen];
+	int8_t *procname;
+	int8_t nname[Domlen];
 
 	if(status)
 		*status = 0;
@@ -307,7 +308,7 @@ destck(Dest *p)
  * thus we don't wait very long for them.
  */
 static void
-notestats(vlong start, int tmout, int type)
+notestats(int64_t start, int tmout, int type)
 {
 	qlock(&stats);
 	if (tmout) {
@@ -317,7 +318,7 @@ notestats(vlong start, int tmout, int type)
 		else if (type == Tcname)
 			stats.tmoutcname++;
 	} else {
-		long wait10ths = NS2MS(nsec() - start) / 100;
+		int32_t wait10ths = NS2MS(nsec() - start) / 100;
 
 		if (wait10ths <= 0)
 			stats.under10ths[0]++;
@@ -352,9 +353,9 @@ netqueryns(Query *qp, int depth, RR *nsrp)
 }
 
 static RR*
-issuequery(Query *qp, char *name, int class, int depth, int recurse)
+issuequery(Query *qp, int8_t *name, int class, int depth, int recurse)
 {
-	char *cp;
+	int8_t *cp;
 	DN *nsdp;
 	RR *rp, *nsrp, *dbnsrp;
 
@@ -430,7 +431,7 @@ issuequery(Query *qp, char *name, int class, int depth, int recurse)
 }
 
 static RR*
-dnresolve1(char *name, int class, int type, Request *req, int depth,
+dnresolve1(int8_t *name, int class, int type, Request *req, int depth,
 	int recurse)
 {
 	Area *area;
@@ -549,10 +550,10 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
  *  return a pointer to that element.
  *  in other words, return a pointer to the parent domain name.
  */
-char*
-walkup(char *name)
+int8_t*
+walkup(int8_t *name)
 {
-	char *cp;
+	int8_t *cp;
 
 	cp = strchr(name, '.');
 	if(cp)
@@ -567,13 +568,13 @@ walkup(char *name)
  *  Get a udp port for sending requests and reading replies.  Put the port
  *  into "headers" mode.
  */
-static char *hmsg = "headers";
+static int8_t *hmsg = "headers";
 
 int
-udpport(char *mtpt)
+udpport(int8_t *mtpt)
 {
 	int fd, ctl;
-	char ds[64], adir[64];
+	int8_t ds[64], adir[64];
 
 	/* get a udp port */
 	snprint(ds, sizeof ds, "%s/udp!*!0", (mtpt? mtpt: "/net"));
@@ -600,7 +601,7 @@ udpport(char *mtpt)
 }
 
 void
-initdnsmsg(DNSmsg *mp, RR *rp, int flags, ushort reqno)
+initdnsmsg(DNSmsg *mp, RR *rp, int flags, uint16_t reqno)
 {
 	mp->flags = flags;
 	mp->id = reqno;
@@ -610,7 +611,7 @@ initdnsmsg(DNSmsg *mp, RR *rp, int flags, ushort reqno)
 }
 
 DNSmsg *
-newdnsmsg(RR *rp, int flags, ushort reqno)
+newdnsmsg(RR *rp, int flags, uint16_t reqno)
 {
 	DNSmsg *mp;
 
@@ -621,7 +622,7 @@ newdnsmsg(RR *rp, int flags, ushort reqno)
 
 /* generate a DNS UDP query packet */
 int
-mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
+mkreq(DN *dp, int type, uint8_t *buf, int flags, uint16_t reqno)
 {
 	DNSmsg m;
 	int len;
@@ -657,14 +658,15 @@ freeanswers(DNSmsg *mp)
 
 /* timed read of reply.  sets srcip.  ibuf must be 64K to handle tcp answers. */
 static int
-readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
-	uchar *srcip)
+readnet(Query *qp, int medium, uint8_t *ibuf, uint64_t endms,
+	uint8_t **replyp,
+	uint8_t *srcip)
 {
 	int len, fd;
-	long ms;
-	vlong startns = nsec();
-	uchar *reply;
-	uchar lenbuf[2];
+	int32_t ms;
+	int64_t startns = nsec();
+	uint8_t *reply;
+	uint8_t lenbuf[2];
 
 	len = -1;			/* pessimism */
 	ms = endms - NS2MS(startns);
@@ -723,14 +725,14 @@ readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
  *  wait at most until endms.
  */
 static int
-readreply(Query *qp, int medium, ushort req, uchar *ibuf, DNSmsg *mp,
-	uvlong endms)
+readreply(Query *qp, int medium, uint16_t req, uint8_t *ibuf, DNSmsg *mp,
+	uint64_t endms)
 {
 	int len;
-	char *err;
-	char tbuf[32];
-	uchar *reply;
-	uchar srcip[IPaddrlen];
+	int8_t *err;
+	int8_t tbuf[32];
+	uint8_t *reply;
+	uint8_t srcip[IPaddrlen];
 	RR *rp;
 
 	queryck(qp);
@@ -819,7 +821,7 @@ contains(RR *rp1, RR *rp2)
  *  return multicast version if any
  */
 int
-ipisbm(uchar *ip)
+ipisbm(uint8_t *ip)
 {
 	if(isv4(ip)){
 		if (ip[IPv4off] >= 0xe0 && ip[IPv4off] < 0xf0 ||
@@ -931,7 +933,7 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 {
 	RR *rp;
 	DN *soaowner;
-	ulong ttl;
+	uint32_t ttl;
 
 	stats.negcached++;
 
@@ -966,7 +968,7 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 static int
 setdestoutns(Dest *p, int n)
 {
-	uchar *outns = outsidens(n);
+	uint8_t *outns = outsidens(n);
 
 	destck(p);
 	destinit(p);
@@ -985,12 +987,12 @@ setdestoutns(Dest *p, int n)
  * for TCP, returns with qp->tcpip set from udppkt header.
  */
 static int
-mydnsquery(Query *qp, int medium, uchar *udppkt, int len)
+mydnsquery(Query *qp, int medium, uint8_t *udppkt, int len)
 {
 	int rv = -1, nfd;
-	char *domain;
-	char conndir[NETPATHLEN], net[NETPATHLEN];
-	uchar belen[2];
+	int8_t *domain;
+	int8_t conndir[NETPATHLEN], net[NETPATHLEN];
+	uint8_t belen[2];
 	NetConnInfo *nci;
 
 	queryck(qp);
@@ -1065,10 +1067,11 @@ mydnsquery(Query *qp, int medium, uchar *udppkt, int len)
  * taken from obuf (udp packet) header
  */
 static int
-xmitquery(Query *qp, int medium, int depth, uchar *obuf, int inns, int len)
+xmitquery(Query *qp, int medium, int depth, uint8_t *obuf, int inns,
+	  int len)
 {
 	int j, n;
-	char buf[32];
+	int8_t buf[32];
 	Dest *p;
 
 	queryck(qp);
@@ -1192,11 +1195,11 @@ isnegrname(DNSmsg *mp)
 
 /* returns Answerr (-1) on errors, else number of answers, which can be zero. */
 static int
-procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
+procansw(Query *qp, DNSmsg *mp, uint8_t *srcip, int depth, Dest *p)
 {
 	int rv;
 //	int lcktype;
-	char buf[32];
+	int8_t buf[32];
 	DN *ndp;
 	Query *nqp;
 	RR *tp, *soarr;
@@ -1344,11 +1347,12 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
  * and read the answer(s) into mp->an.
  */
 static int
-tcpquery(Query *qp, DNSmsg *mp, int depth, uchar *ibuf, uchar *obuf, int len,
-	ulong waitms, int inns, ushort req)
+tcpquery(Query *qp, DNSmsg *mp, int depth, uint8_t *ibuf, uint8_t *obuf,
+	 int len,
+	uint32_t waitms, int inns, uint16_t req)
 {
 	int rv = 0;
-	uvlong endms;
+	uint64_t endms;
 
 	endms = timems() + waitms;
 	if(endms > qp->req->aborttime)
@@ -1380,13 +1384,14 @@ tcpquery(Query *qp, DNSmsg *mp, int depth, uchar *ibuf, uchar *obuf, int len,
  *  name server, recurse.
  */
 static int
-queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, ulong waitms, int inns)
+queryns(Query *qp, int depth, uint8_t *ibuf, uint8_t *obuf, uint32_t waitms,
+	int inns)
 {
 	int ndest, len, replywaits, rv;
-	ushort req;
-	uvlong endms;
-	char buf[12];
-	uchar srcip[IPaddrlen];
+	uint16_t req;
+	uint64_t endms;
+	int8_t buf[12];
+	uint8_t srcip[IPaddrlen];
 	Dest *p, *np, *dest;
 
 	/* pack request into a udp message */
@@ -1484,8 +1489,8 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, ulong waitms, int inns)
 /*
  *  run a command with a supplied fd as standard input
  */
-char *
-system(int fd, char *cmd)
+int8_t *
+system(int fd, int8_t *cmd)
 {
 	int pid, p, i;
 	static Waitmsg msg;
@@ -1507,10 +1512,10 @@ system(int fd, char *cmd)
 }
 
 /* compute wait, weighted by probability of success, with bounds */
-static ulong
-weight(ulong ms, unsigned pcntprob)
+static uint32_t
+weight(uint32_t ms, unsigned pcntprob)
 {
-	ulong wait;
+	uint32_t wait;
 
 	wait = (ms * pcntprob) / 100;
 	if (wait < Minwaitms)
@@ -1526,15 +1531,15 @@ weight(ulong ms, unsigned pcntprob)
  * but we'd have to sort out the answers by dns-query id.
  */
 static int
-udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
+udpquery(Query *qp, int8_t *mntpt, int depth, int patient, int inns)
 {
 	int fd, rv;
-	ulong now, pcntprob;
-	uvlong wait, reqtm;
-	char *msg;
-	uchar *obuf, *ibuf;
+	uint32_t now, pcntprob;
+	uint64_t wait, reqtm;
+	int8_t *msg;
+	uint8_t *obuf, *ibuf;
 	static QLock mntlck;
-	static ulong lastmount;
+	static uint32_t lastmount;
 
 	/* use alloced buffers rather than ones from the stack */
 	ibuf = emalloc(64*1024);		/* max. tcp reply size */
@@ -1602,7 +1607,7 @@ static int
 netquery(Query *qp, int depth)
 {
 	int lock, rv, triedin, inname;
-	char buf[32];
+	int8_t buf[32];
 	RR *rp;
 	DN *dp;
 	Querylck *qlp;
@@ -1703,7 +1708,7 @@ int
 seerootns(void)
 {
 	int rv;
-	char root[] = "";
+	int8_t root[] = "";
 	Request req;
 	RR *rr;
 	Query *qp;

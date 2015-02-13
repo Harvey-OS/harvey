@@ -58,7 +58,7 @@ static const ref empty_procs[4] =
 /* We know that count <= 4. */
 int
 dict_ranges_param(const gs_memory_t *mem,
-		  const ref * pdref, const char *kstr, int count,
+		  const ref * pdref, const int8_t *kstr, int count,
 		  gs_range * prange)
 {
     int code = dict_floats_param(mem, pdref, kstr, count * 2,
@@ -75,7 +75,7 @@ dict_ranges_param(const gs_memory_t *mem,
 /* We know count <= countof(empty_procs). */
 int
 dict_proc_array_param(const gs_memory_t *mem,
-		      const ref *pdict, const char *kstr,
+		      const ref *pdict, const int8_t *kstr,
 		      uint count, ref *pparray)
 {
     ref *pvalue;
@@ -89,7 +89,7 @@ dict_proc_array_param(const gs_memory_t *mem,
 	for (i = 0; i < count; i++) {
 	    ref proc;
 
-	    array_get(mem, pvalue, (long)i, &proc);
+	    array_get(mem, pvalue, (int32_t)i, &proc);
 	    check_proc_only(proc);
 	}
 	*pparray = *pvalue;
@@ -102,7 +102,7 @@ dict_proc_array_param(const gs_memory_t *mem,
 /* Get 3 ranges from a dictionary. */
 int
 dict_range3_param(const gs_memory_t *mem,
-		  const ref *pdref, const char *kstr, 
+		  const ref *pdref, const int8_t *kstr, 
 		  gs_range3 *prange3)
 {
     return dict_ranges_param(mem, pdref, kstr, 3, prange3->ranges);
@@ -111,7 +111,7 @@ dict_range3_param(const gs_memory_t *mem,
 /* Get a 3x3 matrix from a dictionary. */
 int
 dict_matrix3_param(const gs_memory_t *mem,
-		   const ref *pdref, const char *kstr, gs_matrix3 *pmat3)
+		   const ref *pdref, const int8_t *kstr, gs_matrix3 *pmat3)
 {
     /*
      * We can't simply call dict_float_array_param with the matrix
@@ -136,7 +136,8 @@ dict_matrix3_param(const gs_memory_t *mem,
 
 /* Get 3 procedures from a dictionary. */
 int
-dict_proc3_param(const gs_memory_t *mem, const ref *pdref, const char *kstr, ref proc3[3])
+dict_proc3_param(const gs_memory_t *mem, const ref *pdref, const int8_t *kstr,
+                 ref proc3[3])
 {
     return dict_proc_array_param(mem, pdref, kstr, 3, proc3);
 }
@@ -576,7 +577,7 @@ cie_prepare_cache(i_ctx_t *i_ctx_p, const gs_range * domain, const ref * proc,
      * structures, so we represent the pointer to the cache
      * as a pointer to the container plus an offset.
      */
-    make_int(ep + 2, (char *)pcache - (char *)container);
+    make_int(ep + 2, (int8_t *)pcache - (int8_t *)container);
     make_struct(ep + 1, space, container);
     return o_push_estack;
 }
@@ -614,11 +615,11 @@ cie_cache_finish_store(i_ctx_t *i_ctx_p, bool replicate)
     check_esp(2);
     /* See above for the container + offset representation of */
     /* the pointer to the cache. */
-    pcache = (cie_cache_floats *) (r_ptr(esp - 1, char) + esp->value.intval);
+    pcache = (cie_cache_floats *) (r_ptr(esp - 1, int8_t) + esp->value.intval);
 
     pcache->params.is_identity = false;	/* cache_set_linear computes this */
     if_debug3('c', "[c]cache 0x%lx base=%g, factor=%g:\n",
-	      (ulong) pcache, pcache->params.base, pcache->params.factor);
+	      (uint32_t) pcache, pcache->params.base, pcache->params.factor);
     if (replicate ||
 	(code = float_params(op, gx_cie_cache_size, &pcache->values[0])) < 0
 	) {

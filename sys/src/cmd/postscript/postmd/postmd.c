@@ -175,11 +175,11 @@
 #include "ext.h"			/* external variable declarations */
 #include "postmd.h"			/* special matrix display definitions */
 
-char	*optnames = "a:b:c:d:g:i:m:n:o:p:w:x:y:A:C:E:J:L:P:R:DI";
+int8_t	*optnames = "a:b:c:d:g:i:m:n:o:p:w:x:y:A:C:E:J:L:P:R:DI";
 
-char	*prologue = POSTMD;		/* default PostScript prologue */
-char	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
-char	*temp_dir = TEMPDIR;		/* temp directory for copying stdin */
+int8_t	*prologue = POSTMD;		/* default PostScript prologue */
+int8_t	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
+int8_t	*temp_dir = TEMPDIR;		/* temp directory for copying stdin */
 
 int	formsperpage = 1;		/* page images on each piece of paper */
 int	copies = 1;			/* and this many copies of each sheet */
@@ -188,10 +188,10 @@ int	bytespp = 6;			/* bytes per pattern - on output */
 int	dostats = ON;			/* permanent statistics flag */
 int	nxtstat = ON;			/* and the one for the next matrix */
 
-char	*interval = DFLTILIST;		/* string representations of the interval */
-char	*colormap = NULL;		/* color map */
-char	*window = NULL;			/* and window lists */
-char	*matrixname = "pipe.end";	/* name for the next plot */
+int8_t	*interval = DFLTILIST;		/* string representations of the interval */
+int8_t	*colormap = NULL;		/* color map */
+int8_t	*window = NULL;			/* and window lists */
+int8_t	*matrixname = "pipe.end";	/* name for the next plot */
 
 Ilist	ilist[128];			/* active interval list and color map */
 int	next = 0;			/* one past the last element in ilist[] */
@@ -209,9 +209,9 @@ int	patcount = 0;			/* will be set to columns * rows */
 
 double	element;			/* next matrix element */
 
-char	*raster = NULL;			/* next raster line */
-char	*rptr;				/* next free byte in raster */
-char	*eptr;				/* one past the last byte in raster */
+int8_t	*raster = NULL;			/* next raster line */
+int8_t	*rptr;				/* next free byte in raster */
+int8_t	*eptr;				/* one past the last byte in raster */
 
 FILE	*fp_in = stdin;			/* read from this file */
 FILE	*fp_out = stdout;		/* and write stuff here */
@@ -1114,13 +1114,13 @@ patncmp(p1, n)
 
 /*****************************************************************************/
 
-char *savestring(str)
+int8_t *savestring(str)
 
-    char	*str;			/* save this string */
+    int8_t	*str;			/* save this string */
 
 {
 
-    char	*ptr = NULL;		/* at this address */
+    int8_t	*ptr = NULL;		/* at this address */
 
 /*
  *

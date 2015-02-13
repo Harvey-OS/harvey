@@ -30,7 +30,7 @@ enum {
 };
 
 static void
-attdacio(uchar reg)
+attdacio(uint8_t reg)
 {
 	int i;
 
@@ -45,10 +45,10 @@ attdacio(uchar reg)
 		inportb(Pixmask);
 }
 
-uchar
-attdaci(uchar reg)
+uint8_t
+attdaci(uint8_t reg)
 {
-	uchar r;
+	uint8_t r;
 
 	attdacio(reg);
 	r = inportb(Pixmask);
@@ -58,7 +58,7 @@ attdaci(uchar reg)
 }
 
 void
-attdaco(uchar reg, uchar data)
+attdaco(uint8_t reg, uint8_t data)
 {
 	attdacio(reg);
 	outportb(Pixmask, data);
@@ -74,8 +74,8 @@ options(Vga*, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong grade, pclk;
-	char *p;
+	uint32_t grade, pclk;
+	int8_t *p;
 
 	/*
 	 * Part comes in -170, -130 and -110MHz speed-grades.
@@ -127,7 +127,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uchar mode, x;
+	uint8_t mode, x;
 
 	/*
 	 * Put the chip to sleep.

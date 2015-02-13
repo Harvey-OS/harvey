@@ -19,7 +19,7 @@ void
 pppbinddev(void)
 {
 	int ac, pid;
-	char *av[12];
+	int8_t *av[12];
 	Waitmsg *w;
 
 	/* ppp does the binding */

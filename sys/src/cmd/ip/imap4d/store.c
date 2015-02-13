@@ -104,7 +104,7 @@ sendFlags(Box *box, int uids)
 void
 writeFlags(Biobuf *b, Msg *m, int recentOk)
 {
-	char *sep;
+	int8_t *sep;
 	int f;
 
 	sep = "";
@@ -129,8 +129,8 @@ msgSeen(Box *box, Msg *m)
 	return 1;
 }
 
-ulong
-mapFlag(char *name)
+uint32_t
+mapFlag(int8_t *name)
 {
 	return mapInt(flagMap, name);
 }

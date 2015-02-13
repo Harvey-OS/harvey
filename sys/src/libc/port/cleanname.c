@@ -14,12 +14,12 @@
  * In place, rewrite name to compress multiple /, eliminate ., and process ..
  */
 #define SEP(x)	((x)=='/' || (x) == 0)
-char*
-cleanname(char *name)
+int8_t*
+cleanname(int8_t *name)
 {
-	char *s;	/* source of copy */
-	char *d;	/* destination of copy */
-	char *d0;	/* start of path afer the root name */
+	int8_t *s;	/* source of copy */
+	int8_t *d;	/* destination of copy */
+	int8_t *d0;	/* start of path afer the root name */
 	Rune r;
 	int rooted;
 

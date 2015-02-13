@@ -48,7 +48,7 @@ bCheckBytes(FILE *pFile, const UCHAR *aucBytes, size_t tBytes)
  * document
  */
 BOOL
-bIsWordForDosFile(FILE *pFile, long lFilesize)
+bIsWordForDosFile(FILE *pFile, int32_t lFilesize)
 {
 	static UCHAR	aucBytes[] =
 		{ 0x31, 0xbe, 0x00, 0x00, 0x00, 0xab };	/* Word for DOS */
@@ -71,7 +71,7 @@ bIsWordForDosFile(FILE *pFile, long lFilesize)
  * OLE envelope (That is a document made by Word 6 or later)
  */
 static BOOL
-bIsWordFileWithOLE(FILE *pFile, long lFilesize)
+bIsWordFileWithOLE(FILE *pFile, int32_t lFilesize)
 {
 	static UCHAR	aucBytes[] =
 		{ 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1 };
@@ -81,7 +81,7 @@ bIsWordFileWithOLE(FILE *pFile, long lFilesize)
 		DBG_MSG("No proper file given");
 		return FALSE;
 	}
-	if (lFilesize < (long)BIG_BLOCK_SIZE * 3) {
+	if (lFilesize < (int32_t)BIG_BLOCK_SIZE * 3) {
 		DBG_MSG("This file is too small to be a Word document");
 		return FALSE;
 	}
@@ -144,7 +144,7 @@ bIsWordPerfectFile(FILE *pFile)
  * document
  */
 BOOL
-bIsWinWord12File(FILE *pFile, long lFilesize)
+bIsWinWord12File(FILE *pFile, int32_t lFilesize)
 {
 	static UCHAR	aucBytes[2][4] = {
 		{ 0x9b, 0xa5, 0x21, 0x00 },	/* Win Word 1.x */
@@ -204,7 +204,7 @@ bIsMacWord45File(FILE *pFile)
  * Returns the guessed version number or -1 when no guess it possible
  */
 int
-iGuessVersionNumber(FILE *pFile, long lFilesize)
+iGuessVersionNumber(FILE *pFile, int32_t lFilesize)
 {
 	if(bIsWordForDosFile(pFile, lFilesize)) {
 		return 0;
@@ -315,7 +315,7 @@ bIsOldMacFile(void)
  * Returns the version of Word that made the document or -1
  */
 int
-iInitDocument(FILE *pFile, long lFilesize)
+iInitDocument(FILE *pFile, int32_t lFilesize)
 {
 	int	iGuess, iWordVersion;
 

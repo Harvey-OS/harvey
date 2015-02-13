@@ -17,10 +17,10 @@
 #include "dir.h"
 
 int
-rename(const char *from, const char *to)
+rename(const int8_t *from, const int8_t *to)
 {
 	int n;
-	char *f, *t;
+	int8_t *f, *t;
 	Dir *d, nd;
 
 	if(access(to, 0) >= 0){
@@ -40,8 +40,8 @@ rename(const char *from, const char *to)
 	}
 	f = strrchr(from, '/');
 	t = strrchr(to, '/');
-	f = f? f+1 : (char *)from;
-	t = t? t+1 : (char *)to;
+	f = f? f+1 : (int8_t *)from;
+	t = t? t+1 : (int8_t *)to;
 	n = 0;
 	if(f-from==t-to && strncmp(from, to, f-from)==0){
 		/* from and to are in same directory (we miss some cases) */
@@ -54,7 +54,7 @@ rename(const char *from, const char *to)
 	}else{
 		/* different directories: have to copy */
 		int ffd, tfd;
-		char buf[8192];
+		int8_t buf[8192];
 
 		tfd = -1;
 		if((ffd = _OPEN(from, 0)) < 0 ||

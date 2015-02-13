@@ -46,7 +46,7 @@ struct Col {
 		int index;	// index into string table (Strtab)
 		int error;
 		int bool;
-		char *label;
+		int8_t *label;
 		double number;
 	};
 };
@@ -61,16 +61,16 @@ struct  Biff {
 static int Nopad = 0;		// disable padding cells to colum width
 static int Trunc = 0;		// truncate cells to colum width
 static int All = 0;		// dump all sheet types, Worksheets only by default
-static char *Delim = " ";	// field delimiter
-static char *Sheetrange = nil;	// range of sheets wanted
-static char *Columnrange = nil;	// range of collums wanted
+static int8_t *Delim = " ";	// field delimiter
+static int8_t *Sheetrange = nil;	// range of sheets wanted
+static int8_t *Columnrange = nil;	// range of collums wanted
 static int Debug = 0;
 
 // file scope
 static int Defwidth = 10;	// default colum width if non given
 static int Biffver;		// file vesion
 static int Datemode;		// date ref: 1899-Dec-31 or 1904-jan-1
-static char **Strtab = nil;	// label contents heap
+static int8_t **Strtab = nil;	// label contents heap
 static int Nstrtab = 0;		// # of above
 static int *Xf;			// array of extended format indices
 static int Nxf = 0;		// # of above
@@ -83,7 +83,7 @@ static int Ncols = -1;		// max colums in table used
 static int Content = 0;		// type code for contents of sheet
 static Row *Root = nil;		// one worksheet's worth of cells
 				
-static char *Months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+static int8_t *Months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 static char *Errmsgs[] = {
@@ -97,10 +97,10 @@ static char *Errmsgs[] = {
 };
 
 int
-wanted(char *range, int here)
+wanted(int8_t *range, int here)
 {
 	int n, s;
-	char *p;
+	int8_t *p;
 
 	if (! range)
 		return 1;
@@ -156,7 +156,7 @@ cell(int r, int c, int f, int type, void *val)
 
 	switch(type){
 	case Tnumber:	ncol->number = *(double *)val;	break;
-	case Tlabel:	ncol->label = (char *)val;	break;
+	case Tlabel:	ncol->label = (int8_t *)val;	break;
 	case Tindex:	ncol->index = *(int *)val;	break;
 	case Tbool:	ncol->bool = *(int *)val;	break;
 	case Terror:	ncol->error = *(int *)val;	break;
@@ -219,13 +219,13 @@ bifftime(double t)
 		t -= 25569;		// epoch = 31/12/1899
 	t *= 60*60*24;
 
-	return localtime((long)t);
+	return localtime((int32_t)t);
 }
 
 void
 numfmt(int fmt, int min, int max, double num)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	struct Tm *tm;
 
 	if(fmt == 9)
@@ -266,7 +266,7 @@ dump(void)
 {
 	Row *r;
 	Col *c, *c1;
-	char *strfmt;
+	int8_t *strfmt;
 	int i, n, last, min, max;
 
 	if(Doquote)
@@ -391,8 +391,8 @@ gmem(Biff *b, void *p, int n)
 void
 xd(Biff *b)
 {
-	uvlong off;
-	uchar buf[16];
+	uint64_t off;
+	uint8_t buf[16];
 	int addr, got, n, i, j;
 
 	addr = 0;
@@ -441,11 +441,11 @@ getrec(Biff *b)
 	return 0;
 }
 
-static uvlong
+static uint64_t
 gint(Biff *b, int n)
 {
 	int i, c;
-	uvlong vl, rc;
+	uint64_t vl, rc;
 
 	if(b->len < n)
 		return -1;
@@ -464,7 +464,7 @@ double
 grk(Biff *b)
 {
 	int f;
-	uvlong n;
+	uint64_t n;
 	double d;
 
 	n = gint(b, 4);
@@ -487,16 +487,16 @@ double
 gdoub(Biff *b)
 {
 	double d;
-	uvlong n = gint(b, 8);
+	uint64_t n = gint(b, 8);
 	memcpy(&d, &n, sizeof(n));
 	return d;
 }
 
-char *
+int8_t *
 gstr(Biff *b, int len_width)
 {
 	Rune r;
-	char *buf, *p;
+	int8_t *buf, *p;
 	int nch, w, ap, ln, rt, opt;
 	enum {
 		Unicode = 1,
@@ -513,14 +513,14 @@ gstr(Biff *b, int len_width)
 
 	ln = gint(b, len_width);
 	if(Biffver != Ver8){
-		if((buf = calloc(ln+1, sizeof(char))) == nil)
+		if((buf = calloc(ln+1, sizeof(int8_t))) == nil)
 			sysfatal("no memory");
 		gmem(b, buf, ln);
 		return buf;
 	}
 
 
-	if((buf = calloc(ln+1, sizeof(char)*UTFmax)) == nil)
+	if((buf = calloc(ln+1, sizeof(int8_t)*UTFmax)) == nil)
 		sysfatal("no memory");
 	p = buf;
 
@@ -538,7 +538,7 @@ gstr(Biff *b, int len_width)
 	else
 		ap = 0;
 	for(;;){
-		w = (opt & Unicode)? sizeof(Rune): sizeof(char);
+		w = (opt & Unicode)? sizeof(Rune): sizeof(int8_t);
 
 		while(b->len > 0){
 			r = gint(b, w);
@@ -566,7 +566,7 @@ sst(Biff *b)
 	
 	skip(b, 4);			// total # strings
 	Nstrtab = gint(b, 4);		// # unique strings
-	if((Strtab = calloc(Nstrtab, sizeof(char *))) == nil)
+	if((Strtab = calloc(Nstrtab, sizeof(int8_t *))) == nil)
 		sysfatal("no memory");
 	for(n = 0; n < Nstrtab; n++)
 		Strtab[n] = gstr(b, 2);
@@ -622,7 +622,7 @@ label(Biff *b)
 	int r = gint(b, 2);		// row
 	int c = gint(b, 2);		// col
 	int f = gint(b, 2);		// formatting ref
-	char *s = gstr(b, 2);		// byte string
+	int8_t *s = gstr(b, 2);		// byte string
 	cell(r, c, f, Tlabel, s);
 }
 
@@ -662,7 +662,7 @@ eof(Biff *b)
 	int i;
 	struct {
 		int n;
-		char *s;
+		int8_t *s;
 	} names[] = {
 		0x005,	"Workbook globals",
 		0x006,	"Visual Basic module",

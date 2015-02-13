@@ -28,7 +28,7 @@
  * where a new such entry would go.
  */
 static Tx*
-txsearch(char *atom, Tx *t, int n)
+txsearch(int8_t *atom, Tx *t, int n)
 {
 	while(n > 0) {
 		if(atom < t[n/2].bad)
@@ -43,7 +43,7 @@ txsearch(char *atom, Tx *t, int n)
 }
 
 void
-addtx(char *b, char *g)
+addtx(int8_t *b, int8_t *g)
 {
 	Tx *t;
 	Conform *c;
@@ -67,11 +67,11 @@ addtx(char *b, char *g)
 	c->nt++;
 }
 
-char*
-conform(char *s, int isdir)
+int8_t*
+conform(int8_t *s, int isdir)
 {
 	Tx *t;
-	char buf[10], *g;
+	int8_t buf[10], *g;
 	Conform *c;
 
 	c = map;
@@ -90,7 +90,7 @@ conform(char *s, int isdir)
 
 #ifdef NOTUSED
 static int
-isalldigit(char *s)
+isalldigit(int8_t *s)
 {
 	while(*s)
 		if(!isdigit(*s++))
@@ -124,9 +124,9 @@ badatomcmp(const void *va, const void *vb)
 }
 
 void
-wrconform(Cdimg *cd, int n, ulong *pblock, uvlong *plength)
+wrconform(Cdimg *cd, int n, uint32_t *pblock, uint64_t *plength)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	int i;
 	Conform *c;
 
@@ -137,14 +137,14 @@ wrconform(Cdimg *cd, int n, ulong *pblock, uvlong *plength)
 		return;
 	}
 
-	Cwseek(cd, (vlong)cd->nextblock * Blocksize);
+	Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
 	qsort(c->t, c->nt, sizeof(c->t[0]), goodcmp);
 	for(i=n; i<c->nt; i++) {
 		snprint(buf, sizeof buf, "%s %s\n", c->t[i].good, c->t[i].bad);
 		Cwrite(cd, buf, strlen(buf));
 	}
 	qsort(c->t, c->nt, sizeof(c->t[0]), badatomcmp);
-	*plength = Cwoffset(cd) - (vlong)*pblock * Blocksize;
+	*plength = Cwoffset(cd) - (int64_t)*pblock * Blocksize;
 	chat("write _conform.map at %lud+%llud\n", *pblock, *plength);
 	Cpadblock(cd);
 }

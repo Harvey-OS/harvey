@@ -29,12 +29,12 @@ enum {
 };
 
 static int dh_server(Conn *, Packet *, mpint *, int);
-static void genkeys(Conn *, uchar [], mpint *);
+static void genkeys(Conn *, uint8_t [], mpint *);
 
 /*
  * Second Oakley Group from RFC 2409
  */
-static char *group1p =
+static int8_t *group1p =
          "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
          "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"
          "EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245"
@@ -45,7 +45,7 @@ static char *group1p =
 /*
  * 2048-bit MODP group (id 14) from RFC 3526
 */
-static char *group14p =
+static int8_t *group14p =
       "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
       "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"
       "EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245"
@@ -67,7 +67,7 @@ static RSApriv myrsakey;
 void
 dh_init(PKA *pkas[])
 {
-	char *buf, *p, *st, *end;
+	int8_t *buf, *p, *st, *end;
 	int fd, n, k;
 
 	if(debug > 1)
@@ -238,11 +238,11 @@ rsa_ks(Conn *c)
 }
 
 static void
-esma_encode(uchar *h, uchar *em, int nb)
+esma_encode(uint8_t *h, uint8_t *em, int nb)
 {
 	int n, i;
-	uchar hh[SHA1dlen];
-	static uchar sha1der[] = {
+	uint8_t hh[SHA1dlen];
+	static uint8_t sha1der[] = {
 		0x30, 0x21, 0x30, 0x09, 0x06, 0x05, 0x2b, 0x0e,
 		0x03, 0x02, 0x1a, 0x05, 0x00, 0x04, 0x14,
 	};
@@ -261,14 +261,14 @@ esma_encode(uchar *h, uchar *em, int nb)
 }
 
 static Packet *
-rsa_sign(Conn *c, uchar *m, int nm)
+rsa_sign(Conn *c, uint8_t *m, int nm)
 {
 	AuthRpc *ar;
 	Packet *sig;
 	mpint *s, *mm;
 	int fd, n, nbit;
-	uchar hh[SHA1dlen];
-	uchar *sstr, *em;
+	uint8_t hh[SHA1dlen];
+	uint8_t *sstr, *em;
 
 	if (myrsakey.dk) {
 		nbit = mpsignif (myrsakey.pub.n);
@@ -320,12 +320,12 @@ rsa_sign(Conn *c, uchar *m, int nm)
  * -1 - If factotum found a key, but the verification fails
  */
 static int
-rsa_verify(Conn *c, uchar *m, int nm, char *user, char *sig, int)
+rsa_verify(Conn *c, uint8_t *m, int nm, int8_t *user, int8_t *sig, int)
 {
 	int fd, n, retval, nbit;
-	char *buf, *p, *sigblob;
-	uchar *sstr, *em;
-	uchar hh[SHA1dlen];
+	int8_t *buf, *p, *sigblob;
+	uint8_t *sstr, *em;
+	uint8_t hh[SHA1dlen];
 	mpint *s, *mm, *rsa_exponent, *host_modulus;
 	AuthRpc *ar;
 
@@ -358,8 +358,9 @@ rsa_verify(Conn *c, uchar *m, int nm, char *user, char *sig, int)
 		}
 		buf = emalloc9p(Blobsz / 2);
 		sigblob = emalloc9p(Blobsz);
-		p = (char *)get_string(nil, (uchar *)sig, buf, Blobsz / 2, nil);
-		get_string(nil, (uchar *)p, sigblob, Blobsz, &n);
+		p = (int8_t *)get_string(nil, (uint8_t *)sig, buf, Blobsz / 2,
+				       nil);
+		get_string(nil, (uint8_t *)p, sigblob, Blobsz, &n);
 		sha1(m, nm, hh, nil);
 		if (user != nil)
 			p = smprint("role=verify proto=rsa user=%s", user);
@@ -405,14 +406,14 @@ dss_ks(Conn *c)
 }
 
 static Packet *
-dss_sign(Conn *c, uchar *m, int nm)
+dss_sign(Conn *c, uint8_t *m, int nm)
 {
 	AuthRpc *ar;
 	DSAsig *s;
 	Packet *sig;
 	mpint *mm;
 	int fd;
-	uchar sstr[2*SHA1dlen];
+	uint8_t sstr[2*SHA1dlen];
 
 	sha1(m, nm, sstr, nil);
 	sig = new_packet(c);
@@ -447,7 +448,7 @@ dss_sign(Conn *c, uchar *m, int nm)
 }
 
 static int
-dss_verify(Conn *c, uchar *m, int nm, char *user, char *sig, int nsig)
+dss_verify(Conn *c, uint8_t *m, int nm, int8_t *user, int8_t *sig, int nsig)
 {
 	sshdebug(c, "in dss_verify for connection: %d", c->id);
 	USED(m, nm, user, sig, nsig);
@@ -472,7 +473,7 @@ dh_server(Conn *c, Packet *pack1, mpint *grp, int nbit)
 	Packet *pack2, *ks, *sig;
 	mpint *y, *e, *f, *k;
 	int n, ret;
-	uchar h[SHA1dlen];
+	uint8_t h[SHA1dlen];
 
 	ret = -1;
 	qlock(&c->l);
@@ -597,7 +598,7 @@ static int
 findkeyinuserring(Conn *c, RSApub *srvkey)
 {
 	int n;
-	char *home, *newkey, *r;
+	int8_t *home, *newkey, *r;
 
 	home = getenv("home");
 	if (home == nil) {
@@ -639,8 +640,8 @@ static int
 verifyhostkey(Conn *c, RSApub *srvkey, Packet *sig)
 {
 	int fd, n;
-	char *newkey;
-	uchar h[SHA1dlen];
+	int8_t *newkey;
+	uint8_t h[SHA1dlen];
 
 	sshdebug(c, "verifying server signature");
 	if (findkey("/sys/lib/ssh/keyring", c->remote, srvkey) != KeyOk &&
@@ -671,7 +672,8 @@ verifyhostkey(Conn *c, RSApub *srvkey, Packet *sig)
 	free(keymbox.msg);
 	keymbox.msg = nil;
 
-	n = pkas[c->pkalg]->verify(c, h, SHA1dlen, nil, (char *)sig->payload,
+	n = pkas[c->pkalg]->verify(c, h, SHA1dlen, nil,
+				   (int8_t *)sig->payload,
 		sig->rlength);
 
 	/* fd is perhaps still open */
@@ -694,11 +696,11 @@ dh_client12(Conn *c, Packet *p)
 {
 	int n, retval;
 #ifdef VERIFYKEYS
-	char *newkey;
+	int8_t *newkey;
 #endif
-	char buf[10];
-	uchar *q;
-	uchar h[SHA1dlen];
+	int8_t buf[10];
+	uint8_t *q;
+	uint8_t h[SHA1dlen];
 	mpint *f, *k;
 	Packet *ks, *sig, *pack2;
 	RSApub *srvkey;
@@ -707,11 +709,12 @@ dh_client12(Conn *c, Packet *p)
 	sig = new_packet(c);
 	pack2 = new_packet(c);
 
-	q = get_string(p, p->payload+1, (char *)ks->payload, Maxpktpay, &n);
+	q = get_string(p, p->payload+1, (int8_t *)ks->payload, Maxpktpay,
+		       &n);
 	ks->rlength = n + 1;
 	f = get_mp(q);
 	q += nhgetl(q) + 4;
-	get_string(p, q, (char *)sig->payload, Maxpktpay, &n);
+	get_string(p, q, (int8_t *)sig->payload, Maxpktpay, &n);
 	sig->rlength = n;
 	k = mpnew(1024);
 	mpexp(f, c->x, p1, k);
@@ -823,7 +826,7 @@ dh_client142(Conn *, Packet *)
 }
 
 static void
-initsha1pkt(Packet *pack2, mpint *k, uchar *h)
+initsha1pkt(Packet *pack2, mpint *k, uint8_t *h)
 {
 	init_packet(pack2);
 	add_mp(pack2, k);
@@ -831,10 +834,10 @@ initsha1pkt(Packet *pack2, mpint *k, uchar *h)
 }
 
 static void
-genkeys(Conn *c, uchar h[], mpint *k)
+genkeys(Conn *c, uint8_t h[], mpint *k)
 {
 	Packet *pack2;
-	char buf[82], *bp, *be;			/* magic 82 */
+	int8_t buf[82], *bp, *be;			/* magic 82 */
 	int n;
 
 	pack2 = new_packet(c);

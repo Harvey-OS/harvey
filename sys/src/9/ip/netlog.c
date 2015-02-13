@@ -39,7 +39,7 @@ struct Netlog {
 };
 
 typedef struct Netlogflag {
-	char*	name;
+	int8_t*	name;
 	int	mask;
 } Netlogflag;
 
@@ -63,7 +63,7 @@ static Netlogflag flags[] =
 	{ nil,		0, },
 };
 
-char Ebadnetctl[] = "too few arguments for netlog control message";
+int8_t Ebadnetctl[] = "too few arguments for netlog control message";
 
 enum
 {
@@ -129,11 +129,11 @@ netlogready(void *a)
 	return f->alog->len;
 }
 
-long
-netlogread(Fs *f, void *a, ulong, long n)
+int32_t
+netlogread(Fs *f, void *a, uint32_t, int32_t n)
 {
 	int i, d;
-	char *p, *rptr;
+	int8_t *p, *rptr;
 
 	qlock(f->alog);
 	if(waserror()){
@@ -175,7 +175,7 @@ netlogread(Fs *f, void *a, ulong, long n)
 }
 
 void
-netlogctl(Fs *f, char* s, int n)
+netlogctl(Fs *f, int8_t* s, int n)
 {
 	int i, set;
 	Netlogflag *fp;
@@ -234,9 +234,9 @@ netlogctl(Fs *f, char* s, int n)
 }
 
 void
-netlog(Fs *f, int mask, char *fmt, ...)
+netlog(Fs *f, int mask, int8_t *fmt, ...)
 {
-	char buf[128], *t, *fp;
+	int8_t buf[128], *t, *fp;
 	int i, n;
 	va_list arg;
 

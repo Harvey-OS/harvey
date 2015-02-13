@@ -30,7 +30,7 @@ init3des(Conn *c, int)
 }
 
 static void
-encrypt3des(CipherState *cs, uchar *buf, int nbuf)
+encrypt3des(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	desCBCencrypt(buf, nbuf, &cs->enc3des[0]);
 	desCBCdecrypt(buf, nbuf, &cs->enc3des[1]);
@@ -38,7 +38,7 @@ encrypt3des(CipherState *cs, uchar *buf, int nbuf)
 }
 
 static void
-decrypt3des(CipherState *cs, uchar *buf, int nbuf)
+decrypt3des(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	desCBCdecrypt(buf, nbuf, &cs->dec3des[2]);
 	desCBCencrypt(buf, nbuf, &cs->dec3des[1]);

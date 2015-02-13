@@ -49,7 +49,7 @@ globfree(Glob *g)
 }
 
 static Globlist*
-globlistnew(char *x)
+globlistnew(int8_t *x)
 {
 	Globlist *gl;
 
@@ -72,7 +72,7 @@ globlistfree(Globlist *gl)
 }
 
 void
-globadd(Globlist *gl, char *dir, char *file)
+globadd(Globlist *gl, int8_t *dir, int8_t *file)
 {
 	Glob *g;
 
@@ -86,7 +86,7 @@ globadd(Globlist *gl, char *dir, char *file)
 }
 
 static void
-globdir(Globlist *gl, char *dir, Reprog *re)
+globdir(Globlist *gl, int8_t *dir, Reprog *re)
 {
 	Dir *d;
 	int i, n, fd;
@@ -108,7 +108,7 @@ globdir(Globlist *gl, char *dir, Reprog *re)
 }
 
 static void
-globdot(Globlist *gl, char *dir)
+globdot(Globlist *gl, int8_t *dir)
 {
 	Dir *d;
 
@@ -125,7 +125,7 @@ globdot(Globlist *gl, char *dir)
 }
 
 static void
-globnext(Globlist *gl, char *pattern)
+globnext(Globlist *gl, int8_t *pattern)
 {
 	String *np;
 	Glob *g, *inlist;
@@ -192,11 +192,11 @@ globnext(Globlist *gl, char *pattern)
 		globnext(gl, pattern);
 }
 
-char *
+int8_t *
 globiter(Globlist *gl)
 {
 	Glob *g;
-	char *s;
+	int8_t *s;
 
 	if(gl->first == nil)
 		return nil;
@@ -212,7 +212,7 @@ globiter(Globlist *gl)
 }
 
 Globlist*
-glob(char *pattern)
+glob(int8_t *pattern)
 {
 	Globlist *gl;
 

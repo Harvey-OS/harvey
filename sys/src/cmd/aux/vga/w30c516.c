@@ -55,8 +55,8 @@ options(Vga*, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong grade, pclk;
-	char *p;
+	uint32_t grade, pclk;
+	int8_t *p;
 
 	/*
 	 * Part comes in -170, -135 and -110MHz speed-grades.
@@ -103,7 +103,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uchar mode, x;
+	uint8_t mode, x;
 
 	/*
 	 * Put the chip to sleep.

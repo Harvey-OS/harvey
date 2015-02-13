@@ -40,9 +40,9 @@ Dirtab kproftab[]={
 };
 
 static Chan*
-kprofattach(char *spec)
+kprofattach(int8_t *spec)
 {
-	ulong n;
+	uint32_t n;
 
 	/* allocate when first used */
 	kprof.minpc = KTZERO;
@@ -96,13 +96,13 @@ kprofinit(void)
 }
 
 static Walkqid*
-kprofwalk(Chan *c, Chan *nc, char **name, int nname)
+kprofwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, kproftab, nelem(kproftab), devgen);
 }
 
-static long
-kprofstat(Chan *c, uchar *db, long n)
+static int32_t
+kprofstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, kproftab, nelem(kproftab), devgen);
 }
@@ -125,13 +125,13 @@ kprofclose(Chan*)
 {
 }
 
-static long
-kprofread(Chan *c, void *va, long n, vlong off)
+static int32_t
+kprofread(Chan *c, void *va, int32_t n, int64_t off)
 {
-	ulong end;
-	ulong w, *bp;
-	uchar *a, *ea;
-	ulong offset = off;
+	uint32_t end;
+	uint32_t w, *bp;
+	uint8_t *a, *ea;
+	uint32_t offset = off;
 
 	switch((int)c->qid.path){
 	case Kprofdirqid:
@@ -167,13 +167,13 @@ kprofread(Chan *c, void *va, long n, vlong off)
 	return n;
 }
 
-static long
-kprofwrite(Chan *c, void *a, long n, vlong)
+static int32_t
+kprofwrite(Chan *c, void *a, int32_t n, int64_t)
 {
 	switch((int)(c->qid.path)){
 	case Kprofctlqid:
 		if(strncmp(a, "startclr", 8) == 0){
-			memset((char *)kprof.buf, 0, kprof.nbuf*SZ);
+			memset((int8_t *)kprof.buf, 0, kprof.nbuf*SZ);
 			kprof.time = 1;
 		}else if(strncmp(a, "start", 5) == 0)
 			kprof.time = 1;

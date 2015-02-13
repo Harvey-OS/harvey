@@ -34,7 +34,7 @@ static char *phasenames[Maxphase] = {
 
 struct State
 {
-	char resp[MD5dlen*2+1];
+	int8_t resp[MD5dlen*2+1];
 };
 
 static int
@@ -57,7 +57,7 @@ hdinit(Proto *p, Fsstate *fss)
 }
 
 static void
-strtolower(char *s)
+strtolower(int8_t *s)
 {
 	while(*s){
 		*s = tolower(*s);
@@ -66,43 +66,43 @@ strtolower(char *s)
 }
 
 static void
-digest(char *user, char *realm, char *passwd,
-	char *nonce, char *method, char *uri,
-	char *dig)
+digest(int8_t *user, int8_t *realm, int8_t *passwd,
+	int8_t *nonce, int8_t *method, int8_t *uri,
+	int8_t *dig)
 {
-	uchar b[MD5dlen];
-	char ha1[MD5dlen*2+1];
-	char ha2[MD5dlen*2+1];
+	uint8_t b[MD5dlen];
+	int8_t ha1[MD5dlen*2+1];
+	int8_t ha2[MD5dlen*2+1];
 	DigestState *s;
 
 	/*
 	 *  H(A1) = MD5(uid + ":" + realm ":" + passwd)
 	 */
-	s = md5((uchar*)user, strlen(user), nil, nil);
-	md5((uchar*)":", 1, nil, s);
-	md5((uchar*)realm, strlen(realm), nil, s);
-	md5((uchar*)":", 1, nil, s);
-	md5((uchar*)passwd, strlen(passwd), b, s);
+	s = md5((uint8_t*)user, strlen(user), nil, nil);
+	md5((uint8_t*)":", 1, nil, s);
+	md5((uint8_t*)realm, strlen(realm), nil, s);
+	md5((uint8_t*)":", 1, nil, s);
+	md5((uint8_t*)passwd, strlen(passwd), b, s);
 	enc16(ha1, sizeof(ha1), b, MD5dlen);
 	strtolower(ha1);
 
 	/*
 	 *  H(A2) = MD5(method + ":" + uri)
 	 */
-	s = md5((uchar*)method, strlen(method), nil, nil);
-	md5((uchar*)":", 1, nil, s);
-	md5((uchar*)uri, strlen(uri), b, s);
+	s = md5((uint8_t*)method, strlen(method), nil, nil);
+	md5((uint8_t*)":", 1, nil, s);
+	md5((uint8_t*)uri, strlen(uri), b, s);
 	enc16(ha2, sizeof(ha2), b, MD5dlen);
 	strtolower(ha2);
 
 	/*
 	 *  digest = MD5(H(A1) + ":" + nonce + ":" + H(A2))
 	 */
-	s = md5((uchar*)ha1, MD5dlen*2, nil, nil);
-	md5((uchar*)":", 1, nil, s);
-	md5((uchar*)nonce, strlen(nonce), nil, s);
-	md5((uchar*)":", 1, nil, s);
-	md5((uchar*)ha2, MD5dlen*2, b, s);
+	s = md5((uint8_t*)ha1, MD5dlen*2, nil, nil);
+	md5((uint8_t*)":", 1, nil, s);
+	md5((uint8_t*)nonce, strlen(nonce), nil, s);
+	md5((uint8_t*)":", 1, nil, s);
+	md5((uint8_t*)ha2, MD5dlen*2, b, s);
 	enc16(dig, MD5dlen*2+1, b, MD5dlen);
 	strtolower(dig);
 }
@@ -112,8 +112,8 @@ hdwrite(Fsstate *fss, void *va, uint n)
 {
 	State *s;
 	int ret;
-	char *a, *p, *r, *u, *t;
-	char *tok[4];
+	int8_t *a, *p, *r, *u, *t;
+	int8_t *tok[4];
 	Key *k;
 	Keyinfo ki;
 	Attr *attr;

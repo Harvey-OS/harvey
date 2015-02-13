@@ -10,7 +10,7 @@
 #include	"mk.h"
 
 Arc *
-newarc(Node *n, Rule *r, char *stem, Resub *match)
+newarc(Node *n, Rule *r, int8_t *stem, Resub *match)
 {
 	Arc *a;
 
@@ -26,9 +26,9 @@ newarc(Node *n, Rule *r, char *stem, Resub *match)
 }
 
 void
-dumpa(char *s, Arc *a)
+dumpa(int8_t *s, Arc *a)
 {
-	char buf[1024];
+	int8_t buf[1024];
 
 	Bprint(&bout, "%sArc@%p: n=%p r=%p flag=0x%x stem='%s'",
 		s, a, a->n, a->r, a->flag, a->stem);

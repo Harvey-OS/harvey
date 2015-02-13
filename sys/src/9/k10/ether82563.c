@@ -510,7 +510,7 @@ struct Ctlrtype {
 	int	type;
 	int	mtu;
 	int	flag;
-	char	*name;
+	int8_t	*name;
 };
 
 static Ctlrtype cttab[Nctlrtype] = {
@@ -572,7 +572,7 @@ struct Ctlr {
 	uint	speeds[4];
 	uint	phyerrata;
 
-	uchar	ra[Eaddrlen];		/* receive address */
+	uint8_t	ra[Eaddrlen];		/* receive address */
 	u32int	mta[128];		/* multicast table array */
 
 	Rendez	rrendez;
@@ -609,7 +609,7 @@ static Lock i82563rblock;		/* free receive Blocks */
 static Block* i82563rbpool;
 
 
-static char *statistics[Nstatistics] = {
+static int8_t *statistics[Nstatistics] = {
 	"CRC Error",
 	"Alignment Error",
 	"Symbol Error",
@@ -685,7 +685,7 @@ static char *statistics[Nstatistics] = {
 	"Interrupt Rx Overrun",
 };
 
-static char*
+static int8_t*
 cname(Ctlr* c)
 {
 	if (c->type == Iany)
@@ -693,13 +693,13 @@ cname(Ctlr* c)
 	return cttab[c->type].name;
 }
 
-static long
-i82563ifstat(Ether *edev, void *a, long n, ulong offset)
+static int32_t
+i82563ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 {
 	Ctlr *ctlr;
-	char *s, *p, *e, *stat;
+	int8_t *s, *p, *e, *stat;
 	int i, r;
-	uvlong tuvl, ruvl;
+	uint64_t tuvl, ruvl;
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
@@ -720,10 +720,10 @@ i82563ifstat(Ether *edev, void *a, long n, ulong offset)
 		case Torl:
 		case Totl:
 			ruvl = r;
-			ruvl += (uvlong)csr32r(ctlr, Statistics+(i+1)*4) << 32;
+			ruvl += (uint64_t)csr32r(ctlr, Statistics+(i+1)*4) << 32;
 			tuvl = ruvl;
 			tuvl += ctlr->statistics[i];
-			tuvl += (uvlong)ctlr->statistics[i+1] << 32;
+			tuvl += (uint64_t)ctlr->statistics[i+1] << 32;
 			if(tuvl == 0)
 				continue;
 			ctlr->statistics[i] = tuvl;
@@ -795,7 +795,7 @@ i82563promiscuous(void* arg, int on)
 }
 
 static void
-i82563multicast(void* arg, uchar* addr, int on)
+i82563multicast(void* arg, uint8_t* addr, int on)
 {
 	int bit, x;
 	Ctlr *ctlr;
@@ -842,7 +842,7 @@ i82563rballoc(void)
 static void
 i82563rbfree(Block* b)
 {
-	b->rp = b->wp = (uchar*)ROUNDUP((uintptr)b->base, PGSZ);
+	b->rp = b->wp = (uint8_t*)ROUNDUP((uintptr)b->base, PGSZ);
  	b->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
 	ilock(&i82563rblock);
 	b->next = i82563rbpool;
@@ -989,8 +989,8 @@ i82563replenish(Ctlr* ctlr)
 		}
 		bp = i82563rballoc();
 		if(bp == nil){
-			vlong now;
-			static vlong lasttime;
+			int64_t now;
+			static int64_t lasttime;
 
 			/* don't flood the console */
 			now = tk2ms(sys->ticks);
@@ -1421,7 +1421,7 @@ i82563tproc(void *v)
 static void
 i82563attach(Ether* edev)
 {
-	char name[KNAMELEN];
+	int8_t name[KNAMELEN];
 	Block *bp;
 	Ctlr *ctlr;
 
@@ -1712,17 +1712,17 @@ fload(Ctlr *c)
 }
 
 static void
-defaultea(Ctlr *ctlr, uchar *ra)
+defaultea(Ctlr *ctlr, uint8_t *ra)
 {
 	uint i, r;
-	uvlong u;
-	static uchar nilea[Eaddrlen];
+	uint64_t u;
+	static uint8_t nilea[Eaddrlen];
 
 	if(memcmp(ra, nilea, Eaddrlen) != 0)
 		return;
 	if(cttab[ctlr->type].flag & Fflashea){
 		/* intel mb bug */
-		u = (uvlong)csr32r(ctlr, Rah)<<32u | (u32int)csr32r(ctlr, Ral);
+		u = (uint64_t)csr32r(ctlr, Rah)<<32u | (u32int)csr32r(ctlr, Ral);
 		for(i = 0; i < Eaddrlen; i++)
 			ra[i] = u >> 8*i;
 	}
@@ -1739,7 +1739,7 @@ defaultea(Ctlr *ctlr, uchar *ra)
 static int
 i82563reset(Ctlr *ctlr)
 {
-	uchar *ra;
+	uint8_t *ra;
 	int i, r;
 
 	if(i82563detach(ctlr))
@@ -1803,10 +1803,10 @@ static Cmdtab i82563ctlmsg[] = {
 	CMan,	"an",	1,
 };
 
-static long
-i82563ctl(Ether *edev, void *buf, long n)
+static int32_t
+i82563ctl(Ether *edev, void *buf, int32_t n)
 {
-	char *p;
+	int8_t *p;
 	u32int v;
 	Ctlr *ctlr;
 	Cmdbuf *cb;

@@ -12,7 +12,7 @@
 #define SHORT(p) (((p)[0]<<8)|((p)[1]))
 #define LONG(p) ((SHORT(p)<<16)|SHORT(p+2))
 
-uchar zero[64];
+uint8_t zero[64];
 
 Vnc*
 vncinit(int fd, int cfd, Vnc *v)
@@ -43,28 +43,28 @@ vncflush(Vnc *v)
 	}
 }
 
-uchar
+uint8_t
 vncrdchar(Vnc *v)
 {
-	uchar buf[1];
+	uint8_t buf[1];
 
 	vncrdbytes(v, buf, 1);
 	return buf[0];
 }
 
-ushort
+uint16_t
 vncrdshort(Vnc *v)
 {
-	uchar buf[2];
+	uint8_t buf[2];
 
 	vncrdbytes(v, buf, 2);
 	return SHORT(buf);
 }
 
-ulong
+uint32_t
 vncrdlong(Vnc *v)
 {
-	uchar buf[4];
+	uint8_t buf[4];
 
 	vncrdbytes(v, buf, 4);
 	return LONG(buf);
@@ -118,7 +118,7 @@ Pixfmt
 vncrdpixfmt(Vnc *v)
 {
 	Pixfmt fmt;
-	uchar pad[3];
+	uint8_t pad[3];
 
 	fmt.bpp = vncrdchar(v);
 	fmt.depth = vncrdchar(v);
@@ -134,11 +134,11 @@ vncrdpixfmt(Vnc *v)
 	return fmt;
 }
 
-char*
+int8_t*
 vncrdstring(Vnc *v)
 {
-	ulong len;
-	char *s;
+	uint32_t len;
+	int8_t *s;
 
 	len = vncrdlong(v);
 	s = malloc(len+1);
@@ -159,12 +159,12 @@ vncrdstring(Vnc *v)
  * thus we read the response with vncrdstringx, which goes
  * behind bio's back.
  */
-char*
+int8_t*
 vncrdstringx(Vnc *v)
 {
-	char tmp[4];
-	char *s;
-	ulong len;
+	int8_t tmp[4];
+	int8_t *s;
+	uint32_t len;
 
 	assert(Bbuffered(&v->in) == 0);
 	if(readn(v->datafd, tmp, 4) != 4){
@@ -183,9 +183,9 @@ vncrdstringx(Vnc *v)
 }
 
 void
-vncwrstring(Vnc *v, char *s)
+vncwrstring(Vnc *v, int8_t *s)
 {
-	ulong len;
+	uint32_t len;
 
 	len = strlen(s);
 	vncwrlong(v, len);
@@ -203,9 +203,9 @@ vncwrbytes(Vnc *v, void *a, int n)
 }
 
 void
-vncwrlong(Vnc *v, ulong u)
+vncwrlong(Vnc *v, uint32_t u)
 {
-	uchar buf[4];
+	uint8_t buf[4];
 
 	buf[0] = u>>24;
 	buf[1] = u>>16;
@@ -215,9 +215,9 @@ vncwrlong(Vnc *v, ulong u)
 }
 
 void
-vncwrshort(Vnc *v, ushort u)
+vncwrshort(Vnc *v, uint16_t u)
 {
-	uchar buf[2];
+	uint8_t buf[2];
 
 	buf[0] = u>>8;
 	buf[1] = u;
@@ -225,7 +225,7 @@ vncwrshort(Vnc *v, ushort u)
 }
 
 void
-vncwrchar(Vnc *v, uchar c)
+vncwrchar(Vnc *v, uint8_t c)
 {
 	vncwrbytes(v, &c, 1);
 }
@@ -277,7 +277,7 @@ vncunlock(Vnc *v)
 void
 hexdump(void *a, int n)
 {
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 
 	p = a;
 	ep = p+n;
@@ -288,10 +288,10 @@ hexdump(void *a, int n)
 }
 
 void
-vncgobble(Vnc *v, long n)
+vncgobble(Vnc *v, int32_t n)
 {
-	uchar buf[8192];
-	long m;
+	uint8_t buf[8192];
+	int32_t m;
 
 	while(n > 0){
 		m = n;

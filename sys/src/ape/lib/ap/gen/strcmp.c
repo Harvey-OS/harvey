@@ -10,7 +10,7 @@
 #include <string.h>
 
 int
-strcmp(const char *s1, const char *s2)
+strcmp(const int8_t *s1, const int8_t *s2)
 {
 	unsigned c1, c2;
 

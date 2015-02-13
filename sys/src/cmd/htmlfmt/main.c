@@ -14,7 +14,7 @@
 #include <html.h>
 #include "dat.h"
 
-char *url = "";
+int8_t *url = "";
 int aflag;
 int width = 70;
 int defcharset;

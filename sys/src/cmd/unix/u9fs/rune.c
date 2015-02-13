@@ -9,7 +9,7 @@
 
 #include	<plan9.h>
 
-char *argv0;
+int8_t *argv0;
 enum
 {
 	Bit1	= 7,
@@ -41,16 +41,16 @@ enum
 };
 
 int
-chartorune(Rune *rune, char *str)
+chartorune(Rune *rune, int8_t *str)
 {
 	int c, c1, c2, c3;
-	long l;
+	int32_t l;
 
 	/*
 	 * one character sequence
 	 *	00000-0007F => T1
 	 */
-	c = *(uchar*)str;
+	c = *(uint8_t*)str;
 	if(c < Tx) {
 		*rune = c;
 		return 1;
@@ -60,7 +60,7 @@ chartorune(Rune *rune, char *str)
 	 * two character sequence
 	 *	00080-007FF => T2 Tx
 	 */
-	c1 = *(uchar*)(str+1) ^ Tx;
+	c1 = *(uint8_t*)(str+1) ^ Tx;
 	if(c1 & Testx)
 		goto bad;
 	if(c < T3) {
@@ -77,7 +77,7 @@ chartorune(Rune *rune, char *str)
 	 * three character sequence
 	 *	00800-0FFFF => T3 Tx Tx
 	 */
-	c2 = *(uchar*)(str+2) ^ Tx;
+	c2 = *(uint8_t*)(str+2) ^ Tx;
 
 	if(c2 & Testx)
 		goto bad;
@@ -96,7 +96,7 @@ chartorune(Rune *rune, char *str)
 	 *	10000-10FFFF => T4 Tx Tx Tx
 	 */
 	if(UTFmax >= 4) {
-		c3 = *(uchar*)(str+3) ^ Tx;
+		c3 = *(uint8_t*)(str+3) ^ Tx;
 		if(c3 & Testx)
 			goto bad;
 		if(c < T5) {
@@ -119,9 +119,9 @@ bad:
 }
 
 int
-runetochar(char *str, Rune *rune)
+runetochar(int8_t *str, Rune *rune)
 {
-	long c;
+	int32_t c;
 
 	/*
 	 * one character sequence
@@ -176,25 +176,25 @@ runetochar(char *str, Rune *rune)
 }
 
 int
-runelen(long c)
+runelen(int32_t c)
 {
 	Rune rune;
-	char str[10];
+	int8_t str[10];
 
 	rune = c;
 	return runetochar(str, &rune);
 }
 
 int
-utflen(char *s)
+utflen(int8_t *s)
 {
 	int c;
-	long n;
+	int32_t n;
 	Rune rune;
 
 	n = 0;
 	for(;;) {
-		c = *(uchar*)s;
+		c = *(uint8_t*)s;
 		if(c < Runeself) {
 			if(c == 0)
 				return n;

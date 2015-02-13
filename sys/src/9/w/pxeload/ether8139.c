@@ -154,7 +154,7 @@ enum {					/* Media Status Register */
 typedef struct {			/* Soft Transmit Descriptor */
 	int	tsd;
 	int	tsad;
-	uchar*	data;
+	uint8_t*	data;
 } Td;
 
 enum {					/* Tsd0 */
@@ -191,7 +191,7 @@ typedef struct Ctlr {
 	void*	alloc;			/* base of per-Ctlr allocated data */
 
 	int	rcr;			/* receive configuration register */
-	uchar*	rbstart;		/* receive buffer */
+	uint8_t*	rbstart;		/* receive buffer */
 	int	rblen;			/* receive buffer length */
 	int	ierrs;			/* receive errors */
 
@@ -250,9 +250,9 @@ static void
 rtl8139init(Ether* edev)
 {
 	int i;
-	ulong r;
+	uint32_t r;
 	Ctlr *ctlr;
-	uchar *alloc;
+	uint8_t *alloc;
 
 	ctlr = edev->ctlr;
 	ilock(&ctlr->ilock);
@@ -270,7 +270,7 @@ rtl8139init(Ether* edev)
 	/*
 	 * Receiver
 	 */
-	alloc = (uchar*)ROUNDUP((ulong)ctlr->alloc, 32);
+	alloc = (uint8_t*)ROUNDUP((uint32_t)ctlr->alloc, 32);
 	ctlr->rbstart = alloc;
 	alloc += ctlr->rblen+16;
 	memset(ctlr->rbstart, 0, ctlr->rblen+16);
@@ -361,8 +361,8 @@ rtl8139receive(Ether* edev)
 {
 	Ctlr *ctlr;
 	RingBuf *rb;
-	ushort capr;
-	uchar cr, *p;
+	uint16_t capr;
+	uint8_t cr, *p;
 	int l, length, status;
 
 	ctlr = edev->ctlr;
@@ -531,7 +531,7 @@ rtl8139match(Ether* edev, int id)
 }
 
 static struct {
-	char*	name;
+	int8_t*	name;
 	int	id;
 } rtl8139pci[] = {
 	{ "rtl8139",	(0x8139<<16)|0x10EC, },	/* generic */
@@ -547,7 +547,7 @@ rtl8139pnp(Ether* edev)
 	int i, id;
 	Pcidev *p;
 	Ctlr *ctlr;
-	uchar ea[Eaddrlen];
+	uint8_t ea[Eaddrlen];
 
 	/*
 	 * Make a list of all ethernet controllers

@@ -14,11 +14,11 @@
 #include <unistd.h>
 
 int
-system(const char *s)
+system(const int8_t *s)
 {
 	int w, status;
 	pid_t pid;
-	char cmd[30], *oty;
+	int8_t cmd[30], *oty;
 
 	oty = getenv("cputype");
 	if(!oty)

@@ -123,7 +123,7 @@ Cputbootvol(Cdimg *cd)
 void
 Cupdatebootvol(Cdimg *cd)
 {
-	uvlong o;
+	uint64_t o;
 
 	o = Cwoffset(cd);
 	Cwseek(cd, cd->bootcatptr);
@@ -161,7 +161,7 @@ enum {
 void
 Cupdatebootcat(Cdimg *cd)
 {
-	uvlong o;
+	uint64_t o;
 	int n;
 
 	if(cd->bootdirec == nil)
@@ -207,7 +207,7 @@ Cupdatebootcat(Cdimg *cd)
 void
 Cfillpbs(Cdimg *cd)
 {
-	uvlong o;
+	uint64_t o;
 	int n;
 
 	if(cd->bootdirec == nil || cd->loaderdirec == nil)

@@ -10,7 +10,7 @@
 #include	<stdlib.h>
 
 int
-atoi(const char *s)
+atoi(const int8_t *s)
 {
-	return(strtol(s, (char **)0, 10));
+	return(strtol(s, (int8_t **)0, 10));
 }

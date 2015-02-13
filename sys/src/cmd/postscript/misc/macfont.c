@@ -32,10 +32,10 @@
 #define FALSE		0
 #define TRUE		1
 
-char	**argv;
+int8_t	**argv;
 int	argc;
 
-char	*prog_name;
+int8_t	*prog_name;
 
 int	x_stat;
 int	debug = OFF;

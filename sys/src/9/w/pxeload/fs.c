@@ -20,8 +20,8 @@
  *  grab next element from a path, return the pointer to unprocessed portion of
  *  path.
  */
-char *
-nextelem(char *path, char *elem)
+int8_t *
+nextelem(int8_t *path, int8_t *elem)
 {
 	int i;
 
@@ -41,9 +41,9 @@ nextelem(char *path, char *elem)
 }
 
 int
-fswalk(Fs *fs, char *path, File *f)
+fswalk(Fs *fs, int8_t *path, File *f)
 {
-	char element[NAMELEN];
+	int8_t element[NAMELEN];
 
 	*f = fs->root;
 	if(BADPTR(fs->walk))
@@ -65,11 +65,11 @@ fswalk(Fs *fs, char *path, File *f)
  *  boot
  */
 int
-fsboot(Fs *fs, char *path, Boot *b)
+fsboot(Fs *fs, int8_t *path, Boot *b)
 {
 	File file;
-	long n;
-	static char buf[8192];
+	int32_t n;
+	static int8_t buf[8192];
 
 	switch(fswalk(fs, path, &file)){
 	case -1:
@@ -93,7 +93,7 @@ fsboot(Fs *fs, char *path, Boot *b)
 }
 
 int
-fsread(File *file, void *a, long n)
+fsread(File *file, void *a, int32_t n)
 {
 	if(BADPTR(file->fs))
 		panic("bad pointer file->fs in fsread");

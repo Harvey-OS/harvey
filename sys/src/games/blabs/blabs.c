@@ -87,7 +87,7 @@ Image *screen;
 #include "td.bits"
 
 Image*
-eallocimage(Display *d, Rectangle r, ulong chan, int repl, int col)
+eallocimage(Display *d, Rectangle r, uint32_t chan, int repl, int col)
 {
 	Image *i;
 	i = allocimage(d, r, chan, repl, col);
@@ -367,7 +367,7 @@ void
 drawdot(Dot *d)
 {
 	Rectangle r;
-	char buf[10];
+	int8_t buf[10];
 
 	r = d->face->r;
 	r = rectsubpt(r, d->face->r.min);
@@ -624,14 +624,14 @@ upd(Dot *d)
 
 static
 void
-setup(Dot *d, char *who, uchar *face, int n_els)
+setup(Dot *d, int8_t *who, uint8_t *face, int n_els)
 {
 	int	i, j, k, n;
 	int	repl;
-	uchar	mask;
+	uint8_t	mask;
 	int 	nbits, bits;
-	uchar	tmpface[NPJW*NPJW];
-	uchar	tmpmask[NPJW*NPJW];
+	uint8_t	tmpface[NPJW*NPJW];
+	uint8_t	tmpmask[NPJW*NPJW];
 	static	Image	*im;	/* not the global */
 	static	Image	*imask;
 
@@ -732,7 +732,7 @@ msec(void)
 {
 	static int fd;
 	int n;
-	char buf[64];
+	int8_t buf[64];
 
 	if(fd <= 0)
 		fd = open("/dev/msec", OREAD);
@@ -752,7 +752,7 @@ msec(void)
  */
 jmp_buf j;
 static void
-myhandler(void *v, char *s)
+myhandler(void *v, int8_t *s)
 {
 	if(strcmp(s, "interrupt") == 0)
 		notejmp(v, j, -1);

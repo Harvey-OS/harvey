@@ -33,9 +33,9 @@ enum
 	Lother,
 };
 
-char *delim = "$$";
-char *basename;
-char *title;
+int8_t *delim = "$$";
+int8_t *basename;
+int8_t *title;
 int eqnmode;
 
 int 	quiet;
@@ -57,16 +57,16 @@ typedef struct Goobie Goobie;
 typedef struct Goobieif Goobieif;
 struct Goobie
 {
-	char *name;
-	void (*f)(int, char**);
+	int8_t *name;
+	void (*f)(int, int8_t**);
 };
 
-typedef void F(int, char**);
-typedef void Fif(char*, char*);
+typedef void F(int, int8_t**);
+typedef void Fif(int8_t*, int8_t*);
 
 struct Goobieif
 {
-	char *name;
+	int8_t *name;
 	Fif *f;
 };
 
@@ -199,7 +199,7 @@ Goobie gtab[] =
 typedef struct Entity Entity;
 struct Entity
 {
-	char *name;
+	int8_t *name;
 	int value;
 };
 
@@ -386,8 +386,8 @@ Entity entity[] =
 typedef struct Troffspec Troffspec;
 struct Troffspec
 {
-	char *name;
-	char *value;
+	int8_t *name;
+	int8_t *value;
 };
 
 Troffspec tspec[] =
@@ -474,8 +474,8 @@ Troffspec tspec[] =
 typedef struct Font Font;
 struct Font
 {
-	char	*start;
-	char	*end;
+	int8_t	*start;
+	int8_t	*end;
 };
 Font bfont = { "<B>", "</B>" };
 Font ifont = { "<I>", "</I>" };
@@ -488,20 +488,20 @@ typedef struct String String;
 struct String
 {
 	String *next;
-	char *name;
-	char *val;
+	int8_t *name;
+	int8_t *val;
 };
 String *numregs, *strings;
-char *strstack[Maxmstack];
-char *mustfree[Maxmstack];
+int8_t *strstack[Maxmstack];
+int8_t *mustfree[Maxmstack];
 int strsp = -1;
 int elsetop = -1;
 
 typedef struct Mstack Mstack;
 struct Mstack
 {
-	char *ptr;
-	char *argv[Narg+1];
+	int8_t *ptr;
+	int8_t *argv[Narg+1];
 };
 String *macros;
 Mstack mstack[Maxmstack];
@@ -510,7 +510,7 @@ int msp = -1;
 typedef struct Srcstack Srcstack;
 struct Srcstack
 {
-	char	filename[256];
+	int8_t	filename[256];
 	int	fd;
 	int	lno;
 	int	rlno;
@@ -519,7 +519,7 @@ struct Srcstack
 Srcstack sstack[Maxsstack];
 Srcstack *ssp = &sstack[-1];
 
-char token[128];
+int8_t token[128];
 
 void	closel(void);
 void	closefont(void);
@@ -540,7 +540,7 @@ emalloc(uint n)
 
 /* define a string variable */
 void
-dsnr(char *name, char *val, String **l)
+dsnr(int8_t *name, int8_t *val, String **l)
 {
 	String *s;
 
@@ -559,14 +559,14 @@ dsnr(char *name, char *val, String **l)
 }
 
 void
-ds(char *name, char *val)
+ds(int8_t *name, int8_t *val)
 {
 	dsnr(name, val, &strings);
 }
 
 /* look up a defined string */
-char*
-getds(char *name)
+int8_t*
+getds(int8_t *name)
 {
 	String *s;
 
@@ -578,8 +578,8 @@ getds(char *name)
 	return "";
 }
 
-char *
-getnr(char *name)
+int8_t *
+getnr(int8_t *name)
 {
 	String *s;
 
@@ -592,7 +592,7 @@ getnr(char *name)
 }
 
 void
-pushstr(char *p)
+pushstr(int8_t *p)
 {
 	if(p == nil)
 		return;
@@ -603,8 +603,8 @@ pushstr(char *p)
 
 
 /* lookup a defined macro */
-char*
-getmacro(char *name)
+int8_t*
+getmacro(int8_t *name)
 {
 	String *s;
 
@@ -623,7 +623,7 @@ enum
 int lastsrc;
 
 void
-pushsrc(char *name)
+pushsrc(int8_t *name)
 {
 	Dir *d;
 	int fd;
@@ -728,7 +728,7 @@ ungetrune(void)
 
 int vert;
 
-char*
+int8_t*
 changefont(Font *f)
 {
 	token[0] = 0;
@@ -742,7 +742,7 @@ changefont(Font *f)
 	return token;
 }
 
-char*
+int8_t*
 changebackfont(void)
 {
 	token[0] = 0;
@@ -756,11 +756,11 @@ changebackfont(void)
 	return token;
 }
 
-char*
+int8_t*
 changesize(int amount)
 {
 	static int curamount;
-	static char buf[200];
+	static int8_t buf[200];
 	int i;
 
 	buf[0] = 0;
@@ -782,15 +782,15 @@ changesize(int amount)
 }
 
 /* get next logical character.  expand it with escapes */
-char*
+int8_t*
 getnext(void)
 {
 	int r;
 	Entity *e;
 	Troffspec *t;
 	Rune R;
-	char str[4];
-	static char buf[8];
+	int8_t str[4];
+	static int8_t buf[8];
 
 	r = getrune();
 	if(r < 0)
@@ -1069,12 +1069,12 @@ getnext(void)
 }
 
 /* if arg0 is set, read up to (and expand) to the next whitespace, else to the end of line */
-char*
-copyline(char *p, char *e, int arg0)
+int8_t*
+copyline(int8_t *p, int8_t *e, int arg0)
 {
 	int c;
 	Rune r;
-	char *p1;
+	int8_t *p1;
 
 	while((c = getrune()) == ' ' || c == '\t')
 		;
@@ -1115,8 +1115,8 @@ done:
 	return p;
 }
 
-char*
-copyarg(char *p, char *e, int *nullarg)
+int8_t*
+copyarg(int8_t *p, int8_t *e, int *nullarg)
 {
 	int c, quoted, last;
 	Rune r;
@@ -1177,10 +1177,10 @@ done:
 }
 
 int
-parseargs(char *p, char *e, char **argv)
+parseargs(int8_t *p, int8_t *e, int8_t **argv)
 {
 	int argc;
-	char *np;
+	int8_t *np;
 	int nullarg;
 
 	indirective = 1;
@@ -1202,12 +1202,12 @@ parseargs(char *p, char *e, char **argv)
 void
 dodirective(void)
 {
-	char *p, *e;
+	int8_t *p, *e;
 	Goobie *g;
 	Goobieif *gif;
-	char line[Nline], *line1;
+	int8_t line[Nline], *line1;
 	int i, argc;
-	char *argv[Narg];
+	int8_t *argv[Narg];
 	Mstack *m;
 
 	/* read line, translate special bytes */
@@ -1255,9 +1255,9 @@ dodirective(void)
 }
 
 void
-printarg(char *a)
+printarg(int8_t *a)
 {
-	char *e, *p;
+	int8_t *e, *p;
 	
 	e = a + strlen(a);
 	pushstr(a);
@@ -1270,7 +1270,7 @@ printarg(char *a)
 }
 
 void
-printargs(int argc, char **argv)
+printargs(int argc, int8_t **argv)
 {
 	argc--;
 	argv++;
@@ -1321,7 +1321,7 @@ dohanginghead(void)
 void
 doconvert(void)
 {
-	char c, *p;
+	int8_t c, *p;
 	Tm *t;
 
 	pushsrc(nil);
@@ -1408,13 +1408,13 @@ main(int argc, char **argv)
 }
 
 void
-g_notyet(int, char **argv)
+g_notyet(int, int8_t **argv)
 {
 	fprint(2, "ms2html: .%s not yet supported\n", argv[0]);
 }
 
 void
-g_ignore(int, char **argv)
+g_ignore(int, int8_t **argv)
 {
 	if(quiet)
 		return;
@@ -1422,7 +1422,7 @@ g_ignore(int, char **argv)
 }
 
 void
-g_PP(int, char**)
+g_PP(int, int8_t**)
 {
 	dohanginghead();
 	closel();
@@ -1432,7 +1432,7 @@ g_PP(int, char**)
 }
 
 void
-g_LP(int, char**)
+g_LP(int, int8_t**)
 {
 	dohanginghead();
 	closel();
@@ -1468,7 +1468,7 @@ closel(void)
 
 
 void
-g_IP(int argc, char **argv)
+g_IP(int argc, int8_t **argv)
 {
 	dohanginghead();
 	switch(list){
@@ -1517,11 +1517,11 @@ g_IP(int argc, char **argv)
  *  .5i is one <DL><DT><DD>
  */
 void
-g_in(int argc, char **argv)
+g_in(int argc, int8_t **argv)
 {
 	float	f;
 	int	delta, x;
-	char	*p;
+	int8_t	*p;
 
 	f = indent/0.5;
 	delta = f;
@@ -1576,7 +1576,7 @@ g_in(int argc, char **argv)
 }
 
 void
-g_HP(int, char**)
+g_HP(int, int8_t**)
 {
 	switch(list){
 	default:
@@ -1595,7 +1595,7 @@ g_HP(int, char**)
 }
 
 void
-g_SH(int, char**)
+g_SH(int, int8_t**)
 {
 	dohanginghead();
 	dohangingcenter();
@@ -1606,7 +1606,7 @@ g_SH(int, char**)
 }
 
 void
-g_NH(int argc, char **argv)
+g_NH(int argc, int8_t **argv)
 {
 	int i, level;
 
@@ -1637,10 +1637,10 @@ g_NH(int argc, char **argv)
 }
 
 void
-g_TL(int, char**)
+g_TL(int, int8_t**)
 {
-	char *p, *np;
-	char name[128];
+	int8_t *p, *np;
+	int8_t name[128];
 
 	closefont();
 
@@ -1684,7 +1684,7 @@ dohangingcenter(void)
 }
 
 void
-g_AU(int, char**)
+g_AU(int, int8_t**)
 {
 	closel();
 	dohanginghead();
@@ -1720,7 +1720,7 @@ popfont(void)
  *  for 1 args print \fxarg1\fP
  */
 void
-font(Font *f, int argc, char **argv)
+font(Font *f, int argc, int8_t **argv)
 {
 	if(argc == 1){
 		pushfont(nil);
@@ -1745,33 +1745,33 @@ closefont(void)
 }
 
 void
-g_B(int argc, char **argv)
+g_B(int argc, int8_t **argv)
 {
 	font(&bfont, argc, argv);
 }
 
 void
-g_R(int argc, char **argv)
+g_R(int argc, int8_t **argv)
 {
 	font(nil, argc, argv);
 }
 
 void
-g_BI(int argc, char **argv)
+g_BI(int argc, int8_t **argv)
 {
 	font(&bifont, argc, argv);
 }
 
 void
-g_CW(int argc, char **argv)
+g_CW(int argc, int8_t **argv)
 {
 	font(&cwfont, argc, argv);
 }
 
-char*
-lower(char *p)
+int8_t*
+lower(int8_t *p)
 {
-	char *x;
+	int8_t *x;
 
 	for(x = p; *x; x++)
 		if(*x >= 'A' && *x <= 'Z')
@@ -1780,10 +1780,10 @@ lower(char *p)
 }
 
 void
-g_I(int argc, char **argv)
+g_I(int argc, int8_t **argv)
 {
 	int anchor;
-	char *p;
+	int8_t *p;
 
 	anchor = 0;
 	if(argc > 2){
@@ -1802,7 +1802,7 @@ g_I(int argc, char **argv)
 }
 
 void
-g_br(int, char**)
+g_br(int, int8_t**)
 {
 	if(hangingdt){
 		Bprint(&bout, "<dd>");
@@ -1812,7 +1812,7 @@ g_br(int, char**)
 }
 
 void
-g_P1(int, char**)
+g_P1(int, int8_t**)
 {
 	if(example == 0){
 		example = 1;
@@ -1821,7 +1821,7 @@ g_P1(int, char**)
 }
 
 void
-g_P2(int, char**)
+g_P2(int, int8_t**)
 {
 	if(example){
 		example = 0;
@@ -1830,13 +1830,13 @@ g_P2(int, char**)
 }
 
 void
-g_SM(int, char **argv)
+g_SM(int, int8_t **argv)
 {
 	Bprint(&bout, "%s", argv[1]);
 }
 
 void
-g_ft(int argc, char **argv)
+g_ft(int argc, int8_t **argv)
 {
 	if(argc < 2){
 		pushfont(nil);
@@ -1869,7 +1869,7 @@ g_ft(int argc, char **argv)
 }
 
 void
-g_sp(int argc, char **argv)
+g_sp(int argc, int8_t **argv)
 {
 	int n;
 
@@ -1891,7 +1891,7 @@ g_sp(int argc, char **argv)
 }
 
  void
-rm_loop(char *name, String **l)
+rm_loop(int8_t *name, String **l)
 {
 	String *s;
 	for(s = *l; s != nil; s = *l){
@@ -1907,10 +1907,10 @@ rm_loop(char *name, String **l)
 	}
 
 void
-g_rm(int argc, char **argv)
+g_rm(int argc, int8_t **argv)
 {
 	Goobie *g;
-	char *name;
+	int8_t *name;
 	int i;
 
 	for(i = 1; i < argc; i++) {
@@ -1926,7 +1926,7 @@ g_rm(int argc, char **argv)
 	}
 
 void
-g_AB(int, char**)
+g_AB(int, int8_t**)
 {
 	closel();
 	dohangingcenter();
@@ -1934,15 +1934,15 @@ g_AB(int, char**)
 }
 
 void
-g_AE(int, char**)
+g_AE(int, int8_t**)
 {
 	Bprint(&bout, "</DL>\n");
 }
 
 void
-g_FS(int, char **)
+g_FS(int, int8_t **)
 {
-	char *argv[3];
+	int8_t *argv[3];
 
 	argv[0] = "IP";
 	argv[1] = nil;
@@ -1952,7 +1952,7 @@ g_FS(int, char **)
 }
 
 void
-g_FE(int, char **)
+g_FE(int, int8_t **)
 {
 	Bprint(&bout, "</I><DT>&#32;<DD>");
 	closel();
@@ -1960,10 +1960,10 @@ g_FE(int, char **)
 }
 
 void
-g_de(int argc, char **argv)
+g_de(int argc, int8_t **argv)
 {
 	int r;
-	char *p, *cp;
+	int8_t *p, *cp;
 	String *m;
 	int len;
 
@@ -2025,13 +2025,13 @@ g_de(int argc, char **argv)
 }
 
 void
-g_hrule(int, char**)
+g_hrule(int, int8_t**)
 {
 	Bprint(&bout, "<HR>\n");
 }
 
 void
-g_BX(int argc, char **argv)
+g_BX(int argc, int8_t **argv)
 {
 	Bprint(&bout, "<HR>\n");
 	printargs(argc, argv);
@@ -2039,49 +2039,49 @@ g_BX(int argc, char **argv)
 }
 
 void
-g_IH(int, char**)
+g_IH(int, int8_t**)
 {
 	Bprint(&bout, "Bell Laboratories, Naperville, Illinois, 60540\n");
 }
 
 void
-g_MH(int, char**)
+g_MH(int, int8_t**)
 {
 	Bprint(&bout, "Bell Laboratories, Murray Hill, NJ, 07974\n");
 }
 
 void
-g_PY(int, char**)
+g_PY(int, int8_t**)
 {
 	Bprint(&bout, "Bell Laboratories, Piscataway, NJ, 08854\n");
 }
 
 void
-g_HO(int, char**)
+g_HO(int, int8_t**)
 {
 	Bprint(&bout, "Bell Laboratories, Holmdel, NJ, 07733\n");
 }
 
 void
-g_QS(int, char**)
+g_QS(int, int8_t**)
 {
 	Bprint(&bout, "<BLOCKQUOTE>\n");
 }
 
 void
-g_QE(int, char**)
+g_QE(int, int8_t**)
 {
 	Bprint(&bout, "</BLOCKQUOTE>\n");
 }
 
 void
-g_RS(int, char**)
+g_RS(int, int8_t**)
 {
 	Bprint(&bout, "<DL><DD>\n");
 }
 
 void
-g_RE(int, char**)
+g_RE(int, int8_t**)
 {
 	Bprint(&bout, "</DL>\n");
 }
@@ -2089,12 +2089,12 @@ g_RE(int, char**)
 int gif;
 
 void
-g_startgif(int, char **argv)
+g_startgif(int, int8_t **argv)
 {
 	int fd;
 	int pfd[2];
-	char *e, *p;
-	char name[32];
+	int8_t *e, *p;
+	int8_t name[32];
 	Dir *d;
 
 	if(strcmp(argv[0], "EQ") == 0)
@@ -2176,7 +2176,7 @@ g_startgif(int, char **argv)
 }
 
 void
-g_lf(int argc, char **argv)
+g_lf(int argc, int8_t **argv)
 {
 	if(argc > 2)
 		snprint(ssp->filename, sizeof(ssp->filename), argv[2]);
@@ -2185,7 +2185,7 @@ g_lf(int argc, char **argv)
 }
 
 void
-g_so(int argc, char **argv)
+g_so(int argc, int8_t **argv)
 {
 	ssp->lno++;
 	ssp->rlno++;
@@ -2195,11 +2195,11 @@ g_so(int argc, char **argv)
 
 
 void
-g_BP(int argc, char **argv)
+g_BP(int argc, int8_t **argv)
 {
 	int fd;
-	char *p, *ext;
-	char name[32];
+	int8_t *p, *ext;
+	int8_t name[32];
 	Dir *d;
 
 	if(argc < 2)
@@ -2260,7 +2260,7 @@ g_BP(int argc, char **argv)
 
 /* insert straight HTML into output */
 void
-g__H(int argc, char **argv)
+g__H(int argc, int8_t **argv)
 {
 	int i;
 
@@ -2271,7 +2271,7 @@ g__H(int argc, char **argv)
 
 /* HTML page title */
 void
-g__T(int argc, char **argv)
+g__T(int argc, int8_t **argv)
 {
 	if(titleseen)
 		return;
@@ -2283,9 +2283,9 @@ g__T(int argc, char **argv)
 }
 
 void
-g_nr(int argc, char **argv)
+g_nr(int argc, int8_t **argv)
 {
-	char *val;
+	int8_t *val;
 
 	if (argc > 1) {
 		if (argc == 2)
@@ -2304,9 +2304,9 @@ zerodivide(void)
 }
 
 int
-numval(char **pline, int recur)
+numval(int8_t **pline, int recur)
 {
-	char *p;
+	int8_t *p;
 	int neg, x, y;
 
 	x = neg = 0;
@@ -2392,9 +2392,9 @@ numval(char **pline, int recur)
 }
 
 int
-iftest(char *p, char **bp)
+iftest(int8_t *p, int8_t **bp)
 {
-	char *p1;
+	int8_t *p1;
 	int c, neg, rv;
 
 	rv = neg = 0;
@@ -2439,7 +2439,7 @@ iftest(char *p, char **bp)
 }
 
 void
-scanline(char *p, char *e, int wantnl)
+scanline(int8_t *p, int8_t *e, int wantnl)
 {
 	int c;
 	Rune r;
@@ -2466,9 +2466,9 @@ scanline(char *p, char *e, int wantnl)
 }
 
 void
-pushbody(char *line)
+pushbody(int8_t *line)
 {
-	char *b;
+	int8_t *b;
 
 	if (line[0] == '\\' && line[1] == '{' /*}*/ )
 		line += 2;
@@ -2479,7 +2479,7 @@ pushbody(char *line)
 }
 
 void
-skipbody(char *line)
+skipbody(int8_t *line)
 {
 	int c, n;
 
@@ -2499,10 +2499,10 @@ skipbody(char *line)
 }
 
 int
-ifstart(char *line, char *e, char **bp)
+ifstart(int8_t *line, int8_t *e, int8_t **bp)
 {
 	int it;
-	char *b;
+	int8_t *b;
 
 	b = copyline(line, e, 1);
 	ungetrune();
@@ -2513,9 +2513,9 @@ ifstart(char *line, char *e, char **bp)
 }
 
 void
-g_ie(char *line, char *e)
+g_ie(int8_t *line, int8_t *e)
 {
-	char *b;
+	int8_t *b;
 
 	if (elsetop >= Maxif-1) {
 		fprint(2, "ms2html: .ie's too deep\n");
@@ -2528,9 +2528,9 @@ g_ie(char *line, char *e)
 }
 
 void
-g_if(char *line, char *e)
+g_if(int8_t *line, int8_t *e)
 {
-	char *b;
+	int8_t *b;
 
 	if (ifstart(line, e, &b))
 		pushbody(b);
@@ -2539,7 +2539,7 @@ g_if(char *line, char *e)
 }
 
 void
-g_el(char *line, char *e)
+g_el(int8_t *line, int8_t *e)
 {
 	if (elsetop < 0)
 		return;
@@ -2551,9 +2551,9 @@ g_el(char *line, char *e)
 }
 
 void
-g_ig(int argc, char **argv)
+g_ig(int argc, int8_t **argv)
 {
-	char *p, *s;
+	int8_t *p, *s;
 
 	s = "..";
 	if (argc > 1)
@@ -2569,9 +2569,9 @@ g_ig(int argc, char **argv)
 }
 
 void
-g_ds(char *line, char *e)
+g_ds(int8_t *line, int8_t *e)
 {
-	char *b;
+	int8_t *b;
 
 	b = copyline(line, e, 1);
 	if (b > line) {
@@ -2583,10 +2583,10 @@ g_ds(char *line, char *e)
 }
 
 void
-g_as(char *line, char *e)
+g_as(int8_t *line, int8_t *e)
 {
 	String *s;
-	char *b;
+	int8_t *b;
 
 	b = copyline(line, e, 1);
 	if (b == line)
@@ -2608,7 +2608,7 @@ g_as(char *line, char *e)
 }
 
 void
-g_BS(int argc, char **argv)
+g_BS(int argc, int8_t **argv)
 {
 	int i;
 
@@ -2622,7 +2622,7 @@ g_BS(int argc, char **argv)
 }
 
 void
-g_BE(int, char**)
+g_BE(int, int8_t**)
 {
 	if (weBref) {
 		Bprint(&bout, "</a>");
@@ -2631,7 +2631,7 @@ g_BE(int, char**)
 }
 
 void
-g_LB(int argc, char **argv)
+g_LB(int argc, int8_t **argv)
 {
 	if (argc > 1) {
 		if (weBref)
@@ -2641,7 +2641,7 @@ g_LB(int argc, char **argv)
 }
 
 void
-g_RT(int, char**)
+g_RT(int, int8_t**)
 {
 	g_BE(0,nil);
 	dohanginghead();

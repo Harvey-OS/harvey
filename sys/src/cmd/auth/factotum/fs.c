@@ -10,27 +10,27 @@
 #include "dat.h"
 
 int		askforkeys = 1;
-char		*authaddr;
+int8_t		*authaddr;
 int		debug;
 int		doprivate = 1;
 int		gflag;
-char		*owner;
+int8_t		*owner;
 int		kflag;
-char		*mtpt = "/mnt";
+int8_t		*mtpt = "/mnt";
 Keyring	*ring;
-char		*service;
+int8_t		*service;
 int		sflag;
 int		uflag;
 
 extern Srv		fs;
-static void		notifyf(void*, char*);
+static void		notifyf(void*, int8_t*);
 static void		private(void);
 
-char	Easproto[]		= "auth server protocol botch";
-char Ebadarg[]		= "invalid argument";
-char Ebadkey[]		= "bad key";
-char Enegotiation[]	= "negotiation failed, no common protocols or keys";
-char Etoolarge[]	= "rpc too large";
+int8_t	Easproto[]		= "auth server protocol botch";
+int8_t Ebadarg[]		= "invalid argument";
+int8_t Ebadkey[]		= "bad key";
+int8_t Enegotiation[]	= "negotiation failed, no common protocols or keys";
+int8_t Etoolarge[]	= "rpc too large";
 
 Proto*
 prototab[] =
@@ -202,15 +202,15 @@ main(int argc, char **argv)
 	exits(nil);
 }
 
-char *pmsg = "Warning! %s can't protect itself from debugging: %r\n";
-char *smsg = "Warning! %s can't turn off swapping: %r\n";
+int8_t *pmsg = "Warning! %s can't protect itself from debugging: %r\n";
+int8_t *smsg = "Warning! %s can't turn off swapping: %r\n";
 
 /* don't allow other processes to debug us and steal keys */
 static void
 private(void)
 {
 	int fd;
-	char buf[64];
+	int8_t buf[64];
 
 	snprint(buf, sizeof(buf), "#p/%d/ctl", getpid());
 	fd = open(buf, OWRITE);
@@ -226,7 +226,7 @@ private(void)
 }
 
 static void
-notifyf(void*, char *s)
+notifyf(void*, int8_t *s)
 {
 	if(strncmp(s, "interrupt", 9) == 0)
 		noted(NCONT);
@@ -266,9 +266,9 @@ fsattach(Req *r)
 }
 
 static struct {
-	char *name;
+	int8_t *name;
 	int qidpath;
-	ulong perm;
+	uint32_t perm;
 } dirtab[] = {
 	"confirm",	Qconfirm,	0600|DMEXCL,		/* we know this is slot #0 below */
 	"needkey", Qneedkey,	0600|DMEXCL,		/* we know this is slot #1 below */
@@ -282,7 +282,7 @@ int *confirminuse = &inuse[0];
 int *needkeyinuse = &inuse[1];
 
 static void
-fillstat(Dir *dir, char *name, int type, int path, ulong perm)
+fillstat(Dir *dir, int8_t *name, int type, int path, uint32_t perm)
 {
 	dir->name = estrdup(name);
 	dir->uid = estrdup(owner);
@@ -313,12 +313,12 @@ fsdirgen(int n, Dir *dir, void*)
 	return 0;
 }
 
-static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+static int8_t*
+fswalk1(Fid *fid, int8_t *name, Qid *qid)
 {
 	int i;
 
-	switch((ulong)fid->qid.path){
+	switch((uint32_t)fid->qid.path){
 	default:
 		return "cannot happen";
 	case Qroot:
@@ -352,7 +352,7 @@ static void
 fsstat(Req *r)
 {
 	int i;
-	ulong path;
+	uint32_t path;
 
 	path = r->fid->qid.path;
 	if(path == Qroot){
@@ -440,9 +440,10 @@ fsdestroyfid(Fid *fid)
 }
 
 static int
-readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r, Fsstate *fss)
+readlist(int off, int (*gen)(int, int8_t*, uint, Fsstate*), Req *r,
+	 Fsstate *fss)
 {
-	char *a, *ea;
+	int8_t *a, *ea;
 	int n;
 
 	a = r->ofcall.data;
@@ -450,7 +451,7 @@ readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r, Fsstate *fss)
 	for(;;){
 		n = (*gen)(off, a, ea-a, fss);
 		if(n == 0){
-			r->ofcall.count = a - (char*)r->ofcall.data;
+			r->ofcall.count = a - (int8_t*)r->ofcall.data;
 			return off;
 		}
 		a += n;
@@ -462,12 +463,12 @@ enum { Nearend = 2, };			/* at least room for \n and NUL */
 
 /* result in `a', of `n' bytes maximum */
 static int
-keylist(int i, char *a, uint n, Fsstate *fss)
+keylist(int i, int8_t *a, uint n, Fsstate *fss)
 {
 	int wb;
 	Keyinfo ki;
 	Key *k;
-	static char zero[Nearend];
+	static int8_t zero[Nearend];
 
 	k = nil;
 	mkkeyinfo(&ki, fss, nil);
@@ -489,7 +490,7 @@ keylist(int i, char *a, uint n, Fsstate *fss)
 }
 
 static int
-protolist(int i, char *a, uint n, Fsstate *fss)
+protolist(int i, int8_t *a, uint n, Fsstate *fss)
 {
 	USED(fss);
 
@@ -509,7 +510,7 @@ fsread(Req *r)
 	Fsstate *s;
 
 	s = r->fid->aux;
-	switch((ulong)r->fid->qid.path){
+	switch((uint32_t)r->fid->qid.path){
 	default:
 		respond(r, "bug in fsread");
 		break;
@@ -548,9 +549,9 @@ static void
 fswrite(Req *r)
 {
 	int ret;
-	char err[ERRMAX], *s;
+	int8_t err[ERRMAX], *s;
 
-	switch((ulong)r->fid->qid.path){
+	switch((uint32_t)r->fid->qid.path){
 	default:
 		respond(r, "bug in fswrite");
 		break;
@@ -563,7 +564,7 @@ fswrite(Req *r)
 		s = emalloc(r->ifcall.count+1);
 		memmove(s, r->ifcall.data, r->ifcall.count);
 		s[r->ifcall.count] = '\0';
-		switch((ulong)r->fid->qid.path){
+		switch((uint32_t)r->fid->qid.path){
 		default:
 			abort();
 		case Qneedkey:

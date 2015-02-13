@@ -19,13 +19,13 @@
 	which are implemented in sys/src/cmd/ip/httpd/authorize.c */
 
 int
-httpauth(char *name, char *password)
+httpauth(int8_t *name, int8_t *password)
 {
 	int afd;
 	Ticketreq tr;
 	Ticket	t;
-	char key[DESKEYLEN];
-	char buf[512];
+	int8_t key[DESKEYLEN];
+	int8_t buf[512];
 
 	afd = authdial(nil, nil);
 	if(afd < 0)

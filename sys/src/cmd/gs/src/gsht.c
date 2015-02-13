@@ -570,12 +570,13 @@ gx_ht_construct_bits(gx_ht_order * porder)
 	gx_ht_construct_bit(phb, porder->width, phb->offset);
 #ifdef DEBUG
     if (gs_debug_c('H')) {
-	dlprintf1("[H]Halftone order bits 0x%lx:\n", (ulong)porder->bit_data);
+	dlprintf1("[H]Halftone order bits 0x%lx:\n",
+                  (uint32_t)porder->bit_data);
 	for (i = 0, phb = (gx_ht_bit *)porder->bit_data;
 	     i < porder->num_bits;
 	     i++, phb++)
 	    dlprintf3("%4d: %u:0x%lx\n", i, phb->offset,
-		      (ulong) phb->mask);
+		      (uint32_t) phb->mask);
     }
 #endif
 }
@@ -652,7 +653,7 @@ gx_device_halftone_release(gx_device_halftone * pdht, gs_memory_t * mem)
  * A negative value is returned if the color name is not found.
  */
 int
-gs_color_name_component_number(gx_device * dev, const char * pname,
+gs_color_name_component_number(gx_device * dev, const int8_t * pname,
 				int name_size, int halftonetype)
 {
     int num_colorant;
@@ -723,7 +724,7 @@ gs_cname_to_colorant_number(gs_state * pgs, byte * pname, uint name_size,
 {
     gx_device * dev = pgs->device;
 
-    return gs_color_name_component_number(dev, (char *)pname, name_size,
+    return gs_color_name_component_number(dev, (int8_t *)pname, name_size,
 		    halftonetype);
 }
 

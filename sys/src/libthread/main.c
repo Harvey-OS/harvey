@@ -16,7 +16,7 @@ typedef struct Mainarg Mainarg;
 struct Mainarg
 {
 	int	argc;
-	char	**argv;
+	int8_t	**argv;
 };
 
 int	mainstacksize;
@@ -24,16 +24,16 @@ int	_threadnotefd;
 int	_threadpasserpid;
 static jmp_buf _mainjmp;
 static void mainlauncher(void*);
-extern void (*_sysfatal)(char*, va_list);
-extern void (*__assert)(char*);
-extern int (*_dial)(char*, char*, char*, int*);
+extern void (*_sysfatal)(int8_t*, va_list);
+extern void (*__assert)(int8_t*);
+extern int (*_dial)(int8_t*, int8_t*, int8_t*, int*);
 
-extern int _threaddial(char*, char*, char*, int*);
+extern int _threaddial(int8_t*, int8_t*, int8_t*, int*);
 
 static Proc **mainp;
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Mainarg *a;
 	Proc *p;
@@ -72,8 +72,8 @@ mainlauncher(void *arg)
 	threadexits("threadmain");
 }
 
-static char*
-skip(char *p)
+static int8_t*
+skip(int8_t *p)
 {
 	while(*p == ' ')
 		p++;
@@ -82,12 +82,12 @@ skip(char *p)
 	return p;
 }
 
-static long
-_times(long *t)
+static int32_t
+_times(int32_t *t)
 {
-	char b[200], *p;
+	int8_t b[200], *p;
 	int f;
-	ulong r;
+	uint32_t r;
 
 	memset(b, 0, sizeof(b));
 	f = open("/dev/cputime", OREAD|OCEXEC);
@@ -117,7 +117,7 @@ _times(long *t)
 static void
 efork(Execargs *e)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	_threaddebug(DBGEXEC, "_schedexec %s", e->prog);
 	close(e->fd[0]);
@@ -161,7 +161,7 @@ _schedfork(Proc *p)
 void
 _schedexit(Proc *p)
 {
-	char ex[ERRMAX];
+	int8_t ex[ERRMAX];
 	Proc **l;
 
 	lock(&_threadpq.lock);

@@ -40,11 +40,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 struct msg
 {
   struct msg *next;
-  char const *format;
-  char const *arg1;
-  char const *arg2;
-  char const *arg3;
-  char const *arg4;
+  int8_t const *format;
+  int8_t const *arg1;
+  int8_t const *arg2;
+  int8_t const *arg3;
+  int8_t const *arg4;
 };
 
 /* Head of the chain of queues messages.  */
@@ -60,7 +60,7 @@ static struct msg **msg_chain_end = &msg_chain;
 
 void
 perror_with_name (text)
-     char const *text;
+     int8_t const *text;
 {
   int e = errno;
   fprintf (stderr, "%s: ", program_name);
@@ -72,7 +72,7 @@ perror_with_name (text)
 
 void
 pfatal_with_name (text)
-     char const *text;
+     int8_t const *text;
 {
   int e = errno;
   print_message_queue ();
@@ -87,7 +87,7 @@ pfatal_with_name (text)
 
 void
 error (format, arg, arg1)
-     char const *format, *arg, *arg1;
+     int8_t const *format, *arg, *arg1;
 {
   fprintf (stderr, "%s: ", program_name);
   fprintf (stderr, format, arg, arg1);
@@ -98,7 +98,7 @@ error (format, arg, arg1)
 
 void
 fatal (m)
-     char const *m;
+     int8_t const *m;
 {
   print_message_queue ();
   error ("%s", m, 0);
@@ -110,14 +110,14 @@ fatal (m)
 
 void
 message (format, arg1, arg2)
-     char const *format, *arg1, *arg2;
+     int8_t const *format, *arg1, *arg2;
 {
   message5 (format, arg1, arg2, 0, 0);
 }
 
 void
 message5 (format, arg1, arg2, arg3, arg4)
-     char const *format, *arg1, *arg2, *arg3, *arg4;
+     int8_t const *format, *arg1, *arg2, *arg3, *arg4;
 {
   if (paginate_flag)
     {
@@ -157,13 +157,13 @@ print_message_queue ()
    we fork off a `pr' and make OUTFILE a pipe to it.
    `pr' then outputs to our stdout.  */
 
-static char const *current_name0;
-static char const *current_name1;
+static int8_t const *current_name0;
+static int8_t const *current_name1;
 static int current_depth;
 
 void
 setup_output (name0, name1, depth)
-     char const *name0, *name1;
+     int8_t const *name0, *name1;
      int depth;
 {
   current_name0 = name0;
@@ -179,7 +179,7 @@ static pid_t pr_pid;
 void
 begin_output ()
 {
-  char *name;
+  int8_t *name;
 
   if (outfile != 0)
     return;
@@ -233,9 +233,9 @@ begin_output ()
 	    pfatal_with_name ("fdopen");
 	}
 #else /* ! HAVE_FORK */
-      char *command = xmalloc (4 * strlen (name) + strlen (PR_PROGRAM) + 10);
-      char *p;
-      char const *a = name;
+      int8_t *command = xmalloc (4 * strlen (name) + strlen (PR_PROGRAM) + 10);
+      int8_t *p;
+      int8_t const *a = name;
       sprintf (command, "%s -f -h ", PR_PROGRAM);
       p = command + strlen (command);
       SYSTEM_QUOTE_ARG (p, a);
@@ -311,7 +311,7 @@ finish_output ()
 
 int
 line_cmp (s1, s2)
-     char const *s1, *s2;
+     int8_t const *s1, *s2;
 {
   register unsigned char const *t1 = (unsigned char const *) s1;
   register unsigned char const *t2 = (unsigned char const *) s2;
@@ -474,12 +474,12 @@ print_script (script, hunkfun, printfun)
 
 void
 print_1_line (line_flag, line)
-     char const *line_flag;
-     char const * const *line;
+     int8_t const *line_flag;
+     int8_t const * const *line;
 {
-  char const *text = line[0], *limit = line[1]; /* Help the compiler.  */
+  int8_t const *text = line[0], *limit = line[1]; /* Help the compiler.  */
   FILE *out = outfile; /* Help the compiler some more.  */
-  char const *flag_format = 0;
+  int8_t const *flag_format = 0;
 
   /* If -T was specified, use a Tab between the line-flag and the text.
      Otherwise use a Space (as Unix diff does).
@@ -504,15 +504,15 @@ print_1_line (line_flag, line)
 
 void
 output_1_line (text, limit, flag_format, line_flag)
-     char const *text, *limit, *flag_format, *line_flag;
+     int8_t const *text, *limit, *flag_format, *line_flag;
 {
   if (!tab_expand_flag)
-    fwrite (text, sizeof (char), limit - text, outfile);
+    fwrite (text, sizeof (int8_t), limit - text, outfile);
   else
     {
       register FILE *out = outfile;
       register unsigned char c;
-      register char const *t = text;
+      register int8_t const *t = text;
       register unsigned column = 0;
 
       while (t < limit)
@@ -653,7 +653,7 @@ analyze_hunk (hunk, first0, last0, first1, last1, deletes, inserts)
 	if (!ignore_blank_lines_flag || files[0].linbuf[i][0] != '\n')
 	  {
 	    struct regexp_list *r;
-	    char const *line = files[0].linbuf[i];
+	    int8_t const *line = files[0].linbuf[i];
 	    int len = files[0].linbuf[i + 1] - line;
 
 	    for (r = ignore_regexp_list; r; r = r->next)
@@ -669,7 +669,7 @@ analyze_hunk (hunk, first0, last0, first1, last1, deletes, inserts)
 	if (!ignore_blank_lines_flag || files[1].linbuf[i][0] != '\n')
 	  {
 	    struct regexp_list *r;
-	    char const *line = files[1].linbuf[i];
+	    int8_t const *line = files[1].linbuf[i];
 	    int len = files[1].linbuf[i + 1] - line;
 
 	    for (r = ignore_regexp_list; r; r = r->next)
@@ -735,12 +735,12 @@ xrealloc (old, size)
 
 /* Concatenate three strings, returning a newly malloc'd string.  */
 
-char *
+int8_t *
 concat (s1, s2, s3)
-     char const *s1, *s2, *s3;
+     int8_t const *s1, *s2, *s3;
 {
   size_t len = strlen (s1) + strlen (s2) + strlen (s3);
-  char *new = xmalloc (len + 1);
+  int8_t *new = xmalloc (len + 1);
   sprintf (new, "%s%s%s", s1, s2, s3);
   return new;
 }
@@ -748,11 +748,11 @@ concat (s1, s2, s3)
 /* Yield the newly malloc'd pathname
    of the file in DIR whose filename is FILE.  */
 
-char *
+int8_t *
 dir_file_pathname (dir, file)
-     char const *dir, *file;
+     int8_t const *dir, *file;
 {
-  char const *p = filename_lastdirchar (dir);
+  int8_t const *p = filename_lastdirchar (dir);
   return concat (dir, "/" + (p && !p[1]), file);
 }
 

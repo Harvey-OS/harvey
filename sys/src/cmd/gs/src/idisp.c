@@ -74,7 +74,7 @@ display_set_callback(gs_main_instance *minst, display_callback *callback)
      * If it doesn't exist, return
      *  false
      */
-    const char getdisplay[] = 
+    const int8_t getdisplay[] = 
       "devicedict /display known dup { /display finddevice exch } if";
     code = gs_main_run_string(minst, getdisplay, 0, &exit_code, 
 	&minst->error_object);

@@ -13,10 +13,10 @@
 #include <stdio.h>
 #include <libv.h>
 
-char *_progname;
+int8_t *_progname;
 
 void
-_perror(char *s)
+_perror(int8_t *s)
 {
 	fprintf(stderr, "%s: ", _progname);
 	perror(s);

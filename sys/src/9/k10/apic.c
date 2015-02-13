@@ -348,11 +348,11 @@ apictimerenab(void)
 }
 
 void
-apictimerset(uvlong next)
+apictimerset(uint64_t next)
 {
 	Mpl pl;
 	Apic *apic;
-	vlong period;
+	int64_t period;
 
 	apic = &xlapic[(apicrget(Id)>>24) & 0xff];
 

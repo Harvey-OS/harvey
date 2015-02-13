@@ -8,27 +8,27 @@
  */
 
 # include "ldefs.h"
-uchar *
-getl(uchar *p)	/* return next line of input, throw away trailing '\n' */
+uint8_t *
+getl(uint8_t *p)	/* return next line of input, throw away trailing '\n' */
 	/* returns 0 if eof is had immediately */
 {
 	int c;
-	uchar *s, *t;
+	uint8_t *s, *t;
 
 	t = s = p;
 	while(((c = gch()) != 0) && c != '\n')
 		*t++ = c;
 	*t = 0;
-	if(c == 0 && s == t) return((uchar *)0);
+	if(c == 0 && s == t) return((uint8_t *)0);
 	prev = '\n';
 	pres = '\n';
 	return(s);
 }
 
 void
-printerr(char *type, char *fmt, va_list argl)
+printerr(int8_t *type, int8_t *fmt, va_list argl)
 {
-	char buf[1024];
+	int8_t buf[1024];
 
 	if(!eof)fprint(errorf,"%s:%d  ", yyfile, yyline);
 	fprint(errorf,"(%s) ", type);
@@ -38,7 +38,7 @@ printerr(char *type, char *fmt, va_list argl)
 
 
 void
-error(char *s,...)
+error(int8_t *s,...)
 {
 	va_list argl;
 
@@ -60,7 +60,7 @@ error(char *s,...)
 }
 
 void
-warning(char *s,...)
+warning(int8_t *s,...)
 {
 	va_list argl;
 
@@ -165,12 +165,12 @@ usescape(int c)
 }
 
 int
-lookup(uchar *s, uchar **t)
+lookup(uint8_t *s, uint8_t **t)
 {
 	int i;
 	i = 0;
 	while(*t){
-		if(strcmp((char *)s, *(char **)t) == 0)
+		if(strcmp((int8_t *)s, *(int8_t **)t) == 0)
 			return(i);
 		i++;
 		t++;
@@ -183,7 +183,7 @@ cpyact(void)
 { /* copy C action to the next ; or closing } */
 	int brac, c, mth;
 	int savline, sw;
-	char *savfile;
+	int8_t *savfile;
 
 	brac = 0;
 	sw = TRUE;
@@ -433,12 +433,12 @@ munputc(int p)
 }
 
 void
-munputs(uchar *p)
+munputs(uint8_t *p)
 {
 	int i,j;
 	*pushptr++ = peek;
 	peek = p[0];
-	i = strlen((char*)p);
+	i = strlen((int8_t*)p);
 	for(j = i-1; j>=1; j--)
 		*pushptr++ = p[j];
 	if(pushptr >= pushc+TOKENSIZE)
@@ -512,7 +512,7 @@ allprint(int c)
 }
 
 void
-strpt(uchar *s)
+strpt(uint8_t *s)
 {
 	charc = 0;
 	while(*s){
@@ -555,7 +555,7 @@ void
 treedump(void)
 {
 	int t;
-	uchar *p;
+	uint8_t *p;
 	print("treedump %d nodes:\n",tptr);
 	for(t=0;t<tptr;t++){
 		print("%4d ",t);
@@ -613,7 +613,7 @@ treedump(void)
 				print("new %d %d",left[t],right[t]);
 				break;
 			case RSCON:
-				p = (uchar *)right[t];
+				p = (uint8_t *)right[t];
 				print("start %s",sname[*p++-1]);
 				while(*p)
 					print(", %s",sname[*p++-1]);

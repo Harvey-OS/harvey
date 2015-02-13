@@ -230,7 +230,7 @@ png_malloc_default(png_structp png_ptr, png_uint_32 size)
             hptr = (png_byte huge *)table;
             if ((png_size_t)hptr & 0xf)
             {
-               hptr = (png_byte huge *)((long)(hptr) & 0xfffffff0L);
+               hptr = (png_byte huge *)((int32_t)(hptr) & 0xfffffff0L);
                hptr = hptr + 16L;  /* "hptr += 16L" fails on Turbo C++ 3.0 */
             }
             for (i = 0; i < num_blocks; i++)

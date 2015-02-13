@@ -15,7 +15,7 @@
  * Integer sine and cosine for integral degree argument.
  * Tables computed by (sin,cos)(PI*d/180).
  */
-static short sinus[91] = {
+static int16_t sinus[91] = {
 	0,	/* 0 */
 	18,	/* 1 */
 	36,	/* 2 */
@@ -113,7 +113,7 @@ void
 icossin(int deg, int *cosp, int *sinp)
 {
 	int sinsign, cossign;
-	short *stp, *ctp;
+	int16_t *stp, *ctp;
 
 	deg %= 360;
 	if(deg < 0)

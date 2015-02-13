@@ -35,7 +35,7 @@ look3(Text *t, uint q0, uint q1, int external)
 	uint p;
 	Plumbmsg *m;
 	Runestr dir;
-	char buf[32];
+	int8_t buf[32];
 
 	ct = seltext;
 	if(ct == nil)
@@ -181,7 +181,7 @@ void
 plumblook(Plumbmsg *m)
 {
 	Expand e;
-	char *addr;
+	int8_t *addr;
 
 	if(m->ndata >= BUFSIZE){
 		warning(nil, "insanely long file name (%d bytes) in plumb message (%.32s...)\n", m->ndata, m->data);
@@ -214,7 +214,7 @@ plumbshow(Plumbmsg *m)
 	Rune rb[256], *r;
 	int nb, nr;
 	Runestr rs;
-	char *name, *p, namebuf[16];
+	int8_t *name, *p, namebuf[16];
 
 	w = makenewwindow(nil);
 	name = plumblookup(m->attr, "filename");
@@ -332,7 +332,7 @@ isfilec(Rune r)
 Runestr
 cleanrname(Runestr rs)
 {
-	char *s;
+	int8_t *s;
 	int nb, nulls;
 
 	s = runetobyte(rs.r, rs.nr);
@@ -346,7 +346,7 @@ Runestr
 includefile(Rune *dir, Rune *file, int nfile)
 {
 	int m, n;
-	char *a;
+	int8_t *a;
 	Rune *r;
 
 	m = runestrlen(dir);
@@ -370,7 +370,7 @@ Runestr
 includename(Text *t, Rune *r, int n)
 {
 	Window *w;
-	char buf[128];
+	int8_t buf[128];
 	Runestr file;
 	int i;
 

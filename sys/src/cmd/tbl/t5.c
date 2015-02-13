@@ -50,7 +50,7 @@ gettbl(void)
 			nlin++;
 			nslin++;
 			fullbot[nlin] = 0;
-			instead[nlin] = (char *) 0;
+			instead[nlin] = (int8_t *) 0;
 		}
 		table[nlin] = (struct colstr *) alocv((ncol + 2) * sizeof(table[0][0]));
 		if (cstore[1] == 0)
@@ -70,7 +70,7 @@ gettbl(void)
 			ch = 1;
 			if (match(cstore, "T{")) { /* text follows */
 				table[nlin][icol].col = 
-				    (char *)gettext(cstore, nlin, icol,
+				    (int8_t *)gettext(cstore, nlin, icol,
 				    font[icol][stynum[nlin]],
 				    csize[icol][stynum[nlin]]);
 			} else
@@ -149,7 +149,7 @@ void
 permute(void)
 {
 	int	irow, jcol, is;
-	char	*start, *strig;
+	int8_t	*start, *strig;
 
 	for (jcol = 0; jcol < ncol; jcol++) {
 		for (irow = 1; irow < nlin; irow++) {
@@ -194,7 +194,7 @@ vspand(int ir, int ij, int ifform)
 
 
 int
-vspen(char *s)
+vspen(int8_t *s)
 {
 	if (s == 0) 
 		return(0);

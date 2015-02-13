@@ -76,8 +76,8 @@ USA.  */
 int
 getopt_long (argc, argv, options, long_options, opt_index)
      int argc;
-     char *const *argv;
-     const char *options;
+     int8_t *const *argv;
+     const int8_t *options;
      const struct option *long_options;
      int *opt_index;
 {
@@ -92,8 +92,8 @@ getopt_long (argc, argv, options, long_options, opt_index)
 int
 getopt_long_only (argc, argv, options, long_options, opt_index)
      int argc;
-     char *const *argv;
-     const char *options;
+     int8_t *const *argv;
+     const int8_t *options;
      const struct option *long_options;
      int *opt_index;
 {
@@ -110,7 +110,7 @@ getopt_long_only (argc, argv, options, long_options, opt_index)
 int
 main (argc, argv)
      int argc;
-     char **argv;
+     int8_t **argv;
 {
   int c;
   int digit_optind = 0;

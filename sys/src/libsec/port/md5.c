@@ -36,17 +36,17 @@
  *	documentation and/or software.
  */
 
-static void encode(uchar*, u32int*, ulong);
+static void encode(uint8_t*, u32int*, uint32_t);
 
-extern void _md5block(uchar*, ulong, u32int*);
+extern void _md5block(uint8_t*, uint32_t, u32int*);
 
 MD5state*
-md5(uchar *p, ulong len, uchar *digest, MD5state *s)
+md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
 {
 	u32int x[16];
-	uchar buf[128];
+	uint8_t buf[128];
 	int i;
-	uchar *e;
+	uint8_t *e;
 
 	if(s == nil){
 		s = malloc(sizeof(*s));
@@ -141,10 +141,10 @@ md5(uchar *p, ulong len, uchar *digest, MD5state *s)
  *	a multiple of 4.
  */
 static void
-encode(uchar *output, u32int *input, ulong len)
+encode(uint8_t *output, u32int *input, uint32_t len)
 {
 	u32int x;
-	uchar *e;
+	uint8_t *e;
 
 	for(e = output + len; output < e;) {
 		x = *input++;
@@ -156,7 +156,8 @@ encode(uchar *output, u32int *input, ulong len)
 }
 
 DigestState*
-hmac_md5(uchar *p, ulong len, uchar *key, ulong klen, uchar *digest,
+hmac_md5(uint8_t *p, uint32_t len, uint8_t *key, uint32_t klen,
+	 uint8_t *digest,
 	DigestState *s)
 {
 	return hmac_x(p, len, key, klen, digest, s, md5, MD5dlen);

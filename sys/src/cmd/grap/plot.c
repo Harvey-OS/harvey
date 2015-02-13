@@ -52,7 +52,7 @@ char *xyname(Point pt)	/* generate xy name macro for point p */
 	return buf;	/* WATCH IT:  static */
 }
 
-void pic(char *s)	/* fire out pic stuff directly */
+void pic(int8_t *s)	/* fire out pic stuff directly */
 {
 	while (*s == ' ')
 		s++;
@@ -66,7 +66,7 @@ void numlist(void)	/* print numbers in default way */
 	Obj *p;
 	Point pt;
 	int i;
-	static char *spot = "\\(bu";
+	static int8_t *spot = "\\(bu";
 	Attr *ap;
 
 	p = pt.obj = lookup(curr_coord, 1);
@@ -96,9 +96,9 @@ void plot(Attr *sl, Point pt)	/* put stringlist sl at point pt */
 	freeattr(sl);
 }
 
-void plotnum(double f, char *fmt, Point pt)	/* plot value f at point */
+void plotnum(double f, int8_t *fmt, Point pt)	/* plot value f at point */
 {
-	char buf[100];
+	int8_t buf[100];
 
 	if (fmt) {
 		sprintf(buf, fmt, f);
@@ -111,7 +111,7 @@ void plotnum(double f, char *fmt, Point pt)	/* plot value f at point */
 	range(pt);
 }
 
-void drawdesc(int type, Obj *p, Attr *desc, char *s)	/* set line description for p */
+void drawdesc(int type, Obj *p, Attr *desc, int8_t *s)	/* set line description for p */
 {
 	p->attr = desc;
 	p->attr->sval = s;
@@ -123,7 +123,7 @@ void drawdesc(int type, Obj *p, Attr *desc, char *s)	/* set line description for
 
 void next(Obj *p, Point pt, Attr *desc)	/* add component to a path */
 {
-	char *s;
+	int8_t *s;
 
 	if (p->first == 0) {
 		p->first++;

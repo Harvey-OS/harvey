@@ -16,13 +16,13 @@
 void	usage(void);
 void	put(int);
 void	putn(int, int);
-void	puttext(char *);
-void	putnum(char *);
-int	btoi(char *);
+void	puttext(int8_t *);
+void	putnum(int8_t *);
+int	btoi(int8_t *);
 int	value(int, int);
-int	isnum(char *);
+int	isnum(int8_t *);
 
-char *str[256]={
+int8_t *str[256]={
 	"nul",	"soh",	"stx",	"etx",	"eot",	"enq",	"ack",	"bel",
 	"bs ",	"ht ",	"nl ",	"vt ",	"np ",	"cr ",	"so ",	"si ",
 	"dle",	"dc1",	"dc2",	"dc3",	"dc4",	"nak",	"syn",	"etb",
@@ -57,7 +57,7 @@ char *str[256]={
 	" ø ",	" ù ",	" ú ",	" û ",	" ü ",	" ý ",	" þ ",	" ÿ "
 };
 
-char Ncol[]={
+int8_t Ncol[]={
     0,0,7,5,4,4,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
 };
 
@@ -131,7 +131,7 @@ put(int i)
 	putn(i, ncol);
 	Bprint(&bin, " %s", str[i]);
 }
-char dig[]="0123456789abcdefghijklmnopqrstuvwxyz";
+int8_t dig[]="0123456789abcdefghijklmnopqrstuvwxyz";
 void
 putn(int n, int ndig)
 {
@@ -141,7 +141,7 @@ putn(int n, int ndig)
 	Bputc(&bin, dig[n%base]);
 }
 void
-puttext(char *s)
+puttext(int8_t *s)
 {
 	int n;
 	n=btoi(s)&0377;
@@ -151,7 +151,7 @@ puttext(char *s)
 		Bprint(&bin, "%s\n", str[n]);
 }
 void
-putnum(char *s)
+putnum(int8_t *s)
 {
 	while(*s){
 		putn(*s++&0377, ncol);
@@ -159,7 +159,7 @@ putnum(char *s)
 	}
 }
 int
-btoi(char *s)
+btoi(int8_t *s)
 {
 	int n;
 	n=0;
@@ -170,7 +170,7 @@ btoi(char *s)
 int
 value(int c, int f)
 {
-	char *s;
+	int8_t *s;
 	for(s=dig; s<dig+base; s++)
 		if(*s==c)
 			return(s-dig);
@@ -181,7 +181,7 @@ value(int c, int f)
 	return 0;	/* to keep ken happy */
 }
 int
-isnum(char *s)
+isnum(int8_t *s)
 {
 	while(*s)
 		if(value(*s++, 1)==-1)

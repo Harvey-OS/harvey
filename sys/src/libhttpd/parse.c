@@ -34,41 +34,41 @@ struct Hlex
 	int	tok;
 	int	eoh;
 	int	eol;			/* end of header line encountered? */
-	uchar	*hstart;		/* start of header */
+	uint8_t	*hstart;		/* start of header */
 	jmp_buf	jmp;			/* jmp here to parse header */
-	char	wordval[HMaxWord];
+	int8_t	wordval[HMaxWord];
 	HConnect *c;
 };
 
 struct MimeHead
 {
-	char	*name;
-	void	(*parse)(Hlex*, char*);
-	uchar	seen;
-	uchar	ignore;
+	int8_t	*name;
+	void	(*parse)(Hlex*, int8_t*);
+	uint8_t	seen;
+	uint8_t	ignore;
 };
 
-static void	mimeaccept(Hlex*, char*);
-static void	mimeacceptchar(Hlex*, char*);
-static void	mimeacceptenc(Hlex*, char*);
-static void	mimeacceptlang(Hlex*, char*);
-static void	mimeagent(Hlex*, char*);
-static void	mimeauthorization(Hlex*, char*);
-static void	mimeconnection(Hlex*, char*);
-static void	mimecontlen(Hlex*, char*);
-static void	mimecookie(Hlex*, char*);
-static void	mimeexpect(Hlex*, char*);
-static void	mimefresh(Hlex*, char*);
-static void	mimefrom(Hlex*, char*);
-static void	mimehost(Hlex*, char*);
-static void	mimeifrange(Hlex*, char*);
-static void	mimeignore(Hlex*, char*);
-static void	mimematch(Hlex*, char*);
-static void	mimemodified(Hlex*, char*);
-static void	mimenomatch(Hlex*, char*);
-static void	mimerange(Hlex*, char*);
-static void	mimetransenc(Hlex*, char*);
-static void	mimeunmodified(Hlex*, char*);
+static void	mimeaccept(Hlex*, int8_t*);
+static void	mimeacceptchar(Hlex*, int8_t*);
+static void	mimeacceptenc(Hlex*, int8_t*);
+static void	mimeacceptlang(Hlex*, int8_t*);
+static void	mimeagent(Hlex*, int8_t*);
+static void	mimeauthorization(Hlex*, int8_t*);
+static void	mimeconnection(Hlex*, int8_t*);
+static void	mimecontlen(Hlex*, int8_t*);
+static void	mimecookie(Hlex*, int8_t*);
+static void	mimeexpect(Hlex*, int8_t*);
+static void	mimefresh(Hlex*, int8_t*);
+static void	mimefrom(Hlex*, int8_t*);
+static void	mimehost(Hlex*, int8_t*);
+static void	mimeifrange(Hlex*, int8_t*);
+static void	mimeignore(Hlex*, int8_t*);
+static void	mimematch(Hlex*, int8_t*);
+static void	mimemodified(Hlex*, int8_t*);
+static void	mimenomatch(Hlex*, int8_t*);
+static void	mimerange(Hlex*, int8_t*);
+static void	mimetransenc(Hlex*, int8_t*);
+static void	mimeunmodified(Hlex*, int8_t*);
 
 /*
  * headers seen also include
@@ -103,20 +103,20 @@ static MimeHead	mimehead[] =
 	{"user-agent",		mimeagent},
 };
 
-char*		hmydomain;
-char*		hversion = "HTTP/1.1";
+int8_t*		hmydomain;
+int8_t*		hversion = "HTTP/1.1";
 
 static	void	lexhead(Hlex*);
-static	void	parsejump(Hlex*, char*);
+static	void	parsejump(Hlex*, int8_t*);
 static	int	getc(Hlex*);
 static	void	ungetc(Hlex*);
 static	int	wordcr(Hlex*);
 static	int	wordnl(Hlex*);
-static	void	word(Hlex*, char*);
+static	void	word(Hlex*, int8_t*);
 static	int	lex1(Hlex*, int);
 static	int	lex(Hlex*);
 static	int	lexbase64(Hlex*);
-static	ulong	digtoul(char *s, char **e);
+static	uint32_t	digtoul(int8_t *s, int8_t **e);
 
 /*
  * flush and clean up junk from a request
@@ -145,9 +145,9 @@ hreqcleanup(HConnect *c)
  * restarts parsing if necessary.
  */
 static void
-mimeconnection(Hlex *h, char *)
+mimeconnection(Hlex *h, int8_t *)
 {
-	char *u, *p;
+	int8_t *u, *p;
 	int reparse, i;
 
 	reparse = 0;
@@ -259,7 +259,7 @@ static HSPairs*
 mimeparams(Hlex *h)
 {
 	HSPairs *p;
-	char *s;
+	int8_t *s;
 
 	p = nil;
 	for(;;){
@@ -304,9 +304,9 @@ breakout:;
  * parse a list of acceptable types, encodings, languages, etc.
  */
 static HContent*
-mimeok(Hlex *h, char *name, int multipart, HContent *head)
+mimeok(Hlex *h, int8_t *name, int multipart, HContent *head)
 {
-	char *generic, *specific, *s;
+	int8_t *generic, *specific, *s;
 	float v;
 
 	/*
@@ -425,8 +425,8 @@ static HRange*
 mimeranges(Hlex *h, HRange *head)
 {
 	HRange *r, *rh, *tail;
-	char *w;
-	ulong start, stop;
+	int8_t *w;
+	uint32_t start, stop;
 	int suf;
 
 	if(lex(h) != Word || strcmp(h->wordval, "bytes") != 0 || lex(h) != '=')
@@ -491,51 +491,51 @@ breakout:;
 }
 
 static void
-mimeaccept(Hlex *h, char *name)
+mimeaccept(Hlex *h, int8_t *name)
 {
 	h->c->head.oktype = mimeok(h, name, 1, h->c->head.oktype);
 }
 
 static void
-mimeacceptchar(Hlex *h, char *name)
+mimeacceptchar(Hlex *h, int8_t *name)
 {
 	h->c->head.okchar = mimeok(h, name, 0, h->c->head.okchar);
 }
 
 static void
-mimeacceptenc(Hlex *h, char *name)
+mimeacceptenc(Hlex *h, int8_t *name)
 {
 	h->c->head.okencode = mimeok(h, name, 0, h->c->head.okencode);
 }
 
 static void
-mimeacceptlang(Hlex *h, char *name)
+mimeacceptlang(Hlex *h, int8_t *name)
 {
 	h->c->head.oklang = mimeok(h, name, 0, h->c->head.oklang);
 }
 
 static void
-mimemodified(Hlex *h, char *)
+mimemodified(Hlex *h, int8_t *)
 {
 	lexhead(h);
 	h->c->head.ifmodsince = hdate2sec(h->wordval);
 }
 
 static void
-mimeunmodified(Hlex *h, char *)
+mimeunmodified(Hlex *h, int8_t *)
 {
 	lexhead(h);
 	h->c->head.ifunmodsince = hdate2sec(h->wordval);
 }
 
 static void
-mimematch(Hlex *h, char *)
+mimematch(Hlex *h, int8_t *)
 {
 	h->c->head.ifmatch = mimeetag(h, h->c->head.ifmatch);
 }
 
 static void
-mimenomatch(Hlex *h, char *)
+mimenomatch(Hlex *h, int8_t *)
 {
 	h->c->head.ifnomatch = mimeetag(h, h->c->head.ifnomatch);
 }
@@ -544,7 +544,7 @@ mimenomatch(Hlex *h, char *)
  * argument is either etag or date
  */
 static void
-mimeifrange(Hlex *h, char *)
+mimeifrange(Hlex *h, int8_t *)
 {
 	int c, d, et;
 
@@ -570,7 +570,7 @@ mimeifrange(Hlex *h, char *)
 }
 
 static void
-mimerange(Hlex *h, char *)
+mimerange(Hlex *h, int8_t *)
 {
 	h->c->head.range = mimeranges(h, h->c->head.range);
 }
@@ -579,9 +579,9 @@ mimerange(Hlex *h, char *)
  * parse it like cookies
  */
 static void
-authdigest(Hlex *h, char *)
+authdigest(Hlex *h, int8_t *)
 {
-	char *s;
+	int8_t *s;
 	HSPairs *p;
 
 	p = nil;
@@ -608,9 +608,9 @@ breakout:
  * username ":" password
  */
 static void
-authbasic(Hlex *h, char *)
+authbasic(Hlex *h, int8_t *)
 {
-	char *up, *p;
+	int8_t *up, *p;
 	int n;
 
 	n = lexbase64(h);
@@ -631,7 +631,7 @@ authbasic(Hlex *h, char *)
 	h->c->hpos[-1] = '=';
 
 	up = halloc(h->c, n + 1);
-	n = dec64((uchar*)up, n, h->wordval, n);
+	n = dec64((uint8_t*)up, n, h->wordval, n);
 	up[n] = '\0';
 	p = strchr(up, ':');
 	if(p != nil){
@@ -645,7 +645,7 @@ authbasic(Hlex *h, char *)
  * "Authorization" ":" "Basic" | "Digest" ...
  */
 static void
-mimeauthorization(Hlex *h, char *)
+mimeauthorization(Hlex *h, int8_t *)
 {
 	int i;
 	static MimeHead authparser[] = {
@@ -664,22 +664,22 @@ mimeauthorization(Hlex *h, char *)
 }
 
 static void
-mimeagent(Hlex *h, char *)
+mimeagent(Hlex *h, int8_t *)
 {
 	lexhead(h);
 	h->c->head.client = hstrdup(h->c, h->wordval);
 }
 
 static void
-mimefrom(Hlex *h, char *)
+mimefrom(Hlex *h, int8_t *)
 {
 	lexhead(h);
 }
 
 static void
-mimehost(Hlex *h, char *)
+mimehost(Hlex *h, int8_t *)
 {
-	char *hd;
+	int8_t *hd;
 
 	lexhead(h);
 	for(hd = h->wordval; *hd == ' ' || *hd == '\t'; hd++)
@@ -692,10 +692,10 @@ mimehost(Hlex *h, char *)
  * "content-length" ":" digits
  */
 static void
-mimecontlen(Hlex *h, char *)
+mimecontlen(Hlex *h, int8_t *)
 {
-	char *e;
-	ulong v;
+	int8_t *e;
+	uint32_t v;
 
 	if(lex(h) != Word)
 		return;
@@ -714,7 +714,7 @@ mimecontlen(Hlex *h, char *)
  * for now, we merely parse "100-continue" or anything else.
  */
 static void
-mimeexpect(Hlex *h, char *)
+mimeexpect(Hlex *h, int8_t *)
 {
 	if(lex(h) != Word || cistrcmp(h->wordval, "100-continue") != 0 || lex(h) != '\n')
 		h->c->head.expectother = 1;
@@ -722,15 +722,15 @@ mimeexpect(Hlex *h, char *)
 }
 
 static void
-mimetransenc(Hlex *h, char *)
+mimetransenc(Hlex *h, int8_t *)
 {
 	h->c->head.transenc = mimehfields(h);
 }
 
 static void
-mimecookie(Hlex *h, char *)
+mimecookie(Hlex *h, int8_t *)
 {
-	char *s;
+	int8_t *s;
 	HSPairs *p;
 
 	p = nil;
@@ -749,9 +749,9 @@ breakout:
 }
 
 static void
-mimefresh(Hlex *h, char *)
+mimefresh(Hlex *h, int8_t *)
 {
-	char *s;
+	int8_t *s;
 
 	lexhead(h);
 	for(s = h->wordval; *s && (*s==' ' || *s=='\t'); s++)
@@ -763,13 +763,13 @@ mimefresh(Hlex *h, char *)
 }
 
 static void
-mimeignore(Hlex *h, char *)
+mimeignore(Hlex *h, int8_t *)
 {
 	lexhead(h);
 }
 
 static void
-parsejump(Hlex *h, char *k)
+parsejump(Hlex *h, int8_t *k)
 {
 	int l, r, m;
 
@@ -952,7 +952,7 @@ lexhead(Hlex *h)
 }
 
 static void
-word(Hlex *h, char *stop)
+word(Hlex *h, int8_t *stop)
 {
 	int c, n;
 
@@ -1022,10 +1022,10 @@ ungetc(Hlex *h)
 	h->c->hpos--;
 }
 
-static ulong
-digtoul(char *s, char **e)
+static uint32_t
+digtoul(int8_t *s, int8_t **e)
 {
-	ulong v;
+	uint32_t v;
 	int c, ovfl;
 
 	v = 0;
@@ -1054,10 +1054,10 @@ http11(HConnect *c)
 	return c->req.vermaj > 1 || c->req.vermaj == 1 && c->req.vermin > 0;
 }
 
-char*
+int8_t*
 hmkmimeboundary(HConnect *c)
 {
-	char buf[32];
+	int8_t buf[32];
 	int i;
 
 	srand((time(0)<<16)|getpid());
@@ -1069,7 +1069,7 @@ hmkmimeboundary(HConnect *c)
 }
 
 HSPairs*
-hmkspairs(HConnect *c, char *s, char *t, HSPairs *next)
+hmkspairs(HConnect *c, int8_t *s, int8_t *t, HSPairs *next)
 {
 	HSPairs *sp;
 
@@ -1095,7 +1095,7 @@ hrevspairs(HSPairs *sp)
 }
 
 HFields*
-hmkhfields(HConnect *c, char *s, HSPairs *p, HFields *next)
+hmkhfields(HConnect *c, int8_t *s, HSPairs *p, HFields *next)
 {
 	HFields *hf;
 
@@ -1121,7 +1121,7 @@ hrevhfields(HFields *hf)
 }
 
 HContent*
-hmkcontent(HConnect *c, char *generic, char *specific, HContent *next)
+hmkcontent(HConnect *c, int8_t *generic, int8_t *specific, HContent *next)
 {
 	HContent *ct;
 

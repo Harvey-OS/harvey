@@ -20,7 +20,7 @@ fmtzbinit(Fmt *f, ZBlock *b)
 #endif
 	f->start = b->data;
 	f->to = f->start;
-	f->stop = (char*)f->start + b->len;
+	f->stop = (int8_t*)f->start + b->len;
 }
 
 #define ROUNDUP(p, n) ((void*)(((uintptr)(p)+(n)-1)&~(uintptr)((n)-1)))
@@ -28,12 +28,12 @@ fmtzbinit(Fmt *f, ZBlock *b)
 enum {
 	OverflowCheck = 32
 };
-static char zmagic[] = "1234567890abcdefghijklmnopqrstuvxyz";
+static int8_t zmagic[] = "1234567890abcdefghijklmnopqrstuvxyz";
 
 ZBlock *
 alloczblock(u32int size, int zeroed, uint blocksize)
 {
-	uchar *p, *data;
+	uint8_t *p, *data;
 	ZBlock *b;
 	static ZBlock z;
 	int n;

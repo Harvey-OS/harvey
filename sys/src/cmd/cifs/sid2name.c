@@ -16,9 +16,9 @@
 #include "cifs.h"
 
 struct {		/* Well known security IDs */
-	char	*name;
-	char	*auth;
-	char	*rid;
+	int8_t	*name;
+	int8_t	*auth;
+	int8_t	*rid;
 } known[] = {
 	/* default local users */
 	{ "lu.dialup",			"S-1-5-1",	nil },
@@ -79,11 +79,11 @@ struct {		/* Well known security IDs */
 
 };
 
-static char *
-sid2name(char *sid)
+static int8_t *
+sid2name(int8_t *sid)
 {
 	int i;
-	char *rid;
+	int8_t *rid;
 
 	if(sid == nil || (rid = strrchr(sid, '-')) == nil || *++rid == 0)
 		return estrdup9p("-");
@@ -102,10 +102,10 @@ sid2name(char *sid)
 }
 
 void
-upd_names(Session *s, Share *sp, char *path, Dir *d)
+upd_names(Session *s, Share *sp, int8_t *path, Dir *d)
 {
 	int fh, result;
-	char *usid, *gsid;
+	int8_t *usid, *gsid;
 	FInfo fi;
 
 	if(d->uid)

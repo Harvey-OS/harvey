@@ -33,10 +33,10 @@ Lock pglock;
 typedef struct	Page	Page;
 struct Page {	/* cached memory contents */
 	Page *link;
-	ulong len;
-	ulong addr;
+	uint32_t len;
+	uint32_t addr;
 	int count;
-	uchar val[Readlen];
+	uint8_t val[Readlen];
 };
 
 Page *pgtab[NHASH];
@@ -68,13 +68,13 @@ newpg(void)
 
 #define PHIINV 0.61803398874989484820
 uint
-ahash(ulong addr)
+ahash(uint32_t addr)
 {
 	return (uint)floor(NHASH*fmod(addr*PHIINV, 1.0));
 }
 
 int
-lookup(ulong addr, uchar *val, ulong count)
+lookup(uint32_t addr, uint8_t *val, uint32_t count)
 {
 	Page *p;
 
@@ -91,7 +91,7 @@ lookup(ulong addr, uchar *val, ulong count)
 }
 
 void
-insert(ulong addr, uchar *val, int count)
+insert(uint32_t addr, uint8_t *val, int count)
 {
 	Page *p;
 	uint h;
@@ -143,10 +143,10 @@ enum
 int	textfd;
 int	rfd;
 Biobuf	rfb;
-char*	portname = "/dev/eia0";
-char*	textfile = "/386/9pc";
-char*	procname = "1";
-char*	srvname;
+int8_t*	portname = "/dev/eia0";
+int8_t*	textfile = "/386/9pc";
+int8_t*	procname = "1";
+int8_t*	srvname;
 Channel* rchan;
 
 void
@@ -157,7 +157,7 @@ usage(void)
 }
 
 void
-noalarm(void*, char *msg)
+noalarm(void*, int8_t *msg)
 {
 	if(strstr(msg, "alarm"))
 		noted(NCONT);
@@ -171,10 +171,10 @@ void
 eiaread(void*)
 {
 	Req *r;
-	char *p;
-	uchar *data;
-	char err[ERRMAX];
-	char buf[1000];
+	int8_t *p;
+	uint8_t *data;
+	int8_t err[ERRMAX];
+	int8_t buf[1000];
 	int i, tries;
 
 	notify(noalarm);
@@ -183,17 +183,20 @@ eiaread(void*)
 		if(r->ifcall.count > Readlen)
 			r->ifcall.count = Readlen;
 		r->ofcall.count = r->ifcall.count;
-		if(r->type == Tread && lookup(r->ifcall.offset, (uchar*)r->ofcall.data, r->ofcall.count)){
+		if(r->type == Tread && lookup(r->ifcall.offset, (uint8_t*)r->ofcall.data, r->ofcall.count)){
 			respond(r, nil);
 			continue;
 		}
 		for(tries=0; tries<5; tries++){
 			if(r->type == Twrite){
 				DBG(2, "w%.8lux %.8lux...", (ulong)r->ifcall.offset, *(ulong*)r->ifcall.data);
-				fprint(rfd, "w%.8lux %.8lux\n", (ulong)r->ifcall.offset, *(ulong*)r->ifcall.data);
+				fprint(rfd, "w%.8lux %.8lux\n",
+				       (uint32_t)r->ifcall.offset,
+				       *(uint32_t*)r->ifcall.data);
 			}else if(r->type == Tread){
 				DBG(2, "r%.8lux...", (ulong)r->ifcall.offset);
-				fprint(rfd, "r%.8lux\n", (ulong)r->ifcall.offset);
+				fprint(rfd, "r%.8lux\n",
+				       (uint32_t)r->ifcall.offset);
 			}else{
 				respond(r, "oops");
 				break;
@@ -218,9 +221,9 @@ eiaread(void*)
 					p++;
 				DBG(2, "serial %s\n", p);
 				if(p[0] == 'R'){
-					if(strtoul(p+1, 0, 16) == (ulong)r->ifcall.offset){
+					if(strtoul(p+1, 0, 16) == (uint32_t)r->ifcall.offset){
 						/* we know that data can handle Readlen bytes */
-						data = (uchar*)r->ofcall.data;
+						data = (uint8_t*)r->ofcall.data;
 						for(i=0; i<r->ifcall.count; i++)
 							data[i] = strtol(p+1+8+1+3*i, 0, 16);
 						insert(r->ifcall.offset, data, r->ifcall.count);
@@ -241,10 +244,10 @@ eiaread(void*)
 }
 
 void
-attachremote(char* name)
+attachremote(int8_t* name)
 {
 	int fd;
-	char buf[128];
+	int8_t buf[128];
 
 	print("attach %s\n", name);
 	rfd = open(name, ORDWR);
@@ -263,7 +266,7 @@ attachremote(char* name)
 void
 fsopen(Req *r)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	switch((uintptr)r->fid->file->aux){
 	case Xtext:
@@ -283,7 +286,7 @@ void
 fsread(Req *r)
 {
 	int i, n;
-	char buf[512];
+	int8_t buf[512];
 
 	switch((uintptr)r->fid->file->aux) {
 	case Xfpregs:
@@ -324,7 +327,7 @@ fsread(Req *r)
 void
 fswrite(Req *r)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	switch((uintptr)r->fid->file->aux) {
 	case Xctl:
@@ -363,7 +366,7 @@ fswrite(Req *r)
 }
 
 struct {
-	char *s;
+	int8_t *s;
 	int id;
 	int mode;
 } tab[] = {

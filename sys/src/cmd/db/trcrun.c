@@ -24,7 +24,7 @@ int pcsactive = 0;
 void
 setpcs(void)
 {
-	char buf[128];
+	int8_t buf[128];
 
 	if(pid && pid != pcspid){
 		if(msgfd >= 0){
@@ -49,9 +49,9 @@ setpcs(void)
 }
 
 void
-msgpcs(char *msg)
+msgpcs(int8_t *msg)
 {
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 
 	setpcs();
 	if(write(msgfd, msg, strlen(msg)) < 0 && !ending){
@@ -68,7 +68,7 @@ msgpcs(char *msg)
 void
 unloadnote(void)
 {
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 
 	setpcs();
 	for(; nnote<NNOTE; nnote++){
@@ -94,7 +94,7 @@ void
 loadnote(void)
 {
 	int i;
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 
 	setpcs();
 	for(i=0; i<nnote; i++){
@@ -143,11 +143,11 @@ ungrab(void)
 void
 doexec(void)
 {
-	char *argl[MAXARG];
-	char args[LINSIZ];
-	char *p;
-	char **ap;
-	char *thisarg;
+	int8_t *argl[MAXARG];
+	int8_t args[LINSIZ];
+	int8_t *p;
+	int8_t **ap;
+	int8_t *thisarg;
 
 	ap = argl;
 	p = args;
@@ -187,7 +187,7 @@ doexec(void)
 	perror(symfil);
 }
 
-char	procname[100];
+int8_t	procname[100];
 
 void
 startpcs(void)
@@ -214,10 +214,10 @@ startpcs(void)
 }
 
 void
-runstep(uvlong loc, int keepnote)
+runstep(uint64_t loc, int keepnote)
 {
 	int nfoll;
-	uvlong foll[3];
+	uint64_t foll[3];
 	BKPT bkpt[3];
 	int i;
 
@@ -272,7 +272,7 @@ runrun(int keepnote)
 void
 bkput(BKPT *bp, int install)
 {
-	char buf[256];
+	int8_t buf[256];
 	ADDR loc;
 	int ret;
 

@@ -18,20 +18,20 @@
 
 #define NAMELEN 28
 
-static int	nettrans(char*, char*, int na, char*, int);
+static int	nettrans(int8_t*, int8_t*, int na, int8_t*, int);
 
 /*
  *  announce a network service.
  */
 int
-announce(char *addr, char *dir)
+announce(int8_t *addr, int8_t *dir)
 {
 	int ctl, n, m;
-	char buf[3*NAMELEN];
-	char buf2[3*NAMELEN];
-	char netdir[2*NAMELEN];
-	char naddr[3*NAMELEN];
-	char *cp;
+	int8_t buf[3*NAMELEN];
+	int8_t buf2[3*NAMELEN];
+	int8_t netdir[2*NAMELEN];
+	int8_t naddr[3*NAMELEN];
+	int8_t *cp;
 
 	/*
 	 *  translate the address
@@ -80,11 +80,11 @@ announce(char *addr, char *dir)
  *  listen for an incoming call
  */
 int
-listen(char *dir, char *newdir)
+listen(int8_t *dir, int8_t *newdir)
 {
 	int ctl, n, m;
-	char buf[3*NAMELEN];
-	char *cp;
+	int8_t buf[3*NAMELEN];
+	int8_t *cp;
 
 	/*
 	 *  open listen, wait for a call
@@ -121,11 +121,11 @@ listen(char *dir, char *newdir)
  *  accept a call, return an fd to the open data file
  */
 int
-accept(int ctl, char *dir)
+accept(int ctl, int8_t *dir)
 {
-	char buf[128];
-	char *num;
-	long n;
+	int8_t buf[128];
+	int8_t *num;
+	int32_t n;
 
 	num = strrchr(dir, '/');
 	if(num == 0)
@@ -145,11 +145,11 @@ accept(int ctl, char *dir)
  *  reject a call, tell device the reason for the rejection
  */
 int
-reject(int ctl, char *dir, char *cause)
+reject(int ctl, int8_t *dir, int8_t *cause)
 {
-	char buf[128];
-	char *num;
-	long n;
+	int8_t buf[128];
+	int8_t *num;
+	int32_t n;
 
 	num = strrchr(dir, '/');
 	if(num == 0)
@@ -167,10 +167,10 @@ reject(int ctl, char *dir, char *cause)
  *  perform the identity translation (in case we can't reach cs)
  */
 static int
-identtrans(char *addr, char *naddr, int na, char *file, int nf)
+identtrans(int8_t *addr, int8_t *naddr, int na, int8_t *file, int nf)
 {
-	char reply[4*NAMELEN];
-	char *p;
+	int8_t reply[4*NAMELEN];
+	int8_t *p;
 
 	USED(nf);
 
@@ -192,12 +192,12 @@ identtrans(char *addr, char *naddr, int na, char *file, int nf)
  *  call up the connection server and get a translation
  */
 static int
-nettrans(char *addr, char *naddr, int na, char *file, int nf)
+nettrans(int8_t *addr, int8_t *naddr, int na, int8_t *file, int nf)
 {
 	int fd;
-	char reply[4*NAMELEN];
-	char *cp;
-	long n;
+	int8_t reply[4*NAMELEN];
+	int8_t *cp;
+	int32_t n;
 
 	/*
 	 *  ask the connection server

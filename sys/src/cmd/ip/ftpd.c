@@ -46,48 +46,48 @@ enum
 	Maxpath=	512,
 };
 
-int	abortcmd(char*);
-int	appendcmd(char*);
-int	cdupcmd(char*);
-int	cwdcmd(char*);
-int	delcmd(char*);
-int	helpcmd(char*);
-int	listcmd(char*);
-int	mdtmcmd(char*);
-int	mkdircmd(char*);
-int	modecmd(char*);
-int	namelistcmd(char*);
-int	nopcmd(char*);
-int	passcmd(char*);
-int	pasvcmd(char*);
-int	portcmd(char*);
-int	pwdcmd(char*);
-int	quitcmd(char*);
-int	rnfrcmd(char*);
-int	rntocmd(char*);
-int	reply(char*, ...);
-int	restartcmd(char*);
-int	retrievecmd(char*);
-int	sitecmd(char*);
-int	sizecmd(char*);
-int	storecmd(char*);
-int	storeucmd(char*);
-int	structcmd(char*);
-int	systemcmd(char*);
-int	typecmd(char*);
-int	usercmd(char*);
+int	abortcmd(int8_t*);
+int	appendcmd(int8_t*);
+int	cdupcmd(int8_t*);
+int	cwdcmd(int8_t*);
+int	delcmd(int8_t*);
+int	helpcmd(int8_t*);
+int	listcmd(int8_t*);
+int	mdtmcmd(int8_t*);
+int	mkdircmd(int8_t*);
+int	modecmd(int8_t*);
+int	namelistcmd(int8_t*);
+int	nopcmd(int8_t*);
+int	passcmd(int8_t*);
+int	pasvcmd(int8_t*);
+int	portcmd(int8_t*);
+int	pwdcmd(int8_t*);
+int	quitcmd(int8_t*);
+int	rnfrcmd(int8_t*);
+int	rntocmd(int8_t*);
+int	reply(int8_t*, ...);
+int	restartcmd(int8_t*);
+int	retrievecmd(int8_t*);
+int	sitecmd(int8_t*);
+int	sizecmd(int8_t*);
+int	storecmd(int8_t*);
+int	storeucmd(int8_t*);
+int	structcmd(int8_t*);
+int	systemcmd(int8_t*);
+int	typecmd(int8_t*);
+int	usercmd(int8_t*);
 
 int	dialdata(void);
-char*	abspath(char*);
-int	crlfwrite(int, char*, int);
+int8_t*	abspath(int8_t*);
+int	crlfwrite(int, int8_t*, int);
 int	sodoff(void);
-int	accessok(char*);
+int	accessok(int8_t*);
 
 typedef struct Cmd	Cmd;
 struct Cmd
 {
-	char	*name;
-	int	(*f)(char*);
+	int8_t	*name;
+	int	(*f)(int8_t*);
 	int	needlogin;
 };
 
@@ -128,47 +128,47 @@ Cmd cmdtab[] =
 
 #define NONENS "/lib/namespace.ftp"	/* default ns for none */
 
-char	user[Maxpath];		/* logged in user */
-char	curdir[Maxpath];	/* current directory path */
+int8_t	user[Maxpath];		/* logged in user */
+int8_t	curdir[Maxpath];	/* current directory path */
 Chalstate	*ch;
 int	loggedin;
 int	type;			/* transmission type */
 int	mode;			/* transmission mode */
 int	structure;		/* file structure */
-char	data[64];		/* data address */
+int8_t	data[64];		/* data address */
 int	pid;			/* transfer process */
 int	encryption;		/* encryption state */
 int	isnone, anon_ok, anon_only, anon_everybody;
-char	cputype[Maxpath];	/* the environment variable of the same name */
-char	bindir[Maxpath];	/* bin directory for this architecture */
-char	mailaddr[Maxpath];
-char	*namespace = NONENS;
+int8_t	cputype[Maxpath];	/* the environment variable of the same name */
+int8_t	bindir[Maxpath];	/* bin directory for this architecture */
+int8_t	mailaddr[Maxpath];
+int8_t	*namespace = NONENS;
 int	debug;
 NetConnInfo	*nci;
 int	createperm = 0660;
 int	isnoworld;
-vlong	offset;			/* from restart command */
+int64_t	offset;			/* from restart command */
 
-ulong id;
+uint32_t id;
 
 typedef struct Passive Passive;
 struct Passive
 {
 	int	inuse;
-	char	adir[40];
+	int8_t	adir[40];
 	int	afd;
 	int	port;
-	uchar	ipaddr[IPaddrlen];
+	uint8_t	ipaddr[IPaddrlen];
 } passive;
 
 #define FTPLOG "ftp"
 
 void
-logit(char *fmt, ...)
+logit(int8_t *fmt, ...)
 {
-	char buf[8192];
+	int8_t buf[8192];
 	va_list arg;
-	char errstr[128];
+	int8_t errstr[128];
 
 	rerrstr(errstr, sizeof errstr);
 	va_start(arg, fmt);
@@ -337,10 +337,10 @@ main(int argc, char **argv)
  *  reply to a command
  */
 int
-reply(char *fmt, ...)
+reply(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[8192], *s;
+	int8_t buf[8192], *s;
 
 	va_start(arg, fmt);
 	s = vseprint(buf, buf+sizeof(buf)-3, fmt, arg);
@@ -365,7 +365,7 @@ sodoff(void)
  *  run a command in a separate process
  */
 int
-asproc(void (*f)(char*, int), char *arg, int arg2)
+asproc(void (*f)(int8_t*, int), int8_t *arg, int arg2)
 {
 	int i;
 
@@ -394,11 +394,11 @@ asproc(void (*f)(char*, int), char *arg, int arg2)
  * run a command to filter a tail
  */
 int
-transfer(char *cmd, char *a1, char *a2, char *a3, int image)
+transfer(int8_t *cmd, int8_t *a1, int8_t *a2, int8_t *a3, int image)
 {
 	int n, dfd, fd, bytes, eofs, pid;
 	int pfd[2];
-	char buf[Nbuf], *p;
+	int8_t buf[Nbuf], *p;
 	Waitmsg *w;
 
 	reply("150 Opening data connection for %s (%s)", cmd, data);
@@ -492,7 +492,7 @@ transfer(char *cmd, char *a1, char *a2, char *a3, int image)
  *  just reply OK
  */
 int
-nopcmd(char *arg)
+nopcmd(int8_t *arg)
 {
 	USED(arg);
 	reply("510 Plan 9 FTP daemon still alive");
@@ -503,7 +503,7 @@ nopcmd(char *arg)
  *  login as user
  */
 int
-loginuser(char *user, char *nsfile, int gotoslash)
+loginuser(int8_t *user, int8_t *nsfile, int gotoslash)
 {
 	logit("login %s %s %s %s", user, mailaddr, nci->rsys, nsfile);
 	if(nsfile != nil && newns(user, nsfile) < 0){
@@ -525,7 +525,7 @@ loginuser(char *user, char *nsfile, int gotoslash)
 static void
 slowdown(void)
 {
-	static ulong pause;
+	static uint32_t pause;
 
 	if (pause) {
 		sleep(pause);			/* deter guessers */
@@ -541,7 +541,7 @@ slowdown(void)
  *  no challenge.
  */
 int
-usercmd(char *name)
+usercmd(int8_t *name)
 {
 	slowdown();
 
@@ -595,9 +595,9 @@ usercmd(char *name)
  *  get a password, set up user if it works.
  */
 int
-passcmd(char *response)
+passcmd(int8_t *response)
 {
-	char namefile[128];
+	int8_t namefile[128];
 	AuthInfo *ai;
 
 	if(response == nil)
@@ -646,7 +646,7 @@ passcmd(char *response)
  *  print working directory
  */
 int
-pwdcmd(char *arg)
+pwdcmd(int8_t *arg)
 {
 	if(arg)
 		return reply("550 Pwd takes no argument");
@@ -657,10 +657,10 @@ pwdcmd(char *arg)
  *  chdir
  */
 int
-cwdcmd(char *dir)
+cwdcmd(int8_t *dir)
 {
-	char *rp;
-	char buf[Maxpath];
+	int8_t *rp;
+	int8_t buf[Maxpath];
 
 	/* shell cd semantics */
 	if(dir == 0 || *dir == 0){
@@ -688,14 +688,14 @@ cwdcmd(char *dir)
  *  chdir ..
  */
 int
-cdupcmd(char *dp)
+cdupcmd(int8_t *dp)
 {
 	USED(dp);
 	return cwdcmd("..");
 }
 
 int
-quitcmd(char *arg)
+quitcmd(int8_t *arg)
 {
 	USED(arg);
 	reply("200 Bye");
@@ -705,10 +705,10 @@ quitcmd(char *arg)
 }
 
 int
-typecmd(char *arg)
+typecmd(int8_t *arg)
 {
 	int c;
-	char *x;
+	int8_t *x;
 
 	x = arg;
 	if(arg == 0)
@@ -737,7 +737,7 @@ typecmd(char *arg)
 }
 
 int
-modecmd(char *arg)
+modecmd(int8_t *arg)
 {
 	if(arg == 0)
 		return reply("501 Mode command needs arguments");
@@ -755,7 +755,7 @@ modecmd(char *arg)
 }
 
 int
-structcmd(char *arg)
+structcmd(int8_t *arg)
 {
 	if(arg == 0)
 		return reply("501 Struct command needs arguments");
@@ -772,9 +772,9 @@ structcmd(char *arg)
 }
 
 int
-portcmd(char *arg)
+portcmd(int8_t *arg)
 {
-	char *field[7];
+	int8_t *field[7];
 	int n;
 
 	if(arg == 0)
@@ -816,7 +816,7 @@ unmountnet(void)
 }
 
 int
-pasvcmd(char *arg)
+pasvcmd(int8_t *arg)
 {
 	NetConnInfo *nnci;
 	Passive *p;
@@ -864,11 +864,11 @@ int Cflag, rflag, tflag, Rflag;
 int maxnamelen;
 int col;
 
-char*
+int8_t*
 mode2asc(int m)
 {
-	static char asc[12];
-	char *p;
+	static int8_t asc[12];
+	int8_t *p;
 
 	strcpy(asc, "----------");
 	if(DMDIR & m)
@@ -889,12 +889,12 @@ mode2asc(int m)
 	return asc;
 }
 void
-listfile(Biobufhdr *b, char *name, int lflag, char *dname)
+listfile(Biobufhdr *b, int8_t *name, int lflag, int8_t *dname)
 {
-	char ts[32];
+	int8_t ts[32];
 	int n, links, pad;
-	long now;
-	char *x;
+	int32_t now;
+	int8_t *x;
 	Dir *d;
 
 	x = abspath(name);
@@ -962,12 +962,13 @@ dircomp(void *va, void *vb)
 	return (rflag?-1:1)*rv;
 }
 void
-listdir(char *name, Biobufhdr *b, int lflag, int *printname, Globlist *gl)
+listdir(int8_t *name, Biobufhdr *b, int lflag, int *printname,
+	Globlist *gl)
 {
 	Dir *p;
 	int fd, n, i, l;
-	char *dname;
-	uvlong total;
+	int8_t *dname;
+	uint64_t total;
 
 	col = 0;
 
@@ -1122,12 +1123,12 @@ list(char *arg, int lflag)
 	reply("226 Transfer complete (list %s)", arg);
 }
 int
-namelistcmd(char *arg)
+namelistcmd(int8_t *arg)
 {
 	return asproc(list, arg, 0);
 }
 int
-listcmd(char *arg)
+listcmd(int8_t *arg)
 {
 	return asproc(list, arg, 1);
 }
@@ -1138,7 +1139,7 @@ listcmd(char *arg)
 int
 oksiteuser(void)
 {
-	char buf[64];
+	int8_t buf[64];
 	int fd, n;
 
 	fd = open("#c/user", OREAD);
@@ -1155,9 +1156,9 @@ oksiteuser(void)
 }
 
 int
-sitecmd(char *arg)
+sitecmd(int8_t *arg)
 {
-	char *f[4];
+	int8_t *f[4];
 	int nf, r;
 	Dir *d;
 
@@ -1184,7 +1185,7 @@ sitecmd(char *arg)
  *  return the size of the file
  */
 int
-sizecmd(char *arg)
+sizecmd(int8_t *arg)
 {
 	Dir *d;
 	int rv;
@@ -1204,7 +1205,7 @@ sizecmd(char *arg)
  *  return the modify time of the file
  */
 int
-mdtmcmd(char *arg)
+mdtmcmd(int8_t *arg)
 {
 	Dir *d;
 	Tm *t;
@@ -1230,7 +1231,7 @@ mdtmcmd(char *arg)
  *  only lasts for one command
  */
 int
-restartcmd(char *arg)
+restartcmd(int8_t *arg)
 {
 	if(arg == 0)
 		return reply("501 Restart command requires offset");
@@ -1247,10 +1248,10 @@ restartcmd(char *arg)
  *  send a file to the user
  */
 int
-crlfwrite(int fd, char *p, int n)
+crlfwrite(int fd, int8_t *p, int n)
 {
-	char *ep, *np;
-	char buf[2*Nbuf];
+	int8_t *ep, *np;
+	int8_t buf[2*Nbuf];
 
 	for(np = buf, ep = p + n; p < ep; p++){
 		if(*p == '\n')
@@ -1263,10 +1264,10 @@ crlfwrite(int fd, char *p, int n)
 		return -1;
 }
 void
-retrievedir(char *arg)
+retrievedir(int8_t *arg)
 {
 	int n;
-	char *p;
+	int8_t *p;
 	String *file;
 
 	if(type != Timage){
@@ -1292,12 +1293,12 @@ retrievedir(char *arg)
 	s_free(file);
 }
 void
-retrieve(char *arg, int arg2)
+retrieve(int8_t *arg, int arg2)
 {
 	int dfd, fd, n, i, bytes;
 	Dir *d;
-	char buf[Nbuf];
-	char *p, *ep;
+	int8_t buf[Nbuf];
+	int8_t *p, *ep;
 
 	USED(arg2);
 
@@ -1396,7 +1397,7 @@ retrieve(char *arg, int arg2)
 	logit("get %s OK %d", arg, bytes);
 }
 int
-retrievecmd(char *arg)
+retrievecmd(int8_t *arg)
 {
 	if(arg == 0)
 		return reply("501 Retrieve command requires an argument");
@@ -1411,10 +1412,10 @@ retrievecmd(char *arg)
  *  get a file from the user
  */
 int
-lfwrite(int fd, char *p, int n)
+lfwrite(int fd, int8_t *p, int n)
 {
-	char *ep, *np;
-	char buf[Nbuf];
+	int8_t *ep, *np;
+	int8_t buf[Nbuf];
 
 	for(np = buf, ep = p + n; p < ep; p++){
 		if(*p != '\r')
@@ -1426,10 +1427,10 @@ lfwrite(int fd, char *p, int n)
 		return -1;
 }
 void
-store(char *arg, int fd)
+store(int8_t *arg, int fd)
 {
 	int dfd, n, i;
-	char buf[Nbuf];
+	int8_t buf[Nbuf];
 
 	reply("150 Opening data connection for %s (%s)", arg, data);
 	dfd = dialdata();
@@ -1461,7 +1462,7 @@ store(char *arg, int fd)
 	reply("226 Transfer complete");
 }
 int
-storecmd(char *arg)
+storecmd(int8_t *arg)
 {
 	int fd, rv;
 
@@ -1490,7 +1491,7 @@ storecmd(char *arg)
 	return rv;
 }
 int
-appendcmd(char *arg)
+appendcmd(int8_t *arg)
 {
 	int fd, rv;
 
@@ -1514,10 +1515,10 @@ appendcmd(char *arg)
 	return rv;
 }
 int
-storeucmd(char *arg)
+storeucmd(int8_t *arg)
 {
 	int fd, rv;
-	char name[Maxpath];
+	int8_t name[Maxpath];
 
 	USED(arg);
 	if(isnone)
@@ -1534,7 +1535,7 @@ storeucmd(char *arg)
 }
 
 int
-mkdircmd(char *name)
+mkdircmd(int8_t *name)
 {
 	int fd;
 
@@ -1553,7 +1554,7 @@ mkdircmd(char *name)
 }
 
 int
-delcmd(char *name)
+delcmd(int8_t *name)
 {
 	if(name == 0)
 		return reply("501 Rmdir/delete command requires an argument");
@@ -1572,7 +1573,7 @@ delcmd(char *name)
  *  kill off the last transfer (if the process still exists)
  */
 int
-abortcmd(char *arg)
+abortcmd(int8_t *arg)
 {
 	USED(arg);
 
@@ -1587,18 +1588,18 @@ abortcmd(char *arg)
 }
 
 int
-systemcmd(char *arg)
+systemcmd(int8_t *arg)
 {
 	USED(arg);
 	return reply("215 UNIX Type: L8 Version: Plan 9");
 }
 
 int
-helpcmd(char *arg)
+helpcmd(int8_t *arg)
 {
 	int i;
-	char buf[80];
-	char *p, *e;
+	int8_t buf[80];
+	int8_t *p, *e;
 
 	USED(arg);
 	reply("214- the following commands are implemented:");
@@ -1623,7 +1624,7 @@ helpcmd(char *arg)
 static String *filepath;
 
 int
-rnfrcmd(char *from)
+rnfrcmd(int8_t *from)
 {
 	if(isnone)
 		return reply("550 Permission denied");
@@ -1641,11 +1642,11 @@ rnfrcmd(char *from)
 	return reply("350 Rename %s to ...", s_to_c(filepath));
 }
 int
-rntocmd(char *to)
+rntocmd(int8_t *to)
 {
 	int r;
 	Dir nd;
-	char *fp, *tp;
+	int8_t *fp, *tp;
 
 	if(isnone)
 		return reply("550 Permission denied");
@@ -1684,8 +1685,8 @@ int
 dialdata(void)
 {
 	int fd, cfd;
-	char ldir[40];
-	char err[Maxerr];
+	int8_t ldir[40];
+	int8_t err[Maxerr];
 
 	if(mountnet() < 0)
 		return -1;
@@ -1713,9 +1714,9 @@ dialdata(void)
 }
 
 int
-postnote(int group, int pid, char *note)
+postnote(int group, int pid, int8_t *note)
 {
-	char file[128];
+	int8_t file[128];
 	int f, r;
 
 	/*
@@ -1750,12 +1751,12 @@ postnote(int group, int pid, char *note)
  *  and resolve all names from the root.  We also remove any /bin/rc
  *  special characters to avoid later problems with executed commands.
  */
-char *special = "`;| ";
+int8_t *special = "`;| ";
 
-char*
-abspath(char *origpath)
+int8_t*
+abspath(int8_t *origpath)
 {
-	char *p, *sp, *path;
+	int8_t *p, *sp, *path;
 	static String *rpath;
 
 	if(rpath == nil)
@@ -1806,7 +1807,7 @@ enum
 Path *pathlevel[Maxlevel];
 
 Path*
-unlinkpath(char *path, int level)
+unlinkpath(int8_t *path, int level)
 {
 	String *s;
 	Path **l, *p;
@@ -1858,9 +1859,9 @@ int
 _accessok(String *s, int level)
 {
 	Path *p;
-	char *cp;
+	int8_t *cp;
 	int lvl, offset;
-	static char httplogin[] = "/.httplogin";
+	static int8_t httplogin[] = "/.httplogin";
 
 	if(level < 0)
 		return 1;
@@ -1901,10 +1902,10 @@ _accessok(String *s, int level)
  * at each level of the path.
  */
 int
-accessok(char *path)
+accessok(int8_t *path)
 {
 	int level, r;
-	char *p;
+	int8_t *p;
 	String *npath;
 
 	npath = s_copy(path);

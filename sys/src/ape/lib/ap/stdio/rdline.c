@@ -14,9 +14,9 @@
 #include "iolib.h"
 #include <string.h>
 
-char *rdline(FILE *f, char **ep){
+int8_t *rdline(FILE *f, int8_t **ep){
 	int cnt;
-	char *nlp, *vp;
+	int8_t *nlp, *vp;
 	switch(f->state){
 	default:	/* CLOSED, WR, ERR, EOF */
 		return NULL;

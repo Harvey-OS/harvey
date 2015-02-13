@@ -18,33 +18,33 @@
 typedef struct Stringtab	Stringtab;
 struct Stringtab {
 	Stringtab *link;
-	char *str;
+	int8_t *str;
 };
 
 static Stringtab *stab[1024];
 
 static uint
-hash(char *s)
+hash(int8_t *s)
 {
 	uint h;
-	uchar *p;
+	uint8_t *p;
 
 	h = 0;
-	for(p=(uchar*)s; *p; p++)
+	for(p=(uint8_t*)s; *p; p++)
 		h = h*37 + *p;
 	return h;
 }
 
-static char*
-estrdup(char *s)
+static int8_t*
+estrdup(int8_t *s)
 {
 	if((s = strdup(s)) == nil)
 		sysfatal("strdup(%.10s): out of memory", s);
 	return s;
 }
 
-char*
-atom(char *str)
+int8_t*
+atom(int8_t *str)
 {
 	uint h;
 	Stringtab *tab;
@@ -62,7 +62,7 @@ atom(char *str)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -73,17 +73,17 @@ emalloc(ulong n)
 }
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	if((v = realloc(v, n)) == nil)
 		sysfatal("realloc(%p, %lud): out of memory", v, n);
 	return v;
 }
 
-char*
-struprcpy(char *p, char *s)
+int8_t*
+struprcpy(int8_t *p, int8_t *s)
 {
-	char *op;
+	int8_t *op;
 
 	op = p;
 	for(; *s; s++)
@@ -94,7 +94,7 @@ struprcpy(char *p, char *s)
 }
 
 int
-chat(char *fmt, ...)
+chat(int8_t *fmt, ...)
 {
 	va_list arg;
 

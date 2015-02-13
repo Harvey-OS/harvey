@@ -37,7 +37,7 @@ checkuse(void)
 
 
 int
-real(char *s)
+real(int8_t *s)
 {
 	if (s == 0) 
 		return(0);
@@ -51,28 +51,28 @@ real(char *s)
 
 int	spcount = 0;
 # define MAXVEC 20
-char	*spvecs[MAXVEC];
+int8_t	*spvecs[MAXVEC];
 
-char	*
+int8_t	*
 chspace(void)
 {
-	char	*pp;
+	int8_t	*pp;
 
 	if (spvecs[spcount])
 		return(spvecs[spcount++]);
 	if (spcount >= MAXVEC)
 		error("Too many characters in table");
 	spvecs[spcount++] = pp = calloc(MAXCHS + MAXLINLEN, 1);
-	if (pp == (char *) - 1 || pp == (char *)0)
+	if (pp == (int8_t *) - 1 || pp == (int8_t *)0)
 		error("no space for characters");
 	return(pp);
 }
 
 
 # define MAXPC 50
-char	*thisvec;
+int8_t	*thisvec;
 int	tpcount = -1;
-char	*tpvecs[MAXPC];
+int8_t	*tpvecs[MAXPC];
 
 int	*
 alocv(int n)
@@ -85,7 +85,7 @@ alocv(int n)
 			tpvecs[tpcount] = calloc(MAXCHS, 1);
 		}
 		thisvec = tpvecs[tpcount];
-		if (thisvec == (char *)0)
+		if (thisvec == (int8_t *)0)
 			error("no space for vectors");
 	}
 	tp = (int *)thisvec;

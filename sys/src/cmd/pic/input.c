@@ -24,9 +24,9 @@ Src	*srcp	= src;
 
 void	do_thru(void);
 int	nextchar(void);
-int	getarg(char *);
-void	freedef(char *);
-int	baldelim(int, char *);
+int	getarg(int8_t *);
+void	freedef(int8_t *);
+int	baldelim(int, int8_t *);
 
 void pushsrc(int type, char *ptr)	/* new input source */
 {
@@ -159,7 +159,7 @@ baldelim(int c, char *s)	/* replace c by balancing entry in s */
 	return c;
 }
 
-void undefine(char *s)	/* undefine macro */
+void undefine(int8_t *s)	/* undefine macro */
 {
 	while (*s != ' ' && *s != '\t')		/* skip "undef..." */
 		s++;
@@ -176,7 +176,7 @@ int	argcnt;		/* number of arguments seen so far */
 void dodef(struct symtab *stp)	/* collect args and switch input to defn */
 {
 	int i, len;
-	char *p;
+	int8_t *p;
 	Arg *ap;
 
 	ap = argfp+1;
@@ -230,16 +230,16 @@ getarg(char *p)	/* pick up single argument, store in p, return length */
 }
 
 #define	PBSIZE	2000
-char	pbuf[PBSIZE];		/* pushback buffer */
-char	*pb	= pbuf-1;	/* next pushed back character */
+int8_t	pbuf[PBSIZE];		/* pushback buffer */
+int8_t	*pb	= pbuf-1;	/* next pushed back character */
 
-char	ebuf[200];		/* collect input here for error reporting */
-char	*ep	= ebuf;
+int8_t	ebuf[200];		/* collect input here for error reporting */
+int8_t	*ep	= ebuf;
 
 int	begin	= 0;
 extern	int	thru;
 extern	struct symtab	*thrudef;
-extern	char	*untilstr;
+extern	int8_t	*untilstr;
 
 input(void)
 {
@@ -338,7 +338,7 @@ nextchar(void)
 void do_thru(void)	/* read one line, make into a macro expansion */
 {
 	int c, i;
-	char *p;
+	int8_t *p;
 	Arg *ap;
 
 	ap = argfp+1;
@@ -383,7 +383,7 @@ void do_thru(void)	/* read one line, make into a macro expansion */
 	if (c == EOF)
 		ERROR "unexpected end of file in do_thru" FATAL;
 	if (argcnt == 0) {	/* ignore blank line */
-		pushsrc(Thru, (char *) 0);
+		pushsrc(Thru, (int8_t *) 0);
 		return;
 	}
 	for (i = argcnt; i < MAXARGS; i++)
@@ -404,7 +404,7 @@ void do_thru(void)	/* read one line, make into a macro expansion */
 		untilstr = 0;
 		return;
 	}
-	pushsrc(Thru, (char *) 0);
+	pushsrc(Thru, (int8_t *) 0);
 	dprintf("do_thru pushing back <%s>\n", thrudef->s_val.p);
 	argfp = ap;
 	pushsrc(Macro, thrudef->s_val.p);
@@ -421,7 +421,7 @@ unput(int c)
 	return c;
 }
 
-void pbstr(char *s)
+void pbstr(int8_t *s)
 {
 	pushsrc(String, s);
 }
@@ -440,13 +440,13 @@ double errcheck(double x, char  *s)
 	return x;
 }
 
-char	errbuf[200];
+int8_t	errbuf[200];
 
 void	eprint(void);
 
-void yyerror(char *s)
+void yyerror(int8_t *s)
 {
-	extern char *cmdname;
+	extern int8_t *cmdname;
 	int ern = errno;	/* cause some libraries clobber it */
 
 	if (synerr)
@@ -466,7 +466,7 @@ void yyerror(char *s)
 
 void eprint(void)	/* try to print context around error */
 {
-	char *p, *q;
+	int8_t *p, *q;
 
 	p = ep - 1;
 	if (p > ebuf && *p == '\n')
@@ -498,12 +498,12 @@ yywrap(void)
 	return 1;		/* read eof; did not switch inputs */
 }
 
-char	*newfile = 0;		/* filename for file copy */
-char	*untilstr = 0;		/* string that terminates a thru */
+int8_t	*newfile = 0;		/* filename for file copy */
+int8_t	*untilstr = 0;		/* string that terminates a thru */
 int	thru	= 0;		/* 1 if copying thru macro */
 struct symtab	*thrudef = 0;		/* macro being used */
 
-void copyfile(char *s)	/* remember file to start reading from */
+void copyfile(int8_t *s)	/* remember file to start reading from */
 {
 	newfile = s;
 }
@@ -545,7 +545,7 @@ struct symtab *copythru(char *s)	/* collect the macro name or body for thru */
 	return p;
 }
 
-char *addnewline(char *p)	/* add newline to end of p */
+int8_t *addnewline(int8_t *p)	/* add newline to end of p */
 {
 	int n;
 
@@ -558,7 +558,7 @@ char *addnewline(char *p)	/* add newline to end of p */
 	return p;
 }
 
-void copyuntil(char *s)	/* string that terminates a thru */
+void copyuntil(int8_t *s)	/* string that terminates a thru */
 {
 	untilstr = s;
 }
@@ -584,7 +584,7 @@ void copy(void)	/* begin input from file, etc. */
 	}
 }
 
-char	shellbuf[1000], *shellp;
+int8_t	shellbuf[1000], *shellp;
 
 void shell_init(void)	/* set up to interpret a shell command */
 {
@@ -592,7 +592,7 @@ void shell_init(void)	/* set up to interpret a shell command */
 	shellp = shellbuf + strlen(shellbuf);
 }
 
-void shell_text(char *s)	/* add string to command being collected */
+void shell_text(int8_t *s)	/* add string to command being collected */
 {
 	while (*shellp++ = *s++)
 		;

@@ -87,7 +87,7 @@ i8254set(int port, int hz)
 	}
 }
 
-vlong
+int64_t
 i8254hz(u32int info[2][4])
 {
 	u32int ax;

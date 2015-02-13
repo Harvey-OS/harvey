@@ -13,7 +13,7 @@
 #include <httpd.h>
 
 int
-hcheckcontent(HContent *me, HContent *oks, char *list, int size)
+hcheckcontent(HContent *me, HContent *oks, int8_t *list, int size)
 {
 	HContent *ok;
 

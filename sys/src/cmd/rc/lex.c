@@ -158,8 +158,8 @@ nextis(int c)
 	return 0;
 }
 
-char*
-addtok(char *p, int val)
+int8_t*
+addtok(int8_t *p, int val)
 {
 	if(p==0)
 		return 0;
@@ -172,10 +172,10 @@ addtok(char *p, int val)
 	return p;
 }
 
-char*
-addutf(char *p, int c)
+int8_t*
+addutf(int8_t *p, int c)
 {
-	uchar b, m;
+	uint8_t b, m;
 	int i;
 
 	p = addtok(p, c);	/* 1-byte UTF runes are special */
@@ -201,7 +201,7 @@ int
 yylex(void)
 {
 	int c, d = nextc();
-	char *w = tok;
+	int8_t *w = tok;
 	struct tree *t;
 	yylval.tree = 0;
 	/*

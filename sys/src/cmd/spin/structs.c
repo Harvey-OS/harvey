@@ -43,7 +43,7 @@ setuname(Lextok *n)
 {	UType *tmp;
 
 	if (!owner)
-		fatal("illegal reference inside typedef", (char *) 0);
+		fatal("illegal reference inside typedef", (int8_t *) 0);
 
 	for (tmp = Unames; tmp; tmp = tmp->nxt)
 		if (!strcmp(owner->name, tmp->nm->name))
@@ -80,7 +80,7 @@ putunames(FILE *fd)
 }
 
 int
-isutype(char *t)
+isutype(int8_t *t)
 {	UType *tmp;
 
 	for (tmp = Unames; tmp; tmp = tmp->nxt)
@@ -346,7 +346,7 @@ cpnn(Lextok *s, int L, int R, int S)
 			d->sym->Nid = ++Nid;
 	}
 	if (s->sq || s->sl)
-		fatal("cannot happen cpnn", (char *) 0);
+		fatal("cannot happen cpnn", (int8_t *) 0);
 
 	return d;
 }
@@ -379,7 +379,7 @@ out:	if (tmp->sym->nel > 1 || tmp->sym->isarray == 1)
 void
 validref(Lextok *p, Lextok *c)
 {	Lextok *fp, *tl;
-	char lbuf[512];
+	int8_t lbuf[512];
 
 	for (fp = p->sym->Slst; fp; fp = fp->rgt)
 	for (tl = fp->lft; tl; tl = tl->rgt)
@@ -388,14 +388,14 @@ validref(Lextok *p, Lextok *c)
 
 	sprintf(lbuf, "no field '%s' defined in structure '%s'\n",
 		c->sym->name, p->sym->name);
-	non_fatal(lbuf, (char *) 0);
+	non_fatal(lbuf, (int8_t *) 0);
 }
 
 void
-struct_name(Lextok *n, Symbol *v, int xinit, char *buf)
+struct_name(Lextok *n, Symbol *v, int xinit, int8_t *buf)
 {	Symbol *tl;
 	Lextok *tmp;
-	char lbuf[512];
+	int8_t lbuf[512];
 
 	if (!n || !(tl = do_same(n, v, xinit)))
 		return;
@@ -414,11 +414,11 @@ struct_name(Lextok *n, Symbol *v, int xinit, char *buf)
 }
 
 void
-walk2_struct(char *s, Symbol *z)
+walk2_struct(int8_t *s, Symbol *z)
 {	Lextok *fp, *tl;
-	char eprefix[128];
+	int8_t eprefix[128];
 	int ix;
-	extern void Done_case(char *, Symbol *);
+	extern void Done_case(int8_t *, Symbol *);
 
 	ini_struct(z);
 	if (z->nel == 1 && z->isarray == 0)
@@ -436,9 +436,10 @@ walk2_struct(char *s, Symbol *z)
 }
 
 void
-walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c)
+walk_struct(FILE *ofd, int dowhat, int8_t *s, Symbol *z, int8_t *a,
+	    int8_t *b, int8_t *c)
 {	Lextok *fp, *tl;
-	char eprefix[128];
+	int8_t eprefix[128];
 	int ix;
 
 	ini_struct(z);
@@ -457,9 +458,9 @@ walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c
 }
 
 void
-c_struct(FILE *fd, char *ipref, Symbol *z)
+c_struct(FILE *fd, int8_t *ipref, Symbol *z)
 {	Lextok *fp, *tl;
-	char pref[256], eprefix[300];
+	int8_t pref[256], eprefix[300];
 	int ix;
 
 	ini_struct(z);
@@ -484,9 +485,9 @@ c_struct(FILE *fd, char *ipref, Symbol *z)
 }
 
 void
-dump_struct(Symbol *z, char *prefix, RunList *r)
+dump_struct(Symbol *z, int8_t *prefix, RunList *r)
 {	Lextok *fp, *tl;
-	char eprefix[256];
+	int8_t eprefix[256];
 	int ix, jx;
 
 	ini_struct(z);
@@ -500,7 +501,7 @@ dump_struct(Symbol *z, char *prefix, RunList *r)
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
 		{	if (tl->sym->type == STRUCT)
-			{	char pref[300];
+			{	int8_t pref[300];
 				strcpy(pref, eprefix);
 				strcat(pref, ".");
 				strcat(pref, tl->sym->name);
@@ -546,7 +547,7 @@ retrieve(Lextok **targ, int i, int want, Lextok *n, int Ntyp)
 					(*targ)->lft = nn(ZN, CONST, ZN, ZN);
 					(*targ)->lft->val = k;
 					if (Ntyp)
-					(*targ)->ntyp = (short) Ntyp;
+					(*targ)->ntyp = (int16_t) Ntyp;
 					return -1;
 				}
 	}	}	}
@@ -666,7 +667,7 @@ setpname(Lextok *n)
 }
 
 int
-isproctype(char *t)
+isproctype(int8_t *t)
 {	UType *tmp;
 
 	for (tmp = Pnames; tmp; tmp = tmp->nxt)

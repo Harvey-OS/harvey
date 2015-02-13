@@ -12,12 +12,12 @@
 #include <auth.h>
 
 void	usage(void);
-void	catch(void*, char*);
+void	catch(void*, int8_t*);
 
-char *keyspec = "";
+int8_t *keyspec = "";
 
 int
-amount0(int fd, char *mntpt, int flags, char *aname, char *keyspec)
+amount0(int fd, int8_t *mntpt, int flags, int8_t *aname, int8_t *keyspec)
 {
 	int rv, afd;
 	AuthInfo *ai;
@@ -105,7 +105,7 @@ main(int argc, char *argv[])
 }
 
 void
-catch(void *x, char *m)
+catch(void *x, int8_t *m)
 {
 	USED(x);
 	fprint(2, "mount: %s\n", m);

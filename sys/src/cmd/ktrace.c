@@ -17,9 +17,9 @@ static	int	rtrace(uvlong, uvlong, uvlong);
 static	int	ctrace(uvlong, uvlong, uvlong);
 static	int	i386trace(uvlong, uvlong, uvlong);
 static	int	amd64trace(uvlong, uvlong, uvlong);
-static	uvlong	getval(uvlong);
+static	uint64_t	getval(uint64_t);
 static	void	inithdr(int);
-static	void	fatal(char*, ...);
+static	void	fatal(int8_t*, ...);
 static	void	readstack(void);
 
 static	Fhdr	fhdr;
@@ -35,10 +35,10 @@ usage(void)
 }
 
 static void
-printaddr(char *addr, uvlong pc)
+printaddr(int8_t *addr, uint64_t pc)
 {
 	int i;
-	char *p;
+	int8_t *p;
 
 	/*
 	 * reformat the following.
@@ -64,7 +64,7 @@ printaddr(char *addr, uvlong pc)
 		print("src(%#.8llux); // %s\n", pc, addr);
 }
 
-static void (*fmt)(char*, uvlong) = printaddr;
+static void (*fmt)(int8_t*, uint64_t) = printaddr;
 
 void
 main(int argc, char *argv[])
@@ -147,11 +147,11 @@ inithdr(int fd)
 }
 
 static int
-rtrace(uvlong pc, uvlong sp, uvlong link)
+rtrace(uint64_t pc, uint64_t sp, uint64_t link)
 {
 	Symbol s, f;
-	char buf[128];
-	uvlong oldpc;
+	int8_t buf[128];
+	uint64_t oldpc;
 	int i;
 
 	i = 0;
@@ -187,13 +187,13 @@ rtrace(uvlong pc, uvlong sp, uvlong link)
 }
 
 static int
-ctrace(uvlong pc, uvlong sp, uvlong link)
+ctrace(uint64_t pc, uint64_t sp, uint64_t link)
 {
 	Symbol s;
-	char buf[128];
+	int8_t buf[128];
 	int found;
-	uvlong opc, moved;
-	long j;
+	uint64_t opc, moved;
+	int32_t j;
 
 	USED(link);
 	j = 0;
@@ -225,12 +225,12 @@ ctrace(uvlong pc, uvlong sp, uvlong link)
 }
 
 static int
-i386trace(uvlong pc, uvlong sp, uvlong link)
+i386trace(uint64_t pc, uint64_t sp, uint64_t link)
 {
 	int i;
-	uvlong osp;
+	uint64_t osp;
 	Symbol s, f;
-	char buf[128];
+	int8_t buf[128];
 
 	USED(link);
 	i = 0;
@@ -278,12 +278,12 @@ i386trace(uvlong pc, uvlong sp, uvlong link)
 }
 
 static int
-amd64trace(uvlong pc, uvlong sp, uvlong link)
+amd64trace(uint64_t pc, uint64_t sp, uint64_t link)
 {
 	int i, isintrr;
-	uvlong osp;
+	uint64_t osp;
 	Symbol s, f;
-	char buf[128];
+	int8_t buf[128];
 
 	USED(link);
 	i = 0;
@@ -340,11 +340,11 @@ amd64trace(uvlong pc, uvlong sp, uvlong link)
 }
 
 int naddr;
-uvlong addr[1024];
-uvlong val[1024];
+uint64_t addr[1024];
+uint64_t val[1024];
 
 static void
-putval(uvlong a, uvlong v)
+putval(uint64_t a, uint64_t v)
 {
 	if(naddr < nelem(addr)){
 		addr[naddr] = a;
@@ -357,8 +357,8 @@ static void
 readstack(void)
 {
 	Biobuf b;
-	char *p;
-	char *f[64];
+	int8_t *p;
+	int8_t *f[64];
 	int nf, i;
 
 	Binit(&b, 0, OREAD);
@@ -374,12 +374,12 @@ readstack(void)
 	}
 }
 
-static uvlong
-getval(uvlong a)
+static uint64_t
+getval(uint64_t a)
 {
-	char buf[256];
+	int8_t buf[256];
 	int i, n;
-	uvlong r;
+	uint64_t r;
 
 	if(interactive){
 		print("// data at %#8.8llux? ", a);
@@ -399,9 +399,9 @@ getval(uvlong a)
 }
 
 static void
-fatal(char *fmt, ...)
+fatal(int8_t *fmt, ...)
 {
-	char buf[4096];
+	int8_t buf[4096];
 	va_list arg;
 
 	va_start(arg, fmt);

@@ -10,19 +10,19 @@
 #include <u.h>
 #include <libc.h>
 
-char	output[4096];
-void	add(char*, ...);
-void	error(char*);
-void	notifyf(void*, char*);
+int8_t	output[4096];
+void	add(int8_t*, ...);
+void	error(int8_t*);
+void	notifyf(void*, int8_t*);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int i;
 	Waitmsg *w;
-	long l;
-	char *p;
-	char err[ERRMAX];
+	int32_t l;
+	int8_t *p;
+	int8_t err[ERRMAX];
 
 	if(argc <= 1){
 		fprint(2, "usage: time command\n");
@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 }
 
 void
-add(char *a, ...)
+add(int8_t *a, ...)
 {
 	static beenhere=0;
 	va_list arg;
@@ -93,7 +93,7 @@ add(char *a, ...)
 }
 
 void
-error(char *s)
+error(int8_t *s)
 {
 
 	fprint(2, "time: %s: %r\n", s);
@@ -101,7 +101,7 @@ error(char *s)
 }
 
 void
-notifyf(void *a, char *s)
+notifyf(void *a, int8_t *s)
 {
 	USED(a);
 	if(strcmp(s, "interrupt") == 0)

@@ -12,7 +12,7 @@
 static int	doubleflag;
 
 void
-swit1(C1 *q, int nc, long def, Node *n)
+swit1(C1 *q, int nc, int32_t def, Node *n)
 {
 	Node tn;
 	
@@ -22,7 +22,7 @@ swit1(C1 *q, int nc, long def, Node *n)
 }
 
 void
-swit2(C1 *q, int nc, long def, Node *n, Node *tn)
+swit2(C1 *q, int nc, int32_t def, Node *n, Node *tn)
 {
 	C1 *r;
 	int i;
@@ -66,7 +66,7 @@ void
 bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 {
 	int sh;
-	long v;
+	int32_t v;
 	Node *l;
 
 	/*
@@ -104,7 +104,7 @@ bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 void
 bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 {
-	long v;
+	int32_t v;
 	Node nod, *l;
 	int sh;
 
@@ -134,10 +134,10 @@ bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 	regfree(n3);
 }
 
-long
-outstring(char *s, long n)
+int32_t
+outstring(int8_t *s, int32_t n)
 {
-	long r;
+	int32_t r;
 
 	if(suppress)
 		return nstring;
@@ -164,9 +164,9 @@ mulcon(Node *n, Node *nn)
 {
 	Node *l, *r, nod1, nod2;
 	Multab *m;
-	long v;
+	int32_t v;
 	int o;
-	char code[sizeof(m->code)+2], *p;
+	int8_t code[sizeof(m->code)+2], *p;
 
 	if(typefd[n->type->etype])
 		return 0;
@@ -249,7 +249,7 @@ loop:
 }
 
 void
-gextern(Sym *s, Node *a, long o, long w)
+gextern(Sym *s, Node *a, int32_t o, int32_t w)
 {
 	if(a->op == OCONST && typev[a->type->etype]) {
 		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
@@ -274,14 +274,14 @@ gextern(Sym *s, Node *a, long o, long w)
 }
 
 void	zname(Biobuf*, Sym*, int);
-char*	zaddr(char*, Adr*, int);
+int8_t*	zaddr(int8_t*, Adr*, int);
 void	zwrite(Biobuf*, Prog*, int, int);
 void	outhist(Biobuf*);
 
 void
 outcode(void)
 {
-	struct { Sym *sym; short type; } h[NSYM];
+	struct { Sym *sym; int16_t type; } h[NSYM];
 	Prog *p;
 	Sym *s;
 	int sf, st, t, sym;
@@ -355,8 +355,8 @@ outcode(void)
 void
 zwrite(Biobuf *b, Prog *p, int sf, int st)
 {
-	char bf[100], *bp;
-	long l;
+	int8_t bf[100], *bp;
+	int32_t l;
 
 	bf[0] = p->as;
 	bf[1] = p->as>>8;
@@ -379,7 +379,7 @@ void
 outhist(Biobuf *b)
 {
 	Hist *h;
-	char *p, *q, *op, c;
+	int8_t *p, *q, *op, c;
 	Prog pg;
 	int n;
 
@@ -446,8 +446,8 @@ outhist(Biobuf *b)
 void
 zname(Biobuf *b, Sym *s, int t)
 {
-	char *n, bf[8];
-	ulong sig;
+	int8_t *n, bf[8];
+	uint32_t sig;
 
 	n = s->name;
 	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
@@ -473,10 +473,10 @@ zname(Biobuf *b, Sym *s, int t)
 	Bwrite(b, n, strlen(n)+1);
 }
 
-char*
-zaddr(char *bp, Adr *a, int s)
+int8_t*
+zaddr(int8_t *bp, Adr *a, int s)
 {
-	long l;
+	int32_t l;
 	Ieee e;
 
 	bp[0] = a->type;
@@ -557,10 +557,10 @@ doubled(Type *t)
 	return 0;
 }
 
-long
-align(long i, Type *t, int op)
+int32_t
+align(int32_t i, Type *t, int op)
 {
-	long o;
+	int32_t o;
 	Type *v;
 	int w, pc;
 
@@ -641,8 +641,8 @@ align(long i, Type *t, int op)
 	return o;
 }
 
-long
-maxround(long max, long v)
+int32_t
+maxround(int32_t max, int32_t v)
 {
 	int w;
 

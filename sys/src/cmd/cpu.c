@@ -25,46 +25,46 @@
 #define MaxStr 128
 
 void	remoteside(int);
-void	fatal(int, char*, ...);
+void	fatal(int, int8_t*, ...);
 void	lclnoteproc(int);
 void	rmtnoteproc(void);
-void	catcher(void*, char*);
+void	catcher(void*, int8_t*);
 void	usage(void);
-void	writestr(int, char*, char*, int);
-int	readstr(int, char*, int);
-char	*rexcall(int*, char*, char*);
-int	setamalg(char*);
-char *keyspec = "";
+void	writestr(int, int8_t*, int8_t*, int);
+int	readstr(int, int8_t*, int);
+int8_t	*rexcall(int*, int8_t*, int8_t*);
+int	setamalg(int8_t*);
+int8_t *keyspec = "";
 
 int 	notechan;
 int	exportpid;
-char	*system;
+int8_t	*system;
 int	cflag;
 int	dbg;
-char	*user;
-char	*patternfile;
-char	*origargs;
+int8_t	*user;
+int8_t	*patternfile;
+int8_t	*origargs;
 
-char	*srvname = "ncpu";
-char	*exportfs = "/bin/exportfs";
-char	*ealgs = "rc4_256 sha1";
+int8_t	*srvname = "ncpu";
+int8_t	*exportfs = "/bin/exportfs";
+int8_t	*ealgs = "rc4_256 sha1";
 
 /* message size for exportfs; may be larger so we can do big graphics in CPU window */
 int	msgsize = Maxfdata+IOHDRSZ;
 
 /* authentication mechanisms */
 static int	netkeyauth(int);
-static int	netkeysrvauth(int, char*);
+static int	netkeysrvauth(int, int8_t*);
 static int	p9auth(int);
-static int	srvp9auth(int, char*);
+static int	srvp9auth(int, int8_t*);
 static int	noauth(int);
-static int	srvnoauth(int, char*);
+static int	srvnoauth(int, int8_t*);
 
 typedef struct AuthMethod AuthMethod;
 struct AuthMethod {
-	char	*name;			/* name of method */
+	int8_t	*name;			/* name of method */
 	int	(*cf)(int);		/* client side authentication */
-	int	(*sf)(int, char*);	/* server side authentication */
+	int	(*sf)(int, int8_t*);	/* server side authentication */
 } authmethod[] =
 {
 	{ "p9",		p9auth,		srvp9auth,},
@@ -74,9 +74,9 @@ struct AuthMethod {
 };
 AuthMethod *am = authmethod;	/* default is p9 */
 
-char *p9authproto = "p9any";
+int8_t *p9authproto = "p9any";
 
-int setam(char*);
+int setam(int8_t*);
 
 void
 usage(void)
@@ -91,12 +91,12 @@ usage(void)
  * reading /proc/pid/args yields either "name args" or "name [display args]",
  * so return only args or display args.
  */
-static char *
+static int8_t *
 procgetname(void)
 {
 	int fd, n;
-	char *lp, *rp;
-	char buf[256];
+	int8_t *lp, *rp;
+	int8_t buf[256];
 
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
 	if((fd = open(buf, OREAD)) < 0)
@@ -122,11 +122,11 @@ procgetname(void)
  * actually just sets the arguments displayed.
  */
 void
-procsetname(char *fmt, ...)
+procsetname(int8_t *fmt, ...)
 {
 	int fd;
-	char *cmdname;
-	char buf[128];
+	int8_t *cmdname;
+	int8_t buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -272,10 +272,10 @@ main(int argc, char **argv)
 }
 
 void
-fatal(int syserr, char *fmt, ...)
+fatal(int syserr, int8_t *fmt, ...)
 {
 	Fmt f;
-	char *str;
+	int8_t *str;
 	va_list arg;
 
 	fmtstrinit(&f);
@@ -292,9 +292,9 @@ fatal(int syserr, char *fmt, ...)
 	exits(str);
 }
 
-char *negstr = "negotiating authentication method";
+int8_t *negstr = "negotiating authentication method";
 
-char bug[256];
+int8_t bug[256];
 
 int
 old9p(int fd)
@@ -338,7 +338,7 @@ old9p(int fd)
 void
 remoteside(int old)
 {
-	char user[MaxStr], home[MaxStr], buf[MaxStr], xdir[MaxStr], cmd[MaxStr];
+	int8_t user[MaxStr], home[MaxStr], buf[MaxStr], xdir[MaxStr], cmd[MaxStr];
 	int i, n, fd, badchdir, gotcmd;
 
 	rfork(RFENVG);
@@ -427,13 +427,13 @@ remoteside(int old)
 	fatal(1, "exec shell");
 }
 
-char*
-rexcall(int *fd, char *host, char *service)
+int8_t*
+rexcall(int *fd, int8_t *host, int8_t *service)
 {
-	char *na;
-	char dir[MaxStr];
-	char err[ERRMAX];
-	char msg[MaxStr];
+	int8_t *na;
+	int8_t dir[MaxStr];
+	int8_t err[ERRMAX];
+	int8_t msg[MaxStr];
 	int n;
 
 	na = netmkaddr(host, 0, service);
@@ -466,7 +466,7 @@ rexcall(int *fd, char *host, char *service)
 }
 
 void
-writestr(int fd, char *str, char *thing, int ignore)
+writestr(int fd, int8_t *str, int8_t *thing, int ignore)
 {
 	int l, n;
 
@@ -477,7 +477,7 @@ writestr(int fd, char *str, char *thing, int ignore)
 }
 
 int
-readstr(int fd, char *str, int len)
+readstr(int fd, int8_t *str, int len)
 {
 	int n;
 
@@ -494,10 +494,10 @@ readstr(int fd, char *str, int len)
 }
 
 static int
-readln(char *buf, int n)
+readln(int8_t *buf, int n)
 {
 	int i;
-	char *p;
+	int8_t *p;
 
 	n--;	/* room for \0 */
 	p = buf;
@@ -518,8 +518,8 @@ readln(char *buf, int n)
 static int
 netkeyauth(int fd)
 {
-	char chall[32];
-	char resp[32];
+	int8_t chall[32];
+	int8_t resp[32];
 
 	strecpy(chall, chall+sizeof chall, getuser());
 	print("user[%s]: ", chall);
@@ -543,9 +543,9 @@ netkeyauth(int fd)
 }
 
 static int
-netkeysrvauth(int fd, char *user)
+netkeysrvauth(int fd, int8_t *user)
 {
-	char response[32];
+	int8_t response[32];
 	Chalstate *ch;
 	int tries;
 	AuthInfo *ai;
@@ -577,7 +577,7 @@ netkeysrvauth(int fd, char *user)
 }
 
 static void
-mksecret(char *t, uchar *f)
+mksecret(int8_t *t, uint8_t *f)
 {
 	sprint(t, "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
@@ -589,10 +589,10 @@ mksecret(char *t, uchar *f)
 static int
 p9auth(int fd)
 {
-	uchar key[16];
-	uchar digest[SHA1dlen];
-	char fromclientsecret[21];
-	char fromserversecret[21];
+	uint8_t key[16];
+	uint8_t digest[SHA1dlen];
+	int8_t fromclientsecret[21];
+	int8_t fromserversecret[21];
 	int i;
 	AuthInfo *ai;
 
@@ -637,7 +637,7 @@ noauth(int fd)
 }
 
 static int
-srvnoauth(int fd, char *user)
+srvnoauth(int fd, int8_t *user)
 {
 	strecpy(user, user+MaxStr, getuser());
 	ealgs = nil;
@@ -646,9 +646,9 @@ srvnoauth(int fd, char *user)
 }
 
 void
-loghex(uchar *p, int n)
+loghex(uint8_t *p, int n)
 {
-	char buf[100];
+	int8_t buf[100];
 	int i;
 
 	for(i = 0; i < n; i++)
@@ -657,12 +657,12 @@ loghex(uchar *p, int n)
 }
 
 static int
-srvp9auth(int fd, char *user)
+srvp9auth(int fd, int8_t *user)
 {
-	uchar key[16];
-	uchar digest[SHA1dlen];
-	char fromclientsecret[21];
-	char fromserversecret[21];
+	uint8_t key[16];
+	uint8_t digest[SHA1dlen];
+	int8_t fromclientsecret[21];
+	int8_t fromserversecret[21];
 	int i;
 	AuthInfo *ai;
 
@@ -702,7 +702,7 @@ srvp9auth(int fd, char *user)
  *  set authentication mechanism
  */
 int
-setam(char *name)
+setam(int8_t *name)
 {
 	for(am = authmethod; am->name != nil; am++)
 		if(strcmp(am->name, name) == 0)
@@ -715,7 +715,7 @@ setam(char *name)
  *  set authentication mechanism and encryption/hash algs
  */
 int
-setamalg(char *s)
+setamalg(int8_t *s)
 {
 	ealgs = strchr(s, ' ');
 	if(ealgs != nil)
@@ -723,7 +723,7 @@ setamalg(char *s)
 	return setam(s);
 }
 
-char *rmtnotefile = "/mnt/term/dev/cpunote";
+int8_t *rmtnotefile = "/mnt/term/dev/cpunote";
 
 /*
  *  loop reading /mnt/term/dev/note looking for notes.
@@ -733,7 +733,7 @@ void
 rmtnoteproc(void)
 {
 	int n, fd, pid, notepid;
-	char buf[256];
+	int8_t buf[256];
 
 	/* new proc returns to start shell */
 	pid = rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG|RFMEM);
@@ -800,7 +800,7 @@ typedef struct Note Note;
 struct Note
 {
 	Note *next;
-	char msg[ERRMAX];
+	int8_t msg[ERRMAX];
 };
 
 typedef struct Request Request;
@@ -828,7 +828,7 @@ struct {
 int
 fsreply(int fd, Fcall *f)
 {
-	uchar buf[IOHDRSZ+Maxfdata];
+	uint8_t buf[IOHDRSZ+Maxfdata];
 	int n;
 
 	if(dbg)
@@ -916,7 +916,7 @@ int
 fsstat(int fd, Fid *fid, Fcall *f)
 {
 	Dir d;
-	uchar statbuf[256];
+	uint8_t statbuf[256];
 
 	memset(&d, 0, sizeof(d));
 	d.name = fstab[fid->file].name;
@@ -935,7 +935,7 @@ int
 fsread(int fd, Fid *fid, Fcall *f)
 {
 	Dir d;
-	uchar buf[256];
+	uint8_t buf[256];
 	Request *rp;
 
 	switch(fid->file){
@@ -952,7 +952,7 @@ fsread(int fd, Fid *fid, Fcall *f)
 			d.mode = fstab[Qcpunote].perm;
 			d.atime = d.mtime = time(0);
 			f->count = convD2M(&d, buf, sizeof buf);
-			f->data = (char*)buf;
+			f->data = (int8_t*)buf;
 		} else
 			f->count = 0;
 		return fsreply(fd, f);
@@ -972,14 +972,14 @@ fsread(int fd, Fid *fid, Fcall *f)
 	}
 }
 
-char Eperm[] = "permission denied";
-char Enofile[] = "out of files";
-char Enotdir[] = "not a directory";
+int8_t Eperm[] = "permission denied";
+int8_t Enofile[] = "out of files";
+int8_t Enotdir[] = "not a directory";
 
 void
 notefs(int fd)
 {
-	uchar buf[IOHDRSZ+Maxfdata];
+	uint8_t buf[IOHDRSZ+Maxfdata];
 	int i, n, ncpunote;
 	Fcall f;
 	Qid wqid[MAXWELEM];
@@ -1125,10 +1125,10 @@ err:
 	close(fd);
 }
 
-char 	notebuf[ERRMAX];
+int8_t 	notebuf[ERRMAX];
 
 void
-catcher(void*, char *text)
+catcher(void*, int8_t *text)
 {
 	int n;
 

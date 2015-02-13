@@ -15,33 +15,33 @@
 typedef struct Cmd Cmd;
 struct Cmd
 {
-	char *name;
+	int8_t *name;
 	int needauth;
-	int (*f)(char*);
+	int (*f)(int8_t*);
 };
 
 static void hello(void);
-static int apopcmd(char*);
-static int capacmd(char*);
-static int delecmd(char*);
-static int listcmd(char*);
-static int noopcmd(char*);
-static int passcmd(char*);
-static int quitcmd(char*);
-static int rsetcmd(char*);
-static int retrcmd(char*);
-static int statcmd(char*);
-static int stlscmd(char*);
-static int topcmd(char*);
-static int synccmd(char*);
-static int uidlcmd(char*);
-static int usercmd(char*);
-static char *nextarg(char*);
-static int getcrnl(char*, int);
-static int readmbox(char*);
-static void sendcrnl(char*, ...);
-static int senderr(char*, ...);
-static int sendok(char*, ...);
+static int apopcmd(int8_t*);
+static int capacmd(int8_t*);
+static int delecmd(int8_t*);
+static int listcmd(int8_t*);
+static int noopcmd(int8_t*);
+static int passcmd(int8_t*);
+static int quitcmd(int8_t*);
+static int rsetcmd(int8_t*);
+static int retrcmd(int8_t*);
+static int statcmd(int8_t*);
+static int stlscmd(int8_t*);
+static int topcmd(int8_t*);
+static int synccmd(int8_t*);
+static int uidlcmd(int8_t*);
+static int usercmd(int8_t*);
+static int8_t *nextarg(int8_t*);
+static int getcrnl(int8_t*, int);
+static int readmbox(int8_t*);
+static void sendcrnl(int8_t*, ...);
+static int senderr(int8_t*, ...);
+static int sendok(int8_t*, ...);
 #pragma varargck argpos sendcrnl 1
 #pragma varargck argpos senderr 1
 #pragma varargck argpos sendok 1
@@ -75,7 +75,7 @@ typedef struct Msg Msg;
 struct Msg
 {
 	int upasnum;
-	char digest[64];
+	int8_t digest[64];
 	int bytes;
 	int deleted;
 };
@@ -86,10 +86,10 @@ static Msg *msg;
 static int nmsg;
 static int loggedin;
 static int debug;
-static uchar *tlscert;
+static uint8_t *tlscert;
 static int ntlscert;
-static char *peeraddr;
-static char tmpaddr[64];
+static int8_t *peeraddr;
+static int8_t tmpaddr[64];
 
 void
 usage(void)
@@ -173,11 +173,11 @@ dircmp(void *a, void *b)
 }
 
 static int
-readmbox(char *box)
+readmbox(int8_t *box)
 {
 	int fd, i, n, nd, lines, pid;
-	char buf[100], err[Errlen];
-	char *p;
+	int8_t buf[100], err[Errlen];
+	int8_t *p;
 	Biobuf *b;
 	Dir *d, *draw;
 	Msg *m;
@@ -290,11 +290,11 @@ readmbox(char *box)
  *  return 0 on EOF
  */
 static int
-getcrnl(char *buf, int n)
+getcrnl(int8_t *buf, int n)
 {
 	int c;
-	char *ep;
-	char *bp;
+	int8_t *ep;
+	int8_t *bp;
 	Biobuf *fp = &in;
 
 	Bflush(&out);
@@ -338,9 +338,9 @@ getcrnl(char *buf, int n)
 }
 
 static void
-sendcrnl(char *fmt, ...)
+sendcrnl(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -352,9 +352,9 @@ sendcrnl(char *fmt, ...)
 }
 
 static int
-senderr(char *fmt, ...)
+senderr(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -367,9 +367,9 @@ senderr(char *fmt, ...)
 }
 
 static int
-sendok(char *fmt, ...)
+sendok(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -388,7 +388,7 @@ sendok(char *fmt, ...)
 }
 
 static int
-capacmd(char*)
+capacmd(int8_t*)
 {
 	sendok("");
 	sendcrnl("TOP");
@@ -402,7 +402,7 @@ capacmd(char*)
 }
 
 static int
-delecmd(char *arg)
+delecmd(int8_t *arg)
 {
 	int n;
 
@@ -421,7 +421,7 @@ delecmd(char *arg)
 }
 
 static int
-listcmd(char *arg)
+listcmd(int8_t *arg)
 {
 	int i, n;
 
@@ -443,7 +443,7 @@ listcmd(char *arg)
 }
 
 static int
-noopcmd(char *arg)
+noopcmd(int8_t *arg)
 {
 	USED(arg);
 	sendok("");
@@ -451,10 +451,10 @@ noopcmd(char *arg)
 }
 
 static void
-_synccmd(char*)
+_synccmd(int8_t*)
 {
 	int i, fd;
-	char *s;
+	int8_t *s;
 	Fmt f;
 
 	if(!loggedin){
@@ -482,14 +482,14 @@ _synccmd(char*)
 }
 
 static int
-synccmd(char*)
+synccmd(int8_t*)
 {
 	_synccmd(nil);
 	return 0;
 }
 
 static int
-quitcmd(char*)
+quitcmd(int8_t*)
 {
 	synccmd(nil);
 	exits(nil);
@@ -497,11 +497,11 @@ quitcmd(char*)
 }
 
 static int
-retrcmd(char *arg)
+retrcmd(int8_t *arg)
 {
 	int n;
 	Biobuf *b;
-	char buf[40], *p;
+	int8_t buf[40], *p;
 
 	if(*arg == 0)
 		return senderr("RETR requires a message number");
@@ -525,7 +525,7 @@ retrcmd(char *arg)
 }
 
 static int
-rsetcmd(char*)
+rsetcmd(int8_t*)
 {
 	int i;
 
@@ -540,13 +540,13 @@ rsetcmd(char*)
 }
 
 static int
-statcmd(char*)
+statcmd(int8_t*)
 {
 	return sendok("%d %d", totalmsgs, totalbytes);
 }
 
 static int
-trace(char *fmt, ...)
+trace(int8_t *fmt, ...)
 {
 	va_list arg;
 	int n;
@@ -558,7 +558,7 @@ trace(char *fmt, ...)
 }
 
 static int
-stlscmd(char*)
+stlscmd(int8_t*)
 {
 	int fd;
 	TLSconn conn;
@@ -588,10 +588,10 @@ stlscmd(char*)
 }
 
 static int
-topcmd(char *arg)
+topcmd(int8_t *arg)
 {
 	int done, i, lines, n;
-	char buf[40], *p;
+	int8_t buf[40], *p;
 	Biobuf *b;
 
 	if(*arg == 0)
@@ -635,7 +635,7 @@ topcmd(char *arg)
 }
 
 static int
-uidlcmd(char *arg)
+uidlcmd(int8_t *arg)
 {
 	int n;
 
@@ -656,8 +656,8 @@ uidlcmd(char *arg)
 	return 0;
 }
 
-static char*
-nextarg(char *p)
+static int8_t*
+nextarg(int8_t *p)
 {
 	while(*p && *p != ' ' && *p != '\t')
 		p++;
@@ -670,9 +670,9 @@ nextarg(char *p)
  * authentication
  */
 Chalstate *chs;
-char user[256];
-char box[256];
-char cbox[256];
+int8_t user[256];
+int8_t box[256];
+int8_t cbox[256];
 
 static void
 hello(void)
@@ -687,9 +687,9 @@ hello(void)
 }
 
 static int
-setuser(char *arg)
+setuser(int8_t *arg)
 {
-	char *p;
+	int8_t *p;
 
 	strcpy(box, "/mail/box/");
 	strecpy(box+strlen(box), box+sizeof box-7, arg);
@@ -706,7 +706,7 @@ setuser(char *arg)
 }
 
 static int
-usercmd(char *arg)
+usercmd(int8_t *arg)
 {
 	if(loggedin)
 		return senderr("already authenticated");
@@ -721,7 +721,7 @@ static void
 enableaddr(void)
 {
 	int fd;
-	char buf[64];
+	int8_t buf[64];
 
 	/* hide the peer IP address under a rock in the ratifier FS */
 	if(peeraddr == 0 || *peeraddr == 0)
@@ -744,11 +744,11 @@ enableaddr(void)
 }
 
 static int
-dologin(char *response)
+dologin(int8_t *response)
 {
 	AuthInfo *ai;
 	static int tries;
-	static ulong delaysecs = 5;
+	static uint32_t delaysecs = 5;
 
 	chs->user = user;
 	chs->resp = response;
@@ -789,11 +789,11 @@ dologin(char *response)
 }
 
 static int
-passcmd(char *arg)
+passcmd(int8_t *arg)
 {
 	DigestState *s;
-	uchar digest[MD5dlen];
-	char response[2*MD5dlen+1];
+	uint8_t digest[MD5dlen];
+	int8_t response[2*MD5dlen+1];
 
 	if(passwordinclear==0 && didtls==0)
 		return senderr("password in the clear disallowed");
@@ -803,16 +803,16 @@ passcmd(char *arg)
 		return senderr("couldn't get apop challenge");
 
 	/* hash challenge with secret and convert to ascii */
-	s = md5((uchar*)chs->chal, chs->nchal, 0, 0);
-	md5((uchar*)arg, strlen(arg), digest, s);
+	s = md5((uint8_t*)chs->chal, chs->nchal, 0, 0);
+	md5((uint8_t*)arg, strlen(arg), digest, s);
 	snprint(response, sizeof response, "%.*H", MD5dlen, digest);
 	return dologin(response);
 }
 
 static int
-apopcmd(char *arg)
+apopcmd(int8_t *arg)
 {
-	char *resp;
+	int8_t *resp;
 
 	resp = nextarg(arg);
 	if(setuser(arg) < 0)

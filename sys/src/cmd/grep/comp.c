@@ -154,7 +154,7 @@ Rune	tab2[] =
 Re2
 rclass(Rune p0, Rune p1)
 {
-	char xc0[6], xc1[6];
+	int8_t xc0[6], xc1[6];
 	int i, n, m;
 	Re2 x;
 
@@ -222,7 +222,7 @@ pcmp(void *va, void *vb)
  * by looking at sequential bytes.
  */
 Re2
-re2class(char *s)
+re2class(int8_t *s)
 {
 	Rune pairs[200+2], *p, *q, ov;
 	int nc;

@@ -13,8 +13,8 @@ enum {
 	ARgiveup = 100,
 };
 
-static uchar*
-gstring(uchar *p, uchar *ep, char **s)
+static uint8_t*
+gstring(uint8_t *p, uint8_t *ep, int8_t **s)
 {
 	uint n;
 
@@ -33,8 +33,8 @@ gstring(uchar *p, uchar *ep, char **s)
 	return p;
 }
 
-static uchar*
-gcarray(uchar *p, uchar *ep, uchar **s, int *np)
+static uint8_t*
+gcarray(uint8_t *p, uint8_t *ep, uint8_t **s, int *np)
 {
 	uint n;
 
@@ -55,10 +55,10 @@ gcarray(uchar *p, uchar *ep, uchar **s, int *np)
 	return p;
 }
 
-static uchar*
-convM2AI(uchar *p, int n, AuthInfo **aip)
+static uint8_t*
+convM2AI(uint8_t *p, int n, AuthInfo **aip)
 {
-	uchar *e = p+n;
+	uint8_t *e = p+n;
 	AuthInfo *ai;
 
 	ai = mallocz(sizeof(*ai), 1);
@@ -77,7 +77,7 @@ convM2AI(uchar *p, int n, AuthInfo **aip)
 }
 
 static int
-dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
+dorpc(AuthRpc *rpc, int8_t *verb, int8_t *val, int len, AuthGetkey *getkey)
 {
 	int ret;
 
@@ -110,7 +110,7 @@ dowrite(Session *s, Fid *f, void *buf, int n)
 	s->f.fid = f - s->fids;
 	s->f.offset = 0;
 	s->f.count = n;
-	s->f.data = (char *)buf;
+	s->f.data = (int8_t *)buf;
 	if(xmesg(s, Twrite) < 0)
 		return -1;
 	return n;
@@ -120,12 +120,13 @@ dowrite(Session *s, Fid *f, void *buf, int n)
  *  this just proxies what the factotum tells it to.
  */
 AuthInfo*
-authproto(Session *s, Fid *f, AuthRpc *rpc, AuthGetkey *getkey, char *params)
+authproto(Session *s, Fid *f, AuthRpc *rpc, AuthGetkey *getkey,
+	  int8_t *params)
 {
-	char *buf;
+	int8_t *buf;
 	int m, n, ret;
 	AuthInfo *a;
-	char oerr[ERRMAX];
+	int8_t oerr[ERRMAX];
 
 	rerrstr(oerr, sizeof oerr);
 	werrstr("UNKNOWN AUTH ERROR");

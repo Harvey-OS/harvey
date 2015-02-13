@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-int touch(int, char *);
-ulong now;
+int touch(int, int8_t *);
+uint32_t now;
 
 void
 usage(void)

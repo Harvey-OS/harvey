@@ -128,7 +128,7 @@ USA.  */
    Also, when `ordering' is RETURN_IN_ORDER,
    each non-option ARGV-element is returned here.  */
 
-char *optarg = NULL;
+int8_t *optarg = NULL;
 
 /* Index in ARGV of the next element to be scanned.
    This is used for communication to and from the caller
@@ -158,7 +158,7 @@ int __getopt_initialized = 0;
    If this is zero, or a null string, it means resume the scan
    by advancing to the next ARGV-element.  */
 
-static char *nextchar;
+static int8_t *nextchar;
 
 /* Callers store zero here to inhibit the error message
    for unrecognized options.  */
@@ -206,7 +206,7 @@ static enum
 } ordering;
 
 /* Value of POSIXLY_CORRECT environment variable.  */
-static char *posixly_correct;
+static int8_t *posixly_correct;
 
 #ifdef	__GNU_LIBRARY__
 /* We want to avoid inclusion of string.h with non-GNU libraries
@@ -220,17 +220,17 @@ static char *posixly_correct;
 /* Avoid depending on library functions or files
    whose names are inconsistent.  */
 
-char *getenv ();
+int8_t *getenv ();
 
-static char *
+static int8_t *
 my_index (str, chr)
-     const char *str;
+     const int8_t *str;
      int chr;
 {
   while (*str)
     {
       if (*str == chr)
-	return (char *) str;
+	return (int8_t *) str;
       str++;
     }
   return 0;
@@ -244,7 +244,7 @@ my_index (str, chr)
 #if !defined (__STDC__) || !__STDC__
 /* gcc with -traditional declares the built-in strlen to return int,
    and has done so at least since version 2.4.5. -- rms.  */
-extern int strlen (const char *);
+extern int strlen (const int8_t *);
 #endif /* not __STDC__ */
 #endif /* __GNUC__ */
 
@@ -264,13 +264,13 @@ static int last_nonopt;
    indicating ARGV elements that should not be considered arguments.  */
 
 /* Defined in getopt_init.c  */
-extern char *__getopt_nonoption_flags;
+extern int8_t *__getopt_nonoption_flags;
 
 static int nonoption_flags_max_len;
 static int nonoption_flags_len;
 
 static int original_argc;
-static char *const *original_argv;
+static int8_t *const *original_argv;
 
 extern pid_t __libc_pid;
 
@@ -279,7 +279,7 @@ extern pid_t __libc_pid;
    to getopt is that one passed to the process.  */
 static void
 __attribute__ ((unused))
-store_args_and_env (int argc, char *const *argv)
+store_args_and_env (int argc, int8_t *const *argv)
 {
   /* XXX This is no good solution.  We should rather copy the args so
      that we can compare them later.  But we must not use malloc(3).  */
@@ -291,7 +291,7 @@ text_set_element (__libc_subinit, store_args_and_env);
 # define SWAP_FLAGS(ch1, ch2) \
   if (nonoption_flags_len > 0)						      \
     {									      \
-      char __tmp = __getopt_nonoption_flags[ch1];			      \
+      int8_t __tmp = __getopt_nonoption_flags[ch1];			      \
       __getopt_nonoption_flags[ch1] = __getopt_nonoption_flags[ch2];	      \
       __getopt_nonoption_flags[ch2] = __tmp;				      \
     }
@@ -309,17 +309,17 @@ text_set_element (__libc_subinit, store_args_and_env);
    the new indices of the non-options in ARGV after they are moved.  */
 
 #if defined (__STDC__) && __STDC__
-static void exchange (char **);
+static void exchange (int8_t **);
 #endif
 
 static void
 exchange (argv)
-     char **argv;
+     int8_t **argv;
 {
   int bottom = first_nonopt;
   int middle = last_nonopt;
   int top = optind;
-  char *tem;
+  int8_t *tem;
 
   /* Exchange the shorter segment with the far end of the longer segment.
      That puts the shorter segment into the right place.
@@ -334,7 +334,7 @@ exchange (argv)
     {
       /* We must extend the array.  The user plays games with us and
 	 presents new arguments.  */
-      char *new_str = malloc (top + 1);
+      int8_t *new_str = malloc (top + 1);
       if (new_str == NULL)
 	nonoption_flags_len = nonoption_flags_max_len = 0;
       else
@@ -395,13 +395,14 @@ exchange (argv)
 /* Initialize the internal data when the first call is made.  */
 
 #if defined (__STDC__) && __STDC__
-static const char *_getopt_initialize (int, char *const *, const char *);
+static const int8_t *_getopt_initialize (int, int8_t *const *,
+					 const int8_t *);
 #endif
-static const char *
+static const int8_t *
 _getopt_initialize (argc, argv, optstring)
      int argc;
-     char *const *argv;
-     const char *optstring;
+     int8_t *const *argv;
+     const int8_t *optstring;
 {
   /* Start processing options with ARGV-element 1 (since ARGV-element 0
      is the program name); the sequence of previously skipped
@@ -441,12 +442,12 @@ _getopt_initialize (argc, argv, optstring)
 	    nonoption_flags_max_len = -1;
 	  else
 	    {
-	      const char *orig_str = __getopt_nonoption_flags;
+	      const int8_t *orig_str = __getopt_nonoption_flags;
 	      int len = nonoption_flags_max_len = strlen (orig_str);
 	      if (nonoption_flags_max_len < argc)
 		nonoption_flags_max_len = argc;
 	      __getopt_nonoption_flags =
-		(char *) malloc (nonoption_flags_max_len);
+		(int8_t *) malloc (nonoption_flags_max_len);
 	      if (__getopt_nonoption_flags == NULL)
 		nonoption_flags_max_len = -1;
 	      else
@@ -525,8 +526,8 @@ _getopt_initialize (argc, argv, optstring)
 int
 _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
      int argc;
-     char *const *argv;
-     const char *optstring;
+     int8_t *const *argv;
+     const int8_t *optstring;
      const struct option *longopts;
      int *longind;
      int long_only;
@@ -570,7 +571,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	     exchange them so that the options come first.  */
 
 	  if (first_nonopt != last_nonopt && last_nonopt != optind)
-	    exchange ((char **) argv);
+	    exchange ((int8_t **) argv);
 	  else if (last_nonopt != optind)
 	    first_nonopt = optind;
 
@@ -592,7 +593,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	  optind++;
 
 	  if (first_nonopt != last_nonopt && last_nonopt != optind)
-	    exchange ((char **) argv);
+	    exchange ((int8_t **) argv);
 	  else if (first_nonopt == last_nonopt)
 	    first_nonopt = optind;
 	  last_nonopt = argc;
@@ -649,7 +650,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
       && (argv[optind][1] == '-'
 	  || (long_only && (argv[optind][2] || !my_index (optstring, argv[optind][1])))))
     {
-      char *nameend;
+      int8_t *nameend;
       const struct option *p;
       const struct option *pfound = NULL;
       int exact = 0;
@@ -770,7 +771,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 		fprintf (stderr, _("%s: unrecognized option `%c%s'\n"),
 			 argv[0], argv[optind][0], nextchar);
 	    }
-	  nextchar = (char *) "";
+	  nextchar = (int8_t *) "";
 	  optind++;
 	  optopt = 0;
 	  return '?';
@@ -780,8 +781,8 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
   /* Look at and handle the next short option-character.  */
 
   {
-    char c = *nextchar++;
-    char *temp = my_index (optstring, c);
+    int8_t c = *nextchar++;
+    int8_t *temp = my_index (optstring, c);
 
     /* Increment `optind' when we start to process its last character.  */
     if (*nextchar == '\0')
@@ -805,7 +806,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
     /* Convenience. Treat POSIX -W foo same as long option --foo */
     if (temp[0] == 'W' && temp[1] == ';')
       {
-	char *nameend;
+	int8_t *nameend;
 	const struct option *p;
 	const struct option *pfound = NULL;
 	int exact = 0;
@@ -979,8 +980,8 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 int
 getopt (argc, argv, optstring)
      int argc;
-     char *const *argv;
-     const char *optstring;
+     int8_t *const *argv;
+     const int8_t *optstring;
 {
   return _getopt_internal (argc, argv, optstring,
 			   (const struct option *) 0,
@@ -998,7 +999,7 @@ getopt (argc, argv, optstring)
 int
 main (argc, argv)
      int argc;
-     char **argv;
+     int8_t **argv;
 {
   int c;
   int digit_optind = 0;

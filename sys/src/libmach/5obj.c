@@ -20,16 +20,16 @@
 typedef struct Addr	Addr;
 struct Addr
 {
-	char	type;
-	char	sym;
-	char	name;
+	int8_t	type;
+	int8_t	sym;
+	int8_t	name;
 };
 static Addr addr(Biobuf*);
-static char type2char(int);
+static int8_t type2char(int);
 static void skip(Biobuf*, int);
 
 int
-_is5(char *s)
+_is5(int8_t *s)
 {
 	return  s[0] == ANAME				/* ANAME */
 		&& s[1] == D_FILE			/* type */
@@ -90,7 +90,7 @@ static Addr
 addr(Biobuf *bp)
 {
 	Addr a;
-	long off;
+	int32_t off;
 
 	a.type = Bgetc(bp);	/* a.type */
 	skip(bp,1);		/* reg */
@@ -127,7 +127,7 @@ addr(Biobuf *bp)
 	return a;
 }
 
-static char
+static int8_t
 type2char(int t)
 {
 	switch(t){

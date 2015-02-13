@@ -13,7 +13,7 @@
 
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 		print("%dn", wordsperline(Rect(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4])), atoi(argv[5])));
 }

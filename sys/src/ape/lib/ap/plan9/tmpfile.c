@@ -19,8 +19,8 @@
 FILE *
 tmpfile(void){
 	FILE *f;
-	static char name[]="/tmp/tf0000000000000";
-	char *p;
+	static int8_t name[]="/tmp/tf0000000000000";
+	int8_t *p;
 	int n;
 	for(f=_IO_stream;f!=&_IO_stream[FOPEN_MAX];f++)
 		if(f->state==CLOSED)

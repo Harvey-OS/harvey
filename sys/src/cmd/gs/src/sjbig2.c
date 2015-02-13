@@ -51,13 +51,14 @@ private_st_jbig2decode_state();	/* creates a gc object for our state, defined in
 
 /* error callback for jbig2 decoder */
 private int
-s_jbig2decode_error(void *error_callback_data, const char *msg, Jbig2Severity severity,
+s_jbig2decode_error(void *error_callback_data, const int8_t *msg,
+                    Jbig2Severity severity,
 	       int32_t seg_idx)
 {
     stream_jbig2decode_state *const state = 
 	(stream_jbig2decode_state *) error_callback_data;
-    const char *type;
-    char segment[22];
+    const int8_t *type;
+    int8_t segment[22];
     int code = 0;
 
     switch (severity) {
@@ -173,8 +174,8 @@ s_jbig2decode_process(stream_state * ss, stream_cursor_read * pr,
 {
     stream_jbig2decode_state *const state = (stream_jbig2decode_state *) ss;
     Jbig2Image *image = state->image;
-    long in_size = pr->limit - pr->ptr;
-    long out_size = pw->limit - pw->ptr;
+    int32_t in_size = pr->limit - pr->ptr;
+    int32_t out_size = pw->limit - pw->ptr;
     int status = 0;
     
     /* there will only be a single page image, 
@@ -203,8 +204,8 @@ s_jbig2decode_process(stream_state * ss, stream_cursor_read * pr,
         }
         if (image != NULL) {
             /* copy data out of the decoded image, if any */
-            long image_size = image->height*image->stride;
-            long usable = min(image_size - state->offset, out_size);
+            int32_t image_size = image->height*image->stride;
+            int32_t usable = min(image_size - state->offset, out_size);
             memcpy(pw->ptr + 1, image->data + state->offset, usable);
             s_jbig2decode_invert_buffer(pw->ptr + 1, usable);
             state->offset += usable;

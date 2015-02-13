@@ -73,8 +73,8 @@ loadchilds(Page *p, Kidinfo *k)
 }
 
 static struct {
-	char *mime;
-	char *filter;
+	int8_t *mime;
+	int8_t *filter;
 }filtertab[] = {
 	"image/gif",	"gif -t9",
 	"image/jpeg",	"jpg -t9",
@@ -85,10 +85,10 @@ static struct {
 	nil,	nil,
 };
 
-char *
+int8_t *
 getfilter(Rune *r, int x, int y)
 {
-	char buf[128];
+	int8_t buf[128];
 	int i;
 
 	snprint(buf, sizeof(buf), "%S", r);
@@ -163,7 +163,7 @@ loadimg(Rune *src, int x , int y)
 	Cimage *ci;
 	Runestr rs;
 	Exec *e;
-	char *filter;
+	int8_t *filter;
 	int fd, p[2], q[2];
 
 	ci = emalloc(sizeof(Cimage));
@@ -260,7 +260,7 @@ loadimages(Page *p)
 	}
 }
 
-static char *mimetab[] = {
+static int8_t *mimetab[] = {
 	"text/html",
 	"application/xhtml",
 	nil,
@@ -271,8 +271,8 @@ void
 pageloadproc(void *v)
 {
 	Page *p;
-	char buf[BUFSIZE], *s;
-	long n, l;
+	int8_t buf[BUFSIZE], *s;
+	int32_t n, l;
 	int fd, i, ctype;
 
 	threadsetname("pageloadproc");
@@ -325,7 +325,8 @@ pageloadproc(void *v)
 	n = l;
 	if(s){
 		s = convert(p->url->ctype, s, &n);
-		p->items = parsehtml((uchar *)s, n, p->url->act.r, ctype, UTF_8, &p->doc);
+		p->items = parsehtml((uint8_t *)s, n, p->url->act.r, ctype,
+				     UTF_8, &p->doc);
 		free(s);
 		fixtext(p);
 		if(ctype==TextHtml && p->aborting==FALSE){
@@ -792,7 +793,7 @@ pagesetrefresh(Page *p)
 {
 	Runestr rs;
 	Rune *s, *q, *t;
-	char *v;
+	int8_t *v;
 	int n;
 
 	if(!p->doc || !p->doc->refresh)

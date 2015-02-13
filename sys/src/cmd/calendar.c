@@ -28,7 +28,7 @@ Biobuf in;
 int debug, matchyear;
 
 void dates(Tm*);
-void upper2lower(char*, char*, int);
+void upper2lower(int8_t*, int8_t*, int);
 void *emalloc(unsigned int);
 
 void
@@ -114,7 +114,7 @@ main(int argc, char *argv[])
 	exits("");
 }
 
-char *months[] = 
+int8_t *months[] = 
 {
 	"january",
 	"february",
@@ -129,14 +129,14 @@ char *months[] =
 	"november",
 	"december"
 };
-char *nth[] = {
+int8_t *nth[] = {
 	"first", 
 	"second",
 	"third",
 	"fourth",
 	"fifth"
 };
-char *days[] = {
+int8_t *days[] = {
 	"sunday",
 	"monday",
 	"tuesday",
@@ -155,7 +155,7 @@ void
 dates(Tm *tm)
 {
 	Date *nd;
-	char mo[128], day[128], buf[128];
+	int8_t mo[128], day[128], buf[128];
 
 	if(utflen(days[tm->wday]) > 3)
 		snprint(day, sizeof day, "%3.3s(%s)?",
@@ -220,7 +220,7 @@ dates(Tm *tm)
  * Copy 'from' to 'to', converting to lower case
  */
 void
-upper2lower(char *to, char *from, int len)
+upper2lower(int8_t *to, int8_t *from, int len)
 {
 	while(--len>0 && *from!='\0')
 		*to++ = tolower(*from++);

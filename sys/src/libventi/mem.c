@@ -62,7 +62,7 @@ void *
 vtbrk(int n)
 {
 	static Lock lk;
-	static uchar *buf;
+	static uint8_t *buf;
 	static int nbuf, nchunk;
 	int align, pad;
 	void *p;

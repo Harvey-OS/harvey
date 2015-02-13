@@ -15,7 +15,7 @@
 void vtDumpSome(Packet*);
 
 void
-vtDebug(VtSession *s, char *fmt, ...)
+vtDebug(VtSession *s, int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -28,12 +28,12 @@ vtDebug(VtSession *s, char *fmt, ...)
 }
 
 void
-vtDebugMesg(VtSession *z, Packet *p, char *s)
+vtDebugMesg(VtSession *z, Packet *p, int8_t *s)
 {
 	int op;
 	int tid;
 	int n;
-	uchar buf[100], *b;
+	uint8_t buf[100], *b;
 
 
 	if(!z->debug)
@@ -57,8 +57,8 @@ vtDumpSome(Packet *pkt)
 {
 	int printable;
 	int i, n;
-	char buf[200], *q, *eq;
-	uchar data[32], *p;
+	int8_t buf[200], *q, *eq;
+	uint8_t data[32], *p;
 
 	n = packetSize(pkt);
 	printable = 1;

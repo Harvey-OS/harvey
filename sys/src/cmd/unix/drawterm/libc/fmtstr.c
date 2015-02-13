@@ -11,11 +11,11 @@
 #include <libc.h>
 #include "fmtdef.h"
 
-char*
+int8_t*
 fmtstrflush(Fmt *f)
 {
 	if(f->start == nil)
 		return nil;
-	*(char*)f->to = '\0';
-	return (char*)f->start;
+	*(int8_t*)f->to = '\0';
+	return (int8_t*)f->start;
 }

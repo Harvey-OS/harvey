@@ -16,10 +16,10 @@
  * tag=val&tag1=val1...
  */
 HSPairs*
-hparsequery(HConnect *c, char *search)
+hparsequery(HConnect *c, int8_t *search)
 {
 	HSPairs *q;
-	char *tag, *val, *s;
+	int8_t *tag, *val, *s;
 
 	while((s = strchr(search, '?')) != nil)
 		search = s + 1;

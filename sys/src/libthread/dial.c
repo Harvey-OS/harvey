@@ -15,9 +15,9 @@
 
 typedef struct DS DS;
 
-static int	call(char*, char*, DS*);
+static int	call(int8_t*, int8_t*, DS*);
 static int	csdial(DS*);
-static void	_dial_string_parse(char*, DS*);
+static void	_dial_string_parse(int8_t*, DS*);
 
 enum
 {
@@ -27,14 +27,14 @@ enum
 
 struct DS {
 	/* dist string */
-	char	buf[Maxstring];
-	char	*netdir;
-	char	*proto;
-	char	*rem;
+	int8_t	buf[Maxstring];
+	int8_t	*netdir;
+	int8_t	*proto;
+	int8_t	*rem;
 
 	/* other args */
-	char	*local;
-	char	*dir;
+	int8_t	*local;
+	int8_t	*dir;
 	int	*cfdp;
 };
 
@@ -43,11 +43,11 @@ struct DS {
  *  the dialstring is of the form '[/net/]proto!dest'
  */
 int
-_threaddial(char *dest, char *local, char *dir, int *cfdp)
+_threaddial(int8_t *dest, int8_t *local, int8_t *dir, int *cfdp)
 {
 	DS ds;
 	int rv;
-	char err[ERRMAX], alterr[ERRMAX];
+	int8_t err[ERRMAX], alterr[ERRMAX];
 
 	ds.local = local;
 	ds.dir = dir;
@@ -85,7 +85,7 @@ static int
 csdial(DS *ds)
 {
 	int n, fd, rv;
-	char *p, buf[Maxstring], clone[Maxpath], err[ERRMAX], besterr[ERRMAX];
+	int8_t *p, buf[Maxstring], clone[Maxpath], err[ERRMAX], besterr[ERRMAX];
 
 	/*
 	 *  open connection server
@@ -138,10 +138,10 @@ csdial(DS *ds)
 }
 
 static int
-call(char *clone, char *dest, DS *ds)
+call(int8_t *clone, int8_t *dest, DS *ds)
 {
 	int fd, cfd, n;
-	char cname[Maxpath], name[Maxpath], data[Maxpath], *p;
+	int8_t cname[Maxpath], name[Maxpath], data[Maxpath], *p;
 
 	/* because cs is in a different name space, replace the mount point */
 	if(*clone == '/'){
@@ -201,9 +201,9 @@ call(char *clone, char *dest, DS *ds)
  *  parse a dial string
  */
 static void
-_dial_string_parse(char *str, DS *ds)
+_dial_string_parse(int8_t *str, DS *ds)
 {
-	char *p, *p2;
+	int8_t *p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
 	ds->buf[Maxstring-1] = 0;

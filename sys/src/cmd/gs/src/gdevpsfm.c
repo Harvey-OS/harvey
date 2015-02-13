@@ -37,10 +37,10 @@
 /* ---------------- Utilities ---------------- */
 
 typedef struct cmap_operators_s {
-    const char *beginchar;
-    const char *endchar;
-    const char *beginrange;
-    const char *endrange;
+    const int8_t *beginchar;
+    const int8_t *endchar;
+    const int8_t *beginrange;
+    const int8_t *endrange;
 } cmap_operators_t;
 private const cmap_operators_t
   cmap_cid_operators = {
@@ -65,7 +65,7 @@ private void
 pput_hex(stream *s, const byte *pcid, int size)
 {
     int i;
-    static const char *const hex_digits = "0123456789abcdef";
+    static const int8_t *const hex_digits = "0123456789abcdef";
 
     for (i = 0; i < size; ++i) {
 	stream_putc(s, hex_digits[pcid[i] >> 4]);
@@ -137,7 +137,7 @@ cmap_put_code_map(const gs_memory_t *mem,
 	    ++num_entries;
 	for (gi = 0; gi < num_entries; gi += 100) {
 	    int i = gi, ni = min(i + 100, num_entries);
-	    const char *end;
+	    const int8_t *end;
 
 	    pprintd1(s, "%d ", ni - i);
 	    if (lenum.entry.key_is_range) {
@@ -159,7 +159,7 @@ cmap_put_code_map(const gs_memory_t *mem,
 	    }
 	    for (; i < ni; ++i) {
 		int j;
-		long value;
+		int32_t value;
 		int value_size;
 
 		DISCARD(gs_cmap_enum_next_entry(&lenum)); /* can't fail */
@@ -267,7 +267,7 @@ psf_write_cmap(const gs_memory_t *mem,
 	stream_puts(s, " def\n");
 	if (uid_is_XUID(&pcmap->uid)) {
 	    uint i, n = uid_XUID_size(&pcmap->uid);
-	    const long *values = uid_XUID_values(&pcmap->uid);
+	    const int32_t *values = uid_XUID_values(&pcmap->uid);
 
 	    stream_puts(s, "/XUID [");
 	    for (i = 0; i < n; ++i)

@@ -15,22 +15,22 @@
 
 int usbdebug;
 
-static char *edir[] = {"in", "out", "inout"};
-static char *etype[] = {"ctl", "iso", "bulk", "intr"};
-static char* cnames[] =
+static int8_t *edir[] = {"in", "out", "inout"};
+static int8_t *etype[] = {"ctl", "iso", "bulk", "intr"};
+static int8_t* cnames[] =
 {
 	"none", "audio", "comms", "hid", "",
 	"", "", "printer", "storage", "hub", "data"
 };
-static char* devstates[] =
+static int8_t* devstates[] =
 {
 	"detached", "attached", "enabled", "assigned", "configured"
 };
 
-char*
+int8_t*
 classname(int c)
 {
-	static char buf[30];
+	static int8_t buf[30];
 
 	if(c >= 0 && c < nelem(cnames))
 		return cnames[c];
@@ -40,12 +40,12 @@ classname(int c)
 	}
 }
 
-char *
+int8_t *
 hexstr(void *a, int n)
 {
 	int i;
-	char *dbuff, *s, *e;
-	uchar *b;
+	int8_t *dbuff, *s, *e;
+	uint8_t *b;
 
 	b = a;
 	dbuff = s = emallocz(1024, 0);
@@ -58,13 +58,13 @@ hexstr(void *a, int n)
 	return dbuff;
 }
 
-static char *
-seprintiface(char *s, char *e, Iface *i)
+static int8_t *
+seprintiface(int8_t *s, int8_t *e, Iface *i)
 {
 	int	j;
 	Altc	*a;
 	Ep	*ep;
-	char	*eds, *ets;
+	int8_t	*eds, *ets;
 
 	s = seprint(s, e, "\t\tiface csp %s.%uld.%uld\n",
 		classname(Class(i->csp)), Subclass(i->csp), Proto(i->csp));
@@ -96,12 +96,12 @@ seprintiface(char *s, char *e, Iface *i)
 	return s;
 }
 
-static char*
-seprintconf(char *s, char *e, Usbdev *d, int ci)
+static int8_t*
+seprintconf(int8_t *s, int8_t *e, Usbdev *d, int ci)
 {
 	int i;
 	Conf *c;
-	char *hd;
+	int8_t *hd;
 
 	c = d->conf[ci];
 	s = seprint(s, e, "\tconf: cval %d attrib %x %d mA\n",
@@ -115,7 +115,7 @@ seprintconf(char *s, char *e, Usbdev *d, int ci)
 		if(d->ddesc[i] == nil)
 			break;
 		else if(d->ddesc[i]->conf == c){
-			hd = hexstr((uchar*)&d->ddesc[i]->data,
+			hd = hexstr((uint8_t*)&d->ddesc[i]->data,
 				d->ddesc[i]->data.bLength);
 			s = seprint(s, e, "\t\tdev desc %x[%d]: %s\n",
 				d->ddesc[i]->data.bDescriptorType,
@@ -131,8 +131,8 @@ Ufmt(Fmt *f)
 	int i;
 	Dev *d;
 	Usbdev *ud;
-	char buf[1024];
-	char *s, *e;
+	int8_t buf[1024];
+	int8_t *s, *e;
 
 	s = buf;
 	e = buf+sizeof(buf);
@@ -157,10 +157,10 @@ Ufmt(Fmt *f)
 	return fmtprint(f, "%s", buf);
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *d;
+	int8_t *d;
 
 	d = strdup(s);
 	if(d == nil)
@@ -170,7 +170,7 @@ estrdup(char *s)
 }
 
 void*
-emallocz(ulong size, int zero)
+emallocz(uint32_t size, int zero)
 {
 	void *x;
 

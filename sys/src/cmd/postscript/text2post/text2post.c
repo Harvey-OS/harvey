@@ -16,7 +16,7 @@
 
 #define UNKNOWNCHAR	"/sys/lib/postscript/prologues/pjw.char.ps"
 
-char	*optnames = "a:c:f:l:m:n:o:p:s:t:x:y:P:";
+int8_t	*optnames = "a:c:f:l:m:n:o:p:s:t:x:y:P:";
 
 double	aspectratio = 1.0;
 Biobuf	inbuf, outbuf;
@@ -31,7 +31,7 @@ int	linesperpage = 66;
 double	magnification = 1.0;
 int	page_no = 0;		/* page number in a document */
 int	pages_printed;
-char	*passthrough = 0;
+int8_t	*passthrough = 0;
 int	pointsize = 10;
 int	spaces = 0;
 int	tabs = 0;
@@ -40,11 +40,11 @@ double	yoffset = .25;
 
 static int pplistmaxsize = 0;
 
-uchar *pplist = 0;		/* bitmap list for storing pages to print */
+uint8_t *pplist = 0;		/* bitmap list for storing pages to print */
 
 struct strtab {
 	int	size;
-	char	*str;
+	int8_t	*str;
 	int	used;
 };
 
@@ -162,9 +162,9 @@ struct strtab fontname[FONTABSIZE] = {
 /* This was taken from postprint */
 
 int
-cat(char *filename) {
+cat(int8_t *filename) {
 	int n;
-	char buf[Bsize];
+	int8_t buf[Bsize];
 	Biobuf *bfile;
 
 	if ((bfile = Bopen(filename, OREAD)) == nil)
@@ -180,7 +180,7 @@ cat(char *filename) {
 
 void
 prologues(void) {
-	char *ts;
+	int8_t *ts;
 	int tabstop;
 
 	Bprint(bout, "%s", CONFORMING);
@@ -312,7 +312,7 @@ txt2post(void) {
 	int lastfont = -1;
 	int lastchar = -1;
 	int thisfont, thischar;
-	long r;
+	int32_t r;
 
 	in_string = 0;
 	char_no = 0;
@@ -407,8 +407,8 @@ txt2post(void) {
 }
 
 void
-pagelist(char *list) {
-	char c;
+pagelist(int8_t *list) {
+	int8_t c;
 	int n, state, start;
 	unsigned m;
 

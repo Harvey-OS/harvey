@@ -30,7 +30,7 @@ enum
 	AWAIT		= 2,
 };
 
-char *arpstate[] =
+int8_t *arpstate[] =
 {
 	"UNUSED",
 	"OK",
@@ -52,7 +52,7 @@ struct Arp
 	Block 	*dropf, *dropl;
 };
 
-char *Ebadarp = "bad arp";
+int8_t *Ebadarp = "bad arp";
 
 #define haship(s) ((s)[IPaddrlen-1]%NHASH)
 
@@ -73,7 +73,7 @@ arpinit(Fs *f)
  *  create a new arp entry for an ip address.
  */
 static Arpent*
-newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
+newarp6(Arp *arp, uint8_t *ip, Ipifc *ifc, int addrxt)
 {
 	uint t;
 	Block *next, *xp;
@@ -211,12 +211,13 @@ cleanarpent(Arp *arp, Arpent *a)
  *  waiting for ip->mac to be resolved.
  */
 Arpent*
-arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uchar *ip, uchar *mac)
+arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip,
+       uint8_t *mac)
 {
 	int hash;
 	Arpent *a;
 	Medium *type;
-	uchar v6ip[IPaddrlen];
+	uint8_t v6ip[IPaddrlen];
 
 	if(version == V4){
 		v4tov6(v6ip, ip);
@@ -275,7 +276,7 @@ arprelease(Arp *arp, Arpent*)
  * called with arp locked
  */
 Block*
-arpresolve(Arp *arp, Arpent *a, Medium *type, uchar *mac)
+arpresolve(Arp *arp, Arpent *a, Medium *type, uint8_t *mac)
 {
 	Block *bp;
 	Arpent *f, **l;
@@ -303,7 +304,8 @@ arpresolve(Arp *arp, Arpent *a, Medium *type, uchar *mac)
 }
 
 void
-arpenter(Fs *fs, int version, uchar *ip, uchar *mac, int n, int refresh)
+arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n,
+	 int refresh)
 {
 	Arp *arp;
 	Route *r;
@@ -311,7 +313,7 @@ arpenter(Fs *fs, int version, uchar *ip, uchar *mac, int n, int refresh)
 	Ipifc *ifc;
 	Medium *type;
 	Block *bp, *next;
-	uchar v6ip[IPaddrlen];
+	uint8_t v6ip[IPaddrlen];
 
 	arp = fs->arp;
 
@@ -407,7 +409,7 @@ arpenter(Fs *fs, int version, uchar *ip, uchar *mac, int n, int refresh)
 }
 
 int
-arpwrite(Fs *fs, char *s, int len)
+arpwrite(Fs *fs, int8_t *s, int len)
 {
 	int n;
 	Route *r;
@@ -415,8 +417,8 @@ arpwrite(Fs *fs, char *s, int len)
 	Block *bp;
 	Arpent *a, *fl, **l;
 	Medium *type;
-	char *f[4], buf[256];
-	uchar ip[IPaddrlen], mac[MAClen];
+	int8_t *f[4], buf[256];
+	uint8_t ip[IPaddrlen], mac[MAClen];
 
 	arp = fs->arp;
 
@@ -525,21 +527,21 @@ enum
 	Alinelen=	90,
 };
 
-char *aformat = "%-6.6s %-8.8s %-40.40I %-32.32s\n";
+int8_t *aformat = "%-6.6s %-8.8s %-40.40I %-32.32s\n";
 
 static void
-convmac(char *p, uchar *mac, int n)
+convmac(int8_t *p, uint8_t *mac, int n)
 {
 	while(n-- > 0)
 		p += sprint(p, "%2.2ux", *mac++);
 }
 
 int
-arpread(Arp *arp, char *p, ulong offset, int len)
+arpread(Arp *arp, int8_t *p, uint32_t offset, int len)
 {
 	Arpent *a;
 	int n;
-	char mac[2*MAClen+1];
+	int8_t mac[2*MAClen+1];
 
 	if(offset % Alinelen)
 		return 0;
@@ -572,9 +574,9 @@ rxmitsols(Arp *arp)
 	Block *next, *xp;
 	Arpent *a, *b, **l;
 	Fs *f;
-	uchar ipsrc[IPaddrlen];
+	uint8_t ipsrc[IPaddrlen];
 	Ipifc *ifc = nil;
-	long nrxt;
+	int32_t nrxt;
 
 	qlock(arp);
 	f = arp->f;
@@ -670,7 +672,7 @@ static void
 rxmitproc(void *v)
 {
 	Arp *arp = v;
-	long wakeupat;
+	int32_t wakeupat;
 
 	arp->rxmitp = up;
 	//print("arp rxmitproc started\n");

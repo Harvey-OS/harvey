@@ -25,11 +25,11 @@
 #include "priv.h"
 
 void
-_sock_ingetaddr(Rock *r, struct sockaddr_in *ip, int *alen, char *a)
+_sock_ingetaddr(Rock *r, struct sockaddr_in *ip, int *alen, int8_t *a)
 {
 	int n, fd;
-	char *p;
-	char name[Ctlsize];
+	int8_t *p;
+	int8_t name[Ctlsize];
 
 	/* get remote address */
 	strcpy(name, r->ctl);

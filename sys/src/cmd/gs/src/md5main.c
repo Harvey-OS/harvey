@@ -59,19 +59,19 @@
  * to the MD5 library.  Typical compilation:
  *	gcc -o md5main -lm md5main.c md5.c
  */
-static const char *const usage = "\
+static const int8_t *const usage = "\
 Usage:\n\
     md5main --test		# run the self-test (A.5 of RFC 1321)\n\
     md5main --t-values		# print the T values for the library\n\
     md5main --version		# print the version of the package\n\
 ";
-static const char *const version = "2002-04-13";
+static const int8_t *const version = "2002-04-13";
 
 /* Run the self-test. */
 static int
 do_test(void)
 {
-    static const char *const test[7*2] = {
+    static const int8_t *const test[7*2] = {
 	"", "d41d8cd98f00b204e9800998ecf8427e",
 	"a", "0cc175b9c0f1b6a831c399e269772661",
 	"abc", "900150983cd24fb0d6963f7d28e17f72",
@@ -87,7 +87,7 @@ do_test(void)
     for (i = 0; i < 7*2; i += 2) {
 	md5_state_t state;
 	md5_byte_t digest[16];
-	char hex_output[16*2 + 1];
+	int8_t hex_output[16*2 + 1];
 	int di;
 
 	md5_init(&state);
@@ -131,7 +131,7 @@ do_t_values(void)
 
 /* Main program */
 int
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
     if (argc == 2) {
 	if (!strcmp(argv[1], "--test"))

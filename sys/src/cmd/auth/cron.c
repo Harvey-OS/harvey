@@ -14,7 +14,7 @@
 #include <auth.h>
 #include "authcmdlib.h"
 
-char CRONLOG[] = "cron";
+int8_t CRONLOG[] = "cron";
 
 enum {
 	Minute = 60,
@@ -27,65 +27,65 @@ typedef struct Time	Time;
 typedef struct User	User;
 
 struct Time{			/* bit masks for each valid time */
-	uvlong	min;
-	ulong	hour;
-	ulong	mday;
-	ulong	wday;
-	ulong	mon;
+	uint64_t	min;
+	uint32_t	hour;
+	uint32_t	mday;
+	uint32_t	wday;
+	uint32_t	mon;
 };
 
 struct Job{
-	char	*host;		/* where ... */
+	int8_t	*host;		/* where ... */
 	Time	time;			/* when ... */
-	char	*cmd;			/* and what to execute */
+	int8_t	*cmd;			/* and what to execute */
 	Job	*next;
 };
 
 struct User{
 	Qid	lastqid;			/* of last read /cron/user/cron */
-	char	*name;			/* who ... */
+	int8_t	*name;			/* who ... */
 	Job	*jobs;			/* wants to execute these jobs */
 };
 
 User	*users;
 int	nuser;
 int	maxuser;
-char	*savec;
-char	*savetok;
+int8_t	*savec;
+int8_t	*savetok;
 int	tok;
 int	debug;
-ulong	lexval;
+uint32_t	lexval;
 
 void	rexec(User*, Job*);
 void	readalljobs(void);
-Job	*readjobs(char*, User*);
-int	getname(char**);
-uvlong	gettime(int, int);
+Job	*readjobs(int8_t*, User*);
+int	getname(int8_t**);
+uint64_t	gettime(int, int);
 int	gettok(int, int);
 void	initcap(void);
 void	pushtok(void);
 void	usage(void);
 void	freejobs(Job*);
-User	*newuser(char*);
-void	*emalloc(ulong);
-void	*erealloc(void*, ulong);
-int	myauth(int, char*);
+User	*newuser(int8_t*);
+void	*emalloc(uint32_t);
+void	*erealloc(void*, uint32_t);
+int	myauth(int, int8_t*);
 void	createuser(void);
-int	mkcmd(char*, char*, int);
+int	mkcmd(int8_t*, int8_t*, int);
 void	printjobs(void);
 int	qidcmp(Qid, Qid);
-int	becomeuser(char*);
+int	becomeuser(int8_t*);
 
-ulong
-minute(ulong tm)
+uint32_t
+minute(uint32_t tm)
 {
 	return tm - tm%Minute;		/* round down to the minute */
 }
 
 int
-sleepuntil(ulong tm)
+sleepuntil(uint32_t tm)
 {
-	ulong now = time(0);
+	uint32_t now = time(0);
 	
 	if (now < tm)
 		return sleep((tm - now)*1000);
@@ -97,9 +97,9 @@ sleepuntil(ulong tm)
 #pragma varargck	argpos fatal 1
 
 static void
-clog(char *fmt, ...)
+clog(int8_t *fmt, ...)
 {
-	char msg[256];
+	int8_t msg[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -109,9 +109,9 @@ clog(char *fmt, ...)
 }
 
 static void
-fatal(char *fmt, ...)
+fatal(int8_t *fmt, ...)
 {
-	char msg[256];
+	int8_t msg[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -122,13 +122,13 @@ fatal(char *fmt, ...)
 }
 
 static int
-openlock(char *file)
+openlock(int8_t *file)
 {
 	return create(file, ORDWR, 0600);
 }
 
 static int
-mklock(char *file)
+mklock(int8_t *file)
 {
 	int fd, try;
 	Dir *dir;
@@ -253,7 +253,7 @@ void
 createuser(void)
 {
 	Dir d;
-	char file[128], *user;
+	int8_t file[128], *user;
 	int fd;
 
 	user = getuser();
@@ -280,7 +280,7 @@ readalljobs(void)
 {
 	User *u;
 	Dir *d, *du;
-	char file[128];
+	int8_t file[128];
 	int i, n, fd;
 
 	fd = open("/cron", OREAD);
@@ -315,7 +315,7 @@ readalljobs(void)
  * other lines: minute hour monthday month weekday host command
  */
 Job *
-readjobs(char *file, User *user)
+readjobs(int8_t *file, User *user)
 {
 	Biobuf *b;
 	Job *j, *jobs;
@@ -366,7 +366,7 @@ readjobs(char *file, User *user)
 void
 printjobs(void)
 {
-	char buf[8*1024];
+	int8_t buf[8*1024];
 	Job *j;
 	int i;
 
@@ -382,7 +382,7 @@ printjobs(void)
 }
 
 User *
-newuser(char *name)
+newuser(int8_t *name)
 {
 	int i;
 
@@ -416,10 +416,10 @@ freejobs(Job *j)
 }
 
 int
-getname(char **namep)
+getname(int8_t **namep)
 {
 	int c;
-	char buf[64], *p;
+	int8_t buf[64], *p;
 
 	if(!savec)
 		return 0;
@@ -450,10 +450,10 @@ getname(char **namep)
  *	| range ',' range
  * a return of zero means a syntax error was discovered
  */
-uvlong
+uint64_t
 gettime(int min, int max)
 {
-	uvlong n, m, e;
+	uint64_t n, m, e;
 
 	if(gettok(min, max) == '*')
 		return ~0ULL;
@@ -487,7 +487,7 @@ pushtok(void)
 int
 gettok(int min, int max)
 {
-	char c;
+	int8_t c;
 
 	savetok = savec;
 	if(!savec)
@@ -510,9 +510,9 @@ gettok(int min, int max)
 }
 
 int
-call(char *host)
+call(int8_t *host)
 {
-	char *na, *p;
+	int8_t *na, *p;
 
 	na = netmkaddr(host, 0, "rexexec");
 	p = utfrune(na, L'!');
@@ -531,9 +531,9 @@ call(char *host)
  * need to escape the quotes so they don't get stripped
  */
 int
-mkcmd(char *cmd, char *buf, int len)
+mkcmd(int8_t *cmd, int8_t *buf, int len)
 {
-	char *p;
+	int8_t *p;
 	int n, m;
 
 	n = sizeof "exec rc -c '" -1;
@@ -561,7 +561,7 @@ mkcmd(char *cmd, char *buf, int len)
 void
 rexec(User *user, Job *j)
 {
-	char buf[8*1024];
+	int8_t buf[8*1024];
 	int n, fd;
 	AuthInfo *ai;
 
@@ -631,7 +631,7 @@ rexec(User *user, Job *j)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -642,7 +642,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	if(p = realloc(p, n))
 		return p;
@@ -667,9 +667,9 @@ qidcmp(Qid a, Qid b)
 void
 memrandom(void *p, int n)
 {
-	uchar *cp;
+	uint8_t *cp;
 
-	for(cp = (uchar*)p; n > 0; n--)
+	for(cp = (uint8_t*)p; n > 0; n--)
 		*cp++ = fastrand();
 }
 
@@ -689,14 +689,14 @@ initcap(void)
 /*
  *  create a change uid capability 
  */
-char*
-mkcap(char *from, char *to)
+int8_t*
+mkcap(int8_t *from, int8_t *to)
 {
-	uchar rand[20];
-	char *cap;
-	char *key;
+	uint8_t rand[20];
+	int8_t *cap;
+	int8_t *key;
 	int nfrom, nto, ncap;
-	uchar hash[SHA1dlen];
+	uint8_t hash[SHA1dlen];
 
 	if(caphashfd < 0)
 		return nil;
@@ -712,7 +712,8 @@ mkcap(char *from, char *to)
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uchar*)cap, strlen(cap), (uchar*)key, strlen(key), hash, nil);
+	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
+		  hash, nil);
 
 	/* give the kernel the hash */
 	key[-1] = '@';
@@ -725,7 +726,7 @@ mkcap(char *from, char *to)
 }
 
 int
-usecap(char *cap)
+usecap(int8_t *cap)
 {
 	int fd, rv;
 
@@ -738,9 +739,9 @@ usecap(char *cap)
 }
 
 int
-becomeuser(char *new)
+becomeuser(int8_t *new)
 {
-	char *cap;
+	int8_t *cap;
 	int rv;
 
 	cap = mkcap(getuser(), new);

@@ -16,11 +16,11 @@
 
 #define TABLEN 8
 
-static char*
-defreadln(char *prompt, char *def, int must, int *changed)
+static int8_t*
+defreadln(int8_t *prompt, int8_t *def, int must, int *changed)
 {
-	char pr[512];
-	char reply[256];
+	int8_t pr[512];
+	int8_t reply[256];
 
 	do {
 		if(def && *def){
@@ -55,7 +55,7 @@ defreadln(char *prompt, char *def, int must, int *changed)
  *  get bio from stdin
  */
 int
-querybio(char *file, char *user, Acctbio *a)
+querybio(int8_t *file, int8_t *user, Acctbio *a)
 {
 	int i;
 	int changed;

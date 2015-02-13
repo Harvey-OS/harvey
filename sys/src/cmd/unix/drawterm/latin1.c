@@ -16,8 +16,8 @@
  */
 struct cvlist
 {
-	char	*ld;		/* must be seen before using this conversion */
-	char	*si;		/* options for last input characters */
+	int8_t	*ld;		/* must be seen before using this conversion */
+	int8_t	*si;		/* options for last input characters */
 	Rune	so[50];		/* the corresponding Rune for each si entry */
 } latintab[] = {
 	" ", " i",	{ 0x2423, 0x0131 },
@@ -125,10 +125,10 @@ struct cvlist
 /*
  * Given 5 characters k[0]..k[4], find the rune or return -1 for failure.
  */
-long
+int32_t
 unicode(Rune *k)
 {
-	long i, c;
+	int32_t i, c;
 
 	k++;	/* skip 'X' */
 	c = 0;
@@ -151,12 +151,12 @@ unicode(Rune *k)
  * failure, or something < -1 if n is too small.  In the latter case, the result
  * is minus the required n.
  */
-long
+int32_t
 latin1(Rune *k, int n)
 {
 	struct cvlist *l;
 	int c;
-	char* p;
+	int8_t* p;
 
 	if(k[0] == 'X'){
 		if(n>=5)

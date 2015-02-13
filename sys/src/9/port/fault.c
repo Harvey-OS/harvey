@@ -25,7 +25,7 @@ int
 fault(uintptr addr, int read)
 {
 	Segment *s;
-	char *sps;
+	int8_t *sps;
 	int i, color;
 
 if(up->nlocks) print("fault nlocks %d\n", up->nlocks);
@@ -68,9 +68,9 @@ if(up->nlocks) print("fault nlocks %d\n", up->nlocks);
 }
 
 static void
-faulterror(char *s, Chan *c, int freemem)
+faulterror(int8_t *s, Chan *c, int freemem)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	if(c && c->path){
 		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, up->errstr);
@@ -211,15 +211,15 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
 }
 
 void
-pio(Segment *s, uintptr addr, ulong soff, Page **p, int color)
+pio(Segment *s, uintptr addr, uint32_t soff, Page **p, int color)
 {
 	Page *new;
 	KMap *k;
 	Chan *c;
 	int n, ask;
 	uintmem pgsz;
-	char *kaddr;
-	ulong daddr;
+	int8_t *kaddr;
+	uint32_t daddr;
 	Page *loadrec;
 
 	loadrec = *p;
@@ -246,7 +246,7 @@ pio(Segment *s, uintptr addr, ulong soff, Page **p, int color)
 
 	new = newpage(0, 0, addr, pgsz, color);
 	k = kmap(new);
-	kaddr = (char*)VA(k);
+	kaddr = (int8_t*)VA(k);
 
 	while(waserror()) {
 		if(strcmp(up->errstr, Eintr) == 0)
@@ -290,7 +290,7 @@ pio(Segment *s, uintptr addr, ulong soff, Page **p, int color)
  * Called only in a system call
  */
 int
-okaddr(uintptr addr, long len, int write)
+okaddr(uintptr addr, int32_t len, int write)
 {
 	Segment *s;
 
@@ -312,7 +312,7 @@ okaddr(uintptr addr, long len, int write)
 }
 
 void*
-validaddr(void* addr, long len, int write)
+validaddr(void* addr, int32_t len, int write)
 {
 	if(!okaddr(PTR2UINT(addr), len, write)){
 		pprint("suicide: invalid address %#p/%ld in sys call pc=%#p\n",

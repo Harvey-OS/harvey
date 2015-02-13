@@ -12,15 +12,15 @@
 #include	<bio.h>
 #include	"sky.h"
 
-char	rad28[] = "0123456789abcdefghijklmnopqr";
+int8_t	rad28[] = "0123456789abcdefghijklmnopqr";
 
 Picture*
 image(Angle ra, Angle dec, Angle wid, Angle hig)
 {
 	Pix *p;
-	uchar *b, *up;
+	uint8_t *b, *up;
 	int i, j, sx, sy, x, y;
-	char file[50];
+	int8_t file[50];
 	Picture *pic;
 	Img* ip;
 	int lowx, lowy, higx, higy;

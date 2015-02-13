@@ -14,7 +14,7 @@
 #include "netbios.h"
 
 void *
-nbemalloc(ulong nbytes)
+nbemalloc(uint32_t nbytes)
 {
 	void *p;
 	p = malloc(nbytes);

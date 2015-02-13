@@ -38,7 +38,7 @@
 
 struct file_enum_s {
     ff_struct_t ffblk;
-    char *pattern;		/* orig pattern + modified pattern */
+    int8_t *pattern;		/* orig pattern + modified pattern */
     int patlen;			/* orig pattern length */
     int pat_size;		/* allocate space for pattern */
     int head_size;		/* pattern length through last */
@@ -52,12 +52,12 @@ gs_private_st_ptrs1(st_file_enum, struct file_enum_s, "file_enum",
 /* Initialize an enumeration.  Note that * and ? in a directory */
 /* don't work, and \ is taken literally unless a second \ follows. */
 file_enum *
-gp_enumerate_files_init(const char *pat, uint patlen, gs_memory_t * mem)
+gp_enumerate_files_init(const int8_t *pat, uint patlen, gs_memory_t * mem)
 {
     file_enum *pfen = gs_alloc_struct(mem, file_enum, &st_file_enum, "gp_enumerate_files");
     int pat_size = 2 * patlen + 1;
-    char *pattern;
-    char *p;
+    int8_t *pattern;
+    int8_t *p;
     int hsize = 0;
     int i;
     int dot = 0;
@@ -68,7 +68,7 @@ gp_enumerate_files_init(const char *pat, uint patlen, gs_memory_t * mem)
     /* pattern could be allocated as a string, */
     /* but it's simpler for GC and freeing to allocate it as bytes. */
 
-    pattern = (char *)gs_alloc_bytes(mem, pat_size,
+    pattern = (int8_t *)gs_alloc_bytes(mem, pat_size,
 				     "gp_enumerate_files(pattern)");
     if (pattern == 0)
 	return 0;

@@ -11,9 +11,9 @@
 #include <libc.h>
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-	ulong num = 1;
+	uint32_t num = 1;
 	int i;
 
 	if (argc > 1)

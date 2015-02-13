@@ -18,7 +18,7 @@ int	chatty;
 extern int	doabort;
 
 void
-chat(char *fmt, ...)
+chat(int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -30,7 +30,7 @@ chat(char *fmt, ...)
 }
 
 void
-panic(char *fmt, ...)
+panic(int8_t *fmt, ...)
 {
 	va_list arg;
 

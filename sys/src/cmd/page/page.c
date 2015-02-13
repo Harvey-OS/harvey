@@ -32,7 +32,7 @@ int notewatcher;
 int notegp;
 
 int
-watcher(void*, char *x)
+watcher(void*, int8_t *x)
 {
 	if(strcmp(x, "die") != 0)
 		postnote(PNGROUP, notegp, x);
@@ -41,7 +41,7 @@ watcher(void*, char *x)
 }
 
 int
-bell(void *u, char *x)
+bell(void *u, int8_t *x)
 {
 	if(x && strcmp(x, "hangup") == 0)
 		_exits(0);
@@ -67,9 +67,9 @@ bell(void *u, char *x)
 static int
 afmt(Fmt *fmt)
 {
-	char *s;
+	int8_t *s;
 
-	s = va_arg(fmt->args, char*);
+	s = va_arg(fmt->args, int8_t*);
 	if(s == nil || s[0] == '\0')
 		return fmtstrcpy(fmt, "");
 	else
@@ -238,7 +238,7 @@ main(int argc, char **argv)
 }
 
 void
-wexits(char *s)
+wexits(int8_t *s)
 {
 	if(s && *s && strcmp(s, "note") != 0 && mknewwindow)
 		sleep(10*1000);

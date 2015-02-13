@@ -17,7 +17,7 @@ typedef struct Win Win;
 struct Win {
 	int n;
 	int dirty;
-	char *label;
+	int8_t *label;
 	Rectangle r;
 };
 
@@ -38,7 +38,7 @@ enum {
 };
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -47,7 +47,7 @@ erealloc(void *v, ulong n)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *v;
 
@@ -58,11 +58,11 @@ emalloc(ulong n)
 	return v;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	int l;
-	char *t;
+	int8_t *t;
 
 	if (s == nil)
 		return nil;
@@ -77,7 +77,7 @@ estrdup(char *s)
 void
 refreshwin(void)
 {
-	char label[128];
+	int8_t label[128];
 	int i, fd, lfd, n, nr, nw, m;
 	Dir *pd;
 
@@ -205,7 +205,7 @@ void
 click(Mouse m)
 {
 	int fd, i, j;	
-	char buf[128];
+	int8_t buf[128];
 
 	if(m.buttons == 0 || (m.buttons & ~4))
 		return;

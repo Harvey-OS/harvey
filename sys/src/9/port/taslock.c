@@ -20,8 +20,8 @@
  */
 #define	LOCKCYCLES	0
 
-uvlong maxlockcycles;
-uvlong maxilockcycles;
+uint64_t maxlockcycles;
+uint64_t maxilockcycles;
 uintptr maxlockpc;
 uintptr maxilockpc;
 
@@ -55,15 +55,15 @@ clearwaitstats(void)
 {
 	newwaitstats();
 	memset(waitstats.ns, 0, NWstats * sizeof(int));
-	memset(waitstats.wait, 0, NWstats * sizeof(uvlong));
-	memset(waitstats.total, 0, NWstats * sizeof(uvlong));
+	memset(waitstats.wait, 0, NWstats * sizeof(uint64_t));
+	memset(waitstats.total, 0, NWstats * sizeof(uint64_t));
 }
 
 void
-addwaitstat(uintptr pc, uvlong t0, int type)
+addwaitstat(uintptr pc, uint64_t t0, int type)
 {
 	uint i;
-	uvlong w;
+	uint64_t w;
 
 	if(waitstats.on == 0)
 		return;
@@ -125,7 +125,7 @@ lock(Lock *l)
 {
 	int i;
 	uintptr pc;
-	uvlong t0;
+	uint64_t t0;
 
 	pc = getcallerpc(&l);
 
@@ -190,7 +190,7 @@ ilock(Lock *l)
 {
 	Mpl pl;
 	uintptr pc;
-	uvlong t0;
+	uint64_t t0;
 
 	pc = getcallerpc(&l);
 	lockstats.locks++;
@@ -256,7 +256,7 @@ canlock(Lock *l)
 void
 unlock(Lock *l)
 {
-	uvlong x;
+	uint64_t x;
 
 	if(LOCKCYCLES){
 		cycles(&x);
@@ -290,7 +290,7 @@ void
 iunlock(Lock *l)
 {
 	Mpl pl;
-	uvlong x;
+	uint64_t x;
 
 	if(LOCKCYCLES){
 		cycles(&x);

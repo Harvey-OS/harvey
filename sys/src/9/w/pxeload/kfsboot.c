@@ -42,14 +42,14 @@ enum
 /* DONT TOUCH, this is the disk structure */
 struct	Tag
 {
-	short	pad;
-	short	tag;
-	long	path;
+	int16_t	pad;
+	int16_t	tag;
+	int32_t	path;
 };
 
 static int thisblock = -1;
 static Fs *thisfs;
-static uchar *block;
+static uint8_t *block;
 
 /*
  * we end up reading 2x or 3x the number of blocks we need to read.
@@ -59,7 +59,7 @@ static uchar *block;
  * but this is fine.
  */
 static int
-getblock(Fs *fs, ulong n)
+getblock(Fs *fs, uint32_t n)
 {
 	if(!block)
 		block = malloc(16384);
@@ -67,7 +67,7 @@ getblock(Fs *fs, ulong n)
 	if(thisblock == n && thisfs == fs)
 		return 0;
 	thisblock = -1;
-	if(fs->diskseek(fs, (vlong)n*fs->kfs.RBUFSIZE) < 0)
+	if(fs->diskseek(fs, (int64_t)n*fs->kfs.RBUFSIZE) < 0)
 		return -1;
 	if(fs->diskread(fs, block, fs->kfs.RBUFSIZE) != fs->kfs.RBUFSIZE)
 		return -1;
@@ -78,7 +78,7 @@ getblock(Fs *fs, ulong n)
 }
 
 static int
-checktag(Fs *fs, uchar *block, int tag, long qpath)
+checktag(Fs *fs, uint8_t *block, int tag, int32_t qpath)
 {
 	Tag *t;
 
@@ -91,7 +91,7 @@ checktag(Fs *fs, uchar *block, int tag, long qpath)
 }
 
 static int
-getblocktag(Fs *fs, ulong n, int tag, long qpath)
+getblocktag(Fs *fs, uint32_t n, int tag, int32_t qpath)
 {
 	if(getblock(fs, n) < 0 || checktag(fs, block, tag, qpath) < 0)
 		return -1;
@@ -108,13 +108,13 @@ readinfo(Fs *fs)
 	if(memcmp(block+256, "kfs wren device\n", 16) != 0)
 		return -1;
 
-	fs->kfs.RBUFSIZE = atoi((char*)block+256+16);
+	fs->kfs.RBUFSIZE = atoi((int8_t*)block+256+16);
 	if(!fs->kfs.RBUFSIZE || (fs->kfs.RBUFSIZE&(fs->kfs.RBUFSIZE-1)))
 		return -1;
 
 	fs->kfs.BUFSIZE = fs->kfs.RBUFSIZE - sizeof(Tag);
 	fs->kfs.DIRPERBUF = fs->kfs.BUFSIZE / sizeof(Dentry);
-	fs->kfs.INDPERBUF = fs->kfs.BUFSIZE / sizeof(long);
+	fs->kfs.INDPERBUF = fs->kfs.BUFSIZE / sizeof(int32_t);
 	fs->kfs.INDPERBUF2 = fs->kfs.INDPERBUF * fs->kfs.INDPERBUF;
 
 	return 1;
@@ -134,18 +134,18 @@ readroot(Fs *fs, Dentry *d)
 	return 1;
 }
 
-static long
-indfetch(Fs *fs, long addr, long off, int tag, long path)
+static int32_t
+indfetch(Fs *fs, int32_t addr, int32_t off, int tag, int32_t path)
 {
 	if(getblocktag(fs, addr, tag, path) < 0)
 		return -1;
-	return ((long*)block)[off];
+	return ((int32_t*)block)[off];
 }
 
-static long
-rel2abs(Fs *fs, Dentry *d, long a)
+static int32_t
+rel2abs(Fs *fs, Dentry *d, int32_t a)
 {
-	long addr;
+	int32_t addr;
 
 	if(a < NDBLOCK)
 		return d->dblock[a];
@@ -177,7 +177,7 @@ rel2abs(Fs *fs, Dentry *d, long a)
 static int
 readdentry(Fs *fs, Dentry *d, int n, Dentry *e)
 {
-	long addr, m;
+	int32_t addr, m;
 
 	m = n/fs->kfs.DIRPERBUF;
 	if((addr = rel2abs(fs, d, m)) <= 0)
@@ -189,9 +189,9 @@ readdentry(Fs *fs, Dentry *d, int n, Dentry *e)
 }
 
 static int
-getdatablock(Fs *fs, Dentry *d, long a)
+getdatablock(Fs *fs, Dentry *d, int32_t a)
 {
-	long addr;
+	int32_t addr;
 
 	if((addr = rel2abs(fs, d, a)) == 0)
 		return -1;
@@ -199,7 +199,7 @@ getdatablock(Fs *fs, Dentry *d, long a)
 }
 
 static int
-walk(Fs *fs, Dentry *d, char *name, Dentry *e)
+walk(Fs *fs, Dentry *d, int8_t *name, Dentry *e)
 {
 	int i, n;
 	Dentry x;
@@ -214,11 +214,11 @@ walk(Fs *fs, Dentry *d, char *name, Dentry *e)
 	}
 }
 
-static long
-kfsread(File *f, void *va, long len)
+static int32_t
+kfsread(File *f, void *va, int32_t len)
 {
-	uchar *a;
-	long tot, off, o, n;
+	uint8_t *a;
+	int32_t tot, off, o, n;
 	Fs *fs;
 
 	a = va;
@@ -241,7 +241,7 @@ kfsread(File *f, void *va, long len)
 }
 
 static int
-kfswalk(File *f, char *name)
+kfswalk(File *f, int8_t *name)
 {
 	int n;
 

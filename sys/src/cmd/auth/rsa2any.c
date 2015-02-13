@@ -16,9 +16,9 @@
 #include "rsa2any.h"
 
 RSApriv*
-getkey(int argc, char **argv, int needprivate, Attr **pa)
+getkey(int argc, int8_t **argv, int needprivate, Attr **pa)
 {
-	char *file, *s, *p;
+	int8_t *file, *s, *p;
 	int sz;
 	RSApriv *key;
 	Biobuf *b;
@@ -168,9 +168,9 @@ call:
 }
 
 DSApriv*
-getdsakey(int argc, char **argv, int needprivate, Attr **pa)
+getdsakey(int argc, int8_t **argv, int needprivate, Attr **pa)
 {
-	char *file, *s, *p;
+	int8_t *file, *s, *p;
 	DSApriv *key;
 	Biobuf *b;
 	Attr *a;
@@ -264,8 +264,8 @@ call:
 	return key;
 }
 
-uchar*
-put4(uchar *p, uint n)
+uint8_t*
+put4(uint8_t *p, uint n)
 {
 	p[0] = (n>>24)&0xFF;
 	p[1] = (n>>16)&0xFF;
@@ -274,24 +274,24 @@ put4(uchar *p, uint n)
 	return p+4;
 }
 
-uchar*
-putn(uchar *p, void *v, uint n)
+uint8_t*
+putn(uint8_t *p, void *v, uint n)
 {
 	memmove(p, v, n);
 	p += n;
 	return p;
 }
 
-uchar*
-putstr(uchar *p, char *s)
+uint8_t*
+putstr(uint8_t *p, int8_t *s)
 {
 	p = put4(p, strlen(s));
 	p = putn(p, s, strlen(s));
 	return p;
 }
 
-uchar*
-putmp2(uchar *p, mpint *b)
+uint8_t*
+putmp2(uint8_t *p, mpint *b)
 {
 	int bits, n;
 	

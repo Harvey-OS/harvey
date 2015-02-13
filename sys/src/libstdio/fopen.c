@@ -11,7 +11,7 @@
  * pANS stdio -- fopen
  */
 #include "iolib.h"
-FILE *fopen(const char *name, const char *mode){
+FILE *fopen(const int8_t *name, const int8_t *mode){
 	FILE *f;
 	qlock(&_stdiolk);
 	for(f=_IO_stream;f!=&_IO_stream[FOPEN_MAX];f++) {

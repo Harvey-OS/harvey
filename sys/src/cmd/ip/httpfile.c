@@ -25,15 +25,15 @@ enum
 	Stacksize = 8192,
 };
 
-char *host;
-char *file;
-char *port;
-char *url;
-char *get;
-char *user;
-char *net = "net";
+int8_t *host;
+int8_t *file;
+int8_t *port;
+int8_t *url;
+int8_t *get;
+int8_t *user;
+int8_t *net = "net";
 
-vlong size;
+int64_t size;
 int usetls;
 int debug;
 int ncache;
@@ -59,16 +59,16 @@ enum
 Channel *reqchan;
 Channel *httpchan;
 Channel *finishchan;
-ulong time0;
+uint32_t time0;
 
 typedef struct Block Block;
 struct Block
 {
-	uchar *p;
-	vlong off;
-	vlong len;
+	uint8_t *p;
+	int64_t off;
+	int64_t len;
 	Block *link;
-	long lastuse;
+	int32_t lastuse;
 	Req *rq;
 	Req **erq;
 };
@@ -146,7 +146,7 @@ evictblock(Blocklist *cache)
 }
 
 Block *
-findblock(Blocklist *s, vlong off)
+findblock(Blocklist *s, int64_t off)
 {
 	Block *b;
 
@@ -204,10 +204,10 @@ dotls(int fd)
 	return fd;
 }
 
-char*
-nocr(char *s)
+int8_t*
+nocr(int8_t *s)
 {
-	char *r, *w;
+	int8_t *r, *w;
 
 	for(r=w=s; *r; r++)
 		if(*r != '\r')
@@ -216,10 +216,10 @@ nocr(char *s)
 	return s;
 }
 
-char*
-readhttphdr(Biobuf *netbio, vlong *size)
+int8_t*
+readhttphdr(Biobuf *netbio, int64_t *size)
 {
-	char *s, *stat;
+	int8_t *s, *stat;
 
 	stat = nil;
 	while((s = Brdstr(netbio, '\n', 1)) != nil && s[0] != '\r'
@@ -251,11 +251,11 @@ dialhttp(Biobuf *netbio)
 	return netfd;
 }
 
-uchar*
+uint8_t*
 getrange(Block *b)
 {
-	uchar *data;
-	char *status;
+	uint8_t *data;
+	int8_t *status;
 	int netfd;
 	static Biobuf netbio;
 
@@ -328,8 +328,8 @@ httpfilereadproc(void*)
 typedef struct Tab Tab;
 struct Tab
 {
-	char *name;
-	ulong mode;
+	int8_t *name;
+	uint32_t mode;
 };
 
 Tab tab[] =
@@ -339,7 +339,7 @@ Tab tab[] =
 };
 
 static void
-fillstat(Dir *d, uvlong path)
+fillstat(Dir *d, uint64_t path)
 {
 	Tab *t;
 
@@ -387,11 +387,11 @@ rootgen(int i, Dir *d, void*)
 	return -1;
 }
 
-static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+static int8_t*
+fswalk1(Fid *fid, int8_t *name, Qid *qid)
 {
 	int i;
-	ulong path;
+	uint32_t path;
 
 	path = fid->qid.path;
 	if(!(fid->qid.type & QTDIR))
@@ -420,11 +420,11 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 	return "directory entry not found";
 }
 
-vlong
+int64_t
 getfilesize(void)
 {
-	char *status;
-	vlong size;
+	int8_t *status;
+	int64_t size;
 	int netfd;
 	static Biobuf netbio;
 
@@ -546,8 +546,8 @@ fsflush(Req *r)
 static void
 fsread(Req *r)
 {
-	char e[ERRMAX];
-	ulong path;
+	int8_t e[ERRMAX];
+	uint32_t path;
 
 	path = r->fid->qid.path;
 	switch(TYPE(path)){

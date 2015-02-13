@@ -41,15 +41,15 @@ enum
  */
 struct Quick
 {
-	char	*pat;
-	char	*up;		/* match string for upper case of pat */
+	int8_t	*pat;
+	int8_t	*up;		/* match string for upper case of pat */
 	int	len;		/* of pat (and up) -1; used for fast search */
-	uchar 	jump[256];	/* jump index table */
+	uint8_t 	jump[256];	/* jump index table */
 	int	miss;		/* amount to jump if we falsely match the last char */
 };
-extern void	quickmk(Quick*, char*, int);
+extern void	quickmk(Quick*, int8_t*, int);
 extern void	quickfree(Quick*);
-extern char*	quicksearch(Quick*, char*, char*);
+extern int8_t*	quicksearch(Quick*, int8_t*, int8_t*);
 
 /*
  * exact matching of a search string
@@ -57,10 +57,10 @@ extern char*	quicksearch(Quick*, char*, char*);
 struct Match
 {
 	Match	*next;
-	char	*pat;				/* null-terminated search string */
-	char	*up;				/* upper case of pat */
+	int8_t	*pat;				/* null-terminated search string */
+	int8_t	*up;				/* upper case of pat */
 	int	len;				/* length of both pat and up */
-	int	(*op)(Match*, char*, char*);		/* method for this partiticular search */
+	int	(*op)(Match*, int8_t*, int8_t*);		/* method for this partiticular search */
 };
 
 struct Search
@@ -70,8 +70,8 @@ struct Search
 	int		skip;		/* number of matches to skip */
 };
 
-extern char*	searchsearch(Search*, char*, char*, int*);
-extern Search*	searchparse(char*, char*);
+extern int8_t*	searchsearch(Search*, int8_t*, int8_t*, int*);
+extern Search*	searchparse(int8_t*, int8_t*);
 extern void	searchfree(Search*);
 
 struct Fid
@@ -90,17 +90,19 @@ struct Fid
 	int	n;		/* number of bytes left in found item */
 };
 
-int			dostat(int, uchar*, int);
+int			dostat(int, uint8_t*, int);
 void*			emalloc(uint);
-void			fatal(char*, ...);
-Match*			mkmatch(Match*, int(*)(Match*, char*, char*), char*);
-Match*			mkstrmatch(Match*, char*);
-char*		nextsearch(char*, char*, char**, char**);
-int			strlook(Match*, char*, char*);
-char*			strndup(char*, int);
+void			fatal(int8_t*, ...);
+Match*			mkmatch(Match*,
+				      int(*)(Match*, int8_t*, int8_t*),
+				      int8_t*);
+Match*			mkstrmatch(Match*, int8_t*);
+int8_t*		nextsearch(int8_t*, int8_t*, int8_t**, int8_t**);
+int			strlook(Match*, int8_t*, int8_t*);
+int8_t*			strndup(int8_t*, int);
 int			tolower(int);
 int			toupper(int);
-char*			urlunesc(char*, char*);
+int8_t*			urlunesc(int8_t*, int8_t*);
 void			usage(void);
 
 struct Fs
@@ -114,18 +116,18 @@ extern	void	fsrun(Fs*, int);
 extern	Fid*	getfid(Fs*, uint);
 extern	Fid*	mkfid(Fs*, uint);
 extern	void	putfid(Fs*, Fid*);
-extern	char*	fsversion(Fs*, Fcall*);
-extern	char*	fsauth(Fs*, Fcall*);
-extern	char*	fsattach(Fs*, Fcall*);
-extern	char*	fswalk(Fs*, Fcall*);
-extern	char*	fsopen(Fs*, Fcall*);
-extern	char*	fscreate(Fs*, Fcall*);
-extern	char*	fsread(Fs*, Fcall*);
-extern	char*	fswrite(Fs*, Fcall*);
-extern	char*	fsclunk(Fs*, Fcall*);
-extern	char*	fsremove(Fs*, Fcall*);
-extern	char*	fsstat(Fs*, Fcall*);
-extern	char*	fswstat(Fs*, Fcall*);
+extern	int8_t*	fsversion(Fs*, Fcall*);
+extern	int8_t*	fsauth(Fs*, Fcall*);
+extern	int8_t*	fsattach(Fs*, Fcall*);
+extern	int8_t*	fswalk(Fs*, Fcall*);
+extern	int8_t*	fsopen(Fs*, Fcall*);
+extern	int8_t*	fscreate(Fs*, Fcall*);
+extern	int8_t*	fsread(Fs*, Fcall*);
+extern	int8_t*	fswrite(Fs*, Fcall*);
+extern	int8_t*	fsclunk(Fs*, Fcall*);
+extern	int8_t*	fsremove(Fs*, Fcall*);
+extern	int8_t*	fsstat(Fs*, Fcall*);
+extern	int8_t*	fswstat(Fs*, Fcall*);
 
 char	*(*fcalls[])(Fs*, Fcall*) =
 {
@@ -143,18 +145,18 @@ char	*(*fcalls[])(Fs*, Fcall*) =
 	[Twstat]	fswstat
 };
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enotexist[] =	"file does not exist";
-char	Eisopen[] = 	"file already open for I/O";
-char	Einuse[] =	"fid is already in use";
-char	Enofid[] = 	"no such fid";
-char	Enotopen[] =	"file is not open";
-char	Ebadsearch[] =	"bad search string";
+int8_t	Eperm[] =	"permission denied";
+int8_t	Enotdir[] =	"not a directory";
+int8_t	Enotexist[] =	"file does not exist";
+int8_t	Eisopen[] = 	"file already open for I/O";
+int8_t	Einuse[] =	"fid is already in use";
+int8_t	Enofid[] = 	"no such fid";
+int8_t	Enotopen[] =	"file is not open";
+int8_t	Ebadsearch[] =	"bad search string";
 
 Fs	fs;
-char	*database;
-char	*edatabase;
+int8_t	*database;
+int8_t	*edatabase;
 int	messagesize = 8192+IOHDRSZ;
 void
 main(int argc, char **argv)
@@ -239,11 +241,11 @@ main(int argc, char **argv)
  * isolate the line in which the occured,
  * and try all of the exact matches
  */
-char*
-searchsearch(Search *search, char *where, char *end, int *np)
+int8_t*
+searchsearch(Search *search, int8_t *where, int8_t *end, int *np)
 {
 	Match *m;
-	char *s, *e;
+	int8_t *s, *e;
 
 	*np = 0;
 	if(search == nil || where == nil)
@@ -282,11 +284,11 @@ searchsearch(Search *search, char *where, char *end, int *np)
  * tag=val&tag1=val1...
  */
 Search*
-searchparse(char *search, char *esearch)
+searchparse(int8_t *search, int8_t *esearch)
 {
 	Search *s;
 	Match *m, *next, **last;
-	char *tag, *val, *p;
+	int8_t *tag, *val, *p;
 	int ok;
 
 	s = emalloc(sizeof *s);
@@ -375,10 +377,10 @@ searchfree(Search *s)
 	free(s);
 }
 
-char*
-nextsearch(char *search, char *esearch, char **tagp, char **valp)
+int8_t*
+nextsearch(int8_t *search, int8_t *esearch, int8_t **tagp, int8_t **valp)
 {
-	char *tag, *val;
+	int8_t *tag, *val;
 
 	*tagp = nil;
 	*valp = nil;
@@ -399,9 +401,9 @@ nextsearch(char *search, char *esearch, char **tagp, char **valp)
 }
 
 Match*
-mkstrmatch(Match *m, char *pat)
+mkstrmatch(Match *m, int8_t *pat)
 {
-	char *s;
+	int8_t *s;
 
 	for(s = pat; *s; s++){
 		if(*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r'){
@@ -415,10 +417,10 @@ mkstrmatch(Match *m, char *pat)
 }
 
 Match*
-mkmatch(Match *next, int (*op)(Match*, char*, char*), char *pat)
+mkmatch(Match *next, int (*op)(Match*, int8_t*, int8_t*), int8_t *pat)
 {
 	Match *m;
-	char *p;
+	int8_t *p;
 	int n;
 
 	n = strlen(pat);
@@ -438,9 +440,9 @@ mkmatch(Match *next, int (*op)(Match*, char*, char*), char *pat)
 }
 
 int
-strlook(Match *m, char *str, char *e)
+strlook(Match *m, int8_t *str, int8_t *e)
 {
-	char *pat, *up, *s;
+	int8_t *pat, *up, *s;
 	int c, pc, fc, fuc, n;
 
 	n = m->len;
@@ -473,10 +475,10 @@ strlook(Match *m, char *str, char *e)
  * it only implements an approximate match
  */
 void
-quickmk(Quick *q, char *spat, int ignorecase)
+quickmk(Quick *q, int8_t *spat, int ignorecase)
 {
-	char *pat, *up;
-	uchar *j;	
+	int8_t *pat, *up;
+	uint8_t *j;	
 	int ep, ea, cp, ca, i, c, n;
 
 	/*
@@ -516,8 +518,8 @@ quickmk(Quick *q, char *spat, int ignorecase)
 	n--;
 	q->len = n;
 	for(i = 0; i <= n; i++){
-		j[(uchar)pat[i]] = n - i;
-		j[(uchar)up[i]] = n - i;
+		j[(uint8_t)pat[i]] = n - i;
+		j[(uint8_t)up[i]] = n - i;
 	}
 	
 	/*
@@ -543,11 +545,11 @@ quickfree(Quick *q)
 	q->pat = nil;
 }
 
-char *
-quicksearch(Quick *q, char *s, char *e)
+int8_t *
+quicksearch(Quick *q, int8_t *s, int8_t *e)
 {
-	char *pat, *up, *m, *ee;
-	uchar *j;
+	int8_t *pat, *up, *m, *ee;
+	uint8_t *j;
 	int len, n, c, mc;
 
 	len = q->len;
@@ -562,15 +564,15 @@ quicksearch(Quick *q, char *s, char *e)
 		/*
 		 * look for a match on the last char
 		 */
-		while(s < ee && (n = j[(uchar)*s])){
+		while(s < ee && (n = j[(uint8_t)*s])){
 			s += n;
-			s += j[(uchar)*s];
-			s += j[(uchar)*s];
-			s += j[(uchar)*s];
+			s += j[(uint8_t)*s];
+			s += j[(uint8_t)*s];
+			s += j[(uint8_t)*s];
 		}
 		if(s >= e)
 			return nil;
-		while(n = j[(uchar)*s]){
+		while(n = j[(uint8_t)*s]){
 			s += n;
 			if(s >= e)
 				return nil;
@@ -596,8 +598,8 @@ void
 fsrun(Fs *fs, int fd)
 {
 	Fcall rpc;
-	char *err;
-	uchar *buf;
+	int8_t *err;
+	uint8_t *buf;
 	int n;
 
 	buf = emalloc(messagesize);
@@ -616,7 +618,7 @@ fsrun(Fs *fs, int fd)
 		if(n < 0)
 			fatal("mount read");
 
-		rpc.data = (char*)buf + IOHDRSZ;
+		rpc.data = (int8_t*)buf + IOHDRSZ;
 		if(convM2S(buf, n, &rpc) == 0)
 			continue;
 		// fprint(2, "recv: %F\n", &rpc);
@@ -702,7 +704,7 @@ putfid(Fs *, Fid *f)
 	}
 }
 
-char*
+int8_t*
 fsversion(Fs *, Fcall *rpc)
 {
 	if(rpc->msize < 256)
@@ -716,13 +718,13 @@ fsversion(Fs *, Fcall *rpc)
 	return nil;
 }
 
-char*
+int8_t*
 fsauth(Fs *, Fcall *)
 {
 	return "searchfs: authentication not required";
 }
 
-char*
+int8_t*
 fsattach(Fs *fs, Fcall *rpc)
 {
 	Fid *f;
@@ -739,13 +741,13 @@ fsattach(Fs *fs, Fcall *rpc)
 	return nil;
 }
 
-char*
+int8_t*
 fswalk(Fs *fs, Fcall *rpc)
 {
 	Fid *f, *nf;
 	int nqid, nwname, type;
-	char *err, *name;
-	ulong path;
+	int8_t *err, *name;
+	uint32_t path;
 
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
@@ -800,7 +802,7 @@ fswalk(Fs *fs, Fcall *rpc)
 	return err;
 }
 
-char *
+int8_t *
 fsopen(Fs *fs, Fcall *rpc)
 {
 	Fid *f;
@@ -829,13 +831,13 @@ fsopen(Fs *fs, Fcall *rpc)
 	return nil;
 }
 
-char *
+int8_t *
 fscreate(Fs *, Fcall *)
 {
 	return Eperm;
 }
 
-char*
+int8_t*
 fsread(Fs *fs, Fcall *rpc)
 {
 	Fid *f;
@@ -855,7 +857,8 @@ fsread(Fs *fs, Fcall *rpc)
 		if(off > 0)
 			rpc->count = 0;
 		else
-			rpc->count = dostat(Qsearch, (uchar*)rpc->data, count);
+			rpc->count = dostat(Qsearch, (uint8_t*)rpc->data,
+					    count);
 		putfid(fs, f);
 		if(off == 0 && rpc->count <= BIT16SZ)
 			return "directory read count too small";
@@ -884,7 +887,7 @@ fsread(Fs *fs, Fcall *rpc)
 	return nil;
 }
 
-char*
+int8_t*
 fswrite(Fs *fs, Fcall *rpc)
 {
 	Fid *f;
@@ -910,7 +913,7 @@ fswrite(Fs *fs, Fcall *rpc)
 	return nil;
 }
 
-char *
+int8_t *
 fsclunk(Fs *fs, Fcall *rpc)
 {
 	Fid *f;
@@ -923,13 +926,13 @@ fsclunk(Fs *fs, Fcall *rpc)
 	return nil;
 }
 
-char *
+int8_t *
 fsremove(Fs *, Fcall *)
 {
 	return Eperm;
 }
 
-char *
+int8_t *
 fsstat(Fs *fs, Fcall *rpc)
 {
 	Fid *f;
@@ -945,14 +948,14 @@ fsstat(Fs *fs, Fcall *rpc)
 	return nil;
 }
 
-char *
+int8_t *
 fswstat(Fs *, Fcall *)
 {
 	return Eperm;
 }
 
 int
-dostat(int path, uchar *buf, int nbuf)
+dostat(int path, uint8_t *buf, int nbuf)
 {
 	Dir d;
 
@@ -981,10 +984,10 @@ dostat(int path, uchar *buf, int nbuf)
 	return convD2M(&d, buf, nbuf);
 }
 
-char *
-urlunesc(char *s, char *e)
+int8_t *
+urlunesc(int8_t *s, int8_t *e)
 {
-	char *t, *v;
+	int8_t *t, *v;
 	int c, n;
 
 	v = emalloc((e - s) + 1);
@@ -1038,10 +1041,10 @@ tolower(int c)
 }
 
 void
-fatal(char *fmt, ...)
+fatal(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[1024];
+	int8_t buf[1024];
 
 	write(2, "searchfs: ", 8);
 	va_start(arg, fmt);

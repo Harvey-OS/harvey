@@ -19,13 +19,13 @@
 #include <bio.h>
 
 #define	NINC	50	/* Multiples of directory allocation */
-char	NEWS[] = "/lib/news";
-char	TFILE[] = "%s/lib/newstime";
+int8_t	NEWS[] = "/lib/news";
+int8_t	TFILE[] = "%s/lib/newstime";
 
 /*
  *	The following items should not be printed.
  */
-char*	ignore[] =
+int8_t*	ignore[] =
 {
 	"core",
 	"dead.letter",
@@ -35,9 +35,9 @@ char*	ignore[] =
 typedef
 struct
 {
-	long	time;
-	char	*name;
-	vlong	length;
+	int32_t	time;
+	int8_t	*name;
+	int64_t	length;
 } File;
 File*	n_list;
 int	n_count;
@@ -46,9 +46,9 @@ Biobuf	bout;
 
 int	fcmp(void *a, void *b);
 void	read_dir(int update);
-void	print_item(char *f);
-void	eachitem(void (*emit)(char*), int all, int update);
-void	note(char *s);
+void	print_item(int8_t *f);
+void	eachitem(void (*emit)(int8_t*), int all, int update);
+void	note(int8_t *s);
 
 void
 main(int argc, char *argv[])
@@ -83,7 +83,7 @@ main(int argc, char *argv[])
 int
 fcmp(void *a, void *b)
 {
-	long x;
+	int32_t x;
 
 	x = ((File*)b)->time - ((File*)a)->time;
 	if(x < 0)
@@ -102,7 +102,7 @@ void
 read_dir(int update)
 {
 	Dir *d;
-	char newstime[100], *home;
+	int8_t newstime[100], *home;
 	int i, j, n, na, fd;
 
 	n_count = 0;
@@ -154,9 +154,9 @@ read_dir(int update)
 }
 
 void
-print_item(char *file)
+print_item(int8_t *file)
 {
-	char name[4096], *p, *ep;
+	int8_t name[4096], *p, *ep;
 	Dir *dbuf;
 	int f, c;
 	int bol, bop;
@@ -210,7 +210,7 @@ print_item(char *file)
 }
 
 void
-eachitem(void (*emit)(char*), int all, int update)
+eachitem(void (*emit)(int8_t*), int all, int update)
 {
 	int i;
 
@@ -228,7 +228,7 @@ eachitem(void (*emit)(char*), int all, int update)
 }
 
 void
-note(char *file)
+note(int8_t *file)
 {
 
 	if(!n_items)

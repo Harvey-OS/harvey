@@ -81,8 +81,8 @@ writepath(Cdimg *cd, Cdir *c, int parent, int size)
 		Cputc(cd, 0);
 }
 
-static ulong*
-addlength(ulong *a, ulong x, int n)
+static uint32_t*
+addlength(uint32_t *a, uint32_t x, int n)
 {
 	if(n%128==0)
 		a = erealloc(a, (n+128)*sizeof a[0]);
@@ -90,13 +90,13 @@ addlength(ulong *a, ulong x, int n)
 	return a;
 }
 
-static ulong
-writepathtable(Cdimg *cd, ulong vdblock, int size)
+static uint32_t
+writepathtable(Cdimg *cd, uint32_t vdblock, int size)
 {
 	int rp, wp;
-	uchar buf[Blocksize];
-	ulong bk, i, *len, n;
-	uvlong start, end, rdoff;
+	uint8_t buf[Blocksize];
+	uint32_t bk, i, *len, n;
+	uint64_t start, end, rdoff;
 	Cdir *c;
 	Cpath p;
 
@@ -106,7 +106,7 @@ writepathtable(Cdimg *cd, ulong vdblock, int size)
 	rp = 0;
 	wp = 0;
 	len = nil;
-	start = (vlong)cd->nextblock * Blocksize;
+	start = (int64_t)cd->nextblock * Blocksize;
 	Cwseek(cd, start);
 	Crseek(cd, start);
 	writepath(cd, c, 1, size);
@@ -125,7 +125,7 @@ writepathtable(Cdimg *cd, ulong vdblock, int size)
 			if(i != 0 && c->namelen == 1 && c->name[0] == '\0')
 				break;	/* hit another directory; stop */
 			while(c->len && c->namelen &&
-			    (uchar*)c + c->len < buf + Blocksize) {
+			    (uint8_t*)c + c->len < buf + Blocksize) {
 				if(c->flags & 0x02 &&
 				    (c->namelen > 1 || c->name[0] > '\001')) {
 					/* directory */
@@ -133,7 +133,7 @@ writepathtable(Cdimg *cd, ulong vdblock, int size)
 					len = addlength(len, little(c->dlen, 4), wp);
 					wp++;
 				}
-				c = (Cdir*)((uchar*)c+c->len);
+				c = (Cdir*)((uint8_t*)c+c->len);
 			}
 		}
 		Crseek(cd, rdoff);
@@ -145,9 +145,9 @@ writepathtable(Cdimg *cd, ulong vdblock, int size)
 
 
 static void
-writepathtablepair(Cdimg *cd, ulong vdblock)
+writepathtablepair(Cdimg *cd, uint32_t vdblock)
 {
-	ulong bloc, lloc, sz, sz2;
+	uint32_t bloc, lloc, sz, sz2;
 
 	lloc = cd->nextblock;
 	sz = writepathtable(cd, vdblock, Little);

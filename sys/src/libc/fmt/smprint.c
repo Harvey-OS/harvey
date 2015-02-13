@@ -10,11 +10,11 @@
 #include <u.h>
 #include <libc.h>
 
-char*
-smprint(char *fmt, ...)
+int8_t*
+smprint(int8_t *fmt, ...)
 {
 	va_list args;
-	char *p;
+	int8_t *p;
 
 	va_start(args, fmt);
 	p = vsmprint(fmt, args);

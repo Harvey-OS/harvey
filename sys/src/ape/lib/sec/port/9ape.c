@@ -15,9 +15,9 @@
 #include "libc.h"
 
 static void
-_sysfatalimpl(char *fmt, va_list arg)
+_sysfatalimpl(int8_t *fmt, va_list arg)
 {
-	char buf[1024];
+	int8_t buf[1024];
 
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	if(argv0)
@@ -27,10 +27,10 @@ _sysfatalimpl(char *fmt, va_list arg)
 	exits(buf);
 }
 
-void (*_sysfatal)(char *fmt, va_list arg) = _sysfatalimpl;
+void (*_sysfatal)(int8_t *fmt, va_list arg) = _sysfatalimpl;
 
 void
-sysfatal(char *fmt, ...)
+sysfatal(int8_t *fmt, ...)
 {
 	va_list arg;
 

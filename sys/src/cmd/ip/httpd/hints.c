@@ -16,24 +16,24 @@
 enum{ URLmax = 65536, HINTmax = 20 };
 #define RECIPLOG2 1.44269504089
 
-char **urlname;				/* array of url strings    1,...,nurl */
+int8_t **urlname;				/* array of url strings    1,...,nurl */
 static int nurl;
 static uint urltab[URLmax];		/* hashstr(url)  1,...,nurl */
 static int urlnext[URLmax];		/* index urltab of next url in chain */
 static int urlhash[URLmax];		/* initially 0, meaning empty buckets */
 
 typedef struct Hint {
-	ushort url;
-	uchar prob;
+	uint16_t url;
+	uint8_t prob;
 } Hint;
 Hint *hints[URLmax];
-uchar nhint[URLmax];
+uint8_t nhint[URLmax];
 
-vlong
+int64_t
 Bfilelen(void *vb)
 {
 	Biobuf *b;
-	vlong n;
+	int64_t n;
 
 	b = vb;
 	n = Bseek(b, 0L, 2);
@@ -42,10 +42,10 @@ Bfilelen(void *vb)
 }
 
 static uint 
-hashstr(char* key)
+hashstr(int8_t* key)
 {
 	/* asu works better than pjw for urls */
-	uchar *k = (unsigned char*)key;
+	uint8_t *k = (unsigned char*)key;
 	uint h = 0;
 	while(*k!=0)
 		h = 65599*h + *k++;
@@ -73,7 +73,7 @@ int
 Bage(Biobuf *b)
 {
 	Dir *dir;
-	long mtime;
+	int32_t mtime;
 
 	dir = dirfstat(Bfildes(b));
 	if(dir != nil)
@@ -88,12 +88,12 @@ void
 urlinit(void)
 {
 	static Biobuf *b = nil;
-	static vlong filelen = 0;
-	vlong newlen;
-	char *s, *arena;
+	static int64_t filelen = 0;
+	int64_t newlen;
+	int8_t *s, *arena;
 	int i, j, n;
 	uint url;
-	char *file;
+	int8_t *file;
 
 	if(filelen < 0)
 		return;
@@ -119,8 +119,8 @@ urlinit(void)
 		nurl = 0;
 	}
 	if(urlname==nil)
-		urlname = (char**)ezalloc(URLmax*sizeof(*urlname));
-	arena = (char*)ezalloc(filelen);  /* enough for all the strcpy below */
+		urlname = (int8_t**)ezalloc(URLmax*sizeof(*urlname));
+	arena = (int8_t*)ezalloc(filelen);  /* enough for all the strcpy below */
 	i = 1;
 	while((s=Brdline(b,'\n'))!=0){
 		/* read lines of the form:  999 /url/path */
@@ -164,12 +164,12 @@ void
 statsinit(void)
 {
 	static Biobuf *b = nil;
-	static vlong filelen = 0;
-	vlong newlen;
+	static int64_t filelen = 0;
+	int64_t newlen;
 	int iq, n, i, nstats = 0;
-	uchar *s, buf[3+HINTmax*3];  /* iq, n, (url,prob)... */
+	uint8_t *s, buf[3+HINTmax*3];  /* iq, n, (url,prob)... */
 	Hint *arena, *h;
-	char *file;
+	int8_t *file;
 	static void *oldarena = nil;
 
 	file = "/sys/log/httpd/pathstat";
@@ -217,10 +217,10 @@ statsinit(void)
 }
 
 void
-urlcanon(char *url)
+urlcanon(int8_t *url)
 {
 	/* all the changes here can be implemented by rewriting in-place */
-	char *p, *q;
+	int8_t *p, *q;
 
 	/* remove extraneous '/' in the middle and at the end */
 	p = url+1;  /* first char needs no change */
@@ -250,10 +250,10 @@ urlcanon(char *url)
 }
 
 void
-hintprint(HConnect *hc, Hio *hout, char *uri, int thresh, int havej)
+hintprint(HConnect *hc, Hio *hout, int8_t *uri, int thresh, int havej)
 {
 	int i, j, pr, prefix, fd, siz, havei, newhint = 0, n;
-	char *query, *sf, etag[32], *wurl;
+	int8_t *query, *sf, etag[32], *wurl;
 	Dir *dir;
 	Hint *h, *haveh;
 

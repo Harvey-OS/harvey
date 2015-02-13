@@ -13,9 +13,9 @@
 #include <ip.h>
 
 static Ipifc**
-_readoldipifc(char *buf, Ipifc **l, int index)
+_readoldipifc(int8_t *buf, Ipifc **l, int index)
 {
-	char *f[200];
+	int8_t *f[200];
 	int i, n;
 	Ipifc *ifc;
 	Iplifc *lifc, **ll;
@@ -52,8 +52,8 @@ _readoldipifc(char *buf, Ipifc **l, int index)
 	return l;
 }
 
-static char*
-findfield(char *name, char **f, int n)
+static int8_t*
+findfield(int8_t *name, int8_t **f, int n)
 {
 	int i;
 
@@ -64,12 +64,12 @@ findfield(char *name, char **f, int n)
 }
 
 static Ipifc**
-_readipifc(char *file, Ipifc **l, int index)
+_readipifc(int8_t *file, Ipifc **l, int index)
 {
 	int i, n, fd, lines;
-	char buf[4*1024];
-	char *line[32];
-	char *f[64];
+	int8_t buf[4*1024];
+	int8_t *line[32];
+	int8_t *f[64];
 	Ipifc *ifc, **l0;
 	Iplifc *lifc, **ll;
 
@@ -168,12 +168,12 @@ _freeifc(Ipifc *ifc)
 }
 
 Ipifc*
-readipifc(char *net, Ipifc *ifc, int index)
+readipifc(int8_t *net, Ipifc *ifc, int index)
 {
 	int fd, i, n;
 	Dir *dir;
-	char directory[128];
-	char buf[128];
+	int8_t directory[128];
+	int8_t buf[128];
 	Ipifc **l;
 
 	_freeifc(ifc);

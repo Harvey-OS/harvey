@@ -12,10 +12,10 @@
 #include <oventi.h>
 #include "session.h"
 
-static char EAuthState[] = "bad authentication state";
-static char ENotServer[] = "not a server session";
-static char EVersion[] = "incorrect version number";
-static char EProtocolBotch[] = "venti protocol botch";
+static int8_t EAuthState[] = "bad authentication state";
+static int8_t ENotServer[] = "not a server session";
+static int8_t EVersion[] = "incorrect version number";
+static int8_t EProtocolBotch[] = "venti protocol botch";
 
 VtSession *
 vtServerAlloc(VtServerVtbl *vtbl)
@@ -28,7 +28,9 @@ vtServerAlloc(VtServerVtbl *vtbl)
 }
 
 static int
-srvHello(VtSession *z, char *version, char *uid, int , uchar *, int , uchar *, int )
+srvHello(VtSession *z, int8_t *version, int8_t *uid, int , uint8_t *,
+	 int ,
+	 uint8_t *, int )
 {
 	vtLock(z->lk);
 	if(z->auth.state != VtAuthHello) {
@@ -54,9 +56,9 @@ Err:
 static int
 dispatchHello(VtSession *z, Packet **pkt)
 {
-	char *version, *uid;
-	uchar *crypto, *codec;
-	uchar buf[10];
+	int8_t *version, *uid;
+	uint8_t *crypto, *codec;
+	uint8_t buf[10];
 	int ncrypto, ncodec, cryptoStrength;
 	int ret;
 	Packet *p;
@@ -116,7 +118,7 @@ dispatchRead(VtSession *z, Packet **pkt)
 {
 	Packet *p;
 	int type, n;
-	uchar score[VtScoreSize], buf[4];
+	uint8_t score[VtScoreSize], buf[4];
 
 	p = *pkt;
 	if(!packetConsume(p, score, VtScoreSize))
@@ -139,7 +141,7 @@ dispatchWrite(VtSession *z, Packet **pkt)
 {
 	Packet *p;
 	int type;
-	uchar score[VtScoreSize], buf[4];
+	uint8_t score[VtScoreSize], buf[4];
 
 	p = *pkt;
 	if(!packetConsume(p, buf, 4))
@@ -169,7 +171,7 @@ int
 vtExport(VtSession *z)
 {
 	Packet *p;
-	uchar buf[10], *hdr;
+	uint8_t buf[10], *hdr;
 	int op, tid, clean;
 
 	if(z->vtbl == nil) {

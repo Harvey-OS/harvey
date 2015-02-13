@@ -51,8 +51,8 @@
  */
 
 #ifndef lint
-static char *ident = "$Id: buffer.c,v 1.2 89/02/12 10:04:02 mark Exp $";
-static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static int8_t *ident = "$Id: buffer.c,v 1.2 89/02/12 10:04:02 mark Exp $";
+static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -65,13 +65,13 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
 
 #ifdef __STDC__
 
-static int ar_write(int, char *, uint);
+static int ar_write(int, int8_t *, uint);
 static void buf_pad(OFFSET);
-static int indata(int, OFFSET, char *);
+static int indata(int, OFFSET, int8_t *);
 static void outflush(void);
 static void buf_use(uint);
-static int buf_in_avail(char **, uint *);
-static uint buf_out_avail(char **);
+static int buf_in_avail(int8_t **, uint *);
+static uint buf_out_avail(int8_t **);
 
 #else /* !__STDC__ */
 
@@ -111,7 +111,7 @@ static uint buf_out_avail();
 
 #ifdef __STDC__
 
-int inentry(char *name, Stat *asb)
+int inentry(int8_t *name, Stat *asb)
 
 #else
 
@@ -166,7 +166,7 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-void outdata(int fd, char *name, OFFSET size)
+void outdata(int fd, int8_t *name, OFFSET size)
 
 #else
 
@@ -182,7 +182,7 @@ OFFSET          size;
     int             oops;
     uint            avail;
     int		    pad;
-    char           *buf;
+    int8_t           *buf;
 
     oops = got = 0;
     if (pad = (size % BLOCKSIZE)) {
@@ -234,7 +234,7 @@ void write_eot()
 #endif
 {
     OFFSET           pad;
-    char            header[M_STRLEN + H_STRLEN + 1];
+    int8_t            header[M_STRLEN + H_STRLEN + 1];
 
     if (ar_format == TAR) {
 	/* write out two zero blocks for trailer */
@@ -270,7 +270,7 @@ void write_eot()
 
 #ifdef __STDC__
 
-void outwrite(char *idx, uint len)
+void outwrite(int8_t *idx, uint len)
 
 #else
 
@@ -282,7 +282,7 @@ uint            len;	/* length of data to write */
 {
     uint            have;
     uint            want;
-    char           *endx;
+    int8_t           *endx;
 
     endx = idx + len;
     while (want = endx - idx) {
@@ -321,7 +321,7 @@ uint            len;	/* length of data to write */
 
 #ifdef __STDC__
 
-void passdata(char *from, int ifd, char *to, int ofd)
+void passdata(int8_t *from, int ifd, int8_t *to, int ofd)
 
 #else
 
@@ -335,7 +335,7 @@ int             ofd;
 {
     int             got;
     int             sparse;
-    char            block[BUFSIZ];
+    int8_t            block[BUFSIZ];
 
     if (ifd) {
 	lseek(ifd, (OFFSET) 0, 0);
@@ -392,7 +392,7 @@ OFFSET            size;
     if (size <= 0) {
 	fatal("invalid value for blocksize");
     }
-    if ((bufstart = malloc((unsigned) size)) == (char *)NULL) {
+    if ((bufstart = malloc((unsigned) size)) == (int8_t *)NULL) {
 	fatal("Cannot allocate I/O buffer");
     }
     bufend = bufidx = bufstart;
@@ -469,7 +469,7 @@ OFFSET           len;
 
 #ifdef __STDC__
 
-int buf_read(char *dst, uint len)
+int buf_read(int8_t *dst, uint len)
 
 #else
 
@@ -482,7 +482,7 @@ uint            len;
     int             have;
     int             want;
     int             corrupt = 0;
-    char           *endx = dst + len;
+    int8_t           *endx = dst + len;
 
     while (want = endx - dst) {
 	if (bufend - bufidx < 0) {
@@ -525,7 +525,7 @@ uint            len;
 
 #ifdef __STDC__
 
-static int indata(int fd, OFFSET size, char *name)
+static int indata(int fd, OFFSET size, int8_t *name)
 
 #else
 
@@ -537,18 +537,18 @@ char           *name;
 #endif
 {
     uint            chunk;
-    char           *oops;
+    int8_t           *oops;
     int             sparse;
     int             corrupt;
-    char           *buf;
+    int8_t           *buf;
     uint            avail;
 
     corrupt = sparse = 0;
-    oops = (char *)NULL;
+    oops = (int8_t *)NULL;
     while (size) {
 	corrupt |= buf_in_avail(&buf, &avail);
 	size -= (chunk = size < avail ? (uint) size : avail);
-	if (oops == (char *)NULL && (sparse = ar_write(fd, buf, chunk)) < 0) {
+	if (oops == (int8_t *)NULL && (sparse = ar_write(fd, buf, chunk)) < 0) {
 	    oops = strerror();
 	}
 	buf_use(chunk);
@@ -584,7 +584,7 @@ static void outflush()
 
 #endif
 {
-    char           *buf;
+    int8_t           *buf;
     int             got;
     uint            len;
 
@@ -678,7 +678,7 @@ int ar_read()
 
 #ifdef __STDC__
 
-static int ar_write(int fd, char *buf, uint len)
+static int ar_write(int fd, int8_t *buf, uint len)
 
 #else
 
@@ -689,8 +689,8 @@ uint            len;
 
 #endif
 {
-    char           *bidx;
-    char           *bend;
+    int8_t           *bidx;
+    int8_t           *bend;
 
     bend = (bidx = buf) + len;
     while (bidx < bend) {
@@ -802,7 +802,7 @@ uint            len;
 
 #ifdef __STDC__
 
-static int buf_in_avail(char **bufp, uint *lenp)
+static int buf_in_avail(int8_t **bufp, uint *lenp)
 
 #else
 
@@ -843,7 +843,7 @@ uint           *lenp;
 
 #ifdef __STDC__
 
-static uint buf_out_avail(char **bufp)
+static uint buf_out_avail(int8_t **bufp)
 
 #else
 

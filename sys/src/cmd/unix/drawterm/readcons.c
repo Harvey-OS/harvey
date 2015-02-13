@@ -12,7 +12,7 @@
 #include "drawterm.h"
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -20,8 +20,8 @@ erealloc(void *v, ulong n)
 	return v;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -29,10 +29,10 @@ estrdup(char *s)
 	return s;
 }
 
-char*
-estrappend(char *s, char *fmt, ...)
+int8_t*
+estrappend(int8_t *s, int8_t *fmt, ...)
 {
-	char *t;
+	int8_t *t;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -49,12 +49,12 @@ estrappend(char *s, char *fmt, ...)
 /*
  *  prompt for a string with a possible default response
  */
-char*
-readcons(char *prompt, char *def, int raw)
+int8_t*
+readcons(int8_t *prompt, int8_t *def, int raw)
 {
 	int fdin, fdout, ctl, n;
-	char line[10];
-	char *s;
+	int8_t line[10];
+	int8_t *s;
 
 	fdin = open("/dev/cons", OREAD);
 	if(fdin < 0)

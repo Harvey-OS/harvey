@@ -16,40 +16,40 @@
 typedef struct Service	Service;
 struct Service
 {
-	char	serv[NAMELEN];		/* name of the service */
-	char	remote[3*NAMELEN];	/* address of remote system */
-	char	prog[5*NAMELEN+1];	/* program to execute */
+	int8_t	serv[NAMELEN];		/* name of the service */
+	int8_t	remote[3*NAMELEN];	/* address of remote system */
+	int8_t	prog[5*NAMELEN+1];	/* program to execute */
 };
 
 typedef struct Announce	Announce;
 struct Announce
 {
 	Announce	*next;
-	char	*a;
+	int8_t	*a;
 	int	announced;
 	int	whined;
 };
 
-int	readstr(char*, char*, char*, int);
-void	dolisten(char*, char*, int, char*, char*);
-void	newcall(int, char*, char*, Service*);
-int 	findserv(char*, char*, Service*, char*);
-int	getserv(char*, char*, Service*);
-void	error(char*);
-void	scandir(char*, char*, char*);
+int	readstr(int8_t*, int8_t*, int8_t*, int);
+void	dolisten(int8_t*, int8_t*, int, int8_t*, int8_t*);
+void	newcall(int, int8_t*, int8_t*, Service*);
+int 	findserv(int8_t*, int8_t*, Service*, int8_t*);
+int	getserv(int8_t*, int8_t*, Service*);
+void	error(int8_t*);
+void	scandir(int8_t*, int8_t*, int8_t*);
 void	becomenone(void);
-void	listendir(char*, char*, int);
+void	listendir(int8_t*, int8_t*, int);
 
-char	listenlog[] = "listen";
+int8_t	listenlog[] = "listen";
 
 int	quiet;
 int	immutable;
-char	*cpu;
-char	*proto;
+int8_t	*cpu;
+int8_t	*proto;
 Announce *announcements;
 #define SEC 1000
 
-char *namespace;
+int8_t *namespace;
 
 void
 usage(void)
@@ -63,11 +63,11 @@ usage(void)
  * actually just sets the arguments displayed.
  */
 static void
-procsetname(char *fmt, ...)
+procsetname(int8_t *fmt, ...)
 {
 	int fd;
-	char *cmdname;
-	char buf[128];
+	int8_t *cmdname;
+	int8_t buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -159,7 +159,7 @@ main(int argc, char *argv[])
 }
 
 static void
-dingdong(void*, char *msg)
+dingdong(void*, int8_t *msg)
 {
 	if(strstr(msg, "alarm") != nil)
 		noted(NCONT);
@@ -167,10 +167,10 @@ dingdong(void*, char *msg)
 }
 
 void
-listendir(char *protodir, char *srvdir, int trusted)
+listendir(int8_t *protodir, int8_t *srvdir, int trusted)
 {
 	int ctl, pid, start;
-	char dir[40], err[128];
+	int8_t dir[40], err[128];
 	Announce *a;
 	Waitmsg *wm;
 
@@ -281,7 +281,7 @@ listendir(char *protodir, char *srvdir, int trusted)
  *  make a list of all services to announce for
  */
 void
-addannounce(char *str)
+addannounce(int8_t *str)
 {
 	Announce *a, **l;
 
@@ -297,7 +297,7 @@ addannounce(char *str)
 	a = mallocz(sizeof(*a) + strlen(str) + 1, 1);
 	if(a == 0)
 		return;
-	a->a = ((char*)a)+sizeof(*a);
+	a->a = ((int8_t*)a)+sizeof(*a);
 	strcpy(a->a, str);
 	a->announced = 0;
 	*l = a;
@@ -307,7 +307,7 @@ addannounce(char *str)
  *  delete a service for announcement list
  */
 void
-delannounce(char *str)
+delannounce(int8_t *str)
 {
 	Announce *a, **l;
 
@@ -328,10 +328,10 @@ delannounce(char *str)
 }
 
 static int
-ignore(char *srvdir, char *name)
+ignore(int8_t *srvdir, int8_t *name)
 {
 	int rv;
-	char *file = smprint("%s/%s", srvdir, name);
+	int8_t *file = smprint("%s/%s", srvdir, name);
 	Dir *d = dirstat(file);
 
 	rv = !d || d->length <= 0;	/* ignore unless it's non-empty */
@@ -341,11 +341,11 @@ ignore(char *srvdir, char *name)
 }
 
 void
-scandir(char *proto, char *protodir, char *dname)
+scandir(int8_t *proto, int8_t *protodir, int8_t *dname)
 {
 	int fd, i, n, nlen;
-	char *nm;
-	char ds[128];
+	int8_t *nm;
+	int8_t ds[128];
 	Dir *db;
 
 	fd = open(dname, OREAD);
@@ -386,10 +386,11 @@ becomenone(void)
 }
 
 void
-dolisten(char *proto, char *dir, int ctl, char *srvdir, char *dialstr)
+dolisten(int8_t *proto, int8_t *dir, int ctl, int8_t *srvdir,
+	 int8_t *dialstr)
 {
 	Service s;
-	char ndir[40];
+	int8_t ndir[40];
 	int nctl, data;
 
 	procsetname("%s %s", dir, dialstr);
@@ -447,7 +448,7 @@ dolisten(char *proto, char *dir, int ctl, char *srvdir, char *dialstr)
  * thus providing a way to disable a service with a bind.
  */
 int
-findserv(char *proto, char *dir, Service *s, char *srvdir)
+findserv(int8_t *proto, int8_t *dir, Service *s, int8_t *srvdir)
 {
 	int rv;
 	Dir *d;
@@ -465,10 +466,10 @@ findserv(char *proto, char *dir, Service *s, char *srvdir)
  *  get the service name out of the local address
  */
 int
-getserv(char *proto, char *dir, Service *s)
+getserv(int8_t *proto, int8_t *dir, Service *s)
 {
-	char addr[128], *serv, *p;
-	long n;
+	int8_t addr[128], *serv, *p;
+	int32_t n;
 
 	readstr(dir, "remote", s->remote, sizeof(s->remote)-1);
 	if(p = utfrune(s->remote, L'\n'))
@@ -496,10 +497,10 @@ getserv(char *proto, char *dir, Service *s)
 	return 1;
 }
 
-char *
-remoteaddr(char *dir)
+int8_t *
+remoteaddr(int8_t *dir)
 {
-	char buf[128], *p;
+	int8_t buf[128], *p;
 	int n, fd;
 
 	snprint(buf, sizeof buf, "%s/remote", dir);
@@ -519,10 +520,10 @@ remoteaddr(char *dir)
 }
 
 void
-newcall(int fd, char *proto, char *dir, Service *s)
+newcall(int fd, int8_t *proto, int8_t *dir, Service *s)
 {
-	char data[4*NAMELEN];
-	char *p;
+	int8_t data[4*NAMELEN];
+	int8_t *p;
 
 	if(!quiet){
 		if(dir != nil){
@@ -552,7 +553,7 @@ newcall(int fd, char *proto, char *dir, Service *s)
 }
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	syslog(1, listenlog, "%s: %s: %r", proto, s);
 	exits(0);
@@ -562,10 +563,10 @@ error(char *s)
  *  read a string from a device
  */
 int
-readstr(char *dir, char *info, char *s, int len)
+readstr(int8_t *dir, int8_t *info, int8_t *s, int len)
 {
 	int n, fd;
-	char buf[3*NAMELEN+4];
+	int8_t buf[3*NAMELEN+4];
 
 	snprint(buf, sizeof buf, "%s/%s", dir, info);
 	fd = open(buf, OREAD);

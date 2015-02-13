@@ -29,7 +29,7 @@ Image *light;
 Image *dark;
 Image *txtcolor;
 
-char *title = "histogram";
+int8_t *title = "histogram";
 Rectangle hrect;
 Point maxvloc;
 double *data;
@@ -56,7 +56,7 @@ initcolor(int i)
 }
 
 void*
-erealloc(void *v, ulong sz)
+erealloc(void *v, uint32_t sz)
 {
 	v = realloc(v, sz);
 	if(v == nil){
@@ -108,7 +108,7 @@ drawdatum(int x, double prev, double v)
 void
 updatehistogram(double v)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	draw(screen, hrect, screen, nil, Pt(hrect.min.x+1, hrect.min.y));
 	if(v * scale > vmax)
@@ -129,7 +129,7 @@ redrawhistogram(int new)
 	Rectangle r;
 	uint onval = nval;
 	int i;
-	char buf[32];
+	int8_t buf[32];
 
 	if(new && getwindow(display, Refnone) < 0)
 		sysfatal("getwindow: %r");
@@ -171,8 +171,8 @@ reader(void *arg)
 {
 	int fd;
 	double v;
-	char *p, *f[2];
-	uchar buf[512];
+	int8_t *p, *f[2];
+	uint8_t buf[512];
 	Biobufhdr b;
 	Channel *c = arg;
 
@@ -193,7 +193,7 @@ reader(void *arg)
 
 
 void
-histogram(char *rect)
+histogram(int8_t *rect)
 {
 	int rm;
 	double dm;
@@ -210,7 +210,7 @@ histogram(char *rect)
 		{nil,	&rm,	CHANRCV},	/* resize event */
 		{nil,	nil,	CHANEND},
 	};
-	static char *mitems[] = {
+	static int8_t *mitems[] = {
 		"exit",
 		nil
 	};

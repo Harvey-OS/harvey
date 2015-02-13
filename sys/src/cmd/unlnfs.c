@@ -19,20 +19,20 @@ enum
 
 typedef struct Name Name;
 struct Name {
-	char	shortname[ENCLEN + 1];
-	char*	longname;
+	int8_t	shortname[ENCLEN + 1];
+	int8_t*	longname;
 	Name*	next;
 };
 
 Name *names;
-void rename(char*, char*, char*);
-void renamedir(char*);
-void readnames(char*);
+void rename(int8_t*, int8_t*, int8_t*);
+void renamedir(int8_t*);
+void readnames(int8_t*);
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
-	char lnfile[256], *d;
+	int8_t lnfile[256], *d;
 	d = ".";
 	if(argc > 1)
 		d = argv[1];
@@ -43,11 +43,11 @@ main(int argc, char **argv)
 }
 
 void
-renamedir(char *d)
+renamedir(int8_t *d)
 {
 	int n;
 	Dir *dir;
-	char *sub;
+	int8_t *sub;
 	int fd, i;
 	Name *na;
 
@@ -77,9 +77,9 @@ renamedir(char *d)
 }
 
 void
-rename(char *d, char *old, char *new)
+rename(int8_t *d, int8_t *old, int8_t *new)
 {
-	char *p;
+	int8_t *p;
 	Dir dir;
 	p = malloc(strlen(d) + 1 + strlen(old) + 1);
 	sprint(p, "%s/%s", d, old);
@@ -91,18 +91,18 @@ rename(char *d, char *old, char *new)
 }
 	
 void
-long2short(char shortname[ENCLEN+1], char *longname)
+long2short(int8_t shortname[ENCLEN+1], int8_t *longname)
 {
-	uchar digest[MD5dlen];
-	md5((uchar*)longname, strlen(longname), digest, nil);
+	uint8_t digest[MD5dlen];
+	md5((uint8_t*)longname, strlen(longname), digest, nil);
 	enc32(shortname, ENCLEN+1, digest, MD5dlen);
 }
 
 void
-readnames(char *lnfile)
+readnames(int8_t *lnfile)
 {
 	Biobuf *bio;
-	char *f;
+	int8_t *f;
 	Name *n;
 
 	bio = Bopen(lnfile, OREAD);

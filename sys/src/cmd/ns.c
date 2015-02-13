@@ -23,15 +23,15 @@ typedef struct Mount Mount;
 
 struct Mount
 {
-	char	*cmd;
-	char	*flag;
-	char	*new;
-	char	*old;
-	char	*spec;
+	int8_t	*cmd;
+	int8_t	*flag;
+	int8_t	*new;
+	int8_t	*old;
+	int8_t	*spec;
 };
 
 void	xlatemnt(Mount*);
-char	*quote(char*);
+int8_t	*quote(int8_t*);
 
 int	rflag;
 
@@ -158,8 +158,8 @@ void
 xlatemnt(Mount *m)
 {
 	int n, fd;
-	char *s, *t, *net, *port;
-	char buf[256];
+	int8_t *s, *t, *net, *port;
+	int8_t buf[256];
 
 	if(strncmp(m->new, "/net/", 5) != 0)
 		return;
@@ -199,12 +199,12 @@ Return:
 	free(s);
 }
 
-char*
-quote(char *s)
+int8_t*
+quote(int8_t *s)
 {
-	static char buf[3][1024];
+	static int8_t buf[3][1024];
 	static int i;
-	char *p, *ep;
+	int8_t *p, *ep;
 
 	if(strpbrk(s, " '\\\t#$") == nil)
 		return s;

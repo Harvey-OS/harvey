@@ -22,9 +22,9 @@ usage(void)
 void
 writeuncompressed(int fd, Memimage *m)
 {
-	char chanstr[32];
+	int8_t chanstr[32];
 	int bpl, y, j;
-	uchar *buf;
+	uint8_t *buf;
 
 	if(chantostr(chanstr, m->chan) == nil)
 		sysfatal("can't convert channel descriptor: %r");

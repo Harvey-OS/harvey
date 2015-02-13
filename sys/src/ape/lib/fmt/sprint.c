@@ -24,7 +24,7 @@
 #include "fmt.h"
 
 int
-sprint(char *buf, char *fmt, ...)
+sprint(int8_t *buf, int8_t *fmt, ...)
 {
 	int n;
 	va_list args;

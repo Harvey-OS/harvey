@@ -21,22 +21,22 @@
 
 #define	HSIZE	3	/* Type + short count */
 Header	h;
-uchar	indata[DATASIZE+1];	/* room for NUL */
-uchar	outdata[DATASIZE];
-short	outcount;
+uint8_t	indata[DATASIZE+1];	/* room for NUL */
+uint8_t	outdata[DATASIZE];
+int16_t	outcount;
 int	hversion;
 int	exiting;
 
 void	inmesg(Hmesg, int);
 int	inshort(int);
-long	inlong(int);
-vlong	invlong(int);
-void	hsetdot(int, long, long);
-void	hmoveto(int, long);
+int32_t	inlong(int);
+int64_t	invlong(int);
+void	hsetdot(int, int32_t, int32_t);
+void	hmoveto(int, int32_t);
 void	hsetsnarf(int);
 void	hplumb(int);
 void	clrlock(void);
-int	snarfswap(char*, int, char**);
+int	snarfswap(int8_t*, int, int8_t**);
 
 void
 rcv(void)
@@ -104,7 +104,7 @@ inmesg(Hmesg type, int count)
 {
 	Text *t;
 	int i, m;
-	long l;
+	int32_t l;
 	Flayer *lp;
 
 	m = inshort(0);
@@ -167,7 +167,7 @@ inmesg(Hmesg type, int count)
 				m = 1;
 			else m = 0;
 			for(; m<nname; m++)
-				if(strcmp((char*)indata+2, (char*)name[m]+1)<0)
+				if(strcmp((int8_t*)indata+2, (int8_t*)name[m]+1)<0)
 					break;
 		}
 		menuins(m, indata+2, t, i, (int)l);
@@ -179,7 +179,7 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hnewname:
-		menuins(0, (uchar *)"", (Text *)0, ' ', m);
+		menuins(0, (uint8_t *)"", (Text *)0, ' ', m);
 		break;
 
 	case Hcheck0:
@@ -282,7 +282,7 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hsetpat:
-		setpat((char *)indata);
+		setpat((int8_t *)indata);
 		break;
 
 	case Hsetsnarf:
@@ -329,7 +329,7 @@ clrlock(void)
 void
 startfile(Text *t)
 {
-	outTsv(Tstartfile, t->tag, (vlong)t);	/* for 64-bit pointers */
+	outTsv(Tstartfile, t->tag, (int64_t)t);	/* for 64-bit pointers */
 	setlock();
 }
 
@@ -337,7 +337,7 @@ void
 startnewfile(int type, Text *t)
 {
 	t->tag = Untagged;
-	outTv(type, (vlong)t);			/* for 64-bit pointers */
+	outTv(type, (int64_t)t);			/* for 64-bit pointers */
 }
 
 int
@@ -346,17 +346,17 @@ inshort(int n)
 	return indata[n]|(indata[n+1]<<8);
 }
 
-long
+int32_t
 inlong(int n)
 {
 	return indata[n]|(indata[n+1]<<8)|
-		((long)indata[n+2]<<16)|((long)indata[n+3]<<24);
+		((int32_t)indata[n+2]<<16)|((int32_t)indata[n+3]<<24);
 }
 
-vlong
+int64_t
 invlong(int n)
 {
-	vlong v;
+	int64_t v;
 
 	v = (indata[n+7]<<24) | (indata[n+6]<<16) | (indata[n+5]<<8) | indata[n+4];
 	v = (v<<16) | (indata[n+3]<<8) | indata[n+2];
@@ -372,7 +372,7 @@ outT0(Tmesg type)
 }
 
 void
-outTl(Tmesg type, long l)
+outTl(Tmesg type, int32_t l)
 {
 	outstart(type);
 	outlong(l);
@@ -397,7 +397,7 @@ outTss(Tmesg type, int s1, int s2)
 }
 
 void
-outTsll(Tmesg type, int s1, long l1, long l2)
+outTsll(Tmesg type, int s1, int32_t l1, int32_t l2)
 {
 	outstart(type);
 	outshort(s1);
@@ -407,7 +407,7 @@ outTsll(Tmesg type, int s1, long l1, long l2)
 }
 
 void
-outTsl(Tmesg type, int s1, long l1)
+outTsl(Tmesg type, int s1, int32_t l1)
 {
 	outstart(type);
 	outshort(s1);
@@ -416,7 +416,7 @@ outTsl(Tmesg type, int s1, long l1)
 }
 
 void
-outTsv(Tmesg type, int s1, vlong v1)
+outTsv(Tmesg type, int s1, int64_t v1)
 {
 	outstart(type);
 	outshort(s1);
@@ -425,7 +425,7 @@ outTsv(Tmesg type, int s1, vlong v1)
 }
 
 void
-outTv(Tmesg type, vlong v1)
+outTv(Tmesg type, int64_t v1)
 {
 	outstart(type);
 	outvlong(v1);
@@ -433,10 +433,10 @@ outTv(Tmesg type, vlong v1)
 }
 
 void
-outTslS(Tmesg type, int s1, long l1, Rune *s)
+outTslS(Tmesg type, int s1, int32_t l1, Rune *s)
 {
-	char buf[DATASIZE*3+1];
-	char *c;
+	int8_t buf[DATASIZE*3+1];
+	int8_t *c;
 
 	outstart(type);
 	outshort(s1);
@@ -445,12 +445,12 @@ outTslS(Tmesg type, int s1, long l1, Rune *s)
 	while(*s)
 		c += runetochar(c, s++);
 	*c++ = 0;
-	outcopy(c-buf, (uchar *)buf);
+	outcopy(c-buf, (uint8_t *)buf);
 	outsend();
 }
 
 void
-outTsls(Tmesg type, int s1, long l1, int s2)
+outTsls(Tmesg type, int s1, int32_t l1, int s2)
 {
 	outstart(type);
 	outshort(s1);
@@ -467,7 +467,7 @@ outstart(Tmesg type)
 }
 
 void
-outcopy(int count, uchar *data)
+outcopy(int count, uint8_t *data)
 {
 	while(count--)
 		outdata[HSIZE+outcount++] = *data++;	
@@ -476,7 +476,7 @@ outcopy(int count, uchar *data)
 void
 outshort(int s)
 {
-	uchar buf[2];
+	uint8_t buf[2];
 
 	buf[0]=s;
 	buf[1]=s>>8;
@@ -484,9 +484,9 @@ outshort(int s)
 }
 
 void
-outlong(long l)
+outlong(int32_t l)
 {
-	uchar buf[4];
+	uint8_t buf[4];
 
 	buf[0]=l;
 	buf[1]=l>>8;
@@ -496,10 +496,10 @@ outlong(long l)
 }
 
 void
-outvlong(vlong v)
+outvlong(int64_t v)
 {
 	int i;
-	uchar buf[8];
+	uint8_t buf[8];
 
 	for(i = 0; i < sizeof(buf); i++){
 		buf[i] = v;
@@ -516,13 +516,13 @@ outsend(void)
 		panic("outcount>sizeof outdata");
 	outdata[1]=outcount;
 	outdata[2]=outcount>>8;
-	if(write(1, (char *)outdata, outcount+HSIZE)!=outcount+HSIZE)
+	if(write(1, (int8_t *)outdata, outcount+HSIZE)!=outcount+HSIZE)
 		panic("write error");
 }
 
 
 void
-hsetdot(int m, long p0, long p1)
+hsetdot(int m, int32_t p0, int32_t p1)
 {
 	Text *t = whichtext(m);
 	Flayer *l = &t->l[t->front];
@@ -532,12 +532,12 @@ hsetdot(int m, long p0, long p1)
 }
 
 void
-horigin(int m, long p0)
+horigin(int m, int32_t p0)
 {
 	Text *t = whichtext(m);
 	Flayer *l = &t->l[t->front];
-	long a;
-	ulong n;
+	int32_t a;
+	uint32_t n;
 	Rune *r;
 
 	if(!flprepare(l)){
@@ -560,7 +560,7 @@ horigin(int m, long p0)
 }
 
 void
-hmoveto(int m, long p0)
+hmoveto(int m, int32_t p0)
 {
 	Text *t = whichtext(m);
 	Flayer *l = &t->l[t->front];
@@ -575,7 +575,7 @@ hcheck(int m)
 	Flayer *l;
 	Text *t;
 	int reqd = 0, i;
-	long n, nl, a;
+	int32_t n, nl, a;
 	Rune *r;
 
 	if(m == Untagged)
@@ -637,8 +637,8 @@ flnewlyvisible(Flayer *l)
 void
 hsetsnarf(int nc)
 {
-	char *s2;
-	char *s1;
+	int8_t *s2;
+	int8_t *s1;
 	int i;
 	int n;
 
@@ -677,7 +677,7 @@ void
 hplumb(int nc)
 {
 	int i;
-	char *s;
+	int8_t *s;
 	Plumbmsg *m;
 
 	s = alloc(nc);
@@ -693,12 +693,12 @@ hplumb(int nc)
 }
 
 void
-hgrow(int m, long a, long new, int req)
+hgrow(int m, int32_t a, int32_t new, int req)
 {
 	int i;
 	Flayer *l;
 	Text *t = whichtext(m);
-	long o, b;
+	int32_t o, b;
 
 	if(new <= 0)
 		panic("hgrow");
@@ -727,11 +727,11 @@ hgrow(int m, long a, long new, int req)
 }
 
 int
-hdata1(Text *t, long a, Rune *r, int len)
+hdata1(Text *t, int32_t a, Rune *r, int len)
 {
 	int i;
 	Flayer *l;
-	long o, b;
+	int32_t o, b;
 
 	for(l = &t->l[0], i=0; i<NL; i++, l++){
 		if(l->textfn==0)
@@ -749,7 +749,7 @@ hdata1(Text *t, long a, Rune *r, int len)
 }
 
 int
-hdata(int m, long a, uchar *s, int len)
+hdata(int m, int32_t a, uint8_t *s, int len)
 {
 	int i, w;
 	Text *t = whichtext(m);
@@ -761,12 +761,12 @@ hdata(int m, long a, uchar *s, int len)
 		return 0;
 	r = buf;
 	for(i=0; i<len; i+=w,s+=w)
-		w = chartorune(r++, (char*)s);
+		w = chartorune(r++, (int8_t*)s);
 	return hdata1(t, a, buf, r-buf);
 }
 
 int
-hdatarune(int m, long a, Rune *r, int len)
+hdatarune(int m, int32_t a, Rune *r, int len)
 {
 	Text *t = whichtext(m);
 
@@ -778,12 +778,12 @@ hdatarune(int m, long a, Rune *r, int len)
 }
 
 void
-hcut(int m, long a, long old)
+hcut(int m, int32_t a, int32_t old)
 {
 	Flayer *l;
 	Text *t = whichtext(m);
 	int i;
-	long o, b;
+	int32_t o, b;
 
 	if(t->lock)
 		--t->lock;

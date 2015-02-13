@@ -14,20 +14,20 @@
 #include "all.h"
 
 int changesonly;
-char *uid;
+int8_t *uid;
 Db *db;
 Biobuf blog;
-ulong now;
+uint32_t now;
 int n;
-char **x;
+int8_t **x;
 int nx;
 int justlog;
-char *root=".";
-char **match;
+int8_t *root=".";
+int8_t **match;
 int nmatch;
 
 int
-ismatch(char *s)
+ismatch(int8_t *s)
 {
 	int i, len;
 
@@ -44,9 +44,9 @@ ismatch(char *s)
 }
 
 void
-xlog(int c, char *name, Dir *d)
+xlog(int c, int8_t *name, Dir *d)
 {
-	char *dname;
+	int8_t *dname;
 
 	dname = d->name;
 	if(strcmp(dname, name) == 0)
@@ -58,7 +58,7 @@ xlog(int c, char *name, Dir *d)
 }
 
 void
-walk(char *new, char *old, Dir *xd, void*)
+walk(int8_t *new, int8_t *old, Dir *xd, void*)
 {
 	int i, change, len;
 	Dir od, d;
@@ -106,9 +106,9 @@ walk(char *new, char *old, Dir *xd, void*)
 }
 
 void
-warn(char *msg, void*)
+warn(int8_t *msg, void*)
 {
-	char *p;
+	int8_t *p;
 
 	fprint(2, "warning: %s\n", msg);
 

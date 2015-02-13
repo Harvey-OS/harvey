@@ -51,7 +51,7 @@ enum
 };
 
 SunStatus
-sunRpcPack(uchar *a, uchar *ea, uchar **pa, SunRpc *rpc)
+sunRpcPack(uint8_t *a, uint8_t *ea, uint8_t **pa, SunRpc *rpc)
 {
 	u32int x;
 
@@ -148,7 +148,7 @@ sunRpcSize(SunRpc *rpc)
 }
 
 SunStatus
-sunRpcUnpack(uchar *a, uchar *ea, uchar **pa, SunRpc *rpc)
+sunRpcUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, SunRpc *rpc)
 {
 	u32int x;
 
@@ -280,7 +280,7 @@ sunAuthInfoSize(SunAuthInfo *ai)
 }
 
 int
-sunAuthInfoPack(uchar *a, uchar *ea, uchar **pa, SunAuthInfo *ai)
+sunAuthInfoPack(uint8_t *a, uint8_t *ea, uint8_t **pa, SunAuthInfo *ai)
 {
 	if(sunUint32Pack(a, ea, &a, &ai->flavor) < 0
 	|| sunVarOpaquePack(a, ea, &a, &ai->data, &ai->ndata, 400) < 0)
@@ -294,7 +294,7 @@ Err:
 }
 
 int
-sunAuthInfoUnpack(uchar *a, uchar *ea, uchar **pa, SunAuthInfo *ai)
+sunAuthInfoUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, SunAuthInfo *ai)
 {
 	if(sunUint32Unpack(a, ea, &a, &ai->flavor) < 0
 	|| sunVarOpaqueUnpack(a, ea, &a, &ai->data, &ai->ndata, 400) < 0)
@@ -308,7 +308,7 @@ Err:
 }
 
 int
-sunEnumPack(uchar *a, uchar *ea, uchar **pa, int *e)
+sunEnumPack(uint8_t *a, uint8_t *ea, uint8_t **pa, int *e)
 {
 	u32int x;
 
@@ -317,7 +317,7 @@ sunEnumPack(uchar *a, uchar *ea, uchar **pa, int *e)
 }
 
 int
-sunUint1Pack(uchar *a, uchar *ea, uchar **pa, u1int *u)
+sunUint1Pack(uint8_t *a, uint8_t *ea, uint8_t **pa, u1int *u)
 {
 	u32int x;
 
@@ -326,7 +326,7 @@ sunUint1Pack(uchar *a, uchar *ea, uchar **pa, u1int *u)
 }
 
 int
-sunUint32Pack(uchar *a, uchar *ea, uchar **pa, u32int *u)
+sunUint32Pack(uint8_t *a, uint8_t *ea, uint8_t **pa, u32int *u)
 {
 	u32int x;
 
@@ -347,7 +347,7 @@ Err:
 }
 
 int
-sunEnumUnpack(uchar *a, uchar *ea, uchar **pa, int *e)
+sunEnumUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, int *e)
 {
 	u32int x;
 	if(sunUint32Unpack(a, ea, pa, &x) < 0)
@@ -357,7 +357,7 @@ sunEnumUnpack(uchar *a, uchar *ea, uchar **pa, int *e)
 }
 
 int
-sunUint1Unpack(uchar *a, uchar *ea, uchar **pa, u1int *u)
+sunUint1Unpack(uint8_t *a, uint8_t *ea, uint8_t **pa, u1int *u)
 {
 	u32int x;
 	if(sunUint32Unpack(a, ea, pa, &x) < 0 || (x!=0 && x!=1)){
@@ -369,7 +369,7 @@ sunUint1Unpack(uchar *a, uchar *ea, uchar **pa, u1int *u)
 }
 
 int
-sunUint32Unpack(uchar *a, uchar *ea, uchar **pa, u32int *u)
+sunUint32Unpack(uint8_t *a, uint8_t *ea, uint8_t **pa, u32int *u)
 {
 	u32int x;
 
@@ -389,14 +389,14 @@ Err:
 }
 
 int
-sunUint64Unpack(uchar *a, uchar *ea, uchar **pa, u64int *u)
+sunUint64Unpack(uint8_t *a, uint8_t *ea, uint8_t **pa, u64int *u)
 {
 	u32int x, y;
 
 	if(sunUint32Unpack(a, ea, &a, &x) < 0
 	|| sunUint32Unpack(a, ea, &a, &y) < 0)
 		goto Err;
-	*u = ((uvlong)x<<32) | y;
+	*u = ((uint64_t)x<<32) | y;
 	*pa = a;
 	return 0;
 Err:
@@ -405,7 +405,7 @@ Err:
 }
 
 int
-sunUint64Pack(uchar *a, uchar *ea, uchar **pa, u64int *u)
+sunUint64Pack(uint8_t *a, uint8_t *ea, uint8_t **pa, u64int *u)
 {
 	u32int x, y;
 
@@ -422,15 +422,16 @@ Err:
 }
 
 uint
-sunStringSize(char *s)
+sunStringSize(int8_t *s)
 {
 	return (4+strlen(s)+3) & ~3;
 }
 
 int
-sunStringUnpack(uchar *a, uchar *ea, uchar **pa, char **s, u32int max)
+sunStringUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, int8_t **s,
+		u32int max)
 {
-	uchar *dat;
+	uint8_t *dat;
 	u32int n;
 
 	if(sunVarOpaqueUnpack(a, ea, pa, &dat, &n, max) < 0)
@@ -438,19 +439,19 @@ sunStringUnpack(uchar *a, uchar *ea, uchar **pa, char **s, u32int max)
 	/* slide string down over length to make room for NUL */
 	memmove(dat-1, dat, n);
 	dat[-1+n] = 0;
-	*s = (char*)(dat-1);
+	*s = (int8_t*)(dat-1);
 	return 0;
 Err:
 	return -1;
 }
 
 int
-sunStringPack(uchar *a, uchar *ea, uchar **pa, char **s, u32int max)
+sunStringPack(uint8_t *a, uint8_t *ea, uint8_t **pa, int8_t **s, u32int max)
 {
 	u32int n;
 
 	n = strlen(*s);
-	return sunVarOpaquePack(a, ea, pa, (uchar**)s, &n, max);
+	return sunVarOpaquePack(a, ea, pa, (uint8_t**)s, &n, max);
 }
 
 uint
@@ -460,7 +461,8 @@ sunVarOpaqueSize(u32int n)
 }
 
 int
-sunVarOpaquePack(uchar *a, uchar *ea, uchar **pa, uchar **dat, u32int *ndat, u32int max)
+sunVarOpaquePack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint8_t **dat,
+		 u32int *ndat, u32int max)
 {
 	if(*ndat > max || sunUint32Pack(a, ea, &a, ndat) < 0
 	|| sunFixedOpaquePack(a, ea, &a, *dat, *ndat) < 0)
@@ -474,7 +476,8 @@ Err:
 }
 
 int
-sunVarOpaqueUnpack(uchar *a, uchar *ea, uchar **pa, uchar **dat, u32int *ndat, u32int max)
+sunVarOpaqueUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint8_t **dat,
+		   u32int *ndat, u32int max)
 {
 	if(sunUint32Unpack(a, ea, &a, ndat) < 0
 	|| *ndat > max)
@@ -498,7 +501,8 @@ sunFixedOpaqueSize(u32int n)
 }
 
 int
-sunFixedOpaquePack(uchar *a, uchar *ea, uchar **pa, uchar *dat, u32int n)
+sunFixedOpaquePack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint8_t *dat,
+		   u32int n)
 {
 	uint nn;
 
@@ -518,7 +522,8 @@ Err:
 }
 
 int
-sunFixedOpaqueUnpack(uchar *a, uchar *ea, uchar **pa, uchar *dat, u32int n)
+sunFixedOpaqueUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint8_t *dat,
+		     u32int n)
 {
 	uint nn;
 

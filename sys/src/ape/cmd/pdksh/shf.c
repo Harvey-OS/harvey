@@ -35,7 +35,7 @@ static int	shf_emptybuf	ARGS((struct shf *shf, int flags));
  */
 struct shf *
 shf_open(name, oflags, mode, sflags)
-	const char *name;
+	const int8_t *name;
 	int oflags;
 	int mode;
 	int sflags;
@@ -182,7 +182,7 @@ shf_reopen(fd, sflags, shf)
  */
 struct shf *
 shf_sopen(buf, bsize, sflags, shf)
-	char *buf;
+	int8_t *buf;
 	int bsize;
 	int sflags;
 	struct shf *shf;
@@ -260,7 +260,7 @@ shf_fdclose(shf)
  * returns a pointer to the string and frees shf if it was allocated
  * (does not free string if it was allocated).
  */
-char *
+int8_t *
 shf_sclose(shf)
 	struct shf *shf;
 {
@@ -273,7 +273,7 @@ shf_sclose(shf)
 	}
 	if (shf->flags & SHF_ALLOCS)
 		afree(shf, shf->areap);
-	return (char *) s;
+	return (int8_t *) s;
 }
 
 /* Flush and free file structure, don't close file descriptor */
@@ -434,7 +434,7 @@ shf_fillbuf(shf)
 
 	shf->rp = shf->buf;
 	while (1) {
-		shf->rnleft = blocking_read(shf->fd, (char *) shf->buf,
+		shf->rnleft = blocking_read(shf->fd, (int8_t *) shf->buf,
 					    shf->rbsize);
 		if (shf->rnleft < 0 && errno == EINTR
 		    && !(shf->flags & SHF_INTERRUPT))
@@ -508,7 +508,7 @@ shf_seek(shf, where, from)
  */
 int
 shf_read(buf, bsize, shf)
-	char *buf;
+	int8_t *buf;
 	int bsize;
 	struct shf *shf;
 {
@@ -543,21 +543,21 @@ shf_read(buf, bsize, shf)
  * null terminated.  Returns NULL on read error or if nothing was read before
  * end of file, returns a pointer to the null byte in buf otherwise.
  */
-char *
+int8_t *
 shf_getse(buf, bsize, shf)
-	char *buf;
+	int8_t *buf;
 	int bsize;
 	struct shf *shf;
 {
 	unsigned char *end;
 	int ncopy;
-	char *orig_buf = buf;
+	int8_t *orig_buf = buf;
 
 	if (!(shf->flags & SHF_RD))
 		internal_errorf(1, "shf_getse: flags %x", shf->flags);
 
 	if (bsize <= 0)
-		return (char *) 0;
+		return (int8_t *) 0;
 
 	--bsize;	/* save room for null */
 	do {
@@ -569,12 +569,12 @@ shf_getse(buf, bsize, shf)
 				return buf == orig_buf ? NULL : buf;
 			}
 		}
-		end = (unsigned char *) memchr((char *) shf->rp, '\n',
+		end = (unsigned char *) memchr((int8_t *) shf->rp, '\n',
 					     shf->rnleft);
 		ncopy = end ? end - shf->rp + 1 : shf->rnleft;
 		if (ncopy > bsize)
 			ncopy = bsize;
-		memcpy(buf, (char *) shf->rp, ncopy);
+		memcpy(buf, (int8_t *) shf->rp, ncopy);
 		shf->rp += ncopy;
 		shf->rnleft -= ncopy;
 		buf += ncopy;
@@ -658,7 +658,7 @@ shf_putchar(c, shf)
 		return EOF;
 
 	if (shf->flags & SHF_UNBUF) {
-		char cc = c;
+		int8_t cc = c;
 		int n;
 
 		if (shf->fd < 0)
@@ -692,7 +692,7 @@ shf_putchar(c, shf)
  */
 int
 shf_puts(s, shf)
-	const char *s;
+	const int8_t *s;
 	struct shf *shf;
 {
 	if (!s)
@@ -704,7 +704,7 @@ shf_puts(s, shf)
 /* Write a buffer.  Returns nbytes if successful, EOF if there is an error. */
 int
 shf_write(buf, nbytes, shf)
-	const char *buf;
+	const int8_t *buf;
 	int nbytes;
 	struct shf *shf;
 {
@@ -768,7 +768,7 @@ shf_write(buf, nbytes, shf)
 
 int
 #ifdef HAVE_PROTOTYPES
-shf_fprintf(struct shf *shf, const char *fmt, ...)
+shf_fprintf(struct shf *shf, const int8_t *fmt, ...)
 #else
 shf_fprintf(shf, fmt, va_alist)
 	struct shf *shf;
@@ -788,7 +788,7 @@ shf_fprintf(shf, fmt, va_alist)
 
 int
 #ifdef HAVE_PROTOTYPES
-shf_snprintf(char *buf, int bsize, const char *fmt, ...)
+shf_snprintf(int8_t *buf, int bsize, const int8_t *fmt, ...)
 #else
 shf_snprintf(buf, bsize, fmt, va_alist)
 	char *buf;
@@ -803,7 +803,7 @@ shf_snprintf(buf, bsize, fmt, va_alist)
 
 	if (!buf || bsize <= 0)
 		internal_errorf(1, "shf_snprintf: buf %lx, bsize %d",
-			(long) buf, bsize);
+			(int32_t) buf, bsize);
 
 	shf_sopen(buf, bsize, SHF_WR, &shf);
 	SH_VA_START(args, fmt);
@@ -813,9 +813,9 @@ shf_snprintf(buf, bsize, fmt, va_alist)
 	return n;
 }
 
-char *
+int8_t *
 #ifdef HAVE_PROTOTYPES
-shf_smprintf(const char *fmt, ...)
+shf_smprintf(const int8_t *fmt, ...)
 #else
 shf_smprintf(fmt, va_alist)
 	char *fmt;
@@ -825,7 +825,7 @@ shf_smprintf(fmt, va_alist)
 	struct shf shf;
 	va_list args;
 
-	shf_sopen((char *) 0, 0, SHF_WR|SHF_DYNAMIC, &shf);
+	shf_sopen((int8_t *) 0, 0, SHF_WR|SHF_DYNAMIC, &shf);
 	SH_VA_START(args, fmt);
 	shf_vfprintf(&shf, fmt, args);
 	va_end(args);
@@ -853,9 +853,9 @@ shf_smprintf(fmt, va_alist)
 #define POP_INT(f, s, a) (((f) & FL_LONG) ?				\
 				va_arg((a), unsigned long)		\
 			    :						\
-				(sizeof(int) < sizeof(long) ?		\
+				(sizeof(int) < sizeof(int32_t) ?		\
 					((s) ?				\
-						(long) va_arg((a), int)	\
+						(int32_t) va_arg((a), int)	\
 					    :				\
 						va_arg((a), unsigned))	\
 				    :					\
@@ -892,29 +892,29 @@ my_ceil(d)
 int
 shf_vfprintf(shf, fmt, args)
 	struct shf *shf;
-	const char *fmt;
+	const int8_t *fmt;
 	va_list args;
 {
-	char		c, *s;
+	int8_t		c, *s;
 	int		UNINITIALIZED(tmp);
 	int		field, precision;
 	int		len;
 	int		flags;
 	unsigned long	lnum;
 					/* %#o produces the longest output */
-	char		numbuf[(BITS(long) + 2) / 3 + 1];
+	int8_t		numbuf[(BITS(int32_t) + 2) / 3 + 1];
 	/* this stuff for dealing with the buffer */
 	int		nwritten = 0;
 #ifdef FP
 	/* should be in <math.h>
 	 *  extern double frexp();
 	 */
-	extern char *ecvt();
+	extern int8_t *ecvt();
 
 	double		fpnum;
 	int		expo, decpt;
-	char		style;
-	char		fpbuf[FPBUF_SIZE];
+	int8_t		style;
+	int8_t		fpbuf[FPBUF_SIZE];
 #endif /* FP */
 
 	if (!fmt)
@@ -1010,7 +1010,7 @@ shf_vfprintf(shf, fmt, args)
 		switch (c) {
 		case 'p': /* pointer */
 			flags &= ~(FL_LONG | FL_SHORT);
-			if (sizeof(char *) > sizeof(int))
+			if (sizeof(int8_t *) > sizeof(int))
 				flags |= FL_LONG; /* hope it fits.. */
 			/* aaahhh... */
 		case 'd':
@@ -1024,8 +1024,8 @@ shf_vfprintf(shf, fmt, args)
 			switch (c) {
 			case 'd':
 			case 'i':
-				if (0 > (long) lnum)
-					lnum = - (long) lnum, tmp = 1;
+				if (0 > (int32_t) lnum)
+					lnum = - (int32_t) lnum, tmp = 1;
 				else
 					tmp = 0;
 				/* aaahhhh..... */
@@ -1059,7 +1059,7 @@ shf_vfprintf(shf, fmt, args)
 			case 'p':
 			case 'x':
 			    {
-				const char *digits = (flags & FL_UPPER) ?
+				const int8_t *digits = (flags & FL_UPPER) ?
 						  "0123456789ABCDEF"
 						: "0123456789abcdef";
 				do {
@@ -1088,7 +1088,7 @@ shf_vfprintf(shf, fmt, args)
 		case 'g':
 		case 'f':
 		    {
-			char *p;
+			int8_t *p;
 
 			/*
 			 *	This could proabably be done better,
@@ -1222,7 +1222,7 @@ shf_vfprintf(shf, fmt, args)
 #endif /* FP */
 
 		case 's':
-			if (!(s = va_arg(args, char *)))
+			if (!(s = va_arg(args, int8_t *)))
 				s = "(null %s)";
 			len = strlen(s);
 			break;

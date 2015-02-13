@@ -17,25 +17,25 @@
 
 Cfg cfg;
 
-char	*caller = "";
-char	*dbfile;
+int8_t	*caller = "";
+int8_t	*dbfile;
 int	debug;
-uchar	ipaddr[IPaddrlen];	/* my ip address */
-char	*logfile = "dns";
+uint8_t	ipaddr[IPaddrlen];	/* my ip address */
+int8_t	*logfile = "dns";
 int	maxage = 60*60;
-char	mntpt[Maxpath];
+int8_t	mntpt[Maxpath];
 int	needrefresh;
-ulong	now;
-vlong	nowns;
+uint32_t	now;
+int64_t	nowns;
 int	testing;
 int	traceactivity;
-char	*zonerefreshprogram;
+int8_t	*zonerefreshprogram;
 
-static int	readmsg(int, uchar*, int);
+static int	readmsg(int, uint8_t*, int);
 static void	reply(int, DNSmsg*, Request*);
 static void	dnzone(DNSmsg*, DNSmsg*, Request*);
-static void	getcaller(char*);
-static void	refreshmain(char*);
+static void	getcaller(int8_t*);
+static void	refreshmain(int8_t*);
 
 void
 usage(void)
@@ -163,10 +163,10 @@ main(int argc, char *argv[])
 }
 
 static int
-readmsg(int fd, uchar *buf, int max)
+readmsg(int fd, uint8_t *buf, int max)
 {
 	int n;
-	uchar x[2];
+	uint8_t x[2];
 
 	if(readn(fd, x, 2) != 2)
 		return -1;
@@ -182,8 +182,8 @@ static void
 reply(int fd, DNSmsg *rep, Request *req)
 {
 	int len, rv;
-	char tname[32];
-	uchar buf[64*1024];
+	int8_t tname[32];
+	uint8_t buf[64*1024];
 	RR *rp;
 
 	if(debug){
@@ -219,7 +219,7 @@ reply(int fd, DNSmsg *rep, Request *req)
 extern DN	*ht[HTLEN];
 
 static int
-numelem(char *name)
+numelem(int8_t *name)
 {
 	int i;
 
@@ -231,7 +231,7 @@ numelem(char *name)
 }
 
 int
-inzone(DN *dp, char *name, int namelen, int depth)
+inzone(DN *dp, int8_t *name, int namelen, int depth)
 {
 	int n;
 
@@ -314,10 +314,10 @@ out:
 }
 
 static void
-getcaller(char *dir)
+getcaller(int8_t *dir)
 {
 	int fd, n;
-	static char remote[128];
+	static int8_t remote[128];
 
 	snprint(remote, sizeof(remote), "%s/remote", dir);
 	fd = open(remote, OREAD);
@@ -334,10 +334,10 @@ getcaller(char *dir)
 }
 
 static void
-refreshmain(char *net)
+refreshmain(int8_t *net)
 {
 	int fd;
-	char file[128];
+	int8_t file[128];
 
 	snprint(file, sizeof(file), "%s/dns", net);
 	if(debug)
@@ -355,7 +355,7 @@ refreshmain(char *net)
  *  the following varies between dnsdebug and dns
  */
 void
-logreply(int id, uchar *addr, DNSmsg *mp)
+logreply(int id, uint8_t *addr, DNSmsg *mp)
 {
 	RR *rp;
 
@@ -376,9 +376,10 @@ logreply(int id, uchar *addr, DNSmsg *mp)
 }
 
 void
-logsend(int id, int subid, uchar *addr, char *sname, char *rname, int type)
+logsend(int id, int subid, uint8_t *addr, int8_t *sname, int8_t *rname,
+	int type)
 {
-	char buf[12];
+	int8_t buf[12];
 
 	dnslog("%d.%d: sending to %I/%s %s %s",
 		id, subid, addr, sname, rname, rrname(type, buf, sizeof buf));

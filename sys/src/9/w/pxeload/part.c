@@ -20,19 +20,20 @@ enum {
 	Npart = 32
 };
 
-uchar *mbrbuf, *partbuf;
+uint8_t *mbrbuf, *partbuf;
 int nbuf;
 #define trace 0
 
 int
-tsdbio(SDunit *unit, SDpart *part, void *a, vlong off, int mbr)
+tsdbio(SDunit *unit, SDpart *part, void *a, int64_t off, int mbr)
 {
-	uchar *b;
+	uint8_t *b;
 
 	if(sdbio(unit, part, a, unit->secsize, off) != unit->secsize){
 		if(trace)
 			print("%s: read %lud at %lld failed\n", unit->name,
-				unit->secsize, (vlong)part->start*unit->secsize+off);
+				unit->secsize,
+			      (int64_t)part->start*unit->secsize+off);
 		return -1;
 	}
 	b = a;
@@ -40,7 +41,7 @@ tsdbio(SDunit *unit, SDpart *part, void *a, vlong off, int mbr)
 		if(trace)
 			print("%s: bad magic %.2ux %.2ux at %lld\n",
 				unit->name, b[0x1FE], b[0x1FF],
-				(vlong)part->start*unit->secsize+off);
+				(int64_t)part->start*unit->secsize+off);
 		return -1;
 	}
 	return 0;
@@ -54,8 +55,8 @@ static void
 oldp9part(SDunit *unit)
 {
 	SDpart *pp;
-	char *field[3], *line[Npart+1];
-	ulong n, start, end;
+	int8_t *field[3], *line[Npart+1];
+	uint32_t n, start, end;
 	int i;
 
 	/*
@@ -74,13 +75,13 @@ oldp9part(SDunit *unit)
 	if(tsdbio(unit, pp, partbuf, 0, 0) < 0)
 		return;
 
-	if(strncmp((char*)partbuf, MAGIC, sizeof(MAGIC)-1) != 0) {
+	if(strncmp((int8_t*)partbuf, MAGIC, sizeof(MAGIC)-1) != 0) {
 		/* not found on 2nd last sector; look on last sector */
 		pp->start++;
 		pp->end++;
 		if(tsdbio(unit, pp, partbuf, 0, 0) < 0)
 			return;
-		if(strncmp((char*)partbuf, MAGIC, sizeof(MAGIC)-1) != 0)
+		if(strncmp((int8_t*)partbuf, MAGIC, sizeof(MAGIC)-1) != 0)
 			return;
 		print("%s: using old plan9 partition table on last sector\n", unit->name);
 	}else
@@ -93,7 +94,7 @@ oldp9part(SDunit *unit)
 	/*
 	 * parse partition table
 	 */
-	n = getfields((char*)partbuf, line, Npart+1, '\n');
+	n = getfields((int8_t*)partbuf, line, Npart+1, '\n');
 	if(n && strncmp(line[0], MAGIC, sizeof(MAGIC)-1) == 0){
 		for(i = 1; i < n && unit->npart < SDnpart; i++){
 			if(getfields(line[i], field, 3, ' ') != 3)
@@ -108,11 +109,11 @@ oldp9part(SDunit *unit)
 }
 
 static void
-p9part(SDunit *unit, char *name)
+p9part(SDunit *unit, int8_t *name)
 {
 	SDpart *p;
-	char *field[4], *line[Npart+1];
-	ulong start, end;
+	int8_t *field[4], *line[Npart+1];
+	uint32_t start, end;
 	int i, n;
 
 	p = sdfindpart(unit, name);
@@ -123,10 +124,10 @@ p9part(SDunit *unit, char *name)
 		return;
 	partbuf[unit->secsize-1] = '\0';
 
-	if(strncmp((char*)partbuf, "part ", 5) != 0)
+	if(strncmp((int8_t*)partbuf, "part ", 5) != 0)
 		return;
 
-	n = getfields((char*)partbuf, line, Npart+1, '\n');
+	n = getfields((int8_t*)partbuf, line, Npart+1, '\n');
 	if(n == 0)
 		return;
 	for(i = 0; i < n && unit->npart < SDnpart; i++){
@@ -162,23 +163,23 @@ static int
 mbrpart(SDunit *unit)
 {
 	Dospart *dp;
-	ulong taboffset, start, end;
-	ulong firstxpart, nxtxpart;
+	uint32_t taboffset, start, end;
+	uint32_t firstxpart, nxtxpart;
 	int havedos, i, nplan9;
-	char name[10];
+	int8_t name[10];
 
 	taboffset = 0;
 	dp = (Dospart*)&mbrbuf[0x1BE];
 	if(1) {
 		/* get the MBR (allowing for DMDDO) */
-		if(tsdbio(unit, &unit->part[0], mbrbuf, (vlong)taboffset*unit->secsize, 1) < 0)
+		if(tsdbio(unit, &unit->part[0], mbrbuf, (int64_t)taboffset*unit->secsize, 1) < 0)
 			return -1;
 		for(i=0; i<4; i++)
 			if(dp[i].type == DMDDO) {
 				if(trace)
 					print("DMDDO partition found\n");
 				taboffset = 63;
-				if(tsdbio(unit, &unit->part[0], mbrbuf, (vlong)taboffset*unit->secsize, 1) < 0)
+				if(tsdbio(unit, &unit->part[0], mbrbuf, (int64_t)taboffset*unit->secsize, 1) < 0)
 					return -1;
 				i = -1;	/* start over */
 			}
@@ -192,7 +193,7 @@ mbrpart(SDunit *unit)
 	havedos = 0;
 	firstxpart = 0;
 	for(;;) {
-		if(tsdbio(unit, &unit->part[0], mbrbuf, (vlong)taboffset*unit->secsize, 1) < 0)
+		if(tsdbio(unit, &unit->part[0], mbrbuf, (int64_t)taboffset*unit->secsize, 1) < 0)
 			return -1;
 		if(trace) {
 			if(firstxpart)
@@ -254,9 +255,9 @@ mbrpart(SDunit *unit)
 static int
 part9660(SDunit *unit)
 {
-	uchar buf[2048];
-	ulong a, n;
-	uchar *p;
+	uint8_t buf[2048];
+	uint32_t a, n;
+	uint8_t *p;
 
 	if(unit->secsize != 2048)
 		return -1;
@@ -264,7 +265,7 @@ part9660(SDunit *unit)
 	if(sdbio(unit, &unit->part[0], buf, 2048, 17*2048) < 0)
 		return -1;
 
-	if(buf[0] || strcmp((char*)buf+1, "CD001\x01EL TORITO SPECIFICATION") != 0)
+	if(buf[0] || strcmp((int8_t*)buf+1, "CD001\x01EL TORITO SPECIFICATION") != 0)
 		return -1;
 
 
@@ -311,7 +312,7 @@ void
 partition(SDunit *unit)
 {
 	int type;
-	char *p;
+	int8_t *p;
 
 	if(unit->part == 0)
 		return;

@@ -23,11 +23,11 @@ typedef unsigned char uchar;
 #define	STRING(x,n)	memcpy(p, f->x, n); p += n
 
 int
-convS2M(Fcall *f, char *ap)
+convS2M(Fcall *f, int8_t *ap)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(type);
 	SHORT(tag);
 	switch(f->type)
@@ -215,7 +215,7 @@ convS2M(Fcall *f, char *ap)
 		SHORT(fid);
 		break;
 	}
-	return p - (uchar*)ap;
+	return p - (uint8_t*)ap;
 }
 
 #undef	CHAR
@@ -233,11 +233,11 @@ convS2M(Fcall *f, char *ap)
 #define	STRING(x,n)	memcpy(f->x, p, n); p += n
 
 int
-convM2S(char *ap, Fcall *f, int n)
+convM2S(int8_t *ap, Fcall *f, int n)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(type);
 	SHORT(tag);
 	switch(f->type)
@@ -311,7 +311,7 @@ convM2S(char *ap, Fcall *f, int n)
 		VLONG(offset);
 		SHORT(count);
 		p++;	/* pad(1) */
-		f->data = (char*)p; p += f->count;
+		f->data = (int8_t*)p; p += f->count;
 		break;
 
 	case Tclunk:
@@ -400,7 +400,7 @@ convM2S(char *ap, Fcall *f, int n)
 		SHORT(fid);
 		SHORT(count);
 		p++;	/* pad(1) */
-		f->data = (char*)p; p += f->count;
+		f->data = (int8_t*)p; p += f->count;
 		break;
 
 	case Rwrite:
@@ -425,7 +425,7 @@ convM2S(char *ap, Fcall *f, int n)
 		SHORT(fid);
 		break;
 	}
-	if((uchar*)ap+n == p)
+	if((uint8_t*)ap+n == p)
 		return n;
 	return 0;
 }

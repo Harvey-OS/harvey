@@ -15,7 +15,7 @@
  *  become powerless user
  */
 int
-become(char **cmd, char *who)
+become(int8_t **cmd, int8_t *who)
 {
 	int fd;
 

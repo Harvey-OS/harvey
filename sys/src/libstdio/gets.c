@@ -11,12 +11,12 @@
  * pANS stdio -- gets
  */
 #include "iolib.h"
-char *gets(char *as){
+int8_t *gets(int8_t *as){
 #ifdef secure
 	stdin->flags|=ERR;
 	return NULL;
 #else
-	char *s=as;
+	int8_t *s=as;
 	int c;
 	while((c=getchar())!='\n' && c!=EOF) *s++=c;
 	if(c!=EOF || s!=as) *s='\0';

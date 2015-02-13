@@ -16,15 +16,15 @@ int	one;
 int	two;
 int	three;
 
-char	*ldr[3];
+int8_t	*ldr[3];
 
 Biobuf *ib1;
 Biobuf *ib2;
-Biobuf *openfil(char*);
-int	rd(Biobuf*, char*);
-void	wr(char*, int);
-void	copy(Biobuf*, char*, int);
-int	compare(char*, char*);
+Biobuf *openfil(int8_t*);
+int	rd(Biobuf*, int8_t*);
+void	wr(int8_t*, int);
+void	copy(Biobuf*, int8_t*, int);
+int	compare(int8_t*, int8_t*);
 
 void
 main(int argc, char *argv[])
@@ -108,7 +108,7 @@ main(int argc, char *argv[])
 }
 
 int
-rd(Biobuf *file, char *buf)
+rd(Biobuf *file, int8_t *buf)
 {
 	int i, c;
 
@@ -126,7 +126,7 @@ rd(Biobuf *file, char *buf)
 }
 
 void
-wr(char *str, int n)
+wr(int8_t *str, int n)
 {
 
 	switch(n){
@@ -148,7 +148,7 @@ wr(char *str, int n)
 }
 
 void
-copy(Biobuf *ibuf, char *lbuf, int n)
+copy(Biobuf *ibuf, int8_t *lbuf, int n)
 {
 	do
 		wr(lbuf,n);
@@ -157,7 +157,7 @@ copy(Biobuf *ibuf, char *lbuf, int n)
 }
 
 int
-compare(char *a, char *b)
+compare(int8_t *a, int8_t *b)
 {
 	while(*a == *b){
 		if(*a == '\0')
@@ -171,7 +171,7 @@ compare(char *a, char *b)
 }
 
 Biobuf*
-openfil(char *s)
+openfil(int8_t *s)
 {
 	Biobuf *b;
 

@@ -19,11 +19,11 @@
 #include "dat.h"
 #include "fns.h"
 
-char Eperm[] = "permission denied";
-char Eexist[] = "file does not exist";
-char Enotdir[] = "not a directory";
-char	Ebadfcall[] = "bad fcall type";
-char	Eoffset[] = "illegal offset";
+int8_t Eperm[] = "permission denied";
+int8_t Eexist[] = "file does not exist";
+int8_t Enotdir[] = "not a directory";
+int8_t	Ebadfcall[] = "bad fcall type";
+int8_t	Eoffset[] = "illegal offset";
 
 int	messagesize = 8192+IOHDRSZ;	/* good start */
 
@@ -55,13 +55,13 @@ Dirtab dirtab[]=
 static uint		getclock(void);
 static void		filsysproc(void*);
 static Fid*		newfid(Filsys*, int);
-static int		dostat(Filsys*, int, Dirtab*, uchar*, int, uint);
+static int		dostat(Filsys*, int, Dirtab*, uint8_t*, int, uint);
 
 int	clockfd;
 int	firstmessage = 1;
 
-char	srvpipe[64];
-char	srvwctl[64];
+int8_t	srvpipe[64];
+int8_t	srvwctl[64];
 
 static	Xfid*	filsysflush(Filsys*, Xfid*, Fid*);
 static	Xfid*	filsysversion(Filsys*, Xfid*, Fid*);
@@ -96,10 +96,10 @@ Xfid* 	(*fcall[Tmax])(Filsys*, Xfid*, Fid*) =
 };
 
 void
-post(char *name, char *envname, int srvfd)
+post(int8_t *name, int8_t *envname, int srvfd)
 {
 	int fd;
-	char buf[32];
+	int8_t buf[32];
 
 	fd = create(name, OWRITE|ORCLOSE|OCEXEC, 0600);
 	if(fd < 0)
@@ -134,7 +134,7 @@ filsysinit(Channel *cxfidalloc)
 	int n, fd, pid, p0;
 	Filsys *fs;
 	Channel *c;
-	char buf[128];
+	int8_t buf[128];
 
 	fs = emalloc(sizeof(Filsys));
 	if(cexecpipe(&fs->cfd, &fs->sfd) < 0)
@@ -165,7 +165,7 @@ filsysinit(Channel *cxfidalloc)
 	/*
 	 * Start server processes
 	 */
-	c = chancreate(sizeof(char*), 0);
+	c = chancreate(sizeof(int8_t*), 0);
 	if(c == nil)
 		error("wctl channel");
 	proccreate(wctlproc, c, 4096);
@@ -193,7 +193,7 @@ filsysproc(void *arg)
 	Xfid *x;
 	Fid *f;
 	Fcall t;
-	uchar *buf;
+	uint8_t *buf;
 	Filsys *fs;
 
 	threadsetname("FILSYSPROC");
@@ -239,7 +239,7 @@ filsysproc(void *arg)
 int
 filsysmount(Filsys *fs, int id)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	close(fs->sfd);	/* close server end so mount won't hang if exiting */
 	sprint(buf, "%d", id);
@@ -255,7 +255,7 @@ filsysmount(Filsys *fs, int id)
 }
 
 Xfid*
-filsysrespond(Filsys *fs, Xfid *x, Fcall *t, char *err)
+filsysrespond(Filsys *fs, Xfid *x, Fcall *t, int8_t *err)
 {
 	int n;
 
@@ -345,7 +345,7 @@ filsysattach(Filsys *, Xfid *x, Fid *f)
 
 static
 int
-numeric(char *s)
+numeric(int8_t *s)
 {
 	for(; *s!='\0'; s++)
 		if(*s<'0' || '9'<*s)
@@ -360,11 +360,11 @@ filsyswalk(Filsys *fs, Xfid *x, Fid *f)
 	Fcall t;
 	Fid *nf;
 	int i, id;
-	uchar type;
-	ulong path;
+	uint8_t type;
+	uint32_t path;
 	Dirtab *d, *dir;
 	Window *w;
-	char *err;
+	int8_t *err;
 	Qid qid;
 
 	if(f->open)
@@ -530,11 +530,11 @@ Xfid*
 filsysread(Filsys *fs, Xfid *x, Fid *f)
 {
 	Fcall t;
-	uchar *b;
+	uint8_t *b;
 	int i, n, o, e, len, j, k, *ids;
 	Dirtab *d, dt;
 	uint clock;
-	char buf[16];
+	int8_t buf[16];
 
 	if((f->qid.type & QTDIR) == 0){
 		sendp(x->c, xfidread);
@@ -585,7 +585,7 @@ filsysread(Filsys *fs, Xfid *x, Fid *f)
 		free(ids);
 		break;
 	}
-	t.data = (char*)b;
+	t.data = (int8_t*)b;
 	t.count = n;
 	filsysrespond(fs, x, &t, nil);
 	free(b);
@@ -678,7 +678,7 @@ static
 uint
 getclock(void)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	seek(clockfd, 0, 0);
 	read(clockfd, buf, sizeof buf);
@@ -687,7 +687,7 @@ getclock(void)
 
 static
 int
-dostat(Filsys *fs, int id, Dirtab *dir, uchar *buf, int nbuf, uint clock)
+dostat(Filsys *fs, int id, Dirtab *dir, uint8_t *buf, int nbuf, uint clock)
 {
 	Dir d;
 

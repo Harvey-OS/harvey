@@ -27,8 +27,8 @@
 #include "iolib.h"
 FILE *tmpfile(void){
 	FILE *f;
-	static char name[]="/tmp/tf000000000000";
-	char *p;
+	static int8_t name[]="/tmp/tf000000000000";
+	int8_t *p;
 	while(access(name, 0)==0){
 		p=name+7;
 		while(*p=='9') *p++='0';

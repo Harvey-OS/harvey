@@ -24,8 +24,8 @@ enum
 
 	Debug=		0,
 
-	Opsize=		sizeof(short),
-	Blksize=	sizeof(short),
+	Opsize=		sizeof(int16_t),
+	Blksize=	sizeof(int16_t),
 	Hdrsize=	Opsize + Blksize,
 
 	Ackerr=		-1,
@@ -68,7 +68,7 @@ enum
 
 typedef struct Opt Opt;
 struct Opt {
-	char	*name;
+	int8_t	*name;
 	int	*valp;		/* set to client's value if within bounds */
 	int	min;
 	int	max;
@@ -89,24 +89,24 @@ static Opt option[] = {
 	"tsize",	&tsize,		0,	~0UL >> 1,
 };
 
-void	sendfile(int, char*, char*, int);
-void	recvfile(int, char*, char*);
-void	nak(int, int, char*);
-void	ack(int, ushort);
+void	sendfile(int, int8_t*, int8_t*, int);
+void	recvfile(int, int8_t*, int8_t*);
+void	nak(int, int, int8_t*);
+void	ack(int, uint16_t);
 void	clrcon(void);
 void	setuser(void);
-char*	sunkernel(char*);
-void	remoteaddr(char*, char*, int);
+int8_t*	sunkernel(int8_t*);
+void	remoteaddr(int8_t*, int8_t*, int);
 void	doserve(int);
 
-char	bigbuf[32768];
-char	raddr[64];
+int8_t	bigbuf[32768];
+int8_t	raddr[64];
 
-char	*dir = "/lib/tftpd";
-char	*dirsl;
+int8_t	*dir = "/lib/tftpd";
+int8_t	*dirsl;
 int	dirsllen;
-char	flog[] = "ipboot";
-char	net[Maxpath];
+int8_t	flog[] = "ipboot";
+int8_t	net[Maxpath];
 
 static char *opnames[] = {
 [Tftp_READ]	"read",
@@ -212,7 +212,7 @@ main(int argc, char **argv)
 }
 
 static Opt *
-handleopt(int fd, char *name, char *val)
+handleopt(int fd, int8_t *name, int8_t *val)
 {
 	int n;
 	Opt *op;
@@ -237,10 +237,10 @@ handleopt(int fd, char *name, char *val)
 	return nil;
 }
 
-static vlong
-filesize(char *file)
+static int64_t
+filesize(int8_t *file)
 {
-	vlong size;
+	int64_t size;
 	Dir *dp;
 
 	dp = dirstat(file);
@@ -253,7 +253,7 @@ filesize(char *file)
 
 /* copy word into bp iff it fits before ep, returns bytes to advance bp. */
 static int
-emits(char *word, char *bp, char *ep)
+emits(int8_t *word, int8_t *bp, int8_t *ep)
 {
 	int len;
 
@@ -266,9 +266,9 @@ emits(char *word, char *bp, char *ep)
 
 /* format number into bp iff it fits before ep. */
 static int
-emitn(vlong n, char *bp, char *ep)
+emitn(int64_t n, int8_t *bp, int8_t *ep)
 {
-	char numb[32];
+	int8_t numb[32];
 
 	snprint(numb, sizeof numb, "%lld", n);
 	return emits(numb, bp, ep);
@@ -285,11 +285,13 @@ emitn(vlong n, char *bp, char *ep)
  * there's an exception for the cavium's u-boot.
  */
 static int
-options(int fd, char *buf, int bufsz, char *file, ushort oper, char *p, int dlen)
+options(int fd, int8_t *buf, int bufsz, int8_t *file, uint16_t oper,
+	int8_t *p,
+	int dlen)
 {
 	int nmlen, vallen, olen, nopts;
-	vlong size;
-	char *val, *bp, *ep;
+	int64_t size;
+	int8_t *val, *bp, *ep;
 	Opt *op;
 
 	buf[0] = 0;
@@ -360,9 +362,9 @@ options(int fd, char *buf, int bufsz, char *file, ushort oper, char *p, int dlen
 }
 
 static void
-optlog(char *bytes, char *p, int dlen)
+optlog(int8_t *bytes, int8_t *p, int dlen)
 {
-	char *bp;
+	int8_t *bp;
 
 	bp = bytes;
 	sprint(bp, "tftpd %d option bytes: ", dlen);
@@ -377,12 +379,12 @@ optlog(char *bytes, char *p, int dlen)
  * replace one occurrence of %[ICE] with ip, cfgpxe name, or ether mac, resp.
  * we can't easily use $ because u-boot has stranger quoting rules than sh.
  */
-char *
-mapname(char *file)
+int8_t *
+mapname(int8_t *file)
 {
 	int nf;
-	char *p, *newnm, *cur, *arpf, *ln, *remip, *bang;
-	char *fields[4];
+	int8_t *p, *newnm, *cur, *arpf, *ln, *remip, *bang;
+	int8_t *fields[4];
 	Biobuf *arp;
 
 	p = strchr(file, '%');
@@ -436,8 +438,8 @@ void
 doserve(int fd)
 {
 	int dlen, opts;
-	char *mode, *p, *file;
-	short op;
+	int8_t *mode, *p, *file;
+	int16_t op;
 
 	dlen = read(fd, bigbuf, sizeof(bigbuf)-1);
 	if(dlen < 0)
@@ -493,7 +495,7 @@ doserve(int fd)
 	dlen--;
 	opts = 0;
 	if(dlen > 0) {			/* might have options */
-		char bytes[32*1024];
+		int8_t bytes[32*1024];
 
 		if(Debug)
 			optlog(bytes, p, dlen);
@@ -508,7 +510,7 @@ doserve(int fd)
 }
 
 void
-catcher(void *junk, char *msg)
+catcher(void *junk, int8_t *msg)
 {
 	USED(junk);
 
@@ -521,8 +523,8 @@ static int
 awaitack(int net, int block)
 {
 	int ackblock, al, rxl;
-	ushort op;
-	uchar ack[1024];
+	uint16_t op;
+	uint8_t ack[1024];
 
 	for(rxl = 0; rxl < 10; rxl++) {
 		memset(ack, 0, Hdrsize);
@@ -566,11 +568,11 @@ awaitack(int net, int block)
 }
 
 void
-sendfile(int net, char *name, char *mode, int opts)
+sendfile(int net, int8_t *name, int8_t *mode, int opts)
 {
 	int file, block, ret, rexmit, n, txtry, failed;
-	uchar buf[Maxsegsize+Hdrsize];
-	char errbuf[Maxerr];
+	uint8_t buf[Maxsegsize+Hdrsize];
+	int8_t errbuf[Maxerr];
 
 	file = -1;
 	failed = 1;
@@ -653,11 +655,11 @@ error:
 }
 
 void
-recvfile(int net, char *name, char *mode)
+recvfile(int net, int8_t *name, int8_t *mode)
 {
-	ushort op, block, inblock;
-	uchar buf[Maxsegsize+8];
-	char errbuf[Maxerr];
+	uint16_t op, block, inblock;
+	uint8_t buf[Maxsegsize+8];
+	int8_t errbuf[Maxerr];
 	int n, ret, file;
 
 	syslog(dbg, flog, "receive file '%s' %s from %s", name, mode, raddr);
@@ -723,9 +725,9 @@ error:
 }
 
 void
-ack(int fd, ushort block)
+ack(int fd, uint16_t block)
 {
-	uchar ack[4];
+	uint8_t ack[4];
 	int n;
 
 	ack[0] = 0;
@@ -739,9 +741,9 @@ ack(int fd, ushort block)
 }
 
 void
-nak(int fd, int code, char *msg)
+nak(int fd, int code, int8_t *msg)
 {
-	char buf[128];
+	int8_t buf[128];
 	int n;
 
 	buf[0] = 0;
@@ -767,11 +769,11 @@ setuser(void)
 		sysfatal("can't build namespace: %r");
 }
 
-char*
-lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
+int8_t*
+lookup(int8_t *sattr, int8_t *sval, int8_t *tattr, int8_t *tval, int len)
 {
 	static Ndb *db;
-	char *attrs[1];
+	int8_t *attrs[1];
 	Ndbtuple *t;
 
 	if(db == nil)
@@ -797,15 +799,15 @@ lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
  *  a one from our database.  If the database doesn't specify a file,
  *  don't answer.
  */
-char*
-sunkernel(char *name)
+int8_t*
+sunkernel(int8_t *name)
 {
-	ulong addr;
-	uchar v4[IPv4addrlen];
-	uchar v6[IPaddrlen];
-	char buf[256];
-	char ipbuf[128];
-	char *suffix;
+	uint32_t addr;
+	uint8_t v4[IPv4addrlen];
+	uint8_t v6[IPaddrlen];
+	int8_t buf[256];
+	int8_t ipbuf[128];
+	int8_t *suffix;
 
 	addr = strtoul(name, &suffix, 16);
 	if(suffix-name != 8 || (strcmp(suffix, "") != 0 && strcmp(suffix, ".SUN") != 0))
@@ -821,9 +823,9 @@ sunkernel(char *name)
 }
 
 void
-remoteaddr(char *dir, char *raddr, int len)
+remoteaddr(int8_t *dir, int8_t *raddr, int len)
 {
-	char buf[64];
+	int8_t buf[64];
 	int fd, n;
 
 	snprint(buf, sizeof(buf), "%s/remote", dir);

@@ -43,12 +43,12 @@
    etc.  Backslash can be used to escape whitespace (and backslashes).  */
 static int
 prepend_args (options, buf, argv)
-     char const *options;
-     char *buf;
-     char **argv;
+     int8_t const *options;
+     int8_t *buf;
+     int8_t **argv;
 {
-  char const *o = options;
-  char *b = buf;
+  int8_t const *o = options;
+  int8_t *b = buf;
   int n = 0;
 
   for (;;)
@@ -75,17 +75,17 @@ prepend_args (options, buf, argv)
    vector *PARGV.  */
 void
 prepend_default_options (options, pargc, pargv)
-     char const *options;
+     int8_t const *options;
      int *pargc;
-     char ***pargv;
+     int8_t ***pargv;
 {
   if (options)
     {
-      char *buf = xmalloc (strlen (options) + 1);
-      int prepended = prepend_args (options, buf, (char **) NULL);
+      int8_t *buf = xmalloc (strlen (options) + 1);
+      int prepended = prepend_args (options, buf, (int8_t **) NULL);
       int argc = *pargc;
-      char * const *argv = *pargv;
-      char **pp = (char **) xmalloc ((prepended + argc + 1) * sizeof *pp);
+      int8_t * const *argv = *pargv;
+      int8_t **pp = (int8_t **) xmalloc ((prepended + argc + 1) * sizeof *pp);
       *pargc = prepended + argc;
       *pargv = pp;
       *pp++ = *argv++;

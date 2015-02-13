@@ -18,14 +18,14 @@
 typedef struct Out Out;
 struct Out
 {
-	char err[ERRMAX];	/* error string */
+	int8_t err[ERRMAX];	/* error string */
 	Channel *creply;	/* send to finish rpc */
-	uchar *p;			/* pending request packet */
+	uint8_t *p;			/* pending request packet */
 	int n;				/* size of request */
-	ulong tag;			/* flush tag of pending request */
-	ulong xid;			/* xid of pending request */
-	ulong st;			/* first send time */
-	ulong t;			/* resend time */
+	uint32_t tag;			/* flush tag of pending request */
+	uint32_t xid;			/* xid of pending request */
+	uint32_t st;			/* first send time */
+	uint32_t t;			/* resend time */
 	int nresend;		/* number of resends */
 	SunRpc rpc;		/* response rpc */
 };
@@ -33,7 +33,7 @@ struct Out
 static void
 udpThread(void *v)
 {
-	uchar *p, *buf;
+	uint8_t *p, *buf;
 	Ioproc *io;
 	int n;
 	SunClient *cli;
@@ -66,7 +66,7 @@ udpThread(void *v)
 static void
 netThread(void *v)
 {
-	uchar *p, buf[4];
+	uint8_t *p, buf[4];
 	Ioproc *io;
 	uint n, tot;
 	int done;
@@ -129,16 +129,16 @@ timerThread(void *v)
 		;
 }
 
-static ulong
+static uint32_t
 msec(void)
 {
 	return nsec()/1000000;
 }
 
-static ulong
-twait(ulong rtt, int nresend)
+static uint32_t
+twait(uint32_t rtt, int nresend)
 {
-	ulong t;
+	uint32_t t;
 
 	t = rtt;
 	if(nresend <= 1)
@@ -158,9 +158,9 @@ twait(ulong rtt, int nresend)
 static void
 rpcMuxThread(void *v)
 {
-	uchar *buf, *p, *ep;
+	uint8_t *buf, *p, *ep;
 	int i, n, nout, mout;
-	ulong t, xidgen, tag;
+	uint32_t t, xidgen, tag;
 	Alt a[5];
 	Out *o, **out;
 	SunRpc rpc;
@@ -316,7 +316,7 @@ Done:
 }
 
 SunClient*
-sunDial(char *address)
+sunDial(int8_t *address)
 {
 	int fd;
 	SunClient *cli;
@@ -330,9 +330,9 @@ sunDial(char *address)
 	cli->rtt.avg = 1000;
 	cli->dying = chancreate(sizeof(void*), 0);
 	cli->rpcchan = chancreate(sizeof(Out*), 0);
-	cli->timerchan = chancreate(sizeof(ulong), 0);
-	cli->flushchan = chancreate(sizeof(ulong), 0);
-	cli->readchan = chancreate(sizeof(uchar*), 0);
+	cli->timerchan = chancreate(sizeof(uint32_t), 0);
+	cli->flushchan = chancreate(sizeof(uint32_t), 0);
+	cli->readchan = chancreate(sizeof(uint8_t*), 0);
 	if(strstr(address, "udp!")){
 		cli->needcount = 0;
 		cli->nettid = threadcreate(udpThread, cli, SunStackSize);
@@ -382,7 +382,7 @@ sunClientClose(SunClient *cli)
 }
 	
 void
-sunClientFlushRpc(SunClient *cli, ulong tag)
+sunClientFlushRpc(SunClient *cli, uint32_t tag)
 {
 	sendul(cli->flushchan, tag);
 }
@@ -396,9 +396,10 @@ sunClientProg(SunClient *cli, SunProg *p)
 }
 
 int
-sunClientRpc(SunClient *cli, ulong tag, SunCall *tx, SunCall *rx, uchar **tofree)
+sunClientRpc(SunClient *cli, uint32_t tag, SunCall *tx, SunCall *rx,
+	     uint8_t **tofree)
 {
-	uchar *bp, *p, *ep;
+	uint8_t *bp, *p, *ep;
 	int i, n1, n2, n, nn;
 	Out o;
 	SunProg *prog;

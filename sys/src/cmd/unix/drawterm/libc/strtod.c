@@ -11,15 +11,15 @@
 #include <libc.h>
 #include "fmtdef.h"
 
-static ulong
-umuldiv(ulong a, ulong b, ulong c)
+static uint32_t
+umuldiv(uint32_t a, uint32_t b, uint32_t c)
 {
 	double d;
 
 	d = ((double)a * (double)b) / (double)c;
 	if(d >= 4294967295.)
 		d = 4294967295.;
-	return (ulong)d;
+	return (uint32_t)d;
 }
 
 /*
@@ -42,8 +42,8 @@ enum
 	Prec	= (Nmant+Nbits+1)/Nbits,	/* words of Nbits each to represent mantissa */
 	Sigbit	= 1<<(Prec*Nbits-Nmant),	/* first significant bit of Prec-th word */
 	Ndig	= 1500,
-	One	= (ulong)(1<<Nbits),
-	Half	= (ulong)(One>>1),
+	One	= (uint32_t)(1<<Nbits),
+	Half	= (uint32_t)(One>>1),
 	Maxe	= 310,
 
 	Fsign	= 1<<0,		/* found - */
@@ -60,18 +60,18 @@ enum
 	S7,			/* _+#.#e+#	#S7 */
 };
 
-static	int	xcmp(char*, char*);
-static	int	fpcmp(char*, ulong*);
-static	void	frnorm(ulong*);
-static	void	divascii(char*, int*, int*, int*);
-static	void	mulascii(char*, int*, int*, int*);
+static	int	xcmp(int8_t*, int8_t*);
+static	int	fpcmp(int8_t*, uint32_t*);
+static	void	frnorm(uint32_t*);
+static	void	divascii(int8_t*, int*, int*, int*);
+static	void	mulascii(int8_t*, int*, int*, int*);
 
 typedef	struct	Tab	Tab;
 struct	Tab
 {
 	int	bp;
 	int	siz;
-	char*	cmp;
+	int8_t*	cmp;
 };
 
 #ifndef ERANGE
@@ -79,12 +79,12 @@ struct	Tab
 #endif
 
 double
-fmtstrtod(const char *as, char **aas)
+fmtstrtod(const int8_t *as, int8_t **aas)
 {
 	int na, ex, dp, bp, c, i, flag, state;
-	ulong low[Prec], hig[Prec], mid[Prec];
+	uint32_t low[Prec], hig[Prec], mid[Prec];
 	double d;
-	char *s, a[Ndig];
+	int8_t *s, a[Ndig];
 
 	flag = 0;	/* Fsign, Fesign, Fdpoint */
 	na = 0;		/* number of digits of a[] */
@@ -92,7 +92,7 @@ fmtstrtod(const char *as, char **aas)
 	ex = 0;		/* exonent */
 
 	state = S0;
-	for(s=(char*)as;; s++) {
+	for(s=(int8_t*)as;; s++) {
 		c = *s;
 		if(c >= '0' && c <= '9') {
 			switch(state) {
@@ -191,7 +191,7 @@ fmtstrtod(const char *as, char **aas)
 		}
 	case S3:
 		if(aas != nil)
-			*aas = (char*)as;
+			*aas = (int8_t*)as;
 		goto ret0;	/* no digits found */
 	case S6:
 		s--;		/* back over +- */
@@ -322,7 +322,7 @@ out:
 }
 
 static void
-frnorm(ulong *f)
+frnorm(uint32_t *f)
 {
 	int i, c;
 
@@ -336,9 +336,9 @@ frnorm(ulong *f)
 }
 
 static int
-fpcmp(char *a, ulong* f)
+fpcmp(int8_t *a, uint32_t* f)
 {
-	ulong tf[Prec];
+	uint32_t tf[Prec];
 	int i, d, c;
 
 	for(i=0; i<Prec; i++)
@@ -374,10 +374,10 @@ fpcmp(char *a, ulong* f)
 }
 
 static void
-divby(char *a, int *na, int b)
+divby(int8_t *a, int *na, int b)
 {
 	int n, c;
-	char *p;
+	int8_t *p;
 
 	p = a;
 	n = 0;
@@ -431,7 +431,7 @@ static	Tab	tab1[] =
 };
 
 static void
-divascii(char *a, int *na, int *dp, int *bp)
+divascii(int8_t *a, int *na, int *dp, int *bp)
 {
 	int b, d;
 	Tab *t;
@@ -449,7 +449,7 @@ divascii(char *a, int *na, int *dp, int *bp)
 }
 
 static void
-mulby(char *a, char *p, char *q, int b)
+mulby(int8_t *a, int8_t *p, int8_t *q, int b)
 {
 	int n, c;
 
@@ -490,9 +490,9 @@ static	Tab	tab2[] =
 };
 
 static void
-mulascii(char *a, int *na, int *dp, int *bp)
+mulascii(int8_t *a, int *na, int *dp, int *bp)
 {
-	char *p;
+	int8_t *p;
 	int d, b;
 	Tab *t;
 
@@ -511,7 +511,7 @@ mulascii(char *a, int *na, int *dp, int *bp)
 }
 
 static int
-xcmp(char *a, char *b)
+xcmp(int8_t *a, int8_t *b)
 {
 	int c1, c2;
 

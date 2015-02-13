@@ -20,10 +20,10 @@ void
 volumeproc(void *)
 {
 	int fd, n, nf, i, nlines;
-	static char buf[1024];
-	char *lines[32];
-	char *fields[8];
-	char *subfields[9];
+	static int8_t buf[1024];
+	int8_t *lines[32];
+	int8_t *fields[8];
+	int8_t *subfields[9];
 	int volume[8], nvolumes;
 
 	threadsetname("volumeproc");
@@ -75,7 +75,7 @@ void
 volumeset(int *v)
 {
 	int fd, i;
-	char buf[256], *p;
+	int8_t buf[256], *p;
 
 	fd = open("/dev/audioctl", OWRITE);
 	if (fd < 0){

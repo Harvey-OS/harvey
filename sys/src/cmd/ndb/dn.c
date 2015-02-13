@@ -149,17 +149,17 @@ char *opname[] =
 [Oupdate]	"update",
 };
 
-ulong target = Deftarget;
-ulong start;
+uint32_t target = Deftarget;
+uint32_t start;
 Lock	dnlock;
 
-static ulong agefreq = Defagefreq;
+static uint32_t agefreq = Defagefreq;
 
 static int rrequiv(RR *r1, RR *r2);
 static int sencodefmt(Fmt*);
 
 static void
-ding(void*, char *msg)
+ding(void*, int8_t *msg)
 {
 	if(strstr(msg, "alarm") != nil) {
 		stats.alarms++;
@@ -188,11 +188,11 @@ dninit(void)
 /*
  *  hash for a domain name
  */
-static ulong
-dnhash(char *name)
+static uint32_t
+dnhash(int8_t *name)
 {
-	ulong hash;
-	uchar *val = (uchar*)name;
+	uint32_t hash;
+	uint8_t *val = (uint8_t*)name;
 
 	for(hash = 0; *val; val++)
 		hash = hash*13 + tolower(*val)-'a';
@@ -204,7 +204,7 @@ dnhash(char *name)
  *  not found, create it.
  */
 DN*
-dnlookup(char *name, int class, int enter)
+dnlookup(int8_t *name, int class, int enter)
 {
 	DN **l;
 	DN *dp;
@@ -261,7 +261,7 @@ rronlist(RR *rp, RR *lp)
  * dump the stats
  */
 void
-dnstats(char *file)
+dnstats(int8_t *file)
 {
 	int i, fd;
 
@@ -303,7 +303,7 @@ dnstats(char *file)
  *  dump the cache
  */
 void
-dndump(char *file)
+dndump(int8_t *file)
 {
 	int i, fd;
 	DN *dp;
@@ -381,7 +381,7 @@ dnage(DN *dp)
 {
 	RR **l;
 	RR *rp, *next;
-	ulong diff;
+	uint32_t diff;
 
 	if (canlock(&dnlock))
 		abort();	/* dnage called with dnlock not held */
@@ -501,7 +501,7 @@ dnageall(int doit)
 	DN *dp, **l;
 	int i;
 	RR *rp;
-	static ulong nextage;
+	static uint32_t nextage;
 
 	if(dnvars.names < target || (now < nextage && !doit)){
 		dnvars.oldest = maxage;
@@ -636,7 +636,7 @@ void
 dnauthdb(void)
 {
 	int i;
-	ulong minttl;
+	uint32_t minttl;
 	Area *area;
 	DN *dp;
 	RR *rp;
@@ -698,7 +698,7 @@ getactivity(Request *req, int recursive)
 void
 putactivity(int recursive)
 {
-	static ulong lastclean;
+	static uint32_t lastclean;
 
 	if(traceactivity)
 		dnslog("put: %d active by pid %d",
@@ -1083,7 +1083,7 @@ out:
  *  convert an ascii RR type name to its integer representation
  */
 int
-rrtype(char *atype)
+rrtype(int8_t *atype)
 {
 	int i;
 
@@ -1200,7 +1200,7 @@ rrremtype(RR **l, int type)
 	return first;
 }
 
-static char *
+static int8_t *
 dnname(DN *dn)
 {
 	return dn? dn->name: "<null>";
@@ -1213,8 +1213,8 @@ int
 rrfmt(Fmt *f)
 {
 	int rv;
-	char *strp;
-	char buf[Domlen];
+	int8_t *strp;
+	int8_t buf[Domlen];
 	Fmt fstr;
 	RR *rp;
 	Server *s;
@@ -1339,7 +1339,7 @@ int
 rravfmt(Fmt *f)
 {
 	int rv, quote;
-	char *strp;
+	int8_t *strp;
 	Fmt fstr;
 	RR *rp;
 	Server *s;
@@ -1469,9 +1469,9 @@ out:
 }
 
 void
-warning(char *fmt, ...)
+warning(int8_t *fmt, ...)
 {
-	char dnserr[256];
+	int8_t dnserr[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1481,9 +1481,9 @@ warning(char *fmt, ...)
 }
 
 void
-dnslog(char *fmt, ...)
+dnslog(int8_t *fmt, ...)
 {
-	char dnserr[256];
+	int8_t dnserr[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1497,11 +1497,11 @@ dnslog(char *fmt, ...)
  * actually just sets the arguments displayed.
  */
 void
-procsetname(char *fmt, ...)
+procsetname(int8_t *fmt, ...)
 {
 	int fd;
-	char *cmdname;
-	char buf[128];
+	int8_t *cmdname;
+	int8_t buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1645,7 +1645,7 @@ unique(RR *rp)
  *  true if second domain is subsumed by the first
  */
 int
-subsume(char *higher, char *lower)
+subsume(int8_t *higher, int8_t *lower)
 {
 	int hn, ln;
 
@@ -1667,7 +1667,7 @@ RR*
 randomize(RR *rp)
 {
 	RR *first, *last, *x, *base;
-	ulong n;
+	uint32_t n;
 
 	if(rp == nil || rp->next == nil)
 		return rp;
@@ -1720,14 +1720,14 @@ static int
 sencodefmt(Fmt *f)
 {
 	int i, len, ilen, rv;
-	char *out, *buf;
-	uchar *b;
-	char obuf[64];		/* rsc optimization */
+	int8_t *out, *buf;
+	uint8_t *b;
+	int8_t obuf[64];		/* rsc optimization */
 
 	if(!(f->flags&FmtPrec) || f->prec < 1)
 		goto error;
 
-	b = va_arg(f->args, uchar*);
+	b = va_arg(f->args, uint8_t*);
 	if(b == nil)
 		goto error;
 
@@ -1800,7 +1800,7 @@ error:
 void*
 emalloc(int size)
 {
-	char *x;
+	int8_t *x;
 
 	x = mallocz(size, 1);
 	if(x == nil)
@@ -1809,11 +1809,11 @@ emalloc(int size)
 	return x;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	int size;
-	char *p;
+	int8_t *p;
 
 	size = strlen(s)+1;
 	p = mallocz(size, 0);
@@ -1828,7 +1828,7 @@ estrdup(char *s)
  *  create a pointer record
  */
 static RR*
-mkptr(DN *dp, char *ptr, ulong ttl)
+mkptr(DN *dp, int8_t *ptr, uint32_t ttl)
 {
 	DN *ipdp;
 	RR *rp;
@@ -1844,21 +1844,22 @@ mkptr(DN *dp, char *ptr, ulong ttl)
 	return rp;
 }
 
-void	bytes2nibbles(uchar *nibbles, uchar *bytes, int nbytes);
+void	bytes2nibbles(uint8_t *nibbles, uint8_t *bytes, int nbytes);
 
 /*
  *  look for all ip addresses in this network and make
  *  pointer records for them.
  */
 void
-dnptr(uchar *net, uchar *mask, char *dom, int forwtype, int subdoms, int ttl)
+dnptr(uint8_t *net, uint8_t *mask, int8_t *dom, int forwtype, int subdoms,
+      int ttl)
 {
 	int i, j, len;
-	char *p, *e;
-	char ptr[Domlen];
-	uchar *ipp;
-	uchar ip[IPaddrlen], nnet[IPaddrlen];
-	uchar nibip[IPaddrlen*2];
+	int8_t *p, *e;
+	int8_t ptr[Domlen];
+	uint8_t *ipp;
+	uint8_t ip[IPaddrlen], nnet[IPaddrlen];
+	uint8_t nibip[IPaddrlen*2];
 	DN *dp;
 	RR *rp, *nrp, *first, **l;
 
@@ -1902,7 +1903,7 @@ dnptr(uchar *net, uchar *mask, char *dom, int forwtype, int subdoms, int ttl)
 }
 
 void
-addserver(Server **l, char *name)
+addserver(Server **l, int8_t *name)
 {
 	Server *s;
 
@@ -1911,7 +1912,7 @@ addserver(Server **l, char *name)
 	s = malloc(sizeof(Server)+strlen(name)+1);
 	if(s == nil)
 		return;
-	s->name = (char*)(s+1);
+	s->name = (int8_t*)(s+1);
 	strcpy(s->name, name);
 	s->next = nil;
 	*l = s;
@@ -1933,10 +1934,10 @@ copyserverlist(Server *s)
 /*
  *  convert an integer RR type to it's ascii name
  */
-char*
-rrname(int type, char *buf, int len)
+int8_t*
+rrname(int type, int8_t *buf, int len)
 {
-	char *t;
+	int8_t *t;
 
 	t = nil;
 	if(type >= 0 && type <= Tall)

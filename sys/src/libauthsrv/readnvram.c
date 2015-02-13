@@ -11,12 +11,12 @@
 #include <libc.h>
 #include <authsrv.h>
 
-static long	finddosfile(int, char*);
+static int32_t	finddosfile(int, int8_t*);
 
 static int nvramdebug;
 
 static int
-check(void *x, int len, uchar sum, char *msg)
+check(void *x, int len, uint8_t sum, int8_t *msg)
 {
 	if(nvcsum(x, len) == sum)
 		return 0;
@@ -30,8 +30,8 @@ check(void *x, int len, uchar sum, char *msg)
  *  a disk partition there.
  */
 static struct {
-	char *cputype;
-	char *file;
+	int8_t *cputype;
+	int8_t *file;
 	int off;
 	int len;
 } nvtab[] = {
@@ -64,11 +64,11 @@ static struct {
 	"debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
 };
 
-static char*
-readcons(char *prompt, char *def, int raw, char *buf, int nbuf)
+static int8_t*
+readcons(int8_t *prompt, int8_t *def, int raw, int8_t *buf, int nbuf)
 {
 	int fdin, fdout, ctl, n, m;
-	char line[10];
+	int8_t line[10];
 
 	fdin = open("/dev/cons", OREAD);
 	if(fdin < 0)
@@ -142,13 +142,13 @@ typedef struct {
 	int	safelen;
 } Nvrwhere;
 
-static char *nvrfile = nil, *cputype = nil;
+static int8_t *nvrfile = nil, *cputype = nil;
 
 /* returns with *locp filled in and locp->fd open, if possible */
 static void
 findnvram(Nvrwhere *locp)
 {
-	char *nvrlen, *nvroff, *nvrcopy, *db, *v[2];
+	int8_t *nvrlen, *nvroff, *nvrcopy, *db, *v[2];
 	int fd, i, safeoff, safelen;
 
 	if (nvrfile == nil) {
@@ -244,7 +244,7 @@ int
 readnvram(Nvrsafe *safep, int flag)
 {
 	int err;
-	char buf[512], in[128];		/* 512 for floppy i/o */
+	int8_t buf[512], in[128];		/* 512 for floppy i/o */
 	Nvrsafe *safe;
 	Nvrwhere loc;
 
@@ -355,26 +355,26 @@ Out:
 
 typedef struct Dosboot	Dosboot;
 struct Dosboot{
-	uchar	magic[3];	/* really an xx86 JMP instruction */
-	uchar	version[8];
-	uchar	sectsize[2];
-	uchar	clustsize;
-	uchar	nresrv[2];
-	uchar	nfats;
-	uchar	rootsize[2];
-	uchar	volsize[2];
-	uchar	mediadesc;
-	uchar	fatsize[2];
-	uchar	trksize[2];
-	uchar	nheads[2];
-	uchar	nhidden[4];
-	uchar	bigvolsize[4];
-	uchar	driveno;
-	uchar	reserved0;
-	uchar	bootsig;
-	uchar	volid[4];
-	uchar	label[11];
-	uchar	type[8];
+	uint8_t	magic[3];	/* really an xx86 JMP instruction */
+	uint8_t	version[8];
+	uint8_t	sectsize[2];
+	uint8_t	clustsize;
+	uint8_t	nresrv[2];
+	uint8_t	nfats;
+	uint8_t	rootsize[2];
+	uint8_t	volsize[2];
+	uint8_t	mediadesc;
+	uint8_t	fatsize[2];
+	uint8_t	trksize[2];
+	uint8_t	nheads[2];
+	uint8_t	nhidden[4];
+	uint8_t	bigvolsize[4];
+	uint8_t	driveno;
+	uint8_t	reserved0;
+	uint8_t	bootsig;
+	uint8_t	volid[4];
+	uint8_t	label[11];
+	uint8_t	type[8];
 };
 #define	GETSHORT(p) (((p)[1]<<8) | (p)[0])
 #define	GETLONG(p) ((GETSHORT((p)+2) << 16) | GETSHORT((p)))
@@ -382,20 +382,20 @@ struct Dosboot{
 typedef struct Dosdir	Dosdir;
 struct Dosdir
 {
-	char	name[8];
-	char	ext[3];
-	uchar	attr;
-	uchar	reserved[10];
-	uchar	time[2];
-	uchar	date[2];
-	uchar	start[2];
-	uchar	length[4];
+	int8_t	name[8];
+	int8_t	ext[3];
+	uint8_t	attr;
+	uint8_t	reserved[10];
+	uint8_t	time[2];
+	uint8_t	date[2];
+	uint8_t	start[2];
+	uint8_t	length[4];
 };
 
-static char*
-dosparse(char *from, char *to, int len)
+static int8_t*
+dosparse(int8_t *from, int8_t *to, int len)
 {
-	char c;
+	int8_t c;
 
 	memset(to, ' ', len);
 	if(from == 0)
@@ -428,12 +428,12 @@ dosparse(char *from, char *to, int len)
  *  and I'ld prefer not to waste the space on something that
  *  runs only at boottime -- presotto.
  */
-static long
-finddosfile(int fd, char *file)
+static int32_t
+finddosfile(int fd, int8_t *file)
 {
-	uchar secbuf[512];
-	char name[8];
-	char ext[3];
+	uint8_t secbuf[512];
+	int8_t name[8];
+	int8_t ext[3];
 	Dosboot	*b;
 	Dosdir *root, *dp;
 	int nroot, sectsize, rootoff, rootsects, n;

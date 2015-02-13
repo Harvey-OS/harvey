@@ -11,8 +11,8 @@
 #include <libc.h>
 #include "/sys/src/libc/9syscall/sys.h"
 
-vlong	_sysargs[6*4];
-vlong _callsys(void);
+int64_t	_sysargs[6*4];
+int64_t _callsys(void);
 
 /*
  * syscalls
@@ -25,22 +25,22 @@ getpid(void)
 	return _callsys();
 }
 
-long
-pread(int fd, void *a, long n, vlong)
+int32_t
+pread(int fd, void *a, int32_t n, int64_t)
 {
 	_sysargs[0] = PREAD;
 	_sysargs[1] = fd;
-	_sysargs[2] = (vlong)a;
+	_sysargs[2] = (int64_t)a;
 	_sysargs[3] = n;
 	return _callsys();
 }
 
-long
-pwrite(int fd, void *a, long n, vlong)
+int32_t
+pwrite(int fd, void *a, int32_t n, int64_t)
 {
 	_sysargs[0] = PWRITE;
 	_sysargs[1] = fd;
-	_sysargs[2] = (vlong)a;
+	_sysargs[2] = (int64_t)a;
 	_sysargs[3] = n;
 	return _callsys();
 }
@@ -54,26 +54,26 @@ close(int fd)
 }
 
 int
-open(char *name, int mode)
+open(int8_t *name, int mode)
 {
 	_sysargs[0] = OPEN;
-	_sysargs[1] = (vlong)name;
+	_sysargs[1] = (int64_t)name;
 	_sysargs[2] = mode;
 	return _callsys();
 }
 
 int
-create(char *f, int mode, ulong perm)
+create(int8_t *f, int mode, uint32_t perm)
 {
 	_sysargs[0] = CREATE;
-	_sysargs[1] = (vlong)f;
+	_sysargs[1] = (int64_t)f;
 	_sysargs[2] = mode;
 	_sysargs[3] = perm;
 	return _callsys();
 }
 
 void
-_exits(char *s)
+_exits(int8_t *s)
 {
 	_sysargs[0] = EXITS;
 	_sysargs[1] = s!=nil? strlen(s): 0;
@@ -90,10 +90,10 @@ dup(int f, int t)
 }
 
 int
-errstr(char *buf, uint n)
+errstr(int8_t *buf, uint n)
 {
 	_sysargs[0] = ERRSTR;
-	_sysargs[1] = (vlong)buf;
+	_sysargs[1] = (int64_t)buf;
 	_sysargs[2] = n;
 	return _callsys();
 }
@@ -102,12 +102,12 @@ int
 brk_(void *a)
 {
 	_sysargs[0] = BRK_;
-	_sysargs[1] = (vlong)a;
+	_sysargs[1] = (int64_t)a;
 	return _callsys();
 }
 
 void*
-sbrk(ulong n)
+sbrk(uint32_t n)
 {
 	_sysargs[0] = -2;
 	_sysargs[1] = n;

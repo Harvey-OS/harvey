@@ -41,14 +41,14 @@
 #define TIME_OFFSET_HI		0x019db1de
 #define TIME_OFFSET_LO		0xd53e8000
 
-static char	*szTitle = NULL;
-static char	*szSubject = NULL;
-static char	*szAuthor = NULL;
+static int8_t	*szTitle = NULL;
+static int8_t	*szSubject = NULL;
+static int8_t	*szAuthor = NULL;
 static time_t	tCreateDtm = (time_t)-1;
 static time_t	tLastSaveDtm= (time_t)-1;
-static char	*szAppName = NULL;
-static char	*szManager = NULL;
-static char	*szCompany = NULL;
+static int8_t	*szAppName = NULL;
+static int8_t	*szManager = NULL;
+static int8_t	*szCompany = NULL;
 static USHORT	usLid = (USHORT)-1;
 
 
@@ -77,10 +77,10 @@ vDestroySummaryInfo(void)
  * returns Unix time_t or -1
  */
 static time_t
-tConvertDosDate(const char *szDosDate)
+tConvertDosDate(const int8_t *szDosDate)
 {
 	struct tm	tTime;
-	const char	*pcTmp;
+	const int8_t	*pcTmp;
 	time_t		tResult;
 
 	memset(&tTime, 0, sizeof(tTime));
@@ -146,10 +146,10 @@ tConvertDosDate(const char *szDosDate)
 /*
  * szLpstr - get a zero terminate string property
  */
-static char *
+static int8_t *
 szLpstr(ULONG ulOffset, const UCHAR *aucBuffer)
 {
-	char	*szStart, *szResult, *szTmp;
+	int8_t	*szStart, *szResult, *szTmp;
 	size_t	tSize;
 
 	tSize = (size_t)ulGetLong(ulOffset + 4, aucBuffer);
@@ -158,7 +158,7 @@ szLpstr(ULONG ulOffset, const UCHAR *aucBuffer)
 		return NULL;
 	}
 	/* Remove white space from the start of the string */
-	szStart = (char *)aucBuffer + ulOffset + 8;
+	szStart = (int8_t *)aucBuffer + ulOffset + 8;
 	NO_DBG_MSG(szStart);
 	fail(strlen(szStart) >= tSize);
 	while (isspace(*szStart)) {
@@ -471,22 +471,22 @@ vSet0SummaryInfo(FILE *pFile, const UCHAR *aucHeader)
 	usOffset = usGetWord(0, aucBuffer);
 	if (aucBuffer[usOffset] != 0) {
 		NO_DBG_MSG(aucBuffer + usOffset);
-		szTitle = xstrdup((char *)aucBuffer + usOffset);
+		szTitle = xstrdup((int8_t *)aucBuffer + usOffset);
 	}
 	usOffset = usGetWord(2, aucBuffer);
 	if (aucBuffer[usOffset] != 0) {
 		NO_DBG_MSG(aucBuffer + usOffset);
-		szAuthor = xstrdup((char *)aucBuffer + usOffset);
+		szAuthor = xstrdup((int8_t *)aucBuffer + usOffset);
 	}
 	usOffset = usGetWord(12, aucBuffer);
 	if (aucBuffer[usOffset] != 0) {
 		NO_DBG_STRN(aucBuffer + usOffset, 8);
-		tLastSaveDtm = tConvertDosDate((char *)aucBuffer + usOffset);
+		tLastSaveDtm = tConvertDosDate((int8_t *)aucBuffer + usOffset);
 	}
 	usOffset = usGetWord(14, aucBuffer);
 	if (aucBuffer[usOffset] != 0) {
 		NO_DBG_STRN(aucBuffer + usOffset, 8);
-		tCreateDtm = tConvertDosDate((char *)aucBuffer + usOffset);
+		tCreateDtm = tConvertDosDate((int8_t *)aucBuffer + usOffset);
 	}
 	aucBuffer = xfree(aucBuffer);
 } /* end of vSet0SummaryInfo */
@@ -572,19 +572,22 @@ vSet2SummaryInfo(FILE *pFile, int iWordVersion, const UCHAR *aucHeader)
 			case 3:
 				szTitle = xmalloc(tLen + 1);
 				strncpy(szTitle,
-					(char *)aucBuffer + tStart + 1, tLen);
+					(int8_t *)aucBuffer + tStart + 1,
+					tLen);
 				szTitle[tLen] = '\0';
 				break;
 			case 4:
 				szSubject = xmalloc(tLen + 1);
 				strncpy(szSubject,
-					(char *)aucBuffer + tStart + 1, tLen);
+					(int8_t *)aucBuffer + tStart + 1,
+					tLen);
 				szSubject[tLen] = '\0';
 				break;
 			case 7:
 				szAuthor = xmalloc(tLen + 1);
 				strncpy(szAuthor,
-					(char *)aucBuffer + tStart + 1, tLen);
+					(int8_t *)aucBuffer + tStart + 1,
+					tLen);
 				szAuthor[tLen] = '\0';
 				break;
 			default:
@@ -698,7 +701,7 @@ vSet8SummaryInfo(FILE *pFile, const pps_info_type *pPPS,
 /*
  * szGetTitle - get the title field
  */
-const char *
+const int8_t *
 szGetTitle(void)
 {
 	return szTitle;
@@ -707,7 +710,7 @@ szGetTitle(void)
 /*
  * szGetSubject - get the subject field
  */
-const char *
+const int8_t *
 szGetSubject(void)
 {
 	return szSubject;
@@ -716,7 +719,7 @@ szGetSubject(void)
 /*
  * szGetAuthor - get the author field
  */
-const char *
+const int8_t *
 szGetAuthor(void)
 {
 	return szAuthor;
@@ -725,10 +728,10 @@ szGetAuthor(void)
 /*
  * szGetLastSaveDtm - get the last save date field
  */
-const char *
+const int8_t *
 szGetLastSaveDtm(void)
 {
-	static char	szTime[12];
+	static int8_t	szTime[12];
 	struct tm	*pTime;
 
 	if (tLastSaveDtm == (time_t)-1) {
@@ -746,10 +749,10 @@ szGetLastSaveDtm(void)
 /*
  * szGetModDate - get the last save date field
  */
-const char *
+const int8_t *
 szGetModDate(void)
 {
-	static char	szTime[20];
+	static int8_t	szTime[20];
 	struct tm	*pTime;
 
 	if (tLastSaveDtm == (time_t)-1) {
@@ -768,10 +771,10 @@ szGetModDate(void)
 /*
  * szGetCreationDate - get the last save date field
  */
-const char *
+const int8_t *
 szGetCreationDate(void)
 {
-	static char	szTime[20];
+	static int8_t	szTime[20];
 	struct tm	*pTime;
 
 	if (tCreateDtm == (time_t)-1) {
@@ -790,7 +793,7 @@ szGetCreationDate(void)
 /*
  * szGetCompany - get the company field
  */
-const char *
+const int8_t *
 szGetCompany(void)
 {
 	return szCompany;
@@ -799,7 +802,7 @@ szGetCompany(void)
 /*
  * szGetLanguage - get de language field
  */
-const char *
+const int8_t *
 szGetLanguage(void)
 {
 	if (usLid == (USHORT)-1) {

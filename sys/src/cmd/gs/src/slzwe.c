@@ -48,7 +48,7 @@ extern stream_proc_release(s_LZW_release);
 
 typedef struct lzw_encode_s {
 	byte datum;			/* last byte of this code */
-	ushort prefix;			/* code for prefix of this code */
+	uint16_t prefix;			/* code for prefix of this code */
 } lzw_encode;
 
 #define encode_max 4095		/* max # of codes, must be */
@@ -57,7 +57,7 @@ typedef struct lzw_encode_s {
 
 struct lzw_encode_table_s {
 	lzw_encode encode[encode_max];
-	ushort hashed[hash_size];
+	uint16_t hashed[hash_size];
 };
 gs_private_st_simple(st_lzwe_table, lzw_encode_table, "lzw_encode_table");
 

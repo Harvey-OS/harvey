@@ -11,10 +11,10 @@
 #include <libc.h>
 
 void
-hogport(char *proto, int port)
+hogport(int8_t *proto, int port)
 {
-	char buf[256];
-	char dir[40];
+	int8_t buf[256];
+	int8_t dir[40];
 
 	snprint(buf, sizeof(buf), "%s!%d", proto, port);
 	if(announce(buf, dir) < 0)
@@ -22,9 +22,9 @@ hogport(char *proto, int port)
 }
 
 void
-hogrange(char *str)
+hogrange(int8_t *str)
 {
-	char *er, *sr;
+	int8_t *er, *sr;
 	int start, end;
 
 	sr = strrchr(str, '!');

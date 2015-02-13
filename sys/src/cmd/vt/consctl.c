@@ -20,9 +20,9 @@ Consstate*
 consctl(void)
 {
 	int i, n, fd, tries;
-	char buf[128];
+	int8_t buf[128];
 	Consstate *x;
-	char *field[10];
+	int8_t *field[10];
 
 	x = segattach(0, "shared", 0, sizeof *x);
 	if(x == (void*)-1)

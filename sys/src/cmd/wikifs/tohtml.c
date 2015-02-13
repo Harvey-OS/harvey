@@ -131,9 +131,9 @@ Return:
  * Write wiki document in HTML.
  */
 static String*
-s_escappend(String *s, char *p, int pre)
+s_escappend(String *s, int8_t *p, int pre)
 {
-	char *q;
+	int8_t *q;
 
 	while(q = strpbrk(p, pre ? "<>&" : " <>&")){
 		s = s_nappend(s, p, q-p);
@@ -156,10 +156,10 @@ s_escappend(String *s, char *p, int pre)
 	return s;
 }
 
-static char*
-mkurl(char *s, int ty)
+static int8_t*
+mkurl(int8_t *s, int ty)
 {
-	char *p, *q;
+	int8_t *p, *q;
 
 	if(strncmp(s, "http:", 5)==0
 	|| strncmp(s, "https:", 6)==0
@@ -211,10 +211,10 @@ int okayinpara[Nwtxt] =
 	[Wplain]	1,
 };
 
-char*
-nospaces(char *s)
+int8_t*
+nospaces(int8_t *s)
 {
-	char *q;
+	int8_t *q;
 	s = strdup(s);
 	if(s == nil)
 		return nil;
@@ -227,7 +227,7 @@ nospaces(char *s)
 String*
 pagehtml(String *s, Wpage *wtxt, int ty)
 {
-	char *p, tmp[40];
+	int8_t *p, tmp[40];
 	int inlist, inpara, inpre, t, tnext;
 	Wpage *w;
 
@@ -327,9 +327,9 @@ pagehtml(String *s, Wpage *wtxt, int ty)
 }
 
 static String*
-copythru(String *s, char **newp, int *nlinep, int l)
+copythru(String *s, int8_t **newp, int *nlinep, int l)
 {
-	char *oq, *q, *r;
+	int8_t *oq, *q, *r;
 	int ol;
 
 	q = *newp;
@@ -351,7 +351,7 @@ copythru(String *s, char **newp, int *nlinep, int l)
 }
 
 static int
-dodiff(char *f1, char *f2)
+dodiff(int8_t *f1, int8_t *f2)
 {
 	int p[2];
 
@@ -378,10 +378,10 @@ dodiff(char *f1, char *f2)
 static String*
 s_diff(String *s, Whist *h, int i, int j)
 {
-	char *p, *q, *pnew;
+	int8_t *p, *q, *pnew;
 	int fdiff, fd1, fd2, n1, n2;
 	Biobuf b;
-	char fn1[40], fn2[40];
+	int8_t fn1[40], fn2[40];
 	String *new, *old;
 	int nline;
 
@@ -447,8 +447,8 @@ static String*
 diffhtml(String *s, Whist *h)
 {
 	int i;
-	char tmp[50];
-	char *atime;
+	int8_t tmp[50];
+	int8_t *atime;
 
 	for(i=h->ndoc-1; i>=0; i--){
 		s = s_append(s, "<hr /><div class='diff_head'>\n");
@@ -479,8 +479,8 @@ static String*
 historyhtml(String *s, Whist *h)
 {
 	int i;
-	char tmp[40];
-	char *atime;
+	int8_t tmp[40];
+	int8_t *atime;
 
 	s = s_append(s, "<ul>\n");
 	for(i=h->ndoc-1; i>=0; i--){
@@ -508,8 +508,8 @@ historyhtml(String *s, Whist *h)
 String*
 tohtml(Whist *h, Wdoc *d, int ty)
 {
-	char *atime;
-	char *p, *q, ver[40];
+	int8_t *atime;
+	int8_t *p, *q, ver[40];
 	int nsub;
 	Sub sub[3];
 	String *s, *t;
@@ -568,9 +568,9 @@ enum {
 };
 
 static String*
-s_appendbrk(String *s, char *p, char *prefix, int dosharp)
+s_appendbrk(String *s, int8_t *p, int8_t *prefix, int dosharp)
 {
-	char *e, *w, *x;
+	int8_t *e, *w, *x;
 	int first, l;
 	Rune r;
 
@@ -636,7 +636,7 @@ String*
 pagetext(String *s, Wpage *page, int dosharp)
 {
 	int inlist, inpara;
-	char *prefix, *sharp, tmp[40];
+	int8_t *prefix, *sharp, tmp[40];
 	String *t;
 	Wpage *w;
 
@@ -737,8 +737,8 @@ static String*
 historytext(String *s, Whist *h)
 {
 	int i;
-	char tmp[40];
-	char *atime;
+	int8_t tmp[40];
+	int8_t *atime;
 
 	for(i=h->ndoc-1; i>=0; i--){
 		if(i==h->current)
@@ -762,8 +762,8 @@ historytext(String *s, Whist *h)
 String*
 totext(Whist *h, Wdoc *d, int ty)
 {
-	char *atime;
-	char *p, *q, ver[40];
+	int8_t *atime;
+	int8_t *p, *q, ver[40];
 	int nsub;
 	Sub sub[3];
 	String *s, *t;
@@ -814,7 +814,7 @@ totext(Whist *h, Wdoc *d, int ty)
 String*
 doctext(String *s, Wdoc *d)
 {
-	char tmp[40];
+	int8_t tmp[40];
 
 	sprint(tmp, "D%lud", d->time);
 	s = s_append(s, tmp);

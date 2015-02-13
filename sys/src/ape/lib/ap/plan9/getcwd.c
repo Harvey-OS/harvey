@@ -17,8 +17,8 @@
 #include "sys9.h"
 #include "dir.h"
 
-char*
-getcwd(char *buf, size_t len)
+int8_t*
+getcwd(int8_t *buf, size_t len)
 {
 	int fd;
 

@@ -18,45 +18,45 @@ typedef struct Acc	Acc;
 
 struct Data
 {
-	ushort	down;
-	ushort	right;
-	ulong	pc;
-	ulong	count;
-	ulong	time;
+	uint16_t	down;
+	uint16_t	right;
+	uint32_t	pc;
+	uint32_t	count;
+	uint32_t	time;
 };
 
 struct Pc
 {
 	Pc	*next;
-	ulong	pc;
+	uint32_t	pc;
 };
 
 struct Acc
 {
-	char	*name;
-	ulong	pc;
-	ulong	ms;
-	ulong	calls;
+	int8_t	*name;
+	uint32_t	pc;
+	uint32_t	ms;
+	uint32_t	calls;
 };
 
 Data*	data;
 Acc*	acc;
-ulong	ms;
-long	nsym;
-long	ndata;
+uint32_t	ms;
+int32_t	nsym;
+int32_t	ndata;
 int	dflag;
 int	rflag;
 Biobuf	bout;
 int	tabstop = 4;
 int	verbose;
 
-void	syms(char*);
-void	datas(char*);
-void	graph(int, ulong, Pc*);
+void	syms(int8_t*);
+void	datas(int8_t*);
+void	graph(int, uint32_t, Pc*);
 void	plot(void);
-char*	name(ulong);
+int8_t*	name(uint32_t);
 void	indent(int);
-char*	defaout(void);
+int8_t*	defaout(void);
 
 void
 main(int argc, char *argv[])
@@ -112,7 +112,7 @@ int
 acmp(void *va, void *vb)
 {
 	Acc *a, *b;
-	ulong ua, ub;
+	uint32_t ua, ub;
 
 	a = va;
 	b = vb;
@@ -127,7 +127,7 @@ acmp(void *va, void *vb)
 }
 
 void
-syms(char *cout)
+syms(int8_t *cout)
 {
 	Fhdr f;
 	int fd;
@@ -152,7 +152,7 @@ syms(char *cout)
 }
 
 void
-datas(char *dout)
+datas(int8_t *dout)
 {
 	int fd;
 	Dir *d;
@@ -183,11 +183,11 @@ datas(char *dout)
 		swapdata(data+i);
 }
 
-char*
-name(ulong pc)
+int8_t*
+name(uint32_t pc)
 {
 	Symbol s;
-	static char buf[16];
+	static int8_t buf[16];
 
 	if (findsym(pc, CTEXT, &s))
 		return(s.name);
@@ -196,9 +196,9 @@ name(ulong pc)
 }
 
 void
-graph(int ind, ulong i, Pc *pc)
+graph(int ind, uint32_t i, Pc *pc)
 {
-	long time, count, prgm;
+	int32_t time, count, prgm;
 	Pc lpc;
 
 	if(i >= ndata){
@@ -236,8 +236,8 @@ graph(int ind, ulong i, Pc *pc)
 /*
  *	assume acc is ordered by increasing text address.
  */
-long
-symind(ulong pc)
+int32_t
+symind(uint32_t pc)
 {
 	int top, bot, mid;
 
@@ -255,10 +255,10 @@ symind(ulong pc)
 	return -1;
 }
 
-ulong
-sum(ulong i)
+uint32_t
+sum(uint32_t i)
 {
-	long j, dtime, time;
+	int32_t j, dtime, time;
 	int k;
 	static indent;
 
@@ -340,7 +340,7 @@ indent(int ind)
 		Bwrite(&bout, ".                            ", j);
 }
 
-char*	trans[] =
+int8_t*	trans[] =
 {
 	"386",		"8.out",
 	"68020",		"2.out",
@@ -354,10 +354,10 @@ char*	trans[] =
 	0,0
 };
 
-char*
+int8_t*
 defaout(void)
 {
-	char *p;
+	int8_t *p;
 	int i;
 
 	p = getenv("objtype");

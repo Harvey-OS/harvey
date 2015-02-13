@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-char*
-strncat(char *s1, char *s2, long n)
+int8_t*
+strncat(int8_t *s1, int8_t *s2, int32_t n)
 {
-	char *os1;
+	int8_t *os1;
 
 	os1 = s1;
 	while(*s1++)

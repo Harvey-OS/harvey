@@ -18,7 +18,7 @@ typedef struct Inst Inst;
 
 struct Inst
 {
-	long	type;	/* <= Runemax ==> literal, otherwise action */
+	int32_t	type;	/* <= Runemax ==> literal, otherwise action */
 	union {
 		int rsid;
 		int rsubid;
@@ -248,9 +248,9 @@ operator(int t)
 }
 
 void
-cant(char *s)
+cant(int8_t *s)
 {
-	char buf[100];
+	int8_t buf[100];
 
 	sprint(buf, "regexp: can't happen: %s", s);
 	panic(buf);
@@ -461,7 +461,7 @@ lex(void){
 	return c;
 }
 
-long
+int32_t
 nextrec(void){
 	if(exprp[0]==0 || (exprp[0]=='\\' && exprp[1]==0))
 		regerror(Ebadclass);
@@ -479,7 +479,7 @@ nextrec(void){
 void
 bldcclass(void)
 {
-	long c1, c2, n, na;
+	int32_t c1, c2, n, na;
 	Rune *classp;
 
 	classp = emalloc(DCLASS*RUNESIZE);

@@ -14,7 +14,7 @@
 #include "netbios.h"
 
 static int
-decodehex(char c)
+decodehex(int8_t c)
 {
 	if (c >= '0' && c <= '9')
 		return c - '0';
@@ -25,7 +25,7 @@ decodehex(char c)
 	return 0;
 }
 
-static char
+static int8_t
 encodehex(int n)
 {
 	if (n >= 0 && n <= 9)
@@ -36,14 +36,15 @@ encodehex(int n)
 }
 
 static int
-_nameextract(uchar *base, uchar *p, uchar *ep, int k, uchar *outbuf, int outbufmaxlen, int *outbuflenp)
+_nameextract(uint8_t *base, uint8_t *p, uint8_t *ep, int k,
+	     uint8_t *outbuf, int outbufmaxlen, int *outbuflenp)
 {
-	uchar *op, *oep, *savep;
+	uint8_t *op, *oep, *savep;
 	savep = p;
 	op = outbuf;
 	oep = outbuf + outbufmaxlen;
 	for (;;) {
-		uchar b;
+		uint8_t b;
 		int n;
 		if (p >= ep)
 			return 0;
@@ -56,7 +57,7 @@ _nameextract(uchar *base, uchar *p, uchar *ep, int k, uchar *outbuf, int outbufm
 			*op++ = '.';
 		}
 		if ((b & 0xc0) == 0xc0) {
-			ushort off;
+			uint16_t off;
 			if (ep - p < 2)
 				return 0;
 			off = nhgets(p - 1) & 0x3fff; p++;
@@ -75,7 +76,7 @@ _nameextract(uchar *base, uchar *p, uchar *ep, int k, uchar *outbuf, int outbufm
 			if (op + b / 2 > oep)
 				return 0;
 			for (x = 0; x < b; x += 2) {
-				uchar hn, ln;
+				uint8_t hn, ln;
 				if (*p < 'A' || *p >= 'A' + 16)
 					return 0;
 				hn = *p++ - 'A';
@@ -92,7 +93,7 @@ _nameextract(uchar *base, uchar *p, uchar *ep, int k, uchar *outbuf, int outbufm
 }
 
 int
-nbnamedecode(uchar *base, uchar *p, uchar *ep, NbName nbname)
+nbnamedecode(uint8_t *base, uint8_t *p, uint8_t *ep, NbName nbname)
 {
 	int n;
 	int rv = _nameextract(base, p, ep, 0, nbname, NbNameLen, &n);
@@ -104,9 +105,9 @@ nbnamedecode(uchar *base, uchar *p, uchar *ep, NbName nbname)
 }
 
 int
-nbnameencode(uchar *ap, uchar *ep, NbName name)
+nbnameencode(uint8_t *ap, uint8_t *ep, NbName name)
 {
-	uchar *p = ap;
+	uint8_t *p = ap;
 	int i;
 	if (p + 1 + 2 * NbNameLen + 1 > ep)
 		return 0;
@@ -126,7 +127,7 @@ nbnamecpy(NbName n1, NbName n2)
 }
 
 void
-nbmknamefromstring(NbName nbname, char *s)
+nbmknamefromstring(NbName nbname, int8_t *s)
 {
 	int i;
 	memset(nbname, ' ', NbNameLen - 1);
@@ -148,14 +149,14 @@ nbmknamefromstring(NbName nbname, char *s)
 }
 
 void
-nbmknamefromstringandtype(NbName nbname, char *s, uchar type)
+nbmknamefromstringandtype(NbName nbname, int8_t *s, uint8_t type)
 {
 	nbmknamefromstring(nbname, s);
 	nbname[NbNameLen - 1] = type;
 }
 
 void
-nbmkstringfromname(char *buf, int buflen, NbName name)
+nbmkstringfromname(int8_t *buf, int buflen, NbName name)
 {
 	int x;
 	for (x = 0; x < NbNameLen - 1; x++) {
@@ -206,9 +207,9 @@ nbnameequal(NbName name1, NbName name2)
 int
 nbnamefmt(Fmt *f)
 {
-	uchar *n;
-	char buf[100];
-	n = va_arg(f->args, uchar *);
+	uint8_t *n;
+	int8_t buf[100];
+	n = va_arg(f->args, uint8_t *);
 	nbmkstringfromname(buf, sizeof(buf), n);
 	return fmtstrcpy(f, buf);
 }
@@ -252,8 +253,8 @@ nbnametablefind(NbName name, int add)
 typedef struct NbRemoteNameTableEntry NbRemoteNameTableEntry;
 struct NbRemoteNameTableEntry {
 	NbName name;
-	char ipaddr[IPaddrlen];
-	long expire;
+	int8_t ipaddr[IPaddrlen];
+	int32_t expire;
 	NbRemoteNameTableEntry *next;
 };
 
@@ -263,10 +264,10 @@ static struct {
 } nbremotenametable;
 
 int
-nbremotenametablefind(NbName name, uchar *ipaddr)
+nbremotenametablefind(NbName name, uint8_t *ipaddr)
 {
 	NbRemoteNameTableEntry *p, **pp;
-	long now = time(nil);
+	int32_t now = time(nil);
 	qlock(&nbremotenametable);
 	for (pp = &nbremotenametable.head; (p = *pp) != nil;) {
 		if (p->expire <= now) {
@@ -287,7 +288,7 @@ nbremotenametablefind(NbName name, uchar *ipaddr)
 }
 
 int
-nbremotenametableadd(NbName name, uchar *ipaddr, ulong ttl)
+nbremotenametableadd(NbName name, uint8_t *ipaddr, uint32_t ttl)
 {
 	NbRemoteNameTableEntry *p;
 	qlock(&nbremotenametable);

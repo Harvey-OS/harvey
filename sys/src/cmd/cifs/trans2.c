@@ -46,7 +46,7 @@ t2hdr(Session *s, Share *sp, int cmd)
 static void
 pt2param(Pkt *p)
 {
-	uchar *pos = p->pos;
+	uint8_t *pos = p->pos;
 
 	assert(p->tbase != 0);
 	p->pos = p->tbase + 20;
@@ -58,7 +58,7 @@ pt2param(Pkt *p)
 static void
 pt2data(Pkt *p)
 {
-	uchar *pos = p->pos;
+	uint8_t *pos = p->pos;
 
 	assert(p->tbase != 0);
 	assert(p->tparam != 0);
@@ -79,7 +79,7 @@ static int
 t2rpc(Pkt *p)
 {
 	int got;
-	uchar *pos;
+	uint8_t *pos;
 
 	assert(p->tbase != 0);
 	assert(p->tdata != 0);
@@ -125,11 +125,11 @@ gt2data(Pkt *p)
 
 
 int
-T2findfirst(Session *s, Share *sp, int slots, char *path, int *got,
-	long *resume, FInfo *fip)
+T2findfirst(Session *s, Share *sp, int slots, int8_t *path, int *got,
+	int32_t *resume, FInfo *fip)
 {
 	int pktlen, i, n, sh;
-	uchar *next;
+	uint8_t *next;
 	Pkt *p;
 
 	p = t2hdr(s, sp, TRANS2_FIND_FIRST2);
@@ -193,12 +193,12 @@ T2findfirst(Session *s, Share *sp, int slots, char *path, int *got,
 }
 
 int
-T2findnext(Session *s, Share *sp, int slots, char *path, int *got,
-	long *resume, FInfo *fip, int sh)
+T2findnext(Session *s, Share *sp, int slots, int8_t *path, int *got,
+	int32_t *resume, FInfo *fip, int sh)
 {
 	Pkt *p;
 	int i, n;
-	uchar *next;
+	uint8_t *next;
 
 	/*
 	 * So I believe from comp.protocols.smb if you send
@@ -260,7 +260,7 @@ T2findnext(Session *s, Share *sp, int slots, char *path, int *got,
 
 /* supported by 2k/XP/NT4 */
 int
-T2queryall(Session *s, Share *sp, char *path, FInfo *fip)
+T2queryall(Session *s, Share *sp, int8_t *path, FInfo *fip)
 {
 	int n;
 	Pkt *p;
@@ -308,7 +308,7 @@ T2queryall(Session *s, Share *sp, char *path, FInfo *fip)
 
 /* supported by 95/98/ME */
 int
-T2querystandard(Session *s, Share *sp, char *path, FInfo *fip)
+T2querystandard(Session *s, Share *sp, int8_t *path, FInfo *fip)
 {
 	Pkt *p;
 
@@ -339,7 +339,7 @@ T2querystandard(Session *s, Share *sp, char *path, FInfo *fip)
 }
 
 int
-T2setpathinfo(Session *s, Share *sp, char *path, FInfo *fip)
+T2setpathinfo(Session *s, Share *sp, int8_t *path, FInfo *fip)
 {
 	int rc;
 	Pkt *p;
@@ -390,11 +390,11 @@ T2setfilelength(Session *s, Share *sp, int fh, FInfo *fip) /* FIXME: maybe broke
 
 
 int
-T2fsvolumeinfo(Session *s, Share *sp, long *created, long *serialno,
-	char *label, int labellen)
+T2fsvolumeinfo(Session *s, Share *sp, int32_t *created, int32_t *serialno,
+	int8_t *label, int labellen)
 {
 	Pkt *p;
-	long ct, sn, n;
+	int32_t ct, sn, n;
 
 	p = t2hdr(s, sp, TRANS2_QUERY_FS_INFORMATION);
 	pt2param(p);
@@ -427,10 +427,10 @@ T2fsvolumeinfo(Session *s, Share *sp, long *created, long *serialno,
 }
 
 int
-T2fssizeinfo(Session *s, Share *sp, uvlong *total, uvlong *unused)
+T2fssizeinfo(Session *s, Share *sp, uint64_t *total, uint64_t *unused)
 {
 	Pkt *p;
-	uvlong t, f, n, b;
+	uint64_t t, f, n, b;
 
 	p = t2hdr(s, sp, TRANS2_QUERY_FS_INFORMATION);
 	pt2param(p);
@@ -459,12 +459,13 @@ T2fssizeinfo(Session *s, Share *sp, uvlong *total, uvlong *unused)
 }
 
 int
-T2getdfsreferral(Session *s, Share *sp, char *path, int *gflags, int *used,
+T2getdfsreferral(Session *s, Share *sp, int8_t *path, int *gflags,
+		 int *used,
 	Refer *re, int nent)
 {
 	int i, vers, nret, len;
-	char tmp[1024];
-	uchar *base;
+	int8_t tmp[1024];
+	uint8_t *base;
 	Pkt *p;
 
 	p = t2hdr(s, sp, TRANS2_GET_DFS_REFERRAL);

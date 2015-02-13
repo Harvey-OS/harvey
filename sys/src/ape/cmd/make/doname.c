@@ -9,7 +9,7 @@
 
 #include "defs.h"
 
-static int docom1(char *, int, int, int, int);
+static int docom1(int8_t *, int, int, int, int);
 static void expand(depblkp);
 
 /*  BASIC PROCEDURE.  RECURSIVE.  */
@@ -35,14 +35,14 @@ nameblkp p1, p2;
 struct shblock *implcom, *explcom;
 lineblkp lp;
 lineblkp lp1, lp2;
-char sourcename[100], prefix[100], temp[100], concsuff[20];
-char *stem;
-char *pnamep, *p1namep;
+int8_t sourcename[100], prefix[100], temp[100], concsuff[20];
+int8_t *stem;
+int8_t *pnamep, *p1namep;
 chainp allchain, qchain;
-char qbuf[QBUFMAX], tgsbuf[QBUFMAX];
+int8_t qbuf[QBUFMAX], tgsbuf[QBUFMAX];
 wildp wp;
 int nproc1;
-char *lastslash, *s;
+int8_t *lastslash, *s;
 
 if(p == 0)
 	{
@@ -274,9 +274,9 @@ return errstat;
 
 docom(struct shblock *q, int nowait, int nproc1)
 {
-char *s;
+int8_t *s;
 int ign, nopr, doit;
-char string[OUTMAX];
+int8_t string[OUTMAX];
 
 ++ndocoms;
 if(questflag)
@@ -328,10 +328,10 @@ return NO;
 
 
 static int
-docom1(char *comstring, int nohalt, int noprint, int doit, int nowait)
+docom1(int8_t *comstring, int nohalt, int noprint, int doit, int nowait)
 {
 int status;
-char *prefix;
+int8_t *prefix;
 
 if(comstring[0] == '\0')
 	return 0;
@@ -366,8 +366,8 @@ return status;
 static void
 expand(depblkp q)
 {
-char *s;
-char *s1;
+int8_t *s;
+int8_t *s1;
 depblkp p;
 
 s1 = q->depname->namep;

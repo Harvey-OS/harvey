@@ -40,7 +40,7 @@
 
 static struct {
 	int	err;
-	char	*msg;
+	int8_t	*msg;
 } DOSerrs[] = {
 	/* smb x/open error codes for the errdos error class */
 	{ (0<<16)|1,	"no error" },
@@ -145,12 +145,12 @@ static struct {
 
 };
 
-char *
+int8_t *
 doserrstr(uint err)
 {
 	int i, match;
-	char *class;
-	static char buf[0xff];
+	int8_t *class;
+	static int8_t buf[0xff];
 
 	switch(err & 0xff){
  	case 1:

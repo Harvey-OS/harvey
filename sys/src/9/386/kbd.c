@@ -184,7 +184,7 @@ void (*kbdmouse)(int);
 static int nokbd = 1;
 
 static Lock i8042lock;
-static uchar ccc;
+static uint8_t ccc;
 static void (*auxputc)(int, int);
 
 /*
@@ -225,7 +225,7 @@ inready(void)
 void
 i8042reset(void)
 {
-	ushort *s = KADDR(0x472);
+	uint16_t *s = KADDR(0x472);
 	int i, x;
 
 	if(nokbd)
@@ -289,7 +289,7 @@ i8042auxcmd(int cmd)
 }
 
 int
-i8042auxcmds(uchar *cmd, int ncmd)
+i8042auxcmds(uint8_t *cmd, int ncmd)
 {
 	int i;
 
@@ -500,7 +500,7 @@ i8042intr(Ureg*, void*)
 void
 i8042auxenable(void (*putc)(int, int))
 {
-	char *err = "i8042: aux init failed\n";
+	int8_t *err = "i8042: aux init failed\n";
 
 	/* enable kbd/aux xfers and interrupts */
 	ccc &= ~Cauxdis;
@@ -525,7 +525,7 @@ i8042auxenable(void (*putc)(int, int))
 	iunlock(&i8042lock);
 }
 
-static char *initfailed = "i8042: kbdinit failed\n";
+static int8_t *initfailed = "i8042: kbdinit failed\n";
 
 static int
 outbyte(int port, int c)
@@ -594,7 +594,7 @@ kbdenable(void)
 }
 
 void
-kbdputmap(ushort m, ushort scanc, Rune r)
+kbdputmap(uint16_t m, uint16_t scanc, Rune r)
 {
 	if(scanc >= Nscan)
 		error(Ebadarg);

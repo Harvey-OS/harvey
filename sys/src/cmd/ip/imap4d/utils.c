@@ -17,7 +17,7 @@
  * reverse string [s:e) in place
  */
 void
-strrev(char *s, char *e)
+strrev(int8_t *s, int8_t *e)
 {
 	int c;
 
@@ -29,13 +29,13 @@ strrev(char *s, char *e)
 }
 
 int
-isdotdot(char *s)
+isdotdot(int8_t *s)
 {
 	return s[0] == '.' && s[1] == '.' && (s[2] == '/' || s[2] == '\0');
 }
 
 int
-issuffix(char *suf, char *s)
+issuffix(int8_t *suf, int8_t *s)
 {
 	int n;
 
@@ -46,23 +46,23 @@ issuffix(char *suf, char *s)
 }
 
 int
-isprefix(char *pre, char *s)
+isprefix(int8_t *pre, int8_t *s)
 {
 	return strncmp(pre, s, strlen(pre)) == 0;
 }
 
 int
-ciisprefix(char *pre, char *s)
+ciisprefix(int8_t *pre, int8_t *s)
 {
 	return cistrncmp(pre, s, strlen(pre)) == 0;
 }
 
-char*
+int8_t*
 readFile(int fd)
 {
 	Dir *d;
-	long length;
-	char *s;
+	int32_t length;
+	int8_t *s;
 
 	d = dirfstat(fd);
 	if(d == nil)
@@ -83,7 +83,7 @@ readFile(int fd)
 int
 imapTmp(void)
 {
-	char buf[ERRMAX], name[MboxNameLen];
+	int8_t buf[ERRMAX], name[MboxNameLen];
 	int tries, fd;
 
 	snprint(name, sizeof(name), "/mail/box/%s/mbox.tmp.imp", username);
@@ -104,9 +104,9 @@ imapTmp(void)
  * if it is, spin until available
  */
 int
-openLocked(char *dir, char *file, int mode)
+openLocked(int8_t *dir, int8_t *file, int mode)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 	int tries, fd;
 
 	for(tries = 0; tries < LockSecs*2; tries++){
@@ -134,8 +134,8 @@ fqid(int fd, Qid *qid)
 	return 0;
 }
 
-ulong
-mapInt(NamedInt *map, char *name)
+uint32_t
+mapInt(NamedInt *map, int8_t *name)
 {
 	int i;
 
@@ -145,10 +145,10 @@ mapInt(NamedInt *map, char *name)
 	return map[i].v;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 
 	t = emalloc(strlen(s) + 1);
 	strcpy(t, s);
@@ -156,7 +156,7 @@ estrdup(char *s)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -168,7 +168,7 @@ emalloc(ulong n)
 }
 
 void*
-ezmalloc(ulong n)
+ezmalloc(uint32_t n)
 {
 	void *p;
 
@@ -181,7 +181,7 @@ ezmalloc(ulong n)
 }
 
 void*
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil)

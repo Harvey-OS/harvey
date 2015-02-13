@@ -48,7 +48,7 @@ int scsiverbose;
 
 #define codefile "/sys/lib/scsicodes"
 
-static char *codes;
+static int8_t *codes;
 static QLock codeqlock;
 
 static void
@@ -94,12 +94,12 @@ getcodes(void)
 	qunlock(&codeqlock);
 }
 	
-char*
+int8_t*
 scsierror(int asc, int ascq)
 {
-	char *p, *q;
-	static char search[32];
-	static char buf[128];
+	int8_t *p, *q;
+	static int8_t search[32];
+	static int8_t buf[128];
 
 	getcodes();
 
@@ -129,11 +129,12 @@ scsierror(int asc, int ascq)
 
 
 static int
-_scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io, int dolock)
+_scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
+	 int io, int dolock)
 {
-	uchar resp[16];
+	uint8_t resp[16];
 	int n;
-	long status;
+	int32_t status;
 
 	if(dolock)
 		qlock(s);
@@ -176,7 +177,7 @@ _scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io, int do
 		qunlock(s);
 
 	resp[sizeof(resp)-1] = '\0';
-	status = atoi((char*)resp);
+	status = atoi((int8_t*)resp);
 	if(status == 0)
 		return n;
 
@@ -185,7 +186,7 @@ _scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io, int do
 }
 
 int
-scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io)
+scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount, int io)
 {
 	return _scsicmd(s, cmd, ccount, data, dcount, io, 1);
 }
@@ -193,8 +194,8 @@ scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io)
 static int
 _scsiready(Scsi *s, int dolock)
 {
-	char err[ERRMAX];
-	uchar cmd[6], resp[16];
+	int8_t err[ERRMAX];
+	uint8_t cmd[6], resp[16];
 	int status, i;
 
 	if(dolock)
@@ -216,7 +217,7 @@ _scsiready(Scsi *s, int dolock)
 			continue;
 		}
 		resp[sizeof(resp)-1] = '\0';
-		status = atoi((char*)resp);
+		status = atoi((int8_t*)resp);
 		if(status == 0 || status == 0x02) {
 			if(dolock)
 				qunlock(s);
@@ -240,11 +241,11 @@ scsiready(Scsi *s)
 }
 
 int
-scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
+scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 {
-	uchar req[6], sense[255], *data;
+	uint8_t req[6], sense[255], *data;
 	int tries, code, key, n;
-	char *p;
+	int8_t *p;
 
 	data = v;
 	SET(key, code);
@@ -318,11 +319,11 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 }
 
 Scsi*
-openscsi(char *dev)
+openscsi(int8_t *dev)
 {
 	Scsi *s;
 	int rawfd, ctlfd, l, n;
-	char *name, *p, buf[512];
+	int8_t *name, *p, buf[512];
 
 	l = strlen(dev)+1+3+1;
 	name = malloc(l);

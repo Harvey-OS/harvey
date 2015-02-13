@@ -39,7 +39,7 @@
  * This implementation doesn't do unbuffered, so if 
  * interactive read one byte at a time.
  */
-int gp_stdin_read(char *buf, int len, int interactive, FILE *f)
+int gp_stdin_read(int8_t *buf, int len, int interactive, FILE *f)
 {
     return fread(buf, 1, interactive ? 1 : len, f);
 }

@@ -62,7 +62,7 @@ private dev_proc_decode_color(xcf_decode_color);
 /*
  * Type definitions associated with the fixed color model names.
  */
-typedef const char * fixed_colorant_name;
+typedef const int8_t * fixed_colorant_name;
 typedef fixed_colorant_name fixed_colorant_names_list[];
 
 /*
@@ -686,7 +686,7 @@ xcf_get_params(gx_device * pdev, gs_param_list * plist)
 
 #define compare_color_names(name, name_size, str, str_size) \
     (name_size == str_size && \
-	(strncmp((const char *)name, (const char *)str, name_size) == 0))
+	(strncmp((const int8_t *)name, (const int8_t *)str, name_size) == 0))
 
 /*
  * This routine will check if a name matches any item in a list of process model
@@ -774,10 +774,10 @@ xcf_param_read_fn(gs_param_list *plist, const char *name,
 
 /* Compare a C string and a gs_param_string. */
 static bool
-param_string_eq(const gs_param_string *pcs, const char *str)
+param_string_eq(const gs_param_string *pcs, const int8_t *str)
 {
     return (strlen(str) == pcs->size &&
-	    !strncmp(str, (const char *)pcs->data, pcs->size));
+	    !strncmp(str, (const int8_t *)pcs->data, pcs->size));
 }
 
 private int

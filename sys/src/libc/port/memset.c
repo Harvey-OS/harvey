@@ -11,9 +11,9 @@
 #include	<libc.h>
 
 void*
-memset(void *ap, int c, ulong n)
+memset(void *ap, int c, uint32_t n)
 {
-	char *p;
+	int8_t *p;
 
 	p = ap;
 	while(n > 0) {

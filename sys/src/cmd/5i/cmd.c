@@ -14,17 +14,17 @@
 #include <ctype.h>
 #include "arm.h"
 
-char	buf[128], lastcmd[128];
-char	fmt = 'X';
+int8_t	buf[128], lastcmd[128];
+int8_t	fmt = 'X';
 int	width = 60;
 int	inc;
 
-ulong	expr(char*);
-ulong	expr1(char*);
-char*	term(char*, ulong*);
+uint32_t	expr(int8_t*);
+uint32_t	expr1(int8_t*);
+int8_t*	term(int8_t*, uint32_t*);
 
-char*
-nextc(char *p)
+int8_t*
+nextc(int8_t *p)
 {
 	while(*p && (*p == ' ' || *p == '\t') && *p != '\n')
 		p++;
@@ -35,13 +35,13 @@ nextc(char *p)
 	return p;
 }
 
-char*
-numsym(char *addr, ulong *val)
+int8_t*
+numsym(int8_t *addr, uint32_t *val)
 {
-	char tsym[128], *t;
-	static char *delim = "`'<>/\\@*|-~+-/=?\n";
+	int8_t tsym[128], *t;
+	static int8_t *delim = "`'<>/\\@*|-~+-/=?\n";
 	Symbol s;
-	char c;
+	int8_t c;
 
 	t = tsym;
 	while(c = *addr) {
@@ -68,11 +68,11 @@ numsym(char *addr, ulong *val)
 	return addr;
 }
 
-ulong
-expr(char *addr)
+uint32_t
+expr(int8_t *addr)
 {
-	ulong t, t2;
-	char op;
+	uint32_t t, t2;
+	int8_t op;
 
 	if(*addr == '\0')
 		return dot;
@@ -110,7 +110,7 @@ expr(char *addr)
 }
 
 int
-buildargv(char *str, char **args, int max)
+buildargv(int8_t *str, int8_t **args, int max)
 {
 	int na = 0;
 
@@ -137,11 +137,11 @@ buildargv(char *str, char **args, int max)
 }
 
 void
-colon(char *addr, char *cp)
+colon(int8_t *addr, int8_t *cp)
 {
 	int argc;
-	char *argv[100];
-	char tbuf[512];
+	int8_t *argv[100];
+	int8_t tbuf[512];
 
 	cp = nextc(cp);
 	switch(*cp) {
@@ -194,7 +194,7 @@ colon(char *addr, char *cp)
 
 
 void
-dollar(char *cp)
+dollar(int8_t *cp)
 {
 	cp = nextc(cp);
 	switch(*cp) {
@@ -294,11 +294,11 @@ dollar(char *cp)
 }
 
 int
-pfmt(char fmt, int mem, ulong val)
+pfmt(int8_t fmt, int mem, uint32_t val)
 {
 	int c, i;
 	Symbol s;
-	char *p, ch, str[1024];
+	int8_t *p, ch, str[1024];
 
 	c = 0;
 	switch(fmt) {
@@ -306,7 +306,8 @@ pfmt(char fmt, int mem, ulong val)
 		Bprint(bioout, "bad modifier\n");
 		return 0;
 	case 'o':
-		c = Bprint(bioout, "%-4lo ", mem? (ushort)getmem_2(dot): val);
+		c = Bprint(bioout, "%-4lo ",
+			   mem? (uint16_t)getmem_2(dot): val);
 		inc = 2;
 		break;
 
@@ -316,43 +317,47 @@ pfmt(char fmt, int mem, ulong val)
 		break;
 
 	case 'q':
-		c = Bprint(bioout, "%-4lo ", mem? (short)getmem_2(dot): val);
+		c = Bprint(bioout, "%-4lo ", mem? (int16_t)getmem_2(dot): val);
 		inc = 2;
 		break;
 
 	case 'Q':
-		c = Bprint(bioout, "%-8lo ", mem? (long)getmem_4(dot): val);
+		c = Bprint(bioout, "%-8lo ", mem? (int32_t)getmem_4(dot): val);
 		inc = 4;
 		break;
 
 	case 'd':
-		c = Bprint(bioout, "%-5ld ", mem? (short)getmem_2(dot): val);
+		c = Bprint(bioout, "%-5ld ", mem? (int16_t)getmem_2(dot): val);
 		inc = 2;
 		break;
 
 
 	case 'D':
-		c = Bprint(bioout, "%-8ld ", mem? (long)getmem_4(dot): val);
+		c = Bprint(bioout, "%-8ld ", mem? (int32_t)getmem_4(dot): val);
 		inc = 4;
 		break;
 
 	case 'x':
-		c = Bprint(bioout, "#%-4lux ", mem? (long)getmem_2(dot): val);
+		c = Bprint(bioout, "#%-4lux ",
+			   mem? (int32_t)getmem_2(dot): val);
 		inc = 2;
 		break;
 
 	case 'X':
-		c = Bprint(bioout, "#%-8lux ", mem? (long)getmem_4(dot): val);
+		c = Bprint(bioout, "#%-8lux ",
+			   mem? (int32_t)getmem_4(dot): val);
 		inc = 4;
 		break;
 
 	case 'u':
-		c = Bprint(bioout, "%-5ld ", mem? (ushort)getmem_2(dot): val);
+		c = Bprint(bioout, "%-5ld ",
+			   mem? (uint16_t)getmem_2(dot): val);
 		inc = 2;
 		break;
 
 	case 'U':
-		c = Bprint(bioout, "%-8ld ", mem? (ulong)getmem_4(dot): val);
+		c = Bprint(bioout, "%-8ld ",
+			   mem? (uint32_t)getmem_4(dot): val);
 		inc = 4;
 		break;
 
@@ -460,9 +465,9 @@ pfmt(char fmt, int mem, ulong val)
 }
 
 void
-eval(char *addr, char *p)
+eval(int8_t *addr, int8_t *p)
 {
-	ulong val;
+	uint32_t val;
 
 	val = expr(addr);
 	p = nextc(p);
@@ -475,10 +480,10 @@ eval(char *addr, char *p)
 }
 
 void
-quesie(char *p)
+quesie(int8_t *p)
 {
 	int c, count, i;
-	char tbuf[512];
+	int8_t tbuf[512];
 
 	c = 0;
 	symoff(tbuf, sizeof(tbuf), dot, CTEXT);
@@ -522,7 +527,7 @@ quesie(char *p)
 }
 
 void
-catcher(void *a, char *msg)
+catcher(void *a, int8_t *msg)
 {
 	static int hit = 0;
 
@@ -539,7 +544,7 @@ catcher(void *a, char *msg)
 }
 
 void
-setreg(char *addr, char *cp)
+setreg(int8_t *addr, int8_t *cp)
 {
 	int rn;
 
@@ -566,9 +571,9 @@ setreg(char *addr, char *cp)
 void
 cmd(void)
 {
-	char *p, *a, *cp, *gotint;
-	char addr[128];
-	static char *cmdlet = ":$?/=>";
+	int8_t *p, *a, *cp, *gotint;
+	int8_t addr[128];
+	static int8_t *cmdlet = ":$?/=>";
 	int n, i;
 
 	notify(catcher);

@@ -11,9 +11,9 @@
 #include <libc.h>
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-	char *pr;
+	int8_t *pr;
 	int n, dflag;
 
 	dflag = 0;

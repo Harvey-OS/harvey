@@ -28,13 +28,13 @@ struct Req
 	int	fd;			/* for reply */
 	Bootp	*bp;
 	Udphdr	*up;
-	uchar	*e;			/* end of received message */
-	uchar	*p;			/* options pointer */
-	uchar	*max;			/* max end of reply */
+	uint8_t	*e;			/* end of received message */
+	uint8_t	*p;			/* options pointer */
+	uint8_t	*max;			/* max end of reply */
 
 	/* expanded to v6 */
-	uchar	ciaddr[IPaddrlen];
-	uchar	giaddr[IPaddrlen];
+	uint8_t	ciaddr[IPaddrlen];
+	uint8_t	giaddr[IPaddrlen];
 
 	/* parsed options */
 	int	p9request;		/* flag: this is a bootp with plan9 options */
@@ -42,53 +42,53 @@ struct Req
 	int	broadcast;		/* flag: request was broadcast */
 	int	dhcptype;		/* dhcp message type */
 	int	leasetime;		/* dhcp lease */
-	uchar	ip[IPaddrlen];		/* requested address */
-	uchar	server[IPaddrlen];	/* server address */
-	char	msg[ERRMAX];		/* error message */
-	char	vci[32];		/* vendor class id */
-	char	*id;			/* client id */
-	uchar	requested[32];		/* requested params */
-	uchar	vendorclass[32];
-	char	cputype[32-3];
+	uint8_t	ip[IPaddrlen];		/* requested address */
+	uint8_t	server[IPaddrlen];	/* server address */
+	int8_t	msg[ERRMAX];		/* error message */
+	int8_t	vci[32];		/* vendor class id */
+	int8_t	*id;			/* client id */
+	uint8_t	requested[32];		/* requested params */
+	uint8_t	vendorclass[32];
+	int8_t	cputype[32-3];
 
 	Info	gii;			/* about target network */
 	Info	ii;			/* about target system */
 	int	staticbinding;
 
-	uchar buf[2*1024];		/* message buffer */
+	uint8_t buf[2*1024];		/* message buffer */
 };
 
 #define TFTP "/lib/tftpd"
 
-char	*blog = "ipboot";
-char	mysysname[64];
+int8_t	*blog = "ipboot";
+int8_t	mysysname[64];
 Ipifc	*ipifcs;
 int	debug;
 int	nobootp;
-long	now;
+int32_t	now;
 int	slowstat, slowdyn;
-char	net[256];
+int8_t	net[256];
 
 int	pptponly;	/* only answer request that came from the pptp server */
 int	mute, mutestat;
 int	minlease = MinLease;
 int	staticlease = StaticLease;
 
-uvlong	start;
+uint64_t	start;
 
 static int v6opts;
 
 /* option magic */
-char plan9opt[4] = { 'p', '9', ' ', ' ' };
-char genericopt[4] = { 0x63, 0x82, 0x53, 0x63 };
+int8_t plan9opt[4] = { 'p', '9', ' ', ' ' };
+int8_t genericopt[4] = { 0x63, 0x82, 0x53, 0x63 };
 
 /* well known addresses */
-uchar zeros[Maxhwlen];
+uint8_t zeros[Maxhwlen];
 
 /* option debug buffer */
-char optbuf[1024];
-char *op;
-char *oe = optbuf + sizeof(optbuf);
+int8_t optbuf[1024];
+int8_t *op;
+int8_t *oe = optbuf + sizeof(optbuf);
 
 char *optname[256] =
 {
@@ -172,21 +172,21 @@ char *optname[256] =
 [ODbootfile]		"bf",
 };
 
-void	addropt(Req*, int, uchar*);
-void	addrsopt(Req*, int, uchar**, int);
-void	arpenter(uchar*, uchar*);
+void	addropt(Req*, int, uint8_t*);
+void	addrsopt(Req*, int, uint8_t**, int);
+void	arpenter(uint8_t*, uint8_t*);
 void	bootp(Req*);
-void	byteopt(Req*, int, uchar);
+void	byteopt(Req*, int, uint8_t);
 void	dhcp(Req*);
-void	fatal(int, char*, ...);
-void	hexopt(Req*, int, char*);
+void	fatal(int, int8_t*, ...);
+void	hexopt(Req*, int, int8_t*);
 void	logdhcp(Req*);
-void	logdhcpout(Req *, char *);
-void	longopt(Req*, int, long);
-void	maskopt(Req*, int, uchar*);
-void	miscoptions(Req*, uchar*);
-int	openlisten(char *net);
-void	p9addrsopt(Req *rp, int t, uchar **ip, int i);
+void	logdhcpout(Req *, int8_t *);
+void	longopt(Req*, int, int32_t);
+void	maskopt(Req*, int, uint8_t*);
+void	miscoptions(Req*, uint8_t*);
+int	openlisten(int8_t *net);
+void	p9addrsopt(Req *rp, int t, uint8_t **ip, int i);
 void	parseoptions(Req*);
 void	proto(Req*, int);
 void	rcvdecline(Req*);
@@ -194,22 +194,22 @@ void	rcvdiscover(Req*);
 void	rcvinform(Req*);
 void	rcvrelease(Req*);
 void	rcvrequest(Req*);
-int	readlast(int, uchar*, int);
-char*	readsysname(void);
+int	readlast(int, uint8_t*, int);
+int8_t*	readsysname(void);
 void	remrequested(Req*, int);
-void	sendack(Req*, uchar*, int, int);
-void	sendnak(Req*, char*);
-void	sendoffer(Req*, uchar*, int);
-void	stringopt(Req*, int, char*);
+void	sendack(Req*, uint8_t*, int, int);
+void	sendnak(Req*, int8_t*);
+void	sendoffer(Req*, uint8_t*, int);
+void	stringopt(Req*, int, int8_t*);
 void	termopt(Req*);
-int	validip(uchar*);
-void	vectoropt(Req*, int, uchar*, int);
-void	warning(int, char*, ...);
+int	validip(uint8_t*);
+void	vectoropt(Req*, int, uint8_t*, int);
+void	warning(int, int8_t*, ...);
 
 void
-timestamp(char *tag)
+timestamp(int8_t *tag)
 {
-	uvlong t;
+	uint64_t t;
 
 	t = nsec()/1000;
 	syslog(0, blog, "%s %lludµs", tag, t - start);
@@ -335,8 +335,8 @@ main(int argc, char **argv)
 void
 proto(Req *rp, int n)
 {
-	uchar relip[IPaddrlen];
-	char buf[64];
+	uint8_t relip[IPaddrlen];
+	int8_t buf[64];
 
 	now = time(0);
 
@@ -362,7 +362,7 @@ proto(Req *rp, int n)
 		ipmove(relip, rp->up->raddr);
 	else
 		ipmove(relip, rp->up->laddr);
-	if(rp->e < (uchar*)rp->bp->sname){
+	if(rp->e < (uint8_t*)rp->bp->sname){
 		warning(0, "packet too short");
 		return;
 	}
@@ -657,7 +657,7 @@ void
 rcvdecline(Req *rp)
 {
 	Binding *b;
-	char buf[64];
+	int8_t buf[64];
 
 	if(rp->staticbinding)
 		return;
@@ -719,7 +719,7 @@ rcvinform(Req *rp)
 }
 
 int
-setsiaddr(uchar *siaddr, uchar *saddr, uchar *laddr)
+setsiaddr(uint8_t *siaddr, uint8_t *saddr, uint8_t *laddr)
 {
 	if(ipcmp(saddr, IPnoaddr) != 0){
 		v6tov4(siaddr, saddr);
@@ -737,10 +737,10 @@ ismuted(Req *rp)
 }
 
 void
-sendoffer(Req *rp, uchar *ip, int offer)
+sendoffer(Req *rp, uint8_t *ip, int offer)
 {
 	int n;
-	ushort flags;
+	uint16_t flags;
 	Bootp *bp;
 	Udphdr *up;
 
@@ -797,10 +797,10 @@ sendoffer(Req *rp, uchar *ip, int offer)
 }
 
 void
-sendack(Req *rp, uchar *ip, int offer, int sendlease)
+sendack(Req *rp, uint8_t *ip, int offer, int sendlease)
 {
 	int n;
-	ushort flags;
+	uint16_t flags;
 	Bootp *bp;
 	Udphdr *up;
 
@@ -858,7 +858,7 @@ sendack(Req *rp, uchar *ip, int offer, int sendlease)
 }
 
 void
-sendnak(Req *rp, char *msg)
+sendnak(Req *rp, int8_t *msg)
 {
 	int n;
 	Bootp *bp;
@@ -916,7 +916,7 @@ bootp(Req *rp)
 	int n;
 	Bootp *bp;
 	Udphdr *up;
-	ushort flags;
+	uint16_t flags;
 	Iplifc *lifc;
 	Info *iip;
 
@@ -975,9 +975,10 @@ bootp(Req *rp)
 		memmove(bp->optmagic, plan9opt, 4);
 		if(iip->gwip == 0)
 			v4tov6(iip->gwip, bp->giaddr);
-		rp->p += sprint((char*)rp->p, "%V %I %I %I", iip->ipmask+IPv4off, iip->fsip,
+		rp->p += sprint((int8_t*)rp->p, "%V %I %I %I",
+				iip->ipmask+IPv4off, iip->fsip,
 				iip->auip, iip->gwip);
-		sprint(optbuf, "%s", (char*)(bp->optmagic));
+		sprint(optbuf, "%s", (int8_t*)(bp->optmagic));
 	} else if(rp->genrequest){
 		warning(0, "genericbootp: %I", iip->ipaddr);
 		memmove(bp->optmagic, genericopt, 4);
@@ -986,7 +987,7 @@ bootp(Req *rp)
 	} else if(iip->vendor[0] != 0) {
 		warning(0, "bootp vendor field: %s", iip->vendor);
 		memset(rp->p, 0, 128-4);
-		rp->p += sprint((char*)bp->optmagic, "%s", iip->vendor);
+		rp->p += sprint((int8_t*)bp->optmagic, "%s", iip->vendor);
 	} else {
 		memset(rp->p, 0, 128-4);
 		rp->p += 128-4;
@@ -1055,7 +1056,7 @@ void
 parseoptions(Req *rp)
 {
 	int n, c, code;
-	uchar *o, *p;
+	uint8_t *o, *p;
 
 	p = rp->p;
 
@@ -1120,8 +1121,9 @@ parseoptions(Req *rp)
 				n = sizeof(rp->vendorclass)-1;
 			memmove(rp->vendorclass, o, n);
 			rp->vendorclass[n] = 0;
-			if(strncmp((char*)rp->vendorclass, "p9-", 3) == 0)
-				strcpy(rp->cputype, (char*)rp->vendorclass+3);
+			if(strncmp((int8_t*)rp->vendorclass, "p9-", 3) == 0)
+				strcpy(rp->cputype,
+				       (int8_t*)rp->vendorclass+3);
 			break;
 		case OBend:
 			return;
@@ -1132,7 +1134,7 @@ parseoptions(Req *rp)
 void
 remrequested(Req *rp, int opt)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = memchr(rp->requested, opt, sizeof(rp->requested));
 	if(p != nil)
@@ -1140,14 +1142,14 @@ remrequested(Req *rp, int opt)
 }
 
 void
-miscoptions(Req *rp, uchar *ip)
+miscoptions(Req *rp, uint8_t *ip)
 {
 	int i, j, na;
-	uchar x[2*IPaddrlen], vopts[Maxoptlen];
-	uchar *op, *omax;
-	uchar *addrs[2];
-	char *p;
-	char *attr[100], **a;
+	uint8_t x[2*IPaddrlen], vopts[Maxoptlen];
+	uint8_t *op, *omax;
+	uint8_t *addrs[2];
+	int8_t *p;
+	int8_t *attr[100], **a;
 	Ndbtuple *t;
 
 	addrs[0] = x;
@@ -1206,8 +1208,8 @@ miscoptions(Req *rp, uchar *ip)
 			a[na++] = "@time";
 			break;
 		}
-	if(strncmp((char*)rp->vendorclass, "plan9_", 6) == 0
-	|| strncmp((char*)rp->vendorclass, "p9-", 3) == 0){
+	if(strncmp((int8_t*)rp->vendorclass, "plan9_", 6) == 0
+	|| strncmp((int8_t*)rp->vendorclass, "p9-", 3) == 0){
 		a[na++] = "@fs";
 		a[na++] = "@auth";
 	}
@@ -1271,8 +1273,8 @@ miscoptions(Req *rp, uchar *ip)
 		}
 
 	/* add plan9 specific options */
-	if(strncmp((char*)rp->vendorclass, "plan9_", 6) == 0
-	|| strncmp((char*)rp->vendorclass, "p9-", 3) == 0){
+	if(strncmp((int8_t*)rp->vendorclass, "plan9_", 6) == 0
+	|| strncmp((int8_t*)rp->vendorclass, "p9-", 3) == 0){
 		/* point to temporary area */
 		op = rp->p;
 		omax = rp->max;
@@ -1301,10 +1303,10 @@ miscoptions(Req *rp, uchar *ip)
 }
 
 int
-openlisten(char *net)
+openlisten(int8_t *net)
 {
 	int fd, cfd;
-	char data[128], devdir[40];
+	int8_t data[128], devdir[40];
 
 	sprint(data, "%s/udp!*!bootp", net);
 	cfd = announce(data, devdir);
@@ -1321,9 +1323,9 @@ openlisten(char *net)
 }
 
 void
-fatal(int syserr, char *fmt, ...)
+fatal(int syserr, int8_t *fmt, ...)
 {
-	char buf[Maxloglen];
+	int8_t buf[Maxloglen];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1337,9 +1339,9 @@ fatal(int syserr, char *fmt, ...)
 }
 
 void
-warning(int syserr, char *fmt, ...)
+warning(int syserr, int8_t *fmt, ...)
 {
-	char buf[Maxloglen];
+	int8_t buf[Maxloglen];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1356,11 +1358,11 @@ warning(int syserr, char *fmt, ...)
 	}
 }
 
-char*
+int8_t*
 readsysname(void)
 {
-	static char name[128];
-	char *p;
+	static int8_t name[128];
+	int8_t *p;
 	int n, fd;
 
 	fd = open("/dev/sysname", OREAD);
@@ -1379,7 +1381,7 @@ readsysname(void)
 }
 
 extern int
-validip(uchar *ip)
+validip(uint8_t *ip)
 {
 	if(ipcmp(ip, IPnoaddr) == 0)
 		return 0;
@@ -1389,7 +1391,7 @@ validip(uchar *ip)
 }
 
 void
-longopt(Req *rp, int t, long v)
+longopt(Req *rp, int t, int32_t v)
 {
 	if(rp->p + 6 > rp->max)
 		return;
@@ -1402,7 +1404,7 @@ longopt(Req *rp, int t, long v)
 }
 
 void
-addropt(Req *rp, int t, uchar *ip)
+addropt(Req *rp, int t, uint8_t *ip)
 {
 	if(rp->p + 6 > rp->max)
 		return;
@@ -1420,7 +1422,7 @@ addropt(Req *rp, int t, uchar *ip)
 }
 
 void
-maskopt(Req *rp, int t, uchar *ip)
+maskopt(Req *rp, int t, uint8_t *ip)
 {
 	if(rp->p + 6 > rp->max)
 		return;
@@ -1433,7 +1435,7 @@ maskopt(Req *rp, int t, uchar *ip)
 }
 
 void
-addrsopt(Req *rp, int t, uchar **ip, int i)
+addrsopt(Req *rp, int t, uint8_t **ip, int i)
 {
 	int v4s, n;
 
@@ -1469,21 +1471,21 @@ addrsopt(Req *rp, int t, uchar **ip, int i)
 }
 
 void
-p9addrsopt(Req *rp, int t, uchar **ip, int i)
+p9addrsopt(Req *rp, int t, uint8_t **ip, int i)
 {
-	char *pkt, *payload;
+	int8_t *pkt, *payload;
 
 	if(i <= 0 || !v6opts)
 		return;
-	pkt = (char *)rp->p;
+	pkt = (int8_t *)rp->p;
 	*pkt++ = t;			/* option */
 	pkt++;				/* fill in payload length below */
 	payload = pkt;
 	*pkt++ = i;			/* plan 9 address count */
 	op = seprint(op, oe, " %s(", optname[t]);
 	while(i-- > 0){
-		pkt = seprint(pkt, (char *)rp->max, "%I", *ip);
-		if ((uchar *)pkt+1 >= rp->max) {
+		pkt = seprint(pkt, (int8_t *)rp->max, "%I", *ip);
+		if ((uint8_t *)pkt+1 >= rp->max) {
 			op = seprint(op, oe, "<out of mem1>)");
 			return;
 		}
@@ -1493,17 +1495,17 @@ p9addrsopt(Req *rp, int t, uchar **ip, int i)
 		if(i > 0)
 			op = seprint(op, oe, " ");
 	}
-	if ((uchar *)pkt - rp->p > 0377) {
+	if ((uint8_t *)pkt - rp->p > 0377) {
 		op = seprint(op, oe, "<out of mem2>)");
 		return;
 	}
 	op = seprint(op, oe, ")");
 	rp->p[1] = pkt - payload;	/* payload length */
-	rp->p = (uchar *)pkt;
+	rp->p = (uint8_t *)pkt;
 }
 
 void
-byteopt(Req *rp, int t, uchar v)
+byteopt(Req *rp, int t, uint8_t v)
 {
 	if(rp->p + 3 > rp->max)
 		return;
@@ -1523,7 +1525,7 @@ termopt(Req *rp)
 }
 
 void
-stringopt(Req *rp, int t, char *str)
+stringopt(Req *rp, int t, int8_t *str)
 {
 	int n;
 
@@ -1541,7 +1543,7 @@ stringopt(Req *rp, int t, char *str)
 }
 
 void
-vectoropt(Req *rp, int t, uchar *v, int n)
+vectoropt(Req *rp, int t, uint8_t *v, int n)
 {
 	int i;
 
@@ -1573,7 +1575,7 @@ fromhex(int x)
 }
 
 void
-hexopt(Req *rp, int t, char *str)
+hexopt(Req *rp, int t, int8_t *str)
 {
 	int n;
 
@@ -1594,10 +1596,10 @@ hexopt(Req *rp, int t, char *str)
 }
 
 void
-arpenter(uchar *ip, uchar *ether)
+arpenter(uint8_t *ip, uint8_t *ether)
 {
 	int f;
-	char buf[256];
+	int8_t buf[256];
 
 	sprint(buf, "%s/arp", net);
 	f = open(buf, OWRITE);
@@ -1624,8 +1626,8 @@ char *dhcpmsgname[] =
 void
 logdhcp(Req *rp)
 {
-	char buf[4096];
-	char *p, *e;
+	int8_t buf[4096];
+	int8_t *p, *e;
 	int i;
 
 	p = buf;
@@ -1661,7 +1663,7 @@ logdhcp(Req *rp)
 }
 
 void
-logdhcpout(Req *rp, char *type)
+logdhcpout(Req *rp, int8_t *type)
 {
 	syslog(0, blog, "%s(%I-%I)id(%s)ci(%V)gi(%V)yi(%V)si(%V) %s",
 		type, rp->up->laddr, rp->up->raddr, rp->id,
@@ -1674,7 +1676,7 @@ logdhcpout(Req *rp, char *type)
  *  So dump all but the last message in the queue.
  */
 void
-ding(void*, char *msg)
+ding(void*, int8_t *msg)
 {
 	if(strstr(msg, "alarm"))
 		noted(NCONT);
@@ -1683,7 +1685,7 @@ ding(void*, char *msg)
 }
 
 int
-readlast(int fd, uchar *buf, int len)
+readlast(int fd, uint8_t *buf, int len)
 {
 	int lastn, n;
 

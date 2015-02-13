@@ -13,11 +13,11 @@
 /* MAXHOSTNAMELEN is in sys/param.h */
 #define MAXHOSTNAMELEN	64
 
-char lockstring[MAXHOSTNAMELEN+8];
+int8_t lockstring[MAXHOSTNAMELEN+8];
 
 void
-main(int argc, char *argv[]) {
-	char *lockfile;
+main(int argc, int8_t *argv[]) {
+	int8_t *lockfile;
 	int fd, ppid, ssize;
 	struct Dir *statbuf;
 

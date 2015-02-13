@@ -13,13 +13,13 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-char	*authaddr;
+int8_t	*authaddr;
 static void glenda(void);
 
 void
 authentication(int cpuflag)
 {
-	char *argv[16], **av;
+	int8_t *argv[16], **av;
 	int ac;
 
 	if(access("/boot/factotum", AEXEC) < 0){
@@ -67,7 +67,7 @@ static void
 glenda(void)
 {
 	int fd;
-	char *s;
+	int8_t *s;
 
 	s = getenv("user");
 	if(s == nil)

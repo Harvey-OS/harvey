@@ -11,13 +11,13 @@
 #include <libc.h>
 #include <authsrv.h>
 
-static char *pbmsg = "AS protocol botch";
+static int8_t *pbmsg = "AS protocol botch";
 
 int
-_asrdresp(int fd, char *buf, int len)
+_asrdresp(int fd, int8_t *buf, int len)
 {
 	int n;
-	char error[64];
+	int8_t error[64];
 
 	if(read(fd, buf, 1) != 1){
 		werrstr(pbmsg);

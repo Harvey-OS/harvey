@@ -131,7 +131,7 @@ static void delete_inc_int_info(FT_IncrementalRec* a_inc_int_info)
 static FT_Error get_fapi_glyph_data(FT_Incremental a_info,FT_UInt a_index,FT_Data* a_data)
 	{
     FAPI_font* ff = a_info->m_fapi_font;
-	ushort length = 0;
+	uint16_t length = 0;
 
 	/* Tell the FAPI interface that we need to decrypt the glyph data. */
 	ff->need_decrypt = true;
@@ -157,7 +157,7 @@ static FT_Error get_fapi_glyph_data(FT_Incremental a_info,FT_UInt a_index,FT_Dat
 		const void* saved_char_data = ff->char_data;
 
 		/* Get as much of the glyph data as possible into the buffer */
-		length = ff->get_glyph(ff,a_index,a_info->m_glyph_data,(ushort)a_info->m_glyph_data_length);
+		length = ff->get_glyph(ff,a_index,a_info->m_glyph_data,(uint16_t)a_info->m_glyph_data_length);
 
 		/* If the buffer was too small enlarge it and try again. */
 		if (length > a_info->m_glyph_data_length)
@@ -453,7 +453,7 @@ Open a font and set its size.
 */
 static FAPI_retcode get_scaled_font(FAPI_server* a_server,FAPI_font* a_font,int a_subfont,
 									const FAPI_font_scale* a_font_scale,
-									const char* a_map,bool a_vertical,
+									const int8_t* a_map,bool a_vertical,
 									FAPI_descendant_code a_descendant_code)
 	{
 	FF_server* s = (FF_server*)a_server;
@@ -502,7 +502,7 @@ static FAPI_retcode get_scaled_font(FAPI_server* a_server,FAPI_font* a_font,int 
 
 			if (a_font->is_type1)
 				{
-				long length;
+				int32_t length;
 				int type = a_font->get_word(a_font,FAPI_FONT_FEATURE_FontType,0);
 
 				/* Tell the FAPI interface that we need to decrypt the /Subrs data. */
@@ -642,7 +642,7 @@ Return the name of a resource which maps names to character codes. Do this by se
 to point to a null-terminated string. The resource is in the 'decoding' directory in the directory named by
 /GenericResourceDir in \lib\gs_res.ps.
 */
-static FAPI_retcode get_decodingID(FAPI_server* a_server,FAPI_font* a_font,const char** a_decoding_id)
+static FAPI_retcode get_decodingID(FAPI_server* a_server,FAPI_font* a_font,const int8_t** a_decoding_id)
 	{
 	*a_decoding_id = "Unicode";
 	return 0;
@@ -681,7 +681,7 @@ static FAPI_retcode can_retrieve_char_by_name(FAPI_server* a_server,FAPI_font* a
 											  bool* a_result)
 	{
 	FF_face* face = (FF_face*)a_font->server_font_data;
-	char name[128];
+	int8_t name[128];
 	if (FT_HAS_GLYPH_NAMES(face->m_ft_face) && a_char_ref->char_name_length < sizeof(name))
 		{
 		memcpy(name,a_char_ref->char_name,a_char_ref->char_name_length);

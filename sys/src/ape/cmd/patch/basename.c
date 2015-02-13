@@ -27,15 +27,15 @@
    since it has different meanings in different environments.
    In some environments the builtin `basename' modifies its argument.  */
 
-char *
+int8_t *
 base_name (name)
-     char const *name;
+     int8_t const *name;
 {
-  char const *base = name += FILESYSTEM_PREFIX_LEN (name);
+  int8_t const *base = name += FILESYSTEM_PREFIX_LEN (name);
 
   for (; *name; name++)
     if (ISSLASH (*name))
       base = name + 1;
 
-  return (char *) base;
+  return (int8_t *) base;
 }

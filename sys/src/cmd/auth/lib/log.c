@@ -14,9 +14,9 @@
 #include "authcmdlib.h"
 
 static void
-record(char *db, char *user, char *msg)
+record(int8_t *db, int8_t *user, int8_t *msg)
 {
-	char buf[Maxpath];
+	int8_t buf[Maxpath];
 	int fd;
 
 	snprint(buf, sizeof buf, "%s/%s/log", db, user);
@@ -29,7 +29,7 @@ record(char *db, char *user, char *msg)
 }
 
 void
-logfail(char *user)
+logfail(int8_t *user)
 {
 	if(!user)
 		return;
@@ -38,7 +38,7 @@ logfail(char *user)
 }
 
 void
-succeed(char *user)
+succeed(int8_t *user)
 {
 	if(!user)
 		return;
@@ -47,7 +47,7 @@ succeed(char *user)
 }
 
 void
-fail(char *user)
+fail(int8_t *user)
 {
 	logfail(user);
 	exits("failure");

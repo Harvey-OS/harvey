@@ -18,18 +18,18 @@ int usemenu = 1;
 int isatty(int);
 int rawhack;
 int forwardagent = 0;
-char *buildcmd(int, char**);
+int8_t *buildcmd(int, int8_t**);
 void fromnet(Conn*);
 void fromstdin(Conn*);
 void winchanges(Conn*);
-static void	sendwritemsg(Conn *c, char *buf, int n);
+static void	sendwritemsg(Conn *c, int8_t *buf, int n);
 
 /*
  * Lifted from telnet.c, con.c
  */
 static int consctl = -1;
 static int outfd = 1;			/* changed during system */
-static void system(Conn*, char*);
+static void system(Conn*, int8_t*);
 
 Cipher *allcipher[] = {
 	&cipherrc4,
@@ -46,11 +46,11 @@ Auth *allauth[] = {
 	&authtis,
 };
 
-char *cipherlist = "blowfish rc4 3des";
-char *authlist = "rsa password tis";
+int8_t *cipherlist = "blowfish rc4 3des";
+int8_t *authlist = "rsa password tis";
 
 Cipher*
-findcipher(char *name, Cipher **list, int nlist)
+findcipher(int8_t *name, Cipher **list, int nlist)
 {
 	int i;
 
@@ -62,7 +62,7 @@ findcipher(char *name, Cipher **list, int nlist)
 }
 
 Auth*
-findauth(char *name, Auth **list, int nlist)
+findauth(int8_t *name, Auth **list, int nlist)
 {
 	int i;
 
@@ -222,7 +222,7 @@ main(int argc, char **argv)
 int
 isatty(int fd)
 {
-	char buf[64];
+	int8_t buf[64];
 
 	buf[0] = '\0';
 	fd2path(fd, buf, sizeof buf);
@@ -231,11 +231,11 @@ isatty(int fd)
 	return 0;
 }
 
-char*
-buildcmd(int argc, char **argv)
+int8_t*
+buildcmd(int argc, int8_t **argv)
 {
 	int i, len;
-	char *s, *t;
+	int8_t *s, *t;
 
 	len = argc-1;
 	for(i=0; i<argc; i++)
@@ -256,9 +256,9 @@ void
 fromnet(Conn *c)
 {
 	int fd, len;
-	char *s, *es, *r, *w;
-	ulong ex;
-	char buf[64];
+	int8_t *s, *es, *r, *w;
+	uint32_t ex;
+	int8_t buf[64];
 	Msg *m;
 
 	for(;;){
@@ -314,7 +314,7 @@ fromnet(Conn *c)
 			goto Dataout;
 		Dataout:
 			len = getlong(m);
-			s = (char*)getbytes(m, len);
+			s = (int8_t*)getbytes(m, len);
 			if(crstrip){
 				es = s+len;
 				for(r=w=s; r<es; r++)
@@ -373,8 +373,8 @@ rawoff(void)
 static int
 menu(Conn *c)
 {
-	char buf[1024];
-	long n;
+	int8_t buf[1024];
+	int32_t n;
 	int done;
 	int wasraw;
 
@@ -425,7 +425,7 @@ menu(Conn *c)
 }
 
 static void
-sendwritemsg(Conn *c, char *buf, int n)
+sendwritemsg(Conn *c, int8_t *buf, int n)
 {
 	Msg *m;
 
@@ -443,14 +443,14 @@ sendwritemsg(Conn *c, char *buf, int n)
  *  run a command with the network connection as standard IO
  */
 static void
-system(Conn *c, char *cmd)
+system(Conn *c, int8_t *cmd)
 {
 	int pid;
 	int p;
 	int pfd[2];
 	int n;
 	int wasconsctl;
-	char buf[4096];
+	int8_t buf[4096];
 
 	if(pipe(pfd) < 0){
 		perror("pipe");
@@ -497,7 +497,7 @@ system(Conn *c, char *cmd)
 }
 
 static void
-cookedcatchint(void*, char *msg)
+cookedcatchint(void*, int8_t *msg)
 {
 	if(strstr(msg, "interrupt"))
 		noted(NCONT);
@@ -510,7 +510,7 @@ cookedcatchint(void*, char *msg)
 static int
 wasintr(void)
 {
-	char err[64];
+	int8_t err[64];
 
 	rerrstr(err, sizeof err);
 	return strstr(err, "interrupt") != 0;
@@ -520,7 +520,7 @@ void
 fromstdin(Conn *c)
 {
 	int n;
-	char buf[1024];
+	int8_t buf[1024];
 	int pid;
 	int eofs;
 

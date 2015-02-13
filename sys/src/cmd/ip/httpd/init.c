@@ -22,9 +22,9 @@ usage(void)
 	exits("usage");
 }
 
-char	*netdir;
-char	*webroot;
-char	*HTTPLOG = "httpd/log";
+int8_t	*netdir;
+int8_t	*webroot;
+int8_t	*HTTPLOG = "httpd/log";
 
 static	HConnect	connect;
 static	HSPriv		priv;

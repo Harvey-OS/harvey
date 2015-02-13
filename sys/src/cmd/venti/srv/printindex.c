@@ -31,7 +31,7 @@ usage(void)
 Config conf;
 
 int
-shoulddump(char *name, int argc, char **argv)
+shoulddump(int8_t *name, int argc, int8_t **argv)
 {
 	int i;
 
@@ -47,7 +47,7 @@ void
 dumpisect(ISect *is)
 {
 	int j;
-	uchar *buf;
+	uint8_t *buf;
 	u32int i;
 	u64int off;
 	IBucket ib;

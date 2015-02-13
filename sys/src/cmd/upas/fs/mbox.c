@@ -16,26 +16,26 @@
 typedef struct Header Header;
 
 struct Header {
-	char *type;
-	void (*f)(Message*, Header*, char*);
+	int8_t *type;
+	void (*f)(Message*, Header*, int8_t*);
 	int len;
 };
 
 /* headers */
-static	void	ctype(Message*, Header*, char*);
-static	void	cencoding(Message*, Header*, char*);
-static	void	cdisposition(Message*, Header*, char*);
-static	void	date822(Message*, Header*, char*);
-static	void	from822(Message*, Header*, char*);
-static	void	to822(Message*, Header*, char*);
-static	void	sender822(Message*, Header*, char*);
-static	void	replyto822(Message*, Header*, char*);
-static	void	subject822(Message*, Header*, char*);
-static	void	inreplyto822(Message*, Header*, char*);
-static	void	cc822(Message*, Header*, char*);
-static	void	bcc822(Message*, Header*, char*);
-static	void	messageid822(Message*, Header*, char*);
-static	void	mimeversion(Message*, Header*, char*);
+static	void	ctype(Message*, Header*, int8_t*);
+static	void	cencoding(Message*, Header*, int8_t*);
+static	void	cdisposition(Message*, Header*, int8_t*);
+static	void	date822(Message*, Header*, int8_t*);
+static	void	from822(Message*, Header*, int8_t*);
+static	void	to822(Message*, Header*, int8_t*);
+static	void	sender822(Message*, Header*, int8_t*);
+static	void	replyto822(Message*, Header*, int8_t*);
+static	void	subject822(Message*, Header*, int8_t*);
+static	void	inreplyto822(Message*, Header*, int8_t*);
+static	void	cc822(Message*, Header*, int8_t*);
+static	void	bcc822(Message*, Header*, int8_t*);
+static	void	messageid822(Message*, Header*, int8_t*);
+static	void	mimeversion(Message*, Header*, int8_t*);
 static	void	nullsqueeze(Message*);
 enum
 {
@@ -62,23 +62,23 @@ Header head[] =
 	{ 0, },
 };
 
-static	void	fatal(char *fmt, ...);
+static	void	fatal(int8_t *fmt, ...);
 static	void	initquoted(void);
 static	void	startheader(Message*);
 static	void	startbody(Message*);
-static	char*	skipwhite(char*);
-static	char*	skiptosemi(char*);
-static	char*	getstring(char*, String*, int);
-static	void	setfilename(Message*, char*);
-static	char*	lowercase(char*);
+static	int8_t*	skipwhite(int8_t*);
+static	int8_t*	skiptosemi(int8_t*);
+static	int8_t*	getstring(int8_t*, String*, int);
+static	void	setfilename(Message*, int8_t*);
+static	int8_t*	lowercase(int8_t*);
 static	int	is8bit(Message*);
-static	int	headerline(char**, String*);
+static	int	headerline(int8_t**, String*);
 static	void	initheaders(void);
 static void	parseattachments(Message*, Mailbox*);
 
 int		debug;
 
-char *Enotme = "path not served by this file server";
+int8_t *Enotme = "path not served by this file server";
 
 enum
 {
@@ -93,18 +93,18 @@ Mailboxinit *boxinit[] = {
 	plan9mbox,
 };
 
-char*
+int8_t*
 syncmbox(Mailbox *mb, int doplumb)
 {
 	return (*mb->sync)(mb, doplumb);
 }
 
 /* create a new mailbox */
-char*
-newmbox(char *path, char *name, int std)
+int8_t*
+newmbox(int8_t *path, int8_t *name, int std)
 {
 	Mailbox *mb, **l;
-	char *p, *rv;
+	int8_t *p, *rv;
 	int i;
 
 	initheaders();
@@ -182,7 +182,7 @@ newmbox(char *path, char *name, int std)
 
 // close the named mailbox
 void
-freembox(char *name)
+freembox(int8_t *name)
 {
 	Mailbox **l, *mb;
 
@@ -219,7 +219,7 @@ initheaders(void)
 void
 parseunix(Message *m)
 {
-	char *p;
+	int8_t *p;
 	String *h;
 
 	h = s_new();
@@ -242,7 +242,7 @@ parseheaders(Message *m, int justmime, Mailbox *mb, int addfrom)
 {
 	String *hl;
 	Header *h;
-	char *p, *q;
+	int8_t *p, *q;
 	int i;
 
 	if(m->whole == m->whole->whole){
@@ -405,7 +405,7 @@ static void
 parseattachments(Message *m, Mailbox *mb)
 {
 	Message *nm, **l;
-	char *p, *x;
+	int8_t *p, *x;
 
 	// if there's a boundary, recurse...
 	if(m->boundary != nil){
@@ -464,9 +464,9 @@ parseattachments(Message *m, Mailbox *mb)
  *  pick up a header line
  */
 static int
-headerline(char **pp, String *hl)
+headerline(int8_t **pp, String *hl)
 {
-	char *p, *x;
+	int8_t *p, *x;
 
 	s_reset(hl);
 	p = *pp;
@@ -491,7 +491,7 @@ headerline(char **pp, String *hl)
 
 /* returns nil iff there are no addressees */
 static String*
-addr822(char *p)
+addr822(int8_t *p)
 {
 	String *s, *list;
 	int incomment, addrdone, inanticomment, quoted;
@@ -596,7 +596,7 @@ addr822(char *p)
  */
 
 static void
-to822(Message *m, Header *h, char *p)
+to822(Message *m, Header *h, int8_t *p)
 {
 	String *s;
 
@@ -612,7 +612,7 @@ to822(Message *m, Header *h, char *p)
 }
 
 static void
-cc822(Message *m, Header *h, char *p)
+cc822(Message *m, Header *h, int8_t *p)
 {
 	String *s;
 
@@ -628,7 +628,7 @@ cc822(Message *m, Header *h, char *p)
 }
 
 static void
-bcc822(Message *m, Header *h, char *p)
+bcc822(Message *m, Header *h, int8_t *p)
 {
 	String *s;
 
@@ -644,7 +644,7 @@ bcc822(Message *m, Header *h, char *p)
 }
 
 static void
-from822(Message *m, Header *h, char *p)
+from822(Message *m, Header *h, int8_t *p)
 {
 	p += strlen(h->type);
 	s_free(m->from822);
@@ -652,7 +652,7 @@ from822(Message *m, Header *h, char *p)
 }
 
 static void
-sender822(Message *m, Header *h, char *p)
+sender822(Message *m, Header *h, int8_t *p)
 {
 	p += strlen(h->type);
 	s_free(m->sender822);
@@ -660,7 +660,7 @@ sender822(Message *m, Header *h, char *p)
 }
 
 static void
-replyto822(Message *m, Header *h, char *p)
+replyto822(Message *m, Header *h, int8_t *p)
 {
 	p += strlen(h->type);
 	s_free(m->replyto822);
@@ -668,7 +668,7 @@ replyto822(Message *m, Header *h, char *p)
 }
 
 static void
-mimeversion(Message *m, Header *h, char *p)
+mimeversion(Message *m, Header *h, int8_t *p)
 {
 	p += strlen(h->type);
 	s_free(m->mimeversion);
@@ -676,9 +676,9 @@ mimeversion(Message *m, Header *h, char *p)
 }
 
 static void
-killtrailingwhite(char *p)
+killtrailingwhite(int8_t *p)
 {
-	char *e;
+	int8_t *e;
 
 	e = p + strlen(p) - 1;
 	while(e > p && isspace(*e))
@@ -686,7 +686,7 @@ killtrailingwhite(char *p)
 }
 
 static void
-date822(Message *m, Header *h, char *p)
+date822(Message *m, Header *h, int8_t *p)
 {
 	p += strlen(h->type);
 	p = skipwhite(p);
@@ -697,7 +697,7 @@ date822(Message *m, Header *h, char *p)
 }
 
 static void
-subject822(Message *m, Header *h, char *p)
+subject822(Message *m, Header *h, int8_t *p)
 {
 	p += strlen(h->type);
 	p = skipwhite(p);
@@ -708,7 +708,7 @@ subject822(Message *m, Header *h, char *p)
 }
 
 static void
-inreplyto822(Message *m, Header *h, char *p)
+inreplyto822(Message *m, Header *h, int8_t *p)
 {
 	p += strlen(h->type);
 	p = skipwhite(p);
@@ -719,7 +719,7 @@ inreplyto822(Message *m, Header *h, char *p)
 }
 
 static void
-messageid822(Message *m, Header *h, char *p)
+messageid822(Message *m, Header *h, int8_t *p)
 {
 	p += strlen(h->type);
 	p = skipwhite(p);
@@ -730,9 +730,9 @@ messageid822(Message *m, Header *h, char *p)
 }
 
 static int
-isattribute(char **pp, char *attr)
+isattribute(int8_t **pp, int8_t *attr)
 {
-	char *p;
+	int8_t *p;
 	int n;
 
 	n = strlen(attr);
@@ -751,7 +751,7 @@ isattribute(char **pp, char *attr)
 }
 
 static void
-ctype(Message *m, Header *h, char *p)
+ctype(Message *m, Header *h, int8_t *p)
 {
 	String *s;
 
@@ -785,7 +785,7 @@ ctype(Message *m, Header *h, char *p)
 }
 
 static void
-cencoding(Message *m, Header *h, char *p)
+cencoding(Message *m, Header *h, int8_t *p)
 {
 	p += h->len;
 	p = skipwhite(p);
@@ -796,7 +796,7 @@ cencoding(Message *m, Header *h, char *p)
 }
 
 static void
-cdisposition(Message *m, Header *h, char *p)
+cdisposition(Message *m, Header *h, int8_t *p)
 {
 	p += h->len;
 	p = skipwhite(p);
@@ -814,7 +814,7 @@ cdisposition(Message *m, Header *h, char *p)
 
 }
 
-ulong msgallocd, msgfreed;
+uint32_t msgallocd, msgfreed;
 
 Message*
 newmessage(Message *parent)
@@ -902,7 +902,7 @@ delmessage(Mailbox *mb, Message *m)
 
 // mark messages (identified by path) for deletion
 void
-delmessages(int ac, char **av)
+delmessages(int ac, int8_t **av)
 {
 	Mailbox *mb;
 	Message *m;
@@ -979,7 +979,7 @@ mboxdecref(Mailbox *mb)
 }
 
 int
-cistrncmp(char *a, char *b, int n)
+cistrncmp(int8_t *a, int8_t *b, int n)
 {
 	while(n-- > 0){
 		if(tolower(*a++) != tolower(*b++))
@@ -989,7 +989,7 @@ cistrncmp(char *a, char *b, int n)
 }
 
 int
-cistrcmp(char *a, char *b)
+cistrcmp(int8_t *a, int8_t *b)
 {
 	for(;;){
 		if(tolower(*a) != tolower(*b++))
@@ -1000,16 +1000,16 @@ cistrcmp(char *a, char *b)
 	return 0;
 }
 
-static char*
-skipwhite(char *p)
+static int8_t*
+skipwhite(int8_t *p)
 {
 	while(isspace(*p))
 		p++;
 	return p;
 }
 
-static char*
-skiptosemi(char *p)
+static int8_t*
+skiptosemi(int8_t *p)
 {
 	while(*p && *p != ';')
 		p++;
@@ -1018,8 +1018,8 @@ skiptosemi(char *p)
 	return p;
 }
 
-static char*
-getstring(char *p, String *s, int dolower)
+static int8_t*
+getstring(int8_t *p, String *s, int dolower)
 {
 	s = s_reset(s);
 	p = skipwhite(p);
@@ -1048,7 +1048,7 @@ getstring(char *p, String *s, int dolower)
 }
 
 static void
-setfilename(Message *m, char *p)
+setfilename(Message *m, int8_t *p)
 {
 	m->filename = s_reset(m->filename);
 	getstring(p, m->filename, 0);
@@ -1064,7 +1064,7 @@ void
 decode(Message *m)
 {
 	int i, len;
-	char *x;
+	int8_t *x;
 
 	if(m->decoded)
 		return;
@@ -1073,7 +1073,7 @@ decode(Message *m)
 		len = m->bend - m->body;
 		i = (len*3)/4+1;	// room for max chars + null
 		x = emalloc(i);
-		len = dec64((uchar*)x, i, m->body, len);
+		len = dec64((uint8_t*)x, i, m->body, len);
 		if(m->ballocd)
 			free(m->body);
 		m->body = x;
@@ -1101,7 +1101,7 @@ void
 convert(Message *m)
 {
 	int len;
-	char *x;
+	int8_t *x;
 
 	// don't convert if we're not a leaf, not text, or already converted
 	if(m->converted)
@@ -1136,8 +1136,8 @@ hex2int(int x)
 
 // underscores are translated in 2047 headers (uscores=1) 
 // but not in the body (uscores=0)
-static char*
-decquotedline(char *out, char *in, char *e, int uscores)
+static int8_t*
+decquotedline(int8_t *out, int8_t *in, int8_t *e, int uscores)
 {
 	int c, c2, soft;
 
@@ -1183,9 +1183,9 @@ decquotedline(char *out, char *in, char *e, int uscores)
 }
 
 int
-decquoted(char *out, char *in, char *e, int uscores)
+decquoted(int8_t *out, int8_t *in, int8_t *e, int uscores)
 {
-	char *p, *nl;
+	int8_t *p, *nl;
 
 	p = out;
 	while((nl = strchr(in, '\n')) != nil && nl < e){
@@ -1204,10 +1204,10 @@ decquoted(char *out, char *in, char *e, int uscores)
 	return p - out;
 }
 
-static char*
-lowercase(char *p)
+static int8_t*
+lowercase(int8_t *p)
 {
-	char *op;
+	int8_t *op;
 	int c;
 
 	for(op = p; c = *p; p++)
@@ -1218,10 +1218,10 @@ lowercase(char *p)
 
 // translate latin1 directly since it fits neatly in utf
 static int
-latin1toutf(char **out, char *in, char *e)
+latin1toutf(int8_t **out, int8_t *in, int8_t *e)
 {
 	int n;
-	char *p;
+	int8_t *p;
 	Rune r;
 
 	n = 0;
@@ -1237,7 +1237,7 @@ latin1toutf(char **out, char *in, char *e)
 		return 0;
 
 	for(; in < e; in++){
-		r = (uchar)*in;
+		r = (uint8_t)*in;
 		p += runetochar(p, &r);
 	}
 	*p = 0;
@@ -1246,13 +1246,13 @@ latin1toutf(char **out, char *in, char *e)
 
 // translate any thing using the tcs program
 int
-xtoutf(char *charset, char **out, char *in, char *e)
+xtoutf(int8_t *charset, int8_t **out, int8_t *in, int8_t *e)
 {
-	char *av[4];
+	int8_t *av[4];
 	int totcs[2];
 	int fromtcs[2];
 	int n, len, sofar;
-	char *p;
+	int8_t *p;
 
 	// might not need to convert
 	if(cistrcmp(charset, "us-ascii") == 0 || cistrcmp(charset, "utf-8") == 0)
@@ -1337,7 +1337,7 @@ error:
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -1351,7 +1351,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	if(n == 0)
 		n = 1;
@@ -1369,9 +1369,9 @@ mailplumb(Mailbox *mb, Message *m, int delete)
 {
 	Plumbmsg p;
 	Plumbattr a[7];
-	char buf[256];
+	int8_t buf[256];
 	int ai;
-	char lenstr[10], *from, *subject, *date;
+	int8_t lenstr[10], *from, *subject, *date;
 	static int fd = -1;
 
 	if(m->subject822 == nil)
@@ -1453,7 +1453,7 @@ void
 countlines(Message *m)
 {
 	int i;
-	char *p;
+	int8_t *p;
 
 	i = 0;
 	for(p = strchr(m->rbody, '\n'); p != nil && p < m->rbend; p = strchr(p+1, '\n'))
@@ -1461,10 +1461,10 @@ countlines(Message *m)
 	sprint(m->lines, "%d", i);
 }
 
-char *LOG = "fs";
+int8_t *LOG = "fs";
 
 void
-logmsg(char *s, Message *m)
+logmsg(int8_t *s, Message *m)
 {
 	int pid;
 
@@ -1486,7 +1486,7 @@ logmsg(char *s, Message *m)
 static void
 nullsqueeze(Message *m)
 {
-	char *p, *q;
+	int8_t *p, *q;
 
 	q = memchr(m->body, 0, m->end-m->body);
 	if(q == nil)
@@ -1511,11 +1511,11 @@ nullsqueeze(Message *m)
 // so we use strtotm, which is a bunch of heuristics.
 //
 
-extern int strtotm(char*, Tm*);
+extern int strtotm(int8_t*, Tm*);
 String*
-date822tounix(char *s)
+date822tounix(int8_t *s)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	Tm tm;
 
 	if(strtotm(s, &tm) < 0)

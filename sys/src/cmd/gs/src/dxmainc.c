@@ -49,11 +49,11 @@
 #include "ierrors.h"
 #include "iapi.h"
 
-const char start_string[] = "systemdict /start get exec\n";
+const int8_t start_string[] = "systemdict /start get exec\n";
 
-static int gsdll_stdin(void *instance, char *buf, int len);
-static int gsdll_stdout(void *instance, const char *str, int len);
-static int gsdll_stdout(void *instance, const char *str, int len);
+static int gsdll_stdin(void *instance, int8_t *buf, int len);
+static int gsdll_stdout(void *instance, const int8_t *str, int len);
+static int gsdll_stdout(void *instance, const int8_t *str, int len);
 
 /*********************************************************************/
 /* stdio functions */
@@ -61,13 +61,13 @@ static int gsdll_stdout(void *instance, const char *str, int len);
 /* callback for reading stdin */
 /* Use async input */
 static int 
-gsdll_stdin(void *instance, char *buf, int len)
+gsdll_stdin(void *instance, int8_t *buf, int len)
 {
     return read(fileno(stdin), buf, len);
 }
 
 static int 
-gsdll_stdout(void *instance, const char *str, int len)
+gsdll_stdout(void *instance, const int8_t *str, int len)
 {
     fwrite(str, 1, len, stdout);
     fflush(stdout);
@@ -75,7 +75,7 @@ gsdll_stdout(void *instance, const char *str, int len)
 }
 
 static int 
-gsdll_stderr(void *instance, const char *str, int len)
+gsdll_stderr(void *instance, const int8_t *str, int len)
 {
     fwrite(str, 1, len, stderr);
     fflush(stderr);
@@ -84,7 +84,7 @@ gsdll_stderr(void *instance, const char *str, int len)
 
 /*********************************************************************/
 
-int main(int argc, char *argv[])
+int main(int argc, int8_t *argv[])
 {
     int exit_status;
     int code = 1, code1;

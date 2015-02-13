@@ -12,7 +12,7 @@
 #include <bio.h>
 
 void*
-emalloc(ulong sz)
+emalloc(uint32_t sz)
 {
 	void *v;
 
@@ -24,7 +24,7 @@ emalloc(ulong sz)
 }
 
 void*
-erealloc(void *v, ulong sz)
+erealloc(void *v, uint32_t sz)
 {
 	v = realloc(v, sz);
 	if(v == nil)
@@ -32,10 +32,10 @@ erealloc(void *v, ulong sz)
 	return v;
 }
 
-char*
-estrdup(char* s)
+int8_t*
+estrdup(int8_t* s)
 {
-	char *r;
+	int8_t *r;
 
 	r = strdup(s);
 	if(r == nil)
@@ -46,21 +46,21 @@ estrdup(char* s)
 typedef struct Block Block;
 typedef struct Data Data;
 struct Block {
-	ulong addr;
-	ulong size;
-	ulong w0;
-	ulong w1;
-	char *s0;
-	char *s1;
+	uint32_t addr;
+	uint32_t size;
+	uint32_t w0;
+	uint32_t w1;
+	int8_t *s0;
+	int8_t *s1;
 	int mark;
 	int free;
 	Data *d;
 };
 
 struct Data {
-	ulong addr;
-	ulong val;
-	uchar type;
+	uint32_t addr;
+	uint32_t val;
+	uint8_t type;
 	Block *b;
 };
 
@@ -76,7 +76,7 @@ uint adata;
 int
 addrcmp(void *va, void *vb)
 {
-	ulong *a, *b;
+	uint32_t *a, *b;
 
 	a = va;
 	b = vb;
@@ -88,7 +88,7 @@ addrcmp(void *va, void *vb)
 }
 
 Block*
-findblock(ulong addr)
+findblock(uint32_t addr)
 {
 	int lo, hi, m;
 
@@ -108,7 +108,7 @@ findblock(ulong addr)
 }
 
 Data*
-finddata(ulong addr)
+finddata(uint32_t addr)
 {
 	int lo, hi, m;
 
@@ -132,10 +132,10 @@ finddata(ulong addr)
 int nmark;
 
 int
-markblock(ulong from, ulong fromval, Block *b)
+markblock(uint32_t from, uint32_t fromval, Block *b)
 {
 	Data *d;
-	ulong top;
+	uint32_t top;
 	Block *nb;
 
 USED(from, fromval);

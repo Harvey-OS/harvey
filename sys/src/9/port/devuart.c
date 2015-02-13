@@ -132,7 +132,7 @@ uartdisable(Uart *p)
 }
 
 Uart*
-uartconsole(int i, char *cmd)
+uartconsole(int i, int8_t *cmd)
 {
 	Uart *p;
 
@@ -259,19 +259,19 @@ uartreset(void)
 
 
 static Chan*
-uartattach(char *spec)
+uartattach(int8_t *spec)
 {
 	return devattach('t', spec);
 }
 
 static Walkqid*
-uartwalk(Chan *c, Chan *nc, char **name, int nname)
+uartwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, uartdir, uartndir, devgen);
 }
 
-static long
-uartstat(Chan *c, uchar *dp, long n)
+static int32_t
+uartstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	if(UARTTYPE(c->qid.path) == Qdata)
 		uartsetlength(UARTID(c->qid.path));
@@ -364,11 +364,11 @@ uartclose(Chan *c)
 	}
 }
 
-static long
-uartread(Chan *c, void *buf, long n, vlong off)
+static int32_t
+uartread(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	Uart *p;
-	ulong offset = off;
+	uint32_t offset = off;
 
 	if(c->qid.type & QTDIR){
 		uartsetlength(-1);
@@ -389,9 +389,9 @@ uartread(Chan *c, void *buf, long n, vlong off)
 }
 
 int
-uartctl(Uart *p, char *cmd)
+uartctl(Uart *p, int8_t *cmd)
 {
-	char *f[16];
+	int8_t *f[16];
 	int i, n, nf;
 
 	nf = tokenize(cmd, f, nelem(f));
@@ -488,7 +488,7 @@ uartctl(Uart *p, char *cmd)
 		case 'w':
 			if(uarttimer == nil || n < 1)
 				return -1;
-			uarttimer->tns = (vlong)n * 100000LL;
+			uarttimer->tns = (int64_t)n * 100000LL;
 			break;
 		case 'X':
 		case 'x':
@@ -503,11 +503,11 @@ uartctl(Uart *p, char *cmd)
 	return 0;
 }
 
-static long
-uartwrite(Chan *c, void *buf, long n, vlong)
+static int32_t
+uartwrite(Chan *c, void *buf, int32_t n, int64_t)
 {
 	Uart *p;
-	char *cmd;
+	int8_t *cmd;
 
 	if(c->qid.type & QTDIR)
 		error(Eperm);
@@ -551,8 +551,8 @@ uartwrite(Chan *c, void *buf, long n, vlong)
 	return n;
 }
 
-static long
-uartwstat(Chan *c, uchar *dp, long n)
+static int32_t
+uartwstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	Dir d;
 	Dirtab *dt;
@@ -665,7 +665,7 @@ static void
 uartstageinput(Uart *p)
 {
 	int n;
-	uchar *ir, *iw;
+	uint8_t *ir, *iw;
 
 	while(p->ir != p->iw){
 		ir = p->ir;
@@ -690,9 +690,9 @@ uartstageinput(Uart *p)
  *  receive a character at interrupt time
  */
 void
-uartrecv(Uart *p,  char ch)
+uartrecv(Uart *p,  int8_t ch)
 {
-	uchar *next;
+	uint8_t *next;
 
 	/* software flow control */
 	if(p->xonoff){
@@ -787,9 +787,9 @@ uartputc(int c)
 }
 
 void
-uartputs(char *s, int n)
+uartputs(int8_t *s, int n)
 {
-	char *e;
+	int8_t *e;
 
 	if(consuart == nil || consuart->phys->putc == nil)
 		return;

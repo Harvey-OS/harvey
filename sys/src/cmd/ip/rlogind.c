@@ -10,12 +10,12 @@
 #include <u.h>
 #include <libc.h>
 
-void	getstr(int, char*, int);
+void	getstr(int, int8_t*, int);
 
 void
 main(void)
 {
-	char luser[128], ruser[128], term[128], err[128];
+	int8_t luser[128], ruser[128], term[128], err[128];
 
 	getstr(0, err, sizeof(err));
 	getstr(0, ruser, sizeof(ruser));
@@ -33,9 +33,9 @@ main(void)
 }
 
 void
-getstr(int fd, char *str, int len)
+getstr(int fd, int8_t *str, int len)
 {
-	char c;
+	int8_t c;
 	int n;
 
 	while(--len > 0){

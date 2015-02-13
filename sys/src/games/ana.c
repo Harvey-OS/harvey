@@ -33,9 +33,9 @@ typedef struct word	word;
 
 struct word
 {
-	char	*text;
+	int8_t	*text;
 	int	length;
-	ulong	mask;
+	uint32_t	mask;
 	word	*next;
 };
 
@@ -45,7 +45,7 @@ typedef struct
 {
 	int	count[ALPHAS];
 	int	length;
-	ulong	mask;
+	uint32_t	mask;
 }
 	target;
 
@@ -55,14 +55,14 @@ set	words;
 word	*list[LENLIMIT];
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	fprint(err_fd, "fatal error: %s\n", s);
 	exits("fatal error");
 }
 
 void	*
-salloc(ulong z)
+salloc(uint32_t z)
 {
 	void	*p;
 
@@ -73,7 +73,7 @@ salloc(ulong z)
 }
 
 void
-clean_word(char *s)
+clean_word(int8_t *s)
 {
 	while (*s && *s != '\n')
 	{
@@ -89,7 +89,7 @@ clean_word(char *s)
 int
 word_ok(word *w)
 {
-	char	*s;
+	int8_t	*s;
 	int	vowel;
 
 	if (w->length == 0 || w->length >= LENLIMIT)
@@ -123,10 +123,10 @@ word_ok(word *w)
 	return vowel;
 }
 
-ulong
-str_to_mask(char *s)
+uint32_t
+str_to_mask(int8_t *s)
 {
-	ulong	m;
+	uint32_t	m;
 
 	m = 0;
 
@@ -139,7 +139,7 @@ str_to_mask(char *s)
 word	*
 get_word(Biobuf *bp)
 {
-	char	*s;
+	int8_t	*s;
 	word	*w;
 
 retry:
@@ -186,7 +186,7 @@ build_wordlist(void)
 }
 
 void
-count_letters(target *t, char *s)
+count_letters(target *t, int8_t *s)
 {
 	int	i;
 
@@ -206,7 +206,7 @@ int
 contained(word *i, target *t)
 {
 	int	n;
-	char	*v;
+	int8_t	*v;
 	target	it;
 
 	if ((i->mask & t->mask) != i->mask)
@@ -282,10 +282,10 @@ print_set(set s)
 	}
 }
 
-ulong
+uint32_t
 target_mask(int c[])
 {
-	ulong	m;
+	uint32_t	m;
 	int	i;
 
 	m = 0;
@@ -334,7 +334,7 @@ enumerate(word **p, target *i, set c)
 	target	t;
 	set	o;
 	word	*w, *h;
-	char	*s;
+	int8_t	*s;
 	int	l, m, b;
 
 	l = p - list;
@@ -378,9 +378,9 @@ enumerate(word **p, target *i, set c)
 }
 
 void
-clean(char *s)
+clean(int8_t *s)
 {
-	char	*p, *q;
+	int8_t	*p, *q;
 
 	for (p = s, q = s; *p != '\0'; p++)
 	{
@@ -394,7 +394,7 @@ clean(char *s)
 }
 
 void
-anagramulate(char *s)
+anagramulate(int8_t *s)
 {
 	target	t;
 	set	subjects;
@@ -417,7 +417,7 @@ anagramulate(char *s)
 }
 
 void
-set_fixed(char *s)
+set_fixed(int8_t *s)
 {
 	if ((fixed = atoi(s)) < 1)
 		fixed = 1;
@@ -426,7 +426,7 @@ set_fixed(char *s)
 void
 read_words(void)
 {
-	char	*s;
+	int8_t	*s;
 	Biobuf  b;
 
 	Binit(&b, in_fd, OREAD);
@@ -448,7 +448,7 @@ read_words(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	build_wordlist();
 

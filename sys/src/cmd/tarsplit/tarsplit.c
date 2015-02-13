@@ -23,12 +23,12 @@ enum {
 };
 
 /* private data */
-static char *filenm;
-static char *prefix = "ts.";
-static vlong size = 512*1024*1024;	/* fits on a CD with room to spare */
+static int8_t *filenm;
+static int8_t *prefix = "ts.";
+static int64_t size = 512*1024*1024;	/* fits on a CD with room to spare */
 
 static int
-opennext(int out, char *prefix)
+opennext(int out, int8_t *prefix)
 {
 	static int filenum = 0;
 
@@ -47,15 +47,15 @@ opennext(int out, char *prefix)
 }
 
 static int
-split(int in, int out, char * /* inname */)
+split(int in, int out, int8_t * /* inname */)
 {
-	vlong len, membsz;
-	uvlong outoff = 0;
+	int64_t len, membsz;
+	uint64_t outoff = 0;
 	static Hblock hdr;
 	Hblock *hp = &hdr;
 
 	while (getdir(hp, in, &len)) {
-		membsz = Tblock + ROUNDUP((uvlong)len, Tblock);
+		membsz = Tblock + ROUNDUP((uint64_t)len, Tblock);
 		if (outoff + membsz + Endsize > size) {	/* won't fit? */
 			out = closeout(out, filenm, 1);
 			if (membsz + Endsize > size)
@@ -66,7 +66,7 @@ split(int in, int out, char * /* inname */)
 		if (out < 0)
 			out = opennext(out, prefix);
 		/* write directory block */
-		writetar(out, (char *)hp, Tblock);
+		writetar(out, (int8_t *)hp, Tblock);
 		outoff = passtar(hp, in, out, len);
 	}
 	return out;

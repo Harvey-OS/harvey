@@ -11,12 +11,12 @@
 #include	<libc.h>
 #include	<bio.h>
 
-long
+int32_t
 Bgetrune(Biobufhdr *bp)
 {
 	int c, i;
 	Rune rune;
-	char str[UTFmax];
+	int8_t str[UTFmax];
 
 	c = Bgetc(bp);
 	if(c < Runeself) {		/* one char */

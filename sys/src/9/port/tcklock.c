@@ -59,15 +59,15 @@ clearwaitstats(void)
 {
 	newwaitstats();
 	memset(waitstats.ns, 0, NWstats * sizeof(int));
-	memset(waitstats.wait, 0, NWstats * sizeof(uvlong));
-	memset(waitstats.total, 0, NWstats * sizeof(uvlong));
+	memset(waitstats.wait, 0, NWstats * sizeof(uint64_t));
+	memset(waitstats.total, 0, NWstats * sizeof(uint64_t));
 }
 
 void
-addwaitstat(uintptr pc, uvlong t0, int type)
+addwaitstat(uintptr pc, uint64_t t0, int type)
 {
 	uint i;
-	uvlong w;
+	uint64_t w;
 
 	if(waitstats.on == 0)
 		return;
@@ -173,7 +173,7 @@ lock(Lock *l)
 	int i;
 	uintptr pc;
 	u32int user;
-	uvlong t0;
+	uint64_t t0;
 
 	pc = getcallerpc(&l);
 	lockstats.locks++;
@@ -220,7 +220,7 @@ ilock(Lock *l)
 {
 	Mpl pl;
 	uintptr pc;
-	uvlong t0;
+	uint64_t t0;
 	u32int user;
 
 	pc = getcallerpc(&l);
@@ -253,7 +253,7 @@ canlock(Lock *l)
 {
 	Lock try, new;
 	uintptr pc;
-	uvlong t0;
+	uint64_t t0;
 
 	pc = getcallerpc(&l);
 

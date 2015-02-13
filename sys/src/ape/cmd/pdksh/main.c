@@ -17,7 +17,7 @@
 #include "ksh_stat.h"
 #include "ksh_time.h"
 
-extern char **environ;
+extern int8_t **environ;
 
 /*
  * global data
@@ -31,11 +31,11 @@ static int	is_restricted ARGS((char *name));
  * shell initialization
  */
 
-static const char initifs[] = "IFS= \t\n";
+static const int8_t initifs[] = "IFS= \t\n";
 
-static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
+static const int8_t initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 
-static const char version_param[] =
+static const int8_t version_param[] =
 #ifdef KSH
 	"KSH_VERSION"
 #else /* KSH */
@@ -43,7 +43,7 @@ static const char version_param[] =
 #endif /* KSH */
 	;
 
-static const char *const initcoms [] = {
+static const int8_t *const initcoms [] = {
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
 	"typeset", "-r", version_param, NULL,
 	"typeset", "-i", "PPID", NULL,
@@ -90,14 +90,14 @@ static const char *const initcoms [] = {
 int
 main(argc, argv)
 	int argc;
-	register char **argv;
+	register int8_t **argv;
 {
 	register int i;
 	int argi;
 	Source *s;
 	struct block *l;
 	int restricted, errexit;
-	char **wp;
+	int8_t **wp;
 	struct env env;
 	pid_t ppid;
 
@@ -113,11 +113,11 @@ main(argc, argv)
 
 	/* make sure argv[] is sane */
 	if (!*argv) {
-		static const char	*empty_argv[] = {
-					    "pdksh", (char *) 0
+		static const int8_t	*empty_argv[] = {
+					    "pdksh", (int8_t *) 0
 					};
 
-		argv = (char **) empty_argv;
+		argv = (int8_t **) empty_argv;
 		argc = 1;
 	}
 	kshname = *argv;
@@ -164,8 +164,8 @@ main(argc, argv)
 	def_path = DEFAULT__PATH;
 #if defined(HAVE_CONFSTR) && defined(_CS_PATH)
 	{
-		size_t len = confstr(_CS_PATH, (char *) 0, 0);
-		char *new;
+		size_t len = confstr(_CS_PATH, (int8_t *) 0, 0);
+		int8_t *new;
 
 		if (len > 0) {
 			confstr(_CS_PATH, new = alloc(len + 1, APERM), len + 1);
@@ -225,15 +225,15 @@ main(argc, argv)
 	{
 		struct stat s_pwd, s_dot;
 		struct tbl *pwd_v = global("PWD");
-		char *pwd = str_val(pwd_v);
-		char *pwdx = pwd;
+		int8_t *pwd = str_val(pwd_v);
+		int8_t *pwdx = pwd;
 
 		/* Try to use existing $PWD if it is valid */
 		if (!ISABSPATH(pwd)
 		    || stat(pwd, &s_pwd) < 0 || stat(".", &s_dot) < 0
 		    || s_pwd.st_dev != s_dot.st_dev
 		    || s_pwd.st_ino != s_dot.st_ino)
-			pwdx = (char *) 0;
+			pwdx = (int8_t *) 0;
 		set_current_wd(pwdx);
 		if (current_wd[0])
 			simplify_path(current_wd);
@@ -245,15 +245,16 @@ main(argc, argv)
 			setstr(pwd_v, current_wd, KSH_RETURN_ERROR);
 	}
 	ppid = getppid();
-	setint(global("PPID"), (long) ppid);
+	setint(global("PPID"), (int32_t) ppid);
 #ifdef KSH
-	setint(global("RANDOM"), (long) (time((time_t *)0) * kshpid * ppid));
+	setint(global("RANDOM"),
+	       (int32_t) (time((time_t *)0) * kshpid * ppid));
 #endif /* KSH */
 	/* setstr can't fail here */
 	setstr(global(version_param), ksh_version, KSH_RETURN_ERROR);
 
 	/* execute initialization statements */
-	for (wp = (char**) initcoms; *wp != NULL; wp++) {
+	for (wp = (int8_t**) initcoms; *wp != NULL; wp++) {
 		shcomexec(wp);
 		for (; *wp != NULL; wp++)
 			;
@@ -320,7 +321,7 @@ main(argc, argv)
 			/* The following only if isatty(0) */
 			s->flags |= SF_TTY;
 			s->u.shf->flags |= SHF_INTERRUPT;
-			s->file = (char *) 0;
+			s->file = (int8_t *) 0;
 		}
 	}
 
@@ -345,7 +346,7 @@ main(argc, argv)
 	l = e->loc;
 	l->argv = &argv[argi - 1];
 	l->argc = argc - argi;
-	l->argv[0] = (char *) kshname;
+	l->argv[0] = (int8_t *) kshname;
 	getopts_reset(1);
 
 	/* Disable during .profile/ENV reading */
@@ -362,7 +363,7 @@ main(argc, argv)
 
 	if (Flag(FLOGIN)) {
 #ifdef OS2
-		char *profile;
+		int8_t *profile;
 
 		/* Try to find a profile - first see if $INIT has a value,
 		 * then try /etc/profile.ksh, then c:/usr/etc/profile.ksh.
@@ -370,24 +371,25 @@ main(argc, argv)
 		if (!Flag(FPRIVILEGED)
 		    && strcmp(profile = substitute("$INIT/profile.ksh", 0),
 			      "/profile.ksh"))
-			include(profile, 0, (char **) 0, 1);
-		else if (include("/etc/profile.ksh", 0, (char **) 0, 1) < 0)
-			include("c:/usr/etc/profile.ksh", 0, (char **) 0, 1);
+			include(profile, 0, (int8_t **) 0, 1);
+		else if (include("/etc/profile.ksh", 0, (int8_t **) 0, 1) < 0)
+			include("c:/usr/etc/profile.ksh", 0, (int8_t **) 0,
+				1);
 		if (!Flag(FPRIVILEGED))
 			include(substitute("$HOME/profile.ksh", 0), 0,
-				(char **) 0, 1);
+				(int8_t **) 0, 1);
 #else /* OS2 */
-		include(KSH_SYSTEM_PROFILE, 0, (char **) 0, 1);
+		include(KSH_SYSTEM_PROFILE, 0, (int8_t **) 0, 1);
 		if (!Flag(FPRIVILEGED))
 			include(substitute("$HOME/.profile", 0), 0,
-				(char **) 0, 1);
+				(int8_t **) 0, 1);
 #endif /* OS2 */
 	}
 
 	if (Flag(FPRIVILEGED))
-		include("/etc/suid_profile", 0, (char **) 0, 1);
+		include("/etc/suid_profile", 0, (int8_t **) 0, 1);
 	else {
-		char *env_file;
+		int8_t *env_file;
 
 #ifndef KSH
 		if (!Flag(FPOSIX))
@@ -404,23 +406,23 @@ main(argc, argv)
 #endif /* DEFAULT_ENV */
 		env_file = substitute(env_file, DOTILDE);
 		if (*env_file != '\0')
-			include(env_file, 0, (char **) 0, 1);
+			include(env_file, 0, (int8_t **) 0, 1);
 #ifdef OS2
 		else if (Flag(FTALKING))
 			include(substitute("$HOME/kshrc.ksh", 0), 0,
-				(char **) 0, 1);
+				(int8_t **) 0, 1);
 #endif /* OS2 */
 	}
 
 	if (is_restricted(argv[0]) || is_restricted(str_val(global("SHELL"))))
 		restricted = 1;
 	if (restricted) {
-		static const char *const restr_com[] = {
+		static const int8_t *const restr_com[] = {
 						"typeset", "-r", "PATH",
 						    "ENV", "SHELL",
-						(char *) 0
+						(int8_t *) 0
 					    };
-		shcomexec((char **) restr_com);
+		shcomexec((int8_t **) restr_com);
 		/* After typeset command... */
 		Flag(FRESTRICTED) = 1;
 	}
@@ -441,15 +443,15 @@ main(argc, argv)
 
 int
 include(name, argc, argv, intr_ok)
-	const char *name;
+	const int8_t *name;
 	int argc;
-	char **argv;
+	int8_t **argv;
 	int intr_ok;
 {
 	register Source *volatile s = NULL;
 	Source *volatile sold;
 	struct shf *shf;
-	char **volatile old_argv;
+	int8_t **volatile old_argv;
 	volatile int old_argc;
 	int i;
 
@@ -461,7 +463,7 @@ include(name, argc, argv, intr_ok)
 		old_argv = e->loc->argv;
 		old_argc = e->loc->argc;
 	} else {
-		old_argv = (char **) 0;
+		old_argv = (int8_t **) 0;
 		old_argc = 0;
 	}
 	sold = source;
@@ -517,7 +519,7 @@ include(name, argc, argv, intr_ok)
 
 int
 command(comm)
-	const char *comm;
+	const int8_t *comm;
 {
 	register Source *s;
 
@@ -756,7 +758,7 @@ cleanup_parents_env()
 				if (ep->savefd[fd] > 0)
 					close(ep->savefd[fd]);
 			afree(ep->savefd, &ep->area);
-			ep->savefd = (short *) 0;
+			ep->savefd = (int16_t *) 0;
 		}
 	}
 	e->oenv = (struct env *) 0;
@@ -815,7 +817,7 @@ remove_temps(tp)
 				    sizeof(struct temp) + strlen(tp->name) + 1,
 				    APERM);
 				memset(t, 0, sizeof(struct temp));
-				t->name = (char *) &t[1];
+				t->name = (int8_t *) &t[1];
 				strcpy(t->name, tp->name);
 				t->next = delayed_remove;
 				delayed_remove = t;
@@ -829,9 +831,9 @@ remove_temps(tp)
 /* Returns true if name refers to a restricted shell */
 static int
 is_restricted(name)
-	char *name;
+	int8_t *name;
 {
-	char *p;
+	int8_t *p;
 
 	/* this silly function prevents you running a command called runconf.sh. */
 	/* we don't care about restricted shells, which aren't very restricted anyway */
@@ -848,7 +850,7 @@ is_restricted(name)
 void
 aerror(ap, msg)
 	Area *ap;
-	const char *msg;
+	const int8_t *msg;
 {
 	internal_errorf(1, "alloc: %s", msg);
 	errorf(null); /* this is never executed - keeps gcc quiet */

@@ -127,7 +127,7 @@ bpc_to_depth(int ncomp, int bpc)
 
 #define compare_color_names(name, name_size, str, str_size) \
     (name_size == str_size && \
-	(strncmp((const char *)name, (const char *)str, name_size) == 0))
+	(strncmp((const int8_t *)name, (const int8_t *)str, name_size) == 0))
 
 /*
  * This routine will check if a name matches any item in a list of process
@@ -165,7 +165,7 @@ check_process_color_names(fixed_colorant_names_list plist,
  */
 int
 check_pcm_and_separation_names(const gx_device * dev,
-		const gs_devn_params * pparams, const char * pname,
+		const gs_devn_params * pparams, const int8_t * pname,
 		int name_size, int component_type)
 {
     fixed_colorant_name * pcolor = pparams->std_colorant_names;
@@ -188,7 +188,7 @@ check_pcm_and_separation_names(const gx_device * dev,
 	int num_spot = separations->num_separations;
 
 	for (i=0; i<num_spot; i++) {
-	    if (compare_color_names((const char *)separations->names[i].data,
+	    if (compare_color_names((const int8_t *)separations->names[i].data,
 		  separations->names[i].size, pname, name_size)) {
 		return color_component_number;
 	    }
@@ -222,7 +222,7 @@ check_pcm_and_separation_names(const gx_device * dev,
 int
 devn_get_color_comp_index(const gx_device * dev, gs_devn_params * pdevn_params,
 		    equivalent_cmyk_color_params * pequiv_colors,
-		    const char * pname, int name_size, int component_type,
+		    const int8_t * pname, int name_size, int component_type,
 		    int auto_spot_colors)
 {
     int num_order = pdevn_params->num_separation_order_names;
@@ -432,7 +432,7 @@ devn_put_params(gx_device * pdev, gs_param_list * plist,
 	         * SeparationColorNames.  If not then error.
 	         */
 	        if ((comp_num = check_pcm_and_separation_names(pdev, pdevn_params,
-		    (const char *)sona.data[i].data, sona.data[i].size, 0)) < 0) {
+		    (const int8_t *)sona.data[i].data, sona.data[i].size, 0)) < 0) {
 		    return_error(gs_error_rangecheck);
 		}
 		pdevn_params->separation_order_map[comp_num] = i;
@@ -692,8 +692,8 @@ fixed_colorant_name DeviceCMYKComponents[] = {
 #define spotcmyk_device_body(procs, dname, ncomp, pol, depth, mg, mc, cn)\
     std_device_full_body_type_extended(spotcmyk_device, &procs, dname,\
 	  &st_spotcmyk_device,\
-	  (int)((long)(DEFAULT_WIDTH_10THS) * (X_DPI) / 10),\
-	  (int)((long)(DEFAULT_HEIGHT_10THS) * (Y_DPI) / 10),\
+	  (int)((int32_t)(DEFAULT_WIDTH_10THS) * (X_DPI) / 10),\
+	  (int)((int32_t)(DEFAULT_HEIGHT_10THS) * (Y_DPI) / 10),\
 	  X_DPI, Y_DPI,\
     	  GX_DEVICE_COLOR_MAX_COMPONENTS,	/* MaxComponents */\
 	  ncomp,		/* NumComp */\
@@ -1118,17 +1118,17 @@ typedef struct pcx_header_s {
 #define version_3_0 /* with palette */	5
     byte encoding;		/* 1=RLE */
     byte bpp;			/* bits per pixel per plane */
-    ushort x1;			/* X of upper left corner */
-    ushort y1;			/* Y of upper left corner */
-    ushort x2;			/* x1 + width - 1 */
-    ushort y2;			/* y1 + height - 1 */
-    ushort hres;		/* horz. resolution (dots per inch) */
-    ushort vres;		/* vert. resolution (dots per inch) */
+    uint16_t x1;			/* X of upper left corner */
+    uint16_t y1;			/* Y of upper left corner */
+    uint16_t x2;			/* x1 + width - 1 */
+    uint16_t y2;			/* y1 + height - 1 */
+    uint16_t hres;		/* horz. resolution (dots per inch) */
+    uint16_t vres;		/* vert. resolution (dots per inch) */
     byte palette[16 * 3];	/* color palette */
     byte reserved;
     byte nplanes;		/* number of color planes */
-    ushort bpl;			/* number of bytes per line (uncompressed) */
-    ushort palinfo;
+    uint16_t bpl;			/* number of bytes per line (uncompressed) */
+    uint16_t palinfo;
 #define palinfo_color	1
 #define palinfo_gray	2
     byte xtra[58];		/* fill out header to 128 bytes */

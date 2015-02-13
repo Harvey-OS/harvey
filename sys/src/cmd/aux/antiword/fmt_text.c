@@ -25,7 +25,7 @@
 /* The character set */
 static encoding_type	eEncoding = encoding_neutral;
 /* Current vertical position information */
-static long		lYtopCurr = 0;
+static int32_t		lYtopCurr = 0;
 /* Local representation of the non-breaking space */
 static UCHAR		ucNbsp = 0;
 
@@ -50,7 +50,7 @@ vPrologueFMT(diagram_type *pDiag, const options_type *pOptions)
  */
 static void
 vPrintFMT(FILE *pFile,
-	const char *szString, size_t tStringLength, USHORT usFontstyle)
+	const int8_t *szString, size_t tStringLength, USHORT usFontstyle)
 {
 	const UCHAR	*pucByte, *pucStart, *pucLast, *pucNonSpace;
 
@@ -107,7 +107,7 @@ vPrintFMT(FILE *pFile,
 		if (*pucByte == ucNbsp) {
 			(void)putc(' ', pFile);
 		} else {
-			(void)putc((char)*pucByte, pFile);
+			(void)putc((int8_t)*pucByte, pFile);
 		}
 		pucByte++;
 	}
@@ -158,7 +158,7 @@ vMoveTo(diagram_type *pDiag)
  */
 void
 vSubstringFMT(diagram_type *pDiag,
-	const char *szString, size_t tStringLength, long lStringWidth,
+	const int8_t *szString, size_t tStringLength, int32_t lStringWidth,
 	USHORT usFontstyle)
 {
 	fail(pDiag == NULL || szString == NULL);

@@ -15,18 +15,18 @@
 #include "playlist.h"
 #include "../debug.h"
 
-char *srvmount = "/mnt/juke";
+int8_t *srvmount = "/mnt/juke";
 
-char*
+int8_t*
 getroot(void)
 {
 	return "root";
 }
 
 void
-fillbrowsebot(char *onum)
+fillbrowsebot(int8_t *onum)
 {
-	char *name, *p, *q;
+	int8_t *name, *p, *q;
 	Biobuf *b, *d;
 	int c;
 
@@ -68,8 +68,8 @@ fillbrowsebot(char *onum)
 }
 
 void
-doplay(char *onum){
-	char *name, *p, *q;
+doplay(int8_t *onum){
+	int8_t *name, *p, *q;
 	Biobuf *b;
 	int m;
 
@@ -92,9 +92,9 @@ abort();//		sysfatal("doplay: %s: %r", name);
 }
 
 void
-fillbrowsetop(char *onum)
+fillbrowsetop(int8_t *onum)
 {
-	char *name, *p;
+	int8_t *name, *p;
 	Biobuf *b;
 	int m;
 
@@ -113,9 +113,9 @@ abort();//		sysfatal("gettopwin: %s: %r", name);
 }
 
 void
-fillplaytext(char *onum)
+fillplaytext(int8_t *onum)
 {
-	char *name, *p;
+	int8_t *name, *p;
 	Biobuf *b;
 	int m;
 
@@ -133,10 +133,10 @@ fillplaytext(char *onum)
 	Bterm(b);
 }
 
-char *
-getoneliner(char *onum)
+int8_t *
+getoneliner(int8_t *onum)
 {
-	char *name, *p;
+	int8_t *name, *p;
 	Biobuf *b;
 
 	name = smprint("%s/%s/miniparentage", srvmount, onum);
@@ -149,10 +149,10 @@ getoneliner(char *onum)
 	return p;
 }
 
-char *
-getparent(char *onum)
+int8_t *
+getparent(int8_t *onum)
 {
-	char *name, *p;
+	int8_t *name, *p;
 	Biobuf *b;
 
 	name = smprint("%s/%s/parent", srvmount, onum);

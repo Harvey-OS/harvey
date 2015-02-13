@@ -23,11 +23,11 @@ checksize(int n)
 }
 
 void
-vtentrypack(VtEntry *e, uchar *p, int index)
+vtentrypack(VtEntry *e, uint8_t *p, int index)
 {
-	ulong t32;
+	uint32_t t32;
 	int flags;
-	uchar *op;
+	uint8_t *op;
 	int depth;
 
 	p += index * VtEntrySize;
@@ -57,9 +57,9 @@ vtentrypack(VtEntry *e, uchar *p, int index)
 }
 
 int
-vtentryunpack(VtEntry *e, uchar *p, int index)
+vtentryunpack(VtEntry *e, uint8_t *p, int index)
 {
-	uchar *op;
+	uint8_t *op;
 
 	p += index * VtEntrySize;
 	op = p;

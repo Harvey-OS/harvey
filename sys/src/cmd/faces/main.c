@@ -36,7 +36,7 @@ enum
 };
 
 int pids[NPROC];
-char *procnames[] = {
+int8_t *procnames[] = {
 	"main",
 	"time",
 	"mouse"
@@ -44,7 +44,7 @@ char *procnames[] = {
 
 Rectangle leftright = {0, 0, 20, 15};
 
-uchar leftdata[] = {
+uint8_t leftdata[] = {
 	0x00, 0x80, 0x00, 0x01, 0x80, 0x00, 0x03, 0x80,
 	0x00, 0x07, 0x80, 0x00, 0x0f, 0x00, 0x00, 0x1f,
 	0xff, 0xf0, 0x3f, 0xff, 0xf0, 0xff, 0xff, 0xf0,
@@ -53,7 +53,7 @@ uchar leftdata[] = {
 	0x80, 0x00, 0x00, 0x80, 0x00
 };
 
-uchar rightdata[] = {
+uint8_t rightdata[] = {
 	0x00, 0x10, 0x00, 0x00, 0x18, 0x00, 0x00, 0x1c,
 	0x00, 0x00, 0x1e, 0x00, 0x00, 0x0f, 0x00, 0xff,
 	0xff, 0x80, 0xff, 0xff, 0xc0, 0xff, 0xff, 0xf0,
@@ -75,10 +75,10 @@ int	mousefd;
 int	nacross;
 int	ndown;
 
-char	date[64];
+int8_t	date[64];
 Face	**faces;
-char	*maildir = "/mail/fs/mbox";
-ulong	now;
+int8_t	*maildir = "/mail/fs/mbox";
+uint32_t	now;
 
 Point	datep = { 8, 6 };
 Point	facep = { 8, 6+0+4 };	/* 0 updated to datefont->height in init() */
@@ -166,7 +166,7 @@ timeproc(void)
 }
 
 int
-alreadyseen(char *digest)
+alreadyseen(int8_t *digest)
 {
 	int i;
 	Face *f;
@@ -184,7 +184,7 @@ alreadyseen(char *digest)
 }
 
 int
-torune(Rune *r, char *s, int nr)
+torune(Rune *r, int8_t *s, int nr)
 {
 	int i;
 
@@ -195,11 +195,11 @@ torune(Rune *r, char *s, int nr)
 }
 
 void
-center(Font *f, Point p, char *s, Image *color)
+center(Font *f, Point p, int8_t *s, Image *color)
 {
 	int i, n, dx;
 	Rune rbuf[32];
-	char sbuf[32*UTFmax+1];
+	int8_t sbuf[32*UTFmax+1];
 
 	dx = stringwidth(f, s);
 	if(dx > Facesize){
@@ -236,13 +236,13 @@ facerect(int index)	/* index is geometric; 0 is always upper left face */
 	return r;
 }
 
-static char *mon = "JanFebMarAprMayJunJulAugSepOctNovDec";
-char*
+static int8_t *mon = "JanFebMarAprMayJunJulAugSepOctNovDec";
+int8_t*
 facetime(Face *f, int *recent)
 {
-	static char buf[30];
+	static int8_t buf[30];
 
-	if((long)(now - f->time) > HhmmTime){
+	if((int32_t)(now - f->time) > HhmmTime){
 		*recent = 0;
 		sprint(buf, "%.3s %2d", mon+3*f->tm.mon, f->tm.mday);
 		return buf;
@@ -256,7 +256,7 @@ facetime(Face *f, int *recent)
 void
 drawface(Face *f, int i)
 {
-	char *tstr;
+	int8_t *tstr;
 	Rectangle r;
 	Point p;
 
@@ -291,7 +291,7 @@ updatetimes(void)
 		f = faces[i];
 		if(f == nil)
 			continue;
-		if(((long)(now - f->time) <= HhmmTime) != f->recent)
+		if(((int32_t)(now - f->time) <= HhmmTime) != f->recent)
 			drawface(f, i);
 	}	
 }
@@ -367,7 +367,7 @@ addface(Face *f)	/* always adds at 0 */
 }
 
 void
-loadmboxfaces(char *maildir)
+loadmboxfaces(int8_t *maildir)
 {
 	int dirfd;
 	Dir *d;
@@ -457,7 +457,7 @@ dodelete(int i)
 }
 
 void
-delete(char *s, char *digest)
+delete(int8_t *s, int8_t *digest)
 {
 	int i;
 	Face *f;
@@ -522,7 +522,7 @@ getmouse(Mouse *m)
 {
 	int n;
 	static int eof;
-	char buf[128];
+	int8_t buf[128];
 
 	if(eof)
 		return 0;
@@ -650,7 +650,7 @@ mouseproc(void)
 }
 
 void
-killall(char *s)
+killall(int8_t *s)
 {
 	int i, pid;
 

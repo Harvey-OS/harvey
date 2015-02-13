@@ -19,10 +19,10 @@ int Lflag = 0;
 
 static void usage(void);
 
-char **
-seekoff(int fd, char *name, char **argv)
+int8_t **
+seekoff(int fd, int8_t *name, int8_t **argv)
 {
-	vlong o;
+	int64_t o;
 
 	if(*argv){
 		if (!isascii(**argv) || !isdigit(**argv))

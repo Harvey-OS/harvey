@@ -136,9 +136,9 @@ extern int notify(Ureg*);
  * interrupted while issuing the ICC.
  */
 int
-runac(Mach *mp, APfunc func, int flushtlb, void *a, long n)
+runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 {
-	uchar *dpg, *spg;
+	uint8_t *dpg, *spg;
 
 	if (n > sizeof(mp->icc->data))
 		panic("runac: args too long");
@@ -235,8 +235,8 @@ runacore(void)
 	Ureg *ureg;
 	void (*fn)(void);
 	int rc, flush, s;
-	char *n;
-	uvlong t1;
+	int8_t *n;
+	uint64_t t1;
 
 	if(waserror())
 		panic("runacore: error: %s\n", up->errstr);
@@ -325,7 +325,7 @@ ToTC:
 extern ACVctl *acvctl[];
 
 void
-actrapenable(int vno, char* (*f)(Ureg*, void*), void* a, char *name)
+actrapenable(int vno, int8_t* (*f)(Ureg*, void*), void* a, int8_t *name)
 {
 	ACVctl *v;
 

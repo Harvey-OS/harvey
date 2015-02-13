@@ -47,7 +47,7 @@ enum{
 	ESize,
 };
 
-static char *cmds[] = {
+static int8_t *cmds[] = {
 	[EAlign] =		"align",
 	[EBorder] =	"border",
 	[EBordercolor] ="bordercolor",
@@ -130,9 +130,9 @@ scribshow(Scrib *b)
 {
 	Image *i;
 	Rectangle r;
-	char *mode;
+	int8_t *mode;
 	Scribble *s = b->scrib;
-	char buf[32];
+	int8_t buf[32];
 
 	if (b->hidden)
 		return;
@@ -312,7 +312,7 @@ addpoint(Scrib *w, Point p)
 }
 
 Control*
-createscribble(Controlset *cs, char *name)
+createscribble(Controlset *cs, int8_t *name)
 {
 	Scrib *b;
 

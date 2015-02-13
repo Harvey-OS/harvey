@@ -446,7 +446,7 @@ static int rbtab[] = {
 	1514,
 };
 
-static char *tname[] = {
+static int8_t *tname[] = {
 	"any",
 	"i82563",
 	"i82566",
@@ -464,7 +464,7 @@ struct Ctlr {
 	Ctlr	*next;
 	int	active;
 	int	type;
-	ushort	eeprom[0x40];
+	uint16_t	eeprom[0x40];
 
 	QLock	alock;			/* attach */
 	int	attached;
@@ -493,8 +493,8 @@ struct Ctlr {
 	uint	tcpcs;
 	uint	speeds[4];
 
-	uchar	ra[Eaddrlen];		/* receive address */
-	ulong	mta[128];		/* multicast table array */
+	uint8_t	ra[Eaddrlen];		/* receive address */
+	uint32_t	mta[128];		/* multicast table array */
 
 	Rendez	rrendez;
 	int	rim;
@@ -529,7 +529,7 @@ static Ctlr* i82563ctlrtail;
 static Lock i82563rblock;		/* free receive Blocks */
 static Block* i82563rbpool;
 
-static char* statistics[] = {
+static int8_t* statistics[] = {
 	"CRC Error",
 	"Alignment Error",
 	"Symbol Error",
@@ -605,13 +605,13 @@ static char* statistics[] = {
 	"Interrupt Rx Overrun",
 };
 
-static long
-i82563ifstat(Ether* edev, void* a, long n, ulong offset)
+static int32_t
+i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 {
 	Ctlr *ctlr;
-	char *s, *p, *e, *stat;
+	int8_t *s, *p, *e, *stat;
 	int i, r;
-	uvlong tuvl, ruvl;
+	uint64_t tuvl, ruvl;
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
@@ -628,10 +628,10 @@ i82563ifstat(Ether* edev, void* a, long n, ulong offset)
 		case Torl:
 		case Totl:
 			ruvl = r;
-			ruvl += (uvlong)csr32r(ctlr, Statistics+(i+1)*4) << 32;
+			ruvl += (uint64_t)csr32r(ctlr, Statistics+(i+1)*4) << 32;
 			tuvl = ruvl;
 			tuvl += ctlr->statistics[i];
-			tuvl += (uvlong)ctlr->statistics[i+1] << 32;
+			tuvl += (uint64_t)ctlr->statistics[i+1] << 32;
 			if(tuvl == 0)
 				continue;
 			ctlr->statistics[i] = tuvl;
@@ -693,11 +693,11 @@ static Cmdtab i82563ctlmsg[] = {
 	CMradv,	"radv",	2,
 };
 
-static long
-i82563ctl(Ether* edev, void* buf, long n)
+static int32_t
+i82563ctl(Ether* edev, void* buf, int32_t n)
 {
-	ulong v;
-	char *p;
+	uint32_t v;
+	int8_t *p;
 	Ctlr *ctlr;
 	Cmdbuf *cb;
 	Cmdtab *ct;
@@ -753,7 +753,7 @@ i82563promiscuous(void* arg, int on)
 }
 
 static void
-i82563multicast(void* arg, uchar* addr, int on)
+i82563multicast(void* arg, uint8_t* addr, int on)
 {
 	int bit, x;
 	Ctlr *ctlr;
@@ -800,7 +800,7 @@ i82563rballoc(void)
 static void
 i82563rbfree(Block* b)
 {
-	b->rp = b->wp = (uchar*)ROUNDUP((uintptr)b->base, 4*KiB);
+	b->rp = b->wp = (uint8_t*)ROUNDUP((uintptr)b->base, 4*KiB);
  	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
 	ilock(&i82563rblock);
 	b->next = i82563rbpool;
@@ -1138,7 +1138,7 @@ phyread(Ctlr *c, int reg)
 }
 
 static uint
-phywrite(Ctlr *c, int reg, ushort val)
+phywrite(Ctlr *c, int reg, uint16_t val)
 {
 	uint phy, i;
 
@@ -1223,7 +1223,7 @@ i82563attach(Ether* edev)
 {
 	Block *bp;
 	Ctlr *ctlr;
-	char name[KNAMELEN];
+	int8_t name[KNAMELEN];
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->alock);
@@ -1405,7 +1405,7 @@ i82563shutdown(Ether* ether)
 	i82563detach(ether->ctlr);
 }
 
-static ushort
+static uint16_t
 eeread(Ctlr *ctlr, int adr)
 {
 	csr32w(ctlr, Eerd, EEstart | adr << 2);
@@ -1417,7 +1417,7 @@ eeread(Ctlr *ctlr, int adr)
 static int
 eeload(Ctlr *ctlr)
 {
-	ushort sum;
+	uint16_t sum;
 	int data, adr;
 
 	sum = 0;
@@ -1432,7 +1432,7 @@ eeload(Ctlr *ctlr)
 static int
 fcycle(Ctlr *, Flash *f)
 {
-	ushort s, i;
+	uint16_t s, i;
 
 	s = f->reg[Fsts];
 	if((s&Fvalid) == 0)
@@ -1450,7 +1450,7 @@ fcycle(Ctlr *, Flash *f)
 static int
 fread(Ctlr *c, Flash *f, int ladr)
 {
-	ushort s;
+	uint16_t s;
 
 	delay(1);
 	if(fcycle(c, f) == -1)
@@ -1475,8 +1475,8 @@ fread(Ctlr *c, Flash *f, int ladr)
 static int
 fload(Ctlr *c)
 {
-	ulong data, io, r, adr;
-	ushort sum;
+	uint32_t data, io, r, adr;
+	uint16_t sum;
 	Flash f;
 
 	io = c->pcidev->mem[1].bar & ~0x0f;
@@ -1559,7 +1559,7 @@ static void
 i82563pci(void)
 {
 	int type;
-	ulong io;
+	uint32_t io;
 	void *mem;
 	Pcidev *p;
 	Ctlr *ctlr;

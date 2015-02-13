@@ -251,22 +251,22 @@ sysrfork(Ar0* ar0, va_list list)
 	ar0->i = pid;
 }
 
-static uvlong
-vl2be(uvlong v)
+static uint64_t
+vl2be(uint64_t v)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)&v;
-	return ((uvlong)((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3])<<32)
-	      |((uvlong)(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
+	p = (uint8_t*)&v;
+	return ((uint64_t)((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3])<<32)
+	      |((uint64_t)(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
 }
 
-static ulong
-l2be(long l)
+static uint32_t
+l2be(int32_t l)
 {
-	uchar *cp;
+	uint8_t *cp;
 
-	cp = (uchar*)&l;
+	cp = (uint8_t*)&l;
 	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
 }
 
@@ -281,7 +281,7 @@ typedef struct {
  * 
  */
 static void
-execac(Ar0* ar0, int flags, char *ufile, char **argv)
+execac(Ar0* ar0, int flags, int8_t *ufile, int8_t **argv)
 {
 	Hdr hdr;
 	Fgrp *f;
@@ -290,9 +290,9 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	Image *img;
 	Segment *s;
 	int argc, i, n;
-	char *a, *elem, *file, *p;
-	char line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
-	long hdrsz, magic, textsz, datasz, bsssz;
+	int8_t *a, *elem, *file, *p;
+	int8_t line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
+	int32_t hdrsz, magic, textsz, datasz, bsssz;
 	uintptr textlim, datalim, bsslim, entry, stack;
 	static int colorgen;
 
@@ -344,9 +344,10 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	hdrsz = ichan->dev->read(ichan, &hdr, sizeof(Hdr), 0);
 	if(hdrsz < 2)
 		error(Ebadexec);
-	p = (char*)&hdr;
+	p = (int8_t*)&hdr;
 	if(p[0] == '#' && p[1] == '!'){
-		p = memccpy(line, (char*)&hdr, '\n', MIN(sizeof(Exec), hdrsz));
+		p = memccpy(line, (int8_t*)&hdr, '\n',
+			    MIN(sizeof(Exec), hdrsz));
 		if(p == nil)
 			error(Ebadexec);
 		*(p-1) = '\0';
@@ -455,7 +456,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 */
 	tos = (Tos*)stack;
 	tos->cyclefreq = m->cyclefreq;
-	cycles((uvlong*)&tos->pcycles);
+	cycles((uint64_t*)&tos->pcycles);
 	tos->pcycles = -tos->pcycles;
 	tos->kcycles = tos->pcycles;
 	tos->clock = 0;
@@ -475,11 +476,11 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 * the strings argv points to are valid.
 	 */
 	for(i = 0;; i++, argv++){
-		a = *(char**)validaddr(argv, sizeof(char**), 0);
+		a = *(int8_t**)validaddr(argv, sizeof(int8_t**), 0);
 		if(a == nil)
 			break;
 		a = validaddr(a, 1, 0);
-		n = ((char*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
+		n = ((int8_t*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
 
 		/*
 		 * This futzing is so argv[0] gets validated even
@@ -519,10 +520,10 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 */
 	a = p = UINT2PTR(stack);
 	stack = sysexecstack(stack, argc);
-	if(stack-(argc+1)*sizeof(char**)-BIGPGSZ < TSTKTOP-USTKSIZE)
+	if(stack-(argc+1)*sizeof(int8_t**)-BIGPGSZ < TSTKTOP-USTKSIZE)
 		error(Ebadexec);
 
-	argv = (char**)stack;
+	argv = (int8_t**)stack;
 	*--argv = nil;
 	for(i = 0; i < argc; i++){
 		*--argv = p + (USTKTOP-TSTKTOP);
@@ -676,16 +677,16 @@ void
 sysexecac(Ar0* ar0, va_list list)
 {
 	int flags;
-	char *file, **argv;
+	int8_t *file, **argv;
 
 	/*
 	 * void* execac(int flags, char* name, char* argv[]);
 	 */
 
 	flags = va_arg(list, unsigned int);
-	file = va_arg(list, char*);
+	file = va_arg(list, int8_t*);
 	file = validaddr(file, 1, 0);
-	argv = va_arg(list, char**);
+	argv = va_arg(list, int8_t**);
 	evenaddr(PTR2UINT(argv));
 	execac(ar0, flags, file, argv);
 }
@@ -693,14 +694,14 @@ sysexecac(Ar0* ar0, va_list list)
 void
 sysexec(Ar0* ar0, va_list list)
 {
-	char *file, **argv;
+	int8_t *file, **argv;
 
 	/*
 	 * void* exec(char* name, char* argv[]);
 	 */
-	file = va_arg(list, char*);
+	file = va_arg(list, int8_t*);
 	file = validaddr(file, 1, 0);
-	argv = va_arg(list, char**);
+	argv = va_arg(list, int8_t**);
 	evenaddr(PTR2UINT(argv));
 	execac(ar0, EXTC, file, argv);
 }
@@ -726,12 +727,12 @@ return0(void*)
 void
 syssleep(Ar0* ar0, va_list list)
 {
-	long ms;
+	int32_t ms;
 
 	/*
 	 * int sleep(long millisecs);
 	 */
-	ms = va_arg(list, long);
+	ms = va_arg(list, int32_t);
 
 	ar0->i = 0;
 	if(ms <= 0) {
@@ -763,14 +764,14 @@ sysalarm(Ar0* ar0, va_list list)
 void
 sysexits(Ar0*, va_list list)
 {
-	char *status;
-	char *inval = "invalid exit string";
-	char buf[ERRMAX];
+	int8_t *status;
+	int8_t *inval = "invalid exit string";
+	int8_t buf[ERRMAX];
 
 	/*
 	 * void exits(char *msg);
 	 */
-	status = va_arg(list, char*);
+	status = va_arg(list, int8_t*);
 
 	if(status){
 		if(waserror())
@@ -829,15 +830,15 @@ sysawait(Ar0* ar0, va_list list)
 	int pid;
 	Waitmsg w;
 	usize n;
-	char *p;
+	int8_t *p;
 
 	/*
 	 * int await(char* s, int n);
 	 * should really be
 	 * usize await(char* s, usize n);
 	 */
-	p = va_arg(list, char*);
-	n = va_arg(list, long);
+	p = va_arg(list, int8_t*);
+	n = va_arg(list, int32_t);
 	p = validaddr(p, n, 1);
 
 	pid = pwait(&w);
@@ -854,7 +855,7 @@ sysawait(Ar0* ar0, va_list list)
 }
 
 void
-werrstr(char *fmt, ...)
+werrstr(int8_t *fmt, ...)
 {
 	va_list va;
 
@@ -867,9 +868,9 @@ werrstr(char *fmt, ...)
 }
 
 static void
-generrstr(char *buf, long n)
+generrstr(int8_t *buf, int32_t n)
 {
-	char *p, tmp[ERRMAX];
+	int8_t *p, tmp[ERRMAX];
 
 	if(n <= 0)
 		error(Ebadarg);
@@ -888,7 +889,7 @@ generrstr(char *buf, long n)
 void
 syserrstr(Ar0* ar0, va_list list)
 {
-	char *err;
+	int8_t *err;
 	usize nerr;
 
 	/*
@@ -897,7 +898,7 @@ syserrstr(Ar0* ar0, va_list list)
 	 * usize errstr(char* err, usize nerr);
 	 * but errstr always returns 0.
 	 */
-	err = va_arg(list, char*);
+	err = va_arg(list, int8_t*);
 	nerr = va_arg(list, usize);
 	generrstr(err, nerr);
 
@@ -907,14 +908,14 @@ syserrstr(Ar0* ar0, va_list list)
 void
 sys_errstr(Ar0* ar0, va_list list)
 {
-	char *p;
+	int8_t *p;
 
 	/*
 	 * int errstr(char* err);
 	 *
 	 * Deprecated; backwards compatibility only.
 	 */
-	p = va_arg(list, char*);
+	p = va_arg(list, int8_t*);
 	generrstr(p, 64);
 
 	ar0->i = 0;
@@ -923,15 +924,15 @@ sys_errstr(Ar0* ar0, va_list list)
 void
 sysnotify(Ar0* ar0, va_list list)
 {
-	void (*f)(void*, char*);
+	void (*f)(void*, int8_t*);
 
 	/*
 	 * int notify(void (*f)(void*, char*));
 	 */
-	f = (void (*)(void*, char*))va_arg(list, void*);
+	f = (void (*)(void*, int8_t*))va_arg(list, void*);
 
 	if(f != nil)
-		validaddr(f, sizeof(void (*)(void*, char*)), 0);
+		validaddr(f, sizeof(void (*)(void*, int8_t*)), 0);
 	up->notify = f;
 
 	ar0->i = 0;
@@ -1201,10 +1202,10 @@ semacquire(Segment* s, int* addr, int block)
 
 /* Acquire semaphore or time-out */
 static int
-tsemacquire(Segment* s, int* addr, long ms)
+tsemacquire(Segment* s, int* addr, int32_t ms)
 {
 	int acquired;
-	ulong t;
+	uint32_t t;
 	Sema phore;
 
 	if(canacquire(addr))
@@ -1279,7 +1280,7 @@ systsemacquire(Ar0* ar0, va_list list)
 	addr = va_arg(list, int*);
 	addr = validaddr(addr, sizeof(int), 1);
 	evenaddr(PTR2UINT(addr));
-	ms = va_arg(list, ulong);
+	ms = va_arg(list, uint32_t);
 
 	if((s = seg(up, PTR2UINT(addr), 0)) == nil)
 		error(Ebadarg);

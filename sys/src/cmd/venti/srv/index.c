@@ -37,10 +37,10 @@ static ISect	*initisect1(ISect *is);
 
 #define KEY(k,d)	((d) ? (k)>>(32-(d)) : 0)
 
-static char IndexMagic[] = "venti index configuration";
+static int8_t IndexMagic[] = "venti index configuration";
 
 Index*
-initindex(char *name, ISect **sects, int n)
+initindex(int8_t *name, ISect **sects, int n)
 {
 	IFile f;
 	Index *ix;
@@ -190,7 +190,7 @@ parseindex(IFile *f, Index *ix)
 {
 	AMapN amn;
 	u32int v;
-	char *s;
+	int8_t *s;
 
 	/*
 	 * magic
@@ -248,7 +248,7 @@ parseindex(IFile *f, Index *ix)
  * initialize an entirely new index
  */
 Index *
-newindex(char *name, ISect **sects, int n)
+newindex(int8_t *name, ISect **sects, int n)
 {
 	Index *ix;
 	AMap *smap;
@@ -419,7 +419,8 @@ initisect(Part *part)
 }
 
 ISect*
-newisect(Part *part, u32int vers, char *name, u32int blocksize, u32int tabsize)
+newisect(Part *part, u32int vers, int8_t *name, u32int blocksize,
+	 u32int tabsize)
 {
 	ISect *is;
 	u32int tabbase;

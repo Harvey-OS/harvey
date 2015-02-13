@@ -27,7 +27,7 @@ initibuf(Ibuf *b, Ioproc *io, int fd)
 }
 
 int
-readibuf(Ibuf *b, char *buf, int len)
+readibuf(Ibuf *b, int8_t *buf, int len)
 {
 	int n;
 
@@ -43,7 +43,7 @@ readibuf(Ibuf *b, char *buf, int len)
 }
 
 void
-unreadline(Ibuf *b, char *line)
+unreadline(Ibuf *b, int8_t *line)
 {
 	int i, n;
 
@@ -57,10 +57,10 @@ unreadline(Ibuf *b, char *line)
 }
 
 int
-readline(Ibuf *b, char *buf, int len)
+readline(Ibuf *b, int8_t *buf, int len)
 {
 	int n;
-	char *p;
+	int8_t *p;
 
 	len--;
 

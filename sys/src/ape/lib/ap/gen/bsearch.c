@@ -13,14 +13,14 @@ void*
 bsearch(const void* key, const void* base, size_t nmemb, size_t size,
 		int (*compar)(const void*, const void*))
 {
-	long i, bot, top, new;
+	int32_t i, bot, top, new;
 	void *p;
 
 	bot = 0;
 	top = bot + nmemb - 1;
 	while(bot <= top){
 		new = (top + bot)/2;
-		p = (char *)base+new*size;
+		p = (int8_t *)base+new*size;
 		i = (*compar)(key, p);
 		if(i == 0)
 			return p;

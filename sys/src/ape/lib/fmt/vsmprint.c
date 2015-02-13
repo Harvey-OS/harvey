@@ -28,8 +28,8 @@
 /*
  * print into an allocated string buffer
  */
-char*
-vsmprint(char *fmt, va_list args)
+int8_t*
+vsmprint(int8_t *fmt, va_list args)
 {
 	Fmt f;
 	int n;
@@ -40,6 +40,6 @@ vsmprint(char *fmt, va_list args)
 	n = dofmt(&f, fmt);
 	if(n < 0)
 		return nil;
-	*(char*)f.to = '\0';
-	return (char*)f.start;
+	*(int8_t*)f.to = '\0';
+	return (int8_t*)f.start;
 }

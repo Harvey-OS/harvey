@@ -36,7 +36,7 @@ enum {
 
 typedef struct Dirtab Dirtab;
 struct Dirtab {
-	char	*name;
+	int8_t	*name;
 	int	mode;
 };
 
@@ -110,7 +110,7 @@ serialreset(Serial *ser)
 
 /* call this if something goes wrong, must be qlocked */
 int
-serialrecover(Serial *ser, Serialport *p, Dev *ep, char *err)
+serialrecover(Serial *ser, Serialport *p, Dev *ep, int8_t *err)
 {
 	if(p != nil)
 		dprint(2, "serial[%d], %s: %s, level %d\n", p->interfc,
@@ -154,12 +154,12 @@ serialrecover(Serial *ser, Serialport *p, Dev *ep, char *err)
 }
 
 static int
-serialctl(Serialport *p, char *cmd)
+serialctl(Serialport *p, int8_t *cmd)
 {
 	Serial *ser;
 	int c, i, n, nf, nop, nw, par, drain, set, lines;
-	char *f[16];
-	uchar x;
+	int8_t *f[16];
+	uint8_t x;
 
 	ser = p->s;
 	drain = set = lines = 0;
@@ -304,12 +304,12 @@ serialctl(Serialport *p, char *cmd)
 	return 0;
 }
 
-char *pformat = "noems";
+int8_t *pformat = "noems";
 
-char *
-serdumpst(Serialport *p, char *buf, int bufsz)
+int8_t *
+serdumpst(Serialport *p, int8_t *buf, int bufsz)
 {
-	char *e, *s;
+	int8_t *e, *s;
 	Serial *ser;
 
 	ser = p->s;
@@ -356,10 +356,10 @@ serinit(Serialport *p)
 }
 
 static int
-dwalk(Usbfs *fs, Fid *fid, char *name)
+dwalk(Usbfs *fs, Fid *fid, int8_t *name)
 {
 	int i;
-	char *dname;
+	int8_t *dname;
 	Qid qid;
 	Serialport *p;
 
@@ -427,7 +427,7 @@ dstat(Usbfs *fs, Qid qid, Dir *d)
 static int
 dopen(Usbfs *fs, Fid *fid, int)
 {
-	ulong path;
+	uint32_t path;
 	Serialport *p;
 
 	path = fid->qid.path & ~fs->qid;
@@ -476,13 +476,13 @@ enum {
 	Serbufsize	= 256,
 };
 
-static long
-dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
+static int32_t
+dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 {
 	int dfd;
-	long rcount;
-	ulong path;
-	char *e, *buf, *err;	/* change */
+	int32_t rcount;
+	uint32_t path;
+	int8_t *e, *buf, *err;	/* change */
 	Qid q;
 	Serialport *p;
 	Serial *ser;
@@ -569,11 +569,11 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 	return count;
 }
 
-static long
-altwrite(Serialport *p, uchar *buf, long count)
+static int32_t
+altwrite(Serialport *p, uint8_t *buf, int32_t count)
 {
 	int nw, dfd;
-	char err[128];
+	int8_t err[128];
 	Serial *ser;
 
 	ser = p->s;
@@ -602,11 +602,11 @@ altwrite(Serialport *p, uchar *buf, long count)
 	return nw;
 }
 
-static long
-dwrite(Usbfs *fs, Fid *fid, void *buf, long count, vlong)
+static int32_t
+dwrite(Usbfs *fs, Fid *fid, void *buf, int32_t count, int64_t)
 {
-	ulong path;
-	char *cmd;
+	uint32_t path;
+	int8_t *cmd;
 	Serialport *p;
 	Serial *ser;
 
@@ -617,7 +617,7 @@ dwrite(Usbfs *fs, Fid *fid, void *buf, long count, vlong)
 	qlock(ser);
 	switch(path){
 	case Qdata:
-		count = altwrite(p, (uchar *)buf, count);
+		count = altwrite(p, (uint8_t *)buf, count);
 		break;
 	case Qctl:
 		if(p->isjtag)

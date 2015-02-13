@@ -28,7 +28,7 @@
 
 /* extern void free(void *); */
 
-static char *PsPre[] = {
+static int8_t *PsPre[] = {
 	"%%%%Pages: (atend)",
 	"%%%%PageOrder: Ascend",
 	"%%%%DocumentData: Clean7Bit",
@@ -127,12 +127,12 @@ static int oMH = 600;	/* page height - not scaled */
 #define PH	 14	/* height of process-tag headers */
 
 static FILE	*pfd;
-static char	**I;		/* initial procs */
+static int8_t	**I;		/* initial procs */
 static int	*D,*R;		/* maps between depth and ldepth */
-static short	*M;		/* x location of each box at index y */
-static short	*T;		/* y index of match for each box at index y */
-static char	**L;		/* text labels */
-static char	*ProcLine;	/* active processes */
+static int16_t	*M;		/* x location of each box at index y */
+static int16_t	*T;		/* y index of match for each box at index y */
+static int8_t	**L;		/* text labels */
+static int8_t	*ProcLine;	/* active processes */
 static int	pspno = 0;	/* postscript page */
 static int	ldepth = 1;
 static int	maxx, TotSteps = 2*4096; /* max nr of steps, about 40 pages */
@@ -142,7 +142,7 @@ extern int	ntrail, s_trail, pno, depth;
 extern Symbol	*oFname;
 extern void	exit(int);
 void putpages(void);
-void spitbox(int, int, int, char *);
+void spitbox(int, int, int, int8_t *);
 
 void
 putlegend(void)
@@ -178,14 +178,14 @@ startpage(void)
 	fprintf(pfd, "closepath clip newpath\n");
 	fprintf(pfd, "%f %f translate\n",
 		(float) RH, (float) LH);
-	memset(ProcLine, 0, 256*sizeof(char));
+	memset(ProcLine, 0, 256*sizeof(int8_t));
 	if (Scaler != 1.0)
 		fprintf(pfd, "%f %f scale\n", Scaler, Scaler);
 }
 
 void
 putprelude(void)
-{	char snap[256]; FILE *fd;
+{	int8_t snap[256]; FILE *fd;
 
 	sprintf(snap, "%s.ps", oFname?oFname->name:"msc");
 	if (!(pfd = fopen(snap, MFLAGS)))
@@ -205,7 +205,7 @@ putprelude(void)
 		if (!(fd = fopen(snap, "r")))
 		{	snap[strlen(snap)-2] = '\0';
 			if (!(fd = fopen(snap, "r")))
-				fatal("cannot open trail file", (char *) 0);
+				fatal("cannot open trail file", (int8_t *) 0);
 		}
 		TotSteps = 1;
 		while (fgets(snap, 256, fd)) TotSteps++;
@@ -214,11 +214,11 @@ putprelude(void)
 	TotSteps += 10;
 	R = (int   *) emalloc(TotSteps * sizeof(int));
 	D = (int   *) emalloc(TotSteps * sizeof(int));
-	M = (short *) emalloc(TotSteps * sizeof(short));
-	T = (short *) emalloc(TotSteps * sizeof(short));
-	L = (char **) emalloc(TotSteps * sizeof(char *));
-	I = (char **) emalloc(TotSteps * sizeof(char *));
-	ProcLine = (char *) emalloc(1024 * sizeof(char));
+	M = (int16_t *) emalloc(TotSteps * sizeof(int16_t));
+	T = (int16_t *) emalloc(TotSteps * sizeof(int16_t));
+	L = (int8_t **) emalloc(TotSteps * sizeof(int8_t *));
+	I = (int8_t **) emalloc(TotSteps * sizeof(int8_t *));
+	ProcLine = (int8_t *) emalloc(1024 * sizeof(int8_t));
 	startpage();
 }
 
@@ -300,8 +300,8 @@ stepnumber(int i)
 }
 
 void
-spitbox(int x, int dx, int y, char *s)
-{	float r,g,b, bw; int a; char d[256];
+spitbox(int x, int dx, int y, int8_t *s)
+{	float r,g,b, bw; int a; int8_t d[256];
 
 	if (!dx)
 	{	stepnumber(y);
@@ -414,8 +414,8 @@ putbox(int x)
 }
 
 void
-pstext(int x, char *s)
-{	char *tmp = emalloc((int) strlen(s)+1);
+pstext(int x, int8_t *s)
+{	int8_t *tmp = emalloc((int) strlen(s)+1);
 
 	strcpy(tmp, s);
 	if (depth == 0)
@@ -425,7 +425,7 @@ pstext(int x, char *s)
 		if (depth >= TotSteps || ldepth >= TotSteps)
 		{	fprintf(stderr, "max nr of %d steps exceeded\n",
 				TotSteps);
-			fatal("aborting", (char *) 0);
+			fatal("aborting", (int8_t *) 0);
 		}
 
 		D[depth] = ldepth;

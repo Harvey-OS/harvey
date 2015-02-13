@@ -12,7 +12,7 @@
 #include <venti.h>
 #include <thread.h>
 
-char *host;
+int8_t *host;
 
 void
 usage(void)

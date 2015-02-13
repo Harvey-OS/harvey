@@ -17,8 +17,8 @@
 #define	U8GET(p)	((p)[0])
 #define	U16GET(p)	(((p)[0]<<8)|(p)[1])
 #define	U32GET(p)	((u32int)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
-#define	U48GET(p)	(((vlong)U16GET(p)<<32)|(vlong)U32GET((p)+2))
-#define	U64GET(p)	(((vlong)U32GET(p)<<32)|(vlong)U32GET((p)+4))
+#define	U48GET(p)	(((int64_t)U16GET(p)<<32)|(int64_t)U32GET((p)+2))
+#define	U64GET(p)	(((int64_t)U32GET(p)<<32)|(int64_t)U32GET((p)+4))
 
 #define	U8PUT(p,v)	(p)[0]=(v)
 #define	U16PUT(p,v)	(p)[0]=(v)>>8;(p)[1]=(v)
@@ -38,9 +38,9 @@ checkSize(int n)
 		
 
 void
-vtRootPack(VtRoot *r, uchar *p)
+vtRootPack(VtRoot *r, uint8_t *p)
 {
-	uchar *op = p;
+	uint8_t *op = p;
 
 	U16PUT(p, r->version);
 	p += 2;
@@ -59,9 +59,9 @@ vtRootPack(VtRoot *r, uchar *p)
 }
 
 int
-vtRootUnpack(VtRoot *r, uchar *p)
+vtRootUnpack(VtRoot *r, uint8_t *p)
 {
-	uchar *op = p;
+	uint8_t *op = p;
 
 	memset(r, 0, sizeof(*r));
 
@@ -91,11 +91,11 @@ vtRootUnpack(VtRoot *r, uchar *p)
 }
 
 void
-vtEntryPack(VtEntry *e, uchar *p, int index)
+vtEntryPack(VtEntry *e, uint8_t *p, int index)
 {
-	ulong t32;
+	uint32_t t32;
 	int flags;
-	uchar *op;
+	uint8_t *op;
 
 	p += index * VtEntrySize;
 	op = p;
@@ -120,9 +120,9 @@ vtEntryPack(VtEntry *e, uchar *p, int index)
 }
 
 int
-vtEntryUnpack(VtEntry *e, uchar *p, int index)
+vtEntryUnpack(VtEntry *e, uint8_t *p, int index)
 {
-	uchar *op;
+	uint8_t *op;
 
 	p += index * VtEntrySize;
 	op = p;

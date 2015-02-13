@@ -60,7 +60,7 @@ smbtreedisconnect(SmbSession *s, SmbTree *t)
 }
 
 void
-smbtreedisconnectbyid(SmbSession *s, ushort id)
+smbtreedisconnectbyid(SmbSession *s, uint16_t id)
 {
 	smbtreedisconnect(s, smbidmapfind(s->tidmap, id));
 }

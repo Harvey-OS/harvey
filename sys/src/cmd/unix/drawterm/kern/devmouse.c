@@ -39,19 +39,19 @@ Dirtab mousedir[]={
 #define	NMOUSE	(sizeof(mousedir)/sizeof(Dirtab))
 
 static Chan*
-mouseattach(char *spec)
+mouseattach(int8_t *spec)
 {
 	return devattach('m', spec);
 }
 
 static Walkqid*
-mousewalk(Chan *c, Chan *nc, char **name, int nname)
+mousewalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, mousedir, NMOUSE, devgen);
 }
 
 static int
-mousestat(Chan *c, uchar *db, int n)
+mousestat(Chan *c, uint8_t *db, int n)
 {
 	return devstat(c, db, n, mousedir, NMOUSE, devgen);
 }
@@ -59,7 +59,7 @@ mousestat(Chan *c, uchar *db, int n)
 static Chan*
 mouseopen(Chan *c, int omode)
 {
-	switch((long)c->qid.path){
+	switch((int32_t)c->qid.path){
 	case Qdir:
 		if(omode != OREAD)
 			error(Eperm);
@@ -86,7 +86,7 @@ mouseclose(Chan *c)
 	if(!(c->flag&COPEN))
 		return;
 
-	switch((long)c->qid.path) {
+	switch((int32_t)c->qid.path) {
 	case Qmouse:
 		lock(&mouse.lk);
 		mouse.open = 0;
@@ -96,17 +96,17 @@ mouseclose(Chan *c)
 }
 
 
-long
-mouseread(Chan *c, void *va, long n, vlong offset)
+int32_t
+mouseread(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	char buf[4*12+1];
-	uchar *p;
+	int8_t buf[4*12+1];
+	uint8_t *p;
 	int i, nn;
-	ulong msec;
+	uint32_t msec;
 /*	static int map[8] = {0, 4, 2, 6, 1, 5, 3, 7 };	*/
 
 	p = va;
-	switch((long)c->qid.path){
+	switch((int32_t)c->qid.path){
 	case Qdir:
 		return devdirread(c, va, n, mousedir, NMOUSE, devgen);
 
@@ -167,17 +167,17 @@ mouseread(Chan *c, void *va, long n, vlong offset)
 	return 0;
 }
 
-long
-mousewrite(Chan *c, void *va, long n, vlong offset)
+int32_t
+mousewrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	char *p;
+	int8_t *p;
 	Point pt;
-	char buf[64];
+	int8_t buf[64];
 
 	USED(offset);
 
 	p = va;
-	switch((long)c->qid.path){
+	switch((int32_t)c->qid.path){
 	case Qdir:
 		error(Eisdir);
 

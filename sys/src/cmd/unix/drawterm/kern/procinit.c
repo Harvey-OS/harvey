@@ -50,7 +50,7 @@ newproc(void)
 }
 
 int
-kproc(char *name, void (*fn)(void*), void *arg)
+kproc(int8_t *name, void (*fn)(void*), void *arg)
 {
 	Proc *p;
 

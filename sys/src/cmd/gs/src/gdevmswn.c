@@ -119,7 +119,7 @@ win_close(gx_device * dev)
 		wdev->mapped_color_flags, 4096, 1, "win_set_bits_per_pixel");
 	DeleteObject(wdev->himgpalette);
 	gs_free(dev->memory, 
-		(char *)(wdev->limgpalette), 1, sizeof(LOGPALETTE) +
+		(int8_t *)(wdev->limgpalette), 1, sizeof(LOGPALETTE) +
 		(1 << (wdev->color_info.depth)) * sizeof(PALETTEENTRY),
 		"win_close");
     }
@@ -143,9 +143,9 @@ win_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 				       ((g >> (gx_color_value_bits - 6)) << 5) +
 				       (b >> (gx_color_value_bits - 5));
 #if arch_is_big_endian
-		ushort color16 = (ushort)color;
+		uint16_t color16 = (uint16_t)color;
 #else
-		ushort color16 = (ushort)((color << 8) | (color >> 8));
+		uint16_t color16 = (uint16_t)((color << 8) | (color >> 8));
 #endif
 		return color16;
 	    }
@@ -154,9 +154,9 @@ win_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 				       ((g >> (gx_color_value_bits - 5)) << 5) +
 				       (b >> (gx_color_value_bits - 5));
 #if arch_is_big_endian
-		ushort color15 = (ushort)color;
+		uint16_t color15 = (uint16_t)color;
 #else
-		ushort color15 = (ushort)((color << 8) | (color >> 8));
+		uint16_t color15 = (uint16_t)((color << 8) | (color >> 8));
 #endif
 		return color15;
 	    }
@@ -239,7 +239,7 @@ win_map_color_rgb(gx_device * dev, gx_color_index color,
 		  gx_color_value prgb[3])
 {
     gx_color_value one;
-    ushort value;
+    uint16_t value;
 
     switch (wdev->BitsPerPixel) {
 	case 24:

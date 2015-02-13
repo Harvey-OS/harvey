@@ -20,9 +20,9 @@ enum{
 	CHUNK	=	256	/* must be power of 2 */
 };
 
-char	*errs;			/* exit status */
-char	*filename;		/* current file */
-char	symname[]="__.SYMDEF";	/* table of contents file name */
+int8_t	*errs;			/* exit status */
+int8_t	*filename;		/* current file */
+int8_t	symname[]="__.SYMDEF";	/* table of contents file name */
 int	multifile;		/* processing multiple files */
 int	aflag;
 int	gflag;
@@ -38,10 +38,10 @@ int	nsym;
 Biobuf	bout;
 
 int	cmp(void*, void*);
-void	error(char*, ...);
+void	error(int8_t*, ...);
 void	execsyms(int);
 void	psym(Sym*, void*);
-void	printsyms(Sym**, long);
+void	printsyms(Sym**, int32_t);
 void	doar(Biobuf*);
 void	dofile(Biobuf*);
 void	zenter(Sym*);
@@ -101,7 +101,7 @@ void
 doar(Biobuf *bp)
 {
 	int offset, size, obj;
-	char membername[SARNAME];
+	int8_t membername[SARNAME];
 
 	multifile = 1;
 	for (offset = Boffset(bp);;offset += size) {
@@ -196,7 +196,7 @@ execsyms(int fd)
 {
 	Fhdr f;
 	Sym *s;
-	long n;
+	int32_t n;
 
 	seek(fd, 0, 0);
 	if (crackhdr(fd, &f) == 0) {
@@ -268,12 +268,12 @@ psym(Sym *s, void* p)
 }
 
 void
-printsyms(Sym **symptr, long nsym)
+printsyms(Sym **symptr, int32_t nsym)
 {
 	int i, wid;
 	Sym *s;
-	char *cp;
-	char path[512];
+	int8_t *cp;
+	int8_t path[512];
 
 	if(!sflag)
 		qsort(symptr, nsym, sizeof(*symptr), cmp);
@@ -291,7 +291,7 @@ printsyms(Sym **symptr, long nsym)
 		if (multifile && !hflag)
 			Bprint(&bout, "%s:", filename);
 		if (s->type == 'z') {
-			fileelem(fnames, (uchar *) s->name, path, 512);
+			fileelem(fnames, (uint8_t *) s->name, path, 512);
 			cp = path;
 		} else
 			cp = s->name;
@@ -306,10 +306,10 @@ printsyms(Sym **symptr, long nsym)
 }
 
 void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
 	Fmt f;
-	char buf[128];
+	int8_t buf[128];
 	va_list arg;
 
 	fmtfdinit(&f, 2, buf, sizeof buf);

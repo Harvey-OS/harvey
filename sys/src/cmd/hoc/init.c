@@ -13,7 +13,7 @@
 #include "y.tab.h"
 
 static struct {		/* Keywords */
-	char	*name;
+	int8_t	*name;
 	int	kval;
 } keywords[] = {
 	"proc",		PROC,
@@ -29,7 +29,7 @@ static struct {		/* Keywords */
 };
 
 static struct {		/* Constants */
-	char *name;
+	int8_t *name;
 	double cval;
 } consts[] = {
 	"PI",	 3.14159265358979323846,
@@ -41,7 +41,7 @@ static struct {		/* Constants */
 };
 
 static struct {		/* Built-ins */
-	char *name;
+	int8_t *name;
 	double	(*func)(double);
 } builtins[] = {
 	"sin",	sin,

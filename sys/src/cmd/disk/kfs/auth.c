@@ -49,7 +49,7 @@ authorize(Chan *cp, Oldfcall *in, Oldfcall *ou)
 	Ticket t;
 	Authenticator a;
 	int x;
-	ulong bit;
+	uint32_t bit;
 
 	if (cp == cons.srvchan)               /* local channel already safe */
 		return 1;

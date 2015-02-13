@@ -24,7 +24,7 @@ static void	calcd(Route*);
 Route*	v4freelist;
 Route*	v6freelist;
 RWlock	routelock;
-ulong	v4routegeneration, v6routegeneration;
+uint32_t	v4routegeneration, v6routegeneration;
 
 static void
 freeroute(Route *r)
@@ -90,7 +90,7 @@ addqueue(Route **q, Route *r)
  *  compare 2 v6 addresses
  */
 static int
-lcmp(ulong *a, ulong *b)
+lcmp(uint32_t *a, uint32_t *b)
 {
 	int i;
 
@@ -297,12 +297,13 @@ addnode(Fs *f, Route **cur, Route *new)
 #define	V4H(a)	((a&0x07ffffff)>>(32-Lroot-5))
 
 void
-v4addroute(Fs *f, char *tag, uchar *a, uchar *mask, uchar *gate, int type)
+v4addroute(Fs *f, int8_t *tag, uint8_t *a, uint8_t *mask, uint8_t *gate,
+	   int type)
 {
 	Route *p;
-	ulong sa;
-	ulong m;
-	ulong ea;
+	uint32_t sa;
+	uint32_t m;
+	uint32_t ea;
 	int h, eh;
 
 	m = nhgetl(mask);
@@ -335,11 +336,12 @@ v4addroute(Fs *f, char *tag, uchar *a, uchar *mask, uchar *gate, int type)
 #define ISDFLT(a, mask, tag) ((ipcmp((a),v6Unspecified)==0) && (ipcmp((mask),v6Unspecified)==0) && (strcmp((tag), "ra")!=0))
 
 void
-v6addroute(Fs *f, char *tag, uchar *a, uchar *mask, uchar *gate, int type)
+v6addroute(Fs *f, int8_t *tag, uint8_t *a, uint8_t *mask, uint8_t *gate,
+	   int type)
 {
 	Route *p;
-	ulong sa[IPllen], ea[IPllen];
-	ulong x, y;
+	uint32_t sa[IPllen], ea[IPllen];
+	uint32_t x, y;
 	int h, eh;
 
 	/*
@@ -406,12 +408,12 @@ looknode(Route **cur, Route *r)
 }
 
 void
-v4delroute(Fs *f, uchar *a, uchar *mask, int dolock)
+v4delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock)
 {
 	Route **r, *p;
 	Route rt;
 	int h, eh;
-	ulong m;
+	uint32_t m;
 
 	m = nhgetl(mask);
 	rt.v4.address = nhgetl(a) & m;
@@ -447,12 +449,12 @@ v4delroute(Fs *f, uchar *a, uchar *mask, int dolock)
 }
 
 void
-v6delroute(Fs *f, uchar *a, uchar *mask, int dolock)
+v6delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock)
 {
 	Route **r, *p;
 	Route rt;
 	int h, eh;
-	ulong x, y;
+	uint32_t x, y;
 
 	for(h = 0; h < IPllen; h++){
 		x = nhgetl(a+4*h);
@@ -491,11 +493,11 @@ v6delroute(Fs *f, uchar *a, uchar *mask, int dolock)
 }
 
 Route*
-v4lookup(Fs *f, uchar *a, Conv *c)
+v4lookup(Fs *f, uint8_t *a, Conv *c)
 {
 	Route *p, *q;
-	ulong la;
-	uchar gate[IPaddrlen];
+	uint32_t la;
+	uint8_t gate[IPaddrlen];
 	Ipifc *ifc;
 
 	if(c != nil && c->r != nil && c->r->ifc != nil && c->rgen == v4routegeneration)
@@ -535,13 +537,13 @@ v4lookup(Fs *f, uchar *a, Conv *c)
 }
 
 Route*
-v6lookup(Fs *f, uchar *a, Conv *c)
+v6lookup(Fs *f, uint8_t *a, Conv *c)
 {
 	Route *p, *q;
-	ulong la[IPllen];
+	uint32_t la[IPllen];
 	int h;
-	ulong x, y;
-	uchar gate[IPaddrlen];
+	uint32_t x, y;
+	uint8_t gate[IPaddrlen];
 	Ipifc *ifc;
 
 	if(memcmp(a, v4prefix, IPv4off) == 0){
@@ -606,7 +608,7 @@ next:		;
 }
 
 void
-routetype(int type, char *p)
+routetype(int type, int8_t *p)
 {
 	memset(p, ' ', 4);
 	p[4] = 0;
@@ -626,10 +628,11 @@ routetype(int type, char *p)
 		*p = 'p';
 }
 
-char *rformat = "%-15I %-4M %-15I %4.4s %4.4s %3s\n";
+int8_t *rformat = "%-15I %-4M %-15I %4.4s %4.4s %3s\n";
 
 void
-convroute(Route *r, uchar *addr, uchar *mask, uchar *gate, char *t, int *nifc)
+convroute(Route *r, uint8_t *addr, uint8_t *mask, uint8_t *gate, int8_t *t,
+          int *nifc)
 {
 	int i;
 
@@ -663,9 +666,9 @@ static void
 sprintroute(Route *r, Routewalk *rw)
 {
 	int nifc, n;
-	char t[5], *iname, ifbuf[5];
-	uchar addr[IPaddrlen], mask[IPaddrlen], gate[IPaddrlen];
-	char *p;
+	int8_t t[5], *iname, ifbuf[5];
+	uint8_t addr[IPaddrlen], mask[IPaddrlen], gate[IPaddrlen];
+	int8_t *p;
 
 	convroute(r, addr, mask, gate, t, &nifc);
 	iname = "-";
@@ -732,8 +735,8 @@ ipwalkroutes(Fs *f, Routewalk *rw)
 	runlock(&routelock);
 }
 
-long
-routeread(Fs *f, char *p, ulong offset, int n)
+int32_t
+routeread(Fs *f, int8_t *p, uint32_t offset, int n)
 {
 	Routewalk rw;
 
@@ -753,10 +756,10 @@ routeread(Fs *f, char *p, ulong offset, int n)
 void
 delroute(Fs *f, Route *r, int dolock)
 {
-	uchar addr[IPaddrlen];
-	uchar mask[IPaddrlen];
-	uchar gate[IPaddrlen];
-	char t[5];
+	uint8_t addr[IPaddrlen];
+	uint8_t mask[IPaddrlen];
+	uint8_t gate[IPaddrlen];
+	int8_t t[5];
 	int nifc;
 
 	convroute(r, addr, mask, gate, t, &nifc);
@@ -771,7 +774,7 @@ delroute(Fs *f, Route *r, int dolock)
  *  returns 0 if nothing is deleted, 1 otherwise
  */
 int
-routeflush(Fs *f, Route *r, char *tag)
+routeflush(Fs *f, Route *r, int8_t *tag)
 {
 	if(r == nil)
 		return 0;
@@ -790,15 +793,15 @@ routeflush(Fs *f, Route *r, char *tag)
 	return 0;
 }
 
-long
-routewrite(Fs *f, Chan *c, char *p, int n)
+int32_t
+routewrite(Fs *f, Chan *c, int8_t *p, int n)
 {
 	int h, changed;
-	char *tag;
+	int8_t *tag;
 	Cmdbuf *cb;
-	uchar addr[IPaddrlen];
-	uchar mask[IPaddrlen];
-	uchar gate[IPaddrlen];
+	uint8_t addr[IPaddrlen];
+	uint8_t mask[IPaddrlen];
+	uint8_t gate[IPaddrlen];
 	IPaux *a, *na;
 
 	cb = parsecmd(p, n);

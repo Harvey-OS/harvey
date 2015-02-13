@@ -16,77 +16,77 @@
 
 #include "/sys/src/libmach/elf.h"
 
-static uchar elfident[7] = {
+static uint8_t elfident[7] = {
 	'\177', 'E', 'L', 'F', '\1', '\1', '\1'
 };
 static Ehdr ehdr, rehdr;
 static Phdr *phdr;
 static int curphdr;
-static ulong curoff;
-static ulong elftotal;
-static long (*swal)(long);
-static ushort (*swab)(ushort);
+static uint32_t curoff;
+static uint32_t elftotal;
+static int32_t (*swal)(int32_t);
+static uint16_t (*swab)(uint16_t);
 
 /*
  * big-endian short
  */
-ushort
-beswab(ushort s)
+uint16_t
+beswab(uint16_t s)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)&s;
+	p = (uint8_t*)&s;
 	return (p[0]<<8) | p[1];
 }
 
 /*
  * big-endian long
  */
-long
-beswal(long l)
+int32_t
+beswal(int32_t l)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)&l;
+	p = (uint8_t*)&l;
 	return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
 }
 
 /*
  * big-endian vlong
  */
-uvlong
-beswav(uvlong v)
+uint64_t
+beswav(uint64_t v)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)&v;
-	return ((uvlong)p[0]<<56) | ((uvlong)p[1]<<48) | ((uvlong)p[2]<<40)
-				  | ((uvlong)p[3]<<32) | ((uvlong)p[4]<<24)
-				  | ((uvlong)p[5]<<16) | ((uvlong)p[6]<<8)
-				  | (uvlong)p[7];
+	p = (uint8_t*)&v;
+	return ((uint64_t)p[0]<<56) | ((uint64_t)p[1]<<48) | ((uint64_t)p[2]<<40)
+				  | ((uint64_t)p[3]<<32) | ((uint64_t)p[4]<<24)
+				  | ((uint64_t)p[5]<<16) | ((uint64_t)p[6]<<8)
+				  | (uint64_t)p[7];
 }
 
 /*
  * little-endian short
  */
-ushort
-leswab(ushort s)
+uint16_t
+leswab(uint16_t s)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)&s;
+	p = (uint8_t*)&s;
 	return (p[1]<<8) | p[0];
 }
 
 /*
  * little-endian long
  */
-long
-leswal(long l)
+int32_t
+leswal(int32_t l)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)&l;
+	p = (uint8_t*)&l;
 	return (p[3]<<24) | (p[2]<<16) | (p[1]<<8) | p[0];
 }
 
@@ -94,7 +94,7 @@ leswal(long l)
  * Convert header to canonical form
  */
 static void
-hswal(long *lp, int n, long (*swap) (long))
+hswal(int32_t *lp, int n, int32_t (*swap) (int32_t))
 {
 	while (n--) {
 		*lp = (*swap) (*lp);
@@ -148,7 +148,7 @@ readehdr(Boot *b)
 	curoff = sizeof(Ehdr);
 	i = ehdr.phoff+ehdr.phentsize*ehdr.phnum - curoff;
 	b->state = READPHDR;
-	b->bp = (char*)malloc(i);
+	b->bp = (int8_t*)malloc(i);
 	b->wp = b->bp;
 	b->ep = b->wp + i;
 	phdr = (Phdr*)(b->bp + ehdr.phoff-sizeof(Ehdr));
@@ -162,8 +162,8 @@ static int
 nextphdr(Boot *b)
 {
 	Phdr *php;
-	ulong entry, offset;
-	char *paddr;
+	uint32_t entry, offset;
+	int8_t *paddr;
 
 	if(debug)
 		print("readedata %d\n", curphdr);
@@ -173,7 +173,7 @@ nextphdr(Boot *b)
 		if(php->type != LOAD)
 			continue;
 		offset = php->offset;
-		paddr = (char*)PADDR(php->paddr);
+		paddr = (int8_t*)PADDR(php->paddr);
 		if(offset < curoff){
 			/*
 			 * Can't (be bothered to) rewind the
@@ -185,7 +185,7 @@ nextphdr(Boot *b)
 		}
 		if(php->offset > curoff){
 			b->state = READEPAD;
-			b->bp = (char*)malloc(offset - curoff);
+			b->bp = (int8_t*)malloc(offset - curoff);
 			b->wp = b->bp;
 			b->ep = b->wp + offset - curoff;
 			if(debug)
@@ -239,7 +239,8 @@ readedata(Boot *b)
 	if(php->filesz < php->memsz){
 		print("%lud",  php->memsz-php->filesz);
 		elftotal += php->memsz-php->filesz;
-		memset((char*)(PADDR(php->paddr)+php->filesz), 0, php->memsz-php->filesz);
+		memset((int8_t*)(PADDR(php->paddr)+php->filesz), 0,
+		       php->memsz-php->filesz);
 	}
 	curoff = php->offset+php->filesz;
 	curphdr++;
@@ -253,7 +254,7 @@ readphdr(Boot *b)
 	Phdr *php;
 
 	php = phdr;
-	hswal((long*)php, ehdr.phentsize*ehdr.phnum/sizeof(long), swal);
+	hswal((int32_t*)php, ehdr.phentsize*ehdr.phnum/sizeof(int32_t), swal);
 	if(debug)
 		print("phdr curoff %lud vaddr 0x%lux paddr 0x%lux\n",
 			curoff, php->vaddr, php->paddr);
@@ -265,7 +266,7 @@ readphdr(Boot *b)
 }
 
 static int
-addbytes(char **dbuf, char *edbuf, char **sbuf, char *esbuf)
+addbytes(int8_t **dbuf, int8_t *edbuf, int8_t **sbuf, int8_t *esbuf)
 {
 	int n;
 
@@ -286,10 +287,10 @@ addbytes(char **dbuf, char *edbuf, char **sbuf, char *esbuf)
 int
 bootpass(Boot *b, void *vbuf, int nbuf)
 {
-	char *buf, *ebuf;
+	int8_t *buf, *ebuf;
 	Hdr *hdr;
-	ulong magic, entry, data, text, bss;
-	uvlong entry64;
+	uint32_t magic, entry, data, text, bss;
+	uint64_t entry64;
 
 	if(b->state == FAILED)
 		return FAIL;
@@ -303,7 +304,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 		switch(b->state) {
 		case INITKERNEL:
 			b->state = READEXEC;
-			b->bp = (char*)&b->hdr;
+			b->bp = (int8_t*)&b->hdr;
 			b->wp = b->bp;
 			b->ep = b->bp+sizeof(Hdr);
 			break;
@@ -312,7 +313,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			magic = GLLONG(hdr->magic);
 			if(magic == I_MAGIC || magic == S_MAGIC) {
 				b->state = READ9TEXT;
-				b->bp = (char*)PADDR(GLLONG(hdr->entry));
+				b->bp = (int8_t*)PADDR(GLLONG(hdr->entry));
 				b->wp = b->bp;
 				b->ep = b->wp+GLLONG(hdr->text);
 
@@ -326,9 +327,9 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			}
 
 			/* check for gzipped kernel */
-			if(b->bp[0] == 0x1F && (uchar)b->bp[1] == 0x8B && b->bp[2] == 0x08) {
+			if(b->bp[0] == 0x1F && (uint8_t)b->bp[1] == 0x8B && b->bp[2] == 0x08) {
 				b->state = READGZIP;
-				b->bp = (char*)malloc(1440*1024);
+				b->bp = (int8_t*)malloc(1440*1024);
 				b->wp = b->bp;
 				b->ep = b->wp + 1440*1024;
 				memmove(b->bp, &b->hdr, sizeof(Hdr));
@@ -342,7 +343,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			 */
 			if(memcmp(b->bp, elfident, 4) == 0){
 				b->state = READEHDR;
-				b->bp = (char*)&ehdr;
+				b->bp = (int8_t*)&ehdr;
 				b->wp = b->bp;
 				b->ep = b->wp + sizeof(Ehdr);
 				memmove(b->bp, &b->hdr, sizeof(Hdr));
@@ -358,7 +359,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 		case READ9TEXT:
 			hdr = &b->hdr;
 			b->state = READ9DATA;
-			b->bp = (char*)PGROUND(PADDR(GLLONG(hdr->entry))+GLLONG(hdr->text));
+			b->bp = (int8_t*)PGROUND(PADDR(GLLONG(hdr->entry))+GLLONG(hdr->text));
 			b->wp = b->bp;
 			b->ep = b->wp + GLLONG(hdr->data);
 			print("+%ld", GLLONG(hdr->data));
@@ -464,11 +465,11 @@ Endofinput:
 
 	case READGZIP:
 		hdr = &b->hdr;
-		if(b->bp[0] != 0x1F || (uchar)b->bp[1] != 0x8B || b->bp[2] != 0x08)
+		if(b->bp[0] != 0x1F || (uint8_t)b->bp[1] != 0x8B || b->bp[2] != 0x08)
 			print("lost magic\n");
 
 		print("%ld => ", b->wp - b->bp);
-		if(gunzip((uchar*)hdr, sizeof(*hdr), (uchar*)b->bp, b->wp - b->bp) < sizeof(*hdr)) {
+		if(gunzip((uint8_t*)hdr, sizeof(*hdr), (uint8_t*)b->bp, b->wp - b->bp) < sizeof(*hdr)) {
 			print("badly compressed kernel\n");
 			return FAIL;
 		}
@@ -479,8 +480,8 @@ Endofinput:
 		bss = GLLONG(hdr->bss);
 		print("%lud+%lud+%lud=%lud\n", text, data, bss, text+data+bss);
 
-		if(gunzip((uchar*)PADDR(entry)-sizeof(Exec), sizeof(Exec)+text+data,
-		     (uchar*)b->bp, b->wp-b->bp) < sizeof(Exec)+text+data) {
+		if(gunzip((uint8_t*)PADDR(entry)-sizeof(Exec), sizeof(Exec)+text+data,
+		     (uint8_t*)b->bp, b->wp-b->bp) < sizeof(Exec)+text+data) {
 			print("error uncompressing kernel\n");
 			return FAIL;
 		}

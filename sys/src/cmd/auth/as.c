@@ -21,24 +21,24 @@
 
 int	debug;
 
-int	becomeuser(char*);
+int	becomeuser(int8_t*);
 void	createuser(void);
 void	*emalloc(ulong);
-void	*erealloc(void*, ulong);
+void	*erealloc(void*, uint32_t);
 void	initcap(void);
-int	mkcmd(char*, char*, int);
-int	myauth(int, char*);
+int	mkcmd(int8_t*, int8_t*, int);
+int	myauth(int, int8_t*);
 int	qidcmp(Qid, Qid);
-void	runas(char *, char *);
+void	runas(int8_t *, int8_t *);
 void	usage(void);
 
 #pragma varargck	argpos clog 1
 #pragma varargck	argpos fatal 1
 
 static void
-fatal(char *fmt, ...)
+fatal(int8_t *fmt, ...)
 {
-	char msg[256];
+	int8_t msg[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 }
 
 void
-runas(char *user, char *cmd)
+runas(int8_t *user, int8_t *cmd)
 {
 	if(becomeuser(user) < 0)
 		sysfatal("can't change uid for %s: %r", user);
@@ -75,7 +75,7 @@ runas(char *user, char *cmd)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -86,7 +86,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	if(p = realloc(p, n))
 		return p;
@@ -104,9 +104,9 @@ usage(void)
 void
 memrandom(void *p, int n)
 {
-	uchar *cp;
+	uint8_t *cp;
 
-	for(cp = (uchar*)p; n > 0; n--)
+	for(cp = (uint8_t*)p; n > 0; n--)
 		*cp++ = fastrand();
 }
 
@@ -126,14 +126,14 @@ initcap(void)
 /*
  *  create a change uid capability 
  */
-char*
-mkcap(char *from, char *to)
+int8_t*
+mkcap(int8_t *from, int8_t *to)
 {
-	uchar rand[20];
-	char *cap;
-	char *key;
+	uint8_t rand[20];
+	int8_t *cap;
+	int8_t *key;
 	int nfrom, nto, ncap;
-	uchar hash[SHA1dlen];
+	uint8_t hash[SHA1dlen];
 
 	if(caphashfd < 0)
 		return nil;
@@ -149,7 +149,8 @@ mkcap(char *from, char *to)
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uchar*)cap, strlen(cap), (uchar*)key, strlen(key), hash, nil);
+	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
+		  hash, nil);
 
 	/* give the kernel the hash */
 	key[-1] = '@';
@@ -162,7 +163,7 @@ mkcap(char *from, char *to)
 }
 
 int
-usecap(char *cap)
+usecap(int8_t *cap)
 {
 	int fd, rv;
 
@@ -175,9 +176,9 @@ usecap(char *cap)
 }
 
 int
-becomeuser(char *new)
+becomeuser(int8_t *new)
 {
-	char *cap;
+	int8_t *cap;
 	int rv;
 
 	cap = mkcap(getuser(), new);

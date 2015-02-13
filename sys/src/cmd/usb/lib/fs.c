@@ -54,24 +54,24 @@ struct Rpc
 	Fid*	fid;
 	int	flushed;
 	Rpc*	next;
-	char	data[Bufsize];
+	int8_t	data[Bufsize];
 };
 
 int usbfsdebug;
 
-char Enotfound[] = "file not found";
-char Etoosmall[] = "parameter too small";
-char Eio[] = "i/o error";
-char Eperm[] = "permission denied";
-char Ebadcall[] = "unknown fs call";
-char Ebadfid[] = "fid not found";
-char Einuse[] = "fid already in use";
-char Eisopen[] = "it is already open";
-char Ebadctl[] = "unknown control request";
+int8_t Enotfound[] = "file not found";
+int8_t Etoosmall[] = "parameter too small";
+int8_t Eio[] = "i/o error";
+int8_t Eperm[] = "permission denied";
+int8_t Ebadcall[] = "unknown fs call";
+int8_t Ebadfid[] = "fid not found";
+int8_t Einuse[] = "fid already in use";
+int8_t Eisopen[] = "it is already open";
+int8_t Ebadctl[] = "unknown control request";
 
-static char *user;
-static ulong epoch;
-static ulong msgsize = Msgsize;
+static int8_t *user;
+static uint32_t epoch;
+static uint32_t msgsize = Msgsize;
 static int fsfd = -1;
 static Channel *outc;	/* of Rpc* */
 
@@ -165,7 +165,7 @@ newrpc(void)
 	r->t.type = r->r.type = 0;
 	r->flushed = 0;
 	r->fid = nil;
-	r->r.data = (char*)r->data;
+	r->r.data = (int8_t*)r->data;
 	qunlock(&rpclck);
 	return r;
 }
@@ -250,17 +250,17 @@ freefid(Fid *f)
 }
 
 static Rpc*
-fserror(Rpc *rpc, char* fmt, ...)
+fserror(Rpc *rpc, int8_t* fmt, ...)
 {
 	va_list arg;
-	char *c;
+	int8_t *c;
 
 	va_start(arg, fmt);
-	c = (char*)rpc->data;
+	c = (int8_t*)rpc->data;
 	vseprint(c, c+sizeof(rpc->data), fmt, arg);
 	va_end(arg);
 	rpc->r.type = Rerror;
-	rpc->r.ename = (char*)rpc->data;
+	rpc->r.ename = (int8_t*)rpc->data;
 	return rpc;
 }
 
@@ -339,7 +339,7 @@ fswalk(Rpc *r)
 static void
 fsioproc(void* a)
 {
-	long rc;
+	int32_t rc;
 	Channel *p = a;
 	Rpc *rpc;
 	Fcall *t, *r;
@@ -409,10 +409,12 @@ fsopen(Rpc *r)
 }
 
 int
-usbdirread(Usbfs*f, Qid q, char *data, long cnt, vlong off, Dirgen gen, void *arg)
+usbdirread(Usbfs*f, Qid q, int8_t *data, int32_t cnt, int64_t off,
+	   Dirgen gen,
+	   void *arg)
 {
 	int i, n, nd;
-	char name[Namesz];
+	int8_t name[Namesz];
 	Dir d;
 
 	memset(&d, 0, sizeof(d));
@@ -424,7 +426,7 @@ usbdirread(Usbfs*f, Qid q, char *data, long cnt, vlong off, Dirgen gen, void *ar
 	for(i = n = 0; gen(f, q, i, &d, arg) >= 0; i++){
 		if(usbfsdebug > 1)
 			fprint(2, "%s: dir %d q %#llux: %D\n", argv0, i, q.path, &d);
-		nd = convD2M(&d, (uchar*)data+n, cnt-n);
+		nd = convD2M(&d, (uint8_t*)data+n, cnt-n);
 		if(nd <= BIT16SZ)
 			break;
 		if(off > 0)
@@ -440,14 +442,14 @@ usbdirread(Usbfs*f, Qid q, char *data, long cnt, vlong off, Dirgen gen, void *ar
 	return n;
 }
 
-long
-usbreadbuf(void *data, long count, vlong offset, void *buf, long n)
+int32_t
+usbreadbuf(void *data, int32_t count, int64_t offset, void *buf, int32_t n)
 {
 	if(offset >= n)
 		return 0;
 	if(offset + count > n)
 		count = n - offset;
-	memmove(data, (char*)buf + offset, count);
+	memmove(data, (int8_t*)buf + offset, count);
 	return count;
 }
 
@@ -492,7 +494,7 @@ static Rpc*
 fsstat(Rpc *r)
 {
 	Dir d;
-	char name[Namesz];
+	int8_t name[Namesz];
 
 	memset(&d, 0, sizeof(d));
 	d.name = name;
@@ -502,8 +504,8 @@ fsstat(Rpc *r)
 	d.length = 0;
 	if(fsops->stat(fsops, r->fid->qid, &d) < 0)
 		return fserror(r, "%r");
-	r->r.stat = (uchar*)r->data;
-	r->r.nstat = convD2M(&d, (uchar*)r->data, msgsize);
+	r->r.stat = (uint8_t*)r->data;
+	r->r.nstat = convD2M(&d, (uint8_t*)r->data, msgsize);
 	return r;
 }
 
@@ -545,7 +547,7 @@ Rpc* (*fscalls[])(Rpc*) = {
 static void
 outproc(void*)
 {
-	static uchar buf[Bufsize];
+	static uint8_t buf[Bufsize];
 	Rpc *rpc;
 	int nw;
 	static int once = 0;
@@ -614,7 +616,7 @@ usbfs(void*)
 			sendp(outc, rpc);
 			break;
 		}
-		if(convM2S((uchar*)rpc->data, nr, &rpc->t) <=0){
+		if(convM2S((uint8_t*)rpc->data, nr, &rpc->t) <=0){
 			dprint(2, "%s: convM2S failed\n", argv0);
 			freerpc(rpc);
 			continue;
@@ -643,12 +645,12 @@ usbfs(void*)
 }
 
 void
-usbfsinit(char* srv, char *mnt, Usbfs *f, int flag)
+usbfsinit(int8_t* srv, int8_t *mnt, Usbfs *f, int flag)
 {
 	int fd[2];
 	int sfd;
 	int afd;
-	char sfile[40];
+	int8_t sfile[40];
 
 	fsops = f;
 	if(pipe(fd) < 0)

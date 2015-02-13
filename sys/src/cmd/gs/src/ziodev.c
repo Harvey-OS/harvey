@@ -45,7 +45,7 @@
 #include "ierrors.h"
 
 /* Import the dtype of the stdio IODevices. */
-extern const char iodev_dtype_stdio[];
+extern const int8_t iodev_dtype_stdio[];
 
 /* Define the special devices. */
 #define iodev_special(dname, init, open) {\
@@ -96,7 +96,7 @@ zgetiodevice(i_ctx_t *i_ctx_p)
 	make_null(op);
     else
 	make_const_string(op, a_readonly | avm_foreign,
-			  strlen((const char *)dname), dname);
+			  strlen((const int8_t *)dname), dname);
     return 0;
 }
 
@@ -129,7 +129,7 @@ zfilelineedit(i_ctx_t *i_ctx_p)
     stream *ins;
     gs_string str;
     uint initial_buf_size;
-    const char *filename;
+    const int8_t *filename;
     /*
      * buf exists only for stylistic parallelism: all occurrences of
      * buf-> could just as well be str. .

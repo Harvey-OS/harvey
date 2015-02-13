@@ -17,32 +17,32 @@ typedef struct	GZHead	GZHead;
 
 struct GZHead
 {
-	ulong	mtime;
-	char	*file;
+	uint32_t	mtime;
+	int8_t	*file;
 };
 
 static	int	crcwrite(void *bout, void *buf, int n);
 static	int	get1(Biobuf *b);
-static	ulong	get4(Biobuf *b);
-static	int	gunzipf(char *file, int stdout);
-static	int	gunzip(int ofd, char *ofile, Biobuf *bin);
+static	uint32_t	get4(Biobuf *b);
+static	int	gunzipf(int8_t *file, int stdout);
+static	int	gunzip(int ofd, int8_t *ofile, Biobuf *bin);
 static	void	header(Biobuf *bin, GZHead *h);
-static	void	trailer(Biobuf *bin, long wlen);
-static	void	error(char*, ...);
+static	void	trailer(Biobuf *bin, int32_t wlen);
+static	void	error(int8_t*, ...);
 #pragma	varargck	argpos	error	1
 
 static	Biobuf	bin;
-static	ulong	crc;
-static	ulong	*crctab;
+static	uint32_t	crc;
+static	uint32_t	*crctab;
 static	int	debug;
-static	char	*delfile;
-static	vlong	gzok;
-static	char	*infile;
+static	int8_t	*delfile;
+static	int64_t	gzok;
+static	int8_t	*infile;
 static	int	settimes;
 static	int	table;
 static	int	verbose;
 static	int	wbad;
-static	ulong	wlen;
+static	uint32_t	wlen;
 static	jmp_buf	zjmp;
 
 void
@@ -101,9 +101,9 @@ main(int argc, char *argv[])
 }
 
 static int
-gunzipf(char *file, int stdout)
+gunzipf(int8_t *file, int stdout)
 {
-	char ofile[256], *s;
+	int8_t ofile[256], *s;
 	int ofd, ifd, ok;
 
 	infile = file;
@@ -174,7 +174,7 @@ gunzipf(char *file, int stdout)
 }
 
 static int
-gunzip(int ofd, char *ofile, Biobuf *bin)
+gunzip(int ofd, int8_t *ofile, Biobuf *bin)
 {
 	Dir *d;
 	GZHead h;
@@ -224,7 +224,7 @@ gunzip(int ofd, char *ofile, Biobuf *bin)
 static void
 header(Biobuf *bin, GZHead *h)
 {
-	char *s;
+	int8_t *s;
 	int i, c, flag, ns, nsa;
 
 	if(get1(bin) != GZMAGIC1 || get1(bin) != GZMAGIC2)
@@ -283,10 +283,10 @@ header(Biobuf *bin, GZHead *h)
 }
 
 static void
-trailer(Biobuf *bin, long wlen)
+trailer(Biobuf *bin, int32_t wlen)
 {
-	ulong tcrc;
-	long len;
+	uint32_t tcrc;
+	int32_t len;
 
 	tcrc = get4(bin);
 	if(tcrc != crc)
@@ -298,10 +298,10 @@ trailer(Biobuf *bin, long wlen)
 		error("bad output length: expected %lud got %lud", wlen, len);
 }
 
-static ulong
+static uint32_t
 get4(Biobuf *b)
 {
-	ulong v;
+	uint32_t v;
 	int i, c;
 
 	v = 0;
@@ -342,7 +342,7 @@ crcwrite(void *out, void *buf, int n)
 }
 
 static void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
 	va_list arg;
 

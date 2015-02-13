@@ -13,19 +13,19 @@ int	sfd;
 int	cmdmode = 0660;
 int	rfd;
 int	chat;
-extern	char *wrenfile;
+extern	int8_t *wrenfile;
 extern	int nwren;
-char	*myname;
+int8_t	*myname;
 int	cmdfd;
 int	writeallow;	/* never on; for compatibility with fs */
 int	wstatallow;
 int	writegroup;
 int	allownone;
 int	noatime;
-int	srvfd(char*, int, int);
+int	srvfd(int8_t*, int, int);
 void	usage(void);
 void	confinit(void);
-Chan	*chaninit(char*);
+Chan	*chaninit(int8_t*);
 void	consinit(void);
 void	forkserve(void);
 
@@ -169,7 +169,7 @@ struct
 int alarmed;
 
 void
-catchalarm(void *regs, char *msg)
+catchalarm(void *regs, int8_t *msg)
 {
 	USED(regs, msg);
 	if(strcmp(msg, "alarm") == 0){
@@ -192,10 +192,10 @@ catchalarm(void *regs, char *msg)
 void
 syncproc(void)
 {
-	char buf[4*1024];
+	int8_t buf[4*1024];
 	Filter *ft;
-	ulong c0, c1;
-	long t, n, d;
+	uint32_t c0, c1;
+	int32_t t, n, d;
 	int i, p[2];
 
 	/*
@@ -260,7 +260,7 @@ dofilter(Filter *ft)
 }
 
 void
-startproc(void (*f)(void), char *name)
+startproc(void (*f)(void), int8_t *name)
 {
 	switch(rfork(RFMEM|RFFDG|RFPROC)){
 	case -1:
@@ -298,10 +298,10 @@ dochaninit(Chan *cp, int fd)
 }
 
 Chan*
-chaninit(char *server)
+chaninit(int8_t *server)
 {
 	Chan *cp;
-	char buf[3*NAMELEN];
+	int8_t buf[3*NAMELEN];
 	int p[2];
 
 	sprint(buf, "#s/%s", server);
@@ -320,10 +320,10 @@ chaninit(char *server)
 }
 
 int
-netserve(char *netaddr)
+netserve(int8_t *netaddr)
 {
 	int afd, lfd, fd;
-	char adir[2*NAMELEN], ldir[2*NAMELEN];
+	int8_t adir[2*NAMELEN], ldir[2*NAMELEN];
 	Chan *netchan;
 
 	if(access("/net/tcp/clone", 0) < 0)
@@ -373,10 +373,10 @@ netserve(char *netaddr)
 }
 
 int
-srvfd(char *s, int mode, int sfd)
+srvfd(int8_t *s, int mode, int sfd)
 {
 	int fd;
-	char buf[32];
+	int8_t buf[32];
 
 	fd = create(s, ORCLOSE|OWRITE, mode);
 	if(fd < 0){
@@ -424,7 +424,7 @@ syncall(void)
 int
 askream(Filsys *fs)
 {
-	char c;
+	int8_t c;
 
 	print("File system %s inconsistent\n", fs->name);
 	print("Would you like to ream it (y/n)? ");
@@ -432,10 +432,10 @@ askream(Filsys *fs)
 	return c == 'y';
 }
 
-ulong
+uint32_t
 memsize(void)
 {
-	char *p, buf[128];
+	int8_t *p, buf[128];
 	int fd, n, by2pg, secs;
 
 	by2pg = 4*1024;
@@ -500,9 +500,9 @@ fsinit(int ream, int newbufsize)
 	 */
 	BUFSIZE = RBUFSIZE - sizeof(Tag);
 	DIRPERBUF = BUFSIZE / sizeof(Dentry);
-	INDPERBUF = BUFSIZE / sizeof(long);
+	INDPERBUF = BUFSIZE / sizeof(int32_t);
 	INDPERBUF2 = INDPERBUF * INDPERBUF;
-	FEPERBUF = (BUFSIZE - sizeof(Super1) - sizeof(long)) / sizeof(long);
+	FEPERBUF = (BUFSIZE - sizeof(Super1) - sizeof(int32_t)) / sizeof(int32_t);
 	return ream;
 }
 
@@ -514,7 +514,7 @@ fsinit(int ream, int newbufsize)
 void
 iobufinit(void)
 {
-	long i;
+	int32_t i;
 	Iobuf *p, *q;
 	Hiob *hp;
 
@@ -554,7 +554,7 @@ iobufinit(void)
 		p->dev = devnone;
 		p->addr = -1;
 		p->xiobuf = ialloc(RBUFSIZE);
-		p->iobuf = (char*)-1;
+		p->iobuf = (int8_t*)-1;
 		p++;
 	}
 }

@@ -14,10 +14,10 @@
 #include "protos.h"
 
 typedef struct {
-	uchar	res;
-	uchar	cmd;
-	uchar	err;
-	uchar	cnt;
+	uint8_t	res;
+	uint8_t	cmd;
+	uint8_t	err;
+	uint8_t	cnt;
 } Hdr;
 
 enum {
@@ -83,12 +83,12 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static char *ctab[] = {
+static int8_t *ctab[] = {
 	"read",
 	"edit",
 };
 
-static char *etab[] = {
+static int8_t *etab[] = {
 	"",
 	"bad",
 	"full",
@@ -97,7 +97,7 @@ static char *etab[] = {
 static int
 p_seprint(Msg *m)
 {
-	char *s, *t;
+	int8_t *s, *t;
 	Hdr *h;
 
 	if(m->pe - m->ps < Hsize)

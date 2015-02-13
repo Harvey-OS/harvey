@@ -55,13 +55,13 @@ eresized(int new)
 	flushimage(display, 1);
 }
 
-char *buttons[] =
+int8_t *buttons[] =
 {
 	"exit",
 	0
 };
 
-ulong
+uint32_t
 grey(int i)
 {
 	if(i < 0)

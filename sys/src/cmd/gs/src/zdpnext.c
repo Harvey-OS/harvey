@@ -325,7 +325,7 @@ zsizeimageparams(i_ctx_t *i_ctx_p)
 	int i;
 
 	for (i = 0;; ++i)
-	    if (max_value <= ((ulong) 1 << sizes[i]) - 1)
+	    if (max_value <= ((uint32_t) 1 << sizes[i]) - 1)
 		break;
 	bps = sizes[i];
     }

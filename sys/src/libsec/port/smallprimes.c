@@ -9,7 +9,7 @@
 
 #include "os.h"
 
-ulong smallprimes[1000] = {
+uint32_t smallprimes[1000] = {
 	2,
 	3,
 	5,

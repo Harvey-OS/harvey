@@ -40,8 +40,8 @@ emalloc(uint n)
 	return a;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -50,10 +50,10 @@ estrdup(char *s)
 	return s;
 }
 
-char*
-estredup(char *s, char *e)
+int8_t*
+estredup(int8_t *s, int8_t *e)
 {
-	char *t;
+	int8_t *t;
 
 	t = emalloc(e-s+1);
 	memmove(t, s, e-s);
@@ -62,31 +62,31 @@ estredup(char *s, char *e)
 	return t;
 }
 
-char*
-estrmanydup(char *s, ...)
+int8_t*
+estrmanydup(int8_t *s, ...)
 {
-	char *p, *t;
+	int8_t *p, *t;
 	int len;
 	va_list arg;
 
 	len = strlen(s);
 	va_start(arg, s);
-	while((p = va_arg(arg, char*)) != nil)
+	while((p = va_arg(arg, int8_t*)) != nil)
 		len += strlen(p);
 	len++;
 
 	t = emalloc(len);
 	strcpy(t, s);
 	va_start(arg, s);
-	while((p = va_arg(arg, char*)) != nil)
+	while((p = va_arg(arg, int8_t*)) != nil)
 		strcat(t, p);
 	return t;
 }
 
-char*
-strlower(char *s)
+int8_t*
+strlower(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 
 	for(t=s; *t; t++)
 		if('A' <= *t && *t <= 'Z')

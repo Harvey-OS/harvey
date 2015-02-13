@@ -22,7 +22,7 @@
 
 #pragma	varargck	type	"W"	char*
 
-char authkey[8];
+int8_t authkey[8];
 
 typedef struct Fid	Fid;
 typedef struct User	User;
@@ -52,24 +52,24 @@ enum {
 
 struct Fid {
 	int	fid;
-	ulong	qtype;
+	uint32_t	qtype;
 	User	*user;
 	int	busy;
 	Fid	*next;
 };
 
 struct User {
-	char	*name;
-	char	key[DESKEYLEN];
-	char	secret[SECRETLEN];
-	ulong	expire;			/* 0 == never */
-	uchar	status;
-	ulong	bad;		/* # of consecutive bad authentication attempts */
+	int8_t	*name;
+	int8_t	key[DESKEYLEN];
+	int8_t	secret[SECRETLEN];
+	uint32_t	expire;			/* 0 == never */
+	uint8_t	status;
+	uint32_t	bad;		/* # of consecutive bad authentication attempts */
 	int	ref;
-	char	removed;
-	uchar	warnings;
-	long	purgatory;		/* time purgatory ends */
-	ulong	uniq;
+	int8_t	removed;
+	uint8_t	warnings;
+	int32_t	purgatory;		/* time purgatory ends */
+	uint32_t	uniq;
 	User	*link;
 };
 
@@ -91,33 +91,33 @@ char	*status[Smax] = {
 
 Fid	*fids;
 User	*users[Nuser];
-char	*userkeys;
+int8_t	*userkeys;
 int	nuser;
-ulong	uniq = 1;
+uint32_t	uniq = 1;
 Fcall	rhdr,
 	thdr;
 int	usepass;
-char	*warnarg;
-uchar	mdata[8192 + IOHDRSZ];
+int8_t	*warnarg;
+uint8_t	mdata[8192 + IOHDRSZ];
 int	messagesize = sizeof mdata;
 
 int	readusers(void);
-ulong	hash(char*);
+uint32_t	hash(int8_t*);
 Fid	*findfid(int);
-User	*finduser(char*);
-User	*installuser(char*);
+User	*finduser(int8_t*);
+User	*installuser(int8_t*);
 int	removeuser(User*);
 void	insertuser(User*);
 void	writeusers(void);
 void	io(int, int);
-void	*emalloc(ulong);
-Qid	mkqid(User*, ulong);
-int	dostat(User*, ulong, void*, int);
+void	*emalloc(uint32_t);
+Qid	mkqid(User*, uint32_t);
+int	dostat(User*, uint32_t, void*, int);
 int	newkeys(void);
 void	warning(void);
 int	weirdfmt(Fmt *f);
 
-char	*Auth(Fid*), *Attach(Fid*), *Version(Fid*),
+int8_t	*Auth(Fid*), *Attach(Fid*), *Version(Fid*),
 	*Flush(Fid*), *Walk(Fid*),
 	*Open(Fid*), *Create(Fid*),
 	*Read(Fid *), *Write(Fid*), *Clunk(Fid*),
@@ -200,20 +200,20 @@ main(int argc, char *argv[])
 	}
 }
 
-char *
+int8_t *
 Flush(Fid *f)
 {
 	USED(f);
 	return 0;
 }
 
-char *
+int8_t *
 Auth(Fid *)
 {
 	return "keyfs: authentication not required";
 }
 
-char *
+int8_t *
 Attach(Fid *f)
 {
 	if(f->busy)
@@ -225,7 +225,7 @@ Attach(Fid *f)
 	return 0;
 }
 
-char*
+int8_t*
 Version(Fid*)
 {
 	Fid *f;
@@ -244,13 +244,13 @@ Version(Fid*)
 	return 0;
 }
 
-char *
+int8_t *
 Walk(Fid *f)
 {
-	char *name, *err;
+	int8_t *name, *err;
 	int i, j, max;
 	Fid *nf;
-	ulong qtype;
+	uint32_t qtype;
 	User *user;
 
 	if(!f->busy)
@@ -335,7 +335,7 @@ Walk(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 Clunk(Fid *f)
 {
 	f->busy = 0;
@@ -347,7 +347,7 @@ Clunk(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 Open(Fid *f)
 {
 	int mode;
@@ -362,11 +362,11 @@ Open(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 Create(Fid *f)
 {
-	char *name;
-	long perm;
+	int8_t *name;
+	int32_t perm;
 
 	if(!f->busy)
 		return "create of unused fid";
@@ -393,12 +393,12 @@ Create(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 Read(Fid *f)
 {
 	User *u;
-	char *data;
-	ulong off, n, m;
+	int8_t *data;
+	uint32_t off, n, m;
 	int i, j, max;
 
 	if(!f->busy)
@@ -514,11 +514,11 @@ Read(Fid *f)
 	}
 }
 
-char *
+int8_t *
 Write(Fid *f)
 {
-	char *data, *p;
-	ulong n, expire;
+	int8_t *data, *p;
+	uint32_t n, expire;
 	int i;
 
 	if(!f->busy)
@@ -593,7 +593,7 @@ Write(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 Remove(Fid *f)
 {
 	if(!f->busy)
@@ -611,10 +611,10 @@ Remove(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 Stat(Fid *f)
 {
-	static uchar statbuf[1024];
+	static uint8_t statbuf[1024];
 
 	if(!f->busy)
 		return "stat on unattached fid";
@@ -625,12 +625,12 @@ Stat(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 Wstat(Fid *f)
 {
 	Dir d;
 	int n;
-	char buf[1024];
+	int8_t buf[1024];
 
 	if(!f->busy || f->qtype != Quser)
 		return "permission denied";
@@ -655,7 +655,7 @@ Wstat(Fid *f)
 }
 
 Qid
-mkqid(User *u, ulong qtype)
+mkqid(User *u, uint32_t qtype)
 {
 	Qid q;
 
@@ -671,7 +671,7 @@ mkqid(User *u, ulong qtype)
 }
 
 int
-dostat(User *user, ulong qtype, void *p, int n)
+dostat(User *user, uint32_t qtype, void *p, int n)
 {
 	Dir d;
 
@@ -693,7 +693,7 @@ dostat(User *user, ulong qtype, void *p, int n)
 int
 passline(Biobuf *b, void *vbuf)
 {
-	char *buf = vbuf;
+	int8_t *buf = vbuf;
 
 	if(Bread(b, buf, KEYDBLEN) != KEYDBLEN)
 		return 0;
@@ -703,7 +703,7 @@ passline(Biobuf *b, void *vbuf)
 }
 
 void
-randombytes(uchar *p, int len)
+randombytes(uint8_t *p, int len)
 {
 	int i, fd;
 
@@ -720,29 +720,29 @@ randombytes(uchar *p, int len)
 }
 
 void
-oldCBCencrypt(char *key7, uchar *p, int len)
+oldCBCencrypt(int8_t *key7, uint8_t *p, int len)
 {
-	uchar ivec[8];
-	uchar key[8];
+	uint8_t ivec[8];
+	uint8_t key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uchar*)key7, key);
+	des56to64((uint8_t*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCencrypt((uchar*)p, len, &s);
+	desCBCencrypt((uint8_t*)p, len, &s);
 }
 
 void
-oldCBCdecrypt(char *key7, uchar *p, int len)
+oldCBCdecrypt(int8_t *key7, uint8_t *p, int len)
 {
-	uchar ivec[8];
-	uchar key[8];
+	uint8_t ivec[8];
+	uint8_t key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uchar*)key7, key);
+	des56to64((uint8_t*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCdecrypt((uchar*)p, len, &s);
+	desCBCdecrypt((uint8_t*)p, len, &s);
 
 }
 
@@ -751,8 +751,8 @@ writeusers(void)
 {
 	int fd, i, nu;
 	User *u;
-	uchar *p, *buf;
-	ulong expire;
+	uint8_t *p, *buf;
+	uint32_t expire;
 
 	/* count users */
 	nu = 0;
@@ -771,7 +771,7 @@ writeusers(void)
 	p += KEYDBOFF;
 	for(i = 0; i < Nuser; i++)
 		for(u = users[i]; u; u = u->link){
-			strncpy((char*)p, u->name, Namelen);
+			strncpy((int8_t*)p, u->name, Namelen);
 			p += Namelen;
 			memmove(p, u->key, DESKEYLEN);
 			p += DESKEYLEN;
@@ -806,11 +806,11 @@ writeusers(void)
 int
 weirdfmt(Fmt *f)
 {
-	char *s, *p, *ep, buf[ANAMELEN*4 + 1];
+	int8_t *s, *p, *ep, buf[ANAMELEN*4 + 1];
 	int i, n;
 	Rune r;
 
-	s = va_arg(f->args, char*);
+	s = va_arg(f->args, int8_t*);
 	p = buf;
 	ep = buf + sizeof buf;
 	for(i = 0; i < ANAMELEN; i += n){
@@ -828,11 +828,11 @@ weirdfmt(Fmt *f)
 }
 
 int
-userok(char *user, int nu)
+userok(int8_t *user, int nu)
 {
 	int i, n, rv;
 	Rune r;
-	char buf[ANAMELEN+1];
+	int8_t buf[ANAMELEN+1];
 
 	memset(buf, 0, sizeof buf);
 	memmove(buf, user, ANAMELEN);
@@ -867,7 +867,7 @@ int
 readusers(void)
 {
 	int fd, i, n, nu;
-	uchar *p, *buf, *ep;
+	uint8_t *p, *buf, *ep;
 	User *u;
 	Dir *d;
 
@@ -902,11 +902,11 @@ readusers(void)
 	nu = 0;
 	for(i = KEYDBOFF; i < n; i += KEYDBLEN){
 		ep = buf + i;
-		if(userok((char*)ep, i/KEYDBLEN) < 0)
+		if(userok((int8_t*)ep, i/KEYDBLEN) < 0)
 			continue;
-		u = finduser((char*)ep);
+		u = finduser((int8_t*)ep);
 		if(u == 0)
-			u = installuser((char*)ep);
+			u = installuser((int8_t*)ep);
 		memmove(u->key, ep + Namelen, DESKEYLEN);
 		p = ep + Namelen + DESKEYLEN;
 		u->status = *p++;
@@ -926,7 +926,7 @@ readusers(void)
 }
 
 User *
-installuser(char *name)
+installuser(int8_t *name)
 {
 	User *u;
 	int h;
@@ -950,7 +950,7 @@ installuser(char *name)
 }
 
 User *
-finduser(char *name)
+finduser(int8_t *name)
 {
 	User *u;
 
@@ -964,7 +964,7 @@ int
 removeuser(User *user)
 {
 	User *u, **last;
-	char *name;
+	int8_t *name;
 
 	user->removed = 1;
 	name = user->name;
@@ -990,10 +990,10 @@ insertuser(User *user)
 	users[h] = user;
 }
 
-ulong
-hash(char *s)
+uint32_t
+hash(int8_t *s)
 {
-	ulong h;
+	uint32_t h;
 
 	h = 0;
 	while(*s)
@@ -1028,9 +1028,9 @@ findfid(int fid)
 void
 io(int in, int out)
 {
-	char *err;
+	int8_t *err;
 	int n;
-	long now, lastwarning;
+	int32_t now, lastwarning;
 
 	/* after restart, let the system settle for 5 mins before warning */
 	lastwarning = time(0) - 24*60*60 + 5*60;
@@ -1047,7 +1047,7 @@ io(int in, int out)
 		if(newkeys())
 			readusers();
 
-		thdr.data = (char*)mdata + IOHDRSZ;
+		thdr.data = (int8_t*)mdata + IOHDRSZ;
 		thdr.fid = rhdr.fid;
 		if(!fcalls[rhdr.type])
 			err = "fcall request";
@@ -1077,7 +1077,7 @@ int
 newkeys(void)
 {
 	Dir *d;
-	static long ftime;
+	static int32_t ftime;
 
 	d = dirstat(userkeys);
 	if(d == nil)
@@ -1092,7 +1092,7 @@ newkeys(void)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -1106,7 +1106,7 @@ void
 warning(void)
 {
 	int i;
-	char buf[64];
+	int8_t buf[64];
 
 	snprint(buf, sizeof buf, "-%s", warnarg);
 	switch(rfork(RFPROC|RFNAMEG|RFNOTEG|RFNOWAIT|RFENVG|RFFDG)){

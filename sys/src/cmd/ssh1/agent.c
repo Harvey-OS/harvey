@@ -15,7 +15,7 @@ struct Key
 {
 	mpint *mod;
 	mpint *ek;
-	char *comment;
+	int8_t *comment;
 };
 
 typedef struct Achan Achan;
@@ -23,10 +23,10 @@ struct Achan
 {
 	int open;
 	u32int chan;	/* of remote */
-	uchar lbuf[4];
+	uint8_t lbuf[4];
 	uint nlbuf;
 	uint len;
-	uchar *data;
+	uint8_t *data;
 	int ndata;
 	int needeof;
 	int needclosed;
@@ -34,8 +34,8 @@ struct Achan
 
 Achan achan[16];
 
-static char*
-find(char **f, int nf, char *k)
+static int8_t*
+find(int8_t **f, int nf, int8_t *k)
 {
 	int i, len;
 
@@ -52,7 +52,7 @@ listkeys(Key **kp)
 	Biobuf *b;
 	Key *k;
 	int nk;
-	char *p, *f[20];
+	int8_t *p, *f[20];
 	int nf;
 	mpint *mod, *ek;
 	
@@ -95,12 +95,12 @@ listkeys(Key **kp)
 
 
 static int
-dorsa(mpint *mod, mpint *exp, mpint *chal, uchar chalbuf[32])
+dorsa(mpint *mod, mpint *exp, mpint *chal, uint8_t chalbuf[32])
 {
 	int afd;
 	AuthRpc *rpc;
 	mpint *m;
-	char buf[4096], *p;
+	int8_t buf[4096], *p;
 	mpint *decr, *unpad;
 
 	USED(exp);
@@ -125,7 +125,7 @@ dorsa(mpint *mod, mpint *exp, mpint *chal, uchar chalbuf[32])
 	m = nil;
 	debug(DBG_AUTH, "trying factotum rsa keys\n");
 	while(auth_rpc(rpc, "read", nil, 0) == ARok){
-		debug(DBG_AUTH, "try %s\n", (char*)rpc->arg);
+		debug(DBG_AUTH, "try %s\n", (int8_t*)rpc->arg);
 		m = strtomp(rpc->arg, nil, 16, nil);
 		if(mpcmp(m, mod) == 0)
 			break;
@@ -252,15 +252,15 @@ handlefullmsg(Conn *c, Achan *a)
 {
 	int i;
 	u32int chan, len, n, rt;
-	uchar type;
+	uint8_t type;
 	Msg *m, mm;
 	Msg *r;
 	Key *k;
 	int nk;
 	mpint *mod, *ek, *chal;
-	uchar sessid[16];
-	uchar chalbuf[32];
-	uchar digest[16];
+	uint8_t sessid[16];
+	uint8_t chalbuf[32];
+	uint8_t digest[16];
 	DigestState *s;
 	static int first;
 

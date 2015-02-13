@@ -14,10 +14,10 @@
 
 #include "iso9660.h"
 
-char*
-jolietstring(uchar *buf, int len)
+int8_t*
+jolietstring(uint8_t *buf, int len)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	int i;
 	Rune *rp;
 
@@ -48,7 +48,7 @@ isjolietfrog(Rune r)
 }
 
 int
-isbadjoliet(char *s)
+isbadjoliet(int8_t *s)
 {
 	Rune r[256], *p;
 

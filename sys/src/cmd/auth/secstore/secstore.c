@@ -20,7 +20,7 @@ enum{ CHK = 16, MAXFILES = 100 };
 
 typedef struct AuthConn{
 	SConn	*conn;
-	char	pass[64];
+	int8_t	pass[64];
 	int	passlen;
 } AuthConn;
 
@@ -36,18 +36,20 @@ usage(void)
 }
 
 static int
-getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
+getfile(SConn *conn, int8_t *gf, uint8_t **buf, uint32_t *buflen,
+	uint8_t *key,
+	int nkey)
 {
 	int fd = -1, i, n, nr, nw, len;
-	char s[Maxmsg+1];
-	uchar skey[SHA1dlen], ib[Maxmsg+CHK], *ibr, *ibw, *bufw, *bufe;
+	int8_t s[Maxmsg+1];
+	uint8_t skey[SHA1dlen], ib[Maxmsg+CHK], *ibr, *ibw, *bufw, *bufe;
 	AESstate aes;
 	DigestState *sha;
 
 	memset(&aes, 0, sizeof aes);
 
 	snprint(s, Maxmsg, "GET %s", gf);
-	conn->write(conn, (uchar*)s, strlen(s));
+	conn->write(conn, (uint8_t*)s, strlen(s));
 
 	/* get file size */
 	s[0] = '\0';
@@ -78,7 +80,7 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 		if(buf != nil)
 			*buflen = len;
 		for(i=0; i < len; i += n){
-			if((n = conn->read(conn, (uchar*)s, Maxmsg)) <= 0){
+			if((n = conn->read(conn, (uint8_t*)s, Maxmsg)) <= 0){
 				fprint(2, "secstore: empty file chunk\n");
 				return -1;
 			}
@@ -113,7 +115,7 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 				fprint(2, "secstore: no IV in file\n");
 				return -1;
 			}
-			sha = sha1((uchar*)"aescbc file", 11, nil, nil);
+			sha = sha1((uint8_t*)"aescbc file", 11, nil, nil);
 			sha1(key, nkey, skey, sha);
 			setupAESstate(&aes, skey, AESbsize, ibr);
 			memset(skey, 0, sizeof skey);
@@ -155,11 +157,12 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
  * decrypted by the program aescbc.c.
  */
 static int
-putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
+putfile(SConn *conn, int8_t *pf, uint8_t *buf, uint32_t len, uint8_t *key,
+	int nkey)
 {
 	int i, n, fd, ivo, bufi, done;
-	char s[Maxmsg];
-	uchar skey[SHA1dlen], b[CHK+Maxmsg], IV[AESbsize];
+	int8_t s[Maxmsg];
+	uint8_t skey[SHA1dlen], b[CHK+Maxmsg], IV[AESbsize];
 	AESstate aes;
 	DigestState *sha;
 
@@ -167,13 +170,13 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 	srand(time(0));			/* doesn't need to be unpredictable */
 	for(i=0; i<AESbsize; i++)
 		IV[i] = 0xff & rand();
-	sha = sha1((uchar*)"aescbc file", 11, nil, nil);
+	sha = sha1((uint8_t*)"aescbc file", 11, nil, nil);
 	sha1(key, nkey, skey, sha);
 	setupAESstate(&aes, skey, AESbsize, IV);
 	memset(skey, 0, sizeof skey);
 
 	snprint(s, Maxmsg, "PUT %s", pf);
-	conn->write(conn, (uchar*)s, strlen(s));
+	conn->write(conn, (uint8_t*)s, strlen(s));
 
 	if(buf == nil){
 		/* get file size */
@@ -193,7 +196,7 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 
 	/* send file size */
 	snprint(s, Maxmsg, "%ld", len + AESbsize + CHK);
-	conn->write(conn, (uchar*)s, strlen(s));
+	conn->write(conn, (uint8_t*)s, strlen(s));
 
 	/* send IV and file+XXXXX in Maxmsg chunks */
 	ivo = AESbsize;
@@ -238,9 +241,9 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 }
 
 static int
-removefile(SConn *conn, char *rf)
+removefile(SConn *conn, int8_t *rf)
 {
-	char buf[Maxmsg];
+	int8_t buf[Maxmsg];
 
 	if(strchr(rf, '/') != nil){
 		fprint(2, "secstore: simple filenames, not paths like %s\n", rf);
@@ -248,29 +251,30 @@ removefile(SConn *conn, char *rf)
 	}
 
 	snprint(buf, Maxmsg, "RM %s", rf);
-	conn->write(conn, (uchar*)buf, strlen(buf));
+	conn->write(conn, (uint8_t*)buf, strlen(buf));
 
 	return 0;
 }
 
 static int
-cmd(AuthConn *c, char **gf, int *Gflag, char **pf, char **rf)
+cmd(AuthConn *c, int8_t **gf, int *Gflag, int8_t **pf, int8_t **rf)
 {
-	ulong len;
+	uint32_t len;
 	int rv = -1;
-	uchar *memfile, *memcur, *memnext;
+	uint8_t *memfile, *memcur, *memnext;
 
 	while(*gf != nil){
 		if(verbose)
 			fprint(2, "get %s\n", *gf);
 		if(getfile(c->conn, *gf, *Gflag? &memfile: nil, &len,
-		    (uchar*)c->pass, c->passlen) < 0)
+		    (uint8_t*)c->pass, c->passlen) < 0)
 			goto Out;
 		if(*Gflag){
 			/* write 1 line at a time, as required by /mnt/factotum/ctl */
 			memcur = memfile;
 			while(len>0){
-				memnext = (uchar*)strchr((char*)memcur, '\n');
+				memnext = (uint8_t*)strchr((int8_t*)memcur,
+							   '\n');
 				if(memnext){
 					write(1, memcur, memnext-memcur+1);
 					len -= memnext-memcur+1;
@@ -288,7 +292,7 @@ cmd(AuthConn *c, char **gf, int *Gflag, char **pf, char **rf)
 	while(*pf != nil){
 		if(verbose)
 			fprint(2, "put %s\n", *pf);
-		if(putfile(c->conn, *pf, nil, 0, (uchar*)c->pass, c->passlen) < 0)
+		if(putfile(c->conn, *pf, nil, 0, (uint8_t*)c->pass, c->passlen) < 0)
 			goto Out;
 		pf++;
 	}
@@ -300,7 +304,7 @@ cmd(AuthConn *c, char **gf, int *Gflag, char **pf, char **rf)
 		rf++;
 	}
 
-	c->conn->write(c->conn, (uchar*)"BYE", 3);
+	c->conn->write(c->conn, (uint8_t*)"BYE", 3);
 	rv = 0;
 
 Out:
@@ -309,13 +313,13 @@ Out:
 }
 
 static int
-chpasswd(AuthConn *c, char *id)
+chpasswd(AuthConn *c, int8_t *id)
 {
 	int rv = -1, newpasslen = 0;
-	ulong len;
-	uchar *memfile;
-	char *newpass, *passck, *list, *cur, *next, *hexHi;
-	char *f[8], prompt[128];
+	uint32_t len;
+	uint8_t *memfile;
+	int8_t *newpass, *passck, *list, *cur, *next, *hexHi;
+	int8_t *f[8], prompt[128];
 	mpint *H, *Hi;
 
 	H = mpnew(0);
@@ -346,14 +350,14 @@ chpasswd(AuthConn *c, char *id)
 		goto Out;
 	}
 
-	c->conn->write(c->conn, (uchar*)"CHPASS", strlen("CHPASS"));
+	c->conn->write(c->conn, (uint8_t*)"CHPASS", strlen("CHPASS"));
 	hexHi = PAK_Hi(id, newpass, H, Hi);
-	c->conn->write(c->conn, (uchar*)hexHi, strlen(hexHi));
+	c->conn->write(c->conn, (uint8_t*)hexHi, strlen(hexHi));
 	free(hexHi);
 	mpfree(H);
 	mpfree(Hi);
 
-	if(getfile(c->conn, ".", (uchar **) &list, &len, nil, 0) < 0){
+	if(getfile(c->conn, ".", (uint8_t **) &list, &len, nil, 0) < 0){
 		fprint(2, "secstore: directory listing failed.\n");
 		goto Out;
 	}
@@ -364,18 +368,18 @@ chpasswd(AuthConn *c, char *id)
 		if(tokenize(cur, f, nelem(f))< 1)
 			break;
 		fprint(2, "secstore: reencrypting '%s'\n", f[0]);
-		if(getfile(c->conn, f[0], &memfile, &len, (uchar*)c->pass,
+		if(getfile(c->conn, f[0], &memfile, &len, (uint8_t*)c->pass,
 		    c->passlen) < 0){
 			fprint(2, "secstore: getfile of '%s' failed\n", f[0]);
 			continue;
 		}
-		if(putfile(c->conn, f[0], memfile, len, (uchar*)newpass,
+		if(putfile(c->conn, f[0], memfile, len, (uint8_t*)newpass,
 		    newpasslen) < 0)
 			fprint(2, "secstore: putfile of '%s' failed\n", f[0]);
 		free(memfile);
 	}
 	free(list);
-	c->conn->write(c->conn, (uchar*)"BYE", 3);
+	c->conn->write(c->conn, (uint8_t*)"BYE", 3);
 	rv = 0;
 
 Out:
@@ -388,10 +392,10 @@ Out:
 }
 
 static AuthConn*
-login(char *id, char *dest, int pass_stdin, int pass_nvram)
+login(int8_t *id, int8_t *dest, int pass_stdin, int pass_nvram)
 {
 	int fd, n, ntry = 0;
-	char *S, *PINSTA = nil, *nl, s[Maxmsg+1], *pass;
+	int8_t *S, *PINSTA = nil, *nl, s[Maxmsg+1], *pass;
 	AuthConn *c;
 
 	if(dest == nil)
@@ -464,7 +468,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 		return nil;
 	}
 	if(strcmp(s, "STA") == 0){
-		long sn;
+		int32_t sn;
 
 		if(pass_stdin){
 			if(PINSTA)
@@ -481,7 +485,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 		sn = strlen(s+3);
 		if(verbose)
 			fprint(2, "%ld\n", sn);
-		c->conn->write(c->conn, (uchar*)s, sn+3);
+		c->conn->write(c->conn, (uint8_t*)s, sn+3);
 		readstr(c->conn, s);	/* TODO: check for error? */
 	}
 	if(strcmp(s, "OK") != 0){

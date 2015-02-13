@@ -36,7 +36,7 @@
 #include "gpmisc.h"
 
 /* Library routines not declared in a standard header */
-extern char *mktemp(char *);	/* in gp_mktmp.c */
+extern int8_t *mktemp(int8_t *);	/* in gp_mktmp.c */
 
 /* Define a substitute for stdprn (see below). */
 private FILE *gs_stdprn;
@@ -99,7 +99,7 @@ int gp_cache_query(int type, byte* key, int keylen, void **buffer,
 /* Return NULL if the connection could not be opened. */
 extern void gp_set_file_binary(int, int);
 FILE *
-gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
+gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
 {
     FILE *pfile;
 
@@ -133,7 +133,7 @@ gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 
 /* Close the connection to the printer. */
 void
-gp_close_printer(FILE * pfile, const char *fname)
+gp_close_printer(FILE * pfile, const int8_t *fname)
 {
 #ifdef stdprn
     if (pfile != stdprn)
@@ -148,7 +148,7 @@ gp_close_printer(FILE * pfile, const char *fname)
 /* Create and open a scratch file with a given name prefix. */
 /* Write the actual file name at fname. */
 FILE *
-gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
+gp_open_scratch_file(const int8_t *prefix, int8_t *fname, const int8_t *mode)
 {	      /* The -7 is for XXXXXXX */
     int prefix_length = strlen(prefix);
     int len = gp_file_name_sizeof - prefix_length - 7;
@@ -159,7 +159,7 @@ gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
 	)
 	*fname = 0;
     else {
-	char *temp;
+	int8_t *temp;
 
 	/* Prevent X's in path from being converted by mktemp. */
 	for (temp = fname; *temp; temp++)
@@ -181,7 +181,7 @@ gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
 
 /* Open a file with the given name, as a stream of uninterpreted bytes. */
 FILE *
-gp_fopen(const char *fname, const char *mode)
+gp_fopen(const int8_t *fname, const int8_t *mode)
 {
     return fopen(fname, mode);
 }
@@ -198,7 +198,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, int8_t **fontname,
+                            int8_t **path)
 {
     return 0;
 }

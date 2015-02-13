@@ -22,10 +22,10 @@ struct Part
 {
 	int	inuse;
 	int	vers;
-	ulong	mode;
-	char	*name;
-	vlong	offset;		/* in sectors */
-	vlong	length;		/* in sectors */
+	uint32_t	mode;
+	int8_t	*name;
+	int64_t	offset;		/* in sectors */
+	int64_t	length;		/* in sectors */
 };
 
 enum
@@ -38,15 +38,15 @@ enum
 
 int fd = -1, ctlfd = -1;
 int rdonly;
-ulong ctlmode = 0666;
-ulong time0;
-vlong nsect, sectsize;
+uint32_t ctlmode = 0666;
+uint32_t time0;
+int64_t nsect, sectsize;
 
-char *inquiry = "partfs hard drive";
-char *sdname = "sdXX";
+int8_t *inquiry = "partfs hard drive";
+int8_t *sdname = "sdXX";
 Part tab[64];
 
-char*
+int8_t*
 ctlstring(void)
 {
 	Part *p;
@@ -63,7 +63,7 @@ ctlstring(void)
 }
 
 int
-addpart(char *name, vlong start, vlong end)
+addpart(int8_t *name, int64_t start, int64_t end)
 {
 	Part *p;
 
@@ -97,7 +97,7 @@ addpart(char *name, vlong start, vlong end)
 }
 
 int
-delpart(char *s)
+delpart(int8_t *s)
 {
 	Part *p;
 
@@ -116,9 +116,9 @@ delpart(char *s)
 }
 
 static void
-addparts(char *buf)
+addparts(int8_t *buf)
 {
-	char *f[4], *p, *q;
+	int8_t *f[4], *p, *q;
 
 	/*
 	 * Use partitions passed from boot program,
@@ -137,9 +137,9 @@ addparts(char *buf)
 }
 
 static void
-ctlwrite0(Req *r, char *msg, Cmdbuf *cb)
+ctlwrite0(Req *r, int8_t *msg, Cmdbuf *cb)
 {
-	vlong start, end;
+	int64_t start, end;
 	Part *p;
 
 	r->ofcall.count = r->ifcall.count;
@@ -209,7 +209,7 @@ ctlwrite0(Req *r, char *msg, Cmdbuf *cb)
 void
 ctlwrite(Req *r)
 {
-	char *msg;
+	int8_t *msg;
 	Cmdbuf *cb;
 
 	r->ofcall.count = r->ifcall.count;
@@ -287,9 +287,9 @@ int
 rdwrpart(Req *r)
 {
 	int q;
-	long count, tot;
-	vlong offset;
-	uchar *dat;
+	int32_t count, tot;
+	int64_t offset;
+	uint8_t *dat;
 	Part *p;
 
 	q = r->fid->qid.path - Qpart;
@@ -319,9 +319,9 @@ rdwrpart(Req *r)
 	offset += p->offset*sectsize;
 
 	if(r->ifcall.type == Tread)
-		dat = (uchar*)r->ofcall.data;
+		dat = (uint8_t*)r->ofcall.data;
 	else
-		dat = (uchar*)r->ifcall.data;
+		dat = (uint8_t*)r->ifcall.data;
 
 	/* pass i/o through to underlying file */
 	seek(fd, offset, 0);
@@ -346,7 +346,7 @@ rdwrpart(Req *r)
 void
 fsread(Req *r)
 {
-	char *s;
+	int8_t *s;
 
 	switch((int)r->fid->qid.path){
 	case Qroot:
@@ -453,7 +453,7 @@ fsstat(Req *r)
 void
 fsattach(Req *r)
 {
-	char *spec;
+	int8_t *spec;
 
 	spec = r->ifcall.aname;
 	if(spec && spec[0]){
@@ -465,8 +465,8 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+int8_t*
+fswalk1(Fid *fid, int8_t *name, Qid *qid)
 {
 	Part *p;
 
@@ -509,8 +509,8 @@ Srv fs = {
 	.walk1=	fswalk1,
 };
 
-char *mtpt = "/dev";
-char *srvname;
+int8_t *mtpt = "/dev";
+int8_t *srvname;
 
 void
 usage(void)

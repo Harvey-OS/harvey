@@ -17,10 +17,10 @@
 #include "secstore.h"
 
 static Biobuf*
-openPW(char *id, int mode)
+openPW(int8_t *id, int mode)
 {
 	int nfn = strlen(SECSTORE_DIR)+strlen(id)+20;
-	char *fn;
+	int8_t *fn;
 	Biobuf *b;
 
 	if(validatefile(id) == nil || strcmp(id,".") == 0)
@@ -32,11 +32,11 @@ openPW(char *id, int mode)
 	return b;
 }
 
-static ulong
-mtimePW(char *id)
+static uint32_t
+mtimePW(int8_t *id)
 {
-	ulong mt;
-	char *fn;
+	uint32_t mt;
+	int8_t *fn;
 	Dir *d;
 
 	fn = smprint("%s/who/%s", SECSTORE_DIR, id);
@@ -48,10 +48,10 @@ mtimePW(char *id)
 }
 
 PW *
-getPW(char *id, int dead_or_alive)
+getPW(int8_t *id, int dead_or_alive)
 {
-	ulong now = time(0);
-	char *f1, *f2, *oid;		/* fields 1, 2 = attribute, value */
+	uint32_t now = time(0);
+	int8_t *f1, *f2, *oid;		/* fields 1, 2 = attribute, value */
 	Biobuf *bin;
 	PW *pw;
 
@@ -122,7 +122,7 @@ int
 putPW(PW *pw)
 {
 	Biobuf *bout;
-	char *hexHi;
+	int8_t *hexHi;
 
 	if((bout = openPW(pw->id, OWRITE|OTRUNC)) ==0){
 		werrstr("can't open PW file for %s", pw->id);

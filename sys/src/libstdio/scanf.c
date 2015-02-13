@@ -11,7 +11,7 @@
  * pANS stdio -- scanf
  */
 #include "iolib.h"
-int scanf(const char *fmt, ...){
+int scanf(const int8_t *fmt, ...){
 	int n;
 	va_list args;
 	va_start(args, fmt);

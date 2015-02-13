@@ -37,6 +37,6 @@ int ungetc(int c, FILE *f){
 			f->rp--;
 		else
 			*--f->rp=c;
-		return (char)c;
+		return (int8_t)c;
 	}
 }

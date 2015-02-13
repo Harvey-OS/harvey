@@ -27,9 +27,9 @@ enum {
 typedef struct Req Req;
 struct Req
 {
-	ushort	seq;	/* sequence number */
-	vlong	time;	/* time sent */
-	vlong	rtt;
+	uint16_t	seq;	/* sequence number */
+	int64_t	time;	/* time sent */
+	int64_t	rtt;
 	int	ttl;
 	int	replied;
 	Req	 *next;
@@ -37,13 +37,13 @@ struct Req
 
 typedef struct {
 	int	version;
-	char	*net;
+	int8_t	*net;
 	int	echocmd;
 	int	echoreply;
 	unsigned iphdrsz;
 
 	void	(*prreply)(Req *r, void *v);
-	void	(*prlost)(ushort seq, void *v);
+	void	(*prlost)(uint16_t seq, void *v);
 } Proto;
 
 
@@ -51,7 +51,7 @@ Req	*first;		/* request list */
 Req	*last;		/* ... */
 Lock	listlock;
 
-char *argv0;
+int8_t *argv0;
 
 int addresses;
 int debug;
@@ -62,11 +62,11 @@ int lostonly;
 int quiet;
 int rcvdmsgs;
 int rint;
-ushort firstseq;
-vlong sum;
+uint16_t firstseq;
+int64_t sum;
 int waittime = 5000;
 
-static char *network, *target;
+static int8_t *network, *target;
 
 void lost(Req*, void*);
 void reply(Req*, void*);
@@ -81,7 +81,7 @@ usage(void)
 }
 
 static void
-catch(void *a, char *msg)
+catch(void *a, int8_t *msg)
 {
 	USED(a);
 	if(strstr(msg, "alarm"))
@@ -93,7 +93,7 @@ catch(void *a, char *msg)
 }
 
 static void
-prlost4(ushort seq, void *v)
+prlost4(uint16_t seq, void *v)
 {
 	Ip4hdr *ip4 = v;
 
@@ -101,7 +101,7 @@ prlost4(ushort seq, void *v)
 }
 
 static void
-prlost6(ushort seq, void *v)
+prlost6(uint16_t seq, void *v)
 {
 	Ip6hdr *ip6 = v;
 
@@ -147,13 +147,13 @@ static Proto *proto = &v4pr;
 Icmphdr *
 geticmp(void *v)
 {
-	char *p = v;
+	int8_t *p = v;
 
 	return (Icmphdr *)(p + proto->iphdrsz);
 }
 
 void
-clean(ushort seq, vlong now, void *v)
+clean(uint16_t seq, int64_t now, void *v)
 {
 	int ttl;
 	Req **l, *r;
@@ -192,13 +192,13 @@ clean(ushort seq, vlong now, void *v)
 	unlock(&listlock);
 }
 
-static uchar loopbacknet[IPaddrlen] = {
+static uint8_t loopbacknet[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0xff, 0xff,
 	127, 0, 0, 0
 };
-static uchar loopbackmask[IPaddrlen] = {
+static uint8_t loopbackmask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
@@ -211,12 +211,12 @@ static uchar loopbackmask[IPaddrlen] = {
  * deprecate link-local and multicast addresses.
  */
 static int
-myipvnaddr(uchar *ip, Proto *proto, char *net)
+myipvnaddr(uint8_t *ip, Proto *proto, int8_t *net)
 {
 	int ipisv4, wantv4;
 	Ipifc *nifc;
 	Iplifc *lifc;
-	uchar mynet[IPaddrlen], linklocal[IPaddrlen];
+	uint8_t mynet[IPaddrlen], linklocal[IPaddrlen];
 	static Ipifc *ifc;
 
 	ipmove(linklocal, IPnoaddr);
@@ -246,9 +246,9 @@ void
 sender(int fd, int msglen, int interval, int n)
 {
 	int i, extra;
-	ushort seq;
-	char buf[64*1024+512];
-	uchar me[IPaddrlen], mev4[IPv4addrlen];
+	uint16_t seq;
+	int8_t buf[64*1024+512];
+	uint8_t me[IPaddrlen], mev4[IPv4addrlen];
 	Icmphdr *icmp;
 	Req *r;
 
@@ -310,9 +310,9 @@ void
 rcvr(int fd, int msglen, int interval, int nmsg)
 {
 	int i, n, munged;
-	ushort x;
-	vlong now;
-	uchar buf[64*1024+512];
+	uint16_t x;
+	int64_t now;
+	uint8_t buf[64*1024+512];
 	Icmphdr *icmp;
 	Req *r;
 
@@ -333,7 +333,7 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 		icmp = geticmp(buf);
 		munged = 0;
 		for(i = proto->iphdrsz + ICMP_HDRSIZE; i < msglen; i++)
-			if(buf[i] != (uchar)i)
+			if(buf[i] != (uint8_t)i)
 				munged++;
 		if(munged)
 			print("corrupted reply\n");
@@ -359,7 +359,7 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 }
 
 static int
-isdottedquad(char *name)
+isdottedquad(int8_t *name)
 {
 	int dot = 0, digit = 0;
 
@@ -374,7 +374,7 @@ isdottedquad(char *name)
 }
 
 static int
-isv6lit(char *name)
+isv6lit(int8_t *name)
 {
 	int colon = 0, hex = 0;
 
@@ -399,14 +399,14 @@ enum
 typedef struct DS DS;
 struct DS {
 	/* dist string */
-	char	buf[Maxstring];
-	char	*netdir;
-	char	*proto;
-	char	*rem;
+	int8_t	buf[Maxstring];
+	int8_t	*netdir;
+	int8_t	*proto;
+	int8_t	*rem;
 
 	/* other args */
-	char	*local;
-	char	*dir;
+	int8_t	*local;
+	int8_t	*dir;
 	int	*cfdp;
 };
 
@@ -414,9 +414,9 @@ struct DS {
  *  parse a dial string
  */
 static void
-_dial_string_parse(char *str, DS *ds)
+_dial_string_parse(int8_t *str, DS *ds)
 {
-	char *p, *p2;
+	int8_t *p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
 	ds->buf[Maxstring-1] = 0;
@@ -446,10 +446,10 @@ _dial_string_parse(char *str, DS *ds)
 
 /* side effect: sets network & target */
 static int
-isv4name(char *name)
+isv4name(int8_t *name)
 {
 	int r = 1;
-	char *root, *ip, *pr;
+	int8_t *root, *ip, *pr;
 	DS ds;
 
 	_dial_string_parse(name, &ds);

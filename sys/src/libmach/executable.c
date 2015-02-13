@@ -44,25 +44,27 @@ static	int	commonllp64(int, Fhdr*, ExecHdr*);
 static	int	adotout(int, Fhdr*, ExecHdr*);
 static	int	elfdotout(int, Fhdr*, ExecHdr*);
 static	int	armdotout(int, Fhdr*, ExecHdr*);
-static	void	setsym(Fhdr*, long, long, long, vlong);
-static	void	setdata(Fhdr*, uvlong, long, vlong, long);
-static	void	settext(Fhdr*, uvlong, uvlong, long, vlong);
+static	void	setsym(Fhdr*, int32_t, int32_t, int32_t, int64_t);
+static	void	setdata(Fhdr*, uint64_t, int32_t, int64_t,
+				  int32_t);
+static	void	settext(Fhdr*, uint64_t, uint64_t, int32_t,
+				  int64_t);
 static	void	hswal(void*, int, ulong(*)(ulong));
-static	uvlong	_round(uvlong, ulong);
+static	uint64_t	_round(uint64_t, uint32_t);
 
 /*
  *	definition of per-executable file type structures
  */
 
 typedef struct Exectable{
-	long	magic;			/* big-endian magic number of file */
-	char	*name;			/* executable identifier */
-	char	*dlmname;		/* dynamically loadable module identifier */
-	uchar	type;			/* Internal code */
-	uchar	_magic;			/* _MAGIC() magic */
+	int32_t	magic;			/* big-endian magic number of file */
+	int8_t	*name;			/* executable identifier */
+	int8_t	*dlmname;		/* dynamically loadable module identifier */
+	uint8_t	type;			/* Internal code */
+	uint8_t	_magic;			/* _MAGIC() magic */
 	Mach	*mach;			/* Per-machine data */
-	long	hsize;			/* header size */
-	ulong	(*swal)(ulong);		/* beswal or leswal */
+	int32_t	hsize;			/* header size */
+	uint32_t	(*swal)(uint32_t);		/* beswal or leswal */
 	int	(*hparse)(int, Fhdr*, ExecHdr*);
 } ExecTable;
 
@@ -293,10 +295,10 @@ crackhdr(int fd, Fhdr *fp)
 	ExecTable *mp;
 	ExecHdr d;
 	int nb, ret;
-	ulong magic;
+	uint32_t magic;
 
 	fp->type = FNONE;
-	nb = read(fd, (char *)&d.e, sizeof(d.e));
+	nb = read(fd, (int8_t *)&d.e, sizeof(d.e));
 	if (nb <= 0)
 		return 0;
 
@@ -340,7 +342,7 @@ crackhdr(int fd, Fhdr *fp)
 
 		mach = mp->mach;
 		if(mp->swal != nil)
-			hswal(&d, sizeof(d.e)/sizeof(ulong), mp->swal);
+			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
 		ret = mp->hparse(fd, fp, &d);
 		seek(fd, mp->hsize, 0);		/* seek to end of header */
 		break;
@@ -354,9 +356,9 @@ crackhdr(int fd, Fhdr *fp)
  * Convert header to canonical form
  */
 static void
-hswal(void *v, int n, ulong (*swap)(ulong))
+hswal(void *v, int n, uint32_t (*swap)(uint32_t))
 {
-	ulong *ulp;
+	uint32_t *ulp;
 
 	for(ulp = v; n--; ulp++)
 		*ulp = (*swap)(*ulp);
@@ -368,7 +370,7 @@ hswal(void *v, int n, ulong (*swap)(ulong))
 static int
 adotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	long pgsize;
+	int32_t pgsize;
 
 	USED(fd);
 	pgsize = mach->pgsize;
@@ -454,10 +456,10 @@ common(int fd, Fhdr *fp, ExecHdr *hp)
 static int
 commonllp64(int, Fhdr *fp, ExecHdr *hp)
 {
-	long pgsize;
-	uvlong entry;
+	int32_t pgsize;
+	uint64_t entry;
 
-	hswal(&hp->e, sizeof(Exec)/sizeof(long), beswal);
+	hswal(&hp->e, sizeof(Exec)/sizeof(int32_t), beswal);
 	if(!(hp->e.magic & HDR_MAGIC))
 		return 0;
 
@@ -585,11 +587,11 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
 	E64hdr *ep;
 	P64hdr *ph;
-	ushort (*swab)(ushort);
-	ulong (*swal)(ulong);
-	uvlong (*swav)(uvlong);
+	uint16_t (*swab)(uint16_t);
+	uint32_t (*swal)(uint32_t);
+	uint64_t (*swav)(uint64_t);
 	int i, it, id, is, phsz;
-	uvlong uvl;
+	uint64_t uvl;
 
 	ep = &hp->e;
 	if(ep->ident[DATA] == ELFDATA2LSB) {
@@ -696,8 +698,8 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 static int
 elf32dotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	ulong (*swal)(ulong);
-	ushort (*swab)(ushort);
+	uint32_t (*swal)(uint32_t);
+	uint16_t (*swab)(uint16_t);
 	Ehdr *ep;
 	Phdr *ph;
 	int i, it, id, is, phsz;
@@ -787,7 +789,7 @@ elf32dotout(int fd, Fhdr *fp, ExecHdr *hp)
 		free(ph);
 		return 0;
 	}
-	hswal(ph, phsz/sizeof(ulong), swal);
+	hswal(ph, phsz/sizeof(uint32_t), swal);
 
 	/* find text, data and symbols and install them */
 	it = id = is = -1;
@@ -812,7 +814,7 @@ elf32dotout(int fd, Fhdr *fp, ExecHdr *hp)
 		 * ph[1] : symsz, lcsz, 0, 0, symoff
 		 */
 		if(ep->machine == SPARC64 && ep->phnum == 2) {
-			ulong txtaddr, txtsz, dataddr, bsssz;
+			uint32_t txtaddr, txtsz, dataddr, bsssz;
 
 			txtaddr = ph[0].vaddr | 0x80000000;
 			txtsz = ph[0].filesz - ph[0].paddr;
@@ -863,7 +865,7 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 static int
 armdotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	uvlong kbase;
+	uint64_t kbase;
 
 	USED(fd);
 	settext(fp, hp->e.entry, sizeof(Exec), hp->e.text, sizeof(Exec));
@@ -881,7 +883,7 @@ armdotout(int fd, Fhdr *fp, ExecHdr *hp)
 }
 
 static void
-settext(Fhdr *fp, uvlong e, uvlong a, long s, vlong off)
+settext(Fhdr *fp, uint64_t e, uint64_t a, int32_t s, int64_t off)
 {
 	fp->txtaddr = a;
 	fp->entry = e;
@@ -890,7 +892,7 @@ settext(Fhdr *fp, uvlong e, uvlong a, long s, vlong off)
 }
 
 static void
-setdata(Fhdr *fp, uvlong a, long s, vlong off, long bss)
+setdata(Fhdr *fp, uint64_t a, int32_t s, int64_t off, int32_t bss)
 {
 	fp->dataddr = a;
 	fp->datsz = s;
@@ -899,7 +901,8 @@ setdata(Fhdr *fp, uvlong a, long s, vlong off, long bss)
 }
 
 static void
-setsym(Fhdr *fp, long symsz, long sppcsz, long lnpcsz, vlong symoff)
+setsym(Fhdr *fp, int32_t symsz, int32_t sppcsz, int32_t lnpcsz,
+       int64_t symoff)
 {
 	fp->symsz = symsz;
 	fp->symoff = symoff;
@@ -910,10 +913,10 @@ setsym(Fhdr *fp, long symsz, long sppcsz, long lnpcsz, vlong symoff)
 }
 
 
-static uvlong
-_round(uvlong a, ulong b)
+static uint64_t
+_round(uint64_t a, uint32_t b)
 {
-	uvlong w;
+	uint64_t w;
 
 	w = (a/b)*b;
 	if (a!=w)

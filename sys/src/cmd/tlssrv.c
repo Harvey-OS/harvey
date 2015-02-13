@@ -15,11 +15,11 @@
 
 enum{ BufSize = 8192 };
 
-char *remotesys, *logfile;
+int8_t *remotesys, *logfile;
 int debug, p[2];
 
 void
-death(void *, char *)
+death(void *, int8_t *)
 {
 	int pid;
 
@@ -34,7 +34,7 @@ death(void *, char *)
 }
 
 static void
-dump(int fd, uchar *buf, int n, char *label)
+dump(int fd, uint8_t *buf, int n, int8_t *label)
 {
 	Biobuf bout;
 	int i;
@@ -50,9 +50,9 @@ dump(int fd, uchar *buf, int n, char *label)
 }
 
 static void
-xfer(int from, int to, int cfd, char *label)
+xfer(int from, int to, int cfd, int8_t *label)
 {
-	uchar buf[BufSize];
+	uint8_t buf[BufSize];
 	int n;
 
 	if(fork() == 0)
@@ -93,10 +93,10 @@ dumper(int fd)
 }
 
 static int
-reporter(char *fmt, ...)
+reporter(int8_t *fmt, ...)
 {
 	va_list ap;
-	char buf[2000];
+	int8_t buf[2000];
 
 	va_start(ap, fmt);
 	if(logfile){

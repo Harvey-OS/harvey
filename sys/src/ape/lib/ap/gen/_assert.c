@@ -12,9 +12,9 @@
 #include <assert.h>
 
 void
-_assert(char *f, unsigned line)
+_assert(int8_t *f, unsigned line)
 {
-	char buf[20], *p, *s = &buf[20];
+	int8_t buf[20], *p, *s = &buf[20];
 	write(2, "assertion failed: file ", 23);
 	for(p = f; *p; p++) continue;
 	write(2, f, p-f);

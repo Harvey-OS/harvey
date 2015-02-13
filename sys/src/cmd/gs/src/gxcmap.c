@@ -392,7 +392,7 @@ gx_error_get_color_mapping_procs(const gx_device * dev)
 
 /* Default color component to index for a DeviceGray color model */
 int
-gx_default_DevGray_get_color_comp_index(gx_device * dev, const char * pname,
+gx_default_DevGray_get_color_comp_index(gx_device * dev, const int8_t * pname,
 					  int name_size, int component_type)
 {
     if (compare_color_names(pname, name_size, "Gray") ||
@@ -404,7 +404,7 @@ gx_default_DevGray_get_color_comp_index(gx_device * dev, const char * pname,
 
 /* Default color component to index for a DeviceRGB color model */
 int
-gx_default_DevRGB_get_color_comp_index(gx_device * dev, const char * pname,
+gx_default_DevRGB_get_color_comp_index(gx_device * dev, const int8_t * pname,
 					   int name_size, int component_type)
 {
     if (compare_color_names(pname, name_size, "Red"))
@@ -419,7 +419,7 @@ gx_default_DevRGB_get_color_comp_index(gx_device * dev, const char * pname,
 
 /* Default color component to index for a DeviceCMYK color model */
 int
-gx_default_DevCMYK_get_color_comp_index(gx_device * dev, const char * pname,
+gx_default_DevCMYK_get_color_comp_index(gx_device * dev, const int8_t * pname,
 					    int name_size, int component_type)
 {
     if (compare_color_names(pname, name_size, "Cyan"))
@@ -436,7 +436,7 @@ gx_default_DevCMYK_get_color_comp_index(gx_device * dev, const char * pname,
 
 /* Default color component to index for a DeviceRGBK color model */
 int
-gx_default_DevRGBK_get_color_comp_index(gx_device * dev, const char * pname,
+gx_default_DevRGBK_get_color_comp_index(gx_device * dev, const int8_t * pname,
 					    int name_size, int component_type)
 {
     if (compare_color_names(pname, name_size, "Red"))
@@ -453,7 +453,7 @@ gx_default_DevRGBK_get_color_comp_index(gx_device * dev, const char * pname,
 
 /* Default color component to index for an unknown color model */
 int
-gx_error_get_color_comp_index(gx_device * dev, const char * pname,
+gx_error_get_color_comp_index(gx_device * dev, const int8_t * pname,
 					int name_size, int component_type)
 {
     /*
@@ -1267,7 +1267,7 @@ gx_color_frac_map(frac cv, const frac * values)
     if (mdv < -1 << (16 - cp_frac_bits) ||
 	mdv > 1 << (16 - cp_frac_bits)
 	)
-	return mv + (uint) (((ulong) rem * mdv) >> cp_frac_bits);
+	return mv + (uint) (((uint32_t) rem * mdv) >> cp_frac_bits);
 #endif
     return mv + ((rem * mdv) >> cp_frac_bits);
 #undef cp_frac_bits
@@ -1325,9 +1325,9 @@ gx_color_index
 gx_default_gray_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {				/* We round the value rather than truncating it. */
     gx_color_value gray =
-    (((cv[0] * (ulong) lum_red_weight) +
-      (cv[1] * (ulong) lum_green_weight) +
-      (cv[2] * (ulong) lum_blue_weight) +
+    (((cv[0] * (uint32_t) lum_red_weight) +
+      (cv[1] * (uint32_t) lum_green_weight) +
+      (cv[2] * (uint32_t) lum_blue_weight) +
       (lum_all_weights / 2)) / lum_all_weights
      * dev->color_info.max_gray +
      (gx_max_color_value / 2)) / gx_max_color_value;
@@ -1372,7 +1372,7 @@ gx_default_rgb_map_rgb_color(gx_device * dev, const gx_color_value cv[])
     if (dev->color_info.depth == 24)
 	return gx_color_value_to_byte(cv[2]) +
 	    ((uint) gx_color_value_to_byte(cv[1]) << 8) +
-	    ((ulong) gx_color_value_to_byte(cv[0]) << 16);
+	    ((uint32_t) gx_color_value_to_byte(cv[0]) << 16);
     else {
 	int bpc = dev->color_info.depth / 3;
 	int drop = sizeof(gx_color_value) * 8 - bpc;
@@ -1396,11 +1396,11 @@ gx_default_rgb_map_color_rgb(gx_device * dev, gx_color_index color,
 	uint color_mask = (1 << bits_per_color) - 1;
 
 	prgb[0] = ((color >> (bits_per_color * 2)) & color_mask) *
-	    (ulong) gx_max_color_value / color_mask;
+	    (uint32_t) gx_max_color_value / color_mask;
 	prgb[1] = ((color >> (bits_per_color)) & color_mask) *
-	    (ulong) gx_max_color_value / color_mask;
+	    (uint32_t) gx_max_color_value / color_mask;
 	prgb[2] = (color & color_mask) *
-	    (ulong) gx_max_color_value / color_mask;
+	    (uint32_t) gx_max_color_value / color_mask;
     }
     return 0;
 }

@@ -23,10 +23,10 @@
  * Conforming files also must have a basename
  * at most 8 letters and at most one suffix of at most 3 letters.
  */
-char*
-isostring(uchar *buf, int len)
+int8_t*
+isostring(uint8_t *buf, int len)
 {
-	char *p, *q;
+	int8_t *p, *q;
 
 	p = emalloc(len+1);
 	memmove(p, buf, len);
@@ -42,7 +42,7 @@ isostring(uchar *buf, int len)
 }
 
 int 
-isisofrog(char c)
+isisofrog(int8_t c)
 {
 	if(c >= '0' && c <= '9')
 		return 0;
@@ -55,9 +55,9 @@ isisofrog(char c)
 }
 
 int
-isbadiso9660(char *s)
+isbadiso9660(int8_t *s)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	int i;
 
 	if((p = strchr(s, '.')) != nil) {
@@ -112,7 +112,7 @@ int
 isocmp(const void *va, const void *vb)
 {
 	int i;
-	char s1[32], s2[32], *b1, *b2, *e1, *e2;
+	int8_t s1[32], s2[32], *b1, *b2, *e1, *e2;
 	const Direc *a, *b;
 
 	a = va;
@@ -137,10 +137,10 @@ isocmp(const void *va, const void *vb)
 	return strcmp(e1, e2);
 }
 
-static char*
-mkisostring(char *isobuf, int n, char *s)
+static int8_t*
+mkisostring(int8_t *isobuf, int n, int8_t *s)
 {
-	char *p, *q, *eq;
+	int8_t *p, *q, *eq;
 
 	eq = isobuf+n;
 	for(p=s, q=isobuf; *p && q < eq; p++)
@@ -158,7 +158,7 @@ mkisostring(char *isobuf, int n, char *s)
 void
 Cputisopvd(Cdimg *cd, Cdinfo info)
 {
-	char buf[130];
+	int8_t buf[130];
 
 	Cputc(cd, 1);				/* primary volume descriptor */
 	Cputs(cd, "CD001", 5);			/* standard identifier */

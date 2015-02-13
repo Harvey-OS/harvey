@@ -94,16 +94,17 @@ extern int zflushpage(i_ctx_t *);
 #define runInit 1
 #define runFlush 2
 #define runBuffer 4
-private int swproc(gs_main_instance *, const char *, arg_list *);
-private int argproc(gs_main_instance *, const char *);
-private int run_buffered(gs_main_instance *, const char *);
-private int esc_strlen(const char *);
-private void esc_strcat(char *, const char *);
-private int runarg(gs_main_instance *, const char *, const char *, const char *, int);
-private int run_string(gs_main_instance *, const char *, int);
+private int swproc(gs_main_instance *, const int8_t *, arg_list *);
+private int argproc(gs_main_instance *, const int8_t *);
+private int run_buffered(gs_main_instance *, const int8_t *);
+private int esc_strlen(const int8_t *);
+private void esc_strcat(int8_t *, const int8_t *);
+private int runarg(gs_main_instance *, const int8_t *, const int8_t *,
+		   const int8_t *, int);
+private int run_string(gs_main_instance *, const int8_t *, int);
 private int run_finish(gs_main_instance *, int, int, ref *);
 private int try_stdout_redirect(gs_main_instance * minst, 
-				const char *command, const char *filename);
+				const int8_t *command, const int8_t *filename);
 
 /* Forward references for help printout */
 private void print_help(gs_main_instance *);
@@ -119,7 +120,7 @@ private void print_help_trailer(const gs_main_instance *);
 
 /* Process the command line with a given instance. */
 private FILE *
-gs_main_arg_fopen(const char *fname, void *vminst)
+gs_main_arg_fopen(const int8_t *fname, void *vminst)
 {
     gs_main_set_lib_paths((gs_main_instance *) vminst);
     return lib_fopen(&((gs_main_instance *)vminst)->lib_path, 
@@ -135,13 +136,13 @@ set_debug_flags(const char *arg, char *flags)
 }
 
 int
-gs_main_init_with_args(gs_main_instance * minst, int argc, char *argv[])
+gs_main_init_with_args(gs_main_instance * minst, int argc, int8_t *argv[])
 {
-    const char *arg;
+    const int8_t *arg;
     arg_list args;
     int code;
 
-    arg_init(&args, (const char **)argv, argc,
+    arg_init(&args, (const int8_t **)argv, argc,
 	     gs_main_arg_fopen, (void *)minst);
     code = gs_main_init0(minst, 0, 0, 0, GS_MAX_LIB_DIRS);
     if (code < 0)
@@ -155,10 +156,10 @@ gs_main_init_with_args(gs_main_instance * minst, int argc, char *argv[])
 #ifndef __VMS
     {
 	int len = 0;
-	int code = gp_getenv(GS_LIB, (char *)0, &len);
+	int code = gp_getenv(GS_LIB, (int8_t *)0, &len);
 
 	if (code < 0) {		/* key present, value doesn't fit */
-	    char *path = (char *)gs_alloc_bytes(minst->heap, len, "GS_LIB");
+	    int8_t *path = (int8_t *)gs_alloc_bytes(minst->heap, len, "GS_LIB");
 
 	    gp_getenv(GS_LIB, path, &len);	/* can't fail */
 	    minst->lib_path.env = path;
@@ -199,11 +200,11 @@ gs_main_init_with_args(gs_main_instance * minst, int argc, char *argv[])
 
     {
 	int len = 0;
-	int code = gp_getenv(GS_OPTIONS, (char *)0, &len);
+	int code = gp_getenv(GS_OPTIONS, (int8_t *)0, &len);
 
 	if (code < 0) {		/* key present, value doesn't fit */
-	    char *opts =
-	    (char *)gs_alloc_bytes(minst->heap, len, "GS_OPTIONS");
+	    int8_t *opts =
+	    (int8_t *)gs_alloc_bytes(minst->heap, len, "GS_OPTIONS");
 
 	    gp_getenv(GS_OPTIONS, opts, &len);	/* can't fail */
 	    if (arg_push_memory_string(&args, opts, minst->heap))

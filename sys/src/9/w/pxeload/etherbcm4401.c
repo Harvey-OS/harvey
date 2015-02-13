@@ -236,7 +236,7 @@ typedef struct {
 
 	void*	bp;				/* software */
 
-	uchar	data[];				/* flexible array member... */
+	uint8_t	data[];				/* flexible array member... */
 } H;
 
 enum {						/* H.status */
@@ -273,7 +273,7 @@ typedef struct Ctlr {
 	Ctlr*	next;
 	int	active;
 	int	id;
-	uchar	pa[Eaddrlen];
+	uint8_t	pa[Eaddrlen];
 
 	void*	nic;
 
@@ -329,7 +329,7 @@ typedef struct Ctlr {
 static Ctlr* bcm4401ctlrhead;
 static Ctlr* bcm4401ctlrtail;
 
-static char* statistics[Nmib] = {
+static int8_t* statistics[Nmib] = {
 	"Tx Good Octets",
 	"Tx Good Pkts",
 	"Tx Octets",
@@ -406,10 +406,10 @@ bcm4401mib(Ctlr* ctlr, uint* mib)
 	}
 }
 
-static long
-bcm4401ifstat(Ether* edev, void* a, long n, ulong offset)
+static int32_t
+bcm4401ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 {
-	char *p;
+	int8_t *p;
 	Ctlr *ctlr;
 	int i, l, r;
 
@@ -466,7 +466,7 @@ bcm4401promiscuous(void* arg, int on)
 }
 
 static void
-bcm4401multicast(void* arg, uchar* addr, int on)
+bcm4401multicast(void* arg, uint8_t* addr, int on)
 {
 	USED(arg, addr, on);
 }
@@ -600,7 +600,7 @@ bcm4401receive(Ether* edev)
 {
 	DD *d;
 	H* h;
-	uchar *p;
+	uint8_t *p;
 	int len, rdh, rdt, s;
 	Ctlr *ctlr;
 	u32int status;
@@ -700,7 +700,7 @@ bcm4401spin(u32int* csr32, int bit, int set, int µs)
 }
 
 static void
-bcm4401cam(Ctlr* ctlr, int cvix, uchar* a)
+bcm4401cam(Ctlr* ctlr, int cvix, uint8_t* a)
 {
 	csr32w(ctlr, CAMdlo, (a[2]<<24)|(a[3]<<16)|(a[4]<<8)|a[5]);
 	csr32w(ctlr, CAMdhi, (cvix & Cv)|(a[0]<<8)|a[1]);
@@ -916,7 +916,7 @@ bcm4401reset(Ctlr* ctlr)
 	int i;
 	u32int r;
 	MiiPhy *phy;
-	uchar ea[Eaddrlen];
+	uint8_t ea[Eaddrlen];
 
 	// disable ints - here or where?
 	csr32w(ctlr, Bim, 0);

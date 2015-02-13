@@ -30,7 +30,7 @@
  * print into an allocated string buffer
  */
 Rune*
-runevsmprint(char *fmt, va_list args)
+runevsmprint(int8_t *fmt, va_list args)
 {
 	Fmt f;
 	int n;

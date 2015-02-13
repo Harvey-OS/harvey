@@ -14,7 +14,7 @@
 int
 errfmt(Fmt *f)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	rerrstr(buf, sizeof buf);
 	return _fmtcpy(f, buf, utflen(buf), strlen(buf));

@@ -118,7 +118,7 @@ private const gs_cie_render_table_t bit_RenderTable = {	/* dummy */
  */
 int
 sample_device_crd_get_params(gx_device *pdev, gs_param_list *plist,
-			     const char *crd_param_name)
+			     const int8_t *crd_param_name)
 {
     int ecode = 0;
 

@@ -15,18 +15,18 @@
 
 /* working directory */
 Dir	*dirbuf;
-long	ndirbuf = 0;
+int32_t	ndirbuf = 0;
 
 int debug;
 
-long	readdirect(int);
-void	douser(Fs*, char*);
+int32_t	readdirect(int);
+void	douser(Fs*, int8_t*);
 void	dodir(Fs*);
-int	mail(Fs*, char*, char*, long);
-int	mailin(Fs*, char*, long, char*, char*);
-void	complain(char*, ...);
-long	readnumfile(char*);
-void	writenumfile(char*, long);
+int	mail(Fs*, int8_t*, int8_t*, int32_t);
+int	mailin(Fs*, int8_t*, int32_t, int8_t*, int8_t*);
+void	complain(int8_t*, ...);
+int32_t	readnumfile(int8_t*);
+void	writenumfile(int8_t*, int32_t);
 
 void
 usage(void)
@@ -89,12 +89,12 @@ dodir(Fs *f)
  *  check for expiration
  */
 void
-douser(Fs *f, char *user)
+douser(Fs *f, int8_t *user)
 {
 	int n, nwarn;
-	char buf[128];
-	long rcvrs, et, now;
-	char *l;
+	int8_t buf[128];
+	int32_t rcvrs, et, now;
+	int8_t *l;
 
 	snprint(buf, sizeof buf, "%s/expire", user);
 	et = readnumfile(buf);
@@ -162,12 +162,12 @@ douser(Fs *f, char *user)
  *  anything in <>'s is an address
  */
 int
-mailin(Fs *f, char *user, long et, char *l, char *e)
+mailin(Fs *f, int8_t *user, int32_t et, int8_t *l, int8_t *e)
 {
 	int n;
 	int rcvrs;
-	char *p;
-	char addr[256];
+	int8_t *p;
+	int8_t addr[256];
 
 	p = 0;
 	rcvrs = 0;
@@ -197,13 +197,13 @@ mailin(Fs *f, char *user, long et, char *l, char *e)
  *  send mail
  */
 int
-mail(Fs *f, char *rcvr, char *user, long et)
+mail(Fs *f, int8_t *rcvr, int8_t *user, int32_t et)
 {
 	int pid, i, fd;
 	int pfd[2];
-	char *ct, *p;
+	int8_t *ct, *p;
 	Waitmsg *w;
-	char buf[128];
+	int8_t buf[128];
 
 	if(pipe(pfd) < 0){
 		complain("out of pipes: %r");
@@ -281,9 +281,9 @@ mail(Fs *f, char *rcvr, char *user, long et)
 }
 
 void
-complain(char *fmt, ...)
+complain(int8_t *fmt, ...)
 {
-	char buf[8192], *s;
+	int8_t buf[8192], *s;
 	va_list arg;
 
 	s = buf;
@@ -295,11 +295,11 @@ complain(char *fmt, ...)
 	write(2, buf, s - buf);
 }
 
-long
-readnumfile(char *file)
+int32_t
+readnumfile(int8_t *file)
 {
 	int fd, n;
-	char buf[64];
+	int8_t buf[64];
 
 	fd = open(file, OREAD);
 	if(fd < 0){
@@ -317,7 +317,7 @@ readnumfile(char *file)
 }
 
 void
-writenumfile(char *file, long num)
+writenumfile(int8_t *file, int32_t num)
 {
 	int fd;
 

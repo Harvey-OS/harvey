@@ -73,7 +73,7 @@ _inputfile(Rune *s, void (*push)(Istack*))
 {
 	Istack *is;
 	Biobuf *b;
-	char *t;
+	int8_t *t;
 	
 	t = esmprint("%S", s);
 	if((b = Bopen(t, OREAD)) == nil){

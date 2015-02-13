@@ -19,9 +19,9 @@
 int ignorebloom;
 
 int
-bloominit(Bloom *b, vlong vsize, u8int *data)
+bloominit(Bloom *b, int64_t vsize, u8int *data)
 {
-	ulong size;
+	uint32_t size;
 	
 	size = vsize;
 	if(size != vsize){	/* truncation */
@@ -49,7 +49,7 @@ wbbloomhead(Bloom *b)
 Bloom*
 readbloom(Part *p)
 {
-	uchar buf[512];
+	uint8_t buf[512];
 	Bloom *b;
 	
 	b = vtmallocz(sizeof *b);
@@ -83,7 +83,7 @@ readbloom(Part *p)
 int
 resetbloom(Bloom *b)
 {
-	uchar *data;
+	uint8_t *data;
 	
 	data = vtmallocz(b->size);
 	b->data = data;
@@ -99,7 +99,7 @@ loadbloom(Bloom *b)
 {
 	int i, n;
 	uint ones;
-	uchar *data;
+	uint8_t *data;
 	u32int *a;
 	
 	data = vtmallocz(b->size);
@@ -143,7 +143,7 @@ writebloom(Bloom *b)
  * We reserve the bottom bytes (BloomHeadSize*8 bits) for the header.
  */
 static void
-gethashes(u8int *score, ulong *h)
+gethashes(u8int *score, uint32_t *h)
 {
 	int i;
 	u32int a, b;
@@ -164,7 +164,7 @@ static void
 _markbloomfilter(Bloom *b, u8int *score)
 {
 	int i, nnew;
-	ulong h[BloomMaxHash];
+	uint32_t h[BloomMaxHash];
 	u32int x, *y, z, *tab;
 
 	trace("markbloomfilter", "markbloomfilter %V", score);
@@ -190,7 +190,7 @@ static int
 _inbloomfilter(Bloom *b, u8int *score)
 {
 	int i;
-	ulong h[BloomMaxHash], x;
+	uint32_t h[BloomMaxHash], x;
 	u32int *tab;
 
 	gethashes(score, h);
@@ -260,6 +260,6 @@ void
 startbloomproc(Bloom *b)
 {
 	b->writechan = chancreate(sizeof(void*), 0);
-	b->writedonechan = chancreate(sizeof(ulong), 0);
+	b->writedonechan = chancreate(sizeof(uint32_t), 0);
 	vtproc(bloomwriteproc, b);	
 }

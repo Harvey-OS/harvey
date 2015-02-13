@@ -9,17 +9,17 @@
 
 #include	"l.h"
 
-uchar	ynone[] =
+uint8_t	ynone[] =
 {
 	Ynone,	Ynone,	Zlit,	1,
 	0
 };
-uchar	ytext[] =
+uint8_t	ytext[] =
 {
 	Ymb,	Yi32,	Zpseudo,1,
 	0
 };
-uchar	ynop[] =
+uint8_t	ynop[] =
 {
 	Ynone,	Ynone,	Zpseudo,1,
 	Ynone,	Yml,	Zpseudo,1,
@@ -28,7 +28,7 @@ uchar	ynop[] =
 	Yrf,	Ynone,	Zpseudo,1,
 	0
 };
-uchar	yxorb[] =
+uint8_t	yxorb[] =
 {
 	Yi32,	Yal,	Zib_,	1,
 	Yi32,	Ymb,	Zibo_m,	2,
@@ -36,7 +36,7 @@ uchar	yxorb[] =
 	Ymb,	Yrb,	Zm_r,	1,
 	0
 };
-uchar	yxorl[] =
+uint8_t	yxorl[] =
 {
 	Yi8,	Yml,	Zibo_m,	2,
 	Yi32,	Yax,	Zil_,	1,
@@ -45,7 +45,7 @@ uchar	yxorl[] =
 	Yml,	Yrl,	Zm_r,	1,
 	0
 };
-uchar	yaddl[] =
+uint8_t	yaddl[] =
 {
 	Yi8,	Yml,	Zibo_m,	2,
 	Yi32,	Yax,	Zil_,	1,
@@ -54,18 +54,18 @@ uchar	yaddl[] =
 	Yml,	Yrl,	Zm_r,	1,
 	0
 };
-uchar	yincb[] =
+uint8_t	yincb[] =
 {
 	Ynone,	Ymb,	Zo_m,	2,
 	0
 };
-uchar	yincl[] =
+uint8_t	yincl[] =
 {
 	Ynone,	Yrl,	Z_rp,	1,
 	Ynone,	Yml,	Zo_m,	2,
 	0
 };
-uchar	ycmpb[] =
+uint8_t	ycmpb[] =
 {
 	Yal,	Yi32,	Z_ib,	1,
 	Ymb,	Yi32,	Zm_ibo,	2,
@@ -73,7 +73,7 @@ uchar	ycmpb[] =
 	Yrb,	Ymb,	Zr_m,	1,
 	0
 };
-uchar	ycmpl[] =
+uint8_t	ycmpl[] =
 {
 	Yml,	Yi8,	Zm_ibo,	2,
 	Yax,	Yi32,	Z_il,	1,
@@ -82,14 +82,14 @@ uchar	ycmpl[] =
 	Yrl,	Yml,	Zr_m,	1,
 	0
 };
-uchar	yshb[] =
+uint8_t	yshb[] =
 {
 	Yi1,	Ymb,	Zo_m,	2,
 	Yi32,	Ymb,	Zibo_m,	2,
 	Ycx,	Ymb,	Zo_m,	2,
 	0
 };
-uchar	yshl[] =
+uint8_t	yshl[] =
 {
 	Yi1,	Yml,	Zo_m,	2,
 	Yi32,	Yml,	Zibo_m,	2,
@@ -97,7 +97,7 @@ uchar	yshl[] =
 	Ycx,	Yml,	Zo_m,	2,
 	0
 };
-uchar	ytestb[] =
+uint8_t	ytestb[] =
 {
 	Yi32,	Yal,	Zib_,	1,
 	Yi32,	Ymb,	Zibo_m,	2,
@@ -105,7 +105,7 @@ uchar	ytestb[] =
 	Ymb,	Yrb,	Zm_r,	1,
 	0
 };
-uchar	ytestl[] =
+uint8_t	ytestl[] =
 {
 	Yi32,	Yax,	Zil_,	1,
 	Yi32,	Yml,	Zilo_m,	2,
@@ -113,7 +113,7 @@ uchar	ytestl[] =
 	Yml,	Yrl,	Zm_r,	1,
 	0
 };
-uchar	ymovb[] =
+uint8_t	ymovb[] =
 {
 	Yrb,	Ymb,	Zr_m,	1,
 	Ymb,	Yrb,	Zm_r,	1,
@@ -121,7 +121,7 @@ uchar	ymovb[] =
 	Yi32,	Ymb,	Zibo_m,	2,
 	0
 };
-uchar	ymovl[] =
+uint8_t	ymovl[] =
 {
 	Yrl,	Yml,	Zr_m,	1,
 	Yml,	Yrl,	Zm_r,	1,
@@ -132,77 +132,77 @@ uchar	ymovl[] =
 	Yiauto,	Yrl,	Zaut_r,	2,
 	0
 };
-uchar	ym_rl[] =
+uint8_t	ym_rl[] =
 {
 	Ym,	Yrl,	Zm_r,	1,
 	0
 };
-uchar	yrl_m[] =
+uint8_t	yrl_m[] =
 {
 	Yrl,	Ym,	Zr_m,	1,
 	0
 };
-uchar	ymb_rl[] =
+uint8_t	ymb_rl[] =
 {
 	Ymb,	Yrl,	Zm_r,	1,
 	0
 };
-uchar	yml_rl[] =
+uint8_t	yml_rl[] =
 {
 	Yml,	Yrl,	Zm_r,	1,
 	0
 };
-uchar	yrl_ml[] =
+uint8_t	yrl_ml[] =
 {
 	Yrl,	Yml,	Zr_m,	1,
 	0
 };
-uchar	yml_mb[] =
+uint8_t	yml_mb[] =
 {
 	Yrb,	Ymb,	Zr_m,	1,
 	Ymb,	Yrb,	Zm_r,	1,
 	0
 };
-uchar	yml_ml[] =
+uint8_t	yml_ml[] =
 {
 	Yrl,	Yml,	Zr_m,	1,
 	Yml,	Yrl,	Zm_r,	1,
 	0
 };
-uchar	ydivl[] =
+uint8_t	ydivl[] =
 {
 	Yml,	Ynone,	Zm_o,	2,
 	0
 };
-uchar	ydivb[] =
+uint8_t	ydivb[] =
 {
 	Ymb,	Ynone,	Zm_o,	2,
 	0
 };
-uchar	yimul[] =
+uint8_t	yimul[] =
 {
 	Yml,	Ynone,	Zm_o,	2,
 	Yi8,	Yrl,	Zib_rr,	1,
 	Yi32,	Yrl,	Zil_rr,	1,
 	0
 };
-uchar	ybyte[] =
+uint8_t	ybyte[] =
 {
 	Yi32,	Ynone,	Zbyte,	1,
 	0
 };
-uchar	yin[] =
+uint8_t	yin[] =
 {
 	Yi32,	Ynone,	Zib_,	1,
 	Ynone,	Ynone,	Zlit,	1,
 	0
 };
-uchar	yint[] =
+uint8_t	yint[] =
 {
 	Yi32,	Ynone,	Zib_,	1,
 	0
 };
-uchar	ypushl[] =
+uint8_t	ypushl[] =
 {
 	Yrl,	Ynone,	Zrp_,	1,
 	Ym,	Ynone,	Zm_o,	2,
@@ -210,41 +210,41 @@ uchar	ypushl[] =
 	Yi32,	Ynone,	Zil_,	1,
 	0
 };
-uchar	ypopl[] =
+uint8_t	ypopl[] =
 {
 	Ynone,	Yrl,	Z_rp,	1,
 	Ynone,	Ym,	Zo_m,	2,
 	0
 };
-uchar	yscond[] =
+uint8_t	yscond[] =
 {
 	Ynone,	Ymb,	Zo_m,	2,
 	0
 };
-uchar	yjcond[] =
+uint8_t	yjcond[] =
 {
 	Ynone,	Ybr,	Zbr,	1,
 	0
 };
-uchar	yloop[] =
+uint8_t	yloop[] =
 {
 	Ynone,	Ybr,	Zloop,	1,
 	0
 };
-uchar	ycall[] =
+uint8_t	ycall[] =
 {
 	Ynone,	Yml,	Zo_m,	2,
 	Ynone,	Ybr,	Zcall,	1,
 	0
 };
-uchar	yjmp[] =
+uint8_t	yjmp[] =
 {
 	Ynone,	Yml,	Zo_m,	2,
 	Ynone,	Ybr,	Zjmp,	1,
 	0
 };
 
-uchar	yfmvd[] =
+uint8_t	yfmvd[] =
 {
 	Ym,	Yf0,	Zm_o,	2,
 	Yf0,	Ym,	Zo_m,	2,
@@ -252,64 +252,64 @@ uchar	yfmvd[] =
 	Yf0,	Yrf,	Zo_m,	2,
 	0
 };
-uchar	yfmvdp[] =
+uint8_t	yfmvdp[] =
 {
 	Yf0,	Ym,	Zo_m,	2,
 	Yf0,	Yrf,	Zo_m,	2,
 	0
 };
-uchar	yfmvf[] =
+uint8_t	yfmvf[] =
 {
 	Ym,	Yf0,	Zm_o,	2,
 	Yf0,	Ym,	Zo_m,	2,
 	0
 };
-uchar	yfmvx[] =
+uint8_t	yfmvx[] =
 {
 	Ym,	Yf0,	Zm_o,	2,
 	0
 };
-uchar	yfmvp[] =
+uint8_t	yfmvp[] =
 {
 	Yf0,	Ym,	Zo_m,	2,
 	0
 };
-uchar	yfadd[] =
+uint8_t	yfadd[] =
 {
 	Ym,	Yf0,	Zm_o,	2,
 	Yrf,	Yf0,	Zm_o,	2,
 	Yf0,	Yrf,	Zo_m,	2,
 	0
 };
-uchar	yfaddp[] =
+uint8_t	yfaddp[] =
 {
 	Yf0,	Yrf,	Zo_m,	2,
 	0
 };
-uchar	yfxch[] =
+uint8_t	yfxch[] =
 {
 	Yf0,	Yrf,	Zo_m,	2,
 	Yrf,	Yf0,	Zm_o,	2,
 	0
 };
-uchar	ycompp[] =
+uint8_t	ycompp[] =
 {
 	Yf0,	Yrf,	Zo_m,	2,	/* botch is really f0,f1 */
 	0
 };
-uchar	ystsw[] =
+uint8_t	ystsw[] =
 {
 	Ynone,	Ym,	Zo_m,	2,
 	Ynone,	Yax,	Zlit,	1,
 	0
 };
-uchar	ystcw[] =
+uint8_t	ystcw[] =
 {
 	Ynone,	Ym,	Zo_m,	2,
 	Ym,	Ynone,	Zm_o,	2,
 	0
 };
-uchar	ysvrs[] =
+uint8_t	ysvrs[] =
 {
 	Ynone,	Ym,	Zo_m,	2,
 	Ym,	Ynone,	Zm_o,	2,

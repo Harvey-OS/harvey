@@ -61,8 +61,8 @@
  */
 
 #ifndef lint
-static char *ident = "$Id: namelist.c,v 1.6 89/02/13 09:14:48 mark Exp $";
-static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static int8_t *ident = "$Id: namelist.c,v 1.6 89/02/13 09:14:48 mark Exp $";
+static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -78,15 +78,15 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
  */
 struct nm_list {
     struct nm_list *next;
-    short           length;	/* cached strlen(name) */
-    char            found;	/* A matching file has been found */
-    char            firstch;	/* First char is literally matched */
-    char            re;		/* regexp pattern for item */
-    char            name[1];	/* name of file or rexexp */
+    int16_t           length;	/* cached strlen(name) */
+    int8_t            found;	/* A matching file has been found */
+    int8_t            firstch;	/* First char is literally matched */
+    int8_t            re;		/* regexp pattern for item */
+    int8_t            name[1];	/* name of file or rexexp */
 };
 
 struct dirinfo {
-    char            dirname[PATH_MAX + 1];	/* name of directory */
+    int8_t            dirname[PATH_MAX + 1];	/* name of directory */
     OFFSET	    where;	/* current location in directory */
     struct dirinfo *next;
 };
@@ -135,7 +135,7 @@ static struct nm_list *namelist;	/* Points to first name in list */
 
 #ifdef __STDC__
 
-void add_name(char *name)
+void add_name(int8_t *name)
 
 #else
     
@@ -193,7 +193,7 @@ char           *name;		/* pointer to name */
 
 #ifdef __STDC__
 
-int name_match(char *p)
+int name_match(int8_t *p)
 
 #else
     
@@ -286,7 +286,7 @@ void names_notfound()
 
 #ifdef __STDC__
 
-void name_init(int argc, char **argv)
+void name_init(int argc, int8_t **argv)
 
 #else
     
@@ -328,7 +328,7 @@ char          **argv;
 
 #ifdef __STDC__
 
-int name_next(char *name, Stat *statbuf)
+int name_next(int8_t *name, Stat *statbuf)
 
 #else
     

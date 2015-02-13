@@ -17,9 +17,9 @@
 int vflag, Vflag;
 
 void
-error(char* format, ...)
+error(int8_t* format, ...)
 {
-	char buf[512], *out;
+	int8_t buf[512], *out;
 	va_list arg;
 	int n;
 
@@ -36,9 +36,9 @@ error(char* format, ...)
 }
 
 void
-trace(char* format, ...)
+trace(int8_t* format, ...)
 {
-	char buf[512];
+	int8_t buf[512];
 	va_list arg;
 
 	if(vflag || Vflag){

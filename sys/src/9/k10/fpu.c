@@ -86,9 +86,9 @@ extern void _ldmxcsr(u32int);
 extern void _stts(void);
 
 int
-fpudevprocio(Proc* proc, void* a, long n, uintptr offset, int write)
+fpudevprocio(Proc* proc, void* a, int32_t n, uintptr offset, int write)
 {
-	uchar *p;
+	uint8_t *p;
 
 	/*
 	 * Called from procdevtab.read and procdevtab.write
@@ -259,12 +259,12 @@ acfpusysprocsetup(Proc *p)
 	}
 }
 
-static char*
+static int8_t*
 fpunote(void)
 {
-	ushort fsw;
+	uint16_t fsw;
 	Fxsave *fpusave;
-	char *m;
+	int8_t *m;
 
 	/*
 	 * The Sff bit is sticky, meaning it should be explicitly
@@ -302,12 +302,12 @@ fpunote(void)
 	return up->genbuf;
 }
 
-char*
+int8_t*
 xfpuxf(Ureg* ureg, void*)
 {
 	u32int mxcsr;
 	Fxsave *fpusave;
-	char *m;
+	int8_t *m;
 
 	/*
 	 * #XF - SIMD Floating Point Exception (Vector 18).
@@ -354,20 +354,20 @@ xfpuxf(Ureg* ureg, void*)
 void
 fpuxf(Ureg *ureg, void *p)
 {
-	char *n;
+	int8_t *n;
 
 	n = xfpuxf(ureg, p);
 	if(n != nil)
 		postnote(up, 1, n, NDebug);
 }
 
-char*
+int8_t*
 acfpuxf(Ureg *ureg, void *p)
 {
 	return xfpuxf(ureg, p);
 }
 
-static char*
+static int8_t*
 xfpumf(Ureg* ureg, void*)
 {
 	Fxsave *fpusave;
@@ -406,20 +406,20 @@ xfpumf(Ureg* ureg, void*)
 void
 fpumf(Ureg *ureg, void *p)
 {
-	char *n;
+	int8_t *n;
 
 	n = xfpumf(ureg, p);
 	if(n != nil)
 		postnote(up, 1, n, NDebug);
 }
 
-char*
+int8_t*
 acfpumf(Ureg *ureg, void *p)
 {
 	return xfpumf(ureg, p);
 }
 
-static char*
+static int8_t*
 xfpunm(Ureg* ureg, void*)
 {
 	Fxsave *fpusave;
@@ -488,14 +488,14 @@ xfpunm(Ureg* ureg, void*)
 void
 fpunm(Ureg *ureg, void *p)
 {
-	char *n;
+	int8_t *n;
 
 	n = xfpunm(ureg, p);
 	if(n != nil)
 		postnote(up, 1, n, NDebug);
 }
 
-char*
+int8_t*
 acfpunm(Ureg *ureg, void *p)
 {
 	return xfpunm(ureg, p);
@@ -506,7 +506,7 @@ fpuinit(void)
 {
 	u64int r;
 	Fxsave *fxsave;
-	uchar buf[sizeof(Fxsave)+15];
+	uint8_t buf[sizeof(Fxsave)+15];
 
 	/*
 	 * It's assumed there is an integrated FPU, so Em is cleared;

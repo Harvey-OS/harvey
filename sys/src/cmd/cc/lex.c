@@ -168,10 +168,10 @@ main(int argc, char *argv[])
 }
 
 int
-compile(char *file, char **defs, int ndef)
+compile(int8_t *file, int8_t **defs, int ndef)
 {
-	char ofile[400], incfile[20];
-	char *p, **av, opt[256];
+	int8_t ofile[400], incfile[20];
+	int8_t *p, **av, opt[256];
 	int i, c, fd[2];
 	static int first = 1;
 
@@ -346,7 +346,7 @@ newio(void)
 }
 
 void
-newfile(char *s, int f)
+newfile(int8_t *s, int f)
 {
 	Io *i;
 
@@ -368,7 +368,7 @@ newfile(char *s, int f)
 }
 
 Sym*
-slookup(char *s)
+slookup(int8_t *s)
 {
 
 	strcpy(symb, s);
@@ -379,8 +379,8 @@ Sym*
 lookup(void)
 {
 	Sym *s;
-	ulong h;
-	char *p;
+	uint32_t h;
+	int8_t *p;
 	int c, n;
 
 	h = 0;
@@ -389,7 +389,7 @@ lookup(void)
 		h += *p++;
 	}
 	n = (p - symb) + 1;
-	if((long)h < 0)
+	if((int32_t)h < 0)
 		h = ~h;
 	h %= NHASH;
 	c = symb[0];
@@ -438,12 +438,12 @@ enum
 	Numflt		= 1<<4,
 };
 
-long
+int32_t
 yylex(void)
 {
-	vlong vv;
-	long c, c1, t;
-	char *cp;
+	int64_t vv;
+	int32_t c, c1, t;
+	int8_t *cp;
 	Rune rune;
 	Sym *s;
 
@@ -922,9 +922,9 @@ caseout:
  * required syntax is [0[x]]d*
  */
 int
-mpatov(char *s, vlong *v)
+mpatov(int8_t *s, int64_t *v)
 {
-	vlong n, nn;
+	int64_t n, nn;
 	int c;
 
 	n = 0;
@@ -1004,11 +1004,11 @@ getc(void)
 	return c;
 }
 
-long
+int32_t
 getr(void)
 {
 	int c, i;
-	char str[UTFmax+1];
+	int8_t str[UTFmax+1];
 	Rune rune;
 
 
@@ -1028,7 +1028,7 @@ loop:
 		nearln = lineno;
 		diag(Z, "illegal rune in string");
 		for(c=0; c<i; c++)
-			print(" %.2x", *(uchar*)(str+c));
+			print(" %.2x", *(uint8_t*)(str+c));
 		print("\n");
 	}
 	return rune;
@@ -1064,10 +1064,10 @@ unget(int c)
 		lineno--;
 }
 
-long
-escchar(long e, int longflg, int escflg)
+int32_t
+escchar(int32_t e, int longflg, int escflg)
 {
-	long c, l;
+	int32_t c, l;
 	int i;
 
 loop:
@@ -1149,9 +1149,9 @@ loop:
 
 struct
 {
-	char	*name;
-	ushort	lexical;
-	ushort	type;
+	int8_t	*name;
+	uint16_t	lexical;
+	uint16_t	type;
 } itab[] =
 {
 	"auto",		LAUTO,		0,
@@ -1315,19 +1315,19 @@ Oconv(Fmt *fp)
 int
 Lconv(Fmt *fp)
 {
-	char str[STRINGSZ], s[STRINGSZ];
+	int8_t str[STRINGSZ], s[STRINGSZ];
 	Hist *h;
 	struct
 	{
 		Hist*	incl;	/* start of this include file */
-		long	idel;	/* delta line number to apply to include */
+		int32_t	idel;	/* delta line number to apply to include */
 		Hist*	line;	/* start of this #line directive */
-		long	ldel;	/* delta line number to apply to #line */
+		int32_t	ldel;	/* delta line number to apply to #line */
 	} a[HISTSZ];
-	long l, d;
+	int32_t l, d;
 	int i, n;
 
-	l = va_arg(fp->args, long);
+	l = va_arg(fp->args, int32_t);
 	n = 0;
 	for(h = hist; h != H; h = h->link) {
 		if(l < h->line)
@@ -1384,10 +1384,10 @@ Lconv(Fmt *fp)
 int
 Tconv(Fmt *fp)
 {
-	char str[STRINGSZ+20], s[STRINGSZ+20];
+	int8_t str[STRINGSZ+20], s[STRINGSZ+20];
 	Type *t, *t1;
 	int et;
-	long n;
+	int32_t n;
 
 	str[0] = 0;
 	for(t = va_arg(fp->args, Type*); t != T; t = t->link) {
@@ -1443,7 +1443,7 @@ Tconv(Fmt *fp)
 int
 FNconv(Fmt *fp)
 {
-	char *str;
+	int8_t *str;
 	Node *n;
 
 	n = va_arg(fp->args, Node*);
@@ -1456,12 +1456,12 @@ FNconv(Fmt *fp)
 int
 Qconv(Fmt *fp)
 {
-	char str[STRINGSZ+20], *s;
-	long b;
+	int8_t str[STRINGSZ+20], *s;
+	int32_t b;
 	int i;
 
 	str[0] = 0;
-	for(b = va_arg(fp->args, long); b;) {
+	for(b = va_arg(fp->args, int32_t); b;) {
 		i = bitno(b);
 		if(str[0])
 			strcat(str, " ");
@@ -1477,7 +1477,7 @@ Qconv(Fmt *fp)
 int
 VBconv(Fmt *fp)
 {
-	char str[STRINGSZ];
+	int8_t str[STRINGSZ];
 	int i, n, t, pc;
 
 	n = va_arg(fp->args, int);
@@ -1502,7 +1502,7 @@ VBconv(Fmt *fp)
  * real allocs
  */
 void*
-alloc(long n)
+alloc(int32_t n)
 {
 	void *p;
 
@@ -1519,11 +1519,11 @@ alloc(long n)
 }
 
 void*
-allocn(void *p, long on, long n)
+allocn(void *p, int32_t on, int32_t n)
 {
 	void *q;
 
-	q = (uchar*)p + on;
+	q = (uint8_t*)p + on;
 	if(q != hunk || nhunk < n) {
 		while(nhunk < on+n)
 			gethunk();
@@ -1538,10 +1538,10 @@ allocn(void *p, long on, long n)
 }
 
 void
-setinclude(char *p)
+setinclude(int8_t *p)
 {
 	int i;
-	char *e, **np;
+	int8_t *e, **np;
 
 	while(*p != 0) {
 		e = strchr(p, ' ');

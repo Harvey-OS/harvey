@@ -41,7 +41,7 @@ recognizer __recognizer_internal_initialize(rec_info* ri);
 
 /*Version number of API.*/
 
-char* REC_VERSION = "2.0";
+int8_t* REC_VERSION = "2.0";
 
 /*Domain name for internationalized text.*/
 
@@ -80,8 +80,8 @@ static char rif_name[] = "__recognizer_internal_finalize";  */
 
 /*Local functions*/
 
-static char* shared_library_name(char* directory,char* locale,char* name);
-static rec_info* make_rec_info(char* directory,char* name,char** subset);
+static int8_t* shared_library_name(int8_t* directory,int8_t* locale,int8_t* name);
+static rec_info* make_rec_info(int8_t* directory,int8_t* name,int8_t** subset);
 static void delete_rec_info(rec_info* ri);
 static int check_for_user_home(void);
 static void intl_initialize(void);
@@ -90,11 +90,11 @@ static void cleanup_rec_element(rec_element* re,bool delete_points_p);
 
 /*The last error.*/
 
-static char* the_last_error = nil;
+static int8_t* the_last_error = nil;
 
-static char *safe_malloc (int nbytes)
+static int8_t *safe_malloc (int nbytes)
 {
-  char *res = malloc(nbytes);
+  int8_t *res = malloc(nbytes);
   if (res == nil) {
     sysfatal("malloc failure");
   }
@@ -114,7 +114,7 @@ static char *safe_malloc (int nbytes)
 */
 
 recognizer 
-recognizer_load(char* directory, char* name, char** subset)
+recognizer_load(int8_t* directory, int8_t* name, int8_t** subset)
 {
     recognizer	rec;				/*the recognizer*/
     rec_info*	rinf;				/*rec_info for recognizer information*/
@@ -217,7 +217,7 @@ recognizer_unload(recognizer rec)
  * -1 if not.
 */
 
-int recognizer_load_state(recognizer rec, char* dir, char* name)
+int recognizer_load_state(recognizer rec, int8_t* dir, int8_t* name)
 {
     /*Make sure magic numbers right.*/
 
@@ -238,7 +238,7 @@ int recognizer_load_state(recognizer rec, char* dir, char* name)
  * -1 if not.
 */
 
-int recognizer_save_state(recognizer rec,char* dir,char* name)
+int recognizer_save_state(recognizer rec,int8_t* dir,int8_t* name)
 {
     /*Make sure magic numbers right.*/
 
@@ -257,7 +257,7 @@ int recognizer_save_state(recognizer rec,char* dir,char* name)
  * to it, or nil if error.
 */
 
-wordset recognizer_load_dictionary(recognizer rec,char* dir,char* name)
+wordset recognizer_load_dictionary(recognizer rec,int8_t* dir,int8_t* name)
 {
     /*Make sure magic numbers right.*/
 
@@ -276,7 +276,7 @@ wordset recognizer_load_dictionary(recognizer rec,char* dir,char* name)
  * OK, -1 if error.
 */
 
-int recognizer_save_dictionary(recognizer rec,char* dir,char* name,wordset dict)
+int recognizer_save_dictionary(recognizer rec,int8_t* dir,int8_t* name,wordset dict)
 {
     /*Make sure magic numbers right.*/
 
@@ -375,7 +375,7 @@ recognizer_get_info(recognizer rec)
  * recognition manager.
 */
 
-const char* recognizer_manager_version(recognizer rec)
+const int8_t* recognizer_manager_version(recognizer rec)
 {
     /*Make sure magic numbers right.*/
 
@@ -391,7 +391,7 @@ const char* recognizer_manager_version(recognizer rec)
  * recognizer_error-Return the last error message, or nil if none.
 */
 
-char* recognizer_error(recognizer rec)
+int8_t* recognizer_error(recognizer rec)
 {
     
     /*Make sure magic numbers right and function there.*/
@@ -400,7 +400,7 @@ char* recognizer_error(recognizer rec)
       return(dgettext(INTL_DOMAIN,"Bad recognizer object."));
 
     } else if( the_last_error != nil ) {
-      char* error = the_last_error;
+      int8_t* error = the_last_error;
 
       the_last_error = nil;
       return(error);
@@ -525,7 +525,7 @@ int recognizer_translate(recognizer rec,
 			 rec_alternative** ret)
 {
     int retval;
-    char msg[80];
+    int8_t msg[80];
     /*Make sure magic numbers right.*/
 
     if( !RI_CHECK_MAGIC(rec) ) {
@@ -586,7 +586,7 @@ rec_fn* recognizer_get_extension_functions(recognizer rec)
  * gesture name strings.
 */
 
-char**
+int8_t**
 recognizer_get_gesture_names(recognizer rec)
 {
     /*Make sure magic numbers right.*/
@@ -606,7 +606,7 @@ recognizer_get_gesture_names(recognizer rec)
 */
 
 xgesture 
-recognizer_train_gestures(recognizer rec,char* name,xgesture fn,void* wsinfo)
+recognizer_train_gestures(recognizer rec,int8_t* name,xgesture fn,void* wsinfo)
 {
     /*Make sure magic numbers right.*/
 
@@ -630,20 +630,20 @@ recognizer_train_gestures(recognizer rec,char* name,xgesture fn,void* wsinfo)
 */
 
 
-static char* shared_library_name(char* directory,char* locale,char* name)
+static int8_t* shared_library_name(int8_t* directory,int8_t* locale,int8_t* name)
 {
-    char* ret;
+    int8_t* ret;
     int len = strlen(name);
 
     /*If directory is there, it takes precedence.*/
 
     if( directory != nil ) {
-		ret = (char*)safe_malloc(strlen(directory) + len + 2);
+		ret = (int8_t*)safe_malloc(strlen(directory) + len + 2);
 		strcpy(ret,directory);
 		strcat(ret,"/");
 		strcat(ret,name);
     } else {
-		char* dir;
+		int8_t* dir;
 	
 		/*First try the environment variable.*/
 	
@@ -652,7 +652,7 @@ static char* shared_library_name(char* directory,char* locale,char* name)
 	
 		  }
 	
-		ret = (char*)safe_malloc(strlen(dir) + strlen(locale) + len + 3);
+		ret = (int8_t*)safe_malloc(strlen(dir) + strlen(locale) + len + 3);
 		/*Form the pathname.*/
 		strcpy(ret,dir);
 		strcat(ret,"/");
@@ -671,7 +671,7 @@ static char* shared_library_name(char* directory,char* locale,char* name)
 
 static void intl_initialize(void)
 {
-	char* dirname;
+	int8_t* dirname;
 
 	/*Get recognizer home directory name from environment.*/
 
@@ -687,11 +687,11 @@ static void intl_initialize(void)
 
 /*make_rec_info-Create a rec_info structure*/
 
-static rec_info* make_rec_info(char*, char*, char** subset)
+static rec_info* make_rec_info(int8_t*, int8_t*, int8_t** subset)
 {
     int i,len;
     rec_info* ri;
-    char* locale;
+    int8_t* locale;
 
     ri = (rec_info*)safe_malloc(sizeof(rec_info));
     ri->ri_locale = nil;
@@ -721,7 +721,7 @@ static rec_info* make_rec_info(char*, char*, char** subset)
 	
 	/*Copy the subset strings.*/
 	
-	ri->ri_subset = (char**)safe_malloc((len +1)*sizeof(char*));
+	ri->ri_subset = (int8_t**)safe_malloc((len +1)*sizeof(int8_t*));
 	
 	for( i = 0; i < len; i++ ) {
 	    if( subset[i] != nil ) {
@@ -770,8 +770,8 @@ static void delete_rec_info(rec_info* ri)
 
 static int check_for_user_home()
 {
-	char* homedir = getenv(HOME);
-	char* rechome;
+	int8_t* homedir = getenv(HOME);
+	int8_t* rechome;
 	Dir *dir;
 
 	if( homedir == nil ) {
@@ -779,7 +779,7 @@ static int check_for_user_home()
 		return(-1);
 	}
 
-    rechome = (char*)safe_malloc(strlen(homedir) + strlen(USERRECHOME) + 2);
+    rechome = (int8_t*)safe_malloc(strlen(homedir) + strlen(USERRECHOME) + 2);
 
     /*Form name.*/
 
@@ -934,7 +934,7 @@ void delete_rec_alternative_array(uint nalter,
 
 rec_element*
 initialize_rec_element(rec_element* re,
-		       char type,
+		       int8_t type,
 		       uint size,
 		       void* trans,
 		       rec_confidence conf)
@@ -960,8 +960,8 @@ initialize_rec_element(rec_element* re,
 	  case REC_OTHER:
 	    if( size > 0 && trans != nil ) {
 		re->re_result.aval = 
-		     (char*)safe_malloc((size+1)*sizeof(char));
-		memcpy((void*)re->re_result.aval,trans,size*sizeof(char));
+		     (int8_t*)safe_malloc((size+1)*sizeof(int8_t));
+		memcpy((void*)re->re_result.aval,trans,size*sizeof(int8_t));
 		re->re_result.aval[size] = '\000';
 	    }
 	    break;
@@ -1027,7 +1027,7 @@ static void cleanup_rec_element(rec_element* re,bool delete_points_p)
 
 
 rec_correlation* 
-make_rec_correlation(char type,
+make_rec_correlation(int8_t type,
 		     uint size,
 		     void* trans,
 		     rec_confidence conf,
@@ -1174,7 +1174,7 @@ make_gesture_array(uint size)
 }
 
 gesture* initialize_gesture(gesture* g,
-			    char* name,
+			    int8_t* name,
 			    uint nhs,
 			    pen_point* hspots,
 			    pen_rect bbox,

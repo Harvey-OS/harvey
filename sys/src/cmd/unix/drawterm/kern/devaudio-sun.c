@@ -26,8 +26,8 @@ enum
 	Bits = 16,
 };
 
-static char* afn = 0;
-static char* cfn = 0;
+static int8_t* afn = 0;
+static int8_t* cfn = 0;
 static int afd = -1;
 static int cfd = -1;
 static int speed = Rate;
@@ -36,12 +36,12 @@ static int needswap = -1;
 static void
 audiodevinit(void)
 {
-	uchar *p;
-	ushort leorder;
+	uint8_t *p;
+	uint16_t leorder;
 
 	if ((afn = getenv("AUDIODEV")) == nil)
 		afn = "/dev/audio";
-	cfn = (char*)malloc(strlen(afn) + 3 + 1);
+	cfn = (int8_t*)malloc(strlen(afn) + 3 + 1);
 	if(cfn == nil)
 		panic("out of memory");
 	strcpy(cfn, afn);
@@ -52,8 +52,8 @@ audiodevinit(void)
 	 * solaris /dev/audio seems to expect native byte order,
 	 * so on big endian machine (like sparc) we have to swap.
 	 */
-	leorder = (ushort) 0x0100;
-	p = (uchar*)&leorder;
+	leorder = (uint16_t) 0x0100;
+	p = (uint8_t*)&leorder;
 	if (p[0] == 0 && p[1] == 1) {
 		/* little-endian: nothing to do */
 		needswap = 0;
@@ -140,8 +140,8 @@ setvolbal(double left, double right)
 		bal = tosun(1.0 - right/left, AUDIO_MID_BALANCE, AUDIO_LEFT_BALANCE);
 	}
 	AUDIO_INITINFO(&info);
-	info.play.gain = (long)(vol+0.5);
-	info.play.balance = (long)(bal+0.5);
+	info.play.gain = (int32_t)(vol+0.5);
+	info.play.balance = (int32_t)(bal+0.5);
 	if(ioctl(cfd, AUDIO_SETINFO, &info) < 0)
 		oserror();
 }
@@ -169,8 +169,8 @@ getvolbal(int *left, int *right)
 		r = vol;
 		l = vol * (1.0 - fromsun(bal, AUDIO_MID_BALANCE, AUDIO_RIGHT_BALANCE));
 	}
-	*left = (long)(l+0.5);
-	*right = (long)(r+0.5);
+	*left = (int32_t)(l+0.5);
+	*right = (int32_t)(r+0.5);
 	return;
 }
 
@@ -178,7 +178,7 @@ void
 audiodevsetvol(int what, int left, int right)
 {
 	audio_info_t info;
-	ulong x;
+	uint32_t x;
 	int l, r;
 	
 	if (afn == nil || cfn == nil)
@@ -237,31 +237,31 @@ audiodevgetvol(int what, int *left, int *right)
 }
 
 
-static uchar *buf = 0;
+static uint8_t *buf = 0;
 static int nbuf = 0;
 
 int
 audiodevwrite(void *v, int n)
 {
 	int i, m, tot;
-	uchar *p;
+	uint8_t *p;
 
 	if (needswap) {
 		if (nbuf < n) {
-			buf = (uchar*)erealloc(buf, n);
+			buf = (uint8_t*)erealloc(buf, n);
 			if(buf == nil)
 				panic("out of memory");
 			nbuf = n;
 		}
 
-		p = (uchar*)v;
+		p = (uint8_t*)v;
 		for(i=0; i+1<n; i+=2) {
 			buf[i] = p[i+1];
 			buf[i+1] = p[i];
 		}
 		p = buf;
 	} else
-		p = (uchar*)v;
+		p = (uint8_t*)v;
 	
 	for(tot=0; tot<n; tot+=m)
 		if((m = write(afd, p+tot, n-tot)) <= 0)

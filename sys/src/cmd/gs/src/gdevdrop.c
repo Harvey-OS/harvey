@@ -51,7 +51,7 @@ private const uint max_rop_bitmap = 1000;
 #ifdef DEBUG
 
 void
-trace_copy_rop(const char *cname, gx_device * dev,
+trace_copy_rop(const int8_t *cname, gx_device * dev,
 	       const byte * sdata, int sourcex, uint sraster, gx_bitmap_id id,
 	       const gx_color_index * scolors,
 	       const gx_strip_bitmap * textures,
@@ -60,16 +60,16 @@ trace_copy_rop(const char *cname, gx_device * dev,
 	       int phase_x, int phase_y, gs_logical_operation_t lop)
 {
     dlprintf4("%s: dev=0x%lx(%s) depth=%d\n",
-	      cname, (ulong) dev, dev->dname, dev->color_info.depth);
+	      cname, (uint32_t) dev, dev->dname, dev->color_info.depth);
     dlprintf4("  source data=0x%lx x=%d raster=%u id=%lu colors=",
-	      (ulong) sdata, sourcex, sraster, (ulong) id);
+	      (uint32_t) sdata, sourcex, sraster, (uint32_t) id);
     if (scolors)
 	dprintf2("(%lu,%lu);\n", scolors[0], scolors[1]);
     else
 	dputs("none;\n");
     if (textures)
 	dlprintf8("  textures=0x%lx size=%dx%d(%dx%d) raster=%u shift=%d(%d)",
-		  (ulong) textures, textures->size.x, textures->size.y,
+		  (uint32_t) textures, textures->size.x, textures->size.y,
 		  textures->rep_width, textures->rep_height,
 		  textures->raster, textures->shift, textures->rep_shift);
     else
@@ -380,7 +380,7 @@ mem_default_strip_copy_rop(gx_device * dev,
     gs_memory_t *mem = dev->memory;
     const gx_device_memory *mdproto = gdev_mem_device_for_bits(rop_depth);
     gx_device_memory mdev;
-    union { long l; void *p; } mdev_storage[20];
+    union { int32_t l; void *p; } mdev_storage[20];
     uint row_raster = bitmap_raster(width * depth);
     gs_rop3_t trans_rop = gs_transparent_rop(lop);
     bool uses_d = rop3_uses_D(trans_rop);
@@ -388,13 +388,13 @@ mem_default_strip_copy_rop(gx_device * dev,
     bool uses_t = rop3_uses_T(trans_rop);
     bool expand_s, expand_t;
     byte *row = 0;
-    union { long l; void *p; } dest_buffer[16];
+    union { int32_t l; void *p; } dest_buffer[16];
     byte *source_row = 0;
     uint source_row_raster;
-    union { long l; void *p; } source_buffer[16];
+    union { int32_t l; void *p; } source_buffer[16];
     byte *texture_row = 0;
     uint texture_row_raster;
-    union { long l; void *p; } texture_buffer[16];
+    union { int32_t l; void *p; } texture_buffer[16];
     gx_color_index source_colors[2];
     const gx_color_index *real_scolors = scolors;
     gx_color_index texture_colors[2];

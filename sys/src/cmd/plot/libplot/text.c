@@ -16,10 +16,10 @@
                     escaped with another backslash.
  */
 #include "mplot.h"
-void text(char *s){
+void text(int8_t *s){
 	register int	kx, ky;
 	int centered, right, more;
-	char *ss;
+	int8_t *ss;
 	ss=s;
 	for(;;){
 		centered=right=more=0;

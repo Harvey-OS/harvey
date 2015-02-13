@@ -74,14 +74,14 @@ static char *tagtab[] = {
 [VD]	"VD",
 };
 
-static char	*mget(int, char *, char *, char **);
-static void	moutall(int, char *, char *);
-static void	moutall2(int, char *, char *);
+static int8_t	*mget(int, int8_t *, int8_t *, int8_t **);
+static void	moutall(int, int8_t *, int8_t *);
+static void	moutall2(int, int8_t *, int8_t *);
 
 void
 movieprintentry(Entry ent, int cmd)
 {
-	char *p, *e, *ps, *pe, *pn;
+	int8_t *p, *e, *ps, *pe, *pn;
 	int n;
 
 	ps = ent.start;
@@ -209,11 +209,11 @@ movieprintentry(Entry ent, int cmd)
 	outnl(0);
 }
 
-long
-movienextoff(long fromoff)
+int32_t
+movienextoff(int32_t fromoff)
 {
-	long a;
-	char *p;
+	int32_t a;
+	int8_t *p;
 
 	a = Bseek(bdict, fromoff, 0);
 	if(a < 0)
@@ -238,9 +238,9 @@ movieprintkey(void)
  * write a comma-separated list of all tag values between b and e
  */
 static void
-moutall(int tag, char *b, char *e)
+moutall(int tag, int8_t *b, int8_t *e)
 {
-	char *p, *pn;
+	int8_t *p, *pn;
 	int n;
 
 	n = 0;
@@ -259,9 +259,9 @@ moutall(int tag, char *b, char *e)
  * (sometimes field1 has underscores, so search from end)
  */
 static void
-moutall2(int tag, char *b, char *e)
+moutall2(int tag, int8_t *b, int8_t *e)
 {
-	char *p, *pn, *us, *q;
+	int8_t *p, *pn, *us, *q;
 	int n;
 
 	n = 0;
@@ -303,10 +303,10 @@ moutall2(int tag, char *b, char *e)
  * Return pointer to beginning of value (after tag), and set
  * eptr to point at newline that ends the value
  */
-static char *
-mget(int tag, char *b, char *e, char **eptr)
+static int8_t *
+mget(int tag, int8_t *b, int8_t *e, int8_t **eptr)
 {
-	char *p, *t, *ans;
+	int8_t *p, *t, *ans;
 
 	if(tag < 0 || tag >= NTAG)
 		return 0;

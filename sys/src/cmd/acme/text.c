@@ -187,14 +187,14 @@ textcolumnate(Text *t, Dirlist **dlp, int ndl)
 }
 
 uint
-textload(Text *t, uint q0, char *file, int setqid)
+textload(Text *t, uint q0, int8_t *file, int setqid)
 {
 	Rune *rp;
 	Dirlist *dl, **dlp;
 	int fd, i, j, n, ndl, nulls;
 	uint q, q1;
 	Dir *d, *dbuf;
-	char *tmp;
+	int8_t *tmp;
 	Text *u;
 
 	if(t->ncache!=0 || t->file->nc || t->w==nil || t!=&t->w->body)
@@ -569,7 +569,7 @@ textcomplete(Text *t)
 	Rune *str, *path;
 	Rune *rp;
 	Completion *c;
-	char *s, *dirs;
+	int8_t *s, *dirs;
 	Runestr dir;
 
 	/* control-f: filename completion; works back to white space or / */
@@ -1122,7 +1122,7 @@ uint
 xselect(Frame *f, Mousectl *mc, Image *col, uint *p1p)	/* when called, button is down */
 {
 	uint p0, p1, q, tmp;
-	ulong msec;
+	uint32_t msec;
 	Point mp, pt0, pt1, qt;
 	int reg, b;
 

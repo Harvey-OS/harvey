@@ -16,7 +16,7 @@ typedef struct ZWrite	ZWrite;
 
 struct ZWrite
 {
-	ulong	adler;
+	uint32_t	adler;
 	void	*wr;
 	int	(*w)(void*, void*, int);
 };
@@ -38,7 +38,7 @@ int
 inflatezlib(void *wr, int (*w)(void*, void*, int), void *getr, int (*get)(void*))
 {
 	ZWrite zw;
-	ulong v;
+	uint32_t v;
 	int c, i;
 
 	c = (*get)(getr);

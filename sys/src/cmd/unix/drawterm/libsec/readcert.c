@@ -12,11 +12,11 @@
 #include <mp.h>
 #include <libsec.h>
 
-static char*
-readfile(char *name)
+static int8_t*
+readfile(int8_t *name)
 {
 	int fd;
-	char *s;
+	int8_t *s;
 	Dir *d;
 
 	fd = open(name, OREAD);
@@ -37,11 +37,11 @@ readfile(char *name)
 	return s;
 }
 
-uchar*
-readcert(char *filename, int *pcertlen)
+uint8_t*
+readcert(int8_t *filename, int *pcertlen)
 {
-	char *pem;
-	uchar *binary;
+	int8_t *pem;
+	uint8_t *binary;
 
 	pem = readfile(filename);
 	if(pem == nil){

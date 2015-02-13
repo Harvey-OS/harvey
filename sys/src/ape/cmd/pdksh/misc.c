@@ -21,7 +21,7 @@
 # define UCHAR_MAX	0xFF
 #endif
 
-short ctypes [UCHAR_MAX+1];	/* type bits for unsigned char */
+int16_t ctypes [UCHAR_MAX+1];	/* type bits for unsigned char */
 
 static int	do_gmatch ARGS((const unsigned char *s, const unsigned char *p,
 			const unsigned char *se, const unsigned char *pe,
@@ -33,7 +33,7 @@ static const unsigned char *cclass ARGS((const unsigned char *p, int sub));
  */
 void
 setctypes(s, t)
-	register const char *s;
+	register const int8_t *s;
 	register int t;
 {
 	register int i;
@@ -68,13 +68,13 @@ initctypes()
 
 /* convert unsigned long to base N string */
 
-char *
+int8_t *
 ulton(n, base)
 	register unsigned long n;
 	int base;
 {
-	register char *p;
-	static char buf [20];
+	register int8_t *p;
+	static int8_t buf [20];
 
 	p = &buf[sizeof(buf)];
 	*--p = '\0';
@@ -85,25 +85,25 @@ ulton(n, base)
 	return p;
 }
 
-char *
+int8_t *
 str_save(s, ap)
-	register const char *s;
+	register const int8_t *s;
 	Area *ap;
 {
-	return s ? strcpy((char*) alloc((size_t)strlen(s)+1, ap), s) : NULL;
+	return s ? strcpy((int8_t*) alloc((size_t)strlen(s)+1, ap), s) : NULL;
 }
 
 /* Allocate a string of size n+1 and copy upto n characters from the possibly
  * null terminated string s into it.  Always returns a null terminated string
  * (unless n < 0).
  */
-char *
+int8_t *
 str_nsave(s, n, ap)
-	register const char *s;
+	register const int8_t *s;
 	int n;
 	Area *ap;
 {
-	char *ns;
+	int8_t *ns;
 
 	if (n < 0)
 		return 0;
@@ -113,13 +113,13 @@ str_nsave(s, n, ap)
 }
 
 /* called from expand.h:XcheckN() to grow buffer */
-char *
+int8_t *
 Xcheck_grow_(xsp, xp, more)
 	XString *xsp;
-	char *xp;
+	int8_t *xp;
 	int more;
 {
-	char *old_beg = xsp->beg;
+	int8_t *old_beg = xsp->beg;
 
 	xsp->len += more > xsp->len ? more : xsp->len;
 	xsp->beg = aresize(xsp->beg, xsp->len + 8, xsp->areap);
@@ -137,7 +137,7 @@ const struct option options[] = {
 	{ "braceexpand",  0,		OF_ANY }, /* non-standard */
 #endif
 	{ "bgnice",	  0,		OF_ANY },
-	{ (char *) 0, 	'c',	    OF_CMDLINE },
+	{ (int8_t *) 0, 	'c',	    OF_CMDLINE },
 	{ "errexit",	'e',		OF_ANY },
 	{ "ignoreeof",	  0,		OF_ANY },
 	{ "interactive",'i',	    OF_CMDLINE },
@@ -147,7 +147,7 @@ const struct option options[] = {
 #ifdef JOBS
 	{ "monitor",	'm',		OF_ANY },
 #else /* JOBS */
-	{ (char *) 0,	'm',		     0 }, /* so FMONITOR not ifdef'd */
+	{ (int8_t *) 0,	'm',		     0 }, /* so FMONITOR not ifdef'd */
 #endif /* JOBS */
 	{ "noclobber",	'C',		OF_ANY },
 	{ "noexec",	'n',		OF_ANY },
@@ -170,7 +170,7 @@ const struct option options[] = {
 	/* Anonymous flags: used internally by shell only
 	 * (not visable to user)
 	 */
-	{ (char *) 0,	0,		OF_INTERNAL }, /* FTALKING_I */
+	{ (int8_t *) 0,	0,		OF_INTERNAL }, /* FTALKING_I */
 };
 
 /*
@@ -178,7 +178,7 @@ const struct option options[] = {
  */
 int
 option(n)
-	const char *n;
+	const int8_t *n;
 {
 	int i;
 
@@ -192,7 +192,7 @@ option(n)
 struct options_info {
 	int opt_width;
 	struct {
-		const char *name;
+		const int8_t *name;
 		int	flag;
 	} opts[NELEM(options)];
 };
@@ -201,11 +201,11 @@ static char *options_fmt_entry ARGS((void *arg, int i, char *buf, int buflen));
 static void printoptions ARGS((int verbose));
 
 /* format a single select menu item */
-static char *
+static int8_t *
 options_fmt_entry(arg, i, buf, buflen)
 	void *arg;
 	int i;
-	char *buf;
+	int8_t *buf;
 	int buflen;
 {
 	struct options_info *oi = (struct options_info *) arg;
@@ -249,12 +249,12 @@ printoptions(verbose)
 	}
 }
 
-char *
+int8_t *
 getoptions()
 {
 	int i;
-	char m[(int) FNFLAGS + 1];
-	register char *cp = m;
+	int8_t m[(int) FNFLAGS + 1];
+	register int8_t *cp = m;
 
 	for (i = 0; i < NELEM(options); i++)
 		if (options[i].c && Flag(i))
@@ -299,20 +299,20 @@ change_flag(f, what, newval)
  */
 int
 parse_args(argv, what, setargsp)
-	char **argv;
+	int8_t **argv;
 	int	what;		/* OF_CMDLINE or OF_SET */
 	int	*setargsp;
 {
-	static char cmd_opts[NELEM(options) + 3]; /* o:\0 */
-	static char set_opts[NELEM(options) + 5]; /* Ao;s\0 */
-	char *opts;
-	char *array = (char *) 0;
+	static int8_t cmd_opts[NELEM(options) + 3]; /* o:\0 */
+	static int8_t set_opts[NELEM(options) + 5]; /* Ao;s\0 */
+	int8_t *opts;
+	int8_t *array = (int8_t *) 0;
 	Getopt go;
 	int i, optc, set, sortargs = 0, arrayset = 0;
 
 	/* First call?  Build option strings... */
 	if (cmd_opts[0] == '\0') {
-		char *p, *q;
+		int8_t *p, *q;
 
 		strcpy(cmd_opts, "o:"); /* see cmd_opts[] declaration */
 		p = cmd_opts + strlen(cmd_opts);
@@ -331,7 +331,7 @@ parse_args(argv, what, setargsp)
 	}
 
 	if (what == OF_CMDLINE) {
-		char *p;
+		int8_t *p;
 		/* Set FLOGIN before parsing options so user can clear
 		 * flag using +l.
 		 */
@@ -351,7 +351,7 @@ parse_args(argv, what, setargsp)
 			break;
 
 		  case 'o':
-			if (go.optarg == (char *) 0) {
+			if (go.optarg == (int8_t *) 0) {
 				/* lone -o: print options
 				 *
 				 * Note that on the command line, -o requires
@@ -437,10 +437,10 @@ parse_args(argv, what, setargsp)
 /* parse a decimal number: returns 0 if string isn't a number, 1 otherwise */
 int
 getn(as, ai)
-	const char *as;
+	const int8_t *as;
 	int *ai;
 {
-	const char *s;
+	const int8_t *s;
 	register int n;
 	int sawdigit = 0;
 
@@ -458,7 +458,7 @@ getn(as, ai)
 /* getn() that prints error */
 int
 bi_getn(as, ai)
-	const char *as;
+	const int8_t *as;
 	int *ai;
 {
 	int rv = getn(as, ai);
@@ -480,10 +480,10 @@ bi_getn(as, ai)
 
 int
 gmatch(s, p, isfile)
-	const char *s, *p;
+	const int8_t *s, *p;
 	int isfile;
 {
-	const char *se, *pe;
+	const int8_t *se, *pe;
 
 	if (s == NULL || p == NULL)
 		return 0;
@@ -494,9 +494,9 @@ gmatch(s, p, isfile)
 	 */
 	if (!isfile && !has_globbing(p, pe)) {
 		int len = pe - p + 1;
-		char tbuf[64];
-		char *t = len <= sizeof(tbuf) ? tbuf
-				: (char *) alloc(len, ATEMP);
+		int8_t tbuf[64];
+		int8_t *t = len <= sizeof(tbuf) ? tbuf
+				: (int8_t *) alloc(len, ATEMP);
 		debunk(t, p);
 		return !strcmp(t, s);
 	}
@@ -523,7 +523,7 @@ gmatch(s, p, isfile)
 */
 int
 has_globbing(xp, xpe)
-	const char *xp, *xpe;
+	const int8_t *xp, *xpe;
 {
 	const unsigned char *p = (const unsigned char *) xp;
 	const unsigned char *pe = (const unsigned char *) xpe;
@@ -877,7 +877,7 @@ int
 xstrcmp(p1, p2)
 	void *p1, *p2;
 {
-	return (strcmp((char *)p1, (char *)p2));
+	return (strcmp((int8_t *)p1, (int8_t *)p2));
 }
 
 /* Initialize a Getopt structure */
@@ -887,7 +887,7 @@ ksh_getopt_reset(go, flags)
 	int flags;
 {
 	go->optind = 1;
-	go->optarg = (char *) 0;
+	go->optarg = (int8_t *) 0;
 	go->p = 0;
 	go->flags = flags;
 	go->info = 0;
@@ -921,15 +921,15 @@ ksh_getopt_reset(go, flags)
  */
 int
 ksh_getopt(argv, go, options)
-	char **argv;
+	int8_t **argv;
 	Getopt *go;
-	const char *options;
+	const int8_t *options;
 {
-	char c;
-	char *o;
+	int8_t c;
+	int8_t *o;
 
 	if (go->p == 0 || (c = argv[go->optind - 1][go->p]) == '\0') {
-		char *arg = argv[go->optind], flag = arg ? *arg : '\0';
+		int8_t *arg = argv[go->optind], flag = arg ? *arg : '\0';
 
 		go->p = 1;
 		if (flag == '-' && arg[1] == '-' && arg[2] == '\0') {
@@ -938,7 +938,7 @@ ksh_getopt(argv, go, options)
 			go->info |= GI_MINUSMINUS;
 			return EOF;
 		}
-		if (arg == (char *) 0
+		if (arg == (int8_t *) 0
 		    || ((flag != '-' ) /* neither a - nor a + (if + allowed) */
 			&& (!(go->flags & GF_PLUSOPT) || flag != '+'))
 		    || (c = arg[1]) == '\0')
@@ -977,7 +977,7 @@ ksh_getopt(argv, go, options)
 		else if (argv[go->optind])
 			go->optarg = argv[go->optind++];
 		else if (*o == ';')
-			go->optarg = (char *) 0;
+			go->optarg = (int8_t *) 0;
 		else {
 			if (options[0] == ':') {
 				go->buf[0] = c;
@@ -1006,13 +1006,13 @@ ksh_getopt(argv, go, options)
 				go->optarg = argv[go->optind - 1] + go->p;
 				go->p = 0;
 			} else
-				go->optarg = (char *) 0;;
+				go->optarg = (int8_t *) 0;;
 		} else {
 			if (argv[go->optind] && digit(argv[go->optind][0])) {
 				go->optarg = argv[go->optind++];
 				go->p = 0;
 			} else
-				go->optarg = (char *) 0;;
+				go->optarg = (int8_t *) 0;;
 		}
 	}
 	return c;
@@ -1024,9 +1024,9 @@ ksh_getopt(argv, go, options)
  */
 void
 print_value_quoted(s)
-	const char *s;
+	const int8_t *s;
 {
-	const char *p;
+	const int8_t *p;
 	int inquote = 0;
 
 	/* Test if any quotes are needed */
@@ -1109,17 +1109,17 @@ print_columns(shf, n, func, arg, max_width)
 /* Strip any nul bytes from buf - returns new length (nbytes - # of nuls) */
 int
 strip_nuls(buf, nbytes)
-	char *buf;
+	int8_t *buf;
 	int nbytes;
 {
-	char *dst;
+	int8_t *dst;
 
 	/* nbytes check because some systems (older freebsd's) have a buggy
 	 * memchr()
 	 */
 	if (nbytes && (dst = memchr(buf, '\0', nbytes))) {
-		char *end = buf + nbytes;
-		char *p, *q;
+		int8_t *end = buf + nbytes;
+		int8_t *p, *q;
 
 		for (p = dst; p < end; p = q) {
 			/* skip a block of nulls */
@@ -1140,10 +1140,10 @@ strip_nuls(buf, nbytes)
 /* Copy at most dsize-1 bytes from src to dst, ensuring dst is null terminated.
  * Returns dst.
  */
-char *
+int8_t *
 str_zcpy(dst, src, dsize)
-	char *dst;
-	const char *src;
+	int8_t *dst;
+	const int8_t *src;
 	int dsize;
 {
 	if (dsize > 0) {
@@ -1163,7 +1163,7 @@ str_zcpy(dst, src, dsize)
 int
 blocking_read(fd, buf, nbytes)
 	int fd;
-	char *buf;
+	int8_t *buf;
 	int nbytes;
 {
 	int ret;
@@ -1241,7 +1241,7 @@ reset_nonblock(fd)
 	{ \
 	    DIR *d = ksh_opendir("."); \
 	    if (!d) \
-		return (char *) 0; \
+		return (int8_t *) 0; \
 	    closedir(d); \
 	}
 #else /* HPUX_GETWD_BUG */

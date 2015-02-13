@@ -12,10 +12,10 @@
 #include	<bio.h>
 
 int
-Bputrune(Biobufhdr *bp, long c)
+Bputrune(Biobufhdr *bp, int32_t c)
 {
 	Rune rune;
-	char str[UTFmax];
+	int8_t str[UTFmax];
 	int n;
 
 	rune = c;

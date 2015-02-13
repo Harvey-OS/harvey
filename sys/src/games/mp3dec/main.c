@@ -15,18 +15,18 @@
 #include "mad.h"
 
 /* Current input file */
-char *name;
-vlong offset;
+int8_t *name;
+int64_t offset;
 int rate = 44100;
 
-char *outfile;
+int8_t *outfile;
 int vfd; /* /dev/volume */
 
 static enum mad_flow
 input(void *data, struct mad_stream *stream)
 {
 	int fd, n, m;
-	static uchar buf[32768];
+	static uint8_t buf[32768];
 
 	fd = (int)data;
 	n = stream->bufend - stream->next_frame;
@@ -113,7 +113,7 @@ output(void *data, struct mad_header const* header, struct mad_pcm *pcm)
 	int i, n, v;
 	mad_fixed_t const *left, *right;
 	static Dither d;
-	static uchar buf[16384], *p;
+	static uint8_t buf[16384], *p;
 
 	if(pcm->samplerate != rate){
 		rate = pcm->samplerate;
@@ -167,7 +167,7 @@ error(void *data, struct mad_stream *stream, struct mad_frame *frame)
 }
 
 void
-play(int fd, char *nam)
+play(int fd, int8_t *nam)
 {
 	struct mad_decoder decoder;
 	

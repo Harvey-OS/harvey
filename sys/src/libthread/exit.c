@@ -13,11 +13,11 @@
 #include "threadimpl.h"
 #include <tos.h>
 
-char *_threadexitsallstatus;
+int8_t *_threadexitsallstatus;
 Channel *_threadwaitchan;
 
 void
-threadexits(char *exitstr)
+threadexits(int8_t *exitstr)
 {
 	Proc *p;
 	Thread *t;
@@ -32,7 +32,7 @@ threadexits(char *exitstr)
 }
 
 void
-threadexitsall(char *exitstr)
+threadexitsall(int8_t *exitstr)
 {
 	Proc *p;
 	int pid[64];

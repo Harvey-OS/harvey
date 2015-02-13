@@ -10,19 +10,19 @@
 #include <u.h>
 #include <libc.h>
 
-int	copy1(int fdf, int fdt, char *from, char *to);
-void	hardremove(char *);
-int	mv(char *from, char *todir, char *toelem);
-int	mv1(char *from, Dir *dirb, char *todir, char *toelem);
-int	samefile(char *, char *);
-void	split(char *, char **, char **);
+int	copy1(int fdf, int fdt, int8_t *from, int8_t *to);
+void	hardremove(int8_t *);
+int	mv(int8_t *from, int8_t *todir, int8_t *toelem);
+int	mv1(int8_t *from, Dir *dirb, int8_t *todir, int8_t *toelem);
+int	samefile(int8_t *, int8_t *);
+void	split(int8_t *, int8_t **, int8_t **);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int i, failed;
 	Dir *dirto, *dirfrom;
-	char *todir, *toelem;
+	int8_t *todir, *toelem;
 
 	if(argc<3){
 		fprint(2, "usage: mv fromfile tofile\n");
@@ -63,7 +63,7 @@ main(int argc, char *argv[])
 }
 
 int
-mv(char *from, char *todir, char *toelem)
+mv(int8_t *from, int8_t *todir, int8_t *toelem)
 {
 	int stat;
 	Dir *dirb;
@@ -79,11 +79,11 @@ mv(char *from, char *todir, char *toelem)
 }
 
 int
-mv1(char *from, Dir *dirb, char *todir, char *toelem)
+mv1(int8_t *from, Dir *dirb, int8_t *todir, int8_t *toelem)
 {
 	int fdf, fdt, i, j, stat;
-	char toname[4096], fromname[4096];
-	char *fromdir, *fromelem;
+	int8_t toname[4096], fromname[4096];
+	int8_t *fromdir, *fromelem;
 	Dir *dirt, null;
 
 	strncpy(fromname, from, sizeof fromname);
@@ -174,10 +174,10 @@ mv1(char *from, Dir *dirb, char *todir, char *toelem)
 }
 
 int
-copy1(int fdf, int fdt, char *from, char *to)
+copy1(int fdf, int fdt, int8_t *from, int8_t *to)
 {
-	char buf[8192];
-	long n, n1;
+	int8_t buf[8192];
+	int32_t n, n1;
 
 	while ((n = read(fdf, buf, sizeof buf)) > 0) {
 		n1 = write(fdt, buf, n);
@@ -194,9 +194,9 @@ copy1(int fdf, int fdt, char *from, char *to)
 }
 
 void
-split(char *name, char **pdir, char **pelem)
+split(int8_t *name, int8_t **pdir, int8_t **pelem)
 {
-	char *s;
+	int8_t *s;
 
 	s = utfrrune(name, '/');
 	if(s){
@@ -213,7 +213,7 @@ split(char *name, char **pdir, char **pelem)
 }
 
 int
-samefile(char *a, char *b)
+samefile(int8_t *a, int8_t *b)
 {
 	Dir *da, *db;
 	int ret;
@@ -234,7 +234,7 @@ samefile(char *a, char *b)
 }
 
 void
-hardremove(char *a)
+hardremove(int8_t *a)
 {
 	if(remove(a) == -1){
 		fprint(2, "mv: can't remove %s: %r\n", a);

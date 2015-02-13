@@ -51,10 +51,10 @@ commandrw(void)
 		inportb(Pixmask);
 }
 
-static uchar
+static uint8_t
 commandr(void)
 {
-	uchar command;
+	uint8_t command;
 
 	commandrw();
 	command = inportb(Pixmask);
@@ -64,7 +64,7 @@ commandr(void)
 }
 
 static void
-commandw(uchar command)
+commandw(uint8_t command)
 {
 	commandrw();
 	outportb(Pixmask, command);
@@ -72,9 +72,9 @@ commandw(uchar command)
 }
 
 static void
-indexrw(uchar index)
+indexrw(uint8_t index)
 {
-	uchar command;
+	uint8_t command;
 
 	command = commandr();
 	commandw(command|0x10);
@@ -94,7 +94,7 @@ options(Vga*, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong pclk;
+	uint32_t pclk;
 
 	/*
 	 * Part comes in -135MHz speed-grade.
@@ -135,7 +135,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uchar command, mode, pipeline;
+	uint8_t command, mode, pipeline;
 
 	command = 0x00;
 	mode = 0x00;

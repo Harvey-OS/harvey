@@ -176,7 +176,7 @@ process_composite_text(gs_text_enum_t *pte, void *vbuf, uint bsize)
 /*
  * Process a text string in a composite font with FMapType == 9 (CMap).
  */
-private const char *const standard_cmap_names[] = {
+private const int8_t *const standard_cmap_names[] = {
     /* The following were added in PDF 1.4. */
     "GBKp-EUC-H", "GBKp-EUC-V",
     "GBK2K-H", "GBK2K-V",
@@ -220,7 +220,7 @@ private int
 attach_cmap_resource(gx_device_pdf *pdev, pdf_font_resource_t *pdfont, 
 		const gs_cmap_t *pcmap, int font_index_only)
 {
-    const char *const *pcmn =
+    const int8_t *const *pcmn =
 	standard_cmap_names +
 	(pdev->CompatibilityLevel < 1.4 ? END_PDF14_CMAP_NAMES_INDEX : 0);
     bool is_identity = false;
@@ -418,7 +418,7 @@ scan_cmap_text(pdf_text_enum_t *pte)
 	    code = pdf_font_used_glyph(pfd, glyph, (gs_font_base *)subfont);
 	    if (code == gs_error_rangecheck) {
 		if (!(pdsubf->used[cid >> 3] & (0x80 >> (cid & 7)))) {
-		    char buf[gs_font_name_max + 1];
+		    int8_t buf[gs_font_name_max + 1];
 		    int l = min(sizeof(buf) - 1, subfont->font_name.size);
 
 		    memcpy(buf, subfont->font_name.chars, l);
@@ -629,7 +629,7 @@ process_cid_text(gs_text_enum_t *pte, void *vbuf, uint bsize)
 	byte *pchars = vbuf;
 
 	for (i = 0; i < size; ++i) {
-	    ulong gnum = glyphs[i] - GS_MIN_CID_GLYPH;
+	    uint32_t gnum = glyphs[i] - GS_MIN_CID_GLYPH;
 
 	    if (gnum & ~0xffffL)
 		return_error(gs_error_rangecheck);

@@ -13,7 +13,7 @@
 #include	<mach.h>
 
 int
-size(char *file)
+size(int8_t *file)
 {
 	int fd;
 	Fhdr f;

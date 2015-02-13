@@ -12,22 +12,22 @@
 #include <stdio.h>
 #include "cpp.h"
 
-extern	int getopt(int, char **, char *);
-extern	char	*optarg;
+extern	int getopt(int, int8_t **, int8_t *);
+extern	int8_t	*optarg;
 extern	int	optind;
 int	verbose;
 int	Mflag;
 int	Cplusplus;
 int	nolineinfo;
 Nlist	*kwdefined;
-char	wd[128];
+int8_t	wd[128];
 
 #define	NLSIZE	128
 
 Nlist	*nlist[NLSIZE];
 
 struct	kwtab {
-	char	*kw;
+	int8_t	*kw;
 	int	val;
 	int	flag;
 } kwtab[] = {
@@ -207,7 +207,7 @@ lookup(Token *tp, int install)
 {
 	unsigned int h;
 	Nlist *np;
-	uchar *cp, *cpe;
+	uint8_t *cp, *cpe;
 
 	h = 0;
 	for (cp=tp->t, cpe=cp+tp->len; cp<cpe; )
@@ -216,7 +216,7 @@ lookup(Token *tp, int install)
 	np = nlist[h];
 	while (np) {
 		if (*tp->t==*np->name && tp->len==np->len 
-		 && strncmp((char*)tp->t, (char*)np->name, tp->len)==0)
+		 && strncmp((int8_t*)tp->t, (int8_t*)np->name, tp->len)==0)
 			return np;
 		np = np->next;
 	}

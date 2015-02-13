@@ -45,8 +45,8 @@ static int quorem(Bigint *, Bigint *);
  *	   calculation.
  */
 
- char *
-_dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
+ int8_t *
+_dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, int8_t **rve)
 {
  /*	Arguments ndigits, decpt, sign are similar to those
 	of ecvt and fcvt; trailing zeros are suppressed from
@@ -85,7 +85,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 	int bbits, b2, b5, be, dig, i, ieps, ilim, ilim0, ilim1,
 		j, j1, k, k0, k_check, leftright, m2, m5, s2, s5,
 		spec_case, try_quick;
-	long L;
+	int32_t L;
 #ifndef Sudden_Underflow
 	int denorm;
 	unsigned long x;
@@ -93,7 +93,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 	Bigint *b, *b1, *delta, *mlo, *mhi, *S;
 	double ds;
 	Dul d2, eps;
-	char *s, *s0;
+	int8_t *s, *s0;
 	static Bigint *result;
 	static int result_k;
 	Dul d;
@@ -268,7 +268,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 	for(result_k = 0; sizeof(Bigint) - sizeof(unsigned long) + j <= i;
 		j <<= 1) result_k++;
 	result = Balloc(result_k);
-	s = s0 = (char *)result;
+	s = s0 = (int8_t *)result;
 
 	if (ilim >= 0 && ilim <= Quick_max && try_quick) {
 	
@@ -655,11 +655,11 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 quorem(Bigint *b, Bigint *S)
 {
 	int n;
-	long borrow, y;
+	int32_t borrow, y;
 	unsigned long carry, q, ys;
 	unsigned long *bx, *bxe, *sx, *sxe;
 #ifdef Pack_32
-	long z;
+	int32_t z;
 	unsigned long si, zs;
 #endif
 

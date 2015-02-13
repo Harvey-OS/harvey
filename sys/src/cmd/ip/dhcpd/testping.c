@@ -14,10 +14,10 @@
 #include <ndb.h>
 #include "dat.h"
 
-char	*blog = "ipboot";
+int8_t	*blog = "ipboot";
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	fmtinstall('E', eipconv);
 	fmtinstall('I', eipconv);

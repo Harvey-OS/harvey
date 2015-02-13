@@ -13,10 +13,10 @@
 
 #define PADDR(a)	((a) & ~0xfffffffff0000000ull)
 
-vlong
+int64_t
 entryvalue(void)
 {
-	char *a;
+	int8_t *a;
 	Sym *s;
 
 	a = INITENTRY;
@@ -38,21 +38,21 @@ entryvalue(void)
 }
 
 /* these need to take long arguments to be compatible with elf.c */void
-wputl(long w)
+wputl(int32_t w)
 {
 	cput(w);
 	cput(w>>8);
 }
 
 void
-wput(long w)
+wput(int32_t w)
 {
 	cput(w>>8);
 	cput(w);
 }
 
 void
-lput(long l)
+lput(int32_t l)
 {
 	cput(l>>24);
 	cput(l>>16);
@@ -61,14 +61,14 @@ lput(long l)
 }
 
 void
-llput(vlong v)
+llput(int64_t v)
 {
 	lput(v>>32);
 	lput(v);
 }
 
 void
-lputl(long l)
+lputl(int32_t l)
 {
 	cput(l);
 	cput(l>>8);
@@ -77,14 +77,14 @@ lputl(long l)
 }
 
 void
-llputl(vlong v)
+llputl(int64_t v)
 {
 	lputl(v);
 	lputl(v>>32);
 }
 
 void
-strnput(char *s, int n)
+strnput(int8_t *s, int n)
 {
 	for(; *s && n > 0; s++){
 		cput(*s);
@@ -100,10 +100,10 @@ void
 asmb(void)
 {
 	Prog *p;
-	long v, magic;
+	int32_t v, magic;
 	int a;
-	uchar *op1;
-	vlong vl;
+	uint8_t *op1;
+	int64_t vl;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f asmb\n", cputime());
@@ -159,7 +159,7 @@ asmb(void)
 	Bflush(&bso);
 
 	if(dlm){
-		char buf[8];
+		int8_t buf[8];
 
 		write(cout, buf, INITDAT-textsize);
 		textsize = INITDAT;
@@ -251,12 +251,12 @@ cflush(void)
 }
 
 void
-datblk(long s, long n)
+datblk(int32_t s, int32_t n)
 {
 	Prog *p;
-	uchar *cast;
-	long l, fl, j;
-	vlong o;
+	uint8_t *cast;
+	int32_t l, fl, j;
+	int64_t o;
 	int i, c;
 
 	memset(buf.dbuf, 0, n+Dbufslop);
@@ -289,7 +289,7 @@ datblk(long s, long n)
 			default:
 			case 4:
 				fl = ieeedtof(&p->to.ieee);
-				cast = (uchar*)&fl;
+				cast = (uint8_t*)&fl;
 				if(debug['a'] && i == 0) {
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
@@ -302,7 +302,7 @@ datblk(long s, long n)
 				}
 				break;
 			case 8:
-				cast = (uchar*)&p->to.ieee;
+				cast = (uint8_t*)&p->to.ieee;
 				if(debug['a'] && i == 0) {
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
@@ -345,7 +345,7 @@ datblk(long s, long n)
 				}
 			}
 			fl = o;
-			cast = (uchar*)&fl;
+			cast = (uint8_t*)&fl;
 			switch(c) {
 			default:
 				diag("bad nuxi %d %d\n%P", c, i, curp);
@@ -387,7 +387,7 @@ datblk(long s, long n)
 				}
 				break;
 			case 8:
-				cast = (uchar*)&o;
+				cast = (uint8_t*)&o;
 				if(debug['a'] && i == 0) {
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
@@ -406,10 +406,10 @@ datblk(long s, long n)
 	write(cout, buf.dbuf, n);
 }
 
-vlong
-rnd(vlong v, vlong r)
+int64_t
+rnd(int64_t v, int64_t r)
 {
-	vlong c;
+	int64_t c;
 
 	if(r <= 0)
 		return v;

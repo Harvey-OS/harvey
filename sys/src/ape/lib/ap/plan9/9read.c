@@ -13,8 +13,8 @@
 #include "sys9.h"
 #include "dir.h"
 
-long
-_READ(int fd, void *buf, long n)
+int32_t
+_READ(int fd, void *buf, int32_t n)
 {
 	return _PREAD(fd, buf, n, -1LL);
 }

@@ -52,16 +52,16 @@ typedef struct config_s {
     /* Set once */
     FILE *out;
     bool debug;
-    const char *name_prefix;
-    const char *file_prefix;
-    ulong file_id;		/* for uniq_last detection */
+    const int8_t *name_prefix;
+    const int8_t *file_prefix;
+    uint32_t file_id;		/* for uniq_last detection */
     /* Updated dynamically */
 #define ITEM_ID_BITS 5
     uint item_id;
     bool any_scan_items;
     bool in_res_scan;
     bool in_category;		/* in_category implies in_res_scan */
-    const char *current_category;
+    const int8_t *current_category;
 } config;
 static const config init_config =
 {
@@ -77,16 +77,16 @@ static const config init_config =
     ""				/* current_category */
 };
 
-static const char *indent_INCLUDED = "\t\t\t\t";
-static const char *indent_RES_SCAN = "   ";
-static const char *indent_category = "\t";
-static const char *indent_SEEN = "\t    ";
-static const char *indent_include = "   ";
-static const char *indent_scan_item = "\t";
-static const char *indent_item = "";
+static const int8_t *indent_INCLUDED = "\t\t\t\t";
+static const int8_t *indent_RES_SCAN = "   ";
+static const int8_t *indent_category = "\t";
+static const int8_t *indent_SEEN = "\t    ";
+static const int8_t *indent_include = "   ";
+static const int8_t *indent_scan_item = "\t";
+static const int8_t *indent_item = "";
 
 /* Forward definitions */
-void add_entry(config *, const char *, const char *, bool);
+void add_entry(config *, const int8_t *, const int8_t *, bool);
 
 main(int argc, char *argv[])
 {
@@ -216,24 +216,24 @@ typedef enum {
     uniq_last
 } uniq_mode;
 void
-write_item(config * pconf, const char *str, const char *category,
-	   const char *item, uniq_mode mode)
+write_item(config * pconf, const int8_t *str, const int8_t *category,
+	   const int8_t *item, uniq_mode mode)
 {
     FILE *out = pconf->out;
-    char cati[80];
+    int8_t cati[80];
 
     if (!pconf->in_res_scan) {
 	fprintf(out, "#%sifndef RES_SCAN\n", indent_RES_SCAN);
 	pconf->in_res_scan = true;
     }
     if (strcmp(pconf->current_category, category)) {
-	const char *paren = strchr(str, '(');
+	const int8_t *paren = strchr(str, '(');
 
 	if (pconf->in_category)
 	    fprintf(out, "#%sendif /* -%s */\n",
 		    indent_category, pconf->current_category);
 	fprintf(out, "#%sifdef ", indent_category);
-	fwrite(str, sizeof(char), paren - str, out);
+	fwrite(str, sizeof(int8_t), paren - str, out);
 
 	fprintf(out, "\n");
 	pconf->current_category = category;
@@ -260,11 +260,11 @@ write_item(config * pconf, const char *str, const char *category,
     }
 }
 void
-write_scan_item(config * pconf, const char *str, const char *category,
-		const char *item, uniq_mode mode)
+write_scan_item(config * pconf, const int8_t *str, const int8_t *category,
+		const int8_t *item, uniq_mode mode)
 {
     FILE *out = pconf->out;
-    char cati[80];
+    int8_t cati[80];
 
     sprintf(cati, "%s_%s_", category, item);
     switch (mode) {
@@ -279,9 +279,10 @@ write_scan_item(config * pconf, const char *str, const char *category,
     }
 }
 void
-add_entry(config * pconf, const char *category, const char *item, bool scan)
+add_entry(config * pconf, const int8_t *category, const int8_t *item,
+	  bool scan)
 {
-    char str[80];
+    int8_t str[80];
     uniq_mode mode = uniq_first;
 
     if (pconf->debug && !scan)

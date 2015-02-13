@@ -102,10 +102,10 @@
 #include "ext.h"			/* external variable declarations */
 #include "postprint.h"			/* a few special definitions */
 
-char	*optnames = "a:c:ef:l:m:n:o:p:r:s:t:x:y:A:C:E:J:L:P:R:DI";
+int8_t	*optnames = "a:c:ef:l:m:n:o:p:r:s:t:x:y:A:C:E:J:L:P:R:DI";
 
-char	*prologue = POSTPRINT;		/* default PostScript prologue */
-char	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
+int8_t	*prologue = POSTPRINT;		/* default PostScript prologue */
+int8_t	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
 
 int	formsperpage = 1;		/* page images on each piece of paper */
 int	copies = 1;			/* and this many copies of each sheet */
@@ -123,7 +123,7 @@ int	stringcount = 0;		/* number of strings on the stack */
 int	stringstart = 1;		/* column where current one starts */
 
 Fontmap	fontmap[] = FONTMAP;		/* for translating font names */
-char	*fontname = "Courier";		/* use this PostScript font */
+int8_t	*fontname = "Courier";		/* use this PostScript font */
 
 int	page = 0;			/* page we're working on */
 int	printed = 0;			/* printed this many pages */
@@ -374,9 +374,9 @@ options()
 
 /*****************************************************************************/
 
-char *get_font(name)
+int8_t *get_font(name)
 
-    char	*name;			/* name the user asked for */
+    int8_t	*name;			/* name the user asked for */
 
 {
 

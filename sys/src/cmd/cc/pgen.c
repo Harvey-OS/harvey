@@ -100,7 +100,7 @@ void
 supgen(Node *n)
 {
 	int owarn;
-	long spc;
+	int32_t spc;
 	Prog *sp;
 
 	if(n == Z)
@@ -134,7 +134,7 @@ gen(Node *n)
 	Node *l, nod, rn;
 	Prog *sp, *spc, *spb;
 	Case *cn;
-	long sbc, scc;
+	int32_t sbc, scc;
 	int snbreak, sncontin;
 	int f, o, oldreach;
 

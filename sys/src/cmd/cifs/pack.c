@@ -16,7 +16,7 @@
 void *
 pmem(Pkt *p, void *v, int len)
 {
-	uchar *str = v;
+	uint8_t *str = v;
 	void *s = p->pos;
 
 	if(!len || !v)
@@ -27,9 +27,9 @@ pmem(Pkt *p, void *v, int len)
 }
 
 void *
-ppath(Pkt *p, char *str)
+ppath(Pkt *p, int8_t *str)
 {
-	char c;
+	int8_t c;
 	Rune r;
 	void *s = p->pos;
 
@@ -58,7 +58,7 @@ ppath(Pkt *p, char *str)
 }
 
 void *
-pstr(Pkt *p, char *str)
+pstr(Pkt *p, int8_t *str)
 {
 	void *s = p->pos;
 	Rune r;
@@ -83,7 +83,7 @@ pstr(Pkt *p, char *str)
 }
 
 void *
-pascii(Pkt *p, char *str)
+pascii(Pkt *p, int8_t *str)
 {
 	void *s = p->pos;
 
@@ -95,7 +95,7 @@ pascii(Pkt *p, char *str)
 
 
 void *
-pl64(Pkt *p, uvlong n)
+pl64(Pkt *p, uint64_t n)
 {
 	void *s = p->pos;
 
@@ -167,10 +167,10 @@ p8(Pkt *p, uint n)
  * Encode a Netbios name
  */
 void *
-pname(Pkt *p, char *name, char pad)
+pname(Pkt *p, int8_t *name, int8_t pad)
 {
 	int i, done = 0;
-	char c;
+	int8_t c;
 	void *s = p->pos;
 
 	*p->pos++ = ' ';
@@ -180,7 +180,7 @@ pname(Pkt *p, char *name, char pad)
 			done = 1;
 		if(!done)
 			c = islower(name[i])? toupper(name[i]): name[i];
-		*p->pos++ = ((uchar)c >> 4) + 'A';
+		*p->pos++ = ((uint8_t)c >> 4) + 'A';
 		*p->pos++ = (c & 0xf) + 'A';
 	}
 	*p->pos++ = '\0';
@@ -188,7 +188,7 @@ pname(Pkt *p, char *name, char pad)
 }
 
 void *
-pvtime(Pkt *p, uvlong n)
+pvtime(Pkt *p, uint64_t n)
 {
 	void *s = p->pos;
 
@@ -201,7 +201,7 @@ pvtime(Pkt *p, uvlong n)
 }
 
 void *
-pdatetime(Pkt *p, long utc)
+pdatetime(Pkt *p, int32_t utc)
 {
 	void *s = p->pos;
 	Tm *tm = localtime(utc);
@@ -225,7 +225,7 @@ pdatetime(Pkt *p, long utc)
 void
 gmem(Pkt *p, void *v, int n)
 {
-	uchar *str = v;
+	uint8_t *str = v;
 
 	if(!n || !v)
 		return;
@@ -239,7 +239,7 @@ gmem(Pkt *p, void *v, int n)
  * of the output buffer but this is not so in Unicode mode!
  */
 void
-gstr(Pkt *p, char *str, int n)
+gstr(Pkt *p, int8_t *str, int n)
 {
 	int i;
 	Rune r;
@@ -276,7 +276,7 @@ gstr(Pkt *p, char *str, int n)
 }
 
 void
-gascii(Pkt *p, char *str, int n)
+gascii(Pkt *p, int8_t *str, int n)
 {
 	if(!n || !str)
 		return;
@@ -289,39 +289,39 @@ gascii(Pkt *p, char *str, int n)
 }
 
 
-uvlong
+uint64_t
 gl64(Pkt *p)
 {
-	uvlong n;
+	uint64_t n;
 
 	if(p->pos + 8 > p->eop)
 		return 0;
 
-	n  = (uvlong)*p->pos++;
-	n |= (uvlong)*p->pos++ << 8;
-	n |= (uvlong)*p->pos++ << 16;
-	n |= (uvlong)*p->pos++ << 24;
-	n |= (uvlong)*p->pos++ << 32;
-	n |= (uvlong)*p->pos++ << 40;
-	n |= (uvlong)*p->pos++ << 48;
-	n |= (uvlong)*p->pos++ << 56;
+	n  = (uint64_t)*p->pos++;
+	n |= (uint64_t)*p->pos++ << 8;
+	n |= (uint64_t)*p->pos++ << 16;
+	n |= (uint64_t)*p->pos++ << 24;
+	n |= (uint64_t)*p->pos++ << 32;
+	n |= (uint64_t)*p->pos++ << 40;
+	n |= (uint64_t)*p->pos++ << 48;
+	n |= (uint64_t)*p->pos++ << 56;
 	return n;
 }
 
-uvlong
+uint64_t
 gb48(Pkt *p)
 {
-	uvlong n;
+	uint64_t n;
 
 	if(p->pos + 6 > p->eop)
 		return 0;
 
-	n  = (uvlong)*p->pos++ << 40;
-	n |= (uvlong)*p->pos++ << 24;
-	n |= (uvlong)*p->pos++ << 32;
-	n |= (uvlong)*p->pos++ << 16;
-	n |= (uvlong)*p->pos++ << 8;
-	n |= (uvlong)*p->pos++;
+	n  = (uint64_t)*p->pos++ << 40;
+	n |= (uint64_t)*p->pos++ << 24;
+	n |= (uint64_t)*p->pos++ << 32;
+	n |= (uint64_t)*p->pos++ << 16;
+	n |= (uint64_t)*p->pos++ << 8;
+	n |= (uint64_t)*p->pos++;
 	return n;
 }
 
@@ -387,7 +387,7 @@ g8(Pkt *p)
 	return (uint)*p->pos++;
 }
 
-long
+int32_t
 gdatetime(Pkt *p)
 {
 	Tm tm;
@@ -420,16 +420,16 @@ gdatetime(Pkt *p)
 	return tm2sec(&tm);
 }
 
-long
+int32_t
 gvtime(Pkt *p)
 {
-	uvlong vl;
+	uint64_t vl;
 
 	if(p->pos + 8 > p->eop)
 		return 0;
 
-	vl  = (uvlong)gl32(p);
-	vl |= (uvlong)gl32(p) << 32;
+	vl  = (uint64_t)gl32(p);
+	vl |= (uint64_t)gl32(p) << 32;
 
 	vl /= 10000000LL;
 	vl -= 11644473600LL;
@@ -437,10 +437,10 @@ gvtime(Pkt *p)
 }
 
 void
-gconv(Pkt *p, int conv, char *str, int n)
+gconv(Pkt *p, int conv, int8_t *str, int n)
 {
 	int off;
-	uchar *pos;
+	uint8_t *pos;
 
 	off = gl32(p) & 0xffff;
 	if(off == 0 || p->tdata - conv + off > p->eop){
@@ -455,10 +455,10 @@ gconv(Pkt *p, int conv, char *str, int n)
 }
 
 void
-goff(Pkt *p, uchar *base, char *str, int n)
+goff(Pkt *p, uint8_t *base, int8_t *str, int n)
 {
 	int off;
-	uchar *pos;
+	uint8_t *pos;
 
 	off = gl16(p);
 	if(off == 0 || base + off > p->eop){

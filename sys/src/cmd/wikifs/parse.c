@@ -16,7 +16,7 @@
 #include "wiki.h"
 
 static Wpage*
-mkwtxt(int type, char *text)
+mkwtxt(int type, int8_t *text)
 {
 	Wpage *w;
 
@@ -31,10 +31,10 @@ mkwtxt(int type, char *text)
  * turn runs of whitespace into single spaces,
  * eliminate whitespace at beginning and end.
  */
-char*
-strcondense(char *s, int cutbegin)
+int8_t*
+strcondense(int8_t *s, int cutbegin)
 {
-	char *r, *w, *es;
+	int8_t *r, *w, *es;
 	int inspace;
 
 	es = s+strlen(s);
@@ -94,9 +94,9 @@ wcondense(Wpage *wtxt)
  * Parse a link, without the brackets.
  */
 static Wpage*
-mklink(char *s)
+mklink(int8_t *s)
 {
-	char *q;
+	int8_t *q;
 	Wpage *w;
 
 	for(q=s; *q && *q != '|'; q++)
@@ -120,7 +120,7 @@ mklink(char *s)
 static Wpage*
 wlink(Wpage *wtxt)
 {
-	char *p, *q, *r, *s;
+	int8_t *p, *q, *r, *s;
 	Wpage *w, *nw;
 
 	for(w=wtxt; w; w=nw){
@@ -164,9 +164,9 @@ ismanchar(int c)
 }
 
 static Wpage*
-findmanref(char *p, char **beginp, char **endp)
+findmanref(int8_t *p, int8_t **beginp, int8_t **endp)
 {
-	char *q, *r;
+	int8_t *q, *r;
 	Wpage *w;
 
 	q=p;
@@ -201,7 +201,7 @@ findmanref(char *p, char **beginp, char **endp)
 static Wpage*
 wman(Wpage *wtxt)
 {
-	char *q, *r;
+	int8_t *q, *r;
 	Wpage *w, *mw, *nw;
 
 	for(w=wtxt; w; w=nw){
@@ -223,7 +223,7 @@ wman(Wpage *wtxt)
 	return wtxt;	
 }
 
-static int isheading(char *p) {
+static int isheading(int8_t *p) {
 	Rune r;
 	int hasupper=0;
 	while(*p) {
@@ -237,9 +237,9 @@ static int isheading(char *p) {
 }
 
 Wpage*
-Brdpage(char *(*rdline)(void*,int), void *b)
+Brdpage(int8_t *(*rdline)(void*,int), void *b)
 {
-	char *p, *c;
+	int8_t *p, *c;
 	int waspara;
 	Wpage *w, **pw;
 

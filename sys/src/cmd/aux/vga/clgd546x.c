@@ -19,7 +19,7 @@
  */
 typedef struct {
 	Pcidev*	pci;
-	uchar*	mmio;
+	uint8_t*	mmio;
 	int	mem;
 
 	int	format;			/* graphics and video format */
@@ -58,32 +58,32 @@ mmio8w(Laguna* laguna, int offset, int data)
 static int
 mmio16r(Laguna* laguna, int offset)
 {
-	return *((ushort*)(laguna->mmio+offset)) & 0xFFFF;
+	return *((uint16_t*)(laguna->mmio+offset)) & 0xFFFF;
 }
 
 static void
 mmio16w(Laguna* laguna, int offset, int data)
 {
-	*((ushort*)(laguna->mmio+offset)) = data;
+	*((uint16_t*)(laguna->mmio+offset)) = data;
 }
 
 static int
 mmio32r(Laguna* laguna, int offset)
 {
-	return *((ulong*)(laguna->mmio+offset));
+	return *((uint32_t*)(laguna->mmio+offset));
 }
 
 static void
 mmio32w(Laguna* laguna, int offset, int data)
 {
-	*((ulong*)(laguna->mmio+offset)) = data;
+	*((uint32_t*)(laguna->mmio+offset)) = data;
 }
 
 static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
 	int f, i;
-	uchar *mmio;
+	uint8_t *mmio;
 	Pcidev *p;
 	Laguna *laguna;
 
@@ -150,7 +150,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
-	ushort x;
+	uint16_t x;
 	int format, interleave, fetches, nointerleave, notile, pagesize, tiles;
 	Laguna *laguna;
 
@@ -330,7 +330,7 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	char *name;
+	int8_t *name;
 	Laguna *laguna;
 
 	name = ctlr->name;

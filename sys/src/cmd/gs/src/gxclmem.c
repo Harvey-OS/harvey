@@ -143,7 +143,7 @@ LIMITATIONS.
    least as large as the fixed overhead of the compressor plus the
    decompressor, plus the expected compressed size of a block that size.
  */
-private const long COMPRESSION_THRESHOLD = 300000;
+private const int32_t COMPRESSION_THRESHOLD = 300000;
 
 #define NEED_TO_COMPRESS(f)\
   ((f)->ok_to_compress && (f)->total_space > COMPRESSION_THRESHOLD)
@@ -170,11 +170,11 @@ private int memfile_init_empty(MEMFILE * f);
 /************************************************/
 
 #ifdef DEBUG
-long tot_compressed;
-long tot_raw;
-long tot_cache_miss;
-long tot_cache_hits;
-long tot_swap_out;
+int32_t tot_compressed;
+int32_t tot_raw;
+int32_t tot_cache_miss;
+int32_t tot_cache_hits;
+int32_t tot_swap_out;
 
 /*
    The following pointers are here only for helping with a dumb debugger
@@ -193,8 +193,8 @@ allocateWithReserve(
          MEMFILE  *f,			/* file to allocate mem to */
          int      sizeofBlock,		/* size of block to allocate */
          int      *return_code,         /* RET 0 ok, -ve GS-style error, or +1 if OK but low memory */
-	 const   char     *allocName,		/* name to allocate by */
-	 const   char     *errorMessage         /* error message to print */
+	 const   int8_t     *allocName,		/* name to allocate by */
+	 const   int8_t     *errorMessage         /* error message to print */
 )
 {
     int code = 0;	/* assume success */
@@ -231,7 +231,7 @@ allocateWithReserve(
 /* ---------------- Open/close/unlink ---------------- */
 
 int
-memfile_fopen(char fname[gp_file_name_sizeof], const char *fmode,
+memfile_fopen(int8_t fname[gp_file_name_sizeof], const int8_t *fmode,
 	      clist_file_ptr /*MEMFILE * */  * pf,
 	      gs_memory_t *mem, gs_memory_t *data_mem, bool ok_to_compress)
 {
@@ -332,7 +332,7 @@ finish:
 }
 
 int
-memfile_fclose(clist_file_ptr cf, const char *fname, bool delete)
+memfile_fclose(clist_file_ptr cf, const int8_t *fname, bool delete)
 {
     MEMFILE *const f = (MEMFILE *)cf;
 
@@ -368,7 +368,7 @@ memfile_fclose(clist_file_ptr cf, const char *fname, bool delete)
 }
 
 int
-memfile_unlink(const char *fname)
+memfile_unlink(const int8_t *fname)
 {
     /*
      * Since we have no way to represent a memfile other than by the
@@ -451,7 +451,7 @@ compress_log_blk(MEMFILE * f, LOG_MEMFILE_BLK * bp)
     int status;
     int ecode = 0;		/* accumulate low-memory warnings */
     int code;
-    long compressed_size;
+    int32_t compressed_size;
     byte *start_ptr;
     PHYS_MEMFILE_BLK *newphys;
 
@@ -626,7 +626,7 @@ memfile_next_blk(MEMFILE * f)
 int	/* returns # of chars actually written */
 memfile_fwrite_chars(const void *data, uint len, clist_file_ptr cf)
 {
-    const char *str = (const char *)data;
+    const int8_t *str = (const int8_t *)data;
     MEMFILE *f = (MEMFILE *) cf;
     uint count = len;
     int ecode;
@@ -839,7 +839,7 @@ memfile_get_pdata(MEMFILE * f)
 int
 memfile_fread_chars(void *data, uint len, clist_file_ptr cf)
 {
-    char *str = (char *)data;
+    int8_t *str = (int8_t *)data;
     MEMFILE *f = (MEMFILE *) cf;
     uint count = len, num_read, move_count;
 
@@ -875,14 +875,15 @@ memfile_ferror_code(clist_file_ptr cf)
     return (((MEMFILE *) cf)->error_code);	/* errors stored here */
 }
 
-long
+int32_t
 memfile_ftell(clist_file_ptr cf)
 {
     return (((MEMFILE *) cf)->log_curr_pos);
 }
 
 void
-memfile_rewind(clist_file_ptr cf, bool discard_data, const char *ignore_fname)
+memfile_rewind(clist_file_ptr cf, bool discard_data,
+               const int8_t *ignore_fname)
 {
     MEMFILE *f = (MEMFILE *) cf;
 
@@ -898,10 +899,11 @@ memfile_rewind(clist_file_ptr cf, bool discard_data, const char *ignore_fname)
 }
 
 int
-memfile_fseek(clist_file_ptr cf, long offset, int mode, const char *ignore_fname)
+memfile_fseek(clist_file_ptr cf, int32_t offset, int mode,
+              const int8_t *ignore_fname)
 {
     MEMFILE *f = (MEMFILE *) cf;
-    long i, block_num, new_pos;
+    int32_t i, block_num, new_pos;
 
     switch (mode) {
 	case SEEK_SET:		/* offset from the beginning of the file */

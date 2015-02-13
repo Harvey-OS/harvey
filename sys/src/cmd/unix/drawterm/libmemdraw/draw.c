@@ -96,9 +96,9 @@ _memimageinit(void)
 	memtransparent = memzeros;
 }
 
-ulong _imgtorgba(Memimage*, ulong);
-ulong _rgbatoimg(Memimage*, ulong);
-ulong _pixelbits(Memimage*, Point);
+uint32_t _imgtorgba(Memimage*, uint32_t);
+uint32_t _rgbatoimg(Memimage*, uint32_t);
+uint32_t _pixelbits(Memimage*, Point);
 
 #define DBG if(0)
 static Memdrawparam par;
@@ -327,10 +327,10 @@ drawclip(Memimage *dst, Rectangle *r, Memimage *src, Point *p0, Memimage *mask, 
 /*
  * Conversion tables.
  */
-static uchar replbit[1+8][256];		/* replbit[x][y] is the replication of the x-bit quantity y to 8-bit depth */
-static uchar conv18[256][8];		/* conv18[x][y] is the yth pixel in the depth-1 pixel x */
-static uchar conv28[256][4];		/* ... */
-static uchar conv48[256][2];
+static uint8_t replbit[1+8][256];		/* replbit[x][y] is the replication of the x-bit quantity y to 8-bit depth */
+static uint8_t conv18[256][8];		/* conv18[x][y] is the yth pixel in the depth-1 pixel x */
+static uint8_t conv28[256][4];		/* ... */
+static uint8_t conv48[256][2];
 
 /*
  * bitmap of how to replicate n bits to fill 8, for 1 ≤ n ≤ 8.
@@ -394,7 +394,7 @@ mktables(void)
 	}
 }
 
-static uchar ones = 0xff;
+static uint8_t ones = 0xff;
 
 /*
  * General alpha drawing case.  Can handle anything.
@@ -402,26 +402,26 @@ static uchar ones = 0xff;
 typedef struct	Buffer	Buffer;
 struct Buffer {
 	/* used by most routines */
-	uchar	*red;
-	uchar	*grn;
-	uchar	*blu;
-	uchar	*alpha;
-	uchar	*grey;
-	ulong	*rgba;
+	uint8_t	*red;
+	uint8_t	*grn;
+	uint8_t	*blu;
+	uint8_t	*alpha;
+	uint8_t	*grey;
+	uint32_t	*rgba;
 	int	delta;	/* number of bytes to add to pointer to get next pixel to the right */
 
 	/* used by boolcalc* for mask data */
-	uchar	*m;		/* ptr to mask data r.min byte; like p->bytermin */
+	uint8_t	*m;		/* ptr to mask data r.min byte; like p->bytermin */
 	int		mskip;	/* no. of left bits to skip in *m */
-	uchar	*bm;		/* ptr to mask data img->r.min byte; like p->bytey0s */
+	uint8_t	*bm;		/* ptr to mask data img->r.min byte; like p->bytey0s */
 	int		bmskip;	/* no. of left bits to skip in *bm */
-	uchar	*em;		/* ptr to mask data img->r.max.x byte; like p->bytey0e */
+	uint8_t	*em;		/* ptr to mask data img->r.max.x byte; like p->bytey0e */
 	int		emskip;	/* no. of right bits to skip in *em */
 };
 
 typedef struct	Param	Param;
-typedef Buffer	Readfn(Param*, uchar*, int);
-typedef void	Writefn(Param*, uchar*, Buffer);
+typedef Buffer	Readfn(Param*, uint8_t*, int);
+typedef void	Writefn(Param*, uint8_t*, Buffer);
 typedef Buffer	Calcfn(Buffer, Buffer, Buffer, int, int, int);
 
 enum {
@@ -442,27 +442,27 @@ struct Param {
 	int	convgrey;
 	int	alphaonly;
 
-	uchar	*bytey0s;		/* byteaddr(Pt(img->r.min.x, img->r.min.y)) */
-	uchar	*bytermin;	/* byteaddr(Pt(r.min.x, img->r.min.y)) */
-	uchar	*bytey0e;		/* byteaddr(Pt(img->r.max.x, img->r.min.y)) */
+	uint8_t	*bytey0s;		/* byteaddr(Pt(img->r.min.x, img->r.min.y)) */
+	uint8_t	*bytermin;	/* byteaddr(Pt(r.min.x, img->r.min.y)) */
+	uint8_t	*bytey0e;		/* byteaddr(Pt(img->r.max.x, img->r.min.y)) */
 	int		bwidth;
 
 	int	replcache;	/* if set, cache buffers */
 	Buffer	bcache[MAXBCACHE];
-	ulong	bfilled;
-	uchar	*bufbase;
+	uint32_t	bfilled;
+	uint8_t	*bufbase;
 	int	bufoff;
 	int	bufdelta;
 
 	int	dir;
 
 	int	convbufoff;
-	uchar	*convbuf;
+	uint8_t	*convbuf;
 	Param	*convdpar;
 	int	convdx;
 };
 
-static uchar *drawbuf;
+static uint8_t *drawbuf;
 static int	ndrawbuf;
 static int	mdrawbuf;
 static Param spar, mpar, dpar;	/* easier on the stacks */
@@ -513,7 +513,7 @@ static Calcfn *boolcalc[Ncomp] =
 static int
 allocdrawbuf(void)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(ndrawbuf > mdrawbuf){
 		p = realloc(drawbuf, ndrawbuf);
@@ -546,7 +546,7 @@ getparam(Memimage *img, Rectangle r, int convgrey, int needbuf)
 	p.bytey0s = byteaddr(img, Pt(img->r.min.x, img->r.min.y));
 	p.bytermin = byteaddr(img, Pt(r.min.x, img->r.min.y));
 	p.bytey0e = byteaddr(img, Pt(img->r.max.x, img->r.min.y));
-	p.bwidth = sizeof(ulong)*img->width;
+	p.bwidth = sizeof(uint32_t)*img->width;
 
 	assert(p.bytey0s <= p.bytermin && p.bytermin <= p.bytey0e);
 
@@ -579,10 +579,10 @@ clipy(Memimage *img, int *y)
 }
 
 static void
-dumpbuf(char *s, Buffer b, int n)
+dumpbuf(int8_t *s, Buffer b, int n)
 {
 	int i;
-	uchar *p;
+	uint8_t *p;
 	
 	print("%s", s);
 	for(i=0; i<n; i++){
@@ -813,14 +813,14 @@ alphacalc0(Buffer bdst, Buffer b1, Buffer b2, int dx, int grey, int op)
 static int
 chanmatch(Buffer *bdst, Buffer *bsrc)
 {
-	uchar *drgb, *srgb;
+	uint8_t *drgb, *srgb;
 	
 	/*
 	 * first, r, g, b must be in the same place
 	 * in the rgba word.
 	 */
-	drgb = (uchar*)bdst->rgba;
-	srgb = (uchar*)bsrc->rgba;
+	drgb = (uint8_t*)bdst->rgba;
+	srgb = (uint8_t*)bsrc->rgba;
 	if(bdst->red - drgb != bsrc->red - srgb
 	|| bdst->blu - drgb != bsrc->blu - srgb
 	|| bdst->grn - drgb != bsrc->grn - srgb)
@@ -855,7 +855,7 @@ alphacalc14(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int grey, int op)
 	Buffer obdst;
 	int fd, sadelta;
 	int i, sa, ma, q;
-	ulong t, t1;
+	uint32_t t, t1;
 
 	obdst = bdst;
 	sadelta = bsrc.alpha == &ones ? 0 : bsrc.delta;
@@ -907,7 +907,7 @@ alphacalc2810(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int grey, int op)
 	Buffer obdst;
 	int fs, sadelta;
 	int i, ma, da, q;
-	ulong t, t1;
+	uint32_t t, t1;
 
 	obdst = bdst;
 	sadelta = bsrc.alpha == &ones ? 0 : bsrc.delta;
@@ -961,7 +961,7 @@ alphacalc3679(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int grey, int op)
 	Buffer obdst;
 	int fs, fd, sadelta;
 	int i, sa, ma, da, q;
-	ulong t, t1;
+	uint32_t t, t1;
 
 	obdst = bdst;
 	sadelta = bsrc.alpha == &ones ? 0 : bsrc.delta;
@@ -1032,7 +1032,7 @@ alphacalc11(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int grey, int op)
 	Buffer obdst;
 	int fd, sadelta;
 	int i, sa, ma, q;
-	ulong t, t1;
+	uint32_t t, t1;
 
 	USED(op);
 	obdst = bdst;
@@ -1124,7 +1124,7 @@ alphacalcS(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int grey, int op)
 	Buffer obdst;
 	int fd;
 	int i, ma;
-	ulong t;
+	uint32_t t;
 
 	USED(op);
 	obdst = bdst;
@@ -1196,7 +1196,7 @@ boolcalc236789(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int grey, int op)
 	Buffer obdst;
 	int fs, fd;
 	int i, ma, da, zero;
-	ulong t;
+	uint32_t t;
 
 	obdst = bdst;
 	zero = !(op&1);
@@ -1295,7 +1295,7 @@ boolcalc1011(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int grey, int op)
  * but cache the result so that for replicated images we only do the work once.
  */
 static Buffer
-replread(Param *p, uchar *s, int y)
+replread(Param *p, uint8_t *s, int y)
 {
 	Buffer *b;
 
@@ -1312,7 +1312,7 @@ replread(Param *p, uchar *s, int y)
  * Alpha reading function that simply relabels the grey pointer.
  */
 static Buffer
-greymaskread(Param *p, uchar *buf, int y)
+greymaskread(Param *p, uint8_t *buf, int y)
 {
 	Buffer b;
 
@@ -1330,7 +1330,7 @@ readnbit(Param *p, uchar *buf, int y)
 	uchar *repl, *r, *w, *ow, bits;
 	int i, n, sh, depth, x, dx, npack, nbits;
 
-	b.rgba = (ulong*)buf;
+	b.rgba = (uint32_t*)buf;
 	b.grey = w = buf;
 	b.red = b.blu = b.grn = w;
 	b.alpha = &ones;
@@ -1420,7 +1420,7 @@ static void
 writenbit(Param *p, uchar *w, Buffer src)
 {
 	uchar *r;
-	ulong bits;
+	uint32_t bits;
 	int i, sh, depth, npack, nbits, x, ex;
 
 	assert(src.grey != nil && src.delta == 1);
@@ -1525,9 +1525,9 @@ readcmap(Param *p, uchar *buf, int y)
 }
 
 static void
-writecmap(Param *p, uchar *w, Buffer src)
+writecmap(Param *p, uint8_t *w, Buffer src)
 {
-	uchar *cmap, *red, *grn, *blu;
+	uint8_t *cmap, *red, *grn, *blu;
 	int i, dx, delta;
 
 	cmap = p->img->cmap->rgb2cmap;
@@ -1551,7 +1551,7 @@ readbyte(Param *p, uchar *buf, int y)
 	int dx, isgrey, convgrey, alphaonly, copyalpha, i, nb;
 	uchar *begin, *end, *r, *w, *rrepl, *grepl, *brepl, *arepl, *krepl;
 	uchar ured, ugrn, ublu;
-	ulong u;
+	uint32_t u;
 
 	img = p->img;
 	begin = p->bytey0s + y*p->bwidth;
@@ -1575,7 +1575,7 @@ DBG print("copyalpha %d alphaonly %d convgrey %d isgrey %d\n", copyalpha, alphao
 			memmove(buf, r, dx*nb);
 			r = buf;
 		}
-		b.rgba = (ulong*)r;
+		b.rgba = (uint32_t*)r;
 		if(copyalpha)
 			b.alpha = r+img->shift[CAlpha]/8;
 		else
@@ -1628,7 +1628,7 @@ DBG print("%x\n", w[-1]);
 	}
 	
 	b.alpha = copyalpha ? buf : &ones;
-	b.rgba = (ulong*)buf;
+	b.rgba = (uint32_t*)buf;
 	if(alphaonly){
 		b.red = b.grn = b.blu = b.grey = nil;
 		if(!copyalpha)
@@ -1657,7 +1657,7 @@ writebyte(Param *p, uchar *w, Buffer src)
 	Memimage *img;
 	int i, isalpha, isgrey, nb, delta, dx, adelta;
 	uchar ff, *red, *grn, *blu, *grey, *alpha;
-	ulong u, mask;
+	uint32_t u, mask;
 
 	img = p->img;
 
@@ -1744,23 +1744,23 @@ writefn(Memimage *img)
 }
 
 static void
-nullwrite(Param *p, uchar *s, Buffer b)
+nullwrite(Param *p, uint8_t *s, Buffer b)
 {
 	USED(p);
 	USED(s);
 }
 
 static Buffer
-readptr(Param *p, uchar *s, int y)
+readptr(Param *p, uint8_t *s, int y)
 {
 	Buffer b;
-	uchar *q;
+	uint8_t *q;
 
 	USED(s);
 	q = p->bytermin + y*p->bwidth;
 	b.red = q;	/* ptr to data */
 	b.grn = b.blu = b.grey = b.alpha = nil;
-	b.rgba = (ulong*)q;
+	b.rgba = (uint32_t*)q;
 	b.delta = p->img->depth/8;
 	return b;
 }
@@ -1777,7 +1777,7 @@ boolmemmove(Buffer bdst, Buffer bsrc, Buffer b1, int dx, int i, int o)
 static Buffer
 boolcopy8(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int i, int o)
 {
-	uchar *m, *r, *w, *ew;
+	uint8_t *m, *r, *w, *ew;
 
 	USED(i);
 	USED(o);
@@ -1794,14 +1794,14 @@ boolcopy8(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int i, int o)
 static Buffer
 boolcopy16(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int i, int o)
 {
-	uchar *m;
-	ushort *r, *w, *ew;
+	uint8_t *m;
+	uint16_t *r, *w, *ew;
 
 	USED(i);
 	USED(o);
 	m = bmask.grey;
-	w = (ushort*)bdst.red;
-	r = (ushort*)bsrc.red;
+	w = (uint16_t*)bdst.red;
+	r = (uint16_t*)bsrc.red;
 	ew = w+dx;
 	for(; w < ew; w++,r++)
 		if(*m++)
@@ -1812,8 +1812,8 @@ boolcopy16(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int i, int o)
 static Buffer
 boolcopy24(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int i, int o)
 {
-	uchar *m;
-	uchar *r, *w, *ew;
+	uint8_t *m;
+	uint8_t *r, *w, *ew;
 
 	USED(i);
 	USED(o);
@@ -1837,14 +1837,14 @@ boolcopy24(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int i, int o)
 static Buffer
 boolcopy32(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int i, int o)
 {
-	uchar *m;
-	ulong *r, *w, *ew;
+	uint8_t *m;
+	uint32_t *r, *w, *ew;
 
 	USED(i);
 	USED(o);
 	m = bmask.grey;
-	w = (ulong*)bdst.red;
-	r = (ulong*)bsrc.red;
+	w = (uint32_t*)bdst.red;
+	r = (uint32_t*)bsrc.red;
 	ew = w+dx;
 	for(; w < ew; w++,r++)
 		if(*m++)
@@ -1853,11 +1853,11 @@ boolcopy32(Buffer bdst, Buffer bsrc, Buffer bmask, int dx, int i, int o)
 }
 
 static Buffer
-genconv(Param *p, uchar *buf, int y)
+genconv(Param *p, uint8_t *buf, int y)
 {
 	Buffer b;
 	int nb;
-	uchar *r, *w, *ew;
+	uint8_t *r, *w, *ew;
 
 	/* read from source into RGB format in convbuf */
 	b = p->convreadcall(p, p->convbuf, y);
@@ -1876,7 +1876,7 @@ genconv(Param *p, uchar *buf, int y)
 
 	b.red = buf;
 	b.blu = b.grn = b.grey = b.alpha = nil;
-	b.rgba = (ulong*)buf;
+	b.rgba = (uint32_t*)buf;
 	b.delta = 0;
 	
 	return b;
@@ -1913,11 +1913,11 @@ convfn(Memimage *dst, Param *dpar, Memimage *src, Param *spar)
 	return genconv;
 }
 
-ulong
+uint32_t
 _pixelbits(Memimage *i, Point pt)
 {
-	uchar *p;
-	ulong val;
+	uint8_t *p;
+	uint32_t val;
 	int off, bpp, npack;
 
 	val = 0;
@@ -1988,9 +1988,9 @@ memsetb(void *vp, uchar val, int n)
 */
 
 static void
-memsets(void *vp, ushort val, int n)
+memsets(void *vp, uint16_t val, int n)
 {
-	ushort *p, *ep;
+	uint16_t *p, *ep;
 
 	p = vp;
 	ep = p+n;
@@ -1999,9 +1999,9 @@ memsets(void *vp, ushort val, int n)
 }
 
 static void
-memsetl(void *vp, ulong val, int n)
+memsetl(void *vp, uint32_t val, int n)
 {
-	ulong *p, *ep;
+	uint32_t *p, *ep;
 
 	p = vp;
 	ep = p+n;
@@ -2125,7 +2125,7 @@ static int
 memoptdraw(Memdrawparam *par)
 {
 	int m, y, dy, dx, op;
-	ulong v;
+	uint32_t v;
 	Memimage *src;
 	Memimage *dst;
 
@@ -2147,7 +2147,7 @@ DBG print("state %lux mval %lux dd %d\n", par->state, par->mval, dst->depth);
 		uchar lm, rm;
 
 DBG print("memopt, dst %p, dst->data->bdata %p\n", dst, dst->data->bdata);
-		dwid = dst->width*sizeof(ulong);
+		dwid = dst->width*sizeof(uint32_t);
 		dp = byteaddr(dst, par->r.min);
 		v = par->sdval;
 DBG print("sdval %lud, depth %d\n", v, dst->depth);
@@ -2230,7 +2230,7 @@ DBG print("dp=%p; dx=%d; for(y=0; y<%d; y++, dp+=%d)\nmemsets(dp, v, dx);\n",
 			p[1] = v>>8;
 			p[2] = v>>16;
 			p[3] = v>>24;
-			v = *(ulong*)p;
+			v = *(uint32_t*)p;
 			for(y=0; y<dy; y++, dp+=dwid)
 				memsetl(dp, v, dx);
 			return 1;
@@ -2256,8 +2256,8 @@ DBG print("dp=%p; dx=%d; for(y=0; y<%d; y++, dp+=%d)\nmemsets(dp, v, dx);\n",
 		else
 			dir = 1;
 
-		swid = src->width*sizeof(ulong);
-		dwid = dst->width*sizeof(ulong);
+		swid = src->width*sizeof(uint32_t);
+		dwid = dst->width*sizeof(uint32_t);
 		sp = byteaddr(src, par->sr.min);
 		dp = byteaddr(dst, par->r.min);
 		if(dir == -1){
@@ -2288,9 +2288,9 @@ DBG print("dp=%p; dx=%d; for(y=0; y<%d; y++, dp+=%d)\nmemsets(dp, v, dx);\n",
 		sp = byteaddr(src, par->sr.min);
 		dp = byteaddr(dst, par->r.min);
 		mp = byteaddr(par->mask, par->mr.min);
-		swid = src->width*sizeof(ulong);
-		dwid = dst->width*sizeof(ulong);
-		mwid = par->mask->width*sizeof(ulong);
+		swid = src->width*sizeof(uint32_t);
+		dwid = dst->width*sizeof(uint32_t);
+		mwid = par->mask->width*sizeof(uint32_t);
 
 		if(src->data == dst->data && byteaddr(dst, par->r.min) > byteaddr(src, par->sr.min)){
 			dir = -1;
@@ -2379,12 +2379,12 @@ DBG print("dp=%p; dx=%d; for(y=0; y<%d; y++, dp+=%d)\nmemsets(dp, v, dx);\n",
 static int
 chardraw(Memdrawparam *par)
 {
-	ulong bits;
+	uint32_t bits;
 	int i, ddepth, dy, dx, x, bx, ex, y, npack, bsh, depth, op;
-	ulong v, maskwid, dstwid;
+	uint32_t v, maskwid, dstwid;
 	uchar *wp, *rp, *q, *wc;
 	ushort *ws;
-	ulong *wl;
+	uint32_t *wl;
 	uchar sp[4];
 	Rectangle r, mr;
 	Memimage *mask, *src, *dst;
@@ -2408,13 +2408,13 @@ if(0) if(drawdebug) iprint("chardraw? mf %lux md %d sf %lux dxs %d dys %d dd %d 
 //if(drawdebug) iprint("chardraw...");
 
 	depth = mask->depth;
-	maskwid = mask->width*sizeof(ulong);
+	maskwid = mask->width*sizeof(uint32_t);
 	rp = byteaddr(mask, mr.min);
 	npack = 8/depth;
 	bsh = (mr.min.x % npack) * depth;
 
 	wp = byteaddr(dst, r.min);
-	dstwid = dst->width*sizeof(ulong);
+	dstwid = dst->width*sizeof(uint32_t);
 DBG print("bsh %d\n", bsh);
 	dy = Dy(r);
 	dx = Dx(r);
@@ -2486,8 +2486,8 @@ DBG print("bits %lux sh %d...", bits, i);
 			}
 			break;
 		case 32:
-			wl = (ulong*)wp;
-			v = *(ulong*)sp;
+			wl = (uint32_t*)wp;
+			v = *(uint32_t*)sp;
 			for(x=bx; x>ex; x--, wl++){
 				i = x&7;
 				if(i == 8-1)
@@ -2532,9 +2532,9 @@ membyteval(Memimage *src)
  */
 
 void
-_memfillcolor(Memimage *i, ulong val)
+_memfillcolor(Memimage *i, uint32_t val)
 {
-	ulong bits;
+	uint32_t bits;
 	int d, y;
 
 	if(val == DNofill)

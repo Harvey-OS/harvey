@@ -12,7 +12,7 @@
 
 extern	jmp_buf	mainloop;
 
-char	errfile[64];
+int8_t	errfile[64];
 String	plan9cmd;	/* null terminated */
 Buffer	plan9buf;
 void	checkerrs(void);
@@ -20,11 +20,11 @@ void	checkerrs(void);
 int
 plan9(File *f, int type, String *s, int nest)
 {
-	long l;
+	int32_t l;
 	int m;
 	int pid, fd;
 	int retcode;
-	char *retmsg;
+	int8_t *retmsg;
 	int pipe1[2], pipe2[2];
 
 	if(s->s[0]==0 && plan9cmd.s[0]==0)
@@ -74,7 +74,7 @@ plan9(File *f, int type, String *s, int nest)
 				close(pipe2[0]);
 				io = pipe2[1];
 				if(retcode=!setjmp(mainloop)){	/* assignment = */
-					char *c;
+					int8_t *c;
 					for(l = 0; l<plan9buf.nc; l+=m){
 						m = plan9buf.nc-l;
 						if(m>BLOCKSIZE-1)
@@ -139,13 +139,13 @@ plan9(File *f, int type, String *s, int nest)
 void
 checkerrs(void)
 {
-	char buf[256];
+	int8_t buf[256];
 	int f, n, nl;
-	char *p;
-	long l;
+	int8_t *p;
+	int32_t l;
 
 	if(statfile(errfile, 0, 0, 0, &l, 0) > 0 && l != 0){
-		if((f=open((char *)errfile, 0)) != -1){
+		if((f=open((int8_t *)errfile, 0)) != -1){
 			if((n=read(f, buf, sizeof buf-1)) > 0){
 				for(nl=0,p=buf; nl<3 && p<&buf[n]; p++)
 					if(*p=='\n')
@@ -158,5 +158,5 @@ checkerrs(void)
 			close(f);
 		}
 	}else
-		remove((char *)errfile);
+		remove((int8_t *)errfile);
 }

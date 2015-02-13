@@ -69,7 +69,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
-	ulong x;
+	uint32_t x;
 
 	mode = vga->mode;
 
@@ -198,7 +198,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	ulong l;
+	uint32_t l;
 
 	/*
 	 * Ensure there are no glitches when selecting a new

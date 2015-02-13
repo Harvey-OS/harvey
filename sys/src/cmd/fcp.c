@@ -16,14 +16,14 @@ int	failed;
 int	gflag;
 int	uflag;
 int	xflag;
-void	copy(char *from, char *to, int todir);
-int	copy1(int fdf, int fdt, char *from, char *to);
-void	worker(int fdf, int fdt, char *from, char *to);
-vlong	nextoff(void);
-void	failure(void *, char *note);
+void	copy(int8_t *from, int8_t *to, int todir);
+int	copy1(int fdf, int fdt, int8_t *from, int8_t *to);
+void	worker(int fdf, int fdt, int8_t *from, int8_t *to);
+int64_t	nextoff(void);
+void	failure(void *, int8_t *note);
 
 QLock	lk;
-vlong	off;
+int64_t	off;
 
 void
 main(int argc, char *argv[])
@@ -69,7 +69,7 @@ usage:
 }
 
 int
-samefile(Dir *a, char *an, char *bn)
+samefile(Dir *a, int8_t *an, int8_t *bn)
 {
 	Dir *b;
 	int ret;
@@ -90,14 +90,14 @@ samefile(Dir *a, char *an, char *bn)
 }
 
 void
-copy(char *from, char *to, int todir)
+copy(int8_t *from, int8_t *to, int todir)
 {
 	Dir *dirb, dirt;
-	char name[256];
+	int8_t name[256];
 	int fdf, fdt, mode;
 
 	if(todir){
-		char *s, *elem;
+		int8_t *s, *elem;
 		elem=s=from;
 		while(*s++)
 			if(s[-1]=='/')
@@ -158,7 +158,7 @@ copy(char *from, char *to, int todir)
 }
 
 int
-copy1(int fdf, int fdt, char *from, char *to)
+copy1(int fdf, int fdt, int8_t *from, int8_t *to)
 {
 	int i, n, rv, pid[Nwork];
 	Waitmsg *w;
@@ -198,11 +198,11 @@ copy1(int fdf, int fdt, char *from, char *to)
 }
 
 void
-worker(int fdf, int fdt, char *from, char *to)
+worker(int fdf, int fdt, int8_t *from, int8_t *to)
 {
-	char buf[DEFB], *bp;
-	long len, n;
-	vlong o;
+	int8_t buf[DEFB], *bp;
+	int32_t len, n;
+	int64_t o;
 
 	len = sizeof(buf);
 	bp = buf;
@@ -229,10 +229,10 @@ worker(int fdf, int fdt, char *from, char *to)
 	_exits(nil);
 }
 
-vlong
+int64_t
 nextoff(void)
 {
-	vlong o;
+	int64_t o;
 
 	qlock(&lk);
 	o = off;
@@ -243,7 +243,7 @@ nextoff(void)
 }
 
 void
-failure(void*, char *note)
+failure(void*, int8_t *note)
 {
 	if(strcmp(note, "failure") == 0)
 		_exits(nil);

@@ -14,13 +14,13 @@
 
 #include	"errstr.h"
 
-ulong	kerndate;
+uint32_t	kerndate;
 Proc	**privup;
-char	*eve;
+int8_t	*eve;
 extern void *mainmem;
 
 void
-_assert(char *fmt)
+_assert(int8_t *fmt)
 {
 	panic("assert failed: %s", fmt);
 }
@@ -34,7 +34,7 @@ errdepth(int ed)
 }
 
 void
-newup(char *name)
+newup(int8_t *name)
 {
 	up = smalloc(sizeof(Proc));
 	up->user = eve;
@@ -43,7 +43,7 @@ newup(char *name)
 }
 
 void
-kproc(char *name, void (*f)(void *), void *a)
+kproc(int8_t *name, void (*f)(void *), void *a)
 {
 	int pid;
 
@@ -80,7 +80,7 @@ initcompat(void)
 }
 
 int
-openmode(ulong o)
+openmode(uint32_t o)
 {
 	o &= ~(OTRUNC|OCEXEC|ORCLOSE);
 	if(o > OEXEC)
@@ -91,10 +91,10 @@ openmode(ulong o)
 }
 
 void
-panic(char *fmt, ...)
+panic(int8_t *fmt, ...)
 {
-	char buf[512];
-	char buf2[512];
+	int8_t buf[512];
+	int8_t buf2[512];
 	va_list va;
 
 	va_start(va, fmt);
@@ -107,7 +107,7 @@ panic(char *fmt, ...)
 }
 
 void*
-smalloc(ulong n)
+smalloc(uint32_t n)
 {
 	void *p;
 
@@ -118,14 +118,14 @@ smalloc(ulong n)
 	return p;
 }
 
-long
+int32_t
 seconds(void)
 {
 	return time(nil);
 }
 
 void
-error(char *err)
+error(int8_t *err)
 {
 	strncpy(up->error, err, ERRMAX);
 	nexterror();
@@ -138,7 +138,7 @@ nexterror(void)
 }
 
 int
-readstr(ulong off, char *buf, ulong n, char *str)
+readstr(uint32_t off, int8_t *buf, uint32_t n, int8_t *str)
 {
 	int size;
 

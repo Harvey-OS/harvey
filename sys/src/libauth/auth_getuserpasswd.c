@@ -17,7 +17,7 @@ enum {
 };
 
 static int
-dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
+dorpc(AuthRpc *rpc, int8_t *verb, int8_t *val, int len, AuthGetkey *getkey)
 {
 	int ret;
 
@@ -32,10 +32,10 @@ dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
 }
 
 UserPasswd*
-auth_getuserpasswd(AuthGetkey *getkey, char *fmt, ...)
+auth_getuserpasswd(AuthGetkey *getkey, int8_t *fmt, ...)
 {
 	AuthRpc *rpc;
-	char *f[3], *p, *params;
+	int8_t *f[3], *p, *params;
 	int fd;
 	va_list arg;
 	UserPasswd *up;
@@ -69,7 +69,7 @@ auth_getuserpasswd(AuthGetkey *getkey, char *fmt, ...)
 	up = malloc(sizeof(*up)+rpc->narg+1);
 	if(up == nil)
 		goto out;
-	p = (char*)&up[1];
+	p = (int8_t*)&up[1];
 	strcpy(p, f[0]);
 	up->user = p;
 	p += strlen(p)+1;

@@ -63,20 +63,20 @@
 #include "gp_mswin.h"
 
 /* Library routines not declared in a standard header */
-extern char *getenv(const char *);
+extern int8_t *getenv(const int8_t *);
 
 /* limits */
 #define MAXSTR 255
 
 /* GLOBAL VARIABLE that needs to be removed */
-char win_prntmp[MAXSTR];	/* filename of PRN temporary file */
+int8_t win_prntmp[MAXSTR];	/* filename of PRN temporary file */
 
 /* GLOBAL VARIABLES - initialised at DLL load time */
 HINSTANCE phInstance;
 BOOL is_win32s = FALSE;
 
 const LPSTR szAppName = "Ghostscript";
-private int is_printer(const char *name);
+private int is_printer(const int8_t *name);
 
 
 /* ====== Generic platform procedures ====== */
@@ -122,13 +122,13 @@ int gp_cache_query(int type, byte* key, int keylen, void **buffer,
 /* ------ Printer accessing ------ */
 
 /* Forward references */
-private int gp_printfile(const char *, const char *);
+private int gp_printfile(const int8_t *, const int8_t *);
 
 /* Open a connection to a printer.  A null file name means use the */
 /* standard printer connected to the machine, if any. */
 /* Return NULL if the connection could not be opened. */
 FILE *
-gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
+gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
 {
     if (is_printer(fname)) {
 	FILE *pfile;
@@ -146,7 +146,7 @@ gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 
 /* Close the connection to the printer. */
 void
-gp_close_printer(FILE * pfile, const char *fname)
+gp_close_printer(FILE * pfile, const int8_t *fname)
 {
     fclose(pfile);
     if (!is_printer(fname))
@@ -191,9 +191,9 @@ SpoolDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 /* return TRUE if queue looks like a valid printer name */
 int
-is_spool(const char *queue)
+is_spool(const int8_t *queue)
 {
-    char *prefix = "\\\\spool";	/* 7 characters long */
+    int8_t *prefix = "\\\\spool";	/* 7 characters long */
     int i;
 
     for (i = 0; i < 7; i++) {
@@ -211,9 +211,9 @@ is_spool(const char *queue)
 
 
 private int
-is_printer(const char *name)
+is_printer(const int8_t *name)
 {
-    char buf[128];
+    int8_t buf[128];
 
     /* is printer if no name given */
     if (strlen(name) == 0)
@@ -241,10 +241,10 @@ is_printer(const char *name)
 /* and didn't provide the spooler interface in Win32s */
 
 /* Win95, WinNT: Use OpenPrinter, WritePrinter etc. */
-private int gp_printfile_win32(const char *filename, char *port);
+private int gp_printfile_win32(const int8_t *filename, int8_t *port);
 
 /* Win32s: Pass to Win16 spooler via gs16spl.exe */
-private int gp_printfile_gs16spl(const char *filename, const char *port);
+private int gp_printfile_gs16spl(const int8_t *filename, const int8_t *port);
 
 /*
  * Valid values for pmport are:
@@ -263,13 +263,13 @@ private int gp_printfile_gs16spl(const char *filename, const char *port);
  */
 /* Print File */
 private int
-gp_printfile(const char *filename, const char *pmport)
+gp_printfile(const int8_t *filename, const int8_t *pmport)
 {
     /* treat WinNT and Win95 differently to Win32s */
     if (!is_win32s) {
 	if (strlen(pmport) == 0) {	/* get default printer */
-	    char buf[256];
-	    char *p;
+	    int8_t buf[256];
+	    int8_t *p;
 
 	    /* WinNT stores default printer in registry and win.ini */
 	    /* Win95 stores default printer in win.ini */
@@ -279,9 +279,9 @@ gp_printfile(const char *filename, const char *pmport)
 	    return gp_printfile_win32(filename, buf);
 	} else if (is_spool(pmport)) {
 	    if (strlen(pmport) >= 8)
-		return gp_printfile_win32(filename, (char *)pmport + 8);
+		return gp_printfile_win32(filename, (int8_t *)pmport + 8);
 	    else
-		return gp_printfile_win32(filename, (char *)NULL);
+		return gp_printfile_win32(filename, (int8_t *)NULL);
 	} else
 	    return gp_printfile_gs16spl(filename, pmport);
     } else {
@@ -289,15 +289,15 @@ gp_printfile(const char *filename, const char *pmport)
 	if (is_spool(pmport)) {
 	    if (strlen(pmport) >= 8) {
 		/* extract port name from win.ini */
-		char driverbuf[256];
-		char *output;
+		int8_t driverbuf[256];
+		int8_t *output;
 
 		GetProfileString("Devices", pmport + 8, "", driverbuf, sizeof(driverbuf));
 		strtok(driverbuf, ",");
 		output = strtok(NULL, ",");
 		return gp_printfile_gs16spl(filename, output);
 	    } else
-		return gp_printfile_gs16spl(filename, (char *)NULL);
+		return gp_printfile_gs16spl(filename, (int8_t *)NULL);
 	} else
 	    return gp_printfile_gs16spl(filename, pmport);
     }
@@ -306,31 +306,31 @@ gp_printfile(const char *filename, const char *pmport)
 #define PRINT_BUF_SIZE 16384u
 #define PORT_BUF_SIZE 4096
 
-char *
+int8_t *
 get_queues(void)
 {
     int i;
     DWORD count, needed;
     PRINTER_INFO_1 *prinfo;
-    char *enumbuffer;
-    char *buffer;
-    char *p;
+    int8_t *enumbuffer;
+    int8_t *buffer;
+    int8_t *p;
 
     /* enumerate all available printers */
     EnumPrinters(PRINTER_ENUM_CONNECTIONS | PRINTER_ENUM_LOCAL, NULL, 1, NULL, 0, &needed, &count);
     if (needed == 0) {
 	/* no printers */
 	enumbuffer = malloc(4);
-	if (enumbuffer == (char *)NULL)
+	if (enumbuffer == (int8_t *)NULL)
 	    return NULL;
 	memset(enumbuffer, 0, 4);
 	return enumbuffer;
     }
     enumbuffer = malloc(needed);
-    if (enumbuffer == (char *)NULL)
+    if (enumbuffer == (int8_t *)NULL)
 	return NULL;
     if (!EnumPrinters(PRINTER_ENUM_CONNECTIONS | PRINTER_ENUM_LOCAL, NULL, 1, (LPBYTE) enumbuffer, needed, &needed, &count)) {
-	char buf[256];
+	int8_t buf[256];
 
 	free(enumbuffer);
 	sprintf(buf, "EnumPrinters() failed, error code = %d", GetLastError());
@@ -338,7 +338,7 @@ get_queues(void)
 	return NULL;
     }
     prinfo = (PRINTER_INFO_1 *) enumbuffer;
-    if ((buffer = malloc(PORT_BUF_SIZE)) == (char *)NULL) {
+    if ((buffer = malloc(PORT_BUF_SIZE)) == (int8_t *)NULL) {
 	free(enumbuffer);
 	return NULL;
     }
@@ -356,15 +356,15 @@ get_queues(void)
 }
 
 
-char *
+int8_t *
 get_ports(void)
 {
-    char *buffer;
+    int8_t *buffer;
 
     if (!is_win32s)
 	return get_queues();
 
-    if ((buffer = malloc(PORT_BUF_SIZE)) == (char *)NULL)
+    if ((buffer = malloc(PORT_BUF_SIZE)) == (int8_t *)NULL)
 	return NULL;
     GetProfileString("ports", NULL, "", buffer, PORT_BUF_SIZE);
     return buffer;
@@ -374,16 +374,16 @@ get_ports(void)
 /* return FALSE if cancelled or error */
 /* if queue non-NULL, use as suggested queue */
 BOOL
-get_queuename(char *portname, const char *queue)
+get_queuename(int8_t *portname, const int8_t *queue)
 {
-    char *buffer;
-    char *p;
+    int8_t *buffer;
+    int8_t *p;
     int i, iport;
 
     buffer = get_queues();
     if (buffer == NULL)
 	return FALSE;
-    if ((queue == (char *)NULL) || (strlen(queue) == 0)) {
+    if ((queue == (int8_t *)NULL) || (strlen(queue) == 0)) {
 	/* select a queue */
 	iport = DialogBoxParam(phInstance, "QueueDlgBox", (HWND) NULL, SpoolDlgProc, (LPARAM) buffer);
 	if (!iport) {
@@ -410,18 +410,18 @@ get_queuename(char *portname, const char *queue)
 /* return FALSE if cancelled or error */
 /* if port non-NULL, use as suggested port */
 BOOL
-get_portname(char *portname, const char *port)
+get_portname(int8_t *portname, const int8_t *port)
 {
-    char *buffer;
-    char *p;
+    int8_t *buffer;
+    int8_t *p;
     int i, iport;
-    char filename[MAXSTR];
+    int8_t filename[MAXSTR];
 
     buffer = get_ports();
     if (buffer == NULL)
 	return FALSE;
-    if ((port == (char *)NULL) || (strlen(port) == 0)) {
-	if (buffer == (char *)NULL)
+    if ((port == (int8_t *)NULL) || (strlen(port) == 0)) {
+	if (buffer == (int8_t *)NULL)
 	    return FALSE;
 	/* select a port */
 	iport = DialogBoxParam(phInstance, "SpoolDlgBox", (HWND) NULL, SpoolDlgProc, (LPARAM) buffer);
@@ -461,11 +461,11 @@ get_portname(char *portname, const char *port)
 
 /* True Win32 method, using OpenPrinter, WritePrinter etc. */
 private int
-gp_printfile_win32(const char *filename, char *port)
+gp_printfile_win32(const int8_t *filename, int8_t *port)
 {
     DWORD count;
-    char *buffer;
-    char portname[MAXSTR];
+    int8_t *buffer;
+    int8_t portname[MAXSTR];
     FILE *f;
     HANDLE printer;
     DOC_INFO_1 di;
@@ -475,7 +475,7 @@ gp_printfile_win32(const char *filename, char *port)
 	return FALSE;
     port = portname + 8;	/* skip over \\spool\ */
 
-    if ((buffer = malloc(PRINT_BUF_SIZE)) == (char *)NULL)
+    if ((buffer = malloc(PRINT_BUF_SIZE)) == (int8_t *)NULL)
 	return FALSE;
 
     if ((f = fopen(filename, "rb")) == (FILE *) NULL) {
@@ -484,7 +484,7 @@ gp_printfile_win32(const char *filename, char *port)
     }
     /* open a printer */
     if (!OpenPrinter(port, &printer, NULL)) {
-	char buf[256];
+	int8_t buf[256];
 
 	sprintf(buf, "OpenPrinter() failed for \042%s\042, error code = %d", port, GetLastError());
 	MessageBox((HWND) NULL, buf, szAppName, MB_OK | MB_ICONSTOP);
@@ -497,7 +497,7 @@ gp_printfile_win32(const char *filename, char *port)
     di.pOutputFile = NULL;
     di.pDatatype = "RAW";	/* for available types see EnumPrintProcessorDatatypes */
     if (!StartDocPrinter(printer, 1, (LPBYTE) & di)) {
-	char buf[256];
+	int8_t buf[256];
 
 	sprintf(buf, "StartDocPrinter() failed, error code = %d", GetLastError());
 	MessageBox((HWND) NULL, buf, szAppName, MB_OK | MB_ICONSTOP);
@@ -518,7 +518,7 @@ gp_printfile_win32(const char *filename, char *port)
     free(buffer);
 
     if (!EndDocPrinter(printer)) {
-	char buf[256];
+	int8_t buf[256];
 
 	sprintf(buf, "EndDocPrinter() failed, error code = %d", GetLastError());
 	MessageBox((HWND) NULL, buf, szAppName, MB_OK | MB_ICONSTOP);
@@ -526,7 +526,7 @@ gp_printfile_win32(const char *filename, char *port)
 	return FALSE;
     }
     if (!ClosePrinter(printer)) {
-	char buf[256];
+	int8_t buf[256];
 
 	sprintf(buf, "ClosePrinter() failed, error code = %d", GetLastError());
 	MessageBox((HWND) NULL, buf, szAppName, MB_OK | MB_ICONSTOP);
@@ -540,13 +540,13 @@ gp_printfile_win32(const char *filename, char *port)
 /* Intended for Win32s where 16-bit spooler functions are not available */
 /* and Win32 spooler functions are not implemented. */
 int
-gp_printfile_gs16spl(const char *filename, const char *port)
+gp_printfile_gs16spl(const int8_t *filename, const int8_t *port)
 {
 /* Get printer port list from win.ini */
-    char portname[MAXSTR];
+    int8_t portname[MAXSTR];
     HINSTANCE hinst;
-    char command[MAXSTR];
-    char *p;
+    int8_t command[MAXSTR];
+    int8_t *p;
     HWND hwndspl;
 
     if (!get_portname(portname, port))
@@ -554,7 +554,7 @@ gp_printfile_gs16spl(const char *filename, const char *port)
 
     /* get path to EXE - same as DLL */
     GetModuleFileName(phInstance, command, sizeof(command));
-    if ((p = strrchr(command, '\\')) != (char *)NULL)
+    if ((p = strrchr(command, '\\')) != (int8_t *)NULL)
 	p++;
     else
 	p = command;
@@ -564,7 +564,7 @@ gp_printfile_gs16spl(const char *filename, const char *port)
 
     hinst = (HINSTANCE) WinExec(command, SW_SHOWNORMAL);
     if (hinst < (HINSTANCE) HINSTANCE_ERROR) {
-	char buf[MAXSTR];
+	int8_t buf[MAXSTR];
 
 	sprintf(buf, "Can't run: %s", command);
 	MessageBox((HWND) NULL, buf, szAppName, MB_OK | MB_ICONSTOP);
@@ -585,7 +585,7 @@ gp_printfile_gs16spl(const char *filename, const char *port)
  * Unfortunately MSVC5 and 6 have a broken implementation of _popen, 
  * so we use own.  Our implementation only supports mode "wb".
  */
-FILE *mswin_popen(const char *cmd, const char *mode)
+FILE *mswin_popen(const int8_t *cmd, const int8_t *mode)
 {
     SECURITY_ATTRIBUTES saAttr;
     STARTUPINFO siStartInfo;
@@ -597,7 +597,7 @@ FILE *mswin_popen(const char *cmd, const char *mode)
     HANDLE hChildStderrWr = INVALID_HANDLE_VALUE;
     HANDLE hProcess = GetCurrentProcess();
     int handle = 0;
-    char *command = NULL;
+    int8_t *command = NULL;
     FILE *pipe = NULL;
 
     if (strcmp(mode, "wb") != 0)
@@ -643,7 +643,7 @@ FILE *mswin_popen(const char *cmd, const char *mode)
     siStartInfo.hStdError = hChildStderrWr;
 
     if (handle == 0) {
-	command = (char *)malloc(strlen(cmd)+1);
+	command = (int8_t *)malloc(strlen(cmd)+1);
 	if (command)
 	    strcpy(command, cmd);
 	else
@@ -667,7 +667,7 @@ FILE *mswin_popen(const char *cmd, const char *mode)
 	else {
 	    CloseHandle(piProcInfo.hProcess);
 	    CloseHandle(piProcInfo.hThread);
-	    handle = _open_osfhandle((long)hChildStdinWr, 0);
+	    handle = _open_osfhandle((int32_t)hChildStdinWr, 0);
 	}
 
     if (hChildStdinRd != INVALID_HANDLE_VALUE)
@@ -697,15 +697,15 @@ FILE *mswin_popen(const char *cmd, const char *mode)
 /* Create and open a scratch file with a given name prefix. */
 /* Write the actual file name at fname. */
 FILE *
-gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
+gp_open_scratch_file(const int8_t *prefix, int8_t *fname, const int8_t *mode)
 {
     UINT n;
     DWORD l;
     HANDLE hfile = INVALID_HANDLE_VALUE;
     int fd = -1;
     FILE *f = NULL;
-    char sTempDir[_MAX_PATH];
-    char sTempFileName[_MAX_PATH];
+    int8_t sTempDir[_MAX_PATH];
+    int8_t sTempFileName[_MAX_PATH];
 
     memset(fname, 0, gp_file_name_sizeof);
     if (!gp_file_name_is_absolute(prefix, strlen(prefix))) {
@@ -759,7 +759,7 @@ gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
     }
     if (hfile != INVALID_HANDLE_VALUE) {
 	/* Associate a C file handle with an OS file handle. */
-	fd = _open_osfhandle((long)hfile, 0);
+	fd = _open_osfhandle((int32_t)hfile, 0);
 	if (fd == -1)
 	    CloseHandle(hfile);
 	else {
@@ -785,7 +785,7 @@ gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
 
 /* Open a file with the given name, as a stream of uninterpreted bytes. */
 FILE *
-gp_fopen(const char *fname, const char *mode)
+gp_fopen(const int8_t *fname, const int8_t *mode)
 {
     return fopen(fname, mode);
 }
@@ -802,7 +802,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, int8_t **fontname,
+                            int8_t **path)
 {
     return 0;
 }

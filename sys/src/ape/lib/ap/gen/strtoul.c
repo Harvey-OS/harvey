@@ -12,13 +12,13 @@
 #include <limits.h>
 
 unsigned long
-strtoul(const char *nptr, char **endptr, int base)
+strtoul(const int8_t *nptr, int8_t **endptr, int base)
 {
-	const char *p;
+	const int8_t *p;
 	unsigned long n, nn;
 	int c, ovfl, neg, v, ndig;
 
-	p = (char*)nptr;
+	p = (int8_t*)nptr;
 	neg = 0;
 	n = 0;
 	ndig = 0;
@@ -90,7 +90,7 @@ strtoul(const char *nptr, char **endptr, int base)
 	if(ndig == 0)
 		p = nptr;
 	if(endptr)
-		*endptr = (char *)p;
+		*endptr = (int8_t *)p;
 	if(ovfl){
 		errno = ERANGE;
 		return ULONG_MAX;

@@ -80,7 +80,7 @@ vmot(int y) {
 }
 
 struct charent **
-findglyph(int trfid, Rune rune, char *stoken) {
+findglyph(int trfid, Rune rune, int8_t *stoken) {
 	struct charent **cp;
 
 	for (cp = &(troffontab[trfid].charent[RUNEGETGROUP(rune)][RUNEGETCHAR(rune)]); *cp != 0; cp = &((*cp)->next)) {
@@ -98,7 +98,7 @@ findglyph(int trfid, Rune rune, char *stoken) {
  * list of glyphs in bucket.
  */
 void
-glyphout(Rune rune, char *stoken, BOOLEAN specialflag) {
+glyphout(Rune rune, int8_t *stoken, BOOLEAN specialflag) {
 	struct charent **cp;
 	struct troffont *tfp;
 	struct psfent *psfp;
@@ -262,7 +262,7 @@ foundit:
 
 void
 runeout(Rune rune) {
-	char stoken[UTFmax+1];
+	int8_t stoken[UTFmax+1];
 	int i;
 
 	i = runetochar(stoken, &rune);
@@ -271,7 +271,7 @@ runeout(Rune rune) {
 }
 
 void
-specialout(char *stoken) {
+specialout(int8_t *stoken) {
 	Rune rune;
 
 	chartorune(&rune, stoken);
@@ -283,13 +283,13 @@ graphfunc(Biobufhdr *bp) {
 	USED(bp);
 }
 
-long
-nametorune(char *name) {
+int32_t
+nametorune(int8_t *name) {
 	USED(name);
 	return(0);
 }
 
 void
-notavail(char *msg) {
+notavail(int8_t *msg) {
 	fprint(2, "%s is not available at this time.\n", msg);
 }

@@ -18,7 +18,7 @@ usage(void)
 }
 
 struct {
-	char	*resp;
+	int8_t	*resp;
 	int	ok;
 } tab[] =
 {
@@ -34,9 +34,9 @@ struct {
 };
 
 int
-writewithoutcr(int fd, char *p, int i)
+writewithoutcr(int fd, int8_t *p, int i)
 {
-	char *q, *e;
+	int8_t *q, *e;
 
 	/* dump cr's */
 	for(e = p+i; p < e; ){
@@ -55,7 +55,7 @@ writewithoutcr(int fd, char *p, int i)
 }
 
 int
-readln(int fd, char *buf, int n)
+readln(int fd, int8_t *buf, int n)
 {
 	int c, i, sofar;
 
@@ -77,11 +77,11 @@ readln(int fd, char *buf, int n)
 }
 
 void
-docmd(char *cmd, int timeout, int quiet, int consfd)
+docmd(int8_t *cmd, int timeout, int quiet, int consfd)
 {
-	char buf[4096];
+	int8_t buf[4096];
 	int i;
-	char *p, *cp;
+	int8_t *p, *cp;
 
 	if(timeout == 0){
 		if(*cmd == 'd' || *cmd == 'D')

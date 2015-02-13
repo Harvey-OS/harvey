@@ -12,7 +12,7 @@
 #include "sys9.h"
 
 int
-chdir(const char *f)
+chdir(const int8_t *f)
 {
 	int n;
 

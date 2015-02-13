@@ -16,7 +16,7 @@
 static Disk*
 mkwidth(Disk *disk)
 {
-	char buf[40];
+	int8_t buf[40];
 
 	snprint(buf, sizeof buf, "%lld", disk->size);
 	disk->width = strlen(buf);
@@ -43,16 +43,16 @@ mkwidth(Disk *disk)
 typedef struct Table  Table;
 typedef struct Tentry Tentry;
 struct Tentry {
-	uchar	active;			/* active flag */
-	uchar	starth;			/* starting head */
-	uchar	starts;			/* starting sector */
-	uchar	startc;			/* starting cylinder */
-	uchar	type;			/* partition type */
-	uchar	endh;			/* ending head */
-	uchar	ends;			/* ending sector */
-	uchar	endc;			/* ending cylinder */
-	uchar	xlba[4];			/* starting LBA from beginning of disc */
-	uchar	xsize[4];		/* size in sectors */
+	uint8_t	active;			/* active flag */
+	uint8_t	starth;			/* starting head */
+	uint8_t	starts;			/* starting sector */
+	uint8_t	startc;			/* starting cylinder */
+	uint8_t	type;			/* partition type */
+	uint8_t	endh;			/* ending head */
+	uint8_t	ends;			/* ending sector */
+	uint8_t	endc;			/* ending cylinder */
+	uint8_t	xlba[4];			/* starting LBA from beginning of disc */
+	uint8_t	xsize[4];		/* size in sectors */
 };
 enum {
 	Toffset		= 446,		/* offset of partition table in sector */
@@ -62,14 +62,14 @@ enum {
 };
 struct Table {
 	Tentry	entry[NTentry];
-	uchar	magic[2];
+	uint8_t	magic[2];
 };
 static int
 partitiongeometry(Disk *disk)
 {
-	char *rawname;
+	int8_t *rawname;
 	int i, h, rawfd, s;
-	uchar buf[512];
+	uint8_t buf[512];
 	Table *t;
 
 	if(disk->c == 0 || disk->h == 0 || disk->s == 0)
@@ -190,7 +190,7 @@ static int
 guessgeometry(Disk *disk)
 {
 	int i;
-	long c;
+	int32_t c;
 
 	disk->chssrc = Gguess;
 	c = 1024;
@@ -244,7 +244,7 @@ static Disk*
 opensd(Disk *disk)
 {
 	Biobuf b;
-	char *p, *f[10];
+	int8_t *p, *f[10];
 	int nf;
 
 	Binit(&b, disk->ctlfd, OREAD);
@@ -278,9 +278,9 @@ opensd(Disk *disk)
 }
 
 Disk*
-opendisk(char *disk, int rdonly, int noctl)
+opendisk(int8_t *disk, int rdonly, int noctl)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	Disk *d;
 
 	d = mallocz(sizeof(*d), 1);

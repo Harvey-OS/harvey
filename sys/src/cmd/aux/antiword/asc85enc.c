@@ -29,7 +29,7 @@ static const ULONG	aulPower85[5] = {
 	1UL, 85UL, 85UL * 85, 85UL * 85 * 85, 85UL * 85 * 85 * 85,
 };
 static int	iOutBytes = 0;	/* Number of characters in an output line */
-static char	cCharPrev = '\0';
+static int8_t	cCharPrev = '\0';
 
 /*
  * Two percent characters at the start of a line will cause trouble
@@ -61,7 +61,7 @@ vOutputByte(ULONG ulChar, FILE *pOutFile)
 			iOutBytes = 0;
 		}
 	}
-	cCharPrev = (char)ulChar;
+	cCharPrev = (int8_t)ulChar;
 } /* end of vOutputByte */
 
 /*

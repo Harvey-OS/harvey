@@ -34,11 +34,11 @@ becomenone(void)
 		sysfatal("can't build namespace: %r");
 }
 
-char*
-remoteaddr(char *dir)
+int8_t*
+remoteaddr(int8_t *dir)
 {
-	static char buf[128];
-	char *p;
+	static int8_t buf[128];
+	int8_t *p;
 	int n, fd;
 
 	snprint(buf, sizeof buf, "%s/remote", dir);

@@ -37,9 +37,9 @@ usage(void)
 void
 readthread(void *v)
 {
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 	VtReq *r;
-	uchar *buf;
+	uint8_t *buf;
 	int n;
 	
 	r = v;

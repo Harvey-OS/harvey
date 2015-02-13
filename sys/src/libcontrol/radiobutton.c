@@ -40,7 +40,7 @@ enum{
 	EValue,
 };
 
-static char *cmds[] = {
+static int8_t *cmds[] = {
 	[EAdd] =		"add",
 	[EButton] =	"button",
 	[EFocus] = 	"focus",
@@ -95,7 +95,7 @@ radioctl(Control *c, CParse *cp)
 	int cmd, i;
 	Rectangle rect;
 	Radio *r;
-	char fmt[256];
+	int8_t fmt[256];
 
 	r = (Radio*)c;
 
@@ -188,7 +188,7 @@ radioctl(Control *c, CParse *cp)
 }
 
 Control*
-createradiobutton(Controlset *cs, char *name)
+createradiobutton(Controlset *cs, int8_t *name)
 {
 	Radio *r;
 

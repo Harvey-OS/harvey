@@ -14,7 +14,7 @@
 int
 isatty(int fd)
 {
-	char buf[64];
+	int8_t buf[64];
 
 	buf[0] = '\0';
 	fd2path(fd, buf, sizeof buf);
@@ -27,7 +27,7 @@ isatty(int fd)
 #define	ERROR	0x01
 #define	FATAL	0x02
 
-char	*progname;
+int8_t	*progname;
 
 int	dflag;
 int	fflag;
@@ -39,32 +39,33 @@ int	vflag;
 
 int	remote;
 
-char	*exitflag = nil;
+int8_t	*exitflag = nil;
 
-void	scperror(int, char*, ...);
-void	mustbedir(char*);
-void	receive(char*);
-char	*fileaftercolon(char*);
-void	destislocal(char *cmd, int argc, char *argv[], char *dest);
-void	destisremote(char *cmd, int argc, char *argv[], char *host, char *dest);
-int	remotessh(char *host, char *cmd);
-void	send(char*);
-void	senddir(char*, int, Dir*);
+void	scperror(int, int8_t*, ...);
+void	mustbedir(int8_t*);
+void	receive(int8_t*);
+int8_t	*fileaftercolon(int8_t*);
+void	destislocal(int8_t *cmd, int argc, int8_t *argv[], int8_t *dest);
+void	destisremote(int8_t *cmd, int argc, int8_t *argv[],
+			 int8_t *host, int8_t *dest);
+int	remotessh(int8_t *host, int8_t *cmd);
+void	send(int8_t*);
+void	senddir(int8_t*, int, Dir*);
 int 	getresponse(void);
 
-char	theuser[32];
+int8_t	theuser[32];
 
-char	ssh[] = "/bin/ssh";
+int8_t	ssh[] = "/bin/ssh";
 
 int	remotefd0;
 int	remotefd1;
 
 int
-runcommand(char *cmd)
+runcommand(int8_t *cmd)
 {
 	Waitmsg *w;
 	int pid;
-	char *argv[4];
+	int8_t *argv[4];
 
 	if (cmd == nil)
 		return -1;
@@ -96,11 +97,11 @@ runcommand(char *cmd)
 }
 
 void
-vprint(char *fmt, ...)
+vprint(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
-	static char *name;
+	static int8_t *name;
 
 	if(vflag == 0)
 		return;
@@ -141,9 +142,9 @@ flagfmt(Fmt *f)
 int
 valfmt(Fmt *f)
 {
-	char *value;
+	int8_t *value;
 
-	value = va_arg(f->args, char*);
+	value = va_arg(f->args, int8_t*);
 	if(flag)
 		return fmtprint(f, " %s", value);
 	return 0;
@@ -152,7 +153,7 @@ valfmt(Fmt *f)
 void
 sendokresponse(void)
 {
-	char ok = OK;
+	int8_t ok = OK;
 
 	write(remotefd1, &ok, 1);
 }
@@ -255,11 +256,11 @@ main(int argc, char *argv[])
 }
 
 void
-destislocal(char *cmd, int argc, char *argv[], char *dst)
+destislocal(int8_t *cmd, int argc, int8_t *argv[], int8_t *dst)
 {
 	int i;
-	char *src;
-	char buf[4096];
+	int8_t *src;
+	int8_t buf[4096];
 
 	for(i = 0; i<argc; i++){
 		src = fileaftercolon(argv[i]);
@@ -288,11 +289,12 @@ destislocal(char *cmd, int argc, char *argv[], char *dst)
 }
 
 void
-destisremote(char *cmd, int argc, char *argv[], char *host, char *dest)
+destisremote(int8_t *cmd, int argc, int8_t *argv[], int8_t *host,
+	     int8_t *dest)
 {
 	int i;
-	char *src;
-	char buf[4096];
+	int8_t *src;
+	int8_t buf[4096];
 
 	for(i = 0; i < argc; i++){
 		vprint("remote destination: send %s to %s:%s", argv[i], host, dest);
@@ -323,7 +325,7 @@ destisremote(char *cmd, int argc, char *argv[], char *host, char *dest)
 }
 
 void
-readhdr(char *p, int n)
+readhdr(int8_t *p, int n)
 {
 	int i;
 
@@ -342,7 +344,8 @@ readhdr(char *p, int n)
 }
 
 Dir *
-receivedir(char *dir, int exists, Dir *d, int settimes, ulong atime, ulong mtime, ulong mode)
+receivedir(int8_t *dir, int exists, Dir *d, int settimes, uint32_t atime,
+	   uint32_t mtime, uint32_t mode)
 {
 	Dir nd;
 	int setmodes;
@@ -392,14 +395,14 @@ receivedir(char *dir, int exists, Dir *d, int settimes, ulong atime, ulong mtime
 }
 
 void
-receive(char *dest)
+receive(int8_t *dest)
 {
 	int isdir, settimes, mode;
 	int exists, n, i, fd, m;
 	int errors;
-	ulong atime, mtime, size;
-	char buf[8192], *p;
-	char name[1024];
+	uint32_t atime, mtime, size;
+	int8_t buf[8192], *p;
+	int8_t name[1024];
 	Dir *d;
 	Dir nd;
 
@@ -549,10 +552,10 @@ receive(char *dest)
  * has been bound, we want the original name that was used rather than
  * the contents of the stat buffer, so do this lexically.
  */
-char*
-lastelem(char *file)
+int8_t*
+lastelem(int8_t *file)
 {
-	char *elem;
+	int8_t *elem;
 
 	elem = strrchr(file, '/');
 	if(elem == nil)
@@ -561,12 +564,12 @@ lastelem(char *file)
 }
 
 void
-send(char *file)
+send(int8_t *file)
 {
 	Dir *d;
-	ulong i;
+	uint32_t i;
 	int m, n, fd;
-	char buf[8192];
+	int8_t buf[8192];
 
 	if((fd = open(file, OREAD)) < 0){
 		scperror(0, "can't open %s: %r", file);
@@ -631,7 +634,7 @@ send(char *file)
 int
 getresponse(void)
 {
-	uchar first, byte, buf[256];
+	uint8_t first, byte, buf[256];
 	int i;
 
 	if (read(remotefd0, &first, 1) != 1)
@@ -658,7 +661,7 @@ getresponse(void)
 
 	exitflag = "bad response";
 	if(!remote)
-		fprint(2, "%.*s\n", utfnlen((char*)buf, i), (char*)buf);
+		fprint(2, "%.*s\n", utfnlen((int8_t*)buf, i), (int8_t*)buf);
 
 	if (first == ERROR)
 		return -1;
@@ -667,11 +670,11 @@ getresponse(void)
 }
 
 void
-senddir(char *name, int fd, Dir *dirp)
+senddir(int8_t *name, int fd, Dir *dirp)
 {
 	Dir *d, *dir;
 	int n;
-	char file[256];
+	int8_t file[256];
 
 	if(pflag){
 		fprint(remotefd1, "T%lud 0 %lud 0\n", dirp->mtime, dirp->atime);
@@ -702,10 +705,10 @@ senddir(char *name, int fd, Dir *dirp)
 }
 
 int
-remotessh(char *host, char *cmd)
+remotessh(int8_t *host, int8_t *cmd)
 {
 	int i, p[2];
-	char *arg[32];
+	int8_t *arg[32];
 
 	vprint("remotessh: %s: %s", host, cmd);
 
@@ -750,9 +753,9 @@ remotessh(char *host, char *cmd)
 }
 
 void
-scperror(int exit, char *fmt, ...)
+scperror(int exit, int8_t *fmt, ...)
 {
-	char buf[2048];
+	int8_t buf[2048];
 	va_list arg;
 
 
@@ -769,10 +772,10 @@ scperror(int exit, char *fmt, ...)
 		exits(exitflag);
 }
 
-char *
-fileaftercolon(char *file)
+int8_t *
+fileaftercolon(int8_t *file)
 {
-	char *c, *s;
+	int8_t *c, *s;
 
 	c = utfrune(file, ':');
 	if(c == nil)
@@ -794,7 +797,7 @@ fileaftercolon(char *file)
 }
 
 void
-mustbedir(char *file)
+mustbedir(int8_t *file)
 {
 	Dir *d;
 

@@ -8,6 +8,6 @@
  */
 
 #include "mplot.h"
-char *whoami(void){
+int8_t *whoami(void){
 	return("ramtek");
 }

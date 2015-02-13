@@ -12,22 +12,22 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-static long
+static int32_t
 _iodial(va_list *arg)
 {
-	char *addr, *local, *dir;
+	int8_t *addr, *local, *dir;
 	int *cdfp;
 
-	addr = va_arg(*arg, char*);
-	local = va_arg(*arg, char*);
-	dir = va_arg(*arg, char*);
+	addr = va_arg(*arg, int8_t*);
+	local = va_arg(*arg, int8_t*);
+	dir = va_arg(*arg, int8_t*);
 	cdfp = va_arg(*arg, int*);
 
 	return dial(addr, local, dir, cdfp);
 }
 
 int
-iodial(Ioproc *io, char *addr, char *local, char *dir, int *cdfp)
+iodial(Ioproc *io, int8_t *addr, int8_t *local, int8_t *dir, int *cdfp)
 {
 	return iocall(io, _iodial, addr, local, dir, cdfp);
 }

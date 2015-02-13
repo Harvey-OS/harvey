@@ -35,9 +35,9 @@ struct State
 	int	asfd;
 	Ticket	t;
 	Ticketreq tr;
-	char	chal[Maxchal];
+	int8_t	chal[Maxchal];
 	int	challen;
-	char	resp[Maxchal];
+	int8_t	resp[Maxchal];
 	int	resplen;
 };
 
@@ -80,7 +80,7 @@ static int
 p9crinit(Proto *p, Fsstate *fss)
 {
 	int iscli, ret;
-	char *user;
+	int8_t *user;
 	State *s;
 	Attr *attr;
 	Keyinfo ki;
@@ -174,17 +174,17 @@ p9crread(Fsstate *fss, void *va, uint *n)
 static int
 p9response(Fsstate *fss, State *s)
 {
-	char key[DESKEYLEN];
-	uchar buf[8];
-	ulong chal;
-	char *pw;
+	int8_t key[DESKEYLEN];
+	uint8_t buf[8];
+	uint32_t chal;
+	int8_t *pw;
 
 	pw = _strfindattr(s->key->privattr, "!password");
 	if(pw == nil)
 		return failure(fss, "vncresponse cannot happen");
 	passtokey(key, pw);
 	memset(buf, 0, 8);
-	snprint((char*)buf, sizeof buf, "%d", atoi(s->chal));
+	snprint((int8_t*)buf, sizeof buf, "%d", atoi(s->chal));
 	if(encrypt(key, buf, 8) < 0)
 		return failure(fss, "can't encrypt response");
 	chal = (buf[0]<<24)+(buf[1]<<16)+(buf[2]<<8)+buf[3];
@@ -192,7 +192,7 @@ p9response(Fsstate *fss, State *s)
 	return RpcOk;
 }
 
-static uchar tab[256];
+static uint8_t tab[256];
 
 /* VNC reverses the bits of each byte before using as a des key */
 static void
@@ -218,14 +218,14 @@ mktab(void)
 static int
 vncaddkey(Key *k, int before)
 {
-	uchar *p;
-	char *s;
+	uint8_t *p;
+	int8_t *s;
 
 	k->priv = emalloc(8+1);
 	if(s = _strfindattr(k->privattr, "!password")){
 		mktab();
 		memset(k->priv, 0, 8+1);
-		strncpy((char*)k->priv, s, 8);
+		strncpy((int8_t*)k->priv, s, 8);
 		for(p=k->priv; *p; p++)
 			*p = tab[*p];
 	}else{
@@ -248,7 +248,7 @@ vncresponse(Fsstate*, State *s)
 
 	memmove(s->resp, s->chal, sizeof s->chal);
 	setupDESstate(&des, s->key->priv, nil);
-	desECBencrypt((uchar*)s->resp, s->challen, &des);
+	desECBencrypt((uint8_t*)s->resp, s->challen, &des);
 	s->resplen = s->challen;
 	return RpcOk;
 }
@@ -256,11 +256,11 @@ vncresponse(Fsstate*, State *s)
 static int
 p9crwrite(Fsstate *fss, void *va, uint n)
 {
-	char tbuf[TICKETLEN+AUTHENTLEN];
+	int8_t tbuf[TICKETLEN+AUTHENTLEN];
 	State *s;
-	char *data = va;
+	int8_t *data = va;
 	Authenticator a;
-	char resp[Maxchal];
+	int8_t resp[Maxchal];
 	int ret;
 
 	s = fss->ps;
@@ -325,7 +325,7 @@ p9crwrite(Fsstate *fss, void *va, uint n)
 static int
 getchal(State *s, Fsstate *fss)
 {
-	char trbuf[TICKREQLEN];
+	int8_t trbuf[TICKREQLEN];
 	int n;
 
 	safecpy(s->tr.hostid, _strfindattr(s->key->attr, "user"), sizeof(s->tr.hostid));

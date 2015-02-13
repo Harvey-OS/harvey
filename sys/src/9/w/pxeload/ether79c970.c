@@ -74,20 +74,20 @@ enum {					/* CSR15 */
 };
 
 typedef struct {			/* Initialisation Block */
-	ushort	mode;
-	uchar	rlen;			/* upper 4 bits */
-	uchar	tlen;			/* upper 4 bits */
-	uchar	padr[6];
-	uchar	res[2];
-	uchar	ladr[8];
-	ulong	rdra;
-	ulong	tdra;
+	uint16_t	mode;
+	uint8_t	rlen;			/* upper 4 bits */
+	uint8_t	tlen;			/* upper 4 bits */
+	uint8_t	padr[6];
+	uint8_t	res[2];
+	uint8_t	ladr[8];
+	uint32_t	rdra;
+	uint32_t	tdra;
 } Iblock;
 
 typedef struct {			/* descriptor ring entry */
-	ulong	addr;
-	ulong	md1;			/* status|bcnt */
-	ulong	md2;			/* rcc|rpc|mcnt */
+	uint32_t	addr;
+	uint32_t	md1;			/* status|bcnt */
+	uint32_t	md2;			/* rcc|rpc|mcnt */
 	void*	data;
 } Dre;
 
@@ -400,7 +400,7 @@ int
 amd79c970reset(Ether* ether)
 {
 	int x;
-	uchar ea[Eaddrlen];
+	uint8_t ea[Eaddrlen];
 	Ctlr *ctlr;
 
 	if(ctlrhead == nil)

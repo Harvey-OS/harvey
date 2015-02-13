@@ -62,7 +62,7 @@ static void
 clumpstats(Index *ix)
 {
 	int ok;
-	ulong clumps, n;
+	uint32_t clumps, n;
 	int i, j, t;
 
 	ok = 0;

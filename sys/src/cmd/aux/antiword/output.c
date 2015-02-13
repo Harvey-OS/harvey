@@ -25,7 +25,8 @@ static encoding_type	eEncoding = encoding_neutral;
  * vPrologue1 - get options and call a specific initialization
  */
 static void
-vPrologue1(diagram_type *pDiag, const char *szTask, const char *szFilename)
+vPrologue1(diagram_type *pDiag, const int8_t *szTask,
+	   const int8_t *szFilename)
 {
 	options_type	tOptions;
 
@@ -162,7 +163,7 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
  * remark: does not return if the diagram can't be created
  */
 diagram_type *
-pCreateDiagram(const char *szTask, const char *szFilename)
+pCreateDiagram(const int8_t *szTask, const int8_t *szFilename)
 {
 	diagram_type	*pDiag;
 
@@ -257,7 +258,7 @@ vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
  */
 void
 vSubstring2Diagram(diagram_type *pDiag,
-	char *szString, size_t tStringLength, long lStringWidth,
+	int8_t *szString, size_t tStringLength, int32_t lStringWidth,
 	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
 	USHORT usFontSize, USHORT usMaxFontSize)
 {
@@ -295,7 +296,7 @@ vSubstring2Diagram(diagram_type *pDiag,
  * Before indentation, list numbering, bullets etc.
  */
 void
-vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
+vStartOfParagraph1(diagram_type *pDiag, int32_t lBeforeIndentation)
 {
 	fail(pDiag == NULL);
 
@@ -349,7 +350,8 @@ vStartOfParagraph2(diagram_type *pDiag)
  */
 void
 vEndOfParagraph(diagram_type *pDiag,
-	drawfile_fontref tFontRef, USHORT usFontSize, long lAfterIndentation)
+	drawfile_fontref tFontRef, USHORT usFontSize,
+		int32_t lAfterIndentation)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -380,7 +382,7 @@ vEndOfParagraph(diagram_type *pDiag,
  * Create an end of page
  */
 void
-vEndOfPage(diagram_type *pDiag, long lAfterIndentation, BOOL bNewSection)
+vEndOfPage(diagram_type *pDiag, int32_t lAfterIndentation, BOOL bNewSection)
 {
 	switch (eConversionType) {
 	case conversion_text:
@@ -523,8 +525,8 @@ vEndOfTable(diagram_type *pDiag)
  * Returns TRUE when conversion type is XML
  */
 BOOL
-bAddTableRow(diagram_type *pDiag, char **aszColTxt,
-	int iNbrOfColumns, const short *asColumnWidth, UCHAR ucBorderInfo)
+bAddTableRow(diagram_type *pDiag, int8_t **aszColTxt,
+	int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
 {
 	switch (eConversionType) {
 	case conversion_text:

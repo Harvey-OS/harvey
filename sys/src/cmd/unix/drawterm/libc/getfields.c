@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-getfields(char *str, char **args, int max, int mflag, char *set)
+getfields(int8_t *str, int8_t **args, int max, int mflag, int8_t *set)
 {
 	Rune r;
 	int nr, intok, narg;

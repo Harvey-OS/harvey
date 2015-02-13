@@ -15,15 +15,15 @@
 
 
 enum { STACK = 32768 };
-void xxxsrand(long);
-long xxxlrand(void);
+void xxxsrand(int32_t);
+int32_t xxxlrand(void);
 
 Channel *cw;
 Channel *cr;
-char *host;
+int8_t *host;
 int blocksize, seed, randpct;
 int doread, dowrite, packets, permute;
-vlong totalbytes, cur;
+int64_t totalbytes, cur;
 VtConn *z;
 int multi;
 int maxpackets;
@@ -39,16 +39,16 @@ usage(void)
 }
 
 void
-wr(char *buf, char *buf2)
+wr(int8_t *buf, int8_t *buf2)
 {
-	uchar score[VtScoreSize], score2[VtScoreSize];
+	uint8_t score[VtScoreSize], score2[VtScoreSize];
 	DigestState ds;
 
 	USED(buf2);
 	memset(&ds, 0, sizeof ds);
 	if(doublecheck)
-		sha1((uchar*)buf, blocksize, score, &ds);
-	if(vtwrite(z, score2, VtDataType, (uchar*)buf, blocksize) < 0)
+		sha1((uint8_t*)buf, blocksize, score, &ds);
+	if(vtwrite(z, score2, VtDataType, (uint8_t*)buf, blocksize) < 0)
 		sysfatal("vtwrite %V at %,lld: %r", score, cur);
 	if(doublecheck && memcmp(score, score2, VtScoreSize) != 0)
 		sysfatal("score mismatch! %V %V", score, score2);
@@ -57,7 +57,7 @@ wr(char *buf, char *buf2)
 void
 wrthread(void *v)
 {
-	char *p;
+	int8_t *p;
 
 	USED(v);
 	while((p = recvp(cw)) != nil){
@@ -67,14 +67,14 @@ wrthread(void *v)
 }
 
 void
-rd(char *buf, char *buf2)
+rd(int8_t *buf, int8_t *buf2)
 {
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 	DigestState ds;
 
 	memset(&ds, 0, sizeof ds);
-	sha1((uchar*)buf, blocksize, score, &ds);
-	if(vtread(z, score, VtDataType, (uchar*)buf2, blocksize) < 0)
+	sha1((uint8_t*)buf, blocksize, score, &ds);
+	if(vtread(z, score, VtDataType, (uint8_t*)buf2, blocksize) < 0)
 		sysfatal("vtread %V at %,lld: %r", score, cur);
 	if(memcmp(buf, buf2, blocksize) != 0)
 		sysfatal("bad data read! %V", score);
@@ -83,7 +83,7 @@ rd(char *buf, char *buf2)
 void
 rdthread(void *v)
 {
-	char *p, *buf2;
+	int8_t *p, *buf2;
 
 	buf2 = vtmalloc(blocksize);
 	USED(v);
@@ -93,13 +93,13 @@ rdthread(void *v)
 	}
 }
 
-char *template;
+int8_t *template;
 
 void
-run(void (*fn)(char*, char*), Channel *c)
+run(void (*fn)(int8_t*, int8_t*), Channel *c)
 {
 	int i, t, j, packets;
-	char *buf2, *buf;
+	int8_t *buf2, *buf;
 
 	buf2 = vtmalloc(blocksize);
 	buf = vtmalloc(blocksize);
@@ -134,9 +134,9 @@ run(void (*fn)(char*, char*), Channel *c)
 #define TWID64	((u64int)~(u64int)0)
 
 u64int
-unittoull(char *s)
+unittoull(int8_t *s)
 {
-	char *es;
+	int8_t *es;
 	u64int n;
 
 	if(s == nil)
@@ -282,14 +282,14 @@ threadmain(int argc, char *argv[])
 #define	R	3399
 #define	NORM	(1.0/(1.0+MASK))
 
-static	ulong	rng_vec[LEN];
-static	ulong*	rng_tap = rng_vec;
-static	ulong*	rng_feed = 0;
+static	uint32_t	rng_vec[LEN];
+static	uint32_t*	rng_tap = rng_vec;
+static	uint32_t*	rng_feed = 0;
 
 static void
-isrand(long seed)
+isrand(int32_t seed)
 {
-	long lo, hi, x;
+	int32_t lo, hi, x;
 	int i;
 
 	rng_tap = rng_vec;
@@ -315,15 +315,15 @@ isrand(long seed)
 }
 
 void
-xxxsrand(long seed)
+xxxsrand(int32_t seed)
 {
 	isrand(seed);
 }
 
-long
+int32_t
 xxxlrand(void)
 {
-	ulong x;
+	uint32_t x;
 
 	rng_tap--;
 	if(rng_tap < rng_vec) {

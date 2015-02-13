@@ -19,15 +19,16 @@
  *
  *  return 0 if not found.
  */
-char*
-csgetvalue(char *netroot, char *attr, char *val, char *rattr, Ndbtuple **pp)
+int8_t*
+csgetvalue(int8_t *netroot, int8_t *attr, int8_t *val, int8_t *rattr,
+	   Ndbtuple **pp)
 {
 	Ndbtuple *t, *first, *last;
 	int n, linefound;
-	char line[1024];
+	int8_t line[1024];
 	int fd;
 	int oops = 0;
-	char *rv;
+	int8_t *rv;
 
 	if(pp)
 		*pp = nil;
@@ -96,10 +97,11 @@ csgetvalue(char *netroot, char *attr, char *val, char *rattr, Ndbtuple **pp)
 }
 
 Ndbtuple*
-csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
+csgetval(int8_t *netroot, int8_t *attr, int8_t *val, int8_t *rattr,
+	 int8_t *buf)
 {
 	Ndbtuple *t;
-	char *p;
+	int8_t *p;
 
 	p = csgetvalue(netroot, attr, val, rattr, &t);
 	if(p == nil){

@@ -10,7 +10,7 @@
 #include "headers.h"
 
 static int
-sendresponse(void *magic, SmbBuffer *, char **errmsgp)
+sendresponse(void *magic, SmbBuffer *, int8_t **errmsgp)
 {
 	int rv;
 	SmbSession *s = magic;
@@ -33,10 +33,10 @@ SmbTransactionMethod smbtransactionmethod2 = {
 };
 
 int
-smbcomtransaction(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomtransaction(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	int rv;
-	char *errmsg;
+	int8_t *errmsg;
 	SmbProcessResult pr = SmbProcessResultDie;
 	errmsg = nil;
 	rv = smbtransactiondecodeprimary(&s->transaction, h, pdata, b, &errmsg);
@@ -67,7 +67,7 @@ smbcomtransaction(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 		goto done;
 	}
 	if (pr == SmbProcessResultReply) {
-		char *errmsg;
+		int8_t *errmsg;
 		errmsg = nil;
 		rv = smbtransactionrespond(&s->transaction, h, &s->peerinfo, s->response, &smbtransactionmethod, s, &errmsg);
 		if (!rv) {
@@ -83,12 +83,12 @@ done:
 }
 
 int
-smbcomtransaction2(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomtransaction2(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	int rv;
-	char *errmsg;
+	int8_t *errmsg;
 	SmbProcessResult pr = SmbProcessResultDie;
-	ushort op;
+	uint16_t op;
 
 	errmsg = nil;
 	rv = smbtransactiondecodeprimary2(&s->transaction, h, pdata, b, &errmsg);
@@ -127,7 +127,7 @@ smbcomtransaction2(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 	}
 	pr = (*smbtrans2optable[op].process)(s, h);
 	if (pr == SmbProcessResultReply) {
-		char *errmsg;
+		int8_t *errmsg;
 		errmsg = nil;
 		rv = smbtransactionrespond(&s->transaction, h, &s->peerinfo, s->response, &smbtransactionmethod2, s, &errmsg);
 		if (!rv) {

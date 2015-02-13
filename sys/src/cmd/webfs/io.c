@@ -20,27 +20,27 @@
 #include "dat.h"
 #include "fns.h"
 
-static long
+static int32_t
 _iovfprint(va_list *arg)
 {
 	int fd;
-	char *fmt;
+	int8_t *fmt;
 	va_list arg2;
 
 	fd = va_arg(*arg, int);
-	fmt = va_arg(*arg, char*);
+	fmt = va_arg(*arg, int8_t*);
 	arg2 = va_arg(*arg, va_list);
 	return vfprint(fd, fmt, arg2);
 }
 
 int
-iovfprint(Ioproc *io, int fd, char *fmt, va_list arg)
+iovfprint(Ioproc *io, int fd, int8_t *fmt, va_list arg)
 {
 	return iocall(io, _iovfprint, fd, fmt, arg);
 }
 
 int
-ioprint(Ioproc *io, int fd, char *fmt, ...)
+ioprint(Ioproc *io, int fd, int8_t *fmt, ...)
 {
 	int n;
 	va_list arg;
@@ -51,16 +51,16 @@ ioprint(Ioproc *io, int fd, char *fmt, ...)
 	return n;
 }
 
-static long
+static int32_t
 _iotlsdial(va_list *arg)
 {
-	char *addr, *local, *dir;
+	int8_t *addr, *local, *dir;
 	int *cfdp, fd, tfd, usetls;
 	TLSconn conn;
 
-	addr = va_arg(*arg, char*);
-	local = va_arg(*arg, char*);
-	dir = va_arg(*arg, char*);
+	addr = va_arg(*arg, int8_t*);
+	local = va_arg(*arg, int8_t*);
+	dir = va_arg(*arg, int8_t*);
 	cfdp = va_arg(*arg, int*);
 	usetls = va_arg(*arg, int);
 
@@ -87,7 +87,8 @@ _iotlsdial(va_list *arg)
 }
 
 int
-iotlsdial(Ioproc *io, char *addr, char *local, char *dir, int *cfdp, int usetls)
+iotlsdial(Ioproc *io, int8_t *addr, int8_t *local, int8_t *dir, int *cfdp,
+	  int usetls)
 {
 	return iocall(io, _iotlsdial, addr, local, dir, cfdp, usetls);
 }

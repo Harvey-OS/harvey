@@ -15,7 +15,7 @@
 #include "9p.h"
 
 void*
-emalloc9p(ulong sz)
+emalloc9p(uint32_t sz)
 {
 	void *v;
 
@@ -29,7 +29,7 @@ emalloc9p(ulong sz)
 }
 
 void*
-erealloc9p(void *v, ulong sz)
+erealloc9p(void *v, uint32_t sz)
 {
 	if((v = realloc(v, sz)) == nil) {
 		fprint(2, "out of memory allocating %lud\n", sz);
@@ -39,10 +39,10 @@ erealloc9p(void *v, ulong sz)
 	return v;
 }
 
-char*
-estrdup9p(char *s)
+int8_t*
+estrdup9p(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 
 	if((t = strdup(s)) == nil) {
 		fprint(2, "out of memory in strdup(%.10s)\n", s);

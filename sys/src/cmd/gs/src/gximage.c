@@ -260,7 +260,7 @@ private void
 debug_b_print_decode(const gs_pixel_image_t *pim, int num_decode)
 {
     if (gs_debug_c('b')) {
-	const char *str = "      Decode=[";
+	const int8_t *str = "      Decode=[";
 	int i;
 
 	for (i = 0; i < num_decode; str = " ", ++i)

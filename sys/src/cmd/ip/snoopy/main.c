@@ -29,7 +29,7 @@ int sflag;
 int tiflag;
 int toflag;
 
-char *prom = "promiscuous";
+int8_t *prom = "promiscuous";
 
 enum
 {
@@ -40,17 +40,17 @@ enum
 Filter *filter;
 Proto *root;
 Biobuf out;
-vlong starttime, pkttime;
+int64_t starttime, pkttime;
 int pcap;
 
-int	filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr, int);
-void	printpkt(char *p, char *e, uchar *ps, uchar *pe);
+int	filterpkt(Filter *f, uint8_t *ps, uint8_t *pe, Proto *pr, int);
+void	printpkt(int8_t *p, int8_t *e, uint8_t *ps, uint8_t *pe);
 void	mkprotograph(void);
-Proto*	findproto(char *name);
+Proto*	findproto(int8_t *name);
 Filter*	compile(Filter *f);
-void	printfilter(Filter *f, char *tag);
-void	printhelp(char*);
-void	tracepkt(uchar*, int);
+void	printfilter(Filter *f, int8_t *tag);
+void	printhelp(int8_t*);
+void	tracepkt(uint8_t*, int);
 void	pcaphdr(void);
 
 void
@@ -263,7 +263,7 @@ _filterpkt(Filter *f, Msg *m)
 	return 0;
 }
 int
-filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr, int needroot)
+filterpkt(Filter *f, uint8_t *ps, uint8_t *pe, Proto *pr, int needroot)
 {
 	Msg m;
 
@@ -285,19 +285,19 @@ filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr, int needroot)
 #define TCPDUMP_MAGIC 0xa1b2c3d4
 
 struct pcap_file_header {
-	ulong		magic;
-	ushort		version_major;
-	ushort		version_minor;
-	long		thiszone;    /* gmt to local correction */
-	ulong		sigfigs;    /* accuracy of timestamps */
-	ulong		snaplen;    /* max length saved portion of each pkt */
-	ulong		linktype;   /* data link type (DLT_*) */
+	uint32_t		magic;
+	uint16_t		version_major;
+	uint16_t		version_minor;
+	int32_t		thiszone;    /* gmt to local correction */
+	uint32_t		sigfigs;    /* accuracy of timestamps */
+	uint32_t		snaplen;    /* max length saved portion of each pkt */
+	uint32_t		linktype;   /* data link type (DLT_*) */
 };
 
 struct pcap_pkthdr {
-        uvlong	ts;	/* time stamp */
-        ulong	caplen;	/* length of portion present */
-        ulong	len;	/* length this packet (off wire) */
+        uint64_t	ts;	/* time stamp */
+        uint32_t	caplen;	/* length of portion present */
+        uint32_t	len;	/* length this packet (off wire) */
 };
 
 /*
@@ -324,7 +324,7 @@ pcaphdr(void)
  *  write out a packet trace
  */
 void
-tracepkt(uchar *ps, int len)
+tracepkt(uint8_t *ps, int len)
 {
 	struct pcap_pkthdr *goo;
 
@@ -348,10 +348,10 @@ tracepkt(uchar *ps, int len)
  *  format and print a packet
  */
 void
-printpkt(char *p, char *e, uchar *ps, uchar *pe)
+printpkt(int8_t *p, int8_t *e, uint8_t *ps, uint8_t *pe)
 {
 	Msg m;
-	ulong dt;
+	uint32_t dt;
 
 	dt = (pkttime-starttime)/1000000LL;
 	m.p = seprint(p, e, "%6.6uld ms ", dt);
@@ -382,7 +382,7 @@ int nprotos;
 
 /* look up a protocol by its name */
 Proto*
-findproto(char *name)
+findproto(int8_t *name)
 {
 	int i;
 
@@ -396,7 +396,7 @@ findproto(char *name)
  *  add an undefined protocol to protos[]
  */
 Proto*
-addproto(char *name)
+addproto(int8_t *name)
 {
 	Proto *pr;
 
@@ -721,10 +721,10 @@ compile(Filter *f)
  *  parse a byte array
  */
 int
-parseba(uchar *to, char *from)
+parseba(uint8_t *to, int8_t *from)
 {
-	char nip[4];
-	char *p;
+	int8_t nip[4];
+	int8_t *p;
 	int i;
 
 	p = from;
@@ -745,10 +745,10 @@ parseba(uchar *to, char *from)
  *  compile WORD = WORD, becomes a single node with a subop
  */
 void
-compile_cmp(char *proto, Filter *f, Field *fld)
+compile_cmp(int8_t *proto, Filter *f, Field *fld)
 {
-	uchar x[IPaddrlen];
-	char *v;
+	uint8_t x[IPaddrlen];
+	int8_t *v;
 
 	if(f->op != '=')
 		sysfatal("internal error: compile_cmp %s: not a cmp", proto);
@@ -762,7 +762,7 @@ compile_cmp(char *proto, Filter *f, Field *fld)
 				f->ulv = atoi(f->r->s);
 				break;
 			case Fether:
-				v = csgetvalue(nil, "sys", (char*)f->r->s,
+				v = csgetvalue(nil, "sys", (int8_t*)f->r->s,
 					"ether", 0);
 				if(v){
 					parseether(f->a, v);
@@ -771,7 +771,7 @@ compile_cmp(char *proto, Filter *f, Field *fld)
 					parseether(f->a, f->r->s);
 				break;
 			case Fv4ip:
-				v = csgetvalue(nil, "sys", (char*)f->r->s,
+				v = csgetvalue(nil, "sys", (int8_t*)f->r->s,
 					"ip", 0);
 				if(v){
 					f->ulv = parseip(x, v);
@@ -780,7 +780,7 @@ compile_cmp(char *proto, Filter *f, Field *fld)
 					f->ulv = parseip(x, f->r->s);
 				break;
 			case Fv6ip:
-				v = csgetvalue(nil, "sys", (char*)f->r->s,
+				v = csgetvalue(nil, "sys", (int8_t*)f->r->s,
 					"ipv6", 0);
 				if(v){
 					parseip(f->a, v);
@@ -805,7 +805,7 @@ compile_cmp(char *proto, Filter *f, Field *fld)
 void
 _pf(Filter *f)
 {
-	char *s;
+	int8_t *s;
 
 	if(f == nil)
 		return;
@@ -846,7 +846,7 @@ _pf(Filter *f)
 }
 
 void
-printfilter(Filter *f, char *tag)
+printfilter(Filter *f, int8_t *tag)
 {
 	fprint(2, "%s: ", tag);
 	_pf(f);
@@ -856,7 +856,7 @@ printfilter(Filter *f, char *tag)
 void
 cat(void)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	int n;
 	
 	while((n = read(0, buf, sizeof buf)) > 0)
@@ -903,13 +903,13 @@ stopmc(void)
 }
 
 void
-printhelp(char *name)
+printhelp(int8_t *name)
 {
 	int len;
 	Proto *pr, **l;
 	Mux *m;
 	Field *f;
-	char fmt[40];
+	int8_t fmt[40];
 	
 	if(name == nil){
 		print("protocols:\n");
@@ -951,7 +951,7 @@ printhelp(char *name)
  *  demultiplex to next prototol header
  */
 void
-demux(Mux *mx, ulong val1, ulong val2, Msg *m, Proto *def)
+demux(Mux *mx, uint32_t val1, uint32_t val2, Msg *m, Proto *def)
 {
 	m->pr = def;
 	for(mx = mx; mx->name != nil; mx++){
@@ -967,7 +967,7 @@ demux(Mux *mx, ulong val1, ulong val2, Msg *m, Proto *def)
  *  a single read
  */
 int
-defaultframer(int fd, uchar *pkt, int pktlen)
+defaultframer(int fd, uint8_t *pkt, int pktlen)
 {
 	return read(fd, pkt, pktlen);
 }

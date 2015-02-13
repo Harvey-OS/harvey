@@ -15,7 +15,7 @@
 extern String*
 s_grow(String *s, int incr)	
 {
-	char *cp;
+	int8_t *cp;
 	int size;
 
 	if(s->fixed)

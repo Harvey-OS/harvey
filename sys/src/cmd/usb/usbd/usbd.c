@@ -25,7 +25,7 @@ static int nhubs;
 static int mustdump;
 static int pollms = Pollms;
 
-static char *dsname[] = { "disabled", "attached", "configed" };
+static int8_t *dsname[] = { "disabled", "attached", "configed" };
 
 static int
 hubfeature(Hub *h, int port, int f, int on)
@@ -45,7 +45,7 @@ hubfeature(Hub *h, int port, int f, int on)
 static void
 checkhubstatus(Hub *h)
 {
-	uchar buf[4];
+	uint8_t buf[4];
 	int sts;
 
 	if(h->isroot)	/* not for root hubs */
@@ -62,14 +62,14 @@ static int
 confighub(Hub *h)
 {
 	int type;
-	uchar buf[128];	/* room for extra descriptors */
+	uint8_t buf[128];	/* room for extra descriptors */
 	int i;
 	Usbdev *d;
 	DHub *dd;
 	Port *pp;
 	int nr;
 	int nmap;
-	uchar *PortPwrCtrlMask;
+	uint8_t *PortPwrCtrlMask;
 	int offset;
 	int mask;
 
@@ -119,8 +119,8 @@ static void
 configroothub(Hub *h)
 {
 	Dev *d;
-	char buf[128];
-	char *p;
+	int8_t buf[128];
+	int8_t *p;
 	int nr;
 
 	d = h->dev;
@@ -148,7 +148,7 @@ Done:
 }
 
 Hub*
-newhub(char *fn, Dev *d)
+newhub(int8_t *fn, Dev *d)
 {
 	Hub *h;
 	int i;
@@ -257,7 +257,7 @@ static int
 portstatus(Hub *h, int p)
 {
 	Dev *d;
-	uchar buf[4];
+	uint8_t buf[4];
 	int t;
 	int sts;
 	int dbg;
@@ -275,11 +275,11 @@ portstatus(Hub *h, int p)
 	return sts;
 }
 
-static char*
+static int8_t*
 stsstr(int sts)
 {
-	static char s[80];
-	char *e;
+	static int8_t s[80];
+	int8_t *e;
 
 	e = s;
 	if(sts&PSsuspend)
@@ -307,7 +307,7 @@ stsstr(int sts)
 static int
 getmaxpkt(Dev *d, int islow)
 {
-	uchar buf[64];	/* More room to try to get device-specific descriptors */
+	uint8_t buf[64];	/* More room to try to get device-specific descriptors */
 	DDev *dd;
 
 	dd = (DDev*)buf;
@@ -329,9 +329,9 @@ portattach(Hub *h, int p, int sts)
 	Dev *d;
 	Port *pp;
 	Dev *nd;
-	char fname[80];
-	char buf[40];
-	char *sp;
+	int8_t fname[80];
+	int8_t buf[40];
+	int8_t *sp;
 	int mp;
 	int nr;
 
@@ -448,7 +448,7 @@ portdetach(Hub *h, int p)
 {
 	Dev *d;
 	Port *pp;
-	extern void usbfsgone(char*);
+	extern void usbfsgone(int8_t*);
 	d = h->dev;
 	pp = &h->port[p];
 
@@ -498,7 +498,7 @@ portdetach(Hub *h, int p)
 static int
 portresetwanted(Hub *h, int p)
 {
-	char buf[5];
+	int8_t buf[5];
 	Port *pp;
 	Dev *nd;
 
@@ -646,7 +646,7 @@ static void
 work(void *a)
 {
 	Channel *portc;
-	char *fn;
+	int8_t *fn;
 	Hub *h;
 	int i;
 
@@ -692,7 +692,7 @@ Again:
 }
 
 static int
-cfswalk(Usbfs*, Fid *, char *)
+cfswalk(Usbfs*, Fid *, int8_t *)
 {
 	werrstr(Enotfound);
 	return -1;
@@ -704,14 +704,14 @@ cfsopen(Usbfs*, Fid *, int)
 	return 0;
 }
 
-static long
-cfsread(Usbfs*, Fid *, void *, long , vlong )
+static int32_t
+cfsread(Usbfs*, Fid *, void *, int32_t , int64_t )
 {
 	return 0;
 }
 
 static void
-setdrvargs(char *name, char *args)
+setdrvargs(int8_t *name, int8_t *args)
 {
 	Devtab *dt;
 	extern Devtab devtab[];
@@ -722,7 +722,7 @@ setdrvargs(char *name, char *args)
 }
 
 static void
-setdrvauto(char *name, int on)
+setdrvauto(int8_t *name, int on)
 {
 	Devtab *dt;
 	extern Devtab devtab[];
@@ -732,12 +732,12 @@ setdrvauto(char *name, int on)
 			dt->noauto = !on;
 }
 
-static long
-cfswrite(Usbfs*, Fid *, void *data, long cnt, vlong )
+static int32_t
+cfswrite(Usbfs*, Fid *, void *data, int32_t cnt, int64_t )
 {
-	char *cmd, *arg;
-	char buf[80];
-	char *toks[4];
+	int8_t *cmd, *arg;
+	int8_t buf[80];
+	int8_t *toks[4];
 
 	if(cnt > sizeof(buf))
 		cnt = sizeof(buf) - 1;
@@ -808,9 +808,9 @@ static Usbfs ctlfs =
 };
 
 static void
-getenvint(char *env, int *lp)
+getenvint(int8_t *env, int *lp)
 {
-	char *s;
+	int8_t *s;
 
 	s = getenv(env);
 	if (s != nil)
@@ -819,9 +819,9 @@ getenvint(char *env, int *lp)
 }
 
 static void
-getenvdrvargs(char *env, char *argname)
+getenvdrvargs(int8_t *env, int8_t *argname)
 {
-	char *s;
+	int8_t *s;
 
 	s = getenv(env);
 	if(s != nil)

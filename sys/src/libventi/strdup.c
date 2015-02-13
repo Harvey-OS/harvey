@@ -11,11 +11,11 @@
 #include <libc.h>
 #include <venti.h>
 
-char*
-vtstrdup(char *s)
+int8_t*
+vtstrdup(int8_t *s)
 {
 	int n;
-	char *ss;
+	int8_t *ss;
 
 	if(s == nil)
 		return nil;

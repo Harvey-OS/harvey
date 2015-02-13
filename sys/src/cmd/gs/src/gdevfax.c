@@ -82,7 +82,7 @@ gdev_fax_put_params(gx_device * dev, gs_param_list * plist)
     int ecode = 0;
     int code;
     int aw = fdev->AdjustWidth;
-    const char *param_name;
+    const int8_t *param_name;
 
     switch (code = param_read_int(plist, (param_name = "AdjustWidth"), &aw)) {
         case 0:
@@ -196,12 +196,12 @@ gdev_fax_print_strip(gx_device_printer * pdev, FILE * prn_stream,
 	int status;
 
 	if_debug7('w', "[w]lnum=%d r=0x%lx,0x%lx,0x%lx w=0x%lx,0x%lx,0x%lx\n", lnum,
-		  (ulong)in, (ulong)r.ptr, (ulong)r.limit,
-		  (ulong)out, (ulong)w.ptr, (ulong)w.limit);
+		  (uint32_t)in, (uint32_t)r.ptr, (uint32_t)r.limit,
+		  (uint32_t)out, (uint32_t)w.ptr, (uint32_t)w.limit);
 	status = temp->process(ss, &r, &w, lnum == row_end);
 	if_debug7('w', "...%d, r=0x%lx,0x%lx,0x%lx w=0x%lx,0x%lx,0x%lx\n", status,
-		  (ulong)in, (ulong)r.ptr, (ulong)r.limit,
-		  (ulong)out, (ulong)w.ptr, (ulong)w.limit);
+		  (uint32_t)in, (uint32_t)r.ptr, (uint32_t)r.limit,
+		  (uint32_t)out, (uint32_t)w.ptr, (uint32_t)w.limit);
 	switch (status) {
 	    case 0:		/* need more input data */
 		if (lnum == row_end)

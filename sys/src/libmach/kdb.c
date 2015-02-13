@@ -16,11 +16,11 @@
  * Sparc-specific debugger interface
  */
 
-static	char	*sparcexcep(Map*, Rgetter);
-static	int	sparcfoll(Map*, uvlong, Rgetter, uvlong*);
-static	int	sparcinst(Map*, uvlong, char, char*, int);
-static	int	sparcdas(Map*, uvlong, char*, int);
-static	int	sparcinstlen(Map*, uvlong);
+static	int8_t	*sparcexcep(Map*, Rgetter);
+static	int	sparcfoll(Map*, uint64_t, Rgetter, uint64_t*);
+static	int	sparcinst(Map*, uint64_t, int8_t, int8_t*, int);
+static	int	sparcdas(Map*, uint64_t, int8_t*, int);
+static	int	sparcinstlen(Map*, uint64_t);
 
 Machdata sparcmach =
 {
@@ -42,7 +42,7 @@ Machdata sparcmach =
 	sparcinstlen,		/* instruction size */
 };
 
-static char *trapname[] =
+static int8_t *trapname[] =
 {
 	"reset",
 	"instruction access exception",
@@ -57,12 +57,12 @@ static char *trapname[] =
 	"tag overflow",
 };
 
-static char*
-excname(ulong tbr)
+static int8_t*
+excname(uint32_t tbr)
 {
-	static char buf[32];
+	static int8_t buf[32];
 
-	if(tbr < sizeof trapname/sizeof(char*))
+	if(tbr < sizeof trapname/sizeof(int8_t*))
 		return trapname[tbr];
 	if(tbr >= 130)
 		sprint(buf, "trap instruction %ld", tbr-128);
@@ -83,10 +83,10 @@ excname(ulong tbr)
 	return buf;
 }
 
-static char*
+static int8_t*
 sparcexcep(Map *map, Rgetter rget)
 {
-	long tbr;
+	int32_t tbr;
 
 	tbr = (*rget)(map, "TBR");
 	tbr = (tbr&0xFFF)>>4;
@@ -96,68 +96,68 @@ sparcexcep(Map *map, Rgetter rget)
 	/* Sparc disassembler and related functions */
 
 struct opcode {
-	char	*mnemonic;
-	void	(*f)(struct instr*, char*);
+	int8_t	*mnemonic;
+	void	(*f)(struct instr*, int8_t*);
 	int	flag;
 };
 
-static	char FRAMENAME[] = ".frame";
+static	int8_t FRAMENAME[] = ".frame";
 
 typedef struct instr Instr;
 
 struct instr {
-	uchar	op;		/* bits 31-30 */
-	uchar	rd;		/* bits 29-25 */
-	uchar	op2;		/* bits 24-22 */
-	uchar	a;		/* bit  29    */
-	uchar	cond;		/* bits 28-25 */
-	uchar	op3;		/* bits 24-19 */
-	uchar	rs1;		/* bits 18-14 */
-	uchar	i;		/* bit  13    */
-	uchar	asi;		/* bits 12-05 */
-	uchar	rs2;		/* bits 04-00 */
-	short	simm13;		/* bits 12-00, signed */
-	ushort	opf;		/* bits 13-05 */
-	ulong	immdisp22;	/* bits 21-00 */
-	ulong	simmdisp22;	/* bits 21-00, signed */
-	ulong	disp30;		/* bits 30-00 */
-	ulong	imm32;		/* SETHI+ADD constant */
+	uint8_t	op;		/* bits 31-30 */
+	uint8_t	rd;		/* bits 29-25 */
+	uint8_t	op2;		/* bits 24-22 */
+	uint8_t	a;		/* bit  29    */
+	uint8_t	cond;		/* bits 28-25 */
+	uint8_t	op3;		/* bits 24-19 */
+	uint8_t	rs1;		/* bits 18-14 */
+	uint8_t	i;		/* bit  13    */
+	uint8_t	asi;		/* bits 12-05 */
+	uint8_t	rs2;		/* bits 04-00 */
+	int16_t	simm13;		/* bits 12-00, signed */
+	uint16_t	opf;		/* bits 13-05 */
+	uint32_t	immdisp22;	/* bits 21-00 */
+	uint32_t	simmdisp22;	/* bits 21-00, signed */
+	uint32_t	disp30;		/* bits 30-00 */
+	uint32_t	imm32;		/* SETHI+ADD constant */
 	int	target;		/* SETHI+ADD dest reg */
-	long	w0;
-	long	w1;
-	uvlong	addr;		/* pc of instruction */
-	char	*curr;		/* current fill level in output buffer */
-	char	*end;		/* end of buffer */
+	int32_t	w0;
+	int32_t	w1;
+	uint64_t	addr;		/* pc of instruction */
+	int8_t	*curr;		/* current fill level in output buffer */
+	int8_t	*end;		/* end of buffer */
 	int 	size;		/* number of longs in instr */
-	char	*err;		/* errmsg */
+	int8_t	*err;		/* errmsg */
 };
 
 static	Map	*mymap;		/* disassembler context */
 static	int	dascase;
 
-static int	mkinstr(uvlong, Instr*);
-static void	bra1(Instr*, char*, char*[]);
-static void	bra(Instr*, char*);
-static void	fbra(Instr*, char*);
-static void	cbra(Instr*, char*);
-static void	unimp(Instr*, char*);
-static void	fpop(Instr*, char*);
-static void	shift(Instr*, char*);
-static void	sethi(Instr*, char*);
-static void	load(Instr*, char*);
-static void	loada(Instr*, char*);
-static void	store(Instr*, char*);
-static void	storea(Instr*, char*);
-static void	add(Instr*, char*);
-static void	cmp(Instr*, char*);
-static void	wr(Instr*, char*);
-static void	jmpl(Instr*, char*);
-static void	rd(Instr*, char*);
-static void	loadf(Instr*, char*);
-static void	storef(Instr*, char*);
-static void	loadc(Instr*, char*);
-static void	loadcsr(Instr*, char*);
-static void	trap(Instr*, char*);
+static int	mkinstr(uint64_t, Instr*);
+static void	bra1(Instr*, int8_t*, int8_t*[]);
+static void	bra(Instr*, int8_t*);
+static void	fbra(Instr*, int8_t*);
+static void	cbra(Instr*, int8_t*);
+static void	unimp(Instr*, int8_t*);
+static void	fpop(Instr*, int8_t*);
+static void	shift(Instr*, int8_t*);
+static void	sethi(Instr*, int8_t*);
+static void	load(Instr*, int8_t*);
+static void	loada(Instr*, int8_t*);
+static void	store(Instr*, int8_t*);
+static void	storea(Instr*, int8_t*);
+static void	add(Instr*, int8_t*);
+static void	cmp(Instr*, int8_t*);
+static void	wr(Instr*, int8_t*);
+static void	jmpl(Instr*, int8_t*);
+static void	rd(Instr*, int8_t*);
+static void	loadf(Instr*, int8_t*);
+static void	storef(Instr*, int8_t*);
+static void	loadc(Instr*, int8_t*);
+static void	loadcsr(Instr*, int8_t*);
+static void	trap(Instr*, int8_t*);
 
 static struct opcode sparcop0[8] = {
 	[0]	"UNIMP",	unimp,	0,	/* page 137 */
@@ -293,10 +293,10 @@ static struct opcode sparcop3[64]={
 static int
 Tfmt(Fmt *f)
 {
-	char buf[128];
-	char *s, *t, *oa;
+	int8_t buf[128];
+	int8_t *s, *t, *oa;
 
-	oa = va_arg(f->args, char*);
+	oa = va_arg(f->args, int8_t*);
 	if(dascase){
 		for(s=oa,t=buf; *t = *s; s++,t++)
 			if('A'<=*t && *t<='Z')
@@ -307,7 +307,7 @@ Tfmt(Fmt *f)
 }
 
 static void
-bprint(Instr *i, char *fmt, ...)
+bprint(Instr *i, int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -317,9 +317,9 @@ bprint(Instr *i, char *fmt, ...)
 }
 
 static int
-decode(uvlong pc, Instr *i)
+decode(uint64_t pc, Instr *i)
 {
-	ulong w;
+	uint32_t w;
 
 	if (get4(mymap, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -352,7 +352,7 @@ decode(uvlong pc, Instr *i)
 }
 
 static int
-mkinstr(uvlong pc, Instr *i)
+mkinstr(uint64_t pc, Instr *i)
 {
 	Instr xi;
 
@@ -383,10 +383,10 @@ mkinstr(uvlong pc, Instr *i)
 }
 
 static int
-printins(Map *map, uvlong pc, char *buf, int n)
+printins(Map *map, uint64_t pc, int8_t *buf, int n)
 {
 	Instr instr;
-	void (*f)(Instr*, char*);
+	void (*f)(Instr*, int8_t*);
 
 	mymap = map;
 	memset(&instr, 0, sizeof(instr));
@@ -436,7 +436,7 @@ printins(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-sparcinst(Map *map, uvlong pc, char modifier, char *buf, int n)
+sparcinst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
 {
 	static int fmtinstalled = 0;
 
@@ -454,7 +454,7 @@ sparcinst(Map *map, uvlong pc, char modifier, char *buf, int n)
 }
 
 static int
-sparcdas(Map *map, uvlong pc, char *buf, int n)
+sparcdas(Map *map, uint64_t pc, int8_t *buf, int n)
 {
 	Instr instr;
 
@@ -475,7 +475,7 @@ sparcdas(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-sparcinstlen(Map *map, uvlong pc)
+sparcinstlen(Map *map, uint64_t pc)
 {
 	Instr i;
 
@@ -512,7 +512,7 @@ static void
 address(Instr *i)
 {
 	Symbol s, s2;
-	uvlong off, off1;
+	uint64_t off, off1;
 
 	if (i->rs1 == 1 && plocal(i) >= 0)
 		return;
@@ -538,7 +538,7 @@ address(Instr *i)
 }
 
 static void
-unimp(Instr *i, char *m)
+unimp(Instr *i, int8_t *m)
 {
 	bprint(i, "%T", m);
 }
@@ -601,9 +601,9 @@ static char	*cbratab[16] = {	/* page 91 */
 };
 
 static void
-bra1(Instr *i, char *m, char *tab[])
+bra1(Instr *i, int8_t *m, int8_t *tab[])
 {
-	long imm;
+	int32_t imm;
 
 	imm = i->simmdisp22;
 	if(i->a)
@@ -616,25 +616,25 @@ bra1(Instr *i, char *m, char *tab[])
 }
 
 static void
-bra(Instr *i, char *m)			/* page 91 */
+bra(Instr *i, int8_t *m)			/* page 91 */
 {
 	bra1(i, m, bratab);
 }
 
 static void
-fbra(Instr *i, char *m)			/* page 93 */
+fbra(Instr *i, int8_t *m)			/* page 93 */
 {
 	bra1(i, m, fbratab);
 }
 
 static void
-cbra(Instr *i, char *m)			/* page 95 */
+cbra(Instr *i, int8_t *m)			/* page 95 */
 {
 	bra1(i, m, cbratab);
 }
 
 static void
-trap(Instr *i, char *m)			/* page 101 */
+trap(Instr *i, int8_t *m)			/* page 101 */
 {
 	if(i->i == 0)
 		bprint(i, "%T%T\tR%d+R%d", m, bratab[i->cond], i->rs2, i->rs1);
@@ -643,9 +643,9 @@ trap(Instr *i, char *m)			/* page 101 */
 }
 
 static void
-sethi(Instr *i, char *m)		/* page 89 */
+sethi(Instr *i, int8_t *m)		/* page 89 */
 {
-	ulong imm;
+	uint32_t imm;
 
 	imm = i->immdisp22<<10;
 	if(dascase){
@@ -663,19 +663,19 @@ sethi(Instr *i, char *m)		/* page 89 */
 	bprint(i, "MOVW\t$%lux, R%d", i->imm32, i->target);
 }
 
-static char ldtab[] = {
+static int8_t ldtab[] = {
 	'W',
 	'B',
 	'H',
 	'D',
 };
 
-static char*
-moveinstr(int op3, char *m)
+static int8_t*
+moveinstr(int op3, int8_t *m)
 {
-	char *s;
+	int8_t *s;
 	int c;
-	static char buf[8];
+	static int8_t buf[8];
 
 	if(!dascase){
 		/* batshit cases */
@@ -694,7 +694,7 @@ moveinstr(int op3, char *m)
 }
 
 static void
-load(Instr *i, char *m)			/* page 68 */
+load(Instr *i, int8_t *m)			/* page 68 */
 {
 	m = moveinstr(i->op3, m);
 	if(i->i == 0)
@@ -707,7 +707,7 @@ load(Instr *i, char *m)			/* page 68 */
 }
 
 static void
-loada(Instr *i, char *m)		/* page 68 */
+loada(Instr *i, int8_t *m)		/* page 68 */
 {
 	m = moveinstr(i->op3, m);
 	if(i->i == 0)
@@ -717,7 +717,7 @@ loada(Instr *i, char *m)		/* page 68 */
 }
 
 static void
-store(Instr *i, char *m)		/* page 74 */
+store(Instr *i, int8_t *m)		/* page 74 */
 {
 	m = moveinstr(i->op3, m);
 	if(i->i == 0)
@@ -730,7 +730,7 @@ store(Instr *i, char *m)		/* page 74 */
 }
 
 static void
-storea(Instr *i, char *m)		/* page 74 */
+storea(Instr *i, int8_t *m)		/* page 74 */
 {
 	m = moveinstr(i->op3, m);
 	if(i->i == 0)
@@ -740,7 +740,7 @@ storea(Instr *i, char *m)		/* page 74 */
 }
 
 static void
-shift(Instr *i, char *m)	/* page 88 */
+shift(Instr *i, int8_t *m)	/* page 88 */
 {
 	if(i->i == 0){
 		if(i->rs1 == i->rd)
@@ -768,7 +768,7 @@ shift(Instr *i, char *m)	/* page 88 */
 }
 
 static void
-add(Instr *i, char *m)	/* page 82 */
+add(Instr *i, int8_t *m)	/* page 82 */
 {
 	if(i->i == 0){
 		if(dascase)
@@ -796,7 +796,7 @@ add(Instr *i, char *m)	/* page 82 */
 }
 
 static void
-cmp(Instr *i, char *m)
+cmp(Instr *i, int8_t *m)
 {
 	if(dascase || i->rd){
 		add(i, m);
@@ -808,7 +808,7 @@ cmp(Instr *i, char *m)
 		bprint(i, "CMP\tR%d, $%ux", i->rs1, i->simm13);
 }
 
-static char *regtab[4] = {
+static int8_t *regtab[4] = {
 	"Y",
 	"PSR",
 	"WIM",
@@ -816,7 +816,7 @@ static char *regtab[4] = {
 };
 
 static void
-wr(Instr *i, char *m)		/* page 82 */
+wr(Instr *i, int8_t *m)		/* page 82 */
 {
 	if(dascase){
 		if(i->i == 0)
@@ -835,7 +835,7 @@ wr(Instr *i, char *m)		/* page 82 */
 }
 
 static void
-rd(Instr *i, char *m)		/* page 103 */
+rd(Instr *i, int8_t *m)		/* page 103 */
 {
 	if(i->rs1==15 && i->rd==0){
 		m = "stbar";
@@ -850,7 +850,7 @@ rd(Instr *i, char *m)		/* page 103 */
 }
 
 static void
-jmpl(Instr *i, char *m)		/* page 82 */
+jmpl(Instr *i, int8_t *m)		/* page 82 */
 {
 	if(i->i == 0){
 		if(i->rd == 15)
@@ -869,7 +869,7 @@ jmpl(Instr *i, char *m)		/* page 82 */
 }
 
 static void
-loadf(Instr *i, char *m)		/* page 70 */
+loadf(Instr *i, int8_t *m)		/* page 70 */
 {
 	if(!dascase){
 		m = "FMOVD";
@@ -891,7 +891,7 @@ loadf(Instr *i, char *m)		/* page 70 */
 }
 
 static void
-storef(Instr *i, char *m)		/* page 70 */
+storef(Instr *i, int8_t *m)		/* page 70 */
 {
 	if(!dascase){
 		m = "FMOVD";
@@ -914,7 +914,7 @@ storef(Instr *i, char *m)		/* page 70 */
 }
 
 static void
-loadc(Instr *i, char *m)			/* page 72 */
+loadc(Instr *i, int8_t *m)			/* page 72 */
 {
 	if(i->i == 0)
 		bprint(i, "%s\t(R%d+R%d), C%d", m, i->rs1, i->rs2, i->rd);
@@ -926,7 +926,7 @@ loadc(Instr *i, char *m)			/* page 72 */
 }
 
 static void
-loadcsr(Instr *i, char *m)			/* page 72 */
+loadcsr(Instr *i, int8_t *m)			/* page 72 */
 {
 	if(i->i == 0)
 		bprint(i, "%s\t(R%d+R%d), CSR", m, i->rs1, i->rs2);
@@ -939,7 +939,7 @@ loadcsr(Instr *i, char *m)			/* page 72 */
 
 static struct{
 	int	opf;
-	char	*name;
+	int8_t	*name;
 } fptab1[] = {			/* ignores rs1 */
 	0xC4,	"FITOS",	/* page 109 */
 	0xC8,	"FITOD",
@@ -969,7 +969,7 @@ static struct{
 
 static struct{
 	int	opf;
-	char	*name;
+	int8_t	*name;
 } fptab2[] = {			/* uses rs1 */
 
 	0x41,	"FADDS",	/* page 114 */
@@ -997,7 +997,7 @@ static struct{
 };
 
 static void
-fpop(Instr *i, char *m)	/* page 108-116 */
+fpop(Instr *i, int8_t *m)	/* page 108-116 */
 {
 	int j;
 
@@ -1019,10 +1019,10 @@ fpop(Instr *i, char *m)	/* page 108-116 */
 }
 
 static int
-sparcfoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
+sparcfoll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
-	ulong w, r1, r2;
-	char buf[8];
+	uint32_t w, r1, r2;
+	int8_t buf[8];
 	Instr i;
 
 	mymap = map;

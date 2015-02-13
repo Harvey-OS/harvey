@@ -303,7 +303,7 @@ static int
 intrenablemsi(Vctl* v, Pcidev *p)
 {
 	uint vno, lo, hi;
-	uvlong msivec;
+	uint64_t msivec;
 
 	vno = nextvec();
 
@@ -313,7 +313,7 @@ intrenablemsi(Vctl* v, Pcidev *p)
 	if(lo & Lm)
 		lo |= MTlp;
 
-	msivec = (uvlong)hi<<32 | lo;
+	msivec = (uint64_t)hi<<32 | lo;
 	if(pcimsienable(p, msivec) == -1)
 		return -1;
 	v->isr = apicisr;

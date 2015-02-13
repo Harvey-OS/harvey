@@ -9,15 +9,15 @@
 
 #include <u.h>
 #include <libc.h>
-#define VLONG_MAX	((vlong)~(((uvlong)1)<<63))
-#define VLONG_MIN	((vlong)(((uvlong)1)<<63))
-vlong
-strtoll(const char *nptr, char **endptr, int base)
+#define VLONG_MAX	((int64_t)~(((uint64_t)1)<<63))
+#define VLONG_MIN	((int64_t)(((uint64_t)1)<<63))
+int64_t
+strtoll(const int8_t *nptr, int8_t **endptr, int base)
 {
-	char *p;
-	vlong n, nn, m;
+	int8_t *p;
+	int64_t n, nn, m;
 	int c, ovfl, v, neg, ndig;
-	p = (char*)nptr;
+	p = (int8_t*)nptr;
 	neg = 0;
 	n = 0;
 	ndig = 0;
@@ -88,7 +88,7 @@ strtoll(const char *nptr, char **endptr, int base)
 	}
 Return:
 	if(ndig == 0)
-		p = (char*)nptr;
+		p = (int8_t*)nptr;
 	if(endptr)
 		*endptr = p;
 	if(ovfl){

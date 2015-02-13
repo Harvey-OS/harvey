@@ -105,7 +105,7 @@ raspflush(File *f)
 void
 raspdelete(File *f, uint p1, uint p2, int toterm)
 {
-	long n;
+	int32_t n;
 
 	n = p2 - p1;
 	if(n == 0)

@@ -18,7 +18,7 @@ incref(Ref *r)
 	ainc(&r->ref);
 }
 
-long
+int32_t
 decref(Ref *r)
 {
 	return adec(&r->ref);

@@ -41,7 +41,7 @@
 private int
 identity_CIDMap_proc(gs_font_cid2 *pfont, gs_glyph glyph)
 {
-    ulong cid = glyph - gs_min_cid_glyph;
+    uint32_t cid = glyph - gs_min_cid_glyph;
 
     if (cid >= pfont->cidata.common.CIDCount)
 	return_error(gs_error_rangecheck);
@@ -140,7 +140,7 @@ tt_16bit_format4_decode_next(const gs_cmap_t * pcmap_in,
 	ACCESS(pcmap->idRangeOffset + segment2, 2, ttdata);
 	roff = U16(ttdata);
 	if (roff) {
-	    ulong gidoff = pcmap->idRangeOffset + segment2 + roff +
+	    uint32_t gidoff = pcmap->idRangeOffset + segment2 + roff +
 		(chr - start) * 2;
 
 	    ACCESS(gidoff, 2, ttdata);
@@ -227,7 +227,7 @@ tt_16bit_format4_next_entry(gs_cmap_lookups_enum_t *penum)
     roff = U16(ttdata);
     if (roff) {
 	/* Non-zero offset, table lookup. */
-	ulong gidoff = pcmap->idRangeOffset + segment2 + roff;
+	uint32_t gidoff = pcmap->idRangeOffset + segment2 + roff;
 
 	ACCESS(gidoff, 2, ttdata);
 	value = U16(ttdata);
@@ -272,11 +272,11 @@ int
 gs_cmap_from_type42_cmap(gs_cmap_t **ppcmap, gs_font_type42 *pfont,
 			 int wmode, gs_memory_t *mem)
 {
-    ulong origin = pfont->data.cmap;
+    uint32_t origin = pfont->data.cmap;
     gs_cmap_tt_16bit_format4_t *pcmap;
     int code;
     const byte *ttdata;
-    ulong offset = origin;
+    uint32_t offset = origin;
     uint segCount2;
 
     if (origin == 0)

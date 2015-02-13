@@ -21,7 +21,7 @@
 #include "fns.h"
 #include "edit.h"
 
-static char Wsequence[] = "warning: changes out of sequence\n";
+static int8_t Wsequence[] = "warning: changes out of sequence\n";
 static int	warned = FALSE;
 
 /*
@@ -37,7 +37,7 @@ static int	warned = FALSE;
 typedef struct Buflog Buflog;
 struct Buflog
 {
-	short	type;		/* Replace, Filename */
+	int16_t	type;		/* Replace, Filename */
 	uint		q0;		/* location of change (unused in f) */
 	uint		nd;		/* # runes to delete */
 	uint		nr;		/* # runes in string or file name */

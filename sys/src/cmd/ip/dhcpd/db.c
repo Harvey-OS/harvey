@@ -23,23 +23,23 @@
  *	char otime[10];
  */
 Binding *bcache;
-uchar bfirst[IPaddrlen];
-char *binddir = "/lib/ndb/dhcp";
+uint8_t bfirst[IPaddrlen];
+int8_t *binddir = "/lib/ndb/dhcp";
 
 /*
  *  convert a byte array to hex
  */
-static char
+static int8_t
 hex(int x)
 {
 	if(x < 10)
 		return x + '0';
 	return x - 10 + 'a';
 }
-extern char*
-tohex(char *hdr, uchar *p, int len)
+extern int8_t*
+tohex(int8_t *hdr, uint8_t *p, int len)
 {
-	char *s, *sp;
+	int8_t *s, *sp;
 	int hlen;
 
 	hlen = strlen(hdr);
@@ -60,11 +60,11 @@ tohex(char *hdr, uchar *p, int len)
  *  convert a client id to a string.  If it's already
  *  ascii, leave it be.  Otherwise, convert it to hex.
  */
-extern char*
-toid(uchar *p, int n)
+extern int8_t*
+toid(uint8_t *p, int n)
 {
 	int i;
-	char *s;
+	int8_t *s;
 
 	for(i = 0; i < n; i++)
 		if(!isprint(p[i]))
@@ -79,7 +79,7 @@ toid(uchar *p, int n)
  *  increment an ip address
  */
 static void
-incip(uchar *ip)
+incip(uint8_t *ip)
 {
 	int i, x;
 
@@ -96,9 +96,9 @@ incip(uchar *ip)
  *  find a binding for an id or hardware address
  */
 static int
-lockopen(char *file)
+lockopen(int8_t *file)
 {
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 	int fd, tries;
 
 	for(tries = 0; tries < 5; tries++){
@@ -124,7 +124,7 @@ lockopen(char *file)
 }
 
 void
-setbinding(Binding *b, char *id, long t)
+setbinding(Binding *b, int8_t *id, int32_t t)
 {
 	if(b->boundto)
 		free(b->boundto);
@@ -134,10 +134,10 @@ setbinding(Binding *b, char *id, long t)
 }
 
 static void
-parsebinding(Binding *b, char *buf)
+parsebinding(Binding *b, int8_t *buf)
 {
-	long t;
-	char *id, *p;
+	int32_t t;
+	int8_t *id, *p;
 
 	/* parse */
 	t = atoi(buf);
@@ -178,7 +178,7 @@ writebinding(int fd, Binding *b)
 int
 syncbinding(Binding *b, int returnfd)
 {
-	char buf[512];
+	int8_t buf[512];
 	int i, fd;
 	Dir *d;
 
@@ -214,9 +214,9 @@ syncbinding(Binding *b, int returnfd)
 }
 
 extern int
-samenet(uchar *ip, Info *iip)
+samenet(uint8_t *ip, Info *iip)
 {
-	uchar x[IPaddrlen];
+	uint8_t x[IPaddrlen];
 
 	maskip(iip->ipmask, ip, x);
 	return ipcmp(x, iip->ipnet) == 0;
@@ -226,7 +226,7 @@ samenet(uchar *ip, Info *iip)
  *  create a record for each binding
  */
 extern void
-initbinding(uchar *first, int n)
+initbinding(uint8_t *first, int n)
 {
 	while(n-- > 0){
 		iptobinding(first, 1);
@@ -238,7 +238,7 @@ initbinding(uchar *first, int n)
  *  find a binding for a specific ip address
  */
 extern Binding*
-iptobinding(uchar *ip, int mk)
+iptobinding(uint8_t *ip, int mk)
 {
 	Binding *b;
 
@@ -279,7 +279,7 @@ lognolease(Binding *b)
  *  find a free binding for a hw addr or id on the same network as iip
  */
 extern Binding*
-idtobinding(char *id, Info *iip, int ping)
+idtobinding(int8_t *id, Info *iip, int ping)
 {
 	Binding *b, *oldest;
 	int oldesttime;
@@ -351,7 +351,7 @@ idtobinding(char *id, Info *iip, int ping)
  *  create an offer
  */
 extern void
-mkoffer(Binding *b, char *id, long leasetime)
+mkoffer(Binding *b, int8_t *id, int32_t leasetime)
 {
 	if(leasetime <= 0){
 		if(b->lease > now + minlease)
@@ -370,7 +370,7 @@ mkoffer(Binding *b, char *id, long leasetime)
  *  find an offer for this id
  */
 extern Binding*
-idtooffer(char *id, Info *iip)
+idtooffer(int8_t *id, Info *iip)
 {
 	Binding *b;
 
@@ -394,7 +394,7 @@ extern int
 commitbinding(Binding *b)
 {
 	int fd;
-	long now;
+	int32_t now;
 
 	now = time(0);
 
@@ -422,10 +422,10 @@ commitbinding(Binding *b)
  *  commit a lease, this could fail
  */
 extern int
-releasebinding(Binding *b, char *id)
+releasebinding(Binding *b, int8_t *id)
 {
 	int fd;
-	long now;
+	int32_t now;
 
 	now = time(0);
 

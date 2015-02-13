@@ -13,8 +13,8 @@
 #include "sys9.h"
 #include "dir.h"
 
-long
-_WRITE(int fd, void *buf, long n)
+int32_t
+_WRITE(int fd, void *buf, int32_t n)
 {
 	return _PWRITE(fd, buf, n, -1LL);
 }

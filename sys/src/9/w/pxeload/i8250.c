@@ -72,14 +72,14 @@ struct Uart
 {
 	int	port;
 	int	freq;
-	uchar	sticky[8];	/* sticky write register values */
-	uchar	txbusy;
+	uint8_t	sticky[8];	/* sticky write register values */
+	uint8_t	txbusy;
 
 	void	(*rx)(int);	/* routine to take a received character */
 	int	(*tx)(void);	/* routine to get a character to transmit */
 
-	ulong	frame;
-	ulong	overrun;
+	uint32_t	frame;
+	uint32_t	overrun;
 };
 
 static Uart com[2];
@@ -98,7 +98,7 @@ static Uart* uart;
 static void
 uartsetbaud(Uart *up, int rate)
 {
-	ulong brconst;
+	uint32_t brconst;
 
 	brconst = (up->freq+8*rate-1)/(16*rate);
 
@@ -318,7 +318,7 @@ uartputc(int c)
 }
 
 void
-uartputs(IOQ *q, char *s, int n)
+uartputs(IOQ *q, int8_t *s, int n)
 {
 	Uart *up;
 	int c, x;

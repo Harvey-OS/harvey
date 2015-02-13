@@ -328,7 +328,7 @@ charstring_is_notdef_proc(const gs_memory_t *mem, const ref *pcstr)
 {
     if (r_is_array(pcstr) && r_size(pcstr) == 4) {
 	ref elts[4];
-	long i;
+	int32_t i;
 
 	for (i = 0; i < 4; ++i)
 	    array_get(mem, pcstr, i, &elts[i]);

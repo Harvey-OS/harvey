@@ -51,12 +51,12 @@ static u32int K256[64] = {
 };
 
 void
-_sha2block64(uchar *p, ulong len, u32int *s)
+_sha2block64(uint8_t *p, uint32_t len, u32int *s)
 {
 	u32int a, b, c, d, e, f, g, h, t1, t2;
 	u32int *kp, *wp;
 	u32int w[64];
-	uchar *end;
+	uint8_t *end;
 
 	/* at this point, we have a multiple of 64 bytes */
 	for(end = p+len; p < end;){

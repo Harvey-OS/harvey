@@ -389,7 +389,7 @@ lame_get_free_format( const lame_global_flags*  gfp );
 /* message handlers */
 int
 lame_set_errorf( lame_global_flags*  gfp,
-                 void                (*func)( const char*, va_list ) )
+                 void                (*func)( const int8_t*, va_list ) )
 {
     gfp->report.errorf = func;
 
@@ -398,7 +398,7 @@ lame_set_errorf( lame_global_flags*  gfp,
 
 int
 lame_set_debugf( lame_global_flags*  gfp,
-                 void                (*func)( const char*, va_list ) )
+                 void                (*func)( const int8_t*, va_list ) )
 {
     gfp->report.debugf = func;
 
@@ -407,7 +407,7 @@ lame_set_debugf( lame_global_flags*  gfp,
 
 int
 lame_set_msgf( lame_global_flags*  gfp,
-               void                (*func)( const char *, va_list ) )
+               void                (*func)( const int8_t *, va_list ) )
 {
     gfp->report.msgf = func;
 

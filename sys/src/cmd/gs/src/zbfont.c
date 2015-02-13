@@ -76,9 +76,9 @@ zfont_encode_char(gs_font *pfont, gs_char chr, gs_glyph_space_t gspace)
 {
     font_data *pdata = pfont_data(pfont);
     const ref *pencoding = &pdata->Encoding;
-    ulong index = chr;	/* work around VAX widening bug */
+    uint32_t index = chr;	/* work around VAX widening bug */
     ref cname;
-    int code = array_get(pfont->memory, pencoding, (long)index, &cname);
+    int code = array_get(pfont->memory, pencoding, (int32_t)index, &cname);
 
     if (code < 0 || !r_has_type(&cname, t_name))
 	return gs_no_glyph;
@@ -97,7 +97,7 @@ zfont_encode_char(gs_font *pfont, gs_char chr, gs_glyph_space_t gspace)
 	       Low level devices don't pass here, because regular PS interpretation 
 	       doesn't need such names.
 	    */
-	    char buf[20];
+	    int8_t buf[20];
 	    int code;
 
 	    if (gspace == GLYPH_SPACE_NOGEN)
@@ -124,7 +124,7 @@ zfont_glyph_name(gs_font *font, gs_glyph index, gs_const_string *pstr)
 	char cid_name[sizeof(gs_glyph) * 3 + 1];
 	int code;
 
-	sprintf(cid_name, "%lu", (ulong) index);
+	sprintf(cid_name, "%lu", (uint32_t) index);
 	code = name_ref(font->memory, (const byte *)cid_name, strlen(cid_name),
 			&nref, 1);
 	if (code < 0)
@@ -212,7 +212,7 @@ const op_def zbfont_op_defs[] =
 /* Convert strings to executable names for build_proc_refs. */
 int
 build_proc_name_refs(const gs_memory_t *mem, build_proc_refs * pbuild,
-		     const char *bcstr, const char *bgstr)
+		     const int8_t *bcstr, const int8_t *bgstr)
 {
     int code;
 
@@ -521,7 +521,7 @@ lookup_gs_simple_font_encoding(gs_font_base * pfont)
 	for (i = 0; i < esize; ++i) {
 	    ref fchar;
 
-	    if (array_get(pfont->memory, pfe, (long)i, &fchar) < 0 ||
+	    if (array_get(pfont->memory, pfe, (int32_t)i, &fchar) < 0 ||
 		!r_has_type(&fchar, t_name)
 		)
 		fstrs[i].data = 0, fstrs[i].size = 0;

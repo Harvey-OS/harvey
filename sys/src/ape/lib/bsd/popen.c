@@ -20,15 +20,15 @@
 #define	WTR	1
 
 struct a_fork {
-	short	done;
-	short	fd;
+	int16_t	done;
+	int16_t	fd;
 	int	pid;
 	int	status;
 };
 static struct a_fork the_fork[MAXFORKS];
 
 FILE *
-popen(char *cmd, char *mode)
+popen(int8_t *cmd, int8_t *mode)
 {
 	int p[2];
 	int myside, hisside, pid;

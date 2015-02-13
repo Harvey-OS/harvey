@@ -83,8 +83,8 @@ top:
 		goto out;
 	    ss->record_type = c;
 	    ss->record_left = p[3] + ((uint) p[4] << 8) +
-		((ulong) p[5] << 16) +
-		((ulong) p[6] << 24);
+		((uint32_t) p[5] << 16) +
+		((uint32_t) p[6] << 24);
 	    p += 6;
 	    goto top;
 	case 1:		/* text data */
@@ -106,7 +106,7 @@ top:
 	    if (ss->binary_to_hex) {
 		/* Translate binary to hex. */
 		int count;
-		const char *const hex_digits = "0123456789abcdef";
+		const int8_t *const hex_digits = "0123456789abcdef";
 
 		wcount >>= 1;	/* 2 chars per input byte */
 		count = (wcount < rcount ? (status = 1, wcount) : rcount);

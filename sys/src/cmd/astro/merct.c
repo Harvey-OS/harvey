@@ -180,7 +180,7 @@ double	mercfp[] =
 	0,
 };
 
-char	merccp[] =
+int8_t	merccp[] =
 {
 	 4,	1,
 	 3,	1,

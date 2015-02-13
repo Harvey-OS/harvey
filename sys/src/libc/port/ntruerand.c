@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-ulong
-ntruerand(ulong n)
+uint32_t
+ntruerand(uint32_t n)
 {
-	ulong m, r;
+	uint32_t m, r;
 
 	/*
 	 * set m to the one less than the maximum multiple of n <= 2^32,

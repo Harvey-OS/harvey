@@ -32,7 +32,7 @@ usage(void)
 }
 
 int
-getint(char *s)
+getint(int8_t *s)
 {
 	if(s == nil)
 		usage();
@@ -44,12 +44,12 @@ getint(char *s)
 }
 
 Rectangle
-crop(Memimage *m, ulong c)
+crop(Memimage *m, uint32_t c)
 {
 	Memimage *n;
 	int x, y, bpl, wpl;
 	int left, right, top, bottom;
-	ulong *buf;
+	uint32_t *buf;
 
 	left = m->r.max.x;
 	right = m->r.min.x;
@@ -65,13 +65,14 @@ crop(Memimage *m, ulong c)
 		m = n;
 	}
 	wpl = wordsperline(m->r, m->depth);
-	bpl = wpl*sizeof(ulong);
+	bpl = wpl*sizeof(uint32_t);
 	buf = malloc(bpl);
 	if(buf == nil)
 		sysfatal("can't allocate buffer: %r");
 
 	for(y=m->r.min.y; y<m->r.max.y; y++){
-		x = unloadmemimage(m, Rect(m->r.min.x, y, m->r.max.x, y+1), (uchar*)buf, bpl);
+		x = unloadmemimage(m, Rect(m->r.min.x, y, m->r.max.x, y+1),
+				   (uint8_t*)buf, bpl);
 		if(x != bpl)
 			sysfatal("unloadmemimage");
 		for(x=0; x<wpl; x++)

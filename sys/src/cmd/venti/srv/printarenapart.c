@@ -11,7 +11,7 @@
 #include "dat.h"
 #include "fns.h"
 
-uchar buf[64*1024];
+uint8_t buf[64*1024];
 
 void
 usage(void)
@@ -26,7 +26,7 @@ rdarena(Arena *arena, u64int offset)
 	u64int a, aa, e;
 	u32int magic;
 	Clump cl;
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 	ZBlock *lump;
 
 	printarena(2, arena);

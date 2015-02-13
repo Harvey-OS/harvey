@@ -19,7 +19,7 @@ enum
 	TIMEOUT		= 5000,		/* timeout for writes */
 };
 
-char *speeds[] =
+int8_t *speeds[] =
 {
 	"b1200",
 	"b2400",
@@ -44,7 +44,7 @@ usage(void)
 }
 
 static void
-catch(void *a, char *msg)
+catch(void *a, int8_t *msg)
 {
 	USED(a, msg);
 	if(strstr(msg, "alarm"))
@@ -53,7 +53,7 @@ catch(void *a, char *msg)
 }
 
 static void
-dumpbuf(char *buf, int nbytes, char *s)
+dumpbuf(int8_t *buf, int nbytes, int8_t *s)
 {
 	print(s);
 	while(nbytes-- > 0)
@@ -61,10 +61,10 @@ dumpbuf(char *buf, int nbytes, char *s)
 	print("\n");
 }
 
-static long
+static int32_t
 timedwrite(int fd, void *p, int n)
 {
-	long rv;
+	int32_t rv;
 
 	alarm(TIMEOUT);
 	rv = write(fd, p, n);
@@ -79,8 +79,8 @@ timedwrite(int fd, void *p, int n)
 static int
 readbyte(int fd)
 {
-	uchar c;
-	char buf[ERRMAX];
+	uint8_t c;
+	int8_t buf[ERRMAX];
 
 	alarm(200);
 	if(read(fd, &c, sizeof(c)) == -1){
@@ -96,9 +96,9 @@ readbyte(int fd)
 }
 
 static int
-slowread(int fd, char *buf, int nbytes, char *msg)
+slowread(int fd, int8_t *buf, int nbytes, int8_t *msg)
 {
-	char *p;
+	int8_t *p;
 	int c;
 
 	for(p = buf; nbytes > 1 && (c = readbyte(fd)) != -1; *p++ = c, nbytes--)
@@ -128,7 +128,7 @@ toggleRTS(int fd)
 }
 
 static void
-setupeia(int fd, char *baud, char *bits)
+setupeia(int fd, int8_t *baud, int8_t *bits)
 {
 	alarm(TIMEOUT);
 	/*
@@ -152,7 +152,7 @@ setupeia(int fd, char *baud, char *bits)
 int
 MorW(int ctl, int data)
 {
-	char buf[256];
+	int8_t buf[256];
 	int c;
 
 	/*
@@ -207,9 +207,9 @@ MorW(int ctl, int data)
 int
 C(int ctl, int data)
 {
-	char **s;
+	int8_t **s;
 	int c;
-	char buf[256];
+	int8_t buf[256];
 	
 	sleep(100);
 	for(s = speeds; *s; s++){
@@ -235,12 +235,12 @@ C(int ctl, int data)
 	return 0;
 }
 
-char *bauderr = "mouse: can't set baud rate, mouse at 1200\n";
+int8_t *bauderr = "mouse: can't set baud rate, mouse at 1200\n";
 
 void
 Cbaud(int ctl, int data, int baud)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	switch(baud){
 	case 0:
@@ -273,7 +273,7 @@ Cbaud(int ctl, int data, int baud)
 void
 Wbaud(int ctl, int data, int baud)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	switch(baud){
 	case 0:

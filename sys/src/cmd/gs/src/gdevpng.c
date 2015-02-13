@@ -532,8 +532,8 @@ pngalpha_encode_color(gx_device * dev, const gx_color_value cv[])
      */
     return
 	((uint) gx_color_value_to_byte(cv[2]) << 8) +
-	((ulong) gx_color_value_to_byte(cv[1]) << 16) +
-	((ulong) gx_color_value_to_byte(cv[0]) << 24);
+	((uint32_t) gx_color_value_to_byte(cv[1]) << 16) +
+	((uint32_t) gx_color_value_to_byte(cv[0]) << 24);
 }
 
 /* Map a color index to a r-g-b color. */

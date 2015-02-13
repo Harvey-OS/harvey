@@ -49,8 +49,8 @@ enum
 typedef struct Tab Tab;
 struct Tab
 {
-	char *name;
-	ulong mode;
+	int8_t *name;
+	uint32_t mode;
 };
 
 Tab tab[] =
@@ -67,19 +67,19 @@ Tab tab[] =
 };
 
 void
-setexecname(char *s)
+setexecname(int8_t *s)
 {
 	tab[Qexec].name = s;
 }
 
-ulong time0;
+uint32_t time0;
 
 static void
-fillstat(Dir *d, ulong path)
+fillstat(Dir *d, uint32_t path)
 {
 	Tab *t;
 	int type;
-	char buf[32];
+	int8_t buf[32];
 
 	memset(d, 0, sizeof(*d));
 	d->uid = estrdup("exec");
@@ -147,7 +147,7 @@ conngen(int i, Dir *d, void *aux)
 	return -1;
 }
 
-char *statusstr[] = 
+int8_t *statusstr[] = 
 {
 	"Closed",
 	"Exec",
@@ -158,8 +158,8 @@ char *statusstr[] =
 static void
 fsread(Req *r)
 {
-	char e[ERRMAX], *s;
-	ulong path;
+	int8_t e[ERRMAX], *s;
+	uint32_t path;
 
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
@@ -218,8 +218,8 @@ fsread(Req *r)
 static void
 fswrite(Req *r)
 {
-	char e[ERRMAX];
-	ulong path;
+	int8_t e[ERRMAX];
+	uint32_t path;
 
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
@@ -242,7 +242,7 @@ fswrite(Req *r)
 static void
 fsflush(Req *r)
 {
-	ulong path;
+	uint32_t path;
 	Req *or;
 
 	for(or=r; or->ifcall.type==Tflush; or=or->oldreq)
@@ -273,12 +273,12 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+static int8_t*
+fswalk1(Fid *fid, int8_t *name, Qid *qid)
 {
-	char buf[32];
+	int8_t buf[32];
 	int i, n;
-	ulong path;
+	uint32_t path;
 
 	if(!(fid->qid.type&QTDIR))
 		return "walk in non-directory";
@@ -327,7 +327,7 @@ static void
 fsopen(Req *r)
 {
 	static int need[4] = { 4, 2, 6, 1 };
-	ulong path;
+	uint32_t path;
 	int n;
 	Tab *t;
 
@@ -369,7 +369,7 @@ Channel *creqwait;
 static void
 fsthread(void*)
 {
-	ulong path;
+	uint32_t path;
 	Alt a[3];
 	Fid *fid;
 	Req *r;

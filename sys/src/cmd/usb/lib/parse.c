@@ -14,11 +14,11 @@
 #include "usb.h"
 
 int
-parsedev(Dev *xd, uchar *b, int n)
+parsedev(Dev *xd, uint8_t *b, int n)
 {
 	Usbdev *d;
 	DDev *dd;
-	char *hd;
+	int8_t *hd;
 
 	d = xd->usb;
 	assert(d != nil);
@@ -55,7 +55,7 @@ parsedev(Dev *xd, uchar *b, int n)
 }
 
 static int
-parseiface(Usbdev *d, Conf *c, uchar *b, int n, Iface **ipp, Altc **app)
+parseiface(Usbdev *d, Conf *c, uint8_t *b, int n, Iface **ipp, Altc **app)
 {
 	int class, subclass, proto;
 	int ifid, altid;
@@ -102,7 +102,8 @@ parseiface(Usbdev *d, Conf *c, uchar *b, int n, Iface **ipp, Altc **app)
 extern Ep* mkep(Usbdev *, int);
 
 static int
-parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uchar *b, int n, Ep **epp)
+parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uint8_t *b, int n,
+	   Ep **epp)
 {
 	int i, dir, epid;
 	Ep *ep;
@@ -150,7 +151,7 @@ parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uchar *b, int n, Ep **epp)
 	return Dep;
 }
 
-static char*
+static int8_t*
 dname(int dtype)
 {
 	switch(dtype){
@@ -166,13 +167,13 @@ dname(int dtype)
 }
 
 int
-parsedesc(Usbdev *d, Conf *c, uchar *b, int n)
+parsedesc(Usbdev *d, Conf *c, uint8_t *b, int n)
 {
 	int	len, nd, tot;
 	Iface	*ip;
 	Ep 	*ep;
 	Altc	*altc;
-	char	*hd;
+	int8_t	*hd;
 
 	assert(d != nil && c != nil);
 	tot = 0;
@@ -237,12 +238,12 @@ parsedesc(Usbdev *d, Conf *c, uchar *b, int n)
 }
 
 int
-parseconf(Usbdev *d, Conf *c, uchar *b, int n)
+parseconf(Usbdev *d, Conf *c, uint8_t *b, int n)
 {
 	DConf* dc;
 	int	l;
 	int	nr;
-	char	*hd;
+	int8_t	*hd;
 
 	assert(d != nil && c != nil);
 	dc = (DConf*)b;

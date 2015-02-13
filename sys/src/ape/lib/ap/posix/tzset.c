@@ -17,17 +17,17 @@
 
 #define TZFILE	"/etc/TZ"
 
-static char TZ[128];
-static char std[32] = "GMT0";
-static char dst[32];
-char *tzname[2] = {
+static int8_t TZ[128];
+static int8_t std[32] = "GMT0";
+static int8_t dst[32];
+int8_t *tzname[2] = {
 	std, dst
 };
 time_t tzoffset, tzdstoffset;
 int tzdst = 0;
 
 static int
-offset(char *env, time_t *off)
+offset(int8_t *env, time_t *off)
 {
 	int n, sign;
 	size_t len, retlen;
@@ -73,7 +73,7 @@ offset(char *env, time_t *off)
 void
 tzset(void)
 {
-	char *env, *p, envbuf[128];
+	int8_t *env, *p, envbuf[128];
 	int fd, i;
 	size_t len, retlen;
 	time_t off;

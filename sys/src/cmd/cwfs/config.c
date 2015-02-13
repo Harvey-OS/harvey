@@ -14,8 +14,8 @@ static void	dowormcopy(void);
 static int	dodevcopy(void);
 
 struct {
-	char*	icharp;
-	char*	charp;
+	int8_t*	icharp;
+	int8_t*	charp;
 	int	error;
 	int	newconf;	/* clear before start */
 	int	modconf;	/* write back when done */
@@ -28,7 +28,7 @@ struct {
 
 static Device* confdev;
 static int copyworm = 0, copydev = 0;
-static char *src, *dest;
+static int8_t *src, *dest;
 
 static int resetparams;
 
@@ -111,7 +111,7 @@ devcmpr(Device *d1, Device *d2)
 }
 
 void
-cdiag(char *s, int c1)
+cdiag(int8_t *s, int c1)
 {
 
 	f.charp--;
@@ -231,7 +231,7 @@ config(void)
 {
 	int c, m;
 	Device *d;
-	char *icp;
+	int8_t *icp;
 
 	if(f.error)
 		return devnone;
@@ -331,7 +331,7 @@ config(void)
 }
 
 Device*
-iconfig(char *s)
+iconfig(int8_t *s)
 {
 	Device *d;
 
@@ -349,7 +349,7 @@ iconfig(char *s)
 }
 
 int
-testconfig(char *s)
+testconfig(int8_t *s)
 {
 	iconfig(s);
 	return f.error;
@@ -359,7 +359,7 @@ testconfig(char *s)
  * if b is a prefix of a, return 0.
  */
 int
-astrcmp(char *a, char *b)
+astrcmp(int8_t *a, int8_t *b)
 {
 	int n, c;
 
@@ -377,7 +377,7 @@ astrcmp(char *a, char *b)
 }
 
 static Fspar *
-getpar(char *name)
+getpar(int8_t *name)
 {
 	Fspar *fsp;
 
@@ -394,8 +394,8 @@ getpar(char *name)
 void
 mergeconf(Iobuf *p)
 {
-	char word[Maxword+1];
-	char *cp;
+	int8_t word[Maxword+1];
+	int8_t *cp;
 	Filsys *fs;
 	Fspar *fsp;
 
@@ -458,9 +458,9 @@ mergeconf(Iobuf *p)
 }
 
 void
-cmd_printconf(int, char *[])
+cmd_printconf(int, int8_t *[])
 {
-	char *p, *s;
+	int8_t *p, *s;
 	Iobuf *iob;
 
 	iob = getbuf(confdev, 0, Brd);
@@ -490,7 +490,7 @@ void
 sysinit(void)
 {
 	int error;
-	char *cp, *ep;
+	int8_t *cp, *ep;
 	Device *d;
 	Filsys *fs;
 	Fspar *fsp;
@@ -620,7 +620,7 @@ loop:
 
 /* an unfinished idea.  a non-blocking rawchar() would help. */
 static int
-userabort(char *msg)
+userabort(int8_t *msg)
 {
 	USED(msg);
 	return 0;
@@ -883,7 +883,7 @@ dodevcopy(void)
 }
 
 static void
-setconfig(char *dev)
+setconfig(int8_t *dev)
 {
 	if (dev != nil && !testconfig(dev))
 		nvrsetconfig(dev);	/* if it fails, it will complain */
@@ -893,8 +893,8 @@ void
 arginit(void)
 {
 	int verb;
-	char *line;
-	char word[Maxword+1], *cp;
+	int8_t *line;
+	int8_t word[Maxword+1], *cp;
 	Filsys *fs;
 
 	if(nvrcheck() == 0) {

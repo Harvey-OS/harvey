@@ -58,7 +58,7 @@ gs_show_enum_release(gs_show_enum * penum, gs_memory_t * emem)
 /* show[_n] */
 int
 gs_show_n_init(gs_show_enum * penum, gs_state * pgs,
-	       const char *str, uint size)
+	       const int8_t *str, uint size)
 {
     gs_text_enum_t *pte;
     int code = gs_show_begin(pgs, (const byte *)str, size, pgs->memory, &pte);
@@ -69,7 +69,7 @@ gs_show_n_init(gs_show_enum * penum, gs_state * pgs,
 /* ashow[_n] */
 int
 gs_ashow_n_init(gs_show_enum * penum, gs_state * pgs,
-		floatp ax, floatp ay, const char *str, uint size)
+		floatp ax, floatp ay, const int8_t *str, uint size)
 {
     gs_text_enum_t *pte;
     int code = gs_ashow_begin(pgs, ax, ay, (const byte *)str, size,
@@ -82,7 +82,7 @@ gs_ashow_n_init(gs_show_enum * penum, gs_state * pgs,
 int
 gs_widthshow_n_init(gs_show_enum * penum, gs_state * pgs,
 		    floatp cx, floatp cy, gs_char chr,
-		    const char *str, uint size)
+		    const int8_t *str, uint size)
 {
     gs_text_enum_t *pte;
     int code = gs_widthshow_begin(pgs, cx, cy, chr, (const byte *)str, size,
@@ -95,7 +95,7 @@ gs_widthshow_n_init(gs_show_enum * penum, gs_state * pgs,
 int
 gs_awidthshow_n_init(gs_show_enum * penum, gs_state * pgs,
 		     floatp cx, floatp cy, gs_char chr, floatp ax, floatp ay,
-		     const char *str, uint size)
+		     const int8_t *str, uint size)
 {
     gs_text_enum_t *pte;
     int code = gs_awidthshow_begin(pgs, cx, cy, chr, ax, ay,
@@ -107,7 +107,7 @@ gs_awidthshow_n_init(gs_show_enum * penum, gs_state * pgs,
 /* kshow[_n] */
 int
 gs_kshow_n_init(gs_show_enum * penum,
-		gs_state * pgs, const char *str, uint size)
+		gs_state * pgs, const int8_t *str, uint size)
 {
     gs_text_enum_t *pte;
     int code;
@@ -129,7 +129,7 @@ gs_kshow_n_init(gs_show_enum * penum,
 /* xyshow[_n] */
 int
 gs_xyshow_n_init(gs_show_enum * penum,
-		 gs_state * pgs, const char *str, uint size)
+		 gs_state * pgs, const int8_t *str, uint size)
 {
     gs_text_enum_t *pte;
     int code = gs_xyshow_begin(pgs, (const byte *)str, size, NULL, NULL, 0,
@@ -170,7 +170,7 @@ gs_glyphwidth_init(gs_show_enum * penum, gs_state * pgs, gs_glyph glyph)
 /* cshow[_n] */
 int
 gs_cshow_n_init(gs_show_enum * penum,
-		gs_state * pgs, const char *str, uint size)
+		gs_state * pgs, const int8_t *str, uint size)
 {
     gs_text_enum_t *pte;
     int code = gs_cshow_begin(pgs, (const byte *)str, size, pgs->memory, &pte);
@@ -181,7 +181,7 @@ gs_cshow_n_init(gs_show_enum * penum,
 /* stringwidth[_n] */
 int
 gs_stringwidth_n_init(gs_show_enum * penum, gs_state * pgs,
-		      const char *str, uint size)
+		      const int8_t *str, uint size)
 {
     gs_text_enum_t *pte;
     int code = gs_stringwidth_begin(pgs, (const byte *)str, size,
@@ -193,7 +193,7 @@ gs_stringwidth_n_init(gs_show_enum * penum, gs_state * pgs,
 /* charpath[_n] */
 int
 gs_charpath_n_init(gs_show_enum * penum, gs_state * pgs,
-		   const char *str, uint size, bool stroke_path)
+		   const int8_t *str, uint size, bool stroke_path)
 {
     gs_text_enum_t *pte;
     int code = gs_charpath_begin(pgs, (const byte *)str, size, stroke_path,
@@ -205,7 +205,7 @@ gs_charpath_n_init(gs_show_enum * penum, gs_state * pgs,
 /* charboxpath[_n] */
 int
 gs_charboxpath_n_init(gs_show_enum * penum, gs_state * pgs,
-		      const char *str, uint size, bool use_boxes)
+		      const int8_t *str, uint size, bool use_boxes)
 {
     gs_text_enum_t *pte;
     int code = gs_charboxpath_begin(pgs, (const byte *)str, size, use_boxes,

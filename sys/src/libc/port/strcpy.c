@@ -11,10 +11,10 @@
 #include <libc.h>
 #define	N	10000
 
-char*
-strcpy(char *s1, char *s2)
+int8_t*
+strcpy(int8_t *s1, int8_t *s2)
 {
-	char *os1;
+	int8_t *os1;
 
 	os1 = s1;
 	while(!memccpy(s1, s2, 0, N)) {

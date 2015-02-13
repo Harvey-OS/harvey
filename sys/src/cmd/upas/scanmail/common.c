@@ -23,12 +23,12 @@ typedef struct keyword Keyword;
 typedef struct word Word;
 
 struct word{
-	char	*string;
+	int8_t	*string;
 	int	n;
 };
 
 struct	keyword{
-	char	*string;
+	int8_t	*string;
 	int	value;
 };
 
@@ -86,21 +86,21 @@ Patterns patterns[] = {
 [Nactions]	{ 0, 0, 0 },
 };
 
-static char*	endofhdr(char*, char*);
-static	int	escape(char**);
-static	int	extract(char*);
-static	int	findkey(char*);
+static int8_t*	endofhdr(int8_t*, int8_t*);
+static	int	escape(int8_t**);
+static	int	extract(int8_t*);
+static	int	findkey(int8_t*);
 static	int	hash(int);
-static	int	isword(Word*, char*, int);
-static	void	parsealt(Biobuf*, char*, Spat**);
+static	int	isword(Word*, int8_t*, int);
+static	void	parsealt(Biobuf*, int8_t*, Spat**);
 
 /*
  *	The canonicalizer: convert input to canonical representation
  */
-char*
+int8_t*
 readmsg(Biobuf *bp, int *hsize, int *bufsize)
 {
-	char *p, *buf;
+	int8_t *p, *buf;
 	int n, offset, eoh, bsize, delta;
 
 	buf = 0;
@@ -162,7 +162,7 @@ readmsg(Biobuf *bp, int *hsize, int *bufsize)
 }
 
 static	int
-isword(Word *wp, char *text, int len)
+isword(Word *wp, int8_t *text, int len)
 {
 	for(;wp->string; wp++)
 		if(len >= wp->n && strncmp(text, wp->string, wp->n) == 0)
@@ -170,12 +170,12 @@ isword(Word *wp, char *text, int len)
 	return 0;
 }
 
-static char*
-endofhdr(char *raw, char *end)
+static int8_t*
+endofhdr(int8_t *raw, int8_t *end)
 {
 	int i;
-	char *p, *q;
-	char buf[HdrMax];
+	int8_t *p, *q;
+	int8_t buf[HdrMax];
 
 	/*
  	 * can't use strchr to search for newlines because
@@ -197,11 +197,11 @@ endofhdr(char *raw, char *end)
 }
 
 static	int
-htmlmatch(Word *wp, char *text, char *end, int *n)
+htmlmatch(Word *wp, int8_t *text, int8_t *end, int *n)
 {
-	char *cp;
+	int8_t *cp;
 	int i, c, lastc;
-	char buf[MaxHtml];
+	int8_t buf[MaxHtml];
 
 	/*
 	 * extract a string up to '>'
@@ -240,10 +240,10 @@ out:
 }
 
 static int
-escape(char **msg)
+escape(int8_t **msg)
 {
 	int c;
-	char *p;
+	int8_t *p;
 
 	p = *msg;
 	c = *p;
@@ -276,10 +276,10 @@ escape(char **msg)
 }
 
 static int
-htmlchk(char **msg, char *end)
+htmlchk(int8_t **msg, int8_t *end)
 {
 	int n;
-	char *p;
+	int8_t *p;
 
 	static int ishtml;
 
@@ -309,24 +309,24 @@ htmlchk(char **msg, char *end)
  * decode a base 64 encode body
  */
 void
-conv64(char *msg, char *end, char *buf, int bufsize)
+conv64(int8_t *msg, int8_t *end, int8_t *buf, int bufsize)
 {
 	int len, i;
-	char *cp;
+	int8_t *cp;
 
 	len = end - msg;
 	i = (len*3)/4+1;	// room for max chars + null
 	cp = Malloc(i);
-	len = dec64((uchar*)cp, i, msg, len);
+	len = dec64((uint8_t*)cp, i, msg, len);
 	convert(cp, cp+len, buf, bufsize, 1);
 	free(cp);
 }
 
 int
-convert(char *msg, char *end, char *buf, int bufsize, int isbody)
+convert(int8_t *msg, int8_t *end, int8_t *buf, int bufsize, int isbody)
 {
 
-	char *p;
+	int8_t *p;
 	int c, lastc, base64;
 
 	lastc = 0;
@@ -389,7 +389,7 @@ hash(int c)
 }
 
 static	int
-findkey(char *val)
+findkey(int8_t *val)
 {
 	Keyword *kp;
 
@@ -405,7 +405,7 @@ void
 parsepats(Biobuf *bp)
 {
 	Pattern *p, *new;
-	char *cp, *qp;
+	int8_t *cp, *qp;
 	int type, action, n, h;
 	Spat *spat;
 
@@ -493,9 +493,9 @@ parsepats(Biobuf *bp)
 }
 
 static void
-parsealt(Biobuf *bp, char *cp, Spat** head)
+parsealt(Biobuf *bp, int8_t *cp, Spat** head)
 {
-	char *p;
+	int8_t *p;
 	Spat *alt;
 
 	while(cp){
@@ -524,10 +524,10 @@ parsealt(Biobuf *bp, char *cp, Spat** head)
 }
 
 static int
-extract(char *cp)
+extract(int8_t *cp)
 {
 	int c;
-	char *p, *q, *r;
+	int8_t *p, *q, *r;
 
 	p = q = r = cp;
 	while(whitespace(*p))
@@ -564,7 +564,7 @@ extract(char *cp)
  */
 
 static Spat*
-isalt(char *message, Spat *alt)
+isalt(int8_t *message, Spat *alt)
 {
 	while(alt) {
 		if(*cmd)
@@ -580,10 +580,10 @@ isalt(char *message, Spat *alt)
 }
 
 int
-matchpat(Pattern *p, char *message, Resub *m)
+matchpat(Pattern *p, int8_t *message, Resub *m)
 {
 	Spat *spat;
-	char *s;
+	int8_t *s;
 	int c, c1;
 
 	if(p->type == string){
@@ -612,9 +612,9 @@ matchpat(Pattern *p, char *message, Resub *m)
 
 
 void
-xprint(int fd, char *type, Resub *m)
+xprint(int fd, int8_t *type, Resub *m)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	int i;
 
 	if(m->sp == 0 || m->ep == 0)
@@ -640,7 +640,7 @@ enum {
 	INVAL=	255
 };
 
-static uchar t64d[256] = {
+static uint8_t t64d[256] = {
 /*00 */	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
 	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
 /*10*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,

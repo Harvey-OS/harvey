@@ -12,7 +12,7 @@ void
 cfoll(int v)
 {
 	int i,j,k;
-	uchar *p;
+	uint8_t *p;
 	i = name[v];
 	if(i < NCH) i = 1;	/* character */
 	switch(i){
@@ -103,7 +103,7 @@ void
 add(int **array, int n)
 {
 	int i, *temp;
-	uchar *ctemp;
+	uint8_t *ctemp;
 
 	temp = nxtpos;
 	ctemp = tmpstat;
@@ -161,7 +161,7 @@ void
 first(int v)	/* calculate set of positions with v as root which can be active initially */
 {
 	int i;
-	uchar *p;
+	uint8_t *p;
 	i = name[v];
 	if(i < NCH)i = 1;
 	switch(i){
@@ -181,7 +181,7 @@ first(int v)	/* calculate set of positions with v as root which can be active in
 			break;
 		case RSCON:
 			i = stnum/2 +1;
-			p = (uchar *)right[v];
+			p = (uint8_t *)right[v];
 			while(*p)
 				if(*p++ == i){
 					first(left[v]);
@@ -209,9 +209,9 @@ cgoto(void)
 	int i, j, s;
 	int npos, curpos, n;
 	int tryit;
-	uchar tch[NCH];
+	uint8_t tch[NCH];
 	int tst[NCH];
-	uchar *q;
+	uint8_t *q;
 
 	/* generate initial state, for each start condition */
 	Bprint(&fout,"int yyvstop[] = {\n0,\n");
@@ -320,7 +320,7 @@ void
 nextstate(int s, int c)
 {
 	int j, *newpos;
-	uchar *temp, *tz;
+	uint8_t *temp, *tz;
 	int *pos, i, *f, num, curpos, number;
 	/* state to goto from state s on char c */
 	num = *state[s];
@@ -355,7 +355,7 @@ int
 notin(int n)
 {	/* see if tmpstat occurs previously */
 	int *j,k;
-	uchar *temp;
+	uint8_t *temp;
 	int i;
 
 	if(count == 0)
@@ -374,7 +374,7 @@ notin(int n)
 }
 
 void
-packtrans(int st, uchar *tch, int *tst, int cnt, int tryit)
+packtrans(int st, uint8_t *tch, int *tst, int cnt, int tryit)
 {
 	/* pack transitions into nchar, nexts */
 	/* nchar is terminated by '\0', nexts uses cnt, followed by elements */
@@ -385,10 +385,10 @@ packtrans(int st, uchar *tch, int *tst, int cnt, int tryit)
 
 	int i,j,k;
 	int cmin, cval, tcnt, diff, p, *ast;
-	uchar *ach;
+	uint8_t *ach;
 	int go[NCH], temp[NCH], c;
 	int swork[NCH];
-	uchar cwork[NCH];
+	uint8_t cwork[NCH];
 	int upper;
 
 	rcount += cnt;
@@ -550,10 +550,10 @@ pstate(int s)
 # endif
 
 int
-member(int d, uchar *t)
+member(int d, uint8_t *t)
 {
 	int c;
-	uchar *s;
+	uint8_t *s;
 
 	c = d;
 	s = t;
@@ -701,7 +701,7 @@ void
 mkmatch(void)
 {
 	int i;
-	uchar tab[NCH];
+	uint8_t tab[NCH];
 
 	for(i=0; i<ccount; i++)
 		tab[i] = 0;

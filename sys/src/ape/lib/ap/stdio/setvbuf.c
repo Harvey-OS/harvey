@@ -12,7 +12,7 @@
  */
 #include "iolib.h"
 #include <stdlib.h>
-int setvbuf(FILE *f, char *buf, int mode, size_t size){
+int setvbuf(FILE *f, int8_t *buf, int mode, size_t size){
 	if(f->state!=OPEN){
 		f->state=ERR;
 		return -1;
@@ -43,6 +43,6 @@ int setvbuf(FILE *f, char *buf, int mode, size_t size){
 }
 int _IO_setvbuf(FILE *f){
 	if(f==stderr || (f==stdout && isatty(1)))
-		return setvbuf(f, (char *)0, _IOLBF, BUFSIZ);
-	return setvbuf(f, (char *)0, _IOFBF, BUFSIZ);
+		return setvbuf(f, (int8_t *)0, _IOLBF, BUFSIZ);
+	return setvbuf(f, (int8_t *)0, _IOFBF, BUFSIZ);
 }

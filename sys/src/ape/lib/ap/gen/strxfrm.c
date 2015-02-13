@@ -10,7 +10,7 @@
 #include <string.h>
 
 size_t
-strxfrm(char *s1, const char *s2, size_t n)
+strxfrm(int8_t *s1, const int8_t *s2, size_t n)
 {
 	/*
 	 * BUG: supposed to transform s2 to a canonical form

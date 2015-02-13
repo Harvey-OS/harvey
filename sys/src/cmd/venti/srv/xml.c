@@ -12,7 +12,7 @@
 #include "fns.h"
 #include "xml.h"
 
-void xmlarena(Hio *hout, Arena *s, char *tag, int indent){
+void xmlarena(Hio *hout, Arena *s, int8_t *tag, int indent){
 	xmlindent(hout, indent);
 	hprint(hout, "<%s", tag);
 	xmlaname(hout, s->name, "name");
@@ -33,7 +33,7 @@ void xmlarena(Hio *hout, Arena *s, char *tag, int indent){
 	hprint(hout, "/>\n");
 }
 
-void xmlindex(Hio *hout, Index *s, char *tag, int indent){
+void xmlindex(Hio *hout, Index *s, int8_t *tag, int indent){
 	int i;
 	xmlindent(hout, indent);
 	hprint(hout, "<%s", tag);
@@ -66,7 +66,7 @@ void xmlindex(Hio *hout, Index *s, char *tag, int indent){
 	hprint(hout, "</%s>\n", tag);
 }
 
-void xmlamap(Hio *hout, AMap *s, char *tag, int indent){
+void xmlamap(Hio *hout, AMap *s, int8_t *tag, int indent){
 	xmlindent(hout, indent);
 	hprint(hout, "<%s", tag);
 	xmlaname(hout, s->name, "name");

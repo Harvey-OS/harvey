@@ -21,19 +21,19 @@ enum
 /* a file (with cached data) */
 struct File
 {
-	char	*mem;		/* part of file cached in memory */
-	ulong	len;		/* length of cached data */
-	long	off;		/* current offset into tpath */
-	short	fd;		/* fd to cache file */
-	char	inuse;
-	char	dirty;
-	ulong	atime;		/* time of last access */
+	int8_t	*mem;		/* part of file cached in memory */
+	uint32_t	len;		/* length of cached data */
+	int32_t	off;		/* current offset into tpath */
+	int16_t	fd;		/* fd to cache file */
+	int8_t	inuse;
+	int8_t	dirty;
+	uint32_t	atime;		/* time of last access */
 	Node	*node;
-	char 	*template;
+	int8_t 	*template;
 };
 
 static File	files[Nfile];
-static ulong	now;
+static uint32_t	now;
 static int	ntmp;
 
 /*
@@ -110,7 +110,7 @@ filefree(Node *node)
  *  file.  It's up to the caller to make sure that the file is valid.
  */
 int
-fileread(Node *node, char *a, long off, int n)
+fileread(Node *node, int8_t *a, int32_t off, int n)
 {
 	int sofar;
 	int i;
@@ -171,7 +171,7 @@ uncachedir(Node *parent, Node *child)
 static int
 createtmp(File *fp)
 {
-	char template[32];
+	int8_t template[32];
 
 	strcpy(template, "/tmp/ftpXXXXXXXXXXX");
 	mktemp(template);
@@ -193,7 +193,7 @@ createtmp(File *fp)
  *  write cached data (first Chunk bytes stay in memory)
  */
 int
-filewrite(Node *node, char *a, long off, int n)
+filewrite(Node *node, int8_t *a, int32_t off, int n)
 {
 	int i, sofar;
 	File *fp;

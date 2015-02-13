@@ -10,7 +10,8 @@
 #include	"mk.h"
 
 Job *
-newjob(Rule *r, Node *nlist, char *stem, char **match, Word *pre, Word *npre, Word *tar, Word *atar)
+newjob(Rule *r, Node *nlist, int8_t *stem, int8_t **match, Word *pre,
+       Word *npre, Word *tar, Word *atar)
 {
 	register Job *j;
 
@@ -29,7 +30,7 @@ newjob(Rule *r, Node *nlist, char *stem, char **match, Word *pre, Word *npre, Wo
 }
 
 void
-dumpj(char *s, Job *j, int all)
+dumpj(int8_t *s, Job *j, int all)
 {
 	Bprint(&bout, "%s\n", s);
 	while(j){

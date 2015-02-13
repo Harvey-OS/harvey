@@ -29,8 +29,8 @@ struct OneWay
 
 	void	*state;		/* encryption state */
 	int	slen;		/* hash data length */
-	uchar	*secret;	/* secret */
-	ulong	mid;		/* message id */
+	uint8_t	*secret;	/* secret */
+	uint32_t	mid;		/* message id */
 };
 
 enum
@@ -53,14 +53,14 @@ typedef struct Dstate Dstate;
 struct Dstate
 {
 	Chan	*c;		/* io channel */
-	uchar	state;		/* state of connection */
+	uint8_t	state;		/* state of connection */
 	int	ref;		/* serialized by dslock for atomic destroy */
 
-	uchar	encryptalg;	/* encryption algorithm */
-	ushort	blocklen;	/* blocking length */
+	uint8_t	encryptalg;	/* encryption algorithm */
+	uint16_t	blocklen;	/* blocking length */
 
-	ushort	diglen;		/* length of digest */
-	DigestState *(*hf)(uchar*, ulong, uchar*, DigestState*);	/* hash func */
+	uint16_t	diglen;		/* length of digest */
+	DigestState *(*hf)(uint8_t*, uint32_t, uint8_t*, DigestState*);	/* hash func */
 
 	/* for SSL format */
 	int	max;		/* maximum unpadded data per msg */
@@ -75,7 +75,7 @@ struct Dstate
 	OneWay	out;
 
 	/* protections */
-	char	*user;
+	int8_t	*user;
 	int	perm;
 };
 
@@ -87,10 +87,10 @@ enum
 
 Lock	dslock;
 int	dshiwat;
-char	*dsname[Maxdstate];
+int8_t	*dsname[Maxdstate];
 Dstate	*dstate[Maxdstate];
-char	*encalgs;
-char	*hashalgs;
+int8_t	*encalgs;
+int8_t	*hashalgs;
 
 enum{
 	Qtopdir		= 1,	/* top level directory */
@@ -110,17 +110,17 @@ enum{
 #define QID(c, y) 	(((c)<<5) | (y))
 
 static void	ensure(Dstate*, Block**, int);
-static void	consume(Block**, uchar*, int);
-static void	setsecret(OneWay*, uchar*, int);
+static void	consume(Block**, uint8_t*, int);
+static void	setsecret(OneWay*, uint8_t*, int);
 static Block*	encryptb(Dstate*, Block*, int);
 static Block*	decryptb(Dstate*, Block*);
 static Block*	digestb(Dstate*, Block*, int);
 static void	checkdigestb(Dstate*, Block*);
-static Chan*	buftochan(char*);
+static Chan*	buftochan(int8_t*);
 static void	sslhangup(Dstate*);
 static Dstate*	dsclone(Chan *c);
 static void	dsnew(Chan *c, Dstate **);
-static long	sslput(Dstate *s, Block * volatile b);
+static int32_t	sslput(Dstate *s, Block * volatile b);
 
 char *sslnames[] = {
 [Qclonus]	"clone",
@@ -133,11 +133,11 @@ char *sslnames[] = {
 };
 
 static int
-sslgen(Chan *c, char*, Dirtab *d, int nd, int s, Dir *dp)
+sslgen(Chan *c, int8_t*, Dirtab *d, int nd, int s, Dir *dp)
 {
 	Qid q;
 	Dstate *ds;
-	char name[16], *p, *nm;
+	int8_t name[16], *p, *nm;
 	int ft;
 
 	USED(nd);
@@ -245,7 +245,7 @@ sslgen(Chan *c, char*, Dirtab *d, int nd, int s, Dir *dp)
 }
 
 static Chan*
-sslattach(char *spec)
+sslattach(int8_t *spec)
 {
 	Chan *c;
 
@@ -257,13 +257,13 @@ sslattach(char *spec)
 }
 
 static Walkqid*
-sslwalk(Chan *c, Chan *nc, char **name, int nname)
+sslwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, nil, 0, sslgen);
 }
 
-static long
-sslstat(Chan *c, uchar *db, long n)
+static int32_t
+sslstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, nil, 0, sslgen);
 }
@@ -340,8 +340,8 @@ sslopen(Chan *c, int omode)
 	return c;
 }
 
-static long
-sslwstat(Chan *c, uchar *db, long n)
+static int32_t
+sslwstat(Chan *c, uint8_t *db, int32_t n)
 {
 	Dir *dir;
 	Dstate *s;
@@ -354,7 +354,7 @@ sslwstat(Chan *c, uchar *db, long n)
 		error(Eperm);
 
 	dir = smalloc(sizeof(Dir)+n);
-	l = convM2D(db, n, &dir[0], (char*)&dir[1]);
+	l = convM2D(db, n, &dir[0], (int8_t*)&dir[1]);
 	if(l == 0){
 		free(dir);
 		error(Eshortstat);
@@ -452,7 +452,7 @@ ensure(Dstate *s, Block **l, int n)
  *  the bytes in 'l'
  */
 static void
-consume(Block **l, uchar *p, int n)
+consume(Block **l, uint8_t *p, int n)
 {
 	Block *b;
 	int i;
@@ -553,11 +553,11 @@ qtake(Block **l, int n, int discard)
  *  consumed before the last ensure.
  */
 static Block*
-sslbread(Chan *c, long n, vlong)
+sslbread(Chan *c, int32_t n, int64_t)
 {
 	Dstate * volatile s;
 	Block *b;
-	uchar consumed[3], *p;
+	uint8_t consumed[3], *p;
 	int toconsume;
 	int len, pad;
 
@@ -660,15 +660,15 @@ sslbread(Chan *c, long n, vlong)
 	return b;
 }
 
-static long
-sslread(Chan *c, void *a, long n, vlong off)
+static int32_t
+sslread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	Block * volatile b;
 	Block *nb;
-	uchar *va;
+	uint8_t *va;
 	int i;
-	char buf[128];
-	long offset;
+	int8_t buf[128];
+	int32_t offset;
 	int ft;
 
 	if(c->qid.type & QTDIR)
@@ -718,17 +718,17 @@ sslread(Chan *c, void *a, long n, vlong off)
  *  trying to obscure the block fill
  */
 static void
-randfill(uchar *buf, int len)
+randfill(uint8_t *buf, int len)
 {
 	while(len-- > 0)
 		*buf++ = nrand(256);
 }
 
-static long
-sslbwrite(Chan *c, Block *b, vlong)
+static int32_t
+sslbwrite(Chan *c, Block *b, int64_t)
 {
 	Dstate * volatile s;
-	long rv;
+	int32_t rv;
 
 	s = dstate[CONV(c->qid)];
 	if(s == nil)
@@ -760,12 +760,12 @@ sslbwrite(Chan *c, Block *b, vlong)
  *  get out of sync with the far side.  not much we can do about
  *  it since we don't know if any bytes have been written.
  */
-static long
+static int32_t
 sslput(Dstate *s, Block * volatile b)
 {
 	Block *nb;
 	int h, n, l, pad, rv;
-	uchar *p;
+	uint8_t *p;
 	int offset;
 
 	if(waserror()){
@@ -853,7 +853,7 @@ sslput(Dstate *s, Block * volatile b)
 }
 
 static void
-setsecret(OneWay *w, uchar *secret, int n)
+setsecret(OneWay *w, uint8_t *secret, int n)
 {
 	if(w->secret)
 		free(w->secret);
@@ -887,7 +887,7 @@ initDESkey(OneWay *w)
 static void
 initDESkey_40(OneWay *w)
 {
-	uchar key[8];
+	uint8_t key[8];
 
 	if(w->state){
 		free(w->state);
@@ -965,9 +965,9 @@ initRC4key_128(OneWay *w)
 typedef struct Hashalg Hashalg;
 struct Hashalg
 {
-	char	*name;
+	int8_t	*name;
 	int	diglen;
-	DigestState *(*hf)(uchar*, ulong, uchar*, DigestState*);
+	DigestState *(*hf)(uint8_t*, uint32_t, uint8_t*, DigestState*);
 };
 
 Hashalg hashtab[] =
@@ -980,7 +980,7 @@ Hashalg hashtab[] =
 };
 
 static int
-parsehashalg(char *p, Dstate *s)
+parsehashalg(int8_t *p, Dstate *s)
 {
 	Hashalg *ha;
 
@@ -999,7 +999,7 @@ parsehashalg(char *p, Dstate *s)
 typedef struct Encalg Encalg;
 struct Encalg
 {
-	char	*name;
+	int8_t	*name;
 	int	blocklen;
 	int	alg;
 	void	(*keyinit)(OneWay*);
@@ -1032,7 +1032,7 @@ Encalg encrypttab[] =
 #endif NOSPOOKS
 
 static int
-parseencryptalg(char *p, Dstate *s)
+parseencryptalg(int8_t *p, Dstate *s)
 {
 	Encalg *ea;
 
@@ -1050,14 +1050,14 @@ parseencryptalg(char *p, Dstate *s)
 	return -1;
 }
 
-static long
-sslwrite(Chan *c, void *a, long n, vlong)
+static int32_t
+sslwrite(Chan *c, void *a, int32_t n, int64_t)
 {
 	Dstate * volatile s;
 	Block * volatile b;
 	int l, t;
-	char *p, *np, *e, buf[128];
-	uchar *x;
+	int8_t *p, *np, *e, buf[128];
+	uint8_t *x;
 
 	s = dstate[CONV(c->qid)];
 	if(s == 0)
@@ -1220,7 +1220,7 @@ sslinit(void)
 	struct Encalg *e;
 	struct Hashalg *h;
 	int n;
-	char *cp;
+	int8_t *cp;
 
 	n = 1;
 	for(e = encrypttab; e->name != nil; e++)
@@ -1275,7 +1275,7 @@ Dev ssldevtab = {
 static Block*
 encryptb(Dstate *s, Block *b, int offset)
 {
-	uchar *p, *ep, *p2, *ip, *eip;
+	uint8_t *p, *ep, *p2, *ip, *eip;
 	DESstate *ds;
 
 	switch(s->encryptalg){
@@ -1308,9 +1308,9 @@ static Block*
 decryptb(Dstate *s, Block *bin)
 {
 	Block *b, **l;
-	uchar *p, *ep, *tp, *ip, *eip;
+	uint8_t *p, *ep, *tp, *ip, *eip;
 	DESstate *ds;
-	uchar tmp[8];
+	uint8_t tmp[8];
 	int i;
 
 	l = &bin;
@@ -1359,10 +1359,10 @@ decryptb(Dstate *s, Block *bin)
 static Block*
 digestb(Dstate *s, Block *b, int offset)
 {
-	uchar *p;
+	uint8_t *p;
 	DigestState ss;
-	uchar msgid[4];
-	ulong n, h;
+	uint8_t msgid[4];
+	uint32_t n, h;
 	OneWay *w;
 
 	w = &s->out;
@@ -1390,12 +1390,12 @@ digestb(Dstate *s, Block *b, int offset)
 static void
 checkdigestb(Dstate *s, Block *bin)
 {
-	uchar *p;
+	uint8_t *p;
 	DigestState ss;
-	uchar msgid[4];
+	uint8_t msgid[4];
 	int n, h;
 	OneWay *w;
-	uchar digest[128];
+	uint8_t digest[128];
 	Block *b;
 
 	w = &s->in;
@@ -1430,7 +1430,7 @@ checkdigestb(Dstate *s, Block *bin)
 
 /* get channel associated with an fd */
 static Chan*
-buftochan(char *p)
+buftochan(int8_t *p)
 {
 	Chan *c;
 	int fd;

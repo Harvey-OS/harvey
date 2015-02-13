@@ -11,7 +11,7 @@
  * pANS stdio -- vsnprintf
  */
 #include "iolib.h"
-int vsnprintf(char *buf, int nbuf, const char *fmt, va_list args){
+int vsnprintf(int8_t *buf, int nbuf, const int8_t *fmt, va_list args){
 	int n;
 	FILE *f=sopenw();
 	if(f==NULL)

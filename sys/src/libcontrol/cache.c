@@ -19,7 +19,7 @@ typedef struct Cache Cache;
 
 struct Cache
 {
-	char		*name;
+	int8_t		*name;
 	CCache	**cache;
 	int		ncache;
 };
@@ -28,7 +28,7 @@ static struct Cache imagecache = {"image"};
 static struct Cache fontcache = {"font"};
 
 static CCache*
-getcacheitem(Cache *c, char *name)
+getcacheitem(Cache *c, int8_t *name)
 {
 	int i;
 
@@ -41,7 +41,7 @@ getcacheitem(Cache *c, char *name)
 }
 
 static int
-namecacheitem(Cache *c, void *image, char *name)
+namecacheitem(Cache *c, void *image, int8_t *name)
 {
 	int i, free;
 	CCache *cc;
@@ -73,7 +73,7 @@ namecacheitem(Cache *c, void *image, char *name)
 }
 
 static int
-freecacheitem(Cache *c, char *name)
+freecacheitem(Cache *c, int8_t *name)
 {
 	CCache	*cc;
 
@@ -101,7 +101,7 @@ putcacheitem(CCache *cc)
 }
 
 static void
-setcacheitemptr(Cache *c, Control *ctl, CCache **cp, char *s)
+setcacheitemptr(Cache *c, Control *ctl, CCache **cp, int8_t *s)
 {
 	CCache *ci;
 
@@ -115,7 +115,7 @@ setcacheitemptr(Cache *c, Control *ctl, CCache **cp, char *s)
 /* Images */
 
 CImage*
-_getctlimage(char *name)
+_getctlimage(int8_t *name)
 {
 	return getcacheitem(&imagecache, name);
 }
@@ -127,19 +127,19 @@ _putctlimage(CImage *c)
 }
 
 int
-namectlimage(Image *image, char *name)
+namectlimage(Image *image, int8_t *name)
 {
 	return namecacheitem(&imagecache, image, name);
 }
 
 int
-freectlimage(char *name)
+freectlimage(int8_t *name)
 {
 	return freecacheitem(&imagecache, name);
 }
 
 void
-_setctlimage(Control *c, CImage **cp, char *s)
+_setctlimage(Control *c, CImage **cp, int8_t *s)
 {
 	setcacheitemptr(&imagecache, c, cp, s);
 }
@@ -147,7 +147,7 @@ _setctlimage(Control *c, CImage **cp, char *s)
 /* Fonts */
 
 CFont*
-_getctlfont(char *name)
+_getctlfont(int8_t *name)
 {
 	return getcacheitem(&fontcache, name);
 }
@@ -159,19 +159,19 @@ _putctlfont(CFont *c)
 }
 
 int
-namectlfont(Font *font, char *name)
+namectlfont(Font *font, int8_t *name)
 {
 	return namecacheitem(&fontcache, font, name);
 }
 
 int
-freectlfont(char *name)
+freectlfont(int8_t *name)
 {
 	return freecacheitem(&fontcache, name);
 }
 
 void
-_setctlfont(Control *c, CFont **cp, char *s)
+_setctlfont(Control *c, CFont **cp, int8_t *s)
 {
 	setcacheitemptr(&fontcache, c, cp, s);
 }

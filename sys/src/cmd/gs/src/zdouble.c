@@ -322,10 +322,10 @@ zcvsd(i_ctx_t *i_ctx_p)
     os_ptr op = osp;
     int code = double_params_result(op, 0, NULL);
     double num;
-    char buf[MAX_CHARS + 2];
-    char *str = buf;
+    int8_t buf[MAX_CHARS + 2];
+    int8_t *str = buf;
     uint len;
-    char end;
+    int8_t end;
 
     if (code < 0)
 	return code;
@@ -370,7 +370,7 @@ zdcvi(i_ctx_t *i_ctx_p)
 
     if (num < min_int_real || num > max_int_real)
 	return_error(e_rangecheck);
-    make_int(op, (long)num);	/* truncates toward 0 */
+    make_int(op, (int32_t)num);	/* truncates toward 0 */
     return 0;
 }
 
@@ -403,7 +403,7 @@ zdcvs(i_ctx_t *i_ctx_p)
     os_ptr op = osp;
     double num;
     int code = double_params(op - 1, 1, &num);
-    char str[MAX_CHARS + 1];
+    int8_t str[MAX_CHARS + 1];
     int len;
 
     if (code < 0)

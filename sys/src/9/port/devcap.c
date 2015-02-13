@@ -30,8 +30,8 @@ typedef struct Caphash	Caphash;
 struct Caphash
 {
 	Caphash	*next;
-	char		hash[Hashlen];
-	ulong		ticks;
+	int8_t		hash[Hashlen];
+	uint32_t		ticks;
 };
 
 struct
@@ -58,13 +58,13 @@ Dirtab capdir[] =
 int ncapdir = nelem(capdir);
 
 static Chan*
-capattach(char *spec)
+capattach(int8_t *spec)
 {
 	return devattach(L'¤', spec);
 }
 
 static Walkqid*
-capwalk(Chan *c, Chan *nc, char **name, int nname)
+capwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, capdir, ncapdir, devgen);
 }
@@ -79,8 +79,8 @@ capremove(Chan *c)
 }
 
 
-static long
-capstat(Chan *c, uchar *db, long n)
+static int32_t
+capstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, capdir, ncapdir, devgen);
 }
@@ -100,7 +100,7 @@ capopen(Chan *c, int omode)
 		return c;
 	}
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qhash:
 		if(!iseve())
 			error(Eperm);
@@ -128,7 +128,7 @@ hashstr(uchar *hash)
  */
 
 static Caphash*
-remcap(uchar *hash)
+remcap(uint8_t *hash)
 {
 	Caphash *t, **l;
 
@@ -153,7 +153,7 @@ remcap(uchar *hash)
 
 /* add a capability, throwing out any old ones */
 static void
-addcap(uchar *hash)
+addcap(uint8_t *hash)
 {
 	Caphash *p, *t, **l;
 
@@ -188,10 +188,10 @@ capclose(Chan*)
 {
 }
 
-static long
-capread(Chan *c, void *va, long n, vlong)
+static int32_t
+capread(Chan *c, void *va, int32_t n, int64_t)
 {
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qdir:
 		return devdirread(c, va, n, capdir, ncapdir, devgen);
 
@@ -202,16 +202,16 @@ capread(Chan *c, void *va, long n, vlong)
 	return n;
 }
 
-static long
-capwrite(Chan *c, void *va, long n, vlong)
+static int32_t
+capwrite(Chan *c, void *va, int32_t n, int64_t)
 {
 	Caphash *p;
-	char *cp;
-	uchar hash[Hashlen];
-	char *key, *from, *to;
-	char err[256];
+	int8_t *cp;
+	uint8_t hash[Hashlen];
+	int8_t *key, *from, *to;
+	int8_t err[256];
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qhash:
 		if(!iseve())
 			error(Eperm);
@@ -238,7 +238,8 @@ capwrite(Chan *c, void *va, long n, vlong)
 			error(Eshort);
 		*key++ = 0;
 
-		hmac_sha1((uchar*)from, strlen(from), (uchar*)key, strlen(key), hash, nil);
+		hmac_sha1((uint8_t*)from, strlen(from), (uint8_t*)key,
+			  strlen(key), hash, nil);
 
 		p = remcap(hash);
 		if(p == nil){

@@ -30,17 +30,17 @@ enum
 typedef struct Ndb Ndb;
 struct Ndb
 {
-	char *name;
-	char *file;
+	int8_t *name;
+	int8_t *file;
 	Msgdb *db;
 	double p;
-	long nmsg;
+	int32_t nmsg;
 };
 
 typedef struct Word Word;
 struct Word
 {
-	char s[MAXLEN];
+	int8_t s[MAXLEN];
 	int count[MAXTAB];
 	double p[MAXTAB];
 	double mp;
@@ -59,11 +59,11 @@ Word best[MAXBEST];
 int mbest = 15;
 int nbest;
 
-void process(Biobuf*, char*);
-void lockfile(char*);
+void process(Biobuf*, int8_t*);
+void lockfile(int8_t*);
 
 void
-noteword(Word *w, char *s)
+noteword(Word *w, int8_t *s)
 {
 	int i;
 
@@ -237,11 +237,11 @@ main(int argc, char **argv)
 }
 
 void
-process(Biobuf *b, char*)
+process(Biobuf *b, int8_t*)
 {
-	char *s;
-	char *p;
-	long n;
+	int8_t *s;
+	int8_t *p;
+	int32_t n;
 
 	while((s = Brdline(b, '\n')) != nil){
 		s[Blinelen(b)-1] = 0;

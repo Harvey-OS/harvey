@@ -11,7 +11,7 @@
 
 static	Command	command[100];
 static	Flag	flag[35];
-static	char	statsdef[20];	/* default stats list */
+static	int8_t	statsdef[20];	/* default stats list */
 static	int	whoflag;
 
 static	void	consserve1(void *);
@@ -42,7 +42,7 @@ consserve(void)
 static void
 consserve1(void *)
 {
-	char *conline;
+	int8_t *conline;
 
 	for (;;) {
 		/* conslock(); */
@@ -69,7 +69,7 @@ cmdcmp(void *va, void *vb)
 }
 
 void
-cmd_install(char *arg0, char *help, void (*func)(int, char*[]))
+cmd_install(int8_t *arg0, int8_t *help, void (*func)(int, int8_t*[]))
 {
 	int i;
 
@@ -90,10 +90,10 @@ cmd_install(char *arg0, char *help, void (*func)(int, char*[]))
 }
 
 void
-cmd_exec(char *arg)
+cmd_exec(int8_t *arg)
 {
-	char line[2*Maxword], *s;
-	char *argv[10];
+	int8_t line[2*Maxword], *s;
+	int8_t *argv[10];
 	int argc, i, c;
 
 	if(strlen(arg) >= nelem(line)-2) {
@@ -131,7 +131,7 @@ cmd_exec(char *arg)
 }
 
 static void
-cmd_halt(int, char *[])
+cmd_halt(int, int8_t *[])
 {
 	wlock(&mainlock);	/* halt */
 	sync("halt");
@@ -139,7 +139,7 @@ cmd_halt(int, char *[])
 }
 
 static void
-cmd_duallow(int argc, char *argv[])
+cmd_duallow(int argc, int8_t *argv[])
 {
 	int uid;
 
@@ -159,10 +159,10 @@ cmd_duallow(int argc, char *argv[])
 }
 
 static void
-cmd_stats(int argc, char *argv[])
+cmd_stats(int argc, int8_t *argv[])
 {
 	int i, c;
-	char buf[30], *s, *p, *q;
+	int8_t buf[30], *s, *p, *q;
 
 	if(argc <= 1) {
 		if(statsdef[0] == 0)
@@ -195,7 +195,7 @@ cmd_stats(int argc, char *argv[])
 }
 
 static void
-cmd_stata(int, char *[])
+cmd_stata(int, int8_t *[])
 {
 	int i;
 
@@ -229,8 +229,8 @@ flagcmp(void *va, void *vb)
 	return strcmp(a->arg0, b->arg0);
 }
 
-ulong
-flag_install(char *arg, char *help)
+uint32_t
+flag_install(int8_t *arg, int8_t *help)
 {
 	int i;
 
@@ -252,10 +252,10 @@ flag_install(char *arg, char *help)
 }
 
 void
-cmd_flag(int argc, char *argv[])
+cmd_flag(int argc, int8_t *argv[])
 {
 	int f, n, i, j;
-	char *s;
+	int8_t *s;
 	Chan *cp;
 
 	if(argc <= 1) {
@@ -306,7 +306,7 @@ cmd_flag(int argc, char *argv[])
 }
 
 static void
-cmd_who(int argc, char *argv[])
+cmd_who(int argc, int8_t *argv[])
 {
 	Chan *cp;
 	int i, c;
@@ -338,7 +338,7 @@ cmd_who(int argc, char *argv[])
 }
 
 static void
-cmd_hangup(int argc, char *argv[])
+cmd_hangup(int argc, int8_t *argv[])
 {
 	Chan *cp;
 	int n;
@@ -363,7 +363,7 @@ cmd_hangup(int argc, char *argv[])
 }
 
 static void
-cmd_sync(int, char *[])
+cmd_sync(int, int8_t *[])
 {
 	wlock(&mainlock);	/* sync */
 	sync("command");
@@ -372,9 +372,9 @@ cmd_sync(int, char *[])
 }
 
 static void
-cmd_help(int argc, char *argv[])
+cmd_help(int argc, int8_t *argv[])
 {
-	char *arg;
+	int8_t *arg;
 	int i, j;
 
 	for(i=0; arg=command[i].arg0; i++) {
@@ -391,7 +391,7 @@ cmd_help(int argc, char *argv[])
 }
 
 void
-cmd_fstat(int argc, char *argv[])
+cmd_fstat(int argc, int8_t *argv[])
 {
 	int i;
 
@@ -405,11 +405,11 @@ cmd_fstat(int argc, char *argv[])
 }
 
 void
-cmd_create(int argc, char *argv[])
+cmd_create(int argc, int8_t *argv[])
 {
 	int uid, gid;
-	long perm;
-	char elem[NAMELEN], *p;
+	int32_t perm;
+	int8_t elem[NAMELEN], *p;
 
 	if(argc < 5) {
 		print("usage: create path uid gid mode [lad]\n");
@@ -468,7 +468,7 @@ cmd_create(int argc, char *argv[])
 }
 
 static void
-cmd_clri(int argc, char *argv[])
+cmd_clri(int argc, int8_t *argv[])
 {
 	int i;
 
@@ -482,13 +482,13 @@ cmd_clri(int argc, char *argv[])
 }
 
 static void
-cmd_allow(int, char**)
+cmd_allow(int, int8_t**)
 {
 	wstatallow = writeallow = 1;
 }
 
 static void
-cmd_disallow(int, char**)
+cmd_disallow(int, int8_t**)
 {
 	wstatallow = writeallow = 0;
 }
@@ -544,7 +544,7 @@ doclean(Iobuf *p, Dentry *d, int n, Off a)
 }
 
 static void
-cmd_clean(int argc, char *argv[])
+cmd_clean(int argc, int8_t *argv[])
 {
 	int n;
 	Off a;
@@ -588,7 +588,7 @@ cmd_clean(int argc, char *argv[])
 }
 
 static void
-cmd_remove(int argc, char *argv[])
+cmd_remove(int argc, int8_t *argv[])
 {
 	int i;
 
@@ -602,17 +602,17 @@ cmd_remove(int argc, char *argv[])
 }
 
 static void
-cmd_version(int, char *[])
+cmd_version(int, int8_t *[])
 {
 	print("%d-bit %s as of %T\n", sizeof(Off)*8 - 1, service, fs_mktime);
 	print("\tlast boot %T\n", boottime);
 }
 
 static void
-cmd_cfs(int argc, char *argv[])
+cmd_cfs(int argc, int8_t *argv[])
 {
 	Filsys *fs;
-	char *name;
+	int8_t *name;
 
 	name = "main";
 	if(argc > 1)
@@ -631,11 +631,11 @@ cmd_cfs(int argc, char *argv[])
 }
 
 static void
-cmd_prof(int argc, char *argv[])
+cmd_prof(int argc, int8_t *argv[])
 {
 	int n;
-	long m, o;
-	char *p;
+	int32_t m, o;
+	int8_t *p;
 
 	if(cons.profbuf == 0) {
 		print("no buffer\n");
@@ -660,7 +660,7 @@ cmd_prof(int argc, char *argv[])
 			print("cant open /adm/kprofdata\n");
 			return;
 		}
-		p = (char*)cons.profbuf;
+		p = (int8_t*)cons.profbuf;
 		for(m=0; m<cons.nprofbuf; m++) {
 			n = cons.profbuf[m];
 			p[0] = n>>24;
@@ -676,7 +676,7 @@ cmd_prof(int argc, char *argv[])
 			n = 8192;
 			if(n > m)
 				n = m;
-			con_write(FID2, (char*)cons.profbuf+o, o, n);
+			con_write(FID2, (int8_t*)cons.profbuf+o, o, n);
 			m -= n;
 			o += n;
 		}
@@ -685,10 +685,10 @@ cmd_prof(int argc, char *argv[])
 }
 
 static void
-cmd_time(int argc, char *argv[])
+cmd_time(int argc, int8_t *argv[])
 {
 	int i, len;
-	char *cmd;
+	int8_t *cmd;
 	Timet t1, t2;
 
 	t1 = time(nil);
@@ -708,7 +708,7 @@ cmd_time(int argc, char *argv[])
 }
 
 void
-cmd_noattach(int, char *[])
+cmd_noattach(int, int8_t *[])
 {
 	noattach = !noattach;
 	if(noattach)
@@ -716,9 +716,9 @@ cmd_noattach(int, char *[])
 }
 
 void
-cmd_files(int, char *[])
+cmd_files(int, int8_t *[])
 {
-	long i, n;
+	int32_t i, n;
 	Chan *cp;
 
 	for(cp = chans; cp; cp = cp->next)
@@ -783,9 +783,9 @@ installcmds(void)
 }
 
 int
-walkto(char *name)
+walkto(int8_t *name)
 {
-	char elem[NAMELEN], *p;
+	int8_t elem[NAMELEN], *p;
 	int n;
 
 	if(con_clone(FID1, FID2))
@@ -813,11 +813,11 @@ walkto(char *name)
 }
 
 /* needs to parse and return vlongs to cope with new larger block numbers */
-vlong
-number(char *arg, int def, int base)
+int64_t
+number(int8_t *arg, int def, int base)
 {
 	int c, sign, any;
-	vlong n;
+	int64_t n;
 
 	if(arg == nil)
 		return def;

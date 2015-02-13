@@ -20,7 +20,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	int f, k;
-	ulong fmin, fvco, m, n, p, q;
+	uint32_t fmin, fvco, m, n, p, q;
 	double z;
 
 	if(ctlr->flag & Finit)

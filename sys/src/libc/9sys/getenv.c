@@ -10,13 +10,13 @@
 #include <u.h>
 #include <libc.h>
 
-char*
-getenv(char *name)
+int8_t*
+getenv(int8_t *name)
 {
 	int r, f;
-	long s;
-	char *ans;
-	char *p, *ep, ename[100];
+	int32_t s;
+	int8_t *ans;
+	int8_t *p, *ep, ename[100];
 
 	if(strchr(name, '/') != nil)
 		return nil;

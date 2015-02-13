@@ -66,8 +66,8 @@ static int
 passread(Fsstate *fss, void *va, uint *n)
 {
 	int m;
-	char buf[500];
-	char *pass, *user;
+	int8_t buf[500];
+	int8_t *pass, *user;
 	State *s;
 
 	s = fss->ps;

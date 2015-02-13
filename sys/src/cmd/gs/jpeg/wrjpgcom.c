@@ -353,7 +353,7 @@ scan_JPEG_header (int keep_COM)
 
 /* Command line parsing code */
 
-static const char * progname;	/* program name for error messages */
+static const int8_t * progname;	/* program name for error messages */
 
 
 static void
@@ -390,7 +390,7 @@ usage (void)
 
 
 static int
-keymatch (char * arg, const char * keyword, int minchars)
+keymatch (int8_t * arg, const int8_t * keyword, int minchars)
 /* Case-insensitive matching of (possibly abbreviated) keyword switches. */
 /* keyword is the constant keyword (must be lower case already), */
 /* minchars is length of minimum legal abbreviation. */
@@ -419,12 +419,12 @@ keymatch (char * arg, const char * keyword, int minchars)
  */
 
 int
-main (int argc, char **argv)
+main (int argc, int8_t **argv)
 {
   int argn;
-  char * arg;
+  int8_t * arg;
   int keep_COM = 1;
-  char * comment_arg = NULL;
+  int8_t * comment_arg = NULL;
   FILE * comment_file = NULL;
   unsigned int comment_length = 0;
   int marker;
@@ -459,7 +459,7 @@ main (int argc, char **argv)
        * under MS-DOG and must parse out the quoted string ourselves.  Sigh.
        */
       if (comment_arg[0] == '"') {
-	comment_arg = (char *) malloc((size_t) MAX_COM_LENGTH);
+	comment_arg = (int8_t *) malloc((size_t) MAX_COM_LENGTH);
 	if (comment_arg == NULL)
 	  ERREXIT("Insufficient memory");
 	strcpy(comment_arg, argv[argn]+1);
@@ -547,7 +547,7 @@ main (int argc, char **argv)
     FILE * src_file;
     int c;
 
-    comment_arg = (char *) malloc((size_t) MAX_COM_LENGTH);
+    comment_arg = (int8_t *) malloc((size_t) MAX_COM_LENGTH);
     if (comment_arg == NULL)
       ERREXIT("Insufficient memory");
     comment_length = 0;
@@ -558,7 +558,7 @@ main (int argc, char **argv)
 		(unsigned int) MAX_COM_LENGTH);
 	exit(EXIT_FAILURE);
       }
-      comment_arg[comment_length++] = (char) c;
+      comment_arg[comment_length++] = (int8_t) c;
     }
     if (comment_file != NULL)
       fclose(comment_file);

@@ -101,6 +101,6 @@ Ctlr* ctlrs[] = {
  * Lower 2-bits of indirect DAC register
  * addressing.
  */
-ushort dacxreg[4] = {
+uint16_t dacxreg[4] = {
 	PaddrW, Pdata, Pixmask, PaddrR
 };

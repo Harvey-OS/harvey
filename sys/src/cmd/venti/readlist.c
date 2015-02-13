@@ -13,10 +13,10 @@
 #include <venti.h>
 #include <bio.h>
 
-char *host;
+int8_t *host;
 Biobuf b;
 VtConn *z;
-uchar *buf;
+uint8_t *buf;
 void run(Biobuf*);
 int nn;
 
@@ -28,7 +28,7 @@ usage(void)
 }
 
 int
-parsescore(uchar *score, char *buf, int n)
+parsescore(uint8_t *score, int8_t *buf, int n)
 {
 	int i, c;
 
@@ -98,9 +98,9 @@ threadmain(int argc, char *argv[])
 void
 run(Biobuf *b)
 {
-	char *p, *f[10];
+	int8_t *p, *f[10];
 	int nf;
-	uchar score[20];
+	uint8_t score[20];
 	int type, n;
 
 	while((p = Brdline(b, '\n')) != nil){

@@ -1,4 +1,4 @@
-extern long __SEEK(long long*, int, long long, int);
+extern int32_t __SEEK(long long*, int, long long, int);
 
 long long
 _SEEK(int fd, long long o, int p)

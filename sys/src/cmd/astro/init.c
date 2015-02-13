@@ -28,8 +28,8 @@ Obj2*	objlst[] =
 
 struct	idata
 {
-	char*	name;
-	char*	name1;
+	int8_t*	name;
+	int8_t*	name1;
 	void	(*obj)(void);
 } idata[] =
 {
@@ -112,7 +112,7 @@ setobj(Obj1 *op)
 	p->mag = mag;
 }
 
-long	starsao = 0;
+int32_t	starsao = 0;
 
 void
 fstar(void)

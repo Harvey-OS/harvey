@@ -44,7 +44,7 @@ kbdinit(void)
 }
 
 int
-consinit(char* name, char* speed)
+consinit(int8_t* name, int8_t* speed)
 {
 	int baud, port;
 
@@ -74,7 +74,7 @@ consdrain(void)
 }
 
 void
-consputs(char* s, int n)
+consputs(int8_t* s, int n)
 {
 	cgaconsputs(s, n);
 	if(useuart)
@@ -82,7 +82,7 @@ consputs(char* s, int n)
 }
 
 void
-warp86(char* s, ulong)
+warp86(int8_t* s, uint32_t)
 {
 	if(s == nil)
 		s = "Warp86\n";
@@ -104,7 +104,7 @@ warp86(char* s, ulong)
 	 * ACPI but why bother, this is the end of the line anyway.
 	 */
 	print("Takes a licking and keeps on ticking...\n");
-	*(ushort*)KADDR(0x472) = 0x1234;	/* BIOS warm-boot flag */
+	*(uint16_t*)KADDR(0x472) = 0x1234;	/* BIOS warm-boot flag */
 	outb(0xcf9, 0x02);
 	outb(0xcf9, 0x06);
 
@@ -113,11 +113,11 @@ warp86(char* s, ulong)
 }
 
 static int
-getline(char *buf, int size, int timeout)
+getline(int8_t *buf, int size, int timeout)
 {
 	int c, i=0;
-	ulong start;
-	char echo;
+	uint32_t start;
+	int8_t echo;
 
 	for (;;) {
 		start = m->ticks;
@@ -159,10 +159,10 @@ getline(char *buf, int size, int timeout)
 }
 
 int
-getstr(char *prompt, char *buf, int size, char *def, int timeout)
+getstr(int8_t *prompt, int8_t *buf, int size, int8_t *def, int timeout)
 {
 	int len, isdefault;
-	char pbuf[PRINTSIZE];
+	int8_t pbuf[PRINTSIZE];
 
 	buf[0] = 0;
 	isdefault = (def && *def);
@@ -206,11 +206,11 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 }
 
 void
-panic(char *fmt, ...)
+panic(int8_t *fmt, ...)
 {
 	int n;
 	va_list arg;
-	char buf[PRINTSIZE];
+	int8_t buf[PRINTSIZE];
 
 	strcpy(buf, "panic: ");
 	va_start(arg, fmt);

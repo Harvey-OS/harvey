@@ -20,16 +20,16 @@
  *	print the value of dot as file:line
  */
 void
-printsource(long dot)
+printsource(int32_t dot)
 {
-	char str[STRINGSZ];
+	int8_t str[STRINGSZ];
 
 	if (fileline(str, STRINGSZ, dot))
 		Bprint(bioout, "%s", str);
 }
 
 void
-printlocals(Symbol *fn, ulong fp)
+printlocals(Symbol *fn, uint32_t fp)
 {
 	int i;
 	Symbol s;
@@ -43,7 +43,7 @@ printlocals(Symbol *fn, ulong fp)
 }
 
 void
-printparams(Symbol *fn, ulong fp)
+printparams(Symbol *fn, uint32_t fp)
 {
 	int i;
 	Symbol s;
@@ -67,10 +67,10 @@ printparams(Symbol *fn, ulong fp)
 void
 stktrace(int modif)
 {
-	ulong pc, sp;
+	uint32_t pc, sp;
 	Symbol s, f;
 	int i;
-	char buf[512];
+	int8_t buf[512];
 
 	pc = reg.pc;
 	sp = reg.r[1];

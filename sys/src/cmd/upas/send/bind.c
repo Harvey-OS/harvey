@@ -10,7 +10,7 @@
 #include "common.h"
 #include "send.h"
 
-static int forward_loop(char *, char *);
+static int forward_loop(int8_t *, int8_t *);
 
 /* bind the destinations to the commands to be executed */
 extern dest *
@@ -129,7 +129,7 @@ up_bind(dest *destp, message *mp, int checkforward)
  * is found more than 4 times in the return address.
  */
 static int
-forward_loop(char *addr, char *system)
+forward_loop(int8_t *addr, int8_t *system)
 {
 	int len = strlen(system), found = 0;
 

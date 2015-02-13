@@ -68,12 +68,12 @@ devtabget(int dc, int user)
 	return nil;
 }
 
-long
-devtabread(Chan*, void* buf, long n, vlong off)
+int32_t
+devtabread(Chan*, void* buf, int32_t n, int64_t off)
 {
 	int i;
 	Dev *dev;
-	char *alloc, *e, *p;
+	int8_t *alloc, *e, *p;
 
 	alloc = malloc(READSTR);
 	if(alloc == nil)

@@ -110,7 +110,7 @@ mousewarp(Point pt)
 void
 initmouse(void)
 {
-	char buf[1024];
+	int8_t buf[1024];
 
 	snprint(buf, sizeof buf, "%s/mouse", display->devdir);
 	if((mousefd = open(buf, ORDWR)) < 0)
@@ -124,8 +124,8 @@ void
 readmouse(Vnc *v)
 {
 	int cursorfd, len, n;
-	char buf[10*EventSize], *start, *end;
-	uchar curs[2*4+2*2*16];
+	int8_t buf[10*EventSize], *start, *end;
+	uint8_t curs[2*4+2*2*16];
 	Cursor *cs;
 	Mouse m;
 
@@ -179,13 +179,13 @@ readmouse(Vnc *v)
 }
 
 static int snarffd = -1;
-static ulong snarfvers;
+static uint32_t snarfvers;
 
 void 
-writesnarf(Vnc *v, long n)
+writesnarf(Vnc *v, int32_t n)
 {
-	uchar buf[8192];
-	long m;
+	uint8_t buf[8192];
+	int32_t m;
 	Biobuf *b;
 
 	if((b = Bopen("/dev/snarf", OWRITE)) == nil){
@@ -206,10 +206,10 @@ writesnarf(Vnc *v, long n)
 	snarfvers++;
 }
 
-char *
+int8_t *
 getsnarf(int *sz)
 {
-	char *snarf, *p;
+	int8_t *snarf, *p;
 	int n, c;
 
 	*sz =0;
@@ -233,7 +233,7 @@ void
 checksnarf(Vnc *v)
 {
 	Dir *dir;
-	char *snarf;
+	int8_t *snarf;
 	int len;
 
 	if(snarffd < 0){

@@ -42,7 +42,7 @@
  * The return value and the setting of *ptr and *plen are as for gp_getenv.
  */
 int
-gp_gettmpdir(char *ptr, int *plen)
+gp_gettmpdir(int8_t *ptr, int *plen)
 {
     int max_len = *plen;
     int code = gp_getenv("TMPDIR", ptr, plen);
@@ -58,11 +58,11 @@ gp_gettmpdir(char *ptr, int *plen)
  * conditions and symlink attacks.
  */
 FILE *
-gp_fopentemp(const char *fname, const char *mode)
+gp_fopentemp(const int8_t *fname, const int8_t *mode)
 {
     int flags = O_EXCL;
     /* Scan the mode to construct the flags. */
-    const char *p = mode;
+    const int8_t *p = mode;
     int fildes;
     FILE *file;
 
@@ -97,7 +97,7 @@ gp_fopentemp(const char *fname, const char *mode)
      * fdopen as (char *), rather than following the POSIX.1 standard,
      * which defines it as (const char *).  Patch this here.
      */
-    file = fdopen(fildes, (char *)mode); /* still really const */
+    file = fdopen(fildes, (int8_t *)mode); /* still really const */
     if (file == 0)
 	close(fildes);
     return file;
@@ -143,16 +143,17 @@ search_separator(const char **ip, const char *ipe, const char *item, int directi
  *		"\\server\share/a/y.z/v.v"
  */
 gp_file_name_combine_result
-gp_file_name_combine_generic(const char *prefix, uint plen, const char *fname, uint flen, 
-		    bool no_sibling, char *buffer, uint *blen)
+gp_file_name_combine_generic(const int8_t *prefix, uint plen,
+                             const int8_t *fname, uint flen, 
+		    bool no_sibling, int8_t *buffer, uint *blen)
 {
     /*
      * THIS CODE IS SHARED FOR MULTIPLE PLATFORMS.
      * PLEASE DON'T CHANGE IT FOR A SPECIFIC PLATFORM.
      * Change gp_file_name_combine instead.
      */
-    char *bp = buffer, *bpe = buffer + *blen;
-    const char *ip, *ipe;
+    int8_t *bp = buffer, *bpe = buffer + *blen;
+    const int8_t *ip, *ipe;
     uint slen;
     uint infix_type = 0; /* 0=none, 1=current, 2=parent. */
     uint infix_len = 0;
@@ -174,7 +175,7 @@ gp_file_name_combine_generic(const char *prefix, uint plen, const char *fname, u
     slen = gs_file_name_check_separator(bp, buffer - bp, bp); /* Backward search. */
     if (rlen != 0 && slen == 0) {
 	/* Patch it against names like "c:dir" on Windows. */
-	const char *sep = gp_file_name_directory_separator();
+	const int8_t *sep = gp_file_name_directory_separator();
 
 	slen = strlen(sep);
 	if (!append(&bp, bpe, &sep, slen))
@@ -182,7 +183,7 @@ gp_file_name_combine_generic(const char *prefix, uint plen, const char *fname, u
 	rlen += slen;
     }
     for (;;) {
-	const char *item = ip;
+	const int8_t *item = ip;
 	uint ilen;
 
 	slen = search_separator(&ip, ipe, item, 1);
@@ -238,15 +239,15 @@ gp_file_name_combine_generic(const char *prefix, uint plen, const char *fname, u
 	    /* Input is a parent and the output continues after infix. */
 	    /* Unappend the last separator and the last item. */
 	    uint slen1 = gs_file_name_check_separator(bp, buffer + rlen - bp, bp); /* Backward search. */
-	    char *bie = bp - slen1;
+	    int8_t *bie = bp - slen1;
 
 	    bp = bie;
-	    DISCARD(search_separator((const char **)&bp, buffer + rlen, bp, -1));
+	    DISCARD(search_separator((const int8_t **)&bp, buffer + rlen, bp, -1));
 	    /* The cast above quiets a gcc warning. We believe it's a bug in the compiler. */
 	    /* Skip the input with separator. We cannot use slen on Mac OS. */
 	    ip += gs_file_name_check_separator(ip, ipe - ip, ip);
 	    if (no_sibling) {
-		const char *p = ip;
+		const int8_t *p = ip;
 
 		DISCARD(search_separator(&p, ipe, ip, 1));
 		if (p - ip != bie - bp || memcmp(ip, bp, p - ip))    
@@ -266,11 +267,11 @@ gp_file_name_combine_generic(const char *prefix, uint plen, const char *fname, u
 		 * Note that the case (prefix + plen == fname && flen == 0)
 		 * falls here without appending a separator.
 		 */
-		const char *zero="";
+		const int8_t *zero="";
 
 		if (bp == buffer) {
 		    /* Must not return empty path. */
-		    const char *current = gp_file_name_current();
+		    const int8_t *current = gp_file_name_current();
 		    int clen = strlen(current);
 
 		    if (!append(&bp, bpe, &current, clen))
@@ -287,7 +288,7 @@ gp_file_name_combine_generic(const char *prefix, uint plen, const char *fname, u
 		ipe = fname + flen;
 		if (slen == 0) {
 		    /* Insert a separator. */
-		    const char *sep;
+		    const int8_t *sep;
     
 		    slen = search_separator(&ip, ipe, fname, 1);
 		    sep = (slen != 0 ? gp_file_name_directory_separator() 
@@ -320,7 +321,8 @@ gp_file_name_combine_generic(const char *prefix, uint plen, const char *fname, u
  *
  */
 gp_file_name_combine_result
-gp_file_name_reduce(const char *fname, uint flen, char *buffer, uint *blen)
+gp_file_name_reduce(const int8_t *fname, uint flen, int8_t *buffer,
+                    uint *blen)
 {
     return gp_file_name_combine(fname, flen, fname + flen, 0, false, buffer, blen);
 }
@@ -329,7 +331,7 @@ gp_file_name_reduce(const char *fname, uint flen, char *buffer, uint *blen)
  * Answers whether a file name is absolute (starts from a root). 
  */
 bool 
-gp_file_name_is_absolute(const char *fname, uint flen)
+gp_file_name_is_absolute(const int8_t *fname, uint flen)
 {
     return (gp_file_name_root(fname, flen) > 0);
 }
@@ -338,12 +340,12 @@ gp_file_name_is_absolute(const char *fname, uint flen)
  * Returns length of all starting parent references.
  */
 private uint 
-gp_file_name_prefix(const char *fname, uint flen, 
-		bool (*test)(const char *fname, uint flen))
+gp_file_name_prefix(const int8_t *fname, uint flen, 
+		bool (*test)(const int8_t *fname, uint flen))
 {
     uint plen = gp_file_name_root(fname, flen), slen;
-    const char *ip, *ipe; 
-    const char *item = fname; /* plen == flen could cause an indeterminizm. */
+    const int8_t *ip, *ipe; 
+    const int8_t *item = fname; /* plen == flen could cause an indeterminizm. */
 
     if (plen > 0)
 	return 0;
@@ -363,7 +365,7 @@ gp_file_name_prefix(const char *fname, uint flen,
  * Returns length of all starting parent references.
  */
 uint 
-gp_file_name_parents(const char *fname, uint flen)
+gp_file_name_parents(const int8_t *fname, uint flen)
 {
     return gp_file_name_prefix(fname, flen, gp_file_name_is_parent); 
 }
@@ -372,7 +374,7 @@ gp_file_name_parents(const char *fname, uint flen)
  * Returns length of all starting cwd references.
  */
 uint 
-gp_file_name_cwds(const char *fname, uint flen)
+gp_file_name_cwds(const int8_t *fname, uint flen)
 {
     return gp_file_name_prefix(fname, flen, gp_file_name_is_current); 
 }

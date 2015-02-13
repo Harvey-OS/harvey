@@ -19,13 +19,13 @@ struct Icon
 {
 	Icon	*next;
 
-	uchar	w;		/* icon width */
-	uchar	h;		/* icon height */
-	ushort	ncolor;		/* number of colors */
-	ushort	nplane;		/* number of bit planes */
-	ushort	bits;		/* bits per pixel */
-	ulong	len;		/* length of data */
-	ulong	offset;		/* file offset to data */
+	uint8_t	w;		/* icon width */
+	uint8_t	h;		/* icon height */
+	uint16_t	ncolor;		/* number of colors */
+	uint16_t	nplane;		/* number of bit planes */
+	uint16_t	bits;		/* bits per pixel */
+	uint32_t	len;		/* length of data */
+	uint32_t	offset;		/* file offset to data */
 
 	Image	*img;
 	Image	*mask;
@@ -47,14 +47,14 @@ Mouse mouse;
 Header h;
 Image *background;
 
-ushort
-gets(uchar *p)
+uint16_t
+gets(uint8_t *p)
 {
 	return p[0] | (p[1]<<8);
 }
 
-ulong
-getl(uchar *p)
+uint32_t
+getl(uint8_t *p)
 {
 	return p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
 }
@@ -64,7 +64,7 @@ Bgetheader(Biobuf *b, Header *h)
 {
 	Icon *icon;
 	int i;
-	uchar buf[40];
+	uint8_t buf[40];
 
 	memset(h, 0, sizeof(*h));
 	if(Bread(b, buf, 6) != 6)
@@ -107,10 +107,10 @@ header:
 	return -1;
 }
 
-uchar*
-transcmap(Icon *icon, uchar *map)
+uint8_t*
+transcmap(Icon *icon, uint8_t *map)
 {
-	uchar *m, *p;
+	uint8_t *m, *p;
 	int i;
 
 	p = m = malloc(sizeof(int)*(1<<icon->bits));
@@ -122,12 +122,12 @@ transcmap(Icon *icon, uchar *map)
 }
 
 Image*
-xor2img(Icon *icon, uchar *xor, uchar *map)
+xor2img(Icon *icon, uint8_t *xor, uint8_t *map)
 {
-	uchar *data;
+	uint8_t *data;
 	Image *img;
 	int inxlen;
-	uchar *from, *to;
+	uint8_t *from, *to;
 	int s, byte, mask;
 	int x, y;
 
@@ -159,13 +159,13 @@ xor2img(Icon *icon, uchar *xor, uchar *map)
 }
 
 Image*
-and2img(Icon *icon, uchar *and)
+and2img(Icon *icon, uint8_t *and)
 {
-	uchar *data;
+	uint8_t *data;
 	Image *img;
 	int inxlen;
 	int outxlen;
-	uchar *from, *to;
+	uint8_t *from, *to;
 	int x, y;
 
 	inxlen = 4*((icon->w+31)/32);
@@ -191,13 +191,13 @@ and2img(Icon *icon, uchar *and)
 int
 Bgeticon(Biobuf *b, Icon *icon)
 {
-	ulong l;
-	ushort s;
-	uchar *xor;
-	uchar *and;
-	uchar *cm;
-	uchar *buf;
-	uchar *map2map;
+	uint32_t l;
+	uint16_t s;
+	uint8_t *xor;
+	uint8_t *and;
+	uint8_t *cm;
+	uint8_t *buf;
+	uint8_t *map2map;
 	Image *img;
 
 	Bseek(b, icon->offset, 0);
@@ -312,11 +312,11 @@ buttons(int ud)
 }
 
 void
-mesg(char *fmt, ...)
+mesg(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[1024];
-	static char obuf[1024];
+	int8_t buf[1024];
+	static int8_t obuf[1024];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -330,7 +330,7 @@ void
 doimage(Icon *icon)
 {
 	int rv;
-	char file[256];
+	int8_t file[256];
 	int fd;
 
 	rv = -1;
@@ -350,7 +350,7 @@ void
 domask(Icon *icon)
 {
 	int rv;
-	char file[64];
+	int8_t file[64];
 	int fd;
 
 	rv = -1;

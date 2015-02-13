@@ -70,8 +70,8 @@ static Globalseg *globalseg[100];
 static Lock globalseglock;
 Segment *heapseg;
 
-	Segment* (*_globalsegattach)(Proc*, char*);
-static	Segment* globalsegattach(Proc*, char*);
+	Segment* (*_globalsegattach)(Proc*, int8_t*);
+static	Segment* globalsegattach(Proc*, int8_t*);
 static	int	cmddone(void*);
 static	void	segmentkproc(void*);
 static	void	docmd(Globalseg*, int);
@@ -115,11 +115,11 @@ putgseg(Globalseg *g)
 }
 
 static int
-segmentgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+segmentgen(Chan *c, int8_t*, Dirtab*, int, int s, Dir *dp)
 {
 	Qid q;
 	Globalseg *g;
-	ulong size;
+	uint32_t size;
 
 	switch(TYPE(c)) {
 	case Qtopdir:
@@ -203,19 +203,19 @@ segmentinit(void)
 }
 
 static Chan*
-segmentattach(char *spec)
+segmentattach(int8_t *spec)
 {
 	return devattach('g', spec);
 }
 
 static Walkqid*
-segmentwalk(Chan *c, Chan *nc, char **name, int nname)
+segmentwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, segmentgen);
 }
 
-static long
-segmentstat(Chan *c, uchar *db, long n)
+static int32_t
+segmentstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, 0, 0, segmentgen);
 }
@@ -296,11 +296,11 @@ segmentclose(Chan *c)
 }
 
 static void
-segmentcreate(Chan *c, char *name, int omode, int perm)
+segmentcreate(Chan *c, int8_t *name, int omode, int perm)
 {
 	int x, xfree;
 	Globalseg *g;
-	char *ep;
+	int8_t *ep;
 
 	if(TYPE(c) != Qtopdir)
 		error(Eperm);
@@ -363,7 +363,7 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 
 enum{PTRSIZE = 19};	/* "0x1234567812345678 " */
 static int
-readptr(char *buf, long n, uintptr val)
+readptr(int8_t *buf, int32_t n, uintptr val)
 {
 	if(n < PTRSIZE)
 		return 0;
@@ -381,15 +381,15 @@ znotempty(void *x)
 	return zs->end != 0;
 }
 
-static long
-segmentread(Chan *c, void *a, long n, vlong voff)
+static int32_t
+segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 {
 	Globalseg *g;
 	Zseg *zs;
 	uintptr va;
-	char *p, *s;
-	long tot;
-	char buf[64];
+	int8_t *p, *s;
+	int32_t tot;
+	int8_t buf[64];
 
 	if(c->qid.type == QTDIR)
 		return devdirread(c, a, n, (Dirtab *)0, 0L, segmentgen);
@@ -473,12 +473,12 @@ segmentread(Chan *c, void *a, long n, vlong voff)
  * back when the segment is destroyed.
  * BUG: what if we overlap other segments attached by the user?
  */
-static ulong
-placeseg(ulong len)
+static uint32_t
+placeseg(uint32_t len)
 {
 	static Lock lck;
-	static ulong va = HEAPTOP;
-	ulong v;
+	static uint32_t va = HEAPTOP;
+	uint32_t v;
 
 	len += BIGPGSZ;	/* so we fault upon overflows */
 	lock(&lck);
@@ -490,15 +490,15 @@ placeseg(ulong len)
 	return v;
 }
 
-static long
-segmentwrite(Chan *c, void *a, long n, vlong voff)
+static int32_t
+segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 {
 	Cmdbuf *cb;
 	Globalseg *g;
 	uintptr va, len, top;
 	int i;
 	struct{
-		char *name;
+		int8_t *name;
 		int type;
 	}segs[] = {
 		{"kmsg", SG_SHARED|SG_ZIO|SG_KZIO},
@@ -591,8 +591,8 @@ segmentwrite(Chan *c, void *a, long n, vlong voff)
 	return n;
 }
 
-static long
-segmentwstat(Chan *c, uchar *dp, long n)
+static int32_t
+segmentwstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	Globalseg *g;
 	Dir *d;
@@ -613,7 +613,7 @@ segmentwstat(Chan *c, uchar *dp, long n)
 		free(d);
 		nexterror();
 	}
-	n = convM2D(dp, n, &d[0], (char*)&d[1]);
+	n = convM2D(dp, n, &d[0], (int8_t*)&d[1]);
 	if(!emptystr(d->uid) && strcmp(d->uid, g->uid) != 0)
 		kstrdup(&g->uid, d->uid);
 	if(d->mode != ~0UL)
@@ -648,7 +648,7 @@ segmentremove(Chan *c)
  *  called by segattach()
  */
 static Segment*
-globalsegattach(Proc *p, char *name)
+globalsegattach(Proc *p, int8_t *name)
 {
 	int x;
 	Globalseg *g;
@@ -738,10 +738,10 @@ segmentkproc(void *arg)
 				done = 1;
 				break;
 			case Cread:
-				memmove(g->data, (char*)g->off, g->dlen);
+				memmove(g->data, (int8_t*)g->off, g->dlen);
 				break;
 			case Cwrite:
-				memmove((char*)g->off, g->data, g->dlen);
+				memmove((int8_t*)g->off, g->data, g->dlen);
 				break;
 			}
 			poperror();

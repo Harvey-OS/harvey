@@ -55,12 +55,12 @@ typedef struct Conn9p Conn9p;
 /* a network, not necessarily an ethernet */
 struct Network {
 	int	ctlrno;
-	char	iname[NAMELEN];
-	char	oname[NAMELEN];
+	int8_t	iname[NAMELEN];
+	int8_t	oname[NAMELEN];
 
-	char	*dialstr;
-	char	anndir[40];
-	char	lisdir[40];
+	int8_t	*dialstr;
+	int8_t	anndir[40];
+	int8_t	lisdir[40];
 	int	annfd;			/* fd from announce */
 };
 
@@ -98,7 +98,7 @@ static struct {
 } netchans;
 static Queue *netoq;		/* only one network output queue is needed */
 
-char *annstrs[Maxnets] = {
+int8_t *annstrs[Maxnets] = {
 	"tcp!*!9fs",
 };
 
@@ -157,10 +157,10 @@ getchan(Conn9p *conn9p)
 	return cp;
 }
 
-static char *
+static int8_t *
 fd2name(int fd)
 {
-	char data[128];
+	int8_t data[128];
 
 	if (fd2path(fd, data, sizeof data) < 0)
 		return strdup("/GOK");
@@ -171,7 +171,7 @@ static void
 hangupdfd(int dfd)
 {
 	int ctlfd;
-	char *end, *data;
+	int8_t *end, *data;
 
 	data = fd2name(dfd);
 	close(dfd);
@@ -198,7 +198,7 @@ closechan(int n)
 }
 
 void
-nethangup(Chan *cp, char *msg, int dolock)
+nethangup(Chan *cp, int8_t *msg, int dolock)
 {
 	Netconn *netconn;
 
@@ -222,7 +222,7 @@ nethangup(Chan *cp, char *msg, int dolock)
 }
 
 void
-chanhangup(Chan *cp, char *msg, int dolock)
+chanhangup(Chan *cp, int8_t *msg, int dolock)
 {
 	Netconn *netconn = cp->pdata;
 	Conn9p *conn9p = netconn->conn9p;
@@ -236,11 +236,11 @@ chanhangup(Chan *cp, char *msg, int dolock)
  * returns length of next 9p message (including the length) and
  * leaves it in the first few bytes of abuf.
  */
-static long
+static int32_t
 size9pmsg(int fd, void *abuf, uint n)
 {
 	int m;
-	uchar *buf = abuf;
+	uint8_t *buf = abuf;
 
 	if (n < BIT32SZ)
 		return -1;	/* caller screwed up */
@@ -259,7 +259,7 @@ static int
 readalloc9pmsg(int fd, Msgbuf **mbp)
 {
 	int m, len;
-	uchar lenbuf[BIT32SZ];
+	uint8_t lenbuf[BIT32SZ];
 	Msgbuf *mb;
 
 	*mbp = nil;
@@ -285,7 +285,7 @@ static void
 connection(void *v)
 {
 	int n;
-	char buf[64];
+	int8_t buf[64];
 	Chan *chan9p;
 	Conn9p *conn9p = v;
 	Msgbuf *mb;

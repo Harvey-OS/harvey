@@ -10,10 +10,10 @@
 #include <string.h>
 #define	N	256
 
-char*
-strpbrk(const char *s, const char *b)
+int8_t*
+strpbrk(const int8_t *s, const int8_t *b)
 {
-	char map[N];
+	int8_t map[N];
 
 	memset(map, 0, N);
 	for(;;) {
@@ -24,6 +24,6 @@ strpbrk(const char *s, const char *b)
 	while(map[*s++] == 0)
 		;
 	if(*--s)
-		return (char *)s;
+		return (int8_t *)s;
 	return 0;
 }

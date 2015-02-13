@@ -12,8 +12,8 @@
 void eqnbox(int p1, int p2, int lu)
 {
 	double b, h;
-	char *sh;
-	extern char *IRspace;
+	int8_t *sh;
+	extern int8_t *IRspace;
 
 	yyval = p1;
 	b = max(ebase[p1], ebase[p2]);

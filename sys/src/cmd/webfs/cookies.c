@@ -26,12 +26,12 @@ typedef struct Jar Jar;
 struct Cookie
 {
 	/* external info */
-	char*	name;
-	char*	value;
-	char*	dom;		/* starts with . */
-	char*	path;
-	char*	version;
-	char*	comment;		/* optional, may be nil */
+	int8_t*	name;
+	int8_t*	value;
+	int8_t*	dom;		/* starts with . */
+	int8_t*	path;
+	int8_t*	version;
+	int8_t*	comment;		/* optional, may be nil */
 
 	uint		expire;		/* time of expiration: ~0 means when webcookies dies */
 	int		secure;
@@ -53,12 +53,12 @@ struct Jar
 
 	Qid		qid;
 	int		dirty;
-	char		*file;
-	char		*lockfile;
+	int8_t		*file;
+	int8_t		*lockfile;
 };
 
 struct {
-	char *s;
+	int8_t *s;
 	int	offset;
 	int	ishttp;
 } stab[] = {
@@ -71,7 +71,7 @@ struct {
 };
 
 struct {
-	char *s;
+	int8_t *s;
 	int	offset;
 } itab[] = {
 	"expire",			offsetof(Cookie, expire),
@@ -110,14 +110,14 @@ static int
 cookiefmt(Fmt *fp)
 {
 	int j, k, first;
-	char *t;
+	int8_t *t;
 	Cookie *c;
 
 	c = va_arg(fp->args, Cookie*);
 
 	first = 1;
 	for(j=0; j<nelem(stab); j++){
-		t = *(char**)((uintptr)c+stab[j].offset);
+		t = *(int8_t**)((uintptr)c+stab[j].offset);
 		if(t == nil)
 			continue;
 		if(first)
@@ -206,17 +206,17 @@ freecookie(Cookie *c)
 	int i;
 
 	for(i=0; i<nelem(stab); i++)
-		free(*(char**)((uintptr)c+stab[i].offset));
+		free(*(int8_t**)((uintptr)c+stab[i].offset));
 }
 
 static void
 copycookie(Cookie *c)
 {
 	int i;
-	char **ps;
+	int8_t **ps;
 
 	for(i=0; i<nelem(stab); i++){
-		ps = (char**)((uintptr)c+stab[i].offset);
+		ps = (int8_t**)((uintptr)c+stab[i].offset);
 		if(*ps)
 			*ps = estrdup9p(*ps);
 	}
@@ -285,11 +285,11 @@ purgejar(Jar *j)
 }
 
 static void
-addtojar(Jar *jar, char *line, int ondisk)
+addtojar(Jar *jar, int8_t *line, int ondisk)
 {
 	Cookie c;
 	int i, j, nf, *pint;
-	char *f[20], *attr, *val, **pstr;
+	int8_t *f[20], *attr, *val, **pstr;
 	
 	memset(&c, 0, sizeof c);
 	c.expire = ~0;
@@ -304,7 +304,7 @@ addtojar(Jar *jar, char *line, int ondisk)
 		/* string attributes */
 		for(j=0; j<nelem(stab); j++){
 			if(strcmp(stab[j].s, attr) == 0){
-				pstr = (char**)((uintptr)&c+stab[j].offset);
+				pstr = (int8_t**)((uintptr)&c+stab[j].offset);
 				*pstr = val;
 			}
 		}
@@ -354,11 +354,11 @@ expirejar(Jar *jar, int exiting)
 }
 
 static void
-dumpjar(Jar *jar, char *desc)
+dumpjar(Jar *jar, int8_t *desc)
 {
 	int i;
 	Biobuf *b;
-	char *s;
+	int8_t *s;
 
 	print("%s\n", desc);
 	print("\tin memory:\n");
@@ -385,7 +385,7 @@ static int
 syncjar(Jar *jar)
 {
 	int i, fd;
-	char *line;
+	int8_t *line;
 	Dir *d;
 	Biobuf *b;
 	Qid q;
@@ -469,9 +469,9 @@ syncjar(Jar *jar)
 }
 
 static Jar*
-readjar(char *file)
+readjar(int8_t *file)
 {
-	char *lock, *p;
+	int8_t *lock, *p;
 	Jar *jar;
 
 	jar = newjar();
@@ -538,7 +538,7 @@ closejar(Jar *jar)
  * (This does not verify that IP addresses and FQDN's are well-formed.)
  */
 static int
-isdomainmatch(char *name, char *pattern)
+isdomainmatch(int8_t *name, int8_t *pattern)
 {
 	int lname, lpattern;
 
@@ -566,7 +566,7 @@ isdomainmatch(char *name, char *pattern)
  *	- cookie must not have expired
  */
 static int
-iscookiematch(Cookie *c, char *dom, char *path, uint now)
+iscookiematch(Cookie *c, int8_t *dom, int8_t *path, uint now)
 {
 	return isdomainmatch(dom, c->dom)
 		&& strncmp(c->path, path, strlen(c->path))==0
@@ -578,7 +578,7 @@ iscookiematch(Cookie *c, char *dom, char *path, uint now)
  * Secure cookies are only included if secure is set.
  */
 static Jar*
-cookiesearch(Jar *jar, char *dom, char *path, int issecure)
+cookiesearch(Jar *jar, int8_t *dom, int8_t *path, int issecure)
 {
 	int i;
 	Jar *j;
@@ -612,8 +612,8 @@ cookiesearch(Jar *jar, char *dom, char *path, int issecure)
 /*
  * RFC2109 4.3.2 security checks
  */
-static char*
-isbadcookie(Cookie *c, char *dom, char *path)
+static int8_t*
+isbadcookie(Cookie *c, int8_t *dom, int8_t *path)
 {
 	int lcdom, ldom;
 
@@ -654,9 +654,9 @@ isleap(int year)
 }
 
 static uint
-strtotime(char *s)
+strtotime(int8_t *s)
 {
-	char *os;
+	int8_t *os;
 	int i;
 	Tm tm;
 
@@ -664,11 +664,11 @@ strtotime(char *s)
 		31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
 		31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
 	};
-	static char *wday[] = {
+	static int8_t *wday[] = {
 		"Sunday", "Monday", "Tuesday", "Wednesday",
 		"Thursday", "Friday", "Saturday",
 	};
-	static char *mon[] = {
+	static int8_t *mon[] = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 	};
@@ -783,8 +783,8 @@ strtotime(char *s)
 /*
  * skip linear whitespace.  we're a bit more lenient than RFC2616 2.2.
  */
-static char*
-skipspace(char *s)
+static int8_t*
+skipspace(int8_t *s)
 {
 	while(*s=='\r' || *s=='\n' || *s==' ' || *s=='\t')
 		s++;
@@ -802,9 +802,9 @@ skipspace(char *s)
  *	- apparently separated attr/value pairs with ';' exclusively
  */
 static int
-isnetscape(char *hdr)
+isnetscape(int8_t *hdr)
 {
-	char *s;
+	int8_t *s;
 
 	for(s=hdr; (s=strchr(s, '=')) != nil; s++){
 		if(isspace(s[1]) || (s > hdr && isspace(s[-1])))
@@ -821,12 +821,13 @@ isnetscape(char *hdr)
  * Parse HTTP response headers, adding cookies to jar.
  * Overwrites the headers.  May overwrite path.
  */
-static char* parsecookie(Cookie*, char*, char**, int, char*, char*);
+static int8_t* parsecookie(Cookie*, int8_t*, int8_t**, int, int8_t*,
+			   int8_t*);
 static int
-parsehttp(Jar *jar, char *hdr, char *dom, char *path)
+parsehttp(Jar *jar, int8_t *hdr, int8_t *dom, int8_t *path)
 {
-	static char setcookie[] = "Set-Cookie:";
-	char *e, *p, *nextp;
+	static int8_t setcookie[] = "Set-Cookie:";
+	int8_t *e, *p, *nextp;
 	Cookie c;
 	int isns, n;
 
@@ -862,8 +863,8 @@ parsehttp(Jar *jar, char *hdr, char *dom, char *path)
 	return n;
 }
 
-static char*
-skipquoted(char *s)
+static int8_t*
+skipquoted(int8_t *s)
 {
 	/*
 	 * Sec 2.2 of RFC2616 defines a "quoted-string" as:
@@ -886,8 +887,8 @@ skipquoted(char *s)
 	return s;
 }
 
-static char*
-skiptoken(char *s)
+static int8_t*
+skiptoken(int8_t *s)
 {
 	/*
 	 * Sec 2.2 of RFC2616 defines a "token" as
@@ -902,10 +903,10 @@ skiptoken(char *s)
 	return s;
 }
 
-static char*
-skipvalue(char *s, int isns)
+static int8_t*
+skipvalue(int8_t *s, int isns)
 {
-	char *t;
+	int8_t *t;
 
 	/*
 	 * An RFC2109 value is an HTTP token or an HTTP quoted string.
@@ -925,11 +926,12 @@ skipvalue(char *s, int isns)
  * RMID=80b186bb64c03c65fab767f8; expires=Monday, 10-Feb-2003 04:44:39 GMT; 
  *	path=/; domain=.nytimes.com
  */
-static char*
-parsecookie(Cookie *c, char *p, char **e, int isns, char *dom, char *path)
+static int8_t*
+parsecookie(Cookie *c, int8_t *p, int8_t **e, int isns, int8_t *dom,
+	    int8_t *path)
 {
 	int i, done;
-	char *t, *u, *attr, *val;
+	int8_t *t, *u, *attr, *val;
 
 	c->expire = ~0;
 	memset(c, 0, sizeof *c);
@@ -991,7 +993,7 @@ parsecookie(Cookie *c, char *p, char **e, int isns, char *dom, char *path)
 		}
 		for(i=0; i<nelem(stab); i++)
 			if(stab[i].ishttp && cistrcmp(stab[i].s, attr)==0)
-				*(char**)((uintptr)c+stab[i].offset) = val;
+				*(int8_t**)((uintptr)c+stab[i].offset) = val;
 		if(cistrcmp(attr, "expires") == 0){
 			if(!isns)
 				return "non-netscape cookie has Expires tag";
@@ -1031,11 +1033,11 @@ Jar *jar;
 typedef struct Aux Aux;
 struct Aux
 {
-	char *dom;
-	char *path;
-	char *inhttp;
-	char *outhttp;
-	char *ctext;
+	int8_t *dom;
+	int8_t *path;
+	int8_t *inhttp;
+	int8_t *outhttp;
+	int8_t *ctext;
 	int rdoff;
 };
 enum
@@ -1047,7 +1049,7 @@ enum
 void
 cookieopen(Req *r)
 {
-	char *s, *es;
+	int8_t *s, *es;
 	int i, sz;
 	Aux *a;
 
@@ -1103,7 +1105,7 @@ cookiewrite(Req *r)
 void
 cookieclunk(Fid *fid)
 {
-	char *p, *nextp;
+	int8_t *p, *nextp;
 	Aux *a;
 	int i;
 
@@ -1138,9 +1140,9 @@ closecookies(void)
 }
 
 void
-initcookies(char *file)
+initcookies(int8_t *file)
 {
-	char *home;
+	int8_t *home;
 
 	fmtinstall('J', jarfmt);
 	fmtinstall('K', cookiefmt);
@@ -1159,7 +1161,7 @@ initcookies(char *file)
 }
 
 void
-httpsetcookie(char *hdr, char *dom, char *path)
+httpsetcookie(int8_t *hdr, int8_t *dom, int8_t *path)
 {
 	if(path == nil)
 		path = "/";
@@ -1168,10 +1170,10 @@ httpsetcookie(char *hdr, char *dom, char *path)
 	syncjar(jar);
 }
 
-char*
-httpcookies(char *dom, char *path, int issecure)
+int8_t*
+httpcookies(int8_t *dom, int8_t *path, int issecure)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	Jar *j;
 
 	syncjar(jar);

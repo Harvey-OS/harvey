@@ -30,10 +30,10 @@
 			cflush();\
 	}
 
-long
+int32_t
 entryvalue(void)
 {
-	char *a;
+	int8_t *a;
 	Sym *s;
 
 	a = INITENTRY;
@@ -51,7 +51,7 @@ void
 asmb(void)
 {
 	Prog *p;
-	long t;
+	int32_t t;
 	Optab *o;
 
 	if(debug['v'])
@@ -172,7 +172,7 @@ asmb(void)
 }
 
 void
-lput(long l)
+lput(int32_t l)
 {
 
 	LPUT(l);
@@ -255,7 +255,7 @@ asmsym(void)
 }
 
 void
-putsymb(char *s, int t, long v, int ver)
+putsymb(int8_t *s, int t, int32_t v, int ver)
 {
 	int i, f;
 
@@ -304,9 +304,9 @@ putsymb(char *s, int t, long v, int ver)
 void
 asmlc(void)
 {
-	long oldpc, oldlc;
+	int32_t oldpc, oldlc;
 	Prog *p;
-	long v, s;
+	int32_t v, s;
 
 	oldpc = INITTEXT;
 	oldlc = 0;
@@ -382,11 +382,11 @@ asmlc(void)
 }
 
 void
-datblk(long s, long n)
+datblk(int32_t s, int32_t n)
 {
 	Prog *p;
-	char *cast;
-	long l, fl, j, d;
+	int8_t *cast;
+	int32_t l, fl, j, d;
 	int i, c;
 
 	memset(buf.dbuf, 0, n+100);
@@ -423,14 +423,14 @@ datblk(long s, long n)
 			default:
 			case 4:
 				fl = ieeedtof(&p->to.ieee);
-				cast = (char*)&fl;
+				cast = (int8_t*)&fl;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i+4]];
 					l++;
 				}
 				break;
 			case 8:
-				cast = (char*)&p->to.ieee;
+				cast = (int8_t*)&p->to.ieee;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i]];
 					l++;
@@ -457,7 +457,7 @@ datblk(long s, long n)
 				if(p->to.sym->type == SBSS)
 					d += p->to.sym->value + INITDAT;
 			}
-			cast = (char*)&d;
+			cast = (int8_t*)&d;
 			switch(c) {
 			default:
 				diag("bad nuxi %d %d\n%P", c, i, curp);
@@ -512,7 +512,7 @@ datblk(long s, long n)
 int
 asmout(Prog *p, Optab *o, int aflag)
 {
-	long o1, o2, o3, o4, o5, v;
+	int32_t o1, o2, o3, o4, o5, v;
 	Prog *ct;
 	int r;
 
@@ -1079,7 +1079,7 @@ isnop(Prog *p)
 	return 1;
 }
 
-long
+int32_t
 opcode(int a)
 {
 	switch(a) {

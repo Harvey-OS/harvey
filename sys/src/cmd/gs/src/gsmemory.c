@@ -69,7 +69,7 @@ reloc_bytestring(gs_bytestring *pbs, gc_state_t *gcst)
 {
     if (pbs->bytes) {
 	byte *bytes = pbs->bytes;
-	long offset = pbs->data - bytes;
+	int32_t offset = pbs->data - bytes;
 
 	pbs->bytes = bytes = RELOC_OBJ(bytes);
 	pbs->data = bytes + offset;
@@ -81,7 +81,7 @@ reloc_const_bytestring(gs_const_bytestring *pbs, gc_state_t *gcst)
 {
     if (pbs->bytes) {
 	const byte *bytes = pbs->bytes;
-	long offset = pbs->data - bytes;
+	int32_t offset = pbs->data - bytes;
 
 	pbs->bytes = bytes = RELOC_OBJ(bytes);
 	pbs->data = bytes + offset;
@@ -92,10 +92,10 @@ reloc_const_bytestring(gs_const_bytestring *pbs, gc_state_t *gcst)
 /* Fill an unoccupied block with a pattern. */
 /* Note that the block size may be too large for a single memset. */
 void
-gs_alloc_memset(void *ptr, int /*byte */ fill, ulong lsize)
+gs_alloc_memset(void *ptr, int /*byte */ fill, uint32_t lsize)
 {
-    ulong msize = lsize;
-    char *p = ptr;
+    uint32_t msize = lsize;
+    int8_t *p = ptr;
     int isize;
 
     for (; msize; msize -= isize, p += isize) {
@@ -117,7 +117,8 @@ gs_resize_struct_array(gs_memory_t *mem, void *obj, uint num_elements,
 #ifdef DEBUG
     if (gs_object_type(mem, obj) != pstype) {
 	lprintf3("resize_struct_array 0x%lx, type was 0x%lx, expected 0x%lx!\n",
-		 (ulong)obj, (ulong)gs_object_type(mem, obj), (ulong)pstype);
+		 (uint32_t)obj, (uint32_t)gs_object_type(mem, obj),
+                 (uint32_t)pstype);
 	return 0;
     }
 #endif
@@ -233,7 +234,7 @@ gs_register_struct_root(gs_memory_t *mem, gs_gc_root_t *root,
 
 #ifdef DEBUG
 
-private const char *
+private const int8_t *
 rc_object_type_name(const void *vp, const rc_header *prc)
 {
     gs_memory_type_ptr_t pstype;
@@ -247,12 +248,12 @@ rc_object_type_name(const void *vp, const rc_header *prc)
 	 * management properties.  Make some reasonableness checks.
 	 * ****** THIS IS A HACK. ******
 	 */
-	long dist;
+	int32_t dist;
 
-	dist = (const char *)&dist - (const char *)vp;
+	dist = (const int8_t *)&dist - (const int8_t *)vp;
 	if (dist < 10000 && dist > -10000)
 	    return "(on stack)";
-	if ((ulong)pstype < 0x10000 || (long)pstype < 0)
+	if ((uint32_t)pstype < 0x10000 || (int32_t)pstype < 0)
 	    return "(anomalous)";
     }
     return client_name_string(gs_struct_type_name(pstype));
@@ -263,28 +264,29 @@ void
 rc_trace_init_free(const void *vp, const rc_header *prc)
 {
     dprintf3("[^]%s 0x%lx init = %ld\n",
-	     rc_object_type_name(vp, prc), (ulong)vp, (long)prc->ref_count);
+	     rc_object_type_name(vp, prc), (uint32_t)vp,
+             (int32_t)prc->ref_count);
 }
 void
 rc_trace_free_struct(const void *vp, const rc_header *prc, client_name_t cname)
 {
     dprintf3("[^]%s 0x%lx => free (%s)\n",
 	      rc_object_type_name(vp, prc),
-	      (ulong)vp, client_name_string(cname));
+	      (uint32_t)vp, client_name_string(cname));
 }
 void
 rc_trace_increment(const void *vp, const rc_header *prc)
 {
     dprintf3("[^]%s 0x%lx ++ => %ld\n",
 	      rc_object_type_name(vp, prc),
-	      (ulong)vp, (long)prc->ref_count);
+	      (uint32_t)vp, (int32_t)prc->ref_count);
 }
 void
 rc_trace_adjust(const void *vp, const rc_header *prc, int delta)
 {
     dprintf4("[^]%s 0x%lx %+d => %ld\n",
 	     rc_object_type_name(vp, prc),
-	     (ulong)vp, delta, (long)(prc->ref_count + delta));
+	     (uint32_t)vp, delta, (int32_t)(prc->ref_count + delta));
 }
 
 #endif /* DEBUG */
@@ -351,7 +353,7 @@ RELOC_PTRS_BEGIN(basic_reloc_ptrs)
 
     for (i = 0; i < psd->num_ptrs; ++i) {
 	const gc_ptr_element_t *ppe = &psd->ptrs[i];
-	char *pptr = (char *)vptr + ppe->offset;
+	int8_t *pptr = (int8_t *)vptr + ppe->offset;
 
 	switch ((gc_ptr_type_index_t) ppe->type) {
 	    case GC_ELT_OBJ:
@@ -367,6 +369,6 @@ RELOC_PTRS_BEGIN(basic_reloc_ptrs)
     }
     if (psd->super_type)
 	RELOC_USING(*(psd->super_type),
-		      (void *)((char *)vptr + psd->super_offset),
+		      (void *)((int8_t *)vptr + psd->super_offset),
 		      pstype->ssize);
 } RELOC_PTRS_END

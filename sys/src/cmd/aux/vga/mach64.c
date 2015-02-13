@@ -32,10 +32,10 @@ enum {
 };
 
 typedef struct {
-	ulong	configcntl;
-	ulong	configstat;
-	ulong	memcntl;
-	ulong	scratch1;
+	uint32_t	configcntl;
+	uint32_t	configstat;
+	uint32_t	memcntl;
+	uint32_t	scratch1;
 } Mach64;
 
 /*
@@ -43,10 +43,10 @@ typedef struct {
  * boards. We can divide any frequency by 2 (bit<6> of b8).
  */
 typedef struct {
-	ulong	frequency;
-	uchar	be;			/* <4> - bit<3> of frequency index */
-	uchar	b9;			/* <1> - bit<2> of frequency index */
-	uchar	genmo;			/* <3:2> - bits <1:0> of frequency index */
+	uint32_t	frequency;
+	uint8_t	be;			/* <4> - bit<3> of frequency index */
+	uint8_t	b9;			/* <1> - bit<2> of frequency index */
+	uint8_t	genmo;			/* <3:2> - bits <1:0> of frequency index */
 } Pclk;
 
 enum {
@@ -125,17 +125,17 @@ static Pclk ati18818[Npclkx] = {
 };
 
 static Pclk *pclkp;			/* which clock chip we are using */
-static ulong atix;			/* index to extended regsiters */
+static uint32_t atix;			/* index to extended regsiters */
 
-static uchar
-atixi(uchar index)
+static uint8_t
+atixi(uint8_t index)
 {
 	outportb(atix, index);
 	return inportb(atix+1);
 }
 
 static void
-atixo(uchar index, uchar data)
+atixo(uint8_t index, uint8_t data)
 {
 	outportw(atix, (data<<8)|index);
 }
@@ -143,7 +143,7 @@ atixo(uchar index, uchar data)
 static void
 atixinit(Vga* vga, Ctlr*)
 {
-	uchar b;
+	uint8_t b;
 
 	/*
 	 * Set the I/O address and offset for the ATI

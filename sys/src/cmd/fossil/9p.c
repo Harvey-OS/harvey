@@ -21,12 +21,12 @@ enum {
 	PermR		= 4,
 };
 
-static char EPermission[] = "permission denied";
+static int8_t EPermission[] = "permission denied";
 
 static int
 permFile(File* file, Fid* fid, int perm)
 {
-	char *u;
+	int8_t *u;
 	DirEntry de;
 
 	if(!fileGetDir(file, &de))
@@ -95,9 +95,9 @@ permParent(Fid* fid, int p)
 }
 
 int
-validFileName(char* name)
+validFileName(int8_t* name)
 {
-	char *p;
+	int8_t *p;
 
 	if(name == nil || name[0] == '\0'){
 		vtSetError("no file name");
@@ -125,9 +125,9 @@ rTwstat(Msg* m)
 {
 	Dir dir;
 	Fid *fid;
-	ulong mode, oldmode;
+	uint32_t mode, oldmode;
 	DirEntry de;
-	char *gid, *strs, *uid;
+	int8_t *gid, *strs, *uid;
 	int gl, op, retval, tsync, wstatallow;
 
 	if((fid = fidGet(m->con, m->t.fid, FidFWlock)) == nil)
@@ -198,7 +198,7 @@ rTwstat(Msg* m)
 	/*
 	 * Check .qid.type and .mode agree if neither is defaulted.
 	 */
-	if(dir.qid.type != (uchar)~0 && dir.mode != ~0){
+	if(dir.qid.type != (uint8_t)~0 && dir.mode != ~0){
 		if(dir.qid.type != ((dir.mode>>24) & 0xFF)){
 			vtSetError("wstat -- qid.type/mode mismatch");
 			goto error;
@@ -208,7 +208,7 @@ rTwstat(Msg* m)
 	op = 0;
 
 	oldmode = de.mode;
-	if(dir.qid.type != (uchar)~0 || dir.mode != ~0){
+	if(dir.qid.type != (uint8_t)~0 || dir.mode != ~0){
 		/*
 		 * .qid.type or .mode isn't defaulted, check for unknown bits.
 		 */
@@ -530,7 +530,7 @@ static int
 rTread(Msg* m)
 {
 	Fid *fid;
-	uchar *data;
+	uint8_t *data;
 	int count, n;
 
 	if((fid = fidGet(m->con, m->t.fid, 0)) == nil)
@@ -567,7 +567,7 @@ rTread(Msg* m)
 		goto error;
 
 	m->r.count = n;
-	m->r.data = (char*)data;
+	m->r.data = (int8_t*)data;
 
 	fidPut(fid);
 	return 1;
@@ -582,7 +582,7 @@ rTcreate(Msg* m)
 {
 	Fid *fid;
 	File *file;
-	ulong mode;
+	uint32_t mode;
 	int omode, open, perm;
 
 	if((fid = fidGet(m->con, m->t.fid, FidFWlock)) == nil)
@@ -929,9 +929,9 @@ rTflush(Msg* m)
 }
 
 static void
-parseAname(char *aname, char **fsname, char **path)
+parseAname(int8_t *aname, int8_t **fsname, int8_t **path)
 {
-	char *s;
+	int8_t *s;
 
 	if(aname && aname[0])
 		s = vtStrDup(aname);
@@ -953,7 +953,7 @@ parseAname(char *aname, char **fsname, char **path)
 static int
 conIPCheck(Con* con)
 {
-	char ok[256], *p;
+	int8_t ok[256], *p;
 	int fd;
 
 	if(con->flags&ConIPCheck){
@@ -987,7 +987,7 @@ rTattach(Msg* m)
 {
 	Fid *fid;
 	Fsys *fsys;
-	char *fsname, *path;
+	int8_t *fsname, *path;
 
 	if((fid = fidGet(m->con, m->t.fid, FidFWlock|FidFCreate)) == nil)
 		return 0;
@@ -1045,7 +1045,7 @@ rTauth(Msg* m)
 	Con *con;
 	Fid *afid;
 	Fsys *fsys;
-	char *fsname, *path;
+	int8_t *fsname, *path;
 
 	parseAname(m->t.aname, &fsname, &path);
 	if((fsys = fsysGet(fsname)) == nil){

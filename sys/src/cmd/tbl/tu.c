@@ -58,7 +58,7 @@ fullwide(int i, int lintype)
 void
 drawline(int i, int cl, int cr, int lintype, int noheight, int shortl)
 {
-	char	*exhr, *exhl, *lnch;
+	int8_t	*exhr, *exhl, *lnch;
 	int	lcount, ln, linpos, oldpos, nodata;
 
 	lcount = 0;

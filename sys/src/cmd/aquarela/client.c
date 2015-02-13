@@ -13,13 +13,13 @@
 #include <thread.h>
 #include "netbios.h"
 
-static char *hmsg = "headers";
+static int8_t *hmsg = "headers";
 int chatty = 1;
 
 void
-warning(char *fmt, ...)
+warning(int8_t *fmt, ...)
 {
-	char err[128];
+	int8_t err[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -34,8 +34,8 @@ static int
 udpannounce(void)
 {
 	int data, ctl;
-	char dir[64];
-	char datafile[64+6];
+	int8_t dir[64];
+	int8_t datafile[64+6];
 
 	/* get a udp port */
 	ctl = announce("udp!*!netbios-ns", dir);
@@ -66,14 +66,14 @@ void
 listen137(void *)
 {	
 	for (;;) {
-		uchar msg[Udphdrsize + 576];
+		uint8_t msg[Udphdrsize + 576];
 		int len = read(fd137, msg, sizeof(msg));
 		if (len < 0)
 			break;
 		if (len >= Udphdrsize) {
 			NbnsMessage *s;
 			Udphdr *uh;
-			uchar *p;
+			uint8_t *p;
 
 			uh = (Udphdr*)msg;
 			p = msg + Udphdrsize;

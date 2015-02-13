@@ -11,13 +11,13 @@
 #include	<libc.h>
 #include	<bio.h>
 
-long
-Bwrite(Biobufhdr *bp, void *ap, long count)
+int32_t
+Bwrite(Biobufhdr *bp, void *ap, int32_t count)
 {
-	long c;
-	uchar *p;
+	int32_t c;
+	uint8_t *p;
 	int i, n, oc;
-	char errbuf[ERRMAX];
+	int8_t errbuf[ERRMAX];
 
 	p = ap;
 	c = count;

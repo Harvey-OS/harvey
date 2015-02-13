@@ -24,7 +24,7 @@
 #include "tl.h"
 
 extern int tl_verbose, tl_clutter, Total, Max_Red;
-extern char *claim_name;
+extern int8_t *claim_name;
 
 FILE	*tl_out;	/* if standalone: = stdout; */
 
@@ -102,14 +102,14 @@ Prune(Node *p)
 }
 
 static State *
-findstate(char *nm)
+findstate(int8_t *nm)
 {	State *b;
 	for (b = never; b; b = b->nxt)
 		if (!strcmp(b->name->name, nm))
 			return b;
 	if (strcmp(nm, "accept_all"))
 	{	if (strncmp(nm, "accept", 6))
-		{	int i; char altnm[64];
+		{	int i; int8_t altnm[64];
 			for (i = 0; i < 64; i++)
 				if (nm[i] == '_')
 					break;
@@ -144,7 +144,7 @@ Dfs(State *b)
 }
 
 void
-retarget(char *from, char *to)
+retarget(int8_t *from, int8_t *to)
 {	State *b;
 	Transition *t;
 	Symbol *To = tl_lookup(to);
@@ -220,7 +220,7 @@ combination(Node *s, Node *t)
 }
 
 Node *
-unclutter(Node *n, char *snm)
+unclutter(Node *n, int8_t *snm)
 {	Node *t, *s, *v, *u;
 	Symbol *w;
 
@@ -487,7 +487,7 @@ buckyballs(void)
 					retarget(c->name->name, d->name->name);
 					if (!strncmp(c->name->name, "accept", 6)
 					&&  Max_Red == 0)
-					{	char buf[64];
+					{	int8_t buf[64];
 						sprintf(buf, "T0%s", &(c->name->name[6]));
 						retarget(buf, d->name->name);
 					}
@@ -531,7 +531,7 @@ mergestates(int v)
 					retarget(a->name->name, b->name->name);
 					if (!strncmp(a->name->name, "accept", 6)
 					&&  Max_Red == 0)
-					{	char buf[64];
+					{	int8_t buf[64];
 						sprintf(buf, "T0%s", &(a->name->name[6]));
 						retarget(buf, b->name->name);
 					}
@@ -596,7 +596,7 @@ printstate(State *b)
 }
 
 void
-addtrans(Graph *col, char *from, Node *op, char *to)
+addtrans(Graph *col, int8_t *from, Node *op, int8_t *to)
 {	State *b;
 	Transition *t;
 

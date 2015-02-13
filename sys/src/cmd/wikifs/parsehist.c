@@ -26,11 +26,11 @@
 #include <thread.h>
 #include "wiki.h"
 
-static char*
+static int8_t*
 Brdwline(void *vb, int sep)
 {
 	Biobufhdr *b;
-	char *p;
+	int8_t *p;
 
 	b = vb;
 	if(Bgetc(b) == '#'){
@@ -47,8 +47,8 @@ Whist*
 Brdwhist(Biobuf *b)
 {
 	int i, current, conflict, c, n;
-	char *author, *comment, *p, *title;
-	ulong t;
+	int8_t *author, *comment, *p, *title;
+	uint32_t t;
 	Wdoc *w;
 	Whist *h;
 

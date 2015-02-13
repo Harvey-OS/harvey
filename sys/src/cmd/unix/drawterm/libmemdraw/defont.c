@@ -15,7 +15,7 @@
 Memsubfont*
 getmemdefont(void)
 {
-	char *hdr, *p;
+	int8_t *hdr, *p;
 	int n;
 	Fontchar *fc;
 	Memsubfont *f;
@@ -29,7 +29,7 @@ getmemdefont(void)
 	 * but not in general.  the byte order is right because the data is
 	 * declared as char*, not ulong*.
 	 */
-	p = (char*)defontdata;
+	p = (int8_t*)defontdata;
 	n = (uintptr)p & 3;
 	if(n != 0){
 		memmove(p+(4-n), p, sizeofdefont-n);
@@ -48,7 +48,7 @@ getmemdefont(void)
 	p += 5*12;
 
 	md->base = nil;		/* so freememimage doesn't free p */
-	md->bdata = (uchar*)p;	/* ick */
+	md->bdata = (uint8_t*)p;	/* ick */
 	md->ref = 1;
 	md->allocd = 1;		/* so freememimage does free md */
 
@@ -66,7 +66,7 @@ getmemdefont(void)
 		freememimage(i);
 		return 0;
 	}
-	_unpackinfo(fc, (uchar*)p, n);
+	_unpackinfo(fc, (uint8_t*)p, n);
 	f = allocmemsubfont("*default*", n, atoi(hdr+12), atoi(hdr+24), fc, i);
 	if(f == 0){
 		freememimage(i);

@@ -24,8 +24,8 @@ enum {
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong pclk;
-	char *p;
+	uint32_t pclk;
+	int8_t *p;
 
 	/*
 	 * Part comes in -100, -80, -65 and -55MHz speed-grades.
@@ -50,7 +50,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uchar mode, x;
+	uint8_t mode, x;
 
 	/*
 	 * Put the chip to sleep if possible.

@@ -140,14 +140,14 @@
 */
 #define CONTRAST_STEMS 1
 
-static const char *s_pole_array = "t1_hinter pole array";
-static const char *s_zone_array = "t1_hinter zone array";
-static const char *s_hint_array = "t1_hinter hint array";
-static const char *s_contour_array = "t1_hinter contour array";
-static const char *s_hint_range_array = "t1_hinter hint_range array";
-static const char *s_stem_snap_array = "t1_hinter stem_snap array";
+static const int8_t *s_pole_array = "t1_hinter pole array";
+static const int8_t *s_zone_array = "t1_hinter zone array";
+static const int8_t *s_hint_array = "t1_hinter hint array";
+static const int8_t *s_contour_array = "t1_hinter contour array";
+static const int8_t *s_hint_range_array = "t1_hinter hint_range array";
+static const int8_t *s_stem_snap_array = "t1_hinter stem_snap array";
 
-#define member_prt(type, ptr, offset) (type *)((char *)(ptr) + (offset))
+#define member_prt(type, ptr, offset) (type *)((int8_t *)(ptr) + (offset))
 
 typedef int32_t int24;
 #define HAVE_INT64_T
@@ -384,10 +384,10 @@ private void t1_hinter__paint_glyph(t1_hinter * this, bool aligned)
 #define Y(j) *member_prt(t1_glyph_space_coord, &this->pole[j], offset_y)
     t1_glyph_space_coord *p_x = (aligned ? &this->pole[0].ax : &this->pole[0].gx);
     t1_glyph_space_coord *p_y = (aligned ? &this->pole[0].ay : &this->pole[0].gy);
-    int offset_x = (char *)p_x - (char *)&this->pole[0];
-    int offset_y = (char *)p_y - (char *)&this->pole[0];
+    int offset_x = (int8_t *)p_x - (int8_t *)&this->pole[0];
+    int offset_y = (int8_t *)p_y - (int8_t *)&this->pole[0];
     int i, j;
-    char buf[15];
+    int8_t buf[15];
 
     if (!vd_enabled)
 	return;
@@ -434,12 +434,12 @@ private void  t1_hinter__paint_raster_grid(t1_hinter * this)
     double j; /* 'long' can overflow */
     unsigned long c0 = RGB(192, 192, 192), c1 = RGB(64, 64, 64);
     t1_hinter_space_coord min_ox, max_ox, min_oy, max_oy;
-    long div_x = this->g2o_fraction, div_xx = div_x << this->log2_pixels_x; 
-    long div_y = this->g2o_fraction, div_yy = div_y << this->log2_pixels_y; 
-    long ext_x = div_x * 5;
-    long ext_y = div_y * 5;
-    long sx = this->orig_ox % div_xx;
-    long sy = this->orig_oy % div_yy;
+    int32_t div_x = this->g2o_fraction, div_xx = div_x << this->log2_pixels_x; 
+    int32_t div_y = this->g2o_fraction, div_yy = div_y << this->log2_pixels_y; 
+    int32_t ext_x = div_x * 5;
+    int32_t ext_y = div_y * 5;
+    int32_t sx = this->orig_ox % div_xx;
+    int32_t sy = this->orig_oy % div_yy;
 
     if (!vd_enabled)
 	return;
@@ -736,7 +736,8 @@ private void t1_hinter__make_zone(t1_hinter * this, t1_zone *zone, float * blues
     t1_hinter__adjust_matrix_precision(this, zone->y_min, zone->y_max);
 }
 
-private bool t1_hinter__realloc_array(gs_memory_t *mem, void **a, void *a0, int *max_count, int elem_size, int enhancement, const char *cname)
+private bool t1_hinter__realloc_array(gs_memory_t *mem, void **a, void *a0, int *max_count, int elem_size, int enhancement,
+                                      const int8_t *cname)
 {
     void *aa = gs_alloc_bytes(mem, (*max_count + enhancement * 2) * elem_size, cname);
 

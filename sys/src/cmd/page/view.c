@@ -104,11 +104,11 @@ min(int a, int b)
 }
 
 
-char*
+int8_t*
 menugen(int n)
 {
-	static char menustr[32];
-	char *p;
+	static int8_t menustr[32];
+	int8_t *p;
 	int len;
 
 	if(n == doc->npage)
@@ -161,13 +161,13 @@ showpage(int page, Menu *m)
 	flushimage(display, 1);
 }
 
-char*
+int8_t*
 writebitmap(void)
 {
-	char basename[64];
-	char name[64+30];
-	static char result[200];
-	char *p, *q;
+	int8_t basename[64];
+	int8_t name[64+30];
+	static int8_t result[200];
+	int8_t *p, *q;
 	int fd;
 
 	if(im == nil)
@@ -223,7 +223,7 @@ static void translate(Point);
 static int
 showdata(Plumbmsg *msg)
 {
-	char *s;
+	int8_t *s;
 
 	s = plumblookup(msg->attr, "action");
 	return s && strcmp(s, "showdata")==0;
@@ -232,7 +232,7 @@ showdata(Plumbmsg *msg)
 static int
 plumbquit(Plumbmsg *msg)
 {
-	char *s;
+	int8_t *s;
 
 	s = plumblookup(msg->attr, "action");
 	return s && strcmp(s, "quit")==0;
@@ -270,8 +270,8 @@ viewer(Document *dd)
 	Point dxy, oxy, xy0;
 	Rectangle r;
 	Image *tmp;
-	static char *fwditems[] = { "this page", "next page", "exit", 0 };
- 	static char *miditems[] = {
+	static int8_t *fwditems[] = { "this page", "next page", "exit", 0 };
+ 	static int8_t *miditems[] = {
  		"orig size",
  		"zoom in",
  		"fit window",
@@ -289,7 +289,7 @@ viewer(Document *dd)
  		"quit", 
  		0 
  	};
-	char *s;
+	int8_t *s;
 	enum { Eplumb = 4 };
 	Plumbmsg *pm;
 
@@ -950,17 +950,17 @@ resize(int dx, int dy)
  * getwindow, and allocimage will fail.  So we flushimage before every alloc.
  */
 Image*
-xallocimage(Display *d, Rectangle r, ulong chan, int repl, ulong val)
+xallocimage(Display *d, Rectangle r, uint32_t chan, int repl, uint32_t val)
 {
 	flushimage(display, 0);
 	return allocimage(d, r, chan, repl, val);
 }
 
 /* all code below this line should be in the library, but is stolen from colors instead */
-static char*
-rdenv(char *name)
+static int8_t*
+rdenv(int8_t *name)
 {
-	char *v;
+	int8_t *v;
 	int fd, size;
 
 	fd = open(name, OREAD);
@@ -982,8 +982,8 @@ rdenv(char *name)
 void
 newwin(void)
 {
-	char *srv, *mntsrv;
-	char spec[100];
+	int8_t *srv, *mntsrv;
+	int8_t spec[100];
 	int srvfd, cons, pid;
 
 	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFENVG|RFNOTEG|RFNOWAIT)){
@@ -1044,7 +1044,7 @@ Rectangle
 screenrect(void)
 {
 	int fd;
-	char buf[12*5];
+	int8_t buf[12*5];
 
 	fd = open("/dev/screen", OREAD);
 	if(fd == -1)

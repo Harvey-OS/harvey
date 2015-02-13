@@ -26,7 +26,7 @@ struct Debug
 	Map *map;
 	Fmt *fmt;
 	int pid;
-	char *stkprefix;
+	int8_t *stkprefix;
 	int pcoff;
 	int spoff;
 };
@@ -37,7 +37,7 @@ static int
 text(int pid)
 {
 	int fd;
-	char buf[100];
+	int8_t buf[100];
 
 	if(debug.textfd >= 0){
 		close(debug.textfd);
@@ -78,7 +78,7 @@ static Map*
 map(int pid)
 {
 	int mem;
-	char buf[100];
+	int8_t buf[100];
 	Map *m;
 	
 	snprint(buf, sizeof buf, "#p/%d/mem", pid);
@@ -100,7 +100,7 @@ map(int pid)
 }
 
 static void
-dprint(char *fmt, ...)
+dprint(int8_t *fmt, ...)
 {
 	va_list arg;
 	
@@ -112,7 +112,7 @@ dprint(char *fmt, ...)
 static void
 openfiles(void)
 {
-	char buf[4096];
+	int8_t buf[4096];
 	int fd, n;
 	
 	snprint(buf, sizeof buf, "#p/%d/fd", getpid());
@@ -163,7 +163,7 @@ printsym(void)
 }
 
 static void
-printmap(char *s, Map *map)
+printmap(int8_t *s, Map *map)
 {
 	int i;
 
@@ -184,14 +184,14 @@ printlocals(Map *map, Symbol *fn, uintptr fp)
 	int i;
 	uintptr w;
 	Symbol s;
-	char buf[100];
+	int8_t buf[100];
 
 	s = *fn;
 	for (i = 0; localsym(&s, i); i++) {
 		if (s.class != CAUTO)
 			continue;
 		snprint(buf, sizeof buf, "%s%s/", debug.stkprefix, s.name);
-		if (geta(map, fp - s.value, (uvlong*)&w) > 0)
+		if (geta(map, fp - s.value, (uint64_t*)&w) > 0)
 			dprint("\t%-10s %10#p %ld\n", buf, w, w);
 		else
 			dprint("\t%-10s ?\n", buf);
@@ -213,7 +213,7 @@ printparams(Map *map, Symbol *fn, uintptr fp)
 			continue;
 		if (first++)
 			dprint(", ");
-		if (geta(map, fp + s.value, (uvlong *)&w) > 0)
+		if (geta(map, fp + s.value, (uint64_t *)&w) > 0)
 			dprint("%s=%#p", s.name, w);
 	}
 }
@@ -221,7 +221,7 @@ printparams(Map *map, Symbol *fn, uintptr fp)
 static void
 printsource(uintptr dot)
 {
-	char str[100];
+	int8_t str[100];
 
 	if (fileline(str, sizeof str, dot))
 		dprint("%s", str);
@@ -234,7 +234,7 @@ printsource(uintptr dot)
 static uintptr nextpc;
 
 static void
-ptrace(Map *map, uvlong pc, uvlong sp, Symbol *sym)
+ptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 {
 	if(nextpc == 0)
 		nextpc = sym->value;
@@ -278,11 +278,11 @@ stacktrace(Map *m)
 {
 	uintptr pc, sp;
 	
-	if(geta(m, debug.pcoff, (uvlong *)&pc) < 0){
+	if(geta(m, debug.pcoff, (uint64_t *)&pc) < 0){
 		dprint("geta pc: %r");
 		return;
 	}
-	if(geta(m, debug.spoff, (uvlong *)&sp) < 0){
+	if(geta(m, debug.spoff, (uint64_t *)&sp) < 0){
 		dprint("geta sp: %r");
 		return;
 	}
@@ -303,7 +303,7 @@ star(uintptr addr)
 			dprint("no debug.map\n");
 		return 0;
 	}
-	if(geta(debug.map, addr, (uvlong *)&x) < 0){
+	if(geta(debug.map, addr, (uint64_t *)&x) < 0){
 		dprint("geta %#p (pid=%d): %r\n", addr, debug.pid);
 		return 0;
 	}
@@ -311,7 +311,7 @@ star(uintptr addr)
 }
 
 static uintptr
-resolvev(char *name)
+resolvev(int8_t *name)
 {
 	Symbol s;
 
@@ -321,7 +321,7 @@ resolvev(char *name)
 }
 
 static uintptr
-resolvef(char *name)
+resolvef(int8_t *name)
 {
 	Symbol s;
 
@@ -336,14 +336,14 @@ resolvef(char *name)
 static uintptr threadpc;
 
 static int
-strprefix(char *big, char *pre)
+strprefix(int8_t *big, int8_t *pre)
 {
 	return strncmp(big, pre, strlen(pre));
 }
 static void
-tptrace(Map *map, uvlong pc, uvlong sp, Symbol *sym)
+tptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 {
-	char buf[512];
+	int8_t buf[512];
 
 	USED(map);
 	USED(sym);
@@ -360,15 +360,15 @@ tptrace(Map *map, uvlong pc, uvlong sp, Symbol *sym)
 	threadpc = pc;
 }
 
-static char*
+static int8_t*
 threadstkline(uintptr t)
 {
 	uintptr pc, sp;
-	static char buf[500];
+	static int8_t buf[500];
 
 	if(FIELD(Thread, t, state) == Running){
-		geta(debug.map, debug.pcoff, (uvlong *)&pc);
-		geta(debug.map, debug.spoff, (uvlong *)&sp);
+		geta(debug.map, debug.pcoff, (uint64_t *)&pc);
+		geta(debug.map, debug.spoff, (uint64_t *)&sp);
 	}else{
 		// pc = FIELD(Thread, t, sched[JMPBUFPC]);
 		pc = resolvef("longjmp");
@@ -394,7 +394,7 @@ proc(uintptr p)
 }
 
 static void
-fmtbufinit(Fmt *f, char *buf, int len)
+fmtbufinit(Fmt *f, int8_t *buf, int len)
 {
 	memset(f, 0, sizeof *f);
 	f->runes = 0;
@@ -406,23 +406,23 @@ fmtbufinit(Fmt *f, char *buf, int len)
 	f->nfmt = 0;
 }
 
-static char*
+static int8_t*
 fmtbufflush(Fmt *f)
 {
-	*(char*)f->to = 0;
-	return (char*)f->start;
+	*(int8_t*)f->to = 0;
+	return (int8_t*)f->start;
 }
 
-static char*
+static int8_t*
 debugstr(uintptr s)
 {
-	static char buf[4096];
-	char *p, *e;
+	static int8_t buf[4096];
+	int8_t *p, *e;
 	
 	p = buf;
 	e = buf+sizeof buf - 1;
 	while(p < e){
-		if(get1(debug.map, s++, (uchar*)p, 1) < 0)
+		if(get1(debug.map, s++, (uint8_t*)p, 1) < 0)
 			break;
 		if(*p == 0)
 			break;
@@ -432,10 +432,10 @@ debugstr(uintptr s)
 	return buf;
 }
 
-static char*
+static int8_t*
 threadfmt(uintptr t)
 {
-	static char buf[4096];
+	static int8_t buf[4096];
 	Fmt fmt;
 	int s;
 
@@ -632,7 +632,7 @@ hproc(HConnect *c)
 	void (*fn)(HConnect*);
 	Fmt fmt;
 	static int beenhere;
-	static char buf[65536];
+	static int8_t buf[65536];
 
 	if (!beenhere) {
 		beenhere = 1;

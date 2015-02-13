@@ -11,17 +11,17 @@
 #include <pwd.h>
 #include <string.h>
 
-extern int _getpw(int *, char **, char **);
+extern int _getpw(int *, int8_t **, int8_t **);
 
 static struct passwd holdpw;
-static char dirbuf[40] = "/usr/";
-static char *rc = "/bin/rc";
+static int8_t dirbuf[40] = "/usr/";
+static int8_t *rc = "/bin/rc";
 
 struct passwd *
 getpwuid(uid_t uid)
 {
 	int num;
-	char *nam, *mem;
+	int8_t *nam, *mem;
 
 	num = uid;
 	nam = 0;

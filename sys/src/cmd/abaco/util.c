@@ -43,9 +43,9 @@ max(int a, int b)
 }
 
 void
-cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
+cvttorunes(int8_t *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 {
-	uchar *q;
+	uint8_t *q;
 	Rune *s;
 	int j, w;
 
@@ -56,14 +56,14 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 	 * knows this.  If n is a firm limit, the caller should
 	 * set p[n] = 0.
 	 */
-	q = (uchar*)p;
+	q = (uint8_t*)p;
 	s = r;
 	for(j=0; j<n; j+=w){
 		if(*q < Runeself){
 			w = 1;
 			*s = *q++;
 		}else{
-			w = chartorune(s, (char*)q);
+			w = chartorune(s, (int8_t*)q);
 			q += w;
 		}
 		if(*s)
@@ -71,12 +71,12 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 		else if(nulls)
 			*nulls = TRUE;
 	}
-	*nb = (char*)q-p;
+	*nb = (int8_t*)q-p;
 	*nr = s-r;
 }
 
 void
-bytetorunestr(char *s, Runestr *rs)
+bytetorunestr(int8_t *s, Runestr *rs)
 {
 	Rune *r;
 	int nb, nr;
@@ -90,7 +90,7 @@ bytetorunestr(char *s, Runestr *rs)
 }
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	fprint(2, "abaco: %s: %r\n", s);
 //	abort();
@@ -98,7 +98,7 @@ error(char *s)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -111,7 +111,7 @@ emalloc(ulong n)
 }
 
 void*
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -134,10 +134,10 @@ erunestrdup(Rune *r)
 	return p;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 
 	t = strdup(s);
 	if(t == nil)
@@ -382,7 +382,7 @@ getbase(Page *p)
 }
 
 Image *
-eallocimage(Display *d, Rectangle r, ulong chan, int repl, int col)
+eallocimage(Display *d, Rectangle r, uint32_t chan, int repl, int col)
 {
 	Image *i;
 
@@ -444,14 +444,14 @@ static char *deffontpaths[] = {
 #include "fonts.h"
 };
 
-static char *fontpaths[NumFnt];
+static int8_t *fontpaths[NumFnt];
 static Font *fonts[NumFnt];
 
 void
 initfontpaths(void)
 {
 	Biobufhdr *bp;
-	char buf[128];
+	int8_t buf[128];
 	int i;
 
 	/* we don't care if getenv(2) fails */
@@ -527,7 +527,7 @@ getcolor(int rgb)
 }
 
 int
-plumbrunestr(Runestr *rs, char *attr)
+plumbrunestr(Runestr *rs, int8_t *attr)
 {
 	Plumbmsg *m;
 	int i;
@@ -561,7 +561,7 @@ hexdigit(int v)
 }
 
 static int
-inclass(char c, Rune* cl)
+inclass(int8_t c, Rune* cl)
 {
 	int n, ans, negate, i;
 
@@ -597,7 +597,7 @@ Rune*
 ucvt(Rune* s)
 {
 	Rune* u;
-	char *t;
+	int8_t *t;
 	int i, c, n, j, len;
 
 	t = smprint("%S", s);
@@ -644,7 +644,7 @@ reverseimages(Iimage **head)
 	*head = r;
 }
 
-char urlexpr[] = "^(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|"
+int8_t urlexpr[] = "^(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|"
 	"prospero)://([a-zA-Z0-9_@\\-]+([.:][a-zA-Z0-9_@\\-]+)*)";
 Reprog	*urlprog;
 
@@ -670,7 +670,7 @@ execproc(void *v)
 	Channel *sync;
 	Exec *e;
 	int p[2], q[2];
-	char *cmd;
+	int8_t *cmd;
 
 	threadsetname("execproc");
 	e = v;
@@ -701,8 +701,8 @@ writeproc(void *v)
 {
 	Channel *sync;
 	void **a;
-	char *s;
-	long np;
+	int8_t *s;
+	int32_t np;
 	int fd, i, n;
 
 	threadsetname("writeproc");
@@ -751,17 +751,17 @@ static int winchars[] = {
 	732, 8482, 353, 8250, 339, 8226, 8226, 376
 };
 
-char *
-tcs(char *cs, char *s, long *np)
+int8_t *
+tcs(int8_t *cs, int8_t *s, int32_t *np)
 {
 	Channel *sync;
 	Exec *e;
 	Rune r;
-	long i, n;
+	int32_t i, n;
 	void **a;
-	uchar *us;
-	char buf[BUFSIZE], cmd[50];
-	char *t, *u;
+	uint8_t *us;
+	int8_t buf[BUFSIZE], cmd[50];
+	int8_t *t, *u;
 	int p[2], q[2];
 
 
@@ -789,11 +789,11 @@ tcs(char *cs, char *s, long *np)
 	if(cistrcmp(tcstab[i].tcs, "8859-1")==0 || cistrcmp(tcstab[i].tcs, "ascii")==0){
 latin1:
 		n = 0;
-		for(us=(uchar*)s; *us; us++)
+		for(us=(uint8_t*)s; *us; us++)
 			n += runelen(*us);
 		n++;
 		t = emalloc(n);
-		for(us=(uchar*)s, u=t; *us; us++){
+		for(us=(uint8_t*)s, u=t; *us; us++){
 			if(*us>=Winstart && *us<=Winend)
 				*u++ = winchars[*us-Winstart];
 			else{
@@ -809,7 +809,7 @@ latin1:
 	if(pipe(p)<0 || pipe(q)<0)
 		error("can't create pipe");
 
-	sync = chancreate(sizeof(ulong), 0);
+	sync = chancreate(sizeof(uint32_t), 0);
 	if(sync == nil)
 		error("can't create channel");
 
@@ -829,7 +829,7 @@ latin1:
 
 	/* in case tcs fails */
 	t = s;
-	sync = chancreate(sizeof(ulong), 0);
+	sync = chancreate(sizeof(uint32_t), 0);
 	if(sync == nil)
 		error("can't create channel");
 
@@ -866,16 +866,16 @@ latin1:
 
 static
 int
-isspace(char c)
+isspace(int8_t c)
 {
 	return c==' ' || c== '\t' || c=='\r' || c=='\n';
 }
 
 static
 int
-findctype(char *b, int l, char *keyword, char *s)
+findctype(int8_t *b, int l, int8_t *keyword, int8_t *s)
 {
-	char *p, *e;
+	int8_t *p, *e;
 	int i;
 
 	p = cistrstr(s, keyword);
@@ -908,9 +908,9 @@ findctype(char *b, int l, char *keyword, char *s)
 
 static
 int
-finddocctype(char *b, int l, char *s)
+finddocctype(int8_t *b, int l, int8_t *s)
 {
-	char *p, *e;
+	int8_t *p, *e;
 
 	p = cistrstr(s, "<meta");
 	if(!p)
@@ -925,9 +925,9 @@ finddocctype(char *b, int l, char *s)
 
 static
 int
-findxmltype(char *b, int l, char *s)
+findxmltype(int8_t *b, int l, int8_t *s)
 {
-	char *p, *e;
+	int8_t *p, *e;
 
 	p = cistrstr(s, "<?xml ");
 	if(!p)
@@ -946,10 +946,10 @@ findxmltype(char *b, int l, char *s)
  * servers can lie about lie about the charset,
  * so we use the charset based on the priority.
  */
-char *
-convert(Runestr ctype, char *s, long *np)
+int8_t *
+convert(Runestr ctype, int8_t *s, int32_t *np)
 {
-	char t[25], buf[256];
+	int8_t t[25], buf[256];
 
 	*t = '\0';
 	if(ctype.nr){
@@ -967,7 +967,7 @@ convert(Runestr ctype, char *s, long *np)
 }
 
 int
-xtofchar(Rune *s, Font *f, long p)
+xtofchar(Rune *s, Font *f, int32_t p)
 {
 	Rune *r;
 	int q;
@@ -1024,8 +1024,8 @@ getimage(Cimage *ci, Rune *altr)
 	Rectangle r;
 	Memimage *mi;
 	Image *i, *i2;
-	char buf[128];
-	uchar *bits;
+	int8_t buf[128];
+	uint8_t *bits;
 	int nbits;
 
 	mi = ci->mi;
@@ -1159,7 +1159,7 @@ static Refresh *refreshs = nil;
 static QLock refreshlock;
 
 void
-addrefresh(Page *p, char *fmt, ...)
+addrefresh(Page *p, int8_t *fmt, ...)
 {
 	Refresh *r;
 	Rune *s;

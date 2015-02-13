@@ -11,18 +11,18 @@
 #include <libc.h>
 #include "flashfs.h"
 
-char*	prog;
-ulong	sectsize;
-ulong	nsects;
-uchar*	sectbuff;
+int8_t*	prog;
+uint32_t	sectsize;
+uint32_t	nsects;
+uint8_t*	sectbuff;
 int	readonly;
-ulong	delta;
+uint32_t	delta;
 int	eparity;
 
-uchar	magic[]	= { MAGIC0, MAGIC1, MAGIC2, FFSVERS };
+uint8_t	magic[]	= { MAGIC0, MAGIC1, MAGIC2, FFSVERS };
 
 int
-putc3(uchar *buff, ulong v)
+putc3(uint8_t *buff, uint32_t v)
 {
 	if(v < (1 << 7)) {
 		buff[0] = v;
@@ -48,7 +48,7 @@ putc3(uchar *buff, ulong v)
 }
 
 int
-getc3(uchar *buff, ulong *p)
+getc3(uint8_t *buff, uint32_t *p)
 {
 	int c, d;
 
@@ -70,8 +70,8 @@ getc3(uchar *buff, ulong *p)
 	return 3;
 }
 
-ulong
-get4(uchar *b)
+uint32_t
+get4(uint8_t *b)
 {
 	return	(b[0] <<  0) |
 		(b[1] <<  8) |
@@ -80,7 +80,7 @@ get4(uchar *b)
 }
 
 void
-put4(uchar *b, ulong v)
+put4(uint8_t *b, uint32_t v)
 {
 	b[0] = v >>  0;
 	b[1] = v >>  8;

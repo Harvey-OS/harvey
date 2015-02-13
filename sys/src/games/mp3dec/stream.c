@@ -133,7 +133,7 @@ int mad_stream_sync(struct mad_stream *stream)
  * NAME:	stream->errorstr()
  * DESCRIPTION:	return a string description of the current error condition
  */
-char const *mad_stream_errorstr(struct mad_stream const *stream)
+int8_t const *mad_stream_errorstr(struct mad_stream const *stream)
 {
   switch (stream->error) {
   case MAD_ERROR_NONE:		 return "no error";

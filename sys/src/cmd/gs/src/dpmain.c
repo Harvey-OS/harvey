@@ -55,8 +55,8 @@
 
 #define MAXSTR 256
 #define BITMAPINFO2_SIZE 40
-const char *szDllName = "GSDLL2.DLL";
-char start_string[] = "systemdict /start get exec\n";
+const int8_t *szDllName = "GSDLL2.DLL";
+int8_t start_string[] = "systemdict /start get exec\n";
 int debug = TRUE /* FALSE */;
 
 
@@ -90,7 +90,7 @@ void *instance;
 TID tid;
 
 void
-gs_addmess(char *str)
+gs_addmess(int8_t *str)
 {
     fputs(str, stdout);
     fflush(stdout);
@@ -105,7 +105,7 @@ gs_addmess(char *str)
 BOOL
 gs_free_dll(void)
 {
-    char buf[MAXSTR];
+    int8_t buf[MAXSTR];
     APIRET rc;
 
     if (gsdll.hmodule == (HMODULE) NULL)
@@ -123,7 +123,7 @@ gs_free_dll(void)
 void
 gs_load_dll_cleanup(void)
 {
-    char buf[MAXSTR];
+    int8_t buf[MAXSTR];
 
     gs_free_dll();
 }
@@ -133,16 +133,16 @@ gs_load_dll_cleanup(void)
 BOOL
 gs_load_dll(void)
 {
-    char buf[MAXSTR + 40];
+    int8_t buf[MAXSTR + 40];
     APIRET rc;
-    char *p;
+    int8_t *p;
     int i;
-    const char *dllname;
+    const int8_t *dllname;
     PTIB pptib;
     PPIB pppib;
-    char szExePath[MAXSTR];
-    char fullname[1024];
-    const char *shortname;
+    int8_t szExePath[MAXSTR];
+    int8_t fullname[1024];
+    const int8_t *shortname;
     gsapi_revision_t rv;
 
     if ((rc = DosGetInfoBlocks(&pptib, &pppib)) != 0) {
@@ -155,7 +155,7 @@ gs_load_dll(void)
 	fprintf(stdout, "Couldn't get module name, rc = %d\n", rc);
 	return FALSE;
     }
-    if ((p = strrchr(szExePath, '\\')) != (char *)NULL) {
+    if ((p = strrchr(szExePath, '\\')) != (int8_t *)NULL) {
 	p++;
 	*p = '\0';
     }
@@ -171,11 +171,11 @@ gs_load_dll(void)
     if (rc) {
 	/* failed */
 	/* try again, with path of EXE */
-	if ((shortname = strrchr((char *)szDllName, '\\')) 
-	    == (const char *)NULL)
+	if ((shortname = strrchr((int8_t *)szDllName, '\\')) 
+	    == (const int8_t *)NULL)
 	    shortname = szDllName;
 	strcpy(fullname, szExePath);
-	if ((p = strrchr(fullname, '\\')) != (char *)NULL)
+	if ((p = strrchr(fullname, '\\')) != (int8_t *)NULL)
 	    p++;
 	else
 	    p = fullname;
@@ -223,7 +223,8 @@ gs_load_dll(void)
 	}
 
 	if (rv.revision != GS_REVISION) {
-	    sprintf(buf, "Wrong version of DLL found.\n  Found version %ld\n  Need version  %ld\n", rv.revision, (long)GS_REVISION);
+	    sprintf(buf, "Wrong version of DLL found.\n  Found version %ld\n  Need version  %ld\n", rv.revision,
+                    (int32_t)GS_REVISION);
 	    gs_addmess(buf);
 	    gs_load_dll_cleanup();
 	    return FALSE;
@@ -301,13 +302,13 @@ gs_load_dll(void)
 /* stdio functions */
 
 static int 
-gsdll_stdin(void *instance, char *buf, int len)
+gsdll_stdin(void *instance, int8_t *buf, int len)
 {
     return read(fileno(stdin), buf, len);
 }
 
 static int 
-gsdll_stdout(void *instance, const char *str, int len)
+gsdll_stdout(void *instance, const int8_t *str, int len)
 {
     fwrite(str, 1, len, stdout);
     fflush(stdout);
@@ -315,7 +316,7 @@ gsdll_stdout(void *instance, const char *str, int len)
 }
 
 static int 
-gsdll_stderr(void *instance, const char *str, int len)
+gsdll_stderr(void *instance, const int8_t *str, int len)
 {
     fwrite(str, 1, len, stderr);
     fflush(stderr);
@@ -992,14 +993,14 @@ display_callback display = {
 
 
 int
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
     int code, code1;
     int exit_code;
     int exit_status;
     int nargc;
-    char **nargv;
-    char dformat[64];
+    int8_t **nargv;
+    int8_t dformat[64];
     ULONG version[3];
     void *instance;
 
@@ -1048,10 +1049,10 @@ main(int argc, char *argv[])
 	fprintf(stdout, "%s\n", dformat);
 #endif
     nargc = argc + 1;
-    nargv = (char **)malloc((nargc + 1) * sizeof(char *));
+    nargv = (int8_t **)malloc((nargc + 1) * sizeof(int8_t *));
     nargv[0] = argv[0];
     nargv[1] = dformat;
-    memcpy(&nargv[2], &argv[1], argc * sizeof(char *));
+    memcpy(&nargv[2], &argv[1], argc * sizeof(int8_t *));
 
     if ( (code = gsdll.new_instance(&instance, NULL)) == 0) {
 	gsdll.set_stdio(instance, gsdll_stdin, gsdll_stdout, gsdll_stderr);

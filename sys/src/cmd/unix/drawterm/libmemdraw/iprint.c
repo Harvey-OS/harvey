@@ -13,7 +13,7 @@
 #include <memdraw.h>
 
 int
-iprint(char *fmt,...)
+iprint(int8_t *fmt,...)
 {
 	USED(fmt);
 	return -1;

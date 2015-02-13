@@ -14,10 +14,10 @@
 int
 vtscorefmt(Fmt *f)
 {
-	uchar *v;
+	uint8_t *v;
 	int i;
 
-	v = va_arg(f->args, uchar*);
+	v = va_arg(f->args, uint8_t*);
 	if(v == nil)
 		fmtprint(f, "*");
 	else

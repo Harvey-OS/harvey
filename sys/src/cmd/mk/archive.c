@@ -10,15 +10,15 @@
 #include	"mk.h"
 #include	<ar.h>
 
-static void atimes(char *);
-static char *split(char*, char**);
+static void atimes(int8_t *);
+static int8_t *split(int8_t*, int8_t**);
 
-ulong
-atimeof(int force, char *name)
+uint32_t
+atimeof(int force, int8_t *name)
 {
 	Symtab *sym;
-	ulong t;
-	char *archive, *member, buf[512];
+	uint32_t t;
+	int8_t *archive, *member, buf[512];
 
 	archive = split(name, &member);
 	if(archive == 0)
@@ -46,12 +46,12 @@ atimeof(int force, char *name)
 }
 
 void
-atouch(char *name)
+atouch(int8_t *name)
 {
-	char *archive, *member;
+	int8_t *archive, *member;
 	int fd, i;
 	struct ar_hdr h;
-	long t;
+	int32_t t;
 
 	archive = split(name, &member);
 	if(archive == 0)
@@ -69,7 +69,7 @@ atouch(char *name)
 	if(symlook(name, S_TIME, 0)){
 		/* hoon off and change it in situ */
 		LSEEK(fd, SARMAG, 0);
-		while(read(fd, (char *)&h, sizeof(h)) == sizeof(h)){
+		while(read(fd, (int8_t *)&h, sizeof(h)) == sizeof(h)){
 			for(i = SARNAME-1; i > 0 && h.name[i] == ' '; i--)
 					;
 			h.name[i+1]=0;
@@ -88,12 +88,12 @@ atouch(char *name)
 }
 
 static void
-atimes(char *ar)
+atimes(int8_t *ar)
 {
 	struct ar_hdr h;
-	ulong at, t;
+	uint32_t at, t;
 	int fd, i;
-	char buf[BIGBLOCK];
+	int8_t buf[BIGBLOCK];
 	Dir *d;
 	
 	fd = open(ar, OREAD);
@@ -110,7 +110,7 @@ atimes(char *ar)
 	}
 	at = d->mtime;
 	free(d);
-	while(read(fd, (char *)&h, SAR_HDR) == SAR_HDR){
+	while(read(fd, (int8_t *)&h, SAR_HDR) == SAR_HDR){
 		t = strtoul(h.date, nil, 0);
 		if(t >= at)	/* new things in old archives confuses mk */
 			t = at-1;
@@ -131,10 +131,10 @@ atimes(char *ar)
 }
 
 static int
-type(char *file)
+type(int8_t *file)
 {
 	int fd;
-	char buf[SARMAG];
+	int8_t buf[SARMAG];
 
 	fd = open(file, OREAD);
 	if(fd < 0){
@@ -152,10 +152,10 @@ type(char *file)
 	return strncmp(ARMAG, buf, SARMAG) == 0;
 }
 
-static char*
-split(char *name, char **member)
+static int8_t*
+split(int8_t *name, int8_t **member)
 {
-	char *p, *q;
+	int8_t *p, *q;
 
 	p = strdup(name);
 	q = utfrune(p, '(');

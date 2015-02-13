@@ -73,7 +73,7 @@ vDestroyStyleInfoList(void)
  * vConvertListCharacter - convert the list character
  */
 static void
-vConvertListCharacter(UCHAR ucNFC, USHORT usListChar, char *szListChar)
+vConvertListCharacter(UCHAR ucNFC, USHORT usListChar, int8_t *szListChar)
 {
 	options_type	tOptions;
 	size_t	tLen;
@@ -83,7 +83,7 @@ vConvertListCharacter(UCHAR ucNFC, USHORT usListChar, char *szListChar)
 
 	if (usListChar < 0x80 && isprint((int)usListChar)) {
 		DBG_CHR_C(isalnum((int)usListChar), usListChar);
-		szListChar[0] = (char)usListChar;
+		szListChar[0] = (int8_t)usListChar;
 		szListChar[1] = '\0';
 		return;
 	}
@@ -394,7 +394,7 @@ pGetNextStyleInfoListItem(const style_block_type *pCurr)
 	}
 	tOffset = offsetof(style_mem_type, tInfo);
 	/* Many casts to prevent alignment warnings */
-	pRecord = (style_mem_type *)(void *)((char *)pCurr - tOffset);
+	pRecord = (style_mem_type *)(void *)((int8_t *)pCurr - tOffset);
 	fail(pCurr != &pRecord->tInfo);
 	if (pRecord->pNext == NULL) {
 		/* The last record has no successor */

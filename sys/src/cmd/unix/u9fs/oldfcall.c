@@ -26,7 +26,7 @@
 #define	FIXQID(q)		q.path ^= (q.path>>33); q.path &= 0x7FFFFFFF; q.path |= (q.type&0x80)<<24
 
 uint
-oldhdrsize(uchar type)
+oldhdrsize(uint8_t type)
 {
 	switch(type){
 	default:
@@ -63,7 +63,7 @@ oldhdrsize(uchar type)
 }
 
 uint
-iosize(uchar *p)
+iosize(uint8_t *p)
 {
 	if(p[0] != oldTwrite)
 		return 0;
@@ -136,9 +136,9 @@ sizeS2M(Fcall *f)
 }
 
 uint
-convS2Mold(Fcall *f, uchar *ap, uint nap)
+convS2Mold(Fcall *f, uint8_t *ap, uint nap)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(nap < sizeS2M(f))
 		return 0;
@@ -295,9 +295,9 @@ sizeD2Mold(Dir *d)
 }
 
 uint
-convD2Mold(Dir *f, uchar *ap, uint nap)
+convD2Mold(Dir *f, uint8_t *ap, uint nap)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(nap < 116)
 		return 0;
@@ -334,9 +334,9 @@ convD2Mold(Dir *f, uchar *ap, uint nap)
 #define	STRING(x,n)	f->x = (char*)p; p += n
 
 uint
-convM2Sold(uchar *ap, uint nap, Fcall *f)
+convM2Sold(uint8_t *ap, uint nap, Fcall *f)
 {
-	uchar *p, *q, *ep;
+	uint8_t *p, *q, *ep;
 
 	p = ap;
 	ep = p + nap;
@@ -378,7 +378,7 @@ convM2Sold(uchar *ap, uint nap, Fcall *f)
 		SHORT(fid);
 		f->newfid = f->fid;
 		f->nwname = 1;
-		f->wname[0] = (char*)p;
+		f->wname[0] = (int8_t*)p;
 		p += 28;
 		break;
 
@@ -397,7 +397,7 @@ convM2Sold(uchar *ap, uint nap, Fcall *f)
 		if(p+2+28+4+1 > ep)
 			return 0;
 		SHORT(fid);
-		f->name = (char*)p;
+		f->name = (int8_t*)p;
 		p += 28;
 		LONG(perm);
 		CHAR(mode);
@@ -424,7 +424,7 @@ convM2Sold(uchar *ap, uint nap, Fcall *f)
 		p++;	/* pad(1) */
 		if(p+f->count > ep)
 			return 0;
-		f->data = (char*)p;
+		f->data = (int8_t*)p;
 		p += f->count;
 		break;
 
@@ -504,16 +504,16 @@ convM2Sold(uchar *ap, uint nap, Fcall *f)
 }
 
 uint
-convM2Dold(uchar *ap, uint nap, Dir *f, char *strs)
+convM2Dold(uint8_t *ap, uint nap, Dir *f, int8_t *strs)
 {
-	uchar *p;
+	uint8_t *p;
 
 	USED(strs);
 
 	if(nap < 116)
 		return 0;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	STRING(name, 28);
 	STRING(uid, 28);
 	STRING(gid, 28);
@@ -526,5 +526,5 @@ convM2Dold(uchar *ap, uint nap, Dir *f, char *strs)
 	SHORT(type);
 	SHORT(dev);
 	f->qid.type = (f->mode>>24)&0xF0;
-	return p - (uchar*)ap;
+	return p - (uint8_t*)ap;
 }

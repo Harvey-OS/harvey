@@ -20,10 +20,10 @@ int	sect = DEFSECTION;
 int	prev = '\n';	/* previous input character */
 int	pres = '\n';	/* present input character */
 int	peek = '\n';	/* next input character */
-uchar	*pushptr = pushc;
-uchar	*slptr = slist;
+uint8_t	*pushptr = pushc;
+uint8_t	*slptr = slist;
 
-char	*cname = "/sys/lib/lex/ncform";
+int8_t	*cname = "/sys/lib/lex/ncform";
 
 int nine;
 int ccount = 1;
@@ -38,10 +38,10 @@ int report = 2;
 int debug;		/* 1 = on */
 int charc;
 int sargc;
-char **sargv;
-uchar buf[520];
+int8_t **sargv;
+uint8_t buf[520];
 int yyline;		/* line number of file */
-char *yyfile;		/* filename for error messages */
+int8_t *yyfile;		/* filename for error messages */
 int eof;
 int lgatflg;
 int divflg;
@@ -54,43 +54,43 @@ int *name;
 int *left;
 int *right;
 int *parent;
-uchar *nullstr;
-uchar **ptr;
+uint8_t *nullstr;
+uint8_t **ptr;
 int tptr;
-uchar pushc[TOKENSIZE];
-uchar slist[STARTSIZE];
-uchar **def, **subs, *dchar;
-uchar **sname, *stchar;
-uchar *ccl;
-uchar *ccptr;
-uchar *dp, *sp;
+uint8_t pushc[TOKENSIZE];
+uint8_t slist[STARTSIZE];
+uint8_t **def, **subs, *dchar;
+uint8_t **sname, *stchar;
+uint8_t *ccl;
+uint8_t *ccptr;
+uint8_t *dp, *sp;
 int dptr;
-uchar *bptr;		/* store input position */
-uchar *tmpstat;
+uint8_t *bptr;		/* store input position */
+uint8_t *tmpstat;
 int count;
 int **foll;
 int *nxtpos;
 int *positions;
 int *gotof;
 int *nexts;
-uchar *nchar;
+uint8_t *nchar;
 int **state;
 int *sfall;		/* fallback state num */
-uchar *cpackflg;		/* true if state has been character packed */
+uint8_t *cpackflg;		/* true if state has been character packed */
 int *atable;
 int nptr;
-uchar symbol[NCH];
-uchar cindex[NCH];
+uint8_t symbol[NCH];
+uint8_t cindex[NCH];
 int xstate;
 int stnum;
-uchar match[NCH];
-uchar extra[NACTIONS];
-uchar *pchar, *pcptr;
+uint8_t match[NCH];
+uint8_t extra[NACTIONS];
+uint8_t *pchar, *pcptr;
 int pchlen = TOKENSIZE;
- long rcount;
+ int32_t rcount;
 int *verify, *advance, *stoff;
 int scon;
-uchar *psave;
+uint8_t *psave;
 
 static void	free1core(void);
 static void	free2core(void);
@@ -299,7 +299,7 @@ myalloc(int a, int b)
 }
 
 void
-yyerror(char *s)
+yyerror(int8_t *s)
 {
 	fprint(2, "%s:%d %s\n", yyfile, yyline, s);
 }

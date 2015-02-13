@@ -303,9 +303,9 @@ pgm_map_rgb_color(gx_device * pdev, const gx_color_value cv[])
     gx_color_value r, g, b;
 
     r = cv[0]; g = cv[0]; b = cv[0];
-    gray = ((r * (ulong) lum_red_weight) +
-     (g * (ulong) lum_green_weight) +
-     (b * (ulong) lum_blue_weight) +
+    gray = ((r * (uint32_t) lum_red_weight) +
+     (g * (uint32_t) lum_green_weight) +
+     (b * (uint32_t) lum_blue_weight) +
      (lum_all_weights / 2)) / lum_all_weights
     * pdev->color_info.max_gray / gx_max_color_value;
 #else	    /* Should be ... */
@@ -350,7 +350,7 @@ gx_old_default_rgb_map_rgb_color(gx_device * dev,
     if (dev->color_info.depth == 24)
 	return gx_color_value_to_byte(b) +
 	    ((uint) gx_color_value_to_byte(g) << 8) +
-	    ((ulong) gx_color_value_to_byte(r) << 16);
+	    ((uint32_t) gx_color_value_to_byte(r) << 16);
     else {
 	int bpc = dev->color_info.depth / 3;
 	int drop = sizeof(gx_color_value) * 8 - bpc;

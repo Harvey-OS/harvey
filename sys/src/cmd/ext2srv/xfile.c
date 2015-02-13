@@ -23,7 +23,7 @@ static Lock	xlock, freelock;
 int	client;
 
 Xfs *
-getxfs(char *name)
+getxfs(int8_t *name)
 {
 	int fd;
 	Dir *dir;

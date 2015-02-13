@@ -149,10 +149,10 @@ color_cmyk_to_rgb(frac c, frac m, frac y, frac k, const gs_imager_state * pis,
 		rgb[2] = (y > not_k ? frac_0 : not_k - y);
 #else
 		/* R = (1.0 - C) * (1.0 - K), etc. */
-		ulong not_k = frac_1 - k;
+		uint32_t not_k = frac_1 - k;
 
 		/* Compute not_k * (frac_1 - v) / frac_1 efficiently. */
-		ulong prod;
+		uint32_t prod;
 
 #define deduct_black(v)\
   (prod = (frac_1 - (v)) * not_k, frac_1_quo(prod))

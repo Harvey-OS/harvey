@@ -36,7 +36,7 @@
 /* Define an optional array of strings for testing. */
 /*#define RUN_STRINGS */
 #ifdef RUN_STRINGS
-private const char *run_strings[] =
+private const int8_t *run_strings[] =
 {
     "2 vmreclaim /SAVE save def 2 vmreclaim",
     "(saved\n) print flush",
@@ -48,7 +48,7 @@ private const char *run_strings[] =
 #endif
 
 int
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
     int exit_status = 0;
     gs_main_instance *minst = gs_main_alloc_instance(gs_malloc_init(NULL));
@@ -57,7 +57,7 @@ main(int argc, char *argv[])
 
 #ifdef RUN_STRINGS
     {				/* Run a list of strings (for testing). */
-	const char **pstr = run_strings;
+	const int8_t **pstr = run_strings;
 
 	for (; *pstr; ++pstr) {
 	    int exit_code;

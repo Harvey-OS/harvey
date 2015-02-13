@@ -27,12 +27,12 @@
  * Also, register the note handler.
  */
 
-char **environ;
+int8_t **environ;
 int errno;
 unsigned long _clock;
 
-static void fdsetup(char *, char *);
-static void sigsetup(char *, char *);
+static void fdsetup(int8_t *, int8_t *);
+static void sigsetup(int8_t *, int8_t *);
 
 enum {
 	Envhunk=7000,
@@ -42,11 +42,11 @@ void
 _envsetup(void)
 {
 	int dfd, fdinited, n, nd, m, i, j, f, nohandle, psize, cnt;
-	char *ps, *p;
-	char **pp;
-	char name[NAME_MAX+5];
+	int8_t *ps, *p;
+	int8_t **pp;
+	int8_t name[NAME_MAX+5];
 	Dir *d9, *d9a;
-	static char **emptyenvp = 0;
+	static int8_t **emptyenvp = 0;
 
 	environ = emptyenvp;		/* pessimism */
 	nohandle = 0;
@@ -105,7 +105,7 @@ _envsetup(void)
 	free(d9a);
 	if(!fdinited)
 		_fdinit(0, 0);
-	pp = malloc((1+cnt)*sizeof(char *));
+	pp = malloc((1+cnt)*sizeof(int8_t *));
 	if (pp == 0)
 		return;
 	environ = pp;
@@ -123,10 +123,10 @@ _envsetup(void)
 }
 
 static void
-sigsetup(char *s, char *se)
+sigsetup(int8_t *s, int8_t *se)
 {
 	int sig;
-	char *e;
+	int8_t *e;
 
 	while(s < se){
 		sig = strtoul(s, &e, 10);

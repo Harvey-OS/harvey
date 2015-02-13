@@ -31,7 +31,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-char	*version = "version 19990602";
+int8_t	*version = "version 19990602";
 
 #define DEBUG
 #include <stdio.h>
@@ -42,26 +42,26 @@ char	*version = "version 19990602";
 #include "awk.h"
 #include "y.tab.h"
 
-extern	char	**environ;
+extern	int8_t	**environ;
 extern	int	nfields;
 
 int	dbg	= 0;
-char	*cmdname;	/* gets argv[0] for error messages */
+int8_t	*cmdname;	/* gets argv[0] for error messages */
 extern	FILE	*yyin;	/* lex input file */
-char	*lexprog;	/* points to program argument if it exists */
+int8_t	*lexprog;	/* points to program argument if it exists */
 extern	int errorflag;	/* non-zero if any syntax errors; set by yyerror */
 int	compile_time = 2;	/* for error printing: */
 				/* 2 = cmdline, 1 = compile, 0 = running */
 
-char	*pfile[20];	/* program filenames from -f's */
+int8_t	*pfile[20];	/* program filenames from -f's */
 int	npfile = 0;	/* number of filenames */
 int	curpfile = 0;	/* current filename */
 
 int	safe	= 0;	/* 1 => "safe" mode */
 
-int main(int argc, char *argv[])
+int main(int argc, int8_t *argv[])
 {
-	char *fs = NULL, *marg;
+	int8_t *fs = NULL, *marg;
 	int temp;
 
 	cmdname = argv[0];
@@ -197,7 +197,7 @@ int pgetc(void)		/* get 1 character from awk program */
 	}
 }
 
-char *cursource(void)	/* current source file name */
+int8_t *cursource(void)	/* current source file name */
 {
 	if (npfile > 0)
 		return pfile[curpfile];

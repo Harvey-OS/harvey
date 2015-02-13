@@ -38,10 +38,11 @@
 /* According to the Adobe documentation, %device and %device% */
 /* are equivalent; both return name==NULL. */
 int
-gs_parse_file_name(gs_parsed_file_name_t * pfn, const char *pname, uint len)
+gs_parse_file_name(gs_parsed_file_name_t * pfn, const int8_t *pname,
+                   uint len)
 {
     uint dlen;
-    const char *pdelim;
+    const int8_t *pdelim;
     gx_io_device *iodev;
 
     if (len == 0)
@@ -75,7 +76,7 @@ gs_parse_file_name(gs_parsed_file_name_t * pfn, const char *pname, uint len)
 
 /* Parse a real (non-device) file name and convert to a C string. */
 int
-gs_parse_real_file_name(gs_parsed_file_name_t * pfn, const char *pname,
+gs_parse_real_file_name(gs_parsed_file_name_t * pfn, const int8_t *pname,
 			uint len, gs_memory_t *mem, client_name_t cname)
 {
     int code = gs_parse_file_name(pfn, pname, len);
@@ -93,14 +94,14 @@ gs_terminate_file_name(gs_parsed_file_name_t * pfn, gs_memory_t *mem,
 		       client_name_t cname)
 {
     uint len = pfn->len;
-    char *fname;
+    int8_t *fname;
 
     if (pfn->iodev == NULL)	/* no device */
 	pfn->iodev = iodev_default;
     if (pfn->memory)
 	return 0;		/* already copied */
     /* Copy the file name to a C string. */
-    fname = (char *)gs_alloc_string(mem, len + 1, cname);
+    fname = (int8_t *)gs_alloc_string(mem, len + 1, cname);
     if (fname == 0)
 	return_error(gs_error_VMerror);
     memcpy(fname, pfn->fname, len);

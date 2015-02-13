@@ -28,9 +28,9 @@ enum
 static QLock	pagerlck;
 static struct
 {
-	ulong ntext;
-	ulong nbig;
-	ulong nall;
+	uint32_t ntext;
+	uint32_t nbig;
+	uint32_t nall;
 } pstats;
 
 void
@@ -51,7 +51,7 @@ dupswap(Page*)
 }
 
 int
-swapcount(ulong daddr)
+swapcount(uint32_t daddr)
 {
 	USED(daddr);
 	return 0;

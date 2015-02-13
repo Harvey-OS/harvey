@@ -35,8 +35,8 @@ static struct Imagealloc
 static struct {
 	int	calls;			/* times imagereclaim was called */
 	int	loops;			/* times the main loop was run */
-	uvlong	ticks;			/* total time in the main loop */
-	uvlong	maxt;			/* longest time in main loop */
+	uint64_t	ticks;			/* total time in the main loop */
+	uint64_t	maxt;			/* longest time in main loop */
 	int	noluck;			/* # of times we couldn't get one */
 	int	nolock;			/* # of times we couldn't get the lock */
 } irstats;
@@ -134,7 +134,7 @@ static void
 imagereclaim(void)
 {
 	Image *i;
-	uvlong ticks0, ticks;
+	uint64_t ticks0, ticks;
 
 	irstats.calls++;
 	/* Somebody is already cleaning the page cache */

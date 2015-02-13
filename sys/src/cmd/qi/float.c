@@ -14,19 +14,19 @@
 #define Extern extern
 #include "power.h"
 
-ulong	setfpscr(void);
+uint32_t	setfpscr(void);
 void	setfpcc(double);
-void	farith(ulong);
-void	farith2(ulong);
-void	fariths(ulong);
-void	fcmp(ulong);
-void	mtfsb1(ulong);
-void	mcrfs(ulong);
-void	mtfsb0(ulong);
-void	mtfsf(ulong);
-void	mtfsfi(ulong);
-void	mffs(ulong);
-void	mtfsf(ulong);
+void	farith(uint32_t);
+void	farith2(uint32_t);
+void	fariths(uint32_t);
+void	fcmp(uint32_t);
+void	mtfsb1(uint32_t);
+void	mcrfs(uint32_t);
+void	mtfsb0(uint32_t);
+void	mtfsf(uint32_t);
+void	mtfsfi(uint32_t);
+void	mffs(uint32_t);
+void	mtfsf(uint32_t);
 
 Inst	op59[] = {
 [18] {fariths, "fdivs", Ifloat},
@@ -95,7 +95,7 @@ fpreginit(void)
 }
 
 static double
-v2fp(uvlong v)
+v2fp(uint64_t v)
 {
 	FPdbleword f;
 
@@ -104,22 +104,22 @@ v2fp(uvlong v)
 	return f.x;
 }
 
-static uvlong
+static uint64_t
 fp2v(double d)
 {
 	FPdbleword f;
 
 	f.x = d;
-	return ((uvlong)f.hi<<32) | f.lo;
+	return ((uint64_t)f.hi<<32) | f.lo;
 }
 
 void
-lfs(ulong ir)
+lfs(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int imm, ra, rd, upd;
 	union {
-		ulong	i;
+		uint32_t	i;
 		float	f;
 	} u;
 
@@ -142,12 +142,12 @@ lfs(ulong ir)
 }
 
 void
-lfsx(ulong ir)
+lfsx(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, ra, rb, upd;
 	union {
-		ulong	i;
+		uint32_t	i;
 		float	f;
 	} u;
 
@@ -172,9 +172,9 @@ lfsx(ulong ir)
 }
 
 void
-lfd(ulong ir)
+lfd(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int imm, ra, rd, upd;
 
 	getairr(ir);
@@ -195,9 +195,9 @@ lfd(ulong ir)
 }
 
 void
-lfdx(ulong ir)
+lfdx(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, ra, rb, upd;
 
 	getarrr(ir);
@@ -220,13 +220,13 @@ lfdx(ulong ir)
 }
 
 void
-stfs(ulong ir)
+stfs(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int imm, ra, rd, upd;
 	union {
 		float f;
-		ulong w;
+		uint32_t w;
 	} u;
 
 	getairr(ir);
@@ -248,13 +248,13 @@ stfs(ulong ir)
 }
 
 void
-stfsx(ulong ir)
+stfsx(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, ra, rb, upd;
 	union {
 		float	f;
-		ulong	w;
+		uint32_t	w;
 	} u;
 
 	getarrr(ir);
@@ -278,9 +278,9 @@ stfsx(ulong ir)
 }
 
 void
-stfd(ulong ir)
+stfd(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int imm, ra, rd, upd;
 
 	getairr(ir);
@@ -302,9 +302,9 @@ stfd(ulong ir)
 }
 
 void
-stfdx(ulong ir)
+stfdx(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, ra, rb, upd;
 
 	getarrr(ir);
@@ -327,10 +327,10 @@ stfdx(ulong ir)
 }
 
 void
-mcrfs(ulong ir)
+mcrfs(uint32_t ir)
 {
-	ulong rd, ra, rb;
-	static ulong fpscr0[] ={
+	uint32_t rd, ra, rb;
+	static uint32_t fpscr0[] ={
 		FPS_FX|FPS_OX,
 		FPS_UX|FPS_ZX|FPS_XX|FPS_VXSNAN,
 		FPS_VXISI|FPS_VXIDI|FPS_VXZDZ|FPS_VXIMZ,
@@ -351,7 +351,7 @@ mcrfs(ulong ir)
 }
 
 void
-mffs(ulong ir)
+mffs(uint32_t ir)
 {
 	int rd, ra, rb;
 	FPdbleword d;
@@ -369,7 +369,7 @@ mffs(ulong ir)
 }
 
 void
-mtfsb1(ulong ir)
+mtfsb1(uint32_t ir)
 {
 	int rd, ra, rb;
 
@@ -385,7 +385,7 @@ mtfsb1(ulong ir)
 }
 
 void
-mtfsb0(ulong ir)
+mtfsb0(uint32_t ir)
 {
 	int rd, ra, rb;
 
@@ -400,11 +400,11 @@ mtfsb0(ulong ir)
 }
 
 void
-mtfsf(ulong ir)
+mtfsf(uint32_t ir)
 {
 	int fm, rb, i;
 	FPdbleword d;
-	ulong v;
+	uint32_t v;
 
 	if(ir & ((1L << 25)|(1L << 16)))
 		undef(ir);
@@ -423,7 +423,7 @@ mtfsf(ulong ir)
 }
 
 void
-mtfsfi(ulong ir)
+mtfsfi(uint32_t ir)
 {
 	int imm, rd;
 
@@ -440,7 +440,7 @@ mtfsfi(ulong ir)
 }
 
 void
-fcmp(ulong ir)
+fcmp(uint32_t ir)
 {
 	int fc, rd, ra, rb;
 
@@ -508,11 +508,11 @@ fcmp(ulong ir)
  * in the presence of NaNs, Infs, etc., esp. wrt exception handling, 
  */
 void
-fariths(ulong ir)
+fariths(uint32_t ir)
 {
 	int rd, ra, rb, rc, fmt;
-	char *cc;
-	ulong fpscr;
+	int8_t *cc;
+	uint32_t fpscr;
 
 	fmt = 0;
 	rc = (ir>>6)&0x1F;
@@ -580,12 +580,12 @@ fariths(ulong ir)
 }
 
 void
-farith(ulong ir)
+farith(uint32_t ir)
 {
-	vlong vl;
+	int64_t vl;
 	int rd, ra, rb, rc, fmt;
-	char *cc;
-	ulong fpscr;
+	int8_t *cc;
+	uint32_t fpscr;
 	int nocc;
 	double d;
 
@@ -674,11 +674,11 @@ farith(ulong ir)
 }
 
 void
-farith2(ulong ir)
+farith2(uint32_t ir)
 {
 	int rd, ra, rb;
-	char *cc;
-	ulong fpscr;
+	int8_t *cc;
+	uint32_t fpscr;
 
 	getarrr(ir);
 	switch(getxo(ir)) { /* full XO decode */
@@ -710,10 +710,10 @@ farith2(ulong ir)
 		itrace("%s%s\tfr%d,fr%d", ci->name, cc, rd, rb);
 }
 
-ulong
+uint32_t
 setfpscr(void)
 {
-	ulong fps, fpscr;
+	uint32_t fps, fpscr;
 
 	fps = getfsr();
 	fpscr = reg.fpscr;

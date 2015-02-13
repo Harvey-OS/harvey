@@ -8,16 +8,16 @@
 typedef struct Pcstack Pcstack;
 static struct Pcstack {
 	int sig;
-	void (*hdlr)(int, char*, Ureg*);
+	void (*hdlr)(int, int8_t*, Ureg*);
 	unsigned long long restorepc;
 	Ureg *u;
 } pcstack[MAXSIGSTACK];
 static int nstack = 0;
 
-static void notecont(Ureg*, char*);
+static void notecont(Ureg*, int8_t*);
 
 void
-_notetramp(int sig, void (*hdlr)(int, char*, Ureg*), Ureg *u)
+_notetramp(int sig, void (*hdlr)(int, int8_t*, Ureg*), Ureg *u)
 {
 	Pcstack *p;
 
@@ -34,10 +34,10 @@ _notetramp(int sig, void (*hdlr)(int, char*, Ureg*), Ureg *u)
 }
 
 static void
-notecont(Ureg *u, char *s)
+notecont(Ureg *u, int8_t *s)
 {
 	Pcstack *p;
-	void(*f)(int, char*, Ureg*);
+	void(*f)(int, int8_t*, Ureg*);
 
 	p = &pcstack[nstack-1];
 	f = p->hdlr;

@@ -18,9 +18,9 @@
 #include <netdb.h>
 
 struct servent*
-getservbyport(int port, char *proto)
+getservbyport(int port, int8_t *proto)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	snprintf(buf, sizeof buf, "%d", port);
 	return getservbyname(buf, proto);

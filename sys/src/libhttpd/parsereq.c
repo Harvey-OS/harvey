@@ -16,15 +16,16 @@ typedef struct Strings		Strings;
 
 struct Strings
 {
-	char	*s1;
-	char	*s2;
+	int8_t	*s1;
+	int8_t	*s2;
 };
 
-static	char*		abspath(HConnect *cc, char *origpath, char *curdir);
+static	int8_t*		abspath(HConnect *cc, int8_t *origpath,
+					     int8_t *curdir);
 static	int		getc(HConnect*);
-static	char*		getword(HConnect*);
-static	Strings		parseuri(HConnect *c, char*);
-static	Strings		stripsearch(char*);
+static	int8_t*		getword(HConnect*);
+static	Strings		parseuri(HConnect *c, int8_t*);
+static	Strings		stripsearch(int8_t*);
 
 /*
  * parse the next request line
@@ -37,7 +38,7 @@ int
 hparsereq(HConnect *c, int timeout)
 {
 	Strings ss;
-	char *vs, *v, *search, *uri, *origuri, *extra;
+	int8_t *vs, *v, *search, *uri, *origuri, *extra;
 
 	if(c->bin != nil){
 		hfail(c, HInternal);
@@ -146,10 +147,10 @@ hparsereq(HConnect *c, int timeout)
 }
 
 static Strings
-parseuri(HConnect *c, char *uri)
+parseuri(HConnect *c, int8_t *uri)
 {
 	Strings ss;
-	char *urihost, *p;
+	int8_t *urihost, *p;
 
 	urihost = nil;
 	ss.s1 = ss.s2 = nil;
@@ -188,10 +189,10 @@ parseuri(HConnect *c, char *uri)
 	return ss;
 }
 static Strings
-stripsearch(char *uri)
+stripsearch(int8_t *uri)
 {
 	Strings ss;
-	char *search;
+	int8_t *search;
 
 	search = strchr(uri, '?');
 	if(search != nil)
@@ -205,10 +206,10 @@ stripsearch(char *uri)
  *  to circumscribe the accessible files we have to eliminate ..'s
  *  and resolve all names from the root.
  */
-static char*
-abspath(HConnect *cc, char *origpath, char *curdir)
+static int8_t*
+abspath(HConnect *cc, int8_t *origpath, int8_t *curdir)
 {
-	char *p, *sp, *path, *work, *rpath;
+	int8_t *p, *sp, *path, *work, *rpath;
 	int len, n, c;
 
 	if(curdir == nil)
@@ -263,10 +264,10 @@ abspath(HConnect *cc, char *origpath, char *curdir)
 	return rpath;
 }
 
-static char*
+static int8_t*
 getword(HConnect *c)
 {
-	char *buf;
+	int8_t *buf;
 	int ch, n;
 
 	while((ch = getc(c)) == ' ' || ch == '\t' || ch == '\r')

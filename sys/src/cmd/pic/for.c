@@ -15,17 +15,17 @@
 #define	SLOP	1.001
 
 typedef struct {
-	char	*var;	/* index variable */
+	int8_t	*var;	/* index variable */
 	double	to;	/* limit */
 	double	by;
 	int	op;	/* operator */
-	char	*str;	/* string to push back */
+	int8_t	*str;	/* string to push back */
 } For;
 
 For	forstk[10];	/* stack of for loops */
 For	*forp = forstk;	/* pointer to current top */
 
-void	setfval(char *, double);
+void	setfval(int8_t *, double);
 void	nextfor(void);
 
 void forloop(char *var, double from, double to, int op,
@@ -80,7 +80,7 @@ void endfor(void)	/* end one iteration of for loop */
 	nextfor();
 }
 
-char *ifstat(double expr, char *thenpart, char *elsepart)
+int8_t *ifstat(double expr, int8_t *thenpart, int8_t *elsepart)
 {
 	dprintf("if %g then <%s> else <%s>\n", expr, thenpart, elsepart? elsepart : "");
 	if (expr) {

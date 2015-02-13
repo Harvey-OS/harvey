@@ -22,12 +22,12 @@ enum {
 	Maxenvname = 256,	/* undocumented limit */
 };
 
-char *Signame[] = {
+int8_t *Signame[] = {
 	"sigexit",	"sighup",	"sigint",	"sigquit",
 	"sigalrm",	"sigkill",	"sigfpe",	"sigterm",
 	0
 };
-char *syssigname[] = {
+int8_t *syssigname[] = {
 	"exit",		/* can't happen */
 	"hangup",
 	"interrupt",
@@ -38,8 +38,8 @@ char *syssigname[] = {
 	"term",
 	0
 };
-char *Rcmain = "/rc/lib/rcmain";
-char *Fdprefix = "/fd/";
+int8_t *Rcmain = "/rc/lib/rcmain";
+int8_t *Fdprefix = "/fd/";
 
 void execfinit(void);
 void execbind(void);
@@ -65,7 +65,7 @@ void
 execnewpgrp(void)
 {
 	int arg;
-	char *s;
+	int8_t *s;
 	switch(count(runq->argv->words)){
 	case 1:
 		arg = RFENVG|RFNAMEG|RFNOTEG;
@@ -114,8 +114,8 @@ void
 Vinit(void)
 {
 	int dir, f, len, i, n, nent;
-	char *buf, *s;
-	char envname[Maxenvname];
+	int8_t *buf, *s;
+	int8_t envname[Maxenvname];
 	word *val;
 	Dir *ent;
 
@@ -170,7 +170,7 @@ Xrdfn(void)
 {
 	int f, len;
 	Dir *e;
-	char envname[Maxenvname];
+	int8_t envname[Maxenvname];
 	static Dir *ent, *allocent;
 	static int nent;
 
@@ -225,7 +225,7 @@ Waitfor(int pid, int)
 {
 	thread *p;
 	Waitmsg *w;
-	char errbuf[ERRMAX];
+	int8_t errbuf[ERRMAX];
 
 	if(pid >= 0 && !havewaitpid(pid))
 		return 0;
@@ -250,11 +250,11 @@ Waitfor(int pid, int)
 	return 0;
 }
 
-char **
+int8_t **
 mkargv(word *a)
 {
-	char **argv = (char **)emalloc((count(a)+2)*sizeof(char *));
-	char **argp = argv+1;	/* leave one at front for runcoms */
+	int8_t **argv = (int8_t **)emalloc((count(a)+2)*sizeof(int8_t *));
+	int8_t **argp = argv+1;	/* leave one at front for runcoms */
 	for(;a;a = a->next) *argp++=a->word;
 	*argp = 0;
 	return argv;
@@ -263,7 +263,7 @@ mkargv(word *a)
 void
 addenv(var *v)
 {
-	char envname[Maxenvname];
+	int8_t envname[Maxenvname];
 	word *w;
 	int f;
 	io *fd;
@@ -316,7 +316,7 @@ Updenv(void)
 
 /* not used on plan 9 */
 int
-ForkExecute(char *file, char **argv, int sin, int sout, int serr)
+ForkExecute(int8_t *file, int8_t **argv, int sin, int sout, int serr)
 {
 	int pid;
 
@@ -347,8 +347,8 @@ ForkExecute(char *file, char **argv, int sin, int sout, int serr)
 void
 Execute(word *args, word *path)
 {
-	char **argv = mkargv(args);
-	char file[1024], errstr[1024];
+	int8_t **argv = mkargv(args);
+	int8_t file[1024], errstr[1024];
 	int nc;
 
 	Updenv();
@@ -382,12 +382,12 @@ Execute(word *args, word *path)
 		}
 	}
 	pfmt(err, "%s: %s\n", argv[1], errstr);
-	efree((char *)argv);
+	efree((int8_t *)argv);
 }
 #define	NDIR	256		/* shoud be a better way */
 
 int
-Globsize(char *p)
+Globsize(int8_t *p)
 {
 	int isglob = 0, globlen = NDIR+1;
 	for(;*p;p++){
@@ -411,7 +411,7 @@ struct{
 }dir[NFD];
 
 int
-Opendir(char *name)
+Opendir(int8_t *name)
 {
 	Dir *db;
 	int f;
@@ -493,7 +493,7 @@ Closedir(int f)
 }
 int interrupted = 0;
 void
-notifyf(void*, char *s)
+notifyf(void*, int8_t *s)
 {
 	int i;
 	for(i = 0;syssigname[i];i++) if(strncmp(s, syssigname[i], strlen(syssigname[i]))==0){
@@ -522,31 +522,31 @@ Trapinit(void)
 }
 
 void
-Unlink(char *name)
+Unlink(int8_t *name)
 {
 	remove(name);
 }
 
-long
-Write(int fd, void *buf, long cnt)
+int32_t
+Write(int fd, void *buf, int32_t cnt)
 {
 	return write(fd, buf, cnt);
 }
 
-long
-Read(int fd, void *buf, long cnt)
+int32_t
+Read(int fd, void *buf, int32_t cnt)
 {
 	return read(fd, buf, cnt);
 }
 
-long
-Seek(int fd, long cnt, long whence)
+int32_t
+Seek(int fd, int32_t cnt, int32_t whence)
 {
 	return seek(fd, cnt, whence);
 }
 
 int
-Executable(char *file)
+Executable(int8_t *file)
 {
 	Dir *statbuf;
 	int ret;
@@ -560,7 +560,7 @@ Executable(char *file)
 }
 
 int
-Creat(char *file)
+Creat(int8_t *file)
 {
 	return create(file, 1, 0666L);
 }
@@ -578,7 +578,7 @@ Dup1(int)
 }
 
 void
-Exit(char *stat)
+Exit(int8_t *stat)
 {
 	Updenv();
 	setstatus(stat);
@@ -600,7 +600,7 @@ Noerror(void)
 int
 Isatty(int fd)
 {
-	char buf[64];
+	int8_t buf[64];
 
 	if(fd2path(fd, buf, sizeof buf) != 0)
 		return 0;
@@ -622,13 +622,13 @@ Abort(void)
 }
 
 void
-Memcpy(void *a, void *b, long n)
+Memcpy(void *a, void *b, int32_t n)
 {
 	memmove(a, b, n);
 }
 
 void*
-Malloc(ulong n)
+Malloc(uint32_t n)
 {
 	return mallocz(n, 1);
 }

@@ -15,27 +15,27 @@
 #include	"fs.h"
 
 struct Dosboot{
-	uchar	magic[3];
-	uchar	version[8];
-	uchar	sectsize[2];
-	uchar	clustsize;
-	uchar	nresrv[2];
-	uchar	nfats;
-	uchar	rootsize[2];
-	uchar	volsize[2];
-	uchar	mediadesc;
-	uchar	fatsize[2];
-	uchar	trksize[2];
-	uchar	nheads[2];
-	uchar	nhidden[4];
-	uchar	bigvolsize[4];
+	uint8_t	magic[3];
+	uint8_t	version[8];
+	uint8_t	sectsize[2];
+	uint8_t	clustsize;
+	uint8_t	nresrv[2];
+	uint8_t	nfats;
+	uint8_t	rootsize[2];
+	uint8_t	volsize[2];
+	uint8_t	mediadesc;
+	uint8_t	fatsize[2];
+	uint8_t	trksize[2];
+	uint8_t	nheads[2];
+	uint8_t	nhidden[4];
+	uint8_t	bigvolsize[4];
 /* fat 32 */
-	uchar	bigfatsize[4];
-	uchar	extflags[2];
-	uchar	fsversion[2];
-	uchar	rootdirstartclust[4];
-	uchar	fsinfosect[2];
-	uchar	backupbootsect[2];
+	uint8_t	bigfatsize[4];
+	uint8_t	extflags[2];
+	uint8_t	fsversion[2];
+	uint8_t	rootdirstartclust[4];
+	uint8_t	fsinfosect[2];
+	uint8_t	backupbootsect[2];
 /* ???
 	uchar	driveno;
 	uchar	reserved0;
@@ -47,19 +47,19 @@ struct Dosboot{
 };
 
 struct Dosdir{
-	uchar	name[8];
-	uchar	ext[3];
-	uchar	attr;
-	uchar	lowercase;
-	uchar	hundredth;
-	uchar	ctime[2];
-	uchar	cdate[2];
-	uchar	adate[2];
-	uchar	highstart[2];
-	uchar	mtime[2];
-	uchar	mdate[2];
-	uchar	start[2];
-	uchar	length[4];
+	uint8_t	name[8];
+	uint8_t	ext[3];
+	uint8_t	attr;
+	uint8_t	lowercase;
+	uint8_t	hundredth;
+	uint8_t	ctime[2];
+	uint8_t	cdate[2];
+	uint8_t	adate[2];
+	uint8_t	highstart[2];
+	uint8_t	mtime[2];
+	uint8_t	mdate[2];
+	uint8_t	start[2];
+	uint8_t	length[4];
 };
 
 #define	DOSRONLY	0x01
@@ -73,7 +73,7 @@ struct Dosdir{
  *  predeclared
  */
 static void	bootdump(Dosboot*);
-static void	setname(Dosfile*, char*);
+static void	setname(Dosfile*, int8_t*);
 
 /*
  *  debugging
@@ -92,8 +92,8 @@ typedef struct	Clustbuf	Clustbuf;
 struct Clustbuf
 {
 	int	age;
-	long	sector;
-	uchar	*iobuf;
+	int32_t	sector;
+	uint8_t	*iobuf;
 	Dos	*dos;
 	int	size;
 };
@@ -103,7 +103,7 @@ Clustbuf	bio[Nbio];
  *  get an io block from an io buffer
  */
 Clustbuf*
-getclust(Dos *dos, long sector)
+getclust(Dos *dos, int32_t sector)
 {
 	Fs *fs;
 	Clustbuf *p, *oldest;
@@ -144,9 +144,10 @@ getclust(Dos *dos, long sector)
 	 *  read in the cluster
 	 */
 	fs = (Fs*)dos;
-	chat("getclust addr %lud %p %p %p\n", (ulong)((sector+dos->start)*(vlong)dos->sectsize),
+	chat("getclust addr %lud %p %p %p\n",
+	     (uint32_t)((sector+dos->start)*(int64_t)dos->sectsize),
 		fs, fs->diskseek, fs->diskread);
-	if(fs->diskseek(fs, (sector+dos->start)*(vlong)dos->sectsize) < 0){
+	if(fs->diskseek(fs, (sector+dos->start)*(int64_t)dos->sectsize) < 0){
 		chat("can't seek block\n");
 		return 0;
 	}
@@ -166,10 +167,10 @@ getclust(Dos *dos, long sector)
  *  walk the fat one level ( n is a current cluster number ).
  *  return the new cluster number or -1 if no more.
  */
-static long
+static int32_t
 fatwalk(Dos *dos, int n)
 {
-	ulong k, sect;
+	uint32_t k, sect;
 	Clustbuf *p;
 	int o;
 
@@ -227,12 +228,12 @@ fatwalk(Dos *dos, int n)
 /*
  *  map a file's logical cluster address to a physical sector address
  */
-static long
-fileaddr(Dosfile *fp, long ltarget)
+static int32_t
+fileaddr(Dosfile *fp, int32_t ltarget)
 {
 	Dos *dos = fp->dos;
-	long l;
-	long p;
+	int32_t l;
+	int32_t p;
 
 	chat("fileaddr %8.8s %ld\n", fp->name, ltarget);
 	/*
@@ -279,15 +280,15 @@ fileaddr(Dosfile *fp, long ltarget)
 /*
  *  read from a dos file
  */
-long
-dosread(Dosfile *fp, void *a, long n)
+int32_t
+dosread(Dosfile *fp, void *a, int32_t n)
 {
-	long addr;
-	long rv;
+	int32_t addr;
+	int32_t rv;
 	int i;
 	int off;
 	Clustbuf *p;
-	uchar *from, *to;
+	uint8_t *from, *to;
 
 	if((fp->attr & DOSDIR) == 0){
 		if(fp->offset >= fp->length)
@@ -331,10 +332,10 @@ dosread(Dosfile *fp, void *a, long n)
  *	 1 if found
  */
 int
-doswalk(File *f, char *name)
+doswalk(File *f, int8_t *name)
 {
 	Dosdir d;
-	long n;
+	int32_t n;
 	Dosfile *file;
 
 	chat("doswalk %s\n", name);
@@ -350,13 +351,15 @@ doswalk(File *f, char *name)
 
 	file->offset = 0;	/* start at the beginning */
 	while((n = dosread(file, &d, sizeof(d))) == sizeof(d)){
-		chat("comparing to %8.8s.%3.3s\n", (char*)d.name, (char*)d.ext);
+		chat("comparing to %8.8s.%3.3s\n", (int8_t*)d.name,
+		     (int8_t*)d.ext);
 		if(memcmp(file->name, d.name, sizeof(d.name)) != 0)
 			continue;
 		if(memcmp(file->ext, d.ext, sizeof(d.ext)) != 0)
 			continue;
 		if(d.attr & DOSVLABEL){
-			chat("%8.8s.%3.3s is a LABEL\n", (char*)d.name, (char*)d.ext);
+			chat("%8.8s.%3.3s is a LABEL\n", (int8_t*)d.name,
+			     (int8_t*)d.ext);
 			continue;
 		}
 		file->attr = d.attr;
@@ -381,11 +384,11 @@ doswalk(File *f, char *name)
 /*
  *  read in a segment
  */
-long
-dosreadseg(File *f, void *va, long len)
+int32_t
+dosreadseg(File *f, void *va, int32_t len)
 {
-	char *a;
-	long n, sofar;
+	int8_t *a;
+	int32_t n, sofar;
 	Dosfile *fp;
 
 	fp = &f->dos;
@@ -528,7 +531,7 @@ bootdump(Dosboot *b)
 		return;
 	print("magic: 0x%2.2x 0x%2.2x 0x%2.2x ",
 		b->magic[0], b->magic[1], b->magic[2]);
-	print("version: \"%8.8s\"\n", (char*)b->version);
+	print("version: \"%8.8s\"\n", (int8_t*)b->version);
 	print("sectsize: %d ", GSHORT(b->sectsize));
 	print("allocsize: %d ", b->clustsize);
 	print("nresrv: %d ", GSHORT(b->nresrv));
@@ -555,9 +558,9 @@ bootdump(Dosboot *b)
  *  set up a dos file name
  */
 static void
-setname(Dosfile *fp, char *from)
+setname(Dosfile *fp, int8_t *from)
 {
-	char *to;
+	int8_t *to;
 
 	to = fp->name;
 	for(; *from && to-fp->name < 8; from++, to++){

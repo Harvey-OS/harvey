@@ -12,10 +12,10 @@
 #include <bio.h>
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	Biobuf bin, bout;
-	long len, slen;
+	int32_t len, slen;
 	int c;
 
 	if(argc != 2){

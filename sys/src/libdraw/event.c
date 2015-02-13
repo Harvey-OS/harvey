@@ -21,14 +21,14 @@ struct Slave
 	int	pid;
 	Ebuf	*head;		/* queue of messages for this descriptor */
 	Ebuf	*tail;
-	int	(*fn)(int, Event*, uchar*, int);
+	int	(*fn)(int, Event*, uint8_t*, int);
 };
 
 struct Ebuf
 {
 	Ebuf	*next;
 	int	n;		/* number of bytes in buf */
-	uchar	buf[EMAXMSG];
+	uint8_t	buf[EMAXMSG];
 };
 
 static	Slave	eslave[MAXSLAVE];
@@ -44,7 +44,7 @@ static	int	epipe[2];
 static	int	eforkslave(ulong);
 static	void	extract(void);
 static	void	ekill(void);
-static	int	enote(void *, char *);
+static	int	enote(void *, int8_t *);
 
 static	int	mousefd;
 static	int	cursorfd;
@@ -55,7 +55,7 @@ ebread(Slave *s)
 {
 	Ebuf *eb;
 	Dir *d;
-	ulong l;
+	uint32_t l;
 
 	for(;;){
 		d = dirfstat(epipe[0]);
@@ -74,14 +74,14 @@ ebread(Slave *s)
 	return eb;
 }
 
-ulong
+uint32_t
 event(Event *e)
 {
 	return eread(~0UL, e);
 }
 
-ulong
-eread(ulong keys, Event *e)
+uint32_t
+eread(uint32_t keys, Event *e)
 {
 	Ebuf *eb;
 	int i, id;
@@ -130,11 +130,11 @@ ecankbd(void)
 }
 
 int
-ecanread(ulong keys)
+ecanread(uint32_t keys)
 {
 	Dir *d;
 	int i;
-	ulong l;
+	uint32_t l;
 
 	for(;;){
 		for(i=0; i<nslave; i++)
@@ -151,10 +151,10 @@ ecanread(ulong keys)
 	}
 }
 
-ulong
-estartfn(ulong key, int fd, int n, int (*fn)(int, Event*, uchar*, int))
+uint32_t
+estartfn(uint32_t key, int fd, int n, int (*fn)(int, Event*, uint8_t*, int))
 {
-	char buf[EMAXMSG+1];
+	int8_t buf[EMAXMSG+1];
 	int i, r;
 
 	if(fd < 0)
@@ -176,16 +176,16 @@ estartfn(ulong key, int fd, int n, int (*fn)(int, Event*, uchar*, int))
 	return 0;
 }
 
-ulong
-estart(ulong key, int fd, int n)
+uint32_t
+estart(uint32_t key, int fd, int n)
 {
 	return estartfn(key, fd, n, nil);
 }
 
-ulong
-etimer(ulong key, int n)
+uint32_t
+etimer(uint32_t key, int n)
 {
-	char t[2];
+	int8_t t[2];
 
 	if(Stimer != -1)
 		drawerror(display, "events: timer started twice");
@@ -208,7 +208,7 @@ static void
 ekeyslave(int fd)
 {
 	Rune r;
-	char t[3], k[10];
+	int8_t t[3], k[10];
 	int kr, kn, w;
 
 	if(eforkslave(Ekeyboard) < MAXSLAVE)
@@ -237,10 +237,10 @@ breakout:;
 }
 
 void
-einit(ulong keys)
+einit(uint32_t keys)
 {
 	int ctl, fd;
-	char buf[256];
+	int8_t buf[256];
 
 	parentpid = getpid();
 	if(pipe(epipe) < 0)
@@ -282,7 +282,7 @@ extract(void)
 	Slave *s;
 	Ebuf *eb;
 	int i, n;
-	uchar ebuf[EMAXMSG+1];
+	uint8_t ebuf[EMAXMSG+1];
 
 	/* avoid generating a message if there's nothing to show. */
 	/* this test isn't perfect, though; could do flushimage(display, 0) then call extract */
@@ -338,7 +338,7 @@ loop:
 }
 
 static int
-eforkslave(ulong key)
+eforkslave(uint32_t key)
 {
 	int i, pid;
 
@@ -366,9 +366,9 @@ eforkslave(ulong key)
 }
 
 static int
-enote(void *v, char *s)
+enote(void *v, int8_t *s)
 {
-	char t[1];
+	int8_t t[1];
 	int i, pid;
 
 	USED(v, s);
@@ -412,11 +412,11 @@ emouse(void)
 	if(Smouse < 0)
 		drawerror(display, "events: mouse not initialized");
 	eb = ebread(&eslave[Smouse]);
-	m.xy.x = atoi((char*)eb->buf+1+0*12);
-	m.xy.y = atoi((char*)eb->buf+1+1*12);
-	b = atoi((char*)eb->buf+1+2*12);
+	m.xy.x = atoi((int8_t*)eb->buf+1+0*12);
+	m.xy.y = atoi((int8_t*)eb->buf+1+1*12);
+	b = atoi((int8_t*)eb->buf+1+2*12);
 	m.buttons = b;
-	m.msec = atoi((char*)eb->buf+1+3*12);
+	m.msec = atoi((int8_t*)eb->buf+1+3*12);
 	if (logfid)
 		fprint(logfid, "b: %d xy: %P\n", m.buttons, m.xy);
 	free(eb);
@@ -440,7 +440,7 @@ ekbd(void)
 void
 emoveto(Point pt)
 {
-	char buf[2*12+2];
+	int8_t buf[2*12+2];
 	int n;
 
 	n = sprint(buf, "m%d %d", pt.x, pt.y);
@@ -450,7 +450,7 @@ emoveto(Point pt)
 void
 esetcursor(Cursor *c)
 {
-	uchar curs[2*4+2*2*16];
+	uint8_t curs[2*4+2*2*16];
 
 	if(c == 0)
 		write(cursorfd, curs, 0);
@@ -466,7 +466,7 @@ int
 ereadmouse(Mouse *m)
 {
 	int n;
-	char buf[128];
+	int8_t buf[128];
 
 	do{
 		n = read(mousefd, buf, sizeof(buf));
@@ -478,7 +478,7 @@ ereadmouse(Mouse *m)
 }
 
 int
-eatomouse(Mouse *m, char *buf, int n)
+eatomouse(Mouse *m, int8_t *buf, int n)
 {
 	if(n != 1+4*12){
 		werrstr("atomouse: bad count");

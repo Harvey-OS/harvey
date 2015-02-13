@@ -14,7 +14,7 @@
 #include "playlist.h"
 
 int	debug;
-char	*user;
+int8_t	*user;
 int	srvfd[2];
 int	aflag;
 
@@ -25,10 +25,10 @@ usage(void)
 }
 
 void
-post(char *name, int sfd)
+post(int8_t *name, int sfd)
 {
 	int fd;
-	char buf[32];
+	int8_t buf[32];
 
 	fd = create(name, OWRITE, 0666);
 	if(fd < 0)

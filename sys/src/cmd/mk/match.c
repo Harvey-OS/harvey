@@ -10,7 +10,7 @@
 #include	"mk.h"
 
 int
-match(char *name, char *template, char *stem)
+match(int8_t *name, int8_t *template, int8_t *stem)
 {
 	Rune r;
 	int n;
@@ -38,10 +38,10 @@ match(char *name, char *template, char *stem)
 }
 
 void
-subst(char *stem, char *template, char *dest, int dlen)
+subst(int8_t *stem, int8_t *template, int8_t *dest, int dlen)
 {
 	Rune r;
-	char *s, *e;
+	int8_t *s, *e;
 	int n;
 
 	e = dest+dlen-1;

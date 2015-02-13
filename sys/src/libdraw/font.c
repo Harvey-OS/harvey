@@ -17,12 +17,14 @@ static int	freeup(Font*);
 #define	PJW	0	/* use NUL==pjw for invisible characters */
 
 int
-cachechars(Font *f, char **ss, Rune **rr, ushort *cp, int max, int *wp, char **subfontname)
+cachechars(Font *f, int8_t **ss, Rune **rr, uint16_t *cp, int max,
+	   int *wp,
+	   int8_t **subfontname)
 {
 	int i, th, sh, h, ld, w, rw, wid, nc;
-	char *sp;
+	int8_t *sp;
 	Rune r, *rp, vr;
-	ulong a;
+	uint32_t a;
 	Cacheinfo *c, *tc, *ec;
 
 	if(ss){
@@ -36,7 +38,7 @@ cachechars(Font *f, char **ss, Rune **rr, ushort *cp, int max, int *wp, char **s
 	*subfontname = 0;
 	for(i=0; i<max && (*sp || *rp); sp+=w, rp+=rw){
 		if(ss){
-			r = *(uchar*)sp;
+			r = *(uint8_t*)sp;
 			if(r < Runeself)
 				w = 1;
 			else{
@@ -159,7 +161,7 @@ static Subfont*
 cf2subfont(Cachefont *cf, Font *f)
 {
 	int depth;
-	char *name;
+	int8_t *name;
 	Subfont *sf;
 
 	name = cf->subfontname;
@@ -179,14 +181,15 @@ cf2subfont(Cachefont *cf, Font *f)
 
 /* return 1 if load succeeded, 0 if failed, -1 if must retry */
 int
-loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush, char **subfontname)
+loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush,
+	 int8_t **subfontname)
 {
 	int i, oi, wid, top, bottom;
 	Rune pic;
 	Fontchar *fi;
 	Cachefont *cf;
 	Cachesubf *subf, *of;
-	uchar *b;
+	uint8_t *b;
 
 	pic = r;
     Again:
@@ -359,7 +362,7 @@ fontresize(Font *f, int wid, int ncache, int depth)
 	Cacheinfo *i;
 	int ret;
 	Image *new;
-	uchar *b;
+	uint8_t *b;
 	Display *d;
 
 	ret = 0;

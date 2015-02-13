@@ -11,17 +11,17 @@
 
 /* table-driven version in bootes dump of 12/31/96 */
 
-ulong
-mtime(char *name)
+uint32_t
+mtime(int8_t *name)
 {
 	return mkmtime(name, 1);
 }
 
-ulong
-timeof(char *name, int force)
+uint32_t
+timeof(int8_t *name, int force)
 {
 	Symtab *sym;
-	ulong t;
+	uint32_t t;
 
 	if(utfrune(name, '('))
 		return atimeof(force, name);		/* archive */
@@ -42,7 +42,7 @@ timeof(char *name, int force)
 }
 
 void
-touch(char *name)
+touch(int8_t *name)
 {
 	Bprint(&bout, "touch(%s)\n", name);
 	if(nflag)
@@ -57,7 +57,7 @@ touch(char *name)
 }
 
 void
-delete(char *name)
+delete(int8_t *name)
 {
 	if(utfrune(name, '(') == 0) {		/* file */
 		if(remove(name) < 0)
@@ -67,10 +67,10 @@ delete(char *name)
 }
 
 void
-timeinit(char *s)
+timeinit(int8_t *s)
 {
-	ulong t;
-	char *cp;
+	uint32_t t;
+	int8_t *cp;
 	Rune r;
 	int c, n;
 

@@ -12,10 +12,10 @@
 #include	<bio.h>
 #include	"sky.h"
 
-static void	qtree_expand(Biobuf*, uchar*, int, int, uchar*);
-static void	qtree_copy(uchar*, int, int, uchar*, int);
-static void	qtree_bitins(uchar*, int, int, Pix*, int, int);
-static void	read_bdirect(Biobuf*, Pix*, int, int, int, uchar*, int);
+static void	qtree_expand(Biobuf*, uint8_t*, int, int, uint8_t*);
+static void	qtree_copy(uint8_t*, int, int, uint8_t*, int);
+static void	qtree_bitins(uint8_t*, int, int, Pix*, int, int);
+static void	read_bdirect(Biobuf*, Pix*, int, int, int, uint8_t*, int);
 
 void
 qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
@@ -40,7 +40,7 @@ qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
 	 */
 	nqx2 = (nqx+1)/2;
 	nqy2 = (nqy+1)/2;
-	scratch = (uchar*)malloc(nqx2*nqy2);
+	scratch = (uint8_t*)malloc(nqx2*nqy2);
 	if(scratch == nil) {
 		fprint(2, "qtree_decode: insufficient memory\n");
 		exits("memory");
@@ -114,9 +114,9 @@ qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
  */
 static
 void
-qtree_expand(Biobuf *infile, uchar *a, int nx, int ny, uchar *b)
+qtree_expand(Biobuf *infile, uint8_t *a, int nx, int ny, uint8_t *b)
 {
-	uchar *b1;
+	uint8_t *b1;
 
 	/*
 	 * first copy a to b, expanding each 4-bit value
@@ -141,7 +141,7 @@ qtree_expand(Biobuf *infile, uchar *a, int nx, int ny, uchar *b)
  */
 static
 void
-qtree_copy(uchar *a, int nx, int ny, uchar *b, int n)
+qtree_copy(uint8_t *a, int nx, int ny, uint8_t *b, int n)
 {
 	int i, j, k, nx2, ny2;
 	int s00, s10;
@@ -214,7 +214,7 @@ qtree_copy(uchar *a, int nx, int ny, uchar *b, int n)
  */
 static
 void
-qtree_bitins(uchar *a, int nx, int ny, Pix *b, int n, int bit)
+qtree_bitins(uint8_t *a, int nx, int ny, Pix *b, int n, int bit)
 {
 	int i, j;
 	Pix *s00, *s10;
@@ -269,7 +269,8 @@ qtree_bitins(uchar *a, int nx, int ny, Pix *b, int n, int bit)
 
 static
 void
-read_bdirect(Biobuf *infile, Pix *a, int n, int nqx, int nqy, uchar *scratch, int bit)
+read_bdirect(Biobuf *infile, Pix *a, int n, int nqx, int nqy,
+	     uint8_t *scratch, int bit)
 {
 	int i;
 

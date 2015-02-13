@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <venti.h>
 
-static char *okvers[] = {
+static int8_t *okvers[] = {
 	"02",
 	nil,
 };
@@ -21,10 +21,10 @@ static char EBigString[] = "string too long";
 static char EBigPacket[] = "packet too long";
 static char ENullString[] = "missing string";
 */
-static char EBadVersion[] = "bad format in version string";
+static int8_t EBadVersion[] = "bad format in version string";
 
 static int
-vtreadversion(VtConn *z, char *q, char *v, int nv)
+vtreadversion(VtConn *z, int8_t *q, int8_t *v, int nv)
 {
 	int n;
 
@@ -58,7 +58,7 @@ vtreadversion(VtConn *z, char *q, char *v, int nv)
 int
 vtversion(VtConn *z)
 {
-	char buf[VtMaxStringSize], *p, *ep, *prefix, *pp;
+	int8_t buf[VtMaxStringSize], *p, *ep, *prefix, *pp;
 	int i;
 
 	qlock(&z->lk);

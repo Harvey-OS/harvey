@@ -13,12 +13,12 @@
 #include <mach.h>
 #include "arm.h"
 
-extern ulong	textbase;
+extern uint32_t	textbase;
 
-ulong
-ifetch(ulong addr)
+uint32_t
+ifetch(uint32_t addr)
 {
-	uchar *va;
+	uint8_t *va;
 
 	if(addr&3) {
 		Bprint(bioout, "Address error (I-fetch) vaddr %.8lux\n", addr);
@@ -35,10 +35,10 @@ ifetch(ulong addr)
 	return va[3]<<24 | va[2]<<16 | va[1]<<8 | va[0];
 }
 
-ulong
-getmem_4(ulong addr)
+uint32_t
+getmem_4(uint32_t addr)
 {
-	ulong val;
+	uint32_t val;
 	int i;
 
 	val = 0;
@@ -47,10 +47,10 @@ getmem_4(ulong addr)
 	return val;
 }
 
-ulong
-getmem_2(ulong addr)
+uint32_t
+getmem_2(uint32_t addr)
 {
-	ulong val;
+	uint32_t val;
 	int i;
 
 	val = 0;
@@ -59,11 +59,11 @@ getmem_2(ulong addr)
 	return val;
 }
 
-ulong
-getmem_w(ulong addr)
+uint32_t
+getmem_w(uint32_t addr)
 {
-	uchar *va;
-	ulong w;
+	uint8_t *va;
+	uint32_t w;
 
 	if(addr&3) {
 		w = getmem_w(addr & ~3);
@@ -82,11 +82,11 @@ getmem_w(ulong addr)
 	return va[3]<<24 | va[2]<<16 | va[1]<<8 | va[0];
 }
 
-ushort
-getmem_h(ulong addr)
+uint16_t
+getmem_h(uint32_t addr)
 {
-	uchar *va;
-	ulong w;
+	uint8_t *va;
+	uint32_t w;
 
 	if(addr&1) {
 		w = getmem_h(addr & ~1);
@@ -105,10 +105,10 @@ getmem_h(ulong addr)
 	return va[1]<<8 | va[0];
 }
 
-uchar
-getmem_b(ulong addr)
+uint8_t
+getmem_b(uint32_t addr)
 {
-	uchar *va;
+	uint8_t *va;
 
 	if(membpt)
 		brkchk(addr, Read);
@@ -118,16 +118,16 @@ getmem_b(ulong addr)
 	return va[0];
 }
 
-uvlong
-getmem_v(ulong addr)
+uint64_t
+getmem_v(uint32_t addr)
 {
-	return ((uvlong)getmem_w(addr+4) << 32) | getmem_w(addr);
+	return ((uint64_t)getmem_w(addr+4) << 32) | getmem_w(addr);
 }
 
 void
-putmem_h(ulong addr, ushort data)
+putmem_h(uint32_t addr, uint16_t data)
 {
-	uchar *va;
+	uint8_t *va;
 
 	if(addr&1) {
 		Bprint(bioout, "Address error (Store) vaddr %.8lux\n", addr);
@@ -144,9 +144,9 @@ putmem_h(ulong addr, ushort data)
 }
 
 void
-putmem_w(ulong addr, ulong data)
+putmem_w(uint32_t addr, uint32_t data)
 {
-	uchar *va;
+	uint8_t *va;
 
 	if(addr&3) {
 		Bprint(bioout, "Address error (Store) vaddr %.8lux\n", addr);
@@ -165,9 +165,9 @@ putmem_w(ulong addr, ulong data)
 }
 
 void
-putmem_b(ulong addr, uchar data)
+putmem_b(uint32_t addr, uint8_t data)
 {
-	uchar *va;
+	uint8_t *va;
 
 	va = vaddr(addr);
 	va += addr&(BY2PG-1);
@@ -177,17 +177,17 @@ putmem_b(ulong addr, uchar data)
 }
 
 void
-putmem_v(ulong addr, uvlong data)
+putmem_v(uint32_t addr, uint64_t data)
 {
 	putmem_w(addr, data);	/* two stages, to catch brkchk */
 	putmem_w(addr+4, data>>32);
 }
 
-char *
-memio(char *mb, ulong mem, int size, int dir)
+int8_t *
+memio(int8_t *mb, uint32_t mem, int size, int dir)
 {
 	int i;
-	char *buf, c;
+	int8_t *buf, c;
 
 	if(mb == 0)
 		mb = emalloc(size);
@@ -221,9 +221,9 @@ memio(char *mb, ulong mem, int size, int dir)
 }
 
 void
-dotlb(ulong vaddr)
+dotlb(uint32_t vaddr)
 {
-	ulong *l, *e;
+	uint32_t *l, *e;
 
 	vaddr &= ~(BY2PG-1);
 
@@ -239,11 +239,11 @@ dotlb(ulong vaddr)
 }
 
 void *
-vaddr(ulong addr)
+vaddr(uint32_t addr)
 {
 	Segment *s, *es;
 	int off, foff, l, n;
-	uchar **p, *a;
+	uint8_t **p, *a;
 
 	if(tlb.on)
 		dotlb(addr);

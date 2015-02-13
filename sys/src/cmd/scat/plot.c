@@ -19,8 +19,8 @@
 #include "sky.h"
 
 	/* convert to milliarcsec */
-static long	c = MILLIARCSEC;	/* 1 degree */
-static long	m5 = 1250*60*60;	/* 5 minutes of ra */
+static int32_t	c = MILLIARCSEC;	/* 1 degree */
+static int32_t	m5 = 1250*60*60;	/* 5 minutes of ra */
 
 DAngle	ramin;
 DAngle	ramax;
@@ -49,14 +49,14 @@ Image	*cometcolor;
 
 Planetrec	*planet;
 
-long	mapx0, mapy0;
-long	mapra, mapdec;
+int32_t	mapx0, mapy0;
+int32_t	mapra, mapdec;
 double	mylat, mylon, mysid;
 double	mapscale;
 double	maps;
 int (*projection)(struct place*, double*, double*);
 
-char *fontname = "/lib/font/bit/lucida/unicode.6.font";
+int8_t *fontname = "/lib/font/bit/lucida/unicode.6.font";
 
 /* types Coord and Loc correspond to types in map(3) thus:
    Coord == struct coord;
@@ -245,7 +245,7 @@ heavens(double zlatdeg, double zlondeg, double clatdeg, double clondeg))(Loc*, d
 }
 
 int
-maptoxy(long ra, long dec, double *x, double *y)
+maptoxy(int32_t ra, int32_t dec, double *x, double *y)
 {
 	double lat, lon;
 	struct place pl;
@@ -265,7 +265,8 @@ maptoxy(long ra, long dec, double *x, double *y)
 /* end of 'heavens' section */
 
 int
-setmap(long ramin, long ramax, long decmin, long decmax, Rectangle r, int zenithup)
+setmap(int32_t ramin, int32_t ramax, int32_t decmin, int32_t decmax,
+       Rectangle r, int zenithup)
 {
 	int c;
 	double minx, maxx, miny, maxy;
@@ -308,7 +309,7 @@ setmap(long ramin, long ramax, long decmin, long decmax, Rectangle r, int zenith
 }
 
 Point
-map(long ra, long dec)
+map(int32_t ra, int32_t dec)
 {
 	double x, y;
 	Point p;
@@ -339,7 +340,7 @@ dsize(int mag)	/* mag is 10*magnitude; return disc size */
 }
 
 void
-drawname(Image *scr, Image *col, char *s, int ra, int dec)
+drawname(Image *scr, Image *col, int8_t *s, int ra, int dec)
 {
 	Point p;
 
@@ -364,7 +365,8 @@ npixels(DAngle diam)
 }
 
 void
-drawdisc(Image *scr, DAngle semidiam, int ring, Image *color, Point pt, char *s)
+drawdisc(Image *scr, DAngle semidiam, int ring, Image *color, Point pt,
+	 int8_t *s)
 {
 	int d;
 
@@ -446,7 +448,7 @@ drawplanet(Image *scr, Planetrec *p, Point pt)
 }
 
 void
-tolast(char *name)
+tolast(int8_t *name)
 {
 	int i, nlast;
 	Record *r, rr;
@@ -466,7 +468,7 @@ tolast(char *name)
 }
 
 int
-bbox(long extrara, long extradec, int quantize)
+bbox(int32_t extrara, int32_t extradec, int quantize)
 {
 	int i;
 	Record *r;
@@ -576,7 +578,7 @@ inbbox(DAngle ra, DAngle dec)
 }
 
 int
-gridra(long mapdec)
+gridra(int32_t mapdec)
 {
 	mapdec = abs(mapdec)+c/2;
 	mapdec /= c;
@@ -592,11 +594,11 @@ gridra(long mapdec)
 #define	GREY	(nogrey? display->white : grey)
 
 void
-plot(char *flags)
+plot(int8_t *flags)
 {
 	int i, j, k;
-	char *t;
-	long x, y;
+	int8_t *t;
+	int32_t x, y;
 	int ra, dec;
 	int m;
 	Point p, pts[10];
@@ -604,7 +606,7 @@ plot(char *flags)
 	Rectangle rect, r1;
 	int dx, dy, nogrid, textlevel, nogrey, zenithup;
 	Image *scr;
-	char *name, buf[32];
+	int8_t *name, buf[32];
 	double v;
 
 	if(plotopen() < 0)
@@ -855,7 +857,7 @@ plot(char *flags)
 }
 
 int
-runcommand(char *command, int p[2])
+runcommand(int8_t *command, int p[2])
 {
 	switch(rfork(RFPROC|RFFDG|RFNOWAIT)){
 	case -1:
@@ -874,11 +876,11 @@ runcommand(char *command, int p[2])
 }
 
 void
-parseplanet(char *line, Planetrec *p)
+parseplanet(int8_t *line, Planetrec *p)
 {
-	char *fld[6];
+	int8_t *fld[6];
 	int i, nfld;
-	char *s;
+	int8_t *s;
 
 	if(line[0] == '\0')
 		return;
@@ -905,11 +907,11 @@ parseplanet(char *line, Planetrec *p)
 }
 
 void
-astro(char *flags, int initial)
+astro(int8_t *flags, int initial)
 {
 	int p[2];
 	int i, n, np;
-	char cmd[256], buf[4096], *lines[20], *fld[10];
+	int8_t cmd[256], buf[4096], *lines[20], *fld[10];
 
 	snprint(cmd, sizeof cmd, "/bin/astro -p %s", flags);
 	if(pipe(p) < 0){

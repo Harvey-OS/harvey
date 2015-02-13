@@ -26,47 +26,47 @@ enum
 typedef struct Fid Fid;
 struct Fid
 {
-	short	busy;
+	int16_t	busy;
 	int	fid;
 	Fid	*next;
-	char	*user;
+	int8_t	*user;
 	String	*path;		/* complete path */
 
 	int	fd;		/* set on open or create */
 	Qid	qid;		/* set on open or create */
 	int	attach;		/* this is an attach fd */
 
-	ulong	diroff;		/* directory offset */
+	uint32_t	diroff;		/* directory offset */
 	Dir	*dir;		/* directory entries */
 	int	ndir;		/* number of directory entries */
 };
 
 Fid	*fids;
 int	mfd[2];
-char	*user;
-uchar	mdata[IOHDRSZ+Maxfdata];
-uchar	rdata[Maxfdata];	/* buffer for data in reply */
-uchar	statbuf[STATMAX];
+int8_t	*user;
+uint8_t	mdata[IOHDRSZ+Maxfdata];
+uint8_t	rdata[Maxfdata];	/* buffer for data in reply */
+uint8_t	statbuf[STATMAX];
 Fcall	thdr;
 Fcall	rhdr;
 int	messagesize = sizeof mdata;
 int	readonly;
-char	*srvname;
+int8_t	*srvname;
 int	debug;
 
 Fid *	newfid(int);
 void	io(void);
-void	*erealloc(void*, ulong);
-void	*emalloc(ulong);
-char	*estrdup(char*);
+void	*erealloc(void*, uint32_t);
+void	*emalloc(uint32_t);
+int8_t	*estrdup(int8_t*);
 void	usage(void);
 void	fidqid(Fid*, Qid*);
-char*	short2long(char*);
-char*	long2short(char*, int);
+int8_t*	short2long(int8_t*);
+int8_t*	long2short(int8_t*, int);
 void	readnames(void);
-void	post(char*, int);
+void	post(int8_t*, int);
 
-char	*rflush(Fid*), *rversion(Fid*), *rauth(Fid*),
+int8_t	*rflush(Fid*), *rversion(Fid*), *rauth(Fid*),
 	*rattach(Fid*), *rwalk(Fid*),
 	*ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
@@ -88,18 +88,18 @@ char 	*(*fcalls[])(Fid*) = {
 	[Twstat]	rwstat,
 };
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"lnfs: authentication not required";
-char	Enotexist[] =	"file does not exist";
-char	Einuse[] =	"file in use";
-char	Eexist[] =	"file exists";
-char	Eisdir[] =	"file is a directory";
-char	Enotowner[] =	"not owner";
-char	Eisopen[] = 	"file already open for I/O";
-char	Excl[] = 	"exclusive use file already open";
-char	Ename[] = 	"illegal name";
-char	Eversion[] =	"unknown 9P version";
+int8_t	Eperm[] =	"permission denied";
+int8_t	Enotdir[] =	"not a directory";
+int8_t	Enoauth[] =	"lnfs: authentication not required";
+int8_t	Enotexist[] =	"file does not exist";
+int8_t	Einuse[] =	"file in use";
+int8_t	Eexist[] =	"file exists";
+int8_t	Eisdir[] =	"file is a directory";
+int8_t	Enotowner[] =	"not owner";
+int8_t	Eisopen[] = 	"file already open for I/O";
+int8_t	Excl[] = 	"exclusive use file already open";
+int8_t	Ename[] = 	"illegal name";
+int8_t	Eversion[] =	"unknown 9P version";
 
 void
 usage(void)
@@ -109,7 +109,7 @@ usage(void)
 }
 
 void
-notifyf(void *a, char *s)
+notifyf(void *a, int8_t *s)
 {
 	USED(a);
 	if(strncmp(s, "interrupt", 9) == 0)
@@ -178,9 +178,9 @@ main(int argc, char *argv[])
 }
 
 void
-post(char *srvname, int pfd)
+post(int8_t *srvname, int pfd)
 {
-	char name[128];
+	int8_t name[128];
 	int fd;
 
 	snprint(name, sizeof name, "#s/%s", srvname);
@@ -191,7 +191,7 @@ post(char *srvname, int pfd)
 	if(write(fd, name, strlen(name)) < 0)
 		sysfatal("writing %s: %r", srvname);
 }
-char*
+int8_t*
 rversion(Fid*)
 {
 	Fid *f;
@@ -210,20 +210,20 @@ rversion(Fid*)
 	return nil;
 }
 
-char*
+int8_t*
 rauth(Fid*)
 {
 	return Enoauth;
 }
 
-char*
+int8_t*
 rflush(Fid *f)
 {
 	USED(f);
 	return nil;
 }
 
-char*
+int8_t*
 rattach(Fid *f)
 {
 	/* no authentication! */
@@ -242,7 +242,7 @@ rattach(Fid *f)
 	return nil;
 }
 
-char*
+int8_t*
 clone(Fid *f, Fid **nf)
 {
 	if(f->fd >= 0)
@@ -258,16 +258,16 @@ clone(Fid *f, Fid **nf)
 	return nil;
 }
 
-char*
+int8_t*
 rwalk(Fid *f)
 {
-	char *name;
+	int8_t *name;
 	Fid *nf;
-	char *err;
+	int8_t *err;
 	int i;
 	String *npath;
 	Dir *d;
-	char *cp;
+	int8_t *cp;
 	Qid qid;
 
 	err = nil;
@@ -322,16 +322,16 @@ rwalk(Fid *f)
 	return err;
 }
 
-static char*
+static int8_t*
 passerror(void)
 {
-	static char err[256];
+	static int8_t err[256];
 
 	rerrstr(err, sizeof err);
 	return err;
 }
 
-char*
+int8_t*
 ropen(Fid *f)
 {
 	if(readonly && (thdr.mode & 3))
@@ -347,10 +347,10 @@ ropen(Fid *f)
 	return nil;
 }
 
-char*
+int8_t*
 rcreate(Fid *f)
 {
-	char *name;
+	int8_t *name;
 
 	if(readonly)
 		return Eperm;
@@ -369,7 +369,7 @@ rcreate(Fid *f)
 	return nil;
 }
 
-char*
+int8_t*
 rreaddir(Fid *f)
 {
 	int i;
@@ -398,15 +398,15 @@ rreaddir(Fid *f)
 			break;
 		f->diroff++;
 	}
-	rhdr.data = (char*)rdata;
+	rhdr.data = (int8_t*)rdata;
 	rhdr.count = n;
 	return nil;
 }
 
-char*
+int8_t*
 rread(Fid *f)
 {
-	long n;
+	int32_t n;
 
 	if(f->fd < 0)
 		return Enotexist;
@@ -417,15 +417,15 @@ rread(Fid *f)
 	n = pread(f->fd, rdata, thdr.count, thdr.offset);
 	if(n < 0)
 		return passerror();
-	rhdr.data = (char*)rdata;
+	rhdr.data = (int8_t*)rdata;
 	rhdr.count = n;
 	return nil;
 }
 
-char*
+int8_t*
 rwrite(Fid *f)
 {
-	long n;
+	int32_t n;
 
 	if(readonly || (f->qid.type & QTDIR))
 		return Eperm;
@@ -440,7 +440,7 @@ rwrite(Fid *f)
 	return nil;
 }
 
-char*
+int8_t*
 rclunk(Fid *f)
 {
 	f->busy = 0;
@@ -460,7 +460,7 @@ rclunk(Fid *f)
 	return nil;
 }
 
-char*
+int8_t*
 rremove(Fid *f)
 {
 	if(remove(s_to_c(f->path)) < 0)
@@ -468,7 +468,7 @@ rremove(Fid *f)
 	return nil;
 }
 
-char*
+int8_t*
 rstat(Fid *f)
 {
 	int n;
@@ -487,7 +487,7 @@ rstat(Fid *f)
 	return nil;
 }
 
-char*
+int8_t*
 rwstat(Fid *f)
 {
 	int n;
@@ -495,7 +495,7 @@ rwstat(Fid *f)
 
 	if(readonly)
 		return Eperm;
-	convM2D(thdr.stat, thdr.nstat, &d, (char*)rdata);
+	convM2D(thdr.stat, thdr.nstat, &d, (int8_t*)rdata);
 	d.name = long2short(d.name, 1);
 	n = dirwstat(s_to_c(f->path), &d);
 	if(n < 0)
@@ -530,7 +530,7 @@ newfid(int fid)
 void
 io(void)
 {
-	char *err;
+	int8_t *err;
 	int n, pid;
 
 	pid = getpid();
@@ -578,7 +578,7 @@ io(void)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -590,7 +590,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(!p)
@@ -598,10 +598,10 @@ erealloc(void *p, ulong n)
 	return p;
 }
 
-char *
-estrdup(char *q)
+int8_t *
+estrdup(int8_t *q)
 {
-	char *p;
+	int8_t *p;
 	int n;
 
 	n = strlen(q)+1;
@@ -638,29 +638,29 @@ typedef struct Name Name;
 struct Name
 {
 	Name	*next;
-	char	shortname[NAMELEN];
-	char	*longname;
+	int8_t	shortname[NAMELEN];
+	int8_t	*longname;
 };
 
 Dir *dbstat;	/* last stat of the name file */
-char *namefile = "./.longnames";
-char *namebuf;
+int8_t *namefile = "./.longnames";
+int8_t *namebuf;
 Name *names;
 
 Name*
-newname(char *longname, int writeflag)
+newname(int8_t *longname, int writeflag)
 {
 	Name *np;
 	int n;
-	uchar digest[MD5dlen];
+	uint8_t digest[MD5dlen];
 	int fd;
 
 	/* chain in new name */
 	n = strlen(longname);
 	np = emalloc(sizeof(*np)+n+1);
-	np->longname = (char*)&np[1];
+	np->longname = (int8_t*)&np[1];
 	strcpy(np->longname, longname);
-	md5((uchar*)longname, n, digest, nil);
+	md5((uint8_t*)longname, n, digest, nil);
 	enc32(np->shortname, sizeof(np->shortname), digest, MD5dlen);
 	np->next = names;
 	names = np;
@@ -701,9 +701,9 @@ readnames(void)
 {
 	Dir *d;
 	int fd;
-	vlong offset;
+	int64_t offset;
 	Biobuf *b;
-	char *p;
+	int8_t *p;
 
 	d = dirstat(namefile);
 	if(d == nil){
@@ -757,8 +757,8 @@ readnames(void)
  *  file, add an entry to the file if the writeflag is
  *  non-zero.  Return a pointer to the short name.
  */
-char*
-long2short(char *longname, int writeflag)
+int8_t*
+long2short(int8_t *longname, int writeflag)
 {
 	Name *np;
 
@@ -778,8 +778,8 @@ long2short(char *longname, int writeflag)
  *  look up a short name, if it doesn't exist, return the
  *  longname.
  */
-char*
-short2long(char *shortname)
+int8_t*
+short2long(int8_t *shortname)
 {
 	Name *np;
 

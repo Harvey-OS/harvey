@@ -9,10 +9,10 @@
 
 #include <string.h>
 
-char*
-strchr(const char *s, int c)
+int8_t*
+strchr(const int8_t *s, int c)
 {
-	char c1;
+	int8_t c1;
 
 	if(c == 0) {
 		while(*s++)

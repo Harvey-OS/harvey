@@ -60,7 +60,7 @@ install(Biobufhdr *bp)
 }
 
 int
-Binits(Biobufhdr *bp, int f, int mode, uchar *p, int size)
+Binits(Biobufhdr *bp, int f, int mode, uint8_t *p, int size)
 {
 
 	p += Bungetsize;	/* make room for Bungets */
@@ -103,7 +103,7 @@ Binit(Biobuf *bp, int f, int mode)
 }
 
 Biobuf*
-Bopen(char *name, int mode)
+Bopen(int8_t *name, int mode)
 {
 	Biobuf *bp;
 	int f;

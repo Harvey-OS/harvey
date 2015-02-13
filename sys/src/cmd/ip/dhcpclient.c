@@ -12,23 +12,23 @@
 #include <ip.h>
 #include "dhcp.h"
 
-void	bootpdump(uchar *p, int n);
+void	bootpdump(uint8_t *p, int n);
 void	dhcpinit(void);
 void	dhcprecv(void);
 void	dhcpsend(int);
-void	myfatal(char *fmt, ...);
-int	openlisten(char*);
-uchar	*optaddaddr(uchar*, int, uchar*);
-uchar	*optaddbyte(uchar*, int, int);
-uchar	*optadd(uchar*, int, void*, int);
-uchar	*optaddulong(uchar*, int, ulong);
-uchar	*optget(Bootp*, int, int);
-int	optgetaddr(Bootp*, int, uchar*);
+void	myfatal(int8_t *fmt, ...);
+int	openlisten(int8_t*);
+uint8_t	*optaddaddr(uint8_t*, int, uint8_t*);
+uint8_t	*optaddbyte(uint8_t*, int, int);
+uint8_t	*optadd(uint8_t*, int, void*, int);
+uint8_t	*optaddulong(uint8_t*, int, uint32_t);
+uint8_t	*optget(Bootp*, int, int);
+int	optgetaddr(Bootp*, int, uint8_t*);
 int	optgetbyte(Bootp*, int);
-ulong	optgetulong(Bootp*, int);
-Bootp	*parse(uchar*, int);
+uint32_t	optgetulong(Bootp*, int);
+Bootp	*parse(uint8_t*, int);
 void	stdinthread(void*);
-ulong	thread(void(*f)(void*), void *a);
+uint32_t	thread(void(*f)(void*), void *a);
 void	timerthread(void*);
 void	usage(void);
 
@@ -36,21 +36,21 @@ struct {
 	QLock	lk;
 	int	state;
 	int	fd;
-	ulong	xid;
-	ulong	starttime;
-	char	cid[100];
-	char	sname[64];
-	uchar	server[IPaddrlen];		/* server IP address */
-	uchar	client[IPaddrlen];		/* client IP address */
-	uchar	mask[IPaddrlen];		/* client mask */
-	ulong	lease;		/* lease time */
-	ulong	resend;		/* number of resends for current state */
-	ulong	timeout;	/* time to timeout - seconds */
+	uint32_t	xid;
+	uint32_t	starttime;
+	int8_t	cid[100];
+	int8_t	sname[64];
+	uint8_t	server[IPaddrlen];		/* server IP address */
+	uint8_t	client[IPaddrlen];		/* client IP address */
+	uint8_t	mask[IPaddrlen];		/* client mask */
+	uint32_t	lease;		/* lease time */
+	uint32_t	resend;		/* number of resends for current state */
+	uint32_t	timeout;	/* time to timeout - seconds */
 } dhcp;
 
-char	net[64];
+int8_t	net[64];
 
-char optmagic[4] = { 0x63, 0x82, 0x53, 0x63 };
+int8_t optmagic[4] = { 0x63, 0x82, 0x53, 0x63 };
 
 void
 main(int argc, char *argv[])
@@ -185,7 +185,7 @@ timerthread(void*)
 void
 stdinthread(void*)
 {
-	uchar buf[100];
+	uint8_t buf[100];
 	int n;
 
 	for(;;) {
@@ -229,7 +229,7 @@ void
 dhcpsend(int type)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 	Bootp bp;
 	Udphdr *up;
 
@@ -273,7 +273,7 @@ dhcpsend(int type)
 
 	*p++ = OBend;
 
-	n = p - (uchar*)&bp;
+	n = p - (uint8_t*)&bp;
 
 	if(write(dhcp.fd, &bp, n) != n)
 		myfatal("dhcpsend: write failed: %r");
@@ -282,11 +282,11 @@ dhcpsend(int type)
 void
 dhcprecv(void)
 {
-	uchar buf[2000];
+	uint8_t buf[2000];
 	Bootp *bp;
 	int n, type;
-	ulong lease;
-	uchar mask[IPaddrlen];
+	uint32_t lease;
+	uint8_t mask[IPaddrlen];
 
 	qunlock(&dhcp.lk);
 	n = read(dhcp.fd, buf, sizeof(buf));
@@ -356,10 +356,10 @@ bootpdump(buf, n);
 }
 
 int
-openlisten(char *net)
+openlisten(int8_t *net)
 {
 	int n, fd, cfd;
-	char data[128], devdir[40];
+	int8_t data[128], devdir[40];
 
 //	sprint(data, "%s/udp!*!bootpc", net);
 	sprint(data, "%s/udp!*!68", net);
@@ -385,8 +385,8 @@ openlisten(char *net)
 	return fd;
 }
 
-uchar*
-optadd(uchar *p, int op, void *d, int n)
+uint8_t*
+optadd(uint8_t *p, int op, void *d, int n)
 {
 	p[0] = op;
 	p[1] = n;
@@ -394,8 +394,8 @@ optadd(uchar *p, int op, void *d, int n)
 	return p+n+2;
 }
 
-uchar*
-optaddbyte(uchar *p, int op, int b)
+uint8_t*
+optaddbyte(uint8_t *p, int op, int b)
 {
 	p[0] = op;
 	p[1] = 1;
@@ -403,8 +403,8 @@ optaddbyte(uchar *p, int op, int b)
 	return p+3;
 }
 
-uchar*
-optaddulong(uchar *p, int op, ulong x)
+uint8_t*
+optaddulong(uint8_t *p, int op, uint32_t x)
 {
 	p[0] = op;
 	p[1] = 4;
@@ -412,8 +412,8 @@ optaddulong(uchar *p, int op, ulong x)
 	return p+6;
 }
 
-uchar *
-optaddaddr(uchar *p, int op, uchar *ip)
+uint8_t *
+optaddaddr(uint8_t *p, int op, uint8_t *ip)
 {
 	p[0] = op;
 	p[1] = 4;
@@ -421,11 +421,11 @@ optaddaddr(uchar *p, int op, uchar *ip)
 	return p+6;
 }
 
-uchar*
+uint8_t*
 optget(Bootp *bp, int op, int n)
 {
 	int len, code;
-	uchar *p;
+	uint8_t *p;
 
 	p = bp->optdata;
 	for(;;) {
@@ -449,7 +449,7 @@ optget(Bootp *bp, int op, int n)
 int
 optgetbyte(Bootp *bp, int op)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = optget(bp, op, 1);
 	if(p == 0)
@@ -457,10 +457,10 @@ optgetbyte(Bootp *bp, int op)
 	return *p;
 }
 
-ulong
+uint32_t
 optgetulong(Bootp *bp, int op)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = optget(bp, op, 4);
 	if(p == 0)
@@ -469,9 +469,9 @@ optgetulong(Bootp *bp, int op)
 }
 
 int
-optgetaddr(Bootp *bp, int op, uchar *ip)
+optgetaddr(Bootp *bp, int op, uint8_t *ip)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = optget(bp, op, 4);
 	if(p == 0)
@@ -482,7 +482,7 @@ optgetaddr(Bootp *bp, int op, uchar *ip)
 
 /* make sure packet looks ok */
 Bootp *
-parse(uchar *p, int n)
+parse(uint8_t *p, int n)
 {
 	int len, code;
 	Bootp *bp;
@@ -547,7 +547,7 @@ parse(uchar *p, int n)
 }
 
 void
-bootpdump(uchar *p, int n)
+bootpdump(uint8_t *p, int n)
 {
 	int len, i, code;
 	Bootp *bp;
@@ -636,7 +636,7 @@ bootpdump(uchar *p, int n)
 	}
 }
 
-ulong
+uint32_t
 thread(void(*f)(void*), void *a)
 {
 	int pid;
@@ -651,9 +651,9 @@ thread(void(*f)(void*), void *a)
 }
 
 void
-myfatal(char *fmt, ...)
+myfatal(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);

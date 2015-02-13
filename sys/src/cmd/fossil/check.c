@@ -16,14 +16,14 @@ static void	checkEpochs(Fsck*);
 static void	checkLeak(Fsck*);
 static void	closenop(Fsck*, Block*, u32int);
 static void	clrenop(Fsck*, Block*, int);
-static void	clrinop(Fsck*, char*, MetaBlock*, int, Block*);
-static void	error(Fsck*, char*, ...);
-static int	getBit(uchar*, u32int);
-static int	printnop(char*, ...);
-static void	setBit(uchar*, u32int);
-static int	walkEpoch(Fsck *chk, Block *b, uchar score[VtScoreSize],
+static void	clrinop(Fsck*, int8_t*, MetaBlock*, int, Block*);
+static void	error(Fsck*, int8_t*, ...);
+static int	getBit(uint8_t*, u32int);
+static int	printnop(int8_t*, ...);
+static void	setBit(uint8_t*, u32int);
+static int	walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize],
 			int type, u32int tag, u32int epoch);
-static void	warn(Fsck*, char*, ...);
+static void	warn(Fsck*, int8_t*, ...);
 
 #pragma varargck argpos error 2
 #pragma varargck argpos printnop 1
@@ -176,7 +176,8 @@ checkEpoch(Fsck *chk, u32int epoch)
  *	(too hard to check)
  */
 static int
-walkEpoch(Fsck *chk, Block *b, uchar score[VtScoreSize], int type, u32int tag,
+walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize], int type,
+	  u32int tag,
 	u32int epoch)
 {
 	int i, ret;
@@ -410,7 +411,7 @@ checkLeak(Fsck *chk)
  * Check that all sources in the tree are accessible.
  */
 static Source *
-openSource(Fsck *chk, Source *s, char *name, uchar *bm, u32int offset,
+openSource(Fsck *chk, Source *s, int8_t *name, uint8_t *bm, u32int offset,
 	u32int gen, int dir, MetaBlock *mb, int i, Block *b)
 {
 	Source *r;
@@ -449,9 +450,9 @@ Err:
 
 typedef struct MetaChunk MetaChunk;
 struct MetaChunk {
-	ushort	offset;
-	ushort	size;
-	ushort	index;
+	uint16_t	offset;
+	uint16_t	size;
+	uint16_t	index;
 };
 
 static int
@@ -476,7 +477,7 @@ chkMetaBlock(MetaBlock *mb)
 {
 	MetaChunk *mc;
 	int oo, o, n, i;
-	uchar *p;
+	uint8_t *p;
 
 	mc = vtMemAlloc(mb->nindex*sizeof(MetaChunk));
 	p = mb->buf + MetaHeaderSize;
@@ -523,7 +524,7 @@ if(0){
 }
 
 static void
-scanSource(Fsck *chk, char *name, Source *r)
+scanSource(Fsck *chk, int8_t *name, Source *r)
 {
 	u32int a, nb, o;
 	Block *b;
@@ -562,12 +563,12 @@ scanSource(Fsck *chk, char *name, Source *r)
  * sources containing directory entries are okay.
  */
 static void
-chkDir(Fsck *chk, char *name, Source *source, Source *meta)
+chkDir(Fsck *chk, int8_t *name, Source *source, Source *meta)
 {
 	int i;
 	u32int a1, a2, nb, o;
-	char *s, *nn;
-	uchar *bm;
+	int8_t *s, *nn;
+	uint8_t *bm;
 	Block *b, *bb;
 	DirEntry de;
 	Entry e1, e2;
@@ -738,7 +739,7 @@ checkDirs(Fsck *chk)
 }
 
 static void
-setBit(uchar *bmap, u32int addr)
+setBit(uint8_t *bmap, u32int addr)
 {
 	if(addr == NilBlock)
 		return;
@@ -747,7 +748,7 @@ setBit(uchar *bmap, u32int addr)
 }
 
 static int
-getBit(uchar *bmap, u32int addr)
+getBit(uint8_t *bmap, u32int addr)
 {
 	if(addr == NilBlock)
 		return 0;
@@ -756,9 +757,9 @@ getBit(uchar *bmap, u32int addr)
 }
 
 static void
-error(Fsck *chk, char *fmt, ...)
+error(Fsck *chk, int8_t *fmt, ...)
 {
-	char buf[256];
+	int8_t buf[256];
 	va_list arg;
 	static int nerr;
 
@@ -773,9 +774,9 @@ error(Fsck *chk, char *fmt, ...)
 }
 
 static void
-warn(Fsck *chk, char *fmt, ...)
+warn(Fsck *chk, int8_t *fmt, ...)
 {
-	char buf[256];
+	int8_t buf[256];
 	va_list arg;
 	static int nerr;
 
@@ -797,12 +798,12 @@ closenop(Fsck*, Block*, u32int)
 }
 
 static void
-clrinop(Fsck*, char*, MetaBlock*, int, Block*)
+clrinop(Fsck*, int8_t*, MetaBlock*, int, Block*)
 {
 }
 
 static int
-printnop(char*, ...)
+printnop(int8_t*, ...)
 {
 	return 0;
 }

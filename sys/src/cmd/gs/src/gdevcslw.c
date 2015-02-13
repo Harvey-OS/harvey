@@ -30,7 +30,7 @@
 #include "gdevprn.h"
 
 /* We round up the LINE_SIZE to a multiple of a ulong for faster scanning. */
-typedef ulong word;
+typedef uint32_t word;
 #define W sizeof(word)
 
 /* Printer types */

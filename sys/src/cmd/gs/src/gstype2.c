@@ -205,7 +205,7 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_glyph_data_t *pgd,
 	    } else if (c < cx_num4) {	/* 2-byte number */
 		decode_push_num2(csp, cstack, c, cip, state, encrypted);
 	    } else if (c == cx_num4) {	/* 4-byte number */
-		long lw;
+		int32_t lw;
 
 		decode_num4(lw, cip, state, encrypted);
 		/* 32-bit numbers are 16:16. */
@@ -219,7 +219,7 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_glyph_data_t *pgd,
 	}
 #ifdef DEBUG
 	if (gs_debug['1']) {
-	    static const char *const c2names[] =
+	    static const int8_t *const c2names[] =
 	    {char2_command_names};
 
 	    if (c2names[c] == 0)
@@ -555,7 +555,7 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_glyph_data_t *pgd,
 		++cip;
 #ifdef DEBUG
 		if (gs_debug['1'] && c < char2_extended_command_count) {
-		    static const char *const ce2names[] =
+		    static const int8_t *const ce2names[] =
 		    {char2_extended_command_names};
 
 		    if (ce2names[c] == 0)

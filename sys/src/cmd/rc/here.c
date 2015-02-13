@@ -14,14 +14,14 @@
 
 struct here *here, **ehere;
 int ser = 0;
-char tmp[] = "/tmp/here0000.0000";
-char hex[] = "0123456789abcdef";
+int8_t tmp[] = "/tmp/here0000.0000";
+int8_t hex[] = "0123456789abcdef";
 
-void psubst(io*, uchar*);
+void psubst(io*, uint8_t*);
 void pstrs(io*, word*);
 
 void
-hexnum(char *p, int n)
+hexnum(int8_t *p, int n)
 {
 	*p++ = hex[(n>>12)&0xF];
 	*p++ = hex[(n>>8)&0xF];
@@ -59,8 +59,8 @@ void
 readhere(void)
 {
 	int c, subst;
-	char *s, *tag;
-	char line[NLINE+1];
+	int8_t *s, *tag;
+	int8_t line[NLINE+1];
 	io *f;
 	struct here *h, *nexth;
 
@@ -79,7 +79,7 @@ readhere(void)
 				if(tag && strcmp(line, tag) == 0)
 					break;
 				if(subst)
-					psubst(f, (uchar *)line);
+					psubst(f, (uint8_t *)line);
 				else
 					pstr(f, line);
 				s = line;
@@ -95,17 +95,17 @@ readhere(void)
 		closeio(f);
 		cleanhere(h->name);
 		nexth = h->next;
-		efree((char *)h);
+		efree((int8_t *)h);
 	}
 	here = 0;
 	doprompt = 1;
 }
 
 void
-psubst(io *f, uchar *s)
+psubst(io *f, uint8_t *s)
 {
 	int savec, n;
-	uchar *t, *u;
+	uint8_t *t, *u;
 	Rune r;
 	word *star;
 
@@ -114,7 +114,7 @@ psubst(io *f, uchar *s)
 			if(*s < Runeself)
 				pchr(f, *s++);
 			else{
-				n = chartorune(&r, (char *)s);
+				n = chartorune(&r, (int8_t *)s);
 				while(n-- > 0)
 					pchr(f, *s++);
 			}
@@ -138,7 +138,7 @@ psubst(io *f, uchar *s)
 						pstr(f, star->word);
 					}
 				}else
-					pstrs(f, vlook((char *)s)->val);
+					pstrs(f, vlook((int8_t *)s)->val);
 				*t = savec;
 				if(savec == '^')
 					t++;

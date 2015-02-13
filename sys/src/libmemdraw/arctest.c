@@ -15,7 +15,7 @@
 
 extern int drawdebug;
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Memimage *x;
 	Point c = {208,871};
@@ -25,9 +25,9 @@ main(int argc, char **argv)
 	Point sp = {0,0};
 	int alpha = 51;
 	int phi = 3;
-	vlong t0, t1;
+	int64_t t0, t1;
 	int i, n;
-	vlong del;
+	int64_t del;
 
 	if (argc != 2) {
 		fprint(2, "usage: arctest number\n");
@@ -58,11 +58,11 @@ rdb(void)
 }
 
 int
-iprint(char *fmt, ...)
+iprint(int8_t *fmt, ...)
 {
 	int n;	
 	va_list va;
-	char buf[1024];
+	int8_t buf[1024];
 
 	va_start(va, fmt);
 	n = vseprint(buf, buf+sizeof buf, fmt, va) - buf;

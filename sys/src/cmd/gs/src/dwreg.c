@@ -38,9 +38,9 @@
  * Either HKEY_LOCAL_MACHINE or HKEY_CURRENT_USER will be used.
  */
 int
-win_registry_key(char *buf, int len)
+win_registry_key(int8_t *buf, int len)
 {
-    const char *software = "Software";
+    const int8_t *software = "Software";
     if (strlen(software) + 1 + strlen(gs_productfamily) >= len)
 	return -1;
 
@@ -55,24 +55,25 @@ win_registry_key(char *buf, int len)
  * name, ptr, plen and return values are the same as in gp_getenv();
  */
 int 
-win_get_reg_value(const char *name, char *ptr, int *plen)
+win_get_reg_value(const int8_t *name, int8_t *ptr, int *plen)
 {
     HKEY hkey;
     DWORD cbData, keytype;
     BYTE b;
     LONG rc;
     BYTE *bptr = (BYTE *)ptr;
-    char key[256];
+    int8_t key[256];
 
     win_registry_key(key, sizeof(key));
     if (RegOpenKeyEx(HKEY_CURRENT_USER, key, 0, KEY_READ, &hkey)
 	== ERROR_SUCCESS) {
 	keytype = REG_SZ;
 	cbData = *plen;
-	if (bptr == (char *)NULL)
+	if (bptr == (int8_t *)NULL)
 	    bptr = &b;	/* Registry API won't return ERROR_MORE_DATA */
 			/* if ptr is NULL */
-	rc = RegQueryValueEx(hkey, (char *)name, 0, &keytype, bptr, &cbData);
+	rc = RegQueryValueEx(hkey, (int8_t *)name, 0, &keytype, bptr,
+                             &cbData);
 	RegCloseKey(hkey);
 	if (rc == ERROR_SUCCESS) {
 	    *plen = cbData;
@@ -93,11 +94,11 @@ win_get_reg_value(const char *name, char *ptr, int *plen)
  * Returns 0 on success.
  */
 int 
-win_set_reg_value(const char *name, const char *value)
+win_set_reg_value(const int8_t *name, const int8_t *value)
 {
     HKEY hkey;
     LONG rc;
-    char key[256];
+    int8_t key[256];
     DWORD dwDisposition;
 
     win_registry_key(key, sizeof(key));

@@ -14,7 +14,7 @@
 #include "netbios.h"
 
 NbnsMessage *
-nbnsmessagenamequeryrequestnew(ushort id, int broadcast, NbName name)
+nbnsmessagenamequeryrequestnew(uint16_t id, int broadcast, NbName name)
 {
 	NbnsMessage *s;
 	NbnsMessageQuestion *q;
@@ -35,11 +35,13 @@ nbnsmessagenamequeryrequestnew(ushort id, int broadcast, NbName name)
 }
 
 NbnsMessage *
-nbnsmessagenameregistrationrequestnew(ushort id, int broadcast, NbName name, ulong ttl, uchar *ipaddr)
+nbnsmessagenameregistrationrequestnew(uint16_t id, int broadcast,
+				      NbName name,
+				      uint32_t ttl, uint8_t *ipaddr)
 {
 	NbnsMessage *s;
 	NbnsMessageQuestion *q;
-	uchar rdata[6];
+	uint8_t rdata[6];
 	NbnsMessageResource *r;
 
 	s = nbnsmessagenew();

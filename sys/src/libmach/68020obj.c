@@ -20,17 +20,17 @@
 typedef struct Addr	Addr;
 struct Addr
 {
-	char	sym;
-	char	flags;
+	int8_t	sym;
+	int8_t	flags;
 };
 static Addr addr(Biobuf *);
-static char type2char(int);
+static int8_t type2char(int);
 static void skip(Biobuf*, int);
 
 int
-_is2(char *t)
+_is2(int8_t *t)
 {
-	uchar *s = (uchar *)t;
+	uint8_t *s = (uint8_t *)t;
 
 	return  s[0] == (ANAME&0xff)			/* aslo = ANAME */
 		&& s[1] == ((ANAME>>8)&0xff)		/* ashi = ANAME */
@@ -97,7 +97,7 @@ addr(Biobuf *bp)
 {
 	Addr a;
 	int t;
-	long off;
+	int32_t off;
 
 	a.flags = Bgetc(bp);			/* flags */
 	a.sym = -1;
@@ -131,7 +131,7 @@ addr(Biobuf *bp)
 	return a;
 }
 
-static char
+static int8_t
 type2char(int t)
 {
 	switch(t){

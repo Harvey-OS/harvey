@@ -12,7 +12,7 @@
  */
 #include "iolib.h"
 
-int snprintf(char *buf, size_t nbuf, const char *fmt, ...){
+int snprintf(int8_t *buf, size_t nbuf, const int8_t *fmt, ...){
 	int n;
 	va_list args;
 	FILE *f=_IO_sopenw();

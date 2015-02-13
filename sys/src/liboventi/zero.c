@@ -12,16 +12,16 @@
 #include <oventi.h>
 
 /* score of a zero length block */
-uchar	vtZeroScore[VtScoreSize] = {
+uint8_t	vtZeroScore[VtScoreSize] = {
 	0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b, 0x0d, 0x32, 0x55,
 	0xbf, 0xef, 0x95, 0x60, 0x18, 0x90, 0xaf, 0xd8, 0x07, 0x09
 };
 
 
 int
-vtZeroExtend(int type, uchar *buf, int n, int nn)
+vtZeroExtend(int type, uint8_t *buf, int n, int nn)
 {
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 
 	switch(type) {
 	default:
@@ -50,9 +50,9 @@ vtZeroExtend(int type, uchar *buf, int n, int nn)
 }
 
 int 
-vtZeroTruncate(int type, uchar *buf, int n)
+vtZeroTruncate(int type, uint8_t *buf, int n)
 {
-	uchar *p;
+	uint8_t *p;
 
 	switch(type) {
 	default:

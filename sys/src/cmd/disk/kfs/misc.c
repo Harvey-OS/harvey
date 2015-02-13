@@ -14,7 +14,7 @@ extern int cmdfd;
 Float
 famd(Float a, int b, int c, int d)
 {
-	ulong x, m;
+	uint32_t x, m;
 
 	x = (a + b) * c;
 	m = x % d;
@@ -24,10 +24,10 @@ famd(Float a, int b, int c, int d)
 	return x;
 }
 
-ulong
+uint32_t
 fdf(Float a, int d)
 {
-	ulong x, m;
+	uint32_t x, m;
 
 	m = a % d;
 	x = a / d;
@@ -36,19 +36,19 @@ fdf(Float a, int d)
 	return x;
 }
 
-long
-belong(char *s)
+int32_t
+belong(int8_t *s)
 {
-	uchar *x;
+	uint8_t *x;
 
-	x = (uchar *)s;
+	x = (uint8_t *)s;
 	return (x[0] << 24) + (x[1] << 16) + (x[2] << 8) + x[3]; 
 }
 
 void
-panic(char *fmt, ...)
+panic(int8_t *fmt, ...)
 {
-	char buf[8192], *s;
+	int8_t buf[8192], *s;
 	va_list arg;
 
 
@@ -66,15 +66,15 @@ abort();
 #define	SIZE	4096
 
 void
-cprint(char *fmt, ...)
+cprint(int8_t *fmt, ...)
 {
-	char buf[SIZE], *out;
+	int8_t buf[SIZE], *out;
 	va_list arg;
 
 	va_start(arg, fmt);
 	out = vseprint(buf, buf+SIZE, fmt, arg);
 	va_end(arg);
-	write(cmdfd, buf, (long)(out-buf));
+	write(cmdfd, buf, (int32_t)(out-buf));
 }
 
 /*
@@ -82,7 +82,7 @@ cprint(char *fmt, ...)
  * otherwise preoccupied when the -s flag is given to kfs.
  */
 int
-print(char *fmt, ...)
+print(int8_t *fmt, ...)
 {
 	va_list arg;
 	int n;

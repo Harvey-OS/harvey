@@ -15,7 +15,7 @@
 #include "secstore.h"
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p = malloc(n);
 
@@ -26,25 +26,25 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	if ((p = realloc(p, n)) == nil)
 		sysfatal("erealloc");
 	return p;
 }
 
-char *
-estrdup(char *s)
+int8_t *
+estrdup(int8_t *s)
 {
 	if ((s = strdup(s)) == nil)
 		sysfatal("estrdup");
 	return s;
 }
 
-char*
-getpassm(char *prompt)
+int8_t*
+getpassm(int8_t *prompt)
 {
-	char *p, line[4096];
+	int8_t *p, line[4096];
 	int n, nr;
 	static int cons, consctl; /* closing & reopening fails in ssh environment */
 
@@ -96,17 +96,17 @@ getpassm(char *prompt)
 	}
 }
 
-static char *
-illegal(char *f)
+static int8_t *
+illegal(int8_t *f)
 {
 	syslog(0, LOG, "illegal name: %s", f);
 	return nil;
 }
 
-char *
-validatefile(char *f)
+int8_t *
+validatefile(int8_t *f)
 {
-	char *p;
+	int8_t *p;
 
 	if(f == nil || *f == '\0')
 		return nil;

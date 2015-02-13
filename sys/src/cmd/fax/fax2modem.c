@@ -24,9 +24,9 @@ initfaxmodem(Modem *m)
 }
 
 static int
-parameters(long a[], char *s)
+parameters(int32_t a[], int8_t *s)
 {
-	char *p;
+	int8_t *p;
 	int i;
 
 	i = 0;
@@ -56,7 +56,7 @@ fcon(Modem *m)
 int
 ftsi(Modem *m)
 {
-	char *p, *q;
+	int8_t *p, *q;
 
 	verbose("ftsi: %s", m->response);
 	if((p = strchr(m->response, '"')) == 0 || (q = strrchr(p+1, '"')) == 0)
@@ -104,7 +104,7 @@ fpts(Modem *m)
 int
 fet(Modem *m)
 {
-	char *p;
+	int8_t *p;
 
 	verbose("fet: %s", m->response);
 	if(m->fax == 0 || (p = strchr(m->response, ':')) == 0)
@@ -117,7 +117,7 @@ fet(Modem *m)
 int
 fhng(Modem *m)
 {
-	char *p;
+	int8_t *p;
 
 	verbose("fhng: %s", m->response);
 	if(m->fax == 0 || (p = strchr(m->response, ':')) == 0)

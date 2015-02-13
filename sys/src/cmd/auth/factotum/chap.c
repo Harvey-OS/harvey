@@ -33,25 +33,28 @@ enum {
 
 static int dochal(State*);
 static int doreply(State*, void*, int);
-static void doLMchap(char *, uchar [ChapChallen], uchar [MSchapResplen]);
-static void doNTchap(char *, uchar [ChapChallen], uchar [MSchapResplen]);
-static void dochap(char *, int, char [ChapChallen], uchar [ChapResplen]);
+static void doLMchap(int8_t *, uint8_t [ChapChallen],
+		     uint8_t [MSchapResplen]);
+static void doNTchap(int8_t *, uint8_t [ChapChallen],
+		     uint8_t [MSchapResplen]);
+static void dochap(int8_t *, int, int8_t [ChapChallen],
+		   uint8_t [ChapResplen]);
 
 
 struct State
 {
-	char *protoname;
+	int8_t *protoname;
 	int astype;
 	int asfd;
 	Key *key;
 	Ticket	t;
 	Ticketreq	tr;
-	char chal[ChapChallen];
+	int8_t chal[ChapChallen];
 	MSchapreply mcr;
-	char cr[ChapResplen];
-	char err[ERRMAX];
-	char user[64];
-	uchar secret[16];	/* for mschap */
+	int8_t cr[ChapResplen];
+	int8_t err[ERRMAX];
+	int8_t user[64];
+	uint8_t secret[16];	/* for mschap */
 	int nsecret;
 };
 
@@ -138,7 +141,7 @@ static int
 chapwrite(Fsstate *fss, void *va, uint n)
 {
 	int ret, nreply;
-	char *a, *v;
+	int8_t *a, *v;
 	void *reply;
 	Key *k;
 	Keyinfo ki;
@@ -166,11 +169,11 @@ chapwrite(Fsstate *fss, void *va, uint n)
 		default:
 			abort();
 		case AuthMSchap:
-			doLMchap(v, (uchar *)a, (uchar *)s->mcr.LMresp);
-			doNTchap(v, (uchar *)a, (uchar *)s->mcr.NTresp);
+			doLMchap(v, (uint8_t *)a, (uint8_t *)s->mcr.LMresp);
+			doNTchap(v, (uint8_t *)a, (uint8_t *)s->mcr.NTresp);
 			break;
 		case AuthChap:
-			dochap(v, *a, a+1, (uchar *)s->cr);
+			dochap(v, *a, a+1, (uint8_t *)s->cr);
 			break;
 		}
 		closekey(k);
@@ -266,8 +269,8 @@ chapread(Fsstate *fss, void *va, uint *n)
 static int
 dochal(State *s)
 {
-	char *dom, *user;
-	char trbuf[TICKREQLEN];
+	int8_t *dom, *user;
+	int8_t trbuf[TICKREQLEN];
 
 	s->asfd = -1;
 
@@ -305,7 +308,7 @@ err:
 static int
 doreply(State *s, void *reply, int nreply)
 {
-	char ticket[TICKETLEN+AUTHENTLEN];
+	int8_t ticket[TICKETLEN+AUTHENTLEN];
 	int n;
 	Authenticator a;
 
@@ -370,11 +373,11 @@ Proto mschap = {
 };
 
 static void
-hash(uchar pass[16], uchar c8[ChapChallen], uchar p24[MSchapResplen])
+hash(uint8_t pass[16], uint8_t c8[ChapChallen], uint8_t p24[MSchapResplen])
 {
 	int i;
-	uchar p21[21];
-	ulong schedule[32];
+	uint8_t p21[21];
+	uint32_t schedule[32];
 
 	memset(p21, 0, sizeof p21 );
 	memmove(p21, pass, 16);
@@ -387,12 +390,13 @@ hash(uchar pass[16], uchar c8[ChapChallen], uchar p24[MSchapResplen])
 }
 
 static void
-doNTchap(char *pass, uchar chal[ChapChallen], uchar reply[MSchapResplen])
+doNTchap(int8_t *pass, uint8_t chal[ChapChallen],
+	 uint8_t reply[MSchapResplen])
 {
 	Rune r;
 	int i, n;
-	uchar digest[MD4dlen];
-	uchar *w, unipass[256];
+	uint8_t digest[MD4dlen];
+	uint8_t *w, unipass[256];
 
 	// Standard says unlimited length, experience says 128 max
 	if ((n = strlen(pass)) > 128)
@@ -411,12 +415,13 @@ doNTchap(char *pass, uchar chal[ChapChallen], uchar reply[MSchapResplen])
 }
 
 static void
-doLMchap(char *pass, uchar chal[ChapChallen], uchar reply[MSchapResplen])
+doLMchap(int8_t *pass, uint8_t chal[ChapChallen],
+	 uint8_t reply[MSchapResplen])
 {
 	int i;
-	ulong schedule[32];
-	uchar p14[15], p16[16];
-	uchar s8[8] = {0x4b, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25};
+	uint32_t schedule[32];
+	uint8_t p14[15], p16[16];
+	uint8_t s8[8] = {0x4b, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25};
 	int n = strlen(pass);
 
 	if(n > 14){
@@ -445,9 +450,10 @@ doLMchap(char *pass, uchar chal[ChapChallen], uchar reply[MSchapResplen])
 }
 
 static void
-dochap(char *pass, int id, char chal[ChapChallen], uchar resp[ChapResplen])
+dochap(int8_t *pass, int id, int8_t chal[ChapChallen],
+       uint8_t resp[ChapResplen])
 {
-	char buf[1+ChapChallen+MAXNAMELEN+1];
+	int8_t buf[1+ChapChallen+MAXNAMELEN+1];
 	int n = strlen(pass);
 
 	*buf = id;
@@ -456,6 +462,6 @@ dochap(char *pass, int id, char chal[ChapChallen], uchar resp[ChapResplen])
 	memset(buf, 0, sizeof buf);
 	strncpy(buf+1, pass, n);
 	memmove(buf+1+n, chal, ChapChallen);
-	md5((uchar*)buf, 1+n+ChapChallen, resp, nil);
+	md5((uint8_t*)buf, 1+n+ChapChallen, resp, nil);
 }
 

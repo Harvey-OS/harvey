@@ -25,22 +25,22 @@ enum {
 
 int	debug = 0; //DBGSERVER|DBGPUMP|DBGSTATE|DBGPICKLE|DBGPLAY;
 
-char	usage[] = "Usage: %s [-d mask] [-t] [-w]\n";
+int8_t	usage[] = "Usage: %s [-d mask] [-t] [-w]\n";
 
 typedef struct But {
-	char	*name;
+	int8_t	*name;
 	Control	*ctl;
 } But;
 
 typedef struct Simpleitem {
-	char	*address;
-	char	*data;
+	int8_t	*address;
+	int8_t	*data;
 } Simpleitem;
 
 typedef struct Multiitem {
-	char	*address;
+	int8_t	*address;
 	int	ndata;
-	char	**data;
+	int8_t	**data;
 } Multiitem;
 
 enum {
@@ -108,8 +108,8 @@ But buts[] = {
 };
 
 struct tab {
-	char *tabname;
-	char *winname;
+	int8_t *tabname;
+	int8_t *winname;
 	Control *tab;
 	Control *win;
 } tabs[4] = {
@@ -119,7 +119,7 @@ struct tab {
 	[WinError] =	{"Errors",	"errorwin",	nil, nil},
 };
 
-char *helptext[] = {
+int8_t *helptext[] = {
 	"Buttons, left to right:",
 	"    Exit: exit jukebox",
 	"    Pause: pause/resume playback",
@@ -155,7 +155,7 @@ char *helptext[] = {
 };
 
 struct Browsestack {
-	char	*onum;
+	int8_t	*onum;
 	int	scrollpos;
 } browsestack[Browsedepth];
 int browsesp;	/* browse stack pointer */
@@ -171,8 +171,8 @@ Control		*browsebotscr;
 
 Playstate	playstate;
 
-ulong		playingbuts = 1<<Pausebutton | 1<<Stopbutton | 1<<Prevbutton | 1<<Nextbutton;
-ulong		activebuts;
+uint32_t		playingbuts = 1<<Pausebutton | 1<<Stopbutton | 1<<Prevbutton | 1<<Nextbutton;
+uint32_t		activebuts;
 
 int		tabht;
 Image		*vol1img;
@@ -188,7 +188,7 @@ int		pflag;
 
 Controlset	*cs;
 
-char		*root;
+int8_t		*root;
 Multiitem	parent;
 Simpleitem	children[2048];
 int		nchildren;
@@ -200,7 +200,7 @@ Channel		*playevent;
 void
 readbuts(void)
 {
-	static char str[32], file[64];
+	static int8_t str[32], file[64];
 	But *b;
 	int fd;
 	Image *img, *mask;
@@ -237,11 +237,11 @@ readbuts(void)
 }
 
 void
-activatebuttons(ulong mask)
+activatebuttons(uint32_t mask)
 {	// mask bit i corresponds to buts[i];
-	ulong bit;
+	uint32_t bit;
 	But *b;
-	static char str[40];
+	static int8_t str[40];
 	int i;
 
 	for(i = 0; i < nelem(buts); i++){
@@ -259,11 +259,11 @@ activatebuttons(ulong mask)
 }
 
 void
-deactivatebuttons(ulong mask)
+deactivatebuttons(uint32_t mask)
 {	// mask bit i corresponds with buts[i];
-	ulong bit;
+	uint32_t bit;
 	But *b;
-	static char str[40];
+	static int8_t str[40];
 	int i;
 
 	for(i = 0; i < nelem(buts); i++){
@@ -283,7 +283,7 @@ deactivatebuttons(ulong mask)
 void
 resizecontrolset(Controlset *){
 	static Point pol[3];
-	char *p;
+	int8_t *p;
 
 	if(getwindow(display, Refbackup) < 0)
 		sysfatal("getwindow");
@@ -539,9 +539,9 @@ makecontrols(void)
 void
 makewindow(int dx, int dy, int wflag){
 	int mountfd, fd, n;
-	static char aname[128];
-	static char rio[128] = "/mnt/term";
-	char *args[6];
+	static int8_t aname[128];
+	static int8_t rio[128] = "/mnt/term";
+	int8_t *args[6];
 
 	if(wflag){
 		/* find out screen size */
@@ -604,7 +604,7 @@ makewindow(int dx, int dy, int wflag){
 }
 
 void
-setparent(char *addr)
+setparent(int8_t *addr)
 {
 	int i;
 
@@ -625,9 +625,9 @@ setparent(char *addr)
 }
 
 void
-addparent(char *str)
+addparent(int8_t *str)
 {
-	parent.data = realloc(parent.data, (parent.ndata+1)*sizeof(char*));
+	parent.data = realloc(parent.data, (parent.ndata+1)*sizeof(int8_t*));
 	parent.data[parent.ndata] = strdup(str);
 	parent.ndata++;
 	chanprint(cs->ctl, "browsetopwin accumulate %q", str);
@@ -654,7 +654,7 @@ clearchildren(void)
 }
 
 void
-addchild(char *addr, char *data)
+addchild(int8_t *addr, int8_t *data)
 {
 	children[nchildren].address = addr;
 	children[nchildren].data = data;
@@ -690,7 +690,7 @@ playlistselect(int n)
 void
 updateplaylist(int trunc)
 {
-	char *s;
+	int8_t *s;
 	int fd;
 
 	while(cs->ctl->s - cs->ctl->n < cs->ctl->s/4)
@@ -728,7 +728,7 @@ updateplaylist(int trunc)
 }
 
 void
-browseto(char *onum, int line)
+browseto(int8_t *onum, int line)
 {
 	onum = strdup(onum);
 	setparent(onum);
@@ -745,7 +745,7 @@ browseto(char *onum, int line)
 }
 
 void
-browsedown(char *onum)
+browsedown(int8_t *onum)
 {
 	if(browsesp == 0){
 		/* Make room for an entry by deleting the last */
@@ -765,7 +765,7 @@ browsedown(char *onum)
 }
 
 void
-browseup(char *onum)
+browseup(int8_t *onum)
 {
 	if(browsesp == Browsedepth){
 		/* Make room for an entry by deleting the first */
@@ -785,7 +785,7 @@ browseup(char *onum)
 }
 
 void
-addplaytext(char *s)
+addplaytext(int8_t *s)
 {
 	chanprint(cs->ctl, "playtext accumulate %q", s);
 }
@@ -793,8 +793,8 @@ addplaytext(char *s)
 void
 work(void)
 {
-	static char *eventstr, *args[64], *s;
-	static char buf[4096];
+	static int8_t *eventstr, *args[64], *s;
+	static int8_t buf[4096];
 	int a, n, i;
 	Alt alts[] = {
 	[Exitbutton] =		{buts[Exitbutton].ctl->event, &eventstr, CHANRCV},

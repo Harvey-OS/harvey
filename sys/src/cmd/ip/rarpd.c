@@ -18,37 +18,37 @@ typedef struct Rarp	Rarp;
 
 struct Rarp
 {
-	uchar	edst[6];
-	uchar	esrc[6];
-	uchar	type[2];
-	uchar	hrd[2];
-	uchar	pro[2];
-	uchar	hln;
-	uchar	pln;
-	uchar	op[2];
-	uchar	sha[6];
-	uchar	spa[4];
-	uchar	tha[6];
-	uchar	tpa[4];
+	uint8_t	edst[6];
+	uint8_t	esrc[6];
+	uint8_t	type[2];
+	uint8_t	hrd[2];
+	uint8_t	pro[2];
+	uint8_t	hln;
+	uint8_t	pln;
+	uint8_t	op[2];
+	uint8_t	sha[6];
+	uint8_t	spa[4];
+	uint8_t	tha[6];
+	uint8_t	tpa[4];
 };
 
-uchar	myip[IPaddrlen];
-uchar	myether[6];
-char	rlog[] = "ipboot";
-char	*device = "ether0";
+uint8_t	myip[IPaddrlen];
+uint8_t	myether[6];
+int8_t	rlog[] = "ipboot";
+int8_t	*device = "ether0";
 int	debug;
 Ndb	*db;
 
-char*	lookup(char*, char*, char*, char*, int);
+int8_t*	lookup(int8_t*, int8_t*, int8_t*, int8_t*, int);
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	syslog(1, rlog, "error %s: %r", s);
 	exits(s);
 }
 
-char net[32];
+int8_t net[32];
 
 void
 usage(void)
@@ -175,11 +175,11 @@ main(int argc, char *argv[])
 	}
 }
 
-char*
-lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
+int8_t*
+lookup(int8_t *sattr, int8_t *sval, int8_t *tattr, int8_t *tval, int len)
 {
 	static Ndb *db;
-	char *attrs[1];
+	int8_t *attrs[1];
 	Ndbtuple *t;
 
 	if(db == nil)

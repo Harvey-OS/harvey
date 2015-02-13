@@ -16,24 +16,24 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uchar	sport[2];
-	uchar	dport[2];
-	uchar	seq[4];
-	uchar	ack[4];
-	uchar	flag[2];
-	uchar	win[2];
-	uchar	cksum[2];
-	uchar	urg[2];
-	uchar	opt[1];
+	uint8_t	sport[2];
+	uint8_t	dport[2];
+	uint8_t	seq[4];
+	uint8_t	ack[4];
+	uint8_t	flag[2];
+	uint8_t	win[2];
+	uint8_t	cksum[2];
+	uint8_t	urg[2];
+	uint8_t	opt[1];
 };
 
 typedef struct PseudoHdr{
-	uchar	src[4];
-	uchar	dst[4];
-	uchar	zero;
-	uchar	proto;
-	uchar	length[2];
-	uchar	hdrdata[1580];
+	uint8_t	src[4];
+	uint8_t	dst[4];
+	uint8_t	zero;
+	uint8_t	proto;
+	uint8_t	length[2];
+	uint8_t	hdrdata[1580];
 } PseudoHdr;
 
 enum
@@ -129,11 +129,11 @@ enum
 	FIN		= 0x01,		/* Start close down */
 };
 
-static char*
+static int8_t*
 flags(int f)
 {
-	static char fl[20];
-	char *p;
+	static int8_t fl[20];
+	int8_t *p;
 
 	p = fl;
 	if(f & URG)
@@ -157,7 +157,7 @@ static int
 p_seprint(Msg *m)
 {
 	int dport, sport, len, flag, optlen;
-	uchar *optr;
+	uint8_t *optr;
 	Hdr *h;
 
 	if(m->pe - m->ps < TCPLEN)
@@ -177,7 +177,7 @@ p_seprint(Msg *m)
 
 	m->p = seprint(m->p, m->e, "s=%d d=%d seq=%lud ack=%lud fl=%s win=%d ck=%4.4ux",
 			NetS(h->sport), dport,
-			(ulong)NetL(h->seq), (ulong)NetL(h->ack),
+			(uint32_t)NetL(h->seq), (uint32_t)NetL(h->ack),
 			flags(flag), NetS(h->win),
 			NetS(h->cksum));
 

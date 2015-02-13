@@ -13,9 +13,9 @@
 extern	int	printcol;
 
 int
-print(char *fmt, ...)
+print(int8_t *fmt, ...)
 {
-	char buf[SIZE], *out;
+	int8_t buf[SIZE], *out;
 	va_list arg, temp;
 	int n;
 
@@ -24,14 +24,14 @@ print(char *fmt, ...)
 	out = doprint(buf, buf+SIZE, fmt, &temp);
 	va_end(temp);
 	va_end(arg);
-	n = write(1, buf, (long)(out-buf));
+	n = write(1, buf, (int32_t)(out-buf));
 	return n;
 }
 
 int
-fprint(int f, char *fmt, ...)
+fprint(int f, int8_t *fmt, ...)
 {
-	char buf[SIZE], *out;
+	int8_t buf[SIZE], *out;
 	va_list arg, temp;
 	int n;
 
@@ -40,14 +40,14 @@ fprint(int f, char *fmt, ...)
 	out = doprint(buf, buf+SIZE, fmt, &temp);
 	va_end(temp);
 	va_end(arg);
-	n = write(f, buf, (long)(out-buf));
+	n = write(f, buf, (int32_t)(out-buf));
 	return n;
 }
 
 int
-sprint(char *buf, char *fmt, ...)
+sprint(int8_t *buf, int8_t *fmt, ...)
 {
-	char *out;
+	int8_t *out;
 	va_list arg, temp;
 	int scol;
 
@@ -62,9 +62,9 @@ sprint(char *buf, char *fmt, ...)
 }
 
 int
-snprint(char *buf, int len, char *fmt, ...)
+snprint(int8_t *buf, int len, int8_t *fmt, ...)
 {
-	char *out;
+	int8_t *out;
 	va_list arg, temp;
 	int scol;
 
@@ -78,10 +78,10 @@ snprint(char *buf, int len, char *fmt, ...)
 	return out-buf;
 }
 
-char*
-seprint(char *buf, char *e, char *fmt, ...)
+int8_t*
+seprint(int8_t *buf, int8_t *e, int8_t *fmt, ...)
 {
-	char *out;
+	int8_t *out;
 	va_list arg, temp;
 	int scol;
 

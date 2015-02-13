@@ -25,7 +25,7 @@ typedef struct PSInfo	PSInfo;
 typedef struct Page	Page;
 	
 struct Page {
-	char *name;
+	int8_t *name;
 	int offset;			/* offset of page beginning within file */
 };
 
@@ -41,15 +41,15 @@ struct PSInfo {
 
 static int	pswritepage(Document *d, int fd, int page);
 static Image*	psdrawpage(Document *d, int page);
-static char*	pspagename(Document*, int);
+static int8_t*	pspagename(Document*, int);
 
 #define R(r) (r).min.x, (r).min.y, (r).max.x, (r).max.y
 Rectangle
-rdbbox(char *p)
+rdbbox(int8_t *p)
 {
 	Rectangle r;
 	int a;
-	char *f[4];
+	int8_t *f[4];
 	while(*p == ':' || *p == ' ' || *p == '\t')
 		p++;
 	if(tokenize(p, f, 4) != 4)
@@ -92,7 +92,7 @@ rdbbox(char *p)
 #define RECT(X) X.min.x, X.min.y, X.max.x, X.max.y
 
 int
-prefix(char *x, char *y)
+prefix(int8_t *x, int8_t *y)
 {
 	return strncmp(x, y, strlen(y)) == 0;
 }
@@ -135,16 +135,16 @@ repaginate(PSInfo *ps, int n)
 }
 
 Document*
-initps(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
+initps(Biobuf *b, int argc, int8_t **argv, uint8_t *buf, int nbuf)
 {
 	Document *d;
 	PSInfo *ps;
-	char *p;
-	char *q, *r;
-	char eol;
-	char *nargv[1];
-	char fdbuf[20];
-	char tmp[32];
+	int8_t *p;
+	int8_t *q, *r;
+	int8_t eol;
+	int8_t *nargv[1];
+	int8_t fdbuf[20];
+	int8_t tmp[32];
 	int fd;
 	int i;
 	int incomments;
@@ -153,8 +153,8 @@ initps(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 	int nesting=0;
 	int dumb=0;
 	int landscape=0;
-	long psoff;
-	long npage, mpage;
+	int32_t psoff;
+	int32_t npage, mpage;
 	Page *page;
 	Rectangle bbox = Rect(0,0,0,0);
 
@@ -389,8 +389,8 @@ pswritepage(Document *d, int fd, int page)
 	Biobuf *b = d->b;
 	PSInfo *ps = d->extra;
 	int t, n, i;
-	long begin, end;
-	char buf[8192];
+	int32_t begin, end;
+	int8_t buf[8192];
 
 	if(page == -1)
 		begin = ps->psoff;
@@ -451,7 +451,7 @@ psdrawpage(Document *d, int page)
 	return im;
 }
 
-static char*
+static int8_t*
 pspagename(Document *d, int page)
 {
 	PSInfo *ps = (PSInfo *) d->extra;

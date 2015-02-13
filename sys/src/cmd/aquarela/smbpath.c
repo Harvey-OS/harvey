@@ -10,10 +10,10 @@
 #include "headers.h"
 
 void
-smbpathsplit(char *path, char **dirp, char **namep)
+smbpathsplit(int8_t *path, int8_t **dirp, int8_t **namep)
 {
-	char *dir;
-	char *p = strrchr(path, '/');
+	int8_t *dir;
+	int8_t *p = strrchr(path, '/');
 	if (p == nil) {
 		*dirp = smbestrdup("/");
 		*namep = smbestrdup(path);

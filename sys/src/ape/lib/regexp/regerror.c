@@ -13,9 +13,9 @@
 #include "regexp.h"
 
 void
-regerror(char *s)
+regerror(int8_t *s)
 {
-	char buf[132];
+	int8_t buf[132];
 
 	strcpy(buf, "regerror: ");
 	strcat(buf, s);

@@ -10,11 +10,11 @@
 #include <u.h>
 #include <libc.h>
 
-long
-readn(int f, void *av, long n)
+int32_t
+readn(int f, void *av, int32_t n)
 {
-	char *a;
-	long m, t;
+	int8_t *a;
+	int32_t m, t;
 
 	a = av;
 	t = 0;

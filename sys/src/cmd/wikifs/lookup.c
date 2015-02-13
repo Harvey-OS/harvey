@@ -15,7 +15,7 @@
 #include "wiki.h"
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	print("%d\n", nametonum(argv[1]));
 }

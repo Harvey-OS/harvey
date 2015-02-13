@@ -142,8 +142,8 @@ select_file_type (j_compress_ptr cinfo, FILE * infile)
  */
 
 
-static const char * progname;	/* program name for error messages */
-static char * outfilename;	/* for -outfile switch */
+static const int8_t * progname;	/* program name for error messages */
+static int8_t * outfilename;	/* for -outfile switch */
 
 
 LOCAL(void)
@@ -467,7 +467,7 @@ parse_switches (j_compress_ptr cinfo, int argc, char **argv,
  */
 
 int
-main (int argc, char **argv)
+main (int argc, int8_t **argv)
 {
   struct jpeg_compress_struct cinfo;
   struct jpeg_error_mgr jerr;

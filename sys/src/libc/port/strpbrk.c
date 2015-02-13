@@ -11,11 +11,11 @@
 #include <libc.h>
 #define	N	256
 
-char*
-strpbrk(char *cs, char *cb)
+int8_t*
+strpbrk(int8_t *cs, int8_t *cb)
 {
-	char map[N];
-	uchar *s=(uchar*)cs, *b=(uchar*)cb;
+	int8_t map[N];
+	uint8_t *s=(uint8_t*)cs, *b=(uint8_t*)cb;
 
 	memset(map, 0, N);
 	for(;;) {
@@ -26,6 +26,6 @@ strpbrk(char *cs, char *cb)
 	while(map[*s++] == 0)
 		;
 	if(*--s)
-		return (char*)s;
+		return (int8_t*)s;
 	return 0;
 }

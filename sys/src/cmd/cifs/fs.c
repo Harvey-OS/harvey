@@ -15,13 +15,13 @@
 #include <9p.h>
 #include "cifs.h"
 
-static char *period(long sec);
+static int8_t *period(int32_t sec);
 
 int
 shareinfo(Fmt *f)
 {
 	int i, j, n;
-	char *type;
+	int8_t *type;
 	Shareinfo2 si2;
 	Share *sp, *sip;
 
@@ -98,7 +98,7 @@ conninfo(Fmt *f)
 	int i;
 	typedef struct {
 		int	val;
-		char	*name;
+		int8_t	*name;
 	} Tab;
 	static Tab captab[] = {
 		{ 1,		"raw-mode" },
@@ -190,7 +190,7 @@ sessioninfo(Fmt *f)
  *
  */
 static void
-dfsredir(Fmt *f, char *path, int depth)
+dfsredir(Fmt *f, int8_t *path, int depth)
 {
 	Refer *re, retab[128];
 	int n, used, flags;
@@ -355,11 +355,11 @@ workstationinfo(Fmt *f)
 	return nodelist(f, ALL_LEARNT_IN_DOMAIN);
 }
 
-static char *
-period(long sec)
+static int8_t *
+period(int32_t sec)
 {
 	int days, hrs, min;
-	static char when[32];
+	static int8_t when[32];
 
 	days = sec  / (60L * 60L * 24L);
 	sec -= days * (60L * 60L * 24L);

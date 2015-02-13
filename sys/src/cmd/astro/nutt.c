@@ -46,7 +46,7 @@ double	nutfp[] =
 	      0,
 };
 
-char	nutcp[] =
+int8_t	nutcp[] =
 {
 	2,0,0,0,
 	2,2,-2,0,

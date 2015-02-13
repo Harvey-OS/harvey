@@ -19,7 +19,7 @@ int
 iounit(int fd)
 {
 	int i, cfd;
-	char buf[128], *args[10];
+	int8_t buf[128], *args[10];
 
 	snprint(buf, sizeof buf, "#d/%dctl", fd);
 	cfd = open(buf, OREAD);

@@ -48,13 +48,13 @@
 #include "iapi.h"
 #include "gdevdsp.h"
 
-const char start_string[] = "systemdict /start get exec\n";
+const int8_t start_string[] = "systemdict /start get exec\n";
 
 static void read_stdin_handler(gpointer data, gint fd, 
 	GdkInputCondition condition);
-static int gsdll_stdin(void *instance, char *buf, int len);
-static int gsdll_stdout(void *instance, const char *str, int len);
-static int gsdll_stdout(void *instance, const char *str, int len);
+static int gsdll_stdin(void *instance, int8_t *buf, int len);
+static int gsdll_stdout(void *instance, const int8_t *str, int len);
+static int gsdll_stdout(void *instance, const int8_t *str, int len);
 static int display_open(void *handle, void *device);
 static int display_preclose(void *handle, void *device);
 static int display_close(void *handle, void *device);
@@ -75,7 +75,7 @@ static int display_update(void *handle, void *device, int x, int y,
 /* stdio functions */
 
 struct stdin_buf {
-   char *buf;
+   int8_t *buf;
    int len;	/* length of buffer */
    int count;	/* number of characters returned */
 };
@@ -104,7 +104,7 @@ read_stdin_handler(gpointer data, gint fd, GdkInputCondition condition)
 
 /* callback for reading stdin */
 static int 
-gsdll_stdin(void *instance, char *buf, int len)
+gsdll_stdin(void *instance, int8_t *buf, int len)
 {
     struct stdin_buf input;
     gint input_tag;
@@ -124,7 +124,7 @@ gsdll_stdin(void *instance, char *buf, int len)
 }
 
 static int 
-gsdll_stdout(void *instance, const char *str, int len)
+gsdll_stdout(void *instance, const int8_t *str, int len)
 {
     gtk_main_iteration_do(FALSE);
     fwrite(str, 1, len, stdout);
@@ -133,7 +133,7 @@ gsdll_stdout(void *instance, const char *str, int len)
 }
 
 static int 
-gsdll_stderr(void *instance, const char *str, int len)
+gsdll_stderr(void *instance, const int8_t *str, int len)
 {
     gtk_main_iteration_do(FALSE);
     fwrite(str, 1, len, stderr);
@@ -148,7 +148,7 @@ typedef struct IMAGE_DEVICEN_S IMAGE_DEVICEN;
 struct IMAGE_DEVICEN_S {
     int used;		/* non-zero if in use */
     int visible;	/* show on window */
-    char name[64];
+    int8_t name[64];
     int cyan;
     int magenta;
     int yellow;
@@ -408,7 +408,7 @@ GtkSignalFunc signal_separation[IMAGE_DEVICEN_MAX] = {
 };
 
 static GtkWidget *
-window_add_button(IMAGE *img, const char *label, GtkSignalFunc fn)
+window_add_button(IMAGE *img, const int8_t *label, GtkSignalFunc fn)
 {
     GtkWidget *w;
     w = gtk_check_button_new_with_label(label);
@@ -1066,7 +1066,7 @@ static int display_update(void *handle, void *device,
 
 static int 
 display_separation(void *handle, void *device,
-    int comp_num, const char *name,
+    int comp_num, const int8_t *name,
     unsigned short c, unsigned short m,
     unsigned short y, unsigned short k)
 {
@@ -1106,14 +1106,14 @@ display_callback display = {
 
 /*********************************************************************/
 
-int main(int argc, char *argv[])
+int main(int argc, int8_t *argv[])
 {
     int exit_status;
     int code = 1, code1;
     void *instance;
     int nargc;
-    char **nargv;
-    char dformat[64];
+    int8_t **nargv;
+    int8_t dformat[64];
     int exit_code;
     gboolean use_gui;
 
@@ -1126,10 +1126,10 @@ int main(int argc, char *argv[])
  	    DISPLAY_COLORS_RGB | DISPLAY_ALPHA_NONE | DISPLAY_DEPTH_8 | 
 	    DISPLAY_BIGENDIAN | DISPLAY_TOPFIRST);
     nargc = argc + 1;
-    nargv = (char **)malloc((nargc + 1) * sizeof(char *));
+    nargv = (int8_t **)malloc((nargc + 1) * sizeof(int8_t *));
     nargv[0] = argv[0];
     nargv[1] = dformat;
-    memcpy(&nargv[2], &argv[1], argc * sizeof(char *));
+    memcpy(&nargv[2], &argv[1], argc * sizeof(int8_t *));
 
     /* run Ghostscript */
     if ((code = gsapi_new_instance(&instance, NULL)) == 0) {

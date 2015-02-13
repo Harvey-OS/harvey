@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-char*
-strrchr(char *s, int c)
+int8_t*
+strrchr(int8_t *s, int c)
 {
-	char *r;
+	int8_t *r;
 
 	if(c == 0)
 		return strchr(s, 0);

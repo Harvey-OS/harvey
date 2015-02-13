@@ -37,12 +37,12 @@
     } \
 }
 
-const char hello[] = "hello, hello!";
+const int8_t hello[] = "hello, hello!";
 /* "hello world" would be more standard, but the repeated "hello"
  * stresses the compression code better, sorry...
  */
 
-const char dictionary[] = "hello";
+const int8_t dictionary[] = "hello";
 uLong dictId; /* Adler32 value of the dictionary */
 
 void test_compress      OF((Byte *compr, uLong comprLen,
@@ -77,16 +77,16 @@ void test_compress(compr, comprLen, uncompr, uncomprLen)
     err = compress(compr, &comprLen, (const Bytef*)hello, len);
     CHECK_ERR(err, "compress");
 
-    strcpy((char*)uncompr, "garbage");
+    strcpy((int8_t*)uncompr, "garbage");
 
     err = uncompress(uncompr, &uncomprLen, compr, comprLen);
     CHECK_ERR(err, "uncompress");
 
-    if (strcmp((char*)uncompr, hello)) {
+    if (strcmp((int8_t*)uncompr, hello)) {
         fprintf(stderr, "bad uncompress\n");
         exit(1);
     } else {
-        printf("uncompress(): %s\n", (char *)uncompr);
+        printf("uncompress(): %s\n", (int8_t *)uncompr);
     }
 }
 
@@ -94,7 +94,7 @@ void test_compress(compr, comprLen, uncompr, uncomprLen)
  * Test read/write of .gz files
  */
 void test_gzio(fname, uncompr, uncomprLen)
-    const char *fname; /* compressed file name */
+    const int8_t *fname; /* compressed file name */
     Byte *uncompr;
     uLong uncomprLen;
 {
@@ -128,23 +128,23 @@ void test_gzio(fname, uncompr, uncomprLen)
         fprintf(stderr, "gzopen error\n");
         exit(1);
     }
-    strcpy((char*)uncompr, "garbage");
+    strcpy((int8_t*)uncompr, "garbage");
 
     if (gzread(file, uncompr, (unsigned)uncomprLen) != len) {
         fprintf(stderr, "gzread err: %s\n", gzerror(file, &err));
         exit(1);
     }
-    if (strcmp((char*)uncompr, hello)) {
-        fprintf(stderr, "bad gzread: %s\n", (char*)uncompr);
+    if (strcmp((int8_t*)uncompr, hello)) {
+        fprintf(stderr, "bad gzread: %s\n", (int8_t*)uncompr);
         exit(1);
     } else {
-        printf("gzread(): %s\n", (char*)uncompr);
+        printf("gzread(): %s\n", (int8_t*)uncompr);
     }
 
     pos = gzseek(file, -8L, SEEK_CUR);
     if (pos != 6 || gztell(file) != pos) {
         fprintf(stderr, "gzseek error, pos=%ld, gztell=%ld\n",
-                (long)pos, (long)gztell(file));
+                (int32_t)pos, (int32_t)gztell(file));
         exit(1);
     }
 
@@ -158,16 +158,16 @@ void test_gzio(fname, uncompr, uncomprLen)
         exit(1);
     }
 
-    gzgets(file, (char*)uncompr, (int)uncomprLen);
-    if (strlen((char*)uncompr) != 7) { /* " hello!" */
+    gzgets(file, (int8_t*)uncompr, (int)uncomprLen);
+    if (strlen((int8_t*)uncompr) != 7) { /* " hello!" */
         fprintf(stderr, "gzgets err after gzseek: %s\n", gzerror(file, &err));
         exit(1);
     }
-    if (strcmp((char*)uncompr, hello + 6)) {
+    if (strcmp((int8_t*)uncompr, hello + 6)) {
         fprintf(stderr, "bad gzgets after gzseek\n");
         exit(1);
     } else {
-        printf("gzgets() after gzseek: %s\n", (char*)uncompr);
+        printf("gzgets() after gzseek: %s\n", (int8_t*)uncompr);
     }
 
     gzclose(file);
@@ -222,7 +222,7 @@ void test_inflate(compr, comprLen, uncompr, uncomprLen)
     int err;
     z_stream d_stream; /* decompression stream */
 
-    strcpy((char*)uncompr, "garbage");
+    strcpy((int8_t*)uncompr, "garbage");
 
     d_stream.zalloc = (alloc_func)0;
     d_stream.zfree = (free_func)0;
@@ -245,11 +245,11 @@ void test_inflate(compr, comprLen, uncompr, uncomprLen)
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
 
-    if (strcmp((char*)uncompr, hello)) {
+    if (strcmp((int8_t*)uncompr, hello)) {
         fprintf(stderr, "bad inflate\n");
         exit(1);
     } else {
-        printf("inflate(): %s\n", (char *)uncompr);
+        printf("inflate(): %s\n", (int8_t *)uncompr);
     }
 }
 
@@ -318,7 +318,7 @@ void test_large_inflate(compr, comprLen, uncompr, uncomprLen)
     int err;
     z_stream d_stream; /* decompression stream */
 
-    strcpy((char*)uncompr, "garbage");
+    strcpy((int8_t*)uncompr, "garbage");
 
     d_stream.zalloc = (alloc_func)0;
     d_stream.zfree = (free_func)0;
@@ -397,7 +397,7 @@ void test_sync(compr, comprLen, uncompr, uncomprLen)
     int err;
     z_stream d_stream; /* decompression stream */
 
-    strcpy((char*)uncompr, "garbage");
+    strcpy((int8_t*)uncompr, "garbage");
 
     d_stream.zalloc = (alloc_func)0;
     d_stream.zfree = (free_func)0;
@@ -428,7 +428,7 @@ void test_sync(compr, comprLen, uncompr, uncomprLen)
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
 
-    printf("after inflateSync(): hel%s\n", (char *)uncompr);
+    printf("after inflateSync(): hel%s\n", (int8_t *)uncompr);
 }
 
 /* ===========================================================================
@@ -478,7 +478,7 @@ void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
     int err;
     z_stream d_stream; /* decompression stream */
 
-    strcpy((char*)uncompr, "garbage");
+    strcpy((int8_t*)uncompr, "garbage");
 
     d_stream.zalloc = (alloc_func)0;
     d_stream.zfree = (free_func)0;
@@ -510,11 +510,11 @@ void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
     err = inflateEnd(&d_stream);
     CHECK_ERR(err, "inflateEnd");
 
-    if (strcmp((char*)uncompr, hello)) {
+    if (strcmp((int8_t*)uncompr, hello)) {
         fprintf(stderr, "bad inflate with dict\n");
         exit(1);
     } else {
-        printf("inflate with dictionary: %s\n", (char *)uncompr);
+        printf("inflate with dictionary: %s\n", (int8_t *)uncompr);
     }
 }
 
@@ -524,12 +524,12 @@ void test_dict_inflate(compr, comprLen, uncompr, uncomprLen)
 
 int main(argc, argv)
     int argc;
-    char *argv[];
+    int8_t *argv[];
 {
     Byte *compr, *uncompr;
     uLong comprLen = 10000*sizeof(int); /* don't overflow on MSDOS */
     uLong uncomprLen = comprLen;
-    static const char* myVersion = ZLIB_VERSION;
+    static const int8_t* myVersion = ZLIB_VERSION;
 
     if (zlibVersion()[0] != myVersion[0]) {
         fprintf(stderr, "incompatible zlib version\n");

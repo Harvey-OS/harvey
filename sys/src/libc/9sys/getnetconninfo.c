@@ -10,14 +10,14 @@
 #include <u.h>
 #include <libc.h>
 
-static char *unknown = "???";
+static int8_t *unknown = "???";
 
 static void
-getendpoint(char *dir, char *file, char **sysp, char **servp)
+getendpoint(int8_t *dir, int8_t *file, int8_t **sysp, int8_t **servp)
 {
 	int fd, n;
-	char buf[128];
-	char *sys, *serv;
+	int8_t buf[128];
+	int8_t *sys, *serv;
 
 	sys = serv = 0;
 
@@ -45,14 +45,14 @@ getendpoint(char *dir, char *file, char **sysp, char **servp)
 }
 
 NetConnInfo*
-getnetconninfo(char *dir, int fd)
+getnetconninfo(int8_t *dir, int fd)
 {
 	NetConnInfo *nci;
-	char *cp;
+	int8_t *cp;
 	Dir *d;
-	char spec[10];
-	char path[128];
-	char netname[128], *p;
+	int8_t spec[10];
+	int8_t path[128];
+	int8_t netname[128], *p;
 
 	/* get a directory address via fd */
 	if(dir == nil || *dir == 0){
@@ -117,7 +117,7 @@ err:
 }
 
 static void
-xfree(char *x)
+xfree(int8_t *x)
 {
 	if(x == nil || x == unknown)
 		return;

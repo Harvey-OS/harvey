@@ -14,13 +14,13 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-static ulong padblockcnt;
-static ulong concatblockcnt;
-static ulong pullupblockcnt;
-static ulong copyblockcnt;
-static ulong consumecnt;
-static ulong producecnt;
-static ulong qcopycnt;
+static uint32_t padblockcnt;
+static uint32_t concatblockcnt;
+static uint32_t pullupblockcnt;
+static uint32_t copyblockcnt;
+static uint32_t consumecnt;
+static uint32_t producecnt;
+static uint32_t qcopycnt;
 
 static int debugging;
 
@@ -281,7 +281,7 @@ pullupqueue(Queue *q, int n)
 Block *
 trimblock(Block *bp, int offset, int len)
 {
-	long l;
+	int32_t l;
 	Block *nb, *startb;
 
 	QDEBUG checkb(bp, "trimblock 1");
@@ -514,7 +514,7 @@ qconsume(Queue *q, void *vp, int len)
 {
 	Block *b;
 	int n, dowakeup;
-	uchar *p = vp;
+	uint8_t *p = vp;
 	Block *tofree = nil;
 
 	/* sync with qwrite */
@@ -709,7 +709,7 @@ qproduce(Queue *q, void *vp, int len)
 {
 	Block *b;
 	int dowakeup;
-	uchar *p = vp;
+	uint8_t *p = vp;
 
 	/* sync with qread */
 	dowakeup = 0;
@@ -760,12 +760,12 @@ qproduce(Queue *q, void *vp, int len)
  *  copy from offset in the queue
  */
 Block*
-qcopy(Queue *q, int len, ulong offset)
+qcopy(Queue *q, int len, uint32_t offset)
 {
 	int sofar;
 	int n;
 	Block *b, *nb;
-	uchar *p;
+	uint8_t *p;
 
 	nb = allocb(len);
 
@@ -928,7 +928,7 @@ qremove(Queue *q)
  *  pointer to first unconsumed block.
  */
 Block*
-bl2mem(uchar *p, Block *b, int n)
+bl2mem(uint8_t *p, Block *b, int n)
 {
 	int i;
 	Block *next;
@@ -955,7 +955,7 @@ bl2mem(uchar *p, Block *b, int n)
  *  return nil on error.
  */
 Block*
-mem2bl(uchar *p, int len)
+mem2bl(uint8_t *p, int len)
 {
 	int n;
 	Block *b, *first, **l;
@@ -1084,7 +1084,7 @@ qbread(Queue *q, int len)
  *  read a queue.  if no data is queued, post a Block
  *  and wait on its Rendez.
  */
-long
+int32_t
 qread(Queue *q, void *vp, int len)
 {
 	Block *b, *first, **l;
@@ -1174,12 +1174,12 @@ qnotfull(void *a)
 	return q->len < q->limit || (q->state & Qclosed);
 }
 
-ulong noblockcnt;
+uint32_t noblockcnt;
 
 /*
  *  add a block to a queue obeying flow control
  */
-long
+int32_t
 qbwrite(Queue *q, Block *b)
 {
 	int n, dowakeup;
@@ -1283,7 +1283,7 @@ qwrite(Queue *q, void *vp, int len)
 {
 	int n, sofar;
 	Block *b;
-	uchar *p = vp;
+	uint8_t *p = vp;
 
 	QDEBUG if(!islo())
 		print("qwrite hi %#p\n", getcallerpc(&q));
@@ -1324,7 +1324,7 @@ qiwrite(Queue *q, void *vp, int len)
 {
 	int n, sofar, dowakeup;
 	Block *b;
-	uchar *p = vp;
+	uint8_t *p = vp;
 
 	dowakeup = 0;
 
@@ -1427,7 +1427,7 @@ qclose(Queue *q)
  *  blocks.
  */
 void
-qhangup(Queue *q, char *msg)
+qhangup(Queue *q, int8_t *msg)
 {
 	/* mark it */
 	ilock(q);

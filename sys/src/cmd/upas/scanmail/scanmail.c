@@ -20,26 +20,26 @@ int	vflag;
 Biobuf	bin, bout, *cout;
 
 	/* file names */
-char	patfile[128];
-char	linefile[128];
-char	holdqueue[128];
-char	copydir[128];
+int8_t	patfile[128];
+int8_t	linefile[128];
+int8_t	holdqueue[128];
+int8_t	copydir[128];
 
-char	header[Hdrsize+2];
-char	cmd[1024];
-char	**qname;
-char	**qdir;
-char	*sender;
+int8_t	header[Hdrsize+2];
+int8_t	cmd[1024];
+int8_t	**qname;
+int8_t	**qdir;
+int8_t	*sender;
 String	*recips;
 
-char*	canon(Biobuf*, char*, char*, int*);
-int	matcher(char*, Pattern*, char*, Resub*);
-int	matchaction(int, char*, Resub*);
-Biobuf	*opencopy(char*);
-Biobuf	*opendump(char*);
-char	*qmail(char**, char*, int, Biobuf*);
-void	saveline(char*, char*, Resub*);
-int	optoutofspamfilter(char*);
+int8_t*	canon(Biobuf*, int8_t*, int8_t*, int*);
+int	matcher(int8_t*, Pattern*, int8_t*, Resub*);
+int	matchaction(int, int8_t*, Resub*);
+Biobuf	*opencopy(int8_t*);
+Biobuf	*opendump(int8_t*);
+int8_t	*qmail(int8_t**, int8_t*, int, Biobuf*);
+void	saveline(int8_t*, int8_t*, Resub*);
+int	optoutofspamfilter(int8_t*);
 
 void
 usage(void)
@@ -49,13 +49,13 @@ usage(void)
 }
 
 void
-regerror(char *s)
+regerror(int8_t *s)
 {
 	fprint(2, "scanmail: %s\n", s);
 }
 
 void *
-Malloc(long n)
+Malloc(int32_t n)
 {
 	void *p;
 
@@ -66,7 +66,7 @@ Malloc(long n)
 }
 
 void*
-Realloc(void *p, ulong n)
+Realloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == 0)
@@ -75,16 +75,16 @@ Realloc(void *p, ulong n)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int i, n, nolines, optout;
-	char **args, **a, *cp, *buf;
-	char body[Bodysize+2];
+	int8_t **args, **a, *cp, *buf;
+	int8_t body[Bodysize+2];
 	Resub match[1];
 	Biobuf *bp;
 
 	optout = 1;
-	a = args = Malloc((argc+1)*sizeof(char*));
+	a = args = Malloc((argc+1)*sizeof(int8_t*));
 	sprint(patfile, "%s/patterns", UPASLIB);
 	sprint(linefile, "%s/lines", UPASLOG);
 	sprint(holdqueue, "%s/queue.hold", SPOOL);
@@ -220,12 +220,12 @@ main(int argc, char *argv[])
 	exits(qmail(args, buf, n, cout));
 }
 
-char*
-qmail(char **argv, char *buf, int n, Biobuf *cout)
+int8_t*
+qmail(int8_t **argv, int8_t *buf, int n, Biobuf *cout)
 {
 	Waitmsg *status;
 	int i, pid, pipefd[2];
-	char path[512];
+	int8_t path[512];
 	Biobuf *bp;
 
 	pid = 0;
@@ -276,11 +276,11 @@ qmail(char **argv, char *buf, int n, Biobuf *cout)
 	return buf;
 }
 
-char*
-canon(Biobuf *bp, char *header, char *body, int *n)
+int8_t*
+canon(Biobuf *bp, int8_t *header, int8_t *body, int *n)
 {
 	int hsize;
-	char *raw;
+	int8_t *raw;
 
 	hsize = 0;
 	*header = 0;
@@ -296,9 +296,9 @@ canon(Biobuf *bp, char *header, char *body, int *n)
 }
 
 int
-matchaction(int action, char *message, Resub *m)
+matchaction(int action, int8_t *message, Resub *m)
 {
-	char *name;
+	int8_t *name;
 	Pattern *p;
 
 	if(message == 0 || *message == 0)
@@ -317,9 +317,9 @@ matchaction(int action, char *message, Resub *m)
 }
 
 int
-matcher(char *action, Pattern *p, char *message, Resub *m)
+matcher(int8_t *action, Pattern *p, int8_t *message, Resub *m)
 {
-	char *cp;
+	int8_t *cp;
 	String *s;
 
 	for(cp = message; matchpat(p, cp, m); cp = m->ep){
@@ -370,9 +370,9 @@ matcher(char *action, Pattern *p, char *message, Resub *m)
 }
 
 void
-saveline(char *file, char *sender, Resub *rp)
+saveline(int8_t *file, int8_t *sender, Resub *rp)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	int i, c;
 	Biobuf *bp;
 
@@ -404,13 +404,13 @@ saveline(char *file, char *sender, Resub *rp)
 }
 
 Biobuf*
-opendump(char *sender)
+opendump(int8_t *sender)
 {
 	int i;
-	ulong h;
-	char buf[512];
+	uint32_t h;
+	int8_t buf[512];
 	Biobuf *b;
-	char *cp;
+	int8_t *cp;
 
 	cp = ctime(time(0));
 	cp[7] = 0;
@@ -442,11 +442,11 @@ opendump(char *sender)
 }
 
 Biobuf*
-opencopy(char *sender)
+opencopy(int8_t *sender)
 {
 	int i;
-	ulong h;
-	char buf[512];
+	uint32_t h;
+	int8_t buf[512];
 	Biobuf *b;
 
 	h = 0;
@@ -463,9 +463,9 @@ opencopy(char *sender)
 }
 
 int
-optoutofspamfilter(char *addr)
+optoutofspamfilter(int8_t *addr)
 {
-	char *p, *f;
+	int8_t *p, *f;
 	int rv;
 
 	p = strchr(addr, '!');

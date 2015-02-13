@@ -19,7 +19,7 @@ usage(void)
 }
 
 static int
-rooted(char *s)
+rooted(int8_t *s)
 {
 	if(s[0] == '/')
 		return 1;

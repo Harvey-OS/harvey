@@ -41,7 +41,7 @@ struct Map {
 	Map* next;
 	int free;
 	uintptr	addr;
-	uvlong	size;
+	uint64_t	size;
 };
 
 struct ZMap {
@@ -197,7 +197,7 @@ zputaddr(Segment *s, uintptr va)
 }
 
 void*
-alloczio(Segment *s, long len)
+alloczio(Segment *s, int32_t len)
 {
 	Zseg *zs;
 	uintptr va;
@@ -238,11 +238,11 @@ getzkseg(void)
  * This is the counterpart of devzread in some sense,
  * it reads in the traditional way from io[].
  */
-long
-readzio(Kzio *io, int nio, void *a, long count)
+int32_t
+readzio(Kzio *io, int nio, void *a, int32_t count)
 {
-	long tot, nr;
-	char *p;
+	int32_t tot, nr;
+	int8_t *p;
 
 	p = a;
 	tot = 0;
@@ -266,7 +266,7 @@ readzio(Kzio *io, int nio, void *a, long count)
 }
 
 int
-devzread(Chan *c, Kzio io[], int nio, usize tot, vlong offset)
+devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
 {
 	Segment *s;
 
@@ -290,10 +290,10 @@ devzread(Chan *c, Kzio io[], int nio, usize tot, vlong offset)
 }
 
 int
-devzwrite(Chan *c, Kzio io[], int nio, vlong offset)
+devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 {
 	int i, j;
-	long tot;
+	int32_t tot;
 	Block *bp;
 
 	DBG("devzwrite %#p[%d]\n", io, nio);
@@ -374,7 +374,7 @@ kernzio(Kzio *io)
  * is asking the system to allocate memory as needed (mread only).
  */
 static int
-ziorw(int fd, Zio *io, int nio, usize count, vlong offset, int iswrite)
+ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 {
 	int i, n, isprw;
 	Kzio *kio, skio[16];
@@ -475,8 +475,8 @@ void
 sysziopread(Ar0 *ar0, va_list list)
 {
 	int fd, nio;
-	long count;
-	vlong offset;
+	int32_t count;
+	int64_t offset;
 	Zio *io;
 
 	/*
@@ -486,7 +486,7 @@ sysziopread(Ar0 *ar0, va_list list)
 	io = va_arg(list, Zio*);
 	nio = va_arg(list, int);
 	count = va_arg(list, usize);
-	offset = va_arg(list, vlong);
+	offset = va_arg(list, int64_t);
 	ar0->i = ziorw(fd, io, nio, count, offset, 0);
 }
 
@@ -494,7 +494,7 @@ void
 sysziopwrite(Ar0 *ar0, va_list list)
 {
 	int fd, nio;
-	vlong offset;
+	int64_t offset;
 	Zio *io;
 
 	/*
@@ -503,7 +503,7 @@ sysziopwrite(Ar0 *ar0, va_list list)
 	fd = va_arg(list, int);
 	io = va_arg(list, Zio*);
 	nio = va_arg(list, int);
-	offset = va_arg(list, vlong);
+	offset = va_arg(list, int64_t);
 	ar0->i = ziorw(fd, io, nio, 0, offset, 1);
 }
 

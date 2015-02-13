@@ -9,15 +9,15 @@
 
 #include "headers.h"
 
-static char *hmsg = "headers";
+static int8_t *hmsg = "headers";
 
 int nbudphdrsize;
 
-char *
-nbudpannounce(ushort port, int *fdp)
+int8_t *
+nbudpannounce(uint16_t port, int *fdp)
 {
 	int data, ctl;
-	char dir[64], datafile[64+6], addr[NETPATHLEN];
+	int8_t dir[64], datafile[64+6], addr[NETPATHLEN];
 
 	snprint(addr, sizeof(addr), "udp!*!%d", port);
 	/* get a udp port */

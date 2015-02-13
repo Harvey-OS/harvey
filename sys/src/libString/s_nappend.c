@@ -13,7 +13,7 @@
 
 /* append a char array ( of up to n characters) to a String */
 String *
-s_nappend(String *to, char *from, int n)
+s_nappend(String *to, int8_t *from, int n)
 {
 	if (to == 0)
 		to = s_new();

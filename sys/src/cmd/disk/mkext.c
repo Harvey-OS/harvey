@@ -16,20 +16,21 @@ enum{
 	NFLDS	= 6,		/* filename, modes, uid, gid, mtime, bytes */
 };
 
-int	selected(char*, int, char*[]);
-void	mkdirs(char*, char*);
-void	mkdir(char*, ulong, ulong, char*, char*);
-void	extract(char*, ulong, ulong, char*, char*, uvlong);
-void	seekpast(uvlong);
-void	error(char*, ...);
-void	warn(char*, ...);
+int	selected(int8_t*, int, int8_t*[]);
+void	mkdirs(int8_t*, int8_t*);
+void	mkdir(int8_t*, uint32_t, uint32_t, int8_t*, int8_t*);
+void	extract(int8_t*, uint32_t, uint32_t, int8_t*, int8_t*,
+		    uint64_t);
+void	seekpast(uint64_t);
+void	error(int8_t*, ...);
+void	warn(int8_t*, ...);
 void	usage(void);
 #pragma varargck argpos warn 1
 #pragma varargck argpos error 1
 
 Biobufhdr bin;
 uchar	binbuf[2*LEN];
-char	linebuf[LEN];
+int8_t	linebuf[LEN];
 int	uflag;
 int	hflag;
 int	vflag;
@@ -119,7 +120,7 @@ main(int argc, char **argv)
 }
 
 int
-fileprefix(char *prefix, char *s)
+fileprefix(int8_t *prefix, int8_t *s)
 {
 	while(*prefix)
 		if(*prefix++ != *s++)
@@ -130,7 +131,7 @@ fileprefix(char *prefix, char *s)
 }
 
 int
-selected(char *s, int argc, char *argv[])
+selected(int8_t *s, int argc, int8_t *argv[])
 {
 	int i;
 
@@ -141,9 +142,9 @@ selected(char *s, int argc, char *argv[])
 }
 
 void
-mkdirs(char *name, char *namep)
+mkdirs(int8_t *name, int8_t *namep)
 {
-	char buf[2*LEN], *p;
+	int8_t buf[2*LEN], *p;
 	int fd;
 
 	strcpy(buf, name);
@@ -158,12 +159,13 @@ mkdirs(char *name, char *namep)
 }
 
 void
-mkdir(char *name, ulong mode, ulong mtime, char *uid, char *gid)
+mkdir(int8_t *name, uint32_t mode, uint32_t mtime, int8_t *uid,
+      int8_t *gid)
 {
 	Dir *d, xd;
 	int fd;
-	char *p;
-	char olderr[256];
+	int8_t *p;
+	int8_t olderr[256];
 
 	fd = create(name, OREAD, mode);
 	if(fd < 0){
@@ -210,14 +212,16 @@ mkdir(char *name, ulong mode, ulong mtime, char *uid, char *gid)
 }
 
 void
-extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, uvlong bytes)
+extract(int8_t *name, uint32_t mode, uint32_t mtime, int8_t *uid,
+	int8_t *gid,
+	uint64_t bytes)
 {
 	Dir d, *nd;
 	Biobuf *b;
-	char buf[LEN];
-	char *p;
-	ulong n;
-	uvlong tot;
+	int8_t buf[LEN];
+	int8_t *p;
+	uint32_t n;
+	uint64_t tot;
 
 	if(vflag)
 		print("x %q %llud bytes\n", name, bytes);
@@ -276,11 +280,11 @@ extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, uvlong bytes)
 }
 
 void
-seekpast(uvlong bytes)
+seekpast(uint64_t bytes)
 {
-	char buf[LEN];
-	long n;
-	uvlong tot;
+	int8_t buf[LEN];
+	int32_t n;
+	uint64_t tot;
 
 	for(tot = 0; tot < bytes; tot += n){
 		n = sizeof buf;
@@ -293,9 +297,9 @@ seekpast(uvlong bytes)
 }
 
 void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: ", argv0);
@@ -307,9 +311,9 @@ error(char *fmt, ...)
 }
 
 void
-warn(char *fmt, ...)
+warn(int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: ", argv0);

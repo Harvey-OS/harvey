@@ -330,11 +330,11 @@ enum {					/* Rxcsum */
 
 typedef struct Rdesc {			/* Receive Descriptor */
 	uint	addr[2];
-	ushort	length;
-	ushort	checksum;
-	uchar	status;
-	uchar	errors;
-	ushort	special;
+	uint16_t	length;
+	uint16_t	checksum;
+	uint8_t	status;
+	uint8_t	errors;
+	uint16_t	special;
 } Rdesc;
 
 enum {					/* Rdesc status */
@@ -390,8 +390,8 @@ enum {					/* Tdesc status */
 };
 
 typedef struct {
-	ushort	*reg;
-	ulong	*reg32;
+	uint16_t	*reg;
+	uint32_t	*reg32;
 	int	sz;
 } Flash;
 
@@ -432,7 +432,7 @@ enum {
 	i82576,
 };
 
-static char *tname[] = {
+static int8_t *tname[] = {
 	"i82563",
 	"i82566",
 	"i82567",
@@ -450,8 +450,8 @@ struct Ctlr {
 	Ctlr	*next;
 	int	active;
 	int	cls;
-	ushort	eeprom[0x40];
-	uchar	ra[Eaddrlen];		/* receive address */
+	uint16_t	eeprom[0x40];
+	uint8_t	ra[Eaddrlen];		/* receive address */
 	int	type;
 
 	u32int*	nic;
@@ -790,7 +790,7 @@ i82563init(Ether* edev)
 }
 
 
-static ushort
+static uint16_t
 eeread(Ctlr* ctlr, int adr)
 {
 	csr32w(ctlr, Eerd, ee_start | adr << 2);
@@ -802,7 +802,7 @@ eeread(Ctlr* ctlr, int adr)
 static int
 eeload(Ctlr* ctlr)
 {
-	ushort sum;
+	uint16_t sum;
 	int data, adr;
 
 	sum = 0;
@@ -866,7 +866,7 @@ i82563shutdown(Ether* ether)
 static int
 fcycle(Ctlr *, Flash *f)
 {
-	ushort s, i;
+	uint16_t s, i;
 
 	s = f->reg[Fsts];
 	if((s&Fvalid) == 0)
@@ -884,7 +884,7 @@ fcycle(Ctlr *, Flash *f)
 static int
 fread(Ctlr *c, Flash *f, int ladr)
 {
-	ushort s;
+	uint16_t s;
 
 	delay(1);
 	if(fcycle(c, f) == -1)
@@ -909,8 +909,8 @@ fread(Ctlr *c, Flash *f, int ladr)
 static int
 fload(Ctlr *c)
 {
-	ulong data, io, r, adr;
-	ushort sum;
+	uint32_t data, io, r, adr;
+	uint16_t sum;
 	Flash f;
 	Pcidev *p;
 
@@ -927,7 +927,7 @@ fload(Ctlr *c)
 	}
 	f.reg = KADDR(io);
 
-	f.reg32 = (ulong*)f.reg;
+	f.reg32 = (uint32_t*)f.reg;
 	f.sz = f.reg32[Bfpr];
 	r = f.sz & 0x1fff;
 	if(csr32r(c, Eec) & (1<<22))
@@ -1081,14 +1081,14 @@ i82563pci(void)
 		switch(cls){
 		default:
 			print("%s: unexpected CLS - %d bytes\n",
-				tname[type], cls*sizeof(long));
+				tname[type], cls*sizeof(int32_t));
 			break;
 		case 0x00:
 		case 0xFF:
 			/* alphapc 164lx returns 0 */
 			print("%s: unusable PciCLS: %d, using %d longs\n",
-				tname[type], cls, CACHELINESZ/sizeof(long));
-			cls = CACHELINESZ/sizeof(long);
+				tname[type], cls, CACHELINESZ/sizeof(int32_t));
+			cls = CACHELINESZ/sizeof(int32_t);
 			pcicfgw8(p, PciCLS, cls);
 			break;
 		case 0x08:
@@ -1116,7 +1116,7 @@ i82563pci(void)
 	}
 }
 
-static uchar nilea[Eaddrlen];
+static uint8_t nilea[Eaddrlen];
 
 int
 i82563pnp(Ether* edev)

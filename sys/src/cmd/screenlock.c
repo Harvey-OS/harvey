@@ -15,14 +15,14 @@
 #include <thread.h>
 #include <auth.h>
 
-char pic[] = "/lib/bunny.bit";
+int8_t pic[] = "/lib/bunny.bit";
 
 int vgactl;
 int debug;
 int doblank;
 int chatty = 0;
 
-char user[256];
+int8_t user[256];
 
 void
 blankscreen(int blank)
@@ -35,10 +35,10 @@ blankscreen(int blank)
 }
 
 void
-error(char *fmt, ...)
+error(int8_t *fmt, ...)
 {
 	Fmt f;
-	char buf[64];
+	int8_t buf[64];
 	va_list arg;
 
 	fmtfdinit(&f, 1, buf, sizeof buf);
@@ -60,7 +60,7 @@ usage(void)
 
 
 void
-readfile(char *name, char *buf, int nbuf, int addnul)
+readfile(int8_t *name, int8_t *buf, int nbuf, int addnul)
 {
 	int fd;
 
@@ -76,9 +76,9 @@ readfile(char *name, char *buf, int nbuf, int addnul)
 }
 
 void
-readline(char *buf, int nbuf)
+readline(int8_t *buf, int nbuf)
 {
-	char c;
+	int8_t c;
 	int i;
 
 	i = 0;
@@ -101,7 +101,7 @@ void
 checkpassword(void)
 {
 	int fd, consctl, must;
-	char buf[256];
+	int8_t buf[256];
 	AuthInfo *ai;
 	static int opened;
 
@@ -175,7 +175,7 @@ void
 grabmouse(void*)
 {
 	int fd, x, y;
-	char ibuf[256], obuf[256];
+	int8_t ibuf[256], obuf[256];
 
 	if(debug)
 		return;
@@ -201,7 +201,7 @@ grabmouse(void*)
 
 /* lay down text at `p' */
 static void
-screenstring(Point p, char *s)
+screenstring(Point p, int8_t *s)
 {
 	string(screen, p, screen->display->white, ZP, font, s);
 	flushimage(display, 1);
@@ -211,8 +211,8 @@ void
 lockscreen(void)
 {
 	enum { Nfld = 5, Fldlen = 12, Cursorlen = 2*4 + 2*2*16, };
-	char *s;
-	char buf[Nfld*Fldlen], *flds[Nfld], newcmd[128], cbuf[Cursorlen];
+	int8_t *s;
+	int8_t buf[Nfld*Fldlen], *flds[Nfld], newcmd[128], cbuf[Cursorlen];
 	int fd, dx, dy;
 	Image *i;
 	Point p;

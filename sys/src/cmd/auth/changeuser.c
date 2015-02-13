@@ -14,8 +14,8 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-void	install(char*, char*, char*, long, int);
-int	exists (char*, char*);
+void	install(int8_t*, int8_t*, int8_t*, int32_t, int);
+int	exists (int8_t*, int8_t*);
 
 void
 usage(void)
@@ -111,9 +111,9 @@ main(int argc, char *argv[])
 }
 
 void
-install(char *db, char *u, char *key, long t, int newkey)
+install(int8_t *db, int8_t *u, int8_t *key, int32_t t, int newkey)
 {
-	char buf[KEYDBBUF+ANAMELEN+20];
+	int8_t buf[KEYDBBUF+ANAMELEN+20];
 	int fd;
 
 	if(!exists(db, u)){
@@ -142,9 +142,9 @@ install(char *db, char *u, char *key, long t, int newkey)
 }
 
 int
-exists(char *db, char *u)
+exists(int8_t *db, int8_t *u)
 {
-	char buf[KEYDBBUF+ANAMELEN+6];
+	int8_t buf[KEYDBBUF+ANAMELEN+6];
 
 	snprint(buf, sizeof buf, "%s/%s/expire", db, u);
 	if(access(buf, 0) < 0)

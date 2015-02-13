@@ -30,7 +30,7 @@ connect(int fd, void *a, int alen)
 {
 	Rock *r;
 	int n, cfd, nfd;
-	char msg[8+256+1], file[8+256+1];
+	int8_t msg[8+256+1], file[8+256+1];
 	struct sockaddr_in *lip, *rip;
 	struct sockaddr_un *runix;
 	static int vers;
@@ -77,7 +77,7 @@ connect(int fd, void *a, int alen)
 		/* null terminate the address */
 		if(alen == sizeof(r->raddr))
 			alen--;
-		*(((char*)&r->raddr)+alen) = 0;
+		*(((int8_t*)&r->raddr)+alen) = 0;
 
 		if(r->other < 0){
 			errno = EGREG;

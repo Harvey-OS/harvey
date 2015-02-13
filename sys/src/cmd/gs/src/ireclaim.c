@@ -80,7 +80,7 @@ ireclaim(gs_dual_memory_t * dmem, int space)
 	mem = dmem->spaces_indexed[space >> r_space_shift];
     }
     if_debug3('0', "[0]GC called, space=%d, requestor=%d, requested=%ld\n",
-	      space, mem->space, (long)mem->gc_status.requested);
+	      space, mem->space, (int32_t)mem->gc_status.requested);
     global = mem->space != avm_local;
     /* Since dmem may move, reset the request now. */
     ialloc_reset_requested(dmem);
@@ -88,7 +88,7 @@ ireclaim(gs_dual_memory_t * dmem, int space)
     ialloc_set_limit(mem);
     if (space < 0) {
 	gs_memory_status_t stats;
-	ulong allocated;
+	uint32_t allocated;
 
 	/* If the ammount still allocated after the GC is complete */
 	/* exceeds the max_vm setting, then return a VMerror       */
@@ -112,7 +112,7 @@ gs_vmreclaim(gs_dual_memory_t *dmem, bool global)
 {
     /* HACK: we know the gs_dual_memory_t is embedded in a context state. */
     i_ctx_t *i_ctx_p =
-	(i_ctx_t *)((char *)dmem - offset_of(i_ctx_t, memory));
+	(i_ctx_t *)((int8_t *)dmem - offset_of(i_ctx_t, memory));
     gs_ref_memory_t *lmem = dmem->space_local;
     int code = context_state_store(i_ctx_p);
     gs_ref_memory_t *memories[5];

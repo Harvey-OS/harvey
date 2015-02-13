@@ -12,7 +12,7 @@
 static AuthInfo*
 authsrvpasswordfn(Conn *c, Msg *m)
 {
-	char *pass;
+	int8_t *pass;
 	AuthInfo *ai;
 
 	pass = getstring(m);

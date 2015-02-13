@@ -15,9 +15,9 @@
  * (fprint uses a small write buffer.)
  */
 void
-xfprint(int fd, char *fmt, ...)
+xfprint(int fd, int8_t *fmt, ...)
 {
-	char *s;
+	int8_t *s;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -30,10 +30,10 @@ xfprint(int fd, char *fmt, ...)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	int fd;
-	char dir[512];
+	int8_t dir[512];
 
 	fd = open("/dev/acme/ctl", OWRITE);
 	if(fd < 0)

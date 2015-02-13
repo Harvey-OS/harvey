@@ -12,9 +12,9 @@
 #define	N	256
 
 size_t
-strcspn(const char *s, const char *b)
+strcspn(const int8_t *s, const int8_t *b)
 {
-	char map[N], *os;
+	int8_t map[N], *os;
 
 	memset(map, 0, N);
 	for(;;) {
@@ -22,7 +22,7 @@ strcspn(const char *s, const char *b)
 		if(*b++ == 0)
 			break;
 	}
-	os = (char *)s;
+	os = (int8_t *)s;
 	while(map[*(unsigned char*)s++] == 0)
 		;
 	return s - os - 1;

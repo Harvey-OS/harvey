@@ -52,7 +52,7 @@ enum{
 	EValue,
 };
 
-static char *cmds[] = {
+static int8_t *cmds[] = {
 	[EAdd] =			"add",
 	[EBorder] =		"border",
 	[EBordercolor] =	"bordercolor",
@@ -239,9 +239,9 @@ activatetab(Control *c, int act)
 }
 	
 Control *
-createtab(Controlset *cs, char *name)
+createtab(Controlset *cs, int8_t *name)
 {
-	char s[128];
+	int8_t s[128];
 
 	Tab *t;
 	t = (Tab*)_createctl(cs, "tab", sizeof(Tab), name);

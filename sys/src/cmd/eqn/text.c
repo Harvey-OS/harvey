@@ -13,9 +13,9 @@
 #include <utf.h>
 
 #define	CSSIZE	1000
-char	cs[CSSIZE+20];	/* text string converted into this */
-char	*csp;		/* next spot in cs[] */
-char	*psp;		/* next character in input token */
+int8_t	cs[CSSIZE+20];	/* text string converted into this */
+int8_t	*csp;		/* next spot in cs[] */
+int8_t	*psp;		/* next character in input token */
 
 int	lf, rf;		/* temporary spots for left and right fonts */
 int	lastft;		/* last \f added */
@@ -43,9 +43,9 @@ int class[LAST][LAST] ={	/* guesswork, tuned to times roman postscript */
 
 extern void shim(int, int);
 extern void roman(int);
-extern void sadd(char *);
+extern void sadd(int8_t *);
 extern void cadd(int);
-extern int trans(int, char *);
+extern int trans(int, int8_t *);
 
 int textc(void)	/* read next UTF rune from psp */
 {
@@ -128,7 +128,7 @@ int isdigitrune(int c)
 }
 
 int
-trans(int c, char *)
+trans(int c, int8_t *)
 {
 	int f;
 
@@ -260,9 +260,9 @@ trans(int c, char *)
 	}
 }
 
-char *pad(int n)	/* return the padding as a string */
+int8_t *pad(int n)	/* return the padding as a string */
 {
-	static char buf[20];
+	static int8_t buf[20];
 
 	buf[0] = 0;
 	if (n < 0) {
@@ -287,7 +287,7 @@ void roman(int c)	/* add char c in "roman" font */
 	cadd(c);
 }
 
-void sadd(char *s)		/* add string s to cs */
+void sadd(int8_t *s)		/* add string s to cs */
 {
 	while (*s)
 		cadd(*s++);
@@ -295,7 +295,7 @@ void sadd(char *s)		/* add string s to cs */
 
 void cadd(int c)		/* add character c to end of cs */
 {
-	char *p;
+	int8_t *p;
 	int w;
 
 	if (lastft != nextft) {

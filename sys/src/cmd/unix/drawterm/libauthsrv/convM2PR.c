@@ -18,11 +18,11 @@
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 void
-convM2PR(char *ap, Passwordreq *f, char *key)
+convM2PR(int8_t *ap, Passwordreq *f, int8_t *key)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	if(key)
 		decrypt(key, ap, PASSREQLEN);
 	CHAR(num);

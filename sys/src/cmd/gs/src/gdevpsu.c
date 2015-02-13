@@ -41,7 +41,7 @@
 
 /* Write a 0-terminated array of strings as lines. */
 int
-psw_print_lines(FILE *f, const char *const lines[])
+psw_print_lines(FILE *f, const int8_t *const lines[])
 {
     int i;
     for (i = 0; lines[i] != 0; ++i) {
@@ -88,18 +88,18 @@ psw_print_bbox(FILE *f, const gs_rect *pbbox)
 
 /* ---------------- File level ---------------- */
 
-private const char *const psw_ps_header[] = {
+private const int8_t *const psw_ps_header[] = {
     "%!PS-Adobe-3.0",
     "%%Pages: (atend)",
     0
 };
 
-private const char *const psw_eps_header[] = {
+private const int8_t *const psw_eps_header[] = {
     "%!PS-Adobe-3.0 EPSF-3.0",
     0
 };
 
-private const char *const psw_begin_prolog[] = {
+private const int8_t *const psw_begin_prolog[] = {
     "%%EndComments",
     "%%BeginProlog",
     "% This copyright applies to everything between here and the %%EndProlog:",
@@ -114,7 +114,7 @@ private const char *const psw_begin_prolog[] = {
  * parameters. The following code checks the current page size and sets
  * it only if it is necessary.
  */
-private const char *const psw_ps_procset[] = {
+private const int8_t *const psw_ps_procset[] = {
 	/* <w> <h> <sizename> setpagesize - */
    "/PageSize 2 array def"
    "/setpagesize"              /* x y /a4 -> -          */
@@ -148,7 +148,7 @@ private const char *const psw_ps_procset[] = {
     0
 };
 
-private const char *const psw_end_prolog[] = {
+private const int8_t *const psw_end_prolog[] = {
     "end readonly def",
     "%%EndResource",		/* ProcSet */
     "/pagesave null def",	/* establish binding */
@@ -190,7 +190,7 @@ psw_begin_file_header(FILE *f, const gx_device *dev, const gs_rect *pbbox,
 	fputs("%...............................................................\n", f);
 	fputs("%...............................................................\n", f);
     }
-    fprintf(f, "%%%%Creator: %s %ld (%s)\n", gs_product, (long)gs_revision,
+    fprintf(f, "%%%%Creator: %s %ld (%s)\n", gs_product, (int32_t)gs_revision,
 	    dev->dname);
     {
 	time_t t;
@@ -243,12 +243,12 @@ psw_end_file(FILE *f, const gx_device *dev,
 {
     if (f == NULL)
         return 0;	/* clients should be more careful */
-    fprintf(f, "%%%%Trailer\n%%%%Pages: %ld\n", (long)page_count);
+    fprintf(f, "%%%%Trailer\n%%%%Pages: %ld\n", (int32_t)page_count);
     if (ferror(f))
         return_error(gs_error_ioerror);
     if (dev->PageCount > 0 && pdpc->bbox_position != 0) {
 	if (pdpc->bbox_position >= 0) {
-	    long save_pos = ftell(f);
+	    int32_t save_pos = ftell(f);
 
 	    fseek(f, pdpc->bbox_position, SEEK_SET);
 	    psw_print_bbox(f, pbbox);
@@ -274,9 +274,9 @@ psw_end_file(FILE *f, const gx_device *dev,
 int
 psw_write_page_header(stream *s, const gx_device *dev,
                       const gx_device_pswrite_common_t *pdpc,
-                      bool do_scale, long page_ord, int dictsize)
+                      bool do_scale, int32_t page_ord, int dictsize)
 {
-    long page = dev->PageCount + 1;
+    int32_t page = dev->PageCount + 1;
 
     pprintld2(s, "%%%%Page: %ld %ld\n%%%%BeginPageSetup\n", page, page_ord);
     /*
@@ -294,7 +294,7 @@ psw_write_page_header(stream *s, const gx_device *dev,
 	int width = (int)(dev->width * 72.0 / dev->HWResolution[0] + 0.5);
 	int height = (int)(dev->height * 72.0 / dev->HWResolution[1] + 0.5);
 	typedef struct ps_ {
-	    const char *size_name;
+	    const int8_t *size_name;
 	    int width, height;
 	} page_size;
 	static const page_size sizes[] = {

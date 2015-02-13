@@ -16,28 +16,28 @@
 
 void (*_forker)(void(*)(void*), void*, int);
 
-static char Ebadattach[] = "unknown specifier in attach";
-static char Ebadoffset[] = "bad offset";
-static char Ebadcount[] = "bad count";
-static char Ebotch[] = "9P protocol botch";
-static char Ecreatenondir[] = "create in non-directory";
-static char Edupfid[] = "duplicate fid";
-static char Eduptag[] = "duplicate tag";
-static char Eisdir[] = "is a directory";
-static char Enocreate[] = "create prohibited";
-static char Enomem[] = "out of memory";
-static char Enoremove[] = "remove prohibited";
-static char Enostat[] = "stat prohibited";
-static char Enotfound[] = "file not found";
-static char Enowrite[] = "write prohibited";
-static char Enowstat[] = "wstat prohibited";
-static char Eperm[] = "permission denied";
-static char Eunknownfid[] = "unknown fid";
-static char Ebaddir[] = "bad directory in wstat";
-static char Ewalknodir[] = "walk in non-directory";
+static int8_t Ebadattach[] = "unknown specifier in attach";
+static int8_t Ebadoffset[] = "bad offset";
+static int8_t Ebadcount[] = "bad count";
+static int8_t Ebotch[] = "9P protocol botch";
+static int8_t Ecreatenondir[] = "create in non-directory";
+static int8_t Edupfid[] = "duplicate fid";
+static int8_t Eduptag[] = "duplicate tag";
+static int8_t Eisdir[] = "is a directory";
+static int8_t Enocreate[] = "create prohibited";
+static int8_t Enomem[] = "out of memory";
+static int8_t Enoremove[] = "remove prohibited";
+static int8_t Enostat[] = "stat prohibited";
+static int8_t Enotfound[] = "file not found";
+static int8_t Enowrite[] = "write prohibited";
+static int8_t Enowstat[] = "wstat prohibited";
+static int8_t Eperm[] = "permission denied";
+static int8_t Eunknownfid[] = "unknown fid";
+static int8_t Ebaddir[] = "bad directory in wstat";
+static int8_t Ewalknodir[] = "walk in non-directory";
 
 static void
-setfcallerror(Fcall *f, char *err)
+setfcallerror(Fcall *f, int8_t *err)
 {
 	f->ename = err;
 	f->type = Rerror;
@@ -62,8 +62,8 @@ changemsize(Srv *srv, int msize)
 static Req*
 getreq(Srv *s)
 {
-	long n;
-	uchar *buf;
+	int32_t n;
+	uint8_t *buf;
 	Fcall f;
 	Req *r;
 
@@ -139,10 +139,11 @@ filewalk(Req *r)
 }
 
 void
-walkandclone(Req *r, char *(*walk1)(Fid*, char*, void*), char *(*clone)(Fid*, Fid*, void*), void *arg)
+walkandclone(Req *r, int8_t *(*walk1)(Fid*, int8_t*, void*),
+             int8_t *(*clone)(Fid*, Fid*, void*), void *arg)
 {
 	int i;
-	char *e;
+	int8_t *e;
 
 	if(r->fid == r->newfid && r->ifcall.nwname > 1){
 		respond(r, "lib9p: unused documented feature not implemented");
@@ -185,7 +186,7 @@ sversion(Srv*, Req *r)
 	respond(r, nil);
 }
 static void
-rversion(Req *r, char *error)
+rversion(Req *r, int8_t *error)
 {
 	assert(error == nil);
 	changemsize(r->srv, r->ofcall.msize);
@@ -194,7 +195,7 @@ rversion(Req *r, char *error)
 static void
 sauth(Srv *srv, Req *r)
 {
-	char e[ERRMAX];
+	int8_t e[ERRMAX];
 
 	if((r->afid = allocfid(srv->fpool, r->ifcall.afid)) == nil){
 		respond(r, Edupfid);
@@ -208,7 +209,7 @@ sauth(Srv *srv, Req *r)
 	}
 }
 static void
-rauth(Req *r, char *error)
+rauth(Req *r, int8_t *error)
 {
 	if(error && r->afid)
 		closefid(removefid(r->srv->fpool, r->afid->fid));
@@ -240,7 +241,7 @@ sattach(Srv *srv, Req *r)
 	return;
 }
 static void
-rattach(Req *r, char *error)
+rattach(Req *r, int8_t *error)
 {
 	if(error && r->fid)
 		closefid(removefid(r->srv->fpool, r->fid->fid));
@@ -258,7 +259,7 @@ sflush(Srv *srv, Req *r)
 		respond(r, nil);
 }
 static int
-rflush(Req *r, char *error)
+rflush(Req *r, int8_t *error)
 {
 	Req *or;
 
@@ -279,10 +280,10 @@ rflush(Req *r, char *error)
 	return 0;
 }
 
-static char*
-oldwalk1(Fid *fid, char *name, void *arg)
+static int8_t*
+oldwalk1(Fid *fid, int8_t *name, void *arg)
 {
-	char *e;
+	int8_t *e;
 	Qid qid;
 	Srv *srv;
 
@@ -294,7 +295,7 @@ oldwalk1(Fid *fid, char *name, void *arg)
 	return nil;
 }
 
-static char*
+static int8_t*
 oldclone(Fid *fid, Fid *newfid, void *arg)
 {
 	Srv *srv;
@@ -340,7 +341,7 @@ swalk(Srv *srv, Req *r)
 		sysfatal("no walk function, no file trees");
 }
 static void
-rwalk(Req *r, char *error)
+rwalk(Req *r, int8_t *error)
 {
 	if(error || r->ofcall.nwqid < r->ifcall.nwname){
 		if(r->ifcall.fid != r->ifcall.newfid && r->newfid)
@@ -425,9 +426,9 @@ sopen(Srv *srv, Req *r)
 		respond(r, nil);
 }
 static void
-ropen(Req *r, char *error)
+ropen(Req *r, int8_t *error)
 {
-	char errbuf[ERRMAX];
+	int8_t errbuf[ERRMAX];
 	if(error)
 		return;
 	if(chatty9p){
@@ -457,7 +458,7 @@ screate(Srv *srv, Req *r)
 		respond(r, Enocreate);
 }
 static void
-rcreate(Req *r, char *error)
+rcreate(Req *r, int8_t *error)
 {
 	if(error)
 		return;
@@ -504,7 +505,7 @@ sread(Srv *srv, Req *r)
 		respond(r, "no srv->read");
 }
 static void
-rread(Req *r, char *error)
+rread(Req *r, int8_t *error)
 {
 	if(error==nil && (r->fid->qid.type&QTDIR))
 		r->fid->diroffset += r->ofcall.count;
@@ -514,7 +515,7 @@ static void
 swrite(Srv *srv, Req *r)
 {
 	int o;
-	char e[ERRMAX];
+	int8_t e[ERRMAX];
 
 	if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
 		respond(r, Eunknownfid);
@@ -542,7 +543,7 @@ swrite(Srv *srv, Req *r)
 		respond(r, "no srv->write");
 }
 static void
-rwrite(Req *r, char *error)
+rwrite(Req *r, int8_t *error)
 {
 	if(error)
 		return;
@@ -559,7 +560,7 @@ sclunk(Srv *srv, Req *r)
 		respond(r, nil);
 }
 static void
-rclunk(Req*, char*)
+rclunk(Req*, int8_t*)
 {
 }
 
@@ -581,7 +582,7 @@ sremove(Srv *srv, Req *r)
 		respond(r, r->fid->file ? nil : Enoremove);
 }
 static void
-rremove(Req *r, char *error, char *errbuf)
+rremove(Req *r, int8_t *error, int8_t *errbuf)
 {
 	if(error)
 		return;
@@ -622,11 +623,11 @@ sstat(Srv *srv, Req *r)
 		respond(r, Enostat);
 }
 static void
-rstat(Req *r, char *error)
+rstat(Req *r, int8_t *error)
 {
 	int n;
-	uchar *statbuf;
-	uchar tmp[BIT16SZ];
+	uint8_t *statbuf;
+	uint8_t tmp[BIT16SZ];
 
 	if(error)
 		return;
@@ -660,11 +661,11 @@ swstat(Srv *srv, Req *r)
 		respond(r, Enowstat);
 		return;
 	}
-	if(convM2D(r->ifcall.stat, r->ifcall.nstat, &r->d, (char*)r->ifcall.stat) != r->ifcall.nstat){
+	if(convM2D(r->ifcall.stat, r->ifcall.nstat, &r->d, (int8_t*)r->ifcall.stat) != r->ifcall.nstat){
 		respond(r, Ebaddir);
 		return;
 	}
-	if((ushort)~r->d.type){
+	if((uint16_t)~r->d.type){
 		respond(r, "wstat -- attempt to change type");
 		return;
 	}
@@ -672,7 +673,7 @@ swstat(Srv *srv, Req *r)
 		respond(r, "wstat -- attempt to change dev");
 		return;
 	}
-	if((uchar)~r->d.qid.type || (ulong)~r->d.qid.vers || (uvlong)~r->d.qid.path){
+	if((uint8_t)~r->d.qid.type || (uint32_t)~r->d.qid.vers || (uint64_t)~r->d.qid.path){
 		respond(r, "wstat -- attempt to change qid");
 		return;
 	}
@@ -680,14 +681,14 @@ swstat(Srv *srv, Req *r)
 		respond(r, "wstat -- attempt to change muid");
 		return;
 	}
-	if((ulong)~r->d.mode && ((r->d.mode&DMDIR)>>24) != (r->fid->qid.type&QTDIR)){
+	if((uint32_t)~r->d.mode && ((r->d.mode&DMDIR)>>24) != (r->fid->qid.type&QTDIR)){
 		respond(r, "wstat -- attempt to change DMDIR bit");
 		return;
 	}
 	srv->wstat(r);
 }
 static void
-rwstat(Req*, char*)
+rwstat(Req*, int8_t*)
 {
 }
 
@@ -751,10 +752,10 @@ srv(Srv *srv)
 }
 
 void
-respond(Req *r, char *error)
+respond(Req *r, int8_t *error)
 {
 	int i, m, n;
-	char errbuf[ERRMAX];
+	int8_t errbuf[ERRMAX];
 	Srv *srv;
 
 	srv = r->srv;
@@ -830,17 +831,17 @@ if(chatty9p)
 void
 responderror(Req *r)
 {
-	char errbuf[ERRMAX];
+	int8_t errbuf[ERRMAX];
 	
 	rerrstr(errbuf, sizeof errbuf);
 	respond(r, errbuf);
 }
 
 int
-postfd(char *name, int pfd)
+postfd(int8_t *name, int pfd)
 {
 	int fd;
-	char buf[80];
+	int8_t buf[80];
 
 	snprint(buf, sizeof buf, "/srv/%s", name);
 	if(chatty9p)

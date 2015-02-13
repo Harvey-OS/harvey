@@ -91,16 +91,16 @@ FController	fl;
  *  predeclared
  */
 static int	cmddone(void*);
-static void	floppyformat(FDrive*, char*);
+static void	floppyformat(FDrive*, int8_t*);
 static void	floppykproc(void*);
-static void	floppypos(FDrive*,long);
+static void	floppypos(FDrive*,int32_t);
 static int	floppyrecal(FDrive*);
 static int	floppyresult(void);
 static void	floppyrevive(void);
-static vlong	pcfloppyseek(FDrive*, vlong);
+static int64_t	pcfloppyseek(FDrive*, int64_t);
 static int	floppysense(void);
 static void	floppywait(int);
-static long	floppyxfer(FDrive*, int, void*, long, long);
+static int32_t	floppyxfer(FDrive*, int, void*, int32_t, int32_t);
 
 static void
 fldump(void)
@@ -155,7 +155,7 @@ floppyinit(void)
 {
 	FDrive *dp;
 	FType *t;
-	ulong maxtsize;
+	uint32_t maxtsize;
 	int mask;
 
 	dmainit(DMAchan);
@@ -190,7 +190,7 @@ floppyinit(void)
 		mask |= 1<<dp->dev;
 		floppysetdef(dp);
 		dp->cyl = -1;			/* because we don't know */
-		dp->cache = (uchar*)xspanalloc(maxtsize, BY2PG, 64*1024);
+		dp->cache = (uint8_t*)xspanalloc(maxtsize, BY2PG, 64*1024);
 		dp->ccyl = -1;
 		dp->vers = 0;
 		dp->maxtries = 5;
@@ -210,7 +210,7 @@ floppyinit(void)
 }
 
 void
-floppyinitdev(int i, char *name)
+floppyinitdev(int i, int8_t *name)
 {
 	if(i >= fl.ndrive)
 		panic("floppyinitdev");
@@ -226,7 +226,7 @@ floppyprintdevs(int i)
 }
 
 int
-floppyboot(int dev, char *file, Boot *b)
+floppyboot(int dev, int8_t *file, Boot *b)
 {
 	Fs *fs;
 
@@ -318,7 +318,7 @@ static int
 readtrack(FDrive *dp, int cyl, int head)
 {
 	int i, nn, sofar;
-	ulong pos;
+	uint32_t pos;
 
 	nn = dp->t->tsize;
 	if(dp->ccyl==cyl && dp->chead==head)
@@ -335,14 +335,14 @@ readtrack(FDrive *dp, int cyl, int head)
 	return nn;
 }
 
-long
-floppyread(Fs *fs, void *a, long n)
+int32_t
+floppyread(Fs *fs, void *a, int32_t n)
 {
 	FDrive *dp;
-	long rv, offset;
+	int32_t rv, offset;
 	int sec, head, cyl;
-	long len;
-	uchar *aa;
+	int32_t len;
+	uint8_t *aa;
 
 	aa = a;
 	dp = &fl.d[fs->dev];
@@ -372,7 +372,7 @@ floppyread(Fs *fs, void *a, long n)
 }
 
 void*
-floppygetfspart(int i, char *name, int chatty)
+floppygetfspart(int i, int8_t *name, int chatty)
 {
 	static Fs fs;
 
@@ -405,7 +405,7 @@ static void
 timedsleep(int (*f)(void*), void* arg, int ms)
 {
 	int s;
-	ulong end;
+	uint32_t end;
 
 	end = m->ticks + 1 + MS2TK(ms);
 	while(m->ticks < end && !(*f)(arg)){
@@ -541,7 +541,7 @@ floppyresult(void)
  *  truncate dp->length if it crosses a track boundary
  */
 static void
-floppypos(FDrive *dp, long off)
+floppypos(FDrive *dp, int32_t off)
 {
 	int lsec;
 	int ltrack;
@@ -688,8 +688,8 @@ floppyrevive(void)
  *
  *	interrupt, no results
  */
-static vlong
-pcfloppyseek(FDrive *dp, vlong off)
+static int64_t
+pcfloppyseek(FDrive *dp, int64_t off)
 {
 	floppypos(dp, off);
 	if(dp->cyl == dp->tcyl){
@@ -726,10 +726,10 @@ pcfloppyseek(FDrive *dp, vlong off)
 /*
  *  read or write to floppy.  try up to three times.
  */
-static long
-floppyxfer(FDrive *dp, int cmd, void *a, long off, long n)
+static int32_t
+floppyxfer(FDrive *dp, int cmd, void *a, int32_t off, int32_t n)
 {
-	long offset;
+	int32_t offset;
 	int tries;
 
 	if(off >= dp->t->cap)

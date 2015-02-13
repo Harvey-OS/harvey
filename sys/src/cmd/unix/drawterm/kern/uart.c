@@ -15,7 +15,7 @@
 
 extern int panicking;
 void
-uartputs(char *s, int n)
+uartputs(int8_t *s, int n)
 {
 	if(panicking)
 		write(1, s, n); 

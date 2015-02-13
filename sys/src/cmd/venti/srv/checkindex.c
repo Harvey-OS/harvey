@@ -26,7 +26,7 @@ phdr(DBlock *eb)
 }
 
 static void
-pie(IEntry *ie, char c)
+pie(IEntry *ie, int8_t c)
 {
 	print("%c %V %22lld %3d %5d %3d\n",
 		c, ie->score, ie->ia.addr, ie->ia.type, ie->ia.size, ie->ia.blocks);
@@ -43,7 +43,8 @@ checkbucket(Index *ix, u32int buck, IBucket *ib)
 
 	is = ix->sects[indexsect0(ix, buck)];
 	if(buck < is->start || buck >= is->stop){
-		seterr(EAdmin, "cannot find index section for bucket %lud\n", (ulong)buck);
+		seterr(EAdmin, "cannot find index section for bucket %lud\n",
+		       (uint32_t)buck);
 		return -1;
 	}
 	buck -= is->start;

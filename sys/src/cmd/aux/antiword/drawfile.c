@@ -40,7 +40,7 @@
 
 typedef struct drawfile_error_tag {
 	int		iErrorNumber;
-	const char	*szErrorText;
+	const int8_t	*szErrorText;
 } drawfile_error_type;
 
 static const drawfile_error_type atErrors[] = {
@@ -71,7 +71,7 @@ pFillError(int iErrorNumber)
 {
 	static os_error		tError;
 	const drawfile_error_type	*pTmp;
-	const char	*szErrorText;
+	const int8_t	*szErrorText;
 
 	szErrorText = "Unknown error";
 	for (pTmp = atErrors; pTmp < atErrors + elementsof(atErrors); pTmp++) {
@@ -107,7 +107,7 @@ Drawfile_Bbox(drawfile_bbox_flags flags,
  */
 os_error *
 Drawfile_CreateDiagram(drawfile_info *pInfo, size_t tMemorySize,
-	const char *szCreator, wimp_box tBbox)
+	const int8_t *szCreator, wimp_box tBbox)
 {
 	drawfile_diagram	*pDiag;
 
@@ -331,7 +331,7 @@ Drawfile_VerifyDiagram(drawfile_info *pInfo)
 	drawfile_diagram	*pDiag;
 	drawfile_object	*pObj;
 	os_error	*pError;
-	const char	*pcTmp;
+	const int8_t	*pcTmp;
 	int		iToGo, iFontTables;
 	BOOL		bTypeFontTable;
 
@@ -351,7 +351,7 @@ Drawfile_VerifyDiagram(drawfile_info *pInfo)
 	}
 
 	iToGo = pInfo->length - offsetof(drawfile_diagram, objects);
-	pcTmp = (const char *)pInfo->data + offsetof(drawfile_diagram, objects);
+	pcTmp = (const int8_t *)pInfo->data + offsetof(drawfile_diagram, objects);
 	iFontTables = 0;
 	bTypeFontTable = FALSE;
 

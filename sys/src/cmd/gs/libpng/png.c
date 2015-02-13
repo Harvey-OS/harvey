@@ -29,7 +29,7 @@ typedef version_1_2_8 Your_png_h_is_not_version_1_2_8;
 
 #ifdef PNG_USE_GLOBAL_ARRAYS
 /* png_libpng_ver was changed to a function in version 1.0.5c */
-const char png_libpng_ver[18] = PNG_LIBPNG_VER_STRING;
+const int8_t png_libpng_ver[18] = PNG_LIBPNG_VER_STRING;
 
 /* png_sig was changed to a function in version 1.0.5c */
 /* Place to hold the signature string for a PNG file. */
@@ -634,14 +634,14 @@ png_init_io(png_structp png_ptr, png_FILE_p fp)
 png_charp PNGAPI
 png_convert_to_rfc1123(png_structp png_ptr, png_timep ptime)
 {
-   static PNG_CONST char short_months[12][4] =
+   static PNG_CONST int8_t short_months[12][4] =
         {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
    if (png_ptr->time_buffer == NULL)
    {
       png_ptr->time_buffer = (png_charp)png_malloc(png_ptr, (png_uint_32)(29*
-         png_sizeof(char)));
+         png_sizeof(int8_t)));
    }
 
 #if defined(_WIN32_WCE)
@@ -657,13 +657,13 @@ png_convert_to_rfc1123(png_structp png_ptr, png_timep ptime)
 #else
 #ifdef USE_FAR_KEYWORD
    {
-      char near_time_buf[29];
+      int8_t near_time_buf[29];
       sprintf(near_time_buf, "%d %s %d %02d:%02d:%02d +0000",
           ptime->day % 32, short_months[(ptime->month - 1) % 12],
           ptime->year, ptime->hour % 24, ptime->minute % 60,
           ptime->second % 61);
       png_memcpy(png_ptr->time_buffer, near_time_buf,
-          29*png_sizeof(char));
+          29*png_sizeof(int8_t));
    }
 #else
    sprintf(png_ptr->time_buffer, "%d %s %d %02d:%02d:%02d +0000",

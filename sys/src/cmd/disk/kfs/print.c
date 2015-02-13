@@ -9,10 +9,10 @@
 
 #include	"all.h"
 
-#define	PTR	sizeof(char*)
+#define	PTR	sizeof(int8_t*)
 #define	SHORT	sizeof(int)
 #define	INT	sizeof(int)
-#define	LONG	sizeof(long)
+#define	LONG	sizeof(int32_t)
 #define	IDIGIT	30
 #define	MAXCON	30
 
@@ -54,7 +54,7 @@ char	fmtindex[128] =
 };
 
 int
-fmtinstall(char c, int (*f)(Op*))
+fmtinstall(int8_t c, int (*f)(Op*))
 {
 
 	c &= 0177;
@@ -67,8 +67,8 @@ fmtinstall(char c, int (*f)(Op*))
 	return 0;
 }
 
-char*
-doprint(char *p, char *ep, char *fmt, void *argp)
+int8_t*
+doprint(int8_t *p, int8_t *ep, int8_t *fmt, void *argp)
 {
 	int sf1, c;
 	Op o;
@@ -121,27 +121,27 @@ l1:
 		c = *fmt++;
 		goto l1;
 	}
-	o.argp = (char*)o.argp + c;
+	o.argp = (int8_t*)o.argp + c;
 	goto loop;
 }
 
 int
 numbconv(Op *op, int base)
 {
-	char b[IDIGIT];
+	int8_t b[IDIGIT];
 	int i, f, n, r;
-	long v;
-	short h;
+	int32_t v;
+	int16_t h;
 
 	f = 0;
 	switch(op->f3 & (FLONG|FSHORT|FUNSIGN)) {
 	case FLONG:
-		v = *(long*)op->argp;
+		v = *(int32_t*)op->argp;
 		r = LONG;
 		break;
 
 	case FUNSIGN|FLONG:
-		v = *(ulong*)op->argp;
+		v = *(uint32_t*)op->argp;
 		r = LONG;
 		break;
 
@@ -153,7 +153,7 @@ numbconv(Op *op, int base)
 
 	case FUNSIGN|FSHORT:
 		h = *(int*)op->argp;
-		v = (ushort)h;
+		v = (uint16_t)h;
 		r = SHORT;
 		break;
 
@@ -173,14 +173,14 @@ numbconv(Op *op, int base)
 	}
 	b[IDIGIT-1] = 0;
 	for(i = IDIGIT-2;; i--) {
-		n = (ulong)v % base;
+		n = (uint32_t)v % base;
 		n += '0';
 		if(n > '9')
 			n += 'a' - ('9'+1);
 		b[i] = n;
 		if(i < 2)
 			break;
-		v = (ulong)v / base;
+		v = (uint32_t)v / base;
 		if(op->f2 >= 0 && i >= IDIGIT-op->f2)
 			continue;
 		if(v <= 0)
@@ -194,10 +194,10 @@ sout:
 }
 
 void
-strconv(char *o, Op *op, int f1, int f2)
+strconv(int8_t *o, Op *op, int f1, int f2)
 {
 	int n, c;
-	char *p;
+	int8_t *p;
 
 	n = strlen(o);
 	if(f1 >= 0)
@@ -230,7 +230,7 @@ noconv(Op *op)
 static	int
 cconv(Op *op)
 {
-	char b[2];
+	int8_t b[2];
 
 	b[0] = *(int*)op->argp;
 	b[1] = 0;
@@ -270,7 +270,7 @@ static	int
 sconv(Op *op)
 {
 
-	strconv(*(char**)op->argp, op, op->f1, op->f2);
+	strconv(*(int8_t**)op->argp, op, op->f1, op->f2);
 	return PTR;
 }
 

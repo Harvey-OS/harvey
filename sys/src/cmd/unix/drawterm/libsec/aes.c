@@ -41,7 +41,7 @@
 #include <libc.h>
 #include <libsec.h>
 
-typedef uchar	u8;
+typedef uint8_t	u8;
 typedef u32int	u32;
 #define FULL_UNROLL
 
@@ -57,11 +57,13 @@ static int rijndaelKeySetupEnc(u32 rk[/*4*(Nr + 1)*/], const u8 cipherKey[], int
 static int rijndaelKeySetupDec(u32 rk[/*4*(Nr + 1)*/], const u8 cipherKey[], int keyBits);
 #endif
 static int rijndaelKeySetup(u32 erk[/*4*(Nr + 1)*/], u32 drk[/*4*(Nr + 1)*/], const u8 cipherKey[], int keyBits);
-static void	rijndaelEncrypt(const u32int rk[], int Nr, const uchar pt[16], uchar ct[16]);
-static void	rijndaelDecrypt(const u32int rk[], int Nr, const uchar ct[16], uchar pt[16]);
+static void	rijndaelEncrypt(const u32int rk[], int Nr,
+				   const uint8_t pt[16], uint8_t ct[16]);
+static void	rijndaelDecrypt(const u32int rk[], int Nr,
+				   const uint8_t ct[16], uint8_t pt[16]);
 
 void
-setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec)
+setupAESstate(AESstate *s, uint8_t key[], int keybytes, uint8_t *ivec)
 {
 	memset(s, 0, sizeof(*s));
 	if(keybytes > AESmaxkey)
@@ -80,10 +82,10 @@ setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec)
 // Because of the way that non-multiple-of-16 buffers are handled,
 // the decryptor must be fed buffers of the same size as the encryptor.
 void
-aesCBCencrypt(uchar *p, int len, AESstate *s)
+aesCBCencrypt(uint8_t *p, int len, AESstate *s)
 {
-	uchar *p2, *ip, *eip;
-	uchar q[AESbsize];
+	uint8_t *p2, *ip, *eip;
+	uint8_t q[AESbsize];
 
 	for(; len >= AESbsize; len -= AESbsize){
 		p2 = p;
@@ -106,10 +108,10 @@ aesCBCencrypt(uchar *p, int len, AESstate *s)
 }
 
 void
-aesCBCdecrypt(uchar *p, int len, AESstate *s)
+aesCBCdecrypt(uint8_t *p, int len, AESstate *s)
 {
-	uchar *ip, *eip, *tp;
-	uchar tmp[AESbsize], q[AESbsize];
+	uint8_t *ip, *eip, *tp;
+	uint8_t tmp[AESbsize], q[AESbsize];
 
 	for(; len >= AESbsize; len -= AESbsize){
 		memmove(tmp, p, AESbsize);

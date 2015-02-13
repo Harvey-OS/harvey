@@ -9,7 +9,7 @@
 
 #include "astro.h"
 
-char*	satlst[] =
+int8_t*	satlst[] =
 {
 	0,
 };
@@ -37,7 +37,7 @@ void
 satels(void)
 {
 	double ifa[10], t, t1, t2, tinc;
-	char **satp;
+	int8_t **satp;
 	int flag, f, i, n;
 
 	satp = satlst;

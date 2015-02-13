@@ -27,8 +27,8 @@
  *	'日本語'		'&ZeVnLIqe-'
  */
 
-static uchar mt64d[256];
-static char mt64e[64];
+static uint8_t mt64d[256];
+static int8_t mt64e[64];
 
 static void
 initm64(void)
@@ -57,18 +57,18 @@ initm64(void)
 }
 
 int
-encmutf7(char *out, int lim, char *in)
+encmutf7(int8_t *out, int lim, int8_t *in)
 {
 	Rune rr;
-	ulong r, b;
-	char *start = out;
-	char *e = out + lim;
+	uint32_t r, b;
+	int8_t *start = out;
+	int8_t *e = out + lim;
 	int nb;
 
 	if(mt64e[0] == 0)
 		initm64();
 	for(;;){
-		r = *(uchar*)in;
+		r = *(uint8_t*)in;
 
 		if(r < ' ' || r >= Runeself){
 			if(r == '\0')
@@ -123,11 +123,11 @@ encmutf7(char *out, int lim, char *in)
 }
 
 int
-decmutf7(char *out, int lim, char *in)
+decmutf7(int8_t *out, int lim, int8_t *in)
 {
 	Rune rr;
-	char *start = out;
-	char *e = out + lim;
+	int8_t *start = out;
+	int8_t *e = out + lim;
 	int c, b, nb;
 
 	if(mt64e[0] == 0)

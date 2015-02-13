@@ -9,15 +9,15 @@
 
 #include "all.h"
 
-static void	pcinit(int, char**);
+static void	pcinit(int, int8_t**);
 static int	pcnull(int, Rpccall*, Rpccall*);
 static int	pcinfo(int, Rpccall*, Rpccall*);
 static int	pcauth(int, Rpccall*, Rpccall*);
 static int	pc1auth(int, Rpccall*, Rpccall*);
 static int	pcfacilities[15];
-static char	no_comment[] = "Trust me.";
-static char	pc_vers[] = "@(#)pcnfsd_v2.c	1.6 - rpc.pcnfsd V2.0 (c) 1994 P9, GmbH";
-static char	pc_home[] = "merrimack:/";
+static int8_t	no_comment[] = "Trust me.";
+static int8_t	pc_vers[] = "@(#)pcnfsd_v2.c	1.6 - rpc.pcnfsd V2.0 (c) 1994 P9, GmbH";
+static int8_t	pc_home[] = "merrimack:/";
 
 static Procmap pcproc[] = {	/* pcnfsd v2 */
 	0, pcnull,
@@ -41,7 +41,7 @@ Progmap progmap[] = {
 };
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	server(argc, argv, myport, progmap);
 }
@@ -90,8 +90,8 @@ scramble(String *x)
 static int
 pcinfo(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 	String vers, cm;
 	int i;
 
@@ -101,7 +101,7 @@ pcinfo(int n, Rpccall *cmd, Rpccall *reply)
 		return garbage(reply, "count too small");
 	argptr += string2S(argptr, &vers);
 	argptr += string2S(argptr, &cm);
-	if(argptr != &((uchar *)cmd->args)[n])
+	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	chat("\"%.*s\",\"%.*s\"\n", utfnlen(vers.s, vers.n), vers.s, utfnlen(cm.s, cm.n), cm.s);
 	PLONG(sizeof(pc_vers)-1);
@@ -111,14 +111,14 @@ pcinfo(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(nelem(pcfacilities));
 	for(i=0; i<nelem(pcfacilities); i++)
 		PLONG(pcfacilities[i]);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
 pc1auth(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 	String id, pw;
 	Unixidmap *m;
 	int uid;
@@ -129,7 +129,7 @@ pc1auth(int n, Rpccall *cmd, Rpccall *reply)
 		return garbage(reply, "count too small");
 	argptr += string2S(argptr, &id);
 	argptr += string2S(argptr, &pw);
-	if(argptr != &((uchar*)cmd->args)[n])
+	if(argptr != &((uint8_t*)cmd->args)[n])
 		return garbage(reply, "bad count");
 	scramble(&id);
 	scramble(&pw);
@@ -143,14 +143,14 @@ pc1auth(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(0);	/* status */
 	PLONG(uid);	/* uid */
 	PLONG(uid);	/* gid */
-	return dataptr - (uchar*)reply->results;
+	return dataptr - (uint8_t*)reply->results;
 }
 
 static int
 pcauth(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 	String sys, id, pw, cm;
 	Unixidmap *m;
 	int uid;
@@ -163,7 +163,7 @@ pcauth(int n, Rpccall *cmd, Rpccall *reply)
 	argptr += string2S(argptr, &id);
 	argptr += string2S(argptr, &pw);
 	argptr += string2S(argptr, &cm);
-	if(argptr != &((uchar *)cmd->args)[n])
+	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	scramble(&id);
 	scramble(&pw);
@@ -185,5 +185,5 @@ pcauth(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(0);	/* umask */
 	PLONG(sizeof(no_comment)-1);
 	PPTR(no_comment, sizeof(no_comment)-1);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }

@@ -32,13 +32,13 @@ int	lastp;	/* last page number we were on */
 #define	NPAGENUMS	200
 struct pagenum {
 	int	num;
-	long	adr;
+	int32_t	adr;
 } pagenums[NPAGENUMS];
 int	npagenums;
 
 int	curfont, cursize;
 
-char	*getcmdstr(void);
+int8_t	*getcmdstr(void);
 
 static void	initpage(void);
 static void	view_setup(int);
@@ -52,8 +52,8 @@ static void	devcntrl(void);
 static void	eatline(void);
 static int	getn(void);
 static int	botpage(int);
-static void	getstr(char *);
-static void	getutf(char *);
+static void	getstr(int8_t *);
+static void	getutf(int8_t *);
 
 #define Do screen->r.min
 #define Dc screen->r.max
@@ -309,7 +309,7 @@ readpage(void)
 static void
 spline(Image *b, int n, Point *pp)
 {
-	long w, t1, t2, t3, fac=1000; 
+	int32_t w, t1, t2, t3, fac=1000; 
 	int i, j, steps=10; 
 	Point p, q;
 
@@ -342,7 +342,7 @@ spline(Image *b, int n, Point *pp)
 static int
 skipto(int gotop, int curp)
 {
-	char *p;
+	int8_t *p;
 	int i;
 
 	if (gotop == curp)
@@ -403,7 +403,7 @@ wiggly(int skip)
 static void
 devcntrl(void)	/* interpret device control functions */
 {
-        char str[80];
+        int8_t str[80];
 	int n;
 
 	getstr(str);
@@ -449,9 +449,9 @@ isspace(int c)
 }
 
 static void
-getstr(char *is)
+getstr(int8_t *is)
 {
-	uchar *s = (uchar *) is;
+	uint8_t *s = (uint8_t *) is;
 
 	for (*s = getc(); isspace(*s); *s = getc())
 		;
@@ -462,7 +462,7 @@ getstr(char *is)
 }
 
 static void
-getutf(char *s)		/* get next utf char, as bytes */
+getutf(int8_t *s)		/* get next utf char, as bytes */
 {
 	int c, i;
 
@@ -512,7 +512,7 @@ getn(void)
 static int
 botpage(int np)	/* called at bottom of page np-1 == top of page np */
 {
-	char *p;
+	int8_t *p;
 	int n;
 
 	while (p = getcmdstr()) {

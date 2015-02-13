@@ -11,8 +11,8 @@
 #include <libc.h>
 
 static
-char*
-skip(char *p)
+int8_t*
+skip(int8_t *p)
 {
 
 	while(*p == ' ')
@@ -29,13 +29,13 @@ skip(char *p)
  *  are competing moving the offset around.  Hence the unusual loop
  *  in the middle of this routine.
  */
-long
-times(long *t)
+int32_t
+times(int32_t *t)
 {
-	char b[200], *p;
+	int8_t b[200], *p;
 	static int f = -1;
 	int i, retries;
-	ulong r;
+	uint32_t r;
 
 	memset(b, 0, sizeof(b));
 	for(retries = 0; retries < 100; retries++){

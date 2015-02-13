@@ -18,7 +18,7 @@
 
 Mach* m;
 
-ulong* mach0pdb;
+uint32_t* mach0pdb;
 Mach* mach0m;
 Segdesc* mach0gdt;
 u32int memstart;
@@ -27,15 +27,15 @@ u32int memend;
 int vflag = 0;
 int debug = 0;
 
-static char *diskparts[] = { "dos", "9fat", "fs", "data", "cdboot", 0 };
-static char *etherparts[] = { "*", 0 };
+static int8_t *diskparts[] = { "dos", "9fat", "fs", "data", "cdboot", 0 };
+static int8_t *etherparts[] = { "*", 0 };
 
-static char *diskinis[] = {
+static int8_t *diskinis[] = {
 	"plan9/plan9.ini",
 	"plan9.ini",
 	0
 };
-static char *etherinis[] = {
+static int8_t *etherinis[] = {
 	"/cfg/pxe/%E",
 	0
 };
@@ -137,17 +137,17 @@ struct Medium {
 	Type*	type;
 	int	flag;
 	int	dev;
-	char name[NAMELEN];
+	int8_t name[NAMELEN];
 
 	Fs *inifs;
-	char *part;
-	char *ini;
+	int8_t *part;
+	int8_t *ini;
 
 	Medium*	next;
 };
 
 typedef struct Mode {
-	char*	name;
+	int8_t*	name;
 	int	mode;
 } Mode;
 
@@ -160,16 +160,16 @@ static Mode modes[NMode+1] = {
 	[Manual]	{ "manual", Manual, },
 };
 
-char **ini;
+int8_t **ini;
 
 int scsi0port;
-char *defaultpartition;
+int8_t *defaultpartition;
 int iniread;
 
 static Medium*
-parse(char *line, char **file)
+parse(int8_t *line, int8_t **file)
 {
-	char *p;
+	int8_t *p;
 	Type *tp;
 	Medium *mp;
 
@@ -189,13 +189,13 @@ parse(char *line, char **file)
 }
 
 static int
-boot(Medium *mp, char *file)
+boot(Medium *mp, int8_t *file)
 {
 	Type *tp;
 	Medium *xmp;
 	static int didaddconf;
 	Boot b;
-	char *p;
+	int8_t *p;
 
 	memset(&b, 0, sizeof b);
 	b.state = INITKERNEL;
@@ -240,7 +240,7 @@ probe(int type, int flag, int dev)
 	Medium *mp;
 	File f;
 	Fs *fs;
-	char **partp;
+	int8_t **partp;
 
 	for(tp = types; tp->type != Tnil; tp++){
 		if(type != Tany && type != tp->type)
@@ -302,7 +302,7 @@ main(void)
 {
 	Medium *mp;
 	int cons, flag, i, mode, tried;
-	char def[2*NAMELEN], line[80], *p, *file;
+	int8_t def[2*NAMELEN], line[80], *p, *file;
 	Type *tp;
 
 	i8042a20();
@@ -431,7 +431,7 @@ done:
 }
 
 int
-getfields(char *lp, char **fields, int n, char sep)
+getfields(int8_t *lp, int8_t **fields, int n, int8_t sep)
 {
 	int i;
 
@@ -451,7 +451,7 @@ getfields(char *lp, char **fields, int n, char sep)
 }
 
 int
-cistrcmp(char *a, char *b)
+cistrcmp(int8_t *a, int8_t *b)
 {
 	int ac, bc;
 
@@ -473,7 +473,7 @@ cistrcmp(char *a, char *b)
 }
 
 int
-cistrncmp(char *a, char *b, int n)
+cistrncmp(int8_t *a, int8_t *b, int n)
 {
 	unsigned ac, bc;
 
@@ -497,12 +497,12 @@ cistrncmp(char *a, char *b, int n)
 	return 0;
 }
 
-ulong palloc = 0;
+uint32_t palloc = 0;
 
 void*
-ialloc(ulong n, int align)
+ialloc(uint32_t n, int align)
 {
-	ulong p;
+	uint32_t p;
 	int a;
 
 	if(palloc == 0)
@@ -525,15 +525,15 @@ ialloc(ulong n, int align)
 }
 
 void*
-xspanalloc(ulong size, int align, ulong span)
+xspanalloc(uint32_t size, int align, uint32_t span)
 {
-	ulong a, v;
+	uint32_t a, v;
 
 	if((palloc + (size+align+span)) > memend)
 		panic("xspanalloc(%lud, %d, 0x%lux) called from 0x%lux\n",
 			size, align, span, getcallerpc(&size));
 
-	a = (ulong)ialloc(size+align+span, 0);
+	a = (uint32_t)ialloc(size+align+span, 0);
 
 	if(span > 2)
 		v = (a + span) & ~(span-1);
@@ -552,7 +552,7 @@ Block*
 allocb(int size)
 {
 	Block *bp, **lbp;
-	ulong addr;
+	uint32_t addr;
 
 	lbp = &allocbp;
 	for(bp = *lbp; bp; bp = bp->next){
@@ -567,10 +567,10 @@ allocb(int size)
 			panic("allocb(%d) called from 0x%lux\n",
 				size, getcallerpc(&size));
 		bp = ialloc(sizeof(Block)+size+64, 0);
-		addr = (ulong)bp;
+		addr = (uint32_t)bp;
 		addr = ROUNDUP(addr + sizeof(Block), 8);
-		bp->base = (uchar*)addr;
-		bp->lim = ((uchar*)bp) + sizeof(Block)+size+64;
+		bp->base = (uint8_t*)addr;
+		bp->lim = ((uint8_t*)bp) + sizeof(Block)+size+64;
 	}
 
 	if(bp->flag)
@@ -598,7 +598,7 @@ enum {
 	Pdata=		0x71,	/* data port */
 };
 
-uchar
+uint8_t
 nvramread(int offset)
 {
 	outb(Paddr, offset);
@@ -625,9 +625,9 @@ impulse(void)
 }
 
 void
-warp9(ulong entry)
+warp9(uint32_t entry)
 {
-	extern void _warp9(ulong);
+	extern void _warp9(uint32_t);
 
 	print("warp9(%#lux) %d\n", entry, nmmap);
 	if(vflag)

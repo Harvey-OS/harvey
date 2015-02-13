@@ -460,7 +460,7 @@ gx_matrix_to_fixed_coeff(const gs_matrix * pmat, register fixed_coeff * pfc,
      */
     if (max_bits < fixed_fraction_bits)
 	max_bits = fixed_fraction_bits;
-    scale = sizeof(long) * 8 - 1 - max_bits - scale;
+    scale = sizeof(int32_t) * 8 - 1 - max_bits - scale;
 
     shift = scale - _fixed_shift;
     if (shift > 0) {
@@ -497,7 +497,8 @@ gx_matrix_to_fixed_coeff(const gs_matrix * pmat, register fixed_coeff * pfc,
  * See gxmatrix.h for more details.
  */
 fixed
-fixed_coeff_mult(fixed value, long coeff, const fixed_coeff *pfc, int maxb)
+fixed_coeff_mult(fixed value, int32_t coeff, const fixed_coeff *pfc,
+                 int maxb)
 {
     int shift = pfc->shift;
 

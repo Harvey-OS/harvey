@@ -41,10 +41,10 @@ void (*parse[256])(int, int) =
 int hex;
 
 void
-fatal(char *fmt, ...)
+fatal(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[512];
+	int8_t buf[512];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -62,15 +62,15 @@ readc(void *x)
 	pos++;
 	rv = read(fd, x, 1);
 	if(hex)
-		print("%2.2ux ", *(uchar*)x);
+		print("%2.2ux ", *(uint8_t*)x);
 	return rv;
 }
 
 int
 tuple(int next, int expect)
 {
-	uchar link;
-	uchar type;
+	uint8_t link;
+	uint8_t type;
 
 	pos = next;
 	if(readc(&type) != 1)
@@ -171,12 +171,12 @@ char *typetab[256] =
 [0xD]	"IO+MEM",
 };
 
-ulong
+uint32_t
 getlong(int size)
 {
-	uchar c;
+	uint8_t c;
 	int i;
-	ulong x;
+	uint32_t x;
 
 	x = 0;
 	for(i = 0; i < size; i++){
@@ -190,12 +190,12 @@ getlong(int size)
 void
 tdevice(int ttype, int len)
 {
-	uchar id;
-	uchar type;
-	uchar speed, aespeed;
-	uchar size;
-	ulong bytes, ns;
-	char *tname, *ttname;
+	uint8_t id;
+	uint8_t type;
+	uint8_t speed, aespeed;
+	uint8_t size;
+	uint32_t bytes, ns;
+	int8_t *tname, *ttname;
 
 	while(len > 0){
 		if(readc(&id) != 1)
@@ -253,7 +253,7 @@ void
 tlonglnkmfc(int, int)
 {
 	int i, opos;
-	uchar nfn, space, expect;
+	uint8_t nfn, space, expect;
 	int addr;
 
 	readc(&nfn);
@@ -270,7 +270,7 @@ tlonglnkmfc(int, int)
 	}
 }
 
-static char *funcids[] = {
+static int8_t *funcids[] = {
 	"MULTI",
 	"MEMORY",
 	"SERIAL",
@@ -285,7 +285,7 @@ static char *funcids[] = {
 void
 tfuncid(int, int)
 {
-	uchar func;
+	uint8_t func;
 
 	readc(&func);
 	print("Function %s\n", 
@@ -295,9 +295,9 @@ tfuncid(int, int)
 void
 tvers1(int ttype, int len)
 {
-	uchar c, major, minor;
+	uint8_t c, major, minor;
 	int  i;
-	char string[512];
+	int8_t string[512];
 
 	USED(ttype);
 	if(readc(&major) != 1)
@@ -331,10 +331,10 @@ tvers1(int ttype, int len)
 void
 tcfig(int ttype, int len)
 {
-	uchar size, rasize, rmsize;
-	uchar last;
-	ulong caddr;
-	ulong cregs;
+	uint8_t size, rasize, rmsize;
+	uint8_t last;
+	uint32_t caddr;
+	uint32_t cregs;
 	int i;
 
 	USED(ttype, len);
@@ -364,21 +364,21 @@ char *intrname[16] =
 [7]	"Custom 3",
 };
 
-ulong vexp[8] =
+uint32_t vexp[8] =
 {
 	1, 10, 100, 1000, 10000, 100000, 1000000, 10000000
 };
-ulong vmant[16] =
+uint32_t vmant[16] =
 {
 	10, 12, 13, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90,
 };
 
 void
-volt(char *name)
+volt(int8_t *name)
 {
-	uchar c;
-	ulong microv;
-	ulong exp;
+	uint8_t c;
+	uint32_t microv;
+	uint32_t exp;
 
 	if(readc(&c) != 1)
 		return;
@@ -403,10 +403,10 @@ volt(char *name)
 }
 
 void
-amps(char *name)
+amps(int8_t *name)
 {
-	uchar c;
-	ulong amps;
+	uint8_t c;
+	uint32_t amps;
 
 	if(readc(&c) != 1)
 		return;
@@ -426,9 +426,9 @@ amps(char *name)
 }
 
 void
-power(char *name)
+power(int8_t *name)
 {
-	uchar feature;
+	uint8_t feature;
 
 	print("\t%s: ", name);
 	if(readc(&feature) != 1)
@@ -451,10 +451,10 @@ power(char *name)
 }
 
 void
-ttiming(char *name, int scale)
+ttiming(int8_t *name, int scale)
 {
-	uchar unscaled;
-	ulong scaled;
+	uint8_t unscaled;
+	uint32_t scaled;
 
 	if(readc(&unscaled) != 1)
 		return;
@@ -466,7 +466,7 @@ ttiming(char *name, int scale)
 void
 timing(void)
 {
-	uchar c, i;
+	uint8_t c, i;
 
 	if(readc(&c) != 1)
 		return;
@@ -484,14 +484,14 @@ timing(void)
 void
 range(int asize, int lsize)
 {
-	ulong address, len;
+	uint32_t address, len;
 
 	address = getlong(asize);
 	len = getlong(lsize);
 	print("\t\t%lux - %lux\n", address, address+len);
 }
 
-char *ioaccess[4] =
+int8_t *ioaccess[4] =
 {
 	" no access",
 	" 8bit access only",
@@ -500,7 +500,7 @@ char *ioaccess[4] =
 };
 
 int
-iospace(uchar c)
+iospace(uint8_t c)
 {
 	int i;
 
@@ -519,7 +519,7 @@ iospace(uchar c)
 void
 iospaces(void)
 {
-	uchar c;
+	uint8_t c;
 
 	if(readc(&c) != 1)
 		return;
@@ -529,9 +529,9 @@ iospaces(void)
 void
 irq(void)
 {
-	uchar c;
-	uchar irq1, irq2;
-	ushort i, irqs;
+	uint8_t c;
+	uint8_t irq1, irq2;
+	uint16_t i, irqs;
 
 	if(readc(&c) != 1)
 		return;
@@ -554,7 +554,7 @@ irq(void)
 void
 memspace(int asize, int lsize, int host)
 {
-	ulong haddress, address, len;
+	uint32_t haddress, address, len;
 
 	len = getlong(lsize)*256;
 	address = getlong(asize)*256;
@@ -574,9 +574,9 @@ misc(void)
 void
 tentry(int ttype, int len)
 {
-	uchar c, i, feature;
-	char *tname;
-	char buf[16];
+	uint8_t c, i, feature;
+	int8_t *tname;
+	int8_t buf[16];
 
 	USED(ttype, len);
 	if(readc(&c) != 1)

@@ -424,7 +424,7 @@ igc_reloc_refs(ref_packed * from, ref_packed * to, gc_state_t * gcst)
 	pref = (ref *) rp;
 	if_debug3('8', "  [8]relocating %s %d ref at 0x%lx",
 		  (r_has_attr(pref, l_mark) ? "marked" : "unmarked"),
-		  r_btype(pref), (ulong) pref);
+		  r_btype(pref), (uint32_t) pref);
 	if ((r_has_attr(pref, l_mark) || do_all) &&
 	    r_space(pref) >= min_trace
 	    ) {
@@ -528,8 +528,8 @@ igc_reloc_refs(ref_packed * from, ref_packed * to, gc_state_t * gcst)
 
 			SET_RELOC(pref->value.pname,
 				  (name *)
-				  ((char *)rsub + ((char *)pref->value.pname -
-						   (char *)psub)));
+				  ((int8_t *)rsub + ((int8_t *)pref->value.pname -
+						   (int8_t *)psub)));
 		    } break;
 		case t_string:
 		    {
@@ -550,7 +550,8 @@ igc_reloc_refs(ref_packed * from, ref_packed * to, gc_state_t * gcst)
 		default:
 		    goto no_reloc; /* don't print trace message */
 	    }
-	    if_debug2('8', ", 0x%lx => 0x%lx", (ulong)before, (ulong)after);
+	    if_debug2('8', ", 0x%lx => 0x%lx", (uint32_t)before,
+                      (uint32_t)after);
 	}
 no_reloc:
 	if_debug0('8', "\n");
@@ -605,7 +606,7 @@ igc_reloc_ref_ptr(const ref_packed * prp, gc_state_t *gcst)
 		    rputc('\n');
 		    rp = print_reloc(prp, "ref",
 				     (const ref_packed *)
-				     ((const char *)prp -
+				     ((const int8_t *)prp -
 				      (*rp & packed_value_mask) + dec));
 		    break;
 		}
@@ -626,7 +627,7 @@ igc_reloc_ref_ptr(const ref_packed * prp, gc_state_t *gcst)
 	    rp = print_reloc(prp, "ref",
 			     (const ref_packed *)
 			     (r_size(RP_REF(rp)) == 0 ? prp :
-			      (const ref_packed *)((const char *)prp -
+			      (const ref_packed *)((const int8_t *)prp -
 						   r_size(RP_REF(rp)) + dec)));
 	    break;
 	}

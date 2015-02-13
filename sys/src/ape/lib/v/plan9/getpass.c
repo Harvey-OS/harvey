@@ -14,13 +14,13 @@
 #include <limits.h>
 #include <libv.h>
 
-char *
-getpass(char *prompt)
+int8_t *
+getpass(int8_t *prompt)
 {
 	int c;
-	char *p;
+	int8_t *p;
 	FILE *fi;
-	static char pbuf[PASS_MAX];
+	static int8_t pbuf[PASS_MAX];
 	void (*sig)(int);
 
 	if ((fi = fopen("/dev/cons", "r")) == NULL)

@@ -10,9 +10,9 @@
 #include "headers.h"
 
 int
-smbmailslotsend(NbDgramSendParameters *p, SmbBuffer *msg, char **errmsgp)
+smbmailslotsend(NbDgramSendParameters *p, SmbBuffer *msg, int8_t **errmsgp)
 {
-	ushort setup[3];
+	uint16_t setup[3];
 	int rv;
 	SmbTransaction transaction;
 	SmbBuffer *b;
@@ -34,7 +34,8 @@ smbmailslotsend(NbDgramSendParameters *p, SmbBuffer *msg, char **errmsgp)
 }
 
 int
-smbbrowsesendhostannouncement(char *name, ulong periodms, ulong type, char *comment, char **errmsgp)
+smbbrowsesendhostannouncement(int8_t *name, uint32_t periodms, uint32_t type,
+			      int8_t *comment, int8_t **errmsgp)
 {
 	NbDgramSendParameters p;
 	SmbBuffer *b;

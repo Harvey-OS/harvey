@@ -10,13 +10,13 @@
 #include "headers.h"
 
 SmbDirCache *
-smbmkdircache(SmbTree *t, char *path)
+smbmkdircache(SmbTree *t, int8_t *path)
 {
-	long n;
+	int32_t n;
 	SmbDirCache *c;
 	Dir *buf;
 	int fd;
-	char *fullpath = nil;
+	int8_t *fullpath = nil;
 
 	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
 //smblogprintif(1, "smbmkdircache: path %s\n", fullpath);

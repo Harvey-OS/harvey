@@ -14,7 +14,7 @@
 #include "fns.h"
 #include "../port/error.h"
 
-Segment* (*_globalsegattach)(Proc*, char*);
+Segment* (*_globalsegattach)(Proc*, int8_t*);
 
 static Lock physseglock;
 
@@ -50,7 +50,7 @@ addphysseg(Physseg* new)
 }
 
 int
-isphysseg(char *name)
+isphysseg(int8_t *name)
 {
 	int rv;
 	Physseg *ps;
@@ -73,7 +73,7 @@ ibrk(uintptr addr, int seg)
 {
 	Segment *s, *ns;
 	uintptr newtop, rtop;
-	long newsize;
+	int32_t newsize;
 	int i, mapsize;
 	Pte **map;
 	uintmem pgsz;
@@ -225,7 +225,7 @@ sysbrk_(Ar0* ar0, va_list list)
 }
 
 static uintptr
-segattach(Proc* p, int attr, char* name, uintptr va, usize len)
+segattach(Proc* p, int attr, int8_t* name, uintptr va, usize len)
 {
 	int sno;
 	Segment *s, *os;
@@ -321,7 +321,7 @@ void
 syssegattach(Ar0* ar0, va_list list)
 {
 	int attr;
-	char *name;
+	int8_t *name;
 	uintptr va;
 	usize len;
 
@@ -331,7 +331,7 @@ syssegattach(Ar0* ar0, va_list list)
 	 * void* segattach(int, char*, void*, usize);
 	 */
 	attr = va_arg(list, int);
-	name = va_arg(list, char*);
+	name = va_arg(list, int8_t*);
 	va = PTR2UINT(va_arg(list, void*));
 	len = va_arg(list, usize);
 

@@ -18,15 +18,15 @@ usage(void)
 }
 
 void
-catch(void*, char *s)
+catch(void*, int8_t *s)
 {
 	exits(s);
 }
 
 int
-writewithoutcr(int fd, char *p, int i)
+writewithoutcr(int fd, int8_t *p, int i)
 {
-	char *q, *e;
+	int8_t *q, *e;
 
 	/* dump cr's */
 	for(e = p+i; p < e; ){

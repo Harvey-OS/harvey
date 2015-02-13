@@ -18,9 +18,9 @@
 #include "dat.h"
 #include "fns.h"
 
-char *cookiefile;
-char *mtpt = "/mnt/web";
-char *service;
+int8_t *cookiefile;
+int8_t *mtpt = "/mnt/web";
+int8_t *service;
 
 Ctl globalctl = 
 {

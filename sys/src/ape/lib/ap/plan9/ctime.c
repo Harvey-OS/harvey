@@ -46,7 +46,7 @@
 #include <unistd.h>
 #include <string.h>
 
-static	char	dmsize[12] =
+static	int8_t	dmsize[12] =
 {
 	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
@@ -58,24 +58,24 @@ static	char	dmsize[12] =
  */
 
 static	int	dysize(int);
-static	void	ct_numb(char*, int);
+static	void	ct_numb(int8_t*, int);
 static	void	readtimezone(void);
-static	int	rd_name(char**, char*);
-static	int	rd_long(char**, long*);
+static	int	rd_name(int8_t**, int8_t*);
+static	int	rd_long(int8_t**, int32_t*);
 
 #define	TZSIZE	150
 
 static
 struct
 {
-	char	stname[4];
-	char	dlname[4];
-	long	stdiff;
-	long	dldiff;
-	long	dlpairs[TZSIZE];
+	int8_t	stname[4];
+	int8_t	dlname[4];
+	int32_t	stdiff;
+	int32_t	dldiff;
+	int32_t	dlpairs[TZSIZE];
 } timezone;
 
-char*
+int8_t*
 ctime(const time_t *t)
 {
 	return asctime(localtime(t));
@@ -85,7 +85,7 @@ struct tm*
 gmtime_r(const time_t *timp, struct tm *result)
 {
 	int d0, d1;
-	long hms, day;
+	int32_t hms, day;
 	time_t tim;
 
 	tim = *timp;
@@ -156,7 +156,7 @@ localtime_r(const time_t *timp, struct tm *result)
 {
 	struct tm *ct;
 	time_t t, tim;
-	long *p;
+	int32_t *p;
 	int dlflag;
 
 	tim = *timp;
@@ -184,10 +184,10 @@ localtime(const time_t *timp)
 	return localtime_r(timp, &xtime);
 }
 
-char*
-asctime_r(const struct tm *t, char *buf)
+int8_t*
+asctime_r(const struct tm *t, int8_t *buf)
 {
-	char *ncp;
+	int8_t *ncp;
 
 	strcpy(buf, "Thu Jan 01 00:00:00 1970\n");
 	ncp = &"SunMonTueWedThuFriSat"[t->tm_wday*3];
@@ -210,10 +210,10 @@ asctime_r(const struct tm *t, char *buf)
 	return buf;
 }
 
-char*
+int8_t*
 asctime(const struct tm *t)
 {
-	static char cbuf[30];
+	static int8_t cbuf[30];
 
 	return asctime_r(t, cbuf);
 }
@@ -228,7 +228,7 @@ dysize(int y)
 
 static
 void
-ct_numb(char *cp, int n)
+ct_numb(int8_t *cp, int n)
 {
 	cp[0] = ' ';
 	if(n >= 10)
@@ -240,7 +240,7 @@ static
 void
 readtimezone(void)
 {
-	char buf[TZSIZE*11+30], *p;
+	int8_t buf[TZSIZE*11+30], *p;
 	int i;
 
 	memset(buf, 0, sizeof(buf));
@@ -273,7 +273,7 @@ error:
 }
 
 static
-rd_name(char **f, char *p)
+rd_name(int8_t **f, int8_t *p)
 {
 	int c, i;
 
@@ -295,10 +295,10 @@ rd_name(char **f, char *p)
 }
 
 static
-rd_long(char **f, long *p)
+rd_long(int8_t **f, int32_t *p)
 {
 	int c, s;
-	long l;
+	int32_t l;
 
 	s = 0;
 	for(;;) {

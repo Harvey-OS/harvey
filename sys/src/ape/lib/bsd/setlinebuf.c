@@ -12,7 +12,7 @@
 void
 setlinebuf(FILE *f)
 {
-	static char buf[BUFSIZ];
+	static int8_t buf[BUFSIZ];
 
 	setvbuf (f, buf, _IOLBF, BUFSIZ);
 }

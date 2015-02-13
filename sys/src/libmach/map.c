@@ -35,7 +35,7 @@ newmap(Map *map, int n)
 }
 
 int
-setmap(Map *map, int fd, uvlong b, uvlong e, vlong f, char *name)
+setmap(Map *map, int fd, uint64_t b, uint64_t e, int64_t f, int8_t *name)
 {
 	int i;
 
@@ -55,13 +55,13 @@ setmap(Map *map, int fd, uvlong b, uvlong e, vlong f, char *name)
 	return 1;
 }
 
-static uvlong
+static uint64_t
 stacktop(int pid)
 {
-	char buf[64];
+	int8_t buf[64];
 	int fd;
 	int n;
-	char *cp;
+	int8_t *cp;
 
 	snprint(buf, sizeof(buf), "/proc/%d/segment", pid);
 	fd = open(buf, 0);
@@ -89,10 +89,10 @@ stacktop(int pid)
 Map*
 attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 {
-	char buf[64], *regs;
+	int8_t buf[64], *regs;
 	int fd;
 	Map *map;
-	uvlong n;
+	uint64_t n;
 
 	map = newmap(0, 4);
 	if (!map)
@@ -139,7 +139,7 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 }
 	
 int
-findseg(Map *map, char *name)
+findseg(Map *map, int8_t *name)
 {
 	int i;
 

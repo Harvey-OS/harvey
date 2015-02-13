@@ -336,11 +336,11 @@ enum {					/* Manc */
 
 typedef struct Rdesc {			/* Receive Descriptor */
 	uint	addr[2];
-	ushort	length;
-	ushort	checksum;
-	uchar	status;
-	uchar	errors;
-	ushort	special;
+	uint16_t	length;
+	uint16_t	checksum;
+	uint8_t	status;
+	uint8_t	errors;
+	uint16_t	special;
 } Rdesc;
 
 enum {					/* Rdesc status */
@@ -408,7 +408,7 @@ typedef struct Ctlr {
 	int	active;
 	int	id;
 	int	cls;
-	ushort	eeprom[0x40];
+	uint16_t	eeprom[0x40];
 
 	int*	nic;
 	Lock	imlock;
@@ -419,8 +419,8 @@ typedef struct Ctlr {
 	Lock	slock;
 	uint	statistics[Nstatistics];
 
-	uchar	ra[Eaddrlen];		/* receive address */
-	ulong	mta[128];		/* multicast table array */
+	uint8_t	ra[Eaddrlen];		/* receive address */
+	uint32_t	mta[128];		/* multicast table array */
 
 	Rdesc*	rdba;			/* receive descriptor base address */
 	Block**	rb;			/* receive buffers */
@@ -480,7 +480,7 @@ igbeattach(Ether* edev)
 	csr32w(ctlr, Tctl, ctl);
 }
 
-static char* statistics[Nstatistics] = {
+static int8_t* statistics[Nstatistics] = {
 	"CRC Error",
 	"Alignment Error",
 	"Symbol Error",
@@ -1192,7 +1192,7 @@ igbemii(Ctlr* ctlr)
 
 	if(mii(ctlr->mii, ~0) == 0 || (phy = ctlr->mii->curphy) == nil){
 		if (0)
-			print("phy trouble: phy = 0x%lux\n", (ulong)phy);
+			print("phy trouble: phy = 0x%lux\n", (uint32_t)phy);
 		free(ctlr->mii);
 		ctlr->mii = nil;
 		return -1;
@@ -1241,9 +1241,9 @@ igbemii(Ctlr* ctlr)
 }
 
 static int
-at93c46io(Ctlr* ctlr, char* op, int data)
+at93c46io(Ctlr* ctlr, int8_t* op, int data)
 {
-	char *lp, *p;
+	int8_t *lp, *p;
 	int i, loop, eecd, r;
 
 	eecd = csr32r(ctlr, Eecd);
@@ -1318,8 +1318,8 @@ at93c46io(Ctlr* ctlr, char* op, int data)
 static int
 at93c46r(Ctlr* ctlr)
 {
-	ushort sum;
-	char rop[20];
+	uint16_t sum;
+	int8_t rop[20];
 	int addr, areq, bits, data, eecd, i;
 
 	eecd = csr32r(ctlr, Eecd);
@@ -1636,14 +1636,14 @@ igbepci(void)
 		switch(cls){
 			default:
 				print("igbe: unexpected CLS - %d bytes\n",
-					cls*sizeof(long));
+					cls*sizeof(int32_t));
 				break;
 			case 0x00:
 			case 0xFF:
 				/* alphapc 164lx returns 0 */
 				print("igbe: unusable PciCLS: %d, using %d longs\n",
-					cls, CACHELINESZ/sizeof(long));
-				cls = CACHELINESZ/sizeof(long);
+					cls, CACHELINESZ/sizeof(int32_t));
+				cls = CACHELINESZ/sizeof(int32_t);
 				pcicfgw8(p, PciCLS, cls);
 				break;
 			case 0x08:
@@ -1676,7 +1676,7 @@ igbepnp(Ether* edev)
 {
 	int i;
 	Ctlr *ctlr;
-	uchar ea[Eaddrlen];
+	uint8_t ea[Eaddrlen];
 
 	if(ctlrhead == nil)
 		igbepci();

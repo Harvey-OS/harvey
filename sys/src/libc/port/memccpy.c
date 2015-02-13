@@ -11,9 +11,9 @@
 #include	<libc.h>
 
 void*
-memccpy(void *a1, void *a2, int c, ulong n)
+memccpy(void *a1, void *a2, int c, uint32_t n)
 {
-	uchar *s1, *s2;
+	uint8_t *s1, *s2;
 
 	s1 = a1;
 	s2 = a2;

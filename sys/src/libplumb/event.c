@@ -18,7 +18,7 @@ typedef struct EQueue EQueue;
 struct EQueue
 {
 	int		id;
-	char		*buf;
+	int8_t		*buf;
 	int		nbuf;
 	EQueue	*next;
 };
@@ -28,7 +28,7 @@ static	Lock		eqlock;
 
 static
 int
-partial(int id, Event *e, uchar *b, int n)
+partial(int id, Event *e, uint8_t *b, int n)
 {
 	EQueue *eq, *p;
 	int nmore;
@@ -46,7 +46,7 @@ partial(int id, Event *e, uchar *b, int n)
 		drawerror(display, "eplumb: cannot allocate buffer");
 	memmove(eq->buf+eq->nbuf, b, n);
 	eq->nbuf += n;
-	e->v = plumbunpackpartial((char*)eq->buf, eq->nbuf, &nmore);
+	e->v = plumbunpackpartial((int8_t*)eq->buf, eq->nbuf, &nmore);
 	if(nmore == 0){	/* no more to read in this message */
 		lock(&eqlock);
 		if(eq == equeue)
@@ -67,7 +67,7 @@ partial(int id, Event *e, uchar *b, int n)
 
 static
 void
-addpartial(int id, char *b, int n)
+addpartial(int id, int8_t *b, int n)
 {
 	EQueue *eq;
 
@@ -90,15 +90,15 @@ addpartial(int id, char *b, int n)
 
 static
 int
-plumbevent(int id, Event *e, uchar *b, int n)
+plumbevent(int id, Event *e, uint8_t *b, int n)
 {
 	int nmore;
 
 	if(partial(id, e, b, n) == 0){
 		/* no partial message already waiting for this id */
-		e->v = plumbunpackpartial((char*)b, n, &nmore);
+		e->v = plumbunpackpartial((int8_t*)b, n, &nmore);
 		if(nmore > 0)	/* incomplete message */
-			addpartial(id, (char*)b, n);
+			addpartial(id, (int8_t*)b, n);
 	}
 	if(e->v == nil)
 		return 0;
@@ -106,7 +106,7 @@ plumbevent(int id, Event *e, uchar *b, int n)
 }
 
 int
-eplumb(int key, char *port)
+eplumb(int key, int8_t *port)
 {
 	int fd;
 

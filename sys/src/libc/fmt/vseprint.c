@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-char*
-vseprint(char *buf, char *e, char *fmt, va_list args)
+int8_t*
+vseprint(int8_t *buf, int8_t *e, int8_t *fmt, va_list args)
 {
 	Fmt f;
 
@@ -26,7 +26,7 @@ vseprint(char *buf, char *e, char *fmt, va_list args)
 	f.nfmt = 0;
 	f.args = args;
 	dofmt(&f, fmt);
-	*(char*)f.to = '\0';
+	*(int8_t*)f.to = '\0';
 	return f.to;
 }
 

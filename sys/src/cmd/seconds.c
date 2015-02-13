@@ -15,7 +15,7 @@
 #include <libc.h>
 #include <ctype.h>
 
-typedef ulong Time;
+typedef uint32_t Time;
 
 enum {
 	AM, PM, HR24,
@@ -44,25 +44,25 @@ enum {
 
 /* keep this struct small since we have an array of them */
 typedef struct {
-	char	token[Maxtok];
-	char	type;
+	int8_t	token[Maxtok];
+	int8_t	type;
 	schar	value;
 } Datetok;
 
 int dtok_numparsed;
 
 /* forwards */
-Datetok	*datetoktype(char *s, int *bigvalp);
+Datetok	*datetoktype(int8_t *s, int *bigvalp);
 
 static Datetok datetktbl[];
 static unsigned szdatetktbl;
 
 /* parse 1- or 2-digit number, advance *cpp past it */
 static int
-eatnum(char **cpp)
+eatnum(int8_t **cpp)
 {
 	int c, x;
-	char *cp;
+	int8_t *cp;
 
 	cp = *cpp;
 	c = *cp;
@@ -81,7 +81,7 @@ eatnum(char **cpp)
 
 /* return -1 on failure */
 int
-parsetime(char *time, Tm *tm)
+parsetime(int8_t *time, Tm *tm)
 {
 	tm->hour = eatnum(&time);
 	if (tm->hour == -1 || *time++ != ':')
@@ -107,11 +107,11 @@ parsetime(char *time, Tm *tm)
  * try to parse pre-split timestr in fields as an absolute date
  */
 int
-tryabsdate(char **fields, int nf, Tm *now, Tm *tm)
+tryabsdate(int8_t **fields, int nf, Tm *now, Tm *tm)
 {
 	int i, mer = HR24, bigval = -1;
-	long flg = 0, ty;
-	char *p;
+	int32_t flg = 0, ty;
+	int8_t *p;
 	Datetok *tp;
 
 	now = localtime(time(0));	/* default to local time (zone) */
@@ -177,17 +177,17 @@ tryabsdate(char **fields, int nf, Tm *now, Tm *tm)
 }
 
 int
-prsabsdate(char *timestr, Tm *now, Tm *tm)
+prsabsdate(int8_t *timestr, Tm *now, Tm *tm)
 {
 	int nf;
-	char *fields[Maxdateflds];
-	static char delims[] = "- \t\n/,";
+	int8_t *fields[Maxdateflds];
+	static int8_t delims[] = "- \t\n/,";
 
 	nf = gettokens(timestr, fields, nelem(fields), delims+1);
 	if (nf > nelem(fields))
 		return -1;
 	if (tryabsdate(fields, nf, now, tm) < 0) {
-		char *p = timestr;
+		int8_t *p = timestr;
 
 		/*
 		 * could be a DEC-date; glue it all back together, split it
@@ -218,7 +218,7 @@ validtm(Tm *tm)
 }
 
 Time
-seconds(char *timestr)
+seconds(int8_t *timestr)
 {
 	Tm date;
 
@@ -229,9 +229,9 @@ seconds(char *timestr)
 }
 
 int
-convert(char *timestr)
+convert(int8_t *timestr)
 {
-	char *copy;
+	int8_t *copy;
 	Time tstime;
 
 	copy = strdup(timestr);
@@ -276,7 +276,7 @@ main(int argc, char **argv)
  * is WAY faster than the generic bsearch().
  */
 Datetok *
-datebsearch(char *key, Datetok *base, unsigned nel)
+datebsearch(int8_t *key, Datetok *base, unsigned nel)
 {
 	int cmp;
 	Datetok *last = base + nel - 1, *pos;
@@ -298,10 +298,10 @@ datebsearch(char *key, Datetok *base, unsigned nel)
 }
 
 Datetok *
-datetoktype(char *s, int *bigvalp)
+datetoktype(int8_t *s, int *bigvalp)
 {
-	char *cp = s;
-	char c = *cp;
+	int8_t *cp = s;
+	int8_t c = *cp;
 	static Datetok t;
 	Datetok *tp = &t;
 
@@ -329,8 +329,8 @@ datetoktype(char *s, int *bigvalp)
 		TOVAL(tp, c == '-'? -val: val);
 		tp->type = Tz;
 	} else {
-		char lowtoken[Maxtok+1];
-		char *ltp = lowtoken, *endltp = lowtoken+Maxtok;
+		int8_t lowtoken[Maxtok+1];
+		int8_t *ltp = lowtoken, *endltp = lowtoken+Maxtok;
 
 		/* copy to lowtoken to avoid modifying s */
 		while ((c = *cp++) != '\0' && ltp < endltp)

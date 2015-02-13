@@ -13,9 +13,9 @@
 #include "authcmdlib.h"
 
 int
-readarg(int fd, char *arg, int len)
+readarg(int fd, int8_t *arg, int len)
 {
-	char buf[1];
+	int8_t buf[1];
 	int i;
 
 	i = 0;

@@ -69,7 +69,7 @@
 typedef  unsigned int   UInt32;
 typedef  int            Int32;
 typedef  unsigned char  UChar;
-typedef  char           Char;
+typedef  int8_t           Char;
 typedef  unsigned char  Bool;
 #define True    ((Bool)1)
 #define False   ((Bool)0)

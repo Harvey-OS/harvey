@@ -15,7 +15,7 @@
  *  become the authenticated user
  */
 int
-auth_chuid(AuthInfo *ai, char *ns)
+auth_chuid(AuthInfo *ai, int8_t *ns)
 {
 	int rv, fd;
 

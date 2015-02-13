@@ -62,10 +62,10 @@ Cinfo plinfo[] = {
 };
 
 int
-plmatch(char *info)
+plmatch(int8_t *info)
 {
 	Cinfo *ip;
-	char buf[50];
+	int8_t buf[50];
 
 	for(ip = plinfo; ip->vid != 0; ip++){
 		snprint(buf, sizeof buf, "vid %#06x did %#06x",
@@ -80,7 +80,7 @@ plmatch(char *info)
 static void	statusreader(void *u);
 
 static void
-dumpbuf(uchar *buf, int bufsz)
+dumpbuf(uint8_t *buf, int bufsz)
 {
 	int i;
 
@@ -90,7 +90,7 @@ dumpbuf(uchar *buf, int bufsz)
 }
 
 static int
-vendorread(Serialport *p, int val, int index, uchar *buf)
+vendorread(Serialport *p, int val, int index, uint8_t *buf)
 {
 	int res;
 	Serial *ser;
@@ -145,7 +145,7 @@ plmodemctl(Serialport *p, int set)
 static int
 plgetparam(Serialport *p)
 {
-	uchar buf[ParamReqSz];
+	uint8_t buf[ParamReqSz];
 	int res;
 	Serial *ser;
 
@@ -182,7 +182,7 @@ plgetparam(Serialport *p)
 static int
 plsetparam(Serialport *p)
 {
-	uchar buf[ParamReqSz];
+	uint8_t buf[ParamReqSz];
 	int res;
 	Serial *ser;
 
@@ -210,7 +210,7 @@ plsetparam(Serialport *p)
 }
 
 static int
-revid(ulong devno)
+revid(uint32_t devno)
 {
 	switch(devno){
 	case RevH:
@@ -226,7 +226,7 @@ revid(ulong devno)
 
 /* linux driver says the release id is not always right */
 static int
-heuristicid(ulong csp, ulong maxpkt)
+heuristicid(uint32_t csp, uint32_t maxpkt)
 {
 	if(Class(csp) == 0x02)
 		return TypeH;
@@ -243,9 +243,9 @@ heuristicid(ulong csp, ulong maxpkt)
 static int
 plinit(Serialport *p)
 {
-	char *st;
-	uchar *buf;
-	ulong csp, maxpkt, dno;
+	int8_t *st;
+	uint8_t *buf;
+	uint32_t csp, maxpkt, dno;
 	Serial *ser;
 
 	ser = p->s;
@@ -325,7 +325,7 @@ plclearpipes(Serialport *p)
 }
 
 static int
-setctlline(Serialport *p, uchar val)
+setctlline(Serialport *p, uint8_t val)
 {
 	Serial *ser;
 
@@ -363,8 +363,8 @@ static int
 plreadstatus(Serialport *p)
 {
 	int nr, dfd;
-	char err[40];
-	uchar buf[VendorReqSz];
+	int8_t err[40];
+	uint8_t buf[VendorReqSz];
 	Serial *ser;
 
 	ser = p->s;

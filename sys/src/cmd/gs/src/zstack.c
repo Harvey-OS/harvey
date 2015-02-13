@@ -77,7 +77,7 @@ zindex(i_ctx_t *i_ctx_p)
     register os_ptr opn;
 
     check_type(*op, t_integer);
-    if ((ulong)op->value.intval >= op - osbot) {
+    if ((uint32_t)op->value.intval >= op - osbot) {
 	/* Might be in an older stack block. */
 	ref *elt;
 
@@ -107,7 +107,7 @@ zroll(i_ctx_t *i_ctx_p)
 
     check_type(*op1, t_integer);
     check_type(*op, t_integer);
-    if ((ulong) op1->value.intval > op1 - osbot) {
+    if ((uint32_t) op1->value.intval > op1 - osbot) {
 	/*
 	 * The data might span multiple stack blocks.
 	 * There are efficient ways to handle this situation,
@@ -213,7 +213,7 @@ zroll(i_ctx_t *i_ctx_p)
 	op -= 2;
 	for (to = op + mod, from = op, n = count; n--; to--, from--)
 	    ref_assign(to, from);
-	memcpy((char *)(from + 1), (char *)(op + 1), mod * sizeof(ref));
+	memcpy((int8_t *)(from + 1), (int8_t *)(op + 1), mod * sizeof(ref));
     } else {
 	/* Move bottom elements up, then everything down. */
 	mod = count - mod;
@@ -224,7 +224,7 @@ zroll(i_ctx_t *i_ctx_p)
 	pop(2);
 	op -= 2;
 	to = op - count + 1;
-	memcpy((char *)(op + 1), (char *)to, mod * sizeof(ref));
+	memcpy((int8_t *)(op + 1), (int8_t *)to, mod * sizeof(ref));
 	for (from = to + mod, n = count; n--; to++, from++)
 	    ref_assign(to, from);
     }

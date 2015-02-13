@@ -20,7 +20,7 @@ int		eflag = 0;
 int		nineflag = 0;
 int		threeflag = 0;
 int		output = 0;
-ulong		outchan = CMAP8;
+uint32_t		outchan = CMAP8;
 int		defaultcolor = 1;
 Image		*image;
 
@@ -29,7 +29,7 @@ enum{
 	Edge	= 5
 };
 
-char	*show(int, char*);
+int8_t	*show(int, int8_t*);
 
 Rawimage** readbmp(int fd, int colorspace);
 
@@ -140,13 +140,13 @@ init(void)
 	return 1;
 }
 
-char*
-show(int fd, char *name)
+int8_t*
+show(int fd, int8_t *name)
 {
 	Rawimage **array, *r, *c;
 	Image *i;
 	int j, ch;
-	char buf[32];
+	int8_t buf[32];
 
 	array = readbmp(fd, CRGB);
 	if(array == nil || array[0]==nil){

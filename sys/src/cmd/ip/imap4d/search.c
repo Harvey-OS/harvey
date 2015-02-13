@@ -13,10 +13,10 @@
 #include <auth.h>
 #include "imap4d.h"
 
-static int	dateCmp(char *date, Search *s);
-static int	addrSearch(MAddr *a, char *s);
-static int	fileSearch(Msg *m, char *file, char *pat);
-static int	headerSearch(Msg *m, char *hdr, char *pat);
+static int	dateCmp(int8_t *date, Search *s);
+static int	addrSearch(MAddr *a, int8_t *s);
+static int	fileSearch(Msg *m, int8_t *file, int8_t *pat);
+static int	headerSearch(Msg *m, int8_t *hdr, int8_t *pat);
 
 /*
  * free to exit, parseErr, since called before starting any client reply
@@ -162,9 +162,9 @@ searchMsg(Msg *m, Search *s)
 }
 
 static int
-fileSearch(Msg *m, char *file, char *pat)
+fileSearch(Msg *m, int8_t *file, int8_t *pat)
 {
-	char buf[BufSize + 1];
+	int8_t buf[BufSize + 1];
 	int n, nbuf, npat, fd, ok;
 
 	npat = strlen(pat);
@@ -196,10 +196,10 @@ fileSearch(Msg *m, char *file, char *pat)
 }
 
 static int
-headerSearch(Msg *m, char *hdr, char *pat)
+headerSearch(Msg *m, int8_t *hdr, int8_t *pat)
 {
 	SList hdrs;
-	char *s, *t;
+	int8_t *s, *t;
 	int ok, n;
 
 	n = m->head.size + 3;
@@ -217,9 +217,9 @@ headerSearch(Msg *m, char *hdr, char *pat)
 }
 
 static int
-addrSearch(MAddr *a, char *s)
+addrSearch(MAddr *a, int8_t *s)
 {
-	char *ok, *addr;
+	int8_t *ok, *addr;
 
 	for(; a != nil; a = a->next){
 		addr = maddrStr(a);
@@ -232,7 +232,7 @@ addrSearch(MAddr *a, char *s)
 }
 
 static int
-dateCmp(char *date, Search *s)
+dateCmp(int8_t *date, Search *s)
 {
 	Tm tm;
 

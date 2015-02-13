@@ -16,8 +16,8 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uchar	flags;
-	uchar	ln[4];	/* optional, present if L flag set*/
+	uint8_t	flags;
+	uint8_t	ln[4];	/* optional, present if L flag set*/
 };
 
 enum
@@ -40,11 +40,11 @@ static Mux p_mux[] =
 	{ 0 }
 };
 
-static char*
+static int8_t*
 flags(int f)
 {
-	static char fl[20];
-	char *p;
+	static int8_t fl[20];
+	int8_t *p;
 
 	p = fl;
 	if(f & FlagS)

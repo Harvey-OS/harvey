@@ -14,8 +14,8 @@
 
 typedef struct KbMap KbMap;
 struct KbMap {
-	char *name;
-	char *file;
+	int8_t *name;
+	int8_t *file;
 	Rectangle r;
 	int current;
 };
@@ -30,10 +30,10 @@ enum {
 	MARGIN = 5
 };
 
-char *dir = "/sys/lib/kbmap";
+int8_t *dir = "/sys/lib/kbmap";
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -42,7 +42,7 @@ erealloc(void *v, ulong n)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *v;
 
@@ -53,11 +53,11 @@ emalloc(ulong n)
 	return v;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	int l;
-	char *t;
+	int8_t *t;
 
 	if (s == nil)
 		return nil;
@@ -73,7 +73,7 @@ init(void)
 {
 	int i, fd, nr;
 	Dir *pd;
-	char buf[128];
+	int8_t buf[128];
 
 	if((fd = open(dir, OREAD)) < 0)
 		return;
@@ -141,10 +141,10 @@ eresized(int new)
 }
 
 int
-writemap(char *file)
+writemap(int8_t *file)
 {
 	int i, fd, ofd;
-	char buf[8192];
+	int8_t buf[8192];
 
 	if((fd = open(file, OREAD)) < 0){
 		fprint(2, "cannot open %s: %r", file);
@@ -170,7 +170,7 @@ void
 click(Mouse m)
 {
 	int i, j;
-	char buf[128];
+	int8_t buf[128];
 
 	if(m.buttons == 0 || (m.buttons & ~4))
 		return;
@@ -220,10 +220,10 @@ usage(void)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Event e;
-	char *c;
+	int8_t *c;
 
 	if(argc > 1) {
 		argv++; argc--;

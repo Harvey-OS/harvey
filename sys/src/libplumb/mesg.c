@@ -12,11 +12,11 @@
 #include "plumb.h"
 
 int
-plumbopen(char *name, int omode)
+plumbopen(int8_t *name, int omode)
 {
 	int fd, f;
-	char *s, *plumber;
-	char buf[128], err[ERRMAX];
+	int8_t *s, *plumber;
+	int8_t buf[128], err[ERRMAX];
 
 	if(name[0] == '/')
 		return open(name, omode);
@@ -60,15 +60,15 @@ plumbopen(char *name, int omode)
 }
 
 static int
-Strlen(char *s)
+Strlen(int8_t *s)
 {
 	if(s == nil)
 		return 0;
 	return strlen(s);
 }
 
-static char*
-Strcpy(char *s, char *t)
+static int8_t*
+Strcpy(int8_t *s, int8_t *t)
 {
 	if(t == nil)
 		return s;
@@ -76,10 +76,10 @@ Strcpy(char *s, char *t)
 }
 
 /* quote attribute value, if necessary */
-static char*
-quote(char *s, char *buf, char *bufe)
+static int8_t*
+quote(int8_t *s, int8_t *buf, int8_t *bufe)
 {
-	char *t;
+	int8_t *t;
 	int c;
 
 	if(s == nil){
@@ -103,12 +103,12 @@ quote(char *s, char *buf, char *bufe)
 	return buf;
 }
 
-char*
+int8_t*
 plumbpackattr(Plumbattr *attr)
 {
 	int n;
 	Plumbattr *a;
-	char *s, *t, *buf, *bufe;
+	int8_t *s, *t, *buf, *bufe;
 
 	if(attr == nil)
 		return nil;
@@ -139,8 +139,8 @@ plumbpackattr(Plumbattr *attr)
 	return s;
 }
 
-char*
-plumblookup(Plumbattr *attr, char *name)
+int8_t*
+plumblookup(Plumbattr *attr, int8_t *name)
 {
 	while(attr){
 		if(strcmp(attr->name, name) == 0)
@@ -150,11 +150,11 @@ plumblookup(Plumbattr *attr, char *name)
 	return nil;
 }
 
-char*
+int8_t*
 plumbpack(Plumbmsg *m, int *np)
 {
 	int n, ndata;
-	char *buf, *p, *attr;
+	int8_t *buf, *p, *attr;
 
 	ndata = m->ndata;
 	if(ndata < 0)
@@ -190,7 +190,7 @@ plumbpack(Plumbmsg *m, int *np)
 int
 plumbsend(int fd, Plumbmsg *m)
 {
-	char *buf;
+	int8_t *buf;
 	int n;
 
 	buf = plumbpack(m, &n);
@@ -202,10 +202,10 @@ plumbsend(int fd, Plumbmsg *m)
 }
 
 static int
-plumbline(char **linep, char *buf, int i, int n, int *bad)
+plumbline(int8_t **linep, int8_t *buf, int i, int n, int *bad)
 {
 	int starti;
-	char *p;
+	int8_t *p;
 
 	starti = i;
 	while(i<n && buf[i]!='\n')
@@ -246,10 +246,10 @@ plumbfree(Plumbmsg *m)
 }
 
 Plumbattr*
-plumbunpackattr(char *p)
+plumbunpackattr(int8_t *p)
 {
 	Plumbattr *attr, *prev, *a;
-	char *q, *v, *buf, *bufe;
+	int8_t *q, *v, *buf, *bufe;
 	int c, quoting;
 
 	buf = malloc(4096);
@@ -339,7 +339,7 @@ plumbaddattr(Plumbattr *attr, Plumbattr *new)
 }
 
 Plumbattr*
-plumbdelattr(Plumbattr *attr, char *name)
+plumbdelattr(Plumbattr *attr, int8_t *name)
 {
 	Plumbattr *l, *prev;
 
@@ -362,11 +362,11 @@ plumbdelattr(Plumbattr *attr, char *name)
 }
 
 Plumbmsg*
-plumbunpackpartial(char *buf, int n, int *morep)
+plumbunpackpartial(int8_t *buf, int n, int *morep)
 {
 	Plumbmsg *m;
 	int i, bad;
-	char *ntext, *attr;
+	int8_t *ntext, *attr;
 
 	m = malloc(sizeof(Plumbmsg));
 	if(m == nil)
@@ -413,7 +413,7 @@ plumbunpackpartial(char *buf, int n, int *morep)
 }
 
 Plumbmsg*
-plumbunpack(char *buf, int n)
+plumbunpack(int8_t *buf, int n)
 {
 	return plumbunpackpartial(buf, n, nil);
 }
@@ -421,7 +421,7 @@ plumbunpack(char *buf, int n)
 Plumbmsg*
 plumbrecv(int fd)
 {
-	char *buf;
+	int8_t *buf;
 	Plumbmsg *m;
 	int n, more;
 

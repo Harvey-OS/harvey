@@ -62,7 +62,7 @@ uintptr
 rmapalloc(RMap* rmap, uintptr addr, uint size, int align)
 {
 	Map *mp;
-	ulong maddr, oaddr;
+	uint32_t maddr, oaddr;
 
 	lock(rmap);
 	for(mp = rmap->map; mp->size; mp++){

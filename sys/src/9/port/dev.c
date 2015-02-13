@@ -14,10 +14,10 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-extern ulong	kerndate;
+extern uint32_t	kerndate;
 
 void
-mkqid(Qid *q, vlong path, ulong vers, int type)
+mkqid(Qid *q, int64_t path, uint32_t vers, int type)
 {
 	q->type = type;
 	q->vers = vers;
@@ -25,7 +25,9 @@ mkqid(Qid *q, vlong path, ulong vers, int type)
 }
 
 void
-devdir(Chan *c, Qid qid, char *n, vlong length, char *user, long perm, Dir *db)
+devdir(Chan *c, Qid qid, int8_t *n, int64_t length, int8_t *user,
+       int32_t perm,
+       Dir *db)
 {
 	db->name = n;
 	if(c->flag&CMSG)
@@ -84,7 +86,7 @@ devdir(Chan *c, Qid qid, char *n, vlong length, char *user, long perm, Dir *db)
  * the zeroth element of the table MUST be the directory itself for ..
 */
 int
-devgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
+devgen(Chan *c, int8_t *name, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	if(tab == 0)
 		return -1;
@@ -124,10 +126,10 @@ devshutdown(void)
 }
 
 Chan*
-devattach(int dc, char *spec)
+devattach(int dc, int8_t *spec)
 {
 	Chan *c;
-	char *buf;
+	int8_t *buf;
 
 	/*
 	 * There are no error checks here because
@@ -176,11 +178,12 @@ devclone(Chan *c)
 }
 
 Walkqid*
-devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen *gen)
+devwalk(Chan *c, Chan *nc, int8_t **name, int nname, Dirtab *tab, int ntab,
+	Devgen *gen)
 {
 	int i, j, alloc;
 	Walkqid *wq;
-	char *n;
+	int8_t *n;
 	Dir dir;
 
 	if(nname > 0)
@@ -280,12 +283,13 @@ Done:
 	return wq;
 }
 
-long
-devstat(Chan *c, uchar *db, long n, Dirtab *tab, int ntab, Devgen *gen)
+int32_t
+devstat(Chan *c, uint8_t *db, int32_t n, Dirtab *tab, int ntab,
+	Devgen *gen)
 {
 	int i;
 	Dir dir;
-	char *p, *elem;
+	int8_t *p, *elem;
 
 	for(i=0;; i++){
 		switch((*gen)(c, nil, tab, ntab, i, &dir)){
@@ -323,10 +327,11 @@ devstat(Chan *c, uchar *db, long n, Dirtab *tab, int ntab, Devgen *gen)
 	}
 }
 
-long
-devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
+int32_t
+devdirread(Chan *c, int8_t *d, int32_t n, Dirtab *tab, int ntab,
+	   Devgen *gen)
 {
-	long m, dsz;
+	int32_t m, dsz;
 	Dir dir;
 
 	for(m=0; m<n; c->dri++) {
@@ -338,7 +343,7 @@ devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
 			break;
 
 		case 1:
-			dsz = convD2M(&dir, (uchar*)d, n-m);
+			dsz = convD2M(&dir, (uint8_t*)d, n-m);
 			if(dsz <= BIT16SZ){	/* <= not < because this isn't stat; read is stuck */
 				if(m == 0)
 					error(Eshort);
@@ -357,7 +362,7 @@ devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
  * error(Eperm) if open permission not granted for up->user.
  */
 void
-devpermcheck(char *fileuid, int perm, int omode)
+devpermcheck(int8_t *fileuid, int perm, int omode)
 {
 	int t;
 	static int access[] = { 0400, 0200, 0600, 0100 };
@@ -405,13 +410,13 @@ Return:
 }
 
 void
-devcreate(Chan*, char*, int, int)
+devcreate(Chan*, int8_t*, int, int)
 {
 	error(Eperm);
 }
 
 Block*
-devbread(Chan *c, long n, vlong offset)
+devbread(Chan *c, int32_t n, int64_t offset)
 {
 	Block *bp;
 
@@ -427,10 +432,10 @@ devbread(Chan *c, long n, vlong offset)
 	return bp;
 }
 
-long
-devbwrite(Chan *c, Block *bp, vlong offset)
+int32_t
+devbwrite(Chan *c, Block *bp, int64_t offset)
 {
-	long n;
+	int32_t n;
 
 	if(waserror()) {
 		freeb(bp);
@@ -449,8 +454,8 @@ devremove(Chan*)
 	error(Eperm);
 }
 
-long
-devwstat(Chan*, uchar*, long)
+int32_t
+devwstat(Chan*, uint8_t*, int32_t)
 {
 	error(Eperm);
 	return 0;
@@ -463,7 +468,7 @@ devpower(int)
 }
 
 int
-devconfig(int, char *, DevConf *)
+devconfig(int, int8_t *, DevConf *)
 {
 	error(Eperm);
 	return 0;

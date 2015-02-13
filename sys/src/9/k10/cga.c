@@ -64,7 +64,7 @@ cgaregw(int index, int data)
 static void
 cgacursor(void)
 {
-	uchar *cga;
+	uint8_t *cga;
 
 	cgaregw(0x0e, (cgapos/2>>8) & 0xff);
 	cgaregw(0x0f, cgapos/2 & 0xff);
@@ -81,7 +81,7 @@ void
 cgaputc(int c)
 {
 	int i;
-	uchar *cga, *p;
+	uint8_t *cga, *p;
 
 	cga = CGA;
 
@@ -122,9 +122,9 @@ cgaputc(int c)
 void
 cgaprinthex(uintptr x)
 {
-	char str[30];
-	char *s;
-	static char dig[] = "0123456789abcdef";
+	int8_t str[30];
+	int8_t *s;
+	static int8_t dig[] = "0123456789abcdef";
 
 	str[29] = 0;
 	s = &str[29];
@@ -138,7 +138,7 @@ cgaprinthex(uintptr x)
 }
 
 void
-cgaconsputs(char* s, int n)
+cgaconsputs(int8_t* s, int n)
 {
 	ilock(&cgalock);
 	while(n-- > 0)
@@ -149,9 +149,9 @@ cgaconsputs(char* s, int n)
 void
 cgapost(int code)
 {
-	uchar *cga;
+	uint8_t *cga;
 
-	static char hex[] = "0123456789ABCDEF";
+	static int8_t hex[] = "0123456789ABCDEF";
 
 	cga = CGA;
 	cga[Width*Height-Postcodelen*2] = hex[(code>>4) & 0x0f];

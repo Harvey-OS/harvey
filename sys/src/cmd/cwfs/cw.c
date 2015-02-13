@@ -71,8 +71,8 @@ struct	Cw
 	int	allflag;	/* global flag to recur on modified dirs */
 	Off	falsehits;	/* times recur found modified blocks */
 	struct {
-		char	name[500];
-		char	namepad[NAMELEN+10];
+		int8_t	name[500];
+		int8_t	namepad[NAMELEN+10];
 	};
 };
 
@@ -98,14 +98,14 @@ int oldcachefmt = 1;
 
 Centry*	getcentry(Bucket*, Off);
 int	cwio(Device*, Off, void*, int);
-void	cmd_cwcmd(int, char*[]);
+void	cmd_cwcmd(int, int8_t*[]);
 
 /*
  * console command
  * initiate a dump
  */
 void
-cmd_dump(int argc, char *argv[])
+cmd_dump(int argc, int8_t *argv[])
 {
 	Filsys *fs;
 
@@ -124,7 +124,7 @@ cmd_dump(int argc, char *argv[])
  * worm stats
  */
 static void
-cmd_statw(int, char*[])
+cmd_statw(int, int8_t*[])
 {
 	Filsys *fs;
 	Iobuf *p;
@@ -763,7 +763,7 @@ bad:
 int
 cwgrow(Device *dev, Superb *sb, int uid)
 {
-	char str[NAMELEN];
+	int8_t str[NAMELEN];
 	Iobuf *cb;
 	Cache *h;
 	Filsys *filsys;
@@ -1310,13 +1310,13 @@ isdirty(Cw *cw, Iobuf *p, Off addr, int tag)
 }
 
 Off
-cwrecur(Cw *cw, Off addr, int tag, int tag1, long qp)
+cwrecur(Cw *cw, Off addr, int tag, int tag1, int32_t qp)
 {
 	Iobuf *p;
 	Dentry *d;
 	int i, j, shouldstop;
 	Off na;
-	char *np;
+	int8_t *np;
 
 	shouldstop = 0;
 	p = getbuf(cw->dev, addr, Bprobe);
@@ -1453,10 +1453,10 @@ Timet	nextdump(Timet t);
 void
 cfsdump(Filsys *fs)
 {
-	long m, n, i;
+	int32_t m, n, i;
 	Off orba, rba, oroa, roa, sba, a;
 	Timet tim;
-	char tstr[20];
+	int8_t tstr[20];
 	Iobuf *pr, *p1, *p;
 	Dentry *dr, *d1, *d;
 	Cache *h;
@@ -1865,7 +1865,7 @@ savecache(Device *dev)
 	Cache *h;
 	Bucket *b;
 	Centry *c, *ce;
-	long n, left;
+	int32_t n, left;
 	Off m, maddr, msize, *longp, nbyte;
 	Device *cdev;
 
@@ -2095,7 +2095,7 @@ cwtest(Device*)
 #endif
 
 int
-convstate(char *name)
+convstate(int8_t *name)
 {
 	int i;
 
@@ -2133,11 +2133,11 @@ searchtag(Device *d, Off a, int tag, int n)
 }
 
 void
-cmd_cwcmd(int argc, char *argv[])
+cmd_cwcmd(int argc, int8_t *argv[])
 {
 	Device *dev;
-	char *arg;
-	char str[28];
+	int8_t *arg;
+	int8_t str[28];
 	Off s1, s2, a, b, n;
 	Cw *cw;
 

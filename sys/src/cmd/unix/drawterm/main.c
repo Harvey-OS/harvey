@@ -15,8 +15,8 @@
 
 #include "drawterm.h"
 
-char *argv0;
-char *user;
+int8_t *argv0;
+int8_t *user;
 
 extern int errfmt(Fmt*);
 void
@@ -26,19 +26,19 @@ sizebug(void)
 	 * Needed by various parts of the code.
 	 * This is a huge bug.
 	 */
-	assert(sizeof(char)==1);
-	assert(sizeof(short)==2);
+	assert(sizeof(int8_t)==1);
+	assert(sizeof(int16_t)==2);
 	assert(sizeof(ushort)==2);
 	assert(sizeof(int)==4);
 	assert(sizeof(uint)==4);
-	assert(sizeof(long)==4);
+	assert(sizeof(int32_t)==4);
 	assert(sizeof(ulong)==4);
 	assert(sizeof(vlong)==8);
 	assert(sizeof(uvlong)==8);
 }
 
 int
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	eve = getuser();
 	if(eve == nil)
@@ -78,19 +78,19 @@ main(int argc, char **argv)
 	return 0;
 }
 
-char*
-getkey(char *user, char *dom)
+int8_t*
+getkey(int8_t *user, int8_t *dom)
 {
-	char buf[1024];
+	int8_t buf[1024];
 
 	snprint(buf, sizeof buf, "%s@%s password", user, dom);
 	return readcons(buf, nil, 1);
 }
 
-char*
-findkey(char **puser, char *dom)
+int8_t*
+findkey(int8_t **puser, int8_t *dom)
 {
-	char buf[1024], *f[50], *p, *ep, *nextp, *pass, *user;
+	int8_t buf[1024], *f[50], *p, *ep, *nextp, *pass, *user;
 	int nf, haveproto,  havedom, i;
 
 	for(p=secstorebuf; *p; p=nextp){

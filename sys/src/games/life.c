@@ -34,11 +34,11 @@ enum {
  * Adjust contains pointers to cells that need to have their neighbour
  * counts adjusted in the second pass of the generation procedure.
  */
-char	life[NLIFE][NLIFE];
+int8_t	life[NLIFE][NLIFE];
 int	row[NLIFE];
 int	col[NLIFE];
-char	action[18];		/* index by cell contents to find action */
-char	*adjust[NADJUST];
+int8_t	action[18];		/* index by cell contents to find action */
+int8_t	*adjust[NADJUST];
 int		delay;
 
 Point	cen;
@@ -51,11 +51,11 @@ void	centerlife(void);
 void	death(int, int);
 int	generate(void);
 int	interest(int [NLIFE], int);
-void	main(int, char *[]);
+void	main(int, int8_t *[]);
 int	min(int, int);
-void	readlife(char *);
+void	readlife(int8_t *);
 void	redraw(void);
-void	setrules(char *);
+void	setrules(int8_t *);
 void	window(void);
 
 static void	reshape(void);
@@ -79,16 +79,16 @@ clrbox(int i, int j)
 }
 
 void
-setrules(char *r)
+setrules(int8_t *r)
 {
-	char *a;
+	int8_t *a;
 
 	for (a = action; a != &action[nelem(action)]; *a++ = *r++)
 		;
 }
 
 static void
-g9err(Display *, char *err)
+g9err(Display *, int8_t *err)
 {
 	static int entered = 0;
 
@@ -300,10 +300,10 @@ death(int i, int j)
 }
 
 void
-readlife(char *filename)
+readlife(int8_t *filename)
 {
 	int c, i, j;
-	char name[256];
+	int8_t name[256];
 	Biobuf *bp;
 
 	if ((bp = Bopen(filename, OREAD)) == nil) {

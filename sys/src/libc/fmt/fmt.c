@@ -134,7 +134,7 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 {
 	Rune rune, r;
 	int i, n, w, p;
-	ulong fl;
+	uint32_t fl;
 	void *ret;
 
 	w = f->width;
@@ -149,7 +149,7 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 			r = *(Rune*)fmt;
 			fmt = (Rune*)fmt + 1;
 		}else{
-			fmt = (char*)fmt + chartorune(&rune, fmt);
+			fmt = (int8_t*)fmt + chartorune(&rune, fmt);
 			r = rune;
 		}
 		f->r = r;
@@ -175,14 +175,14 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 					r = *(Rune*)fmt;
 					fmt = (Rune*)fmt + 1;
 				}else{
-					r = *(char*)fmt;
-					fmt = (char*)fmt + 1;
+					r = *(int8_t*)fmt;
+					fmt = (int8_t*)fmt + 1;
 				}
 			}
 			if(isrunes)
 				fmt = (Rune*)fmt - 1;
 			else
-				fmt = (char*)fmt - 1;
+				fmt = (int8_t*)fmt - 1;
 		numflag:
 			if(f->flags & FmtWidth){
 				f->flags |= FmtPrec;

@@ -27,7 +27,7 @@ enum {
 typedef struct Keyword Keyword;
 
 struct Keyword {
-	char	*name;
+	int8_t	*name;
 	int	code;
 };
 
@@ -53,13 +53,13 @@ static Keyword actions[] = {
 static	int	hisaction;
 static	List	ourdoms;
 static	List 	badguys;
-static	ulong	v4peerip;
+static	uint32_t	v4peerip;
 
-static	char*	getline(Biobuf*);
-static	int	cidrcheck(char*);
+static	int8_t*	getline(Biobuf*);
+static	int	cidrcheck(int8_t*);
 
 static int
-findkey(char *val, Keyword *p)
+findkey(int8_t *val, Keyword *p)
 {
 
 	for(; p->name; p++)
@@ -68,10 +68,10 @@ findkey(char *val, Keyword *p)
 	return p->code;
 }
 
-char*
+int8_t*
 actstr(int a)
 {
-	static char buf[32];
+	static int8_t buf[32];
 	Keyword *p;
 
 	for(p=actions; p->name; p++)
@@ -84,9 +84,9 @@ actstr(int a)
 }
 
 int
-getaction(char *s, char *type)
+getaction(int8_t *s, int8_t *type)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	Keyword *k;
 
 	if(s == nil || *s == 0)
@@ -101,9 +101,9 @@ getaction(char *s, char *type)
 }
 
 int
-istrusted(char *s)
+istrusted(int8_t *s)
 {
-	char buf[1024];
+	int8_t buf[1024];
 
 	if(s == nil || *s == 0)
 		return 0;
@@ -116,10 +116,10 @@ void
 getconf(void)
 {
 	Biobuf *bp;
-	char *cp, *p;
+	int8_t *cp, *p;
 	String *s;
-	char buf[512];
-	uchar addr[4];
+	int8_t buf[512];
+	uint8_t addr[4];
 
 	v4parseip(addr, nci->rsys);
 	v4peerip = nhgetl(addr);
@@ -183,7 +183,7 @@ getconf(void)
  *	trailing characters.
  */
 static int
-usermatch(char *pathuser, char *specuser)
+usermatch(int8_t *pathuser, int8_t *specuser)
 {
 	int n;
 
@@ -197,7 +197,7 @@ usermatch(char *pathuser, char *specuser)
 }
 
 static int
-dommatch(char *pathdom, char *specdom)
+dommatch(int8_t *pathdom, int8_t *specdom)
 {
 	int n;
 
@@ -255,13 +255,13 @@ blocked(String *path)
  * get a canonicalized line: a string of null-terminated lower-case
  * tokens with a two null bytes at the end.
  */
-static char*
+static int8_t*
 getline(Biobuf *bp)
 {
-	char c, *cp, *p, *q;
+	int8_t c, *cp, *p, *q;
 	int n;
 
-	static char *buf;
+	static int8_t *buf;
 	static int bufsize;
 
 	for(;;){
@@ -305,7 +305,7 @@ getline(Biobuf *bp)
 }
 
 static int
-isourdom(char *s)
+isourdom(int8_t *s)
 {
 	Link *l;
 
@@ -322,7 +322,7 @@ isourdom(char *s)
 int
 forwarding(String *path)
 {
-	char *cp, *s;
+	int8_t *cp, *s;
 	String *lpath;
 
 	if(debug)
@@ -369,9 +369,9 @@ found:
 }
 
 int
-masquerade(String *path, char *him)
+masquerade(String *path, int8_t *him)
 {
-	char *cp, *s;
+	int8_t *cp, *s;
 	String *lpath;
 	int rv = 0;
 
@@ -412,12 +412,12 @@ masquerade(String *path, char *him)
 
 /* this is a v4 only check */
 static int
-cidrcheck(char *cp)
+cidrcheck(int8_t *cp)
 {
-	char *p;
-	ulong a, m;
-	uchar addr[IPv4addrlen];
-	uchar mask[IPv4addrlen];
+	int8_t *p;
+	uint32_t a, m;
+	uint8_t addr[IPv4addrlen];
+	uint8_t mask[IPv4addrlen];
 
 	if(v4peerip == 0)
 		return 0;
@@ -462,18 +462,18 @@ isbadguy(void)
 }
 
 void
-addbadguy(char *p)
+addbadguy(int8_t *p)
 {
 	listadd(&badguys, s_copy(p));
 };
 
-char*
-dumpfile(char *sender)
+int8_t*
+dumpfile(int8_t *sender)
 {
 	int i, fd;
-	ulong h;
-	static char buf[512];
-	char *cp;
+	uint32_t h;
+	static int8_t buf[512];
+	int8_t *cp;
 
 	if (sflag == 1){
 		cp = ctime(time(0));
@@ -505,13 +505,13 @@ dumpfile(char *sender)
 	return "/dev/null";
 }
 
-char *validator = "/mail/lib/validateaddress";
+int8_t *validator = "/mail/lib/validateaddress";
 
 int
-recipok(char *user)
+recipok(int8_t *user)
 {
-	char *cp, *p, c;
-	char buf[512];
+	int8_t *cp, *p, c;
+	int8_t buf[512];
 	int n;
 	Biobuf *bp;
 	int pid;
@@ -580,9 +580,9 @@ recipok(char *user)
  *  a file in his mail directory named 'nospamfiltering'.
  */
 int
-optoutofspamfilter(char *addr)
+optoutofspamfilter(int8_t *addr)
 {
-	char *p, *f;
+	int8_t *p, *f;
 	int rv;
 
 	p = strchr(addr, '!');

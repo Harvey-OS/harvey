@@ -21,19 +21,19 @@ typedef struct Var Var;
 
 struct Input
 {
-	char		*file;		/* name of file */
+	int8_t		*file;		/* name of file */
 	Biobuf	*fd;		/* input buffer, if from real file */
-	uchar	*s;		/* input string, if from /mnt/plumb/rules */
-	uchar	*end;	/* end of input string */
+	uint8_t	*s;		/* input string, if from /mnt/plumb/rules */
+	uint8_t	*end;	/* end of input string */
 	int		lineno;
 	Input	*next;	/* file to read after EOF on this one */
 };
 
 struct Var
 {
-	char	*name;
-	char	*value;
-	char *qvalue;
+	int8_t	*name;
+	int8_t	*value;
+	int8_t *qvalue;
 };
 
 static int		parsing;
@@ -41,9 +41,9 @@ static int		nvars;
 static Var		*vars;
 static Input	*input;
 
-static char 	ebuf[4096];
+static int8_t 	ebuf[4096];
 
-char *badports[] =
+int8_t *badports[] =
 {
 	".",
 	"..",
@@ -51,7 +51,7 @@ char *badports[] =
 	nil
 };
 
-char *objects[] =
+int8_t *objects[] =
 {
 	"arg",
 	"attr",
@@ -64,7 +64,7 @@ char *objects[] =
 	nil
 };
 
-char *verbs[] =
+int8_t *verbs[] =
 {
 	"add",
 	"client",
@@ -95,7 +95,7 @@ printinputstack(void)
 }
 
 static void
-pushinput(char *name, int fd, uchar *str)
+pushinput(int8_t *name, int fd, uint8_t *str)
 {
 	Input *in;
 	int depth;
@@ -149,11 +149,11 @@ getc(void)
 	return -1;
 }
 
-char*
+int8_t*
 getline(void)
 {
 	static int n = 0;
-	static char *s, *incl;
+	static int8_t *s, *incl;
 	int c, i;
 
 	i = 0;
@@ -174,7 +174,7 @@ getline(void)
 }
 
 int
-lookup(char *s, char *tab[])
+lookup(int8_t *s, int8_t *tab[])
 {
 	int i;
 
@@ -185,7 +185,7 @@ lookup(char *s, char *tab[])
 }
 
 Var*
-lookupvariable(char *s, int n)
+lookupvariable(int8_t *s, int n)
 {
 	int i;
 
@@ -195,8 +195,8 @@ lookupvariable(char *s, int n)
 	return nil;
 }
 
-char*
-variable(char *s, int n)
+int8_t*
+variable(int8_t *s, int n)
 {
 	Var *var;
 
@@ -207,7 +207,7 @@ variable(char *s, int n)
 }
 
 void
-setvariable(char  *s, int n, char *val, char *qval)
+setvariable(int8_t  *s, int n, int8_t *val, int8_t *qval)
 {
 	Var *var;
 
@@ -225,18 +225,18 @@ setvariable(char  *s, int n, char *val, char *qval)
 	var->qvalue = estrdup(qval);
 }
 
-static char*
-nonnil(char *s)
+static int8_t*
+nonnil(int8_t *s)
 {
 	if(s == nil)
 		return "";
 	return s;
 }
 
-static char*
-filename(Exec *e, char *name)
+static int8_t*
+filename(Exec *e, int8_t *name)
 {
-	static char *buf;	/* rock to hold value so we don't leak the strings */
+	static int8_t *buf;	/* rock to hold value so we don't leak the strings */
 
 	free(buf);
 	/* if name is defined, used it */
@@ -254,12 +254,12 @@ filename(Exec *e, char *name)
 	return cleanname(buf);
 }
 
-char*
-dollar(Exec *e, char *s, int *namelen)
+int8_t*
+dollar(Exec *e, int8_t *s, int *namelen)
 {
 	int n;
-	static char *abuf;
-	char *t;
+	static int8_t *abuf;
+	int8_t *t;
 
 	*namelen = 1;
 	if(e!=nil && '0'<=s[0] && s[0]<='9')
@@ -300,10 +300,10 @@ dollar(Exec *e, char *s, int *namelen)
 }
 
 /* expand one blank-terminated string, processing quotes and $ signs */
-char*
-expand(Exec *e, char *s, char **ends)
+int8_t*
+expand(Exec *e, int8_t *s, int8_t **ends)
 {
-	char *p, *ep, *val;
+	int8_t *p, *ep, *val;
 	int namelen, quoting;
 
 	p = ebuf;
@@ -344,7 +344,7 @@ expand(Exec *e, char *s, char **ends)
 }
 
 void
-regerror(char *msg)
+regerror(int8_t *msg)
 {
 	if(parsing){
 		parsing = 0;
@@ -382,9 +382,9 @@ parserule(Rule *r)
 }
 
 int
-assignment(char *p)
+assignment(int8_t *p)
 {
-	char *var, *qval;
+	int8_t *var, *qval;
 	int n;
 
 	if(!isalpha(p[0]))
@@ -404,9 +404,9 @@ assignment(char *p)
 }
 
 int
-include(char *s)
+include(int8_t *s)
 {
-	char *t, *args[3], buf[128];
+	int8_t *t, *args[3], buf[128];
 	int n, fd;
 
 	if(strncmp(s, "include", 7) != 0)
@@ -442,8 +442,8 @@ Rule*
 readrule(int *eof)
 {
 	Rule *rp;
-	char *line, *p;
-	char *word;
+	int8_t *line, *p;
+	int8_t *word;
 
 Top:
 	line = getline();
@@ -620,7 +620,7 @@ readruleset(void)
 }
 
 Ruleset**
-readrules(char *name, int fd)
+readrules(int8_t *name, int fd)
 {
 	Ruleset *rs, **rules;
 	int n;
@@ -638,8 +638,8 @@ readrules(char *name, int fd)
 	return rules;
 }
 
-char*
-concat(char *s, char *t)
+int8_t*
+concat(int8_t *s, int8_t *t)
 {
 	if(t == nil)
 		return s;
@@ -652,31 +652,31 @@ concat(char *s, char *t)
 	return s;
 }
 
-char*
+int8_t*
 printpat(Rule *r)
 {
-	char *s;
+	int8_t *s;
 
 	s = emalloc(strlen(objects[r->obj])+1+strlen(verbs[r->verb])+1+strlen(r->arg)+1+1);
 	sprint(s, "%s\t%s\t%s\n", objects[r->obj], verbs[r->verb], r->arg);
 	return s;
 }
 
-char*
+int8_t*
 printvar(Var *v)
 {
-	char *s;
+	int8_t *s;
 
 	s = emalloc(strlen(v->name)+1+strlen(v->value)+2+1);
 	sprint(s, "%s=%s\n\n", v->name, v->value);
 	return s;
 }
 
-char*
+int8_t*
 printrule(Ruleset *r)
 {
 	int i;
-	char *s;
+	int8_t *s;
 
 	s = nil;
 	for(i=0; i<r->npat; i++)
@@ -687,10 +687,10 @@ printrule(Ruleset *r)
 	return s;
 }
 
-char*
-printport(char *port)
+int8_t*
+printport(int8_t *port)
 {
-	char *s;
+	int8_t *s;
 
 	s = nil;
 	s = concat(s, "plumb to ");
@@ -699,11 +699,11 @@ printport(char *port)
 	return s;
 }
 
-char*
+int8_t*
 printrules(void)
 {
 	int i;
-	char *s;
+	int8_t *s;
 
 	s = nil;
 	for(i=0; i<nvars; i++)
@@ -716,26 +716,26 @@ printrules(void)
 	return s;
 }
 
-char*
-stringof(char *s, int n)
+int8_t*
+stringof(int8_t *s, int n)
 {
-	char *t;
+	int8_t *t;
 
 	t = emalloc(n+1);
 	memmove(t, s, n);
 	return t;
 }
 
-uchar*
-morerules(uchar *text, int done)
+uint8_t*
+morerules(uint8_t *text, int done)
 {
 	int n;
 	Ruleset *rs;
-	uchar *otext, *s, *endofrule;
+	uint8_t *otext, *s, *endofrule;
 
 	pushinput("<rules input>", -1, text);
 	if(done)
-		input->end = text+strlen((char*)text);
+		input->end = text+strlen((int8_t*)text);
 	else{
 		/*
 		 * Help user by sending any full rules to parser so any parse errors will
@@ -758,26 +758,26 @@ morerules(uchar *text, int done)
 	}
 	otext =text;
 	if(input == nil)
-		text = (uchar*)estrdup("");
+		text = (uint8_t*)estrdup("");
 	else
-		text = (uchar*)estrdup((char*)input->end);
+		text = (uint8_t*)estrdup((int8_t*)input->end);
 	popinput();
 	free(otext);
 	return text;
 }
 
-char*
-writerules(char *s, int n)
+int8_t*
+writerules(int8_t *s, int n)
 {
-	static uchar *text;
-	char *tmp;
+	static uint8_t *text;
+	int8_t *tmp;
 
 	free(lasterror);
 	lasterror = nil;
 	parsing = 1;
 	if(setjmp(parsejmp) == 0){
 		tmp = stringof(s, n);
-		text = (uchar*)concat((char*)text, tmp);
+		text = (uint8_t*)concat((int8_t*)text, tmp);
 		free(tmp);
 		text = morerules(text, s==nil);
 	}

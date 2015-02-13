@@ -60,7 +60,7 @@ pdf_copy_mask_data(gx_device_pdf * pdev, const byte * base, int sourcex,
 		   gs_image_t *pim, pdf_image_writer *piw,
 		   int for_pattern)
 {
-    ulong nbytes;
+    uint32_t nbytes;
     int code;
     const byte *row_base;
     int row_step;
@@ -68,7 +68,7 @@ pdf_copy_mask_data(gx_device_pdf * pdev, const byte * base, int sourcex,
 
     gs_image_t_init_mask(pim, true);
     pdf_make_bitmap_image(pim, x, y, w, h);
-    nbytes = ((ulong)w * h + 7) / 8;
+    nbytes = ((uint32_t)w * h + 7) / 8;
 
     if (for_pattern) {
 	/*
@@ -245,7 +245,7 @@ pdf_copy_mono(gx_device_pdf *pdev,
     }
     pdf_make_bitmap_image(&image, x, y, w, h);
     {
-	ulong nbytes = (ulong) ((w + 7) >> 3) * h;
+	uint32_t nbytes = (uint32_t) ((w + 7) >> 3) * h;
 
 	in_line = nbytes < pdev->MaxInlineImageSize;
 	if (in_line)
@@ -365,7 +365,7 @@ pdf_copy_color_data(gx_device_pdf * pdev, const byte * base, int sourcex,
     int bytes_per_pixel = depth >> 3;
     gs_color_space cs;
     cos_value_t cs_value;
-    ulong nbytes;
+    uint32_t nbytes;
     int code = pdf_cspace_init_Device(pdev->memory, &cs, bytes_per_pixel);
     const byte *row_base;
     int row_step;
@@ -376,7 +376,7 @@ pdf_copy_color_data(gx_device_pdf * pdev, const byte * base, int sourcex,
     gs_image_t_init(pim, &cs);
     pdf_make_bitmap_image(pim, x, y, w, h);
     pim->BitsPerComponent = 8;
-    nbytes = (ulong)w * bytes_per_pixel * h;
+    nbytes = (uint32_t)w * bytes_per_pixel * h;
 
     if (for_pattern == 1) {
 	/*
@@ -527,13 +527,13 @@ gdev_pdf_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
     if (!pres) {
 	/* Create the Pattern resource. */
 	int code;
-	long image_id, length_id, start, end;
+	int32_t image_id, length_id, start, end;
 	stream *s;
 	gs_image_t image;
 	pdf_image_writer writer;
-	long image_bytes = ((long)tw * depth + 7) / 8 * th;
+	int32_t image_bytes = ((int32_t)tw * depth + 7) / 8 * th;
 	bool in_line = image_bytes < pdev->MaxInlineImageSize;
-	ulong tile_id =
+	uint32_t tile_id =
 	    (tw == tiles->size.x && th == tiles->size.y ? tiles->id :
 	     gx_no_bitmap_id);
 
@@ -569,7 +569,7 @@ gdev_pdf_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 	pprintg2(s, "/Matrix[%g 0 0 %g 0 0]", tw / xscale, th / yscale);
 	stream_puts(s, "/BBox[0 0 1 1]/XStep 1/YStep 1/Length ");
 	if (image_id) {
-	    char buf[MAX_REF_CHARS + 6 + 1]; /* +6 for /R# Do\n */
+	    int8_t buf[MAX_REF_CHARS + 6 + 1]; /* +6 for /R# Do\n */
 
 	    sprintf(buf, "/R%ld Do\n", image_id);
 	    pprintd1(s, "%d>>stream\n", strlen(buf));

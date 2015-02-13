@@ -548,7 +548,7 @@ param_get_cie_render1(gs_cie_render * pcrd, gs_param_list * plist,
 	    if (pname.size < 1 || pname.data[pname.size - 1] != 0)
 		return_error(gs_error_rangecheck);
 	    pcrd->TransformPQR.proc = TransformPQR_lookup_proc_name;
-	    pcrd->TransformPQR.proc_name = (const char *)pname.data;
+	    pcrd->TransformPQR.proc_name = (const int8_t *)pname.data;
 	    switch (code = param_read_string(plist, "TransformPQRData", &pdata)) {
 		default:	/* error */
 		    return code;

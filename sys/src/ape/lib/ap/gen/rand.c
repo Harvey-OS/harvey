@@ -23,14 +23,14 @@
 
 typedef unsigned long	ulong;
 
-static	ulong	rng_vec[LEN];
-static	ulong*	rng_tap = rng_vec;
-static	ulong*	rng_feed = 0;
+static	uint32_t	rng_vec[LEN];
+static	uint32_t*	rng_tap = rng_vec;
+static	uint32_t*	rng_feed = 0;
 
 void
 srand(unsigned int seed)
 {
-	long lo, hi, x;
+	int32_t lo, hi, x;
 	int i;
 
 	rng_tap = rng_vec;
@@ -55,10 +55,10 @@ srand(unsigned int seed)
 	}
 }
 
-static long
+static int32_t
 lrand(void)
 {
-	ulong x;
+	uint32_t x;
 
 	rng_tap--;
         if(rng_tap < rng_vec) {

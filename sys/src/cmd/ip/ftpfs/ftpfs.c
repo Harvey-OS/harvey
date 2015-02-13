@@ -26,29 +26,29 @@ struct Fid
 };
 
 Fid	*fids;			/* linked list of fids */
-char	errstring[128];		/* error to return */
+int8_t	errstring[128];		/* error to return */
 int	mfd;			/* fd for 9fs */
 int	messagesize = 4*1024*IOHDRSZ;
-uchar	mdata[8*1024*IOHDRSZ];
-uchar	mbuf[8*1024*IOHDRSZ];
+uint8_t	mdata[8*1024*IOHDRSZ];
+uint8_t	mbuf[8*1024*IOHDRSZ];
 Fcall	rhdr;
 Fcall	thdr;
 int	debug;
 int	usenlst;
 int	usetls;
-char	*ext;
+int8_t	*ext;
 int	quiet;
 int	kapid = -1;
 int	dying;		/* set when any process decides to die */
 int	dokeepalive;
 
-char	*rflush(Fid*), *rnop(Fid*), *rversion(Fid*),
+int8_t	*rflush(Fid*), *rnop(Fid*), *rversion(Fid*),
 	*rattach(Fid*), *rclone(Fid*), *rwalk(Fid*),
 	*rclwalk(Fid*), *ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
 	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*),
 	*rauth(Fid*);;
-void	mountinit(char*);
+void	mountinit(int8_t*);
 void	io(void);
 int	readpdir(Node*);
 
@@ -88,12 +88,12 @@ OS oslist[] = {
 	{ Unknown,	0 },
 };
 
-char *nouid = "?uid?";
+int8_t *nouid = "?uid?";
 
 #define S2P(x) (((ulong)(x)) & 0xffffff)
 
-char *nosuchfile = "file does not exist";
-char *keyspec = "";
+int8_t *nosuchfile = "file does not exist";
+int8_t *keyspec = "";
 
 void
 usage(void)
@@ -264,7 +264,7 @@ kaproc(void)
 void
 io(void)
 {
-	char *err, buf[ERRMAX];
+	int8_t *err, buf[ERRMAX];
 	int n;
 
 	kapid = kaproc();
@@ -303,14 +303,14 @@ io(void)
 	}
 }
 
-char*
+int8_t*
 rnop(Fid *f)
 {
 	USED(f);
 	return 0;
 }
 
-char*
+int8_t*
 rversion(Fid*)
 {
 	if(thdr.msize > sizeof(mdata))
@@ -325,19 +325,19 @@ rversion(Fid*)
 	return nil;
 }
 
-char*
+int8_t*
 rflush(Fid*)
 {
 	return 0;
 }
 
-char*
+int8_t*
 rauth(Fid*)
 {
 	return "auth unimplemented";
 }
 
-char*
+int8_t*
 rattach(Fid *f)
 {
 	f->busy = 1;
@@ -346,14 +346,14 @@ rattach(Fid *f)
 	return 0;
 }
 
-char*
+int8_t*
 rwalk(Fid *f)
 {
 	Node *np;
 	Fid *nf;
-	char **elems;
+	int8_t **elems;
 	int i, nelems;
-	char *err;
+	int8_t *err;
 	Node *node;
 
 	/* clone fid */
@@ -447,7 +447,7 @@ rwalk(Fid *f)
 	return err;
 }
 
-char *
+int8_t *
 ropen(Fid *f)
 {
 	int mode;
@@ -483,10 +483,10 @@ ropen(Fid *f)
 	return 0;
 }
 
-char*
+int8_t*
 rcreate(Fid *f)
 {
-	char *name;
+	int8_t *name;
 
 	if((f->node->d->qid.type&QTDIR) == 0)
 		return "not a directory";
@@ -508,10 +508,10 @@ rcreate(Fid *f)
 	return 0;
 }
 
-char*
+int8_t*
 rread(Fid *f)
 {
-	long off;
+	int32_t off;
 	int n, cnt, rv;
 	Node *np;
 
@@ -547,20 +547,20 @@ rread(Fid *f)
 			if(readfile(f->node) < 0)
 				return errstring;
 		CACHED(f->node);
-		rv = fileread(f->node, (char*)mbuf, off, cnt);
+		rv = fileread(f->node, (int8_t*)mbuf, off, cnt);
 		if(rv < 0)
 			return errstring;
 	}
 
-	rhdr.data = (char*)mbuf;
+	rhdr.data = (int8_t*)mbuf;
 	rhdr.count = rv;
 	return 0;
 }
 
-char*
+int8_t*
 rwrite(Fid *f)
 {
-	long off;
+	int32_t off;
 	int cnt;
 
 	if(f->node->d->qid.type & QTDIR)
@@ -577,7 +577,7 @@ rwrite(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 rclunk(Fid *f)
 {
 	if(fileisdirty(f->node)){
@@ -597,10 +597,10 @@ rclunk(Fid *f)
 /*
  *  remove is an implicit clunk
  */
-char *
+int8_t *
 rremove(Fid *f)
 {
-	char *e;
+	int8_t *e;
 	e = nil;
 	if(QTDIR & f->node->d->qid.type){
 		if(removedir(f->node) < 0)
@@ -617,7 +617,7 @@ rremove(Fid *f)
 	return e;
 }
 
-char *
+int8_t *
 rstat(Fid *f)
 {
 	Node *p;
@@ -637,7 +637,7 @@ rstat(Fid *f)
 	return 0;
 }
 
-char *
+int8_t *
 rwstat(Fid *f)
 {
 	USED(f);
@@ -648,10 +648,10 @@ rwstat(Fid *f)
  *  print message and die
  */
 void
-fatal(char *fmt, ...)
+fatal(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[8*1024];
+	int8_t buf[8*1024];
 
 	dying = 1;
 
@@ -671,7 +671,7 @@ fatal(char *fmt, ...)
 void*
 safecpy(void *to, void *from, int n)
 {
-	char *a = ((char*)to) + n - 1;
+	int8_t *a = ((int8_t*)to) + n - 1;
 
 	strncpy(to, from, n);
 	*a = 0;
@@ -682,7 +682,7 @@ safecpy(void *to, void *from, int n)
  *  set the error string
  */
 int
-seterr(char *fmt, ...)
+seterr(int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -699,7 +699,7 @@ Node*
 newnode(Node *parent, String *name)
 {
 	Node *np;
-	static ulong path;
+	static uint32_t path;
 	Dir d;
 
 	np = mallocz(sizeof(Node), 1);
@@ -793,7 +793,7 @@ invalidate(Node *node)
  *  make a top level tops-20 directory.  They are automaticly valid.
  */
 Node*
-newtopsdir(char *name)
+newtopsdir(int8_t *name)
 {
 	Node *np;
 

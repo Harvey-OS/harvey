@@ -35,12 +35,12 @@ enum {
 
 typedef struct Probelog Probelog;
 struct Probelog {
-	uvlong ticks;
+	uint64_t ticks;
 	/* yeah, waste a whole int on something stupid but ... */
 	int info;
-	ulong pc;
+	uint32_t pc;
 	/* these are different depending on type */
-	long dat[4];
+	int32_t dat[4];
 };
 
 static Rendez probesleep;
@@ -51,11 +51,11 @@ static Probelog *probelog = nil;
 /* probe indices. These are just unsigned longs. You mask them
  * to get an index. This makes fifo empty/full etc. trivial.
  */
-static ulong pw = 0, pr = 0;
+static uint32_t pw = 0, pr = 0;
 static int probesactive = 0;
 static unsigned long logsize = defaultlogsize, logmask = defaultlogsize - 1;
 
-static char eventname[] = {
+static int8_t eventname[] = {
 	[ProbeEntry] = 'E',
 	[ProbeExit] = 'X'
 };
@@ -66,7 +66,7 @@ static Dirtab probedir[]={
 	"probe",	{Qdata},	0,		0440,
 };
 
-char hex[] = {
+int8_t hex[] = {
 	'0',
 	'1',
 	'2',
@@ -87,7 +87,7 @@ char hex[] = {
 
 /* big-endian ... */
 void
-hex32(ulong l, char *c)
+hex32(uint32_t l, int8_t *c)
 {
 	int i;
 	for(i = 8; i; i--){
@@ -97,7 +97,7 @@ hex32(ulong l, char *c)
 }
 
 void
-hex64(uvlong l, char *c)
+hex64(uint64_t l, int8_t *c)
 {
 	hex32(l>>32, c);
 	hex32(l, &c[8]);
@@ -114,8 +114,8 @@ logfull(void)
 	return (pw - pr) >= logsize;
 }
 
-static ulong
-idx(ulong f)
+static uint32_t
+idx(uint32_t f)
 {
 	return f & logmask;
 }
@@ -124,7 +124,7 @@ idx(ulong f)
 static struct Probelog *
 newpl(void)
 {
-	ulong index;
+	uint32_t index;
 
 	if (logfull()){
 		wakeup(&probesleep);
@@ -148,7 +148,7 @@ probeentry(Probe *p)
 	if (! pl)
 		return;
 	cycles(&pl->ticks);
-	pl->pc = (ulong)p->func;
+	pl->pc = (uint32_t)p->func;
 	pl->dat[0] = p->argp[0];
 	pl->dat[1] = p->argp[1];
 	pl->dat[2] = p->argp[2];
@@ -165,25 +165,25 @@ probeexit(Probe *p)
 	if (! pl)
 		return;
 	cycles(&pl->ticks);
-	pl->pc = (ulong)p->func;
+	pl->pc = (uint32_t)p->func;
 	pl->dat[0] = p->rval;
 	pl->info = ProbeExit;
 }
 
 static Chan*
-probeattach(char *spec)
+probeattach(int8_t *spec)
 {
 	return devattach('+', spec);
 }
 
 static Walkqid*
-probewalk(Chan *c, Chan *nc, char **name, int nname)
+probewalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, probedir, nelem(probedir), devgen);
 }
 
-static long
-probestat(Chan *c, uchar *db, long n)
+static int32_t
+probestat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, probedir, nelem(probedir), devgen);
 }
@@ -209,18 +209,18 @@ probeclose(Chan *)
 {
 }
 
-static long
-proberead(Chan *c, void *a, long n, vlong offset)
+static int32_t
+proberead(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	char *buf;
-	char *cp = a;
+	int8_t *buf;
+	int8_t *cp = a;
 	struct Probelog *pl;
 	Probe *p;
 	int i;
 	static QLock gate;
 	if(c->qid.type == QTDIR)
 		return devdirread(c, a, n, probedir, nelem(probedir), devgen);
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	default:
 		error("proberead: bad qid");
 	case Qctl:
@@ -287,11 +287,11 @@ proberead(Chan *c, void *a, long n, vlong offset)
 	return n;
 }
 
-static long
-probewrite(Chan *c, void *a, long n, vlong)
+static int32_t
+probewrite(Chan *c, void *a, int32_t n, int64_t)
 {
-	char *tok[5];
-	char *ep, *s = nil;
+	int8_t *tok[5];
+	int8_t *ep, *s = nil;
 	Probe *p, **pp;
 	int ntok;
 
@@ -301,7 +301,7 @@ probewrite(Chan *c, void *a, long n, vlong)
 		if(s != nil) free(s);
 		nexterror();
 	}
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	default:
 		error("proberead: bad qid");
 	case Qctl:
@@ -317,7 +317,7 @@ probewrite(Chan *c, void *a, long n, vlong)
 					break;
 			p = *pp;
 			if(!strcmp(tok[2], "new")){
-				ulong addr;
+				uint32_t addr;
 				void *func;
 				addr = strtoul(tok[1], &ep, 0);
 				func = (void*)addr;

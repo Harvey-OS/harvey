@@ -16,12 +16,12 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-char	authkey[DESKEYLEN];
+int8_t	authkey[DESKEYLEN];
 int	verb;
 int	usepass;
 
-int	convert(char*, char*, int);
-int	dofcrypt(int, char*, char*, int);
+int	convert(int8_t*, int8_t*, int);
+int	dofcrypt(int, int8_t*, int8_t*, int);
 void	usage(void);
 
 void
@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 }
 
 void
-randombytes(uchar *p, int len)
+randombytes(uint8_t *p, int len)
 {
 	int i, fd;
 
@@ -96,34 +96,34 @@ randombytes(uchar *p, int len)
 }
 
 void
-oldCBCencrypt(char *key7, char *p, int len)
+oldCBCencrypt(int8_t *key7, int8_t *p, int len)
 {
-	uchar ivec[8];
-	uchar key[8];
+	uint8_t ivec[8];
+	uint8_t key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uchar*)key7, key);
+	des56to64((uint8_t*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCencrypt((uchar*)p, len, &s);
+	desCBCencrypt((uint8_t*)p, len, &s);
 }
 
 void
-oldCBCdecrypt(char *key7, char *p, int len)
+oldCBCdecrypt(int8_t *key7, int8_t *p, int len)
 {
-	uchar ivec[8];
-	uchar key[8];
+	uint8_t ivec[8];
+	uint8_t key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uchar*)key7, key);
+	des56to64((uint8_t*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCdecrypt((uchar*)p, len, &s);
+	desCBCdecrypt((uint8_t*)p, len, &s);
 
 }
 
 static int
-badname(char *s)
+badname(int8_t *s)
 {
 	int n;
 	Rune r;
@@ -137,7 +137,7 @@ badname(char *s)
 }
 
 int
-convert(char *p, char *key, int len)
+convert(int8_t *p, int8_t *key, int len)
 {
 	int i;
 
@@ -158,7 +158,7 @@ convert(char *p, char *key, int len)
 		for(i = KEYDBOFF; i < len; i += KEYDBLEN)
 			print("%s\n", &p[i]);
 
-	randombytes((uchar*)p, 8);
+	randombytes((uint8_t*)p, 8);
 	oldCBCencrypt(key, p, len);
 	return len;
 }

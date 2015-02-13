@@ -16,16 +16,16 @@
  */
 int nsysfile=3;
 
-static char err[Errlen];
+static int8_t err[Errlen];
 
 /*
  *  return the date
  */
-extern char *
+extern int8_t *
 thedate(void)
 {
-	static char now[64];
-	char *cp;
+	static int8_t now[64];
+	int8_t *cp;
 
 	strcpy(now, ctime(time(0)));
 	cp = strchr(now, '\n');
@@ -37,10 +37,10 @@ thedate(void)
 /*
  *  return the user id of the current user
  */
-extern char *
+extern int8_t *
 getlog(void)
 {
-	static char user[64];
+	static int8_t user[64];
 	int fd;
 	int n;
 
@@ -58,10 +58,10 @@ getlog(void)
  *  return the lock name (we use one lock per directory)
  */
 static String *
-lockname(char *path)
+lockname(int8_t *path)
 {
 	String *lp;
-	char *cp;
+	int8_t *cp;
 
 	/*
 	 *  get the name of the lock file
@@ -76,13 +76,13 @@ lockname(char *path)
 }
 
 int
-syscreatelocked(char *path, int mode, int perm)
+syscreatelocked(int8_t *path, int mode, int perm)
 {
 	return create(path, mode, DMEXCL|perm);
 }
 
 int
-sysopenlocked(char *path, int mode)
+sysopenlocked(int8_t *path, int mode)
 {
 /*	return open(path, OEXCL|mode);/**/
 	return open(path, mode);		/* until system call is fixed */
@@ -103,7 +103,7 @@ openlockfile(Mlock *l)
 	int fd;
 	Dir *d;
 	Dir nd;
-	char *p;
+	int8_t *p;
 
 	fd = open(s_to_c(l->name), OREAD);
 	if(fd >= 0){
@@ -162,7 +162,7 @@ openlockfile(Mlock *l)
  *  and has L. prepended to the name of the last element of the file name.
  */
 extern Mlock *
-syslock(char *path)
+syslock(int8_t *path)
 {
 	Mlock *l;
 	int tries;
@@ -198,10 +198,10 @@ noway:
  *  like lock except don't wait
  */
 extern Mlock *
-trylock(char *path)
+trylock(int8_t *path)
 {
 	Mlock *l;
-	char buf[1];
+	int8_t buf[1];
 	int fd;
 
 	l = malloc(sizeof(Mlock));
@@ -234,7 +234,7 @@ trylock(char *path)
 extern void
 syslockrefresh(Mlock *l)
 {
-	char buf[1];
+	int8_t buf[1];
 
 	pread(l->fd, buf, 1, 0);
 }
@@ -264,7 +264,7 @@ sysunlock(Mlock *l)
  *	A	- append only (doesn't exist in Bio)
  */
 extern Biobuf *
-sysopen(char *path, char *mode, ulong perm)
+sysopen(int8_t *path, int8_t *mode, uint32_t perm)
 {
 	int sysperm;
 	int sysmode;
@@ -384,7 +384,7 @@ sysclose(Biobuf *bp)
  *  create a file
  */
 int
-syscreate(char *file, int mode, ulong perm)
+syscreate(int8_t *file, int mode, uint32_t perm)
 {
 	return create(file, mode, perm);
 }
@@ -393,7 +393,7 @@ syscreate(char *file, int mode, ulong perm)
  *  make a directory
  */
 int
-sysmkdir(char *file, ulong perm)
+sysmkdir(int8_t *file, uint32_t perm)
 {
 	int fd;
 
@@ -407,7 +407,7 @@ sysmkdir(char *file, ulong perm)
  *  change the group of a file
  */
 int
-syschgrp(char *file, char *group)
+syschgrp(int8_t *file, int8_t *group)
 {
 	Dir nd;
 
@@ -427,11 +427,11 @@ sysdirreadall(int fd, Dir **d)
 /*
  *  read in the system name
  */
-extern char *
+extern int8_t *
 sysname_read(void)
 {
-	static char name[128];
-	char *cp;
+	static int8_t name[128];
+	int8_t *cp;
 
 	cp = getenv("site");
 	if(cp == 0 || *cp == 0)
@@ -441,10 +441,10 @@ sysname_read(void)
 	strecpy(name, name+sizeof name, cp);
 	return name;
 }
-extern char *
+extern int8_t *
 alt_sysname_read(void)
 {
-	static char name[128];
+	static int8_t name[128];
 	int n, fd;
 
 	fd = open("/dev/sysname", OREAD);
@@ -461,13 +461,13 @@ alt_sysname_read(void)
 /*
  *  get all names
  */
-extern char**
+extern int8_t**
 sysnames_read(void)
 {
-	static char **namev;
+	static int8_t **namev;
 	Ndbtuple *t, *nt;
 	int n;
-	char *cp;
+	int8_t *cp;
 
 	if(namev)
 		return namev;
@@ -479,7 +479,7 @@ sysnames_read(void)
 		if(strcmp(nt->attr, "dom") == 0)
 			n++;
 
-	namev = (char**)malloc(sizeof(char *)*(n+3));
+	namev = (int8_t**)malloc(sizeof(int8_t *)*(n+3));
 
 	if(namev){
 		n = 0;
@@ -501,10 +501,10 @@ sysnames_read(void)
 /*
  *  read in the domain name
  */
-extern char *
+extern int8_t *
 domainname_read(void)
 {
-	char **namev;
+	int8_t **namev;
 
 	for(namev = sysnames_read(); *namev; namev++)
 		if(strchr(*namev, '.'))
@@ -537,11 +537,11 @@ e_locked(void)
 /*
  *  return the length of a file
  */
-extern long
+extern int32_t
 sysfilelen(Biobuf *fp)
 {
 	Dir *d;
-	long rv;
+	int32_t rv;
 
 	d = dirfstat(Bfildes(fp));
 	if(d == nil)
@@ -555,7 +555,7 @@ sysfilelen(Biobuf *fp)
  *  remove a file
  */
 extern int
-sysremove(char *path)
+sysremove(int8_t *path)
 {
 	return remove(path);
 }
@@ -564,11 +564,11 @@ sysremove(char *path)
  *  rename a file, fails unless both are in the same directory
  */
 extern int
-sysrename(char *old, char *new)
+sysrename(int8_t *old, int8_t *new)
 {
 	Dir d;
-	char *obase;
-	char *nbase;
+	int8_t *obase;
+	int8_t *nbase;
 
 	obase = strrchr(old, '/');
 	nbase = strrchr(new, '/');
@@ -592,7 +592,7 @@ sysrename(char *old, char *new)
  *  see if a file exists
  */
 extern int
-sysexist(char *file)
+sysexist(int8_t *file)
 {
 	Dir	*d;
 
@@ -607,7 +607,7 @@ sysexist(char *file)
  *  return nonzero if file is a directory
  */
 extern int
-sysisdir(char *file)
+sysisdir(int8_t *file)
 {
 	Dir	*d;
 	int	rv;
@@ -625,9 +625,9 @@ sysisdir(char *file)
  */
 
 static int
-stomp(int pid, char *file)
+stomp(int pid, int8_t *file)
 {
-	char name[64];
+	int8_t name[64];
 	int fd;
 
 	snprint(name, sizeof(name), "/proc/%d/%s", pid, file);
@@ -677,9 +677,9 @@ sysdetach(void)
  */
 static int *closedflag;
 static int
-catchpipe(void *a, char *msg)
+catchpipe(void *a, int8_t *msg)
 {
-	static char *foo = "sys: write on closed pipe";
+	static int8_t *foo = "sys: write on closed pipe";
 
 	USED(a);
 	if(strncmp(msg, foo, strlen(foo)) == 0){
@@ -704,7 +704,7 @@ pipesigoff(void)
 void
 exit(int i)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	if(i == 0)
 		exits(0);
@@ -715,7 +715,7 @@ exit(int i)
 static int
 islikeatty(int fd)
 {
-	char buf[64];
+	int8_t buf[64];
 
 	if(fd2path(fd, buf, sizeof buf) != 0)
 		return 0;
@@ -764,7 +764,7 @@ sysfiles(void)
  *
  */
 extern String *
-mboxpath(char *path, char *user, String *to, int dot)
+mboxpath(int8_t *path, int8_t *user, String *to, int dot)
 {
 	if (dot || *path=='/' || strncmp(path, "./", 2) == 0
 			      || strncmp(path, "../", 3) == 0) {
@@ -780,7 +780,7 @@ mboxpath(char *path, char *user, String *to, int dot)
 }
 
 extern String *
-mboxname(char *user, String *to)
+mboxname(int8_t *user, String *to)
 {
 	return mboxpath("mbox", user, to, 0);
 }
@@ -788,7 +788,7 @@ mboxname(char *user, String *to)
 extern String *
 deadletter(String *to)		/* pass in sender??? */
 {
-	char *cp;
+	int8_t *cp;
 
 	cp = getlog();
 	if(cp == 0)
@@ -796,8 +796,8 @@ deadletter(String *to)		/* pass in sender??? */
 	return mboxpath("dead.letter", cp, to, 0);
 }
 
-char *
-homedir(char *user)
+int8_t *
+homedir(int8_t *user)
 {
 	USED(user);
 	return getenv("home");
@@ -806,7 +806,7 @@ homedir(char *user)
 String *
 readlock(String *file)
 {
-	char *cp;
+	int8_t *cp;
 
 	cp = getlog();
 	if(cp == 0)
@@ -819,7 +819,7 @@ username(String *from)
 {
 	int n;
 	Biobuf *bp;
-	char *p, *q;
+	int8_t *p, *q;
 	String *s;
 
 	bp = Bopen("/adm/keys.who", OREAD);
@@ -862,10 +862,10 @@ username(String *from)
 	return s;
 }
 
-char *
-remoteaddr(int fd, char *dir)
+int8_t *
+remoteaddr(int fd, int8_t *dir)
 {
-	char buf[128], *p;
+	int8_t buf[128], *p;
 	int n;
 
 	if(dir == 0){
@@ -900,7 +900,7 @@ remoteaddr(int fd, char *dir)
 //	1) ensure the modes we asked for
 //	2) make gid == uid
 static int
-docreate(char *file, int perm)
+docreate(int8_t *file, int perm)
 {
 	int fd;
 	Dir ndir;
@@ -928,11 +928,11 @@ docreate(char *file, int perm)
 
 //  create a mailbox
 int
-creatembox(char *user, char *folder)
+creatembox(int8_t *user, int8_t *folder)
 {
-	char *p;
+	int8_t *p;
 	String *mailfile;
-	char buf[512];
+	int8_t buf[512];
 	Mlock *ml;
 
 	mailfile = s_new();

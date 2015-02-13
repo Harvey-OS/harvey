@@ -26,7 +26,7 @@
 #include "fmtdef.h"
 
 int
-vsnprint(char *buf, int len, char *fmt, va_list args)
+vsnprint(int8_t *buf, int len, int8_t *fmt, va_list args)
 {
 	Fmt f;
 
@@ -41,6 +41,6 @@ vsnprint(char *buf, int len, char *fmt, va_list args)
 	f.nfmt = 0;
 	f.args = args;
 	dofmt(&f, fmt);
-	*(char*)f.to = '\0';
-	return (char*)f.to - buf;
+	*(int8_t*)f.to = '\0';
+	return (int8_t*)f.to - buf;
 }

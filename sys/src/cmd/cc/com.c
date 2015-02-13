@@ -835,7 +835,7 @@ int
 tcomd(Node *n)
 {
 	Type *t;
-	long o;
+	int32_t o;
 
 	o = 0;
 	t = dotsearch(n->sym, n->left->type->link, n, &o);
@@ -1292,7 +1292,7 @@ loop:
 }
 
 /*	OEQ, ONE, OLE, OLS, OLT, OLO, OGE, OHS, OGT, OHI */
-static char *cmps[12] = 
+static int8_t *cmps[12] = 
 {
 	"==", "!=", "<=", "<=", "<", "<", ">=", ">=", ">", ">",
 };
@@ -1301,8 +1301,8 @@ static char *cmps[12] =
 typedef struct Big Big;
 struct Big
 {
-	vlong a;
-	uvlong b;
+	int64_t a;
+	uint64_t b;
 };
 static int
 cmp(Big x, Big y)
@@ -1322,7 +1322,7 @@ cmp(Big x, Big y)
 static Big
 add(Big x, int y)
 {
-	uvlong ob;
+	uint64_t ob;
 	
 	ob = x.b;
 	x.b += y;
@@ -1334,7 +1334,7 @@ add(Big x, int y)
 } 
 
 Big
-big(vlong a, uvlong b)
+big(int64_t a, uint64_t b)
 {
 	Big x;
 
@@ -1348,7 +1348,7 @@ compar(Node *n, int reverse)
 {
 	Big lo, hi, x;
 	int op;
-	char xbuf[40], cmpbuf[50];
+	int8_t xbuf[40], cmpbuf[50];
 	Node *l, *r;
 	Type *lt, *rt;
 

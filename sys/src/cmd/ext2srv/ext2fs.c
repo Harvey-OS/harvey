@@ -23,7 +23,7 @@ extern int	errno;
 static void
 response(Req *r)
 {
-	char *err;
+	int8_t *err;
 
 	if (errno) {
 		err = xerrstr(errno);
@@ -68,7 +68,7 @@ rattach(Req *r)
 error:
 	response(r);
 }
-static char *
+static int8_t *
 rclone(Fid *fid, Fid *newfid)
 {
 	Xfile *of = xfile(fid, Asis);
@@ -90,8 +90,8 @@ rclone(Fid *fid, Fid *newfid)
 	chat("%s\n", errno? xerrstr(errno) : "OK");
 	return errno ? xerrstr(errno) : 0;
 }
-static char *
-rwalk1(Fid *fid, char *name, Qid *qid)
+static int8_t *
+rwalk1(Fid *fid, int8_t *name, Qid *qid)
 {
 	Xfile *f=xfile(fid, Asis);
 	int nr, sinbr = 0;

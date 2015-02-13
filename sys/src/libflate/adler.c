@@ -17,11 +17,11 @@ enum
 	ADLERBASE	= 65521 /* largest prime smaller than 65536 */
 };
 
-ulong
-adler32(ulong adler, void *vbuf, int n)
+uint32_t
+adler32(uint32_t adler, void *vbuf, int n)
 {
-	ulong s1, s2;
-	uchar *buf, *ebuf;
+	uint32_t s1, s2;
+	uint8_t *buf, *ebuf;
 	int m;
 
 	buf = vbuf;

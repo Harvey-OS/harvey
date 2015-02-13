@@ -12,7 +12,7 @@
  */
 #include "iolib.h"
 
-FILE *sopenr(const char *s){
+FILE *sopenr(const int8_t *s){
 	FILE *f;
 	qlock(&_stdiolk);
 	for(f=_IO_stream;f!=&_IO_stream[FOPEN_MAX];f++) if(f->state==CLOSED) break;
@@ -20,7 +20,7 @@ FILE *sopenr(const char *s){
 		qunlock(&_stdiolk);
 		return NULL;
 	}
-	f->buf=f->rp=(char *)s;	/* what an annoyance const is */
+	f->buf=f->rp=(int8_t *)s;	/* what an annoyance const is */
 	f->bufl=strlen(s);
 	f->wp=f->buf+f->bufl;
 	f->state=RD;

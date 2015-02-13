@@ -24,7 +24,7 @@
 #include "gstypes.h"
 #include "gscedata.h"
 
-const char gs_c_known_encoding_chars[] = {
+const int8_t gs_c_known_encoding_chars[] = {
 'A',  /*N(1,0)*/
 'B',  /*N(1,1)*/
 'C',  /*N(1,2)*/
@@ -830,13 +830,13 @@ const int gs_c_known_encoding_total_chars = 5483;
 
 const int gs_c_known_encoding_max_length = 19;
 
-const ushort gs_c_known_encoding_offsets[] = {
+const uint16_t gs_c_known_encoding_offsets[] = {
 0,0,52,104,404,876,1081,1771,2072,2272,2776,3116,3754,4414,4830,5250,5280,5360,5428,5464,5483};
 
 const int gs_c_known_encoding_count = 11;
 
 /* StandardEncoding */
-static const ushort gs_c_known_encoding_0[] = {
+static const uint16_t gs_c_known_encoding_0[] = {
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
@@ -1094,7 +1094,7 @@ N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 0};
-static const ushort gs_c_known_encoding_reverse_0[] = {
+static const uint16_t gs_c_known_encoding_reverse_0[] = {
 65,   /* N(1,0): A*/
 225,   /* N(2,0): AE*/
 66,   /* N(1,1): B*/
@@ -1247,7 +1247,7 @@ static const ushort gs_c_known_encoding_reverse_0[] = {
 0};
 
 /* ISOLatin1Encoding */
-static const ushort gs_c_known_encoding_1[] = {
+static const uint16_t gs_c_known_encoding_1[] = {
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
@@ -1505,7 +1505,7 @@ N(6,672),  /*yacute*/
 N(5,180),  /*thorn*/
 N(9,495),  /*ydieresis*/
 0};
-static const ushort gs_c_known_encoding_reverse_1[] = {
+static const uint16_t gs_c_known_encoding_reverse_1[] = {
 65,   /* N(1,0): A*/
 198,   /* N(2,0): AE*/
 193,   /* N(6,0): Aacute*/
@@ -1714,7 +1714,7 @@ static const ushort gs_c_known_encoding_reverse_1[] = {
 0};
 
 /* SymbolEncoding */
-static const ushort gs_c_known_encoding_2[] = {
+static const uint16_t gs_c_known_encoding_2[] = {
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
@@ -1972,7 +1972,7 @@ N(13,65),  /*bracerightmid*/
 N(12,168),  /*bracerightbt*/
 N(7,0),  /*.notdef*/
 0};
-static const ushort gs_c_known_encoding_reverse_2[] = {
+static const uint16_t gs_c_known_encoding_reverse_2[] = {
 67,   /* N(3,0): Chi*/
 66,   /* N(4,0): Beta*/
 72,   /* N(3,3): Eta*/
@@ -2165,7 +2165,7 @@ static const ushort gs_c_known_encoding_reverse_2[] = {
 0};
 
 /* DingbatsEncoding */
-static const ushort gs_c_known_encoding_3[] = {
+static const uint16_t gs_c_known_encoding_3[] = {
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
@@ -2423,7 +2423,7 @@ N(4,360),  /*a190*/
 N(4,364),  /*a191*/
 N(7,0),  /*.notdef*/
 0};
-static const ushort gs_c_known_encoding_reverse_3[] = {
+static const uint16_t gs_c_known_encoding_reverse_3[] = {
 33,   /* N(2,14): a1*/
 34,   /* N(2,16): a2*/
 126,   /* N(4,16): a100*/
@@ -2615,7 +2615,7 @@ static const ushort gs_c_known_encoding_reverse_3[] = {
 0};
 
 /* WinAnsiEncoding */
-static const ushort gs_c_known_encoding_4[] = {
+static const uint16_t gs_c_known_encoding_4[] = {
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
@@ -2873,7 +2873,7 @@ N(6,672),  /*yacute*/
 N(5,180),  /*thorn*/
 N(9,495),  /*ydieresis*/
 0};
-static const ushort gs_c_known_encoding_reverse_4[] = {
+static const uint16_t gs_c_known_encoding_reverse_4[] = {
 65,   /* N(1,0): A*/
 198,   /* N(2,0): AE*/
 193,   /* N(6,0): Aacute*/
@@ -3101,7 +3101,7 @@ static const ushort gs_c_known_encoding_reverse_4[] = {
 0};
 
 /* MacRomanEncoding */
-static const ushort gs_c_known_encoding_5[] = {
+static const uint16_t gs_c_known_encoding_5[] = {
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
@@ -3359,7 +3359,7 @@ N(12,336),  /*hungarumlaut*/
 N(6,570),  /*ogonek*/
 N(5,85),  /*caron*/
 0};
-static const ushort gs_c_known_encoding_reverse_5[] = {
+static const uint16_t gs_c_known_encoding_reverse_5[] = {
 65,   /* N(1,0): A*/
 174,   /* N(2,0): AE*/
 231,   /* N(6,0): Aacute*/
@@ -3571,7 +3571,7 @@ static const ushort gs_c_known_encoding_reverse_5[] = {
 0};
 
 /* MacExpertEncoding */
-static const ushort gs_c_known_encoding_6[] = {
+static const uint16_t gs_c_known_encoding_6[] = {
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
@@ -3829,7 +3829,7 @@ N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 N(7,0),  /*.notdef*/
 0};
-static const ushort gs_c_known_encoding_reverse_6[] = {
+static const uint16_t gs_c_known_encoding_reverse_6[] = {
 39,   /* N(10,0): Acutesmall*/
 135,   /* N(11,0): Aacutesmall*/
 201,   /* N(12,0): Cedillasmall*/
@@ -3998,7 +3998,7 @@ static const ushort gs_c_known_encoding_reverse_6[] = {
 0};
 
 /* MacGlyphEncoding */
-static const ushort gs_c_known_encoding_7[] = {
+static const uint16_t gs_c_known_encoding_7[] = {
 N(7,0),  /*.notdef*/
 N(5,0),  /*.null*/
 N(2,2),  /*CR*/
@@ -4258,7 +4258,7 @@ N(6,42),  /*Ccaron*/
 N(6,402),  /*ccaron*/
 N(7,147),  /*dmacron*/
 0};
-static const ushort gs_c_known_encoding_reverse_7[] = {
+static const uint16_t gs_c_known_encoding_reverse_7[] = {
 36,   /* N(1,0): A*/
 144,   /* N(2,0): AE*/
 1,   /* N(5,0): .null*/
@@ -4519,7 +4519,7 @@ static const ushort gs_c_known_encoding_reverse_7[] = {
 0};
 
 /* AdobeLatinOriginalGlyphEncoding */
-static const ushort gs_c_known_encoding_8[] = {
+static const uint16_t gs_c_known_encoding_8[] = {
 N(7,0),  /*.notdef*/
 N(1,0),  /*A*/
 N(2,0),  /*AE*/
@@ -4750,7 +4750,7 @@ N(1,51),  /*z*/
 N(6,684),  /*zcaron*/
 N(4,464),  /*zero*/
 0};
-static const ushort gs_c_known_encoding_reverse_8[] = {
+static const uint16_t gs_c_known_encoding_reverse_8[] = {
 1,   /* N(1,0): A*/
 2,   /* N(2,0): AE*/
 3,   /* N(6,0): Aacute*/
@@ -4982,7 +4982,7 @@ static const ushort gs_c_known_encoding_reverse_8[] = {
 0};
 
 /* AdobeLatinExtensionGlyphEncoding */
-static const ushort gs_c_known_encoding_9[] = {
+static const uint16_t gs_c_known_encoding_9[] = {
 N(6,6),  /*Abreve*/
 N(7,14),  /*Amacron*/
 N(7,21),  /*Aogonek*/
@@ -5070,7 +5070,7 @@ N(5,200),  /*uring*/
 N(6,678),  /*zacute*/
 N(10,330),  /*zdotaccent*/
 0};
-static const ushort gs_c_known_encoding_reverse_9[] = {
+static const uint16_t gs_c_known_encoding_reverse_9[] = {
 0,   /* N(6,6): Abreve*/
 13,   /* N(12,12): Gcommaaccent*/
 1,   /* N(7,14): Amacron*/
@@ -5160,7 +5160,7 @@ static const ushort gs_c_known_encoding_reverse_9[] = {
 0};
 
 /* CFFStandardStrings */
-static const ushort gs_c_known_encoding_10[] = {
+static const uint16_t gs_c_known_encoding_10[] = {
 N(7,0),  /*.notdef*/
 N(5,165),  /*space*/
 N(6,474),  /*exclam*/
@@ -5541,7 +5541,7 @@ N(11,253),  /*Yacutesmall*/
 N(10,70),  /*Thornsmall*/
 N(14,84),  /*Ydieresissmall*/
 0};
-static const ushort gs_c_known_encoding_reverse_10[] = {
+static const uint16_t gs_c_known_encoding_reverse_10[] = {
 34,   /* N(1,0): A*/
 138,   /* N(2,0): AE*/
 171,   /* N(6,0): Aacute*/
@@ -5922,7 +5922,7 @@ static const ushort gs_c_known_encoding_reverse_10[] = {
 228,   /* N(6,684): zcaron*/
 0};
 
-const ushort *const gs_c_known_encodings[] = {
+const uint16_t *const gs_c_known_encodings[] = {
     gs_c_known_encoding_0, /* StandardEncoding */
     gs_c_known_encoding_1, /* ISOLatin1Encoding */
     gs_c_known_encoding_2, /* SymbolEncoding */
@@ -5936,7 +5936,7 @@ const ushort *const gs_c_known_encodings[] = {
     gs_c_known_encoding_10, /* CFFStandardStrings */
     0
   };
-const ushort *const gs_c_known_encodings_reverse[] = {
+const uint16_t *const gs_c_known_encodings_reverse[] = {
     gs_c_known_encoding_reverse_0, /* StandardEncoding */
     gs_c_known_encoding_reverse_1, /* ISOLatin1Encoding */
     gs_c_known_encoding_reverse_2, /* SymbolEncoding */
@@ -5951,7 +5951,7 @@ const ushort *const gs_c_known_encodings_reverse[] = {
     0
   };
 
-const ushort gs_c_known_encoding_lengths[] = {
+const uint16_t gs_c_known_encoding_lengths[] = {
 256,256,256,256,256,256,256,258,229,86,379,0};
-const ushort gs_c_known_encoding_reverse_lengths[] = {
+const uint16_t gs_c_known_encoding_reverse_lengths[] = {
 149,205,189,188,224,208,165,257,228,86,378,0};

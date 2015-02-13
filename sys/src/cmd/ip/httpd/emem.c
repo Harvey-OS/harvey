@@ -12,7 +12,7 @@
 #include "httpd.h"
 
 void*
-ezalloc(ulong n)
+ezalloc(uint32_t n)
 {
 	void *p;
 
@@ -23,8 +23,8 @@ ezalloc(ulong n)
 	return p;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
 	s = strdup(s);
 	if(s == nil)

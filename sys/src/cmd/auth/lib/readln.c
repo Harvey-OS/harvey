@@ -14,10 +14,10 @@
 #include "authcmdlib.h"
 
 void
-getpass(char *key, char *pass, int check, int confirm)
+getpass(int8_t *key, int8_t *pass, int check, int confirm)
 {
-	char rpass[32], npass[32];
-	char *err;
+	int8_t rpass[32], npass[32];
+	int8_t *err;
 
 	if(pass == nil)
 		pass = npass;
@@ -45,9 +45,9 @@ getpass(char *key, char *pass, int check, int confirm)
 }
 
 int
-getsecret(int passvalid, char *p9pass)
+getsecret(int passvalid, int8_t *p9pass)
 {
-	char answer[32];
+	int8_t answer[32];
 
 	readln("assign Inferno/POP secret? (y/n) ", answer, sizeof answer, 0);
 	if(*answer != 'y' && *answer != 'Y')
@@ -72,9 +72,9 @@ getsecret(int passvalid, char *p9pass)
 }
 
 void
-readln(char *prompt, char *line, int len, int raw)
+readln(int8_t *prompt, int8_t *line, int len, int raw)
 {
-	char *p;
+	int8_t *p;
 	int fdin, fdout, ctl, n, nr;
 
 	fdin = open("/dev/cons", OREAD);

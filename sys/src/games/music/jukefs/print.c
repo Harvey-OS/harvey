@@ -33,9 +33,9 @@ listfiles(Object *o)
 }
 
 int
-indent(char *lp, int ln, int n, char *buf) {
+indent(int8_t *lp, int ln, int n, int8_t *buf) {
 	int sln;
-	char *p, c;
+	int8_t *p, c;
 
 	sln = ln;
 	if (ln <= 0)
@@ -70,10 +70,10 @@ out:
 	return sln - ln;
 }
 
-long
-printchildren(char *lp, int ln, Object *o) {
+int32_t
+printchildren(int8_t *lp, int ln, Object *o) {
 	int i, r;
-	char *sp;
+	int8_t *sp;
 
 	sp = lp;
 	if (o->flags & Sort) {
@@ -88,9 +88,9 @@ printchildren(char *lp, int ln, Object *o) {
 	return lp - sp;
 }
 
-long
-printminiparentage(char *lp, int ln, Object *o) {
-	char *p, c;
+int32_t
+printminiparentage(int8_t *lp, int ln, Object *o) {
+	int8_t *p, c;
 	int r, sln;
 
 	if (ln <= 0) return 0;
@@ -124,8 +124,8 @@ printminiparentage(char *lp, int ln, Object *o) {
 	return sln - ln;
 }
 
-long
-printparentage(char *lp, int ln, Object *o) {
+int32_t
+printparentage(int8_t *lp, int ln, Object *o) {
 	int i;
 	int r, k, sln;
 
@@ -215,29 +215,29 @@ printparentage(char *lp, int ln, Object *o) {
 	return sln - ln;
 }
 
-long
-printparent(char *lp, int ln, Object *o) {
+int32_t
+printparent(int8_t *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%d", o->parent->tabno);
 }
 
-long
-printkey(char *lp, int ln, Object *o) {
+int32_t
+printkey(int8_t *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%s", o->key?o->key:o->value);
 }
 
-long
-printtype(char *lp, int ln, Object *o) {
+int32_t
+printtype(int8_t *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%s", tokenlist[o->type].name);
 }
 
-long
-printtext(char *lp, int ln, Object *o) {
+int32_t
+printtext(int8_t *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%s", o->value?o->value:o->key);
 }
 
-long
-printfulltext(char *lp, int ln, Object *o) {
-	char *sp, *p, *q;
+int32_t
+printfulltext(int8_t *lp, int ln, Object *o) {
+	int8_t *sp, *p, *q;
 	int i, j, k, c, depth;
 	Object *oo;
 
@@ -365,10 +365,10 @@ printfulltext(char *lp, int ln, Object *o) {
 	return lp - sp;
 }
 
-long
-printfiles(char *lp, int ln, Object *o) {
+int32_t
+printfiles(int8_t *lp, int ln, Object *o) {
 	int i, r;
-	char *sp;
+	int8_t *sp;
 
 	sp = lp;
 	if (o->type == File)
@@ -383,11 +383,11 @@ printfiles(char *lp, int ln, Object *o) {
 	return lp - sp;
 }
 
-long
-printdigest(char *lp, int ln, Object *o) {
-	char *p;
+int32_t
+printdigest(int8_t *lp, int ln, Object *o) {
+	int8_t *p;
 	int j, c, k;
-	char *sp;
+	int8_t *sp;
 
 	sp = lp;
 	switch(o->type){
@@ -444,8 +444,8 @@ printdigest(char *lp, int ln, Object *o) {
 
 void
 printtree(Object *o, int ind) {
-	char *p;
-	char buf[2048];
+	int8_t *p;
+	int8_t buf[2048];
 	int i;
 
 	sprintf(buf, "%s {\n", tokenlist[o->type].name);

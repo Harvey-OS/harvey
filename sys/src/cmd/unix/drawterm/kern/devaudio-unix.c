@@ -40,7 +40,7 @@ void
 audiodevopen(void)
 {
 	int t;
-	ulong ul;
+	uint32_t ul;
 
 	afd = -1;
 	cfd = -1;
@@ -126,7 +126,7 @@ void
 audiodevsetvol(int what, int left, int right)
 {
 	int id;
-	ulong x;
+	uint32_t x;
 	int can, v;
 	
 	if(cfd < 0)
@@ -179,7 +179,7 @@ audiodevwrite(void *v, int n)
 	int m, tot;
 	
 	for(tot=0; tot<n; tot+=m)
-		if((m = write(afd, (uchar*)v+tot, n-tot)) <= 0)
+		if((m = write(afd, (uint8_t*)v+tot, n-tot)) <= 0)
 			oserror();
 	return tot;
 }

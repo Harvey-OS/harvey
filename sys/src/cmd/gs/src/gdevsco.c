@@ -48,7 +48,7 @@
 #if defined(__STDC__)
 #include <stdlib.h>
 #else
-extern char *getenv(const char *);
+extern int8_t *getenv(const int8_t *);
 #endif
 
 #if defined(M_XENIX)
@@ -56,7 +56,7 @@ extern char *getenv(const char *);
 #include <fcntl.h>
 #else
 extern int ioctl(int, int,...);
-extern int open(const char *, int,...);
+extern int open(const int8_t *, int,...);
 #endif
 
 private int console_fd = -1;	/* file descriptor of console */
@@ -75,7 +75,7 @@ private void open_console(void);
 private void
 open_console()
 {
-    const char *dev;
+    const int8_t *dev;
 
     if (console_fd != -1)
 	return;
@@ -109,7 +109,7 @@ outportb(uint port, byte data)
     pio.args[1].port = 0;
     pio.args[2].port = 0;
     pio.args[3].port = 0;
-    i = ioctl(console_fd, CONSIO, (long)(&pio));
+    i = ioctl(console_fd, CONSIO, (int32_t)(&pio));
     if (i == -1) {
 	ega_close((gx_device *) NULL);
 	eprintf("error setting device register\n");
@@ -135,7 +135,7 @@ outport2(uint port, byte index, byte data)
     pio.args[1].data = data;
     pio.args[2].port = 0;
     pio.args[3].port = 0;
-    i = ioctl(console_fd, CONSIO, (long)(&pio));
+    i = ioctl(console_fd, CONSIO, (int32_t)(&pio));
     if (i == -1) {
 	ega_close((gx_device *) NULL);
 	eprintf("error setting device register\n");

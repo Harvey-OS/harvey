@@ -82,8 +82,8 @@ Channel *cclunkwait;
 typedef struct Tab Tab;
 struct Tab
 {
-	char *name;
-	ulong mode;
+	int8_t *name;
+	uint32_t mode;
 	int offset;
 };
 
@@ -113,14 +113,14 @@ Tab tab[] =
 	"ftptype",		0444,			offsetof(Url, ftp.type),
 };
 
-ulong time0;
+uint32_t time0;
 
 static void
-fillstat(Dir *d, uvlong path, ulong length, char *ext)
+fillstat(Dir *d, uint64_t path, uint32_t length, int8_t *ext)
 {
 	Tab *t;
 	int type;
-	char buf[32];
+	int8_t buf[32];
 
 	memset(d, 0, sizeof(*d));
 	d->uid = estrdup("web");
@@ -154,7 +154,7 @@ fsstat(Req *r)
 static int
 rootgen(int i, Dir *d, void*)
 {
-	char buf[32];
+	int8_t buf[32];
 
 	i += Qroot+1;
 	if(i < Qclient){
@@ -203,10 +203,10 @@ parsedgen(int i, Dir *d, void *aux)
 static void
 fsread(Req *r)
 {
-	char *s;
-	char e[ERRMAX];
+	int8_t *s;
+	int8_t e[ERRMAX];
 	Client *c;
-	ulong path;
+	uint32_t path;
 
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
@@ -282,7 +282,7 @@ fsread(Req *r)
 		c = client[NUM(path)];
 		r->ofcall.count = 0;
 		if(c->url != nil
-		&& (s = *(char**)((uintptr)c->url+tab[TYPE(path)].offset)) != nil)
+		&& (s = *(int8_t**)((uintptr)c->url+tab[TYPE(path)].offset)) != nil)
 			readstr(r, s);
 		respond(r, nil);
 		break;
@@ -293,8 +293,8 @@ static void
 fswrite(Req *r)
 {
 	int m;
-	ulong path;
-	char e[ERRMAX], *buf, *cmd, *arg;
+	uint32_t path;
+	int8_t e[ERRMAX], *buf, *cmd, *arg;
 	Client *c;
 
 	path = r->fid->qid.path;
@@ -314,7 +314,8 @@ fswrite(Req *r)
 			respond(r, "ctl message too long");
 			return;
 		}
-		buf = estredup(r->ifcall.data, (char*)r->ifcall.data+r->ifcall.count);
+		buf = estredup(r->ifcall.data,
+			       (int8_t*)r->ifcall.data+r->ifcall.count);
 		cmd = buf;
 		arg = strpbrk(cmd, "\t ");
 		if(arg){
@@ -363,7 +364,7 @@ static void
 fsopen(Req *r)
 {
 	static int need[4] = { 4, 2, 6, 1 };
-	ulong path;
+	uint32_t path;
 	int n;
 	Client *c;
 	Tab *t;
@@ -442,12 +443,12 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-static char*
-fswalk1(Fid *fid, char *name, Qid *qid)
+static int8_t*
+fswalk1(Fid *fid, int8_t *name, Qid *qid)
 {
 	int i, n;
-	ulong path;
-	char buf[32], *ext;
+	uint32_t path;
+	int8_t buf[32], *ext;
 
 	path = fid->qid.path;
 	if(!(fid->qid.type&QTDIR))
@@ -507,7 +508,7 @@ fsflush(Req *r)
 	Req *or;
 	int t;
 	Client *c;
-	ulong path;
+	uint32_t path;
 
 	or=r;
 	while(or->ifcall.type==Tflush)
@@ -529,7 +530,7 @@ fsflush(Req *r)
 static void
 fsthread(void*)
 {
-	ulong path;
+	uint32_t path;
 	Alt a[3];
 	Fid *fid;
 	Req *r;

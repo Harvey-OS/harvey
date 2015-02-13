@@ -88,7 +88,7 @@ int  lame_set_stream_binary_mode ( FILE* const fp )
     return 0;
 }
 
-off_t  lame_get_file_size ( const char* const filename )
+off_t  lame_get_file_size ( const int8_t* const filename )
 {
     struct stat       sb;
 

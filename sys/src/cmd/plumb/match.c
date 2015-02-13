@@ -15,8 +15,8 @@
 #include <plumb.h>
 #include "plumber.h"
 
-static char*
-nonnil(char *s)
+static int8_t*
+nonnil(int8_t *s)
 {
 	if(s == nil)
 		return "";
@@ -45,7 +45,7 @@ verbis(int obj, Plumbmsg *m, Rule *r)
 }
 
 static void
-setvar(Resub rs[10], char *match[10])
+setvar(Resub rs[10], int8_t *match[10])
 {
 	int i, n;
 
@@ -62,9 +62,9 @@ setvar(Resub rs[10], char *match[10])
 }
 
 int
-clickmatch(Reprog *re, char *text, Resub rs[10], int click)
+clickmatch(Reprog *re, int8_t *text, Resub rs[10], int click)
 {
-	char *clickp;
+	int8_t *clickp;
 	int i, w;
 	Rune r;
 
@@ -85,7 +85,7 @@ int
 verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 {
 	Resub rs[10];
-	char *clickval, *alltext;
+	int8_t *clickval, *alltext;
 	int p0, p1, ntext;
 
 	memset(rs, 0, sizeof rs);
@@ -138,7 +138,7 @@ verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 }
 
 int
-isfile(char *file, ulong maskon, ulong maskoff)
+isfile(int8_t *file, uint32_t maskon, uint32_t maskoff)
 {
 	Dir *d;
 	int mode;
@@ -155,10 +155,10 @@ isfile(char *file, ulong maskon, ulong maskoff)
 	return 1;
 }
 
-char*
-absolute(char *dir, char *file)
+int8_t*
+absolute(int8_t *dir, int8_t *file)
 {
-	char *p;
+	int8_t *p;
 
 	if(file[0] == '/')
 		return estrdup(file);
@@ -168,9 +168,10 @@ absolute(char *dir, char *file)
 }
 
 int
-verbisfile(int obj, Plumbmsg *m, Rule *r, Exec *e, ulong maskon, ulong maskoff, char **var)
+verbisfile(int obj, Plumbmsg *m, Rule *r, Exec *e, uint32_t maskon,
+	   uint32_t maskoff, int8_t **var)
 {
-	char *file;
+	int8_t *file;
 
 	switch(obj){
 	default:
@@ -200,7 +201,7 @@ verbisfile(int obj, Plumbmsg *m, Rule *r, Exec *e, ulong maskon, ulong maskoff, 
 int
 verbset(int obj, Plumbmsg *m, Rule *r, Exec *e)
 {
-	char *new;
+	int8_t *new;
 
 	switch(obj){
 	default:
@@ -256,7 +257,7 @@ verbadd(int obj, Plumbmsg *m, Rule *r, Exec *e)
 int
 verbdelete(int obj, Plumbmsg *m, Rule *r, Exec *e)
 {
-	char *a;
+	int8_t *a;
 
 	switch(obj){
 	default:
@@ -352,16 +353,16 @@ rewrite(Plumbmsg *m, Exec *e)
 	}
 }
 
-char**
-buildargv(char *s, Exec *e)
+int8_t**
+buildargv(int8_t *s, Exec *e)
 {
-	char **av;
+	int8_t **av;
 	int ac;
 
 	ac = 0;
 	av = nil;
 	for(;;){
-		av = erealloc(av, (ac+1) * sizeof(char*));
+		av = erealloc(av, (ac+1) * sizeof(int8_t*));
 		av[ac] = nil;
 		while(*s==' ' || *s=='\t')
 			s++;
@@ -398,15 +399,15 @@ enum
 {
 	NARGS		= 100,
 	NARGCHAR	= 8*1024,
-	EXECSTACK 	= 8192+(NARGS+1)*sizeof(char*)+NARGCHAR
+	EXECSTACK 	= 8192+(NARGS+1)*sizeof(int8_t*)+NARGCHAR
 };
 
 /* copy argv to stack and free the incoming strings, so we don't leak argument vectors */
 void
-stackargv(char **inargv, char *argv[NARGS+1], char args[NARGCHAR])
+stackargv(int8_t **inargv, int8_t *argv[NARGS+1], int8_t args[NARGCHAR])
 {
 	int i, n;
-	char *s, *a;
+	int8_t *s, *a;
 
 	s = args;
 	for(i=0; i<NARGS; i++){
@@ -428,8 +429,8 @@ stackargv(char **inargv, char *argv[NARGS+1], char args[NARGCHAR])
 void
 execproc(void *v)
 {
-	char **av;
-	char buf[1024], *args[NARGS+1], argc[NARGCHAR];
+	int8_t **av;
+	int8_t buf[1024], *args[NARGS+1], argc[NARGCHAR];
 
 	rfork(RFFDG);
 	close(0);
@@ -444,10 +445,10 @@ execproc(void *v)
 	threadexits("can't exec");
 }
 
-char*
+int8_t*
 startup(Ruleset *rs, Exec *e)
 {
-	char **argv;
+	int8_t **argv;
 	int i;
 
 	if(rs != nil)

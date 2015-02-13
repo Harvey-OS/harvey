@@ -16,7 +16,7 @@ u32int	maxblocksize;
 int	readonly;
 
 static int
-strtoullsuf(char *p, char **pp, int rad, u64int *u)
+strtoullsuf(int8_t *p, int8_t **pp, int rad, u64int *u)
 {
 	u64int v;
 
@@ -52,9 +52,9 @@ strtoullsuf(char *p, char **pp, int rad, u64int *u)
 }
 	
 static int
-parsepart(char *name, char **file, u64int *lo, u64int *hi)
+parsepart(int8_t *name, int8_t **file, u64int *lo, u64int *hi)
 {
-	char *p;
+	int8_t *p;
 
 	*file = estrdup(name);
 	if((p = strrchr(*file, ':')) == nil){
@@ -85,11 +85,11 @@ parsepart(char *name, char **file, u64int *lo, u64int *hi)
 }
 
 Part*
-initpart(char *name, int mode)
+initpart(int8_t *name, int mode)
 {
 	Part *part;
 	Dir *dir;
-	char *file;
+	int8_t *file;
 	u64int lo, hi;
 
 	if(parsepart(name, &file, &lo, &hi) < 0)
@@ -233,7 +233,7 @@ writepart(Part *part, u64int offset, u8int *buf, u32int count)
 }
 
 ZBlock*
-readfile(char *name)
+readfile(int8_t *name)
 {
 	Part *p;
 	ZBlock *b;

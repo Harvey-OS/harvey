@@ -12,9 +12,9 @@
 
 Biobuf	bin;
 int rmail, tflg;
-char *subjectarg;
+int8_t *subjectarg;
 
-char *findbody(char*);
+int8_t *findbody(int8_t*);
 
 void
 usage(void)
@@ -129,8 +129,8 @@ main(int argc, char *argv[])
 	exit(0);
 }
 
-char*
-findbody(char *p)
+int8_t*
+findbody(int8_t *p)
 {
 	if(*p == '\n')
 		return p;

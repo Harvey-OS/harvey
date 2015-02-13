@@ -11,10 +11,10 @@
 #include <libc.h>
 
 void
-werrstr(char *fmt, ...)
+werrstr(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+ERRMAX, fmt, arg);

@@ -44,7 +44,7 @@ Public structures and functions in this file are prefixed with FF_ because they 
 the FAPI FreeType implementation.
 */
 
-static void write_4_byte_int(unsigned char* a_output,long a_int)
+static void write_4_byte_int(unsigned char* a_output,int32_t a_int)
 	{
 	a_output[0] = (unsigned char)(a_int >> 24);
 	a_output[1] = (unsigned char)(a_int >> 16);
@@ -52,7 +52,7 @@ static void write_4_byte_int(unsigned char* a_output,long a_int)
 	a_output[3] = (unsigned char)(a_int & 0xFF);
 	}
 
-static void write_type2_int(WRF_output* a_output,long a_int)
+static void write_type2_int(WRF_output* a_output,int32_t a_int)
 	{
 	if (a_int >= -107 && a_int <= 107)
 		WRF_wbyte(a_output,(unsigned char)(a_int + 139));
@@ -78,17 +78,17 @@ static void write_type2_int(WRF_output* a_output,long a_int)
 
 static void write_type2_float(WRF_output* a_output,double a_float)
 	{
-	char buffer[32];
-	const char* p = buffer;
+	int8_t buffer[32];
+	const int8_t* p = buffer;
 	int high = true;
-	char c = 0;
+	int8_t c = 0;
 	sprintf(buffer,"%f",a_float);
 	WRF_wbyte(a_output,30);
 	for (;;)
 		{
-		char n = 0;
+		int8_t n = 0;
 		if (*p >= '0' && *p <= '9')
-			n = (char)(*p - '0');
+			n = (int8_t)(*p - '0');
 		else if (*p == '.')
 			n = 0xA;
 		else if (*p == 'e' || *p == 'E')
@@ -110,7 +110,7 @@ static void write_type2_float(WRF_output* a_output,double a_float)
 			if (*p == 0)
 				WRF_wbyte(a_output,0xFF);
 			else
-				c = (char)(n << 4);
+				c = (int8_t)(n << 4);
 			}
 		else
 			{
@@ -146,9 +146,9 @@ static void write_word_entry(FAPI_font* a_fapi_font,WRF_output* a_output,int a_f
 		for (i = 0; i < a_feature_count; i++)
 			{
 			/* Get the value and convert it from unsigned to signed. */
-			short x = a_fapi_font->get_word(a_fapi_font,a_feature_id,i);
+			int16_t x = a_fapi_font->get_word(a_fapi_font,a_feature_id,i);
 			/* Divide by the divisor to bring it back to font units. */
-			x = (short)(x / a_divisor);
+			x = (int16_t)(x / a_divisor);
 			write_type2_int(a_output,x);
 			}
 		if (a_two_byte_op)
@@ -165,13 +165,13 @@ static void write_delta_array_entry(FAPI_font* a_fapi_font,WRF_output* a_output,
 	int count = a_fapi_font->get_word(a_fapi_font,a_feature_id - 1,0);
 	if (count > 0)
 		{
-		short prev_value = 0;
+		int16_t prev_value = 0;
 		for (i = 0; i < count; i++)
 			{
 			/* Get the value and convert it from unsigned to signed. */
-			short value = a_fapi_font->get_word(a_fapi_font,a_feature_id,i); 
+			int16_t value = a_fapi_font->get_word(a_fapi_font,a_feature_id,i); 
 			/* Divide by the divisor to bring it back to font units. */
-			value = (short)(value / a_divisor);
+			value = (int16_t)(value / a_divisor);
 			write_type2_int(a_output,value - prev_value);
 			prev_value = value;
 			}
@@ -305,15 +305,15 @@ static void write_subrs_index(FAPI_font* a_fapi_font,WRF_output* a_output)
 
 	for (i = 0; i < count; i++)
 		{
-		long buffer_size = a_output->m_limit - a_output->m_count;
-		long length = a_fapi_font->get_subr(a_fapi_font,i,a_output->m_pos,(ushort)buffer_size);
+		int32_t buffer_size = a_output->m_limit - a_output->m_count;
+		int32_t length = a_fapi_font->get_subr(a_fapi_font,i,a_output->m_pos,(uint16_t)buffer_size);
 		if (a_output->m_pos)
 			WRF_wtext(a_output,a_output->m_pos,length);
 		else
 			a_output->m_count += length;
 		if (cur_offset)
 			{
-			long pos = a_output->m_pos - data_start + 1;
+			int32_t pos = a_output->m_pos - data_start + 1;
 			write_4_byte_int(cur_offset,pos);
 			cur_offset += 4;
 			}
@@ -367,7 +367,7 @@ Write a Type 2 font in binary format and return its length in bytes.
 If a_buffer_size is less than the total length, only a_buffer_size bytes are written, but the total
 length is returned correctly.
 */
-long FF_serialize_type2_font(FAPI_font* a_fapi_font,unsigned char* a_buffer,long a_buffer_size)
+int32_t FF_serialize_type2_font(FAPI_font* a_fapi_font,unsigned char* a_buffer,int32_t a_buffer_size)
 	{
 	unsigned char* charset_offset_ptr = NULL;
 	unsigned char* charstrings_offset_ptr = NULL;

@@ -11,7 +11,7 @@
 #include "vncv.h"
 
 static struct {
-	char	*name;
+	int8_t	*name;
 	int	num;
 } enctab[] = {
 	"copyrect",	EncCopyRect,
@@ -22,14 +22,14 @@ static struct {
 	"mousewarp",	EncMouseWarp,
 };
 
-static	uchar	*pixbuf;
-static	uchar	*linebuf;
+static	uint8_t	*pixbuf;
+static	uint8_t	*linebuf;
 static	int	vpixb;
 static	int	pixb;
-static	void	(*pixcp)(uchar*, uchar*);
+static	void	(*pixcp)(uint8_t*, uint8_t*);
 
 static void
-vncrdcolor(Vnc *v, uchar *color)
+vncrdcolor(Vnc *v, uint8_t *color)
 {
 	vncrdbytes(v, color, vpixb);
 
@@ -40,7 +40,7 @@ vncrdcolor(Vnc *v, uchar *color)
 void
 sendencodings(Vnc *v)
 {
-	char *f[10];
+	int8_t *f[10];
 	int enc[10], nenc, i, j, nf;
 
 	nf = tokenize(encodings, f, nelem(f));
@@ -143,7 +143,7 @@ updatescreen(Rectangle r)
 }
 
 static void
-fillrect(Rectangle r, int stride, uchar *color)
+fillrect(Rectangle r, int stride, uint8_t *color)
 {
 	int x, xe, y, off;
 
@@ -181,7 +181,7 @@ loadbuf(Vnc *v, Rectangle r, int stride)
 }
 
 static Rectangle
-hexrect(ushort u)
+hexrect(uint16_t u)
 {
 	int x, y, w, h;
 
@@ -197,7 +197,7 @@ hexrect(ushort u)
 static void
 dohextile(Vnc *v, Rectangle r, int stride)
 {
-	ulong bg, fg, c;
+	uint32_t bg, fg, c;
 	int enc, nsub, sx, sy, w, h, th, tw;
 	Rectangle sr, ssr;
 
@@ -221,20 +221,20 @@ dohextile(Vnc *v, Rectangle r, int stride)
 			}
 
 			if(enc & HextileBack)
-				vncrdcolor(v, (uchar*)&bg);
-			fillrect(sr, stride, (uchar*)&bg);
+				vncrdcolor(v, (uint8_t*)&bg);
+			fillrect(sr, stride, (uint8_t*)&bg);
 
 			if(enc & HextileFore)
-				vncrdcolor(v, (uchar*)&fg);
+				vncrdcolor(v, (uint8_t*)&fg);
 
 			if(enc & HextileRects){
 				nsub = vncrdchar(v);
-				(*pixcp)((uchar*)&c, (uchar*)&fg);
+				(*pixcp)((uint8_t*)&c, (uint8_t*)&fg);
 				while(nsub-- > 0){
 					if(enc & HextileCols)
-						vncrdcolor(v, (uchar*)&c);
+						vncrdcolor(v, (uint8_t*)&c);
 					ssr = rectaddpt(hexrect(vncrdshort(v)), sr.min);
-					fillrect(ssr, stride, (uchar*)&c);
+					fillrect(ssr, stride, (uint8_t*)&c);
 				}
 			}
 		}
@@ -244,9 +244,9 @@ dohextile(Vnc *v, Rectangle r, int stride)
 static void
 dorectangle(Vnc *v)
 {
-	ulong type;
-	long n, stride;
-	ulong color;
+	uint32_t type;
+	int32_t n, stride;
+	uint32_t color;
 	Point p;
 	Rectangle r, subr, maxr;
 
@@ -279,17 +279,17 @@ dorectangle(Vnc *v)
 	case EncCorre:
 		maxr = Rpt(ZP, Pt(Dx(r), Dy(r)));
 		n = vncrdlong(v);
-		vncrdcolor(v, (uchar*)&color);
-		fillrect(maxr, stride, (uchar*)&color);
+		vncrdcolor(v, (uint8_t*)&color);
+		fillrect(maxr, stride, (uint8_t*)&color);
 		while(n-- > 0){
-			vncrdcolor(v, (uchar*)&color);
+			vncrdcolor(v, (uint8_t*)&color);
 			if(type == EncRre)
 				subr = vncrdrect(v);
 			else
 				subr = vncrdcorect(v);
 			if(!rectinrect(subr, maxr))
 				sysfatal("bad encoding from server");
-			fillrect(subr, stride, (uchar*)&color);
+			fillrect(subr, stride, (uint8_t*)&color);
 		}
 		updatescreen(r);
 		break;
@@ -306,25 +306,25 @@ dorectangle(Vnc *v)
 }
 
 static void
-pixcp8(uchar *dst, uchar *src)
+pixcp8(uint8_t *dst, uint8_t *src)
 {
 	*dst = *src;
 }
 
 static void
-pixcp16(uchar *dst, uchar *src)
+pixcp16(uint8_t *dst, uint8_t *src)
 {
-	*(ushort*)dst = *(ushort*)src;
+	*(uint16_t*)dst = *(uint16_t*)src;
 }
 
 static void
-pixcp32(uchar *dst, uchar *src)
+pixcp32(uint8_t *dst, uint8_t *src)
 {
-	*(ulong*)dst = *(ulong*)src;
+	*(uint32_t*)dst = *(uint32_t*)src;
 }
 
 static void
-pixcp24(uchar *dst, uchar *src)
+pixcp24(uint8_t *dst, uint8_t *src)
 {
 	dst[0] = src[0];
 	dst[1] = src[1];
@@ -342,9 +342,9 @@ calcpixb(int bpp)
 void
 readfromserver(Vnc *v)
 {
-	uchar type;
-	uchar junk[100];
-	long n;
+	uint8_t type;
+	uint8_t junk[100];
+	int32_t n;
 
 	vpixb = calcpixb(v->bpp);
 	pixb = calcpixb(screen->depth);

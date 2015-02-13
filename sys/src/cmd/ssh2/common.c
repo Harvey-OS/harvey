@@ -14,7 +14,7 @@
 void
 freeptr(void **vpp)
 {
-	char **cpp;
+	int8_t **cpp;
 
 	cpp = vpp;
 	free(*cpp);
@@ -22,7 +22,7 @@ freeptr(void **vpp)
 }
 
 int
-readfile(char *file, char *buf, int size)
+readfile(int8_t *file, int8_t *buf, int size)
 {
 	int n, fd;
 

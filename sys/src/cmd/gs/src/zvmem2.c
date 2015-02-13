@@ -85,7 +85,7 @@ zgcheck(i_ctx_t *i_ctx_p)
  * This is implemented as a PostScript procedure that calls setuserparams.
  */
 int
-set_vm_threshold(i_ctx_t *i_ctx_p, long val)
+set_vm_threshold(i_ctx_t *i_ctx_p, int32_t val)
 {
     if (val < -1)
 	return_error(e_rangecheck);
@@ -102,7 +102,7 @@ set_vm_threshold(i_ctx_t *i_ctx_p, long val)
 }
 
 int
-set_vm_reclaim(i_ctx_t *i_ctx_p, long val)
+set_vm_reclaim(i_ctx_t *i_ctx_p, int32_t val)
 {
     if (val >= -2 && val <= 0) {
 	gs_memory_set_vm_reclaim(idmemory->space_system, (val >= -1));

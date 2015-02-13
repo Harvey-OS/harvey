@@ -19,7 +19,7 @@ genprime(mpint *p, int n, int accuracy)
 
 	// generate n random bits with high and low bits set
 	mpbits(p, n);
-	genrandom((uchar*)p->p, (n+7)/8);
+	genrandom((uint8_t*)p->p, (n+7)/8);
 	p->top = (n+Dbits-1)/Dbits;
 	x = 1;
 	x <<= ((n-1)%Dbits);

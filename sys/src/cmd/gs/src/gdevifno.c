@@ -116,7 +116,7 @@ private gx_color_index
 inferno_rgb2cmap(gx_device *dev, gx_color_value rgb[3]) {
 	int shift;
 	inferno_device *idev;
-	ulong red, green, blue;
+	uint32_t red, green, blue;
 
 	idev = (inferno_device*) dev;
 
@@ -240,12 +240,12 @@ inferno_put_params(gx_device * pdev, gs_param_list * plist)
 #define Gfactor Rlevs
 #define Bfactor	(Rlevs*Glevs)
 			
-ulong p9color[Rlevs*Glevs*Blevs];	/* index blue most sig, red least sig */
+uint32_t p9color[Rlevs*Glevs*Blevs];	/* index blue most sig, red least sig */
 
 void init_p9color(void)		/* init at run time since p9color[] is so big */
 {
 	int r, g, b, o;
-	ulong* cur = p9color;
+	uint32_t* cur = p9color;
 	for (b=0; b<16; b++) {
 	    for (g=0; g<16; g++) {
 		int m0 = (b>g) ? b : g;
@@ -429,14 +429,14 @@ typedef struct Dump	Dump;
 typedef struct Hlist Hlist;
 
 struct Hlist{
-	ulong p;
+	uint32_t p;
 	Hlist *next, *prev;
 };
 
 struct Dump {
 	int ndump;
-	uchar *dumpbuf;
-	uchar buf[1+NDUMP];
+	uint8_t *dumpbuf;
+	uint8_t buf[1+NDUMP];
 };
 
 struct WImage {
@@ -447,7 +447,7 @@ struct WImage {
 	int bpl;
 
 	/* output buffer */
-	uchar outbuf[NCBLOCK], *outp, *eout, *loutp;
+	uint8_t outbuf[NCBLOCK], *outp, *eout, *loutp;
 
 	/* sliding input window */
 	/*
@@ -458,11 +458,11 @@ struct WImage {
 	 * the ulongs in the Hlist structures are just
 	 * pointers relative to ibase.
 	 */
-	uchar *inbuf;	/* inbuf should be at least NMEM+NRUN+NMATCH long */
-	uchar *ibase;
+	uint8_t *inbuf;	/* inbuf should be at least NMEM+NRUN+NMATCH long */
+	uint8_t *ibase;
 	int minbuf;	/* size of inbuf (malloc'ed bytes) */
 	int ninbuf;	/* size of inbuf (filled bytes) */
-	ulong line;	/* the beginning of the line we are currently encoding,
+	uint32_t line;	/* the beginning of the line we are currently encoding,
 			 * relative to inbuf (NOT relative to ibase) */
 
 	/* raw dump buffer */
@@ -660,7 +660,7 @@ gobbleline(WImage *w)
 }
 
 private uchar*
-shiftwindow(WImage *w, uchar *data, uchar *edata)
+shiftwindow(WImage *w, uint8_t *data, uint8_t *edata)
 {
 	int n, m;
 
@@ -702,7 +702,7 @@ initwriteimage(FILE *f, Rectangle r, int ldepth)
 	w = malloc(n+sizeof(*w));
 	if(w == nil)
 		return nil;
-	w->inbuf = (uchar*) &w[1];
+	w->inbuf = (uint8_t*) &w[1];
 	w->ibase = w->inbuf;
 	w->line = 0;
 	w->minbuf = n;

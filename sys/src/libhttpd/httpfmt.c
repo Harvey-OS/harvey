@@ -15,12 +15,12 @@
 int
 httpfmt(Fmt *f)
 {
-	char buf[HMaxWord*2];
+	int8_t buf[HMaxWord*2];
 	Rune r;
-	char *t, *s;
+	int8_t *t, *s;
 	Htmlesc *l;
 
-	s = va_arg(f->args, char*);
+	s = va_arg(f->args, int8_t*);
 	for(t = buf; t < buf + sizeof(buf) - 8; ){
 		s += chartorune(&r, s);
 		if(r == 0)

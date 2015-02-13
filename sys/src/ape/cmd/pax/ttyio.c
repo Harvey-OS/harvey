@@ -49,8 +49,8 @@
  */
 
 #ifndef lint
-static char *ident = "$Id: ttyio.c,v 1.2 89/02/12 10:06:11 mark Exp $";
-static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static int8_t *ident = "$Id: ttyio.c,v 1.2 89/02/12 10:06:11 mark Exp $";
+static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -137,7 +137,7 @@ int open_tty()
 
 #ifdef __STDC__
 
-int nextask(char *msg, char *answer, int limit)
+int nextask(int8_t *msg, int8_t *answer, int limit)
 
 #else
 
@@ -150,7 +150,7 @@ int             limit;		/* limit of length for user's response */
 {
     int             idx;	/* index into answer for character input */
     int             got;	/* number of characters read */
-    char            c;		/* character read */
+    int8_t            c;		/* character read */
 
     if (ttyf < 0) {
 	fatal("/dev/tty Unavailable");
@@ -196,7 +196,7 @@ int             limit;		/* limit of length for user's response */
 
 #ifdef __STDC__
 
-int lineget(FILE *stream, char *buf)
+int lineget(FILE *stream, int8_t *buf)
 
 #else
 
@@ -250,8 +250,8 @@ int             mode;		/* mode of archive (READ, WRITE, PASS) */
 
 #endif
 {
-    char            msg[200];	/* buffer for message display */ 
-    char            answer[20];	/* buffer for user's answer */
+    int8_t            msg[200];	/* buffer for message display */ 
+    int8_t            answer[20];	/* buffer for user's answer */
     int             ret;
 
     close_archive();

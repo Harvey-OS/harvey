@@ -19,7 +19,7 @@ int
 rpcM2S(void *ap, Rpccall *r, int n)
 {
 	int k;
-	uchar *p;
+	uint8_t *p;
 	Udphdr *up;
 
 	/* copy IPv4 header fields from Udphdr */
@@ -52,7 +52,7 @@ rpcM2S(void *ap, Rpccall *r, int n)
 		LONG(verf.count);
 		PTR(verf.data, r->verf.count);
 		r->up = 0;
-		k = n - (p - (uchar *)ap);
+		k = n - (p - (uint8_t *)ap);
 		if(k < 0)
 			break;
 		PTR(args, k);
@@ -67,7 +67,7 @@ rpcM2S(void *ap, Rpccall *r, int n)
 			LONG(astat);
 			switch(r->astat){
 			case SUCCESS:
-				k = n - (p - (uchar *)ap);
+				k = n - (p - (uint8_t *)ap);
 				if(k < 0)
 					break;
 				PTR(results, k);
@@ -93,7 +93,7 @@ rpcM2S(void *ap, Rpccall *r, int n)
 		}
 		break;
 	}
-	n -= p - (uchar *)ap;
+	n -= p - (uint8_t *)ap;
 	return n;
 }
 
@@ -101,7 +101,7 @@ int
 auth2unix(Auth *arg, Authunix *r)
 {
 	int i, n;
-	uchar *p;
+	uint8_t *p;
 
 	if(arg->flavor != AUTH_UNIX)
 		return -1;
@@ -119,14 +119,14 @@ auth2unix(Auth *arg, Authunix *r)
 	for(; i<n; i++){
 		SKIPLONG;
 	}
-	return arg->count - (p - (uchar *)arg->data);
+	return arg->count - (p - (uint8_t *)arg->data);
 }
 
 int
 string2S(void *arg, String *r)
 {
-	uchar *p;
-	char *s;
+	uint8_t *p;
+	int8_t *s;
 
 	p = arg;
 	LONG(n);
@@ -139,7 +139,7 @@ string2S(void *arg, String *r)
 	s[r->n] = '\0';
 	r->s = strstore(s);
 	free(s);
-	return p - (uchar *)arg;
+	return p - (uint8_t *)arg;
 }
 
 #undef	SHORT
@@ -154,7 +154,7 @@ string2S(void *arg, String *r)
 int
 rpcS2M(Rpccall *r, int ndata, void *ap)
 {
-	uchar *p;
+	uint8_t *p;
 	Udphdr *up;
 
 	/* copy header fields to Udphdr */
@@ -221,7 +221,7 @@ rpcS2M(Rpccall *r, int ndata, void *ap)
 		}
 		break;
 	}
-	return p - (uchar *)ap;
+	return p - (uint8_t *)ap;
 }
 
 #undef	SHORT
@@ -294,7 +294,7 @@ showauth(Auth *ap)
 		chat("auth flavor=%ld, count=%ld",
 			ap->flavor, ap->count);
 		for(i=0; i<ap->count; i++)
-			chat(" %.2ux", ((uchar *)ap->data)[i]);
+			chat(" %.2ux", ((uint8_t *)ap->data)[i]);
 	}else{
 		chat("auth: %ld %.*s u=%ld g=%ld",
 			au.stamp, utfnlen(au.mach.s, au.mach.n), au.mach.s, au.uid, au.gid);
@@ -305,7 +305,7 @@ showauth(Auth *ap)
 }
 
 int
-garbage(Rpccall *reply, char *msg)
+garbage(Rpccall *reply, int8_t *msg)
 {
 	chat("%s\n", msg ? msg : "garbage");
 	reply->astat = GARBAGE_ARGS;
@@ -315,9 +315,9 @@ garbage(Rpccall *reply, char *msg)
 int
 error(Rpccall *reply, int errno)
 {
-	uchar *dataptr = reply->results;
+	uint8_t *dataptr = reply->results;
 
 	chat("error %d\n", errno);
 	PLONG(errno);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }

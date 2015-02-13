@@ -35,7 +35,7 @@ int	interrupted;
 int
 readmouse(M *m)
 {
-	char buf[1+4*12];
+	int8_t buf[1+4*12];
 	int n;
 
 	n = read(0, buf, sizeof buf);
@@ -63,7 +63,7 @@ writemouse(M *m)
 }
 
 void
-notifyf(void*, char *s)
+notifyf(void*, int8_t *s)
 {
 	if(strcmp(s, "alarm") == 0)
 		interrupted = 1;

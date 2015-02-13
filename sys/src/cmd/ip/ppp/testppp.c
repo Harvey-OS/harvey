@@ -12,18 +12,18 @@
 #include <ctype.h>
 
 int	debug;
-long	errrate;
-long	droprate;
+int32_t	errrate;
+int32_t	droprate;
 int	framing;
 int	nocompress;
 int	noipcompress;
-char	*ppp = "8.out";
-char	*mtu;
+int8_t	*ppp = "8.out";
+int8_t	*mtu;
 
 void
-pppopen(int fd, char *net, char *local, char *remote)
+pppopen(int fd, int8_t *net, int8_t *local, int8_t *remote)
 {
-	char *argv[16];
+	int8_t *argv[16];
 	int argc;
 
 	switch(fork()){
@@ -65,11 +65,11 @@ pppopen(int fd, char *net, char *local, char *remote)
 }
 
 void
-printbuf(uchar *p, int n)
+printbuf(uint8_t *p, int n)
 {
 	int i;
-	uchar *e;
-	char buf[32*5];
+	uint8_t *e;
+	int8_t buf[32*5];
 
 	if(n > 32)
 		n = 32;
@@ -87,7 +87,7 @@ printbuf(uchar *p, int n)
 void
 xfer(int from, int to)
 {
-	uchar buf[4096];
+	uint8_t buf[4096];
 	int i, n, modified, ok, total, errs, dropped;
 
 	if(fork() == 0)

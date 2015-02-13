@@ -32,21 +32,21 @@ int nconf = nelem(confname);
  */
 #define	CONFADDR	PTR2UINT(KADDR(0x0001200))
 
-#define BOOTLINE	((char*)CONFADDR)
+#define BOOTLINE	((int8_t*)CONFADDR)
 #define BOOTLINELEN	64
-#define BOOTARGS	((char*)(CONFADDR+BOOTLINELEN))
+#define BOOTARGS	((int8_t*)(CONFADDR+BOOTLINELEN))
 #define	BOOTARGSLEN	(4096-0x200-BOOTLINELEN)
 #define	MAXCONF		64
 
-char *confname[MAXCONF];
-char *confval[MAXCONF];
+int8_t *confname[MAXCONF];
+int8_t *confval[MAXCONF];
 int nconf;
 
 void
 crapoptions(void)
 {
-	long i, n;
-	char *cp, *line[MAXCONF], *p, *q;
+	int32_t i, n;
+	int8_t *cp, *line[MAXCONF], *p, *q;
 
 	/*
 	 *  parse configuration args from dos file plan9.ini
@@ -81,8 +81,8 @@ crapoptions(void)
 	}
 }
 
-char*
-getconf(char *name)
+int8_t*
+getconf(int8_t *name)
 {
 	int i;
 
@@ -105,9 +105,9 @@ confsetenv(void)
 }
 
 int
-isaconfig(char *class, int ctlrno, ISAConf *isa)
+isaconfig(int8_t *class, int ctlrno, ISAConf *isa)
 {
-	char cc[32], *p;
+	int8_t cc[32], *p;
 	int i;
 
 	snprint(cc, sizeof cc, "%s%d", class, ctlrno);

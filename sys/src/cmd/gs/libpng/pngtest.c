@@ -105,7 +105,7 @@ static float t_start, t_stop, t_decode, t_encode, t_misc;
 
 #if defined(PNG_TIME_RFC1123_SUPPORTED)
 static int tIME_chunk_present=0;
-static char tIME_string[30] = "no tIME chunk present in file";
+static int8_t tIME_string[30] = "no tIME chunk present in file";
 #endif
 
 static int verbose = 0;
@@ -457,7 +457,7 @@ pngtest_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 static void
 pngtest_warning(png_structp png_ptr, png_const_charp message)
 {
-   PNG_CONST char *name = "UNKNOWN (ERROR!)";
+   PNG_CONST int8_t *name = "UNKNOWN (ERROR!)";
    if (png_ptr != NULL && png_ptr->error_ptr != NULL)
       name = png_ptr->error_ptr;
    fprintf(STDERR, "%s: libpng warning: %s\n", name, message);
@@ -605,7 +605,7 @@ png_debug_free(png_structp png_ptr, png_voidp ptr)
 
 /* Test one file */
 int
-test_one_file(PNG_CONST char *inname, PNG_CONST char *outname)
+test_one_file(PNG_CONST int8_t *inname, PNG_CONST int8_t *outname)
 {
    static png_FILE_p fpin;
    static png_FILE_p fpout;  /* "static" prevents setjmp corruption */
@@ -634,7 +634,7 @@ test_one_file(PNG_CONST char *inname, PNG_CONST char *outname)
 #if defined(_WIN32_WCE)
    TCHAR path[MAX_PATH];
 #endif
-   char inbuf[256], outbuf[256];
+   int8_t inbuf[256], outbuf[256];
 
    row_buf = NULL;
 
@@ -1306,15 +1306,15 @@ test_one_file(PNG_CONST char *inname, PNG_CONST char *outname)
 
 /* input and output filenames */
 #ifdef RISCOS
-static PNG_CONST char *inname = "pngtest/png";
-static PNG_CONST char *outname = "pngout/png";
+static PNG_CONST int8_t *inname = "pngtest/png";
+static PNG_CONST int8_t *outname = "pngout/png";
 #else
-static PNG_CONST char *inname = "pngtest.png";
-static PNG_CONST char *outname = "pngout.png";
+static PNG_CONST int8_t *inname = "pngtest.png";
+static PNG_CONST int8_t *outname = "pngout.png";
 #endif
 
 int
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
    int multiple = 0;
    int ierror = 0;
@@ -1329,7 +1329,8 @@ main(int argc, char *argv[])
    fprintf(STDERR," pngtest (%lu):%s", (unsigned long)PNG_LIBPNG_VER,
       PNG_HEADER_VERSION_STRING);
    fprintf(STDERR," png_sizeof(png_struct)=%ld, png_sizeof(png_info)=%ld\n",
-                    (long)png_sizeof(png_struct), (long)png_sizeof(png_info));
+                    (int32_t)png_sizeof(png_struct),
+           (int32_t)png_sizeof(png_info));
 
    /* Do some consistency checking on the memory allocation settings, I'm
       not sure this matters, but it is nice to know, the first of these

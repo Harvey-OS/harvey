@@ -40,7 +40,7 @@ double	Ubarh	= 0.05;		/* 1/2 horizontal shrink for underbar */
 
 /* eqnbox.c: */
 
-char	*IRspace = "\\^";	/* space between italic & roman boxes */
+int8_t	*IRspace = "\\^";	/* space between italic & roman boxes */
 
 /* fat.c: */
 
@@ -64,7 +64,7 @@ double	Int2v	= 0.1;		/* upper limit up */
 
 /* matrix.c: */
 
-char	*Matspace = "\\ \\ ";	/* space between matrix columns */
+int8_t	*Matspace = "\\ \\ ";	/* space between matrix columns */
 
 /* over.c: */
 
@@ -88,11 +88,11 @@ double	Pilebase = 0.5;		/* shift base of even # of piled elems */
 
 double	Subbase	= 0.2;		/* subscript base belowe main base */
 double	Supshift = 0.4;		/* superscript .4 up main box */
-char	*Sub1space = "\\|";	/* italic sub roman space */
-char	*Sup1space = "\\|";	/* italic sup roman space */
-char	*Sub2space = "\\^";	/* space after subscripted thing */
-char	*SS1space = "\\^";	/* space before sub in x sub i sup j */
-char	*SS2space = "\\^";	/* space before sup */
+int8_t	*Sub1space = "\\|";	/* italic sub roman space */
+int8_t	*Sup1space = "\\|";	/* italic sup roman space */
+int8_t	*Sub2space = "\\^";	/* space after subscripted thing */
+int8_t	*SS1space = "\\^";	/* space before sub in x sub i sup j */
+int8_t	*SS2space = "\\^";	/* space before sup */
 
 /* sqrt.c: */
 	/* sqrt is hard!  punt for now. */
@@ -103,8 +103,8 @@ char	*SS2space = "\\^";	/* space before sup */
 	/* ought to be done by a table */
 
 struct tune {
-	char	*name;
-	char	*cval;
+	int8_t	*name;
+	int8_t	*cval;
 } tune[]	={
   /* diacrit.c */
 	"vec_def",	"\\f1\\v'-.5m'\\s-3\\(->\\s0\\v'.5m'\\fP",	/* was \s-2 & .45m */
@@ -126,7 +126,7 @@ struct tune {
 
 tbl	*ftunetbl[TBLSIZE];	/* user-defined names */
 
-char *ftunes[] ={	/* this table intentionally left small */
+int8_t *ftunes[] ={	/* this table intentionally left small */
 	"Subbase",
 	"Supshift",
 	0
@@ -139,12 +139,12 @@ void init_tune(void)
 	for (i = 0; tune[i].name != NULL; i++)
 		install(deftbl, tune[i].name, tune[i].cval, 0);
 	for (i = 0; ftunes[i] != NULL; i++)
-		install(ftunetbl, ftunes[i], (char *) 0, 0);
+		install(ftunetbl, ftunes[i], (int8_t *) 0, 0);
 }
 
 #define eq(s, t) (strcmp(s,t) == 0)
 
-void ftune(char *s, char *t)	/* brute force for now */
+void ftune(int8_t *s, int8_t *t)	/* brute force for now */
 {
 	double dummy;
 	double f = atof(t);

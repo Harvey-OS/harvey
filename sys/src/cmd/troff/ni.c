@@ -12,9 +12,9 @@
 #include "fns.h"
 #include "ext.h"
 
-char	termtab[NS];	/* term type added in ptinit() */
-char	fontdir[NS];	/* added in casefp; not used by nroff */
-char	devname[20];	/* default output device */
+int8_t	termtab[NS];	/* term type added in ptinit() */
+int8_t	fontdir[NS];	/* added in casefp; not used by nroff */
+int8_t	devname[20];	/* default output device */
 
 Numtab numtab[NN] = {
 	{ PAIR('%', 0) },
@@ -39,8 +39,8 @@ int	alphabet	= 256;	/* latin-1 */
 int	pto	= 10000;
 int	pfrom	= 1;
 int	print	= 1;
-char	nextf[NS]	= TMACDIR;
-char	mfiles[NMF][NS];
+int8_t	nextf[NS]	= TMACDIR;
+int8_t	mfiles[NMF][NS];
 int	nmfi	= 0;
 int	oldbits	= -1;
 int	init	= 1;
@@ -263,12 +263,12 @@ int	bd;
 int	stdi;
 int	quiet;
 int	stop;
-char	ibuf[IBUFSZ];
-char	xbuf[IBUFSZ];
-char	*ibufp;
-char	*xbufp;
-char	*eibuf;
-char	*xeibuf;
+int8_t	ibuf[IBUFSZ];
+int8_t	xbuf[IBUFSZ];
+int8_t	*ibufp;
+int8_t	*xbufp;
+int8_t	*eibuf;
+int8_t	*xeibuf;
 Tchar	pbbuf[NC];		/* pushback buffer for arguments, \n, etc. */
 Tchar	*pbp = pbbuf;		/* next free slot in pbbuf */
 Tchar	*lastpbp = pbbuf;	/* pbp in previous stack frame */
@@ -279,7 +279,7 @@ int	ibf;
 int	ifi;
 int	iflg;
 int	rargc;
-char	**argp;
+int8_t	**argp;
 Ushort	trtab[NTRTAB];
 int	lgf;
 int	copyf;
@@ -332,7 +332,7 @@ int	nhyp;
 Tchar	**hyp;
 Tchar	*olinep;
 int	dotT;
-char	*unlkp;
+int8_t	*unlkp;
 Wcache	widcache[NWIDCACHE];
 Diver	d[NDI];
 Diver	*dip;

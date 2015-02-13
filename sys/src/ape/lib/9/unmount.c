@@ -9,10 +9,10 @@
 
 #include <lib9.h>
 
-extern	int	_UNMOUNT(char*, char*);
+extern	int	_UNMOUNT(int8_t*, int8_t*);
 
 int
-unmount(char *name, char *old)
+unmount(int8_t *name, int8_t *old)
 {
 	return _UNMOUNT(name, old);
 }

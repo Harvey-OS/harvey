@@ -139,7 +139,7 @@ isum(void)
 					nopcount, Percent(nopcount, total));
 }
 
-char *stype[] = { "Stack", "Text", "Data", "Bss" };
+int8_t *stype[] = { "Stack", "Text", "Data", "Bss" };
 
 void
 segsum(void)
@@ -160,7 +160,7 @@ typedef struct Prof Prof;
 struct Prof
 {
 	Symbol	s;
-	long	count;
+	int32_t	count;
 };
 Prof	prof[5000];
 
@@ -179,8 +179,8 @@ iprofile(void)
 {
 	Prof *p, *n;
 	int i, b, e;
-	ulong total;
-	extern ulong textbase;
+	uint32_t total;
+	extern uint32_t textbase;
 
 	i = 0;
 	p = prof;

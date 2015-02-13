@@ -134,14 +134,14 @@ pmcinit(void)
 }
 
 static Chan *
-pmcattach(char *spec)
+pmcattach(int8_t *spec)
 {
 	if (pmctab == nil)
 		error(Enomem);
 	return devattach(L'ε', spec);
 }
 int
-pmcgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+pmcgen(Chan *c, int8_t *name, Dirtab*, int, int s, Dir *dp)
 {
 	int t, i, n;
 	Dirtab *l, *d;
@@ -187,13 +187,13 @@ pmcgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 }
 
 static Walkqid*
-pmcwalk(Chan *c, Chan *nc, char **name, int nname)
+pmcwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 {
 	return devwalk(c, nc, name, nname, nil, 0, pmcgen);
 }
 
-static long
-pmcstat(Chan *c, uchar *dp, long n)
+static int32_t
+pmcstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return devstat(c, dp, n, nil, 0, pmcgen);
 }
@@ -213,12 +213,12 @@ pmcclose(Chan *)
 
 
 
-static long
-pmcread(Chan *c, void *a, long n, vlong offset)
+static int32_t
+pmcread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	ulong type, id;
+	uint32_t type, id;
 	PmcCtl p;
-	char *s;
+	int8_t *s;
 	u64int v;
 	u64int coreno;
 
@@ -329,13 +329,13 @@ acpmcsetctr(void)
 }
 
 
-static long
-pmcwrite(Chan *c, void *a, long n, vlong)
+static int32_t
+pmcwrite(Chan *c, void *a, int32_t n, int64_t)
 {
 	Cmdbuf *cb;
 	Cmdtab *ct;
-	ulong type;
-	char str[64];	/* 0x0000000000000000\0 */
+	uint32_t type;
+	int8_t str[64];	/* 0x0000000000000000\0 */
 	AcPmcArg p;
 	AcCtrArg ctr;
 	u64int coreno;
@@ -374,7 +374,7 @@ pmcwrite(Chan *c, void *a, long n, vlong)
 
 	/* TODO: should iterate through multiple lines */
 	if (strncmp(str, "set ", 4) == 0){
-		memmove(p.descstr, (char *)str + 4, n - 4);
+		memmove(p.descstr, (int8_t *)str + 4, n - 4);
 		p.descstr[n - 4] = '\0';
 		p.nodesc = 0;
 	} else {

@@ -44,7 +44,7 @@ struct File {
 	int	issnapshot;
 };
 
-static int fileMetaFlush2(File*, char*);
+static int fileMetaFlush2(File*, int8_t*);
 static u32int fileMetaAlloc(File*, DirEntry*, u32int);
 static int fileRLock(File*);
 static void fileRUnlock(File*);
@@ -53,7 +53,7 @@ static void fileUnlock(File*);
 static void fileMetaLock(File*);
 static void fileMetaUnlock(File*);
 static void fileRAccess(File*);
-static void fileWAccess(File*, char*);
+static void fileWAccess(File*, int8_t*);
 
 static File *
 fileAlloc(Fs *fs)
@@ -86,7 +86,7 @@ fileFree(File *f)
  * f->msource is unlocked
  */
 static File *
-dirLookup(File *f, char *elem)
+dirLookup(File *f, int8_t *elem)
 {
 	int i;
 	MetaBlock mb;
@@ -215,7 +215,7 @@ static Source *
 fileOpenSource(File *f, u32int offset, u32int gen, int dir, uint mode,
 	int issnapshot)
 {
-	char *rname, *fname;
+	int8_t *rname, *fname;
 	Source *r;
 
 	if(!sourceLock(f->source, mode))
@@ -248,7 +248,7 @@ Err:
 }
 
 File *
-_fileWalk(File *f, char *elem, int partial)
+_fileWalk(File *f, int8_t *elem, int partial)
 {
 	File *ff;
 
@@ -335,16 +335,16 @@ Err:
 }
 
 File *
-fileWalk(File *f, char *elem)
+fileWalk(File *f, int8_t *elem)
 {
 	return _fileWalk(f, elem, 0);
 }
 
 File *
-_fileOpen(Fs *fs, char *path, int partial)
+_fileOpen(Fs *fs, int8_t *path, int partial)
 {
 	File *f, *ff;
-	char *p, elem[VtMaxStringSize], *opath;
+	int8_t *p, elem[VtMaxStringSize], *opath;
 	int n;
 
 	f = fs->file;
@@ -381,7 +381,7 @@ Err:
 }
 
 File*
-fileOpen(Fs *fs, char *path)
+fileOpen(Fs *fs, int8_t *path)
 {
 	return _fileOpen(fs, path, 0);
 }
@@ -416,7 +416,7 @@ fileSetTmp(File *f, int istmp)
 }
 
 File *
-fileCreate(File *f, char *elem, ulong mode, char *uid)
+fileCreate(File *f, int8_t *elem, uint32_t mode, int8_t *uid)
 {
 	File *ff;
 	DirEntry *dir;
@@ -535,14 +535,14 @@ Err1:
 }
 
 int
-fileRead(File *f, void *buf, int cnt, vlong offset)
+fileRead(File *f, void *buf, int cnt, int64_t offset)
 {
 	Source *s;
-	uvlong size;
+	uint64_t size;
 	u32int bn;
 	int off, dsize, n, nn;
 	Block *b;
-	uchar *p;
+	uint8_t *p;
 
 if(0)fprint(2, "fileRead: %s %d, %lld\n", f->dir.elem, cnt, offset);
 
@@ -591,7 +591,7 @@ if(0)fprint(2, "fileRead: %s %d, %lld\n", f->dir.elem, cnt, offset);
 	}
 	sourceUnlock(s);
 	fileRUnlock(f);
-	return p-(uchar*)buf;
+	return p-(uint8_t*)buf;
 
 Err:
 	sourceUnlock(s);
@@ -605,7 +605,7 @@ Err1:
  * Very sneaky.  Only used by flfmt.
  */
 int
-fileMapBlock(File *f, ulong bn, uchar score[VtScoreSize], ulong tag)
+fileMapBlock(File *f, uint32_t bn, uint8_t score[VtScoreSize], uint32_t tag)
 {
 	Block *b;
 	Entry e;
@@ -657,7 +657,7 @@ Err:
 }
 
 int
-fileSetSize(File *f, uvlong size)
+fileSetSize(File *f, uint64_t size)
 {
 	int r;
 
@@ -682,14 +682,14 @@ Err:
 }
 
 int
-fileWrite(File *f, void *buf, int cnt, vlong offset, char *uid)
+fileWrite(File *f, void *buf, int cnt, int64_t offset, int8_t *uid)
 {
 	Source *s;
-	ulong bn;
+	uint32_t bn;
 	int off, dsize, n;
 	Block *b;
-	uchar *p;
-	vlong eof;
+	uint8_t *p;
+	int64_t eof;
 
 if(0)fprint(2, "fileWrite: %s %d, %lld\n", f->dir.elem, cnt, offset);
 
@@ -747,7 +747,7 @@ if(0)fprint(2, "fileWrite: %s %d, %lld\n", f->dir.elem, cnt, offset);
 		goto Err;
 	sourceUnlock(s);
 	fileUnlock(f);
-	return p-(uchar*)buf;
+	return p-(uint8_t*)buf;
 Err:
 	if(s)
 		sourceUnlock(s);
@@ -779,7 +779,7 @@ fileGetDir(File *f, DirEntry *dir)
 }
 
 int
-fileTruncate(File *f, char *uid)
+fileTruncate(File *f, int8_t *uid)
 {
 	if(fileIsDir(f)){
 		vtSetError(ENotFile);
@@ -812,10 +812,10 @@ fileTruncate(File *f, char *uid)
 }
 
 int
-fileSetDir(File *f, DirEntry *dir, char *uid)
+fileSetDir(File *f, DirEntry *dir, int8_t *uid)
 {
 	File *ff;
-	char *oelem;
+	int8_t *oelem;
 	u32int mask;
 	u64int size;
 
@@ -933,17 +933,17 @@ fileSetQidSpace(File *f, u64int offset, u64int max)
 }
 
 
-uvlong
+uint64_t
 fileGetId(File *f)
 {
 	/* immutable */
 	return f->dir.qid;
 }
 
-ulong
+uint32_t
 fileGetMcount(File *f)
 {
-	ulong mcount;
+	uint32_t mcount;
 
 	fileMetaLock(f);
 	mcount = f->dir.mcount;
@@ -951,10 +951,10 @@ fileGetMcount(File *f)
 	return mcount;
 }
 
-ulong
+uint32_t
 fileGetMode(File *f)
 {
-	ulong mode;
+	uint32_t mode;
 
 	fileMetaLock(f);
 	mode = f->dir.mode;
@@ -1000,7 +1000,7 @@ fileIsRoFs(File *f)
 }
 
 int
-fileGetSize(File *f, uvlong *size)
+fileGetSize(File *f, uint64_t *size)
 {
 	if(!fileRLock(f))
 		return 0;
@@ -1052,7 +1052,7 @@ fileMetaFlush(File *f, int rec)
 
 /* assumes metaLock is held */
 static int
-fileMetaFlush2(File *f, char *oelem)
+fileMetaFlush2(File *f, int8_t *oelem)
 {
 	File *fp;
 	Block *b, *bb;
@@ -1145,7 +1145,7 @@ Err1:
 }
 
 static int
-fileMetaRemove(File *f, char *uid)
+fileMetaRemove(File *f, int8_t *uid)
 {
 	Block *b;
 	MetaBlock mb;
@@ -1225,7 +1225,7 @@ Err:
 }
 
 int
-fileRemove(File *f, char *uid)
+fileRemove(File *f, int8_t *uid)
 {
 	File *ff;
 
@@ -1275,7 +1275,7 @@ Err1:
 }
 
 static int
-clri(File *f, char *uid)
+clri(File *f, int8_t *uid)
 {
 	int r;
 
@@ -1292,13 +1292,13 @@ clri(File *f, char *uid)
 }
 
 int
-fileClriPath(Fs *fs, char *path, char *uid)
+fileClriPath(Fs *fs, int8_t *path, int8_t *uid)
 {
 	return clri(_fileOpen(fs, path, 1), uid);
 }
 
 int
-fileClri(File *dir, char *elem, char *uid)
+fileClri(File *dir, int8_t *elem, int8_t *uid)
 {
 	return clri(_fileWalk(dir, elem, 1), uid);
 }
@@ -1387,10 +1387,10 @@ deeOpen(File *f)
 }
 
 static int
-dirEntrySize(Source *s, ulong elem, ulong gen, uvlong *size)
+dirEntrySize(Source *s, uint32_t elem, uint32_t gen, uint64_t *size)
 {
 	Block *b;
-	ulong bn;
+	uint32_t bn;
 	Entry e;
 	int epb;
 
@@ -1543,7 +1543,7 @@ fileMetaAlloc(File *f, DirEntry *dir, u32int start)
 	Block *b, *bb;
 	MetaBlock mb;
 	int nn;
-	uchar *p;
+	uint8_t *p;
 	int i, n, epb;
 	MetaEntry me;
 	Source *s, *ms;
@@ -1710,7 +1710,7 @@ fileRAccess(File* f)
  * see fileMetaLock.
  */
 static void
-fileWAccess(File* f, char *mid)
+fileWAccess(File* f, int8_t *mid)
 {
 	if(f->mode == OReadOnly)
 		return;
@@ -1843,12 +1843,12 @@ fileWalkSources(File *f)
  * convert File* to full path name in malloced string.
  * this hasn't been as useful as we hoped it would be.
  */
-char *
+int8_t *
 fileName(File *f)
 {
-	char *name, *pname;
+	int8_t *name, *pname;
 	File *p;
-	static char root[] = "/";
+	static int8_t root[] = "/";
 
 	if (f == nil)
 		return vtStrDup("/**GOK**");

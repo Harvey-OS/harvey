@@ -19,7 +19,7 @@ Infile	*curfile = infile;
 Src	src[MAXSRC];	/* input source stack */
 Src	*srcp	= src;
 
-extern int getarg(char *);
+extern int getarg(int8_t *);
 extern	void eprint(void);
 
 void pushsrc(int type, char *ptr)	/* new input source */
@@ -88,7 +88,7 @@ int	argcnt;		/* number of arguments seen so far */
 void dodef(tbl *stp)	/* collect args and switch input to defn */
 {
 	int i, len;
-	char *p;
+	int8_t *p;
 	Arg *ap;
 
 	ap = argfp+1;
@@ -142,11 +142,11 @@ getarg(char *p)	/* pick up single argument, store in p, return length */
 }
 
 #define	PBSIZE	2000
-char	pbuf[PBSIZE];		/* pushback buffer */
-char	*pb	= pbuf-1;	/* next pushed back character */
+int8_t	pbuf[PBSIZE];		/* pushback buffer */
+int8_t	*pb	= pbuf-1;	/* next pushed back character */
 
-char	ebuf[200];		/* collect input here for error reporting */
-char	*ep	= ebuf;
+int8_t	ebuf[200];		/* collect input here for error reporting */
+int8_t	*ep	= ebuf;
 
 input(void)
 {
@@ -229,14 +229,14 @@ unput(int c)
 	return c;
 }
 
-void pbstr(char *s)
+void pbstr(int8_t *s)
 {
 	pushsrc(String, s);
 }
 
-void error(int die, char *s)
+void error(int die, int8_t *s)
 {
-	extern char *cmdname;
+	extern int8_t *cmdname;
 
 	if (synerr)
 		return;
@@ -259,16 +259,16 @@ void error(int die, char *s)
 	}
 }
 
-void yyerror(char *s)
+void yyerror(int8_t *s)
 {
 	error(0, s);	/* temporary */
 }
 
-char errbuf[200];
+int8_t errbuf[200];
 
 void eprint(void)	/* try to print context around error */
 {
-	char *p, *q;
+	int8_t *p, *q;
 
 	if (ep == ebuf)
 		return;				/* no context */

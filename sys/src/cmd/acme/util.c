@@ -24,9 +24,9 @@ static	Point		prevmouse;
 static	Window	*mousew;
 
 void
-cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
+cvttorunes(int8_t *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 {
-	uchar *q;
+	uint8_t *q;
 	Rune *s;
 	int j, w;
 
@@ -37,14 +37,14 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 	 * knows this.  If n is a firm limit, the caller should
 	 * set p[n] = 0.
 	 */
-	q = (uchar*)p;
+	q = (uint8_t*)p;
 	s = r;
 	for(j=0; j<n; j+=w){
 		if(*q < Runeself){
 			w = 1;
 			*s = *q++;
 		}else{
-			w = chartorune(s, (char*)q);
+			w = chartorune(s, (int8_t*)q);
 			q += w;
 		}
 		if(*s)
@@ -52,12 +52,12 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 		else if(nulls)
 			*nulls = TRUE;
 	}
-	*nb = (char*)q-p;
+	*nb = (int8_t*)q-p;
 	*nr = s-r;
 }
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	fprint(2, "acme: %s: %r\n", s);
 	remove(acmeerrorfile);
@@ -244,7 +244,7 @@ flushwarnings(void)
 }
 
 void
-warning(Mntdir *md, char *s, ...)
+warning(Mntdir *md, int8_t *s, ...)
 {
 	Rune *r;
 	va_list arg;
@@ -282,10 +282,10 @@ max(uint a, uint b)
 	return b;
 }
 
-char*
+int8_t*
 runetobyte(Rune *r, int n)
 {
-	char *s;
+	int8_t *s;
 
 	if(r == nil)
 		return nil;
@@ -296,7 +296,7 @@ runetobyte(Rune *r, int n)
 }
 
 Rune*
-bytetorune(char *s, int *ip)
+bytetorune(int8_t *s, int *ip)
 {
 	Rune *r;
 	int nb, nr;
@@ -395,10 +395,10 @@ clearmouse()
 	mousew = nil;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 
 	t = strdup(s);
 	if(t == nil)

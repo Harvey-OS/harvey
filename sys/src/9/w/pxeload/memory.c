@@ -38,7 +38,7 @@ enum {
 typedef struct Map Map;
 struct Map {
 	uintptr	addr;
-	ulong	size;
+	uint32_t	size;
 };
 
 typedef struct {
@@ -117,10 +117,10 @@ memdebug(void)
 }
 
 void
-mapfree(RMap* rmap, ulong addr, ulong size)
+mapfree(RMap* rmap, uint32_t addr, uint32_t size)
 {
 	Map *mp;
-	ulong t;
+	uint32_t t;
 
 	if(size == 0)
 		return;
@@ -162,11 +162,11 @@ mapfree(RMap* rmap, ulong addr, ulong size)
 	unlock(rmap);
 }
 
-ulong
-mapalloc(RMap* rmap, ulong addr, int size, int align)
+uint32_t
+mapalloc(RMap* rmap, uint32_t addr, int size, int align)
 {
 	Map *mp;
-	ulong maddr, oaddr;
+	uint32_t maddr, oaddr;
 
 	lock(rmap);
 	for(mp = rmap->map; mp->size; mp++){
@@ -222,7 +222,7 @@ mapalloc(RMap* rmap, ulong addr, int size, int align)
 static void
 umbscan(void)
 {
-	uchar *p;
+	uint8_t *p;
 
 	/*
 	 * Scan the Upper Memory Blocks (0xA0000->0xF0000) for pieces
@@ -239,7 +239,7 @@ umbscan(void)
 	 * for grabs; check anyway.
 	 */
 	p = KADDR(0xD0000);	/*RSC: changed from 0xC0000 */
-	while(p < (uchar*)KADDR(0xE0000)){
+	while(p < (uint8_t*)KADDR(0xE0000)){
 		if (p[0] == 0x55 && p[1] == 0xAA) {
 			/* Skip p[2] chunks of 512 bytes.  Test for 0x55 AA before
 			     poking obtrusively, or else the Thinkpad X20 dies when
@@ -326,31 +326,31 @@ meminit(u32int)
 		memdebug();
 }
 
-ulong
-umbmalloc(ulong addr, int size, int align)
+uint32_t
+umbmalloc(uint32_t addr, int size, int align)
 {
-	ulong a;
+	uint32_t a;
 
 	if(a = mapalloc(&rmapumb, addr, size, align))
-		return (ulong)KADDR(a);
+		return (uint32_t)KADDR(a);
 
 	return 0;
 }
 
 void
-umbfree(ulong addr, int size)
+umbfree(uint32_t addr, int size)
 {
 	mapfree(&rmapumb, PADDR(addr), size);
 }
 
-ulong
-umbrwmalloc(ulong addr, int size, int align)
+uint32_t
+umbrwmalloc(uint32_t addr, int size, int align)
 {
-	ulong a;
-	uchar *p;
+	uint32_t a;
+	uint8_t *p;
 
 	if(a = mapalloc(&rmapumbrw, addr, size, align))
-		return(ulong)KADDR(a);
+		return(uint32_t)KADDR(a);
 
 	/*
 	 * Perhaps the memory wasn't visible before
@@ -358,7 +358,7 @@ umbrwmalloc(ulong addr, int size, int align)
 	 */
 	if((a = umbmalloc(addr, size, align)) == 0)
 		return 0;
-	p = (uchar*)a;
+	p = (uint8_t*)a;
 	p[0] = 0xCC;
 	p[size-1] = 0xCC;
 	if(p[0] == 0xCC && p[size-1] == 0xCC)
@@ -369,15 +369,15 @@ umbrwmalloc(ulong addr, int size, int align)
 }
 
 void
-umbrwfree(ulong addr, int size)
+umbrwfree(uint32_t addr, int size)
 {
 	mapfree(&rmapumbrw, PADDR(addr), size);
 }
 
-ulong*
-mmuwalk(ulong* pdb, ulong va, int level, int create)
+uint32_t*
+mmuwalk(uint32_t* pdb, uint32_t va, int level, int create)
 {
-	ulong pa, *table;
+	uint32_t pa, *table;
 
 	/*
 	 * Walk the page-table pointed to by pdb and return a pointer
@@ -413,10 +413,10 @@ mmuwalk(ulong* pdb, ulong va, int level, int create)
 
 static Lock mmukmaplock;
 
-ulong
-mmukmap(ulong pa, ulong va, int size)
+uint32_t
+mmukmap(uint32_t pa, uint32_t va, int size)
 {
-	ulong pae, *table, *pdb, pgsz, *pte, x;
+	uint32_t pae, *table, *pdb, pgsz, *pte, x;
 	int pse, sync;
 	extern int cpuidax, cpuiddx;
 
@@ -429,7 +429,7 @@ mmukmap(ulong pa, ulong va, int size)
 
 	pa = PPN(pa);
 	if(va == 0)
-		va = (ulong)KADDR(pa);
+		va = (uint32_t)KADDR(pa);
 	else
 		va = PPN(va);
 
@@ -517,10 +517,10 @@ mmukmap(ulong pa, ulong va, int size)
 	return pa;
 }
 
-ulong
-upamalloc(ulong addr, int size, int align)
+uint32_t
+upamalloc(uint32_t addr, int size, int align)
 {
-	ulong ae, a;
+	uint32_t ae, a;
 
 	USED(align);
 
@@ -547,16 +547,16 @@ upamalloc(ulong addr, int size, int align)
 }
 
 void
-upafree(ulong pa, int size)
+upafree(uint32_t pa, int size)
 {
 	USED(pa, size);
 }
 
 void
-mapraminit(uvlong addr, ulong size)
+mapraminit(uint64_t addr, uint32_t size)
 {
-	ulong s;
-	uvlong a;
+	uint32_t s;
+	uint64_t a;
 
 	/*
 	 * Careful - physical address.
@@ -570,10 +570,10 @@ mapraminit(uvlong addr, ulong size)
 }
 
 void
-mapupainit(uvlong addr, ulong size)
+mapupainit(uint64_t addr, uint32_t size)
 {
-	ulong s;
-	uvlong a;
+	uint32_t s;
+	uint64_t a;
 
 	/*
 	 * Careful - physical address.

@@ -80,7 +80,7 @@ flopen(Req *r)
 	int m, p;
 	Entry *e;
 	State *s;
-	char *err;
+	int8_t *err;
 
 	s = r->fid->aux;
 	e = s->e;
@@ -147,7 +147,7 @@ flcreate(Req *r)
 {
 	Jrec j;
 	State *s;
-	char *err;
+	int8_t *err;
 	Entry *e, *f;
 
 	if(readonly) {
@@ -218,16 +218,16 @@ static void
 flwrite(Req *r)
 {
 	Jrec j;
-	uchar *a;
+	uint8_t *a;
 	Entry *e;
 	State *s;
 	Extent *x;
-	char *err;
-	ulong c, n, o, mtime;
+	int8_t *err;
+	uint32_t c, n, o, mtime;
 
 	c = r->ifcall.count;
 	o = r->ifcall.offset;
-	a = (uchar *)r->ifcall.data;
+	a = (uint8_t *)r->ifcall.data;
 
 	if(c == 0) {
 		respond(r, nil);
@@ -288,7 +288,7 @@ flremove(Req *r)
 	Jrec j;
 	State *s;
 	Entry *e;
-	char *d, *err;
+	int8_t *d, *err;
 
 	if(readonly) {
 		respond(r, Erofs);
@@ -333,7 +333,7 @@ flwstat(Req *r)
 	Jrec j;
 	State *s;
 	Entry *e;
-	char *err;
+	int8_t *err;
 
 	s = r->fid->aux;
 	e = s->e;
@@ -371,7 +371,7 @@ flwalk(Req *r)
 {
 	int i;
 	State *s;
-	char *err;
+	int8_t *err;
 	Entry *e, *f;
 
 	if(r->ifcall.fid != r->ifcall.newfid)
@@ -413,7 +413,7 @@ flwalk(Req *r)
 }
 
 void
-serve(char *mount)
+serve(int8_t *mount)
 {
 	flashsrv.attach = flattach;
 	flashsrv.open = flopen;

@@ -14,10 +14,10 @@
 #include "snap.h"
 
 /* research 16-bit crc.  good enough. */
-static ulong
-sumr(ulong sum, void *buf, int n)
+static uint32_t
+sumr(uint32_t sum, void *buf, int n)
 {
-	uchar *s, *send;
+	uint8_t *s, *send;
 
 	if(buf == 0)
 		return sum;
@@ -33,11 +33,11 @@ static int npage;
 static Page *pgtab[1<<10];
 
 Page*
-datapage(char *p, long len)
+datapage(int8_t *p, int32_t len)
 {
 	Page *pg;
-	char *q, *ep;
-	long	sum;
+	int8_t *q, *ep;
+	int32_t	sum;
 	int iszero;
 
 	if(len > Pagesize) {
@@ -63,7 +63,7 @@ datapage(char *p, long len)
 		return pg;
 
 	pg = emalloc(sizeof(*pg)+len);
-	pg->data = (char*)&pg[1];
+	pg->data = (int8_t*)&pg[1];
 	pg->type = 0;
 	pg->len = len;
 	memmove(pg->data, p, len);
@@ -79,9 +79,9 @@ datapage(char *p, long len)
 }
 
 static Data*
-readsection(long pid, char *sec)
+readsection(int32_t pid, int8_t *sec)
 {
-	char buf[8192];
+	int8_t buf[8192];
 	int n, fd;
 	int hdr, tot;
 	Data *d = nil;
@@ -105,13 +105,13 @@ readsection(long pid, char *sec)
 }
 
 static Seg*
-readseg(int fd, vlong off, ulong len, char *name)
+readseg(int fd, int64_t off, uint32_t len, int8_t *name)
 {
-	char buf[Pagesize];
+	int8_t buf[Pagesize];
 	Page **pg;
 	int npg;
 	Seg *s;
-	ulong i;
+	uint32_t i;
 	int n;
 
 	s = emalloc(sizeof(*s));
@@ -153,13 +153,13 @@ Die:
 }
 
 /* discover the stack pointer of the given process */
-ulong
+uint32_t
 stackptr(Proc *proc, int fd)
 {
-	char *q;
+	int8_t *q;
 	Fhdr f;
 	Reglist *r;
-	long textoff;
+	int32_t textoff;
 	int i;
 	Data *dreg;
 
@@ -194,9 +194,9 @@ stackptr(Proc *proc, int fd)
 
 	q = dreg->data+r->roffs;
 	switch(mach->szreg) {
-	case 2:	return machdata->swab(*(ushort*)q);
-	case 4:	return machdata->swal(*(ulong*)q);
-	case 8:	return machdata->swav(*(uvlong*)q);
+	case 2:	return machdata->swab(*(uint16_t*)q);
+	case 4:	return machdata->swal(*(uint32_t*)q);
+	case 8:	return machdata->swav(*(uint64_t*)q);
 	default:
 		fprint(2, "register size is %d bytes?\n", mach->szreg);
 		return 0;
@@ -204,15 +204,15 @@ stackptr(Proc *proc, int fd)
 }
 
 Proc*
-snap(long pid, int usetext)
+snap(int32_t pid, int usetext)
 {
 	Data *d;
 	Proc *proc;
 	Seg **s;
-	char *name, *segdat, *q, *f[128+1], buf[128];
+	int8_t *name, *segdat, *q, *f[128+1], buf[128];
 	int fd, i, stacki, nf, np;
-	uvlong off, len, stackoff, stacklen;
-	uvlong sp;
+	uint64_t off, len, stackoff, stacklen;
+	uint64_t sp;
 
 	proc = emalloc(sizeof(*proc));
 	proc->pid = pid;

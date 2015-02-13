@@ -32,7 +32,7 @@ qgetc(IOQ *q)
 static int
 qputc(IOQ *q, int c)
 {
-	uchar *nextin;
+	uint8_t *nextin;
 	if(q->in >= &q->buf[sizeof(q->buf)-1])
 		nextin = q->buf;
 	else

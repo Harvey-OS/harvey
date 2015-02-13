@@ -12,7 +12,7 @@
 int runerrs;
 
 void
-mk(char *target)
+mk(int8_t *target)
 {
 	Node *node;
 	int did = 0;
@@ -76,7 +76,7 @@ work(Node *node, Node *p, Arc *parc)
 	int weoutofdate;
 	int ready;
 	int did = 0;
-	char cwd[256];
+	int8_t cwd[256];
 
 	/*print("work(%s) flags=0x%x time=%lud\n", node->name, node->flags, node->time);/**/
 	if(node->flags&BEINGMADE)
@@ -197,9 +197,9 @@ update(int fake, Node *node)
 }
 
 static
-pcmp(char *prog, char *p, char *q)
+pcmp(int8_t *prog, int8_t *p, int8_t *q)
 {
-	char buf[3*NAMEBLOCK];
+	int8_t buf[3*NAMEBLOCK];
 	int pid;
 
 	Bflush(&bout);
@@ -213,7 +213,7 @@ pcmp(char *prog, char *p, char *q)
 int
 outofdate(Node *node, Arc *arc, int eval)
 {
-	char buf[3*NAMEBLOCK], *str;
+	int8_t buf[3*NAMEBLOCK], *str;
 	Symtab *sym;
 	int ret;
 

@@ -548,7 +548,7 @@ private const gs_cmap_procs_t gs_cmap_ToUnicode_procs = {
 int
 gs_cmap_ToUnicode_alloc(gs_memory_t *mem, int id, int num_codes, int key_size, gs_cmap_t **ppcmap)
 {   int code;
-    uchar *map, *cmap_name = NULL;
+    uint8_t *map, *cmap_name = NULL;
     gs_cmap_ToUnicode_t *cmap;
     int name_len = 0;
 #   if 0
@@ -574,7 +574,7 @@ gs_cmap_ToUnicode_alloc(gs_memory_t *mem, int id, int num_codes, int key_size, g
 	      0, cmap_name, name_len, NULL, 0, &gs_cmap_ToUnicode_procs, mem);
     if (code < 0)
 	return code;
-    map = (uchar *)gs_alloc_bytes(mem, num_codes * gs_cmap_ToUnicode_code_bytes, 
+    map = (uint8_t *)gs_alloc_bytes(mem, num_codes * gs_cmap_ToUnicode_code_bytes, 
                                   "gs_cmap_ToUnicode_alloc");
     if (map == NULL)
 	return_error(gs_error_VMerror);
@@ -596,12 +596,12 @@ gs_cmap_ToUnicode_alloc(gs_memory_t *mem, int id, int num_codes, int key_size, g
 void
 gs_cmap_ToUnicode_add_pair(gs_cmap_t *pcmap, int code0, int code1)
 {   gs_cmap_ToUnicode_t *cmap = (gs_cmap_ToUnicode_t *)pcmap;
-    uchar *map = pcmap->glyph_name_data;
+    uint8_t *map = pcmap->glyph_name_data;
     const int num_codes = ((gs_cmap_ToUnicode_t *)pcmap)->num_codes;
     
     if (code0 >= num_codes)
 	return; /* must not happen. */
-    map[code0 * gs_cmap_ToUnicode_code_bytes + 0] = (uchar)(code1 >> 8);
-    map[code0 * gs_cmap_ToUnicode_code_bytes + 1] = (uchar)(code1 & 0xFF);
+    map[code0 * gs_cmap_ToUnicode_code_bytes + 0] = (uint8_t)(code1 >> 8);
+    map[code0 * gs_cmap_ToUnicode_code_bytes + 1] = (uint8_t)(code1 & 0xFF);
     cmap->is_identity &= (code0 == code1);
 }

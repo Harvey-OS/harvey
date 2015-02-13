@@ -263,7 +263,7 @@ copy_row_default(unsigned char *dest, jas_image_t *image,
 /* buffer the input stream into our state */
 private int
 s_jpxd_buffer_input(stream_jpxd_state *const state, stream_cursor_read *pr,
-		       long bytes)
+		       int32_t bytes)
 {
     /* grow internal buffer if necessary */
     if (bytes > state->bufsize - state->buffill) {
@@ -340,8 +340,8 @@ s_jpxd_process(stream_state * ss, stream_cursor_read * pr,
 {
     stream_jpxd_state *const state = (stream_jpxd_state *) ss;
     jas_stream_t *stream = state->stream;
-    long in_size = pr->limit - pr->ptr;
-    long out_size = pw->limit - pw->ptr;
+    int32_t in_size = pr->limit - pr->ptr;
+    int32_t out_size = pw->limit - pw->ptr;
     int status = 0;
     
     /* note that the gs stream library expects offset-by-one
@@ -359,7 +359,7 @@ s_jpxd_process(stream_state * ss, stream_cursor_read * pr,
     }
     if ((last == 1) && (stream == NULL) && (state->image == NULL)) {
 	/* turn our buffer into a stream */
-	stream = jas_stream_memopen((char*)state->buffer, state->bufsize);
+	stream = jas_stream_memopen((int8_t*)state->buffer, state->bufsize);
 	state->stream = stream;
     }
     if (out_size > 0) {
@@ -370,10 +370,10 @@ s_jpxd_process(stream_state * ss, stream_cursor_read * pr,
             jas_image_t *image = state->image;
 	    int numcmpts = jas_image_numcmpts(image);
 	    int stride = numcmpts*jas_image_width(image);
-            long image_size = stride*jas_image_height(image);
+            int32_t image_size = stride*jas_image_height(image);
 	    int clrspc = jas_image_clrspc(image);
 	    int x, y;
-	    long usable, done;
+	    int32_t usable, done;
 	    y = state->offset / stride;
 	    x = state->offset - y*stride; /* bytes, not samples */
 	    usable = min(out_size, stride - x);

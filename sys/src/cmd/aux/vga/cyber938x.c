@@ -18,7 +18,7 @@
  * Trident Cyber938x.
  */
 typedef struct {
-	uchar	old[3];
+	uint8_t	old[3];
 	int	pcr;		/* Pixel Command Register */
 
 	int	x;
@@ -278,7 +278,7 @@ load(Vga* vga, Ctlr* ctlr)
 static void
 dump(Vga* vga, Ctlr* ctlr)
 {
-	char *name;
+	int8_t *name;
 	Cyber938x *cyber;
 	int i, k, m, n, vclka, vclkb;
 

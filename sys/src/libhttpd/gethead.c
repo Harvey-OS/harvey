@@ -20,21 +20,21 @@ int
 hgethead(HConnect *c, int many)
 {
 	Hio *hin;
-	char *s, *p, *pp;
+	int8_t *s, *p, *pp;
 	int n;
 
 	hin = &c->hin;
 	for(;;){
-		s = (char*)hin->pos;
+		s = (int8_t*)hin->pos;
 		pp = s;
-		while(p = memchr(pp, '\n', (char*)hin->stop - pp)){
+		while(p = memchr(pp, '\n', (int8_t*)hin->stop - pp)){
 			if(!many || p == pp || (p == pp + 1 && *pp == '\r')){
 				pp = p + 1;
 				break;
 			}
 			pp = p + 1;
 		}
-		hin->pos = (uchar*)pp;
+		hin->pos = (uint8_t*)pp;
 		n = pp - s;
 		if(c->hstop + n > &c->header[HBufSize])
 			return -1;

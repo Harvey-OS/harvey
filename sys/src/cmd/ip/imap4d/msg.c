@@ -18,24 +18,24 @@
 static void	body64(int in, int out);
 static void	bodystrip(int in, int out);
 static void	cleanupHeader(Header *h);
-static char	*domBang(char *s);
+static int8_t	*domBang(int8_t *s);
 static void	freeMAddr(MAddr *a);
 static void	freeMimeHdr(MimeHdr *mh);
-static char	*headAddrSpec(char *e, char *w);
+static int8_t	*headAddrSpec(int8_t *e, int8_t *w);
 static MAddr	*headAddresses(void);
 static MAddr	*headAddress(void);
-static char	*headAtom(char *disallowed);
+static int8_t	*headAtom(int8_t *disallowed);
 static int	headChar(int eat);
-static char	*headDomain(char *e);
+static int8_t	*headDomain(int8_t *e);
 static MAddr	*headMAddr(MAddr *old);
-static char	*headPhrase(char *e, char *w);
-static char	*headQuoted(int start, int stop);
-static char	*headSkipWhite(int);
+static int8_t	*headPhrase(int8_t *e, int8_t *w);
+static int8_t	*headQuoted(int start, int stop);
+static int8_t	*headSkipWhite(int);
 static void	headSkip(void);
-static char	*headSubDomain(void);
-static char	*headText(void);
+static int8_t	*headSubDomain(void);
+static int8_t	*headText(void);
 static void	headToEnd(void);
-static char	*headWord(void);
+static int8_t	*headWord(void);
 static void	mimeDescription(Header *h);
 static void	mimeDisposition(Header *h);
 static void	mimeEncoding(Header *h);
@@ -44,18 +44,18 @@ static void	mimeLanguage(Header *h);
 static void	mimeMd5(Header *h);
 static MimeHdr	*mimeParams(void);
 static void	mimeType(Header *h);
-static MimeHdr	*mkMimeHdr(char *s, char *t, MimeHdr *next);
+static MimeHdr	*mkMimeHdr(int8_t *s, int8_t *t, MimeHdr *next);
 static void	msgAddDate(Msg *m);
-static void	msgAddHead(Msg *m, char *head, char *body);
+static void	msgAddHead(Msg *m, int8_t *head, int8_t *body);
 static int	msgBodySize(Msg *m);
-static int	msgHeader(Msg *m, Header *h, char *file);
-static long	msgReadFile(Msg *m, char *file, char **ss);
+static int	msgHeader(Msg *m, Header *h, int8_t *file);
+static int32_t	msgReadFile(Msg *m, int8_t *file, int8_t **ss);
 static int	msgUnix(Msg *m, int top);
-static void	stripQuotes(char *q);
-static MAddr	*unixFrom(char *s);
+static void	stripQuotes(int8_t *q);
+static MAddr	*unixFrom(int8_t *s);
 
 
-static char bogusBody[] = 
+static int8_t bogusBody[] = 
 	"This message contains null characters, so it cannot be displayed correctly.\r\n"
 	"Most likely you were sent a bogus message or a binary file.\r\n"
 	"\r\n"
@@ -64,12 +64,12 @@ static char bogusBody[] =
 	"The second contains the message as it was stored in your mailbox.\r\n"
 	"The third has the initial header stripped.\r\n";
 
-static char bogusMimeText[] =
+static int8_t bogusMimeText[] =
 	"Content-Disposition: inline\r\n"
 	"Content-Type: text/plain; charset=\"US-ASCII\"\r\n"
 	"Content-Transfer-Encoding: 7bit\r\n";
 
-static char bogusMimeBinary[] =
+static int8_t bogusMimeBinary[] =
 	"Content-Disposition: attachment\r\n"
 	"Content-Type: application/octet-stream\r\n"
 	"Content-Transfer-Encoding: base64\r\n";
@@ -77,21 +77,22 @@ static char bogusMimeBinary[] =
 /*
  * stop list for header fields
  */
-static char	*headFieldStop = ":";
-static char	*mimeTokenStop = "()<>@,;:\\\"/[]?=";
-static char	*headAtomStop = "()<>@,;:\\\".[]";
-static uchar	*headStr;
-static uchar	*lastWhite;
+static int8_t	*headFieldStop = ":";
+static int8_t	*mimeTokenStop = "()<>@,;:\\\"/[]?=";
+static int8_t	*headAtomStop = "()<>@,;:\\\".[]";
+static uint8_t	*headStr;
+static uint8_t	*lastWhite;
 
-long
-selectFields(char *dst, long n, char *hdr, SList *fields, int matches)
+int32_t
+selectFields(int8_t *dst, int32_t n, int8_t *hdr, SList *fields,
+	     int matches)
 {
 	SList *f;
-	uchar *start;
-	char *s;
-	long m, nf;
+	uint8_t *start;
+	int8_t *s;
+	int32_t m, nf;
 
-	headStr = (uchar*)hdr;
+	headStr = (uint8_t*)hdr;
 	m = 0;
 	for(;;){
 		start = headStr;
@@ -146,22 +147,22 @@ freeMsg(Msg *m)
 	free(m);
 }
 
-ulong
+uint32_t
 msgSize(Msg *m)
 {
 	return m->head.size + m->size;
 }
 
 int
-infoIsNil(char *s)
+infoIsNil(int8_t *s)
 {
 	return s == nil || s[0] == '\0';
 }
 
-char*
+int8_t*
 maddrStr(MAddr *a)
 {
-	char *host, *addr;
+	int8_t *host, *addr;
 	int n;
 
 	host = a->host;
@@ -185,13 +186,13 @@ maddrStr(MAddr *a)
  * a temporary file is made to hold the base64 encoding of m/raw.
  */
 int
-msgFile(Msg *m, char *f)
+msgFile(Msg *m, int8_t *f)
 {
 	Msg *parent, *p;
 	Dir d;
 	Tm tm;
-	char buf[64], nbuf[2];
-	uchar dbuf[64];
+	int8_t buf[64], nbuf[2];
+	uint8_t dbuf[64];
 	int i, n, fd, fd1, fd2;
 
 	if(!m->bogus
@@ -371,7 +372,7 @@ msgDead(Msg *m)
 int
 msgInfo(Msg *m)
 {
-	char *s;
+	int8_t *s;
 	int i;
 
 	if(m->info[0] != nil)
@@ -408,8 +409,8 @@ msgStruct(Msg *m, int top)
 {
 	Msg *k, head, *last;
 	Dir *d;
-	char *s;
-	ulong max, id;
+	int8_t *s;
+	uint32_t max, id;
 	int i, nd, fd, ns;
 
 	if(m->kids != nil)
@@ -506,13 +507,13 @@ msgStruct(Msg *m, int top)
 	return 1;
 }
 
-static long
-msgReadFile(Msg *m, char *file, char **ss)
+static int32_t
+msgReadFile(Msg *m, int8_t *file, int8_t **ss)
 {
 	Dir *d;
-	char *s, buf[BufSize];
-	vlong length;
-	long n, nn;
+	int8_t *s, buf[BufSize];
+	int64_t length;
+	int32_t n, nn;
 	int fd;
 
 	fd = msgFile(m, file);
@@ -601,7 +602,7 @@ msgBogus(Msg *m, int flags)
  *  but not necessary.
  */
 static int
-enc64x18(char *out, int lim, uchar *in, int n)
+enc64x18(int8_t *out, int lim, uint8_t *in, int n)
 {
 	int m, mm, nn;
 
@@ -623,8 +624,8 @@ enc64x18(char *out, int lim, uchar *in, int n)
 static void
 body64(int in, int out)
 {
-	uchar buf[3*18*54];
-	char obuf[3*18*54*2];
+	uint8_t buf[3*18*54];
+	int8_t obuf[3*18*54*2];
 	int m, n;
 
 	for(;;){
@@ -645,7 +646,7 @@ body64(int in, int out)
 static void
 bodystrip(int in, int out)
 {
-	uchar buf[3*18*54];
+	uint8_t buf[3*18*54];
 	int m, n, i, c;
 
 	for(;;){
@@ -674,9 +675,9 @@ static int
 msgBodySize(Msg *m)
 {
 	Dir *d;
-	char buf[BufSize + 2], *s, *se;
-	vlong length;
-	ulong size, lines, bad;
+	int8_t buf[BufSize + 2], *s, *se;
+	int64_t length;
+	uint32_t size, lines, bad;
 	int n, fd, c;
 
 	if(m->lines != ~0UL)
@@ -732,7 +733,7 @@ static int
 msgUnix(Msg *m, int top)
 {
 	Tm tm;
-	char *s, *ss;
+	int8_t *s, *ss;
 
 	if(m->unixDate != nil)
 		return 1;
@@ -754,7 +755,7 @@ bogus:
 	}
 	s++;
 	m->unixFrom = unixFrom(s);
-	s = (char*)headStr;
+	s = (int8_t*)headStr;
 	if(date2tm(&tm, s) == nil)
 		s = m->info[IUnixDate];
 	if(s == nil){
@@ -771,14 +772,14 @@ bogus:
  * last line of defence, so must return something
  */
 static MAddr *
-unixFrom(char *s)
+unixFrom(int8_t *s)
 {
 	MAddr *a;
-	char *e, *t;
+	int8_t *e, *t;
 
 	if(s == nil)
 		return nil;
-	headStr = (uchar*)s;
+	headStr = (uint8_t*)s;
 	t = emalloc(strlen(s) + 2);
 	e = headAddrSpec(t, nil);
 	if(e == nil)
@@ -802,11 +803,11 @@ unixFrom(char *s)
  * and parse out any existing mime headers
  */
 static int
-msgHeader(Msg *m, Header *h, char *file)
+msgHeader(Msg *m, Header *h, int8_t *file)
 {
-	char *s, *ss, *t, *te;
-	ulong lines, n, nn;
-	long ns;
+	int8_t *s, *ss, *t, *te;
+	uint32_t lines, n, nn;
+	int32_t ns;
 	int dated, c;
 
 	if(h->buf != nil)
@@ -873,7 +874,7 @@ msgHeader(Msg *m, Header *h, char *file)
 	/*
 	 * and parse some mime headers
 	 */
-	headStr = (uchar*)h->buf;
+	headStr = (uint8_t*)h->buf;
 	dated = 0;
 	while(s = headAtom(headFieldStop)){
 		if(cistrcmp(s, "content-type") == 0)
@@ -934,10 +935,10 @@ msgHeader(Msg *m, Header *h, char *file)
  * prepend head: body to the cached header
  */
 static void
-msgAddHead(Msg *m, char *head, char *body)
+msgAddHead(Msg *m, int8_t *head, int8_t *body)
 {
-	char *s;
-	long size, n;
+	int8_t *s;
+	int32_t size, n;
 
 	n = strlen(head) + strlen(body) + 4;
 	size = m->head.size + n;
@@ -953,7 +954,7 @@ static void
 msgAddDate(Msg *m)
 {
 	Tm tm;
-	char buf[64];
+	int8_t buf[64];
 
 	/* don't bother if we don't have a date */
 	if(infoIsNil(m->info[IDate]))
@@ -965,7 +966,7 @@ msgAddDate(Msg *m)
 }
 
 static MimeHdr*
-mkMimeHdr(char *s, char *t, MimeHdr *next)
+mkMimeHdr(int8_t *s, int8_t *t, MimeHdr *next)
 {
 	MimeHdr *mh;
 
@@ -1012,7 +1013,7 @@ cleanupHeader(Header *h)
 static void
 mimeType(Header *h)
 {
-	char *s, *t;
+	int8_t *s, *t;
 
 	if(headChar(1) != ':')
 		return;
@@ -1038,7 +1039,7 @@ static MimeHdr*
 mimeParams(void)
 {
 	MimeHdr head, *last;
-	char *s, *t;
+	int8_t *s, *t;
 
 	head.next = nil;
 	last = &head;
@@ -1071,7 +1072,7 @@ mimeParams(void)
 static void
 mimeEncoding(Header *h)
 {
-	char *s;
+	int8_t *s;
 
 	if(headChar(1) != ':')
 		return;
@@ -1144,11 +1145,11 @@ static MAddr*
 headAddress(void)
 {
 	MAddr *addr;
-	uchar *hs;
-	char *s, *e, *w, *personal;
+	uint8_t *hs;
+	int8_t *s, *e, *w, *personal;
 	int c;
 
-	s = emalloc(strlen((char*)headStr) + 2);
+	s = emalloc(strlen((int8_t*)headStr) + 2);
 	e = s;
 	personal = headSkipWhite(1);
 	c = headChar(0);
@@ -1248,8 +1249,8 @@ headAddress(void)
  * w is the optional initial word of the phrase
  * returns the end of the phrase, or nil if a failure occured
  */
-static char*
-headPhrase(char *e, char *w)
+static int8_t*
+headPhrase(int8_t *e, int8_t *w)
 {
 	int c;
 
@@ -1287,10 +1288,10 @@ headPhrase(char *e, char *w)
  *
  * returns a pointer to '@', the end if none, or nil if there was an error
  */
-static char*
-headAddrSpec(char *e, char *w)
+static int8_t*
+headAddrSpec(int8_t *e, int8_t *w)
 {
-	char *s, *at, *b, *bang, *dom;
+	int8_t *s, *at, *b, *bang, *dom;
 	int c;
 
 	s = e;
@@ -1364,8 +1365,8 @@ headAddrSpec(char *e, char *w)
  * find the ! in domain!rest, where domain must have at least
  * one internal '.'
  */
-static char*
-domBang(char *s)
+static int8_t*
+domBang(int8_t *s)
 {
 	int dot, c;
 
@@ -1389,10 +1390,10 @@ domBang(char *s)
  *		| domain '.' sub-domain
  * returns the end of the domain, or nil if a failure occured
  */
-static char*
-headDomain(char *e)
+static int8_t*
+headDomain(int8_t *e)
 {
-	char *w;
+	int8_t *w;
 
 	for(;;){
 		w = headSubDomain();
@@ -1418,14 +1419,14 @@ headDomain(char *e)
 static void
 mimeId(Header *h)
 {
-	char *s, *e, *w;
+	int8_t *s, *e, *w;
 
 	if(headChar(1) != ':')
 		return;
 	if(headChar(1) != '<')
 		return;
 
-	s = emalloc(strlen((char*)headStr) + 3);
+	s = emalloc(strlen((int8_t*)headStr) + 3);
 	e = s;
 	*e++ = '<';
 	e = headAddrSpec(e, nil);
@@ -1459,7 +1460,7 @@ mimeDescription(Header *h)
 static void
 mimeDisposition(Header *h)
 {
-	char *s;
+	int8_t *s;
 
 	if(headChar(1) != ':')
 		return;
@@ -1475,7 +1476,7 @@ mimeDisposition(Header *h)
 static void
 mimeMd5(Header *h)
 {
-	char *s;
+	int8_t *s;
 
 	if(headChar(1) != ':')
 		return;
@@ -1496,7 +1497,7 @@ static void
 mimeLanguage(Header *h)
 {
 	MimeHdr head, *last;
-	char *s;
+	int8_t *s;
 
 	head.next = nil;
 	last = &head;
@@ -1517,10 +1518,10 @@ mimeLanguage(Header *h)
  * atom		: 1*<chars 33-255, except "()<>@,;:\\\".[]" aka headAtomStop>
  * note this allows 8 bit characters, which occur in utf.
  */
-static char*
-headAtom(char *disallowed)
+static int8_t*
+headAtom(int8_t *disallowed)
 {
-	char *s;
+	int8_t *s;
 	int c, ns, as;
 
 	headSkipWhite(0);
@@ -1551,7 +1552,7 @@ headAtom(char *disallowed)
 /*
  * sub-domain	: atom | domain-lit
  */
-static char *
+static int8_t *
 headSubDomain(void)
 {
 	if(headChar(0) == '[')
@@ -1562,7 +1563,7 @@ headSubDomain(void)
 /*
  * word	: atom | quoted-str
  */
-static char *
+static int8_t *
 headWord(void)
 {
 	if(headChar(0) == '"')
@@ -1574,9 +1575,9 @@ headWord(void)
  * q is a quoted string.  remove enclosing " and and \ escapes
  */
 static void
-stripQuotes(char *q)
+stripQuotes(int8_t *q)
 {
-	char *s;
+	int8_t *s;
 	int c;
 
 	if(q == nil)
@@ -1597,10 +1598,10 @@ stripQuotes(char *q)
  * quoted-str	: '"' *(any char but '"\\\r', or '\' any char, or linear-white-space) '"'
  * domain-lit	: '[' *(any char but '[]\\\r', or '\' any char, or linear-white-space) ']'
  */
-static char *
+static int8_t *
 headQuoted(int start, int stop)
 {
-	char *s;
+	int8_t *s;
 	int c, ns, as;
 
 	if(headChar(1) != start)
@@ -1653,11 +1654,11 @@ headQuoted(int start, int stop)
 /*
  * headText	: contents of rest of header line
  */
-static char *
+static int8_t *
 headText(void)
 {
-	uchar *v;
-	char *s;
+	uint8_t *v;
+	int8_t *s;
 
 	v = headStr;
 	headToEnd();
@@ -1673,10 +1674,10 @@ headText(void)
  * if com and a comment is seen,
  * return it's contents and stop processing white space.
  */
-static char*
+static int8_t*
 headSkipWhite(int com)
 {
-	char *s;
+	int8_t *s;
 	int c, incom, as, ns;
 
 	s = nil;
@@ -1754,7 +1755,7 @@ headChar(int eat)
 static void
 headToEnd(void)
 {
-	uchar *s;
+	uint8_t *s;
 	int c;
 
 	for(;;){

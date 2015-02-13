@@ -9,16 +9,16 @@
 
 #include <stdlib.h>
 
-extern	char **environ;
+extern	int8_t **environ;
 
-char *
-getenv(const char *name)
+int8_t *
+getenv(const int8_t *name)
 {
-	char **p = environ;
-	char *s1, *s2;
+	int8_t **p = environ;
+	int8_t *s1, *s2;
 
 	while (*p != NULL){
-		for(s1 = (char *)name, s2 = *p++; *s1 == *s2; s1++, s2++)
+		for(s1 = (int8_t *)name, s2 = *p++; *s1 == *s2; s1++, s2++)
 			continue;
 		if(*s1 == '\0' && *s2 == '=')
 			return s2+1;

@@ -26,12 +26,12 @@ extern	int	infile;
 int	exitflg;
 extern	int	eof;
 
-int	alldigs(char*);
-void	fault(void*, char*);
+int	alldigs(int8_t*);
+void	fault(void*, int8_t*);
 
-extern	char	*Ipath;
+extern	int8_t	*Ipath;
 jmp_buf env;
-static char *errmsg;
+static int8_t *errmsg;
 
 void
 main(int argc, char **argv)
@@ -158,7 +158,7 @@ main(int argc, char **argv)
 }
 
 int
-alldigs(char *s)
+alldigs(int8_t *s)
 {
 	while(*s){
 		if(*s<'0' || '9'<*s)
@@ -181,7 +181,7 @@ done(void)
  * close open files, and reset to main command loop.
  */
 void
-error(char *n)
+error(int8_t *n)
 {
 	errmsg = n;
 	iclose(0, 1);
@@ -193,9 +193,9 @@ error(char *n)
 }
 
 void
-errors(char *m, char *n)
+errors(int8_t *m, int8_t *n)
 {
-	static char buf[128];
+	static int8_t buf[128];
 
 	sprint(buf, "%s: %s", m, n);
 	error(buf);
@@ -207,7 +207,7 @@ errors(char *m, char *n)
  * and remember that there was a fault.
  */
 void
-fault(void *a, char *s)
+fault(void *a, int8_t *s)
 {
 	USED(a);
 	if(strncmp(s, "interrupt", 9) == 0){

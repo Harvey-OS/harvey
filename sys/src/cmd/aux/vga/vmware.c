@@ -62,19 +62,19 @@ enum {
 
 typedef struct Vmware	Vmware;
 struct Vmware {
-	ulong	mmio;
-	ulong	fb;
+	uint32_t	mmio;
+	uint32_t	fb;
 
-	ulong	ra;
-	ulong	rd;
+	uint32_t	ra;
+	uint32_t	rd;
 
-	ulong	r[Nreg];
+	uint32_t	r[Nreg];
 
-	char	chan[32];
+	int8_t	chan[32];
 	int	depth;
 };
 
-static char*
+static int8_t*
 rname[Nreg] = {
 	"ID",
 	"Enable",
@@ -107,7 +107,7 @@ rname[Nreg] = {
 	"HostBpp",
 };
 
-static ulong
+static uint32_t
 vmrd(Vmware *vm, int i)
 {
 	outportl(vm->ra, i);
@@ -115,14 +115,14 @@ vmrd(Vmware *vm, int i)
 }
 
 static void
-vmwr(Vmware *vm, int i, ulong v)
+vmwr(Vmware *vm, int i, uint32_t v)
 {
 	outportl(vm->ra, i);
 	outportl(vm->rd, v);
 }
 
 static uint
-bits(ulong a)
+bits(uint32_t a)
 {
 	int b;
 
@@ -243,7 +243,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr *ctlr)
 {
-	char buf[64];
+	int8_t buf[64];
 	int x;
 	Vmware *vm;
 

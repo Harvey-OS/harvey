@@ -43,7 +43,7 @@ flushbuf(void)
 }
 
 void
-prints(char *s)
+prints(int8_t *s)
 {
 	dprint("%s",s);
 }
@@ -104,7 +104,7 @@ oclose(void)
 }
 
 void
-redirout(char *file)
+redirout(int8_t *file)
 {
 	int fd;
 
@@ -136,11 +136,11 @@ flush(void)
 }
 
 int
-dprint(char *fmt, ...)
+dprint(int8_t *fmt, ...)
 {
 	int n, w;
-	char *p;
- 	char buf[4096];
+	int8_t *p;
+ 	int8_t buf[4096];
 	Rune r;
 	va_list arg;
 

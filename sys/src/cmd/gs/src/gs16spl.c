@@ -75,22 +75,22 @@ HPJOB hJob;
 HWND hwndspl;
 DLGPROC lpfnSpoolProc;
 HINSTANCE phInstance;
-char port[MAXSTR];
-char filename[MAXSTR];
-char error_message[MAXSTR];
+int8_t port[MAXSTR];
+int8_t filename[MAXSTR];
+int8_t error_message[MAXSTR];
 int error;
 
-char szAppName[] = "GS Win32s/Win16 spooler";
+int8_t szAppName[] = "GS Win32s/Win16 spooler";
 
 /* returns TRUE on success, FALSE on failure */
 int
-spoolfile(char *portname, char *filename)
+spoolfile(int8_t *portname, int8_t *filename)
 {
     FILE *f;
-    char *buffer;
-    char pcdone[64];
-    long ldone;
-    long lsize;
+    int8_t *buffer;
+    int8_t pcdone[64];
+    int32_t ldone;
+    int32_t lsize;
     int count;
     MSG msg;
 
@@ -98,7 +98,7 @@ spoolfile(char *portname, char *filename)
 	strcpy(error_message, "Usage: gs16spl port filename");
 	return FALSE;
     }
-    if ((buffer = malloc(PRINT_BUF_SIZE)) == (char *)NULL)
+    if ((buffer = malloc(PRINT_BUF_SIZE)) == (int8_t *)NULL)
 	return FALSE;
 
     if ((f = fopen(filename, "rb")) == (FILE *) NULL) {
@@ -177,7 +177,7 @@ void
 init_window(LPSTR cmdline)
 {
     LPSTR s;
-    char *d;
+    int8_t *d;
 
     s = cmdline;
     /* skip leading spaces */

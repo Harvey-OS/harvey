@@ -33,12 +33,12 @@ enum
 
 static struct protoent r;
 
-struct protoent *getprotobyname(const char *name) {
+struct protoent *getprotobyname(const int8_t *name) {
 	int fd, i, m;
-	char *p, *bp;
+	int8_t *p, *bp;
 	int nn, na;
-	static char buf[1024], proto[1024];
-	static char *nptr[Nname+1];
+	static int8_t buf[1024], proto[1024];
+	static int8_t *nptr[Nname+1];
 
 	/* connect to server */
 	fd = open("/net/cs", O_RDWR);

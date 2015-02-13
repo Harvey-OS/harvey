@@ -10,12 +10,12 @@
 /* tm.c: split numerical fields */
 # include "t.h"
 
-char	*
-maknew(char *str)
+int8_t	*
+maknew(int8_t *str)
 {
 				/* make two numerical fields */
 	int	c;
-	char	*p, *q, *ba, *dpoint;
+	int8_t	*p, *q, *ba, *dpoint;
 
 	p = str;
 	for (ba = 0; c = *str; str++)
@@ -54,7 +54,7 @@ maknew(char *str)
 
 
 int
-ineqn (char *s, char *p)
+ineqn (int8_t *s, int8_t *p)
 {
 				/* true if s is in a eqn within p */
 	int	ineq = 0, c;

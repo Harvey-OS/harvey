@@ -10,7 +10,7 @@
 #include "gc.h"
 
 void
-swit1(C1 *q, int nc, long def, Node *n)
+swit1(C1 *q, int nc, int32_t def, Node *n)
 {
 	C1 *r;
 	int i;
@@ -49,7 +49,7 @@ void
 bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 {
 	int sh;
-	long v;
+	int32_t v;
 	Node *l;
 
 	/*
@@ -87,7 +87,7 @@ bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 void
 bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 {
-	long v;
+	int32_t v;
 	Node nod;
 	int sh;
 
@@ -111,10 +111,10 @@ bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 	regfree(n3);
 }
 
-long
-outstring(char *s, long n)
+int32_t
+outstring(int8_t *s, int32_t n)
 {
-	long r;
+	int32_t r;
 
 	if(suppress)
 		return nstring;
@@ -137,7 +137,7 @@ outstring(char *s, long n)
 }
 
 void
-gextern(Sym *s, Node *a, long o, long w)
+gextern(Sym *s, Node *a, int32_t o, int32_t w)
 {
 	if(0 && a->op == OCONST && typev[a->type->etype]) {
 		gpseudo(ADATA, s, lo64(a));
@@ -169,7 +169,7 @@ void	outhist(Biobuf*);
 void
 outcode(void)
 {
-	struct { Sym *sym; short type; } h[NSYM];
+	struct { Sym *sym; int16_t type; } h[NSYM];
 	Prog *p;
 	Sym *s;
 	int f, sf, st, t, sym;
@@ -265,7 +265,7 @@ void
 outhist(Biobuf *b)
 {
 	Hist *h;
-	char *p, *q, *op, c;
+	int8_t *p, *q, *op, c;
 	Prog pg;
 	int n;
 
@@ -339,8 +339,8 @@ outhist(Biobuf *b)
 void
 zname(Biobuf *b, Sym *s, int t)
 {
-	char *n;
-	ulong sig;
+	int8_t *n;
+	uint32_t sig;
 
 	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
 		sig = sign(s);
@@ -369,9 +369,9 @@ zname(Biobuf *b, Sym *s, int t)
 void
 zaddr(Biobuf *b, Adr *a, int s)
 {
-	long l;
+	int32_t l;
 	int i, t;
-	char *n;
+	int8_t *n;
 	Ieee e;
 
 	t = 0;
@@ -387,7 +387,7 @@ zaddr(Biobuf *b, Adr *a, int s)
 		if(a->offset != 0) {
 			t |= T_OFFSET;
 			l = a->offset;
-			if((vlong)l != a->offset)
+			if((int64_t)l != a->offset)
 				t |= T_64;
 		}
 		break;
@@ -446,10 +446,10 @@ zaddr(Biobuf *b, Adr *a, int s)
 		Bputc(b, a->type);
 }
 
-long
-align(long i, Type *t, int op)
+int32_t
+align(int32_t i, Type *t, int op)
 {
-	long o;
+	int32_t o;
 	Type *v;
 	int w;
 
@@ -512,8 +512,8 @@ align(long i, Type *t, int op)
 	return o;
 }
 
-long
-maxround(long max, long v)
+int32_t
+maxround(int32_t max, int32_t v)
 {
 	v = round(v, SZ_VLONG);
 	if(v > max)

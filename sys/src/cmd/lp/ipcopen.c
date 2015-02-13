@@ -85,7 +85,7 @@ main(int argc, char *argv[])
 void
 pass(int from, int to)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	int ppid, cpid;
 	int n, tot = 0; 
 

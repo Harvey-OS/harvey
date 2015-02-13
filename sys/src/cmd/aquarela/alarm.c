@@ -26,8 +26,8 @@ void
 alarmist(void *)
 {
 	for (;;) {
-		vlong now;
-		long snooze;
+		int64_t now;
+		int32_t snooze;
 //print("running\n");
 		qlock(&alarmlist);
 		if (alarmlist.die) {
@@ -41,7 +41,7 @@ alarmist(void *)
 			alarmlist.head = alarmlist.head->next;
 		}
 		if (alarmlist.head) {
-			vlong vsnooze = alarmlist.head->expirems - now;
+			int64_t vsnooze = alarmlist.head->expirems - now;
 			if (vsnooze > MaxLong)
 				snooze = MaxLong;
 			else
@@ -62,7 +62,7 @@ nbnsalarmnew(void)
 	a = mallocz(sizeof(*a), 1);
 	if (a == nil)
 		return nil;
-	a->c = chancreate(sizeof(ulong), 1);
+	a->c = chancreate(sizeof(uint32_t), 1);
 	if (a->c == nil) {
 		free(a);
 		return nil;
@@ -85,7 +85,7 @@ nbnsalarmcancel(NbnsAlarm *a)
 	}
 	qunlock(&alarmlist);
 	do {
-		ulong v;
+		uint32_t v;
 		rv = nbrecv(a->c, &v);
 	} while (rv != 0);
 }
@@ -102,7 +102,7 @@ nbnsalarmend(void)
 }
 
 void
-nbnsalarmset(NbnsAlarm *a, ulong millisec)
+nbnsalarmset(NbnsAlarm *a, uint32_t millisec)
 {
 	NbnsAlarm **ap;
 	nbnsalarmcancel(a);

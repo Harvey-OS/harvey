@@ -16,7 +16,7 @@
 typedef struct Hchar Hchar;
 struct Hchar
 {
-	char *s;
+	int8_t *s;
 	Rune r;
 };
 
@@ -343,7 +343,7 @@ html_init(void)
 }
 
 static Rune
-findbyname(char *s)
+findbyname(int8_t *s)
 {
 	Hchar *h;
 	int n, m, x;
@@ -364,7 +364,7 @@ findbyname(char *s)
 	return Runeerror;
 }
 
-static char*
+static int8_t*
 findbyrune(Rune r)
 {
 	Hchar *h;
@@ -388,9 +388,9 @@ findbyrune(Rune r)
 }
 
 void
-html_in(int fd, long *x, struct convert *out)
+html_in(int fd, int32_t *x, struct convert *out)
 {
-	char buf[100], *p;
+	int8_t buf[100], *p;
 	Biobuf b;
 	Rune rbuf[N];
 	Rune *r, *er;
@@ -457,9 +457,9 @@ html_in(int fd, long *x, struct convert *out)
  * use biobuf because can use more than UTFmax bytes per rune
  */
 void
-html_out(Rune *r, int n, long *x)
+html_out(Rune *r, int n, int32_t *x)
 {
-	char *s;
+	int8_t *s;
 	Biobuf b;
 	Rune *er;
 	

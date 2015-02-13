@@ -59,8 +59,8 @@ typedef struct TIFF_std_directory_values_s {
     TIFF_ulong xresValue[2];	/* XResolution indirect value */
     TIFF_ulong yresValue[2];	/* YResolution indirect value */
 #define maxSoftware 40
-    char softwareValue[maxSoftware];	/* Software indirect value */
-    char dateTimeValue[20];	/* DateTime indirect value */
+    int8_t softwareValue[maxSoftware];	/* Software indirect value */
+    int8_t dateTimeValue[20];	/* DateTime indirect value */
 } TIFF_std_directory_values;
 private const TIFF_std_directory_entries std_entries_initial =
 {
@@ -118,7 +118,8 @@ int
 gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
 		     FILE * fp,
 		     const TIFF_dir_entry * entries, int entry_count,
-		     const byte * values, int value_size, long max_strip_size)
+		     const byte * values, int value_size,
+                     int32_t max_strip_size)
 {
     gs_memory_t *mem = pdev->memory;
     TIFF_std_directory_entries std_entries;
@@ -145,13 +146,13 @@ gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
 	    sizeof(TIFF_header)
 	};
 
-	fwrite((const char *)&hdr, sizeof(hdr), 1, fp);
+	fwrite((const int8_t *)&hdr, sizeof(hdr), 1, fp);
 	tifs->prev_dir = 0;
     } else {			/* Patch pointer to this directory from previous. */
 	TIFF_ulong offset = (TIFF_ulong) tifs->dir_off;
 
 	fseek(fp, tifs->prev_dir, SEEK_SET);
-	fwrite((char *)&offset, sizeof(offset), 1, fp);
+	fwrite((int8_t *)&offset, sizeof(offset), 1, fp);
 	fseek(fp, tifs->dir_off, SEEK_SET);
     }
 
@@ -176,7 +177,7 @@ gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
     {
 	TIFF_short dircount = ntags;
 
-	fwrite((char *)&dircount, sizeof(dircount), 1, fp);
+	fwrite((int8_t *)&dircount, sizeof(dircount), 1, fp);
     }
     tifs->dir_off = ftell(fp);
 
@@ -210,7 +211,7 @@ gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
     std_values.xresValue[0] = (TIFF_ulong)pdev->x_pixels_per_inch;
     std_values.yresValue[0] = (TIFF_ulong)pdev->y_pixels_per_inch;
     {
-	char revs[10];
+	int8_t revs[10];
 
 	strncpy(std_values.softwareValue, gs_product, maxSoftware);
 	std_values.softwareValue[maxSoftware - 1] = 0;
@@ -274,12 +275,12 @@ gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
 		tifs->dir_off + ntags * sizeof(TIFF_dir_entry) +
 		(std ? 0 : std_value_size);
 	}
-	fwrite((char *)&entry, sizeof(entry), 1, fp);
+	fwrite((int8_t *)&entry, sizeof(entry), 1, fp);
     }
 
     /* Write the indirect values. */
-    fwrite((const char *)&std_values, sizeof(std_values), 1, fp);
-    fwrite((const char *)values, value_size, 1, fp);
+    fwrite((const int8_t *)&std_values, sizeof(std_values), 1, fp);
+    fwrite((const int8_t *)values, value_size, 1, fp);
     /* Write placeholders for the strip offsets. */
     fwrite(tifs->StripOffsets, sizeof(TIFF_ulong), 2 * tifs->strip_count, fp);
     tifs->strip_index = 0;
@@ -314,7 +315,7 @@ int
 gdev_tiff_end_page(gdev_tiff_state * tifs, FILE * fp)
 {
     gs_memory_t *mem = tifs->mem;
-    long dir_off = tifs->dir_off;
+    int32_t dir_off = tifs->dir_off;
     int tags_size = tifs->ntags * sizeof(TIFF_dir_entry);
 
     tifs->prev_dir =

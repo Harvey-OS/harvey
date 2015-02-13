@@ -16,8 +16,8 @@
 
 /* flags, per-file counts, and total counts */
 static int pline, pword, prune, pbadr, pchar;
-static uvlong nline, nword, nrune, nbadr, nchar;
-static uvlong tnline, tnword, tnrune, tnbadr, tnchar;
+static uint64_t nline, nword, nrune, nbadr, nchar;
+static uint64_t tnline, tnword, tnrune, tnbadr, tnchar;
 
 enum{Space, Word};
 
@@ -25,14 +25,14 @@ static void
 wc(Biobuf *bin)
 {
 	int where;
-	long r;
+	int32_t r;
 
 	nline = 0;
 	nword = 0;
 	nrune = 0;
 	nbadr = 0;
 	where = Space;
-	while ((long)(r = Bgetrune(bin)) >= 0) {
+	while ((int32_t)(r = Bgetrune(bin)) >= 0) {
 		nrune++;
 		if(r == Runeerror) {
 			nbadr++;
@@ -58,9 +58,10 @@ wc(Biobuf *bin)
 }
 
 static void
-report(uvlong nline, uvlong nword, uvlong nrune, uvlong nbadr, uvlong nchar, char *fname)
+report(uint64_t nline, uint64_t nword, uint64_t nrune, uint64_t nbadr,
+       uint64_t nchar, int8_t *fname)
 {
-	char line[1024], *s, *e;
+	int8_t line[1024], *s, *e;
 
 	s = line;
 	e = line + sizeof line;

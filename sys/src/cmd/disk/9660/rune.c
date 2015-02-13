@@ -15,7 +15,7 @@
 #include "iso9660.h"
 
 Rune*
-strtorune(Rune *r, char *s)
+strtorune(Rune *r, int8_t *s)
 {
 	Rune *or;
 

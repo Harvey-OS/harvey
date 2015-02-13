@@ -14,13 +14,13 @@
 #define Extern extern
 #include "power.h"
 
-extern ulong	textbase;
+extern uint32_t	textbase;
 
-ulong
-ifetch(ulong addr)
+uint32_t
+ifetch(uint32_t addr)
 {
-	uchar *va;
-	ulong px;
+	uint8_t *va;
+	uint32_t px;
 
 	if(addr&3) {
 		Bprint(bioout, "instruction_address_not_aligned [addr %.8lux]\n", addr);
@@ -40,10 +40,10 @@ ifetch(ulong addr)
 	return va[0]<<24 | va[1]<<16 | va[2]<<8 | va[3];
 }
 
-ulong
-getmem_4(ulong addr)
+uint32_t
+getmem_4(uint32_t addr)
 {
-	ulong val;
+	uint32_t val;
 	int i;
 
 	val = 0;
@@ -52,10 +52,10 @@ getmem_4(ulong addr)
 	return val;
 }
 
-ulong
-getmem_2(ulong addr)
+uint32_t
+getmem_2(uint32_t addr)
 {
-	ulong val;
+	uint32_t val;
 
 	val = getmem_b(addr);
 	val = val<<8 | getmem_b(addr+1);
@@ -63,21 +63,21 @@ getmem_2(ulong addr)
 	return val;
 }
 
-uvlong
-getmem_v(ulong addr)
+uint64_t
+getmem_v(uint32_t addr)
 {
 	if(addr&3) {	/* 7? */
 		Bprint(bioout, "mem_address_not_aligned [load addr %.8lux]\n", addr);
 		longjmp(errjmp, 0);
 	}
 
-	return ((uvlong)getmem_w(addr) << 32) | getmem_w(addr+4);
+	return ((uint64_t)getmem_w(addr) << 32) | getmem_w(addr+4);
 }
 
-ulong
-getmem_w(ulong addr)
+uint32_t
+getmem_w(uint32_t addr)
 {
-	uchar *va;
+	uint8_t *va;
 
 	if(addr&3) {
 		Bprint(bioout, "mem_address_not_aligned [load addr %.8lux]\n", addr);
@@ -92,10 +92,10 @@ getmem_w(ulong addr)
 	return va[0]<<24 | va[1]<<16 | va[2]<<8 | va[3];
 }
 
-ushort
-getmem_h(ulong addr)
+uint16_t
+getmem_h(uint32_t addr)
 {
-	uchar *va;
+	uint8_t *va;
 
 	if(addr&1) {
 		Bprint(bioout, "mem_address_not_aligned [load addr %.8lux]\n", addr);
@@ -110,10 +110,10 @@ getmem_h(ulong addr)
 	return va[0]<<8 | va[1];
 }
 
-uchar
-getmem_b(ulong addr)
+uint8_t
+getmem_b(uint32_t addr)
 {
-	uchar *va;
+	uint8_t *va;
 
 	if(membpt)
 		brkchk(addr, Read);
@@ -124,7 +124,7 @@ getmem_b(ulong addr)
 }
 
 void
-putmem_v(ulong addr, uvlong data)
+putmem_v(uint32_t addr, uint64_t data)
 {
 	if(addr&3) {	/* 7? */
 		Bprint(bioout, "mem_address_not_aligned [store addr %.8lux]\n", addr);
@@ -136,9 +136,9 @@ putmem_v(ulong addr, uvlong data)
 }
 
 void
-putmem_w(ulong addr, ulong data)
+putmem_w(uint32_t addr, uint32_t data)
 {
-	uchar *va;
+	uint8_t *va;
 
 	if(addr&3) {
 		Bprint(bioout, "mem_address_not_aligned [store addr %.8lux]\n", addr);
@@ -157,9 +157,9 @@ putmem_w(ulong addr, ulong data)
 }
 
 void
-putmem_b(ulong addr, uchar data)
+putmem_b(uint32_t addr, uint8_t data)
 {
-	uchar *va;
+	uint8_t *va;
 
 	va = vaddr(addr);
 	va += addr&(BY2PG-1);
@@ -169,9 +169,9 @@ putmem_b(ulong addr, uchar data)
 }
 
 void
-putmem_h(ulong addr, short data)
+putmem_h(uint32_t addr, int16_t data)
 {
-	uchar *va;
+	uint8_t *va;
 
 	if(addr&1) {
 		Bprint(bioout, "mem_address_not_aligned [store addr %.8lux]\n", addr);
@@ -186,11 +186,11 @@ putmem_h(ulong addr, short data)
 		brkchk(addr, Write);
 }
 
-char *
-memio(char *mb, ulong mem, int size, int dir)
+int8_t *
+memio(int8_t *mb, uint32_t mem, int size, int dir)
 {
 	int i;
-	char *buf, c;
+	int8_t *buf, c;
 
 	if(size < 0) {
 		Bprint(bioout, "memio: invalid size: %d\n", size);
@@ -228,11 +228,11 @@ memio(char *mb, ulong mem, int size, int dir)
 }
 
 void *
-vaddr(ulong addr)
+vaddr(uint32_t addr)
 {
 	Segment *s, *es;
 	int off, foff, l, n;
-	uchar **p, *a;
+	uint8_t **p, *a;
 
 	es = &memory.seg[Nseg];
 	for(s = memory.seg; s < es; s++) {

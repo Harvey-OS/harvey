@@ -27,11 +27,11 @@ enum {
 static int lsbtab[] = { 6, 4, 2, 0};
 
 static int
-looksize(char *file, vlong size, int *pixels, int *lines, int *bits)
+looksize(int8_t *file, int64_t size, int *pixels, int *lines, int *bits)
 {
 	Biobuf *bp;
-	uvlong l, p;
-	char *s, *a[12];
+	uint64_t l, p;
+	int8_t *s, *a[12];
 
 	/*
 	 * This may not always work, there could be an alias between file
@@ -83,10 +83,10 @@ Rawimage**
 Breadyuv(Biobuf *bp, int colourspace)
 {
 	Dir *d;
-	uvlong sz;
+	uint64_t sz;
 	Rawimage *a, **array;
-	ushort * mux, *end, *frm;
-	uchar *buf, *r, *g, *b;
+	uint16_t * mux, *end, *frm;
+	uint8_t *buf, *r, *g, *b;
 	int y1, y2, cb, cr, c, l, w, base;
 	int bits, lines, pixels;
 	int F1, F2, F3, F4;
@@ -124,7 +124,7 @@ Breadyuv(Biobuf *bp, int colourspace)
 	a->chanlen = pixels * lines;
 	a->r = Rect(0, 0, pixels, lines);
 
-	if ((frm = malloc(pixels*2*lines*sizeof(ushort))) == nil)
+	if ((frm = malloc(pixels*2*lines*sizeof(uint16_t))) == nil)
 		goto Error;
 
 	for (c = 0; c  < 3; c++)
@@ -140,7 +140,7 @@ Breadyuv(Biobuf *bp, int colourspace)
 
 		base = l*pixels*2;
 		for (w = 0; w < pixels *2; w++)
-			frm[base + w] = ((ushort)buf[w]) << 2;
+			frm[base + w] = ((uint16_t)buf[w]) << 2;
 	}
 
 

@@ -38,7 +38,7 @@ static window_handle	tSaveWindow = 0;
  * saveas - a wrapper around Save_InitSaveWindowhandler
  */
 static void
-saveas(int iFileType, char *szOutfile, size_t tEstSize,
+saveas(int iFileType, int8_t *szOutfile, size_t tEstSize,
 	save_filesaver save_function, void *pvReference)
 {
 	TRACE_MSG("saveas");
@@ -54,9 +54,10 @@ saveas(int iFileType, char *szOutfile, size_t tEstSize,
 } /* end of saveas */
 
 static BOOL
-bWrite2File(void *pvBytes, size_t tSize, FILE *pFile, const char *szFilename)
+bWrite2File(void *pvBytes, size_t tSize, FILE *pFile,
+	    const int8_t *szFilename)
 {
-	if (fwrite(pvBytes, sizeof(char), tSize, pFile) != tSize) {
+	if (fwrite(pvBytes, sizeof(int8_t), tSize, pFile) != tSize) {
 		werr(0, "I can't write to '%s'", szFilename);
 		return FALSE;
 	}
@@ -67,13 +68,13 @@ bWrite2File(void *pvBytes, size_t tSize, FILE *pFile, const char *szFilename)
  * bText2File - Save the generated draw file to a Text file
  */
 static BOOL
-bText2File(char *szFilename, void *pvHandle)
+bText2File(int8_t *szFilename, void *pvHandle)
 {
 	FILE	*pFile;
 	diagram_type	*pDiag;
 	drawfile_object	*pObj;
 	drawfile_text	*pText;
-	const char	*pcTmp;
+	const int8_t	*pcTmp;
 	int	iToGo, iX, iYtopPrev, iHeight, iLines;
 	BOOL	bFirst, bIndent, bSuccess;
 
@@ -97,7 +98,7 @@ bText2File(char *szFilename, void *pvHandle)
 	fail(pDiag->tInfo.length < offsetof(drawfile_diagram, objects));
 	iToGo = pDiag->tInfo.length - offsetof(drawfile_diagram, objects);
 	DBG_DEC(iToGo);
-	pcTmp = (const char *)pDiag->tInfo.data +
+	pcTmp = (const int8_t *)pDiag->tInfo.data +
 				offsetof(drawfile_diagram, objects);
 	while (iToGo > 0 && bSuccess) {
 		pObj = (drawfile_object *)pcTmp;
@@ -217,7 +218,7 @@ bSaveTextfile(event_pollblock *pEvent, void *pvReference)
  * bottom-left corner.
  */
 static BOOL
-bDraw2File(char *szFilename, void *pvHandle)
+bDraw2File(int8_t *szFilename, void *pvHandle)
 {
 	FILE		*pFile;
 	diagram_type	*pDiagram;
@@ -228,7 +229,7 @@ bDraw2File(char *szFilename, void *pvHandle)
 	drawfile_sprite	*pSprite;
 	drawfile_jpeg	*pJpeg;
 	int	*piPath;
-	char	*pcTmp;
+	int8_t	*pcTmp;
 	int	iYadd, iToGo, iSize;
 	BOOL	bSuccess;
 

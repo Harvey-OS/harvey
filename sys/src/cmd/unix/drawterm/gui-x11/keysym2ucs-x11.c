@@ -833,7 +833,7 @@ static struct codepair {
 };
 
 VISIBLE
-long keysym2ucs(KeySym keysym)
+int32_t keysym2ucs(KeySym keysym)
 {
     int min = 0;
     int max = sizeof(keysymtab) / sizeof(struct codepair) - 1;

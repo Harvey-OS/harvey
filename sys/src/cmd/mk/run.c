@@ -49,7 +49,7 @@ run(Job *j)
 static void
 sched(void)
 {
-	char *flags;
+	int8_t *flags;
 	Job *j;
 	Bufblock *buf;
 	int slot;
@@ -70,7 +70,7 @@ sched(void)
 	e = buildenv(j, slot);
 	shprint(j->r->recipe, e, buf);
 	if(!tflag && (nflag || !(j->r->attr&QUIET)))
-		Bwrite(&bout, buf->start, (long)strlen(buf->start));
+		Bwrite(&bout, buf->start, (int32_t)strlen(buf->start));
 	freebuf(buf);
 	if(nflag||tflag){
 		for(n = j->n; n; n = n->next){
@@ -80,7 +80,7 @@ sched(void)
 				else if(explain)
 					Bprint(&bout, "no touch of virtual '%s'\n", n->name);
 			}
-			n->time = time((long *)0);
+			n->time = time((int32_t *)0);
 			MADESET(n, MADE);
 		}
 	} else {
@@ -108,7 +108,7 @@ waitup(int echildok, int *retstatus)
 	Symtab *s;
 	Word *w;
 	Job *j;
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 	Bufblock *bp;
 	int uarg = 0;
 	int done;
@@ -202,7 +202,8 @@ nproc(void)
 		fprint(1, "nprocs = %d\n", nproclimit);
 	if(nproclimit > nevents){
 		if(nevents)
-			events = (Event *)Realloc((char *)events, nproclimit*sizeof(Event));
+			events = (Event *)Realloc((int8_t *)events,
+						  nproclimit*sizeof(Event));
 		else
 			events = (Event *)Malloc(nproclimit*sizeof(Event));
 		while(nevents < nproclimit)
@@ -267,7 +268,7 @@ pdelete(Process *p)
 }
 
 void
-killchildren(char *msg)
+killchildren(int8_t *msg)
 {
 	Process *p;
 
@@ -281,13 +282,13 @@ killchildren(char *msg)
 	Exit();
 }
 
-static ulong tslot[1000];
-static ulong tick;
+static uint32_t tslot[1000];
+static uint32_t tick;
 
 void
 usage(void)
 {
-	ulong t;
+	uint32_t t;
 
 	t = time(0);
 	if(tick)

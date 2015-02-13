@@ -27,11 +27,11 @@ enum {
 };
 
 static int
-looksize(char *file, vlong size, int *pixels, int *lines, int *chunk)
+looksize(int8_t *file, int64_t size, int *pixels, int *lines, int *chunk)
 {
 	Biobuf *bp;
-	uvlong l, p, c;
-	char *s, *a[12];
+	uint64_t l, p, c;
+	int8_t *s, *a[12];
 
 	/*
 	 * This may not always work, there could be an alias between file
@@ -76,10 +76,10 @@ Rawimage**
 BreadV210(Biobuf *bp, int colourspace)
 {
 	Dir *d;
-	uvlong sz;
+	uint64_t sz;
 	Rawimage *a, **array;
-	ushort *mux, *end, *frm, *wr;
-	uchar *buf, *r, *g, *b;
+	uint16_t *mux, *end, *frm, *wr;
+	uint8_t *buf, *r, *g, *b;
 	uint i, t;
 	int y1, y2, cb, cr, c, l, rd;
 	int chunk, lines, pixels;
@@ -118,7 +118,7 @@ BreadV210(Biobuf *bp, int colourspace)
 	a->chanlen = pixels * lines;
 	a->r = Rect(0, 0, pixels, lines);
 
-	if((frm = malloc(pixels*2*lines*sizeof(ushort))) == nil)
+	if((frm = malloc(pixels*2*lines*sizeof(uint16_t))) == nil)
 		goto Error;
 
 	for(c = 0; c  < 3; c++)

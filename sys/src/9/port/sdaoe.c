@@ -15,8 +15,8 @@
 #include "etherif.h"
 #include "aoe.h"
 
-extern	char	Echange[];
-extern	char	Enotup[];
+extern	int8_t	Echange[];
+extern	int8_t	Enotup[];
 
 #define uprint(...)	snprint(up->genbuf, sizeof up->genbuf, __VA_ARGS__);
 
@@ -35,7 +35,7 @@ enum {
 	Datapi16= 1<<5,
 };
 
-static char *flagname[] = {
+static int8_t *flagname[] = {
 	"llba",
 	"smart",
 	"power",
@@ -68,7 +68,7 @@ struct Ctlr{
 	char	ident[0x100];
 };
 
-void	aoeidmove(char *p, ushort *a, unsigned n);
+void	aoeidmove(int8_t *p, uint16_t *a, unsigned n);
 
 static	Lock	ctlrlock;
 static	Ctlr	*head;
@@ -76,10 +76,10 @@ static	Ctlr	*tail;
 
 SDifc sdaoeifc;
 
-static ushort
+static uint16_t
 gbit16(void *a)
 {
-	uchar *i;
+	uint8_t *i;
 
 	i = a;
 	return i[1] << 8 | i[0];
@@ -89,7 +89,7 @@ static u32int
 gbit32(void *a)
 {
 	u32int j;
-	uchar *i;
+	uint8_t *i;
 
 	i = a;
 	j  = i[3] << 24;
@@ -99,21 +99,21 @@ gbit32(void *a)
 	return j;
 }
 
-static uvlong
+static uint64_t
 gbit64(void *a)
 {
-	uchar *i;
+	uint8_t *i;
 
 	i = a;
-	return (uvlong)gbit32(i+4)<<32 | gbit32(i);
+	return (uint64_t)gbit32(i+4)<<32 | gbit32(i);
 }
 
 static int
-identify(Ctlr *c, ushort *id)
+identify(Ctlr *c, uint16_t *id)
 {
 	int i;
-	uchar oserial[21];
-	uvlong osectors, s;
+	uint8_t oserial[21];
+	uint64_t osectors, s;
 
 	osectors = c->sectors;
 	memmove(oserial, c->serial, sizeof c->serial);
@@ -173,7 +173,7 @@ aoeidentify(Ctlr *d, SDunit *u)
 
 	d->feat = 0;
 	d->smart = 0;
-	identify(d, (ushort*)d->ident);
+	identify(d, (uint16_t*)d->ident);
 
 	memset(u->inquiry, 0, sizeof u->inquiry);
 	u->inquiry[2] = 2;
@@ -185,7 +185,7 @@ aoeidentify(Ctlr *d, SDunit *u)
 }
 
 static Ctlr*
-ctlrlookup(char *path)
+ctlrlookup(int8_t *path)
 {
 	Ctlr *c;
 
@@ -198,7 +198,7 @@ ctlrlookup(char *path)
 }
 
 static Ctlr*
-newctlr(char *path)
+newctlr(int8_t *path)
 {
 	Ctlr *c;
 
@@ -248,10 +248,10 @@ delctlr(Ctlr *c)
 }
 
 static SDev*
-aoeprobe(char *path, SDev *s)
+aoeprobe(int8_t *path, SDev *s)
 {
 	int n, i;
-	char *p;
+	int8_t *p;
 	Chan *c;
 	Ctlr *ctlr;
 
@@ -296,11 +296,11 @@ aoeprobe(char *path, SDev *s)
 	return s;
 }
 
-static char 	*probef[32];
+static int8_t 	*probef[32];
 static int 	nprobe;
 
 static int
-pnpprobeid(char *s)
+pnpprobeid(int8_t *s)
 {
 	int id;
 
@@ -316,7 +316,7 @@ static SDev*
 aoepnp(void)
 {
 	int i, id;
-	char *p;
+	int8_t *p;
 	SDev *h, *t, *s;
 
 	if((p = getconf("aoedev")) == 0)
@@ -348,7 +348,7 @@ static Ctlr*
 pnpprobe(SDev *sd)
 {
 	int j;
-	char *p;
+	int8_t *p;
 	static int i;
 
 	if(i > nprobe)
@@ -444,10 +444,10 @@ static int
 aoerio(SDreq *r)
 {
 	int i, count;
-	uvlong lba;
-	char *name;
-	uchar *cmd;
-	long (*rio)(Chan*, void*, long, vlong);
+	uint64_t lba;
+	int8_t *name;
+	uint8_t *cmd;
+	int32_t (*rio)(Chan*, void*, int32_t, int64_t);
 	Ctlr *c;
 	SDunit *unit;
 
@@ -494,7 +494,7 @@ aoerio(SDreq *r)
 	if(r->clen == 16){
 		if(cmd[2] || cmd[3])
 			return sdsetsense(r, SDcheck, 3, 0xc, 2);
-		lba = (uvlong)cmd[4]<<40 | (uvlong)cmd[5]<<32;
+		lba = (uint64_t)cmd[4]<<40 | (uint64_t)cmd[5]<<32;
 		lba |=   cmd[6]<<24 |  cmd[7]<<16 |  cmd[8]<<8 | cmd[9];
 		count = cmd[10]<<24 | cmd[11]<<16 | cmd[12]<<8 | cmd[13];
 	}else{
@@ -519,17 +519,17 @@ aoerio(SDreq *r)
 	return SDok;
 }
 
-static char *smarttab[] = {
+static int8_t *smarttab[] = {
 	"unset",
 	"error",
 	"threshold exceeded",
 	"normal"
 };
 
-static char *
-pflag(char *s, char *e, uchar f)
+static int8_t *
+pflag(int8_t *s, int8_t *e, uint8_t f)
 {
-	uchar i, m;
+	uint8_t i, m;
 
 	for(i = 0; i < 8; i++){
 		m = 1 << i;
@@ -540,10 +540,10 @@ pflag(char *s, char *e, uchar f)
 }
 
 static int
-aoerctl(SDunit *u, char *p, int l)
+aoerctl(SDunit *u, int8_t *p, int l)
 {
 	Ctlr *c;
-	char *e, *op;
+	int8_t *e, *op;
 
 	if((c = u->dev->ctlr) == nil)
 		return 0;
@@ -575,7 +575,7 @@ aoewctl(SDunit *, Cmdbuf *cmd)
 static SDev*
 aoeprobew(DevConf *c)
 {
-	char *p;
+	int8_t *p;
 
 	p = strchr(c->type, '/');
 	if(p == nil || strlen(p) > Maxpath - 11)
@@ -593,8 +593,8 @@ aoeclear(SDev *s)
 	delctlr((Ctlr *)s->ctlr);
 }
 
-static char*
-aoertopctl(SDev *s, char *p, char *e)
+static int8_t*
+aoertopctl(SDev *s, int8_t *p, int8_t *e)
 {
 	Ctlr *c;
 

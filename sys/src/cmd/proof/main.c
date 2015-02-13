@@ -15,14 +15,14 @@
 #include	"proof.h"
 
 Rectangle rpage = { 0, 0, 850, 1150 };
-char devname[64];
+int8_t devname[64];
 double mag = DEFMAG;
 int dbg = 0;
-char *track = 0;
+int8_t *track = 0;
 Biobuf bin;
-char libfont[256] = "/lib/font/bit";
-char mapfile[256] = "MAP";
-char *mapname = "MAP";
+int8_t libfont[256] = "/lib/font/bit";
+int8_t mapfile[256] = "MAP";
+int8_t *mapname = "MAP";
 
 void
 usage(void)
@@ -98,9 +98,9 @@ main(int argc, char *argv[])
  */
 #define	SIZE	100000	/* 8-10 pages, typically */
 
-char	bufc[SIZE];
-char	*inc = bufc;	/* where next input character goes */
-char	*outc = bufc;	/* next character to be read from buffer */
+int8_t	bufc[SIZE];
+int8_t	*inc = bufc;	/* where next input character goes */
+int8_t	*outc = bufc;	/* next character to be read from buffer */
 int	off;		/* position of outc in total input stream */
 
 void
@@ -134,7 +134,7 @@ getrune(void)
 {
 	int c, n;
 	Rune r;
-	char buf[UTFmax];
+	int8_t buf[UTFmax];
 
 	for(n=0; !fullrune(buf, n); n++){
 		c = getc();
@@ -158,11 +158,11 @@ nbuf(void)	/* return number of buffered characters */
 	return ini-outi;
 }
 
-ulong
-seekc(ulong o)
+uint32_t
+seekc(uint32_t o)
 {
-	ulong avail;
-	long delta;
+	uint32_t avail;
+	int32_t delta;
 
 	delta = off-o;
 	if(delta < 0)
@@ -193,16 +193,16 @@ ungetc(void)
 	--off;
 }
 
-ulong
+uint32_t
 offsetc(void)
 {
 	return off;
 }
 
-char*
+int8_t*
 rdlinec(void)
 {
-	static char buf[2048];
+	static int8_t buf[2048];
 	int c, i;
 
 	for(i=0; i<sizeof buf; ){

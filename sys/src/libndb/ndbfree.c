@@ -35,7 +35,7 @@ ndbfree(Ndbtuple *t)
  *  set a value in a tuple
  */
 void
-ndbsetval(Ndbtuple *t, char *val, int n)
+ndbsetval(Ndbtuple *t, int8_t *val, int n)
 {
 	if(n < Ndbvlen){
 		if(t->val != t->valbuf){
@@ -58,7 +58,7 @@ ndbsetval(Ndbtuple *t, char *val, int n)
  *  allocate a tuple
  */
 Ndbtuple*
-ndbnew(char *attr, char *val)
+ndbnew(int8_t *attr, int8_t *val)
 {
 	Ndbtuple *t;
 

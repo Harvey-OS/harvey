@@ -23,7 +23,7 @@ static void bfencrypt(u32int *, BFstate *);
 static void bfdecrypt(u32int *, BFstate *);
 
 void
-setupBFstate(BFstate *s, uchar key[], int keybytes, uchar *ivec)
+setupBFstate(BFstate *s, uint8_t key[], int keybytes, uint8_t *ivec)
 {
 	int i, j;
 	u32int n, buf[2];
@@ -82,10 +82,10 @@ setupBFstate(BFstate *s, uchar key[], int keybytes, uchar *ivec)
 }
 
 void
-bfCBCencrypt(uchar *buf, int n, BFstate *s)
+bfCBCencrypt(uint8_t *buf, int n, BFstate *s)
 {
 	int i;
-	uchar *p;
+	uint8_t *p;
 	u32int bo[2], bi[2], b;
 
 	assert((n & 7) == 0);
@@ -139,10 +139,10 @@ bfCBCencrypt(uchar *buf, int n, BFstate *s)
 }
 
 void
-bfCBCdecrypt(uchar *buf, int n, BFstate *s)
+bfCBCdecrypt(uint8_t *buf, int n, BFstate *s)
 {
 	int i;
-	uchar *p;
+	uint8_t *p;
 	u32int b, bo[2], bi[2], xr[2];
 
 	assert((n & 7) == 0);
@@ -199,7 +199,7 @@ bfCBCdecrypt(uchar *buf, int n, BFstate *s)
 }
 
 void
-bfECBencrypt(uchar *buf, int n, BFstate *s)
+bfECBencrypt(uint8_t *buf, int n, BFstate *s)
 {
 	int i;
 	u32int b[2];
@@ -225,7 +225,7 @@ bfECBencrypt(uchar *buf, int n, BFstate *s)
 }
 
 void
-bfECBdecrypt(uchar *buf, int n, BFstate *s)
+bfECBdecrypt(uint8_t *buf, int n, BFstate *s)
 {
 	int i;
 	u32int b[2];
@@ -267,12 +267,12 @@ bfencrypt(u32int *b, BFstate *s)
 
 	for(i=1; i<16; i += 2) {
 		r ^= pb[i];
-		r ^= ( (sb[ (uchar) (l>>24)] + sb[256 + ((uchar) (l>>16))]) ^  
-			sb[512 + ((uchar) (l>>8))]) + sb[768 +((uchar) l)];
+		r ^= ( (sb[ (uint8_t) (l>>24)] + sb[256 + ((uint8_t) (l>>16))]) ^  
+			sb[512 + ((uint8_t) (l>>8))]) + sb[768 +((uint8_t) l)];
 
 		l ^= pb[i+1];
-		l ^= ( (sb[ (uchar) (r>>24)] + sb[256 + ((uchar) (r>>16))]) ^  
-			sb[512 + ((uchar) (r>>8))]) + sb[768 +((uchar) r)];
+		l ^= ( (sb[ (uint8_t) (r>>24)] + sb[256 + ((uint8_t) (r>>16))]) ^  
+			sb[512 + ((uint8_t) (r>>8))]) + sb[768 +((uint8_t) r)];
 	}
 
 	r ^= pb[BFrounds+1];
@@ -301,12 +301,12 @@ bfdecrypt(u32int *b, BFstate *s)
 
 	for(i=16; i > 0; i -= 2) {
 		r ^= pb[i];
-		r ^= ( (sb[ (uchar) (l>>24)] + sb[256 + ((uchar) (l>>16))]) ^  
-			sb[512 + ((uchar) (l>>8))]) + sb[768 +((uchar) l)];
+		r ^= ( (sb[ (uint8_t) (l>>24)] + sb[256 + ((uint8_t) (l>>16))]) ^  
+			sb[512 + ((uint8_t) (l>>8))]) + sb[768 +((uint8_t) l)];
 
 		l ^= pb[i-1];
-		l ^= ( (sb[ (uchar) (r>>24)] + sb[256 + ((uchar) (r>>16))]) ^  
-			sb[512 + ((uchar) (r>>8))]) + sb[768 +((uchar) r)];
+		l ^= ( (sb[ (uint8_t) (r>>24)] + sb[256 + ((uint8_t) (r>>16))]) ^  
+			sb[512 + ((uint8_t) (r>>8))]) + sb[768 +((uint8_t) r)];
 	}
 
 	r ^= pb[0];

@@ -90,12 +90,12 @@ private_st_pdf_pattern();
  * Note that this may store into the string.
  */
 /* This function copied from geninit.c . */
-private char *
-doit(char *line, bool intact)
+private int8_t *
+doit(int8_t *line, bool intact)
 {
-    char *str = line;
-    char *from;
-    char *to;
+    int8_t *str = line;
+    int8_t *from;
+    int8_t *to;
     int in_string = 0;
 
     if (intact)
@@ -159,10 +159,10 @@ doit(char *line, bool intact)
 
 
 private int
-copy_ps_file_stripping(stream *s, const char *fname, bool HaveTrueTypes)
+copy_ps_file_stripping(stream *s, const int8_t *fname, bool HaveTrueTypes)
 {
     FILE *f;
-    char buf[1024], *p, *q  = buf;
+    int8_t buf[1024], *p, *q  = buf;
     int n, l = 0, m = sizeof(buf) - 1, outl = 0;
     bool skipping = false;
 
@@ -234,10 +234,10 @@ copy_ps_file_stripping(stream *s, const char *fname, bool HaveTrueTypes)
 private int
 copy_procsets(stream *s, const gs_param_string *path, bool HaveTrueTypes)
 {
-    char fname[gp_file_name_sizeof];
+    int8_t fname[gp_file_name_sizeof];
     const byte *p = path->data, *e = path->data + path->size;
     int l, i = 0, code;
-    const char *tt_encs[] = {"gs_agl.ps", "gs_mgl_e.ps"};
+    const int8_t *tt_encs[] = {"gs_agl.ps", "gs_mgl_e.ps"};
 
     if (p != NULL) {
 	for (;; i++) {
@@ -356,7 +356,7 @@ pdf_open_document(gx_device_pdf * pdev)
 /* ------ Objects ------ */
 
 /* Allocate an object ID. */
-private long
+private int32_t
 pdf_next_id(gx_device_pdf * pdev)
 {
     return (pdev->next_id)++;
@@ -369,11 +369,11 @@ pdf_next_id(gx_device_pdf * pdev)
  * used locally (for computing lengths or patching), since there is no way
  * to map them later to the eventual position in the output file.
  */
-long
+int32_t
 pdf_stell(gx_device_pdf * pdev)
 {
     stream *s = pdev->strm;
-    long pos = stell(s);
+    int32_t pos = stell(s);
 
     if (s == pdev->asides.strm)
 	pos += ASIDES_BASE_POSITION;
@@ -381,28 +381,28 @@ pdf_stell(gx_device_pdf * pdev)
 }
 
 /* Allocate an ID for a future object. */
-long
+int32_t
 pdf_obj_ref(gx_device_pdf * pdev)
 {
-    long id = pdf_next_id(pdev);
-    long pos = pdf_stell(pdev);
+    int32_t id = pdf_next_id(pdev);
+    int32_t pos = pdf_stell(pdev);
 
     fwrite(&pos, sizeof(pos), 1, pdev->xref.file);
     return id;
 }
 
 /* Begin an object, optionally allocating an ID. */
-long
-pdf_open_obj(gx_device_pdf * pdev, long id)
+int32_t
+pdf_open_obj(gx_device_pdf * pdev, int32_t id)
 {
     stream *s = pdev->strm;
 
     if (id <= 0) {
 	id = pdf_obj_ref(pdev);
     } else {
-	long pos = pdf_stell(pdev);
+	int32_t pos = pdf_stell(pdev);
 	FILE *tfile = pdev->xref.file;
-	long tpos = ftell(tfile);
+	int32_t tpos = ftell(tfile);
 
 	fseek(tfile, (id - pdev->FirstObjectNumber) * sizeof(pos),
 	      SEEK_SET);
@@ -412,7 +412,7 @@ pdf_open_obj(gx_device_pdf * pdev, long id)
     pprintld1(s, "%ld 0 obj\n", id);
     return id;
 }
-long
+int32_t
 pdf_begin_obj(gx_device_pdf * pdev)
 {
     return pdf_open_obj(pdev, 0L);
@@ -583,7 +583,7 @@ none_to_stream(gx_device_pdf * pdev)
     if (pdev->CompatibilityLevel >= 1.3) {
 	/* Set the default rendering intent. */
 	if (pdev->params.DefaultRenderingIntent != ri_Default) {
-	    static const char *const ri_names[] = { psdf_ri_names };
+	    static const int8_t *const ri_names[] = { psdf_ri_names };
 
 	    pprints1(s, "/%s ri\n",
 		     ri_names[(int)pdev->params.DefaultRenderingIntent]);
@@ -641,7 +641,7 @@ private int
 stream_to_none(gx_device_pdf * pdev)
 {
     stream *s = pdev->strm;
-    long length;
+    int32_t length;
 
     if (pdev->ResourcesBeforeUsage) {
 	int code = pdf_exit_substream(pdev);
@@ -708,7 +708,7 @@ pdf_close_contents(gx_device_pdf * pdev, bool last)
 /* ------ Resources et al ------ */
 
 /* Define the allocator descriptors for the resource types. */
-const char *const pdf_resource_type_names[] = {
+const int8_t *const pdf_resource_type_names[] = {
     PDF_RESOURCE_TYPE_NAMES
 };
 const gs_memory_struct_type_t *const pdf_resource_type_structs[] = {
@@ -911,7 +911,7 @@ pdf_print_resource_statistics(gx_device_pdf * pdev)
     for (rtype = 0; rtype < NUM_RESOURCE_TYPES; rtype++) {
 	pdf_resource_t **pchain = pdev->resources[rtype].chains;
 	pdf_resource_t *pres;
-	const char *name = pdf_resource_type_names[rtype];
+	const int8_t *name = pdf_resource_type_names[rtype];
 	int i, n = 0;
     
 	for (i = 0; i < NUM_RESOURCE_CHAINS; i++) {
@@ -924,22 +924,22 @@ pdf_print_resource_statistics(gx_device_pdf * pdev)
 
 
 /* Begin an object logically separate from the contents. */
-long
-pdf_open_separate(gx_device_pdf * pdev, long id)
+int32_t
+pdf_open_separate(gx_device_pdf * pdev, int32_t id)
 {
     pdf_open_document(pdev);
     pdev->asides.save_strm = pdev->strm;
     pdev->strm = pdev->asides.strm;
     return pdf_open_obj(pdev, id);
 }
-long
+int32_t
 pdf_begin_separate(gx_device_pdf * pdev)
 {
     return pdf_open_separate(pdev, 0L);
 }
 
 void
-pdf_reserve_object_id(gx_device_pdf * pdev, pdf_resource_t *pres, long id)
+pdf_reserve_object_id(gx_device_pdf * pdev, pdf_resource_t *pres, int32_t id)
 {
     pres->object->id = (id == 0 ? pdf_obj_ref(pdev) : id);
     sprintf(pres->rname, "R%ld", pres->object->id);
@@ -949,7 +949,7 @@ pdf_reserve_object_id(gx_device_pdf * pdev, pdf_resource_t *pres, long id)
 int
 pdf_alloc_aside(gx_device_pdf * pdev, pdf_resource_t ** plist,
 		const gs_memory_struct_type_t * pst, pdf_resource_t **ppres,
-		long id)
+		int32_t id)
 {
     pdf_resource_t *pres;
     cos_object_t *object;
@@ -984,7 +984,7 @@ int
 pdf_begin_aside(gx_device_pdf * pdev, pdf_resource_t ** plist,
 		const gs_memory_struct_type_t * pst, pdf_resource_t ** ppres)
 {
-    long id = pdf_begin_separate(pdev);
+    int32_t id = pdf_begin_separate(pdev);
 
     if (id < 0)
 	return (int)id;
@@ -1021,7 +1021,7 @@ pdf_begin_resource(gx_device_pdf * pdev, pdf_resource_type_t rtype, gs_id rid,
 /* Allocate a resource, but don't open the stream. */
 int
 pdf_alloc_resource(gx_device_pdf * pdev, pdf_resource_type_t rtype, gs_id rid,
-		   pdf_resource_t ** ppres, long id)
+		   pdf_resource_t ** ppres, int32_t id)
 {
     int code = pdf_alloc_aside(pdev, PDF_RESOURCE_CHAIN(pdev, rtype, rid),
 			       pdf_resource_type_structs[rtype], ppres, id);
@@ -1032,7 +1032,7 @@ pdf_alloc_resource(gx_device_pdf * pdev, pdf_resource_type_t rtype, gs_id rid,
 }
 
 /* Get the object id of a resource. */
-long
+int32_t
 pdf_resource_id(const pdf_resource_t *pres)
 {
     return pres->object->id;
@@ -1180,7 +1180,7 @@ pdf_store_page_resources(gx_device_pdf *pdev, pdf_page_t *page)
 
 	    for (; pres != 0; pres = pres->next) {
 		if (pres->where_used & pdev->used_mask) {
-		    long id = pres->object->id;
+		    int32_t id = pres->object->id;
 
 		    if (s == 0) {
 			page->resource_ids[i] = pdf_begin_separate(pdev);
@@ -1206,9 +1206,9 @@ pdf_store_page_resources(gx_device_pdf *pdev, pdf_page_t *page)
 
 /* Copy data from a temporary file to a stream. */
 void
-pdf_copy_data(stream *s, FILE *file, long count, stream_arcfour_state *ss)
+pdf_copy_data(stream *s, FILE *file, int32_t count, stream_arcfour_state *ss)
 {
-    long left = count;
+    int32_t left = count;
     byte buf[sbuf_size];
     
     while (left > 0) {
@@ -1226,14 +1226,14 @@ pdf_copy_data(stream *s, FILE *file, long count, stream_arcfour_state *ss)
 /* Copy data from a temporary file to a stream, 
    which may be targetted to the same file. */
 void
-pdf_copy_data_safe(stream *s, FILE *file, long position, long count)
+pdf_copy_data_safe(stream *s, FILE *file, int32_t position, int32_t count)
 {   
-    long left = count;
+    int32_t left = count;
 
     while (left > 0) {
 	byte buf[sbuf_size];
-	long copy = min(left, (long)sbuf_size);
-	long end_pos = ftell(file);
+	int32_t copy = min(left, (int32_t)sbuf_size);
+	int32_t end_pos = ftell(file);
 
 	fseek(file, position + count - left, SEEK_SET);
 	fread(buf, 1, copy, file);
@@ -1248,7 +1248,7 @@ pdf_copy_data_safe(stream *s, FILE *file, long position, long count)
 
 /* Get or assign the ID for a page. */
 /* Returns 0 if the page number is out of range. */
-long
+int32_t
 pdf_page_id(gx_device_pdf * pdev, int page_num)
 {
     cos_dict_t *Page;
@@ -1362,7 +1362,7 @@ pdf_unclip(gx_device_pdf * pdev)
 
 /* Generate the default Producer string. */
 void
-pdf_store_default_Producer(char buf[PDF_MAX_PRODUCER])
+pdf_store_default_Producer(int8_t buf[PDF_MAX_PRODUCER])
 {
     sprintf(buf, ((gs_revision % 100) == 0 ? "(%s %1.1f)" : "(%s %1.2f)"),
 	    gs_product, gs_revision / 100.0);
@@ -1370,8 +1370,8 @@ pdf_store_default_Producer(char buf[PDF_MAX_PRODUCER])
 
 /* Write matrix values. */
 void
-pdf_put_matrix(gx_device_pdf * pdev, const char *before,
-	       const gs_matrix * pmat, const char *after)
+pdf_put_matrix(gx_device_pdf * pdev, const int8_t *before,
+	       const gs_matrix * pmat, const int8_t *after)
 {
     stream *s = pdev->strm;
 
@@ -1396,7 +1396,7 @@ pdf_put_name_chars_1_2(stream *s, const byte *nstr, uint size)
 
     for (i = 0; i < size; ++i) {
 	uint c = nstr[i];
-	char hex[4];
+	int8_t hex[4];
 
 	switch (c) {
 	    default:
@@ -1587,7 +1587,7 @@ int
 pdf_put_filters(cos_dict_t *pcd, gx_device_pdf *pdev, stream *s,
 		const pdf_filter_names_t *pfn)
 {
-    const char *filter_name = 0;
+    const int8_t *filter_name = 0;
     bool binary_ok = true;
     stream *fs = s;
     cos_dict_t *decode_parms = 0;
@@ -1716,11 +1716,11 @@ pdf_append_data_stream_filters(gx_device_pdf *pdev, pdf_data_writer_t *pdw,
     int options = orig_options;
 #define USE_ASCII85 1
 #define USE_FLATE 2
-    static const char *const fnames[4] = {
+    static const int8_t *const fnames[4] = {
 	"", "/Filter/ASCII85Decode", "/Filter/FlateDecode",
 	"/Filter[/ASCII85Decode/FlateDecode]"
     };
-    static const char *const fnames1_2[4] = {
+    static const int8_t *const fnames1_2[4] = {
 	"", "/Filter/ASCII85Decode", "/Filter/LZWDecode",
 	"/Filter[/ASCII85Decode/LZWDecode]"
     };
@@ -1902,7 +1902,7 @@ pdf_function_aux(gx_device_pdf *pdev, const gs_function_t *pfn,
 	}
 	if (code >= 0) {
 	    byte buf[100];		/* arbitrary */
-	    ulong pos;
+	    uint32_t pos;
 	    uint count;
 	    const byte *ptr;
 
@@ -1980,7 +1980,8 @@ private int pdf_function_array(gx_device_pdf *pdev, cos_array_t *pca,
 
 /* Write a Function object. */
 int
-pdf_write_function(gx_device_pdf *pdev, const gs_function_t *pfn, long *pid)
+pdf_write_function(gx_device_pdf *pdev, const gs_function_t *pfn,
+                   int32_t *pid)
 {
     cos_value_t value;
     int code = pdf_function(pdev, pfn, &value);

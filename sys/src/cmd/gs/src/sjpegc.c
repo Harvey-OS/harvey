@@ -62,15 +62,15 @@ void
 jpeg_free_large(j_common_ptr cinfo, void FAR * object, size_t size);
 typedef void *backing_store_ptr;
 
-long
-jpeg_mem_available(j_common_ptr cinfo, long min_bytes_needed,
-		   long max_bytes_needed, long already_allocated);
+int32_t
+jpeg_mem_available(j_common_ptr cinfo, int32_t min_bytes_needed,
+		   int32_t max_bytes_needed, int32_t already_allocated);
 
 void
 jpeg_open_backing_store(j_common_ptr cinfo, backing_store_ptr info,
-			long total_bytes_needed);
+			int32_t total_bytes_needed);
 
-long
+int32_t
 jpeg_mem_init(j_common_ptr cinfo);
 
 void
@@ -93,7 +93,7 @@ private void
 gs_jpeg_error_exit(j_common_ptr cinfo)
 {
     jpeg_stream_data *jcomdp =
-    (jpeg_stream_data *) ((char *)cinfo -
+    (jpeg_stream_data *) ((int8_t *)cinfo -
 			  offset_of(jpeg_compress_data, cinfo));
 
     longjmp(jcomdp->exit_jmpbuf, 1);
@@ -106,7 +106,7 @@ gs_jpeg_emit_message(j_common_ptr cinfo, int msg_level)
 				 * treat them as errors when Picky=1.
 				 */
 	jpeg_stream_data *jcomdp =
-	(jpeg_stream_data *) ((char *)cinfo -
+	(jpeg_stream_data *) ((int8_t *)cinfo -
 			      offset_of(jpeg_compress_data, cinfo));
 
 	if (jcomdp->Picky)
@@ -141,7 +141,7 @@ int
 gs_jpeg_log_error(stream_DCT_state * st)
 {
     j_common_ptr cinfo = (j_common_ptr) & st->data.compress->cinfo;
-    char buffer[JMSG_LENGTH_MAX];
+    int8_t buffer[JMSG_LENGTH_MAX];
 
     /* Format the error message */
     (*cinfo->err->format_message) (cinfo, buffer);
@@ -203,7 +203,7 @@ cinfo2jcd(j_common_ptr cinfo)
 }
 
 private void *
-jpeg_alloc(j_common_ptr cinfo, size_t size, const char *info)
+jpeg_alloc(j_common_ptr cinfo, size_t size, const int8_t *info)
 {
     jpeg_compress_data *jcd = cinfo2jcd(cinfo);
     gs_memory_t *mem = jcd->memory;
@@ -224,7 +224,7 @@ jpeg_alloc(j_common_ptr cinfo, size_t size, const char *info)
 }
 
 private void
-jpeg_free(j_common_ptr cinfo, void *data, const char *info)
+jpeg_free(j_common_ptr cinfo, void *data, const int8_t *info)
 {
     jpeg_compress_data *jcd = cinfo2jcd(cinfo);
     gs_memory_t *mem = jcd->memory;
@@ -237,7 +237,7 @@ jpeg_free(j_common_ptr cinfo, void *data, const char *info)
         p = p->next;
       }
     if(p == 0)
-      lprintf1("Freeing unrecorded JPEG data 0x%lx!\n", (ulong)data);
+      lprintf1("Freeing unrecorded JPEG data 0x%lx!\n", (uint32_t)data);
     else
       *pp = p->next;
     gs_free_object(mem, p, "jpeg_free(block)");
@@ -267,21 +267,21 @@ jpeg_free_large(j_common_ptr cinfo, void FAR * object, size_t size)
     jpeg_free(cinfo, object, "Freeing JPEG large internal data");
 }
 
-long
-jpeg_mem_available(j_common_ptr cinfo, long min_bytes_needed,
-		   long max_bytes_needed, long already_allocated)
+int32_t
+jpeg_mem_available(j_common_ptr cinfo, int32_t min_bytes_needed,
+		   int32_t max_bytes_needed, int32_t already_allocated)
 {
     return max_bytes_needed;
 }
 
 void
 jpeg_open_backing_store(j_common_ptr cinfo, backing_store_ptr info,
-			long total_bytes_needed)
+			int32_t total_bytes_needed)
 {
     ERREXIT(cinfo, JERR_NO_BACKING_STORE);
 }
 
-long
+int32_t
 jpeg_mem_init(j_common_ptr cinfo)
 {
     return 0;			/* just set max_memory_to_use to 0 */

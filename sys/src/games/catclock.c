@@ -72,7 +72,7 @@ Image *eballoc(Rectangle r, int chan){
 }
 
 void
-eloadimage(Image *i, Rectangle r, uchar *d, int nd)
+eloadimage(Image *i, Rectangle r, uint8_t *d, int nd)
 {
 	int n;
 	n = loadimage(i, r, d, nd);
@@ -388,8 +388,8 @@ int myfillpoly(Bitmap *b, Point vert[], int nvert, Windrule w, int v, Fcode f){
 			}
 		}
 	}
-	free((char *)edges);
-	free((char *)ylist);
+	free((int8_t *)edges);
+	free((int8_t *)ylist);
 	return 1;
 }
 #endif

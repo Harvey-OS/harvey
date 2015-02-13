@@ -21,30 +21,30 @@ enum {
 
 typedef struct File File;
 struct File{
-	char	*new;
-	char	*elem;
-	char	*old;
-	char	*uid;
-	char	*gid;
-	ulong	mode;
+	int8_t	*new;
+	int8_t	*elem;
+	int8_t	*old;
+	int8_t	*uid;
+	int8_t	*gid;
+	uint32_t	mode;
 };
 
-typedef void Mkfserr(char*, void*);
-typedef void Mkfsenum(char*, char*, Dir*, void*);
+typedef void Mkfserr(int8_t*, void*);
+typedef void Mkfsenum(int8_t*, int8_t*, Dir*, void*);
 
 typedef struct Name Name;
 struct Name {
 	int n;
-	char *s;
+	int8_t *s;
 };
 
 typedef struct Mkaux Mkaux;
 struct Mkaux {
 	Mkfserr *warn;
 	Mkfsenum *mkenum;
-	char *root;
-	char *xroot;
-	char *proto;
+	int8_t *root;
+	int8_t *xroot;
+	int8_t *proto;
 	jmp_buf jmp;
 	Biobuf *b;
 
@@ -61,15 +61,15 @@ static void domkfs(Mkaux *mkaux, File *me, int level);
 static int	copyfile(Mkaux*, File*, Dir*, int);
 static void	freefile(File*);
 static File*	getfile(Mkaux*, File*);
-static char*	getmode(Mkaux*, char*, ulong*);
-static char*	getname(Mkaux*, char*, char**);
-static char*	getpath(Mkaux*, char*);
+static int8_t*	getmode(Mkaux*, int8_t*, uint32_t*);
+static int8_t*	getname(Mkaux*, int8_t*, int8_t**);
+static int8_t*	getpath(Mkaux*, int8_t*);
 static int	mkfile(Mkaux*, File*);
-static char*	mkpath(Mkaux*, char*, char*);
+static int8_t*	mkpath(Mkaux*, int8_t*, int8_t*);
 static void	mktree(Mkaux*, File*, int);
 static void	setnames(Mkaux*, File*);
 static void	skipdir(Mkaux*);
-static void	warn(Mkaux*, char *, ...);
+static void	warn(Mkaux*, int8_t *, ...);
 
 //static void
 //mprint(char *new, char *old, Dir *d, void*)
@@ -78,7 +78,8 @@ static void	warn(Mkaux*, char *, ...);
 //}
 
 int
-revrdproto(char *proto, char *root, char *xroot, Mkfsenum *mkenum, Mkfserr *mkerr, void *a)
+revrdproto(int8_t *proto, int8_t *root, int8_t *xroot, Mkfsenum *mkenum,
+	   Mkfserr *mkerr, void *a)
 {
 	Mkaux mx, *m;
 	File file;
@@ -117,7 +118,7 @@ revrdproto(char *proto, char *root, char *xroot, Mkfsenum *mkenum, Mkfserr *mker
 }
 
 static void*
-emalloc(Mkaux *mkaux, ulong n)
+emalloc(Mkaux *mkaux, uint32_t n)
 {
 	void *v;
 
@@ -128,8 +129,8 @@ emalloc(Mkaux *mkaux, ulong n)
 	return v;
 }
 
-static char*
-estrdup(Mkaux *mkaux, char *s)
+static int8_t*
+estrdup(Mkaux *mkaux, int8_t *s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -173,7 +174,7 @@ enum {
 };
 
 static void
-setname(Mkaux *mkaux, Name *name, char *s1, char *s2)
+setname(Mkaux *mkaux, Name *name, int8_t *s1, int8_t *s2)
 {
 	int l;
 
@@ -236,8 +237,8 @@ static int
 copyfile(Mkaux *mkaux, File *f, Dir *d, int permonly)
 {
 	Dir *nd;
-	ulong xmode;
-	char *p;
+	uint32_t xmode;
+	int8_t *p;
 
 	/*
 	 * Extra stat here is inefficient but accounts for binds.
@@ -278,10 +279,10 @@ copyfile(Mkaux *mkaux, File *f, Dir *d, int permonly)
 	return (xmode&DMDIR) != 0;
 }
 
-static char *
-mkpath(Mkaux *mkaux, char *prefix, char *elem)
+static int8_t *
+mkpath(Mkaux *mkaux, int8_t *prefix, int8_t *elem)
 {
-	char *p;
+	int8_t *p;
 	int n;
 
 	n = strlen(prefix) + strlen(elem) + 2;
@@ -322,7 +323,7 @@ freefile(File *f)
 static void
 skipdir(Mkaux *mkaux)
 {
-	char *p, c;
+	int8_t *p, c;
 	int level;
 
 	if(mkaux->indent < 0)
@@ -355,8 +356,8 @@ static File*
 getfile(Mkaux *mkaux, File *old)
 {
 	File *f;
-	char *elem;
-	char *p;
+	int8_t *elem;
+	int8_t *p;
 	int c;
 
 	if(mkaux->indent < 0)
@@ -410,10 +411,10 @@ loop:
 	return f;
 }
 
-static char*
-getpath(Mkaux *mkaux, char *p)
+static int8_t*
+getpath(Mkaux *mkaux, int8_t *p)
 {
-	char *q, *new;
+	int8_t *q, *new;
 	int c, n;
 
 	while((c = *p) == ' ' || c == '\t')
@@ -430,10 +431,10 @@ getpath(Mkaux *mkaux, char *p)
 	return new;
 }
 
-static char*
-getname(Mkaux *mkaux, char *p, char **buf)
+static int8_t*
+getname(Mkaux *mkaux, int8_t *p, int8_t **buf)
 {
-	char *s, *start;
+	int8_t *s, *start;
 	int c;
 
 	while((c = *p) == ' ' || c == '\t')
@@ -464,11 +465,11 @@ getname(Mkaux *mkaux, char *p, char **buf)
 	return p;
 }
 
-static char*
-getmode(Mkaux *mkaux, char *p, ulong *xmode)
+static int8_t*
+getmode(Mkaux *mkaux, int8_t *p, uint32_t *xmode)
 {
-	char *buf, *s;
-	ulong m;
+	int8_t *buf, *s;
+	uint32_t m;
 
 	*xmode = ~0;
 	p = getname(mkaux, p, &buf);
@@ -505,9 +506,9 @@ getmode(Mkaux *mkaux, char *p, ulong *xmode)
 }
 
 static void
-warn(Mkaux *mkaux, char *fmt, ...)
+warn(Mkaux *mkaux, int8_t *fmt, ...)
 {
-	char buf[256];
+	int8_t buf[256];
 	va_list va;
 
 	va_start(va, fmt);

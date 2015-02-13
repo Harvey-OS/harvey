@@ -33,9 +33,9 @@ enum {
 };
 
 typedef struct{
-	uchar	ea[Eaddrlen];
+	uint8_t	ea[Eaddrlen];
 	int	major;
-	char	name[28];
+	int8_t	name[28];
 } Shelf;
 
 int 	conn(int);
@@ -48,27 +48,27 @@ int	shelfidx(void);
 Shelf	*con;
 Shelf	tab[1000];
 
-char	*host;
-char	*srv;
-char	*svc;
+int8_t	*host;
+int8_t	*srv;
+int8_t	*svc;
 
-char	pflag;
+int8_t	pflag;
 
 int	ntab;
 int	shelf = -1;
 
-uchar	bcast[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-uchar	contag;
-uchar 	esc = '';
-uchar	ea[Eaddrlen];
-uchar	unsetea[Eaddrlen];
+uint8_t	bcast[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+uint8_t	contag;
+uint8_t 	esc = '';
+uint8_t	ea[Eaddrlen];
+uint8_t	unsetea[Eaddrlen];
 
 extern 	int fd;		/* set in netopen */
 
 void
-post(char *srv, int fd)
+post(int8_t *srv, int fd)
 {
-	char buf[32];
+	int8_t buf[32];
 	int f;
 
 	if((f = create(srv, OWRITE, 0666)) == -1)
@@ -80,7 +80,7 @@ post(char *srv, int fd)
 }
 
 void
-dosrv(char *s)
+dosrv(int8_t *s)
 {
 	int p[2];
 
@@ -115,7 +115,7 @@ usage(void)
 }
 
 void
-catch(void*, char *note)
+catch(void*, int8_t *note)
 {
 	if(strcmp(note, "alarm") == 0)
 		noted(NCONT);
@@ -123,7 +123,7 @@ catch(void*, char *note)
 }
 
 int
-nilea(uchar *ea)
+nilea(uint8_t *ea)
 {
 	return memcmp(ea, unsetea, Eaddrlen) == 0;
 }
@@ -205,7 +205,7 @@ timewait(int ms)
 int
 didtimeout(void)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	rerrstr(buf, sizeof buf);
 	if(strcmp(buf, "interrupted") == 0){
@@ -215,26 +215,26 @@ didtimeout(void)
 	return 0;
 }
 
-ushort
-htons(ushort h)
+uint16_t
+htons(uint16_t h)
 {
-	ushort n;
-	uchar *p;
+	uint16_t n;
+	uint8_t *p;
 
-	p = (uchar*)&n;
+	p = (uint8_t*)&n;
 	p[0] = h >> 8;
 	p[1] = h;
 	return n;
 }
 
-ushort
+uint16_t
 ntohs(int h)
 {
-	ushort n;
-	uchar *p;
+	uint16_t n;
+	uint8_t *p;
 
 	n = h;
-	p = (uchar*)&n;
+	p = (uint8_t*)&n;
 	return p[0] << 8 | p[1];
 }
 
@@ -257,7 +257,7 @@ tcmp(void *a, void *b)
 void
 probe(void)
 {
-	char *sh, *other;
+	int8_t *sh, *other;
 	int n;
 	Pkt q;
 	Shelf *p;
@@ -279,7 +279,7 @@ probe(void)
 			if(n < 60 || q.len == 0 || q.type != Toffer)
 				continue;
 			q.data[q.len] = 0;
-			sh = strtok((char *)q.data, " \t");
+			sh = strtok((int8_t *)q.data, " \t");
 			if(sh == nil)
 				continue;
 			if(!nilea(ea) && memcmp(ea, q.src, Eaddrlen) != 0)
@@ -319,7 +319,7 @@ showtable(void)
 int
 pickone(void)
 {
-	char buf[80];
+	int8_t buf[80];
 	int n, i;
 
 	for(;;){
@@ -399,10 +399,10 @@ ethopen(void)
 	return 0;
 }
 
-char
+int8_t
 escape(void)
 {
-	char buf[64];
+	int8_t buf[64];
 	int r;
 
 	for(;;){
@@ -426,10 +426,10 @@ escape(void)
 /*
  * this is a bit too aggressive.  it really needs to replace only \n\r with \n.
  */
-static uchar crbuf[256];
+static uint8_t crbuf[256];
 
 void
-nocrwrite(int fd, uchar *buf, int n)
+nocrwrite(int fd, uint8_t *buf, int n)
 {
 	int i, j, c;
 
@@ -444,8 +444,8 @@ int
 doloop(void)
 {
 	int unacked, retries, set[2];
-	uchar c, tseq, rseq;
-	uchar ea[Eaddrlen];
+	uint8_t c, tseq, rseq;
+	uint8_t ea[Eaddrlen];
 	Pkt tpk, spk;
 	Mux *m;
 
@@ -556,7 +556,7 @@ conn(int n)
 }
 
 void
-exits0(char *s)
+exits0(int8_t *s)
 {
 	if(con != nil)
 		ethclose();

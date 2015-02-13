@@ -59,7 +59,7 @@ enum{
 	ESize,
 };
 
-static char *cmds[] = {
+static int8_t *cmds[] = {
 	[EBorder] =	"border",
 	[EBordercolor] = "bordercolor",
 	[EFocus] = 	"focus",
@@ -81,7 +81,7 @@ enum
 	Nrow = 5
 };
 
-static uchar wid [Nrow][16] = {
+static uint8_t wid [Nrow][16] = {
 	{16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 30, },
 	{24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 24, },
 	{32, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, },
@@ -89,7 +89,7 @@ static uchar wid [Nrow][16] = {
 	{30, 30, 80, 40, 42, 24, },
 };
 
-static char *keyregular[Nrow] = {
+static int8_t *keyregular[Nrow] = {
 	"`\0001\0002\0003\0004\0005\0006\0007\0008\0009\0000\0-\0=\0\\\0<-\0\0",
 	"->\0q\0w\0e\0r\0t\0y\0u\0i\0o\0p\0[\0]\0Del\0\0",
 	"Caps\0a\0s\0d\0f\0g\0h\0j\0k\0l\0;\0'\0Enter\0\0",
@@ -97,7 +97,7 @@ static char *keyregular[Nrow] = {
 	"Ctrl\0Alt\0 \0Scrib\0Menu\0Esc\0\0"
 };
 
-static char *keyshift[Nrow] = {
+static int8_t *keyshift[Nrow] = {
 	"~\0!\0@\0#\0$\0%\0^\0&\0*\0(\0)\0_\0+\0|\0<-\0\0",
 	"->\0Q\0W\0E\0R\0T\0Y\0U\0I\0O\0P\0{\0}\0Del\0\0",
 	"Caps\0A\0S\0D\0F\0G\0H\0J\0K\0L\0:\0\"\0Enter\0\0",
@@ -105,7 +105,7 @@ static char *keyshift[Nrow] = {
 	"Ctrl\0Alt\0 \0Scrib\0Menu\0Esc\0\0"
 };
 
-static char *keycaps[Nrow] = {
+static int8_t *keycaps[Nrow] = {
 	"`\0001\0002\0003\0004\0005\0006\0007\0008\0009\0000\0-\0=\0\\\0<-\0\0",
 	"->\0Q\0W\0E\0R\0T\0Y\0U\0I\0O\0P\0[\0]\0Del\0\0",
 	"Caps\0A\0S\0D\0F\0G\0H\0J\0K\0L\0;\0'\0Enter\0\0",
@@ -113,7 +113,7 @@ static char *keycaps[Nrow] = {
 	"Ctrl\0Alt\0 \0Scrib\0Menu\0Esc\0\0"
 };
 
-static char *keycapsshift[Nrow] = {
+static int8_t *keycapsshift[Nrow] = {
 	"~\0!\0@\0#\0$\0%\0^\0&\0*\0(\0)\0_\0+\0|\0<-\0\0",
 	"->\0q\0w\0e\0r\0t\0y\0u\0i\0o\0p\0{\0}\0Del\0\0",
 	"Caps\0a\0s\0d\0f\0g\0h\0j\0k\0l\0:\0\"\0Enter\0\0",
@@ -122,7 +122,7 @@ static char *keycapsshift[Nrow] = {
 };
 
 struct{
-	char	*name;
+	int8_t	*name;
 	int	val;
 }keytab[] = {
 	"Shift",	0,
@@ -139,7 +139,7 @@ struct{
 	nil,		0,
 };
 
-static char **keyset[Nstate] = {
+static int8_t **keyset[Nstate] = {
 	keyregular,
 	keyshift,
 	keycaps,
@@ -194,11 +194,11 @@ keyboardy(Keyboard *k, int row)
 	return k->rect.min.y+k->border+(row*dy+Nrow-1)/Nrow;
 }
 
-static char*
+static int8_t*
 whichkey(Keyboard *k, Point p, int *rowp, int *colp, Rectangle *rp)
 {
-	uchar *wp;
-	char *kp;
+	uint8_t *wp;
+	int8_t *kp;
 	int row, col, dx, dy, x, n, maxx;
 	Rectangle r;
 
@@ -235,8 +235,8 @@ whichkey(Keyboard *k, Point p, int *rowp, int *colp, Rectangle *rp)
 static Rectangle
 keyrect(Keyboard *k, int row, int col)
 {
-	uchar *wp;
-	char *kp;
+	uint8_t *wp;
+	int8_t *kp;
 	int i, x, n, dx;
 	Rectangle r;
 	Point p;
@@ -267,8 +267,8 @@ keydraw(Keyboard *k, int state)
 {
 	Point p, q;
 	int row, col, x, dx, dy, nexty, n;
-	uchar *wp;
-	char *kp;
+	uint8_t *wp;
+	int8_t *kp;
 	Rectangle r;
 	Font *f, *f1, *f2;
 	Image *im;
@@ -369,7 +369,7 @@ keydown(Keyboard *k, Point p)
 {
 	int row, col;
 	Rectangle r;
-	char *s;
+	int8_t *s;
 
 	s = whichkey(k, p, &row, &col, &r);
 	if(s == k->key)
@@ -382,7 +382,7 @@ keydown(Keyboard *k, Point p)
 }
 
 static int
-keylookup(char *s)
+keylookup(int8_t *s)
 {
 	int i;
 
@@ -397,7 +397,7 @@ keyup(Keyboard *k, Point p)
 {
 	int row, col;
 	Rectangle r;
-	char *s;
+	int8_t *s;
 	int val;
 
 	s = whichkey(k, p, &row, &col, &r);
@@ -520,7 +520,7 @@ keyboardctl(Control *c, CParse *cp)
 }
 
 Control*
-createkeyboard(Controlset *cs, char *name)
+createkeyboard(Controlset *cs, int8_t *name)
 {
 	Keyboard *k;
 

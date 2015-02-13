@@ -20,20 +20,20 @@
 int	fields	= 0;
 int	letters	= 0;
 int	linec	= 0;
-char	mode;
+int8_t	mode;
 int	uniq;
-char	*b1, *b2;
-long	bsize;
+int8_t	*b1, *b2;
+int32_t	bsize;
 Biobuf	fin;
 Biobuf	fout;
 
-int	gline(char *buf);
-void	pline(char *buf);
-int	equal(char *b1, char *b2);
-char*	skip(char *s);
+int	gline(int8_t *buf);
+void	pline(int8_t *buf);
+int	equal(int8_t *b1, int8_t *b2);
+int8_t*	skip(int8_t *s);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int f;
 
@@ -93,10 +93,10 @@ main(int argc, char *argv[])
 }
 
 int
-gline(char *buf)
+gline(int8_t *buf)
 {
 	int len;
-	char *p;
+	int8_t *p;
 
 	p = Brdline(&fin, '\n');
 	if(p == 0)
@@ -110,7 +110,7 @@ gline(char *buf)
 }
 
 void
-pline(char *buf)
+pline(int8_t *buf)
 {
 	switch(mode) {
 
@@ -134,9 +134,9 @@ pline(char *buf)
 }
 
 int
-equal(char *b1, char *b2)
+equal(int8_t *b1, int8_t *b2)
 {
-	char c;
+	int8_t c;
 
 	if(fields || letters) {
 		b1 = skip(b1);
@@ -156,8 +156,8 @@ equal(char *b1, char *b2)
 	}
 }
 
-char*
-skip(char *s)
+int8_t*
+skip(int8_t *s)
 {
 	int nf, nl;
 

@@ -9,11 +9,11 @@
 
 #include <string.h>
 
-char*
-strncat(char *s1, const char *s2, size_t n)
+int8_t*
+strncat(int8_t *s1, const int8_t *s2, size_t n)
 {
-	char *os1;
-	long nn;
+	int8_t *os1;
+	int32_t nn;
 
 	os1 = s1;
 	nn = n;

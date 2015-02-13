@@ -14,7 +14,7 @@
 Image*
 readimage(Display *d, int fd, int dolock)
 {
-	char hdr[5*12+1];
+	int8_t hdr[5*12+1];
 	int dy;
 	int new;
 	uint l, n;
@@ -22,8 +22,8 @@ readimage(Display *d, int fd, int dolock)
 	int miny, maxy;
 	Rectangle r;
 	int ldepth;
-	ulong chan;
-	uchar *tmp;
+	uint32_t chan;
+	uint8_t *tmp;
 	Image *i;
 
 	if(readn(fd, hdr, 11) != 11)

@@ -10,26 +10,26 @@
 #include "headers.h"
 
 SmbClient *
-smbconnect(char *to, char *share, char **errmsgp)
+smbconnect(int8_t *to, int8_t *share, int8_t **errmsgp)
 {
 	NbSession *nbs;
 	SmbBuffer *b;
 	SmbHeader h, rh;
-	long n;
-	ushort bytecountfixupoffset;
-	ushort andxfixupoffset;
-	uchar *pdata;
+	int32_t n;
+	uint16_t bytecountfixupoffset;
+	uint16_t andxfixupoffset;
+	uint8_t *pdata;
 	SmbPeerInfo peerinfo;
-	ushort index;
-	vlong utcintenthsofaus;
-	ulong secssince1970;
-	ushort bytecount;
+	uint16_t index;
+	int64_t utcintenthsofaus;
+	uint32_t secssince1970;
+	uint16_t bytecount;
 	int x;
 	MSchapreply mschapreply;
 	NbName nbto;
 	SmbClient *c;
-	char namebuf[100];
-	ushort ipctid, sharetid;
+	int8_t namebuf[100];
+	uint16_t ipctid, sharetid;
 
 	nbmknamefromstringandtype(nbto, to, 0x20);
 
@@ -91,7 +91,7 @@ print("netbios session established\n");
 	peerinfo.capabilities = smbnhgets(pdata); pdata += 4;
 	utcintenthsofaus = smbnhgetv(pdata); pdata += 8;
 	secssince1970 = utcintenthsofaus / 10000000 - 11644473600LL;
-	peerinfo.utc =  (vlong)secssince1970 * (vlong)1000000000 + (utcintenthsofaus % 10000000) * 100;
+	peerinfo.utc =  (int64_t)secssince1970 * (int64_t)1000000000 + (utcintenthsofaus % 10000000) * 100;
 	peerinfo.tzoff = -smbnhgets(pdata) * 60; pdata += 2;
 	peerinfo.encryptionkeylength = *pdata++;
 	print("securitymode: 0x%.2ux\n", peerinfo.securitymode);
@@ -260,7 +260,7 @@ smbclientfree(SmbClient *c)
 }
 
 int
-smbtransactionclientsend(void *magic, SmbBuffer *ob, char **)
+smbtransactionclientsend(void *magic, SmbBuffer *ob, int8_t **)
 {
 	SmbClient *c = magic;
 smblogprint(-1, "sending:\n");
@@ -269,9 +269,9 @@ smblogdata(-1, smblogprint, smbbufferreadpointer(ob), smbbufferwriteoffset(ob), 
 }
 
 int
-smbtransactionclientreceive(void *magic, SmbBuffer *ib, char **)
+smbtransactionclientreceive(void *magic, SmbBuffer *ib, int8_t **)
 {
-	long n; 
+	int32_t n; 
 	SmbClient *c = magic;
 	smbbufferreset(ib);
 	n = nbssread(c->nbss, smbbufferwritepointer(ib), smbbufferwritespace(ib));

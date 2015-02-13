@@ -15,7 +15,7 @@
 /*
  * Start executing the given code at the given pc with the given redirection
  */
-char *argv0="rc";
+int8_t *argv0="rc";
 
 void
 start(code *c, int pc, var *local)
@@ -37,7 +37,7 @@ start(code *c, int pc, var *local)
 }
 
 word*
-newword(char *wd, word *next)
+newword(int8_t *wd, word *next)
 {
 	word *p = new(word);
 	p->word = strdup(wd);
@@ -46,7 +46,7 @@ newword(char *wd, word *next)
 }
 
 void
-pushword(char *wd)
+pushword(int8_t *wd)
 {
 	if(runq->argv==0)
 		panic("pushword but no argv!", 0);
@@ -64,7 +64,7 @@ popword(void)
 		panic("popword but no word!", 0);
 	runq->argv->words = p->next;
 	efree(p->word);
-	efree((char *)p);
+	efree((int8_t *)p);
 }
 
 void
@@ -74,7 +74,7 @@ freelist(word *w)
 	while(w){
 		nw = w->next;
 		efree(w->word);
-		efree((char *)w);
+		efree((int8_t *)w);
 		w = nw;
 	}
 }
@@ -96,7 +96,7 @@ poplist(void)
 		panic("poplist but no argv", 0);
 	freelist(p->words);
 	runq->argv = p->next;
-	efree((char *)p);
+	efree((int8_t *)p);
 }
 
 int
@@ -119,7 +119,7 @@ pushredir(int type, int from, int to)
 }
 
 var*
-newvar(char *name, var *next)
+newvar(int8_t *name, var *next)
 {
 	var *v = new(var);
 	v->name = name;
@@ -139,10 +139,10 @@ newvar(char *name, var *next)
  */
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	code bootstrap[17];
-	char num[12], *rcmain;
+	int8_t num[12], *rcmain;
 	int i;
 	argc = getflags(argc, argv, "SsrdiIlxepvVc:1m:1[command]", 1);
 	if(argc==-1)
@@ -254,7 +254,7 @@ main(int argc, char *argv[])
 void
 Xappend(void)
 {
-	char *file;
+	int8_t *file;
 	int f;
 	switch(count(runq->argv->words)){
 	default:
@@ -371,7 +371,7 @@ Xpopm(void)
 void
 Xread(void)
 {
-	char *file;
+	int8_t *file;
 	int f;
 	switch(count(runq->argv->words)){
 	default:
@@ -397,7 +397,7 @@ Xread(void)
 void
 Xrdwr(void)
 {
-	char *file;
+	int8_t *file;
 	int f;
 
 	switch(count(runq->argv->words)){
@@ -437,7 +437,7 @@ Xpopredir(void)
 	runq->redir = rp->next;
 	if(rp->type==ROPEN)
 		close(rp->from);
-	efree((char *)rp);
+	efree((int8_t *)rp);
 }
 
 void
@@ -448,7 +448,7 @@ Xreturn(void)
 	while(p->argv) poplist();
 	codefree(p->code);
 	runq = p->ret;
-	efree((char *)p);
+	efree((int8_t *)p);
 	if(runq==0)
 		Exit(getstatus());
 }
@@ -483,7 +483,7 @@ Xword(void)
 void
 Xwrite(void)
 {
-	char *file;
+	int8_t *file;
 	int f;
 	switch(count(runq->argv->words)){
 	default:
@@ -506,10 +506,10 @@ Xwrite(void)
 	poplist();
 }
 
-char*
+int8_t*
 list2str(word *words)
 {
-	char *value, *s, *t;
+	int8_t *value, *s, *t;
 	int len = 0;
 	word *ap;
 	for(ap = words;ap;ap = ap->next)
@@ -530,7 +530,7 @@ void
 Xmatch(void)
 {
 	word *p;
-	char *subject;
+	int8_t *subject;
 	subject = list2str(runq->argv->words);
 	setstatus("no match");
 	for(p = runq->argv->next->words;p;p = p->next)
@@ -547,7 +547,7 @@ void
 Xcase(void)
 {
 	word *p;
-	char *s;
+	int8_t *s;
 	int ok = 0;
 	s = list2str(runq->argv->next->words);
 	for(p = runq->argv->words;p;p = p->next){
@@ -567,12 +567,12 @@ Xcase(void)
 word*
 conclist(word *lp, word *rp, word *tail)
 {
-	char *buf;
+	int8_t *buf;
 	word *v;
 	if(lp->next || rp->next)
 		tail = conclist(lp->next==0? lp: lp->next,
 			rp->next==0? rp: rp->next, tail);
-	buf = emalloc(strlen(lp->word)+strlen((char *)rp->word)+1);
+	buf = emalloc(strlen(lp->word)+strlen((int8_t *)rp->word)+1);
 	strcpy(buf, lp->word);
 	strcat(buf, rp->word);
 	v = newword(buf, tail);
@@ -639,7 +639,7 @@ void
 Xdol(void)
 {
 	word *a, *star;
-	char *s, *t;
+	int8_t *s, *t;
 	int n;
 	if(count(runq->argv->words)!=1){
 		Xerror1("variable name not singleton!");
@@ -667,7 +667,7 @@ void
 Xqdol(void)
 {
 	word *a, *p;
-	char *s;
+	int8_t *s;
 	int n;
 	if(count(runq->argv->words)!=1){
 		Xerror1("variable name not singleton!");
@@ -717,7 +717,7 @@ word*
 subwords(word *val, int len, word *sub, word *a)
 {
 	int n, m;
-	char *s;
+	int8_t *s;
 	if(!sub)
 		return a;
 	a = subwords(val, len, sub->next, a);
@@ -749,7 +749,7 @@ void
 Xsub(void)
 {
 	word *a, *v;
-	char *s;
+	int8_t *s;
 	if(count(runq->argv->next->words)!=1){
 		Xerror1("variable name not singleton!");
 		return;
@@ -768,9 +768,9 @@ void
 Xcount(void)
 {
 	word *a;
-	char *s, *t;
+	int8_t *s, *t;
 	int n;
-	char num[12];
+	int8_t num[12];
 	if(count(runq->argv->words)!=1){
 		Xerror1("variable name not singleton!");
 		return;
@@ -819,7 +819,7 @@ Xunlocal(void)
 	hid->changed = 1;
 	efree(v->name);
 	freewords(v->val);
-	efree((char *)v);
+	efree((int8_t *)v);
 }
 
 void
@@ -829,7 +829,7 @@ freewords(word *w)
 	while(w){
 		efree(w->word);
 		nw = w->next;
-		efree((char *)w);
+		efree((int8_t *)w);
 		w = nw;
 	}
 }
@@ -869,10 +869,10 @@ Xdelfn(void)
 	poplist();
 }
 
-char*
-concstatus(char *s, char *t)
+int8_t*
+concstatus(int8_t *s, int8_t *t)
 {
-	static char v[NSTATUS+1];
+	static int8_t v[NSTATUS+1];
 	int n = strlen(s);
 	strncpy(v, s, NSTATUS);
 	if(n<NSTATUS){
@@ -886,7 +886,7 @@ concstatus(char *s, char *t)
 void
 Xpipewait(void)
 {
-	char status[NSTATUS+1];
+	int8_t status[NSTATUS+1];
 	if(runq->pid==-1)
 		setstatus(concstatus(runq->status, getstatus()));
 	else{
@@ -939,7 +939,7 @@ Xrdcmds(void)
 }
 
 void
-Xerror(char *s)
+Xerror(int8_t *s)
 {
 	if(strcmp(argv0, "rc")==0 || strcmp(argv0, "/bin/rc")==0)
 		pfmt(err, "rc: %s: %r\n", s);
@@ -951,7 +951,7 @@ Xerror(char *s)
 }
 
 void
-Xerror1(char *s)
+Xerror1(int8_t *s)
 {
 	if(strcmp(argv0, "rc")==0 || strcmp(argv0, "/bin/rc")==0)
 		pfmt(err, "rc: %s\n", s);
@@ -963,12 +963,12 @@ Xerror1(char *s)
 }
 
 void
-setstatus(char *s)
+setstatus(int8_t *s)
 {
 	setvar("status", newword(s, (word *)0));
 }
 
-char*
+int8_t*
 getstatus(void)
 {
 	var *status = vlook("status");
@@ -978,7 +978,7 @@ getstatus(void)
 int
 truestatus(void)
 {
-	char *s;
+	int8_t *s;
 	for(s = getstatus();*s;s++)
 		if(*s!='|' && *s!='0')
 			return 0;

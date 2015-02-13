@@ -12,7 +12,7 @@
 #define	MASK	0x7FFFFFFFL
 #define	FRACT	(1.0 / (MASK + 1.0))
 
-extern long lrand(void);
+extern int32_t lrand(void);
 
 double
 frand(void)

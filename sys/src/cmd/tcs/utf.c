@@ -29,11 +29,11 @@
 	unsigned char.
 */
 
-int our_wctomb(char *s, unsigned long wc);
-int our_mbtowc(unsigned long *p, char *s, unsigned n);
-int runetoisoutf(char *str, Rune *rune);
-int fullisorune(char *str, int n);
-int isochartorune(Rune *rune, char *str);
+int our_wctomb(int8_t *s, unsigned long wc);
+int our_mbtowc(unsigned long *p, int8_t *s, unsigned n);
+int runetoisoutf(int8_t *str, Rune *rune);
+int fullisorune(int8_t *str, int n);
+int isochartorune(Rune *rune, int8_t *str);
 
 void
 utf_in(int fd, long *notused, struct convert *out)
@@ -74,9 +74,9 @@ utf_in(int fd, long *notused, struct convert *out)
 }
 
 void
-utf_out(Rune *base, int n, long *notused)
+utf_out(Rune *base, int n, int32_t *notused)
 {
-	char *p;
+	int8_t *p;
 	Rune *r;
 
 	USED(notused);
@@ -126,9 +126,9 @@ isoutf_in(int fd, long *notused, struct convert *out)
 }
 
 void
-isoutf_out(Rune *base, int n, long *notused)
+isoutf_out(Rune *base, int n, int32_t *notused)
 {
-	char *p;
+	int8_t *p;
 	Rune *r;
 
 	USED(notused);
@@ -149,8 +149,8 @@ enum
 	Esc	= 0xBE,		Bad	= Runeerror
 };
 
-static	uchar	U[256];
-static	uchar	T[256];
+static	uint8_t	U[256];
+static	uint8_t	T[256];
 
 static
 void
@@ -172,10 +172,10 @@ mktable(void)
 }
 
 int
-isochartorune(Rune *rune, char *str)
+isochartorune(Rune *rune, int8_t *str)
 {
 	int c, c1, c2;
-	long l;
+	int32_t l;
 
 	if(U[0] == 0)
 		mktable();
@@ -184,7 +184,7 @@ isochartorune(Rune *rune, char *str)
 	 * one character sequence
 	 *	00000-0009F => 00-9F
 	 */
-	c = *(uchar*)str;
+	c = *(uint8_t*)str;
 	if(c < Char1) {
 		*rune = c;
 		return 1;
@@ -194,7 +194,7 @@ isochartorune(Rune *rune, char *str)
 	 * two character sequence
 	 *	000A0-000FF => A0; A0-FF
 	 */
-	c1 = *(uchar*)(str+1);
+	c1 = *(uint8_t*)(str+1);
 	if(c < Char21) {
 		if(c1 >= Rune1 && c1 < Rune21) {
 			*rune = c1;
@@ -219,7 +219,7 @@ isochartorune(Rune *rune, char *str)
 	 * three character sequence
 	 *	04016-38E2D => A6-FB; 21-7E/A0-FF
 	 */
-	c2 = U[*(uchar*)(str+2)];
+	c2 = U[*(uint8_t*)(str+2)];
 	if(c2 >= Esc)
 		goto bad;
 	if(c < Char3) {
@@ -239,9 +239,9 @@ bad:
 }
 
 int
-runetoisoutf(char *str, Rune *rune)
+runetoisoutf(int8_t *str, Rune *rune)
 {
-	long c;
+	int32_t c;
 
 	if(T[0] == 0)
 		mktable();
@@ -289,12 +289,12 @@ runetoisoutf(char *str, Rune *rune)
 }
 
 int
-fullisorune(char *str, int n)
+fullisorune(int8_t *str, int n)
 {
 	int c;
 
 	if(n > 0) {
-		c = *(uchar*)str;
+		c = *(uint8_t*)str;
 		if(c < Char1)
 			return 1;
 		if(n > 1)
@@ -346,7 +346,7 @@ enum
 };
 
 int
-our_wctomb(char *s, unsigned long wc)
+our_wctomb(int8_t *s, unsigned long wc)
 {
 	if(s == 0)
 		return 0;		/* no shift states */
@@ -396,9 +396,9 @@ our_wctomb(char *s, unsigned long wc)
 }
 
 int
-our_mbtowc(unsigned long *p, char *s, unsigned n)
+our_mbtowc(unsigned long *p, int8_t *s, unsigned n)
 {
-	uchar *us;
+	uint8_t *us;
 	int c0, c1, c2, c3, c4, c5;
 	unsigned long wc;
 
@@ -407,7 +407,7 @@ our_mbtowc(unsigned long *p, char *s, unsigned n)
 
 	if(n < 1)
 		goto bad;
-	us = (uchar*)s;
+	us = (uint8_t*)s;
 	c0 = us[0];
 	if(c0 >= T3) {
 		if(n < 3)

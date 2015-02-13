@@ -23,13 +23,13 @@ launcheramd64(int, void (*f)(void *arg), void *arg)
 void
 _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 {
-	uvlong *tos;
+	uint64_t *tos;
 
-	tos = (uvlong*)&t->stk[t->stksize&~7];
-	*--tos = (uvlong)arg;
-	*--tos = (uvlong)f;
+	tos = (uint64_t*)&t->stk[t->stksize&~7];
+	*--tos = (uint64_t)arg;
+	*--tos = (uint64_t)f;
 	*--tos = 0;	/* first arg to launcheramd64 */
-	t->sched[JMPBUFPC] = (uvlong)launcheramd64+JMPBUFDPC;
-	t->sched[JMPBUFSP] = (uvlong)tos - 2*8;		/* old PC and new PC */
+	t->sched[JMPBUFPC] = (uint64_t)launcheramd64+JMPBUFDPC;
+	t->sched[JMPBUFSP] = (uint64_t)tos - 2*8;		/* old PC and new PC */
 }
 

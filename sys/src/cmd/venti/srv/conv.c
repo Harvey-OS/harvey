@@ -28,7 +28,7 @@ int debugarena = -1;		/* hack to improve error reporting */
 
 static struct {
 	u32int m;
-	char *s;
+	int8_t *s;
 } magics[] = {
 	ArenaPartMagic, "ArenaPartMagic",
 	ArenaHeadMagic, "ArenaHeadMagic",
@@ -37,8 +37,8 @@ static struct {
 	BloomMagic, "BloomMagic",
 };
 
-static char*
-fmtmagic(char *s, u32int m)
+static int8_t*
+fmtmagic(int8_t *s, u32int m)
 {
 	int i;
 
@@ -66,7 +66,7 @@ unpackarenapart(ArenaPart *ap, u8int *buf)
 {
 	u8int *p;
 	u32int m;
-	char fbuf[20];
+	int8_t fbuf[20];
 
 	p = buf;
 
@@ -117,7 +117,7 @@ unpackarena(Arena *arena, u8int *buf)
 	int sz;
 	u8int *p;
 	u32int m;
-	char fbuf[20];
+	int8_t fbuf[20];
 
 	p = buf;
 
@@ -131,7 +131,7 @@ unpackarena(Arena *arena, u8int *buf)
 	p += U32Size;
 	arena->version = U32GET(p);
 	p += U32Size;
-	namecp(arena->name, (char*)p);
+	namecp(arena->name, (int8_t*)p);
 	p += ANameSize;
 	arena->diskstats.clumps = U32GET(p);
 	p += U32Size;
@@ -237,7 +237,8 @@ _packarena(Arena *arena, u8int *buf, int forceext)
 		sz = ArenaSize4;
 		if(arena->clumpmagic != _ClumpMagic)
 			fprint(2, "warning: writing old arena tail loses clump magic 0x%lux != 0x%lux\n",
-				(ulong)arena->clumpmagic, (ulong)_ClumpMagic);
+				(uint32_t)arena->clumpmagic,
+			       (uint32_t)_ClumpMagic);
 		break;
 	case ArenaVersion5:
 		sz = ArenaSize5;
@@ -253,7 +254,7 @@ _packarena(Arena *arena, u8int *buf, int forceext)
 	p += U32Size;
 	U32PUT(p, arena->version);
 	p += U32Size;
-	namecp((char*)p, arena->name);
+	namecp((int8_t*)p, arena->name);
 	p += ANameSize;
 	U32PUT(p, arena->diskstats.clumps);
 	p += U32Size;
@@ -315,7 +316,7 @@ unpackarenahead(ArenaHead *head, u8int *buf)
 	u8int *p;
 	u32int m;
 	int sz;
-	char fbuf[20];
+	int8_t fbuf[20];
 
 	p = buf;
 
@@ -330,7 +331,7 @@ unpackarenahead(ArenaHead *head, u8int *buf)
 	p += U32Size;
 	head->version = U32GET(p);
 	p += U32Size;
-	namecp(head->name, (char*)p);
+	namecp(head->name, (int8_t*)p);
 	p += ANameSize;
 	head->blocksize = U32GET(p);
 	p += U32Size;
@@ -372,7 +373,8 @@ packarenahead(ArenaHead *head, u8int *buf)
 		sz = ArenaHeadSize4;
 		if(head->clumpmagic != _ClumpMagic)
 			fprint(2, "warning: writing old arena header loses clump magic 0x%lux != 0x%lux\n",
-				(ulong)head->clumpmagic, (ulong)_ClumpMagic);
+				(uint32_t)head->clumpmagic,
+			       (uint32_t)_ClumpMagic);
 		break;
 	case ArenaVersion5:
 		sz = ArenaHeadSize5;
@@ -388,7 +390,7 @@ packarenahead(ArenaHead *head, u8int *buf)
 	p += U32Size;
 	U32PUT(p, head->version);
 	p += U32Size;
-	namecp((char*)p, head->name);
+	namecp((int8_t*)p, head->name);
 	p += ANameSize;
 	U32PUT(p, head->blocksize);
 	p += U32Size;
@@ -535,7 +537,7 @@ unpackisect(ISect *is, u8int *buf)
 {
 	u8int *p;
 	u32int m;
-	char fbuf[20];
+	int8_t fbuf[20];
 
 	p = buf;
 
@@ -549,9 +551,9 @@ unpackisect(ISect *is, u8int *buf)
 	p += U32Size;
 	is->version = U32GET(p);
 	p += U32Size;
-	namecp(is->name, (char*)p);
+	namecp(is->name, (int8_t*)p);
 	p += ANameSize;
-	namecp(is->index, (char*)p);
+	namecp(is->index, (int8_t*)p);
 	p += ANameSize;
 	is->blocksize = U32GET(p);
 	p += U32Size;
@@ -587,9 +589,9 @@ packisect(ISect *is, u8int *buf)
 	p += U32Size;
 	U32PUT(p, is->version);
 	p += U32Size;
-	namecp((char*)p, is->name);
+	namecp((int8_t*)p, is->name);
 	p += ANameSize;
-	namecp((char*)p, is->index);
+	namecp((int8_t*)p, is->index);
 	p += ANameSize;
 	U32PUT(p, is->blocksize);
 	p += U32Size;
@@ -704,13 +706,14 @@ unpackbloomhead(Bloom *b, u8int *buf)
 {
 	u8int *p;
 	u32int m;
-	char fbuf[20];
+	int8_t fbuf[20];
 
 	p = buf;
 
 	m = U32GET(p);
 	if(m != BloomMagic){
-		seterr(ECorrupt, "bloom filter has wrong magic number: %s expected BloomMagic (%#lux)", fmtmagic(fbuf, m), (ulong)BloomMagic);
+		seterr(ECorrupt, "bloom filter has wrong magic number: %s expected BloomMagic (%#lux)", fmtmagic(fbuf, m),
+		       (uint32_t)BloomMagic);
 		return -1;
 	}
 	p += U32Size;

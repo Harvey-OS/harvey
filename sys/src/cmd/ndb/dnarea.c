@@ -20,7 +20,7 @@ Area *owned, *delegated;
  *  true if a name is in our area
  */
 Area*
-inmyarea(char *name)
+inmyarea(int8_t *name)
 {
 	int len;
 	Area *s, *d;

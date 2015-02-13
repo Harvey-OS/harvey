@@ -22,9 +22,9 @@ resetsys(void)
 }
 
 void
-syserror(char *a)
+syserror(int8_t *a)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	if(!inerror){
 		inerror=TRUE;
@@ -37,9 +37,9 @@ syserror(char *a)
 int
 Read(int f, void *a, int n)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
-	if(read(f, (char *)a, n)!=n) {
+	if(read(f, (int8_t *)a, n)!=n) {
 		if (lastfile)
 			lastfile->rescuing = 1;
 		errstr(buf, sizeof buf);
@@ -56,13 +56,13 @@ Write(int f, void *a, int n)
 {
 	int m;
 
-	if((m=write(f, (char *)a, n))!=n)
+	if((m=write(f, (int8_t *)a, n))!=n)
 		syserror("write");
 	return m;
 }
 
 void
-Seek(int f, long n, int w)
+Seek(int f, int32_t n, int w)
 {
 	if(seek(f, n, w)==-1)
 		syserror("seek");

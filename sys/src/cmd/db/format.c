@@ -17,10 +17,10 @@
 #include "fns.h"
 
 void
-scanform(long icount, int prt, char *ifp, Map *map, int literal)
+scanform(int32_t icount, int prt, int8_t *ifp, Map *map, int literal)
 {
-	char	*fp;
-	char	c;
+	int8_t	*fp;
+	int8_t	c;
 	int	fcount;
 	ADDR	savdot;
 	int firstpass;
@@ -53,23 +53,24 @@ scanform(long icount, int prt, char *ifp, Map *map, int literal)
 	}
 }
 
-char *
-exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
+int8_t *
+exform(int fcount, int prt, int8_t *ifp, Map *map, int literal,
+       int firstpass)
 {
 	/* execute single format item `fcount' times
 	 * sets `dotinc' and moves `dot'
 	 * returns address of next format item
 	 */
-	uvlong	v;
-	ulong	w;
+	uint64_t	v;
+	uint32_t	w;
 	ADDR	savdot;
-	char	*fp;
-	char	c, modifier;
+	int8_t	*fp;
+	int8_t	c, modifier;
 	int	i;
-	ushort sh, *sp;
-	uchar ch, *cp;
+	uint16_t sh, *sp;
+	uint8_t ch, *cp;
 	Symbol s;
-	char buf[512];
+	int8_t buf[512];
 	extern int printcol;
 
 	fp = 0;
@@ -129,7 +130,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 		case 'o':
 		case 'q':
 			if (literal)
-				sh = (ushort) dot;
+				sh = (uint16_t) dot;
 			else if (get2(map, dot, &sh) < 0)
 				error("%r");
 			w = sh;
@@ -152,7 +153,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 		case 'O':
 		case 'Q':
 			if (literal)
-				w = (long) dot;
+				w = (int32_t) dot;
 			else if (get4(map, dot, &w) < 0)
 				error("%r");
 			dotinc = 4;
@@ -187,13 +188,13 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 		case 'c':
 		case 'C':
 			if (literal)
-				ch = (uchar) dot;
+				ch = (uint8_t) dot;
 			else if (get1(map, dot, &ch, 1)  < 0)
 				error("%r");
 			if (modifier == 'C')
 				printesc(ch);
 			else if (modifier == 'B' || modifier == 'b')
-				dprint("%-8#lux", (long) ch);
+				dprint("%-8#lux", (int32_t) ch);
 			else
 				printc(ch);
 			dotinc = 1;
@@ -201,7 +202,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 
 		case 'r':
 			if (literal)
-				sh = (ushort) dot;
+				sh = (uint16_t) dot;
 			else if (get2(map, dot, &sh) < 0)
 				error("%r");
 			dprint("%C", sh);
@@ -210,7 +211,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 
 		case 'R':
 			if (literal) {
-				sp = (ushort*) &dot;
+				sp = (uint16_t*) &dot;
 				dprint("%C%C", sp[0], sp[1]);
 				endline();
 				dotinc = 4;
@@ -230,7 +231,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 
 		case 's':
 			if (literal) {
-				cp = (uchar*) &dot;
+				cp = (uint8_t*) &dot;
 				for (i = 0; i < 4; i++)
 					buf[i] = cp[i];
 				buf[i] = 0;
@@ -243,7 +244,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			for(;;){
 				i = 0;
 				do{
-					if (get1(map, dot, (uchar*)&buf[i], 1) < 0)
+					if (get1(map, dot, (uint8_t*)&buf[i], 1) < 0)
 						error("%r");
 					dot = inkdot(1);
 					i++;
@@ -260,7 +261,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 
 		case 'S':
 			if (literal) {
-				cp = (uchar*) &dot;
+				cp = (uint8_t*) &dot;
 				for (i = 0; i < 4; i++)
 					printesc(cp[i]);
 				endline();
@@ -307,7 +308,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			if (literal) {
 				v = machdata->swav(dot);
 				memmove(buf, &v, mach->szfloat);
-			}else if (get1(map, dot, (uchar*)buf, mach->szfloat) < 0)
+			}else if (get1(map, dot, (uint8_t*)buf, mach->szfloat) < 0)
 				error("%r");
 			machdata->sftos(buf, sizeof(buf), (void*) buf);
 			dprint("%s\n", buf);
@@ -319,7 +320,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			if (literal) {
 				v = machdata->swav(dot);
 				memmove(buf, &v, mach->szdouble);
-			}else if (get1(map, dot, (uchar*)buf, mach->szdouble) < 0)
+			}else if (get1(map, dot, (uint8_t*)buf, mach->szdouble) < 0)
 				error("%r");
 			machdata->dftos(buf, sizeof(buf), (void*) buf);
 			dprint("%s\n", buf);
@@ -374,7 +375,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 void
 printesc(int c)
 {
-	static char hex[] = "0123456789abcdef";
+	static int8_t hex[] = "0123456789abcdef";
 
 	if (c < SPC || c >= 0177)
 		dprint("\\x%c%c", hex[(c&0xF0)>>4], hex[c&0xF]);

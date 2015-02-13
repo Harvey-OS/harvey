@@ -81,7 +81,8 @@ private const struct {
 	X("c5",           16.2 CM,      22.9 CM),
 	X("monarch",      3.875 INCH,   7.5 INCH)};
 
-int select_medium(gx_device_printer *pdev, const char **available, int default_index)
+int select_medium(gx_device_printer *pdev, const int8_t **available,
+		  int default_index)
 {
 	int i, j, index = default_index;
 	float priority = 0;

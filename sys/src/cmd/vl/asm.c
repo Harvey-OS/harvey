@@ -16,7 +16,7 @@
 #define	N_MAGIC		_MAGIC(0, 22)		/* mips 4000 LE */
 #define	P_MAGIC		_MAGIC(0, 24)		/* mips 3000 LE */
 
-long	OFFSET;
+int32_t	OFFSET;
 /*
 long	BADOFFSET	=	-1;
 
@@ -100,25 +100,25 @@ long	BADOFFSET	=	-1;
 	}
 
 void
-cput(long l)
+cput(int32_t l)
 {
 	CPUT(l);
 }
 
 void
-objput(long l)	/* emit long in byte order appropriate to object machine */
+objput(int32_t l)	/* emit long in byte order appropriate to object machine */
 {
 	LPUT(l);
 }
 
 void
-objhput(short s)
+objhput(int16_t s)
 {
 	HPUT(s);
 }
 
 void
-wput(long l)
+wput(int32_t l)
 {
 
 	cbp[0] = l>>8;
@@ -130,7 +130,7 @@ wput(long l)
 }
 
 void
-wputl(long l)
+wputl(int32_t l)
 {
 
 	cbp[0] = l;
@@ -142,35 +142,35 @@ wputl(long l)
 }
 
 void
-lput(long l)		/* emit long in big-endian byte order */
+lput(int32_t l)		/* emit long in big-endian byte order */
 {
 	LBEPUT(l);
 }
 
 void
-lputl(long l)		/* emit long in big-endian byte order */
+lputl(int32_t l)		/* emit long in big-endian byte order */
 {
 	LLEPUT(l);
 }
 
 void
-llput(vlong v)
+llput(int64_t v)
 {
 	lput(v>>32);
 	lput(v);
 }
 
 void
-llputl(vlong v)
+llputl(int64_t v)
 {
 	lputl(v);
 	lputl(v>>32);
 }
 
-long
+int32_t
 entryvalue(void)
 {
-	char *a;
+	int8_t *a;
 	Sym *s;
 
 	a = INITENTRY;
@@ -185,8 +185,9 @@ entryvalue(void)
 }
 
 static void
-plan9bootimage(ulong sects, ulong submagicvers, ulong tm,
-	ulong hdrtxtsz, ulong textsz, ulong textva, ulong lcsize)
+plan9bootimage(uint32_t sects, uint32_t submagicvers, uint32_t tm,
+	uint32_t hdrtxtsz, uint32_t textsz, uint32_t textva,
+	       uint32_t lcsize)
 {
 	lput(0x160L<<16|sects);		/* magic and sections */
 	lput(tm);			/* time and date */
@@ -213,7 +214,7 @@ plan9bootimage(ulong sects, ulong submagicvers, ulong tm,
 }
 
 static void
-symhdrs(ulong hdrtxtsz)
+symhdrs(uint32_t hdrtxtsz)
 {
 	strnput(".text", 8);		/* text segment */
 	lput(INITTEXT);			/* address */
@@ -250,9 +251,9 @@ void
 asmb(void)
 {
 	Prog *p;
-	long tm;
-	ulong rndtxtsz;
-	vlong t, etext;
+	int32_t tm;
+	uint32_t rndtxtsz;
+	int64_t t, etext;
 	Optab *o;
 
 	if(debug['v'])
@@ -410,7 +411,7 @@ asmb(void)
 }
 
 void
-strnput(char *s, int n)
+strnput(int8_t *s, int n)
 {
 	for(; *s; s++){
 		CPUT(*s);
@@ -433,7 +434,7 @@ cflush(void)
 }
 
 void
-nopstat(char *f, Count *c)
+nopstat(int8_t *f, Count *c)
 {
 	if(c->outof)
 	Bprint(&bso, "%s delay %ld/%ld (%.2f)\n", f,
@@ -510,7 +511,7 @@ asmsym(void)
 }
 
 void
-putsymb(char *s, int t, long v, int ver)
+putsymb(int8_t *s, int t, int32_t v, int ver)
 {
 	int i, f;
 
@@ -559,8 +560,8 @@ putsymb(char *s, int t, long v, int ver)
 void
 asmlc(void)
 {
-	long oldlc, v, s;
-	vlong oldpc;
+	int32_t oldlc, v, s;
+	int64_t oldpc;
 	Prog *p;
 
 	oldpc = INITTEXT;
@@ -633,11 +634,11 @@ asmlc(void)
 }
 
 void
-datblk(long s, long n, int str)
+datblk(int32_t s, int32_t n, int str)
 {
 	Prog *p;
-	char *cast;
-	long l, fl, j, d;
+	int8_t *cast;
+	int32_t l, fl, j, d;
 	int i, c;
 
 	memset(buf.dbuf, 0, n+100);
@@ -676,14 +677,14 @@ datblk(long s, long n, int str)
 			default:
 			case 4:
 				fl = ieeedtof(p->to.ieee);
-				cast = (char*)&fl;
+				cast = (int8_t*)&fl;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i+4]];
 					l++;
 				}
 				break;
 			case 8:
-				cast = (char*)p->to.ieee;
+				cast = (int8_t*)p->to.ieee;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i]];
 					l++;
@@ -714,7 +715,7 @@ datblk(long s, long n, int str)
 					break;
 				}
 			}
-			cast = (char*)&d;
+			cast = (int8_t*)&d;
 			switch(c) {
 			default:
 				diag("bad nuxi %d %d\n%P", c, i, curp);
@@ -775,7 +776,7 @@ int vshift(int);
 int
 asmout(Prog *p, Optab *o, int aflag)
 {
-	long o1, o2, o3, o4, o5, o6, o7, v;
+	int32_t o1, o2, o3, o4, o5, o6, o7, v;
 	Prog *ct;
 	int r, a;
 
@@ -1280,7 +1281,7 @@ isnop(Prog *p)
 	return 1;
 }
 
-long
+int32_t
 oprrr(int a)
 {
 	switch(a) {
@@ -1354,7 +1355,7 @@ oprrr(int a)
 	return 0;
 }
 
-long
+int32_t
 opirr(int a)
 {
 	switch(a) {

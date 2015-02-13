@@ -267,7 +267,7 @@ alpha(Rune *buf, int n, int a)
 }
 
 struct romanv {
-	char *s;
+	int8_t *s;
 	int v;
 } romanv[] =
 {
@@ -291,7 +291,7 @@ void
 roman(Rune *buf, int n, int upper)
 {
 	Rune *p;
-	char *q;
+	int8_t *q;
 	struct romanv *r;
 	
 	if(upper)

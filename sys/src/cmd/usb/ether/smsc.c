@@ -117,7 +117,7 @@ wr(Dev *d, int reg, int val)
 	int ret;
 
 	ret = usbcmd(d, Rh2d|Rvendor|Rdev, Writereg, 0, reg,
-		(uchar*)&val, sizeof(val));
+		(uint8_t*)&val, sizeof(val));
 	if(ret < 0)
 		deprint(2, "%s: wr(%x, %x): %r", argv0, reg, val);
 	return ret;
@@ -129,7 +129,7 @@ rr(Dev *d, int reg)
 	int ret, rval;
 
 	ret = usbcmd(d, Rd2h|Rvendor|Rdev, Readreg, 0, reg,
-		(uchar*)&rval, sizeof(rval));
+		(uint8_t*)&rval, sizeof(rval));
 	if(ret < 0){
 		fprint(2, "%s: rr(%x): %r", argv0, reg);
 		return 0;
@@ -160,7 +160,7 @@ miiwr(Dev *d, int idx, int val)
 }
 
 static int
-eepromr(Dev *d, int off, uchar *buf, int len)
+eepromr(Dev *d, int off, uint8_t *buf, int len)
 {
 	int i, v;
 
@@ -215,10 +215,10 @@ doreset(Dev *d, int reg, int bit)
 }
 
 static int
-getmac(Dev *d, uchar buf[])
+getmac(Dev *d, uint8_t buf[])
 {
 	int i;
-	uchar ea[Eaddrlen];
+	uint8_t ea[Eaddrlen];
 
 	if(eepromr(d, MACoffset, ea, Eaddrlen) < 0)
 		return -1;
@@ -273,7 +273,7 @@ smscinit(Ether *ether)
 	return 0;
 }
 
-static long
+static int32_t
 smscbread(Ether *e, Buf *bp)
 {
 	uint hd;
@@ -315,7 +315,7 @@ smscbread(Ether *e, Buf *bp)
 	return n;
 }
 
-static long
+static int32_t
 smscbwrite(Ether *e, Buf *bp)
 {
 	int n;
@@ -348,7 +348,7 @@ smscpromiscuous(Ether *e, int on)
 }
 
 static int
-smscmulticast(Ether *e, uchar *addr, int on)
+smscmulticast(Ether *e, uint8_t *addr, int on)
 {
 	USED(addr, on, e);
 #ifdef TODO		/* needed for ipv6; copied from asix */

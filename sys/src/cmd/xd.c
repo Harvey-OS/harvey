@@ -11,17 +11,17 @@
 #include <libc.h>
 #include <bio.h>
 
-uchar		odata[16];
-uchar		data[32];
+uint8_t		odata[16];
+uint8_t		data[32];
 int		ndata;
 int		nread;
-ulong		addr;
+uint32_t		addr;
 int		repeats;
 int		swizzle;
 int		flush;
 int		abase=2;
-int		xd(char *, int);
-void		xprint(char *, ...);
+int		xd(int8_t *, int);
+void		xprint(int8_t *, ...);
 void		initarg(void), swizz(void);
 enum{
 	Narg=10,
@@ -31,15 +31,15 @@ enum{
 	TRune,
 };
 typedef struct Arg Arg;
-typedef void fmtfn(char *);
+typedef void fmtfn(int8_t *);
 struct Arg
 {
 	int	chartype;		/* TNone, TAscii, TRunes */
 	int	loglen;		/* 0==1, 1==2, 2==4, 3==8 */
 	int	base;		/* 0==8, 1==10, 2==16 */
 	fmtfn	*fn;		/* function to call with data */
-	char	*afmt;		/* format to use to print address */
-	char	*fmt;		/* format to use to print data */
+	int8_t	*afmt;		/* format to use to print address */
+	int8_t	*fmt;		/* format to use to print data */
 }arg[Narg];
 int	narg;
 
@@ -51,24 +51,24 @@ fmtfn *fmt[4] = {
 	fmt3
 };
 
-char *dfmt[4][3] = {
+int8_t *dfmt[4][3] = {
 	" %.3uo",	" %.3ud",	" %.2ux",
 	" %.6uo",	" %.5ud",	" %.4ux",
 	" %.11luo",	" %.10lud",	" %.8lux",
 	" %.22lluo",	" %.20llud",	" %.16llux",
 };
 
-char *cfmt[3][3] = {
+int8_t *cfmt[3][3] = {
 	"   %c",	"   %c", 	"  %c",
 	" %.3s",	" %.3s",	" %.2s",
 	" %.3uo",	" %.3ud",	" %.2ux",
 };
 
-char *rfmt[1][1] = {
+int8_t *rfmt[1][1] = {
 	" %2.2C",
 };
 
-char *afmt[2][3] = {
+int8_t *afmt[2][3] = {
 	"%.7luo ",	"%.7lud ",	"%.7lux ",
 	"%7luo ",	"%7lud ",	"%7lux ",
 };
@@ -77,7 +77,7 @@ Biobuf	bin;
 Biobuf	bout;
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int i, err;
 	Arg *ap;
@@ -213,7 +213,7 @@ initarg(void)
 }
 
 int
-xd(char *name, int title)
+xd(int8_t *name, int title)
 {
 	int fd;
 	int i, star, nsee, nleft;
@@ -294,9 +294,9 @@ xd(char *name, int title)
 void
 swizz(void)
 {
-	uchar *p, *q;
+	uint8_t *p, *q;
 	int i;
-	uchar swdata[16];
+	uint8_t swdata[16];
 
 	p = data;
 	q = swdata;
@@ -315,7 +315,7 @@ swizz(void)
 }
 
 void
-fmt0(char *f)
+fmt0(int8_t *f)
 {
 	int i;
 	for(i=0; i<ndata; i++)
@@ -323,7 +323,7 @@ fmt0(char *f)
 }
 
 void
-fmt1(char *f)
+fmt1(int8_t *f)
 {
 	int i;
 	for(i=0; i<ndata; i+=sizeof(ushort))
@@ -331,20 +331,20 @@ fmt1(char *f)
 }
 
 void
-fmt2(char *f)
+fmt2(int8_t *f)
 {
 	int i;
-	for(i=0; i<ndata; i+=sizeof(ulong))
+	for(i=0; i<ndata; i+=sizeof(uint32_t))
 		xprint(f, (data[i]<<24)|(data[i+1]<<16)|(data[i+2]<<8)|data[i+3]);
 }
 
 void
-fmt3(char *f)
+fmt3(int8_t *f)
 {
 	int i;
-	uvlong v;
+	uint64_t v;
 
-	for(i=0; i<ndata; i+=sizeof(uvlong)){
+	for(i=0; i<ndata; i+=sizeof(uint64_t)){
 		v = (data[i]<<24)|(data[i+1]<<16)|(data[i+2]<<8)|data[i+3];
 		v <<= 32;
 		v |= (data[i+4]<<24)|(data[i+1+4]<<16)|(data[i+2+4]<<8)|data[i+3+4];
@@ -356,7 +356,7 @@ fmt3(char *f)
 }
 
 void
-onefmtc(uchar c)
+onefmtc(uint8_t c)
 {
 	switch(c){
 	case '\t':
@@ -381,7 +381,7 @@ onefmtc(uchar c)
 }
 
 void
-fmtc(char *f)
+fmtc(int8_t *f)
 {
 	int i;
 
@@ -391,7 +391,7 @@ fmtc(char *f)
 }
 
 void
-fmtr(char *f)
+fmtr(int8_t *f)
 {
 	int i, w, cw;
 	Rune r;
@@ -404,7 +404,7 @@ fmtr(char *f)
 		if(data[i] < Runeself)
 			onefmtc(data[i++]);
 		else{
-			w = chartorune(&r, (char *)data+i);
+			w = chartorune(&r, (int8_t *)data+i);
 			if(w == 1 || i + w>nread)
 				onefmtc(data[i++]);
 			else{
@@ -423,7 +423,7 @@ fmtr(char *f)
 }
 
 void
-xprint(char *fmt, ...)
+xprint(int8_t *fmt, ...)
 {
 	va_list arglist;
 

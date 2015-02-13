@@ -39,7 +39,7 @@ Channel		*playlistreq;
 Playlist	playlist;
 int		volume[8];
 
-char *statetxt[] = {
+int8_t *statetxt[] = {
 	[Nostate] =	"panic!",
 	[Error] =	"error",
 	[Stop] =	"stop",
@@ -53,7 +53,7 @@ char *statetxt[] = {
 // low-order bits: position in play list, high-order: play state:
 Pmsg	playstate = {Stop, 0};
 
-char	*rflush(Worker*), *rauth(Worker*),
+int8_t	*rflush(Worker*), *rauth(Worker*),
 	*rattach(Worker*), *rwalk(Worker*),
 	*ropen(Worker*), *rcreate(Worker*),
 	*rread(Worker*), *rwrite(Worker*), *rclunk(Worker*),
@@ -80,28 +80,28 @@ int	messagesize = Messagesize;
 Fid	*fids;
 
 
-char	Eperm[] =	"permission denied";
-char	Enotdir[] =	"not a directory";
-char	Enoauth[] =	"authentication not required";
-char	Enotexist[] =	"file does not exist";
-char	Einuse[] =	"file in use";
-char	Eexist[] =	"file exists";
-char	Enotowner[] =	"not owner";
-char	Eisopen[] = 	"file already open for I/O";
-char	Excl[] = 	"exclusive use file already open";
-char	Ename[] = 	"illegal name";
-char	Ebadctl[] =	"unknown control message";
-char	Epast[] =	"reading past eof";
+int8_t	Eperm[] =	"permission denied";
+int8_t	Enotdir[] =	"not a directory";
+int8_t	Enoauth[] =	"authentication not required";
+int8_t	Enotexist[] =	"file does not exist";
+int8_t	Einuse[] =	"file in use";
+int8_t	Eexist[] =	"file exists";
+int8_t	Enotowner[] =	"not owner";
+int8_t	Eisopen[] = 	"file already open for I/O";
+int8_t	Excl[] = 	"exclusive use file already open";
+int8_t	Ename[] = 	"illegal name";
+int8_t	Ebadctl[] =	"unknown control message";
+int8_t	Epast[] =	"reading past eof";
 
 Fid	*oldfid(int);
 Fid	*newfid(int);
 void	volumeupdater(void*);
 void	playupdater(void*);
 
-char *playerror;
+int8_t *playerror;
 
 static int
-lookup(char *cmd, char *list[])
+lookup(int8_t *cmd, int8_t *list[])
 {
 	int i;
 
@@ -111,7 +111,7 @@ lookup(char *cmd, char *list[])
 	return -1;
 }
 
-char*
+int8_t*
 rversion(Worker *w)
 {
 	Req *r;
@@ -133,13 +133,13 @@ rversion(Worker *w)
 	return nil;
 }
 
-char*
+int8_t*
 rauth(Worker*)
 {
 	return Enoauth;
 }
 
-char*
+int8_t*
 rflush(Worker *w)
 {
 	Wmsg m;
@@ -157,7 +157,7 @@ rflush(Worker *w)
 	return 0;
 }
 
-char*
+int8_t*
 rattach(Worker *w)
 {
 	Fid *f;
@@ -188,8 +188,8 @@ doclone(Fid *f, int nfid)
 	return nf;
 }
 
-char*
-dowalk(Fid *f, char *name)
+int8_t*
+dowalk(Fid *f, int8_t *name)
 {
 	int t;
 
@@ -210,11 +210,11 @@ dowalk(Fid *f, char *name)
 	return Enotexist;
 }
 
-char*
+int8_t*
 rwalk(Worker *w)
 {
 	Fid *f, *nf;
-	char *rv;
+	int8_t *rv;
 	int i;
 	File *savefile;
 	Req *r;
@@ -263,7 +263,7 @@ rwalk(Worker *w)
 	return rv;
 }
 
-char *
+int8_t *
 ropen(Worker *w)
 {
 	Fid *f, *ff;
@@ -304,17 +304,17 @@ ropen(Worker *w)
 	return nil;
 }
 
-char *
+int8_t *
 rcreate(Worker*)
 {
 	return Eperm;
 }
 
 int
-readtopdir(Fid*, uchar *buf, long off, int cnt, int blen)
+readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 {
 	int i, m, n;
-	long pos;
+	int32_t pos;
 
 	n = 0;
 	pos = 0;
@@ -331,15 +331,15 @@ readtopdir(Fid*, uchar *buf, long off, int cnt, int blen)
 	return n;
 }
 
-char*
+int8_t*
 rread(Worker *w)
 {
 	Fid *f;
 	Req *r;
-	long off, cnt;
+	int32_t off, cnt;
 	int n, i;
 	Wmsg m;
-	char *p;
+	int8_t *p;
 
 	r = w->r;
 	r->fid = oldfid(r->ifcall.fid);
@@ -369,7 +369,7 @@ rread(Worker *w)
 		/* Wait until file state changes (f->file->dir.qid.vers is incremented) */
 		m = waitmsg(w, f->file->workers);
 		if(m.cmd == Flush && m.off == r->ifcall.tag)
-			return (char*)~0;	/* no answer needed */
+			return (int8_t*)~0;	/* no answer needed */
 		assert(m.cmd != Work);
 		yield();
 	}
@@ -434,12 +434,12 @@ rread(Worker *w)
 	return nil;
 }
 
-char*
+int8_t*
 rwrite(Worker *w)
 {
-	long cnt, i, nf, cmd;
+	int32_t cnt, i, nf, cmd;
 	Pmsg newstate;
-	char *fields[3], *p, *q;
+	int8_t *fields[3], *p, *q;
 	Wmsg m;
 	Fid *f;
 	Req *r;
@@ -512,7 +512,7 @@ rwrite(Worker *w)
 			sendul(playc, newstate.m);
 		f->file->dir.qid.vers++;
 	} else if(f->file == &files[Qplayvol]){
-		char *subfields[nelem(volume)];
+		int8_t *subfields[nelem(volume)];
 		int v[nelem(volume)];
 
 		r->ifcall.data[cnt] = '\0';
@@ -585,7 +585,7 @@ rwrite(Worker *w)
 	return nil;
 }
 
-char *
+int8_t *
 rclunk(Worker *w)
 {
 	Fid *f;
@@ -597,13 +597,13 @@ rclunk(Worker *w)
 	return 0;
 }
 
-char *
+int8_t *
 rremove(Worker*)
 {
 	return Eperm;
 }
 
-char *
+int8_t *
 rstat(Worker *w)
 {
 	Req *r;
@@ -617,7 +617,7 @@ rstat(Worker *w)
 	return 0;
 }
 
-char *
+int8_t *
 rwstat(Worker*)
 {
 	return Eperm;
@@ -663,16 +663,16 @@ void
 work(Worker *w)
 {
 	Req *r;
-	char *err;
+	int8_t *err;
 	int n;
 
 	r = w->r;
-	r->ofcall.data = (char*)r->indata;
+	r->ofcall.data = (int8_t*)r->indata;
 	if(!fcalls[r->ifcall.type])
 		err = "bad fcall type";
 	else
 		err = (*fcalls[r->ifcall.type])(w);
-	if(err != (char*)~0){	/* ~0 indicates Flush received */
+	if(err != (int8_t*)~0){	/* ~0 indicates Flush received */
 		if(err){
 			r->ofcall.type = Rerror;
 			r->ofcall.ename = err;
@@ -734,7 +734,7 @@ allocwork(Req *r)
 void
 srvio(void *arg)
 {
-	char e[32];
+	int8_t e[32];
 	int n;
 	Req *r;
 	Channel *dispatchc;
@@ -773,7 +773,7 @@ srvio(void *arg)
 	}
 }
 
-char *
+int8_t *
 getplaylist(int n)
 {
 	Wmsg m;
@@ -794,8 +794,8 @@ void
 playlistsrv(void*)
 {
 	Wmsg m;
-	char *p, *q, *r;
-	char *fields[2];
+	int8_t *p, *q, *r;
+	int8_t *fields[2];
 	int n;
 	/* Runs in the srv proc */
 
@@ -891,7 +891,7 @@ volumeupdater(void*)
 }
 
 void
-playupdate(Pmsg p, char *s)
+playupdate(Pmsg p, int8_t *s)
 {
 	Wmsg m;
 

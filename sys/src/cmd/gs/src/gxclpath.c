@@ -44,7 +44,7 @@
 
 /* Statistics */
 #ifdef DEBUG
-ulong stats_cmd_diffs[5];
+uint32_t stats_cmd_diffs[5];
 #endif
 
 /* Forward declarations */

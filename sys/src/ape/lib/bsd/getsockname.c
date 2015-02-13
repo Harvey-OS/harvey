@@ -46,7 +46,7 @@ getsockname(int fd, void *addr, int *alen)
 		break;
 	case PF_UNIX:
 		lunix = (struct sockaddr_un*)&r->addr;
-		i = &lunix->sun_path[strlen(lunix->sun_path)] - (char*)lunix;
+		i = &lunix->sun_path[strlen(lunix->sun_path)] - (int8_t*)lunix;
 		memmove(addr, lunix, i);
 		*alen = i;
 		break;

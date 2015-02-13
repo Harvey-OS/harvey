@@ -56,19 +56,19 @@ DWORD thread_id;
 HWND hwndtext = NULL;	/* for dwimg.c, but not used */
 HWND hwndforeground;	/* our best guess for our console window handle */
 
-char start_string[] = "systemdict /start get exec\n";
+int8_t start_string[] = "systemdict /start get exec\n";
 
 /*********************************************************************/
 /* stdio functions */
 
 static int GSDLLCALL
-gsdll_stdin(void *instance, char *buf, int len)
+gsdll_stdin(void *instance, int8_t *buf, int len)
 {
     return _read(fileno(stdin), buf, len);
 }
 
 static int GSDLLCALL
-gsdll_stdout(void *instance, const char *str, int len)
+gsdll_stdout(void *instance, const int8_t *str, int len)
 {
     fwrite(str, 1, len, stdout);
     fflush(stdout);
@@ -76,7 +76,7 @@ gsdll_stdout(void *instance, const char *str, int len)
 }
 
 static int GSDLLCALL
-gsdll_stderr(void *instance, const char *str, int len)
+gsdll_stderr(void *instance, const int8_t *str, int len)
 {
     fwrite(str, 1, len, stderr);
     fflush(stderr);
@@ -296,7 +296,7 @@ int display_memfree(void *handle, void *device, void *mem)
 #endif
 
 int display_separation(void *handle, void *device, 
-   int comp_num, const char *name,
+   int comp_num, const int8_t *name,
    unsigned short c, unsigned short m,
    unsigned short y, unsigned short k)
 {

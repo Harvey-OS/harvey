@@ -122,10 +122,10 @@
 #include "ext.h"			/* external variable definitions */
 #include "posttek.h"			/* control codes and other definitions */
 
-char	*optnames = "a:c:f:m:n:o:p:w:x:y:A:C:E:J:L:P:R:DI";
+int8_t	*optnames = "a:c:f:m:n:o:p:w:x:y:A:C:E:J:L:P:R:DI";
 
-char	*prologue = POSTTEK;		/* default PostScript prologue */
-char	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
+int8_t	*prologue = POSTTEK;		/* default PostScript prologue */
+int8_t	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
 
 int	formsperpage = 1;		/* page images on each piece of paper */
 int	copies = 1;			/* and this many copies of each sheet */
@@ -134,8 +134,8 @@ int	charheight[] = CHARHEIGHT;	/* height */
 int	charwidth[] = CHARWIDTH;	/* and width arrays for tek characters */
 int	tekfont = TEKFONT;		/* index into charheight[] and charwidth[] */
 
-char	intensity[] = INTENSITY;	/* special point intensity array */
-char	*styles[] = STYLES;		/* description of line styles */
+int8_t	intensity[] = INTENSITY;	/* special point intensity array */
+int8_t	*styles[] = STYLES;		/* description of line styles */
 int	linestyle = 0;			/* index into styles[] */
 int	linetype = 0;			/* 0 for normal, 1 for defocused */
 
@@ -148,7 +148,7 @@ int	margin = 0;			/* left edge - ALPHA state */
 Point	cursor;				/* should be current cursor position */
 
 Fontmap	fontmap[] = FONTMAP;		/* for translating font names */
-char	*fontname = "Courier";		/* use this PostScript font */
+int8_t	*fontname = "Courier";		/* use this PostScript font */
 
 int	page = 0;			/* page we're working on */
 int	printed = 0;			/* printed this many pages */
@@ -376,9 +376,9 @@ options()
 
 /*****************************************************************************/
 
-char *get_font(name)
+int8_t *get_font(name)
 
-    char	*name;			/* name the user asked for */
+    int8_t	*name;			/* name the user asked for */
 
 {
 

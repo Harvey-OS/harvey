@@ -64,7 +64,7 @@ void *
 vtMemBrk(int n)
 {
 	static Lock lk;
-	static uchar *buf;
+	static uint8_t *buf;
 	static int nbuf;
 	static int nchunk;
 	int align, pad;
@@ -98,10 +98,10 @@ vtMemBrk(int n)
 }
 
 void
-vtThreadSetName(char *name)
+vtThreadSetName(int8_t *name)
 {
 	int fd;
-	char buf[32];
+	int8_t buf[32];
 
 	sprint(buf, "/proc/%d/args", getpid());
 	if((fd = open(buf, OWRITE)) >= 0){
@@ -111,7 +111,7 @@ vtThreadSetName(char *name)
 }
 
 int
-vtFdRead(int fd, uchar *buf, int n)
+vtFdRead(int fd, uint8_t *buf, int n)
 {
 	n = read(fd, buf, n);
 	if(n < 0) {
@@ -126,7 +126,7 @@ vtFdRead(int fd, uchar *buf, int n)
 }
 
 int
-vtFdWrite(int fd, uchar *buf, int n)
+vtFdWrite(int fd, uint8_t *buf, int n)
 {
 	int nn;
 	
@@ -148,7 +148,7 @@ vtFdClose(int fd)
 	close(fd);
 }
 
-char *
+int8_t *
 vtOSError(void)
 {
 	return vtSetError("%r");

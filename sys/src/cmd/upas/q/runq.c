@@ -11,19 +11,19 @@
 #include <ctype.h>
 
 void	doalldirs(void);
-void	dodir(char*);
+void	dodir(int8_t*);
 void	dofile(Dir*);
-void	rundir(char*);
-char*	file(char*, char);
-void	warning(char*, void*);
-void	error(char*, void*);
-int	returnmail(char**, char*, char*);
-void	logit(char*, char*, char**);
+void	rundir(int8_t*);
+int8_t*	file(int8_t*, int8_t);
+void	warning(int8_t*, void*);
+void	error(int8_t*, void*);
+int	returnmail(int8_t**, int8_t*, int8_t*);
+void	logit(int8_t*, int8_t*, int8_t**);
 void	doload(int);
 
 #define HUNK 32
-char	*cmd;
-char	*root;
+int8_t	*cmd;
+int8_t	*root;
 int	debug;
 int	giveup = 2*24*60*60;
 int	load;
@@ -31,14 +31,14 @@ int	limit;
 
 /* the current directory */
 Dir	*dirbuf;
-long	ndirbuf = 0;
+int32_t	ndirbuf = 0;
 int	nfiles;
-char	*curdir;
+int8_t	*curdir;
 
-char *runqlog = "runq";
+int8_t *runqlog = "runq";
 
 int	*pidlist;
-char	**badsys;		/* array of recalcitrant systems */
+int8_t	**badsys;		/* array of recalcitrant systems */
 int	nbad;
 int	npid = 50;
 int	sflag;			/* single thread per directory */
@@ -130,11 +130,11 @@ main(int argc, char **argv)
 }
 
 int
-emptydir(char *name)
+emptydir(int8_t *name)
 {
 	int fd;
-	long n;
-	char buf[2048];
+	int32_t n;
+	int8_t buf[2048];
 
 	fd = open(name, OREAD);
 	if(fd < 0)
@@ -185,7 +185,7 @@ doalldirs(void)
 {
 	Dir *db;
 	int fd;
-	long i, n;
+	int32_t i, n;
 
 
 	fd = open(".", OREAD);
@@ -223,7 +223,7 @@ doalldirs(void)
  *  cd to a user directory and run it
  */
 void
-dodir(char *name)
+dodir(int8_t *name)
 {
 	curdir = name;
 
@@ -241,10 +241,10 @@ dodir(char *name)
  *  run the current directory
  */
 void
-rundir(char *name)
+rundir(int8_t *name)
 {
 	int fd;
-	long i;
+	int32_t i;
 
 	if(aflag && sflag)
 		fd = sysopenlocked(".", OREAD);
@@ -273,9 +273,9 @@ rundir(char *name)
  *  free files matching name in the current directory
  */
 void
-remmatch(char *name)
+remmatch(int8_t *name)
 {
-	long i;
+	int32_t i;
 
 	syslog(0, runqlog, "removing %s/%s", curdir, name);
 
@@ -295,9 +295,9 @@ remmatch(char *name)
  *  and don't want an L. lock file.
  */
 static Mlock *
-keeplockalive(char *path, int fd)
+keeplockalive(int8_t *path, int fd)
 {
-	char buf[1];
+	int8_t buf[1];
 	Mlock *l;
 
 	l = malloc(sizeof(Mlock));
@@ -331,7 +331,7 @@ dofile(Dir *dp)
 {
 	Dir *d;
 	int dfd, ac, dtime, efd, pid, i, etime;
-	char *buf, *cp, **av;
+	int8_t *buf, *cp, **av;
 	Waitmsg *wm;
 	Biobuf *b;
 	Mlock *l = nil;
@@ -421,7 +421,7 @@ dofile(Dir *dp)
 		return;
 	}
 	buf[dp->length] = 0;
-	av = malloc(2*sizeof(char*));
+	av = malloc(2*sizeof(int8_t*));
 	if(av == 0){
 		warning("argv allocation", 0);
 		close(dfd);
@@ -436,7 +436,7 @@ dofile(Dir *dp)
 		if(*cp == 0)
 			break;
 
-		av = realloc(av, (ac+2)*sizeof(char*));
+		av = realloc(av, (ac+2)*sizeof(int8_t*));
 		if(av == 0){
 			warning("argv allocation", 0);
 			close(dfd);
@@ -538,7 +538,7 @@ dofile(Dir *dp)
 			} else {
 				/* add sys to bad list and try again later */
 				nbad++;
-				badsys = realloc(badsys, nbad*sizeof(char*));
+				badsys = realloc(badsys, nbad*sizeof(int8_t*));
 				badsys[nbad-1] = strdup(av[3]);
 			}
 		} else {
@@ -562,10 +562,10 @@ done:
 /*
  *  return a name starting with the given character
  */
-char*
-file(char *name, char type)
+int8_t*
+file(int8_t *name, int8_t type)
 {
-	static char nname[Elemlen+1];
+	static int8_t nname[Elemlen+1];
 
 	strncpy(nname, name, Elemlen);
 	nname[Elemlen] = 0;
@@ -579,17 +579,17 @@ file(char *name, char type)
  *  return 0 if successful
  */
 int
-returnmail(char **av, char *name, char *msg)
+returnmail(int8_t **av, int8_t *name, int8_t *msg)
 {
 	int pfd[2];
 	Waitmsg *wm;
 	int fd;
-	char buf[256];
-	char attachment[256];
+	int8_t buf[256];
+	int8_t attachment[256];
 	int i;
-	long n;
+	int32_t n;
 	String *s;
-	char *sender;
+	int8_t *sender;
 
 	if(av[1] == 0 || av[2] == 0){
 		logit("runq - dumping bad file", name, av);
@@ -672,10 +672,10 @@ out:
  *  print a warning and continue
  */
 void
-warning(char *f, void *a)
+warning(int8_t *f, void *a)
 {
-	char err[65];
-	char buf[256];
+	int8_t err[65];
+	int8_t buf[256];
 
 	rerrstr(err, sizeof(err));
 	snprint(buf, sizeof(buf), f, a);
@@ -686,10 +686,10 @@ warning(char *f, void *a)
  *  print an error and die
  */
 void
-error(char *f, void *a)
+error(int8_t *f, void *a)
 {
-	char err[Errlen];
-	char buf[256];
+	int8_t err[Errlen];
+	int8_t buf[256];
 
 	rerrstr(err, sizeof(err));
 	snprint(buf, sizeof(buf), f, a);
@@ -698,10 +698,10 @@ error(char *f, void *a)
 }
 
 void
-logit(char *msg, char *file, char **av)
+logit(int8_t *msg, int8_t *file, int8_t **av)
 {
 	int n, m;
-	char buf[256];
+	int8_t buf[256];
 
 	n = snprint(buf, sizeof(buf), "%s/%s: %s", curdir, file, msg);
 	for(; *av; av++){
@@ -714,7 +714,7 @@ logit(char *msg, char *file, char **av)
 	syslog(0, runqlog, "%s", buf);
 }
 
-char *loadfile = ".runqload";
+int8_t *loadfile = ".runqload";
 
 /*
  *  load balancing
@@ -723,7 +723,7 @@ void
 doload(int start)
 {
 	int fd;
-	char buf[32];
+	int8_t buf[32];
 	int i, n;
 	Mlock *l;
 	Dir *d;

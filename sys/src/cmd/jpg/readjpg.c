@@ -67,19 +67,19 @@ struct Huffman
 struct Header
 {
 	Biobuf	*fd;
-	char		err[256];
+	int8_t		err[256];
 	jmp_buf	errlab;
 	/* variables in i/o routines */
 	int		sr;	/* shift register, right aligned */
 	int		cnt;	/* # bits in right part of sr */
-	uchar	*buf;
+	uint8_t	*buf;
 	int		nbuf;
 	int		peek;
 
 	int		Nf;
 
 	Framecomp	comp[3];
-	uchar	mode;
+	uint8_t	mode;
 	int		X;
 	int		Y;
 	int		qt[4][64];		/* quantization tables */
@@ -88,8 +88,8 @@ struct Header
 	int		**data[3];
 	int		ndata[3];
 	
-	uchar	*sf;	/* start of frame; do better later */
-	uchar	*ss;	/* start of scan; do better later */
+	uint8_t	*sf;	/* start of frame; do better later */
+	uint8_t	*ss;	/* start of scan; do better later */
 	int		ri;	/* restart interval */
 
 	/* progressive scan */
@@ -105,15 +105,16 @@ struct Header
 	int		Vmax;
 };
 
-static	uchar	clamp[NCLAMP];
+static	uint8_t	clamp[NCLAMP];
 
 static	Rawimage	*readslave(Header*, int);
 static	int			readsegment(Header*, int*);
-static	void			quanttables(Header*, uchar*, int);
-static	void			huffmantables(Header*, uchar*, int);
+static	void			quanttables(Header*, uint8_t*, int);
+static	void			huffmantables(Header*, uint8_t*,
+							int);
 static	void			soiheader(Header*);
 static	int			nextbyte(Header*, int);
-static	int			int2(uchar*, int);
+static	int			int2(uint8_t*, int);
 static	void			nibbles(int, int*, int*);
 static	int			receive(Header*, int);
 static	int			receiveEOB(Header*, int);
@@ -127,10 +128,10 @@ static	void			idct(int*);
 static	void			colormap1(Header*, int, Rawimage*, int*, int, int);
 static	void			colormapall1(Header*, int, Rawimage*, int*, int*, int*, int, int);
 static	void			colormap(Header*, int, Rawimage*, int**, int**, int**, int, int, int, int, int*, int*);
-static	void			jpgerror(Header*, char*, ...);
+static	void			jpgerror(Header*, int8_t*, ...);
 
-static	char		readerr[] = "ReadJPG: read error: %r";
-static	char		memerr[] = "ReadJPG: malloc failed: %r";
+static	int8_t		readerr[] = "ReadJPG: read error: %r";
+static	int8_t		memerr[] = "ReadJPG: malloc failed: %r";
 
 static	int zig[64] = {
 	0, 1, 8, 16, 9, 2, 3, 10, 17, /* 0-7 */
@@ -228,7 +229,7 @@ jpgfreeall(Header *h, int freeimage)
 
 static
 void
-jpgerror(Header *h, char *fmt, ...)
+jpgerror(Header *h, int8_t *fmt, ...)
 {
 	va_list arg;
 
@@ -246,7 +247,7 @@ Breadjpg(Biobuf *b, int colorspace)
 {
 	Rawimage *r, **array;
 	Header *h;
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	buf[0] = '\0';
 	if(colorspace!=CYCbCr && colorspace!=CRGB){
@@ -296,7 +297,7 @@ readslave(Header *header, int colorspace)
 {
 	Rawimage *image;
 	int nseg, i, H, V, m, n;
-	uchar *b;
+	uint8_t *b;
 
 	soiheader(header);
 	nseg = 0;
@@ -313,7 +314,7 @@ readslave(Header *header, int colorspace)
 			return image;
 
 		case APPn+0:
-			if(nseg==1 && strncmp((char*)b, "JFIF", 4)==0)  /* JFIF header; check version */
+			if(nseg==1 && strncmp((int8_t*)b, "JFIF", 4)==0)  /* JFIF header; check version */
 				if(b[5]>1 || b[6]>2)
 					sprint(header->err, "ReadJPG: can't handle JFIF version %d.%2d", b[5], b[6]);
 			break;
@@ -390,7 +391,7 @@ static
 int
 readbyte(Header *h)
 {
-	uchar x;
+	uint8_t x;
 
 	if(h->peek >= 0){
 		x = h->peek;
@@ -417,7 +418,7 @@ marker(Header *h)
 
 static
 int
-int2(uchar *buf, int n)
+int2(uint8_t *buf, int n)
 {
 	return (buf[n]<<8) + buf[n+1];
 }
@@ -447,7 +448,7 @@ int
 readsegment(Header *h, int *markerp)
 {
 	int m, n;
-	uchar tmp[2];
+	uint8_t tmp[2];
 
 	m = marker(h);
 	switch(m){
@@ -479,7 +480,7 @@ readsegment(Header *h, int *markerp)
 
 static
 int
-huffmantable(Header *h, uchar *b)
+huffmantable(Header *h, uint8_t *b)
 {
 	Huffman *t;
 	int Tc, th, n, nsize, i, j, k, v, cnt, code, si, sr, m;
@@ -585,7 +586,7 @@ outF25:
 
 static
 void
-huffmantables(Header *h, uchar *b, int n)
+huffmantables(Header *h, uint8_t *b, int n)
 {
 	int l, mt;
 
@@ -595,7 +596,7 @@ huffmantables(Header *h, uchar *b, int n)
 
 static
 int
-quanttable(Header *h, uchar *b)
+quanttable(Header *h, uint8_t *b)
 {
 	int i, pq, tq, *q;
 
@@ -616,7 +617,7 @@ quanttable(Header *h, uchar *b)
 
 static
 void
-quanttables(Header *h, uchar *b, int n)
+quanttables(Header *h, uint8_t *b, int n)
 {
 	int l, m;
 
@@ -632,7 +633,7 @@ baselinescan(Header *h, int colorspace)
 	int allHV1, nblock, ri, mcu, nacross, nmcu;
 	Huffman *dcht, *acht;
 	int block, t, diff, *qt;
-	uchar *ss;
+	uint8_t *ss;
 	Rawimage *image;
 	int Td[3], Ta[3], H[3], V[3], DC[3];
 	int ***data, *zz;
@@ -845,7 +846,7 @@ void
 progressiveinit(Header *h, int colorspace)
 {
 	int Nf, Ns, j, k, nmcu, comp;
-	uchar *ss;
+	uint8_t *ss;
 	Rawimage *image;
 
 	ss = h->ss;
@@ -904,7 +905,7 @@ progressivedc(Header *h, int comp, int Ah, int Al)
 	int Ns, z, ri, mcu,  nmcu;
 	int block, t, diff, qt, *dc, bn;
 	Huffman *dcht;
-	uchar *ss;
+	uint8_t *ss;
 	int Td[3], DC[3], blockno[3];
 
 	ss= h->ss;
@@ -968,7 +969,7 @@ progressiveac(Header *h, int comp, int Al)
 	int ri, mcu, nacross, ndown, nmcu, nhor;
 	Huffman *acht;
 	int *qt, rrrr, ssss, q;
-	uchar *ss;
+	uint8_t *ss;
 	int Ta, H, V;
 
 	ss = h->ss;
@@ -1066,7 +1067,7 @@ progressiveacinc(Header *h, int comp, int Al)
 	int ri, mcu, nacross, ndown, nhor, nver, eobrun, nzeros, pending, x, y, tmcu, blockno, q, nmcu;
 	Huffman *acht;
 	int *qt, rrrr, ssss, *acc, rs;
-	uchar *ss;
+	uint8_t *ss;
 
 	ss = h->ss;
 	Ns = ss[0];
@@ -1168,7 +1169,7 @@ static
 void
 progressivescan(Header *h, int colorspace)
 {
-	uchar *ss;
+	uint8_t *ss;
 	int Ns, Ss, Ah, Al, c, comp, i;
 
 	if(h->dccoeff[0] == nil)
@@ -1208,7 +1209,7 @@ static
 void
 colormap1(Header *h, int colorspace, Rawimage *image, int data[8*8], int mcu, int nacross)
 {
-	uchar *pic;
+	uint8_t *pic;
 	int x, y, dx, dy, minx, miny;
 	int r, k, pici;
 
@@ -1238,7 +1239,7 @@ static
 void
 colormapall1(Header *h, int colorspace, Rawimage *image, int data0[8*8], int data1[8*8], int data2[8*8], int mcu, int nacross)
 {
-	uchar *rpic, *gpic, *bpic, *rp, *gp, *bp;
+	uint8_t *rpic, *gpic, *bpic, *rp, *gp, *bp;
 	int *p0, *p1, *p2;
 	int x, y, dx, dy, minx, miny;
 	int r, g, b, k, pici;
@@ -1291,7 +1292,7 @@ static
 void
 colormap(Header *h, int colorspace, Rawimage *image, int *data0[8*8], int *data1[8*8], int *data2[8*8], int mcu, int nacross, int Hmax, int Vmax,  int *H, int *V)
 {
-	uchar *rpic, *gpic, *bpic;
+	uint8_t *rpic, *gpic, *bpic;
 	int x, y, dx, dy, minx, miny;
 	int r, g, b, pici, H0, H1, H2;
 	int t, b0, b1, b2, y0, y1, y2, x0, x1, x2;

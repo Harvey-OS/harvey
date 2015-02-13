@@ -31,9 +31,9 @@ struct State
 	Key *key;
 	Ticket	t;
 	Ticketreq	tr;
-	char chal[128];
-	char	resp[64];
-	char *user;
+	int8_t chal[128];
+	int8_t	resp[64];
+	int8_t *user;
 };
 
 enum
@@ -58,7 +58,7 @@ static char *phasenames[Maxphase] = {
 };
 
 static int dochal(State*);
-static int doreply(State*, char*, char*);
+static int doreply(State*, int8_t*, int8_t*);
 
 static int
 apopinit(Proto *p, Fsstate *fss)
@@ -100,9 +100,9 @@ apopinit(Proto *p, Fsstate *fss)
 static int
 apopwrite(Fsstate *fss, void *va, uint n)
 {
-	char *a, *v;
+	int8_t *a, *v;
 	int i, ret;
-	uchar digest[MD5dlen];
+	uint8_t digest[MD5dlen];
 	DigestState *ds;
 	Key *k;
 	State *s;
@@ -126,13 +126,13 @@ apopwrite(Fsstate *fss, void *va, uint n)
 		default:
 			abort();
 		case AuthCram:
-			hmac_md5((uchar*)a, n, (uchar*)v, strlen(v),
+			hmac_md5((uint8_t*)a, n, (uint8_t*)v, strlen(v),
 				digest, nil);
 			snprint(s->resp, sizeof s->resp, "%.*H", MD5dlen, digest);
 			break;
 		case AuthApop:
-			ds = md5((uchar*)a, n, nil, nil);
-			md5((uchar*)v, strlen(v), digest, ds);
+			ds = md5((uint8_t*)a, n, nil, nil);
+			md5((uint8_t*)v, strlen(v), digest, ds);
 			for(i=0; i<MD5dlen; i++)
 				sprint(&s->resp[2*i], "%2.2x", digest[i]);
 			break;
@@ -217,7 +217,7 @@ apopclose(Fsstate *fss)
 static int
 dochal(State *s)
 {
-	char *dom, *user, trbuf[TICKREQLEN];
+	int8_t *dom, *user, trbuf[TICKREQLEN];
 
 	s->asfd = -1;
 
@@ -255,10 +255,10 @@ err:
 }
 
 static int
-doreply(State *s, char *user, char *response)
+doreply(State *s, int8_t *user, int8_t *response)
 {
-	char ticket[TICKETLEN+AUTHENTLEN];
-	char trbuf[TICKREQLEN];
+	int8_t ticket[TICKETLEN+AUTHENTLEN];
+	int8_t trbuf[TICKREQLEN];
 	int n;
 	Authenticator a;
 
@@ -287,7 +287,7 @@ doreply(State *s, char *user, char *response)
 	close(s->asfd);
 	s->asfd = -1;
 
-	convM2T(ticket, &s->t, (char*)s->key->priv);
+	convM2T(ticket, &s->t, (int8_t*)s->key->priv);
 	if(s->t.num != AuthTs
 	|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
 		if(s->key->successes == 0)

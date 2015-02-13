@@ -39,10 +39,10 @@ typedef struct {
 	int	existed;	/* these two are distinct to cope with errors */
 	int	created;
 	int	noperm;
-	long	mtime;		/* mod time, iff it already existed */
+	int32_t	mtime;		/* mod time, iff it already existed */
 } Greysts;
 
-static char whitelist[] = "/mail/grey/whitelist";
+static int8_t whitelist[] = "/mail/grey/whitelist";
 
 /*
  * matches ip addresses or subnets in whitelist against nci->rsys.
@@ -52,12 +52,12 @@ static int
 onwhitelist(void)
 {
 	int lnlen;
-	char *line, *parse, *p;
-	char input[128];
-	uchar *mask;
-	uchar mask4[IPaddrlen], addr4[IPaddrlen];
-	uchar rmask[IPaddrlen], addr[IPaddrlen];
-	uchar ipmasked[IPaddrlen], addrmasked[IPaddrlen];
+	int8_t *line, *parse, *p;
+	int8_t input[128];
+	uint8_t *mask;
+	uint8_t mask4[IPaddrlen], addr4[IPaddrlen];
+	uint8_t rmask[IPaddrlen], addr[IPaddrlen];
+	uint8_t ipmasked[IPaddrlen], addrmasked[IPaddrlen];
 	Biobuf *wl;
 
 	wl = Bopen(whitelist, OREAD);
@@ -105,17 +105,17 @@ onwhitelist(void)
 	return line != nil;
 }
 
-static int mkdirs(char *);
+static int mkdirs(int8_t *);
 
 /*
  * if any directories leading up to path don't exist, create them.
  * modifies but restores path.
  */
 static int
-mkpdirs(char *path)
+mkpdirs(int8_t *path)
 {
 	int rv = 0;
-	char *sl = strrchr(path, '/');
+	int8_t *sl = strrchr(path, '/');
 
 	if (sl != nil) {
 		*sl = '\0';
@@ -130,7 +130,7 @@ mkpdirs(char *path)
  * modifies but restores path.
  */
 static int
-mkdirs(char *path)
+mkdirs(int8_t *path)
 {
 	int fd;
 
@@ -153,11 +153,11 @@ mkdirs(char *path)
 	return 0;
 }
 
-static long
-getmtime(char *file)
+static int32_t
+getmtime(int8_t *file)
 {
 	int fd;
-	long mtime = -1;
+	int32_t mtime = -1;
 	Dir *ds;
 
 	fd = open(file, ORDWR);
@@ -191,7 +191,7 @@ getmtime(char *file)
 }
 
 static void
-tryaddgrey(char *file, Greysts *gsp)
+tryaddgrey(int8_t *file, Greysts *gsp)
 {
 	int fd = create(file, OWRITE|OEXCL, 0666);
 
@@ -216,7 +216,7 @@ tryaddgrey(char *file, Greysts *gsp)
 }
 
 static void
-addgreylist(char *file, Greysts *gsp)
+addgreylist(int8_t *file, Greysts *gsp)
 {
 	tryaddgrey(file, gsp);
 	if (!gsp->created && !gsp->existed && !gsp->noperm)
@@ -227,7 +227,7 @@ addgreylist(char *file, Greysts *gsp)
 static int
 recentcall(Greysts *gsp)
 {
-	long delay = time(0) - gsp->mtime;
+	int32_t delay = time(0) - gsp->mtime;
 
 	if (!gsp->existed)
 		return 0;
@@ -249,10 +249,10 @@ recentcall(Greysts *gsp)
  */
 
 static int
-isrcptrecent(char *rcpt)
+isrcptrecent(int8_t *rcpt)
 {
-	char *user;
-	char file[256];
+	int8_t *user;
+	int8_t file[256];
 	Greysts gs;
 	Greysts *gsp = &gs;
 
@@ -290,7 +290,7 @@ isrcptrecent(char *rcpt)
 void
 vfysenderhostok(void)
 {
-	char *fqdn;
+	int8_t *fqdn;
 	int recent = 0;
 	Link *l;
 

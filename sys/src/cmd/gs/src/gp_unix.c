@@ -45,7 +45,7 @@
 #  include <stdlib.h>		/* for exit and getenv */
 #else
 extern void exit(int);
-extern char *getenv(const char *);
+extern int8_t *getenv(const int8_t *);
 #endif
 
 /* Do platform-dependent initialization. */
@@ -72,7 +72,7 @@ gp_do_exit(int exit_status)
 /* Get the string corresponding to an OS error number. */
 /* Unix systems support this so inconsistently that we don't attempt */
 /* to figure out whether it's available. */
-const char *
+const int8_t *
 gp_strerror(int errnum)
 {
     return NULL;
@@ -82,8 +82,8 @@ gp_strerror(int errnum)
 /* we don't try to implemented this since it requires support */
 /* for Apple's HFS(+) filesystem */
 int
-gp_read_macresource(byte *buf, const char *filename, 
-                    const uint type, const ushort id)
+gp_read_macresource(byte *buf, const int8_t *filename, 
+                    const uint type, const uint16_t id)
 {
     return 0;
 }
@@ -93,7 +93,7 @@ gp_read_macresource(byte *buf, const char *filename,
 /* Read the current time (in seconds since Jan. 1, 1970) */
 /* and fraction (in nanoseconds). */
 void
-gp_get_realtime(long *pdt)
+gp_get_realtime(int32_t *pdt)
 {
     struct timeval tp;
 
@@ -131,12 +131,12 @@ gp_get_realtime(long *pdt)
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(long *pdt)
+gp_get_usertime(int32_t *pdt)
 {
 #if use_times_for_usertime
     struct tms tms;
-    long ticks;
-    const long ticks_per_sec = CLK_TCK;
+    int32_t ticks;
+    const int32_t ticks_per_sec = CLK_TCK;
 
     times(&tms);
     ticks = tms.tms_utime + tms.tms_stime + tms.tms_cutime + tms.tms_cstime;
@@ -150,7 +150,7 @@ gp_get_usertime(long *pdt)
 /* ------ Screen management ------ */
 
 /* Get the environment variable that specifies the display to use. */
-const char *
+const int8_t *
 gp_getenv_display(void)
 {
     return getenv("DISPLAY");
@@ -160,16 +160,16 @@ gp_getenv_display(void)
 
 /* Open a connection to a printer.  See gp.h for details. */
 FILE *
-gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
+gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
 {
-    const char *fmode = (binary_mode ? "wb" : "w");
+    const int8_t *fmode = (binary_mode ? "wb" : "w");
 
     return (strlen(fname) == 0 ? 0 : fopen(fname, fmode));
 }
 
 /* Close the connection to the printer. */
 void
-gp_close_printer(FILE * pfile, const char *fname)
+gp_close_printer(FILE * pfile, const int8_t *fname)
 {
     if (fname[0] == '|')
 	pclose(pfile);
@@ -189,7 +189,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, int8_t **fontname,
+                            int8_t **path)
 {
     return 0;
 }

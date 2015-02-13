@@ -11,12 +11,12 @@
 #include <libc.h>
 
 void
-cat(int f, char *s)
+cat(int f, int8_t *s)
 {
-	char buf[8192];
-	long n;
+	int8_t buf[8192];
+	int32_t n;
 
-	while((n=read(f, buf, (long)sizeof buf))>0)
+	while((n=read(f, buf, (int32_t)sizeof buf))>0)
 		if(write(1, buf, n)!=n)
 			sysfatal("write error copying %s: %r", s);
 	if(n < 0)
@@ -24,7 +24,7 @@ cat(int f, char *s)
 }
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
 	int f, i;
 

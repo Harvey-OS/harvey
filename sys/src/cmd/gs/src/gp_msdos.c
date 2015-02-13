@@ -37,7 +37,7 @@
 /* Get the string corresponding to an OS error number. */
 /* This is compiler-, not OS-, specific, but it is ANSI-standard and */
 /* all MS-DOS and MS Windows compilers support it. */
-const char *
+const int8_t *
 gp_strerror(int errnum)
 {
     return strerror(errnum);
@@ -48,10 +48,10 @@ gp_strerror(int errnum)
 /* Read the current time (in seconds since Jan. 1, 1980) */
 /* and fraction (in nanoseconds). */
 void
-gp_get_realtime(long *pdt)
+gp_get_realtime(int32_t *pdt)
 {
     union REGS osdate, ostime;
-    long idate;
+    int32_t idate;
     static const int mstart[12] =
     {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
 
@@ -66,7 +66,7 @@ gp_get_realtime(long *pdt)
 #define ti_min h.cl
 #define ti_sec h.dh
 #define ti_hund h.dl
-    idate = (long)osdate.da_year * 365 +
+    idate = (int32_t)osdate.da_year * 365 +
 	(			/* intervening leap days */
 	    ((osdate.da_year + 1979) / 4 - 1979 / 4) +
 	    (1979 / 100 - (osdate.da_year + 1979) / 100) +
@@ -86,7 +86,7 @@ gp_get_realtime(long *pdt)
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(long *pdt)
+gp_get_usertime(int32_t *pdt)
 {
     gp_get_realtime(pdt);	/* Use an approximation for now.  */
 }
@@ -119,7 +119,7 @@ gp_file_is_console(FILE * f)
 /* ------ Screen management ------ */
 
 /* Get the environment variable that specifies the display to use. */
-const char *
+const int8_t *
 gp_getenv_display(void)
 {
     return NULL;
@@ -128,10 +128,10 @@ gp_getenv_display(void)
 /* ------ File names ------ */
 
 /* Define the default scratch file name prefix. */
-const char gp_scratch_file_name_prefix[] = "_temp_";
+const int8_t gp_scratch_file_name_prefix[] = "_temp_";
 
 /* Define the name of the null output file. */
-const char gp_null_file_name[] = "nul";
+const int8_t gp_null_file_name[] = "nul";
 
 /* Define the name that designates the current directory. */
-const char gp_current_directory_name[] = ".";
+const int8_t gp_current_directory_name[] = ".";

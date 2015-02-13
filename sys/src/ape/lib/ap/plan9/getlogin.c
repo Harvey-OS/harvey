@@ -13,8 +13,8 @@
 #include <unistd.h>
 #include <sys/limits.h>
 
-char *
-getlogin_r(char *buf, int len)
+int8_t *
+getlogin_r(int8_t *buf, int len)
 {
 	int f, n;
 
@@ -27,10 +27,10 @@ getlogin_r(char *buf, int len)
 	return (n>=0)? buf : 0;
 }
 
-char *
+int8_t *
 getlogin(void)
 {
-	static char buf[NAME_MAX+1];
+	static int8_t buf[NAME_MAX+1];
 
 	return getlogin_r(buf, sizeof buf);
 }

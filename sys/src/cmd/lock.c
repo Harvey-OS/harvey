@@ -18,8 +18,8 @@
 static int debug;
 static int lockwait;
 
-void	error(char*);
-void	notifyf(void*, char*);
+void	error(int8_t*);
+void	notifyf(void*, int8_t*);
 
 static void
 usage(void)
@@ -31,7 +31,7 @@ usage(void)
 static Waitmsg *
 waitfor(int pid)
 {
-	char err[ERRMAX];
+	int8_t err[ERRMAX];
 	Waitmsg *w;
 
 	for (;;) {
@@ -48,7 +48,7 @@ waitfor(int pid)
 }
 
 static int
-openlock(char *lock)
+openlock(int8_t *lock)
 {
 	int lckfd;
 	Dir *dir;
@@ -163,14 +163,14 @@ main(int argc, char *argv[])
 }
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	fprint(2, "%s: %s: %r\n", argv0, s);
 	exits(s);
 }
 
 void
-notifyf(void *a, char *s)
+notifyf(void *a, int8_t *s)
 {
 	USED(a);
 	if(strcmp(s, "interrupt") == 0)

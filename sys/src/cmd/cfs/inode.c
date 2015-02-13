@@ -27,11 +27,11 @@
  *  nab is the first inode block.
  */
 int
-iinit(Icache *ic, int f, int psize, char* name)
+iinit(Icache *ic, int f, int psize, int8_t* name)
 {
 	Ibuf *b;
 	Imap *m;
-	ulong ino;
+	uint32_t ino;
 	Bbuf *bb;
 	Dinode *bi;
 
@@ -112,10 +112,11 @@ iinit(Icache *ic, int f, int psize, char* name)
  *  format the inode blocks
  */
 int
-iformat(Icache *ic, int f, ulong nino, char *name, int bsize, int psize)
+iformat(Icache *ic, int f, uint32_t nino, int8_t *name, int bsize,
+	int psize)
 {
 	int nib;
-	ulong bno, i2b, i;
+	uint32_t bno, i2b, i;
 	Bbuf *bb;
 	Dinode *bi;
 
@@ -157,7 +158,7 @@ iformat(Icache *ic, int f, ulong nino, char *name, int bsize, int psize)
  *  allocate a cache buffer, use least recently used
  */
 Ibuf*
-ialloc(Icache *ic, ulong ino)
+ialloc(Icache *ic, uint32_t ino)
 {
 	Imap *m;
 	Ibuf *b;
@@ -252,11 +253,11 @@ iget(Icache *ic, Qid qid)
  *  ASSUMPTION: the inode is valid
  */
 Ibuf*
-iread(Icache *ic, ulong ino)
+iread(Icache *ic, uint32_t ino)
 {
 	Ibuf *b;
 	Imap *m;
-	ulong bno;
+	uint32_t bno;
 	Bbuf *bb;
 	Dinode *bi;
 
@@ -305,7 +306,7 @@ out:
 int
 iwrite(Icache *ic, Ibuf *b)
 {
-	ulong bno;
+	uint32_t bno;
 	Bbuf *bb;
 	Dinode *bi;
 
@@ -327,7 +328,7 @@ iwrite(Icache *ic, Ibuf *b)
  *	N.B: ordering of iwrite and dfree is important
  */
 int
-iupdate(Icache *ic, ulong ino, Qid qid)
+iupdate(Icache *ic, uint32_t ino, Qid qid)
 {
 	Ibuf *b;
 	Imap *m;
@@ -365,7 +366,7 @@ iupdate(Icache *ic, ulong ino, Qid qid)
  *	N.B: ordering of iwrite and dfree is important
  */
 int
-iremove(Icache *ic, ulong ino)
+iremove(Icache *ic, uint32_t ino)
 {
 	Ibuf *b;
 	Imap *m;

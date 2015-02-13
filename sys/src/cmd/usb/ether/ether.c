@@ -41,7 +41,7 @@ enum
 
 struct Dirtab
 {
-	char	*name;
+	int8_t	*name;
 	int	qid;
 	int	mode;
 };
@@ -134,21 +134,21 @@ Resetf ethers[] =
 };
 
 static int
-qtype(vlong q)
+qtype(int64_t q)
 {
 	return q&0xFF;
 }
 
 static int
-qnum(vlong q)
+qnum(int64_t q)
 {
 	return (q >> 8) & 0xFFFFFF;
 }
 
-static uvlong
+static uint64_t
 mkqid(int n, int t)
 {
-	uvlong q;
+	uint64_t q;
 
 	q = (n&0xFFFFFF) << 8 | t&0xFF;
 	return q;
@@ -223,8 +223,8 @@ newconn(Ether *e)
 	return nil;
 }
 
-static char*
-seprintaddr(char *s, char *se, uchar *addr)
+static int8_t*
+seprintaddr(int8_t *s, int8_t *se, uint8_t *addr)
 {
 	int i;
 
@@ -234,11 +234,11 @@ seprintaddr(char *s, char *se, uchar *addr)
 }
 
 void
-dumpframe(char *tag, void *p, int n)
+dumpframe(int8_t *tag, void *p, int n)
 {
 	Etherpkt *ep;
-	char buf[128];
-	char *s, *se;
+	int8_t buf[128];
+	int8_t *s, *se;
 	int i;
 
 	ep = p;
@@ -261,8 +261,8 @@ dumpframe(char *tag, void *p, int n)
 		fprint(2, "%s\n", buf);
 }
 
-static char*
-seprintstats(char *s, char *se, Ether *e)
+static int8_t*
+seprintstats(int8_t *s, int8_t *se, Ether *e)
 {
 	qlock(e);
 	s = seprint(s, se, "in: %ld\n", e->nin);
@@ -278,8 +278,8 @@ seprintstats(char *s, char *se, Ether *e)
 	return s;
 }
 
-static char*
-seprintifstats(char *s, char *se, Ether *e)
+static int8_t*
+seprintifstats(int8_t *s, int8_t *se, Ether *e)
 {
 	int i;
 	Conn *c;
@@ -309,7 +309,7 @@ seprintifstats(char *s, char *se, Ether *e)
 static void
 etherdump(Ether *e)
 {
-	char buf[256];
+	int8_t buf[256];
 
 	if(etherdebug == 0)
 		return;
@@ -388,10 +388,10 @@ conndirgen(Usbfs *fs, Qid q, int i, Dir *d, void *)
 }
 
 static int
-fswalk(Usbfs *fs, Fid *fid, char *name)
+fswalk(Usbfs *fs, Fid *fid, int8_t *name)
 {
 	int cn, i;
-	char *es;
+	int8_t *es;
 	Dirtab *tab;
 	Ether *e;
 	Qid qid;
@@ -449,7 +449,7 @@ fswalk(Usbfs *fs, Fid *fid, char *name)
 }
 
 static Dirtab*
-qdirtab(vlong q)
+qdirtab(int64_t q)
 {
 	int i, qt;
 	Dirtab *tab;
@@ -477,7 +477,7 @@ static int
 fsopen(Usbfs *fs, Fid *fid, int omode)
 {
 	int qt;
-	vlong qid;
+	int64_t qid;
 	Conn *c;
 	Dirtab *tab;
 	Ether *e;
@@ -529,7 +529,7 @@ static void
 fsclunk(Usbfs *fs, Fid *fid)
 {
 	int qt;
-	vlong qid;
+	int64_t qid;
 	Buf *bp;
 	Conn *c;
 	Ether *e;
@@ -564,10 +564,10 @@ fsclunk(Usbfs *fs, Fid *fid)
 }
 
 int
-parseaddr(uchar *m, char *s)
+parseaddr(uint8_t *m, int8_t *s)
 {
 	int i, n;
-	uchar v;
+	uint8_t v;
 
 	if(strlen(s) < 12)
 		return -1;
@@ -593,12 +593,12 @@ parseaddr(uchar *m, char *s)
 	return 0;
 }
 
-static long
-fsread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
+static int32_t
+fsread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 {
 	int cn, qt;
-	char *s, *se;
-	char buf[2048];		/* keep this large for ifstats */
+	int8_t *s, *se;
+	int8_t buf[2048];		/* keep this large for ifstats */
 	Buf *bp;
 	Conn *c;
 	Ether *e;
@@ -687,9 +687,9 @@ isloopback(Ether *e, Buf *)
 }
 
 static int
-etherctl(Ether *e, Conn *c, char *buf)
+etherctl(Ether *e, Conn *c, int8_t *buf)
 {
-	uchar addr[Eaddrlen];
+	uint8_t addr[Eaddrlen];
 	int t;
 
 	deprint(2, "%s: etherctl: %s\n", argv0, buf);
@@ -745,7 +745,7 @@ etherctl(Ether *e, Conn *c, char *buf)
 	return -1;
 }
 
-static long
+static int32_t
 etherbread(Ether *e, Buf *bp)
 {
 	deprint(2, "%s: etherbread\n", argv0);
@@ -759,10 +759,10 @@ etherbread(Ether *e, Buf *bp)
 	return bp->ndata;
 }
 
-static long
+static int32_t
 etherbwrite(Ether *e, Buf *bp)
 {
-	long n;
+	int32_t n;
 
 	deprint(2, "%s: etherbwrite %d bytes\n", argv0, bp->ndata);
 	n = write(e->epout->dfd, bp->rp, bp->ndata);
@@ -779,11 +779,11 @@ etherbwrite(Ether *e, Buf *bp)
 	return n;
 }
 
-static long
-fswrite(Usbfs *fs, Fid *fid, void *data, long count, vlong)
+static int32_t
+fswrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t)
 {
 	int cn, qt;
-	char buf[128];
+	int8_t buf[128];
 	Buf *bp;
 	Conn *c;
 	Ether *e;
@@ -982,7 +982,7 @@ etherwriteproc(void *a)
 static void
 setbuftype(Buf *bp)
 {
-	uchar *p;
+	uint8_t *p;
 
 	bp->type = 0;
 	if(bp->ndata >= Ehdrsize){
@@ -1155,7 +1155,7 @@ static int
 kernelproxy(Ether *e)
 {
 	int ctlfd, n;
-	char eaddr[13];
+	int8_t eaddr[13];
 
 	ctlfd = open("#l0/ether0/clone", ORDWR);
 	if(ctlfd < 0){

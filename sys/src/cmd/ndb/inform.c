@@ -41,7 +41,7 @@ usage(void)
 }
 
 void
-ding(void *, char *msg)
+ding(void *, int8_t *msg)
 {
 	if(strstr(msg, "alarm") != nil)
 		noted(NCONT);
@@ -49,7 +49,7 @@ ding(void *, char *msg)
 }
 
 int
-g16(uchar **p)
+g16(uint8_t **p)
 {
 	int n;
 
@@ -59,14 +59,14 @@ g16(uchar **p)
 }
 
 void
-p16(uchar **p, int n)
+p16(uint8_t **p, int n)
 {
 	*(*p)++ = n >> 8;
 	*(*p)++ = n;
 }
 
 void
-p32(uchar **p, int n)
+p32(uint8_t **p, int n)
 {
 	*(*p)++ = n >> 24;
 	*(*p)++ = n >> 16;
@@ -75,16 +75,16 @@ p32(uchar **p, int n)
 }
 
 void
-pmem(uchar **p, void *v, int len)
+pmem(uint8_t **p, void *v, int len)
 {
 	memmove(*p, v, len);
 	*p += len;
 }
 
 void
-pname(uchar **p, char *s)
+pname(uint8_t **p, int8_t *s)
 {
-	uchar *len;
+	uint8_t *len;
 
 	while (*s){
 		len = (*p)++;

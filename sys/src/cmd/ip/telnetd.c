@@ -40,28 +40,28 @@ enum
 /* input and output buffers for network connection */
 Biobuf	netib;
 Biobuf	childib;
-char	remotesys[Maxpath];	/* name of remote system */
+int8_t	remotesys[Maxpath];	/* name of remote system */
 
 int	alnum(int);
 int	conssim(void);
-int	fromchild(char*, int);
-int	fromnet(char*, int);
+int	fromchild(int8_t*, int);
+int	fromnet(int8_t*, int);
 int	termchange(Biobuf*, int);
-int	termsub(Biobuf*, uchar*, int);
+int	termsub(Biobuf*, uint8_t*, int);
 int	xlocchange(Biobuf*, int);
-int	xlocsub(Biobuf*, uchar*, int);
-int	challuser(char*);
-int	noworldlogin(char*);
+int	xlocsub(Biobuf*, uint8_t*, int);
+int	challuser(int8_t*);
+int	noworldlogin(int8_t*);
 void*	share(ulong);
-int	doauth(char*);
+int	doauth(int8_t*);
 
 #define TELNETLOG "telnet"
 
 void
-logit(char *fmt, ...)
+logit(int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[8192];
+	int8_t buf[8192];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
@@ -70,10 +70,10 @@ logit(char *fmt, ...)
 }
 
 void
-getremote(char *dir)
+getremote(int8_t *dir)
 {
 	int fd, n;
-	char remfile[Maxpath];
+	int8_t remfile[Maxpath];
 
 	sprint(remfile, "%s/remote", dir);
 	fd = open(remfile, OREAD);
@@ -220,9 +220,9 @@ main(int argc, char *argv[])
 }
 
 void
-prompt(char *p, char *b, int n, int raw)
+prompt(int8_t *p, int8_t *b, int n, int raw)
 {
-	char *e;
+	int8_t *e;
 	int i;
 	int echo;
 
@@ -248,10 +248,10 @@ prompt(char *p, char *b, int n, int raw)
  *  challenge user
  */
 int
-challuser(char *user)
+challuser(int8_t *user)
 {
-	char nchall[64];
-	char response[64];
+	int8_t nchall[64];
+	int8_t response[64];
 	Chalstate *ch;
 	AuthInfo *ai;
 
@@ -282,9 +282,9 @@ challuser(char *user)
  *  use the in the clear apop password to change user id
  */
 int
-noworldlogin(char *user)
+noworldlogin(int8_t *user)
 {
-	char password[256];
+	int8_t password[256];
 
 	prompt("password", password, sizeof(password), 1);
 	if(login(user, password, "/lib/namespace.noworld") < 0)
@@ -294,7 +294,7 @@ noworldlogin(char *user)
 }
 
 int
-doauth(char *user)
+doauth(int8_t *user)
 {
 	if(*user == 0)
 		prompt("user", user, Maxuser, 0);
@@ -311,10 +311,10 @@ doauth(char *user)
  *  the input buffer goes empty, return.
  */
 int
-fromchild(char *bp, int len)
+fromchild(int8_t *bp, int len)
 {
 	int c;
-	char *start;
+	int8_t *start;
 
 	for(start = bp; bp-start < len-1; ){
 		c = Bgetc(&childib);
@@ -348,12 +348,12 @@ fromchild(char *bp, int len)
  */
 #define ECHO(c) { *ebp++ = (c); }
 int
-fromnet(char *bp, int len)
+fromnet(int8_t *bp, int len)
 {
 	int c;
-	char echobuf[1024];
-	char *ebp;
-	char *start;
+	int8_t echobuf[1024];
+	int8_t *ebp;
+	int8_t *start;
 	static int crnl;
 	static int doeof;
 
@@ -484,8 +484,8 @@ out:
 int
 termchange(Biobuf *bp, int cmd)
 {
-	char buf[8];
-	char *p = buf;
+	int8_t buf[8];
+	int8_t *p = buf;
 
 	if(cmd != Will)
 		return 0;
@@ -501,16 +501,16 @@ termchange(Biobuf *bp, int cmd)
 }
 
 int
-termsub(Biobuf *bp, uchar *sub, int n)
+termsub(Biobuf *bp, uint8_t *sub, int n)
 {
-	char term[Maxvar];
+	int8_t term[Maxvar];
 
 	USED(bp);
 	if(n-- < 1 || sub[0] != 0)
 		return 0;
 	if(n >= sizeof term)
 		n = sizeof term;
-	strncpy(term, (char*)sub, n);
+	strncpy(term, (int8_t*)sub, n);
 	putenv("TERM", term);
 	return 0;
 }
@@ -518,8 +518,8 @@ termsub(Biobuf *bp, uchar *sub, int n)
 int
 xlocchange(Biobuf *bp, int cmd)
 {
-	char buf[8];
-	char *p = buf;
+	int8_t buf[8];
+	int8_t *p = buf;
 
 	if(cmd != Will)
 		return 0;
@@ -535,16 +535,16 @@ xlocchange(Biobuf *bp, int cmd)
 }
 
 int
-xlocsub(Biobuf *bp, uchar *sub, int n)
+xlocsub(Biobuf *bp, uint8_t *sub, int n)
 {
-	char xloc[Maxvar];
+	int8_t xloc[Maxvar];
 
 	USED(bp);
 	if(n-- < 1 || sub[0] != 0)
 		return 0;
 	if(n >= sizeof xloc)
 		n = sizeof xloc;
-	strncpy(xloc, (char*)sub, n);
+	strncpy(xloc, (int8_t*)sub, n);
 	putenv("DISPLAY", xloc);
 	return 0;
 }
@@ -554,9 +554,9 @@ xlocsub(Biobuf *bp, uchar *sub, int n)
  *  end of process memory.
  */
 void*
-share(ulong len)
+share(uint32_t len)
 {
-	uchar *vastart;
+	uint8_t *vastart;
 
 	vastart = sbrk(0);
 	if(vastart == (void*)-1)
@@ -579,8 +579,8 @@ conssim(void)
 	int i, n;
 	int fd;
 	int tries;
-	char buf[128];
-	char *field[10];
+	int8_t buf[128];
+	int8_t *field[10];
 
 	/* a pipe to simulate the /dev/cons */
 	if(bind("#|", "/mnt/cons/cons", MREPL) < 0)

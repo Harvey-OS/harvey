@@ -18,23 +18,23 @@
 int dpi = -1;
 int debug = 0;
 int landscape = 0;
-char *file = "<stdin>";
+int8_t *file = "<stdin>";
 
 int paperlength = 11*72;
 int paperwidth = 612;	/* 8.5*72 */
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	fprint(2, "p9bitpost: can't %s file %s: %r\n", s, file);
 	exits("error");
 }
 
 void
-main(int argc, char *argv[]) {
+main(int argc, int8_t *argv[]) {
 	int i, fd = 0;
 	double xmag = 1.0, ymag = 1.0;
-	char *optstr, *Patch;
+	int8_t *optstr, *Patch;
 	Memimage *memimage;
 
 	Patch = nil;

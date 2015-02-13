@@ -221,7 +221,7 @@ zwritehexstring_at(i_ctx_t *i_ctx_p, os_ptr op, uint odd)
     register stream *s;
     register byte ch;
     register const byte *p;
-    register const char *const hex_digits = "0123456789abcdef";
+    register const int8_t *const hex_digits = "0123456789abcdef";
     register uint len;
     int status;
 
@@ -471,7 +471,7 @@ zbytesavailable(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
     stream *s;
-    long avail;
+    int32_t avail;
 
     check_read_file(s, op);
     switch (savailable(s, &avail)) {
@@ -741,7 +741,7 @@ zunread(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
     stream *s;
-    ulong ch;
+    uint32_t ch;
 
     check_read_file(s, op - 1);
     check_type(*op, t_integer);

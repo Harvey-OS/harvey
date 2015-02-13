@@ -15,13 +15,14 @@ static int	alarmflag;
 static int	Iconv(Fmt*);
 static void	openudp(int);
 static void	cachereply(Rpccall*, void*, int);
-static int	replycache(int, Rpccall*, long (*)(int, void*, long));
+static int	replycache(int, Rpccall*, int32_t (*)(int, void*, int32_t));
 static void	udpserver(int, Progmap*);
 static void	tcpserver(int, Progmap*);
-static void	getendpoints(Udphdr*, char*);
-static long	readtcp(int, void*, long);
-static long	writetcp(int, void*, long);
-static int	servemsg(int, long (*)(int, void*, long), long (*)(int, void*, long),
+static void	getendpoints(Udphdr*, int8_t*);
+static int32_t	readtcp(int, void*, int32_t);
+static int32_t	writetcp(int, void*, int32_t);
+static int	servemsg(int, int32_t (*)(int, void*, int32_t),
+			   int32_t (*)(int, void*, int32_t),
 		int, Progmap*);
 void	(*rpcalarm)(void);
 int	rpcdebug;
@@ -30,13 +31,13 @@ int	p9debug;
 
 int	nocache;
 
-uchar	buf[9000];
-uchar	rbuf[9000];
-uchar	resultbuf[9000];
+uint8_t	buf[9000];
+uint8_t	rbuf[9000];
+uint8_t	resultbuf[9000];
 
 static int tcp;
 
-char *commonopts = "[-9CDrtv]";			/* for usage() messages */
+int8_t *commonopts = "[-9CDrtv]";			/* for usage() messages */
 
 /*
  * this recognises common, nominally rcp-related options.
@@ -74,7 +75,7 @@ argopt(int c)
  * here to argopt for common options.
  */
 void
-server(int argc, char **argv, int myport, Progmap *progmap)
+server(int argc, int8_t **argv, int myport, Progmap *progmap)
 {
 	Progmap *pg;
 
@@ -112,9 +113,9 @@ server(int argc, char **argv, int myport, Progmap *progmap)
 static void
 udpserver(int myport, Progmap *progmap)
 {
-	char service[128];
-	char data[128];
-	char devdir[40];
+	int8_t service[128];
+	int8_t data[128];
+	int8_t devdir[40];
 	int ctlfd, datafd;
 
 	snprint(service, sizeof service, "udp!*!%d", myport);
@@ -140,9 +141,9 @@ udpserver(int myport, Progmap *progmap)
 static void
 tcpserver(int myport, Progmap *progmap)
 {
-	char adir[40];
-	char ldir[40];
-	char ds[40];
+	int8_t adir[40];
+	int8_t ldir[40];
+	int8_t ds[40];
 	int actl, lctl, data;
 
 	snprint(ds, sizeof ds, "tcp!*!%d", myport);
@@ -192,7 +193,8 @@ tcpserver(int myport, Progmap *progmap)
 }
 
 static int
-servemsg(int fd, long (*readmsg)(int, void*, long), long (*writemsg)(int, void*, long),
+servemsg(int fd, int32_t (*readmsg)(int, void*, int32_t),
+	 int32_t (*writemsg)(int, void*, int32_t),
 		int myport, Progmap * progmap)
 {
 	int i, n, nreply;
@@ -200,7 +202,7 @@ servemsg(int fd, long (*readmsg)(int, void*, long), long (*writemsg)(int, void*,
 	int vlo, vhi;
 	Progmap *pg;
 	Procmap *pp;
-	char errbuf[ERRMAX];
+	int8_t errbuf[ERRMAX];
 
 	if(alarmflag){
 		alarmflag = 0;
@@ -255,7 +257,7 @@ servemsg(int fd, long (*readmsg)(int, void*, long), long (*writemsg)(int, void*,
 		rreply.authstat = AUTH_TOOWEAK;
 		goto send_reply;
 	}
-	i = n - (((uchar *)rcall.args) - buf);
+	i = n - (((uint8_t *)rcall.args) - buf);
 	if(rpcdebug > 1)
 		fprint(2, "arg size = %d\n", i);
 	rreply.stat = MSG_ACCEPTED;
@@ -305,11 +307,11 @@ send_reply:
 }
 
 static void
-getendpoint(char *dir, char *file, uchar *addr, uchar *port)
+getendpoint(int8_t *dir, int8_t *file, uint8_t *addr, uint8_t *port)
 {
 	int fd, n;
-	char buf[128];
-	char *sys, *serv;
+	int8_t buf[128];
+	int8_t *sys, *serv;
 
 	sys = serv = 0;
 
@@ -339,19 +341,19 @@ getendpoint(char *dir, char *file, uchar *addr, uchar *port)
 
 /* set Udphdr values from protocol dir local & remote files */
 static void
-getendpoints(Udphdr *ep, char *dir)
+getendpoints(Udphdr *ep, int8_t *dir)
 {
 	getendpoint(dir, "local", ep->laddr, ep->lport);
 	getendpoint(dir, "remote", ep->raddr, ep->rport);
 }
 
-static long
-readtcp(int fd, void *vbuf, long blen)
+static int32_t
+readtcp(int fd, void *vbuf, int32_t blen)
 {
-	uchar mk[4];
+	uint8_t mk[4];
 	int n, m, sofar;
-	ulong done;
-	char *buf;
+	uint32_t done;
+	int8_t *buf;
 
 	buf = vbuf;
 	buf += Udphdrsize;
@@ -374,10 +376,10 @@ readtcp(int fd, void *vbuf, long blen)
 	return sofar + Udphdrsize;
 }
 
-static long
-writetcp(int fd, void *vbuf, long len)
+static int32_t
+writetcp(int fd, void *vbuf, int32_t len)
 {
-	char *buf;
+	int8_t *buf;
 
 	buf = vbuf;
 	buf += Udphdrsize;
@@ -412,8 +414,8 @@ writetcp(int fd, void *vbuf, long len)
  *	return n;
  *}
  */
-long
-niwrite(int fd, void *buf, long n)
+int32_t
+niwrite(int fd, void *buf, int32_t n)
 {
 //	int savalarm;
 
@@ -426,8 +428,8 @@ niwrite(int fd, void *buf, long n)
 
 typedef struct Namecache	Namecache;
 struct Namecache {
-	char dom[256];
-	ulong ipaddr;
+	int8_t dom[256];
+	uint32_t ipaddr;
 	Namecache *next;
 };
 
@@ -459,7 +461,7 @@ domlookup(void *name)
 }
 
 static Namecache*
-iplookup(ulong ip)
+iplookup(uint32_t ip)
 {
 	Namecache *n, **ln;
 
@@ -475,7 +477,7 @@ iplookup(ulong ip)
 }
 
 static Namecache*
-addcacheentry(void *name, int len, ulong ip)
+addcacheentry(void *name, int len, uint32_t ip)
 {
 	Namecache *n;
 
@@ -494,11 +496,11 @@ addcacheentry(void *name, int len, ulong ip)
 }
 
 int
-getdnsdom(ulong ip, char *name, int len)
+getdnsdom(uint32_t ip, int8_t *name, int len)
 {
-	char buf[128];
+	int8_t buf[128];
 	Namecache *nc;
-	char *p;
+	int8_t *p;
 
 	if(nc=iplookup(ip)) {
 		strncpy(name, nc->dom, len);
@@ -518,11 +520,11 @@ getdnsdom(ulong ip, char *name, int len)
 }
 
 int
-getdom(ulong ip, char *dom, int len)
+getdom(uint32_t ip, int8_t *dom, int len)
 {
 	int i;
-	static char *prefix[] = { "", "gate-", "fddi-", "u-", 0 };
-	char **pr;
+	static int8_t *prefix[] = { "", "gate-", "fddi-", "u-", 0 };
+	int8_t **pr;
 
 	if(getdnsdom(ip, dom, len)<0)
 		return -1;
@@ -584,7 +586,7 @@ cachereply(Rpccall *rp, void *buf, int len)
 }
 
 static int
-replycache(int fd, Rpccall *rp, long (*writemsg)(int, void*, long))
+replycache(int fd, Rpccall *rp, int32_t (*writemsg)(int, void*, int32_t))
 {
 	Rpccache *cp;
 
@@ -616,10 +618,10 @@ replycache(int fd, Rpccall *rp, long (*writemsg)(int, void*, long))
 static int
 Iconv(Fmt *f)
 {
-	char buf[16];
-	ulong h;
+	int8_t buf[16];
+	uint32_t h;
 
-	h = va_arg(f->args, ulong);
+	h = va_arg(f->args, uint32_t);
 	snprint(buf, sizeof buf, "%ld.%ld.%ld.%ld",
 		(h>>24)&0xff, (h>>16)&0xff,
 		(h>>8)&0xff, h&0xff);

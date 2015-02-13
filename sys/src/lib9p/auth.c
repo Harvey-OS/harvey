@@ -19,18 +19,18 @@ typedef struct Afid Afid;
 struct Afid
 {
 	AuthRpc *rpc;
-	char *uname;
-	char *aname;
+	int8_t *uname;
+	int8_t *aname;
 	int authok;
 	int afd;
 };
 
-static uvlong authgen = 1ULL<<63;
+static uint64_t authgen = 1ULL<<63;
 
 void
 auth9p(Req *r)
 {
-	char *spec;
+	int8_t *spec;
 	Afid *afid;
 	
 	afid = emalloc9p(sizeof(Afid));
@@ -169,7 +169,7 @@ int
 authattach(Req *r)
 {
 	Afid *afid;
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 	
 	if(r->afid == nil){
 		respond(r, "not authenticated");

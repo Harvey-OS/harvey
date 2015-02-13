@@ -52,7 +52,7 @@ struct equivclass
 {
   int next;	/* Next item in this bucket. */
   unsigned hash;	/* Hash of lines in this class.  */
-  char const *line;	/* A line that fits this class. */
+  int8_t const *line;	/* A line that fits this class. */
   size_t length;	/* That line's length, not counting its newline.  */
 };
 
@@ -206,7 +206,7 @@ find_and_hash_each_line (current)
   size_t length;
 
   /* Cache often-used quantities in local variables to help the compiler.  */
-  char const **linbuf = current->linbuf;
+  int8_t const **linbuf = current->linbuf;
   int alloc_lines = current->alloc_lines;
   int line = 0;
   int linbuf_base = current->linbuf_base;
@@ -214,13 +214,13 @@ find_and_hash_each_line (current)
   struct equivclass *eqs = equivs;
   int eqs_index = equivs_index;
   int eqs_alloc = equivs_alloc;
-  char const *suffix_begin = current->suffix_begin;
-  char const *bufend = current->buffer + current->buffered_chars;
+  int8_t const *suffix_begin = current->suffix_begin;
+  int8_t const *bufend = current->buffer + current->buffered_chars;
   int use_line_cmp = ignore_some_line_changes;
 
-  while ((char const *) p < suffix_begin)
+  while ((int8_t const *) p < suffix_begin)
     {
-      char const *ip = (char const *) p;
+      int8_t const *ip = (int8_t const *) p;
 
       /* Compute the equivalence class for this line.  */
 
@@ -290,9 +290,9 @@ find_and_hash_each_line (current)
    hashing_done:;
 
       bucket = &buckets[h % nbuckets];
-      length = (char const *) p - ip - 1;
+      length = (int8_t const *) p - ip - 1;
 
-      if ((char const *) p == bufend
+      if ((int8_t const *) p == bufend
 	  && current->missing_newline
 	  && ROBUST_OUTPUT_STYLE (output_style))
 	{
@@ -303,7 +303,7 @@ find_and_hash_each_line (current)
 
 	  /* Omit the inserted newline when computing linbuf later.  */
 	  p--;
-	  bufend = suffix_begin = (char const *) p;
+	  bufend = suffix_begin = (int8_t const *) p;
 	}
 
       for (i = *bucket;  ;  i = eqs[i].next)
@@ -323,7 +323,7 @@ find_and_hash_each_line (current)
 	  }
 	else if (eqs[i].hash == h)
 	  {
-	    char const *eqline = eqs[i].line;
+	    int8_t const *eqline = eqs[i].line;
 
 	    /* Reuse existing equivalence class if the lines are identical.
 	       This detects the common case of exact identity
@@ -342,7 +342,7 @@ find_and_hash_each_line (current)
 	  /* Double (alloc_lines - linbuf_base) by adding to alloc_lines.  */
 	  alloc_lines = 2 * alloc_lines - linbuf_base;
 	  cureqs = (int *) xrealloc (cureqs, alloc_lines * sizeof (*cureqs));
-	  linbuf = (char const **) xrealloc (linbuf + linbuf_base,
+	  linbuf = (int8_t const **) xrealloc (linbuf + linbuf_base,
 					     (alloc_lines - linbuf_base)
 					     * sizeof (*linbuf))
 		   - linbuf_base;
@@ -363,14 +363,14 @@ find_and_hash_each_line (current)
 	{
 	  /* Double (alloc_lines - linbuf_base) by adding to alloc_lines.  */
 	  alloc_lines = 2 * alloc_lines - linbuf_base;
-	  linbuf = (char const **) xrealloc (linbuf + linbuf_base,
+	  linbuf = (int8_t const **) xrealloc (linbuf + linbuf_base,
 					     (alloc_lines - linbuf_base)
 					     * sizeof (*linbuf))
 		   - linbuf_base;
 	}
-      linbuf[line] = (char const *) p;
+      linbuf[line] = (int8_t const *) p;
 
-      if ((char const *) p == bufend)
+      if ((int8_t const *) p == bufend)
 	break;
 
       if (context <= i && no_diff_means_no_output)
@@ -401,7 +401,7 @@ prepare_text_end (current)
      struct file_data *current;
 {
   size_t buffered_chars = current->buffered_chars;
-  char *p = current->buffer;
+  int8_t *p = current->buffer;
 
   if (buffered_chars == 0 || p[buffered_chars - 1] == '\n')
     current->missing_newline = 0;
@@ -425,9 +425,9 @@ find_identical_ends (filevec)
      struct file_data filevec[];
 {
   word *w0, *w1;
-  char *p0, *p1, *buffer0, *buffer1;
-  char const *end0, *beg0;
-  char const **linbuf0, **linbuf1;
+  int8_t *p0, *p1, *buffer0, *buffer1;
+  int8_t const *end0, *beg0;
+  int8_t const **linbuf0, **linbuf1;
   int i, lines;
   size_t n0, n1, tem;
   int alloc_lines0, alloc_lines1;
@@ -476,8 +476,8 @@ find_identical_ends (filevec)
       --w0, --w1;
 
       /* Do the last few bytes of comparison a byte at a time.  */
-      p0 = (char *) w0;
-      p1 = (char *) w1;
+      p0 = (int8_t *) w0;
+      p1 = (int8_t *) w1;
       while (*p0++ == *p1++)
 	;
       --p0, --p1;
@@ -577,7 +577,7 @@ find_identical_ends (filevec)
     }
 
   lines = 0;
-  linbuf0 = (char const **) xmalloc (alloc_lines0 * sizeof (*linbuf0));
+  linbuf0 = (int8_t const **) xmalloc (alloc_lines0 * sizeof (*linbuf0));
 
   /* If the prefix is needed, find the prefix lines.  */
   if (! (no_diff_means_no_output
@@ -590,7 +590,7 @@ find_identical_ends (filevec)
 	{
 	  int l = lines++ & prefix_mask;
 	  if (l == alloc_lines0)
-	    linbuf0 = (char const **) xrealloc (linbuf0, (alloc_lines0 *= 2)
+	    linbuf0 = (int8_t const **) xrealloc (linbuf0, (alloc_lines0 *= 2)
 							 * sizeof(*linbuf0));
 	  linbuf0[l] = p0;
 	  while (*p0++ != '\n')
@@ -606,7 +606,7 @@ find_identical_ends (filevec)
     = (buffered_prefix
        + GUESS_LINES (lines, filevec[1].prefix_end - buffer1, tem)
        + context);
-  linbuf1 = (char const **) xmalloc (alloc_lines1 * sizeof (*linbuf1));
+  linbuf1 = (int8_t const **) xmalloc (alloc_lines1 * sizeof (*linbuf1));
 
   if (buffered_prefix != lines)
     {

@@ -13,18 +13,18 @@
 
 #include "modem.h"
 
-static long wd[5] = {
+static int32_t wd[5] = {
 	1728, 2048, 2432, 1216, 864
 };
 
 void
-setpageid(char *pageid, char *spool, long time, int pid, int pageno)
+setpageid(int8_t *pageid, int8_t *spool, int32_t time, int pid, int pageno)
 {
 	sprint(pageid, "%s/%lud.%d.%3.3d", spool, time, pid, pageno);
 }
 
 int
-createfaxfile(Modem *m, char *spool)
+createfaxfile(Modem *m, int8_t *spool)
 {
 	setpageid(m->pageid, spool, m->time, m->pid, m->pageno);
 	verbose("openfaxfile: %s", m->pageid);
@@ -52,7 +52,7 @@ int
 gsopen(Modem *m)
 {
 	int n;
-	char bytes[Gshdrsize];
+	int8_t bytes[Gshdrsize];
 
 	/*
 	 *  Is this gs output
@@ -79,7 +79,7 @@ gsopen(Modem *m)
 int
 picopen(Modem *m)
 {
-	char *p, *q;
+	int8_t *p, *q;
 	int i, x;
 
 	/*
@@ -161,7 +161,7 @@ picopen(Modem *m)
 }
 
 int
-openfaxfile(Modem *m, char *file)
+openfaxfile(Modem *m, int8_t *file)
 {
 	if((m->bp = Bopen(file, OREAD)) == 0)
 		return seterror(m, Esys);

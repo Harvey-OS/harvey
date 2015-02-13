@@ -48,7 +48,7 @@ private int
 ref_param_key(const iparam_list * plist, gs_param_name pkey, ref * pkref)
 {
     if (plist->int_keys) {
-	long key;
+	int32_t key;
 
 	if (sscanf(pkey, "%ld", &key) != 1)
 	    return_error(e_rangecheck);
@@ -70,7 +70,7 @@ ref_to_key(const ref * pref, gs_param_key_t * key, iparam_list *plist)
 	key->size = r_size(&nref);
 	key->persistent = false; /* names may be freed */
     } else if (r_has_type(pref, t_integer)) {
-	char istr[sizeof(long) * 8 / 3 + 2];
+	char istr[sizeof(int32_t) * 8 / 3 + 2];
 	int len;
 	byte *buf;
 

@@ -17,17 +17,17 @@ struct Rpcconn
 	int	ctl;
 	Rpccall	cmd;
 	Rpccall	reply;
-	uchar	rpcbuf[8192];
-	uchar	argbuf[8192];
+	uint8_t	rpcbuf[8192];
+	uint8_t	argbuf[8192];
 };
 
-void	putauth(char*, Auth*);
+void	putauth(int8_t*, Auth*);
 int	rpccall(Rpcconn*, int);
 
 int	rpcdebug;
 
 Rpcconn	r;
-char *	mach;
+int8_t *	mach;
 
 void
 main(int argc, char **argv)
@@ -141,10 +141,10 @@ main(int argc, char **argv)
 }
 
 void
-putauth(char *mach, Auth *a)
+putauth(int8_t *mach, Auth *a)
 {
-	uchar *dataptr;
-	long stamp = time(0);
+	uint8_t *dataptr;
+	int32_t stamp = time(0);
 	int n = strlen(mach);
 
 	dataptr = realloc(a->data, 2*4+ROUNDUP(n)+4*4);
@@ -157,7 +157,7 @@ putauth(char *mach, Auth *a)
 	PLONG(1);
 	PLONG(1);
 	PLONG(0);
-	a->count = dataptr - (uchar*)a->data;
+	a->count = dataptr - (uint8_t*)a->data;
 }
 
 int
@@ -190,5 +190,5 @@ rpccall(Rpcconn *r, int narg)
 			r->reply.mtype, r->reply.stat, r->reply.astat);
 		exits("rpc");
 	}
-	return n - (((uchar *)r->reply.results) - r->rpcbuf);
+	return n - (((uint8_t *)r->reply.results) - r->rpcbuf);
 }

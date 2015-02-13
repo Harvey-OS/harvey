@@ -16,7 +16,7 @@ span(void)
 	Sym *setext;
 	Optab *o;
 	int m;
-	long c;
+	int32_t c;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f span\n", cputime());
@@ -55,7 +55,7 @@ span(void)
 }
 		
 void
-xdefine(char *p, int t, long v)
+xdefine(int8_t *p, int t, int32_t v)
 {
 	Sym *s;
 
@@ -66,7 +66,7 @@ xdefine(char *p, int t, long v)
 	}
 }
 
-long
+int32_t
 regoff(Adr *a)
 {
 
@@ -225,7 +225,7 @@ Optab*
 oplook(Prog *p)
 {
 	int a1, a2, a3, r;
-	char *c1, *c3;
+	int8_t *c1, *c3;
 	Optab *o, *e;
 
 	a1 = p->optab;

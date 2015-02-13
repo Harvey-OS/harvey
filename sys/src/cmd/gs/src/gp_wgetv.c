@@ -33,16 +33,16 @@
 #include "gscdefs.h"		/* for gs_productfamily and gs_revision */
 
 /* prototypes */
-int gp_getenv_registry(HKEY hkeyroot, const char *key, const char *name, 
-    char *ptr, int *plen);
+int gp_getenv_registry(HKEY hkeyroot, const int8_t *key, const int8_t *name, 
+    int8_t *ptr, int *plen);
 
 /* ------ Environment variables ------ */
 
 /* Get the value of an environment variable.  See gp.h for details. */
 int 
-gp_getenv(const char *name, char *ptr, int *plen)
+gp_getenv(const int8_t *name, int8_t *ptr, int *plen)
 {
-    const char *str = getenv(name);
+    const int8_t *str = getenv(name);
 
     if (str) {
 	int len = strlen(str);
@@ -75,8 +75,8 @@ gp_getenv(const char *name, char *ptr, int *plen)
 	      && ((HIWORD(version) & 0x4000) == 0))) {
 	    /* not Win32s */
 	    int code;
-	    char key[256];
-	    char dotversion[16];
+	    int8_t key[256];
+	    int8_t dotversion[16];
 	    
 	    sprintf(dotversion, "%d.%02d", (int)(gs_revision / 100),
 		    (int)(gs_revision % 100));
@@ -109,8 +109,8 @@ gp_getenv(const char *name, char *ptr, int *plen)
  */
 
 int 
-gp_getenv_registry(HKEY hkeyroot, const char *key, const char *name, 
-    char *ptr, int *plen)
+gp_getenv_registry(HKEY hkeyroot, const int8_t *key, const int8_t *name, 
+    int8_t *ptr, int *plen)
 {
     HKEY hkey;
     DWORD cbData, keytype;
@@ -122,10 +122,11 @@ gp_getenv_registry(HKEY hkeyroot, const char *key, const char *name,
 	== ERROR_SUCCESS) {
 	keytype = REG_SZ;
 	cbData = *plen;
-	if (bptr == (char *)NULL)
+	if (bptr == (int8_t *)NULL)
 	    bptr = &b;	/* Registry API won't return ERROR_MORE_DATA */
 			/* if ptr is NULL */
-	rc = RegQueryValueEx(hkey, (char *)name, 0, &keytype, bptr, &cbData);
+	rc = RegQueryValueEx(hkey, (int8_t *)name, 0, &keytype, bptr,
+                             &cbData);
 	RegCloseKey(hkey);
 	if (rc == ERROR_SUCCESS) {
 	    *plen = cbData;

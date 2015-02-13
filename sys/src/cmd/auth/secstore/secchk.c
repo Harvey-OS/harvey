@@ -12,12 +12,12 @@
 #include <bio.h>
 #include <ndb.h>
 
-extern char* secureidcheck(char *user, char *response);
+extern int8_t* secureidcheck(int8_t *user, int8_t *response);
 
 Ndb *db;
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	Ndb *db2;
 

@@ -16,9 +16,9 @@
 struct Fsys {
 	VtLock* lock;
 
-	char*	name;		/* copy here & Fs to ease error reporting */
-	char*	dev;
-	char*	venti;
+	int8_t*	name;		/* copy here & Fs to ease error reporting */
+	int8_t*	dev;
+	int8_t*	venti;
 
 	Fs*	fs;
 	VtSession* session;
@@ -40,22 +40,22 @@ static struct {
 	Fsys*	head;
 	Fsys*	tail;
 
-	char*	curfsys;
+	int8_t*	curfsys;
 } sbox;
 
-static char *_argv0;
+static int8_t *_argv0;
 #define argv0 _argv0
 
-static char FsysAll[] = "all";
+static int8_t FsysAll[] = "all";
 
-static char EFsysBusy[] = "fsys: '%s' busy";
-static char EFsysExists[] = "fsys: '%s' already exists";
-static char EFsysNoCurrent[] = "fsys: no current fsys";
-static char EFsysNotFound[] = "fsys: '%s' not found";
-static char EFsysNotOpen[] = "fsys: '%s' not open";
+static int8_t EFsysBusy[] = "fsys: '%s' busy";
+static int8_t EFsysExists[] = "fsys: '%s' already exists";
+static int8_t EFsysNoCurrent[] = "fsys: no current fsys";
+static int8_t EFsysNotFound[] = "fsys: '%s' not found";
+static int8_t EFsysNotOpen[] = "fsys: '%s' not open";
 
-static char *
-ventihost(char *host)
+static int8_t *
+ventihost(int8_t *host)
 {
 	if(host != nil)
 		return vtStrDup(host);
@@ -66,9 +66,9 @@ ventihost(char *host)
 }
 
 static void
-prventihost(char *host)
+prventihost(int8_t *host)
 {
-	char *vh;
+	int8_t *vh;
 
 	vh = ventihost(host);
 	fprint(2, "%s: dialing venti at %s\n",
@@ -77,21 +77,21 @@ prventihost(char *host)
 }
 
 static VtSession *
-myDial(char *host, int canfail)
+myDial(int8_t *host, int canfail)
 {
 	prventihost(host);
 	return vtDial(host, canfail);
 }
 
 static int
-myRedial(VtSession *z, char *host)
+myRedial(VtSession *z, int8_t *host)
 {
 	prventihost(host);
 	return vtRedial(z, host);
 }
 
 static Fsys*
-_fsysGet(char* name)
+_fsysGet(int8_t* name)
 {
 	Fsys *fsys;
 
@@ -137,7 +137,7 @@ cmdPrintConfig(int argc, char* argv[])
 }
 
 Fsys*
-fsysGet(char* name)
+fsysGet(int8_t* name)
 {
 	Fsys *fsys;
 
@@ -156,7 +156,7 @@ fsysGet(char* name)
 	return fsys;
 }
 
-char*
+int8_t*
 fsysGetName(Fsys* fsys)
 {
 	return fsys->name;
@@ -219,8 +219,8 @@ fsysWstatAllow(Fsys* fsys)
 	return fsys->wstatallow;
 }
 
-static char modechars[] = "YUGalLdHSATs";
-static ulong modebits[] = {
+static int8_t modechars[] = "YUGalLdHSATs";
+static uint32_t modebits[] = {
 	ModeSticky,
 	ModeSetUid,
 	ModeSetGid,
@@ -236,11 +236,11 @@ static ulong modebits[] = {
 	0
 };
 
-char*
-fsysModeString(ulong mode, char *buf)
+int8_t*
+fsysModeString(uint32_t mode, int8_t *buf)
 {
 	int i;
-	char *p;
+	int8_t *p;
 
 	p = buf;
 	for(i=0; modebits[i]; i++)
@@ -251,10 +251,10 @@ fsysModeString(ulong mode, char *buf)
 }
 
 int
-fsysParseMode(char* s, ulong* mode)
+fsysParseMode(int8_t* s, uint32_t* mode)
 {
-	ulong x, y;
-	char *p;
+	uint32_t x, y;
+	int8_t *p;
 
 	x = 0;
 	for(; *s < '0' || *s > '9'; s++){
@@ -273,7 +273,7 @@ fsysParseMode(char* s, ulong* mode)
 }
 
 File*
-fsysGetRoot(Fsys* fsys, char* name)
+fsysGetRoot(Fsys* fsys, int8_t* name)
 {
 	File *root, *sub;
 
@@ -290,7 +290,7 @@ fsysGetRoot(Fsys* fsys, char* name)
 }
 
 static Fsys*
-fsysAlloc(char* name, char* dev)
+fsysAlloc(int8_t* name, int8_t* dev)
 {
 	Fsys *fsys;
 
@@ -931,26 +931,26 @@ fsysClrep(Fsys* fsys, int argc, char* argv[], int ch)
 }
 
 static int
-fsysClre(Fsys* fsys, int argc, char* argv[])
+fsysClre(Fsys* fsys, int argc, int8_t* argv[])
 {
 	return fsysClrep(fsys, argc, argv, 'e');
 }
 
 static int
-fsysClrp(Fsys* fsys, int argc, char* argv[])
+fsysClrp(Fsys* fsys, int argc, int8_t* argv[])
 {
 	return fsysClrep(fsys, argc, argv, 'p');
 }
 
 static int
-fsysEsearch1(File* f, char* s, u32int elo)
+fsysEsearch1(File* f, int8_t* s, u32int elo)
 {
 	int n, r;
 	DirEntry de;
 	DirEntryEnum *dee;
 	File *ff;
 	Entry e, ee;
-	char *t;
+	int8_t *t;
 
 	dee = deeOpen(f);
 	if(dee == nil)
@@ -998,7 +998,7 @@ fsysEsearch1(File* f, char* s, u32int elo)
 }
 
 static int
-fsysEsearch(Fs* fs, char* path, u32int elo)
+fsysEsearch(Fs* fs, int8_t* path, u32int elo)
 {
 	int n;
 	File *f;
@@ -1169,9 +1169,9 @@ out:
 }
 
 static void
-fsysPrintStat(char *prefix, char *file, DirEntry *de)
+fsysPrintStat(int8_t *prefix, int8_t *file, DirEntry *de)
 {
-	char buf[64];
+	int8_t buf[64];
 
 	if(prefix == nil)
 		prefix = "";
@@ -1308,7 +1308,7 @@ error:
 }
 
 static void
-fsckClri(Fsck *fsck, char *name, MetaBlock *mb, int i, Block *b)
+fsckClri(Fsck *fsck, int8_t *name, MetaBlock *mb, int i, Block *b)
 {
 	USED(name);
 
@@ -1508,13 +1508,13 @@ out:
 	return r;
 }
 
-static ulong
+static uint32_t
 freemem(void)
 {
 	int nf, pgsize = 0;
-	uvlong size, userpgs = 0, userused = 0;
-	char *ln, *sl;
-	char *fields[2];
+	uint64_t size, userpgs = 0, userused = 0;
+	int8_t *ln, *sl;
+	int8_t *fields[2];
 	Biobuf *bp;
 
 	size = 64*1024*1024;
@@ -1732,9 +1732,9 @@ fsysConfig(char* name, int argc, char* argv[])
 }
 
 static struct {
-	char*	cmd;
-	int	(*f)(Fsys*, int, char**);
-	int	(*f1)(char*, int, char**);
+	int8_t*	cmd;
+	int	(*f)(Fsys*, int, int8_t**);
+	int	(*f1)(int8_t*, int, int8_t**);
 } fsyscmd[] = {
 	{ "close",	fsysClose, },
 	{ "config",	nil, fsysConfig, },
@@ -1767,7 +1767,7 @@ static struct {
 };
 
 static int
-fsysXXX1(Fsys *fsys, int i, int argc, char* argv[])
+fsysXXX1(Fsys *fsys, int i, int argc, int8_t* argv[])
 {
 	int r;
 
@@ -1791,7 +1791,7 @@ fsysXXX1(Fsys *fsys, int i, int argc, char* argv[])
 }
 
 static int
-fsysXXX(char* name, int argc, char* argv[])
+fsysXXX(int8_t* name, int argc, int8_t* argv[])
 {
 	int i, r;
 	Fsys *fsys;
@@ -1835,9 +1835,9 @@ fsysXXX(char* name, int argc, char* argv[])
 }
 
 static int
-cmdFsysXXX(int argc, char* argv[])
+cmdFsysXXX(int argc, int8_t* argv[])
 {
-	char *name;
+	int8_t *name;
 
 	if((name = sbox.curfsys) == nil){
 		vtSetError(EFsysNoCurrent, argv[0]);

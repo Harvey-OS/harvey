@@ -25,7 +25,7 @@ typedef struct Playfd Playfd;
 
 struct Playfd {
 	/* Describes a file to play for starting up pac4dec/mp3,... */
-	char	*filename;	/* mallocated */
+	int8_t	*filename;	/* mallocated */
 	int	fd;		/* filedesc to use */
 	int	cfd;		/* fildesc to close */
 };
@@ -33,16 +33,16 @@ struct Playfd {
 Channel *full, *empty, *playout, *spare;
 Channel	*playc, *pacc;
 
-char *playprog[] = {
+int8_t *playprog[] = {
 [Pac] = "/bin/games/pac4dec",
 [Mp3] = "/bin/games/mp3dec",
 [Pcm] = "/bin/cp",
 [Ogg] = "/bin/games/vorbisdec",
 };
 
-ulong totbytes, totbuffers;
+uint32_t totbytes, totbuffers;
 
-static char curfile[8192];
+static int8_t curfile[8192];
 
 void
 pac4dec(void *a)
@@ -50,9 +50,9 @@ pac4dec(void *a)
 	Playfd *pfd;
 	Pacbuf *pb;
 	int fd, type;
-	char *ext, buf[256];
-	static char args[6][32];
-	char *argv[6] = {args[0], args[1], args[2], args[3], args[4], args[5]};
+	int8_t *ext, buf[256];
+	static int8_t args[6][32];
+	int8_t *argv[6] = {args[0], args[1], args[2], args[3], args[4], args[5]};
 
 	threadsetname("pac4dec");
 	pfd = a;
@@ -132,11 +132,11 @@ pac4dec(void *a)
 }
 
 static int
-startplay(ushort n)
+startplay(uint16_t n)
 {
 	int fd[2];
 	Playfd *pfd;
-	char *file;
+	int8_t *file;
 
 	file = getplaylist(n);
 	if(file == nil)
@@ -158,7 +158,7 @@ static void
 rtsched(void)
 {
 	int fd;
-	char *ctl;
+	int8_t *ctl;
 
 	ctl = smprint("/proc/%ud/ctl", getpid());
 	if((fd = open(ctl, ORDWR)) < 0) 
@@ -426,8 +426,8 @@ playinit(void)
 	procrfork(pcmproc, nil, 8*STACKSIZE, RFFDG);
 }
 
-char *
-getplaystat(char *p, char *e)
+int8_t *
+getplaystat(int8_t *p, int8_t *e)
 {
 	p = seprint(p, e, "empty buffers %d of %d\n", empty->n, empty->s);
 	p = seprint(p, e, "full buffers %d of %d\n", full->n, full->s);

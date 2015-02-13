@@ -11,24 +11,24 @@
 
 #define	MAXLINE	3600	/* maximum input line */
 
-char *version = "version Oct 24, 1991";
+int8_t *version = "version Oct 24, 1991";
 
-char	in[MAXLINE+1];	/* input buffer */
+int8_t	in[MAXLINE+1];	/* input buffer */
 int	noeqn;
-char	*cmdname;
+int8_t	*cmdname;
 
 int	yyparse(void);
-void	settype(char *);
+void	settype(int8_t *);
 int	getdata(void);
-int	getline(char *);
+int	getline(int8_t *);
 void	inlineeq(void);
 void	init(void);
 void	init_tbl(void);
 
 void
-main(int argc, char *argv[])
+main(int argc, int8_t *argv[])
 {
-	char *p, buf[20];
+	int8_t *p, buf[20];
 
 	cmdname = argv[0];
 	if (p = getenv("TYPESETTER"))
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
 	exit(0);
 }
 
-void settype(char *s)	/* initialize data for particular typesetter */
+void settype(int8_t *s)	/* initialize data for particular typesetter */
 			/* the minsize could profitably come from the */
 {			/* troff description file /usr/lib/font/dev.../DESC.out */
 	if (strcmp(s, "202") == 0)
@@ -261,10 +261,10 @@ void nrwid(int n1, int p, int n2)
 	printf(".nr %d 0\\w'%s\\*(%d'\n", n1, DPS(gsize,p), n2);	/* 0 defends against - width */
 }
 
-char *ABSPS(int dn)	/* absolute size dn in printable form \sd or \s(dd (dd >= 40) */
+int8_t *ABSPS(int dn)	/* absolute size dn in printable form \sd or \s(dd (dd >= 40) */
 {
-	static char buf[100], *lb = buf;
-	char *p;
+	static int8_t buf[100], *lb = buf;
+	int8_t *p;
 
 	if (lb > buf + sizeof(buf) - 10)
 		lb = buf;
@@ -283,10 +283,10 @@ char *ABSPS(int dn)	/* absolute size dn in printable form \sd or \s(dd (dd >= 40
 	return p;
 }
 
-char *DPS(int f, int t)	/* delta ps (t-f) in printable form \s+d or \s-d or \s+-(dd */
+int8_t *DPS(int f, int t)	/* delta ps (t-f) in printable form \s+d or \s-d or \s+-(dd */
 {
-	static char buf[100], *lb = buf;
-	char *p;
+	static int8_t buf[100], *lb = buf;
+	int8_t *p;
 	int dn;
 
 	if (lb > buf + sizeof(buf) - 10)

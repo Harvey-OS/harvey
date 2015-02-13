@@ -12,14 +12,14 @@
 #include <stdio.h>
 #include "cpp.h"
 
-static char wbuf[2*OBS];
-static char *wbp = wbuf;
+static int8_t wbuf[2*OBS];
+static int8_t *wbp = wbuf;
 
 /*
  * 1 for tokens that don't need whitespace when they get inserted
  * by macro expansion
  */
-static char wstab[] = {
+static int8_t wstab[] = {
 	0,	/* END */
 	0,	/* UNCLASS */
 	0,	/* NAME */
@@ -123,7 +123,7 @@ comparetokens(Tokenrow *tr1, Tokenrow *tr2)
 		if (tp1->type != tp2->type
 		 || (tp1->wslen==0) != (tp2->wslen==0)
 		 || tp1->len != tp2->len
-		 || strncmp((char*)tp1->t, (char*)tp2->t, tp1->len)!=0)
+		 || strncmp((int8_t*)tp1->t, (int8_t*)tp2->t, tp1->len)!=0)
 			return 1;
 	}
 	return 0;
@@ -154,7 +154,7 @@ insertrow(Tokenrow *dtr, int ntok, Tokenrow *str)
 void
 makespace(Tokenrow *trp)
 {
-	uchar *tt;
+	uint8_t *tt;
 	Token *tp = trp->tp;
 
 	if (tp >= trp->lp)
@@ -188,7 +188,7 @@ movetokenrow(Tokenrow *dtr, Tokenrow *str)
 	int nby;
 
 	/* nby = sizeof(Token) * (str->lp - str->bp); */
-	nby = (char *)str->lp - (char *)str->bp;
+	nby = (int8_t *)str->lp - (int8_t *)str->bp;
 	memmove(dtr->tp, str->bp, nby);
 }
 
@@ -209,7 +209,7 @@ adjustrow(Tokenrow *trp, int nt)
 	while (size > trp->max)
 		growtokenrow(trp);
 	/* nby = sizeof(Token) * (trp->lp - trp->tp); */
-	nby = (char *)trp->lp - (char *)trp->tp;
+	nby = (int8_t *)trp->lp - (int8_t *)trp->tp;
 	if (nby)
 		memmove(trp->tp+nt, trp->tp, nby);
 	trp->lp += nt;
@@ -265,7 +265,7 @@ normtokenrow(Tokenrow *trp)
  * Debugging
  */
 void
-peektokens(Tokenrow *trp, char *str)
+peektokens(Tokenrow *trp, int8_t *str)
 {
 	Token *tp;
 	int c;
@@ -299,7 +299,7 @@ puttokens(Tokenrow *trp)
 {
 	Token *tp;
 	int len;
-	uchar *p;
+	uint8_t *p;
 
 	if (verbose)
 		peektokens(trp, "");
@@ -357,8 +357,8 @@ setempty(Tokenrow *trp)
 /*
  * generate a number
  */
-char *
-outnum(char *p, int n)
+int8_t *
+outnum(int8_t *p, int n)
 {
 	if (n>=10)
 		p = outnum(p, n/10);
@@ -370,11 +370,11 @@ outnum(char *p, int n)
  * allocate and initialize a new string from s, of length l, at offset o
  * Null terminated.
  */
-uchar *
-newstring(uchar *s, int l, int o)
+uint8_t *
+newstring(uint8_t *s, int l, int o)
 {
-	uchar *ns = (uchar *)domalloc(l+o+1);
+	uint8_t *ns = (uint8_t *)domalloc(l+o+1);
 
 	ns[l+o] = '\0';
-	return (uchar*)strncpy((char*)ns+o, (char*)s, l) - o;
+	return (uint8_t*)strncpy((int8_t*)ns+o, (int8_t*)s, l) - o;
 }

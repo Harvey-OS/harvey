@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
-char *fparts[] =
+int8_t *fparts[] =
 {
 	"add bootldr	0x0000000 0x0040000",
 	"add params	0x0040000 0x0080000",
@@ -43,7 +43,7 @@ int
 connectpaq(void)
 {
 	int  p[2];
-	char **arg, **argp;
+	int8_t **arg, **argp;
 
 	print("paq...");
 	if(pipe(p)<0)
@@ -52,7 +52,7 @@ connectpaq(void)
 	case -1:
 		fatal("fork");
 	case 0:
-		arg = malloc(10*sizeof(char*));
+		arg = malloc(10*sizeof(int8_t*));
 		argp = arg;
 		*argp++ = "paqfs";
 		*argp++ = "-v";

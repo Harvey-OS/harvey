@@ -44,7 +44,7 @@ gx_default_fill_linear_color_scanline(gx_device *dev, const gs_fill_attributes *
        and with a fixed bits per component.
      */
     frac31 c[GX_DEVICE_COLOR_MAX_COMPONENTS];
-    ulong f[GX_DEVICE_COLOR_MAX_COMPONENTS];
+    uint32_t f[GX_DEVICE_COLOR_MAX_COMPONENTS];
     int i, i1 = i0 + w, bi = i0, k;
     gx_color_index ci0 = 0, ci1;
     const gx_device_color_info *cinfo = &dev->color_info;
@@ -84,10 +84,12 @@ gx_default_fill_linear_color_scanline(gx_device *dev, const gs_fill_attributes *
 	    if (si < ei) {
 		
 		if (fa->swap_axes) {
-		    vd_rect(int2fixed(j), int2fixed(si), int2fixed(j + 1), int2fixed(ei), 1, (ulong)ci0);
+		    vd_rect(int2fixed(j), int2fixed(si), int2fixed(j + 1), int2fixed(ei), 1,
+                            (uint32_t)ci0);
 		    code = dev_proc(dev, fill_rectangle)(dev, j, si, 1, ei - si, ci0);
 		} else {
-		    vd_rect(int2fixed(si), int2fixed(j), int2fixed(ei), int2fixed(j + 1), 1, (ulong)ci0);
+		    vd_rect(int2fixed(si), int2fixed(j), int2fixed(ei), int2fixed(j + 1), 1,
+                            (uint32_t)ci0);
 		    code = dev_proc(dev, fill_rectangle)(dev, si, j, ei - si, 1, ci0);
 		}
 		if (code < 0)
@@ -101,10 +103,12 @@ gx_default_fill_linear_color_scanline(gx_device *dev, const gs_fill_attributes *
     ei = min(i, fixed2int_ceiling(fa->clip->q.x));  /* Must be compatible to the clipping logic. */
     if (si < ei) {
 	if (fa->swap_axes) {
-	    vd_rect(int2fixed(j), int2fixed(si), int2fixed(j + 1), int2fixed(ei), 1, (ulong)ci0);
+	    vd_rect(int2fixed(j), int2fixed(si), int2fixed(j + 1), int2fixed(ei), 1,
+                    (uint32_t)ci0);
 	    return dev_proc(dev, fill_rectangle)(dev, j, si, 1, ei - si, ci0);
 	} else {
-	    vd_rect(int2fixed(si), int2fixed(j), int2fixed(ei), int2fixed(j + 1), 1, (ulong)ci0);
+	    vd_rect(int2fixed(si), int2fixed(j), int2fixed(ei), int2fixed(j + 1), 1,
+                    (uint32_t)ci0);
 	    return dev_proc(dev, fill_rectangle)(dev, si, j, ei - si, 1, ci0);
 	}
     }

@@ -34,7 +34,7 @@ ptree(t, indent, shf)
 	int indent;
 	register struct shf *shf;
 {
-	register char **w;
+	register int8_t **w;
 	struct ioword **ioact;
 	struct op *t1;
 
@@ -293,7 +293,7 @@ tputC(c, shf)
 
 static void
 tputS(wp, shf)
-	register char *wp;
+	register int8_t *wp;
 	register struct shf *shf;
 {
 	register int c, quoted=0;
@@ -377,7 +377,7 @@ tputS(wp, shf)
 /* VARARGS */
 int
 #ifdef HAVE_PROTOTYPES
-fptreef(struct shf *shf, int indent, const char *fmt, ...)
+fptreef(struct shf *shf, int indent, const int8_t *fmt, ...)
 #else
 fptreef(shf, indent, fmt, va_alist) 
   struct shf *shf;
@@ -396,9 +396,9 @@ fptreef(shf, indent, fmt, va_alist)
 }
 
 /* VARARGS */
-char *
+int8_t *
 #ifdef HAVE_PROTOTYPES
-snptreef(char *s, int n, const char *fmt, ...)
+snptreef(int8_t *s, int n, const int8_t *fmt, ...)
 #else
 snptreef(s, n, fmt, va_alist)
   char *s;
@@ -423,15 +423,15 @@ static void
 vfptreef(shf, indent, fmt, va)
 	register struct shf *shf;
 	int indent;
-	const char *fmt;
+	const int8_t *fmt;
 	register va_list va;
 {
 	register int c;
 
 	while ((c = *fmt++))
 	    if (c == '%') {
-		register long n;
-		register char *p;
+		register int32_t n;
+		register int8_t *p;
 		int neg;
 
 		switch ((c = *fmt++)) {
@@ -439,12 +439,12 @@ vfptreef(shf, indent, fmt, va)
 			tputc(va_arg(va, int), shf);
 			break;
 		  case 's':
-			p = va_arg(va, char *);
+			p = va_arg(va, int8_t *);
 			while (*p)
 				tputc(*p++, shf);
 			break;
 		  case 'S':	/* word */
-			p = va_arg(va, char *);
+			p = va_arg(va, int8_t *);
 			tputS(p, shf);
 			break;
 		  case 'd': case 'u': /* decimal */
@@ -497,7 +497,7 @@ tcopy(t, ap)
 	Area *ap;
 {
 	register struct op *r;
-	register char **tw, **rw;
+	register int8_t **tw, **rw;
 
 	if (t == NULL)
 		return NULL;
@@ -514,7 +514,7 @@ tcopy(t, ap)
 	else {
 		for (tw = t->vars; *tw++ != NULL; )
 			;
-		rw = r->vars = (char **)
+		rw = r->vars = (int8_t **)
 			alloc((int)(tw - t->vars) * sizeof(*tw), ap);
 		for (tw = t->vars; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
@@ -526,7 +526,7 @@ tcopy(t, ap)
 	else {
 		for (tw = t->args; *tw++ != NULL; )
 			;
-		rw = r->args = (char **)
+		rw = r->args = (int8_t **)
 			alloc((int)(tw - t->args) * sizeof(*tw), ap);
 		for (tw = t->args; *tw != NULL; )
 			*rw++ = wdcopy(*tw++, ap);
@@ -542,9 +542,9 @@ tcopy(t, ap)
 	return r;
 }
 
-char *
+int8_t *
 wdcopy(wp, ap)
-	const char *wp;
+	const int8_t *wp;
 	Area *ap;
 {
 	size_t len = wdscan(wp, EOS) - wp;
@@ -552,9 +552,9 @@ wdcopy(wp, ap)
 }
 
 /* return the position of prefix c in wp plus 1 */
-char *
+int8_t *
 wdscan(wp, c)
-	register const char *wp;
+	register const int8_t *wp;
 	register int c;
 {
 	register int nest = 0;
@@ -562,7 +562,7 @@ wdscan(wp, c)
 	while (1)
 		switch (*wp++) {
 		  case EOS:
-			return (char *) wp;
+			return (int8_t *) wp;
 		  case CHAR:
 		  case QCHAR:
 			wp++;
@@ -583,7 +583,7 @@ wdscan(wp, c)
 		  case CSUBST:
 			wp++;
 			if (c == CSUBST && nest == 0)
-				return (char *) wp;
+				return (int8_t *) wp;
 			nest--;
 			break;
 #ifdef KSH
@@ -594,7 +594,7 @@ wdscan(wp, c)
 		  case SPAT:
 		  case CPAT:
 			if (c == wp[-1] && nest == 0)
-				return (char *) wp;
+				return (int8_t *) wp;
 			if (wp[-1] == CPAT)
 				nest--;
 			break;
@@ -610,14 +610,14 @@ wdscan(wp, c)
  * with quote characters (" ' \) stripped.
  * (string is allocated from ATEMP)
  */
-char *
+int8_t *
 wdstrip(wp)
-	const char *wp;
+	const int8_t *wp;
 {
 	struct shf shf;
 	int c;
 
-	shf_sopen((char *) 0, 32, SHF_WR | SHF_DYNAMIC, &shf);
+	shf_sopen((int8_t *) 0, 32, SHF_WR | SHF_DYNAMIC, &shf);
 
 	/* problems:
 	 *	`...` -> $(...)
@@ -697,11 +697,11 @@ iocopy(iow, ap)
 		q = (struct ioword *) alloc(sizeof(*p), ap);
 		ior[i] = q;
 		*q = *p;
-		if (p->name != (char *) 0)
+		if (p->name != (int8_t *) 0)
 			q->name = wdcopy(p->name, ap);
-		if (p->delim != (char *) 0)
+		if (p->delim != (int8_t *) 0)
 			q->delim = wdcopy(p->delim, ap);
-		if (p->heredoc != (char *) 0)
+		if (p->heredoc != (int8_t *) 0)
 			q->heredoc = str_save(p->heredoc, ap);
 	}
 	ior[i] = NULL;
@@ -718,7 +718,7 @@ tfree(t, ap)
 	register struct op *t;
 	Area *ap;
 {
-	register char **w;
+	register int8_t **w;
 
 	if (t == NULL)
 		return;

@@ -24,19 +24,19 @@ int nread = 0;
 
 typedef struct Str Str;
 struct Str {
-	char	*buf;
+	int8_t	*buf;
 	int	len;
 };
 
 void
-die(char *s)
+die(int8_t *s)
 {
 	fprint(2, "%s\n", s);
 	exits(s);
 }
 
 void
-cwrite(int fd, char *path, char *cmd, int len)
+cwrite(int fd, int8_t *path, int8_t *cmd, int len)
 {
 	werrstr("");
 	if (write(fd, cmd, len) < len) {
@@ -55,7 +55,7 @@ newstr(void)
 	s = mallocz(sizeof(Str) + Bufsize, 1);
 	if (s == nil)
 		sysfatal("malloc");
-	s->buf = (char *)&s[1];
+	s->buf = (int8_t *)&s[1];
 	return s;
 }
 
@@ -63,10 +63,10 @@ void
 reader(void *v)
 {
 	int cfd, tfd, forking = 0, exiting, pid, newpid;
-	char *ctl, *truss;
+	int8_t *ctl, *truss;
 	Str *s;
-	static char start[] = "start";
-	static char waitstop[] = "waitstop";
+	static int8_t start[] = "start";
+	static int8_t waitstop[] = "waitstop";
 
 	pid = (int)(uintptr)v;
 	ctl = smprint("/proc/%d/ctl", pid);
@@ -95,8 +95,8 @@ reader(void *v)
 		 * no false positives.
 		 */
 		if (strstr(s->buf, " Rfork") != nil) {
-			char *a[8];
-			char *rf;
+			int8_t *a[8];
+			int8_t *rf;
 
 			rf = strdup(s->buf);
          		if (tokenize(rf, a, 8) == 5 &&
@@ -173,8 +173,8 @@ void
 hang(void)
 {
 	int me;
-	char *myctl;
-	static char hang[] = "hang";
+	int8_t *myctl;
+	static int8_t hang[] = "hang";
 
 	myctl = smprint("/proc/%d/ctl", getpid());
 	me = open(myctl, OWRITE);
@@ -186,11 +186,11 @@ hang(void)
 }
 
 void
-threadmain(int argc, char **argv)
+threadmain(int argc, int8_t **argv)
 {
 	int pid;
-	char *cmd = nil;
-	char **args = nil;
+	int8_t *cmd = nil;
+	int8_t **args = nil;
 
 	/*
 	 * don't bother with fancy arg processing, because it picks up options
@@ -232,9 +232,9 @@ threadmain(int argc, char **argv)
 		pid = atoi(argv[1]);
 	}
 
-	out   = chancreate(sizeof(char*), 0);
-	quit  = chancreate(sizeof(char*), 0);
-	forkc = chancreate(sizeof(ulong *), 0);
+	out   = chancreate(sizeof(int8_t*), 0);
+	quit  = chancreate(sizeof(int8_t*), 0);
+	forkc = chancreate(sizeof(uint32_t *), 0);
 	nread++;
 	procrfork(writer, nil, Stacksize, 0);
 	reader((void*)pid);

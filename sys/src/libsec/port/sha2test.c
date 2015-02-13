@@ -11,7 +11,7 @@
 #include <libc.h>
 #include "libsec.h"
 
-char *tests[] = {
+int8_t *tests[] = {
 	"",
 	"a",
 	"abc",
@@ -30,13 +30,13 @@ void
 main(void)
 {
 	int i;
-	char **pp;
-	uchar *p;
-	uchar digest[SHA2_512dlen];
+	int8_t **pp;
+	uint8_t *p;
+	uint8_t digest[SHA2_512dlen];
 
 	print("SHA2_224 tests:\n");
 	for(pp = tests; *pp; pp++){
-		p = (uchar*)*pp;
+		p = (uint8_t*)*pp;
 		sha2_224(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_224dlen; i++)
 			print("%2.2ux", digest[i]);
@@ -45,7 +45,7 @@ main(void)
 
 	print("\nSHA256 tests:\n");
 	for(pp = tests; *pp; pp++){
-		p = (uchar*)*pp;
+		p = (uint8_t*)*pp;
 		sha2_256(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_256dlen; i++)
 			print("%2.2ux", digest[i]);
@@ -54,7 +54,7 @@ main(void)
 
 	print("\nSHA384 tests:\n");
 	for(pp = tests; *pp; pp++){
-		p = (uchar*)*pp;
+		p = (uint8_t*)*pp;
 		sha2_384(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_384dlen; i++)
 			print("%2.2ux", digest[i]);
@@ -63,7 +63,7 @@ main(void)
 
 	print("\nSHA512 tests:\n");
 	for(pp = tests; *pp; pp++){
-		p = (uchar*)*pp;
+		p = (uint8_t*)*pp;
 		sha2_512(p, strlen(*pp), digest, 0);
 		for(i = 0; i < SHA2_512dlen; i++)
 			print("%2.2ux", digest[i]);

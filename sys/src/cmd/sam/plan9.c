@@ -24,20 +24,20 @@ Rune *right[]= {
 	0
 };
 
-char	RSAM[] = "sam";
-char	SAMTERM[] = "/bin/aux/samterm";
-char	HOME[] = "home";
-char	TMPDIR[] = "/tmp";
-char	SH[] = "rc";
-char	SHPATH[] = "/bin/rc";
-char	RX[] = "rx";
-char	RXPATH[] = "/bin/rx";
-char	SAMSAVECMD[] = "/bin/rc\n/sys/lib/samsave";
+int8_t	RSAM[] = "sam";
+int8_t	SAMTERM[] = "/bin/aux/samterm";
+int8_t	HOME[] = "home";
+int8_t	TMPDIR[] = "/tmp";
+int8_t	SH[] = "rc";
+int8_t	SHPATH[] = "/bin/rc";
+int8_t	RX[] = "rx";
+int8_t	RXPATH[] = "/bin/rx";
+int8_t	SAMSAVECMD[] = "/bin/rc\n/sys/lib/samsave";
 
 void
-dprint(char *z, ...)
+dprint(int8_t *z, ...)
 {
-	char buf[BLOCKSIZE];
+	int8_t buf[BLOCKSIZE];
 	va_list arg;
 
 	va_start(arg, z);
@@ -47,19 +47,21 @@ dprint(char *z, ...)
 }
 
 void
-print_ss(char *s, String *a, String *b)
+print_ss(int8_t *s, String *a, String *b)
 {
 	dprint("?warning: %s: `%.*S' and `%.*S'\n", s, a->n, a->s, b->n, b->s);
 }
 
 void
-print_s(char *s, String *a)
+print_s(int8_t *s, String *a)
 {
 	dprint("?warning: %s `%.*S'\n", s, a->n, a->s);
 }
 
 int
-statfile(char *name, ulong *dev, uvlong *id, long *time, long *length, long *appendonly)
+statfile(int8_t *name, uint32_t *dev, uint64_t *id, int32_t *time,
+	 int32_t *length,
+	 int32_t *appendonly)
 {
 	Dir *dirb;
 
@@ -81,7 +83,8 @@ statfile(char *name, ulong *dev, uvlong *id, long *time, long *length, long *app
 }
 
 int
-statfd(int fd, ulong *dev, uvlong *id, long *time, long *length, long *appendonly)
+statfd(int fd, uint32_t *dev, uint64_t *id, int32_t *time, int32_t *length,
+       int32_t *appendonly)
 {
 	Dir *dirb;
 
@@ -103,7 +106,7 @@ statfd(int fd, ulong *dev, uvlong *id, long *time, long *length, long *appendonl
 }
 
 void
-notifyf(void *a, char *s)
+notifyf(void *a, int8_t *s)
 {
 	USED(a);
 	if(bpipeok && strcmp(s, "sys: write on closed pipe") == 0)
@@ -115,11 +118,11 @@ notifyf(void *a, char *s)
 	noted(NDFLT);
 }
 
-char*
+int8_t*
 waitfor(int pid)
 {
 	Waitmsg *w;
-	static char msg[ERRMAX];
+	static int8_t msg[ERRMAX];
 
 	while((w = wait()) != nil){
 		if(w->pid != pid){
@@ -135,13 +138,13 @@ waitfor(int pid)
 }
 
 void
-samerr(char *buf)
+samerr(int8_t *buf)
 {
 	sprint(buf, "%s/sam.err", TMPDIR);
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -153,7 +156,7 @@ emalloc(ulong n)
 }
 
 void*
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == 0)

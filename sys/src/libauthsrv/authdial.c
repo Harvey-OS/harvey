@@ -14,9 +14,9 @@
 #include <ndb.h>
 
 int
-authdial(char *netroot, char *dom)
+authdial(int8_t *netroot, int8_t *dom)
 {
-	char *p;
+	int8_t *p;
 	int rv;
 
 	if(dom == nil)

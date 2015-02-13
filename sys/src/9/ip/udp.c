@@ -44,48 +44,48 @@ typedef struct Udp4hdr Udp4hdr;
 struct Udp4hdr
 {
 	/* ip header */
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	Unused;
-	uchar	udpproto;	/* Protocol */
-	uchar	udpplen[2];	/* Header plus data length */
-	uchar	udpsrc[IPv4addrlen];	/* Ip source */
-	uchar	udpdst[IPv4addrlen];	/* Ip destination */
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* Identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	Unused;
+	uint8_t	udpproto;	/* Protocol */
+	uint8_t	udpplen[2];	/* Header plus data length */
+	uint8_t	udpsrc[IPv4addrlen];	/* Ip source */
+	uint8_t	udpdst[IPv4addrlen];	/* Ip destination */
 
 	/* udp header */
-	uchar	udpsport[2];	/* Source port */
-	uchar	udpdport[2];	/* Destination port */
-	uchar	udplen[2];	/* data length */
-	uchar	udpcksum[2];	/* Checksum */
+	uint8_t	udpsport[2];	/* Source port */
+	uint8_t	udpdport[2];	/* Destination port */
+	uint8_t	udplen[2];	/* data length */
+	uint8_t	udpcksum[2];	/* Checksum */
 };
 
 typedef struct Udp6hdr Udp6hdr;
 struct Udp6hdr {
-	uchar viclfl[4];
-	uchar len[2];
-	uchar nextheader;
-	uchar hoplimit;
-	uchar udpsrc[IPaddrlen];
-	uchar udpdst[IPaddrlen];
+	uint8_t viclfl[4];
+	uint8_t len[2];
+	uint8_t nextheader;
+	uint8_t hoplimit;
+	uint8_t udpsrc[IPaddrlen];
+	uint8_t udpdst[IPaddrlen];
 
 	/* udp header */
-	uchar	udpsport[2];	/* Source port */
-	uchar	udpdport[2];	/* Destination port */
-	uchar	udplen[2];	/* data length */
-	uchar	udpcksum[2];	/* Checksum */
+	uint8_t	udpsport[2];	/* Source port */
+	uint8_t	udpdport[2];	/* Destination port */
+	uint8_t	udplen[2];	/* data length */
+	uint8_t	udpcksum[2];	/* Checksum */
 };
 
 /* MIB II counters */
 typedef struct Udpstats Udpstats;
 struct Udpstats
 {
-	ulong	udpInDatagrams;
-	ulong	udpNoPorts;
-	ulong	udpInErrors;
-	ulong	udpOutDatagrams;
+	uint32_t	udpInDatagrams;
+	uint32_t	udpNoPorts;
+	uint32_t	udpInErrors;
+	uint32_t	udpOutDatagrams;
 };
 
 typedef struct Udppriv Udppriv;
@@ -97,11 +97,11 @@ struct Udppriv
 	Udpstats	ustats;
 
 	/* non-MIB stats */
-	ulong		csumerr;		/* checksum errors */
-	ulong		lenerr;			/* short packet */
+	uint32_t		csumerr;		/* checksum errors */
+	uint32_t		lenerr;			/* short packet */
 };
 
-void (*etherprofiler)(char *name, int qlen);
+void (*etherprofiler)(int8_t *name, int qlen);
 void udpkick(void *x, Block *bp);
 
 /*
@@ -114,10 +114,10 @@ struct Udpcb
 	uchar	headers;
 };
 
-static char*
-udpconnect(Conv *c, char **argv, int argc)
+static int8_t*
+udpconnect(Conv *c, int8_t **argv, int argc)
 {
-	char *e;
+	int8_t *e;
 	Udppriv *upriv;
 
 	upriv = c->p->priv;
@@ -132,7 +132,7 @@ udpconnect(Conv *c, char **argv, int argc)
 
 
 static int
-udpstate(Conv *c, char *state, int n)
+udpstate(Conv *c, int8_t *state, int n)
 {
 	return snprint(state, n, "%s qin %d qout %d\n",
 		c->inuse ? "Open" : "Closed",
@@ -141,10 +141,10 @@ udpstate(Conv *c, char *state, int n)
 	);
 }
 
-static char*
-udpannounce(Conv *c, char** argv, int argc)
+static int8_t*
+udpannounce(Conv *c, int8_t** argv, int argc)
 {
-	char *e;
+	int8_t *e;
 	Udppriv *upriv;
 
 	upriv = c->p->priv;
@@ -192,8 +192,8 @@ udpkick(void *x, Block *bp)
 	Conv *c = x;
 	Udp4hdr *uh4;
 	Udp6hdr *uh6;
-	ushort rport;
-	uchar laddr[IPaddrlen], raddr[IPaddrlen];
+	uint16_t rport;
+	uint8_t laddr[IPaddrlen], raddr[IPaddrlen];
 	Udpcb *ucb;
 	int dlen, ptcllen;
 	Udppriv *upriv;
@@ -354,13 +354,13 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	Udp6hdr *uh6;
 	Conv *c;
 	Udpcb *ucb;
-	uchar raddr[IPaddrlen], laddr[IPaddrlen];
-	ushort rport, lport;
+	uint8_t raddr[IPaddrlen], laddr[IPaddrlen];
+	uint16_t rport, lport;
 	Udppriv *upriv;
 	Fs *f;
 	int version;
 	int ottl, oviclfl, olen;
-	uchar *p;
+	uint8_t *p;
 
 	upriv = udp->priv;
 	f = udp->f;
@@ -545,8 +545,8 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 
 }
 
-char*
-udpctl(Conv *c, char **f, int n)
+int8_t*
+udpctl(Conv *c, int8_t **f, int n)
 {
 	Udpcb *ucb;
 
@@ -568,12 +568,12 @@ udpctl(Conv *c, char **f, int n)
 }
 
 void
-udpadvise(Proto *udp, Block *bp, char *msg)
+udpadvise(Proto *udp, Block *bp, int8_t *msg)
 {
 	Udp4hdr *h4;
 	Udp6hdr *h6;
-	uchar source[IPaddrlen], dest[IPaddrlen];
-	ushort psource, pdest;
+	uint8_t source[IPaddrlen], dest[IPaddrlen];
+	uint16_t psource, pdest;
 	Conv *s, **p;
 	int version;
 
@@ -623,7 +623,7 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 }
 
 int
-udpstats(Proto *udp, char *buf, int len)
+udpstats(Proto *udp, int8_t *buf, int len)
 {
 	Udppriv *upriv;
 

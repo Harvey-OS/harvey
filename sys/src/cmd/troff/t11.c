@@ -12,7 +12,7 @@
 #include "ext.h"
 
 #define	MAXCH NCHARS		/* maximum number of global char names */
-char	*chnames[MAXCH];	/* chnames[n-ALPHABET] -> name of char n */
+int8_t	*chnames[MAXCH];	/* chnames[n-ALPHABET] -> name of char n */
 int	nchnames;		/* number of Cxy names currently seen */
 
 #define	MAXPS	100		/* max number of point sizes */
@@ -66,11 +66,11 @@ getdesc(char *name)
 	return 1;
 }
 
-static int checkfont(char *name)
+static int checkfont(int8_t *name)
 {		/* in case it's not really a font description file */
 		/* really paranoid, but consider \f. */
 	FILE *fp;
-	char buf[300], buf2[300];
+	int8_t buf[300], buf2[300];
 	int i, status = -1;
 
 	if ((fp = fopen(name, "r")) == NULL)
@@ -233,7 +233,7 @@ chadd(char *s, int type, int install)	/* add s to global character name table; *
 	return nchnames++ + ALPHABET;
 }
 
-char *chname(int n)	/* return string for char with index n */
+int8_t *chname(int n)	/* return string for char with index n */
 {			/* includes type char at front, to be peeled off elsewhere */
 	if (n >= ALPHABET && n < nchnames + ALPHABET)
 		return chnames[n-ALPHABET];

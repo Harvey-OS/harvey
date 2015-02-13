@@ -94,7 +94,7 @@ CIE image  Cal/ICC Cal/ICC          Cal/ICC          CalRGB/sRGB
  */
 
 typedef struct psdf_image_filter_name_s {
-    const char *pname;
+    const int8_t *pname;
     const stream_template *template;
     psdf_version min_version;
 } psdf_image_filter_name;
@@ -115,12 +115,12 @@ private const psdf_image_filter_name Mono_filters[] = {
 };
 
 typedef struct psdf_image_param_names_s {
-    const char *ACSDict;	/* not used for mono */
-    const char *Dict;
-    const char *DownsampleType;
+    const int8_t *ACSDict;	/* not used for mono */
+    const int8_t *Dict;
+    const int8_t *DownsampleType;
     float DownsampleThreshold_default;
     const psdf_image_filter_name *filter_names;
-    const char *Filter;
+    const int8_t *Filter;
     gs_param_item_t items[8];	/* AutoFilter (not used for mono), */
 				/* AntiAlias, */
 				/* Depth, Downsample, DownsampleThreshold, */
@@ -170,28 +170,28 @@ private const psdf_image_param_names_t Mono_names = {
     )
 };
 #undef pi
-private const char *const AutoRotatePages_names[] = {
+private const int8_t *const AutoRotatePages_names[] = {
     psdf_arp_names, 0
 };
-private const char *const ColorConversionStrategy_names[] = {
+private const int8_t *const ColorConversionStrategy_names[] = {
     psdf_ccs_names, 0
 };
-private const char *const DownsampleType_names[] = {
+private const int8_t *const DownsampleType_names[] = {
     psdf_ds_names, 0
 };
-private const char *const Binding_names[] = {
+private const int8_t *const Binding_names[] = {
     psdf_binding_names, 0
 };
-private const char *const DefaultRenderingIntent_names[] = {
+private const int8_t *const DefaultRenderingIntent_names[] = {
     psdf_ri_names, 0
 };
-private const char *const TransferFunctionInfo_names[] = {
+private const int8_t *const TransferFunctionInfo_names[] = {
     psdf_tfi_names, 0
 };
-private const char *const UCRandBGInfo_names[] = {
+private const int8_t *const UCRandBGInfo_names[] = {
     psdf_ucrbg_names, 0
 };
-private const char *const CannotEmbedFontPolicy_names[] = {
+private const int8_t *const CannotEmbedFontPolicy_names[] = {
     psdf_cefp_names, 0
 };
 
@@ -237,7 +237,7 @@ private const gs_param_item_t psdf_param_items[] = {
 /* -------- Get parameters -------- */
 
 private int
-psdf_write_name(gs_param_list *plist, const char *key, const char *str)
+psdf_write_name(gs_param_list *plist, const int8_t *key, const int8_t *str)
 {
     gs_param_string pstr;
 
@@ -246,7 +246,7 @@ psdf_write_name(gs_param_list *plist, const char *key, const char *str)
 }
 
 private int
-psdf_write_string_param(gs_param_list *plist, const char *key,
+psdf_write_string_param(gs_param_list *plist, const int8_t *key,
 			const gs_const_string *pstr)
 {
     gs_param_string ps;
@@ -427,8 +427,8 @@ psdf_read_string_param(gs_param_list *plist, const char *key,
  * we must cast the value both going in and coming out.
  */
 private int
-psdf_put_enum(gs_param_list *plist, const char *key, int value,
-	      const char *const pnames[], int *pecode)
+psdf_put_enum(gs_param_list *plist, const int8_t *key, int value,
+	      const int8_t *const pnames[], int *pecode)
 {
     *pecode = param_put_enum(plist, key, &value, pnames, *pecode);
     return value;

@@ -42,7 +42,7 @@ struct Cache
 	Block	**heads;		/* hash table for finding address */
 	int	nheap;			/* number of available victims */
 	Block	**heap;			/* heap for locating victims */
-	long	nblocks;		/* number of blocks allocated */
+	int32_t	nblocks;		/* number of blocks allocated */
 	Block	*blocks;		/* array of block descriptors */
 	u8int	*mem;			/* memory for all block data & blists */
 
@@ -53,7 +53,7 @@ struct Cache
 	int 	maxdirty;		/* max number of dirty blocks */
 	u32int	vers;
 
-	long hashSize;
+	int32_t hashSize;
 
 	FreeList *fl;
 
@@ -81,7 +81,7 @@ struct Cache
 struct BList {
 	int part;
 	u32int addr;
-	uchar type;
+	uint8_t type;
 	u32int tag;
 	u32int epoch;
 	u32int vers;
@@ -91,8 +91,8 @@ struct BList {
 	/* for roll back */
 	int index;			/* -1 indicates not valid */
 	union {
-		uchar score[VtScoreSize];
-		uchar entry[VtEntrySize];
+		uint8_t score[VtScoreSize];
+		uint8_t entry[VtEntrySize];
 	} old;
 	BList *next;
 };
@@ -153,7 +153,7 @@ int vtType[BtMax] = {
  * Allocate the memory cache.
  */
 Cache *
-cacheAlloc(Disk *disk, VtSession *z, ulong nblocks, int mode)
+cacheAlloc(Disk *disk, VtSession *z, uint32_t nblocks, int mode)
 {
 	int i;
 	Cache *c;
@@ -298,7 +298,7 @@ cacheCheck(Cache *c)
 {
 	u32int size, now;
 	int i, k, refed;
-	static uchar zero[VtScoreSize];
+	static uint8_t zero[VtScoreSize];
 	Block *b;
 
 	size = c->size;
@@ -413,7 +413,7 @@ _cacheLocalLookup(Cache *c, int part, u32int addr, u32int vers,
 	int waitlock, int *lockfailure)
 {
 	Block *b;
-	ulong h;
+	uint32_t h;
 
 	h = addr % c->hashSize;
 
@@ -490,7 +490,7 @@ Block *
 _cacheLocal(Cache *c, int part, u32int addr, int mode, u32int epoch)
 {
 	Block *b;
-	ulong h;
+	uint32_t h;
 
 	assert(part != PartVenti);
 
@@ -630,11 +630,12 @@ cacheLocalData(Cache *c, u32int addr, int type, u32int tag, int mode, u32int epo
  * check tag and type if it's really a local block in disguise.
  */
 Block *
-cacheGlobal(Cache *c, uchar score[VtScoreSize], int type, u32int tag, int mode)
+cacheGlobal(Cache *c, uint8_t score[VtScoreSize], int type, u32int tag,
+	    int mode)
 {
 	int n;
 	Block *b;
-	ulong h;
+	uint32_t h;
 	u32int addr;
 
 	addr = globalToLocal(score);
@@ -1034,7 +1035,7 @@ blockSetLabel(Block *b, Label *l, int allocating)
  * can write a safer ``old'' version of the block if pressed.
  */
 void
-blockDependency(Block *b, Block *bb, int index, uchar *score, Entry *e)
+blockDependency(Block *b, Block *bb, int index, uint8_t *score, Entry *e)
 {
 	BList *p;
 
@@ -1123,8 +1124,8 @@ blockDirty(Block *b)
  * copy of b that is safe to write out.  (diskThread will make sure the block
  * remains marked as dirty.)
  */
-uchar *
-blockRollback(Block *b, uchar *buf)
+uint8_t *
+blockRollback(Block *b, uint8_t *buf)
 {
 	u32int addr;
 	BList *p;
@@ -1178,7 +1179,7 @@ blockRollback(Block *b, uchar *buf)
 int
 blockWrite(Block *b, int waitlock)
 {
-	uchar *dmap;
+	uint8_t *dmap;
 	Cache *c;
 	BList *p, **pp;
 	Block *bb;
@@ -1661,10 +1662,10 @@ blistFree(Cache *c, BList *bl)
 	vtUnlock(c->lk);
 }
 
-char*
+int8_t*
 bsStr(int state)
 {
-	static char s[100];
+	static int8_t s[100];
 
 	if(state == BsFree)
 		return "Free";
@@ -1683,7 +1684,7 @@ bsStr(int state)
 	return s;
 }
 
-char *
+int8_t *
 bioStr(int iostate)
 {
 	switch(iostate){
@@ -1710,7 +1711,7 @@ bioStr(int iostate)
 	}
 }
 
-static char *bttab[] = {
+static int8_t *bttab[] = {
 	"BtData",
 	"BtData+1",
 	"BtData+2",
@@ -1729,7 +1730,7 @@ static char *bttab[] = {
 	"BtDir+7",
 };
 
-char*
+int8_t*
 btStr(int type)
 {
 	if(type < nelem(bttab))
@@ -1750,11 +1751,11 @@ labelFmt(Fmt *f)
 int
 scoreFmt(Fmt *f)
 {
-	uchar *v;
+	uint8_t *v;
 	int i;
 	u32int addr;
 
-	v = va_arg(f->args, uchar*);
+	v = va_arg(f->args, uint8_t*);
 	if(v == nil){
 		fmtprint(f, "*");
 	}else if((addr = globalToLocal(v)) != NilBlock)

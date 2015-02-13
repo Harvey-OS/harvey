@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-char *xxxvers =  "\n@(#) MAKE.  VERSION 2.78     22 MAY 1986\n" ;
-static	char *sccsid = "@(#)ident.c	8th Edition (Bell Labs) 85/10/28";
+int8_t *xxxvers =  "\n@(#) MAKE.  VERSION 2.78     22 MAY 1986\n" ;
+static	int8_t *sccsid = "@(#)ident.c	8th Edition (Bell Labs) 85/10/28";
 
 /*
 2.1 4/24/76	Base version

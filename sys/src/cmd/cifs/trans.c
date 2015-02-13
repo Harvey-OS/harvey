@@ -42,7 +42,7 @@ thdr(Session *s, Share *sp)
 static void
 ptparam(Pkt *p)
 {
-	uchar *pos;
+	uint8_t *pos;
 
 	if(((p->pos - p->tbase) % 2) != 0)
 		p8(p, 0);			/* pad to word boundry */
@@ -55,7 +55,7 @@ ptparam(Pkt *p)
 static void
 ptdata(Pkt *p)
 {
-	uchar *pos = p->pos;
+	uint8_t *pos = p->pos;
 
 	assert(p->tparam != 0);
 	if(((p->pos - p->tbase) % 2) != 0)
@@ -77,7 +77,7 @@ static int
 trpc(Pkt *p)
 {
 	int got;
-	uchar *pos = p->pos;
+	uint8_t *pos = p->pos;
 
 	assert(p->tbase != 0);
 	assert(p->tdata != 0);
@@ -123,7 +123,7 @@ int
 RAPshareenum(Session *s, Share *sp, Share **ent)
 {
 	int ngot = 0, err, navail, nret;
-	char tmp[1024];
+	int8_t tmp[1024];
 	Pkt *p;
 	Share *q;
 
@@ -177,10 +177,10 @@ RAPshareenum(Session *s, Share *sp, Share **ent)
 
 
 int
-RAPshareinfo(Session *s, Share *sp, char *share, Shareinfo2 *si2p)
+RAPshareinfo(Session *s, Share *sp, int8_t *share, Shareinfo2 *si2p)
 {
 	int conv, err;
-	char tmp[1024];
+	int8_t tmp[1024];
 	Pkt *p;
 
 	p = thdr(s, sp);
@@ -249,7 +249,7 @@ int
 RAPsessionenum(Session *s, Share *sp, Sessinfo **sip)
 {
 	int ngot = 0, conv, err, navail, nret;
-	char tmp[1024];
+	int8_t tmp[1024];
 	Pkt *p;
 	Sessinfo *q;
 
@@ -308,7 +308,7 @@ int
 RAPgroupenum(Session *s, Share *sp, Namelist **nlp)
 {
 	int ngot, err, navail, nret;
-	char tmp[1024];
+	int8_t tmp[1024];
 	Pkt *p;
 	Namelist *q;
 
@@ -360,10 +360,10 @@ RAPgroupenum(Session *s, Share *sp, Namelist **nlp)
 
 
 int
-RAPgroupusers(Session *s, Share *sp, char *group, Namelist **nlp)
+RAPgroupusers(Session *s, Share *sp, int8_t *group, Namelist **nlp)
 {
 	int ngot, err, navail, nret;
-	char tmp[1024];
+	int8_t tmp[1024];
 	Pkt *p;
 	Namelist *q;
 
@@ -418,7 +418,7 @@ int
 RAPuserenum(Session *s, Share *sp, Namelist **nlp)
 {
 	int ngot, err, navail, nret;
-	char tmp[1024];
+	int8_t tmp[1024];
 	Pkt *p;
 	Namelist *q;
 
@@ -472,7 +472,7 @@ int
 RAPuserenum2(Session *s, Share *sp, Namelist **nlp)
 {
 	int ngot, resume, err, navail, nret;
-	char tmp[1024];
+	int8_t tmp[1024];
 	Pkt *p;
 	Namelist *q;
 
@@ -530,10 +530,10 @@ more:
 }
 
 int
-RAPuserinfo(Session *s, Share *sp, char *user, Userinfo *uip)
+RAPuserinfo(Session *s, Share *sp, int8_t *user, Userinfo *uip)
 {
 	int conv, err;
-	char tmp[1024];
+	int8_t tmp[1024];
 	Pkt *p;
 
 	p = thdr(s, sp);
@@ -585,11 +585,12 @@ RAPuserinfo(Session *s, Share *sp, char *user, Userinfo *uip)
  * against XP with the undocumented error 71/0x47
  */
 int
-RAPServerenum2(Session *s, Share *sp, char *workgroup, int type, int *more,
+RAPServerenum2(Session *s, Share *sp, int8_t *workgroup, int type,
+	       int *more,
 	Serverinfo **si)
 {
 	int ngot = 0, conv, err, nret, navail;
-	char tmp[1024];
+	int8_t tmp[1024];
 	Pkt *p;
 	Serverinfo *q;
 
@@ -645,11 +646,11 @@ RAPServerenum2(Session *s, Share *sp, char *workgroup, int type, int *more,
 }
 
 int
-RAPServerenum3(Session *s, Share *sp, char *workgroup, int type, int last,
+RAPServerenum3(Session *s, Share *sp, int8_t *workgroup, int type, int last,
 	Serverinfo *si)
 {
 	int conv, err, ngot, nret, navail;
-	char *first, tmp[1024];
+	int8_t *first, tmp[1024];
 	Pkt *p;
 	Serverinfo *q;
 
@@ -720,10 +721,11 @@ more:
 
 /* Only the Administrator has permission to do this */
 int
-RAPFileenum2(Session *s, Share *sp, char *user, char *path, Fileinfo **fip)
+RAPFileenum2(Session *s, Share *sp, int8_t *user, int8_t *path,
+	     Fileinfo **fip)
 {
 	int conv, err, ngot, resume, nret, navail;
-	char tmp[1024];
+	int8_t tmp[1024];
 	Pkt *p;
 	Fileinfo *q;
 

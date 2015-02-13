@@ -19,7 +19,7 @@ void
 maktab(void)			/* define the tab stops of the table */
 {
 	int	icol, ilin, tsep, k, ik, vforml, il, s, text;
-	char	*ss;
+	int8_t	*ss;
 
 	for (icol = 0; icol < ncol; icol++) {
 		doubled[icol] = acase[icol] = 0;
@@ -211,7 +211,7 @@ maktab(void)			/* define the tab stops of the table */
 
 
 void
-wide(char *s, char *fn, char *size)
+wide(int8_t *s, int8_t *fn, int8_t *size)
 {
 	if (point(s)) {
 		Bprint(&tabout, "\\w%c", F1);
@@ -231,7 +231,7 @@ wide(char *s, char *fn, char *size)
 
 
 int
-filler(char *s)
+filler(int8_t *s)
 {
 	return (point(s) && s[0] == '\\' && s[1] == 'R');
 }

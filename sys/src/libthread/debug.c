@@ -15,9 +15,9 @@
 int _threaddebuglevel;
 
 void
-_threaddebug(ulong flag, char *fmt, ...)
+_threaddebug(uint32_t flag, int8_t *fmt, ...)
 {
-	char buf[128];
+	int8_t buf[128];
 	va_list arg;
 	Fmt f;
 	Proc *p;
@@ -43,9 +43,9 @@ _threaddebug(ulong flag, char *fmt, ...)
 }
 
 void
-_threadassert(char *s)
+_threadassert(int8_t *s)
 {
-	char buf[256];
+	int8_t buf[256];
 	int n;
 	Proc *p;
 

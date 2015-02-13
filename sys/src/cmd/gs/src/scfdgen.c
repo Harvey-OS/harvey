@@ -198,7 +198,7 @@ cfd_build_tree(cfd_node * tree, cfd_enum_proc enum_proc, int initial_bits,
 	       FILE * f)
 {
     cfd_node *np;
-    const char *prev = "";
+    const int8_t *prev = "";
     int i, next;
     cfd_node *extn;
 
@@ -222,5 +222,5 @@ cfd_build_tree(cfd_node * tree, cfd_enum_proc enum_proc, int initial_bits,
     (*enum_proc) (cfd_init2_nodes, tree, extn, initial_bits);
     for (i = 0, np = extn; i < next; i++, np++)
 	fprintf(f, ",\n\t{ %d, %d }", np->run_length, np->code_length);
-    free((char *)extn);
+    free((int8_t *)extn);
 }

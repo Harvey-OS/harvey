@@ -11,8 +11,8 @@
 #include <libc.h>
 #include <bio.h>
 
-void	ps(char*);
-void	error(char*);
+void	ps(int8_t*);
+void	error(int8_t*);
 int	cmp(void*, void*);
 
 Biobuf	bout;
@@ -65,11 +65,11 @@ main(int argc, char *argv[])
 }
 
 void
-ps(char *s)
+ps(int8_t *s)
 {
-	ulong utime, stime, rtime, size;
+	uint32_t utime, stime, rtime, size;
 	int argc, basepri, fd, i, n, pri;
-	char args[256], *argv[16], buf[64], pbuf[8], rbuf[20], rbuf1[20], status[4096];
+	int8_t args[256], *argv[16], buf[64], pbuf[8], rbuf[20], rbuf1[20], status[4096];
 
 	sprint(buf, "%s/status", s);
 	fd = open(buf, OREAD);
@@ -154,7 +154,7 @@ ps(char *s)
 }
 
 void
-error(char *s)
+error(int8_t *s)
 {
 	fprint(2, "ps: %s: ", s);
 	perror("error");

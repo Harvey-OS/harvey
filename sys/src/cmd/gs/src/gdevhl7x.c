@@ -95,8 +95,8 @@
 
 /* Type definitions */
 typedef struct {
-  short width;                /* physical width of the paper */
-  short height;               /* physical height of the paper */
+  int16_t width;                /* physical width of the paper */
+  int16_t height;               /* physical height of the paper */
 }                 PaperFormat; /* Rep. of the charateristics of a sheet of paper */
 
 typedef unsigned char Byte; /* Rep. of elementary data unit */
@@ -108,8 +108,8 @@ typedef unsigned char Byte; /* Rep. of elementary data unit */
  */
 typedef struct {
   Byte * data;
-  short maxSize;
-  short current;
+  int16_t maxSize;
+  int16_t current;
 
 } ByteList;
 
@@ -119,14 +119,14 @@ typedef struct {
  */
 
 typedef struct {
-  short  previousSize;
+  int16_t  previousSize;
   Byte   previousData[1500]; /* Size bigger than any possible line */ 
-  short  nbBlankLines;
-  short  nbLinesSent;
-  short  pageWidth;
-  short  pageHeight;
-  short  horizontalOffset;
-  short  resolution;
+  int16_t  nbBlankLines;
+  int16_t  nbLinesSent;
+  int16_t  pageWidth;
+  int16_t  pageHeight;
+  int16_t  horizontalOffset;
+  int16_t  resolution;
 } Summary;
 
 
@@ -140,11 +140,11 @@ private const int DumpFinished = 0;
 private const int DumpContinue = 1;
 private const int HL7X0_LENGTH = 5; /* Length of a command to tell the size of the data to be sent to the printer*/
 private void  makeCommandsForSequence(Byte     * pSource,
-				      short      length,
+				      int16_t      length,
 				      ByteList * pCommandList,
-				      short      offset,
+				      int16_t      offset,
 				      Byte     * pCommandCount,
-				      short      rest);
+				      int16_t      rest);
 
 /* Auxiliary Functions */
 
@@ -155,15 +155,16 @@ private int dumpPage(gx_device_printer * pSource,
 		      ByteList          * pCommandList,
 		      Summary           * pSummary
 		      );
-private void initSummary(Summary * s,short pw, short ph, short resolution);
+private void initSummary(Summary * s,int16_t pw, int16_t ph,
+			 int16_t resolution);
 
 private void resetPreviousData(Summary * s);
 
 private void makeFullLine( Byte      * pCurrentLine,
 			   Byte      * pPreviousLine,
-			   short       lineWidth,
+			   int16_t       lineWidth,
 			   ByteList  * commandsList,
-			   short       horizontalOffset
+			   int16_t       horizontalOffset
 			   );
 
 
@@ -171,10 +172,10 @@ private void makeFullLine( Byte      * pCurrentLine,
 /*
  * Initialize a list of Bytes structure
  */
-private void initByteList(ByteList *list, Byte *array, short maxSize,short initCurrent);
+private void initByteList(ByteList *list, Byte *array, int16_t maxSize,int16_t initCurrent);
 private void addByte(ByteList *list,Byte value );
-private void addArray(ByteList *list, Byte *source, short nb);
-private void addNBytes(ByteList * list, Byte value, short nb);
+private void addArray(ByteList *list, Byte *source, int16_t nb);
+private void addNBytes(ByteList * list, Byte value, int16_t nb);
 private Byte * currentPosition(ByteList * list);
 private void addCodedNumber(ByteList * list, short number);
 private int isThereEnoughRoom(ByteList * list, short biggest);

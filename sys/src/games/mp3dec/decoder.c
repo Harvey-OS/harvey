@@ -135,7 +135,7 @@ int mad_decoder_finish(struct mad_decoder *decoder)
 static
 enum mad_flow send_io(int fd, void const *data, size_t len)
 {
-  char const *ptr = data;
+  int8_t const *ptr = data;
   ssize_t count;
 
   while (len) {
@@ -156,7 +156,7 @@ enum mad_flow send_io(int fd, void const *data, size_t len)
 static
 enum mad_flow receive_io(int fd, void *buffer, size_t len)
 {
-  char *ptr = buffer;
+  int8_t *ptr = buffer;
   ssize_t count;
 
   while (len) {
@@ -254,7 +254,7 @@ enum mad_flow receive(int fd, void **message, unsigned int *size)
     /* throw away remainder of message */
 
     while (actual && result == MAD_FLOW_CONTINUE) {
-      char sink[256];
+      int8_t sink[256];
       unsigned int len;
 
       len = actual > sizeof(sink) ? sizeof(sink) : actual;

@@ -20,7 +20,7 @@ icacheinit(void)
 }
 
 void
-updateicache(ulong addr)
+updateicache(uint32_t addr)
 {
 	USED(addr);
 }

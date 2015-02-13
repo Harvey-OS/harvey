@@ -24,35 +24,35 @@ typedef struct System		System;
 
 struct Strings
 {
-	char	*s1;
-	char	*s2;
+	int8_t	*s1;
+	int8_t	*s2;
 };
 struct System {
-	char	*rsys;
-	ulong	reqs;
-	ulong	first;
-	ulong	last;
+	int8_t	*rsys;
+	uint32_t	reqs;
+	uint32_t	first;
+	uint32_t	last;
 	System	*next;			/* next in chain */
 };
 
-char	*netdir;
-char	*HTTPLOG = "httpd/log";
+int8_t	*netdir;
+int8_t	*HTTPLOG = "httpd/log";
 
-static	char		netdirb[256];
-static	char		*namespace;
+static	int8_t		netdirb[256];
+static	int8_t		*namespace;
 static	System		syss[Nbuckets];
 
-static	void		becomenone(char*);
-static	char		*csquery(char*, char*, char*);
-static	void		dolisten(char*);
+static	void		becomenone(int8_t*);
+static	int8_t		*csquery(int8_t*, int8_t*, int8_t*);
+static	void		dolisten(int8_t*);
 static	int		doreq(HConnect*);
 static	int		send(HConnect*);
-static	Strings		stripmagic(HConnect*, char*);
-static	char*		stripprefix(char*, char*);
-static	char*		sysdom(void);
-static	int		notfound(HConnect *c, char *url);
+static	Strings		stripmagic(HConnect*, int8_t*);
+static	int8_t*		stripprefix(int8_t*, int8_t*);
+static	int8_t*		sysdom(void);
+static	int		notfound(HConnect *c, int8_t *url);
 
-uchar *certificate;
+uint8_t *certificate;
 int certlen;
 PEMChain *certchain;	
 
@@ -149,7 +149,7 @@ main(int argc, char **argv)
 }
 
 static void
-becomenone(char *namespace)
+becomenone(int8_t *namespace)
 {
 	int fd;
 
@@ -164,7 +164,7 @@ becomenone(char *namespace)
 }
 
 static HConnect*
-mkconnect(char *scheme, char *port)
+mkconnect(int8_t *scheme, int8_t *port)
 {
 	HConnect *c;
 
@@ -187,10 +187,10 @@ mkhspriv(void)
 }
 
 static uint 
-hashstr(char* key)
+hashstr(int8_t* key)
 {
 	/* asu works better than pjw for urls */
-	uchar *k = (unsigned char*)key;
+	uint8_t *k = (unsigned char*)key;
 	uint h = 0;
 
 	while(*k!=0)
@@ -199,7 +199,7 @@ hashstr(char* key)
 }
 
 static System *
-hashsys(char *rsys)
+hashsys(int8_t *rsys)
 {
 	int notme;
 	System *sys;
@@ -231,9 +231,9 @@ hashsys(char *rsys)
  * updated in the child.
  */
 static int
-isswamped(char *rsys)
+isswamped(int8_t *rsys)
 {
-	ulong period;
+	uint32_t period;
 	System *sys = hashsys(rsys);
 
 	if(sys == nil)
@@ -258,12 +258,12 @@ throttle(int nctl, NetConnInfo *nci, int swamped)
 }
 
 static void
-dolisten(char *address)
+dolisten(int8_t *address)
 {
 	HSPriv *hp;
 	HConnect *c;
 	NetConnInfo *nci;
-	char ndir[NETPATHLEN], dir[NETPATHLEN], *p, *scheme;
+	int8_t ndir[NETPATHLEN], dir[NETPATHLEN], *p, *scheme;
 	int ctl, nctl, data, t, ok, spotchk, swamped;
 	TLSconn conn;
 
@@ -385,8 +385,8 @@ doreq(HConnect *c)
 {
 	HSPriv *hp;
 	Strings ss;
-	char *magic, *uri, *newuri, *origuri, *newpath, *hb;
-	char virtualhost[100], logfd0[10], logfd1[10], vers[16];
+	int8_t *magic, *uri, *newuri, *origuri, *newpath, *hb;
+	int8_t virtualhost[100], logfd0[10], logfd1[10], vers[16];
 	int n, nredirect;
 	uint flags;
 
@@ -498,7 +498,7 @@ static int
 send(HConnect *c)
 {
 	Dir *dir;
-	char *w, *w2, *p, *masque;
+	int8_t *w, *w2, *p, *masque;
 	int fd, fd1, n, force301, ok;
 
 /*
@@ -604,10 +604,10 @@ send(HConnect *c)
 }
 
 static Strings
-stripmagic(HConnect *hc, char *uri)
+stripmagic(HConnect *hc, int8_t *uri)
 {
 	Strings ss;
-	char *newuri, *prog, *s;
+	int8_t *newuri, *prog, *s;
 
 	prog = stripprefix("/magic/", uri);
 	if(prog == nil){
@@ -631,8 +631,8 @@ stripmagic(HConnect *hc, char *uri)
 	return ss;
 }
 
-static char*
-stripprefix(char *pre, char *str)
+static int8_t*
+stripprefix(int8_t *pre, int8_t *str)
 {
 	while(*pre)
 		if(*str++ != *pre++)
@@ -645,7 +645,7 @@ stripprefix(char *pre, char *str)
  * figure out why and return and error message
  */
 static int
-notfound(HConnect *c, char *url)
+notfound(HConnect *c, int8_t *url)
 {
 	c->xferbuf[0] = 0;
 	rerrstr(c->xferbuf, sizeof c->xferbuf);
@@ -656,10 +656,10 @@ notfound(HConnect *c, char *url)
 	return hfail(c, HNotFound, url);
 }
 
-static char*
+static int8_t*
 sysdom(void)
 {
-	char *dn;
+	int8_t *dn;
 
 	dn = csquery("sys" , sysname(), "dom");
 	if(dn == nil)
@@ -670,11 +670,11 @@ sysdom(void)
 /*
  *  query the connection server
  */
-static char*
-csquery(char *attr, char *val, char *rattr)
+static int8_t*
+csquery(int8_t *attr, int8_t *val, int8_t *rattr)
 {
-	char token[64+4];
-	char buf[256], *p, *sp;
+	int8_t token[64+4];
+	int8_t buf[256], *p, *sp;
 	int fd, n;
 
 	if(val == nil || val[0] == 0)

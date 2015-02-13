@@ -10,13 +10,13 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomdeletedirectory(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
+smbcomdeletedirectory(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 {
 	int rv;
-	char *path;
-	char *fullpath = nil;
+	int8_t *path;
+	int8_t *fullpath = nil;
 	SmbTree *t;
-	uchar fmt;
+	uint8_t fmt;
 
 	if (h->wordcount != 0)
 		return SmbProcessResultFormat;

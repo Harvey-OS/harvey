@@ -14,12 +14,12 @@
 #include <thread.h>
 #include <9p.h>
 
-static char Ebad[] = "something bad happened";
-static char Enomem[] = "no memory";
+static int8_t Ebad[] = "something bad happened";
+static int8_t Enomem[] = "no memory";
 
 typedef struct Ramfile	Ramfile;
 struct Ramfile {
-	char *data;
+	int8_t *data;
 	int ndata;
 };
 
@@ -27,8 +27,8 @@ void
 fsread(Req *r)
 {
 	Ramfile *rf;
-	vlong offset;
-	long count;
+	int64_t offset;
+	int32_t count;
 
 	rf = r->fid->file->aux;
 	offset = r->ifcall.offset;
@@ -54,8 +54,8 @@ fswrite(Req *r)
 {
 	void *v;
 	Ramfile *rf;
-	vlong offset;
-	long count;
+	int64_t offset;
+	int32_t count;
 
 	rf = r->fid->file->aux;
 	offset = r->ifcall.offset;

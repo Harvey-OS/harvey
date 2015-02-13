@@ -16,13 +16,13 @@
 #include "defs.h"
 #include "fns.h"
 
-char	BADEQ[] = "unexpected `='";
+int8_t	BADEQ[] = "unexpected `='";
 
 BOOL	executing;
 extern	Rune	*lp;
 
-char	eqformat[ARB] = "z";
-char	stformat[ARB] = "zMi";
+int8_t	eqformat[ARB] = "z";
+int8_t	stformat[ARB] = "zMi";
 
 ADDR	ditto;
 
@@ -143,8 +143,8 @@ acommand(int pc)
 {
 	int eqcom;
 	Map *map;
-	char *fmt;
-	char buf[512];
+	int8_t *fmt;
+	int8_t buf[512];
 
 	if (pc == '=') {
 		eqcom = 1;
@@ -195,11 +195,11 @@ acommand(int pc)
 void
 cmdsrc(int c, Map *map)
 {
-	ulong w;
-	long locval, locmsk;
+	uint32_t w;
+	int32_t locval, locmsk;
 	ADDR savdot;
-	ushort sh;
-	char buf[512];
+	uint16_t sh;
+	int8_t buf[512];
 	int ret;
 
 	if (c == 'L')
@@ -227,13 +227,13 @@ cmdsrc(int c, Map *map)
 	dprint(buf);
 }
 
-static char badwrite[] = "can't write process memory or text image";
+static int8_t badwrite[] = "can't write process memory or text image";
 
 void
 cmdwrite(int wcom, Map *map)
 {
 	ADDR savdot;
-	char *format;
+	int8_t *format;
 	int pass;
 
 	if (wcom == 'w')
@@ -267,11 +267,11 @@ cmdwrite(int wcom, Map *map)
  * this is not what i'd call a good division of labour
  */
 
-char *
+int8_t *
 regname(int regnam)
 {
-	static char buf[64];
-	char *p;
+	static int8_t buf[64];
+	int8_t *p;
 	int c;
 
 	p = buf;
@@ -294,7 +294,7 @@ void
 shell(void)
 {
 	int	rc, unixpid;
-	char *argp = (char*)lp;
+	int8_t *argp = (int8_t*)lp;
 
 	while (lastc!=EOR)
 		rdc();

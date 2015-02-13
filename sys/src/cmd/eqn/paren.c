@@ -11,7 +11,7 @@
 
 #define abs(x) ((x) > 0 ? (x) : (-(x)))
 
-extern void brack(int, char *, char *, char *);
+extern void brack(int, int8_t *, int8_t *, int8_t *);
 
 void paren(int leftc, int p1, int rightc)
 {
@@ -81,7 +81,8 @@ void paren(int leftc, int p1, int rightc)
 		brack(m, "|", "|", "|");
 		break;
 	default:
-		brack(m, (char *) &leftc, (char *) &leftc, (char *) &leftc);
+		brack(m, (int8_t *) &leftc, (int8_t *) &leftc,
+		      (int8_t *) &leftc);
 		break;
 	}
 	if (bv)
@@ -123,7 +124,8 @@ void paren(int leftc, int p1, int rightc)
 			brack(m, "|", "|", "|");
 			break;
 		default:
-			brack(m, (char *) &rightc, (char *) &rightc, (char *) &rightc);
+			brack(m, (int8_t *) &rightc, (int8_t *) &rightc,
+			      (int8_t *) &rightc);
 			break;
 		}
 		if (bv)
@@ -134,7 +136,7 @@ void paren(int leftc, int p1, int rightc)
 		eht[yyval], ebase[yyval], n, v, leftc, rightc);
 }
 
-void brack(int m, char *t, char *c, char *b)
+void brack(int m, int8_t *t, int8_t *c, int8_t *b)
 {
 	int j;
 	printf("\\b'%s", t);

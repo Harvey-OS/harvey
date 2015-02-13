@@ -19,7 +19,7 @@
  * in order to be loaded.
  */
 static void
-setcrt42(Vga* vga, Ctlr* ctlr, uchar index)
+setcrt42(Vga* vga, Ctlr* ctlr, uint8_t index)
 {
 	trace("%s->clock->setcrt42\n", ctlr->name);
 
@@ -34,9 +34,9 @@ setcrt42(Vga* vga, Ctlr* ctlr, uchar index)
 static void
 icd2061aload(Vga* vga, Ctlr* ctlr)
 {
-	ulong sdata;
+	uint32_t sdata;
 	int i;
-	uchar crt42;
+	uint8_t crt42;
 
 	trace("%s->clock->icd2061aload\n", ctlr->name);
 	/*
@@ -125,7 +125,7 @@ ch9294load(Vga* vga, Ctlr* ctlr)
 static void
 tvp3025load(Vga* vga, Ctlr* ctlr)
 {
-	uchar crt5c, x;
+	uint8_t crt5c, x;
 
 	trace("%s->clock->tvp3025load\n", ctlr->name);
 
@@ -201,7 +201,7 @@ tvp3026load(Vga* vga, Ctlr* ctlr)
 }
 
 static struct {
-	char*	name;
+	int8_t*	name;
 	void	(*load)(Vga*, Ctlr*);
 } clocks[] = {
 	{ "icd2061a",		icd2061aload, },
@@ -214,7 +214,7 @@ static struct {
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	char name[Namelen+1], *p;
+	int8_t name[Namelen+1], *p;
 	int i;
 
 	if(vga->clock == 0)
@@ -252,7 +252,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	char name[Namelen+1], *p;
+	int8_t name[Namelen+1], *p;
 	int i;
 
 	if(vga->clock == 0 || (vga->clock->flag & Fload))

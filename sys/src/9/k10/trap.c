@@ -35,13 +35,13 @@ static Vctl *vctl[256];
 
 typedef struct Intrtime Intrtime;
 struct Intrtime {
-	uvlong	count;
-	uvlong	cycles;
+	uint64_t	count;
+	uint64_t	cycles;
 };
 static Intrtime intrtimes[256];
 
 void*
-intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
+intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, int8_t *name)
 {
 	int vno;
 	Vctl *v;
@@ -119,12 +119,12 @@ intrdisable(void* vector)
 	return 0;
 }
 
-static long
-irqallocread(Chan*, void *vbuf, long n, vlong offset)
+static int32_t
+irqallocread(Chan*, void *vbuf, int32_t n, int64_t offset)
 {
-	char *buf, *p, str[2*(11+1)+2*(20+1)+(KNAMELEN+1)+(8+1)+1];
+	int8_t *buf, *p, str[2*(11+1)+2*(20+1)+(KNAMELEN+1)+(8+1)+1];
 	int m, vno;
-	long oldn;
+	int32_t oldn;
 	Intrtime *t;
 	Vctl *v;
 
@@ -162,7 +162,7 @@ irqallocread(Chan*, void *vbuf, long n, vlong offset)
 }
 
 void
-trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
+trapenable(int vno, void (*f)(Ureg*, void*), void* a, int8_t *name)
 {
 	Vctl *v;
 
@@ -218,7 +218,7 @@ trapinit(void)
 	addarchfile("irqalloc", 0444, irqallocread, nil);
 }
 
-static char* excname[32] = {
+static int8_t* excname[32] = {
 	"#DE",					/* Divide-by-Zero Error */
 	"#DB",					/* Debug */
 	"#NMI",					/* Non-Maskable-Interrupt */
@@ -259,7 +259,7 @@ static char* excname[32] = {
 void
 intrtime(int vno)
 {
-	ulong diff, x;		/* should be uvlong */
+	uint32_t diff, x;		/* should be uvlong */
 
 	x = perfticks();
 	diff = x - m->perf.intrts;
@@ -284,7 +284,7 @@ void (*_pmcupdate)(Mach *m) = pmcnop;
 void
 kexit(Ureg*)
 {
- 	uvlong t;
+ 	uint64_t t;
 	Tos *tos;
 	Mach *mp;
 
@@ -338,7 +338,7 @@ void
 trap(Ureg* ureg)
 {
 	int clockintr, vno, user;
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 	Vctl *ctl, *v;
 
 	vno = ureg->type;
@@ -527,9 +527,9 @@ callwithureg(void (*fn)(Ureg*))
 static void
 dumpstackwithureg(Ureg* ureg)
 {
-	char *s;
+	int8_t *s;
 	uintptr l, v, i, estack;
-	extern ulong etext;
+	extern uint32_t etext;
 	int x;
 
 	if((s = getconf("*nodumpstack")) != nil && atoi(s) != 0){
@@ -581,7 +581,7 @@ dumpstack(void)
 static void
 debugbpt(Ureg* ureg, void*)
 {
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	if(up == 0)
 		panic("kernel bpt");
@@ -613,7 +613,7 @@ faultamd64(Ureg* ureg, void*)
 {
 	u64int addr;
 	int read, user, insyscall;
-	char buf[ERRMAX];
+	int8_t buf[ERRMAX];
 
 	addr = m->cr2;
 	user = userureg(ureg);
@@ -673,7 +673,7 @@ userpc(Ureg* ureg)
  * TODO: fix this because the segment registers are wrong for 64-bit mode. 
  */
 void
-setregisters(Ureg* ureg, char* pureg, char* uva, int n)
+setregisters(Ureg* ureg, int8_t* pureg, int8_t* uva, int n)
 {
 	u64int cs, flags, ss;
 	u16int ds, es, fs, gs;

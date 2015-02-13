@@ -163,14 +163,14 @@ vSpitList(list_mem_type **ppAnchorCurr, list_mem_type **ppAnchorNext,
 	ULONG ulListLen)
 {
 	list_mem_type	*pCurr;
-	long		lCharsToGo, lBytesTooFar;
+	int32_t		lCharsToGo, lBytesTooFar;
 
 	fail(ppAnchorCurr == NULL);
 	fail(ppAnchorNext == NULL);
 	fail(ulListLen > (ULONG)LONG_MAX);
 
 	pCurr = NULL;
-	lCharsToGo = (long)ulListLen;
+	lCharsToGo = (int32_t)ulListLen;
 	lBytesTooFar = -1;
 	if (ulListLen != 0) {
 		DBG_DEC(ulListLen);
@@ -182,12 +182,12 @@ vSpitList(list_mem_type **ppAnchorCurr, list_mem_type **ppAnchorNext,
 			fail(pCurr->tInfo.ulLength > (ULONG)LONG_MAX);
 			if (pCurr->tInfo.bUsesUnicode) {
 				fail(odd(pCurr->tInfo.ulLength));
-				lCharsToGo -= (long)(pCurr->tInfo.ulLength / 2);
+				lCharsToGo -= (int32_t)(pCurr->tInfo.ulLength / 2);
 				if (lCharsToGo < 0) {
 					lBytesTooFar = -2 * lCharsToGo;
 				}
 			} else {
-				lCharsToGo -= (long)pCurr->tInfo.ulLength;
+				lCharsToGo -= (int32_t)pCurr->tInfo.ulLength;
 				if (lCharsToGo < 0) {
 					lBytesTooFar = -lCharsToGo;
 				}
@@ -267,7 +267,7 @@ ulComputeListLength(const list_mem_type *pAnchor)
  * vCheckList - check the number of bytes in a block list
  */
 static void
-vCheckList(const list_mem_type *pAnchor, ULONG ulListLen, char *szMsg)
+vCheckList(const list_mem_type *pAnchor, ULONG ulListLen, int8_t *szMsg)
 {
 	ULONG		ulTotal;
 
@@ -289,7 +289,7 @@ bIsEmptyBox(FILE *pFile, const list_mem_type *pAnchor)
 	const list_mem_type	*pCurr;
 	size_t	tIndex, tSize;
 	UCHAR	*aucBuffer;
-	char	cChar;
+	int8_t	cChar;
 
 	fail(pFile == NULL);
 
@@ -314,7 +314,7 @@ bIsEmptyBox(FILE *pFile, const list_mem_type *pAnchor)
 			return FALSE;
 		}
 		for (tIndex = 0; tIndex < tSize; tIndex++) {
-			cChar = (char)aucBuffer[tIndex];
+			cChar = (int8_t)aucBuffer[tIndex];
 			switch (cChar) {
 			case '\0': case '\r': case '\n':
 			case '\f': case '\t': case '\v':
@@ -443,7 +443,7 @@ vSplitBlockList(FILE *pFile, ULONG ulTextLen, ULONG ulFootnoteLen,
 ULONG
 ulGetDocumentLength(void)
 {
-	long		ulTotal;
+	int32_t		ulTotal;
 
 	DBG_MSG("ulGetDocumentLength");
 

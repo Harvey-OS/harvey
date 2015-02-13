@@ -10,17 +10,17 @@
 #include	"all.h"
 
 Uid*	uid;
-char*	uidspace;
-short*	gidspace;
+int8_t*	uidspace;
+int16_t*	gidspace;
 RWLock	mainlock;
-long	boottime;
+int32_t	boottime;
 Tlock	*tlocks;
 Conf	conf;
 Cons	cons;
 Chan	*chan;
-char	service[2*NAMELEN];
-char	*progname;
-char	*procname;
+int8_t	service[2*NAMELEN];
+int8_t	*progname;
+int8_t	*procname;
 int	RBUFSIZE;
 int	BUFSIZE;
 int	DIRPERBUF;

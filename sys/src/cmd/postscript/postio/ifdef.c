@@ -38,7 +38,7 @@
 #include "gen.h"			/* general purpose definitions */
 
 FILE	*fp_ttyi, *fp_ttyo;
-char	*ptr = mesg;
+int8_t	*ptr = mesg;
 
 extern int	window_size;
 
@@ -279,9 +279,9 @@ readline()
 #ifdef V9
 #include <ipc.h>
 
-char	tbuf[256];			/* temporary input buffer */
-char	*nptr = tbuf;			/* next character comes from here */
-char	*eptr = tbuf;			/* one past the last character in tbuf */
+int8_t	tbuf[256];			/* temporary input buffer */
+int8_t	*nptr = tbuf;			/* next character comes from here */
+int8_t	*eptr = tbuf;			/* one past the last character in tbuf */
 
 setupline()
 
@@ -715,8 +715,8 @@ readline()
  */
 int
 strspn(string, charset)
-char	*string;
-register char	*charset;
+int8_t	*string;
+register int8_t	*charset;
 {
 	register char *p, *q;
 
@@ -738,7 +738,7 @@ register char	*charset;
 
 char *
 strpbrk(string, brkset)
-register char *string, *brkset;
+register int8_t *string, *brkset;
 {
 	register char *p;
 
@@ -764,11 +764,11 @@ register char *string, *brkset;
 
 
 extern int strspn();
-extern char *strpbrk();
+extern int8_t *strpbrk();
 
 char *
 strtok(string, sepset)
-char	*string, *sepset;
+int8_t	*string, *sepset;
 {
 	register char	*p, *q, *r;
 	static char	*savept;
@@ -799,7 +799,7 @@ char	*string, *sepset;
 #ifdef DKHOST
 
 #ifndef DKSTREAMS
-short	dkrmode[3] = {DKR_TIME, 0, 0};
+int16_t	dkrmode[3] = {DKR_TIME, 0, 0};
 #endif
 
 dkhost_connect()

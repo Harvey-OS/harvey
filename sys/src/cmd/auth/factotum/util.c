@@ -9,7 +9,7 @@
 
 #include "dat.h"
 
-static char secstore[100];   /* server name */
+static int8_t secstore[100];   /* server name */
 
 /* bind in the default network and cs */
 static int
@@ -32,7 +32,7 @@ bindnetcs(void)
 }
 
 int
-_authdial(char *net, char *authdom)
+_authdial(int8_t *net, int8_t *authdom)
 {
 	int fd, vanilla;
 
@@ -65,7 +65,7 @@ _authdial(char *net, char *authdom)
 int
 secdial(void)
 {
-	char *p, buf[80], *f[3];
+	int8_t *p, buf[80], *f[3];
 	int fd, nf;
 
 	p = secstore; /* take it from writehostowner, if set there */
@@ -106,12 +106,12 @@ secdial(void)
  *  prompt user for a key.  don't care about memory leaks, runs standalone
  */
 static Attr*
-promptforkey(char *params)
+promptforkey(int8_t *params)
 {
-	char *v;
+	int8_t *v;
 	int fd;
 	Attr *a, *attr;
-	char *def;
+	int8_t *def;
 
 	fd = open("/dev/cons", ORDWR);
 	if(fd < 0)
@@ -160,7 +160,7 @@ static int
 sendkey(Attr *attr)
 {
 	int fd, rv;
-	char buf[1024];
+	int8_t buf[1024];
 
 	fd = open("/mnt/factotum/ctl", ORDWR);
 	if(fd < 0)
@@ -173,7 +173,7 @@ sendkey(Attr *attr)
 
 /* askuser */
 void
-askuser(char *params)
+askuser(int8_t *params)
 {
 	Attr *attr;
 
@@ -184,7 +184,7 @@ askuser(char *params)
 		sysfatal("sending key to factotum: %r");
 }
 
-ulong conftaggen;
+uint32_t conftaggen;
 int
 canusekey(Fsstate *fss, Key *k)
 {
@@ -224,8 +224,8 @@ closekey(Key *k)
 	free(k);
 }
 
-static uchar*
-pstring(uchar *p, uchar *e, char *s)
+static uint8_t*
+pstring(uint8_t *p, uint8_t *e, int8_t *s)
 {
 	uint n;
 
@@ -243,15 +243,15 @@ pstring(uchar *p, uchar *e, char *s)
 	return p;
 }
 
-static uchar*
-pcarray(uchar *p, uchar *e, uchar *s, uint n)
+static uint8_t*
+pcarray(uint8_t *p, uint8_t *e, uint8_t *s, uint n)
 {
 	if(p == nil)
 		return nil;
 	if(s == nil){
 		if(n > 0)
 			sysfatal("pcarray");
-		s = (uchar*)"";
+		s = (uint8_t*)"";
 	}
 	if(p+n+BIT16SZ >= e)
 		return nil;
@@ -262,10 +262,10 @@ pcarray(uchar *p, uchar *e, uchar *s, uint n)
 	return p;
 }
 
-uchar*
-convAI2M(AuthInfo *ai, uchar *p, int n)
+uint8_t*
+convAI2M(AuthInfo *ai, uint8_t *p, int n)
 {
-	uchar *e = p+n;
+	uint8_t *e = p+n;
 
 	p = pstring(p, e, ai->cuid);
 	p = pstring(p, e, ai->suid);
@@ -275,9 +275,9 @@ convAI2M(AuthInfo *ai, uchar *p, int n)
 }
 
 int
-failure(Fsstate *s, char *fmt, ...)
+failure(Fsstate *s, int8_t *fmt, ...)
 {
-	char e[ERRMAX];
+	int8_t e[ERRMAX];
 	va_list arg;
 
 	if(fmt == nil)
@@ -302,13 +302,13 @@ hasqueries(Attr *a)
 	return 0;
 }
 
-char *ignored[] = {
+int8_t *ignored[] = {
 	"role",
 	"disabled",
 };
 
 static int
-ignoreattr(char *s)
+ignoreattr(int8_t *s)
 {
 	int i;
 
@@ -332,10 +332,10 @@ mkkeyinfo(Keyinfo *k, Fsstate *fss, Attr *attr)
 }
 
 int
-findkey(Key **ret, Keyinfo *ki, char *fmt, ...)
+findkey(Key **ret, Keyinfo *ki, int8_t *fmt, ...)
 {
 	int i, s, nmatch;
-	char buf[1024], *p, *who;
+	int8_t buf[1024], *p, *who;
 	va_list arg;
 	Attr *a, *attr0, *attr1, *attr2, *attr3, **l;
 	Key *k;
@@ -440,7 +440,7 @@ findkey(Key **ret, Keyinfo *ki, char *fmt, ...)
 int
 findp9authkey(Key **k, Fsstate *fss)
 {
-	char *dom;
+	int8_t *dom;
 	Keyinfo ki;
 
 	/*
@@ -457,7 +457,7 @@ findp9authkey(Key **k, Fsstate *fss)
 }
 
 Proto*
-findproto(char *name)
+findproto(int8_t *name)
 {
 	int i;
 
@@ -467,12 +467,12 @@ findproto(char *name)
 	return nil;
 }
 
-char*
-getnvramkey(int flag, char **secstorepw)
+int8_t*
+getnvramkey(int flag, int8_t **secstorepw)
 {
-	char *s;
+	int8_t *s;
 	Nvrsafe safe;
-	char spw[CONFIGLEN+1];
+	int8_t spw[CONFIGLEN+1];
 	int i;
 
 	memset(&safe, 0, sizeof safe);
@@ -511,7 +511,7 @@ getnvramkey(int flag, char **secstorepw)
 }
 
 int
-isclient(char *role)
+isclient(int8_t *role)
 {
 	if(role == nil){
 		werrstr("role not specified");
@@ -526,13 +526,13 @@ isclient(char *role)
 }
 
 static int
-hasname(Attr *a0, Attr *a1, char *name)
+hasname(Attr *a0, Attr *a1, int8_t *name)
 {
 	return _findattr(a0, name) || _findattr(a1, name);
 }
 
 static int
-hasnameval(Attr *a0, Attr *a1, char *name, char *val)
+hasnameval(Attr *a0, Attr *a1, int8_t *name, int8_t *val)
 {
 	Attr *a;
 
@@ -575,9 +575,9 @@ matchattr(Attr *pat, Attr *a0, Attr *a1)
 void
 memrandom(void *p, int n)
 {
-	uchar *cp;
+	uint8_t *cp;
 
-	for(cp = (uchar*)p; n > 0; n--)
+	for(cp = (uint8_t*)p; n > 0; n--)
 		*cp++ = fastrand();
 }
 
@@ -597,14 +597,14 @@ initcap(void)
 /*
  *  create a change uid capability 
  */
-char*
-mkcap(char *from, char *to)
+int8_t*
+mkcap(int8_t *from, int8_t *to)
 {
-	uchar rand[20];
-	char *cap;
-	char *key;
+	uint8_t rand[20];
+	int8_t *cap;
+	int8_t *key;
 	int nfrom, nto, ncap;
-	uchar hash[SHA1dlen];
+	uint8_t hash[SHA1dlen];
 
 	if(caphashfd < 0)
 		return nil;
@@ -620,7 +620,8 @@ mkcap(char *from, char *to)
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uchar*)cap, strlen(cap), (uchar*)key, strlen(key), hash, nil);
+	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
+		  hash, nil);
 
 	/* give the kernel the hash */
 	key[-1] = '@';
@@ -633,18 +634,18 @@ mkcap(char *from, char *to)
 }
 
 int
-phaseerror(Fsstate *s, char *op)
+phaseerror(Fsstate *s, int8_t *op)
 {
-	char tmp[32];
+	int8_t tmp[32];
 
 	werrstr("protocol phase error: %s in state %s", op, phasename(s, s->phase, tmp));	
 	return RpcPhase;
 }
 
-char*
-phasename(Fsstate *fss, int phase, char *tmp)
+int8_t*
+phasename(Fsstate *fss, int phase, int8_t *tmp)
 {
-	char *name;
+	int8_t *name;
 
 	if(fss->phase == Broken)
 		name = "Broken";
@@ -661,9 +662,9 @@ phasename(Fsstate *fss, int phase, char *tmp)
 }
 
 static int
-outin(char *prompt, char *def, int len)
+outin(int8_t *prompt, int8_t *def, int len)
 {
-	char *s;
+	int8_t *s;
 
 	s = readcons(prompt, def, 0);
 	if(s == nil)
@@ -682,7 +683,7 @@ outin(char *prompt, char *def, int len)
 void
 promptforhostowner(void)
 {
-	char owner[64], *p;
+	int8_t owner[64], *p;
 
 	/* hack for bitsy; can't prompt during boot */
 	if(p = getenv("user")){
@@ -699,10 +700,10 @@ promptforhostowner(void)
 	writehostowner(owner);
 }
 
-char*
-estrappend(char *s, char *fmt, ...)
+int8_t*
+estrappend(int8_t *s, int8_t *fmt, ...)
 {
-	char *t;
+	int8_t *t;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -720,12 +721,12 @@ estrappend(char *s, char *fmt, ...)
 /*
  *  prompt for a string with a possible default response
  */
-char*
-readcons(char *prompt, char *def, int raw)
+int8_t*
+readcons(int8_t *prompt, int8_t *def, int raw)
 {
 	int fdin, fdout, ctl, n;
-	char line[10];
-	char *s;
+	int8_t line[10];
+	int8_t *s;
 
 	fdin = open("/dev/cons", OREAD);
 	if(fdin < 0)
@@ -818,8 +819,8 @@ replacekey(Key *kn, int before)
 	return 0;
 }
 
-char*
-safecpy(char *to, char *from, int n)
+int8_t*
+safecpy(int8_t *to, int8_t *from, int n)
 {
 	memset(to, 0, n);
 	if(n == 1)
@@ -832,9 +833,9 @@ safecpy(char *to, char *from, int n)
 }
 
 Attr*
-setattr(Attr *a, char *fmt, ...)
+setattr(Attr *a, int8_t *fmt, ...)
 {
-	char buf[1024];
+	int8_t buf[1024];
 	va_list arg;
 	Attr *b;
 
@@ -957,10 +958,10 @@ toosmall(Fsstate *fss, uint n)
 }
 
 void
-writehostowner(char *owner)
+writehostowner(int8_t *owner)
 {
 	int fd;
-	char *s;
+	int8_t *s;
 
 	if((s = strchr(owner,'@')) != nil){
 		*s++ = 0;
@@ -978,7 +979,7 @@ writehostowner(char *owner)
 int
 attrnamefmt(Fmt *fmt)
 {
-	char *b, buf[1024], *ebuf;
+	int8_t *b, buf[1024], *ebuf;
 	Attr *a;
 
 	ebuf = buf+sizeof buf;

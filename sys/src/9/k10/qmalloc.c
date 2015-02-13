@@ -123,7 +123,7 @@ static	Lock		mainlock;
 #define QLIST	quicklist
 
 static void*
-qmallocalign(usize nbytes, uintptr align, long offset, usize span)
+qmallocalign(usize nbytes, uintptr align, int32_t offset, usize span)
 {
 	Qlist *qlist;
 	uintptr aligned;
@@ -368,7 +368,7 @@ qfreeinternal(void* ap)
 	rover = q;
 }
 
-ulong
+uint32_t
 msize(void* ap)
 {
 	Header *p;
@@ -385,9 +385,9 @@ msize(void* ap)
 }
 
 static void
-mallocreadfmt(char* s, char* e)
+mallocreadfmt(int8_t* s, int8_t* e)
 {
-	char *p;
+	int8_t *p;
 	Header *q;
 	int i, n, t;
 	Qlist *qlist;
@@ -396,9 +396,9 @@ mallocreadfmt(char* s, char* e)
 		"%llud memory\n"
 		"%d pagesize\n"
 		"%llud kernel\n",
-		(uvlong)conf.npage*PGSZ,
+		(uint64_t)conf.npage*PGSZ,
 		PGSZ,
-		(uvlong)conf.npage-conf.upages);
+		(uint64_t)conf.npage-conf.upages);
 
 	t = 0;
 	for(i = 0; i <= NQUICK; i++) {
@@ -442,10 +442,10 @@ mallocreadfmt(char* s, char* e)
 	MUNLOCK;
 }
 
-long
-mallocreadsummary(Chan*, void *a, long n, long offset)
+int32_t
+mallocreadsummary(Chan*, void *a, int32_t n, int32_t offset)
 {
-	char *alloc;
+	int8_t *alloc;
 
 	alloc = malloc(16*READSTR);
 	mallocreadfmt(alloc, alloc+16*READSTR);
@@ -511,7 +511,7 @@ free(void* ap)
 }
 
 void*
-malloc(ulong size)
+malloc(uint32_t size)
 {
 	void* v;
 
@@ -522,7 +522,7 @@ malloc(ulong size)
 }
 
 void*
-mallocz(ulong size, int clr)
+mallocz(uint32_t size, int clr)
 {
 	void *v;
 
@@ -533,7 +533,7 @@ mallocz(ulong size, int clr)
 }
 
 void*
-mallocalign(ulong nbytes, ulong align, long offset, ulong span)
+mallocalign(uint32_t nbytes, uint32_t align, int32_t offset, uint32_t span)
 {
 	void *v;
 
@@ -547,7 +547,7 @@ mallocalign(ulong nbytes, ulong align, long offset, ulong span)
 }
 
 void*
-smalloc(ulong size)
+smalloc(uint32_t size)
 {
 	void *v;
 
@@ -559,11 +559,11 @@ smalloc(ulong size)
 }
 
 void*
-realloc(void* ap, ulong size)
+realloc(void* ap, uint32_t size)
 {
 	void *v;
 	Header *p;
-	ulong osize;
+	uint32_t osize;
 	uint nunits, ounits;
 
 	/*
@@ -639,7 +639,7 @@ realloc(void* ap, ulong size)
 }
 
 void
-setmalloctag(void*, ulong)
+setmalloctag(void*, uint32_t)
 {
 }
 

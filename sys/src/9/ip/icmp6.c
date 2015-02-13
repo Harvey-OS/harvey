@@ -82,11 +82,11 @@ typedef struct Ndpkt Ndpkt;
 typedef struct NdiscC NdiscC;
 
 struct ICMPpkt {
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
+	uint8_t	type;
+	uint8_t	code;
+	uint8_t	cksum[2];
+	uint8_t	icmpid[2];
+	uint8_t	seq[2];
 };
 
 struct IPICMP {
@@ -97,25 +97,25 @@ struct IPICMP {
 struct NdiscC
 {
 	IPICMP;
-	uchar	target[IPaddrlen];
+	uint8_t	target[IPaddrlen];
 };
 
 struct Ndpkt
 {
 	NdiscC;
-	uchar	otype;
-	uchar	olen;		/* length in units of 8 octets(incl type, code),
+	uint8_t	otype;
+	uint8_t	olen;		/* length in units of 8 octets(incl type, code),
 				 * 1 for IEEE 802 addresses */
-	uchar	lnaddr[6];	/* link-layer address */
+	uint8_t	lnaddr[6];	/* link-layer address */
 };
 
 typedef struct Icmppriv6
 {
-	ulong	stats[Nstats6];
+	uint32_t	stats[Nstats6];
 
 	/* message counts */
-	ulong	in[Maxtype6+1];
-	ulong	out[Maxtype6+1];
+	uint32_t	in[Maxtype6+1];
+	uint32_t	out[Maxtype6+1];
 } Icmppriv6;
 
 typedef struct Icmpcb6
@@ -211,9 +211,9 @@ newIPICMP(int packetlen)
 }
 
 void
-icmpadvise6(Proto *icmp, Block *bp, char *msg)
+icmpadvise6(Proto *icmp, Block *bp, int8_t *msg)
 {
-	ushort recid;
+	uint16_t recid;
 	Conv **c, *s;
 	IPICMP *p;
 
@@ -234,7 +234,7 @@ icmpadvise6(Proto *icmp, Block *bp, char *msg)
 static void
 icmpkick6(void *x, Block *bp)
 {
-	uchar laddr[IPaddrlen], raddr[IPaddrlen];
+	uint8_t laddr[IPaddrlen], raddr[IPaddrlen];
 	Conv *c = x;
 	IPICMP *p;
 	Icmppriv6 *ipriv = c->p->priv;
@@ -277,8 +277,8 @@ icmpkick6(void *x, Block *bp)
 	ipoput6(c->p->f, bp, 0, c->ttl, c->tos, nil);
 }
 
-char*
-icmpctl6(Conv *c, char **argv, int argc)
+int8_t*
+icmpctl6(Conv *c, int8_t **argv, int argc)
 {
 	Icmpcb6 *icb;
 
@@ -293,8 +293,8 @@ icmpctl6(Conv *c, char **argv, int argc)
 static void
 goticmpkt6(Proto *icmp, Block *bp, int muxkey)
 {
-	ushort recid;
-	uchar *addr;
+	uint16_t recid;
+	uint8_t *addr;
 	Conv **c, *s;
 	IPICMP *p = (IPICMP *)bp->rp;
 
@@ -322,7 +322,7 @@ goticmpkt6(Proto *icmp, Block *bp, int muxkey)
 static Block *
 mkechoreply6(Block *bp, Ipifc *ifc)
 {
-	uchar addr[IPaddrlen];
+	uint8_t addr[IPaddrlen];
 	IPICMP *p = (IPICMP *)(bp->rp);
 
 	ipmove(addr, p->src);
@@ -343,7 +343,8 @@ mkechoreply6(Block *bp, Ipifc *ifc)
  * 	and tuni == TARG_UNI => neighbor reachability.
  */
 extern void
-icmpns(Fs *f, uchar* src, int suni, uchar* targ, int tuni, uchar* mac)
+icmpns(Fs *f, uint8_t* src, int suni, uint8_t* targ, int tuni,
+       uint8_t* mac)
 {
 	Block *nbp;
 	Ndpkt *np;
@@ -386,7 +387,8 @@ icmpns(Fs *f, uchar* src, int suni, uchar* targ, int tuni, uchar* mac)
  * sends out an ICMPv6 neighbor advertisement. pktflags == RSO flags.
  */
 extern void
-icmpna(Fs *f, uchar* src, uchar* dst, uchar* targ, uchar* mac, uchar flags)
+icmpna(Fs *f, uint8_t* src, uint8_t* dst, uint8_t* targ, uint8_t* mac,
+       uint8_t flags)
 {
 	Block *nbp;
 	Ndpkt *np;
@@ -558,7 +560,7 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 {
 	int sz, osz, unsp, n, ttl, iplen;
 	int pktsz = BLEN(bp);
-	uchar *packet = bp->rp;
+	uint8_t *packet = bp->rp;
 	IPICMP *p = (IPICMP *) packet;
 	Ndpkt *np;
 
@@ -689,7 +691,7 @@ err:
 }
 
 static int
-targettype(Fs *f, Ipifc *ifc, uchar *target)
+targettype(Fs *f, Ipifc *ifc, uint8_t *target)
 {
 	Iplifc *lifc;
 	int t;
@@ -715,10 +717,10 @@ static void
 icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 {
 	int refresh = 1;
-	char *msg, m2[128];
-	uchar pktflags;
-	uchar *packet = bp->rp;
-	uchar lsrc[IPaddrlen];
+	int8_t *msg, m2[128];
+	uint8_t pktflags;
+	uint8_t *packet = bp->rp;
+	uint8_t lsrc[IPaddrlen];
 	Block *r;
 	IPICMP *p = (IPICMP *)packet;
 	Icmppriv6 *ipriv = icmp->priv;
@@ -854,10 +856,10 @@ raise:
 }
 
 int
-icmpstats6(Proto *icmp6, char *buf, int len)
+icmpstats6(Proto *icmp6, int8_t *buf, int len)
 {
 	Icmppriv6 *priv;
-	char *p, *e;
+	int8_t *p, *e;
 	int i;
 
 	priv = icmp6->priv;
@@ -878,9 +880,9 @@ icmpstats6(Proto *icmp6, char *buf, int len)
 
 
 /* import from icmp.c */
-extern int	icmpstate(Conv *c, char *state, int n);
-extern char*	icmpannounce(Conv *c, char **argv, int argc);
-extern char*	icmpconnect(Conv *c, char **argv, int argc);
+extern int	icmpstate(Conv *c, int8_t *state, int n);
+extern int8_t*	icmpannounce(Conv *c, int8_t **argv, int argc);
+extern int8_t*	icmpconnect(Conv *c, int8_t **argv, int argc);
 extern void	icmpclose(Conv *c);
 
 void

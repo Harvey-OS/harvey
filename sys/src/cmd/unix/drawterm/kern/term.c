@@ -37,7 +37,7 @@ static Rectangle flushr;
 static Rectangle window;
 static Point curpos;
 static int h;
-static void	termscreenputs(char*, int);
+static void	termscreenputs(int8_t*, int);
 
 
 static void
@@ -60,7 +60,7 @@ static void
 screenwin(void)
 {
 	Point p;
-	char *greet;
+	int8_t *greet;
 	Memimage *grey;
 
 	drawqlock();
@@ -127,7 +127,7 @@ scroll(void)
 }
 
 static void
-screenputc(char *buf)
+screenputc(int8_t *buf)
 {
 	Point p;
 	int w, pos;
@@ -186,11 +186,11 @@ screenputc(char *buf)
 }
 
 static void
-termscreenputs(char *s, int n)
+termscreenputs(int8_t *s, int n)
 {
 	int i, locked;
 	Rune r;
-	char buf[4];
+	int8_t buf[4];
 
 	lock(&screenlock);
 	locked = drawcanqlock();

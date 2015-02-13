@@ -89,8 +89,8 @@ struct
 void
 sethvec(int v, void (*r)(void), int type, int pri)
 {
-	ilt[v].d0 = ((ulong)r)&0xFFFF|(KESEL<<16);
-	ilt[v].d1 = ((ulong)r)&0xFFFF0000|SEGP|SEGPL(pri)|type;
+	ilt[v].d0 = ((uint32_t)r)&0xFFFF|(KESEL<<16);
+	ilt[v].d1 = ((uint32_t)r)&0xFFFF0000|SEGP|SEGPL(pri)|type;
 }
 
 void
@@ -142,8 +142,8 @@ void
 trapinit(void)
 {
 	int i, x;
-	ulong a;
-	ushort ptr[3];
+	uint32_t a;
+	uint16_t ptr[3];
 
 	/*
 	 *  set all interrupts to panics
@@ -198,13 +198,13 @@ trapinit(void)
 	memmove(m->gdt, gdt, sizeof gdt);
 
 	ptr[0] = sizeof(gdt)-1;
-	a = (ulong)m->gdt;
+	a = (uint32_t)m->gdt;
 	ptr[1] = a & 0xFFFF;
 	ptr[2] = (a>>16) & 0xFFFF;
 	lgdt(ptr);
 
 	ptr[0] = sizeof(Segdesc)*256-1;
-	a = (ulong)ilt;
+	a = (uint32_t)ilt;
 	ptr[1] = a & 0xFFFF;
 	ptr[2] = (a>>16) & 0xFFFF;
 	lidt(ptr);
@@ -293,7 +293,7 @@ trap(Ureg *ur)
 	int v;
 	int c;
 	Handler *h;
-	ushort isr;
+	uint16_t isr;
 
 	v = ur->trap;
 	/*
@@ -336,7 +336,7 @@ trap(Ureg *ur)
 
 		case 0x06:
 			{
-				uchar *p = (uchar*)(ur->pc-20);
+				uint8_t *p = (uint8_t*)(ur->pc-20);
 				int i;
 
 				for(i = 0; i < 40; i++){

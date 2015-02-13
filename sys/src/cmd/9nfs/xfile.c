@@ -57,7 +57,7 @@ xfile(Qid *qid, void *s, int new)
 }
 
 Xfid *
-xfid(char *uid, Xfile *xp, int new)
+xfid(int8_t *uid, Xfile *xp, int new)
 {
 	Xfid *f, *pf;
 
@@ -95,7 +95,7 @@ xfid(char *uid, Xfile *xp, int new)
 }
 
 int
-xfpurgeuid(Session *s, char *uid)
+xfpurgeuid(Session *s, int8_t *uid)
 {
 	Xfile **hp, *f;
 	Xfid *xf;

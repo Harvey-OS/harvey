@@ -79,8 +79,8 @@ gs_char
 gs_c_decode(gs_glyph glyph, int ei)
 {
     /* Do a binary search for glyph, using gx_c_known_encodings_reverse */
-    const ushort *const encoding = gs_c_known_encodings[ei];
-    const ushort *const reverse = gs_c_known_encodings_reverse[ei];
+    const uint16_t *const encoding = gs_c_known_encodings[ei];
+    const uint16_t *const reverse = gs_c_known_encodings_reverse[ei];
     int first_index = 0;
     int last_index = gs_c_known_encoding_reverse_lengths[ei];
     while (first_index < last_index) {

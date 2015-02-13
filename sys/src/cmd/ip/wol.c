@@ -18,9 +18,9 @@ enum {
 
 typedef struct Wolpack Wolpack;
 struct Wolpack{
-	uchar	magic[6];
-	uchar	macs[16][Eaddrlen];
-	char	pass[6+1];
+	uint8_t	magic[6];
+	uint8_t	macs[16][Eaddrlen];
+	int8_t	pass[6+1];
 };
 
 int verbose;
@@ -33,7 +33,7 @@ usage(void)
 }
 
 void
-fillmac(Wolpack *w, uchar *mac)
+fillmac(Wolpack *w, uint8_t *mac)
 {
 	int i;
 

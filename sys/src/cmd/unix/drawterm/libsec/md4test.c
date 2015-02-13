@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-char *tests[] = {
+int8_t *tests[] = {
 	"",
 	"a",
 	"abc",
@@ -25,13 +25,13 @@ char *tests[] = {
 void
 main(void)
 {
-	char **pp;
-	uchar *p;
+	int8_t **pp;
+	uint8_t *p;
 	int i;
-	uchar digest[MD5dlen];
+	uint8_t digest[MD5dlen];
 
 	for(pp = tests; *pp; pp++){
-		p = (uchar*)*pp;
+		p = (uint8_t*)*pp;
 		md4(p, strlen(*pp), digest, 0);
 		for(i = 0; i < MD5dlen; i++)
 			print("%2.2ux", digest[i]);

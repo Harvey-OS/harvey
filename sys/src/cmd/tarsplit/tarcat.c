@@ -25,16 +25,16 @@ static int debug;
 
 /* don't copy zero blocks at end */
 static void
-catenate(int in, char *inname)
+catenate(int in, int8_t *inname)
 {
-	vlong len;
+	int64_t len;
 	static Hblock hdr;
 	Hblock *hp = &hdr;
 
 	if (debug)
 		fprint(2, "%s: reading %s\n", inname, argv0);
 	while (getdir(hp, in, &len)) {
-		writetar(Stdout, (char *)hp, Tblock);  /* write dir block */
+		writetar(Stdout, (int8_t *)hp, Tblock);  /* write dir block */
 		passtar(hp, in, Stdout, len);
 	}
 }

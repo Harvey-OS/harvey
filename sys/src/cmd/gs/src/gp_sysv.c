@@ -39,7 +39,7 @@
 
 /* rename */
 int
-rename(const char *a, const char *b)
+rename(const int8_t *a, const int8_t *b)
 {
     if (access(a, 0) == -1)
 	return (-1);
@@ -61,8 +61,8 @@ int
 gettimeofday(struct timeval *tvp, struct timezone *tzp)
 {
     struct tms tms;
-    static long offset = 0;
-    long ticks;
+    static int32_t offset = 0;
+    int32_t ticks;
 
     if (!offset) {
 	time(&offset);

@@ -14,7 +14,7 @@ static	Block	*blist;
 static int
 tempdisk(void)
 {
-	char buf[128];
+	int8_t buf[128];
 	int i, fd;
 
 	snprint(buf, sizeof buf, "/tmp/X%d.%.4ssam", getpid(), getuser());

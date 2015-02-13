@@ -12,19 +12,19 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-static long
+static int32_t
 _ioopen(va_list *arg)
 {
-	char *path;
+	int8_t *path;
 	int mode;
 
-	path = va_arg(*arg, char*);
+	path = va_arg(*arg, int8_t*);
 	mode = va_arg(*arg, int);
 	return open(path, mode);
 }
 
 int
-ioopen(Ioproc *io, char *path, int mode)
+ioopen(Ioproc *io, int8_t *path, int mode)
 {
 	return iocall(io, _ioopen, path, mode);
 }

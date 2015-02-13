@@ -17,7 +17,7 @@ enum {
 	CHANCLOSD = 0xc105ed,
 };
 
-static char errcl[] = "channel was closed";
+static int8_t errcl[] = "channel was closed";
 static Lock chanlock;		/* central channel access lock */
 
 static void enqueue(Alt*, Channel**);
@@ -374,18 +374,18 @@ channelsize(Channel *c, int sz)
 }
 
 int
-sendul(Channel *c, ulong v)
+sendul(Channel *c, uint32_t v)
 {
-	channelsize(c, sizeof(ulong));
+	channelsize(c, sizeof(uint32_t));
 	return send(c, &v);
 }
 
-ulong
+uint32_t
 recvul(Channel *c)
 {
-	ulong v;
+	uint32_t v;
 
-	channelsize(c, sizeof(ulong));
+	channelsize(c, sizeof(uint32_t));
 	if(recv(c, &v) < 0)
 		return ~0;
 	return v;
@@ -410,18 +410,18 @@ recvp(Channel *c)
 }
 
 int
-nbsendul(Channel *c, ulong v)
+nbsendul(Channel *c, uint32_t v)
 {
-	channelsize(c, sizeof(ulong));
+	channelsize(c, sizeof(uint32_t));
 	return nbsend(c, &v);
 }
 
-ulong
+uint32_t
 nbrecvul(Channel *c)
 {
-	ulong v;
+	uint32_t v;
 
-	channelsize(c, sizeof(ulong));
+	channelsize(c, sizeof(uint32_t));
 	if(nbrecv(c, &v) == 0)
 		return 0;
 	return v;
@@ -522,7 +522,7 @@ canexec(Alt *a)
 static void*
 altexecbuffered(Alt *a, int willreplace)
 {
-	uchar *v;
+	uint8_t *v;
 	Channel *c;
 
 	c = a->c;
@@ -604,7 +604,8 @@ altexec(Alt *a, int spl)
 		_threaddebug(DBGCHAN, "unlocking the chanlock");
 		unlock(&chanlock);
 		_procsplx(spl);
-		_threaddebug(DBGCHAN, "chanlock is %lud", *(ulong*)&chanlock);
+		_threaddebug(DBGCHAN, "chanlock is %lud",
+			     *(uint32_t*)&chanlock);
 		while(_threadrendezvous(b->tag, 0) == Intred)
 			;
 		return 1;

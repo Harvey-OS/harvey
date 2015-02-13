@@ -52,7 +52,7 @@
 #  define strchr index
 #  define strrchr rindex
 # endif
-char *strchr (), *strrchr ();
+int8_t *strchr (), *strrchr ();
 # ifndef HAVE_MEMCPY
 #  define memcpy(d, s, n) bcopy ((s), (d), (n))
 #  define memmove(d, s, n) bcopy ((s), (d), (n))
@@ -68,7 +68,7 @@ char *strchr (), *strrchr ();
 #include <dmalloc.h>
 #endif
 
-static const char *const genre_names[] =
+static const int8_t *const genre_names[] =
 {
     /*
      * NOTE: The spelling of these genre names is identical to those found in
@@ -103,7 +103,7 @@ static const char *const genre_names[] =
 };
 
 #define GENRE_NAME_COUNT \
-    ((int)(sizeof genre_names / sizeof (const char *const)))
+    ((int)(sizeof genre_names / sizeof (const int8_t *const)))
 
 static const int genre_alpha_map [] = {
     123, 34, 74, 73, 99, 20, 40, 26, 145, 90, 116, 41, 135, 85, 96, 138, 89, 0,
@@ -120,7 +120,7 @@ static const int genre_alpha_map [] = {
 #define GENRE_ALPHA_COUNT ((int)(sizeof genre_alpha_map / sizeof (int)))
 
 void
-id3tag_genre_list(void (*handler)(int, const char *, void *), void *cookie)
+id3tag_genre_list(void (*handler)(int, const int8_t *, void *), void *cookie)
 {
     if (handler) {
         int i;
@@ -191,7 +191,7 @@ id3tag_pad_v2(lame_global_flags *gfp)
 }
 
 void
-id3tag_set_title(lame_global_flags *gfp, const char *title)
+id3tag_set_title(lame_global_flags *gfp, const int8_t *title)
 {
     lame_internal_flags *gfc = gfp->internal_flags;
     if (title && *title) {
@@ -201,7 +201,7 @@ id3tag_set_title(lame_global_flags *gfp, const char *title)
 }
 
 void
-id3tag_set_artist(lame_global_flags *gfp, const char *artist)
+id3tag_set_artist(lame_global_flags *gfp, const int8_t *artist)
 {
     lame_internal_flags *gfc = gfp->internal_flags;
     if (artist && *artist) {
@@ -211,7 +211,7 @@ id3tag_set_artist(lame_global_flags *gfp, const char *artist)
 }
 
 void
-id3tag_set_album(lame_global_flags *gfp, const char *album)
+id3tag_set_album(lame_global_flags *gfp, const int8_t *album)
 {
     lame_internal_flags *gfc = gfp->internal_flags;
     if (album && *album) {
@@ -221,7 +221,7 @@ id3tag_set_album(lame_global_flags *gfp, const char *album)
 }
 
 void
-id3tag_set_year(lame_global_flags *gfp, const char *year)
+id3tag_set_year(lame_global_flags *gfp, const int8_t *year)
 {
     lame_internal_flags *gfc = gfp->internal_flags;
     if (year && *year) {
@@ -241,7 +241,7 @@ id3tag_set_year(lame_global_flags *gfp, const char *year)
 }
 
 void
-id3tag_set_comment(lame_global_flags *gfp, const char *comment)
+id3tag_set_comment(lame_global_flags *gfp, const int8_t *comment)
 {
     lame_internal_flags *gfc = gfp->internal_flags;
     if (comment && *comment) {
@@ -251,7 +251,7 @@ id3tag_set_comment(lame_global_flags *gfp, const char *comment)
 }
 
 void
-id3tag_set_track(lame_global_flags *gfp, const char *track)
+id3tag_set_track(lame_global_flags *gfp, const int8_t *track)
 {
     lame_internal_flags *gfc = gfp->internal_flags;
     if (track && *track) {
@@ -273,7 +273,7 @@ id3tag_set_track(lame_global_flags *gfp, const char *track)
 
 /* would use real "strcasecmp" but it isn't portable */
 static int
-local_strcasecmp(const char *s1, const char *s2)
+local_strcasecmp(const int8_t *s1, const int8_t *s2)
 {
     unsigned char c1;
     unsigned char c2;
@@ -290,11 +290,11 @@ local_strcasecmp(const char *s1, const char *s2)
 }
 
 int
-id3tag_set_genre(lame_global_flags *gfp, const char *genre)
+id3tag_set_genre(lame_global_flags *gfp, const int8_t *genre)
 {
     lame_internal_flags *gfc = gfp->internal_flags;
     if (genre && *genre) {
-        char *str;
+        int8_t *str;
         int num = strtol(genre, &str, 10);
         /* is the input a string or a valid number? */
         if (*str) {
@@ -342,7 +342,7 @@ set_4_byte_value(unsigned char *bytes, unsigned long value)
 #define GENRE_FRAME_ID FRAME_ID('T', 'C', 'O', 'N')
 
 static unsigned char *
-set_frame(unsigned char *frame, unsigned long id, const char *text,
+set_frame(unsigned char *frame, unsigned long id, const int8_t *text,
     size_t length)
 {
     if (length) {
@@ -395,11 +395,11 @@ id3tag_write_v2(lame_global_flags *gfp)
                 || (comment_length > 30)
                 || (gfc->tag_spec.track && (comment_length > 28))) {
             size_t tag_size;
-            char year[5];
+            int8_t year[5];
             size_t year_length;
-            char track[3];
+            int8_t track[3];
             size_t track_length;
-            char genre[6];
+            int8_t genre[6];
             size_t genre_length;
             unsigned char *tag;
             unsigned char *p;
@@ -498,7 +498,8 @@ id3tag_write_v2(lame_global_flags *gfp)
 }
 
 static unsigned char *
-set_text_field(unsigned char *field, const char *text, size_t size, int pad)
+set_text_field(unsigned char *field, const int8_t *text, size_t size,
+               int pad)
 {
     while (size--) {
         if (text && *text) {
@@ -519,7 +520,7 @@ id3tag_write_v1(lame_global_flags *gfp)
         unsigned char tag[128];
         unsigned char *p = tag;
         int pad = (gfc->tag_spec.flags & SPACE_V1_FLAG) ? ' ' : 0;
-        char year[5];
+        int8_t year[5];
         unsigned int index;
         /* set tag identifier */
         *p++ = 'T'; *p++ = 'A'; *p++ = 'G';

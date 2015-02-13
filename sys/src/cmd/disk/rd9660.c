@@ -27,33 +27,33 @@ Biobuf *b;
 
 typedef struct Voldesc Voldesc;
 struct Voldesc {
-	uchar	magic[8];	/* 0x01, "CD001", 0x01, 0x00 */
-	uchar	systemid[32];	/* system identifier */
-	uchar	volumeid[32];	/* volume identifier */
-	uchar	unused[8];	/* character set in secondary desc */
-	uchar	volsize[8];	/* volume size */
-	uchar	charset[32];
-	uchar	volsetsize[4];	/* volume set size = 1 */
-	uchar	volseqnum[4];	/* volume sequence number = 1 */
-	uchar	blocksize[4];	/* logical block size */
-	uchar	pathsize[8];	/* path table size */
-	uchar	lpathloc[4];	/* Lpath */
-	uchar	olpathloc[4];	/* optional Lpath */
-	uchar	mpathloc[4];	/* Mpath */
-	uchar	ompathloc[4];	/* optional Mpath */
-	uchar	rootdir[34];	/* root directory */
-	uchar	volsetid[128];	/* volume set identifier */
-	uchar	publisher[128];
-	uchar	prepid[128];	/* data preparer identifier */
-	uchar	applid[128];	/* application identifier */
-	uchar	notice[37];	/* copyright notice file */
-	uchar	abstract[37];	/* abstract file */
-	uchar	biblio[37];	/* bibliographic file */
-	uchar	cdate[17];	/* creation date */
-	uchar	mdate[17];	/* modification date */
-	uchar	xdate[17];	/* expiration date */
-	uchar	edate[17];	/* effective date */
-	uchar	fsvers;		/* file system version = 1 */
+	uint8_t	magic[8];	/* 0x01, "CD001", 0x01, 0x00 */
+	uint8_t	systemid[32];	/* system identifier */
+	uint8_t	volumeid[32];	/* volume identifier */
+	uint8_t	unused[8];	/* character set in secondary desc */
+	uint8_t	volsize[8];	/* volume size */
+	uint8_t	charset[32];
+	uint8_t	volsetsize[4];	/* volume set size = 1 */
+	uint8_t	volseqnum[4];	/* volume sequence number = 1 */
+	uint8_t	blocksize[4];	/* logical block size */
+	uint8_t	pathsize[8];	/* path table size */
+	uint8_t	lpathloc[4];	/* Lpath */
+	uint8_t	olpathloc[4];	/* optional Lpath */
+	uint8_t	mpathloc[4];	/* Mpath */
+	uint8_t	ompathloc[4];	/* optional Mpath */
+	uint8_t	rootdir[34];	/* root directory */
+	uint8_t	volsetid[128];	/* volume set identifier */
+	uint8_t	publisher[128];
+	uint8_t	prepid[128];	/* data preparer identifier */
+	uint8_t	applid[128];	/* application identifier */
+	uint8_t	notice[37];	/* copyright notice file */
+	uint8_t	abstract[37];	/* abstract file */
+	uint8_t	biblio[37];	/* bibliographic file */
+	uint8_t	cdate[17];	/* creation date */
+	uint8_t	mdate[17];	/* modification date */
+	uint8_t	xdate[17];	/* expiration date */
+	uint8_t	edate[17];	/* effective date */
+	uint8_t	fsvers;		/* file system version = 1 */
 };
 
 void
@@ -98,24 +98,24 @@ dumpbootvol(void *a)
 
 typedef struct Cdir Cdir;
 struct Cdir {
-	uchar	len;
-	uchar	xlen;
-	uchar	dloc[8];
-	uchar	dlen[8];
-	uchar	date[7];
-	uchar	flags;
-	uchar	unitsize;
-	uchar	gapsize;
-	uchar	volseqnum[4];
-	uchar	namelen;
-	uchar	name[1];	/* chumminess */
+	uint8_t	len;
+	uint8_t	xlen;
+	uint8_t	dloc[8];
+	uint8_t	dlen[8];
+	uint8_t	date[7];
+	uint8_t	flags;
+	uint8_t	unitsize;
+	uint8_t	gapsize;
+	uint8_t	volseqnum[4];
+	uint8_t	namelen;
+	uint8_t	name[1];	/* chumminess */
 };
 #pragma varargck type "D" Cdir*
 
 int
 Dfmt(Fmt *fmt)
 {
-	char buf[128];
+	int8_t buf[128];
 	Cdir *c;
 
 	c = va_arg(fmt->args, Cdir*);
@@ -132,15 +132,15 @@ Dfmt(Fmt *fmt)
 
 typedef struct Path Path;
 struct Path {
-	uchar	namelen;
-	uchar	xlen;
-	uchar	dloc[4];
-	uchar	parent[2];
-	uchar	name[1];	/* chumminess */
+	uint8_t	namelen;
+	uint8_t	xlen;
+	uint8_t	dloc[4];
+	uint8_t	parent[2];
+	uint8_t	name[1];	/* chumminess */
 };
 #pragma varargck type "P" Path*
 
-char longc, shortc;
+int8_t longc, shortc;
 void
 bigend(void)
 {
@@ -156,7 +156,7 @@ littleend(void)
 int
 Pfmt(Fmt *fmt)
 {
-	char xfmt[128], buf[128];
+	int8_t xfmt[128], buf[128];
 	Path *p;
 
 	p = va_arg(fmt->args, Path*);
@@ -166,11 +166,11 @@ Pfmt(Fmt *fmt)
 	return 0;
 }
 
-ulong
+uint32_t
 big(void *a, int n)
 {
-	uchar *p;
-	ulong v;
+	uint8_t *p;
+	uint32_t v;
 	int i;
 
 	p = a;
@@ -180,11 +180,11 @@ big(void *a, int n)
 	return v;
 }
 
-ulong
+uint32_t
 little(void *a, int n)
 {
-	uchar *p;
-	ulong v;
+	uint8_t *p;
+	uint32_t v;
 	int i;
 
 	p = a;
@@ -198,11 +198,11 @@ little(void *a, int n)
 int
 BLfmt(Fmt *fmt)
 {
-	ulong v;
-	uchar *p;
-	char buf[20];
+	uint32_t v;
+	uint8_t *p;
+	int8_t buf[20];
 
-	p = va_arg(fmt->args, uchar*);
+	p = va_arg(fmt->args, uint8_t*);
 
 	if(!(fmt->flags&FmtPrec)) {
 		fmtstrcpy(fmt, "*BL*");
@@ -224,10 +224,10 @@ BLfmt(Fmt *fmt)
 int
 Nfmt(Fmt *fmt)
 {
-	char buf[100];
-	uchar *p;
+	int8_t buf[100];
+	uint8_t *p;
 
-	p = va_arg(fmt->args, uchar*);
+	p = va_arg(fmt->args, uint8_t*);
 
 	sprint(buf, "%.*L %.*B", fmt->prec, p, fmt->prec, p+fmt->prec);
 	fmt->flags &= ~FmtPrec;
@@ -238,10 +238,10 @@ Nfmt(Fmt *fmt)
 int
 asciiTfmt(Fmt *fmt)
 {
-	char *p, buf[256];
+	int8_t *p, buf[256];
 	int i;
 
-	p = va_arg(fmt->args, char*);
+	p = va_arg(fmt->args, int8_t*);
 	for(i=0; i<fmt->prec; i++)
 		buf[i] = *p++;
 	buf[i] = '\0';
@@ -258,9 +258,9 @@ runeTfmt(Fmt *fmt)
 {
 	Rune buf[256], *r;
 	int i;
-	uchar *p;
+	uint8_t *p;
 
-	p = va_arg(fmt->args, uchar*);
+	p = va_arg(fmt->args, uint8_t*);
 	for(i=0; i*2+2<=fmt->prec; i++, p+=2)
 		buf[i] = (p[0]<<8)|p[1];
 	buf[i] = L'\0';
@@ -284,7 +284,7 @@ joliet(void)
 }
 
 void
-getsect(uchar *buf, int n)
+getsect(uint8_t *buf, int n)
 {
 	if(Bseek(b, n*2048, 0) != n*2048 || Bread(b, buf, 2048) != 2048)
 		sysfatal("reading block %ux", n);
@@ -294,8 +294,8 @@ void
 pathtable(Voldesc *v, int islittle)
 {
 	int i, j, n, sz, addr;
-	ulong (*word)(void*, int);
-	uchar x[2048], *p, *ep;
+	uint32_t (*word)(void*, int);
+	uint8_t x[2048], *p, *ep;
 	Path *pt;
 
 	print(">>> entire %s path table\n", islittle ? "little" : "big");
@@ -336,10 +336,10 @@ dump(void *root)
 {
 	Voldesc *v;
 	Cdir *c;
-	long rootdirloc;
-	uchar x[2048];
+	int32_t rootdirloc;
+	uint8_t x[2048];
 	int i;
-	uchar *p;
+	uint8_t *p;
 
 	dumpbootvol(root);
 	v = (Voldesc*)root;
@@ -358,9 +358,9 @@ dump(void *root)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
-	uchar root[2048], jroot[2048];
+	uint8_t root[2048], jroot[2048];
 
 	if(argc != 2)
 		sysfatal("usage: %s file", argv[0]);

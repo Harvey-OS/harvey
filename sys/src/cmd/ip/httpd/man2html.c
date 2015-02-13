@@ -17,13 +17,13 @@ static	Hio		*hout;
 static	Hio		houtb;
 static	HConnect	*connect;
 
-void	doconvert(char*, int);
+void	doconvert(int8_t*, int);
 
 void
-error(char *title, char *fmt, ...)
+error(int8_t *title, int8_t *fmt, ...)
 {
 	va_list arg;
-	char buf[1024], *out;
+	int8_t buf[1024], *out;
 
 	va_start(arg, fmt);
 	out = vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -47,16 +47,16 @@ typedef struct Hit	Hit;
 struct Hit 
 {
 	Hit *next;
-	char *file;
+	int8_t *file;
 };
 
 void
-lookup(char *object, int section, Hit **list)
+lookup(int8_t *object, int section, Hit **list)
 {
 	int fd;
-	char *p, *f;
+	int8_t *p, *f;
 	Biobuf b;
-	char file[256];
+	int8_t file[256];
 	Hit *h;
 
 	while(*list != nil)
@@ -126,7 +126,7 @@ manindex(int sect, int vermaj)
 }
 
 void
-man(char *o, int sect, int vermaj)
+man(int8_t *o, int sect, int vermaj)
 {
 	int i;
 	Hit *list;
@@ -171,7 +171,7 @@ man(char *o, int sect, int vermaj)
 }
 
 void
-strlwr(char *p)
+strlwr(int8_t *p)
 {
 	for(; *p; p++)
 		if('A' <= *p && *p <= 'Z')
@@ -179,7 +179,7 @@ strlwr(char *p)
 }
 
 void
-redirectto(char *uri)
+redirectto(int8_t *uri)
 {
 	if(connect){
 		hmoved(connect, uri);
@@ -189,12 +189,12 @@ redirectto(char *uri)
 }
 
 void
-searchfor(char *search)
+searchfor(int8_t *search)
 {
 	int i, j, n, fd;
-	char *p, *sp;
+	int8_t *p, *sp;
 	Biobufhdr *b;
-	char *arg[32];
+	int8_t *arg[32];
 
 	hprint(hout, "<head><title>plan 9 search for %H</title></head>\n", search);
 	hprint(hout, "<body>\n");
@@ -239,7 +239,7 @@ searchfor(char *search)
 		return;
 	}
 	b = ezalloc(sizeof *b);
-	Binits(b, fd, OREAD, (uchar*)p, 32*1024);
+	Binits(b, fd, OREAD, (uint8_t*)p, 32*1024);
 	for(;;){
 		p = Brdline(b, '\n');
 		if(p == nil)
@@ -272,10 +272,10 @@ searchfor(char *search)
  *  find man pages mentioning the search string
  */
 void
-dosearch(int vermaj, char *search)
+dosearch(int vermaj, int8_t *search)
 {
 	int sect;
-	char *p;
+	int8_t *p;
 
 	if(strncmp(search, "man=", 4) == 0){
 		sect = 0;
@@ -314,12 +314,12 @@ dosearch(int vermaj, char *search)
  *  convert a man page to html and output
  */
 void
-doconvert(char *uri, int vermaj)
+doconvert(int8_t *uri, int vermaj)
 {
-	char *p;
-	char file[256];
-	char title[256];
-	char err[ERRMAX];
+	int8_t *p;
+	int8_t file[256];
+	int8_t title[256];
+	int8_t err[ERRMAX];
 	int pfd[2];
 	Dir *d;
 	Waitmsg *w;
@@ -419,7 +419,7 @@ doconvert(char *uri, int vermaj)
 }
 
 void
-main(int argc, char **argv)
+main(int argc, int8_t **argv)
 {
 	fmtinstall('H', httpfmt);
 	fmtinstall('U', hurlfmt);

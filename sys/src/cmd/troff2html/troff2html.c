@@ -51,27 +51,27 @@ int nnest;
 
 struct Troffchar
 {
-	char *name;
-	char *value;
+	int8_t *name;
+	int8_t *value;
 };
 
 struct Htmlchar
 {
-	char *utf;
-	char *name;
+	int8_t *utf;
+	int8_t *name;
 	int value;
 };
 
 #include "chars.h"
 
 struct Font{
-	char		*name;
+	int8_t		*name;
 	HTMLfont	*htmlfont;
 };
 
 struct HTMLfont{
-	char	*name;
-	char	*htmlname;
+	int8_t	*name;
+	int8_t	*htmlname;
 	int	bit;
 };
 
@@ -89,7 +89,7 @@ HTMLfont htmlfonts[] =
 
 #define TABLE "<table border=0 cellpadding=0 cellspacing=0>"
 
-char*
+int8_t*
 onattr[8*sizeof(int)] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -107,7 +107,7 @@ onattr[8*sizeof(int)] =
 	"<unused>",		/* anchor 26 */
 };
 
-char*
+int8_t*
 offattr[8*sizeof(int)] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -146,23 +146,23 @@ Char	attr = 0;	/* or'ed into each Char */
 Char	*chars;
 int	nchars;
 int	nalloc;
-char**	anchors;	/* allocated in order */
+int8_t**	anchors;	/* allocated in order */
 int	nanchors;
 
-char	*filename;
+int8_t	*filename;
 int	cno;
-char	buf[8192];
-char	*title = "Plan 9 man page";
+int8_t	buf[8192];
+int8_t	*title = "Plan 9 man page";
 
-void	process(Biobuf*, char*);
-void	mountfont(int, char*);
+void	process(Biobuf*, int8_t*);
+void	mountfont(int, int8_t*);
 void	switchfont(int);
-void	header(char*);
+void	header(int8_t*);
 void	flush(void);
 void	trailer(void);
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -173,7 +173,7 @@ emalloc(ulong n)
 }
 
 void*
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 
 	p = realloc(p, n);
@@ -182,10 +182,10 @@ erealloc(void *p, ulong n)
 	return p;
 }
 
-char*
-estrdup(char *s)
+int8_t*
+estrdup(int8_t *s)
 {
-	char *t;
+	int8_t *t;
 
 	t = strdup(s);
 	if(t == nil)
@@ -282,7 +282,7 @@ emit(Rune r)
 }
 
 void
-emitstr(char *s)
+emitstr(int8_t *s)
 {
 	emitchar(Estring);
 	emitchar((Char)s);
@@ -307,7 +307,7 @@ iputrune(Biobuf *b, Rune r)
 }
 
 void
-iputs(Biobuf *b, char *s)
+iputs(Biobuf *b, int8_t *s)
 {
 	if(s[0]=='<' && s[1]=='+'){
 		iputrune(b, '\n');
@@ -380,7 +380,7 @@ flush(void)
 		c = chars[i];
 		if(c == Estring){
 			/* next word is string to print */
-			iputs(&bout, (char*)chars[++i]);
+			iputs(&bout, (int8_t*)chars[++i]);
 			continue;
 		}
 		if(c == Epp){
@@ -403,7 +403,7 @@ flush(void)
 }
 
 void
-header(char *s)
+header(int8_t *s)
 {
 	Bprint(&bout, "<head>\n");
 	Bprint(&bout, "<title>%s</title>\n", s);
@@ -440,7 +440,7 @@ ungetc(Biobuf *b)
 	Bungetrune(b);
 }
 
-char*
+int8_t*
 getline(Biobuf *b)
 {
 	int i, c;
@@ -475,7 +475,7 @@ getnum(Biobuf *b)
 	return i;
 }
 
-char*
+int8_t*
 getstr(Biobuf *b)
 {
 	int i, c;
@@ -497,7 +497,7 @@ getstr(Biobuf *b)
 }
 
 int
-setnum(Biobuf *b, char *name, int min, int max)
+setnum(Biobuf *b, int8_t *name, int min, int max)
 {
 	int i;
 
@@ -513,7 +513,7 @@ setnum(Biobuf *b, char *name, int min, int max)
 void
 xcmd(Biobuf *b)
 {
-	char *p, *fld[16], buf[1024];
+	int8_t *p, *fld[16], buf[1024];
 
 	int i, nfld;
 
@@ -569,7 +569,8 @@ xcmd(Biobuf *b)
 						"<a href=\"/magic/man2html/%c/%s\">",
 						fld[5][1], fld[4]);
 					nanchors++;
-					anchors = erealloc(anchors, nanchors*sizeof(char*));
+					anchors = erealloc(anchors,
+						           nanchors*sizeof(int8_t*));
 					anchors[nanchors-1] = estrdup(buf);
 				}else if(strcmp(fld[3], "end") == 0)
 					attr &= ~(1<<Anchor);
@@ -620,7 +621,7 @@ lookup(int c, Htmlchar tab[], int ntab)
 void
 emithtmlchar(int r)
 {
-	static char buf[10];
+	static int8_t buf[10];
 	int i;
 
 	i = lookup(r, htmlchars, nelem(htmlchars));
@@ -630,8 +631,8 @@ emithtmlchar(int r)
 		emit(r);
 }
 
-char*
-troffchar(char *s)
+int8_t*
+troffchar(int8_t *s)
 {
 	int i;
 
@@ -665,10 +666,10 @@ indent(void)
 }
 
 void
-process(Biobuf *b, char *name)
+process(Biobuf *b, int8_t *name)
 {
 	int c, r, v, i;
-	char *p;
+	int8_t *p;
 
 	cno = 0;
 	prevlineH = res;
@@ -761,7 +762,7 @@ process(Biobuf *b, char *name)
 }
 
 HTMLfont*
-htmlfont(char *name)
+htmlfont(int8_t *name)
 {
 	int i;
 
@@ -772,7 +773,7 @@ htmlfont(char *name)
 }
 
 void
-mountfont(int pos, char *name)
+mountfont(int pos, int8_t *name)
 {
 	if(debug)
 		fprint(2, "mount font %s on %d\n", name, pos);

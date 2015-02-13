@@ -12,12 +12,12 @@
 
 int 	debug;
 Biobuf	bin;
-char	patfile[128], header[Hdrsize+2];
-char	cmd[1024];
+int8_t	patfile[128], header[Hdrsize+2];
+int8_t	cmd[1024];
 
-char*	canon(Biobuf*, char*, char*, int*);
-int	matcher(char *, Pattern*, char*, Resub*);
-int	matchaction(Patterns*, char*);
+int8_t*	canon(Biobuf*, int8_t*, int8_t*, int*);
+int	matcher(int8_t *, Pattern*, int8_t*, Resub*);
+int	matchaction(Patterns*, int8_t*);
 
 void
 usage(void)
@@ -27,7 +27,7 @@ usage(void)
 }
 
 void *
-Malloc(long n)
+Malloc(int32_t n)
 {
 	void *p;
 
@@ -40,7 +40,7 @@ Malloc(long n)
 }
 
 void*
-Realloc(void *p, ulong n)
+Realloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == 0){
@@ -157,12 +157,12 @@ main(int argc, char *argv[])
 	exits(ret);
 }
 
-char*
-canon(Biobuf *bp, char *header, char *body, int *n)
+int8_t*
+canon(Biobuf *bp, int8_t *header, int8_t *body, int *n)
 {
 	int hsize, base64;
 
-	static char *raw;
+	static int8_t *raw;
 
 	hsize = 0;
 	base64 = 0;
@@ -186,9 +186,9 @@ canon(Biobuf *bp, char *header, char *body, int *n)
 }
 
 int
-matchaction(Patterns *pp, char *message)
+matchaction(Patterns *pp, int8_t *message)
 {
-	char *name, *cp;
+	int8_t *name, *cp;
 	int ret;
 	Pattern *p;
 	Resub m[1];
@@ -210,7 +210,7 @@ matchaction(Patterns *pp, char *message)
 }
 
 int
-matcher(char *action, Pattern *p, char *message, Resub *m)
+matcher(int8_t *action, Pattern *p, int8_t *message, Resub *m)
 {
 	if(matchpat(p, message, m)){
 		if(p->action != Lineoff)

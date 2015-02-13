@@ -105,7 +105,7 @@ writelump(Packet *p, u8int *score, int type, u32int creator, uint ms)
 	if(u->data != nil){
 		ok = 0;
 		if(packetcmp(p, u->data) != 0){
-			uchar nscore[VtScoreSize];
+			uint8_t nscore[VtScoreSize];
 
 			packetsha1(u->data, nscore);
 			if(scorecmp(u->score, score) != 0)
@@ -160,7 +160,7 @@ writeqlump(Lump *u, Packet *p, int creator, uint ms)
 		if(old != nil){
 			ok = 0;
 			if(packetcmp(p, old) != 0){
-				uchar nscore[VtScoreSize];
+				uint8_t nscore[VtScoreSize];
 
 				packetsha1(old, nscore);
 				if(scorecmp(u->score, nscore) != 0)

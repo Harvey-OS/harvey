@@ -48,8 +48,8 @@
  */
 
 #ifndef lint
-static char *ident = "$Id: fileio.c,v 1.2 89/02/12 10:04:31 mark Exp $";
-static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static int8_t *ident = "$Id: fileio.c,v 1.2 89/02/12 10:04:31 mark Exp $";
+static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -165,7 +165,7 @@ void close_archive()
 
 #ifdef __STDC__
 
-int openout(char *name, Stat *asb, Link *linkp, int ispass)
+int openout(int8_t *name, Stat *asb, Link *linkp, int ispass)
 
 #else
     
@@ -179,12 +179,12 @@ int             ispass;
 {
     int             exists;
     int             fd;
-    ushort          perm;
-    ushort          operm = 0;
+    uint16_t          perm;
+    uint16_t          operm = 0;
     Stat            osb;
 #ifdef	S_IFLNK
     int             ssize;
-    char            sname[PATH_MAX + 1];
+    int8_t            sname[PATH_MAX + 1];
 #endif	/* S_IFLNK */
 
     if (exists = (LSTAT(name, &osb) == 0)) {
@@ -426,7 +426,7 @@ int             ispass;
 
 #ifdef __STDC__
 
-int openin(char *name, Stat *asb)
+int openin(int8_t *name, Stat *asb)
 
 #else
     

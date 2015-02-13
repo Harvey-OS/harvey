@@ -15,7 +15,7 @@ int
 fmtrune(Fmt *f, int r)
 {
 	Rune *rt;
-	char *t;
+	int8_t *t;
 	int n;
 
 	if(f->runes){
@@ -24,9 +24,9 @@ fmtrune(Fmt *f, int r)
 		f->to = rt;
 		n = 1;
 	}else{
-		t = (char*)f->to;
+		t = (int8_t*)f->to;
 		FMTRUNE(f, t, f->stop, r);
-		n = t - (char*)f->to;
+		n = t - (int8_t*)f->to;
 		f->to = t;
 	}
 	f->nfmt += n;
