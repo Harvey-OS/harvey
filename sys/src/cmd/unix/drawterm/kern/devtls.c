@@ -241,7 +241,7 @@ static void	tlsPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq,
 			      uint8_t *header, uint8_t *body, int len,
 			      uint8_t *mac);
 static void	put64(uint8_t *p, int64_t x);
-static void	put32(uint8_t *p, u32int);
+static void	put32(uint8_t *p, uint32_t);
 static void	put24(uint8_t *p, int);
 static void	put16(uint8_t *p, int);
 /* static u32int	get32(uchar *p); */
@@ -2137,7 +2137,7 @@ tlsPackMac(Secret *sec, uint8_t *mackey, uint8_t *seq, uint8_t *header,
 }
 
 static void
-put32(uint8_t *p, u32int x)
+put32(uint8_t *p, uint32_t x)
 {
 	p[0] = x>>24;
 	p[1] = x>>16;
@@ -2148,8 +2148,8 @@ put32(uint8_t *p, u32int x)
 static void
 put64(uint8_t *p, int64_t x)
 {
-	put32(p, (u32int)(x >> 32));
-	put32(p+4, (u32int)x);
+	put32(p, (uint32_t)(x >> 32));
+	put32(p+4, (uint32_t)x);
 }
 
 static void

@@ -85,10 +85,10 @@ gbit16(void *a)
 	return i[1] << 8 | i[0];
 }
 
-static u32int
+static uint32_t
 gbit32(void *a)
 {
-	u32int j;
+	uint32_t j;
 	uint8_t *i;
 
 	i = a;

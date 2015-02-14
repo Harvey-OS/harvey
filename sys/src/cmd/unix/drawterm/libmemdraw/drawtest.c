@@ -903,7 +903,7 @@ getmask(Memimage *img, Point pt)
 void
 putpixel(Memimage *img, Point pt, uint32_t nv)
 {
-	uchar r, g, b, a, *p, *q;
+	uint8_t r, g, b, a, *p, *q;
 	uint32_t c, mask, bits, v;
 	int bpp, sh, npack, nbits;
 

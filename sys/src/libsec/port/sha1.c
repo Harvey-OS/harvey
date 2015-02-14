@@ -10,9 +10,9 @@
 #include "os.h"
 #include <libsec.h>
 
-static void encode(uint8_t*, u32int*, uint32_t);
+static void encode(uint8_t*, uint32_t*, uint32_t);
 
-extern void _sha1block(uint8_t*, uint32_t, u32int*);
+extern void _sha1block(uint8_t*, uint32_t, uint32_t*);
 
 /*
  *  we require len to be a multiple of 64 for all but
@@ -23,7 +23,7 @@ SHA1state*
 sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
 {
 	uint8_t buf[128];
-	u32int x[16];
+	uint32_t x[16];
 	int i;
 	uint8_t *e;
 
@@ -121,9 +121,9 @@ sha1(uint8_t *p, uint32_t len, uint8_t *digest, SHA1state *s)
  *	a multiple of 4.
  */
 static void
-encode(uint8_t *output, u32int *input, uint32_t len)
+encode(uint8_t *output, uint32_t *input, uint32_t len)
 {
-	u32int x;
+	uint32_t x;
 	uint8_t *e;
 
 	for(e = output + len; output < e;) {

@@ -124,22 +124,22 @@ lockloop(Lock *l, uintptr pc)
 		dumpaproc(p);
 }
 
-static u32int
-getuser(u32int key)
+static uint32_t
+getuser(uint32_t key)
 {
 	return key & 0xFFFF;
 }
 
-static u32int
-getticket(u32int key)
+static uint32_t
+getticket(uint32_t key)
 {
 	return (key>>16) & 0xFFFF;
 }
 
-static u32int
-incuser(u32int *key)
+static uint32_t
+incuser(uint32_t *key)
 {
-	u32int old, new;
+	uint32_t old, new;
 
 	do{
 		old = *key;
@@ -148,10 +148,10 @@ incuser(u32int *key)
 	return getuser(new);
 }
 
-static u32int
-incticket(u32int *key)
+static uint32_t
+incticket(uint32_t *key)
 {
-	u32int old, new;
+	uint32_t old, new;
 
 	do{
 		old = *key;
@@ -161,8 +161,8 @@ incticket(u32int *key)
 	return getticket(new);
 }
 
-static u32int
-myticket(u32int user)
+static uint32_t
+myticket(uint32_t user)
 {
 	return (user-1) & 0xFFFF;
 }
@@ -172,7 +172,7 @@ lock(Lock *l)
 {
 	int i;
 	uintptr pc;
-	u32int user;
+	uint32_t user;
 	uint64_t t0;
 
 	pc = getcallerpc(&l);
@@ -221,7 +221,7 @@ ilock(Lock *l)
 	Mpl pl;
 	uintptr pc;
 	uint64_t t0;
-	u32int user;
+	uint32_t user;
 
 	pc = getcallerpc(&l);
 	lockstats.locks++;

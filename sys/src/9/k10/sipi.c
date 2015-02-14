@@ -24,9 +24,9 @@ sipi(void)
 	Apic *apic;
 	Mach *mach;
 	int apicno, i;
-	u32int *sipiptr;
+	uint32_t *sipiptr;
 	uintmem sipipa;
-	u8int *alloc, *p;
+	uint8_t *alloc, *p;
 	extern void squidboy(int);
 
 	/*

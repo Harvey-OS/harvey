@@ -68,11 +68,11 @@ int8_t* uidadm = "adm";
 int8_t* unamenone = "none";
 int8_t* uidnoworld = "noworld";
 
-static u32int
+static uint32_t
 userHash(int8_t* s)
 {
 	uint8_t *p;
-	u32int hash;
+	uint32_t hash;
 
 	hash = 0;
 	for(p = (uint8_t*)s; *p != '\0'; p++)

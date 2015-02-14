@@ -79,7 +79,7 @@ Memimage*
 _allocmemimage(Rectangle r, uint32_t chan)
 {
 	int d;
-	u32int l, nw;
+	uint32_t l, nw;
 	uint8_t *p;
 	Memdata *md;
 	Memimage *i;

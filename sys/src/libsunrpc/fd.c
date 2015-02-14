@@ -74,7 +74,7 @@ static void
 sunFdWrite(void *v)
 {
 	uint8_t buf[4];
-	u32int n;
+	uint32_t n;
 	Arg arg = *(Arg*)v;
 	SunMsgFd *msg;
 

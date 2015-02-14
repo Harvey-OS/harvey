@@ -320,10 +320,10 @@ static void factotum_rsa_close(AuthRpc*rpc);
 
 static void* emalloc(int);
 static void* erealloc(void*, int);
-static void put32(uint8_t *p, u32int);
+static void put32(uint8_t *p, uint32_t);
 static void put24(uint8_t *p, int);
 static void put16(uint8_t *p, int);
-static u32int get32(uint8_t *p);
+static uint32_t get32(uint8_t *p);
 static int get24(uint8_t *p);
 static int get16(uint8_t *p);
 static Bytes* newbytes(int len);
@@ -2257,7 +2257,7 @@ erealloc(void *ReallocP, int ReallocN)
 }
 
 static void
-put32(uint8_t *p, u32int x)
+put32(uint8_t *p, uint32_t x)
 {
 	p[0] = x>>24;
 	p[1] = x>>16;
@@ -2280,7 +2280,7 @@ put16(uint8_t *p, int x)
 	p[1] = x;
 }
 
-static u32int
+static uint32_t
 get32(uint8_t *p)
 {
 	return (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];

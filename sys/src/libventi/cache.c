@@ -41,8 +41,8 @@ struct VtCache
 {
 	QLock	lk;
 	VtConn	*z;
-	u32int	blocksize;
-	u32int	now;		/* ticks for usage time stamps */
+	uint32_t	blocksize;
+	uint32_t	now;		/* ticks for usage time stamps */
 	VtBlock	**hash;	/* hash table for finding addresses */
 	int		nhash;
 	VtBlock	**heap;	/* heap for finding victims */
@@ -139,7 +139,7 @@ vtcachedump(VtCache *c)
 static void
 cachecheck(VtCache *c)
 {
-	u32int size, now;
+	uint32_t size, now;
 	int i, k, refed;
 	VtBlock *b;
 
@@ -183,7 +183,7 @@ static int
 upheap(int i, VtBlock *b)
 {
 	VtBlock *bb;
-	u32int now;
+	uint32_t now;
 	int p;
 	VtCache *c;
 	
@@ -207,7 +207,7 @@ static int
 downheap(int i, VtBlock *b)
 {
 	VtBlock *bb;
-	u32int now;
+	uint32_t now;
 	int k;
 	VtCache *c;
 	
@@ -315,7 +315,7 @@ if(0)fprint(2, "droping %x:%V\n", b->addr, b->score);
  * if we're out of free blocks, we're screwed.
  */
 VtBlock*
-vtcachelocal(VtCache *c, u32int addr, int type)
+vtcachelocal(VtCache *c, uint32_t addr, int type)
 {
 	VtBlock *b;
 
@@ -372,7 +372,7 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 	VtBlock *b;
 	uint32_t h;
 	int n;
-	u32int addr;
+	uint32_t addr;
 
 	if(vttracelevel)
 		fprint(2, "vtcacheglobal %V %d from %p\n", score, type, getcallerpc(&c));
@@ -386,7 +386,7 @@ vtcacheglobal(VtCache *c, uint8_t score[VtScoreSize], int type)
 		return b;
 	}
 
-	h = (u32int)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->nhash;
+	h = (uint32_t)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->nhash;
 
 	/*
 	 * look for the block in the cache
@@ -555,7 +555,7 @@ vtblockwrite(VtBlock *b)
 	qlock(&c->lk);
 	b->addr = NilBlock;	/* now on venti */
 	b->iostate = BioVenti;
-	h = (u32int)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->nhash;
+	h = (uint32_t)(score[0]|(score[1]<<8)|(score[2]<<16)|(score[3]<<24)) % c->nhash;
 	b->next = c->hash[h];
 	c->hash[h] = b;
 	if(b->next != nil)
@@ -589,7 +589,7 @@ vtblockcopy(VtBlock *b)
 }
 
 void
-vtlocaltoglobal(u32int addr, uint8_t score[VtScoreSize])
+vtlocaltoglobal(uint32_t addr, uint8_t score[VtScoreSize])
 {
 	memset(score, 0, 16);
 	score[16] = addr>>24;
@@ -599,7 +599,7 @@ vtlocaltoglobal(u32int addr, uint8_t score[VtScoreSize])
 }
 
 
-u32int
+uint32_t
 vtglobaltolocal(uint8_t score[VtScoreSize])
 {
 	static uint8_t zero[16];

@@ -74,7 +74,7 @@ stringpack(int8_t *s, uint8_t *p)
 int
 mbunpack(MetaBlock *mb, uint8_t *p, int n)
 {
-	u32int magic;
+	uint32_t magic;
 
 	mb->maxsize = n;
 	mb->buf = p;

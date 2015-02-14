@@ -28,7 +28,7 @@
 
 
 #define l16get(p)	(((p)[1]<<8)|(p)[0])
-#define l32get(p)	(((u32int)l16get(p+2)<<16)|l16get(p))
+#define l32get(p)	(((uint32_t)l16get(p+2)<<16)|l16get(p))
 static Atable* acpifadt(uint8_t*, int);
 static Atable* acpitable(uint8_t*, int);
 static Atable* acpimadt(uint8_t*, int);
@@ -109,8 +109,8 @@ acpiregid(int8_t *s)
 	return -1;
 }
 
-static u64int
-l64get(u8int* p)
+static uint64_t
+l64get(uint8_t* p)
 {
 	/*
 	 * Doing this as a define
@@ -118,102 +118,102 @@ l64get(u8int* p)
 	 * causes 8c to abort with "out of fixed registers" in
 	 * rsdlink() below.
 	 */
-	return (((u64int)l32get(p+4)<<32)|l32get(p));
+	return (((uint64_t)l32get(p+4)<<32)|l32get(p));
 }
 
-static u8int
+static uint8_t
 mget8(uintptr p, void*)
 {
-	u8int *cp = (u8int*)p;
+	uint8_t *cp = (uint8_t*)p;
 	return *cp;
 }
 
 static void
-mset8(uintptr p, u8int v, void*)
+mset8(uintptr p, uint8_t v, void*)
 {
-	u8int *cp = (u8int*)p;
+	uint8_t *cp = (uint8_t*)p;
 	*cp = v;
 }
 
-static u16int
+static uint16_t
 mget16(uintptr p, void*)
 {
-	u16int *cp = (u16int*)p;
+	uint16_t *cp = (uint16_t*)p;
 	return *cp;
 }
 
 static void
-mset16(uintptr p, u16int v, void*)
+mset16(uintptr p, uint16_t v, void*)
 {
-	u16int *cp = (u16int*)p;
+	uint16_t *cp = (uint16_t*)p;
 	*cp = v;
 }
 
-static u32int
+static uint32_t
 mget32(uintptr p, void*)
 {
-	u32int *cp = (u32int*)p;
+	uint32_t *cp = (uint32_t*)p;
 	return *cp;
 }
 
 static void
-mset32(uintptr p, u32int v, void*)
+mset32(uintptr p, uint32_t v, void*)
 {
-	u32int *cp = (u32int*)p;
+	uint32_t *cp = (uint32_t*)p;
 	*cp = v;
 }
 
-static u64int
+static uint64_t
 mget64(uintptr p, void*)
 {
-	u64int *cp = (u64int*)p;
+	uint64_t *cp = (uint64_t*)p;
 	return *cp;
 }
 
 static void
-mset64(uintptr p, u64int v, void*)
+mset64(uintptr p, uint64_t v, void*)
 {
-	u64int *cp = (u64int*)p;
+	uint64_t *cp = (uint64_t*)p;
 	*cp = v;
 }
 
-static u8int
+static uint8_t
 ioget8(uintptr p, void*)
 {
 	return inb(p);
 }
 
 static void
-ioset8(uintptr p, u8int v, void*)
+ioset8(uintptr p, uint8_t v, void*)
 {
 	outb(p, v);
 }
 
-static u16int
+static uint16_t
 ioget16(uintptr p, void*)
 {
 	return ins(p);
 }
 
 static void
-ioset16(uintptr p, u16int v, void*)
+ioset16(uintptr p, uint16_t v, void*)
 {
 	outs(p, v);
 }
 
-static u32int
+static uint32_t
 ioget32(uintptr p, void*)
 {
 	return inl(p);
 }
 
 static void
-ioset32(uintptr p, u32int v, void*)
+ioset32(uintptr p, uint32_t v, void*)
 {
 	outl(p, v);
 }
 
-static u8int
+static uint8_t
 cfgget8(uintptr p, void* r)
 {
 	Reg *ro = r;
@@ -224,7 +224,7 @@ cfgget8(uintptr p, void* r)
 }
 
 static void
-cfgset8(uintptr p, u8int v, void* r)
+cfgset8(uintptr p, uint8_t v, void* r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -233,7 +233,7 @@ cfgset8(uintptr p, u8int v, void* r)
 	pcicfgw8(&d, p, v);
 }
 
-static u16int
+static uint16_t
 cfgget16(uintptr p, void* r)
 {
 	Reg *ro = r;
@@ -244,7 +244,7 @@ cfgget16(uintptr p, void* r)
 }
 
 static void
-cfgset16(uintptr p, u16int v, void* r)
+cfgset16(uintptr p, uint16_t v, void* r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -253,7 +253,7 @@ cfgset16(uintptr p, u16int v, void* r)
 	pcicfgw16(&d, p, v);
 }
 
-static u32int
+static uint32_t
 cfgget32(uintptr p, void* r)
 {
 	Reg *ro = r;
@@ -264,7 +264,7 @@ cfgget32(uintptr p, void* r)
 }
 
 static void
-cfgset32(uintptr p, u32int v, void* r)
+cfgset32(uintptr p, uint32_t v, void* r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -423,7 +423,7 @@ newtable(uint8_t *p)
 static void*
 sdtchecksum(void* addr, int len)
 {
-	u8int *p, sum;
+	uint8_t *p, sum;
 
 	sum = 0;
 	for(p = addr; len-- > 0; p++)
@@ -623,7 +623,7 @@ acpifadt(uint8_t *p, int)
 	else
 		loadfacs(fp->facs);
 
-	if(fp->xdsdt == ((u64int)fp->dsdt)) /* acpica */
+	if(fp->xdsdt == ((uint64_t)fp->dsdt)) /* acpica */
 		loaddsdt(fp->xdsdt);
 	else
 		loaddsdt(fp->dsdt);
@@ -1149,10 +1149,10 @@ acpixsdtload(int8_t *sig)
 }
 
 static void*
-rsdscan(u8int* addr, int len, int8_t* signature)
+rsdscan(uint8_t* addr, int len, int8_t* signature)
 {
 	int sl;
-	u8int *e, *p;
+	uint8_t *e, *p;
 
 	e = addr+len;
 	sl = strlen(signature);
@@ -1169,7 +1169,7 @@ static void*
 rsdsearch(int8_t* signature)
 {
 	uintptr p;
-	u8int *bda;
+	uint8_t *bda;
 	void *rsd;
 
 	/*

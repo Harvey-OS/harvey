@@ -82,13 +82,13 @@ enum {
  */
 typedef struct Tpkt Tpkt;
 struct Tpkt {
-	u8int	sk;				/* Skip Checksum Control */
-	u8int	hint;				/* Hint|Dp|Pid0 */
-	u8int	size;				/* Size|Pid1|Dm|Dy|VC */
-	u8int	dst[N];				/* Destination Coordinates */
-	u8int	_6_[2];				/* reserved */
-	u8int	_8_[8];				/* protocol header */
-	u8int	payload[];
+	uint8_t	sk;				/* Skip Checksum Control */
+	uint8_t	hint;				/* Hint|Dp|Pid0 */
+	uint8_t	size;				/* Size|Pid1|Dm|Dy|VC */
+	uint8_t	dst[N];				/* Destination Coordinates */
+	uint8_t	_6_[2];				/* reserved */
+	uint8_t	_8_[8];				/* protocol header */
+	uint8_t	payload[];
 };
 
 /*
@@ -123,7 +123,7 @@ enum {
 };
 
 static int
-torusparse(u8int d[3], int8_t* item, int8_t* buf)
+torusparse(uint8_t d[3], int8_t* item, int8_t* buf)
 {
 	int n;
 	int8_t *p;

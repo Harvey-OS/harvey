@@ -17,7 +17,7 @@ static int
 cpuidinit(void)
 {
 	int i, n;
-	u32int eax;
+	uint32_t eax;
 
 	if((m->ncpuinfos = cpuid(0, m->cpuinfo[0])) == 0)
 		return 0;
@@ -44,8 +44,8 @@ cpuidinit(void)
 	return 1;
 }
 
-static u32int*
-cpuidinfo(u32int eax)
+static uint32_t*
+cpuidinfo(uint32_t eax)
 {
 	if(m->ncpuinfos == 0 && cpuidinit() == 0)
 		return nil;
@@ -65,11 +65,11 @@ cpuidinfo(u32int eax)
 }
 
 static int64_t
-cpuidhz(u32int* info[2])
+cpuidhz(uint32_t* info[2])
 {
 	int f, r;
 	int64_t hz;
-	u64int msr;
+	uint64_t msr;
 
 	if(memcmp(&info[0][1], "GenuntelineI", 12) == 0){
 		switch(info[1][0] & 0x0fff3ff0){
@@ -217,7 +217,7 @@ int64_t
 archhz(void)
 {
 	int64_t hz;
-	u32int *info[2];
+	uint32_t *info[2];
 
 	if((info[0] = cpuidinfo(0)) == 0 || (info[1] = cpuidinfo(1)) == 0)
 		return 0;
@@ -238,7 +238,7 @@ archidle(void)
 void
 microdelay(int microsecs)
 {
-	u64int r, t;
+	uint64_t r, t;
 
 	r = rdtsc();
 	for(t = r + m->cpumhz*microsecs; r < t; r = rdtsc())
@@ -248,7 +248,7 @@ microdelay(int microsecs)
 void
 millidelay(int millisecs)
 {
-	u64int r, t;
+	uint64_t r, t;
 
 	r = rdtsc();
 	for(t = r + m->cpumhz*1000ull*millisecs; r < t; r = rdtsc())

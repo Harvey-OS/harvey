@@ -48,14 +48,14 @@ dumpisect(ISect *is)
 {
 	int j;
 	uint8_t *buf;
-	u32int i;
-	u64int off;
+	uint32_t i;
+	uint64_t off;
 	IBucket ib;
 	IEntry ie;
 
 	buf = emalloc(is->blocksize);
 	for(i=0; i<is->blocks; i++){
-		off = is->blockbase+(u64int)is->blocksize*i;
+		off = is->blockbase+(uint64_t)is->blocksize*i;
 		if(readpart(is->part, off, buf, is->blocksize) < 0)
 			fprint(2, "read %s at 0x%llux: %r\n", is->part->name, off);
 		else{

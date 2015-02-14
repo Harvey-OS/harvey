@@ -127,7 +127,7 @@ private void
 put_u32(byte *p, uint32_t v)
 {
     put_u16(p, (ushort)(v >> 16));
-    put_u16(p + 2, (ushort)v);
+    put_u16(p + 2, (uint16_t)v);
 }
 private ulong
 put_table(byte tab[16], const int8_t *tname, uint32_t checksum,

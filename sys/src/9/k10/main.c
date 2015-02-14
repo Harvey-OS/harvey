@@ -251,7 +251,7 @@ HERE(void)
 }
 
 void
-main(u32int ax, u32int bx)
+main(uint32_t ax, uint32_t bx)
 {
 	int64_t hz;
 

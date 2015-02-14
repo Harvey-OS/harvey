@@ -21,7 +21,7 @@
 void*
 KADDR(uintptr pa)
 {
-	u8int* va;
+	uint8_t* va;
 
 	va = UINT2PTR(pa);
 	if(pa < TMFM)

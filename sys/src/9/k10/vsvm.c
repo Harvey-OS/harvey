@@ -24,24 +24,24 @@
 #include "ureg.h"
 
 typedef struct Gd Gd;
-typedef u64int Sd;
-typedef u16int Ss;
+typedef uint64_t Sd;
+typedef uint16_t Ss;
 typedef struct Tss Tss;
 
 struct Gd {
 	Sd	sd;
-	u64int	hi;
+	uint64_t	hi;
 };
 
 struct Tss {
-	u32int	_0_;
-	u32int	rsp0[2];
-	u32int	rsp1[2];
-	u32int	rsp2[2];
-	u32int	_28_[2];
-	u32int	ist[14];
-	u16int	_92_[5];
-	u16int	iomap;
+	uint32_t	_0_;
+	uint32_t	rsp0[2];
+	uint32_t	rsp1[2];
+	uint32_t	rsp2[2];
+	uint32_t	_28_[2];
+	uint32_t	ist[14];
+	uint16_t	_92_[5];
+	uint16_t	iomap;
 };
 
 enum {
@@ -69,7 +69,7 @@ static Gd idt64[Nidt];
 static Gd acidt64[Nidt];	/* NIX application core IDT */
 
 static Sd
-mksd(u64int base, u64int limit, u64int bits, u64int* upper)
+mksd(uint64_t base, uint64_t limit, uint64_t bits, uint64_t* upper)
 {
 	Sd sd;
 
@@ -86,7 +86,7 @@ mksd(u64int base, u64int limit, u64int bits, u64int* upper)
 }
 
 static void
-mkgd(Gd* gd, u64int offset, Ss ss, u64int bits, int ist)
+mkgd(Gd* gd, uint64_t offset, Ss ss, uint64_t bits, int ist)
 {
 	Sd sd;
 
@@ -103,7 +103,7 @@ static void
 idtinit(Gd *gd, uintptr offset)
 {
 	int ist, v;
-	u64int dpl;
+	uint64_t dpl;
 
 	for(v = 0; v < Nidt; v++){
 		ist = 0;
@@ -158,7 +158,7 @@ void
 vsvminit(int size, int nixtype)
 {
 	Sd *sd;
-	u64int r;
+	uint64_t r;
 
 	if(m->machno == 0){
 		idtinit(idt64, PTR2UINT(idthandlers));
@@ -188,8 +188,8 @@ vsvminit(int size, int nixtype)
 	r = rdmsr(Efer);
 	r |= Sce;
 	wrmsr(Efer, r);
-	r = ((u64int)SSEL(SiU32CS, SsRPL3))<<48;
-	r |= ((u64int)SSEL(SiCS, SsRPL0))<<32;
+	r = ((uint64_t)SSEL(SiU32CS, SsRPL3))<<48;
+	r |= ((uint64_t)SSEL(SiCS, SsRPL0))<<32;
 	wrmsr(Star, r);
 	if(nixtype != NIXAC)
 		wrmsr(Lstar, PTR2UINT(syscallentry));

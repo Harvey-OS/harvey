@@ -377,12 +377,12 @@ enum {					/* Receive Delay Timer Ring */
 };
 
 typedef struct Rd {			/* Receive Descriptor */
-	u32int	addr[2];
-	u16int	length;
-	u16int	checksum;
-	u8int	status;
-	u8int	errors;
-	u16int	special;
+	uint32_t	addr[2];
+	uint16_t	length;
+	uint16_t	checksum;
+	uint8_t	status;
+	uint8_t	errors;
+	uint16_t	special;
 } Rd;
 
 enum {					/* Rd status */
@@ -406,9 +406,9 @@ enum {					/* Rd errors */
 };
 
 typedef struct {			/* Transmit Descriptor */
-	u32int	addr[2];		/* Data */
-	u32int	control;
-	u32int	status;
+	uint32_t	addr[2];		/* Data */
+	uint32_t	control;
+	uint32_t	status;
 } Td;
 
 enum {					/* Tdesc control */
@@ -438,8 +438,8 @@ enum {					/* Tdesc status */
 };
 
 typedef struct {
-	u16int	*reg;
-	u32int	*reg32;
+	uint16_t	*reg;
+	uint32_t	*reg32;
 	int	sz;
 } Flash;
 
@@ -542,7 +542,7 @@ struct Ctlr {
 	Ether	*edev;
 	int	active;
 	int	type;
-	u16int	eeprom[0x40];
+	uint16_t	eeprom[0x40];
 
 	QLock	alock;			/* attach */
 	int	attached;
@@ -573,7 +573,7 @@ struct Ctlr {
 	uint	phyerrata;
 
 	uint8_t	ra[Eaddrlen];		/* receive address */
-	u32int	mta[128];		/* multicast table array */
+	uint32_t	mta[128];		/* multicast table array */
 
 	Rendez	rrendez;
 	int	rim;
@@ -1211,7 +1211,7 @@ phyread(Ctlr *c, int phyno, int reg)
 }
 
 static uint
-phywrite0(Ctlr *c, int phyno, int reg, u16int val)
+phywrite0(Ctlr *c, int phyno, int reg, uint16_t val)
 {
 	uint phy, i;
 
@@ -1247,7 +1247,7 @@ setpage(Ctlr *c, uint phyno, uint p, uint r)
 }
 
 static uint
-phywrite(Ctlr *c, uint phyno, uint reg, u16int v)
+phywrite(Ctlr *c, uint phyno, uint reg, uint16_t v)
 {
 	if(setpage(c, phyno, reg>>8, reg & 0xff) == ~0)
 		panic("%s: bad phy reg %.4ux", cname(c), reg);
@@ -1611,7 +1611,7 @@ i82563shutdown(Ether* ether)
 	i82563detach(ether->ctlr);
 }
 
-static u16int
+static uint16_t
 eeread(Ctlr *ctlr, int adr)
 {
 	csr32w(ctlr, Eerd, EEstart | adr << 2);
@@ -1623,7 +1623,7 @@ eeread(Ctlr *ctlr, int adr)
 static int
 eeload(Ctlr *ctlr)
 {
-	u16int sum;
+	uint16_t sum;
 	int data, adr;
 
 	sum = 0;
@@ -1638,7 +1638,7 @@ eeload(Ctlr *ctlr)
 static int
 fcycle(Ctlr *, Flash *f)
 {
-	u16int s, i;
+	uint16_t s, i;
 
 	s = f->reg[Fsts];
 	if((s&Fvalid) == 0)
@@ -1656,7 +1656,7 @@ fcycle(Ctlr *, Flash *f)
 static int
 fread(Ctlr *c, Flash *f, int ladr)
 {
-	u16int s;
+	uint16_t s;
 
 	delay(1);
 	if(fcycle(c, f) == -1)
@@ -1681,8 +1681,8 @@ fread(Ctlr *c, Flash *f, int ladr)
 static int
 fload(Ctlr *c)
 {
-	u32int data, io, r, adr;
-	u16int sum;
+	uint32_t data, io, r, adr;
+	uint16_t sum;
 	Flash f;
 
 	io = c->pcidev->mem[1].bar & ~0x0f;
@@ -1722,7 +1722,7 @@ defaultea(Ctlr *ctlr, uint8_t *ra)
 		return;
 	if(cttab[ctlr->type].flag & Fflashea){
 		/* intel mb bug */
-		u = (uint64_t)csr32r(ctlr, Rah)<<32u | (u32int)csr32r(ctlr, Ral);
+		u = (uint64_t)csr32r(ctlr, Rah)<<32u | (uint32_t)csr32r(ctlr, Ral);
 		for(i = 0; i < Eaddrlen; i++)
 			ra[i] = u >> 8*i;
 	}
@@ -1807,7 +1807,7 @@ static int32_t
 i82563ctl(Ether *edev, void *buf, int32_t n)
 {
 	int8_t *p;
-	u32int v;
+	uint32_t v;
 	Ctlr *ctlr;
 	Cmdbuf *cb;
 	Cmdtab *ct;
@@ -1960,7 +1960,7 @@ static void
 i82563pci(void)
 {
 	int type;
-	u32int io;
+	uint32_t io;
 	Ctlr *ctlr;
 	Pcidev *p;
 

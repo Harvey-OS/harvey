@@ -263,9 +263,9 @@ countinst(Reprog *pp)
 }
 
 static void
-set(Deter *d, u32int **tab, Rune r)
+set(Deter *d, uint32_t **tab, Rune r)
 {
-	u32int *u;
+	uint32_t *u;
 
 	if((u = tab[r/4096]) == nil){
 		u = binalloc(&d->bin, 4096/8, 1);
@@ -283,7 +283,7 @@ set(Deter *d, u32int **tab, Rune r)
 static void
 findchars(Deter *d, Reprog *p)
 {
-	u32int *tab[65536/4096], *u, x;
+	uint32_t *tab[65536/4096], *u, x;
 	Reinst *i;
 	Rune *rp, *ep;
 	int k, m, n, a;

@@ -219,8 +219,8 @@ pmcread(Chan *c, void *a, int32_t n, int64_t offset)
 	uint32_t type, id;
 	PmcCtl p;
 	int8_t *s;
-	u64int v;
-	u64int coreno;
+	uint64_t v;
+	uint64_t coreno;
 
 	type = PMCTYPE(c->qid.path);
 	id = PMCID(c->qid.path);
@@ -237,7 +237,7 @@ pmcread(Chan *c, void *a, int32_t n, int64_t offset)
 		free(s);
 		nexterror();
 	}
-	coreno = (u64int)c->aux;
+	coreno = (uint64_t)c->aux;
 	p.coreno = coreno;
 	switch(type){
 	case Qdata:
@@ -299,7 +299,7 @@ typedef struct AcCtrArg AcCtrArg;
 struct AcCtrArg {
 	int regno;
 	int coreno;
-	u64int v;
+	uint64_t v;
 };
 
 void
@@ -338,7 +338,7 @@ pmcwrite(Chan *c, void *a, int32_t n, int64_t)
 	int8_t str[64];	/* 0x0000000000000000\0 */
 	AcPmcArg p;
 	AcCtrArg ctr;
-	u64int coreno;
+	uint64_t coreno;
 	Mach *mp;
 
 	if (c->qid.type == QTDIR)
@@ -349,7 +349,7 @@ pmcwrite(Chan *c, void *a, int32_t n, int64_t)
 		error(Ebadctl);
 
 	pmcnull(&p);
-	coreno = (u64int)c->aux;
+	coreno = (uint64_t)c->aux;
 	p.coreno = coreno;
 	type = PMCTYPE(c->qid.path);
 	p.regno = PMCID(c->qid.path);

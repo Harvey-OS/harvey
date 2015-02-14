@@ -210,8 +210,8 @@ enum {						/* SBtshi */
 // have to malloc that even though we don't use it all.
 // descriptors are only ever read by the nic, not written back.
 typedef struct {
-	u32int	control;
-	u32int	address;
+	uint32_t	control;
+	uint32_t	address;
 } DD;
 
 enum {						/* DD.control */
@@ -230,9 +230,9 @@ enum {						/* DD.control */
 // 28 and the offset is usually set to 30?
 // bollocks. it looks to me like the status written is 28 bytes.
 typedef struct {
-	u32int	status;
-	u32int	undefined;
-	u32int	pad[5];
+	uint32_t	status;
+	uint32_t	undefined;
+	uint32_t	pad[5];
 
 	void*	bp;				/* software */
 
@@ -268,7 +268,7 @@ enum {
 
 typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
-	u32int	port;
+	uint32_t	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
 	int	active;
@@ -280,8 +280,8 @@ typedef struct Ctlr {
 	QLock	alock;				/* attach */
 	void*	alloc;				/*  */
 
-	u32int	im;
-	u32int	rcr;
+	uint32_t	im;
+	uint32_t	rcr;
 
 	Lock	tlock;				/* transmit */
 	DD*	td;				/* descriptor ring */
@@ -318,12 +318,12 @@ typedef struct Ctlr {
 	uint	mib[Nmib];
 } Ctlr;
 
-#define csr8r(c, r)	(*((u8int*)((c)->nic)+(r)))
-#define csr16r(c, r)	(*((u16int*)((c)->nic)+((r)/2)))
-#define csr32p(c, r)	((u32int*)((c)->nic)+((r)/4))
+#define csr8r(c, r)	(*((uint8_t*)((c)->nic)+(r)))
+#define csr16r(c, r)	(*((uint16_t*)((c)->nic)+((r)/2)))
+#define csr32p(c, r)	((uint32_t*)((c)->nic)+((r)/4))
 #define csr32r(c, r)	(*csr32p(c, r))
 #define csr32w(c, r, v)	(*csr32p(c, r) = (v))
-#define csr32a(c, r)	{ u32int dummy = csr32r(c, r); USED(dummy);}
+#define csr32a(c, r)	{ uint32_t dummy = csr32r(c, r); USED(dummy);}
 // hmmm. maybe we need a csr32wrb instead, write and read back?
 
 static Ctlr* bcm4401ctlrhead;
@@ -393,11 +393,11 @@ static void
 bcm4401mib(Ctlr* ctlr, uint* mib)
 {
 	int i;
-	u32int r;
+	uint32_t r;
 
 	csr32w(ctlr, MIBctl, MIBcor);
 	for(i = 0; i < Nmib; i++){
-		r = csr32r(ctlr, MIB+i*sizeof(u32int));
+		r = csr32r(ctlr, MIB+i*sizeof(uint32_t));
 		if(mib == nil)
 			continue;
 		if(statistics[i] != nil)
@@ -444,7 +444,7 @@ bcm4401ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 static void
 _bcm4401promiscuous(Ctlr* ctlr, int on)
 {
-	u32int r;
+	uint32_t r;
 
 	r = csr32r(ctlr, CAMctl);
 	if(on){
@@ -603,7 +603,7 @@ bcm4401receive(Ether* edev)
 	uint8_t *p;
 	int len, rdh, rdt, s;
 	Ctlr *ctlr;
-	u32int status;
+	uint32_t status;
 	RingBuf *ring;
 
 	ctlr = edev->ctlr;
@@ -651,7 +651,7 @@ bcm4401interrupt(Ureg*, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
-	u32int im, is;
+	uint32_t im, is;
 
 	edev = arg;
 	ctlr = edev->ctlr;
@@ -711,7 +711,7 @@ bcm4401cam(Ctlr* ctlr, int cvix, uint8_t* a)
 static void
 bcm4401sbreset(Ctlr* ctlr)
 {
-	u32int bar0, r;
+	uint32_t bar0, r;
 
 	/*
 	 * If the core is running, stop it.
@@ -811,7 +811,7 @@ bcm4401detach(Ctlr* ctlr)
 static int
 bcm4401init(Ctlr* ctlr)
 {
-	u32int r;
+	uint32_t r;
 
 	// Clear the stats on reset.
 	bcm4401mib(ctlr, nil);
@@ -869,7 +869,7 @@ bcm4401init(Ctlr* ctlr)
 static int
 bcm4401miimir(Mii* mii, int pa, int ra)
 {
-	u32int r;
+	uint32_t r;
 	int timeo;
 	Ctlr *ctlr;
 
@@ -891,7 +891,7 @@ bcm4401miimir(Mii* mii, int pa, int ra)
 static int
 bcm4401miimiw(Mii* mii, int pa, int ra, int data)
 {
-	u32int r;
+	uint32_t r;
 	int timeo;
 	Ctlr *ctlr;
 
@@ -914,7 +914,7 @@ static int
 bcm4401reset(Ctlr* ctlr)
 {
 	int i;
-	u32int r;
+	uint32_t r;
 	MiiPhy *phy;
 	uint8_t ea[Eaddrlen];
 
@@ -1007,7 +1007,7 @@ bcm4401pci(void)
 	Pcidev *p;
 	Ctlr *ctlr;
 	int i, port;
-	u32int bar;
+	uint32_t bar;
 
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){

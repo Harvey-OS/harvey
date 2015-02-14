@@ -1290,11 +1290,11 @@ greymaskread(Param *p, uint8_t *buf, int y)
 
 #define DBG if(0)
 static Buffer
-readnbit(Param *p, uchar *buf, int y)
+readnbit(Param *p, uint8_t *buf, int y)
 {
 	Buffer b;
 	Memimage *img;
-	uchar *repl, *r, *w, *ow, bits;
+	uint8_t *repl, *r, *w, *ow, bits;
 	int i, n, sh, depth, x, dx, npack, nbits;
 
 	b.rgba = (uint32_t*)buf;
@@ -1384,9 +1384,9 @@ DBG print("bits %x nbits %d...", bits, nbits);
 
 #define DBG if(0)
 static void
-writenbit(Param *p, uchar *w, Buffer src)
+writenbit(Param *p, uint8_t *w, Buffer src)
 {
-	uchar *r;
+	uint8_t *r;
 	uint32_t bits;
 	int i, sh, depth, npack, nbits, x, ex;
 
@@ -1511,13 +1511,13 @@ writecmap(Param *p, uint8_t *w, Buffer src)
 
 #define DBG if(0)
 static Buffer
-readbyte(Param *p, uchar *buf, int y)
+readbyte(Param *p, uint8_t *buf, int y)
 {
 	Buffer b;
 	Memimage *img;
 	int dx, isgrey, convgrey, alphaonly, copyalpha, i, nb;
-	uchar *begin, *end, *r, *w, *rrepl, *grepl, *brepl, *arepl, *krepl;
-	uchar ured, ugrn, ublu;
+	uint8_t *begin, *end, *r, *w, *rrepl, *grepl, *brepl, *arepl, *krepl;
+	uint8_t ured, ugrn, ublu;
 	uint32_t u;
 
 	img = p->img;
@@ -1619,11 +1619,11 @@ DBG print("alpha %x grey %x\n", b.alpha ? *b.alpha : 0xFF, *b.grey);
 
 #define DBG if(0)
 static void
-writebyte(Param *p, uchar *w, Buffer src)
+writebyte(Param *p, uint8_t *w, Buffer src)
 {
 	Memimage *img;
 	int i, isalpha, isgrey, nb, delta, dx, adelta;
-	uchar ff, *red, *grn, *blu, *grey, *alpha;
+	uint8_t ff, *red, *grn, *blu, *grey, *alpha;
 	uint32_t u, mask;
 
 	img = p->img;
@@ -2217,7 +2217,7 @@ DBG print("dp=%p; dx=%d; for(y=0; y<%d; y++, dp+=%d)\nmemsets(dp, v, dx);\n",
 	if((par->state&(m|Replsrc))==m && src->depth >= 8 
 	&& src->chan == dst->chan && !(src->flags&Falpha) && (op == S || op == SoverD)){
 		uchar *sp, *dp;
-		long swid, dwid, nb;
+		int32_t swid, dwid, nb;
 		int dir;
 
 		if(src->data == dst->data && byteaddr(dst, par->r.min) > byteaddr(src, par->sr.min))
@@ -2251,7 +2251,7 @@ DBG print("dp=%p; dx=%d; for(y=0; y<%d; y++, dp+=%d)\nmemsets(dp, v, dx);\n",
 	&& (par->r.min.x&7)==(par->sr.min.x&7) && (par->r.min.x&7)==(par->mr.min.x&7)){
 		uchar *sp, *dp, *mp;
 		uchar lm, rm;
-		long swid, dwid, mwid;
+		int32_t swid, dwid, mwid;
 		int i, x, dir;
 
 		sp = byteaddr(src, par->sr.min);
@@ -2352,7 +2352,7 @@ chardraw(Memdrawparam *par)
 	int i, ddepth, dy, dx, x, bx, ex, y, npack, bsh, depth, op;
 	uint32_t v, maskwid, dstwid;
 	uchar *wp, *rp, *q, *wc;
-	ushort *ws;
+	uint16_t *ws;
 	uint32_t *wl;
 	uchar sp[4];
 	Rectangle r, mr;
@@ -2429,8 +2429,8 @@ DBG print("bits %lux sh %d...", bits, i);
 			}
 			break;
 		case 16:
-			ws = (ushort*)wp;
-			v = *(ushort*)sp;
+			ws = (uint16_t*)wp;
+			v = *(uint16_t*)sp;
 			for(x=bx; x>ex; x--, ws++){
 				i = x&7;
 				if(i == 8-1)

@@ -18,12 +18,13 @@
  * have been placed in the disk cache but will likely not be on disk yet.
  */
 int
-storeclump(Index *ix, ZBlock *zb, u8int *sc, int type, u32int creator, IAddr *ia)
+storeclump(Index *ix, ZBlock *zb, uint8_t *sc, int type, uint32_t creator,
+	   IAddr *ia)
 {
 	ZBlock *cb;
 	Clump cl;
-	u64int a;
-	u8int bh[VtScoreSize];
+	uint64_t a;
+	uint8_t bh[VtScoreSize];
 	int size, dsize;
 
 	trace(TraceLump, "storeclump enter", sc, type);
@@ -93,10 +94,10 @@ storeclump(Index *ix, ZBlock *zb, u8int *sc, int type, u32int creator, IAddr *ia
 	return 0;
 }
 
-u32int
-clumpmagic(Arena *arena, u64int aa)
+uint32_t
+clumpmagic(Arena *arena, uint64_t aa)
 {
-	u8int buf[U32Size];
+	uint8_t buf[U32Size];
 
 	if(readarena(arena, aa, buf, U32Size) == TWID32)
 		return TWID32;
@@ -110,12 +111,13 @@ clumpmagic(Arena *arena, u64int aa)
  * if zero, the length is unknown.
  */
 ZBlock*
-loadclump(Arena *arena, u64int aa, int blocks, Clump *cl, u8int *score, int verify)
+loadclump(Arena *arena, uint64_t aa, int blocks, Clump *cl, uint8_t *score,
+	  int verify)
 {
 	Unwhack uw;
 	ZBlock *zb, *cb;
-	u8int bh[VtScoreSize], *buf;
-	u32int n;
+	uint8_t bh[VtScoreSize], *buf;
+	uint32_t n;
 	int nunc;
 
 /*

@@ -953,7 +953,7 @@ rwstat(Fcall *rx, Fcall *tx)
 		}		
 	}
 
-	if((u32int)d.mode != (u32int)~0 && (((d.mode&DMDIR)!=0) ^ (S_ISDIR(fid->st.st_mode)!=0))){
+	if((uint32_t)d.mode != (uint32_t)~0 && (((d.mode&DMDIR)!=0) ^ (S_ISDIR(fid->st.st_mode)!=0))){
 		seterror(tx, Edirchange);
 		return;
 	}
@@ -970,14 +970,14 @@ rwstat(Fcall *rx, Fcall *tx)
 	 * leave truncate until last.
 	 * (see above comment about atomicity).
 	 */
-	if((u32int)d.mode != (u32int)~0 && chmod(fid->path, unixmode(&d)) < 0){
+	if((uint32_t)d.mode != (uint32_t)~0 && chmod(fid->path, unixmode(&d)) < 0){
 		if(chatty9p)
 			fprint(2, "chmod(%s, 0%luo) failed\n", fid->path, unixmode(&d));
 		seterror(tx, strerror(errno));
 		return;
 	}
 
-	if((u32int)d.mtime != (u32int)~0){
+	if((uint32_t)d.mtime != (uint32_t)~0){
 		struct utimbuf t;
 
 		t.actime = 0;
@@ -1022,7 +1022,7 @@ rwstat(Fcall *rx, Fcall *tx)
 		free(dir);
 	}
 
-	if((u64int)d.length != (u64int)~0 && truncate(fid->path, d.length) < 0){
+	if((uint64_t)d.length != (uint64_t)~0 && truncate(fid->path, d.length) < 0){
 		fprint(2, "truncate(%s, %lld) failed\n", fid->path, d.length);
 		seterror(tx, strerror(errno));
 		return;

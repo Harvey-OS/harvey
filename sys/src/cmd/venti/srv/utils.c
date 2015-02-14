@@ -40,10 +40,10 @@ nameok(int8_t *name)
 }
 
 int
-stru32int(int8_t *s, u32int *r)
+stru32int(int8_t *s, uint32_t *r)
 {
 	int8_t *t;
-	u32int n, nn, m;
+	uint32_t n, nn, m;
 	int c;
 
 	m = TWID32 / 10;
@@ -64,10 +64,10 @@ stru32int(int8_t *s, u32int *r)
 }
 
 int
-stru64int(int8_t *s, u64int *r)
+stru64int(int8_t *s, uint64_t *r)
 {
 	int8_t *t;
-	u64int n, nn, m;
+	uint64_t n, nn, m;
 	int c;
 
 	m = TWID64 / 10;
@@ -139,7 +139,7 @@ logerr(int severity, int8_t *fmt, ...)
 	free(s);
 }
 
-u32int
+uint32_t
 now(void)
 {
 	return time(nil);
@@ -213,7 +213,7 @@ if(0)print("estrdup %p-%p by %#p\n", t, (int8_t*)t+n, getcallerpc(&s));
  * return floor(log2(v))
  */
 int
-u64log2(u64int v)
+u64log2(uint64_t v)
 {
 	int i;
 

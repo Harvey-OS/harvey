@@ -424,14 +424,14 @@ p16(uchar *p, u16int u)
 }
 */
 
-static u16int
+static uint16_t
 u16(uint8_t *p)
 {
 	return (p[0]<<8)|p[1];
 }
 
 static void
-p32(uint8_t *p, u32int u)
+p32(uint8_t *p, uint32_t u)
 {
 	p[0] = (u>>24) & 0xFF;
 	p[1] = (u>>16) & 0xFF;
@@ -439,7 +439,7 @@ p32(uint8_t *p, u32int u)
 	p[3] = u & 0xFF;
 }
 
-static u32int
+static uint32_t
 u32(uint8_t *p)
 {
 	return (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];
@@ -454,10 +454,10 @@ p64(uchar *p, u64int u)
 }
 */
 
-static u64int
+static uint64_t
 u64(uint8_t *p)
 {
-	return ((u64int)u32(p)<<32) | u32(p+4);
+	return ((uint64_t)u32(p)<<32) | u32(p+4);
 }
 
 static int
@@ -680,8 +680,8 @@ guessgeometry(void)
 {
 	int i, j, n, bestn, ndiff, nhead, ntail;
 	uint8_t *p, *ep, *sp;
-	u64int diff[100], head[20], tail[20];
-	u64int offset, bestdiff;
+	uint64_t diff[100], head[20], tail[20];
+	uint64_t offset, bestdiff;
 	
 	ap.version = ArenaPartVersion;
 
@@ -898,10 +898,10 @@ checkarenas(int8_t *range)
  * Is there a clump here at p?
  */
 static int
-isclump(uint8_t *p, Clump *cl, u32int *pmagic)
+isclump(uint8_t *p, Clump *cl, uint32_t *pmagic)
 {
 	int n;
-	u32int magic;
+	uint32_t magic;
 	uint8_t score[VtScoreSize], *bp;
 	Unwhack uw;
 	uint8_t ubuf[70*1024];
@@ -1259,10 +1259,10 @@ shahead(Shabuf *sb, int64_t offset0, ArenaHead *head)
 	sbupdate(sb, headbuf, offset0, head->blocksize);
 }
 
-u32int
+uint32_t
 newclumpmagic(int version)
 {
-	u32int m;
+	uint32_t m;
 	
 	if(version == ArenaVersion4)
 		return _ClumpMagic;
@@ -1283,7 +1283,7 @@ guessarena(int64_t offset0, int anum, ArenaHead *head, Arena *arena,
 	uint8_t dbuf[MaxDiskBlock];
 	int needtozero, clumps, nb1, nb2, minclumps;
 	int inbad, n, ncib, printed, sealing, smart;
-	u32int magic;
+	uint32_t magic;
 	uint8_t *sp, *ep, *p;
 	int64_t boffset, eoffset, lastclumpend, leaked;
 	int64_t offset, toffset, totalcorrupt, v;

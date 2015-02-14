@@ -611,7 +611,7 @@ expected(Ureg*, void*)
 static void
 faultamd64(Ureg* ureg, void*)
 {
-	u64int addr;
+	uint64_t addr;
 	int read, user, insyscall;
 	int8_t buf[ERRMAX];
 
@@ -675,8 +675,8 @@ userpc(Ureg* ureg)
 void
 setregisters(Ureg* ureg, int8_t* pureg, int8_t* uva, int n)
 {
-	u64int cs, flags, ss;
-	u16int ds, es, fs, gs;
+	uint64_t cs, flags, ss;
+	uint16_t ds, es, fs, gs;
 
 	ss = ureg->ss;
 	flags = ureg->flags;

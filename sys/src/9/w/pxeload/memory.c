@@ -277,19 +277,19 @@ umbscan(void)
 
 
 void
-meminit(u32int)
+meminit(uint32_t)
 {
 	MMap *map;
-	u32int modend;
-	u64int addr, last, len;
+	uint32_t modend;
+	uint64_t addr, last, len;
 
 	umbscan();
 
 	modend = PADDR(memstart);
 	last = 0;
 	for(map = mmap; map < &mmap[nmmap]; map++){
-		addr = (((u64int)map->base[1])<<32)|map->base[0];
-		len = (((u64int)map->length[1])<<32)|map->length[0];
+		addr = (((uint64_t)map->base[1])<<32)|map->base[0];
+		len = (((uint64_t)map->length[1])<<32)|map->length[0];
 
 		switch(map->type){
 		default:

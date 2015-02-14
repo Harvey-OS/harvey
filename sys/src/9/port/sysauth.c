@@ -34,7 +34,7 @@ sysfversion(Ar0* ar0, va_list list)
 	Chan *c;
 	int8_t *version;
 	int fd;
-	u32int msize;
+	uint32_t msize;
 	usize nversion;
 
 	/*
@@ -43,7 +43,7 @@ sysfversion(Ar0* ar0, va_list list)
 	 * usize fversion(int fd, u32int msize, char *version, usize nversion);
 	 */
 	fd = va_arg(list, int);
-	msize = va_arg(list, u32int);
+	msize = va_arg(list, uint32_t);
 	version = va_arg(list, int8_t*);
 	nversion = va_arg(list, usize);
 	version = validaddr(version, nversion, 1);

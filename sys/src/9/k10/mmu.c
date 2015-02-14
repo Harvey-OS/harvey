@@ -130,7 +130,7 @@ dumpmmu(Proc *p)
 }
 
 void
-dumpmmuwalk(u64int addr)
+dumpmmuwalk(uint64_t addr)
 {
 	int l;
 	PTE *pte, *pml4;
@@ -265,7 +265,7 @@ checkpte(uintmem ppn, void *a)
 {
 	int l;
 	PTE *pte, *pml4;
-	u64int addr;
+	uint64_t addr;
 	int8_t buf[240], *s;
 
 	addr = PTR2UINT(a);
@@ -712,7 +712,7 @@ vunmap(void* v, usize size)
 }
 
 int
-mmuwalk(PTE* pml4, uintptr va, int level, PTE** ret, u64int (*alloc)(usize))
+mmuwalk(PTE* pml4, uintptr va, int level, PTE** ret, uint64_t (*alloc)(usize))
 {
 	int l;
 	uintmem pa;
@@ -779,7 +779,7 @@ mmuinit(void)
 {
 	uint8_t *p;
 	Page *page;
-	u64int o, pa, r, sz;
+	uint64_t o, pa, r, sz;
 
 	archmmu();
 	DBG("mach%d: %#p pml4 %#p npgsz %d\n", m->machno, m, m->pml4, m->npgsz);

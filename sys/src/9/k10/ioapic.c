@@ -28,7 +28,7 @@ struct Rbus {
 struct Rdt {
 	Apic	*apic;
 	int	intin;
-	u32int	lo;
+	uint32_t	lo;
 
 	int	ref;				/* could map to multiple busses */
 	int	enabled;				/* times enabled */
@@ -59,7 +59,7 @@ static int idtno = IdtIOAPIC;
 Apic	xioapic[Napic];
 
 static void
-rtblget(Apic* apic, int sel, u32int* hi, u32int* lo)
+rtblget(Apic* apic, int sel, uint32_t* hi, uint32_t* lo)
 {
 	sel = Ioredtbl + 2*sel;
 
@@ -70,7 +70,7 @@ rtblget(Apic* apic, int sel, u32int* hi, u32int* lo)
 }
 
 static void
-rtblput(Apic* apic, int sel, u32int hi, u32int lo)
+rtblput(Apic* apic, int sel, uint32_t hi, uint32_t lo)
 {
 	sel = Ioredtbl + 2*sel;
 
@@ -95,7 +95,7 @@ rdtlookup(Apic *apic, int intin)
 }
 
 void
-ioapicintrinit(int busno, int apicno, int intin, int devno, u32int lo)
+ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 {
 	Rbus *rbus;
 	Rdt *rdt;
@@ -169,7 +169,7 @@ ioapicdump(void)
 	Rbus *rbus;
 	Rdt *rdt;
 	Apic *apic;
-	u32int hi, lo;
+	uint32_t hi, lo;
 
 	if(!DBGFLG)
 		return;
@@ -220,7 +220,7 @@ ioapiconline(void)
 static int dfpolicy = 0;
 
 static void
-ioapicintrdd(u32int* hi, u32int* lo)
+ioapicintrdd(uint32_t* hi, uint32_t* lo)
 {
 	int i;
 	static int df;
@@ -339,7 +339,7 @@ ioapicintrenable(Vctl* v)
 {
 	Rbus *rbus;
 	Rdt *rdt;
-	u32int hi, lo;
+	uint32_t hi, lo;
 	int busno, devno, vecno;
 
 	/*

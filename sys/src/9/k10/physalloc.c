@@ -54,7 +54,7 @@ struct Buddy {
 typedef struct Bal Bal;
 struct Bal {
 	uintmem	base;
-	u64int	size;
+	uint64_t	size;
 	usize	nfree;
 	usize	nblocks;
 	int	kmin;		/* Minimum lg2 */
@@ -89,7 +89,7 @@ seprintphysstats(int8_t *s,  int8_t *e)
 }
 
 static void
-xphysfree(Bal *b, uintmem data, u64int size)
+xphysfree(Bal *b, uintmem data, uint64_t size)
 {
 	uint i;
 	Buddy *l, *p;
@@ -179,7 +179,7 @@ S1:
 }
 
 void
-physfree(uintmem data, u64int size)
+physfree(uintmem data, uint64_t size)
 {
 	Bal *b;
 	int i;
@@ -244,9 +244,9 @@ static uint8_t lg2table[256] = {
 };
 
 static int
-lg2floor(u64int w)
+lg2floor(uint64_t w)
 {
-	u64int hi, lo;
+	uint64_t hi, lo;
 
 	if((lo = (w>>48)) != 0){
 		if((hi = (lo>>8)) != 0)
@@ -269,7 +269,7 @@ lg2floor(u64int w)
 }
 
 static uintmem
-xphysalloc(Bal *b, u64int size, void *tag)
+xphysalloc(Bal *b, uint64_t size, void *tag)
 {
 	uint i, j, k;
 	Buddy *l, *p;
@@ -350,7 +350,7 @@ xphysalloc(Bal *b, u64int size, void *tag)
 }
 
 uintmem
-physalloc(u64int size, int *colorp, void *tag)
+physalloc(uint64_t size, int *colorp, void *tag)
 {
 	int i, color;
 	uintmem m;
@@ -469,7 +469,7 @@ iimbchunk(Bal *b, uintmem a, uintmem e, int type)
  * Called from umeminit to initialize user memory allocators.
  */
 void
-physinit(uintmem a, u64int size)
+physinit(uintmem a, uint64_t size)
 {
 	uintmem dtsz;
 	Bal *b;

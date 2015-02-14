@@ -195,7 +195,7 @@ int
 nfs3HandleUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, Nfs3Handle *x)
 {
 	uint8_t *ha;
-	u32int n;
+	uint32_t n;
 
 	if(sunUint32Unpack(a, ea, &a, &n) < 0 || n > Nfs3MaxHandleSize)
 		goto Err;
@@ -3057,11 +3057,11 @@ Err:
 	return -1;
 }
 static int
-countEntry(uint8_t *a, uint8_t *ea, uint8_t **pa, u32int *n)
+countEntry(uint8_t *a, uint8_t *ea, uint8_t **pa, uint32_t *n)
 {
 	uint8_t *oa;
-	u64int u64;
-	u32int u32;
+	uint64_t u64;
+	uint32_t u32;
 	u1int u1;
 
 	oa = a;
@@ -3351,11 +3351,11 @@ Err:
 	return -1;
 }
 static int
-countEntryPlus(uint8_t *a, uint8_t *ea, uint8_t **pa, u32int *n)
+countEntryPlus(uint8_t *a, uint8_t *ea, uint8_t **pa, uint32_t *n)
 {
 	uint8_t *oa;
-	u64int u64;
-	u32int u32;
+	uint64_t u64;
+	uint32_t u32;
 	u1int u1;
 	Nfs3Handle h;
 	Nfs3Attr attr;

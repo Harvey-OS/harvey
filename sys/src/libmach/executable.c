@@ -395,25 +395,25 @@ commonboot(Fhdr *fp)
 		break;
 	case FI386:
 		fp->type = FI386B;
-		fp->txtaddr = (u32int)fp->entry;
+		fp->txtaddr = (uint32_t)fp->entry;
 		fp->name = "386 plan 9 boot image";
 		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
 		break;
 	case FARM:
 		fp->type = FARMB;
-		fp->txtaddr = (u32int)fp->entry;
+		fp->txtaddr = (uint32_t)fp->entry;
 		fp->name = "ARM plan 9 boot image";
 		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
 		return;
 	case FALPHA:
 		fp->type = FALPHAB;
-		fp->txtaddr = (u32int)fp->entry;
+		fp->txtaddr = (uint32_t)fp->entry;
 		fp->name = "alpha plan 9 boot image";
 		fp->dataddr = fp->txtaddr+fp->txtsz;
 		break;
 	case FPOWER:
 		fp->type = FPOWERB;
-		fp->txtaddr = (u32int)fp->entry;
+		fp->txtaddr = (uint32_t)fp->entry;
 		fp->name = "power plan 9 boot image";
 		fp->dataddr = fp->txtaddr+fp->txtsz;
 		break;
@@ -499,15 +499,17 @@ mipsboot(int fd, Fhdr *fp, ExecHdr *hp)
 	switch(hp->e.amagic) {
 	default:
 	case 0407:	/* some kind of mips */
-		settext(fp, (u32int)hp->e.mentry, (u32int)hp->e.text_start,
+		settext(fp, (uint32_t)hp->e.mentry,
+			(uint32_t)hp->e.text_start,
 			hp->e.tsize, sizeof(struct mipsexec)+4);
-		setdata(fp, (u32int)hp->e.data_start, hp->e.dsize,
+		setdata(fp, (uint32_t)hp->e.data_start, hp->e.dsize,
 			fp->txtoff+hp->e.tsize, hp->e.bsize);
 		break;
 	case 0413:	/* some kind of mips */
-		settext(fp, (u32int)hp->e.mentry, (u32int)hp->e.text_start,
+		settext(fp, (uint32_t)hp->e.mentry,
+			(uint32_t)hp->e.text_start,
 			hp->e.tsize, 0);
-		setdata(fp, (u32int)hp->e.data_start, hp->e.dsize,
+		setdata(fp, (uint32_t)hp->e.data_start, hp->e.dsize,
 			hp->e.tsize, hp->e.bsize);
 		break;
 	}
@@ -527,15 +529,17 @@ mips4kboot(int fd, Fhdr *fp, ExecHdr *hp)
 	switch(hp->e.h.amagic) {
 	default:
 	case 0407:	/* some kind of mips */
-		settext(fp, (u32int)hp->e.h.mentry, (u32int)hp->e.h.text_start,
+		settext(fp, (uint32_t)hp->e.h.mentry,
+			(uint32_t)hp->e.h.text_start,
 			hp->e.h.tsize, sizeof(struct mips4kexec));
-		setdata(fp, (u32int)hp->e.h.data_start, hp->e.h.dsize,
+		setdata(fp, (uint32_t)hp->e.h.data_start, hp->e.h.dsize,
 			fp->txtoff+hp->e.h.tsize, hp->e.h.bsize);
 		break;
 	case 0413:	/* some kind of mips */
-		settext(fp, (u32int)hp->e.h.mentry, (u32int)hp->e.h.text_start,
+		settext(fp, (uint32_t)hp->e.h.mentry,
+			(uint32_t)hp->e.h.text_start,
 			hp->e.h.tsize, 0);
-		setdata(fp, (u32int)hp->e.h.data_start, hp->e.h.dsize,
+		setdata(fp, (uint32_t)hp->e.h.data_start, hp->e.h.dsize,
 			hp->e.h.tsize, hp->e.h.bsize);
 		break;
 	}

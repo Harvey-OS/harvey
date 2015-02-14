@@ -30,7 +30,7 @@
  * first 64 bits of the fractional parts of cube roots of
  * first 80 primes (2..311).
  */
-static u64int K512[80] = {
+static uint64_t K512[80] = {
 	0x428a2f98d728ae22LL, 0x7137449123ef65cdLL, 0xb5c0fbcfec4d3b2fLL, 0xe9b5dba58189dbbcLL,
 	0x3956c25bf348b538LL, 0x59f111f1b605d019LL, 0x923f82a4af194f9bLL, 0xab1c5ed5da6d8118LL,
 	0xd807aa98a3030242LL, 0x12835b0145706fbeLL, 0x243185be4ee4b28cLL, 0x550c7dc3d5ffb4e2LL,
@@ -53,11 +53,11 @@ static u64int K512[80] = {
 	0x4cc5d4becb3e42b6LL, 0x597f299cfc657e2aLL, 0x5fcb6fab3ad6faecLL, 0x6c44198c4a475817LL };
 
 void
-_sha2block128(uint8_t *p, uint32_t len, u64int *s)
+_sha2block128(uint8_t *p, uint32_t len, uint64_t *s)
 {
-	u64int a, b, c, d, e, f, g, h, t1, t2;
-	u64int *kp, *wp;
-	u64int w[80];
+	uint64_t a, b, c, d, e, f, g, h, t1, t2;
+	uint64_t *kp, *wp;
+	uint64_t w[80];
 	uint8_t *end;
 
 	/* at this point, we have a multiple of 64 bytes */
@@ -76,7 +76,7 @@ _sha2block128(uint8_t *p, uint32_t len, u64int *s)
 				((int64_t)p[2])<<40 | ((int64_t)p[3])<<32 |
 				p[4] << 24 | p[5] << 16 | p[6] << 8 | p[7];
 		for(; wp < &w[80]; wp++) {
-			u64int s0, s1;
+			uint64_t s0, s1;
 
 			s0 = sigma0(wp[-15]);
 			s1 = sigma1(wp[-2]);

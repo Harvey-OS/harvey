@@ -138,7 +138,7 @@ resealarena(int8_t *name, int64_t len)
 	ArenaHead head;
 	Arena arena;
 	DigestState s;
-	u64int off;
+	uint64_t off;
 	uint8_t newscore[VtScoreSize];
 
 	fprint(2, "%s: begin reseal\n", name);

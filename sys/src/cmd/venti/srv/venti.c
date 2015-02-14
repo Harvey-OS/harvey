@@ -20,10 +20,10 @@
 
 typedef struct Allocs Allocs;
 struct Allocs {
-	u32int	mem;
-	u32int	bcmem;
-	u32int	icmem;
-	u32int	stfree;				/* free memory at start */
+	uint32_t	mem;
+	uint32_t	bcmem;
+	uint32_t	icmem;
+	uint32_t	stfree;				/* free memory at start */
 	uint	mempcnt;
 };
 
@@ -84,12 +84,12 @@ allocminima(Allocs *all)			/* enforce minima for sanity */
 
 /* automatic memory allocations sizing per venti(8) guidelines */
 static Allocs
-allocbypcnt(u32int mempcnt, u32int stfree)
+allocbypcnt(uint32_t mempcnt, uint32_t stfree)
 {
-	u32int avail;
+	uint32_t avail;
 	int64_t blmsize;
 	Allocs all;
-	static u32int free;
+	static uint32_t free;
 
 	all.mem = Unspecified;
 	all.bcmem = all.icmem = 0;
