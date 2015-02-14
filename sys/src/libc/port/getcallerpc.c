@@ -11,7 +11,8 @@
 #include <libc.h>
 
 uintptr
-getcallerpc(void*)
+getcallerpc(void* x)
 {
-	return 0;
+	//return 0;
+	return (((ulong*)(x))[-1]);
 }

@@ -1,4 +1,6 @@
-TEXT	sqrt(SB), $0
-	MOVSD	a+0(FP), X0
-	SQRTSD	X0, X0
-	RET
+.globl	sqrt
+sqrt:
+	movsd	16(%rdi), %xmm0
+	sqrtsd	%xmm0, %xmm0
+	ret
+

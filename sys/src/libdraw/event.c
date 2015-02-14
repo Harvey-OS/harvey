@@ -371,7 +371,7 @@ enote(void *v, int8_t *s)
 	int8_t t[1];
 	int i, pid;
 
-	USED(v, s);
+	USED(v);USED(s);
 	pid = getpid();
 	if(pid != parentpid){
 		for(i=0; i<nslave; i++){

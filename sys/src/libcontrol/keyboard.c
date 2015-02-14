@@ -40,7 +40,7 @@ struct Keyboard
 	int		border;
 	int		lastbut;
 	int		state;
-	char		*key;
+	char		*_key; // Declared in struct Control
 };
 
 enum{
@@ -372,13 +372,13 @@ keydown(Keyboard *k, Point p)
 	int8_t *s;
 
 	s = whichkey(k, p, &row, &col, &r);
-	if(s == k->key)
+	if(s == k->_key)
 		return;
 	keyboardshow(k);
 	if(s != nil)
 		draw(k->screen, r, k->light->image, k->mask->image, ZP);
 	flushimage(display, 1);
-	k->key = s;
+	k->_key = s;
 }
 
 static int

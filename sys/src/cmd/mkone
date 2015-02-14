@@ -7,15 +7,16 @@ default:V:	$O.out
 all:V:	$O.out
 
 $O.out:	$OFILES $LIB
-	$LD $LDFLAGS -o $target $prereq
+#	$LD $LDFLAGS -o $target $prereq
+	$LD $CFLAGS -o $target $prereq $LDFLAGS
 
 %.$O:	$HFILES		# don't combine with following %.$O rules
 
 %.$O:	%.c
-	$CC $CFLAGS $stem.c
+	$CC $CFLAGS -c $stem.c
 
 %.$O:	%.s
-	$AS $AFLAGS $stem.s
+	$AS $AFLAGS -c $stem.s
 
 y.tab.h y.tab.c:	$YFILES
 	$YACC $YFLAGS $prereq
@@ -40,7 +41,8 @@ nuke:V:
 	rm -f *.[$OS] [$OS].out y.tab.? lex.yy.c y.debug y.output *.acid $TARG
 
 clean:V:
-	rm -f *.[$OS] [$OS].out y.tab.? lex.yy.c y.debug y.output $TARG $CLEANFILES
+#	rm -f *.[$OS] [$OS].out y.tab.? lex.yy.c y.debug y.output $TARG $CLEANFILES
+	rm -f *.$OS *.[$OS] [$OS].out y.tab.? lex.yy.c y.debug y.output $TARG $CLEANFILES
 
 safeinstall:V: $O.out
 	test -e $BIN/$TARG && mv $BIN/$TARG $BIN/_$TARG

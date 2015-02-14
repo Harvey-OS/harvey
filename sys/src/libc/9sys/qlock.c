@@ -131,7 +131,7 @@ rlock(RWLock *q)
 	lock(&q->lock);
 	if(q->writer == 0 && q->head == nil){
 		/* no writer, go for it */
-		q->readers++;
+		q->_readers++;
 		unlock(&q->lock);
 		return;
 	}
@@ -159,7 +159,7 @@ canrlock(RWLock *q)
 	lock(&q->lock);
 	if (q->writer == 0 && q->head == nil) {
 		/* no writer; go for it */
-		q->readers++;
+		q->_readers++;
 		unlock(&q->lock);
 		return 1;
 	}
@@ -173,10 +173,10 @@ runlock(RWLock *q)
 	QLp *p;
 
 	lock(&q->lock);
-	if(q->readers <= 0)
+	if(q->_readers <= 0)
 		abort();
 	p = q->head;
-	if(--(q->readers) > 0 || p == nil){
+	if(--(q->_readers) > 0 || p == nil){
 		unlock(&q->lock);
 		return;
 	}
@@ -201,7 +201,7 @@ wlock(RWLock *q)
 	QLp *p, *mp;
 
 	lock(&q->lock);
-	if(q->readers == 0 && q->writer == 0){
+	if(q->_readers == 0 && q->writer == 0){
 		/* noone waiting, go for it */
 		q->writer = 1;
 		unlock(&q->lock);
@@ -230,7 +230,7 @@ int
 canwlock(RWLock *q)
 {
 	lock(&q->lock);
-	if (q->readers == 0 && q->writer == 0) {
+	if (q->_readers == 0 && q->writer == 0) {
 		/* no one waiting; go for it */
 		q->writer = 1;
 		unlock(&q->lock);
@@ -272,7 +272,7 @@ wunlock(RWLock *q)
 	while(q->head != nil && q->head->state == QueuingR){
 		p = q->head;
 		q->head = p->next;
-		q->readers++;
+		q->_readers++;
 		while((*_rendezvousp)(p, 0) == (void*)~0)
 			;
 	}

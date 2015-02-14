@@ -1,4 +1,10 @@
-</$objtype/mkfile
+# Harcoding :(
+MKSHELL=$PLAN9/bin/rc
+# Rc doesn't know anything about bash environment variables, sigh!
+objtype=amd64 # :(
+ROOT=/home/elbing/source/plan9/harvey/plan9-gpl
+
+<$ROOT/$objtype/mkfile
 
 LIBS=\
 	lib9p\
@@ -75,9 +81,9 @@ libs:V:
 	date
 	for (i in $LIBS) @{
 		cd $i
-		mk clean
+#		mk clean
 		mk install
-		mk clean
+#		mk clean
 	}
 	date
 

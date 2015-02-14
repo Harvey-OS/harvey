@@ -9,7 +9,8 @@ default:V:	$LIB
 all:V:	$LIB
 
 $LIB:	$LIBOBJ
-	ar vu $LIB $newmember
+#	ar vu $LIB $newmember
+	ar rv $LIB $newmember
 
 %.$O:	$HFILES		# don't combine with following %.$O rules
 
@@ -18,6 +19,8 @@ $LIB:	$LIBOBJ
 
 %.$O:	%.s
 	$AS $AFLAGS $stem.s
+%.$O:   %.S
+        $CC $CFLAGS -c $stem.S
 
 y.tab.h y.tab.c:	$YFILES
 	yacc $YFLAGS $prereq

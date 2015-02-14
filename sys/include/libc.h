@@ -389,7 +389,7 @@ extern	char*	mktemp(char*);
 extern	double	modf(double, double*);
 extern	int	netcrypt(void*, void*);
 extern	void	notejmp(void*, jmp_buf, int);
-extern	void	perror(char*);
+extern	void	perror(const char*);
 extern	int	postnote(int, int, char *);
 extern	double	pow10(int);
 extern	int	putenv(char*, char*);
@@ -470,7 +470,7 @@ typedef
 struct RWLock
 {
 	Lock	lock;
-	int	readers;	/* number of readers */
+	int	_readers;	/* number of readers */
 	int	writer;		/* number of writers */
 	QLp	*head;		/* list of waiting processes */
 	QLp	*tail;
@@ -724,8 +724,19 @@ extern	char*	sysname(void);
 extern	void	werrstr(char*, ...);
 #pragma	varargck	argpos	werrstr	1
 
+/* compiler directives on plan 9 */
+#define SET(x)  ((x)=0)
+#define USED(x) if(x){}else{}
+#ifdef __GNUC__
+#       if __GNUC__ >= 3
+#               undef USED
+#               define USED(x) ((void)(x))
+#       endif
+#endif
+
 extern char *argv0;
-#define	ARGBEGIN	for((argv0||(argv0=*argv)),argv++,argc--;\
+/* #define	ARGBEGIN	for((argv0||(argv0=*argv)),argv++,argc--;\ */
+#define ARGBEGIN        for((argv0?0:(argv0=*argv)),argv++,argc--;\
 			    argv[0] && argv[0][0]=='-' && argv[0][1];\
 			    argc--, argv++) {\
 				char *_args, *_argt;\
@@ -737,7 +748,8 @@ extern char *argv0;
 				_argc = 0;\
 				while(*_args && (_args += chartorune(&_argc, _args)))\
 				switch(_argc)
-#define	ARGEND		SET(_argt);USED(_argt,_argc,_args);}USED(argv, argc);
+/* #define	ARGEND		SET(_argt);USED(_argt,_argc,_args);}USED(argv, argc); */
+#define ARGEND          SET(_argt);USED(_argt);USED(_argc);USED(_args);}USED(argv);USED(argc);
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
 #define	EARGF(x)	(_argt=_args, _args="",\
@@ -746,4 +758,6 @@ extern char *argv0;
 #define	ARGC()		_argc
 
 /* this is used by sbrk and brk,  it's a really bad idea to redefine it */
-extern	char	end[];
+extern	char	_end[];
+/* In order to not to break GNU ld internal linker script */
+#define end _end

@@ -1,6 +1,6 @@
-</$objtype/mkfile
+<$ROOT/$objtype/mkfile
 
-LIB=/$objtype/lib/libmach.a
+LIB=$ROOT/$objtype/lib/libmach.a
 FILES=\
 	executable\
 	map\
@@ -41,28 +41,28 @@ FILES=\
 	qobj\
 	vcodas\
 
-HFILES=/sys/include/mach.h elf.h obj.h
+HFILES=$ROOT/sys/include/mach.h elf.h obj.h
 
 CFILES=${FILES:%=%.c}
 
 OFILES=${FILES:%=%.$O}
 
 UPDATE=mkfile\
-	/386/lib/libmach.a\
+	$ROOT/$objtype/lib/libmach.a\
 	$HFILES\
 	$CFILES\
 
-</sys/src/cmd/mksyslib
+<$ROOT/sys/src/cmd/mksyslib
 
-CFLAGS=$CFLAGS -I/sys/src/cmd
+CFLAGS=$CFLAGS -I$ROOT/sys/src/cmd
 
 68020obj.$O: 68020/2.out.h
-5obj.$O: /sys/src/cmd/5c/5.out.h
-6obj.$O: /sys/src/cmd/6c/6.out.h
+5obj.$O: $ROOT/sys/src/cmd/5c/5.out.h
+6obj.$O: $ROOT/sys/src/cmd/6c/6.out.h
 alphaobj.$O: alpha/7.out.h
-8obj.$O: /sys/src/cmd/8c/8.out.h
+8obj.$O: $ROOT/sys/src/cmd/8c/8.out.h
 9obj.$O: 9c/9.out.h
-kobj.$O: /sys/src/cmd/kc/k.out.h
-qobj.$O: /sys/src/cmd/qc/q.out.h
+kobj.$O: $ROOT/sys/src/cmd/kc/k.out.h
+qobj.$O: $ROOT/sys/src/cmd/qc/q.out.h
 sparc64obj.$O: sparc64/u.out.h
-vobj.$O: /sys/src/cmd/vc/v.out.h
+vobj.$O: $ROOT/sys/src/cmd/vc/v.out.h

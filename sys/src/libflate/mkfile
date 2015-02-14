@@ -1,6 +1,6 @@
-</$objtype/mkfile
+<$ROOT/$objtype/mkfile
 
-LIB=/$objtype/lib/libflate.a
+LIB=$ROOT/$objtype/lib/libflate.a
 OFILES=\
 	deflate.$O\
 	deflatezlib.$O\
@@ -15,7 +15,7 @@ OFILES=\
 	adler.$O\
 
 HFILES=\
-	/sys/include/flate.h\
+	$ROOT/sys/include/flate.h\
 	zlib.h\
 
 UPDATE=\
@@ -24,4 +24,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$ROOT/sys/src/cmd/mksyslib

@@ -1,6 +1,6 @@
-</$objtype/mkfile
+<$ROOT/$objtype/mkfile
 
-LIB=/$objtype/lib/libgeometry.a
+LIB=$ROOT/$objtype/lib/libgeometry.a
 OFILES=\
 	arith3.$O\
 	matrix.$O\
@@ -9,9 +9,9 @@ OFILES=\
 	transform.$O\
 	tstack.$O\
 
-HFILES=/sys/include/geometry.h
+HFILES=$ROOT/sys/include/geometry.h
 
-</sys/src/cmd/mksyslib
+<$ROOT/sys/src/cmd/mksyslib
 
 UPDATE=\
 	mkfile\

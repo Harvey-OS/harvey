@@ -126,7 +126,7 @@ closefile(File *f)
 }
 
 static void
-nop(File*)
+nop(File* f)
 {
 }
 

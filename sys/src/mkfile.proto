@@ -2,12 +2,22 @@
 # common mkfile parameters shared by all architectures
 #
 
-OS=568qv
+# You need to setup this environment variable pointing to your plan9port path
+MKSHELL=$PLAN9/bin/rc
+
+# Provisional for cross compiling
+objtype=amd64
+
+#OS=568qv
+OS=o
 CPUS=arm amd64 386 power mips
-CFLAGS=-FTVw
+#CFLAGS=-FTVw
+CFLAGS=-O0 -static -fplan9-extensions -ffreestanding -fno-builtin --sysroot=$ROOT $WARNFLAGS -I$INCX86_64_DIR -I$INC_DIR
 LEX=lex
 YACC=yacc
-MK=/bin/mk
+
+# From $PLAN9 plan9port
+#MK=/bin/mk
 
 # recursive mk will have these set from the parent
 # this is never what we want.  clear them
@@ -16,3 +26,22 @@ TARG=
 OFILES=
 HFILES=
 YFILES=
+
+INC_DIR=$ROOT/sys/include
+INCX86_64_DIR=$ROOT/$objtype/include
+CRT0=$ROOT/$objtype/lib/crt0.o
+LIB_DIR=$ROOT/$objtype/lib
+
+APELIB=$ROOT/rc/bin/ape              # where helper programs go
+FAMILY=plan9
+AR=ar                            # manipulating libraries
+RANLIB=ranlib                    # for updating libraries
+
+INSTALL=$ROOT/$APELIB/install          # install script
+INSOWNER=()                     # default installation parameter
+INSGROUP=bin                    # default installation parameter
+INSMODE=775                     # default installation parameter
+
+WARNFLAGS=-Wall' '-Wno-missing-braces' '-Wno-parentheses' '-Wno-unknown-pragmas' '-Wuninitialized' '-Wmaybe-uninitialized
+LDFLAGS=-L$LIB_DIR
+

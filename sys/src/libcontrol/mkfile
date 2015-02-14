@@ -1,6 +1,6 @@
-</$objtype/mkfile
+<$ROOT/$objtype/mkfile
 
-LIB=/$objtype/lib/libcontrol.a
+LIB=$ROOT/$objtype/lib/libcontrol.a
 
 OFILES=\
 	box.$O\
@@ -20,10 +20,10 @@ OFILES=\
 	textbutton.$O\
 	textbutton3.$O\
 
-HFILES=/sys/include/draw.h\
-	/sys/include/mouse.h\
-	/sys/include/keyboard.h\
-	/sys/include/control.h\
+HFILES=$ROOT/sys/include/draw.h\
+	$ROOT/sys/include/mouse.h\
+	$ROOT/sys/include/keyboard.h\
+	$ROOT/sys/include/control.h\
 	group.h
 
 UPDATE=\
@@ -32,6 +32,6 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$ROOT/sys/src/cmd/mksyslib
 
 $OFILES: $HFILES

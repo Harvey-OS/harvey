@@ -1,6 +1,6 @@
-</$objtype/mkfile
+<$ROOT/$objtype/mkfile
 
-LIB=/$objtype/lib/libauthsrv.a
+LIB=$ROOT/$objtype/lib/libauthsrv.a
 OFILES=\
 	_asgetticket.$O\
 	_asrdresp.$O\
@@ -19,7 +19,7 @@ OFILES=\
 	readnvram.$O\
 
 HFILES=\
-	/sys/include/authsrv.h\
+	$ROOT/sys/include/authsrv.h\
 
 UPDATE=\
 	mkfile\
@@ -27,4 +27,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$ROOT/sys/src/cmd/mksyslib

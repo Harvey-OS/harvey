@@ -1,42 +1,47 @@
 objtype=amd64
-</$objtype/mkfile
+<$ROOT/$objtype/mkfile
 
-LIB=/$objtype/lib/libc.a
+LIB=$ROOT/$objtype/lib/libc.a
 SFILES=\
-	argv0.s\
-	atom.s\
-	cycles.s\
-	getfcr.s\
-	main9.s\
-	main9p.s\
-	memccpy.s\
-	memchr.s\
-	memcmp.s\
-	memcpy.s\
-	memmove.s\
-	memset.s\
-	muldiv.s\
-	rdpmc.s\
+#	argv0.s\
+#	atom.s\
+#	cycles.s\
+#	getfcr.s\
+#	main9.s\
+#	main9p.s\
+#	memccpy.s\
+#	memchr.s\
+#	memcmp.s\
+#	memcpy.s\
+#	memmove.s\
+#	memset.s\
+#	muldiv.s\
+#	rdpmc.s\
 	setjmp.s\
 	sqrt.s\
-	strcat.s\
-	strchr.s\
-	strcpy.s\
-	strlen.s\
+#	strcat.s\
+#	strchr.s\
+#	strcpy.s\
+#	strlen.s\
 	tas.s\
+
+GSFILES=\
+	atom.S\
 
 CFILES=\
 	_seek.c\
-	getcallerpc.c\
 	notejmp.c\
+	cycles.c\
+	argv0.c\
+	rdpmc.c\
 
-HFILES=/sys/include/libc.h
+HFILES=$ROOT/sys/include/libc.h
 
-OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O} ${GSFILES:%.S=%.$O}
 
 UPDATE=mkfile\
 	$HFILES\
 	$CFILES\
 	$SFILES\
 
-</sys/src/cmd/mksyslib
+<$ROOT/sys/src/cmd/mksyslib

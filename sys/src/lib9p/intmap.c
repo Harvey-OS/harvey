@@ -40,7 +40,7 @@ hashid(uint32_t id)
 }
 
 static void
-nop(void*)
+nop(void* v)
 {
 }
 

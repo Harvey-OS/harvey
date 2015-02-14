@@ -72,7 +72,7 @@ radiomouse(Control *c, Mouse *m)
 }
 
 static void
-radiofree(Radio*)
+radiofree(Radio* r)
 {
 }
 

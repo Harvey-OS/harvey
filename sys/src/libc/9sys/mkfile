@@ -1,6 +1,6 @@
-</$objtype/mkfile
+<$ROOT/$objtype/mkfile
 
-LIB=/$objtype/lib/libc.a
+LIB=$ROOT/$objtype/lib/libc.a
 OFILES=\
 	abort.$O\
 	access.$O\
@@ -52,12 +52,12 @@ OFILES=\
 	write.$O\
 	writev.$O\
 
-HFILES=/sys/include/libc.h
+HFILES=$ROOT/sys/include/libc.h
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mksyslib
+<$ROOT/sys/src/cmd/mksyslib
 

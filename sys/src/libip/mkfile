@@ -1,6 +1,6 @@
-</$objtype/mkfile
+<$ROOT/$objtype/mkfile
 
-LIB=/$objtype/lib/libip.a
+LIB=$ROOT/$objtype/lib/libip.a
 OFILES=\
 	eipfmt.$O\
 	equivip.$O\
@@ -15,7 +15,7 @@ OFILES=\
 	ptclbsum.$O\
 
 HFILES=\
-	/sys/include/ip.h
+	$ROOT/sys/include/ip.h
 
 UPDATE=\
 	mkfile\
@@ -23,4 +23,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$ROOT/sys/src/cmd/mksyslib

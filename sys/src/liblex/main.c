@@ -16,7 +16,7 @@ int	yylex(void);
 void
 main(int argc, int8_t *argv[])
 {
-	USED(argc, argv);
+	USED(argc); USED(argv);
 	yylex();
 	exits(0);
 }

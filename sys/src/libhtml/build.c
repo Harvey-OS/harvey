@@ -3647,7 +3647,7 @@ printitems(Item* items, int8_t* msg)
 }
 
 static Genattr*
-newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, SEvent* events)
+newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, Attr* events)
 {
 	Genattr* g;
 

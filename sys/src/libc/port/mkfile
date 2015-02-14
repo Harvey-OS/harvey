@@ -1,6 +1,6 @@
-</$objtype/mkfile
+<$ROOT/$objtype/mkfile
 
-LIB=/$objtype/lib/libc.a
+LIB=$ROOT/$objtype/lib/libc.a
 CFILES=\
 	_assert.c\
 	abs.c\
@@ -116,14 +116,15 @@ CFILES=\
 ALLOFILES=${CFILES:%.c=%.$O}
 
 # cull things in the per-machine directories from this list
-OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
+# OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
+OFILES=${CFILES:%.c=%.$O}
 
-HFILES=/sys/include/libc.h
+HFILES=$ROOT/sys/include/libc.h
 
 UPDATE=mkfile\
 	$HFILES\
 	$CFILES\
 
-</sys/src/cmd/mksyslib
+<$ROOT/sys/src/cmd/mksyslib
 
-profile.$O: /sys/include/tos.h
+profile.$O: $ROOT/sys/include/tos.h

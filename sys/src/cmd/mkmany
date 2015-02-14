@@ -1,6 +1,6 @@
 PROGS=${TARG:%=$O.%}
 MANFILES=${TARG:%=%.man}
-LDFLAGS=
+#LDFLAGS=
 YFLAGS=-d
 
 none:VQ:
@@ -9,15 +9,19 @@ none:VQ:
 all:V:	$PROGS
 
 $O.%:	%.$O $OFILES $LIB
-	$LD $LDFLAGS -o $target $prereq
+#	$LD $LDFLAGS -o $target $prereq
+	$LD $CFLAGS -o $target $prereq $LDFLAGS
 
 %.$O:	$HFILES		# don't combine with following %.$O rules
 
 %.$O:	%.c
-	$CC $CFLAGS $stem.c
+	$CC $CFLAGS -c $stem.c
 
 %.$O:	%.s
-	$AS $AFLAGS $stem.s
+	$AS $AFLAGS -c $stem.s
+
+%.$O:   %.S
+        $CC $CFLAGS -c $stem.S
 
 y.tab.h y.tab.c:	$YFILES
 	$YACC $YFLAGS $prereq

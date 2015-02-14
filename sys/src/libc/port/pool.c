@@ -105,7 +105,7 @@ struct Alloc {
 };
 enum {
 	ALLOC_MAGIC = 0x0A110C09,
-	UNALLOC_MAGIC = 0xCAB00D1E+1,
+	UNALLOC_MAGIC = 0xCAB00D1E + 1,
 };
 
 struct Arena {
@@ -116,8 +116,8 @@ struct Arena {
 	ulong	pad;	/* to a multiple of 8 bytes */
 };
 enum {
-	ARENA_MAGIC = 0xC0A1E5CE+1,
-	ARENATAIL_MAGIC = 0xEC5E1A0C+1,
+	ARENA_MAGIC = 0xC0A1E5CE + 1,
+	ARENATAIL_MAGIC = 0xEC5E1A0C + 1,
 };
 #define A2TB(a)	((Bhdr*)((uchar*)(a)+(a)->asize-sizeof(Bhdr)))
 #define A2B(a)	B2NB(a)

@@ -1,5 +1,6 @@
+MKSHELL=$PLAN9/bin/rc
 NPROC=1
-</$objtype/mkfile
+<$ROOT/$objtype/mkfile
 
 install:V:
 	SYS=`{sed '/^#define._X[123]/d; s/#define.([A-Z0-9_]*).*/\1/' sys.h}
@@ -57,20 +58,51 @@ install:V:
 			}
 			echo RET
 		case amd64
-			if(~ $i seek)
-				echo TEXT _seek'(SB)', 1, '$0'
-			if not
-				echo TEXT $i'(SB)', 1, '$0'
+			#if(~ $i seek)
+			#	echo TEXT _seek'(SB)', 1, '$0'
+			#if not
+			#	echo TEXT $i'(SB)', 1, '$0'
 			#
 			# For architectures which pass the first argument
 			# in a register, if the system call takes no arguments
 			# there will be no 'a0+0(FP)' reserved on the stack.
 			#
+			#if(! ~ $i nsec)
+			#	echo MOVQ RARG, 'a0+0(FP)'
+			#echo MOVQ '$'$n, RARG
+			#echo SYSCALL
+			#echo RET
+			echo .text
+			if(~ $i seek){
+				echo .globl _seek
+				echo _seek:
+				}
+                        echo .globl $i
+                        echo $i:
+                        echo '  'pushq %rdi
+                        echo '  'pushq %rsi
+                        echo '  'pushq %rdx
+                        echo '  'pushq %rcx
+			echo '  'pushq %r8
+			echo '  'pushq %r9
+                        echo '  pushq 72(%rsp)'         # arg 5
+                        echo '  pushq 72(%rsp)'         # arg 4
+                        echo '  pushq 72(%rsp)'         # arg 3
+                        echo '  pushq 72(%rsp)'         # arg 2
+                        echo '  pushq 72(%rsp)'         # arg 1
+                        echo '  pushq 72(%rsp)'         # arg PC
 			if(! ~ $i nsec)
-				echo MOVQ RARG, 'a0+0(FP)'
-			echo MOVQ '$'$n, RARG
-			echo SYSCALL
-			echo RET
+				echo '  movq %rax, 16(%rsp)'
+                        echo '  'movq '$'$n, %rax
+			echo '  syscall'
+                        echo '  'addq '$'48, %rsp       # align argument
+                        echo '  'popq %r9
+                        echo '  'popq %r8
+                        echo '  'popq %rcx
+                        echo '  'popq %rdx
+			echo '  'popq %rsi
+			echo '  'popq %rdi
+                        echo '  'ret	
 		case sparc
 			echo TEXT $i'(SB)', 1, '$0'
 			echo MOVW R7, '0(FP)'
@@ -111,9 +143,11 @@ install:V:
 			}
 			echo RETURN
 		}} > $i.s
-		$AS $i.s
+#		$AS $i.s
+		$AS -o $i.$O $i.s
 	}
-	ar vu /$objtype/lib/libc.a *.$O
+#	ar vu /$objtype/lib/libc.a *.$O
+	ar rv $ROOT/$objtype/lib/libc.a *.$O
 	rm -f *.$O *.s
 
 nuke clean:V:
