@@ -121,7 +121,7 @@ zfont_glyph_name(gs_font *font, gs_glyph index, gs_const_string *pstr)
     ref nref, sref;
 
     if (index >= gs_min_cid_glyph) {	/* Fabricate a numeric name. */
-	char cid_name[sizeof(gs_glyph) * 3 + 1];
+	int8_t cid_name[sizeof(gs_glyph) * 3 + 1];
 	int code;
 
 	sprintf(cid_name, "%lu", (uint32_t) index);

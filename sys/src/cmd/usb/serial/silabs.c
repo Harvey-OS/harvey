@@ -102,7 +102,7 @@ slinit(Serialport *p)
 static int
 slgetparam(Serialport *p)
 {
-	u16int lcr;
+	uint16_t lcr;
 
 	slread(p, Getbaud, &p->baud, sizeof(p->baud));
 	slread(p, Getlcr, &lcr, sizeof(lcr));
@@ -115,7 +115,7 @@ slgetparam(Serialport *p)
 static int
 slsetparam(Serialport *p)
 {
-	u16int lcr;
+	uint16_t lcr;
 
 	lcr = p->stop == 1? Stop1 : Stop2;
 	lcr |= (p->bits<<Bitsshift) | (p->parity<<Parshift);

@@ -15,7 +15,7 @@ main(int argc, int8_t *argv[])
 {
 	uint32_t num = 1;
 	uint64_t size;
-	u8int *c;
+	uint8_t *c;
 
 	if (argc > 1)
 		num = strtoul(argv[1], 0, 0);

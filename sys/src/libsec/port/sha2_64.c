@@ -14,11 +14,11 @@
 #include <libc.h>
 #include <libsec.h>
 
-static void encode32(uint8_t*, u32int*, uint32_t);
+static void encode32(uint8_t*, uint32_t*, uint32_t);
 static DigestState* sha2_64(uint8_t *, uint32_t, uint8_t *, SHA2_256state *,
 			    int);
 
-extern void _sha2block64(uint8_t*, uint32_t, u32int*);
+extern void _sha2block64(uint8_t*, uint32_t, uint32_t*);
 
 /*
  *  for sha2_224 and sha2_256, len must be multiple of 64 for all but
@@ -89,7 +89,7 @@ sha2_64(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s,
 	int dlen)
 {
 	int i;
-	u32int x[16];
+	uint32_t x[16];
 	uint8_t buf[128];
 	uint8_t *e;
 
@@ -169,9 +169,9 @@ sha2_64(uint8_t *p, uint32_t len, uint8_t *digest, SHA2_256state *s,
  * Assumes len is a multiple of 4.
  */
 static void
-encode32(uint8_t *output, u32int *input, uint32_t len)
+encode32(uint8_t *output, uint32_t *input, uint32_t len)
 {
-	u32int x;
+	uint32_t x;
 	uint8_t *e;
 
 	for(e = output + len; output < e;) {

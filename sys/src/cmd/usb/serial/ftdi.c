@@ -309,7 +309,7 @@ static uint32_t
 ft232bmbaudbase2div(int baud, int base)
 {
 	int divisor3;
-	u32int divisor;
+	uint32_t divisor;
 
 	divisor3 = (base / 2) / baud;
 	divisor = divisor3 >> 3 | divfrac[divisor3 & 7] << 14;

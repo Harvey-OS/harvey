@@ -277,8 +277,8 @@ struct Dospart {
 	Part;
 	Tentry;
 
-	u32int	lba;
-	u32int	size;
+	uint32_t	lba;
+	uint32_t	size;
 	int		primary;
 };
 
@@ -355,7 +355,7 @@ typestr0(int type)
 	return types[type].desc;
 }
 
-static u32int
+static uint32_t
 getle32(void* v)
 {
 	uint8_t *p;
@@ -365,7 +365,7 @@ getle32(void* v)
 }
 
 static void
-putle32(void* v, u32int i)
+putle32(void* v, uint32_t i)
 {
 	uint8_t *p;
 
@@ -377,7 +377,7 @@ putle32(void* v, u32int i)
 }
 
 static void
-diskread(Disk *disk, void *data, int ndata, u32int sec, u32int off)
+diskread(Disk *disk, void *data, int ndata, uint32_t sec, uint32_t off)
 {
 	if(seek(disk->fd, (int64_t)sec*disk->secsize+off, 0) != (int64_t)sec*disk->secsize+off)
 		sysfatal("diskread seek %lud.%lud: %r", (uint32_t)sec,
@@ -388,7 +388,7 @@ diskread(Disk *disk, void *data, int ndata, u32int sec, u32int off)
 }
 
 static int
-diskwrite(Disk *disk, void *data, int ndata, u32int sec, u32int off)
+diskwrite(Disk *disk, void *data, int ndata, uint32_t sec, uint32_t off)
 {
 	written = 1;
 	if(seek(disk->wfd, (int64_t)sec*disk->secsize+off, 0) != (int64_t)sec*disk->secsize+off)
@@ -1008,7 +1008,8 @@ writechs(Disk *disk, uint8_t *p, int64_t lba)
 }
 
 static void
-wrtentry(Disk *disk, Tentry *tp, int type, u32int xbase, u32int lba, u32int end)
+wrtentry(Disk *disk, Tentry *tp, int type, uint32_t xbase, uint32_t lba,
+	 uint32_t end)
 {
 	tp->type = type;
 	writechs(disk, &tp->starth, lba);

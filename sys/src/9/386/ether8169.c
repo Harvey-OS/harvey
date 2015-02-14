@@ -166,10 +166,10 @@ enum {					/* Cplusc */
 
 typedef struct D D;			/* Transmit/Receive Descriptor */
 struct D {
-	u32int	control;
-	u32int	vlan;
-	u32int	addrlo;
-	u32int	addrhi;
+	uint32_t	control;
+	uint32_t	vlan;
+	uint32_t	addrlo;
+	uint32_t	addrhi;
 };
 
 enum {					/* Transmit Descriptor control */
@@ -218,19 +218,19 @@ enum {					/* Ring sizes  (<= 1024) */
 
 typedef struct Dtcc Dtcc;
 struct Dtcc {
-	u64int	txok;
-	u64int	rxok;
-	u64int	txer;
-	u32int	rxer;
-	u16int	misspkt;
-	u16int	fae;
-	u32int	tx1col;
-	u32int	txmcol;
-	u64int	rxokph;
-	u64int	rxokbrd;
-	u32int	rxokmu;
-	u16int	txabt;
-	u16int	txundrn;
+	uint64_t	txok;
+	uint64_t	rxok;
+	uint64_t	txer;
+	uint32_t	rxer;
+	uint16_t	misspkt;
+	uint16_t	fae;
+	uint32_t	tx1col;
+	uint32_t	txmcol;
+	uint64_t	rxokph;
+	uint64_t	rxokbrd;
+	uint32_t	rxokmu;
+	uint16_t	txabt;
+	uint16_t	txundrn;
 };
 
 enum {						/* Variants */
@@ -308,8 +308,8 @@ static Ctlr* rtl8169ctlrtail;
 #define csr16r(c, r)	(ins((c)->port+(r)))
 #define csr32r(c, r)	(inl((c)->port+(r)))
 #define csr8w(c, r, b)	(outb((c)->port+(r), (u8int)(b)))
-#define csr16w(c, r, w)	(outs((c)->port+(r), (u16int)(w)))
-#define csr32w(c, r, l)	(outl((c)->port+(r), (u32int)(l)))
+#define csr16w(c, r, w)	(outs((c)->port+(r), (uint16_t)(w)))
+#define csr32w(c, r, l)	(outl((c)->port+(r), (uint32_t)(l)))
 
 static int
 rtl8169miimir(Ctlr* ctlr, int pa, int ra)
@@ -576,7 +576,7 @@ rtl8169halt(Ctlr* ctlr)
 static int
 rtl8169reset(Ctlr* ctlr)
 {
-	u32int r;
+	uint32_t r;
 	int timeo;
 
 	/*
@@ -632,10 +632,10 @@ static int
 rtl8169init(Ether* edev)
 {
 	int i;
-	u32int r;
+	uint32_t r;
 	Block *bp;
 	Ctlr *ctlr;
-	u8int cplusc;
+	uint8_t cplusc;
 
 	ctlr = edev->ctlr;
 	ilock(&ctlr->ilock);
@@ -953,7 +953,7 @@ rtl8169receive(Ether* edev)
 	int rdh;
 	Block *bp;
 	Ctlr *ctlr;
-	u32int control;
+	uint32_t control;
 
 	ctlr = edev->ctlr;
 
@@ -1024,7 +1024,7 @@ rtl8169interrupt(Ureg*, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
-	u32int isr;
+	uint32_t isr;
 
 	edev = arg;
 	ctlr = edev->ctlr;
@@ -1149,7 +1149,7 @@ rtl8169pci(void)
 static int
 rtl8169pnp(Ether* edev)
 {
-	u32int r;
+	uint32_t r;
 	Ctlr *ctlr;
 	uint8_t ea[Eaddrlen];
 

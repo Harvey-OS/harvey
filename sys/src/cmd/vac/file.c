@@ -44,7 +44,7 @@ struct VacFile
 	int		partial;	/* file was never really open */
 	int		removed;	/* file has been removed */
 	int		dirty;	/* dir is dirty with respect to meta data in block */
-	u32int	boff;		/* block offset within msource for this file's metadata */
+	uint32_t	boff;		/* block offset within msource for this file's metadata */
 	VacDir	dir;		/* metadata for this file */
 	VacFile	*up;		/* parent file */
 	VacFile	*next;	/* sibling */
@@ -398,7 +398,7 @@ dirlookup(VacFile *f, int8_t *elem)
 	VtBlock *b;
 	VtFile *meta;
 	VacFile *ff;
-	u32int bo, nb;
+	uint32_t bo, nb;
 
 	meta = f->msource;
 	b = nil;
@@ -440,7 +440,8 @@ Err:
  * f is locked.
  */
 static VtFile *
-fileopensource(VacFile *f, u32int offset, u32int gen, int dir, uint mode)
+fileopensource(VacFile *f, uint32_t offset, uint32_t gen, int dir,
+	       uint mode)
 {
 	VtFile *r;
 
@@ -591,7 +592,7 @@ Err:
  * Extract the score for the bn'th block in f.
  */
 int
-vacfileblockscore(VacFile *f, u32int bn, u8int *score)
+vacfileblockscore(VacFile *f, uint32_t bn, uint8_t *score)
 {
 	VtFile *s;
 	uint64_t size;
@@ -847,7 +848,7 @@ vderead(VacDirEnum *vde, VacDir *de)
 {
 	int ret;
 	VacFile *f;
-	u32int nb;
+	uint32_t nb;
 
 	f = vde->file;
 	if(filerlock(f) < 0)
@@ -947,10 +948,10 @@ vdeclose(VacDirEnum *vde)
  * The caller must have filemetalock'ed f and have
  * vtfilelock'ed f->up->msource.
  */
-static u32int
-filemetaalloc(VacFile *fp, VacDir *dir, u32int start)
+static uint32_t
+filemetaalloc(VacFile *fp, VacDir *dir, uint32_t start)
 {
-	u32int nb, bo;
+	uint32_t nb, bo;
 	VtBlock *b;
 	MetaBlock mb;
 	int nn;
@@ -1038,7 +1039,7 @@ filemetaflush(VacFile *f, int8_t *oelem)
 	MetaEntry me, me2;
 	VacFile *fp;
 	VtBlock *b;
-	u32int bo;
+	uint32_t bo;
 
 	if(!f->dirty)
 		return 0;
@@ -1254,7 +1255,7 @@ vacfilecreate(VacFile *fp, int8_t *elem, uint32_t mode)
 	VacDir *dir;
 	VtFile *pr, *r, *mr;
 	int type;
-	u32int bo;
+	uint32_t bo;
 
 	if(filelock(fp) < 0)
 		return nil;
@@ -1531,8 +1532,8 @@ vacfilesetdir(VacFile *f, VacDir *dir)
 {
 	VacFile *ff;
 	int8_t *oelem;
-	u32int mask;
-	u64int size;
+	uint32_t mask;
+	uint64_t size;
 
 	/* can not set permissions for the root */
 	if(vacfileisroot(f)){
@@ -1634,7 +1635,7 @@ Err:
  * Set the qid space.
  */
 int
-vacfilesetqidspace(VacFile *f, u64int offset, u64int max)
+vacfilesetqidspace(VacFile *f, uint64_t offset, uint64_t max)
 {
 	int ret;
 
@@ -1663,7 +1664,7 @@ vacfilesetqidspace(VacFile *f, u64int offset, u64int max)
 static int
 filecheckempty(VacFile *f)
 {
-	u32int i, n;
+	uint32_t i, n;
 	VtBlock *b;
 	MetaBlock mb;
 	VtFile *r;
@@ -1806,7 +1807,7 @@ vacfsopen(VtConn *z, int8_t *file, int mode, int ncache)
 }
 
 VacFs*
-vacfsopenscore(VtConn *z, u8int *score, int mode, int ncache)
+vacfsopenscore(VtConn *z, uint8_t *score, int mode, int ncache)
 {
 	VacFs *fs;
 	int n;
@@ -1883,7 +1884,7 @@ vacfsgetblocksize(VacFs *fs)
 }
 
 int
-vacfsgetscore(VacFs *fs, u8int *score)
+vacfsgetscore(VacFs *fs, uint8_t *score)
 {
 	memmove(score, fs->score, VtScoreSize);
 	return 0;

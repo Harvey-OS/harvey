@@ -93,17 +93,17 @@ Bad:
 		if(!(l->state&BsAlloc) || l->state & ~BsMask)
 			goto Bad;
 		if(l->state&BsClosed){
-			if(l->epochClose == ~(u32int)0)
+			if(l->epochClose == ~(uint32_t)0)
 				goto Bad;
 		}else{
-			if(l->epochClose != ~(u32int)0)
+			if(l->epochClose != ~(uint32_t)0)
 				goto Bad;
 		}
 	}
 	return 1;
 }
 
-u32int
+uint32_t
 globalToLocal(uint8_t score[VtScoreSize])
 {
 	int i;
@@ -116,7 +116,7 @@ globalToLocal(uint8_t score[VtScoreSize])
 }
 
 void
-localToGlobal(u32int addr, uint8_t score[VtScoreSize])
+localToGlobal(uint32_t addr, uint8_t score[VtScoreSize])
 {
 	memset(score, 0, VtScoreSize-4);
 	U32PUT(score+VtScoreSize-4, addr);
@@ -189,7 +189,7 @@ entryType(Entry *e)
 void
 superPack(Super *s, uint8_t *p)
 {
-	u32int t32;
+	uint32_t t32;
 
 	memset(p, 0, SuperSize);
 	U32PUT(p, SuperMagic);

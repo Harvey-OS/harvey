@@ -49,7 +49,7 @@ void vac(VacFile*, VacFile*, int8_t*, Dir*);
 void vacstdin(VacFile*, int8_t*);
 VacFile *recentarchive(VacFs*, int8_t*);
 
-static u64int unittoull(int8_t*);
+static uint64_t unittoull(int8_t*);
 static void warn(int8_t *fmt, ...);
 static void removevacfile(void);
 
@@ -684,13 +684,13 @@ vacmerge(VacFile *fp, int8_t *name)
 	return 0;
 }
 
-#define TWID64	((u64int)~(u64int)0)
+#define TWID64	((uint64_t)~(uint64_t)0)
 
-static u64int
+static uint64_t
 unittoull(int8_t *s)
 {
 	int8_t *es;
-	u64int n;
+	uint64_t n;
 
 	if(s == nil)
 		return TWID64;

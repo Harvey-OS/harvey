@@ -16,7 +16,7 @@
 static int
 cpuidinit(void)
 {
-	u32int eax, info[4];
+	uint32_t eax, info[4];
 
 	/*
 	 * Standard CPUID functions.
@@ -47,7 +47,7 @@ cpuidinit(void)
 }
 
 static int
-cpuidinfo(u32int eax, u32int ecx, u32int info[4])
+cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 {
 	if(m->ncpuinfos == 0 && cpuidinit() == 0)
 		return 0;
@@ -65,11 +65,11 @@ cpuidinfo(u32int eax, u32int ecx, u32int info[4])
 }
 
 static int64_t
-cpuidhz(u32int info[2][4])
+cpuidhz(uint32_t info[2][4])
 {
 	int f, r;
 	int64_t hz;
-	u64int msr;
+	uint64_t msr;
 
 	if(memcmp(&info[0][1], "GenuntelineI", 12) == 0){
 		switch(info[1][0] & 0x0fff3ff0){
@@ -198,7 +198,7 @@ void
 cpuiddump(void)
 {
 	int i;
-	u32int info[4];
+	uint32_t info[4];
 
 	if(!DBGFLG)
 		return;
@@ -222,7 +222,7 @@ int64_t
 archhz(void)
 {
 	int64_t hz;
-	u32int info[2][4];
+	uint32_t info[2][4];
 
 	if(!cpuidinfo(0, 0, info[0]) || !cpuidinfo(1, 0, info[1]))
 		return 0;
@@ -237,7 +237,7 @@ archhz(void)
 int
 archmmu(void)
 {
-	u32int info[4];
+	uint32_t info[4];
 
 	/*
 	 * Should the check for m->machno != 0 be here
@@ -312,9 +312,9 @@ fmtL(Fmt* f)
 static int
 fmtR(Fmt* f)
 {
-	u64int r;
+	uint64_t r;
 
-	r = va_arg(f->args, u64int);
+	r = va_arg(f->args, uint64_t);
 
 	return fmtprint(f, "%#16.16llux", r);
 }
@@ -323,9 +323,9 @@ fmtR(Fmt* f)
 static int
 fmtW(Fmt *f)
 {
-	u64int va;
+	uint64_t va;
 
-	va = va_arg(f->args, u64int);
+	va = va_arg(f->args, uint64_t);
 	return fmtprint(f, "%#ullx=0x[%ullx][%ullx][%ullx][%ullx][%ullx]", va,
 		PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
 		va & ((1<<PGSHFT)-1));
@@ -362,7 +362,7 @@ archidle(void)
 void
 microdelay(int microsecs)
 {
-	u64int r, t;
+	uint64_t r, t;
 
 	r = rdtsc();
 	for(t = r + m->cpumhz*microsecs; r < t; r = rdtsc())
@@ -372,7 +372,7 @@ microdelay(int microsecs)
 void
 millidelay(int millisecs)
 {
-	u64int r, t;
+	uint64_t r, t;
 
 	r = rdtsc();
 	for(t = r + m->cpumhz*1000ull*millisecs; r < t; r = rdtsc())

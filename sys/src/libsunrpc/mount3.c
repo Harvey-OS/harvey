@@ -228,7 +228,7 @@ nfsMount3RMntUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3RMnt *x)
 	case 0:
 		if(sunVarOpaqueUnpack(a, ea, &a, &x->handle, &x->len, NfsMount3MaxHandleSize) < 0) goto Err;
 		if(sunUint32Unpack(a, ea, &a, &x->nauth) < 0) goto Err;
-		x->auth = (u32int*)a;
+		x->auth = (uint32_t*)a;
 		for(i=0; i<x->nauth; i++)
 			if(sunUint32Unpack(a, ea, &a, &x->auth[i]) < 0) goto Err;
 		break;
@@ -359,7 +359,7 @@ nfsMount3RDumpUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
 	int i;
 	uint8_t *oa;
 	u1int u1;
-	u32int u32;
+	uint32_t u32;
 
 	oa = a;
 	for(i=0;; i++){
@@ -589,7 +589,7 @@ nfsMount3RExportUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
 	int ng, ne;
 	uint8_t *oa;
 	u1int u1;
-	u32int u32;
+	uint32_t u32;
 
 	oa = a;
 	ng = 0;
@@ -624,7 +624,7 @@ nfsMount3ExportGroupSize(uint8_t *a)
 {
 	int ng;
 	u1int have;
-	u32int n;
+	uint32_t n;
 
 	a += 4;
 	sunUint32Unpack(a, a+4, &a, &n);

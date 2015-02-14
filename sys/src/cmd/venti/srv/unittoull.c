@@ -9,13 +9,13 @@
 
 #include "stdinc.h"
 
-#define TWID64	((u64int)~(u64int)0)
+#define TWID64	((uint64_t)~(uint64_t)0)
 
-u64int
+uint64_t
 unittoull(int8_t *s)
 {
 	int8_t *es;
-	u64int n;
+	uint64_t n;
 
 	if(s == nil)
 		return TWID64;

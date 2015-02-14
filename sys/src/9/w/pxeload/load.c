@@ -21,8 +21,8 @@ Mach* m;
 uint32_t* mach0pdb;
 Mach* mach0m;
 Segdesc* mach0gdt;
-u32int memstart;
-u32int memend;
+uint32_t memstart;
+uint32_t memend;
 
 int vflag = 0;
 int debug = 0;

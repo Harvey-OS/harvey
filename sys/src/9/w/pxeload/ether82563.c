@@ -454,7 +454,7 @@ struct Ctlr {
 	uint8_t	ra[Eaddrlen];		/* receive address */
 	int	type;
 
-	u32int*	nic;
+	uint32_t*	nic;
 	Lock	imlock;
 	int	im;			/* interrupt mask */
 
@@ -720,7 +720,7 @@ static void
 i82563init(Ether* edev)
 {
 	Ctlr *ctlr;
-	u32int r, rctl;
+	uint32_t r, rctl;
 
 	ctlr = edev->ctlr;
 

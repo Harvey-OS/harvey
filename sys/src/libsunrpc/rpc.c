@@ -53,7 +53,7 @@ enum
 SunStatus
 sunRpcPack(uint8_t *a, uint8_t *ea, uint8_t **pa, SunRpc *rpc)
 {
-	u32int x;
+	uint32_t x;
 
 	if(sunUint32Pack(a, ea, &a, &rpc->xid) < 0)
 		goto Err;
@@ -150,7 +150,7 @@ sunRpcSize(SunRpc *rpc)
 SunStatus
 sunRpcUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, SunRpc *rpc)
 {
-	u32int x;
+	uint32_t x;
 
 	memset(rpc, 0, sizeof *rpc);
 	if(sunUint32Unpack(a, ea, &a, &rpc->xid) < 0
@@ -310,7 +310,7 @@ Err:
 int
 sunEnumPack(uint8_t *a, uint8_t *ea, uint8_t **pa, int *e)
 {
-	u32int x;
+	uint32_t x;
 
 	x = *e;
 	return sunUint32Pack(a, ea, pa, &x);
@@ -319,16 +319,16 @@ sunEnumPack(uint8_t *a, uint8_t *ea, uint8_t **pa, int *e)
 int
 sunUint1Pack(uint8_t *a, uint8_t *ea, uint8_t **pa, u1int *u)
 {
-	u32int x;
+	uint32_t x;
 
 	x = *u;
 	return sunUint32Pack(a, ea, pa, &x);
 }
 
 int
-sunUint32Pack(uint8_t *a, uint8_t *ea, uint8_t **pa, u32int *u)
+sunUint32Pack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint32_t *u)
 {
-	u32int x;
+	uint32_t x;
 
 	if(ea-a < 4)
 		goto Err;
@@ -349,7 +349,7 @@ Err:
 int
 sunEnumUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, int *e)
 {
-	u32int x;
+	uint32_t x;
 	if(sunUint32Unpack(a, ea, pa, &x) < 0)
 		return -1;
 	*e = x;
@@ -359,7 +359,7 @@ sunEnumUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, int *e)
 int
 sunUint1Unpack(uint8_t *a, uint8_t *ea, uint8_t **pa, u1int *u)
 {
-	u32int x;
+	uint32_t x;
 	if(sunUint32Unpack(a, ea, pa, &x) < 0 || (x!=0 && x!=1)){
 		*pa = ea;
 		return -1;
@@ -369,9 +369,9 @@ sunUint1Unpack(uint8_t *a, uint8_t *ea, uint8_t **pa, u1int *u)
 }
 
 int
-sunUint32Unpack(uint8_t *a, uint8_t *ea, uint8_t **pa, u32int *u)
+sunUint32Unpack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint32_t *u)
 {
-	u32int x;
+	uint32_t x;
 
 	if(ea-a < 4)
 		goto Err;
@@ -389,9 +389,9 @@ Err:
 }
 
 int
-sunUint64Unpack(uint8_t *a, uint8_t *ea, uint8_t **pa, u64int *u)
+sunUint64Unpack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint64_t *u)
 {
-	u32int x, y;
+	uint32_t x, y;
 
 	if(sunUint32Unpack(a, ea, &a, &x) < 0
 	|| sunUint32Unpack(a, ea, &a, &y) < 0)
@@ -405,9 +405,9 @@ Err:
 }
 
 int
-sunUint64Pack(uint8_t *a, uint8_t *ea, uint8_t **pa, u64int *u)
+sunUint64Pack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint64_t *u)
 {
-	u32int x, y;
+	uint32_t x, y;
 
 	x = *u >> 32;
 	y = *u;
@@ -429,10 +429,10 @@ sunStringSize(int8_t *s)
 
 int
 sunStringUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, int8_t **s,
-		u32int max)
+		uint32_t max)
 {
 	uint8_t *dat;
-	u32int n;
+	uint32_t n;
 
 	if(sunVarOpaqueUnpack(a, ea, pa, &dat, &n, max) < 0)
 		goto Err;
@@ -446,23 +446,23 @@ Err:
 }
 
 int
-sunStringPack(uint8_t *a, uint8_t *ea, uint8_t **pa, int8_t **s, u32int max)
+sunStringPack(uint8_t *a, uint8_t *ea, uint8_t **pa, int8_t **s, uint32_t max)
 {
-	u32int n;
+	uint32_t n;
 
 	n = strlen(*s);
 	return sunVarOpaquePack(a, ea, pa, (uint8_t**)s, &n, max);
 }
 
 uint
-sunVarOpaqueSize(u32int n)
+sunVarOpaqueSize(uint32_t n)
 {
 	return (4+n+3) & ~3;
 }
 
 int
 sunVarOpaquePack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint8_t **dat,
-		 u32int *ndat, u32int max)
+		 uint32_t *ndat, uint32_t max)
 {
 	if(*ndat > max || sunUint32Pack(a, ea, &a, ndat) < 0
 	|| sunFixedOpaquePack(a, ea, &a, *dat, *ndat) < 0)
@@ -477,7 +477,7 @@ Err:
 
 int
 sunVarOpaqueUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint8_t **dat,
-		   u32int *ndat, u32int max)
+		   uint32_t *ndat, uint32_t max)
 {
 	if(sunUint32Unpack(a, ea, &a, ndat) < 0
 	|| *ndat > max)
@@ -495,14 +495,14 @@ Err:
 }
 
 uint
-sunFixedOpaqueSize(u32int n)
+sunFixedOpaqueSize(uint32_t n)
 {
 	return (n+3) & ~3;
 }
 
 int
 sunFixedOpaquePack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint8_t *dat,
-		   u32int n)
+		   uint32_t n)
 {
 	uint nn;
 
@@ -523,7 +523,7 @@ Err:
 
 int
 sunFixedOpaqueUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, uint8_t *dat,
-		     u32int n)
+		     uint32_t n)
 {
 	uint nn;
 

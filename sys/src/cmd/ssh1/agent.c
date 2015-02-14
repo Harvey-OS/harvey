@@ -22,7 +22,7 @@ typedef struct Achan Achan;
 struct Achan
 {
 	int open;
-	u32int chan;	/* of remote */
+	uint32_t chan;	/* of remote */
 	uint8_t lbuf[4];
 	uint nlbuf;
 	uint len;
@@ -205,7 +205,7 @@ void handlefullmsg(Conn*, Achan*);
 void
 handleagentmsg(Msg *m)
 {
-	u32int chan, len;
+	uint32_t chan, len;
 	int n;
 	Achan *a;
 
@@ -251,7 +251,7 @@ void
 handlefullmsg(Conn *c, Achan *a)
 {
 	int i;
-	u32int chan, len, n, rt;
+	uint32_t chan, len, n, rt;
 	uint8_t type;
 	Msg *m, mm;
 	Msg *r;
@@ -386,7 +386,7 @@ void
 handleagentopen(Msg *m)
 {
 	int i;
-	u32int remote;
+	uint32_t remote;
 
 	assert(m->type == SSH_SMSG_AGENT_OPEN);
 	remote = getlong(m);
@@ -417,7 +417,7 @@ handleagentopen(Msg *m)
 void
 handleagentieof(Msg *m)
 {
-	u32int local;
+	uint32_t local;
 
 	assert(m->type == SSH_MSG_CHANNEL_INPUT_EOF);
 	local = getlong(m);
@@ -442,7 +442,7 @@ handleagentieof(Msg *m)
 void
 handleagentoclose(Msg *m)
 {
-	u32int local;
+	uint32_t local;
 
 	assert(m->type == SSH_MSG_CHANNEL_OUTPUT_CLOSED);
 	local = getlong(m);

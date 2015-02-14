@@ -121,7 +121,7 @@ int8_t hex[] = {
 
 /* big-endian ... */
 void
-hex8(u32int l, int8_t *c)
+hex8(uint32_t l, int8_t *c)
 {
 	int i;
 	for(i = 2; i; i--){
@@ -131,7 +131,7 @@ hex8(u32int l, int8_t *c)
 }
 
 void
-hex16(u32int l, int8_t *c)
+hex16(uint32_t l, int8_t *c)
 {
 	int i;
 	for(i = 4; i; i--){
@@ -141,7 +141,7 @@ hex16(u32int l, int8_t *c)
 }
 
 void
-hex32(u32int l, int8_t *c)
+hex32(uint32_t l, int8_t *c)
 {
 	int i;
 	for(i = 8; i; i--){
@@ -151,7 +151,7 @@ hex32(u32int l, int8_t *c)
 }
 
 void
-hex64(u64int l, int8_t *c)
+hex64(uint64_t l, int8_t *c)
 {
 	hex32(l>>32, c);
 	hex32(l, &c[8]);
@@ -169,8 +169,8 @@ logfull(void)
 	return (pw - pr) >= logsize;
 }
 
-static u64int 
-idx(u64int f)
+static uint64_t 
+idx(uint64_t f)
 {
 	return f & logmask;
 }
@@ -617,7 +617,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 				cp[0] = eventname[pl->info];
 				cp ++;
 				*cp++ = ' ';
-				hex64((u64int)pl->pc, cp);
+				hex64((uint64_t)pl->pc, cp);
 				cp[16] = ' ';
 				cp += 17;
 				hex64(pl->ticks, cp);

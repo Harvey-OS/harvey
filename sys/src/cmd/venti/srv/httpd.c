@@ -1108,7 +1108,7 @@ xmlaname(Hio *hout, int8_t *v, int8_t *tag)
 }
 
 void
-xmlscore(Hio *hout, u8int *v, int8_t *tag)
+xmlscore(Hio *hout, uint8_t *v, int8_t *tag)
 {
 	if(scorecmp(zeroscore, v) == 0)
 		return;
@@ -1124,13 +1124,13 @@ xmlsealed(Hio *hout, int v, int8_t *tag)
 }
 
 void
-xmlu32int(Hio *hout, u32int v, int8_t *tag)
+xmlu32int(Hio *hout, uint32_t v, int8_t *tag)
 {
 	hprint(hout, " %s=\"%ud\"", tag, v);
 }
 
 void
-xmlu64int(Hio *hout, u64int v, int8_t *tag)
+xmlu64int(Hio *hout, uint64_t v, int8_t *tag)
 {
 	hprint(hout, " %s=\"%llud\"", tag, v);
 }

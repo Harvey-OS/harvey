@@ -606,7 +606,7 @@ cycles(uint64_t* t)
 void
 delay(int millisecs)
 {
-	u64int r, t;
+	uint64_t r, t;
 
 	if(millisecs <= 0)
 		millisecs = 1;

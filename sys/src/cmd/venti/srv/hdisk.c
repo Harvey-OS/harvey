@@ -550,7 +550,7 @@ debugamap(HConnect *c)
 }
 
 static void
-debugread(HConnect *c, u8int *score)
+debugread(HConnect *c, uint8_t *score)
 {
 	int type;
 	Lump *u;
@@ -558,11 +558,11 @@ debugread(HConnect *c, u8int *score)
 	IEntry ie;
 	int i;
 	Arena *arena;
-	u64int aa;
+	uint64_t aa;
 	ZBlock *zb;
 	Clump cl;
 	int64_t off;
-	u8int sc[VtScoreSize];
+	uint8_t sc[VtScoreSize];
 
 	if(scorecmp(score, zeroscore) == 0){
 		hprint(&c->hout, "zero score\n");
@@ -668,7 +668,7 @@ int
 hdebug(HConnect *c)
 {
 	int8_t *scorestr, *op;
-	u8int score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 	
 	if(hsethtml(c) < 0)
 		return -1;

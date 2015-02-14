@@ -78,7 +78,7 @@ chat(int8_t *fmt, ...)
 
 
 int
-ereadpart(Part *p, u64int offset, u8int *buf, u32int count)
+ereadpart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 {
 	if(readpart(p, offset, buf, count) != count){
 		chat("%T readpart %s at %#llux+%ud: %r\n", p->name, offset, count);
@@ -88,7 +88,7 @@ ereadpart(Part *p, u64int offset, u8int *buf, u32int count)
 }
 		
 int
-ewritepart(Part *p, u64int offset, u8int *buf, u32int count)
+ewritepart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 {
 	if(writepart(p, offset, buf, count) != count || flushpart(p) < 0){
 		chat("%T writepart %s at %#llux+%ud: %r\n", p->name, offset, count);

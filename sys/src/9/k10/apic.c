@@ -79,22 +79,22 @@ enum {						/* Tdc */
 	DivX1		= 0x0000000b,		/* Divide by 1 */
 };
 
-static u8int* apicbase;
+static uint8_t* apicbase;
 static int apmachno = 1;
 
 Apic	xlapic[Napic];
 Mach	*xlapicmachptr[Napic];		/* maintained, but unused */
 
-static u32int
+static uint32_t
 apicrget(int r)
 {
-	return *((u32int*)(apicbase+r));
+	return *((uint32_t*)(apicbase+r));
 }
 
 static void
-apicrput(int r, u32int data)
+apicrput(int r, uint32_t data)
 {
-	*((u32int*)(apicbase+r)) = data;
+	*((uint32_t*)(apicbase+r)) = data;
 }
 
 int
@@ -198,8 +198,8 @@ int
 apiconline(void)
 {
 	Apic *apic;
-	u64int tsc;
-	u32int dfr, ver;
+	uint64_t tsc;
+	uint32_t dfr, ver;
 	int apicno, nlvt;
 
 	if(apicbase == nil)
@@ -379,7 +379,7 @@ void
 apicsipi(int apicno, uintmem pa)
 {
 	int i;
-	u32int crhi, crlo;
+	uint32_t crhi, crlo;
 
 	/*
 	 * SIPI - Start-up IPI.
@@ -392,7 +392,7 @@ apicsipi(int apicno, uintmem pa)
 	apicrput(Iclo, DSnone|TMlevel|MTir);
 	millidelay(10);
 
-	crlo = DSnone|TMedge|MTsipi|((u32int)pa/(4*KiB));
+	crlo = DSnone|TMedge|MTsipi|((uint32_t)pa/(4*KiB));
 	for(i = 0; i < 2; i++){
 		apicrput(Ichi, crhi);
 		apicrput(Iclo, crlo);

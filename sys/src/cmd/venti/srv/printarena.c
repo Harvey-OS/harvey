@@ -19,10 +19,10 @@ usage(void)
 }
 
 static void
-rdarena(Arena *arena, u64int offset)
+rdarena(Arena *arena, uint64_t offset)
 {
-	u64int a, aa, e;
-	u32int magic;
+	uint64_t a, aa, e;
+	uint32_t magic;
 	Clump cl;
 	uint8_t score[VtScoreSize];
 	ZBlock *lump;
@@ -31,7 +31,7 @@ rdarena(Arena *arena, u64int offset)
 
 	a = arena->base;
 	e = arena->base + arena->size;
-	if(offset != ~(u64int)0) {
+	if(offset != ~(uint64_t)0) {
 		if(offset >= e-a)
 			sysfatal("bad offset %llud >= %llud",
 				offset, e-a);

@@ -305,7 +305,7 @@ fpunote(void)
 int8_t*
 xfpuxf(Ureg* ureg, void*)
 {
-	u32int mxcsr;
+	uint32_t mxcsr;
 	Fxsave *fpusave;
 	int8_t *m;
 
@@ -504,7 +504,7 @@ acfpunm(Ureg *ureg, void *p)
 void
 fpuinit(void)
 {
-	u64int r;
+	uint64_t r;
 	Fxsave *fxsave;
 	uint8_t buf[sizeof(Fxsave)+15];
 

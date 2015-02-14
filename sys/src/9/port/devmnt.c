@@ -105,7 +105,7 @@ mntreset(void)
  * Version is not multiplexed: message sent only once per connection.
  */
 usize
-mntversion(Chan *c, u32int msize, int8_t *version, usize returnlen)
+mntversion(Chan *c, uint32_t msize, int8_t *version, usize returnlen)
 {
 	Fcall f;
 	uint8_t *msg;

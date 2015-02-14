@@ -341,7 +341,7 @@ fprint(2, "look for %lud at %lud\n", startoff, startoff-off9660);
 }
 
 void
-iso9660labels(Disk *disk, uint8_t *buf, void (*write)(int, u32int))
+iso9660labels(Disk *disk, uint8_t *buf, void (*write)(int, uint32_t))
 {
 	uint32_t sb, eb, bn, lb, llb;
 	Label l;
@@ -365,7 +365,7 @@ iso9660labels(Disk *disk, uint8_t *buf, void (*write)(int, u32int))
 	l.state = BsAlloc;
 	l.tag = Tag;
 	l.epoch = 1;
-	l.epochClose = ~(u32int)0;
+	l.epochClose = ~(uint32_t)0;
 	for(bn=sb; bn<eb; bn++){
 		lb = bn/lpb;
 		if(lb != llb){

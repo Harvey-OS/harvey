@@ -943,7 +943,7 @@ fsysClrp(Fsys* fsys, int argc, int8_t* argv[])
 }
 
 static int
-fsysEsearch1(File* f, int8_t* s, u32int elo)
+fsysEsearch1(File* f, int8_t* s, uint32_t elo)
 {
 	int n, r;
 	DirEntry de;
@@ -998,7 +998,7 @@ fsysEsearch1(File* f, int8_t* s, u32int elo)
 }
 
 static int
-fsysEsearch(Fs* fs, int8_t* path, u32int elo)
+fsysEsearch(Fs* fs, int8_t* path, uint32_t elo)
 {
 	int n;
 	File *f;
@@ -1321,7 +1321,7 @@ fsckClri(Fsck *fsck, int8_t *name, MetaBlock *mb, int i, Block *b)
 }
 
 static void
-fsckClose(Fsck *fsck, Block *b, u32int epoch)
+fsckClose(Fsck *fsck, Block *b, uint32_t epoch)
 {
 	Label l;
 

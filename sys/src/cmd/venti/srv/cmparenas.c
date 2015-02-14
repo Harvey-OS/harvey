@@ -95,7 +95,7 @@ printheader(int8_t *name, ArenaHead *head, int fd)
 	hi = head->size - head->blocksize;
 	clumpmax = head->blocksize / ClumpInfoSize;
 	if(clumpmax > 0)
-		lo = hi - (u64int)arena.diskstats.clumps/clumpmax * head->blocksize;
+		lo = hi - (uint64_t)arena.diskstats.clumps/clumpmax * head->blocksize;
 	else
 		lo = hi;
 	fprint(2, "\t%llx-%llx: clumps (%llx)\n", lo, hi, hi - lo);
@@ -111,8 +111,8 @@ cmparena(int8_t *name, int64_t len)
 {
 	ArenaHead head;
 	DigestState s;
-	u64int n, e;
-	u32int bs;
+	uint64_t n, e;
+	uint32_t bs;
 	int i, j;
 	int8_t buf[20];
 

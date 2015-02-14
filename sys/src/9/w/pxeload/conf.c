@@ -257,7 +257,7 @@ readlsconf(void)
 	int i, n;
 	uint8_t *p;
 	MMap *map;
-	u64int addr, len;
+	uint64_t addr, len;
 
 	p = (uint8_t*)ROUND((uint32_t)end, BY2PG);
 	for(n = 0; n < 20; n++){
@@ -302,8 +302,8 @@ readlsconf(void)
 					print("ACPI NVS Memory");
 				break;
 			}
-			addr = (((u64int)map->base[1])<<32)|map->base[0];
-			len = (((u64int)map->length[1])<<32)|map->length[0];
+			addr = (((uint64_t)map->base[1])<<32)|map->base[0];
+			len = (((uint64_t)map->length[1])<<32)|map->length[0];
 			if(vflag)
 				print("\n\t0x%16.16lluX 0x%16.16lluX (%llud)\n",
 					addr, addr+len, len);

@@ -88,10 +88,10 @@ i8254set(int port, int hz)
 }
 
 int64_t
-i8254hz(u32int info[2][4])
+i8254hz(uint32_t info[2][4])
 {
-	u32int ax;
-	u64int a, b;
+	uint32_t ax;
+	uint64_t a, b;
 	int aamcycles, incr, loops, x, y;
 
 	/*

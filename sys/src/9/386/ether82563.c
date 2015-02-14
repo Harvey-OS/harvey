@@ -332,12 +332,12 @@ enum {					/* Receive Delay Timer Ring */
 };
 
 typedef struct Rd {			/* Receive Descriptor */
-	u32int	addr[2];
-	u16int	length;
-	u16int	checksum;
-	u8int	status;
-	u8int	errors;
-	u16int	special;
+	uint32_t	addr[2];
+	uint16_t	length;
+	uint16_t	checksum;
+	uint8_t	status;
+	uint8_t	errors;
+	uint16_t	special;
 } Rd;
 
 enum {					/* Rd status */
@@ -361,9 +361,9 @@ enum {					/* Rd errors */
 };
 
 typedef struct {			/* Transmit Descriptor */
-	u32int	addr[2];		/* Data */
-	u32int	control;
-	u32int	status;
+	uint32_t	addr[2];		/* Data */
+	uint32_t	control;
+	uint32_t	status;
 } Td;
 
 enum {					/* Tdesc control */
@@ -393,8 +393,8 @@ enum {					/* Tdesc status */
 };
 
 typedef struct {
-	u16int	*reg;
-	u32int	*reg32;
+	uint16_t	*reg;
+	uint32_t	*reg32;
 	int	sz;
 } Flash;
 

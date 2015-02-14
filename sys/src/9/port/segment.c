@@ -30,7 +30,7 @@ segppn(Segment *s, uintmem pa)
  * if base is aligned to 1G and size is >= 1G and we support 1G pages.
  */
 Segment *
-newseg(int type, uintptr base, u64int size)
+newseg(int type, uintptr base, uint64_t size)
 {
 	Segment *s;
 	int mapsize;

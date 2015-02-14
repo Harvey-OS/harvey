@@ -33,7 +33,7 @@ pie(IEntry *ie, int8_t c)
 }
 
 static int
-checkbucket(Index *ix, u32int buck, IBucket *ib)
+checkbucket(Index *ix, uint32_t buck, IBucket *ib)
 {
 	ISect *is;
 	DBlock *eb;
@@ -48,7 +48,9 @@ checkbucket(Index *ix, u32int buck, IBucket *ib)
 		return -1;
 	}
 	buck -= is->start;
-	eb = getdblock(is->part, is->blockbase + ((u64int)buck << is->blocklog), OREAD);
+	eb = getdblock(is->part,
+		       is->blockbase + ((uint64_t)buck << is->blocklog),
+		       OREAD);
 	if(eb == nil)
 		return -1;
 	unpackibucket(&eib, eb->data, is->bucketmagic);
@@ -110,14 +112,14 @@ checkbucket(Index *ix, u32int buck, IBucket *ib)
 }
 
 int
-checkindex(Index *ix, Part *part, u64int off, u64int clumps, int zero)
+checkindex(Index *ix, Part *part, uint64_t off, uint64_t clumps, int zero)
 {
 	IEStream *ies;
 	IBucket ib, zib;
 	ZBlock *z, *b;
-	u32int next, buck;
+	uint32_t next, buck;
 	int ok, bok;
-u64int found = 0;
+uint64_t found = 0;
 
 /* ZZZ make buffer size configurable */
 	b = alloczblock(ix->blocksize, 0, ix->blocksize);
@@ -176,7 +178,7 @@ out:
 int
 checkbloom(Bloom *b1, Bloom *b2, int fix)
 {
-	u32int *a1, *a2;
+	uint32_t *a1, *a2;
 	int i, n, extra, missing;
 
 	if(b1==nil && b2==nil)
@@ -191,8 +193,8 @@ checkbloom(Bloom *b1, Bloom *b2, int fix)
 		werrstr("bloom header mismatch");
 		return -1;
 	}
-	a1 = (u32int*)b1->data;
-	a2 = (u32int*)b2->data;
+	a1 = (uint32_t*)b1->data;
+	a2 = (uint32_t*)b2->data;
 	n = b1->size/4;
 	extra = 0;
 	missing = 0;

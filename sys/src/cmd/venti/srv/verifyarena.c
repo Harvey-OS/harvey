@@ -65,9 +65,9 @@ verifyarena(int8_t *name, int64_t len)
 	Arena arena;
 	ArenaHead head;
 	DigestState s;
-	u64int n, e;
-	u32int bs;
-	u8int score[VtScoreSize];
+	uint64_t n, e;
+	uint32_t bs;
+	uint8_t score[VtScoreSize];
 
 	fprint(2, "%T verify %s\n", name);
 

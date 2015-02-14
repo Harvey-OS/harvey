@@ -42,10 +42,10 @@ static int	growdepth(VtFile*, VtBlock*, VtEntry*, int);
 #define DEPTH(t)	((t)&VtTypeDepthMask)
 
 static VtFile *
-vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, u32int offset, int mode)
+vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, uint32_t offset, int mode)
 {
 	int epb;
-	u32int size;
+	uint32_t size;
 	VtEntry e;
 	VtFile *r;
 
@@ -116,7 +116,7 @@ vtfilealloc(VtCache *c, VtBlock *b, VtFile *p, u32int offset, int mode)
 }
 
 VtFile *
-vtfileroot(VtCache *c, u32int addr, int mode)
+vtfileroot(VtCache *c, uint32_t addr, int mode)
 {
 	VtFile *r;
 	VtBlock *b;
@@ -161,7 +161,7 @@ vtfilecreateroot(VtCache *c, int psize, int dsize, int type)
 }
 
 VtFile *
-vtfileopen(VtFile *r, u32int offset, int mode)
+vtfileopen(VtFile *r, uint32_t offset, int mode)
 {
 	uint32_t bn;
 	VtBlock *b;
@@ -193,11 +193,11 @@ _vtfilecreate(VtFile *r, int o, int psize, int dsize, int type)
 {
 	int i;
 	VtBlock *b;
-	u32int bn, size;
+	uint32_t bn, size;
 	VtEntry e;
 	int epb;
 	VtFile *rr;
-	u32int offset;
+	uint32_t offset;
 	
 	assert(ISLOCKED(r));
 	assert(psize <= VtMaxLumpSize);
@@ -398,7 +398,7 @@ shrinksize(VtFile *r, VtEntry *e, uint64_t size)
 }
 
 int
-vtfilesetsize(VtFile *r, u64int size)
+vtfilesetsize(VtFile *r, uint64_t size)
 {
 	int depth, edepth;
 	VtEntry e;
@@ -448,7 +448,7 @@ vtfilesetsize(VtFile *r, u64int size)
 }
 
 int
-vtfilesetdirsize(VtFile *r, u32int ds)
+vtfilesetdirsize(VtFile *r, uint32_t ds)
 {
 	uint64_t size;
 	int epb;
@@ -461,7 +461,7 @@ vtfilesetdirsize(VtFile *r, u32int ds)
 	return vtfilesetsize(r, size);
 }
 
-u32int
+uint32_t
 vtfilegetdirsize(VtFile *r)
 {
 	uint32_t ds;
@@ -672,7 +672,7 @@ shrinkdepth(VtFile *r, VtBlock *p, VtEntry *e, int depth)
 }
 
 static int
-mkindices(VtEntry *e, u32int bn, int *index)
+mkindices(VtEntry *e, uint32_t bn, int *index)
 {
 	int i, np;
 
@@ -691,7 +691,7 @@ mkindices(VtEntry *e, u32int bn, int *index)
 }
 	
 VtBlock *
-vtfileblock(VtFile *r, u32int bn, int mode)
+vtfileblock(VtFile *r, uint32_t bn, int mode)
 {
 	VtBlock *b, *bb;
 	int index[VtPointerDepth+1];
@@ -743,7 +743,7 @@ Err:
 }
 
 int
-vtfileblockscore(VtFile *r, u32int bn, uint8_t score[VtScoreSize])
+vtfileblockscore(VtFile *r, uint32_t bn, uint8_t score[VtScoreSize])
 {
 	VtBlock *b, *bb;
 	int index[VtPointerDepth+1];
@@ -837,7 +837,7 @@ static VtBlock*
 fileloadblock(VtFile *r, int mode)
 {
 	int8_t e[ERRMAX];
-	u32int addr;
+	uint32_t addr;
 	VtBlock *b;
 
 	switch(r->mode){
@@ -1111,7 +1111,7 @@ flushblock(VtCache *c, VtBlock *bb, uint8_t score[VtScoreSize], int ppb,
 	   int epb,
 	int type)
 {
-	u32int addr;
+	uint32_t addr;
 	VtBlock *b;
 	VtEntry e;
 	int i;
@@ -1193,7 +1193,7 @@ vtfileflush(VtFile *f)
 }
 
 int
-vtfileflushbefore(VtFile *r, u64int offset)
+vtfileflushbefore(VtFile *r, uint64_t offset)
 {
 	VtBlock *b, *bb;
 	VtEntry e;

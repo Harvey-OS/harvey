@@ -45,7 +45,7 @@ initindex(int8_t *name, ISect **sects, int n)
 	IFile f;
 	Index *ix;
 	ISect *is;
-	u32int last, blocksize, tabsize;
+	uint32_t last, blocksize, tabsize;
 	int i;
 
 	if(n <= 0){
@@ -118,10 +118,10 @@ fprint(2, "no mem\n");
 static int
 initindex1(Index *ix)
 {
-	u32int buckets;
+	uint32_t buckets;
 
-	ix->div = (((u64int)1 << 32) + ix->buckets - 1) / ix->buckets;
-	buckets = (((u64int)1 << 32) - 1) / ix->div + 1;
+	ix->div = (((uint64_t)1 << 32) + ix->buckets - 1) / ix->buckets;
+	buckets = (((uint64_t)1 << 32) - 1) / ix->div + 1;
 	if(buckets != ix->buckets){
 		seterr(ECorrupt, "inconsistent math for divisor and buckets in %s", ix->name);
 		return -1;
@@ -189,7 +189,7 @@ int
 parseindex(IFile *f, Index *ix)
 {
 	AMapN amn;
-	u32int v;
+	uint32_t v;
 	int8_t *s;
 
 	/*
@@ -252,8 +252,8 @@ newindex(int8_t *name, ISect **sects, int n)
 {
 	Index *ix;
 	AMap *smap;
-	u64int nb;
-	u32int div, ub, xb, start, stop, blocksize, tabsize;
+	uint64_t nb;
+	uint32_t div, ub, xb, start, stop, blocksize, tabsize;
 	int i, j;
 
 	if(n < 1){
@@ -303,21 +303,21 @@ newindex(int8_t *name, ISect **sects, int n)
 		}
 	}
 
-	if(nb >= ((u64int)1 << 32)){
+	if(nb >= ((uint64_t)1 << 32)){
 		fprint(2, "%s: index is 2^32 blocks or more; ignoring some of it\n",
 			argv0);
-		nb = ((u64int)1 << 32) - 1;
+		nb = ((uint64_t)1 << 32) - 1;
 	}
 
-	div = (((u64int)1 << 32) + nb - 1) / nb;
+	div = (((uint64_t)1 << 32) + nb - 1) / nb;
 	if(div < 100){
 		fprint(2, "%s: index divisor %d too coarse; "
 			"index larger than needed, ignoring some of it\n",
 			argv0, div);
 		div = 100;
-		nb = (((u64int)1 << 32) - 1) / (100 - 1);
+		nb = (((uint64_t)1 << 32) - 1) / (100 - 1);
 	}
-	ub = (((u64int)1 << 32) - 1) / div + 1;
+	ub = (((uint64_t)1 << 32) - 1) / div + 1;
 	if(ub > nb){
 		seterr(EBug, "index initialization math wrong");
 		return nil;
@@ -419,11 +419,11 @@ initisect(Part *part)
 }
 
 ISect*
-newisect(Part *part, u32int vers, int8_t *name, u32int blocksize,
-	 u32int tabsize)
+newisect(Part *part, uint32_t vers, int8_t *name, uint32_t blocksize,
+	 uint32_t tabsize)
 {
 	ISect *is;
-	u32int tabbase;
+	uint32_t tabbase;
 
 	is = MKZ(ISect);
 	if(is == nil)
@@ -457,7 +457,7 @@ newisect(Part *part, u32int vers, int8_t *name, u32int blocksize,
 static ISect*
 initisect1(ISect *is)
 {
-	u64int v;
+	uint64_t v;
 
 	is->buckmax = (is->blocksize - IBucketSize) / IEntrySize;
 	is->blocklog = u64log2(is->blocksize);
@@ -474,8 +474,8 @@ initisect1(ISect *is)
 		return nil;
 	}
 	is->tabsize = is->blockbase - is->tabbase;
-	v = is->part->size & ~(u64int)(is->blocksize - 1);
-	if(is->blockbase + (u64int)is->blocks * is->blocksize != v){
+	v = is->part->size & ~(uint64_t)(is->blocksize - 1);
+	if(is->blockbase + (uint64_t)is->blocks * is->blocksize != v){
 		seterr(ECorrupt, "invalid blocks in index section %s", is->name);
 		/* ZZZ what to do? 
 		freeisect(is);
@@ -554,10 +554,10 @@ freeindex(Index *ix)
 ZZZ question: should this distinguish between an arena
 filling up and real errors writing the clump?
  */
-u64int
-writeiclump(Index *ix, Clump *c, u8int *clbuf)
+uint64_t
+writeiclump(Index *ix, Clump *c, uint8_t *clbuf)
 {
-	u64int a;
+	uint64_t a;
 	int i;
 	IAddr ia;
 	AState as;
@@ -592,7 +592,7 @@ writeiclump(Index *ix, Clump *c, u8int *clbuf)
  * convert an arena index to an relative arena address
  */
 Arena*
-amapitoa(Index *ix, u64int a, u64int *aa)
+amapitoa(Index *ix, uint64_t a, uint64_t *aa)
 {
 	int i, r, l, m;
 
@@ -627,9 +627,10 @@ print("want arena %d for %llux\n", l, a);
  * convert an arena index to the bounds of the containing arena group.
  */
 Arena*
-amapitoag(Index *ix, u64int a, u64int *gstart, u64int *glimit, int *g)
+amapitoag(Index *ix, uint64_t a, uint64_t *gstart, uint64_t *glimit,
+	  int *g)
 {
-	u64int aa;
+	uint64_t aa;
 	Arena *arena;
 	
 	arena = amapitoa(ix, a, &aa);
@@ -659,12 +660,12 @@ iaddrcmp(IAddr *ia1, IAddr *ia2)
  * the bucket is locked by the DBlock lock.
  */
 int
-loadientry(Index *ix, u8int *score, int type, IEntry *ie)
+loadientry(Index *ix, uint8_t *score, int type, IEntry *ie)
 {
 	ISect *is;
 	DBlock *b;
 	IBucket ib;
-	u32int buck;
+	uint32_t buck;
 	int h, ok;
 
 	ok = -1;
@@ -726,7 +727,7 @@ okibucket(IBucket *ib, ISect *is)
  * or 0 | index of least element > score
  */
 int
-bucklook(u8int *score, int otype, u8int *data, int n)
+bucklook(uint8_t *score, int otype, uint8_t *data, int n)
 {
 	int i, r, l, m, h, c, cc, type;
 
@@ -771,11 +772,11 @@ bucklook(u8int *score, int otype, u8int *data, int n)
 int
 ientrycmp(const void *vie1, const void *vie2)
 {
-	u8int *ie1, *ie2;
+	uint8_t *ie1, *ie2;
 	int i, v1, v2;
 
-	ie1 = (u8int*)vie1;
-	ie2 = (u8int*)vie2;
+	ie1 = (uint8_t*)vie1;
+	ie2 = (uint8_t*)vie2;
 	for(i = 0; i < VtScoreSize; i++){
 		v1 = ie1[i];
 		v2 = ie2[i];
@@ -799,7 +800,7 @@ ientrycmp(const void *vie1, const void *vie2)
  * find the number of the index section holding bucket #buck
  */
 int
-indexsect0(Index *ix, u32int buck)
+indexsect0(Index *ix, uint32_t buck)
 {
 	int r, l, m;
 
@@ -819,7 +820,8 @@ indexsect0(Index *ix, u32int buck)
  * load the index block at bucket #buck
  */
 static DBlock*
-loadibucket0(Index *ix, u32int buck, ISect **pis, u32int *pbuck, IBucket *ib, int mode)
+loadibucket0(Index *ix, uint32_t buck, ISect **pis, uint32_t *pbuck,
+	     IBucket *ib, int mode)
 {
 	ISect *is;
 	DBlock *b;
@@ -831,7 +833,7 @@ loadibucket0(Index *ix, u32int buck, ISect **pis, u32int *pbuck, IBucket *ib, in
 	}
 
 	buck -= is->start;
-	if((b = getdblock(is->part, is->blockbase + ((u64int)buck << is->blocklog), mode)) == nil)
+	if((b = getdblock(is->part, is->blockbase + ((uint64_t)buck << is->blocklog), mode)) == nil)
 		return nil;
 
 	if(pis)
@@ -847,7 +849,7 @@ loadibucket0(Index *ix, u32int buck, ISect **pis, u32int *pbuck, IBucket *ib, in
  * find the number of the index section holding score
  */
 int
-indexsect1(Index *ix, u8int *score)
+indexsect1(Index *ix, uint8_t *score)
 {
 	return indexsect0(ix, hashbits(score, 32) / ix->div);
 }
@@ -856,19 +858,21 @@ indexsect1(Index *ix, u8int *score)
  * load the index block responsible for score.
  */
 static DBlock*
-loadibucket1(Index *ix, u8int *score, ISect **pis, u32int *pbuck, IBucket *ib)
+loadibucket1(Index *ix, uint8_t *score, ISect **pis, uint32_t *pbuck,
+	     IBucket *ib)
 {
 	return loadibucket0(ix, hashbits(score, 32)/ix->div, pis, pbuck, ib, OREAD);
 }
 
 int
-indexsect(Index *ix, u8int *score)
+indexsect(Index *ix, uint8_t *score)
 {
 	return indexsect1(ix, score);
 }
 
 DBlock*
-loadibucket(Index *ix, u8int *score, ISect **pis, u32int *pbuck, IBucket *ib)
+loadibucket(Index *ix, uint8_t *score, ISect **pis, uint32_t *pbuck,
+	    IBucket *ib)
 {
 	return loadibucket1(ix, score, pis, pbuck, ib);
 }

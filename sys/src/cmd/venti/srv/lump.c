@@ -16,18 +16,18 @@ int			queuewrites = 0;
 int			writestodevnull = 0;
 int			verifywrites = 0;
 
-static Packet		*readilump(Lump *u, IAddr *ia, u8int *score);
+static Packet		*readilump(Lump *u, IAddr *ia, uint8_t *score);
 
 /*
  * Some of this logic is duplicated in hdisk.c
  */
 Packet*
-readlump(u8int *score, int type, u32int size, int *cached)
+readlump(uint8_t *score, int type, uint32_t size, int *cached)
 {
 	Lump *u;
 	Packet *p;
 	IAddr ia;
-	u32int n;
+	uint32_t n;
 
 	trace(TraceLump, "readlump enter");
 /*
@@ -84,7 +84,7 @@ readlump(u8int *score, int type, u32int size, int *cached)
  * doesn't store duplicates, but checks that the data is really the same.
  */
 int
-writelump(Packet *p, u8int *score, int type, u32int creator, uint ms)
+writelump(Packet *p, uint8_t *score, int type, uint32_t creator, uint ms)
 {
 	Lump *u;
 	int ok;
@@ -199,14 +199,14 @@ writeqlump(Lump *u, Packet *p, int creator, uint ms)
 }
 
 static Packet*
-readilump(Lump *u, IAddr *ia, u8int *score)
+readilump(Lump *u, IAddr *ia, uint8_t *score)
 {
 	Arena *arena;
 	ZBlock *zb;
 	Packet *p, *pp;
 	Clump cl;
-	u64int aa;
-	u8int sc[VtScoreSize];
+	uint64_t aa;
+	uint8_t sc[VtScoreSize];
 
 	trace(TraceLump, "readilump enter");
 	arena = amapitoa(mainindex, ia->addr, &aa);

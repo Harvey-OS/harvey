@@ -1,9 +1,12 @@
+<<<<<<< HEAD
 # Harcoding :(
 MKSHELL=$PLAN9/bin/rc
 # Rc doesn't know anything about bash environment variables, sigh!
 objtype=amd64 # :(
 ROOT=/home/elbing/source/plan9/harvey/plan9-gpl
 
+=======
+>>>>>>> ba964bb8ae30c8ae22f43e3087b3efcad75580ce
 <$ROOT/$objtype/mkfile
 
 LIBS=\

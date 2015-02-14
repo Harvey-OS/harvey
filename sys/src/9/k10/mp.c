@@ -19,29 +19,29 @@
  * MultiProcessor Specification Version 1.[14].
  */
 typedef struct {				/* MP Floating Pointer */
-	u8int	signature[4];			/* "_MP_" */
-	u8int	addr[4];			/* PCMP */
-	u8int	length;				/* 1 */
-	u8int	revision;			/* [14] */
-	u8int	checksum;
-	u8int	feature[5];
+	uint8_t	signature[4];			/* "_MP_" */
+	uint8_t	addr[4];			/* PCMP */
+	uint8_t	length;				/* 1 */
+	uint8_t	revision;			/* [14] */
+	uint8_t	checksum;
+	uint8_t	feature[5];
 } _MP_;
 
 typedef struct {				/* MP Configuration Table */
-	u8int	signature[4];			/* "PCMP" */
-	u8int	length[2];
-	u8int	revision;			/* [14] */
-	u8int	checksum;
-	u8int	string[20];			/* OEM + Product ID */
-	u8int	oaddr[4];			/* OEM table pointer */
-	u8int	olength[2];			/* OEM table length */
-	u8int	entry[2];			/* entry count */
-	u8int	apicpa[4];			/* local APIC address */
-	u8int	xlength[2];			/* extended table length */
-	u8int	xchecksum;			/* extended table checksum */
-	u8int	reserved;
+	uint8_t	signature[4];			/* "PCMP" */
+	uint8_t	length[2];
+	uint8_t	revision;			/* [14] */
+	uint8_t	checksum;
+	uint8_t	string[20];			/* OEM + Product ID */
+	uint8_t	oaddr[4];			/* OEM table pointer */
+	uint8_t	olength[2];			/* OEM table length */
+	uint8_t	entry[2];			/* entry count */
+	uint8_t	apicpa[4];			/* local APIC address */
+	uint8_t	xlength[2];			/* extended table length */
+	uint8_t	xchecksum;			/* extended table checksum */
+	uint8_t	reserved;
 
-	u8int	entries[];
+	uint8_t	entries[];
 } PCMP;
 
 typedef struct {
@@ -58,7 +58,7 @@ static Mpbus* mpbus[Nbus];
 int mpisabusno = -1;
 
 static void
-mpintrprint(int8_t* s, u8int* p)
+mpintrprint(int8_t* s, uint8_t* p)
 {
 	int8_t buf[128], *b, *e;
 	int8_t format[] = " type %d flags %#ux bus %d IRQ %d APIC %d INTIN %d\n";
@@ -72,10 +72,10 @@ mpintrprint(int8_t* s, u8int* p)
 	print(buf);
 }
 
-static u32int
-mpmkintr(u8int* p)
+static uint32_t
+mpmkintr(uint8_t* p)
 {
-	u32int v;
+	uint32_t v;
 	Apic *apic;
 	int n, polarity, trigger;
 
@@ -185,8 +185,8 @@ mpmkintr(u8int* p)
 static void
 mpparse(PCMP* pcmp, int maxcores)
 {
-	u32int lo;
-	u8int *e, *p;
+	uint32_t lo;
+	uint8_t *e, *p;
 	int devno, i, n;
 
 	p = pcmp->entries;
@@ -362,7 +362,7 @@ mpparse(PCMP* pcmp, int maxcores)
 static int
 sigchecksum(void* address, int length)
 {
-	u8int *p, sum;
+	uint8_t *p, sum;
 
 	sum = 0;
 	for(p = address; length-- > 0; p++)
@@ -372,9 +372,9 @@ sigchecksum(void* address, int length)
 }
 
 static void*
-sigscan(u8int* address, int length, int8_t* signature)
+sigscan(uint8_t* address, int length, int8_t* signature)
 {
-	u8int *e, *p;
+	uint8_t *e, *p;
 	int siglength;
 
 	e = address+length;
@@ -392,7 +392,7 @@ static void*
 sigsearch(int8_t* signature)
 {
 	uintptr p;
-	u8int *bda;
+	uint8_t *bda;
 	void *r;
 
 	/*
@@ -419,7 +419,7 @@ sigsearch(int8_t* signature)
 void
 mpsinit(int maxcores)
 {
-	u8int *p;
+	uint8_t *p;
 	int i, n;
 	_MP_ *mp;
 	PCMP *pcmp;
@@ -465,7 +465,7 @@ mpsinit(int maxcores)
     			l16get(pcmp->xlength), pcmp->xchecksum);
 	}
 	if(pcmp->xchecksum != 0){
-		p = ((u8int*)pcmp) + l16get(pcmp->length);
+		p = ((uint8_t*)pcmp) + l16get(pcmp->length);
 		i = sigchecksum(p, l16get(pcmp->xlength));
 		if(((i+pcmp->xchecksum) & 0xff) != 0){
 			print("extended table checksums to %#ux\n", i);

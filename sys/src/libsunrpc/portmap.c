@@ -362,7 +362,7 @@ static int
 portRDumpPack(uint8_t *a, uint8_t *ea, uint8_t **pa, PortRDump *x)
 {
 	int i;
-	u32int zero, one;
+	uint32_t zero, one;
 
 	zero = 0;
 	one = 1;

@@ -36,14 +36,14 @@
  *	documentation and/or software.
  */
 
-static void encode(uint8_t*, u32int*, uint32_t);
+static void encode(uint8_t*, uint32_t*, uint32_t);
 
-extern void _md5block(uint8_t*, uint32_t, u32int*);
+extern void _md5block(uint8_t*, uint32_t, uint32_t*);
 
 MD5state*
 md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
 {
-	u32int x[16];
+	uint32_t x[16];
 	uint8_t buf[128];
 	int i;
 	uint8_t *e;
@@ -141,9 +141,9 @@ md5(uint8_t *p, uint32_t len, uint8_t *digest, MD5state *s)
  *	a multiple of 4.
  */
 static void
-encode(uint8_t *output, u32int *input, uint32_t len)
+encode(uint8_t *output, uint32_t *input, uint32_t len)
 {
-	u32int x;
+	uint32_t x;
 	uint8_t *e;
 
 	for(e = output + len; output < e;) {

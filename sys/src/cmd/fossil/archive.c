@@ -154,7 +154,7 @@ etype(Entry *e)
 }
 
 static uint8_t*
-copyBlock(Block *b, u32int blockSize)
+copyBlock(Block *b, uint32_t blockSize)
 {
 	uint8_t *data;
 
@@ -184,7 +184,7 @@ enum
 	ArchFaked,
 };
 static int
-archWalk(Param *p, u32int addr, uint8_t type, u32int tag)
+archWalk(Param *p, uint32_t addr, uint8_t type, uint32_t tag)
 {
 	int ret, i, x, psize, dsize;
 	uint8_t *data, score[VtScoreSize];
@@ -354,7 +354,7 @@ archThread(void *v)
 	Param p;
 	Super super;
 	int ret;
-	u32int addr;
+	uint32_t addr;
 	uint8_t rbuf[VtRootSize];
 	VtRoot root;
 

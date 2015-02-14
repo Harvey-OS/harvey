@@ -80,7 +80,7 @@ fatal(int8_t *fmt, ...)
 }
 
 static void
-putle32(void* v, u32int i)
+putle32(void* v, uint32_t i)
 {
 	uint8_t *p;
 
@@ -112,7 +112,8 @@ writechs(Disk *disk, uint8_t *p, int64_t lba)
 }
 
 static void
-wrtentry(Disk *disk, Tentry *tp, int type, u32int base, u32int lba, u32int end)
+wrtentry(Disk *disk, Tentry *tp, int type, uint32_t base, uint32_t lba,
+	 uint32_t end)
 {
 	tp->active = 0x80;		/* make this sole partition active */
 	tp->type = type;

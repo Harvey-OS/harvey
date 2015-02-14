@@ -460,7 +460,7 @@ compress_log_blk(MEMFILE * f, LOG_MEMFILE_BLK * bp)
     f->rd.limit = f->rd.ptr + MEMFILE_DATA_SIZE;
 
     bp->phys_blk = f->phys_curr;
-    bp->phys_pdata = (char *)(f->wt.ptr) + 1;
+    bp->phys_pdata = (int8_t *)(f->wt.ptr) + 1;
     if (f->compress_state->template->reinit != 0)
 	(*f->compress_state->template->reinit)(f->compress_state);
     compressed_size = 0;
@@ -468,7 +468,7 @@ compress_log_blk(MEMFILE * f, LOG_MEMFILE_BLK * bp)
     start_ptr = f->wt.ptr;
     status = (*f->compress_state->template->process)(f->compress_state,
 						     &(f->rd), &(f->wt), true);
-    bp->phys_blk->data_limit = (char *)(f->wt.ptr);
+    bp->phys_blk->data_limit = (int8_t *)(f->wt.ptr);
 
     if (status == 1) {		/* More output space needed (see strimpl.h) */
 	/* allocate another physical block, then compress remainder       */
@@ -498,7 +498,7 @@ compress_log_blk(MEMFILE * f, LOG_MEMFILE_BLK * bp)
 	    eprintf("Compression required more than one full block!\n");
 	    return_error(gs_error_Fatal);
 	}
-	newphys->data_limit = (char *)(f->wt.ptr);
+	newphys->data_limit = (int8_t *)(f->wt.ptr);
     }
     compressed_size += f->wt.ptr - start_ptr;
     if (compressed_size > MEMFILE_DATA_SIZE) {

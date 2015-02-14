@@ -32,8 +32,8 @@ findscore(Arena *arena, uint8_t *score)
 {
 	IEntry ie;
 	ClumpInfo *ci, *cis;
-	u64int a;
-	u32int clump;
+	uint64_t a;
+	uint32_t clump;
 	int i, n, found;
 
 //ZZZ remove fprint?

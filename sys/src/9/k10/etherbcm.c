@@ -36,9 +36,9 @@ struct Ctlr {
 	Ether	*ether;
 	Ctlr	*next;
 	Pcidev	*pdev;
-	u32int	*nic, *status;
+	uint32_t	*nic, *status;
 
-	u32int	*recvret, *recvprod, *sendr;
+	uint32_t	*recvret, *recvprod, *sendr;
 	uint32_t	port;
 	uint	recvreti, recvprodi, sendri, sendcleani;
 	Block	**sends;
@@ -396,7 +396,7 @@ static int
 replenish(Ctlr *ctlr)
 {
 	uint incr;
-	u32int *next;
+	uint32_t *next;
 	Block *bp;
 	
 	incr = (ctlr->recvprodi + 1) & (RxProdRingLen - 1);
@@ -425,7 +425,7 @@ static void
 bcmreceive(Ether *edev)
 {
 	uint len;
-	u32int *pkt;
+	uint32_t *pkt;
 	Ctlr *ctlr;
 	Block *bp;
 	
@@ -468,7 +468,7 @@ static void
 bcmtransmit(Ether *edev)
 {
 	uint incr;
-	u32int *next;
+	uint32_t *next;
 	Ctlr *ctlr;
 	Block *bp;
 	
@@ -524,7 +524,7 @@ bcmerror(Ether *edev)
 static void
 bcminterrupt(Ureg*, void *arg)
 {
-	u32int status, tag, dummy;
+	uint32_t status, tag, dummy;
 	Ether *edev;
 	Ctlr *ctlr;
 	
@@ -557,10 +557,10 @@ mem32w(Ctlr *c, uint r, uint v)
 	pcicfgw32(c->pdev, MemwindData, v);
 }
 
-static u32int
+static uint32_t
 mem32r(Ctlr *c, uint r)
 {
-	u32int v;
+	uint32_t v;
 
 	pcicfgw32(c->pdev, Memwind, r);
 	v = pcicfgr32(c->pdev, MemwindData);

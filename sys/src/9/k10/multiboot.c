@@ -15,22 +15,22 @@
 
 typedef struct Mbi Mbi;
 struct Mbi {
-	u32int	flags;
-	u32int	memlower;
-	u32int	memupper;
-	u32int	bootdevice;
-	u32int	cmdline;
-	u32int	modscount;
-	u32int	modsaddr;
-	u32int	syms[4];
-	u32int	mmaplength;
-	u32int	mmapaddr;
-	u32int	driveslength;
-	u32int	drivesaddr;
-	u32int	configtable;
-	u32int	bootloadername;
-	u32int	apmtable;
-	u32int	vbe[6];
+	uint32_t	flags;
+	uint32_t	memlower;
+	uint32_t	memupper;
+	uint32_t	bootdevice;
+	uint32_t	cmdline;
+	uint32_t	modscount;
+	uint32_t	modsaddr;
+	uint32_t	syms[4];
+	uint32_t	mmaplength;
+	uint32_t	mmapaddr;
+	uint32_t	driveslength;
+	uint32_t	drivesaddr;
+	uint32_t	configtable;
+	uint32_t	bootloadername;
+	uint32_t	apmtable;
+	uint32_t	vbe[6];
 };
 
 enum {						/* flags */
@@ -50,29 +50,29 @@ enum {						/* flags */
 
 typedef struct Mod Mod;
 struct Mod {
-	u32int	modstart;
-	u32int	modend;
-	u32int	string;
-	u32int	reserved;
+	uint32_t	modstart;
+	uint32_t	modend;
+	uint32_t	string;
+	uint32_t	reserved;
 };
 
 typedef struct MMap MMap;
 struct MMap {
-	u32int	size;
-	u32int	base[2];
-	u32int	length[2];
-	u32int	type;
+	uint32_t	size;
+	uint32_t	base[2];
+	uint32_t	length[2];
+	uint32_t	type;
 };
 
 int
-multiboot(u32int magic, u32int pmbi, int vflag)
+multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 {
 	int8_t *p;
 	int i, n;
 	Mbi *mbi;
 	Mod *mod;
 	MMap *mmap;
-	u64int addr, len;
+	uint64_t addr, len;
 
 	if(vflag)
 		print("magic %#ux pmbi %#ux\n", magic, pmbi);
@@ -107,8 +107,8 @@ multiboot(u32int magic, u32int pmbi, int vflag)
 		mmap = KADDR(mbi->mmapaddr);
 		n = 0;
 		while(n < mbi->mmaplength){
-			addr = (((u64int)mmap->base[1])<<32)|mmap->base[0];
-			len = (((u64int)mmap->length[1])<<32)|mmap->length[0];
+			addr = (((uint64_t)mmap->base[1])<<32)|mmap->base[0];
+			len = (((uint64_t)mmap->length[1])<<32)|mmap->length[0];
 			switch(mmap->type){
 			default:
 				if(vflag)

@@ -8,15 +8,16 @@
  */
 
 #define nil		((void*)0)
-typedef	unsigned short	ushort;
-typedef	unsigned char	uchar;
-typedef unsigned long	ulong;
-typedef unsigned int	uint;
-typedef   signed char	schar;
-typedef	long long	vlong;
-typedef	unsigned long long uvlong;
-typedef unsigned long long uintptr;
-typedef unsigned long	usize;
+typedef	unsigned char	uint8_t;
+typedef signed char	int8_t;
+typedef	unsigned short	uint16_t;
+typedef	signed short	int16_t;
+typedef unsigned int	uint32_t;
+typedef signed int	int32_t;
+typedef	unsigned long long uint64_t;
+typedef	long long	int64_t;
+typedef uint64_t uintptr;
+typedef uint32_t	usize;
 typedef	uint		Rune;
 typedef union FPdbleword FPdbleword;
 typedef uintptr		jmp_buf[2];
@@ -24,10 +25,6 @@ typedef uintptr		jmp_buf[2];
 #define	JMPBUFPC	1
 #define	JMPBUFDPC	0
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
-typedef unsigned char	u8int;
-typedef unsigned short	u16int;
-typedef unsigned int	u32int;
-typedef unsigned long long u64int;
 
 /* MXCSR */
 /* fcr */

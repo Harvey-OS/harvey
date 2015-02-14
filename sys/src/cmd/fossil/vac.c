@@ -128,7 +128,7 @@ mbInit(MetaBlock *mb, uint8_t *p, int n, int ne)
 int
 mbUnpack(MetaBlock *mb, uint8_t *p, int n)
 {
-	u32int magic;
+	uint32_t magic;
 	int i;
 	int eo, en, omin;
 	uint8_t *q;

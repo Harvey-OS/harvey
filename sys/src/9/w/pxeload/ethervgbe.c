@@ -958,7 +958,7 @@ vgbepci(void)
 	Pcidev *p;
 	Ctlr *ctlr;
 	int i, port;
-	u32int bar;
+	uint32_t bar;
 
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){

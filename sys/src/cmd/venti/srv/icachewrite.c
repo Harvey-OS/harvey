@@ -54,10 +54,10 @@ initicachewrite(void)
 	vtproc(delaykickroundproc, &iwrite.round);
 }
 
-static u64int
+static uint64_t
 ie2diskaddr(Index *ix, ISect *is, IEntry *ie)
 {
-	u64int bucket, addr;
+	uint64_t bucket, addr;
 
 	bucket = hashbits(ie->score, 32)/ix->div;
 	addr = is->blockbase + ((bucket - is->start) << is->blocklog);
@@ -65,9 +65,9 @@ ie2diskaddr(Index *ix, ISect *is, IEntry *ie)
 }
 
 static IEntry*
-nextchunk(Index *ix, ISect *is, IEntry **pie, u64int *paddr, uint *pnbuf)
+nextchunk(Index *ix, ISect *is, IEntry **pie, uint64_t *paddr, uint *pnbuf)
 {
-	u64int addr, naddr;
+	uint64_t addr, naddr;
 	uint nbuf;
 	int bsize;
 	IEntry *iefirst, *ie, **l;
@@ -92,11 +92,11 @@ nextchunk(Index *ix, ISect *is, IEntry **pie, u64int *paddr, uint *pnbuf)
 }
 	
 static int
-icachewritesect(Index *ix, ISect *is, u8int *buf)
+icachewritesect(Index *ix, ISect *is, uint8_t *buf)
 {
 	int err, i, werr, h, bsize, t;
-	u32int lo, hi;
-	u64int addr, naddr;
+	uint32_t lo, hi;
+	uint64_t addr, naddr;
 	uint nbuf, off;
 	DBlock *b;
 	IBucket ib;
@@ -218,7 +218,7 @@ icachewriteproc(void *v)
 	uint bsize;
 	ISect *is;
 	Index *ix;
-	u8int *buf;
+	uint8_t *buf;
 
 	ix = mainindex;
 	is = v;
@@ -226,7 +226,7 @@ icachewriteproc(void *v)
 
 	bsize = 1<<is->blocklog;
 	buf = emalloc(Bufsize+bsize);
-	buf = (u8int*)(((uintptr)buf+bsize-1)&~(uintptr)(bsize-1));
+	buf = (uint8_t*)(((uintptr)buf+bsize-1)&~(uintptr)(bsize-1));
 
 	for(;;){
 		trace(TraceProc, "icachewriteproc recv");
