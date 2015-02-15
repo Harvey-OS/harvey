@@ -1,0 +1,7 @@
+# I want to try building with clang.
+sudo mkdir /amd64
+sudo  mount --bind amd64/ /amd64/
+sudo  mount --bind sys /sys
+sudo mount --bind `which rc` /bin/sh
+sudo mount --bind /amd64/mkfile.clank /amd64/mkfile
+
