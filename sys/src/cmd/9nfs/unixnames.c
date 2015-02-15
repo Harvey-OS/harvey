@@ -26,12 +26,12 @@ Unixscmap *scmap;
  * We keep a cache of host names in getdom.
  */
 Unixidmap *
-pair2idmap(int8_t *server, uint32_t clientip)
+pair2idmap(char *server, uint32_t clientip)
 {
 	Resub match;
 	Unixscmap *m, *mp;
 	Unixidmap *r;
-	int8_t dom[256];
+	char dom[256];
 
 	for(mp=0,m=scmap; m; mp=m,m=m->next){
 		if(m->server[0] != server[0])
@@ -85,13 +85,13 @@ pair2idmap(int8_t *server, uint32_t clientip)
 }
 
 int
-readunixidmaps(int8_t *file)
+readunixidmaps(char *file)
 {
 	Waitmsg *w;
 	Biobuf *in;
 	Unixidmap *m;
-	int i, arc; int8_t *arv[16], buf[256];
-	int8_t *l;
+	int i, arc; char *arv[16], buf[256];
+	char *l;
 // 	long savalarm;
 
 // 	savalarm = alarm(0);
@@ -226,7 +226,7 @@ checkunixmap(Unixmap *u)
 }
 
 int
-name2id(Unixid **list, int8_t *name)
+name2id(Unixid **list, char *name)
 {
 	Unixid *x, *xp;
 
@@ -243,7 +243,7 @@ name2id(Unixid **list, int8_t *name)
 	return -1;
 }
 
-int8_t *
+char *
 id2name(Unixid **list, int id)
 {
 	Unixid *x, *xp;
@@ -276,10 +276,10 @@ idprint(int fd, Unixid *xp)
  */
 
 Unixid *
-readunixids(int8_t *file, int style)
+readunixids(char *file, int style)
 {
 	Biobuf *in;
-	int8_t *l, *name = 0;
+	char *l, *name = 0;
 	Unixid *x, *xp = 0;
 	int id = 0;
 

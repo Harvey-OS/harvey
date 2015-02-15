@@ -172,7 +172,7 @@ pGetNextFontInfoListItem(const font_block_type *pCurr)
 	}
 	tOffset = offsetof(font_mem_type, tInfo);
 	/* Many casts to prevent alignment warnings */
-	pRecord = (font_mem_type *)(void *)((int8_t *)pCurr - tOffset);
+	pRecord = (font_mem_type *)(void *)((char *)pCurr - tOffset);
 	fail(pCurr != &pRecord->tInfo);
 	if (pRecord->pNext == NULL) {
 		/* The last record has no successor */

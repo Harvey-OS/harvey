@@ -67,8 +67,8 @@ readmessage(Message *m, Inbuf *inb)
 {
 	int i, n, done;
 	uint8_t *p, *np;
-	int8_t sdigest[SHA1dlen*2+1];
-	int8_t tmp[64];
+	char sdigest[SHA1dlen*2+1];
+	char tmp[64];
 
 	for(done = 0; !done;){
 		n = inb->wptr - inb->rptr;
@@ -113,7 +113,7 @@ readmessage(Message *m, Inbuf *inb)
 				break;
 			}
 
-			if(strncmp((int8_t*)np, "\nFrom ", 6) == 0){
+			if(strncmp((char*)np, "\nFrom ", 6) == 0){
 				done = 1;
 				p = np+1;
 				break;
@@ -170,16 +170,16 @@ purgedeleted(Mailbox *mb)
 //
 //  read in the mailbox and parse into messages.
 //
-static int8_t*
+static char*
 _readmbox(Mailbox *mb, int doplumb, Mlock *lk)
 {
 	int fd, n;
 	String *tmp;
 	Dir *d;
-	static int8_t err[Errlen];
+	static char err[Errlen];
 	Message *m, **l;
 	Inbuf *inb;
-	int8_t *x;
+	char *x;
 
 	l = &mb->root->part;
 
@@ -373,11 +373,11 @@ _writembox(Mailbox *mb, Mlock *lk)
 	mb->d = dirstat(mb->path);
 }
 
-int8_t*
+char*
 plan9syncmbox(Mailbox *mb, int doplumb)
 {
 	Mlock *lk;
-	int8_t *rv;
+	char *rv;
 
 	lk = nil;
 	if(mb->dolock){
@@ -399,10 +399,10 @@ plan9syncmbox(Mailbox *mb, int doplumb)
 //
 //  look to see if we can open this mail box
 //
-int8_t*
-plan9mbox(Mailbox *mb, int8_t *path)
+char*
+plan9mbox(Mailbox *mb, char *path)
 {
-	static int8_t err[Errlen];
+	static char err[Errlen];
 	String *tmp;
 
 	if(access(path, AEXIST) < 0){

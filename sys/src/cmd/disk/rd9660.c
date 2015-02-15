@@ -115,7 +115,7 @@ struct Cdir {
 int
 Dfmt(Fmt *fmt)
 {
-	int8_t buf[128];
+	char buf[128];
 	Cdir *c;
 
 	c = va_arg(fmt->args, Cdir*);
@@ -156,7 +156,7 @@ littleend(void)
 int
 Pfmt(Fmt *fmt)
 {
-	int8_t xfmt[128], buf[128];
+	char xfmt[128], buf[128];
 	Path *p;
 
 	p = va_arg(fmt->args, Path*);
@@ -200,7 +200,7 @@ BLfmt(Fmt *fmt)
 {
 	uint32_t v;
 	uint8_t *p;
-	int8_t buf[20];
+	char buf[20];
 
 	p = va_arg(fmt->args, uint8_t*);
 
@@ -224,7 +224,7 @@ BLfmt(Fmt *fmt)
 int
 Nfmt(Fmt *fmt)
 {
-	int8_t buf[100];
+	char buf[100];
 	uint8_t *p;
 
 	p = va_arg(fmt->args, uint8_t*);
@@ -238,10 +238,10 @@ Nfmt(Fmt *fmt)
 int
 asciiTfmt(Fmt *fmt)
 {
-	int8_t *p, buf[256];
+	char *p, buf[256];
 	int i;
 
-	p = va_arg(fmt->args, int8_t*);
+	p = va_arg(fmt->args, char*);
 	for(i=0; i<fmt->prec; i++)
 		buf[i] = *p++;
 	buf[i] = '\0';
@@ -358,7 +358,7 @@ dump(void *root)
 }
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	uint8_t root[2048], jroot[2048];
 

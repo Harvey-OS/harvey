@@ -9,10 +9,10 @@
 
 #include "astro.h"
 
-int8_t*	herefile = "/lib/sky/here";
+char*	herefile = "/lib/sky/here";
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int i, j;
 	double d;

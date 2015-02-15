@@ -29,11 +29,11 @@ enum {
  * a -> c	OK or NO
  */
 
-void	catchalarm(void*, int8_t*);
-void	getraddr(int8_t*);
+void	catchalarm(void*, char*);
+void	getraddr(char*);
 
-int8_t	user[ANAMELEN];
-int8_t	raddr[128];
+char	user[ANAMELEN];
+char	raddr[128];
 int	debug;
 Ndb	*db;
 
@@ -132,7 +132,7 @@ main(int argc, char *argv[])
 }
 
 void
-catchalarm(void *x, int8_t *msg)
+catchalarm(void *x, char *msg)
 {
 	USED(x, msg);
 	if(debug)
@@ -141,11 +141,11 @@ catchalarm(void *x, int8_t *msg)
 }
 
 void
-getraddr(int8_t *dir)
+getraddr(char *dir)
 {
 	int n, fd;
-	int8_t *cp;
-	int8_t file[128];
+	char *cp;
+	char file[128];
 
 	snprint(file, sizeof(file), "%s/remote", dir);
 	fd = open(file, OREAD);

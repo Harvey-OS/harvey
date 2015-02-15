@@ -24,7 +24,7 @@
 #include "gstypes.h"
 #include "gscedata.h"
 
-const int8_t gs_c_known_encoding_chars[] = {
+const char gs_c_known_encoding_chars[] = {
 'A',  /*N(1,0)*/
 'B',  /*N(1,1)*/
 'C',  /*N(1,2)*/

@@ -18,7 +18,7 @@
 typedef struct Type	Type;
 struct Type
 {
-	int8_t	*name;
+	char	*name;
 	int	bytes;		/* bytes/sector */
 	int	sectors;	/* sectors/track */
 	int	heads;		/* number of heads */
@@ -114,7 +114,7 @@ uchar bootprog[512] =
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0xAA,
 };
 
-int8_t *dev;
+char *dev;
 int clustersize;
 uint8_t *fat;	/* the fat */
 int fatbits;
@@ -134,10 +134,10 @@ Type *t;
 int fflag;
 int hflag;
 int xflag;
-int8_t *file;
-int8_t *pbs;
-int8_t *type;
-int8_t *bootfile;
+char *file;
+char *pbs;
+char *type;
+char *bootfile;
 int dos;
 
 enum
@@ -146,9 +146,9 @@ enum
 	Eof = 2,	/* end of file */
 };
 
-void	dosfs(int, int, Disk*, int8_t*, int, int8_t*[], int);
+void	dosfs(int, int, Disk*, char*, int, char*[], int);
 uint32_t	clustalloc(int);
-void	addrname(uint8_t*, Dir*, int8_t*, uint32_t);
+void	addrname(uint8_t*, Dir*, char*, uint32_t);
 void	sanitycheck(Disk*);
 
 void
@@ -160,9 +160,9 @@ usage(void)
 }
 
 void
-fatal(int8_t *fmt, ...)
+fatal(char *fmt, ...)
 {
-	int8_t err[128];
+	char err[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -296,7 +296,7 @@ main(int argc, char **argv)
 void
 sanitycheck(Disk *disk)
 {
-	int8_t buf[512];
+	char buf[512];
 	int bad;
 
 	if(xflag)
@@ -332,7 +332,7 @@ sanitycheck(Disk *disk)
 int
 getdriveno(Disk *disk)
 {
-	int8_t buf[64], *p;
+	char buf[64], *p;
 
 	if(disk->type != Tsd)
 		return 0x80;	/* first hard disk */
@@ -374,10 +374,10 @@ writen(int fd, void *buf, int32_t n)
 }
 
 void
-dosfs(int dofat, int dopbs, Disk *disk, int8_t *label, int argc,
-      int8_t *argv[], int commit)
+dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc,
+      char *argv[], int commit)
 {
-	int8_t r[16];
+	char r[16];
 	Dosboot *b;
 	uint8_t *buf, *pbsbuf, *p;
 	Dir *d;
@@ -747,7 +747,7 @@ clustalloc(int flag)
 }
 
 void
-putname(int8_t *p, Dosdir *d)
+putname(char *p, Dosdir *d)
 {
 	int i;
 
@@ -782,9 +782,9 @@ puttime(Dosdir *d)
 }
 
 void
-addrname(uint8_t *entry, Dir *dir, int8_t *name, uint32_t start)
+addrname(uint8_t *entry, Dir *dir, char *name, uint32_t start)
 {
-	int8_t *s;
+	char *s;
 	Dosdir *d;
 
 	s = strrchr(name, '/');

@@ -838,7 +838,7 @@ gs_cie_cache_init(cie_cache_params * pcache, gs_sample_loop_params_t * pslp,
      */
     pcache->factor = (any_abs(delta) < 1e-30 ? 1.0 : N / R);
     if_debug4('c', "[c]cache %s 0x%lx base=%g, factor=%g\n",
-	      (const int8_t *)cname, (uint32_t) pcache,
+	      (const char *)cname, (uint32_t) pcache,
 	      pcache->base, pcache->factor);
     pslp->A = A;
     pslp->B = B;

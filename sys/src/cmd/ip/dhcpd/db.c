@@ -24,22 +24,22 @@
  */
 Binding *bcache;
 uint8_t bfirst[IPaddrlen];
-int8_t *binddir = "/lib/ndb/dhcp";
+char *binddir = "/lib/ndb/dhcp";
 
 /*
  *  convert a byte array to hex
  */
-static int8_t
+static char
 hex(int x)
 {
 	if(x < 10)
 		return x + '0';
 	return x - 10 + 'a';
 }
-extern int8_t*
-tohex(int8_t *hdr, uint8_t *p, int len)
+extern char*
+tohex(char *hdr, uint8_t *p, int len)
 {
-	int8_t *s, *sp;
+	char *s, *sp;
 	int hlen;
 
 	hlen = strlen(hdr);
@@ -60,11 +60,11 @@ tohex(int8_t *hdr, uint8_t *p, int len)
  *  convert a client id to a string.  If it's already
  *  ascii, leave it be.  Otherwise, convert it to hex.
  */
-extern int8_t*
+extern char*
 toid(uint8_t *p, int n)
 {
 	int i;
-	int8_t *s;
+	char *s;
 
 	for(i = 0; i < n; i++)
 		if(!isprint(p[i]))
@@ -96,9 +96,9 @@ incip(uint8_t *ip)
  *  find a binding for an id or hardware address
  */
 static int
-lockopen(int8_t *file)
+lockopen(char *file)
 {
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	int fd, tries;
 
 	for(tries = 0; tries < 5; tries++){
@@ -124,7 +124,7 @@ lockopen(int8_t *file)
 }
 
 void
-setbinding(Binding *b, int8_t *id, int32_t t)
+setbinding(Binding *b, char *id, int32_t t)
 {
 	if(b->boundto)
 		free(b->boundto);
@@ -134,10 +134,10 @@ setbinding(Binding *b, int8_t *id, int32_t t)
 }
 
 static void
-parsebinding(Binding *b, int8_t *buf)
+parsebinding(Binding *b, char *buf)
 {
 	int32_t t;
-	int8_t *id, *p;
+	char *id, *p;
 
 	/* parse */
 	t = atoi(buf);
@@ -178,7 +178,7 @@ writebinding(int fd, Binding *b)
 int
 syncbinding(Binding *b, int returnfd)
 {
-	int8_t buf[512];
+	char buf[512];
 	int i, fd;
 	Dir *d;
 
@@ -279,7 +279,7 @@ lognolease(Binding *b)
  *  find a free binding for a hw addr or id on the same network as iip
  */
 extern Binding*
-idtobinding(int8_t *id, Info *iip, int ping)
+idtobinding(char *id, Info *iip, int ping)
 {
 	Binding *b, *oldest;
 	int oldesttime;
@@ -351,7 +351,7 @@ idtobinding(int8_t *id, Info *iip, int ping)
  *  create an offer
  */
 extern void
-mkoffer(Binding *b, int8_t *id, int32_t leasetime)
+mkoffer(Binding *b, char *id, int32_t leasetime)
 {
 	if(leasetime <= 0){
 		if(b->lease > now + minlease)
@@ -370,7 +370,7 @@ mkoffer(Binding *b, int8_t *id, int32_t leasetime)
  *  find an offer for this id
  */
 extern Binding*
-idtooffer(int8_t *id, Info *iip)
+idtooffer(char *id, Info *iip)
 {
 	Binding *b;
 
@@ -422,7 +422,7 @@ commitbinding(Binding *b)
  *  commit a lease, this could fail
  */
 extern int
-releasebinding(Binding *b, int8_t *id)
+releasebinding(Binding *b, char *id)
 {
 	int fd;
 	int32_t now;

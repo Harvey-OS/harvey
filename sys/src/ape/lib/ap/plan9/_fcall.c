@@ -23,7 +23,7 @@ typedef unsigned char uchar;
 #define	STRING(x,n)	memcpy(p, f->x, n); p += n
 
 int
-convS2M(Fcall *f, int8_t *ap)
+convS2M(Fcall *f, char *ap)
 {
 	uint8_t *p;
 
@@ -233,7 +233,7 @@ convS2M(Fcall *f, int8_t *ap)
 #define	STRING(x,n)	memcpy(f->x, p, n); p += n
 
 int
-convM2S(int8_t *ap, Fcall *f, int n)
+convM2S(char *ap, Fcall *f, int n)
 {
 	uint8_t *p;
 
@@ -311,7 +311,7 @@ convM2S(int8_t *ap, Fcall *f, int n)
 		VLONG(offset);
 		SHORT(count);
 		p++;	/* pad(1) */
-		f->data = (int8_t*)p; p += f->count;
+		f->data = (char*)p; p += f->count;
 		break;
 
 	case Tclunk:
@@ -400,7 +400,7 @@ convM2S(int8_t *ap, Fcall *f, int n)
 		SHORT(fid);
 		SHORT(count);
 		p++;	/* pad(1) */
-		f->data = (int8_t*)p; p += f->count;
+		f->data = (char*)p; p += f->count;
 		break;
 
 	case Rwrite:

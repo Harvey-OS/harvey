@@ -83,10 +83,10 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static int8_t*
+static char*
 op(int i)
 {
-	static int8_t x[20];
+	static char x[20];
 
 	switch(i){
 	case Eap:

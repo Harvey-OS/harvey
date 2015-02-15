@@ -38,7 +38,7 @@ init_packet(Packet *p)
 }
 
 void
-add_byte(Packet *p, int8_t c)
+add_byte(Packet *p, char c)
 {
 	p->payload[p->rlength-1] = c;
 	p->rlength++;
@@ -79,7 +79,7 @@ add_block(Packet *p, void *data, int len)
 }
 
 void 
-add_string(Packet *p, int8_t *s)
+add_string(Packet *p, char *s)
 {
 	uint8_t *q;
 	int n;
@@ -94,7 +94,7 @@ add_string(Packet *p, int8_t *s)
 }
 
 uint8_t *
-get_string(Packet *p, uint8_t *q, int8_t *s, int lim, int *len)
+get_string(Packet *p, uint8_t *q, char *s, int lim, int *len)
 {
 	int n, m;
 
@@ -226,7 +226,7 @@ void
 dump_packet(Packet *p)
 {
 	int i;
-	int8_t *buf, *q, *e;
+	char *buf, *q, *e;
 
 	fprint(2, "Length: %ld, Padding length: %d\n", p->rlength, p->pad_len);
 	q = buf = emalloc9p(Copybufsz);

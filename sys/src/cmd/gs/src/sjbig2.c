@@ -51,14 +51,14 @@ private_st_jbig2decode_state();	/* creates a gc object for our state, defined in
 
 /* error callback for jbig2 decoder */
 private int
-s_jbig2decode_error(void *error_callback_data, const int8_t *msg,
+s_jbig2decode_error(void *error_callback_data, const char *msg,
                     Jbig2Severity severity,
 	       int32_t seg_idx)
 {
     stream_jbig2decode_state *const state = 
 	(stream_jbig2decode_state *) error_callback_data;
-    const int8_t *type;
-    int8_t segment[22];
+    const char *type;
+    char segment[22];
     int code = 0;
 
     switch (severity) {

@@ -53,7 +53,7 @@ dump(Dreprog *pp)
 
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	int i;
 	Reprog *p;

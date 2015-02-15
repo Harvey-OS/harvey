@@ -20,7 +20,7 @@ struct Etherpkt {
 	uint8_t d[6];
 	uint8_t s[6];
 	uint8_t type[2];
-	int8_t data[1500];
+	char data[1500];
 };
 #define	ETHERMINTU	60	/* minimum transmit size */
 #define	ETHERMAXTU	1514	/* maximum transmit size */
@@ -42,7 +42,7 @@ struct Ippkt
 	uint8_t	cksum[2];	/* Header checksum */
 	uint8_t	src[4];		/* Ip source */
 	uint8_t	dst[4];		/* Ip destination */
-	int8_t	data[1];
+	char	data[1];
 };
 
 #define IP_HDRSIZE	20
@@ -69,9 +69,9 @@ uint32_t protopin[256];
 uint32_t protopout[256];
 
 void
-error(int8_t *s)
+error(char *s)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	errstr(buf, sizeof buf);
 	fprint(2, "snoopy: %s %s\n", buf, s);
@@ -79,9 +79,9 @@ error(int8_t *s)
 }
 
 void
-warning(int8_t *s)
+warning(char *s)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	errstr(buf, sizeof buf);
 	fprint(2, "snoopy: %s %s\n", buf, s);

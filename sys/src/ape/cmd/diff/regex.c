@@ -142,14 +142,14 @@ int8_t *realloc ();
 
 #ifdef SYNTAX_TABLE
 
-extern int8_t *re_syntax_table;
+extern char *re_syntax_table;
 
 #else /* not SYNTAX_TABLE */
 
 /* How many characters in the character set.  */
 #define CHAR_SET_SIZE 256
 
-static int8_t re_syntax_table[CHAR_SET_SIZE];
+static char re_syntax_table[CHAR_SET_SIZE];
 
 static void
 init_syntax_once ()
@@ -298,7 +298,7 @@ char *alloca ();
 
 /* Assumes a `char *destination' variable.  */
 #define REGEX_REALLOCATE(source, osize, nsize)				\
-  (destination = (int8_t *) alloca (nsize),				\
+  (destination = (char *) alloca (nsize),				\
    bcopy (source, destination, osize),					\
    destination)
 
@@ -361,7 +361,7 @@ char *alloca ();
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-typedef int8_t boolean;
+typedef char boolean;
 #define false 0
 #define true 1
 
@@ -708,7 +708,7 @@ static int debug = 0;
 
 void
 print_fastmap (fastmap)
-    int8_t *fastmap;
+    char *fastmap;
 {
   unsigned was_a_range = 0;
   unsigned i = 0;
@@ -998,9 +998,9 @@ print_compiled_pattern (bufp)
 
 void
 print_double_string (where, string1, size1, string2, size2)
-    const int8_t *where;
-    const int8_t *string1;
-    const int8_t *string2;
+    const char *where;
+    const char *string1;
+    const char *string2;
     int size1;
     int size2;
 {
@@ -1068,7 +1068,7 @@ re_set_syntax (syntax)
    POSIX doesn't require that we do anything for REG_NOERROR,
    but why not be nice?	 */
 
-static const int8_t *re_error_msgid[] =
+static const char *re_error_msgid[] =
   {
     gettext_noop ("Success"),	/* REG_NOERROR */
     gettext_noop ("No match"),	/* REG_NOMATCH */
@@ -1430,7 +1430,7 @@ typedef struct
      saved NULL, thus retaining our current position in the string.  */	\
   string_temp = POP_FAILURE_POINTER ();					\
   if (string_temp != NULL)						\
-    str = (const int8_t *) string_temp;					\
+    str = (const char *) string_temp;					\
 									\
   DEBUG_PRINT2 ("  Popping string 0x%x: `", str);			\
   DEBUG_PRINT_DOUBLE_STRING (str, string1, size1, string2, size2);	\
@@ -1455,10 +1455,10 @@ typedef struct
 	reg_info[this_reg].word = POP_FAILURE_ELT ();			\
 	DEBUG_PRINT2 ("	     info: 0x%x\n", reg_info[this_reg]);	\
 									\
-	regend[this_reg] = (const int8_t *) POP_FAILURE_POINTER ();	\
+	regend[this_reg] = (const char *) POP_FAILURE_POINTER ();	\
 	DEBUG_PRINT2 ("	     end: 0x%x\n", regend[this_reg]);		\
 									\
-	regstart[this_reg] = (const int8_t *) POP_FAILURE_POINTER ();	\
+	regstart[this_reg] = (const char *) POP_FAILURE_POINTER ();	\
 	DEBUG_PRINT2 ("	     start: 0x%x\n", regstart[this_reg]);	\
       }									\
   else									\
@@ -1531,7 +1531,7 @@ typedef union
   while (0)
 
 /* Registers are set to a sentinel when they haven't yet matched.  */
-static int8_t reg_unset_dummy;
+static char reg_unset_dummy;
 #define REG_UNSET_VALUE (&reg_unset_dummy)
 #define REG_UNSET(e) ((e) == REG_UNSET_VALUE)
 
@@ -1805,11 +1805,11 @@ static fail_stack_type fail_stack;
    but never make them smaller.	 */
 static int regs_allocated_size;
 
-static const int8_t **	 regstart, **	  regend;
-static const int8_t ** old_regstart, ** old_regend;
-static const int8_t **best_regstart, **best_regend;
+static const char **	 regstart, **	  regend;
+static const char ** old_regstart, ** old_regend;
+static const char **best_regstart, **best_regend;
 static register_info_type *reg_info;
-static const int8_t **reg_dummy;
+static const char **reg_dummy;
 static register_info_type *reg_info_dummy;
 
 /* Make the register vectors big enough for NUM_REGS registers,
@@ -1821,14 +1821,14 @@ regex_grow_registers (num_regs)
 {
   if (num_regs > regs_allocated_size)
     {
-      RETALLOC_IF (regstart,	 num_regs, const int8_t *);
-      RETALLOC_IF (regend,	 num_regs, const int8_t *);
-      RETALLOC_IF (old_regstart, num_regs, const int8_t *);
-      RETALLOC_IF (old_regend,	 num_regs, const int8_t *);
-      RETALLOC_IF (best_regstart, num_regs, const int8_t *);
-      RETALLOC_IF (best_regend,	 num_regs, const int8_t *);
+      RETALLOC_IF (regstart,	 num_regs, const char *);
+      RETALLOC_IF (regend,	 num_regs, const char *);
+      RETALLOC_IF (old_regstart, num_regs, const char *);
+      RETALLOC_IF (old_regend,	 num_regs, const char *);
+      RETALLOC_IF (best_regstart, num_regs, const char *);
+      RETALLOC_IF (best_regend,	 num_regs, const char *);
       RETALLOC_IF (reg_info,	 num_regs, register_info_type);
-      RETALLOC_IF (reg_dummy,	 num_regs, const int8_t *);
+      RETALLOC_IF (reg_dummy,	 num_regs, const char *);
       RETALLOC_IF (reg_info_dummy, num_regs, register_info_type);
 
       regs_allocated_size = num_regs;
@@ -1865,7 +1865,7 @@ regex_grow_registers (num_regs)
 
 static reg_errcode_t
 regex_compile (pattern, size, syntax, bufp)
-     const int8_t *pattern;
+     const char *pattern;
      int size;
      reg_syntax_t syntax;
      struct re_pattern_buffer *bufp;
@@ -1876,7 +1876,7 @@ regex_compile (pattern, size, syntax, bufp)
   register unsigned int c, c1;
 
   /* A random temporary spot in PATTERN.  */
-  const int8_t *p1;
+  const char *p1;
 
   /* Points to the end of the buffer, where we should append.  */
   register unsigned char *b;
@@ -1887,11 +1887,11 @@ regex_compile (pattern, size, syntax, bufp)
   /* Points to the current (ending) position in the pattern.  */
 #ifdef AIX
   /* `const' makes AIX compiler fail.  */
-  int8_t *p = pattern;
+  char *p = pattern;
 #else
-  const int8_t *p = pattern;
+  const char *p = pattern;
 #endif
-  const int8_t *pend = pattern + size;
+  const char *pend = pattern + size;
 
   /* How to translate the characters in the pattern.  */
   RE_TRANSLATE_TYPE translate = bufp->translate;
@@ -1912,7 +1912,7 @@ regex_compile (pattern, size, syntax, bufp)
 
   /* Place in the uncompiled pattern (i.e., the {) to
      which to go back if the interval is invalid.  */
-  const int8_t *beg_interval;
+  const char *beg_interval;
 
   /* Address of the place where a forward jump should go to the end of
      the containing expression.	 Each alternative of an `or' -- except the
@@ -2053,7 +2053,7 @@ regex_compile (pattern, size, syntax, bufp)
 	    boolean keep_string_p = false;
 
 	    /* 1 means zero (many) matches is allowed.	*/
-	    int8_t zero_times_ok = 0, many_times_ok = 0;
+	    char zero_times_ok = 0, many_times_ok = 0;
 
 	    /* If there is a sequence of repetition chars, collapse it
 	       down to just one (the right one).  We can't combine
@@ -2251,7 +2251,7 @@ regex_compile (pattern, size, syntax, bufp)
 			 syntax & RE_CHAR_CLASSES && c == '[' && *p == ':')
 		  {
 		    /* Leave room for the null.	 */
-		    int8_t str[CHAR_CLASS_MAX_LENGTH + 1];
+		    char str[CHAR_CLASS_MAX_LENGTH + 1];
 
 		    PATFETCH (c);
 		    c1 = 0;
@@ -3108,10 +3108,10 @@ insert_op2 (op, loc, arg1, arg2, end)
 
 static boolean
 at_begline_loc_p (pattern, p, syntax)
-    const int8_t *pattern, *p;
+    const char *pattern, *p;
     reg_syntax_t syntax;
 {
-  const int8_t *prev = p - 2;
+  const char *prev = p - 2;
   boolean prev_prev_backslash = prev > pattern && prev[-1] == '\\';
 
   return
@@ -3127,12 +3127,12 @@ at_begline_loc_p (pattern, p, syntax)
 
 static boolean
 at_endline_loc_p (p, pend, syntax)
-    const int8_t *p, *pend;
+    const char *p, *pend;
     int syntax;
 {
-  const int8_t *next = p;
+  const char *next = p;
   boolean next_backslash = *next == '\\';
-  const int8_t *next_next = p + 1 < pend ? p + 1 : 0;
+  const char *next_next = p + 1 < pend ? p + 1 : 0;
 
   return
        /* Before a subexpression?  */
@@ -3185,12 +3185,12 @@ re_compile_fastmap (bufp)
   fail_stack_type fail_stack;
 #endif
 #ifndef REGEX_MALLOC
-  int8_t *destination;
+  char *destination;
 #endif
   /* We don't push any register information onto the failure stack.  */
   unsigned num_regs = 0;
 
-  register int8_t *fastmap = bufp->fastmap;
+  register char *fastmap = bufp->fastmap;
   unsigned char *pattern = bufp->buffer;
   unsigned long size = bufp->used;
   unsigned char *p = pattern;
@@ -3665,7 +3665,7 @@ re_set_registers (bufp, regs, num_regs, starts, ends)
 int
 re_search (bufp, string, size, startpos, range, regs)
      struct re_pattern_buffer *bufp;
-     const int8_t *string;
+     const char *string;
      int size, startpos, range;
      struct re_registers *regs;
 {
@@ -3705,7 +3705,7 @@ re_search (bufp, string, size, startpos, range, regs)
 int
 re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
      struct re_pattern_buffer *bufp;
-     const int8_t *string1, *string2;
+     const char *string1, *string2;
      int size1, size2;
      int startpos;
      int range;
@@ -3713,7 +3713,7 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
      int stop;
 {
   int val;
-  register int8_t *fastmap = bufp->fastmap;
+  register char *fastmap = bufp->fastmap;
   register RE_TRANSLATE_TYPE translate = bufp->translate;
   int total_size = size1 + size2;
   int endpos = startpos + range;
@@ -3796,7 +3796,7 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 	 the first null string.	 */
       if (fastmap && startpos < total_size && !bufp->can_be_null)
 	{
-	  register const int8_t *d;
+	  register const char *d;
 	  register unsigned int buf_ch;
 
 	  d = POS_ADDR_VSTRING (startpos);
@@ -4045,7 +4045,7 @@ static boolean alt_match_null_string_p (),
 int
 re_match (bufp, string, size, pos, regs)
      struct re_pattern_buffer *bufp;
-     const int8_t *string;
+     const char *string;
      int size, pos;
      struct re_registers *regs;
 {
@@ -4082,7 +4082,7 @@ Lisp_Object re_match_object;
 int
 re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
      struct re_pattern_buffer *bufp;
-     const int8_t *string1, *string2;
+     const char *string1, *string2;
      int size1, size2;
      int pos;
      struct re_registers *regs;
@@ -4113,7 +4113,7 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 static int
 re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
      struct re_pattern_buffer *bufp;
-     const int8_t *string1, *string2;
+     const char *string1, *string2;
      int size1, size2;
      int pos;
      struct re_registers *regs;
@@ -4124,14 +4124,14 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
   unsigned char *p1;
 
   /* Just past the end of the corresponding string.  */
-  const int8_t *end1, *end2;
+  const char *end1, *end2;
 
   /* Pointers into string1 and string2, just past the last characters in
      each to consider matching.	 */
-  const int8_t *end_match_1, *end_match_2;
+  const char *end_match_1, *end_match_2;
 
   /* Where we are in the data, and the end of the current string.  */
-  const int8_t *d, *dend;
+  const char *d, *dend;
 
   /* Where we are in the pattern, and the end of the pattern.  */
   unsigned char *p = bufp->buffer;
@@ -4185,7 +4185,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
      stopped matching the regnum-th subexpression.  (The zeroth register
      keeps track of what the whole pattern matches.)  */
 #ifdef MATCH_MAY_ALLOCATE /* otherwise, these are global.  */
-  const int8_t **regstart, **regend;
+  const char **regstart, **regend;
 #endif
 
   /* If a group that's operated upon by a repetition operator fails to
@@ -4194,7 +4194,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
      are when we last see its open-group operator.  Similarly for a
      register's end.  */
 #ifdef MATCH_MAY_ALLOCATE /* otherwise, these are global.  */
-  const int8_t **old_regstart, **old_regend;
+  const char **old_regstart, **old_regend;
 #endif
 
   /* The is_active field of reg_info helps us keep track of which (possibly
@@ -4213,7 +4213,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
      turn happens only if we have not yet matched the entire string. */
   unsigned best_regs_set = false;
 #ifdef MATCH_MAY_ALLOCATE /* otherwise, these are global.  */
-  const int8_t **best_regstart, **best_regend;
+  const char **best_regstart, **best_regend;
 #endif
 
   /* Logically, this is `best_regend[0]'.  But we don't want to have to
@@ -4224,14 +4224,14 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
      the end of the best match so far in a separate variable.  We
      initialize this to NULL so that when we backtrack the first time
      and need to test it, it's not garbage.  */
-  const int8_t *match_end = NULL;
+  const char *match_end = NULL;
 
   /* This helps SET_REGS_MATCHED avoid doing redundant work.  */
   int set_regs_matched_done = 0;
 
   /* Used when we pop values we don't care about.  */
 #ifdef MATCH_MAY_ALLOCATE /* otherwise, these are global.  */
-  const int8_t **reg_dummy;
+  const char **reg_dummy;
   register_info_type *reg_info_dummy;
 #endif
 
@@ -4252,14 +4252,14 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
      array indexing.  We should fix this.  */
   if (bufp->re_nsub)
     {
-      regstart = REGEX_TALLOC (num_regs, const int8_t *);
-      regend = REGEX_TALLOC (num_regs, const int8_t *);
-      old_regstart = REGEX_TALLOC (num_regs, const int8_t *);
-      old_regend = REGEX_TALLOC (num_regs, const int8_t *);
-      best_regstart = REGEX_TALLOC (num_regs, const int8_t *);
-      best_regend = REGEX_TALLOC (num_regs, const int8_t *);
+      regstart = REGEX_TALLOC (num_regs, const char *);
+      regend = REGEX_TALLOC (num_regs, const char *);
+      old_regstart = REGEX_TALLOC (num_regs, const char *);
+      old_regend = REGEX_TALLOC (num_regs, const char *);
+      best_regstart = REGEX_TALLOC (num_regs, const char *);
+      best_regend = REGEX_TALLOC (num_regs, const char *);
       reg_info = REGEX_TALLOC (num_regs, register_info_type);
-      reg_dummy = REGEX_TALLOC (num_regs, const int8_t *);
+      reg_dummy = REGEX_TALLOC (num_regs, const char *);
       reg_info_dummy = REGEX_TALLOC (num_regs, register_info_type);
 
       if (!(regstart && regend && old_regstart && old_regend && reg_info
@@ -4867,7 +4867,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	   followed by the numeric value of <digit> as the register number.  */
 	case duplicate:
 	  {
-	    register const int8_t *d2, *dend2;
+	    register const char *d2, *dend2;
 	    int regno = *p++;	/* Get which register to match against.	 */
 	    DEBUG_PRINT2 ("EXECUTING duplicate %d.\n", regno);
 
@@ -5276,7 +5276,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	       `pop_failure_point'.  */
 	    unsigned dummy_low_reg, dummy_high_reg;
 	    unsigned char *pdummy;
-	    const int8_t *sdummy;
+	    const char *sdummy;
 
 	    DEBUG_PRINT1 ("EXECUTING pop_failure_jump.\n");
 	    POP_FAILURE_POINT (sdummy, pdummy,
@@ -6042,9 +6042,9 @@ bcmp_translate (s1, s2, len, translate)
 
    We call regex_compile to do the actual compilation.  */
 
-const int8_t *
+const char *
 re_compile_pattern (pattern, length, bufp)
-     const int8_t *pattern;
+     const char *pattern;
      int length;
      struct re_pattern_buffer *bufp;
 {
@@ -6077,7 +6077,7 @@ re_compile_pattern (pattern, length, bufp)
 /* BSD has one and only one pattern buffer.  */
 static struct re_pattern_buffer re_comp_buf;
 
-int8_t *
+char *
 #ifdef _LIBC
 /* Make these definitions weak in libc, so POSIX programs can redefine
    these names if they don't use our functions, and still use
@@ -6085,7 +6085,7 @@ int8_t *
 weak_function
 #endif
 re_comp (s)
-    const int8_t *s;
+    const char *s;
 {
   reg_errcode_t ret;
 
@@ -6101,13 +6101,13 @@ re_comp (s)
       re_comp_buf.buffer = (unsigned char *) malloc (200);
       if (re_comp_buf.buffer == NULL)
         /* CVS: Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
-        return (int8_t *) gettext (re_error_msgid[(int) REG_ESPACE]);
+        return (char *) gettext (re_error_msgid[(int) REG_ESPACE]);
       re_comp_buf.allocated = 200;
 
-      re_comp_buf.fastmap = (int8_t *) malloc (1 << BYTEWIDTH);
+      re_comp_buf.fastmap = (char *) malloc (1 << BYTEWIDTH);
       if (re_comp_buf.fastmap == NULL)
 	/* CVS: Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
-	return (int8_t *) gettext (re_error_msgid[(int) REG_ESPACE]);
+	return (char *) gettext (re_error_msgid[(int) REG_ESPACE]);
     }
 
   /* Since `re_exec' always passes NULL for the `regs' argument, we
@@ -6122,7 +6122,7 @@ re_comp (s)
     return NULL;
 
   /* Yes, we're discarding `const' here if !HAVE_LIBINTL.  */
-  return (int8_t *) gettext (re_error_msgid[(int) ret]);
+  return (char *) gettext (re_error_msgid[(int) ret]);
 }
 
 
@@ -6180,7 +6180,7 @@ re_exec (s)
 int
 regcomp (preg, pattern, cflags)
     regex_t *preg;
-    const int8_t *pattern;
+    const char *pattern;
     int cflags;
 {
   reg_errcode_t ret;
@@ -6258,7 +6258,7 @@ regcomp (preg, pattern, cflags)
 int
 regexec (preg, string, nmatch, pmatch, eflags)
     const regex_t *preg;
-    const int8_t *string;
+    const char *string;
     size_t nmatch;
     regmatch_t pmatch[];
     int eflags;
@@ -6324,10 +6324,10 @@ size_t
 regerror (errcode, preg, errbuf, errbuf_size)
     int errcode;
     const regex_t *preg;
-    int8_t *errbuf;
+    char *errbuf;
     size_t errbuf_size;
 {
-  const int8_t *msg;
+  const char *msg;
   size_t msg_size;
 
   if (errcode < 0

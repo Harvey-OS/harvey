@@ -15,7 +15,7 @@
 
 extern int drawdebug;
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Memimage *x;
 	Point c = {208,871};
@@ -58,11 +58,11 @@ rdb(void)
 }
 
 int
-iprint(int8_t *fmt, ...)
+iprint(char *fmt, ...)
 {
 	int n;	
 	va_list va;
-	int8_t buf[1024];
+	char buf[1024];
 
 	va_start(va, fmt);
 	n = vseprint(buf, buf+sizeof buf, fmt, va) - buf;

@@ -45,7 +45,7 @@ void free ();
 #endif
 
 #if __STDC__ && defined (HAVE_VPRINTF)
-void error (int, int, int8_t const *, ...);
+void error (int, int, char const *, ...);
 #else
 void error ();
 #endif

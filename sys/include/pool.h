@@ -9,7 +9,7 @@
 
 typedef struct Pool Pool;
 struct Pool {
-	int8_t*	name;
+	char*	name;
 	uint32_t	maxsize;
 
 	uint32_t	cursize;
@@ -33,8 +33,8 @@ struct Pool {
 
 	void	(*lock)(Pool*);
 	void	(*unlock)(Pool*);
-	void	(*print)(Pool*, int8_t*, ...);
-	void	(*panic)(Pool*, int8_t*, ...);
+	void	(*print)(Pool*, char*, ...);
+	void	(*panic)(Pool*, char*, ...);
 	void	(*logstack)(Pool*);
 
 	void*	private;

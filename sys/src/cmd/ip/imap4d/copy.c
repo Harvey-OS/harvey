@@ -14,10 +14,10 @@
 #include <libsec.h>
 #include "imap4d.h"
 
-static int	saveMsg(int8_t *dst, int8_t *digest, int flags,
-			  int8_t *head, int nhead, Biobuf *b,
+static int	saveMsg(char *dst, char *digest, int flags,
+			  char *head, int nhead, Biobuf *b,
 			  int32_t n);
-static int	saveb(int fd, DigestState *dstate, int8_t *buf, int nr,
+static int	saveb(int fd, DigestState *dstate, char *buf, int nr,
 			int nw);
 static int32_t	appSpool(Biobuf *bout, Biobuf *bin, int32_t n);
 
@@ -50,7 +50,7 @@ copySave(Box *box, Msg *m, int uids, void *vs)
 	Dir *d;
 	Biobuf b;
 	int64_t length;
-	int8_t *head;
+	char *head;
 	int ok, hfd, bfd, nhead;
 
 	USED(box);
@@ -106,7 +106,7 @@ copySave(Box *box, Msg *m, int uids, void *vs)
  * then save to real box.
  */
 int
-appendSave(int8_t *mbox, int flags, int8_t *head, Biobuf *b, int32_t n)
+appendSave(char *mbox, int flags, char *head, Biobuf *b, int32_t n)
 {
 	Biobuf btmp;
 	int fd, ok;
@@ -183,14 +183,14 @@ appSpool(Biobuf *bout, Biobuf *bin, int32_t n)
 }
 
 static int
-saveMsg(int8_t *dst, int8_t *digest, int flags, int8_t *head, int nhead,
+saveMsg(char *dst, char *digest, int flags, char *head, int nhead,
 	Biobuf *b,
 	int32_t n)
 {
 	DigestState *dstate;
 	MbLock *ml;
 	uint8_t shadig[SHA1dlen];
-	int8_t buf[BufSize + 1], digbuf[NDigest + 1];
+	char buf[BufSize + 1], digbuf[NDigest + 1];
 	int i, fd, nr, nw, ok;
 
 	ml = mbLock();
@@ -263,7 +263,7 @@ saveMsg(int8_t *dst, int8_t *digest, int flags, int8_t *head, int nhead,
 }
 
 static int
-saveb(int fd, DigestState *dstate, int8_t *buf, int nr, int nw)
+saveb(int fd, DigestState *dstate, char *buf, int nr, int nw)
 {
 	if(dstate != nil)
 		sha1((uint8_t*)buf, nr, nil, dstate);

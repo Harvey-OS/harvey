@@ -18,11 +18,11 @@
 /*
  *  make an address, add the defaults
  */
-int8_t *
-netmkaddr(int8_t *linear, int8_t *defnet, int8_t *defsrv)
+char *
+netmkaddr(char *linear, char *defnet, char *defsrv)
 {
-	static int8_t addr[256];
-	int8_t *cp;
+	static char addr[256];
+	char *cp;
 
 	/*
 	 *  dump network name

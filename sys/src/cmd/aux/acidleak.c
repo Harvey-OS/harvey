@@ -32,10 +32,10 @@ erealloc(void *v, uint32_t sz)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t* s)
+char*
+estrdup(char* s)
 {
-	int8_t *r;
+	char *r;
 
 	r = strdup(s);
 	if(r == nil)
@@ -50,8 +50,8 @@ struct Block {
 	uint32_t size;
 	uint32_t w0;
 	uint32_t w1;
-	int8_t *s0;
-	int8_t *s1;
+	char *s0;
+	char *s1;
 	int mark;
 	int free;
 	Data *d;

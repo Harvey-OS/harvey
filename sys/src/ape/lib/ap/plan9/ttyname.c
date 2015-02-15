@@ -10,10 +10,10 @@
 #include <unistd.h>
 #include <stdio.h>
 
-int8_t *
+char *
 ttyname(int fd)
 {
-	static int8_t buf[100];
+	static char buf[100];
 
 	sprintf(buf, "/fd/%d", fd);
 	return buf;

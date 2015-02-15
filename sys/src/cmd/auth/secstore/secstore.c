@@ -20,7 +20,7 @@ enum{ CHK = 16, MAXFILES = 100 };
 
 typedef struct AuthConn{
 	SConn	*conn;
-	int8_t	pass[64];
+	char	pass[64];
 	int	passlen;
 } AuthConn;
 
@@ -36,12 +36,12 @@ usage(void)
 }
 
 static int
-getfile(SConn *conn, int8_t *gf, uint8_t **buf, uint32_t *buflen,
+getfile(SConn *conn, char *gf, uint8_t **buf, uint32_t *buflen,
 	uint8_t *key,
 	int nkey)
 {
 	int fd = -1, i, n, nr, nw, len;
-	int8_t s[Maxmsg+1];
+	char s[Maxmsg+1];
 	uint8_t skey[SHA1dlen], ib[Maxmsg+CHK], *ibr, *ibw, *bufw, *bufe;
 	AESstate aes;
 	DigestState *sha;
@@ -157,11 +157,11 @@ getfile(SConn *conn, int8_t *gf, uint8_t **buf, uint32_t *buflen,
  * decrypted by the program aescbc.c.
  */
 static int
-putfile(SConn *conn, int8_t *pf, uint8_t *buf, uint32_t len, uint8_t *key,
+putfile(SConn *conn, char *pf, uint8_t *buf, uint32_t len, uint8_t *key,
 	int nkey)
 {
 	int i, n, fd, ivo, bufi, done;
-	int8_t s[Maxmsg];
+	char s[Maxmsg];
 	uint8_t skey[SHA1dlen], b[CHK+Maxmsg], IV[AESbsize];
 	AESstate aes;
 	DigestState *sha;
@@ -241,9 +241,9 @@ putfile(SConn *conn, int8_t *pf, uint8_t *buf, uint32_t len, uint8_t *key,
 }
 
 static int
-removefile(SConn *conn, int8_t *rf)
+removefile(SConn *conn, char *rf)
 {
-	int8_t buf[Maxmsg];
+	char buf[Maxmsg];
 
 	if(strchr(rf, '/') != nil){
 		fprint(2, "secstore: simple filenames, not paths like %s\n", rf);
@@ -257,7 +257,7 @@ removefile(SConn *conn, int8_t *rf)
 }
 
 static int
-cmd(AuthConn *c, int8_t **gf, int *Gflag, int8_t **pf, int8_t **rf)
+cmd(AuthConn *c, char **gf, int *Gflag, char **pf, char **rf)
 {
 	uint32_t len;
 	int rv = -1;
@@ -273,7 +273,7 @@ cmd(AuthConn *c, int8_t **gf, int *Gflag, int8_t **pf, int8_t **rf)
 			/* write 1 line at a time, as required by /mnt/factotum/ctl */
 			memcur = memfile;
 			while(len>0){
-				memnext = (uint8_t*)strchr((int8_t*)memcur,
+				memnext = (uint8_t*)strchr((char*)memcur,
 							   '\n');
 				if(memnext){
 					write(1, memcur, memnext-memcur+1);
@@ -313,13 +313,13 @@ Out:
 }
 
 static int
-chpasswd(AuthConn *c, int8_t *id)
+chpasswd(AuthConn *c, char *id)
 {
 	int rv = -1, newpasslen = 0;
 	uint32_t len;
 	uint8_t *memfile;
-	int8_t *newpass, *passck, *list, *cur, *next, *hexHi;
-	int8_t *f[8], prompt[128];
+	char *newpass, *passck, *list, *cur, *next, *hexHi;
+	char *f[8], prompt[128];
 	mpint *H, *Hi;
 
 	H = mpnew(0);
@@ -392,10 +392,10 @@ Out:
 }
 
 static AuthConn*
-login(int8_t *id, int8_t *dest, int pass_stdin, int pass_nvram)
+login(char *id, char *dest, int pass_stdin, int pass_nvram)
 {
 	int fd, n, ntry = 0;
-	int8_t *S, *PINSTA = nil, *nl, s[Maxmsg+1], *pass;
+	char *S, *PINSTA = nil, *nl, s[Maxmsg+1], *pass;
 	AuthConn *c;
 
 	if(dest == nil)

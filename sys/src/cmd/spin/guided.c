@@ -30,7 +30,7 @@ extern int	verbose, lineno, xspin, jumpsteps, depth, merger, cutoff;
 extern int	nproc, nstop, Tval, ntrail, columns;
 extern int16_t	Have_claim, Skip_claim;
 extern void ana_src(int, int);
-extern int8_t	**trailfilename;
+extern char	**trailfilename;
 
 int	TstOnly = 0, pno;
 
@@ -50,7 +50,7 @@ whichproc(int p)
 }
 
 static int
-newer(int8_t *f1, int8_t *f2)
+newer(char *f1, char *f2)
 {
 #if defined(WIN32) || defined(WIN64)
 	struct _stat x, y;
@@ -87,7 +87,7 @@ void
 match_trail(void)
 {	int i, a, nst;
 	Element *dothis;
-	int8_t snap[512], *q;
+	char snap[512], *q;
 
 	/*
 	 * if source model name is leader.pml
@@ -100,7 +100,7 @@ match_trail(void)
 
 	if (trailfilename)
 	{	if (strlen(*trailfilename) < sizeof(snap))
-		{	strcpy(snap, (const int8_t *) *trailfilename);
+		{	strcpy(snap, (const char *) *trailfilename);
 		} else
 		{	fatal("filename %s too long", *trailfilename);
 		}
@@ -313,7 +313,7 @@ keepgoing:		if (dothis->merge_start)
 		&&  lastclaim != dothis->n->ln)
 		{	lastclaim = dothis->n->ln;
 			if (columns == 2)
-			{	int8_t t[128];
+			{	char t[128];
 				sprintf(t, "#%d", lastclaim);
 				pstext(0, t);
 			} else

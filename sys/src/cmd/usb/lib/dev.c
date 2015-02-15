@@ -16,10 +16,10 @@
  * epN.M -> N
  */
 static int
-nameid(int8_t *s)
+nameid(char *s)
 {
-	int8_t *r;
-	int8_t nm[20];
+	char *r;
+	char nm[20];
 
 	r = strrchr(s, 'p');
 	if(r == nil)
@@ -35,12 +35,12 @@ nameid(int8_t *s)
 Dev*
 openep(Dev *d, int id)
 {
-	int8_t *mode;	/* How many modes? */
+	char *mode;	/* How many modes? */
 	Ep *ep;
 	Altc *ac;
 	Dev *epd;
 	Usbdev *ud;
-	int8_t name[40];
+	char name[40];
 
 	if(access("/dev/usb", AEXIST) < 0 && bind("#u", "/dev", MBEFORE) < 0)
 		return nil;
@@ -100,7 +100,7 @@ openep(Dev *d, int id)
 }
 
 Dev*
-opendev(int8_t *fn)
+opendev(char *fn)
 {
 	Dev *d;
 	int l;
@@ -137,7 +137,7 @@ opendev(int8_t *fn)
 int
 opendevdata(Dev *d, int mode)
 {
-	int8_t buf[80]; /* more than enough for a usb path */
+	char buf[80]; /* more than enough for a usb path */
 
 	seprint(buf, buf+sizeof(buf), "%s/data", d->dir);
 	d->dfd = open(buf, mode|OCEXEC);
@@ -189,13 +189,13 @@ mkep(Usbdev *d, int id)
 	return ep;
 }
 
-static int8_t*
+static char*
 mkstr(uint8_t *b, int n)
 {
 	Rune r;
-	int8_t *us;
-	int8_t *s;
-	int8_t *e;
+	char *us;
+	char *s;
+	char *e;
 
 	if(n <= 2 || (n & 1) != 0)
 		return strdup("none");
@@ -210,7 +210,7 @@ mkstr(uint8_t *b, int n)
 	return us;
 }
 
-int8_t*
+char*
 loaddevstr(Dev *d, int sid)
 {
 	uint8_t buf[128];
@@ -334,12 +334,12 @@ closedev(Dev *d)
 	free(d);
 }
 
-static int8_t*
+static char*
 reqstr(int type, int req)
 {
-	int8_t *s;
-	static int8_t* ds[] = { "dev", "if", "ep", "oth" };
-	static int8_t buf[40];
+	char *s;
+	static char* ds[] = { "dev", "if", "ep", "oth" };
+	static char buf[40];
 
 	if(type&Rd2h)
 		s = seprint(buf, buf+sizeof(buf), "d2h");
@@ -376,7 +376,7 @@ cmdreq(Dev *d, int type, int req, int value, int index, uint8_t *data,
 	int ndata, n;
 	uint8_t *wp;
 	uint8_t buf[8];
-	int8_t *hd, *rs;
+	char *hd, *rs;
 
 	assert(d != nil);
 	if(data == nil){
@@ -416,7 +416,7 @@ cmdreq(Dev *d, int type, int req, int value, int index, uint8_t *data,
 static int
 cmdrep(Dev *d, void *buf, int nb)
 {
-	int8_t *hd;
+	char *hd;
 
 	nb = read(d->dfd, buf, nb);
 	if(nb >0 && usbdebug > 2){
@@ -432,7 +432,7 @@ usbcmd(Dev *d, int type, int req, int value, int index, uint8_t *data,
        int count)
 {
 	int i, r, nerr;
-	int8_t err[64];
+	char err[64];
 
 	/*
 	 * Some devices do not respond to commands some times.
@@ -491,11 +491,11 @@ unstall(Dev *dev, Dev *ep, int dir)
  * To be sure it uses a single write.
  */
 int
-devctl(Dev *dev, int8_t *fmt, ...)
+devctl(Dev *dev, char *fmt, ...)
 {
-	int8_t buf[128];
+	char buf[128];
 	va_list arg;
-	int8_t *e;
+	char *e;
 
 	va_start(arg, fmt);
 	e = vseprint(buf, buf+sizeof(buf), fmt, arg);

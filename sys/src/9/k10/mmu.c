@@ -266,7 +266,7 @@ checkpte(uintmem ppn, void *a)
 	int l;
 	PTE *pte, *pml4;
 	uint64_t addr;
-	int8_t buf[240], *s;
+	char buf[240], *s;
 
 	addr = PTR2UINT(a);
 	pml4 = UINT2PTR(m->pml4->va);
@@ -385,7 +385,7 @@ mmuput(uintptr va, Page *pg, uint attr)
 	Page *page, *prev;
 	Mpl pl;
 	uintmem pa, ppn;
-	int8_t buf[80];
+	char buf[80];
 
 	ppn = 0;
 	pa = pg->pa;

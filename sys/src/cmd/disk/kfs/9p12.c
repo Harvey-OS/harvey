@@ -57,7 +57,7 @@ readmsg(Chan *c, void *abuf, int n, int *ninep)
 }
 
 int
-startserveproc(void (*f)(Chan*, uint8_t*, int), int8_t *name, Chan *c,
+startserveproc(void (*f)(Chan*, uint8_t*, int), char *name, Chan *c,
 	       uint8_t *b, int nb)
 {
 	int pid;

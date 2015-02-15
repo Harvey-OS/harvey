@@ -25,12 +25,12 @@ smbcomsessionsetupandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 	uint16_t bytecountfixup, offset;
 	uint8_t *mschapreply;
 	AuthInfo *ai;
-	int8_t *sp;
+	char *sp;
 	SmbProcessResult pr;
-	int8_t *accountname = nil;
-	int8_t *primarydomain = nil;
-	int8_t *nativeos = nil;
-	int8_t *nativelanman = nil;
+	char *accountname = nil;
+	char *primarydomain = nil;
+	char *nativeos = nil;
+	char *nativelanman = nil;
 
 	if (!smbcheckwordcount("comsessionsetupandx", h, 13)) {
 	fmtfail:

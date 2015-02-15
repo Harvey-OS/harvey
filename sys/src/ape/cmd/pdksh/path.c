@@ -74,18 +74,18 @@ static char	*do_phys_path ARGS((XString *xsp, char *xp, const char *path));
  */
 int
 make_path(cwd, file, cdpathp, xsp, phys_pathp)
-	const int8_t *cwd;
-	const int8_t *file;
-	int8_t	**cdpathp;	/* & of : separated list */
+	const char *cwd;
+	const char *file;
+	char	**cdpathp;	/* & of : separated list */
 	XString	*xsp;
 	int	*phys_pathp;
 {
 	int	rval = 0;
 	int	use_cdpath = 1;
-	int8_t	*plist;
+	char	*plist;
 	int	len;
 	int	plen = 0;
-	int8_t	*xp = Xstring(*xsp, xp);
+	char	*xp = Xstring(*xsp, xp);
 
 	if (!file)
 		file = null;
@@ -95,7 +95,7 @@ make_path(cwd, file, cdpathp, xsp, phys_pathp)
 		use_cdpath = 0;
 	} else {
 		if (file[0] == '.') {
-			int8_t c = file[1];
+			char c = file[1];
 
 			if (c == '.')
 				c = file[2];
@@ -107,12 +107,12 @@ make_path(cwd, file, cdpathp, xsp, phys_pathp)
 		if (!plist)
 			use_cdpath = 0;
 		else if (use_cdpath) {
-			int8_t *pend;
+			char *pend;
 
 			for (pend = plist; *pend && *pend != PATHSEP; pend++)
 				;
 			plen = pend - plist;
-			*cdpathp = *pend ? ++pend : (int8_t *) 0;
+			*cdpathp = *pend ? ++pend : (char *) 0;
 		}
 
 		if ((use_cdpath == 0 || !plen || ISRELPATH(plist))
@@ -141,7 +141,7 @@ make_path(cwd, file, cdpathp, xsp, phys_pathp)
 	memcpy(xp, file, len);
 
 	if (!use_cdpath)
-		*cdpathp = (int8_t *) 0;
+		*cdpathp = (char *) 0;
 
 	return rval;
 }
@@ -152,13 +152,13 @@ make_path(cwd, file, cdpathp, xsp, phys_pathp)
  */
 void
 simplify_path(path)
-	int8_t	*path;
+	char	*path;
 {
-	int8_t	*cur;
-	int8_t	*t;
+	char	*cur;
+	char	*t;
 	int	isrooted;
-	int8_t	*very_start = path;
-	int8_t	*start;
+	char	*very_start = path;
+	char	*start;
 
 	if (!*path)
 		return;
@@ -235,12 +235,12 @@ simplify_path(path)
 
 void
 set_current_wd(path)
-	int8_t *path;
+	char *path;
 {
 	int len;
-	int8_t *p = path;
+	char *p = path;
 
-	if (!p && !(p = ksh_get_wd((int8_t *) 0, 0)))
+	if (!p && !(p = ksh_get_wd((char *) 0, 0)))
 		p = null;
 
 	len = strlen(p) + 1;
@@ -253,19 +253,19 @@ set_current_wd(path)
 }
 
 #ifdef S_ISLNK
-int8_t *
+char *
 get_phys_path(path)
-	const int8_t *path;
+	const char *path;
 {
 	XString xs;
-	int8_t *xp;
+	char *xp;
 
 	Xinit(xs, xp, strlen(path) + 1, ATEMP);
 
 	xp = do_phys_path(&xs, xp, path);
 
 	if (!xp)
-		return (int8_t *) 0;
+		return (char *) 0;
 
 	if (Xlength(xs, xp) == 0)
 		Xput(xs, xp, DIRSEP);
@@ -274,16 +274,16 @@ get_phys_path(path)
 	return Xclose(xs, xp);
 }
 
-static int8_t *
+static char *
 do_phys_path(xsp, xp, path)
 	XString *xsp;
-	int8_t *xp;
-	const int8_t *path;
+	char *xp;
+	const char *path;
 {
-	const int8_t *p, *q;
+	const char *p, *q;
 	int len, llen;
 	int savepos;
-	int8_t lbuf[PATH];
+	char lbuf[PATH];
 
 	Xcheck(*xsp, xp);
 	for (p = path; p; p = q) {
@@ -314,7 +314,7 @@ do_phys_path(xsp, xp, path)
 		if (llen < 0) {
 			/* EINVAL means it wasn't a symlink... */
 			if (errno != EINVAL)
-				return (int8_t *) 0;
+				return (char *) 0;
 			continue;
 		}
 		lbuf[llen] = '\0';
@@ -323,7 +323,7 @@ do_phys_path(xsp, xp, path)
 		xp = ISABSPATH(lbuf) ? Xstring(*xsp, xp)
 				     : Xrestpos(*xsp, xp, savepos);
 		if (!(xp = do_phys_path(xsp, xp, lbuf)))
-			return (int8_t *) 0;
+			return (char *) 0;
 	}
 	return xp;
 }

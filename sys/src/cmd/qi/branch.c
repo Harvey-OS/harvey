@@ -41,10 +41,10 @@ Inst	op19[] = {
 
 Inset	ops19 = {op19, nelem(op19)-1};
 
-static int8_t *
+static char *
 boname(int bo)
 {
-	static int8_t buf[8];
+	static char buf[8];
 
 	switch(bo>>1){
 	case 0:	return "dnzf";
@@ -62,13 +62,13 @@ boname(int bo)
 	}
 }
 
-static int8_t *
+static char *
 cname(int bo, int bi)
 {
 	int f;
-	int8_t *p;
-	static int8_t buf[20];
-	static int8_t *f0[] = {"lt", "gt", "eq", "so/un"};
+	char *p;
+	static char buf[20];
+	static char *f0[] = {"lt", "gt", "eq", "so/un"};
 
 	if(bo == 0x14){	/* branch always */
 		sprint(buf,"%d", bi);
@@ -148,7 +148,7 @@ bcx(uint32_t ir)
 	int bo, bi, xx;
 	uint32_t ea;
 	int32_t imm;
-	static int8_t *opc[] = {"bc", "bcl", "bca", "bcla"};
+	static char *opc[] = {"bc", "bcl", "bca", "bcla"};
 
 	getbobi(ir);
 	USED(xx);
@@ -249,7 +249,7 @@ bx(uint32_t ir)
 {
 	uint32_t ea;
 	int32_t imm;
-	static int8_t *opc[] = {"b", "bl", "ba", "bla"};
+	static char *opc[] = {"b", "bl", "ba", "bla"};
 
 	imm = ir & 0x03FFFFFC;
 	if(ir & 0x02000000)

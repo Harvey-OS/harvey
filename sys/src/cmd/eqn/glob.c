@@ -10,7 +10,7 @@
 #include "e.h"
 
 	/* YOU MAY WANT TO CHANGE THIS */
-int8_t	*typesetter = "post";	/* type of typesetter today */
+char	*typesetter = "post";	/* type of typesetter today */
 int	ttype	= DEVPOST;
 int	minsize	= 4;		/* min size it can handle */
 

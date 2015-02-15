@@ -230,8 +230,8 @@ uid_equal(register const gs_uid * puid1, register const gs_uid * puid2)
     if (puid1->id >= 0)
 	return true;		/* UniqueID */
     return
-	!memcmp((const int8_t *)puid1->xvalues,
-		(const int8_t *)puid2->xvalues,
+	!memcmp((const char *)puid1->xvalues,
+		(const char *)puid2->xvalues,
 		(uint) - (puid1->id) * sizeof(int32_t));
 }
 

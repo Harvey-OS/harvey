@@ -17,7 +17,7 @@
 #include "ip.h"
 
 static void
-nullbind(Ipifc*, int, int8_t**)
+nullbind(Ipifc*, int, char**)
 {
 	error("cannot bind null device");
 }

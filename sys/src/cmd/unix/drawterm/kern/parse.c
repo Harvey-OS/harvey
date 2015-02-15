@@ -17,10 +17,10 @@
  * Generous estimate of number of fields, including terminal nil pointer
  */
 static int
-ncmdfield(int8_t *p, int n)
+ncmdfield(char *p, int n)
 {
 	int white, nwhite;
-	int8_t *ep;
+	char *ep;
 	int nf;
 
 	if(p == nil)
@@ -42,19 +42,19 @@ ncmdfield(int8_t *p, int n)
  *  parse a command written to a device
  */
 Cmdbuf*
-parsecmd(int8_t *p, int n)
+parsecmd(char *p, int n)
 {
 	Cmdbuf *volatile cb;
 	int nf;
-	int8_t *sp;
+	char *sp;
 
 	nf = ncmdfield(p, n);
 
 	/* allocate Cmdbuf plus string pointers plus copy of string including \0 */
-	sp = smalloc(sizeof(*cb) + nf * sizeof(int8_t*) + n + 1);
+	sp = smalloc(sizeof(*cb) + nf * sizeof(char*) + n + 1);
 	cb = (Cmdbuf*)sp;
-	cb->f = (int8_t**)(&cb[1]);
-	cb->buf = (int8_t*)(&cb->f[nf]);
+	cb->f = (char**)(&cb[1]);
+	cb->buf = (char*)(&cb->f[nf]);
 
 	if(up!=nil && waserror()){
 		free(cb);
@@ -79,10 +79,10 @@ parsecmd(int8_t *p, int n)
  * Reconstruct original message, for error diagnostic
  */
 void
-cmderror(Cmdbuf *cb, int8_t *s)
+cmderror(Cmdbuf *cb, char *s)
 {
 	int i;
-	int8_t *p, *e;
+	char *p, *e;
 
 	p = up->genbuf;
 	e = p+ERRMAX-10;

@@ -60,7 +60,7 @@ put4(uint8_t *a, uint32_t v)
 }
 
 static void
-chunk(Biobuf *bo, int8_t *type, uint8_t *d, int n)
+chunk(Biobuf *bo, char *type, uint8_t *d, int n)
 {
 	uint8_t buf[4];
 	uint32_t crc = 0;
@@ -165,7 +165,7 @@ static Memimage*
 memRGBA(Memimage *i)
 {
 	Memimage *ni;
-	int8_t buf[32];
+	char buf[32];
 	uint32_t dst;
 	
 	/*
@@ -187,7 +187,7 @@ memRGBA(Memimage *i)
 	return ni;
 }
 
-int8_t*
+char*
 memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
 {
 	int err, n;
@@ -244,10 +244,10 @@ memwritepng(Biobuf *io, Memimage *m, ImageInfo *II)
 
 	/* comment */
 	if(II->fields_set & II_COMMENT){
-		strncpy((int8_t*)buf, "Comment", sizeof buf);
-		n = strlen((int8_t*)buf)+1; // leave null between Comment and text
-		strncpy((int8_t*)(buf+n), II->comment, sizeof buf - n);
-		chunk(io, "tEXt", buf, n+strlen((int8_t*)buf+n));
+		strncpy((char*)buf, "Comment", sizeof buf);
+		n = strlen((char*)buf)+1; // leave null between Comment and text
+		strncpy((char*)(buf+n), II->comment, sizeof buf - n);
+		chunk(io, "tEXt", buf, n+strlen((char*)buf+n));
 	}
 
 	/* image data */

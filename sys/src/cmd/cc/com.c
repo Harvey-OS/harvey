@@ -1292,7 +1292,7 @@ loop:
 }
 
 /*	OEQ, ONE, OLE, OLS, OLT, OLO, OGE, OHS, OGT, OHI */
-static int8_t *cmps[12] = 
+static char *cmps[12] = 
 {
 	"==", "!=", "<=", "<=", "<", "<", ">=", ">=", ">", ">",
 };
@@ -1348,7 +1348,7 @@ compar(Node *n, int reverse)
 {
 	Big lo, hi, x;
 	int op;
-	int8_t xbuf[40], cmpbuf[50];
+	char xbuf[40], cmpbuf[50];
 	Node *l, *r;
 	Type *lt, *rt;
 

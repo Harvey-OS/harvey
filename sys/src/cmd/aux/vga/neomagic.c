@@ -314,7 +314,7 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	int8_t buf[100];
+	char buf[100];
 
 	generic.dump(vga, ctlr);
 

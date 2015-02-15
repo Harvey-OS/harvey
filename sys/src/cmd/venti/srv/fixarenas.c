@@ -43,9 +43,9 @@ int debugsha1;
 
 int verbose;
 Part *part;
-int8_t *file;
-int8_t *basename;
-int8_t *dumpbase;
+char *file;
+char *basename;
+char *dumpbase;
 int fix;
 int badreads;
 int unseal;
@@ -93,7 +93,7 @@ static int
 tfmt(Fmt *fmt)
 {
 	uint t;
-	int8_t buf[30];
+	char buf[30];
 	
 	t = va_arg(fmt->args, uint);
 	strcpy(buf, ctime(t));
@@ -106,10 +106,10 @@ tfmt(Fmt *fmt)
  * bad(0, 0) flushes the buffer.
  */
 static void
-bad(int8_t *msg, int64_t o, int len)
+bad(char *msg, int64_t o, int len)
 {
 	static int64_t lb0, lb1;
-	static int8_t *lmsg;
+	static char *lmsg;
 
 	if(msg == nil)
 		msg = lmsg;
@@ -197,7 +197,7 @@ struct Shabuf
 };
 
 void
-sbdebug(Shabuf *sb, int8_t *file)
+sbdebug(Shabuf *sb, char *file)
 {
 	int fd;
 	
@@ -490,7 +490,7 @@ typedef struct Info Info;
 struct Info
 {
 	int len;
-	int8_t *name;
+	char *name;
 };
 
 Info partinfo[] = {
@@ -635,9 +635,9 @@ showdiffs(uint8_t *want, uint8_t *have, int len, Info *info)
 				break;
 			case S|ANameSize:
 				print("\t%s: correct=%s disk=%.*s\n",
-					info->name, (int8_t*)want, 
-					utfnlen((int8_t*)have, ANameSize-1),
-					(int8_t*)have);
+					info->name, (char*)want, 
+					utfnlen((char*)have, ANameSize-1),
+					(char*)have);
 				break;
 			default:
 				print("\t%s: correct=%.*H disk=%.*H\n",
@@ -837,9 +837,9 @@ guessgeometry(void)
  * Check the arena partition blocks and then the arenas listed in range.
  */
 void
-checkarenas(int8_t *range)
+checkarenas(char *range)
 {
-	int8_t *s, *t;
+	char *s, *t;
 	int i, lo, hi, narena;
 	uint8_t dbuf[HeadSize];
 	uint8_t *p;
@@ -1094,9 +1094,9 @@ sealedarena(uint8_t *p, int blocksize)
 }
 
 int
-okayname(int8_t *name, int n)
+okayname(char *name, int n)
 {
-	int8_t buf[20];
+	char buf[20];
 	
 	if(nameok(name) < 0)
 		return 0;
@@ -1173,8 +1173,8 @@ writeci(int64_t offset, Arena *arena, ClumpInfo *ci, int nci)
 void
 loadarenabasics(int64_t offset0, int anum, ArenaHead *head, Arena *arena)
 {
-	int8_t dname[ANameSize];
-	static int8_t lastbase[ANameSize];
+	char dname[ANameSize];
+	static char lastbase[ANameSize];
 	uint8_t *p;
 	Arena oarena;
 	ArenaHead ohead;
@@ -1685,7 +1685,7 @@ Nocib:
 void
 dumparena(int64_t offset, int anum, Arena *arena)
 {
-	int8_t buf[1000];
+	char buf[1000];
 	int64_t o, e;
 	int fd, n;
 	
@@ -1830,7 +1830,7 @@ buildamap(void)
 void
 checkmap(void)
 {
-	int8_t *s;
+	char *s;
 	uint8_t *p;
 	int i, len;
 	AMapN *an;

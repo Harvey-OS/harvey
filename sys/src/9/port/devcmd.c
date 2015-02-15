@@ -45,14 +45,14 @@ struct Conv
 	int	count[3];	/* number of readers on stdin/stdout/stderr */
 	int	perm;
 	uint32_t esz;
-	int8_t*	owner;
-	int8_t*	state;
+	char*	owner;
+	char*	state;
 	Cmdbuf*	cmd;
-	int8_t*	dir;
+	char*	dir;
 	QLock	l;	/* protects state changes */
 	Queue*	waitq;
 	void*	child;
-	int8_t*	error;	/* on start up */
+	char*	error;	/* on start up */
 	int	nice;
 	int16_t	killonclose;
 	int16_t	killed;
@@ -68,7 +68,7 @@ static struct
 	Conv**	conv;
 } cmd;
 
-static	Conv*	cmdclone(int8_t*);
+static	Conv*	cmdclone(char*);
 static	void	cmdproc(void*);
 
 static int
@@ -113,7 +113,7 @@ cmd3gen(Chan *c, int i, Dir *dp)
 }
 
 static int
-cmdgen(Chan *c, int8_t *name, Dirtab *d, int nd, int s, Dir *dp)
+cmdgen(Chan *c, char *name, Dirtab *d, int nd, int s, Dir *dp)
 {
 	Qid q;
 	Conv *cv;
@@ -191,7 +191,7 @@ cmdinit(void)
 }
 
 static Chan *
-cmdattach(int8_t *spec)
+cmdattach(char *spec)
 {
 	Chan *c;
 
@@ -203,7 +203,7 @@ cmdattach(int8_t *spec)
 }
 
 static Walkqid*
-cmdwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+cmdwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, cmdgen);
 }
@@ -219,7 +219,7 @@ cmdopen(Chan *c, int omode)
 {
 	int perm;
 	Conv *cv;
-	int8_t *user;
+	char *user;
 
 	perm = 0;
 	omode = openmode(omode);
@@ -388,9 +388,9 @@ cmdread(Chan *ch, void *a, int32_t n, int64_t offset)
 {
 	Conv *c;
 	Proc *p;
-	int8_t *s, *cmds;
+	char *s, *cmds;
 	int fd;
-	int8_t buf[256];
+	char buf[256];
 
 	USED(offset);
 
@@ -599,7 +599,7 @@ cmdwstat(Chan *c, uint8_t *dp, int32_t n)
 			free(d);
 			nexterror();
 		}
-		n = convM2D(dp, n, d, (int8_t*)&d[1]);
+		n = convM2D(dp, n, d, (char*)&d[1]);
 		if(n == 0)
 			error(Eshortstat);
 		cv = cmd.conv[CONV(c->qid)];
@@ -617,7 +617,7 @@ cmdwstat(Chan *c, uint8_t *dp, int32_t n)
 }
 
 static Conv*
-cmdclone(int8_t *user)
+cmdclone(char *user)
 {
 	Conv *c, **pp, **ep;
 	int i;
@@ -666,7 +666,7 @@ cmdproc(void *a)
 {
 	Conv *c;
 	int n;
-	int8_t status[ERRMAX];
+	char status[ERRMAX];
 	void *t;
 
 	c = a;

@@ -17,7 +17,7 @@ typedef	struct machtab Machtab;
 
 struct machtab
 {
-	int8_t		*name;			/* machine name */
+	char		*name;			/* machine name */
 	int16_t		type;			/* executable type */
 	int16_t		boottype;		/* bootable type */
 	int		asstype;		/* disassembler code */
@@ -162,7 +162,7 @@ machbytype(int type)
  *	select a machine by name
  */
 int
-machbyname(int8_t *name)
+machbyname(char *name)
 {
 	Machtab *mp;
 

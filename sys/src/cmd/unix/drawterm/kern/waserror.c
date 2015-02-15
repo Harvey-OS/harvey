@@ -28,7 +28,7 @@ nexterror(void)
 }
 
 void
-error(int8_t *e)
+error(char *e)
 {
 	kstrcpy(up->errstr, e, ERRMAX);
 	setjmp(up->errlab[NERR-1].buf);

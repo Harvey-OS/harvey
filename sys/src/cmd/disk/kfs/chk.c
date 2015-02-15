@@ -12,18 +12,18 @@
 #define	DSIZE		546000
 #define	MAXDEPTH	100
 
-static	int8_t*	abits;
+static	char*	abits;
 static	int32_t	sizabits;
-static	int8_t*	qbits;
+static	char*	qbits;
 static	int32_t	sizqbits;
-static	int8_t*	name;
+static	char*	name;
 static	int32_t	sizname;
 static	int32_t	fstart;
 static	int32_t	fsize;
 static	int32_t	nfiles;
 static	int32_t	maxq;
-static	int8_t*	fence;
-static	int8_t*	fencebase;
+static	char*	fence;
+static	char*	fencebase;
 static	Device	dev;
 static	int32_t	ndup;
 static	int32_t	nused;
@@ -59,7 +59,7 @@ static
 void*
 zalloc(uint32_t n)
 {
-	int8_t *p;
+	char *p;
 
 	p = malloc(n);
 	if(p == 0)
@@ -72,7 +72,7 @@ static
 void*
 dalloc(uint32_t n)
 {
-	int8_t *p;
+	char *p;
 
 	if(fencebase == 0)
 		fence = fencebase = zalloc(MAXDEPTH*sizeof(Dentry));
@@ -291,7 +291,7 @@ static
 int
 fsck(Dentry *d)
 {
-	int8_t *s;
+	char *s;
 	Rune r;
 	Iobuf *p;
 	int l, i, ns, dmod;

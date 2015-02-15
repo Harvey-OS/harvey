@@ -10,8 +10,8 @@
 #include "sam.h"
 #include "parse.h"
 
-static int8_t	linex[]="\n";
-static int8_t	wordx[]=" \t\n";
+static char	linex[]="\n";
+static char	wordx[]=" \t\n";
 Cmdtab cmdtab[]={
 /*	cmdc	text	regexp	addr	defcmd	defaddr	count	token	 fn	*/
 	'\n',	0,	0,	0,	0,	aDot,	0,	0,	nl_cmd,
@@ -80,7 +80,7 @@ int
 inputc(void)
 {
 	int n, nbuf;
-	int8_t buf[UTFmax];
+	char buf[UTFmax];
 	Rune r;
 
     Again:
@@ -362,7 +362,7 @@ getrhs(String *s, int delim, int cmd)
 }
 
 String *
-collecttoken(int8_t *end)
+collecttoken(char *end)
 {
 	String *s = newstring();
 	int c;

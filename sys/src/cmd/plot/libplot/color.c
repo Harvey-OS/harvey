@@ -8,6 +8,6 @@
  */
 
 #include "mplot.h"
-void color(int8_t *s){
+void color(char *s){
 	e1->foregr=bcolor(s);
 }

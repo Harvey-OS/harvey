@@ -17,7 +17,7 @@
 int _finishing = 0;
 int _sessleader = 0;
 
-static int8_t exitstatus[ERRMAX];
+static char exitstatus[ERRMAX];
 
 void
 _exit(int status)
@@ -26,9 +26,9 @@ _exit(int status)
 }
 
 void
-_finish(int status, int8_t *term)
+_finish(int status, char *term)
 {
-	int8_t *cp;
+	char *cp;
 
 	if(_finishing)
 		_EXITS(exitstatus);
@@ -47,10 +47,10 @@ _finish(int status, int8_t *term)
 
 /* emulate: return p+sprintf(p, "%uld", v) */
 #define IDIGIT 15
-int8_t *
-_ultoa(int8_t *p, unsigned long v)
+char *
+_ultoa(char *p, unsigned long v)
 {
-	int8_t s[IDIGIT];
+	char s[IDIGIT];
 	int n, i;
 
 	s[IDIGIT-1] = 0;

@@ -16,11 +16,11 @@
 
 uint32_t	kerndate;
 Proc	**privup;
-int8_t	*eve;
+char	*eve;
 extern void *mainmem;
 
 void
-_assert(int8_t *fmt)
+_assert(char *fmt)
 {
 	panic("assert failed: %s", fmt);
 }
@@ -34,7 +34,7 @@ errdepth(int ed)
 }
 
 void
-newup(int8_t *name)
+newup(char *name)
 {
 	up = smalloc(sizeof(Proc));
 	up->user = eve;
@@ -43,7 +43,7 @@ newup(int8_t *name)
 }
 
 void
-kproc(int8_t *name, void (*f)(void *), void *a)
+kproc(char *name, void (*f)(void *), void *a)
 {
 	int pid;
 
@@ -91,10 +91,10 @@ openmode(uint32_t o)
 }
 
 void
-panic(int8_t *fmt, ...)
+panic(char *fmt, ...)
 {
-	int8_t buf[512];
-	int8_t buf2[512];
+	char buf[512];
+	char buf2[512];
 	va_list va;
 
 	va_start(va, fmt);
@@ -125,7 +125,7 @@ seconds(void)
 }
 
 void
-error(int8_t *err)
+error(char *err)
 {
 	strncpy(up->error, err, ERRMAX);
 	nexterror();
@@ -138,7 +138,7 @@ nexterror(void)
 }
 
 int
-readstr(uint32_t off, int8_t *buf, uint32_t n, int8_t *str)
+readstr(uint32_t off, char *buf, uint32_t n, char *str)
 {
 	int size;
 

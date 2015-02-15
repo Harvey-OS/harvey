@@ -11,10 +11,10 @@
 
 #define	N	256
 
-int8_t*
-strtok_r(int8_t *s, const int8_t *b, int8_t **last)
+char*
+strtok_r(char *s, const char *b, char **last)
 {
-	int8_t map[N], *os;
+	char map[N], *os;
 
 	memset(map, 0, N);
 	while(*b)
@@ -36,10 +36,10 @@ strtok_r(int8_t *s, const int8_t *b, int8_t **last)
 	return os;
 }
 
-int8_t*
-strtok(int8_t *s, const int8_t *b)
+char*
+strtok(char *s, const char *b)
 {
-	static int8_t *under_rock;
+	static char *under_rock;
 
 	return strtok_r(s, b, &under_rock);
 }

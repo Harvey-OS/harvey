@@ -16,10 +16,10 @@
 
 int verbose;
 
-static void userinput(int8_t *, int);
+static void userinput(char *, int);
 
 static void
-ensure_exists(int8_t *f, uint32_t perm)
+ensure_exists(char *f, uint32_t perm)
 {
 	int fd;
 
@@ -217,7 +217,7 @@ main(int argc, char **argv)
 
 
 static void
-userinput(int8_t *buf, int blen)
+userinput(char *buf, int blen)
 {
 	int n;
 

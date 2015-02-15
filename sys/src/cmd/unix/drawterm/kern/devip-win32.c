@@ -50,7 +50,7 @@ void
 osipinit(void)
 {
 	WSADATA wasdat;
-	int8_t buf[1024];
+	char buf[1024];
 
 	if(WSAStartup(MAKEWORD(1, 1), &wasdat) != 0)
 		panic("no winsock.dll");
@@ -80,7 +80,7 @@ so_socket(int type, unsigned char *addr)
 		oserror();
 
 	one = 1;
-	if(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (int8_t*)&one, sizeof(one)) > 0){
+	if(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(one)) > 0){
 		oserrstr();
 		print("setsockopt: %s\n", up->errstr);
 	}
@@ -178,7 +178,7 @@ so_bind(int fd, int su, unsigned short port, unsigned char *addr)
 	struct sockaddr_storage ss;
 
 	one = 1;
-	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (int8_t*)&one, sizeof(one)) < 0){
+	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof(one)) < 0){
 		oserrstr();
 		print("setsockopt: %r");
 	}
@@ -220,10 +220,10 @@ so_bind(int fd, int su, unsigned short port, unsigned char *addr)
 }
 
 int
-so_gethostbyname(int8_t *host, int8_t**hostv, int n)
+so_gethostbyname(char *host, char**hostv, int n)
 {
 	int i;
-	int8_t buf[32];
+	char buf[32];
 	unsigned char *p;
 	struct hostent *hp;
 
@@ -241,10 +241,10 @@ so_gethostbyname(int8_t *host, int8_t**hostv, int n)
 	return i;
 }
 
-int8_t*
-hostlookup(int8_t *host)
+char*
+hostlookup(char *host)
 {
-	int8_t buf[100];
+	char buf[100];
 	uint8_t *p;
 	struct hostent *he;
 
@@ -259,7 +259,7 @@ hostlookup(int8_t *host)
 }
 
 int
-so_getservbyname(int8_t *service, int8_t *net, int8_t *port)
+so_getservbyname(char *service, char *net, char *port)
 {
 	struct servent *s;
 

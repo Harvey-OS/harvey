@@ -289,7 +289,7 @@ bExamineJPEG(FILE *pFile, imagedata_type *pImg)
 {
 	size_t	tLength;
 	int	iMarker, iIndex;
-	int8_t	appstring[10];
+	char	appstring[10];
 	BOOL	bSOFDone;
 
 	tLength = 0;
@@ -336,7 +336,7 @@ bExamineJPEG(FILE *pFile, imagedata_type *pImg)
 			} else {
 				for (iIndex = 0; iIndex < 5; iIndex++) {
 					appstring[iIndex] =
-							(int8_t)iNextByte(pFile);
+							(char)iNextByte(pFile);
 				}
 				appstring[5] = '\0';
 				if (STREQ(appstring, "Adobe")) {

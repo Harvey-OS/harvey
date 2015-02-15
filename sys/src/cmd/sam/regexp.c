@@ -248,9 +248,9 @@ operator(int t)
 }
 
 void
-cant(int8_t *s)
+cant(char *s)
 {
-	int8_t buf[100];
+	char buf[100];
 
 	sprint(buf, "regexp: can't happen: %s", s);
 	panic(buf);

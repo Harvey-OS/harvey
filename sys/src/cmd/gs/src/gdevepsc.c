@@ -75,7 +75,7 @@
 **	The offset in this array correspond to
 **	the ESC-r n value
 */
-static int8_t rgb_color[2][2][2] =	{
+static char rgb_color[2][2][2] =	{
 	{{BLACK, VIOLET}, {GREEN, CYAN}}, 
 	{{RED, MAGENTA}, {YELLOW, WHITE}}
 	};

@@ -461,7 +461,7 @@ private ulong FAPI_FF_get_long(FAPI_font *ff, fapi_font_feature var_id, int inde
                 int lenIV = max(pfont->data.lenIV, 0), k;
                 uint32_t size = 0;
                 int32_t i;
-                const int8_t *name[2] = {"Subrs", "GlobalSubrs"};
+                const char *name[2] = {"Subrs", "GlobalSubrs"};
                 if (dict_find_string(pdr, "Private", &Private) <= 0)
                     return 0;
                 for (k = 0; k < 2; k++) {

@@ -17,13 +17,13 @@ int32_t	droprate;
 int	framing;
 int	nocompress;
 int	noipcompress;
-int8_t	*ppp = "8.out";
-int8_t	*mtu;
+char	*ppp = "8.out";
+char	*mtu;
 
 void
-pppopen(int fd, int8_t *net, int8_t *local, int8_t *remote)
+pppopen(int fd, char *net, char *local, char *remote)
 {
-	int8_t *argv[16];
+	char *argv[16];
 	int argc;
 
 	switch(fork()){
@@ -69,7 +69,7 @@ printbuf(uint8_t *p, int n)
 {
 	int i;
 	uint8_t *e;
-	int8_t buf[32*5];
+	char buf[32*5];
 
 	if(n > 32)
 		n = 32;

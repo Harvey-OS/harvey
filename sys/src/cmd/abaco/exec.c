@@ -339,7 +339,7 @@ look3(Text *t, uint q0, uint q1)
 	Expand e;
 	Text *ct;
 	Runestr rs;
-	int8_t buf[32];
+	char buf[32];
 	Rune *r, c;
 	uint p;
 	int n;

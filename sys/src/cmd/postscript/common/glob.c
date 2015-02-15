@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include "gen.h"
 
-int8_t	**argv;				/* global so everyone can use them */
+char	**argv;				/* global so everyone can use them */
 int	argc;
 
 int	x_stat = 0;			/* program exit status */
@@ -25,9 +25,9 @@ int	ignore = OFF;			/* what we do with FATAL errors */
 
 int32_t	lineno = 0;			/* line number */
 int32_t	position = 0;			/* byte position */
-int8_t	*prog_name = "";		/* and program name - for errors */
-int8_t	*temp_file = NULL;		/* temporary file - for some programs */
-int8_t	*fontencoding = NULL;		/* text font encoding scheme */
+char	*prog_name = "";		/* and program name - for errors */
+char	*temp_file = NULL;		/* temporary file - for some programs */
+char	*fontencoding = NULL;		/* text font encoding scheme */
 
 int	dobbox = FALSE;			/* enable BoundingBox stuff if TRUE */
 double	pageheight = PAGEHEIGHT;	/* only for BoundingBox calculations! */

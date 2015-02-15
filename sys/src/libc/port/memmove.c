@@ -13,7 +13,7 @@
 void*
 memmove(void *a1, void *a2, uint32_t n)
 {
-	int8_t *s1, *s2;
+	char *s1, *s2;
 
 	if((int32_t)n < 0)
 		abort();

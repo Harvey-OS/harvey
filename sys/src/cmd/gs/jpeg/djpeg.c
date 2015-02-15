@@ -91,8 +91,8 @@ static IMAGE_FORMATS requested_fmt;
  */
 
 
-static const int8_t * progname;	/* program name for error messages */
-static int8_t * outfilename;	/* for -outfile switch */
+static const char * progname;	/* program name for error messages */
+static char * outfilename;	/* for -outfile switch */
 
 
 LOCAL(void)
@@ -430,7 +430,7 @@ print_text_marker (j_decompress_ptr cinfo)
  */
 
 int
-main (int argc, int8_t **argv)
+main (int argc, char **argv)
 {
   struct jpeg_decompress_struct cinfo;
   struct jpeg_error_mgr jerr;

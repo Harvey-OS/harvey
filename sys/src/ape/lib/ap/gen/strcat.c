@@ -9,8 +9,8 @@
 
 #include <string.h>
 
-int8_t*
-strcat(int8_t *s1, const int8_t *s2)
+char*
+strcat(char *s1, const char *s2)
 {
 
 	strcpy(strchr(s1, 0), s2);

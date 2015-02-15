@@ -222,9 +222,9 @@ int  lame_encode_mp3_frame (				// Output
   FLOAT8 ms_ratio_prev = 0.;
 
 
-  memset((int8_t *) masking_LR, 0, sizeof(masking_LR));
-  memset((int8_t *) masking_MS, 0, sizeof(masking_MS));
-  memset((int8_t *) scalefac, 0, sizeof(scalefac));
+  memset((char *) masking_LR, 0, sizeof(masking_LR));
+  memset((char *) masking_MS, 0, sizeof(masking_MS));
+  memset((char *) scalefac, 0, sizeof(scalefac));
   inbuf[0]=inbuf_l;
   inbuf[1]=inbuf_r;
 

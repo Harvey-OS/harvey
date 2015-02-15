@@ -37,7 +37,7 @@ fdf(Float a, int d)
 }
 
 int32_t
-belong(int8_t *s)
+belong(char *s)
 {
 	uint8_t *x;
 
@@ -46,9 +46,9 @@ belong(int8_t *s)
 }
 
 void
-panic(int8_t *fmt, ...)
+panic(char *fmt, ...)
 {
-	int8_t buf[8192], *s;
+	char buf[8192], *s;
 	va_list arg;
 
 
@@ -66,9 +66,9 @@ abort();
 #define	SIZE	4096
 
 void
-cprint(int8_t *fmt, ...)
+cprint(char *fmt, ...)
 {
-	int8_t buf[SIZE], *out;
+	char buf[SIZE], *out;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -82,7 +82,7 @@ cprint(int8_t *fmt, ...)
  * otherwise preoccupied when the -s flag is given to kfs.
  */
 int
-print(int8_t *fmt, ...)
+print(char *fmt, ...)
 {
 	va_list arg;
 	int n;

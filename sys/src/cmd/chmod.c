@@ -17,15 +17,15 @@
 
 #define DMRWE (DMREAD|DMWRITE|DMEXEC)
 
-int parsemode(int8_t *, uint32_t *, uint32_t *);
+int parsemode(char *, uint32_t *, uint32_t *);
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int i;
 	Dir *dir, ndir;
 	uint32_t mode, mask;
-	int8_t *p;
+	char *p;
 
 	if(argc < 3){
 		fprint(2, "usage: chmod 0777 file ... or chmod [who]op[rwxalt] file ...\n");
@@ -56,11 +56,11 @@ main(int argc, int8_t *argv[])
 }
 
 int
-parsemode(int8_t *spec, uint32_t *pmask, uint32_t *pmode)
+parsemode(char *spec, uint32_t *pmask, uint32_t *pmode)
 {
 	uint32_t mode, mask;
 	int done, op;
-	int8_t *s;
+	char *s;
 
 	s = spec;
 	mask = DMAPPEND | DMEXCL | DMTMP;

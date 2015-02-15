@@ -12,9 +12,9 @@
 #include <stdio.h>
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
-	int8_t *f, *b, *s;
+	char *f, *b, *s;
 	int n;
 
 	if(argc < 2 || argc > 3){

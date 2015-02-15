@@ -20,8 +20,8 @@ extern	double	frame_ht, frame_wid, ticklen;
 extern int just, sizeop, tick_dir;
 extern double sizexpr, lab_up, lab_rt;
 
-int8_t	graphname[50] = "Graph";
-int8_t	graphpos[200] = "";
+char	graphname[50] = "Graph";
+char	graphpos[200] = "";
 
 void print(void)	/* arrange final output */
 {
@@ -185,8 +185,8 @@ void setup(void)		/* done at each .G1 */
 void do_first(void)	/* done at first .G1:  definitions, etc. */
 {
 	extern int lib;
-	extern int8_t *lib_defines;
-	static int8_t buf[50], buf1[50];	/* static because pbstr uses them */
+	extern char *lib_defines;
+	static char buf[50], buf1[50];	/* static because pbstr uses them */
 	FILE *fp;
 	extern int getpid(void);
 
@@ -224,7 +224,7 @@ void reset(void)		/* done at each "graph ..." statement */
 		} else {
 			free(p->name);
 			freeattr(p->attr);
-			free((int8_t *) p);
+			free((char *) p);
 		}
 	}
 	objlist = deflist;

@@ -48,8 +48,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: extract.c,v 1.3 89/02/12 10:29:43 mark Exp Locker: mark $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: extract.c,v 1.3 89/02/12 10:29:43 mark Exp Locker: mark $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -70,11 +70,11 @@ static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights rese
 
 #ifdef __STDC__
 
-static int inbinary(int8_t *, int8_t *, Stat *);
-static int inascii(int8_t *, int8_t *, Stat *);
-static int inswab(int8_t *, int8_t *, Stat *);
-static int readtar(int8_t *, Stat *);
-static int readcpio(int8_t *, Stat *);
+static int inbinary(char *, char *, Stat *);
+static int inascii(char *, char *, Stat *);
+static int inswab(char *, char *, Stat *);
+static int readtar(char *, Stat *);
+static int readcpio(char *, Stat *);
 
 #else /* !__STDC__ */
 
@@ -110,7 +110,7 @@ int read_archive()
 #endif
 {
     Stat            sb;
-    int8_t            name[PATH_MAX + 1];
+    char            name[PATH_MAX + 1];
     int             match;
     int		    pad;
 
@@ -198,7 +198,7 @@ int read_archive()
 
 #ifdef __STDC__
 
-int get_header(int8_t *name, Stat *asb)
+int get_header(char *name, Stat *asb)
 
 #else
     
@@ -243,7 +243,7 @@ Stat *asb;
 
 #ifdef __STDC__
 
-static int readtar(int8_t *name, Stat *asb)
+static int readtar(char *name, Stat *asb)
 
 #else
     
@@ -313,7 +313,7 @@ Stat    *asb;
 
 #ifdef __STDC__
 
-static int readcpio(int8_t *name, Stat *asb)
+static int readcpio(char *name, Stat *asb)
 
 #else
     
@@ -324,7 +324,7 @@ Stat           *asb;
 #endif
 {
     OFFSET          skipped;
-    int8_t            magic[M_STRLEN];
+    char            magic[M_STRLEN];
     static int      align;
 
     if (align > 0) {
@@ -414,7 +414,7 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-static int inswab(int8_t *magic, int8_t *name, Stat *asb)
+static int inswab(char *magic, char *name, Stat *asb)
 
 #else
     
@@ -432,10 +432,10 @@ Stat           *asb;
     if (*((uint16_t *) magic) != SWAB(M_BINARY)) {
 	return (-1);
     }
-    memcpy((int8_t *) &binary,
+    memcpy((char *) &binary,
 		  magic + sizeof(uint16_t),
 		  M_STRLEN - sizeof(uint16_t));
-    if (buf_read((int8_t *) &binary + M_STRLEN - sizeof(uint16_t),
+    if (buf_read((char *) &binary + M_STRLEN - sizeof(uint16_t),
 		 sizeof(binary) - (M_STRLEN - sizeof(uint16_t))) < 0) {
 	warnarch("Corrupt swapped header",
 		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
@@ -491,7 +491,7 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-static int inascii(int8_t *magic, int8_t *name, Stat *asb)
+static int inascii(char *magic, char *name, Stat *asb)
 
 #else
     
@@ -503,7 +503,7 @@ Stat           *asb;
 #endif
 {
     uint            namelen;
-    int8_t            header[H_STRLEN + 1];
+    char            header[H_STRLEN + 1];
 #ifdef _POSIX_SOURCE
     dev_t	    dummyrdev;
 #endif
@@ -565,7 +565,7 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-static int inbinary(int8_t *magic, int8_t *name, Stat *asb)
+static int inbinary(char *magic, char *name, Stat *asb)
 
 #else
     
@@ -582,10 +582,10 @@ Stat           *asb;
     if (*((uint16_t *) magic) != M_BINARY) {
 	return (-1);
     }
-    memcpy((int8_t *) &binary,
+    memcpy((char *) &binary,
 		  magic + sizeof(uint16_t),
 		  M_STRLEN - sizeof(uint16_t));
-    if (buf_read((int8_t *) &binary + M_STRLEN - sizeof(uint16_t),
+    if (buf_read((char *) &binary + M_STRLEN - sizeof(uint16_t),
 		 sizeof(binary) - (M_STRLEN - sizeof(uint16_t))) < 0) {
 	warnarch("Corrupt binary header",
 		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));

@@ -71,14 +71,14 @@ void blockinit(void)
 }
 
 
-int8_t *grow(int8_t *ptr, int num, int size)	/* make array bigger */
+char *grow(char *ptr, int num, int size)	/* make array bigger */
 {
-	int8_t *p;
+	char *p;
 
 	if (ptr == NULL)
-		p = (int8_t *) calloc(num, size);
+		p = (char *) calloc(num, size);
 	else
-		p = (int8_t *) realloc(ptr, num * size);
+		p = (char *) realloc(ptr, num * size);
 	return p;
 }
 
@@ -466,7 +466,7 @@ Offset alloc(void)	/* return free Offset in nextb */
 		if (blist[i].nextoff == 0)
 			break;
 	if (i == nblist) {
-		blist = (Blockp *) realloc((int8_t *) blist,
+		blist = (Blockp *) realloc((char *) blist,
 					   2 * nblist * sizeof(Blockp));
 		if (blist == NULL) {
 			ERROR "can't grow blist for string/macro defns" WARN;
@@ -615,9 +615,9 @@ Offset pushi(Offset newip, int  mname)
 
 void *setbrk(int x)
 {
-	int8_t *i;
+	char *i;
 
-	if ((i = (int8_t *) calloc(x, 1)) == 0) {
+	if ((i = (char *) calloc(x, 1)) == 0) {
 		ERROR "Core limit reached" WARN;
 		edone(0100);
 	}
@@ -671,8 +671,8 @@ void collect(void)
 		goto rtn;
 
 	{
-		int8_t *memp;
-		memp = (int8_t *)savnxf;
+		char *memp;
+		memp = (char *)savnxf;
 		/*
 		 *	1 s structure for the macro descriptor
 		 *	APERMAC Tchar *'s for pointers into the strings

@@ -67,7 +67,7 @@ struct Huffman
 struct Header
 {
 	Biobuf	*fd;
-	int8_t		err[256];
+	char		err[256];
 	jmp_buf	errlab;
 	/* variables in i/o routines */
 	int		sr;	/* shift register, right aligned */
@@ -128,10 +128,10 @@ static	void			idct(int*);
 static	void			colormap1(Header*, int, Rawimage*, int*, int, int);
 static	void			colormapall1(Header*, int, Rawimage*, int*, int*, int*, int, int);
 static	void			colormap(Header*, int, Rawimage*, int**, int**, int**, int, int, int, int, int*, int*);
-static	void			jpgerror(Header*, int8_t*, ...);
+static	void			jpgerror(Header*, char*, ...);
 
-static	int8_t		readerr[] = "ReadJPG: read error: %r";
-static	int8_t		memerr[] = "ReadJPG: malloc failed: %r";
+static	char		readerr[] = "ReadJPG: read error: %r";
+static	char		memerr[] = "ReadJPG: malloc failed: %r";
 
 static	int zig[64] = {
 	0, 1, 8, 16, 9, 2, 3, 10, 17, /* 0-7 */
@@ -229,7 +229,7 @@ jpgfreeall(Header *h, int freeimage)
 
 static
 void
-jpgerror(Header *h, int8_t *fmt, ...)
+jpgerror(Header *h, char *fmt, ...)
 {
 	va_list arg;
 
@@ -247,7 +247,7 @@ Breadjpg(Biobuf *b, int colorspace)
 {
 	Rawimage *r, **array;
 	Header *h;
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	buf[0] = '\0';
 	if(colorspace!=CYCbCr && colorspace!=CRGB){
@@ -314,7 +314,7 @@ readslave(Header *header, int colorspace)
 			return image;
 
 		case APPn+0:
-			if(nseg==1 && strncmp((int8_t*)b, "JFIF", 4)==0)  /* JFIF header; check version */
+			if(nseg==1 && strncmp((char*)b, "JFIF", 4)==0)  /* JFIF header; check version */
 				if(b[5]>1 || b[6]>2)
 					sprint(header->err, "ReadJPG: can't handle JFIF version %d.%2d", b[5], b[6]);
 			break;

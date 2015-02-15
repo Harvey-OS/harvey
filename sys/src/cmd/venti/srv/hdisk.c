@@ -13,14 +13,14 @@
 #include "whack.h"
 
 static int disksummary(HConnect*);
-static int diskarenapart(HConnect*, int8_t*, Part*);
-static int diskbloom(HConnect*, int8_t*, Part*);
-static int diskisect(HConnect*, int8_t*, Part*);
+static int diskarenapart(HConnect*, char*, Part*);
+static int diskbloom(HConnect*, char*, Part*);
+static int diskisect(HConnect*, char*, Part*);
 
 int
 hdisk(HConnect *c)
 {
-	int8_t *disk, *type;
+	char *disk, *type;
 	Part *p;
 	int ret;
 	
@@ -87,11 +87,11 @@ disksummary(HConnect *c)
 	return 0;
 }
 
-static int8_t*
+static char*
 readap(Part *p, ArenaPart *ap)
 {
 	uint8_t *blk;
-	int8_t *table;
+	char *table;
 	
 	blk = vtmalloc(8192);
 	if(readpart(p, PartBlank, blk, 8192) != 8192)
@@ -113,10 +113,10 @@ readap(Part *p, ArenaPart *ap)
 }
 
 static int
-xfindarena(int8_t *table, int8_t *name, int64_t *start, int64_t *end)
+xfindarena(char *table, char *name, int64_t *start, int64_t *end)
 {
 	int i, nline;
-	int8_t *p, *q, *f[4], line[256];
+	char *p, *q, *f[4], line[256];
 	
 	nline = atoi(table);
 	p = strchr(table, '\n');
@@ -149,11 +149,11 @@ xfindarena(int8_t *table, int8_t *name, int64_t *start, int64_t *end)
 }
 
 static void
-diskarenatable(HConnect *c, int8_t *disk, int8_t *table)
+diskarenatable(HConnect *c, char *disk, char *table)
 {
-	int8_t *p, *q;
+	char *p, *q;
 	int i, nline;
-	int8_t *f[4], line[256], base[256];
+	char *f[4], line[256], base[256];
 
 	hprint(&c->hout, "<h2>table</h2>\n");
 	hprint(&c->hout, "<pre>\n");
@@ -189,8 +189,8 @@ diskarenatable(HConnect *c, int8_t *disk, int8_t *table)
 	hprint(&c->hout, "</pre>\n");
 }
 
-static int8_t*
-fmttime(int8_t *buf, uint32_t time)
+static char*
+fmttime(char *buf, uint32_t time)
 {
 	strcpy(buf, ctime(time));
 	buf[28] = 0;
@@ -198,22 +198,22 @@ fmttime(int8_t *buf, uint32_t time)
 }
 
 
-static int diskarenaclump(HConnect*, Arena*, int64_t, int8_t*);
+static int diskarenaclump(HConnect*, Arena*, int64_t, char*);
 static int diskarenatoc(HConnect*, Arena*);
 
 static int
-diskarenapart(HConnect *c, int8_t *disk, Part *p)
+diskarenapart(HConnect *c, char *disk, Part *p)
 {
-	int8_t *arenaname;
+	char *arenaname;
 	ArenaPart ap;
 	ArenaHead head;
 	Arena arena;
-	int8_t *table;
-	int8_t *score;
-	int8_t *clump;
+	char *table;
+	char *score;
+	char *clump;
 	uint8_t *blk;
 	int64_t start, end, off;
-	int8_t tbuf[60];
+	char tbuf[60];
 
 	hprint(&c->hout, "<h1>arena partition %s</h1>\n", disk);
 
@@ -371,7 +371,7 @@ diskarenatoc(HConnect *c, Arena *arena)
 	int64_t off;
 	int64_t coff;
 	ClumpInfo ci;
-	int8_t base[512];
+	char base[512];
 	int cib;
 
 	snprint(base, sizeof base, "/disk?disk=%s&type=a&arena=%s",
@@ -416,11 +416,11 @@ diskarenatoc(HConnect *c, Arena *arena)
 
 #define	U32GET(p)	((u32int)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
 static int
-diskarenaclump(HConnect *c, Arena *arena, int64_t off, int8_t *scorestr)
+diskarenaclump(HConnect *c, Arena *arena, int64_t off, char *scorestr)
 {
 	uint8_t *blk, *blk2;
 	Clump cl;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	uint8_t xscore[VtScoreSize], score[VtScoreSize];
 	Unwhack uw;
 	int n;
@@ -517,7 +517,7 @@ error:
 }
 
 static int
-diskbloom(HConnect *c, int8_t *disk, Part *p)
+diskbloom(HConnect *c, char *disk, Part *p)
 {
 	USED(c);
 	USED(disk);
@@ -526,7 +526,7 @@ diskbloom(HConnect *c, int8_t *disk, Part *p)
 }
 
 static int
-diskisect(HConnect *c, int8_t *disk, Part *p)
+diskisect(HConnect *c, char *disk, Part *p)
 {
 	USED(c);
 	USED(disk);
@@ -667,7 +667,7 @@ debugmem(HConnect *c)
 int
 hdebug(HConnect *c)
 {
-	int8_t *scorestr, *op;
+	char *scorestr, *op;
 	uint8_t score[VtScoreSize];
 	
 	if(hsethtml(c) < 0)

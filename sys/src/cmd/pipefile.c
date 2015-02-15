@@ -20,7 +20,7 @@ usage(void)
 }
 
 void
-connect(int8_t *cmd, int fd0, int fd1)
+connect(char *cmd, int fd0, int fd1)
 {
 	switch(rfork(RFPROC|RFFDG|RFREND|RFNOWAIT)){
 	case -1:

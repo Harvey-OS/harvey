@@ -13,7 +13,7 @@
 #include <memdraw.h>
 
 int
-iprint(int8_t*,...)
+iprint(char*,...)
 {
 	return -1;
 }

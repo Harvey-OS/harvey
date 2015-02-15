@@ -22,16 +22,16 @@ typedef struct Hdef Hdef;
 typedef struct Hline Hline;
 typedef struct Part Part;
 
-static int	badfile(int8_t *name);
-static int	badtype(int8_t *type);
-static void	ctype(Part*, Hdef*, int8_t*);
-static void	cencoding(Part*, Hdef*, int8_t*);
-static void	cdisposition(Part*, Hdef*, int8_t*);
-static int	decquoted(int8_t *out, int8_t *in, int8_t *e);
-static int8_t*	getstring(int8_t *p, String *s, int dolower);
+static int	badfile(char *name);
+static int	badtype(char *type);
+static void	ctype(Part*, Hdef*, char*);
+static void	cencoding(Part*, Hdef*, char*);
+static void	cdisposition(Part*, Hdef*, char*);
+static int	decquoted(char *out, char *in, char *e);
+static char*	getstring(char *p, String *s, int dolower);
 static void	init_hdefs(void);
-static int	isattribute(int8_t **pp, int8_t *attr);
-static int	latin1toutf(int8_t *out, int8_t *in, int8_t *e);
+static int	isattribute(char **pp, char *attr);
+static int	latin1toutf(char *out, char *in, char *e);
 static String*	mkboundary(void);
 static Part*	part(Part *pp);
 static Part*	passbody(Part *p, int dobound);
@@ -41,10 +41,10 @@ static Part*	problemchild(Part *p);
 static void	readheader(Part *p);
 static Hline*	readhl(void);
 static void	readmtypes(void);
-static int	save(Part *p, int8_t *file);
-static void	setfilename(Part *p, int8_t *name);
-static int8_t*	skiptosemi(int8_t *p);
-static int8_t*	skipwhite(int8_t *p);
+static int	save(Part *p, char *file);
+static void	setfilename(Part *p, char *name);
+static char*	skiptosemi(char *p);
+static char*	skipwhite(char *p);
 static String*	tokenconvert(String *t);
 static void	writeheader(Part *p, int);
 
@@ -97,8 +97,8 @@ struct Hline
  */
 struct Hdef
 {
-	int8_t *type;
-	void (*f)(Part*, Hdef*, int8_t*);
+	char *type;
+	void (*f)(Part*, Hdef*, char*);
 	int len;
 };
 
@@ -115,15 +115,15 @@ Hdef hdefs[] =
  */
 struct Mtype {
 	Mtype	*next;
-	int8_t 	*ext;		/* extension */
-	int8_t	*gtype;		/* generic content type */
-	int8_t	*stype;		/* specific content type */
-	int8_t	class;
+	char 	*ext;		/* extension */
+	char	*gtype;		/* generic content type */
+	char	*stype;		/* specific content type */
+	char	class;
 };
 Mtype *mtypes;
 
 int justreject;
-int8_t *savefile;
+char *savefile;
 
 void
 usage(void)
@@ -165,10 +165,10 @@ main(int argc, char **argv)
 }
 
 void
-refuse(int8_t *reason)
+refuse(char *reason)
 {
-	int8_t *full;
-	static int8_t msg[] =
+	char *full;
+	static char msg[] =
 		"mail refused: we don't accept executable attachments";
 
 	full = smprint("%s: %s", msg, reason);
@@ -282,7 +282,7 @@ readhl(void)
 {
 	Hline *hl;
 	String *s;
-	int8_t *p;
+	char *p;
 	int n;
 
 	p = Brdline(&in, '\n');
@@ -341,7 +341,7 @@ passbody(Part *p, int dobound)
 {
 	Part *pp;
 	Biobuf *b;
-	int8_t *cp;
+	char *cp;
 
 	for(;;){
 		if(p->tmpbuf){
@@ -378,10 +378,10 @@ passbody(Part *p, int dobound)
 static int64_t bodyoff;	/* clumsy hack */
 
 static int
-save(Part *p, int8_t *file)
+save(Part *p, char *file)
 {
 	int fd;
-	int8_t *cp;
+	char *cp;
 
 	Bterm(&out);
 	memset(&out, 0, sizeof(out));
@@ -409,10 +409,10 @@ save(Part *p, int8_t *file)
 /*
  * write to a file but save the fd for passbody.
  */
-static int8_t*
+static char*
 savetmp(Part *p)
 {
-	int8_t *name;
+	char *name;
 	int fd;
 
 	name = mktemp(smprint("%s/vf.XXXXXXXXXXX", UPASTMP));
@@ -446,7 +446,7 @@ static int
 runchecker(Part *p)
 {
 	int pid;
-	int8_t *name;
+	char *name;
 	Waitmsg *w;
 
 	if(access("/mail/lib/validateattachment", AEXEC) < 0)
@@ -502,7 +502,7 @@ problemchild(Part *p)
 	Part *np;
 	Hline *hl;
 	String *boundary;
-	int8_t *cp;
+	char *cp;
 
 	/*
 	 * We don't know whether the attachment is okay.
@@ -587,9 +587,9 @@ fprint(2, "a %p\n", np);
 }
 
 static int
-isattribute(int8_t **pp, int8_t *attr)
+isattribute(char **pp, char *attr)
 {
-	int8_t *p;
+	char *p;
 	int n;
 
 	n = strlen(attr);
@@ -611,7 +611,7 @@ isattribute(int8_t **pp, int8_t *attr)
  *  parse content type header
  */
 static void
-ctype(Part *p, Hdef *h, int8_t *cp)
+ctype(Part *p, Hdef *h, char *cp)
 {
 	String *s;
 
@@ -653,7 +653,7 @@ ctype(Part *p, Hdef *h, int8_t *cp)
  *  parse content encoding header
  */
 static void
-cencoding(Part *m, Hdef *h, int8_t *p)
+cencoding(Part *m, Hdef *h, char *p)
 {
 	p += h->len;
 	p = skipwhite(p);
@@ -667,7 +667,7 @@ cencoding(Part *m, Hdef *h, int8_t *p)
  *  parse content disposition header
  */
 static void
-cdisposition(Part *p, Hdef *h, int8_t *cp)
+cdisposition(Part *p, Hdef *h, char *cp)
 {
 	cp += h->len;
 	cp = skipwhite(cp);
@@ -686,7 +686,7 @@ cdisposition(Part *p, Hdef *h, int8_t *cp)
 }
 
 static void
-setfilename(Part *p, int8_t *name)
+setfilename(Part *p, char *name)
 {
 	if(p->filename == nil)
 		p->filename = s_new();
@@ -695,16 +695,16 @@ setfilename(Part *p, int8_t *name)
 	p->badfile = badfile(s_to_c(p->filename));
 }
 
-static int8_t*
-skipwhite(int8_t *p)
+static char*
+skipwhite(char *p)
 {
 	while(isspace(*p))
 		p++;
 	return p;
 }
 
-static int8_t*
-skiptosemi(int8_t *p)
+static char*
+skiptosemi(char *p)
 {
 	while(*p && *p != ';')
 		p++;
@@ -717,8 +717,8 @@ skiptosemi(int8_t *p)
  *  parse a possibly "'d string from a header.  A
  *  ';' terminates the string.
  */
-static int8_t*
-getstring(int8_t *p, String *s, int dolower)
+static char*
+getstring(char *p, String *s, int dolower)
 {
 	s = s_reset(s);
 	p = skipwhite(p);
@@ -766,7 +766,7 @@ init_hdefs(void)
 static String*
 mkboundary(void)
 {
-	int8_t buf[32];
+	char buf[32];
 	int i;
 	static int already;
 
@@ -787,7 +787,7 @@ mkboundary(void)
 static void
 passnotheader(void)
 {
-	int8_t *cp;
+	char *cp;
 	int i, n;
 
 	while((cp = Brdline(&in, '\n')) != nil){
@@ -807,7 +807,7 @@ passnotheader(void)
 static void
 passunixheader(void)
 {
-	int8_t *p;
+	char *p;
 	int n;
 
 	while((p = Brdline(&in, '\n')) != nil){
@@ -827,8 +827,8 @@ static void
 readmtypes(void)
 {
 	Biobuf *b;
-	int8_t *p;
-	int8_t *f[6];
+	char *p;
+	char *f[6];
 	Mtype *m;
 	Mtype **l;
 
@@ -877,9 +877,9 @@ err:
  *  otherwise, filename is bad
  */
 static int
-badfile(int8_t *name)
+badfile(char *name)
 {
-	int8_t *p;
+	char *p;
 	Mtype *m;
 	int rv;
 
@@ -910,10 +910,10 @@ badfile(int8_t *name)
  *  otherwise, filename is bad
  */
 static int
-badtype(int8_t *type)
+badtype(char *type)
 {
 	Mtype *m;
-	int8_t *s, *fix;
+	char *s, *fix;
 	int rv = 1;
 
 	fix = s = strchr(type, '/');
@@ -945,7 +945,7 @@ badtype(int8_t *type)
 /* rfc2047 non-ascii */
 typedef struct Charset Charset;
 struct Charset {
-	int8_t *name;
+	char *name;
 	int len;
 	int convert;
 } charsets[] =
@@ -962,11 +962,11 @@ static String*
 tokenconvert(String *t)
 {
 	String *s;
-	int8_t decoded[1024];
-	int8_t utfbuf[2*1024];
+	char decoded[1024];
+	char utfbuf[2*1024];
 	int i, len;
-	int8_t *e;
-	int8_t *token;
+	char *e;
+	char *token;
 
 	token = s_to_c(t);
 	len = s_len(t);
@@ -1059,8 +1059,8 @@ hex2int(int x)
 	return 0;
 }
 
-static int8_t*
-decquotedline(int8_t *out, int8_t *in, int8_t *e)
+static char*
+decquotedline(char *out, char *in, char *e)
 {
 	int c, soft;
 
@@ -1096,9 +1096,9 @@ decquotedline(int8_t *out, int8_t *in, int8_t *e)
 }
 
 static int
-decquoted(int8_t *out, int8_t *in, int8_t *e)
+decquoted(char *out, char *in, char *e)
 {
-	int8_t *p, *nl;
+	char *p, *nl;
 
 	if(tableqp[' '] == 0)
 		initquoted();
@@ -1122,10 +1122,10 @@ decquoted(int8_t *out, int8_t *in, int8_t *e)
 
 /* translate latin1 directly since it fits neatly in utf */
 static int
-latin1toutf(int8_t *out, int8_t *in, int8_t *e)
+latin1toutf(char *out, char *in, char *e)
 {
 	Rune r;
-	int8_t *p;
+	char *p;
 
 	p = out;
 	for(; in < e; in++){

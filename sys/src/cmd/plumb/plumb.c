@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <plumb.h>
 
-int8_t *plumbfile = nil;
+char *plumbfile = nil;
 Plumbmsg m;
 
 void
@@ -24,7 +24,7 @@ usage(void)
 void
 gather(void)
 {
-	int8_t buf[8192];
+	char buf[8192];
 	int n;
 
 	m.ndata = 0;

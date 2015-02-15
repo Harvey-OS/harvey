@@ -40,7 +40,7 @@ void
 _ioproc(void *arg)
 {
 	int m, n;
-	int8_t buf[20];
+	char buf[20];
 	Rune r;
 	Keyboardctl *kc;
 
@@ -66,10 +66,10 @@ _ioproc(void *arg)
 }
 
 Keyboardctl*
-initkeyboard(int8_t *file)
+initkeyboard(char *file)
 {
 	Keyboardctl *kc;
-	int8_t *t;
+	char *t;
 
 	kc = mallocz(sizeof(Keyboardctl), 1);
 	if(kc == nil)
@@ -105,7 +105,7 @@ Error2:
 }
 
 int
-ctlkeyboard(Keyboardctl *kc, int8_t *m)
+ctlkeyboard(Keyboardctl *kc, char *m)
 {
 	return write(kc->ctlfd, m, strlen(m));
 }

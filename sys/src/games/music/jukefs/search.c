@@ -28,7 +28,7 @@ search(Object *rt, Object *parent, Reprog *preg) {
 	 * returns null when there are no matches in rt's subtree
 	 */
 	Object *o, *nr;
-	int8_t *s;
+	char *s;
 	int i;
 	int yes = 0;
 

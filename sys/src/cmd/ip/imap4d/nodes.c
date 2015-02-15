@@ -125,7 +125,7 @@ revNList(NList *nl)
 }
 
 SList*
-mkSList(int8_t *s, SList *next)
+mkSList(char *s, SList *next)
 {
 	SList *sl;
 
@@ -152,9 +152,9 @@ revSList(SList *sl)
 }
 
 int
-BNList(Biobuf *b, NList *nl, int8_t *sep)
+BNList(Biobuf *b, NList *nl, char *sep)
 {
-	int8_t *s;
+	char *s;
 	int n;
 
 	s = "";
@@ -167,9 +167,9 @@ BNList(Biobuf *b, NList *nl, int8_t *sep)
 }
 
 int
-BSList(Biobuf *b, SList *sl, int8_t *sep)
+BSList(Biobuf *b, SList *sl, char *sep)
 {
-	int8_t *s;
+	char *s;
 	int n;
 
 	s = "";
@@ -185,7 +185,7 @@ BSList(Biobuf *b, SList *sl, int8_t *sep)
 int
 Bimapdate(Biobuf *b, Tm *tm)
 {
-	int8_t buf[64];
+	char buf[64];
 
 	if(tm == nil)
 		tm = localtime(time(nil));
@@ -196,7 +196,7 @@ Bimapdate(Biobuf *b, Tm *tm)
 int
 Brfc822date(Biobuf *b, Tm *tm)
 {
-	int8_t buf[64];
+	char buf[64];
 
 	if(tm == nil)
 		tm = localtime(time(nil));
@@ -205,9 +205,9 @@ Brfc822date(Biobuf *b, Tm *tm)
 }
 
 int
-Bimapstr(Biobuf *b, int8_t *s)
+Bimapstr(Biobuf *b, char *s)
 {
-	int8_t *t;
+	char *t;
 	int c;
 
 	if(s == nil)

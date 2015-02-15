@@ -15,7 +15,7 @@
 
 static Thread	*runthread(Proc*);
 
-static int8_t *_psstate[] = {
+static char *_psstate[] = {
 	"Moribund",
 	"Dead",
 	"Exec",
@@ -25,7 +25,7 @@ static int8_t *_psstate[] = {
 	"Rendezvous",
 };
 
-static int8_t*
+static char*
 psstate(int s)
 {
 	if(s < 0 || s >= nelem(_psstate))

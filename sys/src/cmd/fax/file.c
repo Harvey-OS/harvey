@@ -18,13 +18,13 @@ static int32_t wd[5] = {
 };
 
 void
-setpageid(int8_t *pageid, int8_t *spool, int32_t time, int pid, int pageno)
+setpageid(char *pageid, char *spool, int32_t time, int pid, int pageno)
 {
 	sprint(pageid, "%s/%lud.%d.%3.3d", spool, time, pid, pageno);
 }
 
 int
-createfaxfile(Modem *m, int8_t *spool)
+createfaxfile(Modem *m, char *spool)
 {
 	setpageid(m->pageid, spool, m->time, m->pid, m->pageno);
 	verbose("openfaxfile: %s", m->pageid);
@@ -52,7 +52,7 @@ int
 gsopen(Modem *m)
 {
 	int n;
-	int8_t bytes[Gshdrsize];
+	char bytes[Gshdrsize];
 
 	/*
 	 *  Is this gs output
@@ -79,7 +79,7 @@ gsopen(Modem *m)
 int
 picopen(Modem *m)
 {
-	int8_t *p, *q;
+	char *p, *q;
 	int i, x;
 
 	/*
@@ -161,7 +161,7 @@ picopen(Modem *m)
 }
 
 int
-openfaxfile(Modem *m, int8_t *file)
+openfaxfile(Modem *m, char *file)
 {
 	if((m->bp = Bopen(file, OREAD)) == 0)
 		return seterror(m, Esys);

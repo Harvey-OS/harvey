@@ -38,7 +38,7 @@
 #include "gen.h"			/* general purpose definitions */
 
 FILE	*fp_ttyi, *fp_ttyo;
-int8_t	*ptr = mesg;
+char	*ptr = mesg;
 
 extern int	window_size;
 
@@ -279,9 +279,9 @@ readline()
 #ifdef V9
 #include <ipc.h>
 
-int8_t	tbuf[256];			/* temporary input buffer */
-int8_t	*nptr = tbuf;			/* next character comes from here */
-int8_t	*eptr = tbuf;			/* one past the last character in tbuf */
+char	tbuf[256];			/* temporary input buffer */
+char	*nptr = tbuf;			/* next character comes from here */
+char	*eptr = tbuf;			/* one past the last character in tbuf */
 
 setupline()
 
@@ -716,7 +716,7 @@ readline()
 int
 strspn(string, charset)
 int8_t	*string;
-register int8_t	*charset;
+register char	*charset;
 {
 	register char *p, *q;
 
@@ -738,7 +738,7 @@ register int8_t	*charset;
 
 char *
 strpbrk(string, brkset)
-register int8_t *string, *brkset;
+register char *string, *brkset;
 {
 	register char *p;
 
@@ -764,7 +764,7 @@ register int8_t *string, *brkset;
 
 
 extern int strspn();
-extern int8_t *strpbrk();
+extern char *strpbrk();
 
 char *
 strtok(string, sepset)

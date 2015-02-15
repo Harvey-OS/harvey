@@ -181,7 +181,7 @@ syncblock(void)
 }
 
 void
-sync(int8_t *reason)
+sync(char *reason)
 {
 	int32_t i;
 

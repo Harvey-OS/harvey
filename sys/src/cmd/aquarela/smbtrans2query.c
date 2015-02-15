@@ -10,7 +10,7 @@
 #include "headers.h"
 
 static SmbProcessResult
-query(SmbSession *s, int8_t *cmdname, int8_t *filename, uint16_t infolevel,
+query(SmbSession *s, char *cmdname, char *filename, uint16_t infolevel,
       int64_t cbo, Dir *d)
 {
 	int64_t ntatime, ntmtime;
@@ -123,8 +123,8 @@ smbtrans2querypathinformation(SmbSession *s, SmbHeader *h)
 	SmbProcessResult pr;
 	uint16_t infolevel;
 	Dir *d;
-	int8_t *path = nil;
-	int8_t *fullpath;
+	char *path = nil;
+	char *fullpath;
 
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {
@@ -188,7 +188,7 @@ smbtrans2queryfileinformation(SmbSession *s, SmbHeader *h)
 		o = seek(f->fd, 0, 1);
 		d = dirfstat(f->fd);
 	} else {
-		int8_t *fullpath = nil;
+		char *fullpath = nil;
 
 		o = 0;
 		smbstringprint(&fullpath, "%s%s", f->t->serv->path, f->name);

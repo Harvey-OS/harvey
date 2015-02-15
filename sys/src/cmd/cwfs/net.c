@@ -55,12 +55,12 @@ typedef struct Conn9p Conn9p;
 /* a network, not necessarily an ethernet */
 struct Network {
 	int	ctlrno;
-	int8_t	iname[NAMELEN];
-	int8_t	oname[NAMELEN];
+	char	iname[NAMELEN];
+	char	oname[NAMELEN];
 
-	int8_t	*dialstr;
-	int8_t	anndir[40];
-	int8_t	lisdir[40];
+	char	*dialstr;
+	char	anndir[40];
+	char	lisdir[40];
 	int	annfd;			/* fd from announce */
 };
 
@@ -98,7 +98,7 @@ static struct {
 } netchans;
 static Queue *netoq;		/* only one network output queue is needed */
 
-int8_t *annstrs[Maxnets] = {
+char *annstrs[Maxnets] = {
 	"tcp!*!9fs",
 };
 
@@ -157,10 +157,10 @@ getchan(Conn9p *conn9p)
 	return cp;
 }
 
-static int8_t *
+static char *
 fd2name(int fd)
 {
-	int8_t data[128];
+	char data[128];
 
 	if (fd2path(fd, data, sizeof data) < 0)
 		return strdup("/GOK");
@@ -171,7 +171,7 @@ static void
 hangupdfd(int dfd)
 {
 	int ctlfd;
-	int8_t *end, *data;
+	char *end, *data;
 
 	data = fd2name(dfd);
 	close(dfd);
@@ -198,7 +198,7 @@ closechan(int n)
 }
 
 void
-nethangup(Chan *cp, int8_t *msg, int dolock)
+nethangup(Chan *cp, char *msg, int dolock)
 {
 	Netconn *netconn;
 
@@ -222,7 +222,7 @@ nethangup(Chan *cp, int8_t *msg, int dolock)
 }
 
 void
-chanhangup(Chan *cp, int8_t *msg, int dolock)
+chanhangup(Chan *cp, char *msg, int dolock)
 {
 	Netconn *netconn = cp->pdata;
 	Conn9p *conn9p = netconn->conn9p;
@@ -285,7 +285,7 @@ static void
 connection(void *v)
 {
 	int n;
-	int8_t buf[64];
+	char buf[64];
 	Chan *chan9p;
 	Conn9p *conn9p = v;
 	Msgbuf *mb;

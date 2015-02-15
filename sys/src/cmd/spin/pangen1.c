@@ -45,16 +45,16 @@ static Symbol	*LstSet=ZS;
 static int	acceptors=0, progressors=0, nBits=0;
 static int	Types[] = { UNSIGNED, BIT, BYTE, CHAN, MTYPE, SHORT, INT, STRUCT };
 
-static int	doglobal(int8_t *, int);
+static int	doglobal(char *, int);
 static void	dohidden(void);
 static void	do_init(FILE *, Symbol *);
 static void	end_labs(Symbol *, int);
-static void	put_ptype(int8_t *, int, int, int, enum btypes);
+static void	put_ptype(char *, int, int, int, enum btypes);
 static void	tc_predef_np(void);
 static void	put_pinit(ProcList *);
 static void	multi_init(void);
-       void	walk_struct(FILE *, int, int8_t *, Symbol *, int8_t *,
-			       int8_t *, int8_t *);
+       void	walk_struct(FILE *, int, char *, Symbol *, char *,
+			       char *, char *);
 
 static void
 reverse_names(ProcList *p)
@@ -422,7 +422,7 @@ gensvmap(void)
 }
 
 static struct {
-	int8_t *s,	*t;		int n,	m,	p;
+	char *s,	*t;		int n,	m,	p;
 } ln[] = {
 	{"end",  	"stopstate",	3,	0,	0},
 	{"progress",	"progstate",	8,	0,	1},
@@ -435,7 +435,7 @@ end_labs(Symbol *s, int i)
 {	int oln = lineno;
 	Symbol *ofn = Fname;
 	Label *l;
-	int j; int8_t foo[128];
+	int j; char foo[128];
 
 	if ((pid_is_claim(i) && separate == 1)
 	|| (!pid_is_claim(i) && separate == 2))
@@ -474,7 +474,7 @@ end_labs(Symbol *s, int i)
 }
 
 void
-ntimes(FILE *fd, int n, int m, int8_t *c[])
+ntimes(FILE *fd, int n, int m, char *c[])
 {
 	int i, j;
 	for (j = 0; c[j]; j++)
@@ -497,8 +497,8 @@ prehint(Symbol *s)
 }
 
 void
-checktype(Symbol *sp, int8_t *s)
-{	int8_t buf[128]; int i;
+checktype(Symbol *sp, char *s)
+{	char buf[128]; int i;
 
 	if (!s
 	|| (sp->type != BYTE
@@ -550,12 +550,12 @@ checktype(Symbol *sp, int8_t *s)
 }
 
 static int
-dolocal(FILE *ofd, int8_t *pre, int dowhat, int p, int8_t *s,
+dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s,
 	enum btypes b)
 {	int h, j, k=0; extern int nr_errs;
 	Ordered *walk;
 	Symbol *sp;
-	int8_t buf[128], buf2[128], buf3[128];
+	char buf[128], buf2[128], buf3[128];
 
 	if (dowhat == INIV)
 	{	/* initialize in order of declaration */
@@ -611,7 +611,7 @@ dolocal(FILE *ofd, int8_t *pre, int dowhat, int p, int8_t *s,
 void
 c_chandump(FILE *fd)
 {	Queue *q;
-	int8_t buf[256];
+	char buf[256];
 	int i;
 
 	if (!qtab)
@@ -654,8 +654,8 @@ c_chandump(FILE *fd)
 }
 
 void
-c_var(FILE *fd, int8_t *pref, Symbol *sp)
-{	int8_t *ptr, buf[256];
+c_var(FILE *fd, char *pref, Symbol *sp)
+{	char *ptr, buf[256];
 	int i;
 
 	if (!sp)
@@ -736,7 +736,7 @@ void
 c_splurge(FILE *fd, ProcList *p)
 {	Ordered *walk;
 	Symbol *sp;
-	int8_t pref[64];
+	char pref[64];
 
 	if (p->b != N_CLAIM && p->b != E_TRACE && p->b != N_TRACE)
 	for (walk = all_names; walk; walk = walk->next)
@@ -800,7 +800,7 @@ c_wrapper(FILE *fd)	/* allow pan.c to print out global sv entries */
 }
 
 static int
-doglobal(int8_t *pre, int dowhat)
+doglobal(char *pre, int dowhat)
 {	Ordered *walk;
 	Symbol *sp;
 	int j, cnt = 0;
@@ -823,7 +823,7 @@ doglobal(int8_t *pre, int dowhat)
 					pre, "\", now.", ");\n");
 				break;
 			case INIV:
-				checktype(sp, (int8_t *) 0);
+				checktype(sp, (char *) 0);
 				cnt++; /* fall through */
 			case PUTV:
 				do_var(tc, dowhat,
@@ -856,10 +856,10 @@ dohidden(void)
 }
 
 void
-do_var(FILE *ofd, int dowhat, int8_t *s, Symbol *sp,
-	int8_t *pre, int8_t *sep, int8_t *ter)
+do_var(FILE *ofd, int dowhat, char *s, Symbol *sp,
+	char *pre, char *sep, char *ter)
 {	int i;
-	int8_t *ptr = sp?sp->name:"";
+	char *ptr = sp?sp->name:"";
 
 	if (!sp)
 	{	fatal("cannot happen - do_var", 0);
@@ -946,7 +946,7 @@ do_init(FILE *ofd, Symbol *sp)
 }
 
 static void
-put_ptype(int8_t *s, int i, int m0, int m1, enum btypes b)
+put_ptype(char *s, int i, int m0, int m1, enum btypes b)
 {	int k;
 
 	if (b == I_PROC)
@@ -1169,7 +1169,7 @@ huntstart(Element *f)
 	}	}
 
 	if (cnt >= 200 || !e)
-		fatal("confusing control structure", (int8_t *) 0);
+		fatal("confusing control structure", (char *) 0);
 	return e;
 }
 
@@ -1209,7 +1209,7 @@ huntele(Element *f, int o, int stopat)
 		e = g;
 	}
 	if (cnt >= 200 || !e)
-		fatal("confusing control structure", (int8_t *) 0);
+		fatal("confusing control structure", (char *) 0);
 	return e;
 }
 
@@ -1277,7 +1277,7 @@ typ2c(Symbol *sp)
 }
 
 static void
-ncases(FILE *fd, int p, int n, int m, int8_t *c[])
+ncases(FILE *fd, int p, int n, int m, char *c[])
 {	int i, j;
 
 	for (j = 0; c[j]; j++)
@@ -1302,7 +1302,7 @@ qlen_type(int qmax)
 
 void
 genaddqueue(void)
-{	int8_t buf0[256];
+{	char buf0[256];
 	int j, qmax = 0;
 	Queue *q;
 

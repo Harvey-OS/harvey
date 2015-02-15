@@ -51,8 +51,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: create.c,v 1.3 89/02/12 10:29:37 mark Exp Locker: mark $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: create.c,v 1.3 89/02/12 10:29:37 mark Exp Locker: mark $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -65,9 +65,9 @@ static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights rese
 
 #ifdef __STDC__
 
-static void writetar(int8_t *, Stat *);
-static void writecpio(int8_t *, Stat *);
-static int8_t tartype(int);
+static void writetar(char *, Stat *);
+static void writecpio(char *, Stat *);
+static char tartype(int);
 
 #else /* !__STDC__ */
 
@@ -103,7 +103,7 @@ int create_archive()
 
 #endif
 {
-    int8_t            name[PATH_MAX + 1];
+    char            name[PATH_MAX + 1];
     Stat            sb;
     int             fd;
 
@@ -189,7 +189,7 @@ int create_archive()
 
 #ifdef __STDC__
 
-static void writetar(int8_t *name, Stat *asb)
+static void writetar(char *name, Stat *asb)
 
 #else
     
@@ -199,11 +199,11 @@ Stat           *asb;
 
 #endif
 {
-    int8_t	   *p;
-    int8_t           *prefix = (int8_t *)NULL;
+    char	   *p;
+    char           *prefix = (char *)NULL;
     int             i;
     int             sum;
-    int8_t            hdr[BLOCKSIZE];
+    char            hdr[BLOCKSIZE];
     Link           *from;
 
     memset(hdr, 0, BLOCKSIZE);
@@ -255,7 +255,7 @@ Stat           *asb;
     strcpy(&hdr[297], findgname((int) asb->sb_gid));
     sprintf(&hdr[329], "%06o \0", major(asb->sb_rdev));
     sprintf(&hdr[337], "%06o \0", minor(asb->sb_rdev));
-    if (prefix != (int8_t *)NULL) {
+    if (prefix != (char *)NULL) {
 	strncpy(&hdr[345], prefix, 155);
     }
 
@@ -294,7 +294,7 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-static int8_t tartype(int mode)
+static char tartype(int mode)
 
 #else
     
@@ -353,7 +353,7 @@ int	    mode;
 
 #ifdef __STDC__
 
-static void writecpio(int8_t *name, Stat *asb)
+static void writecpio(char *name, Stat *asb)
 
 #else
     
@@ -364,7 +364,7 @@ Stat           *asb;
 #endif
 {
     uint            namelen;
-    int8_t            header[M_STRLEN + H_STRLEN + 1];
+    char            header[M_STRLEN + H_STRLEN + 1];
 
     namelen = (uint) strlen(name) + 1;
     strcpy(header, M_ASCII);

@@ -17,10 +17,10 @@
 #include "fns.h"
 
 void
-scanform(int32_t icount, int prt, int8_t *ifp, Map *map, int literal)
+scanform(int32_t icount, int prt, char *ifp, Map *map, int literal)
 {
-	int8_t	*fp;
-	int8_t	c;
+	char	*fp;
+	char	c;
 	int	fcount;
 	ADDR	savdot;
 	int firstpass;
@@ -53,8 +53,8 @@ scanform(int32_t icount, int prt, int8_t *ifp, Map *map, int literal)
 	}
 }
 
-int8_t *
-exform(int fcount, int prt, int8_t *ifp, Map *map, int literal,
+char *
+exform(int fcount, int prt, char *ifp, Map *map, int literal,
        int firstpass)
 {
 	/* execute single format item `fcount' times
@@ -64,13 +64,13 @@ exform(int fcount, int prt, int8_t *ifp, Map *map, int literal,
 	uint64_t	v;
 	uint32_t	w;
 	ADDR	savdot;
-	int8_t	*fp;
-	int8_t	c, modifier;
+	char	*fp;
+	char	c, modifier;
 	int	i;
 	uint16_t sh, *sp;
 	uint8_t ch, *cp;
 	Symbol s;
-	int8_t buf[512];
+	char buf[512];
 	extern int printcol;
 
 	fp = 0;
@@ -375,7 +375,7 @@ exform(int fcount, int prt, int8_t *ifp, Map *map, int literal,
 void
 printesc(int c)
 {
-	static int8_t hex[] = "0123456789abcdef";
+	static char hex[] = "0123456789abcdef";
 
 	if (c < SPC || c >= 0177)
 		dprint("\\x%c%c", hex[(c&0xF0)>>4], hex[c&0xF]);

@@ -385,10 +385,10 @@ fileaddr(Xfile *f, int32_t isect, int cflag)
  * translate names
  */
 void
-fixname(int8_t *buf)
+fixname(char *buf)
 {
 	int c;
-	int8_t *p;
+	char *p;
 
 	p = buf;
 	while(c = *p){
@@ -406,9 +406,9 @@ fixname(int8_t *buf)
  *	Long - long name 
  */
 int
-classifyname(int8_t *buf)
+classifyname(char *buf)
 {
-	int8_t *p, *dot;
+	char *p, *dot;
 	int c, isextended, is8dot3, islower, ndot;
 
 	p = buf;
@@ -445,10 +445,10 @@ classifyname(int8_t *buf)
  * make an alias for a valid long file name
  */
 void
-mkalias(int8_t *name, int8_t *sname, int id)
+mkalias(char *name, char *sname, int id)
 {
 	Rune r;
-	int8_t *s, *e, sid[10];
+	char *s, *e, sid[10];
 	int i, esuf, v;
 
 	e = strrchr(name, '.');
@@ -501,7 +501,7 @@ char isfrog[256]={
 };
 
 int
-nameok(int8_t *elem)
+nameok(char *elem)
 {
 	while(*elem) {
 		if(*elem == ' ' && trspaces)
@@ -518,13 +518,13 @@ nameok(int8_t *elem)
  * always searches for long names which match a short name
  */
 int
-searchdir(Xfile *f, int8_t *name, Dosptr *dp, int cflag, int longtype)
+searchdir(Xfile *f, char *name, Dosptr *dp, int cflag, int longtype)
 {
 	Xfs *xf;
 	Iosect *p;
 	Dosbpb *bp;
 	Dosdir *d;
-	int8_t buf[261], *bname;
+	char buf[261], *bname;
 	int isect, addr, o, addr1, addr2, prevaddr, prevaddr1, o1, islong, have, need, sum;
 
 	xf = f->xf;
@@ -692,7 +692,7 @@ readdir(Xfile *f, void *vbuf, int32_t offset, int32_t count)
 	Iosect *p;
 	Dosdir *d;
 	int32_t rcnt, n;
-	int8_t *name, snamebuf[8+1+3+1], namebuf[DOSNAMELEN];
+	char *name, snamebuf[8+1+3+1], namebuf[DOSNAMELEN];
 	uint8_t *buf;
 
 	buf = vbuf;
@@ -1115,7 +1115,7 @@ getdir(Xfs *xfs, Dir *dp, Dosdir *d, int addr, int offset)
 }
 
 void
-getname(int8_t *p, Dosdir *d)
+getname(char *p, Dosdir *d)
 {
 	int c, i;
 
@@ -1138,12 +1138,12 @@ getname(int8_t *p, Dosdir *d)
 	*p = 0;
 }
 
-static int8_t*
-getnamerunes(int8_t *dst, uint8_t *buf, int step)
+static char*
+getnamerunes(char *dst, uint8_t *buf, int step)
 {
 	int i;
 	Rune r;
-	int8_t dbuf[DOSRUNE * UTFmax + 1], *d;
+	char dbuf[DOSRUNE * UTFmax + 1], *d;
 
 	d = dbuf;
 	r = 1;
@@ -1173,8 +1173,8 @@ getnamerunes(int8_t *dst, uint8_t *buf, int step)
 	return dst;
 }
 
-int8_t*
-getnamesect(int8_t *dbuf, int8_t *d, uint8_t *buf, int *islong, int *sum,
+char*
+getnamesect(char *dbuf, char *d, uint8_t *buf, int *islong, int *sum,
 	    int step)
 {
 	/*
@@ -1218,7 +1218,7 @@ getnamesect(int8_t *dbuf, int8_t *d, uint8_t *buf, int *islong, int *sum,
 }
 
 void
-putname(int8_t *p, Dosdir *d)
+putname(char *p, Dosdir *d)
 {
 	int i;
 
@@ -1296,7 +1296,7 @@ aliassum(Dosdir *d)
 }
 
 int
-putlongname(Xfs *xf, Dosptr *ndp, int8_t *name, int8_t sname[13])
+putlongname(Xfs *xf, Dosptr *ndp, char *name, char sname[13])
 {
 	Dosbpb *bp;
 	Dosdir tmpd;
@@ -1765,7 +1765,7 @@ bootdump(int fd, Dosboot *b)
 	Binit(&bp, fd, OWRITE);
 	Bprint(&bp, "magic: 0x%2.2x 0x%2.2x 0x%2.2x\n",
 		b->magic[0], b->magic[1], b->magic[2]);
-	Bprint(&bp, "version: \"%8.8s\"\n", (int8_t*)b->version);
+	Bprint(&bp, "version: \"%8.8s\"\n", (char*)b->version);
 	Bprint(&bp, "sectsize: %d\n", GSHORT(b->sectsize));
 	Bprint(&bp, "clustsize: %d\n", b->clustsize);
 	Bprint(&bp, "nresrv: %d\n", GSHORT(b->nresrv));
@@ -1782,7 +1782,7 @@ bootdump(int fd, Dosboot *b)
 	Bprint(&bp, "reserved0: 0x%2.2x\n", b->reserved0);
 	Bprint(&bp, "bootsig: 0x%2.2x\n", b->bootsig);
 	Bprint(&bp, "volid: 0x%8.8lux\n", GLONG(b->volid));
-	Bprint(&bp, "label: \"%11.11s\"\n", (int8_t*)b->label);
+	Bprint(&bp, "label: \"%11.11s\"\n", (char*)b->label);
 	Bterm(&bp);
 }
 
@@ -1794,7 +1794,7 @@ bootdump32(int fd, Dosboot32 *b)
 	Binit(&bp, fd, OWRITE);
 	Bprint(&bp, "magic: 0x%2.2x 0x%2.2x 0x%2.2x\n",
 		b->magic[0], b->magic[1], b->magic[2]);
-	Bprint(&bp, "version: \"%8.8s\"\n", (int8_t*)b->version);
+	Bprint(&bp, "version: \"%8.8s\"\n", (char*)b->version);
 	Bprint(&bp, "sectsize: %d\n", GSHORT(b->sectsize));
 	Bprint(&bp, "clustsize: %d\n", b->clustsize);
 	Bprint(&bp, "nresrv: %d\n", GSHORT(b->nresrv));
@@ -1864,10 +1864,10 @@ bootsecdump32(int fd, Xfs *xf, Dosboot32 *b32)
 void
 dirdump(void *vdbuf)
 {
-	static int8_t attrchar[] = "rhsvda67";
+	static char attrchar[] = "rhsvda67";
 	Dosdir *d;
-	int8_t *name, namebuf[DOSNAMELEN];
-	int8_t buf[128], *s, *ebuf;
+	char *name, namebuf[DOSNAMELEN];
+	char buf[128], *s, *ebuf;
 	uint8_t *dbuf;
 	int i;
 
@@ -1884,8 +1884,8 @@ dirdump(void *vdbuf)
 		name = getnamerunes(name, dbuf, 1);
 		seprint(buf, ebuf, "\"%s\" %2.2x %2.2ux %2.2ux %d", name, dbuf[0], dbuf[12], dbuf[13], GSHORT(d->start));
 	}else{
-		s = seprint(buf, ebuf, "\"%.8s.%.3s\" ", (int8_t*)d->name,
-			    (int8_t*)d->ext);
+		s = seprint(buf, ebuf, "\"%.8s.%.3s\" ", (char*)d->name,
+			    (char*)d->ext);
 		for(i=7; i>=0; i--)
 			*s++ = d->attr&(1<<i) ? attrchar[i] : '-';
 	
@@ -1908,7 +1908,7 @@ dirdump(void *vdbuf)
 }
 
 int
-cistrcmp(int8_t *s1, int8_t *s2)
+cistrcmp(char *s1, char *s2)
 {
 	int c1, c2;
 
@@ -1929,7 +1929,7 @@ cistrcmp(int8_t *s1, int8_t *s2)
 }
 
 int
-utftorunes(Rune *rr, int8_t *s, int n)
+utftorunes(Rune *rr, char *s, int n)
 {
 	Rune *r, *re;
 	int c;

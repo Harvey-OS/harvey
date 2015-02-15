@@ -9,7 +9,7 @@
 
 #include "headers.h"
 
-static int8_t *s9p2000 = "9p2000";
+static char *s9p2000 = "9p2000";
 
 SmbProcessResult
 smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
@@ -17,8 +17,8 @@ smbcomtreeconnectandx(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 {
 	uint8_t andxcommand;
 	uint16_t andxoffset;
-	int8_t *path = nil;
-	int8_t *service = nil;
+	char *path = nil;
+	char *service = nil;
 	uint16_t flags;
 	uint16_t passwordlength;
 //	ushort bytecount;

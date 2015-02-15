@@ -46,7 +46,7 @@ struct Col {
 		int index;	// index into string table (Strtab)
 		int error;
 		int bool;
-		int8_t *label;
+		char *label;
 		double number;
 	};
 };
@@ -61,16 +61,16 @@ struct  Biff {
 static int Nopad = 0;		// disable padding cells to colum width
 static int Trunc = 0;		// truncate cells to colum width
 static int All = 0;		// dump all sheet types, Worksheets only by default
-static int8_t *Delim = " ";	// field delimiter
-static int8_t *Sheetrange = nil;	// range of sheets wanted
-static int8_t *Columnrange = nil;	// range of collums wanted
+static char *Delim = " ";	// field delimiter
+static char *Sheetrange = nil;	// range of sheets wanted
+static char *Columnrange = nil;	// range of collums wanted
 static int Debug = 0;
 
 // file scope
 static int Defwidth = 10;	// default colum width if non given
 static int Biffver;		// file vesion
 static int Datemode;		// date ref: 1899-Dec-31 or 1904-jan-1
-static int8_t **Strtab = nil;	// label contents heap
+static char **Strtab = nil;	// label contents heap
 static int Nstrtab = 0;		// # of above
 static int *Xf;			// array of extended format indices
 static int Nxf = 0;		// # of above
@@ -83,7 +83,7 @@ static int Ncols = -1;		// max colums in table used
 static int Content = 0;		// type code for contents of sheet
 static Row *Root = nil;		// one worksheet's worth of cells
 				
-static int8_t *Months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+static char *Months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
 	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 static char *Errmsgs[] = {
@@ -97,10 +97,10 @@ static char *Errmsgs[] = {
 };
 
 int
-wanted(int8_t *range, int here)
+wanted(char *range, int here)
 {
 	int n, s;
-	int8_t *p;
+	char *p;
 
 	if (! range)
 		return 1;
@@ -156,7 +156,7 @@ cell(int r, int c, int f, int type, void *val)
 
 	switch(type){
 	case Tnumber:	ncol->number = *(double *)val;	break;
-	case Tlabel:	ncol->label = (int8_t *)val;	break;
+	case Tlabel:	ncol->label = (char *)val;	break;
 	case Tindex:	ncol->index = *(int *)val;	break;
 	case Tbool:	ncol->bool = *(int *)val;	break;
 	case Terror:	ncol->error = *(int *)val;	break;
@@ -225,7 +225,7 @@ bifftime(double t)
 void
 numfmt(int fmt, int min, int max, double num)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	struct Tm *tm;
 
 	if(fmt == 9)
@@ -266,7 +266,7 @@ dump(void)
 {
 	Row *r;
 	Col *c, *c1;
-	int8_t *strfmt;
+	char *strfmt;
 	int i, n, last, min, max;
 
 	if(Doquote)
@@ -492,11 +492,11 @@ gdoub(Biff *b)
 	return d;
 }
 
-int8_t *
+char *
 gstr(Biff *b, int len_width)
 {
 	Rune r;
-	int8_t *buf, *p;
+	char *buf, *p;
 	int nch, w, ap, ln, rt, opt;
 	enum {
 		Unicode = 1,
@@ -513,14 +513,14 @@ gstr(Biff *b, int len_width)
 
 	ln = gint(b, len_width);
 	if(Biffver != Ver8){
-		if((buf = calloc(ln+1, sizeof(int8_t))) == nil)
+		if((buf = calloc(ln+1, sizeof(char))) == nil)
 			sysfatal("no memory");
 		gmem(b, buf, ln);
 		return buf;
 	}
 
 
-	if((buf = calloc(ln+1, sizeof(int8_t)*UTFmax)) == nil)
+	if((buf = calloc(ln+1, sizeof(char)*UTFmax)) == nil)
 		sysfatal("no memory");
 	p = buf;
 
@@ -538,7 +538,7 @@ gstr(Biff *b, int len_width)
 	else
 		ap = 0;
 	for(;;){
-		w = (opt & Unicode)? sizeof(Rune): sizeof(int8_t);
+		w = (opt & Unicode)? sizeof(Rune): sizeof(char);
 
 		while(b->len > 0){
 			r = gint(b, w);
@@ -566,7 +566,7 @@ sst(Biff *b)
 	
 	skip(b, 4);			// total # strings
 	Nstrtab = gint(b, 4);		// # unique strings
-	if((Strtab = calloc(Nstrtab, sizeof(int8_t *))) == nil)
+	if((Strtab = calloc(Nstrtab, sizeof(char *))) == nil)
 		sysfatal("no memory");
 	for(n = 0; n < Nstrtab; n++)
 		Strtab[n] = gstr(b, 2);
@@ -622,7 +622,7 @@ label(Biff *b)
 	int r = gint(b, 2);		// row
 	int c = gint(b, 2);		// col
 	int f = gint(b, 2);		// formatting ref
-	int8_t *s = gstr(b, 2);		// byte string
+	char *s = gstr(b, 2);		// byte string
 	cell(r, c, f, Tlabel, s);
 }
 
@@ -662,7 +662,7 @@ eof(Biff *b)
 	int i;
 	struct {
 		int n;
-		int8_t *s;
+		char *s;
 	} names[] = {
 		0x005,	"Workbook globals",
 		0x006,	"Visual Basic module",

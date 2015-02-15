@@ -52,7 +52,7 @@ struct Queue
 	QLock	wlock;		/* mutex for writing processes */
 	Rendez	wr;		/* process waiting to write */
 
-	int8_t	err[ERRMAX];
+	char	err[ERRMAX];
 };
 
 enum
@@ -1408,7 +1408,7 @@ qclose(Queue *q)
  *  blocks.
  */
 void
-qhangup(Queue *q, int8_t *msg)
+qhangup(Queue *q, char *msg)
 {
 	/* mark it */
 	ilock(&q->lk);

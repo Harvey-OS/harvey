@@ -15,10 +15,10 @@
  * Mips-specific debugger interface
  */
 
-static	int8_t	*mipsexcep(Map*, Rgetter);
+static	char	*mipsexcep(Map*, Rgetter);
 static	int	mipsfoll(Map*, uint64_t, Rgetter, uint64_t*);
-static	int	mipsinst(Map*, uint64_t, int8_t, int8_t*, int);
-static	int	mipsdas(Map*, uint64_t, int8_t*, int);
+static	int	mipsinst(Map*, uint64_t, char, char*, int);
+static	int	mipsdas(Map*, uint64_t, char*, int);
 static	int	mipsinstlen(Map*, uint64_t);
 
 /*
@@ -116,7 +116,7 @@ Machdata mipsmach2be =
 };
 
 
-static int8_t *excname[] =
+static char *excname[] =
 {
 	"external interrupt",
 	"TLB modification",
@@ -138,7 +138,7 @@ static int8_t *excname[] =
 	"floating point exception"		/* FPEXC */
 };
 
-static int8_t*
+static char*
 mipsexcep(Map *map, Rgetter rget)
 {
 	int e;
@@ -155,7 +155,7 @@ mipsexcep(Map *map, Rgetter rget)
 
 	/* mips disassembler and related functions */
 
-static	int8_t FRAMENAME[] = ".frame";
+static	char FRAMENAME[] = ".frame";
 
 typedef struct {
 	uint64_t addr;
@@ -171,9 +171,9 @@ typedef struct {
 	int32_t w0;
 	int32_t w1;
 	int size;			/* instruction size */
-	int8_t *curr;			/* fill point in buffer */
-	int8_t *end;			/* end of buffer */
-	int8_t *err;			/* error message */
+	char *curr;			/* fill point in buffer */
+	char *end;			/* end of buffer */
+	char *err;			/* error message */
 } Instr;
 
 static Map *mymap;
@@ -261,7 +261,7 @@ mkinstr(uint64_t pc, Instr *i)
 #pragma	varargck	argpos	bprint		2
 
 static void
-bprint(Instr *i, int8_t *fmt, ...)
+bprint(Instr *i, char *fmt, ...)
 {
 	va_list arg;
 
@@ -273,12 +273,12 @@ bprint(Instr *i, int8_t *fmt, ...)
 typedef struct Opcode Opcode;
 
 struct Opcode {
-	int8_t *mnemonic;
+	char *mnemonic;
 	void (*f)(Opcode *, Instr *);
-	int8_t *ken;
+	char *ken;
 };
 
-static void format(int8_t *, Instr *, int8_t *);
+static void format(char *, Instr *, char *);
 
 static void
 branch(Opcode *o, Instr *i)
@@ -320,10 +320,10 @@ andi(Opcode *o, Instr *i)
 }
 
 static int
-plocal(Instr *i, int8_t *m, int8_t r, int store)
+plocal(Instr *i, char *m, char r, int store)
 {
 	int offset;
-	int8_t *reg;
+	char *reg;
 	Symbol s;
 
 	if (!findsym(i->addr, CTEXT, &s) || !findlocal(&s, FRAMENAME, &s))
@@ -347,9 +347,9 @@ plocal(Instr *i, int8_t *m, int8_t r, int store)
 }
 
 static void
-lw(Opcode *o, Instr *i, int8_t r)
+lw(Opcode *o, Instr *i, char r)
 {
-	int8_t *m;
+	char *m;
 
 	if (r == 'F') {
 		if (i->size == 2)
@@ -387,9 +387,9 @@ lwc1(Opcode *o, Instr *i)
 }
 
 static void
-sw(Opcode *o, Instr *i, int8_t r)
+sw(Opcode *o, Instr *i, char r)
 {
-	int8_t *m;
+	char *m;
 
 	if (r == 'F') {
 		if (i->size == 2)
@@ -509,21 +509,21 @@ nor(Opcode *o, Instr *i)
 		add(o, i);
 }
 
-static int8_t mipscoload[] = "r%t,%l";
-static int8_t mipsload[] = "%l,R%t";
-static int8_t mipsstore[] = "R%t,%l";
-static int8_t mipsalui[] = "%i,R%s,R%t";
-static int8_t mipsalu3op[] = "R%t,R%s,R%d";
-static int8_t mipsrtrs[] = "R%t,R%s";
-static int8_t mipscorsrt[] = "r%s,r%t";
-static int8_t mipscorsi[] = "r%s,%i";
-static int8_t mipscoxxx[] = "%w";
-static int8_t mipscofp3[] = "f%a,f%d,f%t";	/* fd,fs,ft */
-static int8_t mipsfp3[] = "F%t,F%d,F%a";
-static int8_t mipscofp2[] = "f%a,f%d";		/* fd,fs */
-static int8_t mipsfp2[] = "F%d,F%a";
-static int8_t mipscofpc[] = "f%d,f%t";		/* fs,ft */
-static int8_t mipsfpc[] = "F%t,F%d";
+static char mipscoload[] = "r%t,%l";
+static char mipsload[] = "%l,R%t";
+static char mipsstore[] = "R%t,%l";
+static char mipsalui[] = "%i,R%s,R%t";
+static char mipsalu3op[] = "R%t,R%s,R%d";
+static char mipsrtrs[] = "R%t,R%s";
+static char mipscorsrt[] = "r%s,r%t";
+static char mipscorsi[] = "r%s,%i";
+static char mipscoxxx[] = "%w";
+static char mipscofp3[] = "f%a,f%d,f%t";	/* fd,fs,ft */
+static char mipsfp3[] = "F%t,F%d,F%a";
+static char mipscofp2[] = "f%a,f%d";		/* fd,fs */
+static char mipsfp2[] = "F%d,F%a";
+static char mipscofpc[] = "f%d,f%t";		/* fs,ft */
+static char mipsfpc[] = "F%t,F%d";
 
 static Opcode opcodes[64] = {
 	0,		0,	0,
@@ -761,7 +761,7 @@ static Opcode fopcodes[64] = {
 	"c.ngt.%f",	0,	mipscofpc,
 };
 
-static int8_t *cop0regs[32] = {
+static char *cop0regs[32] = {
 	"INDEX", "RANDOM", "TLBPHYS", "EntryLo0",
 	"CONTEXT", "PageMask", "Wired",	"Error",
 	"BADVADDR", "Count", "TLBVIRT", "Compare",
@@ -772,21 +772,21 @@ static int8_t *cop0regs[32] = {
 	"TagLo", "TagHi", "ErrorEPC", "31"
 };
 
-static int8_t fsub[16] = {
+static char fsub[16] = {
 	'F', 'D', 'e', 'q', 'W', '?', '?', '?',
 	'?', '?', '?', '?', '?', '?', '?', '?'
 };
 
-static int8_t *cacheps[] = {
+static char *cacheps[] = {
 	"I", "D", "SI", "SD"
 };
 
-static int8_t *cacheop[] = {
+static char *cacheop[] = {
 	"IWBI", "ILT", "IST", "CDE", "HI", "HWBI", "HWB", "HSV"
 };
 
 static void
-format(int8_t *mnemonic, Instr *i, int8_t *f)
+format(char *mnemonic, Instr *i, char *f)
 {
 	if (mnemonic)
 		format(0, i, mnemonic);
@@ -877,7 +877,7 @@ format(int8_t *mnemonic, Instr *i, int8_t *f)
 static void
 copz(int cop, Instr *i)
 {
-	int8_t *f, *m, buf[16];
+	char *f, *m, buf[16];
 
 	m = buf;
 	f = "%t,%d";
@@ -940,7 +940,7 @@ copz(int cop, Instr *i)
 static void
 cop0(Instr *i)
 {
-	int8_t *m = 0;
+	char *m = 0;
 
 	if (i->rs < 8) {
 		switch (i->rs) {
@@ -998,7 +998,7 @@ cop0(Instr *i)
 static void
 cop1(Instr *i)
 {
-	int8_t *m = "MOVW";
+	char *m = "MOVW";
 
 	switch (i->rs) {
 
@@ -1035,7 +1035,7 @@ cop1(Instr *i)
 }
 
 static int
-printins(Map *map, uint64_t pc, int8_t *buf, int n)
+printins(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 	Opcode *o;
@@ -1088,11 +1088,11 @@ printins(Map *map, uint64_t pc, int8_t *buf, int n)
 	return i.size*4;
 }
 
-extern	int	_mipscoinst(Map *, uint64_t, int8_t*, int);
+extern	int	_mipscoinst(Map *, uint64_t, char*, int);
 
 	/* modifier 'I' toggles the default disassembler type */
 static int
-mipsinst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
+mipsinst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	if ((asstype == AMIPSCO && modifier == 'i')
 		|| (asstype == AMIPS && modifier == 'I'))
@@ -1102,7 +1102,7 @@ mipsinst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
 }
 
 static int
-mipsdas(Map *map, uint64_t pc, int8_t *buf, int n)
+mipsdas(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 
@@ -1136,7 +1136,7 @@ static int
 mipsfoll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
 	uint32_t w, l;
-	int8_t buf[8];
+	char buf[8];
 	Instr i;
 
 	mymap = map;

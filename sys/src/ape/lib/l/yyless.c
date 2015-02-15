@@ -10,7 +10,7 @@
 #include	<libl.h>
 #include	<stdio.h>
 
-extern	int8_t	yytext[];
+extern	char	yytext[];
 extern	int	yyleng;
 extern	int	yyprevious;
 
@@ -19,13 +19,13 @@ void	yyunput(int c);
 void
 yyless(int x)
 {
-	int8_t *lastch, *ptr;
+	char *lastch, *ptr;
 
 	lastch = yytext+yyleng;
 	if(x>=0 && x <= yyleng)
 		ptr = x + yytext;
 	else
-		ptr = (int8_t*)x;
+		ptr = (char*)x;
 	while(lastch > ptr)
 		yyunput(*--lastch);
 	*lastch = 0;

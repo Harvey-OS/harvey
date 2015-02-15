@@ -30,7 +30,7 @@ int	olist[50];			/* processing range pairs */
 
 int
 out_list(str)
-    int8_t	*str;
+    char	*str;
 {
     int		start, stop;
 
@@ -77,9 +77,9 @@ in_olist(num)
 
 int
 setencoding(name)
-    int8_t	*name;
+    char	*name;
 {
-    int8_t	path[150];
+    char	path[150];
 
 /*
  * Include the font encoding file selected by name. It's a full pathname if
@@ -144,9 +144,9 @@ str_convert(str, err)
 }
 
 void
-error(int kind, int8_t *fmt, ...)
+error(int kind, char *fmt, ...)
 {
-	int8_t buf[256];
+	char buf[256];
 	va_list arg;
 
 	if (fmt) {

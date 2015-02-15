@@ -41,10 +41,10 @@ enum {
 	Qtrack = 4,
 };
 
-int8_t*
+char*
 geterrstr(void)
 {
-	static int8_t errbuf[ERRMAX];
+	static char errbuf[ERRMAX];
 
 	rerrstr(errbuf, sizeof errbuf);
 	return errbuf;
@@ -64,7 +64,7 @@ emalloc(uint32_t sz)
 static void
 fsattach(Req *r)
 {
-	int8_t *spec;
+	char *spec;
 
 	spec = r->ifcall.aname;
 	if(spec && spec[0]) {
@@ -79,7 +79,7 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-static int8_t*
+static char*
 fsclone(Fid *old, Fid *new)
 {
 	Aux *na;
@@ -92,8 +92,8 @@ fsclone(Fid *old, Fid *new)
 	return nil;
 }
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i;
 
@@ -213,10 +213,10 @@ fsremove(Req *r)
 }
 
 /* result is one word, so it can be used as a uid in Dir structs */
-int8_t *
+char *
 disctype(Drive *drive)
 {
-	int8_t *type, *rw, *laysfx;
+	char *type, *rw, *laysfx;
 
 	rw = laysfx = "";
 	switch (drive->mmctype) {
@@ -252,9 +252,9 @@ disctype(Drive *drive)
 int
 fillstat(uint32_t qid, Dir *d)
 {
-	int8_t *ty;
+	char *ty;
 	Track *t;
-	static int8_t buf[32];
+	static char buf[32];
 
 	nulldir(d);
 	d->type = L'M';
@@ -352,8 +352,8 @@ readctl(Req *r)
 {
 	int i, isaudio;
 	uint32_t nwa;
-	int8_t *p, *e, *ty;
-	int8_t s[1024];
+	char *p, *e, *ty;
+	char s[1024];
 	Msf *m;
 
 	isaudio = 0;
@@ -459,13 +459,13 @@ fsread(Req *r)
 	respond(r, nil);
 }
 
-static int8_t Ebadmsg[] = "bad cdfs control message";
+static char Ebadmsg[] = "bad cdfs control message";
 
-static int8_t*
+static char*
 writectl(void *v, int32_t count)
 {
-	int8_t buf[256];
-	int8_t *f[10], *p;
+	char buf[256];
+	char *f[10], *p;
 	int i, nf, n, r, w, what;
 
 	if(count >= sizeof(buf))

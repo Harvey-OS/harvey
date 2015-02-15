@@ -32,10 +32,10 @@ static uint8_t t64d[256] = {
    INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,
    INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL,INVAL
 };
-static int8_t t64e[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static char t64e[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 int
-dec64(uint8_t *out, int lim, int8_t *in, int n)
+dec64(uint8_t *out, int lim, char *in, int n)
 {
 	uint32_t b24;
 	uint8_t *start = out;
@@ -90,12 +90,12 @@ exhausted:
 }
 
 int
-enc64(int8_t *out, int lim, uint8_t *in, int n)
+enc64(char *out, int lim, uint8_t *in, int n)
 {
 	int i;
 	uint32_t b24;
-	int8_t *start = out;
-	int8_t *e = out + lim;
+	char *start = out;
+	char *e = out + lim;
 
 	for(i = n/3; i > 0; i--){
 		b24 = (*in++)<<16;

@@ -33,27 +33,27 @@ enum {
 
 static int dochal(State*);
 static int doreply(State*, void*, int);
-static void doLMchap(int8_t *, uint8_t [ChapChallen],
+static void doLMchap(char *, uint8_t [ChapChallen],
 		     uint8_t [MSchapResplen]);
-static void doNTchap(int8_t *, uint8_t [ChapChallen],
+static void doNTchap(char *, uint8_t [ChapChallen],
 		     uint8_t [MSchapResplen]);
-static void dochap(int8_t *, int, int8_t [ChapChallen],
+static void dochap(char *, int, char [ChapChallen],
 		   uint8_t [ChapResplen]);
 
 
 struct State
 {
-	int8_t *protoname;
+	char *protoname;
 	int astype;
 	int asfd;
 	Key *key;
 	Ticket	t;
 	Ticketreq	tr;
-	int8_t chal[ChapChallen];
+	char chal[ChapChallen];
 	MSchapreply mcr;
-	int8_t cr[ChapResplen];
-	int8_t err[ERRMAX];
-	int8_t user[64];
+	char cr[ChapResplen];
+	char err[ERRMAX];
+	char user[64];
 	uint8_t secret[16];	/* for mschap */
 	int nsecret;
 };
@@ -141,7 +141,7 @@ static int
 chapwrite(Fsstate *fss, void *va, uint n)
 {
 	int ret, nreply;
-	int8_t *a, *v;
+	char *a, *v;
 	void *reply;
 	Key *k;
 	Keyinfo ki;
@@ -269,8 +269,8 @@ chapread(Fsstate *fss, void *va, uint *n)
 static int
 dochal(State *s)
 {
-	int8_t *dom, *user;
-	int8_t trbuf[TICKREQLEN];
+	char *dom, *user;
+	char trbuf[TICKREQLEN];
 
 	s->asfd = -1;
 
@@ -308,7 +308,7 @@ err:
 static int
 doreply(State *s, void *reply, int nreply)
 {
-	int8_t ticket[TICKETLEN+AUTHENTLEN];
+	char ticket[TICKETLEN+AUTHENTLEN];
 	int n;
 	Authenticator a;
 
@@ -390,7 +390,7 @@ hash(uint8_t pass[16], uint8_t c8[ChapChallen], uint8_t p24[MSchapResplen])
 }
 
 static void
-doNTchap(int8_t *pass, uint8_t chal[ChapChallen],
+doNTchap(char *pass, uint8_t chal[ChapChallen],
 	 uint8_t reply[MSchapResplen])
 {
 	Rune r;
@@ -415,7 +415,7 @@ doNTchap(int8_t *pass, uint8_t chal[ChapChallen],
 }
 
 static void
-doLMchap(int8_t *pass, uint8_t chal[ChapChallen],
+doLMchap(char *pass, uint8_t chal[ChapChallen],
 	 uint8_t reply[MSchapResplen])
 {
 	int i;
@@ -450,10 +450,10 @@ doLMchap(int8_t *pass, uint8_t chal[ChapChallen],
 }
 
 static void
-dochap(int8_t *pass, int id, int8_t chal[ChapChallen],
+dochap(char *pass, int id, char chal[ChapChallen],
        uint8_t resp[ChapResplen])
 {
-	int8_t buf[1+ChapChallen+MAXNAMELEN+1];
+	char buf[1+ChapChallen+MAXNAMELEN+1];
 	int n = strlen(pass);
 
 	*buf = id;

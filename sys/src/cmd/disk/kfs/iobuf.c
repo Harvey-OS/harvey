@@ -120,7 +120,7 @@ xloop:
 			p->flags = 0;
 			p->dev = devnone;
 			p->addr = -1;
-			p->iobuf = (int8_t*)-1;
+			p->iobuf = (char*)-1;
 			qunlock(p);
 			return 0;
 		}
@@ -179,7 +179,7 @@ syncblock(void)
 }
 
 void
-sync(int8_t *reason)
+sync(char *reason)
 {
 	int32_t i;
 
@@ -201,7 +201,7 @@ putbuf(Iobuf *p)
 		if(!devwrite(p->dev, p->addr, p->iobuf))
 			p->flags &= ~(Bmod|Bimm);
 	}
-	p->iobuf = (int8_t*)-1;
+	p->iobuf = (char*)-1;
 	qunlock(p);
 }
 

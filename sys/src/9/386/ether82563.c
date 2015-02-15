@@ -446,7 +446,7 @@ static int rbtab[] = {
 	1514,
 };
 
-static int8_t *tname[] = {
+static char *tname[] = {
 	"any",
 	"i82563",
 	"i82566",
@@ -529,7 +529,7 @@ static Ctlr* i82563ctlrtail;
 static Lock i82563rblock;		/* free receive Blocks */
 static Block* i82563rbpool;
 
-static int8_t* statistics[] = {
+static char* statistics[] = {
 	"CRC Error",
 	"Alignment Error",
 	"Symbol Error",
@@ -609,7 +609,7 @@ static int32_t
 i82563ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 {
 	Ctlr *ctlr;
-	int8_t *s, *p, *e, *stat;
+	char *s, *p, *e, *stat;
 	int i, r;
 	uint64_t tuvl, ruvl;
 
@@ -697,7 +697,7 @@ static int32_t
 i82563ctl(Ether* edev, void* buf, int32_t n)
 {
 	uint32_t v;
-	int8_t *p;
+	char *p;
 	Ctlr *ctlr;
 	Cmdbuf *cb;
 	Cmdtab *ct;
@@ -1223,7 +1223,7 @@ i82563attach(Ether* edev)
 {
 	Block *bp;
 	Ctlr *ctlr;
-	int8_t name[KNAMELEN];
+	char name[KNAMELEN];
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->alock);

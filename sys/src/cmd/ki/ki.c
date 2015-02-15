@@ -15,14 +15,14 @@
 #define Extern
 #include "sparc.h"
 
-int8_t	*file = "k.out";
+char	*file = "k.out";
 int	datasize;
 uint32_t	textbase;
 Biobuf	bp, bi;
 Fhdr	fhdr;
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	int pid;
 
@@ -182,11 +182,11 @@ seginit(int fd, Segment *s, int idx, uint32_t vastart, uint32_t vaend)
 void
 procinit(int pid)
 {
-	int8_t *p;
+	char *p;
 	Segment *s;
 	int n, m, sg, i;
 	uint32_t vastart, vaend;
-	int8_t mfile[128], tfile[128], sfile[1024];
+	char mfile[128], tfile[128], sfile[1024];
 
 	sprint(mfile, "/proc/%d/mem", pid);
 	sprint(tfile, "/proc/%d/text", pid);
@@ -285,11 +285,11 @@ reset(void)
 }
 
 void
-initstk(int argc, int8_t *argv[])
+initstk(int argc, char *argv[])
 {
 	uint32_t size, sp, ap, tos;
 	int i;
-	int8_t *p;
+	char *p;
 
 	initmap();
 	tos = STACKTOP - sizeof(Tos)*2;	/* we'll assume twice the host's is big enough */
@@ -343,9 +343,9 @@ initstk(int argc, int8_t *argv[])
 }
 
 void
-fatal(int syserr, int8_t *fmt, ...)
+fatal(int syserr, char *fmt, ...)
 {
-	int8_t buf[ERRMAX], *s;
+	char buf[ERRMAX], *s;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -359,9 +359,9 @@ fatal(int syserr, int8_t *fmt, ...)
 }
 
 void
-itrace(int8_t *fmt, ...)
+itrace(char *fmt, ...)
 {
-	int8_t buf[128];
+	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -390,7 +390,7 @@ void
 dumpfreg(void)
 {
 	int i;
-	int8_t buf[64];
+	char buf[64];
 
 	i = 0;
 	while(i < 32) {
@@ -407,7 +407,7 @@ void
 dumpdreg(void)
 {
 	int i;
-	int8_t buf[64];
+	char buf[64];
 
 	i = 0;
 	while(i < 32) {

@@ -223,8 +223,8 @@ void xbits(Tchar i, int bitf)
 
 Tchar t_setch(int c)
 {
-	int8_t temp[50];
-	int8_t *s;
+	char temp[50];
+	char *s;
 
 	s = temp;
 	if (c == '(') {	/* \(xx */
@@ -256,7 +256,7 @@ Tchar t_setch(int c)
 Tchar t_setabs(void)		/* set absolute char from \N'...' */
 {
 	int n;
-	int8_t temp[10];
+	char temp[10];
 
 	getch();	/* delim */
 	n = 0;
@@ -499,7 +499,7 @@ void t_setfont(int a)
 	if (/* i == 'S' || */ i == '0')	/* an experiment -- why can't we change to it? */
 		return;
 	if ((j = findft(i)) == -1)
-		if ((j = setfp(0, i, (int8_t*) 0, 1)) == -1)	/* try to put it in position 0 */
+		if ((j = setfp(0, i, (char*) 0, 1)) == -1)	/* try to put it in position 0 */
 			return;
 s0:
 	font1 = font;

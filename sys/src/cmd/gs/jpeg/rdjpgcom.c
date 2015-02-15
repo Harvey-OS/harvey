@@ -277,7 +277,7 @@ process_SOFn (int marker)
   unsigned int length;
   unsigned int image_height, image_width;
   int data_precision, num_components;
-  const int8_t * process;
+  const char * process;
   int ci;
 
   length = read_2_bytes();	/* usual parameter length count */
@@ -395,7 +395,7 @@ scan_JPEG_header (int verbose)
 
 /* Command line parsing code */
 
-static const int8_t * progname;	/* program name for error messages */
+static const char * progname;	/* program name for error messages */
 
 
 static void
@@ -414,7 +414,7 @@ usage (void)
 
 
 static int
-keymatch (int8_t * arg, const int8_t * keyword, int minchars)
+keymatch (char * arg, const char * keyword, int minchars)
 /* Case-insensitive matching of (possibly abbreviated) keyword switches. */
 /* keyword is the constant keyword (must be lower case already), */
 /* minchars is length of minimum legal abbreviation. */
@@ -443,10 +443,10 @@ keymatch (int8_t * arg, const int8_t * keyword, int minchars)
  */
 
 int
-main (int argc, int8_t **argv)
+main (int argc, char **argv)
 {
   int argn;
-  int8_t * arg;
+  char * arg;
   int verbose = 0;
 
   /* On Mac, fetch a command line. */

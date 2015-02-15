@@ -20,16 +20,16 @@ syminit(void)
 
 	for(s = hash; s < &hash[NHASH]; s++){
 		for(ss = *s; ss; ss = ss->next)
-			free((int8_t *)ss);
+			free((char *)ss);
 		*s = 0;
 	}
 }
 
 Symtab *
-symlook(int8_t *sym, int space, void *install)
+symlook(char *sym, int space, void *install)
 {
 	int32_t h;
-	int8_t *p;
+	char *p;
 	Symtab *s;
 
 	for(p = sym, h = space; *p; h += *p++)
@@ -52,10 +52,10 @@ symlook(int8_t *sym, int space, void *install)
 }
 
 void
-symdel(int8_t *sym, int space)
+symdel(char *sym, int space)
 {
 	int32_t h;
-	int8_t *p;
+	char *p;
 	Symtab *s, *ls;
 
 	/* multiple memory leaks */
@@ -71,7 +71,7 @@ symdel(int8_t *sym, int space)
 				ls->next = s->next;
 			else
 				hash[h] = s->next;
-			free((int8_t *)s);
+			free((char *)s);
 		}
 }
 
@@ -93,7 +93,7 @@ symstat(void)
 	int n;
 	int l[1000];
 
-	memset((int8_t *)l, 0, sizeof(l));
+	memset((char *)l, 0, sizeof(l));
 	for(s = hash; s < &hash[NHASH]; s++){
 		for(ss = *s, n = 0; ss; ss = ss->next)
 			n++;

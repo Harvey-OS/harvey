@@ -16,7 +16,7 @@
 #include "vga.h"
 
 static Ndb*
-dbopen(int8_t* dbname)
+dbopen(char* dbname)
 {
 	Ndb *db;
 
@@ -41,8 +41,8 @@ addattr(Attr** app, Ndbtuple* t)
 	*app = attr;
 }
 
-int8_t*
-dbattr(Attr* ap, int8_t* attr)
+char*
+dbattr(Attr* ap, char* attr)
 {
 	while(ap){
 		if(strcmp(ap->attr, attr) == 0)
@@ -54,10 +54,10 @@ dbattr(Attr* ap, int8_t* attr)
 }
 
 static Ctlr*
-addctlr(Vga* vga, int8_t* val)
+addctlr(Vga* vga, char* val)
 {
 	Ctlr **ctlr;
-	int8_t name[Namelen+1], *p;
+	char name[Namelen+1], *p;
 	int i;
 
 	/*
@@ -90,7 +90,7 @@ addctlr(Vga* vga, int8_t* val)
 int
 dbbios(Vga *vga, Ndbtuple *tuple)
 {
-	int8_t *bios, *p, *string;
+	char *bios, *p, *string;
 	int len;
 	int32_t offset, offset1;
 	Ndbtuple *t;
@@ -197,7 +197,7 @@ save(Vga *vga, Ndbtuple *tuple)
 }
 
 int
-dbctlr(int8_t* name, Vga* vga)
+dbctlr(char* name, Vga* vga)
 {
 	Ndb *db;
 	Ndbs s;
@@ -237,11 +237,11 @@ dbctlr(int8_t* name, Vga* vga)
 }
 
 static int
-dbmonitor(Ndb* db, Mode* mode, int8_t* type, int8_t* size)
+dbmonitor(Ndb* db, Mode* mode, char* type, char* size)
 {
 	Ndbs s;
 	Ndbtuple *t, *tuple;
-	int8_t *p, attr[Namelen+1], val[Namelen+1], buf[2*Namelen+1];
+	char *p, attr[Namelen+1], val[Namelen+1], buf[2*Namelen+1];
 	int clock, x, i;
 
 	/*
@@ -338,13 +338,13 @@ buggery:
 }
 
 Mode*
-dbmode(int8_t* name, int8_t* type, int8_t* size)
+dbmode(char* name, char* type, char* size)
 {
 	Ndb *db;
 	Ndbs s;
 	Ndbtuple *t, *tuple;
 	Mode *mode;
-	int8_t attr[Namelen+1];
+	char attr[Namelen+1];
 	uint32_t videobw;
 
 	db = dbopen(name);

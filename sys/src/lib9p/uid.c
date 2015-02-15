@@ -19,7 +19,7 @@
  * each user is the leader of her own group.
  */
 int
-hasperm(File *f, int8_t *uid, int p)
+hasperm(File *f, char *uid, int p)
 {
 	int m;
 

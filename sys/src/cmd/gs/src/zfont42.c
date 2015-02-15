@@ -56,7 +56,7 @@ private font_proc_glyph_outline(z42_glyph_outline);
 int
 build_gs_TrueType_font(i_ctx_t *i_ctx_p, os_ptr op, gs_font_type42 **ppfont,
 		       font_type ftype, gs_memory_type_ptr_t pstype,
-		       const int8_t *bcstr, const int8_t *bgstr,
+		       const char *bcstr, const char *bgstr,
 		       build_font_options_t options)
 {
     build_proc_refs build;
@@ -87,7 +87,7 @@ build_gs_TrueType_font(i_ctx_t *i_ctx_p, os_ptr op, gs_font_type42 **ppfont,
     make_null_new(&pdata->u.type42.CIDMap);
     ref_assign(&pdata->u.type42.GlyphDirectory, &GlyphDirectory);
     pfont->data.string_proc = z42_string_proc;
-    pfont->data.proc_data = (int8_t *)pdata;
+    pfont->data.proc_data = (char *)pdata;
     code = gs_type42_font_init(pfont);
     if (code < 0)
 	return code;
@@ -130,7 +130,7 @@ zbuildfont42(i_ctx_t *i_ctx_p)
  * value even if it is of the wrong type.
  */
 int
-font_string_array_param(const gs_memory_t *mem, os_ptr op, const int8_t *kstr,
+font_string_array_param(const gs_memory_t *mem, os_ptr op, const char *kstr,
                         ref *psa)
 {
     ref *pvsa;

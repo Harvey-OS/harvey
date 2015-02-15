@@ -52,7 +52,7 @@ plumb(char *dir, char *dest, int *efd, char *here)
  */
 
 int
-sendmsg(int fd, int8_t *msg)
+sendmsg(int fd, char *msg)
 {
 	int n;
 
@@ -63,9 +63,9 @@ sendmsg(int fd, int8_t *msg)
 }
 
 void
-warning(int8_t *s)
+warning(char *s)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	buf[0] = '\0';
 	errstr(buf, sizeof buf);
@@ -73,9 +73,9 @@ warning(int8_t *s)
 }
 
 void
-fatal(int8_t *s)
+fatal(char *s)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	buf[0] = '\0';
 	errstr(buf, sizeof buf);
@@ -84,7 +84,7 @@ fatal(int8_t *s)
 }
 
 int
-readfile(int8_t *name, int8_t *buf, int len)
+readfile(char *name, char *buf, int len)
 {
 	int f, n;
 
@@ -100,7 +100,7 @@ readfile(int8_t *name, int8_t *buf, int len)
 }
 
 int
-writefile(int8_t *name, int8_t *buf, int len)
+writefile(char *name, char *buf, int len)
 {
 	int f, n;
 
@@ -113,10 +113,10 @@ writefile(int8_t *name, int8_t *buf, int len)
 }
 
 void
-setenv(int8_t *name, int8_t *val)
+setenv(char *name, char *val)
 {
 	int f;
-	int8_t ename[64];
+	char ename[64];
 
 	snprint(ename, sizeof ename, "#e/%s", name);
 	f = create(ename, 1, 0666);
@@ -129,11 +129,11 @@ setenv(int8_t *name, int8_t *val)
 }
 
 void
-srvcreate(int8_t *name, int fd)
+srvcreate(char *name, int fd)
 {
-	int8_t *srvname;
+	char *srvname;
 	int f;
-	int8_t buf[64];
+	char buf[64];
 
 	srvname = strrchr(name, '/');
 	if(srvname)
@@ -152,7 +152,7 @@ srvcreate(int8_t *name, int fd)
 }
 
 void
-catchint(void *a, int8_t *note)
+catchint(void *a, char *note)
 {
 	USED(a);
 	if(strcmp(note, "alarm") == 0)
@@ -161,10 +161,10 @@ catchint(void *a, int8_t *note)
 }
 
 int
-outin(int8_t *prompt, int8_t *def, int len)
+outin(char *prompt, char *def, int len)
 {
 	int n;
-	int8_t buf[256];
+	char buf[256];
 
 	if(len >= sizeof buf)
 		len = sizeof(buf)-1;

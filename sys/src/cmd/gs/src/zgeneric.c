@@ -89,7 +89,7 @@ zcopy_integer(i_ctx_t *i_ctx_p)
 	count = op->value.intval;
     } else if (op1 + (count = op->value.intval) <= ostop) {
 	/* Fast case. */
-	memcpy((int8_t *)op, (int8_t *)(op - count), count * sizeof(ref));
+	memcpy((char *)op, (char *)(op - count), count * sizeof(ref));
 	push(count - 1);
 	return 0;
     }

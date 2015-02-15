@@ -61,7 +61,7 @@ void
 fixname(String *name)
 {
 	String *t;
-	int8_t *s;
+	char *s;
 
 	fullname(name);
 	s = Strtoc(name);

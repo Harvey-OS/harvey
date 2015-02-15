@@ -16,8 +16,8 @@ void	bootpdump(uint8_t *p, int n);
 void	dhcpinit(void);
 void	dhcprecv(void);
 void	dhcpsend(int);
-void	myfatal(int8_t *fmt, ...);
-int	openlisten(int8_t*);
+void	myfatal(char *fmt, ...);
+int	openlisten(char*);
 uint8_t	*optaddaddr(uint8_t*, int, uint8_t*);
 uint8_t	*optaddbyte(uint8_t*, int, int);
 uint8_t	*optadd(uint8_t*, int, void*, int);
@@ -38,8 +38,8 @@ struct {
 	int	fd;
 	uint32_t	xid;
 	uint32_t	starttime;
-	int8_t	cid[100];
-	int8_t	sname[64];
+	char	cid[100];
+	char	sname[64];
 	uint8_t	server[IPaddrlen];		/* server IP address */
 	uint8_t	client[IPaddrlen];		/* client IP address */
 	uint8_t	mask[IPaddrlen];		/* client mask */
@@ -48,9 +48,9 @@ struct {
 	uint32_t	timeout;	/* time to timeout - seconds */
 } dhcp;
 
-int8_t	net[64];
+char	net[64];
 
-int8_t optmagic[4] = { 0x63, 0x82, 0x53, 0x63 };
+char optmagic[4] = { 0x63, 0x82, 0x53, 0x63 };
 
 void
 main(int argc, char *argv[])
@@ -356,10 +356,10 @@ bootpdump(buf, n);
 }
 
 int
-openlisten(int8_t *net)
+openlisten(char *net)
 {
 	int n, fd, cfd;
-	int8_t data[128], devdir[40];
+	char data[128], devdir[40];
 
 //	sprint(data, "%s/udp!*!bootpc", net);
 	sprint(data, "%s/udp!*!68", net);
@@ -651,9 +651,9 @@ thread(void(*f)(void*), void *a)
 }
 
 void
-myfatal(int8_t *fmt, ...)
+myfatal(char *fmt, ...)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);

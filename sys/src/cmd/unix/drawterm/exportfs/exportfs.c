@@ -35,7 +35,7 @@ int	netfd;
 int
 exportfs(int fd, int msgsz)
 {
-	int8_t buf[ERRMAX], ebuf[ERRMAX];
+	char buf[ERRMAX], ebuf[ERRMAX];
 	Fsrpc *r;
 	int i, n;
 
@@ -113,7 +113,7 @@ if(0) iprint("<- %F\n", &r->work);
 }
 
 void
-reply(Fcall *r, Fcall *t, int8_t *err)
+reply(Fcall *r, Fcall *t, char *err)
 {
 	uint8_t *data;
 	int m, n;
@@ -157,7 +157,7 @@ int
 freefid(int nr)
 {
 	Fid *f, **l;
-	int8_t buf[128];
+	char buf[128];
 
 	l = &fidhash(nr);
 	for(f = *l; f; f = f->next) {
@@ -284,10 +284,10 @@ Loop:
 }
 
 File *
-file(File *parent, int8_t *name)
+file(File *parent, char *name)
 {
 	Dir *dir;
-	int8_t *path;
+	char *path;
 	File *f;
 
 	DEBUG(DFD, "\tfile: 0x%p %s name %s\n", parent, parent->name, name);
@@ -364,11 +364,11 @@ initroot(void)
 	psmpt = file(psmpt, "exportfs");
 }
 
-int8_t*
-makepath(File *p, int8_t *name)
+char*
+makepath(File *p, char *name)
 {
 	int i, n;
-	int8_t *c, *s, *path, *seg[256];
+	char *c, *s, *path, *seg[256];
 
 	seg[0] = name;
 	n = strlen(name)+2;
@@ -496,9 +496,9 @@ uniqueqid(Dir *d)
 }
 
 void
-fatal(int8_t *s, ...)
+fatal(char *s, ...)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 	va_list arg;
 
 	if (s) {

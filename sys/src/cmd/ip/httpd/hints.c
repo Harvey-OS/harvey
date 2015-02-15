@@ -16,7 +16,7 @@
 enum{ URLmax = 65536, HINTmax = 20 };
 #define RECIPLOG2 1.44269504089
 
-int8_t **urlname;				/* array of url strings    1,...,nurl */
+char **urlname;				/* array of url strings    1,...,nurl */
 static int nurl;
 static uint urltab[URLmax];		/* hashstr(url)  1,...,nurl */
 static int urlnext[URLmax];		/* index urltab of next url in chain */
@@ -42,7 +42,7 @@ Bfilelen(void *vb)
 }
 
 static uint 
-hashstr(int8_t* key)
+hashstr(char* key)
 {
 	/* asu works better than pjw for urls */
 	uint8_t *k = (unsigned char*)key;
@@ -90,10 +90,10 @@ urlinit(void)
 	static Biobuf *b = nil;
 	static int64_t filelen = 0;
 	int64_t newlen;
-	int8_t *s, *arena;
+	char *s, *arena;
 	int i, j, n;
 	uint url;
-	int8_t *file;
+	char *file;
 
 	if(filelen < 0)
 		return;
@@ -119,8 +119,8 @@ urlinit(void)
 		nurl = 0;
 	}
 	if(urlname==nil)
-		urlname = (int8_t**)ezalloc(URLmax*sizeof(*urlname));
-	arena = (int8_t*)ezalloc(filelen);  /* enough for all the strcpy below */
+		urlname = (char**)ezalloc(URLmax*sizeof(*urlname));
+	arena = (char*)ezalloc(filelen);  /* enough for all the strcpy below */
 	i = 1;
 	while((s=Brdline(b,'\n'))!=0){
 		/* read lines of the form:  999 /url/path */
@@ -169,7 +169,7 @@ statsinit(void)
 	int iq, n, i, nstats = 0;
 	uint8_t *s, buf[3+HINTmax*3];  /* iq, n, (url,prob)... */
 	Hint *arena, *h;
-	int8_t *file;
+	char *file;
 	static void *oldarena = nil;
 
 	file = "/sys/log/httpd/pathstat";
@@ -217,10 +217,10 @@ statsinit(void)
 }
 
 void
-urlcanon(int8_t *url)
+urlcanon(char *url)
 {
 	/* all the changes here can be implemented by rewriting in-place */
-	int8_t *p, *q;
+	char *p, *q;
 
 	/* remove extraneous '/' in the middle and at the end */
 	p = url+1;  /* first char needs no change */
@@ -250,10 +250,10 @@ urlcanon(int8_t *url)
 }
 
 void
-hintprint(HConnect *hc, Hio *hout, int8_t *uri, int thresh, int havej)
+hintprint(HConnect *hc, Hio *hout, char *uri, int thresh, int havej)
 {
 	int i, j, pr, prefix, fd, siz, havei, newhint = 0, n;
-	int8_t *query, *sf, etag[32], *wurl;
+	char *query, *sf, etag[32], *wurl;
 	Dir *dir;
 	Hint *h, *haveh;
 

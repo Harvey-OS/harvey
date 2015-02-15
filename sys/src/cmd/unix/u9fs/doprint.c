@@ -36,7 +36,7 @@ static struct
 {
 /*	Lock;	*/
 	int	convcount;
-	int8_t	index[MAXFMT];
+	char	index[MAXFMT];
 	int	(*conv[MAXCONV])(va_list*, Fconv*);
 } fmtalloc;
 
@@ -146,8 +146,8 @@ pchar(Rune c, Fconv *fp)
 	}
 }
 
-int8_t*
-doprint(int8_t *s, int8_t *es, int8_t *fmt, va_list *argp)
+char*
+doprint(char *s, char *es, char *fmt, va_list *argp)
 {
 	int n, c;
 	Rune rune;
@@ -261,7 +261,7 @@ l1:
 int
 numbconv(va_list *arg, Fconv *fp)
 {
-	int8_t s[IDIGIT];
+	char s[IDIGIT];
 	int i, f, n, b, ucase;
 	int32_t v;
 	int64_t vl;
@@ -439,7 +439,7 @@ Strconv(Rune *s, Fconv *fp)
 }
 
 void
-strconv(int8_t *s, Fconv *fp)
+strconv(char *s, Fconv *fp)
 {
 	int n, c, i;
 	Rune rune;
@@ -496,7 +496,7 @@ strconv(int8_t *s, Fconv *fp)
 static int
 noconv(va_list *va, Fconv *fp)
 {
-	int8_t s[10];
+	char s[10];
 
 	USED(va);
 	s[0] = '*';
@@ -513,7 +513,7 @@ noconv(va_list *va, Fconv *fp)
 static int
 cconv(va_list *arg, Fconv *fp)
 {
-	int8_t s[10];
+	char s[10];
 	Rune rune;
 
 	rune = va_arg(*arg, int);
@@ -531,11 +531,11 @@ static Rune null[] = { L'<', L'n', L'u', L'l', L'l', L'>', L'\0' };
 static	int
 sconv(va_list *arg, Fconv *fp)
 {
-	int8_t *s;
+	char *s;
 	Rune *r;
 
 	if(fp->chr == 's') {
-		s = va_arg(*arg, int8_t*);
+		s = va_arg(*arg, char*);
 		if(s == 0)
 			s = "<null>";
 		strconv(s, fp);

@@ -21,7 +21,7 @@ struct MetaChunk {
 	uint16_t index;
 };
 
-static int	stringunpack(int8_t **s, uint8_t **p, int *n);
+static int	stringunpack(char **s, uint8_t **p, int *n);
 
 /*
  * integer conversion routines
@@ -39,7 +39,7 @@ static int	stringunpack(int8_t **s, uint8_t **p, int *n);
 #define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
 
 static int
-stringunpack(int8_t **s, uint8_t **p, int *n)
+stringunpack(char **s, uint8_t **p, int *n)
 {
 	int nn;
 
@@ -60,7 +60,7 @@ stringunpack(int8_t **s, uint8_t **p, int *n)
 }
 
 static int
-stringpack(int8_t *s, uint8_t *p)
+stringpack(char *s, uint8_t *p)
 {
 	int n;
 
@@ -211,7 +211,7 @@ if(0)print("eo = %d en = %d\n", eo, en);
 
 /* assumes a small amount of checking has been done in mbentry */
 int
-mecmp(MetaEntry *me, int8_t *s)
+mecmp(MetaEntry *me, char *s)
 {
 	int n;
 	uint8_t *p;
@@ -239,7 +239,7 @@ mecmp(MetaEntry *me, int8_t *s)
 }
 
 int
-mecmpnew(MetaEntry *me, int8_t *s)
+mecmpnew(MetaEntry *me, char *s)
 {
 	int n;
 	uint8_t *p;
@@ -666,7 +666,7 @@ vdcopy(VacDir *dst, VacDir *src)
 }
 
 int
-mbsearch(MetaBlock *mb, int8_t *elem, int *ri, MetaEntry *me)
+mbsearch(MetaBlock *mb, char *elem, int *ri, MetaEntry *me)
 {
 	int i;
 	int b, t, x;

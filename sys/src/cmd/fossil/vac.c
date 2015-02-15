@@ -17,14 +17,14 @@ struct MetaChunk {
 	uint16_t index;
 };
 
-static int stringUnpack(int8_t **s, uint8_t **p, int *n);
-static int meCmp(MetaEntry*, int8_t *s);
-static int meCmpOld(MetaEntry*, int8_t *s);
+static int stringUnpack(char **s, uint8_t **p, int *n);
+static int meCmp(MetaEntry*, char *s);
+static int meCmpOld(MetaEntry*, char *s);
 
 
 
-static int8_t EBadMeta[] = "corrupted meta data";
-static int8_t ENoFile[] = "file does not exist";
+static char EBadMeta[] = "corrupted meta data";
+static char ENoFile[] = "file does not exist";
 
 /*
  * integer conversion routines
@@ -42,7 +42,7 @@ static int8_t ENoFile[] = "file does not exist";
 #define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
 
 static int
-stringUnpack(int8_t **s, uint8_t **p, int *n)
+stringUnpack(char **s, uint8_t **p, int *n)
 {
 	int nn;
 
@@ -63,7 +63,7 @@ stringUnpack(int8_t **s, uint8_t **p, int *n)
 }
 
 static int
-stringPack(int8_t *s, uint8_t *p)
+stringPack(char *s, uint8_t *p)
 {
 	int n;
 
@@ -74,7 +74,7 @@ stringPack(int8_t *s, uint8_t *p)
 }
 
 int
-mbSearch(MetaBlock *mb, int8_t *elem, int *ri, MetaEntry *me)
+mbSearch(MetaBlock *mb, char *elem, int *ri, MetaEntry *me)
 {
 	int i;
 	int b, t, x;
@@ -295,7 +295,7 @@ meUnpack(MetaEntry *me, MetaBlock *mb, int i)
 
 /* assumes a small amount of checking has been done in mbEntry */
 static int
-meCmp(MetaEntry *me, int8_t *s)
+meCmp(MetaEntry *me, char *s)
 {
 	int n;
 	uint8_t *p;
@@ -334,7 +334,7 @@ meCmp(MetaEntry *me, int8_t *s)
  * the usual convention.
  */
 static int
-meCmpOld(MetaEntry *me, int8_t *s)
+meCmpOld(MetaEntry *me, char *s)
 {
 	int n;
 	uint8_t *p;

@@ -17,7 +17,7 @@ int
 setpgid(pid_t pid, pid_t pgid)
 {
 	int n, f;
-	int8_t buf[50], fname[30];
+	char buf[50], fname[30];
 
 	if(pid == 0)
 		pid = getpid();

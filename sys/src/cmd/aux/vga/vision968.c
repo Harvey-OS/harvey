@@ -45,7 +45,7 @@ init(Vga* vga, Ctlr* ctlr)
 	Mode *mode;
 	uint32_t x;
 	int sid, dbl, bpp, divide;
-	int8_t *val;
+	char *val;
 
 	if(vga->mode->z > 8)
 		error("depth %d not supported\n", vga->mode->z);

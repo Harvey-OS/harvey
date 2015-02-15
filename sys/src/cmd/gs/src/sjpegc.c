@@ -93,7 +93,7 @@ private void
 gs_jpeg_error_exit(j_common_ptr cinfo)
 {
     jpeg_stream_data *jcomdp =
-    (jpeg_stream_data *) ((int8_t *)cinfo -
+    (jpeg_stream_data *) ((char *)cinfo -
 			  offset_of(jpeg_compress_data, cinfo));
 
     longjmp(jcomdp->exit_jmpbuf, 1);
@@ -106,7 +106,7 @@ gs_jpeg_emit_message(j_common_ptr cinfo, int msg_level)
 				 * treat them as errors when Picky=1.
 				 */
 	jpeg_stream_data *jcomdp =
-	(jpeg_stream_data *) ((int8_t *)cinfo -
+	(jpeg_stream_data *) ((char *)cinfo -
 			      offset_of(jpeg_compress_data, cinfo));
 
 	if (jcomdp->Picky)
@@ -141,7 +141,7 @@ int
 gs_jpeg_log_error(stream_DCT_state * st)
 {
     j_common_ptr cinfo = (j_common_ptr) & st->data.compress->cinfo;
-    int8_t buffer[JMSG_LENGTH_MAX];
+    char buffer[JMSG_LENGTH_MAX];
 
     /* Format the error message */
     (*cinfo->err->format_message) (cinfo, buffer);
@@ -203,7 +203,7 @@ cinfo2jcd(j_common_ptr cinfo)
 }
 
 private void *
-jpeg_alloc(j_common_ptr cinfo, size_t size, const int8_t *info)
+jpeg_alloc(j_common_ptr cinfo, size_t size, const char *info)
 {
     jpeg_compress_data *jcd = cinfo2jcd(cinfo);
     gs_memory_t *mem = jcd->memory;
@@ -224,7 +224,7 @@ jpeg_alloc(j_common_ptr cinfo, size_t size, const int8_t *info)
 }
 
 private void
-jpeg_free(j_common_ptr cinfo, void *data, const int8_t *info)
+jpeg_free(j_common_ptr cinfo, void *data, const char *info)
 {
     jpeg_compress_data *jcd = cinfo2jcd(cinfo);
     gs_memory_t *mem = jcd->memory;

@@ -18,10 +18,10 @@
 static int		showfd = -1;
 static int		seefd = -1;
 static int		logfd = -1;
-static int8_t	*user;
-static int8_t	*logtag;
+static char	*user;
+static char	*logtag;
 
-int8_t		**maildirs;
+char		**maildirs;
 int		nmaildirs;
 
 void
@@ -44,16 +44,16 @@ initplumb(void)
 }
 
 void
-addmaildir(int8_t *dir)
+addmaildir(char *dir)
 {
-	maildirs = erealloc(maildirs, (nmaildirs+1)*sizeof(int8_t*));
+	maildirs = erealloc(maildirs, (nmaildirs+1)*sizeof(char*));
 	maildirs[nmaildirs++] = dir;
 }
 
-int8_t*
+char*
 attr(Face *f)
 {
-	static int8_t buf[128];
+	static char buf[128];
 
 	if(f->str[Sdigest]){
 		snprint(buf, sizeof buf, "digest=%s", f->str[Sdigest]);
@@ -65,7 +65,7 @@ attr(Face *f)
 void
 showmail(Face *f)
 {
-	int8_t *s;
+	char *s;
 	int n;
 
 	if(showfd<0 || f->str[Sshow]==nil || f->str[Sshow][0]=='\0')
@@ -76,10 +76,10 @@ showmail(Face *f)
 	free(s);
 }
 
-int8_t*
-value(Plumbattr *attr, int8_t *key, int8_t *def)
+char*
+value(Plumbattr *attr, char *key, char *def)
 {
-	int8_t *v;
+	char *v;
 
 	v = plumblookup(attr, key);
 	if(v)
@@ -88,10 +88,10 @@ value(Plumbattr *attr, int8_t *key, int8_t *def)
 }
 
 void
-setname(Face *f, int8_t *sender)
+setname(Face *f, char *sender)
 {
-	int8_t *at, *bang;
-	int8_t *p;
+	char *at, *bang;
+	char *p;
 
 	/* works with UTF-8, although it's written as ASCII */
 	for(p=sender; *p!='\0'; p++)
@@ -132,8 +132,8 @@ getc(void)
 	return buf[i++];
 }
 
-int8_t*
-getline(int8_t *buf, int n)
+char*
+getline(char *buf, int n)
 {
 	int i, c;
 
@@ -149,14 +149,14 @@ getline(int8_t *buf, int n)
 	return buf;
 }
 
-static int8_t* months[] = {
+static char* months[] = {
 	"jan", "feb", "mar", "apr",
 	"may", "jun", "jul", "aug", 
 	"sep", "oct", "nov", "dec"
 };
 
 static int
-getmon(int8_t *s)
+getmon(char *s)
 {
 	int i;
 
@@ -168,9 +168,9 @@ getmon(int8_t *s)
 
 /* Fri Jul 23 14:05:14 EDT 1999 */
 uint32_t
-parsedatev(int8_t **a)
+parsedatev(char **a)
 {
-	int8_t *p;
+	char *p;
 	Tm tm;
 
 	memset(&tm, 0, sizeof tm);
@@ -203,9 +203,9 @@ Err:
 }
 
 uint32_t
-parsedate(int8_t *s)
+parsedate(char *s)
 {
-	int8_t *f[10];
+	char *f[10];
 	int nf;
 
 	nf = getfields(s, f, nelem(f), 1, " ");
@@ -217,9 +217,9 @@ parsedate(int8_t *s)
 /* achille Jul 23 14:05:15 delivered jmk From ms.com!bub Fri Jul 23 14:05:14 EDT 1999 (plan9.bell-labs.com!jmk) 1352 */
 /* achille Oct 26 13:45:42 remote local!rsc From rsc Sat Oct 26 13:45:41 EDT 2002 (rsc) 170 */
 int
-parselog(int8_t *s, int8_t **sender, uint32_t *xtime)
+parselog(char *s, char **sender, uint32_t *xtime)
 {
-	int8_t *f[20];
+	char *f[20];
 	int nf;
 
 	nf = getfields(s, f, nelem(f), 1, " ");
@@ -238,9 +238,9 @@ Found:
 }
 
 int
-logrecv(int8_t **sender, uint32_t *xtime)
+logrecv(char **sender, uint32_t *xtime)
 {
-	int8_t buf[4096];
+	char buf[4096];
 
 	for(;;){
 		if(getline(buf, sizeof buf) == nil)
@@ -250,10 +250,10 @@ logrecv(int8_t **sender, uint32_t *xtime)
 	}
 }
 
-int8_t*
-tweakdate(int8_t *d)
+char*
+tweakdate(char *d)
 {
-	int8_t e[8];
+	char e[8];
 
 	/* d, date = "Mon Aug  2 23:46:55 EDT 1999" */
 
@@ -272,7 +272,7 @@ nextface(void)
 	int i;
 	Face *f;
 	Plumbmsg *m;
-	int8_t *t, *senderp, *showmailp, *digestp;
+	char *t, *senderp, *showmailp, *digestp;
 	uint32_t xtime;
 
 	f = emalloc(sizeof(Face));
@@ -320,10 +320,10 @@ nextface(void)
 	}
 }
 
-int8_t*
-iline(int8_t *data, int8_t **pp)
+char*
+iline(char *data, char **pp)
 {
-	int8_t *p;
+	char *p;
 
 	for(p=data; *p!='\0' && *p!='\n'; p++)
 		;
@@ -334,11 +334,11 @@ iline(int8_t *data, int8_t **pp)
 }
 
 Face*
-dirface(int8_t *dir, int8_t *num)
+dirface(char *dir, char *num)
 {
 	Face *f;
-	int8_t *from, *date;
-	int8_t buf[1024], pwd[1024], *info, *p, *digest;
+	char *from, *date;
+	char buf[1024], pwd[1024], *info, *p, *digest;
 	int n, fd;
 	uint32_t len;
 

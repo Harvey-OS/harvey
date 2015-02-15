@@ -39,8 +39,8 @@ freemem(void)
 {
 	int nf, pgsize = 0;
 	uint64_t size, userpgs = 0, userused = 0;
-	int8_t *ln, *sl;
-	int8_t *fields[2];
+	char *ln, *sl;
+	char *fields[2];
 	Biobuf *bp;
 
 	size = 64*1024*1024;
@@ -355,7 +355,7 @@ threadmain(int argc, char *argv[])
 }
 
 static void
-vtrerror(VtReq *r, int8_t *error)
+vtrerror(VtReq *r, char *error)
 {
 	r->rx.msgtype = VtRerror;
 	r->rx.error = estrdup(error);
@@ -366,7 +366,7 @@ ventiserver(void *v)
 {
 	Packet *p;
 	VtReq *r;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	uint ms;
 	int cached, ok;
 

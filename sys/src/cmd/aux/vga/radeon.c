@@ -89,7 +89,7 @@ struct Radeon {
 };
 
 /* from io.c */
-extern int8_t *readbios(int32_t len, int32_t offset);
+extern char *readbios(int32_t len, int32_t offset);
 
 static void radeon300_workaround(Radeon*radeon);
 

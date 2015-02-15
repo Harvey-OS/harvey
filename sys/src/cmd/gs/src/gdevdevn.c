@@ -127,7 +127,7 @@ bpc_to_depth(int ncomp, int bpc)
 
 #define compare_color_names(name, name_size, str, str_size) \
     (name_size == str_size && \
-	(strncmp((const int8_t *)name, (const int8_t *)str, name_size) == 0))
+	(strncmp((const char *)name, (const char *)str, name_size) == 0))
 
 /*
  * This routine will check if a name matches any item in a list of process
@@ -165,7 +165,7 @@ check_process_color_names(fixed_colorant_names_list plist,
  */
 int
 check_pcm_and_separation_names(const gx_device * dev,
-		const gs_devn_params * pparams, const int8_t * pname,
+		const gs_devn_params * pparams, const char * pname,
 		int name_size, int component_type)
 {
     fixed_colorant_name * pcolor = pparams->std_colorant_names;
@@ -188,7 +188,7 @@ check_pcm_and_separation_names(const gx_device * dev,
 	int num_spot = separations->num_separations;
 
 	for (i=0; i<num_spot; i++) {
-	    if (compare_color_names((const int8_t *)separations->names[i].data,
+	    if (compare_color_names((const char *)separations->names[i].data,
 		  separations->names[i].size, pname, name_size)) {
 		return color_component_number;
 	    }
@@ -222,7 +222,7 @@ check_pcm_and_separation_names(const gx_device * dev,
 int
 devn_get_color_comp_index(const gx_device * dev, gs_devn_params * pdevn_params,
 		    equivalent_cmyk_color_params * pequiv_colors,
-		    const int8_t * pname, int name_size, int component_type,
+		    const char * pname, int name_size, int component_type,
 		    int auto_spot_colors)
 {
     int num_order = pdevn_params->num_separation_order_names;
@@ -432,7 +432,7 @@ devn_put_params(gx_device * pdev, gs_param_list * plist,
 	         * SeparationColorNames.  If not then error.
 	         */
 	        if ((comp_num = check_pcm_and_separation_names(pdev, pdevn_params,
-		    (const int8_t *)sona.data[i].data, sona.data[i].size, 0)) < 0) {
+		    (const char *)sona.data[i].data, sona.data[i].size, 0)) < 0) {
 		    return_error(gs_error_rangecheck);
 		}
 		pdevn_params->separation_order_map[comp_num] = i;

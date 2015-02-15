@@ -48,8 +48,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: tar.c,v 1.2 89/02/12 10:06:05 mark Exp $";
-static int8_t *copyright ="Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.";
+static char *ident = "$Id: tar.c,v 1.2 89/02/12 10:06:05 mark Exp $";
+static char *copyright ="Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.";
 #endif /* not lint */
 
 /* Headers */
@@ -66,7 +66,7 @@ static int8_t *copyright ="Copyright (c) 1989 Mark H. Colburn.\nAll rights reser
 
 #ifdef __STDC__
 
-static int taropt(int , int8_t **, int8_t *);
+static int taropt(int , char **, char *);
 static void usage(void);
 
 #else /* !__STDC__ */
@@ -96,7 +96,7 @@ static void usage();
 
 #ifdef __STDC__
 
-int do_tar(int argc, int8_t **argv)
+int do_tar(int argc, char **argv)
 
 #else
 
@@ -252,7 +252,7 @@ char          **argv;		/* argument list (argv from main) */
 
 #ifdef __STDC__
 
-static int taropt(int argc, int8_t **argv, int8_t *optstring)
+static int taropt(int argc, char **argv, char *optstring)
 
 #else
 
@@ -263,16 +263,16 @@ char           *optstring;
 
 #endif
 {
-    extern int8_t    *optarg;	/* Points to next arg */
+    extern char    *optarg;	/* Points to next arg */
     extern int      optind;	/* Global argv index */
-    static int8_t    *key;	/* Points to next keyletter */
-    static int8_t     use_getopt;	/* !=0 if argv[1][0] was '-' */
-    int8_t            c;
-    int8_t           *place;
+    static char    *key;	/* Points to next keyletter */
+    static char     use_getopt;	/* !=0 if argv[1][0] was '-' */
+    char            c;
+    char           *place;
 
-    optarg = (int8_t *)NULL;
+    optarg = (char *)NULL;
 
-    if (key == (int8_t *)NULL) {		/* First time */
+    if (key == (char *)NULL) {		/* First time */
 	if (argc < 2)
 	    return EOF;
 	key = argv[1];
@@ -292,7 +292,7 @@ char           *optstring;
     }
     place = strchr(optstring, c);
 
-    if (place == (int8_t *)NULL || c == ':') {
+    if (place == (char *)NULL || c == ':') {
 	fprintf(stderr, "%s: unknown option %c\n", argv[0], c);
 	return ('?');
     }

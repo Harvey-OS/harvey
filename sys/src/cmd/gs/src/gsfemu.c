@@ -802,7 +802,7 @@ randf(void)
 }
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
     int i;
 

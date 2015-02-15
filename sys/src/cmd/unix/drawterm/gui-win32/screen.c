@@ -579,7 +579,7 @@ clipreadutf(HANDLE h)
 	return p;
 }
 
-int8_t*
+char*
 clipread(void)
 {
 	HANDLE h;
@@ -604,10 +604,10 @@ clipread(void)
 }
 
 int
-clipwrite(int8_t *buf)
+clipwrite(char *buf)
 {
 	HANDLE h;
-	int8_t *p, *e;
+	char *p, *e;
 	Rune *rp;
 	int n = strlen(buf);
 

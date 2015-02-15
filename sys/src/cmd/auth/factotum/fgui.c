@@ -21,7 +21,7 @@ typedef struct Memory Memory;
 
 struct RequestType
 {
-	int8_t		*file;			/* file to read requests from */
+	char		*file;			/* file to read requests from */
 	void		(*f)(Request*);		/* request handler */
 	void		(*r)(Controlset*);	/* resize handler */
 	int		fd;			/* fd = open(file, ORDWR) */
@@ -132,7 +132,7 @@ static void
 readreq(void *a)
 {
 	RequestType *rt = a;
-	int8_t *buf, *p;
+	char *buf, *p;
 	int n;
 	Request r;
 	Attr **l;
@@ -185,7 +185,7 @@ static void
 readreq(void *a)
 {
 	RequestType *rt = a;
-	int8_t *buf, *p;
+	char *buf, *p;
 	int n;
 	Request r;
 
@@ -340,7 +340,7 @@ setupconfirm(Request *r)
 	chanprint(cs->ctl, "b_refuse image i_white");
 	chanprint(cs->ctl, "b_refuse light i_black");
 
-	c = chancreate(sizeof(int8_t*), 0);
+	c = chancreate(sizeof(char*), 0);
 	controlwire(b_remember, "event", c);
 	controlwire(b_accept, "event", c);
 	controlwire(b_refuse, "event", c);
@@ -422,9 +422,9 @@ static void
 confirm(Request *r)
 {
 	Channel *c;
-	int8_t *s;
+	char *s;
 	int n;
-	int8_t *args[3];
+	char *args[3];
 	int remember;
 	Attr *val;
 	Memory *m;
@@ -536,7 +536,7 @@ setupneedkey(Request *r)
 	Channel *c;
 	Attr *a;
 	Attr **l;
-	int8_t cn[10];
+	char cn[10];
 	int i;
 
 	/* create a new control set for the confirmation */
@@ -621,7 +621,7 @@ setupneedkey(Request *r)
 	chanprint(cs->ctl, "b_done light green");
 
 	/* wire controls for input */
-	c = chancreate(sizeof(int8_t*), 0);
+	c = chancreate(sizeof(char*), 0);
 	controlwire(b_done, "event", c);
 	for(i = 0; i < entries; i++)
 		if(entry[i].a->type == AttrQuery)
@@ -730,10 +730,10 @@ static void
 needkey(Request *r)
 {
 	Channel *c;
-	int8_t *nam, *val;
+	char *nam, *val;
 	int i, n;
 	int fd;
-	int8_t *args[3];
+	char *args[3];
 
 	/* set up the controls */
 	c = setupneedkey(r);

@@ -11,8 +11,8 @@
 #include <libc.h>
 
 static
-int8_t*
-skip(int8_t *p)
+char*
+skip(char *p)
 {
 
 	while(*p == ' ')
@@ -32,7 +32,7 @@ skip(int8_t *p)
 int32_t
 times(int32_t *t)
 {
-	int8_t b[200], *p;
+	char b[200], *p;
 	static int f = -1;
 	int i, retries;
 	uint32_t r;

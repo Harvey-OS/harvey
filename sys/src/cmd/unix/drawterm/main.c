@@ -15,8 +15,8 @@
 
 #include "drawterm.h"
 
-int8_t *argv0;
-int8_t *user;
+char *argv0;
+char *user;
 
 extern int errfmt(Fmt*);
 void
@@ -26,7 +26,7 @@ sizebug(void)
 	 * Needed by various parts of the code.
 	 * This is a huge bug.
 	 */
-	assert(sizeof(int8_t)==1);
+	assert(sizeof(char)==1);
 	assert(sizeof(int16_t)==2);
 	assert(sizeof(ushort)==2);
 	assert(sizeof(int)==4);
@@ -38,7 +38,7 @@ sizebug(void)
 }
 
 int
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	eve = getuser();
 	if(eve == nil)
@@ -78,19 +78,19 @@ main(int argc, int8_t **argv)
 	return 0;
 }
 
-int8_t*
-getkey(int8_t *user, int8_t *dom)
+char*
+getkey(char *user, char *dom)
 {
-	int8_t buf[1024];
+	char buf[1024];
 
 	snprint(buf, sizeof buf, "%s@%s password", user, dom);
 	return readcons(buf, nil, 1);
 }
 
-int8_t*
-findkey(int8_t **puser, int8_t *dom)
+char*
+findkey(char **puser, char *dom)
 {
-	int8_t buf[1024], *f[50], *p, *ep, *nextp, *pass, *user;
+	char buf[1024], *f[50], *p, *ep, *nextp, *pass, *user;
 	int nf, haveproto,  havedom, i;
 
 	for(p=secstorebuf; *p; p=nextp){

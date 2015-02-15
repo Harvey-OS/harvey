@@ -16,10 +16,10 @@
 #include "faces.h"
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Face f;
-	int8_t *q;
+	char *q;
 
 	if(argc != 3){
 		fprint(2, "usage: dblook name domain\n");
@@ -31,7 +31,7 @@ main(int argc, int8_t **argv)
 }
 
 void
-killall(int8_t *s)
+killall(char *s)
 {
 	USED(s);
 }

@@ -18,14 +18,14 @@
 extern int _ifmt(Fmt*);
 
 static Biobuf	bioout;
-static int8_t	prog[128];
-static int8_t*	lm[16];
+static char	prog[128];
+static char*	lm[16];
 static int	nlm;
-static int8_t*	mtype;
+static char*	mtype;
 
-static	int attachfiles(int8_t*, int);
+static	int attachfiles(char*, int);
 int	xfmt(Fmt*);
-int	isnumeric(int8_t*);
+int	isnumeric(char*);
 void	die(void);
 void	loadmoduleobjtype(void);
 
@@ -168,7 +168,7 @@ main(int argc, char *argv[])
 }
 
 static int
-attachfiles(int8_t *aout, int pid)
+attachfiles(char *aout, int pid)
 {
 	interactive = 0;
 	if(setjmp(err))
@@ -208,7 +208,7 @@ die(void)
 void
 loadmoduleobjtype(void)
 {
-	int8_t *buf;
+	char *buf;
 
 	buf = smprint("/sys/lib/acid/%s", mach->name);
 	loadmodule(buf);
@@ -220,7 +220,7 @@ userinit(void)
 {
 	Lsym *l;
 	Node *n;
-	int8_t *buf, *p;
+	char *buf, *p;
 
 	p = getenv("home");
 	if(p != 0) {
@@ -245,7 +245,7 @@ userinit(void)
 }
 
 void
-loadmodule(int8_t *s)
+loadmodule(char *s)
 {
 	interactive = 0;
 	if(setjmp(err)) {
@@ -260,7 +260,7 @@ loadmodule(int8_t *s)
 }
 
 void
-readtext(int8_t *s)
+readtext(char *s)
 {
 	Dir *d;
 	Lsym *l;
@@ -368,9 +368,9 @@ con(int64_t v)
 }
 
 void
-fatal(int8_t *fmt, ...)
+fatal(char *fmt, ...)
 {
-	int8_t buf[128];
+	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -381,9 +381,9 @@ fatal(int8_t *fmt, ...)
 }
 
 void
-yyerror(int8_t *fmt, ...)
+yyerror(char *fmt, ...)
 {
-	int8_t buf[128];
+	char buf[128];
 	va_list arg;
 
 	if(strcmp(fmt, "syntax error") == 0) {
@@ -511,7 +511,7 @@ checkqid(int f1, int pid)
 {
 	int fd;
 	Dir *d1, *d2;
-	int8_t buf[128];
+	char buf[128];
 
 	if(kernel)
 		return;
@@ -544,7 +544,7 @@ checkqid(int f1, int pid)
 }
 
 void
-catcher(void *junk, int8_t *s)
+catcher(void *junk, char *s)
 {
 	USED(junk);
 
@@ -555,11 +555,11 @@ catcher(void *junk, int8_t *s)
 	noted(NDFLT);
 }
 
-int8_t*
+char*
 system(void)
 {
-	int8_t *cpu, *p, *q;
-	static int8_t *kernel;
+	char *cpu, *p, *q;
+	static char *kernel;
 
 	cpu = getenv("cputype");
 	if(cpu == 0) {
@@ -586,7 +586,7 @@ system(void)
 }
 
 int
-isnumeric(int8_t *s)
+isnumeric(char *s)
 {
 	while(*s) {
 		if(*s < '0' || *s > '9')

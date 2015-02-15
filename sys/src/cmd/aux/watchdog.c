@@ -16,7 +16,7 @@ int
 procctl(int pid)
 {
 	int ctlfd;
-	int8_t *ctl;
+	char *ctl;
 
 	ctl = smprint("/proc/%d/ctl", pid);
 	ctlfd = open(ctl, OWRITE);
@@ -27,7 +27,7 @@ procctl(int pid)
 }
 
 void
-main(int, int8_t **)
+main(int, char **)
 {
 	int ctl;
 

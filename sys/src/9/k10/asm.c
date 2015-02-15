@@ -265,7 +265,7 @@ asmmapinit(uintmem addr, uintmem size, int type)
 }
 
 void
-asmmodinit(uint32_t start, uint32_t end, int8_t* s)
+asmmodinit(uint32_t start, uint32_t end, char* s)
 {
 	DBG("asmmodinit: %#ux -> %#ux: <%s> %#ux\n",
 		start, end, s, ROUNDUP(end, 4096));

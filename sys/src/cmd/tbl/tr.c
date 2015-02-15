@@ -9,7 +9,7 @@
 
 # include "t.h"
 /* tr.c: number register allocation */
-int8_t	*nregs[] = {
+char	*nregs[] = {
 	/* this array must have at least 3*qcol entries
 	   or illegal register names will result */
 	"40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
@@ -26,7 +26,7 @@ int8_t	*nregs[] = {
 	0
 };
 
-int8_t *
+char *
 reg(int col, int place)
 {
 	if (nelem(nregs) - 1 < 3 * qcol)

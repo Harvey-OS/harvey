@@ -42,7 +42,7 @@
 /* Read a password from a parameter list. */
 /* Return 0 if present, 1 if absent, or an error code. */
 int
-param_read_password(gs_param_list * plist, const int8_t *kstr,
+param_read_password(gs_param_list * plist, const char *kstr,
                     password * ppass)
 {
     gs_param_string ps;
@@ -70,13 +70,13 @@ param_read_password(gs_param_list * plist, const int8_t *kstr,
     code = param_read_long(plist, kstr, &ipass);
     if (code != 0)		/* error or missing */
 	return code;
-    sprintf((int8_t *)ppass->data, "%ld", ipass);
-    ppass->size = strlen((int8_t *)ppass->data);
+    sprintf((char *)ppass->data, "%ld", ipass);
+    ppass->size = strlen((char *)ppass->data);
     return 0;
 }
 /* Write a password to a parameter list. */
 int
-param_write_password(gs_param_list * plist, const int8_t *kstr,
+param_write_password(gs_param_list * plist, const char *kstr,
 		     const password * ppass)
 {
     gs_param_string ps;
@@ -112,7 +112,7 @@ param_check_password(gs_param_list * plist, const password * ppass)
 /* Read a password from, or write a password into, a dictionary */
 /* (presumably systemdict). */
 private int
-dict_find_password(ref ** ppvalue, const ref * pdref, const int8_t *kstr)
+dict_find_password(ref ** ppvalue, const ref * pdref, const char *kstr)
 {
     ref *pvalue;
 
@@ -127,7 +127,7 @@ dict_find_password(ref ** ppvalue, const ref * pdref, const int8_t *kstr)
     return 0;
 }
 int
-dict_read_password(password * ppass, const ref * pdref, const int8_t *pkey)
+dict_read_password(password * ppass, const ref * pdref, const char *pkey)
 {
     ref *pvalue;
     int code = dict_find_password(&pvalue, pdref, pkey);
@@ -141,7 +141,7 @@ dict_read_password(password * ppass, const ref * pdref, const int8_t *pkey)
     return 0;
 }
 int
-dict_write_password(const password * ppass, ref * pdref, const int8_t *pkey,
+dict_write_password(const password * ppass, ref * pdref, const char *pkey,
 			bool change_allowed)
 {
     ref *pvalue;

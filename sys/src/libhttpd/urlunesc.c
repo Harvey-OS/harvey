@@ -13,10 +13,10 @@
 #include <httpd.h>
 
 /* go from url with escaped utf to utf */
-int8_t *
-hurlunesc(HConnect *cc, int8_t *s)
+char *
+hurlunesc(HConnect *cc, char *s)
 {
-	int8_t *t, *v, *u;
+	char *t, *v, *u;
 	Rune r;
 	int c, n;
 

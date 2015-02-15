@@ -230,7 +230,7 @@ fcmp(uint32_t ir)
 void
 fbcc(uint32_t ir)
 {
-	int8_t *op;
+	char *op;
 	uint32_t npc;
 	int takeit, fc, ba, anul;
 
@@ -343,7 +343,7 @@ fbcc(uint32_t ir)
 void
 farith(uint32_t ir)
 {
-	int8_t *op;
+	char *op;
 	int32_t v;
 	int rd, rs1, rs2, fmt;
 

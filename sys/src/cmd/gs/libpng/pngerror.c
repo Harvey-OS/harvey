@@ -41,7 +41,7 @@ void PNGAPI
 png_error(png_structp png_ptr, png_const_charp error_message)
 {
 #ifdef PNG_ERROR_NUMBERS_SUPPORTED
-   int8_t msg[16];
+   char msg[16];
    if (png_ptr->flags&(PNG_FLAG_STRIP_ERROR_NUMBERS|PNG_FLAG_STRIP_ERROR_TEXT))
    {
      if (*error_message == '#')
@@ -154,7 +154,7 @@ png_format_buffer(png_structp png_ptr, png_charp buffer, png_const_charp
 void PNGAPI
 png_chunk_error(png_structp png_ptr, png_const_charp error_message)
 {
-   int8_t msg[18+64];
+   char msg[18+64];
    png_format_buffer(png_ptr, msg, error_message);
    png_error(png_ptr, msg);
 }
@@ -162,7 +162,7 @@ png_chunk_error(png_structp png_ptr, png_const_charp error_message)
 void PNGAPI
 png_chunk_warning(png_structp png_ptr, png_const_charp warning_message)
 {
-   int8_t msg[18+64];
+   char msg[18+64];
    png_format_buffer(png_ptr, msg, warning_message);
    png_warning(png_ptr, msg);
 }
@@ -180,7 +180,7 @@ png_default_error(png_structp png_ptr, png_const_charp error_message)
    if (*error_message == '#')
    {
      int offset;
-     int8_t error_number[16];
+     char error_number[16];
      for (offset=0; offset<15; offset++)
      {
          error_number[offset] = *(error_message+offset+1);
@@ -236,7 +236,7 @@ png_default_warning(png_structp png_ptr, png_const_charp warning_message)
    if (*warning_message == '#')
    {
      int offset;
-     int8_t warning_number[16];
+     char warning_number[16];
      for (offset=0; offset<15; offset++)
      {
         warning_number[offset]=*(warning_message+offset+1);

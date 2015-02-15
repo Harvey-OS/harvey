@@ -20,7 +20,7 @@
 
 Biobuf *f;
 static int str;
-int8_t *file;
+char *file;
 
 Token tokenlistinit[] = {
 	{ "category",	Obj,	Category	, "music"	, {nil,0}},
@@ -51,7 +51,7 @@ Cmdlist cmdlist[] = {
 	{	0x00,	0		},
 };
 
-static int8_t *curtext;
+static char *curtext;
 
 void
 inittokenlist(void)
@@ -69,9 +69,9 @@ inittokenlist(void)
 }
 
 Type
-gettoken(int8_t *token)
+gettoken(char *token)
 {
-	int8_t *p, *q;
+	char *p, *q;
 	int i, n;
 	Token *t;
 
@@ -159,9 +159,9 @@ tx:	if((q = strchr(p, '}'))){
 Object *
 getobject(Type t, Object *parent)
 {
-	int8_t *token;
-	int8_t *textbuf;
-	int8_t *tp, *p, *q;
+	char *token;
+	char *textbuf;
+	char *tp, *p, *q;
 	int i;
 	Object *o, *oo, *child;
 	Token *ot;
@@ -380,12 +380,12 @@ getobject(Type t, Object *parent)
 Object *
 getinclude(Object *o)
 {
-		int8_t *savetext;
+		char *savetext;
 		Biobuf *savef = f;
-		int8_t *savefile, fname[256];
+		char *savefile, fname[256];
 		Object *oo;
 		int savestr = str;
-		int8_t token[MAXTOKEN], *dirname, *filename;
+		char token[MAXTOKEN], *dirname, *filename;
 		Type t;
 
 		str = 0;
@@ -436,7 +436,7 @@ getinclude(Object *o)
 }
 
 void
-addchild(Object *parent, Object *child, int8_t *where)
+addchild(Object *parent, Object *child, char *where)
 {
 		int i;
 
@@ -491,9 +491,9 @@ addcatparent(Object *parent, Object *child)
 }
 
 void
-sortprep(int8_t *out, int n, Object *o)
+sortprep(char *out, int n, Object *o)
 {
-	int8_t *p, *q;
+	char *p, *q;
 
 	if(*o->key)
 		q = o->key;
@@ -515,7 +515,7 @@ childsort(Object *o)
 {
 		Object *oo;
 		int i, j, n;
-		int8_t si[256], sj[256];
+		char si[256], sj[256];
 		/* sort the kids by key or by value */
 
 		n = o->nchildren;
@@ -592,7 +592,7 @@ newobject(Type t, Object *parent){
 }
 
 void
-freeobject(Object *o, int8_t*){
+freeobject(Object *o, char*){
 
 	free(o->children);
 	if(o->orig == nil)

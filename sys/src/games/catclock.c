@@ -388,8 +388,8 @@ int myfillpoly(Bitmap *b, Point vert[], int nvert, Windrule w, int v, Fcode f){
 			}
 		}
 	}
-	free((int8_t *)edges);
-	free((int8_t *)ylist);
+	free((char *)edges);
+	free((char *)ylist);
 	return 1;
 }
 #endif

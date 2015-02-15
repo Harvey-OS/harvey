@@ -81,7 +81,7 @@ sparc_open(gx_device *pdev)
 	return gdev_prn_open(pdev);
 }
 
-int8_t *errmsg[]={
+char *errmsg[]={
   "EMOTOR",
   "EROS",
   "EFUSER",
@@ -104,7 +104,7 @@ int8_t *errmsg[]={
   };
 
 /* The static buffer is unfortunate.... */
-static int8_t err_buffer[80];
+static char err_buffer[80];
 private char *
 err_code_string(int err_code)
   {

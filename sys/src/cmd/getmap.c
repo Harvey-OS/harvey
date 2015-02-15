@@ -23,17 +23,17 @@
  *	Looks for the file in a list of directories (given below).
  */
 
-int8_t *cmapdir[] = {
+char *cmapdir[] = {
 	"",
 	"/lib/cmap/",
 	0
 };
 
 int
-getcmap(int id, int8_t *f, unsigned char *buf)
+getcmap(int id, char *f, unsigned char *buf)
 {
-	int8_t name[512];
-	int8_t *s, *lines[256], *fields[4];
+	char name[512];
+	char *s, *lines[256], *fields[4];
 	int cmap, i, j, n, v, rev;
 	double gamma;
 
@@ -115,9 +115,9 @@ rep(uint32_t v, int n)
 void
 putcmap(int id, uint8_t cmap[256*3])
 {
-	int8_t *s, *t;
+	char *s, *t;
 	int i, fd;
-	int8_t name[64];
+	char name[64];
 
 	snprint(name, sizeof name, "/dev/draw/%d/colormap", id);
 	fd = open(name, OWRITE);
@@ -133,10 +133,10 @@ putcmap(int id, uint8_t cmap[256*3])
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	uint8_t cmapbuf[256*3];
-	int8_t *map, buf[12*12+1];
+	char *map, buf[12*12+1];
 	int fd, id;
 
 	if(argc>2){

@@ -310,7 +310,7 @@ gs_type1_endchar(gs_type1_state * pcis)
 	     * bad subsetting).  Just end drawing here without error. 
 	     * This is like Acrobat Reader behaves.
 	     */
-	    int8_t buf0[gs_font_name_max + 1], buf1[30];
+	    char buf0[gs_font_name_max + 1], buf1[30];
 	    int l0 = min(pcis->pfont->font_name.size, sizeof(buf0) - 1);
 	    int l1 = min(gstr.size, sizeof(buf1) - 1);
 

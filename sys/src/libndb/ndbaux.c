@@ -18,10 +18,10 @@
 /*
  *  parse a single tuple
  */
-int8_t*
-_ndbparsetuple(int8_t *cp, Ndbtuple **tp)
+char*
+_ndbparsetuple(char *cp, Ndbtuple **tp)
 {
-	int8_t *p;
+	char *p;
 	int len;
 	Ndbtuple *t;
 
@@ -76,7 +76,7 @@ _ndbparsetuple(int8_t *cp, Ndbtuple **tp)
  *  as a ring using ->line.
  */
 Ndbtuple*
-_ndbparseline(int8_t *cp)
+_ndbparseline(char *cp)
 {
 	Ndbtuple *t;
 	Ndbtuple *first, *last;

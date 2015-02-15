@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t *
+char *
 getuser(void)
 {
-	static int8_t user[64];
+	static char user[64];
 	int fd;
 	int n;
 

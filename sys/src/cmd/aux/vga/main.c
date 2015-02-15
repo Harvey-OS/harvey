@@ -18,8 +18,8 @@ Biobuf stdout;
 
 static int iflag, lflag, pflag, rflag;
 
-static int8_t *dbname = "/lib/vgadb";
-static int8_t monitordb[128];
+static char *dbname = "/lib/vgadb";
+static char monitordb[128];
 
 static void
 dump(Vga* vga)
@@ -76,7 +76,7 @@ sequencer(Vga* vga, int on)
 {
 	static uint8_t seq01;
 	static int state = 1;
-	int8_t *s;
+	char *s;
 
 	if(on)
 		s = "on";
@@ -104,8 +104,8 @@ sequencer(Vga* vga, int on)
 static void
 linear(Vga* vga)
 {
-	int8_t buf[256];
-	int8_t *p;
+	char buf[256];
+	char *p;
 
 	/*
 	 * Set up for linear addressing: try to allocate the

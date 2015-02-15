@@ -67,7 +67,7 @@
 #include <partime.h>
 #include <maketime.h>
 
-int8_t const maketId[] =
+char const maketId[] =
   "$Id: maketime.c,v 5.15 1997/06/17 16:54:36 eggert Exp $";
 
 static int isleap P ((int));
@@ -113,7 +113,7 @@ time2tm (unixtime, localzone)
 {
   struct tm *tm;
 #ifdef TZ_is_unset
-  static int8_t const *TZ;
+  static char const *TZ;
   if (!TZ && !(TZ = getenv ("TZ")))
     TZ_is_unset ("The TZ environment variable is not set; please set it to your timezone");
 #endif
@@ -367,7 +367,7 @@ maketime (pt, default_time)
 /* Parse a free-format date in SOURCE, yielding a Unix format time.  */
 time_t
 str2time (source, default_time, default_zone)
-     int8_t const *source;
+     char const *source;
      time_t default_time;
      int32_t default_zone;
 {
@@ -385,11 +385,11 @@ str2time (source, default_time, default_zone)
 int
 main (argc, argv)
      int argc;
-     int8_t **argv;
+     char **argv;
 {
   time_t default_time = time ((time_t *) 0);
   int32_t default_zone = argv[1] ? atol (argv[1]) : 0;
-  int8_t buf[1000];
+  char buf[1000];
   while (fgets (buf, sizeof (buf), stdin))
     {
       time_t t = str2time (buf, default_time, default_zone);

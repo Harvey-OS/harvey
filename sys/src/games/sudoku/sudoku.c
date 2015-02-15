@@ -16,8 +16,8 @@
 
 #include "sudoku.h"
 
-int8_t *imgdir = "/sys/games/lib/sudoku/images";
-int8_t *lvldir = "/sys/games/lib/sudoku/boards";	/* level library dir */
+char *imgdir = "/sys/games/lib/sudoku/images";
+char *lvldir = "/sys/games/lib/sudoku/boards";	/* level library dir */
 
 int selected;	/* which digit do we have selected? */
 
@@ -33,7 +33,7 @@ Dir *dir;
 int numlevels;
 int curlevel;
 
-int8_t *buttons[] = 
+char *buttons[] = 
 {
 	"new",
 	"check",
@@ -60,7 +60,7 @@ Menu lmenu =
 };
 
 int
-readlevels(int8_t *leveldir)
+readlevels(char *leveldir)
 {
 	int fd, n;
 
@@ -73,7 +73,7 @@ readlevels(int8_t *leveldir)
 	return n;	
 }
 
-int8_t *
+char *
 genlevels(int i)
 {
 	if(numlevels == 0)
@@ -113,7 +113,7 @@ eallocimage(Rectangle r, int repl, uint color)
 }
 
 Image *
-eloadfile(int8_t *path)
+eloadfile(char *path)
 {
 	Image *img;
 	int fd;
@@ -269,7 +269,7 @@ void
 eresized(int new)
 {
 	Point p;
-	int8_t path[256];
+	char path[256];
 	int i;
 
 	if(new && getwindow(display, Refnone) < 0)
@@ -302,7 +302,7 @@ eresized(int new)
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	Mouse m;
 	Event e;
@@ -360,7 +360,7 @@ main(int argc, int8_t *argv[])
 			}
 
 			if(m.buttons&2) {
-				int8_t *str;
+				char *str;
 				int l;
 				/* levels start from 1 */
 				lmenu.lasthit = curlevel;

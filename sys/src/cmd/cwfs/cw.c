@@ -71,8 +71,8 @@ struct	Cw
 	int	allflag;	/* global flag to recur on modified dirs */
 	Off	falsehits;	/* times recur found modified blocks */
 	struct {
-		int8_t	name[500];
-		int8_t	namepad[NAMELEN+10];
+		char	name[500];
+		char	namepad[NAMELEN+10];
 	};
 };
 
@@ -98,14 +98,14 @@ int oldcachefmt = 1;
 
 Centry*	getcentry(Bucket*, Off);
 int	cwio(Device*, Off, void*, int);
-void	cmd_cwcmd(int, int8_t*[]);
+void	cmd_cwcmd(int, char*[]);
 
 /*
  * console command
  * initiate a dump
  */
 void
-cmd_dump(int argc, int8_t *argv[])
+cmd_dump(int argc, char *argv[])
 {
 	Filsys *fs;
 
@@ -124,7 +124,7 @@ cmd_dump(int argc, int8_t *argv[])
  * worm stats
  */
 static void
-cmd_statw(int, int8_t*[])
+cmd_statw(int, char*[])
 {
 	Filsys *fs;
 	Iobuf *p;
@@ -763,7 +763,7 @@ bad:
 int
 cwgrow(Device *dev, Superb *sb, int uid)
 {
-	int8_t str[NAMELEN];
+	char str[NAMELEN];
 	Iobuf *cb;
 	Cache *h;
 	Filsys *filsys;
@@ -1316,7 +1316,7 @@ cwrecur(Cw *cw, Off addr, int tag, int tag1, int32_t qp)
 	Dentry *d;
 	int i, j, shouldstop;
 	Off na;
-	int8_t *np;
+	char *np;
 
 	shouldstop = 0;
 	p = getbuf(cw->dev, addr, Bprobe);
@@ -1456,7 +1456,7 @@ cfsdump(Filsys *fs)
 	int32_t m, n, i;
 	Off orba, rba, oroa, roa, sba, a;
 	Timet tim;
-	int8_t tstr[20];
+	char tstr[20];
 	Iobuf *pr, *p1, *p;
 	Dentry *dr, *d1, *d;
 	Cache *h;
@@ -2095,7 +2095,7 @@ cwtest(Device*)
 #endif
 
 int
-convstate(int8_t *name)
+convstate(char *name)
 {
 	int i;
 
@@ -2133,11 +2133,11 @@ searchtag(Device *d, Off a, int tag, int n)
 }
 
 void
-cmd_cwcmd(int argc, int8_t *argv[])
+cmd_cwcmd(int argc, char *argv[])
 {
 	Device *dev;
-	int8_t *arg;
-	int8_t str[28];
+	char *arg;
+	char str[28];
 	Off s1, s2, a, b, n;
 	Cw *cw;
 

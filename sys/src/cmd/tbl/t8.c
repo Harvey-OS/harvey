@@ -20,7 +20,7 @@ putline(int i, int nl)
 {
 	int	c, s, lf, ct, form, lwid, vspf, ip, cmidx, exvspen, vforml;
 	int	vct, chfont, uphalf;
-	int8_t	*ss, *size, *fn, *rct;
+	char	*ss, *size, *fn, *rct;
 
 	cmidx = watchout = vspf = exvspen = 0;
 	if (i == 0) 
@@ -275,7 +275,7 @@ putline(int i, int nl)
 
 
 void
-puttext(int8_t *s, int8_t *fn, int8_t *size)
+puttext(char *s, char *fn, char *size)
 {
 	if (point(s)) {
 		putfont(fn);
@@ -294,7 +294,7 @@ funnies(int stl, int lin)
 {
 					/* write out funny diverted things */
 	int	c, s, pl, lwid, dv, lf, ct;
-	int8_t	*fn, *ss;
+	char	*fn, *ss;
 
 	Bprint(&tabout, ".mk ##\n");	 /* rmember current vertical position */
 	Bprint(&tabout, ".nr %d \\n(##\n", S1);		 /* bottom position */
@@ -365,7 +365,7 @@ funnies(int stl, int lin)
 
 
 void
-putfont(int8_t *fn)
+putfont(char *fn)
 {
 	if (fn && *fn)
 		Bprint(&tabout,  fn[1] ? "\\f(%.2s" : "\\f%.2s",  fn);
@@ -373,7 +373,7 @@ putfont(int8_t *fn)
 
 
 void
-putsize(int8_t *s)
+putsize(char *s)
 {
 	if (s && *s)
 		Bprint(&tabout, "\\s%s", s);

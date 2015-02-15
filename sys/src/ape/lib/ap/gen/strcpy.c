@@ -13,7 +13,7 @@
 static void*
 pmemccpy(void *a1, void *a2, int c, size_t n)
 {
-	int8_t *s1, *s2;
+	char *s1, *s2;
 
 	s1 = a1;
 	s2 = a2;
@@ -25,10 +25,10 @@ pmemccpy(void *a1, void *a2, int c, size_t n)
 	return 0;
 }
 
-int8_t*
-strcpy(int8_t *s1, const int8_t *s2)
+char*
+strcpy(char *s1, const char *s2)
 {
-	int8_t *os1;
+	char *os1;
 
 	os1 = s1;
 	while(!pmemccpy(s1, s2, 0, N)) {

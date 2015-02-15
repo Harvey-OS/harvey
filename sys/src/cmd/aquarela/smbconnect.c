@@ -10,7 +10,7 @@
 #include "headers.h"
 
 SmbClient *
-smbconnect(int8_t *to, int8_t *share, int8_t **errmsgp)
+smbconnect(char *to, char *share, char **errmsgp)
 {
 	NbSession *nbs;
 	SmbBuffer *b;
@@ -28,7 +28,7 @@ smbconnect(int8_t *to, int8_t *share, int8_t **errmsgp)
 	MSchapreply mschapreply;
 	NbName nbto;
 	SmbClient *c;
-	int8_t namebuf[100];
+	char namebuf[100];
 	uint16_t ipctid, sharetid;
 
 	nbmknamefromstringandtype(nbto, to, 0x20);
@@ -260,7 +260,7 @@ smbclientfree(SmbClient *c)
 }
 
 int
-smbtransactionclientsend(void *magic, SmbBuffer *ob, int8_t **)
+smbtransactionclientsend(void *magic, SmbBuffer *ob, char **)
 {
 	SmbClient *c = magic;
 smblogprint(-1, "sending:\n");
@@ -269,7 +269,7 @@ smblogdata(-1, smblogprint, smbbufferreadpointer(ob), smbbufferwriteoffset(ob), 
 }
 
 int
-smbtransactionclientreceive(void *magic, SmbBuffer *ib, int8_t **)
+smbtransactionclientreceive(void *magic, SmbBuffer *ib, char **)
 {
 	int32_t n; 
 	SmbClient *c = magic;

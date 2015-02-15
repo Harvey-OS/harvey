@@ -69,7 +69,7 @@ struct Mmcaux {
 
 struct Intfeat {
 	int	numb;
-	int8_t	*name;
+	char	*name;
 };
 
 enum {
@@ -93,7 +93,7 @@ Intfeat intfeats[] = {
 };
 
 /* these will be printed as user ids, so no spaces please */
-static int8_t *dvdtype[] = {
+static char *dvdtype[] = {
 	"dvd-rom",
 	"dvd-ram",
 	"dvd-r",
@@ -515,7 +515,7 @@ mmcprobe(Scsi *scsi)
 	return drive;
 }
 
-static int8_t *tracktype[] = {	/* indices are track modes (Tm*) */
+static char *tracktype[] = {	/* indices are track modes (Tm*) */
 	"audio cdda",
 	"2 audio channels",
 	"2",
@@ -769,7 +769,7 @@ seterrrecov(Drive *drive)
 	return 0;
 }
 
-int8_t *
+char *
 featname(int feat)
 {
 	Intfeat *ifp;
@@ -833,7 +833,7 @@ notefeats(Drive *drive, uint8_t *p, uint32_t datalen)
 {
 	int left, len;
 	uint feat;
-	int8_t *ftnm;
+	char *ftnm;
 
 	if (vflag)
 		fprint(2, "features: ");
@@ -1225,7 +1225,7 @@ alltrackinfo(Drive *drive, int first, int last)
 	int i;
 	int32_t nwa;
 	int64_t cap;
-	int8_t *osfx;
+	char *osfx;
 	Mmcaux *aux;
 	Track *track;
 
@@ -1307,7 +1307,7 @@ findtracks(Drive *drive, int first, int last)
 static void
 finddisctype(Drive *drive, int first, int last)
 {
-	int8_t *ty;
+	char *ty;
 
 	/* deduce disc type */
 	drive->mmctype = Mmcnone;
@@ -2047,7 +2047,7 @@ mmcblank(Drive *drive, int quick)
 	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
 }
 
-static int8_t*
+static char*
 e(int status)
 {
 	if(status < 0)
@@ -2055,10 +2055,10 @@ e(int status)
 	return nil;
 }
 
-static int8_t*
-mmcctl(Drive *drive, int argc, int8_t **argv)
+static char*
+mmcctl(Drive *drive, int argc, char **argv)
 {
-	int8_t *cmd;
+	char *cmd;
 
 	if(argc < 1)
 		return nil;
@@ -2076,10 +2076,10 @@ mmcctl(Drive *drive, int argc, int8_t **argv)
 	return "bad arg";
 }
 
-static int8_t*
+static char*
 mmcsetspeed(Drive *drive, int r, int w)
 {
-	int8_t *rv;
+	char *rv;
 	uint8_t cmd[12];
 
 	initcdb(cmd, sizeof cmd, ScmdSetcdspeed);

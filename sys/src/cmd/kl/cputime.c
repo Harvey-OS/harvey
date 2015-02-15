@@ -29,9 +29,9 @@ seek(int f, int32_t o, int p)
 }
 
 int
-create(int8_t *n, int m, int32_t p)
+create(char *n, int m, int32_t p)
 {
-	int creat(int8_t*, int);
+	int creat(char*, int);
 
 	if(m != 1)
 		return -1;

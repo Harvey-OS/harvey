@@ -15,7 +15,7 @@ int
 waitpid(void)
 {
 	int n;
-	int8_t buf[512], *fld[5];
+	char buf[512], *fld[5];
 
 	n = await(buf, sizeof buf-1);
 	if(n <= 0)

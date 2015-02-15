@@ -94,7 +94,7 @@ enum
 };
 
 /* Must correspond to the enumeration above */
-int8_t *tcpstates[] =
+char *tcpstates[] =
 {
 	"Closed", 	"Listen", 	"Syn_sent", "Syn_received",
 	"Established", 	"Finwait1",	"Finwait2", "Close_wait",
@@ -373,7 +373,7 @@ int tcpporthogdefense = 0;
 
 static int addreseq(Tcpctl*, Tcppriv*, Tcp*, Block*, uint16_t);
 static void getreseq(Tcpctl*, Tcp*, Block**, uint16_t*);
-static void localclose(Conv*, int8_t*);
+static void localclose(Conv*, char*);
 static void procsyn(Conv*, Tcp*);
 static void tcpacktimer(void*);
 static void tcpiput(Proto*, Ipifc*, Block*);
@@ -431,10 +431,10 @@ tcpsetstate(Conv *s, uint8_t newstate)
 		Fsconnected(s, nil);
 }
 
-static int8_t*
-tcpconnect(Conv *c, int8_t **argv, int argc)
+static char*
+tcpconnect(Conv *c, char **argv, int argc)
 {
-	int8_t *e;
+	char *e;
 	Tcpctl *tcb;
 
 	tcb = (Tcpctl*)(c->ptcl);
@@ -450,7 +450,7 @@ tcpconnect(Conv *c, int8_t **argv, int argc)
 }
 
 static int
-tcpstate(Conv *c, int8_t *state, int n)
+tcpstate(Conv *c, char *state, int n)
 {
 	Tcpctl *tcb;
 
@@ -478,10 +478,10 @@ tcpinuse(Conv *c)
 	return tcb->state != Closed;
 }
 
-static int8_t*
-tcpannounce(Conv *c, int8_t **argv, int argc)
+static char*
+tcpannounce(Conv *c, char **argv, int argc)
 {
-	int8_t *e;
+	char *e;
 	Tcpctl *tcb;
 
 	tcb = (Tcpctl*)(c->ptcl);
@@ -781,7 +781,7 @@ backoff(int n)
 }
 
 static void
-localclose(Conv *s, int8_t *reason)	/* called with tcb locked */
+localclose(Conv *s, char *reason)	/* called with tcb locked */
 {
 	Tcpctl *tcb;
 	Reseq *rp,*rp1;
@@ -932,7 +932,7 @@ tcpstart(Conv *s, int mode)
 {
 	Tcpctl *tcb;
 	Tcppriv *tpriv;
-	int8_t kpname[KNAMELEN];
+	char kpname[KNAMELEN];
 
 	tpriv = s->p->priv;
 
@@ -968,10 +968,10 @@ tcpstart(Conv *s, int mode)
 	}
 }
 
-static int8_t*
+static char*
 tcpflag(uint16_t flag)
 {
-	static int8_t buf[128];
+	static char buf[128];
 
 	sprint(buf, "%d", flag>>10);	/* Head len */
 	if(flag & URG)
@@ -1297,7 +1297,7 @@ tcpsndsyn(Conv *s, Tcpctl *tcb)
 void
 sndrst(Proto *tcp, uint8_t *source, uint8_t *dest, uint16_t length,
        Tcp *seg,
-       uint8_t version, int8_t *reason)
+       uint8_t version, char *reason)
 {
 	Block *hbp;
 	uint8_t rflags;
@@ -1383,7 +1383,7 @@ sndrst(Proto *tcp, uint8_t *source, uint8_t *dest, uint16_t length,
  *  send a reset to the remote side and close the conversation
  *  called with s qlocked
  */
-static int8_t*
+static char*
 tcphangup(Conv *s)
 {
 	Tcp seg;
@@ -2759,8 +2759,8 @@ tcpkeepalive(void *v)
 /*
  *  start keepalive timer
  */
-static int8_t*
-tcpstartka(Conv *s, int8_t **f, int n)
+static char*
+tcpstartka(Conv *s, char **f, int n)
 {
 	Tcpctl *tcb;
 	int x;
@@ -2782,8 +2782,8 @@ tcpstartka(Conv *s, int8_t **f, int n)
 /*
  *  turn checksums on/off
  */
-static int8_t*
-tcpsetchecksum(Conv *s, int8_t **f, int)
+static char*
+tcpsetchecksum(Conv *s, char **f, int)
 {
 	Tcpctl *tcb;
 
@@ -3060,7 +3060,7 @@ tcptrim(Tcpctl *tcb, Tcp *seg, Block **bp, uint16_t *length)
 }
 
 static void
-tcpadvise(Proto *tcp, Block *bp, int8_t *msg)
+tcpadvise(Proto *tcp, Block *bp, char *msg)
 {
 	Tcp4hdr *h4;
 	Tcp6hdr *h6;
@@ -3112,8 +3112,8 @@ tcpadvise(Proto *tcp, Block *bp, int8_t *msg)
 	freeblist(bp);
 }
 
-static int8_t*
-tcpporthogdefensectl(int8_t *val)
+static char*
+tcpporthogdefensectl(char *val)
 {
 	if(strcmp(val, "on") == 0)
 		tcpporthogdefense = 1;
@@ -3125,8 +3125,8 @@ tcpporthogdefensectl(int8_t *val)
 }
 
 /* called with c qlocked */
-static int8_t*
-tcpctl(Conv* c, int8_t** f, int n)
+static char*
+tcpctl(Conv* c, char** f, int n)
 {
 	if(n == 1 && strcmp(f[0], "hangup") == 0)
 		return tcphangup(c);
@@ -3140,10 +3140,10 @@ tcpctl(Conv* c, int8_t** f, int n)
 }
 
 static int
-tcpstats(Proto *tcp, int8_t *buf, int len)
+tcpstats(Proto *tcp, char *buf, int len)
 {
 	Tcppriv *priv;
-	int8_t *p, *e;
+	char *p, *e;
 	int i;
 
 	priv = tcp->priv;

@@ -32,7 +32,7 @@ mkdirec(Direc *direc, XDir *d)
 }
 
 static int
-strecmp(int8_t *a, int8_t *ea, int8_t *b)
+strecmp(char *a, char *ea, char *b)
 {
 	int r;
 
@@ -51,7 +51,7 @@ strecmp(int8_t *a, int8_t *ea, int8_t *b)
  * where a new such entry would go.
  */
 static Direc*
-dbsearch(int8_t *name, int nname, Direc *d, int n)
+dbsearch(char *name, int nname, Direc *d, int n)
 {
 	int i;
 
@@ -72,9 +72,9 @@ dbsearch(int8_t *name, int nname, Direc *d, int n)
  * Walk to name, starting at d.
  */
 Direc*
-walkdirec(Direc *d, int8_t *name)
+walkdirec(Direc *d, char *name)
 {
-	int8_t *p, *nextp, *slashp;
+	char *p, *nextp, *slashp;
 	Direc *nd;
 
 	for(p=name; p && *p; p=nextp) {
@@ -99,9 +99,9 @@ walkdirec(Direc *d, int8_t *name)
  * The child lists are kept sorted by utfname.
  */	
 Direc*
-adddirec(Direc *root, int8_t *name, XDir *d)
+adddirec(Direc *root, char *name, XDir *d)
 {
-	int8_t *p;
+	char *p;
 	Direc *nd;
 	int off;
 
@@ -166,7 +166,7 @@ copydirec(Direc *dst, Direc *src)
  * that have non-conforming names.
  */
 static void
-_checknames(Direc *d, int (*isbadname)(int8_t*), int isroot)
+_checknames(Direc *d, int (*isbadname)(char*), int isroot)
 {
 	int i;
 
@@ -181,7 +181,7 @@ _checknames(Direc *d, int (*isbadname)(int8_t*), int isroot)
 }
 
 void
-checknames(Direc *d, int (*isbadname)(int8_t*))
+checknames(Direc *d, int (*isbadname)(char*))
 {
 	_checknames(d, isbadname, 1);
 }
@@ -197,10 +197,10 @@ checknames(Direc *d, int (*isbadname)(int8_t*))
  * interoperability with other systems now.
  */
 void
-convertnames(Direc *d, int8_t* (*cvt)(int8_t*, int8_t*))
+convertnames(Direc *d, char* (*cvt)(char*, char*))
 {
 	int i;
-	int8_t new[1024];
+	char new[1024];
 
 	if(d->flags & Dbadname)
 		cvt(new, conform(d->name, d->mode & DMDIR));

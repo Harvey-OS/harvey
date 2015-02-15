@@ -20,7 +20,7 @@
 #define	ODIRLEN	116	/* compatibility; used in _stat etc. */
 #define	OERRLEN	64	/* compatibility; used in _stat etc. */
 
-int8_t 	errbuf[ERRMAX];
+char 	errbuf[ERRMAX];
 uint32_t	nofunc;
 
 #include "/sys/src/libc/9syscall/sys.h"
@@ -118,7 +118,7 @@ sysfd2path(void)
 	int n;
 	uint fd;
 	uint32_t str;
-	int8_t buf[1024];
+	char buf[1024];
 
 	fd = getmem_w(reg.r[REGSP]+4);
 	str = getmem_w(reg.r[REGSP]+8);
@@ -143,7 +143,7 @@ void
 sysbind(void)
 {
 	uint32_t pname, pold, flags;
-	int8_t name[1024], old[1024];
+	char name[1024], old[1024];
 	int n;
 
 	pname = getmem_w(reg.r[REGSP]+4);
@@ -164,7 +164,7 @@ sysbind(void)
 void
 syschdir(void)
 { 
-	int8_t file[1024];
+	char file[1024];
 	int n;
 	uint32_t name;
 
@@ -216,7 +216,7 @@ sysdup(void)
 void
 sysexits(void)
 {
-	int8_t buf[OERRLEN];
+	char buf[OERRLEN];
 	uint32_t str;
 
 	str = getmem_w(reg.r[REGSP]+4);
@@ -235,7 +235,7 @@ sysexits(void)
 void
 sysopen(void)
 {
-	int8_t file[1024];
+	char file[1024];
 	int n;
 	uint32_t mode, name;
 
@@ -257,7 +257,7 @@ sysread(int64_t offset)
 {
 	int fd;
 	uint32_t size, a;
-	int8_t *buf, *p;
+	char *buf, *p;
 	int n, cnt, c;
 
 	fd = getmem_w(reg.r[REGSP]+4);
@@ -338,7 +338,7 @@ sysseek(void)
 	if(o.v < 0)
 		errstr(errbuf, sizeof errbuf);	
 
-	memio((int8_t*)o.u, retp, sizeof(int64_t), MemWrite);
+	memio((char*)o.u, retp, sizeof(int64_t), MemWrite);
 }
 
 void
@@ -395,10 +395,10 @@ syssleep(void)
 void
 sys_stat(void)
 {
-	int8_t nambuf[1024];
-	int8_t buf[ODIRLEN];
+	char nambuf[1024];
+	char buf[ODIRLEN];
 	uint32_t edir, name;
-	extern int _stat(int8_t*, int8_t*);	/* old system call */
+	extern int _stat(char*, char*);	/* old system call */
 	int n;
 
 	name = getmem_w(reg.r[REGSP]+4);
@@ -419,7 +419,7 @@ sys_stat(void)
 void
 sysstat(void)
 {
-	int8_t nambuf[1024];
+	char nambuf[1024];
 	uint8_t buf[STATMAX];
 	uint32_t edir, name;
 	int n;
@@ -437,7 +437,7 @@ sysstat(void)
 		if(n < 0)
 			errstr(errbuf, sizeof errbuf);
 		else
-			memio((int8_t*)buf, edir, n, MemWrite);
+			memio((char*)buf, edir, n, MemWrite);
 	}
 	reg.r[REGRET] = n;
 }
@@ -445,9 +445,9 @@ sysstat(void)
 void
 sys_fstat(void)
 {
-	int8_t buf[ODIRLEN];
+	char buf[ODIRLEN];
 	uint32_t edir;
-	extern int _fstat(int, int8_t*);	/* old system call */
+	extern int _fstat(int, char*);	/* old system call */
 	int n, fd;
 
 	fd = getmem_w(reg.r[REGSP]+4);
@@ -486,7 +486,7 @@ sysfstat(void)
 	if(n < 0)
 		errstr(errbuf, sizeof errbuf);
 	else
-		memio((int8_t*)buf, edir, n, MemWrite);
+		memio((char*)buf, edir, n, MemWrite);
 	reg.r[REGRET] = n;
 }
 
@@ -495,7 +495,7 @@ syswrite(int64_t offset)
 {
 	int fd;
 	uint32_t size, a;
-	int8_t *buf;
+	char *buf;
 	int n;
 
 	fd = getmem_w(reg.r[REGSP]+4);
@@ -556,7 +556,7 @@ syspipe(void)
 void
 syscreate(void)
 {
-	int8_t file[1024];
+	char file[1024];
 	int n;
 	uint32_t mode, name, perm;
 
@@ -608,7 +608,7 @@ sysbrk_(void)
 void
 sysremove(void)
 {
-	int8_t nambuf[1024];
+	char nambuf[1024];
 	uint32_t name;
 	int n;
 

@@ -22,7 +22,7 @@ Node	*beginloc = 0;
 Node	*endloc = 0;
 int	infunc	= 0;	/* = 1 if in arglist or body of func */
 int	inloop	= 0;	/* = 1 if in while, for, do */
-int8_t	*curfname = 0;	/* current function name */
+char	*curfname = 0;	/* current function name */
 Node	*arglist = 0;	/* list of args for current function */
 
 #line	43	"/sys/src/cmd/awk/awkgram.y"
@@ -30,7 +30,7 @@ typedef union  {
 	Node	*p;
 	Cell	*cp;
 	int	i;
-	int8_t	*s;
+	char	*s;
 } YYSTYPE;
 extern	int	yyerrflag;
 #ifndef	YYMAXDEPTH
@@ -150,7 +150,7 @@ int constnode(Node *p)
 	return isvalue(p) && ((Cell *) (p->narg[0]))->csub == CCON;
 }
 
-int8_t *strnode(Node *p)
+char *strnode(Node *p)
 {
 	return ((Cell *)(p->narg[0]))->sval;
 }
@@ -168,7 +168,7 @@ Node *notnull(Node *n)
 
 void checkdup(Node *vl, Cell *cp)	/* check if name already in list */
 {
-	int8_t *s = cp->nval;
+	char *s = cp->nval;
 	for ( ; vl; vl = vl->nnext) {
 		if (strcmp(s, ((Cell *)(vl->narg[0]))->nval) == 0) {
 			SYNTAX("duplicate argument %s", s);
@@ -941,8 +941,8 @@ int32_t	yytok3[] =
 #include	"y.debug"
 #else
 #define	yydebug		0
-int8_t*	yytoknames[1];		/* for debugging */
-int8_t*	yystates[1];		/* for debugging */
+char*	yytoknames[1];		/* for debugging */
+char*	yystates[1];		/* for debugging */
 #endif
 
 /*	parser for yacc output	*/
@@ -950,10 +950,10 @@ int8_t*	yystates[1];		/* for debugging */
 int	yynerrs = 0;		/* number of errors */
 int	yyerrflag = 0;		/* error recovery flag */
 
-int8_t*
+char*
 yytokname(int yyc)
 {
-	static int8_t x[16];
+	static char x[16];
 
 	if(yyc > 0 && yyc <= sizeof(yytoknames)/sizeof(yytoknames[0]))
 	if(yytoknames[yyc-1])
@@ -962,10 +962,10 @@ yytokname(int yyc)
 	return x;
 }
 
-int8_t*
+char*
 yystatname(int yys)
 {
-	static int8_t x[16];
+	static char x[16];
 
 	if(yys >= 0 && yys < sizeof(yystates)/sizeof(yystates[0]))
 	if(yystates[yys])

@@ -46,7 +46,7 @@
 
 
 typedef struct fontenum_s {
-	int8_t *fontname, *path;
+	char *fontname, *path;
 	struct fontenum_s *next;
 } fontenum_t;
 
@@ -58,7 +58,7 @@ z_fontenum(i_ctx_t *i_ctx_p)
     void *enum_state;
     int code = 0;
     int e,elements;
-    int8_t *fontname, *path;
+    char *fontname, *path;
     fontenum_t *r, *results;
     ref array;
     uint length;

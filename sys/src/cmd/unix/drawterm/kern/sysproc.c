@@ -16,11 +16,11 @@
 int32_t
 sysexits(uint32_t *arg)
 {
-	int8_t *status;
-	int8_t *inval = "invalid exit string";
-	int8_t buf[ERRMAX];
+	char *status;
+	char *inval = "invalid exit string";
+	char buf[ERRMAX];
 
-	status = (int8_t*)arg[0];
+	status = (char*)arg[0];
 	if(status){
 		if(waserror())
 			status = inval;

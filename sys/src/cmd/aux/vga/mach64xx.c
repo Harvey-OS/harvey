@@ -85,7 +85,7 @@ enum {
 	Nlcd,
 };
 
-static int8_t* iorname[Nreg] = {
+static char* iorname[Nreg] = {
 	"HTotalDisp",
 	"HSyncStrtWid",
 	"VTotalDisp",
@@ -136,7 +136,7 @@ static int8_t* iorname[Nreg] = {
 	"LcdData",	
 };
 
-static int8_t* lcdname[Nlcd] = {
+static char* lcdname[Nlcd] = {
 	"LCD ConfigPanel",
 	"LCD GenCntl",
 	"LCD DstnCntl",
@@ -1296,7 +1296,7 @@ dumpmach64bios(Mach64xx *mp)
 
 	/* find magic string */
 	for(i=0; i<1024; i++)
-		if(strncmp((int8_t*)bios+i, " 761295520", 10) == 0)
+		if(strncmp((char*)bios+i, " 761295520", 10) == 0)
 			break;
 
 	if(i==1024) {

@@ -21,8 +21,8 @@
 #include "fns.h"
 #include <ctype.h>
 
-int8_t	Ebadwr[]		= "bad rectangle in wctl request";
-int8_t	Ewalloc[]		= "window allocation failed in wctl request";
+char	Ebadwr[]		= "bad rectangle in wctl request";
+char	Ewalloc[]		= "window allocation failed in wctl request";
 
 /* >= Top are disallowed if mouse button is pressed */
 enum
@@ -41,7 +41,7 @@ enum
 	Delete,
 };
 
-static int8_t *cmds[] = {
+static char *cmds[] = {
 	[New]	= "new",
 	[Resize]	= "resize",
 	[Move]	= "move",
@@ -74,7 +74,7 @@ enum
 	Noscrolling,
 };
 
-static int8_t *params[] = {
+static char *params[] = {
 	[Cd]	 			= "-cd",
 	[Deltax]			= "-dx",
 	[Deltay]			= "-dy",
@@ -114,9 +114,9 @@ goodrect(Rectangle r)
 
 static
 int
-word(int8_t **sp, int8_t *tab[])
+word(char **sp, char *tab[])
 {
-	int8_t *s, *t;
+	char *s, *t;
 	int i;
 
 	s = *sp;
@@ -182,7 +182,7 @@ rectonscreen(Rectangle r)
 
 /* permit square brackets, in the manner of %R */
 int
-riostrtol(int8_t *s, int8_t **t)
+riostrtol(char *s, char **t)
 {
 	int n;
 
@@ -199,12 +199,12 @@ riostrtol(int8_t *s, int8_t **t)
 
 
 int
-parsewctl(int8_t **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
-	  int *hiddenp, int *scrollingp, int8_t **cdp, int8_t *s,
-	  int8_t *err)
+parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
+	  int *hiddenp, int *scrollingp, char **cdp, char *s,
+	  char *err)
 {
 	int cmd, param, xy, sign;
-	int8_t *t;
+	char *t;
 
 	*pidp = 0;
 	*hiddenp = 0;
@@ -319,17 +319,17 @@ parsewctl(int8_t **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
 }
 
 int
-wctlnew(Rectangle rect, int8_t *arg, int pid, int hideit, int scrollit,
-	int8_t *dir, int8_t *err)
+wctlnew(Rectangle rect, char *arg, int pid, int hideit, int scrollit,
+	char *dir, char *err)
 {
-	int8_t **argv;
+	char **argv;
 	Image *i;
 
 	if(!goodrect(rect)){
 		strcpy(err, Ebadwr);
 		return -1;
 	}
-	argv = emalloc(4*sizeof(int8_t*));
+	argv = emalloc(4*sizeof(char*));
 	argv[0] = "rc";
 	argv[1] = "-c";
 	while(isspace(*arg))
@@ -358,11 +358,11 @@ wctlnew(Rectangle rect, int8_t *arg, int pid, int hideit, int scrollit,
 }
 
 int
-writewctl(Xfid *x, int8_t *err)
+writewctl(Xfid *x, char *err)
 {
 	int cnt, cmd, j, id, hideit, scrollit, pid;
 	Image *i;
-	int8_t *arg, *dir;
+	char *arg, *dir;
 	Rectangle rect;
 	Window *w;
 
@@ -476,10 +476,10 @@ writewctl(Xfid *x, int8_t *err)
 void
 wctlthread(void *v)
 {
-	int8_t *buf, *arg, *dir;
+	char *buf, *arg, *dir;
 	int cmd, id, pid, hideit, scrollit;
 	Rectangle rect;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	Channel *c;
 
 	c = v;
@@ -501,7 +501,7 @@ wctlthread(void *v)
 void
 wctlproc(void *v)
 {
-	int8_t *buf;
+	char *buf;
 	int n, eofs;
 	Channel *c;
 

@@ -72,8 +72,8 @@
 HWND hwndtext;	/* used as identifier for the dll instance */
 
 
-int8_t *
-mygetenv(const int8_t * env)
+char *
+mygetenv(const char * env)
 {
 	return (NULL);	
 }
@@ -81,8 +81,8 @@ mygetenv(const int8_t * env)
 void
 gp_init (void)
 {
-	extern int8_t    *gs_lib_default_path;
-	extern int8_t    *gs_init_file;
+	extern char    *gs_lib_default_path;
+	extern char    *gs_init_file;
 	
 #if 0
 	/*...Initialize Ghostscript's default library paths and initialization file...*/
@@ -173,7 +173,7 @@ void
 gp_get_usertime(int32_t *pdt)
 {
     gp_get_realtime(pdt);	/* Use an approximation on other hosts.  */
-	pdt[0] -= (int8_t)rand(); // was needed, if used for random generator seed (g3 is too fast)
+	pdt[0] -= (char)rand(); // was needed, if used for random generator seed (g3 is too fast)
 }
 
 
@@ -182,7 +182,7 @@ gp_get_usertime(int32_t *pdt)
  * If no string is available, return NULL.  The caller may assume
  * the string is allocated statically and permanently.
  */
-const int8_t *	gp_strerror(int)
+const char *	gp_strerror(int)
 {
 	return NULL;
 }
@@ -348,13 +348,13 @@ gp_init_console(void)
 /* Write a string to the console. */
 
 void
-gp_console_puts (const int8_t *str, uint size)
+gp_console_puts (const char *str, uint size)
 {
 /*	fwrite (str, 1, size, stdout);*/
 	return;
 }
 
-const int8_t *
+const char *
 gp_getenv_display(void)
 {
 	return NULL;

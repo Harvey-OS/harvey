@@ -13,11 +13,11 @@
 
 /* Connect us to new window, if possible */
 int
-newwindow(int8_t *str)
+newwindow(char *str)
 {
 	int fd;
-	int8_t *wsys;
-	int8_t buf[256];
+	char *wsys;
+	char buf[256];
 
 	wsys = getenv("wsys");
 	if(wsys == nil)

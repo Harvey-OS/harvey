@@ -14,9 +14,9 @@
 #define LONG_MIN	-2147483648L
 
 int32_t
-strtol(int8_t *nptr, int8_t **endptr, int base)
+strtol(char *nptr, char **endptr, int base)
 {
-	int8_t *p;
+	char *p;
 	int32_t n, nn, m;
 	int c, ovfl, v, neg, ndig;
 

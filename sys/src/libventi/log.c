@@ -11,12 +11,12 @@
 #include <libc.h>
 #include <venti.h>
 
-int8_t *VtServerLog = "libventi/server";
+char *VtServerLog = "libventi/server";
 
 int ventilogging;
 #define log	not_the_log_library_call
 
-static int8_t Eremoved[] = "[removed]";
+static char Eremoved[] = "[removed]";
 
 enum
 {	/* defaults */
@@ -30,7 +30,7 @@ static struct {
 } vl;
 
 static uint
-hash(int8_t *s)
+hash(char *s)
 {
 	uint h;
 	uint8_t *p;
@@ -41,12 +41,12 @@ hash(int8_t *s)
 	return h;
 }
 
-int8_t**
+char**
 vtlognames(int *pn)
 {
 	int i, nname, size;
 	VtLog *l;
-	int8_t **s, *a, *e;
+	char **s, *a, *e;
 	
 	qlock(&vl.lk);
 	size = 0;
@@ -57,9 +57,9 @@ vtlognames(int *pn)
 		size += strlen(l->name)+1;
 	}
 	
-	s = vtmalloc(nname*sizeof(int8_t*)+size);
-	a = (int8_t*)(s+nname);
-	e = (int8_t*)s+nname*sizeof(int8_t*)+size;
+	s = vtmalloc(nname*sizeof(char*)+size);
+	a = (char*)(s+nname);
+	e = (char*)s+nname*sizeof(char*)+size;
 
 	nname = 0;
 	for(i=0; i<nelem(vl.hash); i++)
@@ -76,11 +76,11 @@ vtlognames(int *pn)
 }
 
 VtLog*
-vtlogopen(int8_t *name, uint size)
+vtlogopen(char *name, uint size)
 {
 	uint h;
 	int i, nc;
-	int8_t *p;
+	char *p;
 	VtLog *l, *last;
 
 	if(!ventilogging)
@@ -113,7 +113,7 @@ vtlogopen(int8_t *name, uint size)
 	l->chunk = (VtLogChunk*)(l+1);
 	l->nchunk = nc;
 	l->w = l->chunk;
-	p = (int8_t*)(l->chunk+nc);
+	p = (char*)(l->chunk+nc);
 	for(i=0; i<nc; i++){
 		l->chunk[i].p = p;
 		l->chunk[i].wp = p;
@@ -150,7 +150,7 @@ vtlogclose(VtLog *l)
 }
 
 void
-vtlogremove(int8_t *name)
+vtlogremove(char *name)
 {
 	uint h;
 	VtLog *last, *l;
@@ -186,10 +186,10 @@ timefmt(Fmt *fmt)
 }
 
 void
-vtlogvprint(VtLog *l, int8_t *fmt, va_list arg)
+vtlogvprint(VtLog *l, char *fmt, va_list arg)
 {
 	int n;
-	int8_t *p;
+	char *p;
 	VtLogChunk *c;
 	static int first = 1;
 
@@ -219,7 +219,7 @@ vtlogvprint(VtLog *l, int8_t *fmt, va_list arg)
 }
 
 void
-vtlogprint(VtLog *l, int8_t *fmt, ...)
+vtlogprint(VtLog *l, char *fmt, ...)
 {
 	va_list arg;
 	
@@ -232,7 +232,7 @@ vtlogprint(VtLog *l, int8_t *fmt, ...)
 }
 
 void
-vtlog(int8_t *name, int8_t *fmt, ...)
+vtlog(char *name, char *fmt, ...)
 {
 	VtLog *l;
 	va_list arg;

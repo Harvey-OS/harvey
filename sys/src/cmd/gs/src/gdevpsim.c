@@ -53,7 +53,7 @@
 /* Write the file (if necessary) and page headers. */
 private void
 ps_image_write_headers(FILE *f, gx_device_printer *pdev,
-		       const int8_t *const setup[],
+		       const char *const setup[],
 		       gx_device_pswrite_common_t *pdpc)
 {
     if (gdev_prn_file_is_new(pdev)) {

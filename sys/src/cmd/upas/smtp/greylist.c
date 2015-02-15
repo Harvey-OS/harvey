@@ -42,7 +42,7 @@ typedef struct {
 	int32_t	mtime;		/* mod time, iff it already existed */
 } Greysts;
 
-static int8_t whitelist[] = "/mail/grey/whitelist";
+static char whitelist[] = "/mail/grey/whitelist";
 
 /*
  * matches ip addresses or subnets in whitelist against nci->rsys.
@@ -52,8 +52,8 @@ static int
 onwhitelist(void)
 {
 	int lnlen;
-	int8_t *line, *parse, *p;
-	int8_t input[128];
+	char *line, *parse, *p;
+	char input[128];
 	uint8_t *mask;
 	uint8_t mask4[IPaddrlen], addr4[IPaddrlen];
 	uint8_t rmask[IPaddrlen], addr[IPaddrlen];
@@ -105,17 +105,17 @@ onwhitelist(void)
 	return line != nil;
 }
 
-static int mkdirs(int8_t *);
+static int mkdirs(char *);
 
 /*
  * if any directories leading up to path don't exist, create them.
  * modifies but restores path.
  */
 static int
-mkpdirs(int8_t *path)
+mkpdirs(char *path)
 {
 	int rv = 0;
-	int8_t *sl = strrchr(path, '/');
+	char *sl = strrchr(path, '/');
 
 	if (sl != nil) {
 		*sl = '\0';
@@ -130,7 +130,7 @@ mkpdirs(int8_t *path)
  * modifies but restores path.
  */
 static int
-mkdirs(int8_t *path)
+mkdirs(char *path)
 {
 	int fd;
 
@@ -154,7 +154,7 @@ mkdirs(int8_t *path)
 }
 
 static int32_t
-getmtime(int8_t *file)
+getmtime(char *file)
 {
 	int fd;
 	int32_t mtime = -1;
@@ -191,7 +191,7 @@ getmtime(int8_t *file)
 }
 
 static void
-tryaddgrey(int8_t *file, Greysts *gsp)
+tryaddgrey(char *file, Greysts *gsp)
 {
 	int fd = create(file, OWRITE|OEXCL, 0666);
 
@@ -216,7 +216,7 @@ tryaddgrey(int8_t *file, Greysts *gsp)
 }
 
 static void
-addgreylist(int8_t *file, Greysts *gsp)
+addgreylist(char *file, Greysts *gsp)
 {
 	tryaddgrey(file, gsp);
 	if (!gsp->created && !gsp->existed && !gsp->noperm)
@@ -249,10 +249,10 @@ recentcall(Greysts *gsp)
  */
 
 static int
-isrcptrecent(int8_t *rcpt)
+isrcptrecent(char *rcpt)
 {
-	int8_t *user;
-	int8_t file[256];
+	char *user;
+	char file[256];
 	Greysts gs;
 	Greysts *gsp = &gs;
 
@@ -290,7 +290,7 @@ isrcptrecent(int8_t *rcpt)
 void
 vfysenderhostok(void)
 {
-	int8_t *fqdn;
+	char *fqdn;
 	int recent = 0;
 	Link *l;
 

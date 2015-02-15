@@ -66,7 +66,7 @@ void
 xpop(void)	/* for when no value is wanted */
 {
 	if (stackp == stack)
-		execerror("stack underflow", (int8_t *)0);
+		execerror("stack underflow", (char *)0);
 	--stackp;
 }
 
@@ -304,7 +304,7 @@ div(void)
 	Datum d1, d2;
 	d2 = pop();
 	if (d2.val == 0.0)
-		execerror("division by zero", (int8_t *)0);
+		execerror("division by zero", (char *)0);
 	d1 = pop();
 	d1.val /= d2.val;
 	push(d1);
@@ -316,7 +316,7 @@ mod(void)
 	Datum d1, d2;
 	d2 = pop();
 	if (d2.val == 0.0)
-		execerror("division by zero", (int8_t *)0);
+		execerror("division by zero", (char *)0);
 	d1 = pop();
 	/* d1.val %= d2.val; */
 	d1.val = fmod(d1.val, d2.val);
@@ -607,7 +607,7 @@ prexpr(void)	/* print numeric value */
 void
 prstr(void)		/* print string value */ 
 {
-	print("%s", (int8_t *) *pc++);
+	print("%s", (char *) *pc++);
 }
 
 void
@@ -647,7 +647,7 @@ code(Inst f)	/* install one instruction or operand */
 {
 	Inst *oprogp = progp;
 	if (progp >= &prog[NPROG])
-		execerror("program too big", (int8_t *)0);
+		execerror("program too big", (char *)0);
 	*progp++ = f;
 	return oprogp;
 }

@@ -18,7 +18,7 @@ void
 _dirtostat(struct stat *s, Dir *d, Fdinfo *fi)
 {
 	int num;
-	int8_t *nam;
+	char *nam;
 
 	s->st_dev = (d->type<<8)|(d->dev&0xFF);
 	s->st_ino = d->qid.path;

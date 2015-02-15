@@ -24,8 +24,8 @@
 
 #include "priv.h"
 
-static int8_t pbotch[] = "rcmd: protocol botch\n";
-static int8_t lbotch[] = "rcmd: botch starting error stream\n";
+static char pbotch[] = "rcmd: protocol botch\n";
+static char lbotch[] = "rcmd: botch starting error stream\n";
 
 static void
 ding(int)
@@ -33,15 +33,15 @@ ding(int)
 }
 
 int
-rcmd(int8_t **dst, int port, int8_t *luser, int8_t *ruser, int8_t *cmd,
+rcmd(char **dst, int port, char *luser, char *ruser, char *cmd,
      int *fd2p)
 {
-	int8_t c;
+	char c;
 	int i, fd, lfd, fd2, port2;
 	struct hostent *h;
 	Rock *r;
 	struct sockaddr_in in;
-	int8_t buf[128];
+	char buf[128];
 	void	(*x)(int);
 
 	h = gethostbyname(*dst);

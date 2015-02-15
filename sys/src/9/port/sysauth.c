@@ -16,8 +16,8 @@
 
 #include	<authsrv.h>
 
-int8_t	*eve;
-int8_t	hostdomain[DOMLEN];
+char	*eve;
+char	hostdomain[DOMLEN];
 
 /*
  *  return true if current user is eve
@@ -32,7 +32,7 @@ void
 sysfversion(Ar0* ar0, va_list list)
 {
 	Chan *c;
-	int8_t *version;
+	char *version;
 	int fd;
 	uint32_t msize;
 	usize nversion;
@@ -44,7 +44,7 @@ sysfversion(Ar0* ar0, va_list list)
 	 */
 	fd = va_arg(list, int);
 	msize = va_arg(list, uint32_t);
-	version = va_arg(list, int8_t*);
+	version = va_arg(list, char*);
 	nversion = va_arg(list, usize);
 	version = validaddr(version, nversion, 1);
 	/* check there's a NUL in the version string */
@@ -67,7 +67,7 @@ void
 sys_fsession(Ar0* ar0, va_list list)
 {
 	int fd;
-	int8_t *trbuf;
+	char *trbuf;
 
 	/*
 	 * int fsession(int fd, char trbuf[TICKREQLEN]);
@@ -75,7 +75,7 @@ sys_fsession(Ar0* ar0, va_list list)
 	 * Deprecated; backwards compatibility only.
 	 */
 	fd = va_arg(list, int);
-	trbuf = va_arg(list, int8_t*);
+	trbuf = va_arg(list, char*);
 
 	USED(fd);
 	trbuf = validaddr(trbuf, 1, 1);
@@ -88,14 +88,14 @@ void
 sysfauth(Ar0* ar0, va_list list)
 {
 	Chan *c, *ac;
-	int8_t *aname;
+	char *aname;
 	int fd;
 
 	/*
 	 * int fauth(int fd, char *aname);
 	 */
 	fd = va_arg(list, int);
-	aname = va_arg(list, int8_t*);
+	aname = va_arg(list, char*);
 
 	aname = validaddr(aname, 1, 0);
 	aname = validnamedup(aname, 1);
@@ -138,7 +138,7 @@ sysfauth(Ar0* ar0, va_list list)
  *  anyone can become none
  */
 int32_t
-userwrite(int8_t* a, int32_t n)
+userwrite(char* a, int32_t n)
 {
 	if(n != 4 || strncmp(a, "none", 4) != 0)
 		error(Eperm);
@@ -154,9 +154,9 @@ userwrite(int8_t* a, int32_t n)
  *  writing hostowner also sets user
  */
 int32_t
-hostownerwrite(int8_t* a, int32_t n)
+hostownerwrite(char* a, int32_t n)
 {
-	int8_t buf[128];
+	char buf[128];
 
 	if(!iseve())
 		error(Eperm);
@@ -174,9 +174,9 @@ hostownerwrite(int8_t* a, int32_t n)
 }
 
 int32_t
-hostdomainwrite(int8_t* a, int32_t n)
+hostdomainwrite(char* a, int32_t n)
 {
-	int8_t buf[DOMLEN];
+	char buf[DOMLEN];
 
 	if(!iseve())
 		error(Eperm);

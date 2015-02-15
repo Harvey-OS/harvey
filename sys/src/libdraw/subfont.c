@@ -12,7 +12,7 @@
 #include <draw.h>
 
 Subfont*
-allocsubfont(int8_t *name, int n, int height, int ascent, Fontchar *info,
+allocsubfont(char *name, int n, int height, int ascent, Fontchar *info,
 	     Image *i)
 {
 	Subfont *f;

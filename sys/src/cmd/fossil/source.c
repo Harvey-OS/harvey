@@ -28,7 +28,7 @@ sourceAlloc(Fs *fs, Block *b, Source *p, uint32_t offset, int mode,
 {
 	int epb;
 	uint32_t epoch;
-	int8_t *pname = nil;
+	char *pname = nil;
 	Source *r;
 	Entry e;
 
@@ -1071,7 +1071,7 @@ tagGen(void)
 	return tag;
 }
 
-int8_t *
+char *
 sourceName(Source *s)
 {
 	return fileName(s->file);

@@ -458,7 +458,7 @@ static void
 setpalettedepth(int depth)
 {
 	int	fd;
-	int8_t *cmd = strdup("palettedepth X");
+	char *cmd = strdup("palettedepth X");
 
 	if ((depth != 8) && (depth != 6) && (depth != 16))
 		error("mga: invalid palette depth %d\n", depth);

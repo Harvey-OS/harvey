@@ -26,14 +26,14 @@ int linesperpage = 66;
 int pointsize = 10;
 double xoffset = .25;
 double yoffset = .25;
-int8_t *passthrough = 0;
+char *passthrough = 0;
 
 Biobuf binp, *bstdout, bstderr;
 Biobufhdr *Bstdin, *Bstdout, *Bstderr;
 int debug = 0;
 
-int8_t tmpfilename[MAXTOKENSIZE];
-int8_t copybuf[BUFSIZ];
+char tmpfilename[MAXTOKENSIZE];
+char copybuf[BUFSIZ];
 
 struct charent **build_char_list = 0;
 int build_char_cnt = 0;
@@ -41,7 +41,7 @@ int build_char_cnt = 0;
 void
 prologues(void) {
 	int i;
-	int8_t charlibname[MAXTOKENSIZE];
+	char charlibname[MAXTOKENSIZE];
 
 	Bprint(Bstdout, "%s", CONFORMING);
 	Bprint(Bstdout, "%s %s\n", VERSION, PROGRAMVERSION);

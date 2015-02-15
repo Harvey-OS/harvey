@@ -15,7 +15,7 @@
 
 Point
 memimagestring(Memimage *b, Point p, Memimage *color, Point cp, Memsubfont *f,
-	       int8_t *cs)
+	       char *cs)
 {
 	int w, width;
 	uint8_t *s;
@@ -28,7 +28,7 @@ memimagestring(Memimage *b, Point p, Memimage *color, Point cp, Memsubfont *f,
 		if(c < Runeself)
 			s++;
 		else{
-			w = chartorune(&c, (int8_t*)s);
+			w = chartorune(&c, (char*)s);
 			if(w == 0){
 				s++;
 				continue;
@@ -46,7 +46,7 @@ memimagestring(Memimage *b, Point p, Memimage *color, Point cp, Memsubfont *f,
 }
 
 Point
-memsubfontwidth(Memsubfont *f, int8_t *cs)
+memsubfontwidth(Memsubfont *f, char *cs)
 {
 	Rune c;
 	Point p;
@@ -61,7 +61,7 @@ memsubfontwidth(Memsubfont *f, int8_t *cs)
 		if(c < Runeself)
 			s++;
 		else{
-			w = chartorune(&c, (int8_t*)s);
+			w = chartorune(&c, (char*)s);
 			if(w == 0){
 				s++;
 				continue;

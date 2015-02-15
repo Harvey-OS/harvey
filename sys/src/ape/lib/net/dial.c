@@ -18,13 +18,13 @@
 #define NAMELEN 28
 
 static int
-call(int8_t *clone, int8_t *dest, int *cfdp, int8_t *dir, int8_t *local)
+call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 {
 	int fd, cfd;
 	int n;
-	int8_t name[3*NAMELEN+5];
-	int8_t data[3*NAMELEN+10];
-	int8_t *p;
+	char name[3*NAMELEN+5];
+	char data[3*NAMELEN+10];
+	char *p;
 
 	cfd = open(clone, O_RDWR);
 	if(cfd < 0)
@@ -69,12 +69,12 @@ call(int8_t *clone, int8_t *dest, int *cfdp, int8_t *dir, int8_t *local)
 }
 
 int
-dial(int8_t *dest, int8_t *local, int8_t *dir, int *cfdp)
+dial(char *dest, char *local, char *dir, int *cfdp)
 {
-	int8_t net[128];
-	int8_t netdir[128], csname[NETPATHLEN], *slp;
-	int8_t clone[NAMELEN+12];
-	int8_t *p;
+	char net[128];
+	char netdir[128], csname[NETPATHLEN], *slp;
+	char clone[NAMELEN+12];
+	char *p;
 	int n;
 	int fd;
 	int rv;

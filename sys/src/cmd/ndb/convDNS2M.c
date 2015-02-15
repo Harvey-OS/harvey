@@ -24,12 +24,12 @@ struct Dict
 {
 	struct {
 		uint16_t	offset;		/* pointer to packed name in message */
-		int8_t	*name;		/* pointer to unpacked name in buf */
+		char	*name;		/* pointer to unpacked name in buf */
 	} x[Ndict];
 	int	n;		/* size of dictionary */
 	uint8_t	*start;		/* start of packed message */
-	int8_t	buf[16*1024];	/* buffer for unpacked names (was 4k) */
-	int8_t	*ep;		/* first free char in buf */
+	char	buf[16*1024];	/* buffer for unpacked names (was 4k) */
+	char	*ep;		/* first free char in buf */
 };
 
 #define NAME(x)		p = pname(p, ep, x, dp)
@@ -43,7 +43,7 @@ struct Dict
 #define V6ADDR(x)	p = pv6addr(p, ep, x)
 
 static uint8_t*
-psym(uint8_t *p, uint8_t *ep, int8_t *np)
+psym(uint8_t *p, uint8_t *ep, char *np)
 {
 	int n;
 
@@ -58,7 +58,7 @@ psym(uint8_t *p, uint8_t *ep, int8_t *np)
 }
 
 static uint8_t*
-pstr(uint8_t *p, uint8_t *ep, int8_t *np)
+pstr(uint8_t *p, uint8_t *ep, char *np)
 {
 	return psym(p, ep, np);
 }
@@ -104,7 +104,7 @@ pulong(uint8_t *p, uint8_t *ep, int val)
 }
 
 static uint8_t*
-pv4addr(uint8_t *p, uint8_t *ep, int8_t *name)
+pv4addr(uint8_t *p, uint8_t *ep, char *name)
 {
 	uint8_t ip[IPaddrlen];
 
@@ -116,7 +116,7 @@ pv4addr(uint8_t *p, uint8_t *ep, int8_t *name)
 }
 
 static uint8_t*
-pv6addr(uint8_t *p, uint8_t *ep, int8_t *name)
+pv6addr(uint8_t *p, uint8_t *ep, char *name)
 {
 	if(ep - p < IPaddrlen)
 		return ep+1;
@@ -125,11 +125,11 @@ pv6addr(uint8_t *p, uint8_t *ep, int8_t *name)
 }
 
 static uint8_t*
-pname(uint8_t *p, uint8_t *ep, int8_t *np, Dict *dp)
+pname(uint8_t *p, uint8_t *ep, char *np, Dict *dp)
 {
 	int i;
-	int8_t *cp;
-	int8_t *last;		/* last component packed */
+	char *cp;
+	char *last;		/* last component packed */
 
 	if(strlen(np) >= Domlen) /* make sure we don't exceed DNS limits */
 		return ep+1;

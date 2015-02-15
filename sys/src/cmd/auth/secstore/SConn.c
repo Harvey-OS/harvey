@@ -94,33 +94,33 @@ SC_read(SConn *conn, uint8_t *buf, int n)
 	int len, nr;
 
 	if(read(ss->fd, count, 2) != 2 || (count[0]&0x80) == 0){
-		snprint((int8_t*)buf,n,"!SC_read invalid count");
+		snprint((char*)buf,n,"!SC_read invalid count");
 		return -1;
 	}
 	len = (count[0]&0x7f)<<8 | count[1];	// SSL-style count; no pad
 	if(ss->alg){
 		len -= SHA1dlen;
 		if(len <= 0 || readn(ss->fd, digest, SHA1dlen) != SHA1dlen){
-			snprint((int8_t*)buf,n,"!SC_read missing sha1");
+			snprint((char*)buf,n,"!SC_read missing sha1");
 			return -1;
 		}
 		if(len > n || readn(ss->fd, buf, len) != len){
-			snprint((int8_t*)buf,n,"!SC_read missing data");
+			snprint((char*)buf,n,"!SC_read missing data");
 			return -1;
 		}
 		rc4(&ss->in.rc4, digest, SHA1dlen);
 		rc4(&ss->in.rc4, buf, len);
 		if(verify(ss->in.secret, buf, len, ss->in.seqno, digest) != 0){
-			snprint((int8_t*)buf,n,"!SC_read integrity check failed");
+			snprint((char*)buf,n,"!SC_read integrity check failed");
 			return -1;
 		}
 	}else{
 		if(len <= 0 || len > n){
-			snprint((int8_t*)buf,n,"!SC_read implausible record length");
+			snprint((char*)buf,n,"!SC_read implausible record length");
 			return -1;
 		}
 		if( (nr = readn(ss->fd, buf, len)) != len){
-			snprint((int8_t*)buf,n,"!SC_read expected %d bytes, but got %d",
+			snprint((char*)buf,n,"!SC_read expected %d bytes, but got %d",
 				len, nr);
 			return -1;
 		}
@@ -201,16 +201,16 @@ newSConn(int fd)
 }
 
 void
-writerr(SConn *conn, int8_t *s)
+writerr(SConn *conn, char *s)
 {
-	int8_t buf[Maxmsg];
+	char buf[Maxmsg];
 
 	snprint(buf, Maxmsg, "!%s", s);
 	conn->write(conn, (uint8_t*)buf, strlen(buf));
 }
 
 int
-readstr(SConn *conn, int8_t *s)
+readstr(SConn *conn, char *s)
 {
 	int n;
 

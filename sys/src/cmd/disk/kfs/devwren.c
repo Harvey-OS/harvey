@@ -26,7 +26,7 @@ struct Wren{
 
 static Wren	*wrens;
 static int	maxwren;
-int8_t		*wrenfile;
+char		*wrenfile;
 int		nwren;
 int		badmagic;
 
@@ -45,7 +45,7 @@ wren(Device dev)
 void
 wreninit(Device dev)
 {
-	int8_t buf[MAXBUFSIZE];
+	char buf[MAXBUFSIZE];
 	Wren *w;
 	Dir *d;
 	int fd, i;
@@ -83,7 +83,7 @@ void
 wrenream(Device dev)
 {
 	Wren *w;
-	int8_t buf[MAXBUFSIZE];
+	char buf[MAXBUFSIZE];
 	int fd, i;
 
 	if(RBUFSIZE % 512)
@@ -104,7 +104,7 @@ wrenream(Device dev)
 }
 
 int
-wrentag(int8_t *p, int tag, int32_t qpath)
+wrentag(char *p, int tag, int32_t qpath)
 {
 	Tag *t;
 
@@ -115,7 +115,7 @@ wrentag(int8_t *p, int tag, int32_t qpath)
 int
 wrencheck(Device dev)
 {
-	int8_t buf[MAXBUFSIZE];
+	char buf[MAXBUFSIZE];
 
 	if(badmagic)
 		return 1;

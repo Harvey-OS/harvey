@@ -19,7 +19,7 @@ pid_t
 getppid(void)
 {
 	int n, f;
-	int8_t ppidbuf[15];
+	char ppidbuf[15];
 
 	f = open("#c/ppid", 0);
 	n = read(f, ppidbuf, sizeof ppidbuf);

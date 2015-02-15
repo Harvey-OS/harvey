@@ -10,10 +10,10 @@
 #include "headers.h"
 
 void
-threadmain(int argc, int8_t *argv[])
+threadmain(int argc, char *argv[])
 {
 	SmbClient *c;
-	int8_t *errmsg;
+	char *errmsg;
 	if (argc != 2 && argc != 3) {
 		print("usage: testconnect to [share]\n");
 		exits("args");
@@ -26,7 +26,7 @@ threadmain(int argc, int8_t *argv[])
 		int entries;
 		SmbRapServerInfo1 *si = nil;
 		SmbFindFileBothDirectoryInfo ip[10];
-		int8_t *errmsg;
+		char *errmsg;
 		uint16_t sid, searchcount, endofsearch;
 		errmsg = nil;
 		rv = smbnetserverenum2(c, SV_TYPE_SERVER, "PLAN9", &entries, &si, &errmsg);

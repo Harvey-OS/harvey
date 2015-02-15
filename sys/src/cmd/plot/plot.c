@@ -14,9 +14,9 @@
 #include <draw.h>
 #include <event.h>
 
-void	define(int8_t*);
-void	call(int8_t*);
-void	include(int8_t*);
+void	define(char*);
+void	call(char*);
+void	include(char*);
 int	process(Biobuf*);
 int	server(void);
 
@@ -107,8 +107,8 @@ struct pcall *pplots;		/* last command read */
 
 #define MAXL 16
 struct fcall {
-	int8_t *name;
-	int8_t *stash;
+	char *name;
+	char *stash;
 } flibr[MAXL];			/* define strings */
 
 struct fcall *fptr = flibr;
@@ -117,14 +117,14 @@ struct fcall *fptr = flibr;
 struct fstack{
 	int peekc;
 	int lineno;
-	int8_t *corebuf;
+	char *corebuf;
 	Biobuf *fd;
 	double scale;
 }fstack[NFSTACK];		/* stack of open input files & defines */
 struct fstack *fsp=fstack;
 
 #define	NARGSTR	8192
-int8_t argstr[NARGSTR+1];		/* string arguments */
+char argstr[NARGSTR+1];		/* string arguments */
 
 #define	NX	8192
 double x[NX];			/* numeric arguments */
@@ -139,19 +139,19 @@ void eresized(int new){
 		exits("resize");
 	}
 }
-int8_t *items[]={
+char *items[]={
 	"exit",
 	0
 };
 Menu menu={items};
 void
-main(int arc, int8_t *arv[]){
-	int8_t *ap;
+main(int arc, char *arv[]){
+	char *ap;
 	Biobuf *bp;
 	int fd;
 	int i;
 	int dflag;
-	int8_t *oflag;
+	char *oflag;
 	Mouse m;
 	bp = 0;
 	fd = dup(0, -1);		/* because openpl will close 0! */
@@ -258,7 +258,7 @@ strarg(void){
 	int c;
 	Rune r;
 	int quote=0;
-	int8_t *s=argstr;
+	char *s=argstr;
 	do
 		c=nextc();
 	while(c==' ' || c=='\t');
@@ -509,14 +509,14 @@ process(Biobuf *fd){
 	}
 	return 1;
 }
-int8_t *names = 0;
-int8_t *enames = 0;
-int8_t *bstash = 0;
-int8_t *estash = 0;
+char *names = 0;
+char *enames = 0;
+char *bstash = 0;
+char *estash = 0;
 unsigned size = 1024;
-int8_t *nstash = 0;
-void define(int8_t *a){
-	int8_t	*ap;
+char *nstash = 0;
+void define(char *a){
+	char	*ap;
 	int16_t	i, j;
 	int curly = 0;
 	ap = a;
@@ -567,10 +567,10 @@ void define(int8_t *a){
 		exits("too many objects");
 	}
 }
-void call(int8_t *a){
-	int8_t *ap;
+void call(char *a){
+	char *ap;
 	struct fcall *f;
-	int8_t sav;
+	char sav;
 	double SC;
 	ap = a;
 	while(isalpha(*ap))ap++;
@@ -600,7 +600,7 @@ void call(int8_t *a){
 	fsp->fd=0;
 	fsp->scale=fsp[-1].scale*SC;
 }
-void include(int8_t *a){
+void include(char *a){
 	Biobuf *fd;
 	fd=Bopen(a, OREAD);
 	if(fd==0){
@@ -621,7 +621,7 @@ void include(int8_t *a){
  */
 int server(void){
 	int fd, p[2];
-	int8_t buf[32];
+	char buf[32];
 	pipe(p);
 	fd = create("/srv/plot", 1, 0666);
 	sprint(buf, "%d", p[1]);

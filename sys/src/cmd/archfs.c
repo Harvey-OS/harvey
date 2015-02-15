@@ -47,8 +47,8 @@ emalloc(int32_t sz)
 	return v;
 }
 
-static int8_t*
-estrdup(int8_t *s)
+static char*
+estrdup(char *s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -56,10 +56,10 @@ estrdup(int8_t *s)
 	return s;
 }
 
-static int8_t*
+static char*
 Bgetline(Biobuf *b)
 {
-	int8_t *p;
+	char *p;
 
 	if(p = Brdline(b, '\n'))
 		p[Blinelen(b)-1] = '\0';
@@ -70,7 +70,7 @@ Ahdr*
 gethdr(Biobuf *b)
 {
 	Ahdr *a;
-	int8_t *p, *f[10];
+	char *p, *f[10];
 
 	if((p = Bgetline(b)) == nil)
 		return nil;
@@ -113,9 +113,9 @@ newarch(int64_t off, int64_t length)
 }
 
 static File*
-createpath(File *f, int8_t *name, int8_t *u, uint32_t m)
+createpath(File *f, char *name, char *u, uint32_t m)
 {
-	int8_t *p;
+	char *p;
 	File *nf;
 
 	if(verbose)
@@ -145,7 +145,7 @@ createpath(File *f, int8_t *name, int8_t *u, uint32_t m)
 }
 
 static void
-archcreatefile(int8_t *name, Arch *arch, Dir *d)
+archcreatefile(char *name, Arch *arch, Dir *d)
 {
 	File *f;
 	f = createpath(archtree->root, name, d->uid, d->mode);
@@ -163,7 +163,7 @@ static void
 fsread(Req *r)
 {
 	Arch *a;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	int n;
 
 	a = r->fid->file->aux;

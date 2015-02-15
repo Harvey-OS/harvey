@@ -22,10 +22,10 @@ static	int	clamp[CLAMPOFF+256+CLAMPOFF];
 static	int	inited;
 
 void*
-_remaperror(int8_t *fmt, ...)
+_remaperror(char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[256];
+	char buf[256];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof buf, fmt, arg);
@@ -46,7 +46,7 @@ torgbv(Rawimage *i, int errdiff)
 	uint8_t *closest;
 	Rawimage *im;
 	int dx, dy;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	uint8_t *cmap, *cm, *in, *out, *inp, *outp, cmap1[3*256], map[256], *rpic, *bpic, *gpic;
 
 	err[0] = '\0';

@@ -49,15 +49,15 @@ extern	int32_t ulimit();
 
 int
 c_ulimit(wp)
-	int8_t **wp;
+	char **wp;
 {
 	static const struct limits {
-		const int8_t	*name;
+		const char	*name;
 		enum { RLIMIT, ULIMIT } which;
 		int	gcmd;	/* get command */
 		int	scmd;	/* set command (or -1, if no set command) */
 		int	factor;	/* multiply by to get rlim_{cur,max} values */
-		int8_t	option;
+		char	option;
 	} limits[] = {
 		/* Do not use options -H, -S or -a */
 #ifdef RLIMIT_CPU
@@ -120,9 +120,9 @@ c_ulimit(wp)
 #ifdef RLIMIT_SWAP
 		{ "swap(kbytes)", RLIMIT_SWAP, RLIMIT_SWAP, 1024, 'w' },
 #endif
-		{ (int8_t *) 0 }
+		{ (char *) 0 }
 	    };
-	static int8_t	options[3 + NELEM(limits)];
+	static char	options[3 + NELEM(limits)];
 	rlim_t		UNINITIALIZED(val);
 	int		how = SOFT | HARD;
 	const struct limits	*l;
@@ -134,7 +134,7 @@ c_ulimit(wp)
 
 	if (!options[0]) {
 		/* build options string on first call - yuck */
-		int8_t *p = options;
+		char *p = options;
 
 		*p++ = 'H'; *p++ = 'S'; *p++ = 'a';
 		for (l = limits; l->name; l++)

@@ -18,12 +18,12 @@
 #include "dir.h"
 
 int
-access(const int8_t *name, int mode)
+access(const char *name, int mode)
 {
 	int fd;
 	Dir *db;
 	struct stat st;
-	static int8_t omode[] = {
+	static char omode[] = {
 		0,
 		3,
 		1,
@@ -33,7 +33,7 @@ access(const int8_t *name, int mode)
 		2,
 		2
 	};
-	int8_t tname[1024];
+	char tname[1024];
 
 	if(mode == 0){
 		db = _dirstat(name);

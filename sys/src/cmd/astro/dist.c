@@ -23,9 +23,9 @@ dist(Obj1 *p, Obj1 *q)
 int
 rline(int f)
 {
-	int8_t *p;
+	char *p;
 	int c;
-	static int8_t buf[1024];
+	static char buf[1024];
 	static int bc, bn, bf;
 
 	if(bf != f) {
@@ -176,7 +176,7 @@ Event	events[NEVENT];
 Event*	eventp = 0;
 
 void
-event(int8_t *format, int8_t *arg1, int8_t *arg2, double tim, int flag)
+event(char *format, char *arg1, char *arg2, double tim, int flag)
 {
 	Event *p;
 
@@ -251,11 +251,11 @@ pyth(double x)
 	return sqrt(1-x);
 }
 
-int8_t*
+char*
 skip(int n)
 {
 	int i;
-	int8_t *cp;
+	char *cp;
 
 	cp = line;
 	for(i=0; i<n; i++) {

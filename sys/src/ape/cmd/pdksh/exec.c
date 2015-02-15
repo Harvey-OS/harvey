@@ -53,7 +53,7 @@ static int	search_access1 ARGS((const char *path, int mode, int *errnop));
 #   define  MAXFD 64
 # endif
 /* a bit field would be smaller, but this will work */
-static int8_t clexec_tab[MAXFD+1];
+static char clexec_tab[MAXFD+1];
 #endif
 
 /*
@@ -86,8 +86,8 @@ execute(t, flags)
 	int i;
 	volatile int rv = 0;
 	int pv[2];
-	int8_t ** volatile ap;
-	int8_t *s, *cp;
+	char ** volatile ap;
+	char *s, *cp;
 	struct ioword **iowp;
 	struct tbl *tp = NULL;
 
@@ -453,13 +453,13 @@ static int
 comexec(t, tp, ap, flags)
 	struct op *t;
 	struct tbl *volatile tp;
-	register int8_t **ap;
+	register char **ap;
 	int volatile flags;
 {
 	int i;
 	int rv = 0;
-	register int8_t *cp;
-	register int8_t **lastp;
+	register char *cp;
+	register char **lastp;
 	static struct op texec; /* Must be static (XXX but why?) */
 	int type_flags;
 	int keepasn_ok;
@@ -595,7 +595,7 @@ comexec(t, tp, ap, flags)
 	  {
 		volatile int old_xflag;
 		volatile Tflag old_inuse;
-		const int8_t *volatile old_kshname;
+		const char *volatile old_kshname;
 
 		if (!(tp->flag & ISSET)) {
 			struct tbl *ftp;
@@ -613,7 +613,7 @@ comexec(t, tp, ap, flags)
 				}
 				break;
 			}
-			if (include(tp->u.fpath, 0, (int8_t **) 0, 0) < 0) {
+			if (include(tp->u.fpath, 0, (char **) 0, 0) < 0) {
 				warningf(TRUE,
 			    "%s: can't open function definition file %s - %s",
 					cp, tp->u.fpath, strerror(errno));
@@ -639,7 +639,7 @@ comexec(t, tp, ap, flags)
 		if (tp->flag & FKSH)
 			kshname = ap[0];
 		else
-			ap[0] = (int8_t *) kshname;
+			ap[0] = (char *) kshname;
 		e->loc->argv = ap;
 		for (i = 0; *ap++ != NULL; i++)
 			;
@@ -752,9 +752,9 @@ comexec(t, tp, ap, flags)
 static void
 scriptexec(tp, ap)
 	register struct op *tp;
-	register int8_t **ap;
+	register char **ap;
 {
-	int8_t *shell;
+	char *shell;
 
 	shell = str_val(global(EXECSHELL_STR));
 	if (shell && *shell)
@@ -765,8 +765,8 @@ scriptexec(tp, ap)
 	*tp->args-- = tp->str;
 #ifdef	SHARPBANG
 	{
-		int8_t buf[LINE];
-		register int8_t *cp;
+		char buf[LINE];
+		register char *cp;
 		register int fd, n;
 
 		buf[0] = '\0';
@@ -785,9 +785,9 @@ scriptexec(tp, ap)
 			while (*cp && (*cp == ' ' || *cp == '\t'))
 				cp++;
 			if (*cp && *cp != '\n') {
-				int8_t *a0 = cp, *a1 = (int8_t *) 0;
+				char *a0 = cp, *a1 = (char *) 0;
 # ifdef OS2
-				int8_t *a2 = cp;
+				char *a2 = cp;
 # endif /* OS2 */
 
 				while (*cp && *cp != '\n' && *cp != ' '
@@ -822,7 +822,7 @@ scriptexec(tp, ap)
 						*tp->args-- = a1;
 # ifdef OS2
 					if (a0 != a2) {
-						int8_t *tmp_a0 = str_nsave(a0,
+						char *tmp_a0 = str_nsave(a0,
 							strlen(a0) + 5, ATEMP);
 						if (search_access(tmp_a0, X_OK,
 								(int *) 0))
@@ -839,7 +839,7 @@ scriptexec(tp, ap)
 			 * else use OS2_SHELL which is assumed to need
 			 * the /c option and '\' as dir separater.
 			 */
-		         int8_t *p = shell;
+		         char *p = shell;
 
 			 shell = str_val(global("EXECSHELL"));
 			 if (shell && *shell)
@@ -865,7 +865,7 @@ scriptexec(tp, ap)
 
 int
 shcomexec(wp)
-	register int8_t **wp;
+	register char **wp;
 {
 	register struct tbl *tp;
 
@@ -881,7 +881,7 @@ shcomexec(wp)
  */
 struct tbl *
 findfunc(name, h, create)
-	const int8_t *name;
+	const char *name;
 	unsigned int h;
 	int create;
 {
@@ -909,7 +909,7 @@ findfunc(name, h, create)
  */
 int
 define(name, t)
-	const int8_t *name;
+	const char *name;
 	struct op *t;
 {
 	struct tbl *tp;
@@ -984,15 +984,15 @@ builtin(name, func)
  */
 struct tbl *
 findcom(name, flags)
-	const int8_t *name;
+	const char *name;
 	int	flags;		/* FC_* */
 {
 	static struct tbl temp;
 	unsigned int h = hash(name);
 	struct tbl *tp = NULL, *tbi;
 	int insert = Flag(FTRACKALL);	/* insert if not found */
-	int8_t *fpath;			/* for function autoloading */
-	int8_t *npath;
+	char *fpath;			/* for function autoloading */
+	char *npath;
 
 	if (ksh_strchr_dirsep(name) != NULL) {
 		insert = 0;
@@ -1010,7 +1010,7 @@ findcom(name, flags)
 		tp = findfunc(name, h, FALSE);
 		if (tp && !(tp->flag & ISSET)) {
 			if ((fpath = str_val(global("FPATH"))) == null) {
-				tp->u.fpath = (int8_t *) 0;
+				tp->u.fpath = (char *) 0;
 				tp->u2.errno_ = 0;
 			} else
 				tp->u.fpath = search(name, fpath, R_OK,
@@ -1062,7 +1062,7 @@ findcom(name, flags)
 		} else if ((flags & FC_FUNC)
 			   && (fpath = str_val(global("FPATH"))) != null
 			   && (npath = search(name, fpath, R_OK,
-					      &tp->u2.errno_)) != (int8_t *) 0)
+					      &tp->u2.errno_)) != (char *) 0)
 		{
 			/* An undocumented feature of at&t ksh is that it
 			 * searches FPATH if a command is not found, even
@@ -1101,7 +1101,7 @@ flushcom(all)
 /* Check if path is something we want to find.  Returns -1 for failure. */
 int
 search_access(path, mode, errnop)
-	const int8_t *path;
+	const char *path;
 	int mode;
 	int *errnop;		/* set if candidate found, but not suitable */
 {
@@ -1132,17 +1132,17 @@ search_access(path, mode, errnop)
 	 *	 Certain code knows this (eg, eval.c(globit()),
 	 *	 exec.c(search())).
 	 */
-	static int8_t *xsuffixes[] = { ".ksh", ".exe", ".", ".sh", ".cmd",
-				     ".com", ".bat", (int8_t *) 0
+	static char *xsuffixes[] = { ".ksh", ".exe", ".", ".sh", ".cmd",
+				     ".com", ".bat", (char *) 0
 				   };
-	static int8_t *rsuffixes[] = { ".ksh", ".", ".sh", ".cmd", ".bat",
-				      (int8_t *) 0
+	static char *rsuffixes[] = { ".ksh", ".", ".sh", ".cmd", ".bat",
+				      (char *) 0
 				   };
 	int i;
-	int8_t *mpath = (int8_t *) path;
-	int8_t *tp = mpath + strlen(mpath);
-	int8_t *p;
-	int8_t **sfx;
+	char *mpath = (char *) path;
+	char *tp = mpath + strlen(mpath);
+	char *p;
+	char **sfx;
  
 	/* If a suffix has been specified, check if it is one of the
 	 * suffixes that indicate the file is executable - if so, change
@@ -1171,7 +1171,7 @@ search_access(path, mode, errnop)
 #ifdef OS2
 static int
 search_access1(path, mode, errnop)
-	const int8_t *path;
+	const char *path;
 	int mode;
 	int *errnop;		/* set if candidate found, but not suitable */
 {
@@ -1196,15 +1196,15 @@ search_access1(path, mode, errnop)
 /*
  * search for command with PATH
  */
-int8_t *
+char *
 search(name, path, mode, errnop)
-	const int8_t *name;
-	const int8_t *path;
+	const char *name;
+	const char *path;
 	int mode;		/* R_OK or X_OK */
 	int *errnop;		/* set if candidate found, but not suitable */
 {
-	const int8_t *sp, *p;
-	int8_t *xp;
+	const char *sp, *p;
+	char *xp;
 	XString xs;
 	int namelen;
 
@@ -1231,7 +1231,7 @@ search(name, path, mode, errnop)
 #else /* OS2 */
 	if (ksh_strchr_dirsep(name)) {
 		if (search_access(name, mode, errnop) == 0)
-			return (int8_t *) name;
+			return (char *) name;
 		return NULL;
 	}
 
@@ -1269,7 +1269,7 @@ search(name, path, mode, errnop)
 static int
 call_builtin(tp, wp)
 	struct tbl *tp;
-	int8_t **wp;
+	char **wp;
 {
 	int rv;
 
@@ -1282,7 +1282,7 @@ call_builtin(tp, wp)
 	shf_flush(shl_stdout);
 	shl_stdout_ok = 0;
 	builtin_flag = 0;
-	builtin_argv0 = (int8_t *) 0;
+	builtin_argv0 = (char *) 0;
 	return rv;
 }
 
@@ -1295,7 +1295,7 @@ iosetup(iop, tp)
 	struct tbl *tp;
 {
 	register int u = -1;
-	int8_t *cp = iop->name;
+	char *cp = iop->name;
 	int iotype = iop->flag & IOTYPE;
 	int do_open = 1, do_close = 0, UNINITIALIZED(flags);
 	struct ioword iotmp;
@@ -1306,13 +1306,13 @@ iosetup(iop, tp)
 
 	/* Used for tracing and error messages to print expanded cp */
 	iotmp = *iop;
-	iotmp.name = (iotype == IOHERE) ? (int8_t *) 0 : cp;
+	iotmp.name = (iotype == IOHERE) ? (char *) 0 : cp;
 	iotmp.flag |= IONAMEXP;
 
 	if (Flag(FXTRACE))
 		shellf("%s%s\n",
 			PS4_SUBSTITUTE(str_val(global("PS4"))),
-			snptreef((int8_t *) 0, 32, "%R", &iotmp));
+			snptreef((char *) 0, 32, "%R", &iotmp));
 
 	switch (iotype) {
 	  case IOREAD:
@@ -1346,7 +1346,7 @@ iosetup(iop, tp)
 
 	  case IODUP:
 	  {
-		const int8_t *emsg;
+		const char *emsg;
 
 		do_open = 0;
 		if (*cp == '-' && !cp[1]) {
@@ -1357,7 +1357,7 @@ iosetup(iop, tp)
 				&emsg)) < 0)
 		{
 			warningf(TRUE, "%s: %s",
-				snptreef((int8_t *) 0, 32, "%R", &iotmp),
+				snptreef((char *) 0, 32, "%R", &iotmp),
 				 emsg);
 			return -1;
 		}
@@ -1399,7 +1399,7 @@ iosetup(iop, tp)
 		if (ksh_dup2(u, iop->unit, TRUE) < 0) {
 			warningf(TRUE,
 				"could not finish (dup) redirection %s: %s",
-				snptreef((int8_t *) 0, 32, "%R", &iotmp),
+				snptreef((char *) 0, 32, "%R", &iotmp),
 				strerror(errno));
 			if (iotype != IODUP)
 				close(u);
@@ -1430,7 +1430,7 @@ iosetup(iop, tp)
  */
 static int
 herein(content, sub)
-	const int8_t *content;
+	const char *content;
 	int sub;
 {
 	volatile int fd = -1;
@@ -1440,7 +1440,7 @@ herein(content, sub)
 	int i;
 
 	/* ksh -c 'cat << EOF' can cause this... */
-	if (content == (int8_t *) 0) {
+	if (content == (char *) 0) {
 		warningf(TRUE, "here document missing");
 		return -2; /* special to iosetup(): don't print error */
 	}
@@ -1497,15 +1497,15 @@ herein(content, sub)
  *	ksh special - the select command processing section
  *	print the args in column form - assuming that we can
  */
-static int8_t *
+static char *
 do_selectargs(ap, print_menu)
-	register int8_t **ap;
+	register char **ap;
 	bool_t print_menu;
 {
-	static const int8_t *const read_args[] = {
-					"read", "-r", "REPLY", (int8_t *) 0
+	static const char *const read_args[] = {
+					"read", "-r", "REPLY", (char *) 0
 				    };
-	int8_t *s;
+	char *s;
 	int i, argct;
 
 	for (argct = 0; ap[argct]; argct++)
@@ -1519,8 +1519,8 @@ do_selectargs(ap, print_menu)
 		if (print_menu || !*str_val(global("REPLY")))
 			pr_menu(ap);
 		shellf("%s", str_val(global("PS3")));
-		if (call_builtin(findcom("read", FC_BI), (int8_t **) read_args))
-			return (int8_t *) 0;
+		if (call_builtin(findcom("read", FC_BI), (char **) read_args))
+			return (char *) 0;
 		s = str_val(global("REPLY"));
 		if (*s) {
 			i = atoi(s);
@@ -1531,7 +1531,7 @@ do_selectargs(ap, print_menu)
 }
 
 struct select_menu_info {
-	int8_t	*const *args;
+	char	*const *args;
 	int	arg_width;
 	int	num_width;
 } info;
@@ -1539,11 +1539,11 @@ struct select_menu_info {
 static char *select_fmt_entry ARGS((void *arg, int i, char *buf, int buflen));
 
 /* format a single select menu item */
-static int8_t *
+static char *
 select_fmt_entry(arg, i, buf, buflen)
 	void *arg;
 	int i;
-	int8_t *buf;
+	char *buf;
 	int buflen;
 {
 	struct select_menu_info *smi = (struct select_menu_info *) arg;
@@ -1558,10 +1558,10 @@ select_fmt_entry(arg, i, buf, buflen)
  */
 int
 pr_menu(ap)
-	int8_t *const *ap;
+	char *const *ap;
 {
 	struct select_menu_info smi;
-	int8_t *const *pp;
+	char *const *pp;
 	int nwidth, dwidth;
 	int i, n;
 
@@ -1602,8 +1602,8 @@ pr_menu(ap)
  *	[[ ... ]] evaluation routines
  */
 
-extern const int8_t *const dbtest_tokens[];
-extern const int8_t db_close[];
+extern const char *const dbtest_tokens[];
+extern const char db_close[];
 
 /* Test if the current token is a whatever.  Accepts the current token if
  * it is.  Returns 0 if it is not, non-zero if it is (in the case of
@@ -1616,7 +1616,7 @@ dbteste_isa(te, meta)
 {
 	int ret = 0;
 	int uqword;
-	int8_t *p;
+	char *p;
 
 	if (!*te->pos.wp)
 		return meta == TM_END;
@@ -1628,8 +1628,8 @@ dbteste_isa(te, meta)
 
 	if (meta == TM_UNOP || meta == TM_BINOP) {
 		if (uqword) {
-			int8_t buf[8];	/* longer than the longest operator */
-			int8_t *q = buf;
+			char buf[8];	/* longer than the longest operator */
+			char *q = buf;
 			for (p = *te->pos.wp; *p == CHAR
 					      && q < &buf[sizeof(buf) - 1];
 					      p += 2)
@@ -1650,16 +1650,16 @@ dbteste_isa(te, meta)
 	return ret;
 }
 
-static const int8_t *
+static const char *
 dbteste_getopnd(te, op, do_eval)
 	Test_env *te;
 	Test_op op;
 	int do_eval;
 {
-	int8_t *s = *te->pos.wp;
+	char *s = *te->pos.wp;
 
 	if (!s)
-		return (int8_t *) 0;
+		return (char *) 0;
 
 	te->pos.wp++;
 
@@ -1678,8 +1678,8 @@ static int
 dbteste_eval(te, op, opnd1, opnd2, do_eval)
 	Test_env *te;
 	Test_op op;
-	const int8_t *opnd1;
-	const int8_t *opnd2;
+	const char *opnd1;
+	const char *opnd2;
 	int do_eval;
 {
 	return test_eval(te, op, opnd1, opnd2, do_eval);
@@ -1689,7 +1689,7 @@ static void
 dbteste_error(te, offset, msg)
 	Test_env *te;
 	int offset;
-	const int8_t *msg;
+	const char *msg;
 {
 	te->flags |= TEF_ERROR;
 	internal_errorf(0, "dbteste_error: %s (offset %d)", msg, offset);

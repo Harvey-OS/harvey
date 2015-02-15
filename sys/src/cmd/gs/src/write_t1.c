@@ -41,7 +41,7 @@ Public structures and functions in this file are prefixed with FF_ because they 
 the FAPI FreeType implementation.
 */
 
-static void write_word_entry(FAPI_font* a_fapi_font,WRF_output* a_output,const int8_t* a_name,int a_index,int a_divisor)
+static void write_word_entry(FAPI_font* a_fapi_font,WRF_output* a_output,const char* a_name,int a_index,int a_divisor)
 	{
 	int16_t x;
 	WRF_wbyte(a_output,'/');
@@ -55,7 +55,7 @@ static void write_word_entry(FAPI_font* a_fapi_font,WRF_output* a_output,const i
 	WRF_wstring(a_output," def\n");
 	}
 
-static void write_array_entry_with_count(FAPI_font* a_fapi_font,WRF_output* a_output,const int8_t* a_name,int a_index,int a_count,int a_divisor)
+static void write_array_entry_with_count(FAPI_font* a_fapi_font,WRF_output* a_output,const char* a_name,int a_index,int a_count,int a_divisor)
 	{
 	int i;
 
@@ -79,7 +79,7 @@ static void write_array_entry_with_count(FAPI_font* a_fapi_font,WRF_output* a_ou
 	}
 
 
-static void write_array_entry(FAPI_font* a_fapi_font,WRF_output* a_output,const int8_t* a_name,int a_index,int a_divisor)
+static void write_array_entry(FAPI_font* a_fapi_font,WRF_output* a_output,const char* a_name,int a_index,int a_divisor)
 	{
 	/* NOTE that the feature index must be preceded by the count index for this to work. */
 	int count = a_fapi_font->get_word(a_fapi_font,a_index - 1,0);

@@ -14,7 +14,7 @@
 enum { TIMEOUT = 10*60*1000 };
 
 int
-alarmhandler(void *, int8_t *note)
+alarmhandler(void *, char *note)
 {
 	if(strcmp(note, "alarm") == 0) {
 		fprint(2, "alarm\n");
@@ -27,7 +27,7 @@ void
 pass(int in, int out)
 {
 	int rv;
-	static int8_t buf[4096];
+	static char buf[4096];
 
 	for(;;) {
 		alarm(TIMEOUT);		/* to break hanging */
@@ -50,7 +50,7 @@ usage(void)
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int netfd;
 

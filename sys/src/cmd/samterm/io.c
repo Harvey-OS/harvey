@@ -34,7 +34,7 @@ Channel	*hostc;
 Mousectl	*mousectl;
 Mouse	*mousep;
 Keyboardctl *keyboardctl;
-void	panic(int8_t*);
+void	panic(char*);
 
 void
 initio(void)
@@ -178,12 +178,12 @@ rcvchar(void)
 	return c;
 }
 
-int8_t*
+char*
 rcvstring(void)
 {
 	*hoststop = 0;
 	got &= ~(1<<RHost);
-	return (int8_t*)hostp;
+	return (char*)hostp;
 }
 
 int
@@ -206,7 +206,7 @@ externchar(void)
 
     loop:
 	if(got & ((1<<RPlumb) & ~block)){
-		plumbp += chartorune(&r, (int8_t*)plumbp);
+		plumbp += chartorune(&r, (char*)plumbp);
 		if(plumbp >= plumbstop){
 			got &= ~(1<<RPlumb);
 			free(plumbbase);

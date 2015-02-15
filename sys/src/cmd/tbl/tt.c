@@ -102,7 +102,7 @@ int
 thish(int i, int c)
 {
 	int	t;
-	int8_t	*s;
+	char	*s;
 	struct colstr *pc;
 
 	if (c < 0)

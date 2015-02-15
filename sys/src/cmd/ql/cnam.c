@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-int8_t	*cnames[] =
+char	*cnames[] =
 {
 	"NONE",
 	"REG",

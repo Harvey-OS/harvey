@@ -361,7 +361,7 @@ s_filter_close(register stream * s)
 
 /* Disregard a stream error message. */
 int
-s_no_report_error(stream_state * st, const int8_t *str)
+s_no_report_error(stream_state * st, const char *str)
 {
     return 0;
 }

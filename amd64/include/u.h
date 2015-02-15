@@ -62,11 +62,11 @@ union FPdbleword
 	};
 };
 
-typedef	int8_t*	va_list;
+typedef	char*	va_list;
 #define va_start(list, start) list =\
 	(sizeof(start) < 8?\
-		(int8_t*)((int64_t*)&(start)+1):\
-		(int8_t*)(&(start)+1))
+		(char*)((int64_t*)&(start)+1):\
+		(char*)(&(start)+1))
 #define va_end(list)\
 	USED(list)
 #define va_arg(list, mode)\

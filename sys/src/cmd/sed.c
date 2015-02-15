@@ -54,11 +54,11 @@ typedef struct	SEDCOM {
 	};
 	Rune	*rhs;			/* Right-hand side of substitution */
 	Biobuf*	fcode;			/* File ID for read and write */
-	int8_t	command;		/* command code -see below */
-	int8_t	gfl;			/* 'Global' flag for substitutions */
-	int8_t	pfl;			/* 'print' flag for substitutions */
-	int8_t	active;			/* 1 => data between start and end */
-	int8_t	negfl;			/* negation flag */
+	char	command;		/* command code -see below */
+	char	gfl;			/* 'Global' flag for substitutions */
+	char	pfl;			/* 'print' flag for substitutions */
+	char	active;			/* 1 => data between start and end */
+	char	negfl;			/* negation flag */
 } SedCom;
 
 /* Command Codes for field SedCom.command */
@@ -98,7 +98,7 @@ typedef struct label {			/* Label symbol table */
 
 typedef	struct	FILE_CACHE {		/* Data file control block */
 	struct FILE_CACHE *next;	/* Forward Link */
-	int8_t	*name;			/* Name of file */
+	char	*name;			/* Name of file */
 } FileCache;
 
 SedCom pspace[MAXCMDS];			/* Command storage */
@@ -121,7 +121,7 @@ struct {				/* Sed program input control block */
 	} type;
 	union PCTL {			/* Pointer to data */
 		Biobuf	*bp;
-		int8_t	*curr;
+		char	*curr;
 	};
 } prog;
 
@@ -153,7 +153,7 @@ int	delflag;			/* Delete current line when set */
 
 int32_t	lnum = 0;			/* Input line count */
 
-int8_t	fname[MAXFILES][40];		/* File name cache */
+char	fname[MAXFILES][40];		/* File name cache */
 Biobuf	*fcode[MAXFILES];		/* File ID cache */
 int	nfiles = 0;			/* Cache fill point */
 
@@ -171,15 +171,15 @@ Rune	bad;				/* Dummy err ptr reference */
 Rune	*badp = &bad;
 
 
-int8_t	CGMES[]	 = 	"%S command garbled: %S";
-int8_t	TMMES[]	 = 	"Too much text: %S";
-int8_t	LTL[]	 = 	"Label too long: %S";
-int8_t	AD0MES[] =	"No addresses allowed: %S";
-int8_t	AD1MES[] =	"Only one address allowed: %S";
+char	CGMES[]	 = 	"%S command garbled: %S";
+char	TMMES[]	 = 	"Too much text: %S";
+char	LTL[]	 = 	"Label too long: %S";
+char	AD0MES[] =	"No addresses allowed: %S";
+char	AD1MES[] =	"Only one address allowed: %S";
 
 void	address(Addr *);
 void	arout(void);
-int	cmp(int8_t *, int8_t *);
+int	cmp(char *, char *);
 int	rcmp(Rune *, Rune *);
 void	command(SedCom *);
 Reprog	*compile(void);
@@ -187,7 +187,7 @@ Rune	*compsub(Rune *, Rune *);
 void	dechain(void);
 void	dosub(Rune *);
 int	ecmp(Rune *, Rune *, int);
-void	enroll(int8_t *);
+void	enroll(char *);
 void	errexit(void);
 int	executable(SedCom *);
 void	execute(void);
@@ -195,18 +195,18 @@ void	fcomp(void);
 int32_t	getrune(void);
 Rune	*gline(Rune *);
 int	match(Reprog *, Rune *);
-void	newfile(enum PTYPE, int8_t *);
+void	newfile(enum PTYPE, char *);
 int 	opendata(void);
-Biobuf	*open_file(int8_t *);
+Biobuf	*open_file(char *);
 Rune	*place(Rune *, Rune *, Rune *);
-void	quit(int8_t *, ...);
+void	quit(char *, ...);
 int	rline(Rune *, Rune *);
 Label	*search(Label *);
 int	substitute(SedCom *);
-int8_t	*text(int8_t *);
+char	*text(char *);
 Rune	*stext(Rune *, Rune *);
 int	ycomp(SedCom *);
-int8_t *	trans(int c);
+char *	trans(int c);
 void	putline(Biobuf *bp, Rune *buf, int n);
 
 void
@@ -608,7 +608,7 @@ done:
 }
 
 Biobuf *
-open_file(int8_t *name)
+open_file(char *name)
 {
 	int fd;
 	Biobuf *bp;
@@ -659,8 +659,8 @@ Reprog *
 compile(void)
 {
 	Rune c;
-	int8_t *ep;
-	int8_t expbuf[512];
+	char *ep;
+	char expbuf[512];
 
 	if((c = *cp++) == seof)		/* L'//' */
 		return 0;
@@ -684,14 +684,14 @@ compile(void)
 }
 
 void
-regerror(int8_t *s)
+regerror(char *s)
 {
 	USED(s);
 	quit(CGMES, L"r.e.-using", linebuf);
 }
 
 void
-newfile(enum PTYPE type, int8_t *name)
+newfile(enum PTYPE type, char *name)
 {
 	if (type == P_ARG)
 		prog.curr = name;
@@ -730,7 +730,7 @@ getrune(void)
 {
 	int32_t c;
 	Rune r;
-	int8_t *p;
+	char *p;
 
 	if (prog.type == P_ARG) {
 		if ((p = prog.curr) != 0) {
@@ -797,8 +797,8 @@ rcmp(Rune *a, Rune *b)		/* compare runes */
 	return 1;
 }
 
-int8_t *
-text(int8_t *p)		/* extract character string */
+char *
+text(char *p)		/* extract character string */
 {
 	Rune r;
 
@@ -1097,11 +1097,11 @@ place(Rune *sp, Rune *l1, Rune *l2)
 	return sp;
 }
 
-int8_t *
+char *
 trans(int c)
 {
-	static int8_t buf[] = "\\x0000";
-	static int8_t hex[] = "0123456789abcdef";
+	static char buf[] = "\\x0000";
+	static char hex[] = "0123456789abcdef";
 
 	switch(c) {
 	case '\b':
@@ -1126,7 +1126,7 @@ void
 command(SedCom *ipc)
 {
 	int i, c;
-	int8_t *ucp;
+	char *ucp;
 	Rune *execp, *p1, *p2, *rp;
 
 	switch(ipc->command) {
@@ -1134,7 +1134,7 @@ command(SedCom *ipc)
 		*aptr++ = ipc;
 		if(aptr >= abuf+MAXADDS)
 			quit("sed: Too many appends after line %ld\n",
-				(int8_t *)lnum);
+				(char *)lnum);
 		*aptr = 0;
 		break;
 	case CCOM:
@@ -1270,7 +1270,7 @@ cpcom:
 		*aptr++ = ipc;
 		if(aptr >= &abuf[MAXADDS])
 			quit("sed: Too many reads after line %ld\n",
-				(int8_t *)lnum);
+				(char *)lnum);
 		*aptr = 0;
 		break;
 	case SCOM:
@@ -1340,8 +1340,8 @@ void
 arout(void)
 {
 	int	c;
-	int8_t	*s;
-	int8_t	buf[128];
+	char	*s;
+	char	buf[128];
 	Rune	*p1;
 	Biobuf	*fi;
 
@@ -1372,10 +1372,10 @@ errexit(void)
 }
 
 void
-quit(int8_t *fmt, ...)
+quit(char *fmt, ...)
 {
-	int8_t *p, *ep;
-	int8_t msg[256];
+	char *p, *ep;
+	char msg[256];
 	va_list arg;
 
 	ep = msg + sizeof msg;
@@ -1432,7 +1432,7 @@ gline(Rune *addr)
  *	catenate all data input streams.
  */
 void
-enroll(int8_t *filename)		/* Add a file to the input file cache */
+enroll(char *filename)		/* Add a file to the input file cache */
 {
 	FileCache *fp;
 

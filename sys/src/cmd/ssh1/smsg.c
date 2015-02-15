@@ -36,7 +36,7 @@ static mpint*
 rpcdecrypt(AuthRpc *rpc, mpint *b)
 {
 	mpint *a;
-	int8_t *p;
+	char *p;
 
 	p = mptoa(b, 16, nil, 0);
 	if(auth_rpc(rpc, "write", p, strlen(p)) != ARok)
@@ -128,7 +128,7 @@ recv_ssh_cmsg_session_key(Conn *c, AuthRpc *rpc)
 }
 
 static AuthInfo*
-responselogin(int8_t *user, int8_t *resp)
+responselogin(char *user, char *resp)
 {
 	Chalstate *c;
 	AuthInfo *ai;
@@ -147,7 +147,7 @@ responselogin(int8_t *user, int8_t *resp)
 static AuthInfo*
 authusername(Conn *c)
 {
-	int8_t *p;
+	char *p;
 	AuthInfo *ai;
 
 	/*
@@ -167,7 +167,7 @@ static void
 authsrvuser(Conn *c)
 {
 	int i;
-	int8_t *ns, *user;
+	char *ns, *user;
 	AuthInfo *ai;
 	Msg *m;
 
@@ -215,7 +215,7 @@ authsrvuser(Conn *c)
 void
 sshserverhandshake(Conn *c)
 {
-	int8_t *p, buf[128];
+	char *p, buf[128];
 	Biobuf *b;
 	Attr *a;
 	int i, afd;

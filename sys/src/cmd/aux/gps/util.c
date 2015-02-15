@@ -28,9 +28,9 @@ setlon(Place *p, double lon)
 }
 
 static int
-printlatlon(int8_t *p, int n, double lat, int8_t po, int8_t ne)
+printlatlon(char *p, int n, double lat, char po, char ne)
 {
-	int8_t c;
+	char c;
 	double d;
 	int deg, min, sec;
 
@@ -51,7 +51,7 @@ printlatlon(int8_t *p, int n, double lat, int8_t po, int8_t ne)
 int
 placeconv(Fmt *fp)
 {
-	int8_t str[256];
+	char str[256];
 	int n;
 	Place pl;
 
@@ -64,7 +64,7 @@ placeconv(Fmt *fp)
 }
 
 int
-strtolatlon(int8_t *p, int8_t **ep, Place *pl)
+strtolatlon(char *p, char **ep, Place *pl)
 {
 	double latlon;
 	int neg = 0;
@@ -136,7 +136,7 @@ strtolatlon(int8_t *p, int8_t **ep, Place *pl)
 }
 
 Place
-strtopos(int8_t *p, int8_t **ep)
+strtopos(char *p, char **ep)
 {
 	Place pl = nowhere;
 
@@ -157,7 +157,7 @@ rtcset(int32_t t)		/* We may use this some day */
 	static int fd;
 	int32_t r;
 	int n;
-	int8_t buf[32];
+	char buf[32];
 
 	if(fd <= 0 && (fd = open("#r/rtc", ORDWR)) < 0){
 		fprint(2, "Can't open #r/rtc: %r\n");

@@ -190,7 +190,7 @@ typedef struct Ctlr {
 	uint16_t*	eeprom;
 
 	int	ctlrno;
-	int8_t*	type;
+	char*	type;
 
 	uint8_t	configdata[24];
 

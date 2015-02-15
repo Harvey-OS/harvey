@@ -48,7 +48,7 @@ private const int8_t *run_strings[] =
 #endif
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
     int exit_status = 0;
     gs_main_instance *minst = gs_main_alloc_instance(gs_malloc_init(NULL));
@@ -57,7 +57,7 @@ main(int argc, int8_t *argv[])
 
 #ifdef RUN_STRINGS
     {				/* Run a list of strings (for testing). */
-	const int8_t **pstr = run_strings;
+	const char **pstr = run_strings;
 
 	for (; *pstr; ++pstr) {
 	    int exit_code;

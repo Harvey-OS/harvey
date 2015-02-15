@@ -36,8 +36,8 @@ erealloc(void *v, uint32_t n)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
 	s = strdup(s);
 	if(s == nil) {

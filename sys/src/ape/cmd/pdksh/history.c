@@ -74,9 +74,9 @@ static char   **hist_get_newest ARGS((int allow_cur));
 static char   **hist_get_oldest ARGS(());
 static void	histbackup ARGS((void));
 
-static int8_t   **current;	/* current postition in history[] */
+static char   **current;	/* current postition in history[] */
 static int	curpos;		/* current index in history[] */
-static int8_t    *hname;		/* current name of history file */
+static char    *hname;		/* current name of history file */
 static int	hstarted;	/* set after hist_init() called */
 static Source	*hist_source;
 
@@ -295,11 +295,11 @@ c_fc(wp)
 /* Save cmd in history, execute cmd (cmd gets trashed) */
 static int
 hist_execute(cmd)
-	int8_t *cmd;
+	char *cmd;
 {
 	Source *sold;
 	int ret;
-	int8_t *p, *q;
+	char *p, *q;
 
 	histbackup();
 
@@ -307,7 +307,7 @@ hist_execute(cmd)
 		if ((q = strchr(p, '\n'))) {
 			*q++ = '\0'; /* kill the newline */
 			if (!*q) /* ignore trailing newline */
-				q = (int8_t *) 0;
+				q = (char *) 0;
 		}
 #ifdef EASY_HISTORY
 		if (p != cmd)
@@ -336,22 +336,22 @@ hist_execute(cmd)
 
 static int
 hist_replace(hp, pat, rep, global)
-	int8_t **hp;
-	const int8_t *pat;
-	const int8_t *rep;
+	char **hp;
+	const char *pat;
+	const char *rep;
 	int global;
 {
-	int8_t *line;
+	char *line;
 
 	if (!pat)
 		line = str_save(*hp, ATEMP);
 	else {
-		int8_t *s, *s1;
+		char *s, *s1;
 		int pat_len = strlen(pat);
 		int rep_len = strlen(rep);
 		int len;
 		XString xs;
-		int8_t *xp;
+		char *xp;
 		int any_subst = 0;
 
 		Xinit(xs, xp, 128, ATEMP);
@@ -383,13 +383,13 @@ hist_replace(hp, pat, rep, global)
  * get pointer to history given pattern
  * pattern is a number or string
  */
-static int8_t **
+static char **
 hist_get(str, approx, allow_cur)
-	const int8_t *str;
+	const char *str;
 	int approx;
 	int allow_cur;
 {
-	int8_t **hp = (int8_t **) 0;
+	char **hp = (char **) 0;
 	int n;
 
 	if (getn(str, &n)) {
@@ -399,18 +399,18 @@ hist_get(str, approx, allow_cur)
 				hp = hist_get_oldest();
 			else {
 				bi_errorf("%s: not in history", str);
-				hp = (int8_t **) 0;
+				hp = (char **) 0;
 			}
 		} else if (hp > histptr) {
 			if (approx)
 				hp = hist_get_newest(allow_cur);
 			else {
 				bi_errorf("%s: not in history", str);
-				hp = (int8_t **) 0;
+				hp = (char **) 0;
 			}
 		} else if (!allow_cur && hp == histptr) {
 			bi_errorf("%s: invalid range", str);
-			hp = (int8_t **) 0;
+			hp = (char **) 0;
 		}
 	} else {
 		int anchored = *str == '?' ? (++str, 0) : 1;
@@ -419,7 +419,7 @@ hist_get(str, approx, allow_cur)
 		n = findhist(histptr - history - 1, 0, str, anchored);
 		if (n < 0) {
 			bi_errorf("%s: not in history", str);
-			hp = (int8_t **) 0;
+			hp = (char **) 0;
 		} else
 			hp = &history[n];
 	}
@@ -427,13 +427,13 @@ hist_get(str, approx, allow_cur)
 }
 
 /* Return a pointer to the newest command in the history */
-static int8_t **
+static char **
 hist_get_newest(allow_cur)
 	int allow_cur;
 {
 	if (histptr < history || (!allow_cur && histptr == history)) {
 		bi_errorf("no history (yet)");
-		return (int8_t **) 0;
+		return (char **) 0;
 	}
 	if (allow_cur)
 		return histptr;
@@ -441,12 +441,12 @@ hist_get_newest(allow_cur)
 }
 
 /* Return a pointer to the newest command in the history */
-static int8_t **
+static char **
 hist_get_oldest()
 {
 	if (histptr <= history) {
 		bi_errorf("no history (yet)");
-		return (int8_t **) 0;
+		return (char **) 0;
 	}
 	return history;
 }
@@ -470,7 +470,7 @@ histbackup()
 /*
  * Return the current position.
  */
-int8_t **
+char **
 histpos()
 {
 	return current;
@@ -508,10 +508,10 @@ int
 findhist(start, fwd, str, anchored)
 	int	start;
 	int	fwd;
-	const int8_t  *str;
+	const char  *str;
 	int	anchored;
 {
-	int8_t	**hp;
+	char	**hp;
 	int	maxhist = histptr - history;
 	int	incr = fwd ? 1 : -1;
 	int	len = strlen(str);
@@ -541,11 +541,11 @@ sethistsize(n)
 
 		/* save most recent history */
 		if (n < cursize) {
-			memmove(history, histptr - n, n * sizeof(int8_t *));
+			memmove(history, histptr - n, n * sizeof(char *));
 			cursize = n;
 		}
 
-		history = (int8_t **)aresize(history, n*sizeof(int8_t *),
+		history = (char **)aresize(history, n*sizeof(char *),
 					     APERM);
 
 		histsize = n;
@@ -560,7 +560,7 @@ sethistsize(n)
  */
 void
 sethistfile(name)
-	const int8_t *name;
+	const char *name;
 {
 	/* if not started then nothing to do */
 	if (hstarted == 0)
@@ -601,9 +601,9 @@ sethistfile(name)
 void
 init_histvec()
 {
-	if (history == (int8_t **)NULL) {
+	if (history == (char **)NULL) {
 		histsize = HISTORYSIZE;
-		history = (int8_t **)alloc(histsize*sizeof (int8_t *), APERM);
+		history = (char **)alloc(histsize*sizeof (char *), APERM);
 		histptr = history - 1;
 	}
 }
@@ -615,11 +615,11 @@ init_histvec()
 void
 histsave(lno, cmd, dowrite)
 	int lno;	/* ignored (compatibility with COMPLEX_HISTORY) */
-	const int8_t *cmd;
+	const char *cmd;
 	int dowrite;	/* ignored (compatibility with COMPLEX_HISTORY) */
 {
-	register int8_t **hp = histptr;
-	int8_t *cp;
+	register char **hp = histptr;
+	char *cp;
 
 	if (++hp >= history + histsize) { /* remove oldest command */
 		afree((void*)history[0], APERM);
@@ -641,17 +641,17 @@ histsave(lno, cmd, dowrite)
  */
 void
 histappend(cmd, nl_separate)
-	const int8_t *cmd;
+	const char *cmd;
 	int	nl_separate;
 {
 	int	hlen, clen;
-	int8_t	*p;
+	char	*p;
 
 	hlen = strlen(*histptr);
 	clen = strlen(cmd);
 	if (clen > 0 && cmd[clen-1] == '\n')
 		clen--;
-	p = *histptr = (int8_t *) aresize(*histptr, hlen + clen + 2, APERM);
+	p = *histptr = (char *) aresize(*histptr, hlen + clen + 2, APERM);
 	p += hlen;
 	if (nl_separate)
 		*p++ = '\n';
@@ -671,7 +671,7 @@ void
 hist_init(s)
 	Source *s;
 {
-	int8_t *f;
+	char *f;
 	FILE *fh;
 
 	if (Flag(FTALKING) == 0)
@@ -701,8 +701,8 @@ hist_init(s)
 	if ((fh = fopen(hname, "r"))) {
 		int pos = 0, nread = 0;
 		int contin = 0;		/* continuation of previous command */
-		int8_t *end;
-		int8_t hline[LINE + 1];
+		char *end;
+		char hline[LINE + 1];
 
 		while (1) {
 			if (pos >= nread) {
@@ -739,7 +739,7 @@ hist_finish()
   static int once;
   FILE *fh;
   register int i;
-  register int8_t **hp;
+  register char **hp;
 
   if (once++)
     return;
@@ -774,11 +774,11 @@ hist_finish()
 void
 histsave(lno, cmd, dowrite)
 	int lno;
-	const int8_t *cmd;
+	const char *cmd;
 	int dowrite;
 {
-	register int8_t **hp;
-	int8_t *c, *cp;
+	register char **hp;
+	char *c, *cp;
 
 	c = str_save(cmd, APERM);
 	if ((cp = strchr(c, '\n')) != NULL)
@@ -941,7 +941,7 @@ hist_shrink(oldbase, oldbytes)
 	int oldbytes;
 {
 	int fd;
-	int8_t	nfile[1024];
+	char	nfile[1024];
 	struct	stat statb;
 	unsigned char *nbase = oldbase;
 	int nbytes = oldbytes;
@@ -1008,7 +1008,7 @@ hist_skip_back(base, bytes, no)
 		if (ep == base)
 			break;
 		if (++lines == no) {
-			*bytes = *bytes - ((int8_t *)ep - (int8_t *)base);
+			*bytes = *bytes - ((char *)ep - (char *)base);
 			return ep;
 		}
 	}
@@ -1060,7 +1060,7 @@ histload(s, base, bytes)
 				}
 				else {
 					s->line = lno;
-					histsave(lno, (int8_t *)line, 0);
+					histsave(lno, (char *)line, 0);
 				}
 				state = shdr;
 			}
@@ -1077,13 +1077,13 @@ histinsert(s, lno, line)
 	int lno;
 	unsigned char *line;
 {
-	register int8_t **hp;
+	register char **hp;
 
 	if (lno >= s->line-(histptr-history) && lno <= s->line) {
 		hp = &histptr[lno-s->line];
 		if (*hp)
 			afree((void*)*hp, APERM);
-		*hp = str_save((int8_t *)line, APERM);
+		*hp = str_save((char *)line, APERM);
 	}
 }
 
@@ -1097,13 +1097,13 @@ histinsert(s, lno, line)
 static void
 writehistfile(lno, cmd)
 	int lno;
-	int8_t *cmd;
+	char *cmd;
 {
 	int	sizenow;
 	unsigned char	*base;
 	unsigned char	*new;
 	int	bytes;
-	int8_t	hdr[5];
+	char	hdr[5];
 
 	(void) flock(histfd, LOCK_EX);
 	sizenow = lseek(histfd, 0L, SEEK_END);
@@ -1167,7 +1167,7 @@ static int
 sprinkle(fd)
 	int fd;
 {
-	static int8_t mag[] = { HMAGIC1, HMAGIC2 };
+	static char mag[] = { HMAGIC1, HMAGIC2 };
 
 	return(write(fd, mag, 2) != 2);
 }
@@ -1192,7 +1192,7 @@ hist_finish()
 void
 histsave(lno, cmd, dowrite)
 	int lno;
-	const int8_t *cmd;
+	const char *cmd;
 	int dowrite;
 {
 	errorf("history not enabled");

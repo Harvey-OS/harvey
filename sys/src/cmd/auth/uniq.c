@@ -15,8 +15,8 @@ typedef struct Who Who;
 struct Who
 {
 	Who *next;
-	int8_t *line;
-	int8_t *name;
+	char *line;
+	char *name;
 };
 
 int cmp(void *arg1, void *arg2)
@@ -27,11 +27,11 @@ int cmp(void *arg1, void *arg2)
 }
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	int changed, i, n;
 	Biobuf *b;
-	int8_t *p, *name;
+	char *p, *name;
 	Who *first, *last, *w, *nw, **l;
 
 	if(argc != 2){

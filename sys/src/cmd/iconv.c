@@ -22,7 +22,7 @@ usage(void)
 void
 writeuncompressed(int fd, Memimage *m)
 {
-	int8_t chanstr[32];
+	char chanstr[32];
 	int bpl, y, j;
 	uint8_t *buf;
 

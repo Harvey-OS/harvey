@@ -17,25 +17,25 @@
 
 Cfg cfg;
 
-int8_t	*caller = "";
-int8_t	*dbfile;
+char	*caller = "";
+char	*dbfile;
 int	debug;
 uint8_t	ipaddr[IPaddrlen];	/* my ip address */
-int8_t	*logfile = "dns";
+char	*logfile = "dns";
 int	maxage = 60*60;
-int8_t	mntpt[Maxpath];
+char	mntpt[Maxpath];
 int	needrefresh;
 uint32_t	now;
 int64_t	nowns;
 int	testing;
 int	traceactivity;
-int8_t	*zonerefreshprogram;
+char	*zonerefreshprogram;
 
 static int	readmsg(int, uint8_t*, int);
 static void	reply(int, DNSmsg*, Request*);
 static void	dnzone(DNSmsg*, DNSmsg*, Request*);
-static void	getcaller(int8_t*);
-static void	refreshmain(int8_t*);
+static void	getcaller(char*);
+static void	refreshmain(char*);
 
 void
 usage(void)
@@ -182,7 +182,7 @@ static void
 reply(int fd, DNSmsg *rep, Request *req)
 {
 	int len, rv;
-	int8_t tname[32];
+	char tname[32];
 	uint8_t buf[64*1024];
 	RR *rp;
 
@@ -219,7 +219,7 @@ reply(int fd, DNSmsg *rep, Request *req)
 extern DN	*ht[HTLEN];
 
 static int
-numelem(int8_t *name)
+numelem(char *name)
 {
 	int i;
 
@@ -231,7 +231,7 @@ numelem(int8_t *name)
 }
 
 int
-inzone(DN *dp, int8_t *name, int namelen, int depth)
+inzone(DN *dp, char *name, int namelen, int depth)
 {
 	int n;
 
@@ -314,10 +314,10 @@ out:
 }
 
 static void
-getcaller(int8_t *dir)
+getcaller(char *dir)
 {
 	int fd, n;
-	static int8_t remote[128];
+	static char remote[128];
 
 	snprint(remote, sizeof(remote), "%s/remote", dir);
 	fd = open(remote, OREAD);
@@ -334,10 +334,10 @@ getcaller(int8_t *dir)
 }
 
 static void
-refreshmain(int8_t *net)
+refreshmain(char *net)
 {
 	int fd;
-	int8_t file[128];
+	char file[128];
 
 	snprint(file, sizeof(file), "%s/dns", net);
 	if(debug)
@@ -376,10 +376,10 @@ logreply(int id, uint8_t *addr, DNSmsg *mp)
 }
 
 void
-logsend(int id, int subid, uint8_t *addr, int8_t *sname, int8_t *rname,
+logsend(int id, int subid, uint8_t *addr, char *sname, char *rname,
 	int type)
 {
-	int8_t buf[12];
+	char buf[12];
 
 	dnslog("%d.%d: sending to %I/%s %s %s",
 		id, subid, addr, sname, rname, rrname(type, buf, sizeof buf));

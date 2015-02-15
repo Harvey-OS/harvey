@@ -11,9 +11,9 @@
 #include <libc.h>
 
 void
-perror(int8_t *s)
+perror(char *s)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	buf[0] = '\0';
 	errstr(buf, sizeof buf);

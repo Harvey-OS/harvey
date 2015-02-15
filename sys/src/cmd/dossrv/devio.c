@@ -16,7 +16,7 @@
 int readonly;
 
 static int
-deverror(int8_t *name, Xfs *xf, int32_t addr, int32_t n, int32_t nret)
+deverror(char *name, Xfs *xf, int32_t addr, int32_t n, int32_t nret)
 {
 	errno = Eio;
 	if(nret < 0){
@@ -61,7 +61,7 @@ devwrite(Xfs *xf, int32_t addr, void *buf, int32_t n)
 int
 devcheck(Xfs *xf)
 {
-	int8_t buf[Sectorsize];
+	char buf[Sectorsize];
 
 	if(xf->dev < 0)
 		return -1;

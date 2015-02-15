@@ -27,7 +27,7 @@ static int readjolietdesc(Cdimg*, Voldesc*);
  *	- root directories are of length zero
  */
 Cdimg*
-createcd(int8_t *file, Cdinfo info)
+createcd(char *file, Cdinfo info)
 {
 	int fd, xfd;
 	Cdimg *cd;
@@ -92,7 +92,7 @@ createcd(int8_t *file, Cdinfo info)
 }
 
 Cdimg*
-opencd(int8_t *file, Cdinfo info)
+opencd(char *file, Cdinfo info)
 {
 	int fd, xfd;
 	Cdimg *cd;
@@ -204,10 +204,10 @@ Creadblock(Cdimg *cd, void *buf, uint32_t block, uint32_t len)
 
 int
 parsedir(Cdimg *cd, Direc *d, uint8_t *buf, int len,
-	 int8_t *(*cvtname)(uint8_t*, int))
+	 char *(*cvtname)(uint8_t*, int))
 {
 	enum { NAMELEN = 28 };
-	int8_t name[NAMELEN];
+	char name[NAMELEN];
 	uint8_t *p;
 	Cdir *c;
 
@@ -307,7 +307,7 @@ setpathtable(Cdimg *cd, uint32_t block, uint32_t sz, uint32_t lloc,
 
 
 static void
-parsedesc(Voldesc *v, Cvoldesc *cv, int8_t *(*string)(uint8_t*, int))
+parsedesc(Voldesc *v, Cvoldesc *cv, char *(*string)(uint8_t*, int))
 {
 	v->systemid = string(cv->systemid, sizeof cv->systemid);
 
@@ -488,7 +488,7 @@ Crepeat(Cdimg *cd, int c, int n)
 }
 
 void
-Cputs(Cdimg *cd, int8_t *s, int size)
+Cputs(Cdimg *cd, char *s, int size)
 {
 	int n;
 
@@ -548,7 +548,7 @@ Cputrs(Cdimg *cd, Rune *s, int osize)
 }
 
 void
-Cputrscvt(Cdimg *cd, int8_t *s, int size)
+Cputrscvt(Cdimg *cd, char *s, int size)
 {
 	Rune r[256];
 
@@ -595,7 +595,7 @@ void
 Cputdate1(Cdimg *cd, uint32_t ust)
 {
 	Tm *tm;
-	int8_t str[20];
+	char str[20];
 
 	if(ust == 0) {
 		Crepeat(cd, '0', 16);
@@ -666,7 +666,7 @@ Cread(Cdimg *cd, void *buf, int n)
 		sysfatal("Bread: %r");
 }
 
-int8_t*
+char*
 Crdline(Cdimg *cd, int c)
 {
 	Cwflush(cd);

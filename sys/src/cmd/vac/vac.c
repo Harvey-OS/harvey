@@ -38,19 +38,19 @@ struct
 int qdiff;
 int merge;
 int verbose;
-int8_t *host;
+char *host;
 VtConn *z;
 VacFs *fs;
-int8_t *archivefile;
-int8_t *vacfile;
+char *archivefile;
+char *vacfile;
 
-int vacmerge(VacFile*, int8_t*);
-void vac(VacFile*, VacFile*, int8_t*, Dir*);
-void vacstdin(VacFile*, int8_t*);
-VacFile *recentarchive(VacFs*, int8_t*);
+int vacmerge(VacFile*, char*);
+void vac(VacFile*, VacFile*, char*, Dir*);
+void vacstdin(VacFile*, char*);
+VacFile *recentarchive(VacFs*, char*);
 
-static uint64_t unittoull(int8_t*);
-static void warn(int8_t *fmt, ...);
+static uint64_t unittoull(char*);
+static void warn(char *fmt, ...);
 static void removevacfile(void);
 
 void
@@ -296,14 +296,14 @@ threadmain(int argc, char **argv)
 }
 
 VacFile*
-recentarchive(VacFs *fs, int8_t *path)
+recentarchive(VacFs *fs, char *path)
 {
 	VacFile *fp, *f;
 	VacDirEnum *de;
 	VacDir vd;
-	int8_t buf[10];
+	char buf[10];
 	int year, mmdd, nn, n, n1;
-	int8_t *p;
+	char *p;
 	
 	fp = vacfsgetroot(fs);
 	de = vdeopen(fp);
@@ -420,10 +420,10 @@ plan9tovacdir(VacDir *vd, Dir *dir)
  * equivalent directory to fp in that archive is diffp.
  */
 void
-vac(VacFile *fp, VacFile *diffp, int8_t *name, Dir *d)
+vac(VacFile *fp, VacFile *diffp, char *name, Dir *d)
 {
-	int8_t *elem, *s;
-	static int8_t buf[65536];
+	char *elem, *s;
+	static char buf[65536];
 	int fd, i, n, bsize;
 	int64_t off;
 	Dir *dk;	// kids
@@ -563,11 +563,11 @@ Out:
 }
 
 void
-vacstdin(VacFile *fp, int8_t *name)
+vacstdin(VacFile *fp, char *name)
 {
 	int64_t off;
 	VacFile *f;
-	static int8_t buf[8192];
+	static char buf[8192];
 	int n;
 
 	if((f = vacfilecreate(fp, name, 0666)) == nil){
@@ -597,7 +597,7 @@ vacstdin(VacFile *fp, int8_t *name)
  * max is the maximum qid we expect to see (not really needed).
  */
 int
-vacmergefile(VacFile *fp, VacFile *mp, VacDir *d, int8_t *vacfile,
+vacmergefile(VacFile *fp, VacFile *mp, VacDir *d, char *vacfile,
 	int64_t offset, int64_t max)
 {
 	VtEntry ed, em;
@@ -643,7 +643,7 @@ vacmergefile(VacFile *fp, VacFile *mp, VacDir *d, int8_t *vacfile,
 }
 
 int
-vacmerge(VacFile *fp, int8_t *name)
+vacmerge(VacFile *fp, char *name)
 {
 	VacFs *mfs;
 	VacDir vd;
@@ -687,9 +687,9 @@ vacmerge(VacFile *fp, int8_t *name)
 #define TWID64	((uint64_t)~(uint64_t)0)
 
 static uint64_t
-unittoull(int8_t *s)
+unittoull(char *s)
 {
-	int8_t *es;
+	char *es;
 	uint64_t n;
 
 	if(s == nil)
@@ -711,7 +711,7 @@ unittoull(int8_t *s)
 }
 
 static void
-warn(int8_t *fmt, ...)
+warn(char *fmt, ...)
 {
 	va_list arg;
 

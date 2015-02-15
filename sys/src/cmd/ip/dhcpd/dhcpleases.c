@@ -14,10 +14,10 @@
 #include <ip.h>
 #include <dat.h>
 
-extern	int8_t *binddir;
+extern	char *binddir;
 
 int32_t now;
-int8_t *blog = "ipboot";
+char *blog = "ipboot";
 int minlease = MinLease;
 
 void

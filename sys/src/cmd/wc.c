@@ -59,9 +59,9 @@ wc(Biobuf *bin)
 
 static void
 report(uint64_t nline, uint64_t nword, uint64_t nrune, uint64_t nbadr,
-       uint64_t nchar, int8_t *fname)
+       uint64_t nchar, char *fname)
 {
-	int8_t line[1024], *s, *e;
+	char line[1024], *s, *e;
 
 	s = line;
 	e = line + sizeof line;

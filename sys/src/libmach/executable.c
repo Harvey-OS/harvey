@@ -58,8 +58,8 @@ static	uint64_t	_round(uint64_t, uint32_t);
 
 typedef struct Exectable{
 	int32_t	magic;			/* big-endian magic number of file */
-	int8_t	*name;			/* executable identifier */
-	int8_t	*dlmname;		/* dynamically loadable module identifier */
+	char	*name;			/* executable identifier */
+	char	*dlmname;		/* dynamically loadable module identifier */
 	uint8_t	type;			/* Internal code */
 	uint8_t	_magic;			/* _MAGIC() magic */
 	Mach	*mach;			/* Per-machine data */
@@ -298,7 +298,7 @@ crackhdr(int fd, Fhdr *fp)
 	uint32_t magic;
 
 	fp->type = FNONE;
-	nb = read(fd, (int8_t *)&d.e, sizeof(d.e));
+	nb = read(fd, (char *)&d.e, sizeof(d.e));
 	if (nb <= 0)
 		return 0;
 

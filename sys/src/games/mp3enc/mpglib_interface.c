@@ -56,7 +56,7 @@ int lame_decode1_headers(
         { 0, 384, 1152, 1152 }, /* MPEG-1     */
         { 0, 384, 1152,  576 }  /* MPEG-2(.5) */
     };
-    static int8_t        out  [8192];
+    static char        out  [8192];
     signed short int*  p = (signed short int*) out;
     int                processed_bytes;
     int                processed_samples;  // processed samples per channel
@@ -65,7 +65,7 @@ int lame_decode1_headers(
 
     mp3data->header_parsed = 0;
   
-    ret = decodeMP3 ( &mp, buffer, len, (int8_t*)p, sizeof(out),
+    ret = decodeMP3 ( &mp, buffer, len, (char*)p, sizeof(out),
                      &processed_bytes );
 
     if ( mp.header_parsed ) {

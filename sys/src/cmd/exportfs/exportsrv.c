@@ -14,18 +14,18 @@
 #define Extern	extern
 #include "exportfs.h"
 
-extern int8_t *netdir, *local, *remote;
+extern char *netdir, *local, *remote;
 
-int8_t Ebadfid[] = "Bad fid";
-int8_t Enotdir[] = "Not a directory";
-int8_t Edupfid[] = "Fid already in use";
-int8_t Eopen[] = "Fid already opened";
-int8_t Exmnt[] = "Cannot .. past mount point";
-int8_t Emip[] = "Mount in progress";
-int8_t Enopsmt[] = "Out of pseudo mount points";
-int8_t Enomem[] = "No memory";
-int8_t Eversion[] = "Bad 9P2000 version";
-int8_t Ereadonly[] = "File system read only";
+char Ebadfid[] = "Bad fid";
+char Enotdir[] = "Not a directory";
+char Edupfid[] = "Fid already in use";
+char Eopen[] = "Fid already opened";
+char Exmnt[] = "Cannot .. past mount point";
+char Emip[] = "Mount in progress";
+char Enopsmt[] = "Out of pseudo mount points";
+char Enomem[] = "No memory";
+char Eversion[] = "Bad 9P2000 version";
+char Ereadonly[] = "File system read only";
 
 uint32_t messagesize;
 int readonly;
@@ -90,7 +90,7 @@ Xattach(Fsrpc *t)
 	int i, nfd;
 	Fcall rhdr;
 	Fid *f;
-	int8_t buf[128];
+	char buf[128];
 
 	f = newfid(t->work.fid);
 	if(f == 0) {
@@ -163,7 +163,7 @@ clonefid(Fid *f, int new)
 void
 Xwalk(Fsrpc *t)
 {
-	int8_t err[ERRMAX], *e;
+	char err[ERRMAX], *e;
 	Fcall rhdr;
 	Fid *f, *nf;
 	File *wf;
@@ -245,7 +245,7 @@ Xclunk(Fsrpc *t)
 void
 Xstat(Fsrpc *t)
 {
-	int8_t err[ERRMAX], *path;
+	char err[ERRMAX], *path;
 	Fcall rhdr;
 	Fid *f;
 	Dir *d;
@@ -299,7 +299,7 @@ getiounit(int fd)
 void
 Xcreate(Fsrpc *t)
 {
-	int8_t err[ERRMAX], *path;
+	char err[ERRMAX], *path;
 	Fcall rhdr;
 	Fid *f;
 	File *nf;
@@ -347,7 +347,7 @@ Xcreate(Fsrpc *t)
 void
 Xremove(Fsrpc *t)
 {
-	int8_t err[ERRMAX], *path;
+	char err[ERRMAX], *path;
 	Fcall rhdr;
 	Fid *f;
 
@@ -386,11 +386,11 @@ Xremove(Fsrpc *t)
 void
 Xwstat(Fsrpc *t)
 {
-	int8_t err[ERRMAX], *path;
+	char err[ERRMAX], *path;
 	Fcall rhdr;
 	Fid *f;
 	int s;
-	int8_t *strings;
+	char *strings;
 	Dir d;
 
 	if(readonly) {
@@ -441,11 +441,11 @@ Xwstat(Fsrpc *t)
  * actually just sets the arguments displayed.
  */
 void
-procsetname(int8_t *fmt, ...)
+procsetname(char *fmt, ...)
 {
 	int fd;
-	int8_t *cmdname;
-	int8_t buf[128];
+	char *cmdname;
+	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -582,7 +582,7 @@ int
 openmount(int sfd)
 {
 	int p[2];
-	int8_t *arg[10], fdbuf[20], mbuf[20];
+	char *arg[10], fdbuf[20], mbuf[20];
 
 	if(pipe(p) < 0)
 		return -1;
@@ -621,7 +621,7 @@ openmount(int sfd)
 void
 slaveopen(Fsrpc *p)
 {
-	int8_t err[ERRMAX], *path;
+	char err[ERRMAX], *path;
 	Fcall *work, rhdr;
 	Fid *f;
 	Dir *d;
@@ -678,7 +678,7 @@ slaveread(Fsrpc *p)
 	Fid *f;
 	int n, r;
 	Fcall *work, rhdr;
-	int8_t *data, err[ERRMAX];
+	char *data, err[ERRMAX];
 
 	work = &p->work;
 
@@ -720,7 +720,7 @@ slaveread(Fsrpc *p)
 void
 slavewrite(Fsrpc *p)
 {
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	Fcall *work, rhdr;
 	Fid *f;
 	int n;
@@ -759,7 +759,7 @@ reopen(Fid *f)
 }
 
 void
-flushaction(void *a, int8_t *cause)
+flushaction(void *a, char *cause)
 {
 	USED(a);
 	if(strncmp(cause, "sys:", 4) == 0 && !strstr(cause, "pipe")) {

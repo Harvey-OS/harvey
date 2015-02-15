@@ -36,7 +36,7 @@ void	hmoveto(int, int32_t);
 void	hsetsnarf(int);
 void	hplumb(int);
 void	clrlock(void);
-int	snarfswap(int8_t*, int, int8_t**);
+int	snarfswap(char*, int, char**);
 
 void
 rcv(void)
@@ -167,7 +167,7 @@ inmesg(Hmesg type, int count)
 				m = 1;
 			else m = 0;
 			for(; m<nname; m++)
-				if(strcmp((int8_t*)indata+2, (int8_t*)name[m]+1)<0)
+				if(strcmp((char*)indata+2, (char*)name[m]+1)<0)
 					break;
 		}
 		menuins(m, indata+2, t, i, (int)l);
@@ -282,7 +282,7 @@ inmesg(Hmesg type, int count)
 		break;
 
 	case Hsetpat:
-		setpat((int8_t *)indata);
+		setpat((char *)indata);
 		break;
 
 	case Hsetsnarf:
@@ -435,8 +435,8 @@ outTv(Tmesg type, int64_t v1)
 void
 outTslS(Tmesg type, int s1, int32_t l1, Rune *s)
 {
-	int8_t buf[DATASIZE*3+1];
-	int8_t *c;
+	char buf[DATASIZE*3+1];
+	char *c;
 
 	outstart(type);
 	outshort(s1);
@@ -516,7 +516,7 @@ outsend(void)
 		panic("outcount>sizeof outdata");
 	outdata[1]=outcount;
 	outdata[2]=outcount>>8;
-	if(write(1, (int8_t *)outdata, outcount+HSIZE)!=outcount+HSIZE)
+	if(write(1, (char *)outdata, outcount+HSIZE)!=outcount+HSIZE)
 		panic("write error");
 }
 
@@ -637,8 +637,8 @@ flnewlyvisible(Flayer *l)
 void
 hsetsnarf(int nc)
 {
-	int8_t *s2;
-	int8_t *s1;
+	char *s2;
+	char *s1;
 	int i;
 	int n;
 
@@ -677,7 +677,7 @@ void
 hplumb(int nc)
 {
 	int i;
-	int8_t *s;
+	char *s;
 	Plumbmsg *m;
 
 	s = alloc(nc);
@@ -761,7 +761,7 @@ hdata(int m, int32_t a, uint8_t *s, int len)
 		return 0;
 	r = buf;
 	for(i=0; i<len; i+=w,s+=w)
-		w = chartorune(r++, (int8_t*)s);
+		w = chartorune(r++, (char*)s);
 	return hdata1(t, a, buf, r-buf);
 }
 

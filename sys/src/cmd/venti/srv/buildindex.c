@@ -22,7 +22,7 @@ enum
 
 int		dumb;
 int		errors;
-int8_t		**isect;
+char		**isect;
 int		nisect;
 int		bloom;
 int		zero;

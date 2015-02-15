@@ -14,12 +14,12 @@
 #include <thread.h>
 #include <9p.h>
 
-static int8_t Ebad[] = "something bad happened";
-static int8_t Enomem[] = "no memory";
+static char Ebad[] = "something bad happened";
+static char Enomem[] = "no memory";
 
 typedef struct Ramfile	Ramfile;
 struct Ramfile {
-	int8_t *data;
+	char *data;
 	int ndata;
 };
 

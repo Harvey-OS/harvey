@@ -18,7 +18,7 @@ static int
 p_seprint(Msg *m)
 {
 	Fcall f;
-	int8_t *p;
+	char *p;
 
 	memset(&f, 0, sizeof(f));
 	f.type = 0;

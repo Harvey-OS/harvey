@@ -24,9 +24,9 @@
 //
 
 Reprog*
-glob2regexp(int8_t *glob)
+glob2regexp(char *glob)
 {
-	int8_t *s, *p, *w;
+	char *s, *p, *w;
 	Reprog *re;
 	int boe;	// beginning of path element
 
@@ -121,10 +121,10 @@ Pattern *pattern;
 int npattern;
 
 void
-loadexcludefile(int8_t *file)
+loadexcludefile(char *file)
 {
 	Biobuf *b;
-	int8_t *p, *q;
+	char *p, *q;
 	int n, inc;
 	Reprog *re;
 
@@ -163,7 +163,7 @@ loadexcludefile(int8_t *file)
 }
 
 void
-excludepattern(int8_t *p)
+excludepattern(char *p)
 {
 	Reprog *re;
 	
@@ -177,7 +177,7 @@ excludepattern(int8_t *p)
 }
 
 int
-includefile(int8_t *file)
+includefile(char *file)
 {
 	Pattern *p, *ep;
 	

@@ -47,7 +47,7 @@ void font(int p1, int p2)
 
 void globfont(void)
 {
-	int8_t temp[20];
+	char temp[20];
 
 	getstr(temp, sizeof(temp));
 	yyval = eqnreg = 0;

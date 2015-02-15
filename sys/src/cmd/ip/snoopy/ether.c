@@ -18,7 +18,7 @@ struct Hdr {
 	uint8_t	d[6];
 	uint8_t	s[6];
 	uint8_t	type[2];
-	int8_t	data[1500];
+	char	data[1500];
 };
 
 #define	ETHERMINTU	60	/* minimum transmit size */

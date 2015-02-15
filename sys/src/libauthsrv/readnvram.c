@@ -11,12 +11,12 @@
 #include <libc.h>
 #include <authsrv.h>
 
-static int32_t	finddosfile(int, int8_t*);
+static int32_t	finddosfile(int, char*);
 
 static int nvramdebug;
 
 static int
-check(void *x, int len, uint8_t sum, int8_t *msg)
+check(void *x, int len, uint8_t sum, char *msg)
 {
 	if(nvcsum(x, len) == sum)
 		return 0;
@@ -30,8 +30,8 @@ check(void *x, int len, uint8_t sum, int8_t *msg)
  *  a disk partition there.
  */
 static struct {
-	int8_t *cputype;
-	int8_t *file;
+	char *cputype;
+	char *file;
 	int off;
 	int len;
 } nvtab[] = {
@@ -64,11 +64,11 @@ static struct {
 	"debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
 };
 
-static int8_t*
-readcons(int8_t *prompt, int8_t *def, int raw, int8_t *buf, int nbuf)
+static char*
+readcons(char *prompt, char *def, int raw, char *buf, int nbuf)
 {
 	int fdin, fdout, ctl, n, m;
-	int8_t line[10];
+	char line[10];
 
 	fdin = open("/dev/cons", OREAD);
 	if(fdin < 0)
@@ -142,13 +142,13 @@ typedef struct {
 	int	safelen;
 } Nvrwhere;
 
-static int8_t *nvrfile = nil, *cputype = nil;
+static char *nvrfile = nil, *cputype = nil;
 
 /* returns with *locp filled in and locp->fd open, if possible */
 static void
 findnvram(Nvrwhere *locp)
 {
-	int8_t *nvrlen, *nvroff, *nvrcopy, *db, *v[2];
+	char *nvrlen, *nvroff, *nvrcopy, *db, *v[2];
 	int fd, i, safeoff, safelen;
 
 	if (nvrfile == nil) {
@@ -244,7 +244,7 @@ int
 readnvram(Nvrsafe *safep, int flag)
 {
 	int err;
-	int8_t buf[512], in[128];		/* 512 for floppy i/o */
+	char buf[512], in[128];		/* 512 for floppy i/o */
 	Nvrsafe *safe;
 	Nvrwhere loc;
 
@@ -382,8 +382,8 @@ struct Dosboot{
 typedef struct Dosdir	Dosdir;
 struct Dosdir
 {
-	int8_t	name[8];
-	int8_t	ext[3];
+	char	name[8];
+	char	ext[3];
 	uint8_t	attr;
 	uint8_t	reserved[10];
 	uint8_t	time[2];
@@ -392,10 +392,10 @@ struct Dosdir
 	uint8_t	length[4];
 };
 
-static int8_t*
-dosparse(int8_t *from, int8_t *to, int len)
+static char*
+dosparse(char *from, char *to, int len)
 {
-	int8_t c;
+	char c;
 
 	memset(to, ' ', len);
 	if(from == 0)
@@ -429,11 +429,11 @@ dosparse(int8_t *from, int8_t *to, int len)
  *  runs only at boottime -- presotto.
  */
 static int32_t
-finddosfile(int fd, int8_t *file)
+finddosfile(int fd, char *file)
 {
 	uint8_t secbuf[512];
-	int8_t name[8];
-	int8_t ext[3];
+	char name[8];
+	char ext[3];
 	Dosboot	*b;
 	Dosdir *root, *dp;
 	int nroot, sectsize, rootoff, rootsects, n;

@@ -43,9 +43,9 @@ typedef struct Srv Srv;
 struct Fid
 {
 	uint32_t	fid;
-	int8_t		omode;	/* -1 = not open */
+	char		omode;	/* -1 = not open */
 	File*		file;
-	int8_t*	uid;
+	char*	uid;
 	Qid		qid;
 	void*	aux;
 
@@ -77,7 +77,7 @@ struct Req
 	uint8_t*	buf;
 	uint8_t	type;
 	uint8_t	responded;
-	int8_t*	error;
+	char*	error;
 	void*	rbuf;
 	Req**	flush;
 	int		nflush;
@@ -145,12 +145,12 @@ struct Tree {
 	uint32_t dirqidgen;
 };
 
-Tree*	alloctree(int8_t*, int8_t*, uint32_t, void(*destroy)(File*));
+Tree*	alloctree(char*, char*, uint32_t, void(*destroy)(File*));
 void		freetree(Tree*);
-File*		createfile(File*, int8_t*, int8_t*, uint32_t, void*);
+File*		createfile(File*, char*, char*, uint32_t, void*);
 int		removefile(File*);
 void		closefile(File*);
-File*		walkfile(File*, int8_t*);
+File*		walkfile(File*, char*);
 Readdir*	opendirfile(File*);
 int32_t		readdirfile(Readdir*, uint8_t*, int32_t);
 void		closedirfile(Readdir*);
@@ -160,21 +160,21 @@ void		closedirfile(Readdir*);
  */
 typedef struct Cmdbuf Cmdbuf;
 typedef struct Cmdtab Cmdtab;
-Cmdbuf*		parsecmd(int8_t *a, int n);
-void		respondcmderror(Req*, Cmdbuf*, int8_t*, ...);
+Cmdbuf*		parsecmd(char *a, int n);
+void		respondcmderror(Req*, Cmdbuf*, char*, ...);
 Cmdtab*	lookupcmd(Cmdbuf*, Cmdtab*, int);
 #pragma varargck argpos respondcmderr 3
 struct Cmdbuf
 {
-	int8_t	*buf;
-	int8_t	**f;
+	char	*buf;
+	char	**f;
 	int	nf;
 };
 
 struct Cmdtab
 {
 	int	index;	/* used by client to switch on result */
-	int8_t	*cmd;	/* command name */
+	char	*cmd;	/* command name */
 	int	narg;	/* expected #args; 0 ==> variadic */
 };
 
@@ -199,15 +199,15 @@ struct Srv {
 	void		(*stat)(Req*);
 	void		(*wstat)(Req*);
 	void		(*walk)(Req*);
-	int8_t*	(*clone)(Fid*, Fid*);
-	int8_t*	(*walk1)(Fid*, int8_t*, Qid*);
+	char*	(*clone)(Fid*, Fid*);
+	char*	(*walk1)(Fid*, char*, Qid*);
 
 	int		infd;
 	int		outfd;
 	int		nopipe;
 	int		srvfd;
 	int		leavefdsopen;	/* magic for acme win */
-	int8_t*	keyspec;
+	char*	keyspec;
 
 /* below is implementation-specific; don't use */
 	Fidpool*	fpool;
@@ -219,38 +219,38 @@ struct Srv {
 	uint8_t*	wbuf;
 	QLock	wlock;
 	
-	int8_t*	addr;
+	char*	addr;
 };
 
 void		srv(Srv*);
-void		postmountsrv(Srv*, int8_t*, int8_t*, int);
-void		_postmountsrv(Srv*, int8_t*, int8_t*, int);
-void		listensrv(Srv*, int8_t*);
-void		_listensrv(Srv*, int8_t*);
-int 		postfd(int8_t*, int);
+void		postmountsrv(Srv*, char*, char*, int);
+void		_postmountsrv(Srv*, char*, char*, int);
+void		listensrv(Srv*, char*);
+void		_listensrv(Srv*, char*);
+int 		postfd(char*, int);
 int		chatty9p;
-void		respond(Req*, int8_t*);
+void		respond(Req*, char*);
 void		responderror(Req*);
-void		threadpostmountsrv(Srv*, int8_t*, int8_t*, int);
-void		threadlistensrv(Srv *s, int8_t *addr);
+void		threadpostmountsrv(Srv*, char*, char*, int);
+void		threadlistensrv(Srv *s, char *addr);
 
 /*
  * Helper.  Assumes user is same as group.
  */
-int		hasperm(File*, int8_t*, int);
+int		hasperm(File*, char*, int);
 
 void*	emalloc9p(uint32_t);
 void*	erealloc9p(void*, uint32_t);
-int8_t*	estrdup9p(int8_t*);
+char*	estrdup9p(char*);
 
 enum {
 	OMASK = 3
 };
 
-void		readstr(Req*, int8_t*);
+void		readstr(Req*, char*);
 void		readbuf(Req*, void*, int32_t);
-void		walkandclone(Req*, int8_t*(*walk1)(Fid*,int8_t*,void*), 
-			int8_t*(*clone)(Fid*,Fid*,void*), void*);
+void		walkandclone(Req*, char*(*walk1)(Fid*,char*,void*), 
+			char*(*clone)(Fid*,Fid*,void*), void*);
 
 void		auth9p(Req*);
 void		authread(Req*);

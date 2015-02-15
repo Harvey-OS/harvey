@@ -20,14 +20,14 @@ tforker(void (*fn)(void*), void *arg, int rflag)
 }
 
 void
-threadlistensrv(Srv *s, int8_t *addr)
+threadlistensrv(Srv *s, char *addr)
 {
 	_forker = tforker;
 	_listensrv(s, addr);
 }
 
 void
-threadpostmountsrv(Srv *s, int8_t *name, int8_t *mtpt, int flag)
+threadpostmountsrv(Srv *s, char *name, char *mtpt, int flag)
 {
 	_forker = tforker;
 	_postmountsrv(s, name, mtpt, flag);

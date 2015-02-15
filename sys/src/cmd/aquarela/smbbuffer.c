@@ -146,7 +146,7 @@ smbbufferputbytes(SmbBuffer *s, void *data, uint32_t datalen)
 
 int
 smbbufferputstring(SmbBuffer *b, SmbPeerInfo *p, uint32_t flags,
-		   int8_t *string)
+		   char *string)
 {
 	int n = smbstringput(p, flags, b->buf, b->wn, b->maxlen, string);
 	if (n <= 0)
@@ -156,7 +156,7 @@ smbbufferputstring(SmbBuffer *b, SmbPeerInfo *p, uint32_t flags,
 }
 
 int
-smbbufferputstrn(SmbBuffer *s, int8_t *string, int size, int upcase)
+smbbufferputstrn(SmbBuffer *s, char *string, int size, int upcase)
 {
 	int n = smbstrnput(s->buf, s->wn, s->maxlen, string, size, upcase);
 	if (n <= 0)
@@ -274,7 +274,7 @@ smbbuffergets(SmbBuffer *b, uint16_t *sp)
 }
 
 int
-smbbuffergetstrn(SmbBuffer *b, uint16_t size, int8_t **sp)
+smbbuffergetstrn(SmbBuffer *b, uint16_t size, char **sp)
 {
 	uint8_t *np;
 	if (size > b->wn - b->rn)
@@ -282,22 +282,22 @@ smbbuffergetstrn(SmbBuffer *b, uint16_t size, int8_t **sp)
 	np = memchr(b->buf + b->rn, 0, size);
 	if (np == nil)
 		return 0;
-	*sp = strdup((int8_t *)b->buf + b->rn);
+	*sp = strdup((char *)b->buf + b->rn);
 	b->rn += size;
 	return 1;
 }
 
 int
-smbbuffergetstr(SmbBuffer *b, uint32_t flags, int8_t **sp)
+smbbuffergetstr(SmbBuffer *b, uint32_t flags, char **sp)
 {
 	int c;
-	int8_t *p;
+	char *p;
 	uint8_t *np;
 
 	np = memchr(b->buf + b->rn, 0, b->wn - b->rn);
 	if (np == nil)
 		return 0;
-	*sp = strdup((int8_t *)b->buf + b->rn);
+	*sp = strdup((char *)b->buf + b->rn);
 	for (p = *sp; *p != 0; p++) {
 		c = *p;
 		if (c >= 'a' && c <= 'z' && (flags & SMB_STRING_UPCASE))
@@ -318,25 +318,25 @@ smbbuffergetstr(SmbBuffer *b, uint32_t flags, int8_t **sp)
 }
 
 int
-smbbuffergetstrinline(SmbBuffer *b, int8_t **sp)
+smbbuffergetstrinline(SmbBuffer *b, char **sp)
 {
 	uint8_t *np;
 	np = memchr(b->buf + b->rn, 0, b->wn - b->rn);
 	if (np == nil)
 		return 0;
-	*sp = (int8_t *)b->buf + b->rn;
+	*sp = (char *)b->buf + b->rn;
 	b->rn = np - b->buf + 1;
 	return 1;
 }
 
 int
-smbbuffergetucs2(SmbBuffer *b, uint32_t flags, int8_t **sp)
+smbbuffergetucs2(SmbBuffer *b, uint32_t flags, char **sp)
 {
 	uint8_t *bdata = b->buf + b->rn;
 	uint8_t *edata = b->buf + b->wn;
 	Rune r;
 	int l;
-	int8_t *p, *q;
+	char *p, *q;
 	uint8_t *savebdata;
 	int first;
 
@@ -381,7 +381,7 @@ smbbuffergetucs2(SmbBuffer *b, uint32_t flags, int8_t **sp)
 }
 
 int
-smbbuffergetstring(SmbBuffer *b, SmbHeader *h, uint32_t flags, int8_t **sp)
+smbbuffergetstring(SmbBuffer *b, SmbHeader *h, uint32_t flags, char **sp)
 {
 	if (flags & SMB_STRING_UNICODE)
 		return smbbuffergetucs2(b, flags, sp);
@@ -591,7 +591,7 @@ smbbuffercopy(SmbBuffer *to, SmbBuffer *from, uint32_t amount)
 }
 
 int
-smbbufferoffsetcopystr(SmbBuffer *b, uint32_t offset, int8_t *buf,
+smbbufferoffsetcopystr(SmbBuffer *b, uint32_t offset, char *buf,
 		       int buflen,
 		       int *lenp)
 {

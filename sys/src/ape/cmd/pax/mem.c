@@ -49,8 +49,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: mem.c,v 1.2 89/02/12 10:04:53 mark Exp $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: mem.c,v 1.2 89/02/12 10:04:53 mark Exp $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -87,7 +87,7 @@ static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights rese
 
 #ifdef __STDC__
 
-int8_t *mem_get(uint len)
+char *mem_get(uint len)
 
 #else
 
@@ -96,10 +96,10 @@ uint            len;		/* amount of memory to get */
 
 #endif
 {
-    int8_t           *mem;
+    char           *mem;
     static int16_t    outofmem = 0;
 
-    if ((mem = (int8_t *)malloc(len)) == (int8_t *)NULL && !outofmem) {
+    if ((mem = (char *)malloc(len)) == (char *)NULL && !outofmem) {
 	outofmem++;
 	warn("mem_get()", "Out of memory");
     }
@@ -129,7 +129,7 @@ uint            len;		/* amount of memory to get */
 
 #ifdef __STDC__
 
-int8_t *mem_str(int8_t *str)
+char *mem_str(char *str)
 
 #else
 
@@ -138,7 +138,7 @@ char           *str;		/* string to make a copy of */
 
 #endif
 {
-    int8_t           *mem;
+    char           *mem;
 
     if (mem = mem_get((uint) strlen(str) + 1)) {
 	strcpy(mem, str);

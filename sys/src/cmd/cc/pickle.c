@@ -9,17 +9,17 @@
 
 #include "cc.h"
 
-static int8_t *kwd[] =
+static char *kwd[] =
 {
 	"$adt", "$aggr", "$append", "$complex", "$defn",
 	"$delete", "$do", "$else", "$eval", "$head", "$if",
 	"$local", "$loop", "$return", "$tail", "$then",
 	"$union", "$whatis", "$while",
 };
-static int8_t picklestr[] = "\tpickle(s, un, ";
+static char picklestr[] = "\tpickle(s, un, ";
 
-static int8_t*
-pmap(int8_t *s)
+static char*
+pmap(char *s)
 {
 	int i, bot, top, new;
 
@@ -66,7 +66,7 @@ picklefun(Type *t)
 	return 0;
 }
 
-int8_t	picklechar[NTYPE];
+char	picklechar[NTYPE];
 Init	picklecinit[] =
 {
 	TCHAR,		'C',	0,
@@ -179,7 +179,7 @@ pickletype(Type *t)
 	Type *l;
 	Io *i;
 	int n;
-	int8_t *an;
+	char *an;
 
 	if(!debug['P'])
 		return;

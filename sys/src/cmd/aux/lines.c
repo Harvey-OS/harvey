@@ -12,10 +12,10 @@
 #include <bio.h>
 
 void
-cat(int f, int8_t *s)
+cat(int f, char *s)
 {
 	Biobuf b;
-	int8_t *p;
+	char *p;
 
 	Binit(&b, f, OREAD);
 	while((p = Brdline(&b, '\n')) != nil)
@@ -25,7 +25,7 @@ cat(int f, int8_t *s)
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int f, i;
 

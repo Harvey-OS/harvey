@@ -500,7 +500,7 @@ i8042intr(Ureg*, void*)
 void
 i8042auxenable(void (*putc)(int, int))
 {
-	int8_t *err = "i8042: aux init failed\n";
+	char *err = "i8042: aux init failed\n";
 
 	/* enable kbd/aux xfers and interrupts */
 	ccc &= ~Cauxdis;
@@ -525,7 +525,7 @@ i8042auxenable(void (*putc)(int, int))
 	iunlock(&i8042lock);
 }
 
-static int8_t *initfailed = "i8042: kbdinit failed\n";
+static char *initfailed = "i8042: kbdinit failed\n";
 
 static int
 outbyte(int port, int c)

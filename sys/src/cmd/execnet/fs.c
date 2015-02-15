@@ -49,7 +49,7 @@ enum
 typedef struct Tab Tab;
 struct Tab
 {
-	int8_t *name;
+	char *name;
 	uint32_t mode;
 };
 
@@ -67,7 +67,7 @@ Tab tab[] =
 };
 
 void
-setexecname(int8_t *s)
+setexecname(char *s)
 {
 	tab[Qexec].name = s;
 }
@@ -79,7 +79,7 @@ fillstat(Dir *d, uint32_t path)
 {
 	Tab *t;
 	int type;
-	int8_t buf[32];
+	char buf[32];
 
 	memset(d, 0, sizeof(*d));
 	d->uid = estrdup("exec");
@@ -147,7 +147,7 @@ conngen(int i, Dir *d, void *aux)
 	return -1;
 }
 
-int8_t *statusstr[] = 
+char *statusstr[] = 
 {
 	"Closed",
 	"Exec",
@@ -158,7 +158,7 @@ int8_t *statusstr[] =
 static void
 fsread(Req *r)
 {
-	int8_t e[ERRMAX], *s;
+	char e[ERRMAX], *s;
 	uint32_t path;
 
 	path = r->fid->qid.path;
@@ -218,7 +218,7 @@ fsread(Req *r)
 static void
 fswrite(Req *r)
 {
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 	uint32_t path;
 
 	path = r->fid->qid.path;
@@ -273,10 +273,10 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
-	int8_t buf[32];
+	char buf[32];
 	int i, n;
 	uint32_t path;
 

@@ -22,7 +22,7 @@
 void
 printsource(int32_t dot)
 {
-	int8_t str[STRINGSZ];
+	char str[STRINGSZ];
 
 	if (fileline(str, STRINGSZ, dot))
 		Bprint(bioout, "%s", str);
@@ -69,7 +69,7 @@ stktrace(int modif)
 	uint32_t pc, sp;
 	Symbol s, f;
 	int i;
-	int8_t buf[512];
+	char buf[512];
 
 	pc = reg.pc;
 	sp = reg.r[29];

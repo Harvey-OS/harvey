@@ -10,14 +10,14 @@
 #include <u.h>
 #include <libc.h>
 
-void error(int8_t *);
+void error(char *);
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Dir *d;
 	int swapfd, cswfd;
-	int8_t buf[128], *p;
+	char buf[128], *p;
 	int i, j;
 
 	if(argc != 2) {
@@ -68,7 +68,7 @@ main(int argc, int8_t **argv)
 }
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	perror(s);
 	exits(s);

@@ -64,7 +64,7 @@ const gx_io_device gs_iodev_rom =
 
 /* internal state for our device */
 typedef struct romfs_state_s {
-    int8_t *image;
+    char *image;
 } romfs_state;
 
 gs_private_st_simple(st_romfs_state, struct romfs_state_s, "romfs_state");

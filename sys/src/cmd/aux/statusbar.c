@@ -15,13 +15,13 @@
 
 enum {PNCTL=3};
 
-static int8_t* rdenv(int8_t*);
-int newwin(int8_t*);
+static char* rdenv(char*);
+int newwin(char*);
 Rectangle screenrect(void);
 
 int nokill;
 int textmode;
-int8_t *title;
+char *title;
 
 Image *light;
 Image *dark;
@@ -41,15 +41,15 @@ int64_t n, d;
 int last;
 int lastp = -1;
 
-int8_t backup[80];
+char backup[80];
 
 void
 drawbar(void)
 {
 	int i, j;
 	int p;
-	int8_t buf[400], bar[200];
-	static int8_t lastbar[200];
+	char buf[400], bar[200];
+	static char lastbar[200];
 
 	if(n > d || n < 0 || d <= 0)
 		return;
@@ -134,7 +134,7 @@ eresized(int new)
 void
 bar(Biobuf *b)
 {
-	int8_t *p, *f[2];
+	char *p, *f[2];
 	Event e;
 	int k, die, parent, child;
 
@@ -226,10 +226,10 @@ main(int argc, char **argv)
 
 
 /* all code below this line should be in the library, but is stolen from colors instead */
-static int8_t*
-rdenv(int8_t *name)
+static char*
+rdenv(char *name)
 {
-	int8_t *v;
+	char *v;
 	int fd, size;
 
 	fd = open(name, OREAD);
@@ -249,10 +249,10 @@ rdenv(int8_t *name)
 }
 
 int
-newwin(int8_t *win)
+newwin(char *win)
 {
-	int8_t *srv, *mntsrv;
-	int8_t spec[100];
+	char *srv, *mntsrv;
+	char spec[100];
 	int srvfd, cons, pid;
 
 	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFENVG|RFNOTEG|RFNOWAIT)){
@@ -315,7 +315,7 @@ Rectangle
 screenrect(void)
 {
 	int fd;
-	int8_t buf[12*5];
+	char buf[12*5];
 
 	fd = open("/dev/screen", OREAD);
 	if(fd == -1)
@@ -333,9 +333,9 @@ screenrect(void)
 }
 
 int
-postnote(int group, int pid, int8_t *note)
+postnote(int group, int pid, char *note)
 {
-	int8_t file[128];
+	char file[128];
 	int f, r;
 
 	switch(group) {

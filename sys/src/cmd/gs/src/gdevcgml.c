@@ -167,7 +167,7 @@ cgm_terminate(cgm_state * st)
 /* ---------------- Metafile elements ---------------- */
 
 cgm_result
-cgm_BEGIN_METAFILE(cgm_state * st, const int8_t *str, uint len)
+cgm_BEGIN_METAFILE(cgm_state * st, const char *str, uint len)
 {
     OP(BEGIN_METAFILE);
     S(str, len);
@@ -276,7 +276,7 @@ cgm_END_METAFILE(cgm_state * st)
 /* ---------------- Picture elements ---------------- */
 
 cgm_result
-cgm_BEGIN_PICTURE(cgm_state * st, const int8_t *str, uint len)
+cgm_BEGIN_PICTURE(cgm_state * st, const char *str, uint len)
 {
     OP(BEGIN_PICTURE);
     S(str, len);
@@ -439,7 +439,7 @@ cgm_POLYMARKER(cgm_state * st, const cgm_point * positions, int count)
 
 cgm_result
 cgm_TEXT(cgm_state * st, const cgm_point * position, bool final,
-         const int8_t *str, uint len)
+         const char *str, uint len)
 {
     OP(TEXT);
     P(position);
@@ -450,7 +450,7 @@ cgm_TEXT(cgm_state * st, const cgm_point * position, bool final,
 
 cgm_result
 cgm_RESTRICTED_TEXT(cgm_state * st, const cgm_vdc * delta_width, const cgm_vdc * delta_height, const cgm_point * position, bool final,
-                    const int8_t *str, uint len)
+                    const char *str, uint len)
 {
     OP(RESTRICTED_TEXT);
     VDC2(delta_width, delta_height);
@@ -461,7 +461,7 @@ cgm_RESTRICTED_TEXT(cgm_state * st, const cgm_vdc * delta_width, const cgm_vdc *
 }
 
 cgm_result
-cgm_APPEND_TEXT(cgm_state * st, bool final, const int8_t *str, uint len)
+cgm_APPEND_TEXT(cgm_state * st, bool final, const char *str, uint len)
 {
     OP(APPEND_TEXT);
     E(final);

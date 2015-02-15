@@ -22,30 +22,30 @@ typedef struct Redir	Redir;
 struct Redir
 {
 	Redir	*next;
-	int8_t	*pat;
-	int8_t	*repl;
+	char	*pat;
+	char	*repl;
 	uint	flags;		/* generated from repl's decorations */
 };
 
 static Redir *redirtab[HASHSIZE];
 static Redir *vhosttab[HASHSIZE];
-static int8_t emptystring[1];
+static char emptystring[1];
 /* these two arrays must be kept in sync */
-static int8_t decorations[] = { Modsilent, Modperm, Modsubord, Modonly, '\0' };
+static char decorations[] = { Modsilent, Modperm, Modsubord, Modonly, '\0' };
 static uint redirflags[] = { Redirsilent, Redirperm, Redirsubord, Redironly, };
 
 /* replacement field decorated with redirection modifiers? */
 static int
-isdecorated(int8_t *repl)
+isdecorated(char *repl)
 {
 	return strchr(decorations, repl[0]) != nil;
 }
 
 static uint
-decor2flags(int8_t *repl)
+decor2flags(char *repl)
 {
 	uint flags;
-	int8_t *p;
+	char *p;
 
 	flags = 0;
 	while ((p = strchr(decorations, *repl++)) != nil)
@@ -54,8 +54,8 @@ decor2flags(int8_t *repl)
 }
 
 /* return replacement without redirection modifiers */
-int8_t *
-undecorated(int8_t *repl)
+char *
+undecorated(char *repl)
 {
 	while (isdecorated(repl))
 		repl++;
@@ -63,7 +63,7 @@ undecorated(int8_t *repl)
 }
 
 static int
-hashasu(int8_t *key, int n)
+hashasu(char *key, int n)
 {
         uint32_t h;
 
@@ -74,7 +74,7 @@ hashasu(int8_t *key, int n)
 }
 
 static void
-insert(Redir **tab, int8_t *pat, int8_t *repl)
+insert(Redir **tab, char *pat, char *repl)
 {
 	Redir **l;
 	Redir *srch;
@@ -111,8 +111,8 @@ redirectinit(void)
 {
 	static Biobuf *b = nil;
 	static Qid qid;
-	int8_t *file, *line, *s, *host, *field[3];
-	static int8_t pfx[] = "http://";
+	char *file, *line, *s, *host, *field[3];
+	static char pfx[] = "http://";
 
 	file = "/sys/lib/httpd.rewrite";
 	if(b != nil){
@@ -152,7 +152,7 @@ redirectinit(void)
 }
 
 static Redir*
-lookup(Redir **tab, int8_t *pat, int count)
+lookup(Redir **tab, char *pat, int count)
 {
 	Redir *srch;
 	uint32_t hash;
@@ -167,8 +167,8 @@ lookup(Redir **tab, int8_t *pat, int count)
 	return nil;
 }
 
-static int8_t*
-prevslash(int8_t *p, int8_t *s)
+static char*
+prevslash(char *p, char *s)
 {
 	while(--s > p)
 		if(*s == '/')
@@ -190,11 +190,11 @@ prevslash(int8_t *p, int8_t *s)
  * subordinate ones.  if Redirsubord, map the named patch and any
  * subordinate ones to the same replacement URL.
  */
-int8_t*
-redirect(HConnect *hc, int8_t *path, uint *flagp)
+char*
+redirect(HConnect *hc, char *path, uint *flagp)
 {
 	Redir *redir;
-	int8_t *s, *newpath, *repl;
+	char *s, *newpath, *repl;
 	int c, n, count;
 
 	count = 0;
@@ -224,8 +224,8 @@ redirect(HConnect *hc, int8_t *path, uint *flagp)
  * if not, return empty string.
  * return value should not be freed by caller.
  */
-int8_t*
-masquerade(int8_t *host)
+char*
+masquerade(char *host)
 {
 	Redir *redir;
 

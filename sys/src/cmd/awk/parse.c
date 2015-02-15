@@ -201,7 +201,7 @@ Node *makearr(Node *p)
 			SYNTAX( "%s is a function, not an array", cp->nval );
 		else if (!isarr(cp)) {
 			xfree(cp->sval);
-			cp->sval = (int8_t *) makesymtab(NSYMTAB);
+			cp->sval = (char *) makesymtab(NSYMTAB);
 			cp->tval = ARR;
 		}
 	}
@@ -249,7 +249,7 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 		return;
 	}
 	v->tval = FCN;
-	v->sval = (int8_t *) st;
+	v->sval = (char *) st;
 	n = 0;	/* count arguments */
 	for (p = vl; p; p = p->nnext)
 		n++;
@@ -257,7 +257,7 @@ void defn(Cell *v, Node *vl, Node *st)	/* turn on FCN bit in definition, */
 	dprintf( ("defining func %s (%d args)\n", v->nval, n) );
 }
 
-int isarg(int8_t *s)		/* is s in argument list for current function? */
+int isarg(char *s)		/* is s in argument list for current function? */
 {			/* return -1 if not, otherwise arg # */
 	extern Node *arglist;
 	Node *p = arglist;

@@ -24,8 +24,8 @@ int16_t	wfreq[50];
 int	nbuf;
 Dir*	mbuf;
 int	fd;
-int8_t 	*fname;
-int8_t	*slash;
+char 	*fname;
+char	*slash;
 
 enum
 {
@@ -45,7 +45,7 @@ enum
 };
 struct
 {
-	int8_t*	word;
+	char*	word;
 	int	class;
 } dict[] =
 {
@@ -104,7 +104,7 @@ struct
 	int 	count;
 	int	low;
 	int	high;
-	int8_t	*name;
+	char	*name;
 
 } language[] =
 {
@@ -147,7 +147,7 @@ enum
 } guess;
 
 void	bump_utf_count(Rune);
-int	cistrncmp(int8_t*, int8_t*, int);
+int	cistrncmp(char*, char*, int);
 void	filetype(int);
 int	getfontnum(uint8_t*, uint8_t**);
 int	isas(void);
@@ -176,7 +176,7 @@ int	isexec(void);
 int	p9bitnum(uint8_t*);
 int	p9subfont(uint8_t*);
 void	print_utf(void);
-void	type(int8_t*, int);
+void	type(char*, int);
 int	utf_count(void);
 void	wordfreq(void);
 
@@ -211,8 +211,8 @@ int	(*call[])(void) =
 
 int mime;
 
-int8_t OCTET[] =	"application/octet-stream\n";
-int8_t PLAIN[] =	"text/plain\n";
+char OCTET[] =	"application/octet-stream\n";
+char PLAIN[] =	"text/plain\n";
 
 void
 main(int argc, char *argv[])
@@ -252,11 +252,11 @@ main(int argc, char *argv[])
 }
 
 void
-type(int8_t *file, int nlen)
+type(char *file, int nlen)
 {
 	Rune r;
 	int i;
-	int8_t *p;
+	char *p;
 
 	if(nlen > 0){
 		slash = 0;
@@ -281,7 +281,7 @@ filetype(int fd)
 {
 	Rune r;
 	int i, f, n;
-	int8_t *p, *eob;
+	char *p, *eob;
 
 	free(mbuf);
 	mbuf = dirfstat(fd);
@@ -316,8 +316,8 @@ filetype(int fd)
 	memset(cfreq, 0, sizeof(cfreq));
 	for (i = 0; language[i].name; i++)
 		language[i].count = 0;
-	eob = (int8_t *)buf+nbuf;
-	for(n = 0, p = (int8_t *)buf; p < eob; n++) {
+	eob = (char *)buf+nbuf;
+	for(n = 0, p = (char *)buf; p < eob; n++) {
 		if (!fullrune(p, eob-p) && eob-p < UTFmax)
 			break;
 		p += chartorune(&r, p);
@@ -436,7 +436,7 @@ chkascii(void)
 }
 
 int
-find_first(int8_t *name)
+find_first(char *name)
 {
 	int i;
 
@@ -508,7 +508,7 @@ wordfreq(void)
 		high = sizeof(dict)/sizeof(dict[0]);
 		for(low = 0;low < high;) {
 			mid = (low+high)/2;
-			r = strcmp(dict[mid].word, (int8_t*)p2);
+			r = strcmp(dict[mid].word, (char*)p2);
 			if(r == 0) {
 				wfreq[dict[mid].class]++;
 				break;
@@ -526,8 +526,8 @@ typedef struct Filemagic Filemagic;
 struct Filemagic {
 	uint32_t x;
 	uint32_t mask;
-	int8_t *desc;
-	int8_t *mime;
+	char *desc;
+	char *mime;
 };
 
 /*
@@ -657,26 +657,26 @@ enum { NAMSIZ = 100, TBLOCK = 512 };
 
 union	hblock
 {
-	int8_t	dummy[TBLOCK];
+	char	dummy[TBLOCK];
 	struct	header
 	{
-		int8_t	name[NAMSIZ];
-		int8_t	mode[8];
-		int8_t	uid[8];
-		int8_t	gid[8];
-		int8_t	size[12];
-		int8_t	mtime[12];
-		int8_t	chksum[8];
-		int8_t	linkflag;
-		int8_t	linkname[NAMSIZ];
+		char	name[NAMSIZ];
+		char	mode[8];
+		char	uid[8];
+		char	gid[8];
+		char	size[12];
+		char	mtime[12];
+		char	chksum[8];
+		char	linkflag;
+		char	linkname[NAMSIZ];
 		/* rest are defined by POSIX's ustar format; see p1003.2b */
-		int8_t	magic[6];	/* "ustar" */
-		int8_t	version[2];
-		int8_t	uname[32];
-		int8_t	gname[32];
-		int8_t	devmajor[8];
-		int8_t	devminor[8];
-		int8_t	prefix[155];  /* if non-null, path = prefix "/" name */
+		char	magic[6];	/* "ustar" */
+		char	version[2];
+		char	uname[32];
+		char	gname[32];
+		char	devmajor[8];
+		char	devminor[8];
+		char	prefix[155];  /* if non-null, path = prefix "/" name */
 	} dbuf;
 };
 
@@ -684,7 +684,7 @@ int
 checksum(union hblock *hp)
 {
 	int i;
-	int8_t *cp;
+	char *cp;
 	struct header *hdr = &hp->dbuf;
 
 	for (cp = hdr->chksum; cp < &hdr->chksum[sizeof hdr->chksum]; cp++)
@@ -699,7 +699,7 @@ int
 istar(void)
 {
 	int chksum;
-	int8_t tblock[TBLOCK];
+	char tblock[TBLOCK];
 	union hblock *hp = (union hblock *)tblock;
 	struct header *hdr = &hp->dbuf;
 
@@ -723,10 +723,10 @@ istar(void)
  */
 struct	FILE_STRING
 {
-	int8_t 	*key;
-	int8_t	*filetype;
+	char 	*key;
+	char	*filetype;
 	int	length;
-	int8_t	*mime;
+	char	*mime;
 } file_string[] =
 {
 	"!<arch>\n__.SYMDEF",	"archive random library",	16,	"application/octet-stream",
@@ -808,15 +808,15 @@ istring(void)
 			return 1;
 		}
 	}
-	if(strncmp((int8_t*)buf, "TYPE=", 5) == 0) {	/* td */
+	if(strncmp((char*)buf, "TYPE=", 5) == 0) {	/* td */
 		for(i = 5; i < nbuf; i++)
 			if(buf[i] == '\n')
 				break;
 		if(mime)
 			print(OCTET);
 		else
-			print("%.*s picture\n", utfnlen((int8_t*)buf+5, i-5),
-			      (int8_t*)buf+5);
+			print("%.*s picture\n", utfnlen((char*)buf+5, i-5),
+			      (char*)buf+5);
 		return 1;
 	}
 	return 0;
@@ -835,7 +835,7 @@ int
 isoffstr(void)
 {
 	int n;
-	int8_t buf[256];
+	char buf[256];
 	struct offstr *p;
 
 	for(p = offstrs; p->key; p++) {
@@ -859,15 +859,15 @@ isoffstr(void)
 int
 iff(void)
 {
-	if (strncmp((int8_t*)buf, "FORM", 4) == 0 &&
-	    strncmp((int8_t*)buf+8, "AIFF", 4) == 0) {
+	if (strncmp((char*)buf, "FORM", 4) == 0 &&
+	    strncmp((char*)buf+8, "AIFF", 4) == 0) {
 		print("%s\n", mime? "audio/x-aiff": "aiff audio");
 		return 1;
 	}
-	if (strncmp((int8_t*)buf, "RIFF", 4) == 0) {
-		if (strncmp((int8_t*)buf+8, "WAVE", 4) == 0)
+	if (strncmp((char*)buf, "RIFF", 4) == 0) {
+		if (strncmp((char*)buf+8, "WAVE", 4) == 0)
 			print("%s\n", mime? "audio/wave": "wave audio");
-		else if (strncmp((int8_t*)buf+8, "AVI ", 4) == 0)
+		else if (strncmp((char*)buf+8, "AVI ", 4) == 0)
 			print("%s\n", mime? "video/avi": "avi video");
 		else
 			print("%s\n", mime? "application/octet-stream":
@@ -877,7 +877,7 @@ iff(void)
 	return 0;
 }
 
-int8_t*	html_string[] =
+char*	html_string[] =
 {
 	"title",
 	"body",
@@ -920,7 +920,7 @@ ishtml(void)
 		if (p >= buf+nbuf)
 			break;
 		for(i = 0; html_string[i]; i++) {
-			if(cistrncmp(html_string[i], (int8_t*)q, p-q) == 0) {
+			if(cistrncmp(html_string[i], (char*)q, p-q) == 0) {
 				if(count++ > 4) {
 					print(mime ? "text/html\n" : "HTML file\n");
 					return 1;
@@ -933,7 +933,7 @@ ishtml(void)
 	return 0;
 }
 
-int8_t*	rfc822_string[] =
+char*	rfc822_string[] =
 {
 	"from:",
 	"date:",
@@ -949,17 +949,17 @@ int
 isrfc822(void)
 {
 
-	int8_t *p, *q, *r;
+	char *p, *q, *r;
 	int i, count;
 
 	count = 0;
-	p = (int8_t*)buf;
+	p = (char*)buf;
 	for(;;) {
 		q = strchr(p, '\n');
 		if(q == nil)
 			break;
 		*q = 0;
-		if(p == (int8_t*)buf && strncmp(p, "From ", 5) == 0 && strstr(p, " remote from ")){
+		if(p == (char*)buf && strncmp(p, "From ", 5) == 0 && strstr(p, " remote from ")){
 			count++;
 			*q = '\n';
 			p = q+1;
@@ -989,9 +989,9 @@ isrfc822(void)
 int
 ismbox(void)
 {
-	int8_t *p, *q;
+	char *p, *q;
 
-	p = (int8_t*)buf;
+	p = (char*)buf;
 	q = strchr(p, '\n');
 	if(q == nil)
 		return 0;
@@ -1008,7 +1008,7 @@ int
 iscint(void)
 {
 	int type;
-	int8_t *name;
+	char *name;
 	Biobuf b;
 
 	if(Binit(&b, fd, OREAD) == Beof)
@@ -1129,13 +1129,13 @@ int
 isenglish(void)
 {
 	int vow, comm, rare, badpun, punct;
-	int8_t *p;
+	char *p;
 
 	if(guess != Fascii && guess != Feascii)
 		return 0;
 	badpun = 0;
 	punct = 0;
-	for(p = (int8_t *)buf; p < (int8_t *)buf+nbuf-1; p++)
+	for(p = (char *)buf; p < (char *)buf+nbuf-1; p++)
 		switch(*p) {
 		case '.':
 		case ',':
@@ -1208,9 +1208,9 @@ p9bitnum(uint8_t *bp)
 }
 
 int
-depthof(int8_t *s, int *newp)
+depthof(char *s, int *newp)
 {
-	int8_t *es;
+	char *es;
 	int d;
 
 	*newp = 0;
@@ -1241,7 +1241,7 @@ isp9bit(void)
 	int dep, lox, loy, hix, hiy, px, new, cmpr;
 	uint32_t t;
 	int32_t len;
-	int8_t *newlabel;
+	char *newlabel;
 	uint8_t *cp;
 
 	cp = buf;
@@ -1253,7 +1253,7 @@ isp9bit(void)
 		cp = buf + 11;
 	}
 
-	dep = depthof((int8_t*)cp + 0*P9BITLEN, &new);
+	dep = depthof((char*)cp + 0*P9BITLEN, &new);
 	if(new)
 		newlabel = "";
 	lox = p9bitnum(cp + 1*P9BITLEN);
@@ -1333,14 +1333,14 @@ isp9font(void)
 {
 	uint8_t *cp, *p;
 	int i, n;
-	int8_t pathname[1024];
+	char pathname[1024];
 
 	cp = buf;
 	if (!getfontnum(cp, &cp))	/* height */
 		return 0;
 	if (!getfontnum(cp, &cp))	/* ascent */
 		return 0;
-	for (i = 0; cp=(uint8_t*)strchr((int8_t*)cp, '\n'); i++) {
+	for (i = 0; cp=(uint8_t*)strchr((char*)cp, '\n'); i++) {
 		if (!getfontnum(cp, &cp))	/* min */
 			break;
 		if (!getfontnum(cp, &cp))	/* max */
@@ -1383,7 +1383,7 @@ getfontnum(uint8_t *cp, uint8_t **rp)
 		cp++;
 	if (*cp < '0' || *cp > '9')
 		return 0;
-	strtoul((int8_t *)cp, (int8_t **)rp, 0);
+	strtoul((char *)cp, (char **)rp, 0);
 	if (!WHITESPACE(**rp)) {
 		*rp = cp;
 		return 0;
@@ -1394,7 +1394,7 @@ getfontnum(uint8_t *cp, uint8_t **rp)
 int
 isrtf(void)
 {
-	if(strstr((int8_t *)buf, "\\rtf1")){
+	if(strstr((char *)buf, "\\rtf1")){
 		print(mime ? "application/rtf\n" : "rich text format\n");
 		return 1;
 	}
@@ -1481,11 +1481,11 @@ int
 isface(void)
 {
 	int i, j, ldepth, l;
-	int8_t *p;
+	char *p;
 
 	ldepth = -1;
 	for(j = 0; j < 3; j++){
-		for(p = (int8_t*)buf, i=0; i<3; i++){
+		for(p = (char*)buf, i=0; i<3; i++){
 			if(p[0] != '0' || p[1] != 'x')
 				return 0;
 			if(buf[2+8] == ',')

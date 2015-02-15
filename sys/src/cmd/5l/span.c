@@ -249,7 +249,7 @@ addpool(Prog *p, Adr *a)
 }
 
 void
-xdefine(int8_t *p, int t, int32_t v)
+xdefine(char *p, int t, int32_t v)
 {
 	Sym *s;
 
@@ -519,7 +519,7 @@ Optab*
 oplook(Prog *p)
 {
 	int a1, a2, a3, r;
-	int8_t *c1, *c3;
+	char *c1, *c3;
 	Optab *o, *e;
 
 	a1 = p->optab;
@@ -916,9 +916,9 @@ dynreloc(Sym *s, int32_t v, int abs)
 }
 
 static int
-sput(int8_t *s)
+sput(char *s)
 {
-	int8_t *p;
+	char *p;
 
 	p = s;
 	while(*s)

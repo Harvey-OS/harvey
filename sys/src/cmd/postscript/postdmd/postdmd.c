@@ -114,10 +114,10 @@
 #include "path.h"			/* for the prologue */
 #include "ext.h"			/* external variable declarations */
 
-int8_t	*optnames = "a:b:c:fm:n:o:p:ux:y:A:C:E:J:L:P:DI";
+char	*optnames = "a:b:c:fm:n:o:p:ux:y:A:C:E:J:L:P:DI";
 
-int8_t	*prologue = POSTDMD;		/* default PostScript prologue */
-int8_t	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
+char	*prologue = POSTDMD;		/* default PostScript prologue */
+char	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
 
 int	bbox[2] = {0, 0};		/* upper right coordinates only */
 
@@ -136,10 +136,10 @@ int	patterns;			/* 16 bit patterns per scan line */
 int	scanlines;			/* lines in the bitmap */
 int	patcount = 0;			/* should be patterns * scanlines */
 
-int8_t	*raster = NULL;			/* next raster line */
-int8_t	*prevrast = NULL;		/* and the previous one - v8format */
-int8_t	*rptr;				/* next free byte in raster */
-int8_t	*eptr;				/* one past the last byte in raster */
+char	*raster = NULL;			/* next raster line */
+char	*prevrast = NULL;		/* and the previous one - v8format */
+char	*rptr;				/* next free byte in raster */
+char	*eptr;				/* one past the last byte in raster */
 
 FILE	*fp_in = NULL;			/* read from this file */
 FILE	*fp_out = stdout;		/* and write stuff here */

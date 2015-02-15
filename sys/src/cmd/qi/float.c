@@ -511,7 +511,7 @@ void
 fariths(uint32_t ir)
 {
 	int rd, ra, rb, rc, fmt;
-	int8_t *cc;
+	char *cc;
 	uint32_t fpscr;
 
 	fmt = 0;
@@ -584,7 +584,7 @@ farith(uint32_t ir)
 {
 	int64_t vl;
 	int rd, ra, rb, rc, fmt;
-	int8_t *cc;
+	char *cc;
 	uint32_t fpscr;
 	int nocc;
 	double d;
@@ -677,7 +677,7 @@ void
 farith2(uint32_t ir)
 {
 	int rd, ra, rb;
-	int8_t *cc;
+	char *cc;
 	uint32_t fpscr;
 
 	getarrr(ir);

@@ -43,7 +43,7 @@ enum{
 	NALT
 };
 
-int8_t		board[NY][NX];
+char		board[NY][NX];
 Rectangle	rboard;
 Point		pscore;
 Point		scoresz;
@@ -313,7 +313,7 @@ canfit(Piece *p)
 void
 score(int p)
 {
-	int8_t buf[128];
+	char buf[128];
 
 	points += p;
 	snprint(buf, sizeof(buf), "%.6ld", points);
@@ -680,7 +680,7 @@ play(void)
 void
 setparms(void)
 {
-	int8_t buf[32];
+	char buf[32];
 	int fd, n;
 
 	tsleep = 50;

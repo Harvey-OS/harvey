@@ -16,14 +16,14 @@ enum{
 	NFLDS	= 6,		/* filename, modes, uid, gid, mtime, bytes */
 };
 
-int	selected(int8_t*, int, int8_t*[]);
-void	mkdirs(int8_t*, int8_t*);
-void	mkdir(int8_t*, uint32_t, uint32_t, int8_t*, int8_t*);
-void	extract(int8_t*, uint32_t, uint32_t, int8_t*, int8_t*,
+int	selected(char*, int, char*[]);
+void	mkdirs(char*, char*);
+void	mkdir(char*, uint32_t, uint32_t, char*, char*);
+void	extract(char*, uint32_t, uint32_t, char*, char*,
 		    uint64_t);
 void	seekpast(uint64_t);
-void	error(int8_t*, ...);
-void	warn(int8_t*, ...);
+void	error(char*, ...);
+void	warn(char*, ...);
 void	usage(void);
 #pragma varargck argpos warn 1
 #pragma varargck argpos error 1
@@ -120,7 +120,7 @@ main(int argc, char **argv)
 }
 
 int
-fileprefix(int8_t *prefix, int8_t *s)
+fileprefix(char *prefix, char *s)
 {
 	while(*prefix)
 		if(*prefix++ != *s++)
@@ -131,7 +131,7 @@ fileprefix(int8_t *prefix, int8_t *s)
 }
 
 int
-selected(int8_t *s, int argc, int8_t *argv[])
+selected(char *s, int argc, char *argv[])
 {
 	int i;
 
@@ -142,9 +142,9 @@ selected(int8_t *s, int argc, int8_t *argv[])
 }
 
 void
-mkdirs(int8_t *name, int8_t *namep)
+mkdirs(char *name, char *namep)
 {
-	int8_t buf[2*LEN], *p;
+	char buf[2*LEN], *p;
 	int fd;
 
 	strcpy(buf, name);
@@ -159,13 +159,13 @@ mkdirs(int8_t *name, int8_t *namep)
 }
 
 void
-mkdir(int8_t *name, uint32_t mode, uint32_t mtime, int8_t *uid,
-      int8_t *gid)
+mkdir(char *name, uint32_t mode, uint32_t mtime, char *uid,
+      char *gid)
 {
 	Dir *d, xd;
 	int fd;
-	int8_t *p;
-	int8_t olderr[256];
+	char *p;
+	char olderr[256];
 
 	fd = create(name, OREAD, mode);
 	if(fd < 0){
@@ -212,14 +212,14 @@ mkdir(int8_t *name, uint32_t mode, uint32_t mtime, int8_t *uid,
 }
 
 void
-extract(int8_t *name, uint32_t mode, uint32_t mtime, int8_t *uid,
-	int8_t *gid,
+extract(char *name, uint32_t mode, uint32_t mtime, char *uid,
+	char *gid,
 	uint64_t bytes)
 {
 	Dir d, *nd;
 	Biobuf *b;
-	int8_t buf[LEN];
-	int8_t *p;
+	char buf[LEN];
+	char *p;
 	uint32_t n;
 	uint64_t tot;
 
@@ -282,7 +282,7 @@ extract(int8_t *name, uint32_t mode, uint32_t mtime, int8_t *uid,
 void
 seekpast(uint64_t bytes)
 {
-	int8_t buf[LEN];
+	char buf[LEN];
 	int32_t n;
 	uint64_t tot;
 
@@ -297,9 +297,9 @@ seekpast(uint64_t bytes)
 }
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: ", argv0);
@@ -311,9 +311,9 @@ error(int8_t *fmt, ...)
 }
 
 void
-warn(int8_t *fmt, ...)
+warn(char *fmt, ...)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: ", argv0);

@@ -13,9 +13,9 @@
 #include <authsrv.h>
 
 void
-readln(int8_t *prompt, int8_t *line, int len, int raw)
+readln(char *prompt, char *line, int len, int raw)
 {
-	int8_t *p;
+	char *p;
 	int fdin, fdout, ctl, n, nr;
 
 	fdin = open("/dev/cons", OREAD);
@@ -72,7 +72,7 @@ readln(int8_t *prompt, int8_t *line, int len, int raw)
 }
 
 void
-setenv(int8_t *var, int8_t *val)
+setenv(char *var, char *val)
 {
 	int fd;
 
@@ -107,7 +107,7 @@ chuid(AuthInfo *ai)
  *  mount a factotum
  */
 void
-mountfactotum(int8_t *srvname)
+mountfactotum(char *srvname)
 {
 	int fd;
 
@@ -123,7 +123,7 @@ mountfactotum(int8_t *srvname)
  *  start a new factotum and pass it the username and password
  */
 void
-startfactotum(int8_t *user, int8_t *password, int8_t *srvname)
+startfactotum(char *user, char *password, char *srvname)
 {
 	int fd;
 

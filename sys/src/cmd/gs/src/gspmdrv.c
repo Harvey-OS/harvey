@@ -97,7 +97,7 @@ OPTIONS option;
 PBYTE bbuffer;			/* for BMP file display */
 POINTL scroll_pos;		/* not used *//* not used */
 ULONG os_version;
-int8_t *section = "Ghostscript Image";
+char *section = "Ghostscript Image";
 
 HAB hab;			/* Anchor Block */
 HWND hwnd_frame;
@@ -118,8 +118,8 @@ APIRET restore_window_position(SWP * pswp);
 BOOL scan_bitmap(BMAP * pbm);
 void read_profile(void);
 void write_profile(void);
-APIRET init_display(int argc, int8_t *argv[]);
-APIRET init_bitmap(int argc, int8_t *argv[]);
+APIRET init_display(int argc, char *argv[]);
+APIRET init_bitmap(int argc, char *argv[]);
 void copy_clipboard(void);
 HBITMAP make_bitmap(BMAP * pbm, ULONG left, ULONG bottom, ULONG right, ULONG top, ULONG depth);
 
@@ -144,14 +144,14 @@ debugbeep(int type)
 
 /* display message */
 int
-message_box(int8_t *str, int icon)
+message_box(char *str, int icon)
 {
     return WinMessageBox(HWND_DESKTOP, hwnd_frame ? hwnd_frame : HWND_DESKTOP,
 			 str, "gspmdrv.exe", 0, icon | MB_MOVEABLE | MB_OK);
 }
 
 void 
-error_message(int8_t *str)
+error_message(char *str)
 {
     WinMessageBox(HWND_DESKTOP, HWND_DESKTOP, str, "gspmdrv.exe", 0, MB_MOVEABLE | MB_ICONHAND | MB_OK);
     WinPostMsg(hwnd_frame, WM_QUIT, MPFROMLONG(0), MPFROMLONG(0));
@@ -189,7 +189,7 @@ exit_func(ULONG code)
 }
 
 void
-find_hwnd_gs(int8_t *gsid)
+find_hwnd_gs(char *gsid)
 {
     ULONG ulCount;
     ULONG ulLength;
@@ -200,8 +200,8 @@ find_hwnd_gs(int8_t *gsid)
     SWCNTRL *pswc;
     int i;
     ULONG pid;
-    int8_t buf[256];
-    int8_t *p, *s;
+    char buf[256];
+    char *p, *s;
     PTIB pptib;
     PPIB pppib;
 
@@ -228,7 +228,7 @@ find_hwnd_gs(int8_t *gsid)
 
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
     HMQ hand_mq;		/* message queue */
     QMSG q_mess;		/* message queue */
@@ -359,7 +359,7 @@ init_window()
 void
 write_profile(void)
 {
-    int8_t profile[64];
+    char profile[64];
 
     sprintf(profile, "%d %d", option.img_origin.x, option.img_origin.y);
     PrfWriteProfileString(HINI_USERPROFILE, section, "Origin", profile);
@@ -372,7 +372,7 @@ write_profile(void)
 void
 read_profile(void)
 {
-    int8_t profile[64];
+    char profile[64];
 
     PrfQueryProfileString(HINI_USERPROFILE, section, "Origin", "", profile, sizeof(profile));
     if (sscanf(profile, "%d %d", &option.img_origin.x, &option.img_origin.y) != 2) {
@@ -492,10 +492,10 @@ restore_window_position(SWP * pswp)
 }
 
 APIRET 
-init_display(int argc, int8_t *argv[])
+init_display(int argc, char *argv[])
 {
-    int8_t buf[256];
-    int8_t name[256];
+    char buf[256];
+    char name[256];
     APIRET rc = 0;
 
     if (argc != 3) {
@@ -537,9 +537,9 @@ init_display(int argc, int8_t *argv[])
 
 
 APIRET 
-init_bitmap(int argc, int8_t *argv[])
+init_bitmap(int argc, char *argv[])
 {
-    int8_t buf[256];
+    char buf[256];
     APIRET rc = 0;
     HFILE hf;
     ULONG action, count, length;
@@ -825,7 +825,7 @@ make_bitmap(BMAP * pbm, ULONG left, ULONG bottom, ULONG right, ULONG top, ULONG 
 	rc = GpiDrawBits(hps, pbm->bits, pbm->pbmi, 4, apts,
 		     (bitmap.depth != 1) ? ROP_SRCCOPY : ROP_NOTSRCCOPY, 0);
 	if (rc == 0) {
-	    int8_t buf[256];
+	    char buf[256];
 
 	    eid = WinGetLastError(hab);
 	    sprintf(buf, "make_bitmap: GpiDrawBits rc = %08x, eid = %08x", rc, eid);
@@ -917,7 +917,7 @@ MRESULT EXPENTRY
 ClientWndProc(HWND hwnd, ULONG mess,
 	      MPARAM mp1, MPARAM mp2)
 {
-    int8_t buf[256];
+    char buf[256];
     static int cxClient, cyClient;
     static int cxAdjust, cyAdjust;
     static int nHscrollMax, nHscrollPos;

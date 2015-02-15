@@ -111,7 +111,7 @@ loop:
 }
 
 void
-xdefine(int8_t *p, int t, int32_t v)
+xdefine(char *p, int t, int32_t v)
 {
 	Sym *s;
 
@@ -125,7 +125,7 @@ xdefine(int8_t *p, int t, int32_t v)
 }
 
 void
-putsymb(int8_t *s, int t, int32_t v, int ver)
+putsymb(char *s, int t, int32_t v, int ver)
 {
 	int i, f;
 
@@ -1344,9 +1344,9 @@ dynreloc(Sym *s, uint32_t v, int abs)
 }
 
 static int
-sput(int8_t *s)
+sput(char *s)
 {
-	int8_t *p;
+	char *p;
 
 	p = s;
 	while(*s)

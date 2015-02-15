@@ -10,11 +10,11 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t*
+char*
 fmtstrflush(Fmt *f)
 {
 	if(f->start == nil)
 		return nil;
-	*(int8_t*)f->to = '\0';
+	*(char*)f->to = '\0';
 	return f->start;
 }

@@ -58,7 +58,7 @@ iobufinit(void)
 {
 	int32_t m;
 	int i;
-	int8_t *xiop;
+	char *xiop;
 	Iobuf *p, *q;
 	Hiob *hp;
 	Mbank *mbp;
@@ -108,7 +108,7 @@ iobufinit(void)
 		p->addr = -1;
 //		p->xiobuf = ialloc(RBUFSIZE, RBUFSIZE);
 		p->xiobuf = xiop;
-		p->iobuf = (int8_t*)-1;
+		p->iobuf = (char*)-1;
 		p++;
 		xiop += RBUFSIZE;
 	}
@@ -135,5 +135,5 @@ iobufmap(Iobuf *p)
 void
 iobufunmap(Iobuf *p)
 {
-	p->iobuf = (int8_t*)-1;
+	p->iobuf = (char*)-1;
 }

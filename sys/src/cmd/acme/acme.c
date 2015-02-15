@@ -32,7 +32,7 @@ void plumbproc(void*);
 
 Reffont	**fontcache;
 int		nfontcache;
-int8_t		wdir[512] = ".";
+char		wdir[512] = ".";
 Reffont	*reffonts[2];
 int		snarffd = -1;
 int		mainpid;
@@ -44,7 +44,7 @@ enum{
 };
 Rune	snarfrune[NSnarf+1];
 
-int8_t		*fontnames[2] =
+char		*fontnames[2] =
 {
 	"/lib/font/bit/lucidasans/euro.8.font",
 	"/lib/font/bit/lucm/unicode.9.font"
@@ -53,11 +53,11 @@ int8_t		*fontnames[2] =
 Command *command;
 
 void	acmeerrorinit(void);
-void	readfile(Column*, int8_t*);
-int	shutdown(void*, int8_t*);
+void	readfile(Column*, char*);
+int	shutdown(void*, char*);
 
 void
-derror(Display*, int8_t *errorstr)
+derror(Display*, char *errorstr)
 {
 	error(errorstr);
 }
@@ -242,7 +242,7 @@ threadmain(int argc, char *argv[])
 }
 
 void
-readfile(Column *c, int8_t *s)
+readfile(Column *c, char *s)
 {
 	Window *w;
 	Rune rb[256];
@@ -261,7 +261,7 @@ readfile(Column *c, int8_t *s)
 	textsetselect(&w->tag, w->tag.file->nc, w->tag.file->nc);
 }
 
-int8_t *oknotes[] ={
+char *oknotes[] ={
 	"delete",
 	"hangup",
 	"kill",
@@ -272,7 +272,7 @@ int8_t *oknotes[] ={
 int	dumping;
 
 int
-shutdown(void*, int8_t *msg)
+shutdown(void*, char *msg)
 {
 	int i;
 
@@ -308,7 +308,7 @@ static int errorfd;
 void
 acmeerrorproc(void *)
 {
-	int8_t *buf;
+	char *buf;
 	int n;
 
 	threadsetname("acmeerrorproc");
@@ -323,7 +323,7 @@ void
 acmeerrorinit(void)
 {
 	int fd, pfd[2];
-	int8_t buf[64];
+	char buf[64];
 
 	if(pipe(pfd) < 0)
 		error("can't create pipe");
@@ -432,7 +432,7 @@ mousethread(void *)
 	Window *w;
 	Plumbmsg *pm;
 	Mouse m;
-	int8_t *act;
+	char *act;
 	enum { MResize, MMouse, MPlumb, MWarnings, NMALT };
 	static Alt alts[NMALT+1];
 
@@ -585,7 +585,7 @@ typedef struct Pid Pid;
 struct Pid
 {
 	int	pid;
-	int8_t	msg[ERRMAX];
+	char	msg[ERRMAX];
 	Pid	*next;
 };
 
@@ -597,7 +597,7 @@ waitthread(void *)
 	uint pid;
 	int found, ncmd;
 	Rune *cmd;
-	int8_t *err;
+	char *err;
 	Text *t;
 	Pid *pids, *p, *lastp;
 	enum { WErr, WKill, WWait, WCmd, NWALT };
@@ -777,7 +777,7 @@ newwindowthread(void*)
 }
 
 Reffont*
-rfget(int fix, int save, int setfont, int8_t *name)
+rfget(int fix, int save, int setfont, char *name)
 {
 	Reffont *r;
 	Font *f;

@@ -75,9 +75,9 @@ current_float_value(i_ctx_t *i_ctx_p,
 
 private int
 enum_param(const gs_memory_t *mem, const ref *pnref, 
-	   const int8_t *const names[])
+	   const char *const names[])
 {
-    const int8_t *const *p;
+    const char *const *p;
     ref nsref;
 
     name_string_ref(mem, pnref, &nsref);
@@ -116,7 +116,7 @@ private int
 zcurrentblendmode(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
-    const int8_t *mode_name = blend_mode_names[gs_currentblendmode(igs)];
+    const char *mode_name = blend_mode_names[gs_currentblendmode(igs)];
     ref nref;
     int code = name_enter_string(imemory, mode_name, &nref);
 
@@ -264,7 +264,7 @@ zbegintransparencymaskgroup(i_ctx_t *i_ctx_p)
     ref *pparam;
     gs_rect bbox;
     int code;
-    static const int8_t *const subtype_names[] = {
+    static const char *const subtype_names[] = {
 	GS_TRANSPARENCY_MASK_SUBTYPE_NAMES, 0
     };
 
@@ -356,7 +356,7 @@ zinittransparencymask(i_ctx_t *i_ctx_p)
 
 /* <dict> .image3x - */
 private int mask_dict_param(const gs_memory_t *mem, os_ptr, 
-			    image_params *, const int8_t *, int,
+			    image_params *, const char *, int,
 			    gs_image3x_mask_t *);
 private int
 zimage3x(i_ctx_t *i_ctx_p)
@@ -401,7 +401,7 @@ zimage3x(i_ctx_t *i_ctx_p)
 /* Get one soft-mask dictionary parameter. */
 private int
 mask_dict_param(const gs_memory_t *mem, os_ptr op, 
-image_params *pip_data, const int8_t *dict_name,
+image_params *pip_data, const char *dict_name,
 		int num_components, gs_image3x_mask_t *pixm)
 {
     ref *pMaskDict;

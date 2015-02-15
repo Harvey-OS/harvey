@@ -51,8 +51,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: pass.c,v 1.3 89/02/12 10:29:51 mark Exp $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: pass.c,v 1.3 89/02/12 10:29:51 mark Exp $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -76,7 +76,7 @@ static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights rese
 
 #ifdef __STDC__
     
-int pass(int8_t *dirname)
+int pass(char *dirname)
 
 #else
     
@@ -85,7 +85,7 @@ char	*dirname;
 
 #endif
 {
-    int8_t            name[PATH_MAX + 1];
+    char            name[PATH_MAX + 1];
     int             fd;
     Stat            sb;
 
@@ -134,7 +134,7 @@ char	*dirname;
 
 #ifdef __STDC__
 
-int passitem(int8_t *from, Stat *asb, int ifd, int8_t *dir)
+int passitem(char *from, Stat *asb, int ifd, char *dir)
 
 #else
     
@@ -148,7 +148,7 @@ char           *dir;
 {
     int             ofd;
     time_t          tstamp[2];
-    int8_t            to[PATH_MAX + 1];
+    char            to[PATH_MAX + 1];
 
     if (nameopt(strcat(strcat(strcpy(to, dir), "/"), from)) < 0) {
 	return (-1);

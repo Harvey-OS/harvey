@@ -160,7 +160,7 @@ RELOC_PTRS_END
 /* Define the 14 standard built-in fonts. */
 #define PDF_NUM_STANDARD_FONTS 14
 typedef struct pdf_standard_font_info_s {
-    const int8_t *fname;
+    const char *fname;
     int size;
     gs_encoding_index_t base_encoding;
 } pdf_standard_font_info_t;
@@ -190,7 +190,7 @@ pdf_find_standard_font_name(const byte *str, uint size)
 
     for (ppsf = standard_font_info; ppsf->fname; ++ppsf)
 	if (ppsf->size == size &&
-	    !memcmp(ppsf->fname, (const int8_t *)str, size)
+	    !memcmp(ppsf->fname, (const char *)str, size)
 	    )
 	    return ppsf - standard_font_info;
     return -1;

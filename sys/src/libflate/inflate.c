@@ -97,13 +97,13 @@ static int	dynamicblock(Input *in, History*);
 static int	sregfill(Input *in, int n);
 static int	sregunget(Input *in);
 static int	decode(Input*, History*, Huff*, Huff*);
-static int	hufftab(Huff*, int8_t*, int, int);
+static int	hufftab(Huff*, char*, int, int);
 static int	hdecsym(Input *in, Huff *h, int b);
 
 int
 inflateinit(void)
 {
-	int8_t *len;
+	char *len;
 	int i, j, base;
 
 	/* byte reverse table */
@@ -273,7 +273,7 @@ static int
 dynamicblock(Input *in, History *his)
 {
 	Huff *lentab, *offtab;
-	int8_t *len;
+	char *len;
 	int i, j, n, c, nlit, ndist, nclen, res, nb;
 
 	if(!sregfill(in, 14))
@@ -554,7 +554,7 @@ revcode(int c, int b)
  * are needed for an answer.
  */
 static int
-hufftab(Huff *h, int8_t *hb, int maxleaf, int flatbits)
+hufftab(Huff *h, char *hb, int maxleaf, int flatbits)
 {
 	uint32_t bitcount[MaxHuffBits];
 	uint32_t c, fc, ec, mincode, code, nc[MaxHuffBits];

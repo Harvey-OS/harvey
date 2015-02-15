@@ -13,12 +13,12 @@
 
 Includelist	includelist[NINCLUDE];
 
-int8_t	*objname;
+char	*objname;
 
 void
 doinclude(Tokenrow *trp)
 {
-	int8_t fname[256], iname[256], *p;
+	char fname[256], iname[256], *p;
 	Includelist *ip;
 	int angled, len, fd, i;
 
@@ -34,7 +34,7 @@ doinclude(Tokenrow *trp)
 		len = trp->tp->len-2;
 		if (len > sizeof(fname) - 1)
 			len = sizeof(fname) - 1;
-		strncpy(fname, (int8_t*)trp->tp->t+1, len);
+		strncpy(fname, (char*)trp->tp->t+1, len);
 		angled = 0;
 	} else if (trp->tp->type==LT) {
 		len = 0;
@@ -42,7 +42,7 @@ doinclude(Tokenrow *trp)
 		while (trp->tp->type!=GT) {
 			if (trp->tp>trp->lp || len+trp->tp->len+2 >= sizeof(fname))
 				goto syntax;
-			strncpy(fname+len, (int8_t*)trp->tp->t, trp->tp->len);
+			strncpy(fname+len, (char*)trp->tp->t, trp->tp->len);
 			len += trp->tp->len;
 			trp->tp++;
 		}
@@ -86,7 +86,7 @@ doinclude(Tokenrow *trp)
 	if (fd >= 0) {
 		if (++incdepth > 20)
 			error(FATAL, "#include too deeply nested");
-		setsource((int8_t*)newstring((uint8_t*)iname, strlen(iname), 0),
+		setsource((char*)newstring((uint8_t*)iname, strlen(iname), 0),
 			  fd, NULL);
 		genline();
 	} else {
@@ -113,29 +113,29 @@ genline(void)
 		return;
 
 	ta.t = p = (uint8_t*)outp;
-	strcpy((int8_t*)p, "#line ");
+	strcpy((char*)p, "#line ");
 	p += sizeof("#line ")-1;
-	p = (uint8_t*)outnum((int8_t*)p, cursource->line);
+	p = (uint8_t*)outnum((char*)p, cursource->line);
 	*p++ = ' '; *p++ = '"';
 	if (cursource->filename[0]!='/' && wd[0]) {
-		strcpy((int8_t*)p, wd);
+		strcpy((char*)p, wd);
 		p += strlen(wd);
 		*p++ = '/';
 	}
-	strcpy((int8_t*)p, cursource->filename);
-	p += strlen((int8_t*)p);
+	strcpy((char*)p, cursource->filename);
+	p += strlen((char*)p);
 	*p++ = '"'; *p++ = '\n';
-	ta.len = (int8_t*)p-outp;
-	outp = (int8_t*)p;
+	ta.len = (char*)p-outp;
+	outp = (char*)p;
 	tr.tp = tr.bp;
 	puttokens(&tr);
 }
 
 void
-setobjname(int8_t *f)
+setobjname(char *f)
 {
 	int n = strlen(f);
-	objname = (int8_t*)domalloc(n+5);
+	objname = (char*)domalloc(n+5);
 	strcpy(objname,f);
 	if(objname[n-2]=='.'){
 		strcpy(objname+n-1,"$O: ");

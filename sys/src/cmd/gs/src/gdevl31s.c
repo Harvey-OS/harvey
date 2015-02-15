@@ -42,7 +42,7 @@
 #define YCORRECTION 0.12
 
 /* order matters!             0       1        2        3       4      5     6       7           8 */
-const int8_t *media[10]   =  {"a4", "letter", "legal", "com10", "c5",  "dl", "b5", "monarch", "executive", 0};
+const char *media[10]   =  {"a4", "letter", "legal", "com10", "c5",  "dl", "b5", "monarch", "executive", 0};
 const int height[2][10] = {{3447,     3240,    4140,    5587, 2644,  5083, 2975,      4387,        3090, 0},
 			   {6894,     6480,    8280,   11167, 5288, 10159, 5950,      8767,        6180, 0}};
 const int width[2]      = {2528,

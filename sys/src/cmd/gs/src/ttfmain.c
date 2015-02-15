@@ -80,7 +80,7 @@ private void TransformF26Dot6PointFloat(FloatPoint *pt, F26Dot6 dx, F26Dot6 dy, 
 
 /*-------------------------------------------------------------------*/
 
-private ttfPtrElem *ttfFont__get_table_ptr(ttfFont *f, int8_t *id)
+private ttfPtrElem *ttfFont__get_table_ptr(ttfFont *f, char *id)
 {
     if (!memcmp(id, "cvt ", 4))
 	return &f->t_cvt_;
@@ -193,7 +193,7 @@ void ttfInterpreter__release(ttfInterpreter **ptti)
 
 void ttfFont__init(ttfFont *this, ttfMemory *mem, 
 		    void (*DebugRepaint)(ttfFont *),
-		    int (*DebugPrint)(ttfFont *, const int8_t *s, ...))
+		    int (*DebugPrint)(ttfFont *, const char *s, ...))
 {
     memset(this, 0, sizeof(*this));
     this->DebugRepaint = DebugRepaint;
@@ -223,7 +223,7 @@ void ttfFont__finit(ttfFont *this)
 FontError ttfFont__Open(ttfInterpreter *tti, ttfFont *this, ttfReader *r, 
 				    unsigned int nTTC, float w, float h, 
 				    bool design_grid)
-{   int8_t sVersion[4], sVersion0[4] = {0, 1, 0, 0};
+{   char sVersion[4], sVersion0[4] = {0, 1, 0, 0};
     unsigned int nNumTables, i;
     TT_Error code;
     int k;
@@ -258,7 +258,7 @@ FontError ttfFont__Open(ttfInterpreter *tti, ttfFont *this, ttfReader *r,
     ttfReader__UShort(r); /* nEntrySelector */
     ttfReader__UShort(r); /* nRangeShift */
     for (i = 0; i < nNumTables; i++) {
-	int8_t sTag[5];
+	char sTag[5];
 	unsigned int nOffset, nLength;
 	ttfPtrElem *e;
 

@@ -16,8 +16,8 @@
  */
 struct cvlist
 {
-	int8_t	*ld;		/* must be seen before using this conversion */
-	int8_t	*si;		/* options for last input characters */
+	char	*ld;		/* must be seen before using this conversion */
+	char	*si;		/* options for last input characters */
 	Rune	so[50];		/* the corresponding Rune for each si entry */
 } latintab[] = {
 	" ", " i",	{ 0x2423, 0x0131 },
@@ -156,7 +156,7 @@ latin1(Rune *k, int n)
 {
 	struct cvlist *l;
 	int c;
-	int8_t* p;
+	char* p;
 
 	if(k[0] == 'X'){
 		if(n>=5)

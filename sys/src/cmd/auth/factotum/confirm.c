@@ -51,9 +51,9 @@ hastag(Fsstate *fss, int tag, int *tagoff)
 }
 
 int
-confirmwrite(int8_t *s)
+confirmwrite(char *s)
 {
-	int8_t *t, *ans;
+	char *t, *ans;
 	int allow, tagoff;
 	uint32_t tag;
 	Attr *a;
@@ -107,7 +107,7 @@ void
 confirmqueue(Req *r, Fsstate *fss)
 {
 	int i, n;
-	int8_t msg[1024];
+	char msg[1024];
 
 	if(*confirminuse == 0){
 		respond(r, "confirm is closed");
@@ -160,9 +160,9 @@ needkeyflush(Req *r)
 }
 
 int
-needkeywrite(int8_t *s)
+needkeywrite(char *s)
 {
-	int8_t *t;
+	char *t;
 	uint32_t tag;
 	Attr *a;
 	Req *r, **l;
@@ -198,7 +198,7 @@ needkeywrite(int8_t *s)
 int
 needkeyqueue(Req *r, Fsstate *fss)
 {
-	int8_t msg[1024];
+	char msg[1024];
 
 	if(*needkeyinuse == 0)
 		return -1;

@@ -15,12 +15,12 @@ typedef struct Message Message;
 typedef struct Ctype Ctype;
 typedef struct Cmd Cmd;
 
-int8_t	root[Pathlen];
-int8_t	mbname[Elemlen];
+char	root[Pathlen];
+char	mbname[Elemlen];
 int	rootlen;
 int	didopen;
-int8_t	*user;
-int8_t	wd[2048];
+char	*user;
+char	wd[2048];
 String	*mbpath;
 int	natural;
 int	doflush;
@@ -38,26 +38,26 @@ struct Message {
 	int	len;
 	int	fileno;	// number of directory
 	String	*info;
-	int8_t	*from;
-	int8_t	*to;
-	int8_t	*cc;
-	int8_t	*replyto;
-	int8_t	*date;
-	int8_t	*subject;
-	int8_t	*type;
-	int8_t	*disposition;
-	int8_t	*filename;
-	int8_t	deleted;
-	int8_t	stored;
+	char	*from;
+	char	*to;
+	char	*cc;
+	char	*replyto;
+	char	*date;
+	char	*subject;
+	char	*type;
+	char	*disposition;
+	char	*filename;
+	char	deleted;
+	char	stored;
 };
 
 Message top;
 
 struct Ctype {
-	int8_t	*type;
-	int8_t 	*ext;
+	char	*type;
+	char 	*ext;
 	int	display;
-	int8_t	*plumbdest;
+	char	*plumbdest;
 	Ctype	*next;
 };
 
@@ -108,10 +108,10 @@ Message*	fcmd(Cmd*, Message*);
 Message*	quotecmd(Cmd*, Message*);
 
 struct {
-	int8_t		*cmd;
+	char		*cmd;
 	int		args;
 	Message*	(*f)(Cmd*, Message*);
-	int8_t		*help;
+	char		*help;
 } cmdtab[] = {
 	{ "a",	1,	acmd,	"a        reply to sender and recipients" },
 	{ "A",	1,	acmd,	"A        reply to sender and recipients with copy" },
@@ -153,7 +153,7 @@ struct Cmd {
 	Message	*msgs;
 	Message	*(*f)(Cmd*, Message*);
 	int	an;
-	int8_t	*av[NARG];
+	char	*av[NARG];
 	int	delete;
 };
 
@@ -162,31 +162,31 @@ int startedfs;
 int reverse;
 int longestfrom = 12;
 
-String*		file2string(String*, int8_t*);
+String*		file2string(String*, char*);
 int		dir2message(Message*, int);
-int		filelen(String*, int8_t*);
-String*		extendpath(String*, int8_t*);
-void		snprintheader(int8_t*, int, Message*);
-void		cracktime(int8_t*, int8_t*, int);
-int		cistrncmp(int8_t*, int8_t*, int);
-int		cistrcmp(int8_t*, int8_t*);
-Reprog*		parsesearch(int8_t**);
-int8_t*		parseaddr(int8_t**, Message*, Message*, Message*,
+int		filelen(String*, char*);
+String*		extendpath(String*, char*);
+void		snprintheader(char*, int, Message*);
+void		cracktime(char*, char*, int);
+int		cistrncmp(char*, char*, int);
+int		cistrcmp(char*, char*);
+Reprog*		parsesearch(char**);
+char*		parseaddr(char**, Message*, Message*, Message*,
 				 Message**);
-int8_t*		parsecmd(int8_t*, Cmd*, Message*, Message*);
-int8_t*		readline(int8_t*, int8_t*, int);
+char*		parsecmd(char*, Cmd*, Message*, Message*);
+char*		readline(char*, char*, int);
 void		messagecount(Message*);
-void		system(int8_t*, int8_t**, int);
+void		system(char*, char**, int);
 void		mkid(String*, Message*);
-int		switchmb(int8_t*, int8_t*);
+int		switchmb(char*, char*);
 void		closemb(void);
-int		lineize(int8_t*, int8_t**, int);
+int		lineize(char*, char**, int);
 int		rawsearch(Message*, Reprog*);
-Message*	dosingleton(Message*, int8_t*);
+Message*	dosingleton(Message*, char*);
 String*		rooted(String*);
 int		plumb(Message*, Ctype*);
-String*		addrecolon(int8_t*);
-void		exitfs(int8_t*);
+String*		addrecolon(char*);
+void		exitfs(char*);
 Message*	flushdeleted(Message*);
 
 void
@@ -198,7 +198,7 @@ usage(void)
 }
 
 void
-catchnote(void*, int8_t *note)
+catchnote(void*, char *note)
 {
 	if(strstr(note, "interrupt") != nil){
 		interrupted = 1;
@@ -207,7 +207,7 @@ catchnote(void*, int8_t *note)
 	noted(NDFLT);
 }
 
-int8_t *
+char *
 plural(int n)
 {
 	if (n == 1)
@@ -368,11 +368,11 @@ main(int argc, char **argv)
 // read the message info
 //
 Message*
-file2message(Message *parent, int8_t *name)
+file2message(Message *parent, char *name)
 {
 	Message *m;
 	String *path;
-	int8_t *f[10];
+	char *f[10];
 
 	m = mallocz(sizeof(Message), 1);
 	if(m == nil)
@@ -481,9 +481,9 @@ dir2message(Message *parent, int reverse)
 //  point directly to a message
 //
 Message*
-dosingleton(Message *parent, int8_t *path)
+dosingleton(Message *parent, char *path)
 {
-	int8_t *p, *np;
+	char *p, *np;
 	Message *m;
 
 	// walk down to message and read it
@@ -520,7 +520,7 @@ dosingleton(Message *parent, int8_t *path)
 //  read a file into a string
 //
 String*
-file2string(String *dir, int8_t *file)
+file2string(String *dir, char *file)
 {
 	String *s;
 	int fd, n, m;
@@ -555,7 +555,7 @@ file2string(String *dir, int8_t *file)
 //  get the length of a file
 //
 int
-filelen(String *dir, int8_t *file)
+filelen(String *dir, char *file)
 {
 	String *path;
 	Dir *d;
@@ -577,7 +577,7 @@ filelen(String *dir, int8_t *file)
 //  walk the path name an element
 //
 String*
-extendpath(String *dir, int8_t *name)
+extendpath(String *dir, char *name)
 {
 	String *path;
 
@@ -592,7 +592,7 @@ extendpath(String *dir, int8_t *name)
 }
 
 int
-cistrncmp(int8_t *a, int8_t *b, int n)
+cistrncmp(char *a, char *b, int n)
 {
 	while(n-- > 0){
 		if(tolower(*a++) != tolower(*b++))
@@ -602,7 +602,7 @@ cistrncmp(int8_t *a, int8_t *b, int n)
 }
 
 int
-cistrcmp(int8_t *a, int8_t *b)
+cistrcmp(char *a, char *b)
 {
 	for(;;){
 		if(tolower(*a) != tolower(*b++))
@@ -613,10 +613,10 @@ cistrcmp(int8_t *a, int8_t *b)
 	return 0;
 }
 
-int8_t*
-nosecs(int8_t *t)
+char*
+nosecs(char *t)
 {
-	int8_t *p;
+	char *p;
 
 	p = strchr(t, ':');
 	if(p == nil)
@@ -627,14 +627,14 @@ nosecs(int8_t *t)
 	return t;
 }
 
-int8_t *months[12] =
+char *months[12] =
 {
 	"jan", "feb", "mar", "apr", "may", "jun",
 	"jul", "aug", "sep", "oct", "nov", "dec"
 };
 
 int
-month(int8_t *m)
+month(char *m)
 {
 	int i;
 
@@ -650,14 +650,14 @@ enum
 };
 
 void
-cracktime(int8_t *d, int8_t *out, int len)
+cracktime(char *d, char *out, int len)
 {
-	int8_t in[64];
-	int8_t *f[6];
+	char in[64];
+	char *f[6];
 	int n;
 	Tm tm;
 	int32_t now, then;
-	int8_t *dtime;
+	char *dtime;
 
 	*out = 0;
 	if(d == nil)
@@ -701,8 +701,8 @@ cracktime(int8_t *d, int8_t *out, int len)
 Ctype*
 findctype(Message *m)
 {
-	int8_t *p;
-	int8_t ftype[128];
+	char *p;
+	char ftype[128];
 	int n, pfd[2];
 	Ctype *a, *cp;
 	static Ctype nulltype	= { "", 0, 0, 0 };
@@ -761,7 +761,7 @@ findctype(Message *m)
 void
 mkid(String *s, Message *m)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	if(m->parent != &top){
 		mkid(s, m->parent);
@@ -772,11 +772,11 @@ mkid(String *s, Message *m)
 }
 
 void
-snprintheader(int8_t *buf, int len, Message *m)
+snprintheader(char *buf, int len, Message *m)
 {
-	int8_t timebuf[32];
+	char timebuf[32];
 	String *id;
-	int8_t *p, *q;
+	char *p, *q;
 
 	// create id
 	id = s_new();
@@ -820,14 +820,14 @@ snprintheader(int8_t *buf, int len, Message *m)
 	s_free(id);
 }
 
-int8_t *spaces = "                                                                    ";
+char *spaces = "                                                                    ";
 
 void
-snprintHeader(int8_t *buf, int len, int indent, Message *m)
+snprintHeader(char *buf, int len, int indent, Message *m)
 {
 	String *id;
-	int8_t typeid[64];
-	int8_t *p, *e;
+	char typeid[64];
+	char *p, *e;
 
 	// create id
 	id = s_new();
@@ -850,7 +850,7 @@ snprintHeader(int8_t *buf, int len, int indent, Message *m)
 	s_free(id);
 }
 
-int8_t sstring[256];
+char sstring[256];
 
 //	cmd := range cmd ' ' arg-list ; 
 //	range := address
@@ -864,9 +864,9 @@ int8_t sstring[256];
 //		| '%' string '%' ;
 //
 Reprog*
-parsesearch(int8_t **pp)
+parsesearch(char **pp)
 {
-	int8_t *p, *np;
+	char *p, *np;
 	int c, n;
 
 	p = *pp;
@@ -888,7 +888,7 @@ parsesearch(int8_t **pp)
 	return regcomp(p);
 }
 
-static int8_t *
+static char *
 num2msg(Message **mp, int sign, int n, Message *first, Message *cur)
 {
 	Message *m;
@@ -920,16 +920,16 @@ num2msg(Message **mp, int sign, int n, Message *first, Message *cur)
 	return nil;
 }
 
-int8_t*
-parseaddr(int8_t **pp, Message *first, Message *cur, Message *unspec,
+char*
+parseaddr(char **pp, Message *first, Message *cur, Message *unspec,
 	  Message **mp)
 {
 	int n;
 	Message *m;
-	int8_t *p, *err;
+	char *p, *err;
 	Reprog *prog;
 	int c, sign;
-	int8_t buf[256];
+	char buf[256];
 
 	*mp = nil;
 	p = *pp;
@@ -1050,7 +1050,7 @@ parseaddr(int8_t **pp, Message *first, Message *cur, Message *unspec,
 int
 rawsearch(Message *m, Reprog *prog)
 {
-	int8_t buf[4096+1];
+	char buf[4096+1];
 	int i, fd, rv;
 	String *path;
 
@@ -1083,16 +1083,16 @@ rawsearch(Message *m, Reprog *prog)
 }
 
 
-int8_t*
-parsecmd(int8_t *p, Cmd *cmd, Message *first, Message *cur)
+char*
+parsecmd(char *p, Cmd *cmd, Message *first, Message *cur)
 {
 	Reprog *prog;
 	Message *m, *s, *e, **l, *last;
-	int8_t buf[256];
-	int8_t *err;
+	char buf[256];
+	char *err;
 	int i, c;
-	int8_t *q;
-	static int8_t errbuf[Errlen];
+	char *q;
+	static char errbuf[Errlen];
 
 	cmd->delete = 0;
 	l = &cmd->msgs;
@@ -1233,10 +1233,10 @@ parsecmd(int8_t *p, Cmd *cmd, Message *first, Message *cur)
 }
 
 // inefficient read from standard input
-int8_t*
-readline(int8_t *prompt, int8_t *line, int len)
+char*
+readline(char *prompt, char *line, int len)
 {
-	int8_t *p, *e;
+	char *p, *e;
 	int n;
 
 retry:
@@ -1274,7 +1274,7 @@ messagecount(Message *m)
 Message*
 aichcmd(Message *m, int indent)
 {
-	int8_t	hdr[256];
+	char	hdr[256];
 
 	if(m == &top)
 		return nil;
@@ -1298,7 +1298,7 @@ Hcmd(Cmd*, Message *m)
 Message*
 hcmd(Cmd*, Message *m)
 {
-	int8_t	hdr[256];
+	char	hdr[256];
 
 	if(m == &top)
 		return nil;
@@ -1335,9 +1335,9 @@ ncmd(Cmd*, Message *m)
 
 /* turn crlfs into newlines */
 int
-decrlf(int8_t *buf, int n)
+decrlf(char *buf, int n)
 {
-	int8_t *nl;
+	char *nl;
 	int left;
 
 	for(nl = buf, left = n;
@@ -1352,9 +1352,9 @@ decrlf(int8_t *buf, int n)
 }
 
 int
-printpart(String *s, int8_t *part)
+printpart(String *s, char *part)
 {
-	int8_t buf[4096];
+	char buf[4096];
 	int n, fd, tot;
 	String *path;
 
@@ -1404,9 +1404,9 @@ Pcmd(Cmd*, Message *m)
 }
 
 void
-compress(int8_t *p)
+compress(char *p)
 {
-	int8_t *np;
+	char *np;
 	int last;
 
 	last = ' ';
@@ -1484,7 +1484,7 @@ pcmd(Cmd*, Message *m)
 	Message *nm;
 	Ctype *cp;
 	String *s;
-	int8_t buf[128];
+	char buf[128];
 
 	if(m == nil)
 		return m;
@@ -1544,9 +1544,9 @@ pcmd(Cmd*, Message *m)
 }
 
 void
-printpartindented(String *s, int8_t *part, int8_t *indent)
+printpartindented(String *s, char *part, char *indent)
 {
-	int8_t *p;
+	char *p;
 	String *path;
 	Biobuf *b;
 
@@ -1612,7 +1612,7 @@ Message*
 flushdeleted(Message *cur)
 {
 	Message *m, **l;
-	int8_t buf[1024], *p, *e, *msg;
+	char buf[1024], *p, *e, *msg;
 	int deld, n, fd;
 	int i;
 
@@ -1774,7 +1774,7 @@ helpcmd(Cmd*, Message *m)
 }
 
 int
-tomailer(int8_t **av)
+tomailer(char **av)
 {
 	Waitmsg *w;
 	int pid, i;
@@ -1819,7 +1819,7 @@ tomailer(int8_t **av)
 // like tokenize but obey "" quoting
 //
 int
-tokenize822(int8_t *str, int8_t **args, int max)
+tokenize822(char *str, char **args, int max)
 {
 	int na;
 	int intok = 0, inquote = 0;
@@ -1856,7 +1856,7 @@ tokenize822(int8_t *str, int8_t **args, int max)
 }
 
 /* return reply-to address & set *nmp to corresponding Message */
-static int8_t *
+static char *
 getreplyto(Message *m, Message **nmp)
 {
 	Message *nm;
@@ -1871,8 +1871,8 @@ getreplyto(Message *m, Message **nmp)
 Message*
 rcmd(Cmd *c, Message *m)
 {
-	int8_t *addr;
-	int8_t *av[128];
+	char *addr;
+	char *av[128];
 	int i, ai = 1;
 	String *from, *rpath, *path = nil, *subject = nil;
 	Message *nm;
@@ -1935,7 +1935,7 @@ rcmd(Cmd *c, Message *m)
 Message*
 mcmd(Cmd *c, Message *m)
 {
-	int8_t **av;
+	char **av;
 	int i, ai;
 	String *path;
 
@@ -1950,7 +1950,7 @@ mcmd(Cmd *c, Message *m)
 	}
 
 	ai = 1;
-	av = malloc(sizeof(int8_t*)*(c->an + 8));
+	av = malloc(sizeof(char*)*(c->an + 8));
 
 	av[ai++] = "-t";
 	if(m->parent == &top)
@@ -1980,7 +1980,7 @@ mcmd(Cmd *c, Message *m)
 Message*
 acmd(Cmd *c, Message *m)
 {
-	int8_t *av[128];
+	char *av[128];
 	int i, ai = 1;
 	String *from, *rpath, *path = nil, *subject = nil;
 	String *to, *cc;
@@ -2029,7 +2029,7 @@ acmd(Cmd *c, Message *m)
 }
 
 String *
-relpath(int8_t *path, String *to)
+relpath(char *path, String *to)
 {
 	if (*path=='/' || strncmp(path, "./", 2) == 0
 			      || strncmp(path, "../", 3) == 0) {
@@ -2043,7 +2043,7 @@ relpath(int8_t *path, String *to)
 }
 
 int
-appendtofile(Message *m, int8_t *part, int8_t *base, int mbox)
+appendtofile(Message *m, char *part, char *base, int mbox)
 {
 	String *file, *h;
 	int in, out, rv;
@@ -2110,7 +2110,7 @@ appendtofile(Message *m, int8_t *part, int8_t *base, int mbox)
 Message*
 scmd(Cmd *c, Message *m)
 {
-	int8_t *file;
+	char *file;
 
 	if(m == &top){
 		Bprint(&out, "!address\n");
@@ -2139,7 +2139,7 @@ scmd(Cmd *c, Message *m)
 Message*
 wcmd(Cmd *c, Message *m)
 {
-	int8_t *file;
+	char *file;
 
 	if(m == &top){
 		Bprint(&out, "!address\n");
@@ -2172,7 +2172,7 @@ wcmd(Cmd *c, Message *m)
 	return m;
 }
 
-int8_t *specialfile[] =
+char *specialfile[] =
 {
 	"pipeto",
 	"pipefrom",
@@ -2185,7 +2185,7 @@ int8_t *specialfile[] =
 static int
 special(String *s)
 {
-	int8_t *p;
+	char *p;
 	int i;
 
 	p = strrchr(s_to_c(s), '/');
@@ -2201,9 +2201,9 @@ special(String *s)
 
 // open the folder using the recipients account name
 static String*
-foldername(int8_t *rcvr)
+foldername(char *rcvr)
 {
-	int8_t *p;
+	char *p;
 	int c;
 	String *file;
 	Dir *d;
@@ -2274,7 +2274,7 @@ fcmd(Cmd *c, Message *m)
 }
 
 void
-system(int8_t *cmd, int8_t **av, int in)
+system(char *cmd, char **av, int in)
 {
 	int pid;
 
@@ -2308,9 +2308,9 @@ system(int8_t *cmd, int8_t **av, int in)
 Message*
 bangcmd(Cmd *c, Message *m)
 {
-	int8_t cmd[4*1024];
-	int8_t *p, *e;
-	int8_t *av[4];
+	char cmd[4*1024];
+	char *p, *e;
+	char *av[4];
 	int i;
 
 	cmd[0] = 0;
@@ -2328,11 +2328,11 @@ bangcmd(Cmd *c, Message *m)
 }
 
 Message*
-xpipecmd(Cmd *c, Message *m, int8_t *part)
+xpipecmd(Cmd *c, Message *m, char *part)
 {
-	int8_t cmd[128];
-	int8_t *p, *e;
-	int8_t *av[4];
+	char cmd[128];
+	char *p, *e;
+	char *av[4];
 	String *path;
 	int i, fd;
 
@@ -2402,12 +2402,12 @@ closemb(void)
 }
 
 int
-switchmb(int8_t *file, int8_t *singleton)
+switchmb(char *file, char *singleton)
 {
-	int8_t *p;
+	char *p;
 	int n, fd;
 	String *path;
-	int8_t buf[256];
+	char buf[256];
 
 	// if the user didn't say anything and there
 	// is an mbox mounted already, use that one
@@ -2503,7 +2503,7 @@ switchmb(int8_t *file, int8_t *singleton)
 
 // like tokenize but for into lines
 int
-lineize(int8_t *s, int8_t **f, int n)
+lineize(char *s, char **f, int n)
 {
 	int i;
 
@@ -2522,7 +2522,7 @@ lineize(int8_t *s, int8_t **f, int n)
 String*
 rooted(String *s)
 {
-	static int8_t buf[256];
+	static char buf[256];
 
 	if(strcmp(root, ".") != 0)
 		return s;
@@ -2566,12 +2566,12 @@ plumb(Message *m, Ctype *cp)
 }
 
 void
-regerror(int8_t*)
+regerror(char*)
 {
 }
 
 String*
-addrecolon(int8_t *s)
+addrecolon(char *s)
 {
 	String *str;
 
@@ -2584,7 +2584,7 @@ addrecolon(int8_t *s)
 }
 
 void
-exitfs(int8_t *rv)
+exitfs(char *rv)
 {
 	if(startedfs)
 		unmount(nil, "/mail/fs");

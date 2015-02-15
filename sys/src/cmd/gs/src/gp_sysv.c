@@ -39,7 +39,7 @@
 
 /* rename */
 int
-rename(const int8_t *a, const int8_t *b)
+rename(const char *a, const char *b)
 {
     if (access(a, 0) == -1)
 	return (-1);

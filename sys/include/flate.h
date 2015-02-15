@@ -43,7 +43,7 @@ int	inflatezlibblock(uint8_t *dst, int dsize, uint8_t *src,
 int	deflatezlibblock(uint8_t *dst, int dsize, uint8_t *src,
 			    int ssize, int level, int debug);
 
-int8_t	*flateerr(int err);
+char	*flateerr(int err);
 
 uint32_t	*mkcrctab(uint32_t);
 uint32_t	blockcrc(uint32_t *tab, uint32_t crc, void *buf, int n);

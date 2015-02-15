@@ -80,9 +80,9 @@ struct Pushstate {
 struct Rname {
 	Rinst	*dlistp;
 	int	rnameout;
-	int8_t	rnamecalled;
-	int8_t	rnamedefined;
-	int8_t	*namer;
+	char	rnamecalled;
+	char	rnamedefined;
+	char	*namer;
 	Rname	*next;		/* next in hash chain */
 };
 
@@ -98,11 +98,11 @@ struct Rinst {
 };
 
 struct Root {
-	int8_t	*func;
+	char	*func;
 	Root	*next;
 };
 
-int8_t *aseen[Maxseen];		/* names being gathered within a function */
+char *aseen[Maxseen];		/* names being gathered within a function */
 Rnamehash nameshash[Hashsize];	/* names being tracked */
 Rname *activelist[Maxdepth];	/* names being output */
 String *cppopt;
@@ -121,7 +121,7 @@ int bracket = 0;			/* curly brace count in input */
 int linect = 0;				/* line number in output */
 int activep = 0;			/* current function being output */
 
-int8_t *infile;
+char *infile;
 int lineno = 1;				/* line number of input */
 int prevc = '\n', thisc = '\n';
 
@@ -129,14 +129,14 @@ int prevc = '\n', thisc = '\n';
 int terse = 1;				/* track functions only once */
 int ntabs = (Maxwidth - 20) / Tabwidth;	/* how wide to go */
 
-int8_t *dashes;				/* separators for deep nestings */
+char *dashes;				/* separators for deep nestings */
 
 /*
  * These are C tokens after which a parenthesis is valid which would
  * otherwise be tagged as function names.  The reserved words which are not
  * listed are break, const, continue, default, goto and volatile.
  */
-int8_t *sysword[] = {
+char *sysword[] = {
 	"auto", "case", "char", "do", "double", "else", "enum",
 	"extern", "float", "for", "if", "int", "long", "register",
 	"return", "short", "sizeof", "static", "struct", "switch",
@@ -147,7 +147,7 @@ int8_t *sysword[] = {
  * warning - print best error message possible
  */
 void
-warning(int8_t *s1, int8_t *s2)
+warning(char *s1, char *s2)
 {
 	fprint(2, "%s: ", argv0);
 	fprint(2, s1, s2);
@@ -168,7 +168,7 @@ emalloc(int size)
 }
 
 unsigned
-hash(int8_t *s)
+hash(char *s)
 {
 	unsigned h;
 	unsigned char *cp;
@@ -195,7 +195,7 @@ ungetc(Biobuf *in)
 }
 
 int
-newatom(Biobuf *in, int8_t *atom)
+newatom(Biobuf *in, char *atom)
 {
 	atom[0] = '\0';
 	return nextc(in);
@@ -207,7 +207,7 @@ newatom(Biobuf *in, int8_t *atom)
  * returns nil.
  */
 Rname *
-lookfor(int8_t *name)
+lookfor(char *name)
 {
 	int i;
 	unsigned buck;
@@ -231,7 +231,7 @@ lookfor(int8_t *name)
  * not in the namelist, place adds it.
  */
 Rname *
-place(int8_t name[])
+place(char name[])
 {
 	unsigned buck;
 	Rname *np;
@@ -320,7 +320,7 @@ install(Rname *np, Rinst *rp)
  * instance of the caller in its called-by pointer.
  */
 Rinst *
-newproc(int8_t *name)
+newproc(char *name)
 {
 	int i;
 	Rname *rp;
@@ -344,7 +344,7 @@ newproc(int8_t *name)
  * add the function name to the calling stack of the current function.
  */
 int
-add2call(int8_t name[], Rinst *curp)
+add2call(char name[], Rinst *curp)
 {
 	Rname *p = place(name);
 	Rinst *ip = install(p, curp);
@@ -572,10 +572,10 @@ isfndefn(Biobuf *in)
  * is WAY faster than the generic bsearch().
  */
 int
-strbsearch(int8_t *key, int8_t **base, unsigned nel)
+strbsearch(char *key, char **base, unsigned nel)
 {
 	int cmp;
-	int8_t **last = base + nel - 1, **pos;
+	char **last = base + nel - 1, **pos;
 
 	while (last >= base) {
 		pos = base + ((last - base) >> 1);
@@ -598,7 +598,7 @@ strbsearch(int8_t *key, int8_t **base, unsigned nel)
  * see if we have seen this function within this process
  */
 int
-seen(int8_t *atom)
+seen(char *atom)
 {
 	int i;
 
@@ -618,11 +618,11 @@ seen(int8_t *atom)
  * Call for an internal call, or Beof.
  */
 int
-getfunc(Biobuf *in, int8_t *atom)
+getfunc(Biobuf *in, char *atom)
 {
 	int c, nf, last, ss, quote;
-	int8_t *ln, *nm, *ap, *ep = &atom[Maxid-1-UTFmax];
-	int8_t *flds[4];
+	char *ln, *nm, *ap, *ep = &atom[Maxid-1-UTFmax];
+	char *flds[4];
 	Rune r;
 
 	c = nextc(in);
@@ -746,7 +746,7 @@ addfuncs(int infd)
 {
 	int intern;
 	uintptr ok = 1;
-	int8_t atom[Maxid];
+	char atom[Maxid];
 	Biobuf inbb;
 	Biobuf *in;
 	Rinst *curproc = nil;
@@ -767,7 +767,7 @@ addfuncs(int infd)
  * returns a descriptor to replace fd, or -1 on error.
  */
 static int
-push(int fd, int8_t *cmd, int input, Pushstate *ps)
+push(int fd, char *cmd, int input, Pushstate *ps)
 {
 	int nfd, pifds[2];
 	String *s;
@@ -806,7 +806,7 @@ push(int fd, int8_t *cmd, int input, Pushstate *ps)
 	return nfd;
 }
 
-static int8_t *
+static char *
 pushclose(Pushstate *ps)
 {
 	Waitmsg *wm;
@@ -830,10 +830,10 @@ pushclose(Pushstate *ps)
  * also plan 9's cpp can only process one input file per invocation.
  */
 void
-scanfiles(int argc, int8_t **argv)
+scanfiles(int argc, char **argv)
 {
 	int i, infd;
-	int8_t *sts;
+	char *sts;
 	Pushstate ps;
 	String *cmd;
 

@@ -18,26 +18,26 @@ typedef struct	GZHead	GZHead;
 struct GZHead
 {
 	uint32_t	mtime;
-	int8_t	*file;
+	char	*file;
 };
 
 static	int	crcwrite(void *bout, void *buf, int n);
 static	int	get1(Biobuf *b);
 static	uint32_t	get4(Biobuf *b);
-static	int	gunzipf(int8_t *file, int stdout);
-static	int	gunzip(int ofd, int8_t *ofile, Biobuf *bin);
+static	int	gunzipf(char *file, int stdout);
+static	int	gunzip(int ofd, char *ofile, Biobuf *bin);
 static	void	header(Biobuf *bin, GZHead *h);
 static	void	trailer(Biobuf *bin, int32_t wlen);
-static	void	error(int8_t*, ...);
+static	void	error(char*, ...);
 #pragma	varargck	argpos	error	1
 
 static	Biobuf	bin;
 static	uint32_t	crc;
 static	uint32_t	*crctab;
 static	int	debug;
-static	int8_t	*delfile;
+static	char	*delfile;
 static	int64_t	gzok;
-static	int8_t	*infile;
+static	char	*infile;
 static	int	settimes;
 static	int	table;
 static	int	verbose;
@@ -101,9 +101,9 @@ main(int argc, char *argv[])
 }
 
 static int
-gunzipf(int8_t *file, int stdout)
+gunzipf(char *file, int stdout)
 {
-	int8_t ofile[256], *s;
+	char ofile[256], *s;
 	int ofd, ifd, ok;
 
 	infile = file;
@@ -174,7 +174,7 @@ gunzipf(int8_t *file, int stdout)
 }
 
 static int
-gunzip(int ofd, int8_t *ofile, Biobuf *bin)
+gunzip(int ofd, char *ofile, Biobuf *bin)
 {
 	Dir *d;
 	GZHead h;
@@ -224,7 +224,7 @@ gunzip(int ofd, int8_t *ofile, Biobuf *bin)
 static void
 header(Biobuf *bin, GZHead *h)
 {
-	int8_t *s;
+	char *s;
 	int i, c, flag, ns, nsa;
 
 	if(get1(bin) != GZMAGIC1 || get1(bin) != GZMAGIC2)
@@ -342,7 +342,7 @@ crcwrite(void *out, void *buf, int n)
 }
 
 static void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
 	va_list arg;
 

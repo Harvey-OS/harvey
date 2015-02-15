@@ -27,11 +27,11 @@ enum {
 static int lsbtab[] = { 6, 4, 2, 0};
 
 static int
-looksize(int8_t *file, int64_t size, int *pixels, int *lines, int *bits)
+looksize(char *file, int64_t size, int *pixels, int *lines, int *bits)
 {
 	Biobuf *bp;
 	uint64_t l, p;
-	int8_t *s, *a[12];
+	char *s, *a[12];
 
 	/*
 	 * This may not always work, there could be an alias between file

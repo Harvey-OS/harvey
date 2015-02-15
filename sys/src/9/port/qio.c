@@ -1427,7 +1427,7 @@ qclose(Queue *q)
  *  blocks.
  */
 void
-qhangup(Queue *q, int8_t *msg)
+qhangup(Queue *q, char *msg)
 {
 	/* mark it */
 	ilock(q);

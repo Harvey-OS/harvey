@@ -16,7 +16,7 @@
  * BUG: errno mapping
  */
 int
-mkdir(const int8_t *name, mode_t mode)
+mkdir(const char *name, mode_t mode)
 {
 	int n;
 	struct stat st;

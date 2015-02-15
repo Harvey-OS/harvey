@@ -124,7 +124,7 @@ tlbsum(void)
 	Bprint(bioout, "%7d%% Hit rate\n", Percent(tlb.hit, tlb.hit+tlb.miss));
 }
 
-int8_t *stype[] = { "Stack", "Text", "Data", "Bss" };
+char *stype[] = { "Stack", "Text", "Data", "Bss" };
 
 void
 segsum(void)

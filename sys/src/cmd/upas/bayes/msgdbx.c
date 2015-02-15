@@ -19,7 +19,7 @@ struct Msgdb
 };
 
 Msgdb*
-mdopen(int8_t *file, int create)
+mdopen(char *file, int create)
 {
 	Msgdb *mdb;
 	DB *db;
@@ -39,7 +39,7 @@ mdopen(int8_t *file, int create)
 }
 
 int32_t
-mdget(Msgdb *mdb, int8_t *tok)
+mdget(Msgdb *mdb, char *tok)
 {
 	DB *db = mdb->db;
 	DBT key, val;
@@ -61,7 +61,7 @@ mdget(Msgdb *mdb, int8_t *tok)
 }
 
 void
-mdput(Msgdb *mdb, int8_t *tok, int32_t n)
+mdput(Msgdb *mdb, char *tok, int32_t n)
 {
 	uint8_t p[4];
 	DB *db = mdb->db;
@@ -91,7 +91,7 @@ mdenum(Msgdb *mdb)
 }
 
 int
-mdnext(Msgdb *mdb, int8_t **sp, int32_t *vp)
+mdnext(Msgdb *mdb, char **sp, int32_t *vp)
 {
 	DBT key, val;
 	uint8_t *p;

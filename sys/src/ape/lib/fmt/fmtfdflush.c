@@ -34,7 +34,7 @@ __fmtFdFlush(Fmt *f)
 {
 	int n;
 
-	n = (int8_t*)f->to - (int8_t*)f->start;
+	n = (char*)f->to - (char*)f->start;
 	if(n && write((int)f->farg, f->start, n) != n)
 		return 0;
 	f->to = f->start;

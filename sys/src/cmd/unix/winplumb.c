@@ -13,9 +13,9 @@
 #pragma comment(lib, "wsock32.lib")
 #pragma comment(lib, "shell32.lib")
 
-int8_t	*argv0 = "winplumb";
-int8_t errbuf[256];
-unsigned long parseip(int8_t*, int8_t*);
+char	*argv0 = "winplumb";
+char errbuf[256];
+unsigned long parseip(char*, char*);
 typedef unsigned long ulong;
 void oserror(void);
 
@@ -59,10 +59,10 @@ nhgets(void *p)
 
 
 int
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
-	int8_t *addr, *p, *q, to[4];
-	int8_t buf[2048];
+	char *addr, *p, *q, to[4];
+	char buf[2048];
 	int port, fd, nfd, one, len, n, tot;
 	uint32_t ip;
 	struct sockaddr_in sin;
@@ -109,12 +109,12 @@ main(int argc, int8_t **argv)
 	}
 
 	one = 1;
-	if(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (int8_t*)&one, sizeof one) != 0){
+	if(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof one) != 0){
 		oserror();
 		fprintf(stderr, "setsockopt nodelay: %s\n", errbuf);
 	}
 
-	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (int8_t*)&one, sizeof one) != 0){
+	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof one) != 0){
 		oserror();
 		fprintf(stderr, "setsockopt reuse: %s\n", errbuf);
 	}
@@ -165,10 +165,10 @@ main(int argc, int8_t **argv)
 
 
 unsigned long
-parseip(int8_t *to, int8_t *from)
+parseip(char *to, char *from)
 {
 	int i;
-	int8_t *p;
+	char *p;
 
 	p = from;
 	memset(to, 0, 4);
@@ -203,7 +203,7 @@ void
 oserror(void)
 {
 	int e, r, i;
-	int8_t buf[200];
+	char buf[200];
 
 	e = GetLastError();
 	
@@ -221,21 +221,21 @@ oserror(void)
 	strcpy(errbuf, buf);
 }
 
-extern int	main(int, int8_t*[]);
-static int	args(int8_t *argv[], int n, int8_t *p);
+extern int	main(int, char*[]);
+static int	args(char *argv[], int n, char *p);
 
 int PASCAL
 WinMain(HANDLE hInst, HANDLE hPrev, LPSTR arg, int nshow)
 {
 	int argc, n;
-	int8_t *p, **argv;
+	char *p, **argv;
 
 	/* conservative guess at the number of args */
 	for(argc=5,p=arg; *p; p++)
 		if(*p == ' ' || *p == '\t')
 			argc++;
 
-	argv = malloc(argc*sizeof(int8_t*));
+	argv = malloc(argc*sizeof(char*));
 	argc = args(argv+1, argc, arg);
 	argc++;
 	argv[0] = argv0;
@@ -255,9 +255,9 @@ WinMain(HANDLE hInst, HANDLE hPrev, LPSTR arg, int nshow)
  * N backslashes not followed by " ==> N backslashes
  */
 static int
-args(int8_t *argv[], int n, int8_t *p)
+args(char *argv[], int n, char *p)
 {
-	int8_t *p2;
+	char *p2;
 	int i, j, quote, nbs;
 
 	for(i=0; *p && i<n-1; i++) {

@@ -10,10 +10,10 @@
 #include "os.h"
 #include <libsec.h>
 
-int8_t*
+char*
 md5pickle(MD5state *s)
 {
-	int8_t *p;
+	char *p;
 	int m, n;
 
 	m = 17+4*9+4*((s->blen+3)/3 + 1);
@@ -29,7 +29,7 @@ md5pickle(MD5state *s)
 }
 
 MD5state*
-md5unpickle(int8_t *p)
+md5unpickle(char *p)
 {
 	MD5state *s;
 

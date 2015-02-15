@@ -103,9 +103,9 @@ main(int argc, char *argv[])
 }
 
 int
-assemble(int8_t *file)
+assemble(char *file)
 {
-	int8_t ofile[100], incfile[20], *p;
+	char ofile[100], incfile[20], *p;
 	int i, of;
 
 	strcpy(ofile, file);
@@ -168,7 +168,7 @@ assemble(int8_t *file)
 
 struct
 {
-	int8_t	*name;
+	char	*name;
 	uint16_t	type;
 	uint16_t	value;
 } itab[] =
@@ -465,7 +465,7 @@ cclean(void)
 }
 
 void
-zname(int8_t *n, int t, int s)
+zname(char *n, int t, int s)
 {
 
 	Bputc(&obuf, ANAME);
@@ -483,7 +483,7 @@ zaddr(Gen *a, int s)
 {
 	int32_t l;
 	int i;
-	int8_t *n;
+	char *n;
 	Ieee e;
 
 	Bputc(&obuf, a->type);
@@ -636,7 +636,7 @@ outhist(void)
 {
 	Gen g;
 	Hist *h;
-	int8_t *p, *q, *op, c;
+	char *p, *q, *op, c;
 	int n;
 
 	g = nullgen;

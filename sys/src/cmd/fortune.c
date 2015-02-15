@@ -11,19 +11,19 @@
 #include <libc.h>
 #include <bio.h>
 
-int8_t choice[2048];
-int8_t index[] = "/sys/games/lib/fortunes.index";
-int8_t fortunes[] = "/sys/games/lib/fortunes";
+char choice[2048];
+char index[] = "/sys/games/lib/fortunes.index";
+char fortunes[] = "/sys/games/lib/fortunes";
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int i;
 	int32_t offs;
 	uint8_t off[4];
 	int ix, nix;
 	int newindex, oldindex;
-	int8_t *p;
+	char *p;
 	Dir *fbuf, *ixbuf;
 	Biobuf *f, g;
 

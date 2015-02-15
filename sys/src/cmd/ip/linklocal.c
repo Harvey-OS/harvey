@@ -22,7 +22,7 @@ enum {
 	V60globaladm	= 1<<1,		/* but ipv6 reverses the meaning */
 };
 
-static int8_t *v4_6to4;
+static char *v4_6to4;
 
 static void
 usage(void)
@@ -65,7 +65,7 @@ ea2lla(uint8_t *lla, uint8_t *ea)
 }
 
 static void
-process(int8_t *ether)
+process(char *ether)
 {
 	uint8_t ethaddr[6], ipaddr[IPaddrlen], ipv4[IPv4addrlen];
 

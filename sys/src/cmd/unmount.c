@@ -11,10 +11,10 @@
 #include <libc.h>
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int r;
-	int8_t *mnted, *mtpt;
+	char *mnted, *mtpt;
 
 	argv0 = argv[0];
 	switch (argc) {

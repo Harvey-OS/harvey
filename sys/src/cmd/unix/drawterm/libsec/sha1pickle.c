@@ -10,10 +10,10 @@
 #include "os.h"
 #include <libsec.h>
 
-int8_t*
+char*
 sha1pickle(SHA1state *s)
 {
-	int8_t *p;
+	char *p;
 	int m, n;
 
 	m = 5*9+4*((s->blen+3)/3);
@@ -28,7 +28,7 @@ sha1pickle(SHA1state *s)
 }
 
 SHA1state*
-sha1unpickle(int8_t *p)
+sha1unpickle(char *p)
 {
 	SHA1state *s;
 

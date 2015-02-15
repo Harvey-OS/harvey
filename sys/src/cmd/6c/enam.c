@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-int8_t*	anames[] =
+char*	anames[] =
 {
 	"XXX",
 	"AAA",

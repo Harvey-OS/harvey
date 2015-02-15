@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <fcall.h>
 
-static int8_t *modes[] =
+static char *modes[] =
 {
 	"---",
 	"--x",
@@ -24,7 +24,7 @@ static int8_t *modes[] =
 };
 
 static void
-rwx(int32_t m, int8_t *s)
+rwx(int32_t m, char *s)
 {
 	strncpy(s, modes[m], 3);
 }
@@ -32,7 +32,7 @@ rwx(int32_t m, int8_t *s)
 int
 dirmodefmt(Fmt *f)
 {
-	static int8_t buf[16];
+	static char buf[16];
 	uint32_t m;
 
 	m = va_arg(f->args, uint32_t);

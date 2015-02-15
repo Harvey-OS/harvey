@@ -26,10 +26,10 @@ enum {
 	Snone,
 };
 
-int8_t*	scsierror(int, int);
+char*	scsierror(int, int);
 int		scsicmd(Scsi*, uint8_t*, int, void*, int, int);
 int		scsi(Scsi*, uint8_t*, int, void*, int, int);
-Scsi*		openscsi(int8_t*);
+Scsi*		openscsi(char*);
 void		closescsi(Scsi*);
 int		scsiready(Scsi*);
 
@@ -38,8 +38,8 @@ extern int		scsiverbose;
 /* disk partition interface */
 typedef struct Disk Disk;
 struct Disk {
-	int8_t *prefix;
-	int8_t *part;
+	char *prefix;
+	char *part;
 	int fd;
 	int wfd;
 	int ctlfd;
@@ -57,7 +57,7 @@ struct Disk {
 	int chssrc;
 };
 
-Disk*	opendisk(int8_t*, int, int);
+Disk*	opendisk(char*, int, int);
 
 enum {
 	Tfile = 0,
@@ -135,6 +135,6 @@ enum {					/* SCSI command codes */
 };
 
 /* proto file parsing */
-typedef void Protoenum(int8_t *new, int8_t *old, Dir *d, void *a);
-typedef void Protowarn(int8_t *msg, void *a);
-int rdproto(int8_t*, int8_t*, Protoenum*, Protowarn*, void*);
+typedef void Protoenum(char *new, char *old, Dir *d, void *a);
+typedef void Protowarn(char *msg, void *a);
+int rdproto(char*, char*, Protoenum*, Protowarn*, void*);

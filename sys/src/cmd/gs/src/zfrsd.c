@@ -241,7 +241,7 @@ make_rfs(i_ctx_t *i_ctx_p, os_ptr op, stream *fs, int32_t offset,
 
     if (sfilename(fs, &fname) < 0)
 	return_error(e_ioerror);
-    code = gs_parse_file_name(&pname, (const int8_t *)fname.data, fname.size);
+    code = gs_parse_file_name(&pname, (const char *)fname.data, fname.size);
     if (code < 0)
 	return code;
     if (pname.len == 0)		/* %stdin% etc. won't have a filename */
@@ -249,7 +249,7 @@ make_rfs(i_ctx_t *i_ctx_p, os_ptr op, stream *fs, int32_t offset,
     if (pname.iodev == NULL)
 	pname.iodev = iodev_default;
     /* Open the file again, to be independent of the source. */
-    code = file_open_stream((const int8_t *)pname.fname, pname.len, "r",
+    code = file_open_stream((const char *)pname.fname, pname.len, "r",
 			    fs->cbsize, &s, pname.iodev,
 			    pname.iodev->procs.fopen, imemory);
     if (code < 0)

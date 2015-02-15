@@ -11,32 +11,32 @@
 #include <libc.h>
 #include <ctype.h>
 
-static int8_t*
-skiptext(int8_t *q)
+static char*
+skiptext(char *q)
 {
 	while(*q!='\0' && *q!=' ' && *q!='\t' && *q!='\r' && *q!='\n')
 		q++;
 	return q;
 }
 
-static int8_t*
-skipwhite(int8_t *q)
+static char*
+skipwhite(char *q)
 {
 	while(*q==' ' || *q=='\t' || *q=='\r' || *q=='\n')
 		q++;
 	return q;
 }
 
-static int8_t* months[] = {
+static char* months[] = {
 	"jan", "feb", "mar", "apr",
 	"may", "jun", "jul", "aug", 
 	"sep", "oct", "nov", "dec"
 };
 
 static int
-strcmplwr(int8_t *a, int8_t *b, int n)
+strcmplwr(char *a, char *b, int n)
 {
-	int8_t *eb;
+	char *eb;
 
 	eb = b+n;
 	while(*a && *b && b<eb){
@@ -51,9 +51,9 @@ strcmplwr(int8_t *a, int8_t *b, int n)
 }
 
 int
-strtotm(int8_t *p, Tm *tmp)
+strtotm(char *p, Tm *tmp)
 {
-	int8_t *q, *r;
+	char *q, *r;
 	int j;
 	Tm tm;
 	int delta;

@@ -9,11 +9,11 @@
 
 #include <string.h>
 
-int8_t*
-strncpy(int8_t *s1, const int8_t *s2, size_t n)
+char*
+strncpy(char *s1, const char *s2, size_t n)
 {
 	int i;
-	int8_t *os1;
+	char *os1;
 
 	os1 = s1;
 	for(i = 0; i < n; i++)

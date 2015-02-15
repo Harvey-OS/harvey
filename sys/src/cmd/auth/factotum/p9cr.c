@@ -35,9 +35,9 @@ struct State
 	int	asfd;
 	Ticket	t;
 	Ticketreq tr;
-	int8_t	chal[Maxchal];
+	char	chal[Maxchal];
 	int	challen;
-	int8_t	resp[Maxchal];
+	char	resp[Maxchal];
 	int	resplen;
 };
 
@@ -80,7 +80,7 @@ static int
 p9crinit(Proto *p, Fsstate *fss)
 {
 	int iscli, ret;
-	int8_t *user;
+	char *user;
 	State *s;
 	Attr *attr;
 	Keyinfo ki;
@@ -174,17 +174,17 @@ p9crread(Fsstate *fss, void *va, uint *n)
 static int
 p9response(Fsstate *fss, State *s)
 {
-	int8_t key[DESKEYLEN];
+	char key[DESKEYLEN];
 	uint8_t buf[8];
 	uint32_t chal;
-	int8_t *pw;
+	char *pw;
 
 	pw = _strfindattr(s->key->privattr, "!password");
 	if(pw == nil)
 		return failure(fss, "vncresponse cannot happen");
 	passtokey(key, pw);
 	memset(buf, 0, 8);
-	snprint((int8_t*)buf, sizeof buf, "%d", atoi(s->chal));
+	snprint((char*)buf, sizeof buf, "%d", atoi(s->chal));
 	if(encrypt(key, buf, 8) < 0)
 		return failure(fss, "can't encrypt response");
 	chal = (buf[0]<<24)+(buf[1]<<16)+(buf[2]<<8)+buf[3];
@@ -219,13 +219,13 @@ static int
 vncaddkey(Key *k, int before)
 {
 	uint8_t *p;
-	int8_t *s;
+	char *s;
 
 	k->priv = emalloc(8+1);
 	if(s = _strfindattr(k->privattr, "!password")){
 		mktab();
 		memset(k->priv, 0, 8+1);
-		strncpy((int8_t*)k->priv, s, 8);
+		strncpy((char*)k->priv, s, 8);
 		for(p=k->priv; *p; p++)
 			*p = tab[*p];
 	}else{
@@ -256,11 +256,11 @@ vncresponse(Fsstate*, State *s)
 static int
 p9crwrite(Fsstate *fss, void *va, uint n)
 {
-	int8_t tbuf[TICKETLEN+AUTHENTLEN];
+	char tbuf[TICKETLEN+AUTHENTLEN];
 	State *s;
-	int8_t *data = va;
+	char *data = va;
 	Authenticator a;
-	int8_t resp[Maxchal];
+	char resp[Maxchal];
 	int ret;
 
 	s = fss->ps;
@@ -325,7 +325,7 @@ p9crwrite(Fsstate *fss, void *va, uint n)
 static int
 getchal(State *s, Fsstate *fss)
 {
-	int8_t trbuf[TICKREQLEN];
+	char trbuf[TICKREQLEN];
 	int n;
 
 	safecpy(s->tr.hostid, _strfindattr(s->key->attr, "user"), sizeof(s->tr.hostid));

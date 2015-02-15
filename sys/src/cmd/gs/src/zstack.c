@@ -213,7 +213,7 @@ zroll(i_ctx_t *i_ctx_p)
 	op -= 2;
 	for (to = op + mod, from = op, n = count; n--; to--, from--)
 	    ref_assign(to, from);
-	memcpy((int8_t *)(from + 1), (int8_t *)(op + 1), mod * sizeof(ref));
+	memcpy((char *)(from + 1), (char *)(op + 1), mod * sizeof(ref));
     } else {
 	/* Move bottom elements up, then everything down. */
 	mod = count - mod;
@@ -224,7 +224,7 @@ zroll(i_ctx_t *i_ctx_p)
 	pop(2);
 	op -= 2;
 	to = op - count + 1;
-	memcpy((int8_t *)(op + 1), (int8_t *)to, mod * sizeof(ref));
+	memcpy((char *)(op + 1), (char *)to, mod * sizeof(ref));
 	for (from = to + mod, n = count; n--; to++, from++)
 	    ref_assign(to, from);
     }

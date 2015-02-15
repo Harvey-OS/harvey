@@ -88,7 +88,7 @@ dupbox(Frame *f, int bn)
 	_fraddbox(f, bn, 1);
 	if(f->box[bn].nrune >= 0){
 		p = _frallocstr(f, NBYTE(&f->box[bn])+1);
-		strcpy((int8_t*)p, (int8_t*)f->box[bn].ptr);
+		strcpy((char*)p, (char*)f->box[bn].ptr);
 		f->box[bn+1].ptr = p;
 	}
 }
@@ -104,7 +104,7 @@ runeindex(uint8_t *p, int n)
 		if(*p < Runeself)
 			w = 1;
 		else{
-			w = chartorune(&rune, (int8_t*)p);
+			w = chartorune(&rune, (char*)p);
 			USED(rune);
 		}
 	return p;
@@ -118,21 +118,21 @@ truncatebox(Frame *f, Frbox *b, int n)	/* drop last n chars; no allocation done 
 		drawerror(f->display, "truncatebox");
 	b->nrune -= n;
 	runeindex(b->ptr, b->nrune)[0] = 0;
-	b->wid = stringwidth(f->font, (int8_t *)b->ptr);
+	b->wid = stringwidth(f->font, (char *)b->ptr);
 }
 
 static
 void
 chopbox(Frame *f, Frbox *b, int n)	/* drop first n chars; no allocation done */
 {
-	int8_t *p;
+	char *p;
 
 	if(b->nrune<0 || b->nrune<n)
 		drawerror(f->display, "chopbox");
-	p = (int8_t*)runeindex(b->ptr, n);
-	memmove((int8_t*)b->ptr, p, strlen(p)+1);
+	p = (char*)runeindex(b->ptr, n);
+	memmove((char*)b->ptr, p, strlen(p)+1);
 	b->nrune -= n;
-	b->wid = stringwidth(f->font, (int8_t *)b->ptr);
+	b->wid = stringwidth(f->font, (char *)b->ptr);
 }
 
 void
@@ -150,7 +150,7 @@ _frmergebox(Frame *f, int bn)		/* merge bn and bn+1 */
 
 	b = &f->box[bn];
 	_frinsure(f, bn, NBYTE(&b[0])+NBYTE(&b[1])+1);
-	strcpy((int8_t*)runeindex(b[0].ptr, b[0].nrune), (int8_t*)b[1].ptr);
+	strcpy((char*)runeindex(b[0].ptr, b[0].nrune), (char*)b[1].ptr);
 	b[0].wid += b[1].wid;
 	b[0].nrune += b[1].nrune;
 	_frdelbox(f, bn+1, bn+1);

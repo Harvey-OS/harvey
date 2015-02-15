@@ -83,25 +83,25 @@ static void	exslave(void*);
 static void	exfree(Export*);
 static void	exportproc(Export*);
 
-static int8_t*	Exattach(Export*, Fcall*, uint8_t*);
-static int8_t*	Exauth(Export*, Fcall*, uint8_t*);
-static int8_t*	Exclunk(Export*, Fcall*, uint8_t*);
-static int8_t*	Excreate(Export*, Fcall*, uint8_t*);
-static int8_t*	Exversion(Export*, Fcall*, uint8_t*);
-static int8_t*	Exopen(Export*, Fcall*, uint8_t*);
-static int8_t*	Exread(Export*, Fcall*, uint8_t*);
-static int8_t*	Exremove(Export*, Fcall*, uint8_t*);
-static int8_t*	Exsession(Export*, Fcall*, uint8_t*);
-static int8_t*	Exstat(Export*, Fcall*, uint8_t*);
-static int8_t*	Exwalk(Export*, Fcall*, uint8_t*);
-static int8_t*	Exwrite(Export*, Fcall*, uint8_t*);
-static int8_t*	Exwstat(Export*, Fcall*, uint8_t*);
+static char*	Exattach(Export*, Fcall*, uint8_t*);
+static char*	Exauth(Export*, Fcall*, uint8_t*);
+static char*	Exclunk(Export*, Fcall*, uint8_t*);
+static char*	Excreate(Export*, Fcall*, uint8_t*);
+static char*	Exversion(Export*, Fcall*, uint8_t*);
+static char*	Exopen(Export*, Fcall*, uint8_t*);
+static char*	Exread(Export*, Fcall*, uint8_t*);
+static char*	Exremove(Export*, Fcall*, uint8_t*);
+static char*	Exsession(Export*, Fcall*, uint8_t*);
+static char*	Exstat(Export*, Fcall*, uint8_t*);
+static char*	Exwalk(Export*, Fcall*, uint8_t*);
+static char*	Exwrite(Export*, Fcall*, uint8_t*);
+static char*	Exwstat(Export*, Fcall*, uint8_t*);
 
-static int8_t	*(*fcalls[Tmax])(Export*, Fcall*, uint8_t*);
+static char	*(*fcalls[Tmax])(Export*, Fcall*, uint8_t*);
 
-static int8_t	Enofid[]   = "no such fid";
-static int8_t	Eseekdir[] = "can't seek on a directory";
-static int8_t	Ereaddir[] = "unaligned read of a directory";
+static char	Enofid[]   = "no such fid";
+static char	Eseekdir[] = "can't seek on a directory";
+static char	Ereaddir[] = "unaligned read of a directory";
 static int	exdebug = 0;
 
 int
@@ -319,7 +319,7 @@ exslave(void *)
 {
 	Export *fs;
 	Exq *q, *t, **last;
-	int8_t *volatile err;
+	char *volatile err;
 	int n, ed;
 
 	while(waserror())
@@ -509,7 +509,7 @@ Exputfid(Export *fs, Fid *f)
 	unlock(&fs->fidlock);
 }
 
-static int8_t*
+static char*
 Exversion(Export *fs, Fcall *rpc, uint8_t *)
 {
 	if(rpc->msize > Maxrpc)
@@ -524,13 +524,13 @@ Exversion(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static int8_t*
+static char*
 Exauth(Export *, Fcall *, uint8_t *)
 {
 	return "vnc: authentication not required";
 }
 
-static int8_t*
+static char*
 Exattach(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
@@ -556,7 +556,7 @@ Exattach(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static int8_t*
+static char*
 Exclunk(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
@@ -569,7 +569,7 @@ Exclunk(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static int8_t*
+static char*
 Exwalk(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *volatile f, *volatile nf;
@@ -635,7 +635,7 @@ Exwalk(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static int8_t*
+static char*
 Exopen(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *volatile f;
@@ -664,7 +664,7 @@ Exopen(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static int8_t*
+static char*
 Excreate(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
@@ -692,7 +692,7 @@ Excreate(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static int8_t*
+static char*
 Exread(Export *fs, Fcall *rpc, uint8_t *buf)
 {
 	Fid *f;
@@ -710,7 +710,7 @@ Exread(Export *fs, Fcall *rpc, uint8_t *buf)
 		return up->error;
 	}
 
-	rpc->data = (int8_t*)buf;
+	rpc->data = (char*)buf;
 	off = rpc->offset;
 	c->offset = off;
 	rpc->count = (*devtab[c->type]->read)(c, rpc->data, rpc->count, off);
@@ -719,7 +719,7 @@ Exread(Export *fs, Fcall *rpc, uint8_t *buf)
 	return nil;
 }
 
-static int8_t*
+static char*
 Exwrite(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
@@ -741,7 +741,7 @@ Exwrite(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static int8_t*
+static char*
 Exstat(Export *fs, Fcall *rpc, uint8_t *buf)
 {
 	Fid *f;
@@ -762,7 +762,7 @@ Exstat(Export *fs, Fcall *rpc, uint8_t *buf)
 	return nil;
 }
 
-static int8_t*
+static char*
 Exwstat(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;
@@ -782,7 +782,7 @@ Exwstat(Export *fs, Fcall *rpc, uint8_t *)
 	return nil;
 }
 
-static int8_t*
+static char*
 Exremove(Export *fs, Fcall *rpc, uint8_t *)
 {
 	Fid *f;

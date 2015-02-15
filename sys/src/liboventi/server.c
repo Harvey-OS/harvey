@@ -12,10 +12,10 @@
 #include <oventi.h>
 #include "session.h"
 
-static int8_t EAuthState[] = "bad authentication state";
-static int8_t ENotServer[] = "not a server session";
-static int8_t EVersion[] = "incorrect version number";
-static int8_t EProtocolBotch[] = "venti protocol botch";
+static char EAuthState[] = "bad authentication state";
+static char ENotServer[] = "not a server session";
+static char EVersion[] = "incorrect version number";
+static char EProtocolBotch[] = "venti protocol botch";
 
 VtSession *
 vtServerAlloc(VtServerVtbl *vtbl)
@@ -28,7 +28,7 @@ vtServerAlloc(VtServerVtbl *vtbl)
 }
 
 static int
-srvHello(VtSession *z, int8_t *version, int8_t *uid, int , uint8_t *,
+srvHello(VtSession *z, char *version, char *uid, int , uint8_t *,
 	 int ,
 	 uint8_t *, int )
 {
@@ -56,7 +56,7 @@ Err:
 static int
 dispatchHello(VtSession *z, Packet **pkt)
 {
-	int8_t *version, *uid;
+	char *version, *uid;
 	uint8_t *crypto, *codec;
 	uint8_t buf[10];
 	int ncrypto, ncodec, cryptoStrength;

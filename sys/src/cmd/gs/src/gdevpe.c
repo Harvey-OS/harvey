@@ -34,7 +34,7 @@
 #include "gx.h"
 #include "gxdevice.h"
 
-int8_t *getenv(int8_t *name);
+char *getenv(char *name);
 
 typedef struct gx_device_pe_s {
 	gx_device_common;
@@ -98,7 +98,7 @@ static regval pedone[] = {{0x04, 0x1e}, {0x05, 0x10},
 
 int pe_open(gx_device *dev)
 {
-	int8_t *str;
+	char *str;
 	int i;
 
 	if ((str = getenv("PEFBADDR")) != 0)

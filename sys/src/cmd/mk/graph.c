@@ -9,20 +9,20 @@
 
 #include	"mk.h"
 
-static Node *applyrules(int8_t *, int8_t *);
+static Node *applyrules(char *, char *);
 static void togo(Node *);
 static int vacuous(Node *);
-static Node *newnode(int8_t *);
-static void trace(int8_t *, Arc *);
+static Node *newnode(char *);
+static void trace(char *, Arc *);
 static void cyclechk(Node *);
 static void ambiguous(Node *);
 static void attribute(Node *);
 
 Node *
-graph(int8_t *target)
+graph(char *target)
 {
 	Node *node;
-	int8_t *cnt;
+	char *cnt;
 
 	cnt = rulecnt();
 	node = applyrules(target, cnt);
@@ -36,14 +36,14 @@ graph(int8_t *target)
 }
 
 static Node *
-applyrules(int8_t *target, int8_t *cnt)
+applyrules(char *target, char *cnt)
 {
 	Symtab *sym;
 	Node *node;
 	Rule *r;
 	Arc head, *a = &head;
 	Word *w;
-	int8_t stem[NAMEBLOCK], buf[NAMEBLOCK];
+	char stem[NAMEBLOCK], buf[NAMEBLOCK];
 	Resub rmatch[NREGEXP];
 
 /*	print("applyrules(%lux='%s')\n", target, target);/**/
@@ -55,7 +55,7 @@ applyrules(int8_t *target, int8_t *cnt)
 	head.n = 0;
 	head.next = 0;
 	sym = symlook(target, S_TARGET, 0);
-	memset((int8_t*)rmatch, 0, sizeof(rmatch));
+	memset((char*)rmatch, 0, sizeof(rmatch));
 	for(r = sym? sym->u.ptr:0; r; r = r->chain){
 		if(r->attr&META) continue;
 		if(strcmp(target, r->target)) continue;
@@ -89,7 +89,7 @@ applyrules(int8_t *target, int8_t *cnt)
 		if(r->attr&REGEXP){
 			stem[0] = 0;
 			patrule = r;
-			memset((int8_t*)rmatch, 0, sizeof(rmatch));
+			memset((char*)rmatch, 0, sizeof(rmatch));
 			if(regexec(r->pat, node->name, rmatch, NREGEXP) == 0)
 				continue;
 		} else {
@@ -168,7 +168,7 @@ vacuous(Node *node)
 }
 
 static Node *
-newnode(int8_t *name)
+newnode(char *name)
 {
 	register Node *node;
 
@@ -183,9 +183,9 @@ newnode(int8_t *name)
 }
 
 void
-dumpn(int8_t *s, Node *n)
+dumpn(char *s, Node *n)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	Arc *a;
 
 	Bprint(&bout, "%s%s@%p: time=%ld flags=0x%x next=%p\n",
@@ -197,7 +197,7 @@ dumpn(int8_t *s, Node *n)
 }
 
 static void
-trace(int8_t *s, Arc *a)
+trace(char *s, Arc *a)
 {
 	fprint(2, "\t%s", s);
 	while(a){

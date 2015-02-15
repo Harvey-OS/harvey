@@ -10,7 +10,7 @@
 #include <string.h>
 
 size_t
-strlen(const int8_t *s)
+strlen(const char *s)
 {
 
 	return strchr(s, 0) - s;

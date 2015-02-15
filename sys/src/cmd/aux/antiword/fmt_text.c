@@ -50,7 +50,7 @@ vPrologueFMT(diagram_type *pDiag, const options_type *pOptions)
  */
 static void
 vPrintFMT(FILE *pFile,
-	const int8_t *szString, size_t tStringLength, USHORT usFontstyle)
+	const char *szString, size_t tStringLength, USHORT usFontstyle)
 {
 	const UCHAR	*pucByte, *pucStart, *pucLast, *pucNonSpace;
 
@@ -107,7 +107,7 @@ vPrintFMT(FILE *pFile,
 		if (*pucByte == ucNbsp) {
 			(void)putc(' ', pFile);
 		} else {
-			(void)putc((int8_t)*pucByte, pFile);
+			(void)putc((char)*pucByte, pFile);
 		}
 		pucByte++;
 	}
@@ -158,7 +158,7 @@ vMoveTo(diagram_type *pDiag)
  */
 void
 vSubstringFMT(diagram_type *pDiag,
-	const int8_t *szString, size_t tStringLength, int32_t lStringWidth,
+	const char *szString, size_t tStringLength, int32_t lStringWidth,
 	USHORT usFontstyle)
 {
 	fail(pDiag == NULL || szString == NULL);

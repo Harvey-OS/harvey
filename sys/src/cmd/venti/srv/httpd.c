@@ -23,13 +23,13 @@ enum
 
 struct HttpObj
 {
-	int8_t	name[ObjNameSize];
+	char	name[ObjNameSize];
 	int	(*f)(HConnect*);
 };
 
 static HttpObj	objs[MaxObjs];
 
-static int8_t *webroot;
+static char *webroot;
 
 static	void		listenproc(void*);
 static	int		estats(HConnect *c);
@@ -45,13 +45,13 @@ static	int		hicachekick(HConnect *c);
 static	int		hdcachekick(HConnect *c);
 static	int		hicacheflush(HConnect *c);
 static	int		hdcacheflush(HConnect *c);
-static	int		httpdobj(int8_t *name, int (*f)(HConnect*));
+static	int		httpdobj(char *name, int (*f)(HConnect*));
 static	int		xgraph(HConnect *c);
 static	int		xset(HConnect *c);
 static	int		fromwebdir(HConnect *c);
 
 int
-httpdinit(int8_t *address, int8_t *dir)
+httpdinit(char *address, char *dir)
 {
 	fmtinstall('D', hdatefmt);
 /*	fmtinstall('H', httpfmt); */
@@ -86,7 +86,7 @@ httpdinit(int8_t *address, int8_t *dir)
 }
 
 static int
-httpdobj(int8_t *name, int (*f)(HConnect*))
+httpdobj(char *name, int (*f)(HConnect*))
 {
 	int i;
 
@@ -124,7 +124,7 @@ static void
 listenproc(void *vaddress)
 {
 	HConnect *c;
-	int8_t *address, ndir[NETPATHLEN], dir[NETPATHLEN];
+	char *address, ndir[NETPATHLEN], dir[NETPATHLEN];
 	int ctl, nctl, data;
 
 	address = vaddress;
@@ -201,8 +201,8 @@ httpproc(void *v)
 	free(c);
 }
 
-int8_t*
-hargstr(HConnect *c, int8_t *name, int8_t *def)
+char*
+hargstr(HConnect *c, char *name, char *def)
 {
 	HSPairs *p;
 	
@@ -213,9 +213,9 @@ hargstr(HConnect *c, int8_t *name, int8_t *def)
 }
 
 int64_t
-hargint(HConnect *c, int8_t *name, int64_t def)
+hargint(HConnect *c, char *name, int64_t def)
 {
-	int8_t *a;
+	char *a;
 	
 	if((a = hargstr(c, name, nil)) == nil)
 		return def;
@@ -249,7 +249,7 @@ preq(HConnect *c)
 }
 
 int
-hsettype(HConnect *c, int8_t *type)
+hsettype(HConnect *c, char *type)
 {
 	Hio *hout;
 	int r;
@@ -323,8 +323,8 @@ hnotfound(HConnect *c)
 }
 
 struct {
-	int8_t *ext;
-	int8_t *type;
+	char *ext;
+	char *type;
 } exttab[] = {
 	".html",	"text/html",
 	".txt",	"text/plain",
@@ -337,7 +337,7 @@ struct {
 static int
 fromwebdir(HConnect *c)
 {
-	int8_t buf[4096], *p, *ext, *type;
+	char buf[4096], *p, *ext, *type;
 	int i, fd, n, defaulted;
 	Dir *d;
 	
@@ -388,7 +388,7 @@ reopen:
 
 static struct
 {
-	int8_t *name;
+	char *name;
 	int *p;
 } namedints[] =
 {
@@ -412,7 +412,7 @@ static int
 xset(HConnect *c)
 {
 	int i, old;
-	int8_t *name, *value;
+	char *name, *value;
 
 	if(hsettext(c) < 0)
 		return -1;
@@ -860,7 +860,7 @@ iograph(Stats *s, Stats *t, void *va)
 }
 
 
-static int8_t* graphname[] =
+static char* graphname[] =
 {
 	"rpctotal",
 	"rpcread",
@@ -943,7 +943,7 @@ static int8_t* graphname[] =
 };
 
 static int
-findname(int8_t *s)
+findname(char *s)
 {
 	int i;
 
@@ -974,13 +974,13 @@ dotextbin(Hio *io, Graph *g)
 static int
 xgraph(HConnect *c)
 {
-	int8_t *name;
+	char *name;
 	Hio *hout;
 	Memimage *m;
 	int dotext;
 	Graph g;
 	Arg arg;
-	int8_t *graph, *a;
+	char *graph, *a;
 
 	name = hargstr(c, "arg", "");
 	if((arg.index = findname(name)) == -1 && strcmp(name, "*") != 0){
@@ -1063,7 +1063,7 @@ xloglist(HConnect *c)
 static int
 xlog(HConnect *c)
 {
-	int8_t *name;
+	char *name;
 	VtLog *l;
 
 	name = hargstr(c, "log", "");
@@ -1102,13 +1102,13 @@ xmlindent(Hio *hout, int indent)
 }
 
 void
-xmlaname(Hio *hout, int8_t *v, int8_t *tag)
+xmlaname(Hio *hout, char *v, char *tag)
 {
 	hprint(hout, " %s=\"%s\"", tag, v);
 }
 
 void
-xmlscore(Hio *hout, uint8_t *v, int8_t *tag)
+xmlscore(Hio *hout, uint8_t *v, char *tag)
 {
 	if(scorecmp(zeroscore, v) == 0)
 		return;
@@ -1116,7 +1116,7 @@ xmlscore(Hio *hout, uint8_t *v, int8_t *tag)
 }
 
 void
-xmlsealed(Hio *hout, int v, int8_t *tag)
+xmlsealed(Hio *hout, int v, char *tag)
 {
 	if(!v)
 		return;
@@ -1124,13 +1124,13 @@ xmlsealed(Hio *hout, int v, int8_t *tag)
 }
 
 void
-xmlu32int(Hio *hout, uint32_t v, int8_t *tag)
+xmlu32int(Hio *hout, uint32_t v, char *tag)
 {
 	hprint(hout, " %s=\"%ud\"", tag, v);
 }
 
 void
-xmlu64int(Hio *hout, uint64_t v, int8_t *tag)
+xmlu64int(Hio *hout, uint64_t v, char *tag)
 {
 	hprint(hout, " %s=\"%llud\"", tag, v);
 }
@@ -1140,7 +1140,7 @@ vtloghdump(Hio *h, VtLog *l)
 {
 	int i;
 	VtLogChunk *c;
-	int8_t *name;
+	char *name;
 	
 	name = l ? l->name : "&lt;nil&gt;";
 
@@ -1163,13 +1163,13 @@ vtloghdump(Hio *h, VtLog *l)
 static int
 strpcmp(const void *va, const void *vb)
 {
-	return strcmp(*(int8_t**)va, *(int8_t**)vb);
+	return strcmp(*(char**)va, *(char**)vb);
 }
 
 void
 vtloghlist(Hio *h)
 {
-	int8_t **p;
+	char **p;
 	int i, n;
 	
 	hprint(h, "<html><head>\n");

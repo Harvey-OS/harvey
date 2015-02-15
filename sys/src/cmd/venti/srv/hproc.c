@@ -26,7 +26,7 @@ struct Debug
 	Map *map;
 	Fmt *fmt;
 	int pid;
-	int8_t *stkprefix;
+	char *stkprefix;
 	int pcoff;
 	int spoff;
 };
@@ -37,7 +37,7 @@ static int
 text(int pid)
 {
 	int fd;
-	int8_t buf[100];
+	char buf[100];
 
 	if(debug.textfd >= 0){
 		close(debug.textfd);
@@ -78,7 +78,7 @@ static Map*
 map(int pid)
 {
 	int mem;
-	int8_t buf[100];
+	char buf[100];
 	Map *m;
 	
 	snprint(buf, sizeof buf, "#p/%d/mem", pid);
@@ -100,7 +100,7 @@ map(int pid)
 }
 
 static void
-dprint(int8_t *fmt, ...)
+dprint(char *fmt, ...)
 {
 	va_list arg;
 	
@@ -112,7 +112,7 @@ dprint(int8_t *fmt, ...)
 static void
 openfiles(void)
 {
-	int8_t buf[4096];
+	char buf[4096];
 	int fd, n;
 	
 	snprint(buf, sizeof buf, "#p/%d/fd", getpid());
@@ -163,7 +163,7 @@ printsym(void)
 }
 
 static void
-printmap(int8_t *s, Map *map)
+printmap(char *s, Map *map)
 {
 	int i;
 
@@ -184,7 +184,7 @@ printlocals(Map *map, Symbol *fn, uintptr fp)
 	int i;
 	uintptr w;
 	Symbol s;
-	int8_t buf[100];
+	char buf[100];
 
 	s = *fn;
 	for (i = 0; localsym(&s, i); i++) {
@@ -221,7 +221,7 @@ printparams(Map *map, Symbol *fn, uintptr fp)
 static void
 printsource(uintptr dot)
 {
-	int8_t str[100];
+	char str[100];
 
 	if (fileline(str, sizeof str, dot))
 		dprint("%s", str);
@@ -311,7 +311,7 @@ star(uintptr addr)
 }
 
 static uintptr
-resolvev(int8_t *name)
+resolvev(char *name)
 {
 	Symbol s;
 
@@ -321,7 +321,7 @@ resolvev(int8_t *name)
 }
 
 static uintptr
-resolvef(int8_t *name)
+resolvef(char *name)
 {
 	Symbol s;
 
@@ -336,14 +336,14 @@ resolvef(int8_t *name)
 static uintptr threadpc;
 
 static int
-strprefix(int8_t *big, int8_t *pre)
+strprefix(char *big, char *pre)
 {
 	return strncmp(big, pre, strlen(pre));
 }
 static void
 tptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 {
-	int8_t buf[512];
+	char buf[512];
 
 	USED(map);
 	USED(sym);
@@ -360,11 +360,11 @@ tptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 	threadpc = pc;
 }
 
-static int8_t*
+static char*
 threadstkline(uintptr t)
 {
 	uintptr pc, sp;
-	static int8_t buf[500];
+	static char buf[500];
 
 	if(FIELD(Thread, t, state) == Running){
 		geta(debug.map, debug.pcoff, (uint64_t *)&pc);
@@ -394,7 +394,7 @@ proc(uintptr p)
 }
 
 static void
-fmtbufinit(Fmt *f, int8_t *buf, int len)
+fmtbufinit(Fmt *f, char *buf, int len)
 {
 	memset(f, 0, sizeof *f);
 	f->runes = 0;
@@ -406,18 +406,18 @@ fmtbufinit(Fmt *f, int8_t *buf, int len)
 	f->nfmt = 0;
 }
 
-static int8_t*
+static char*
 fmtbufflush(Fmt *f)
 {
-	*(int8_t*)f->to = 0;
-	return (int8_t*)f->start;
+	*(char*)f->to = 0;
+	return (char*)f->start;
 }
 
-static int8_t*
+static char*
 debugstr(uintptr s)
 {
-	static int8_t buf[4096];
-	int8_t *p, *e;
+	static char buf[4096];
+	char *p, *e;
 	
 	p = buf;
 	e = buf+sizeof buf - 1;
@@ -432,10 +432,10 @@ debugstr(uintptr s)
 	return buf;
 }
 
-static int8_t*
+static char*
 threadfmt(uintptr t)
 {
-	static int8_t buf[4096];
+	static char buf[4096];
 	Fmt fmt;
 	int s;
 
@@ -632,7 +632,7 @@ hproc(HConnect *c)
 	void (*fn)(HConnect*);
 	Fmt fmt;
 	static int beenhere;
-	static int8_t buf[65536];
+	static char buf[65536];
 
 	if (!beenhere) {
 		beenhere = 1;

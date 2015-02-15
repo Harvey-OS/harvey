@@ -22,13 +22,13 @@
  */
 
 int
-unlink(const int8_t *path)
+unlink(const char *path)
 {
 	int n, i, fd;
 	long long nn;
 	Dir *db1, *db2, nd;
 	Fdinfo *f;
- 	int8_t *p, newname[PATH_MAX], newelem[32];
+ 	char *p, newname[PATH_MAX], newelem[32];
 
 	/* if the file is already open, make it close-on-exec (and rename to qid) */
 	if((db1 = _dirstat(path)) == nil) {
@@ -47,7 +47,7 @@ unlink(const int8_t *path)
 				_nulldir(&nd);
 				nd.name = newelem;
 				if(_dirfwstat(i, &nd) < 0)
-					p = (int8_t*)path;
+					p = (char*)path;
 				else {
 					p = strrchr(path, '/');
 					if(p == 0)

@@ -43,9 +43,9 @@ static int32_t		lFooterHeight = 0;
 /* Inside a footer (to prevent an infinite loop when the footer is too big) */
 static BOOL		bInFtrSpace = FALSE;
 /* Current time for a PS header */
-static const int8_t	*szCreationDate = NULL;
+static const char	*szCreationDate = NULL;
 /* Current creator for a PS header */
-static const int8_t	*szCreator = NULL;
+static const char	*szCreator = NULL;
 /* Current font information */
 static drawfile_fontref	tFontRefCurr = (drawfile_fontref)-1;
 static USHORT		usFontSizeCurr = 0;
@@ -63,7 +63,7 @@ static BOOL		bFirstInSection = TRUE;
 
 static void		vMoveTo(diagram_type *, int32_t);
 
-static const int8_t *iso_8859_1_data[] = {
+static const char *iso_8859_1_data[] = {
 "/newcodes	% ISO-8859-1 character encodings",
 "[",
 "140/ellipsis 141/trademark 142/perthousand 143/bullet",
@@ -94,7 +94,7 @@ static const int8_t *iso_8859_1_data[] = {
 "",
 };
 
-static const int8_t *iso_8859_2_data[] = {
+static const char *iso_8859_2_data[] = {
 "/newcodes	% ISO-8859-2 character encodings",
 "[",
 "160/space 161/Aogonek 162/breve 163/Lslash 164/currency 165/Lcaron",
@@ -122,7 +122,7 @@ static const int8_t *iso_8859_2_data[] = {
 "",
 };
 
-static const int8_t *iso_8859_5_data[] = {
+static const char *iso_8859_5_data[] = {
 "/newcodes	% ISO-8859-5 character encodings",
 "[",
 "160/space     161/afii10023 162/afii10051 163/afii10052 164/afii10053",
@@ -151,7 +151,7 @@ static const int8_t *iso_8859_5_data[] = {
 "",
 };
 
-static const int8_t *iso_8859_x_func[] = {
+static const char *iso_8859_x_func[] = {
 "% change fonts using ISO-8859-x characters",
 "/ChgFnt		% size psname natname => font",
 "{",
@@ -185,7 +185,7 @@ static const int8_t *iso_8859_x_func[] = {
 "",
 };
 
-static const int8_t *misc_func[] = {
+static const char *misc_func[] = {
 "% draw a line and show the string",
 "/LineShow	% string linewidth movement",
 "{",
@@ -468,11 +468,11 @@ vMoveTo(diagram_type *pDiag, int32_t lLastVerticalMovement)
  */
 void
 vProloguePS(diagram_type *pDiag,
-	const int8_t *szTask, const int8_t *szFilename,
+	const char *szTask, const char *szFilename,
 	const options_type *pOptions)
 {
 	FILE	*pOutFile;
-	const int8_t	*szTmp;
+	const char	*szTmp;
 	time_t	tTime;
 
 	fail(pDiag == NULL);
@@ -987,7 +987,7 @@ vAddFontsPS(diagram_type *pDiag)
  * vPrintPS - print a PostScript string
  */
 static void
-vPrintPS(FILE *pFile, const int8_t *szString, size_t tStringLength,
+vPrintPS(FILE *pFile, const char *szString, size_t tStringLength,
 		USHORT usFontstyle)
 {
 	double		dSuperscriptMove, dSubscriptMove;
@@ -1099,11 +1099,11 @@ vMove2NextLinePS(diagram_type *pDiag, USHORT usFontSize)
  */
 void
 vSubstringPS(diagram_type *pDiag,
-	int8_t *szString, size_t tStringLength, int32_t lStringWidth,
+	char *szString, size_t tStringLength, int32_t lStringWidth,
 	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
 	USHORT usFontSize, USHORT usMaxFontSize)
 {
-	const int8_t	*szOurFontname;
+	const char	*szOurFontname;
 
 	fail(pDiag == NULL || szString == NULL);
 	fail(pDiag->pOutFile == NULL);

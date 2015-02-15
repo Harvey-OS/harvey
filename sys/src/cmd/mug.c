@@ -530,7 +530,7 @@ saveface(Face *f, int slot)
 }
 
 int
-writeface(int8_t *outfile, Image *image)
+writeface(char *outfile, Image *image)
 {
 	int i, fd, rv, y;
 	uint8_t data[48*48/2];
@@ -944,7 +944,7 @@ Cursor *corners[10] = {
 	nil,	/* default arrow */
 };
 
-int8_t *item[] = {
+char *item[] = {
 	"Reset",
 	"Depth",
 	"Undo",

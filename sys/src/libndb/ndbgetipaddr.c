@@ -15,9 +15,9 @@
 
 /* return list of ip addresses for a name */
 Ndbtuple*
-ndbgetipaddr(Ndb *db, int8_t *val)
+ndbgetipaddr(Ndb *db, char *val)
 {
-	int8_t *attr, *p;
+	char *attr, *p;
 	Ndbtuple *it, *first, *last, *next;
 	Ndbs s;
 

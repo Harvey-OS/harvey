@@ -16,14 +16,14 @@
 #include <fcall.h>
 #include "plumber.h"
 
-int8_t	*plumbfile;
-int8_t *user;
-int8_t *home;
-int8_t *progname;
+char	*plumbfile;
+char *user;
+char *home;
+char *progname;
 Ruleset **rules;
 int	printerrors=1;
 jmp_buf	parsejmp;
-int8_t	*lasterror;
+char	*lasterror;
 int mainstacksize = 20*1024;
 
 void
@@ -92,9 +92,9 @@ threadmain(int argc, char *argv[])
 }
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
-	int8_t buf[512];
+	char buf[512];
 	va_list args;
 
 	va_start(args, fmt);
@@ -106,9 +106,9 @@ error(int8_t *fmt, ...)
 }
 
 void
-parseerror(int8_t *fmt, ...)
+parseerror(char *fmt, ...)
 {
-	int8_t buf[512];
+	char buf[512];
 	va_list args;
 
 	va_start(args, fmt);
@@ -145,10 +145,10 @@ erealloc(void *p, int32_t n)
 	return p;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *t;
+	char *t;
 
 	t = strdup(s);
 	if(t == nil)

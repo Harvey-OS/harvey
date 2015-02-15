@@ -104,11 +104,11 @@ min(int a, int b)
 }
 
 
-int8_t*
+char*
 menugen(int n)
 {
-	static int8_t menustr[32];
-	int8_t *p;
+	static char menustr[32];
+	char *p;
 	int len;
 
 	if(n == doc->npage)
@@ -161,13 +161,13 @@ showpage(int page, Menu *m)
 	flushimage(display, 1);
 }
 
-int8_t*
+char*
 writebitmap(void)
 {
-	int8_t basename[64];
-	int8_t name[64+30];
-	static int8_t result[200];
-	int8_t *p, *q;
+	char basename[64];
+	char name[64+30];
+	static char result[200];
+	char *p, *q;
 	int fd;
 
 	if(im == nil)
@@ -223,7 +223,7 @@ static void translate(Point);
 static int
 showdata(Plumbmsg *msg)
 {
-	int8_t *s;
+	char *s;
 
 	s = plumblookup(msg->attr, "action");
 	return s && strcmp(s, "showdata")==0;
@@ -232,7 +232,7 @@ showdata(Plumbmsg *msg)
 static int
 plumbquit(Plumbmsg *msg)
 {
-	int8_t *s;
+	char *s;
 
 	s = plumblookup(msg->attr, "action");
 	return s && strcmp(s, "quit")==0;
@@ -270,8 +270,8 @@ viewer(Document *dd)
 	Point dxy, oxy, xy0;
 	Rectangle r;
 	Image *tmp;
-	static int8_t *fwditems[] = { "this page", "next page", "exit", 0 };
- 	static int8_t *miditems[] = {
+	static char *fwditems[] = { "this page", "next page", "exit", 0 };
+ 	static char *miditems[] = {
  		"orig size",
  		"zoom in",
  		"fit window",
@@ -289,7 +289,7 @@ viewer(Document *dd)
  		"quit", 
  		0 
  	};
-	int8_t *s;
+	char *s;
 	enum { Eplumb = 4 };
 	Plumbmsg *pm;
 
@@ -957,10 +957,10 @@ xallocimage(Display *d, Rectangle r, uint32_t chan, int repl, uint32_t val)
 }
 
 /* all code below this line should be in the library, but is stolen from colors instead */
-static int8_t*
-rdenv(int8_t *name)
+static char*
+rdenv(char *name)
 {
-	int8_t *v;
+	char *v;
 	int fd, size;
 
 	fd = open(name, OREAD);
@@ -982,8 +982,8 @@ rdenv(int8_t *name)
 void
 newwin(void)
 {
-	int8_t *srv, *mntsrv;
-	int8_t spec[100];
+	char *srv, *mntsrv;
+	char spec[100];
 	int srvfd, cons, pid;
 
 	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFENVG|RFNOTEG|RFNOWAIT)){
@@ -1044,7 +1044,7 @@ Rectangle
 screenrect(void)
 {
 	int fd;
-	int8_t buf[12*5];
+	char buf[12*5];
 
 	fd = open("/dev/screen", OREAD);
 	if(fd == -1)

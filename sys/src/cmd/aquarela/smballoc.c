@@ -25,10 +25,10 @@ smbemalloc(uint32_t size)
 	return smbemallocz(size, 0);
 }
 
-int8_t *
-smbestrdup(int8_t *p)
+char *
+smbestrdup(char *p)
 {
-	int8_t *q;
+	char *q;
 	q = smbemalloc(strlen(p) + 1);
 	return strcpy(q, p);
 }

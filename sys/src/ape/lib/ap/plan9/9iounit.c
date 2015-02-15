@@ -20,9 +20,9 @@
  */
 
 static int
-getfields(int8_t *str, int8_t **args, int max, int mflag)
+getfields(char *str, char **args, int max, int mflag)
 {
-	int8_t r;
+	char r;
 	int nr, intok, narg;
 
 	if(max <= 0)
@@ -58,7 +58,7 @@ int
 _IOUNIT(int fd)
 {
 	int i, cfd;
-	int8_t buf[128], *args[10];
+	char buf[128], *args[10];
 
 	snprint(buf, sizeof buf, "#d/%dctl", fd);
 	cfd = _OPEN(buf, OREAD);

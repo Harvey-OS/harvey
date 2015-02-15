@@ -85,7 +85,7 @@ mkqid9p2(Qid* qid, Qid9p1* qid9p1, int mode9p1)
 static int
 mkdir9p2(Dir* dir, Dentry* dentry, void* strs)
 {
-	int8_t *op, *p;
+	char *op, *p;
 
 	memset(dir, 0, sizeof(Dir));
 	mkqid(&dir->qid, dentry, 1);
@@ -114,9 +114,9 @@ mkdir9p2(Dir* dir, Dentry* dentry, void* strs)
 }
 
 static int
-checkname9p2(int8_t* name)
+checkname9p2(char* name)
 {
-	int8_t *p;
+	char *p;
 
 	/*
 	 * Return error or 0 if OK.
@@ -169,7 +169,7 @@ struct {
 static int
 auth(Chan* chan, Fcall* f, Fcall* r)
 {
-	int8_t *aname;
+	char *aname;
 	File *file;
 	Filsys *fs;
 	int error;
@@ -279,7 +279,7 @@ out:
 static int
 attach(Chan* chan, Fcall* f, Fcall* r)
 {
-	int8_t *aname;
+	char *aname;
 	Iobuf *p;
 	Dentry *d;
 	File *file;
@@ -399,7 +399,7 @@ clone(File* nfile, File* file)
 }
 
 static int
-walkname(File* file, int8_t* wname, Qid* wqid)
+walkname(File* file, char* wname, Qid* wqid)
 {
 	Wpath *w;
 	Iobuf *p, *p1;
@@ -1190,7 +1190,7 @@ out:
 	if(file != nil)
 		qunlock(file);
 	r->count = nread;
-	r->data = (int8_t*)data;
+	r->data = (char*)data;
 
 	return error;
 }
@@ -1413,7 +1413,7 @@ out:
 }
 
 static int
-fs_wstat(Chan* chan, Fcall* f, Fcall*, int8_t* strs)
+fs_wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
 {
 	Iobuf *p, *p1;
 	Dentry *d, *d1;
@@ -1735,7 +1735,7 @@ serve9p2(Msgbuf* mb)
 	Chan *chan;
 	Fcall f, r;
 	Msgbuf *data, *rmb;
-	int8_t ename[64];
+	char ename[64];
 	int error, n, type;
 	static int once;
 
@@ -1812,7 +1812,7 @@ print("didn't like %d byte message\n", mb->count);
 		break;
 	case Twstat:
 		data = mballoc(chan->msize, chan, Mbreply1);
-		error = fs_wstat(chan, &f, &r, (int8_t*)data->data);
+		error = fs_wstat(chan, &f, &r, (char*)data->data);
 		break;
 	}
 

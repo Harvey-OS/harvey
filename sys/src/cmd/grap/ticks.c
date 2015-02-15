@@ -17,7 +17,7 @@
 #define	MAXTICK	200
 int	ntick	= 0;
 double	tickval[MAXTICK];	/* tick values (one axis at a time */
-int8_t	*tickstr[MAXTICK];	/* and labels */
+char	*tickstr[MAXTICK];	/* and labels */
 
 int	tside	= 0;
 int	tlist	= 0;		/* 1 => explicit values given */
@@ -281,7 +281,7 @@ void autolog(Obj *p, int side)
 	}
 }
 
-void iterator(double from, double to, int op, double by, int8_t *fmt)	/* create an iterator */
+void iterator(double from, double to, int op, double by, char *fmt)	/* create an iterator */
 {
 	double x;
 
@@ -390,10 +390,10 @@ void print_ticks(int type, int explicit, Obj *p, char *lenstr, char *descstr)
 	ntick = 0;
 }
 
-void maketick(int type, int8_t *name, int side, int inflag, double val,
-	      int8_t *lab, int8_t *lenstr, int8_t *descstr)
+void maketick(int type, char *name, int side, int inflag, double val,
+	      char *lab, char *lenstr, char *descstr)
 {
-	int8_t *sidestr, *td;
+	char *sidestr, *td;
 
 	fprintf(tfd, "\tline %s ", descstr);
 	inflag &= side;
@@ -457,7 +457,7 @@ void griddesc(Attr *a)
 
 void gridlist(Obj *p)
 {
-	int8_t *framestr;
+	char *framestr;
 
 	if ((tside & (BOT|TOP)) || tside == 0)
 		framestr = "frameht";
@@ -472,9 +472,9 @@ void gridlist(Obj *p)
 	}
 }
 
-int8_t *desc_str(Attr *a)	/* convert DOT to "dotted", etc. */
+char *desc_str(Attr *a)	/* convert DOT to "dotted", etc. */
 {
-	static int8_t buf[50], *p;
+	static char buf[50], *p;
 
 	if (a == NULL)
 		return p = "";

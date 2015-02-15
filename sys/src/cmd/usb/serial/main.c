@@ -33,7 +33,7 @@ usage(void)
 }
 
 static int
-matchserial(int8_t *info, void*)
+matchserial(char *info, void*)
 {
 	if(uconsmatch(info) == 0 || plmatch(info) == 0 ||
 	    ftmatch(nil, info) == 0 || slmatch(info) == 0)

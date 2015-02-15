@@ -71,7 +71,7 @@ blacklist(Pcidev *p)
 int
 pcimsienable(Pcidev *p, uint64_t vec)
 {
-	int8_t *s;
+	char *s;
 	uint c, f, d, datao, lopri, dmode, logical;
 
 	c = msicap(p);

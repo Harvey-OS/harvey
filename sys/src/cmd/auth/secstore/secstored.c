@@ -17,8 +17,8 @@
 #include "SConn.h"
 #include "secstore.h"
 
-int8_t* secureidcheck(int8_t *, int8_t *);	/* from /sys/src/cmd/auth/ */
-extern int8_t* dirls(int8_t *path);
+char* secureidcheck(char *, char *);	/* from /sys/src/cmd/auth/ */
+extern char* dirls(char *path);
 
 int verbose;
 Ndb *db;
@@ -32,9 +32,9 @@ usage(void)
 }
 
 static int
-getdir(SConn *conn, int8_t *id)
+getdir(SConn *conn, char *id)
 {
-	int8_t *ls, *s;
+	char *ls, *s;
 	uint8_t *msg;
 	int n, len;
 
@@ -66,11 +66,11 @@ getdir(SConn *conn, int8_t *id)
 }
 
 static int
-getfile(SConn *conn, int8_t *id, int8_t *gf)
+getfile(SConn *conn, char *id, char *gf)
 {
 	int n, gd, len;
 	uint32_t mode;
-	int8_t *s;
+	char *s;
 	Dir *st;
 
 	if(strcmp(gf,".")==0)
@@ -128,11 +128,11 @@ getfile(SConn *conn, int8_t *id, int8_t *gf)
 }
 
 static int
-putfile(SConn *conn, int8_t *id, int8_t *pf)
+putfile(SConn *conn, char *id, char *pf)
 {
 	int n, nw, pd;
 	int32_t len;
-	int8_t s[Maxmsg+1];
+	char s[Maxmsg+1];
 
 	/* get file size */
 	n = readstr(conn, s);
@@ -174,10 +174,10 @@ putfile(SConn *conn, int8_t *id, int8_t *pf)
 }
 
 static int
-removefile(SConn *conn, int8_t *id, int8_t *f)
+removefile(SConn *conn, char *id, char *f)
 {
 	Dir *d;
-	int8_t buf[Maxmsg];
+	char buf[Maxmsg];
 
 	snprint(buf, Maxmsg, "%s/store/%s/%s", SECSTORE_DIR, id, f);
 
@@ -202,11 +202,11 @@ removefile(SConn *conn, int8_t *id, int8_t *f)
 }
 
 /* given line directory from accept, returns ipaddr!port */
-static int8_t*
-remoteIP(int8_t *ldir)
+static char*
+remoteIP(char *ldir)
 {
 	int fd, n;
-	int8_t rp[100], ap[500];
+	char rp[100], ap[500];
 
 	snprint(rp, sizeof rp, "%s/remote", ldir);
 	fd = open(rp, OREAD);
@@ -225,11 +225,11 @@ remoteIP(int8_t *ldir)
 }
 
 static int
-dologin(int fd, int8_t *S, int forceSTA)
+dologin(int fd, char *S, int forceSTA)
 {
 	int i, n, rv;
-	int8_t *file, *mess, *nl;
-	int8_t msg[Maxmsg+1];
+	char *file, *mess, *nl;
+	char msg[Maxmsg+1];
 	PW *pw;
 	SConn *conn;
 

@@ -45,7 +45,7 @@ stream_write(stream * s, const void *ptr, uint count)
 
 /* Put a string on a stream. */
 int
-stream_puts(stream * s, const int8_t *str)
+stream_puts(stream * s, const char *str)
 {
     uint len = strlen(str);
     uint used;
@@ -74,20 +74,20 @@ pprintf_scan(stream * s, const int8_t *format)
 
 /* Print a short string on a stream. */
 private void
-pputs_short(stream *s, const int8_t *str)
+pputs_short(stream *s, const char *str)
 {
-    const int8_t *p = str;
+    const char *p = str;
 
     for (; *p; ++p)
 	sputc(s, *p);
 }
 
 /* Print (an) int value(s) using a format. */
-const int8_t *
-pprintd1(stream * s, const int8_t *format, int v)
+const char *
+pprintd1(stream * s, const char *format, int v)
 {
-    const int8_t *fp = pprintf_scan(s, format);
-    int8_t str[25];
+    const char *fp = pprintf_scan(s, format);
+    char str[25];
 
 #ifdef DEBUG
     if (*fp == 0 || fp[1] != 'd')	/* shouldn't happen! */
@@ -97,29 +97,29 @@ pprintd1(stream * s, const int8_t *format, int v)
     pputs_short(s, str);
     return pprintf_scan(s, fp + 2);
 }
-const int8_t *
-pprintd2(stream * s, const int8_t *format, int v1, int v2)
+const char *
+pprintd2(stream * s, const char *format, int v1, int v2)
 {
     return pprintd1(s, pprintd1(s, format, v1), v2);
 }
-const int8_t *
-pprintd3(stream * s, const int8_t *format, int v1, int v2, int v3)
+const char *
+pprintd3(stream * s, const char *format, int v1, int v2, int v3)
 {
     return pprintd2(s, pprintd1(s, format, v1), v2, v3);
 }
-const int8_t *
-pprintd4(stream * s, const int8_t *format, int v1, int v2, int v3, int v4)
+const char *
+pprintd4(stream * s, const char *format, int v1, int v2, int v3, int v4)
 {
     return pprintd2(s, pprintd2(s, format, v1, v2), v3, v4);
 }
 
 /* Print (a) floating point number(s) using a format. */
 /* See gdevpdfx.h for why this is needed. */
-const int8_t *
-pprintg1(stream * s, const int8_t *format, floatp v)
+const char *
+pprintg1(stream * s, const char *format, floatp v)
 {
-    const int8_t *fp = pprintf_scan(s, format);
-    int8_t str[150];
+    const char *fp = pprintf_scan(s, format);
+    char str[150];
 
 #ifdef DEBUG
     if (*fp == 0 || fp[1] != 'g')	/* shouldn't happen! */
@@ -133,35 +133,35 @@ pprintg1(stream * s, const int8_t *format, floatp v)
     pputs_short(s, str);
     return pprintf_scan(s, fp + 2);
 }
-const int8_t *
-pprintg2(stream * s, const int8_t *format, floatp v1, floatp v2)
+const char *
+pprintg2(stream * s, const char *format, floatp v1, floatp v2)
 {
     return pprintg1(s, pprintg1(s, format, v1), v2);
 }
-const int8_t *
-pprintg3(stream * s, const int8_t *format, floatp v1, floatp v2, floatp v3)
+const char *
+pprintg3(stream * s, const char *format, floatp v1, floatp v2, floatp v3)
 {
     return pprintg2(s, pprintg1(s, format, v1), v2, v3);
 }
-const int8_t *
-pprintg4(stream * s, const int8_t *format, floatp v1, floatp v2, floatp v3,
+const char *
+pprintg4(stream * s, const char *format, floatp v1, floatp v2, floatp v3,
 	 floatp v4)
 {
     return pprintg2(s, pprintg2(s, format, v1, v2), v3, v4);
 }
-const int8_t *
-pprintg6(stream * s, const int8_t *format, floatp v1, floatp v2, floatp v3,
+const char *
+pprintg6(stream * s, const char *format, floatp v1, floatp v2, floatp v3,
 	 floatp v4, floatp v5, floatp v6)
 {
     return pprintg3(s, pprintg3(s, format, v1, v2, v3), v4, v5, v6);
 }
 
 /* Print a long value using a format. */
-const int8_t *
-pprintld1(stream * s, const int8_t *format, int32_t v)
+const char *
+pprintld1(stream * s, const char *format, int32_t v)
 {
-    const int8_t *fp = pprintf_scan(s, format);
-    int8_t str[25];
+    const char *fp = pprintf_scan(s, format);
+    char str[25];
 
 #ifdef DEBUG
     if (*fp == 0 || fp[1] != 'l' || fp[2] != 'd')	/* shouldn't happen! */
@@ -171,23 +171,23 @@ pprintld1(stream * s, const int8_t *format, int32_t v)
     pputs_short(s, str);
     return pprintf_scan(s, fp + 3);
 }
-const int8_t *
-pprintld2(stream * s, const int8_t *format, int32_t v1, int32_t v2)
+const char *
+pprintld2(stream * s, const char *format, int32_t v1, int32_t v2)
 {
     return pprintld1(s, pprintld1(s, format, v1), v2);
 }
-const int8_t *
-pprintld3(stream * s, const int8_t *format, int32_t v1, int32_t v2,
+const char *
+pprintld3(stream * s, const char *format, int32_t v1, int32_t v2,
           int32_t v3)
 {
     return pprintld2(s, pprintld1(s, format, v1), v2, v3);
 }
 
 /* Print (a) string(s) using a format. */
-const int8_t *
-pprints1(stream * s, const int8_t *format, const int8_t *str)
+const char *
+pprints1(stream * s, const char *format, const char *str)
 {
-    const int8_t *fp = pprintf_scan(s, format);
+    const char *fp = pprintf_scan(s, format);
 
 #ifdef DEBUG
     if (*fp == 0 || fp[1] != 's')	/* shouldn't happen! */
@@ -196,16 +196,16 @@ pprints1(stream * s, const int8_t *format, const int8_t *str)
     pputs_short(s, str);
     return pprintf_scan(s, fp + 2);
 }
-const int8_t *
-pprints2(stream * s, const int8_t *format, const int8_t *str1,
-         const int8_t *str2)
+const char *
+pprints2(stream * s, const char *format, const char *str1,
+         const char *str2)
 {
     return pprints1(s, pprints1(s, format, str1), str2);
 }
-const int8_t *
-pprints3(stream * s, const int8_t *format, const int8_t *str1,
-         const int8_t *str2,
-	 const int8_t *str3)
+const char *
+pprints3(stream * s, const char *format, const char *str1,
+         const char *str2,
+	 const char *str3)
 {
     return pprints2(s, pprints1(s, format, str1), str2, str3);
 }

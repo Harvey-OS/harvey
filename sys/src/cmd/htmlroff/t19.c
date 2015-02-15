@@ -60,7 +60,7 @@ void
 r_cf(int argc, Rune **argv)
 {
 	int c;
-	int8_t *p;
+	char *p;
 	Biobuf *b;
 
 	USED(argc);

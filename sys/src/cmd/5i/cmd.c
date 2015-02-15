@@ -14,17 +14,17 @@
 #include <ctype.h>
 #include "arm.h"
 
-int8_t	buf[128], lastcmd[128];
-int8_t	fmt = 'X';
+char	buf[128], lastcmd[128];
+char	fmt = 'X';
 int	width = 60;
 int	inc;
 
-uint32_t	expr(int8_t*);
-uint32_t	expr1(int8_t*);
-int8_t*	term(int8_t*, uint32_t*);
+uint32_t	expr(char*);
+uint32_t	expr1(char*);
+char*	term(char*, uint32_t*);
 
-int8_t*
-nextc(int8_t *p)
+char*
+nextc(char *p)
 {
 	while(*p && (*p == ' ' || *p == '\t') && *p != '\n')
 		p++;
@@ -35,13 +35,13 @@ nextc(int8_t *p)
 	return p;
 }
 
-int8_t*
-numsym(int8_t *addr, uint32_t *val)
+char*
+numsym(char *addr, uint32_t *val)
 {
-	int8_t tsym[128], *t;
-	static int8_t *delim = "`'<>/\\@*|-~+-/=?\n";
+	char tsym[128], *t;
+	static char *delim = "`'<>/\\@*|-~+-/=?\n";
 	Symbol s;
-	int8_t c;
+	char c;
 
 	t = tsym;
 	while(c = *addr) {
@@ -69,10 +69,10 @@ numsym(int8_t *addr, uint32_t *val)
 }
 
 uint32_t
-expr(int8_t *addr)
+expr(char *addr)
 {
 	uint32_t t, t2;
-	int8_t op;
+	char op;
 
 	if(*addr == '\0')
 		return dot;
@@ -110,7 +110,7 @@ expr(int8_t *addr)
 }
 
 int
-buildargv(int8_t *str, int8_t **args, int max)
+buildargv(char *str, char **args, int max)
 {
 	int na = 0;
 
@@ -137,11 +137,11 @@ buildargv(int8_t *str, int8_t **args, int max)
 }
 
 void
-colon(int8_t *addr, int8_t *cp)
+colon(char *addr, char *cp)
 {
 	int argc;
-	int8_t *argv[100];
-	int8_t tbuf[512];
+	char *argv[100];
+	char tbuf[512];
 
 	cp = nextc(cp);
 	switch(*cp) {
@@ -194,7 +194,7 @@ colon(int8_t *addr, int8_t *cp)
 
 
 void
-dollar(int8_t *cp)
+dollar(char *cp)
 {
 	cp = nextc(cp);
 	switch(*cp) {
@@ -294,11 +294,11 @@ dollar(int8_t *cp)
 }
 
 int
-pfmt(int8_t fmt, int mem, uint32_t val)
+pfmt(char fmt, int mem, uint32_t val)
 {
 	int c, i;
 	Symbol s;
-	int8_t *p, ch, str[1024];
+	char *p, ch, str[1024];
 
 	c = 0;
 	switch(fmt) {
@@ -465,7 +465,7 @@ pfmt(int8_t fmt, int mem, uint32_t val)
 }
 
 void
-eval(int8_t *addr, int8_t *p)
+eval(char *addr, char *p)
 {
 	uint32_t val;
 
@@ -480,10 +480,10 @@ eval(int8_t *addr, int8_t *p)
 }
 
 void
-quesie(int8_t *p)
+quesie(char *p)
 {
 	int c, count, i;
-	int8_t tbuf[512];
+	char tbuf[512];
 
 	c = 0;
 	symoff(tbuf, sizeof(tbuf), dot, CTEXT);
@@ -527,7 +527,7 @@ quesie(int8_t *p)
 }
 
 void
-catcher(void *a, int8_t *msg)
+catcher(void *a, char *msg)
 {
 	static int hit = 0;
 
@@ -544,7 +544,7 @@ catcher(void *a, int8_t *msg)
 }
 
 void
-setreg(int8_t *addr, int8_t *cp)
+setreg(char *addr, char *cp)
 {
 	int rn;
 
@@ -571,9 +571,9 @@ setreg(int8_t *addr, int8_t *cp)
 void
 cmd(void)
 {
-	int8_t *p, *a, *cp, *gotint;
-	int8_t addr[128];
-	static int8_t *cmdlet = ":$?/=>";
+	char *p, *a, *cp, *gotint;
+	char addr[128];
+	static char *cmdlet = ":$?/=>";
 	int n, i;
 
 	notify(catcher);

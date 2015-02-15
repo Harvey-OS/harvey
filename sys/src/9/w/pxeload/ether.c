@@ -30,7 +30,7 @@ extern int rtl8169pnp(Ether*);
 extern int vgbepnp(Ether*);
 
 struct {
-	int8_t	*type;
+	char	*type;
 	int	(*reset)(Ether*);
 	int	noprobe;
 } ethercards[] = {
@@ -126,7 +126,7 @@ etherinit(void)
 }
 
 void
-etherinitdev(int i, int8_t *s)
+etherinitdev(int i, char *s)
 {
 	sprint(s, "ether%d", i);
 }

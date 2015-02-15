@@ -37,7 +37,7 @@ typedef int32_t time_t;
 #ifdef _BSD_EXTENSION
 #ifndef _CADDR_T
 #define _CADDR_T
-typedef int8_t * caddr_t;
+typedef char * caddr_t;
 #endif
 #ifndef _FD_SET_T
 #define _FD_SET_T

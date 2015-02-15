@@ -259,7 +259,7 @@ static void			changehang(Pstate* ps, int delta);
 static void			changeindent(Pstate* ps, int delta);
 static int			color(Rune* s, int dflt);
 static void			copystack(Stack* tostk, Stack* fromstk);
-static int			dimprint(int8_t* buf, int nbuf, Dimen d);
+static int			dimprint(char* buf, int nbuf, Dimen d);
 static Pstate*		finishcell(Table* curtab, Pstate* psstk);
 static void			finish_table(Table* t);
 static void			freeanchor(Anchor* a);
@@ -3483,13 +3483,13 @@ Iconv(Fmt *f)
 	Rune*	ty;
 	Tablecell*	c;
 	Table*	tab;
-	int8_t*	p;
+	char*	p;
 	int	cl;
 	int	hang;
 	int	indent;
 	int	bi;
 	int	nbuf;
-	int8_t	buf[BIGBUFSIZE];
+	char	buf[BIGBUFSIZE];
 
 	it = va_arg(f->args, Item*);
 	bi = 0;
@@ -3618,7 +3618,7 @@ stringalign(int a)
 // Put at most nbuf chars of representation of d into buf,
 // and return number of characters put
 static int
-dimprint(int8_t* buf, int nbuf, Dimen d)
+dimprint(char* buf, int nbuf, Dimen d)
 {
 	int	n;
 	int	k;
@@ -3634,7 +3634,7 @@ dimprint(int8_t* buf, int nbuf, Dimen d)
 }
 
 void
-printitems(Item* items, int8_t* msg)
+printitems(Item* items, char* msg)
 {
 	Item*	il;
 
@@ -4210,9 +4210,9 @@ validptr(void* p)
 	// TODO: a better job of this.
 	// For now, just dereference, which cause a bomb
 	// if not valid
-	static int8_t c;
+	static char c;
 
-	c = *((int8_t*)p);
+	c = *((char*)p);
 	return 1;
 }
 

@@ -40,7 +40,7 @@
 #include "etherm10g4k.i"
 
 static int 	debug		= 0;
-static int8_t	Etimeout[]	= "timeout";
+static char	Etimeout[]	= "timeout";
 
 enum {
 	Epromsz	= 256,
@@ -340,7 +340,7 @@ setpcie(Pcidev *p)
 static int
 whichfw(Pcidev *p)
 {
-	int8_t *s;
+	char *s;
 	int i, off, lanes, ecrc;
 	uint32_t cap;
 
@@ -388,7 +388,7 @@ static int
 parseeprom(Ctlr *c)
 {
 	int i, j, k, l, bits;
-	int8_t *s;
+	char *s;
 
 	dprint("m10g eprom:\n");
 	s = c->eprom;
@@ -706,7 +706,7 @@ kickthebaby(Pcidev *p, Ctlr *c)
 typedef struct {
 	uint8_t	len[4];
 	uint8_t	type[4];
-	int8_t	version[128];
+	char	version[128];
 	uint8_t	globals[4];
 	uint8_t	ramsz[4];
 	uint8_t	specs[4];
@@ -720,7 +720,7 @@ enum {
 	Tmcp0	= 0x4d435030,
 };
 
-static int8_t *
+static char *
 fwtype(uint32_t type)
 {
 	switch(type){
@@ -1329,7 +1329,7 @@ static void
 m10gattach(Ether *e)
 {
 	Ctlr *c;
-	int8_t name[12];
+	char name[12];
 
 	dprint("m10gattach\n");
 
@@ -1384,7 +1384,7 @@ static int32_t
 m10gifstat(Ether *e, void *v, int32_t n, uint32_t off)
 {
 	int l, lim;
-	int8_t *p;
+	char *p;
 	Ctlr *c;
 	Stats s;
 
@@ -1554,7 +1554,7 @@ m10gpromiscuous(void *v, int on)
 }
 
 static int	mcctab[]  = { CSleavemc, CSjoinmc };
-static int8_t	*mcntab[] = { "leave", "join" };
+static char	*mcntab[] = { "leave", "join" };
 
 static void
 m10gmulticast(void *v, uint8_t *ea, int on)

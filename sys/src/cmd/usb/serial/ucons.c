@@ -21,10 +21,10 @@ Cinfo uconsinfo[] = {
 };
 
 int
-uconsmatch(int8_t *info)
+uconsmatch(char *info)
 {
 	Cinfo *ip;
-	int8_t buf[50];
+	char buf[50];
 
 	for(ip = uconsinfo; ip->vid != 0; ip++){
 		snprint(buf, sizeof buf, "vid %#06x did %#06x",

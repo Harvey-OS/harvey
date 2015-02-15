@@ -30,7 +30,7 @@ static void	rflush(Fcall*),		rnop(Fcall*),
 		rwstat(Fcall*),	rversion(Fcall*);
 
 static	Fid*	newfid(int);
-static	void	reply(Fcall*, int8_t*);
+static	void	reply(Fcall*, char*);
 
 static	void 	(*fcalls[])(Fcall*) = {
 	[Tversion]	rversion,
@@ -89,7 +89,7 @@ io(void)
  *	write a protocol reply to the client
  */
 static void
-reply(Fcall *r, int8_t *error)
+reply(Fcall *r, char *error)
 {
 	int n;
 
@@ -209,7 +209,7 @@ rwalk(Fcall *f)
 	int i, j;
 	Fcall r;
 	Fid *fidp, *nf;
-	int8_t *err;
+	char *err;
 
 	fidp = newfid(f->fid);
 	if(fidp->node && fidp->node->d.type == Dummynode){
@@ -354,7 +354,7 @@ rread(Fcall *f)
 	cnt = f->count;
 	f->count = 0;
 	fidp = newfid(f->fid);
-	f->data = (int8_t*)rbuf+IOHDRSZ;
+	f->data = (char*)rbuf+IOHDRSZ;
 	if(fidp->open == 0) {
 		reply(f, "file not open");
 		return;
@@ -396,7 +396,7 @@ rwrite(Fcall *f)
 {
 	Fid *fidp;
 	int n;
-	int8_t *err, *argv[10];
+	char *err, *argv[10];
 
 	fidp = newfid(f->fid);
 	if(fidp->node->d.mode & DMDIR){

@@ -16,7 +16,7 @@ smbsendunicode(SmbPeerInfo *i)
 }
 
 int
-smbcheckwordcount(int8_t *name, SmbHeader *h, uint16_t wordcount)
+smbcheckwordcount(char *name, SmbHeader *h, uint16_t wordcount)
 {
 	if (h->wordcount != wordcount) {
 		smblogprint(-1, "smb%s: word count not %ud\n", name, wordcount);
@@ -26,7 +26,7 @@ smbcheckwordcount(int8_t *name, SmbHeader *h, uint16_t wordcount)
 }
 
 int
-smbcheckwordandbytecount(int8_t *name, SmbHeader *h, uint16_t wordcount,
+smbcheckwordandbytecount(char *name, SmbHeader *h, uint16_t wordcount,
 			 uint8_t **bdatap, uint8_t **edatap)
 {
 	uint16_t bytecount;
@@ -142,7 +142,7 @@ smblogprint(h->command, "%s %s: tid 0x%.4ux pid 0x%.4ux uid 0x%.4ux mid 0x%.4ux\
 }
 
 int
-smbcheckheaderdirection(SmbHeader *h, int response, int8_t **errmsgp)
+smbcheckheaderdirection(SmbHeader *h, int response, char **errmsgp)
 {
 	if (((h->flags & SMB_FLAGS_SERVER_TO_REDIR) == 0) == response) {
 		smbstringprint(errmsgp, "unexpected %s", response ? "request" : "response");
@@ -152,7 +152,7 @@ smbcheckheaderdirection(SmbHeader *h, int response, int8_t **errmsgp)
 }
 
 int
-smbcheckheader(SmbHeader *h, uint8_t command, int response, int8_t **errmsgp)
+smbcheckheader(SmbHeader *h, uint8_t command, int response, char **errmsgp)
 {
 	if (response && h->command != command) {
 		smbstringprint(errmsgp, "sent %.2uc request, got %.2ux response", command, h->command);
@@ -166,7 +166,7 @@ smbcheckheader(SmbHeader *h, uint8_t command, int response, int8_t **errmsgp)
 int
 smbbuffergetandcheckheader(SmbBuffer *b, SmbHeader *h, uint8_t command,
 			   int response, uint8_t **pdatap,
-			   uint16_t *bytecountp, int8_t **errmsgp)
+			   uint16_t *bytecountp, char **errmsgp)
 {
 	if (!smbbuffergetheader(b, h, pdatap, bytecountp)) {
 		smbstringprint(errmsgp, "smbbuffergetandcheckheader: not enough data for header");
@@ -176,7 +176,7 @@ smbbuffergetandcheckheader(SmbBuffer *b, SmbHeader *h, uint8_t command,
 }
 
 int
-smbsuccess(SmbHeader *h, int8_t **errmsgp)
+smbsuccess(SmbHeader *h, char **errmsgp)
 {
 	if (h->errclass != SUCCESS) {
 		smbstringprint(errmsgp, "%s returned error %d/%d", smboptable[h->command].name, h->errclass, h->error);
@@ -331,7 +331,7 @@ SmbSlut smbopenmodeslut[] = {
 };
 
 int
-smbslut(SmbSlut *s, int8_t *pat)
+smbslut(SmbSlut *s, char *pat)
 {
 	while (s->name) {
 		if (cistrcmp(s->name, pat) == 0)
@@ -341,7 +341,7 @@ smbslut(SmbSlut *s, int8_t *pat)
 	return -1;
 }
 
-int8_t *
+char *
 smbrevslut(SmbSlut *s, int val)
 {
 	while (s->name) {

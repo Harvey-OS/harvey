@@ -22,8 +22,8 @@ emalloc(int size)
 	return a;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -35,7 +35,7 @@ estrdup(int8_t *s)
  * like tokenize but obey "" quoting
  */
 int
-tokenize822(int8_t *str, int8_t **args, int max)
+tokenize822(char *str, char **args, int max)
 {
 	int na;
 	int intok = 0, inquote = 0;
@@ -72,12 +72,12 @@ tokenize822(int8_t *str, int8_t **args, int max)
 }
 
 Addr*
-readaddrs(int8_t *file, Addr *a)
+readaddrs(char *file, Addr *a)
 {
 	int fd;
 	int i, n;
-	int8_t buf[8*1024];
-	int8_t *f[128];
+	char buf[8*1024];
+	char *f[128];
 	Addr **l;
 	Addr *first;
 

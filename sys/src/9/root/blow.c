@@ -13,10 +13,10 @@
 #define ESTR		256
 
 static void
-error(int8_t* fmt, ...)
+error(char* fmt, ...)
 {
 	va_list v;
-	int8_t *e, estr[ESTR], *p;
+	char *e, estr[ESTR], *p;
 
 	va_start(v, fmt);
 	e = estr + ESTR;
@@ -29,10 +29,10 @@ error(int8_t* fmt, ...)
 }
 
 static void
-fatal(int8_t* fmt, ...)
+fatal(char* fmt, ...)
 {
 	va_list v;
-	int8_t *e, estr[ESTR], *p;
+	char *e, estr[ESTR], *p;
 
 	va_start(v, fmt);
 	e = estr + ESTR;
@@ -48,7 +48,7 @@ fatal(int8_t* fmt, ...)
 static void
 usage(void)
 {
-	int8_t *e, estr[ESTR], *p;
+	char *e, estr[ESTR], *p;
 
 	e = estr + ESTR;
 	p = seprint(estr, e, "usage: %s"
@@ -123,10 +123,10 @@ enum {
 };
 
 static int
-torusparse(uint8_t d[3], int8_t* item, int8_t* buf)
+torusparse(uint8_t d[3], char* item, char* buf)
 {
 	int n;
-	int8_t *p;
+	char *p;
 
 	if((p = strstr(buf, item)) == nil || (p != buf && *(p-1) != '\n'))
 		return -1;

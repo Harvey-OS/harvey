@@ -10,14 +10,14 @@
 #include "rc.h"
 #include "getflags.h"
 #include "fns.h"
-int8_t *flagset[] = {"<flag>"};
-int8_t **flag[NFLAG];
-int8_t *cmdname;
-static int8_t *flagarg="";
-static void reverse(int8_t**, int8_t**);
-static int scanflag(int, int8_t*);
-static void errn(int8_t*, int);
-static void errs(int8_t*);
+char *flagset[] = {"<flag>"};
+char **flag[NFLAG];
+char *cmdname;
+static char *flagarg="";
+static void reverse(char**, char**);
+static int scanflag(int, char*);
+static void errn(char*, int);
+static void errs(char*);
 static void errc(int);
 static int reason;
 #define	RESET	1
@@ -27,9 +27,9 @@ static int reason;
 static int badflag;
 
 int
-getflags(int argc, int8_t *argv[], int8_t *flags, int stop)
+getflags(int argc, char *argv[], char *flags, int stop)
 {
-	int8_t *s;
+	char *s;
 	int i, j, c, count;
 	flagarg = flags;
 	if(cmdname==0)
@@ -84,14 +84,14 @@ getflags(int argc, int8_t *argv[], int8_t *flags, int stop)
 }
 
 static void
-reverse(int8_t **p, int8_t **q)
+reverse(char **p, char **q)
 {
-	int8_t *t;
+	char *t;
 	for(;p<q;p++,--q){ t=*p; *p=*q; *q = t; }
 }
 
 static int
-scanflag(int c, int8_t *f)
+scanflag(int c, char *f)
 {
 	int fc, count;
 	if(0<=c && c<NFLAG)
@@ -125,9 +125,9 @@ scanflag(int c, int8_t *f)
 }
 
 void
-usage(int8_t *tail)
+usage(char *tail)
 {
-	int8_t *s, *t, c;
+	char *s, *t, c;
 	int count, nflag = 0;
 	switch(reason){
 	case RESET:
@@ -218,18 +218,18 @@ usage(int8_t *tail)
 }
 
 static void
-errn(int8_t *s, int count)
+errn(char *s, int count)
 {
 	while(count){ errc(*s++); --count; }
 }
 
 static void
-errs(int8_t *s)
+errs(char *s)
 {
 	while(*s) errc(*s++);
 }
 #define	NBUF	80
-static int8_t buf[NBUF], *bufp = buf;
+static char buf[NBUF], *bufp = buf;
 
 static void
 errc(int c)

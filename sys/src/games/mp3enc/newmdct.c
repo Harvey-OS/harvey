@@ -748,7 +748,7 @@ void mdct_sub48( lame_internal_flags *gfc, const sample_t *w0, const sample_t *w
 		if (gi->mixed_block_flag && band < 2)
 		    type = 0;
 		if (band >= gfc->lowpass_band || band <= gfc->highpass_band) {
-		    memset((int8_t *)mdct_enc,0,18*sizeof(FLOAT8));
+		    memset((char *)mdct_enc,0,18*sizeof(FLOAT8));
 		} else {
 		  if (type == SHORT_TYPE) {
 		    for (k = -NS/4; k < 0; k++) {

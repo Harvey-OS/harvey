@@ -49,16 +49,16 @@ struct v32dinode {
 
 struct	v32dir {
 	uint8_t	ino[2];
-	int8_t	name[VNAMELEN];
+	char	name[VNAMELEN];
 };
 
 int	tapefile;
 Fileinf	iget(int ino);
 int32_t	bmap(Ram *r, int32_t bno);
-void	getblk(Ram *r, int32_t bno, int8_t *buf);
+void	getblk(Ram *r, int32_t bno, char *buf);
 
 void
-populate(int8_t *name)
+populate(char *name)
 {
 	Fileinf f;
 
@@ -85,10 +85,10 @@ void
 popdir(Ram *r)
 {
 	int i, ino;
-	int8_t *cp;
+	char *cp;
 	struct v32dir *dp;
 	Fileinf f;
-	int8_t name[VNAMELEN+1];
+	char name[VNAMELEN+1];
 
 	cp = 0;
 	for (i=0; i<r->ndata; i+=sizeof(struct v32dir)) {
@@ -121,10 +121,10 @@ docreate(Ram *r)
 	USED(r);
 }
 
-int8_t *
+char *
 doread(Ram *r, int64_t off, int32_t cnt)
 {
-	static int8_t buf[Maxbuf+MAXBLSIZE];
+	static char buf[Maxbuf+MAXBLSIZE];
 	int bno, i;
 
 	bno = off/BLSIZE;
@@ -144,7 +144,7 @@ doread(Ram *r, int64_t off, int32_t cnt)
 }
 
 void
-dowrite(Ram *r, int8_t *buf, int32_t off, int32_t cnt)
+dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }
@@ -165,7 +165,7 @@ dopermw(Ram *r)
 Fileinf
 iget(int ino)
 {
-	int8_t buf[MAXBLSIZE];
+	char buf[MAXBLSIZE];
 	struct v32dinode *dp;
 	int32_t flags, i;
 	Fileinf f;
@@ -191,7 +191,7 @@ iget(int ino)
 }
 
 void
-getblk(Ram *r, int32_t bno, int8_t *buf)
+getblk(Ram *r, int32_t bno, char *buf)
 {
 	int32_t dbno;
 
@@ -220,7 +220,7 @@ bmap(Ram *r, int32_t bno)
 		seek(tapefile,
 		     ((int32_t *)r->data)[(bno-(VNADDR-3))/LNINDIR]*BLSIZE,
 		     0);
-		if (read(tapefile, (int8_t *)indbuf, BLSIZE) != BLSIZE)
+		if (read(tapefile, (char *)indbuf, BLSIZE) != BLSIZE)
 			return 0;
 		return ((indbuf[bno%LNINDIR][1]<<8) + indbuf[bno%LNINDIR][0]);
 	}

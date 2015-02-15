@@ -43,7 +43,7 @@
 /* Get a Boolean parameter from a dictionary. */
 /* Return 0 if found, 1 if defaulted, <0 if wrong type. */
 int
-dict_bool_param(const ref * pdict, const int8_t *kstr,
+dict_bool_param(const ref * pdict, const char *kstr,
 		bool defaultval, bool * pvalue)
 {
     ref *pdval;
@@ -64,7 +64,7 @@ dict_bool_param(const ref * pdict, const int8_t *kstr,
 /* Note that the default value may be out of range, in which case */
 /* a missing value will return e_rangecheck rather than 1. */
 int
-dict_int_null_param(const ref * pdict, const int8_t *kstr, int minval,
+dict_int_null_param(const ref * pdict, const char *kstr, int minval,
 		    int maxval, int defaultval, int *pvalue)
 {
     ref *pdval;
@@ -105,7 +105,7 @@ dict_int_null_param(const ref * pdict, const int8_t *kstr, int minval,
 /* Get an integer parameter from a dictionary. */
 /* Return like dict_int_null_param, but return e_typecheck for null. */
 int
-dict_int_param(const ref * pdict, const int8_t *kstr, int minval,
+dict_int_param(const ref * pdict, const char *kstr, int minval,
                int maxval,
 	       int defaultval, int *pvalue)
 {
@@ -120,7 +120,7 @@ dict_int_param(const ref * pdict, const int8_t *kstr, int minval,
 /* Note that the default value may be out of range, in which case */
 /* a missing value will return e_rangecheck rather than 1. */
 int
-dict_uint_param(const ref * pdict, const int8_t *kstr,
+dict_uint_param(const ref * pdict, const char *kstr,
 		uint minval, uint maxval, uint defaultval, uint * pvalue)
 {
     ref *pdval;
@@ -146,7 +146,7 @@ dict_uint_param(const ref * pdict, const int8_t *kstr,
 /* Get a float parameter from a dictionary. */
 /* Return 0 if found, 1 if defaulted, <0 if wrong type. */
 int
-dict_float_param(const ref * pdict, const int8_t *kstr,
+dict_float_param(const ref * pdict, const char *kstr,
 		 floatp defaultval, float *pvalue)
 {
     ref *pdval;
@@ -169,7 +169,7 @@ dict_float_param(const ref * pdict, const int8_t *kstr,
 /* Get an integer array from a dictionary. */
 /* See idparam.h for specification. */
 int
-dict_int_array_check_param(const ref * pdict, const int8_t *kstr, uint len,
+dict_int_array_check_param(const ref * pdict, const char *kstr, uint len,
 			   int *ivec, int under_error, int over_error)
 {
     ref *pdval;
@@ -210,14 +210,14 @@ dict_int_array_check_param(const ref * pdict, const int8_t *kstr, uint len,
 	    gs_note_error(under_error));
 }
 int
-dict_int_array_param(const ref * pdict, const int8_t *kstr,
+dict_int_array_param(const ref * pdict, const char *kstr,
 		     uint maxlen, int *ivec)
 {
     return dict_int_array_check_param(pdict, kstr, maxlen, ivec,
 				      0, e_limitcheck);
 }
 int
-dict_ints_param(const ref * pdict, const int8_t *kstr,
+dict_ints_param(const ref * pdict, const char *kstr,
 		uint len, int *ivec)
 {
     return dict_int_array_check_param(pdict, kstr, len, ivec,
@@ -231,7 +231,7 @@ dict_ints_param(const ref * pdict, const int8_t *kstr,
 /* and return maxlen. */
 int
 dict_float_array_check_param(const gs_memory_t *mem, 
-			     const ref * pdict, const int8_t *kstr,
+			     const ref * pdict, const char *kstr,
 			     uint len, float *fvec, const float *defaultvec,
 			     int under_error, int over_error)
 {
@@ -258,7 +258,7 @@ dict_float_array_check_param(const gs_memory_t *mem,
 }
 int
 dict_float_array_param(const gs_memory_t *mem,
-		       const ref * pdict, const int8_t *kstr,
+		       const ref * pdict, const char *kstr,
 		       uint maxlen, float *fvec, const float *defaultvec)
 {
     return dict_float_array_check_param(mem ,pdict, kstr, maxlen, fvec,
@@ -266,7 +266,7 @@ dict_float_array_param(const gs_memory_t *mem,
 }
 int
 dict_floats_param(const gs_memory_t *mem,
-		  const ref * pdict, const int8_t *kstr,
+		  const ref * pdict, const char *kstr,
 		  uint maxlen, float *fvec, const float *defaultvec)
 {
     return dict_float_array_check_param(mem, pdict, kstr, maxlen, 
@@ -281,7 +281,7 @@ dict_floats_param(const gs_memory_t *mem,
  * In either case, return 1.
  */
 int
-dict_proc_param(const ref * pdict, const int8_t *kstr, ref * pproc,
+dict_proc_param(const ref * pdict, const char *kstr, ref * pproc,
 		bool defaultval)
 {
     ref *pdval;
@@ -301,7 +301,7 @@ dict_proc_param(const ref * pdict, const int8_t *kstr, ref * pproc,
 /* Get a matrix from a dictionary. */
 int
 dict_matrix_param(const gs_memory_t *mem, const ref * pdict,
-                  const int8_t *kstr, gs_matrix * pmat)
+                  const char *kstr, gs_matrix * pmat)
 {
     ref *pdval;
 

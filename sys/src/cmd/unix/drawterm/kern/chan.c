@@ -56,7 +56,7 @@ dumpmount(void)		/* DEBUGGING */
 }
 
 
-int8_t*
+char*
 c2name(Chan *c)		/* DEBUGGING */
 {
 	if(c == nil)
@@ -85,9 +85,9 @@ typedef struct Elemlist Elemlist;
 
 struct Elemlist
 {
-	int8_t	*name;	/* copy of name, so '/' can be overwritten */
+	char	*name;	/* copy of name, so '/' can be overwritten */
 	int	nelems;
-	int8_t	**elems;
+	char	**elems;
 	int	*off;
 	int	mustbedir;
 };
@@ -96,7 +96,7 @@ struct Elemlist
 void cleancname(Cname*);
 
 int
-isdotdot(int8_t *p)
+isdotdot(char *p)
 {
 	return p[0]=='.' && p[1]=='.' && p[2]=='\0';
 }
@@ -133,7 +133,7 @@ decref(Ref *r)
  * save a string in up->genbuf;
  */
 void
-kstrcpy(int8_t *s, int8_t *t, int ns)
+kstrcpy(char *s, char *t, int ns)
 {
 	int nt;
 
@@ -159,7 +159,7 @@ kstrcpy(int8_t *s, int8_t *t, int ns)
 }
 
 int
-emptystr(int8_t *s)
+emptystr(char *s)
 {
 	if(s == nil)
 		return 1;
@@ -172,10 +172,10 @@ emptystr(int8_t *s)
  * Atomically replace *p with copy of s
  */
 void
-kstrdup(int8_t **p, int8_t *s)
+kstrdup(char **p, char *s)
 {
 	int n;
-	int8_t *t, *prev;
+	char *t, *prev;
 
 	n = strlen(s)+1;
 	/* if it's a user, we can wait for memory; if not, something's very wrong */
@@ -266,7 +266,7 @@ newchan(void)
 static Ref ncname;
 
 Cname*
-newcname(int8_t *s)
+newcname(char *s)
 {
 	Cname *n;
 	int i;
@@ -295,10 +295,10 @@ cnameclose(Cname *n)
 }
 
 Cname*
-addelem(Cname *n, int8_t *s)
+addelem(Cname *n, char *s)
 {
 	int i, a;
-	int8_t *t;
+	char *t;
 	Cname *new;
 
 	if(s[0]=='.' && s[1]=='\0')
@@ -447,7 +447,7 @@ newmhead(Chan *from)
 }
 
 int
-cmount(Chan **newp, Chan *old, int flag, int8_t *spec)
+cmount(Chan **newp, Chan *old, int flag, char *spec)
 {
 	Pgrp *pg;
 	int order, flg;
@@ -743,9 +743,9 @@ undomount(Chan *c, Cname *name)
  * Either walks all the way or not at all.  No partial results in *cp.
  * *nerror is the number of names to display in an error message.
  */
-static int8_t Edoesnotexist[] = "does not exist";
+static char Edoesnotexist[] = "does not exist";
 int
-walk(Chan **cp, int8_t **names, int nnames, int nomount, int *nerror)
+walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 {
 	int dev, dotdot, i, n, nhave, ntry, type;
 	Chan *c, *nc;
@@ -940,7 +940,7 @@ saveregisters(void)
 void
 cleancname(Cname *n)
 {
-	int8_t *p;
+	char *p;
 
 	if(n->s[0] == '#'){
 		p = strchr(n->s, '/');
@@ -962,13 +962,13 @@ cleancname(Cname *n)
 static void
 growparse(Elemlist *e)
 {
-	int8_t **new;
+	char **new;
 	int *inew;
 	enum { Delta = 8 };
 
 	if(e->nelems % Delta == 0){
-		new = smalloc((e->nelems+Delta) * sizeof(int8_t*));
-		memmove(new, e->elems, e->nelems*sizeof(int8_t*));
+		new = smalloc((e->nelems+Delta) * sizeof(char*));
+		memmove(new, e->elems, e->nelems*sizeof(char*));
 		free(e->elems);
 		e->elems = new;
 		inew = smalloc((e->nelems+Delta+1) * sizeof(int));
@@ -988,9 +988,9 @@ growparse(Elemlist *e)
  * rather than a directory.
  */
 static void
-parsename(int8_t *name, Elemlist *e)
+parsename(char *name, Elemlist *e)
 {
-	int8_t *slash;
+	char *slash;
 
 	kstrdup(&e->name, name);
 	name = e->name;
@@ -1047,7 +1047,7 @@ mymemrchr(void *va, int c, int32_t n)
  * do not use the Cname*, this avoids an unnecessary clone.
  */
 Chan*
-namec(int8_t *aname, int amode, int omode, uint32_t perm)
+namec(char *aname, int amode, int omode, uint32_t perm)
 {
 	int n, prefix, len, t, nomount, npath;
 	Chan *c, *cnew;
@@ -1055,8 +1055,8 @@ namec(int8_t *aname, int amode, int omode, uint32_t perm)
 	Elemlist e;
 	Rune r;
 	Mhead *m;
-	int8_t *createerr, tmperrbuf[ERRMAX];
-	int8_t *name;
+	char *createerr, tmperrbuf[ERRMAX];
+	char *name;
 
 	name = aname;
 	if(name[0] == '\0')
@@ -1390,15 +1390,15 @@ if(c->umh != nil){
 /*
  * name is valid. skip leading / and ./ as much as possible
  */
-int8_t*
-skipslash(int8_t *name)
+char*
+skipslash(char *name)
 {
 	while(name[0]=='/' || (name[0]=='.' && (name[1]==0 || name[1]=='/')))
 		name++;
 	return name;
 }
 
-int8_t isfrog[256]={
+char isfrog[256]={
 	/*NUL*/	1, 1, 1, 1, 1, 1, 1, 1,	/* 0 */
 	/*BKS*/	1, 1, 1, 1, 1, 1, 1, 1, /* 0x08 */
 	/*DLE*/	1, 1, 1, 1, 1, 1, 1, 1, /* 0x10 */
@@ -1428,9 +1428,9 @@ int8_t isfrog[256]={
  * or a valid character.
  */
 void
-validname(int8_t *aname, int slashok)
+validname(char *aname, int slashok)
 {
-	int8_t *ename, *name;
+	char *ename, *name;
 	int c;
 	Rune r;
 

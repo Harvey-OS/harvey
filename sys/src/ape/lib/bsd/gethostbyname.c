@@ -35,17 +35,17 @@ enum
  *  for inet addresses only
  */
 struct hostent*
-gethostbyname(const int8_t *name)
+gethostbyname(const char *name)
 {
 	int i, t, fd, m;
-	int8_t *p, *bp;
+	char *p, *bp;
 	int nn, na;
 	unsigned long x;
 	static struct hostent h;
-	static int8_t buf[1024];
-	static int8_t *nptr[Nname+1];
-	static int8_t *aptr[Nname+1];
-	static int8_t addr[Nname][4];
+	static char buf[1024];
+	static char *nptr[Nname+1];
+	static char *aptr[Nname+1];
+	static char addr[Nname][4];
 
 	h.h_name = 0;
 	t = _sock_ipattr(name);

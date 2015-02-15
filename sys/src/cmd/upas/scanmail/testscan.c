@@ -12,12 +12,12 @@
 
 int 	debug;
 Biobuf	bin;
-int8_t	patfile[128], header[Hdrsize+2];
-int8_t	cmd[1024];
+char	patfile[128], header[Hdrsize+2];
+char	cmd[1024];
 
-int8_t*	canon(Biobuf*, int8_t*, int8_t*, int*);
-int	matcher(int8_t *, Pattern*, int8_t*, Resub*);
-int	matchaction(Patterns*, int8_t*);
+char*	canon(Biobuf*, char*, char*, int*);
+int	matcher(char *, Pattern*, char*, Resub*);
+int	matchaction(Patterns*, char*);
 
 void
 usage(void)
@@ -157,12 +157,12 @@ main(int argc, char *argv[])
 	exits(ret);
 }
 
-int8_t*
-canon(Biobuf *bp, int8_t *header, int8_t *body, int *n)
+char*
+canon(Biobuf *bp, char *header, char *body, int *n)
 {
 	int hsize, base64;
 
-	static int8_t *raw;
+	static char *raw;
 
 	hsize = 0;
 	base64 = 0;
@@ -186,9 +186,9 @@ canon(Biobuf *bp, int8_t *header, int8_t *body, int *n)
 }
 
 int
-matchaction(Patterns *pp, int8_t *message)
+matchaction(Patterns *pp, char *message)
 {
-	int8_t *name, *cp;
+	char *name, *cp;
 	int ret;
 	Pattern *p;
 	Resub m[1];
@@ -210,7 +210,7 @@ matchaction(Patterns *pp, int8_t *message)
 }
 
 int
-matcher(int8_t *action, Pattern *p, int8_t *message, Resub *m)
+matcher(char *action, Pattern *p, char *message, Resub *m)
 {
 	if(matchpat(p, message, m)){
 		if(p->action != Lineoff)

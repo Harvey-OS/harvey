@@ -281,9 +281,9 @@ cff_put_real(cff_writer_t *pcw, floatp f)
 	cff_put_int(pcw, (int)f);
     else {
 	/* Use decimal representation. */
-	int8_t str[50];
+	char str[50];
 	byte b = 0xff;
-	const int8_t *p;
+	const char *p;
 
 	sprintf(str, "%g", f);
 	sputc(pcw->strm, CD_REAL);

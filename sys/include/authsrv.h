@@ -66,75 +66,75 @@ enum
 
 struct Ticketreq
 {
-	int8_t	type;
-	int8_t	authid[ANAMELEN];	/* server's encryption id */
-	int8_t	authdom[DOMLEN];	/* server's authentication domain */
-	int8_t	chal[CHALLEN];		/* challenge from server */
-	int8_t	hostid[ANAMELEN];	/* host's encryption id */
-	int8_t	uid[ANAMELEN];		/* uid of requesting user on host */
+	char	type;
+	char	authid[ANAMELEN];	/* server's encryption id */
+	char	authdom[DOMLEN];	/* server's authentication domain */
+	char	chal[CHALLEN];		/* challenge from server */
+	char	hostid[ANAMELEN];	/* host's encryption id */
+	char	uid[ANAMELEN];		/* uid of requesting user on host */
 };
 #define	TICKREQLEN	(3*ANAMELEN+CHALLEN+DOMLEN+1)
 
 struct Ticket
 {
-	int8_t	num;			/* replay protection */
-	int8_t	chal[CHALLEN];		/* server challenge */
-	int8_t	cuid[ANAMELEN];		/* uid on client */
-	int8_t	suid[ANAMELEN];		/* uid on server */
-	int8_t	key[DESKEYLEN];		/* nonce DES key */
+	char	num;			/* replay protection */
+	char	chal[CHALLEN];		/* server challenge */
+	char	cuid[ANAMELEN];		/* uid on client */
+	char	suid[ANAMELEN];		/* uid on server */
+	char	key[DESKEYLEN];		/* nonce DES key */
 };
 #define	TICKETLEN	(CHALLEN+2*ANAMELEN+DESKEYLEN+1)
 
 struct Authenticator
 {
-	int8_t	num;			/* replay protection */
-	int8_t	chal[CHALLEN];
+	char	num;			/* replay protection */
+	char	chal[CHALLEN];
 	uint32_t	id;			/* authenticator id, ++'d with each auth */
 };
 #define	AUTHENTLEN	(CHALLEN+4+1)
 
 struct Passwordreq
 {
-	int8_t	num;
-	int8_t	old[ANAMELEN];
-	int8_t	new[ANAMELEN];
-	int8_t	changesecret;
-	int8_t	secret[SECRETLEN];	/* new secret */
+	char	num;
+	char	old[ANAMELEN];
+	char	new[ANAMELEN];
+	char	changesecret;
+	char	secret[SECRETLEN];	/* new secret */
 };
 #define	PASSREQLEN	(2*ANAMELEN+1+1+SECRETLEN)
 
 struct	OChapreply
 {
 	uint8_t	id;
-	int8_t	uid[ANAMELEN];
-	int8_t	resp[OMD5LEN];
+	char	uid[ANAMELEN];
+	char	resp[OMD5LEN];
 };
 
 struct	OMSchapreply
 {
-	int8_t	uid[ANAMELEN];
-	int8_t	LMresp[24];		/* Lan Manager response */
-	int8_t	NTresp[24];		/* NT response */
+	char	uid[ANAMELEN];
+	char	LMresp[24];		/* Lan Manager response */
+	char	NTresp[24];		/* NT response */
 };
 
 /*
  *  convert to/from wire format
  */
-extern	int	convT2M(Ticket*, int8_t*, int8_t*);
-extern	void	convM2T(int8_t*, Ticket*, int8_t*);
-extern	void	convM2Tnoenc(int8_t*, Ticket*);
-extern	int	convA2M(Authenticator*, int8_t*, int8_t*);
-extern	void	convM2A(int8_t*, Authenticator*, int8_t*);
-extern	int	convTR2M(Ticketreq*, int8_t*);
-extern	void	convM2TR(int8_t*, Ticketreq*);
-extern	int	convPR2M(Passwordreq*, int8_t*, int8_t*);
-extern	void	convM2PR(int8_t*, Passwordreq*, int8_t*);
+extern	int	convT2M(Ticket*, char*, char*);
+extern	void	convM2T(char*, Ticket*, char*);
+extern	void	convM2Tnoenc(char*, Ticket*);
+extern	int	convA2M(Authenticator*, char*, char*);
+extern	void	convM2A(char*, Authenticator*, char*);
+extern	int	convTR2M(Ticketreq*, char*);
+extern	void	convM2TR(char*, Ticketreq*);
+extern	int	convPR2M(Passwordreq*, char*, char*);
+extern	void	convM2PR(char*, Passwordreq*, char*);
 
 /*
  *  convert ascii password to DES key
  */
-extern	int	opasstokey(int8_t*, int8_t*);
-extern	int	passtokey(int8_t*, int8_t*);
+extern	int	opasstokey(char*, char*);
+extern	int	passtokey(char*, char*);
 
 /*
  *  Nvram interface
@@ -149,19 +149,19 @@ enum {
 /* storage layout */
 struct Nvrsafe
 {
-	int8_t	machkey[DESKEYLEN];	/* was file server's authid's des key */
+	char	machkey[DESKEYLEN];	/* was file server's authid's des key */
 	uint8_t	machsum;
-	int8_t	authkey[DESKEYLEN];	/* authid's des key from password */
+	char	authkey[DESKEYLEN];	/* authid's des key from password */
 	uint8_t	authsum;
 	/*
 	 * file server config string of device holding full configuration;
 	 * secstore key on non-file-servers.
 	 */
-	int8_t	config[CONFIGLEN];
+	char	config[CONFIGLEN];
 	uint8_t	configsum;
-	int8_t	authid[ANAMELEN];	/* auth userid, e.g., bootes */
+	char	authid[ANAMELEN];	/* auth userid, e.g., bootes */
 	uint8_t	authidsum;
-	int8_t	authdom[DOMLEN]; /* auth domain, e.g., cs.bell-labs.com */
+	char	authdom[DOMLEN]; /* auth domain, e.g., cs.bell-labs.com */
 	uint8_t	authdomsum;
 };
 
@@ -171,12 +171,12 @@ extern int	readnvram(Nvrsafe*, int);
 /*
  *  call up auth server
  */
-extern	int	authdial(int8_t *netroot, int8_t *authdom);
+extern	int	authdial(char *netroot, char *authdom);
 
 /*
  *  exchange messages with auth server
  */
-extern	int	_asgetticket(int, int8_t*, int8_t*);
-extern	int	_asrdresp(int, int8_t*, int);
-extern	int	sslnegotiate(int, Ticket*, int8_t**, int8_t**);
-extern	int	srvsslnegotiate(int, Ticket*, int8_t**, int8_t**);
+extern	int	_asgetticket(int, char*, char*);
+extern	int	_asrdresp(int, char*, int);
+extern	int	sslnegotiate(int, Ticket*, char**, char**);
+extern	int	srvsslnegotiate(int, Ticket*, char**, char**);

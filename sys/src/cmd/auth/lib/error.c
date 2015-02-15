@@ -13,9 +13,9 @@
 #include "authcmdlib.h"
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
-	int8_t buf[8192], *s;
+	char buf[8192], *s;
 	va_list arg;
 
 	s = buf;

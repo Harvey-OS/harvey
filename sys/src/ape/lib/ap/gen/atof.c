@@ -10,7 +10,7 @@
 #include	<stdlib.h>
 
 double
-atof(const int8_t *s)
+atof(const char *s)
 {
-	return(strtod(s, (int8_t **)0));
+	return(strtod(s, (char **)0));
 }

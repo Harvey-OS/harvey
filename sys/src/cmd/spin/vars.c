@@ -24,7 +24,7 @@
 extern Ordered	*all_names;
 extern RunList	*X, *LastX;
 extern Symbol	*Fname;
-extern int8_t	Buf[];
+extern char	Buf[];
 extern int	lineno, depth, verbose, xspin, limited_vis;
 extern int	analyze, jumpsteps, nproc, nstop, columns;
 extern int16_t	no_arrays, Have_claim;
@@ -149,13 +149,13 @@ cast_val(int t, int v, int w)
 	else if (t == BIT)   u = (unsigned char)(v&1);
 	else if (t == UNSIGNED)
 	{	if (w == 0)
-			fatal("cannot happen, cast_val", (int8_t *)0);
+			fatal("cannot happen, cast_val", (char *)0);
 	/*	u = (unsigned)(v& ((1<<w)-1));		problem when w=32	*/
 		u = (unsigned)(v& (~0u>>(8*sizeof(unsigned)-w)));	/* doug */
 	}
 
 	if (v != i+s+ (int) u)
-	{	int8_t buf[64]; sprintf(buf, "%d->%d (%d)", v, i+s+u, t);
+	{	char buf[64]; sprintf(buf, "%d->%d (%d)", v, i+s+u, t);
 		non_fatal("value (%s) truncated in assignment", buf);
 	}
 	return (int)(i+s+u);
@@ -179,7 +179,7 @@ setglobal(Lextok *v, int m)
 }
 
 void
-dumpclaims(FILE *fd, int pid, int8_t *s)
+dumpclaims(FILE *fd, int pid, char *s)
 {	extern Lextok *Xu_List; extern int Pid;
 	extern int16_t terse;
 	Lextok *m; int cnt = 0; int oPid = Pid;

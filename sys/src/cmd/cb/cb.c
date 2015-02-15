@@ -64,7 +64,7 @@ work(void)
 {
 	int c, cc;
 	struct keyw *lptr;
-	int8_t *pt;
+	char *pt;
 	int ct;
 
 	while ((c = getch()) != Beof){
@@ -600,7 +600,7 @@ gotelse(void){
 	if(--(clev->iflev) < 0)clev->iflev = 0;
 }
 int
-checkif(int8_t *pt)
+checkif(char *pt)
 {
 	struct keyw *lptr;
 	int cc;
@@ -640,7 +640,7 @@ resetdo(void){
 void
 gottype(struct keyw *lptr)
 {
-	int8_t *pt;
+	char *pt;
 	struct keyw *tlptr;
 	int c;
 	while(1){
@@ -670,7 +670,7 @@ void
 gotstruct(void){
 	int c;
 	int cc;
-	int8_t *pt;
+	char *pt;
 	while((c=getch()) == ' ' || c == '\t')
 		if(!strict)putch(c,NO);
 	if(c == '{'){
@@ -693,10 +693,10 @@ gotstruct(void){
 void
 gotop(int c)
 {
-	int8_t optmp[OPLENGTH];
-	int8_t *op_ptr;
+	char optmp[OPLENGTH];
+	char *op_ptr;
 	struct op *s_op;
-	int8_t *a, *b;
+	char *a, *b;
 	op_ptr = optmp;
 	*op_ptr++ = c;
 	while (isop(( *op_ptr = getch())))op_ptr++;
@@ -727,7 +727,7 @@ gotop(int c)
 void
 keep(struct op *o)
 {
-	int8_t	*s;
+	char	*s;
 	int ok;
 	if(o->blanks == NEVER)ok = NO;
 	else ok = YES;
@@ -745,7 +745,7 @@ keep(struct op *o)
 int
 getnl(void){
 	int ch;
-	int8_t *savp;
+	char *savp;
 	int gotcmt;
 	gotcmt = 0;
 	savp = p;
@@ -825,7 +825,7 @@ outs(int n){
 	}
 }
 void
-putch(int8_t c,int ok)
+putch(char c,int ok)
 {
 	int cc;
 	if(p < &string[LINE-1]){
@@ -847,10 +847,10 @@ putch(int8_t c,int ok)
 	}
 }
 struct keyw *
-lookup(int8_t *first, int8_t *last)
+lookup(char *first, char *last)
 {
 	struct keyw *ptr;
-	int8_t	*cptr, *ckey, *k;
+	char	*cptr, *ckey, *k;
 
 	if(first == last || first == 0)return(0);
 	cptr = first;
@@ -923,14 +923,14 @@ cpp_comment(int ok)
 	return hitnl;
 }
 void
-putspace(int8_t ch, int ok)
+putspace(char ch, int ok)
 {
 	if(p == string)putch(ch,ok);
 	else if (*(p - 1) != ch) putch(ch,ok);
 }
 int
 getch(void){
-	int8_t c;
+	char c;
 	if(inswitch){
 		if(next != '\0'){
 			c=next;
@@ -947,7 +947,7 @@ getch(void){
 	return(Bgetc(input));
 }
 void
-unget(int8_t c)
+unget(char c)
 {
 	if(inswitch){
 		if(tptr != temp)
@@ -956,10 +956,10 @@ unget(int8_t c)
 	}
 	else Bungetc(input);
 }
-int8_t *
+char *
 getnext(int must){
 	int c;
-	int8_t *beg;
+	char *beg;
 	int prect,nlct;
 	prect = nlct = 0;
 	if(tptr > lastplace){
@@ -1011,7 +1011,7 @@ done:
 	return(beg);
 }
 void
-copy(int8_t *s)
+copy(char *s)
 {
 	while(*s != '\0')putch(*s++,NO);
 }
@@ -1021,8 +1021,8 @@ clearif(struct indent *cl)
 	int i;
 	for(i=0;i<IFLEVEL-1;i++)cl->ifc[i] = 0;
 }
-int8_t 
-puttmp(int8_t c, int keep)
+char 
+puttmp(char c, int keep)
 {
 	if(tp < &temp[TEMP-120])
 		*tp++ = c;
@@ -1042,7 +1042,7 @@ puttmp(int8_t c, int keep)
 	return(c);
 }
 void
-error(int8_t *s)
+error(char *s)
 {
 	fprint(2,"saw EOF while looking for %s\n",s);
 	exits("boom");

@@ -15,7 +15,7 @@ int
 mousescrollsize(int maxlines)
 {
 	static int lines, pcnt;
-	int8_t *mss;
+	char *mss;
 
 	if(lines == 0 && pcnt == 0){
 		mss = getenv("mousescrollsize");

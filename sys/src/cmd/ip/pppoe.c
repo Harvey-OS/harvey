@@ -20,19 +20,19 @@ void dumppkt(uint8_t*);
 uint8_t *findtag(uint8_t*, int, int*, int);
 void hexdump(uint8_t*, int);
 int malformed(uint8_t*, int, int);
-int pppoe(int8_t*);
+int pppoe(char*);
 void execppp(int);
 
 int alarmed;
 int debug;
 int sessid;
-int8_t *keyspec;
+char *keyspec;
 int primary;
-int8_t *pppnetmtpt;
-int8_t *acname;
-int8_t *pppname = "/bin/ip/ppp";
-int8_t *srvname = "";
-int8_t *wantac;
+char *pppnetmtpt;
+char *acname;
+char *pppname = "/bin/ip/ppp";
+char *srvname = "";
+char *wantac;
 uint8_t *cookie;
 int cookielen;
 uint8_t etherdst[6];
@@ -46,7 +46,7 @@ usage(void)
 }
 
 int
-catchalarm(void *a, int8_t *msg)
+catchalarm(void *a, char *msg)
 {
 	USED(a);
 
@@ -245,7 +245,7 @@ padr(uint8_t *pkt)
 void
 ewrite(int fd, void *buf, int nbuf)
 {
-	int8_t e[ERRMAX], path[64];
+	char e[ERRMAX], path[64];
 
 	if(write(fd, buf, nbuf) != nbuf){
 		rerrstr(e, sizeof e);
@@ -312,7 +312,7 @@ pktread(int timeout, int fd, void *buf, int nbuf, int (*want)(uint8_t*))
 }
 
 int
-bad(int8_t *reason)
+bad(char *reason)
 {
 	werrstr(reason);
 	return 0;
@@ -414,9 +414,9 @@ wantsession(uint8_t *pkt)
 }
 
 int
-pppoe(int8_t *ether)
+pppoe(char *ether)
 {
-	int8_t buf[64];
+	char buf[64];
 	uint8_t pkt[1520];
 	int dfd, p[2], n, sfd, sz, timeout;
 	Pppoehdr *ph;
@@ -521,9 +521,9 @@ pppoe(int8_t *ether)
 void
 execppp(int fd)
 {
-	int8_t *argv[16];
+	char *argv[16];
 	int argc;
-	int8_t smtu[10];
+	char smtu[10];
 
 	argc = 0;
 	argv[argc++] = pppname;
@@ -603,10 +603,10 @@ dumptags(uint8_t *tagdat, int ntagdat)
 			fprint(2, "end of tag list\n");
 			break;
 		case TagSrvName:
-			fprint(2, "service '%.*s'\n", len, (int8_t*)v);
+			fprint(2, "service '%.*s'\n", len, (char*)v);
 			break;
 		case TagAcName:
-			fprint(2, "ac '%.*s'\n", len, (int8_t*)v);
+			fprint(2, "ac '%.*s'\n", len, (char*)v);
 			break;
 		case TagHostUniq:
 			fprint(2, "nonce ");
@@ -625,10 +625,10 @@ dumptags(uint8_t *tagdat, int ntagdat)
 			fprint(2, "relay ");
 			goto Hex;
 		case TagSrvNameErr:
-			fprint(2, "srverr '%.*s'\n", len, (int8_t*)v);
+			fprint(2, "srverr '%.*s'\n", len, (char*)v);
 			break;
 		case TagAcSysErr:
-			fprint(2, "syserr '%.*s'\n", len, (int8_t*)v);
+			fprint(2, "syserr '%.*s'\n", len, (char*)v);
 			break;
 		}
 		sz += 2+2+len;
@@ -689,7 +689,7 @@ void
 hexdump(uint8_t *a, int na)
 {
 	int i;
-	int8_t buf[80];
+	char buf[80];
 
 	buf[0] = '\0';
 	for(i=0; i<na; i++){

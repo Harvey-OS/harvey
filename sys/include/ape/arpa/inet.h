@@ -116,7 +116,7 @@ struct sockaddr_in {
 	int16_t	sin_family;
 	unsigned short	sin_port;
 	struct	in_addr sin_addr;
-	int8_t	sin_zero[8];
+	char	sin_zero[8];
 };
 
 /*
@@ -128,7 +128,7 @@ struct sockaddr_in {
  */
 struct ip_opts {
 	struct	in_addr ip_dst;		/* first hop, 0 w/o src rt */
-	int8_t	ip_opts[40];		/* actually variable in size */
+	char	ip_opts[40];		/* actually variable in size */
 };
 
 /*
@@ -144,8 +144,8 @@ extern unsigned long	ntohl(unsigned long x);
 extern unsigned short	ntohs(unsigned short x);
 extern unsigned long	htonl(unsigned long x);
 extern unsigned short	htons(unsigned short x);
-extern unsigned long	inet_addr(int8_t*);
-extern int8_t*		inet_ntoa(struct in_addr);
+extern unsigned long	inet_addr(char*);
+extern char*		inet_ntoa(struct in_addr);
 extern unsigned long	nptohl(void*);
 
 #ifdef __cplusplus

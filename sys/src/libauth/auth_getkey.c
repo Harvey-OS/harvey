@@ -12,9 +12,9 @@
 #include <auth.h>
 
 int
-auth_getkey(int8_t *params)
+auth_getkey(char *params)
 {
-	int8_t *name;
+	char *name;
 	Dir *d;
 	int pid;
 	Waitmsg *w;

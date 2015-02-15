@@ -211,7 +211,7 @@ newIPICMP(int packetlen)
 }
 
 void
-icmpadvise6(Proto *icmp, Block *bp, int8_t *msg)
+icmpadvise6(Proto *icmp, Block *bp, char *msg)
 {
 	uint16_t recid;
 	Conv **c, *s;
@@ -277,8 +277,8 @@ icmpkick6(void *x, Block *bp)
 	ipoput6(c->p->f, bp, 0, c->ttl, c->tos, nil);
 }
 
-int8_t*
-icmpctl6(Conv *c, int8_t **argv, int argc)
+char*
+icmpctl6(Conv *c, char **argv, int argc)
 {
 	Icmpcb6 *icb;
 
@@ -717,7 +717,7 @@ static void
 icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 {
 	int refresh = 1;
-	int8_t *msg, m2[128];
+	char *msg, m2[128];
 	uint8_t pktflags;
 	uint8_t *packet = bp->rp;
 	uint8_t lsrc[IPaddrlen];
@@ -856,10 +856,10 @@ raise:
 }
 
 int
-icmpstats6(Proto *icmp6, int8_t *buf, int len)
+icmpstats6(Proto *icmp6, char *buf, int len)
 {
 	Icmppriv6 *priv;
-	int8_t *p, *e;
+	char *p, *e;
 	int i;
 
 	priv = icmp6->priv;
@@ -880,9 +880,9 @@ icmpstats6(Proto *icmp6, int8_t *buf, int len)
 
 
 /* import from icmp.c */
-extern int	icmpstate(Conv *c, int8_t *state, int n);
-extern int8_t*	icmpannounce(Conv *c, int8_t **argv, int argc);
-extern int8_t*	icmpconnect(Conv *c, int8_t **argv, int argc);
+extern int	icmpstate(Conv *c, char *state, int n);
+extern char*	icmpannounce(Conv *c, char **argv, int argc);
+extern char*	icmpconnect(Conv *c, char **argv, int argc);
 extern void	icmpclose(Conv *c);
 
 void

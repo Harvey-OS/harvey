@@ -9,7 +9,7 @@
 
 struct coffsect
 {
-	int8_t	name[8];
+	char	name[8];
 	uint32_t	phys;
 	uint32_t	virt;
 	uint32_t	size;
@@ -96,8 +96,8 @@ struct nextexec
 		uint32_t	flags;
 	}textc;
 	struct nextsect{
-		int8_t	sectname[16];
-		int8_t	segname[16];
+		char	sectname[16];
+		char	segname[16];
 		uint32_t	addr;
 		uint32_t	size;
 		uint32_t	offset;

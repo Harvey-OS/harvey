@@ -12,7 +12,7 @@
 #include "fns.h"
 
 QLock godot;
-int8_t *host;
+char *host;
 int readonly = 1;	/* for part.c */
 int mainstacksize = 256*1024;
 Channel *c;

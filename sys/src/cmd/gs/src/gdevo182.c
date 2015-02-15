@@ -170,8 +170,8 @@ oki_compress(byte *in, int origWidth, int highRes,
 		columns_per_space = 12;
 
 	/* remove leading zeros that can be replaced by spaces */
-	while(in < in_end && in[0] == 0x80 && memcmp((int8_t *)in,
-				(int8_t *)in + 1, columns_per_space - 1) == 0) {
+	while(in < in_end && in[0] == 0x80 && memcmp((char *)in,
+				(char *)in + 1, columns_per_space - 1) == 0) {
 		spaces++;
 		in += columns_per_space;
 	}

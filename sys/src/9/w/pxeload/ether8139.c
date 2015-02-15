@@ -531,7 +531,7 @@ rtl8139match(Ether* edev, int id)
 }
 
 static struct {
-	int8_t*	name;
+	char*	name;
 	int	id;
 } rtl8139pci[] = {
 	{ "rtl8139",	(0x8139<<16)|0x10EC, },	/* generic */

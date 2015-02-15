@@ -13,7 +13,7 @@
 #include <httpd.h>
 
 int
-hunallowed(HConnect *c, int8_t *allowed)
+hunallowed(HConnect *c, char *allowed)
 {
 	Hio *hout;
 	int n;

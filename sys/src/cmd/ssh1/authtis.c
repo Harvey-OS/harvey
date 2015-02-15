@@ -13,7 +13,7 @@ static int
 authtisfn(Conn *c)
 {
 	int fd, n;
-	int8_t *chal, resp[256];
+	char *chal, resp[256];
 	Msg *m;
 
 	if(!c->interactive)

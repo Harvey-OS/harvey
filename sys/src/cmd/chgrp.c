@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-int	readgid(int8_t*);
+int	readgid(char*);
 int	uflag;
 
 void

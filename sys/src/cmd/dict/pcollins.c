@@ -85,16 +85,16 @@ static Rune normtab[128] = {
 	L'x',	L'y',	L'z',	L'{',	L'|',	L'}',	L'~',	NONE,
 };
 
-static int8_t *gettag(int8_t *, int8_t *);
+static char *gettag(char *, char *);
 
 static Entry	curentry;
-static int8_t	tag[Buflen];
+static char	tag[Buflen];
 #define cursize (curentry.end-curentry.start)
 
 void
 pcollprintentry(Entry e, int cmd)
 {
-	int8_t *p, *pe;
+	char *p, *pe;
 	int32_t r, rprev, t, rlig;
 	int saveoi;
 	Rune *transtab;
@@ -187,7 +187,7 @@ int32_t
 pcollnextoff(int32_t fromoff)
 {
 	int32_t a;
-	int8_t *p;
+	char *p;
 
 	a = Bseek(bdict, fromoff, 0);
 	if(a < 0)
@@ -216,10 +216,10 @@ pcollprintkey(void)
  * Accumulate the tag in tag[].
  * Return pointer to after final '<'.
  */
-static int8_t *
-gettag(int8_t *f, int8_t *fe)
+static char *
+gettag(char *f, char *fe)
 {
-	int8_t *t;
+	char *t;
 	int c, i;
 
 	t = tag;

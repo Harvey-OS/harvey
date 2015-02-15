@@ -13,11 +13,11 @@ SmbProcessResult
 smbcomrename(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 {
 	int rv;
-	int8_t *old,     *new;
-	int8_t *oldpath = nil;
-	int8_t *newpath = nil;
-	int8_t *olddir, *newdir;
-	int8_t *oldname, *newname;
+	char *old,     *new;
+	char *oldpath = nil;
+	char *newpath = nil;
+	char *olddir, *newdir;
+	char *oldname, *newname;
 	uint8_t oldfmt, newfmt;
 	SmbTree *t;
 	Dir d;

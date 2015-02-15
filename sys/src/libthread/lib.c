@@ -34,9 +34,9 @@ _threadmalloc(int32_t size, int z)
 }
 
 void
-_threadsysfatal(int8_t *fmt, va_list arg)
+_threadsysfatal(char *fmt, va_list arg)
 {
-	int8_t buf[1024];	/* size doesn't matter; we're about to exit */
+	char buf[1024];	/* size doesn't matter; we're about to exit */
 
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	if(argv0)

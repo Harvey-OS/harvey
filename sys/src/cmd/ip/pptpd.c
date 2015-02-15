@@ -125,13 +125,13 @@ struct {
 	int	grecfd;
 	uint8_t	local[IPaddrlen];
 	uint8_t	remote[IPaddrlen];
-	int8_t	*tcpdir;
+	char	*tcpdir;
 	uint8_t	ipaddr[IPaddrlen];		/* starting ip addresss to allocate */
 
 	int	recvwindow;
 
-	int8_t	*pppdir;
-	int8_t	*pppexec;
+	char	*pppdir;
+	char	*pppexec;
 
 	double	rcvtime;	/* time at which last request was received */
 	int	echoid;		/* id of last echo request */
@@ -159,14 +159,14 @@ enum {
 int	debug;
 double	drop;
 
-void	myfatal(int8_t *fmt, ...);
+void	myfatal(char *fmt, ...);
 
 #define	PSHORT(p, v)		((p)[0]=((v)>>8), (p)[1]=(v))
 #define	PLONG(p, v)		(PSHORT(p, (v)>>16), PSHORT(p+2, (v)))
-#define	PSTRING(d,s,n)		strncpy((int8_t*)(d), s, n)
+#define	PSTRING(d,s,n)		strncpy((char*)(d), s, n)
 #define	GSHORT(p)		(((p)[0]<<8) | ((p)[1]<<0))
 #define	GLONG(p)		((GSHORT((p))<<16) | ((GSHORT((p)+2))<<0))
-#define	GSTRING(d,s,n)		strncpy(d, (int8_t*)(s), n), d[(n)-1] = 0
+#define	GSTRING(d,s,n)		strncpy(d, (char*)(s), n), d[(n)-1] = 0
 
 void	serve(void);
 
@@ -196,14 +196,14 @@ void	greack(Call *c);
 
 void	timeoutthread(void*);
 
-int	argatoi(int8_t *p);
+int	argatoi(char *p);
 void	usage(void);
 int	ipaddralloc(Call *c);
 
 void	*emallocz(int size);
 void	esignal(Event *e);
 void	ewait(Event *e);
-int	proc(int8_t **argv, int fd0, int fd1, int fd2);
+int	proc(char **argv, int fd0, int fd1, int fd2);
 double	realtime(void);
 uint32_t	thread(void(*f)(void*), void *a);
 
@@ -635,7 +635,7 @@ callalloc(int id)
 {
 	uint h;
 	Call *c;
-	int8_t buf[300], *argv[30], local[20], remote[20], **p;
+	char buf[300], *argv[30], local[20], remote[20], **p;
 	int fd, pfd[2], n;
 
 	h = id%Nhash;
@@ -781,7 +781,7 @@ calllookup(int id)
 void
 srvinit(void)
 {
-	int8_t buf[100];
+	char buf[100];
 	int fd, n;
 
 	sprint(buf, "%s/local", srv.tcpdir);
@@ -1129,9 +1129,9 @@ myfatal(char *fmt, ...)
 }
 
 int
-argatoi(int8_t *p)
+argatoi(char *p)
 {
-	int8_t *q;
+	char *q;
 	int i;
 
 	if(p == 0)
@@ -1163,7 +1163,7 @@ int
 ipaddralloc(Call *c)
 {
 	int pfd[2][2];
-	int8_t *argv[4], *p;
+	char *argv[4], *p;
 	Biobuf bio;
 
 	argv[0] = "/bin/ip/dhcpclient";
@@ -1290,10 +1290,10 @@ fdclose(void)
 }
 
 int
-proc(int8_t **argv, int fd0, int fd1, int fd2)
+proc(char **argv, int fd0, int fd1, int fd2)
 {
 	int r, flag;
-	int8_t *arg0, file[200];
+	char *arg0, file[200];
 
 	arg0 = argv[0];
 

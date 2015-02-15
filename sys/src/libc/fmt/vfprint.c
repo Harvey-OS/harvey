@@ -20,7 +20,7 @@ _fmtFdFlush(Fmt *f)
 {
 	int n;
 
-	n = (int8_t*)f->to - (int8_t*)f->start;
+	n = (char*)f->to - (char*)f->start;
 	if(n && write((int)(uintptr)f->farg, f->start, n) != n)
 		return 0;
 	f->to = f->start;
@@ -28,10 +28,10 @@ _fmtFdFlush(Fmt *f)
 }
 
 int
-vfprint(int fd, int8_t *fmt, va_list args)
+vfprint(int fd, char *fmt, va_list args)
 {
 	Fmt f;
-	int8_t buf[256];
+	char buf[256];
 	int n;
 
 	fmtfdinit(&f, fd, buf, sizeof(buf));

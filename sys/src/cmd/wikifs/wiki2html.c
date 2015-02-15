@@ -14,7 +14,7 @@
 #include <thread.h>
 #include "wiki.h"
 
-int8_t *wikidir;
+char *wikidir;
 
 void
 usage(void)

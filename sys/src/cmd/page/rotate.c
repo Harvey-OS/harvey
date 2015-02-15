@@ -36,11 +36,11 @@ enum {
 Image *mtmp;
 
 void
-writefile(int8_t *name, Image *im, int gran)
+writefile(char *name, Image *im, int gran)
 {
 	static int c = 100;
 	int fd;
-	int8_t buf[200];
+	char buf[200];
 
 	snprint(buf, sizeof buf, "%d%s%d", c++, name, gran);
 	fd = create(buf, OWRITE, 0666);
@@ -386,7 +386,7 @@ resample(Image *from, Image *to)
 {
 	int i, j, bpl, nchan;
 	uint8_t **oscan, **nscan;
-	int8_t tmp[20];
+	char tmp[20];
 	int xsize, ysize;
 	double v;
 	Image *t1, *t2;

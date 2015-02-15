@@ -140,13 +140,13 @@ setupseg(int core)
 }
 
 void
-kforkexecac(Proc *p, int core, int8_t *ufile, int8_t **argv)
+kforkexecac(Proc *p, int core, char *ufile, char **argv)
 {
 	Khdr hdr;
 	Tos *tos;
 	Chan *chan;
 	int argc, i, n;
-	int8_t *a, *elem, *file, *args;
+	char *a, *elem, *file, *args;
 	int32_t hdrsz, magic, textsz, datasz, bsssz;
 	uintptr textlim, datalim, bsslim, entry, tbase, tsize, dbase, dsize, bbase, bsize, sbase, ssize, stack;
 	Mach *mp;
@@ -298,11 +298,11 @@ kforkexecac(Proc *p, int core, int8_t *ufile, int8_t **argv)
 	DBG("kexec: argument processing\n");
 	if(0)
 	for(i = 0;; i++, argv++){
-		a = *(int8_t**)validaddr(argv, sizeof(int8_t**), 0);
+		a = *(char**)validaddr(argv, sizeof(char**), 0);
 		if(a == nil)
 			break;
 		a = validaddr(a, 1, 0);
-		n = ((int8_t*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
+		n = ((char*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
 
 		if(argc > 0 && i == 0)
 			continue;
@@ -326,10 +326,10 @@ kforkexecac(Proc *p, int core, int8_t *ufile, int8_t **argv)
 	// YYY: this looks like a Jimism for 9k.
 	// DBG("kexec: ensuring the stack \n");
 	if(0)
-	if(stack-(argc+1)*sizeof(int8_t**)-BIGPGSZ < sbase+ssize-4096)
+	if(stack-(argc+1)*sizeof(char**)-BIGPGSZ < sbase+ssize-4096)
 		error(Ebadexec);
 
-	argv = (int8_t**)stack;
+	argv = (char**)stack;
 	*--argv = nil;
 	// XXX: replace USTKTOP with a new variable representing the top of stack.
 	if(0)
@@ -457,7 +457,7 @@ printhello(void)
 }
 
 void
-printargs(int8_t *arg)
+printargs(char *arg)
 {
 	print("%#p %s\n", arg, arg);
 }

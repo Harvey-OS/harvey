@@ -11,8 +11,8 @@
 #include <libc.h>
 #include <draw.h>
 
-static int8_t*
-skip(int8_t *s)
+static char*
+skip(char *s)
 {
 	while(*s==' ' || *s=='\n' || *s=='\t')
 		s++;
@@ -20,14 +20,14 @@ skip(int8_t *s)
 }
 
 Font*
-buildfont(Display *d, int8_t *buf, int8_t *name)
+buildfont(Display *d, char *buf, char *name)
 {
 	Font *fnt;
 	Cachefont *c;
-	int8_t *s, *t;
+	char *s, *t;
 	uint32_t min, max;
 	int offset;
-	int8_t badform[] = "bad font format: number expected (char position %d)";
+	char badform[] = "bad font format: number expected (char position %d)";
 
 	s = buf;
 	fnt = malloc(sizeof(Font));

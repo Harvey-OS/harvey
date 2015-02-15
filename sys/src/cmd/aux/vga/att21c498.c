@@ -75,7 +75,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	uint32_t grade, pclk;
-	int8_t *p;
+	char *p;
 
 	/*
 	 * Part comes in -170, -130 and -110MHz speed-grades.

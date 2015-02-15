@@ -1607,7 +1607,7 @@ serve9p1(Msgbuf* mb)
 	 */
 	if(t == Tread) {
 		mb1 = mballoc(MAXMSG+MAXDAT, cp, Mbreply2);
-		fo.data = (int8_t*)(mb1->data + 8);
+		fo.data = (char*)(mb1->data + 8);
 	} else
 		mb1 = mballoc(MAXMSG, cp, Mbreply3);
 

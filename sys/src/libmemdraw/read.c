@@ -15,7 +15,7 @@
 Memimage*
 readmemimage(int fd)
 {
-	int8_t hdr[5*12+1];
+	char hdr[5*12+1];
 	int dy;
 	uint32_t chan;
 	uint l, n;

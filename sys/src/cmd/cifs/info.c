@@ -17,9 +17,9 @@
 
 
 struct {
-	int8_t	*name;
+	char	*name;
 	int	(*func)(Fmt *f);
-	int8_t	*buf;
+	char	*buf;
 	int	len;
 } Infdir[] = {
 	{ "Users",	userinfo },	
@@ -36,7 +36,7 @@ struct {
 };
 
 int
-walkinfo(int8_t *name)
+walkinfo(char *name)
 {
 	int i;
 
@@ -93,7 +93,7 @@ makeinfo(int path)
 }
 
 int
-readinfo(int path, int8_t *buf, int len, int off)
+readinfo(int path, char *buf, int len, int off)
 {
 	if(path < 0 || path > nelem(Infdir))
 		return -1;

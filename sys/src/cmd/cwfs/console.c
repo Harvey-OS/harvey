@@ -45,7 +45,7 @@ con_session(void)
 }
 
 int
-con_attach(int fid, int8_t *uid, int8_t *arg)
+con_attach(int fid, char *uid, char *arg)
 {
 	Fcall in, ou;
 
@@ -70,7 +70,7 @@ con_clone(int fid1, int fid2)
 }
 
 int
-con_walk(int fid, int8_t *name)
+con_walk(int fid, char *name)
 {
 	Fcall in, ou;
 
@@ -94,7 +94,7 @@ con_open(int fid, int mode)
 }
 
 int
-con_read(int fid, int8_t *data, Off offset, int count)
+con_read(int fid, char *data, Off offset, int count)
 {
 	Fcall in, ou;
 
@@ -110,7 +110,7 @@ con_read(int fid, int8_t *data, Off offset, int count)
 }
 
 int
-con_write(int fid, int8_t *data, Off offset, int count)
+con_write(int fid, char *data, Off offset, int count)
 {
 	Fcall in, ou;
 
@@ -137,7 +137,7 @@ con_remove(int fid)
 }
 
 int
-con_create(int fid, int8_t *name, int uid, int gid, int32_t perm,
+con_create(int fid, char *name, int uid, int gid, int32_t perm,
 	   int mode)
 {
 	Fcall in, ou;

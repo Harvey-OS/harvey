@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-strcmp(int8_t *s1, int8_t *s2)
+strcmp(char *s1, char *s2)
 {
 	unsigned c1, c2;
 

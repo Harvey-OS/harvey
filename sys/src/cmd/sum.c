@@ -12,7 +12,7 @@
 
 typedef uint32_t	Sumfn(uint32_t, void*, uint64_t);
 extern Sumfn	sumr, sum5, sum32;
-int8_t		*sumfile(int8_t*, Sumfn*);
+char		*sumfile(char*, Sumfn*);
 
 void
 usage(void)
@@ -47,14 +47,14 @@ main(int argc, char **argv)
 	exits(exitstr);
 }
 
-int8_t*
-sumfile(int8_t *file, Sumfn *fn)
+char*
+sumfile(char *file, Sumfn *fn)
 {
 	int fd;
 	int n;
 	uint32_t sum;
 	uint64_t fsize;
-	int8_t buf[8*1024];
+	char buf[8*1024];
 
 	if(file){
 		if((fd = open(file, OREAD)) < 0){
@@ -79,7 +79,7 @@ sumfile(int8_t *file, Sumfn *fn)
 	}
 	if(file)
 		close(fd);
-	(*fn)(sum, (int8_t*)0, fsize);
+	(*fn)(sum, (char*)0, fsize);
 	if(file)
 		print(" %s", file);
 	print("\n");
@@ -138,7 +138,7 @@ sum32(uint32_t lcrc, void *buf, uint64_t uvn)
 
 	n = uvn;
 	if(buf == 0){
-		int8_t x[4];
+		char x[4];
 
 		x[0] = (n>>24)^0xCC;	/* encode the length but make n==0 not 0 */
 		x[1] = (n>>16)^0x55;

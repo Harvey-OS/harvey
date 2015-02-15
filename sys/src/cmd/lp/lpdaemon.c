@@ -46,8 +46,8 @@ unsigned char *argvals[ARGSIZ/2+1];	/* pointers to arguments after parsing */
 int ascnt = 0, argcnt = 0;	/* number of arguments parsed */
 /* for 'stuff' gleened from lpr cntrl file */
 struct jobinfo {
-	int8_t user[NAMELEN+1];
-	int8_t host[NAMELEN+1];
+	char user[NAMELEN+1];
+	char host[NAMELEN+1];
 } *getjobinfo();
 
 #define MIN(a,b)	((a<b)?a:b)
@@ -66,7 +66,7 @@ unsigned char jobbuf[RDSIZE];
 int datafd[400], cntrlfd = -1;
 
 int dbgstate = 0;
-int8_t *dbgstrings[] = {
+char *dbgstrings[] = {
 	"",
 	"sendack1",
 	"send",
@@ -76,13 +76,13 @@ int8_t *dbgstrings[] = {
 };
 
 void
-error(int8_t *s1, ...)
+error(char *s1, ...)
 {
 	FILE *fp;
 	int32_t thetime;
-	int8_t *chartime;
+	char *chartime;
 	va_list ap;
-	int8_t *args[8];
+	char *args[8];
 	int argno = 0;
 
 	if((fp=fopen(LPDAEMONLOG, "a"))==NULL) {
@@ -93,7 +93,7 @@ error(int8_t *s1, ...)
 	chartime = ctime(&thetime);
 	fprintf(fp, "%.15s [%5.5d] ", &(chartime[4]), getpid());
 	va_start(ap, s1);
-	while((args[argno++] = va_arg(ap, int8_t*)) && argno<8)
+	while((args[argno++] = va_arg(ap, char*)) && argno<8)
 		;
 	va_end(ap);
 	fprintf(fp, s1, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
@@ -111,14 +111,14 @@ forklp(int inputfd)
 	cp = logent;
 	for (i=1; i<argcnt; i++) {
 		bp = argvals[i];
-		if (cp+strlen((const int8_t *)bp)+1 < logent+LNBFSZ-1) {
+		if (cp+strlen((const char *)bp)+1 < logent+LNBFSZ-1) {
 			CPYFIELD(bp, cp);
 			*cp++ = ' ';
 		}
 	}
 	*--cp = '\n';
 	*++cp = '\0';
-	error((const int8_t *)logent);
+	error((const char *)logent);
 	switch((cpid=fork())){
 	case -1:
 		error("fork error\n");
@@ -128,7 +128,7 @@ forklp(int inputfd)
 			dup2(inputfd, 0);
 		dup2(1, 2);
 		lseek(0, 0L, 0);
-		execvp(LP, (const int8_t **)argvals);
+		execvp(LP, (const char **)argvals);
 		error("exec failed\n");
 		exit(3);
 	default:
@@ -141,7 +141,7 @@ int
 tempfile(void)
 {
 	static tindx = 0;
-	int8_t tmpf[sizeof(TMPDIR)+64];
+	char tmpf[sizeof(TMPDIR)+64];
 	int crtfd, tmpfd;
 
 	sprintf(tmpf, "%s/lp%d.%d", TMPDIR, getpid(), tindx++);
@@ -253,7 +253,7 @@ getfiles(void)
 		case '\1':		/* cleanup - data sent was bad (whatever that means) */
 			break;
 		case '\2':		/* read control file */
-			bsize = atoi((const int8_t *)ap);
+			bsize = atoi((const char *)ap);
 			cntrlfd = tempfile();
 			if (readfile(cntrlfd, bsize) < 0) {
 				close(cntrlfd);
@@ -262,7 +262,7 @@ getfiles(void)
 			}
 			break;
 		case '\3':		/* read data file */
-			bsize = atoi((const int8_t *)ap);
+			bsize = atoi((const char *)ap);
 			datafd[filecnt] = tempfile();
 			if (readfile(datafd[filecnt], bsize) < 0) {
 				close(datafd[filecnt]);
@@ -307,7 +307,7 @@ getjobinfo(int fd)
 			if (ap[1] == '\0')
 				strncpy(info.host, "unknown", NAMELEN);
 			else
-				strncpy(info.host, (const int8_t *)&ap[1],
+				strncpy(info.host, (const char *)&ap[1],
 					NAMELEN);
 			info.host[NAMELEN] = '\0';
 			break;
@@ -315,7 +315,7 @@ getjobinfo(int fd)
 			if (ap[1] == '\0')
 				strncpy(info.user, "unknown", NAMELEN);
 			else
-				strncpy(info.user, (const int8_t *)&ap[1],
+				strncpy(info.user, (const char *)&ap[1],
 					NAMELEN);
 			info.user[NAMELEN] = '\0';
 			break;
@@ -412,7 +412,7 @@ main()
 
 		*cp++ = '\0';
 		datafd[0] = tempfile();
-		blen = strlen((const int8_t *)bp);
+		blen = strlen((const char *)bp);
 		if (write(datafd[0], bp, blen) != blen) {
 			error("write error\n");
 			exit(6);
@@ -449,7 +449,7 @@ main()
 		} while (*bp!='\n' && *bp!='\0');
 		if (readline(0) < 0) exit(7);
 		datafd[0] = tempfile();
-		if(readfile(datafd[0], atoi((const int8_t *)lnbuf)) < 0) {
+		if(readfile(datafd[0], atoi((const char *)lnbuf)) < 0) {
 			error("readfile failed\n");
 			exit(8);
 		}

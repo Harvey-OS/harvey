@@ -55,10 +55,10 @@ dnnotify(DNSmsg *reqp, DNSmsg *repp, Request *)
 
 /* notify a slave that an area has changed. */
 static void
-send_notify(int8_t *slave, RR *soa, Request *req)
+send_notify(char *slave, RR *soa, Request *req)
 {
 	int i, len, n, reqno, status, fd;
-	int8_t *err;
+	char *err;
 	uint8_t ibuf[Maxpayload+Udphdrsize], obuf[Maxpayload+Udphdrsize];
 	RR *rp;
 	Udphdr *up = (Udphdr*)obuf;

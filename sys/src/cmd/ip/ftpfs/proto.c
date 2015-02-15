@@ -37,41 +37,41 @@ int	ctlfd;			/* fd for control connection */
 Biobuf	ctlin;			/* input buffer for control connection */
 Biobuf	stdin;			/* input buffer for standard input */
 Biobuf	dbuf;			/* buffer for data connection */
-int8_t	msg[512];		/* buffer for replies */
-int8_t	net[Maxpath];		/* network for connections */
+char	msg[512];		/* buffer for replies */
+char	net[Maxpath];		/* network for connections */
 int	listenfd;		/* fd to listen on for connections */
-int8_t	netdir[Maxpath];
+char	netdir[Maxpath];
 int	os, defos;
-int8_t	topsdir[64];		/* name of listed directory for TOPS */
+char	topsdir[64];		/* name of listed directory for TOPS */
 String	*remrootpath;	/* path on remote side to remote root */
-int8_t	*user;
+char	*user;
 int	nopassive;
 int32_t	lastsend;
 extern int usetls;
 
-static void	sendrequest(int8_t*, int8_t*);
-static int	getreply(Biobuf*, int8_t*, int, int);
-static int	active(int, Biobuf**, int8_t*, int8_t*);
-static int	passive(int, Biobuf**, int8_t*, int8_t*);
-static int	data(int, Biobuf**, int8_t*, int8_t*);
+static void	sendrequest(char*, char*);
+static int	getreply(Biobuf*, char*, int, int);
+static int	active(int, Biobuf**, char*, char*);
+static int	passive(int, Biobuf**, char*, char*);
+static int	data(int, Biobuf**, char*, char*);
 static int	port(void);
 static void	ascii(void);
 static void	image(void);
 static void	unixpath(Node*, String*);
 static void	vmspath(Node*, String*);
 static void	mvspath(Node*, String*);
-static Node*	vmsdir(int8_t*);
-static int	getpassword(int8_t*, int8_t*);
-static int	nw_mode(int8_t dirlet, int8_t *s);
+static Node*	vmsdir(char*);
+static int	getpassword(char*, char*);
+static int	nw_mode(char dirlet, char *s);
 
 /*
  *  connect to remote server, default network is "tcp/ip"
  */
 void
-hello(int8_t *dest)
+hello(char *dest)
 {
-	int8_t *p;
-	int8_t dir[Maxpath];
+	char *p;
+	char dir[Maxpath];
 	TLSconn conn;
 
 	Binit(&stdin, 0, OREAD);	/* init for later use */
@@ -122,10 +122,10 @@ hello(int8_t *dest)
  *  login to remote system
  */
 void
-rlogin(int8_t *rsys, int8_t *keyspec)
+rlogin(char *rsys, char *keyspec)
 {
-	int8_t *line;
-	int8_t pass[128];
+	char *line;
+	char pass[128];
 	UserPasswd *up;
 
 	up = nil;
@@ -180,7 +180,7 @@ out:
  *  login to remote system with given user name and password.
  */
 void
-clogin(int8_t *cuser, int8_t *cpassword)
+clogin(char *cuser, char *cpassword)
 {
 	free(user);
 	user = strdup(cuser);
@@ -212,9 +212,9 @@ clogin(int8_t *cuser, int8_t *cpassword)
  *  image mode if a Plan9 system.
  */
 void
-preamble(int8_t *mountroot)
+preamble(char *mountroot)
 {
-	int8_t *p, *ep;
+	char *p, *ep;
 	int rv;
 	OS *o;
 
@@ -380,15 +380,15 @@ image(void)
 /*
  *  decode the time fields, return seconds since epoch began
  */
-int8_t *monthchars = "janfebmaraprmayjunjulaugsepoctnovdec";
+char *monthchars = "janfebmaraprmayjunjulaugsepoctnovdec";
 static Tm now;
 
 static uint32_t
-cracktime(int8_t *month, int8_t *day, int8_t *yr, int8_t *hms)
+cracktime(char *month, char *day, char *yr, char *hms)
 {
 	Tm tm;
 	int i;
-	int8_t *p;
+	char *p;
 
 
 	/* default time */
@@ -442,7 +442,7 @@ cracktime(int8_t *month, int8_t *day, int8_t *yr, int8_t *hms)
  *  decode a Unix or Plan 9 file mode
  */
 static uint32_t
-crackmode(int8_t *p)
+crackmode(char *p)
 {
 	uint32_t flags;
 	uint32_t mode;
@@ -495,8 +495,8 @@ crackmode(int8_t *p)
 /*
  *  find first punctuation
  */
-int8_t*
-strpunct(int8_t *p)
+char*
+strpunct(char *p)
 {
 	int c;
 
@@ -753,7 +753,7 @@ int
 readdir(Node *node)
 {
 	Biobuf *bp;
-	int8_t *line;
+	char *line;
 	Node *np;
 	Dir *d;
 	int32_t n;
@@ -929,7 +929,7 @@ int
 readfile1(Node *node)
 {
 	Biobuf *bp;
-	int8_t buf[4*1024];
+	char buf[4*1024];
 	int32_t off;
 	int n;
 	int tries;
@@ -1006,7 +1006,7 @@ int
 createfile1(Node *node)
 {
 	Biobuf *bp;
-	int8_t buf[4*1024];
+	char buf[4*1024];
 	int32_t off;
 	int n;
 
@@ -1097,9 +1097,9 @@ quit(void)
  *  send a request
  */
 static void
-sendrequest(int8_t *a, int8_t *b)
+sendrequest(char *a, char *b)
 {
-	int8_t buf[2*1024];
+	char buf[2*1024];
 	int n;
 
 	n = strlen(a)+2+1;
@@ -1126,10 +1126,10 @@ sendrequest(int8_t *a, int8_t *b)
  *  continuation.
  */
 static int
-getreply(Biobuf *bp, int8_t *msg, int len, int printreply)
+getreply(Biobuf *bp, char *msg, int len, int printreply)
 {
-	int8_t *line;
-	int8_t *p;
+	char *line;
+	char *p;
 	int rv;
 	int i, n;
 
@@ -1175,9 +1175,9 @@ getreply(Biobuf *bp, int8_t *msg, int len, int printreply)
 static int
 port(void)
 {
-	int8_t buf[256];
+	char buf[256];
 	int n, fd;
-	int8_t *ptr;
+	char *ptr;
 	uint8_t ipaddr[IPaddrlen];
 	int port;
 
@@ -1225,11 +1225,11 @@ port(void)
  *  have server call back for a data connection
  */
 static int
-active(int mode, Biobuf **bpp, int8_t *cmda, int8_t *cmdb)
+active(int mode, Biobuf **bpp, char *cmda, char *cmdb)
 {
 	int cfd, dfd, rv;
-	int8_t newdir[Maxpath];
-	int8_t datafile[Maxpath + 6];
+	char newdir[Maxpath];
+	char datafile[Maxpath + 6];
 	TLSconn conn;
 
 	if(port() < 0)
@@ -1273,12 +1273,12 @@ active(int mode, Biobuf **bpp, int8_t *cmda, int8_t *cmdb)
  *  call out for a data connection
  */
 static int
-passive(int mode, Biobuf **bpp, int8_t *cmda, int8_t *cmdb)
+passive(int mode, Biobuf **bpp, char *cmda, char *cmdb)
 {
-	int8_t msg[1024];
-	int8_t ds[1024];
-	int8_t *f[6];
-	int8_t *p;
+	char msg[1024];
+	char ds[1024];
+	char *f[6];
+	char *p;
 	int x, fd;
 	TLSconn conn;
 
@@ -1344,7 +1344,7 @@ passive(int mode, Biobuf **bpp, int8_t *cmda, int8_t *cmdb)
 }
 
 static int
-data(int mode, Biobuf **bpp, int8_t* cmda, int8_t *cmdb)
+data(int mode, Biobuf **bpp, char* cmda, char *cmdb)
 {
 	int x;
 
@@ -1370,7 +1370,7 @@ nop(void)
  *  turn a vms spec into a path
  */
 static Node*
-vmsextendpath(Node *np, int8_t *name)
+vmsextendpath(Node *np, char *name)
 {
 	np = extendpath(np, s_copy(name));
 	if(!ISVALID(np)){
@@ -1387,11 +1387,11 @@ vmsextendpath(Node *np, int8_t *name)
 	return np;
 }
 static Node*
-vmsdir(int8_t *name)
+vmsdir(char *name)
 {
-	int8_t *cp;
+	char *cp;
 	Node *np;
-	int8_t *oname;
+	char *oname;
 
 	np = remroot;
 	cp = strchr(name, '[');
@@ -1430,7 +1430,7 @@ vmsdir(int8_t *name)
 static void
 vmspath(Node *node, String *path)
 {
-	int8_t *p;
+	char *p;
 	int n;
 
 	if(node->depth == 1){
@@ -1485,9 +1485,9 @@ mvspath(Node *node, String *path)
 }
 
 static int
-getpassword(int8_t *buf, int8_t *e)
+getpassword(char *buf, char *e)
 {
-	int8_t *p;
+	char *p;
 	int c;
 	int consctl, rv = 0;
 
@@ -1518,10 +1518,10 @@ out:
 /*
  *  convert from latin1 to utf
  */
-static int8_t*
-fromlatin1(int8_t *from)
+static char*
+fromlatin1(char *from)
 {
-	int8_t *p, *to;
+	char *p, *to;
 	Rune r;
 
 	if(os == Plan9)
@@ -1549,9 +1549,9 @@ Dir*
 reallocdir(Dir *d, int dofree)
 {
 	Dir *dp;
-	int8_t *p;
+	char *p;
 	int nn, ng, nu, nm;
-	int8_t *utf;
+	char *utf;
 
 	if(d->name == nil)
 		d->name = "?name?";
@@ -1579,7 +1579,7 @@ reallocdir(Dir *d, int dofree)
 		return nil;
 	}
 	*dp = *d;
-	p = (int8_t*)&dp[1];
+	p = (char*)&dp[1];
 	strcpy(p, d->name);
 	dp->name = p;
 	p += nn;
@@ -1599,7 +1599,7 @@ reallocdir(Dir *d, int dofree)
 }
 
 Dir*
-dir_change_name(Dir *d, int8_t *name)
+dir_change_name(Dir *d, char *name)
 {
 	if(d->name && strlen(d->name) >= strlen(name)){
 		strcpy(d->name, name);
@@ -1610,7 +1610,7 @@ dir_change_name(Dir *d, int8_t *name)
 }
 
 Dir*
-dir_change_uid(Dir *d, int8_t *name)
+dir_change_uid(Dir *d, char *name)
 {
 	if(d->uid && strlen(d->uid) >= strlen(name)){
 		strcpy(d->name, name);
@@ -1621,7 +1621,7 @@ dir_change_uid(Dir *d, int8_t *name)
 }
 
 Dir*
-dir_change_gid(Dir *d, int8_t *name)
+dir_change_gid(Dir *d, char *name)
 {
 	if(d->gid && strlen(d->gid) >= strlen(name)){
 		strcpy(d->name, name);
@@ -1632,7 +1632,7 @@ dir_change_gid(Dir *d, int8_t *name)
 }
 
 Dir*
-dir_change_muid(Dir *d, int8_t *name)
+dir_change_muid(Dir *d, char *name)
 {
 	if(d->muid && strlen(d->muid) >= strlen(name)){
 		strcpy(d->name, name);
@@ -1643,7 +1643,7 @@ dir_change_muid(Dir *d, int8_t *name)
 }
 
 static int
-nw_mode(int8_t dirlet, int8_t *s)		/* NetWare file mode mapping */
+nw_mode(char dirlet, char *s)		/* NetWare file mode mapping */
 {
 	int mode = 0777;
 

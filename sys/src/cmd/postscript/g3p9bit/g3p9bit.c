@@ -39,7 +39,7 @@ uint8_t	bitnonrev[256];
 int	readrow(uint8_t *rev, int*);
 void	initwbtab(void);
 void	sync(uint8_t*);
-int	readfile(int, int8_t*, int8_t*);
+int	readfile(int, char*, char*);
 
 int		nbytes;
 uint8_t	*bytes;
@@ -57,9 +57,9 @@ enum
 };
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
-	int8_t buf[256];
+	char buf[256];
 	va_list arg;
 
 	if(fmt){
@@ -170,10 +170,10 @@ int	defhdr[8] = {
 int
 crackhdr(uint8_t *ap, int *hdr)
 {
-	int8_t *p, *q;
+	char *p, *q;
 	int i;
 
-	p = (int8_t*)ap;
+	p = (char*)ap;
 	q = p;
 	for(i=0; i<8; i++){
 		if(*p<'0' || '9'<*p)
@@ -181,11 +181,11 @@ crackhdr(uint8_t *ap, int *hdr)
 		hdr[i] = strtol(p, &q, 0);
 		p = q+1;
 	}
-	return p-(int8_t*)ap;
+	return p-(char*)ap;
 }
 
 int
-readfile(int f, int8_t *file, int8_t *err)
+readfile(int f, char *file, char *err)
 {
 	int i, r, lines;
 	uint8_t *rev;
@@ -205,7 +205,7 @@ readfile(int f, int8_t *file, int8_t *err)
 		nbytes -= 0xf3;
 		rev = bitrev;
 		memmove(hdr, defhdr, sizeof defhdr);
-	}else if(bytes[0] == 0 && strcmp((int8_t*)bytes+1, "PC Research, Inc") == 0){	/* digifax format */
+	}else if(bytes[0] == 0 && strcmp((char*)bytes+1, "PC Research, Inc") == 0){	/* digifax format */
 		memmove(hdr, defhdr, sizeof defhdr);
 		if(bytes[45] == 0x40 && bytes[29] == 1)	/* high resolution */
 			hdr[Hvres] = 1;
@@ -219,7 +219,7 @@ readfile(int f, int8_t *file, int8_t *err)
 	}else{
 		while(nbytes > 2){
 			if(bytes[0]=='\n'){
-				if(strncmp((int8_t*)bytes+1, "FDCS=", 5) == 0){
+				if(strncmp((char*)bytes+1, "FDCS=", 5) == 0){
 					i = crackhdr(bytes+6, hdr);
 					if(i < 0){
 						sprint(err, "g3: bad FDCS in header: %s", file);
@@ -383,7 +383,7 @@ loop:
 
 typedef struct File
 {
-	int8_t	*val;
+	char	*val;
 	int	code;
 }File;
 
@@ -398,7 +398,7 @@ File iwtab[] = {
 };
 
 int
-binary(int8_t *s)
+binary(char *s)
 {
 	int n;
 
@@ -412,7 +412,7 @@ void
 tabinit(File *file, Tab *tab)
 {
 	int i, j, v, r, l;
-	int8_t *b;
+	char *b;
 
 	for(v=0; v<8192; v++) {
 		tab[v].run = 0;

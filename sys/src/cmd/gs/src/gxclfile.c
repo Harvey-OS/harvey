@@ -40,7 +40,7 @@
 /* ------ Open/close/unlink ------ */
 
 int
-clist_fopen(int8_t fname[gp_file_name_sizeof], const int8_t *fmode,
+clist_fopen(char fname[gp_file_name_sizeof], const char *fmode,
 	    clist_file_ptr * pcf, gs_memory_t * mem, gs_memory_t *data_mem,
 	    bool ok_to_compress)
 {
@@ -60,7 +60,7 @@ clist_fopen(int8_t fname[gp_file_name_sizeof], const int8_t *fmode,
 }
 
 int
-clist_fclose(clist_file_ptr cf, const int8_t *fname, bool delete)
+clist_fclose(clist_file_ptr cf, const char *fname, bool delete)
 {
     return (fclose((FILE *) cf) != 0 ? gs_note_error(gs_error_ioerror) :
 	    delete ? clist_unlink(fname) :
@@ -68,7 +68,7 @@ clist_fclose(clist_file_ptr cf, const int8_t *fname, bool delete)
 }
 
 int
-clist_unlink(const int8_t *fname)
+clist_unlink(const char *fname)
 {
     return (unlink(fname) != 0 ? gs_note_error(gs_error_ioerror) : 0);
 }
@@ -142,7 +142,7 @@ clist_ftell(clist_file_ptr cf)
 }
 
 void
-clist_rewind(clist_file_ptr cf, bool discard_data, const int8_t *fname)
+clist_rewind(clist_file_ptr cf, bool discard_data, const char *fname)
 {
     FILE *f = (FILE *) cf;
 
@@ -153,7 +153,7 @@ clist_rewind(clist_file_ptr cf, bool discard_data, const int8_t *fname)
 	 * deleting its contents; we have to use a bizarre workaround to
 	 * get the same effect.
 	 */
-	int8_t fmode[4];
+	char fmode[4];
 
 	/* Opening with "w" mode deletes the contents when closing. */
 	freopen(fname, gp_fmode_wb, f);
@@ -167,7 +167,7 @@ clist_rewind(clist_file_ptr cf, bool discard_data, const int8_t *fname)
 
 int
 clist_fseek(clist_file_ptr cf, int32_t offset, int mode,
-            const int8_t *ignore_fname)
+            const char *ignore_fname)
 {
     return fseek((FILE *) cf, offset, mode);
 }

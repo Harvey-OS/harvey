@@ -235,7 +235,7 @@ runacore(void)
 	Ureg *ureg;
 	void (*fn)(void);
 	int rc, flush, s;
-	int8_t *n;
+	char *n;
 	uint64_t t1;
 
 	if(waserror())
@@ -325,7 +325,7 @@ ToTC:
 extern ACVctl *acvctl[];
 
 void
-actrapenable(int vno, int8_t* (*f)(Ureg*, void*), void* a, int8_t *name)
+actrapenable(int vno, char* (*f)(Ureg*, void*), void* a, char *name)
 {
 	ACVctl *v;
 

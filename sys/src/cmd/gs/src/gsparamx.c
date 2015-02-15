@@ -35,16 +35,16 @@
 
 /* Compare a C string and a gs_param_string. */
 bool
-gs_param_string_eq(const gs_param_string * pcs, const int8_t *str)
+gs_param_string_eq(const gs_param_string * pcs, const char *str)
 {
     return (strlen(str) == pcs->size &&
-	    !strncmp(str, (const int8_t *)pcs->data, pcs->size));
+	    !strncmp(str, (const char *)pcs->data, pcs->size));
 }
 
 /* Put an enumerated value. */
 int
 param_put_enum(gs_param_list * plist, gs_param_name param_name,
-	       int *pvalue, const int8_t *const pnames[], int ecode)
+	       int *pvalue, const char *const pnames[], int ecode)
 {
     gs_param_string ens;
     int code = param_read_name(plist, param_name, &ens);
@@ -139,7 +139,7 @@ param_list_copy(gs_param_list *plto, gs_param_list *plfrom)
 
     param_init_enumerator(&key_enum);
     while ((code = param_get_next_key(plfrom, &key_enum, &key)) == 0) {
-	int8_t string_key[256];	/* big enough for any reasonable key */
+	char string_key[256];	/* big enough for any reasonable key */
 	gs_param_typed_value value;
 	gs_param_collection_type_t coll_type;
 	gs_param_typed_value copy;

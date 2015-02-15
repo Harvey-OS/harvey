@@ -98,8 +98,8 @@ enum {
 
 struct VtRoot {
 	uint16_t version;
-	int8_t name[128];
-	int8_t type[128];
+	char name[128];
+	char type[128];
 	uint8_t score[VtScoreSize];	/* to a Dir block */
 	uint16_t blockSize;		/* maximum block size */
 	uint8_t prev[VtScoreSize];	/* last root block */
@@ -139,30 +139,30 @@ void vtAttach(void);
 void vtDetach(void);
 void vtClose(VtSession *s);
 void vtFree(VtSession *s);
-int8_t *vtGetUid(VtSession *s);
-int8_t *vtGetSid(VtSession *s);
+char *vtGetUid(VtSession *s);
+char *vtGetSid(VtSession *s);
 int vtSetDebug(VtSession *s, int);
 int vtGetDebug(VtSession *s);
 int vtSetFd(VtSession *s, int fd);
 int vtGetFd(VtSession *s);
-int vtConnect(VtSession *s, int8_t *password);
+int vtConnect(VtSession *s, char *password);
 int vtSetCryptoStrength(VtSession *s, int);
 int vtGetCryptoStrength(VtSession *s);
 int vtSetCompression(VtSession *s, int);
 int vtGetCompression(VtSession *s);
 int vtGetCrypto(VtSession *s);
 int vtGetCodec(VtSession *s);
-int8_t *vtGetVersion(VtSession *s);
-int8_t *vtGetError(void);
+char *vtGetVersion(VtSession *s);
+char *vtGetError(void);
 int vtErrFmt(Fmt *fmt);
-void vtDebug(VtSession*, int8_t *, ...);
-void vtDebugMesg(VtSession *z, Packet *p, int8_t *s);
+void vtDebug(VtSession*, char *, ...);
+void vtDebugMesg(VtSession *z, Packet *p, char *s);
 
 /* internal */
 VtSession *vtAlloc(void);
 void vtReset(VtSession*);
-int vtAddString(Packet*, int8_t*);
-int vtGetString(Packet*, int8_t**);
+int vtAddString(Packet*, char*);
+int vtGetString(Packet*, char**);
 int vtSendPacket(VtSession*, Packet*);
 Packet *vtRecvPacket(VtSession*);
 void vtDisconnect(VtSession*, int);
@@ -170,11 +170,11 @@ int vtHello(VtSession*);
 
 /* client side */
 VtSession *vtClientAlloc(void);
-VtSession *vtDial(int8_t *server, int canfail);
-int vtRedial(VtSession*, int8_t *server);
-VtSession *vtStdioServer(int8_t *server);
+VtSession *vtDial(char *server, int canfail);
+int vtRedial(VtSession*, char *server);
+VtSession *vtStdioServer(char *server);
 int vtPing(VtSession *s);
-int vtSetUid(VtSession*, int8_t *uid);
+int vtSetUid(VtSession*, char *uid);
 int vtRead(VtSession*, uint8_t score[VtScoreSize], int type, uint8_t *buf,
 	   int n);
 int vtWrite(VtSession*, uint8_t score[VtScoreSize], int type, uint8_t *buf,
@@ -187,7 +187,7 @@ int vtSync(VtSession *s);
 
 int vtZeroExtend(int type, uint8_t *buf, int n, int nn);
 int vtZeroTruncate(int type, uint8_t *buf, int n);
-int vtParseScore(int8_t*, uint, uint8_t[VtScoreSize]);
+int vtParseScore(char*, uint, uint8_t[VtScoreSize]);
 
 void vtRootPack(VtRoot*, uint8_t*);
 int vtRootUnpack(VtRoot*, uint8_t*);
@@ -196,7 +196,7 @@ int vtEntryUnpack(VtEntry*, uint8_t*, int index);
 
 /* server side */
 VtSession *vtServerAlloc(VtServerVtbl*);
-int vtSetSid(VtSession *s, int8_t *sid);
+int vtSetSid(VtSession *s, char *sid);
 int vtExport(VtSession *s);
 
 /* sha1 */
@@ -239,15 +239,15 @@ void *vtMemAlloc(int);
 void *vtMemAllocZ(int);
 void *vtMemRealloc(void *p, int);
 void *vtMemBrk(int n);
-int8_t *vtStrDup(int8_t *);
-void vtFatal(int8_t *, ...);
-int8_t *vtGetError(void);
-int8_t *vtSetError(int8_t *, ...);
-int8_t *vtOSError(void);
+char *vtStrDup(char *);
+void vtFatal(char *, ...);
+char *vtGetError(void);
+char *vtSetError(char *, ...);
+char *vtOSError(void);
 
 /* locking/threads */
 int vtThread(void (*f)(void*), void *rock);
-void vtThreadSetName(int8_t*);
+void vtThreadSetName(char*);
 
 VtLock *vtLockAlloc(void);
 /* void vtLockInit(VtLock**); */

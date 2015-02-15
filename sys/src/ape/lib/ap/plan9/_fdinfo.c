@@ -40,10 +40,10 @@ static int
 readprocfdinit(void)
 {
 	/* construct info from /proc/$pid/fd */
-	int8_t buf[8192];
+	char buf[8192];
 	Fdinfo *fi;
 	int fd, pfd, pid, n, tot, m;
-	int8_t *s, *nexts;
+	char *s, *nexts;
 
 	memset(buf, 0, sizeof buf);
 	pfd = _OPEN("#c/pid", 0);
@@ -114,11 +114,11 @@ readprocfdinit(void)
 }
 
 static void
-sfdinit(int usedproc, int8_t *s, int8_t *se)
+sfdinit(int usedproc, char *s, char *se)
 {
 	Fdinfo *fi;
 	unsigned long fd, fl, ofl;
-	int8_t *e;
+	char *e;
 
 	while(s < se){
 		fd = strtoul(s, &e, 10);
@@ -147,7 +147,7 @@ sfdinit(int usedproc, int8_t *s, int8_t *se)
 }
 
 void
-_fdinit(int8_t *s, int8_t *se)
+_fdinit(char *s, char *se)
 {
 	int i, usedproc;
 	Fdinfo *fi;

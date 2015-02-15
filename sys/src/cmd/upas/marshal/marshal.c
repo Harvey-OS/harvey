@@ -20,8 +20,8 @@ typedef struct Ctype Ctype;
 
 struct Attach {
 	Attach	*next;
-	int8_t	*path;
-	int8_t	*type;
+	char	*path;
+	char	*type;
 	int	ainline;
 	Ctype	*ctype;
 };
@@ -36,7 +36,7 @@ struct Alias
 struct Addr
 {
 	Addr	*next;
-	int8_t	*v;
+	char	*v;
 };
 
 enum {
@@ -82,8 +82,8 @@ char *hdrs[Nhdr] = {
 };
 
 struct Ctype {
-	int8_t	*type;
-	int8_t 	*ext;
+	char	*type;
+	char 	*ext;
 	int	display;
 };
 
@@ -105,46 +105,46 @@ int pgppid = -1;
 void	Bdrain(Biobuf*);
 void	attachment(Attach*, Biobuf*);
 void	body(Biobuf*, Biobuf*, int);
-int	cistrcmp(int8_t*, int8_t*);
-int	cistrncmp(int8_t*, int8_t*, int);
+int	cistrcmp(char*, char*);
+int	cistrncmp(char*, char*, int);
 int	doublequote(Fmt*);
 void*	emalloc(int);
-int	enc64(int8_t*, int, uint8_t*, int);
+int	enc64(char*, int, uint8_t*, int);
 void*	erealloc(void*, int);
-int8_t*	estrdup(int8_t*);
-Addr*	expand(int, int8_t**);
+char*	estrdup(char*);
+Addr*	expand(int, char**);
 Addr*	expandline(String**, Addr*);
 void	freeaddr(Addr*);
 void	freeaddr(Addr *);
 void	freeaddrs(Addr*);
 void	freealias(Alias*);
 void	freealiases(Alias*);
-Attach*	mkattach(int8_t*, int8_t*, int);
-int8_t*	mkboundary(void);
-int8_t*	mksubject(int8_t*);
+Attach*	mkattach(char*, char*, int);
+char*	mkboundary(void);
+char*	mksubject(char*);
 int	pgpfilter(int*, int, int);
-int	pgpopts(int8_t*);
+int	pgpopts(char*);
 int	printcc(Biobuf*, Addr*);
 int	printdate(Biobuf*);
 int	printfrom(Biobuf*);
-int	printinreplyto(Biobuf*, int8_t*);
-int	printsubject(Biobuf*, int8_t*);
+int	printinreplyto(Biobuf*, char*);
+int	printsubject(Biobuf*, char*);
 int	printto(Biobuf*, Addr*);
 Alias*	readaliases(void);
 int	readheaders(Biobuf*, int*, String**, Addr**, int);
 void	readmimetypes(void);
 int	rfc2047fmt(Fmt*);
-int	sendmail(Addr*, Addr*, int*, int8_t*);
-int8_t*	waitforsubprocs(void);
+int	sendmail(Addr*, Addr*, int*, char*);
+char*	waitforsubprocs(void);
 
 int rflag, lbflag, xflag, holding, nflag, Fflag, eightflag, dflag;
 int pgpflag = 0;
-int8_t *user;
-int8_t *login;
+char *user;
+char *login;
 Alias *aliases;
 int rfc822syntaxerror;
-int8_t lastchar;
-int8_t *replymsg;
+char lastchar;
+char *replymsg;
 
 enum
 {
@@ -167,9 +167,9 @@ usage(void)
 }
 
 void
-fatal(int8_t *fmt, ...)
+fatal(char *fmt, ...)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	va_list arg;
 
 	if(pid >= 0)
@@ -424,7 +424,7 @@ main(int argc, char **argv)
 
 /* evaluate pgp option string */
 int
-pgpopts(int8_t *s)
+pgpopts(char *s)
 {
 	if(s == nil || s[0] == '\0')
 		return -1;
@@ -452,7 +452,7 @@ int
 readheaders(Biobuf *in, int *fp, String **sp, Addr **top, int strict)
 {
 	int i, seen, hdrtype;
-	int8_t *p;
+	char *p;
 	Addr *to;
 	String *s, *sline;
 
@@ -557,7 +557,7 @@ readheaders(Biobuf *in, int *fp, String **sp, Addr **top, int strict)
 void
 body(Biobuf *in, Biobuf *out, int docontenttype)
 {
-	int8_t *buf, *p;
+	char *buf, *p;
 	int i, n, len;
 
 	n = 0;
@@ -640,7 +640,7 @@ body64(Biobuf *in, Biobuf *out)
 {
 	int m, n;
 	uint8_t buf[3*18*54];
-	int8_t obuf[3*18*54*2];
+	char obuf[3*18*54*2];
 
 	Bprint(out, "\n");
 	for(;;){
@@ -661,7 +661,7 @@ void
 copy(Biobuf *in, Biobuf *out)
 {
 	int n;
-	int8_t buf[4*1024];
+	char buf[4*1024];
 
 	for(;;){
 		n = Bread(in, buf, sizeof(buf));
@@ -678,7 +678,7 @@ void
 attachment(Attach *a, Biobuf *out)
 {
 	Biobuf *f;
-	int8_t *p;
+	char *p;
 
 	/* if it's already mime encoded, just copy */
 	if(strcmp(a->type, "mime") == 0){
@@ -737,12 +737,12 @@ attachment(Attach *a, Biobuf *out)
 	Bterm(f);
 }
 
-int8_t *ascwday[] =
+char *ascwday[] =
 {
 	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 };
 
-int8_t *ascmon[] =
+char *ascmon[] =
 {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -803,16 +803,16 @@ printcc(Biobuf *b, Addr *a)
 }
 
 int
-printsubject(Biobuf *b, int8_t *subject)
+printsubject(Biobuf *b, char *subject)
 {
 	return Bprint(b, "Subject: %U\n", subject);
 }
 
 int
-printinreplyto(Biobuf *out, int8_t *dir)
+printinreplyto(Biobuf *out, char *dir)
 {
 	int fd, n;
-	int8_t buf[256];
+	char buf[256];
 	String *s = s_copy(dir);
 
 	s_append(s, "/messageid");
@@ -829,11 +829,11 @@ printinreplyto(Biobuf *out, int8_t *dir)
 }
 
 Attach*
-mkattach(int8_t *file, int8_t *type, int ainline)
+mkattach(char *file, char *type, int ainline)
 {
 	int n, pfd[2];
-	int8_t *p;
-	int8_t ftype[64];
+	char *p;
+	char ftype[64];
 	Attach *a;
 	Ctype *c;
 
@@ -920,11 +920,11 @@ mkattach(int8_t *file, int8_t *type, int ainline)
 	return a;
 }
 
-int8_t*
+char*
 mkboundary(void)
 {
 	int i;
-	int8_t buf[32];
+	char buf[32];
 
 	srand((time(0)<<16)|getpid());
 	strcpy(buf, "upas-");
@@ -939,7 +939,7 @@ static void
 tee(int in, int out1, int out2)
 {
 	int n;
-	int8_t buf[8*1024];
+	char buf[8*1024];
 
 	while ((n = read(in, buf, sizeof buf)) > 0)
 		if (write(out1, buf, n) != n ||
@@ -963,7 +963,7 @@ printunixfrom(int fd)
 		tm->hour, tm->min, tm->sec, tz>=0?"+":"", tz, 1900 + tm->year);
 }
 
-int8_t *specialfile[] =
+char *specialfile[] =
 {
 	"pipeto",
 	"pipefrom",
@@ -977,7 +977,7 @@ static int
 special(String *s)
 {
 	int i;
-	int8_t *p;
+	char *p;
 
 	p = strrchr(s_to_c(s), '/');
 	if(p == nil)
@@ -992,10 +992,10 @@ special(String *s)
 
 /* open the folder using the recipients account name */
 static int
-openfolder(int8_t *rcvr)
+openfolder(char *rcvr)
 {
 	int c, fd, scarey;
-	int8_t *p;
+	char *p;
 	Dir *d;
 	String *file;
 
@@ -1041,11 +1041,11 @@ openfolder(int8_t *rcvr)
 
 /* start up sendmail and return an fd to talk to it with */
 int
-sendmail(Addr *to, Addr *cc, int *pid, int8_t *rcvr)
+sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 {
 	int ac, fd;
 	int pfd[2];
-	int8_t **av, **v;
+	char **av, **v;
 	Addr *a;
 	String *cmd;
 
@@ -1058,7 +1058,7 @@ sendmail(Addr *to, Addr *cc, int *pid, int8_t *rcvr)
 		ac++;
 	for(a = cc; a != nil; a = a->next)
 		ac++;
-	v = av = emalloc(sizeof(int8_t*)*(ac+20));
+	v = av = emalloc(sizeof(char*)*(ac+20));
 	ac = 0;
 	v[ac++] = "sendmail";
 	if(xflag)
@@ -1137,9 +1137,9 @@ pgpfilter(int *pid, int fd, int pgpflag)
 {
 	int ac;
 	int pfd[2];
-	int8_t **av, **v;
+	char **av, **v;
 
-	v = av = emalloc(sizeof(int8_t*)*8);
+	v = av = emalloc(sizeof(char*)*8);
 	ac = 0;
 	v[ac++] = "pgp";
 	v[ac++] = "-fat";		/* operate as a filter, generate text */
@@ -1176,11 +1176,11 @@ pgpfilter(int *pid, int fd, int pgpflag)
 }
 
 /* wait for sendmail and pgp to exit; exit here if either failed */
-int8_t*
+char*
 waitforsubprocs(void)
 {
 	Waitmsg *w;
-	int8_t *err;
+	char *err;
 
 	err = nil;
 	while((w = wait()) != nil){
@@ -1195,7 +1195,7 @@ waitforsubprocs(void)
 }
 
 int
-cistrncmp(int8_t *a, int8_t *b, int n)
+cistrncmp(char *a, char *b, int n)
 {
 	while(n-- > 0)
 		if(tolower(*a++) != tolower(*b++))
@@ -1204,7 +1204,7 @@ cistrncmp(int8_t *a, int8_t *b, int n)
 }
 
 int
-cistrcmp(int8_t *a, int8_t *b)
+cistrcmp(char *a, char *b)
 {
 	for(;;){
 		if(tolower(*a) != tolower(*b++))
@@ -1216,7 +1216,7 @@ cistrcmp(int8_t *a, int8_t *b)
 }
 
 static uint8_t t64d[256];
-static int8_t t64e[64];
+static char t64e[64];
 
 static void
 init64(void)
@@ -1245,12 +1245,12 @@ init64(void)
 }
 
 int
-enc64(int8_t *out, int lim, uint8_t *in, int n)
+enc64(char *out, int lim, uint8_t *in, int n)
 {
 	int i;
 	uint32_t b24;
-	int8_t *start = out;
-	int8_t *e = out + lim;
+	char *start = out;
+	char *e = out + lim;
 
 	if(t64e[0] == 0)
 		init64();
@@ -1372,7 +1372,7 @@ out:
 }
 
 Addr*
-newaddr(int8_t *name)
+newaddr(char *name)
 {
 	Addr *a;
 
@@ -1455,7 +1455,7 @@ unique(Addr *first)
 }
 
 Addr*
-expand(int ac, int8_t **av)
+expand(int ac, char **av)
 {
 	int i;
 	Addr *first, **l;
@@ -1509,7 +1509,7 @@ freeaddrs(Addr *ap)
 }
 
 String*
-s_copyn(int8_t *s, int n)
+s_copyn(char *s, int n)
 {
 	return s_nappend(s_reset(nil), s, n);
 }
@@ -1546,10 +1546,10 @@ enum {
 #define ISWHITE(p) ((p)==' ' || (p)=='\t' || (p)=='\n' || (p)=='\r')
 
 int
-get822token(String **tok, int8_t *p, int8_t **pp)
+get822token(String **tok, char *p, char **pp)
 {
 	int type, quoting;
-	int8_t *op;
+	char *op;
 
 	op = p;
 	switch(*p){
@@ -1628,7 +1628,7 @@ Addr*
 expandline(String **s, Addr *to)
 {
 	int tok, inangle, hadangle, nword;
-	int8_t *p;
+	char *p;
 	Addr *na, *nto, *ap;
 	String *os, *ns, *stok, *lastword, *sinceword;
 
@@ -1742,7 +1742,7 @@ Break2:
 void
 Bdrain(Biobuf *b)
 {
-	int8_t buf[8192];
+	char buf[8192];
 
 	while(Bread(b, buf, sizeof buf) > 0)
 		;
@@ -1751,9 +1751,9 @@ Bdrain(Biobuf *b)
 void
 readmimetypes(void)
 {
-	int8_t *p;
-	int8_t type[256];
-	int8_t *f[6];
+	char *p;
+	char type[256];
+	char *f[6];
 	Biobuf *b;
 	static int alloced, inuse;
 
@@ -1792,8 +1792,8 @@ readmimetypes(void)
 	Bterm(b);
 }
 
-int8_t*
-estrdup(int8_t *x)
+char*
+estrdup(char *x)
 {
 	x = strdup(x);
 	if(x == nil)
@@ -1848,10 +1848,10 @@ int
 doublequote(Fmt *f)
 {
 	int w, quotes;
-	int8_t *s, *t;
+	char *s, *t;
 	Rune r;
 
-	s = va_arg(f->args, int8_t*);
+	s = va_arg(f->args, char*);
 	if(s == nil || *s == '\0')
 		return fmtstrcpy(f, "\"\"");
 
@@ -1876,9 +1876,9 @@ doublequote(Fmt *f)
 int
 rfc2047fmt(Fmt *fmt)
 {
-	int8_t *s, *p;
+	char *s, *p;
 
-	s = va_arg(fmt->args, int8_t*);
+	s = va_arg(fmt->args, char*);
 	if(s == nil)
 		return fmtstrcpy(fmt, "");
 	for(p=s; *p; p++)
@@ -1901,11 +1901,11 @@ hard:
 	return 0;
 }
 
-int8_t*
-mksubject(int8_t *line)
+char*
+mksubject(char *line)
 {
-	int8_t *p, *q;
-	static int8_t buf[1024];
+	char *p, *q;
+	static char buf[1024];
 
 	p = strchr(line, ':') + 1;
 	while(*p == ' ')

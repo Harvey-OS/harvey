@@ -13,7 +13,7 @@
 #include "snap.h"
 
 void
-panic(int8_t *s)
+panic(char *s)
 {
 	fprint(2, "%s\n", s);
 	abort();
@@ -68,7 +68,7 @@ findpage(Proc *plist, int32_t pid, int type, uint64_t off)
 }
 
 static int
-Breadnumber(Biobuf *b, int8_t *buf)
+Breadnumber(Biobuf *b, char *buf)
 {
 	int i;
 	int c;
@@ -101,7 +101,7 @@ Breadnumber(Biobuf *b, int8_t *buf)
 static int
 Breadulong(Biobuf *b, uint32_t *x)
 {
-	int8_t buf[32];
+	char buf[32];
 	
 	if(Breadnumber(b, buf) < 0)
 		return -1;
@@ -112,7 +112,7 @@ Breadulong(Biobuf *b, uint32_t *x)
 static int
 Breaduvlong(Biobuf *b, uint64_t *x)
 {
-	int8_t buf[32];
+	char buf[32];
 	
 	if(Breadnumber(b, buf) < 0)
 		return -1;
@@ -124,7 +124,7 @@ static Data*
 readdata(Biobuf *b)
 {
 	Data *d;
-	int8_t str[32];
+	char str[32];
 	int32_t len;
 
 	if(Bread(b, str, 12) != 12)
@@ -148,8 +148,8 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 	int n, len;
 	uint32_t pid;
 	uint64_t off;
-	int8_t buf[Pagesize];
-	static int8_t zero[Pagesize];
+	char buf[Pagesize];
+	static char zero[Pagesize];
 
 	s = emalloc(sizeof *s);
 	if(Breaduvlong(b, &s->offset) < 0
@@ -206,8 +206,8 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 Proc*
 readsnap(Biobuf *b)
 {
-	int8_t *q;
-	int8_t buf[12];
+	char *q;
+	char buf[12];
 	int32_t pid;
 	Proc *p, *plist;
 	int i, n;

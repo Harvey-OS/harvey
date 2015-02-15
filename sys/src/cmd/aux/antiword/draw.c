@@ -138,7 +138,7 @@ tCreateScaleWindow(void)
  * remark: does not return if the diagram can't be created
  */
 diagram_type *
-pCreateDiagram(const int8_t *szTask, const int8_t *szFilename)
+pCreateDiagram(const char *szTask, const char *szFilename)
 {
 	diagram_type	*pDiag;
 	options_type	tOptions;
@@ -286,7 +286,7 @@ vPrologue2(diagram_type *pDiag, int iWordVersion)
 {
 	drawfile_object	*pNew;
 	const font_table_type	*pTmp;
-	int8_t	*pcTmp;
+	char	*pcTmp;
 	size_t	tRealSize, tSize;
 	int	iCount;
 
@@ -309,7 +309,7 @@ vPrologue2(diagram_type *pDiag, int iWordVersion)
 	memset(pNew, 0, tSize);
 	pNew->type = drawfile_TYPE_FONT_TABLE;
 	pNew->size = tSize;
-	pcTmp = (int8_t *)&pNew->data.font_table.font_def[0].font_ref;
+	pcTmp = (char *)&pNew->data.font_table.font_def[0].font_ref;
 	iCount = 0;
 	pTmp = NULL;
 	while ((pTmp = pGetNextFontTableRecord(pTmp)) != NULL) {
@@ -328,7 +328,7 @@ vPrologue2(diagram_type *pDiag, int iWordVersion)
  */
 void
 vSubstring2Diagram(diagram_type *pDiag,
-	int8_t *szString, size_t tStringLength, int32_t lStringWidth,
+	char *szString, size_t tStringLength, int32_t lStringWidth,
 	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
 	USHORT usFontSize, USHORT usMaxFontSize)
 {
@@ -697,7 +697,7 @@ vEndOfTable(diagram_type *pDiag)
  * Returns TRUE when conversion type is XML
  */
 BOOL
-bAddTableRow(diagram_type *pDiag, int8_t **aszColTxt,
+bAddTableRow(diagram_type *pDiag, char **aszColTxt,
 	int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
 {
 	TRACE_MSG("bAddTableRow");
@@ -926,7 +926,7 @@ bScaleOpenAction(event_pollblock *pEvent, void *pvReference)
 void
 vSetTitle(diagram_type *pDiag)
 {
-	int8_t	szTitle[WINDOW_TITLE_LEN];
+	char	szTitle[WINDOW_TITLE_LEN];
 
 	TRACE_MSG("vSetTitle");
 
@@ -1009,7 +1009,7 @@ bScaleKeyPressed(event_pollblock *pEvent, void *pvReference)
 	icon_block	tIcon;
 	diagram_type	*pDiag;
 	caret_block	*pCaret;
-	int8_t		*pcChar;
+	char		*pcChar;
 	int		iTmp;
 
 	TRACE_MSG("bScaleKeyPressed");

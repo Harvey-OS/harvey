@@ -31,7 +31,7 @@ bcinit(Bcache *bc, int f, int bsize)
 		b->next = 0;
 		b->dirty = 0;
 		if(b->data == 0)
-			b->data = (int8_t *)malloc(bc->bsize);
+			b->data = (char *)malloc(bc->bsize);
 		if(b->data == 0)
 			return -1;
 		lruadd(bc, b);

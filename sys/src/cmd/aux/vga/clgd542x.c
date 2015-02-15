@@ -306,7 +306,7 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	int8_t *name;
+	char *name;
 
 	name = ctlr->name;
 

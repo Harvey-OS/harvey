@@ -278,7 +278,7 @@ load(Vga* vga, Ctlr* ctlr)
 static void
 dump(Vga* vga, Ctlr* ctlr)
 {
-	int8_t *name;
+	char *name;
 	Cyber938x *cyber;
 	int i, k, m, n, vclka, vclkb;
 

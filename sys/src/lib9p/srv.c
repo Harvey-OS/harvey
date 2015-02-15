@@ -16,28 +16,28 @@
 
 void (*_forker)(void(*)(void*), void*, int);
 
-static int8_t Ebadattach[] = "unknown specifier in attach";
-static int8_t Ebadoffset[] = "bad offset";
-static int8_t Ebadcount[] = "bad count";
-static int8_t Ebotch[] = "9P protocol botch";
-static int8_t Ecreatenondir[] = "create in non-directory";
-static int8_t Edupfid[] = "duplicate fid";
-static int8_t Eduptag[] = "duplicate tag";
-static int8_t Eisdir[] = "is a directory";
-static int8_t Enocreate[] = "create prohibited";
-static int8_t Enomem[] = "out of memory";
-static int8_t Enoremove[] = "remove prohibited";
-static int8_t Enostat[] = "stat prohibited";
-static int8_t Enotfound[] = "file not found";
-static int8_t Enowrite[] = "write prohibited";
-static int8_t Enowstat[] = "wstat prohibited";
-static int8_t Eperm[] = "permission denied";
-static int8_t Eunknownfid[] = "unknown fid";
-static int8_t Ebaddir[] = "bad directory in wstat";
-static int8_t Ewalknodir[] = "walk in non-directory";
+static char Ebadattach[] = "unknown specifier in attach";
+static char Ebadoffset[] = "bad offset";
+static char Ebadcount[] = "bad count";
+static char Ebotch[] = "9P protocol botch";
+static char Ecreatenondir[] = "create in non-directory";
+static char Edupfid[] = "duplicate fid";
+static char Eduptag[] = "duplicate tag";
+static char Eisdir[] = "is a directory";
+static char Enocreate[] = "create prohibited";
+static char Enomem[] = "out of memory";
+static char Enoremove[] = "remove prohibited";
+static char Enostat[] = "stat prohibited";
+static char Enotfound[] = "file not found";
+static char Enowrite[] = "write prohibited";
+static char Enowstat[] = "wstat prohibited";
+static char Eperm[] = "permission denied";
+static char Eunknownfid[] = "unknown fid";
+static char Ebaddir[] = "bad directory in wstat";
+static char Ewalknodir[] = "walk in non-directory";
 
 static void
-setfcallerror(Fcall *f, int8_t *err)
+setfcallerror(Fcall *f, char *err)
 {
 	f->ename = err;
 	f->type = Rerror;
@@ -139,11 +139,11 @@ filewalk(Req *r)
 }
 
 void
-walkandclone(Req *r, int8_t *(*walk1)(Fid*, int8_t*, void*),
-             int8_t *(*clone)(Fid*, Fid*, void*), void *arg)
+walkandclone(Req *r, char *(*walk1)(Fid*, char*, void*),
+             char *(*clone)(Fid*, Fid*, void*), void *arg)
 {
 	int i;
-	int8_t *e;
+	char *e;
 
 	if(r->fid == r->newfid && r->ifcall.nwname > 1){
 		respond(r, "lib9p: unused documented feature not implemented");
@@ -186,7 +186,7 @@ sversion(Srv*, Req *r)
 	respond(r, nil);
 }
 static void
-rversion(Req *r, int8_t *error)
+rversion(Req *r, char *error)
 {
 	assert(error == nil);
 	changemsize(r->srv, r->ofcall.msize);
@@ -195,7 +195,7 @@ rversion(Req *r, int8_t *error)
 static void
 sauth(Srv *srv, Req *r)
 {
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 
 	if((r->afid = allocfid(srv->fpool, r->ifcall.afid)) == nil){
 		respond(r, Edupfid);
@@ -209,7 +209,7 @@ sauth(Srv *srv, Req *r)
 	}
 }
 static void
-rauth(Req *r, int8_t *error)
+rauth(Req *r, char *error)
 {
 	if(error && r->afid)
 		closefid(removefid(r->srv->fpool, r->afid->fid));
@@ -241,7 +241,7 @@ sattach(Srv *srv, Req *r)
 	return;
 }
 static void
-rattach(Req *r, int8_t *error)
+rattach(Req *r, char *error)
 {
 	if(error && r->fid)
 		closefid(removefid(r->srv->fpool, r->fid->fid));
@@ -259,7 +259,7 @@ sflush(Srv *srv, Req *r)
 		respond(r, nil);
 }
 static int
-rflush(Req *r, int8_t *error)
+rflush(Req *r, char *error)
 {
 	Req *or;
 
@@ -280,10 +280,10 @@ rflush(Req *r, int8_t *error)
 	return 0;
 }
 
-static int8_t*
-oldwalk1(Fid *fid, int8_t *name, void *arg)
+static char*
+oldwalk1(Fid *fid, char *name, void *arg)
 {
-	int8_t *e;
+	char *e;
 	Qid qid;
 	Srv *srv;
 
@@ -295,7 +295,7 @@ oldwalk1(Fid *fid, int8_t *name, void *arg)
 	return nil;
 }
 
-static int8_t*
+static char*
 oldclone(Fid *fid, Fid *newfid, void *arg)
 {
 	Srv *srv;
@@ -341,7 +341,7 @@ swalk(Srv *srv, Req *r)
 		sysfatal("no walk function, no file trees");
 }
 static void
-rwalk(Req *r, int8_t *error)
+rwalk(Req *r, char *error)
 {
 	if(error || r->ofcall.nwqid < r->ifcall.nwname){
 		if(r->ifcall.fid != r->ifcall.newfid && r->newfid)
@@ -426,9 +426,9 @@ sopen(Srv *srv, Req *r)
 		respond(r, nil);
 }
 static void
-ropen(Req *r, int8_t *error)
+ropen(Req *r, char *error)
 {
-	int8_t errbuf[ERRMAX];
+	char errbuf[ERRMAX];
 	if(error)
 		return;
 	if(chatty9p){
@@ -458,7 +458,7 @@ screate(Srv *srv, Req *r)
 		respond(r, Enocreate);
 }
 static void
-rcreate(Req *r, int8_t *error)
+rcreate(Req *r, char *error)
 {
 	if(error)
 		return;
@@ -505,7 +505,7 @@ sread(Srv *srv, Req *r)
 		respond(r, "no srv->read");
 }
 static void
-rread(Req *r, int8_t *error)
+rread(Req *r, char *error)
 {
 	if(error==nil && (r->fid->qid.type&QTDIR))
 		r->fid->diroffset += r->ofcall.count;
@@ -515,7 +515,7 @@ static void
 swrite(Srv *srv, Req *r)
 {
 	int o;
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 
 	if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
 		respond(r, Eunknownfid);
@@ -543,7 +543,7 @@ swrite(Srv *srv, Req *r)
 		respond(r, "no srv->write");
 }
 static void
-rwrite(Req *r, int8_t *error)
+rwrite(Req *r, char *error)
 {
 	if(error)
 		return;
@@ -560,7 +560,7 @@ sclunk(Srv *srv, Req *r)
 		respond(r, nil);
 }
 static void
-rclunk(Req*, int8_t*)
+rclunk(Req*, char*)
 {
 }
 
@@ -582,7 +582,7 @@ sremove(Srv *srv, Req *r)
 		respond(r, r->fid->file ? nil : Enoremove);
 }
 static void
-rremove(Req *r, int8_t *error, int8_t *errbuf)
+rremove(Req *r, char *error, char *errbuf)
 {
 	if(error)
 		return;
@@ -623,7 +623,7 @@ sstat(Srv *srv, Req *r)
 		respond(r, Enostat);
 }
 static void
-rstat(Req *r, int8_t *error)
+rstat(Req *r, char *error)
 {
 	int n;
 	uint8_t *statbuf;
@@ -661,7 +661,7 @@ swstat(Srv *srv, Req *r)
 		respond(r, Enowstat);
 		return;
 	}
-	if(convM2D(r->ifcall.stat, r->ifcall.nstat, &r->d, (int8_t*)r->ifcall.stat) != r->ifcall.nstat){
+	if(convM2D(r->ifcall.stat, r->ifcall.nstat, &r->d, (char*)r->ifcall.stat) != r->ifcall.nstat){
 		respond(r, Ebaddir);
 		return;
 	}
@@ -688,7 +688,7 @@ swstat(Srv *srv, Req *r)
 	srv->wstat(r);
 }
 static void
-rwstat(Req*, int8_t*)
+rwstat(Req*, char*)
 {
 }
 
@@ -752,10 +752,10 @@ srv(Srv *srv)
 }
 
 void
-respond(Req *r, int8_t *error)
+respond(Req *r, char *error)
 {
 	int i, m, n;
-	int8_t errbuf[ERRMAX];
+	char errbuf[ERRMAX];
 	Srv *srv;
 
 	srv = r->srv;
@@ -831,17 +831,17 @@ if(chatty9p)
 void
 responderror(Req *r)
 {
-	int8_t errbuf[ERRMAX];
+	char errbuf[ERRMAX];
 	
 	rerrstr(errbuf, sizeof errbuf);
 	respond(r, errbuf);
 }
 
 int
-postfd(int8_t *name, int pfd)
+postfd(char *name, int pfd)
 {
 	int fd;
-	int8_t buf[80];
+	char buf[80];
 
 	snprint(buf, sizeof buf, "/srv/%s", name);
 	if(chatty9p)

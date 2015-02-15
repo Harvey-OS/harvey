@@ -44,7 +44,7 @@ struct File {
 	int	issnapshot;
 };
 
-static int fileMetaFlush2(File*, int8_t*);
+static int fileMetaFlush2(File*, char*);
 static uint32_t fileMetaAlloc(File*, DirEntry*, uint32_t);
 static int fileRLock(File*);
 static void fileRUnlock(File*);
@@ -53,7 +53,7 @@ static void fileUnlock(File*);
 static void fileMetaLock(File*);
 static void fileMetaUnlock(File*);
 static void fileRAccess(File*);
-static void fileWAccess(File*, int8_t*);
+static void fileWAccess(File*, char*);
 
 static File *
 fileAlloc(Fs *fs)
@@ -86,7 +86,7 @@ fileFree(File *f)
  * f->msource is unlocked
  */
 static File *
-dirLookup(File *f, int8_t *elem)
+dirLookup(File *f, char *elem)
 {
 	int i;
 	MetaBlock mb;
@@ -215,7 +215,7 @@ static Source *
 fileOpenSource(File *f, uint32_t offset, uint32_t gen, int dir, uint mode,
 	int issnapshot)
 {
-	int8_t *rname, *fname;
+	char *rname, *fname;
 	Source *r;
 
 	if(!sourceLock(f->source, mode))
@@ -248,7 +248,7 @@ Err:
 }
 
 File *
-_fileWalk(File *f, int8_t *elem, int partial)
+_fileWalk(File *f, char *elem, int partial)
 {
 	File *ff;
 
@@ -335,16 +335,16 @@ Err:
 }
 
 File *
-fileWalk(File *f, int8_t *elem)
+fileWalk(File *f, char *elem)
 {
 	return _fileWalk(f, elem, 0);
 }
 
 File *
-_fileOpen(Fs *fs, int8_t *path, int partial)
+_fileOpen(Fs *fs, char *path, int partial)
 {
 	File *f, *ff;
-	int8_t *p, elem[VtMaxStringSize], *opath;
+	char *p, elem[VtMaxStringSize], *opath;
 	int n;
 
 	f = fs->file;
@@ -381,7 +381,7 @@ Err:
 }
 
 File*
-fileOpen(Fs *fs, int8_t *path)
+fileOpen(Fs *fs, char *path)
 {
 	return _fileOpen(fs, path, 0);
 }
@@ -416,7 +416,7 @@ fileSetTmp(File *f, int istmp)
 }
 
 File *
-fileCreate(File *f, int8_t *elem, uint32_t mode, int8_t *uid)
+fileCreate(File *f, char *elem, uint32_t mode, char *uid)
 {
 	File *ff;
 	DirEntry *dir;
@@ -682,7 +682,7 @@ Err:
 }
 
 int
-fileWrite(File *f, void *buf, int cnt, int64_t offset, int8_t *uid)
+fileWrite(File *f, void *buf, int cnt, int64_t offset, char *uid)
 {
 	Source *s;
 	uint32_t bn;
@@ -779,7 +779,7 @@ fileGetDir(File *f, DirEntry *dir)
 }
 
 int
-fileTruncate(File *f, int8_t *uid)
+fileTruncate(File *f, char *uid)
 {
 	if(fileIsDir(f)){
 		vtSetError(ENotFile);
@@ -812,10 +812,10 @@ fileTruncate(File *f, int8_t *uid)
 }
 
 int
-fileSetDir(File *f, DirEntry *dir, int8_t *uid)
+fileSetDir(File *f, DirEntry *dir, char *uid)
 {
 	File *ff;
-	int8_t *oelem;
+	char *oelem;
 	uint32_t mask;
 	uint64_t size;
 
@@ -1052,7 +1052,7 @@ fileMetaFlush(File *f, int rec)
 
 /* assumes metaLock is held */
 static int
-fileMetaFlush2(File *f, int8_t *oelem)
+fileMetaFlush2(File *f, char *oelem)
 {
 	File *fp;
 	Block *b, *bb;
@@ -1145,7 +1145,7 @@ Err1:
 }
 
 static int
-fileMetaRemove(File *f, int8_t *uid)
+fileMetaRemove(File *f, char *uid)
 {
 	Block *b;
 	MetaBlock mb;
@@ -1225,7 +1225,7 @@ Err:
 }
 
 int
-fileRemove(File *f, int8_t *uid)
+fileRemove(File *f, char *uid)
 {
 	File *ff;
 
@@ -1275,7 +1275,7 @@ Err1:
 }
 
 static int
-clri(File *f, int8_t *uid)
+clri(File *f, char *uid)
 {
 	int r;
 
@@ -1292,13 +1292,13 @@ clri(File *f, int8_t *uid)
 }
 
 int
-fileClriPath(Fs *fs, int8_t *path, int8_t *uid)
+fileClriPath(Fs *fs, char *path, char *uid)
 {
 	return clri(_fileOpen(fs, path, 1), uid);
 }
 
 int
-fileClri(File *dir, int8_t *elem, int8_t *uid)
+fileClri(File *dir, char *elem, char *uid)
 {
 	return clri(_fileWalk(dir, elem, 1), uid);
 }
@@ -1710,7 +1710,7 @@ fileRAccess(File* f)
  * see fileMetaLock.
  */
 static void
-fileWAccess(File* f, int8_t *mid)
+fileWAccess(File* f, char *mid)
 {
 	if(f->mode == OReadOnly)
 		return;
@@ -1843,12 +1843,12 @@ fileWalkSources(File *f)
  * convert File* to full path name in malloced string.
  * this hasn't been as useful as we hoped it would be.
  */
-int8_t *
+char *
 fileName(File *f)
 {
-	int8_t *name, *pname;
+	char *name, *pname;
 	File *p;
-	static int8_t root[] = "/";
+	static char root[] = "/";
 
 	if (f == nil)
 		return vtStrDup("/**GOK**");

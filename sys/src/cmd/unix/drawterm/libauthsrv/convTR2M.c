@@ -18,7 +18,7 @@
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 int
-convTR2M(Ticketreq *f, int8_t *ap)
+convTR2M(Ticketreq *f, char *ap)
 {
 	int n;
 	uint8_t *p;

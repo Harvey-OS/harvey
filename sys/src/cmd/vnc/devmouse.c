@@ -92,13 +92,13 @@ mouseinit(void)
 }
 
 static Chan*
-mouseattach(int8_t *spec)
+mouseattach(char *spec)
 {
 	return devattach('m', spec);
 }
 
 static Walkqid*
-mousewalk(Chan *c, Chan *nc, int8_t **name, int nname)
+mousewalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	Walkqid *wq;
 
@@ -142,7 +142,7 @@ mouseopen(Chan *c, int omode)
 }
 
 static void
-mousecreate(Chan*, int8_t*, int, uint32_t)
+mousecreate(Chan*, char*, int, uint32_t)
 {
 	error(Eperm);
 }
@@ -168,7 +168,7 @@ mouseclose(Chan *c)
 static int32_t
 mouseread(Chan *c, void *va, int32_t n, int64_t off)
 {
-	int8_t buf[4*12+1];
+	char buf[4*12+1];
 	uint8_t *p;
 	static int map[8] = {0, 4, 2, 6, 1, 5, 3, 7 };
 	uint32_t offset = off;
@@ -236,7 +236,7 @@ mouseread(Chan *c, void *va, int32_t n, int64_t off)
 }
 
 static void
-setbuttonmap(int8_t* map)
+setbuttonmap(char* map)
 {
 	int i, x, one, two, three;
 
@@ -281,9 +281,9 @@ setbuttonmap(int8_t* map)
 static int32_t
 mousewrite(Chan *c, void *va, int32_t n, int64_t)
 {
-	int8_t *p;
+	char *p;
 	Point pt;
-	int8_t buf[64];
+	char buf[64];
 
 	p = va;
 	switch((uint32_t)c->qid.path){

@@ -40,28 +40,28 @@ enum
 /* input and output buffers for network connection */
 Biobuf	netib;
 Biobuf	childib;
-int8_t	remotesys[Maxpath];	/* name of remote system */
+char	remotesys[Maxpath];	/* name of remote system */
 
 int	alnum(int);
 int	conssim(void);
-int	fromchild(int8_t*, int);
-int	fromnet(int8_t*, int);
+int	fromchild(char*, int);
+int	fromnet(char*, int);
 int	termchange(Biobuf*, int);
 int	termsub(Biobuf*, uint8_t*, int);
 int	xlocchange(Biobuf*, int);
 int	xlocsub(Biobuf*, uint8_t*, int);
-int	challuser(int8_t*);
-int	noworldlogin(int8_t*);
+int	challuser(char*);
+int	noworldlogin(char*);
 void*	share(ulong);
-int	doauth(int8_t*);
+int	doauth(char*);
 
 #define TELNETLOG "telnet"
 
 void
-logit(int8_t *fmt, ...)
+logit(char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[8192];
+	char buf[8192];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
@@ -70,10 +70,10 @@ logit(int8_t *fmt, ...)
 }
 
 void
-getremote(int8_t *dir)
+getremote(char *dir)
 {
 	int fd, n;
-	int8_t remfile[Maxpath];
+	char remfile[Maxpath];
 
 	sprint(remfile, "%s/remote", dir);
 	fd = open(remfile, OREAD);
@@ -220,9 +220,9 @@ main(int argc, char *argv[])
 }
 
 void
-prompt(int8_t *p, int8_t *b, int n, int raw)
+prompt(char *p, char *b, int n, int raw)
 {
-	int8_t *e;
+	char *e;
 	int i;
 	int echo;
 
@@ -248,10 +248,10 @@ prompt(int8_t *p, int8_t *b, int n, int raw)
  *  challenge user
  */
 int
-challuser(int8_t *user)
+challuser(char *user)
 {
-	int8_t nchall[64];
-	int8_t response[64];
+	char nchall[64];
+	char response[64];
 	Chalstate *ch;
 	AuthInfo *ai;
 
@@ -282,9 +282,9 @@ challuser(int8_t *user)
  *  use the in the clear apop password to change user id
  */
 int
-noworldlogin(int8_t *user)
+noworldlogin(char *user)
 {
-	int8_t password[256];
+	char password[256];
 
 	prompt("password", password, sizeof(password), 1);
 	if(login(user, password, "/lib/namespace.noworld") < 0)
@@ -294,7 +294,7 @@ noworldlogin(int8_t *user)
 }
 
 int
-doauth(int8_t *user)
+doauth(char *user)
 {
 	if(*user == 0)
 		prompt("user", user, Maxuser, 0);
@@ -311,10 +311,10 @@ doauth(int8_t *user)
  *  the input buffer goes empty, return.
  */
 int
-fromchild(int8_t *bp, int len)
+fromchild(char *bp, int len)
 {
 	int c;
-	int8_t *start;
+	char *start;
 
 	for(start = bp; bp-start < len-1; ){
 		c = Bgetc(&childib);
@@ -348,12 +348,12 @@ fromchild(int8_t *bp, int len)
  */
 #define ECHO(c) { *ebp++ = (c); }
 int
-fromnet(int8_t *bp, int len)
+fromnet(char *bp, int len)
 {
 	int c;
-	int8_t echobuf[1024];
-	int8_t *ebp;
-	int8_t *start;
+	char echobuf[1024];
+	char *ebp;
+	char *start;
 	static int crnl;
 	static int doeof;
 
@@ -484,8 +484,8 @@ out:
 int
 termchange(Biobuf *bp, int cmd)
 {
-	int8_t buf[8];
-	int8_t *p = buf;
+	char buf[8];
+	char *p = buf;
 
 	if(cmd != Will)
 		return 0;
@@ -503,14 +503,14 @@ termchange(Biobuf *bp, int cmd)
 int
 termsub(Biobuf *bp, uint8_t *sub, int n)
 {
-	int8_t term[Maxvar];
+	char term[Maxvar];
 
 	USED(bp);
 	if(n-- < 1 || sub[0] != 0)
 		return 0;
 	if(n >= sizeof term)
 		n = sizeof term;
-	strncpy(term, (int8_t*)sub, n);
+	strncpy(term, (char*)sub, n);
 	putenv("TERM", term);
 	return 0;
 }
@@ -518,8 +518,8 @@ termsub(Biobuf *bp, uint8_t *sub, int n)
 int
 xlocchange(Biobuf *bp, int cmd)
 {
-	int8_t buf[8];
-	int8_t *p = buf;
+	char buf[8];
+	char *p = buf;
 
 	if(cmd != Will)
 		return 0;
@@ -537,14 +537,14 @@ xlocchange(Biobuf *bp, int cmd)
 int
 xlocsub(Biobuf *bp, uint8_t *sub, int n)
 {
-	int8_t xloc[Maxvar];
+	char xloc[Maxvar];
 
 	USED(bp);
 	if(n-- < 1 || sub[0] != 0)
 		return 0;
 	if(n >= sizeof xloc)
 		n = sizeof xloc;
-	strncpy(xloc, (int8_t*)sub, n);
+	strncpy(xloc, (char*)sub, n);
 	putenv("DISPLAY", xloc);
 	return 0;
 }
@@ -579,8 +579,8 @@ conssim(void)
 	int i, n;
 	int fd;
 	int tries;
-	int8_t buf[128];
-	int8_t *field[10];
+	char buf[128];
+	char *field[10];
 
 	/* a pipe to simulate the /dev/cons */
 	if(bind("#|", "/mnt/cons/cons", MREPL) < 0)

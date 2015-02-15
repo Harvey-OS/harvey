@@ -21,8 +21,8 @@
 typedef struct Sym Sym;
 struct Sym
 {
-	int8_t *name;
-	int8_t *newname;
+	char *name;
+	char *newname;
 	int16_t type;
 	int16_t version;
 	Sym *link;
@@ -35,7 +35,7 @@ struct Obj
 	int version;
 	uint8_t *bp;
 	uint8_t *ep;
-	int8_t *name;
+	char *name;
 };
 
 enum
@@ -51,12 +51,12 @@ int version = 1;
 Obj **obj;
 int nobj;
 Biobuf bout;
-int8_t *prefix;
+char *prefix;
 int verbose;
 
 void *emalloc(ulong);
-Sym *lookup(int8_t*, int);
-Obj *openobj(int8_t*);
+Sym *lookup(char*, int);
+Obj *openobj(char*);
 void walkobj(Obj*, void (*fn)(int, Sym*, uint8_t*, int));
 void walkobjs(void (*fn)(int, Sym*, uint8_t*, int));
 void dump(int, Sym*, uint8_t*, int);
@@ -208,10 +208,10 @@ emalloc(uint32_t n)
 }
 
 Sym*
-lookup(int8_t *symb, int v)
+lookup(char *symb, int v)
 {
 	Sym *s;
-	int8_t *p;
+	char *p;
 	int32_t h;
 	int l, c;
 
@@ -240,7 +240,7 @@ lookup(int8_t *symb, int v)
 }
 
 Obj*
-openobj(int8_t *name)
+openobj(char *name)
 {
 	Dir *d;
 	Obj *obj;
@@ -285,7 +285,7 @@ walkobj(Obj *obj, void (*fn)(int, Sym*, uint8_t*, int))
 			p += 4;	/* sign */
 		case ANAME:
 			type = p[2];
-			sym = lookup((int8_t*)p+4,
+			sym = lookup((char*)p+4,
 				     type==D_STATIC ? obj->version : 0);
 			xsym[p[3]] = sym;
 			p += 4+strlen(sym->name)+1;

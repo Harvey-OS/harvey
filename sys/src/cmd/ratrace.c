@@ -24,19 +24,19 @@ int nread = 0;
 
 typedef struct Str Str;
 struct Str {
-	int8_t	*buf;
+	char	*buf;
 	int	len;
 };
 
 void
-die(int8_t *s)
+die(char *s)
 {
 	fprint(2, "%s\n", s);
 	exits(s);
 }
 
 void
-cwrite(int fd, int8_t *path, int8_t *cmd, int len)
+cwrite(int fd, char *path, char *cmd, int len)
 {
 	werrstr("");
 	if (write(fd, cmd, len) < len) {
@@ -55,7 +55,7 @@ newstr(void)
 	s = mallocz(sizeof(Str) + Bufsize, 1);
 	if (s == nil)
 		sysfatal("malloc");
-	s->buf = (int8_t *)&s[1];
+	s->buf = (char *)&s[1];
 	return s;
 }
 
@@ -63,10 +63,10 @@ void
 reader(void *v)
 {
 	int cfd, tfd, forking = 0, exiting, pid, newpid;
-	int8_t *ctl, *truss;
+	char *ctl, *truss;
 	Str *s;
-	static int8_t start[] = "start";
-	static int8_t waitstop[] = "waitstop";
+	static char start[] = "start";
+	static char waitstop[] = "waitstop";
 
 	pid = (int)(uintptr)v;
 	ctl = smprint("/proc/%d/ctl", pid);
@@ -95,8 +95,8 @@ reader(void *v)
 		 * no false positives.
 		 */
 		if (strstr(s->buf, " Rfork") != nil) {
-			int8_t *a[8];
-			int8_t *rf;
+			char *a[8];
+			char *rf;
 
 			rf = strdup(s->buf);
          		if (tokenize(rf, a, 8) == 5 &&
@@ -173,8 +173,8 @@ void
 hang(void)
 {
 	int me;
-	int8_t *myctl;
-	static int8_t hang[] = "hang";
+	char *myctl;
+	static char hang[] = "hang";
 
 	myctl = smprint("/proc/%d/ctl", getpid());
 	me = open(myctl, OWRITE);
@@ -186,11 +186,11 @@ hang(void)
 }
 
 void
-threadmain(int argc, int8_t **argv)
+threadmain(int argc, char **argv)
 {
 	int pid;
-	int8_t *cmd = nil;
-	int8_t **args = nil;
+	char *cmd = nil;
+	char **args = nil;
 
 	/*
 	 * don't bother with fancy arg processing, because it picks up options
@@ -232,8 +232,8 @@ threadmain(int argc, int8_t **argv)
 		pid = atoi(argv[1]);
 	}
 
-	out   = chancreate(sizeof(int8_t*), 0);
-	quit  = chancreate(sizeof(int8_t*), 0);
+	out   = chancreate(sizeof(char*), 0);
+	quit  = chancreate(sizeof(char*), 0);
 	forkc = chancreate(sizeof(uint32_t *), 0);
 	nread++;
 	procrfork(writer, nil, Stacksize, 0);

@@ -10,10 +10,10 @@
 #include "headers.h"
 
 int
-smbclientopen(SmbClient *c, uint16_t mode, int8_t *name, uint8_t *errclassp,
+smbclientopen(SmbClient *c, uint16_t mode, char *name, uint8_t *errclassp,
 	      uint16_t *errorp,
 	uint16_t *fidp, uint16_t *attrp, uint32_t *mtimep, uint32_t *sizep,
-	      uint16_t *accessallowedp, int8_t **errmsgp)
+	      uint16_t *accessallowedp, char **errmsgp)
 {
 	SmbBuffer *b;
 	SmbHeader h;

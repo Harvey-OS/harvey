@@ -15,7 +15,7 @@ Nvrsafe	nvr;
 
 static int gotnvr;	/* flag: nvr contains nvram; it could be bad */
 
-int8_t*
+char*
 nvrgetconfig(void)
 {
 	return conf.confdev;
@@ -51,7 +51,7 @@ nvrcheck(void)
 }
 
 int
-nvrsetconfig(int8_t* word)
+nvrsetconfig(char* word)
 {
 	/* config block is on device `word' */
 	USED(word);
@@ -61,9 +61,9 @@ nvrsetconfig(int8_t* word)
 int
 conslock(void)
 {
-	int8_t *ln;
-	int8_t nkey1[DESKEYLEN];
-	static int8_t zeroes[DESKEYLEN];
+	char *ln;
+	char nkey1[DESKEYLEN];
+	static char zeroes[DESKEYLEN];
 
 	if(memcmp(nvr.machkey, zeroes, DESKEYLEN) == 0) {
 		print("no password set\n");
@@ -125,12 +125,12 @@ char *phasename[] =
 struct	Auth
 {
 	int	inuse;
-	int8_t	uname[NAMELEN];	/* requestor's remote user name */
-	int8_t	aname[NAMELEN];	/* requested aname */
+	char	uname[NAMELEN];	/* requestor's remote user name */
+	char	aname[NAMELEN];	/* requested aname */
 	Userid	uid;		/* uid decided on */
 	int	phase;
-	int8_t	cchal[CHALLEN];
-	int8_t	tbuf[TICKETLEN+AUTHENTLEN];	/* server ticket */
+	char	cchal[CHALLEN];
+	char	tbuf[TICKETLEN+AUTHENTLEN];	/* server ticket */
 	Ticket	t;
 	Ticketreq tr;
 };
@@ -145,7 +145,7 @@ authinit(void)
 }
 
 static int
-failure(Auth *s, int8_t *why)
+failure(Auth *s, char *why)
 {
 	int i;
 
@@ -162,7 +162,7 @@ if(*why)print("authentication failed: %s: %s\n", phasename[s->phase], why);
 }
 
 Auth*
-authnew(int8_t *uname, int8_t *aname)
+authnew(char *uname, char *aname)
 {
 	static int si = 0;
 	int i, nwrap;
@@ -215,21 +215,21 @@ authread(File* file, uint8_t* data, int n)
 	default:
 		return failure(s, "unexpected phase");
 	case HaveProtos:
-		m = snprint((int8_t*)data, n, "v.2 p9sk1@%s", nvr.authdom) + 1;
+		m = snprint((char*)data, n, "v.2 p9sk1@%s", nvr.authdom) + 1;
 		s->phase = NeedProto;
 		break;
 	case HaveOK:
 		m = 3;
 		if(n < m)
 			return failure(s, "read too short");
-		strcpy((int8_t*)data, "OK");
+		strcpy((char*)data, "OK");
 		s->phase = NeedCchal;
 		break;
 	case HaveSinfo:
 		m = TICKREQLEN;
 		if(n < m)
 			return failure(s, "read too short");
-		convTR2M(&s->tr, (int8_t*)data);
+		convTR2M(&s->tr, (char*)data);
 		s->phase = NeedTicket;
 		break;
 	case HaveSauthenticator:
@@ -248,7 +248,7 @@ authwrite(File* file, uint8_t *data, int n)
 {
 	Auth *s;
 	int m;
-	int8_t *p, *d;
+	char *p, *d;
 	Authenticator a;
 
 	s = file->auth;
@@ -259,7 +259,7 @@ authwrite(File* file, uint8_t *data, int n)
 	default:
 		return failure(s, "unknown phase");
 	case NeedProto:
-		p = (int8_t*)data;
+		p = (char*)data;
 		if(p[n-1] != 0)
 			return failure(s, "proto missing terminator");
 		d = strchr(p, ' ');
@@ -285,12 +285,12 @@ authwrite(File* file, uint8_t *data, int n)
 		if(n < m)
 			return failure(s, "ticket+auth too short");
 
-		convM2T((int8_t*)data, &s->t, nvr.machkey);
+		convM2T((char*)data, &s->t, nvr.machkey);
 		if(s->t.num != AuthTs
 		|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0)
 			return failure(s, "bad ticket");
 
-		convM2A((int8_t*)data+TICKETLEN, &a, s->t.key);
+		convM2A((char*)data+TICKETLEN, &a, s->t.key);
 		if(a.num != AuthAc
 		|| memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0
 		|| a.id != 0)
@@ -322,13 +322,13 @@ authuid(Auth* s)
 	return s->uid;
 }
 
-int8_t*
+char*
 authaname(Auth* s)
 {
 	return s->aname;
 }
 
-int8_t*
+char*
 authuname(Auth* s)
 {
 	return s->uname;

@@ -15,22 +15,22 @@
 
 int usbdebug;
 
-static int8_t *edir[] = {"in", "out", "inout"};
-static int8_t *etype[] = {"ctl", "iso", "bulk", "intr"};
-static int8_t* cnames[] =
+static char *edir[] = {"in", "out", "inout"};
+static char *etype[] = {"ctl", "iso", "bulk", "intr"};
+static char* cnames[] =
 {
 	"none", "audio", "comms", "hid", "",
 	"", "", "printer", "storage", "hub", "data"
 };
-static int8_t* devstates[] =
+static char* devstates[] =
 {
 	"detached", "attached", "enabled", "assigned", "configured"
 };
 
-int8_t*
+char*
 classname(int c)
 {
-	static int8_t buf[30];
+	static char buf[30];
 
 	if(c >= 0 && c < nelem(cnames))
 		return cnames[c];
@@ -40,11 +40,11 @@ classname(int c)
 	}
 }
 
-int8_t *
+char *
 hexstr(void *a, int n)
 {
 	int i;
-	int8_t *dbuff, *s, *e;
+	char *dbuff, *s, *e;
 	uint8_t *b;
 
 	b = a;
@@ -58,13 +58,13 @@ hexstr(void *a, int n)
 	return dbuff;
 }
 
-static int8_t *
-seprintiface(int8_t *s, int8_t *e, Iface *i)
+static char *
+seprintiface(char *s, char *e, Iface *i)
 {
 	int	j;
 	Altc	*a;
 	Ep	*ep;
-	int8_t	*eds, *ets;
+	char	*eds, *ets;
 
 	s = seprint(s, e, "\t\tiface csp %s.%uld.%uld\n",
 		classname(Class(i->csp)), Subclass(i->csp), Proto(i->csp));
@@ -96,12 +96,12 @@ seprintiface(int8_t *s, int8_t *e, Iface *i)
 	return s;
 }
 
-static int8_t*
-seprintconf(int8_t *s, int8_t *e, Usbdev *d, int ci)
+static char*
+seprintconf(char *s, char *e, Usbdev *d, int ci)
 {
 	int i;
 	Conf *c;
-	int8_t *hd;
+	char *hd;
 
 	c = d->conf[ci];
 	s = seprint(s, e, "\tconf: cval %d attrib %x %d mA\n",
@@ -131,8 +131,8 @@ Ufmt(Fmt *f)
 	int i;
 	Dev *d;
 	Usbdev *ud;
-	int8_t buf[1024];
-	int8_t *s, *e;
+	char buf[1024];
+	char *s, *e;
 
 	s = buf;
 	e = buf+sizeof(buf);
@@ -157,10 +157,10 @@ Ufmt(Fmt *f)
 	return fmtprint(f, "%s", buf);
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *d;
+	char *d;
 
 	d = strdup(s);
 	if(d == nil)

@@ -18,10 +18,10 @@ static Ref mountid;
 
 #ifdef NOTDEF
 void
-pgrpnote(uint32_t noteid, int8_t *a, int32_t n, int flag)
+pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 {
 	Proc *p, *ep;
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	if(n >= ERRMAX-1)
 		error(Etoobig);
@@ -229,7 +229,7 @@ closefgrp(Fgrp *f)
 }
 
 Mount*
-newmount(Mhead *mh, Chan *to, int flag, int8_t *spec)
+newmount(Mhead *mh, Chan *to, int flag, char *spec)
 {
 	Mount *m;
 
@@ -262,9 +262,9 @@ mountfree(Mount *m)
 
 #ifdef NOTDEF
 void
-resrcwait(int8_t *reason)
+resrcwait(char *reason)
 {
-	int8_t *p;
+	char *p;
 
 	if(up == 0)
 		panic("resrcwait");

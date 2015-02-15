@@ -132,7 +132,7 @@ execute(Text *t, uint aq0, uint aq1, int external, Text *argt)
 {
 	uint q0, q1;
 	Rune *r, *s;
-	int8_t *b, *a, *aa;
+	char *b, *a, *aa;
 	Exectab *e;
 	int c, n, f;
 	Runestr dir;
@@ -230,10 +230,10 @@ execute(Text *t, uint aq0, uint aq1, int external, Text *argt)
 	run(t->w, b, dir.r, dir.nr, TRUE, aa, a, FALSE);
 }
 
-int8_t*
+char*
 printarg(Text *argt, uint q0, uint q1)
 {
-	int8_t *buf;
+	char *buf;
 
 	if(argt->what!=Body || argt->file->name==nil)
 		return nil;
@@ -245,12 +245,12 @@ printarg(Text *argt, uint q0, uint q1)
 	return buf;
 }
 
-int8_t*
+char*
 getarg(Text *argt, int doaddr, int dofile, Rune **rp, int *nrp)
 {
 	int n;
 	Expand e;
-	int8_t *a;
+	char *a;
 
 	*rp = nil;
 	*nrp = 0;
@@ -282,12 +282,12 @@ getarg(Text *argt, int doaddr, int dofile, Rune **rp, int *nrp)
 	return a;
 }
 
-int8_t*
-getbytearg(Text *argt, int doaddr, int dofile, int8_t **bp)
+char*
+getbytearg(Text *argt, int doaddr, int dofile, char **bp)
 {
 	Rune *r;
 	int n;
-	int8_t *aa;
+	char *aa;
 
 	*bp = nil;
 	aa = getarg(argt, doaddr, dofile, &r, &n);
@@ -332,7 +332,7 @@ void
 del(Text *et, Text*, Text *argt, int flag1, int, Rune *arg, int narg)
 {
 	Window *w;
-	int8_t *name, *p;
+	char *name, *p;
 	Plumbmsg *pm;
 
 	if(et->col==nil || et->w == nil)
@@ -410,10 +410,10 @@ undo(Text *et, Text*, Text*, int flag1, int, Rune*, int)
 	}
 }
 
-int8_t*
+char*
 getname(Text *t, Text *argt, Rune *arg, int narg, int isput)
 {
-	int8_t *s;
+	char *s;
 	Rune *r;
 	int i, n, promote;
 	Runestr dir;
@@ -509,7 +509,7 @@ zeroxx(Text *et, Text *t, Text*, int, int, Rune*, int)
 void
 get(Text *et, Text *t, Text *argt, int flag1, int, Rune *arg, int narg)
 {
-	int8_t *name;
+	char *name;
 	Rune *r;
 	int i, n, dirty, samename, isdir;
 	Window *w;
@@ -571,7 +571,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 {
 	uint n, m;
 	Rune *r;
-	int8_t *s, *name, *p;
+	char *s, *name, *p;
 	int i, fd, q;
 	Dir *d, *d1;
 	Window *w;
@@ -687,7 +687,7 @@ put(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 	Rune  *namer;
 	Window *w;
 	File *f;
-	int8_t *name;
+	char *name;
 
 	if(et==nil || et->w==nil || et->w->isdir)
 		return;
@@ -706,7 +706,7 @@ put(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 void
 dump(Text *, Text *, Text *argt, int isdump, int, Rune *arg, int narg)
 {
-	int8_t *name;
+	char *name;
 
 	if(narg)
 		name = runetobyte(arg, narg);
@@ -910,7 +910,7 @@ putall(Text*, Text*, Text*, int, int, Rune*, int)
 	int i, j, e;
 	Window *w;
 	Column *c;
-	int8_t *a;
+	char *a;
 
 	for(i=0; i<row.ncol; i++){
 		c = row.col[i];
@@ -945,7 +945,7 @@ id(Text *et, Text*, Text*, int, int, Rune*, int)
 void
 local(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 {
-	int8_t *a, *aa;
+	char *a, *aa;
 	Runestr dir;
 
 	aa = getbytearg(argt, TRUE, TRUE, &a);
@@ -985,7 +985,7 @@ fontx(Text *et, Text *t, Text *argt, int, int, Rune *arg, int narg)
 {
 	Rune *a, *r, *flag, *file;
 	int na, nf;
-	int8_t *aa;
+	char *aa;
 	Reffont *newfont;
 	Dirlist *dp;
 	int i, fix;
@@ -1155,7 +1155,7 @@ tab(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 	Rune *a, *r;
 	Window *w;
 	int na, len, tab;
-	int8_t *p;
+	char *p;
 
 	if(et==nil || et->w==nil)
 		return;
@@ -1190,21 +1190,21 @@ runproc(void *argvp)
 {
 	/* args: */
 		Window *win;
-		int8_t *s;
+		char *s;
 		Rune *rdir;
 		int ndir;
 		int newns;
-		int8_t *argaddr;
-		int8_t *arg;
+		char *argaddr;
+		char *arg;
 		Command *c;
 		Channel *cpid;
 		int iseditcmd;
 	/* end of args */
-	int8_t *e, *t, *name, *filename, *dir, **av, *news;
+	char *e, *t, *name, *filename, *dir, **av, *news;
 	Rune r, **incl;
 	int ac, w, inarg, i, n, fd, nincl, winid;
 	int pipechar;
-	int8_t buf[512];
+	char buf[512];
 	static void *parg[2];
 	void **argv;
 
@@ -1345,11 +1345,11 @@ runproc(void *argvp)
 		}
 		if(!inarg){
 			inarg = TRUE;
-			av = realloc(av, (ac+1)*sizeof(int8_t**));
+			av = realloc(av, (ac+1)*sizeof(char**));
 			av[ac++] = e;
 		}
 	}
-	av = realloc(av, (ac+2)*sizeof(int8_t**));
+	av = realloc(av, (ac+2)*sizeof(char**));
 	av[ac++] = arg;
 	av[ac] = nil;
 	c->av = av;
@@ -1431,8 +1431,8 @@ runwaittask(void *v)
 }
 
 void
-run(Window *win, int8_t *s, Rune *rdir, int ndir, int newns,
-    int8_t *argaddr, int8_t *xarg, int iseditcmd)
+run(Window *win, char *s, Rune *rdir, int ndir, int newns,
+    char *argaddr, char *xarg, int iseditcmd)
 {
 	void **arg;
 	Command *c;

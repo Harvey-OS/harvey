@@ -35,9 +35,9 @@ struct	Sch
 	Dep	set;
 	Dep	used;
 	int32_t	soffset;
-	int8_t	size;
-	int8_t	nop;
-	int8_t	comp;
+	char	size;
+	char	nop;
+	char	comp;
 };
 
 void	regsused(Sch*, Prog*);

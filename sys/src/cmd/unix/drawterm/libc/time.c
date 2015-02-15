@@ -21,7 +21,7 @@
 static int32_t
 oldtime(int32_t *tp)
 {
-	int8_t b[20];
+	char b[20];
 	static int f = -1;
 	int i, retries;
 	int32_t t;

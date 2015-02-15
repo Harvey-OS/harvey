@@ -45,8 +45,8 @@ static int quorem(Bigint *, Bigint *);
  *	   calculation.
  */
 
- int8_t *
-_dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, int8_t **rve)
+ char *
+_dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 {
  /*	Arguments ndigits, decpt, sign are similar to those
 	of ecvt and fcvt; trailing zeros are suppressed from
@@ -93,7 +93,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, int8_t **rve)
 	Bigint *b, *b1, *delta, *mlo, *mhi, *S;
 	double ds;
 	Dul d2, eps;
-	int8_t *s, *s0;
+	char *s, *s0;
 	static Bigint *result;
 	static int result_k;
 	Dul d;
@@ -268,7 +268,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, int8_t **rve)
 	for(result_k = 0; sizeof(Bigint) - sizeof(unsigned long) + j <= i;
 		j <<= 1) result_k++;
 	result = Balloc(result_k);
-	s = s0 = (int8_t *)result;
+	s = s0 = (char *)result;
 
 	if (ilim >= 0 && ilim <= Quick_max && try_quick) {
 	

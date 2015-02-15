@@ -17,7 +17,7 @@ static	int32_t	getlong(uint8_t*);
 int	debug;
 
 Img*
-dssread(int8_t *file)
+dssread(char *file)
 {
 	int nx, ny, scale, sumall;
 	Pix  *p, *pend;

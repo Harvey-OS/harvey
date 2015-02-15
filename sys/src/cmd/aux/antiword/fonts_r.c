@@ -33,10 +33,10 @@ FILE *
 pOpenFontTableFile(void)
 {
 	FILE	*pFileR, *pFileW;
-	int8_t	*szFontNamesFile;
+	char	*szFontNamesFile;
 	size_t	tSize;
 	BOOL	bFailed;
-	int8_t	acBuffer[256];
+	char	acBuffer[256];
 
 	pFileR = fopen("<AntiWord$FontNamesFile>", "r");
 	if (pFileR != NULL) {
@@ -127,7 +127,7 @@ drawfile_fontref
 tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 {
 	os_error	*e;
-	const int8_t	*szOurFontname;
+	const char	*szOurFontname;
 	font_handle	tFont;
 	int	iFontnumber;
 
@@ -147,7 +147,7 @@ tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 		return (byte)0;
 	}
 	NO_DBG_MSG(szOurFontname);
-	e = Font_FindFont(&tFont, (int8_t *)szOurFontname,
+	e = Font_FindFont(&tFont, (char *)szOurFontname,
 			(int)usWordFontSize * 8, (int)usWordFontSize * 8,
 			0, 0);
 	if (e != NULL) {
@@ -196,7 +196,7 @@ tOpenTableFont(USHORT usWordFontSize)
  * Returns the string width in millipoints
  */
 int32_t
-lComputeStringWidth(const int8_t *szString, size_t tStringLength,
+lComputeStringWidth(const char *szString, size_t tStringLength,
 	drawfile_fontref tFontRef, USHORT usFontSize)
 {
 	font_string	tStr;
@@ -217,7 +217,7 @@ lComputeStringWidth(const int8_t *szString, size_t tStringLength,
 		/* No current font, use systemfont */
 		return lChar2MilliPoints(tStringLength);
 	}
-	tStr.s = (int8_t *)szString;
+	tStr.s = (char *)szString;
 	tStr.x = INT_MAX;
 	tStr.y = INT_MAX;
 	tStr.split = -1;
@@ -240,7 +240,7 @@ lComputeStringWidth(const int8_t *szString, size_t tStringLength,
  * Returns the number of columns
  */
 size_t
-tCountColumns(const int8_t *szString, size_t tLength)
+tCountColumns(const char *szString, size_t tLength)
 {
 	fail(szString == NULL);
 
@@ -254,7 +254,7 @@ tCountColumns(const int8_t *szString, size_t tLength)
  * Returns the length in bytes
  */
 size_t
-tGetCharacterLength(const int8_t *szString)
+tGetCharacterLength(const char *szString)
 {
 	return 1;
 } /* end of tGetCharacterLength */

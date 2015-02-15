@@ -109,7 +109,7 @@ static size_t	tStackNextFree = 0;
 
 typedef struct docbooktags_tag {
 	UCHAR	ucTagnumber;
-	int8_t	szTagname[15];
+	char	szTagname[15];
 	BOOL	bAddNewlineStart;
 	BOOL	bAddNewlineEnd;
 } docbooktags_type;
@@ -148,10 +148,10 @@ static const docbooktags_type atDocBookTags[] = {
 	{	TAG_TITLE, 		"title",	FALSE,	FALSE	},
 };
 
-static void	vAddStartTag(diagram_type *, UCHAR, const int8_t *);
+static void	vAddStartTag(diagram_type *, UCHAR, const char *);
 static void	vAddEndTag(diagram_type *, UCHAR);
-static void	vAddCombinedTag(diagram_type *, UCHAR, const int8_t *);
-static void	vPrintChar(diagram_type *, int8_t);
+static void	vAddCombinedTag(diagram_type *, UCHAR, const char *);
+static void	vPrintChar(diagram_type *, char);
 
 
 #if defined(DEBUG)
@@ -270,7 +270,7 @@ vPrintLevel(FILE *pOutFile)
 static void
 vPrintFootnote(diagram_type *pDiag, UINT uiFootnoteIndex)
 {
-	const int8_t	*szText, *pcTmp;
+	const char	*szText, *pcTmp;
 	BOOL	bSuScript;
 	UCHAR	ucTopTag;
 
@@ -320,7 +320,7 @@ vPrintFootnote(diagram_type *pDiag, UINT uiFootnoteIndex)
  * vPrintChar - print a character with XML encoding
  */
 static void
-vPrintChar(diagram_type *pDiag, int8_t cChar)
+vPrintChar(diagram_type *pDiag, char cChar)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -353,7 +353,7 @@ vPrintSpecialChar(diagram_type *pDiag, USHORT usChar)
 {
 	ULONG   ulChar;
 	size_t  tLen, tIndex;
-	int8_t    szResult[4];
+	char    szResult[4];
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -376,7 +376,7 @@ vPrintSpecialChar(diagram_type *pDiag, USHORT usChar)
  * vPrintSpecialString - convert and print a string
  */
 static void
-vPrintSpecialString(diagram_type *pDiag, const int8_t *szString)
+vPrintSpecialString(diagram_type *pDiag, const char *szString)
 {
 	int	iIndex;
 	USHORT	usChar;
@@ -395,7 +395,7 @@ vPrintSpecialString(diagram_type *pDiag, const int8_t *szString)
  * vAddStartTag - add the specified start tag to the file
  */
 static void
-vAddStartTag(diagram_type *pDiag, UCHAR ucTag, const int8_t *szAttribute)
+vAddStartTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -597,7 +597,7 @@ vAddEndTagOptional(diagram_type *pDiag, UCHAR ucTag)
  * vAddCombinedTag - add the specified start and end tag to the file
  */
 static void
-vAddCombinedTag(diagram_type *pDiag, UCHAR ucTag, const int8_t *szAttribute)
+vAddCombinedTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -674,10 +674,10 @@ vAddEndTagsUntil2(diagram_type *pDiag, UCHAR ucTag1, UCHAR ucTag2)
 void
 vCreateBookIntro(diagram_type *pDiag, int iVersion)
 {
-	const int8_t	*szTitle, *szSubject, *szAuthor;
-	const int8_t	*szLastSaveDtm, *szCompany;
-	const int8_t	*szLanguage;
-	int8_t		szTmp[13];
+	const char	*szTitle, *szSubject, *szAuthor;
+	const char	*szLastSaveDtm, *szCompany;
+	const char	*szLanguage;
+	char		szTmp[13];
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -808,10 +808,10 @@ vEpilogueXML(diagram_type *pDiag)
  * vPrintXML - print a XML string
  */
 static void
-vPrintXML(diagram_type *pDiag, const int8_t *szString, size_t tStringLength,
+vPrintXML(diagram_type *pDiag, const char *szString, size_t tStringLength,
 		USHORT usFontstyle)
 {
-	const int8_t	*szAttr;
+	const char	*szAttr;
 	int	iCount;
 	size_t	tNextFree;
 	BOOL	bNotReady, bEmphasisNew, bSuperscriptNew, bSubscriptNew;
@@ -929,7 +929,7 @@ vMove2NextLineXML(diagram_type *pDiag)
  */
 void
 vSubstringXML(diagram_type *pDiag,
-	const int8_t *szString, size_t tStringLength, int32_t lStringWidth,
+	const char *szString, size_t tStringLength, int32_t lStringWidth,
 	USHORT usFontstyle)
 {
 	fail(pDiag == NULL || szString == NULL);
@@ -1160,7 +1160,7 @@ vSetHeadersXML(diagram_type *pDiag, USHORT usIstd)
 void
 vStartOfListXML(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 {
-	const int8_t	*szAttr;
+	const char	*szAttr;
 	UCHAR		ucTag;
 
 	fail(pDiag == NULL);
@@ -1249,7 +1249,7 @@ vEndOfListXML(diagram_type *pDiag)
 void
 vStartOfListItemXML(diagram_type *pDiag, BOOL bNoMarks)
 {
-	const int8_t	*szAttr;
+	const char	*szAttr;
 	UCHAR	ucTopTag;
 
 	fail(pDiag == NULL);
@@ -1281,11 +1281,11 @@ vStartOfListItemXML(diagram_type *pDiag, BOOL bNoMarks)
 static void
 vStartOfTable(diagram_type *pDiag, UCHAR ucBorderInfo)
 {
-	const int8_t	*szFrame;
+	const char	*szFrame;
 	BOOL	bNotReady;
 	UCHAR	ucTopTag;
-	int8_t	cColSep, cRowSep;
-	int8_t	szAttr[40];
+	char	cColSep, cRowSep;
+	char	szAttr[40];
 
 	fail(pDiag == NULL);
 
@@ -1364,8 +1364,8 @@ vStartOfTableGroup(diagram_type *pDiag,
 {
 	double	dWidth;
 	int	iIndex;
-	int8_t	szCols[6 + 3 * sizeof(int) + 1 + 1];
-	int8_t	szColWidth[10 + 3 * sizeof(int16_t) + 3 + 3 + 1];
+	char	szCols[6 + 3 * sizeof(int) + 1 + 1];
+	char	szColWidth[10 + 3 * sizeof(int16_t) + 3 + 3 + 1];
 
 	fail(iNbrOfColumns < 1);
 	fail(asColumnWidth == NULL);
@@ -1404,7 +1404,7 @@ vEndOfTableXML(diagram_type *pDiag)
  * Add a table row
  */
 void
-vAddTableRowXML(diagram_type *pDiag, int8_t **aszColTxt,
+vAddTableRowXML(diagram_type *pDiag, char **aszColTxt,
 	int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
 {
 	size_t	tCount, tStringLength;

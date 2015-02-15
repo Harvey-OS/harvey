@@ -113,7 +113,7 @@ cgaputc(int c)
 }
 
 void
-cgaconsputs(int8_t* s, int n)
+cgaconsputs(char* s, int n)
 {
 	ilock(&cgalock);
 	while(n-- > 0)
@@ -126,7 +126,7 @@ cgapost(int code)
 {
 	uint8_t *cga;
 
-	static int8_t hex[] = "0123456789ABCDEF";
+	static char hex[] = "0123456789ABCDEF";
 
 	cga = CGA;
 	cga[Width*Height-Postcodelen*2] = hex[(code>>4) & 0x0F];

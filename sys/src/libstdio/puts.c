@@ -11,7 +11,7 @@
  * pANS stdio -- puts
  */
 #include "iolib.h"
-int puts(const int8_t *s){
+int puts(const char *s){
 	fputs(s, stdout);
 	putchar('\n');
 	return ferror(stdin)?EOF:0;

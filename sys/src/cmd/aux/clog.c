@@ -12,10 +12,10 @@
 #include <libc.h>
 #include <bio.h>
 
-int8_t *argv0;
+char *argv0;
 
 int
-openlog(int8_t *name)
+openlog(char *name)
 {
 	int fd;
 
@@ -31,12 +31,12 @@ openlog(int8_t *name)
 }
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Biobuf in;
 	int fd;
-	int8_t *p, *t;
-	int8_t buf[Bsize];
+	char *p, *t;
+	char buf[Bsize];
 
 	argv0 = argv[0];
 	if(argc < 3){

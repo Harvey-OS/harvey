@@ -127,10 +127,10 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static int8_t*
+static char*
 op(int i)
 {
-	static int8_t x[20];
+	static char x[20];
 
 	switch(i){
 	case Request:
@@ -147,10 +147,10 @@ op(int i)
 	}
 }
 
-static int8_t*
+static char*
 subop(uint8_t val)
 {
-	static int8_t x[20], *p;
+	static char x[20], *p;
 
 	p = eapsubtype[val];
 	if(p != nil)
@@ -166,7 +166,7 @@ p_seprint(Msg *m)
 {
 	Hdr *h;
 	int len;
-	int8_t *p, *e;
+	char *p, *e;
 
 	if(m->pe - m->ps < EAPHDR)
 		return -1;
@@ -204,12 +204,12 @@ p_seprint(Msg *m)
 static int
 p_seprintidentity(Msg *m)
 {
-	int8_t *ps, *pe, *z;
+	char *ps, *pe, *z;
 	int len;
 
 	m->pr = nil;
-	ps = (int8_t*)m->ps;
-	pe = (int8_t*)m->pe;
+	ps = (char*)m->ps;
+	pe = (char*)m->pe;
 
 	/* we would like to do this depending on the 'context':
 	 *  - one for eap_identity request and

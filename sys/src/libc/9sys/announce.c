@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <ctype.h>
 
-static int	nettrans(int8_t*, int8_t*, int na, int8_t*, int);
+static int	nettrans(char*, char*, int na, char*, int);
 
 enum
 {
@@ -22,14 +22,14 @@ enum
  *  announce a network service.
  */
 int
-announce(int8_t *addr, int8_t *dir)
+announce(char *addr, char *dir)
 {
 	int ctl, n, m;
-	int8_t buf[Maxpath];
-	int8_t buf2[Maxpath];
-	int8_t netdir[Maxpath];
-	int8_t naddr[Maxpath];
-	int8_t *cp;
+	char buf[Maxpath];
+	char buf2[Maxpath];
+	char netdir[Maxpath];
+	char naddr[Maxpath];
+	char *cp;
 
 	/*
 	 *  translate the address
@@ -89,11 +89,11 @@ announce(int8_t *addr, int8_t *dir)
  *  listen for an incoming call
  */
 int
-listen(int8_t *dir, int8_t *newdir)
+listen(char *dir, char *newdir)
 {
 	int ctl, n, m;
-	int8_t buf[Maxpath];
-	int8_t *cp;
+	char buf[Maxpath];
+	char *cp;
 
 	/*
 	 *  open listen, wait for a call
@@ -141,10 +141,10 @@ listen(int8_t *dir, int8_t *newdir)
  *  accept a call, return an fd to the open data file
  */
 int
-accept(int ctl, int8_t *dir)
+accept(int ctl, char *dir)
 {
-	int8_t buf[Maxpath];
-	int8_t *num;
+	char buf[Maxpath];
+	char *num;
 	int32_t n;
 
 	num = strrchr(dir, '/');
@@ -164,10 +164,10 @@ accept(int ctl, int8_t *dir)
  *  reject a call, tell device the reason for the rejection
  */
 int
-reject(int ctl, int8_t *dir, int8_t *cause)
+reject(int ctl, char *dir, char *cause)
 {
-	int8_t buf[Maxpath];
-	int8_t *num;
+	char buf[Maxpath];
+	char *num;
 	int32_t n;
 
 	num = strrchr(dir, '/');
@@ -186,11 +186,11 @@ reject(int ctl, int8_t *dir, int8_t *cause)
  *  perform the identity translation (in case we can't reach cs)
  */
 static int
-identtrans(int8_t *netdir, int8_t *addr, int8_t *naddr, int na,
-	   int8_t *file, int nf)
+identtrans(char *netdir, char *addr, char *naddr, int na,
+	   char *file, int nf)
 {
-	int8_t proto[Maxpath];
-	int8_t *p;
+	char proto[Maxpath];
+	char *p;
 
 	USED(nf);
 
@@ -212,12 +212,12 @@ identtrans(int8_t *netdir, int8_t *addr, int8_t *naddr, int na,
  *  call up the connection server and get a translation
  */
 static int
-nettrans(int8_t *addr, int8_t *naddr, int na, int8_t *file, int nf)
+nettrans(char *addr, char *naddr, int na, char *file, int nf)
 {
 	int i, fd;
-	int8_t buf[Maxpath];
-	int8_t netdir[Maxpath];
-	int8_t *p, *p2;
+	char buf[Maxpath];
+	char netdir[Maxpath];
+	char *p, *p2;
 	int32_t n;
 
 	/*

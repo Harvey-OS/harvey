@@ -14,7 +14,7 @@
 #include	"pic.h"
 #include	"y.tab.h"
 
-int8_t	*version = "version July 5, 1993";
+char	*version = "version July 5, 1993";
 
 obj	**objlist = 0;		/* store the elements here */
 int	nobjlist = 0;		/* size of objlist array */
@@ -35,16 +35,16 @@ double	cury	= 0;
 int	hvmode	= R_DIR;	/* R => join left to right, D => top to bottom, etc. */
 
 int	codegen	= 0;	/* 1=>output for this picture; 0=>no output */
-int8_t	*PEstring;	/* "PS" or "PE" picked up by lexer */
+char	*PEstring;	/* "PS" or "PE" picked up by lexer */
 
 double	deltx	= 6;	/* max x value in output, for scaling */
 double	delty	= 6;	/* max y value in output, for scaling */
 int	dbg	= 0;
 int	lineno	= 0;
-int8_t	*filename	= "-";
+char	*filename	= "-";
 int	synerr	= 0;
 int	anyerr	= 0;	/* becomes 1 if synerr ever 1 */
-int8_t	*cmdname;
+char	*cmdname;
 
 double	xmin	= 30000;	/* min values found in actual data */
 double	ymin	= 30000;
@@ -53,7 +53,7 @@ double	ymax	= -30000;
 
 void	fpecatch(int);
 void	getdata(void), setdefaults(void);
-void	setfval(int8_t *, double);
+void	setfval(char *, double);
 int	getpid(void);
 
 main(int argc, char *argv[])
@@ -111,9 +111,9 @@ void fpecatch(int n)
 	ERROR "floating point exception %d", n FATAL;
 }
 
-int8_t *grow(int8_t *ptr, int8_t *name, int num, int size)	/* make array bigger */
+char *grow(char *ptr, char *name, int num, int size)	/* make array bigger */
 {
-	int8_t *p;
+	char *p;
 
 	if (ptr == NULL)
 		p = malloc(num * size);
@@ -125,7 +125,7 @@ int8_t *grow(int8_t *ptr, int8_t *name, int num, int size)	/* make array bigger 
 }
 
 static struct {
-	int8_t *name;
+	char *name;
 	double val;
 	int16_t scalable;		/* 1 => adjust when "scale" changes */
 } defaults[] ={
@@ -181,7 +181,7 @@ void resetvar(void)	/* reset variables listed */
 	}
 }
 
-void checkscale(int8_t *s)	/* if s is "scale", adjust default variables */
+void checkscale(char *s)	/* if s is "scale", adjust default variables */
 {
 	int i;
 	double scale;
@@ -273,7 +273,7 @@ void reset(void)
 		op = objlist[i];
 		if (op->o_type == BLOCK)
 			freesymtab(op->o_symtab);
-		free((int8_t *)objlist[i]);
+		free((char *)objlist[i]);
 	}
 	nobj = 0;
 	nattr = 0;

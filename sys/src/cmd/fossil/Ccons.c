@@ -21,7 +21,7 @@ typedef struct Q {
 	VtRendez* full;
 	VtRendez* empty;
 
-	int8_t	q[Nq];
+	char	q[Nq];
 	int	n;
 	int	r;
 	int	w;
@@ -38,16 +38,16 @@ typedef struct Cons {
 	Q*	oq;		/* points to console.oq */
 } Cons;
 
-int8_t *currfsysname;
+char *currfsysname;
 
 static struct {
 	Q*	iq;		/* input */
 	Q*	oq;		/* output */
-	int8_t	l[Nl];		/* command line assembly */
+	char	l[Nl];		/* command line assembly */
 	int	nl;		/* current line length */
 	int	nopens;
 
-	int8_t*	prompt;
+	char*	prompt;
 	int	np;
 } console;
 
@@ -93,7 +93,7 @@ consIProc(void* v)
 	Q *q;
 	Cons *cons;
 	int n, w;
-	int8_t buf[Nq/4];
+	char buf[Nq/4];
 
 	vtThreadSetName("consI");
 
@@ -129,7 +129,7 @@ consOProc(void* v)
 {
 	Q *q;
 	Cons *cons;
-	int8_t buf[Nq];
+	char buf[Nq];
 	int lastn, n, r;
 
 	vtThreadSetName("consO");
@@ -196,7 +196,7 @@ consOpen(int fd, int srvfd, int ctlfd)
 }
 
 static int
-qWrite(Q* q, int8_t* p, int n)
+qWrite(Q* q, char* p, int n)
 {
 	int w;
 
@@ -237,8 +237,8 @@ consProc(void*)
 {
 	Q *q;
 	int argc, i, n, r;
-	int8_t *argv[20], buf[Nq], *lp, *wbuf;
-	int8_t procname[64];
+	char *argv[20], buf[Nq], *lp, *wbuf;
+	char procname[64];
 
 	snprint(procname, sizeof procname, "cons %s", currfsysname);
 	vtThreadSetName(procname);
@@ -325,7 +325,7 @@ consProc(void*)
 }
 
 int
-consWrite(int8_t* buf, int len)
+consWrite(char* buf, int len)
 {
 	if(console.oq == nil)
 		return write(2, buf, len);
@@ -335,9 +335,9 @@ consWrite(int8_t* buf, int len)
 }
 
 int
-consPrompt(int8_t* prompt)
+consPrompt(char* prompt)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	if(prompt == nil)
 		prompt = "prompt";
@@ -353,7 +353,7 @@ int
 consTTY(void)
 {
 	int ctl, fd;
-	int8_t *name, *p;
+	char *name, *p;
 
 	name = "/dev/cons";
 	if((fd = open(name, ORDWR)) < 0){

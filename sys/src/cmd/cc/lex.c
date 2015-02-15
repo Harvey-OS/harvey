@@ -168,10 +168,10 @@ main(int argc, char *argv[])
 }
 
 int
-compile(int8_t *file, int8_t **defs, int ndef)
+compile(char *file, char **defs, int ndef)
 {
-	int8_t ofile[400], incfile[20];
-	int8_t *p, **av, opt[256];
+	char ofile[400], incfile[20];
+	char *p, **av, opt[256];
 	int i, c, fd[2];
 	static int first = 1;
 
@@ -346,7 +346,7 @@ newio(void)
 }
 
 void
-newfile(int8_t *s, int f)
+newfile(char *s, int f)
 {
 	Io *i;
 
@@ -368,7 +368,7 @@ newfile(int8_t *s, int f)
 }
 
 Sym*
-slookup(int8_t *s)
+slookup(char *s)
 {
 
 	strcpy(symb, s);
@@ -380,7 +380,7 @@ lookup(void)
 {
 	Sym *s;
 	uint32_t h;
-	int8_t *p;
+	char *p;
 	int c, n;
 
 	h = 0;
@@ -443,7 +443,7 @@ yylex(void)
 {
 	int64_t vv;
 	int32_t c, c1, t;
-	int8_t *cp;
+	char *cp;
 	Rune rune;
 	Sym *s;
 
@@ -922,7 +922,7 @@ caseout:
  * required syntax is [0[x]]d*
  */
 int
-mpatov(int8_t *s, int64_t *v)
+mpatov(char *s, int64_t *v)
 {
 	int64_t n, nn;
 	int c;
@@ -1008,7 +1008,7 @@ int32_t
 getr(void)
 {
 	int c, i;
-	int8_t str[UTFmax+1];
+	char str[UTFmax+1];
 	Rune rune;
 
 
@@ -1149,7 +1149,7 @@ loop:
 
 struct
 {
-	int8_t	*name;
+	char	*name;
 	uint16_t	lexical;
 	uint16_t	type;
 } itab[] =
@@ -1315,7 +1315,7 @@ Oconv(Fmt *fp)
 int
 Lconv(Fmt *fp)
 {
-	int8_t str[STRINGSZ], s[STRINGSZ];
+	char str[STRINGSZ], s[STRINGSZ];
 	Hist *h;
 	struct
 	{
@@ -1384,7 +1384,7 @@ Lconv(Fmt *fp)
 int
 Tconv(Fmt *fp)
 {
-	int8_t str[STRINGSZ+20], s[STRINGSZ+20];
+	char str[STRINGSZ+20], s[STRINGSZ+20];
 	Type *t, *t1;
 	int et;
 	int32_t n;
@@ -1443,7 +1443,7 @@ Tconv(Fmt *fp)
 int
 FNconv(Fmt *fp)
 {
-	int8_t *str;
+	char *str;
 	Node *n;
 
 	n = va_arg(fp->args, Node*);
@@ -1456,7 +1456,7 @@ FNconv(Fmt *fp)
 int
 Qconv(Fmt *fp)
 {
-	int8_t str[STRINGSZ+20], *s;
+	char str[STRINGSZ+20], *s;
 	int32_t b;
 	int i;
 
@@ -1477,7 +1477,7 @@ Qconv(Fmt *fp)
 int
 VBconv(Fmt *fp)
 {
-	int8_t str[STRINGSZ];
+	char str[STRINGSZ];
 	int i, n, t, pc;
 
 	n = va_arg(fp->args, int);
@@ -1538,10 +1538,10 @@ allocn(void *p, int32_t on, int32_t n)
 }
 
 void
-setinclude(int8_t *p)
+setinclude(char *p)
 {
 	int i;
-	int8_t *e, **np;
+	char *e, **np;
 
 	while(*p != 0) {
 		e = strchr(p, ' ');

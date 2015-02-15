@@ -505,7 +505,7 @@ pcirouting(void)
 static void
 pcicfginit(void)
 {
-	int8_t *p;
+	char *p;
 	int bno, n;
 	Pcidev **list;
 

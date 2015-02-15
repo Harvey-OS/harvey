@@ -30,7 +30,7 @@ Dev	*devtab[] =
 	nil
 };
 
-static int8_t *msgname[] = {
+static char *msgname[] = {
 	[MPixFmt] = "MPixFmt",
 	[MFixCmap] = "MFixCmap",
 	[MSetEnc] = "MSetEnc",
@@ -40,7 +40,7 @@ static int8_t *msgname[] = {
 	[MCCut] = "MCCut",
 };
 
-static int8_t *encname[] = {
+static char *encname[] = {
 	[EncRaw] = "raw",
 	[EncCopyRect] = "copy rect",
 	[EncRre] = "rre",
@@ -64,21 +64,21 @@ struct {
 int	shared;
 int	sleeptime = 5;
 int	verbose = 0;
-int8_t *cert;
-int8_t *pixchan = "r5g6b5";
+char *cert;
+char *pixchan = "r5g6b5";
 static int	cmdpid;
 static int	srvfd;
 static int	exportfd;
 static Vncs	**vncpriv;
 
-static int parsedisplay(int8_t*);
-static void vnckill(int8_t*, int, int);
-static int vncannounce(int8_t *net, int display, int8_t *adir, int base);
-static void noteshutdown(void*, int8_t*);
+static int parsedisplay(char*);
+static void vnckill(char*, int, int);
+static int vncannounce(char *net, int display, char *adir, int base);
+static void noteshutdown(void*, char*);
 static void vncaccept(Vncs*);
 static int vncsfmt(Fmt*);
-static void getremote(int8_t*, int8_t*);
-static void vncname(int8_t*, ...);
+static void getremote(char*, char*);
+static void vncname(char*, ...);
 #pragma varargck argpos vncname 1
 
 #pragma varargck type "V" Vncs*
@@ -264,7 +264,7 @@ main(int argc, char **argv)
 }
 
 static int
-parsedisplay(int8_t *p)
+parsedisplay(char *p)
 {
 	int n;
 
@@ -279,9 +279,9 @@ parsedisplay(int8_t *p)
 }
 
 static void
-getremote(int8_t *ldir, int8_t *remote)
+getremote(char *ldir, char *remote)
 {
-	int8_t buf[NETPATHLEN];
+	char buf[NETPATHLEN];
 	int fd, n;
 
 	snprint(buf, sizeof buf, "%s/remote", ldir);
@@ -385,7 +385,7 @@ killclients(Vncs *safe)
  * Called to close up shop at the end of the day
  * and also if we get an unexpected note.
  */
-static int8_t killkin[] = "die vnc kin";
+static char killkin[] = "die vnc kin";
 static void
 killall(void)
 {
@@ -406,7 +406,7 @@ shutdown(void)
 }
 
 static void
-noteshutdown(void*, int8_t *msg)
+noteshutdown(void*, char *msg)
 {
 	if(strcmp(msg, killkin) == 0)	/* already shutting down */
 		noted(NDFLT);
@@ -418,10 +418,10 @@ noteshutdown(void*, int8_t *msg)
  * Kill a specific instance of a server.
  */
 static void
-vnckill(int8_t *net, int display, int baseport)
+vnckill(char *net, int display, int baseport)
 {
 	int fd, i, n, port;
-	int8_t buf[NETPATHLEN], *p;
+	char buf[NETPATHLEN], *p;
 
 	for(i=0;; i++){
 		snprint(buf, sizeof buf, "%s/tcp/%d/local", net, i);
@@ -457,10 +457,10 @@ vnckill(int8_t *net, int display, int baseport)
  * Returns the announce fd.
  */
 static int
-vncannounce(int8_t *net, int display, int8_t *adir, int base)
+vncannounce(char *net, int display, char *adir, int base)
 {
 	int port, eport, fd;
-	int8_t addr[NETPATHLEN];
+	char addr[NETPATHLEN];
 
 	if(display == -1){
 		port = base;
@@ -495,7 +495,7 @@ static uint32_t fmt2chan(Pixfmt*);
 static void
 vncaccept(Vncs *v)
 {
-	int8_t buf[32];
+	char buf[32];
 	int fd;
 	TLSconn conn;
 
@@ -602,10 +602,10 @@ vncaccept(Vncs *v)
 }
 
 static void
-vncname(int8_t *fmt, ...)
+vncname(char *fmt, ...)
 {
 	int fd;
-	int8_t name[64], buf[32];
+	char name[64], buf[32];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -708,7 +708,7 @@ static void
 clientreadproc(Vncs *v)
 {
 	int incremental, key, keydown, buttons, type, x, y, n;
-	int8_t *buf;
+	char *buf;
 	Rectangle r;
 
 	vncname("read %V", v);
@@ -1040,7 +1040,7 @@ updateimage(Vncs *v)
 static void
 updatesnarf(Vncs *v)
 {
-	int8_t *buf;
+	char *buf;
 	int len;
 
 	if(v->snarfvers == snarf.vers)
@@ -1072,7 +1072,7 @@ updatesnarf(Vncs *v)
 static void
 clientwriteproc(Vncs *v)
 {
-	int8_t buf[32], buf2[32];
+	char buf[32], buf2[32];
 	int sent;
 
 	vncname("write %V", v);

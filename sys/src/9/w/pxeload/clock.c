@@ -68,7 +68,7 @@ typedef struct
 	int family;
 	int model;
 	int aalcycles;
-	int8_t *name;
+	char *name;
 } X86type;
 
 X86type x86intel[] =
@@ -162,14 +162,14 @@ microdelay(int microsecs)
 	aamloop(microsecs);
 }
 
-extern void cpuid(int8_t*, int*, int*);
+extern void cpuid(char*, int*, int*);
 
 X86type*
 cpuidentify(void)
 {
 	int family, model;
 	X86type *t;
-	int8_t cpuidid[16];
+	char cpuidid[16];
 	int cpuidax, cpuiddx;
 
 	cpuid(cpuidid, &cpuidax, &cpuiddx);

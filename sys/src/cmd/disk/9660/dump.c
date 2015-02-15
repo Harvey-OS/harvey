@@ -38,7 +38,7 @@ md5cd(Cdimg *cd, uint32_t block, uint32_t length, uint8_t *digest)
 }
 
 static Dumpdir*
-mkdumpdir(int8_t *name, uint8_t *md5, uint32_t block, uint32_t length)
+mkdumpdir(char *name, uint8_t *md5, uint32_t block, uint32_t length)
 {
 	Dumpdir *d;
 
@@ -88,7 +88,7 @@ ltreewalkblock(Dumpdir **l, uint32_t block)
  * Add a particular file to our binary tree.
  */
 static void
-addfile(Cdimg *cd, Dump *d, int8_t *name, Direc *dir)
+addfile(Cdimg *cd, Dump *d, char *name, Direc *dir)
 {
 	uint8_t md5[MD5dlen];
 	Dumpdir **lblock;
@@ -114,7 +114,7 @@ addfile(Cdimg *cd, Dump *d, int8_t *name, Direc *dir)
 }
 
 void
-insertmd5(Dump *d, int8_t *name, uint8_t *md5, uint32_t block,
+insertmd5(Dump *d, char *name, uint8_t *md5, uint32_t block,
           uint32_t length)
 {
 	Dumpdir **lmd5;
@@ -143,9 +143,9 @@ insertmd5(Dump *d, int8_t *name, uint8_t *md5, uint32_t block,
  * all we care about is block, length, and whether it is a directory.
  */
 void
-readkids(Cdimg *cd, Direc *dir, int8_t *(*cvt)(uint8_t*, int))
+readkids(Cdimg *cd, Direc *dir, char *(*cvt)(uint8_t*, int))
 {
-	int8_t *dot, *dotdot;
+	char *dot, *dotdot;
 	int m, n;
 	uint8_t buf[Blocksize], *ebuf, *p;
 	uint32_t b, nb;
@@ -294,9 +294,9 @@ copybutname(Direc *d, Direc *s)
 }
 
 Direc*
-createdumpdir(Direc *root, XDir *dir, int8_t *utfname)
+createdumpdir(Direc *root, XDir *dir, char *utfname)
 {
-	int8_t *p;
+	char *p;
 	Direc *d;
 
 	if(utfname[0]=='/')
@@ -326,9 +326,9 @@ rmdirec(Direc *d, Direc *kid)
 }
 
 void
-rmdumpdir(Direc *root, int8_t *utfname)
+rmdumpdir(Direc *root, char *utfname)
 {
-	int8_t *p;
+	char *p;
 	Direc *d, *dd;
 
 	if(utfname[0]=='/')
@@ -349,10 +349,10 @@ rmdumpdir(Direc *root, int8_t *utfname)
 		rmdirec(root, d);
 }
 
-int8_t*
+char*
 adddumpdir(Direc *root, uint32_t now, XDir *dir)
 {
-	int8_t buf[40], *p;
+	char buf[40], *p;
 	int n;
 	Direc *dday, *dyear;
 	Tm tm;
@@ -390,7 +390,7 @@ assert(walkdirec(root, buf)==dday);
  *
  * If only the first line is present, this is the end of the chain.
  */
-static int8_t magic[] = "plan 9 dump cd\n";
+static char magic[] = "plan 9 dump cd\n";
 uint32_t
 Cputdumpblock(Cdimg *cd)
 {
@@ -407,7 +407,7 @@ int
 hasdump(Cdimg *cd)
 {
 	int i;
-	int8_t buf[128];
+	char buf[128];
 
 	for(i=16; i<24; i++) {
 		Creadblock(cd, buf, i, sizeof buf);
@@ -418,10 +418,10 @@ hasdump(Cdimg *cd)
 }
 	
 Direc
-readdumpdirs(Cdimg *cd, XDir *dir, int8_t *(*cvt)(uint8_t*, int))
+readdumpdirs(Cdimg *cd, XDir *dir, char *(*cvt)(uint8_t*, int))
 {
-	int8_t buf[Blocksize];
-	int8_t *p, *q, *f[16];
+	char buf[Blocksize];
+	char *p, *q, *f[16];
 	int i, nf;
 	uint32_t db, t;
 	Direc *nr, root;
@@ -460,10 +460,10 @@ readdumpdirs(Cdimg *cd, XDir *dir, int8_t *(*cvt)(uint8_t*, int))
 	return root;
 }
 
-extern void addtx(int8_t*, int8_t*);
+extern void addtx(char*, char*);
 
 static int
-isalldigit(int8_t *s)
+isalldigit(char *s)
 {
 	while(*s)
 		if(!isdigit(*s++))
@@ -474,8 +474,8 @@ isalldigit(int8_t *s)
 void
 readdumpconform(Cdimg *cd)
 {
-	int8_t buf[Blocksize];
-	int8_t *p, *q, *f[10];
+	char buf[Blocksize];
+	char *p, *q, *f[10];
 	int nf;
 	uint32_t cb, nc, db;
 	uint64_t m;

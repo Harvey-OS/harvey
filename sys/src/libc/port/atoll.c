@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int64_t
-atoll(int8_t *s)
+atoll(char *s)
 {
 	return strtoll(s, nil, 0);
 }

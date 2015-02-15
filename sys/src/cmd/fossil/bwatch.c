@@ -360,7 +360,7 @@ static void
 stop(void)
 {
 	int fd;
-	int8_t buf[32];
+	char buf[32];
 
 	snprint(buf, sizeof buf, "#p/%d/ctl", getpid());
 	fd = open(buf, OWRITE);

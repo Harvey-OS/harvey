@@ -13,7 +13,7 @@ int
 dorecipe(Node *node)
 {
 	int did = 0;
-	int8_t buf[BIGBLOCK], cwd[256];
+	char buf[BIGBLOCK], cwd[256];
 	Arc *a, *aa;
 	Node *n;
 	Rule *r = 0;
@@ -117,7 +117,7 @@ dorecipe(Node *node)
 }
 
 void
-addw(Word *w, int8_t *s)
+addw(Word *w, char *s)
 {
 	Word *lw;
 

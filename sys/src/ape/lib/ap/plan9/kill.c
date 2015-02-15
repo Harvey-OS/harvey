@@ -16,10 +16,10 @@
 #include <errno.h>
 
 static int
-note(int pid, int8_t *msg, int8_t *fmt)
+note(int pid, char *msg, char *fmt)
 {
 	int f;
-	int8_t pname[50];
+	char pname[50];
 
 	sprintf(pname, fmt, pid);
 	f = open(pname, O_WRONLY);
@@ -39,7 +39,7 @@ note(int pid, int8_t *msg, int8_t *fmt)
 int
 kill(pid_t pid, int sig)
 {
-	int8_t *msg;
+	char *msg;
 	int sid, r, mpid;
 
 	if(sig == 0)

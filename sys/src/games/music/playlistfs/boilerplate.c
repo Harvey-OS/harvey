@@ -99,11 +99,11 @@ readbuf(Req *r, void *s, int32_t n)
 	}
 	if(r->ifcall.offset+r->ofcall.count > n)
 		r->ofcall.count = n - r->ifcall.offset;
-	memmove(r->ofcall.data, (int8_t*)s+r->ifcall.offset, r->ofcall.count);
+	memmove(r->ofcall.data, (char*)s+r->ifcall.offset, r->ofcall.count);
 }
 
 void
-readstr(Req *r, int8_t *s)
+readstr(Req *r, char *s)
 {
 	readbuf(r, s, strlen(s));
 }

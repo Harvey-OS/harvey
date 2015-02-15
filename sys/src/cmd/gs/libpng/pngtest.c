@@ -105,7 +105,7 @@ static float t_start, t_stop, t_decode, t_encode, t_misc;
 
 #if defined(PNG_TIME_RFC1123_SUPPORTED)
 static int tIME_chunk_present=0;
-static int8_t tIME_string[30] = "no tIME chunk present in file";
+static char tIME_string[30] = "no tIME chunk present in file";
 #endif
 
 static int verbose = 0;
@@ -634,7 +634,7 @@ test_one_file(PNG_CONST int8_t *inname, PNG_CONST int8_t *outname)
 #if defined(_WIN32_WCE)
    TCHAR path[MAX_PATH];
 #endif
-   int8_t inbuf[256], outbuf[256];
+   char inbuf[256], outbuf[256];
 
    row_buf = NULL;
 
@@ -1314,7 +1314,7 @@ static PNG_CONST int8_t *outname = "pngout.png";
 #endif
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
    int multiple = 0;
    int ierror = 0;

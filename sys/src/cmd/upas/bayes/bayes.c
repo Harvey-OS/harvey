@@ -22,7 +22,7 @@ enum
 typedef struct Table Table;
 struct Table
 {
-	int8_t *file;
+	char *file;
 	Hash *hash;
 	int nmsg;
 };
@@ -85,7 +85,7 @@ noteword(Word *w)
 }
 
 Hash*
-hread(int8_t *s)
+hread(char *s)
 {
 	Hash *h;
 	Biobuf *b;

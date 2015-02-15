@@ -94,16 +94,16 @@
 #include "ext.h"			/* external variable declarations */
 #include "postdaisy.h"			/* a few special definitions */
 
-int8_t	*optnames = "a:c:f:h:l:m:n:o:p:r:s:v:x:y:A:C:E:J:L:P:DI";
+char	*optnames = "a:c:f:h:l:m:n:o:p:r:s:v:x:y:A:C:E:J:L:P:DI";
 
-int8_t	*prologue = POSTDAISY;		/* default PostScript prologue */
-int8_t	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
+char	*prologue = POSTDAISY;		/* default PostScript prologue */
+char	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
 
 int	formsperpage = 1;		/* page images on each piece of paper */
 int	copies = 1;			/* and this many copies of each sheet */
 
-int8_t	htabstops[COLUMNS];		/* horizontal */
-int8_t	vtabstops[ROWS];		/* and vertical tabs */
+char	htabstops[COLUMNS];		/* horizontal */
+char	vtabstops[ROWS];		/* and vertical tabs */
 
 int	res = RES;			/* input file resolution - sort of */
 
@@ -140,7 +140,7 @@ int	page = 0;			/* page we're working on */
 int	printed = 0;			/* printed this many pages */
 
 Fontmap	fontmap[] = FONTMAP;		/* for translating font names */
-int8_t	*fontname = "Courier";		/* use this PostScript font */
+char	*fontname = "Courier";		/* use this PostScript font */
 int	shadowprint = OFF;		/* automatic bold printing if ON */
 
 FILE	*fp_in;				/* read from this file */
@@ -397,9 +397,9 @@ options()
 
 /*****************************************************************************/
 
-int8_t *get_font(name)
+char *get_font(name)
 
-    int8_t	*name;			/* name the user asked for */
+    char	*name;			/* name the user asked for */
 
 {
 

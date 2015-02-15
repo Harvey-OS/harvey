@@ -15,10 +15,10 @@
  * Return pointer to first occurrence of s2 in s1,
  * 0 if none
  */
-int8_t*
-utfutf(int8_t *s1, int8_t *s2)
+char*
+utfutf(char *s1, char *s2)
 {
-	int8_t *p;
+	char *p;
 	int32_t f, n1, n2;
 	Rune r;
 

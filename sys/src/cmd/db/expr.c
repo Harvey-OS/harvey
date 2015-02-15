@@ -40,7 +40,7 @@ ascval(void)
  */
 
 static WORD
-fpin(int8_t *buf)
+fpin(char *buf)
 {
 	union {
 		WORD w;
@@ -321,9 +321,9 @@ getnum(int (*rdf)(void))
 }
 
 void
-readsym(int8_t *isymbol)
+readsym(char *isymbol)
 {
-	int8_t	*p;
+	char	*p;
 	Rune r;
 
 	p = isymbol;
@@ -338,9 +338,9 @@ readsym(int8_t *isymbol)
 }
 
 void
-readfname(int8_t *filename)
+readfname(char *filename)
 {
-	int8_t	*p;
+	char	*p;
 	Rune	c;
 
 	/* snarf chars until un-escaped char in terminal char set */

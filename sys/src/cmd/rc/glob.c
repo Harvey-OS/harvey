@@ -10,7 +10,7 @@
 #include "rc.h"
 #include "exec.h"
 #include "fns.h"
-int8_t *globname;
+char *globname;
 struct word *globv;
 /*
  * delete all the GLOB marks from s, in place
@@ -19,8 +19,8 @@ struct word *globv;
 void
 deglob(void *as)
 {
-	int8_t *s = as;
-	int8_t *t = s;
+	char *s = as;
+	char *t = s;
 	do{
 		if(*t==GLOB)
 			t++;
@@ -31,21 +31,21 @@ deglob(void *as)
 int
 globcmp(const void *s, const void *t)
 {
-	return strcmp(*(int8_t**)s, *(int8_t**)t);
+	return strcmp(*(char**)s, *(char**)t);
 }
 
 void
 globsort(word *left, word *right)
 {
-	int8_t **list;
+	char **list;
 	word *a;
 	int n = 0;
 	for(a = left;a!=right;a = a->next) n++;
-	list = (int8_t **)emalloc(n*sizeof(int8_t *));
+	list = (char **)emalloc(n*sizeof(char *));
 	for(a = left,n = 0;a!=right;a = a->next,n++) list[n] = a->word;
 	qsort((void *)list, n, sizeof(void *), globcmp);
 	for(a = left,n = 0;a!=right;a = a->next,n++) a->word = list[n];
-	efree((int8_t *)list);
+	efree((char *)list);
 }
 /*
  * Push names prefixed by globname and suffixed by a match of p onto the astack.
@@ -106,7 +106,7 @@ glob(void *ap)
 
 	if(!globlen){
 		deglob(p);
-		globv = newword((int8_t *)p, globv);
+		globv = newword((char *)p, globv);
 		return;
 	}
 	globname = emalloc(globlen);
@@ -115,7 +115,7 @@ glob(void *ap)
 	efree(globname);
 	if(svglobv==globv){
 		deglob(p);
-		globv = newword((int8_t *)p, globv);
+		globv = newword((char *)p, globv);
 	}
 	else
 		globsort(globv, svglobv);
@@ -131,8 +131,8 @@ equtf(uint8_t *p, uint8_t *q)
 	if(*p!=*q)
 		return 0;
 	
-	chartorune(&pr, (int8_t*)p);
-	chartorune(&qr, (int8_t*)q);
+	chartorune(&pr, (char*)p);
+	chartorune(&qr, (char*)q);
 	return pr == qr;
 }
 
@@ -145,7 +145,7 @@ uint8_t*
 nextutf(uint8_t *p)
 {
 	Rune dummy;
-	return p + chartorune(&dummy, (int8_t*)p);
+	return p + chartorune(&dummy, (char*)p);
 }
 
 /*
@@ -157,7 +157,7 @@ unicode(uint8_t *p)
 {
 	Rune r;
 
-	chartorune(&r, (int8_t*)p);
+	chartorune(&r, (char*)p);
 	return r;
 }
 

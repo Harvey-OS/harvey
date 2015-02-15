@@ -111,9 +111,9 @@ findcache(int n)
 }
 
 static int
-getlock(int8_t *lock)
+getlock(char *lock)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 	int i, fd;
 	enum { SECS = 200 };
 
@@ -132,7 +132,7 @@ getlock(int8_t *lock)
 }
 
 static Whist*
-readwhist(int8_t *file, int8_t *lock, Qid *qid)
+readwhist(char *file, char *lock, Qid *qid)
 {
 	int lfd;
 	Biobuf *b;
@@ -164,7 +164,7 @@ readwhist(int8_t *file, int8_t *lock, Qid *qid)
 }
 
 static void
-gencurrent(Wcache *w, Qid *q, int8_t *file, int8_t *lock, uint32_t *t,
+gencurrent(Wcache *w, Qid *q, char *file, char *lock, uint32_t *t,
 	   Whist **wp, int n)
 {
 	Dir *d;
@@ -200,8 +200,8 @@ else fprint(2, "error file=%s lock=%s %r\n", file, lock);
 static void
 current(Wcache *w)
 {
-	int8_t tmp[40];
-	int8_t tmplock[40];
+	char tmp[40];
+	char tmplock[40];
 
 	sprint(tmplock, "d/L.%d", w->n);
 	sprint(tmp, "d/%d", w->n);
@@ -211,7 +211,7 @@ current(Wcache *w)
 static void
 currenthist(Wcache *w)
 {
-	int8_t hist[40], lock[40];
+	char hist[40], lock[40];
 
 	sprint(hist, "d/%d.hist", w->n);
 	sprint(lock, "d/L.%d", w->n);
@@ -354,11 +354,11 @@ closemap(Map *m)
 void
 currentmap(int force)
 {
-	int8_t *p, *q, *r;
+	char *p, *q, *r;
 	int lfd, fd, m, n;
 	Dir *d;
 	Map *nmap;
-	int8_t *err = nil;
+	char *err = nil;
 
 	lfd = -1;
 	fd = -1;
@@ -449,9 +449,9 @@ Return:
 }
 
 int
-allocnum(int8_t *title, int mustbenew)
+allocnum(char *title, int mustbenew)
 {
-	int8_t *p, *q;
+	char *p, *q;
 	int lfd, fd, n;
 	Biobuf b;
 
@@ -533,9 +533,9 @@ allocnum(int8_t *title, int mustbenew)
 }
 
 int
-nametonum(int8_t *s)
+nametonum(char *s)
 {
-	int8_t *p;
+	char *p;
 	int i, lo, hi, m, rv;
 
 	s = estrdup(s);
@@ -565,11 +565,11 @@ nametonum(int8_t *s)
 	return rv;
 }
 
-int8_t*
+char*
 numtoname(int n)
 {
 	int i;
-	int8_t *s;
+	char *s;
 
 	currentmap(0);
 	rlock(&maplock);
@@ -587,7 +587,7 @@ numtoname(int n)
 }
 
 Whist*
-getcurrentbyname(int8_t *s)
+getcurrentbyname(char *s)
 {
 	int n;
 
@@ -624,9 +624,9 @@ Brdstring(Biobuf *b)
  * the history file, but mark it as a failed write.
  */
 int
-writepage(int num, uint32_t t, String *s, int8_t *title)
+writepage(int num, uint32_t t, String *s, char *title)
 {
-	int8_t tmp[40], tmplock[40], err[ERRMAX], hist[40], *p;
+	char tmp[40], tmplock[40], err[ERRMAX], hist[40], *p;
 	int conflict, lfd, fd;
 	Biobuf *b;
 	String *os;

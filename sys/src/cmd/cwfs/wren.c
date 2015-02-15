@@ -27,10 +27,10 @@ struct	Wren
 //	char	*sddir;			/* /dev/sdXX name */
 };
 
-int8_t *
-dataof(int8_t *file)
+char *
+dataof(char *file)
 {
-	int8_t *datanm;
+	char *datanm;
 	Dir *dir;
 
 	dir = dirstat(file);

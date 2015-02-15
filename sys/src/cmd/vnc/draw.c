@@ -11,7 +11,7 @@
 #include "vncv.h"
 
 static struct {
-	int8_t	*name;
+	char	*name;
 	int	num;
 } enctab[] = {
 	"copyrect",	EncCopyRect,
@@ -40,7 +40,7 @@ vncrdcolor(Vnc *v, uint8_t *color)
 void
 sendencodings(Vnc *v)
 {
-	int8_t *f[10];
+	char *f[10];
 	int enc[10], nenc, i, j, nf;
 
 	nf = tokenize(encodings, f, nelem(f));

@@ -149,7 +149,7 @@ freeb(Block *b)
 }
 
 void
-checkb(Block *b, int8_t *msg)
+checkb(Block *b, char *msg)
 {
 	void *dead = (void*)Bdead;
 

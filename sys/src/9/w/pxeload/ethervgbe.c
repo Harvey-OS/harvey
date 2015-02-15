@@ -420,7 +420,7 @@ vgbemiir(Mii* mii, int phy, int addr)
 }
 
 
-static int8_t* vgbeisr_info[] = {
+static char* vgbeisr_info[] = {
 	"hi prio Rx int",
 	"hi prio Tx int",
 	"Rx queue completed",

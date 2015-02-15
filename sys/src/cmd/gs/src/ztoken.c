@@ -265,7 +265,7 @@ ztoken_handle_comment(i_ctx_t *i_ctx_p, const ref *fop, scanner_state *sstate,
 		      const ref *ptoken, int scan_code,
 		      bool save, bool push_file, op_proc_t cont)
 {
-    const int8_t *proc_name;
+    const char *proc_name;
     scanner_state *pstate;
     os_ptr op;
     ref *ppcproc;
@@ -349,7 +349,7 @@ int
 ztoken_scanner_options(const ref *upref, int old_options)
 {
     typedef struct named_scanner_option_s {
-	const int8_t *pname;
+	const char *pname;
 	int option;
     } named_scanner_option_t;
     static const named_scanner_option_t named_options[4] = {

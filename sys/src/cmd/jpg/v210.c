@@ -29,7 +29,7 @@ enum{
 	Edge		= 5
 };
 
-int8_t	*show(int, int8_t*);
+char	*show(int, char*);
 
 Rawimage** readV210(int fd, int colorspace);
 
@@ -140,13 +140,13 @@ init(void)
 	return 1;
 }
 
-int8_t*
-show(int fd, int8_t *name)
+char*
+show(int fd, char *name)
 {
 	Rawimage **array, *r, *c;
 	Image *i;
 	int j, ch;
-	int8_t buf[32];
+	char buf[32];
 
 	array = readV210(fd, CYCbCr);
 	if(array == nil || array[0]==nil){

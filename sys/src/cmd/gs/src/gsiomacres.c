@@ -77,7 +77,7 @@ typedef struct {
 	unsigned int offset;
 	unsigned int length;
 	byte *data;
-	int8_t *name;
+	char *name;
 	unsigned short id;
 	byte flags;
 } resource;
@@ -158,7 +158,7 @@ private unsigned int res_string2type(const char *type_string)
     return (type);
 }
 /* convert a 4-character typecode from unsigned int to C string representation */
-private int8_t * res_type2string(const unsigned int type, int8_t *type_string)
+private int8_t * res_type2string(const unsigned int type, char *type_string)
 {
 	if (type_string == NULL) return NULL;
 	
@@ -200,7 +200,7 @@ resource_list *read_resource_map(FILE *in, resource_header *header)
     unsigned int *types;
     int *number, *ref_offsets;
     int n_types;
-    int8_t type_string[5];
+    char type_string[5];
     byte *buf, *p;
     int i,j,k;
 
@@ -253,9 +253,9 @@ resource_list *read_resource_map(FILE *in, resource_header *header)
             if (this_name_offset == 0xFFFF) { /* no name field */
                 list->resources[k].name = NULL;
             } else { /* read name field (a pascal string) */
-                int8_t *c = buf + name_offset + this_name_offset;
+                char *c = buf + name_offset + this_name_offset;
                 int len = *c;
-                list->resources[k].name = malloc(sizeof(int8_t)*(len+1));
+                list->resources[k].name = malloc(sizeof(char)*(len+1));
                 memcpy(list->resources[k].name, c + 1, len);
                 list->resources[k].name[len] = '\0';
             }

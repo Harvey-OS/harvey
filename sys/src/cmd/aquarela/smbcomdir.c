@@ -12,12 +12,12 @@
 SmbProcessResult
 smbcomcheckdirectory(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 {
-	int8_t *path;
+	char *path;
 	Dir *d;
 	uint8_t fmt;
 	SmbProcessResult pr;
 	SmbTree *t;
-	int8_t *fullpath = nil;
+	char *fullpath = nil;
 
 	if (!smbcheckwordcount("comcheckdirectory", h, 0))
 		return SmbProcessResultFormat;

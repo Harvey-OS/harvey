@@ -31,12 +31,12 @@ typedef struct Reprog		Reprog;
 struct Resub{
 	union
 	{
-		int8_t *sp;
+		char *sp;
 		wchar_t *rsp;
 	} s;
 	union
 	{
-		int8_t *ep;
+		char *ep;
 		wchar_t *rep;
 	} e;
 };
@@ -75,12 +75,12 @@ struct Reprog{
 	Reinst	firstinst[5];	/* .text */
 };
 
-extern Reprog	*regcomp(int8_t*);
-extern Reprog	*regcomplit(int8_t*);
-extern Reprog	*regcompnl(int8_t*);
-extern void	regerror(int8_t*);
-extern int	regexec(Reprog*, int8_t*, Resub*, int);
-extern void	regsub(int8_t*, int8_t*, int, Resub*, int);
+extern Reprog	*regcomp(char*);
+extern Reprog	*regcomplit(char*);
+extern Reprog	*regcompnl(char*);
+extern void	regerror(char*);
+extern int	regexec(Reprog*, char*, Resub*, int);
+extern void	regsub(char*, char*, int, Resub*, int);
 extern int	rregexec(Reprog*, wchar_t*, Resub*, int);
 extern void	rregsub(wchar_t*, wchar_t*, int, Resub*, int);
 #endif

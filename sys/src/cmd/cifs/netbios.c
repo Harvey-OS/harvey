@@ -121,9 +121,9 @@ P8(uint8_t **p, uint n)
 
 
 static void
-nbname(uint8_t **p, int8_t *name, int8_t pad)
+nbname(uint8_t **p, char *name, char pad)
 {
-	int8_t c;
+	char c;
 	int i;
 	int done = 0;
 
@@ -141,11 +141,11 @@ nbname(uint8_t **p, int8_t *name, int8_t pad)
 }
 
 int
-calledname(int8_t *host, int8_t *name)
+calledname(char *host, char *name)
 {
-	int8_t *addr;
+	char *addr;
 	uint8_t buf[1024], *p;
-	static int8_t tmp[20];
+	static char tmp[20];
 	int num, flg, svs, j, i, fd, trn;
 
 	trn = (getpid() ^ time(0)) & 0xffff;
@@ -204,9 +204,9 @@ calledname(int8_t *host, int8_t *name)
 
 
 int
-nbtdial(int8_t *addr, int8_t *called, int8_t *sysname)
+nbtdial(char *addr, char *called, char *sysname)
 {
-	int8_t redir[20];
+	char redir[20];
 	uint8_t *p, *lenp, buf[1024];
 	int type, len, err, fd, nkeepalive, nretarg;
 
@@ -369,7 +369,7 @@ retry:
 
 
 void
-xd(int8_t *str, void *buf, int n)
+xd(char *str, void *buf, int n)
 {
 	int fd, flg, flags2, cmd;
 	uint sum;
@@ -475,8 +475,8 @@ Raw:
 	for(; p < end; p++){
 		if((p - (uint8_t *)buf) % 16 == 0)
 			fprint(2, "\n%06lx\t", p - (uint8_t *)buf);
-		if(isprint((int8_t)*p))
-			fprint(2, "%c  ", (int8_t )*p);
+		if(isprint((char)*p))
+			fprint(2, "%c  ", (char )*p);
 		else
 			fprint(2, "%02ux ", *p);
 	}

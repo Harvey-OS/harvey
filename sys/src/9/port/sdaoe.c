@@ -15,8 +15,8 @@
 #include "etherif.h"
 #include "aoe.h"
 
-extern	int8_t	Echange[];
-extern	int8_t	Enotup[];
+extern	char	Echange[];
+extern	char	Enotup[];
 
 #define uprint(...)	snprint(up->genbuf, sizeof up->genbuf, __VA_ARGS__);
 
@@ -35,7 +35,7 @@ enum {
 	Datapi16= 1<<5,
 };
 
-static int8_t *flagname[] = {
+static char *flagname[] = {
 	"llba",
 	"smart",
 	"power",
@@ -68,7 +68,7 @@ struct Ctlr{
 	char	ident[0x100];
 };
 
-void	aoeidmove(int8_t *p, uint16_t *a, unsigned n);
+void	aoeidmove(char *p, uint16_t *a, unsigned n);
 
 static	Lock	ctlrlock;
 static	Ctlr	*head;
@@ -185,7 +185,7 @@ aoeidentify(Ctlr *d, SDunit *u)
 }
 
 static Ctlr*
-ctlrlookup(int8_t *path)
+ctlrlookup(char *path)
 {
 	Ctlr *c;
 
@@ -198,7 +198,7 @@ ctlrlookup(int8_t *path)
 }
 
 static Ctlr*
-newctlr(int8_t *path)
+newctlr(char *path)
 {
 	Ctlr *c;
 
@@ -248,10 +248,10 @@ delctlr(Ctlr *c)
 }
 
 static SDev*
-aoeprobe(int8_t *path, SDev *s)
+aoeprobe(char *path, SDev *s)
 {
 	int n, i;
-	int8_t *p;
+	char *p;
 	Chan *c;
 	Ctlr *ctlr;
 
@@ -296,11 +296,11 @@ aoeprobe(int8_t *path, SDev *s)
 	return s;
 }
 
-static int8_t 	*probef[32];
+static char 	*probef[32];
 static int 	nprobe;
 
 static int
-pnpprobeid(int8_t *s)
+pnpprobeid(char *s)
 {
 	int id;
 
@@ -316,7 +316,7 @@ static SDev*
 aoepnp(void)
 {
 	int i, id;
-	int8_t *p;
+	char *p;
 	SDev *h, *t, *s;
 
 	if((p = getconf("aoedev")) == 0)
@@ -348,7 +348,7 @@ static Ctlr*
 pnpprobe(SDev *sd)
 {
 	int j;
-	int8_t *p;
+	char *p;
 	static int i;
 
 	if(i > nprobe)
@@ -445,7 +445,7 @@ aoerio(SDreq *r)
 {
 	int i, count;
 	uint64_t lba;
-	int8_t *name;
+	char *name;
 	uint8_t *cmd;
 	int32_t (*rio)(Chan*, void*, int32_t, int64_t);
 	Ctlr *c;
@@ -519,15 +519,15 @@ aoerio(SDreq *r)
 	return SDok;
 }
 
-static int8_t *smarttab[] = {
+static char *smarttab[] = {
 	"unset",
 	"error",
 	"threshold exceeded",
 	"normal"
 };
 
-static int8_t *
-pflag(int8_t *s, int8_t *e, uint8_t f)
+static char *
+pflag(char *s, char *e, uint8_t f)
 {
 	uint8_t i, m;
 
@@ -540,10 +540,10 @@ pflag(int8_t *s, int8_t *e, uint8_t f)
 }
 
 static int
-aoerctl(SDunit *u, int8_t *p, int l)
+aoerctl(SDunit *u, char *p, int l)
 {
 	Ctlr *c;
-	int8_t *e, *op;
+	char *e, *op;
 
 	if((c = u->dev->ctlr) == nil)
 		return 0;
@@ -575,7 +575,7 @@ aoewctl(SDunit *, Cmdbuf *cmd)
 static SDev*
 aoeprobew(DevConf *c)
 {
-	int8_t *p;
+	char *p;
 
 	p = strchr(c->type, '/');
 	if(p == nil || strlen(p) > Maxpath - 11)
@@ -593,8 +593,8 @@ aoeclear(SDev *s)
 	delctlr((Ctlr *)s->ctlr);
 }
 
-static int8_t*
-aoertopctl(SDev *s, int8_t *p, int8_t *e)
+static char*
+aoertopctl(SDev *s, char *p, char *e)
 {
 	Ctlr *c;
 

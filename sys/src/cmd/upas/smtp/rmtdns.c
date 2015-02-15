@@ -12,10 +12,10 @@
 #include	<ndb.h>
 
 int
-rmtdns(int8_t *net, int8_t *path)
+rmtdns(char *net, char *path)
 {
 	int fd, n, nb, r;
-	int8_t *domain, *cp, buf[Maxdomain + 5];
+	char *domain, *cp, buf[Maxdomain + 5];
 
 	if(net == 0 || path == 0)
 		return 0;

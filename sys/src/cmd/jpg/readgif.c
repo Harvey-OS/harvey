@@ -24,10 +24,10 @@ struct Entry{
 
 struct Header{
 	Biobuf	*fd;
-	int8_t		err[256];
+	char		err[256];
 	jmp_buf	errlab;
 	uint8_t 	buf[3*256];
-	int8_t 		vers[8];
+	char 		vers[8];
 	uint8_t 	*globalcmap;
 	int		screenw;
 	int		screenh;
@@ -45,9 +45,9 @@ struct Header{
 	uint8_t	*pic;
 };
 
-static int8_t		readerr[] = "ReadGIF: read error: %r";
-static int8_t		extreaderr[] = "ReadGIF: can't read extension: %r";
-static int8_t		memerr[] = "ReadGIF: malloc failed: %r";
+static char		readerr[] = "ReadGIF: read error: %r";
+static char		extreaderr[] = "ReadGIF: can't read extension: %r";
+static char		memerr[] = "ReadGIF: malloc failed: %r";
 
 static Rawimage**	readarray(Header*);
 static Rawimage*	readone(Header*);
@@ -95,7 +95,7 @@ giffreeall(Header *h, int freeimage)
 
 static
 void
-giferror(Header *h, int8_t *fmt, ...)
+giferror(Header *h, char *fmt, ...)
 {
 	va_list arg;
 
@@ -115,7 +115,7 @@ readgif(int fd, int colorspace)
 	Rawimage **a;
 	Biobuf b;
 	Header *h;
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	buf[0] = '\0';
 	USED(colorspace);

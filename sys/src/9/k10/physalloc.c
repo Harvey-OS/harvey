@@ -71,8 +71,8 @@ static Bal bal[Ndoms];
 static int ndoms;
 static Lock budlock;
 
-int8_t*
-seprintphysstats(int8_t *s,  int8_t *e)
+char*
+seprintphysstats(char *s,  char *e)
 {
 	Bal *b;
 	int i;

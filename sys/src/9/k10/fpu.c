@@ -259,12 +259,12 @@ acfpusysprocsetup(Proc *p)
 	}
 }
 
-static int8_t*
+static char*
 fpunote(void)
 {
 	uint16_t fsw;
 	Fxsave *fpusave;
-	int8_t *m;
+	char *m;
 
 	/*
 	 * The Sff bit is sticky, meaning it should be explicitly
@@ -302,12 +302,12 @@ fpunote(void)
 	return up->genbuf;
 }
 
-int8_t*
+char*
 xfpuxf(Ureg* ureg, void*)
 {
 	uint32_t mxcsr;
 	Fxsave *fpusave;
-	int8_t *m;
+	char *m;
 
 	/*
 	 * #XF - SIMD Floating Point Exception (Vector 18).
@@ -354,20 +354,20 @@ xfpuxf(Ureg* ureg, void*)
 void
 fpuxf(Ureg *ureg, void *p)
 {
-	int8_t *n;
+	char *n;
 
 	n = xfpuxf(ureg, p);
 	if(n != nil)
 		postnote(up, 1, n, NDebug);
 }
 
-int8_t*
+char*
 acfpuxf(Ureg *ureg, void *p)
 {
 	return xfpuxf(ureg, p);
 }
 
-static int8_t*
+static char*
 xfpumf(Ureg* ureg, void*)
 {
 	Fxsave *fpusave;
@@ -406,20 +406,20 @@ xfpumf(Ureg* ureg, void*)
 void
 fpumf(Ureg *ureg, void *p)
 {
-	int8_t *n;
+	char *n;
 
 	n = xfpumf(ureg, p);
 	if(n != nil)
 		postnote(up, 1, n, NDebug);
 }
 
-int8_t*
+char*
 acfpumf(Ureg *ureg, void *p)
 {
 	return xfpumf(ureg, p);
 }
 
-static int8_t*
+static char*
 xfpunm(Ureg* ureg, void*)
 {
 	Fxsave *fpusave;
@@ -488,14 +488,14 @@ xfpunm(Ureg* ureg, void*)
 void
 fpunm(Ureg *ureg, void *p)
 {
-	int8_t *n;
+	char *n;
 
 	n = xfpunm(ureg, p);
 	if(n != nil)
 		postnote(up, 1, n, NDebug);
 }
 
-int8_t*
+char*
 acfpunm(Ureg *ureg, void *p)
 {
 	return xfpunm(ureg, p);

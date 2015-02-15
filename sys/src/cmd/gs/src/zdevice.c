@@ -81,7 +81,7 @@ private int
 zdevicename(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
-    const int8_t *dname;
+    const char *dname;
 
     check_read_type(*op, t_device);
     dname = op->value.pdevice->dname;

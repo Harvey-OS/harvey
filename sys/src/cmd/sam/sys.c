@@ -22,9 +22,9 @@ resetsys(void)
 }
 
 void
-syserror(int8_t *a)
+syserror(char *a)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	if(!inerror){
 		inerror=TRUE;
@@ -37,9 +37,9 @@ syserror(int8_t *a)
 int
 Read(int f, void *a, int n)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
-	if(read(f, (int8_t *)a, n)!=n) {
+	if(read(f, (char *)a, n)!=n) {
 		if (lastfile)
 			lastfile->rescuing = 1;
 		errstr(buf, sizeof buf);
@@ -56,7 +56,7 @@ Write(int f, void *a, int n)
 {
 	int m;
 
-	if((m=write(f, (int8_t *)a, n))!=n)
+	if((m=write(f, (char *)a, n))!=n)
 		syserror("write");
 	return m;
 }

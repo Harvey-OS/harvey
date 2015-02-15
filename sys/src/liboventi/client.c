@@ -12,9 +12,9 @@
 #include <oventi.h>
 #include "session.h"
 
-static int8_t EProtocolBotch[] = "venti protocol botch";
-static int8_t ELumpSize[] = "illegal lump size";
-static int8_t ENotConnected[] = "not connected to venti server";
+static char EProtocolBotch[] = "venti protocol botch";
+static char ELumpSize[] = "illegal lump size";
+static char ENotConnected[] = "not connected to venti server";
 
 static Packet *vtRPC(VtSession *z, int op, Packet *p);
 
@@ -26,12 +26,12 @@ vtClientAlloc(void)
 }
 
 VtSession *
-vtDial(int8_t *host, int canfail)
+vtDial(char *host, int canfail)
 {
 	VtSession *z;
 	int fd;
-	int8_t *na;
-	int8_t e[ERRMAX];
+	char *na;
+	char e[ERRMAX];
 
 	if(host == nil) 
 		host = getenv("venti");
@@ -62,10 +62,10 @@ vtDial(int8_t *host, int canfail)
 }
 
 int
-vtRedial(VtSession *z, int8_t *host)
+vtRedial(VtSession *z, char *host)
 {
 	int fd;
-	int8_t *na;
+	char *na;
 
 	if(host == nil) 
 		host = getenv("venti");
@@ -84,7 +84,7 @@ vtRedial(VtSession *z, int8_t *host)
 }
 
 VtSession *
-vtStdioServer(int8_t *server)
+vtStdioServer(char *server)
 {
 	int pfd[2];
 	VtSession *z;
@@ -139,7 +139,7 @@ vtHello(VtSession *z)
 {
 	Packet *p;
 	uint8_t buf[10];
-	int8_t *sid;
+	char *sid;
 	int crypto, codec;
 
 	sid = nil;
@@ -299,7 +299,7 @@ static Packet *
 vtRPC(VtSession *z, int op, Packet *p)
 {
 	uint8_t *hdr, buf[2];
-	int8_t *err;
+	char *err;
 
 	if(z == nil){
 		vtSetError(ENotConnected);

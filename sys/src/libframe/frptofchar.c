@@ -30,9 +30,9 @@ _frptofcharptb(Frame *f, uint32_t p, Point pt, int bn)
 					if((r = *s) < Runeself)
 						w = 1;
 					else
-						w = chartorune(&r, (int8_t*)s);
+						w = chartorune(&r, (char*)s);
 					pt.x += stringnwidth(f->font,
-							     (int8_t*)s, 1);
+							     (char*)s, 1);
 					if(r==0 || pt.x>f->r.max.x)
 						drawerror(f->display, "frptofchar");
 				}
@@ -107,11 +107,11 @@ frcharofpt(Frame *f, Point pt)
 					if((r = *s) < Runeself)
 						w = 1;
 					else
-						w = chartorune(&r, (int8_t*)s);
+						w = chartorune(&r, (char*)s);
 					if(r == 0)
 						drawerror(f->display, "end of string in frcharofpt");
 					qt.x += stringnwidth(f->font,
-							     (int8_t*)s, 1);
+							     (char*)s, 1);
 					s += w;
 					if(qt.x > pt.x)
 						break;

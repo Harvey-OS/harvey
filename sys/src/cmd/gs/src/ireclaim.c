@@ -112,7 +112,7 @@ gs_vmreclaim(gs_dual_memory_t *dmem, bool global)
 {
     /* HACK: we know the gs_dual_memory_t is embedded in a context state. */
     i_ctx_t *i_ctx_p =
-	(i_ctx_t *)((int8_t *)dmem - offset_of(i_ctx_t, memory));
+	(i_ctx_t *)((char *)dmem - offset_of(i_ctx_t, memory));
     gs_ref_memory_t *lmem = dmem->space_local;
     int code = context_state_store(i_ctx_p);
     gs_ref_memory_t *memories[5];

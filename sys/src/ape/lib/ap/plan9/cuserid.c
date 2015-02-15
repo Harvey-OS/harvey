@@ -15,11 +15,11 @@
  * BUG: supposed to be for effective uid,
  * but plan9 doesn't have that concept
  */
-int8_t *
-cuserid(int8_t *s)
+char *
+cuserid(char *s)
 {
-	int8_t *logname;
-	static int8_t buf[L_cuserid];
+	char *logname;
+	static char buf[L_cuserid];
 
 	if((logname = getlogin()) == NULL)
 		return(NULL);

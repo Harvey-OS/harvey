@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t*
-strcat(int8_t *s1, int8_t *s2)
+char*
+strcat(char *s1, char *s2)
 {
 
 	strcpy(strchr(s1, 0), s2);

@@ -16,7 +16,7 @@
 #include 	"keyboard.h"
 
 void	(*consdebug)(void) = 0;
-void	(*screenputs)(int8_t*, int) = 0;
+void	(*screenputs)(char*, int) = 0;
 
 Queue*	kbdq;			/* unprocessed console input */
 Queue*	lineq;			/* processed console input */
@@ -41,17 +41,17 @@ static struct
 	int	raw;		/* true if we shouldn't process input */
 	int	ctl;		/* number of opens to the control file */
 	int	x;		/* index into line */
-	int8_t	line[1024];	/* current input line */
+	char	line[1024];	/* current input line */
 
 	int	count;
 	int	ctlpoff;
 
 	/* a place to save up characters at interrupt time before dumping them in the queue */
 	Lock	lockputc;
-	int8_t	istage[1024];
-	int8_t	*iw;
-	int8_t	*ir;
-	int8_t	*ie;
+	char	istage[1024];
+	char	*iw;
+	char	*ir;
+	char	*ie;
 } kbd = {
 	{ 0 },
 	0,
@@ -67,13 +67,13 @@ static struct
 	kbd.istage + sizeof(kbd.istage),
 };
 
-int8_t	*sysname;
+char	*sysname;
 int64_t	fasthz;
 
-static int	readtime(uint32_t, int8_t*, int);
-static int	readbintime(int8_t*, int);
-static int	writetime(int8_t*, int);
-static int	writebintime(int8_t*, int);
+static int	readtime(uint32_t, char*, int);
+static int	readbintime(char*, int);
+static int	writetime(char*, int);
+static int	writebintime(char*, int);
 
 enum
 {
@@ -135,7 +135,7 @@ prflush(void)
  *   interspersed with other messages.
  */
 static void
-putstrn0(int8_t *str, int n, int usewrite)
+putstrn0(char *str, int n, int usewrite)
 {
 	/*
 	 *  if someone is reading /dev/kprint,
@@ -156,7 +156,7 @@ putstrn0(int8_t *str, int n, int usewrite)
 }
 
 void
-putstrn(int8_t *str, int n)
+putstrn(char *str, int n)
 {
 	putstrn0(str, n, 0);
 }
@@ -164,11 +164,11 @@ putstrn(int8_t *str, int n)
 int noprint;
 
 int
-print(int8_t *fmt, ...)
+print(char *fmt, ...)
 {
 	int n;
 	va_list arg;
-	int8_t buf[PRINTSIZE];
+	char buf[PRINTSIZE];
 
 	if(noprint)
 		return -1;
@@ -182,11 +182,11 @@ print(int8_t *fmt, ...)
 }
 
 void
-panic(int8_t *fmt, ...)
+panic(char *fmt, ...)
 {
 	int n;
 	va_list arg;
-	int8_t buf[PRINTSIZE];
+	char buf[PRINTSIZE];
 
 	kprintoq = nil;	/* don't try to write to /dev/kprint */
 
@@ -212,12 +212,12 @@ panic(int8_t *fmt, ...)
 }
 
 int
-pprint(int8_t *fmt, ...)
+pprint(char *fmt, ...)
 {
 	int n;
 	Chan *c;
 	va_list arg;
-	int8_t buf[2*PRINTSIZE];
+	char buf[2*PRINTSIZE];
 
 	if(up == nil || up->fgrp == nil)
 		return 0;
@@ -243,10 +243,10 @@ pprint(int8_t *fmt, ...)
 }
 
 static void
-echoscreen(int8_t *buf, int n)
+echoscreen(char *buf, int n)
 {
-	int8_t *e, *p;
-	int8_t ebuf[128];
+	char *e, *p;
+	char ebuf[128];
 	int x;
 
 	p = ebuf;
@@ -269,10 +269,10 @@ echoscreen(int8_t *buf, int n)
 }
 
 static void
-echoserialoq(int8_t *buf, int n)
+echoserialoq(char *buf, int n)
 {
-	int8_t *e, *p;
-	int8_t ebuf[128];
+	char *e, *p;
+	char ebuf[128];
 	int x;
 
 	p = ebuf;
@@ -298,11 +298,11 @@ echoserialoq(int8_t *buf, int n)
 }
 
 static void
-echo(int8_t *buf, int n)
+echo(char *buf, int n)
 {
 	static int ctrlt;
 	int x;
-	int8_t *e, *p;
+	char *e, *p;
 
 	e = buf+n;
 	for(p = buf; p < e; p++){
@@ -387,7 +387,7 @@ echo(int8_t *buf, int n)
 int
 kbdcr2nl(Queue *q, int ch)
 {
-	int8_t *next;
+	char *next;
 
 	USED(q);
 	ilock(&kbd.lockputc);		/* just a mutex */
@@ -408,7 +408,7 @@ void
 _kbdputc(int c)
 {
 	Rune r;
-	int8_t buf[UTFmax];
+	char buf[UTFmax];
 	int n;
 
 	r = c;
@@ -518,14 +518,14 @@ static Dirtab consdir[]={
 	"zero",		{Qzero},	0,		0444,
 };
 
-int8_t secstorebuf[65536];
+char secstorebuf[65536];
 Dirtab *secstoretab = &consdir[Qsecstore];
 Dirtab *snarftab = &consdir[Qsnarf];
 
 int
-readnum(uint32_t off, int8_t *buf, uint32_t n, uint32_t val, int size)
+readnum(uint32_t off, char *buf, uint32_t n, uint32_t val, int size)
 {
-	int8_t tmp[64];
+	char tmp[64];
 
 	snprint(tmp, sizeof(tmp), "%*.0lud", size-1, val);
 	tmp[size-1] = ' ';
@@ -538,7 +538,7 @@ readnum(uint32_t off, int8_t *buf, uint32_t n, uint32_t val, int size)
 }
 
 int
-readstr(uint32_t off, int8_t *buf, uint32_t n, int8_t *str)
+readstr(uint32_t off, char *buf, uint32_t n, char *str)
 {
 	int size;
 
@@ -564,13 +564,13 @@ consinit(void)
 }
 
 static Chan*
-consattach(int8_t *spec)
+consattach(char *spec)
 {
 	return devattach('c', spec);
 }
 
 static Walkqid*
-conswalk(Chan *c, Chan *nc, int8_t **name, int nname)
+conswalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name,nname, consdir, nelem(consdir), devgen);
 }
@@ -666,9 +666,9 @@ consclose(Chan *c)
 static int32_t
 consread(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	int8_t *b;
-	int8_t tmp[128];		/* must be >= 6*NUMSIZE */
-	int8_t *cbuf = buf;
+	char *b;
+	char tmp[128];		/* must be >= 6*NUMSIZE */
+	char *cbuf = buf;
 	int ch, i, eol;
 	int64_t offset = off;
 
@@ -694,7 +694,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 					cbuf += i;
 					n -= i;
 				} while (n>0 && qcanread(kbdq));
-				n = cbuf - (int8_t*)buf;
+				n = cbuf - (char*)buf;
 			}
 		} else {
 			while(!qcanread(lineq)) {
@@ -828,9 +828,9 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 static int32_t
 conswrite(Chan *c, void *va, int32_t n, int64_t off)
 {
-	int8_t buf[256];
+	char buf[256];
 	int32_t l, bp;
-	int8_t *a = va;
+	char *a = va;
 	int fd;
 	Chan *swc;
 	uint32_t offset = off;
@@ -1064,7 +1064,7 @@ long2le(uchar *t, long from)
 }
 */
 
-int8_t *Ebadtimectl = "bad time control";
+char *Ebadtimectl = "bad time control";
 
 /*
  *  like the old #c/time but with added info.  Return
@@ -1072,11 +1072,11 @@ int8_t *Ebadtimectl = "bad time control";
  *	secs	nanosecs	fastticks	fasthz
  */
 static int
-readtime(uint32_t off, int8_t *buf, int n)
+readtime(uint32_t off, char *buf, int n)
 {
 	int64_t	nsec, ticks;
 	int32_t sec;
-	int8_t str[7*NUMSIZE];
+	char str[7*NUMSIZE];
 
 	nsec = todget(&ticks);
 	if(fasthz == (int64_t)0)
@@ -1094,9 +1094,9 @@ readtime(uint32_t off, int8_t *buf, int n)
  *  set the time in seconds
  */
 static int
-writetime(int8_t *buf, int n)
+writetime(char *buf, int n)
 {
-	int8_t b[13];
+	char b[13];
 	int32_t i;
 	int64_t now;
 
@@ -1117,7 +1117,7 @@ writetime(int8_t *buf, int n)
  *  ticks and nsec are syncronized.
  */
 static int
-readbintime(int8_t *buf, int n)
+readbintime(char *buf, int n)
 {
 	int i;
 	int64_t nsec, ticks;
@@ -1149,7 +1149,7 @@ readbintime(int8_t *buf, int n)
  *	- clock frequency
  */
 static int
-writebintime(int8_t *buf, int n)
+writebintime(char *buf, int n)
 {
 	uint8_t *p;
 	int64_t delta;
@@ -1183,11 +1183,11 @@ writebintime(int8_t *buf, int n)
 
 
 int
-iprint(int8_t *fmt, ...)
+iprint(char *fmt, ...)
 {
 	int n, s;
 	va_list arg;
-	int8_t buf[PRINTSIZE];
+	char buf[PRINTSIZE];
 
 	s = splhi();
 	va_start(arg, fmt);

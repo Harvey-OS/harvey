@@ -26,7 +26,7 @@ struct Fid
 };
 
 Fid	*fids;			/* linked list of fids */
-int8_t	errstring[128];		/* error to return */
+char	errstring[128];		/* error to return */
 int	mfd;			/* fd for 9fs */
 int	messagesize = 4*1024*IOHDRSZ;
 uint8_t	mdata[8*1024*IOHDRSZ];
@@ -36,19 +36,19 @@ Fcall	thdr;
 int	debug;
 int	usenlst;
 int	usetls;
-int8_t	*ext;
+char	*ext;
 int	quiet;
 int	kapid = -1;
 int	dying;		/* set when any process decides to die */
 int	dokeepalive;
 
-int8_t	*rflush(Fid*), *rnop(Fid*), *rversion(Fid*),
+char	*rflush(Fid*), *rnop(Fid*), *rversion(Fid*),
 	*rattach(Fid*), *rclone(Fid*), *rwalk(Fid*),
 	*rclwalk(Fid*), *ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
 	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*),
 	*rauth(Fid*);;
-void	mountinit(int8_t*);
+void	mountinit(char*);
 void	io(void);
 int	readpdir(Node*);
 
@@ -88,12 +88,12 @@ OS oslist[] = {
 	{ Unknown,	0 },
 };
 
-int8_t *nouid = "?uid?";
+char *nouid = "?uid?";
 
 #define S2P(x) (((ulong)(x)) & 0xffffff)
 
-int8_t *nosuchfile = "file does not exist";
-int8_t *keyspec = "";
+char *nosuchfile = "file does not exist";
+char *keyspec = "";
 
 void
 usage(void)
@@ -264,7 +264,7 @@ kaproc(void)
 void
 io(void)
 {
-	int8_t *err, buf[ERRMAX];
+	char *err, buf[ERRMAX];
 	int n;
 
 	kapid = kaproc();
@@ -303,14 +303,14 @@ io(void)
 	}
 }
 
-int8_t*
+char*
 rnop(Fid *f)
 {
 	USED(f);
 	return 0;
 }
 
-int8_t*
+char*
 rversion(Fid*)
 {
 	if(thdr.msize > sizeof(mdata))
@@ -325,19 +325,19 @@ rversion(Fid*)
 	return nil;
 }
 
-int8_t*
+char*
 rflush(Fid*)
 {
 	return 0;
 }
 
-int8_t*
+char*
 rauth(Fid*)
 {
 	return "auth unimplemented";
 }
 
-int8_t*
+char*
 rattach(Fid *f)
 {
 	f->busy = 1;
@@ -346,14 +346,14 @@ rattach(Fid *f)
 	return 0;
 }
 
-int8_t*
+char*
 rwalk(Fid *f)
 {
 	Node *np;
 	Fid *nf;
-	int8_t **elems;
+	char **elems;
 	int i, nelems;
-	int8_t *err;
+	char *err;
 	Node *node;
 
 	/* clone fid */
@@ -447,7 +447,7 @@ rwalk(Fid *f)
 	return err;
 }
 
-int8_t *
+char *
 ropen(Fid *f)
 {
 	int mode;
@@ -483,10 +483,10 @@ ropen(Fid *f)
 	return 0;
 }
 
-int8_t*
+char*
 rcreate(Fid *f)
 {
-	int8_t *name;
+	char *name;
 
 	if((f->node->d->qid.type&QTDIR) == 0)
 		return "not a directory";
@@ -508,7 +508,7 @@ rcreate(Fid *f)
 	return 0;
 }
 
-int8_t*
+char*
 rread(Fid *f)
 {
 	int32_t off;
@@ -547,17 +547,17 @@ rread(Fid *f)
 			if(readfile(f->node) < 0)
 				return errstring;
 		CACHED(f->node);
-		rv = fileread(f->node, (int8_t*)mbuf, off, cnt);
+		rv = fileread(f->node, (char*)mbuf, off, cnt);
 		if(rv < 0)
 			return errstring;
 	}
 
-	rhdr.data = (int8_t*)mbuf;
+	rhdr.data = (char*)mbuf;
 	rhdr.count = rv;
 	return 0;
 }
 
-int8_t*
+char*
 rwrite(Fid *f)
 {
 	int32_t off;
@@ -577,7 +577,7 @@ rwrite(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rclunk(Fid *f)
 {
 	if(fileisdirty(f->node)){
@@ -597,10 +597,10 @@ rclunk(Fid *f)
 /*
  *  remove is an implicit clunk
  */
-int8_t *
+char *
 rremove(Fid *f)
 {
-	int8_t *e;
+	char *e;
 	e = nil;
 	if(QTDIR & f->node->d->qid.type){
 		if(removedir(f->node) < 0)
@@ -617,7 +617,7 @@ rremove(Fid *f)
 	return e;
 }
 
-int8_t *
+char *
 rstat(Fid *f)
 {
 	Node *p;
@@ -637,7 +637,7 @@ rstat(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rwstat(Fid *f)
 {
 	USED(f);
@@ -648,10 +648,10 @@ rwstat(Fid *f)
  *  print message and die
  */
 void
-fatal(int8_t *fmt, ...)
+fatal(char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[8*1024];
+	char buf[8*1024];
 
 	dying = 1;
 
@@ -671,7 +671,7 @@ fatal(int8_t *fmt, ...)
 void*
 safecpy(void *to, void *from, int n)
 {
-	int8_t *a = ((int8_t*)to) + n - 1;
+	char *a = ((char*)to) + n - 1;
 
 	strncpy(to, from, n);
 	*a = 0;
@@ -682,7 +682,7 @@ safecpy(void *to, void *from, int n)
  *  set the error string
  */
 int
-seterr(int8_t *fmt, ...)
+seterr(char *fmt, ...)
 {
 	va_list arg;
 
@@ -793,7 +793,7 @@ invalidate(Node *node)
  *  make a top level tops-20 directory.  They are automaticly valid.
  */
 Node*
-newtopsdir(int8_t *name)
+newtopsdir(char *name)
 {
 	Node *np;
 

@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
-static int8_t *paqfile;
+static char *paqfile;
 
 void
 configembed(Method *m)
@@ -35,7 +35,7 @@ connectembed(void)
 {
 	int i, p[2];
 	Dir *dir;
-	int8_t **arg, **argp;
+	char **arg, **argp;
 
 	dir = dirstat("/boot/paqfs");
 	if(dir == nil)
@@ -58,7 +58,7 @@ connectembed(void)
 	case -1:
 		fatal("fork");
 	case 0:
-		arg = malloc((bargc+5)*sizeof(int8_t*));
+		arg = malloc((bargc+5)*sizeof(char*));
 		argp = arg;
 		*argp++ = "/boot/paqfs";
 		*argp++ = "-iv";

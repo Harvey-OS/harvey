@@ -11,11 +11,11 @@
 #include <libc.h>
 
 int
-access(int8_t *name, int mode)
+access(char *name, int mode)
 {
 	int fd;
 	Dir *db;
-	static int8_t omode[] = {
+	static char omode[] = {
 		0,
 		OEXEC,
 		OWRITE,

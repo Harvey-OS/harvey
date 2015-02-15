@@ -460,7 +460,7 @@ brloop(Prog *p)
 }
 
 int64_t
-atolwhex(int8_t *s)
+atolwhex(char *s)
 {
 	int64_t n;
 	int f;

@@ -51,10 +51,10 @@ char *ospftype[] = {
 	[OSPFlsack]	"link state ack",
 };
 
-int8_t*
+char*
 ospfpkttype(int x)
 {
-	static int8_t type[16];
+	static char type[16];
 
 	if(x > 0 && x <= OSPFlsack)
 		return ospftype[x];
@@ -62,10 +62,10 @@ ospfpkttype(int x)
 	return type;
 }
 
-int8_t*
+char*
 ospfauth(Ospfpkt *ospf)
 {
-	static int8_t auth[100];
+	static char auth[100];
 
 	switch(ospf->type){
 	case 0:
@@ -98,8 +98,8 @@ struct Ospfhello
 	uint8_t	neighbor[1];
 };
 
-int8_t*
-seprintospfhello(int8_t *p, int8_t *e, void *a)
+char*
+seprintospfhello(char *p, char *e, void *a)
 {
 	Ospfhello *h = a;
 
@@ -127,10 +127,10 @@ char *lsatype[] = {
 	[LSAASext]	"LSA AS external",
 };
 
-int8_t*
+char*
 lsapkttype(int x)
 {
-	static int8_t type[16];
+	static char type[16];
 
 	if(x > 0 && x <= LSAASext)
 		return lsatype[x];
@@ -217,8 +217,8 @@ struct OspfLSupdpkt {
 	};
 };
 
-int8_t*
-seprintospflsaheader(int8_t *p, int8_t *e, struct OspfLSAhdr *h)
+char*
+seprintospflsaheader(char *p, char *e, struct OspfLSAhdr *h)
 {
 	return seprint(p, e, "age %d opt %ux type %ux lsid %V adv_rt %V seqno %ux c %4.4ux l %d",
 		NetS(h->lsage), h->options&0xff, h->lstype,
@@ -235,8 +235,8 @@ struct OspfDDpkt {
 	struct OspfLSAhdr	hdr[1];		/* LSA headers... */
 };
 
-int8_t*
-seprintospfdatadesc(int8_t *p, int8_t *e, void *a, int len)
+char*
+seprintospfdatadesc(char *p, char *e, void *a, int len)
 {
 	int nlsa, i;
 	struct OspfDDpkt *g;
@@ -251,8 +251,8 @@ seprintospfdatadesc(int8_t *p, int8_t *e, void *a, int len)
 	return seprint(p, e, ")");
 }
 
-int8_t*
-seprintospflsupdate(int8_t *p, int8_t *e, void *a, int len)
+char*
+seprintospflsupdate(char *p, char *e, void *a, int len)
 {
 	int nlsa, i;
 	struct OspfLSupdpkt *g;
@@ -319,8 +319,8 @@ seprintospflsupdate(int8_t *p, int8_t *e, void *a, int len)
 	return seprint(p, e, ")");
 }
 
-int8_t*
-seprintospflsack(int8_t *p, int8_t *e, void *a, int len)
+char*
+seprintospflsack(char *p, char *e, void *a, int len)
 {
 	int nlsa, i;
 	struct OspfLSAhdr *h;
@@ -341,7 +341,7 @@ p_seprint(Msg *m)
 {
 	Ospfpkt *ospf;
 	int len, x;
-	int8_t *p, *e;
+	char *p, *e;
 
 	len = m->pe - m->ps;
 	if(len < OSPF_HDRSIZE)

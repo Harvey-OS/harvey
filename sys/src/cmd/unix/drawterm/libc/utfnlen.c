@@ -11,12 +11,12 @@
 #include <libc.h>
 
 int
-utfnlen(int8_t *s, int32_t m)
+utfnlen(char *s, int32_t m)
 {
 	int c;
 	int32_t n;
 	Rune rune;
-	int8_t *es;
+	char *es;
 
 	es = s + m;
 	for(n = 0; s < es; n++) {

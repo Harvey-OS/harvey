@@ -14,9 +14,9 @@
 #include <ndb.h>
 
 int
-authdial(int8_t *netroot, int8_t *dom)
+authdial(char *netroot, char *dom)
 {
-	int8_t server[Ndbvlen];
+	char server[Ndbvlen];
 	Ndbtuple *nt;
 
 	

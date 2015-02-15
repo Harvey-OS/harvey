@@ -31,7 +31,7 @@ enum{
 	Edge	= 5
 };
 
-int8_t	*show(int, int8_t*, int);
+char	*show(int, char*, int);
 
 void
 eresized(int new)
@@ -141,15 +141,15 @@ main(int argc, char *argv[])
 	exits(err);
 }
 
-int8_t*
-show(int fd, int8_t *name, int outc)
+char*
+show(int fd, char *name, int outc)
 {
 	Rawimage **array, *r, *c;
 	Image *i, *i2;
 	int j, ch, outchan;
 	int32_t len;
 	Biobuf b;
-	int8_t buf[32];
+	char buf[32];
 	static int inited;
 
 	if(Binit(&b, fd, OREAD) < 0)

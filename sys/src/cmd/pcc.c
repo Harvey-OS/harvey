@@ -12,11 +12,11 @@
 
 
 typedef struct Objtype {
-	int8_t	*name;
-	int8_t	*cc;
-	int8_t	*ld;
-	int8_t	*o;
-	int8_t	*oname;
+	char	*name;
+	char	*cc;
+	char	*ld;
+	char	*o;
+	char	*oname;
 } Objtype;
 
 /* sync with /sys/src/ape/cmd/cc.c */
@@ -30,7 +30,7 @@ Objtype objtype[] = {
 	{"power",	"qc", "ql", "q", "q.out"},
 	{"mips",	"vc", "vl", "v", "v.out"},
 };
-int8_t	*allos = "05689kqv";
+char	*allos = "05689kqv";
 
 enum {
 	Nobjs = (sizeof objtype)/(sizeof objtype[0]),
@@ -38,18 +38,18 @@ enum {
 };
 
 typedef struct List {
-	int8_t	*strings[Maxlist];
+	char	*strings[Maxlist];
 	int	n;
 } List;
 
 List	srcs, objs, cpp, cc, ld, ldargs;
 int	cflag, vflag, Eflag, Pflag;
 
-void	append(List *, int8_t *);
-int8_t	*changeext(int8_t *, int8_t *);
-void	doexec(int8_t *, List *);
-void	dopipe(int8_t *, List *, int8_t *, List *);
-void	fatal(int8_t *);
+void	append(List *, char *);
+char	*changeext(char *, char *);
+void	doexec(char *, List *);
+void	dopipe(char *, List *, char *, List *);
+void	fatal(char *);
 Objtype	*findoty(void);
 void	printlist(List *);
 
@@ -205,7 +205,7 @@ main(int argc, char *argv[])
 }
 
 void
-append(List *l, int8_t *s)
+append(List *l, char *s)
 {
 	if(l->n >= Maxlist-1)
 		fatal("too many arguments");
@@ -214,7 +214,7 @@ append(List *l, int8_t *s)
 }
 
 void
-doexec(int8_t *c, List *a)
+doexec(char *c, List *a)
 {
 	Waitmsg *w;
 
@@ -238,7 +238,7 @@ doexec(int8_t *c, List *a)
 }
 
 void
-dopipe(int8_t *c1, List *a1, int8_t *c2, List *a2)
+dopipe(char *c1, List *a1, char *c2, List *a2)
 {
 	Waitmsg *w;
 	int pid1, got;
@@ -289,7 +289,7 @@ dopipe(int8_t *c1, List *a1, int8_t *c2, List *a2)
 Objtype *
 findoty(void)
 {
-	int8_t *o;
+	char *o;
 	Objtype *oty;
 
 	o = getenv("objtype");
@@ -303,17 +303,17 @@ findoty(void)
 }
 
 void
-fatal(int8_t *msg)
+fatal(char *msg)
 {
 	fprint(2, "pcc: %s\n", msg);
 	exits(msg);
 }
 
 /* src ends in .something; return copy of basename with .ext added */
-int8_t *
-changeext(int8_t *src, int8_t *ext)
+char *
+changeext(char *src, char *ext)
 {
-	int8_t *b, *e, *ans;
+	char *b, *e, *ans;
 
 	b = utfrrune(src, '/');
 	if(b)

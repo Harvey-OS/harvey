@@ -14,7 +14,7 @@
 Image*
 readimage(Display *d, int fd, int dolock)
 {
-	int8_t hdr[5*12+1];
+	char hdr[5*12+1];
 	int dy;
 	int new;
 	uint l, n;

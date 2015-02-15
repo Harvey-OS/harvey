@@ -41,7 +41,7 @@ enum
 
 struct Dirtab
 {
-	int8_t	*name;
+	char	*name;
 	int	qid;
 	int	mode;
 };
@@ -223,8 +223,8 @@ newconn(Ether *e)
 	return nil;
 }
 
-static int8_t*
-seprintaddr(int8_t *s, int8_t *se, uint8_t *addr)
+static char*
+seprintaddr(char *s, char *se, uint8_t *addr)
 {
 	int i;
 
@@ -234,11 +234,11 @@ seprintaddr(int8_t *s, int8_t *se, uint8_t *addr)
 }
 
 void
-dumpframe(int8_t *tag, void *p, int n)
+dumpframe(char *tag, void *p, int n)
 {
 	Etherpkt *ep;
-	int8_t buf[128];
-	int8_t *s, *se;
+	char buf[128];
+	char *s, *se;
 	int i;
 
 	ep = p;
@@ -261,8 +261,8 @@ dumpframe(int8_t *tag, void *p, int n)
 		fprint(2, "%s\n", buf);
 }
 
-static int8_t*
-seprintstats(int8_t *s, int8_t *se, Ether *e)
+static char*
+seprintstats(char *s, char *se, Ether *e)
 {
 	qlock(e);
 	s = seprint(s, se, "in: %ld\n", e->nin);
@@ -278,8 +278,8 @@ seprintstats(int8_t *s, int8_t *se, Ether *e)
 	return s;
 }
 
-static int8_t*
-seprintifstats(int8_t *s, int8_t *se, Ether *e)
+static char*
+seprintifstats(char *s, char *se, Ether *e)
 {
 	int i;
 	Conn *c;
@@ -309,7 +309,7 @@ seprintifstats(int8_t *s, int8_t *se, Ether *e)
 static void
 etherdump(Ether *e)
 {
-	int8_t buf[256];
+	char buf[256];
 
 	if(etherdebug == 0)
 		return;
@@ -388,10 +388,10 @@ conndirgen(Usbfs *fs, Qid q, int i, Dir *d, void *)
 }
 
 static int
-fswalk(Usbfs *fs, Fid *fid, int8_t *name)
+fswalk(Usbfs *fs, Fid *fid, char *name)
 {
 	int cn, i;
-	int8_t *es;
+	char *es;
 	Dirtab *tab;
 	Ether *e;
 	Qid qid;
@@ -564,7 +564,7 @@ fsclunk(Usbfs *fs, Fid *fid)
 }
 
 int
-parseaddr(uint8_t *m, int8_t *s)
+parseaddr(uint8_t *m, char *s)
 {
 	int i, n;
 	uint8_t v;
@@ -597,8 +597,8 @@ static int32_t
 fsread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 {
 	int cn, qt;
-	int8_t *s, *se;
-	int8_t buf[2048];		/* keep this large for ifstats */
+	char *s, *se;
+	char buf[2048];		/* keep this large for ifstats */
 	Buf *bp;
 	Conn *c;
 	Ether *e;
@@ -687,7 +687,7 @@ isloopback(Ether *e, Buf *)
 }
 
 static int
-etherctl(Ether *e, Conn *c, int8_t *buf)
+etherctl(Ether *e, Conn *c, char *buf)
 {
 	uint8_t addr[Eaddrlen];
 	int t;
@@ -783,7 +783,7 @@ static int32_t
 fswrite(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t)
 {
 	int cn, qt;
-	int8_t buf[128];
+	char buf[128];
 	Buf *bp;
 	Conn *c;
 	Ether *e;
@@ -1155,7 +1155,7 @@ static int
 kernelproxy(Ether *e)
 {
 	int ctlfd, n;
-	int8_t eaddr[13];
+	char eaddr[13];
 
 	ctlfd = open("#l0/ether0/clone", ORDWR);
 	if(ctlfd < 0){

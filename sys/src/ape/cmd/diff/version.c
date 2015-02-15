@@ -11,4 +11,4 @@
 
 #include "config.h"
 
-int8_t const version_string[] = "2.7";
+char const version_string[] = "2.7";

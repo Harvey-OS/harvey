@@ -45,7 +45,7 @@ enum{
 	EValue,
 };
 
-static int8_t *cmds[] = {
+static char *cmds[] = {
 	[EAlign] =			"align",
 	[EBorder] =		"border",
 	[EBordercolor] =	"bordercolor",
@@ -196,7 +196,7 @@ labelctl(Control *c, CParse *cp)
 }
 
 Control*
-createlabel(Controlset *cs, int8_t *name)
+createlabel(Controlset *cs, char *name)
 {
 	Label *l;
 

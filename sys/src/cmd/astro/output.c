@@ -10,7 +10,7 @@
 #include "astro.h"
 
 void
-output(int8_t *s, Obj1 *p)
+output(char *s, Obj1 *p)
 {
 
 	if(s == 0)

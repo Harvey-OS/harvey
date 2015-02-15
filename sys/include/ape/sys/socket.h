@@ -117,7 +117,7 @@ struct	linger {
  */
 struct sockaddr {
 	unsigned short	sa_family;	/* address family */
-	int8_t	sa_data[108];
+	char	sa_data[108];
 };
 
 /*
@@ -166,11 +166,11 @@ struct sockproto {
  * Message header for recvmsg and sendmsg calls.
  */
 struct msghdr {
-	int8_t	*msg_name;		/* optional address */
+	char	*msg_name;		/* optional address */
 	int	msg_namelen;		/* size of address */
 	struct	iovec *msg_iov;		/* scatter/gather array */
 	int	msg_iovlen;		/* # elements in msg_iov */
-	int8_t	*msg_accrights;		/* access rights sent/received */
+	char	*msg_accrights;		/* access rights sent/received */
 	int	msg_accrightslen;
 };
 

@@ -15,10 +15,10 @@
 /*
  *  skip past all systems in equivlist
  */
-extern int8_t*
-skipequiv(int8_t *base)
+extern char*
+skipequiv(char *base)
 {
-	int8_t *sp;
+	char *sp;
 	static Biobuf *fp;
 
 	while(*base){
@@ -40,11 +40,11 @@ skipequiv(int8_t *base)
 }
 
 static int
-okfile(int8_t *cp, Biobuf *fp)
+okfile(char *cp, Biobuf *fp)
 {
-	int8_t *buf;
+	char *buf;
 	int len;
-	int8_t *bp, *ep;
+	char *bp, *ep;
 	int c;
 
 	len = strlen(cp);
@@ -75,7 +75,7 @@ okfile(int8_t *cp, Biobuf *fp)
  *	  -1 if neither file exists
  */
 extern int
-lookup(int8_t *cp, int8_t *local, Biobuf **lfpp, int8_t *global,
+lookup(char *cp, char *local, Biobuf **lfpp, char *global,
        Biobuf **gfpp)
 {
 	static String *file = 0;

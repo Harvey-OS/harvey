@@ -65,7 +65,7 @@ setmalloctag(void *v, uint32_t pc)
 }
 
 int
-fileexists(int8_t *s)
+fileexists(char *s)
 {
 	uint8_t dirbuf[400];
 

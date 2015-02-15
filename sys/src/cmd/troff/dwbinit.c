@@ -114,9 +114,9 @@
 void DWBdebug(dwbinit *ptr, int level)
 {
 
-    int8_t	*path;
-    int8_t	*home;
-    static int8_t	*debug = NULL;
+    char	*path;
+    char	*home;
+    static char	*debug = NULL;
 
 /*
  *
@@ -152,15 +152,15 @@ void DWBdebug(dwbinit *ptr, int level)
 
 /*****************************************************************************/
 
-int8_t *DWBhome(void)
+char *DWBhome(void)
 {
 
     FILE	*fp;
-    int8_t	*ptr;
-    int8_t	*path;
+    char	*ptr;
+    char	*path;
     int		len;
-    int8_t	buf[200];
-    int8_t	*home = NULL;
+    char	buf[200];
+    char	*home = NULL;
 
 /*
  *
@@ -205,12 +205,12 @@ int8_t *DWBhome(void)
 
 /*****************************************************************************/
 
-void DWBinit(int8_t *prog, dwbinit *paths)
+void DWBinit(char *prog, dwbinit *paths)
 {
 
-    int8_t	*prefix;
-    int8_t	*value;
-    int8_t	*path;
+    char	*prefix;
+    char	*value;
+    char	*path;
     int		plen;
     int		length;
     dwbinit	*opaths = paths;
@@ -259,7 +259,7 @@ void DWBinit(int8_t *prog, dwbinit *paths)
 	}   /* End if */
 
 	if ( *value != '\0' ) {
-	    int8_t *eop = prefix;
+	    char *eop = prefix;
 	    while(*eop++)
 		;
 	    eop -= 2;
@@ -289,11 +289,11 @@ void DWBinit(int8_t *prog, dwbinit *paths)
 
 /*****************************************************************************/
 
-void DWBprefix(int8_t *prog, int8_t *path, int length)
+void DWBprefix(char *prog, char *path, int length)
 {
 
-    int8_t	*home;
-    int8_t	buf[512];
+    char	*home;
+    char	buf[512];
     int		len = strlen(DWBPREFIX);
 
 /*

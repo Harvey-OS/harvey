@@ -84,7 +84,7 @@ char *dirtab[] =
 [Qtop]		nil,
 };
 
-int8_t	*rflush(Fid*), *rauth(Fid*),
+char	*rflush(Fid*), *rauth(Fid*),
 	*rattach(Fid*), *rwalk(Fid*),
 	*ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
@@ -110,25 +110,25 @@ char 	*(*fcalls[])(Fid*) = {
 int	messagesize = 8*1024+IOHDRSZ;
 uint8_t	mdata[8*1024+IOHDRSZ];
 uint8_t	mbuf[8*1024+IOHDRSZ];
-int8_t	bigbuf[1<<23];	/* 8 megabytes */
+char	bigbuf[1<<23];	/* 8 megabytes */
 Fid	*fids;
 
-int8_t	Eperm[] =	"permission denied";
-int8_t	Enotdir[] =	"not a directory";
-int8_t	Enoauth[] =	"no authentication required";
-int8_t	Enotexist[] =	"file does not exist";
-int8_t	Einuse[] =	"file in use";
-int8_t	Eexist[] =	"file exists";
-int8_t	Enotowner[] =	"not owner";
-int8_t	Eisopen[] = 	"file already open for I/O";
-int8_t	Excl[] = 	"exclusive use file already open";
-int8_t	Ename[] = 	"illegal name";
-int8_t	Ebadctl[] =	"unknown control message";
+char	Eperm[] =	"permission denied";
+char	Enotdir[] =	"not a directory";
+char	Enoauth[] =	"no authentication required";
+char	Enotexist[] =	"file does not exist";
+char	Einuse[] =	"file in use";
+char	Eexist[] =	"file exists";
+char	Enotowner[] =	"not owner";
+char	Eisopen[] = 	"file already open for I/O";
+char	Excl[] = 	"exclusive use file already open";
+char	Ename[] = 	"illegal name";
+char	Ebadctl[] =	"unknown control message";
 
 Fid *newfid(int fid);
 
 static int
-lookup(int8_t *cmd, int8_t *list[])
+lookup(char *cmd, char *list[])
 {
 	int i;
 
@@ -138,7 +138,7 @@ lookup(int8_t *cmd, int8_t *list[])
 	return -1;
 }
 
-int8_t*
+char*
 rversion(Fid *)
 {
 	Fid *f;
@@ -158,19 +158,19 @@ rversion(Fid *)
 	return nil;
 }
 
-int8_t*
+char*
 rauth(Fid*)
 {
 	return Enoauth;
 }
 
-int8_t*
+char*
 rflush(Fid *)
 {
 	return 0;
 }
 
-int8_t*
+char*
 rattach(Fid *f)
 {
 	f->flags |= Busy;
@@ -195,11 +195,11 @@ doclone(Fid *f, int nfid)
 	return nf;
 }
 
-int8_t*
-dowalk(Fid *f, int8_t *name)
+char*
+dowalk(Fid *f, char *name)
 {
 	int t, n, m;
-	int8_t *rv, *p;
+	char *rv, *p;
 
 	t = FILE(f->qid.path);	/* Type */
 
@@ -279,11 +279,11 @@ dowalk(Fid *f, int8_t *name)
 	return rv;
 }
 
-int8_t*
+char*
 rwalk(Fid *f)
 {
 	Fid *nf;
-	int8_t *rv;
+	char *rv;
 	int i;
 
 	if(f->flags & Open)
@@ -324,7 +324,7 @@ rwalk(Fid *f)
 	return rv;
 }
 
-int8_t *
+char *
 ropen(Fid *f)
 {
 	if(f->flags & Open)
@@ -339,14 +339,14 @@ ropen(Fid *f)
 	return nil;
 }
 
-int8_t *
+char *
 rcreate(Fid*)
 {
 	return Eperm;
 }
 
 static int32_t
-fileinfo(int8_t *buf, int bufsize, int onum, int t)
+fileinfo(char *buf, int bufsize, int onum, int t)
 {
 	int32_t n;
 
@@ -391,7 +391,7 @@ fileinfo(int8_t *buf, int bufsize, int onum, int t)
 static void
 mkstat(Dir *d, int n, int t)
 {
-	static int8_t buf[16];
+	static char buf[16];
 
 	d->uid = user;
 	d->gid = user;
@@ -550,7 +550,7 @@ readdir(Fid *f, uint8_t *buf, int32_t off, int cnt, int blen)
 }
 
 void
-readbuf(int8_t *s, int32_t n)
+readbuf(char *s, int32_t n)
 {
 	rhdr.count = thdr.count;
 	if(thdr.offset >= n){
@@ -562,7 +562,7 @@ readbuf(int8_t *s, int32_t n)
 	rhdr.data = s + thdr.offset;
 }
 
-int8_t*
+char*
 rread(Fid *f)
 {
 	int32_t off;
@@ -575,7 +575,7 @@ rread(Fid *f)
 	if(cnt > messagesize - IOHDRSZ)
 		cnt = messagesize - IOHDRSZ;
 
-	rhdr.data = (int8_t*)mbuf;
+	rhdr.data = (char*)mbuf;
 
 	n = 0;
 	t = FILE(f->qid.path);
@@ -615,11 +615,11 @@ rread(Fid *f)
 	return nil;
 }
 
-int8_t*
+char*
 rwrite(Fid *f)
 {
 	int32_t cnt;
-	int8_t *p;
+	char *p;
 
 	if(FILE(f->qid.path) != Qctl)
 		return Eperm;
@@ -637,20 +637,20 @@ rwrite(Fid *f)
 	return nil;
 }
 
-int8_t *
+char *
 rclunk(Fid *f)
 {
 	f->flags &= ~(Open|Busy);
 	return 0;
 }
 
-int8_t *
+char *
 rremove(Fid *)
 {
 	return Eperm;
 }
 
-int8_t *
+char *
 rstat(Fid *f)
 {
 	Dir d;
@@ -661,7 +661,7 @@ rstat(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rwstat(Fid*)
 {
 	return Eperm;
@@ -693,7 +693,7 @@ newfid(int fid)
 void
 io(void *)
 {
-	int8_t *err, e[32];
+	char *err, e[32];
 	int n;
 	extern int p[];
 	Fid *f;
@@ -726,7 +726,7 @@ io(void *)
 		if(debug & DbgFs)
 			fprint(2, "io:<-%F\n", &thdr);
 
-		rhdr.data = (int8_t*)mbuf;
+		rhdr.data = (char*)mbuf;
 
 		if(!fcalls[thdr.type])
 			err = "bad fcall type";

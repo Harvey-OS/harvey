@@ -11,7 +11,7 @@
  * pANS stdio -- sprintf
  */
 #include "iolib.h"
-int snprintf(int8_t *buf, int nbuf, const int8_t *fmt, ...){
+int snprintf(char *buf, int nbuf, const char *fmt, ...){
 	int n;
 	va_list args;
 	FILE *f=sopenw();

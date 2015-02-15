@@ -11,7 +11,7 @@
 #include "dat.h"
 #include "fns.h"
 
-static int8_t vcmagic[] = "venti config\n";
+static char vcmagic[] = "venti config\n";
 
 enum {
 	Maxconfig = 8 * 1024,
@@ -19,7 +19,7 @@ enum {
 };
 
 int
-readifile(IFile *f, int8_t *name)
+readifile(IFile *f, char *name)
 {
 	Part *p;
 	ZBlock *b;
@@ -112,19 +112,19 @@ partifile(IFile *f, Part *part, uint64_t start, uint32_t size)
  * return the next non-blank input line,
  * stripped of leading white space and with # comments eliminated
  */
-int8_t*
+char*
 ifileline(IFile *f)
 {
-	int8_t *s, *e, *t;
+	char *s, *e, *t;
 	int c;
 
 	for(;;){
-		s = (int8_t*)&f->b->data[f->pos];
+		s = (char*)&f->b->data[f->pos];
 		e = memchr(s, '\n', f->b->len - f->pos);
 		if(e == nil)
 			return nil;
 		*e++ = '\0';
-		f->pos = e - (int8_t*)f->b->data;
+		f->pos = e - (char*)f->b->data;
 		t = strchr(s, '#');
 		if(t != nil)
 			*t = '\0';
@@ -135,9 +135,9 @@ ifileline(IFile *f)
 }
 
 int
-ifilename(IFile *f, int8_t *dst)
+ifilename(IFile *f, char *dst)
 {
-	int8_t *s;
+	char *s;
 
 	s = ifileline(f);
 	if(s == nil || strlen(s) >= ANameSize)
@@ -149,7 +149,7 @@ ifilename(IFile *f, int8_t *dst)
 int
 ifileu32int(IFile *f, uint32_t *r)
 {
-	int8_t *s;
+	char *s;
 
 	s = ifileline(f);
 	if(s == nil)

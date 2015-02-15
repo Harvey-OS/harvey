@@ -15,14 +15,14 @@
 
 static Modem modems[1];
 
-static int8_t *spool = "/mail/faxqueue";
-static int8_t *type = "default";
-static int8_t *receiverc = "/sys/lib/fax/receiverc";
+static char *spool = "/mail/faxqueue";
+static char *type = "default";
+static char *receiverc = "/sys/lib/fax/receiverc";
 
 static void
 receivedone(Modem *m, int ok)
 {
-	int8_t *argv[10], *p, time[16], pages[16];
+	char *argv[10], *p, time[16], pages[16];
 	int argc;
 
 	faxrlog(m, ok);

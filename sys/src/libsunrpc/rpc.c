@@ -422,13 +422,13 @@ Err:
 }
 
 uint
-sunStringSize(int8_t *s)
+sunStringSize(char *s)
 {
 	return (4+strlen(s)+3) & ~3;
 }
 
 int
-sunStringUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, int8_t **s,
+sunStringUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, char **s,
 		uint32_t max)
 {
 	uint8_t *dat;
@@ -439,14 +439,14 @@ sunStringUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, int8_t **s,
 	/* slide string down over length to make room for NUL */
 	memmove(dat-1, dat, n);
 	dat[-1+n] = 0;
-	*s = (int8_t*)(dat-1);
+	*s = (char*)(dat-1);
 	return 0;
 Err:
 	return -1;
 }
 
 int
-sunStringPack(uint8_t *a, uint8_t *ea, uint8_t **pa, int8_t **s, uint32_t max)
+sunStringPack(uint8_t *a, uint8_t *ea, uint8_t **pa, char **s, uint32_t max)
 {
 	uint32_t n;
 

@@ -220,7 +220,7 @@ fakeqid9p1(Dentry *f)
 }
 
 int
-convD2M9p1(Dentry *f, int8_t *ap)
+convD2M9p1(Dentry *f, char *ap)
 {
 	uint8_t *p;
 	uint32_t q;
@@ -229,10 +229,10 @@ convD2M9p1(Dentry *f, int8_t *ap)
 	STRING(name, sizeof(f->name));
 
 	memset(p, 0, 2*NAMELEN);
-	uidtostr((int8_t*)p, f->uid, 1);
+	uidtostr((char*)p, f->uid, 1);
 	p += NAMELEN;
 
-	uidtostr((int8_t*)p, f->gid, 1);
+	uidtostr((char*)p, f->gid, 1);
 	p += NAMELEN;
 
 	q = fakeqid9p1(f);
@@ -256,7 +256,7 @@ convD2M9p1(Dentry *f, int8_t *ap)
 }
 
 int
-convA2M9p1(Authenticator *f, int8_t *ap, int8_t *key)
+convA2M9p1(Authenticator *f, char *ap, char *key)
 {
 	int n;
 	uint8_t *p;
@@ -380,7 +380,7 @@ convM2S9p1(uint8_t *ap, Fcall *f, int n)
 		VLONG(offset);
 		SHORT(count);
 		p++;
-		f->data = (int8_t*)p; p += f->count;
+		f->data = (char*)p; p += f->count;
 		break;
 
 	case Tclunk:
@@ -445,7 +445,7 @@ convM2S9p1(uint8_t *ap, Fcall *f, int n)
 		SHORT(fid);
 		SHORT(count);
 		p++;
-		f->data = (int8_t*)p; p += f->count;
+		f->data = (char*)p; p += f->count;
 		break;
 
 	case Rwrite:
@@ -464,10 +464,10 @@ convM2S9p1(uint8_t *ap, Fcall *f, int n)
 }
 
 int
-convM2D9p1(int8_t *ap, Dentry *f)
+convM2D9p1(char *ap, Dentry *f)
 {
 	uint8_t *p;
-	int8_t str[NAMELEN];
+	char str[NAMELEN];
 
 	p = (uint8_t*)ap;
 	BYTES(name, sizeof(f->name));
@@ -500,7 +500,7 @@ convM2D9p1(int8_t *ap, Dentry *f)
 }
 
 void
-convM2A9p1(int8_t *ap, Authenticator *f, int8_t *key)
+convM2A9p1(char *ap, Authenticator *f, char *key)
 {
 	uint8_t *p;
 
@@ -514,7 +514,7 @@ convM2A9p1(int8_t *ap, Authenticator *f, int8_t *key)
 }
 
 void
-convM2T9p1(int8_t *ap, Ticket *f, int8_t *key)
+convM2T9p1(char *ap, Ticket *f, char *key)
 {
 	uint8_t *p;
 

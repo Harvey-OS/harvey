@@ -11,11 +11,11 @@
 #include <libc.h>
 #include "dat.h"
 
-int8_t *serial = "/dev/eia0";
+char *serial = "/dev/eia0";
 
 int ttyfd, ctlfd, debug;
 int baud = Baud;
-int8_t *baudstr = "b%dd1r1pns1l8i1w5";
+char *baudstr = "b%dd1r1pns1l8i1w5";
 
 Place where = {-(74.0 + 23.9191/60.0), 40.0 + 41.1346/60.0};
 
@@ -26,7 +26,7 @@ void	evermore8e(void);
 
 void
 setline(void){
-	int8_t *serialctl;
+	char *serialctl;
 
 	serialctl = smprint("%sctl", serial);
 	if((ttyfd = open(serial, ORDWR)) < 0)
@@ -49,8 +49,8 @@ enum {
 	EMTon = 0x80
 };
 
-int8_t*
-putbyte(int8_t *s, int v)
+char*
+putbyte(char *s, int v)
 {
 	*s++ = v;
 	if((v & 0xff) == 0x10)
@@ -58,16 +58,16 @@ putbyte(int8_t *s, int v)
 	return s;
 }
 
-int8_t*
-putshort(int8_t *s, int v)
+char*
+putshort(char *s, int v)
 {
 	s = putbyte(s, v);
 	s = putbyte(s, v >> 8);
 	return s;
 }
 
-int8_t*
-putlong(int8_t *s, int32_t v)
+char*
+putlong(char *s, int32_t v)
 {
 	s = putbyte(s, v);
 	s = putbyte(s, v >> 8);
@@ -77,9 +77,9 @@ putlong(int8_t *s, int32_t v)
 }
 
 void
-evermoresend(int8_t *body, int l)
+evermoresend(char *body, int l)
 {
-	int8_t buf[8], *s;
+	char buf[8], *s;
 	int crc, i;
 
 	s = buf;
@@ -103,7 +103,7 @@ evermoresend(int8_t *body, int l)
 void
 evermore80(Place pl, int baud)
 {
-	int8_t buf[32], *s;
+	char buf[32], *s;
 	int32_t now, seconds, week;
 
 	fprint(2, "Evermore80");
@@ -139,7 +139,7 @@ evermore80(Place pl, int baud)
 void
 evermore89(int baud)
 {
-	int8_t buf[32], *s;
+	char buf[32], *s;
 
 	fprint(2, "Evermore89");
 	s = buf;
@@ -161,7 +161,7 @@ evermore89(int baud)
 void
 evermore8e(void)
 {
-	int8_t buf[32], *s;
+	char buf[32], *s;
 
 	fprint(2, "Evermore8e");
 	s = buf;

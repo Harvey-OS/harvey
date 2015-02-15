@@ -18,7 +18,7 @@ String	rhs;
 String	curwd;
 String	cmdstr;
 Rune	empty[] = { 0 };
-int8_t	*genc;
+char	*genc;
 File	*curfile;
 File	*flist;
 File	*cmd;
@@ -28,12 +28,12 @@ int	quitok = TRUE;
 int	downloaded;
 int	dflag;
 int	Rflag;
-int8_t	*machine;
-int8_t	*home;
+char	*machine;
+char	*home;
 int	bpipeok;
 int	termlocked;
-int8_t	*samterm = SAMTERM;
-int8_t	*rsamname = RSAM;
+char	*samterm = SAMTERM;
+char	*rsamname = RSAM;
 File	*lastfile;
 Disk	*disk;
 int32_t	seq;
@@ -125,8 +125,8 @@ rescue(void)
 {
 	int i, nblank = 0;
 	File *f;
-	int8_t *c;
-	int8_t buf[256];
+	char *c;
+	char buf[256];
 
 	if(rescuing++)
 		return;
@@ -151,12 +151,12 @@ rescue(void)
 		fprint(io, "#!%s '%s' $* <<'---%s'\n", SAMSAVECMD, buf, buf);
 		addr.r.p1 = 0, addr.r.p2 = f->nc;
 		writeio(f);
-		fprint(io, "\n---%s\n", (int8_t *)buf);
+		fprint(io, "\n---%s\n", (char *)buf);
 	}
 }
 
 void
-panic(int8_t *s)
+panic(char *s)
 {
 	int wasd;
 
@@ -172,7 +172,7 @@ panic(int8_t *s)
 }
 
 void
-hiccough(int8_t *s)
+hiccough(char *s)
 {
 	File *f;
 	int i;
@@ -222,8 +222,8 @@ intr(void)
 void
 trytoclose(File *f)
 {
-	int8_t *t;
-	int8_t buf[256];
+	char *t;
+	char buf[256];
 
 	if(f == cmd)	/* possible? */
 		return;
@@ -489,7 +489,7 @@ void
 getcurwd(void)
 {
 	String *t;
-	int8_t buf[256];
+	char buf[256];
 
 	buf[0] = 0;
 	getwd(buf, sizeof(buf));
@@ -506,7 +506,7 @@ void
 cd(String *str)
 {
 	int i, fd;
-	int8_t *s;
+	char *s;
 	File *f;
 	String owd;
 

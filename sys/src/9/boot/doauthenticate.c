@@ -12,14 +12,14 @@
 #include <auth.h>
 #include "../boot/boot.h"
 
-static int8_t *pbmsg = "AS protocol botch";
-static int8_t *ccmsg = "can't connect to AS";
+static char *pbmsg = "AS protocol botch";
+static char *ccmsg = "can't connect to AS";
 
 int32_t
 readn(int fd, void *buf, int32_t len)
 {
 	int m, n;
-	int8_t *p;
+	char *p;
 
 	p = buf;
 	for(n = 0; n < len; n += m){
@@ -30,13 +30,13 @@ readn(int fd, void *buf, int32_t len)
 	return n;
 }
 
-static int8_t*
-fromauth(Method *mp, int8_t *trbuf, int8_t *tbuf)
+static char*
+fromauth(Method *mp, char *trbuf, char *tbuf)
 {
 	int afd;
-	int8_t t;
-	int8_t *msg;
-	static int8_t error[2*ERRMAX];
+	char t;
+	char *msg;
+	static char error[2*ERRMAX];
 
 	if(mp->auth == 0)
 		fatal("no method for accessing auth server");
@@ -81,9 +81,9 @@ fromauth(Method *mp, int8_t *trbuf, int8_t *tbuf)
 void
 doauthenticate(int fd, Method *mp)
 {
-	int8_t *msg;
-	int8_t trbuf[TICKREQLEN];
-	int8_t tbuf[2*TICKETLEN];
+	char *msg;
+	char trbuf[TICKREQLEN];
+	char tbuf[2*TICKETLEN];
 
 	print("session...");
 	if(fsession(fd, trbuf, sizeof trbuf) < 0)
@@ -106,14 +106,14 @@ doauthenticate(int fd, Method *mp)
 	fprint(2, "no authentication server (%s), using your key as server key\n", msg);
 }
 
-int8_t*
-checkkey(Method *mp, int8_t *name, int8_t *key)
+char*
+checkkey(Method *mp, char *name, char *key)
 {
-	int8_t *msg;
+	char *msg;
 	Ticketreq tr;
 	Ticket t;
-	int8_t trbuf[TICKREQLEN];
-	int8_t tbuf[TICKETLEN];
+	char trbuf[TICKREQLEN];
+	char tbuf[TICKETLEN];
 
 	memset(&tr, 0, sizeof tr);
 	tr.type = AuthTreq;

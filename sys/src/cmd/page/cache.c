@@ -59,7 +59,7 @@ cacheflush(void)
 }
 
 static Image*
-_cachedpage(Document *doc, int angle, int page, int8_t *ra)
+_cachedpage(Document *doc, int angle, int page, char *ra)
 {
 	int i;
 	Cached *c, old;

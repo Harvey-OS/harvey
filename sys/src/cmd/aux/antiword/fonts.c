@@ -66,7 +66,7 @@ iGetFontByNumber(UCHAR ucWordFontNumber, USHORT usFontStyle)
  *
  * return our font name from the given index, NULL if not found
  */
-const int8_t *
+const char *
 szGetOurFontname(int iIndex)
 {
 	if (iIndex < 0 || iIndex >= (int)tFontTableRecords) {
@@ -81,7 +81,7 @@ szGetOurFontname(int iIndex)
  * returns the Word font number, -1 if not found
  */
 int
-iFontname2Fontnumber(const int8_t *szOurFontname, USHORT usFontStyle)
+iFontname2Fontnumber(const char *szOurFontname, USHORT usFontStyle)
 {
 	int	iIndex;
 
@@ -97,7 +97,7 @@ iFontname2Fontnumber(const int8_t *szOurFontname, USHORT usFontStyle)
 /*
  * szGetDefaultFont - get the default font that matches the parameters
  */
-static const int8_t *
+static const char *
 szGetDefaultFont(UCHAR ucFFN, int iEmphasis)
 {
 	UCHAR	ucPrq, ucFf;
@@ -150,10 +150,10 @@ szGetDefaultFont(UCHAR ucFFN, int iEmphasis)
  * if iBytesPerChar is two than aucWord is in Unicode (Word 8/9/10).
  */
 static BOOL
-bFontEqual(const UCHAR *aucWord, const int8_t *szTable, int iBytesPerChar)
+bFontEqual(const UCHAR *aucWord, const char *szTable, int iBytesPerChar)
 {
 	const UCHAR	*pucTmp;
-	const int8_t	*pcTmp;
+	const char	*pcTmp;
 
 	fail(aucWord == NULL || szTable == NULL);
 	fail(iBytesPerChar != 1 && iBytesPerChar != 2);
@@ -175,7 +175,7 @@ bFontEqual(const UCHAR *aucWord, const int8_t *szTable, int iBytesPerChar)
 static void
 vFontname2Table(const UCHAR *aucFont, const UCHAR *aucAltFont,
 	int iBytesPerChar, int iEmphasis, UCHAR ucFFN,
-	const int8_t *szWordFont, const int8_t *szOurFont,
+	const char *szWordFont, const char *szOurFont,
 	font_table_type *pFontTableRecord)
 {
 	BOOL	bMatchFound;
@@ -210,7 +210,7 @@ vFontname2Table(const UCHAR *aucFont, const UCHAR *aucAltFont,
 		switch (iBytesPerChar) {
 		case 1:
 			(void)strncpy(pFontTableRecord->szWordFontname,
-				(const int8_t *)aucFont,
+				(const char *)aucFont,
 				sizeof(pFontTableRecord->szWordFontname) - 1);
 			break;
 		case 2:
@@ -415,12 +415,12 @@ vMinimizeFontTable(void)
  * returns TRUE when a correct line has been read, otherwise FALSE
  */
 static BOOL
-bReadFontFile(FILE *pFontTableFile, int8_t *szWordFont,
-	int *piItalic, int *piBold, int8_t *szOurFont, int *piSpecial)
+bReadFontFile(FILE *pFontTableFile, char *szWordFont,
+	int *piItalic, int *piBold, char *szOurFont, int *piSpecial)
 {
-	int8_t	*pcTmp;
+	char	*pcTmp;
 	int	iFields;
-	int8_t	szLine[FONT_LINE_LENGTH];
+	char	szLine[FONT_LINE_LENGTH];
 
 	fail(szWordFont == NULL || szOurFont == NULL);
 	fail(piItalic == NULL || piBold == NULL || piSpecial == NULL);
@@ -474,7 +474,7 @@ vCreate0FontTable(void)
 	UCHAR	*aucFont;
 	int	iBold, iItalic, iSpecial, iEmphasis, iFtc;
 	UCHAR	ucPrq, ucFf, ucFFN;
-	int8_t	szWordFont[FONT_LINE_LENGTH], szOurFont[FONT_LINE_LENGTH];
+	char	szWordFont[FONT_LINE_LENGTH], szOurFont[FONT_LINE_LENGTH];
 
 	tFontTableRecords = 0;
 	pFontTable = xfree(pFontTable);
@@ -540,7 +540,7 @@ vCreate2FontTable(FILE *pFile, int iWordVersion, const UCHAR *aucHeader)
 	int	iPos, iOff, iRecLen;
 	int	iBold, iItalic, iSpecial, iEmphasis;
 	UCHAR	ucFFN;
-	int8_t	szWordFont[FONT_LINE_LENGTH], szOurFont[FONT_LINE_LENGTH];
+	char	szWordFont[FONT_LINE_LENGTH], szOurFont[FONT_LINE_LENGTH];
 
 	fail(pFile == NULL || aucHeader == NULL);
 	fail(iWordVersion != 1 && iWordVersion != 2);
@@ -687,7 +687,7 @@ vCreate6FontTable(FILE *pFile, ULONG ulStartBlock,
 	int	iPos, iRecLen, iOffsetAltName;
 	int	iBold, iItalic, iSpecial, iEmphasis;
 	UCHAR	ucFFN;
-	int8_t	szWordFont[FONT_LINE_LENGTH], szOurFont[FONT_LINE_LENGTH];
+	char	szWordFont[FONT_LINE_LENGTH], szOurFont[FONT_LINE_LENGTH];
 
 	fail(pFile == NULL || aucHeader == NULL);
 	fail(ulStartBlock > MAX_BLOCKNUMBER && ulStartBlock != END_OF_CHAIN);
@@ -792,7 +792,7 @@ vCreate8FontTable(FILE *pFile, const pps_info_type *pPPS,
 	int	iPos, iRecLen, iOffsetAltName;
 	int	iBold, iItalic, iSpecial, iEmphasis;
 	UCHAR	ucFFN;
-	int8_t	szWordFont[FONT_LINE_LENGTH], szOurFont[FONT_LINE_LENGTH];
+	char	szWordFont[FONT_LINE_LENGTH], szOurFont[FONT_LINE_LENGTH];
 
 	fail(pFile == NULL || pPPS == NULL || aucHeader == NULL);
 	fail(aulBBD == NULL || aulSBD == NULL);
@@ -948,7 +948,7 @@ static void
 vCorrect4PDF(void)
 {
 	font_table_type	*pTmp;
-	const int8_t	*szOurFont;
+	const char	*szOurFont;
 
 	for (pTmp = pFontTable; pTmp < pFontTable + tFontTableRecords; pTmp++) {
 		if (STRCEQ(pTmp->szOurFontname, FONT_MONOSPACED_PLAIN) ||
@@ -981,7 +981,7 @@ static void
 vCorrect4CyrPS(void)
 {
 	font_table_type	*pTmp;
-	const int8_t	*szOurFont;
+	const char	*szOurFont;
 	UCHAR	ucFFN;
 
 	ucFFN = (FAMILY_UNKNOWN << 4) | PITCH_FIXED;
@@ -1019,7 +1019,7 @@ vCorrectFontTable(conversion_type eConversionType, encoding_type eEncoding)
 int32_t
 lComputeSpaceWidth(drawfile_fontref tFontRef, USHORT usFontSize)
 {
-	int8_t	szSpace[] = " ";
+	char	szSpace[] = " ";
 
 	fail(usFontSize < MIN_FONT_SIZE || usFontSize > MAX_FONT_SIZE);
 

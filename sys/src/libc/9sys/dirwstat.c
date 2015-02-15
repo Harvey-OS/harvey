@@ -12,7 +12,7 @@
 #include <fcall.h>
 
 int
-dirwstat(int8_t *name, Dir *d)
+dirwstat(char *name, Dir *d)
 {
 	uint8_t *buf;
 	int r;

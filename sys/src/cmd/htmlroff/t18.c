@@ -15,8 +15,8 @@
 void
 r_rd(int argc, Rune **argv)
 {
-	int8_t buf[100];
-	int8_t *s;
+	char buf[100];
+	char *s;
 	Rune *p;
 	Fmt fmt;
 	static int didstdin;

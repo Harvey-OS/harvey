@@ -84,4 +84,4 @@ void sscpy(struct penvir *a, struct penvir *b){ /* copy 'a' onto 'b' */
 }
 void idle(void){}
 
-void ptype(int8_t *s){USED(s);}
+void ptype(char *s){USED(s);}

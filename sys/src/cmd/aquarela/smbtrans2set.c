@@ -113,7 +113,7 @@ done:
 SmbProcessResult
 smbtrans2setpathinformation(SmbSession *s, SmbHeader *h)
 {
-	int8_t *fullpath, *path;
+	char *fullpath, *path;
 	SmbTree *t;
 	uint16_t infolevel;
 	SmbBuffer *b;

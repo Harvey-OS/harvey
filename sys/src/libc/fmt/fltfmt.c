@@ -21,9 +21,9 @@ enum
 };
 
 static int
-xadd(int8_t *a, int n, int v)
+xadd(char *a, int n, int v)
 {
-	int8_t *b;
+	char *b;
 	int c;
 
 	if(n < 0 || n >= NSIGNIF)
@@ -42,9 +42,9 @@ xadd(int8_t *a, int n, int v)
 }
 
 static int
-xsub(int8_t *a, int n, int v)
+xsub(char *a, int n, int v)
 {
-	int8_t *b;
+	char *b;
 	int c;
 
 	for(b = a+n; b >= a; b--) {
@@ -61,9 +61,9 @@ xsub(int8_t *a, int n, int v)
 }
 
 static void
-xdtoa(Fmt *fmt, int8_t *s2, double f)
+xdtoa(Fmt *fmt, char *s2, double f)
 {
-	int8_t s1[NSIGNIF+10];
+	char s1[NSIGNIF+10];
 	double g, h;
 	int e, d, i, n;
 	int c1, c2, c3, c4, ucase, sign, chr, prec;
@@ -304,7 +304,7 @@ found:
 int
 _floatfmt(Fmt *fmt, double f)
 {
-	int8_t s[1+NEXP10+1+FDIGIT+1];
+	char s[1+NEXP10+1+FDIGIT+1];
 
 	/*
 	 * The max length of a %f string is

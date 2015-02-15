@@ -89,7 +89,7 @@ int gs_lib_ctx_init( gs_memory_t *mem )
 /* Provide a single point for all "C" stdout and stderr.
  */
 
-int outwrite(const gs_memory_t *mem, const int8_t *str, int len)
+int outwrite(const gs_memory_t *mem, const char *str, int len)
 {
     int code;
     FILE *fout;
@@ -113,7 +113,7 @@ int outwrite(const gs_memory_t *mem, const int8_t *str, int len)
     return code;
 }
 
-int errwrite(const int8_t *str, int len)
+int errwrite(const char *str, int len)
 {    
     int code;
     if (len == 0)

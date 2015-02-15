@@ -25,7 +25,7 @@ static int nhubs;
 static int mustdump;
 static int pollms = Pollms;
 
-static int8_t *dsname[] = { "disabled", "attached", "configed" };
+static char *dsname[] = { "disabled", "attached", "configed" };
 
 static int
 hubfeature(Hub *h, int port, int f, int on)
@@ -119,8 +119,8 @@ static void
 configroothub(Hub *h)
 {
 	Dev *d;
-	int8_t buf[128];
-	int8_t *p;
+	char buf[128];
+	char *p;
 	int nr;
 
 	d = h->dev;
@@ -148,7 +148,7 @@ Done:
 }
 
 Hub*
-newhub(int8_t *fn, Dev *d)
+newhub(char *fn, Dev *d)
 {
 	Hub *h;
 	int i;
@@ -275,11 +275,11 @@ portstatus(Hub *h, int p)
 	return sts;
 }
 
-static int8_t*
+static char*
 stsstr(int sts)
 {
-	static int8_t s[80];
-	int8_t *e;
+	static char s[80];
+	char *e;
 
 	e = s;
 	if(sts&PSsuspend)
@@ -329,9 +329,9 @@ portattach(Hub *h, int p, int sts)
 	Dev *d;
 	Port *pp;
 	Dev *nd;
-	int8_t fname[80];
-	int8_t buf[40];
-	int8_t *sp;
+	char fname[80];
+	char buf[40];
+	char *sp;
 	int mp;
 	int nr;
 
@@ -448,7 +448,7 @@ portdetach(Hub *h, int p)
 {
 	Dev *d;
 	Port *pp;
-	extern void usbfsgone(int8_t*);
+	extern void usbfsgone(char*);
 	d = h->dev;
 	pp = &h->port[p];
 
@@ -498,7 +498,7 @@ portdetach(Hub *h, int p)
 static int
 portresetwanted(Hub *h, int p)
 {
-	int8_t buf[5];
+	char buf[5];
 	Port *pp;
 	Dev *nd;
 
@@ -646,7 +646,7 @@ static void
 work(void *a)
 {
 	Channel *portc;
-	int8_t *fn;
+	char *fn;
 	Hub *h;
 	int i;
 
@@ -692,7 +692,7 @@ Again:
 }
 
 static int
-cfswalk(Usbfs*, Fid *, int8_t *)
+cfswalk(Usbfs*, Fid *, char *)
 {
 	werrstr(Enotfound);
 	return -1;
@@ -711,7 +711,7 @@ cfsread(Usbfs*, Fid *, void *, int32_t , int64_t )
 }
 
 static void
-setdrvargs(int8_t *name, int8_t *args)
+setdrvargs(char *name, char *args)
 {
 	Devtab *dt;
 	extern Devtab devtab[];
@@ -722,7 +722,7 @@ setdrvargs(int8_t *name, int8_t *args)
 }
 
 static void
-setdrvauto(int8_t *name, int on)
+setdrvauto(char *name, int on)
 {
 	Devtab *dt;
 	extern Devtab devtab[];
@@ -735,9 +735,9 @@ setdrvauto(int8_t *name, int on)
 static int32_t
 cfswrite(Usbfs*, Fid *, void *data, int32_t cnt, int64_t )
 {
-	int8_t *cmd, *arg;
-	int8_t buf[80];
-	int8_t *toks[4];
+	char *cmd, *arg;
+	char buf[80];
+	char *toks[4];
 
 	if(cnt > sizeof(buf))
 		cnt = sizeof(buf) - 1;
@@ -808,9 +808,9 @@ static Usbfs ctlfs =
 };
 
 static void
-getenvint(int8_t *env, int *lp)
+getenvint(char *env, int *lp)
 {
-	int8_t *s;
+	char *s;
 
 	s = getenv(env);
 	if (s != nil)
@@ -819,9 +819,9 @@ getenvint(int8_t *env, int *lp)
 }
 
 static void
-getenvdrvargs(int8_t *env, int8_t *argname)
+getenvdrvargs(char *env, char *argname)
 {
-	int8_t *s;
+	char *s;
 
 	s = getenv(env);
 	if(s != nil)

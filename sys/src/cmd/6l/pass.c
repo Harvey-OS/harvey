@@ -602,7 +602,7 @@ dostkoff(void)
 }
 
 int64_t
-atolwhex(int8_t *s)
+atolwhex(char *s)
 {
 	int64_t n;
 	int f;
@@ -705,7 +705,7 @@ export(void)
 	int i, j, n, off, nb, sv, ne;
 	Sym *s, *et, *str, **esyms;
 	Prog *p;
-	int8_t buf[NSNAME], *t;
+	char buf[NSNAME], *t;
 
 	n = 0;
 	for(i = 0; i < NHASH; i++)

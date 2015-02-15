@@ -101,7 +101,7 @@ struct Udppriv
 	uint32_t		lenerr;			/* short packet */
 };
 
-void (*etherprofiler)(int8_t *name, int qlen);
+void (*etherprofiler)(char *name, int qlen);
 void udpkick(void *x, Block *bp);
 
 /*
@@ -114,10 +114,10 @@ struct Udpcb
 	uchar	headers;
 };
 
-static int8_t*
-udpconnect(Conv *c, int8_t **argv, int argc)
+static char*
+udpconnect(Conv *c, char **argv, int argc)
 {
-	int8_t *e;
+	char *e;
 	Udppriv *upriv;
 
 	upriv = c->p->priv;
@@ -132,7 +132,7 @@ udpconnect(Conv *c, int8_t **argv, int argc)
 
 
 static int
-udpstate(Conv *c, int8_t *state, int n)
+udpstate(Conv *c, char *state, int n)
 {
 	return snprint(state, n, "%s qin %d qout %d\n",
 		c->inuse ? "Open" : "Closed",
@@ -141,10 +141,10 @@ udpstate(Conv *c, int8_t *state, int n)
 	);
 }
 
-static int8_t*
-udpannounce(Conv *c, int8_t** argv, int argc)
+static char*
+udpannounce(Conv *c, char** argv, int argc)
 {
-	int8_t *e;
+	char *e;
 	Udppriv *upriv;
 
 	upriv = c->p->priv;
@@ -545,8 +545,8 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 
 }
 
-int8_t*
-udpctl(Conv *c, int8_t **f, int n)
+char*
+udpctl(Conv *c, char **f, int n)
 {
 	Udpcb *ucb;
 
@@ -568,7 +568,7 @@ udpctl(Conv *c, int8_t **f, int n)
 }
 
 void
-udpadvise(Proto *udp, Block *bp, int8_t *msg)
+udpadvise(Proto *udp, Block *bp, char *msg)
 {
 	Udp4hdr *h4;
 	Udp6hdr *h6;
@@ -623,7 +623,7 @@ udpadvise(Proto *udp, Block *bp, int8_t *msg)
 }
 
 int
-udpstats(Proto *udp, int8_t *buf, int len)
+udpstats(Proto *udp, char *buf, int len)
 {
 	Udppriv *upriv;
 

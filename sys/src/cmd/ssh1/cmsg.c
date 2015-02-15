@@ -110,11 +110,11 @@ authuser(Conn *c)
 	return -1;
 }
 
-static int8_t
-ask(Conn *c, int8_t *answers, int8_t *question)
+static char
+ask(Conn *c, char *answers, char *question)
 {
 	int fd;
-	int8_t buf[256];
+	char buf[256];
 
 	if(!c->interactive)
 		return answers[0];
@@ -133,7 +133,7 @@ ask(Conn *c, int8_t *answers, int8_t *question)
 static void
 checkkey(Conn *c)
 {
-	int8_t *home, *keyfile;
+	char *home, *keyfile;
 
 	debug(DBG_CRYPTO, "checking key %B %B\n", c->hostkey->n, c->hostkey->ek);
 	switch(findkey("/sys/lib/ssh/keyring", c->aliases, c->hostkey)){
@@ -201,7 +201,7 @@ checkkey(Conn *c)
 void
 sshclienthandshake(Conn *c)
 {
-	int8_t buf[128], *p;
+	char buf[128], *p;
 	int i;
 	Msg *m;
 
@@ -247,9 +247,9 @@ sshclienthandshake(Conn *c)
 }
 
 static int
-intgetenv(int8_t *name, int def)
+intgetenv(char *name, int def)
 {
-	int8_t *s;
+	char *s;
 	int n, val;
 
 	val = def;
@@ -269,7 +269,7 @@ int
 readgeom(int *nrow, int *ncol, int *width, int *height)
 {
 	static int fd = -1;
-	int8_t buf[64];
+	char buf[64];
 
 	if(fd < 0 && (fd = open("/dev/wctl", OREAD)) < 0)
 		return -1;
@@ -347,7 +347,7 @@ static uint8_t rawptyopt[] =
 void
 requestpty(Conn *c)
 {
-	int8_t *term;
+	char *term;
 	int nrow, ncol, width, height;
 	Msg *m;
 

@@ -24,20 +24,20 @@ Rune *right[]= {
 	0
 };
 
-int8_t	RSAM[] = "sam";
-int8_t	SAMTERM[] = "/bin/aux/samterm";
-int8_t	HOME[] = "home";
-int8_t	TMPDIR[] = "/tmp";
-int8_t	SH[] = "rc";
-int8_t	SHPATH[] = "/bin/rc";
-int8_t	RX[] = "rx";
-int8_t	RXPATH[] = "/bin/rx";
-int8_t	SAMSAVECMD[] = "/bin/rc\n/sys/lib/samsave";
+char	RSAM[] = "sam";
+char	SAMTERM[] = "/bin/aux/samterm";
+char	HOME[] = "home";
+char	TMPDIR[] = "/tmp";
+char	SH[] = "rc";
+char	SHPATH[] = "/bin/rc";
+char	RX[] = "rx";
+char	RXPATH[] = "/bin/rx";
+char	SAMSAVECMD[] = "/bin/rc\n/sys/lib/samsave";
 
 void
-dprint(int8_t *z, ...)
+dprint(char *z, ...)
 {
-	int8_t buf[BLOCKSIZE];
+	char buf[BLOCKSIZE];
 	va_list arg;
 
 	va_start(arg, z);
@@ -47,19 +47,19 @@ dprint(int8_t *z, ...)
 }
 
 void
-print_ss(int8_t *s, String *a, String *b)
+print_ss(char *s, String *a, String *b)
 {
 	dprint("?warning: %s: `%.*S' and `%.*S'\n", s, a->n, a->s, b->n, b->s);
 }
 
 void
-print_s(int8_t *s, String *a)
+print_s(char *s, String *a)
 {
 	dprint("?warning: %s `%.*S'\n", s, a->n, a->s);
 }
 
 int
-statfile(int8_t *name, uint32_t *dev, uint64_t *id, int32_t *time,
+statfile(char *name, uint32_t *dev, uint64_t *id, int32_t *time,
 	 int32_t *length,
 	 int32_t *appendonly)
 {
@@ -106,7 +106,7 @@ statfd(int fd, uint32_t *dev, uint64_t *id, int32_t *time, int32_t *length,
 }
 
 void
-notifyf(void *a, int8_t *s)
+notifyf(void *a, char *s)
 {
 	USED(a);
 	if(bpipeok && strcmp(s, "sys: write on closed pipe") == 0)
@@ -118,11 +118,11 @@ notifyf(void *a, int8_t *s)
 	noted(NDFLT);
 }
 
-int8_t*
+char*
 waitfor(int pid)
 {
 	Waitmsg *w;
-	static int8_t msg[ERRMAX];
+	static char msg[ERRMAX];
 
 	while((w = wait()) != nil){
 		if(w->pid != pid){
@@ -138,7 +138,7 @@ waitfor(int pid)
 }
 
 void
-samerr(int8_t *buf)
+samerr(char *buf)
 {
 	sprint(buf, "%s/sam.err", TMPDIR);
 }

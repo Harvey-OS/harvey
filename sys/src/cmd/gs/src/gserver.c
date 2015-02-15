@@ -64,7 +64,7 @@
  */
 
 int gs_server_initialize(int fno_stdin, int fno_stdout, int fno_stderr,
-			 const int8_t *init_str);
+			 const char *init_str);
 
 /*
  * Execute a string containing PostScript code.  The effects of this code
@@ -85,8 +85,8 @@ int gs_server_initialize(int fno_stdin, int fno_stdout, int fno_stderr,
  * exceed errstr_max_len.
  */
 
-int gs_server_run_string(const int8_t *str, int *exit_code_ptr,
-			 int8_t *errstr, int errstr_max_len,
+int gs_server_run_string(const char *str, int *exit_code_ptr,
+			 char *errstr, int errstr_max_len,
 			 int *errstr_len_ptr);
 
 /*
@@ -99,8 +99,8 @@ int gs_server_run_string(const int8_t *str, int *exit_code_ptr,
  * first file (equivalent to `erasepage').
  */
 
-int gs_server_run_files(const int8_t **file_names, int permanent,
-			int *exit_code_ptr, int8_t *errstr,
+int gs_server_run_files(const char **file_names, int permanent,
+			int *exit_code_ptr, char *errstr,
 			int errstr_max_len, int *errstr_len_ptr);
 
 /*
@@ -182,7 +182,7 @@ main(int argc, char *argv[])
 /* Forward references */
 private int job_begin(void);
 private int job_end(void);
-private void errstr_report(ref *, int8_t *, int, int *);
+private void errstr_report(ref *, char *, int, int *);
 
 /* ------ Public routines ------ */
 
@@ -190,7 +190,7 @@ private void errstr_report(ref *, int8_t *, int, int *);
 
 int
 gs_server_initialize(int fno_stdin, int fno_stdout, int fno_stderr,
-		     const int8_t *init_str)
+		     const char *init_str)
 {
     int code, exit_code;	/* discard exit_code for now */
     int errstr_len;		/* discard */
@@ -214,19 +214,19 @@ gs_server_initialize(int fno_stdin, int fno_stdout, int fno_stderr,
 	return code;
     code = gs_server_run_string("/QUIET true def /NOPAUSE true def",
 				&exit_code,
-				(int8_t *)0, 0, &errstr_len);
+				(char *)0, 0, &errstr_len);
     if (code < 0)
 	return code;
     return (init_str == NULL ? 0 :
 	    gs_server_run_string(init_str, &exit_code,
-				 (int8_t *)0, 0, &errstr_len));
+				 (char *)0, 0, &errstr_len));
 }
 
 /* Run a string. */
 
 int
-gs_server_run_string(const int8_t *str, int *exit_code_ptr,
-		     int8_t *errstr, int errstr_max_len, int *errstr_len_ptr)
+gs_server_run_string(const char *str, int *exit_code_ptr,
+		     char *errstr, int errstr_max_len, int *errstr_len_ptr)
 {
     ref error_object;
     int code;
@@ -242,13 +242,13 @@ gs_server_run_string(const int8_t *str, int *exit_code_ptr,
 /* Run files. */
 
 int
-gs_server_run_files(const int8_t **file_names, int permanent,
-  int *exit_code_ptr, int8_t *errstr, int errstr_max_len,
+gs_server_run_files(const char **file_names, int permanent,
+  int *exit_code_ptr, char *errstr, int errstr_max_len,
                     int *errstr_len_ptr)
 {
     int code = 0;
     ref error_object;
-    const int8_t **pfn;
+    const char **pfn;
 
     if (!permanent)
 	job_begin();

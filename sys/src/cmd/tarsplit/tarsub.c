@@ -21,7 +21,7 @@ enum {
 };
 
 /* exports */
-int8_t *thisnm, *lastnm;
+char *thisnm, *lastnm;
 
 /* private data */
 static uint64_t outoff = 0;		/* maintained by newarch, writetar */
@@ -48,7 +48,7 @@ checksum(Hblock *hp)
 }
 
 void
-readtar(int in, int8_t *buffer, int32_t size)
+readtar(int in, char *buffer, int32_t size)
 {
 	int i;
 	unsigned bytes;
@@ -76,7 +76,7 @@ newarch(void)
 }
 
 uint64_t
-writetar(int outf, int8_t *buffer, uint32_t size)
+writetar(int outf, char *buffer, uint32_t size)
 {
 	if (write(outf, buffer, size) < size) {
 		fprint(2, "%s: archive write error: %r\n", argv0);
@@ -88,7 +88,7 @@ writetar(int outf, int8_t *buffer, uint32_t size)
 }
 
 uint32_t
-otoi(int8_t *s)
+otoi(char *s)
 {
 	int c;
 	uint32_t ul = 0;
@@ -106,7 +106,7 @@ int
 getdir(Hblock *hp, int in, int64_t *lenp)
 {
 	*lenp = 0;
-	readtar(in, (int8_t*)hp, Tblock);
+	readtar(in, (char*)hp, Tblock);
 	if (hp->name[0] == '\0') { /* zero block indicates end-of-archive */
 		lastnm = strdup(thisnm);
 		return 0;
@@ -127,7 +127,7 @@ passtar(Hblock *hp, int in, int outf, int64_t len)
 	uint32_t bytes;
 	int64_t off;
 	uint64_t blks;
-	int8_t bigbuf[Blocksxfr*Tblock];		/* 2*(8192 == MAXFDATA) */
+	char bigbuf[Blocksxfr*Tblock];		/* 2*(8192 == MAXFDATA) */
 
 	off = outoff;
 	if (islink(hp->linkflag))
@@ -148,14 +148,14 @@ passtar(Hblock *hp, int in, int outf, int64_t len)
 void
 putempty(int out)
 {
-	static int8_t buf[Tblock];
+	static char buf[Tblock];
 
 	writetar(out, buf, sizeof buf);
 }
 
 /* emit zero blocks at end */
 int
-closeout(int outf, int8_t *, int prflag)
+closeout(int outf, char *, int prflag)
 {
 	if (outf < 0)
 		return -1;

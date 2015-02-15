@@ -19,8 +19,8 @@ struct Scan
 	uint8_t	*p;		/* current position */
 	uint8_t	*ep;		/* byte after the end */
 
-	int8_t	*err;
-	int8_t	errbuf[256];	/* hold a formatted error sometimes */
+	char	*err;
+	char	errbuf[256];	/* hold a formatted error sometimes */
 	int	rcode;		/* outgoing response codes (reply flags) */
 	int	stop;		/* flag: stop processing */
 	int	trunc;		/* flag: input truncated */
@@ -36,10 +36,10 @@ errneg(RR *rp, Scan *sp, int actual)
 }
 
 static int
-errtoolong(RR *rp, Scan *sp, int remain, int need, int8_t *where)
+errtoolong(RR *rp, Scan *sp, int remain, int need, char *where)
 {
-	int8_t *p, *ep;
-	int8_t ptype[64];
+	char *p, *ep;
+	char ptype[64];
 
 	p =  sp->errbuf;
 	ep = sp->errbuf + sizeof sp->errbuf - 1;
@@ -115,7 +115,7 @@ glong(RR *rp, Scan *sp)
 static DN*
 gv4addr(RR *rp, Scan *sp)
 {
-	int8_t addr[32];
+	char addr[32];
 
 	if(sp->err)
 		return 0;
@@ -129,7 +129,7 @@ gv4addr(RR *rp, Scan *sp)
 static DN*
 gv6addr(RR *rp, Scan *sp)
 {
-	int8_t addr[64];
+	char addr[64];
 
 	if(sp->err)
 		return 0;
@@ -149,7 +149,7 @@ static DN*
 gsym(RR *rp, Scan *sp)
 {
 	int n;
-	int8_t sym[Strlen+1];
+	char sym[Strlen+1];
 
 	if(sp->err)
 		return 0;
@@ -163,7 +163,7 @@ gsym(RR *rp, Scan *sp)
 		sp->err = "illegal string (symbol)";
 		return 0;
 	}
-	strncpy(sym, (int8_t*)sp->p, n);
+	strncpy(sym, (char*)sp->p, n);
 	sym[n] = 0;
 	if (strlen(sym) != n)
 		sp->err = "symbol shorter than declared length";
@@ -179,7 +179,7 @@ static Txt*
 gstr(RR *rp, Scan *sp)
 {
 	int n;
-	int8_t sym[Strlen+1];
+	char sym[Strlen+1];
 	Txt *t;
 
 	if(sp->err)
@@ -194,7 +194,7 @@ gstr(RR *rp, Scan *sp)
 		sp->err = "illegal string";
 		return 0;
 	}
-	strncpy(sym, (int8_t*)sp->p, n);
+	strncpy(sym, (char*)sp->p, n);
 	sym[n] = 0;
 	if (strlen(sym) != n)
 		sp->err = "string shorter than declared length";
@@ -229,11 +229,11 @@ gbytes(RR *rp, Scan *sp, uint8_t **p, int n)
 /*
  *  get a domain name.  'to' must point to a buffer at least Domlen+1 long.
  */
-static int8_t*
-gname(int8_t *to, RR *rp, Scan *sp)
+static char*
+gname(char *to, RR *rp, Scan *sp)
 {
 	int len, off, pointer, n;
-	int8_t *tostart, *toend;
+	char *tostart, *toend;
 	uint8_t *p;
 
 	tostart = to;
@@ -313,7 +313,7 @@ err:
  * of ptr records, so return a format error as feedback.
  */
 static uint16_t
-mstypehack(Scan *sp, uint16_t type, int8_t *where)
+mstypehack(Scan *sp, uint16_t type, char *where)
 {
 	if ((uint8_t)type == 0 && (type>>8) != 0) {
 		USED(where);
@@ -340,11 +340,11 @@ mstypehack(Scan *sp, uint16_t type, int8_t *where)
  *  convert the next RR from a message
  */
 static RR*
-convM2RR(Scan *sp, int8_t *what)
+convM2RR(Scan *sp, char *what)
 {
 	int type, class, len, left;
-	int8_t *dn;
-	int8_t dname[Domlen+1];
+	char *dn;
+	char dname[Domlen+1];
 	uint8_t *data;
 	RR *rp;
 	Txt *t, **l;
@@ -414,7 +414,7 @@ retry:
 		USHORT(rp->pref);
 		dn = NAME(dname);
 		rp->host = dnlookup(dn, Cin, 1);
-		if(strchr((int8_t *)rp->host, '\n') != nil) {
+		if(strchr((char *)rp->host, '\n') != nil) {
 			dnslog("newline in mx text for %s", dn);
 			sp->trunc = 1;		/* try again via tcp */
 		}
@@ -491,7 +491,7 @@ retry:
 		break;
 	}
 	if(sp->p - data != len) {
-		int8_t ptype[64];
+		char ptype[64];
 
 		/*
 		 * ms windows 2000 generates cname queries for reverse lookups
@@ -521,7 +521,7 @@ retry:
 static RR*
 convM2Q(Scan *sp)
 {
-	int8_t dname[Domlen+1];
+	char dname[Domlen+1];
 	int type, class;
 	RR *rp;
 
@@ -540,7 +540,7 @@ convM2Q(Scan *sp)
 }
 
 static RR*
-rrloop(Scan *sp, int8_t *what, int count, int quest)
+rrloop(Scan *sp, char *what, int count, int quest)
 {
 	int i;
 	RR *first, *rp, **l;
@@ -579,10 +579,10 @@ rrloop(Scan *sp, int8_t *what, int count, int quest)
  *
  *  ideally would note if len == Maxpayload && query was via UDP, for errtoolong.
  */
-int8_t*
+char*
 convM2DNS(uint8_t *buf, int len, DNSmsg *m, int *codep)
 {
-	int8_t *err = nil;
+	char *err = nil;
 	RR *rp = nil;
 	Scan scan;
 	Scan *sp;

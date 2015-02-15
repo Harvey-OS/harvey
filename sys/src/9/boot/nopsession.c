@@ -19,7 +19,7 @@ static void
 rpc(int fd, int type)
 {
 	int n, l;
-	int8_t buf[128], *p;
+	char buf[128], *p;
 
 	hdr.type = type;
 	hdr.tag = NOTAG;

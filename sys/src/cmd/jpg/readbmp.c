@@ -556,7 +556,7 @@ Breadbmp(Biobuf *bp, int colourspace)
 	uint8_t *r, *g, *b;
 	Rgb *s, *e;
 	Rgb *bmp;
-	int8_t ebuf[128];
+	char ebuf[128];
 
 	a = nil;
 	bmp = nil;

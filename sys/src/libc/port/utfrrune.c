@@ -10,12 +10,12 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t*
-utfrrune(int8_t *s, int32_t c)
+char*
+utfrrune(char *s, int32_t c)
 {
 	int32_t c1;
 	Rune r;
-	int8_t *s1;
+	char *s1;
 
 	if(c < Runesync)		/* not part of utf sequence */
 		return strrchr(s, c);

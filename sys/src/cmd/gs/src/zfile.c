@@ -59,20 +59,20 @@
 extern_gx_io_device_table();
 
 /* Import the dtype of the stdio IODevices. */
-extern const int8_t iodev_dtype_stdio[];
+extern const char iodev_dtype_stdio[];
 
 /* Forward references: file name parsing. */
 private int parse_file_name(const ref * op, gs_parsed_file_name_t * pfn, bool safemode);
 private int parse_real_file_name(const ref * op,
 				 gs_parsed_file_name_t * pfn,
 				 gs_memory_t *mem, client_name_t cname);
-private int parse_file_access_string(const ref *op, int8_t file_access[4]);
+private int parse_file_access_string(const ref *op, char file_access[4]);
 
 /* Forward references: other. */
 private int execfile_finish(i_ctx_t *);
 private int execfile_cleanup(i_ctx_t *);
 private int zopen_file(i_ctx_t *, const gs_parsed_file_name_t *pfn,
-		       const int8_t *file_access, stream **ps,
+		       const char *file_access, stream **ps,
 		       gs_memory_t *mem);
 private iodev_proc_open_file(iodev_os_open_file);
 private void file_init_stream(stream *s, FILE *file, const char *fmode,
@@ -668,10 +668,10 @@ zlibfile(i_ctx_t *i_ctx_p)
 /* A "simple" prefix is defined as a (possibly empty) string of
    alphanumeric, underscore, and hyphen characters. */
 private bool
-prefix_is_simple(const int8_t *pstr)
+prefix_is_simple(const char *pstr)
 {
     int i;
-    int8_t c;
+    char c;
 
     for (i = 0; (c = pstr[i]) != 0; i++) {
 	if (!(c == '-' || c == '_' || (c >= '0' && c <= '9') ||
@@ -884,7 +884,7 @@ iodev_os_open_file(gx_io_device * iodev, const char *fname, uint len,
 
 /* Make a t_file reference to a stream. */
 void
-make_stream_file(ref * pfile, stream * s, const int8_t *access)
+make_stream_file(ref * pfile, stream * s, const char *access)
 {
     uint attrs =
 	(access[1] == '+' ? a_write + a_read + a_execute : 0) |
@@ -900,9 +900,9 @@ make_stream_file(ref * pfile, stream * s, const int8_t *access)
 }
 
 private gp_file_name_combine_result 
-gp_file_name_combine_patch(const int8_t *prefix, uint plen,
-                           const int8_t *fname, uint flen, 
-			    bool no_sibling, int8_t *buffer, uint *blen)
+gp_file_name_combine_patch(const char *prefix, uint plen,
+                           const char *fname, uint flen, 
+			    bool no_sibling, char *buffer, uint *blen)
 {
     return gp_file_name_combine(prefix, plen, fname, flen, no_sibling, buffer, blen);
 }
@@ -1033,14 +1033,14 @@ lib_fopen_with_libpath(gs_file_path_ptr  lib_path,
 /* The startup code calls this to open @-files. */
 FILE *
 lib_fopen(const gs_file_path_ptr pfpath, const gs_memory_t *mem,
-          const int8_t *fname)
+          const char *fname)
 {
     /* We need a buffer to hold the expanded file name. */
-    int8_t buffer[gp_file_name_sizeof];
+    char buffer[gp_file_name_sizeof];
     /* We can't count on the IODevice table to have been initialized yet. */
     /* Allocate a copy of the default IODevice. */
     gx_io_device iodev_default_copy = *gx_io_device_table[0];
-    int8_t fmode[3] = "r";
+    char fmode[3] = "r";
     FILE *file = NULL;
 
     strcat(fmode, gp_fmode_binary_suffix);
@@ -1054,14 +1054,14 @@ lib_fopen(const gs_file_path_ptr pfpath, const gs_memory_t *mem,
 /* The startup code calls this to open the initialization file gs_init.ps. */
 int
 lib_file_open(const gs_file_path_ptr pfpath, 
-	      i_ctx_t *i_ctx_p, const int8_t *fname, uint len, byte * cname,
+	      i_ctx_t *i_ctx_p, const char *fname, uint len, byte * cname,
               uint max_clen,
 	      uint * pclen, ref * pfile, gs_memory_t *mem)
 {   /* i_ctx_p is NULL running init files. */
     stream *s;
     int code;
-    int8_t fmode[4];  /* r/w/a, [+], [b], null */
-    int8_t *buffer;
+    char fmode[4];  /* r/w/a, [+], [b], null */
+    char *buffer;
     uint blen;
     gx_io_device *iodev = iodev_default;
     FILE *file;
@@ -1072,7 +1072,7 @@ lib_file_open(const gs_file_path_ptr pfpath,
 	return code;
     if (fname == 0)
 	return 0;
-    buffer = (int8_t *)s->cbuf;
+    buffer = (char *)s->cbuf;
     code = lib_fopen_with_libpath(pfpath, mem, i_ctx_p, 
 				  iodev, fname, len, fmode, buffer, s->bsize, &file);
     if (code < 0) {
@@ -1150,13 +1150,13 @@ file_init_stream(stream *s, FILE *file, const char *fmode, byte *buffer,
 /* If fname==0, set up the file entry, stream, and buffer, */
 /* but don't open an OS file or initialize the stream. */
 int
-file_open_stream(const int8_t *fname, uint len, const int8_t *file_access,
+file_open_stream(const char *fname, uint len, const char *file_access,
 		 uint buffer_size, stream ** ps, gx_io_device *iodev,
 		 iodev_proc_fopen_t fopen_proc, gs_memory_t *mem)
 {
     int code;
     FILE *file;
-    int8_t fmode[4];  /* r/w/a, [+], [b], null */
+    char fmode[4];  /* r/w/a, [+], [b], null */
 
     if (!iodev)
 	iodev = iodev_default;
@@ -1166,8 +1166,8 @@ file_open_stream(const int8_t *fname, uint len, const int8_t *file_access,
 	return code;
     if (fname == 0)
 	return 0;
-    code = (*fopen_proc)(iodev, (int8_t *)(*ps)->cbuf, fmode, &file,
-			 (int8_t *)(*ps)->cbuf, (*ps)->bsize);
+    code = (*fopen_proc)(iodev, (char *)(*ps)->cbuf, fmode, &file,
+			 (char *)(*ps)->cbuf, (*ps)->bsize);
     if (code < 0)
 	return code;
     file_init_stream(*ps, file, fmode, (*ps)->cbuf, (*ps)->bsize);
@@ -1176,7 +1176,7 @@ file_open_stream(const int8_t *fname, uint len, const int8_t *file_access,
 
 /* Report an error by storing it in the stream's error_string. */
 int
-filter_report_error(stream_state * st, const int8_t *str)
+filter_report_error(stream_state * st, const char *str)
 {
     if_debug1('s', "[s]stream error: %s\n", str);
     strncpy(st->error_string, str, STREAM_MAX_ERROR_STRING);
@@ -1187,7 +1187,7 @@ filter_report_error(stream_state * st, const int8_t *str)
 
 /* Open a file stream for a filter. */
 int
-filter_open(const int8_t *file_access, uint buffer_size, ref * pfile,
+filter_open(const char *file_access, uint buffer_size, ref * pfile,
 	    const stream_procs * procs, const stream_template * template,
 	    const stream_state * st, gs_memory_t *mem)
 {
@@ -1201,7 +1201,7 @@ filter_open(const int8_t *file_access, uint buffer_size, ref * pfile,
 	if (sst == 0)
 	    return_error(e_VMerror);
     }
-    code = file_open_stream((int8_t *)0, 0, file_access, buffer_size, &s,
+    code = file_open_stream((char *)0, 0, file_access, buffer_size, &s,
     				(gx_io_device *)0, (iodev_proc_fopen_t)0, mem);
     if (code < 0) {
 	gs_free_object(mem, sst, "filter_open(stream_state)");

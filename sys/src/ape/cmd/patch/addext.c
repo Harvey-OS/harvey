@@ -63,11 +63,11 @@
 
 void
 addext (filename, ext, e)
-     int8_t *filename;
-     int8_t const *ext;
+     char *filename;
+     char const *ext;
      int e;
 {
-  int8_t *s = base_name (filename);
+  char *s = base_name (filename);
   size_t slen = strlen (s), extlen = strlen (ext);
   int32_t slen_max = -1;
 
@@ -79,7 +79,7 @@ addext (filename, ext, e)
     slen_max = pathconf (".", _PC_NAME_MAX);
   else
     {
-      int8_t c = *s;
+      char c = *s;
       *s = 0;
       slen_max = pathconf (filename, _PC_NAME_MAX);
       *s = c;
@@ -91,7 +91,7 @@ addext (filename, ext, e)
   if (HAVE_DOS_FILE_NAMES && slen_max <= 12)
     {
       /* Live within DOS's 8.3 limit.  */
-      int8_t *dot = strchr (s, '.');
+      char *dot = strchr (s, '.');
       if (dot)
 	{
 	  slen -= dot + 1 - s;

@@ -35,21 +35,21 @@ erealloc(void *p, uint32_t n)
 	return p;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *t;
+	char *t;
 
 	t = emalloc(strlen(s)+1);
 	strcpy(t, s);
 	return t;
 }
 
-int8_t*
-estrstrdup(int8_t *s, int8_t *t)
+char*
+estrstrdup(char *s, char *t)
 {
 	int32_t ns, nt;
-	int8_t *u;
+	char *u;
 
 	ns = strlen(s);
 	nt = strlen(t);
@@ -63,11 +63,11 @@ estrstrdup(int8_t *s, int8_t *t)
 	return u;
 }
 
-int8_t*
-eappend(int8_t *s, int8_t *sep, int8_t *t)
+char*
+eappend(char *s, char *sep, char *t)
 {
 	int32_t ns, nsep, nt;
-	int8_t *u;
+	char *u;
 
 	if(t == nil)
 		u = estrstrdup(s, sep);
@@ -88,8 +88,8 @@ eappend(int8_t *s, int8_t *sep, int8_t *t)
 	return u;
 }
 
-int8_t*
-egrow(int8_t *s, int8_t *sep, int8_t *t)
+char*
+egrow(char *s, char *sep, char *t)
 {
 	s = eappend(s, sep, t);
 	free(t);
@@ -97,10 +97,10 @@ egrow(int8_t *s, int8_t *sep, int8_t *t)
 }
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[256];
+	char buf[256];
 	Fmt f;
 
 	fmtfdinit(&f, 2, buf, sizeof buf);
@@ -114,7 +114,7 @@ error(int8_t *fmt, ...)
 }
 
 void
-growbytes(Bytes *b, int8_t *s, int32_t ns)
+growbytes(Bytes *b, char *s, int32_t ns)
 {
 	if(b->nalloc < b->n + ns + 1){
 		b->nalloc = b->n + ns + 8000;

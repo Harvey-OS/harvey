@@ -248,7 +248,7 @@ static int	ntt;
  * or -1 if not there
  */
 int32_t
-lookassoc(Assoc *tab, int n, int8_t *key)
+lookassoc(Assoc *tab, int n, char *key)
 {
 	Assoc *q;
 	int32_t i, low, high;
@@ -287,9 +287,9 @@ looknassoc(Nassoc *tab, int n, int32_t key)
 }
 
 void
-err(int8_t *fmt, ...)
+err(char *fmt, ...)
 {
-	int8_t buf[1000];
+	char buf[1000];
 	va_list v;
 
 	va_start(v, fmt);
@@ -337,18 +337,18 @@ outchar(int c)
 }
 
 void
-outchars(int8_t *s)
+outchars(char *s)
 {
-	int8_t c;
+	char c;
 
 	while((c = *s++) != 0)
 		outchar(c);
 }
 
 void
-outprint(int8_t *fmt, ...)
+outprint(char *fmt, ...)
 {
-	int8_t buf[1000];
+	char buf[1000];
 	va_list v;
 
 	va_start(v, fmt);
@@ -358,7 +358,7 @@ outprint(int8_t *fmt, ...)
 }
 
 void
-outpiece(int8_t *b, int8_t *e)
+outpiece(char *b, char *e)
 {
 	int c, lastc;
 
@@ -429,7 +429,7 @@ fold(Rune *rp)
  * metacharacters aren't affected
  */
 void
-foldre(int8_t *new, int8_t *old)
+foldre(char *new, char *old)
 {
 	Rune r;
 

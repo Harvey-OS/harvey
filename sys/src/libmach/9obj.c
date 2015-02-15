@@ -21,16 +21,16 @@
 typedef struct Addr	Addr;
 struct Addr
 {
-	int8_t	type;
-	int8_t	sym;
-	int8_t	name;
+	char	type;
+	char	sym;
+	char	name;
 };
 static Addr addr(Biobuf*);
-static int8_t type2char(int);
+static char type2char(int);
 static void skip(Biobuf*, int);
 
 int
-_is9(int8_t *s)
+_is9(char *s)
 {
 	return  (s[0]&0377) == ANAME			/* ANAME */
 		&& (s[1]&0377) == ANAME>>8
@@ -145,7 +145,7 @@ addr(Biobuf *bp)
 	return a;
 }
 
-static int8_t
+static char
 type2char(int t)
 {
 	switch(t){

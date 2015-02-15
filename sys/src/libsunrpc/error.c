@@ -14,7 +14,7 @@
 
 static struct {
 	SunStatus status;
-	int8_t *msg;
+	char *msg;
 } tab[] = {
 	SunProgUnavail,	"program unavailable",
 	SunProgMismatch,	"program mismatch",

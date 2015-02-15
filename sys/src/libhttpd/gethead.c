@@ -20,14 +20,14 @@ int
 hgethead(HConnect *c, int many)
 {
 	Hio *hin;
-	int8_t *s, *p, *pp;
+	char *s, *p, *pp;
 	int n;
 
 	hin = &c->hin;
 	for(;;){
-		s = (int8_t*)hin->pos;
+		s = (char*)hin->pos;
 		pp = s;
-		while(p = memchr(pp, '\n', (int8_t*)hin->stop - pp)){
+		while(p = memchr(pp, '\n', (char*)hin->stop - pp)){
 			if(!many || p == pp || (p == pp + 1 && *pp == '\r')){
 				pp = p + 1;
 				break;

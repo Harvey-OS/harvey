@@ -15,7 +15,7 @@ Waitmsg*
 wait(void)
 {
 	int n, l;
-	int8_t buf[512], *fld[5];
+	char buf[512], *fld[5];
 	Waitmsg *w;
 
 	n = await(buf, sizeof buf-1);
@@ -34,7 +34,7 @@ wait(void)
 	w->time[0] = atoi(fld[1]);
 	w->time[1] = atoi(fld[2]);
 	w->time[2] = atoi(fld[3]);
-	w->msg = (int8_t*)&w[1];
+	w->msg = (char*)&w[1];
 	memmove(w->msg, fld[4], l);
 	return w;
 }

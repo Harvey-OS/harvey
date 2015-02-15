@@ -12,7 +12,7 @@
 #include <fcntl.h>
 
 int
-creat(const int8_t *name, mode_t mode)
+creat(const char *name, mode_t mode)
 {
 	int n;
 

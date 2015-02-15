@@ -103,7 +103,7 @@ Binit(Biobuf *bp, int f, int mode)
 }
 
 Biobuf*
-Bopen(int8_t *name, int mode)
+Bopen(char *name, int mode)
 {
 	Biobuf *bp;
 	int f;

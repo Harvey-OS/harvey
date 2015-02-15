@@ -23,7 +23,7 @@ struct Part
 	int	inuse;
 	int	vers;
 	uint32_t	mode;
-	int8_t	*name;
+	char	*name;
 	int64_t	offset;		/* in sectors */
 	int64_t	length;		/* in sectors */
 };
@@ -42,11 +42,11 @@ uint32_t ctlmode = 0666;
 uint32_t time0;
 int64_t nsect, sectsize;
 
-int8_t *inquiry = "partfs hard drive";
-int8_t *sdname = "sdXX";
+char *inquiry = "partfs hard drive";
+char *sdname = "sdXX";
 Part tab[64];
 
-int8_t*
+char*
 ctlstring(void)
 {
 	Part *p;
@@ -63,7 +63,7 @@ ctlstring(void)
 }
 
 int
-addpart(int8_t *name, int64_t start, int64_t end)
+addpart(char *name, int64_t start, int64_t end)
 {
 	Part *p;
 
@@ -97,7 +97,7 @@ addpart(int8_t *name, int64_t start, int64_t end)
 }
 
 int
-delpart(int8_t *s)
+delpart(char *s)
 {
 	Part *p;
 
@@ -116,9 +116,9 @@ delpart(int8_t *s)
 }
 
 static void
-addparts(int8_t *buf)
+addparts(char *buf)
 {
-	int8_t *f[4], *p, *q;
+	char *f[4], *p, *q;
 
 	/*
 	 * Use partitions passed from boot program,
@@ -137,7 +137,7 @@ addparts(int8_t *buf)
 }
 
 static void
-ctlwrite0(Req *r, int8_t *msg, Cmdbuf *cb)
+ctlwrite0(Req *r, char *msg, Cmdbuf *cb)
 {
 	int64_t start, end;
 	Part *p;
@@ -209,7 +209,7 @@ ctlwrite0(Req *r, int8_t *msg, Cmdbuf *cb)
 void
 ctlwrite(Req *r)
 {
-	int8_t *msg;
+	char *msg;
 	Cmdbuf *cb;
 
 	r->ofcall.count = r->ifcall.count;
@@ -346,7 +346,7 @@ rdwrpart(Req *r)
 void
 fsread(Req *r)
 {
-	int8_t *s;
+	char *s;
 
 	switch((int)r->fid->qid.path){
 	case Qroot:
@@ -453,7 +453,7 @@ fsstat(Req *r)
 void
 fsattach(Req *r)
 {
-	int8_t *spec;
+	char *spec;
 
 	spec = r->ifcall.aname;
 	if(spec && spec[0]){
@@ -465,8 +465,8 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	Part *p;
 
@@ -509,8 +509,8 @@ Srv fs = {
 	.walk1=	fswalk1,
 };
 
-int8_t *mtpt = "/dev";
-int8_t *srvname;
+char *mtpt = "/dev";
+char *srvname;
 
 void
 usage(void)

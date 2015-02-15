@@ -11,8 +11,8 @@
 #include <libc.h>
 #include "fmtdef.h"
 
-int8_t*
-vseprint(int8_t *buf, int8_t *e, int8_t *fmt, va_list args)
+char*
+vseprint(char *buf, char *e, char *fmt, va_list args)
 {
 	Fmt f;
 
@@ -28,7 +28,7 @@ vseprint(int8_t *buf, int8_t *e, int8_t *fmt, va_list args)
 	VA_COPY(f.args,args);
 	dofmt(&f, fmt);
 	VA_END(f.args);
-	*(int8_t*)f.to = '\0';
-	return (int8_t*)f.to;
+	*(char*)f.to = '\0';
+	return (char*)f.to;
 }
 

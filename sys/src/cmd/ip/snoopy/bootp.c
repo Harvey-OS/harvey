@@ -51,8 +51,8 @@ struct Hdr
 	uint8_t	siaddr[IPv4addrlen];	/* server IP address */
 	uint8_t	giaddr[IPv4addrlen];	/* gateway IP address */
 	uint8_t	chaddr[Maxhwlen];	/* client hardware address */
-	int8_t	sname[64];		/* server host name (optional) */
-	int8_t	file[Maxfilelen];	/* boot file name */
+	char	sname[64];		/* server host name (optional) */
+	char	file[Maxfilelen];	/* boot file name */
 	uint8_t	optmagic[4];
 	uint8_t	optdata[Maxoptlen];
 };
@@ -123,10 +123,10 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static int8_t*
+static char*
 op(int i)
 {
-	static int8_t x[20];
+	static char x[20];
 
 	switch(i){
 	case Bootrequest:

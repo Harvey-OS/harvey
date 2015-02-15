@@ -21,7 +21,7 @@ int32_t	count;
 int	anycount;
 int	follow;
 int	file	= 0;
-int8_t*	umsg	= "usage: tail [-n N] [-c N] [-f] [-r] [+-N[bc][fr]] [file]";
+char*	umsg	= "usage: tail [-n N] [-c N] [-f] [-r] [+-N[bc][fr]] [file]";
 
 Biobuf	bout;
 enum
@@ -41,23 +41,23 @@ enum
 } dir = FWD;
 
 extern	void	copy(void);
-extern	void	fatal(int8_t*);
-extern	int	getnumber(int8_t*);
+extern	void	fatal(char*);
+extern	int	getnumber(char*);
 extern	void	keep(void);
 extern	void	reverse(void);
 extern	void	skip(void);
-extern	void	suffix(int8_t*);
-extern	int32_t	tread(int8_t*, int32_t);
+extern	void	suffix(char*);
+extern	int32_t	tread(char*, int32_t);
 extern	void	trunc(Dir*, Dir**);
 extern	int64_t	tseek(int64_t, int);
-extern	void	twrite(int8_t*, int32_t);
+extern	void	twrite(char*, int32_t);
 extern	void	usage(void);
 static	int	isseekable(int fd);
 
 #define JUMP(o,p) tseek(o,p), copy()
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	int seekable, c;
 
@@ -150,7 +150,7 @@ trunc(Dir *old, Dir **new)
 }
 
 void
-suffix(int8_t *s)
+suffix(char *s)
 {
 	while(*s && strchr("0123456789+-", *s))
 		s++;
@@ -184,7 +184,7 @@ skip(void)
 {
 	int i;
 	int32_t n;
-	int8_t buf[Bsize];
+	char buf[Bsize];
 	if(units == CHARS) {
 		for( ; count>0; count -=n) {
 			n = count<Bsize? count: Bsize;
@@ -209,7 +209,7 @@ void
 copy(void)
 {
 	int32_t n;
-	int8_t buf[Bsize];
+	char buf[Bsize];
 	while((n=tread(buf, Bsize)) > 0) {
 		twrite(buf, n);
 		Bflush(&bout);	/* for FWD on pipe; else harmless */
@@ -226,7 +226,7 @@ keep(void)
 {
 	int len = 0;
 	int32_t bufsiz = 0;
-	int8_t *buf = 0;
+	char *buf = 0;
 	int j, k, n;
 
 	for(n=1; n;) {
@@ -276,7 +276,7 @@ reverse(void)
 	int32_t len = 0;
 	int32_t n = 0;
 	int32_t bufsiz = 0;
-	int8_t *buf = 0;
+	char *buf = 0;
 	int64_t pos = tseek(0LL, 2);
 
 	for(first=1; pos>0 && count>0; first=0) {
@@ -323,7 +323,7 @@ tseek(int64_t o, int p)
 }
 
 int32_t
-tread(int8_t *buf, int32_t n)
+tread(char *buf, int32_t n)
 {
 	int r = read(file, buf, n);
 	if(r == -1)
@@ -332,14 +332,14 @@ tread(int8_t *buf, int32_t n)
 }
 
 void
-twrite(int8_t *s, int32_t n)
+twrite(char *s, int32_t n)
 {
 	if(Bwrite(&bout, s, n) != n)
 		fatal("");
 }
 
 int
-getnumber(int8_t *s)
+getnumber(char *s)
 {
 	if(*s=='-' || *s=='+')
 		s++;
@@ -358,9 +358,9 @@ getnumber(int8_t *s)
 }	
 
 void		
-fatal(int8_t *s)
+fatal(char *s)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	errstr(buf, sizeof buf);
 	fprint(2, "tail: %s: %s\n", s, buf);

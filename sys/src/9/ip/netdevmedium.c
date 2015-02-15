@@ -16,7 +16,7 @@
 
 #include "ip.h"
 
-static void	netdevbind(Ipifc *ifc, int argc, int8_t **argv);
+static void	netdevbind(Ipifc *ifc, int argc, char **argv);
 static void	netdevunbind(Ipifc *ifc);
 static void	netdevbwrite(Ipifc *ifc, Block *bp, int version,
 				uint8_t *ip);
@@ -48,7 +48,7 @@ Medium netdevmedium =
  *  called with ifc qlock'd
  */
 static void
-netdevbind(Ipifc *ifc, int argc, int8_t **argv)
+netdevbind(Ipifc *ifc, int argc, char **argv)
 {
 	Chan *mchan;
 	Netdevrock *er;
@@ -114,7 +114,7 @@ netdevread(void *a)
 	Ipifc *ifc;
 	Block *bp;
 	Netdevrock *er;
-	int8_t *argv[1];
+	char *argv[1];
 
 	ifc = a;
 	er = ifc->arg;

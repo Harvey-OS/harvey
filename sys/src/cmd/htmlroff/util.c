@@ -20,10 +20,10 @@ emalloc(uint n)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *t;
+	char *t;
 	
 	t = strdup(s);
 	if(t == nil)
@@ -55,7 +55,7 @@ erealloc(void *ov, uint n)
 }
 
 Rune*
-erunesmprint(int8_t *fmt, ...)
+erunesmprint(char *fmt, ...)
 {
 	Rune *s;
 	va_list arg;
@@ -68,10 +68,10 @@ erunesmprint(int8_t *fmt, ...)
 	return s;
 }
 
-int8_t*
-esmprint(int8_t *fmt, ...)
+char*
+esmprint(char *fmt, ...)
 {
-	int8_t *s;
+	char *s;
 	va_list arg;
 	
 	va_start(arg, fmt);
@@ -83,7 +83,7 @@ esmprint(int8_t *fmt, ...)
 }
 
 void
-warn(int8_t *fmt, ...)
+warn(char *fmt, ...)
 {
 	va_list arg;
 	
@@ -102,14 +102,14 @@ warn(int8_t *fmt, ...)
 typedef struct Lhash Lhash;
 struct Lhash
 {
-	int8_t *s;
+	char *s;
 	Lhash *next;
 	Rune r[1];
 };
 static Lhash *hash[1127];
 
 Rune*
-L(int8_t *s)
+L(char *s)
 {
 	Rune *p;
 	Lhash *l;

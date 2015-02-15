@@ -224,7 +224,7 @@ int
 psdf_set_color(gx_device_vector * vdev, const gx_drawing_color * pdc,
 	       const psdf_set_color_commands_t *ppscc)
 {
-    const int8_t *setcolor;
+    const char *setcolor;
 
     if (!gx_dc_is_pure(pdc))
 	return_error(gs_error_rangecheck);

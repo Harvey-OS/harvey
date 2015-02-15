@@ -28,7 +28,7 @@ fmtfdflush(Fmt *f)
  * initialize an output buffer for buffered printing
  */
 int
-fmtfdinit(Fmt *f, int fd, int8_t *buf, int size)
+fmtfdinit(Fmt *f, int fd, char *buf, int size)
 {
 	f->runes = 0;
 	f->start = buf;

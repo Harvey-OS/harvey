@@ -10,7 +10,7 @@
 #include "astro.h"
 
 
-int8_t*	month[] =
+char*	month[] =
 {
 	"January",
 	"February",
@@ -89,7 +89,7 @@ void
 ptime(double d)
 {
 	int h, m, s;
-	int8_t *mer;
+	char *mer;
 	Tim t;
 
 	if(flags['s']) {
@@ -125,7 +125,7 @@ ptime(double d)
 	print("%.2d:%.2d:%.2d %.*s", h, m, s, utfnlen(t.tz, 3), t.tz);
 }
 
-int8_t*	unit[] =
+char*	unit[] =
 {
 	"zero",
 	"one",
@@ -148,7 +148,7 @@ int8_t*	unit[] =
 	"eighteen",
 	"nineteen"
 };
-int8_t*	decade[] =
+char*	decade[] =
 {
 	"twenty",
 	"thirty",

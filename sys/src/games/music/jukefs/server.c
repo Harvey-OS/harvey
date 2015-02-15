@@ -20,12 +20,12 @@
 
 // #include <pool.h>
 
-int8_t		*user, *mapname, *svrname;
+char		*user, *mapname, *svrname;
 int		p[2];
 int		mfd[2];
 int		debug = 0; //DBGSERVER|DBGSTATE|DBGPICKLE|DBGPLAY;
 Biobuf		*f;
-int8_t		*file;
+char		*file;
 
 Object *root;
 
@@ -34,18 +34,18 @@ int		notab;	// no of entries used
 int		sotab;	// no of entries mallocated (invariant sotab >= notab)
 int		hotab;	// no of holes in otab;
 
-int8_t usage[] = "Usage: %s [-f] [-l] [mapfile]\n";
+char usage[] = "Usage: %s [-f] [-l] [mapfile]\n";
 
-int8_t *startdir;
+char *startdir;
 
 Object **catobjects;	/* for quickly finding category objects */
 int ncat = 0;
 
 void
-post(int8_t *name, int8_t *envname, int srvfd)
+post(char *name, char *envname, int srvfd)
 {
 	int fd;
-	int8_t buf[32];
+	char buf[32];
 
 	fd = create(name, OWRITE, 0666);
 	if(fd < 0)
@@ -58,7 +58,7 @@ post(int8_t *name, int8_t *envname, int srvfd)
 }
 
 int
-robusthandler(void*, int8_t *s)
+robusthandler(void*, char *s)
 {
 	if (debug) fprint(2, "inthandler: %s\n", s);
 	return (s && (strstr(s, "interrupted") || strstr(s, "hangup")));
@@ -68,7 +68,7 @@ int32_t
 robustread(int fd, void *buf, int32_t sz)
 {
 	int32_t r;
-	int8_t err[32];
+	char err[32];
 
 	do {
 		r = read(fd , buf, sz);
@@ -193,7 +193,7 @@ reread(void)
 {
 	int i;
 	extern int catnr;
-	int8_t *q;
+	char *q;
 
 	assert(f == nil);
 	if((f = Bopen(mapname, OREAD)) == nil)

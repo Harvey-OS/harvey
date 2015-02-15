@@ -47,11 +47,11 @@ extern "C" {
  * use in system calls).
  */
 struct	hostent {
-	int8_t	*h_name;	/* official name of host */
-	int8_t	**h_aliases;	/* alias list */
+	char	*h_name;	/* official name of host */
+	char	**h_aliases;	/* alias list */
 	int	h_addrtype;	/* host address type */
 	int	h_length;	/* length of address */
-	int8_t	**h_addr_list;	/* list of addresses from name server */
+	char	**h_addr_list;	/* list of addresses from name server */
 #define	h_addr	h_addr_list[0]	/* address, for backward compatiblity */
 };
 
@@ -60,45 +60,45 @@ struct	hostent {
  * fits in 32 bits -- probably a poor one.
  */
 struct	netent {
-	int8_t		*n_name;	/* official name of net */
-	int8_t		**n_aliases;	/* alias list */
+	char		*n_name;	/* official name of net */
+	char		**n_aliases;	/* alias list */
 	int		n_addrtype;	/* net address type */
 	unsigned long	n_net;		/* network # */
 };
 
 struct	servent {
-	int8_t	*s_name;	/* official service name */
-	int8_t	**s_aliases;	/* alias list */
+	char	*s_name;	/* official service name */
+	char	**s_aliases;	/* alias list */
 	int	s_port;		/* port # */
-	int8_t	*s_proto;	/* protocol to use */
+	char	*s_proto;	/* protocol to use */
 };
 
 struct	protoent {
-	int8_t	*p_name;	/* official protocol name */
-	int8_t	**p_aliases;	/* alias list */
+	char	*p_name;	/* official protocol name */
+	char	**p_aliases;	/* alias list */
 	int	p_proto;	/* protocol # */
 };
 
 /* from 4.0 RPCSRC */
 struct rpcent {
-	int8_t	*r_name;	/* name of server for this rpc program */
-	int8_t	**r_aliases;	/* alias list */
+	char	*r_name;	/* name of server for this rpc program */
+	char	**r_aliases;	/* alias list */
 	int	r_number;	/* rpc program number */
 };
 
-extern struct hostent	*gethostbyname(const int8_t *),
+extern struct hostent	*gethostbyname(const char *),
 			*gethostbyaddr(const void *, int, int),
 			*gethostent(void);
-extern struct netent	*getnetbyname(const int8_t *),
+extern struct netent	*getnetbyname(const char *),
 			*getnetbyaddr(int32_t, int),
 			*getnetent(void);
-extern struct servent	*getservbyname(const int8_t *, const int8_t *),
-			*getservbyport(int, const int8_t *),
+extern struct servent	*getservbyname(const char *, const char *),
+			*getservbyport(int, const char *),
 			*getservent(void);
-extern struct protoent	*getprotobyname(const int8_t *),
+extern struct protoent	*getprotobyname(const char *),
 			*getprotobynumber(int),
 			*getprotoent(void);
-extern struct rpcent	*getrpcbyname(const int8_t *), 
+extern struct rpcent	*getrpcbyname(const char *), 
 			*getrpcbynumber(int), 
 			*getrpcent(void);
 extern void sethostent(int),  endhostent(void),
@@ -112,8 +112,8 @@ extern void sethostent(int),  endhostent(void),
  * (left in extern int h_errno).
  */
 extern int h_errno;
-extern void herror(const int8_t *);
-extern int8_t *hstrerror(int);
+extern void herror(const char *);
+extern char *hstrerror(int);
 
 #define	HOST_NOT_FOUND	1 /* Authoritative Answer Host not found */
 #define	TRY_AGAIN	2 /* Non-Authoritive Host not found, or SERVERFAIL */

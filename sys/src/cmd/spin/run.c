@@ -151,7 +151,7 @@ eval_sub(Element *e)
 		&& !(e->status&(D_ATOM))
 		&& !E_Check)
 		{	if (!MadeChoice)
-			{	int8_t buf[256];
+			{	char buf[256];
 				if (xspin)
 					printf("Make Selection %d\n\n", j);
 				else
@@ -436,7 +436,7 @@ eval(Lextok *now)
 		     return 1; /* uninterpreted */
 
 	case ASSERT: if (TstOnly || eval(now->lft)) return 1;
-		     non_fatal("assertion violated", (int8_t *) 0);
+		     non_fatal("assertion violated", (char *) 0);
 			printf("spin: text of failed assertion: assert(");
 			comment(stdout, now->lft, 0);
 			printf(")\n");
@@ -456,7 +456,7 @@ eval(Lextok *now)
 
 int
 printm(FILE *fd, Lextok *n)
-{	extern int8_t Buf[];
+{	extern char Buf[];
 	int j;
 
 	Buf[0] = '\0';
@@ -475,10 +475,10 @@ printm(FILE *fd, Lextok *n)
 int
 interprint(FILE *fd, Lextok *n)
 {	Lextok *tmp = n->lft;
-	int8_t c, *s = n->sym->name;
-	int i, j; int8_t lbuf[512]; /* matches value in sr_buf() */
-	extern int8_t Buf[];	/* global, size 4096 */
-	int8_t tBuf[4096];	/* match size of global Buf[] */
+	char c, *s = n->sym->name;
+	int i, j; char lbuf[512]; /* matches value in sr_buf() */
+	extern char Buf[];	/* global, size 4096 */
+	char tBuf[4096];	/* match size of global Buf[] */
 
 	Buf[0] = '\0';
 	if (!no_print)

@@ -32,7 +32,7 @@ packinfo(Fontchar *fc, uint8_t *p, int n)
 int
 writesubfont(int fd, Subfont *f)
 {
-	int8_t hdr[3*12+1];
+	char hdr[3*12+1];
 	uint8_t *data;
 	int nb;
 

@@ -15,12 +15,12 @@
 #define	DEFAULT	'9'
 #endif
 
-int8_t	*noname		= "<none>";
-int8_t	symname[]	= SYMDEF;
-int8_t	thechar		= 'k';
-int8_t	*thestring 	= "sparc";
+char	*noname		= "<none>";
+char	symname[]	= SYMDEF;
+char	thechar		= 'k';
+char	*thestring 	= "sparc";
 
-int8_t**	libdir;
+char**	libdir;
 int	nlibdir	= 0;
 static	int	maxlibdir = 0;
 
@@ -234,9 +234,9 @@ out:
 }
 
 void
-addlibpath(int8_t *arg)
+addlibpath(char *arg)
 {
-	int8_t **p;
+	char **p;
 
 	if(nlibdir >= maxlibdir) {
 		if(maxlibdir == 0)
@@ -255,11 +255,11 @@ addlibpath(int8_t *arg)
 	libdir[nlibdir++] = strdup(arg);
 }
 
-int8_t*
-findlib(int8_t *file)
+char*
+findlib(char *file)
 {
 	int i;
-	int8_t name[LIBNAMELEN];
+	char name[LIBNAMELEN];
 
 	for(i = 0; i < nlibdir; i++) {
 		snprint(name, sizeof(name), "%s/%s", libdir[i], file);
@@ -304,15 +304,15 @@ errorexit(void)
 }
 
 void
-objfile(int8_t *file)
+objfile(char *file)
 {
 	int32_t off, esym, cnt, l;
 	int f, work;
 	Sym *s;
-	int8_t magbuf[SARMAG];
-	int8_t name[LIBNAMELEN], pname[LIBNAMELEN];
+	char magbuf[SARMAG];
+	char name[LIBNAMELEN], pname[LIBNAMELEN];
 	struct ar_hdr arhdr;
-	int8_t *e, *start, *stop;
+	char *e, *start, *stop;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f ldobj: %s\n", cputime(), file);
@@ -501,9 +501,9 @@ out:
 }
 
 void
-addlib(int8_t *obj)
+addlib(char *obj)
 {
-	int8_t fn1[LIBNAMELEN], fn2[LIBNAMELEN], comp[LIBNAMELEN], *p, *name;
+	char fn1[LIBNAMELEN], fn2[LIBNAMELEN], comp[LIBNAMELEN], *p, *name;
 	int i, search;
 
 	if(histfrogp <= 0)
@@ -681,7 +681,7 @@ readsome(int f, uint8_t *buf, uint8_t *good, uint8_t *stop, int max)
 }
 
 void
-ldobj(int f, int32_t c, int8_t *pn)
+ldobj(int f, int32_t c, char *pn)
 {
 	Prog *p, *t;
 	Sym *h[NSYM], *s, *di;
@@ -742,7 +742,7 @@ loop:
 		r = 0;
 		if(v == D_STATIC)
 			r = version;
-		s = lookup((int8_t*)bloc, r);
+		s = lookup((char*)bloc, r);
 		c -= &stop[1] - bloc;
 		bloc = stop + 1;
 
@@ -1002,10 +1002,10 @@ eof:
 }
 
 Sym*
-lookup(int8_t *symb, int v)
+lookup(char *symb, int v)
 {
 	Sym *s;
-	int8_t *p;
+	char *p;
 	int32_t h;
 	int c, l;
 
@@ -1058,7 +1058,7 @@ prg(void)
 void
 gethunk(void)
 {
-	int8_t *h;
+	char *h;
 	int32_t nh;
 
 	nh = NHUNK;
@@ -1068,7 +1068,7 @@ gethunk(void)
 			nh = 25L*NHUNK;
 	}
 	h = mysbrk(nh);
-	if(h == (int8_t *)-1) {
+	if(h == (char *)-1) {
 		diag("out of memory");
 		errorexit();
 	}
@@ -1326,10 +1326,10 @@ nuxiinit(void)
 int
 find1(int32_t l, int c)
 {
-	int8_t *p;
+	char *p;
 	int i;
 
-	p = (int8_t*)&l;
+	p = (char*)&l;
 	for(i=0; i<4; i++)
 		if(*p++ == c)
 			return i;

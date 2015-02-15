@@ -73,7 +73,7 @@ devtabread(Chan*, void* buf, int32_t n, int64_t off)
 {
 	int i;
 	Dev *dev;
-	int8_t *alloc, *e, *p;
+	char *alloc, *e, *p;
 
 	alloc = malloc(READSTR);
 	if(alloc == nil)

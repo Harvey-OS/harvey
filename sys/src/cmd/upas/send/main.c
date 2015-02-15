@@ -12,7 +12,7 @@
 
 /* globals to all files */
 int rmail;
-int8_t *thissys, *altthissys;
+char *thissys, *altthissys;
 int nflg;
 int xflg;
 int debug;
@@ -37,10 +37,10 @@ static void	save_mail(message *);
 static int	complain_mail(dest *, message *);
 static int	pipe_mail(dest *, message *);
 static void	appaddr(String *, dest *);
-static void	mkerrstring(String *, message *, dest *, dest *, int8_t *,
+static void	mkerrstring(String *, message *, dest *, dest *, char *,
 			       int);
 static int	replymsg(String *, message *, dest *);
-static int	catchint(void*, int8_t*);
+static int	catchint(void*, char*);
 
 void
 usage(void)
@@ -253,7 +253,7 @@ save_mail(message *mp)
 /* remember the interrupt happened */
 
 static int
-catchint(void *a, int8_t *msg)
+catchint(void *a, char *msg)
 {
 	USED(a);
 	if(strstr(msg, "interrupt") || strstr(msg, "hangup")) {
@@ -267,7 +267,7 @@ catchint(void *a, int8_t *msg)
 static int
 complain_mail(dest *dp, message *mp)
 {
-	int8_t *msg;
+	char *msg;
 
 	switch (dp->status) {
 	case d_undefined:
@@ -328,7 +328,7 @@ pipe_mail(dest *dp, message *mp)
 	String *cmd;
 	process *pp;
 	int status, r;
-	int8_t *none;
+	char *none;
 	String *errstring=s_new();
 
 	if (dp->status == d_pipeto)
@@ -421,7 +421,7 @@ appaddr(String *sp, dest *dp)
  *		other	- if mail has not been disposed
  */
 int
-refuse(dest *list, message *mp, int8_t *cp, int status, int outofresources)
+refuse(dest *list, message *mp, char *cp, int status, int outofresources)
 {
 	String *errstring=s_new();
 	dest *dp;
@@ -471,11 +471,11 @@ refuse(dest *list, message *mp, int8_t *cp, int status, int outofresources)
 
 /* make the error message */
 static void
-mkerrstring(String *errstring, message *mp, dest *dp, dest *list, int8_t *cp,
+mkerrstring(String *errstring, message *mp, dest *dp, dest *list, char *cp,
 	    int status)
 {
 	dest *next;
-	int8_t smsg[64];
+	char smsg[64];
 	String *sender;
 
 	sender = unescapespecial(s_clone(mp->sender));
@@ -513,7 +513,7 @@ mkerrstring(String *errstring, message *mp, dest *dp, dest *list, int8_t *cp,
 static String*
 mkboundary(void)
 {
-	int8_t buf[32];
+	char buf[32];
 	int i;
 	static int already;
 
@@ -537,7 +537,7 @@ replymsg(String *errstring, message *mp, dest *dp)
 {
 	message *refp = m_new();
 	dest *ndp;
-	int8_t *rcvr;
+	char *rcvr;
 	int rv;
 	String *boundary;
 

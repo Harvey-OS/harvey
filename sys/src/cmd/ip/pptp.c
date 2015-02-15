@@ -27,9 +27,9 @@ int	debug;
 int	grefd;
 uint8_t localip[IPaddrlen];
 int	localwin;
-int8_t	*keyspec;
+char	*keyspec;
 int	now;
-int8_t	*pppnetmntpt;
+char	*pppnetmntpt;
 int	pid;
 Channel *pidchan;
 int	pppfd;
@@ -42,19 +42,19 @@ uint8_t remoteip[IPaddrlen];
 int	remwin;
 int	rseq;
 int	seq;
-int8_t	tcpdir[40];
+char	tcpdir[40];
 Channel *tickchan;
 int	topppfd;
 
 int	aread(int, int, void*, int);
-int	catchalarm(void*, int8_t*);
+int	catchalarm(void*, char*);
 void	dumpctlpkt(uint8_t*);
 void	getaddrs(void);
 void	*emalloc(int32_t);
 void	ewrite(int, void*, int);
-void	myfatal(int8_t*, ...);
+void	myfatal(char*, ...);
 #pragma varargck argpos myfatal 1
-int	pptp(int8_t*);
+int	pptp(char*);
 void	pushppp(int);
 void	recordack(int);
 int	schedack(int, uint8_t*, int);
@@ -106,7 +106,7 @@ threadmain(int argc, char **argv)
 }
 
 int
-catchalarm(void *a, int8_t *msg)
+catchalarm(void *a, char *msg)
 {
 	USED(a);
 
@@ -443,7 +443,7 @@ waitacks(void)
 void
 tstart(void)
 {
-	int8_t *name;
+	char *name;
 	uint8_t pkt[200], *rpkt;
 
 	memset(pkt, 0, sizeof pkt);
@@ -459,8 +459,8 @@ tstart(void)
 	name = sysname();
 	if(name == nil)
 		name = "gnot";
-	strcpy((int8_t*)pkt+28, name);
-	strcpy((int8_t*)pkt+92, "plan 9");
+	strcpy((char*)pkt+28, name);
+	strcpy((char*)pkt+92, "plan 9");
 
 	if(debug)
 		dumpctlpkt(pkt);
@@ -573,10 +573,10 @@ acallcon(void)
 */
 
 int
-pptp(int8_t *addr)
+pptp(char *addr)
 {
 	int p[2];
-	int8_t greaddr[128];
+	char greaddr[128];
 
 	addr = netmkaddr(addr, "net", "pptp");
 	ctlfd = dial(addr, nil, tcpdir, nil);
@@ -623,7 +623,7 @@ pptp(int8_t *addr)
 void
 pushppp(int fd)
 {
-	int8_t *argv[16];
+	char *argv[16];
 	int argc;
 
 	argc = 0;
@@ -678,7 +678,7 @@ aread(int timeout, int fd, void *buf, int nbuf)
 void
 ewrite(int fd, void *buf, int nbuf)
 {
-	int8_t e[ERRMAX], path[64];
+	char e[ERRMAX], path[64];
 
 	if(write(fd, buf, nbuf) != nbuf){
 		rerrstr(e, sizeof e);
@@ -729,8 +729,8 @@ dumpctlpkt(uint8_t *pkt)
 			nhgets(pkt+12), nhgetl(pkt+16),
 			nhgetl(pkt+20), nhgets(pkt+24),
 			nhgets(pkt+26));
-		fprint(2, "\thost %.64s\n", (int8_t*)pkt+28);
-		fprint(2, "\tvendor %.64s\n", (int8_t*)pkt+92);
+		fprint(2, "\thost %.64s\n", (char*)pkt+28);
+		fprint(2, "\tvendor %.64s\n", (char*)pkt+92);
 		break;
 	case Rstart:
 		fprint(2, "\tRstart proto %d res %d err %d framing %d bearer %d maxchan %d firmware %d\n",
@@ -738,8 +738,8 @@ dumpctlpkt(uint8_t *pkt)
 			nhgetl(pkt+16),
 			nhgetl(pkt+20), nhgets(pkt+24),
 			nhgets(pkt+26));
-		fprint(2, "\thost %.64s\n", (int8_t*)pkt+28);
-		fprint(2, "\tvendor %.64s\n", (int8_t*)pkt+92);
+		fprint(2, "\thost %.64s\n", (char*)pkt+28);
+		fprint(2, "\tvendor %.64s\n", (char*)pkt+92);
 		break;
 
 	case Tstop:
@@ -766,8 +766,8 @@ dumpctlpkt(uint8_t *pkt)
 			nhgetl(pkt+24), nhgetl(pkt+28),
 			nhgets(pkt+32), nhgets(pkt+34));
 		fprint(2, "\tphone len %d num %.64s\n", 
-			nhgets(pkt+36), (int8_t*)pkt+40);
-		fprint(2, "\tsubaddr %.64s\n", (int8_t*)pkt+104);
+			nhgets(pkt+36), (char*)pkt+40);
+		fprint(2, "\tsubaddr %.64s\n", (char*)pkt+104);
 		break;
 
 	case Rcallout:
@@ -784,10 +784,10 @@ dumpctlpkt(uint8_t *pkt)
 			nhgets(pkt+12), nhgets(pkt+14),
 			nhgetl(pkt+16), nhgetl(pkt+20));
 		fprint(2, "\tdialed len %d num %.64s\n",
-			nhgets(pkt+24), (int8_t*)pkt+28);
+			nhgets(pkt+24), (char*)pkt+28);
 		fprint(2, "\tdialing len %d num %.64s\n",
-			nhgets(pkt+26), (int8_t*)pkt+92);
-		fprint(2, "\tsubaddr %.64s\n", (int8_t*)pkt+156);
+			nhgets(pkt+26), (char*)pkt+92);
+		fprint(2, "\tsubaddr %.64s\n", (char*)pkt+156);
 		break;
 
 	case Rcallreq:
@@ -813,7 +813,7 @@ dumpctlpkt(uint8_t *pkt)
 		fprint(2, "\tAcalldis callid %d res %d err %d cause %d\n",
 			nhgets(pkt+12), pkt[14], pkt[15],
 			nhgets(pkt+16));
-		fprint(2, "\tstats %.128s\n", (int8_t*)pkt+20);
+		fprint(2, "\tstats %.128s\n", (char*)pkt+20);
 		break;
 
 	case Awaninfo:
@@ -837,7 +837,7 @@ dumpctlpkt(uint8_t *pkt)
 void
 getaddrs(void)
 {
-	int8_t buf[128];
+	char buf[128];
 	int fd, n;
 
 	sprint(buf, "%s/local", tcpdir);
@@ -860,9 +860,9 @@ getaddrs(void)
 }
 
 void
-myfatal(int8_t *fmt, ...)
+myfatal(char *fmt, ...)
 {
-	int8_t sbuf[512];
+	char sbuf[512];
 	va_list arg;
 	uint8_t buf[16];
 

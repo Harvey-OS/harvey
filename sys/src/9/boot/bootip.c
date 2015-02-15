@@ -15,11 +15,11 @@
 
 static	uint8_t	fsip[IPaddrlen];
 	uint8_t	auip[IPaddrlen];
-static	int8_t	mpoint[32];
+static	char	mpoint[32];
 
 static int isvalidip(uint8_t*);
-static void netndb(int8_t*, uint8_t*);
-static void netenv(int8_t*, uint8_t*);
+static void netndb(char*, uint8_t*);
+static void netenv(char*, uint8_t*);
 
 
 void
@@ -121,9 +121,9 @@ print("ipconfig...");
 }
 
 static void
-setauthaddr(int8_t *proto, int port)
+setauthaddr(char *proto, int port)
 {
-	int8_t buf[128];
+	char buf[128];
 
 	snprint(buf, sizeof buf, "%s!%I!%d", proto, auip, port);
 	authaddr = strdup(buf);
@@ -140,7 +140,7 @@ int
 connecttcp(void)
 {
 	int fd;
-	int8_t buf[64];
+	char buf[64];
 
 	snprint(buf, sizeof buf, "tcp!%I!564", fsip);
 	fd = dial(buf, 0, 0, 0);
@@ -160,10 +160,10 @@ isvalidip(uint8_t *ip)
 }
 
 static void
-netenv(int8_t *attr, uint8_t *ip)
+netenv(char *attr, uint8_t *ip)
 {
 	int fd, n;
-	int8_t buf[128];
+	char buf[128];
 
 	ipmove(ip, IPnoaddr);
 	snprint(buf, sizeof(buf), "#e/%s", attr);
@@ -180,11 +180,11 @@ netenv(int8_t *attr, uint8_t *ip)
 }
 
 static void
-netndb(int8_t *attr, uint8_t *ip)
+netndb(char *attr, uint8_t *ip)
 {
 	int fd, n, c;
-	int8_t buf[1024];
-	int8_t *p;
+	char buf[1024];
+	char *p;
 
 	ipmove(ip, IPnoaddr);
 	snprint(buf, sizeof(buf), "%s/ndb", mpoint);

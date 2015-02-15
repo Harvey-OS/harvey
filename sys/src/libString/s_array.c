@@ -15,7 +15,7 @@ extern String*	_s_alloc(void);
 
 /* return a String containing a character array (this had better not grow) */
 extern String *
-s_array(int8_t *cp, int len)
+s_array(char *cp, int len)
 {
 	String *sp = _s_alloc();
 

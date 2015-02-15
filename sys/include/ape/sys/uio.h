@@ -29,7 +29,7 @@ extern "C" {
  */
 
 struct iovec {
-	int8_t	*iov_base;
+	char	*iov_base;
 	int	iov_len;
 };
 

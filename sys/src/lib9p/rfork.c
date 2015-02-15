@@ -28,14 +28,14 @@ rforker(void (*fn)(void*), void *arg, int flag)
 }
 
 void
-listensrv(Srv *s, int8_t *addr)
+listensrv(Srv *s, char *addr)
 {
 	_forker = rforker;
 	_listensrv(s, addr);
 }
 
 void
-postmountsrv(Srv *s, int8_t *name, int8_t *mtpt, int flag)
+postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 {
 	_forker = rforker;
 	_postmountsrv(s, name, mtpt, flag);

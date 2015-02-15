@@ -337,13 +337,13 @@ Write32BitsHighLow(FILE *fp, int i)
 }
 
 #ifdef KLEMM_36
-void ReadBytes (FILE     *fp, int8_t *p, int n) 
+void ReadBytes (FILE     *fp, char *p, int n) 
 {
     memset ( p, 0, n );
     fread  ( p, 1, n, fp );
 }
 #else
-void ReadBytes(FILE	*fp, int8_t *p, int n)
+void ReadBytes(FILE	*fp, char *p, int n)
 {
 	/* What about fread? */
 	 
@@ -352,9 +352,9 @@ void ReadBytes(FILE	*fp, int8_t *p, int n)
 }
 #endif
 
-void ReadBytesSwapped(FILE *fp, int8_t *p, int n)
+void ReadBytesSwapped(FILE *fp, char *p, int n)
 {
-	register int8_t	*q = p;
+	register char	*q = p;
 
 	/* What about fread? */
 	  
@@ -372,13 +372,13 @@ void ReadBytesSwapped(FILE *fp, int8_t *p, int n)
 }
 
 #ifdef KLEMM_36
-void WriteBytes(FILE *fp, int8_t *p, int n)
+void WriteBytes(FILE *fp, char *p, int n)
 {
     /* return n == */
     fwrite ( p, 1, n, fp );
 }
 #else
-void WriteBytes(FILE *fp, int8_t *p, int n)
+void WriteBytes(FILE *fp, char *p, int n)
 {
         /* No error condition checking */
         while (n-- > 0)
@@ -386,14 +386,14 @@ void WriteBytes(FILE *fp, int8_t *p, int n)
 }
 #endif
 #ifdef KLEMM_36
-void WriteBytesSwapped(FILE *fp, int8_t *p, int n)
+void WriteBytesSwapped(FILE *fp, char *p, int n)
 {
     p += n;
     while ( n-- > 0 )
 	putc ( *--p, fp );
 }
 #else
-void WriteBytesSwapped(FILE *fp, int8_t *p, int n)
+void WriteBytesSwapped(FILE *fp, char *p, int n)
 {
 	p += n-1;
 	while (n-- > 0)
@@ -423,7 +423,7 @@ void WriteBytesSwapped(FILE *fp, int8_t *p, int n)
  ****************************************************************/
 
 double
-ConvertFromIeeeExtended(int8_t* bytes)
+ConvertFromIeeeExtended(char* bytes)
 {
 	double	f;
 	int32_t	expon;
@@ -479,7 +479,7 @@ printf("ConvertFromIEEEExtended(%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx,%lx\r",
 double
 ReadIeeeExtendedHighLow(FILE *fp)
 {
-	int8_t	bytes [10];
+	char	bytes [10];
 
 	ReadBytes ( fp, bytes, 10 );
 	return ConvertFromIeeeExtended ( bytes );

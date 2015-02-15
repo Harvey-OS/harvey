@@ -76,7 +76,7 @@
 
 #include <partime.h>
 
-int8_t const partimeId[] =
+char const partimeId[] =
   "$Id: partime.c,v 5.16 1997/05/19 06:33:53 eggert Exp $";
 
 
@@ -86,7 +86,7 @@ int8_t const partimeId[] =
 
 struct name_val
   {
-    int8_t name[NAME_LENGTH_MAXIMUM];
+    char name[NAME_LENGTH_MAXIMUM];
     int val;
   };
 
@@ -192,11 +192,11 @@ static struct name_val const zone_names[] =
 /* Look for a prefix of S in TABLE, returning val for first matching entry.  */
 static int
 lookup (s, table)
-     int8_t const *s;
+     char const *s;
      struct name_val const table[];
 {
   int j;
-  int8_t buf[NAME_LENGTH_MAXIMUM];
+  char buf[NAME_LENGTH_MAXIMUM];
 
   for (j = 0; j < NAME_LENGTH_MAXIMUM; j++)
     {
@@ -234,7 +234,7 @@ undefine (t)
    Order is important: we look for the first matching pattern
    whose values do not contradict values that we already know about.
    See `parse_pattern_letter' below for the meaning of the pattern codes.  */
-static int8_t const *const patterns[] =
+static char const *const patterns[] =
 {
   /* These traditional patterns must come first,
      to prevent an ISO 8601 format from misinterpreting their prefixes.  */
@@ -262,14 +262,14 @@ static int8_t const *const patterns[] =
    Start with pattern *PI; if success, set *PI to the next pattern to try.
    Set *PI to -1 if we know there are no more patterns to try;
    if *PI is initially negative, give up immediately.  */
-static int8_t const *
+static char const *
 parse_prefix (str, t, pi)
-     int8_t const *str;
+     char const *str;
      struct partime *t;
      int *pi;
 {
   int i = *pi;
-  int8_t const *pat;
+  char const *pat;
   unsigned char c;
 
   if (i < 0)
@@ -290,7 +290,7 @@ parse_prefix (str, t, pi)
   /* Try a pattern until one succeeds.  */
   while ((pat = patterns[i++]) != 0)
     {
-      int8_t const *s = str;
+      char const *s = str;
       undefine (t);
       do
 	{
@@ -309,13 +309,13 @@ parse_prefix (str, t, pi)
 /* Parse an initial prefix of S of length DIGITS; it must be a number.
    Store the parsed number into *RES.
    Return the first character after the prefix, or 0 if it wasn't parsed.  */
-static int8_t const *
+static char const *
 parse_fixed (s, digits, res)
-     int8_t const *s;
+     char const *s;
      int digits, *res;
 {
   int n = 0;
-  int8_t const *lim = s + digits;
+  char const *lim = s + digits;
   while (s < lim)
     {
       unsigned d = *s++ - '0';
@@ -331,9 +331,9 @@ parse_fixed (s, digits, res)
    it must be a number in the range LO through HI.
    Store the parsed number into *RES.
    Return the first character after the prefix, or 0 if it wasn't parsed.  */
-static int8_t const *
+static char const *
 parse_ranged (s, digits, lo, hi, res)
-     int8_t const *s;
+     char const *s;
      int digits, lo, hi, *res;
 {
   s = parse_fixed (s, digits, res);
@@ -346,9 +346,9 @@ parse_ranged (s, digits, lo, hi, res)
    Store the parsed number into *RES; store the fraction times RESOLUTION,
    rounded to the nearest integer, into *FRES.
    Return the first character after the prefix, or 0 if it wasn't parsed.  */
-static int8_t const *
+static char const *
 parse_decimal (s, digits, lo, hi, resolution, res, fres)
-     int8_t const *s;
+     char const *s;
      int digits, lo, hi, resolution, *res, *fres;
 {
   s = parse_fixed (s, digits, res);
@@ -357,7 +357,7 @@ parse_decimal (s, digits, lo, hi, resolution, res, fres)
       int f = 0;
       if ((s[0] == ',' || s[0] == '.') && ISDIGIT (s[1]))
 	{
-	  int8_t const *s1 = ++s;
+	  char const *s1 = ++s;
 	  int num10 = 0, denom10 = 10, product;
 	  while (ISDIGIT (*++s))
 	    {
@@ -383,12 +383,12 @@ parse_decimal (s, digits, lo, hi, resolution, res, fres)
    Set *ZONE to the number of seconds east of GMT,
    or to TM_LOCAL_ZONE if it is the local time zone.
    Return the first character after the prefix, or 0 if it wasn't parsed.  */
-int8_t *
+char *
 parzone (s, zone)
-     int8_t const *s;
+     char const *s;
      int32_t *zone;
 {
-  int8_t sign;
+  char sign;
   int hh, mm, ss;
   int minutesEastOfUTC;
   int32_t offset, z;
@@ -416,7 +416,7 @@ parzone (s, zone)
       if (minutesEastOfUTC == 1)
 	{
 	  *zone = TM_LOCAL_ZONE;
-	  return (int8_t *) s;
+	  return (char *) s;
 	}
 
       z = minutesEastOfUTC * 60L;
@@ -435,7 +435,7 @@ parzone (s, zone)
 	  s += 3;
 	trailing_dst:
 	  *zone = z + 60*60;
-	  return (int8_t *) s;
+	  return (char *) s;
 	}
 
       switch (*s)
@@ -446,7 +446,7 @@ parzone (s, zone)
 
 	default:
 	  *zone = z;
-	  return (int8_t *) s;
+	  return (char *) s;
 	}
 
       break;
@@ -472,15 +472,15 @@ parzone (s, zone)
   offset = (hh * 60 + mm) * 60L + ss;
   *zone = z + (sign == '-' ? -offset : offset);
   /* ?? Are fractions allowed here?  If so, they're not implemented.  */
-  return (int8_t *) s;
+  return (char *) s;
 }
 
 /* Parse an initial prefix of S, matching the pattern whose code is C.
    Set *T accordingly.
    Return the first character after the prefix, or 0 if it wasn't parsed.  */
-static int8_t const *
+static char const *
 parse_pattern_letter (s, c, t)
-     int8_t const *s;
+     char const *s;
      int c;
      struct partime *t;
 {
@@ -723,9 +723,9 @@ merge_partime (t, u)
    Return the first character after the prefix.
    The prefix may contain no useful information;
    in that case, *T will contain only undefined values.  */
-int8_t *
+char *
 partime (s, t)
-     int8_t const *s;
+     char const *s;
      struct partime *t;
 {
   struct partime p;
@@ -735,17 +735,17 @@ partime (s, t)
   while (*s)
     {
       int i = 0;
-      int8_t const *s1;
+      char const *s1;
 
       do
 	{
 	  if (! (s1 = parse_prefix (s, &p, &i)))
-	    return (int8_t *) s;
+	    return (char *) s;
 	}
       while (merge_partime (t, &p) != 0);
 
       s = s1;
     }
 
-  return (int8_t *) s;
+  return (char *) s;
 }

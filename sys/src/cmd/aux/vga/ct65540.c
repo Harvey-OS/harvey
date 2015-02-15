@@ -35,7 +35,7 @@ static int flat[] = {	0x2C, 0x2D, 0x2E, 0x2F, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54
 
 typedef struct Group Group;
 struct Group {
-	int8_t *name;
+	char *name;
 	int *x;
 };
 static Group group[] = 
@@ -235,9 +235,9 @@ dump(Vga*, Ctlr* ctlr)
 {
 	Group *g;
 	int *xp;
-	int8_t *name;
+	char *name;
 	int lastx;
-	int8_t item[32];
+	char item[32];
 
 	name = ctlr->name;
 

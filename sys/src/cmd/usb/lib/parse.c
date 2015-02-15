@@ -18,7 +18,7 @@ parsedev(Dev *xd, uint8_t *b, int n)
 {
 	Usbdev *d;
 	DDev *dd;
-	int8_t *hd;
+	char *hd;
 
 	d = xd->usb;
 	assert(d != nil);
@@ -151,7 +151,7 @@ parseendpt(Usbdev *d, Conf *c, Iface *ip, Altc *altc, uint8_t *b, int n,
 	return Dep;
 }
 
-static int8_t*
+static char*
 dname(int dtype)
 {
 	switch(dtype){
@@ -173,7 +173,7 @@ parsedesc(Usbdev *d, Conf *c, uint8_t *b, int n)
 	Iface	*ip;
 	Ep 	*ep;
 	Altc	*altc;
-	int8_t	*hd;
+	char	*hd;
 
 	assert(d != nil && c != nil);
 	tot = 0;
@@ -243,7 +243,7 @@ parseconf(Usbdev *d, Conf *c, uint8_t *b, int n)
 	DConf* dc;
 	int	l;
 	int	nr;
-	int8_t	*hd;
+	char	*hd;
 
 	assert(d != nil && c != nil);
 	dc = (DConf*)b;

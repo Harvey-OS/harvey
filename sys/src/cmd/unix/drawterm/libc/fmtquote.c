@@ -25,7 +25,7 @@
  * nin may be <0 initially, to avoid checking input by count.
  */
 void
-__quotesetup(int8_t *s, Rune *r, int nin, int nout, Quoteinfo *q,
+__quotesetup(char *s, Rune *r, int nin, int nout, Quoteinfo *q,
 	     int sharp, int runesout)
 {
 	int w;
@@ -102,10 +102,10 @@ __quotesetup(int8_t *s, Rune *r, int nin, int nout, Quoteinfo *q,
 }
 
 static int
-qstrfmt(int8_t *sin, Rune *rin, Quoteinfo *q, Fmt *f)
+qstrfmt(char *sin, Rune *rin, Quoteinfo *q, Fmt *f)
 {
 	Rune r, *rm, *rme;
-	int8_t *t, *s, *m, *me;
+	char *t, *s, *m, *me;
 	Rune *rt, *rs;
 	uint32_t fl;
 	int nc, w;
@@ -124,8 +124,8 @@ qstrfmt(int8_t *sin, Rune *rin, Quoteinfo *q, Fmt *f)
 		if(!(fl & FmtLeft) && __fmtpad(f, w - q->nbytesout) < 0)
 			return -1;
 	}
-	t = (int8_t*)f->to;
-	s = (int8_t*)f->stop;
+	t = (char*)f->to;
+	s = (char*)f->stop;
 	rt = (Rune*)f->to;
 	rs = (Rune*)f->stop;
 	if(f->runes)
@@ -167,7 +167,7 @@ qstrfmt(int8_t *sin, Rune *rin, Quoteinfo *q, Fmt *f)
 	}else{
 		FMTRUNE(f, t, s, '\'');
 		USED(s);
-		f->nfmt += t - (int8_t *)f->to;
+		f->nfmt += t - (char *)f->to;
 		f->to = t;
 		if(fl & FmtLeft && __fmtpad(f, w - q->nbytesout) < 0)
 			return -1;
@@ -180,7 +180,7 @@ __quotestrfmt(int runesin, Fmt *f)
 {
 	int nin, outlen;
 	Rune *r;
-	int8_t *s;
+	char *s;
 	Quoteinfo q;
 
 	nin = -1;
@@ -190,7 +190,7 @@ __quotestrfmt(int runesin, Fmt *f)
 		r = va_arg(f->args, Rune *);
 		s = nil;
 	}else{
-		s = va_arg(f->args, int8_t *);
+		s = va_arg(f->args, char *);
 		r = nil;
 	}
 	if(!s && !r)
@@ -201,7 +201,7 @@ __quotestrfmt(int runesin, Fmt *f)
 	else if(f->runes)
 		outlen = (Rune*)f->stop - (Rune*)f->to;
 	else
-		outlen = (int8_t*)f->stop - (int8_t*)f->to;
+		outlen = (char*)f->stop - (char*)f->to;
 
 	__quotesetup(s, r, nin, outlen, &q, f->flags&FmtSharp, f->runes);
 //print("bytes in %d bytes out %d runes in %d runesout %d\n", q.nbytesin, q.nbytesout, q.nrunesin, q.nrunesout);
@@ -237,7 +237,7 @@ quotefmtinstall(void)
 }
 
 int
-__needsquotes(int8_t *s, int *quotelenp)
+__needsquotes(char *s, int *quotelenp)
 {
 	Quoteinfo q;
 

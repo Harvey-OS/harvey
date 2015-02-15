@@ -16,10 +16,10 @@
  *  go from http with latin1 escapes to utf,
  *  we assume that anything >= Runeself is already in utf
  */
-int8_t *
-httpunesc(HConnect *cc, int8_t *s)
+char *
+httpunesc(HConnect *cc, char *s)
 {
-	int8_t *t, *v;
+	char *t, *v;
 	int c;
 	Htmlesc *e;
 

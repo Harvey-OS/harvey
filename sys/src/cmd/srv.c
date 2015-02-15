@@ -12,13 +12,13 @@
 #include <bio.h>
 #include <auth.h>
 
-int8_t	*dest = "system";
+char	*dest = "system";
 int	mountflag = MREPL;
 
-void	error(int8_t *);
+void	error(char *);
 void	rpc(int, int);
-void	post(int8_t*, int);
-void	mountfs(int8_t*, int);
+void	post(char*, int);
+void	mountfs(char*, int);
 int	doauth = 1;
 
 void
@@ -31,7 +31,7 @@ usage(void)
 }
 
 void
-ignore(void *a, int8_t *c)
+ignore(void *a, char *c)
 {
 	USED(a);
 	if(strcmp(c, "alarm") == 0){
@@ -46,7 +46,7 @@ ignore(void *a, int8_t *c)
 }
 
 int
-connectcmd(int8_t *cmd)
+connectcmd(char *cmd)
 {
 	int p[2];
 
@@ -222,10 +222,10 @@ Mount:
 }
 
 void
-post(int8_t *srv, int fd)
+post(char *srv, int fd)
 {
 	int f;
-	int8_t buf[128];
+	char buf[128];
 
 	fprint(2, "post...\n");
 	f = create(srv, OWRITE, 0666);
@@ -239,7 +239,7 @@ post(int8_t *srv, int fd)
 }
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	fprint(2, "srv %s: %s: %r\n", dest, s);
 	exits("srv: error");

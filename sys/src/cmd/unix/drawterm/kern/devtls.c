@@ -87,8 +87,8 @@ enum {
 
 struct Secret
 {
-	int8_t		*encalg;	/* name of encryption alg */
-	int8_t		*hashalg;	/* name of hash alg */
+	char		*encalg;	/* name of encryption alg */
+	char		*hashalg;	/* name of hash alg */
 	int		(*enc)(Secret*, uint8_t*, int);
 	int		(*dec)(Secret*, uint8_t*, int);
 	int		(*unpad)(uint8_t*, int, int);
@@ -114,9 +114,9 @@ struct TlsRec
 	Chan	*c;				/* io channel */
 	int		ref;				/* serialized by tdlock for atomic destroy */
 	int		version;			/* version of the protocol we are speaking */
-	int8_t		verset;			/* version has been set */
-	int8_t		opened;			/* opened command every issued? */
-	int8_t		err[ERRMAX];		/* error message to return to handshake requests */
+	char		verset;			/* version has been set */
+	char		opened;			/* opened command every issued? */
+	char		err[ERRMAX];		/* error message to return to handshake requests */
 	int64_t	handin;			/* bytes communicated by the record layer */
 	int64_t	handout;
 	int64_t	datain;
@@ -146,7 +146,7 @@ struct TlsRec
 	OneWay		out;
 
 	/* protections */
-	int8_t		*user;
+	char		*user;
 	int		perm;
 };
 
@@ -155,7 +155,7 @@ struct TlsErrs{
 	int	sslerr;
 	int	tlserr;
 	int	fatal;
-	int8_t	*msg;
+	char	*msg;
 };
 
 static TlsErrs tlserrs[] = {
@@ -195,9 +195,9 @@ static	Lock	tdlock;
 static	int	tdhiwat;
 static	int	maxtlsdevs = 128;
 static	TlsRec	**tlsdevs;
-static	int8_t	**trnames;
-static	int8_t	*encalgs;
-static	int8_t	*hashalgs;
+static	char	**trnames;
+static	char	*encalgs;
+static	char	*hashalgs;
 
 enum{
 	Qtopdir		= 1,	/* top level directory */
@@ -220,10 +220,10 @@ enum{
 static void	checkstate(TlsRec *, int, int);
 static void	ensure(TlsRec*, Block**, int);
 static void	consume(Block**, uint8_t*, int);
-static Chan*	buftochan(int8_t*);
+static Chan*	buftochan(char*);
 static void	tlshangup(TlsRec*);
-static void	tlsError(TlsRec*, int8_t *);
-static void	alertHand(TlsRec*, int8_t *);
+static void	tlsError(TlsRec*, char *);
+static void	alertHand(TlsRec*, char *);
 static TlsRec	*newtls(Chan *c);
 static TlsRec	*mktlsrec(void);
 static DigestState*sslmac_md5(uint8_t *p, uint32_t len, uint8_t *key,
@@ -249,7 +249,7 @@ static int	get16(uint8_t *p);
 static void	tlsSetState(TlsRec *tr, int new, int old);
 static void	rcvAlert(TlsRec *tr, int err);
 static void	sendAlert(TlsRec *tr, int err);
-static void	rcvError(TlsRec *tr, int err, int8_t *msg, ...);
+static void	rcvError(TlsRec *tr, int err, char *msg, ...);
 static int	rc4enc(Secret *sec, uint8_t *buf, int n);
 static int	des3enc(Secret *sec, uint8_t *buf, int n);
 static int	des3dec(Secret *sec, uint8_t *buf, int n);
@@ -257,10 +257,10 @@ static int	noenc(Secret *sec, uint8_t *buf, int n);
 static int	sslunpad(uint8_t *buf, int n, int block);
 static int	tlsunpad(uint8_t *buf, int n, int block);
 static void	freeSec(Secret *sec);
-static int8_t	*tlsstate(int s);
-static void	pdump(int, void*, int8_t*);
+static char	*tlsstate(int s);
+static void	pdump(int, void*, char*);
 
-static int8_t *tlsnames[] = {
+static char *tlsnames[] = {
 	/* unused */ 0,
 	/* topdir */ 0,
 	/* protodir */ 0,
@@ -278,12 +278,12 @@ static int8_t *tlsnames[] = {
 static int convdir[] = { Qctl, Qdata, Qhand, Qstatus, Qstats };
 
 static int
-tlsgen(Chan *c, int8_t*unused1, Dirtab *unused2, int unused3, int s,
+tlsgen(Chan *c, char*unused1, Dirtab *unused2, int unused3, int s,
        Dir *dp)
 {
 	Qid q;
 	TlsRec *tr;
-	int8_t *name, *nm;
+	char *name, *nm;
 	int perm, t;
 
 	q.vers = 0;
@@ -402,7 +402,7 @@ tlsgen(Chan *c, int8_t*unused1, Dirtab *unused2, int unused3, int s,
 }
 
 static Chan*
-tlsattach(int8_t *spec)
+tlsattach(char *spec)
 {
 	Chan *c;
 
@@ -414,7 +414,7 @@ tlsattach(int8_t *spec)
 }
 
 static Walkqid*
-tlswalk(Chan *c, Chan *nc, int8_t **name, int nname)
+tlswalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, nil, 0, tlsgen);
 }
@@ -534,7 +534,7 @@ tlswstat(Chan *c, uint8_t *dp, int n)
 		error(Eperm);
 
 	d = smalloc(n + sizeof *d);
-	rv = convM2D(dp, n, &d[0], (int8_t*) &d[1]);
+	rv = convM2D(dp, n, &d[0], (char*) &d[1]);
 	if(rv == 0)
 		error(Eshortstat);
 	if(!emptystr(d->uid))
@@ -788,7 +788,7 @@ if(tr->debug)pprint("consumed %d header\n", RecHdrLen);
 	if(ver != tr->version && (tr->verset || ver < MinProtoVersion || ver > MaxProtoVersion))
 		rcvError(tr, EProtocolVersion, "devtls expected ver=%x%s, saw (len=%d) type=%x ver=%x '%.12s'",
 			tr->version, tr->verset?"/set":"", len, type, ver,
-			 (int8_t*)header);
+			 (char*)header);
 	if(len > MaxCipherRecLen || len < 0)
 		rcvError(tr, ERecordOverflow, "record message too long %d", len);
 	ensure(tr, &tr->unprocessed, len);
@@ -965,7 +965,7 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 static void
 rcvAlert(TlsRec *tr, int err)
 {
-	int8_t *s;
+	char *s;
 	int i;
 
 	s = "unknown error";
@@ -987,9 +987,9 @@ if(tr->debug) pprint("rcvAlert: %s\n", s);
  * found an error while decoding the input stream
  */
 static void
-rcvError(TlsRec *tr, int err, int8_t *fmt, ...)
+rcvError(TlsRec *tr, int err, char *fmt, ...)
 {
-	int8_t msg[ERRMAX];
+	char msg[ERRMAX];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1008,7 +1008,7 @@ if(tr->debug) pprint("rcvError: %s\n", msg);
  * make sure the next hand operation returns with a 'msg' error
  */
 static void
-alertHand(TlsRec *tr, int8_t *msg)
+alertHand(TlsRec *tr, char *msg)
 {
 	Block *b;
 	int n;
@@ -1123,7 +1123,7 @@ if(tr->debug) pdump(BLEN(b), b->rp, "consumed:");
 		if(tr->hprocessed == nil){
 			b = qbread(tr->handq, MaxRecLen + 1);
 			if(*b->rp++ == RAlert){
-				kstrcpy(up->errstr, (int8_t*)b->rp, ERRMAX);
+				kstrcpy(up->errstr, (char*)b->rp, ERRMAX);
 				freeb(b);
 				nexterror();
 			}
@@ -1145,7 +1145,7 @@ tlsread(Chan *c, void *a, int32_t n, int64_t off)
 	Block *nb;
 	uint8_t *va;
 	int i, ty;
-	int8_t *buf, *s, *e;
+	char *buf, *s, *e;
 	uint32_t offset = off;
 	TlsRec * tr;
 
@@ -1368,7 +1368,7 @@ tlsbwrite(Chan *c, Block *b, uint32_t offset)
 typedef struct Hashalg Hashalg;
 struct Hashalg
 {
-	int8_t	*name;
+	char	*name;
 	int	maclen;
 	void	(*initkey)(Hashalg *, int, Secret *, uint8_t*);
 };
@@ -1411,7 +1411,7 @@ static Hashalg hashtab[] =
 };
 
 static Hashalg*
-parsehashalg(int8_t *p)
+parsehashalg(char *p)
 {
 	Hashalg *ha;
 
@@ -1425,7 +1425,7 @@ parsehashalg(int8_t *p)
 typedef struct Encalg Encalg;
 struct Encalg
 {
-	int8_t	*name;
+	char	*name;
 	int	keylen;
 	int	ivlen;
 	void	(*initkey)(Encalg *ea, Secret *, uint8_t*, uint8_t*);
@@ -1468,7 +1468,7 @@ static Encalg encrypttab[] =
 };
 
 static Encalg*
-parseencalg(int8_t *p)
+parseencalg(char *p)
 {
 	Encalg *ea;
 
@@ -1489,7 +1489,7 @@ tlswrite(Chan *c, void *a, int32_t n, int64_t off)
 	Block *volatile b;
 	Cmdbuf *volatile cb;
 	int m, ty;
-	int8_t *p, *e;
+	char *p, *e;
 	uint8_t *volatile x;
 	uint32_t offset = off;
 
@@ -1717,7 +1717,7 @@ tlsinit(void)
 	struct Encalg *e;
 	struct Hashalg *h;
 	int n;
-	int8_t *cp;
+	char *cp;
 	static int already;
 
 	if(!already){
@@ -1780,7 +1780,7 @@ Dev tlsdevtab = {
 
 /* get channel associated with an fd */
 static Chan*
-buftochan(int8_t *p)
+buftochan(char *p)
 {
 	Chan *c;
 	int fd;
@@ -1799,7 +1799,7 @@ sendAlert(TlsRec *tr, int err)
 {
 	Block *b;
 	int i, fatal;
-	int8_t *msg;
+	char *msg;
 
 if(tr->debug)pprint("sendAlert %d\n", err);
 	fatal = 1;
@@ -1830,7 +1830,7 @@ if(tr->debug)pprint("sendAlert %d\n", err);
 }
 
 static void
-tlsError(TlsRec *tr, int8_t *msg)
+tlsError(TlsRec *tr, char *msg)
 {
 	int s;
 
@@ -1880,7 +1880,7 @@ static TlsRec*
 newtls(Chan *ch)
 {
 	TlsRec **pp, **ep, **np;
-	int8_t **nmp;
+	char **nmp;
 	int t, newmax;
 
 	if(waserror()) {
@@ -1941,7 +1941,7 @@ mktlsrec(void)
 	return tr;
 }
 
-static int8_t*
+static char*
 tlsstate(int s)
 {
 	switch(s){
@@ -2181,15 +2181,15 @@ get16(uint8_t *p)
 	return (p[0]<<8)|p[1];
 }
 
-static int8_t *charmap = "0123456789abcdef";
+static char *charmap = "0123456789abcdef";
 
 static void
-pdump(int len, void *a, int8_t *tag)
+pdump(int len, void *a, char *tag)
 {
 	uint8_t *p;
 	int i;
-	int8_t buf[65+32];
-	int8_t *q;
+	char buf[65+32];
+	char *q;
 
 	p = a;
 	strcpy(buf, tag);

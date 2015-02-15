@@ -853,13 +853,13 @@ static Rune suptab[128] = {
 };
 
 static int	tagstarts;
-static int8_t	tag[Buflen];
-static int8_t	spec[Buflen];
+static char	tag[Buflen];
+static char	spec[Buflen];
 static Entry	curentry;
 #define cursize (curentry.end-curentry.start)
 
-static int8_t	*getspec(int8_t *, int8_t *);
-static int8_t	*gettag(int8_t *, int8_t *);
+static char	*getspec(char *, char *);
+static char	*gettag(char *, char *);
 
 /*
  * cmd is one of:
@@ -870,7 +870,7 @@ static int8_t	*gettag(int8_t *, int8_t *);
 void
 pgwprintentry(Entry e, int cmd)
 {
-	int8_t *p, *pe;
+	char *p, *pe;
 	int t;
 	int32_t r, rprev, rlig;
 	Rune *transtab;
@@ -1010,7 +1010,7 @@ pgwnextoff(int32_t fromoff)
 	return (Boffset(bdict)-n);
 }
 
-static int8_t *prkey =
+static char *prkey =
 "KEY TO THE PRONUNCIATION\n"
 "\n"
 "I. CONSONANTS\n"
@@ -1115,10 +1115,10 @@ pgwprintkey(void)
  * and continuing until the next ';', in spec[].
  * Return pointer to char after ';'.
  */
-static int8_t *
-getspec(int8_t *f, int8_t *fe)
+static char *
+getspec(char *f, char *fe)
 {
-	int8_t *t;
+	char *t;
 	int c, i;
 
 	t = spec;
@@ -1144,10 +1144,10 @@ getspec(int8_t *f, int8_t *fe)
  * Set naux to the number of aux pairs found.
  * Return pointer to after final '>'.
  */
-static int8_t *
-gettag(int8_t *f, int8_t *fe)
+static char *
+gettag(char *f, char *fe)
 {
-	int8_t *t;
+	char *t;
 	int c, i;
 
 	t = tag;

@@ -20,12 +20,12 @@
  * this was copied from inet's guard.
  */
 static void
-netresp(int8_t *key, int32_t chal, int8_t *answer)
+netresp(char *key, int32_t chal, char *answer)
 {
 	uint8_t buf[8];
 
 	memset(buf, 0, 8);
-	sprint((int8_t *)buf, "%lud", chal);
+	sprint((char *)buf, "%lud", chal);
 	if(encrypt(key, buf, 8) < 0)
 		abort();
 	chal = (buf[0]<<24)+(buf[1]<<16)+(buf[2]<<8)+buf[3];
@@ -33,9 +33,9 @@ netresp(int8_t *key, int32_t chal, int8_t *answer)
 }
 
 AuthInfo*
-auth_userpasswd(int8_t *user, int8_t *passwd)
+auth_userpasswd(char *user, char *passwd)
 {
-	int8_t key[DESKEYLEN], resp[16];
+	char key[DESKEYLEN], resp[16];
 	AuthInfo *ai;
 	Chalstate *ch;
 

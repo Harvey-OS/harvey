@@ -16,20 +16,20 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t cons[] = "#c/cons";
-int8_t boot[] = "/boot/boot";
-int8_t dev[] = "/dev";
-int8_t c[] = "#c";
-int8_t e[] = "#e";
-int8_t ec[] = "#ec";
-int8_t s[] = "#s";
-int8_t srv[] = "/srv";
-int8_t env[] = "/env";
+char cons[] = "#c/cons";
+char boot[] = "/boot/boot";
+char dev[] = "/dev";
+char c[] = "#c";
+char e[] = "#e";
+char ec[] = "#ec";
+char s[] = "#s";
+char srv[] = "/srv";
+char env[] = "/env";
 
 void
-startboot(int8_t *argv0, int8_t **argv)
+startboot(char *argv0, char **argv)
 {
-	int8_t buf[200];
+	char buf[200];
 
 	USED(argv0);
 	/*

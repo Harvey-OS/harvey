@@ -18,7 +18,7 @@
 enum flag { POINT,ENDSEG,ENDSYM };
 struct symb {
 	double x, y;
-	int8_t name[10+1];
+	char name[10+1];
 	enum flag flag;
 } *symbol[NSYMBOL];
 
@@ -34,7 +34,7 @@ static void	dorot(struct symb *, double *, double *);
 
 
 void
-getsyms(int8_t *file)
+getsyms(char *file)
 {
 	FILE *sf = fopen(file,"r");
 	if(sf==0)
@@ -48,7 +48,7 @@ static int
 getsymbol(FILE *sf, int n)
 {
 	double x,y;
-	int8_t s[2];
+	char s[2];
 	int i;
 	struct symb *sp;
 	for(;;) {
@@ -126,7 +126,7 @@ getrange(FILE *sf)
 
 /* r=0 upright;=1 normal;=-1 reverse*/
 int
-putsym(struct place *p, int8_t *name, double s, int r)
+putsym(struct place *p, char *name, double s, int r)
 {
 	int x,y,n;
 	struct symb *sp;

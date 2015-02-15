@@ -25,7 +25,7 @@ mkqid(Qid *q, int64_t path, uint32_t vers, int type)
 }
 
 void
-devdir(Chan *c, Qid qid, int8_t *n, int64_t length, int8_t *user,
+devdir(Chan *c, Qid qid, char *n, int64_t length, char *user,
        int32_t perm,
        Dir *db)
 {
@@ -86,7 +86,7 @@ devdir(Chan *c, Qid qid, int8_t *n, int64_t length, int8_t *user,
  * the zeroth element of the table MUST be the directory itself for ..
 */
 int
-devgen(Chan *c, int8_t *name, Dirtab *tab, int ntab, int i, Dir *dp)
+devgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	if(tab == 0)
 		return -1;
@@ -126,10 +126,10 @@ devshutdown(void)
 }
 
 Chan*
-devattach(int dc, int8_t *spec)
+devattach(int dc, char *spec)
 {
 	Chan *c;
-	int8_t *buf;
+	char *buf;
 
 	/*
 	 * There are no error checks here because
@@ -178,12 +178,12 @@ devclone(Chan *c)
 }
 
 Walkqid*
-devwalk(Chan *c, Chan *nc, int8_t **name, int nname, Dirtab *tab, int ntab,
+devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 	Devgen *gen)
 {
 	int i, j, alloc;
 	Walkqid *wq;
-	int8_t *n;
+	char *n;
 	Dir dir;
 
 	if(nname > 0)
@@ -289,7 +289,7 @@ devstat(Chan *c, uint8_t *db, int32_t n, Dirtab *tab, int ntab,
 {
 	int i;
 	Dir dir;
-	int8_t *p, *elem;
+	char *p, *elem;
 
 	for(i=0;; i++){
 		switch((*gen)(c, nil, tab, ntab, i, &dir)){
@@ -328,7 +328,7 @@ devstat(Chan *c, uint8_t *db, int32_t n, Dirtab *tab, int ntab,
 }
 
 int32_t
-devdirread(Chan *c, int8_t *d, int32_t n, Dirtab *tab, int ntab,
+devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 	   Devgen *gen)
 {
 	int32_t m, dsz;
@@ -362,7 +362,7 @@ devdirread(Chan *c, int8_t *d, int32_t n, Dirtab *tab, int ntab,
  * error(Eperm) if open permission not granted for up->user.
  */
 void
-devpermcheck(int8_t *fileuid, int perm, int omode)
+devpermcheck(char *fileuid, int perm, int omode)
 {
 	int t;
 	static int access[] = { 0400, 0200, 0600, 0100 };
@@ -410,7 +410,7 @@ Return:
 }
 
 void
-devcreate(Chan*, int8_t*, int, int)
+devcreate(Chan*, char*, int, int)
 {
 	error(Eperm);
 }
@@ -468,7 +468,7 @@ devpower(int)
 }
 
 int
-devconfig(int, int8_t *, DevConf *)
+devconfig(int, char *, DevConf *)
 {
 	error(Eperm);
 	return 0;

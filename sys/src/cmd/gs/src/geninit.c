@@ -51,7 +51,7 @@
 #include <memory.h>
 
 /* Forward references */
-private FILE *prefix_open(const int8_t *prefix, const int8_t *inname);
+private FILE *prefix_open(const char *prefix, const char *inname);
 private void merge_to_c(const char *prefix, const char *inname, FILE * in,
 			FILE * config, FILE * out);
 private void merge_to_ps(const char *prefix, const char *inname, FILE * in,
@@ -60,17 +60,17 @@ private void merge_to_ps(const char *prefix, const char *inname, FILE * in,
 #define LINE_SIZE 128
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
     int arg_c = argc;
-    int8_t **arg_v = argv;
-    const int8_t *fin;
+    char **arg_v = argv;
+    const char *fin;
     FILE *in;
-    const int8_t *fconfig;
+    const char *fconfig;
     FILE *config;
-    const int8_t *fout;
+    const char *fout;
     FILE *out;
-    const int8_t *prefix = "";
+    const char *prefix = "";
     bool to_c = false;
 
     if (arg_c >= 2 && (!strcmp(arg_v[1], "-I") || !strcmp(arg_v[1], "-i"))) {
@@ -136,9 +136,9 @@ translate_path(char *path)
 
 /* Open a file with a name prefix. */
 private FILE *
-prefix_open(const int8_t *prefix, const int8_t *inname)
+prefix_open(const char *prefix, const char *inname)
 {
-    int8_t fname[LINE_SIZE + 1];
+    char fname[LINE_SIZE + 1];
     int prefix_length = strlen(prefix);
     FILE *f;
 
@@ -158,7 +158,7 @@ prefix_open(const int8_t *prefix, const int8_t *inname)
 
 /* Read a line from the input. */
 private bool
-rl(FILE * in, int8_t *str, int len)
+rl(FILE * in, char *str, int len)
 {
     /*
      * Unfortunately, we can't use fgets here, because the typical

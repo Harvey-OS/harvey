@@ -14,7 +14,7 @@
 #include <auth.h>
 #include "authcmdlib.h"
 
-int8_t CRONLOG[] = "cron";
+char CRONLOG[] = "cron";
 
 enum {
 	Minute = 60,
@@ -35,46 +35,46 @@ struct Time{			/* bit masks for each valid time */
 };
 
 struct Job{
-	int8_t	*host;		/* where ... */
+	char	*host;		/* where ... */
 	Time	time;			/* when ... */
-	int8_t	*cmd;			/* and what to execute */
+	char	*cmd;			/* and what to execute */
 	Job	*next;
 };
 
 struct User{
 	Qid	lastqid;			/* of last read /cron/user/cron */
-	int8_t	*name;			/* who ... */
+	char	*name;			/* who ... */
 	Job	*jobs;			/* wants to execute these jobs */
 };
 
 User	*users;
 int	nuser;
 int	maxuser;
-int8_t	*savec;
-int8_t	*savetok;
+char	*savec;
+char	*savetok;
 int	tok;
 int	debug;
 uint32_t	lexval;
 
 void	rexec(User*, Job*);
 void	readalljobs(void);
-Job	*readjobs(int8_t*, User*);
-int	getname(int8_t**);
+Job	*readjobs(char*, User*);
+int	getname(char**);
 uint64_t	gettime(int, int);
 int	gettok(int, int);
 void	initcap(void);
 void	pushtok(void);
 void	usage(void);
 void	freejobs(Job*);
-User	*newuser(int8_t*);
+User	*newuser(char*);
 void	*emalloc(uint32_t);
 void	*erealloc(void*, uint32_t);
-int	myauth(int, int8_t*);
+int	myauth(int, char*);
 void	createuser(void);
-int	mkcmd(int8_t*, int8_t*, int);
+int	mkcmd(char*, char*, int);
 void	printjobs(void);
 int	qidcmp(Qid, Qid);
-int	becomeuser(int8_t*);
+int	becomeuser(char*);
 
 uint32_t
 minute(uint32_t tm)
@@ -97,9 +97,9 @@ sleepuntil(uint32_t tm)
 #pragma varargck	argpos fatal 1
 
 static void
-clog(int8_t *fmt, ...)
+clog(char *fmt, ...)
 {
-	int8_t msg[256];
+	char msg[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -109,9 +109,9 @@ clog(int8_t *fmt, ...)
 }
 
 static void
-fatal(int8_t *fmt, ...)
+fatal(char *fmt, ...)
 {
-	int8_t msg[256];
+	char msg[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -122,13 +122,13 @@ fatal(int8_t *fmt, ...)
 }
 
 static int
-openlock(int8_t *file)
+openlock(char *file)
 {
 	return create(file, ORDWR, 0600);
 }
 
 static int
-mklock(int8_t *file)
+mklock(char *file)
 {
 	int fd, try;
 	Dir *dir;
@@ -253,7 +253,7 @@ void
 createuser(void)
 {
 	Dir d;
-	int8_t file[128], *user;
+	char file[128], *user;
 	int fd;
 
 	user = getuser();
@@ -280,7 +280,7 @@ readalljobs(void)
 {
 	User *u;
 	Dir *d, *du;
-	int8_t file[128];
+	char file[128];
 	int i, n, fd;
 
 	fd = open("/cron", OREAD);
@@ -315,7 +315,7 @@ readalljobs(void)
  * other lines: minute hour monthday month weekday host command
  */
 Job *
-readjobs(int8_t *file, User *user)
+readjobs(char *file, User *user)
 {
 	Biobuf *b;
 	Job *j, *jobs;
@@ -366,7 +366,7 @@ readjobs(int8_t *file, User *user)
 void
 printjobs(void)
 {
-	int8_t buf[8*1024];
+	char buf[8*1024];
 	Job *j;
 	int i;
 
@@ -382,7 +382,7 @@ printjobs(void)
 }
 
 User *
-newuser(int8_t *name)
+newuser(char *name)
 {
 	int i;
 
@@ -416,10 +416,10 @@ freejobs(Job *j)
 }
 
 int
-getname(int8_t **namep)
+getname(char **namep)
 {
 	int c;
-	int8_t buf[64], *p;
+	char buf[64], *p;
 
 	if(!savec)
 		return 0;
@@ -487,7 +487,7 @@ pushtok(void)
 int
 gettok(int min, int max)
 {
-	int8_t c;
+	char c;
 
 	savetok = savec;
 	if(!savec)
@@ -510,9 +510,9 @@ gettok(int min, int max)
 }
 
 int
-call(int8_t *host)
+call(char *host)
 {
-	int8_t *na, *p;
+	char *na, *p;
 
 	na = netmkaddr(host, 0, "rexexec");
 	p = utfrune(na, L'!');
@@ -531,9 +531,9 @@ call(int8_t *host)
  * need to escape the quotes so they don't get stripped
  */
 int
-mkcmd(int8_t *cmd, int8_t *buf, int len)
+mkcmd(char *cmd, char *buf, int len)
 {
-	int8_t *p;
+	char *p;
 	int n, m;
 
 	n = sizeof "exec rc -c '" -1;
@@ -561,7 +561,7 @@ mkcmd(int8_t *cmd, int8_t *buf, int len)
 void
 rexec(User *user, Job *j)
 {
-	int8_t buf[8*1024];
+	char buf[8*1024];
 	int n, fd;
 	AuthInfo *ai;
 
@@ -689,12 +689,12 @@ initcap(void)
 /*
  *  create a change uid capability 
  */
-int8_t*
-mkcap(int8_t *from, int8_t *to)
+char*
+mkcap(char *from, char *to)
 {
 	uint8_t rand[20];
-	int8_t *cap;
-	int8_t *key;
+	char *cap;
+	char *key;
 	int nfrom, nto, ncap;
 	uint8_t hash[SHA1dlen];
 
@@ -726,7 +726,7 @@ mkcap(int8_t *from, int8_t *to)
 }
 
 int
-usecap(int8_t *cap)
+usecap(char *cap)
 {
 	int fd, rv;
 
@@ -739,9 +739,9 @@ usecap(int8_t *cap)
 }
 
 int
-becomeuser(int8_t *new)
+becomeuser(char *new)
 {
-	int8_t *cap;
+	char *cap;
 	int rv;
 
 	cap = mkcap(getuser(), new);

@@ -112,8 +112,8 @@ typedef size_t my_size_t;	/* The payoff: do we have size_t now? */
 int testfunction (int arg1, int * arg2); /* check prototypes */
 
 struct methods_struct {		/* check method-pointer declarations */
-  int (*error_exit) (int8_t *msgtext);
-  int (*trace_message) (int8_t *msgtext);
+  int (*error_exit) (char *msgtext);
+  int (*trace_message) (char *msgtext);
   int (*another_method) (void);
 };
 
@@ -176,7 +176,7 @@ void test3function (arg1, arg2)
      void_func arg2;
 #endif
 {
-  int8_t * locptr = (int8_t *) arg1; /* check casting to and from void * */
+  char * locptr = (char *) arg1; /* check casting to and from void * */
   arg1 = (void *) locptr;
   (*arg2) (1, 2);		/* check call of fcn returning void */
 }
@@ -292,14 +292,14 @@ int is_shifting_signed (arg)
 
 
 #ifdef HAVE_PROTOTYPES
-int main (int argc, int8_t ** argv)
+int main (int argc, char ** argv)
 #else
 int main (argc, argv)
      int argc;
      char ** argv;
 #endif
 {
-  int8_t signed_char_check = (int8_t) (-67);
+  char signed_char_check = (char) (-67);
   FILE *outfile;
 
   /* Attempt to write jconfig.h */

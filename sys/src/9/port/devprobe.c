@@ -55,7 +55,7 @@ static uint32_t pw = 0, pr = 0;
 static int probesactive = 0;
 static unsigned long logsize = defaultlogsize, logmask = defaultlogsize - 1;
 
-static int8_t eventname[] = {
+static char eventname[] = {
 	[ProbeEntry] = 'E',
 	[ProbeExit] = 'X'
 };
@@ -66,7 +66,7 @@ static Dirtab probedir[]={
 	"probe",	{Qdata},	0,		0440,
 };
 
-int8_t hex[] = {
+char hex[] = {
 	'0',
 	'1',
 	'2',
@@ -87,7 +87,7 @@ int8_t hex[] = {
 
 /* big-endian ... */
 void
-hex32(uint32_t l, int8_t *c)
+hex32(uint32_t l, char *c)
 {
 	int i;
 	for(i = 8; i; i--){
@@ -97,7 +97,7 @@ hex32(uint32_t l, int8_t *c)
 }
 
 void
-hex64(uint64_t l, int8_t *c)
+hex64(uint64_t l, char *c)
 {
 	hex32(l>>32, c);
 	hex32(l, &c[8]);
@@ -171,13 +171,13 @@ probeexit(Probe *p)
 }
 
 static Chan*
-probeattach(int8_t *spec)
+probeattach(char *spec)
 {
 	return devattach('+', spec);
 }
 
 static Walkqid*
-probewalk(Chan *c, Chan *nc, int8_t **name, int nname)
+probewalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, probedir, nelem(probedir), devgen);
 }
@@ -212,8 +212,8 @@ probeclose(Chan *)
 static int32_t
 proberead(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	int8_t *buf;
-	int8_t *cp = a;
+	char *buf;
+	char *cp = a;
 	struct Probelog *pl;
 	Probe *p;
 	int i;
@@ -290,8 +290,8 @@ proberead(Chan *c, void *a, int32_t n, int64_t offset)
 static int32_t
 probewrite(Chan *c, void *a, int32_t n, int64_t)
 {
-	int8_t *tok[5];
-	int8_t *ep, *s = nil;
+	char *tok[5];
+	char *ep, *s = nil;
 	Probe *p, **pp;
 	int ntok;
 

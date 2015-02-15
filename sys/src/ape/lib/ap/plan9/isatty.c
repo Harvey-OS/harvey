@@ -17,7 +17,7 @@
 int
 _isatty(int fd)
 {
-	int8_t buf[64];
+	char buf[64];
 
 	if(_FD2PATH(fd, buf, sizeof buf) < 0)
 		return 0;

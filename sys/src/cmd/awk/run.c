@@ -99,9 +99,9 @@ static Cell	tempcell	={ OCELL, CTEMP, 0, "", 0.0, NUM|STR|DONTFREE };
 Node	*curnode = NULL;	/* the node being executed, for debugging */
 
 /* buffer memory management */
-int adjbuf(int8_t **pbuf, int *psiz, int minlen, int quantum,
-	   int8_t **pbptr,
-	int8_t *whatrtn)
+int adjbuf(char **pbuf, int *psiz, int minlen, int quantum,
+	   char **pbptr,
+	char *whatrtn)
 /* pbuf:    address of pointer to buffer being managed
  * psiz:    address of buffer size variable
  * minlen:  minimum length of buffer needed
@@ -113,13 +113,13 @@ int adjbuf(int8_t **pbuf, int *psiz, int minlen, int quantum,
  */
 {
 	if (minlen > *psiz) {
-		int8_t *tbuf;
+		char *tbuf;
 		int rminlen = quantum ? minlen % quantum : 0;
 		int boff = pbptr ? *pbptr - *pbuf : 0;
 		/* round up to next multiple of quantum */
 		if (rminlen)
 			minlen += quantum - rminlen;
-		tbuf = (int8_t *) realloc(*pbuf, minlen);
+		tbuf = (char *) realloc(*pbuf, minlen);
 		if (tbuf == NULL) {
 			if (whatrtn)
 				FATAL("out of memory in %s", whatrtn);
@@ -235,7 +235,7 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	Node *x;
 	Cell *args[NARGS], *oargs[NARGS];	/* BUG: fixed size arrays */
 	Cell *y, *z, *fcn;
-	int8_t *s;
+	char *s;
 
 	fcn = execute(a[0]);	/* the function itself */
 	s = fcn->nval;
@@ -277,7 +277,7 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	if (fp >= frame + nframe) {
 		int dfp = fp - frame;	/* old index */
 		frame = (struct Frame *)
-			realloc((int8_t *) frame,
+			realloc((char *) frame,
 				(nframe += 100) * sizeof(struct Frame));
 		if (frame == NULL)
 			FATAL("out of space for stack frames in %s", s);
@@ -396,11 +396,11 @@ Cell *getline(Node **a, int n)	/* get next line from specific input */
 	Cell *r, *x;
 	extern Cell **fldtab;
 	FILE *fp;
-	int8_t *buf;
+	char *buf;
 	int bufsize = recsize;
 	int mode;
 
-	if ((buf = (int8_t *) malloc(bufsize)) == NULL)
+	if ((buf = (char *) malloc(bufsize)) == NULL)
 		FATAL("out of memory in getline");
 
 	fflush(stdout);	/* in case someone is waiting for a prompt */
@@ -454,13 +454,13 @@ Cell *getnf(Node **a, int n)	/* get NF */
 Cell *array(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
 {
 	Cell *x, *y, *z;
-	int8_t *s;
+	char *s;
 	Node *np;
-	int8_t *buf;
+	char *buf;
 	int bufsz = recsize;
 	int nsub = strlen(*SUBSEP);
 
-	if ((buf = (int8_t *) malloc(bufsz)) == NULL)
+	if ((buf = (char *) malloc(bufsz)) == NULL)
 		FATAL("out of memory in array");
 
 	x = execute(a[0]);	/* Cell* for symbol table */
@@ -481,7 +481,7 @@ Cell *array(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts */
 			xfree(x->sval);
 		x->tval &= ~(STR|NUM|DONTFREE);
 		x->tval |= ARR;
-		x->sval = (int8_t *) makesymtab(NSYMTAB);
+		x->sval = (char *) makesymtab(NSYMTAB);
 	}
 	z = setsymtab(buf, "", 0.0, STR|NUM, (Array *) x->sval);
 	z->ctype = OCELL;
@@ -495,7 +495,7 @@ Cell *awkdelete(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts *
 {
 	Cell *x, *y;
 	Node *np;
-	int8_t *s;
+	char *s;
 	int nsub = strlen(*SUBSEP);
 
 	x = execute(a[0]);	/* Cell* for symbol table */
@@ -505,11 +505,11 @@ Cell *awkdelete(Node **a, int n)	/* a[0] is symtab, a[1] is list of subscripts *
 		freesymtab(x);
 		x->tval &= ~STR;
 		x->tval |= ARR;
-		x->sval = (int8_t *) makesymtab(NSYMTAB);
+		x->sval = (char *) makesymtab(NSYMTAB);
 	} else {
 		int bufsz = recsize;
-		int8_t *buf;
-		if ((buf = (int8_t *) malloc(bufsz)) == NULL)
+		char *buf;
+		if ((buf = (char *) malloc(bufsz)) == NULL)
 			FATAL("out of memory in adelete");
 		buf[0] = 0;
 		for (np = a[1]; np; np = np->nnext) {
@@ -533,8 +533,8 @@ Cell *intest(Node **a, int n)	/* a[0] is index (list), a[1] is symtab */
 {
 	Cell *x, *ap, *k;
 	Node *p;
-	int8_t *buf;
-	int8_t *s;
+	char *buf;
+	char *s;
 	int bufsz = recsize;
 	int nsub = strlen(*SUBSEP);
 
@@ -545,9 +545,9 @@ Cell *intest(Node **a, int n)	/* a[0] is index (list), a[1] is symtab */
 			xfree(ap->sval);
 		ap->tval &= ~(STR|NUM|DONTFREE);
 		ap->tval |= ARR;
-		ap->sval = (int8_t *) makesymtab(NSYMTAB);
+		ap->sval = (char *) makesymtab(NSYMTAB);
 	}
-	if ((buf = (int8_t *) malloc(bufsz)) == NULL) {
+	if ((buf = (char *) malloc(bufsz)) == NULL) {
 		FATAL("out of memory in intest");
 	}
 	buf[0] = 0;
@@ -574,7 +574,7 @@ Cell *intest(Node **a, int n)	/* a[0] is index (list), a[1] is symtab */
 Cell *matchop(Node **a, int n)	/* ~ and match() */
 {
 	Cell *x, *y;
-	int8_t *s, *t;
+	char *s, *t;
 	int i;
 	void *p;
 
@@ -711,7 +711,7 @@ Cell *indirect(Node **a, int n)	/* $( a[0] ) */
 {
 	Cell *x;
 	int m;
-	int8_t *s;
+	char *s;
 
 	x = execute(a[0]);
 	m = (int) getfval(x);
@@ -728,7 +728,7 @@ Cell *indirect(Node **a, int n)	/* $( a[0] ) */
 Cell *substr(Node **a, int nnn)		/* substr(a[0], a[1], a[2]) */
 {
 	int k, m, n;
-	int8_t *s, *p;
+	char *s, *p;
 	int temp;
 	Cell *x, *y, *z = 0;
 
@@ -779,7 +779,7 @@ Cell *substr(Node **a, int nnn)		/* substr(a[0], a[1], a[2]) */
 Cell *sindex(Node **a, int nnn)		/* index(a[0], a[1]) */
 {
 	Cell *x, *y, *z;
-	int8_t *s1, *s2, *p1, *p2, *q;
+	char *s1, *s2, *p1, *p2, *q;
 	Awkfloat v = 0.0;
 
 	x = execute(a[0]);
@@ -804,20 +804,20 @@ Cell *sindex(Node **a, int nnn)		/* index(a[0], a[1]) */
 
 #define	MAXNUMSIZE	50
 
-int format(int8_t **pbuf, int *pbufsize, int8_t *s, Node *a)	/* printf-like conversions */
+int format(char **pbuf, int *pbufsize, char *s, Node *a)	/* printf-like conversions */
 {
-	int8_t *fmt;
-	int8_t *p, *t, *os;
+	char *fmt;
+	char *p, *t, *os;
 	Cell *x;
 	int flag = 0, n;
 	int fmtwd; /* format width */
 	int fmtsz = recsize;
-	int8_t *buf = *pbuf;
+	char *buf = *pbuf;
 	int bufsize = *pbufsize;
 
 	os = s;
 	p = buf;
-	if ((fmt = (int8_t *) malloc(fmtsz)) == NULL)
+	if ((fmt = (char *) malloc(fmtsz)) == NULL)
 		FATAL("out of memory in format()");
 	while (*s) {
 		adjbuf(&buf, &bufsize, MAXNUMSIZE+1+p-buf, recsize, &p, "format");
@@ -940,10 +940,10 @@ Cell *awksprintf(Node **a, int n)		/* sprintf(a[0]) */
 {
 	Cell *x;
 	Node *y;
-	int8_t *buf;
+	char *buf;
 	int bufsz=3*recsize;
 
-	if ((buf = (int8_t *) malloc(bufsz)) == NULL)
+	if ((buf = (char *) malloc(bufsz)) == NULL)
 		FATAL("out of memory in awksprintf");
 	y = a[0]->nnext;
 	x = execute(a[0]);
@@ -962,11 +962,11 @@ Cell *awkprintf(Node **a, int n)		/* printf */
 	FILE *fp;
 	Cell *x;
 	Node *y;
-	int8_t *buf;
+	char *buf;
 	int len;
 	int bufsz=3*recsize;
 
-	if ((buf = (int8_t *) malloc(bufsz)) == NULL)
+	if ((buf = (char *) malloc(bufsz)) == NULL)
 		FATAL("out of memory in awkprintf");
 	y = a[0]->nnext;
 	x = execute(a[0]);
@@ -1142,7 +1142,7 @@ Cell *cat(Node **a, int q)	/* a[0] cat a[1] */
 {
 	Cell *x, *y, *z;
 	int n1, n2;
-	int8_t *s;
+	char *s;
 
 	x = execute(a[0]);
 	y = execute(a[1]);
@@ -1150,7 +1150,7 @@ Cell *cat(Node **a, int q)	/* a[0] cat a[1] */
 	getsval(y);
 	n1 = strlen(x->sval);
 	n2 = strlen(y->sval);
-	s = (int8_t *) malloc(n1 + n2 + 1);
+	s = (char *) malloc(n1 + n2 + 1);
 	if (s == NULL)
 		FATAL("out of space concatenating %.15s... and %.15s...",
 			x->sval, y->sval);
@@ -1206,8 +1206,8 @@ Cell *dopa2(Node **a, int n)	/* a[0], a[1] { a[2] } */
 Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 {
 	Cell *x = 0, *y, *ap;
-	int8_t *s, *t, *fs = 0;
-	int8_t temp, num[50];
+	char *s, *t, *fs = 0;
+	char temp, num[50];
 	int n, nb, sep, tempstat, arg3type;
 
 	y = execute(a[0]);	/* source string */
@@ -1228,7 +1228,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 	   dprintf( ("split: s=|%s|, a=%s, sep=|%s|\n", s, ap->nval, fs) );
 	ap->tval &= ~STR;
 	ap->tval |= ARR;
-	ap->sval = (int8_t *) makesymtab(NSYMTAB);
+	ap->sval = (char *) makesymtab(NSYMTAB);
 
 	n = 0;
 	if ((*s != '\0' && strlen(fs) > 1) || arg3type == REGEXPR) {	/* reg expr */
@@ -1292,7 +1292,7 @@ Cell *split(Node **a, int nnn)	/* split(a[0], a[1], a[2]); a[3] is type */
 	} else if (sep == 0) {	/* new: split(s, a, "") => 1 char/elem */
 		for (n = 0; *s != 0; s += nb) {
 			Rune r;
-			int8_t buf[UTFmax+1];
+			char buf[UTFmax+1];
 
 			n++;
 			snprintf(num, sizeof num, "%d", n);
@@ -1461,8 +1461,8 @@ Cell *bltin(Node **a, int n)	/* builtin functions. a[0] is type, a[1] is arg lis
 	Awkfloat u;
 	int t;
 	wchar_t wc;
-	int8_t *p, *buf;
-	int8_t mbc[50];
+	char *p, *buf;
+	char mbc[50];
 	Node *nextarg;
 	FILE *fp;
 	void flush_all(void);
@@ -1605,7 +1605,7 @@ FILE *redirect(int a, Node *b)	/* set up all i/o redirections */
 {
 	FILE *fp;
 	Cell *x;
-	int8_t *fname;
+	char *fname;
 
 	x = execute(b);
 	fname = getsval(x);
@@ -1618,7 +1618,7 @@ FILE *redirect(int a, Node *b)	/* set up all i/o redirections */
 
 struct files {
 	FILE	*fp;
-	int8_t	*fname;
+	char	*fname;
 	int	mode;	/* '|', 'a', 'w' => LE/LT, GT */
 } files[FOPEN_MAX] ={
 	{ NULL,  "/dev/stdin",  LT },	/* watch out: don't free this! */
@@ -1633,9 +1633,9 @@ void stdinit(void)	/* in case stdin, etc., are not constants */
 	files[2].fp = stderr;
 }
 
-FILE *openfile(int a, int8_t *us)
+FILE *openfile(int a, char *us)
 {
-	int8_t *s = us;
+	char *s = us;
 	int i, m;
 	FILE *fp = 0;
 
@@ -1679,7 +1679,7 @@ FILE *openfile(int a, int8_t *us)
 	return fp;
 }
 
-int8_t *filename(FILE *fp)
+char *filename(FILE *fp)
 {
 	int i;
 
@@ -1742,17 +1742,17 @@ void flush_all(void)
 			fflush(files[i].fp);
 }
 
-void backsub(int8_t **pb_ptr, int8_t **sptr_ptr);
+void backsub(char **pb_ptr, char **sptr_ptr);
 
 Cell *sub(Node **a, int nnn)	/* substitute command */
 {
-	int8_t *sptr, *pb, *q;
+	char *sptr, *pb, *q;
 	Cell *x, *y, *result;
-	int8_t *t, *buf;
+	char *t, *buf;
 	void *p;
 	int bufsz = recsize;
 
-	if ((buf = (int8_t *) malloc(bufsz)) == NULL)
+	if ((buf = (char *) malloc(bufsz)) == NULL)
 		FATAL("out of memory in sub");
 	x = execute(a[3]);	/* target string */
 	t = getsval(x);
@@ -1807,13 +1807,13 @@ Cell *sub(Node **a, int nnn)	/* substitute command */
 Cell *gsub(Node **a, int nnn)	/* global substitute */
 {
 	Cell *x, *y;
-	int8_t *rptr, *sptr, *t, *pb, *c;
-	int8_t *buf;
+	char *rptr, *sptr, *t, *pb, *c;
+	char *buf;
 	void *p;
 	int mflag, num;
 	int bufsz = recsize;
 
-	if ((buf = (int8_t *)malloc(bufsz)) == NULL)
+	if ((buf = (char *)malloc(bufsz)) == NULL)
 		FATAL("out of memory in gsub");
 	mflag = 0;	/* if mflag == 0, can replace empty string */
 	num = 0;
@@ -1840,7 +1840,7 @@ Cell *gsub(Node **a, int nnn)	/* global substitute */
 						if (*sptr == '\\') {
 							backsub(&pb, &sptr);
 						} else if (*sptr == '&') {
-							int8_t *q;
+							char *q;
 							sptr++;
 							adjbuf(&buf, &bufsz, 1+patlen+pb-buf, recsize, &pb, "gsub");
 							for (q = patbeg; q < patbeg+patlen; )
@@ -1869,7 +1869,7 @@ Cell *gsub(Node **a, int nnn)	/* global substitute */
 					if (*sptr == '\\') {
 						backsub(&pb, &sptr);
 					} else if (*sptr == '&') {
-						int8_t *q;
+						char *q;
 						sptr++;
 						adjbuf(&buf, &bufsz, 1+patlen+pb-buf, recsize, &pb, "gsub");
 						for (q = patbeg; q < patbeg+patlen; )
@@ -1903,9 +1903,9 @@ Cell *gsub(Node **a, int nnn)	/* global substitute */
 	return(x);
 }
 
-void backsub(int8_t **pb_ptr, int8_t **sptr_ptr)	/* handle \\& variations */
+void backsub(char **pb_ptr, char **sptr_ptr)	/* handle \\& variations */
 {						/* sptr[0] == '\\' */
-	int8_t *pb = *pb_ptr, *sptr = *sptr_ptr;
+	char *pb = *pb_ptr, *sptr = *sptr_ptr;
 
 	if (sptr[1] == '\\') {
 		if (sptr[2] == '\\' && sptr[3] == '&') { /* \\\& -> \& */

@@ -58,8 +58,8 @@ extern "C" {
 #endif
 
 extern int fcntl(int, int, ...);
-extern int open(const int8_t *, int, ...);
-extern int creat(const int8_t *, mode_t);
+extern int open(const char *, int, ...);
+extern int creat(const char *, mode_t);
 
 #ifdef __cplusplus
 }

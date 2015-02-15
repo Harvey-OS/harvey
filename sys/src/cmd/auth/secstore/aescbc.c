@@ -20,7 +20,7 @@
 #include <libsec.h>
 #include <authsrv.h>
 
-extern int8_t* getpassm(int8_t*);
+extern char* getpassm(char*);
 
 enum{ CHK = 16, BUF = 4096 };
 

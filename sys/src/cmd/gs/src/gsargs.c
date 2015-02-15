@@ -35,8 +35,8 @@
 
 /* Initialize an arg list. */
 void
-arg_init(arg_list * pal, const int8_t **argv, int argc,
-	 FILE * (*arg_fopen) (const int8_t *fname, void *fopen_data),
+arg_init(arg_list * pal, const char **argv, int argc,
+	 FILE * (*arg_fopen) (const char *fname, void *fopen_data),
 	 void *fopen_data)
 {
     pal->expand_ats = true;
@@ -49,7 +49,7 @@ arg_init(arg_list * pal, const int8_t **argv, int argc,
 
 /* Push a string onto an arg list. */
 int
-arg_push_memory_string(arg_list * pal, int8_t *str, gs_memory_t * mem)
+arg_push_memory_string(arg_list * pal, char *str, gs_memory_t * mem)
 {
     arg_source *pas;
 
@@ -82,14 +82,14 @@ arg_finit(arg_list * pal)
 
 /* Get the next arg from a list. */
 /* Note that these are not copied to the heap. */
-const int8_t *
+const char *
 arg_next(arg_list * pal, int *code)
 {
     arg_source *pas;
     FILE *f;
-    const int8_t *astr = 0;	/* initialized only to pacify gcc */
-    int8_t *cstr;
-    const int8_t *result;
+    const char *astr = 0;	/* initialized only to pacify gcc */
+    char *cstr;
+    const char *result;
     int endc;
     int c, i;
     bool in_quote, eol;
@@ -219,10 +219,10 @@ arg_next(arg_list * pal, int *code)
 }
 
 /* Copy an argument string to the heap. */
-int8_t *
-arg_copy(const int8_t *str, gs_memory_t * mem)
+char *
+arg_copy(const char *str, gs_memory_t * mem)
 {
-    int8_t *sstr = (int8_t *)gs_alloc_bytes(mem, strlen(str) + 1, "arg_copy");
+    char *sstr = (char *)gs_alloc_bytes(mem, strlen(str) + 1, "arg_copy");
 
     if (sstr == 0) {
 	lprintf("Out of memory!\n");

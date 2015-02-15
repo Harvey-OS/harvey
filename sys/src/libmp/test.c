@@ -37,10 +37,10 @@ prng(uint8_t *p, int n)
 }
 
 void
-testconv(int8_t *str)
+testconv(char *str)
 {
 	mpint *b;
-	int8_t *p;
+	char *p;
 
 	b = strtomp(str, nil, 16, nil);
 
@@ -72,7 +72,7 @@ testconv(int8_t *str)
 }
 
 void
-testshift(int8_t *str)
+testshift(char *str)
 {
 	mpint *b1, *b2;
 	int i;
@@ -92,7 +92,7 @@ testshift(int8_t *str)
 }
 
 void
-testaddsub(int8_t *str)
+testaddsub(char *str)
 {
 	mpint *b1, *b2;
 	int i;
@@ -112,7 +112,7 @@ testaddsub(int8_t *str)
 }
 
 void
-testvecdigmuladd(int8_t *str, mpdigit d)
+testvecdigmuladd(char *str, mpdigit d)
 {
 	mpint *b, *b2;
 	int i;
@@ -137,7 +137,7 @@ testvecdigmuladd(int8_t *str, mpdigit d)
 }
 
 void
-testvecdigmulsub(int8_t *str, mpdigit d)
+testvecdigmulsub(char *str, mpdigit d)
 {
 	mpint *b, *b2;
 	int i;
@@ -162,7 +162,7 @@ testvecdigmulsub(int8_t *str, mpdigit d)
 }
 
 void
-testmul(int8_t *str)
+testmul(char *str)
 {
 	mpint *b, *b1, *b2;
 	int64_t now;
@@ -207,7 +207,7 @@ testmul2(mpint *b, mpint *b1)
 }
 
 void
-testdigdiv(int8_t *str, mpdigit d)
+testdigdiv(char *str, mpdigit d)
 {
 	mpint *b;
 	mpdigit q;
@@ -291,7 +291,7 @@ testinvert(mpint *x, mpint *y)
 }
 
 void
-testsub1(int8_t *a, int8_t *b)
+testsub1(char *a, char *b)
 {
 	mpint *b1, *b2, *b3;
 
@@ -303,7 +303,7 @@ testsub1(int8_t *a, int8_t *b)
 }
 
 void
-testmul1(int8_t *a, int8_t *b)
+testmul1(char *a, char *b)
 {
 	mpint *b1, *b2, *b3;
 
@@ -315,7 +315,7 @@ testmul1(int8_t *a, int8_t *b)
 }
 
 void
-testexp(int8_t *base, int8_t *exp, int8_t *mod)
+testexp(char *base, char *exp, char *mod)
 {
 	mpint *b, *e, *m, *res;
 	int i;

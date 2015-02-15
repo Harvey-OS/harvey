@@ -47,7 +47,7 @@ smbtruncatefile(SmbSession *s, SmbFile *f, int64_t offset)
 //smblogprint(-1, "dirfwstatlength failed: %r\n");
 	if (length > offset) {
 		int nfd;
-		int8_t *fullpath;
+		char *fullpath;
 		if (offset > INMEMORYTRUNCTHRESH) {
 			smblogprint(-1, "smbcomwrite: truncation beyond %lud not supported\n", offset);
 			pr = SmbProcessResultUnimp;

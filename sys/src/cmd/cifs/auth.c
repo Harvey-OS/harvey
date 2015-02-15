@@ -34,10 +34,10 @@ static enum {
 };
 
 static void
-dmp(int8_t *s, int seq, void *buf, int n)
+dmp(char *s, int seq, void *buf, int n)
 {
 	int i;
-	int8_t *p = buf;
+	char *p = buf;
 
 	print("%s %3d      ", s, seq);
 	while(n > 0){
@@ -50,7 +50,7 @@ dmp(int8_t *s, int seq, void *buf, int n)
 }
 
 static Auth *
-auth_plain(int8_t *windom, int8_t *keyp, uint8_t *chal, int len)
+auth_plain(char *windom, char *keyp, uint8_t *chal, int len)
 {
 	UserPasswd *up;
 	static Auth *ap;
@@ -76,10 +76,10 @@ auth_plain(int8_t *windom, int8_t *keyp, uint8_t *chal, int len)
 }
 
 static Auth *
-auth_lm_and_ntlm(int8_t *windom, int8_t *keyp, uint8_t *chal, int len)
+auth_lm_and_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
 {
 	int err;
-	int8_t user[64];
+	char user[64];
 	Auth *ap;
 	MSchapreply mcr;
 
@@ -114,7 +114,7 @@ auth_lm_and_ntlm(int8_t *windom, int8_t *keyp, uint8_t *chal, int len)
  * for more info.
  */
 static Auth *
-auth_ntlm(int8_t *windom, int8_t *keyp, uint8_t *chal, int len)
+auth_ntlm(char *windom, char *keyp, uint8_t *chal, int len)
 {
 	Auth *ap;
 
@@ -145,12 +145,12 @@ hmac_t64(uint8_t *data, uint32_t dlen, uint8_t *key, uint32_t klen,
 
 
 static int
-ntv2_blob(uint8_t *blob, int len, int8_t *windom)
+ntv2_blob(uint8_t *blob, int len, char *windom)
 {
 	int n;
 	uint64_t nttime;
 	Rune r;
-	int8_t *d;
+	char *d;
 	uint8_t *p;
 	enum {			/* name types */
 		Beof,		/* end of name list */
@@ -220,11 +220,11 @@ ntv2_blob(uint8_t *blob, int len, int8_t *windom)
 }
 
 static Auth *
-auth_ntlmv2(int8_t *windom, int8_t *keyp, uint8_t *chal, int len)
+auth_ntlmv2(char *windom, char *keyp, uint8_t *chal, int len)
 {
 	int i, n;
 	Rune r;
-	int8_t *p, *u;
+	char *p, *u;
 	uint8_t v1hash[MD5dlen], blip[Bliplen], blob[1024], v2hash[MD5dlen];
 	uint8_t c, lm_hmac[MD5dlen], nt_hmac[MD5dlen], nt_sesskey[MD5dlen],
 		lm_sesskey[MD5dlen];
@@ -328,8 +328,8 @@ auth_ntlmv2(int8_t *windom, int8_t *keyp, uint8_t *chal, int len)
 }
 
 struct {
-	int8_t	*name;
-	Auth	*(*func)(int8_t *, int8_t *, uint8_t *, int);
+	char	*name;
+	Auth	*(*func)(char *, char *, uint8_t *, int);
 } methods[] = {
 	{ "plain",	auth_plain },
 	{ "lm+ntlm",	auth_lm_and_ntlm },
@@ -351,7 +351,7 @@ autherr(void)
 }
 
 Auth *
-getauth(int8_t *name, int8_t *windom, int8_t *keyp, int secmode,
+getauth(char *name, char *windom, char *keyp, int secmode,
 	uint8_t *chal,
 	int len)
 {

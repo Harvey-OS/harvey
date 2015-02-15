@@ -16,7 +16,7 @@
 int64_t
 entryvalue(void)
 {
-	int8_t *a;
+	char *a;
 	Sym *s;
 
 	a = INITENTRY;
@@ -84,7 +84,7 @@ llputl(int64_t v)
 }
 
 void
-strnput(int8_t *s, int n)
+strnput(char *s, int n)
 {
 	for(; *s && n > 0; s++){
 		cput(*s);
@@ -159,7 +159,7 @@ asmb(void)
 	Bflush(&bso);
 
 	if(dlm){
-		int8_t buf[8];
+		char buf[8];
 
 		write(cout, buf, INITDAT-textsize);
 		textsize = INITDAT;

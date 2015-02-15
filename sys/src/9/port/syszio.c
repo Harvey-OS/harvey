@@ -242,7 +242,7 @@ int32_t
 readzio(Kzio *io, int nio, void *a, int32_t count)
 {
 	int32_t tot, nr;
-	int8_t *p;
+	char *p;
 
 	p = a;
 	tot = 0;

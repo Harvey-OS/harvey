@@ -623,7 +623,7 @@ extern void	freedocinfo(Docinfo* d);
 extern void	freeitems(Item* ithead);
 extern Item*	parsehtml(uint8_t* data, int datalen, Rune* src,
 			      int mtype, int chset, Docinfo** pdi);
-extern void	printitems(Item* items, int8_t* msg);
+extern void	printitems(Item* items, char* msg);
 extern int	targetid(Rune* s);
 extern Rune*	targetname(int targid);
 extern int	validitems(Item* i);

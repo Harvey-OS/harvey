@@ -268,11 +268,11 @@ ucGetNbspCharacter(void)
 BOOL
 bReadCharacterMappingTable(FILE *pFile)
 {
-	int8_t	*pcTmp;
+	char	*pcTmp;
 	ULONG	ulUnicode;
 	UINT	uiLocal;
 	int	iFields;
-	int8_t	szLine[81];
+	char	szLine[81];
 
 	if (pFile == NULL) {
 		return FALSE;

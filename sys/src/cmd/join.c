@@ -36,21 +36,21 @@ int 	a2;
 int	olist[NIN*NFLD];  /* output these fields */
 int	olistf[NIN*NFLD]; /* from these files */
 int	no;		/* number of entries in olist */
-int8_t *sepstr	= " ";
+char *sepstr	= " ";
 int	discard;	/* count of truncated lines */
 Rune	null[Bsize]	= L"";
 Biobuf binbuf, boutbuf;
 Biobuf *bin, *bout;
 
-int8_t	*getoptarg(int*, int8_t***);
+char	*getoptarg(int*, char***);
 int	input(int);
 void	join(int);
-void	oparse(int8_t*);
+void	oparse(char*);
 void	output(int, int);
-Rune	*strtorune(Rune *, int8_t *);
+Rune	*strtorune(Rune *, char *);
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	int i;
 	int64_t off1, off2;
@@ -168,10 +168,10 @@ proceed:
 	exits("");
 }
 
-int8_t *
-runetostr(int8_t *buf, Rune *r)
+char *
+runetostr(char *buf, Rune *r)
 {
-	int8_t *s;
+	char *s;
 
 	for(s = buf; *r; r++)
 		s += runetochar(s, r);
@@ -180,7 +180,7 @@ runetostr(int8_t *buf, Rune *r)
 }
 
 Rune *
-strtorune(Rune *buf, int8_t *s)
+strtorune(Rune *buf, char *s)
 {
 	Rune *r;
 
@@ -266,7 +266,7 @@ int
 input(int n)		/* get input line and split into fields */
 {
 	int c, i, len;
-	int8_t *line;
+	char *line;
 	Rune *bp;
 	Rune **pp;
 
@@ -303,7 +303,7 @@ void
 prfields(int f, int on, int jn)
 {
 	int i;
-	int8_t buf[Bsize];
+	char buf[Bsize];
 
 	for (i = 0; i < on; i++)
 		if (i != jn)
@@ -315,7 +315,7 @@ output(int on1, int on2)	/* print items from olist */
 {
 	int i;
 	Rune *temp;
-	int8_t buf[Bsize];
+	char buf[Bsize];
 
 	if (no <= 0) {	/* default case */
 		Bprint(bout, "%s", runetostr(buf, on1? ppi[F1][j1]: ppi[F2][j2]));
@@ -344,11 +344,11 @@ output(int on1, int on2)	/* print items from olist */
 	}
 }
 
-int8_t *
-getoptarg(int *argcp, int8_t ***argvp)
+char *
+getoptarg(int *argcp, char ***argvp)
 {
 	int argc = *argcp;
-	int8_t **argv = *argvp;
+	char **argv = *argvp;
 	if(argv[1][2] != 0)
 		return &argv[1][2];
 	if(argc<=2 || argv[2][0]=='-')
@@ -359,7 +359,7 @@ getoptarg(int *argcp, int8_t ***argvp)
 }
 
 void
-oparse(int8_t *s)
+oparse(char *s)
 {
 	for (no = 0; no<2*NFLD && *s; no++, s++) {
 		switch(*s) {

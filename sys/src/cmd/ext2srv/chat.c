@@ -21,9 +21,9 @@
 int	chatty;
 
 void
-chat(int8_t *fmt, ...)
+chat(char *fmt, ...)
 {
-	int8_t buf[SIZE], *out;
+	char buf[SIZE], *out;
 	va_list arg;
 
 	if (!chatty)
@@ -36,9 +36,9 @@ chat(int8_t *fmt, ...)
 }
 
 void
-mchat(int8_t *fmt, ...)
+mchat(char *fmt, ...)
 {
-	int8_t buf[SIZE], *out;
+	char buf[SIZE], *out;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -47,9 +47,9 @@ mchat(int8_t *fmt, ...)
 	write(2, buf, (int32_t)(out-buf));
 }
 void
-panic(int8_t *fmt, ...)
+panic(char *fmt, ...)
 {
-	int8_t buf[SIZE];
+	char buf[SIZE];
 	va_list arg;
 	int n;
 

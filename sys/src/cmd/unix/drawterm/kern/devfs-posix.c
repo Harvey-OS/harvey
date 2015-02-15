@@ -44,21 +44,21 @@ struct Ufsinfo
 	DIR*	dir;
 	int64_t	offset;
 	QLock	oq;
-	int8_t nextname[NAME_MAX];
+	char nextname[NAME_MAX];
 };
 
-int8_t	*base = "/";
+char	*base = "/";
 
-static	Qid	fsqid(int8_t*, struct stat *);
-static	void	fspath(Chan*, int8_t*, int8_t*);
+static	Qid	fsqid(char*, struct stat *);
+static	void	fspath(Chan*, char*, char*);
 static	uint32_t	fsdirread(Chan*, uint8_t*, int, uint32_t);
 static	int	fsomode(int);
 
 /* clumsy hack, but not worse than the Path stuff in the last one */
-static int8_t*
+static char*
 uc2name(Chan *c)
 {
-	int8_t *s;
+	char *s;
 
 	if(c->name == nil)
 		return "/";
@@ -68,10 +68,10 @@ uc2name(Chan *c)
 	return s;
 }
 
-static int8_t*
+static char*
 lastelem(Chan *c)
 {
-	int8_t *s, *t;
+	char *s, *t;
 
 	s = uc2name(c);
 	if((t = strrchr(s, '/')) == nil)
@@ -82,7 +82,7 @@ lastelem(Chan *c)
 }
 	
 static Chan*
-fsattach(int8_t *spec)
+fsattach(char *spec)
 {
 	Chan *c;
 	struct stat stbuf;
@@ -120,10 +120,10 @@ fsclone(Chan *c, Chan *nc)
 }
 
 static int
-fswalk1(Chan *c, int8_t *name)
+fswalk1(Chan *c, char *name)
 {
 	struct stat stbuf;
-	int8_t path[MAXPATH];
+	char path[MAXPATH];
 	Ufsinfo *uif;
 
 	fspath(c, name, path);
@@ -144,10 +144,10 @@ fswalk1(Chan *c, int8_t *name)
 	return 1;
 }
 
-extern Cname* addelem(Cname*, int8_t*);
+extern Cname* addelem(Cname*, char*);
 
 static Walkqid*
-fswalk(Chan *c, Chan *nc, int8_t **name, int nname)
+fswalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	int i;
 	Cname *cname;
@@ -183,7 +183,7 @@ fsstat(Chan *c, uint8_t *buf, int n)
 {
 	Dir d;
 	struct stat stbuf;
-	int8_t path[MAXPATH];
+	char path[MAXPATH];
 
 	if(n < BIT16SZ)
 		error(Eshortstat);
@@ -209,7 +209,7 @@ fsstat(Chan *c, uint8_t *buf, int n)
 static Chan*
 fsopen(Chan *c, int mode)
 {
-	int8_t path[MAXPATH];
+	char path[MAXPATH];
 	int m, isdir;
 	Ufsinfo *uif;
 
@@ -263,10 +263,10 @@ fsopen(Chan *c, int mode)
 }
 
 static void
-fscreate(Chan *c, int8_t *name, int mode, uint32_t perm)
+fscreate(Chan *c, char *name, int mode, uint32_t perm)
 {
 	int fd, m;
-	int8_t path[MAXPATH];
+	char path[MAXPATH];
 	struct stat stbuf;
 	Ufsinfo *uif;
 
@@ -405,7 +405,7 @@ static void
 fsremove(Chan *c)
 {
 	int n;
-	int8_t path[MAXPATH];
+	char path[MAXPATH];
 
 	fspath(c, 0, path);
 	if(c->qid.type & QTDIR)
@@ -421,8 +421,8 @@ fswstat(Chan *c, uint8_t *buf, int n)
 {
 	Dir d;
 	struct stat stbuf;
-	int8_t old[MAXPATH], new[MAXPATH];
-	int8_t strs[MAXPATH*3], *p;
+	char old[MAXPATH], new[MAXPATH];
+	char strs[MAXPATH*3], *p;
 	Ufsinfo *uif;
 
 	if(convM2D(buf, n, &d, strs) != n)
@@ -467,7 +467,7 @@ fswstat(Chan *c, uint8_t *buf, int n)
 }
 
 static Qid
-fsqid(int8_t *p, struct stat *st)
+fsqid(char *p, struct stat *st)
 {
 	Qid q;
 	int dev;
@@ -498,7 +498,7 @@ fsqid(int8_t *p, struct stat *st)
 }
 
 static void
-fspath(Chan *c, int8_t *ext, int8_t *path)
+fspath(Chan *c, char *ext, char *path)
 {
 	strcpy(path, base);
 	strcat(path, "/");
@@ -511,7 +511,7 @@ fspath(Chan *c, int8_t *ext, int8_t *path)
 }
 
 static int
-isdots(int8_t *name)
+isdots(char *name)
 {
 	if(name[0] != '.')
 		return 0;
@@ -525,7 +525,7 @@ isdots(int8_t *name)
 }
 
 static int
-p9readdir(int8_t *name, Ufsinfo *uif)
+p9readdir(char *name, Ufsinfo *uif)
 {
 	struct dirent *de;
 	
@@ -549,9 +549,9 @@ fsdirread(Chan *c, uint8_t *va, int count, uint32_t offset)
 	int i;
 	Dir d;
 	int32_t n;
-	int8_t de[NAME_MAX];
+	char de[NAME_MAX];
 	struct stat stbuf;
-	int8_t path[MAXPATH], dirpath[MAXPATH];
+	char path[MAXPATH], dirpath[MAXPATH];
 	Ufsinfo *uif;
 
 /*print("fsdirread %s\n", c2name(c));*/

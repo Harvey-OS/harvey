@@ -43,7 +43,7 @@ extern int errno;
    it matches, nonzero if not.  */
 int
 #if __STDC__
-fnmatch (const int8_t *pattern, const int8_t *string, int flags)
+fnmatch (const char *pattern, const char *string, int flags)
 #else
 fnmatch (pattern, string, flags)
     char *pattern;
@@ -51,8 +51,8 @@ fnmatch (pattern, string, flags)
     int flags;
 #endif
 {
-  register const int8_t *p = pattern, *n = string;
-  register int8_t c;
+  register const char *p = pattern, *n = string;
+  register char c;
 
   if ((flags & ~__FNM_FLAGS) != 0)
     {
@@ -95,7 +95,7 @@ fnmatch (pattern, string, flags)
 	    return 0;
 	  
 	  {
-	    int8_t c1 = (!(flags & FNM_NOESCAPE) && c == '\\') ? *p : c;
+	    char c1 = (!(flags & FNM_NOESCAPE) && c == '\\') ? *p : c;
 	    for (--p; *n != '\0'; ++n)
 	      if ((c == '[' || FOLD_FN_CHAR (*n) == FOLD_FN_CHAR (c1)) &&
 		  fnmatch(p, n, flags & ~FNM_PERIOD) == 0)
@@ -122,7 +122,7 @@ fnmatch (pattern, string, flags)
 	    c = *p++;
 	    for (;;)
 	      {
-		register int8_t cstart = c, cend = c;
+		register char cstart = c, cend = c;
 		
 		if (!(flags & FNM_NOESCAPE) && c == '\\')
 		  cstart = cend = *p++;

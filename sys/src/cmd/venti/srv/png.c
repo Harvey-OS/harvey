@@ -52,7 +52,7 @@ put4(uint8_t *a, uint32_t v)
 }
 
 static void
-chunk(Hio *io, int8_t *type, uint8_t *d, int n)
+chunk(Hio *io, char *type, uint8_t *d, int n)
 {
 	uint8_t buf[4];
 	uint32_t crc = 0;
@@ -155,7 +155,7 @@ static Memimage*
 memRGBA(Memimage *i)
 {
 	Memimage *ni;
-	int8_t buf[32];
+	char buf[32];
 	uint32_t dst;
 	
 	/*

@@ -72,12 +72,12 @@ wepread(Fsstate *fss, void*, uint*)
 static int
 wepwrite(Fsstate *fss, void *va, uint n)
 {
-	int8_t *data = va;
+	char *data = va;
 	State *s;
-	int8_t dev[64];
+	char dev[64];
 	int fd, cfd;
 	int rv;
-	int8_t *p;
+	char *p;
 
 	/* get the device */
 	if(n > sizeof(dev)-5){

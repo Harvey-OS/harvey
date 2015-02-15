@@ -3686,7 +3686,7 @@ png_read_filter_row(png_structp png_ptr, png_row_infop row_info, png_bytep
    row, png_bytep prev_row, int filter)
 {
 #ifdef PNG_DEBUG
-   int8_t filnm[10];
+   char filnm[10];
 #endif
 
    if (mmx_supported == 2) {

@@ -11,11 +11,11 @@
 #include <libc.h>
 #include <oventi.h>
 
-int8_t*
-vtStrDup(int8_t *s)
+char*
+vtStrDup(char *s)
 {
 	int n;
-	int8_t *ss;
+	char *ss;
 
 	if(s == nil)
 		return nil;

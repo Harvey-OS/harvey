@@ -560,10 +560,10 @@ if(r->ifc == nil) panic("nil route rfc");
 }
 
 int
-ipstats(Fs *f, int8_t *buf, int len)
+ipstats(Fs *f, char *buf, int len)
 {
 	IP *ip;
-	int8_t *p, *e;
+	char *p, *e;
 	int i;
 
 	ip = f->ip;

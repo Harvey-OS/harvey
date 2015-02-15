@@ -12,28 +12,28 @@
 #include <sys.h>
 #include <fcall.h>
 
-int8_t	buf[1048576];
+char	buf[1048576];
 #define	NARG	5
 uintptr	arg[NARG];
 
 /* system calls not defined in libc.h */
 int	sysr1(void);
-int	_stat(int8_t*, int8_t*);
-int	_fstat(int, int8_t*);
-int	_errstr(int8_t*);
-int	_wstat(int8_t*, int8_t*);
-int	_fwstat(int, int8_t*);
+int	_stat(char*, char*);
+int	_fstat(int, char*);
+int	_errstr(char*);
+int	_wstat(char*, char*);
+int	_fwstat(int, char*);
 int	_read(int, void*, int);
 int	_write(int, void*, int);
 int	_read9p(int, void*, int);
 int	_write9p(int, void*, int);
 int	brk_(void*);
 int	_nfstat(int, void*, int);
-int	_nstat(int8_t*, void*, int);
+int	_nstat(char*, void*, int);
 int	_nfwstat(int, void*, int);
-int	_nwstat(int8_t*, void*, int);
-int	_fsession(int8_t*, void*, int);
-int	_mount(int, int8_t*, int, int8_t*);
+int	_nwstat(char*, void*, int);
+int	_fsession(char*, void*, int);
+int	_mount(int, char*, int, char*);
 int	_wait(void*);
 
 struct{
@@ -44,13 +44,13 @@ struct{
 	0,		0
 };
 
-uintptr parse(int8_t *);
-void catch(void*, int8_t*);
+uintptr parse(char *);
+void catch(void*, char*);
 
-int8_t*
+char*
 xctime(uint32_t t)
 {
-	int8_t *buf, *s;
+	char *buf, *s;
 
 	s = ctime(t);
 	s[strlen(s)-1] = '\0';	/* remove newline */
@@ -62,11 +62,11 @@ xctime(uint32_t t)
 }
 
 
-int8_t*
+char*
 lstime(int32_t l)
 {
-	static int8_t buf[32];
-	int8_t *t;
+	static char buf[32];
+	char *t;
 	int32_t clk;
 
 	clk = time(0);
@@ -177,9 +177,9 @@ main(int argc, char *argv[])
 }
 
 uintptr
-parse(int8_t *s)
+parse(char *s)
 {
-	int8_t *t;
+	char *t;
 	uintptr l;
 
 	if(strcmp(s, "buf") == 0)
@@ -192,7 +192,7 @@ parse(int8_t *s)
 }
 
 void
-catch(void *, int8_t *msg)
+catch(void *, char *msg)
 {
 	fprint(2, "syscall: received note='%s'\n", msg);
 	noted(NDFLT);

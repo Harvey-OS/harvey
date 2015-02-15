@@ -17,7 +17,7 @@ VacFs *fs;
 int tostdout;
 int diff;
 int nwant;
-int8_t **want;
+char **want;
 int *found;
 int chatty;
 VtConn *conn;
@@ -26,7 +26,7 @@ int settimes;
 int table;
 
 int mtimefmt(Fmt*);
-void unvac(VacFile*, int8_t*, VacDir*);
+void unvac(VacFile*, char*, VacDir*);
 
 void
 usage(void)
@@ -128,7 +128,7 @@ threadmain(int argc, char *argv[])
 }
 
 int
-writen(int fd, int8_t *buf, int n)
+writen(int fd, char *buf, int n)
 {
 	int m;
 	int oldn;
@@ -145,7 +145,7 @@ writen(int fd, int8_t *buf, int n)
 }
 
 int
-wantfile(int8_t *name)
+wantfile(char *name)
 {
 	int i, namelen, n;
 	
@@ -170,13 +170,13 @@ wantfile(int8_t *name)
 }
 
 void
-unvac(VacFile *f, int8_t *name, VacDir *vdir)
+unvac(VacFile *f, char *name, VacDir *vdir)
 {
-	static int8_t buf[65536];
+	static char buf[65536];
 	int fd, n, m,  bsize;
 	uint32_t mode, mode9;
-	int8_t *newname;
-	int8_t *what;
+	char *newname;
+	char *what;
 	int64_t off;
 	Dir d, *dp;
 	VacDirEnum *vde;

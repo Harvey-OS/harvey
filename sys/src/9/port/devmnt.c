@@ -38,7 +38,7 @@ struct Mntrpc
 	uint8_t*	rpc;		/* I/O Data buffer */
 	uint	rpclen;		/* len of buffer */
 	Block	*b;		/* reply blocks */
-	int8_t	done;		/* Rpc completed */
+	char	done;		/* Rpc completed */
 	uint64_t	stime;		/* start time for mnt statistics */
 	uint32_t	reqlen;		/* request length for mnt statistics */
 	uint32_t	replen;		/* reply length for mnt statistics */
@@ -81,8 +81,8 @@ void	mountrpc(Mnt*, Mntrpc*);
 int	rpcattn(void*);
 Chan*	mntchan(void);
 
-int8_t	Esbadstat[] = "invalid directory entry received from server";
-int8_t	Enoversion[] = "version not established for mount channel";
+char	Esbadstat[] = "invalid directory entry received from server";
+char	Enoversion[] = "version not established for mount channel";
 
 
 void (*mntstats)(int, Chan*, uint64_t, uint32_t);
@@ -105,16 +105,16 @@ mntreset(void)
  * Version is not multiplexed: message sent only once per connection.
  */
 usize
-mntversion(Chan *c, uint32_t msize, int8_t *version, usize returnlen)
+mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 {
 	Fcall f;
 	uint8_t *msg;
 	Mnt *mnt;
-	int8_t *v;
+	char *v;
 	int32_t l, n;
 	usize k;
 	int64_t oo;
-	int8_t buf[128];
+	char buf[128];
 
 	qlock(&c->umqlock);	/* make sure no one else does this until we've established ourselves */
 	if(waserror()){
@@ -257,7 +257,7 @@ mntversion(Chan *c, uint32_t msize, int8_t *version, usize returnlen)
 }
 
 Chan*
-mntauth(Chan *c, int8_t *spec)
+mntauth(Chan *c, char *spec)
 {
 	Mnt *mnt;
 	Mntrpc *r;
@@ -309,7 +309,7 @@ mntauth(Chan *c, int8_t *spec)
 }
 
 static Chan*
-mntattach(int8_t *muxattach)
+mntattach(char *muxattach)
 {
 	Mnt *mnt;
 	Chan *c;
@@ -317,7 +317,7 @@ mntattach(int8_t *muxattach)
 	struct bogus{
 		Chan	*chan;
 		Chan	*authchan;
-		int8_t	*spec;
+		char	*spec;
 		int	flags;
 	}bogus;
 
@@ -390,7 +390,7 @@ mntchan(void)
 }
 
 static Walkqid*
-mntwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+mntwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	int i, alloc;
 	Mnt *mnt;
@@ -432,7 +432,7 @@ mntwalk(Chan *c, Chan *nc, int8_t **name, int nname)
 	r->request.fid = c->fid;
 	r->request.newfid = nc->fid;
 	r->request.nwname = nname;
-	memmove(r->request.wname, name, nname*sizeof(int8_t*));
+	memmove(r->request.wname, name, nname*sizeof(char*));
 
 	mountrpc(mnt, r);
 
@@ -507,7 +507,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 }
 
 static Chan*
-mntopencreate(int type, Chan *c, int8_t *name, int omode, int perm)
+mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 {
 	Mnt *mnt;
 	Mntrpc *r;
@@ -550,7 +550,7 @@ mntopen(Chan *c, int omode)
 }
 
 static void
-mntcreate(Chan *c, int8_t *name, int omode, int perm)
+mntcreate(Chan *c, char *name, int omode, int perm)
 {
 	mntopencreate(Tcreate, c, name, omode, perm);
 }
@@ -702,7 +702,7 @@ mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 {
 	Mnt *mnt;
  	Mntrpc *r;
-	int8_t *uba;
+	char *uba;
 	int cache;
 	uint32_t cnt, nr, nreq;
 
@@ -752,7 +752,7 @@ mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 void
 mountrpc(Mnt *mnt, Mntrpc *r)
 {
-	int8_t *sn, *cn;
+	char *sn, *cn;
 	int t;
 
 	r->reply.tag = 0;

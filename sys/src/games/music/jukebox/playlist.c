@@ -17,10 +17,10 @@
 #include "playlist.h"
 #include "../debug.h"
 
-int8_t *playlistfile = "/mnt/playlist";
-int8_t *playctlfile = "/mnt/playctl";
-int8_t *playvolfile = "/mnt/playvol";
-int8_t *volumefile = "/dev/audioctl";
+char *playlistfile = "/mnt/playlist";
+char *playctlfile = "/mnt/playctl";
+char *playvolfile = "/mnt/playvol";
+char *volumefile = "/dev/audioctl";
 
 Playlist	playlist;
 int		playctlfd;
@@ -29,8 +29,8 @@ void
 playlistproc(void*)
 {
 	int fd, m, n, nf;
-	static int8_t buf[8192+1];
-	int8_t *p, *q, *fields[4];
+	static char buf[8192+1];
+	char *p, *q, *fields[4];
 
 	threadsetname("playlistproc");
 	fd = open(playlistfile, OREAD);
@@ -103,10 +103,10 @@ playlistproc(void*)
 }
 
 void
-sendplaylist(int8_t *file, int8_t *onum)
+sendplaylist(char *file, char *onum)
 {
 	static int fd = -1;
-	int8_t *b;
+	char *b;
 
 	if(file == nil){
 		if(fd >= 0)
@@ -132,8 +132,8 @@ void
 playctlproc(void*a)
 {
 	int fd, n, nf;
-	static int8_t buf[512+1];
-	int8_t *fields[4];
+	static char buf[512+1];
+	char *fields[4];
 	Channel *chan;
 
 	threadsetname("playctlproc");
@@ -166,7 +166,7 @@ playctlproc(void*a)
 }
 
 void
-sendplayctl(int8_t *fmt, ...)
+sendplayctl(char *fmt, ...)
 {
 	va_list arg;
 	static int fd = -1;
@@ -182,7 +182,7 @@ sendplayctl(int8_t *fmt, ...)
 }
 
 void
-setvolume(int8_t *volume)
+setvolume(char *volume)
 {
 	static int fd;
 
@@ -205,10 +205,10 @@ void
 volumeproc(void *arg)
 {
 	int fd, n, nf, nnf, i, nlines;
-	static int8_t buf[1024];
-	int8_t *lines[32];
-	int8_t *fields[8];
-	int8_t *subfields[8];
+	static char buf[1024];
+	char *lines[32];
+	char *fields[8];
+	char *subfields[8];
 	Channel *ctl;
 	int volume, minvolume, maxvolume, nvolume;
 
@@ -261,9 +261,9 @@ void
 playvolproc(void*a)
 {
 	int fd, n, nf, volume, nvolume, i;
-	static int8_t buf[256+1];
+	static char buf[256+1];
 	static errors;
-	int8_t *fields[3], *subfields[9];
+	char *fields[3], *subfields[9];
 	Channel *chan;
 
 	threadsetname("playvolproc");

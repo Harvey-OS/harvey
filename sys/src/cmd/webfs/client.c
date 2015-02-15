@@ -82,7 +82,7 @@ clonectl(Ctl *c)
 void
 clientbodyopen(Client *c, Req *r)
 {
-	int8_t e[ERRMAX], *next;
+	char e[ERRMAX], *next;
 	int i, nauth;
 	Url *u;
 
@@ -145,7 +145,7 @@ clientbodyopen(Client *c, Req *r)
 }
 
 void
-plumburl(int8_t *url, int8_t *base)
+plumburl(char *url, char *base)
 {
 	int i;
 	Client *c;
@@ -173,7 +173,7 @@ plumburl(int8_t *url, int8_t *base)
 void
 clientbodyread(Client *c, Req *r)
 {
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 
 	if(c->url->read == nil){
 		respond(r, "unsupported url type");
@@ -240,7 +240,7 @@ enum
 
 typedef struct Ctab Ctab;
 struct Ctab {
-	int8_t *name;
+	char *name;
 	int type;
 	void *offset;
 };
@@ -266,7 +266,7 @@ Ctab clienttab[] = {
 };
 
 static Ctab*
-findcmd(int8_t *cmd, Ctab *tab, int ntab)
+findcmd(char *cmd, Ctab *tab, int ntab)
 {
 	int i;
 
@@ -277,10 +277,10 @@ findcmd(int8_t *cmd, Ctab *tab, int ntab)
 }
 
 static void
-parseas(Req *r, int8_t *arg, int type, void *a)
+parseas(Req *r, char *arg, int type, void *a)
 {
 	Url *u;
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 
 	switch(type){
 	case Bool:
@@ -290,8 +290,8 @@ parseas(Req *r, int8_t *arg, int type, void *a)
 			*(int*)a = 0;
 		break;
 	case String:
-		free(*(int8_t**)a);
-		*(int8_t**)a = estrdup(arg);
+		free(*(char**)a);
+		*(char**)a = estrdup(arg);
 		break;
 	case XUrl:
 		u = parseurl(arg, nil);
@@ -314,7 +314,7 @@ parseas(Req *r, int8_t *arg, int type, void *a)
 }
 
 int
-ctlwrite(Req *r, Ctl *ctl, int8_t *cmd, int8_t *arg)
+ctlwrite(Req *r, Ctl *ctl, char *cmd, char *arg)
 {
 	void *a;
 	Ctab *t;
@@ -327,7 +327,7 @@ ctlwrite(Req *r, Ctl *ctl, int8_t *cmd, int8_t *arg)
 }
 
 int
-clientctlwrite(Req *r, Client *c, int8_t *cmd, int8_t *arg)
+clientctlwrite(Req *r, Client *c, char *cmd, char *arg)
 {
 	void *a;
 	Ctab *t;
@@ -340,7 +340,7 @@ clientctlwrite(Req *r, Client *c, int8_t *cmd, int8_t *arg)
 }
 
 int
-globalctlwrite(Req *r, int8_t *cmd, int8_t *arg)
+globalctlwrite(Req *r, char *cmd, char *arg)
 {
 	void *a;
 	Ctab *t;
@@ -353,11 +353,11 @@ globalctlwrite(Req *r, int8_t *cmd, int8_t *arg)
 }
 
 static void
-ctlfmt(Ctl *c, int8_t *s)
+ctlfmt(Ctl *c, char *s)
 {
 	int i;
 	void *a;
-	int8_t *t;
+	char *t;
 
 	for(i=0; i<nelem(ctltab); i++){
 		a = (void*)((uintptr)c+(uintptr)ctltab[i].offset);
@@ -369,7 +369,7 @@ ctlfmt(Ctl *c, int8_t *s)
 			s += sprint(s, "%s %d\n", ctltab[i].name, *(int*)a);
 			break;
 		case String:
-			t = *(int8_t**)a;
+			t = *(char**)a;
 			if(t != nil)
 				s += sprint(s, "%s %.*s%s\n", ctltab[i].name, utfnlen(t, 100), t, strlen(t)>100 ? "..." : "");
 			break;
@@ -380,7 +380,7 @@ ctlfmt(Ctl *c, int8_t *s)
 void
 ctlread(Req *r, Client *c)
 {
-	int8_t buf[1024];
+	char buf[1024];
 
 	sprint(buf, "%11d \n", c->num);
 	ctlfmt(&c->ctl, buf+strlen(buf));
@@ -391,7 +391,7 @@ ctlread(Req *r, Client *c)
 void
 globalctlread(Req *r)
 {
-	int8_t buf[1024], *s;
+	char buf[1024], *s;
 	int i;
 
 	s = buf;

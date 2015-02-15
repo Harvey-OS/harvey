@@ -146,7 +146,7 @@ Cmdtab proccmd[] = {
 };
 
 /* Segment type from portdat.h */
-static int8_t *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
+static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
 
 /*
  * Qids are, in path:
@@ -166,7 +166,7 @@ static int8_t *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
 #define PID(q)		((q).vers)
 #define NOTEID(q)	((q).vers)
 
-static void	procctlreq(Proc*, int8_t*, int);
+static void	procctlreq(Proc*, char*, int);
 static int	procctlmemio(Proc*, uintptr, int, void*, int);
 static Chan*	proctext(Chan*, Proc*);
 static Segment* txt2data(Proc*, Segment*);
@@ -174,7 +174,7 @@ static int	procstopped(void*);
 static void	mntscan(Mntwalk*, Proc*);
 
 static Traceevent *tevents;
-static int8_t *tpids, *tpidsc, *tpidse;
+static char *tpids, *tpidsc, *tpidse;
 static Lock tlock;
 static int topens;
 static int tproduced, tconsumed;
@@ -199,11 +199,11 @@ profclock(Ureg *ur, Timer *)
 }
 
 static int
-procgen(Chan *c, int8_t *name, Dirtab *tab, int, int s, Dir *dp)
+procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 {
 	Qid qid;
 	Proc *p;
-	int8_t *ename;
+	char *ename;
 	Segment *q;
 	int pid;
 	uint32_t path, perm, len;
@@ -353,13 +353,13 @@ procinit(void)
 }
 
 static Chan*
-procattach(int8_t *spec)
+procattach(char *spec)
 {
 	return devattach('p', spec);
 }
 
 static Walkqid*
-procwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+procwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, procgen);
 }
@@ -573,7 +573,7 @@ procwstat(Chan *c, uint8_t *db, int32_t n)
 		error(Eperm);
 
 	d = smalloc(sizeof(Dir)+n);
-	n = convM2D(db, n, &d[0], (int8_t*)&d[1]);
+	n = convM2D(db, n, &d[0], (char*)&d[1]);
 	if(n == 0)
 		error(Eshortstat);
 	if(!emptystr(d->uid) && strcmp(d->uid, p->user) != 0){
@@ -595,7 +595,7 @@ procwstat(Chan *c, uint8_t *db, int32_t n)
 
 
 static int32_t
-procoffset(int32_t offset, int8_t *va, int *np)
+procoffset(int32_t offset, char *va, int *np)
 {
 	if(offset > 0) {
 		offset -= *np;
@@ -612,13 +612,13 @@ procoffset(int32_t offset, int8_t *va, int *np)
 static int
 procqidwidth(Chan *c)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	return sprint(buf, "%lud", c->qid.vers);
 }
 
 int
-procfdprint(Chan *c, int fd, int w, int8_t *s, int ns)
+procfdprint(Chan *c, int fd, int w, char *s, int ns)
 {
 	int n;
 
@@ -634,13 +634,13 @@ procfdprint(Chan *c, int fd, int w, int8_t *s, int ns)
 }
 
 static int
-procfds(Proc *p, int8_t *va, int count, int32_t offset)
+procfds(Proc *p, char *va, int count, int32_t offset)
 {
 	Fgrp *f;
 	Chan *c;
-	int8_t buf[256];
+	char buf[256];
 	int n, i, w, ww;
-	int8_t *a;
+	char *a;
 
 	/* print to buf to avoid holding fgrp lock while writing to user space */
 	if(count > sizeof buf)
@@ -706,7 +706,7 @@ procclose(Chan * c)
 }
 
 static void
-int2flag(int flag, int8_t *s)
+int2flag(int flag, char *s)
 {
 	if(flag == 0){
 		*s = '\0';
@@ -725,10 +725,10 @@ int2flag(int flag, int8_t *s)
 }
 
 static int
-procargs(Proc *p, int8_t *buf, int nbuf)
+procargs(Proc *p, char *buf, int nbuf)
 {
 	int j, k, m;
-	int8_t *a;
+	char *a;
 	int n;
 
 	a = p->args;
@@ -769,7 +769,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 	Mntwalk *mw;
 	Segment *sg, *s;
 	int i, j, navail, pid, rsize;
-	int8_t flag[10], *sps, *srv, statbuf[NSEG*64];
+	char flag[10], *sps, *srv, statbuf[NSEG*64];
 	uintptr offset, u;
 	int tesz;
 
@@ -890,7 +890,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		}
 		if(offset+n > i)
 			n = i - offset;
-		memmove(va, ((int8_t*)s->profile)+offset, n);
+		memmove(va, ((char*)s->profile)+offset, n);
 		psdecref(p);
 		return n;
 
@@ -932,7 +932,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		}
 		if(offset+n > sizeof(Proc))
 			n = sizeof(Proc) - offset;
-		memmove(va, ((int8_t*)p)+offset, n);
+		memmove(va, ((char*)p)+offset, n);
 		psdecref(p);
 		return n;
 
@@ -1172,7 +1172,7 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 {
 	Proc *p, *t;
 	int i, id, l;
-	int8_t *args, buf[ERRMAX];
+	char *args, buf[ERRMAX];
 	uintptr offset;
 
 	if(c->qid.type & QTDIR)
@@ -1234,7 +1234,7 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 			n = sizeof(Ureg) - offset;
 		if(p->dbgreg == 0)
 			error(Enoreg);
-		setregisters(p->dbgreg, (int8_t*)(p->dbgreg)+offset, va, n);
+		setregisters(p->dbgreg, (char*)(p->dbgreg)+offset, va, n);
 		break;
 
 	case Qfpregs:
@@ -1423,12 +1423,12 @@ procctlclosefiles(Proc *p, int all, int fd)
 	closefgrp(f);
 }
 
-static int8_t *
-parsetime(int64_t *rt, int8_t *s)
+static char *
+parsetime(int64_t *rt, char *s)
 {
 	uint64_t ticks;
 	uint32_t l;
-	int8_t *e, *p;
+	char *e, *p;
 	static int p10[] = {100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1};
 
 	if (s == nil)
@@ -1457,14 +1457,14 @@ parsetime(int64_t *rt, int8_t *s)
 }
 
 static void
-procctlreq(Proc *p, int8_t *va, int n)
+procctlreq(Proc *p, char *va, int n)
 {
 	Segment *s;
 	int npc, pri, core;
 	Cmdbuf *cb;
 	Cmdtab *ct;
 	int64_t time;
-	int8_t *e;
+	char *e;
 
 	if(p->kp)	/* no ctl requests to kprocs */
 		error(Eperm);

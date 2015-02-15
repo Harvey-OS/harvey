@@ -37,8 +37,8 @@ struct Pgnd
 #define pghash(daddr)	pga.hash[(daddr>>PGSHFT)&(PGHSIZE-1)]
 Pgalloc pga;		/* new allocator */
 
-int8_t*
-seprintpagestats(int8_t *s, int8_t *e)
+char*
+seprintpagestats(char *s, char *e)
 {
 	int i;
 

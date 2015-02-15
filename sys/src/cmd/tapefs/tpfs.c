@@ -30,11 +30,11 @@ struct tp {
 	unsigned char	checksum[2];
 } dir[496+8];
 
-int8_t	buffer[8192];
+char	buffer[8192];
 int	tapefile;
 
 void
-populate(int8_t *name)
+populate(char *name)
 {
 	int i, isabs, badcksum, goodcksum;
 	struct tp *tpp;
@@ -69,7 +69,7 @@ populate(int8_t *name)
 		f.uid = tpp->uid[0];
 		f.gid = tpp->gid[0];
 		isabs = tpp->name[0]=='/';
-		f.name = (int8_t *)tpp->name+isabs;
+		f.name = (char *)tpp->name+isabs;
 		poppath(f, 1);
 	}
 	fprint(2, "%d bad checksums, %d good\n", badcksum, goodcksum);
@@ -93,7 +93,7 @@ docreate(Ram *r)
 	USED(r);
 }
 
-int8_t *
+char *
 doread(Ram *r, int64_t off, int32_t cnt)
 {
 	if (cnt>sizeof(buffer))
@@ -104,7 +104,7 @@ doread(Ram *r, int64_t off, int32_t cnt)
 }
 
 void
-dowrite(Ram *r, int8_t *buf, int32_t off, int32_t cnt)
+dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }

@@ -18,7 +18,7 @@ extern int curpostfontid;
 extern int curfontsize;
 
 typedef struct {int32_t start, end;} Section;
-static int8_t *buf;
+static char *buf;
 
 static void
 copy(Biobufhdr *fin, Biobufhdr *fout, Section *s) {
@@ -71,7 +71,7 @@ ps_include(Biobufhdr *fin, Biobufhdr *fout, int page_no, int whiteout,
 	int i;
 	int maxglobal = 0;		/* the number we've got room for */
 	int nglobal = 0;		/* number of global defs so far */
-	int8_t **strp;
+	char **strp;
 	double llx, lly;		/* lower left and */
 	double o = outline != 0;
 	double s = scaleboth != 0;

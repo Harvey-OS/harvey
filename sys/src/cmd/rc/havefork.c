@@ -21,7 +21,7 @@ Xasync(void)
 {
 	int null = open("/dev/null", 0);
 	int pid;
-	int8_t npid[10];
+	char npid[10];
 	if(null<0){
 		Xerror("Can't open /dev/null\n");
 		return;
@@ -90,8 +90,8 @@ Xbackq(void)
 {
 	int n, pid;
 	int pfd[2];
-	int8_t *stop;
-	int8_t utf[UTFmax+1];
+	char *stop;
+	char utf[UTFmax+1];
 	struct io *f;
 	var *ifs = vlook("ifs");
 	word *v, *nextv;
@@ -158,7 +158,7 @@ Xpipefd(void)
 {
 	struct thread *p = runq;
 	int pc = p->pc, pid;
-	int8_t name[40];
+	char name[40];
 	int pfd[2];
 	int sidefd, mainfd;
 	if(pipe(pfd)<0){
@@ -222,7 +222,7 @@ execforkexec(void)
 {
 	int pid;
 	int n;
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	switch(pid = fork()){
 	case -1:

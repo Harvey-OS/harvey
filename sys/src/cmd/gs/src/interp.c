@@ -712,7 +712,7 @@ gs_errorname(i_ctx_t *i_ctx_p, int code, ref * perror_name)
 /* Store an error string in $error.errorinfo. */
 /* This routine is here because of the proximity to the error handler. */
 int
-gs_errorinfo_put_string(i_ctx_t *i_ctx_p, const int8_t *str)
+gs_errorinfo_put_string(i_ctx_t *i_ctx_p, const char *str)
 {
     ref rstr;
     ref *pderror;

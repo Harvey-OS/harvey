@@ -13,11 +13,11 @@
 #include <httpd.h>
 
 int
-hredirected(HConnect *c, int8_t *how, int8_t *uri)
+hredirected(HConnect *c, char *how, char *uri)
 {
 	Hio *hout;
-	int8_t *s, *ss, *scheme, *host;
-	int8_t sayport[NETPATHLEN];
+	char *s, *ss, *scheme, *host;
+	char sayport[NETPATHLEN];
 	int n;
 
 	scheme = c->scheme? c->scheme: "http";
@@ -77,7 +77,7 @@ hredirected(HConnect *c, int8_t *how, int8_t *uri)
 }
 
 int
-hmoved(HConnect *c, int8_t *uri)
+hmoved(HConnect *c, char *uri)
 {
 	return hredirected(c, "301 Moved Permanently", uri);
 }

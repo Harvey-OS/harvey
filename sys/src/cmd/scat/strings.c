@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-int8_t *greek[]={ 0,	/* 1-indexed */
+char *greek[]={ 0,	/* 1-indexed */
 	"alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta",
 	"iota", "kappa", "lambda", "mu", "nu", "xsi", "omicron", "pi", "rho",
 	"sigma", "tau", "upsilon", "phi", "chi", "psi", "omega",
@@ -19,7 +19,7 @@ Rune greeklet[]={ 0,
 	L'ψ', L'ω',
 };
 
-int8_t *constel[]={ 0,	/* 1-indexed */
+char *constel[]={ 0,	/* 1-indexed */
 	"and", "ant", "aps", "aql", "aqr", "ara", "ari", "aur", "boo", "cae",
 	"cam", "cap", "car", "cas", "cen", "cep", "cet", "cha", "cir", "cma",
 	"cmi", "cnc", "col", "com", "cra", "crb", "crt", "cru", "crv", "cvn",

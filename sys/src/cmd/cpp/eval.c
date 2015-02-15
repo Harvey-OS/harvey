@@ -33,9 +33,9 @@ struct value {
 
 /* operator priority, arity, and conversion type, indexed by tokentype */
 const struct pri {
-	int8_t	pri;
-	int8_t	arity;
-	int8_t	ctype;
+	char	pri;
+	char	arity;
+	char	ctype;
 } priority[] = {
 	{ 0, 0, 0 },		/* END */
 	{ 0, 0, 0 },		/* UNCLASS */
@@ -485,7 +485,7 @@ tokval(Token *tp)
 					n += i;
 				}
 			} else {
-				static int8_t cvcon[]
+				static char cvcon[]
 				  = "a\ab\bf\fn\nr\rt\tv\v''\"\"??\\\\";
 				for (i=0; i<sizeof(cvcon); i+=2) {
 					if (*p == cvcon[i]) {
@@ -501,7 +501,7 @@ tokval(Token *tp)
 		} else if (*p=='\'')
 			error(ERROR, "Empty character constant");
 		else {
-			i = chartorune(&r, (int8_t*)p);
+			i = chartorune(&r, (char*)p);
 			n = r;
 			p += i;
 			if (i>1 && longcc==0)

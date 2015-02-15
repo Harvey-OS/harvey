@@ -61,7 +61,7 @@ usage(void)
 }
 
 int
-getint(int8_t *s, int *percent)
+getint(char *s, int *percent)
 {
 	if(s == nil)
 		usage();

@@ -47,11 +47,11 @@ tabfree(Stringtab *tt)
 	tfree = tt;
 }
 
-int8_t*
-xstrdup(int8_t *s, int len)
+char*
+xstrdup(char *s, int len)
 {
-	int8_t *r;
-	static int8_t *t;
+	char *r;
+	static char *t;
 	static int nt;
 
 	if(nt < len){
@@ -68,7 +68,7 @@ xstrdup(int8_t *s, int len)
 }
 
 static uint
-hash(int8_t *s, int n)
+hash(char *s, int n)
 {
 	uint h;
 	uint8_t *p, *ep;
@@ -102,7 +102,7 @@ rehash(Hash *hh)
 }
 
 Stringtab*
-findstab(Hash *hh, int8_t *str, int n, int create)
+findstab(Hash *hh, char *str, int n, int create)
 {
 	uint h;
 	Stringtab *tab, **l;
@@ -251,8 +251,8 @@ Bwritehash(Biobuf *b, Hash *hh)
 void
 Breadhash(Biobuf *b, Hash *hh, int scale)
 {
-	int8_t *s;
-	int8_t *t;
+	char *s;
+	char *t;
 	int n;
 	int date;
 	Stringtab *st;
@@ -302,11 +302,11 @@ freehash(Hash *h)
 }
 
 Biobuf*
-Bopenlock(int8_t *file, int mode)
+Bopenlock(char *file, int mode)
 {
 	int i;
 	Biobuf *b;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 
 	b = nil;
 	for(i=0; i<120; i++){

@@ -22,12 +22,12 @@ enum {
 	Maxenvname = 256,	/* undocumented limit */
 };
 
-int8_t *Signame[] = {
+char *Signame[] = {
 	"sigexit",	"sighup",	"sigint",	"sigquit",
 	"sigalrm",	"sigkill",	"sigfpe",	"sigterm",
 	0
 };
-int8_t *syssigname[] = {
+char *syssigname[] = {
 	"exit",		/* can't happen */
 	"hangup",
 	"interrupt",
@@ -38,8 +38,8 @@ int8_t *syssigname[] = {
 	"term",
 	0
 };
-int8_t *Rcmain = "/rc/lib/rcmain";
-int8_t *Fdprefix = "/fd/";
+char *Rcmain = "/rc/lib/rcmain";
+char *Fdprefix = "/fd/";
 
 void execfinit(void);
 void execbind(void);
@@ -65,7 +65,7 @@ void
 execnewpgrp(void)
 {
 	int arg;
-	int8_t *s;
+	char *s;
 	switch(count(runq->argv->words)){
 	case 1:
 		arg = RFENVG|RFNAMEG|RFNOTEG;
@@ -114,8 +114,8 @@ void
 Vinit(void)
 {
 	int dir, f, len, i, n, nent;
-	int8_t *buf, *s;
-	int8_t envname[Maxenvname];
+	char *buf, *s;
+	char envname[Maxenvname];
 	word *val;
 	Dir *ent;
 
@@ -170,7 +170,7 @@ Xrdfn(void)
 {
 	int f, len;
 	Dir *e;
-	int8_t envname[Maxenvname];
+	char envname[Maxenvname];
 	static Dir *ent, *allocent;
 	static int nent;
 
@@ -225,7 +225,7 @@ Waitfor(int pid, int)
 {
 	thread *p;
 	Waitmsg *w;
-	int8_t errbuf[ERRMAX];
+	char errbuf[ERRMAX];
 
 	if(pid >= 0 && !havewaitpid(pid))
 		return 0;
@@ -250,11 +250,11 @@ Waitfor(int pid, int)
 	return 0;
 }
 
-int8_t **
+char **
 mkargv(word *a)
 {
-	int8_t **argv = (int8_t **)emalloc((count(a)+2)*sizeof(int8_t *));
-	int8_t **argp = argv+1;	/* leave one at front for runcoms */
+	char **argv = (char **)emalloc((count(a)+2)*sizeof(char *));
+	char **argp = argv+1;	/* leave one at front for runcoms */
 	for(;a;a = a->next) *argp++=a->word;
 	*argp = 0;
 	return argv;
@@ -263,7 +263,7 @@ mkargv(word *a)
 void
 addenv(var *v)
 {
-	int8_t envname[Maxenvname];
+	char envname[Maxenvname];
 	word *w;
 	int f;
 	io *fd;
@@ -316,7 +316,7 @@ Updenv(void)
 
 /* not used on plan 9 */
 int
-ForkExecute(int8_t *file, int8_t **argv, int sin, int sout, int serr)
+ForkExecute(char *file, char **argv, int sin, int sout, int serr)
 {
 	int pid;
 
@@ -347,8 +347,8 @@ ForkExecute(int8_t *file, int8_t **argv, int sin, int sout, int serr)
 void
 Execute(word *args, word *path)
 {
-	int8_t **argv = mkargv(args);
-	int8_t file[1024], errstr[1024];
+	char **argv = mkargv(args);
+	char file[1024], errstr[1024];
 	int nc;
 
 	Updenv();
@@ -382,12 +382,12 @@ Execute(word *args, word *path)
 		}
 	}
 	pfmt(err, "%s: %s\n", argv[1], errstr);
-	efree((int8_t *)argv);
+	efree((char *)argv);
 }
 #define	NDIR	256		/* shoud be a better way */
 
 int
-Globsize(int8_t *p)
+Globsize(char *p)
 {
 	int isglob = 0, globlen = NDIR+1;
 	for(;*p;p++){
@@ -411,7 +411,7 @@ struct{
 }dir[NFD];
 
 int
-Opendir(int8_t *name)
+Opendir(char *name)
 {
 	Dir *db;
 	int f;
@@ -493,7 +493,7 @@ Closedir(int f)
 }
 int interrupted = 0;
 void
-notifyf(void*, int8_t *s)
+notifyf(void*, char *s)
 {
 	int i;
 	for(i = 0;syssigname[i];i++) if(strncmp(s, syssigname[i], strlen(syssigname[i]))==0){
@@ -522,7 +522,7 @@ Trapinit(void)
 }
 
 void
-Unlink(int8_t *name)
+Unlink(char *name)
 {
 	remove(name);
 }
@@ -546,7 +546,7 @@ Seek(int fd, int32_t cnt, int32_t whence)
 }
 
 int
-Executable(int8_t *file)
+Executable(char *file)
 {
 	Dir *statbuf;
 	int ret;
@@ -560,7 +560,7 @@ Executable(int8_t *file)
 }
 
 int
-Creat(int8_t *file)
+Creat(char *file)
 {
 	return create(file, 1, 0666L);
 }
@@ -578,7 +578,7 @@ Dup1(int)
 }
 
 void
-Exit(int8_t *stat)
+Exit(char *stat)
 {
 	Updenv();
 	setstatus(stat);
@@ -600,7 +600,7 @@ Noerror(void)
 int
 Isatty(int fd)
 {
-	int8_t buf[64];
+	char buf[64];
 
 	if(fd2path(fd, buf, sizeof buf) != 0)
 		return 0;

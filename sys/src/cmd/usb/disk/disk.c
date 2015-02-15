@@ -36,7 +36,7 @@ enum
 typedef struct Dirtab Dirtab;
 struct Dirtab
 {
-	int8_t	*name;
+	char	*name;
 	int	mode;
 };
 
@@ -56,7 +56,7 @@ int exabyte, force6bytecmds;
 int diskdebug;
 
 static void
-ding(void *, int8_t *msg)
+ding(void *, char *msg)
 {
 	if(strstr(msg, "alarm") != nil)
 		noted(NCONT);
@@ -206,7 +206,7 @@ umsinit(Ums *ums)
 		 * Some devices return a wrong value but would still work.
 		 */
 		some++;
-		lun->inq = smprint("%.48s", (int8_t *)lun->inquiry+8);
+		lun->inq = smprint("%.48s", (char *)lun->inquiry+8);
 		umscapacity(lun);
 	}
 	if(some == 0){
@@ -337,7 +337,7 @@ Fail:
 }
 
 static int
-dwalk(Usbfs *fs, Fid *fid, int8_t *name)
+dwalk(Usbfs *fs, Fid *fid, char *name)
 {
 	int i;
 	Qid qid;
@@ -427,7 +427,7 @@ dopen(Usbfs *fs, Fid *fid, int)
  * since we don't need general division nor its cost.
  */
 static int
-setup(Umsc *lun, int8_t *data, int count, int64_t offset)
+setup(Umsc *lun, char *data, int count, int64_t offset)
 {
 	int32_t nb, lbsize, lbshift, lbmask;
 	uint64_t bno;
@@ -474,8 +474,8 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 {
 	int32_t n;
 	uint32_t path;
-	int8_t buf[1024];
-	int8_t *s, *e;
+	char buf[1024];
+	char *s, *e;
 	Umsc *lun;
 	Ums *ums;
 	Qid q;

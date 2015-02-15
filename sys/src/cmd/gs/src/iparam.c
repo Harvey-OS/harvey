@@ -70,7 +70,7 @@ ref_to_key(const ref * pref, gs_param_key_t * key, iparam_list *plist)
 	key->size = r_size(&nref);
 	key->persistent = false; /* names may be freed */
     } else if (r_has_type(pref, t_integer)) {
-	int8_t istr[sizeof(int32_t) * 8 / 3 + 2];
+	char istr[sizeof(int32_t) * 8 / 3 + 2];
 	int len;
 	byte *buf;
 

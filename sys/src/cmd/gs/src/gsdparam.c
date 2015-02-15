@@ -104,7 +104,7 @@ gx_default_get_params(gx_device * dev, gs_param_list * plist)
 
     param_string_from_string(dns, dev->dname);
     {
-	const int8_t *cms = get_process_color_model_name(dev);
+	const char *cms = get_process_color_model_name(dev);
 
 	/* We might have an uninitialized device with */
 	/* color_info.num_components = 0.... */
@@ -273,7 +273,7 @@ int
 gdev_write_input_media(int index, gs_param_dict * pdict,
 		       const gdev_input_media_t * pim)
 {
-    int8_t key[25];
+    char key[25];
     gs_param_dict mdict;
     int code;
     gs_param_string as;
@@ -362,7 +362,7 @@ int
 gdev_write_output_media(int index, gs_param_dict * pdict,
 			const gdev_output_media_t * pom)
 {
-    int8_t key[25];
+    char key[25];
     gs_param_dict mdict;
     int code;
 
@@ -644,7 +644,7 @@ nce:
 
     /* Separation, DeviceN Color, and ProcessColorModel related parameters. */
     {
-	const int8_t * pcms = get_process_color_model_name(dev);
+	const char * pcms = get_process_color_model_name(dev);
         /* the device should have set a process model name at this point */
 	if ((code = param_check_string(plist, "ProcessColorModel", pcms, (pcms != NULL))) < 0)
 	    ecode = code;

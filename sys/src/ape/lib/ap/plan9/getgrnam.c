@@ -10,19 +10,19 @@
 #include <stddef.h>
 #include <grp.h>
 
-extern int _getpw(int *, int8_t **, int8_t **);
-extern int8_t **_grpmems(int8_t *);
+extern int _getpw(int *, char **, char **);
+extern char **_grpmems(char *);
 
 static struct group holdgroup;
 
 struct group *
-getgrnam(const int8_t *name)
+getgrnam(const char *name)
 {
 	int num;
-	int8_t *nam, *mem;
+	char *nam, *mem;
 
 	num = 0;
-	nam = (int8_t *)name;
+	nam = (char *)name;
 	mem = 0;
 	if(_getpw(&num, &nam, &mem)){
 		holdgroup.gr_name = nam;

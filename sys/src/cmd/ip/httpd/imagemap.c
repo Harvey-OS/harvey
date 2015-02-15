@@ -31,25 +31,25 @@ struct OkPoint
 
 struct Strings
 {
-	int8_t	*s1;
-	int8_t	*s2;
+	char	*s1;
+	char	*s2;
 };
 
-static	int8_t *me;
+static	char *me;
 
 int		polytest(int, Point, Point, Point);
-Strings		getfield(int8_t*);
-OkPoint		pt(int8_t*);
-int8_t*		translate(HConnect*, int8_t*, int8_t*);
+Strings		getfield(char*);
+OkPoint		pt(char*);
+char*		translate(HConnect*, char*, char*);
 Point		sub(Point, Point);
 float		dist(Point, Point);
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	HConnect *c;
 	Hio *hout;
-	int8_t *dest;
+	char *dest;
 
 	me = "imagemap";
 	c = init(argc, argv);
@@ -88,15 +88,15 @@ main(int argc, int8_t **argv)
 	exits(nil);
 }
 
-int8_t*
-translate(HConnect *c, int8_t *uri, int8_t *search)
+char*
+translate(HConnect *c, char *uri, char *search)
 {
 	Biobuf *b;
 	Strings ss;
 	OkPoint okp;
 	Point p, cen, q, start;
 	float close, d;
-	int8_t *line, *to, *def, *s, *dst;
+	char *line, *to, *def, *s, *dst;
 	int n, inside, r, ncsa;
 
 	if(search == nil){
@@ -273,11 +273,11 @@ dist(Point p, Point q)
 }
 
 OkPoint
-pt(int8_t *s)
+pt(char *s)
 {
 	OkPoint okp;
 	Point p;
-	int8_t *t, *e;
+	char *t, *e;
 
 	if(*s == '(')
 		s++;
@@ -311,10 +311,10 @@ pt(int8_t *s)
 }
 
 Strings
-getfield(int8_t *s)
+getfield(char *s)
 {
 	Strings ss;
-	int8_t *f;
+	char *f;
 
 	while(*s == '\t' || *s == ' ')
 		s++;

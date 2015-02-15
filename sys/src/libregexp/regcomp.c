@@ -41,7 +41,7 @@ static	int	subidstack[NSTACK];	/* parallel to atorstack */
 static	int*	subidp;
 static	int	lastwasand;	/* Last token was operand */
 static	int	nbra;
-static	int8_t*	exprp;		/* pointer to next character in source expression */
+static	char*	exprp;		/* pointer to next character in source expression */
 static	int	lexdone;
 static	int	nclass;
 static	Reclass*classp;
@@ -60,7 +60,7 @@ static	int	bldcclass(void);
 static jmp_buf regkaboom;
 
 static	void
-rcerror(int8_t *s)
+rcerror(char *s)
 {
 	errors++;
 	regerror(s);
@@ -115,10 +115,10 @@ operator(int t)
 }
 
 static	void
-regerr2(int8_t *s, int c)
+regerr2(char *s, int c)
 {
-	int8_t buf[100];
-	int8_t *cp = buf;
+	char buf[100];
+	char *cp = buf;
 	while(*s)
 		*cp++ = *s++;
 	*cp++ = c;
@@ -127,9 +127,9 @@ regerr2(int8_t *s, int c)
 }
 
 static	void
-cant(int8_t *s)
+cant(char *s)
 {
-	int8_t buf[100];
+	char buf[100];
 	strcpy(buf, "can't happen: ");
 	strcat(buf, s);
 	rcerror(buf);
@@ -269,26 +269,26 @@ optimize(Reprog *pp)
 	npp = realloc(pp, size);
 	if(npp==0 || npp==pp)
 		return pp;
-	diff = (int8_t *)npp - (int8_t *)pp;
-	freep = (Reinst *)((int8_t *)freep + diff);
+	diff = (char *)npp - (char *)pp;
+	freep = (Reinst *)((char *)freep + diff);
 	for(inst=npp->firstinst; inst<freep; inst++){
 		switch(inst->type){
 		case OR:
 		case STAR:
 		case PLUS:
 		case QUEST:
-			*(int8_t **)&inst->right += diff;
+			*(char **)&inst->right += diff;
 			break;
 		case CCLASS:
 		case NCCLASS:
-			*(int8_t **)&inst->right += diff;
+			*(char **)&inst->right += diff;
 			cl = inst->cp;
-			*(int8_t **)&cl->end += diff;
+			*(char **)&cl->end += diff;
 			break;
 		}
-		*(int8_t **)&inst->left += diff;
+		*(char **)&inst->left += diff;
 	}
-	*(int8_t **)&npp->startinst += diff;
+	*(char **)&npp->startinst += diff;
 	return npp;
 }
 
@@ -490,7 +490,7 @@ bldcclass(void)
 }
 
 static	Reprog*
-regcomp1(int8_t *s, int literal, int dot_type)
+regcomp1(char *s, int literal, int dot_type)
 {
 	int token;
 	Reprog *pp;
@@ -558,19 +558,19 @@ out:
 }
 
 extern	Reprog*
-regcomp(int8_t *s)
+regcomp(char *s)
 {
 	return regcomp1(s, 0, ANY);
 }
 
 extern	Reprog*
-regcomplit(int8_t *s)
+regcomplit(char *s)
 {
 	return regcomp1(s, 1, ANY);
 }
 
 extern	Reprog*
-regcompnl(int8_t *s)
+regcompnl(char *s)
 {
 	return regcomp1(s, 0, ANYNL);
 }

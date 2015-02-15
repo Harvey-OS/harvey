@@ -143,7 +143,7 @@ fsend(Usbfs*)
 }
 
 void
-usbfsgone(int8_t *dir)
+usbfsgone(char *dir)
 {
 	int i;
 
@@ -182,7 +182,7 @@ fsclone(Usbfs*, Fid *o, Fid *n)
 }
 
 static int
-fswalk(Usbfs*, Fid *fid, int8_t *name)
+fswalk(Usbfs*, Fid *fid, char *name)
 {
 	Qid q;
 	int qd, qf;
@@ -190,7 +190,7 @@ fswalk(Usbfs*, Fid *fid, int8_t *name)
 	int rc;
 	Dev *dev;
 	Dir d;
-	int (*xfswalk)(Usbfs *fs, Fid *f, int8_t *name);
+	int (*xfswalk)(Usbfs *fs, Fid *f, char *name);
 
 	q = fid->qid;
 	qd = qiddev(q.path);
@@ -271,7 +271,7 @@ dirgen(Usbfs*, Qid, int n, Dir *d, void *)
 {
 	int i;
 	Dev *dev;
-	int8_t *nm;
+	char *nm;
 
 	qlock(&fslck);
 	for(i = 0; i < nfs; i++)

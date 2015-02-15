@@ -22,7 +22,7 @@ struct utimbuf
 extern "C" {
 #endif
 
-extern int utime(const int8_t *, const struct utimbuf *);
+extern int utime(const char *, const struct utimbuf *);
 
 #ifdef __cplusplus
 }

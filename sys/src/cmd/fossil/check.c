@@ -16,14 +16,14 @@ static void	checkEpochs(Fsck*);
 static void	checkLeak(Fsck*);
 static void	closenop(Fsck*, Block*, uint32_t);
 static void	clrenop(Fsck*, Block*, int);
-static void	clrinop(Fsck*, int8_t*, MetaBlock*, int, Block*);
-static void	error(Fsck*, int8_t*, ...);
+static void	clrinop(Fsck*, char*, MetaBlock*, int, Block*);
+static void	error(Fsck*, char*, ...);
 static int	getBit(uint8_t*, uint32_t);
-static int	printnop(int8_t*, ...);
+static int	printnop(char*, ...);
 static void	setBit(uint8_t*, uint32_t);
 static int	walkEpoch(Fsck *chk, Block *b, uint8_t score[VtScoreSize],
 			int type, uint32_t tag, uint32_t epoch);
-static void	warn(Fsck*, int8_t*, ...);
+static void	warn(Fsck*, char*, ...);
 
 #pragma varargck argpos error 2
 #pragma varargck argpos printnop 1
@@ -411,7 +411,7 @@ checkLeak(Fsck *chk)
  * Check that all sources in the tree are accessible.
  */
 static Source *
-openSource(Fsck *chk, Source *s, int8_t *name, uint8_t *bm, uint32_t offset,
+openSource(Fsck *chk, Source *s, char *name, uint8_t *bm, uint32_t offset,
 	uint32_t gen, int dir, MetaBlock *mb, int i, Block *b)
 {
 	Source *r;
@@ -524,7 +524,7 @@ if(0){
 }
 
 static void
-scanSource(Fsck *chk, int8_t *name, Source *r)
+scanSource(Fsck *chk, char *name, Source *r)
 {
 	uint32_t a, nb, o;
 	Block *b;
@@ -563,11 +563,11 @@ scanSource(Fsck *chk, int8_t *name, Source *r)
  * sources containing directory entries are okay.
  */
 static void
-chkDir(Fsck *chk, int8_t *name, Source *source, Source *meta)
+chkDir(Fsck *chk, char *name, Source *source, Source *meta)
 {
 	int i;
 	uint32_t a1, a2, nb, o;
-	int8_t *s, *nn;
+	char *s, *nn;
 	uint8_t *bm;
 	Block *b, *bb;
 	DirEntry de;
@@ -757,9 +757,9 @@ getBit(uint8_t *bmap, uint32_t addr)
 }
 
 static void
-error(Fsck *chk, int8_t *fmt, ...)
+error(Fsck *chk, char *fmt, ...)
 {
-	int8_t buf[256];
+	char buf[256];
 	va_list arg;
 	static int nerr;
 
@@ -774,9 +774,9 @@ error(Fsck *chk, int8_t *fmt, ...)
 }
 
 static void
-warn(Fsck *chk, int8_t *fmt, ...)
+warn(Fsck *chk, char *fmt, ...)
 {
-	int8_t buf[256];
+	char buf[256];
 	va_list arg;
 	static int nerr;
 
@@ -798,12 +798,12 @@ closenop(Fsck*, Block*, uint32_t)
 }
 
 static void
-clrinop(Fsck*, int8_t*, MetaBlock*, int, Block*)
+clrinop(Fsck*, char*, MetaBlock*, int, Block*)
 {
 }
 
 static int
-printnop(int8_t*, ...)
+printnop(char*, ...)
 {
 	return 0;
 }

@@ -29,7 +29,7 @@ int sflag;
 int tiflag;
 int toflag;
 
-int8_t *prom = "promiscuous";
+char *prom = "promiscuous";
 
 enum
 {
@@ -44,12 +44,12 @@ int64_t starttime, pkttime;
 int pcap;
 
 int	filterpkt(Filter *f, uint8_t *ps, uint8_t *pe, Proto *pr, int);
-void	printpkt(int8_t *p, int8_t *e, uint8_t *ps, uint8_t *pe);
+void	printpkt(char *p, char *e, uint8_t *ps, uint8_t *pe);
 void	mkprotograph(void);
-Proto*	findproto(int8_t *name);
+Proto*	findproto(char *name);
 Filter*	compile(Filter *f);
-void	printfilter(Filter *f, int8_t *tag);
-void	printhelp(int8_t*);
+void	printfilter(Filter *f, char *tag);
+void	printhelp(char*);
 void	tracepkt(uint8_t*, int);
 void	pcaphdr(void);
 
@@ -348,7 +348,7 @@ tracepkt(uint8_t *ps, int len)
  *  format and print a packet
  */
 void
-printpkt(int8_t *p, int8_t *e, uint8_t *ps, uint8_t *pe)
+printpkt(char *p, char *e, uint8_t *ps, uint8_t *pe)
 {
 	Msg m;
 	uint32_t dt;
@@ -382,7 +382,7 @@ int nprotos;
 
 /* look up a protocol by its name */
 Proto*
-findproto(int8_t *name)
+findproto(char *name)
 {
 	int i;
 
@@ -396,7 +396,7 @@ findproto(int8_t *name)
  *  add an undefined protocol to protos[]
  */
 Proto*
-addproto(int8_t *name)
+addproto(char *name)
 {
 	Proto *pr;
 
@@ -721,10 +721,10 @@ compile(Filter *f)
  *  parse a byte array
  */
 int
-parseba(uint8_t *to, int8_t *from)
+parseba(uint8_t *to, char *from)
 {
-	int8_t nip[4];
-	int8_t *p;
+	char nip[4];
+	char *p;
 	int i;
 
 	p = from;
@@ -745,10 +745,10 @@ parseba(uint8_t *to, int8_t *from)
  *  compile WORD = WORD, becomes a single node with a subop
  */
 void
-compile_cmp(int8_t *proto, Filter *f, Field *fld)
+compile_cmp(char *proto, Filter *f, Field *fld)
 {
 	uint8_t x[IPaddrlen];
-	int8_t *v;
+	char *v;
 
 	if(f->op != '=')
 		sysfatal("internal error: compile_cmp %s: not a cmp", proto);
@@ -762,7 +762,7 @@ compile_cmp(int8_t *proto, Filter *f, Field *fld)
 				f->ulv = atoi(f->r->s);
 				break;
 			case Fether:
-				v = csgetvalue(nil, "sys", (int8_t*)f->r->s,
+				v = csgetvalue(nil, "sys", (char*)f->r->s,
 					"ether", 0);
 				if(v){
 					parseether(f->a, v);
@@ -771,7 +771,7 @@ compile_cmp(int8_t *proto, Filter *f, Field *fld)
 					parseether(f->a, f->r->s);
 				break;
 			case Fv4ip:
-				v = csgetvalue(nil, "sys", (int8_t*)f->r->s,
+				v = csgetvalue(nil, "sys", (char*)f->r->s,
 					"ip", 0);
 				if(v){
 					f->ulv = parseip(x, v);
@@ -780,7 +780,7 @@ compile_cmp(int8_t *proto, Filter *f, Field *fld)
 					f->ulv = parseip(x, f->r->s);
 				break;
 			case Fv6ip:
-				v = csgetvalue(nil, "sys", (int8_t*)f->r->s,
+				v = csgetvalue(nil, "sys", (char*)f->r->s,
 					"ipv6", 0);
 				if(v){
 					parseip(f->a, v);
@@ -805,7 +805,7 @@ compile_cmp(int8_t *proto, Filter *f, Field *fld)
 void
 _pf(Filter *f)
 {
-	int8_t *s;
+	char *s;
 
 	if(f == nil)
 		return;
@@ -846,7 +846,7 @@ _pf(Filter *f)
 }
 
 void
-printfilter(Filter *f, int8_t *tag)
+printfilter(Filter *f, char *tag)
 {
 	fprint(2, "%s: ", tag);
 	_pf(f);
@@ -856,7 +856,7 @@ printfilter(Filter *f, int8_t *tag)
 void
 cat(void)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	int n;
 	
 	while((n = read(0, buf, sizeof buf)) > 0)
@@ -903,13 +903,13 @@ stopmc(void)
 }
 
 void
-printhelp(int8_t *name)
+printhelp(char *name)
 {
 	int len;
 	Proto *pr, **l;
 	Mux *m;
 	Field *f;
-	int8_t fmt[40];
+	char fmt[40];
 	
 	if(name == nil){
 		print("protocols:\n");

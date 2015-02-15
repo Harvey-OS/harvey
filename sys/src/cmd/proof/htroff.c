@@ -38,7 +38,7 @@ int	npagenums;
 
 int	curfont, cursize;
 
-int8_t	*getcmdstr(void);
+char	*getcmdstr(void);
 
 static void	initpage(void);
 static void	view_setup(int);
@@ -52,8 +52,8 @@ static void	devcntrl(void);
 static void	eatline(void);
 static int	getn(void);
 static int	botpage(int);
-static void	getstr(int8_t *);
-static void	getutf(int8_t *);
+static void	getstr(char *);
+static void	getutf(char *);
 
 #define Do screen->r.min
 #define Dc screen->r.max
@@ -342,7 +342,7 @@ spline(Image *b, int n, Point *pp)
 static int
 skipto(int gotop, int curp)
 {
-	int8_t *p;
+	char *p;
 	int i;
 
 	if (gotop == curp)
@@ -403,7 +403,7 @@ wiggly(int skip)
 static void
 devcntrl(void)	/* interpret device control functions */
 {
-        int8_t str[80];
+        char str[80];
 	int n;
 
 	getstr(str);
@@ -449,7 +449,7 @@ isspace(int c)
 }
 
 static void
-getstr(int8_t *is)
+getstr(char *is)
 {
 	uint8_t *s = (uint8_t *) is;
 
@@ -462,7 +462,7 @@ getstr(int8_t *is)
 }
 
 static void
-getutf(int8_t *s)		/* get next utf char, as bytes */
+getutf(char *s)		/* get next utf char, as bytes */
 {
 	int c, i;
 
@@ -512,7 +512,7 @@ getn(void)
 static int
 botpage(int np)	/* called at bottom of page np-1 == top of page np */
 {
-	int8_t *p;
+	char *p;
 	int n;
 
 	while (p = getcmdstr()) {

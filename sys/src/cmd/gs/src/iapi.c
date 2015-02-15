@@ -130,9 +130,9 @@ gsapi_delete_instance(void *lib)
 /* Set the callback functions for stdio */
 GSDLLEXPORT int GSDLLAPI 
 gsapi_set_stdio(void *lib,
-    int(GSDLLCALL *stdin_fn)(void *caller_handle, int8_t *buf, int len),
-    int(GSDLLCALL *stdout_fn)(void *caller_handle, const int8_t *str, int len),
-    int(GSDLLCALL *stderr_fn)(void *caller_handle, const int8_t *str, int len))
+    int(GSDLLCALL *stdin_fn)(void *caller_handle, char *buf, int len),
+    int(GSDLLCALL *stdout_fn)(void *caller_handle, const char *str, int len),
+    int(GSDLLCALL *stderr_fn)(void *caller_handle, const char *str, int len))
 {
     gs_lib_ctx_t *ctx = (gs_lib_ctx_t *)lib;
     if (lib == NULL)
@@ -170,7 +170,7 @@ gsapi_set_display_callback(void *lib, display_callback *callback)
 
 /* Initialise the interpreter */
 GSDLLEXPORT int GSDLLAPI 
-gsapi_init_with_args(void *lib, int argc, int8_t **argv)
+gsapi_init_with_args(void *lib, int argc, char **argv)
 {
     gs_lib_ctx_t *ctx = (gs_lib_ctx_t *)lib;
     if (lib == NULL)
@@ -202,7 +202,7 @@ gsapi_run_string_begin(void *lib, int user_errors,
 
 GSDLLEXPORT int GSDLLAPI 
 gsapi_run_string_continue(void *lib, 
-	const int8_t *str, uint length, int user_errors, int *pexit_code)
+	const char *str, uint length, int user_errors, int *pexit_code)
 {
     gs_lib_ctx_t *ctx = (gs_lib_ctx_t *)lib;
     if (lib == NULL)
@@ -228,7 +228,7 @@ gsapi_run_string_end(void *lib,
 
 GSDLLEXPORT int GSDLLAPI 
 gsapi_run_string_with_length(void *lib, 
-	const int8_t *str, uint length, int user_errors, int *pexit_code)
+	const char *str, uint length, int user_errors, int *pexit_code)
 {
     gs_lib_ctx_t *ctx = (gs_lib_ctx_t *)lib;
     if (lib == NULL)
@@ -241,7 +241,7 @@ gsapi_run_string_with_length(void *lib,
 
 GSDLLEXPORT int GSDLLAPI 
 gsapi_run_string(void *lib, 
-	const int8_t *str, int user_errors, int *pexit_code)
+	const char *str, int user_errors, int *pexit_code)
 {
     gs_lib_ctx_t *ctx = (gs_lib_ctx_t *)lib;
     return gsapi_run_string_with_length(get_minst_from_memory(ctx->memory),
@@ -249,7 +249,7 @@ gsapi_run_string(void *lib,
 }
 
 GSDLLEXPORT int GSDLLAPI 
-gsapi_run_file(void *lib, const int8_t *file_name, 
+gsapi_run_file(void *lib, const char *file_name, 
 	int user_errors, int *pexit_code)
 {
     gs_lib_ctx_t *ctx = (gs_lib_ctx_t *)lib;

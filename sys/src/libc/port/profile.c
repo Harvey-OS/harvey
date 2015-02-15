@@ -124,8 +124,8 @@ _profdump(void)
 	int f;
 	int32_t n;
 	Plink *p;
-	int8_t *vp;
-	int8_t filename[64];
+	char *vp;
+	char filename[64];
 
 	if (_tos->prof.what == 0)
 		return;	/* No profiling */
@@ -160,7 +160,7 @@ _profdump(void)
 		_tos->prof.first->time = _tos->clock;
 		break;
 	}
-	vp = (int8_t*)_tos->prof.first;
+	vp = (char*)_tos->prof.first;
 
 	for(p = _tos->prof.first; p <= _tos->prof.next; p++) {
 
@@ -217,7 +217,7 @@ _profdump(void)
 		vp[3] = n;
 		vp += 4;
 	}
-	write(f, (int8_t*)_tos->prof.first, vp - (int8_t*)_tos->prof.first);
+	write(f, (char*)_tos->prof.first, vp - (char*)_tos->prof.first);
 	close(f);
 }
 
@@ -238,7 +238,7 @@ _profinit(int entries, int what)
 void
 _profmain(void)
 {
-	int8_t ename[50];
+	char ename[50];
 	int n, f;
 
 	n = 2000;

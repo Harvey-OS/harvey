@@ -25,7 +25,7 @@
 #include "fmt.h"
 
 int
-print(int8_t *fmt, ...)
+print(char *fmt, ...)
 {
 	int n;
 	va_list args;

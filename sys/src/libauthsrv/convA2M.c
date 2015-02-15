@@ -18,7 +18,7 @@
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 int
-convA2M(Authenticator *f, int8_t *ap, int8_t *key)
+convA2M(Authenticator *f, char *ap, char *key)
 {
 	int n;
 	uint8_t *p;

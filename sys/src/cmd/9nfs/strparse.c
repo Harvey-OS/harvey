@@ -13,7 +13,7 @@
 int	strcomment = '#';
 
 int
-strparse(int8_t *p, int arsize, int8_t **arv)
+strparse(char *p, int arsize, char **arv)
 {
 	int arc = 0;
 

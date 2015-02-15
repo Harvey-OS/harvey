@@ -21,14 +21,14 @@ void subsup(int p1, int p2, int p3)
 }
 
 extern double Subbase, Supshift;
-extern int8_t *Sub1space, *Sup1space, *Sub2space;
-extern int8_t *SS1space, *SS2space;
+extern char *Sub1space, *Sup1space, *Sub2space;
+extern char *SS1space, *SS2space;
 
 void bshiftb(int p1, int dir, int p2)
 {
 	int subps, n;
 	double shval, d1, h1, b1, h2, b2;
-	int8_t *sh1, *sh2;
+	char *sh1, *sh2;
 
 	yyval = p1;
 	h1 = eht[p1];
@@ -80,7 +80,7 @@ void shift2(int p1, int p2, int p3)
 	int subps;
 	double h1, h2, h3, b1, b2, b3, subsh, d2, supsh;
 	int treg;
-	int8_t *sh2;
+	char *sh2;
 
 	treg = salloc();
 	yyval = p1;

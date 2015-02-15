@@ -18,7 +18,7 @@ typedef int _intptr_t;
 typedef unsigned int _uintptr_t;
 
 
-typedef int8_t int8_t;
+typedef char int8_t;
 typedef int16_t int16_t;
 typedef int int32_t;
 typedef long long int64_t;

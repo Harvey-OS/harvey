@@ -13,8 +13,8 @@ enum{
 	MAXWREN = 7,
 };
 
-static int8_t WMAGIC[] =	"kfs wren device\n";
-static int8_t MMAGIC[] =	"kfs multi-wren device %4d/%4d\n";
+static char WMAGIC[] =	"kfs wren device\n";
+static char MMAGIC[] =	"kfs multi-wren device %4d/%4d\n";
 
 typedef struct Wren	Wren;
 
@@ -25,10 +25,10 @@ struct Wren{
 	int	fd;
 };
 
-static int8_t	*wmagic = WMAGIC;
+static char	*wmagic = WMAGIC;
 static Wren	*wrens;
 static int	maxwren;
-int8_t		*wrenfile;
+char		*wrenfile;
 int		nwren;
 int		badmagic;
 
@@ -51,7 +51,7 @@ wren(Device dev)
  * for the file system than in the os
  */
 uint64_t
-statlen(int8_t *ap)
+statlen(char *ap)
 {
 	uint8_t *p;
 	uint32_t ll, hl;
@@ -66,8 +66,8 @@ statlen(int8_t *ap)
 static void
 wrenpartinit(Device dev, int k)
 {
-	int8_t buf[MAXBUFSIZE], d[DIRREC];
-	int8_t file[128], magic[64];
+	char buf[MAXBUFSIZE], d[DIRREC];
+	char file[128], magic[64];
 	Wren *w;
 	int fd, i, nmagic;
 
@@ -124,7 +124,7 @@ static void
 wrenpartream(Device dev, int k)
 {
 	Wren *w;
-	int8_t buf[MAXBUFSIZE], magic[64];
+	char buf[MAXBUFSIZE], magic[64];
 	int fd, i;
 
 	if(RBUFSIZE % 512)
@@ -154,7 +154,7 @@ wrenream(Device dev)
 }
 
 static int
-wrentag(int8_t *p, int tag, int32_t qpath)
+wrentag(char *p, int tag, int32_t qpath)
 {
 	Tag *t;
 
@@ -165,7 +165,7 @@ wrentag(int8_t *p, int tag, int32_t qpath)
 int
 wrencheck(Device dev)
 {
-	int8_t buf[MAXBUFSIZE];
+	char buf[MAXBUFSIZE];
 
 	if(badmagic)
 		return 1;

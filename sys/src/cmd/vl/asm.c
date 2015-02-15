@@ -170,7 +170,7 @@ llputl(int64_t v)
 int32_t
 entryvalue(void)
 {
-	int8_t *a;
+	char *a;
 	Sym *s;
 
 	a = INITENTRY;
@@ -411,7 +411,7 @@ asmb(void)
 }
 
 void
-strnput(int8_t *s, int n)
+strnput(char *s, int n)
 {
 	for(; *s; s++){
 		CPUT(*s);
@@ -434,7 +434,7 @@ cflush(void)
 }
 
 void
-nopstat(int8_t *f, Count *c)
+nopstat(char *f, Count *c)
 {
 	if(c->outof)
 	Bprint(&bso, "%s delay %ld/%ld (%.2f)\n", f,
@@ -511,7 +511,7 @@ asmsym(void)
 }
 
 void
-putsymb(int8_t *s, int t, int32_t v, int ver)
+putsymb(char *s, int t, int32_t v, int ver)
 {
 	int i, f;
 
@@ -637,7 +637,7 @@ void
 datblk(int32_t s, int32_t n, int str)
 {
 	Prog *p;
-	int8_t *cast;
+	char *cast;
 	int32_t l, fl, j, d;
 	int i, c;
 
@@ -677,14 +677,14 @@ datblk(int32_t s, int32_t n, int str)
 			default:
 			case 4:
 				fl = ieeedtof(p->to.ieee);
-				cast = (int8_t*)&fl;
+				cast = (char*)&fl;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i+4]];
 					l++;
 				}
 				break;
 			case 8:
-				cast = (int8_t*)p->to.ieee;
+				cast = (char*)p->to.ieee;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i]];
 					l++;
@@ -715,7 +715,7 @@ datblk(int32_t s, int32_t n, int str)
 					break;
 				}
 			}
-			cast = (int8_t*)&d;
+			cast = (char*)&d;
 			switch(c) {
 			default:
 				diag("bad nuxi %d %d\n%P", c, i, curp);

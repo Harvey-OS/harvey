@@ -41,7 +41,7 @@ struct internal_state {int dummy;}; /* for buggy compilers */
 
 #ifdef __MVS__
 #  pragma map (fdopen , "\174\174FDOPEN")
-   FILE *fdopen(int, const int8_t *);
+   FILE *fdopen(int, const char *);
 #endif
 
 #ifndef STDC
@@ -70,10 +70,10 @@ typedef struct gz_stream {
     Byte     *inbuf;  /* input buffer */
     Byte     *outbuf; /* output buffer */
     uLong    crc;     /* crc32 of uncompressed data */
-    int8_t     *msg;    /* error message */
-    int8_t     *path;   /* path name for debugging only */
+    char     *msg;    /* error message */
+    char     *path;   /* path name for debugging only */
     int      transparent; /* 1 if input file is not a .gz file */
-    int8_t     mode;    /* 'w' or 'r' */
+    char     mode;    /* 'w' or 'r' */
     z_off_t  start;   /* start of compressed data in file (header skipped) */
     z_off_t  in;      /* bytes into deflate or inflate */
     z_off_t  out;     /* bytes out of deflate or inflate */
@@ -215,8 +215,8 @@ local gzFile gz_open (path, mode, fd)
      Opens a gzip (.gz) file for reading or writing.
 */
 gzFile ZEXPORT gzopen (path, mode)
-    const int8_t *path;
-    const int8_t *mode;
+    const char *path;
+    const char *mode;
 {
     return gz_open (path, mode, -1);
 }
@@ -227,9 +227,9 @@ gzFile ZEXPORT gzopen (path, mode)
 */
 gzFile ZEXPORT gzdopen (fd, mode)
     int fd;
-    const int8_t *mode;
+    const char *mode;
 {
-    int8_t name[20];
+    char name[20];
 
     if (fd < 0) return (gzFile)Z_NULL;
     sprintf(name, "<fd:%d>", fd); /* for debugging */
@@ -546,12 +546,12 @@ int ZEXPORT gzungetc(c, file)
 
       The current implementation is not optimized at all.
 */
-int8_t * ZEXPORT gzgets(file, buf, len)
+char * ZEXPORT gzgets(file, buf, len)
     gzFile file;
-    int8_t *buf;
+    char *buf;
     int len;
 {
-    int8_t *b = buf;
+    char *b = buf;
     if (buf == Z_NULL || len <= 0) return Z_NULL;
 
     while (--len > 0 && gzread(file, buf, 1) == 1 && *buf++ != '\n') ;
@@ -609,9 +609,9 @@ int ZEXPORT gzwrite (file, buf, len)
 #ifdef STDC
 #include <stdarg.h>
 
-int ZEXPORTVA gzprintf (gzFile file, const int8_t *format, /* args */ ...)
+int ZEXPORTVA gzprintf (gzFile file, const char *format, /* args */ ...)
 {
-    int8_t buf[Z_PRINTF_BUFSIZE];
+    char buf[Z_PRINTF_BUFSIZE];
     va_list va;
     int len;
 
@@ -646,11 +646,11 @@ int ZEXPORTVA gzprintf (gzFile file, const int8_t *format, /* args */ ...)
 int ZEXPORTVA gzprintf (file, format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
                        a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
     gzFile file;
-    const int8_t *format;
+    const char *format;
     int a1, a2, a3, a4, a5, a6, a7, a8, a9, a10,
         a11, a12, a13, a14, a15, a16, a17, a18, a19, a20;
 {
-    int8_t buf[Z_PRINTF_BUFSIZE];
+    char buf[Z_PRINTF_BUFSIZE];
     int len;
 
     buf[sizeof(buf) - 1] = 0;
@@ -701,9 +701,9 @@ int ZEXPORT gzputc(file, c)
 */
 int ZEXPORT gzputs(file, s)
     gzFile file;
-    const int8_t *s;
+    const char *s;
 {
-    return gzwrite(file, (int8_t*)s, (unsigned)strlen(s));
+    return gzwrite(file, (char*)s, (unsigned)strlen(s));
 }
 
 
@@ -976,31 +976,31 @@ int ZEXPORT gzclose (file)
    errnum is set to Z_ERRNO and the application may consult errno
    to get the exact error code.
 */
-const int8_t * ZEXPORT gzerror (file, errnum)
+const char * ZEXPORT gzerror (file, errnum)
     gzFile file;
     int *errnum;
 {
-    int8_t *m;
+    char *m;
     gz_stream *s = (gz_stream*)file;
 
     if (s == NULL) {
         *errnum = Z_STREAM_ERROR;
-        return (const int8_t*)ERR_MSG(Z_STREAM_ERROR);
+        return (const char*)ERR_MSG(Z_STREAM_ERROR);
     }
     *errnum = s->z_err;
-    if (*errnum == Z_OK) return (const int8_t*)"";
+    if (*errnum == Z_OK) return (const char*)"";
 
-    m = (int8_t*)(*errnum == Z_ERRNO ? zstrerror(errno) : s->stream.msg);
+    m = (char*)(*errnum == Z_ERRNO ? zstrerror(errno) : s->stream.msg);
 
-    if (m == NULL || *m == '\0') m = (int8_t*)ERR_MSG(s->z_err);
+    if (m == NULL || *m == '\0') m = (char*)ERR_MSG(s->z_err);
 
     TRYFREE(s->msg);
-    s->msg = (int8_t*)ALLOC(strlen(s->path) + strlen(m) + 3);
-    if (s->msg == Z_NULL) return (const int8_t*)ERR_MSG(Z_MEM_ERROR);
+    s->msg = (char*)ALLOC(strlen(s->path) + strlen(m) + 3);
+    if (s->msg == Z_NULL) return (const char*)ERR_MSG(Z_MEM_ERROR);
     strcpy(s->msg, s->path);
     strcat(s->msg, ": ");
     strcat(s->msg, m);
-    return (const int8_t*)s->msg;
+    return (const char*)s->msg;
 }
 
 /* ===========================================================================

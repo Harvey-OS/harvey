@@ -21,7 +21,7 @@ enum {
 };
 
 int send(uint8_t*, int);
-int notifyf(void*, int8_t*);
+int notifyf(void*, char*);
 
 int debug, progress, onek;
 
@@ -215,7 +215,7 @@ send(uint8_t *buf, int len)
 }
 
 int
-notifyf(void *a, int8_t *msg)
+notifyf(void *a, char *msg)
 {
 	USED(a);
 	if(strcmp(msg, "alarm") == 0)

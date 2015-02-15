@@ -44,7 +44,7 @@
 #define T_ERR_EXIT	2	/* POSIX says > 1 for errors */
 
 struct t_op {
-	int8_t	op_text[4];
+	char	op_text[4];
 	Test_op	op_num;
 };
 static const struct t_op u_ops [] = {
@@ -108,7 +108,7 @@ static void	ptest_error ARGS((Test_env *te, int offset, const char *msg));
 
 int
 c_test(wp)
-	int8_t **wp;
+	char **wp;
 {
 	int argc;
 	int res;
@@ -139,10 +139,10 @@ c_test(wp)
 	 * our parser does the right thing for the ommited steps.
 	 */
 	if (argc <= 5) {
-		int8_t **owp = wp;
+		char **owp = wp;
 		int invert = 0;
 		Test_op	op;
-		const int8_t *opnd1, *opnd2;
+		const char *opnd1, *opnd2;
 
 		while (--argc >= 0) {
 			if ((*te.isa)(&te, TM_END))
@@ -171,7 +171,7 @@ c_test(wp)
 				if (!Flag(FPOSIX) && strcmp(opnd1, "-t") == 0)
 				    break;
 				res = (*te.eval)(&te, TO_STNZE, opnd1,
-						(int8_t *) 0, 1);
+						(char *) 0, 1);
 				if (invert & 1)
 					res = !res;
 				return !res;
@@ -195,9 +195,9 @@ Test_op
 test_isop(te, meta, s)
 	Test_env *te;
 	Test_meta meta;
-	const int8_t *s;
+	const char *s;
 {
-	int8_t sc1;
+	char sc1;
 	const struct t_op *otab;
 
 	otab = meta == TM_UNOP ? u_ops : b_ops;
@@ -218,8 +218,8 @@ int
 test_eval(te, op, opnd1, opnd2, do_eval)
 	Test_env *te;
 	Test_op op;
-	const int8_t *opnd1;
-	const int8_t *opnd2;
+	const char *opnd1;
+	const char *opnd2;
 	int do_eval;
 {
 	int res;
@@ -307,7 +307,7 @@ test_eval(te, op, opnd1, opnd2, do_eval)
 		 * I'm wrong about this).
 		 */
 		int len = strlen(opnd1);
-		int8_t *p = str_nsave(opnd1, len + 1, ATEMP);
+		char *p = str_nsave(opnd1, len + 1, ATEMP);
 
 		p[len++] = '+';
 		p[len] = '\0';
@@ -426,7 +426,7 @@ test_eval(te, op, opnd1, opnd2, do_eval)
 /* Nasty kludge to handle Korn's bizarre /dev/fd hack */
 static int
 test_stat(path, statb)
-	const int8_t *path;
+	const char *path;
 	struct stat *statb;
 {
 #if !defined(HAVE_DEV_FD)
@@ -444,7 +444,7 @@ test_stat(path, statb)
  */
 static int
 test_eaccess(path, mode)
-	const int8_t *path;
+	const char *path;
 	int mode;
 {
 	int res;
@@ -548,7 +548,7 @@ test_primary(te, do_eval)
 	Test_env *te;
 	int do_eval;
 {
-	const int8_t *opnd1, *opnd2;
+	const char *opnd1, *opnd2;
 	int res;
 	Test_op op;
 
@@ -572,7 +572,7 @@ test_primary(te, do_eval)
 			return 0;
 		}
 
-		return (*te->eval)(te, op, opnd1, (const int8_t *) 0,
+		return (*te->eval)(te, op, opnd1, (const char *) 0,
 				   do_eval);
 	}
 	opnd1 = (*te->getopnd)(te, TO_NONOP, do_eval);
@@ -594,7 +594,7 @@ test_primary(te, do_eval)
 		(*te->error)(te, -1, "missing expression operator");
 		return 0;
 	}
-	return (*te->eval)(te, TO_STNZE, opnd1, (const int8_t *) 0, do_eval);
+	return (*te->eval)(te, TO_STNZE, opnd1, (const char *) 0, do_eval);
 }
 
 /*
@@ -611,7 +611,7 @@ ptest_isa(te, meta)
 	Test_meta meta;
 {
 	/* Order important - indexed by Test_meta values */
-	static const int8_t *const tokens[] = {
+	static const char *const tokens[] = {
 				"-o", "-a", "!", "(", ")"
 			};
 	int ret;
@@ -633,14 +633,14 @@ ptest_isa(te, meta)
 	return ret;
 }
 
-static const int8_t *
+static const char *
 ptest_getopnd(te, op, do_eval)
 	Test_env *te;
 	Test_op op;
 	int do_eval;
 {
 	if (te->pos.wp >= te->wp_end)
-		return op == TO_FILTT ? "1" : (const int8_t *) 0;
+		return op == TO_FILTT ? "1" : (const char *) 0;
 	return *te->pos.wp++;
 }
 
@@ -648,8 +648,8 @@ static int
 ptest_eval(te, op, opnd1, opnd2, do_eval)
 	Test_env *te;
 	Test_op op;
-	const int8_t *opnd1;
-	const int8_t *opnd2;
+	const char *opnd1;
+	const char *opnd2;
 	int do_eval;
 {
 	return test_eval(te, op, opnd1, opnd2, do_eval);
@@ -659,10 +659,10 @@ static void
 ptest_error(te, offset, msg)
 	Test_env *te;
 	int offset;
-	const int8_t *msg;
+	const char *msg;
 {
-	const int8_t *op = te->pos.wp + offset >= te->wp_end ?
-				(const int8_t *) 0 : te->pos.wp[offset];
+	const char *op = te->pos.wp + offset >= te->wp_end ?
+				(const char *) 0 : te->pos.wp[offset];
 
 	te->flags |= TEF_ERROR;
 	if (op)

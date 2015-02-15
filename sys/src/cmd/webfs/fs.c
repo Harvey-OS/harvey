@@ -82,7 +82,7 @@ Channel *cclunkwait;
 typedef struct Tab Tab;
 struct Tab
 {
-	int8_t *name;
+	char *name;
 	uint32_t mode;
 	int offset;
 };
@@ -116,11 +116,11 @@ Tab tab[] =
 uint32_t time0;
 
 static void
-fillstat(Dir *d, uint64_t path, uint32_t length, int8_t *ext)
+fillstat(Dir *d, uint64_t path, uint32_t length, char *ext)
 {
 	Tab *t;
 	int type;
-	int8_t buf[32];
+	char buf[32];
 
 	memset(d, 0, sizeof(*d));
 	d->uid = estrdup("web");
@@ -154,7 +154,7 @@ fsstat(Req *r)
 static int
 rootgen(int i, Dir *d, void*)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	i += Qroot+1;
 	if(i < Qclient){
@@ -203,8 +203,8 @@ parsedgen(int i, Dir *d, void *aux)
 static void
 fsread(Req *r)
 {
-	int8_t *s;
-	int8_t e[ERRMAX];
+	char *s;
+	char e[ERRMAX];
 	Client *c;
 	uint32_t path;
 
@@ -282,7 +282,7 @@ fsread(Req *r)
 		c = client[NUM(path)];
 		r->ofcall.count = 0;
 		if(c->url != nil
-		&& (s = *(int8_t**)((uintptr)c->url+tab[TYPE(path)].offset)) != nil)
+		&& (s = *(char**)((uintptr)c->url+tab[TYPE(path)].offset)) != nil)
 			readstr(r, s);
 		respond(r, nil);
 		break;
@@ -294,7 +294,7 @@ fswrite(Req *r)
 {
 	int m;
 	uint32_t path;
-	int8_t e[ERRMAX], *buf, *cmd, *arg;
+	char e[ERRMAX], *buf, *cmd, *arg;
 	Client *c;
 
 	path = r->fid->qid.path;
@@ -315,7 +315,7 @@ fswrite(Req *r)
 			return;
 		}
 		buf = estredup(r->ifcall.data,
-			       (int8_t*)r->ifcall.data+r->ifcall.count);
+			       (char*)r->ifcall.data+r->ifcall.count);
 		cmd = buf;
 		arg = strpbrk(cmd, "\t ");
 		if(arg){
@@ -443,12 +443,12 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i, n;
 	uint32_t path;
-	int8_t buf[32], *ext;
+	char buf[32], *ext;
 
 	path = fid->qid.path;
 	if(!(fid->qid.type&QTDIR))

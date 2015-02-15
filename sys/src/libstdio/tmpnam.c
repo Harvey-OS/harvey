@@ -12,9 +12,9 @@
  */
 #include "iolib.h"
 
-int8_t *tmpnam(int8_t *s){
-	static int8_t name[]="/tmp/tn000000000000";
-	int8_t *p;
+char *tmpnam(char *s){
+	static char name[]="/tmp/tn000000000000";
+	char *p;
 	do{
 		p=name+7;
 		while(*p=='9') *p++='0';

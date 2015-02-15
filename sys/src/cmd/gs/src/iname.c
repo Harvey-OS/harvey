@@ -65,7 +65,7 @@ private void name_scan_sub(name_table *, uint, bool);
 /* Debugging printout */
 #ifdef DEBUG
 private void
-name_print(const int8_t *msg, const name_table *nt, uint nidx,
+name_print(const char *msg, const name_table *nt, uint nidx,
            const int *pflag)
 {
     const name_string_t *pnstr = names_index_string_inline(nt, nidx);
@@ -264,7 +264,7 @@ names_from_string(name_table * nt, const ref * psref, ref * pnref)
 
 /* Enter a (permanently allocated) C string as a name. */
 int
-names_enter_string(name_table * nt, const int8_t *str, ref * pref)
+names_enter_string(name_table * nt, const char *str, ref * pref)
 {
     return names_ref(nt, (const byte *)str, strlen(str), pref, 0);
 }

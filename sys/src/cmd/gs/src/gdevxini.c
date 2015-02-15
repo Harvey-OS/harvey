@@ -35,7 +35,7 @@
 #include "gdevbbox.h"
 #include "gdevx.h"
 
-extern int8_t *getenv(const int8_t *);
+extern char *getenv(const char *);
 
 extern const gx_device_bbox gs_bbox_device;
 extern const gx_device_X gs_x11_device;
@@ -96,7 +96,7 @@ int
 gdev_x_open(gx_device_X * xdev)
 {
     XSizeHints sizehints;
-    int8_t *window_id;
+    char *window_id;
     XEvent event;
     XVisualInfo xvinfo;
     int nitems;
@@ -117,8 +117,8 @@ gdev_x_open(gx_device_X * xdev)
     }
 # endif
 #endif
-    if (!(xdev->dpy = XOpenDisplay((int8_t *)NULL))) {
-	int8_t *dispname = getenv("DISPLAY");
+    if (!(xdev->dpy = XOpenDisplay((char *)NULL))) {
+	char *dispname = getenv("DISPLAY");
 
 	eprintf1("Cannot open X display `%s'.\n",
 		 (dispname == NULL ? "(null)" : dispname));
@@ -152,7 +152,7 @@ gdev_x_open(gx_device_X * xdev)
 	Atom type;
 	int format;
 	unsigned long nitems, bytes_after;
-	int8_t *buf;
+	char *buf;
 	Atom ghostview_atom = XInternAtom(xdev->dpy, "GHOSTVIEW", False);
 
 	if (XGetWindowAttributes(xdev->dpy, xdev->win, &attrib)) {
@@ -381,7 +381,7 @@ gdev_x_open(gx_device_X * xdev)
 	     * scr, because that is a Screen*, and XWMGeometry wants
 	     * the screen number.
 	     */
-	    int8_t gstr[40];
+	    char gstr[40];
 	    int bitmask;
 
 	    sprintf(gstr, "%dx%d+%d+%d", sizehints.width,
@@ -755,15 +755,15 @@ get_x11_name(const int8_t **cpp, int *len)
 
 /* Scan one resource and build font map records. */
 private void
-scan_font_resource(const int8_t *resource, x11fontmap **pmaps,
+scan_font_resource(const char *resource, x11fontmap **pmaps,
                    gs_memory_t *mem)
 {
-    const int8_t *ps_name;
-    const int8_t *x11_name;
+    const char *ps_name;
+    const char *x11_name;
     int ps_name_len;
     int x11_name_len;
     x11fontmap *font;
-    const int8_t *cp = resource;
+    const char *cp = resource;
 
     while ((ps_name = get_ps_name(&cp, &ps_name_len)) != 0) {
 	x11_name = get_x11_name(&cp, &x11_name_len);
@@ -772,8 +772,8 @@ scan_font_resource(const int8_t *resource, x11fontmap **pmaps,
 				   "scan_font_resource(font)");
 	    if (font == NULL)
 		continue;
-	    font->ps_name = (int8_t *)
-		gs_alloc_byte_array(mem, ps_name_len + 1, sizeof(int8_t),
+	    font->ps_name = (char *)
+		gs_alloc_byte_array(mem, ps_name_len + 1, sizeof(char),
 				    "scan_font_resource(ps_name)");
 	    if (font->ps_name == NULL) {
 		gs_free_object(mem, font, "scan_font_resource(font)");
@@ -781,8 +781,8 @@ scan_font_resource(const int8_t *resource, x11fontmap **pmaps,
 	    }
 	    strncpy(font->ps_name, ps_name, ps_name_len);
 	    font->ps_name[ps_name_len] = '\0';
-	    font->x11_name = (int8_t *)
-		gs_alloc_byte_array(mem, x11_name_len, sizeof(int8_t),
+	    font->x11_name = (char *)
+		gs_alloc_byte_array(mem, x11_name_len, sizeof(char),
 				    "scan_font_resource(x11_name)");
 	    if (font->x11_name == NULL) {
 		gs_free_object(mem, font->ps_name,
@@ -1008,7 +1008,7 @@ gdev_x_close(gx_device_X *xdev)
     if (xdev->ghostview)
 	gdev_x_send_event(xdev, xdev->DONE);
     if (xdev->vinfo) {
-	XFree((int8_t *)xdev->vinfo);
+	XFree((char *)xdev->vinfo);
 	xdev->vinfo = NULL;
     }
     gdev_x_free_colors(xdev);

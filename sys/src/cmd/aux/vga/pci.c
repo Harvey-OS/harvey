@@ -179,7 +179,7 @@ static void
 pcicfginit(void)
 {
 #ifdef kernel
-	int8_t *p;
+	char *p;
 #endif /* kernel */
 	int bno;
 	Pcidev **list;

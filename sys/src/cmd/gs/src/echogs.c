@@ -36,7 +36,7 @@
  * cause type mismatches if const has been defined (usually with
  * -Dconst=), so it's only included if const is undefined.
  */
-extern int fputc(int, FILE *), fputs(const int8_t *, FILE *);
+extern int fputc(int, FILE *), fputs(const char *, FILE *);
 #endif
 
 /* Some systems have time_t in sys/types.h rather than time.h. */
@@ -90,10 +90,10 @@ extern int fputc(int, FILE *), fputs(const int8_t *, FILE *);
  * which writes 'a b'.
  */
 
-static int hputc(int, FILE *), hputs(const int8_t *, FILE *);
+static int hputc(int, FILE *), hputs(const char *, FILE *);
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
     FILE *out = stdout;
     /*
@@ -102,19 +102,19 @@ main(int argc, int8_t *argv[])
      * We initialize in = 0 solely to pacify stupid compilers.
      */
     FILE *in = 0;
-    const int8_t *extn = "";
-    int8_t fmode[4];
+    const char *extn = "";
+    char fmode[4];
 #define FNSIZE 100
-    int8_t *fnparam;
-    int8_t fname[FNSIZE];
+    char *fnparam;
+    char fname[FNSIZE];
     int newline = 1;
     int interact = 0;
     int (*eputc)(int, FILE *) = fputc;
-    int (*eputs)(const int8_t *, FILE *) = fputs;
+    int (*eputs)(const char *, FILE *) = fputs;
 #define LINESIZE 1000
-    int8_t line[LINESIZE];
-    int8_t sw = 0, sp = 0, hexx = 0;
-    int8_t **argp = argv + 1;
+    char line[LINESIZE];
+    char sw = 0, sp = 0, hexx = 0;
+    char **argp = argv + 1;
     int nargs = argc - 1;
 
     if (nargs > 0 && !strcmp(*argp, "-e")) {
@@ -145,7 +145,7 @@ main(int argc, int8_t *argv[])
 	     * The referents of argp are actually const, but they can't be
 	     * declared that way, so we have to make a writable constant.
 	     */
-	    static int8_t dash[2] = { '-', 0 };
+	    static char dash[2] = { '-', 0 };
 
 	    fmode[len - 2] = 0;
 	    argp[i] = dash;
@@ -171,7 +171,7 @@ main(int argc, int8_t *argv[])
 	    return 1;
     }
     while (1) {
-	int8_t *arg;
+	char *arg;
 
 	if (interact) {
 	    if (fgets(line, LINESIZE, in) == NULL) {
@@ -190,7 +190,7 @@ main(int argc, int8_t *argv[])
 	    argp++, nargs--;
 	}
 	if (sw == 0 && arg[0] == '-') {
-	    int8_t chr = arg[1];
+	    char chr = arg[1];
 
 	    sp = 0;
 	  swc:switch (chr) {
@@ -231,7 +231,7 @@ main(int argc, int8_t *argv[])
 		case 'D':
 		    {
 			time_t t;
-			int8_t str[26];
+			char str[26];
 
 			time(&t);
 			strcpy(str, ctime(&t));
@@ -294,7 +294,7 @@ main(int argc, int8_t *argv[])
 		    break;
 		case 'u':
 		    {
-			int8_t *up;
+			char *up;
 
 			for (up = arg; *up; up++)
 			    (*eputc) (toupper(*up), out);
@@ -303,11 +303,11 @@ main(int argc, int8_t *argv[])
 		    break;
 		case 'x':
 		  xx:{
-			int8_t *xp;
+			char *xp;
 			unsigned int xchr = 1;
 
 			for (xp = arg; *xp; xp++) {
-			    int8_t ch = *xp;
+			    char ch = *xp;
 
 			    if (!isxdigit(ch))
 				return 1;
@@ -335,7 +335,7 @@ main(int argc, int8_t *argv[])
 static int
 hputc(int ch, FILE * out)
 {
-    static const int8_t *hex = "0123456789abcdef";
+    static const char *hex = "0123456789abcdef";
 
     /* In environments where char is signed, ch may be negative (!). */
     putc(hex[(ch >> 4) & 0xf], out);
@@ -344,7 +344,7 @@ hputc(int ch, FILE * out)
 }
 
 static int
-hputs(const int8_t *str, FILE * out)
+hputs(const char *str, FILE * out)
 {
     while (*str)
 	hputc(*str++ & 0xff, out);

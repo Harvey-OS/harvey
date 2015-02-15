@@ -164,7 +164,7 @@ mac_open(register gx_device *dev)
 	
 	// notify the caller that a new device was opened
 	if (pgsdll_callback)
-		(*pgsdll_callback) (GSDLL_DEVICE, (int8_t *)mdev, 1);
+		(*pgsdll_callback) (GSDLL_DEVICE, (char *)mdev, 1);
 	
 	return 0;
 }
@@ -195,7 +195,7 @@ mac_sync_output(gx_device * dev)
 	
 	// tell the caller to sync
 	if (pgsdll_callback)
-		(*pgsdll_callback) (GSDLL_SYNC, (int8_t *)mdev, 0);
+		(*pgsdll_callback) (GSDLL_SYNC, (char *)mdev, 0);
 	
 	return (0);
 }
@@ -217,7 +217,7 @@ mac_output_page(gx_device * dev, int copies, int flush)
 	
 	// tell the caller that the page is done
 	if (pgsdll_callback)
-		(*pgsdll_callback) (GSDLL_PAGE, (int8_t *)mdev, 0);
+		(*pgsdll_callback) (GSDLL_PAGE, (char *)mdev, 0);
 	
 	gx_finish_output_page(dev, copies, flush);
 	
@@ -238,7 +238,7 @@ mac_save_pict(gx_device * dev)
 	}
 	
 	for (i=0; i<512; i++) fputc(0, mdev->outputFile);
-	fwrite(*(mdev->pic), sizeof(int8_t),
+	fwrite(*(mdev->pic), sizeof(char),
 	       ((int32_t) mdev->currPicPos - (int32_t) *mdev->pic + 2),
 	       mdev->outputFile);
 	
@@ -270,7 +270,7 @@ mac_close(register gx_device *dev)
 	// notify the caller that the device was closed
 	// it has to dispose the PICT handle when it is ready!
 	if (pgsdll_callback)
-		(*pgsdll_callback) (GSDLL_DEVICE, (int8_t *)mdev, 0);
+		(*pgsdll_callback) (GSDLL_DEVICE, (char *)mdev, 0);
 	
 	return 0;
 }

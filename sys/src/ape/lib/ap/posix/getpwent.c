@@ -11,9 +11,9 @@
 #include <pwd.h>
 #include <stdlib.h>
 
-static int8_t PASSWD[]	= "/etc/passwd";
+static char PASSWD[]	= "/etc/passwd";
 static FILE *pwf = NULL;
-static int8_t line[BUFSIZ+2];
+static char line[BUFSIZ+2];
 static struct passwd passwd;
 
 void
@@ -34,8 +34,8 @@ endpwent(void)
 	}
 }
 
-static int8_t *
-pwskip(int8_t *p)
+static char *
+pwskip(char *p)
 {
 	while( *p && *p != ':' && *p != '\n' )
 		++p;
@@ -45,7 +45,7 @@ pwskip(int8_t *p)
 }
 
 struct passwd *
-pwdecode(int8_t *p)
+pwdecode(char *p)
 {
 	passwd.pw_name = p;
 	p = pwskip(p);
@@ -65,7 +65,7 @@ pwdecode(int8_t *p)
 struct passwd *
 getpwent(void)
 {
-	register int8_t *p;
+	register char *p;
 
 	if (pwf == NULL) {
 		if( (pwf = fopen( PASSWD, "r" )) == NULL )

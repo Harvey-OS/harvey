@@ -269,7 +269,7 @@ static void
 msgProc(void*)
 {
 	Msg *m;
-	int8_t *e;
+	char *e;
 	Con *con;
 
 	vtThreadSetName("msgProc");
@@ -511,10 +511,10 @@ msgWrite(void* v)
 }
 
 Con*
-conAlloc(int fd, int8_t* name, int flags)
+conAlloc(int fd, char* name, int flags)
 {
 	Con *con;
-	int8_t buf[128], *p;
+	char buf[128], *p;
 	int rfd, n;
 
 	vtLock(cbox.alock);

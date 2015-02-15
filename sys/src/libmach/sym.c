@@ -26,7 +26,7 @@ struct txtsym {				/* Text Symbol table */
 };
 
 struct hist {				/* Stack of include files & #line directives */
-	int8_t	*name;			/* Assumes names Null terminated in file */
+	char	*name;			/* Assumes names Null terminated in file */
 	int32_t	line;			/* line # where it was included */
 	int32_t	offset;			/* line # of #line directive */
 };
@@ -67,18 +67,18 @@ static	uint64_t	txtend;			/* end of text segment */
 
 static void	cleansyms(void);
 static int32_t	decodename(Biobuf*, Sym*);
-static int16_t	*encfname(int8_t*);
-static int 	fline(int8_t*, int, int32_t, Hist*, Hist**);
+static int16_t	*encfname(char*);
+static int 	fline(char*, int, int32_t, Hist*, Hist**);
 static void	fillsym(Sym*, Symbol*);
-static int	findglobal(int8_t*, Symbol*);
-static int	findlocvar(Symbol*, int8_t *, Symbol*);
-static int	findtext(int8_t*, Symbol*);
+static int	findglobal(char*, Symbol*);
+static int	findlocvar(Symbol*, char *, Symbol*);
+static int	findtext(char*, Symbol*);
 static int	hcomp(Hist*, int16_t*);
 static int	hline(File*, int16_t*, int32_t*);
-static void	printhist(int8_t*, Hist*, int);
+static void	printhist(char*, Hist*, int);
 static int	buildtbls(void);
 static int	symcomp(void*, void*);
-static int	symerrmsg(int, int8_t*);
+static int	symerrmsg(int, char*);
 static int	txtcomp(void*, void*);
 static int	filecomp(void*, void*);
 
@@ -204,7 +204,7 @@ syminit(int fd, Fhdr *fp)
 }
 
 static int
-symerrmsg(int n, int8_t *table)
+symerrmsg(int n, char *table)
 {
 	werrstr("can't read %d bytes of %s table", n, table);
 	return -1;
@@ -213,7 +213,7 @@ symerrmsg(int n, int8_t *table)
 static int32_t
 decodename(Biobuf *bp, Sym *p)
 {
-	int8_t *cp;
+	char *cp;
 	int c1, c2;
 	int32_t n;
 	int64_t o;
@@ -514,7 +514,7 @@ buildtbls(void)
  *	fn == 0 && var != 0	=> look for var first in text then in data space.
  */
 int
-lookup(int8_t *fn, int8_t *var, Symbol *s)
+lookup(char *fn, char *var, Symbol *s)
 {
 	int found;
 
@@ -542,7 +542,7 @@ lookup(int8_t *fn, int8_t *var, Symbol *s)
  * find a function by name
  */
 static int
-findtext(int8_t *name, Symbol *s)
+findtext(char *name, Symbol *s)
 {
 	int i;
 
@@ -560,7 +560,7 @@ findtext(int8_t *name, Symbol *s)
  * find global variable by name
  */
 static int
-findglobal(int8_t *name, Symbol *s)
+findglobal(char *name, Symbol *s)
 {
 	int32_t i;
 
@@ -578,7 +578,7 @@ findglobal(int8_t *name, Symbol *s)
  *	find the local variable by name within a given function
  */
 int
-findlocal(Symbol *s1, int8_t *name, Symbol *s2)
+findlocal(Symbol *s1, char *name, Symbol *s2)
 {
 	if(s1 == 0)
 		return 0;
@@ -592,7 +592,7 @@ findlocal(Symbol *s1, int8_t *name, Symbol *s2)
  *		(internal function - does no parameter validation)
  */
 static int
-findlocvar(Symbol *s1, int8_t *name, Symbol *s2)
+findlocvar(Symbol *s1, char *name, Symbol *s2)
 {
 	Txtsym *tp;
 	int i;
@@ -631,7 +631,7 @@ textsym(Symbol *s, int index)
  *	Get ith file name
  */
 int
-filesym(int index, int8_t *buf, int n)
+filesym(int index, char *buf, int n)
 {
 	Hist *hp;
 
@@ -840,7 +840,7 @@ globalsym(Symbol *s, int index)
  *	find the pc given a file name and line offset into it.
  */
 uint64_t
-file2pc(int8_t *file, int32_t line)
+file2pc(char *file, int32_t line)
 {
 	File *fp;
 	int32_t i;
@@ -886,7 +886,7 @@ file2pc(int8_t *file, int32_t line)
  *	search for a path component index
  */
 static int
-pathcomp(int8_t *s, int n)
+pathcomp(char *s, int n)
 {
 	int i;
 
@@ -901,10 +901,10 @@ pathcomp(int8_t *s, int n)
  *	into the file name dictionary.
  */
 static int16_t*
-encfname(int8_t *file)
+encfname(char *file)
 {
 	int i, j;
-	int8_t *cp, *cp2;
+	char *cp, *cp2;
 	int16_t *dest;
 
 	if(*file == '/')	/* always check first '/' */
@@ -1013,7 +1013,7 @@ hcomp(Hist *hp, int16_t *sp)
  *	Convert a pc to a "file:line {file:line}" string.
  */
 int32_t
-fileline(int8_t *str, int n, uint64_t dot)
+fileline(char *str, int n, uint64_t dot)
 {
 	int32_t line, top, bot, mid;
 	File *f;
@@ -1046,7 +1046,7 @@ fileline(int8_t *str, int n, uint64_t dot)
  *	file with included files inserted in line.
  */
 static int
-fline(int8_t *str, int n, int32_t line, Hist *base, Hist **ret)
+fline(char *str, int n, int32_t line, Hist *base, Hist **ret)
 {
 	Hist *start;			/* start of current level */
 	Hist *h;			/* current entry */
@@ -1114,10 +1114,10 @@ fline(int8_t *str, int n, int32_t line, Hist *base, Hist **ret)
  *	convert an encoded file name to a string.
  */
 int
-fileelem(Sym **fp, uint8_t *cp, int8_t *buf, int n)
+fileelem(Sym **fp, uint8_t *cp, char *buf, int n)
 {
 	int i, j;
-	int8_t *c, *bp, *end;
+	char *c, *bp, *end;
 	Sym *sym;
 
 	bp = buf;
@@ -1344,11 +1344,11 @@ line2addr(int32_t line, uint64_t basepc, uint64_t endpc)
  *	Print a history stack (debug). if count is 0, prints the whole stack
  */
 static void
-printhist(int8_t *msg, Hist *hp, int count)
+printhist(char *msg, Hist *hp, int count)
 {
 	int i;
 	uint8_t *cp;
-	int8_t buf[128];
+	char buf[128];
 
 	i = 0;
 	while(hp->name) {
@@ -1373,7 +1373,7 @@ printhist(int8_t *msg, Hist *hp, int count)
  *	if (name == 0) => print all history stacks.
  */
 void
-dumphist(int8_t *name)
+dumphist(char *name)
 {
 	int i;
 	File *f;

@@ -25,7 +25,7 @@ usage(void)
 #pragma	varargck	argpos	flprint	1
 
 static int
-flprint(int8_t *fmt, ...)
+flprint(char *fmt, ...)
 {
 	int n;
 	va_list arg;
@@ -49,7 +49,7 @@ flclrp(Fsck*, Block *b, int o)
 }
 
 static void
-flclri(Fsck*, int8_t *name, MetaBlock*, int, Block*)
+flclri(Fsck*, char *name, MetaBlock*, int, Block*)
 {
 	Bprint(&bout, "# clri %s\n", name);
 }

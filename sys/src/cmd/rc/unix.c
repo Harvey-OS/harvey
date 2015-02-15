@@ -18,8 +18,8 @@
 #include "getflags.h"
 #include <errno.h>
 
-int8_t *Rcmain = "/usr/lib/rcmain";
-int8_t *Fdprefix = "/dev/fd/";
+char *Rcmain = "/usr/lib/rcmain";
+char *Fdprefix = "/dev/fd/";
 
 void execfinit(void);
 
@@ -38,11 +38,11 @@ struct builtin Builtin[] = {
 	0
 };
 #define	SEP	'\1'
-int8_t **environp;
+char **environp;
 
 struct word*
 enval(s)
-register int8_t *s;
+register char *s;
 {
 	char *t, c;
 	struct word *v;
@@ -57,9 +57,9 @@ register int8_t *s;
 void
 Vinit(void)
 {
-	extern int8_t **environ;
-	int8_t *s;
-	int8_t **env = environ;
+	extern char **environ;
+	char *s;
+	char **env = environ;
 	environp = env;
 	for(;*env;env++){
 		for(s=*env;*s && *s!='(' && *s!='=';s++);
@@ -78,12 +78,12 @@ Vinit(void)
 	}
 }
 
-int8_t **envp;
+char **envp;
 
 void
 Xrdfn(void)
 {
-	int8_t *s;
+	char *s;
 	int len;
 	for(;*envp;envp++){
 		for(s=*envp;*s && *s!='(' && *s!='=';s++);
@@ -127,15 +127,15 @@ execfinit(void)
 int
 cmpenv(const void *aa, const void *ab)
 {
-	int8_t **a = aa, **b = ab;
+	char **a = aa, **b = ab;
 
 	return strcmp(*a, *b);
 }
 
-int8_t **
+char **
 mkenv(void)
 {
-	int8_t **env, **ep, *p, *q;
+	char **env, **ep, *p, *q;
 	struct var **h, *v;
 	struct word *a;
 	int nvar = 0, nchr = 0, sep;
@@ -157,9 +157,9 @@ mkenv(void)
 			nchr+=strlen(v->name)+strlen(v->fn[v->pc-1].s)+8;
 		}
 	}
-	env = (int8_t **)emalloc((nvar+1)*sizeof(int8_t *)+nchr);
+	env = (char **)emalloc((nvar+1)*sizeof(char *)+nchr);
 	ep = env;
-	p = (int8_t *)&env[nvar+1];
+	p = (char *)&env[nvar+1];
 	for(h = gvar-1; h != &gvar[NVAR]; h++)
 	for(v = h >= gvar? *h: runq->local;v;v = v->next){
 		if((v==vlook(v->name)) && v->val){
@@ -191,7 +191,7 @@ mkenv(void)
 	qsort((void *)env, nvar, sizeof ep[0], cmpenv);
 	return env;	
 }
-int8_t *sigmsg[] = {
+char *sigmsg[] = {
 /*  0 normal  */ 0,
 /*  1 SIGHUP  */ "Hangup",
 /*  2 SIGINT  */ 0,
@@ -221,7 +221,7 @@ Waitfor(int pid, int persist)
 	int wpid, sig;
 	struct thread *p;
 	int wstat;
-	int8_t wstatstr[12];
+	char wstatstr[12];
 
 	for(;;){
 		errno = 0;
@@ -283,11 +283,11 @@ Updenv(void)
 void
 Execute(struct word *args, struct word *path)
 {
-	int8_t *msg="not found";
+	char *msg="not found";
 	int txtbusy = 0;
-	int8_t **env = mkenv();
-	int8_t **argv = mkargv(args);
-	int8_t file[512];
+	char **env = mkenv();
+	char **argv = mkargv(args);
+	char file[512];
 
 	for(;path;path = path->next){
 		strcpy(file, path->word);
@@ -320,14 +320,14 @@ ReExec:
 	}
 Bad:
 	pfmt(err, "%s: %s\n", argv[1], msg);
-	efree((int8_t *)env);
-	efree((int8_t *)argv);
+	efree((char *)env);
+	efree((char *)argv);
 }
 
 #define	NDIR	14		/* should get this from param.h */
 
 Globsize(p)
-register int8_t *p;
+register char *p;
 {
 	int isglob = 0, globlen = NDIR+1;
 	for(;*p;p++){
@@ -351,7 +351,7 @@ register int8_t *p;
 DIR *dirlist[NDIRLIST];
 
 Opendir(name)
-int8_t *name;
+char *name;
 {
 	DIR **dp;
 	for(dp = dirlist;dp!=&dirlist[NDIRLIST];dp++)
@@ -363,7 +363,7 @@ int8_t *name;
 }
 
 int
-Readdir(int f, int8_t *p, int onlydirs)
+Readdir(int f, char *p, int onlydirs)
 {
 	struct dirent *dp = readdir(dirlist[f]);
 
@@ -380,7 +380,7 @@ Closedir(int f)
 	dirlist[f] = 0;
 }
 
-int8_t *Signame[] = {
+char *Signame[] = {
 	"sigexit",	"sighup",	"sigint",	"sigquit",
 	"sigill",	"sigtrap",	"sigiot",	"sigemt",
 	"sigfpe",	"sigkill",	"sigbus",	"sigsegv",
@@ -426,17 +426,17 @@ Trapinit(void)
 }
 
 Unlink(name)
-int8_t *name;
+char *name;
 {
 	return unlink(name);
 }
 Write(fd, buf, cnt)
-int8_t *buf;
+char *buf;
 {
 	return write(fd, buf, cnt);
 }
 Read(fd, buf, cnt)
-int8_t *buf;
+char *buf;
 {
 	return read(fd, buf, cnt);
 }
@@ -446,12 +446,12 @@ int32_t cnt;
 	return lseek(fd, cnt, whence);
 }
 Executable(file)
-int8_t *file;
+char *file;
 {
 	return(access(file, 01)==0);
 }
 Creat(file)
-int8_t *file;
+char *file;
 {
 	return creat(file, 0666);
 }
@@ -465,7 +465,7 @@ Dup1(a){
  * Wrong:  should go through components of a|b|c and return the maximum.
  */
 void
-Exit(int8_t *stat)
+Exit(char *stat)
 {
 	int n = 0;
 
@@ -539,7 +539,7 @@ Malloc(unsigned long n)
 }
 
 void
-errstr(int8_t *buf, int len)
+errstr(char *buf, int len)
 {
 	strncpy(buf, strerror(errno), len);
 }

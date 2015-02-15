@@ -571,7 +571,7 @@ clipy(Memimage *img, int *y)
 }
 
 static void
-dumpbuf(int8_t *s, Buffer b, int n)
+dumpbuf(char *s, Buffer b, int n)
 {
 	int i;
 	uint8_t *p;

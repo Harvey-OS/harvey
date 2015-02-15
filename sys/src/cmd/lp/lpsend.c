@@ -49,9 +49,9 @@ enum {
 #define LPDAEMONLOG	"/tmp/lpdaemonl"
 
 #define LNBFSZ	4096
-int8_t lnbuf[LNBFSZ];
+char lnbuf[LNBFSZ];
 int dbgstate = 0;
-int8_t *dbgstrings[] = {
+char *dbgstrings[] = {
 	"",
 	"rcvack1",
 	"send",
@@ -63,12 +63,12 @@ int8_t *dbgstrings[] = {
 #ifdef plan9
 
 void
-error(int level, int8_t *s1, ...)
+error(int level, char *s1, ...)
 {
 	va_list ap;
 	int32_t thetime;
-	int8_t *chartime;
-	int8_t *args[8];
+	char *chartime;
+	char *args[8];
 	int argno = 0;
 
 	if (level == 0) {
@@ -77,14 +77,14 @@ error(int level, int8_t *s1, ...)
 		fprint(stderr, "%.15s ", &(chartime[4]));
 	}
 	va_start(ap, s1);
-	while(args[argno++] = va_arg(ap, int8_t*))
+	while(args[argno++] = va_arg(ap, char*))
 		;
 	va_end(ap);
 	fprint(stderr, s1, *args);
 }
 
 int
-alarmhandler(void *foo, int8_t *note) {
+alarmhandler(void *foo, char *note) {
 	USED(foo);
 	if(strcmp(note, "alarm")==0) {
 		fprint(stderr, "alarm at %d - %s\n", dbgstate, dbgstrings[dbgstate]);
@@ -95,10 +95,10 @@ alarmhandler(void *foo, int8_t *note) {
 #else
 
 void
-error(int level, int8_t *s1, ...)
+error(int level, char *s1, ...)
 {
 	time_t thetime;
-	int8_t *chartime;
+	char *chartime;
 
 	if (level == 0) {
 		time(&thetime);
@@ -122,7 +122,7 @@ alarmhandler() {
 int
 readline(int inpfd)
 {
-	register int8_t *ap;
+	register char *ap;
 	register int i;
 
 	ap = lnbuf;
@@ -142,7 +142,7 @@ readline(int inpfd)
 }
 
 #define	RDSIZE 512
-int8_t jobbuf[RDSIZE];
+char jobbuf[RDSIZE];
 
 int
 pass(int inpfd, int outfd, int bsize)
@@ -189,7 +189,7 @@ int
 tempfile(void)
 {
 	static tindx = 0;
-	int8_t tmpf[20];
+	char tmpf[20];
 	int tmpfd;
 
 	sprint(tmpf, "/tmp/lp%d.%d", getpid(), tindx++);
@@ -233,7 +233,7 @@ recvACK(int netfd)
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int i, rv, netfd, bsize, datafd;
 #ifndef plan9

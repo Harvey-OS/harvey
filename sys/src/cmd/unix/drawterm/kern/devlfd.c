@@ -42,7 +42,7 @@ lfdfd(int fd)
 }
 
 static Chan*
-lfdattach(int8_t *x)
+lfdattach(char *x)
 {
 	USED(x);
 	
@@ -51,7 +51,7 @@ lfdattach(int8_t *x)
 }
 
 static Walkqid*
-lfdwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+lfdwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	USED(c);
 	USED(nc);

@@ -284,7 +284,7 @@ pdf_reset_color(gx_device_pdf * pdev, const gs_imager_state * pis,
     const gs_color_space *pcs, *pcs2;
     const gs_client_color *pcc; /* fixme: not needed due to gx_hld_get_color_component. */
     cos_value_t cs_value;
-    const int8_t *command;
+    const char *command;
     int code1 = 0;
     gs_color_space_index csi;
 
@@ -689,7 +689,7 @@ HT_FUNC(ht_CosineDot, (d2fcos_d(x * 180) + d2fcos_d(y * 180)) / 2)
 HT_FUNC(ht_Double, (d2fsin_d(x * 180) + d2fsin_d(y * 360)) / 2)
 HT_FUNC(ht_InvertedDouble, -(d2fsin_d(x * 180) + d2fsin_d(y * 360)) / 2)
 typedef struct ht_function_s {
-    const int8_t *fname;
+    const char *fname;
     floatp (*proc)(floatp, floatp);
 } ht_function_t;
 private const ht_function_t ht_functions[] = {
@@ -1318,8 +1318,8 @@ pdf_prepare_drawing(gx_device_pdf *pdev, const gs_imager_state *pis,
 
     if (pdev->CompatibilityLevel >= 1.4) {
 	if (pdev->state.blend_mode != pis->blend_mode) {
-	    static const int8_t *const bm_names[] = { GS_BLEND_MODE_NAMES };
-	    int8_t buf[20];
+	    static const char *const bm_names[] = { GS_BLEND_MODE_NAMES };
+	    char buf[20];
 
 	    code = pdf_open_gstate(pdev, ppres);
 	    if (code < 0)
@@ -1359,7 +1359,7 @@ pdf_prepare_drawing(gx_device_pdf *pdev, const gs_imager_state *pis,
        appears from the page contents stream. */
     if (pdev->sbstack_depth == bottom) {
 	gs_int_point phase, dev_phase;
-	int8_t hts[5 + MAX_FN_CHARS + 1],
+	char hts[5 + MAX_FN_CHARS + 1],
 	    trs[5 + MAX_FN_CHARS * 4 + 6 + 1],
 	    bgs[5 + MAX_FN_CHARS + 1],
 	    ucrs[6 + MAX_FN_CHARS + 1];
@@ -1425,7 +1425,7 @@ pdf_prepare_drawing(gx_device_pdf *pdev, const gs_imager_state *pis,
 	    gs_currentscreenphase_pis(pis, &phase, 0);
 	    gs_currentscreenphase_pis(&pdev->state, &dev_phase, 0);
 	    if (dev_phase.x != phase.x || dev_phase.y != phase.y) {
-		int8_t buf[sizeof(int) * 3 + 5];
+		char buf[sizeof(int) * 3 + 5];
 
 		code = pdf_open_gstate(pdev, ppres);
 		if (code < 0)

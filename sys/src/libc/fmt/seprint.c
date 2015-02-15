@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t*
-seprint(int8_t *buf, int8_t *e, int8_t *fmt, ...)
+char*
+seprint(char *buf, char *e, char *fmt, ...)
 {
-	int8_t *p;
+	char *p;
 	va_list args;
 
 	va_start(args, fmt);

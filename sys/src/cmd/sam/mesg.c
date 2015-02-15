@@ -93,7 +93,7 @@ char *tname[] = {
 };
 
 void
-journal(int out, int8_t *s)
+journal(int out, char *s)
 {
 	static int fd = 0;
 
@@ -105,7 +105,7 @@ journal(int out, int8_t *s)
 void
 journaln(int out, int32_t n)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	snprint(buf, sizeof(buf), "%ld", n);
 	journal(out, buf);
@@ -114,7 +114,7 @@ journaln(int out, int32_t n)
 void
 journalv(int out, int64_t v)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	sprint(buf, sizeof(buf), "%lld", v);
 	journal(out, buf);
@@ -131,7 +131,7 @@ rcvchar(void){
 	static i, nleft = 0;
 
 	if(nleft <= 0){
-		nleft = read(0, (int8_t *)buf, sizeof buf);
+		nleft = read(0, (char *)buf, sizeof buf);
 		if(nleft <= 0)
 			return -1;
 		i = 0;
@@ -191,7 +191,7 @@ whichfile(int tag)
 	for(i = 0; i<file.nused; i++)
 		if(file.filepptr[i]->tag==tag)
 			return file.filepptr[i];
-	hiccough((int8_t *)0);
+	hiccough((char *)0);
 	return 0;
 }
 
@@ -199,7 +199,7 @@ int
 inmesg(Tmesg type)
 {
 	Rune buf[1025];
-	int8_t cbuf[64];
+	char cbuf[64];
 	int i, m;
 	int16_t s;
 	int32_t l, l1;
@@ -208,7 +208,7 @@ inmesg(Tmesg type)
 	Posn p0, p1, p;
 	Range r;
 	String *str;
-	int8_t *c, *wdir;
+	char *c, *wdir;
 	Rune *rp;
 	Plumbmsg *pm;
 
@@ -324,8 +324,8 @@ inmesg(Tmesg type)
 		f = whichfile(inshort());
 		p0 = inlong();
 		journaln(0, p0);
-		journal(0, (int8_t*)inp);
-		str = tmpcstr((int8_t*)inp);
+		journal(0, (char*)inp);
+		str = tmpcstr((char*)inp);
 		i = str->n;
 		loginsert(f, p0, str->s, str->n);
 		if(fileupdate(f, FALSE, FALSE))
@@ -682,7 +682,7 @@ outTs(Hmesg type, int s)
 void
 outS(String *s)
 {
-	int8_t *c;
+	char *c;
 	int i;
 
 	c = Strtoc(s);
@@ -825,7 +825,7 @@ outsend(void)
 	outmsg = outp;
 	if(!outbuffered){
 		outcount = outmsg-outdata;
-		if (write(1, (int8_t*) outdata, outcount) != outcount)
+		if (write(1, (char*) outdata, outcount) != outcount)
 			rescue();
 		outmsg = outdata;
 		return;

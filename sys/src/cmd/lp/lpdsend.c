@@ -27,7 +27,7 @@ enum {
 	SBSIZE = 8192,
 };
 
-int8_t tmpfilename[L_tmpnam+1];
+char tmpfilename[L_tmpnam+1];
 unsigned char sendbuf[SBSIZE];
 
 int alarmstate = 0;
@@ -42,7 +42,7 @@ cleanup(void)
 }
 
 void
-debug(int8_t *str)
+debug(char *str)
 {
 	if (debugflag)
 		fprintf(stderr, "%s", str);
@@ -95,12 +95,12 @@ copyfile(int in, int out, int32_t tosend)
 	return(!n);
 }
 
-int8_t  strbuf[120];
-int8_t hostname[MAXHOSTNAMELEN], *username, *printername, *killarg;
-int8_t *inputname;
-int8_t filetype = 'o';	/* 'o' is for PostScript */
+char  strbuf[120];
+char hostname[MAXHOSTNAMELEN], *username, *printername, *killarg;
+char *inputname;
+char filetype = 'o';	/* 'o' is for PostScript */
 int seqno = 0;
-int8_t *seqfilename;
+char *seqfilename;
 
 void
 killjob(int printerfd)
@@ -151,7 +151,7 @@ checkqueue(int printerfd)
 void
 getack(int printerfd, int as)
 {
-	int8_t resp;
+	char resp;
 	int rv;
 
 	alarm(TIMEOUT);
@@ -169,7 +169,7 @@ getack(int printerfd, int as)
 void
 sendctrl(int printerfd)
 {
-	int8_t cntrlstrbuf[256];
+	char cntrlstrbuf[256];
 	int strlength, cntrlen;
 
 	sprintf(cntrlstrbuf, "H%s\nP%s\n%cdfA%3.3d%s\n", hostname, username, filetype, seqno, hostname);
@@ -244,11 +244,11 @@ sendjob(int inputfd, int printerfd)
 /*
  *  make an address, add the defaults
  */
-int8_t *
-netmkaddr(int8_t *linear, int8_t *defnet, int8_t *defsrv)
+char *
+netmkaddr(char *linear, char *defnet, char *defsrv)
 {
-	static int8_t addr[512];
-	int8_t *cp;
+	static char addr[512];
+	char *cp;
 
 	/*
 	 *  dump network name
@@ -288,11 +288,11 @@ netmkaddr(int8_t *linear, int8_t *defnet, int8_t *defsrv)
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int c, usgflg = 0, inputfd, printerfd, sendport;
-	int8_t *desthostname, *hnend;
-	int8_t portstr[4];
+	char *desthostname, *hnend;
+	char portstr[4];
 
 	if (signal(SIGALRM, alarmhandler) == SIG_ERR) {
 		fprintf(stderr, "failed to set alarm handler\n");

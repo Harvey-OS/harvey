@@ -144,7 +144,7 @@ oindc(Node *n, Node *res)
 void
 oframe(Node *n, Node *res)
 {
-	int8_t *p;
+	char *p;
 	Node *lp;
 	uint64_t ival;
 	Frtype *f;

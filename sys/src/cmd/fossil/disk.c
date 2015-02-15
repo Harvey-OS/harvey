@@ -298,10 +298,10 @@ mypc(int x)
 	return getcallerpc(&x);
 }
 
-static int8_t *
+static char *
 disk2file(Disk *disk)
 {
-	static int8_t buf[256];
+	static char buf[256];
 
 	if (fd2path(disk->fd, buf, sizeof buf) < 0)
 		strncpy(buf, "GOK", sizeof buf);

@@ -11,10 +11,10 @@
 #include <errno.h>
 #include "fmt.h"
 
-extern int8_t _plan9err[128];
+extern char _plan9err[128];
 
 void
-werrstr(const int8_t *fmt, ...)
+werrstr(const char *fmt, ...)
 {
 	va_list arg;
 

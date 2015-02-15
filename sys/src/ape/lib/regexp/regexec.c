@@ -21,17 +21,17 @@ static Resublist sempty;		/* empty set of matches */
  */
 static int
 regexec1(Reprog *progp,	/* program to run */
-	int8_t *bol,	/* string to run machine on */
+	char *bol,	/* string to run machine on */
 	Resub *mp,	/* subexpression elements */
 	int ms,		/* number of elements at mp */
-	int8_t *starts,
-	int8_t *eol,
+	char *starts,
+	char *eol,
 	wchar_t startchar)
 {
 	int flag=0;
 	Reinst *inst;
 	Relist *tlp;
-	int8_t *s;
+	char *s;
 	int i, checkstart;
 	wchar_t r, *rp, *ep;
 	int n;
@@ -157,12 +157,12 @@ regexec1(Reprog *progp,	/* program to run */
 
 extern int
 regexec(Reprog *progp,	/* program to run */
-	int8_t *bol,	/* string to run machine on */
+	char *bol,	/* string to run machine on */
 	Resub *mp,	/* subexpression elements */
 	int ms)		/* number of elements at mp */
 {
-	int8_t *starts;	/* where to start match */
-	int8_t *eol;	/* where to end match */
+	char *starts;	/* where to start match */
+	char *eol;	/* where to end match */
 	wchar_t startchar;
 	int rv;
 

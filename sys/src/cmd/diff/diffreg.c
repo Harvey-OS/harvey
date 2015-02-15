@@ -372,7 +372,7 @@ cmp(Biobuf* b1, Biobuf* b2)
 }
 
 void
-diffreg(int8_t *f, int8_t *t)
+diffreg(char *f, char *t)
 {
 	Biobuf *b0, *b1;
 	int k;

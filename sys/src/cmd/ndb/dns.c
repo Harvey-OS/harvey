@@ -46,12 +46,12 @@ struct Mfile
 	Mfile		*next;		/* next free mfile */
 	int		ref;
 
-	int8_t		*user;
+	char		*user;
 	Qid		qid;
 	int		fid;
 
 	int		type;		/* reply type */
-	int8_t		reply[Maxreply];
+	char		reply[Maxreply];
 	uint16_t		rr[Maxrrr];	/* offset of rr's */
 	uint16_t		nrr;		/* number of rr's */
 };
@@ -84,19 +84,19 @@ uint32_t	now;
 int64_t	nowns;
 int	sendnotifies;
 int	testing;
-int8_t	*trace;
+char	*trace;
 int	traceactivity;
-int8_t	*zonerefreshprogram;
+char	*zonerefreshprogram;
 
-int8_t	*logfile = "dns";	/* or "dns.test" */
-int8_t	*dbfile;
-int8_t	mntpt[Maxpath];
+char	*logfile = "dns";	/* or "dns.test" */
+char	*dbfile;
+char	mntpt[Maxpath];
 
-int	addforwtarg(int8_t *);
+int	addforwtarg(char *);
 int	fillreply(Mfile*, int);
 void	freejob(Job*);
 void	io(void);
-void	mountinit(int8_t*, int8_t*);
+void	mountinit(char*, char*);
 Job*	newjob(void);
 void	rattach(Job*, Mfile*);
 void	rauth(Job*);
@@ -108,17 +108,17 @@ void	rread(Job*, Mfile*);
 void	rremove(Job*, Mfile*);
 void	rstat(Job*, Mfile*);
 void	rversion(Job*);
-int8_t*	rwalk(Job*, Mfile*);
+char*	rwalk(Job*, Mfile*);
 void	rwrite(Job*, Mfile*, Request*);
 void	rwstat(Job*, Mfile*);
-void	sendmsg(Job*, int8_t*);
-void	setext(int8_t*, int, int8_t*);
+void	sendmsg(Job*, char*);
+void	setext(char*, int, char*);
 
-static int8_t *lookupqueryold(Job*, Mfile*, Request*, int8_t*, int8_t*, int,
+static char *lookupqueryold(Job*, Mfile*, Request*, char*, char*, int,
 			      int);
-static int8_t *lookupquerynew(Job*, Mfile*, Request*, int8_t*, int8_t*, int,
+static char *lookupquerynew(Job*, Mfile*, Request*, char*, char*, int,
 			      int);
-static int8_t *respond(Job*, Mfile*, RR*, int8_t*, int, int);
+static char *respond(Job*, Mfile*, RR*, char*, int, int);
 
 void
 usage(void)
@@ -129,7 +129,7 @@ usage(void)
 }
 
 void
-justremount(int8_t *service, int8_t *mntpt)
+justremount(char *service, char *mntpt)
 {
 	int f;
 
@@ -290,7 +290,7 @@ main(int argc, char *argv[])
  *  with '_'s replacing '/'s
  */
 void
-setext(int8_t *ext, int n, int8_t *p)
+setext(char *ext, int n, char *p)
 {
 	int i, c;
 
@@ -307,11 +307,11 @@ setext(int8_t *ext, int n, int8_t *p)
 }
 
 void
-mountinit(int8_t *service, int8_t *mntpt)
+mountinit(char *service, char *mntpt)
 {
 	int f;
 	int p[2];
-	int8_t buf[32];
+	char buf[32];
 
 	if(pipe(p) < 0)
 		abort(); /* "pipe failed" */;
@@ -601,12 +601,12 @@ rattach(Job *job, Mfile *mf)
 	sendmsg(job, 0);
 }
 
-int8_t*
+char*
 rwalk(Job *job, Mfile *mf)
 {
 	int i, nelems;
-	int8_t *err;
-	int8_t **elems;
+	char *err;
+	char **elems;
 	Mfile *nmf;
 	Qid qid;
 
@@ -666,7 +666,7 @@ void
 ropen(Job *job, Mfile *mf)
 {
 	int mode;
-	int8_t *err;
+	char *err;
 
 	err = 0;
 	mode = job->request.mode;
@@ -692,7 +692,7 @@ rread(Job *job, Mfile *mf)
 	int32_t clock;
 	uint32_t cnt;
 	int64_t off;
-	int8_t *err;
+	char *err;
 	uint8_t buf[Maxfdata];
 	Dir dir;
 
@@ -701,7 +701,7 @@ rread(Job *job, Mfile *mf)
 	off = job->request.offset;
 	cnt = job->request.count;
 	*buf = '\0';
-	job->reply.data = (int8_t*)buf;
+	job->reply.data = (char*)buf;
 	if(mf->qid.type & QTDIR){
 		clock = time(nil);
 		if(off == 0){
@@ -741,8 +741,8 @@ rwrite(Job *job, Mfile *mf, Request *req)
 {
 	int rooted, wantsav, send;
 	uint32_t cnt;
-	int8_t *err, *p, *atype;
-	int8_t errbuf[ERRMAX];
+	char *err, *p, *atype;
+	char errbuf[ERRMAX];
 
 	err = nil;
 	cnt = job->request.count;
@@ -863,8 +863,8 @@ send:
  *
  * but here we just call dnresolve directly.
  */
-static int8_t *
-lookupqueryold(Job *job, Mfile *mf, Request *req, int8_t *errbuf, int8_t *p,
+static char *
+lookupqueryold(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
 	int wantsav, int rooted)
 {
 	int status;
@@ -886,8 +886,8 @@ lookupqueryold(Job *job, Mfile *mf, Request *req, int8_t *errbuf, int8_t *p,
 	return respond(job, mf, rp, errbuf, status, wantsav);
 }
 
-static int8_t *
-respond(Job *job, Mfile *mf, RR *rp, int8_t *errbuf, int status,
+static char *
+respond(Job *job, Mfile *mf, RR *rp, char *errbuf, int status,
 	int wantsav)
 {
 	int32_t n;
@@ -928,11 +928,11 @@ respond(Job *job, Mfile *mf, RR *rp, int8_t *errbuf, int status,
 
 #ifdef notused
 /* simulate what dnsudpserver does */
-static int8_t *
-lookupquerynew(Job *job, Mfile *mf, Request *req, int8_t *errbuf, int8_t *p,
+static char *
+lookupquerynew(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
 	int wantsav, int)
 {
-	int8_t *err;
+	char *err;
 	uint8_t buf[Udphdrsize + Maxpayload];
 	DNSmsg *mp;
 	DNSmsg repmsg;
@@ -1001,11 +1001,11 @@ rwstat(Job *job, Mfile *mf)
 }
 
 void
-sendmsg(Job *job, int8_t *err)
+sendmsg(Job *job, char *err)
 {
 	int n;
 	uint8_t mdata[IOHDRSZ + Maxfdata];
-	int8_t ename[ERRMAX];
+	char ename[ERRMAX];
 
 	if(err){
 		job->reply.type = Rerror;
@@ -1053,10 +1053,10 @@ logreply(int id, uint8_t *addr, DNSmsg *mp)
 }
 
 void
-logsend(int id, int subid, uint8_t *addr, int8_t *sname, int8_t *rname,
+logsend(int id, int subid, uint8_t *addr, char *sname, char *rname,
 	int type)
 {
-	int8_t buf[12];
+	char buf[12];
 
 	dnslog("[%d] %d.%d: sending to %I/%s %s %s",
 		getpid(), id, subid, addr, sname, rname,

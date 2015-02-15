@@ -11,10 +11,10 @@
  * pANS stdio -- rename
  */
 #include "iolib.h"
-int rename(const int8_t *old, const int8_t *new){
-	if(link((int8_t *)old, (int8_t *)new)<0) return -1;
-	if(unlink((int8_t *)old)<0){
-		unlink((int8_t *)new);
+int rename(const char *old, const char *new){
+	if(link((char *)old, (char *)new)<0) return -1;
+	if(unlink((char *)old)<0){
+		unlink((char *)new);
 		return -1;
 	}
 	return 0;

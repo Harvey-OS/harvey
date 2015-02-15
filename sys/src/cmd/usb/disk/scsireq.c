@@ -567,7 +567,7 @@ static int32_t
 request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
 	int32_t n, r;
-	int8_t buf[16];
+	char buf[16];
 
 	/* this was an experiment but it seems to be a good idea */
 	*status = STok;
@@ -619,8 +619,8 @@ request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 	return n;
 }
 
-static int8_t*
-seprintcmd(int8_t *s, int8_t* e, int8_t *cmd, int count, int args)
+static char*
+seprintcmd(char *s, char* e, char *cmd, int count, int args)
 {
 	uint c;
 
@@ -650,8 +650,8 @@ seprintcmd(int8_t *s, int8_t* e, int8_t *cmd, int count, int args)
 	return s;
 }
 
-static int8_t*
-seprintdata(int8_t *s, int8_t *se, uint8_t *p, int count)
+static char*
+seprintdata(char *s, char *se, uint8_t *p, int count)
 {
 	int i;
 
@@ -665,13 +665,13 @@ seprintdata(int8_t *s, int8_t *se, uint8_t *p, int count)
 static void
 SRdumpReq(ScsiReq *rp)
 {
-	int8_t buf[128];
-	int8_t *s;
-	int8_t *se;
+	char buf[128];
+	char *s;
+	char *se;
 
 	se = buf+sizeof(buf);
 	s = seprint(buf, se, "lun %d ", rp->lun);
-	s = seprintcmd(s, se, (int8_t*)rp->cmd.p, rp->cmd.count, 1);
+	s = seprintcmd(s, se, (char*)rp->cmd.p, rp->cmd.count, 1);
 	s = seprint(s, se, " [%ld]", rp->data.count);
 	if(rp->cmd.write)
 		seprintdata(s, se, rp->data.p, rp->data.count);
@@ -681,13 +681,13 @@ SRdumpReq(ScsiReq *rp)
 static void
 SRdumpRep(ScsiReq *rp)
 {
-	int8_t buf[128];
-	int8_t *s;
-	int8_t *se;
+	char buf[128];
+	char *s;
+	char *se;
 
 	se = buf+sizeof(buf);
 	s = seprint(buf, se, "lun %d ", rp->lun);
-	s = seprintcmd(s, se, (int8_t*)rp->cmd.p, rp->cmd.count, 0);
+	s = seprintcmd(s, se, (char*)rp->cmd.p, rp->cmd.count, 0);
 	switch(rp->status){
 	case STok:
 		s = seprint(s, se, " good [%ld] ", rp->data.count);
@@ -734,7 +734,7 @@ SRdumpRep(ScsiReq *rp)
 	fprint(2, "scsi← %s\n", buf);
 }
 
-static int8_t*
+static char*
 scsierr(ScsiReq *rp)
 {
 	int ec;
@@ -759,11 +759,11 @@ scsierr(ScsiReq *rp)
 static void
 SRdumpErr(ScsiReq *rp)
 {
-	int8_t buf[128];
-	int8_t *se;
+	char buf[128];
+	char *se;
 
 	se = buf+sizeof(buf);
-	seprintcmd(buf, se, (int8_t*)rp->cmd.p, rp->cmd.count, 0);
+	seprintcmd(buf, se, (char*)rp->cmd.p, rp->cmd.count, 0);
 	fprint(2, "\t%s status: %s\n", buf, scsierr(rp));
 }
 
@@ -927,9 +927,9 @@ wormdevopen(ScsiReq *rp)
 }
 
 int
-SRopenraw(ScsiReq *rp, int8_t *unit)
+SRopenraw(ScsiReq *rp, char *unit)
 {
-	int8_t name[128];
+	char name[128];
 
 	if(rp->flags & Fopen){
 		if(diskdebug)
@@ -950,7 +950,7 @@ SRopenraw(ScsiReq *rp, int8_t *unit)
 }
 
 int
-SRopen(ScsiReq *rp, int8_t *unit)
+SRopen(ScsiReq *rp, char *unit)
 {
 	if(SRopenraw(rp, unit) == -1)
 		return -1;

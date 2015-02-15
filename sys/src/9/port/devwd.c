@@ -40,13 +40,13 @@ addwatchdog(Watchdog *watchdog)
 }
 
 static Chan*
-wdattach(int8_t *spec)
+wdattach(char *spec)
 {
 	return devattach('w', spec);
 }
 
 static Walkqid*
-wdwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+wdwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, wddir, nelem(wddir), devgen);
 }
@@ -72,7 +72,7 @@ static int32_t
 wdread(Chan* c, void* a, int32_t n, int64_t off)
 {
 	int32_t offset;
-	int8_t s[READSTR];
+	char s[READSTR];
 
 	offset = off;
 	switch((uint32_t)c->qid.path){
@@ -96,7 +96,7 @@ wdread(Chan* c, void* a, int32_t n, int64_t off)
 static int32_t
 wdwrite(Chan* c, void* a, int32_t n, int64_t off)
 {
-	int8_t *p;
+	char *p;
 
 	switch((uint32_t)c->qid.path){
 	case Qdir:

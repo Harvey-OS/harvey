@@ -155,7 +155,7 @@ draw(Biobufhdr *Bp) {
 }
 
 void
-beginpath(int8_t *buf, int copy) {
+beginpath(char *buf, int copy) {
 
 /*
  * Called from devcntrl() whenever an "x X BeginPath" command is read. It's used
@@ -190,10 +190,10 @@ beginpath(int8_t *buf, int copy) {
 	}
 }
 
-static void parsebuf(int8_t*);
+static void parsebuf(char*);
 
 void
-drawpath(int8_t *buf, int copy) {
+drawpath(char *buf, int copy) {
 
 /*
  *
@@ -230,10 +230,10 @@ drawpath(int8_t *buf, int copy) {
 
 
 static void
-parsebuf(int8_t *buf)
+parsebuf(char *buf)
 {
-	int8_t *p;			/* usually the next token */
-	int8_t *q;
+	char *p;			/* usually the next token */
+	char *q;
 	int gsavelevel = 0;		/* non-zero if we've done a gsave */
 
 /*

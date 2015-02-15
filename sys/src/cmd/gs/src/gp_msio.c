@@ -218,7 +218,7 @@ fprintf(FILE * file, const char *fmt,...)
 #endif
 #else
 int _Cdecl _FARFUNC
-fprintf(FILE _FAR * file, const int8_t *fmt,...)
+fprintf(FILE _FAR * file, const char *fmt,...)
 #endif
 {
     int count;
@@ -226,7 +226,7 @@ fprintf(FILE _FAR * file, const int8_t *fmt,...)
 
     va_start(args, fmt);
     if (gp_file_is_console(file)) {
-	int8_t buf[1024];
+	char buf[1024];
 
 	count = vsprintf(buf, fmt, args);
 	(*pgsdll_callback) (GSDLL_STDOUT, buf, count);

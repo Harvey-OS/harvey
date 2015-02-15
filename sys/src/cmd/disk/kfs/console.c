@@ -46,7 +46,7 @@ con_session(void)
 }
 
 int
-con_attach(int fid, int8_t *uid, int8_t *arg)
+con_attach(int fid, char *uid, char *arg)
 {
 	Oldfcall in, ou;
 
@@ -71,10 +71,10 @@ con_clone(int fid1, int fid2)
 }
 
 int
-con_path(int fid, int8_t *path)
+con_path(int fid, char *path)
 {
 	Oldfcall in, ou;
-	int8_t *p;
+	char *p;
 
 	in.type = Twalk9p1;
 	in.fid = fid;
@@ -98,7 +98,7 @@ loop:
 }
 
 int
-con_walk(int fid, int8_t *name)
+con_walk(int fid, char *name)
 {
 	Oldfcall in, ou;
 
@@ -110,7 +110,7 @@ con_walk(int fid, int8_t *name)
 }
 
 int
-con_stat(int fid, int8_t *data)
+con_stat(int fid, char *data)
 {
 	Oldfcall in, ou;
 
@@ -123,7 +123,7 @@ con_stat(int fid, int8_t *data)
 }
 
 int
-con_wstat(int fid, int8_t *data)
+con_wstat(int fid, char *data)
 {
 	Oldfcall in, ou;
 
@@ -147,7 +147,7 @@ con_open(int fid, int mode)
 }
 
 int
-con_read(int fid, int8_t *data, int32_t offset, int count)
+con_read(int fid, char *data, int32_t offset, int count)
 {
 	Oldfcall in, ou;
 
@@ -163,7 +163,7 @@ con_read(int fid, int8_t *data, int32_t offset, int count)
 }
 
 int
-con_write(int fid, int8_t *data, int32_t offset, int count)
+con_write(int fid, char *data, int32_t offset, int count)
 {
 	Oldfcall in, ou;
 
@@ -190,7 +190,7 @@ con_remove(int fid)
 }
 
 int
-con_create(int fid, int8_t *name, int uid, int gid, int32_t perm,
+con_create(int fid, char *name, int uid, int gid, int32_t perm,
 	   int mode)
 {
 	Oldfcall in, ou;

@@ -25,7 +25,7 @@ enum {
 	Mexit
 };
 
-int8_t *menustr[] = {
+char *menustr[] = {
 	"zoom",
 	"unzoom",
 	"grid",
@@ -68,10 +68,10 @@ drawit(void)
 int bypp;
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	Event e;
-	int8_t buf[5*12];
+	char buf[5*12];
 	uint32_t chan;
 	int d;
 

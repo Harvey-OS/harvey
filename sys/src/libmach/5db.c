@@ -38,31 +38,31 @@ struct	Instr
 	uint8_t	rs;			/* bits 0-11 (shifter operand) */
 
 	int32_t	imm;			/* rotated imm */
-	int8_t*	curr;			/* fill point in buffer */
-	int8_t*	end;			/* end of buffer */
-	int8_t*	err;			/* error message */
+	char*	curr;			/* fill point in buffer */
+	char*	end;			/* end of buffer */
+	char*	err;			/* error message */
 };
 
 typedef struct Opcode Opcode;
 struct Opcode
 {
-	int8_t*	o;
+	char*	o;
 	void	(*fmt)(Opcode*, Instr*);
 	uint64_t	(*foll)(Map*, Rgetter, Instr*, uint64_t);
-	int8_t*	a;
+	char*	a;
 };
 
-static	void	format(int8_t*, Instr*, int8_t*);
-static	int8_t	FRAMENAME[] = ".frame";
+static	void	format(char*, Instr*, char*);
+static	char	FRAMENAME[] = ".frame";
 
 /*
  * Arm-specific debugger interface
  */
 
-static	int8_t	*armexcep(Map*, Rgetter);
+static	char	*armexcep(Map*, Rgetter);
 static	int	armfoll(Map*, uint64_t, Rgetter, uint64_t*);
-static	int	arminst(Map*, uint64_t, int8_t, int8_t*, int);
-static	int	armdas(Map*, uint64_t, int8_t*, int);
+static	int	arminst(Map*, uint64_t, char, char*, int);
+static	int	armdas(Map*, uint64_t, char*, int);
 static	int	arminstlen(Map*, uint64_t);
 
 /*
@@ -88,7 +88,7 @@ Machdata armmach =
 	arminstlen,		/* instruction size */
 };
 
-static int8_t*
+static char*
 armexcep(Map *map, Rgetter rget)
 {
 	uint64_t c;
@@ -115,7 +115,7 @@ armexcep(Map *map, Rgetter rget)
 }
 
 static
-int8_t*	cond[16] =
+char*	cond[16] =
 {
 	"EQ",	"NE",	"CS",	"CC",
 	"MI",	"PL",	"VS",	"VC",
@@ -124,19 +124,19 @@ int8_t*	cond[16] =
 };
 
 static
-int8_t*	shtype[4] =
+char*	shtype[4] =
 {
 	"<<",	">>",	"->",	"@>"
 };
 
 static
-int8_t *hb[4] =
+char *hb[4] =
 {
 	"???",	"HU", "B", "H"
 };
 
 static
-int8_t*	addsub[2] =
+char*	addsub[2] =
 {
 	"-",	"+",
 };
@@ -322,7 +322,7 @@ decode(Map *map, uint64_t pc, Instr *i)
 #pragma	varargck	argpos	bprint		2
 
 static void
-bprint(Instr *i, int8_t *fmt, ...)
+bprint(Instr *i, char *fmt, ...)
 {
 	va_list arg;
 
@@ -334,9 +334,9 @@ bprint(Instr *i, int8_t *fmt, ...)
 static int
 plocal(Instr *i)
 {
-	int8_t *reg;
+	char *reg;
 	Symbol s;
-	int8_t *fn;
+	char *fn;
 	int class;
 	int offset;
 
@@ -371,7 +371,7 @@ plocal(Instr *i)
  * Print value v as name[+offset]
  */
 static int
-gsymoff(int8_t *buf, int n, uint32_t v, int space)
+gsymoff(char *buf, int n, uint32_t v, int space)
 {
 	Symbol s;
 	int r;
@@ -580,7 +580,7 @@ armco(Opcode *o, Instr *i)		/* coprocessor instructions */
 {
 	int op, p, cp;
 
-	int8_t buf[1024];
+	char buf[1024];
 
 	i->rn = (i->w >> 16) & 0xf;
 	i->rd = (i->w >> 12) & 0xf;
@@ -641,7 +641,7 @@ armshiftval(Map *map, Rgetter rget, Instr *i)
 		uint32_t s = (i->w & BITS(8, 11)) >> 7; /* this contains the *2 */
 		return ROR(imm, s);
 	} else {
-		int8_t buf[8];
+		char buf[8];
 		uint32_t v;
 		uint32_t s = (i->w & BITS(7,11)) >> 7;
 
@@ -716,7 +716,7 @@ armmaddr(Map *map, Rgetter rget, Instr *i)
 {
 	uint32_t v;
 	uint32_t nb;
-	int8_t buf[8];
+	char buf[8];
 	uint32_t rn;
 
 	rn = (i->w >> 16) & 0xf;
@@ -737,7 +737,7 @@ armmaddr(Map *map, Rgetter rget, Instr *i)
 static uint64_t
 armaddr(Map *map, Rgetter rget, Instr *i)
 {
-	int8_t buf[8];
+	char buf[8];
 	uint32_t rn;
 
 	snprint(buf, sizeof(buf), "R%ld", (i->w >> 16) & 0xf);
@@ -780,7 +780,7 @@ armaddr(Map *map, Rgetter rget, Instr *i)
 static uint64_t
 armfadd(Map *map, Rgetter rget, Instr *i, uint64_t pc)
 {
-	int8_t buf[8];
+	char buf[8];
 	int r;
 
 	r = (i->w >> 12) & 0xf;
@@ -796,7 +796,7 @@ armfadd(Map *map, Rgetter rget, Instr *i, uint64_t pc)
 static uint64_t
 armfbx(Map *map, Rgetter rget, Instr *i, uint64_t pc)
 {
-	int8_t buf[8];
+	char buf[8];
 	int r;
 
 	if(!armcondpass(map, rget, (i->w>>28)&0xf))
@@ -1036,16 +1036,16 @@ gaddr(Instr *i)
 	i->curr += gsymoff(i->curr, i->end-i->curr, i->imm, CANY);
 }
 
-static	int8_t *mode[] = { 0, "IA", "DB", "IB" };
-static	int8_t *pw[] = { "P", "PW", 0, "W" };
-static	int8_t *sw[] = { 0, "W", "S", "SW" };
+static	char *mode[] = { 0, "IA", "DB", "IB" };
+static	char *pw[] = { "P", "PW", 0, "W" };
+static	char *sw[] = { 0, "W", "S", "SW" };
 
 static void
-format(int8_t *mnemonic, Instr *i, int8_t *f)
+format(char *mnemonic, Instr *i, char *f)
 {
 	int j, k, m, n;
 	int g;
-	int8_t *fmt;
+	char *fmt;
 
 	if(mnemonic)
 		format(0, i, mnemonic);
@@ -1275,7 +1275,7 @@ format(int8_t *mnemonic, Instr *i, int8_t *f)
 }
 
 static int
-printins(Map *map, uint64_t pc, int8_t *buf, int n)
+printins(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 
@@ -1289,14 +1289,14 @@ printins(Map *map, uint64_t pc, int8_t *buf, int n)
 }
 
 static int
-arminst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
+arminst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	USED(modifier);
 	return printins(map, pc, buf, n);
 }
 
 static int
-armdas(Map *map, uint64_t pc, int8_t *buf, int n)
+armdas(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 

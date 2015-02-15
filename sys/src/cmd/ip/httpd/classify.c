@@ -17,8 +17,8 @@ typedef struct Country Country;
 
 struct Country
 {
-	int8_t *code;
-	int8_t *name;
+	char *code;
+	char *name;
 };
 
 Country badc[] =
@@ -73,7 +73,7 @@ Country goodc[] =
 	{ 0, 0 }
 };
 
-int8_t *gov[] =
+char *gov[] =
 {
 	"gov",
 	"gouv",
@@ -348,7 +348,7 @@ Country allc[] =
 int classdebug;
 
 static int
-incountries(int8_t *s, Country *cp)
+incountries(char *s, Country *cp)
 {
 	for(; cp->code != 0; cp++)
 		if(cistrcmp(s, cp->code) == 0
@@ -358,7 +358,7 @@ incountries(int8_t *s, Country *cp)
 }
 
 static int
-indomains(int8_t *s, int8_t **dp)
+indomains(char *s, char **dp)
 {
 	for(; *dp != nil; dp++)
 		if(cistrcmp(s, *dp) == 0)
@@ -368,11 +368,11 @@ indomains(int8_t *s, int8_t **dp)
 }
 
 int
-classify(int8_t *ip, Ndbtuple *t)
+classify(char *ip, Ndbtuple *t)
 {
 	int isgov, iscountry, isbadc, isgoodc;
-	int8_t dom[256];
-	int8_t *df[128];
+	char dom[256];
+	char *df[128];
 	Ndbtuple *nt, *x;
 	int n;
 

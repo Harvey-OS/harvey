@@ -14,9 +14,9 @@
  */
 
 /* 1.3 - Numerical parameter input.  */
-int8_t *units = "icPmnpuvx";
+char *units = "icPmnpuvx";
 int
-scale2units(int8_t c)
+scale2units(char c)
 {
 	int x;
 	

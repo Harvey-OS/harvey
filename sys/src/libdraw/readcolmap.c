@@ -13,10 +13,10 @@
 #include <bio.h>
 
 static uint32_t
-getval(int8_t **p)
+getval(char **p)
 {
 	uint32_t v;
-	int8_t *q;
+	char *q;
 
 	v = strtoul(*p, &q, 0);
 	v |= v<<8;
@@ -29,9 +29,9 @@ void
 readcolmap(Display *d, RGB *colmap)
 {
 	int i;
-	int8_t *p, *q;
+	char *p, *q;
 	Biobuf *b;
-	int8_t buf[128];
+	char buf[128];
 
 	USED(screen);
 

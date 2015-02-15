@@ -30,10 +30,10 @@ doctype(void)
 }
 
 void
-error(int8_t *title, int8_t *fmt, ...)
+error(char *title, char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[1024], *out;
+	char buf[1024], *out;
 
 	va_start(arg, fmt);
 	out = vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -74,8 +74,8 @@ static Reprog *
 getre(Biobuf *buf)
 {
 	Reprog	*re;
-	int8_t	*p, *t;
-	int8_t	*bbuf;
+	char	*p, *t;
+	char	*bbuf;
 	int	n;
 
 	if (buf == nil)
@@ -111,7 +111,7 @@ getre(Biobuf *buf)
 }
 
 static int
-allowed(int8_t *dir)
+allowed(char *dir)
 {
 	Reprog	*re;
 	int	okay;
@@ -165,7 +165,7 @@ static void
 maxwidths(Dir *dp, int32_t n)
 {
 	int32_t	i;
-	int8_t	scratch[64];
+	char	scratch[64];
 
 	for (i = 0; i < n; i++) {
 		if (snprint(scratch, sizeof scratch, "%ud", dp[i].dev) > devwidth)
@@ -183,12 +183,12 @@ maxwidths(Dir *dp, int32_t n)
  * Do an actual directory listing.
  * asciitime is lifted directly out of ls.
  */
-int8_t *
+char *
 asciitime(int32_t l)
 {
 	uint32_t clk;
-	static int8_t buf[32];
-	int8_t *t;
+	static char buf[32];
+	char *t;
 
 	clk = time(nil);
 	t = ctime(l);
@@ -203,10 +203,10 @@ asciitime(int32_t l)
 }
 
 static void
-dols(int8_t *dir)
+dols(char *dir)
 {
 	Dir	*d;
-	int8_t	*f, *p,*nm;
+	char	*f, *p,*nm;
 	int32_t	i, n;
 	int	fd;
 
@@ -281,7 +281,7 @@ dols(int8_t *dir)
  * invoking the actual handler.
  */
 static void
-dosearch(int8_t *search)
+dosearch(char *search)
 {
 	if (strncmp(search, "dir=", 4) == 0){
 		search = hurlunesc(connect, search+4);
@@ -300,7 +300,7 @@ dosearch(int8_t *search)
 }
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	fmtinstall('H', httpfmt);
 	fmtinstall('U', hurlfmt);

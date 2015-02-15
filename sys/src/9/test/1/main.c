@@ -36,17 +36,17 @@ usize sizeofSys = sizeof(Sys);
  * set it all up.
  */
 static int oargc;
-static int8_t* oargv[20];
-static int8_t oargb[128];
+static char* oargv[20];
+static char oargb[128];
 static int oargblen;
 
 static int maxcores = 1024;	/* max # of cores given as an argument */
 
-int8_t dbgflg[256];
+char dbgflg[256];
 static int vflag = 0;
 
 void
-optionsinit(int8_t* s)
+optionsinit(char* s)
 {
 	oargblen = strecpy(oargb, oargb+sizeof(oargb), s) - oargb;
 	oargc = tokenize(oargb, oargv, nelem(oargv)-1);
@@ -54,9 +54,9 @@ optionsinit(int8_t* s)
 }
 
 static void
-options(int argc, int8_t* argv[])
+options(int argc, char* argv[])
 {
-	int8_t *p;
+	char *p;
 	int n, o;
 
 	/*
@@ -374,7 +374,7 @@ print("schedinit...\n");
 void
 init0(void)
 {
-	int8_t buf[2*KNAMELEN];
+	char buf[2*KNAMELEN];
 
 	up->nerrlab = 0;
 
@@ -414,7 +414,7 @@ bootargs(uintptr base)
 {
 	int i;
 	uint32_t ssize;
-	int8_t **av, *p;
+	char **av, *p;
 
 	/*
 	 * Push the boot args onto the stack.
@@ -435,9 +435,9 @@ bootargs(uintptr base)
 	 * not the usual (int argc, char* argv[]), but argv0 is
 	 * unused so it doesn't matter (at the moment...).
 	 */
-	av = (int8_t**)(p - (oargc+2)*sizeof(int8_t*));
+	av = (char**)(p - (oargc+2)*sizeof(char*));
 	ssize = base + BIGPGSZ - PTR2UINT(av);
-	*av++ = (int8_t*)oargc;
+	*av++ = (char*)oargc;
 	for(i = 0; i < oargc; i++)
 		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BIGPGSZ);
 	*av = nil;

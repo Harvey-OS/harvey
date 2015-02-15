@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-execl(int8_t *f, ...)
+execl(char *f, ...)
 {
 
 	return exec(f, &f+1);

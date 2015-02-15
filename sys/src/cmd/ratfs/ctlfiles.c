@@ -33,9 +33,9 @@ static	Keyword actions[] = {
 	0,			NONE,
 };
 
-static void	acctinsert(Node*, int8_t*);
-static int8_t*	getline(Biobuf*);
-static void	ipinsert(Node*, int8_t*);
+static void	acctinsert(Node*, char*);
+static char*	getline(Biobuf*);
+static void	ipinsert(Node*, char*);
 static void	ipsort(void);
 
 /*
@@ -47,7 +47,7 @@ void
 getconf(void)
 {
 	Biobuf *bp;
-	int8_t *cp;
+	char *cp;
 	Node *np, *dir, **l;
 
 	if(debugfd >= 0)
@@ -104,7 +104,7 @@ reload(void)
 {
 	int type, action;
 	Biobuf *bp;
-	int8_t *cp;
+	char *cp;
 	Node *np, *dir;
 
 	if(debugfd >= 0)
@@ -162,13 +162,13 @@ reload(void)
  * get a canonicalized line: a string of null-terminated lower-case
  * tokens with a two null bytes at the end.
  */
-static int8_t*
+static char*
 getline(Biobuf *bp)
 {
-	int8_t c, *cp, *p, *q;
+	char c, *cp, *p, *q;
 	int n;
 
-	static int8_t *buf;
+	static char *buf;
 	static int bufsize;
 
 	for(;;){
@@ -215,7 +215,7 @@ getline(Biobuf *bp)
  *	Match a keyword
  */
 int
-findkey(int8_t *val, Keyword *p)
+findkey(char *val, Keyword *p)
 {
 
 	for(; p->name; p++)
@@ -228,15 +228,15 @@ findkey(int8_t *val, Keyword *p)
  *	parse a cidr specification in either IP/mask or IP#mask format
  */
 void
-cidrparse(Cidraddr *cidr, int8_t *cp)
+cidrparse(Cidraddr *cidr, char *cp)
 {
 
-	int8_t *p, *slash;
+	char *p, *slash;
 	int c;
 	uint32_t a, m;
 	uint8_t addr[IPv4addrlen];
 	uint8_t mask[IPv4addrlen];
-	int8_t buf[64];
+	char buf[64];
 
 	/*
 	 * find '/' or '#' character in the cidr specification
@@ -283,10 +283,10 @@ cidrparse(Cidraddr *cidr, int8_t *cp)
 /*
  *	Substitute Subchar ('#') for '/'
  */
-int8_t*
-subslash(int8_t *os)
+char*
+subslash(char *os)
 {
-	int8_t *s;
+	char *s;
 
 	for(s=os; *s; s++)
 		if(*s == '/')
@@ -298,13 +298,13 @@ subslash(int8_t *os)
  *	Insert an account pseudo-file in a directory
  */
 static void
-acctinsert(Node *np, int8_t *cp)
+acctinsert(Node *np, char *cp)
 {
 	int i;
-	int8_t *tmp;
+	char *tmp;
 	Address *ap;
 
-	static int8_t *dangerous[] = { "*", "!", "*!", "!*", "*!*", 0 };
+	static char *dangerous[] = { "*", "!", "*!", "!*", "*!*", 0 };
 
 	if(cp == 0 || *cp == 0)
 		return;
@@ -339,9 +339,9 @@ acctinsert(Node *np, int8_t *cp)
  *	Insert an IP address pseudo-file in a directory
  */
 static void
-ipinsert(Node *np, int8_t *cp)
+ipinsert(Node *np, char *cp)
 {
-	int8_t *tmp;
+	char *tmp;
 	int i;
 	Address *ap;
 	if(cp == 0 || *cp == 0)

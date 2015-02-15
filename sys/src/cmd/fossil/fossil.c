@@ -14,8 +14,8 @@
 
 int Dflag;
 int mempcnt;			/* for 9fsys.c */
-int8_t* none = "none";
-int8_t* foptname = "/none/such";
+char* none = "none";
+char* foptname = "/none/such";
 
 static void
 usage(void)
@@ -25,13 +25,13 @@ usage(void)
 }
 
 static void
-readCmdPart(int8_t *file, int8_t ***pcmd, int *pncmd)
+readCmdPart(char *file, char ***pcmd, int *pncmd)
 {
-	int8_t buf[1024+1], *f[1024];
-	int8_t tbuf[1024];
+	char buf[1024+1], *f[1024];
+	char tbuf[1024];
 	int nf;
 	int i, fd, n;
-	int8_t **cmd, *p;
+	char **cmd, *p;
 	int ncmd;
 
 	cmd = *pcmd;
@@ -53,7 +53,7 @@ readCmdPart(int8_t *file, int8_t ***pcmd, int *pncmd)
 	for(i=0; i<nf; i++){
 		if(f[i][0] == '#')
 			continue;
-		cmd = vtMemRealloc(cmd, (ncmd+1)*sizeof(int8_t*));
+		cmd = vtMemRealloc(cmd, (ncmd+1)*sizeof(char*));
 		/* expand argument '*' to mean current file */
 		if((p = strchr(f[i], '*')) && (p==f[i]||isspace(p[-1])) && (p[1]==0||isspace(p[1]))){
 			memmove(tbuf, f[i], p-f[i]);

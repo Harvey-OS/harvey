@@ -48,7 +48,7 @@ static	struct
 
 static	struct
 {
-	int8_t*	name;
+	char*	name;
 	int	flag;
 	int	ilval;		/* initial values */
 	int	irval;
@@ -68,8 +68,8 @@ static	struct
 	0
 };
 
-static	int8_t	Emode[]		= "illegal open mode";
-static	int8_t	Evolume[]	= "illegal volume specifier";
+static	char	Emode[]		= "illegal open mode";
+static	char	Evolume[]	= "illegal volume specifier";
 
 static	void
 resetlevel(void)
@@ -86,13 +86,13 @@ audioinit(void)
 }
 
 static Chan*
-audioattach(int8_t *param)
+audioattach(char *param)
 {
 	return devattach('A', param);
 }
 
 static Walkqid*
-audiowalk(Chan *c, Chan *nc, int8_t **name, int nname)
+audiowalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, audiodir, nelem(audiodir), devgen);
 }
@@ -170,10 +170,10 @@ audioread(Chan *c, void *v, int32_t n, int64_t off)
 {
 	int liv, riv, lov, rov;
 	int32_t m;
-	int8_t buf[300];
+	char buf[300];
 	int j;
 	uint32_t offset = off;
-	int8_t *a;
+	char *a;
 
 	a = v;
 	switch((uint32_t)c->qid.path) {
@@ -246,7 +246,7 @@ audiowrite(Chan *c, void *vp, int32_t n, int64_t off)
 	int32_t m;
 	int i, v, left, right, in, out;
 	Cmdbuf *cb;
-	int8_t *a;
+	char *a;
 
 	USED(off);
 	a = vp;

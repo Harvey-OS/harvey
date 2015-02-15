@@ -17,7 +17,7 @@
 #include "ip.h"
 
 int debugload;
-extern int8_t *persist;
+extern char *persist;
 
 uint8_t broadcast[Eaddrlen] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -63,7 +63,7 @@ nhgets(uint8_t *ptr)
 }
 
 static	int16_t	endian	= 1;
-static	int8_t*	aendian	= (int8_t*)&endian;
+static	char*	aendian	= (char*)&endian;
 #define	LITTLE	*aendian
 
 static uint16_t
@@ -220,10 +220,10 @@ if(debug) {
 }
 
 static void
-nak(int ctlrno, Netaddr *a, int code, int8_t *msg, int report)
+nak(int ctlrno, Netaddr *a, int code, char *msg, int report)
 {
 	int n;
-	int8_t buf[128];
+	char buf[128];
 
 	buf[0] = 0;
 	buf[1] = Tftp_ERROR;
@@ -356,10 +356,10 @@ static int tftpblockno;
             ------------------------------------------------
  */
 static int
-tftpopen(int ctlrno, Netaddr *a, int8_t *name, Tftp *tftp)
+tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 {
 	int i, len, rlen, oport;
-	int8_t buf[TFTP_SEGSIZE+2];
+	char buf[TFTP_SEGSIZE+2];
 
 	buf[0] = 0;
 	buf[1] = Tftp_READ;
@@ -379,7 +379,7 @@ tftpopen(int ctlrno, Netaddr *a, int8_t *name, Tftp *tftp)
 		case Tftp_ERROR:
 			print("tftpopen: error (%d): %s\n",
 				(tftp->header[2]<<8)|tftp->header[3],
-			      (int8_t*)tftp->data);
+			      (char*)tftp->data);
 			return -1;
 
 		case Tftp_DATA:
@@ -457,12 +457,12 @@ tftpread(int ctlrno, Netaddr *a, Tftp *tftp, int dlen)
 }
 
 static int
-bootpopen(int ctlrno, int8_t *file, Bootp *brep, int dotftpopen)
+bootpopen(int ctlrno, char *file, Bootp *brep, int dotftpopen)
 {
 	Bootp req, *rep;
 	int i, n;
 	uint8_t *ea, rpkt[1024];
-	int8_t name[128], *filename, *sysname;
+	char name[128], *filename, *sysname;
 
 	if (debugload)
 		print("bootpopen: ether%d!%s...", ctlrno, file);
@@ -551,7 +551,7 @@ bootpopen(int ctlrno, int8_t *file, Bootp *brep, int dotftpopen)
 }
 
 int
-bootpboot(int ctlrno, int8_t *file, Boot *b)
+bootpboot(int ctlrno, char *file, Boot *b)
 {
 	int n;
 	Bootp rep;
@@ -579,7 +579,7 @@ bootpboot(int ctlrno, int8_t *file, Boot *b)
 
 static struct {
 	Fs	fs;
-	int8_t	ini[INIPATHLEN];
+	char	ini[INIPATHLEN];
 } pxether[MaxEther];
 
 static int64_t
@@ -599,7 +599,7 @@ pxeread(File* f, void* va, int32_t len)
 {
 	int n;
 	Bootp rep;
-	int8_t *p, *v;
+	char *p, *v;
 
 	if((n = bootpopen(f->fs->dev, pxether[f->fs->dev].ini, &rep, 1)) < 0)
 		return -1;
@@ -619,9 +619,9 @@ pxeread(File* f, void* va, int32_t len)
 }
 
 static int
-pxewalk(File* f, int8_t* name)
+pxewalk(File* f, char* name)
 {
-	int8_t *ini;
+	char *ini;
 	uint8_t *ea;
 
 	switch(f->walked){
@@ -660,7 +660,7 @@ pxewalk(File* f, int8_t* name)
 }
 
 void*
-pxegetfspart(int ctlrno, int8_t* part, int)
+pxegetfspart(int ctlrno, char* part, int)
 {
 	if(!pxe)
 		return nil;

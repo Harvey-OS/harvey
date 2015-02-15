@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int32_t
-strlen(int8_t *s)
+strlen(char *s)
 {
 
 	return strchr(s, 0) - s;

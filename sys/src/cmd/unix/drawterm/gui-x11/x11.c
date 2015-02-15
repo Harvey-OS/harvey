@@ -235,7 +235,7 @@ xallocmemimage(Rectangle r, uint32_t chan, int pmid)
 	assert(wordsperline(r, m->depth) <= m->width);
 
 	xi = XCreateImage(xdisplay, xvis, m->depth==32?24:m->depth, ZPixmap, 0,
-		(int8_t*)m->data->bdata, Dx(r), Dy(r), 32,
+		(char*)m->data->bdata, Dx(r), Dy(r), 32,
 			  m->width*sizeof(uint32_t));
 	
 	if(xi == nil){
@@ -629,9 +629,9 @@ setcursor(void)
 	drawqlock();
 	fg = map[0];
 	bg = map[255];
-	xsrc = XCreateBitmapFromData(xdisplay, xdrawable, (int8_t*)src, 16,
+	xsrc = XCreateBitmapFromData(xdisplay, xdrawable, (char*)src, 16,
 				     16);
-	xmask = XCreateBitmapFromData(xdisplay, xdrawable, (int8_t*)mask, 16,
+	xmask = XCreateBitmapFromData(xdisplay, xdrawable, (char*)mask, 16,
 				      16);
 	xc = XCreatePixmapCursor(xdisplay, xsrc, xmask, &fg, &bg, -cursor.offset.x, -cursor.offset.y);
 	if(xc != 0) {
@@ -693,7 +693,7 @@ xproc(void *arg)
 static int
 shutup(XDisplay *d, XErrorEvent *e)
 {
-	int8_t buf[200];
+	char buf[200];
 	iprint("X error: error code=%d, request_code=%d, minor=%d\n", e->error_code, e->request_code, e->minor_code);
 	XGetErrorText(d, e->error_code, buf, sizeof(buf));
 	iprint("%s\n", buf);
@@ -714,8 +714,8 @@ xinitscreen(void)
 {
 	Memimage *gscreen;
 	int i, xsize, ysize, pmid;
-	int8_t *argv[2];
-	int8_t *disp_val;
+	char *argv[2];
+	char *disp_val;
 	Window rootwin;
 	Rectangle r;
 	XWMHints hints;
@@ -832,7 +832,7 @@ xinitscreen(void)
 
 	/* load the given bitmap data and create an X pixmap containing it. */
 	icon_pixmap = XCreateBitmapFromData(xdisplay,
-		rootwin, (int8_t *)glenda_bits,
+		rootwin, (char *)glenda_bits,
 		glenda_width, glenda_height);
 
 	/*
@@ -841,7 +841,7 @@ xinitscreen(void)
 	name.value = (uint8_t*)"drawterm";
 	name.encoding = XA_STRING;
 	name.format = 8;
-	name.nitems = strlen((int8_t*)name.value);
+	name.nitems = strlen((char*)name.value);
 	normalhints.flags = USSize|PMaxSize;
 	normalhints.max_width = Dx(r);
 	normalhints.max_height = Dy(r);
@@ -996,7 +996,7 @@ initmap(Window w)
 	XColor c;
 	int i;
 	uint32_t p, pp;
-	int8_t buf[30];
+	char buf[30];
 
 	if(xscreendepth <= 1)
 		return;
@@ -1400,8 +1400,8 @@ setcolor(uint32_t i, uint32_t r, uint32_t g, uint32_t b)
 int
 atlocalconsole(void)
 {
-	int8_t *p, *q;
-	int8_t buf[128];
+	char *p, *q;
+	char buf[128];
 
 	p = getenv("DRAWTERM_ATLOCALCONSOLE");
 	if(p && atoi(p) == 1)
@@ -1438,7 +1438,7 @@ atlocalconsole(void)
 typedef struct Clip Clip;
 struct Clip
 {
-	int8_t buf[SnarfSize];
+	char buf[SnarfSize];
 	QLock lk;
 };
 Clip clip;
@@ -1446,7 +1446,7 @@ Clip clip;
 #undef long	/* sic */
 #undef ulong
 
-static int8_t*
+static char*
 _xgetsnarf(XDisplay *xd)
 {
 	uint8_t *data, *xdata;
@@ -1529,18 +1529,18 @@ _xgetsnarf(XDisplay *xd)
 		data = nil;
 	}else{
 		if(xdata){
-			data = (uint8_t*)strdup((int8_t*)xdata);
+			data = (uint8_t*)strdup((char*)xdata);
 			XFree(xdata);
 		}else
 			data = nil;
 	}
 out:
 	qunlock(&clip.lk);
-	return (int8_t*)data;
+	return (char*)data;
 }
 
 static void
-_xputsnarf(XDisplay *xd, int8_t *data)
+_xputsnarf(XDisplay *xd, char *data)
 {
 	XButtonEvent e;
 
@@ -1566,7 +1566,7 @@ _xputsnarf(XDisplay *xd, int8_t *data)
 static void
 xselect(XEvent *e, XDisplay *xd)
 {
-	int8_t *name;
+	char *name;
 	XEvent r;
 	XSelectionRequestEvent *xe;
 	Atom a[4];
@@ -1626,14 +1626,14 @@ if(0) iprint("xselect target=%d requestor=%d property=%d selection=%d\n",
 	XFlush(xd);
 }
 
-int8_t*
+char*
 clipread(void)
 {
 	return _xgetsnarf(xsnarfcon);
 }
 
 int
-clipwrite(int8_t *buf)
+clipwrite(char *buf)
 {
 	_xputsnarf(xsnarfcon, buf);
 	return 0;

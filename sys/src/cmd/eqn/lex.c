@@ -12,7 +12,7 @@
 #include <ctype.h>
 
 #define	SSIZE	1000
-int8_t	token[SSIZE];
+char	token[SSIZE];
 int	sp;
 
 void	space(void);
@@ -207,7 +207,7 @@ void define(int type)
 
 void ifdef(void)		/* do body if name is defined */
 {
-	int8_t name[100], *p;
+	char name[100], *p;
 
 	getstr(name, sizeof(name));	/* get name */
 	cstr(token, 1, SSIZE);		/* and body */
@@ -218,7 +218,7 @@ void ifdef(void)		/* do body if name is defined */
 	}
 }
 
-int8_t	*spaceval	= NULL;
+char	*spaceval	= NULL;
 
 void space(void)	/* collect line of form "space amt" to replace \x in output */
 {

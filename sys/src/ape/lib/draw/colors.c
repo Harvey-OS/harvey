@@ -12,12 +12,12 @@
 #include <draw.h>
 #include <event.h>
 
-int8_t *argv0;
+char *argv0;
 
 static void
-_sysfatalimpl(int8_t *fmt, va_list arg)
+_sysfatalimpl(char *fmt, va_list arg)
 {
-	int8_t buf[1024];
+	char buf[1024];
 
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	if(argv0)
@@ -27,10 +27,10 @@ _sysfatalimpl(int8_t *fmt, va_list arg)
 	exits(buf);
 }
 
-void (*_sysfatal)(int8_t *fmt, va_list arg) = _sysfatalimpl;
+void (*_sysfatal)(char *fmt, va_list arg) = _sysfatalimpl;
 
 void
-sysfatal(int8_t *fmt, ...)
+sysfatal(char *fmt, ...)
 {
 	va_list arg;
 
@@ -82,7 +82,7 @@ eresized(int new)
 	flushimage(display, 1);
 }
 
-int8_t *buttons[] =
+char *buttons[] =
 {
 	"exit",
 	0
@@ -112,13 +112,13 @@ dither[16] =  {
 };
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	Point p;
 	Mouse m;
 	int i, j, k, l, n, ramp, prev;
-	int8_t buf[100];
-	int8_t *fmt;
+	char buf[100];
+	char *fmt;
 	Image *dark;
 	uint32_t rgb;
 

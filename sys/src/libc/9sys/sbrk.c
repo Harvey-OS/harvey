@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-extern	int8_t	end[];
-static	int8_t	*bloc = { end };
+extern	char	end[];
+static	char	*bloc = { end };
 extern	int	brk_(void*);
 
 enum
@@ -27,7 +27,7 @@ brk(void *p)
 	bl = ((uintptr)p + Round) & ~Round;
 	if(brk_((void*)bl) < 0)
 		return -1;
-	bloc = (int8_t*)bl;
+	bloc = (char*)bl;
 	return 0;
 }
 
@@ -39,6 +39,6 @@ sbrk(uint32_t n)
 	bl = ((uintptr)bloc + Round) & ~Round;
 	if(brk_((void*)(bl+n)) < 0)
 		return (void*)-1;
-	bloc = (int8_t*)bl + n;
+	bloc = (char*)bl + n;
 	return (void*)bl;
 }

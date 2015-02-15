@@ -12,15 +12,15 @@
 typedef	struct	Ftab	Ftab;
 struct	Ftab
 {
-	int8_t	op;
-	int8_t*	name;
-	int8_t	typ;
+	char	op;
+	char*	name;
+	char	typ;
 };
 typedef	struct	Gtab	Gtab;
 struct	Gtab
 {
-	int8_t	etype;
-	int8_t*	name;
+	char	etype;
+	char*	name;
 };
 
 Ftab	ftabinit[OEND];
@@ -226,7 +226,7 @@ dclfunct(Type *t, Sym *s)
 	Node *n;
 	Type *f1, *f2, *f3, *f4;
 	int o, i, c;
-	int8_t str[100];
+	char str[100];
 
 	if(t->funct)
 		return;

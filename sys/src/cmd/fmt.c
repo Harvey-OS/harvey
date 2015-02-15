@@ -28,7 +28,7 @@ typedef struct Word Word;
 struct Word{
 	int	bol;
 	int	indent;
-	int8_t	text[1];
+	char	text[1];
 };
 
 void	fmt(void);
@@ -93,10 +93,10 @@ main(int argc, char **argv)
 }
 
 int
-indentof(int8_t **linep)
+indentof(char **linep)
 {
 	int i, ind;
-	int8_t *line;
+	char *line;
 
 	ind = 0;
 	line = *linep;
@@ -120,7 +120,7 @@ indentof(int8_t **linep)
 }
 
 Word**
-addword(Word **words, int *nwordp, int8_t *s, int l, int indent, int bol)
+addword(Word **words, int *nwordp, char *s, int l, int indent, int bol)
 {
 	Word *w;
 
@@ -135,7 +135,7 @@ addword(Word **words, int *nwordp, int8_t *s, int l, int indent, int bol)
 }
 
 Word**
-parseline(int8_t *line, Word **words, int *nwordp)
+parseline(char *line, Word **words, int *nwordp)
 {
 	int ind, l, bol;
 
@@ -177,7 +177,7 @@ printindent(int w)
 
 /* give extra space if word ends with period, etc. */
 int
-nspaceafter(int8_t *s)
+nspaceafter(char *s)
 {
 	int n;
 
@@ -233,7 +233,7 @@ printwords(Word **w, int nw)
 void
 fmt(void)
 {
-	int8_t *s;
+	char *s;
 	int i, nw;
 	Word **w;
 

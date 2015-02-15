@@ -142,7 +142,7 @@ fixops(int *operand)
 void
 emulate(void)
 {
-	int8_t buf[BUFS+1];
+	char buf[BUFS+1];
 	int i;
 	int n;
 	int c;

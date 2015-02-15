@@ -38,7 +38,7 @@ static int shadlen;
 static int
 digestfmt(Fmt *fmt)
 {
-	int8_t buf[SHA2_512dlen*2 + 1];
+	char buf[SHA2_512dlen*2 + 1];
 	uint8_t *p;
 	int i;
 
@@ -49,7 +49,7 @@ digestfmt(Fmt *fmt)
 }
 
 static void
-sum(int fd, int8_t *name)
+sum(int fd, char *name)
 {
 	int n;
 	uint8_t buf[8192], digest[SHA2_512dlen];

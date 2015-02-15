@@ -88,7 +88,7 @@ static
 void
 paintitem(Image *m, Menu *menu, Rectangle textr, int off, int i, int highlight, Image *save, Image *restore)
 {
-	int8_t *item;
+	char *item;
 	Rectangle r;
 	Point pt;
 
@@ -170,7 +170,7 @@ menuhit(int but, Mousectl *mc, Menu *menu, Screen *scr)
 	Rectangle r, menur, sc, textr, scrollr;
 	Image *b, *save, *backup;
 	Point pt;
-	int8_t *item;
+	char *item;
 
 	if(back == nil)
 		menucolors();

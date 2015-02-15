@@ -25,10 +25,10 @@ HSPriv *hp;
 
 
 /* go from possibly-latin1 url with escapes to utf */
-int8_t *
-_urlunesc(int8_t *s)
+char *
+_urlunesc(char *s)
 {
-	int8_t *t, *v, *u;
+	char *t, *v, *u;
 	Rune r;
 	int c, n;
 
@@ -84,7 +84,7 @@ enum
 };
 
 static int
-dangerous(int8_t *s)
+dangerous(char *s)
 {
 	if(s == nil)
 		return 1;
@@ -102,10 +102,10 @@ dangerous(int8_t *s)
 	return 0;
 }
 
-int8_t*
-unhttp(int8_t *s)
+char*
+unhttp(char *s)
 {
-	int8_t *p, *r, *w;
+	char *p, *r, *w;
 
 	if(s == nil)
 		return nil;
@@ -124,9 +124,9 @@ unhttp(int8_t *s)
 }
 
 void
-mountwiki(HConnect *c, int8_t *service)
+mountwiki(HConnect *c, char *service)
 {
-	int8_t buf[128];
+	char buf[128];
 	int fd;
 
 	/* already in (possibly private) namespace? */
@@ -156,13 +156,13 @@ mountwiki(HConnect *c, int8_t *service)
 	close(fd);
 }
 
-int8_t*
-dowiki(HConnect *c, int8_t *title, int8_t *author, int8_t *comment,
-       int8_t *base,
-       uint32_t version, int8_t *text)
+char*
+dowiki(HConnect *c, char *title, char *author, char *comment,
+       char *base,
+       uint32_t version, char *text)
 {
 	int fd, l, n, err;
-	int8_t *p, tmp[256];
+	char *p, tmp[256];
 int i;
 
 	if((fd = open("/mnt/wiki/new", ORDWR)) < 0){
@@ -203,11 +203,11 @@ i=0;
 
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Hio *hin, *hout;
-	int8_t *s, *t, *p, *f[10];
-	int8_t *text, *title, *service, *base, *author, *comment, *url;
+	char *s, *t, *p, *f[10];
+	char *text, *title, *service, *base, *author, *comment, *url;
 	int i, nf;
 	uint32_t version;
 

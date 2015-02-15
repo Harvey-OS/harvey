@@ -17,7 +17,7 @@
 #define Extern
 #include "statfs.h"
 
-void	runprog(int8_t**);
+void	runprog(char**);
 
 void (*fcalls[])(Fsrpc*) =
 {
@@ -268,7 +268,7 @@ main(int argc, char **argv)
 }
 
 void
-reply(Fcall *r, Fcall *t, int8_t *err)
+reply(Fcall *r, Fcall *t, char *err)
 {
 	uint8_t data[IOHDRSZ+Maxfdata];
 	int n;
@@ -386,10 +386,10 @@ getsbuf(void)
 	return wb;
 }
 
-int8_t *
-strcatalloc(int8_t *p, int8_t *n)
+char *
+strcatalloc(char *p, char *n)
 {
-	int8_t *v;
+	char *v;
 
 	v = realloc(p, strlen(p)+strlen(n)+1);
 	if(v == 0)
@@ -399,9 +399,9 @@ strcatalloc(int8_t *p, int8_t *n)
 }
 
 File *
-file(File *parent, int8_t *name)
+file(File *parent, char *name)
 {
-	int8_t buf[128];
+	char buf[128];
 	File *f, *new;
 	Dir *dir;
 
@@ -467,11 +467,11 @@ initroot(void)
 }
 
 void
-makepath(int8_t *as, File *p, int8_t *name)
+makepath(char *as, File *p, char *name)
 {
-	int8_t *c, *seg[100];
+	char *c, *seg[100];
 	int i;
-	int8_t *s;
+	char *s;
 
 	seg[0] = name;
 	for(i = 1; i < 100 && p; i++, p = p->parent){
@@ -494,7 +494,7 @@ makepath(int8_t *as, File *p, int8_t *name)
 }
 
 void
-fatal(int8_t *s)
+fatal(char *s)
 {
 	Proc *m;
 
@@ -507,11 +507,11 @@ fatal(int8_t *s)
 	exits("fatal");
 }
 
-int8_t*
-rdenv(int8_t *v, int8_t **end)
+char*
+rdenv(char *v, char **end)
 {
 	int fd, n;
-	int8_t *buf;
+	char *buf;
 	Dir *d;
 	if((fd = open(v, OREAD)) == -1)
 		return nil;
@@ -533,12 +533,12 @@ rdenv(int8_t *v, int8_t **end)
 	return buf;
 }
 
-int8_t Defaultpath[] = ".\0/bin";
+char Defaultpath[] = ".\0/bin";
 void
-runprog(int8_t *argv[])
+runprog(char *argv[])
 {
-	int8_t *path, *ep, *p;
-	int8_t arg0[256];
+	char *path, *ep, *p;
+	char arg0[256];
 
 	path = rdenv("/env/path", &ep);
 	if(path == nil){
@@ -553,7 +553,7 @@ runprog(int8_t *argv[])
 }
 
 void
-catcher(void *a, int8_t *msg)
+catcher(void *a, char *msg)
 {
 	USED(a);
 	if(strcmp(msg, DONESTR) == 0) {
@@ -569,7 +569,7 @@ catcher(void *a, int8_t *msg)
 void
 fidreport(Fid *f)
 {
-	int8_t *p, path[128];
+	char *p, path[128];
 	Frec *fr;
 
 	p = path;

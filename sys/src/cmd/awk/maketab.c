@@ -45,8 +45,8 @@ THIS SOFTWARE.
 
 struct xx
 {	int token;
-	int8_t *name;
-	int8_t *pname;
+	char *name;
+	char *pname;
 } proc[] = {
 	{ PROGRAM, "program", NULL },
 	{ BOR, "boolop", " || " },
@@ -116,16 +116,16 @@ struct xx
 };
 
 #define SIZE	(LASTTOKEN - FIRSTTOKEN + 1)
-int8_t *table[SIZE];
-int8_t *names[SIZE];
+char *table[SIZE];
+char *names[SIZE];
 
-int main(int argc, int8_t *argv[])
+int main(int argc, char *argv[])
 {
 	struct xx *p;
 	int i, n, tok;
-	int8_t c;
+	char c;
 	FILE *fp;
-	int8_t buf[200], name[200], def[200];
+	char buf[200], name[200], def[200];
 
 	printf("#include <stdio.h>\n");
 	printf("#include \"awk.h\"\n");
@@ -147,7 +147,7 @@ int main(int argc, int8_t *argv[])
 			fprintf(stderr, "maketab funny token %d %s\n", tok, buf);
 			exit(1);
 		}
-		names[tok-FIRSTTOKEN] = (int8_t *) malloc(strlen(name)+1);
+		names[tok-FIRSTTOKEN] = (char *) malloc(strlen(name)+1);
 		strcpy(names[tok-FIRSTTOKEN], name);
 		printf("\t(char *) \"%s\",\t/* %d */\n", name, tok);
 		i++;

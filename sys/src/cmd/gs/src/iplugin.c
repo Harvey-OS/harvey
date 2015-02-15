@@ -44,13 +44,13 @@
 extern_i_plugin_table();
 
 private void *i_plugin_mem_alloc(i_plugin_client_memory *mem, unsigned int nbytes,
-                                 const int8_t *cname)
+                                 const char *cname)
 {   gs_memory_t *mem_raw = mem->client_data;
     return mem_raw->procs.alloc_bytes_immovable(mem_raw, nbytes, cname);
 }
 
 private void i_plugin_mem_free(i_plugin_client_memory *mem, void *data,
-                               const int8_t *cname)
+                               const char *cname)
 {   gs_memory_t *mem_raw = mem->client_data;
     mem_raw->procs.free_object(mem_raw, data, cname);
 }
@@ -98,8 +98,8 @@ i_plugin_holder * i_plugin_get_list(i_ctx_t *i_ctx_p)
 {   return i_ctx_p->plugin_list;
 }
 
-i_plugin_instance *i_plugin_find(i_ctx_t *i_ctx_p, const int8_t *type,
-                                 const int8_t *subtype)
+i_plugin_instance *i_plugin_find(i_ctx_t *i_ctx_p, const char *type,
+                                 const char *subtype)
 {   i_plugin_holder *h = i_ctx_p->plugin_list;
     for (; h != 0; h = h->next) {
         i_plugin_instance *I = h->I;

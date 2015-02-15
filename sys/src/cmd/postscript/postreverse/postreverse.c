@@ -97,19 +97,19 @@
 int	page = 1;			/* current page number */
 int	forms = 1;			/* forms per page in the input file */
 
-int8_t	*temp_dir = TEMPDIR;		/* temp directory for copying stdin */
+char	*temp_dir = TEMPDIR;		/* temp directory for copying stdin */
 
 Pages	pages[1000];			/* byte offsets for all pages */
 int	next_page = 0;			/* next page goes here */
 int32_t	start;				/* starting offset for next page */
 int32_t	endoff = -1;			/* offset where TRAILER was found */
 int	noreverse = FALSE;		/* don't reverse pages if TRUE */
-int8_t	*endprolog = ENDPROLOG;		/* occasionally changed to ENDSETUP */
+char	*endprolog = ENDPROLOG;		/* occasionally changed to ENDSETUP */
 
 double	version = 3.3;			/* of the input file */
 int	ignoreversion = FALSE;		/* ignore possible forms.ps problems */
 
-int8_t	buf[2048];			/* line buffer for input file */
+char	buf[2048];			/* line buffer for input file */
 
 FILE	*fp_in;				/* stuff is read from this file */
 FILE	*fp_out = stdout;		/* and written here */
@@ -272,7 +272,7 @@ done()
 
 /*****************************************************************************/
 
-int8_t *copystdin()
+char *copystdin()
 
 {
 

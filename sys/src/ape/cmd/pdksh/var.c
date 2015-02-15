@@ -41,14 +41,14 @@ void
 newblock()
 {
 	register struct block *l;
-	static int8_t *const empty[] = {null};
+	static char *const empty[] = {null};
 
 	l = (struct block *) alloc(sizeof(struct block), ATEMP);
 	l->flags = 0;
 	ainit(&l->area); /* todo: could use e->area (l->area => l->areap) */
 	if (!e->loc) {
 		l->argc = 0;
-		l->argv = (int8_t **) empty;
+		l->argv = (char **) empty;
 	} else {
 		l->argc = e->loc->argc;
 		l->argv = e->loc->argv;
@@ -88,7 +88,7 @@ void
 initvar()
 {
 	static const struct {
-		const int8_t *name;
+		const char *name;
 		int v;
 	} names[] = {
 			{ "COLUMNS",		V_COLUMNS },
@@ -114,7 +114,7 @@ initvar()
 			{ "TMOUT",		V_TMOUT },
 #endif /* KSH */
 			{ "LINENO",		V_LINENO },
-			{ (int8_t *) 0,	0 }
+			{ (char *) 0,	0 }
 		};
 	int i;
 	struct tbl *tp;
@@ -131,16 +131,16 @@ initvar()
  * non-zero if this is an array, sets *valp to the array index, returns
  * the basename of the array.
  */
-const int8_t *
-array_index_calc(const int8_t *n, bool_t *arrayp, int *valp)
+const char *
+array_index_calc(const char *n, bool_t *arrayp, int *valp)
 {
-	const int8_t *p;
+	const char *p;
 	int len;
 
 	*arrayp = FALSE;
 	p = skip_varname(n, FALSE);
 	if (p != n && *p == '[' && (len = array_ref_len(p))) {
-		int8_t *sub, *tmp;
+		char *sub, *tmp;
 		int32_t rval;
 
 		/* Calculate the value of the subscript */
@@ -163,7 +163,7 @@ array_index_calc(const int8_t *n, bool_t *arrayp, int *valp)
  */
 struct tbl *
 global(n)
-	register const int8_t *n;
+	register const char *n;
 {
 	register struct block *l = e->loc;
 	register struct tbl *vp;
@@ -245,7 +245,7 @@ global(n)
  */
 struct tbl *
 local(n, copy)
-	register const int8_t *n;
+	register const char *n;
 	bool_t copy;
 {
 	register struct block *l = e->loc;
@@ -289,11 +289,11 @@ local(n, copy)
 }
 
 /* get variable string value */
-int8_t *
+char *
 str_val(vp)
 	register struct tbl *vp;
 {
-	int8_t *s;
+	char *s;
 
 	if ((vp->flag&SPECIAL))
 		getspec(vp);
@@ -304,8 +304,8 @@ str_val(vp)
 	else {				/* integer source */
 		/* worst case number length is when base=2, so use BITS(long) */
 			     /* minus base #     number    null */
-		static int8_t strbuf[1 + 2 + 1 + BITS(int32_t) + 1];
-		const int8_t *digits = (vp->flag & UCASEV_AL) ?
+		static char strbuf[1 + 2 + 1 + BITS(int32_t) + 1];
+		const char *digits = (vp->flag & UCASEV_AL) ?
 				  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 				: "0123456789abcdefghijklmnopqrstuvwxyz";
 		register unsigned long n;
@@ -356,7 +356,7 @@ intval(vp)
 int
 setstr(vq, s, error_ok)
 	register struct tbl *vq;
-	const int8_t *s;
+	const char *s;
 	int error_ok;
 {
 	if (vq->flag & RDONLY) {
@@ -421,7 +421,7 @@ getint(vp, nump)
 	struct tbl *vp;
 	int32_t *nump;
 {
-	register int8_t *s;
+	register char *s;
 	register int c;
 	int base, neg;
 	int have_base = 0;
@@ -497,13 +497,13 @@ setint_v(vq, vp)
 	return vq;
 }
 
-static int8_t *
+static char *
 formatstr(vp, s)
 	struct tbl *vp;
-	const int8_t *s;
+	const char *s;
 {
 	int olen, nlen;
-	int8_t *p, *q;
+	char *p, *q;
 
 	olen = strlen(s);
 
@@ -514,12 +514,12 @@ formatstr(vp, s)
 	} else
 		nlen = olen;
 
-	p = (int8_t *) alloc(nlen + 1, ATEMP);
+	p = (char *) alloc(nlen + 1, ATEMP);
 	if (vp->flag & (RJUST|LJUST)) {
 		int slen;
 
 		if (vp->flag & RJUST) {
-			const int8_t *q = s + olen;
+			const char *q = s + olen;
 			/* strip trailing spaces (at&t ksh uses q[-1] == ' ') */
 			while (q > s && isspace(q[-1]))
 				--q;
@@ -564,15 +564,15 @@ formatstr(vp, s)
 static void
 export(vp, val)
 	register struct tbl *vp;
-	const int8_t *val;
+	const char *val;
 {
-	register int8_t *xp;
-	int8_t *op = (vp->flag&ALLOC) ? vp->val.s : NULL;
+	register char *xp;
+	char *op = (vp->flag&ALLOC) ? vp->val.s : NULL;
 	int namelen = strlen(vp->name);
 	int vallen = strlen(val) + 1;
 
 	vp->flag |= ALLOC;
-	xp = (int8_t*)alloc(namelen + 1 + vallen, vp->areap);
+	xp = (char*)alloc(namelen + 1 + vallen, vp->areap);
 	memcpy(vp->val.s = xp, vp->name, namelen);
 	xp += namelen;
 	*xp++ = '=';
@@ -771,9 +771,9 @@ unset(vp, array_ref)
  * argument if there is no legal name, returns * a pointer to the terminating
  * null if whole string is legal).
  */
-int8_t *
+char *
 skip_varname(s, aok)
-	const int8_t *s;
+	const char *s;
 	int aok;
 {
 	int alen;
@@ -784,13 +784,13 @@ skip_varname(s, aok)
 		if (aok && *s == '[' && (alen = array_ref_len(s)))
 			s += alen;
 	}
-	return (int8_t *) s;
+	return (char *) s;
 }
 
 /* Return a pointer to the first character past any legal variable name.  */
-int8_t *
+char *
 skip_wdvarname(s, aok)
-	const int8_t *s;
+	const char *s;
 	int aok;	/* skip array de-reference? */
 {
 	if (s[0] == CHAR && letter(s[1])) {
@@ -799,8 +799,8 @@ skip_wdvarname(s, aok)
 		while (s[0] == CHAR && letnum(s[1]));
 		if (aok && s[0] == CHAR && s[1] == '[') {
 			/* skip possible array de-reference */
-			const int8_t *p = s;
-			int8_t c;
+			const char *p = s;
+			char c;
 			int depth = 0;
 
 			while (1) {
@@ -817,16 +817,16 @@ skip_wdvarname(s, aok)
 			}
 		}
 	}
-	return (int8_t *) s;
+	return (char *) s;
 }
 
 /* Check if coded string s is a variable name */
 int
 is_wdvarname(s, aok)
-	const int8_t *s;
+	const char *s;
 	int aok;
 {
-	int8_t *p = skip_wdvarname(s, aok);
+	char *p = skip_wdvarname(s, aok);
 
 	return p != s && p[0] == EOS;
 }
@@ -834,9 +834,9 @@ is_wdvarname(s, aok)
 /* Check if coded string s is a variable assignment */
 int
 is_wdvarassign(s)
-	const int8_t *s;
+	const char *s;
 {
-	int8_t *p = skip_wdvarname(s, TRUE);
+	char *p = skip_wdvarname(s, TRUE);
 
 	return p != s && p[0] == CHAR && p[1] == '=';
 }
@@ -844,7 +844,7 @@ is_wdvarassign(s)
 /*
  * Make the exported environment from the exported names in the dictionary.
  */
-int8_t **
+char **
 makenv()
 {
 	struct block *l = e->loc;
@@ -869,7 +869,7 @@ makenv()
 				}
 				if ((vp->flag&INTEGER)) {
 					/* integer to string */
-					int8_t *val;
+					char *val;
 					val = str_val(vp);
 					vp->flag &= ~(INTEGER|RDONLY);
 					/* setstr can't fail here */
@@ -878,7 +878,7 @@ makenv()
 				XPput(env, vp->val.s);
 			}
 	XPput(env, NULL);
-	return (int8_t **) XPclose(env);
+	return (char **) XPclose(env);
 }
 
 /*
@@ -899,7 +899,7 @@ change_random()
 /* Test if name is a special parameter */
 static int
 special(name)
-	register const int8_t * name;
+	register const char * name;
 {
 	register struct tbl *tp;
 
@@ -910,7 +910,7 @@ special(name)
 /* Make a variable non-special */
 static void
 unspecial(name)
-	register const int8_t * name;
+	register const char * name;
 {
 	register struct tbl *tp;
 
@@ -970,7 +970,7 @@ static void
 setspec(vp)
 	register struct tbl *vp;
 {
-	int8_t *s;
+	char *s;
 
 	switch (special(vp->name)) {
 	  case V_PATH:
@@ -994,7 +994,7 @@ setspec(vp)
 	  case V_TMPDIR:
 		if (tmpdir) {
 			afree(tmpdir, APERM);
-			tmpdir = (int8_t *) 0;
+			tmpdir = (char *) 0;
 		}
 		/* Use tmpdir iff it is an absolute path, is writable and
 		 * searchable and is a directory...
@@ -1086,15 +1086,15 @@ unsetspec(vp)
 		/* should not become unspecial */
 		if (tmpdir) {
 			afree(tmpdir, APERM);
-			tmpdir = (int8_t *) 0;
+			tmpdir = (char *) 0;
 		}
 		break;
 #ifdef KSH
 	  case V_MAIL:
-		mbset((int8_t *) 0);
+		mbset((char *) 0);
 		break;
 	  case V_MAILPATH:
-		mpset((int8_t *) 0);
+		mpset((char *) 0);
 		break;
 #endif /* KSH */
 
@@ -1172,9 +1172,9 @@ arraysearch(vp, val)
  */
 int
 array_ref_len(cp)
-	const int8_t *cp;
+	const char *cp;
 {
-	const int8_t *s = cp;
+	const char *s = cp;
 	int c;
 	int depth = 0;
 
@@ -1189,15 +1189,15 @@ array_ref_len(cp)
 /*
  * Make a copy of the base of an array name
  */
-int8_t *
+char *
 arrayname(str)
-	const int8_t *str;
+	const char *str;
 {
-	const int8_t *p;
+	const char *p;
 
 	if ((p = strchr(str, '[')) == 0)
 		/* Shouldn't happen, but why worry? */
-		return (int8_t *) str;
+		return (char *) str;
 
 	return str_nsave(str, p - str, ATEMP);
 }
@@ -1206,9 +1206,9 @@ arrayname(str)
  */
 void
 set_array(var, reset, vals)
-	const int8_t *var;
+	const char *var;
 	int reset;
-	int8_t **vals;
+	char **vals;
 {
 	struct tbl *vp, *vq;
 	int i;

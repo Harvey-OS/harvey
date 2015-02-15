@@ -17,7 +17,7 @@
  * get the date in the format yyyymmdd
  */
 Tm
-getdate(int8_t *d)
+getdate(char *d)
 {
 	Tm date;
 	int i;
@@ -38,11 +38,11 @@ getdate(int8_t *d)
 }
 
 int32_t
-getexpiration(int8_t *db, int8_t *u)
+getexpiration(char *db, char *u)
 {
-	int8_t buf[Maxpath];
-	int8_t prompt[128];
-	int8_t cdate[32];
+	char buf[Maxpath];
+	char prompt[128];
+	char cdate[32];
 	Tm date;
 	uint32_t secs, now;
 	int n, fd;

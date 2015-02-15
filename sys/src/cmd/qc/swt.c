@@ -135,7 +135,7 @@ bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 }
 
 int32_t
-outstring(int8_t *s, int32_t n)
+outstring(char *s, int32_t n)
 {
 	int32_t r;
 
@@ -166,7 +166,7 @@ mulcon(Node *n, Node *nn)
 	Multab *m;
 	int32_t v;
 	int o;
-	int8_t code[sizeof(m->code)+2], *p;
+	char code[sizeof(m->code)+2], *p;
 
 	if(typefd[n->type->etype])
 		return 0;
@@ -274,7 +274,7 @@ gextern(Sym *s, Node *a, int32_t o, int32_t w)
 }
 
 void	zname(Biobuf*, Sym*, int);
-int8_t*	zaddr(int8_t*, Adr*, int);
+char*	zaddr(char*, Adr*, int);
 void	zwrite(Biobuf*, Prog*, int, int);
 void	outhist(Biobuf*);
 
@@ -355,7 +355,7 @@ outcode(void)
 void
 zwrite(Biobuf *b, Prog *p, int sf, int st)
 {
-	int8_t bf[100], *bp;
+	char bf[100], *bp;
 	int32_t l;
 
 	bf[0] = p->as;
@@ -379,7 +379,7 @@ void
 outhist(Biobuf *b)
 {
 	Hist *h;
-	int8_t *p, *q, *op, c;
+	char *p, *q, *op, c;
 	Prog pg;
 	int n;
 
@@ -446,7 +446,7 @@ outhist(Biobuf *b)
 void
 zname(Biobuf *b, Sym *s, int t)
 {
-	int8_t *n, bf[8];
+	char *n, bf[8];
 	uint32_t sig;
 
 	n = s->name;
@@ -473,8 +473,8 @@ zname(Biobuf *b, Sym *s, int t)
 	Bwrite(b, n, strlen(n)+1);
 }
 
-int8_t*
-zaddr(int8_t *bp, Adr *a, int s)
+char*
+zaddr(char *bp, Adr *a, int s)
 {
 	int32_t l;
 	Ieee e;

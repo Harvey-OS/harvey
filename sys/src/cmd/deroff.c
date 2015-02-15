@@ -83,7 +83,7 @@ int	eqnflag	= 0;
 
 #define	MAX_ASCII	0X80
 
-int8_t	chars[MAX_ASCII];	/* SPECIAL, PUNCT, APOS, DIGIT, or LETTER */
+char	chars[MAX_ASCII];	/* SPECIAL, PUNCT, APOS, DIGIT, or LETTER */
 
 Rune	line[30000];
 Rune*	lp;
@@ -94,22 +94,22 @@ int	ldelim	= NOCHAR;
 int	rdelim	= NOCHAR;
 
 
-int8_t**	argv;
+char**	argv;
 
-int8_t	fname[50];
+char	fname[50];
 Biobuf*	files[15];
 Biobuf**filesp;
 Biobuf*	infile;
-int8_t*	devnull	= "/dev/null";
+char*	devnull	= "/dev/null";
 Biobuf	*infile;
 Biobuf	bout;
 
 int32_t	skeqn(void);
-Biobuf*	opn(int8_t *p);
+Biobuf*	opn(char *p);
 int	eof(void);
 int	charclass(int);
 void	getfname(void);
-void	fatal(int8_t *s, int8_t *p);
+void	fatal(char *s, char *p);
 void	usage(void);
 void	work(void);
 void	putmac(Rune *rp, int vconst);
@@ -120,10 +120,10 @@ void	macro(void);
 void	eqn(void);
 void	tbl(void);
 void	stbl(void);
-void	sdis(int8_t a1, int8_t a2);
+void	sdis(char a1, char a2);
 void	sce(void);
 void	backsl(void);
-int8_t*	copys(int8_t *s);
+char*	copys(char *s);
 void	refer(int c1);
 void	inpic(void);
 
@@ -228,7 +228,7 @@ skeqn(void)
 }
 
 Biobuf*
-opn(int8_t *p)
+opn(char *p)
 {
 	Biobuf *fd;
 
@@ -262,13 +262,13 @@ eof(void)
 void
 getfname(void)
 {
-	int8_t *p;
+	char *p;
 	Rune r;
 	Dir *dir;
 	struct chain
 	{ 
 		struct	chain*	nextp; 
-		int8_t*	datap; 
+		char*	datap; 
 	} *q;
 
 	static struct chain *namechain= 0;
@@ -315,7 +315,7 @@ usage(void)
 }
 
 void
-fatal(int8_t *s, int8_t *p)
+fatal(char *s, char *p)
 {
 	fprint(2, "deroff: ");
 	fprint(2, s, p);
@@ -622,7 +622,7 @@ macro(void)
 }
 
 void
-sdis(int8_t a1, int8_t a2)
+sdis(char a1, char a2)
 {
 	int c1, c2;
 	int eqnf;
@@ -713,7 +713,7 @@ eqn(void)
 {
 	int32_t c1, c2;
 	int dflg;
-	int8_t last;
+	char last;
 
 	last = 0;
 	dflg = 1;
@@ -839,13 +839,13 @@ sw:
 	}
 }
 
-int8_t*
-copys(int8_t *s)
+char*
+copys(char *s)
 {
-	int8_t *t, *t0;
+	char *t, *t0;
 
 	if((t0 = t = malloc((strlen(s)+1))) == 0)
-		fatal("Cannot allocate memory", (int8_t*)0);
+		fatal("Cannot allocate memory", (char*)0);
 	while(*t++ = *s++)
 		;
 	return(t0);

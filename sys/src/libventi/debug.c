@@ -12,7 +12,7 @@
 #include <venti.h>
 
 void
-vtdebug(VtConn *z, int8_t *fmt, ...)
+vtdebug(VtConn *z, char *fmt, ...)
 {
 	va_list arg;
 

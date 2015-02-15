@@ -82,10 +82,10 @@ void lab_adjust(void)	/* add a string to adjust labels, ticks, etc. */
 		fprintf(tfd, " + (%g,%g)", lab_rt, lab_up);
 }
 
-int8_t *sizeit(Attr *ap)		/* add \s..\s to ap->sval */
+char *sizeit(Attr *ap)		/* add \s..\s to ap->sval */
 {
 	int n;
-	static int8_t buf[1000];
+	static char buf[1000];
 
 	if (!ap->op) {	/* no explicit size command */
 		if (ps_set) {

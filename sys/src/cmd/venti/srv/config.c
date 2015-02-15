@@ -14,12 +14,12 @@
 Index			*mainindex;
 int			paranoid = 1;		/* should verify hashes on disk read */
 
-static ArenaPart	*configarenas(int8_t *file);
-static ISect		*configisect(int8_t *file);
-static Bloom		*configbloom(int8_t *file);
+static ArenaPart	*configarenas(char *file);
+static ISect		*configisect(char *file);
+static Bloom		*configbloom(char *file);
 
 int
-initventi(int8_t *file, Config *conf)
+initventi(char *file, Config *conf)
 {
 	statsinit();
 
@@ -39,9 +39,9 @@ initventi(int8_t *file, Config *conf)
 }
 
 static int
-numok(int8_t *s)
+numok(char *s)
 {
-	int8_t *p;
+	char *p;
 
 	strtoull(s, &p, 0);
 	if(p == s)
@@ -73,12 +73,12 @@ enum
 	MaxArgs	= 2
 };
 int
-runconfig(int8_t *file, Config *config)
+runconfig(char *file, Config *config)
 {
 	ArenaPart **av;
 	ISect **sv;
 	IFile f;
-	int8_t *s, *line, *flds[MaxArgs + 1];
+	char *s, *line, *flds[MaxArgs + 1];
 	int i, ok;
 
 	if(readifile(&f, file) < 0)
@@ -208,7 +208,7 @@ runconfig(int8_t *file, Config *config)
 }
 
 static ISect*
-configisect(int8_t *file)
+configisect(char *file)
 {
 	Part *part;
 	ISect *is;
@@ -225,7 +225,7 @@ configisect(int8_t *file)
 }
 
 static ArenaPart*
-configarenas(int8_t *file)
+configarenas(char *file)
 {
 	ArenaPart *ap;
 	Part *part;
@@ -241,7 +241,7 @@ configarenas(int8_t *file)
 }
 
 static Bloom*
-configbloom(int8_t *file)
+configbloom(char *file)
 {
 	Bloom *b;
 	Part *part;

@@ -36,7 +36,7 @@ static uint8_t etherbroadcast[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 static void	etherread4(void *a);
 static void	etherread6(void *a);
-static void	etherbind(Ipifc *ifc, int argc, int8_t **argv);
+static void	etherbind(Ipifc *ifc, int argc, char **argv);
 static void	etherunbind(Ipifc *ifc);
 static void	etherbwrite(Ipifc *ifc, Block *bp, int version,
 			       uint8_t *ip);
@@ -144,21 +144,21 @@ struct Etherarp
 	uint8_t	tpa[4];
 };
 
-static int8_t *nbmsg = "nonblocking";
+static char *nbmsg = "nonblocking";
 
 /*
  *  called to bind an IP ifc to an ethernet device
  *  called with ifc wlock'd
  */
 static void
-etherbind(Ipifc *ifc, int argc, int8_t **argv)
+etherbind(Ipifc *ifc, int argc, char **argv)
 {
 	Chan *mchan4, *cchan4, *achan, *mchan6, *cchan6, *schan;
-	int8_t addr[Maxpath];	//char addr[2*KNAMELEN];
-	int8_t dir[Maxpath];	//char dir[2*KNAMELEN];
-	int8_t *buf;
+	char addr[Maxpath];	//char addr[2*KNAMELEN];
+	char dir[Maxpath];	//char dir[2*KNAMELEN];
+	char *buf;
 	int n;
-	int8_t *ptr;
+	char *ptr;
 	Etherrock *er;
 
 	if(argc < 2)
@@ -436,7 +436,7 @@ static void
 etheraddmulti(Ipifc *ifc, uint8_t *a, uint8_t *)
 {
 	uint8_t mac[6];
-	int8_t buf[64];
+	char buf[64];
 	Etherrock *er = ifc->arg;
 	int version;
 
@@ -458,7 +458,7 @@ static void
 etherremmulti(Ipifc *ifc, uint8_t *a, uint8_t *)
 {
 	uint8_t mac[6];
-	int8_t buf[64];
+	char buf[64];
 	Etherrock *er = ifc->arg;
 	int version;
 

@@ -19,7 +19,7 @@ enum
 	TIMEOUT		= 5000,		/* timeout for writes */
 };
 
-int8_t *speeds[] =
+char *speeds[] =
 {
 	"b1200",
 	"b2400",
@@ -44,7 +44,7 @@ usage(void)
 }
 
 static void
-catch(void *a, int8_t *msg)
+catch(void *a, char *msg)
 {
 	USED(a, msg);
 	if(strstr(msg, "alarm"))
@@ -53,7 +53,7 @@ catch(void *a, int8_t *msg)
 }
 
 static void
-dumpbuf(int8_t *buf, int nbytes, int8_t *s)
+dumpbuf(char *buf, int nbytes, char *s)
 {
 	print(s);
 	while(nbytes-- > 0)
@@ -80,7 +80,7 @@ static int
 readbyte(int fd)
 {
 	uint8_t c;
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	alarm(200);
 	if(read(fd, &c, sizeof(c)) == -1){
@@ -96,9 +96,9 @@ readbyte(int fd)
 }
 
 static int
-slowread(int fd, int8_t *buf, int nbytes, int8_t *msg)
+slowread(int fd, char *buf, int nbytes, char *msg)
 {
-	int8_t *p;
+	char *p;
 	int c;
 
 	for(p = buf; nbytes > 1 && (c = readbyte(fd)) != -1; *p++ = c, nbytes--)
@@ -128,7 +128,7 @@ toggleRTS(int fd)
 }
 
 static void
-setupeia(int fd, int8_t *baud, int8_t *bits)
+setupeia(int fd, char *baud, char *bits)
 {
 	alarm(TIMEOUT);
 	/*
@@ -152,7 +152,7 @@ setupeia(int fd, int8_t *baud, int8_t *bits)
 int
 MorW(int ctl, int data)
 {
-	int8_t buf[256];
+	char buf[256];
 	int c;
 
 	/*
@@ -207,9 +207,9 @@ MorW(int ctl, int data)
 int
 C(int ctl, int data)
 {
-	int8_t **s;
+	char **s;
 	int c;
-	int8_t buf[256];
+	char buf[256];
 	
 	sleep(100);
 	for(s = speeds; *s; s++){
@@ -235,12 +235,12 @@ C(int ctl, int data)
 	return 0;
 }
 
-int8_t *bauderr = "mouse: can't set baud rate, mouse at 1200\n";
+char *bauderr = "mouse: can't set baud rate, mouse at 1200\n";
 
 void
 Cbaud(int ctl, int data, int baud)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	switch(baud){
 	case 0:
@@ -273,7 +273,7 @@ Cbaud(int ctl, int data, int baud)
 void
 Wbaud(int ctl, int data, int baud)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	switch(baud){
 	case 0:

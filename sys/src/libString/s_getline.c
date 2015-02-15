@@ -19,7 +19,7 @@
  *
  * Empty lines and lines starting with '#' are ignored.
  */ 
-extern int8_t *
+extern char *
 s_getline(Biobuf *fp, String *to)
 {
 	int c;

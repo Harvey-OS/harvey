@@ -20,8 +20,8 @@ erealloc(void *v, uint32_t n)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -29,10 +29,10 @@ estrdup(int8_t *s)
 	return s;
 }
 
-int8_t*
-estrappend(int8_t *s, int8_t *fmt, ...)
+char*
+estrappend(char *s, char *fmt, ...)
 {
-	int8_t *t;
+	char *t;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -49,12 +49,12 @@ estrappend(int8_t *s, int8_t *fmt, ...)
 /*
  *  prompt for a string with a possible default response
  */
-int8_t*
-readcons(int8_t *prompt, int8_t *def, int raw)
+char*
+readcons(char *prompt, char *def, int raw)
 {
 	int fdin, fdout, ctl, n;
-	int8_t line[10];
-	int8_t *s;
+	char line[10];
+	char *s;
 
 	fdin = open("/dev/cons", OREAD);
 	if(fdin < 0)

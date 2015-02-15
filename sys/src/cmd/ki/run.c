@@ -1296,7 +1296,7 @@ jmpl(uint32_t ir)
 void
 bicc(uint32_t ir)
 {
-	int8_t *op;
+	char *op;
 	uint32_t npc, anul, ba;
 	int takeit, z, v, n, c;
 

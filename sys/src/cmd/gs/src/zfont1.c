@@ -215,7 +215,7 @@ charstring_font_init(gs_font_type1 *pfont, const charstring_font_refs_t *pfr,
     ref_assign(&pdata->u.type1.Subrs, pfr->Subrs);
     ref_assign(&pdata->u.type1.GlobalSubrs, pfr->GlobalSubrs);
     pfont->data.procs = z1_data_procs;
-    pfont->data.proc_data = (int8_t *)pdata;
+    pfont->data.proc_data = (char *)pdata;
     pfont->procs.same_font = z1_same_font;
     pfont->procs.glyph_info = z1_glyph_info;
     pfont->procs.enumerate_glyph = z1_enumerate_glyph;
@@ -307,7 +307,7 @@ const op_def zfont1_op_defs[] =
 /* same_font procedure */
 private bool
 same_font_dict(const font_data *pdata, const font_data *podata,
-	       const int8_t *key)
+	       const char *key)
 {
     ref *pvalue;
     bool present = dict_find_string(&pdata->dict, key, &pvalue) > 0;

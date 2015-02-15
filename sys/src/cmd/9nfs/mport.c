@@ -21,13 +21,13 @@ struct Rpcconn
 	uint8_t	argbuf[8192];
 };
 
-void	putauth(int8_t*, Auth*);
+void	putauth(char*, Auth*);
 int	rpccall(Rpcconn*, int);
 
 int	rpcdebug;
 
 Rpcconn	r;
-int8_t *	mach;
+char *	mach;
 
 void
 main(int argc, char **argv)
@@ -141,7 +141,7 @@ main(int argc, char **argv)
 }
 
 void
-putauth(int8_t *mach, Auth *a)
+putauth(char *mach, Auth *a)
 {
 	uint8_t *dataptr;
 	int32_t stamp = time(0);

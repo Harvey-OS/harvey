@@ -52,7 +52,7 @@
 typedef struct {
   struct djpeg_dest_struct pub;	/* public fields */
 
-  int8_t *iobuffer;		/* physical I/O buffer */
+  char *iobuffer;		/* physical I/O buffer */
   JDIMENSION buffer_width;	/* width of one row */
 } tga_dest_struct;
 

@@ -441,7 +441,7 @@ newline(void)
 void
 startoutput(void)
 {
-	int8_t *align;
+	char *align;
 	double ps, vs, lm, rm, ti;
 	Rune buf[200];
 

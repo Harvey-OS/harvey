@@ -187,14 +187,14 @@ textcolumnate(Text *t, Dirlist **dlp, int ndl)
 }
 
 uint
-textload(Text *t, uint q0, int8_t *file, int setqid)
+textload(Text *t, uint q0, char *file, int setqid)
 {
 	Rune *rp;
 	Dirlist *dl, **dlp;
 	int fd, i, j, n, ndl, nulls;
 	uint q, q1;
 	Dir *d, *dbuf;
-	int8_t *tmp;
+	char *tmp;
 	Text *u;
 
 	if(t->ncache!=0 || t->file->nc || t->w==nil || t!=&t->w->body)
@@ -569,7 +569,7 @@ textcomplete(Text *t)
 	Rune *str, *path;
 	Rune *rp;
 	Completion *c;
-	int8_t *s, *dirs;
+	char *s, *dirs;
 	Runestr dir;
 
 	/* control-f: filename completion; works back to white space or / */

@@ -25,28 +25,28 @@
 
 int	ap;
 int	ac;
-int8_t	**av;
-int8_t	*tmp;
+char	**av;
+char	*tmp;
 
-void	synbad(int8_t *, int8_t *);
-int	fsizep(int8_t *);
-int	isdir(int8_t *);
-int	isreg(int8_t *);
+void	synbad(char *, char *);
+int	fsizep(char *);
+int	isdir(char *);
+int	isreg(char *);
 int	isatty(int);
-int	isint(int8_t *, int *);
-int	isolder(int8_t *, int8_t *);
-int	isolderthan(int8_t *, int8_t *);
-int	isnewerthan(int8_t *, int8_t *);
-int	hasmode(int8_t *, uint32_t);
-int	tio(int8_t *, int);
+int	isint(char *, int *);
+int	isolder(char *, char *);
+int	isolderthan(char *, char *);
+int	isnewerthan(char *, char *);
+int	hasmode(char *, uint32_t);
+int	tio(char *, int);
 int	e(void), e1(void), e2(void), e3(void);
-int8_t	*nxtarg(int);
+char	*nxtarg(int);
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int r;
-	int8_t *c;
+	char *c;
 
 	ac = argc; av = argv; ap = 1;
 	if(EQ(argv[0],"[")) {
@@ -66,7 +66,7 @@ main(int argc, int8_t *argv[])
 	exits(r?0:"false");
 }
 
-int8_t *
+char *
 nxtarg(int mt)
 {
 	if(ap>=ac){
@@ -126,7 +126,7 @@ int
 e3(void)
 {
 	int p1, int1, int2;
-	int8_t *a, *p2;
+	char *a, *p2;
 
 	a = nxtarg(0);
 	if(EQ(a, "(")) {
@@ -232,7 +232,7 @@ e3(void)
 }
 
 int
-tio(int8_t *a, int f)
+tio(char *a, int f)
 {
 	return access (a, f) >= 0;
 }
@@ -245,7 +245,7 @@ tio(int8_t *a, int f)
  */
 
 int
-hasmode(int8_t *f, uint32_t m)
+hasmode(char *f, uint32_t m)
 {
 	int r;
 	Dir *dir;
@@ -259,13 +259,13 @@ hasmode(int8_t *f, uint32_t m)
 }
 
 int
-isdir(int8_t *f)
+isdir(char *f)
 {
 	return hasmode(f, DMDIR);
 }
 
 int
-isreg(int8_t *f)
+isreg(char *f)
 {
 	int r;
 	Dir *dir;
@@ -297,7 +297,7 @@ isatty(int fd)
 }
 
 int
-fsizep(int8_t *f)
+fsizep(char *f)
 {
 	int r;
 	Dir *dir;
@@ -311,7 +311,7 @@ fsizep(int8_t *f)
 }
 
 void
-synbad(int8_t *s1, int8_t *s2)
+synbad(char *s1, char *s2)
 {
 	int len;
 
@@ -325,20 +325,20 @@ synbad(int8_t *s1, int8_t *s2)
 }
 
 int
-isint(int8_t *s, int *pans)
+isint(char *s, int *pans)
 {
-	int8_t *ep;
+	char *ep;
 
 	*pans = strtol(s, &ep, 0);
 	return (*ep == 0);
 }
 
 int
-isolder(int8_t *pin, int8_t *f)
+isolder(char *pin, char *f)
 {
 	int r, rel;
 	uint32_t n, m;
-	int8_t *p = pin;
+	char *p = pin;
 	Dir *dir;
 
 	dir = dirstat(f);
@@ -393,7 +393,7 @@ isolder(int8_t *pin, int8_t *f)
 }
 
 int
-isolderthan(int8_t *a, int8_t *b)
+isolderthan(char *a, char *b)
 {
 	int r;
 	Dir *ad, *bd;
@@ -410,7 +410,7 @@ isolderthan(int8_t *a, int8_t *b)
 }
 
 int
-isnewerthan(int8_t *a, int8_t *b)
+isnewerthan(char *a, char *b)
 {
 	int r;
 	Dir *ad, *bd;

@@ -97,9 +97,9 @@ pow10(int n)
 }
 
 static int
-xadd(int8_t *a, int n, int v)
+xadd(char *a, int n, int v)
 {
-	int8_t *b;
+	char *b;
 	int c;
 
 	if(n < 0 || n >= NSIGNIF)
@@ -118,9 +118,9 @@ xadd(int8_t *a, int n, int v)
 }
 
 static int
-xsub(int8_t *a, int n, int v)
+xsub(char *a, int n, int v)
 {
-	int8_t *b;
+	char *b;
 	int c;
 
 	for(b = a+n; b >= a; b--) {
@@ -137,9 +137,9 @@ xsub(int8_t *a, int n, int v)
 }
 
 static void
-xaddexp(int8_t *p, int e)
+xaddexp(char *p, int e)
 {
-	int8_t se[9];
+	char se[9];
 	int i;
 
 	*p++ = 'e';
@@ -161,10 +161,10 @@ xaddexp(int8_t *p, int e)
 	*p = '\0';
 }
 
-static int8_t*
-xdodtoa(int8_t *s1, double f, int chr, int prec, int *decpt, int *rsign)
+static char*
+xdodtoa(char *s1, double f, int chr, int prec, int *decpt, int *rsign)
 {
-	int8_t s2[NSIGNIF+10];
+	char s2[NSIGNIF+10];
 	double g, h;
 	int e, d, i;
 	int c2, sign, oerr;
@@ -367,7 +367,7 @@ __dtoa(double f, int mode, int ndigits, int *decpt, int *rsign, char **rve)
 static int
 fmtzdotpad(Fmt *f, int n, int pt)
 {
-	int8_t *t, *s;
+	char *t, *s;
 	int i;
 	Rune *rt, *rs;
 
@@ -383,15 +383,15 @@ fmtzdotpad(Fmt *f, int n, int pt)
 		f->nfmt += rt - (Rune*)f->to;
 		f->to = rt;
 	}else{
-		t = (int8_t*)f->to;
-		s = (int8_t*)f->stop;
+		t = (char*)f->to;
+		s = (char*)f->stop;
 		for(i = 0; i < n; i++){
 			if(i == pt){
 				FMTCHAR(f, t, s, '.');
 			}
 			FMTCHAR(f, t, s, '0');
 		}
-		f->nfmt += t - (int8_t *)f->to;
+		f->nfmt += t - (char *)f->to;
 		f->to = t;
 	}
 	return 0;
@@ -401,7 +401,7 @@ int
 __efgfmt(Fmt *fmt)
 {
 	double f;
-	int8_t s1[NSIGNIF+10];
+	char s1[NSIGNIF+10];
 	int e, d, n;
 	int c1, c2, c3, c4, ucase, sign, chr, prec, fl;
 

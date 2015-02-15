@@ -13,11 +13,11 @@ typedef struct Qfile Qfile;
 struct Qfile
 {
 	Qfile	*next;
-	int8_t	*name;
-	int8_t	*tname;
+	char	*name;
+	char	*tname;
 } *files;
 
-int8_t *user;
+char *user;
 int isnone;
 
 int	copy(Qfile*);
@@ -30,10 +30,10 @@ usage(void)
 }
 
 void
-error(int8_t *f, int8_t *a)
+error(char *f, char *a)
 {
-	int8_t err[Errlen+1];
-	int8_t buf[256];
+	char err[Errlen+1];
+	char buf[256];
 
 	rerrstr(err, sizeof(err));
 	snprint(buf, sizeof(buf),  f, a);
@@ -178,7 +178,7 @@ int
 copy(Qfile *q)
 {
 	int from, to, n;
-	int8_t buf[4096];
+	char buf[4096];
 
 	from = open(q->name, OREAD);
 	if(from < 0)

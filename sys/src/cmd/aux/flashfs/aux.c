@@ -39,10 +39,10 @@ erealloc9p(void *v, uint32_t sz)
 	return v;
 }
 
-int8_t*
-estrdup9p(int8_t *s)
+char*
+estrdup9p(char *s)
 {
-	int8_t *t;
+	char *t;
 
 	if((t = strdup(s)) == nil) {
 		fprint(2, "out of memory in strdup(%.10s)\n", s);

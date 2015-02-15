@@ -22,9 +22,9 @@
 
 void buildre(Dreprog*[3]);
 int debug;
-int8_t *refile = "/mail/lib/classify.re";
+char *refile = "/mail/lib/classify.re";
 int maxtoklen = 20;
-int trim(int8_t*);
+int trim(char*);
 
 void
 usage(void)
@@ -187,9 +187,9 @@ buildre(Dreprog *re[3])
 
 /* perhaps this belongs in the tokenizer */
 int
-trim(int8_t *s)
+trim(char *s)
 {
-	int8_t *p, *op;
+	char *p, *op;
 	int mix, mix1;
 
 	if(*s == '*')

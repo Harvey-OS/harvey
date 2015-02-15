@@ -56,7 +56,7 @@ enum
 };
 
 int
-chartorune(Rune *rune, int8_t *str)
+chartorune(Rune *rune, char *str)
 {
 	int c, c1, c2, c3;
 	int32_t l;
@@ -134,7 +134,7 @@ bad:
 }
 
 int
-runetochar(int8_t *str, Rune *rune)
+runetochar(char *str, Rune *rune)
 {
 	int32_t c;
 
@@ -194,7 +194,7 @@ int
 runelen(int32_t c)
 {
 	Rune rune;
-	int8_t str[10];
+	char str[10];
 
 	rune = c;
 	return runetochar(str, &rune);
@@ -221,7 +221,7 @@ runenlen(Rune *r, int nrune)
 }
 
 int
-fullrune(int8_t *str, int n)
+fullrune(char *str, int n)
 {
 	int c;
 	if(n <= 0)

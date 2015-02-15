@@ -15,7 +15,7 @@
 
 extern Biobuf bout;
 
-static int8_t* key[16] = {
+static char* key[16] = {
 	"no sense",
 	"recovered error",
 	"not ready",
@@ -40,7 +40,7 @@ static int8_t* key[16] = {
 void
 makesense(ScsiReq *rp)
 {
-	int8_t *s;
+	char *s;
 	int i;
 
 	Bprint(&bout, "sense data: %s", key[rp->sense[2] & 0x0F]);

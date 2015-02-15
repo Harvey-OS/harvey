@@ -56,7 +56,7 @@ double	mapscale;
 double	maps;
 int (*projection)(struct place*, double*, double*);
 
-int8_t *fontname = "/lib/font/bit/lucida/unicode.6.font";
+char *fontname = "/lib/font/bit/lucida/unicode.6.font";
 
 /* types Coord and Loc correspond to types in map(3) thus:
    Coord == struct coord;
@@ -340,7 +340,7 @@ dsize(int mag)	/* mag is 10*magnitude; return disc size */
 }
 
 void
-drawname(Image *scr, Image *col, int8_t *s, int ra, int dec)
+drawname(Image *scr, Image *col, char *s, int ra, int dec)
 {
 	Point p;
 
@@ -366,7 +366,7 @@ npixels(DAngle diam)
 
 void
 drawdisc(Image *scr, DAngle semidiam, int ring, Image *color, Point pt,
-	 int8_t *s)
+	 char *s)
 {
 	int d;
 
@@ -448,7 +448,7 @@ drawplanet(Image *scr, Planetrec *p, Point pt)
 }
 
 void
-tolast(int8_t *name)
+tolast(char *name)
 {
 	int i, nlast;
 	Record *r, rr;
@@ -594,10 +594,10 @@ gridra(int32_t mapdec)
 #define	GREY	(nogrey? display->white : grey)
 
 void
-plot(int8_t *flags)
+plot(char *flags)
 {
 	int i, j, k;
-	int8_t *t;
+	char *t;
 	int32_t x, y;
 	int ra, dec;
 	int m;
@@ -606,7 +606,7 @@ plot(int8_t *flags)
 	Rectangle rect, r1;
 	int dx, dy, nogrid, textlevel, nogrey, zenithup;
 	Image *scr;
-	int8_t *name, buf[32];
+	char *name, buf[32];
 	double v;
 
 	if(plotopen() < 0)
@@ -857,7 +857,7 @@ plot(int8_t *flags)
 }
 
 int
-runcommand(int8_t *command, int p[2])
+runcommand(char *command, int p[2])
 {
 	switch(rfork(RFPROC|RFFDG|RFNOWAIT)){
 	case -1:
@@ -876,11 +876,11 @@ runcommand(int8_t *command, int p[2])
 }
 
 void
-parseplanet(int8_t *line, Planetrec *p)
+parseplanet(char *line, Planetrec *p)
 {
-	int8_t *fld[6];
+	char *fld[6];
 	int i, nfld;
-	int8_t *s;
+	char *s;
 
 	if(line[0] == '\0')
 		return;
@@ -907,11 +907,11 @@ parseplanet(int8_t *line, Planetrec *p)
 }
 
 void
-astro(int8_t *flags, int initial)
+astro(char *flags, int initial)
 {
 	int p[2];
 	int i, n, np;
-	int8_t cmd[256], buf[4096], *lines[20], *fld[10];
+	char cmd[256], buf[4096], *lines[20], *fld[10];
 
 	snprint(cmd, sizeof cmd, "/bin/astro -p %s", flags);
 	if(pipe(p) < 0){

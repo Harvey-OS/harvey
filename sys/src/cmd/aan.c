@@ -34,10 +34,10 @@ enum {
 
 typedef struct Endpoints Endpoints;
 struct Endpoints {
-	int8_t	*lsys;
-	int8_t	*lserv;
-	int8_t	*rsys;
-	int8_t	*rserv;
+	char	*lsys;
+	char	*lserv;
+	char	*rsys;
+	char	*rserv;
 };
 
 typedef struct {
@@ -51,11 +51,11 @@ typedef struct {
 	uint8_t	buf[Bufsize];
 } Buf;
 
-static int8_t	*Logname = LOGNAME;
+static char	*Logname = LOGNAME;
 static int	client;
 static int	debug;
-static int8_t	*devdir;
-static int8_t	*dialstring;
+static char	*devdir;
+static char	*dialstring;
 static int	done;
 static int	inmsg;
 static int	maxto = Maxto;
@@ -72,14 +72,14 @@ static Alt a[] = {
 	{ 	nil,	nil,	CHANEND	},
 };
 
-static void	dmessage(int, int8_t *, ...);
+static void	dmessage(int, char *, ...);
 static void	freeendpoints(Endpoints *);
 static void	fromclient(void*);
 static void	fromnet(void*);
-static Endpoints *getendpoints(int8_t *);
+static Endpoints *getendpoints(char *);
 static void	packhdr(Hdr *, uint8_t *);
 static void	reconnect(void);
-static void	showmsg(int, int8_t *, Buf *);
+static void	showmsg(int, char *, Buf *);
 static void	synchronize(void);
 static void	timerproc(void *);
 static void	unpackhdr(Hdr *, uint8_t *);
@@ -93,7 +93,7 @@ usage(void)
 }
 
 static int
-catch(void *, int8_t *s)
+catch(void *, char *s)
 {
 	if (strstr(s, "alarm") != nil) {
 		syslog(0, Logname, "Timed out waiting for client on %s, exiting...",
@@ -334,7 +334,7 @@ fromnet(void*)
 static void
 reconnect(void)
 {
-	int8_t err[32], ldir[40];
+	char err[32], ldir[40];
 	int lcfd, fd;
 	Endpoints *ep;
 
@@ -394,7 +394,7 @@ synchronize(void)
 }
 
 static void
-showmsg(int level, int8_t *s, Buf *b)
+showmsg(int level, char *s, Buf *b)
 {
 	if (b == nil) {
 		dmessage(level, "%s; b == nil\n", s);
@@ -438,7 +438,7 @@ timerproc(void *x)
 }
 
 static void
-dmessage(int level, int8_t *fmt, ...)
+dmessage(int level, char *fmt, ...)
 {
 	va_list arg; 
 
@@ -450,11 +450,11 @@ dmessage(int level, int8_t *fmt, ...)
 }
 
 static void
-getendpoint(int8_t *dir, int8_t *file, int8_t **sysp, int8_t **servp)
+getendpoint(char *dir, char *file, char **sysp, char **servp)
 {
 	int fd, n;
-	int8_t buf[128];
-	int8_t *sys, *serv;
+	char buf[128];
+	char *sys, *serv;
 
 	sys = serv = 0;
 	snprint(buf, sizeof buf, "%s/%s", dir, file);
@@ -481,7 +481,7 @@ getendpoint(int8_t *dir, int8_t *file, int8_t **sysp, int8_t **servp)
 }
 
 static Endpoints *
-getendpoints(int8_t *dir)
+getendpoints(char *dir)
 {
 	Endpoints *ep;
 

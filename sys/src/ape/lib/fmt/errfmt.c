@@ -30,7 +30,7 @@
 int
 __errfmt(Fmt *f)
 {
-	int8_t *s;
+	char *s;
 
 	s = strerror(errno);
 	return fmtstrcpy(f, s);

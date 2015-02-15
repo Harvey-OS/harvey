@@ -396,7 +396,7 @@ in:				/* Initialize for a new page. */
 	op = *cbp++;
 #ifdef DEBUG
 	if (gs_debug_c('L')) {
-	    const int8_t *const *sub = cmd_sub_op_names[op >> 4];
+	    const char *const *sub = cmd_sub_op_names[op >> 4];
 
 	    if (sub)
 		dlprintf1("[L]%s:", sub[op & 0xf]);

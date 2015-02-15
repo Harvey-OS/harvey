@@ -453,7 +453,7 @@ Open a font and set its size.
 */
 static FAPI_retcode get_scaled_font(FAPI_server* a_server,FAPI_font* a_font,int a_subfont,
 									const FAPI_font_scale* a_font_scale,
-									const int8_t* a_map,bool a_vertical,
+									const char* a_map,bool a_vertical,
 									FAPI_descendant_code a_descendant_code)
 	{
 	FF_server* s = (FF_server*)a_server;
@@ -642,7 +642,7 @@ Return the name of a resource which maps names to character codes. Do this by se
 to point to a null-terminated string. The resource is in the 'decoding' directory in the directory named by
 /GenericResourceDir in \lib\gs_res.ps.
 */
-static FAPI_retcode get_decodingID(FAPI_server* a_server,FAPI_font* a_font,const int8_t** a_decoding_id)
+static FAPI_retcode get_decodingID(FAPI_server* a_server,FAPI_font* a_font,const char** a_decoding_id)
 	{
 	*a_decoding_id = "Unicode";
 	return 0;
@@ -681,7 +681,7 @@ static FAPI_retcode can_retrieve_char_by_name(FAPI_server* a_server,FAPI_font* a
 											  bool* a_result)
 	{
 	FF_face* face = (FF_face*)a_font->server_font_data;
-	int8_t name[128];
+	char name[128];
 	if (FT_HAS_GLYPH_NAMES(face->m_ft_face) && a_char_ref->char_name_length < sizeof(name))
 		{
 		memcpy(name,a_char_ref->char_name,a_char_ref->char_name_length);

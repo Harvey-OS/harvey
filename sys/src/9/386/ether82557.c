@@ -384,7 +384,7 @@ static void
 attach(Ether* ether)
 {
 	Ctlr *ctlr;
-	int8_t name[KNAMELEN];
+	char name[KNAMELEN];
 
 	ctlr = ether->ctlr;
 	lock(&ctlr->slock);
@@ -411,7 +411,7 @@ attach(Ether* ether)
 static int32_t
 ifstat(Ether* ether, void* a, int32_t n, uint32_t offset)
 {
-	int8_t *p;
+	char *p;
 	int i, len, phyaddr;
 	Ctlr *ctlr;
 	uint32_t dump[17];
@@ -992,7 +992,7 @@ i82557pci(void)
 	}
 }
 
-static int8_t* mediatable[9] = {
+static char* mediatable[9] = {
 	"10BASE-T",				/* TP */
 	"10BASE-2",				/* BNC */
 	"10BASE-5",				/* AUI */

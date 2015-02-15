@@ -61,13 +61,13 @@ struct State
 	int sigresp;
 };
 
-static mpint* mkdigest(RSApub *key, int8_t *hashalg, uint8_t *hash,
+static mpint* mkdigest(RSApub *key, char *hashalg, uint8_t *hash,
 		       uint dlen);
 
 static RSApriv*
 readrsapriv(Key *k)
 {
-	int8_t *a;
+	char *a;
 	RSApriv *priv;
 
 	priv = rsaprivalloc();
@@ -102,7 +102,7 @@ rsainit(Proto*, Fsstate *fss)
 {
 	Keyinfo ki;
 	State *s;
-	int8_t *role;
+	char *role;
 
 	if((role = _strfindattr(fss->attr, "role")) == nil)
 		return failure(fss, "rsa role not specified");
@@ -194,7 +194,7 @@ rsawrite(Fsstate *fss, void *va, uint n)
 	RSApriv *priv;
 	mpint *m, *mm;
 	State *s;
-	int8_t *hash;
+	char *hash;
 	int dlen;
 
 	s = fss->ps;
@@ -338,7 +338,7 @@ uint8_t oidmd5[] = { O0(1, 2), O2(840), O3(113549), 2, 5 };
  * instead.  Sigh.
  */
 static int
-mkasn1(uint8_t *asn1, int8_t *alg, uint8_t *d, uint dlen)
+mkasn1(uint8_t *asn1, char *alg, uint8_t *d, uint dlen)
 {
 	uint8_t *obj, *p;
 	uint olen;
@@ -381,7 +381,7 @@ mkasn1(uint8_t *asn1, int8_t *alg, uint8_t *d, uint dlen)
 }
 
 static mpint*
-mkdigest(RSApub *key, int8_t *hashalg, uint8_t *hash, uint dlen)
+mkdigest(RSApub *key, char *hashalg, uint8_t *hash, uint dlen)
 {
 	mpint *m;
 	uint8_t asn1[512], *buf;

@@ -16,10 +16,10 @@
  *  make factotum add wep keys to an 802.11 device
  */
 int
-auth_wep(int8_t *dev, int8_t *fmt, ...)
+auth_wep(char *dev, char *fmt, ...)
 {
 	AuthRpc *rpc;
-	int8_t *params, *p;
+	char *params, *p;
 	int fd;
 	va_list arg;
 	int rv;

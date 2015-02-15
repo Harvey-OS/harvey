@@ -44,8 +44,8 @@ struct	Event
 
 struct Menu
 {
-	int8_t	**item;
-	int8_t	*(*gen)(int);
+	char	**item;
+	char	*(*gen)(int);
 	int	lasthit;
 };
 
@@ -66,11 +66,11 @@ extern int	 ecanmouse(void);
 extern int	 ecankbd(void);
 extern void	 eresized(int);	/* supplied by user */
 extern int	 emenuhit(int, Mouse*, Menu*);
-extern int	eatomouse(Mouse*, int8_t*, int);
+extern int	eatomouse(Mouse*, char*, int);
 extern Rectangle	getrect(int, Mouse*);
 extern void	 esetcursor(Cursor*);
 extern void	 emoveto(Point);
 extern Rectangle	egetrect(int, Mouse*);
 extern void		edrawgetrect(Rectangle, int);
 extern int		ereadmouse(Mouse*);
-extern int		eatomouse(Mouse*, int8_t*, int);
+extern int		eatomouse(Mouse*, char*, int);

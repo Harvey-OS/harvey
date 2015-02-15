@@ -65,7 +65,7 @@ struct SunAuthInfo
 struct SunAuthUnix
 {
 	uint32_t stamp;
-	int8_t *sysname;
+	char *sysname;
 	uint32_t uid;
 	uint32_t gid;
 	uint32_t g[16];
@@ -133,9 +133,9 @@ int sunEnumUnpack(uint8_t*, uint8_t*, uint8_t**, int*);
 int sunUint1Pack(uint8_t*, uint8_t*, uint8_t**, u1int*);
 int sunUint1Unpack(uint8_t*, uint8_t*, uint8_t**, u1int*);
 
-int sunStringPack(uint8_t*, uint8_t*, uint8_t**, int8_t**, uint32_t);
-int sunStringUnpack(uint8_t*, uint8_t*, uint8_t**, int8_t**, uint32_t);
-uint sunStringSize(int8_t*);
+int sunStringPack(uint8_t*, uint8_t*, uint8_t**, char**, uint32_t);
+int sunStringUnpack(uint8_t*, uint8_t*, uint8_t**, char**, uint32_t);
+uint sunStringSize(char*);
 
 int sunUint32Pack(uint8_t*, uint8_t*, uint8_t**, uint32_t*);
 int sunUint32Unpack(uint8_t*, uint8_t*, uint8_t**, uint32_t*);
@@ -234,9 +234,9 @@ struct SunSrv
 SunSrv *sunSrv(void);
 
 void	sunSrvProg(SunSrv *srv, SunProg *prog, Channel *c);
-int	sunSrvAnnounce(SunSrv *srv, int8_t *address);
-int	sunSrvUdp(SunSrv *srv, int8_t *address);
-int	sunSrvNet(SunSrv *srv, int8_t *address);
+int	sunSrvAnnounce(SunSrv *srv, char *address);
+int	sunSrvUdp(SunSrv *srv, char *address);
+int	sunSrvNet(SunSrv *srv, char *address);
 int	sunSrvFd(SunSrv *srv, int fd);
 void	sunSrvThreadCreate(SunSrv *srv, void (*fn)(void*), void*);
 void	sunSrvClose(SunSrv*);
@@ -275,7 +275,7 @@ struct SunClient
 	int 		nettid;
 };
 
-SunClient	*sunDial(int8_t*);
+SunClient	*sunDial(char*);
 
 int	sunClientRpc(SunClient*, uint32_t, SunCall*, SunCall*, uint8_t**);
 void	sunClientClose(SunClient*);

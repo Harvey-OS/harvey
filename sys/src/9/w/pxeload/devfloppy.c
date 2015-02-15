@@ -91,7 +91,7 @@ FController	fl;
  *  predeclared
  */
 static int	cmddone(void*);
-static void	floppyformat(FDrive*, int8_t*);
+static void	floppyformat(FDrive*, char*);
 static void	floppykproc(void*);
 static void	floppypos(FDrive*,int32_t);
 static int	floppyrecal(FDrive*);
@@ -210,7 +210,7 @@ floppyinit(void)
 }
 
 void
-floppyinitdev(int i, int8_t *name)
+floppyinitdev(int i, char *name)
 {
 	if(i >= fl.ndrive)
 		panic("floppyinitdev");
@@ -226,7 +226,7 @@ floppyprintdevs(int i)
 }
 
 int
-floppyboot(int dev, int8_t *file, Boot *b)
+floppyboot(int dev, char *file, Boot *b)
 {
 	Fs *fs;
 
@@ -372,7 +372,7 @@ floppyread(Fs *fs, void *a, int32_t n)
 }
 
 void*
-floppygetfspart(int i, int8_t *name, int chatty)
+floppygetfspart(int i, char *name, int chatty)
 {
 	static Fs fs;
 

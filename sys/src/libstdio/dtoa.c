@@ -150,7 +150,7 @@ Bfree(Bigint *v)
 	}
 }
 
-#define Bcopy(x,y) memcpy((int8_t *)&x->sign, (int8_t *)&y->sign, \
+#define Bcopy(x,y) memcpy((char *)&x->sign, (char *)&y->sign, \
 y->wds*sizeof(int) + 2*sizeof(int))
 
 static Bigint *
@@ -186,7 +186,7 @@ multadd(Bigint *b, int m, int a)	/* multiply by m and add a */
 }
 
 static Bigint *
-s2b(const int8_t *s, int nd0, int nd, unsigned int y9)
+s2b(const char *s, int nd0, int nd, unsigned int y9)
 {
 	Bigint * b;
 	int	i, k;
@@ -641,10 +641,10 @@ static const double tinytens[] = {
 #define NAN_WORD1 0
 
 static int	
-match(const int8_t **sp, int8_t *t)
+match(const char **sp, char *t)
 {
 	int	c, d;
-	const int8_t * s = *sp;
+	const char * s = *sp;
 
 	while (d = *t++) {
 		if ((c = *++s) >= 'A' && c <= 'Z')
@@ -657,10 +657,10 @@ match(const int8_t **sp, int8_t *t)
 }
 
 static void	
-gethex(double *rvp, const int8_t **sp)
+gethex(double *rvp, const char **sp)
 {
 	unsigned int c, x[2];
-	const int8_t * s;
+	const char * s;
 	int	havedig, udx0, xshift;
 
 	x[0] = x[1] = 0;
@@ -764,7 +764,7 @@ quorem(Bigint *b, Bigint *S)
 	return q;
 }
 
-static int8_t	*
+static char	*
 rv_alloc(int i)
 {
 	int	j, k, *r;
@@ -777,13 +777,13 @@ rv_alloc(int i)
 	r = (int * )Balloc(k);
 	*r = k;
 	return
-	    (int8_t *)(r + 1);
+	    (char *)(r + 1);
 }
 
-static int8_t	*
-nrv_alloc(int8_t *s, int8_t **rve, int n)
+static char	*
+nrv_alloc(char *s, char **rve, int n)
 {
-	int8_t	*rv, *t;
+	char	*rv, *t;
 
 	t = rv = rv_alloc(n);
 	while (*t = *s++) 
@@ -800,7 +800,7 @@ nrv_alloc(int8_t *s, int8_t **rve, int n)
  */
 
 void
-freedtoa(int8_t *s)
+freedtoa(char *s)
 {
 	Bigint * b = (Bigint * )((int *)s - 1);
 	b->maxwds = 1 << (b->k = *(int * )b);
@@ -841,8 +841,8 @@ freedtoa(int8_t *s)
  *	   calculation.
  */
 
-int8_t	*
-dtoa(double d, int mode, int ndigits, int *decpt, int *sign, int8_t **rve)
+char	*
+dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve)
 {
 	/*	Arguments ndigits, decpt, sign are similar to those
 	of ecvt and fcvt; trailing zeros are suppressed from
@@ -883,7 +883,7 @@ dtoa(double d, int mode, int ndigits, int *decpt, int *sign, int8_t **rve)
 		spec_case, try_quick;
 	Bigint * b, *b1, *delta, *mlo=nil, *mhi, *S;
 	double	d2, ds, eps;
-	int8_t	*s, *s0;
+	char	*s, *s0;
 	Ulongs ulsd, ulsd2;
 
 	ulsd = double2ulongs(d);

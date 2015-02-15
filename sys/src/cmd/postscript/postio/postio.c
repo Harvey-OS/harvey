@@ -111,15 +111,15 @@
 #include "gen.h"			/* general purpose definitions */
 #include "postio.h"			/* some special definitions */
 
-int8_t	**argv;				/* global so everyone can use them */
+char	**argv;				/* global so everyone can use them */
 int	argc;
 
-int8_t	*prog_name = "";		/* really just for error messages */
+char	*prog_name = "";		/* really just for error messages */
 int	x_stat = 0;			/* program exit status */
 int	debug = OFF;			/* debug flag */
 int	ignore = OFF;			/* what's done for FATAL errors */
 
-int8_t	*line = NULL;			/* printer is on this tty line */
+char	*line = NULL;			/* printer is on this tty line */
 int16_t	baudrate = BAUDRATE;		/* and running at this baud rate */
 Baud	baudtable[] = BAUDTABLE;	/* converts strings to termio values */
 
@@ -127,12 +127,12 @@ int	stopbits = 1;			/* number of stop bits */
 int	tostdout = FALSE;		/* non-status stuff goes to stdout? */
 int	quiet = FALSE;			/* no status queries in send() if TRUE */
 int	interactive = FALSE;		/* interactive mode */
-int8_t	*postbegin = POSTBEGIN;		/* preceeds all the input files */
+char	*postbegin = POSTBEGIN;		/* preceeds all the input files */
 int	useslowsend = FALSE;		/* not recommended! */
 int	sendctrlC = TRUE;		/* interrupt with ctrl-C when BUSY */
 int	window_size = -1;		/* for Datakit - use -w */
 
-int8_t	*block = NULL;			/* input file buffer */
+char	*block = NULL;			/* input file buffer */
 int	blocksize = BLOCKSIZE;		/* and its size in bytes */
 int	head = 0;			/* block[head] is the next character */
 int	tail = 0;			/* one past the last byte in block[] */
@@ -145,11 +145,11 @@ int	otherpid = -1;			/* who gets signals if greater than 1 */
 int	joinsig = SIGTRAP;		/* reader gets this when writing is done */
 int	writedone = FALSE;		/* and then sets this to TRUE */
 
-int8_t	mesg[MESGSIZE];			/* exactly what came back on ttyi */
-int8_t	sbuf[MESGSIZE];			/* for parsing the message */
+char	mesg[MESGSIZE];			/* exactly what came back on ttyi */
+char	sbuf[MESGSIZE];			/* for parsing the message */
 int	next = 0;			/* next character goes in mesg[next] */
-int8_t	*mesgptr = NULL;		/* printer message starts here in mesg[] */
-int8_t	*endmesg = NULL;		/* as far as readline() can go in mesg[] */
+char	*mesgptr = NULL;		/* printer message starts here in mesg[] */
+char	*endmesg = NULL;		/* as far as readline() can go in mesg[] */
 
 Status	status[] = STATUS;		/* for converting status strings */
 int	nostatus = NOSTATUS;		/* default getstatus() return value */
@@ -928,14 +928,14 @@ parsemesg()
 
 /*****************************************************************************/
 
-int8_t *find(str1, str2)
+char *find(str1, str2)
 
-    int8_t	*str1;			/* look for this string */
-    int8_t	*str2;			/* in this one */
+    char	*str1;			/* look for this string */
+    char	*str2;			/* in this one */
 
 {
 
-    int8_t	*s1, *s2;		/* can't change str1 or str2 too fast */
+    char	*s1, *s2;		/* can't change str1 or str2 too fast */
 
 /*
  *

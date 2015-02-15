@@ -10,7 +10,7 @@
 #include	<stdlib.h>
 
 int32_t
-itol(const int8_t *s)
+itol(const char *s)
 {
-	return(strtol(s, (int8_t **)0, 10));
+	return(strtol(s, (char **)0, 10));
 }

@@ -25,13 +25,13 @@ enum
 	Stacksize = 8192,
 };
 
-int8_t *host;
-int8_t *file;
-int8_t *port;
-int8_t *url;
-int8_t *get;
-int8_t *user;
-int8_t *net = "net";
+char *host;
+char *file;
+char *port;
+char *url;
+char *get;
+char *user;
+char *net = "net";
 
 int64_t size;
 int usetls;
@@ -204,10 +204,10 @@ dotls(int fd)
 	return fd;
 }
 
-int8_t*
-nocr(int8_t *s)
+char*
+nocr(char *s)
 {
-	int8_t *r, *w;
+	char *r, *w;
 
 	for(r=w=s; *r; r++)
 		if(*r != '\r')
@@ -216,10 +216,10 @@ nocr(int8_t *s)
 	return s;
 }
 
-int8_t*
+char*
 readhttphdr(Biobuf *netbio, int64_t *size)
 {
-	int8_t *s, *stat;
+	char *s, *stat;
 
 	stat = nil;
 	while((s = Brdstr(netbio, '\n', 1)) != nil && s[0] != '\r'
@@ -255,7 +255,7 @@ uint8_t*
 getrange(Block *b)
 {
 	uint8_t *data;
-	int8_t *status;
+	char *status;
 	int netfd;
 	static Biobuf netbio;
 
@@ -328,7 +328,7 @@ httpfilereadproc(void*)
 typedef struct Tab Tab;
 struct Tab
 {
-	int8_t *name;
+	char *name;
 	uint32_t mode;
 };
 
@@ -387,8 +387,8 @@ rootgen(int i, Dir *d, void*)
 	return -1;
 }
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i;
 	uint32_t path;
@@ -423,7 +423,7 @@ fswalk1(Fid *fid, int8_t *name, Qid *qid)
 int64_t
 getfilesize(void)
 {
-	int8_t *status;
+	char *status;
 	int64_t size;
 	int netfd;
 	static Biobuf netbio;
@@ -546,7 +546,7 @@ fsflush(Req *r)
 static void
 fsread(Req *r)
 {
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 	uint32_t path;
 
 	path = r->fid->qid.path;

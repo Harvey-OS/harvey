@@ -26,7 +26,7 @@ execute(uint8_t *file)
 	uint8_t	*execp;
 
 	if (file) {
-		if ((f = open((int8_t*)file, O_RDONLY)) < 0) {
+		if ((f = open((char*)file, O_RDONLY)) < 0) {
 			fprintf(stderr, "sed: Can't open %s\n", file);
 		}
 	} else
@@ -688,7 +688,7 @@ arout(void)
 				putc(*p1++, stdout);
 			putc('\n', stdout);
 		} else {
-			if((fi = fopen((int8_t*)((*aptr)->r1.re1), "r")) == NULL)
+			if((fi = fopen((char*)((*aptr)->r1.re1), "r")) == NULL)
 				continue;
 			while((t = getc(fi)) != EOF) {
 				c = t;

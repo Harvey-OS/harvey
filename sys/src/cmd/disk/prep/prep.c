@@ -26,25 +26,25 @@ static int	doautox;
 static int	printflag;
 static Part	**opart;
 static int	nopart;
-static int8_t	*osecbuf;
-static int8_t	*secbuf;
+static char	*osecbuf;
+static char	*secbuf;
 static int	rdonly;
 static int	dowrite;
 static int	docache;
 static int	donvram;
 
 static void	autoxpart(Edit*);
-static Part	*mkpart(int8_t*, int64_t, int64_t, int);
+static Part	*mkpart(char*, int64_t, int64_t, int);
 static void	rdpart(Edit*);
 static void	wrpart(Edit*);
 static void	checkfat(Disk*);
 
 static void 	cmdsum(Edit*, Part*, int64_t, int64_t);
-static int8_t 	*cmdadd(Edit*, int8_t*, int64_t, int64_t);
-static int8_t 	*cmddel(Edit*, Part*);
-static int8_t 	*cmdokname(Edit*, int8_t*);
-static int8_t 	*cmdwrite(Edit*);
-static int8_t	*cmdctlprint(Edit*, int, int8_t**);
+static char 	*cmdadd(Edit*, char*, int64_t, int64_t);
+static char 	*cmddel(Edit*, Part*);
+static char 	*cmdokname(Edit*, char*);
+static char 	*cmdwrite(Edit*);
+static char	*cmdctlprint(Edit*, int, char**);
 
 Edit edit = {
 	.add=	cmdadd,
@@ -59,7 +59,7 @@ Edit edit = {
 typedef struct Auto Auto;
 struct Auto
 {
-	int8_t	*name;
+	char	*name;
 	uint64_t	min;
 	uint64_t	max;
 	uint	weight;
@@ -208,8 +208,8 @@ static void
 cmdsum(Edit *edit, Part *p, int64_t a, int64_t b)
 {
 	int64_t sz, div;
-	int8_t *suf, *name;
-	int8_t c;
+	char *suf, *name;
+	char c;
 
 	c = p && p->changed ? '\'' : ' ';
 	name = p ? p->name : "empty";
@@ -243,8 +243,8 @@ cmdsum(Edit *edit, Part *p, int64_t a, int64_t b)
 			sz/div, (int)(((sz%div)*100)/div), suf);
 }
 
-static int8_t*
-cmdadd(Edit *edit, int8_t *name, int64_t start, int64_t end)
+static char*
+cmdadd(Edit *edit, char *name, int64_t start, int64_t end)
 {
 	if(start < 2 && strcmp(name, "9fat") != 0)
 		return "overlaps with the pbs and/or the partition table";
@@ -252,13 +252,13 @@ cmdadd(Edit *edit, int8_t *name, int64_t start, int64_t end)
 	return addpart(edit, mkpart(name, start, end, 1));
 }
 
-static int8_t*
+static char*
 cmddel(Edit *edit, Part *p)
 {
 	return delpart(edit, p);
 }
 
-static int8_t*
+static char*
 cmdwrite(Edit *edit)
 {
 	wrpart(edit);
@@ -275,8 +275,8 @@ static char isfrog[256]={
 	[0x7f]	1,
 };
 
-static int8_t*
-cmdokname(Edit*, int8_t *elem)
+static char*
+cmdokname(Edit*, char *elem)
 {
 	for(; *elem; elem++)
 		if(isfrog[*(uint8_t*)elem])
@@ -285,7 +285,7 @@ cmdokname(Edit*, int8_t *elem)
 }
 
 static Part*
-mkpart(int8_t *name, int64_t start, int64_t end, int changed)
+mkpart(char *name, int64_t start, int64_t end, int changed)
 {
 	Part *p;
 
@@ -304,9 +304,9 @@ rdpart(Edit *edit)
 {
 	int i, nline, nf, waserr;
 	int64_t a, b;
-	int8_t *line[128];
-	int8_t *f[5];
-	int8_t *err;
+	char *line[128];
+	char *f[5];
+	char *err;
 	Disk *disk;
 
 	disk = edit->disk;
@@ -361,7 +361,7 @@ autoxpart(Edit *edit)
 {
 	int i, totw, futz;
 	int64_t secs, secsize, s;
-	int8_t *err;
+	char *err;
 
 	if(edit->npart > 0) {
 		if(doautox)

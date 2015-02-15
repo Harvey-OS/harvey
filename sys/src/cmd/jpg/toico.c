@@ -23,7 +23,7 @@ typedef struct Icon Icon;
 struct Icon
 {
 	Icon	*next;
-	int8_t	*file;
+	char	*file;
 
 	uint8_t	w;		/* icon width */
 	uint8_t	h;		/* icon height */
@@ -69,7 +69,7 @@ Header h;
 void*	emalloc(int);
 void	mk8bit(Icon*, int);
 void	mkxorand(Icon*, int);
-void	readicon(int8_t*);
+void	readicon(char*);
 
 void
 main(int argc, char **argv)
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 }
 
 void
-readicon(int8_t *file)
+readicon(char *file)
 {
 	int fd;
 	Icon *icon;

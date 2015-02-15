@@ -42,14 +42,14 @@ THIS SOFTWARE.
 #include "y.tab.h"
 
 FILE	*infile	= NULL;
-int8_t	*file	= "";
-int8_t	*record;
+char	*file	= "";
+char	*record;
 int	recsize	= RECSIZE;
-int8_t	*fields;
+char	*fields;
 int	fieldssize = RECSIZE;
 
 Cell	**fldtab;	/* pointers to Cells */
-int8_t	inputFS[100] = " ";
+char	inputFS[100] = " ";
 
 #define	MAXFLD	200
 int	nfields	= MAXFLD;	/* last allocated slot for $i */
@@ -66,8 +66,8 @@ static Cell dollar1 = { OCELL, CFLD, NULL, "", 0.0, FLD|STR|DONTFREE };
 
 void recinit(unsigned int n)
 {
-	record = (int8_t *) malloc(n);
-	fields = (int8_t *) malloc(n);
+	record = (char *) malloc(n);
+	fields = (char *) malloc(n);
 	fldtab = (Cell **) malloc((nfields+1) * sizeof(Cell *));
 	if (record == NULL || fields == NULL || fldtab == NULL)
 		FATAL("out of space for $0 and fields");
@@ -80,7 +80,7 @@ void recinit(unsigned int n)
 
 void makefields(int n1, int n2)		/* create $n1..$n2 inclusive */
 {
-	int8_t temp[50];
+	char temp[50];
 	int i;
 
 	for (i = n1; i <= n2; i++) {
@@ -96,7 +96,7 @@ void makefields(int n1, int n2)		/* create $n1..$n2 inclusive */
 void initgetrec(void)
 {
 	int i;
-	int8_t *p;
+	char *p;
 
 	for (i = 1; i < *ARGC; i++) {
 		if (!isclvar(p = getargv(i))) {	/* find 1st real filename */
@@ -109,11 +109,11 @@ void initgetrec(void)
 	infile = stdin;		/* no filenames, so use stdin */
 }
 
-int getrec(int8_t **pbuf, int *pbufsize, int isrecord)	/* get next input record */
+int getrec(char **pbuf, int *pbufsize, int isrecord)	/* get next input record */
 {			/* note: cares whether buf == record */
 	int c;
 	static int firsttime = 1;
-	int8_t *buf = *pbuf;
+	char *buf = *pbuf;
 	int bufsize = *pbufsize;
 
 	if (firsttime) {
@@ -185,10 +185,10 @@ void nextfile(void)
 	argno++;
 }
 
-int readrec(int8_t **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf */
+int readrec(char **pbuf, int *pbufsize, FILE *inf)	/* read one record into buf */
 {
 	int sep, c;
-	int8_t *rr, *buf = *pbuf;
+	char *rr, *buf = *pbuf;
 	int bufsize = *pbufsize;
 
 	if (strlen(*FS) >= sizeof(inputFS))
@@ -239,9 +239,9 @@ char *getargv(int n)	/* get ARGV[n] */
 	return s;
 }
 
-void setclvar(int8_t *s)	/* set var=value from s */
+void setclvar(char *s)	/* set var=value from s */
 {
-	int8_t *p;
+	char *p;
 	Cell *q;
 
 	for (p=s; *p != '='; p++)
@@ -262,7 +262,7 @@ void fldbld(void)	/* create fields from current record */
 {
 	/* this relies on having fields[] the same length as $0 */
 	/* the fields are all stored in this one array with \0's */
-	int8_t *r, *fr, sep;
+	char *r, *fr, sep;
 	Cell *p;
 	int i, j, n;
 
@@ -274,7 +274,7 @@ void fldbld(void)	/* create fields from current record */
 	n = strlen(r);
 	if (n > fieldssize) {
 		xfree(fields);
-		if ((fields = (int8_t *) malloc(n+1)) == NULL)
+		if ((fields = (char *) malloc(n+1)) == NULL)
 			FATAL("out of space for fields in fldbld %d", n);
 		fieldssize = n;
 	}
@@ -303,7 +303,7 @@ void fldbld(void)	/* create fields from current record */
 		*fr = 0;
 	} else if ((sep = *inputFS) == 0) {		/* new: FS="" => 1 char/field */
 		for (i = 0; *r != 0; r++) {
-			int8_t buf[2];
+			char buf[2];
 			i++;
 			if (i > nfields)
 				growfldtab(i);
@@ -398,18 +398,18 @@ void growfldtab(int n)	/* make new fields up to at least $n */
 	nfields = nf;
 }
 
-int refldbld(int8_t *rec, int8_t *fs)	/* build fields from reg expr in FS */
+int refldbld(char *rec, char *fs)	/* build fields from reg expr in FS */
 {
 	/* this relies on having fields[] the same length as $0 */
 	/* the fields are all stored in this one array with \0's */
-	int8_t *fr;
+	char *fr;
 	void *p;
 	int i, tempstat, n;
 
 	n = strlen(rec);
 	if (n > fieldssize) {
 		xfree(fields);
-		if ((fields = (int8_t *) malloc(n+1)) == NULL)
+		if ((fields = (char *) malloc(n+1)) == NULL)
 			FATAL("out of space for fields in refldbld %d", n);
 		fieldssize = n;
 	}
@@ -445,7 +445,7 @@ int refldbld(int8_t *rec, int8_t *fs)	/* build fields from reg expr in FS */
 void recbld(void)	/* create $0 from $1..$NF if necessary */
 {
 	int i;
-	int8_t *r, *p;
+	char *r, *p;
 
 	if (donerec == 1)
 		return;
@@ -480,14 +480,14 @@ void recbld(void)	/* create $0 from $1..$NF if necessary */
 
 int	errorflag	= 0;
 
-void yyerror(int8_t *s)
+void yyerror(char *s)
 {
 	SYNTAX(s);
 }
 
-void SYNTAX(int8_t *fmt, ...)
+void SYNTAX(char *fmt, ...)
 {
-	extern int8_t *cmdname, *curfname;
+	extern char *cmdname, *curfname;
 	static int been_here = 0;
 	va_list varg;
 
@@ -541,9 +541,9 @@ void bcheck2(int n, int c1, int c2)
 		fprintf(stderr, "\t%d extra %c's\n", -n, c2);
 }
 
-void FATAL(int8_t *fmt, ...)
+void FATAL(char *fmt, ...)
 {
-	extern int8_t *cmdname;
+	extern char *cmdname;
 	va_list varg;
 
 	fflush(stdout);
@@ -557,9 +557,9 @@ void FATAL(int8_t *fmt, ...)
 	exit(2);
 }
 
-void WARNING(int8_t *fmt, ...)
+void WARNING(char *fmt, ...)
 {
-	extern int8_t *cmdname;
+	extern char *cmdname;
 	va_list varg;
 
 	fflush(stdout);
@@ -602,10 +602,10 @@ void error()
 
 void eprint(void)	/* try to print context around error */
 {
-	int8_t *p, *q;
+	char *p, *q;
 	int c;
 	static int been_here = 0;
-	extern int8_t ebuf[], *ep;
+	extern char ebuf[], *ep;
 
 	if (compile_time == 2 || compile_time == 0 || been_here++ > 0)
 		return;
@@ -648,7 +648,7 @@ void bclass(int c)
 	}
 }
 
-double errcheck(double x, int8_t *s)
+double errcheck(double x, char *s)
 {
 
 	if (errno == EDOM) {
@@ -663,9 +663,9 @@ double errcheck(double x, int8_t *s)
 	return x;
 }
 
-int isclvar(int8_t *s)	/* is s of form var=something ? */
+int isclvar(char *s)	/* is s of form var=something ? */
 {
-	int8_t *os = s;
+	char *os = s;
 
 	if (!isalpha(*s) && *s != '_')
 		return 0;
@@ -678,10 +678,10 @@ int isclvar(int8_t *s)	/* is s of form var=something ? */
 /* strtod is supposed to be a proper test of what's a valid number */
 
 #include <math.h>
-int is_number(int8_t *s)
+int is_number(char *s)
 {
 	double r;
-	int8_t *ep;
+	char *ep;
 
 	/*
 	 * fast could-it-be-a-number check before calling strtod,

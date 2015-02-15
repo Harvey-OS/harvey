@@ -474,17 +474,17 @@ typedef void far * EMSPTR;
 
 typedef union {			/* EMS move specification structure */
 	int32_t length;		/* It's easy to access first 4 bytes */
-	int8_t bytes[18];		/* Misaligned fields in here! */
+	char bytes[18];		/* Misaligned fields in here! */
       } EMSspec;
 
 /* Macros for accessing misaligned fields */
 #define FIELD_AT(spec,offset,type)  (*((type *) &(spec.bytes[offset])))
-#define SRC_TYPE(spec)		FIELD_AT(spec,4,int8_t)
+#define SRC_TYPE(spec)		FIELD_AT(spec,4,char)
 #define SRC_HANDLE(spec)	FIELD_AT(spec,5,EMSH)
 #define SRC_OFFSET(spec)	FIELD_AT(spec,7,unsigned short)
 #define SRC_PAGE(spec)		FIELD_AT(spec,9,unsigned short)
 #define SRC_PTR(spec)		FIELD_AT(spec,7,EMSPTR)
-#define DST_TYPE(spec)		FIELD_AT(spec,11,int8_t)
+#define DST_TYPE(spec)		FIELD_AT(spec,11,char)
 #define DST_HANDLE(spec)	FIELD_AT(spec,12,EMSH)
 #define DST_OFFSET(spec)	FIELD_AT(spec,14,unsigned short)
 #define DST_PAGE(spec)		FIELD_AT(spec,16,unsigned short)

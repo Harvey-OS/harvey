@@ -15,10 +15,10 @@
  * Default version: convert to file name
  */
 
-int8_t*
-subfontname(int8_t *cfname, int8_t *fname, int maxdepth)
+char*
+subfontname(char *cfname, char *fname, int maxdepth)
 {
-	int8_t *t, *u, *tmp1, *tmp2;
+	char *t, *u, *tmp1, *tmp2;
 	int i;
 
 	t = strdup(cfname);  /* t is the return string */

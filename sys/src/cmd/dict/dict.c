@@ -45,13 +45,13 @@ int	outinhibit;
 int	debug;
 
 void	execcmd(int);
-int	getpref(int8_t*, Rune*);
+int	getpref(char*, Rune*);
 Entry	getentry(int);
 int	getfield(Rune*);
 int32_t	locate(Rune*);
-int	parseaddr(int8_t*, int8_t**);
-int	parsecmd(int8_t*);
-int	search(int8_t*, int);
+int	parseaddr(char*, char**);
+int	parsecmd(char*);
+int	search(char*, int);
 int32_t	seeknextline(Biobuf*, int32_t);
 void	setdotnext(void);
 void	setdotprev(void);
@@ -171,7 +171,7 @@ void
 usage(void)
 {
 	int i;
-	int8_t *a, *b;
+	char *a, *b;
 
 	Bprint(bout, "Usage: %s [-d dict] [-k] [-c cmd] [word]\n", argv0);
 	Bprint(bout, "dictionaries (brackets mark dictionaries not present on this system):\n");
@@ -187,9 +187,9 @@ usage(void)
 }
 
 int
-parsecmd(int8_t *line)
+parsecmd(char *line)
 {
-	int8_t *e;
+	char *e;
 	int cmd, ans;
 
 	if(parseaddr(line, &e) >= 0)
@@ -272,12 +272,12 @@ execcmd(int cmd)
  * Return 0 if no address.
  */
 int
-parseaddr(int8_t *line, int8_t **eptr)
+parseaddr(char *line, char **eptr)
 {
 	int delim, plen;
 	uint32_t v;
-	int8_t *e;
-	int8_t pat[Plen];
+	char *e;
+	char pat[Plen];
 
 	if(*line == '/' || *line == '!') {
 		/* anchored regular expression match; '!' means no folding */
@@ -351,7 +351,7 @@ parseaddr(int8_t *line, int8_t **eptr)
  * We know pat len < Plen, and that it is surrounded by ^..$
  */
 int
-search(int8_t *pat, int dofold)
+search(char *pat, int dofold)
 {
 	int needre, prelen, match, n;
 	Reprog *re;
@@ -359,7 +359,7 @@ search(int8_t *pat, int dofold)
 	Rune pre[Plen];
 	Rune lit[Plen];
 	Rune entry[Fieldlen];
-	int8_t fpat[Plen];
+	char fpat[Plen];
 
 	prelen = getpref(pat+1, pre);
 	if(pat[prelen+1] == 0 || pat[prelen+1] == '$') {
@@ -494,10 +494,10 @@ locate(Rune *pre)
  * and return length
  */
 int
-getpref(int8_t *pat, Rune *pre)
+getpref(char *pat, Rune *pre)
 {
 	int n, r;
-	int8_t *p;
+	char *p;
 
 	p = pat;
 	while(*p) {

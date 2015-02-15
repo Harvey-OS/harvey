@@ -12,18 +12,18 @@
 #include <bio.h>
 #include <regexp.h>
 
-int8_t	digit[] = "0123456789";
-int8_t	*suffix = "";
-int8_t	*stem = "x";
-int8_t	suff[] = "aa";
-int8_t	name[200];
+char	digit[] = "0123456789";
+char	*suffix = "";
+char	*stem = "x";
+char	suff[] = "aa";
+char	name[200];
 Biobuf	bout;
 Biobuf	*output = &bout;
 
 extern int nextfile(void);
 extern int matchfile(Resub*);
 extern void openf(void);
-extern int8_t *fold(int8_t*,int);
+extern char *fold(char*,int);
 extern void usage(void);
 extern void badexp(void);
 
@@ -170,12 +170,12 @@ openf(void)
 	Binit(output, fd, OWRITE);
 }
 
-int8_t *
-fold(int8_t *s, int n)
+char *
+fold(char *s, int n)
 {
-	static int8_t *fline;
+	static char *fline;
 	static int linesize = 0;
-	int8_t *t;
+	char *t;
 
 	if(linesize < n+1){
 		fline = realloc(fline,n+1);

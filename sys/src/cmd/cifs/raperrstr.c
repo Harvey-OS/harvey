@@ -12,7 +12,7 @@
 
 static struct {
 	int	err;
-	int8_t	*msg;
+	char	*msg;
 } RAPerrs[] = {
 	{ 0,	"ok" },
 	{ 5,	"permission denied" },
@@ -336,11 +336,11 @@ static struct {
 	{ 2705, "password does not meet the requirements of the password filter DLLs" },
 };
 
-int8_t *
+char *
 raperrstr(uint err)
 {
 	int i, match;
-	static int8_t buf[0xff];
+	static char buf[0xff];
 
 	match = -1;
 	for(i = 0; i < nelem(RAPerrs); i++)

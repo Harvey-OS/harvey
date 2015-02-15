@@ -21,7 +21,7 @@ void
 rogetprintentry(Entry e, int cmd)
 {
 	int spc;
-	int8_t c, *p;
+	char c, *p;
 
 	spc = 0;
 	p = e.start;
@@ -134,7 +134,7 @@ rogetnextoff(int32_t fromoff)
 {
 	int i;
 	int64_t l;
-	int8_t *p;
+	char *p;
 
 	Bseek(bdict, fromoff, 0);
 	Brdline(bdict, '\n');

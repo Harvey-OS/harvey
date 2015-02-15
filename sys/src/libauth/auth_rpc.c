@@ -13,7 +13,7 @@
 #include "authlocal.h"
 
 static struct {
-	int8_t *verb;
+	char *verb;
 	int val;
 } tab[] = {
 	"ok",			ARok,
@@ -27,7 +27,7 @@ static struct {
 };
 
 static int
-classify(int8_t *buf, uint n, AuthRpc *rpc)
+classify(char *buf, uint n, AuthRpc *rpc)
 {
 	int i, len;
 
@@ -39,7 +39,7 @@ classify(int8_t *buf, uint n, AuthRpc *rpc)
 				rpc->arg = "";
 			}else{
 				rpc->narg = n - (len+1);
-				rpc->arg = (int8_t*)buf+len+1;
+				rpc->arg = (char*)buf+len+1;
 			}
 			return tab[i].val;
 		}
@@ -67,10 +67,10 @@ auth_freerpc(AuthRpc *rpc)
 }
 
 uint
-auth_rpc(AuthRpc *rpc, int8_t *verb, void *a, int na)
+auth_rpc(AuthRpc *rpc, char *verb, void *a, int na)
 {
 	int l, n, type;
-	int8_t *f[4];
+	char *f[4];
 
 	l = strlen(verb);
 	if(na+l+1 > AuthRpcMax){

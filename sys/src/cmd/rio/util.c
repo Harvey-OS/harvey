@@ -20,7 +20,7 @@
 #include "fns.h"
 
 void
-cvttorunes(int8_t *p, int n, Rune *r, int *nb, int *nr, int *nulls)
+cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 {
 	uint8_t *q;
 	Rune *s;
@@ -40,7 +40,7 @@ cvttorunes(int8_t *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 			w = 1;
 			*s = *q++;
 		}else{
-			w = chartorune(s, (int8_t*)q);
+			w = chartorune(s, (char*)q);
 			q += w;
 		}
 		if(*s)
@@ -48,12 +48,12 @@ cvttorunes(int8_t *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 		else if(nulls)
 				*nulls = TRUE;
 	}
-	*nb = (int8_t*)q-p;
+	*nb = (char*)q-p;
 	*nr = s-r;
 }
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	fprint(2, "rio: %s: %r\n", s);
 	if(errorshouldabort)
@@ -82,10 +82,10 @@ emalloc(uint n)
 	return p;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *p;
+	char *p;
 
 	p = malloc(strlen(s)+1);
 	if(p == nil)
@@ -144,10 +144,10 @@ max(int a, int b)
 	return b;
 }
 
-int8_t*
+char*
 runetobyte(Rune *r, int n, int *ip)
 {
-	int8_t *s;
+	char *s;
 	int m;
 
 	s = emalloc(n*UTFmax+1);

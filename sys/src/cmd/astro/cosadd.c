@@ -11,7 +11,7 @@
 
 
 void
-icosadd(double *fp, int8_t *cp)
+icosadd(double *fp, char *cp)
 {
 
 	cafp = fp;
@@ -22,7 +22,7 @@ double
 cosadd(int n, double coef, ...)
 {
 	double *coefp;
-	int8_t *cp;
+	char *cp;
 	int i;
 	double sum, a1, a2;
 
@@ -49,7 +49,7 @@ double
 sinadd(int n, double coef, ...)
 {
 	double *coefp;
-	int8_t *cp;
+	char *cp;
 	int i;
 	double sum, a1, a2;
 

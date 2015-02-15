@@ -23,8 +23,8 @@ ezalloc(uint32_t n)
 	return p;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
 	s = strdup(s);
 	if(s == nil)

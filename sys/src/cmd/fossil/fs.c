@@ -17,7 +17,7 @@ static Snap *snapInit(Fs*);
 static void snapClose(Snap*);
 
 Fs *
-fsOpen(int8_t *file, VtSession *z, int32_t ncache, int mode)
+fsOpen(char *file, VtSession *z, int32_t ncache, int mode)
 {
 	int fd, m;
 	uint8_t oscore[VtScoreSize];
@@ -168,7 +168,7 @@ fsClose(Fs *fs)
 }
 
 int
-fsRedial(Fs *fs, int8_t *host)
+fsRedial(Fs *fs, char *host)
 {
 	if(!vtRedial(fs->z, host))
 		return 0;
@@ -240,10 +240,10 @@ superWrite(Block* b, Super* super, int forceWrite)
  * TODO This should be rewritten to eliminate most of the duplication.
  */
 static File*
-fileOpenSnapshot(Fs *fs, int8_t *dstpath, int doarchive)
+fileOpenSnapshot(Fs *fs, char *dstpath, int doarchive)
 {
 	int n;
-	int8_t buf[30], *s, *p, *elem;
+	char buf[30], *s, *p, *elem;
 	File *dir, *f;
 	Tm now;
 
@@ -355,7 +355,7 @@ fsNeedArch(Fs *fs, uint archMinute)
 {
 	int need;
 	File *f;
-	int8_t buf[100];
+	char buf[100];
 	Tm now;
 	uint32_t then;
 
@@ -507,7 +507,7 @@ saveQid(Fs *fs)
 }
 
 int
-fsSnapshot(Fs *fs, int8_t *srcpath, int8_t *dstpath, int doarchive)
+fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
 {
 	File *src, *dst;
 
@@ -627,7 +627,7 @@ Err:
 }
 
 int
-fsVac(Fs *fs, int8_t *name, uint8_t score[VtScoreSize])
+fsVac(Fs *fs, char *name, uint8_t score[VtScoreSize])
 {
 	int r;
 	DirEntry de;
@@ -808,14 +808,14 @@ fsMetaFlush(void *a)
 }
 
 static int
-fsEsearch1(File *f, int8_t *path, uint32_t savetime, uint32_t *plo)
+fsEsearch1(File *f, char *path, uint32_t savetime, uint32_t *plo)
 {
 	int n, r;
 	DirEntry de;
 	DirEntryEnum *dee;
 	File *ff;
 	Entry e, ee;
-	int8_t *t;
+	char *t;
 
 	dee = deeOpen(f);
 	if(dee == nil)
@@ -853,7 +853,7 @@ fsEsearch1(File *f, int8_t *path, uint32_t savetime, uint32_t *plo)
 }
 
 static int
-fsEsearch(Fs *fs, int8_t *path, uint32_t savetime, uint32_t *plo)
+fsEsearch(Fs *fs, char *path, uint32_t savetime, uint32_t *plo)
 {
 	int n;
 	File *f;
@@ -900,13 +900,13 @@ fsSnapshotCleanup(Fs *fs, uint32_t age)
 /* remove all snapshots that have expired */
 /* return number of directory entries remaining */
 static int
-fsRsearch1(File *f, int8_t *s)
+fsRsearch1(File *f, char *s)
 {
 	int n, r;
 	DirEntry de;
 	DirEntryEnum *dee;
 	File *ff;
-	int8_t *t;
+	char *t;
 
 	dee = deeOpen(f);
 	if(dee == nil)
@@ -946,7 +946,7 @@ fsRsearch1(File *f, int8_t *s)
 }
 
 static int
-fsRsearch(Fs *fs, int8_t *path)
+fsRsearch(Fs *fs, char *path)
 {
 	File *f;
 	DirEntry de;

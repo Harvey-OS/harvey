@@ -23,12 +23,12 @@ enum {
 };
 
 /* private data */
-static int8_t *filenm;
-static int8_t *prefix = "ts.";
+static char *filenm;
+static char *prefix = "ts.";
 static int64_t size = 512*1024*1024;	/* fits on a CD with room to spare */
 
 static int
-opennext(int out, int8_t *prefix)
+opennext(int out, char *prefix)
 {
 	static int filenum = 0;
 
@@ -47,7 +47,7 @@ opennext(int out, int8_t *prefix)
 }
 
 static int
-split(int in, int out, int8_t * /* inname */)
+split(int in, int out, char * /* inname */)
 {
 	int64_t len, membsz;
 	uint64_t outoff = 0;
@@ -66,7 +66,7 @@ split(int in, int out, int8_t * /* inname */)
 		if (out < 0)
 			out = opennext(out, prefix);
 		/* write directory block */
-		writetar(out, (int8_t *)hp, Tblock);
+		writetar(out, (char *)hp, Tblock);
 		outoff = passtar(hp, in, out, len);
 	}
 	return out;

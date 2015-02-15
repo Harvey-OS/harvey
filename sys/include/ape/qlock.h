@@ -23,7 +23,7 @@ struct QLp
 {
 	int	inuse;
 	QLp	*next;
-	int8_t	state;
+	char	state;
 };
 
 typedef

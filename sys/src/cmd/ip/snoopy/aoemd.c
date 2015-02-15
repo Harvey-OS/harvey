@@ -66,7 +66,7 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static int8_t *ctab[] = {
+static char *ctab[] = {
 	"  ",
 	" +",
 	" -",
@@ -75,7 +75,7 @@ static int8_t *ctab[] = {
 static int
 p_seprint(Msg *m)
 {
-	int8_t *s;
+	char *s;
 	Hdr *h;
 
 	if(m->pe - m->ps < Hsize)

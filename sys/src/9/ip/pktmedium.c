@@ -17,7 +17,7 @@
 #include "ip.h"
 
 
-static void	pktbind(Ipifc*, int, int8_t**);
+static void	pktbind(Ipifc*, int, char**);
 static void	pktunbind(Ipifc*);
 static void	pktbwrite(Ipifc*, Block*, int, uint8_t*);
 static void	pktin(Fs*, Ipifc*, Block*);
@@ -41,7 +41,7 @@ Medium pktmedium =
  *  called with ifc wlock'd
  */
 static void
-pktbind(Ipifc*, int, int8_t**)
+pktbind(Ipifc*, int, char**)
 {
 }
 

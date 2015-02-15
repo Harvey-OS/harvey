@@ -26,7 +26,7 @@ phdr(DBlock *eb)
 }
 
 static void
-pie(IEntry *ie, int8_t c)
+pie(IEntry *ie, char c)
 {
 	print("%c %V %22lld %3d %5d %3d\n",
 		c, ie->score, ie->ia.addr, ie->ia.type, ie->ia.size, ie->ia.blocks);

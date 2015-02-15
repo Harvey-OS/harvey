@@ -52,7 +52,7 @@ extern_st(st_gx_image_enum_common);
 /* ---------------- Internal utilities ---------------- */
 
 private void
-trace_drawing_color(const int8_t *prefix, const gx_drawing_color *pdcolor)
+trace_drawing_color(const char *prefix, const gx_drawing_color *pdcolor)
 {
     dprintf1("%scolor=", prefix);
     if (pdcolor->type == gx_dc_type_none)
@@ -444,7 +444,7 @@ trace_text_begin(gx_device * dev, gs_imager_state * pis,
 		 const gx_clip_path * pcpath, gs_memory_t * memory,
 		 gs_text_enum_t ** ppenum)
 {
-    static const int8_t *const tags[sizeof(text->operation) * 8] = {
+    static const char *const tags[sizeof(text->operation) * 8] = {
 	"FROM_STRING", "FROM_BYTES", "FROM_CHARS", "FROM_GLYPHS",
 	"FROM_SINGLE_CHAR", "FROM_SINGLE_GLYPH",
 	"ADD_TO_ALL_WIDTHS", "ADD_TO_SPACE_WIDTH",

@@ -15,10 +15,10 @@
 #define BIGN (BUFSIZ/2)
 
 int32_t fwrite(const void *p, int32_t recl, int32_t nrec, FILE *f){
-	int8_t *s;
+	char *s;
 	int n, d;
 
-	s=(int8_t *)p;
+	s=(char *)p;
 	n=recl*nrec;
 	while(n>0){
 		d=f->rp-f->wp;
@@ -56,5 +56,5 @@ int32_t fwrite(const void *p, int32_t recl, int32_t nrec, FILE *f){
 		n-=d;
 	}
     ret:
-	return (s-(int8_t *)p)/(recl?recl:1);
+	return (s-(char *)p)/(recl?recl:1);
 }

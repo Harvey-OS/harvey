@@ -33,7 +33,7 @@ struct Graph
 	Rectangle	r;
 	int32_t		*data;
 	int		ndata;
-	int8_t		*label;
+	char		*label;
 	void		(*newvalue)(Machine*, int32_t*, int32_t*,
 					int32_t*);
 	void		(*update)(Graph*, int32_t, int32_t, int32_t);
@@ -41,7 +41,7 @@ struct Graph
 	int		overflow;
 	Image		*overtmp;
 	int		overtmplen;
-	int8_t		msg[Gmsglen];
+	char		msg[Gmsglen];
 	int		cursor;
 	int		vmax;
 };
@@ -105,7 +105,7 @@ enum Menu2
 	Nmenu2,
 };
 
-int8_t	*menu2str[Nmenu2+1] = {
+char	*menu2str[Nmenu2+1] = {
 	"add  sec rtt",
 	"add  % lost ",
 	nil,
@@ -144,7 +144,7 @@ int	which2index(int);
 int	index2which(int);
 
 void
-killall(int8_t *s)
+killall(char *s)
 {
 	int i, pid;
 
@@ -179,10 +179,10 @@ erealloc(void *v, uint32_t sz)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *t;
+	char *t;
 	if((t = strdup(s)) == nil) {
 		fprint(2, "%s: out of memory in strdup(%.10s): %r\n", argv0, s);
 		killall("mem");
@@ -242,9 +242,9 @@ loadbuf(Machine *m, int *fd)
 }
 
 void
-label(Point p, int dy, int8_t *text)
+label(Point p, int dy, char *text)
 {
-	int8_t *s;
+	char *s;
 	Rune r[2];
 	int w, maxw, maxy;
 
@@ -266,7 +266,7 @@ label(Point p, int dy, int8_t *text)
 }
 
 void
-hashmark(Point p, int dy, int32_t v, int32_t vmax, int8_t *label)
+hashmark(Point p, int dy, int32_t v, int32_t vmax, char *label)
 {
 	int y;
 	int x;
@@ -368,7 +368,7 @@ clearmsg(Graph *g)
 }
 
 void
-drawmsg(Graph *g, int8_t *msg)
+drawmsg(Graph *g, char *msg)
 {
 	if(g->overtmp == nil)
 		return;
@@ -413,7 +413,7 @@ drawcursor(Graph *g, int x)
 void
 update1(Graph *g, int32_t v, int32_t vmax, int32_t mark)
 {
-	int8_t buf[Gmsglen];
+	char buf[Gmsglen];
 
 	/* put back screen value sans message */
 	if(g->overflow || *g->msg){
@@ -493,7 +493,7 @@ void
 pingsend(Machine *m)
 {
 	int i;
-	int8_t buf[128], err[ERRMAX];
+	char buf[128], err[ERRMAX];
 	Icmphdr *ip;
 	Req *r;
 
@@ -565,9 +565,9 @@ pingrcv(void *arg)
 }
 
 void
-initmach(Machine *m, int8_t *name)
+initmach(Machine *m, char *name)
 {
-	int8_t *p;
+	char *p;
 
 	srand(time(0));
 	p = strchr(name, '!');
@@ -649,7 +649,7 @@ lostval(Machine *m, int32_t *v, int32_t *vmax, int32_t *mark)
 jmp_buf catchalarm;
 
 void
-alarmed(void *a, int8_t *s)
+alarmed(void *a, char *s)
 {
 	if(strcmp(s, "alarm") == 0)
 		notejmp(a, catchalarm, 1);
@@ -759,7 +759,7 @@ dropgraph(int which)
 }
 
 void
-addmachine(int8_t *name)
+addmachine(char *name)
 {
 	if(ngraph > 0){
 		fprint(2, "%s: internal error: ngraph>0 in addmachine()\n", argv0);
@@ -778,7 +778,7 @@ resize(void)
 	Graph *g;
 	Rectangle machr, r;
 	int32_t v, vmax, mark;
-	int8_t buf[128];
+	char buf[128];
 
 	draw(screen, screen->r, display->white, nil, ZP);
 
@@ -913,7 +913,7 @@ dobutton1(Mouse *m)
 {
 	int i, n, dx, dt;
 	Graph *g;
-	int8_t *e;
+	char *e;
 	double f;
 
 	for(i = 0; i < ngraph*nmach; i++){

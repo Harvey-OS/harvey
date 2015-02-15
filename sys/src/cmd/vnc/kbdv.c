@@ -52,7 +52,7 @@ static struct {
 	{KF|12,	0xffc9},
 };
 
-static int8_t shiftkey[128] = {
+static char shiftkey[128] = {
 	0, 0, 0, 0, 0, 0, 0, 0, /* nul soh stx etx eot enq ack bel */
 	0, 0, 0, 0, 0, 0, 0, 0, /* bs ht nl vt np cr so si */
 	0, 0, 0, 0, 0, 0, 0, 0, /* dle dc1 dc2 dc3 dc4 nak syn etb */
@@ -97,7 +97,7 @@ keyevent(Vnc *v, uint32_t ksym, int down)
 void
 readkbd(Vnc *v)
 {
-	int8_t buf[256], k[10];
+	char buf[256], k[10];
 	uint32_t ks;
 	int ctlfd, fd, kr, kn, w, shift, ctl, alt;
 	Rune r;

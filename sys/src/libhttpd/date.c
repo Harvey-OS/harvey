@@ -20,24 +20,24 @@
  * Wkd Mon ( D|DD) HH:MM:SS YYYY
  * plus anything similar
  */
-static int8_t *
+static char *
 weekdayname[7] =
 {
 	"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 };
-static int8_t *
+static char *
 wdayname[7] =
 {
 	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 };
 
-static int8_t *
+static char *
 monname[12] =
 {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
-static	int	dateindex(int8_t*, int8_t**, int);
+static	int	dateindex(char*, char**, int);
 
 static int
 dtolower(int c)
@@ -72,10 +72,10 @@ hdatefmt(Fmt *f)
 		tm->hour, tm->min, tm->sec);
 }
 
-static int8_t*
-dateword(int8_t *date, int8_t *buf)
+static char*
+dateword(char *date, char *buf)
 {
-	int8_t *p;
+	char *p;
 	int c;
 
 	p = buf;
@@ -91,9 +91,9 @@ dateword(int8_t *date, int8_t *buf)
 }
 
 static int
-datenum(int8_t **d)
+datenum(char **d)
 {
-	int8_t *date;
+	char *date;
 	int c, n;
 
 	date = *d;
@@ -117,10 +117,10 @@ datenum(int8_t **d)
  * return 0 for a failure
  */
 uint32_t
-hdate2sec(int8_t *date)
+hdate2sec(char *date)
 {
 	Tm tm;
-	int8_t buf[32];
+	char buf[32];
 
 	/*
 	 * Weekday|Wday
@@ -211,7 +211,7 @@ hdate2sec(int8_t *date)
 }
 
 static int
-dateindex(int8_t *d, int8_t **tab, int n)
+dateindex(char *d, char **tab, int n)
 {
 	int i;
 

@@ -20,7 +20,7 @@
 #define DBLOCKSIZE 20
 
 DIR *
-opendir(const int8_t *filename)
+opendir(const char *filename)
 {
 	int f;
 	DIR *d;
@@ -49,7 +49,7 @@ opendir(const int8_t *filename)
 		errno = ENOMEM;
 		return NULL;
 	}
-	d->dd_buf = (int8_t *)d + sizeof(DIR);
+	d->dd_buf = (char *)d + sizeof(DIR);
 	d->dd_fd = f;
 	d->dd_loc = 0;
 	d->dd_size = 0;

@@ -7,7 +7,7 @@
  * in the LICENSE file.
  */
 
-int8_t *desctab[][2]={
+char *desctab[][2]={
 	"!!!",	"(magnificent or otherwise interesting object)",
 	"!!",	"(superb)",
 	"!",	"(remarkable)",

@@ -17,8 +17,8 @@
 #include <stdlib.h>
 
 static
-int8_t*
-skip(int8_t *p)
+char*
+skip(char *p)
 {
 
 	while(*p == ' ')
@@ -31,7 +31,7 @@ skip(int8_t *p)
 clock_t
 times(struct tms *buf)
 {
-	int8_t b[200], *p;
+	char b[200], *p;
 	int f;
 	unsigned long r;
 

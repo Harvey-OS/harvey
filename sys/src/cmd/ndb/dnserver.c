@@ -25,8 +25,8 @@ void
 dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uint8_t *srcip, int rcode)
 {
 	int recursionflag;
-	int8_t *cp, *errmsg;
-	int8_t tname[32];
+	char *cp, *errmsg;
+	char tname[32];
 	DN *nsdp, *dp;
 	Area *myarea;
 	RR *tp, *neg, *rp;
@@ -187,7 +187,7 @@ static RR*
 doextquery(DNSmsg *mp, Request *req, int recurse)
 {
 	uint16_t type;
-	int8_t *name;
+	char *name;
 	RR *rp, *neg;
 
 	name = mp->qd->owner->name;

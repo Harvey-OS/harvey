@@ -34,7 +34,7 @@ efree(void *p)
 extern int lastword, lastdol;
 
 void
-yyerror(int8_t *m)
+yyerror(char *m)
 {
 	pfmt(err, "rc: ");
 	if(runq->cmdfile && !runq->iflag)
@@ -53,7 +53,7 @@ yyerror(int8_t *m)
 	nerror++;
 	setvar("status", newword(m, (word *)0));
 }
-int8_t *bp;
+char *bp;
 
 static void
 iacvt(int n)
@@ -68,7 +68,7 @@ iacvt(int n)
 }
 
 void
-inttoascii(int8_t *s, int32_t n)
+inttoascii(char *s, int32_t n)
 {
 	bp = s;
 	iacvt(n);
@@ -76,7 +76,7 @@ inttoascii(int8_t *s, int32_t n)
 }
 
 void
-panic(int8_t *s, int n)
+panic(char *s, int n)
 {
 	pfmt(err, "rc: ");
 	pfmt(err, s, n);

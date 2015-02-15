@@ -176,7 +176,7 @@ options(Vga* vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	int8_t *val;
+	char *val;
 	T2r4 *t2r4;
 	int crtclocks, zoom;
 

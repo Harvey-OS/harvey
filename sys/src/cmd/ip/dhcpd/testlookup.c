@@ -17,13 +17,13 @@ static uint8_t noether[6];
 	Ndb *db;
 
 static void
-recursesubnet(Ndb *db, uint8_t *addr, uint8_t *mask, int8_t *attr,
-	      int8_t *name, int8_t *name1)
+recursesubnet(Ndb *db, uint8_t *addr, uint8_t *mask, char *attr,
+	      char *name, char *name1)
 {
 	Ndbs s;
 	Ndbtuple *t, *nt;
 	uint8_t submask[IPaddrlen], net[IPaddrlen];
-	int8_t ip[Ndbvlen];
+	char ip[Ndbvlen];
 	int found;
 
 	maskip(addr, mask, net);
@@ -64,13 +64,13 @@ recursesubnet(Ndb *db, uint8_t *addr, uint8_t *mask, int8_t *attr,
  *  lookup an ip address
  */
 static int
-getipaddr(Ndb *db, int8_t *name, uint8_t *to, Ipinfo *iip)
+getipaddr(Ndb *db, char *name, uint8_t *to, Ipinfo *iip)
 {
 	Ndbtuple *t, *nt;
-	int8_t buf[Ndbvlen];
+	char buf[Ndbvlen];
 	uint8_t subnet[IPaddrlen];
 	Ndbs s;
-	int8_t *attr;
+	char *attr;
 
 	attr = ipattr(name);
 	if(strcmp(attr, "ip") == 0){
@@ -102,13 +102,13 @@ getipaddr(Ndb *db, int8_t *name, uint8_t *to, Ipinfo *iip)
  *  return the ip addresses for a type of server for system ip
  */
 int
-lookupserver(int8_t *attr, uint8_t ipaddrs[2][IPaddrlen], Ipinfo *iip)
+lookupserver(char *attr, uint8_t ipaddrs[2][IPaddrlen], Ipinfo *iip)
 {
 	Ndbtuple *t, *nt;
 	Ndbs s;
-	int8_t ip[32];
-	int8_t name[Ndbvlen];
-	int8_t name1[Ndbvlen];
+	char ip[32];
+	char name[Ndbvlen];
+	char name1[Ndbvlen];
 	int i;
 
 	name[0] = name1[0] = 0;
@@ -145,7 +145,7 @@ lookupserver(int8_t *attr, uint8_t ipaddrs[2][IPaddrlen], Ipinfo *iip)
 }
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Ipinfo ii;
 	uint8_t addrs[2][IPaddrlen];

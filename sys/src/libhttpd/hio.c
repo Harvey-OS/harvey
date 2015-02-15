@@ -11,8 +11,8 @@
 #include <libc.h>
 #include <httpd.h>
 
-static	int8_t	hstates[] = "nrewE";
-static	int8_t	hxfers[] = " x";
+static	char	hstates[] = "nrewE";
+static	char	hxfers[] = " x";
 static int _hflush(Hio*, int, int);
 
 int
@@ -238,7 +238,7 @@ hbodypush(Hio *hh, uint32_t len, HFields *te)
 /*
  * dump the state of the io buffer into a string
  */
-int8_t *
+char *
 hunload(Hio *h)
 {
 	uint8_t *p, *t, *stop, *buf;
@@ -273,17 +273,17 @@ hunload(Hio *h)
 	*t++ = '\0';
 	if(t != buf + n)
 		return nil;
-	return (int8_t*)buf;
+	return (char*)buf;
 }
 
 /*
  * read the io buffer state from a string
  */
 int
-hload(Hio *h, int8_t *buf)
+hload(Hio *h, char *buf)
 {
 	uint8_t *p, *t, *stop;
-	int8_t *s;
+	char *s;
 	int c;
 
 	s = strchr(hstates, buf[0]);
@@ -373,7 +373,7 @@ fmthflush(Fmt *f)
 }
 
 int
-hvprint(Hio *h, int8_t *fmt, va_list args)
+hvprint(Hio *h, char *fmt, va_list args)
 {
 	int n;
 	Fmt f;
@@ -392,7 +392,7 @@ hvprint(Hio *h, int8_t *fmt, va_list args)
 }
 
 int
-hprint(Hio *h, int8_t *fmt, ...)
+hprint(Hio *h, char *fmt, ...)
 {
 	int n;
 	va_list arg;

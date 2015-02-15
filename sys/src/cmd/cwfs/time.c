@@ -16,7 +16,7 @@ toytime(void)
 }
 
 void
-datestr(int8_t *s, Timet t)
+datestr(char *s, Timet t)
 {
 	Tm *tm;
 
@@ -31,7 +31,7 @@ prdate(void)
 }
 
 static void
-ct_numb(int8_t *cp, int n)
+ct_numb(char *cp, int n)
 {
 	if(n >= 10)
 		cp[0] = (n/10)%10 + '0';
@@ -43,8 +43,8 @@ ct_numb(int8_t *cp, int n)
 int
 Tfmt(Fmt* fmt)
 {
-	int8_t s[30];
-	int8_t *cp;
+	char s[30];
+	char *cp;
 	Timet t;
 	Tm *tm;
 

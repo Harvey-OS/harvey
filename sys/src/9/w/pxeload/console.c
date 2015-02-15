@@ -44,7 +44,7 @@ kbdinit(void)
 }
 
 int
-consinit(int8_t* name, int8_t* speed)
+consinit(char* name, char* speed)
 {
 	int baud, port;
 
@@ -74,7 +74,7 @@ consdrain(void)
 }
 
 void
-consputs(int8_t* s, int n)
+consputs(char* s, int n)
 {
 	cgaconsputs(s, n);
 	if(useuart)
@@ -82,7 +82,7 @@ consputs(int8_t* s, int n)
 }
 
 void
-warp86(int8_t* s, uint32_t)
+warp86(char* s, uint32_t)
 {
 	if(s == nil)
 		s = "Warp86\n";
@@ -113,11 +113,11 @@ warp86(int8_t* s, uint32_t)
 }
 
 static int
-getline(int8_t *buf, int size, int timeout)
+getline(char *buf, int size, int timeout)
 {
 	int c, i=0;
 	uint32_t start;
-	int8_t echo;
+	char echo;
 
 	for (;;) {
 		start = m->ticks;
@@ -159,10 +159,10 @@ getline(int8_t *buf, int size, int timeout)
 }
 
 int
-getstr(int8_t *prompt, int8_t *buf, int size, int8_t *def, int timeout)
+getstr(char *prompt, char *buf, int size, char *def, int timeout)
 {
 	int len, isdefault;
-	int8_t pbuf[PRINTSIZE];
+	char pbuf[PRINTSIZE];
 
 	buf[0] = 0;
 	isdefault = (def && *def);
@@ -206,11 +206,11 @@ getstr(int8_t *prompt, int8_t *buf, int size, int8_t *def, int timeout)
 }
 
 void
-panic(int8_t *fmt, ...)
+panic(char *fmt, ...)
 {
 	int n;
 	va_list arg;
-	int8_t buf[PRINTSIZE];
+	char buf[PRINTSIZE];
 
 	strcpy(buf, "panic: ");
 	va_start(arg, fmt);

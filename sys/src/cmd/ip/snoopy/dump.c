@@ -19,7 +19,7 @@ p_compile(Filter *)
 {
 }
 
-static int8_t tohex[16] = {
+static char tohex[16] = {
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 	'a', 'b', 'c', 'd', 'e', 'f'
 };
@@ -29,8 +29,8 @@ p_seprint(Msg *m)
 {
 	int c, i, n, isstring;
 	uint8_t *ps = m->ps;
-	int8_t *p = m->p;
-	int8_t *e = m->e;
+	char *p = m->p;
+	char *e = m->e;
 
 	n = m->pe - ps;
 	if(n > Nflag)

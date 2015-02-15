@@ -16,7 +16,7 @@ enum {
 	Logqueries = 0,
 };
 
-static int	udpannounce(int8_t*);
+static int	udpannounce(char*);
 static void	reply(int, uint8_t*, DNSmsg*, Request*);
 
 typedef struct Inprogress Inprogress;
@@ -32,7 +32,7 @@ Inprogress inprog[Maxactive+2];
 
 typedef struct Forwtarg Forwtarg;
 struct Forwtarg {
-	int8_t	*host;
+	char	*host;
 	uint8_t	addr[IPaddrlen];
 	int	fd;
 	uint32_t	lastdial;
@@ -40,7 +40,7 @@ struct Forwtarg {
 Forwtarg forwtarg[10];
 int currtarg;
 
-static int8_t *hmsg = "headers";
+static char *hmsg = "headers";
 
 /*
  *  record client id and ignore retransmissions.
@@ -82,7 +82,7 @@ clientrxmit(DNSmsg *req, uint8_t *buf)
 }
 
 int
-addforwtarg(int8_t *host)
+addforwtarg(char *host)
 {
 	Forwtarg *tp;
 
@@ -138,11 +138,11 @@ redistrib(uint8_t *buf, int len)
  *  a process to act as a dns server for outside reqeusts
  */
 void
-dnudpserver(int8_t *mntpt)
+dnudpserver(char *mntpt)
 {
 	volatile int fd, len, op, rcode;
-	int8_t *volatile err;
-	volatile int8_t tname[32];
+	char *volatile err;
+	volatile char tname[32];
 	volatile uint8_t buf[Udphdrsize + Maxpayload];
 	volatile DNSmsg reqmsg, repmsg;
 	Inprogress *volatile p;
@@ -283,10 +283,10 @@ freereq:
  *  announce on well-known dns udp port and set message style interface
  */
 static int
-udpannounce(int8_t *mntpt)
+udpannounce(char *mntpt)
 {
 	int data, ctl;
-	int8_t dir[64], datafile[64+6];
+	char dir[64], datafile[64+6];
 	static int whined;
 
 	/* get a udp port */
@@ -320,7 +320,7 @@ static void
 reply(int fd, uint8_t *buf, DNSmsg *rep, Request *reqp)
 {
 	int len;
-	int8_t tname[32];
+	char tname[32];
 
 	if(debug || (trace && subsume(trace, rep->qd->owner->name)))
 		dnslog("%d: reply (%I/%d) %d %s %s qd %R an %R ns %R ar %R",

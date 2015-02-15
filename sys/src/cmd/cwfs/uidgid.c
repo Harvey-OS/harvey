@@ -10,7 +10,7 @@
 #include "all.h"
 
 struct {
-	int8_t*	name;
+	char*	name;
 	Userid	uid;
 	Userid	lead;
 } minusers[] = {
@@ -26,23 +26,23 @@ struct {
 	0
 };
 
-static int8_t buf[4096];
+static char buf[4096];
 static Rune ichar[] = L"?=+-/:";
 
-Uid*	chkuid(int8_t *name, int chk);
-void	do_newuser(int, int8_t*[]);
-int8_t*	getword(int8_t*, Rune, int8_t*, int);
-void	pentry(int8_t*, Uid*);
-int	readln(int8_t*, int);
+Uid*	chkuid(char *name, int chk);
+void	do_newuser(int, char*[]);
+char*	getword(char*, Rune, char*, int);
+void	pentry(char*, Uid*);
+int	readln(char*, int);
 void	setminusers(void);
 Uid*	uidtop(int);
 
 void
-cmd_users(int argc, int8_t *argv[])
+cmd_users(int argc, char *argv[])
 {
 	Uid *ui;
 	int u, g, o, line;
-	int8_t *file, *p, *uname, *ulead, *unext;
+	char *file, *p, *uname, *ulead, *unext;
 
 	file = "/adm/users";
 	if(argc > 1)
@@ -152,7 +152,7 @@ cmd_users(int argc, int8_t *argv[])
 }
 
 void
-cmd_newuser(int argc, int8_t *argv[])
+cmd_newuser(int argc, char *argv[])
 {
 	if(argc <= 1) {
 		print("usage: newuser args\n");
@@ -169,10 +169,10 @@ cmd_newuser(int argc, int8_t *argv[])
 }
 
 void
-do_newuser(int argc, int8_t *argv[])
+do_newuser(int argc, char *argv[])
 {
 	int i, l, n, nuid;
-	int8_t *p, *md, *q;
+	char *p, *md, *q;
 	Rune *r;
 	Userid *s;
 	Uid *ui, *u2;
@@ -357,7 +357,7 @@ do_newuser(int argc, int8_t *argv[])
 }
 
 Uid*
-chkuid(int8_t *name, int chk)
+chkuid(char *name, int chk)
 {
 	Uid *u;
 
@@ -374,7 +374,7 @@ chkuid(int8_t *name, int chk)
 }
 
 void
-pentry(int8_t *buf, Uid *u)
+pentry(char *buf, Uid *u)
 {
 	int i, posn;
 	Uid *p;
@@ -412,7 +412,7 @@ setminusers(void)
 }
 
 Uid*
-uidpstr(int8_t *name)
+uidpstr(char *name)
 {
 	Uid *s, *e;
 
@@ -424,10 +424,10 @@ uidpstr(int8_t *name)
 	return 0;
 }
 
-int8_t*
-getword(int8_t *buf, Rune delim, int8_t *error, int line)
+char*
+getword(char *buf, Rune delim, char *error, int line)
 {
-	int8_t *p;
+	char *p;
 
 	p = utfrune(buf, delim);
 	if(p == 0) {
@@ -440,7 +440,7 @@ getword(int8_t *buf, Rune delim, int8_t *error, int line)
 }
 
 int
-strtouid(int8_t *name)
+strtouid(char *name)
 {
 	Uid *u;
 	int id;
@@ -478,7 +478,7 @@ uidtop(int id)
 }
 
 void
-uidtostr(int8_t *name, int id, int dolock)
+uidtostr(char *name, int id, int dolock)
 {
 	Uid *p;
 
@@ -574,7 +574,7 @@ fchar(void)
 }
 
 int
-readln(int8_t *p, int len)
+readln(char *p, int len)
 {
 	int n, c;
 

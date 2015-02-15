@@ -15,14 +15,14 @@ void*	listalloc(int32_t, int32_t);
 void *
 listalloc(int32_t n, int32_t size)
 {
-	int8_t *p, *base;
+	char *p, *base;
 
 	size = (size+sizeof(ulong)-1)/sizeof(ulong)*sizeof(ulong);
 	p = base = malloc(n*size);
 	while(--n > 0){
-		*(int8_t**)p = p+size;
+		*(char**)p = p+size;
 		p += size;
 	}
-	*(int8_t**)p = 0;
+	*(char**)p = 0;
 	return base;
 }

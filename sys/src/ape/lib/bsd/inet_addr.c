@@ -21,10 +21,10 @@
 #define CLASS(x)	(x[0]>>6)
 
 unsigned long
-inet_addr(int8_t *from)
+inet_addr(char *from)
 {
 	int i;
-	int8_t *p;
+	char *p;
 	unsigned char to[4];
 	unsigned long x;
  

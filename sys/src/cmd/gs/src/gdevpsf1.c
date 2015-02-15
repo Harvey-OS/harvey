@@ -69,7 +69,7 @@ psf_get_type1_glyphs(psf_outline_glyphs_t *pglyphs, gs_font_type1 *pfont,
 
 /* Write a (named) array of floats. */
 private int
-write_float_array(gs_param_list *plist, const int8_t *key,
+write_float_array(gs_param_list *plist, const char *key,
                   const float *values,
 		  int count)
 {
@@ -353,7 +353,7 @@ stream_write_encrypted(stream *s, const void *ptr, uint count)
 
 /* Write one FontInfo entry. */
 private void
-write_font_info(stream *s, const int8_t *key, const gs_const_string *pvalue,
+write_font_info(stream *s, const char *key, const gs_const_string *pvalue,
 		int do_write)
 {
     if (do_write) {

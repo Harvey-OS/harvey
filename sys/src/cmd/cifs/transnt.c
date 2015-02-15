@@ -118,7 +118,7 @@ gtntdata(Pkt *p)
 
 
 int
-TNTquerysecurity(Session *s, Share *sp, int fh, int8_t **usid, int8_t **gsid)
+TNTquerysecurity(Session *s, Share *sp, int fh, char **usid, char **gsid)
 {
 	Pkt *p;
 	uint8_t *base;

@@ -96,7 +96,7 @@ int  main             OF((int argc, char *argv[]));
  * Display error message and exit
  */
 void error(msg)
-    const int8_t *msg;
+    const char *msg;
 {
     fprintf(stderr, "%s: %s\n", prog, msg);
     exit(1);
@@ -110,7 +110,7 @@ void gz_compress(in, out)
     FILE   *in;
     gzFile out;
 {
-    local int8_t buf[BUFLEN];
+    local char buf[BUFLEN];
     int len;
     int err;
 
@@ -160,7 +160,7 @@ int gz_compress_mmap(in, out)
     if (buf == (caddr_t)(-1)) return Z_ERRNO;
 
     /* Compress the whole file at once: */
-    len = gzwrite(out, (int8_t *)buf, (unsigned)buf_len);
+    len = gzwrite(out, (char *)buf, (unsigned)buf_len);
 
     if (len != (int)buf_len) error(gzerror(out, &err));
 
@@ -178,7 +178,7 @@ void gz_uncompress(in, out)
     gzFile in;
     FILE   *out;
 {
-    local int8_t buf[BUFLEN];
+    local char buf[BUFLEN];
     int len;
     int err;
 
@@ -202,10 +202,10 @@ void gz_uncompress(in, out)
  * original.
  */
 void file_compress(file, mode)
-    int8_t  *file;
-    int8_t  *mode;
+    char  *file;
+    char  *mode;
 {
-    local int8_t outfile[MAX_NAME_LEN];
+    local char outfile[MAX_NAME_LEN];
     FILE  *in;
     gzFile out;
 
@@ -232,10 +232,10 @@ void file_compress(file, mode)
  * Uncompress the given file and remove the original.
  */
 void file_uncompress(file)
-    int8_t  *file;
+    char  *file;
 {
-    local int8_t buf[MAX_NAME_LEN];
-    int8_t *infile, *outfile;
+    local char buf[MAX_NAME_LEN];
+    char *infile, *outfile;
     FILE  *out;
     gzFile in;
     uInt len = (uInt)strlen(file);
@@ -279,11 +279,11 @@ void file_uncompress(file)
 
 int main(argc, argv)
     int argc;
-    int8_t *argv[];
+    char *argv[];
 {
     int uncompr = 0;
     gzFile file;
-    int8_t outmode[20];
+    char outmode[20];
 
     strcpy(outmode, "wb6 ");
 

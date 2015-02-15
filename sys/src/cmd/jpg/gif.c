@@ -32,7 +32,7 @@ enum{
 	Edge		= 5
 };
 
-int8_t	*show(int, int8_t*);
+char	*show(int, char*);
 
 Rectangle
 imager(void)
@@ -144,7 +144,7 @@ main(int argc, char *argv[])
 }
 
 Image*
-transparency(Rawimage *r, int8_t *name)
+transparency(Rawimage *r, char *name)
 {
 	Image *i;
 	int j, index;
@@ -206,7 +206,7 @@ expand(uint8_t *u, int chanlen, int nchan)
 void
 addalpha(Rawimage *i)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	switch(outchan){
 	case CMAP8:
@@ -294,14 +294,14 @@ init(void)
 	return 1;
 }
 
-int8_t*
-show(int fd, int8_t *name)
+char*
+show(int fd, char *name)
 {
 	Rawimage **images, **rgbv;
 	Image **ims, **masks;
 	int j, k, n, ch, nloop, loopcount, dt;
-	int8_t *err;
-	int8_t buf[32];
+	char *err;
+	char buf[32];
 
 	err = nil;
 	images = readgif(fd, CRGB);

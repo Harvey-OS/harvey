@@ -106,7 +106,7 @@ struct Refx
 
 struct DName
 {
-	int8_t			*name;
+	char			*name;
 	Client	*client;
 	DImage*		dimage;
 	int			vers;
@@ -132,7 +132,7 @@ struct DImage
 {
 	int		id;
 	int		ref;
-	int8_t		*name;
+	char		*name;
 	int		vers;
 	Memimage*	image;
 	int		ascent;
@@ -173,24 +173,24 @@ extern	void		flushmemscreen(Rectangle);
 	void		drawfreedimage(DImage*);
 	Client*		drawclientofpath(uint32_t);
 
-static	int8_t Enodrawimage[] =	"unknown id for draw image";
-static	int8_t Enodrawscreen[] =	"unknown id for draw screen";
-static	int8_t Eshortdraw[] =	"short draw message";
-static	int8_t Eshortread[] =	"draw read too short";
-static	int8_t Eimageexists[] =	"image id in use";
-static	int8_t Escreenexists[] =	"screen id in use";
-static	int8_t Edrawmem[] =	"image memory allocation failed";
-static	int8_t Ereadoutside[] =	"readimage outside image";
-static	int8_t Ewriteoutside[] =	"writeimage outside image";
-static	int8_t Enotfont[] =	"image not a font";
-static	int8_t Eindex[] =		"character index out of range";
-static	int8_t Enoclient[] =	"no such draw client";
+static	char Enodrawimage[] =	"unknown id for draw image";
+static	char Enodrawscreen[] =	"unknown id for draw screen";
+static	char Eshortdraw[] =	"short draw message";
+static	char Eshortread[] =	"draw read too short";
+static	char Eimageexists[] =	"image id in use";
+static	char Escreenexists[] =	"screen id in use";
+static	char Edrawmem[] =	"image memory allocation failed";
+static	char Ereadoutside[] =	"readimage outside image";
+static	char Ewriteoutside[] =	"writeimage outside image";
+static	char Enotfont[] =	"image not a font";
+static	char Eindex[] =		"character index out of range";
+static	char Enoclient[] =	"no such draw client";
 /* static	char Edepth[] =	"image has bad depth"; */
-static	int8_t Enameused[] =	"image name in use";
-static	int8_t Enoname[] =	"no image with that name";
-static	int8_t Eoldname[] =	"named image no longer valid";
-static	int8_t Enamed[] = 	"image already has name";
-static	int8_t Ewrongname[] = 	"wrong name for image";
+static	char Enameused[] =	"image name in use";
+static	char Enoname[] =	"no image with that name";
+static	char Eoldname[] =	"named image no longer valid";
+static	char Enamed[] = 	"image already has name";
+static	char Ewrongname[] = 	"wrong name for image";
 
 int
 drawcanqlock(void)
@@ -211,7 +211,7 @@ drawqunlock(void)
 }
 
 static int
-drawgen(Chan *c, int8_t *name, Dirtab *dt, int ndt, int s, Dir *dp)
+drawgen(Chan *c, char *name, Dirtab *dt, int ndt, int s, Dir *dp)
 {
 	int t;
 	Qid q;
@@ -452,7 +452,7 @@ drawflushr(Rectangle r)
 
 static
 int
-drawcmp(int8_t *a, int8_t *b, int n)
+drawcmp(char *a, char *b, int n)
 {
 	if(strlen(a) != n)
 		return 1;
@@ -460,7 +460,7 @@ drawcmp(int8_t *a, int8_t *b, int n)
 }
 
 DName*
-drawlookupname(int n, int8_t *str)
+drawlookupname(int n, char *str)
 {
 	DName *name, *ename;
 
@@ -747,7 +747,7 @@ drawuninstall(Client *client, int id)
 }
 
 void
-drawaddname(Client *client, DImage *di, int n, int8_t *str)
+drawaddname(Client *client, DImage *di, int n, char *str)
 {
 	DName *name, *ename, *new, *t;
 
@@ -965,7 +965,7 @@ deletescreenimage(void)
 }
 
 static Chan*
-drawattach(int8_t *spec)
+drawattach(char *spec)
 {
 	qlock(&sdraw.lk);
 	if(!initscreenimage()){
@@ -977,7 +977,7 @@ drawattach(int8_t *spec)
 }
 
 static Walkqid*
-drawwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+drawwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	if(screendata.bdata == nil)
 		error("no frame buffer");
@@ -1102,7 +1102,7 @@ drawread(Chan *c, void *a, int32_t n, int64_t off)
 	DImage *di;
 	Memimage *i;
 	uint32_t offset = off;
-	int8_t buf[16];
+	char buf[16];
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, drawgen);
@@ -1143,11 +1143,11 @@ drawread(Chan *c, void *a, int32_t n, int64_t off)
 		m = 0;
 		for(index = 0; index < 256; index++){
 			getcolor(index, &red, &green, &blue);
-			m += sprint((int8_t*)p+m,
+			m += sprint((char*)p+m,
 				    "%11d %11lud %11lud %11lud\n", index,
 				    red>>24, green>>24, blue>>24);
 		}
-		n = readstr(offset, a, n, (int8_t*)p);
+		n = readstr(offset, a, n, (char*)p);
 		free(p);
 		break;
 
@@ -1214,7 +1214,7 @@ drawwakeall(void)
 static int32_t
 drawwrite(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	int8_t buf[128], *fields[4], *q;
+	char buf[128], *fields[4], *q;
 	Client *cl;
 	int i, m, red, green, blue, x;
 
@@ -1249,7 +1249,7 @@ drawwrite(Chan *c, void *a, int32_t n, int64_t offset)
 				break;
 			i = q-buf;
 			n += i;
-			a = (int8_t*)a + i;
+			a = (char*)a + i;
 			m -= i;
 			*q = 0;
 			if(tokenize(buf, fields, nelem(fields)) != 4)
@@ -1311,10 +1311,10 @@ drawcoord(uint8_t *p, uint8_t *maxp, int oldx, int *newx)
 }
 
 static void
-printmesg(int8_t *fmt, uint8_t *a, int plsprnt)
+printmesg(char *fmt, uint8_t *a, int plsprnt)
 {
-	int8_t buf[256];
-	int8_t *p, *q;
+	char buf[256];
+	char *p, *q;
 	int s;
 
 	if(1|| plsprnt==0){
@@ -1372,7 +1372,7 @@ drawmesg(Client *client, void *av, int n)
 {
 	int c, repl, m, y, dstid, scrnid, ni, ci, j, nw, e0, e1, op, ox, oy, oesize, esize, doflush;
 	uint8_t *u, *a, refresh;
-	int8_t *fmt;
+	char *fmt;
 	uint32_t value, chan;
 	Rectangle r, clipr;
 	Point p, q, *pp, sp;
@@ -1703,7 +1703,7 @@ drawmesg(Client *client, void *av, int n)
 			dstid = BGLONG(a+1);
 			if(drawlookup(client, dstid, 0))
 				error(Eimageexists);
-			dn = drawlookupname(j, (int8_t*)a+6);
+			dn = drawlookupname(j, (char*)a+6);
 			if(dn == nil)
 				error(Enoname);
 			if(drawinstall(client, dstid, dn->dimage->image, 0) == 0)
@@ -1739,9 +1739,9 @@ drawmesg(Client *client, void *av, int n)
 			if(di->name)
 				error(Enamed);
 			if(c)
-				drawaddname(client, di, j, (int8_t*)a+7);
+				drawaddname(client, di, j, (char*)a+7);
 			else{
-				dn = drawlookupname(j, (int8_t*)a+7);
+				dn = drawlookupname(j, (char*)a+7);
 				if(dn == nil)
 					error(Enoname);
 				if(dn->dimage != di)

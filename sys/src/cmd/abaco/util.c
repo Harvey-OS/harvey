@@ -43,7 +43,7 @@ max(int a, int b)
 }
 
 void
-cvttorunes(int8_t *p, int n, Rune *r, int *nb, int *nr, int *nulls)
+cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 {
 	uint8_t *q;
 	Rune *s;
@@ -63,7 +63,7 @@ cvttorunes(int8_t *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 			w = 1;
 			*s = *q++;
 		}else{
-			w = chartorune(s, (int8_t*)q);
+			w = chartorune(s, (char*)q);
 			q += w;
 		}
 		if(*s)
@@ -71,12 +71,12 @@ cvttorunes(int8_t *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 		else if(nulls)
 			*nulls = TRUE;
 	}
-	*nb = (int8_t*)q-p;
+	*nb = (char*)q-p;
 	*nr = s-r;
 }
 
 void
-bytetorunestr(int8_t *s, Runestr *rs)
+bytetorunestr(char *s, Runestr *rs)
 {
 	Rune *r;
 	int nb, nr;
@@ -90,7 +90,7 @@ bytetorunestr(int8_t *s, Runestr *rs)
 }
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	fprint(2, "abaco: %s: %r\n", s);
 //	abort();
@@ -134,10 +134,10 @@ erunestrdup(Rune *r)
 	return p;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *t;
+	char *t;
 
 	t = strdup(s);
 	if(t == nil)
@@ -444,14 +444,14 @@ static char *deffontpaths[] = {
 #include "fonts.h"
 };
 
-static int8_t *fontpaths[NumFnt];
+static char *fontpaths[NumFnt];
 static Font *fonts[NumFnt];
 
 void
 initfontpaths(void)
 {
 	Biobufhdr *bp;
-	int8_t buf[128];
+	char buf[128];
 	int i;
 
 	/* we don't care if getenv(2) fails */
@@ -527,7 +527,7 @@ getcolor(int rgb)
 }
 
 int
-plumbrunestr(Runestr *rs, int8_t *attr)
+plumbrunestr(Runestr *rs, char *attr)
 {
 	Plumbmsg *m;
 	int i;
@@ -561,7 +561,7 @@ hexdigit(int v)
 }
 
 static int
-inclass(int8_t c, Rune* cl)
+inclass(char c, Rune* cl)
 {
 	int n, ans, negate, i;
 
@@ -597,7 +597,7 @@ Rune*
 ucvt(Rune* s)
 {
 	Rune* u;
-	int8_t *t;
+	char *t;
 	int i, c, n, j, len;
 
 	t = smprint("%S", s);
@@ -644,7 +644,7 @@ reverseimages(Iimage **head)
 	*head = r;
 }
 
-int8_t urlexpr[] = "^(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|"
+char urlexpr[] = "^(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|"
 	"prospero)://([a-zA-Z0-9_@\\-]+([.:][a-zA-Z0-9_@\\-]+)*)";
 Reprog	*urlprog;
 
@@ -670,7 +670,7 @@ execproc(void *v)
 	Channel *sync;
 	Exec *e;
 	int p[2], q[2];
-	int8_t *cmd;
+	char *cmd;
 
 	threadsetname("execproc");
 	e = v;
@@ -701,7 +701,7 @@ writeproc(void *v)
 {
 	Channel *sync;
 	void **a;
-	int8_t *s;
+	char *s;
 	int32_t np;
 	int fd, i, n;
 
@@ -751,8 +751,8 @@ static int winchars[] = {
 	732, 8482, 353, 8250, 339, 8226, 8226, 376
 };
 
-int8_t *
-tcs(int8_t *cs, int8_t *s, int32_t *np)
+char *
+tcs(char *cs, char *s, int32_t *np)
 {
 	Channel *sync;
 	Exec *e;
@@ -760,8 +760,8 @@ tcs(int8_t *cs, int8_t *s, int32_t *np)
 	int32_t i, n;
 	void **a;
 	uint8_t *us;
-	int8_t buf[BUFSIZE], cmd[50];
-	int8_t *t, *u;
+	char buf[BUFSIZE], cmd[50];
+	char *t, *u;
 	int p[2], q[2];
 
 
@@ -866,16 +866,16 @@ latin1:
 
 static
 int
-isspace(int8_t c)
+isspace(char c)
 {
 	return c==' ' || c== '\t' || c=='\r' || c=='\n';
 }
 
 static
 int
-findctype(int8_t *b, int l, int8_t *keyword, int8_t *s)
+findctype(char *b, int l, char *keyword, char *s)
 {
-	int8_t *p, *e;
+	char *p, *e;
 	int i;
 
 	p = cistrstr(s, keyword);
@@ -908,9 +908,9 @@ findctype(int8_t *b, int l, int8_t *keyword, int8_t *s)
 
 static
 int
-finddocctype(int8_t *b, int l, int8_t *s)
+finddocctype(char *b, int l, char *s)
 {
-	int8_t *p, *e;
+	char *p, *e;
 
 	p = cistrstr(s, "<meta");
 	if(!p)
@@ -925,9 +925,9 @@ finddocctype(int8_t *b, int l, int8_t *s)
 
 static
 int
-findxmltype(int8_t *b, int l, int8_t *s)
+findxmltype(char *b, int l, char *s)
 {
-	int8_t *p, *e;
+	char *p, *e;
 
 	p = cistrstr(s, "<?xml ");
 	if(!p)
@@ -946,10 +946,10 @@ findxmltype(int8_t *b, int l, int8_t *s)
  * servers can lie about lie about the charset,
  * so we use the charset based on the priority.
  */
-int8_t *
-convert(Runestr ctype, int8_t *s, int32_t *np)
+char *
+convert(Runestr ctype, char *s, int32_t *np)
 {
-	int8_t t[25], buf[256];
+	char t[25], buf[256];
 
 	*t = '\0';
 	if(ctype.nr){
@@ -1024,7 +1024,7 @@ getimage(Cimage *ci, Rune *altr)
 	Rectangle r;
 	Memimage *mi;
 	Image *i, *i2;
-	int8_t buf[128];
+	char buf[128];
 	uint8_t *bits;
 	int nbits;
 
@@ -1159,7 +1159,7 @@ static Refresh *refreshs = nil;
 static QLock refreshlock;
 
 void
-addrefresh(Page *p, int8_t *fmt, ...)
+addrefresh(Page *p, char *fmt, ...)
 {
 	Refresh *r;
 	Rune *s;

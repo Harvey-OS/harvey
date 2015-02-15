@@ -158,8 +158,8 @@ nextis(int c)
 	return 0;
 }
 
-int8_t*
-addtok(int8_t *p, int val)
+char*
+addtok(char *p, int val)
 {
 	if(p==0)
 		return 0;
@@ -172,8 +172,8 @@ addtok(int8_t *p, int val)
 	return p;
 }
 
-int8_t*
-addutf(int8_t *p, int c)
+char*
+addutf(char *p, int c)
 {
 	uint8_t b, m;
 	int i;
@@ -201,7 +201,7 @@ int
 yylex(void)
 {
 	int c, d = nextc();
-	int8_t *w = tok;
+	char *w = tok;
 	struct tree *t;
 	yylval.tree = 0;
 	/*

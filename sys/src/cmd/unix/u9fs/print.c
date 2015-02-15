@@ -13,9 +13,9 @@
 extern	int	printcol;
 
 int
-print(int8_t *fmt, ...)
+print(char *fmt, ...)
 {
-	int8_t buf[SIZE], *out;
+	char buf[SIZE], *out;
 	va_list arg, temp;
 	int n;
 
@@ -29,9 +29,9 @@ print(int8_t *fmt, ...)
 }
 
 int
-fprint(int f, int8_t *fmt, ...)
+fprint(int f, char *fmt, ...)
 {
-	int8_t buf[SIZE], *out;
+	char buf[SIZE], *out;
 	va_list arg, temp;
 	int n;
 
@@ -45,9 +45,9 @@ fprint(int f, int8_t *fmt, ...)
 }
 
 int
-sprint(int8_t *buf, int8_t *fmt, ...)
+sprint(char *buf, char *fmt, ...)
 {
-	int8_t *out;
+	char *out;
 	va_list arg, temp;
 	int scol;
 
@@ -62,9 +62,9 @@ sprint(int8_t *buf, int8_t *fmt, ...)
 }
 
 int
-snprint(int8_t *buf, int len, int8_t *fmt, ...)
+snprint(char *buf, int len, char *fmt, ...)
 {
-	int8_t *out;
+	char *out;
 	va_list arg, temp;
 	int scol;
 
@@ -78,10 +78,10 @@ snprint(int8_t *buf, int len, int8_t *fmt, ...)
 	return out-buf;
 }
 
-int8_t*
-seprint(int8_t *buf, int8_t *e, int8_t *fmt, ...)
+char*
+seprint(char *buf, char *e, char *fmt, ...)
 {
-	int8_t *out;
+	char *out;
 	va_list arg, temp;
 	int scol;
 

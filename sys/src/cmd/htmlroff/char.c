@@ -20,7 +20,7 @@ rune2html(Rune r)
 	static int fd = -1;
 	static Rune **tcscache[256];
 	int p[2];
-	int8_t *q;
+	char *q;
 	
 	if(r == '\n')
 		return L("\n");
@@ -74,7 +74,7 @@ rune2html(Rune r)
 typedef struct Trtab Trtab;
 struct Trtab
 {
-	int8_t t[UTFmax];
+	char t[UTFmax];
 	Rune r;
 };
 
@@ -94,7 +94,7 @@ static Trtab trinit[] =
 Rune
 troff2rune(Rune *rs)
 {
-	int8_t *file, *f[10], *p, s[3];
+	char *file, *f[10], *p, s[3];
 	int i, nf;
 	Biobuf *b;
 	

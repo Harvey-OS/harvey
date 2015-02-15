@@ -10,27 +10,27 @@
 #include "dat.h"
 
 int		askforkeys = 1;
-int8_t		*authaddr;
+char		*authaddr;
 int		debug;
 int		doprivate = 1;
 int		gflag;
-int8_t		*owner;
+char		*owner;
 int		kflag;
-int8_t		*mtpt = "/mnt";
+char		*mtpt = "/mnt";
 Keyring	*ring;
-int8_t		*service;
+char		*service;
 int		sflag;
 int		uflag;
 
 extern Srv		fs;
-static void		notifyf(void*, int8_t*);
+static void		notifyf(void*, char*);
 static void		private(void);
 
-int8_t	Easproto[]		= "auth server protocol botch";
-int8_t Ebadarg[]		= "invalid argument";
-int8_t Ebadkey[]		= "bad key";
-int8_t Enegotiation[]	= "negotiation failed, no common protocols or keys";
-int8_t Etoolarge[]	= "rpc too large";
+char	Easproto[]		= "auth server protocol botch";
+char Ebadarg[]		= "invalid argument";
+char Ebadkey[]		= "bad key";
+char Enegotiation[]	= "negotiation failed, no common protocols or keys";
+char Etoolarge[]	= "rpc too large";
 
 Proto*
 prototab[] =
@@ -202,15 +202,15 @@ main(int argc, char **argv)
 	exits(nil);
 }
 
-int8_t *pmsg = "Warning! %s can't protect itself from debugging: %r\n";
-int8_t *smsg = "Warning! %s can't turn off swapping: %r\n";
+char *pmsg = "Warning! %s can't protect itself from debugging: %r\n";
+char *smsg = "Warning! %s can't turn off swapping: %r\n";
 
 /* don't allow other processes to debug us and steal keys */
 static void
 private(void)
 {
 	int fd;
-	int8_t buf[64];
+	char buf[64];
 
 	snprint(buf, sizeof(buf), "#p/%d/ctl", getpid());
 	fd = open(buf, OWRITE);
@@ -226,7 +226,7 @@ private(void)
 }
 
 static void
-notifyf(void*, int8_t *s)
+notifyf(void*, char *s)
 {
 	if(strncmp(s, "interrupt", 9) == 0)
 		noted(NCONT);
@@ -266,7 +266,7 @@ fsattach(Req *r)
 }
 
 static struct {
-	int8_t *name;
+	char *name;
 	int qidpath;
 	uint32_t perm;
 } dirtab[] = {
@@ -282,7 +282,7 @@ int *confirminuse = &inuse[0];
 int *needkeyinuse = &inuse[1];
 
 static void
-fillstat(Dir *dir, int8_t *name, int type, int path, uint32_t perm)
+fillstat(Dir *dir, char *name, int type, int path, uint32_t perm)
 {
 	dir->name = estrdup(name);
 	dir->uid = estrdup(owner);
@@ -313,8 +313,8 @@ fsdirgen(int n, Dir *dir, void*)
 	return 0;
 }
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i;
 
@@ -440,10 +440,10 @@ fsdestroyfid(Fid *fid)
 }
 
 static int
-readlist(int off, int (*gen)(int, int8_t*, uint, Fsstate*), Req *r,
+readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r,
 	 Fsstate *fss)
 {
-	int8_t *a, *ea;
+	char *a, *ea;
 	int n;
 
 	a = r->ofcall.data;
@@ -451,7 +451,7 @@ readlist(int off, int (*gen)(int, int8_t*, uint, Fsstate*), Req *r,
 	for(;;){
 		n = (*gen)(off, a, ea-a, fss);
 		if(n == 0){
-			r->ofcall.count = a - (int8_t*)r->ofcall.data;
+			r->ofcall.count = a - (char*)r->ofcall.data;
 			return off;
 		}
 		a += n;
@@ -463,12 +463,12 @@ enum { Nearend = 2, };			/* at least room for \n and NUL */
 
 /* result in `a', of `n' bytes maximum */
 static int
-keylist(int i, int8_t *a, uint n, Fsstate *fss)
+keylist(int i, char *a, uint n, Fsstate *fss)
 {
 	int wb;
 	Keyinfo ki;
 	Key *k;
-	static int8_t zero[Nearend];
+	static char zero[Nearend];
 
 	k = nil;
 	mkkeyinfo(&ki, fss, nil);
@@ -490,7 +490,7 @@ keylist(int i, int8_t *a, uint n, Fsstate *fss)
 }
 
 static int
-protolist(int i, int8_t *a, uint n, Fsstate *fss)
+protolist(int i, char *a, uint n, Fsstate *fss)
 {
 	USED(fss);
 
@@ -549,7 +549,7 @@ static void
 fswrite(Req *r)
 {
 	int ret;
-	int8_t err[ERRMAX], *s;
+	char err[ERRMAX], *s;
 
 	switch((uint32_t)r->fid->qid.path){
 	default:

@@ -13,7 +13,7 @@
 #include "sys9.h"
 
 int
-rmdir(const int8_t *path)
+rmdir(const char *path)
 {
 	int n;
 

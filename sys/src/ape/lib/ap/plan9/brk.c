@@ -11,12 +11,12 @@
 #include <errno.h>
 #include "sys9.h"
 
-int8_t	end[];
-static	int8_t	*bloc = { end };
+char	end[];
+static	char	*bloc = { end };
 extern	int	_BRK_(void*);
 
-int8_t *
-brk(int8_t *p)
+char *
+brk(char *p)
 {
 	unsigned long n;
 
@@ -25,9 +25,9 @@ brk(int8_t *p)
 	n &= ~3;
 	if(_BRK_((void*)n) < 0){
 		errno = ENOMEM;
-		return (int8_t *)-1;
+		return (char *)-1;
 	}
-	bloc = (int8_t *)n;
+	bloc = (char *)n;
 	return 0;
 }
 

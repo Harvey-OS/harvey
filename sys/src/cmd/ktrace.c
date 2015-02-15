@@ -19,7 +19,7 @@ static	int	i386trace(uvlong, uvlong, uvlong);
 static	int	amd64trace(uvlong, uvlong, uvlong);
 static	uint64_t	getval(uint64_t);
 static	void	inithdr(int);
-static	void	fatal(int8_t*, ...);
+static	void	fatal(char*, ...);
 static	void	readstack(void);
 
 static	Fhdr	fhdr;
@@ -35,10 +35,10 @@ usage(void)
 }
 
 static void
-printaddr(int8_t *addr, uint64_t pc)
+printaddr(char *addr, uint64_t pc)
 {
 	int i;
-	int8_t *p;
+	char *p;
 
 	/*
 	 * reformat the following.
@@ -64,7 +64,7 @@ printaddr(int8_t *addr, uint64_t pc)
 		print("src(%#.8llux); // %s\n", pc, addr);
 }
 
-static void (*fmt)(int8_t*, uint64_t) = printaddr;
+static void (*fmt)(char*, uint64_t) = printaddr;
 
 void
 main(int argc, char *argv[])
@@ -150,7 +150,7 @@ static int
 rtrace(uint64_t pc, uint64_t sp, uint64_t link)
 {
 	Symbol s, f;
-	int8_t buf[128];
+	char buf[128];
 	uint64_t oldpc;
 	int i;
 
@@ -190,7 +190,7 @@ static int
 ctrace(uint64_t pc, uint64_t sp, uint64_t link)
 {
 	Symbol s;
-	int8_t buf[128];
+	char buf[128];
 	int found;
 	uint64_t opc, moved;
 	int32_t j;
@@ -230,7 +230,7 @@ i386trace(uint64_t pc, uint64_t sp, uint64_t link)
 	int i;
 	uint64_t osp;
 	Symbol s, f;
-	int8_t buf[128];
+	char buf[128];
 
 	USED(link);
 	i = 0;
@@ -283,7 +283,7 @@ amd64trace(uint64_t pc, uint64_t sp, uint64_t link)
 	int i, isintrr;
 	uint64_t osp;
 	Symbol s, f;
-	int8_t buf[128];
+	char buf[128];
 
 	USED(link);
 	i = 0;
@@ -357,8 +357,8 @@ static void
 readstack(void)
 {
 	Biobuf b;
-	int8_t *p;
-	int8_t *f[64];
+	char *p;
+	char *f[64];
 	int nf, i;
 
 	Binit(&b, 0, OREAD);
@@ -377,7 +377,7 @@ readstack(void)
 static uint64_t
 getval(uint64_t a)
 {
-	int8_t buf[256];
+	char buf[256];
 	int i, n;
 	uint64_t r;
 
@@ -399,9 +399,9 @@ getval(uint64_t a)
 }
 
 static void
-fatal(int8_t *fmt, ...)
+fatal(char *fmt, ...)
 {
-	int8_t buf[4096];
+	char buf[4096];
 	va_list arg;
 
 	va_start(arg, fmt);

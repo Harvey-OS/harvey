@@ -188,7 +188,7 @@ removefile(File *f)
 }
 
 File*
-createfile(File *fp, int8_t *name, int8_t *uid, uint32_t perm, void *aux)
+createfile(File *fp, char *name, char *uid, uint32_t perm, void *aux)
 {
 	File *f;
 	Filelist **l, *fl;
@@ -255,7 +255,7 @@ createfile(File *fp, int8_t *name, int8_t *uid, uint32_t perm, void *aux)
 }
 
 static File*
-walkfile1(File *dir, int8_t *elem)
+walkfile1(File *dir, char *elem)
 {
 	File *fp;
 	Filelist *fl;
@@ -283,9 +283,9 @@ walkfile1(File *dir, int8_t *elem)
 }
 
 File*
-walkfile(File *f, int8_t *path)
+walkfile(File *f, char *path)
 {
-	int8_t *os, *s, *nexts;
+	char *os, *s, *nexts;
 
 	if(strchr(path, '/') == nil)
 		return walkfile1(f, path);	/* avoid malloc */
@@ -305,9 +305,9 @@ walkfile(File *f, int8_t *path)
 }
 			
 Tree*
-alloctree(int8_t *uid, int8_t *gid, uint32_t mode, void (*destroy)(File*))
+alloctree(char *uid, char *gid, uint32_t mode, void (*destroy)(File*))
 {
-	int8_t *muid;
+	char *muid;
 	Tree *t;
 	File *f;
 

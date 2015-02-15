@@ -16,11 +16,11 @@
 #define	NL	'\n'
 #define	MAXGRP	100
 
-static int8_t GROUP[] = "/etc/group";
+static char GROUP[] = "/etc/group";
 static FILE *grf = NULL;
-static int8_t line[BUFSIZ+1];
+static char line[BUFSIZ+1];
 static struct group group;
-static int8_t *gr_mem[MAXGRP];
+static char *gr_mem[MAXGRP];
 
 void
 setgrent(void)
@@ -40,8 +40,8 @@ endgrent(void)
 	}
 }
 
-static int8_t *
-grskip(register int8_t *p, register c)
+static char *
+grskip(register char *p, register c)
 {
 	while( *p && *p != c ) ++p;
 	if( *p ) *p++ = 0;
@@ -51,7 +51,7 @@ grskip(register int8_t *p, register c)
 struct group *
 getgrent()
 {
-	register int8_t *p, **q;
+	register char *p, **q;
 
 	if( !grf && !(grf = fopen( GROUP, "r" )) )
 		return(NULL);

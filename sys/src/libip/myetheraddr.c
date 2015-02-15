@@ -12,10 +12,10 @@
 #include <ip.h>
 
 int
-myetheraddr(uint8_t *to, int8_t *dev)
+myetheraddr(uint8_t *to, char *dev)
 {
 	int n, fd;
-	int8_t buf[256];
+	char buf[256];
 
 	if(*dev == '/')
 		sprint(buf, "%s/addr", dev);

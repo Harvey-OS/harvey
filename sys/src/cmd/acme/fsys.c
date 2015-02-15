@@ -64,9 +64,9 @@ Xfid* 	(*fcall[Tmax])(Xfid*, Fid*) =
 	[Twstat]	= fsyswstat,
 };
 
-int8_t Eperm[] = "permission denied";
-int8_t Eexist[] = "file does not exist";
-int8_t Enotdir[] = "not a directory";
+char Eperm[] = "permission denied";
+char Eexist[] = "file does not exist";
+char Enotdir[] = "not a directory";
 
 Dirtab dirtab[]=
 {
@@ -109,11 +109,11 @@ struct Mnt
 
 Mnt	mnt;
 
-Xfid*	respond(Xfid*, Fcall*, int8_t*);
+Xfid*	respond(Xfid*, Fcall*, char*);
 int		dostat(int, Dirtab*, uint8_t*, int, uint);
 uint	getclock(void);
 
-int8_t	*user = "Wile E. Coyote";
+char	*user = "Wile E. Coyote";
 int	clockfd;
 static int closing = 0;
 int	messagesize = Maxblock+IOHDRSZ;	/* good start */
@@ -125,7 +125,7 @@ fsysinit(void)
 {
 	int p[2];
 	int n, fd;
-	int8_t buf[256];
+	char buf[256];
 
 	if(pipe(p) < 0)
 		error("can't create pipe");
@@ -235,7 +235,7 @@ fsysdelid(Mntdir *idm)
 {
 	Mntdir *m, *prev;
 	int i;
-	int8_t buf[64];
+	char buf[64];
 
 	if(idm == nil)
 		return;
@@ -272,7 +272,7 @@ fsysdelid(Mntdir *idm)
 Mntdir*
 fsysmount(Rune *dir, int ndir, Rune **incl, int nincl)
 {
-	int8_t buf[256];
+	char buf[256];
 	Mntdir *m;
 
 	/* close server side so don't hang if acme is half-exited */
@@ -301,7 +301,7 @@ fsysclose(void)
 }
 
 Xfid*
-respond(Xfid *x, Fcall *t, int8_t *err)
+respond(Xfid *x, Fcall *t, char *err)
 {
 	int n;
 
@@ -406,7 +406,7 @@ fsyswalk(Xfid *x, Fid *f)
 	Fid *nf;
 	Dirtab *d, *dir;
 	Window *w;
-	int8_t *err;
+	char *err;
 
 	nf = nil;
 	w = nil;
@@ -602,7 +602,7 @@ fsysread(Xfid *x, Fid *f)
 	Dirtab *d, dt;
 	Column *c;
 	uint clock, len;
-	int8_t buf[16];
+	char buf[16];
 
 	if(f->qid.type & QTDIR){
 		if(FILE(f->qid) == Qacme){	/* empty dir */
@@ -660,7 +660,7 @@ fsysread(Xfid *x, Fid *f)
 			}
 			free(ids);
 		}
-		t.data = (int8_t*)b;
+		t.data = (char*)b;
 		t.count = n;
 		respond(x, &t, nil);
 		free(b);
@@ -744,7 +744,7 @@ newfid(int fid)
 uint
 getclock()
 {
-	int8_t buf[32];
+	char buf[32];
 
 	buf[0] = '\0';
 	pread(clockfd, buf, sizeof buf, 0);

@@ -225,7 +225,7 @@ bufdelete(Buffer *b, uint q0, uint q1)
 uint
 bufload(Buffer *b, uint q0, int fd, int *nulls)
 {
-	int8_t *p;
+	char *p;
 	Rune *r;
 	int l, m, n, nb, nr;
 	uint q1;

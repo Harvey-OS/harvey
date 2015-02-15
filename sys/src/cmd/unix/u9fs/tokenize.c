@@ -10,7 +10,7 @@
 #include <plan9.h>
 
 int
-getfields(int8_t *str, int8_t **args, int max, int mflag, int8_t *set)
+getfields(char *str, char **args, int max, int mflag, char *set)
 {
 	Rune r;
 	int nr, intok, narg;
@@ -45,7 +45,7 @@ getfields(int8_t *str, int8_t **args, int max, int mflag, int8_t *set)
 }
 
 int
-tokenize(int8_t *str, int8_t **args, int max)
+tokenize(char *str, char **args, int max)
 {
 	return getfields(str, args, max, 1, " \t\n\r");
 }

@@ -39,7 +39,7 @@ closest(int cr, int cg, int cb)
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int i, rgb;
 	int r, g, b;

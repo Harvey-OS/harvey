@@ -23,13 +23,13 @@ enum{
 typedef struct DS DS;
 struct DS {
 	/* dial string */
-	int8_t	buf[Maxstring];
-	int8_t	*netdir;
-	int8_t	*proto;
-	int8_t	*rem;
+	char	buf[Maxstring];
+	char	*netdir;
+	char	*proto;
+	char	*rem;
 };
 
-int8_t *argv0;
+char *argv0;
 int debug;
 
 void	histogram(int32_t *t, int n, int buckets, int32_t lo,
@@ -45,10 +45,10 @@ usage(void)
 }
 
 static int
-csquery(DS *ds, int8_t *clone, int8_t *dest)
+csquery(DS *ds, char *clone, char *dest)
 {
 	int n, fd;
-	int8_t *p, buf[Maxstring];
+	char *p, buf[Maxstring];
 
 	/*
 	 *  open connection server
@@ -104,9 +104,9 @@ csquery(DS *ds, int8_t *clone, int8_t *dest)
  *  call the dns process and have it try to resolve the mx request
  */
 static int
-dodnsquery(DS *ds, int8_t *ip, int8_t *dom)
+dodnsquery(DS *ds, char *ip, char *dom)
 {
-	int8_t *p;
+	char *p;
 	Ndbtuple *t, *nt;
 
 	p = strchr(ip, '!');
@@ -128,10 +128,10 @@ dodnsquery(DS *ds, int8_t *ip, int8_t *dom)
  *  to try dialing.  resending is up to it.
  */
 static int
-tcpilprobe(int cfd, int dfd, int8_t *dest, int interval)
+tcpilprobe(int cfd, int dfd, char *dest, int interval)
 {
 	int n;
-	int8_t msg[Maxstring];
+	char msg[Maxstring];
 
 	USED(dfd);
 
@@ -147,11 +147,11 @@ tcpilprobe(int cfd, int dfd, int8_t *dest, int interval)
  *  till we timeout or someone complains
  */
 static int
-udpprobe(int cfd, int dfd, int8_t *dest, int interval)
+udpprobe(int cfd, int dfd, char *dest, int interval)
 {
 	int n, i, rv;
-	int8_t msg[Maxstring];
-	int8_t err[Maxstring];
+	char msg[Maxstring];
+	char err[Maxstring];
 
 	seek(cfd, 0, 0);
 	n = snprint(msg, sizeof msg, "connect %s", dest);
@@ -192,10 +192,10 @@ udpprobe(int cfd, int dfd, int8_t *dest, int interval)
 
 /* ICMPv4 only */
 static int
-icmpprobe(int cfd, int dfd, int8_t *dest, int interval)
+icmpprobe(int cfd, int dfd, char *dest, int interval)
 {
 	int x, i, n, len, rv;
-	int8_t buf[512], err[Maxstring], msg[Maxstring];
+	char buf[512], err[Maxstring], msg[Maxstring];
 	Icmphdr *ip;
 
 	seek(cfd, 0, 0);
@@ -209,7 +209,7 @@ icmpprobe(int cfd, int dfd, int8_t *dest, int interval)
 		alarm(interval/3);
 		ip->type = EchoRequest;
 		ip->code = 0;
-		strcpy((int8_t*)ip->data, MSG);
+		strcpy((char*)ip->data, MSG);
 		ip->seq[0] = MAGIC;
 		ip->seq[1] = MAGIC>>8;
 		len = IPV4HDR_LEN + ICMP_HDRSIZE + sizeof(MSG);
@@ -232,7 +232,7 @@ icmpprobe(int cfd, int dfd, int8_t *dest, int interval)
 		}
 		x = (ip->seq[1]<<8) | ip->seq[0];
 		if(n >= len && ip->type == EchoReply && x == MAGIC &&
-		    strcmp((int8_t*)ip->data, MSG) == 0){
+		    strcmp((char*)ip->data, MSG) == 0){
 			rv = 0;
 			break;
 		}
@@ -242,7 +242,7 @@ icmpprobe(int cfd, int dfd, int8_t *dest, int interval)
 }
 
 static void
-catch(void *a, int8_t *msg)
+catch(void *a, char *msg)
 {
 	USED(a);
 	if(strstr(msg, "alarm"))
@@ -252,11 +252,11 @@ catch(void *a, int8_t *msg)
 }
 
 static int
-call(DS *ds, int8_t *clone, int8_t *dest, int ttl, int32_t *interval)
+call(DS *ds, char *clone, char *dest, int ttl, int32_t *interval)
 {
 	int cfd, dfd, rv, n;
-	int8_t msg[Maxstring];
-	int8_t file[Maxstring];
+	char msg[Maxstring];
+	char file[Maxstring];
 	int64_t start;
 
 	notify(catch);
@@ -309,9 +309,9 @@ out:
  *  default proto is tcp.
  */
 static void
-dial_string_parse(int8_t *str, DS *ds)
+dial_string_parse(char *str, DS *ds)
 {
-	int8_t *p, *p2;
+	char *p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
 	ds->buf[Maxstring-3] = 0;
@@ -455,16 +455,16 @@ main(int argc, char **argv)
 	exits(0);
 }
 
-int8_t *order = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char *order = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 void
 histogram(int32_t *t, int n, int buckets, int32_t lo, int32_t hi)
 {
 	int i, j, empty;
 	int32_t span;
-	static int8_t *bar;
-	int8_t *p;
-	int8_t x[64];
+	static char *bar;
+	char *p;
+	char x[64];
 
 	if(bar == nil)
 		bar = malloc(n+1);

@@ -25,7 +25,7 @@ static	Block	*blist;
 int
 tempfile(void)
 {
-	int8_t buf[128];
+	char buf[128];
 	int i, fd;
 
 	snprint(buf, sizeof buf, "/tmp/X%d.%.4sacme", getpid(), getuser());
@@ -130,14 +130,14 @@ void
 diskread(Disk *d, Block *b, Rune *r, uint n)
 {
 	int tot, nr;
-	int8_t *p;
+	char *p;
 
 	if(n > b->n)
 		error("internal error: diskread");
 
 	ntosize(b->n, nil);
 	n *= sizeof(Rune);
-	p = (int8_t*)r;
+	p = (char*)r;
 	for(tot = 0; tot < n; tot += nr){
 		nr = pread(d->fd, p+tot, n-tot, b->addr+tot);
 		if(nr <= 0)

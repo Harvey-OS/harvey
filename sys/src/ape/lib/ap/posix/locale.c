@@ -32,14 +32,14 @@ static struct lconv Clocale = {
 	CHAR_MAX,	/* n_sign_posn */
 };
 
-static int8_t *localename[2] = {"C", ""};
+static char *localename[2] = {"C", ""};
 static int16_t catlocale[6] = {0, 0, 0, 0, 0, 0};
 	/* indices into localename  for categories LC_ALL, LC_COLLATE, etc. */
 
 #define ASIZE(a) (sizeof(a)/sizeof(a[0]))
 
-int8_t *
-setlocale(int category, const int8_t *locale)
+char *
+setlocale(int category, const char *locale)
 {
 	int c, i;
 

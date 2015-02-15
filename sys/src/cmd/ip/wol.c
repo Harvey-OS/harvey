@@ -20,7 +20,7 @@ typedef struct Wolpack Wolpack;
 struct Wolpack{
 	uint8_t	magic[6];
 	uint8_t	macs[16][Eaddrlen];
-	int8_t	pass[6+1];
+	char	pass[6+1];
 };
 
 int verbose;

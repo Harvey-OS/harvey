@@ -13,14 +13,14 @@
 #include <bio.h>
 #include "cons.h"
 
-int8_t *term = "2621";
+char *term = "2621";
 
 struct funckey fk[32];
 
 void
 emulate(void)
 {
-	int8_t buf[BUFS+1];
+	char buf[BUFS+1];
 	int n;
 	int c;
 	int standout = 0;

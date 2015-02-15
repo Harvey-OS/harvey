@@ -57,7 +57,7 @@ latin1(Rune *k, int n)
 {
 	struct cvlist *l;
 	int c;
-	int8_t* p;
+	char* p;
 
 	if(k[0] == 'X')
 		if(n>=5)

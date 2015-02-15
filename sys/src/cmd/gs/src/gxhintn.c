@@ -140,14 +140,14 @@
 */
 #define CONTRAST_STEMS 1
 
-static const int8_t *s_pole_array = "t1_hinter pole array";
-static const int8_t *s_zone_array = "t1_hinter zone array";
-static const int8_t *s_hint_array = "t1_hinter hint array";
-static const int8_t *s_contour_array = "t1_hinter contour array";
-static const int8_t *s_hint_range_array = "t1_hinter hint_range array";
-static const int8_t *s_stem_snap_array = "t1_hinter stem_snap array";
+static const char *s_pole_array = "t1_hinter pole array";
+static const char *s_zone_array = "t1_hinter zone array";
+static const char *s_hint_array = "t1_hinter hint array";
+static const char *s_contour_array = "t1_hinter contour array";
+static const char *s_hint_range_array = "t1_hinter hint_range array";
+static const char *s_stem_snap_array = "t1_hinter stem_snap array";
 
-#define member_prt(type, ptr, offset) (type *)((int8_t *)(ptr) + (offset))
+#define member_prt(type, ptr, offset) (type *)((char *)(ptr) + (offset))
 
 typedef int32_t int24;
 #define HAVE_INT64_T
@@ -384,10 +384,10 @@ private void t1_hinter__paint_glyph(t1_hinter * this, bool aligned)
 #define Y(j) *member_prt(t1_glyph_space_coord, &this->pole[j], offset_y)
     t1_glyph_space_coord *p_x = (aligned ? &this->pole[0].ax : &this->pole[0].gx);
     t1_glyph_space_coord *p_y = (aligned ? &this->pole[0].ay : &this->pole[0].gy);
-    int offset_x = (int8_t *)p_x - (int8_t *)&this->pole[0];
-    int offset_y = (int8_t *)p_y - (int8_t *)&this->pole[0];
+    int offset_x = (char *)p_x - (char *)&this->pole[0];
+    int offset_y = (char *)p_y - (char *)&this->pole[0];
     int i, j;
-    int8_t buf[15];
+    char buf[15];
 
     if (!vd_enabled)
 	return;
@@ -737,7 +737,7 @@ private void t1_hinter__make_zone(t1_hinter * this, t1_zone *zone, float * blues
 }
 
 private bool t1_hinter__realloc_array(gs_memory_t *mem, void **a, void *a0, int *max_count, int elem_size, int enhancement,
-                                      const int8_t *cname)
+                                      const char *cname)
 {
     void *aa = gs_alloc_bytes(mem, (*max_count + enhancement * 2) * elem_size, cname);
 

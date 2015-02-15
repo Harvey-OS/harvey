@@ -13,11 +13,11 @@
 #include <mp.h>
 #include <libsec.h>
 
-static int8_t*
-readfile(int8_t *name)
+static char*
+readfile(char *name)
 {
 	int fd;
-	int8_t *s;
+	char *s;
 	Dir *d;
 
 	fd = open(name, OREAD);
@@ -41,9 +41,9 @@ readfile(int8_t *name)
 }
 
 uint8_t*
-readcert(int8_t *filename, int *pcertlen)
+readcert(char *filename, int *pcertlen)
 {
-	int8_t *pem;
+	char *pem;
 	uint8_t *binary;
 
 	pem = readfile(filename);
@@ -61,9 +61,9 @@ readcert(int8_t *filename, int *pcertlen)
 }
 
 PEMChain *
-readcertchain(int8_t *filename)
+readcertchain(char *filename)
 {
-	int8_t *chfile;
+	char *chfile;
 
 	chfile = readfile(filename);
 	if (chfile == nil) {

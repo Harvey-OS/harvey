@@ -45,7 +45,7 @@ static int findCDir(Biobuf *);
 static int header(Biobuf *, ZipHead *);
 static int cheader(Biobuf *, ZipHead *);
 static void trailer(Biobuf *, ZipHead *);
-static int8_t *getname(Biobuf *, int);
+static char *getname(Biobuf *, int);
 static int blwrite(void *, void *, int);
 static uint32_t get4(Biobuf *);
 static int get2(Biobuf *);
@@ -53,9 +53,9 @@ static int get1(Biobuf *);
 static int32_t msdos2time(int, int);
 
 void
-populate(int8_t *name)
+populate(char *name)
 {
-	int8_t *p;
+	char *p;
 	Fileinf f;
 	ZipHead zh;
 	int ok, entries;
@@ -109,14 +109,14 @@ docreate(Ram *r)
 	USED(r);
 }
 
-int8_t *
+char *
 doread(Ram *r, int64_t off, int32_t cnt)
 {
 	int i, err;
 	Block bs;
 	ZipHead zh;
 	static Qid oqid;
-	static int8_t buf[Maxbuf];
+	static char buf[Maxbuf];
 	static uint8_t *cache = nil;
 
 	if (cnt > Maxbuf)
@@ -174,7 +174,7 @@ popdir(Ram *r)
 }
 
 void
-dowrite(Ram *r, int8_t *buf, int32_t off, int32_t cnt)
+dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }
@@ -314,10 +314,10 @@ trailer(Biobuf *bin, ZipHead *zh)
 	}
 }
 
-static int8_t*
+static char*
 getname(Biobuf *bin, int len)
 {
-	int8_t *s;
+	char *s;
 	int i, c;
 
 	s = emalloc(len + 1);

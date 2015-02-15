@@ -13,7 +13,7 @@
 #include "dat.h"
 
 static int
-to64(mpint *b, int8_t *buf, int len)
+to64(mpint *b, char *buf, int len)
 {
 	uint8_t *p;
 	int n, rv;
@@ -28,7 +28,7 @@ to64(mpint *b, int8_t *buf, int len)
 }
 
 static int
-to32(mpint *b, int8_t *buf, int len)
+to32(mpint *b, char *buf, int len)
 {
 	uint8_t *p;
 	int n, rv;
@@ -50,14 +50,14 @@ to32(mpint *b, int8_t *buf, int len)
 	return rv;
 }
 
-static int8_t set16[] = "0123456789ABCDEF";
+static char set16[] = "0123456789ABCDEF";
 
 static int
-to16(mpint *b, int8_t *buf, int len)
+to16(mpint *b, char *buf, int len)
 {
 	mpdigit *p, x;
 	int i, j;
-	int8_t *out, *eout;
+	char *out, *eout;
 
 	if(len < 1)
 		return -1;
@@ -83,8 +83,8 @@ to16(mpint *b, int8_t *buf, int len)
 	return 0;
 }
 
-static int8_t*
-modbillion(int rem, uint32_t r, int8_t *out, int8_t *buf)
+static char*
+modbillion(int rem, uint32_t r, char *out, char *buf)
 {
 	uint32_t rr;
 	int i;
@@ -102,10 +102,10 @@ modbillion(int rem, uint32_t r, int8_t *out, int8_t *buf)
 }
 
 static int
-to10(mpint *b, int8_t *buf, int len)
+to10(mpint *b, char *buf, int len)
 {
 	mpint *d, *r, *billion;
-	int8_t *out;
+	char *out;
 
 	if(len < 1)
 		return -1;
@@ -137,7 +137,7 @@ int
 mpfmt(Fmt *fmt)
 {
 	mpint *b;
-	int8_t *p;
+	char *p;
 
 	b = va_arg(fmt->args, mpint*);
 	if(b == nil)
@@ -155,10 +155,10 @@ mpfmt(Fmt *fmt)
 	}
 }
 
-int8_t*
-mptoa(mpint *b, int base, int8_t *buf, int len)
+char*
+mptoa(mpint *b, int base, char *buf, int len)
 {
-	int8_t *out;
+	char *out;
 	int rv, alloced;
 
 	alloced = 0;

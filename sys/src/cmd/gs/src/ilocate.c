@@ -321,9 +321,9 @@ ialloc_validate_chunk(const chunk_t * cp, gc_state_t * gcst)
 	      (uint32_t) size, (uint32_t) pre);
     if (pre->o_type == &st_refs) {
 	const ref_packed *rp = (const ref_packed *)(pre + 1);
-	const int8_t *end = (const int8_t *)rp + size;
+	const char *end = (const char *)rp + size;
 
-	while ((const int8_t *)rp < end) {
+	while ((const char *)rp < end) {
 #	    if IGC_PTR_STABILITY_CHECK
 	    ialloc_validate_ref_packed(rp, gcst, pre);
 #	    else
@@ -509,13 +509,13 @@ void
 ialloc_validate_pointer_stability(const obj_header_t * ptr_fr, 
 				   const obj_header_t * ptr_to)
 {
-    static const int8_t *sn[] = {"undef", "undef", "system", "undef", 
+    static const char *sn[] = {"undef", "undef", "system", "undef", 
 		"global_stable", "global", "local_stable", "local"};
 
     if (ptr_fr->d.o.space_id < ptr_to->d.o.space_id) {
-	const int8_t *sn_fr = (ptr_fr->d.o.space_id < count_of(sn) 
+	const char *sn_fr = (ptr_fr->d.o.space_id < count_of(sn) 
 			? sn[ptr_fr->d.o.space_id] : "unknown");
-	const int8_t *sn_to = (ptr_to->d.o.space_id < count_of(sn) 
+	const char *sn_to = (ptr_to->d.o.space_id < count_of(sn) 
 			? sn[ptr_to->d.o.space_id] : "unknown");
 
 	lprintf6("Reference to a less stable object 0x%lx<%s> "
@@ -534,7 +534,7 @@ ialloc_validate_object(const obj_header_t * ptr, const chunk_t * cp,
     const obj_header_t *pre = ptr - 1;
     uint32_t size = pre_obj_contents_size(pre);
     gs_memory_type_ptr_t otype = pre->o_type;
-    const int8_t *oname;
+    const char *oname;
 
     if (!gs_debug_c('?'))
 	return;			/* no check */

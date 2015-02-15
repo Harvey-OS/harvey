@@ -12,7 +12,7 @@
 #include <venti.h>
 
 int
-vtputstring(Packet *p, int8_t *s)
+vtputstring(Packet *p, char *s)
 {
 	uint8_t buf[2];
 	int n;
@@ -34,11 +34,11 @@ vtputstring(Packet *p, int8_t *s)
 }
 
 int
-vtgetstring(Packet *p, int8_t **ps)
+vtgetstring(Packet *p, char **ps)
 {
 	uint8_t buf[2];
 	int n;
-	int8_t *s;
+	char *s;
 
 	if(packetconsume(p, buf, 2) < 0)
 		return -1;

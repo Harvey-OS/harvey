@@ -95,7 +95,7 @@ void
 gs_alloc_memset(void *ptr, int /*byte */ fill, uint32_t lsize)
 {
     uint32_t msize = lsize;
-    int8_t *p = ptr;
+    char *p = ptr;
     int isize;
 
     for (; msize; msize -= isize, p += isize) {
@@ -353,7 +353,7 @@ RELOC_PTRS_BEGIN(basic_reloc_ptrs)
 
     for (i = 0; i < psd->num_ptrs; ++i) {
 	const gc_ptr_element_t *ppe = &psd->ptrs[i];
-	int8_t *pptr = (int8_t *)vptr + ppe->offset;
+	char *pptr = (char *)vptr + ppe->offset;
 
 	switch ((gc_ptr_type_index_t) ppe->type) {
 	    case GC_ELT_OBJ:
@@ -369,6 +369,6 @@ RELOC_PTRS_BEGIN(basic_reloc_ptrs)
     }
     if (psd->super_type)
 	RELOC_USING(*(psd->super_type),
-		      (void *)((int8_t *)vptr + psd->super_offset),
+		      (void *)((char *)vptr + psd->super_offset),
 		      pstype->ssize);
 } RELOC_PTRS_END

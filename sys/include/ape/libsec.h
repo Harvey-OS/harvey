@@ -177,8 +177,8 @@ struct DigestState
 	};
 	uint8_t	buf[256];
 	int	blen;
-	int8_t	malloced;
-	int8_t	seeded;
+	char	malloced;
+	char	seeded;
 };
 typedef struct DigestState SHAstate;	/* obsolete name */
 typedef struct DigestState SHA1state;
@@ -220,10 +220,10 @@ DigestState*	hmac_sha2_512(uint8_t*, uint32_t, uint8_t*, uint32_t,
 DigestState*	hmac_aes(uint8_t*, uint32_t, uint8_t*, uint32_t,
 			     uint8_t*,
 			     DigestState*);
-int8_t*		md5pickle(MD5state*);
-MD5state*	md5unpickle(int8_t*);
-int8_t*		sha1pickle(SHA1state*);
-SHA1state*	sha1unpickle(int8_t*);
+char*		md5pickle(MD5state*);
+MD5state*	md5unpickle(char*);
+char*		sha1pickle(SHA1state*);
+SHA1state*	sha1unpickle(char*);
 
 /*
  * random number generation
@@ -303,17 +303,17 @@ void		rsapubfree(RSApub*);
 RSApriv*	rsaprivalloc(void);
 void		rsaprivfree(RSApriv*);
 RSApub*		rsaprivtopub(RSApriv*);
-RSApub*		X509toRSApub(uint8_t*, int, int8_t*, int);
+RSApub*		X509toRSApub(uint8_t*, int, char*, int);
 RSApriv*	asn1toRSApriv(uint8_t*, int);
 void		asn1dump(uint8_t *der, int len);
-uint8_t*		decodePEM(int8_t *s, int8_t *type, int *len,
-				  int8_t **new_s);
-PEMChain*	decodepemchain(int8_t *s, int8_t *type);
-uint8_t*		X509gen(RSApriv *priv, int8_t *subj,
+uint8_t*		decodePEM(char *s, char *type, int *len,
+				  char **new_s);
+PEMChain*	decodepemchain(char *s, char *type);
+uint8_t*		X509gen(RSApriv *priv, char *subj,
 				uint32_t valid[2],
 			      int *certlen);
-uint8_t*		X509req(RSApriv *priv, int8_t *subj, int *certlen);
-int8_t*		X509verify(uint8_t *cert, int ncert, RSApub *pk);
+uint8_t*		X509req(RSApriv *priv, char *subj, int *certlen);
+char*		X509verify(uint8_t *cert, int ncert, RSApub *pk);
 void		X509dump(uint8_t *cert, int ncert);
 
 /*
@@ -407,17 +407,17 @@ typedef struct Thumbprint{
 } Thumbprint;
 
 typedef struct TLSconn{
-	int8_t	dir[40];	/* connection directory */
+	char	dir[40];	/* connection directory */
 	uint8_t	*cert;	/* certificate (local on input, remote on output) */
 	uint8_t	*sessionID;
 	int	certlen;
 	int	sessionIDlen;
-	int	(*trace)(int8_t*fmt, ...);
+	int	(*trace)(char*fmt, ...);
 	PEMChain*chain;	/* optional extra certificate evidence for servers to present */
-	int8_t	*sessionType;
+	char	*sessionType;
 	uint8_t	*sessionKey;
 	int	sessionKeylen;
-	int8_t	*sessionConst;
+	char	*sessionConst;
 } TLSconn;
 
 /* tlshand.c */
@@ -425,12 +425,12 @@ int tlsClient(int fd, TLSconn *c);
 int tlsServer(int fd, TLSconn *c);
 
 /* thumb.c */
-Thumbprint* initThumbprints(int8_t *ok, int8_t *crl);
+Thumbprint* initThumbprints(char *ok, char *crl);
 void	freeThumbprints(Thumbprint *ok);
 int	okThumbprint(uint8_t *sha1, Thumbprint *ok);
 
 /* readcert.c */
-uint8_t	*readcert(int8_t *filename, int *pcertlen);
-PEMChain*readcertchain(int8_t *filename);
+uint8_t	*readcert(char *filename, int *pcertlen);
+PEMChain*readcertchain(char *filename);
 
 #endif

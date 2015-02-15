@@ -27,11 +27,11 @@ enum{
 typedef struct File	File;
 
 struct File{
-	int8_t	*new;
-	int8_t	*elem;
-	int8_t	*old;
-	int8_t	*uid;
-	int8_t	*gid;
+	char	*new;
+	char	*elem;
+	char	*old;
+	char	*uid;
+	char	*gid;
 	uint32_t	mode;
 };
 
@@ -39,42 +39,42 @@ void	arch(Dir*);
 void	copy(Dir*);
 int	copyfile(File*, Dir*, int);
 void*	emalloc(uint32_t);
-void	error(int8_t *, ...);
+void	error(char *, ...);
 void	freefile(File*);
 File*	getfile(File*);
-int8_t*	getmode(int8_t*, uint32_t*);
-int8_t*	getname(int8_t*, int8_t**);
-int8_t*	getpath(int8_t*);
-void	kfscmd(int8_t *);
+char*	getmode(char*, uint32_t*);
+char*	getname(char*, char**);
+char*	getpath(char*);
+void	kfscmd(char *);
 void	mkdir(Dir*);
 int	mkfile(File*);
 void	mkfs(File*, int);
-int8_t*	mkpath(int8_t*, int8_t*);
+char*	mkpath(char*, char*);
 void	mktree(File*, int);
-void	mountkfs(int8_t*);
+void	mountkfs(char*);
 void	printfile(File*);
 void	setnames(File*);
 void	setusers(void);
 void	skipdir(void);
-int8_t*	strdup(int8_t*);
-int	uptodate(Dir*, int8_t*);
+char*	strdup(char*);
+int	uptodate(Dir*, char*);
 void	usage(void);
-void	warn(int8_t *, ...);
+void	warn(char *, ...);
 
 Biobuf	*b;
 Biobufhdr bout;			/* stdout when writing archive */
 uint8_t	boutbuf[2*LEN];
-int8_t	newfile[LEN];
-int8_t	oldfile[LEN];
-int8_t	*proto;
-int8_t	*cputype;
-int8_t	*users;
-int8_t	*oldroot;
-int8_t	*newroot;
-int8_t	*prog = "mkfs";
+char	newfile[LEN];
+char	oldfile[LEN];
+char	*proto;
+char	*cputype;
+char	*users;
+char	*oldroot;
+char	*newroot;
+char	*prog = "mkfs";
 int	lineno;
-int8_t	*buf;
-int8_t	*zbuf;
+char	*buf;
+char	*zbuf;
 int	buflen = 1024-8;
 int	indent;
 int	verb;
@@ -85,7 +85,7 @@ int	xflag;
 int	sfd;
 int	fskind;			/* Kfs, Fs, Archive */
 int	setuid;			/* on Fs: set uid and gid? */
-int8_t	*user;
+char	*user;
 
 void
 main(int argc, char **argv)
@@ -338,7 +338,7 @@ copyfile(File *f, Dir *d, int permonly)
  * respect to the file represented by df
  */
 int
-uptodate(Dir *df, int8_t *to)
+uptodate(Dir *df, char *to)
 {
 	int ret;
 	Dir *dt;
@@ -353,7 +353,7 @@ uptodate(Dir *df, int8_t *to)
 void
 copy(Dir *d)
 {
-	int8_t cptmp[LEN], *p;
+	char cptmp[LEN], *p;
 	int f, t, n, needwrite, nowarnyet = 1;
 	int64_t tot, len;
 	Dir nd;
@@ -487,10 +487,10 @@ arch(Dir *d)
 		newfile, d->mode, d->uid, d->gid, d->mtime, d->length);
 }
 
-int8_t *
-mkpath(int8_t *prefix, int8_t *elem)
+char *
+mkpath(char *prefix, char *elem)
 {
-	int8_t *p;
+	char *p;
 	int n;
 
 	n = strlen(prefix) + strlen(elem) + 2;
@@ -499,10 +499,10 @@ mkpath(int8_t *prefix, int8_t *elem)
 	return p;
 }
 
-int8_t *
-strdup(int8_t *s)
+char *
+strdup(char *s)
 {
-	int8_t *t;
+	char *t;
 
 	t = emalloc(strlen(s) + 1);
 	return strcpy(t, s);
@@ -541,7 +541,7 @@ freefile(File *f)
 void
 skipdir(void)
 {
-	int8_t *p, c;
+	char *p, c;
 	int level;
 
 	if(indent < 0 || b == nil)	/* b is nil when copying adm/users */
@@ -574,8 +574,8 @@ File*
 getfile(File *old)
 {
 	File *f;
-	int8_t *elem;
-	int8_t *p;
+	char *elem;
+	char *p;
 	int c;
 
 	if(indent < 0)
@@ -624,10 +624,10 @@ loop:
 	return f;
 }
 
-int8_t*
-getpath(int8_t *p)
+char*
+getpath(char *p)
 {
-	int8_t *q, *new;
+	char *q, *new;
 	int c, n;
 
 	while((c = *p) == ' ' || c == '\t')
@@ -644,10 +644,10 @@ getpath(int8_t *p)
 	return new;
 }
 
-int8_t*
-getname(int8_t *p, int8_t **buf)
+char*
+getname(char *p, char **buf)
 {
-	int8_t *s, *start;
+	char *s, *start;
 	int c;
 
 	while((c = *p) == ' ' || c == '\t')
@@ -677,10 +677,10 @@ getname(int8_t *p, int8_t **buf)
 	return p;
 }
 
-int8_t*
-getmode(int8_t *p, uint32_t *xmode)
+char*
+getmode(char *p, uint32_t *xmode)
 {
-	int8_t *buf, *s;
+	char *buf, *s;
 	uint32_t m;
 
 	*xmode = ~0;
@@ -757,9 +757,9 @@ setusers(void)
 }
 
 void
-mountkfs(int8_t *name)
+mountkfs(char *name)
 {
-	int8_t kname[64];
+	char kname[64];
 
 	if(fskind != Kfs)
 		return;
@@ -786,9 +786,9 @@ mountkfs(int8_t *name)
 }
 
 void
-kfscmd(int8_t *cmd)
+kfscmd(char *cmd)
 {
-	int8_t buf[4*1024];
+	char buf[4*1024];
 	int n;
 
 	if(fskind != Kfs)
@@ -822,9 +822,9 @@ emalloc(uint32_t n)
 }
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: %q:%d: ", prog, proto, lineno);
@@ -838,9 +838,9 @@ error(int8_t *fmt, ...)
 }
 
 void
-warn(int8_t *fmt, ...)
+warn(char *fmt, ...)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	va_list arg;
 
 	sprint(buf, "%q: %q:%d: ", prog, proto, lineno);

@@ -31,7 +31,7 @@ getmac(Ether *ether)
 	Usbdev *ud;
 	uint8_t *b;
 	Desc *dd;
-	int8_t *mac;
+	char *mac;
 
 	ud = ether->dev->usb;
 

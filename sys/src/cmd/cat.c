@@ -11,9 +11,9 @@
 #include <libc.h>
 
 void
-cat(int f, int8_t *s)
+cat(int f, char *s)
 {
-	int8_t buf[8192];
+	char buf[8192];
 	int32_t n;
 
 	while((n=read(f, buf, (int32_t)sizeof buf))>0)
@@ -24,7 +24,7 @@ cat(int f, int8_t *s)
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int f, i;
 

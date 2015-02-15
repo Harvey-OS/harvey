@@ -44,7 +44,7 @@ static void updatecpu(Proc*);
 
 static void rebalance(void);
 
-int8_t *statename[] =
+char *statename[] =
 {	/* BUG: generate automatically */
 	"Dead",
 	"Moribund",
@@ -137,9 +137,9 @@ schedinit(void)		/* never returns */
 static void
 stackok(void)
 {
-	int8_t dummy;
+	char dummy;
 
-	if(&dummy < (int8_t*)up->kstack + 4*KiB){
+	if(&dummy < (char*)up->kstack + 4*KiB){
 		print("tc kernel stack overflow, cpu%d stopped\n", m->machno);
 		DONE();
 	}
@@ -904,7 +904,7 @@ procwired(Proc *p, int bm)
 {
 	Proc *pp;
 	int i;
-	int8_t nwired[MACHMAX];
+	char nwired[MACHMAX];
 	Mach *wm;
 
 	if(bm < 0){
@@ -1129,7 +1129,7 @@ wakeup(Rendez *r)
  *  lock if we can't get the r->lock and retrying.
  */
 int
-postnote(Proc *p, int dolock, int8_t *n, int flag)
+postnote(Proc *p, int dolock, char *n, int flag)
 {
 	Mpl pl;
 	int ret;
@@ -1279,7 +1279,7 @@ freebroken(void)
 }
 
 void
-pexit(int8_t *exitstr, int freemem)
+pexit(char *exitstr, int freemem)
 {
 	Proc *p;
 	Segment **s, **es;
@@ -1486,7 +1486,7 @@ void
 dumpaproc(Proc *p)
 {
 	uintptr bss;
-	int8_t *s;
+	char *s;
 
 	if(p == 0)
 		return;
@@ -1595,7 +1595,7 @@ scheddump(void)
 }
 
 void
-kproc(int8_t *name, void (*func)(void *), void *arg)
+kproc(char *name, void (*func)(void *), void *arg)
 {
 	Proc *p;
 	static Pgrp *kpgrp;
@@ -1653,7 +1653,7 @@ void
 procctl(Proc *p)
 {
 	Mpl pl;
-	int8_t *state;
+	char *state;
 
 	switch(p->procctl) {
 	case Proc_exitbig:
@@ -1710,7 +1710,7 @@ procctl(Proc *p)
 }
 
 void
-error(int8_t *err)
+error(char *err)
 {
 	spllo();
 
@@ -1727,9 +1727,9 @@ nexterror(void)
 }
 
 void
-exhausted(int8_t *resource)
+exhausted(char *resource)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	sprint(buf, "no free %s", resource);
 	iprint("%s\n", buf);
@@ -1737,7 +1737,7 @@ exhausted(int8_t *resource)
 }
 
 void
-killbig(int8_t *why)
+killbig(char *why)
 {
 	int i, x;
 	Segment *s;
@@ -1796,7 +1796,7 @@ killbig(int8_t *why)
  *  eve changes.
  */
 void
-renameuser(int8_t *old, int8_t *new)
+renameuser(char *old, char *new)
 {
 	int i;
 	Proc *p;

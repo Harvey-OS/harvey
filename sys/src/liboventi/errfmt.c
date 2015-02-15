@@ -14,7 +14,7 @@
 int
 vtErrFmt(Fmt *f)
 {
-	int8_t *s;
+	char *s;
 
 	s = vtGetError();
 	return fmtstrcpy(f, s);

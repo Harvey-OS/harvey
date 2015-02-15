@@ -28,7 +28,7 @@ struct Tnode
 {
 	Point offset;
 
-	int8_t *str;
+	char *str;
 //	char *(*strfn)(Tnode*);
 //	uint (*draw)(Tnode*, Image*, Image*, Point);
 	void (*expand)(Tnode*);
@@ -47,18 +47,18 @@ struct Atree
 	Tnode *root;
 };
 
-Atree *atreeinit(int8_t*);
+Atree *atreeinit(char*);
 
 /* --- visfossil.c */
 Tnode *initxheader(void);
-Tnode *initxcache(int8_t *name);
+Tnode *initxcache(char *name);
 Tnode *initxsuper(void);
-Tnode *initxlocalroot(int8_t *name, uint32_t addr);
+Tnode *initxlocalroot(char *name, uint32_t addr);
 Tnode *initxentry(Entry);
 Tnode *initxsource(Entry, int);
 Tnode *initxentryblock(Block*, Entry*);
 Tnode *initxdatablock(Block*, uint);
-Tnode *initxroot(int8_t *name, uint8_t[VtScoreSize]);
+Tnode *initxroot(char *name, uint8_t[VtScoreSize]);
 
 int fd;
 Header h;
@@ -70,10 +70,10 @@ int showinactive;
 /*
  * dumbed down versions of fossil routines
  */
-int8_t*
+char*
 bsStr(int state)
 {
-	static int8_t s[100];
+	static char s[100];
 
 	if(state == BsFree)
 		return "Free";
@@ -90,7 +90,7 @@ bsStr(int state)
 	return s;
 }
 
-int8_t *bttab[] = {
+char *bttab[] = {
 	"BtData",
 	"BtData+1",
 	"BtData+2",
@@ -109,7 +109,7 @@ int8_t *bttab[] = {
 	"BtDir+7",
 };
 
-int8_t*
+char*
 btStr(int type)
 {
 	if(type < nelem(bttab))
@@ -338,7 +338,7 @@ xcacheexpand(Tnode *t)
 }
 
 Tnode*
-initxcache(int8_t *name)
+initxcache(char *name)
 {
 	Tnode *t;
 
@@ -520,7 +520,7 @@ nilgen(void*, Block*, int, Tnode**)
 }
 
 Tnode*
-initxblock(Block *b, int8_t *s, int (*gen)(void*, Block*, int, Tnode**),
+initxblock(Block *b, char *s, int (*gen)(void*, Block*, int, Tnode**),
 	   void *arg)
 {
 	Xblock *t;
@@ -681,7 +681,7 @@ xlocalrootgen(void*, Block *b, int o, Tnode **tp)
 }
 
 Tnode*
-initxlocalroot(int8_t *name, uint32_t addr)
+initxlocalroot(char *name, uint32_t addr)
 {
 	uint8_t score[VtScoreSize];
 	Block *b;
@@ -706,7 +706,7 @@ xvacrootgen(void*, Block *b, int o, Tnode **tp)
 }
 
 Tnode*
-initxroot(int8_t *name, uint8_t score[VtScoreSize])
+initxroot(char *name, uint8_t score[VtScoreSize])
 {
 	Block *b;
 
@@ -802,7 +802,7 @@ initxdatablock(Block *b, uint n)
 }
 
 int
-parseScore(uint8_t *score, int8_t *buf, int n)
+parseScore(uint8_t *score, char *buf, int n)
 {
 	int i, c;
 
@@ -850,7 +850,7 @@ scoreFmt(Fmt *f)
 }
 
 Atree*
-atreeinit(int8_t *arg)
+atreeinit(char *arg)
 {
 	Atree *a;
 	uint8_t score[VtScoreSize];
@@ -889,9 +889,9 @@ enum
 };
 
 uint
-drawtext(int8_t *s, Image *m, Image *clipr, Point o)
+drawtext(char *s, Image *m, Image *clipr, Point o)
 {
-	int8_t *t, *nt, *e;
+	char *t, *nt, *e;
 	uint dy;
 
 	if(s == nil)
@@ -942,7 +942,7 @@ uint
 drawnode(Tnode *t, Image *m, Image *clipr, Point o)
 {
 	int i;
-	int8_t *fs, *s;
+	char *fs, *s;
 	uint dy;
 	Point oo;
 
@@ -1034,7 +1034,7 @@ enum
 	MMenu = 2,
 };
 
-int8_t *items[] = { "exit", 0 };
+char *items[] = { "exit", 0 };
 enum { IExit, };
 
 Menu menu;

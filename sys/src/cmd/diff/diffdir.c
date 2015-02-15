@@ -15,15 +15,15 @@
 static int
 itemcmp(void *v1, void *v2)
 {
-	int8_t **d1 = v1, **d2 = v2;
+	char **d1 = v1, **d2 = v2;
 
 	return strcmp(*d1, *d2);
 }
 
-static int8_t **
-scandir(int8_t *name)
+static char **
+scandir(char *name)
 {
-	int8_t **cp;
+	char **cp;
 	Dir *db;
 	int nitems;
 	int fd, n;
@@ -31,7 +31,7 @@ scandir(int8_t *name)
 	if ((fd = open(name, OREAD)) < 0) {
 		fprint(2, "%s: can't open %s: %r\n", argv0, name);
 		/* fake an empty directory */
-		cp = MALLOC(int8_t*, 1);
+		cp = MALLOC(char*, 1);
 		cp[0] = 0;
 		return cp;
 	}
@@ -39,22 +39,22 @@ scandir(int8_t *name)
 	nitems = 0;
 	if((n = dirreadall(fd, &db)) > 0){
 		while (n--) {
-			cp = REALLOC(cp, int8_t *, (nitems+1));
-			cp[nitems] = MALLOC(int8_t, strlen((db+n)->name)+1);
+			cp = REALLOC(cp, char *, (nitems+1));
+			cp[nitems] = MALLOC(char, strlen((db+n)->name)+1);
 			strcpy(cp[nitems], (db+n)->name);
 			nitems++;
 		}
 		free(db);
 	}
-	cp = REALLOC(cp, int8_t*, (nitems+1));
+	cp = REALLOC(cp, char*, (nitems+1));
 	cp[nitems] = 0;
 	close(fd);
-	qsort((int8_t *)cp, nitems, sizeof(int8_t*), itemcmp);
+	qsort((char *)cp, nitems, sizeof(char*), itemcmp);
 	return cp;
 }
 
 static int
-isdotordotdot(int8_t *p)
+isdotordotdot(char *p)
 {
 	if (*p == '.') {
 		if (!p[1])
@@ -66,12 +66,12 @@ isdotordotdot(int8_t *p)
 }
 
 void
-diffdir(int8_t *f, int8_t *t, int level)
+diffdir(char *f, char *t, int level)
 {
-	int8_t  **df, **dt, **dirf, **dirt;
-	int8_t *from, *to;
+	char  **df, **dt, **dirf, **dirt;
+	char *from, *to;
 	int res;
-	int8_t fb[MAXPATHLEN+1], tb[MAXPATHLEN+1];
+	char fb[MAXPATHLEN+1], tb[MAXPATHLEN+1];
 
 	df = scandir(f);
 	dt = scandir(t);

@@ -15,10 +15,10 @@
 #define STRLEN(s)	(sizeof(s)-1)
 
 uint8_t*
-decodepem(int8_t *s, int8_t *type, int *len)
+decodepem(char *s, char *type, int *len)
 {
 	uint8_t *d;
-	int8_t *t, *e, *tt;
+	char *t, *e, *tt;
 	int n;
 
 	/*

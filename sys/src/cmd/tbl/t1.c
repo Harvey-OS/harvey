@@ -18,16 +18,16 @@
 # define ever (;;)
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	exits(tbl(argc, argv)? "error" : 0);
 }
 
 
 int
-tbl(int argc, int8_t *argv[])
+tbl(int argc, char *argv[])
 {
-	int8_t	line[5120];
+	char	line[5120];
 	/*int x;*/
 	/*x=malloc((char *)0);	uncomment when allocation breaks*/
 	Binit(&tabout, 1, OWRITE);
@@ -43,10 +43,10 @@ tbl(int argc, int8_t *argv[])
 
 
 int	sargc;
-int8_t	**sargv;
+char	**sargv;
 
 void
-setinp(int argc, int8_t **argv)
+setinp(int argc, char **argv)
 {
 	sargc = argc;
 	sargv = argv;
@@ -62,7 +62,7 @@ setinp(int argc, int8_t **argv)
 int
 swapin(void)
 {
-	int8_t	*name;
+	char	*name;
 	while (sargc > 0 && **sargv == '-') {
 		if (match("-ms", *sargv)) {
 			*sargv = MACROS;

@@ -122,10 +122,10 @@ icmpcreate(Conv *c)
 	c->wq = qbypass(icmpkick, c);
 }
 
-extern int8_t*
-icmpconnect(Conv *c, int8_t **argv, int argc)
+extern char*
+icmpconnect(Conv *c, char **argv, int argc)
 {
-	int8_t *e;
+	char *e;
 
 	e = Fsstdconnect(c, argv, argc);
 	if(e != nil)
@@ -136,7 +136,7 @@ icmpconnect(Conv *c, int8_t **argv, int argc)
 }
 
 extern int
-icmpstate(Conv *c, int8_t *state, int n)
+icmpstate(Conv *c, char *state, int n)
 {
 	USED(c);
 	return snprint(state, n, "%s qin %d qout %d\n",
@@ -146,10 +146,10 @@ icmpstate(Conv *c, int8_t *state, int n)
 	);
 }
 
-extern int8_t*
-icmpannounce(Conv *c, int8_t **argv, int argc)
+extern char*
+icmpannounce(Conv *c, char **argv, int argc)
 {
-	int8_t *e;
+	char *e;
 
 	e = Fsstdannounce(c, argv, argc);
 	if(e != nil)
@@ -336,8 +336,8 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 	Icmp	*p;
 	Block	*r;
 	Proto	*pr;
-	int8_t	*msg;
-	int8_t	m2[128];
+	char	*msg;
+	char	m2[128];
 	Icmppriv *ipriv;
 
 	ipriv = icmp->priv;
@@ -431,7 +431,7 @@ raise:
 }
 
 void
-icmpadvise(Proto *icmp, Block *bp, int8_t *msg)
+icmpadvise(Proto *icmp, Block *bp, char *msg)
 {
 	Conv	**c, *s;
 	Icmp	*p;
@@ -455,10 +455,10 @@ icmpadvise(Proto *icmp, Block *bp, int8_t *msg)
 }
 
 int
-icmpstats(Proto *icmp, int8_t *buf, int len)
+icmpstats(Proto *icmp, char *buf, int len)
 {
 	Icmppriv *priv;
-	int8_t *p, *e;
+	char *p, *e;
 	int i;
 
 	priv = icmp->priv;

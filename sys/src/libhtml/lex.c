@@ -1318,8 +1318,8 @@ getchar(TokenSource* ts)
 		ts->i++;
 		break;
 	case UTF_8:
-		ok = fullrune((int8_t*)(buf+ts->i), ts->edata-ts->i);
-		n = chartorune(&r, (int8_t*)(buf+ts->i));
+		ok = fullrune((char*)(buf+ts->i), ts->edata-ts->i);
+		n = chartorune(&r, (char*)(buf+ts->i));
 		if(ok) {
 			if(warn && c == 0x80)
 				fprint(2, "warning: invalid utf-8 sequence (starts with %x)\n", ts->data[ts->i]);
@@ -1357,7 +1357,7 @@ ungetchar(TokenSource* ts, int c)
 {
 	int	n;
 	Rune	r;
-	int8_t	a[UTFmax];
+	char	a[UTFmax];
 
 	n = 1;
 	switch(ts->chset) {
@@ -1419,11 +1419,11 @@ Tconv(Fmt *f)
 	Token*	t;
 	int	i;
 	int	tag;
-	int8_t*	srbra;
+	char*	srbra;
 	Rune*	aname;
 	Rune*	tname;
 	Attr*	a;
-	int8_t	buf[BIGBUFSIZE];
+	char	buf[BIGBUFSIZE];
 
 	t = va_arg(f->args, Token*);
 	if(t == nil)

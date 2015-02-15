@@ -21,7 +21,7 @@
  * w+ w+b wb+	open to read and write, truncating
  * a+ a+b ab+	open to read and write, positioned at eof, creating if non-existant.
  */
-FILE *fdopen(const int fd, const int8_t *mode){
+FILE *fdopen(const int fd, const char *mode){
 	FILE *f;	
 	qlock(&_stdiolk);
 	for(f=_IO_stream;f!=&_IO_stream[FOPEN_MAX];f++)

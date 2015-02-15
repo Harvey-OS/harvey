@@ -20,9 +20,9 @@ struct Exporter
 };
 
 int
-mounter(int8_t *mntpt, int how, int fd, int n)
+mounter(char *mntpt, int how, int fd, int n)
 {
-	int8_t buf[32];
+	char buf[32];
 	int i, ok, mfd;
 
 	ok = 1;

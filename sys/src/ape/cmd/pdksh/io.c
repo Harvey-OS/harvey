@@ -25,7 +25,7 @@ static int initio_done;
 /* A shell error occured (eg, syntax error, etc.) */
 void
 #ifdef HAVE_PROTOTYPES
-errorf(const int8_t *fmt, ...)
+errorf(const char *fmt, ...)
 #else
 errorf(fmt, va_alist)
 	const char *fmt;
@@ -50,7 +50,7 @@ errorf(fmt, va_alist)
 /* like errorf(), but no unwind is done */
 void
 #ifdef HAVE_PROTOTYPES
-warningf(int fileline, const int8_t *fmt, ...)
+warningf(int fileline, const char *fmt, ...)
 #else
 warningf(fileline, fmt, va_alist)
 	int fileline;
@@ -73,7 +73,7 @@ warningf(fileline, fmt, va_alist)
  */
 void
 #ifdef HAVE_PROTOTYPES
-bi_errorf(const int8_t *fmt, ...)
+bi_errorf(const char *fmt, ...)
 #else
 bi_errorf(fmt, va_alist)
 	const char *fmt;
@@ -102,7 +102,7 @@ bi_errorf(fmt, va_alist)
 	if ((builtin_flag & SPEC_BI)
 	    || (Flag(FPOSIX) && (builtin_flag & KEEPASN)))
 	{
-		builtin_argv0 = (int8_t *) 0;
+		builtin_argv0 = (char *) 0;
 		unwind(LERROR);
 	}
 }
@@ -110,7 +110,7 @@ bi_errorf(fmt, va_alist)
 /* Called when something that shouldn't happen does */
 void
 #ifdef HAVE_PROTOTYPES
-internal_errorf(int jump, const int8_t *fmt, ...)
+internal_errorf(int jump, const char *fmt, ...)
 #else
 internal_errorf(jump, fmt, va_alist)
 	int jump;
@@ -150,7 +150,7 @@ error_prefix(fileline)
 /* printf to shl_out (stderr) with flush */
 void
 #ifdef HAVE_PROTOTYPES
-shellf(const int8_t *fmt, ...)
+shellf(const char *fmt, ...)
 #else
 shellf(fmt, va_alist)
 	const char *fmt;
@@ -170,7 +170,7 @@ shellf(fmt, va_alist)
 /* printf to shl_stdout (stdout) */
 void
 #ifdef HAVE_PROTOTYPES
-shprintf(const int8_t *fmt, ...)
+shprintf(const char *fmt, ...)
 #else
 shprintf(fmt, va_alist)
 	const char *fmt;
@@ -206,7 +206,7 @@ kshdebug_init_()
 /* print to debugging log */
 void
 # ifdef HAVE_PROTOTYPES
-kshdebug_printf_(const int8_t *fmt, ...)
+kshdebug_printf_(const char *fmt, ...)
 # else
 kshdebug_printf_(fmt, va_alist)
 	const char *fmt;
@@ -226,7 +226,7 @@ kshdebug_printf_(fmt, va_alist)
 
 void
 kshdebug_dump_(str, mem, nbytes)
-	const int8_t *str;
+	const char *str;
 	const void *mem;
 	int nbytes;
 {
@@ -237,7 +237,7 @@ kshdebug_dump_(str, mem, nbytes)
 		return;
 	shf_fprintf(kshdebug_shf, "[%d] %s:\n", getpid(), str);
 	for (i = 0; i < nbytes; i += nprow) {
-		int8_t c = '\t';
+		char c = '\t';
 		for (j = 0; j < nprow && i + j < nbytes; j++) {
 			shf_fprintf(kshdebug_shf, "%c%02x",
 				c, ((const unsigned char *) mem)[i + j]);
@@ -356,9 +356,9 @@ closepipe(pv)
  */
 int
 check_fd(name, mode, emsgp)
-	int8_t *name;
+	char *name;
 	int mode;
-	const int8_t **emsgp;
+	const char **emsgp;
 {
 	int fd, fl;
 
@@ -464,7 +464,7 @@ coproc_write_close(fd)
 int
 coproc_getfd(mode, emsgp)
 	int mode;
-	const int8_t **emsgp;
+	const char **emsgp;
 {
 	int fd = (mode & R_OK) ? coproc.read : coproc.write;
 
@@ -515,14 +515,14 @@ maketemp(ap, type, tlist)
 	struct temp *tp;
 	int len;
 	int fd;
-	int8_t *path;
-	const int8_t *dir;
+	char *path;
+	const char *dir;
 
 	dir = tmpdir ? tmpdir : "/tmp";
 	/* The 20 + 20 is a paranoid worst case for pid/inc */
 	len = strlen(dir) + 3 + 20 + 20 + 1;
 	tp = (struct temp *) alloc(sizeof(struct temp) + len, ap);
-	tp->name = path = (int8_t *) &tp[1];
+	tp->name = path = (char *) &tp[1];
 	tp->shf = (struct shf *) 0;
 	tp->type = type;
 	while (1) {

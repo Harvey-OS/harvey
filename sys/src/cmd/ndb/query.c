@@ -28,7 +28,7 @@ usage(void)
 
 /* print values of nt's attributes matching rattr */
 static void
-prmatch(Ndbtuple *nt, int8_t *rattr)
+prmatch(Ndbtuple *nt, char *rattr)
 {
 	for(; nt; nt = nt->entry)
 		if (strcmp(nt->attr, rattr) == 0)
@@ -36,9 +36,9 @@ prmatch(Ndbtuple *nt, int8_t *rattr)
 }
 
 void
-search(Ndb *db, int8_t *attr, int8_t *val, int8_t *rattr)
+search(Ndb *db, char *attr, char *val, char *rattr)
 {
-	int8_t *p;
+	char *p;
 	Ndbs s;
 	Ndbtuple *t, *nt;
 

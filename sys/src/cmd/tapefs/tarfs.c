@@ -43,27 +43,27 @@ enum {
 };
 
 typedef union {
-	int8_t	dummy[Tblock];
-	int8_t	tbuf[Maxbuf];
+	char	dummy[Tblock];
+	char	tbuf[Maxbuf];
 	struct Header {
-		int8_t	name[Namsiz];
-		int8_t	mode[8];
-		int8_t	uid[8];
-		int8_t	gid[8];
-		int8_t	size[12];
-		int8_t	mtime[12];
-		int8_t	chksum[8];
-		int8_t	linkflag;
-		int8_t	linkname[Namsiz];
+		char	name[Namsiz];
+		char	mode[8];
+		char	uid[8];
+		char	gid[8];
+		char	size[12];
+		char	mtime[12];
+		char	chksum[8];
+		char	linkflag;
+		char	linkname[Namsiz];
 
 		/* rest are defined by POSIX's ustar format; see p1003.2b */
-		int8_t	magic[6];	/* "ustar" */
-		int8_t	version[2];
-		int8_t	uname[32];
-		int8_t	gname[32];
-		int8_t	devmajor[8];
-		int8_t	devminor[8];
-		int8_t	prefix[Maxpfx]; /* if non-null, path= prefix "/" name */
+		char	magic[6];	/* "ustar" */
+		char	version[2];
+		char	uname[32];
+		char	gname[32];
+		char	devmajor[8];
+		char	devminor[8];
+		char	prefix[Maxpfx]; /* if non-null, path= prefix "/" name */
 	};
 } Hdr;
 
@@ -84,17 +84,17 @@ isustar(Hdr *hp)
  * be NUL.
  */
 static int
-strnlen(int8_t *s, int n)
+strnlen(char *s, int n)
 {
 	return s[n - 1] != '\0'? n: strlen(s);
 }
 
 /* set fullname from header */
-static int8_t *
+static char *
 tarname(Hdr *hp)
 {
 	int pfxlen, namlen;
-	static int8_t fullname[Maxname+1];
+	static char fullname[Maxname+1];
 
 	namlen = strnlen(hp->name, sizeof hp->name);
 	if (hp->prefix[0] == '\0' || !isustar(hp)) {	/* old-style name? */
@@ -113,11 +113,11 @@ tarname(Hdr *hp)
 }
 
 void
-populate(int8_t *name)
+populate(char *name)
 {
 	int32_t chksum, linkflg;
 	int64_t blkno;
-	int8_t *fname;
+	char *fname;
 	Fileinf f;
 	Hdr *hp;
 
@@ -195,7 +195,7 @@ docreate(Ram *r)
 	USED(r);
 }
 
-int8_t *
+char *
 doread(Ram *r, int64_t off, int32_t cnt)
 {
 	int n;
@@ -216,7 +216,7 @@ popdir(Ram *r)
 }
 
 void
-dowrite(Ram *r, int8_t *buf, int32_t off, int32_t cnt)
+dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }

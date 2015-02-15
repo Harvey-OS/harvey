@@ -250,7 +250,7 @@
 
 /* Structures for accumulating information. */
 typedef struct string_item_s {
-    const int8_t *str;
+    const char *str;
     int file_index;		/* index of file containing this item */
     int index;
 } string_item_t;
@@ -263,7 +263,7 @@ typedef enum {
 } uniq_mode_t;
 typedef struct string_list_s {
     /* The following are set at creation time. */
-    const int8_t *list_name;	/* only for debugging */
+    const char *list_name;	/* only for debugging */
     int max_count;
     uniq_mode_t mode;
     /* The following are updated dynamically. */
@@ -275,12 +275,12 @@ typedef struct string_list_s {
 typedef struct string_pattern_s {
     bool upper_case;
     bool drop_extn;
-    int8_t pattern[MAX_PATTERN + 1];
+    char pattern[MAX_PATTERN + 1];
 } string_pattern_t;
 typedef struct config_s {
     int debug;
-    const int8_t *name_prefix;
-    const int8_t *file_prefix;
+    const char *name_prefix;
+    const char *file_prefix;
     /* Special "resources" */
     string_list_t file_names;
     string_list_t file_contents;
@@ -334,24 +334,24 @@ static const string_list_t init_config_lists[] = {
 /* Forward definitions */
 private void *mrealloc(void *, size_t, size_t);
 int alloc_list(string_list_t *);
-void dev_file_name(int8_t *);
+void dev_file_name(char *);
 int process_replaces(config_t *);
-int read_dev(config_t *, const int8_t *);
-int read_token(int8_t *, int, const int8_t **);
-int add_entry(config_t *, int8_t *, const int8_t *, int);
-string_item_t *add_item(string_list_t *, const int8_t *, int);
+int read_dev(config_t *, const char *);
+int read_token(char *, int, const char **);
+int add_entry(config_t *, char *, const char *, int);
+string_item_t *add_item(string_list_t *, const char *, int);
 void sort_uniq(string_list_t *, bool);
-void write_list(FILE *, const string_list_t *, const int8_t *);
+void write_list(FILE *, const string_list_t *, const char *);
 void write_list_pattern(FILE *, const string_list_t *, const string_pattern_t *);
-bool var_expand(int8_t *, int8_t [MAX_STR], const config_t *);
-void add_definition(const int8_t *, const int8_t *, string_list_t *, bool);
-string_item_t *lookup(const int8_t *, const string_list_t *);
+bool var_expand(char *, char [MAX_STR], const config_t *);
+void add_definition(const char *, const char *, string_list_t *, bool);
+string_item_t *lookup(const char *, const string_list_t *);
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
     config_t conf;
-    int8_t escape = '&';
+    char escape = '&';
     int i;
 
     /* Allocate string lists. */
@@ -373,7 +373,7 @@ main(int argc, int8_t *argv[])
 
     /* Process command line arguments. */
     for (i = 1; i < argc; i++) {
-	const int8_t *arg = argv[i];
+	const char *arg = argv[i];
 	FILE *out;
 	int lib = 0, obj = 0;
 
@@ -421,7 +421,7 @@ main(int argc, int8_t *argv[])
 		    if (argv[i + 1][0] == '-')
 			strcpy(pat->pattern, "%s\n");
 		    else {
-			int8_t *p, *q;
+			char *p, *q;
 
 			for (p = pat->pattern, q = argv[++i];
 			     (*p++ = *q++) != 0;
@@ -484,7 +484,7 @@ main(int argc, int8_t *argv[])
 		fputs("/* This file was generated automatically by genconf.c. */\n", out);
 		fputs("/* For documentation, see gsconfig.c. */\n", out);
 		{
-		    int8_t template[80];
+		    char template[80];
 
 		    sprintf(template,
 			    "font_(\"0.font_%%s\",%sf_%%s,zf_%%s)\n",
@@ -565,7 +565,7 @@ alloc_list(string_list_t * list)
 
 /* If necessary, convert a .dev name to its file name. */
 void
-dev_file_name(int8_t *str)
+dev_file_name(char *str)
 {
     int len = strlen(str);
 
@@ -577,7 +577,7 @@ dev_file_name(int8_t *str)
 int
 process_replaces(config_t * pconf)
 {
-    int8_t bufname[MAX_STR];
+    char bufname[MAX_STR];
     int i;
 
     for (i = 0; i < pconf->replaces.count; ++i) {
@@ -587,7 +587,7 @@ process_replaces(config_t * pconf)
 	/* See if the file being replaced was included. */
 	dev_file_name(bufname);
 	for (j = 0; j < pconf->file_names.count; ++j) {
-	    const int8_t *fname = pconf->file_names.items[j].str;
+	    const char *fname = pconf->file_names.items[j].str;
 
 	    if (!strcmp(fname, bufname)) {
 		if (pconf->debug)
@@ -636,13 +636,13 @@ process_replaces(config_t * pconf)
  * Return the file_contents item for the file.
  */
 private string_item_t *
-read_file(config_t * pconf, const int8_t *fname)
+read_file(config_t * pconf, const char *fname)
 {
-    int8_t *cname = malloc(strlen(fname) + strlen(pconf->file_prefix) + 1);
+    char *cname = malloc(strlen(fname) + strlen(pconf->file_prefix) + 1);
     int i;
     FILE *in;
     int end, nread;
-    int8_t *cont;
+    char *cont;
     string_item_t *item;
 
     if (cname == 0) {
@@ -689,14 +689,14 @@ read_file(config_t * pconf, const int8_t *fname)
 
 /* Read and parse a .dev file.  Return the union of all its uniq_mode_ts. */
 int
-read_dev(config_t * pconf, const int8_t *arg)
+read_dev(config_t * pconf, const char *arg)
 {
     string_item_t *item;
-    const int8_t *in;
+    const char *in;
 
 #define MAX_TOKEN 256
-    int8_t *token = malloc(MAX_TOKEN + 1);
-    int8_t *category = malloc(MAX_TOKEN + 1);
+    char *token = malloc(MAX_TOKEN + 1);
+    char *category = malloc(MAX_TOKEN + 1);
     int file_index;
     int len;
 
@@ -727,13 +727,13 @@ read_dev(config_t * pconf, const int8_t *arg)
 
 /* Read a token from a string that contains the contents of a file. */
 int
-read_token(int8_t *token, int max_len, const int8_t **pin)
+read_token(char *token, int max_len, const char **pin)
 {
-    const int8_t *in = *pin;
+    const char *in = *pin;
     int len = 0;
 
     while (len < max_len) {
-	int8_t ch = *in;
+	char ch = *in;
 
 	if (ch == 0)
 	    break;
@@ -752,16 +752,16 @@ read_token(int8_t *token, int max_len, const int8_t **pin)
 
 /* Add an entry to a configuration.  Return its uniq_mode_t. */
 int
-add_entry(config_t * pconf, int8_t *category, const int8_t *item,
+add_entry(config_t * pconf, char *category, const char *item,
           int file_index)
 {
     if (item[0] == '-' && islower(item[1])) {	/* set category */
 	strcpy(category, item + 1);
 	return 0;
     } else {			/* add to current category */
-	int8_t str[MAX_STR];
-	int8_t template[80];
-	const int8_t *pat = 0;
+	char str[MAX_STR];
+	char template[80];
+	const char *pat = 0;
 	string_list_t *list = &pconf->lists.named.resources;
 
 	if (pconf->debug)
@@ -886,9 +886,9 @@ err:		fprintf(stderr, "Definition not recognized: %s %s.\n",
 
 /* Add an item to a list. */
 string_item_t *
-add_item(string_list_t * list, const int8_t *str, int file_index)
+add_item(string_list_t * list, const char *str, int file_index)
 {
-    int8_t *rstr = malloc(strlen(str) + 1);
+    char *rstr = malloc(strlen(str) + 1);
     int count = list->count;
     string_item_t *item;
 
@@ -947,7 +947,7 @@ sort_uniq(string_list_t * list, bool by_index)
 
     if (count == 0)
 	return;
-    qsort((int8_t *)strlist, count, sizeof(string_item_t), cmp_str);
+    qsort((char *)strlist, count, sizeof(string_item_t), cmp_str);
     for (from = to = strlist + 1, i = 1; i < count; from++, i++)
 	if (strcmp(from->str, to[-1].str))
 	    *to++ = *from;
@@ -958,12 +958,12 @@ sort_uniq(string_list_t * list, bool by_index)
     count = to - strlist;
     list->count = count;
     if (by_index)
-	qsort((int8_t *)strlist, count, sizeof(string_item_t), cmp_index);
+	qsort((char *)strlist, count, sizeof(string_item_t), cmp_index);
 }
 
 /* Write a list of strings using a template. */
 void
-write_list(FILE * out, const string_list_t * list, const int8_t *pstr)
+write_list(FILE * out, const string_list_t * list, const char *pstr)
 {
     string_pattern_t pat;
 
@@ -977,21 +977,21 @@ write_list_pattern(FILE * out, const string_list_t * list,
 		   const string_pattern_t * pat)
 {
     int i;
-    int8_t macname[40];
+    char macname[40];
     int plen = strlen(pat->pattern);
 
     *macname = 0;
     for (i = 0; i < list->count; i++) {
-	const int8_t *lstr = list->items[i].str;
+	const char *lstr = list->items[i].str;
 	int len = strlen(lstr);
-	int8_t *str = malloc(len + 1);
+	char *str = malloc(len + 1);
 	int xlen = plen + len * 3;
-	int8_t *xstr = malloc(xlen + 1);
-	int8_t *alist;
+	char *xstr = malloc(xlen + 1);
+	char *alist;
 
 	strcpy(str, lstr);
 	if (pat->drop_extn) {
-	    int8_t *dot = str + len;
+	    char *dot = str + len;
 
 	    while (dot > str && *dot != '.')
 		dot--;
@@ -999,7 +999,7 @@ write_list_pattern(FILE * out, const string_list_t * list,
 		*dot = 0, len = dot - str;
 	}
 	if (pat->upper_case) {
-	    int8_t *ptr = str;
+	    char *ptr = str;
 
 	    for (; *ptr; ptr++)
 		if (islower(*ptr))

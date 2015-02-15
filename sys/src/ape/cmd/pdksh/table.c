@@ -21,7 +21,7 @@ static int      tnamecmp    ARGS((void *p1, void *p2));
 
 unsigned int
 hash(n)
-	register const int8_t * n;
+	register const char * n;
 {
 	register unsigned int h = 0;
 
@@ -80,7 +80,7 @@ texpand(tp, nsize)
 struct tbl *
 tsearch(tp, n, h)
 	register struct table *tp;	/* table */
-	register const int8_t *n;		/* name to enter */
+	register const char *n;		/* name to enter */
 	unsigned int h;			/* hash(n) */
 {
 	register struct tbl **pp, *p;
@@ -103,7 +103,7 @@ tsearch(tp, n, h)
 struct tbl *
 tenter(tp, n, h)
 	register struct table *tp;	/* table */
-	register const int8_t *n;		/* name to enter */
+	register const char *n;		/* name to enter */
 	unsigned int h;			/* hash(n) */
 {
 	register struct tbl **pp, *p;
@@ -206,7 +206,7 @@ tprintinfo(tp)
 	struct table *tp;
 {
 	struct tbl *te;
-	int8_t *n;
+	char *n;
 	unsigned int h;
 	int ncmp;
 	int totncmp = 0, maxncmp = 0;

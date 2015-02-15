@@ -21,7 +21,7 @@
  * w+ w+b wb+	open to read and write, truncating
  * a+ a+b ab+	open to read and write, positioned at eof, creating if non-existant.
  */
-FILE *freopen(const int8_t *name, const int8_t *mode, FILE *f){
+FILE *freopen(const char *name, const char *mode, FILE *f){
 	int m;
 
 	if(f->state!=CLOSED){

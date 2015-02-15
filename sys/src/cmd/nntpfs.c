@@ -34,16 +34,16 @@ struct Netbuf {
 	int fd;
 	int code;			/* last response code */
 	int auth;			/* Authorization required? */
-	int8_t response[128];	/* last response */
+	char response[128];	/* last response */
 	Group *currentgroup;
-	int8_t *addr;
-	int8_t *user;
-	int8_t *pass;
+	char *addr;
+	char *user;
+	char *pass;
 	uint32_t extended;	/* supported extensions */
 };
 
 struct Group {
-	int8_t *name;
+	char *name;
 	Group *parent;
 	Group **kid;
 	int num;
@@ -101,11 +101,11 @@ emalloc(uint32_t n)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
 	int l;
-	int8_t *t;
+	char *t;
 
 	if (s == nil)
 		return nil;
@@ -116,11 +116,11 @@ estrdup(int8_t *s)
 	return t;
 }
 
-int8_t*
-estrdupn(int8_t *s, int n)
+char*
+estrdupn(char *s, int n)
 {
 	int l;
-	int8_t *t;
+	char *t;
 
 	l = strlen(s);
 	if(l > n)
@@ -132,10 +132,10 @@ estrdupn(int8_t *s, int n)
 	return t;
 }
 
-int8_t*
+char*
 Nrdline(Netbuf *n)
 {
-	int8_t *p;
+	char *p;
 	int l;
 
 	n->lineno++;
@@ -153,10 +153,10 @@ if(netdebug)
 }
 
 int
-nntpresponse(Netbuf *n, int e, int8_t *cmd)
+nntpresponse(Netbuf *n, int e, char *cmd)
 {
 	int r;
-	int8_t *p;
+	char *p;
 
 	for(;;){
 		p = Nrdline(n);
@@ -205,7 +205,7 @@ int nntpcurrentgroup(Netbuf*, Group*);
 /* XXX: bug OVER/XOVER et al. */
 static struct {
 	uint32_t n;
-	int8_t *s;
+	char *s;
 } extensions [] = {
 	{ Nxover, "OVER" },
 	{ Nxhdr, "HDR" },
@@ -240,7 +240,7 @@ nntpconnect(Netbuf *n)
 }
 
 int
-nntpcmd(Netbuf *n, int8_t *cmd, int e)
+nntpcmd(Netbuf *n, char *cmd, int e)
 {
 	int tried;
 
@@ -261,7 +261,7 @@ nntpcmd(Netbuf *n, int8_t *cmd, int e)
 int
 nntpauth(Netbuf *n)
 {
-	int8_t cmd[256];
+	char cmd[256];
 
 	snprint(cmd, sizeof cmd, "AUTHINFO USER %s", n->user);
 	if (nntpcmd(n, cmd, -1) < 0 || n->code != 381) {
@@ -282,7 +282,7 @@ int
 nntpxcmdprobe(Netbuf *n)
 {
 	int i;
-	int8_t *p;
+	char *p;
 
 	n->extended = 0;
 	if (nntpcmd(n, "LIST EXTENSIONS", 0) < 0 || n->code != 202)
@@ -307,8 +307,8 @@ overcmp(void *v1, void *v2)
 {
 	int a, b;
 
-	a = atoi(*(int8_t**)v1);
-	b = atoi(*(int8_t**)v2);
+	a = atoi(*(char**)v1);
+	b = atoi(*(char**)v2);
 
 	if(a < b)
 		return -1;
@@ -321,18 +321,18 @@ enum {
 	XoverChunk = 100,
 };
 
-int8_t *xover[XoverChunk];
+char *xover[XoverChunk];
 int xoverlo;
 int xoverhi;
 int xovercount;
 Group *xovergroup;
 
-int8_t*
+char*
 nntpover(Netbuf *n, Group *g, int m)
 {
 	int i, lo, hi, mid, msg;
-	int8_t *p;
-	int8_t cmd[64];
+	char *p;
+	char cmd[64];
 
 	if (g->isgroup == 0)	/* BUG: should check extension capabilities */
 		return nil;
@@ -397,12 +397,12 @@ nntpover(Netbuf *n, Group *g, int m)
  * Return the new Group structure for the group name.
  * Destroys name.
  */
-static int printgroup(int8_t*,Group*);
+static int printgroup(char*,Group*);
 Group*
-findgroup(Group *g, int8_t *name, int mk)
+findgroup(Group *g, char *name, int mk)
 {
 	int lo, hi, m;
-	int8_t *p, *q;
+	char *p, *q;
 	static int ngroup;
 
 	for(p=name; *p; p=q){
@@ -452,7 +452,7 @@ findgroup(Group *g, int8_t *name, int mk)
 }
 
 static int
-printgroup(int8_t *s, Group *g)
+printgroup(char *s, Group *g)
 {
 	if(g->parent == g)
 		return 0;
@@ -463,10 +463,10 @@ printgroup(int8_t *s, Group *g)
 	return 1;
 }
 
-static int8_t*
+static char*
 Nreaddata(Netbuf *n)
 {
-	int8_t *p, *q;
+	char *p, *q;
 	int l;
 
 	p = nil;
@@ -491,11 +491,11 @@ Nreaddata(Netbuf *n)
 /*
  * Return the output of a HEAD, BODY, or ARTICLE command.
  */
-int8_t*
-nntpget(Netbuf *n, Group *g, int msg, int8_t *retr)
+char*
+nntpget(Netbuf *n, Group *g, int msg, char *retr)
 {
-	int8_t *s;
-	int8_t cmd[1024];
+	char *s;
+	char cmd[1024];
 
 	if(g->isgroup == 0){
 		werrstr("not a group");
@@ -522,7 +522,7 @@ nntpget(Netbuf *n, Group *g, int msg, int8_t *retr)
 int
 nntpcurrentgroup(Netbuf *n, Group *g)
 {
-	int8_t cmd[1024];
+	char cmd[1024];
 
 	if(n->currentgroup != g){
 		strcpy(cmd, "GROUP ");
@@ -537,7 +537,7 @@ nntpcurrentgroup(Netbuf *n, Group *g)
 void
 nntprefreshall(Netbuf *n)
 {
-	int8_t *f[10], *p;
+	char *f[10], *p;
 	int hi, lo, nf;
 	Group *g;
 
@@ -573,8 +573,8 @@ nntprefreshall(Netbuf *n)
 void
 nntprefresh(Netbuf *n, Group *g)
 {
-	int8_t cmd[1024];
-	int8_t *f[5];
+	char cmd[1024];
+	char *f[5];
 	int lo, hi;
 
 	if(g->isgroup==0)
@@ -608,10 +608,10 @@ nntprefresh(Netbuf *n, Group *g)
 	g->atime = time(0);
 }
 
-int8_t*
-nntppost(Netbuf *n, int8_t *msg)
+char*
+nntppost(Netbuf *n, char *msg)
 {
-	int8_t *p, *q;
+	char *p, *q;
 
 	if(nntpcmd(n, "POST", 34) < 0)
 		return n->response;
@@ -658,13 +658,13 @@ enum {	/* file qids */
 	Qxover,
 	Nfile,
 };
-int8_t *filename[] = {
+char *filename[] = {
 	"header",
 	"body",
 	"article",
 	"xover",
 };
-int8_t *nntpname[] = {
+char *nntpname[] = {
 	"HEAD",
 	"BODY",
 	"ARTICLE",
@@ -685,7 +685,7 @@ struct Aux {
 	int n;
 	int ispost;
 	int file;
-	int8_t *s;
+	char *s;
 	int ns;
 	int offset;
 };
@@ -694,7 +694,7 @@ static void
 fsattach(Req *r)
 {
 	Aux *a;
-	int8_t *spec;
+	char *spec;
 
 	spec = r->ifcall.aname;
 	if(spec && spec[0]){
@@ -712,7 +712,7 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-static int8_t*
+static char*
 fsclone(Fid *ofid, Fid *fid)
 {
 	Aux *a;
@@ -723,10 +723,10 @@ fsclone(Fid *ofid, Fid *fid)
 	return nil;
 }
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
-	int8_t *p;
+	char *p;
 	int i, isdotdot, n;
 	Aux *a;
 	Group *ng;
@@ -806,7 +806,7 @@ fsopen(Req *r)
 static void
 fillstat(Dir *d, Aux *a)
 {
-	int8_t buf[32];
+	char buf[32];
 	Group *g;
 
 	memset(d, 0, sizeof *d);
@@ -852,7 +852,7 @@ dirfillstat(Dir *d, Aux *a, int i)
 {
 	int ndir;
 	Group *g;
-	int8_t buf[32];
+	char buf[32];
 
 	memset(d, 0, sizeof *d);
 	d->uid = estrdup("nntp");
@@ -923,7 +923,7 @@ fsread(Req *r)
 {
 	int offset, n;
 	Aux *a;
-	int8_t *p, *ep;
+	char *p, *ep;
 	Dir d;
 
 	a = r->fid->aux;

@@ -30,17 +30,17 @@ enum
 /*
  * rune routines
  */
-extern	int	runetochar(int8_t*, Rune*);
-extern	int	chartorune(Rune*, int8_t*);
+extern	int	runetochar(char*, Rune*);
+extern	int	chartorune(Rune*, char*);
 extern	int	runelen(int32_t);
 extern	int	runenlen(Rune*, int);
-extern	int	fullrune(int8_t*, int);
-extern	int	utflen(int8_t*);
-extern	int	utfnlen(int8_t*, int32_t);
-extern	int8_t*	utfrune(int8_t*, int32_t);
-extern	int8_t*	utfrrune(int8_t*, int32_t);
-extern	int8_t*	utfutf(int8_t*, int8_t*);
-extern	int8_t*	utfecpy(int8_t*, int8_t*, int8_t*);
+extern	int	fullrune(char*, int);
+extern	int	utflen(char*);
+extern	int	utfnlen(char*, int32_t);
+extern	char*	utfrune(char*, int32_t);
+extern	char*	utfrrune(char*, int32_t);
+extern	char*	utfutf(char*, char*);
+extern	char*	utfecpy(char*, char*, char*);
 
 extern	Rune*	runestrcat(Rune*, Rune*);
 extern	Rune*	runestrchr(Rune*, Rune);

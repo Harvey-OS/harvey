@@ -85,27 +85,27 @@ enum
 	S7,			/* _+#.#e+#	#S7 */
 };
 
-static	int	xcmp(int8_t*, int8_t*);
-static	int	fpcmp(int8_t*, uint32_t*);
+static	int	xcmp(char*, char*);
+static	int	fpcmp(char*, uint32_t*);
 static	void	frnorm(uint32_t*);
-static	void	divascii(int8_t*, int*, int*, int*);
-static	void	mulascii(int8_t*, int*, int*, int*);
+static	void	divascii(char*, int*, int*, int*);
+static	void	mulascii(char*, int*, int*, int*);
 
 typedef	struct	Tab	Tab;
 struct	Tab
 {
 	int	bp;
 	int	siz;
-	int8_t*	cmp;
+	char*	cmp;
 };
 
 double
-fmtstrtod(const int8_t *as, int8_t **aas)
+fmtstrtod(const char *as, char **aas)
 {
 	int na, ex, dp, bp, c, i, flag, state;
 	uint32_t low[Prec], hig[Prec], mid[Prec];
 	double d;
-	int8_t *s, a[Ndig];
+	char *s, a[Ndig];
 
 	flag = 0;	/* Fsign, Fesign, Fdpoint */
 	na = 0;		/* number of digits of a[] */
@@ -113,7 +113,7 @@ fmtstrtod(const int8_t *as, int8_t **aas)
 	ex = 0;		/* exonent */
 
 	state = S0;
-	for(s=(int8_t*)as;; s++) {
+	for(s=(char*)as;; s++) {
 		c = *s;
 		if(c >= '0' && c <= '9') {
 			switch(state) {
@@ -212,7 +212,7 @@ fmtstrtod(const int8_t *as, int8_t **aas)
 		}
 	case S3:
 		if(aas != nil)
-			*aas = (int8_t*)as;
+			*aas = (char*)as;
 		goto ret0;	/* no digits found */
 	case S6:
 		s--;		/* back over +- */
@@ -357,7 +357,7 @@ frnorm(uint32_t *f)
 }
 
 static int
-fpcmp(int8_t *a, uint32_t* f)
+fpcmp(char *a, uint32_t* f)
 {
 	uint32_t tf[Prec];
 	int i, d, c;
@@ -395,10 +395,10 @@ fpcmp(int8_t *a, uint32_t* f)
 }
 
 static void
-divby(int8_t *a, int *na, int b)
+divby(char *a, int *na, int b)
 {
 	int n, c;
-	int8_t *p;
+	char *p;
 
 	p = a;
 	n = 0;
@@ -452,7 +452,7 @@ static	Tab	tab1[] =
 };
 
 static void
-divascii(int8_t *a, int *na, int *dp, int *bp)
+divascii(char *a, int *na, int *dp, int *bp)
 {
 	int b, d;
 	Tab *t;
@@ -470,7 +470,7 @@ divascii(int8_t *a, int *na, int *dp, int *bp)
 }
 
 static void
-mulby(int8_t *a, int8_t *p, int8_t *q, int b)
+mulby(char *a, char *p, char *q, int b)
 {
 	int n, c;
 
@@ -511,9 +511,9 @@ static	Tab	tab2[] =
 };
 
 static void
-mulascii(int8_t *a, int *na, int *dp, int *bp)
+mulascii(char *a, int *na, int *dp, int *bp)
 {
-	int8_t *p;
+	char *p;
 	int d, b;
 	Tab *t;
 
@@ -532,7 +532,7 @@ mulascii(int8_t *a, int *na, int *dp, int *bp)
 }
 
 static int
-xcmp(int8_t *a, int8_t *b)
+xcmp(char *a, char *b)
 {
 	int c1, c2;
 

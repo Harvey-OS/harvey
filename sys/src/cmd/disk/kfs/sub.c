@@ -27,7 +27,7 @@ enum{
 
 
 Filsys*
-fsstr(int8_t *p)
+fsstr(char *p)
 {
 	Filsys *fs;
 
@@ -377,7 +377,7 @@ newqid(Device dev)
  * b) '/' may not be the separator
  */
 int
-checkname(int8_t *n)
+checkname(char *n)
 {
 	int i, c;
 
@@ -662,7 +662,7 @@ prime(int32_t n)
 void
 hexdump(void *a, int n)
 {
-	int8_t s1[30], s2[4];
+	char s1[30], s2[4];
 	uint8_t *p;
 	int i;
 

@@ -90,7 +90,7 @@
   (OP_ARRAY_TABLE_GLOBAL_SIZE + OP_ARRAY_TABLE_LOCAL_SIZE)
 
 /* Define the list of error names. */
-const int8_t *const gs_error_names[] =
+const char *const gs_error_names[] =
 {
     ERROR_NAMES
 };
@@ -100,7 +100,7 @@ op_array_table op_array_table_global, op_array_table_local;	/* definitions of `o
 
 /* Enter a name and value into a dictionary. */
 private int
-i_initial_enter_name_in(i_ctx_t *i_ctx_p, ref *pdict, const int8_t *nstr,
+i_initial_enter_name_in(i_ctx_t *i_ctx_p, ref *pdict, const char *nstr,
 			const ref * pref)
 {
     int code = idict_put_string(pdict, nstr, pref);
@@ -111,14 +111,14 @@ i_initial_enter_name_in(i_ctx_t *i_ctx_p, ref *pdict, const int8_t *nstr,
     return code;
 }
 int
-i_initial_enter_name(i_ctx_t *i_ctx_p, const int8_t *nstr, const ref * pref)
+i_initial_enter_name(i_ctx_t *i_ctx_p, const char *nstr, const ref * pref)
 {
     return i_initial_enter_name_in(i_ctx_p, systemdict, nstr, pref);
 }
 
 /* Remove a name from systemdict. */
 void
-i_initial_remove_name(i_ctx_t *i_ctx_p, const int8_t *nstr)
+i_initial_remove_name(i_ctx_t *i_ctx_p, const char *nstr)
 {
     ref nref;
 
@@ -199,7 +199,7 @@ gs_have_level2(void)
 
 /* Create an initial dictionary if necessary. */
 private ref *
-make_initial_dict(i_ctx_t *i_ctx_p, const int8_t *iname, ref idicts[])
+make_initial_dict(i_ctx_t *i_ctx_p, const char *iname, ref idicts[])
 {
     int i;
 
@@ -207,7 +207,7 @@ make_initial_dict(i_ctx_t *i_ctx_p, const int8_t *iname, ref idicts[])
     if (!strcmp(iname, "systemdict"))
 	return systemdict;
     for (i = 0; i < countof(initial_dictionaries); i++) {
-	const int8_t *dname = initial_dictionaries[i].name;
+	const char *dname = initial_dictionaries[i].name;
 	const int dsize = initial_dictionaries[i].size;
 
 	if (!strcmp(iname, dname)) {
@@ -296,7 +296,7 @@ obj_init(i_ctx_t **pi_ctx_p, gs_dual_memory_t *idmem)
 
 	/* Set up the initial dstack. */
 	for (i = 0; i < countof(initial_dstack); i++) {
-	    const int8_t *dname = initial_dstack[i];
+	    const char *dname = initial_dstack[i];
 
 	    ++dsp;
 	    if (!strcmp(dname, "userdict"))
@@ -357,7 +357,7 @@ obj_init(i_ctx_t **pi_ctx_p, gs_dual_memory_t *idmem)
 	if (code < 0)
 	    return code;
 	for (i = 0; i < n; i++)
-	  if ((code = name_enter_string(imemory, (const int8_t *)gs_error_names[i],
+	  if ((code = name_enter_string(imemory, (const char *)gs_error_names[i],
 					  era.value.refs + i)) < 0)
 		return code;
 	return initial_enter_name("ErrorNames", &era);
@@ -451,7 +451,7 @@ op_init(i_ctx_t *i_ctx_p)
     for (tptr = op_defs_all; *tptr != 0; tptr++) {
 	ref *pdict = systemdict;
 	const op_def *def;
-	const int8_t *nstr;
+	const char *nstr;
 
 	for (def = *tptr; (nstr = def->oname) != 0; def++)
 	    if (op_def_is_begin_dict(def)) {

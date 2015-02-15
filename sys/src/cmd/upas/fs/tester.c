@@ -23,7 +23,7 @@ prindent(int i)
 }
 
 void
-prstring(int indent, int8_t *tag, String *s)
+prstring(int indent, char *tag, String *s)
 {
 	if(s == nil)
 		return;

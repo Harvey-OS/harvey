@@ -128,7 +128,7 @@ gs_param_list_serialize(
 
 	/* Get next datum & put its type & key to buffer */
 	gs_param_typed_value value;
-	int8_t string_key[256];
+	char string_key[256];
 
 	if (sizeof(string_key) < key.size + 1) {
 	    code = gs_note_error(gs_error_rangecheck);
@@ -196,7 +196,7 @@ gs_param_list_serialize(
 		     write_buf.buf ? write_buf.buf_end - write_buf.buf : 0);
 
 		    temp_code = param_end_read_dict(list,
-						    (const int8_t *)key.data,
+						    (const char *)key.data,
 						    &value.value.d);
 		    if (bytes_written < 0)
 			code = bytes_written;

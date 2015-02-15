@@ -43,12 +43,12 @@
 
 #include "dwdll.h"
 
-static const int8_t name[] = "gsdll32.dll";
+static const char name[] = "gsdll32.dll";
 
-int load_dll(GSDLL *gsdll, int8_t *last_error, int len)
+int load_dll(GSDLL *gsdll, char *last_error, int len)
 {
-int8_t fullname[1024];
-int8_t *p;
+char fullname[1024];
+char *p;
 int32_t version;
 int length;
 gsapi_revision_t rv;
@@ -59,7 +59,7 @@ gsapi_revision_t rv;
 
     /* First try to load DLL from the same directory as EXE */
     GetModuleFileName(GetModuleHandle(NULL), fullname, sizeof(fullname));
-    if ((p = strrchr(fullname,'\\')) != (int8_t *)NULL)
+    if ((p = strrchr(fullname,'\\')) != (char *)NULL)
 	p++;
     else
 	p = fullname;

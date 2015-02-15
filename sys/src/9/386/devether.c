@@ -21,10 +21,10 @@
 static Ether *etherxx[MaxEther];
 
 Chan*
-etherattach(int8_t* spec)
+etherattach(char* spec)
 {
 	uint32_t ctlrno;
-	int8_t *p;
+	char *p;
 	Chan *chan;
 
 	ctlrno = 0;
@@ -49,7 +49,7 @@ etherattach(int8_t* spec)
 }
 
 static Walkqid*
-etherwalk(Chan* chan, Chan* nchan, int8_t** name, int nname)
+etherwalk(Chan* chan, Chan* nchan, char** name, int nname)
 {
 	return netifwalk(etherxx[chan->devno], chan, nchan, name, nname);
 }
@@ -67,7 +67,7 @@ etheropen(Chan* chan, int omode)
 }
 
 static void
-ethercreate(Chan*, int8_t*, int, int)
+ethercreate(Chan*, char*, int, int)
 {
 }
 
@@ -330,12 +330,12 @@ etherbwrite(Chan* chan, Block* bp, int64_t)
 }
 
 static struct {
-	int8_t*	type;
+	char*	type;
 	int	(*reset)(Ether*);
 } cards[MaxEther+1];
 
 void
-addethercard(int8_t* t, int (*r)(Ether*))
+addethercard(char* t, int (*r)(Ether*))
 {
 	static int ncard;
 
@@ -347,10 +347,10 @@ addethercard(int8_t* t, int (*r)(Ether*))
 }
 
 int
-parseether(uint8_t *to, int8_t *from)
+parseether(uint8_t *to, char *from)
 {
-	int8_t nip[4];
-	int8_t *p;
+	char nip[4];
+	char *p;
 	int i;
 
 	p = from;
@@ -374,7 +374,7 @@ etherprobe(int cardno, int ctlrno)
 {
 	int i, j;
 	Ether *ether;
-	int8_t buf[128], name[32];
+	char buf[128], name[32];
 
 	ether = malloc(sizeof(Ether));
 	memset(ether, 0, sizeof(Ether));
@@ -491,7 +491,7 @@ etherreset(void)
 static void
 ethershutdown(void)
 {
-	int8_t name[32];
+	char name[32];
 	int i;
 	Ether *ether;
 

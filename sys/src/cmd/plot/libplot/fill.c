@@ -168,8 +168,8 @@ static void polygon(int cnt[], double *pts[], Windrule w, int v){
 			}
 		}
 	}
-	free((int8_t *)edges);
-	free((int8_t *)ylist);
+	free((char *)edges);
+	free((char *)ylist);
 }
 void fill(int num[], double *ff[]){
 	polygon(num, ff, Odd, e1->foregr);

@@ -18,7 +18,7 @@
  */
 
 static struct {
-	int8_t	*msg;
+	char	*msg;
 	int	err;
 } NTerrs[] = {
 	{ "success",					0x0 },
@@ -970,12 +970,12 @@ static struct {
 	{ "SXS process termination requested",		0xc0150013 },
 };
 
-int8_t *
+char *
 nterrstr(uint err)
 {
 	int i, f, match;
-	int8_t *why, *facility, tmp[32];
-	static int8_t buf[0xff];
+	char *why, *facility, tmp[32];
+	static char buf[0xff];
 
 	f = (err >> 16) & 0x7ff;
 	switch(f){

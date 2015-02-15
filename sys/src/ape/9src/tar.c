@@ -29,10 +29,10 @@ usage(void)
 }
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	int i, j, verb, vflag, fflag, Tflag, nargc;
-	int8_t *p, *file, **nargv, *cpu, flagbuf[10], execbuf[128];
+	char *p, *file, **nargv, *cpu, flagbuf[10], execbuf[128];
 	Waitmsg *w;
 
 	argv++, argc--;
@@ -88,7 +88,7 @@ main(int argc, int8_t **argv)
 	}
 
 	nargc = 1 + 1 + fflag + argc + 1;
-	nargv = malloc(sizeof(int8_t*) * nargc);
+	nargv = malloc(sizeof(char*) * nargc);
 	if(nargv == nil) {
 		fprint(2, "ape/tar: out of memory\n");
 		exits("memory");

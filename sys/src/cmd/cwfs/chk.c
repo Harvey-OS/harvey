@@ -16,12 +16,12 @@ typedef struct {
 	int	ns;
 } Extdentry;
 
-static	int8_t*	abits;
+static	char*	abits;
 static	int32_t	sizabits;
-static	int8_t*	qbits;
+static	char*	qbits;
 static	int32_t	sizqbits;
 
-static	int8_t*	name;
+static	char*	name;
 static	int32_t	sizname;
 
 static	Off	fstart;
@@ -67,7 +67,7 @@ static	Iobuf*	xtag(Off, int, Off);
 static void *
 chkalloc(uint32_t n)
 {
-	int8_t *p = mallocz(n, 1);
+	char *p = mallocz(n, 1);
 
 	if (p == nil)
 		panic("chkalloc: out of memory");
@@ -98,7 +98,7 @@ enum
 };
 
 static struct {
-	int8_t*	option;
+	char*	option;
 	int32_t	flag;
 } ckoption[] = {
 	"rdall",	Crdall,
@@ -115,7 +115,7 @@ static struct {
 };
 
 void
-cmd_check(int argc, int8_t *argv[])
+cmd_check(int argc, char *argv[])
 {
 	int32_t f, i, flag;
 	Off raddr;

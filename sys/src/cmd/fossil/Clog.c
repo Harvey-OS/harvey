@@ -14,10 +14,10 @@
  * To do: This will become something else ('vprint'?).
  */
 int
-consVPrint(int8_t* fmt, va_list args)
+consVPrint(char* fmt, va_list args)
 {
 	int len, ret;
-	int8_t buf[256];
+	char buf[256];
 
 	len = vsnprint(buf, sizeof(buf), fmt, args);
 	ret = consWrite(buf, len);
@@ -37,7 +37,7 @@ consVPrint(int8_t* fmt, va_list args)
  * To do: This will become 'print'.
  */
 int
-consPrint(int8_t* fmt, ...)
+consPrint(char* fmt, ...)
 {
 	int ret;
 	va_list args;

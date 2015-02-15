@@ -36,14 +36,14 @@
 extern ProcList	*rdy;
 extern RunList	*run;
 extern Symbol	*Fname, *oFname, *context;
-extern int8_t	*claimproc, *eventmap;
+extern char	*claimproc, *eventmap;
 extern int	lineno, verbose, Npars, Mpars, nclaims;
 extern int	m_loss, has_remote, has_remvar, merger, rvopt, separate;
 extern int	Ntimeouts, Etimeouts, deadvar, old_scope_rules;
 extern int	u_sync, u_async, nrRdy, Unique;
 extern int	GenCode, IsGuard, Level, TestOnly;
 extern int16_t	has_stack;
-extern int8_t	*NextLab[];
+extern char	*NextLab[];
 
 FILE	*tc, *th, *tt, *tb;
 static FILE	*tm;
@@ -87,7 +87,7 @@ static int16_t	withprocname=0;	/* prefix local varnames with procname */
 static int16_t	_isok=0;	/* checks usage of predefined variable _ */
 
 int	has_global(Lextok *);
-void	Fatal(int8_t *, int8_t *);
+void	Fatal(char *, char *);
 static int	getweight(Lextok *);
 static int	scan_seq(Sequence *);
 static void	genconditionals(void);
@@ -99,7 +99,7 @@ static void	Tpe(Lextok *);
 extern void	spit_recvs(FILE *, FILE*);
 
 static int
-fproc(int8_t *s)
+fproc(char *s)
 {	ProcList *p;
 
 	for (p = rdy; p; p = p->nxt)
@@ -179,7 +179,7 @@ tt_predef_np(void)
 }
 
 static struct {
-	int8_t *nm[3];
+	char *nm[3];
 } Cfile[] = {
 	{ { "pan.c", "pan_s.c", "pan_t.c" } },
 	{ { "pan.h", "pan_s.h", "pan_t.h" } },
@@ -207,7 +207,7 @@ gensrc(void)
 	fprintf(th, "#define SpinVersion	\"%s\"\n", SpinVersion);
 	fprintf(th, "#define PanSource	\"");
 	for (i = 0; oFname->name[i] != '\0'; i++)
-	{	int8_t c = oFname->name[i];
+	{	char c = oFname->name[i];
 		if (c == '\\' || c == ' ') /* Windows path */
 		{	fprintf(th, "\\");
 		}
@@ -546,7 +546,7 @@ doless:
 		genunio();
 		genconditionals();
 		gensvmap();
-		if (!run) fatal("no runable process", (int8_t *)0);
+		if (!run) fatal("no runable process", (char *)0);
 		fprintf(tc, "void\n");
 		fprintf(tc, "active_procs(void)\n{\n");
 #if 1
@@ -630,7 +630,7 @@ find_id(Symbol *s)
 }
 
 static void
-dolen(Symbol *s, int8_t *pre, int pid, int ai, int qln)
+dolen(Symbol *s, char *pre, int pid, int ai, int qln)
 {
 	if (ai > 0)
 		fprintf(tc, "\n\t\t\t ||    ");
@@ -646,7 +646,7 @@ dolen(Symbol *s, int8_t *pre, int pid, int ai, int qln)
 	fprintf(tc, ") )");
 }
 
-struct AA {	int8_t TT[9];	int8_t CC[8]; };
+struct AA {	char TT[9];	char CC[8]; };
 
 static struct AA BB[4] = {
 	{ "Q_FULL_F",	" q_full" },
@@ -688,7 +688,7 @@ bb_or_dd(int j, int which)
 }
 
 void
-Done_case(int8_t *nm, Symbol *z)
+Done_case(char *nm, Symbol *z)
 {	int j, k;
 	int nid = z->Nid;
 	int qln = z->nel;
@@ -1430,7 +1430,7 @@ dobackward(Element *e, int casenr)
 	{	CnT[YZcnt]--;
 		YZmax--;
 		if (YZmax < 0)
-			fatal("cannot happen, dobackward", (int8_t *)0);
+			fatal("cannot happen, dobackward", (char *)0);
 		fprintf(tb, ";\n\t/* %d */\t", YZmax);
 		putname(tb, "", &YZ[YZmax], 0, " = trpt->bup.oval");
 		if (multi_oval > 0)
@@ -1496,7 +1496,7 @@ lab_transfer(Element *to, Element *from)
 	for (ltp = 1; ltp < 8; ltp *= 2)	/* 1, 2, and 4 */
 		if ((s = has_lab(from, ltp)) != (Symbol *) 0)
 		{	ns = (Symbol *) emalloc(sizeof(Symbol));
-			ns->name = (int8_t *) emalloc((int) strlen(s->name) + 4);
+			ns->name = (char *) emalloc((int) strlen(s->name) + 4);
 			sprintf(ns->name, "%s%d", s->name, modifier);
 
 			context = s->context;
@@ -1506,7 +1506,7 @@ lab_transfer(Element *to, Element *from)
 	context = oc;	/* restore */
 	if (usedit)
 	{	if (modifier++ > 990)
-			fatal("modifier overflow error", (int8_t *) 0);
+			fatal("modifier overflow error", (char *) 0);
 	}
 }
 
@@ -1568,13 +1568,13 @@ case_cache(Element *e, int a)
 		e->merge_start, e->merge, nrbups, e->merge_in);
 
 	if (nrbups > MAXMERGE-1)
-		fatal("merge requires more than 256 bups", (int8_t *)0);
+		fatal("merge requires more than 256 bups", (char *)0);
 
 	if (e->n->ntyp != 'r' && !pid_is_claim(Pid) && Pid != eventmapnr)
 		fprintf(tm, "IfNotBlocked\n\t\t");
 
 	if (multi_needed != 0 || multi_undo != 0)
-		fatal("cannot happen, case_cache", (int8_t *) 0);
+		fatal("cannot happen, case_cache", (char *) 0);
 
 	if (nrbups > 1)
 	{	multi_oval = 1;
@@ -1970,7 +1970,7 @@ find_target(Element *e)
 	if (!e) return e;
 
 	if (t_cyc++ > 32)
-	{	fatal("cycle of goto jumps", (int8_t *) 0);
+	{	fatal("cycle of goto jumps", (char *) 0);
 	}
 	switch (e->n->ntyp) {
 	case  GOTO:
@@ -2167,7 +2167,7 @@ has_global(Lextok *n)
 }
 
 static void
-Bailout(FILE *fd, int8_t *str)
+Bailout(FILE *fd, char *str)
 {
 	if (!GenCode)
 		fprintf(fd, "continue%s", str);
@@ -2230,7 +2230,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 	case RUN:
 		if (now->sym == NULL)
-			Fatal("internal error pangen2.c", (int8_t *) 0);
+			Fatal("internal error pangen2.c", (char *) 0);
 		if (claimproc
 		&&  strcmp(now->sym->name, claimproc) == 0)
 			fatal("claim %s, (not runnable)", claimproc);
@@ -2240,7 +2240,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 		if (GenCode)
 		  fatal("'run' in d_step sequence (use atomic)",
-			(int8_t *)0);
+			(char *)0);
 
 		fprintf(fd,"addproc(II, %d", fproc(now->sym->name));
 		for (v = now->lft, i = 0; v; v = v->rgt, i++)
@@ -2617,7 +2617,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 			if (jj)
 			for (v = now->rgt, i = 0; v; v = v->rgt, i++)
-			{	int8_t tempbuf[64];
+			{	char tempbuf[64];
 
 				if ((v->lft->ntyp == CONST
 				||   v->lft->ntyp == EVAL))
@@ -2831,7 +2831,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 		if (!GenCode)
 		{	if (multi_oval)
-			{	int8_t tempbuf[64];
+			{	char tempbuf[64];
 				check_needed();
 				sprintf(tempbuf, "(trpt+1)->bup.ovals[%d] = ",
 					multi_oval-1);
@@ -2923,7 +2923,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		if (now->sym)
 			plunk_inline(fd, now->sym->name, 1, GenCode);
 		else
-			Fatal("internal error pangen2.c", (int8_t *) 0);
+			Fatal("internal error pangen2.c", (char *) 0);
 
 		if (!GenCode)
 		{	fprintf(fd, "\n");	/* state changed, capture it */
@@ -2973,9 +2973,9 @@ putstmnt(FILE *fd, Lextok *now, int m)
 	}
 }
 
-int8_t *
-simplify_name(int8_t *s)
-{	int8_t *t = s;
+char *
+simplify_name(char *s)
+{	char *t = s;
 
 	if (!old_scope_rules)
 	{	while (*t == '_' || isdigit((int)*t))
@@ -2986,14 +2986,14 @@ simplify_name(int8_t *s)
 }
 
 void
-putname(FILE *fd, int8_t *pre, Lextok *n, int m, int8_t *suff) /* varref */
+putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 {	Symbol *s = n->sym;
-	int8_t *ptr;
+	char *ptr;
 
 	lineno = n->ln; Fname = n->fn;
 
 	if (!s)
-		fatal("no name - putname", (int8_t *) 0);
+		fatal("no name - putname", (char *) 0);
 
 	if (s->context && context && s->type)
 		s = findloc(s);		/* it's a local var */
@@ -3047,7 +3047,7 @@ putname(FILE *fd, int8_t *pre, Lextok *n, int m, int8_t *suff) /* varref */
 	if (s->nel > 1 || s->isarray == 1)
 	{	if (no_arrays)
 		{	non_fatal("ref to array element invalid in this context",
-				(int8_t *)0);
+				(char *)0);
 			printf("\thint: instead of, e.g., x[rs] qu[3], use\n");
 			printf("\tchan nm_3 = qu[3]; x[rs] nm_3;\n");
 			printf("\tand use nm_3 in sends/recvs instead of qu[3]\n");
@@ -3094,7 +3094,7 @@ putname(FILE *fd, int8_t *pre, Lextok *n, int m, int8_t *suff) /* varref */
 		&& (n->lft->ntyp != CONST
 		||  n->lft->val != 0))
 		{	fatal("ref to scalar '%s' using array index",
-			       (int8_t *) ptr);
+			       (char *) ptr);
 	}	}
 
 	if (s->type == STRUCT && n->rgt && n->rgt->lft)

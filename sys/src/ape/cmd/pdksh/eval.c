@@ -26,9 +26,9 @@
 /* expansion generator state */
 typedef struct Expand {
 	/* int  type; */	/* see expand() */
-	const int8_t *str;	/* string */
+	const char *str;	/* string */
 	union {
-		const int8_t **strv;/* string[] */
+		const char **strv;/* string[] */
 		struct shf *shf;/* file */
 	} u;			/* source */
 	struct tbl *var;	/* variable in ${var..} */
@@ -84,9 +84,9 @@ substitute(cp, f)
 /*
  * expand arg-list
  */
-int8_t **
+char **
 eval(ap, f)
-	register int8_t **ap;
+	register char **ap;
 	int f;
 {
 	XPtrV w;
@@ -102,25 +102,25 @@ eval(ap, f)
 		expand(*ap++, &w, f);
 	XPput(w, NULL);
 #ifdef	SHARPBANG
-	return (int8_t **) XPclose(w) + 2;
+	return (char **) XPclose(w) + 2;
 #else
-	return (int8_t **) XPclose(w) + 1;
+	return (char **) XPclose(w) + 1;
 #endif
 }
 
 /*
  * expand string
  */
-int8_t *
+char *
 evalstr(cp, f)
-	int8_t *cp;
+	char *cp;
 	int f;
 {
 	XPtrV w;
 
 	XPinit(w, 1);
 	expand(cp, &w, f);
-	cp = (XPsize(w) == 0) ? null : (int8_t*) *XPptrv(w);
+	cp = (XPsize(w) == 0) ? null : (char*) *XPptrv(w);
 	XPfree(w);
 	return cp;
 }
@@ -129,9 +129,9 @@ evalstr(cp, f)
  * expand string - return only one component
  * used from iosetup to expand redirection files
  */
-int8_t *
+char *
 evalonestr(cp, f)
-	register int8_t *cp;
+	register char *cp;
 	int f;
 {
 	XPtrV w;
@@ -143,7 +143,7 @@ evalonestr(cp, f)
 		cp = null;
 		break;
 	case 1:
-		cp = (int8_t*) *XPptrv(w);
+		cp = (char*) *XPptrv(w);
 		break;
 	default:
 		cp = evalstr(cp, f&~DOGLOB);
@@ -166,7 +166,7 @@ typedef struct SubType {
 
 void
 expand(cp, wp, f)
-	int8_t *cp;		/* input word */
+	char *cp;		/* input word */
 	register XPtrV *wp;	/* output words */
 	int f;			/* DO* flags */
 {
@@ -174,7 +174,7 @@ expand(cp, wp, f)
 	register int type;	/* expansion type */
 	register int quote = 0;	/* quoted */
 	XString ds;		/* destination string */
-	register int8_t *dp, *sp;	/* dest., source */
+	register char *dp, *sp;	/* dest., source */
 	int fdo, word;		/* second pass flags; have word */
 	int doblank;		/* field spliting of parameter/command subst */
 	Expand x;		/* expansion variables */
@@ -266,7 +266,7 @@ expand(cp, wp, f)
 					*dp++ = ')'; *dp++ = ')';
 				} else {
 					struct tbl v;
-					int8_t *p;
+					char *p;
 
 					v.flag = DEFINED|ISSET|INTEGER;
 					v.type = 10; /* not default */
@@ -287,21 +287,21 @@ expand(cp, wp, f)
 			   * This is were all syntax checking gets done...
 			   */
 			  {
-				int8_t *varname = ++sp; /* skip the { or x (}) */
+				char *varname = ++sp; /* skip the { or x (}) */
 				int stype;
 				int slen;
 
 				sp = strchr(sp, '\0') + 1; /* skip variable */
 				type = varsub(&x, varname, sp, &stype, &slen);
 				if (type < 0) {
-					int8_t endc;
-					int8_t *str, *end;
+					char endc;
+					char *str, *end;
 
-					end = (int8_t *) wdscan(sp, CSUBST);
+					end = (char *) wdscan(sp, CSUBST);
 					/* ({) the } or x is already skipped */
 					endc = *end;
 					*end = EOS;
-					str = snptreef((int8_t *) 0, 64,
+					str = snptreef((char *) 0, 64,
 						       "%S",
 							varname - 1);
 					*end = endc;
@@ -377,7 +377,7 @@ expand(cp, wp, f)
 					}
 				} else
 					/* skip word */
-					sp = (int8_t *) wdscan(sp, CSUBST);
+					sp = (char *) wdscan(sp, CSUBST);
 				continue;
 			  }
 			  case CSUBST: /* only get here if expanding word */
@@ -424,7 +424,7 @@ expand(cp, wp, f)
 					 * does readonly check).
 					 */
 					setstr(st->var, debunk(
-						(int8_t *) alloc(strlen(dp) + 1,
+						(char *) alloc(strlen(dp) + 1,
 							ATEMP), dp),
 						KSH_UNWIND_ERROR);
 					x.str = str_val(st->var);
@@ -435,7 +435,7 @@ expand(cp, wp, f)
 					continue;
 				  case '?':
 				    {
-					int8_t *s = Xrestpos(ds, dp, st->base);
+					char *s = Xrestpos(ds, dp, st->base);
 
 					errorf("%s: %s", st->var->name,
 					    dp == s ? 
@@ -567,7 +567,7 @@ expand(cp, wp, f)
 			if (word == IFS_WORD
 			    || (!ctype(c, C_IFSWS) && (c || word == IFS_NWS)))
 			{
-				int8_t *p;
+				char *p;
 
 				*dp++ = '\0';
 				p = Xclose(ds, dp);
@@ -657,7 +657,7 @@ expand(cp, wp, f)
 					    && (f & (DOTILDE|DOASNTILDE))
 					    && (tilde_ok & 2))
 					{
-						int8_t *p, *dp_x;
+						char *p, *dp_x;
 
 						dp_x = dp;
 						p = maybe_expand_tilde(sp,
@@ -696,8 +696,8 @@ expand(cp, wp, f)
 static int
 varsub(xp, sp, word, stypep, slenp)
 	Expand *xp;
-	int8_t *sp;
-	int8_t *word;
+	char *sp;
+	char *word;
 	int *stypep;	/* becomes qualifier type */
 	int *slenp;	/* " " len (=, :=, etc.) valid iff *stypep != 0 */
 {
@@ -705,7 +705,7 @@ varsub(xp, sp, word, stypep, slenp)
 	int state;	/* next state: XBASE, XARG, XSUB, XNULLSUB */
 	int stype;	/* substitution type */
 	int slen;
-	int8_t *p;
+	char *p;
 	struct tbl *vp;
 
 	if (sp[0] == '\0')	/* Bad variable name */
@@ -785,7 +785,7 @@ varsub(xp, sp, word, stypep, slenp)
 			xp->str = null;
 			state = c == '@' ? XNULLSUB : XSUB;
 		} else {
-			xp->u.strv = (const int8_t **) e->loc->argv + 1;
+			xp->u.strv = (const char **) e->loc->argv + 1;
 			xp->str = *xp->u.strv++;
 			xp->split = c == '@'; /* $@ */
 			state = XARG;
@@ -813,7 +813,7 @@ varsub(xp, sp, word, stypep, slenp)
 				XPfree(wv);
 			} else {
 				XPput(wv, 0);
-				xp->u.strv = (const int8_t **) XPptrv(wv);
+				xp->u.strv = (const char **) XPptrv(wv);
 				xp->str = *xp->u.strv++;
 				xp->split = p[1] == '@'; /* ${foo[@]} */
 				state = XARG;
@@ -847,7 +847,7 @@ varsub(xp, sp, word, stypep, slenp)
 static int
 comsub(xp, cp)
 	register Expand *xp;
-	int8_t *cp;
+	char *cp;
 {
 	Source *s, *sold;
 	register struct op *t;
@@ -865,11 +865,11 @@ comsub(xp, cp)
 	if (t != NULL && t->type == TCOM && /* $(<file) */
 	    *t->args == NULL && *t->vars == NULL && t->ioact != NULL) {
 		register struct ioword *io = *t->ioact;
-		int8_t *name;
+		char *name;
 
 		if ((io->flag&IOTYPE) != IOREAD)
 			errorf("funny $() command: %s",
-				snptreef((int8_t *) 0, 32, "%R", io));
+				snptreef((char *) 0, 32, "%R", io));
 		shf = shf_open(name = evalstr(io->name, DOTILDE), O_RDONLY, 0,
 			SHF_MAPHI|SHF_CLEXEC);
 		if (shf == NULL)
@@ -896,14 +896,14 @@ comsub(xp, cp)
  * perform #pattern and %pattern substitution in ${}
  */
 
-static int8_t *
+static char *
 trimsub(str, pat, how)
-	register int8_t *str;
-	int8_t *pat;
+	register char *str;
+	char *pat;
 	int how;
 {
-	register int8_t *end = strchr(str, 0);
-	register int8_t *p, c;
+	register char *end = strchr(str, 0);
+	register char *p, c;
 
 	switch (how&0xff) {	/* UCHAR_MAX maybe? */
 	  case '#':		/* shortest at begining */
@@ -951,7 +951,7 @@ trimsub(str, pat, how)
 /* XXX cp not const 'cause slashes are temporarily replaced with nulls... */
 static void
 glob(cp, wp, markdirs)
-	int8_t *cp;
+	char *cp;
 	register XPtrV *wp;
 	int markdirs;
 {
@@ -974,13 +974,13 @@ glob(cp, wp, markdirs)
  */
 int
 glob_str(cp, wp, markdirs)
-	int8_t *cp;
+	char *cp;
 	XPtrV *wp;
 	int markdirs;
 {
 	int oldsize = XPsize(*wp);
 	XString xs;
-	int8_t *xp;
+	char *xp;
 
 	Xinit(xs, xp, 256, ATEMP);
 	globit(&xs, &xp, cp, wp, markdirs ? GF_MARKDIR : GF_NONE);
@@ -992,15 +992,15 @@ glob_str(cp, wp, markdirs)
 static void
 globit(xs, xpp, sp, wp, check)
 	XString *xs;		/* dest string */
-	int8_t **xpp;		/* ptr to dest end */
-	int8_t *sp;		/* source path */
+	char **xpp;		/* ptr to dest end */
+	char *sp;		/* source path */
 	register XPtrV *wp;	/* output list */
 	int check;		/* GF_* flags */
 {
-	register int8_t *np;	/* next source component */
-	int8_t *xp = *xpp;
-	int8_t *se;
-	int8_t odirsep;
+	register char *np;	/* next source component */
+	char *xp = *xpp;
+	char *se;
+	char odirsep;
 
 	/* This to allow long expansions to be interrupted */
 	intrcheck();
@@ -1100,7 +1100,7 @@ globit(xs, xpp, sp, wp, check)
 	} else {
 		DIR *dirp;
 		struct dirent *d;
-		int8_t *name;
+		char *name;
 		int len;
 		int prefix_len;
 
@@ -1181,12 +1181,12 @@ copy_non_glob(xs, xpp, p)
 #endif /* 0 */
 
 /* remove MAGIC from string */
-int8_t *
+char *
 debunk(dp, sp)
-	int8_t *dp;
-	const int8_t *sp;
+	char *dp;
+	const char *sp;
 {
-	int8_t *d, *s;
+	char *d, *s;
 
 	if ((s = strchr(sp, MAGIC))) {
 		memcpy(dp, sp, s - sp);
@@ -1210,16 +1210,16 @@ debunk(dp, sp)
  * puts the expanded version in *dcp,dp and returns a pointer in p just
  * past the name, otherwise returns 0.
  */
-static int8_t *
+static char *
 maybe_expand_tilde(p, dsp, dpp, isassign)
-	int8_t *p;
+	char *p;
 	XString *dsp;
-	int8_t **dpp;
+	char **dpp;
 	int isassign;
 {
 	XString ts;
-	int8_t *dp = *dpp;
-	int8_t *tp, *r;
+	char *dp = *dpp;
+	char *tp, *r;
 
 	Xinit(ts, tp, 16, ATEMP);
 	/* : only for DOASNTILDE form */
@@ -1231,7 +1231,7 @@ maybe_expand_tilde(p, dsp, dpp, isassign)
 		p += 2;
 	}
 	*tp = '\0';
-	r = (p[0] == EOS || p[0] == CHAR || p[0] == CSUBST) ? tilde(Xstring(ts, tp)) : (int8_t *) 0;
+	r = (p[0] == EOS || p[0] == CHAR || p[0] == CSUBST) ? tilde(Xstring(ts, tp)) : (char *) 0;
 	Xfree(ts, tp);
 	if (r) {
 		while (*r) {
@@ -1252,11 +1252,11 @@ maybe_expand_tilde(p, dsp, dpp, isassign)
  * based on a version by Arnold Robbins
  */
 
-static int8_t *
+static char *
 tilde(cp)
-	int8_t *cp;
+	char *cp;
 {
-	int8_t *dp;
+	char *dp;
 
 	if (cp[0] == '\0')
 		dp = str_val(global("HOME"));
@@ -1268,7 +1268,7 @@ tilde(cp)
 		dp = homedir(cp);
 	/* If HOME, PWD or OLDPWD are not set, don't expand ~ */
 	if (dp == null)
-		dp = (int8_t *) 0;
+		dp = (char *) 0;
 	return dp;
 }
 
@@ -1279,9 +1279,9 @@ tilde(cp)
  * we might consider our own version of getpwnam() to keep the size down.
  */
 
-static int8_t *
+static char *
 homedir(name)
-	int8_t *name;
+	char *name;
 {
 	register struct tbl *ap;
 
@@ -1307,14 +1307,14 @@ homedir(name)
 static void
 alt_expand(wp, start, exp_start, end, fdo)
 	XPtrV *wp;
-	int8_t *start, *exp_start;
-	int8_t *end;
+	char *start, *exp_start;
+	char *end;
 	int fdo;
 {
 	int UNINITIALIZED(count);
-	int8_t *brace_start, *brace_end, *UNINITIALIZED(comma);
-	int8_t *field_start;
-	int8_t *p;
+	char *brace_start, *brace_end, *UNINITIALIZED(comma);
+	char *field_start;
+	char *p;
 
 	/* search for open brace */
 	for (p = exp_start; (p = strchr(p, MAGIC)) && p[1] != OBRACE; p += 2)
@@ -1323,7 +1323,7 @@ alt_expand(wp, start, exp_start, end, fdo)
 
 	/* find matching close brace, if any */
 	if (p) {
-		comma = (int8_t *) 0;
+		comma = (char *) 0;
 		count = 1;
 		for (p += 2; *p && count; p++) {
 			if (ISMAGIC(*p)) {
@@ -1364,13 +1364,13 @@ alt_expand(wp, start, exp_start, end, fdo)
 			else if ((*p == CBRACE && --count == 0)
 				 || (*p == ',' && count == 1))
 			{
-				int8_t *new;
+				char *new;
 				int l1, l2, l3;
 
 				l1 = brace_start - start;
 				l2 = (p - 1) - field_start;
 				l3 = end - brace_end;
-				new = (int8_t *) alloc(l1 + l2 + l3 + 1, ATEMP);
+				new = (char *) alloc(l1 + l2 + l3 + 1, ATEMP);
 				memcpy(new, start, l1);
 				memcpy(new + l1, field_start, l2);
 				memcpy(new + l1 + l2, brace_end, l3);

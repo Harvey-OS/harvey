@@ -15,7 +15,7 @@ uint64_t	count[Runemax+1];
 Biobuf	bout;
 
 void	usage(void);
-void	freq(int, int8_t*);
+void	freq(int, char*);
 int32_t	flag;
 enum
 {
@@ -78,7 +78,7 @@ usage(void)
 }
 
 void
-freq(int f, int8_t *s)
+freq(int f, char *s)
 {
 	Biobuf bin;
 	int32_t c, i;

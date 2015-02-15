@@ -14,10 +14,10 @@
 #include <ndb.h>
 #include "ndbhf.h"
 
-static Ndb*	doopen(int8_t*);
+static Ndb*	doopen(char*);
 static void	hffree(Ndb*);
 
-static int8_t *deffile = "/lib/ndb/local";
+static char *deffile = "/lib/ndb/local";
 
 /*
  *  the database entry in 'file' indicates the list of files
@@ -25,7 +25,7 @@ static int8_t *deffile = "/lib/ndb/local";
  *  the same order.
  */
 Ndb*
-ndbopen(int8_t *file)
+ndbopen(char *file)
 {
 	Ndb *db, *first, *last;
 	Ndbs s;
@@ -71,7 +71,7 @@ ndbopen(int8_t *file)
  *  open a single file
  */
 static Ndb*
-doopen(int8_t *file)
+doopen(char *file)
 {
 	Ndb *db;
 

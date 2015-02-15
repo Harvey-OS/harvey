@@ -12,11 +12,11 @@
 
 #define	N	256
 
-int8_t*
-strtok(int8_t *s, int8_t *b)
+char*
+strtok(char *s, char *b)
 {
-	static int8_t *under_rock;
-	int8_t map[N], *os;
+	static char *under_rock;
+	char map[N], *os;
 
 	memset(map, 0, N);
 	while(*b)

@@ -184,7 +184,7 @@ gs_imager_state_copied(gs_imager_state * pis)
 void
 gs_imager_state_pre_assign(gs_imager_state *pto, const gs_imager_state *pfrom)
 {
-    const int8_t *const cname = "gs_imager_state_pre_assign";
+    const char *const cname = "gs_imager_state_pre_assign";
 
 #define RCCOPY(element)\
     rc_pre_assign(pto->element, pfrom->element, cname)
@@ -208,7 +208,7 @@ gs_imager_state_pre_assign(gs_imager_state *pto, const gs_imager_state *pfrom)
 void
 gs_imager_state_release(gs_imager_state * pis)
 {
-    const int8_t *const cname = "gs_imager_state_release";
+    const char *const cname = "gs_imager_state_release";
     gx_device_halftone *pdht = pis->dev_ht;
 
 #define RCDECR(element)\

@@ -310,7 +310,7 @@ pdf_finish_iccbased(cos_stream_t *pcstrm)
 
 typedef struct profile_table_s profile_table_t;
 struct profile_table_s {
-    const int8_t *tag;
+    const char *tag;
     const byte *data;
     uint length;
     uint data_length;		/* may be < length if write != 0 */
@@ -319,7 +319,7 @@ struct profile_table_s {
     const gs_range_t *ranges;
 };
 private profile_table_t *
-add_table(profile_table_t **ppnt, const int8_t *tag, const byte *data,
+add_table(profile_table_t **ppnt, const char *tag, const byte *data,
 	  uint length)
 {
     profile_table_t *pnt = (*ppnt)++;
@@ -753,7 +753,7 @@ pdf_iccbased_color_space(gx_device_pdf *pdev, cos_value_t *pvalue,
 /* Convert a CIEBased space to Lab or ICCBased. */
 int
 pdf_convert_cie_space(gx_device_pdf *pdev, cos_array_t *pca,
-		      const gs_color_space *pcs, const int8_t *dcsname,
+		      const gs_color_space *pcs, const char *dcsname,
 		      const gs_cie_common *pciec, const gs_range *prange,
 		      cie_cache_one_step_t one_step, const gs_matrix3 *pmat,
 		      const gs_range_t **pprange)

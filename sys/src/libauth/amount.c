@@ -13,7 +13,7 @@
 #include "authlocal.h"
 
 int
-amount(int fd, int8_t *mntpt, int flags, int8_t *aname)
+amount(int fd, char *mntpt, int flags, char *aname)
 {
 	int rv, afd;
 	AuthInfo *ai;

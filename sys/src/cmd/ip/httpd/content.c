@@ -17,18 +17,18 @@ typedef struct Suffix	Suffix;
 struct Suffix 
 {
 	Suffix	*next;
-	int8_t	*suffix;
-	int8_t	*generic;
-	int8_t	*specific;
-	int8_t	*encoding;
+	char	*suffix;
+	char	*generic;
+	char	*specific;
+	char	*encoding;
 };
 
 Suffix	*suffixes = nil;
 
-static	Suffix*			parsesuffix(int8_t*, Suffix*);
-static	int8_t*			skipwhite(int8_t*);
-static	HContents		suffixclass(int8_t*);
-static	int8_t*			towhite(int8_t*);
+static	Suffix*			parsesuffix(char*, Suffix*);
+static	char*			skipwhite(char*);
+static	HContents		suffixclass(char*);
+static	char*			towhite(char*);
 
 int
 updateQid(int fd, Qid *q)
@@ -52,7 +52,7 @@ contentinit(void)
 {
 	static Biobuf *b = nil;
 	static Qid qid;
-	int8_t *file, *s;
+	char *file, *s;
 	Suffix *this;
 
 	file = "/sys/lib/mimetype";
@@ -81,10 +81,10 @@ contentinit(void)
 }
 
 static Suffix*
-parsesuffix(int8_t *line, Suffix *suffix)
+parsesuffix(char *line, Suffix *suffix)
 {
 	Suffix *s;
-	int8_t *p, *fields[5];
+	char *p, *fields[5];
 	int i, nf;
 
 	p = strchr(line, '#');
@@ -118,12 +118,12 @@ parsesuffix(int8_t *line, Suffix *suffix)
  * classify by file name extensions
  */
 HContents
-uriclass(HConnect *hc, int8_t *name)
+uriclass(HConnect *hc, char *name)
 {
 	HContents conts;
 	Suffix *s;
 	HContent *type, *enc;
-	int8_t *buf, *p;
+	char *buf, *p;
 
 	type = nil;
 	enc = nil;
@@ -150,7 +150,7 @@ uriclass(HConnect *hc, int8_t *name)
  * classify by initial contents of file
  */
 HContents
-dataclass(HConnect *hc, int8_t *buf, int n)
+dataclass(HConnect *hc, char *buf, int n)
 {
 	HContents conts;
 	Rune r;

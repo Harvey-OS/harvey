@@ -12,8 +12,8 @@
 #include <bio.h>
 #include "bzlib.h"
 
-static	int	bzipf(int8_t*, int);
-static	int	bzip(int8_t*, int32_t, int, Biobuf*);
+static	int	bzipf(char*, int);
+static	int	bzip(char*, int32_t, int, Biobuf*);
 
 static	Biobuf	bout;
 static	int	level;
@@ -67,10 +67,10 @@ main(int argc, char **argv)
 }
 
 static int
-bzipf(int8_t *file, int stdout)
+bzipf(char *file, int stdout)
 {
 	Dir *dir;
-	int8_t ofile[128], *f, *s;
+	char ofile[128], *f, *s;
 	int ifd, ofd, ok;
 
 	ifd = open(file, OREAD);
@@ -133,11 +133,11 @@ bzipf(int8_t *file, int stdout)
 }
 
 static int
-bzip(int8_t *file, int32_t mtime, int ifd, Biobuf *bout)
+bzip(char *file, int32_t mtime, int ifd, Biobuf *bout)
 {
 	int e, n, done, onemore;
-	int8_t buf[8192];
-	int8_t obuf[8192];
+	char buf[8192];
+	char obuf[8192];
 	Biobuf bin;
 	bz_stream strm;
 

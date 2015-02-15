@@ -13,7 +13,7 @@
 int
 getpid(void)
 {
-	int8_t b[20];
+	char b[20];
 	int f;
 
 	memset(b, 0, sizeof(b));

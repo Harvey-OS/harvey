@@ -523,7 +523,7 @@ static Ctlr* igbectlrtail;
 static Lock igberblock;		/* free receive Blocks */
 static Block* igberbpool;
 
-static int8_t* statistics[Nstatistics] = {
+static char* statistics[Nstatistics] = {
 	"CRC Error",
 	"Alignment Error",
 	"Symbol Error",
@@ -594,7 +594,7 @@ static int32_t
 igbeifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 {
 	Ctlr *ctlr;
-	int8_t *p, *s;
+	char *p, *s;
 	int i, l, r;
 	uint64_t tuvl, ruvl;
 
@@ -683,7 +683,7 @@ static int32_t
 igbectl(Ether* edev, void* buf, int32_t n)
 {
 	int v;
-	int8_t *p;
+	char *p;
 	Ctlr *ctlr;
 	Cmdbuf *cb;
 	Cmdtab *ct;
@@ -1179,7 +1179,7 @@ igbeattach(Ether* edev)
 {
 	Block *bp;
 	Ctlr *ctlr;
-	int8_t name[KNAMELEN];
+	char name[KNAMELEN];
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->alock);
@@ -1540,9 +1540,9 @@ igbemii(Ctlr* ctlr)
 }
 
 static int
-at93c46io(Ctlr* ctlr, int8_t* op, int data)
+at93c46io(Ctlr* ctlr, char* op, int data)
 {
-	int8_t *lp, *p;
+	char *lp, *p;
 	int i, loop, eecd, r;
 
 	eecd = csr32r(ctlr, Eecd);
@@ -1618,7 +1618,7 @@ static int
 at93c46r(Ctlr* ctlr)
 {
 	uint16_t sum;
-	int8_t rop[20];
+	char rop[20];
 	int addr, areq, bits, data, eecd, i;
 
 	eecd = csr32r(ctlr, Eecd);

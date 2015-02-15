@@ -18,43 +18,43 @@ enum {
 	Enctls,
 };
 
-static int8_t *encprotos[] = {
+static char *encprotos[] = {
 	[Encnone] =	"clear",
 	[Encssl] =	"ssl",
 	[Enctls] = 	"tls",
 			nil,
 };
 
-int8_t		*keyspec = "";
-int8_t		*filterp;
-int8_t		*ealgs = "rc4_256 sha1";
+char		*keyspec = "";
+char		*filterp;
+char		*ealgs = "rc4_256 sha1";
 int		encproto = Encnone;
-int8_t		*aan = "/bin/aan";
+char		*aan = "/bin/aan";
 AuthInfo 	*ai;
 int		debug;
 int		doauth = 1;
 int		timedout;
 
-int	connect(int8_t*, int8_t*, int);
+int	connect(char*, char*, int);
 int	passive(void);
 int	old9p(int);
-void	catcher(void*, int8_t*);
-void	sysfatal(int8_t*, ...);
+void	catcher(void*, char*);
+void	sysfatal(char*, ...);
 void	usage(void);
-int	filter(int, int8_t *, int8_t *);
+int	filter(int, char *, char *);
 
-static void	mksecret(int8_t *, uint8_t *);
+static void	mksecret(char *, uint8_t *);
 
 /*
  * based on libthread's threadsetname, but drags in less library code.
  * actually just sets the arguments displayed.
  */
 void
-procsetname(int8_t *fmt, ...)
+procsetname(char *fmt, ...)
 {
 	int fd;
-	int8_t *cmdname;
-	int8_t buf[128];
+	char *cmdname;
+	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -71,10 +71,10 @@ procsetname(int8_t *fmt, ...)
 }
 
 void
-post(int8_t *name, int8_t *envname, int srvfd)
+post(char *name, char *envname, int srvfd)
 {
 	int fd;
-	int8_t buf[32];
+	char buf[32];
 
 	fd = create(name, OWRITE, 0600);
 	if(fd < 0)
@@ -87,7 +87,7 @@ post(int8_t *name, int8_t *envname, int srvfd)
 }
 
 static int
-lookup(int8_t *s, int8_t *l[])
+lookup(char *s, char *l[])
 {
 	int i;
 
@@ -256,7 +256,7 @@ main(int argc, char **argv)
 }
 
 void
-catcher(void*, int8_t *msg)
+catcher(void*, char *msg)
 {
 	timedout = 1;
 	if(strcmp(msg, "alarm") == 0)
@@ -304,11 +304,11 @@ old9p(int fd)
 }
 
 int
-connect(int8_t *system, int8_t *tree, int oldserver)
+connect(char *system, char *tree, int oldserver)
 {
-	int8_t buf[ERRMAX], dir[128], *na;
+	char buf[ERRMAX], dir[128], *na;
 	int fd, n;
-	int8_t *authp;
+	char *authp;
 
 	na = netmkaddr(system, 0, "exportfs");
 	procsetname("dial %s", na);
@@ -388,11 +388,11 @@ usage(void)
 
 /* Network on fd1, mount driver on fd0 */
 int
-filter(int fd, int8_t *cmd, int8_t *host)
+filter(int fd, char *cmd, char *host)
 {
 	int p[2], len, argc;
-	int8_t newport[256], buf[256], *s;
-	int8_t *argv[16], *file, *pbuf;
+	char newport[256], buf[256], *s;
+	char *argv[16], *file, *pbuf;
 
 	if ((len = read(fd, newport, sizeof newport - 1)) < 0)
 		sysfatal("filter: cannot write port; %r");
@@ -439,7 +439,7 @@ filter(int fd, int8_t *cmd, int8_t *host)
 }
 
 static void
-mksecret(int8_t *t, uint8_t *f)
+mksecret(char *t, uint8_t *f)
 {
 	sprint(t, "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);

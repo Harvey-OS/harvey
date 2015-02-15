@@ -20,7 +20,7 @@ typedef struct Filetree	Filetree;
 struct	Filetree
 {
 	int	level;
-	int8_t	*name;
+	char	*name;
 	uint16_t	type;
 	int	mode;
 	uint32_t	qid;
@@ -45,13 +45,13 @@ Filetree	filetree[] =
 
 int	debugfd = -1;
 int	trustedqid = Qtrustedfile;
-int8_t	*ctlfile =	CTLFILE;
-int8_t	*conffile =	CONFFILE;
+char	*ctlfile =	CTLFILE;
+char	*conffile =	CONFFILE;
 
 #pragma	varargck	type	"I"	Cidraddr*
 
 static	int	ipconv(Fmt*);
-static	void	post(int, int8_t*);
+static	void	post(int, char*);
 static	void	setroot(void);
 
 void
@@ -153,11 +153,11 @@ setroot(void)
 }
 
 static void
-post(int fd, int8_t *mountpoint)
+post(int fd, char *mountpoint)
 {
 
 	int f;
-	int8_t buf[128];
+	char buf[128];
 
 	if(access(SRVFILE,0) >= 0){
 		/*
@@ -191,10 +191,10 @@ post(int fd, int8_t *mountpoint)
  *  print message and die
  */
 void
-fatal(int8_t *fmt, ...)
+fatal(char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[8*1024];
+	char buf[8*1024];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf + (sizeof(buf)-1) / sizeof(*buf), fmt, arg);
@@ -208,7 +208,7 @@ fatal(int8_t *fmt, ...)
  *  create a new directory node
  */
 Node*
-newnode(Node *parent, int8_t *name, uint16_t type, int mode, uint32_t qid)
+newnode(Node *parent, char *name, uint16_t type, int mode, uint32_t qid)
 {
 	Node *np;
 
@@ -316,10 +316,10 @@ ipconv(Fmt *f)
 {
 	Cidraddr *ip;
 	int i, j;
-	int8_t *p;
+	char *p;
 
 	ip = va_arg(f->args, Cidraddr*);
-	p = (int8_t*)&ip->ipaddr;
+	p = (char*)&ip->ipaddr;
 	i = 0;
 	for (j = ip->mask; j; j <<= 1)
 		i++;

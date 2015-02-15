@@ -48,8 +48,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: link.c,v 1.2 89/02/12 10:04:38 mark Exp $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: link.c,v 1.2 89/02/12 10:04:38 mark Exp $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -100,7 +100,7 @@ static Link    *linkbase[256];	/* Unresolved link information */
 
 #ifdef __STDC__
 
-Link *linkfrom(int8_t *name, Stat *asb)
+Link *linkfrom(char *name, Stat *asb)
 
 #else
     
@@ -119,7 +119,7 @@ Stat           *asb;
     for (linkp = *(abase = LINKHASH(asb->sb_ino)); linkp; linkp = linknext) {
 	if (linkp->l_nlink == 0) {
 	    if (linkp->l_name) {
-		free((int8_t *) linkp->l_name);
+		free((char *) linkp->l_name);
 	    }
 	    if (linknext = linkp->l_forw) {
 		linknext->l_back = linkp->l_back;
@@ -127,7 +127,7 @@ Stat           *asb;
 	    if (linkp->l_back) {
 		linkp->l_back->l_forw = linkp->l_forw;
 	    }
-	    free((int8_t *) linkp);
+	    free((char *) linkp);
 	    *abase = (Link *)NULL;
 	} else if (linkp->l_ino == asb->sb_ino && linkp->l_dev == asb->sb_dev) {
 	    /* 
@@ -187,7 +187,7 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-Link *islink(int8_t *name, Stat *asb)
+Link *islink(char *name, Stat *asb)
 
 #else
     
@@ -238,7 +238,7 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-Link *linkto(int8_t *name, Stat *asb)
+Link *linkto(char *name, Stat *asb)
 
 #else
     
@@ -256,7 +256,7 @@ Stat           *asb;
     for (linkp = *(LINKHASH(asb->sb_ino)); linkp; linkp = linknext) {
 	if (linkp->l_ino == asb->sb_ino && linkp->l_dev == asb->sb_dev) {
 	    if ((path = (Path *) mem_get(sizeof(Path))) == (Path *)NULL || 
-		(path->p_name = mem_str(name)) == (int8_t *)NULL) {
+		(path->p_name = mem_str(name)) == (char *)NULL) {
 		return((Link *)NULL);
 	    }
 	    if (path->p_forw = linkp->l_path) {
@@ -278,7 +278,7 @@ Stat           *asb;
 
     if ((asb->sb_mode & S_IFMT) == S_IFDIR
 	|| (linkp = (Link *) mem_get(sizeof(Link))) == (Link *)NULL
-	|| (linkp->l_name = mem_str(name)) == (int8_t *)NULL) {
+	|| (linkp->l_name = mem_str(name)) == (char *)NULL) {
 	return ((Link *)NULL);
     }
     linkp->l_dev = asb->sb_dev;

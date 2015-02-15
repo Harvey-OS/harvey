@@ -39,7 +39,7 @@ new1(int o, Node *l, Node *r)
 }
 
 void
-prtree(Node *n, int8_t *s)
+prtree(Node *n, char *s)
 {
 
 	print(" == %s ==\n", s);
@@ -1168,9 +1168,9 @@ typebitor(int32_t a, int32_t b)
 }
 
 void
-diag(Node *n, int8_t *fmt, ...)
+diag(Node *n, char *fmt, ...)
 {
-	int8_t buf[STRINGSZ];
+	char buf[STRINGSZ];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1194,9 +1194,9 @@ diag(Node *n, int8_t *fmt, ...)
 }
 
 void
-warn(Node *n, int8_t *fmt, ...)
+warn(Node *n, char *fmt, ...)
 {
-	int8_t buf[STRINGSZ];
+	char buf[STRINGSZ];
 	va_list arg;
 
 	if(debug['w'] || debug['W']) {
@@ -1216,9 +1216,9 @@ warn(Node *n, int8_t *fmt, ...)
 }
 
 void
-yyerror(int8_t *fmt, ...)
+yyerror(char *fmt, ...)
 {
-	int8_t buf[STRINGSZ];
+	char buf[STRINGSZ];
 	va_list arg;
 
 	/*
@@ -1240,9 +1240,9 @@ yyerror(int8_t *fmt, ...)
 }
 
 void
-fatal(Node *n, int8_t *fmt, ...)
+fatal(Node *n, char *fmt, ...)
 {
-	int8_t buf[STRINGSZ];
+	char buf[STRINGSZ];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1294,7 +1294,7 @@ Init	thashinit[] =
 	-1,		0,		0,
 };
 
-int8_t*	bnames[NALIGN];
+char*	bnames[NALIGN];
 Init	bnamesinit[] =
 {
 	Axxx,	0,	"Axxx",
@@ -1308,7 +1308,7 @@ Init	bnamesinit[] =
 	-1,	0,	0,
 };
 
-int8_t*	tnames[NALLTYPES];
+char*	tnames[NALLTYPES];
 Init	tnamesinit[] =
 {
 	TXXX,		0,	"TXXX",
@@ -1337,7 +1337,7 @@ Init	tnamesinit[] =
 	-1,		0,	0,
 };
 
-int8_t*	gnames[NGTYPES];
+char*	gnames[NGTYPES];
 Init	gnamesinit[] =
 {
 	GXXX,			0,	"GXXX",
@@ -1347,7 +1347,7 @@ Init	gnamesinit[] =
 	-1,			0,	0,
 };
 
-int8_t*	qnames[NALLTYPES];
+char*	qnames[NALLTYPES];
 Init	qnamesinit[] =
 {
 	TXXX,		0,	"TXXX",
@@ -1386,7 +1386,7 @@ Init	qnamesinit[] =
 	TOLD,		0,	"OLD",
 	-1,		0,	0,
 };
-int8_t*	cnames[NCTYPES];
+char*	cnames[NCTYPES];
 Init	cnamesinit[] =
 {
 	CXXX,		0,	"CXXX",
@@ -1404,7 +1404,7 @@ Init	cnamesinit[] =
 	-1,		0,	0,
 };
 
-int8_t*	onames[OEND+1];
+char*	onames[OEND+1];
 Init	onamesinit[] =
 {
 	OXXX,		0,	"OXXX",
@@ -1506,99 +1506,99 @@ Init	onamesinit[] =
 };
 
 /*	OEQ, ONE, OLE, OLS, OLT, OLO, OGE, OHS, OGT, OHI */
-int8_t	comrel[12] =
+char	comrel[12] =
 {
 	ONE, OEQ, OGT, OHI, OGE, OHS, OLT, OLO, OLE, OLS,
 };
-int8_t	invrel[12] =
+char	invrel[12] =
 {
 	OEQ, ONE, OGE, OHS, OGT, OHI, OLE, OLS, OLT, OLO,
 };
-int8_t	logrel[12] =
+char	logrel[12] =
 {
 	OEQ, ONE, OLS, OLS, OLO, OLO, OHS, OHS, OHI, OHI,
 };
 
-int8_t	typei[NTYPE];
+char	typei[NTYPE];
 int	typeiinit[] =
 {
 	TCHAR, TUCHAR, TSHORT, TUSHORT, TINT, TUINT, TLONG, TULONG, TVLONG, TUVLONG, -1,
 };
-int8_t	typeu[NTYPE];
+char	typeu[NTYPE];
 int	typeuinit[] =
 {
 	TUCHAR, TUSHORT, TUINT, TULONG, TUVLONG, TIND, -1,
 };
 
-int8_t	typesuv[NTYPE];
+char	typesuv[NTYPE];
 int	typesuvinit[] =
 {
 	TVLONG, TUVLONG, TSTRUCT, TUNION, -1,
 };
 
-int8_t	typeilp[NTYPE];
+char	typeilp[NTYPE];
 int	typeilpinit[] =
 {
 	TINT, TUINT, TLONG, TULONG, TIND, -1
 };
 
-int8_t	typechl[NTYPE];
-int8_t	typechlv[NTYPE];
-int8_t typechlvp[NTYPE];
+char	typechl[NTYPE];
+char	typechlv[NTYPE];
+char typechlvp[NTYPE];
 int	typechlinit[] =
 {
 	TCHAR, TUCHAR, TSHORT, TUSHORT, TINT, TUINT, TLONG, TULONG, -1,
 };
 
-int8_t	typechlp[NTYPE];
+char	typechlp[NTYPE];
 int	typechlpinit[] =
 {
 	TCHAR, TUCHAR, TSHORT, TUSHORT, TINT, TUINT, TLONG, TULONG, TIND, -1,
 };
 
-int8_t	typechlpfd[NTYPE];
+char	typechlpfd[NTYPE];
 int	typechlpfdinit[] =
 {
 	TCHAR, TUCHAR, TSHORT, TUSHORT, TINT, TUINT, TLONG, TULONG, TFLOAT, TDOUBLE, TIND, -1,
 };
 
-int8_t	typec[NTYPE];
+char	typec[NTYPE];
 int	typecinit[] =
 {
 	TCHAR, TUCHAR, -1
 };
 
-int8_t	typeh[NTYPE];
+char	typeh[NTYPE];
 int	typehinit[] =
 {
 	TSHORT, TUSHORT, -1,
 };
 
-int8_t	typeil[NTYPE];
+char	typeil[NTYPE];
 int	typeilinit[] =
 {
 	TINT, TUINT, TLONG, TULONG, -1,
 };
 
-int8_t	typev[NTYPE];
+char	typev[NTYPE];
 int	typevinit[] =
 {
 	TVLONG,	TUVLONG, -1,
 };
 
-int8_t	typefd[NTYPE];
+char	typefd[NTYPE];
 int	typefdinit[] =
 {
 	TFLOAT, TDOUBLE, -1,
 };
 
-int8_t	typeaf[NTYPE];
+char	typeaf[NTYPE];
 int	typeafinit[] =
 {
 	TFUNC, TARRAY, -1,
 };
 
-int8_t	typesu[NTYPE];
+char	typesu[NTYPE];
 int	typesuinit[] =
 {
 	TSTRUCT, TUNION, -1,
@@ -1782,7 +1782,7 @@ int32_t	targ[1] =
 	BNUMBER|BIND|BSTRUCT|BUNION,
 };
 
-int8_t	tab[NTYPE][NTYPE] =
+char	tab[NTYPE][NTYPE] =
 {
 /*TXXX*/	{ 0,
 		},
@@ -1829,7 +1829,7 @@ int8_t	tab[NTYPE][NTYPE] =
 };
 
 void
-urk(int8_t *name, int max, int i)
+urk(char *name, int max, int i)
 {
 	if(i >= max) {
 		fprint(2, "bad tinit: %s %d>=%d\n", name, i, max);

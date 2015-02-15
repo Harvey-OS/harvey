@@ -36,7 +36,7 @@ getaddrs(void)
 
 /* write address file, should be append only */
 void
-writeaddr(int8_t *file, int8_t *addr, int rem, int8_t *listname)
+writeaddr(char *file, char *addr, int rem, char *listname)
 {
 	int fd;
 	Dir nd;
@@ -62,7 +62,7 @@ writeaddr(int8_t *file, int8_t *addr, int rem, int8_t *listname)
 }
 
 void
-remaddr(int8_t *addr)
+remaddr(char *addr)
 {
 	Addr **l;
 	Addr *a;
@@ -79,7 +79,7 @@ remaddr(int8_t *addr)
 }
 
 int
-addaddr(int8_t *addr)
+addaddr(char *addr)
 {
 	Addr **l;
 	Addr *a;
@@ -92,7 +92,7 @@ addaddr(int8_t *addr)
 	*l = a = malloc(sizeof(*a)+strlen(addr)+1);
 	if(a == nil)
 		sysfatal("allocating: %r");
-	a->addr = (int8_t*)&a[1];
+	a->addr = (char*)&a[1];
 	strcpy(a->addr, addr);
 	a->next = nil;
 	*l = a;
@@ -101,10 +101,10 @@ addaddr(int8_t *addr)
 
 /* read address file */
 void
-readaddrs(int8_t *file)
+readaddrs(char *file)
 {
 	Biobuf *b;
-	int8_t *p;
+	char *p;
 
 	b = Bopen(file, OREAD);
 	if(b == nil)
@@ -124,10 +124,10 @@ readaddrs(int8_t *file)
 
 /* start a mailer sending to all the receivers for list `name' */
 int
-startmailer(int8_t *name)
+startmailer(char *name)
 {
 	int pfd[2];
-	int8_t **av;
+	char **av;
 	int ac;
 	Addr *a;
 
@@ -159,7 +159,7 @@ startmailer(int8_t *name)
 	dup(pfd[0], 0);
 	close(pfd[0]);
 
-	av = malloc(sizeof(int8_t*)*(na+2));
+	av = malloc(sizeof(char*)*(na+2));
 	if(av == nil)
 		sysfatal("starting mailer: %r");
 	ac = 0;
@@ -175,7 +175,7 @@ startmailer(int8_t *name)
 }
 
 void
-sendnotification(int8_t *addr, int8_t *listname, int rem)
+sendnotification(char *addr, char *listname, int rem)
 {
 	int pfd[2];
 	Waitmsg *w;

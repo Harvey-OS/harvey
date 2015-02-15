@@ -20,7 +20,7 @@ struct Sinstack{
 
 /* initialize */
 extern Sinstack *
-s_allocinstack(int8_t *file)
+s_allocinstack(char *file)
 {
 	Sinstack *sp;
 	Biobuf *fp;
@@ -47,7 +47,7 @@ s_freeinstack(Sinstack *sp)
  *
  *  Empty lines and leading whitespace are removed.
  */
-static int8_t *
+static char *
 rdline(Biobuf *fp, String *to)
 {
 	int c;
@@ -99,10 +99,10 @@ out:
  * Lines starting with #include cause us to descend into the new file.
  * Empty lines and other lines starting with '#' are ignored.
  */ 
-extern int8_t *
+extern char *
 s_rdinstack(Sinstack *sp, String *to)
 {
-	int8_t *p;
+	char *p;
 	Biobuf *fp, *nfp;
 
 	s_terminate(to);

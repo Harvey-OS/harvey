@@ -26,8 +26,8 @@ enum
 	Bits = 16,
 };
 
-static int8_t* afn = 0;
-static int8_t* cfn = 0;
+static char* afn = 0;
+static char* cfn = 0;
 static int afd = -1;
 static int cfd = -1;
 static int speed = Rate;
@@ -41,7 +41,7 @@ audiodevinit(void)
 
 	if ((afn = getenv("AUDIODEV")) == nil)
 		afn = "/dev/audio";
-	cfn = (int8_t*)malloc(strlen(afn) + 3 + 1);
+	cfn = (char*)malloc(strlen(afn) + 3 + 1);
 	if(cfn == nil)
 		panic("out of memory");
 	strcpy(cfn, afn);

@@ -18,17 +18,17 @@
 #include <patchlevel.h>
 #include <version.h>
 
-static int8_t const copyright_string[] = "\
+static char const copyright_string[] = "\
 Copyright 1988 Larry Wall\n\
 Copyright 1997 Free Software Foundation, Inc.";
 
-static int8_t const free_software_msgid[] = "\
+static char const free_software_msgid[] = "\
 This program comes with NO WARRANTY, to the extent permitted by law.\n\
 You may redistribute copies of this program\n\
 under the terms of the GNU General Public License.\n\
 For more information about these matters, see the file named COPYING.";
 
-static int8_t const authorship_msgid[] = "\
+static char const authorship_msgid[] = "\
 written by Larry Wall with lots o' patches by Paul Eggert";
 
 void

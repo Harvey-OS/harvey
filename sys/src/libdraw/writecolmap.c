@@ -21,7 +21,7 @@ void
 writecolmap(Display *d, RGB *m)
 {
 	int i, n, fd;
-	int8_t buf[64], *t;
+	char buf[64], *t;
 	uint32_t r, g, b;
 
 	sprint(buf, "/dev/draw/%d/colormap", d->dirno);

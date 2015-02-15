@@ -159,11 +159,11 @@ putmem_h(uint32_t addr, int16_t data)
 		brkchk(addr, Write);
 }
 
-int8_t *
-memio(int8_t *mb, uint32_t mem, int size, int dir)
+char *
+memio(char *mb, uint32_t mem, int size, int dir)
 {
 	int i;
-	int8_t *buf, c;
+	char *buf, c;
 
 	if(mb == 0)
 		mb = emalloc(size);

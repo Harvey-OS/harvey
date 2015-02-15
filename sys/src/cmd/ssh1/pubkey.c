@@ -12,10 +12,10 @@
 #include <ctype.h>
 
 static int
-parsepubkey(int8_t *s, RSApub *key, int8_t **sp, int base)
+parsepubkey(char *s, RSApub *key, char **sp, int base)
 {
 	int n;
-	int8_t *host, *p, *z;
+	char *host, *p, *z;
 
 	z = nil;
 	n = strtoul(s, &p, 10);
@@ -64,9 +64,9 @@ parsepubkey(int8_t *s, RSApub *key, int8_t **sp, int base)
 }
 
 RSApub*
-readpublickey(Biobuf *b, int8_t **sp)
+readpublickey(Biobuf *b, char **sp)
 {
-	int8_t *s;
+	char *s;
 	RSApub *key;
 
 	key = rsapuballoc();
@@ -91,10 +91,10 @@ readpublickey(Biobuf *b, int8_t **sp)
 }
 
 static int
-match(int8_t *pattern, int8_t *aliases)
+match(char *pattern, char *aliases)
 {
-	int8_t *s, *snext;
-	int8_t *a, *anext, *ae;
+	char *s, *snext;
+	char *a, *anext, *ae;
 
 	for(s=pattern; s && *s; s=snext){
 		if((snext=strchr(s, ',')) != nil)
@@ -113,9 +113,9 @@ match(int8_t *pattern, int8_t *aliases)
 }
 
 int
-findkey(int8_t *keyfile, int8_t *host, RSApub *key)
+findkey(char *keyfile, char *host, RSApub *key)
 {
-	int8_t *h;
+	char *h;
 	Biobuf *b;
 	RSApub *k;
 
@@ -146,9 +146,9 @@ findkey(int8_t *keyfile, int8_t *host, RSApub *key)
 }
 
 int
-replacekey(int8_t *keyfile, int8_t *host, RSApub *hostkey)
+replacekey(char *keyfile, char *host, RSApub *hostkey)
 {
-	int8_t *h, *nkey, *p;
+	char *h, *nkey, *p;
 	Biobuf *br, *bw;
 	Dir *d, nd;
 	RSApub *k;
@@ -215,7 +215,7 @@ replacekey(int8_t *keyfile, int8_t *host, RSApub *hostkey)
 }
 
 int
-appendkey(int8_t *keyfile, int8_t *host, RSApub *key)
+appendkey(char *keyfile, char *host, RSApub *key)
 {
 	int fd;
 

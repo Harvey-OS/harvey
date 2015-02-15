@@ -34,7 +34,7 @@
 Ndbtuple*
 ndbparse(Ndb *db)
 {
-	int8_t *line;
+	char *line;
 	Ndbtuple *t;
 	Ndbtuple *first, *last;
 	int len;

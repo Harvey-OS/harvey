@@ -54,7 +54,7 @@ close(int fd)
 }
 
 int
-open(int8_t *name, int mode)
+open(char *name, int mode)
 {
 	_sysargs[0] = OPEN;
 	_sysargs[1] = (int64_t)name;
@@ -63,7 +63,7 @@ open(int8_t *name, int mode)
 }
 
 int
-create(int8_t *f, int mode, uint32_t perm)
+create(char *f, int mode, uint32_t perm)
 {
 	_sysargs[0] = CREATE;
 	_sysargs[1] = (int64_t)f;
@@ -73,7 +73,7 @@ create(int8_t *f, int mode, uint32_t perm)
 }
 
 void
-_exits(int8_t *s)
+_exits(char *s)
 {
 	_sysargs[0] = EXITS;
 	_sysargs[1] = s!=nil? strlen(s): 0;
@@ -90,7 +90,7 @@ dup(int f, int t)
 }
 
 int
-errstr(int8_t *buf, uint n)
+errstr(char *buf, uint n)
 {
 	_sysargs[0] = ERRSTR;
 	_sysargs[1] = (int64_t)buf;

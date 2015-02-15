@@ -21,7 +21,7 @@
 #include "fns.h"
 #include "edit.h"
 
-static int8_t Wsequence[] = "warning: changes out of sequence\n";
+static char Wsequence[] = "warning: changes out of sequence\n";
 static int	warned = FALSE;
 
 /*

@@ -16,8 +16,8 @@ static Strnode *	stab[STRHASH];
 static int32_t	hashfun(void*);
 static Strnode*	nalloc(int);
 
-int8_t *
-strfind(int8_t *a)
+char *
+strfind(char *a)
 {
 	Strnode **bin, *x, *xp;
 
@@ -35,8 +35,8 @@ strfind(int8_t *a)
 	return x->str;
 }
 
-int8_t *
-strstore(int8_t *a)
+char *
+strstore(char *a)
 {
 	Strnode **bin, *x, *xp;
 	int n;
@@ -90,10 +90,10 @@ hashfun(void *v)
 static Strnode *
 nalloc(int n)	/* get permanent storage for Strnode */
 {
-	static int8_t *curstp;
+	static char *curstp;
 	static int nchleft;
 	int k;
-	int8_t *p;
+	char *p;
 
 	if(n < 4)
 		n = 4;

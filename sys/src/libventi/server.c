@@ -24,7 +24,7 @@ struct VtSconn
 	int ctl;
 	int ref;
 	QLock lk;
-	int8_t dir[NETPATHLEN];
+	char dir[NETPATHLEN];
 	VtSrv *srv;
 	VtConn *c;
 };
@@ -33,7 +33,7 @@ struct VtSrv
 {
 	int afd;
 	int dead;
-	int8_t adir[NETPATHLEN];
+	char adir[NETPATHLEN];
 	Queue *q;	/* Queue(VtReq*) */
 };
 
@@ -62,7 +62,7 @@ scdecref(VtSconn *sc)
 }
 
 VtSrv*
-vtlisten(int8_t *addr)
+vtlisten(char *addr)
 {
 	VtSrv *s;
 
@@ -81,7 +81,7 @@ static void
 listenproc(void *v)
 {
 	int ctl;
-	int8_t dir[NETPATHLEN];
+	char dir[NETPATHLEN];
 	VtSrv *srv;
 	VtSconn *sc;
 

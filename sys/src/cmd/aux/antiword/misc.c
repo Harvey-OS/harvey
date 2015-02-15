@@ -39,10 +39,10 @@
 /*
  * szGetHomeDirectory - get the name of the home directory
  */
-const int8_t *
+const char *
 szGetHomeDirectory(void)
 {
-	const int8_t	*szHome;
+	const char	*szHome;
 
 #if defined(__vms)
 	szHome = decc$translate_vms(getenv("HOME"));
@@ -68,7 +68,7 @@ szGetHomeDirectory(void)
 /*
  * szGetAntiwordDirectory - get the name of the Antiword directory
  */
-const int8_t *
+const char *
 szGetAntiwordDirectory(void)
 {
 #if defined(__vms)
@@ -84,7 +84,7 @@ szGetAntiwordDirectory(void)
  * Returns -1 if the file does not exist or is not a proper file.
  */
 int32_t
-lGetFilesize(const int8_t *szFilename)
+lGetFilesize(const char *szFilename)
 {
 #if defined(__riscos)
 	os_error	*e;
@@ -121,7 +121,7 @@ lGetFilesize(const int8_t *szFilename)
 
 #if defined(DEBUG)
 void
-vPrintBlock(const int8_t	*szFile, int iLine,
+vPrintBlock(const char	*szFile, int iLine,
 		const UCHAR *aucBlock, size_t tLength)
 {
 	int i, j;
@@ -145,10 +145,10 @@ vPrintBlock(const int8_t	*szFile, int iLine,
 } /* end of vPrintBlock */
 
 void
-vPrintUnicode(const int8_t *szFile, int iLine, const UCHAR *aucUni,
+vPrintUnicode(const char *szFile, int iLine, const UCHAR *aucUni,
 	      size_t tLen)
 {
-	int8_t	*szASCII;
+	char	*szASCII;
 
 	fail(tLen % 2 != 0);
 
@@ -297,7 +297,7 @@ ulColor2Color(UCHAR ucFontColor)
  * returns the index of the split character or -1 if no split found.
  */
 static int
-iFindSplit(const int8_t *szString, size_t tStringLen)
+iFindSplit(const char *szString, size_t tStringLen)
 {
 	size_t	tSplit;
 
@@ -394,9 +394,9 @@ pSplitList(output_type *pAnchor)
  * returns the number of characters written
  */
 size_t
-tNumber2Roman(UINT uiNumber, BOOL bUpperCase, int8_t *szOutput)
+tNumber2Roman(UINT uiNumber, BOOL bUpperCase, char *szOutput)
 {
-	int8_t	*outp, *p, *q;
+	char	*outp, *p, *q;
 	UINT	uiNextVal, uiValue;
 
 	fail(szOutput == NULL);
@@ -441,9 +441,9 @@ tNumber2Roman(UINT uiNumber, BOOL bUpperCase, int8_t *szOutput)
  * returns the number of characters written
  */
 size_t
-tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, int8_t *szOutput)
+tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, char *szOutput)
 {
-	int8_t	*outp;
+	char	*outp;
 	UINT	uiTmp;
 
 	fail(szOutput == NULL);
@@ -457,16 +457,16 @@ tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, int8_t *szOutput)
 	uiTmp = (UINT)(bUpperCase ? 'A': 'a');
 	if (uiNumber <= 26) {
 		uiNumber -= 1;
-		*outp++ = (int8_t)(uiTmp + uiNumber);
+		*outp++ = (char)(uiTmp + uiNumber);
 	} else if (uiNumber <= 26U + 26U*26U) {
 		uiNumber -= 26 + 1;
-		*outp++ = (int8_t)(uiTmp + uiNumber / 26);
-		*outp++ = (int8_t)(uiTmp + uiNumber % 26);
+		*outp++ = (char)(uiTmp + uiNumber / 26);
+		*outp++ = (char)(uiTmp + uiNumber % 26);
 	} else if (uiNumber <= 26U + 26U*26U + 26U*26U*26U) {
 		uiNumber -= 26 + 26*26 + 1;
-		*outp++ = (int8_t)(uiTmp + uiNumber / (26*26));
-		*outp++ = (int8_t)(uiTmp + uiNumber / 26 % 26);
-		*outp++ = (int8_t)(uiTmp + uiNumber % 26);
+		*outp++ = (char)(uiTmp + uiNumber / (26*26));
+		*outp++ = (char)(uiTmp + uiNumber / 26 % 26);
+		*outp++ = (char)(uiTmp + uiNumber % 26);
 	}
 	*outp = '\0';
 	fail(outp < szOutput);
@@ -476,10 +476,10 @@ tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, int8_t *szOutput)
 /*
  * unincpy - copy a counted Unicode string to an single-byte string
  */
-int8_t *
-unincpy(int8_t *s1, const UCHAR *s2, size_t n)
+char *
+unincpy(char *s1, const UCHAR *s2, size_t n)
 {
-	int8_t	*pcDest;
+	char	*pcDest;
 	ULONG	ulChar;
 	size_t	tLen;
 	USHORT	usUni;
@@ -494,7 +494,7 @@ unincpy(int8_t *s1, const UCHAR *s2, size_t n)
 		if (ulChar == IGNORE_CHARACTER) {
 			ulChar = (ULONG)'?';
 		}
-		*pcDest = (int8_t)ulChar;
+		*pcDest = (char)ulChar;
 	}
 	for (; tLen < n; tLen++) {
 		*pcDest++ = '\0';
@@ -526,10 +526,10 @@ unilen(const UCHAR *s)
 /*
  * szBaseName - get the basename of the specified filename
  */
-const int8_t *
-szBasename(const int8_t *szFilename)
+const char *
+szBasename(const char *szFilename)
 {
-	const int8_t	*szTmp;
+	const char	*szTmp;
 
 	fail(szFilename == NULL);
 
@@ -578,35 +578,35 @@ lComputeLeading(USHORT usFontSize)
  * Returns the string length of the result
  */
 size_t
-tUcs2Utf8(ULONG ulChar, int8_t *szResult, size_t tMaxResultLen)
+tUcs2Utf8(ULONG ulChar, char *szResult, size_t tMaxResultLen)
 {
 	if (szResult == NULL || tMaxResultLen == 0) {
 		return 0;
 	}
 
 	if (ulChar < 0x80 && tMaxResultLen >= 2) {
-		szResult[0] = (int8_t)ulChar;
+		szResult[0] = (char)ulChar;
 		szResult[1] = '\0';
 		return 1;
 	}
 	if (ulChar < 0x800 && tMaxResultLen >= 3) {
-		szResult[0] = (int8_t)(0xc0 | ulChar >> 6);
-		szResult[1] = (int8_t)(0x80 | (ulChar & 0x3f));
+		szResult[0] = (char)(0xc0 | ulChar >> 6);
+		szResult[1] = (char)(0x80 | (ulChar & 0x3f));
 		szResult[2] = '\0';
 		return 2;
 	}
 	if (ulChar < 0x10000 && tMaxResultLen >= 4) {
-		szResult[0] = (int8_t)(0xe0 | ulChar >> 12);
-		szResult[1] = (int8_t)(0x80 | (ulChar >> 6 & 0x3f));
-		szResult[2] = (int8_t)(0x80 | (ulChar & 0x3f));
+		szResult[0] = (char)(0xe0 | ulChar >> 12);
+		szResult[1] = (char)(0x80 | (ulChar >> 6 & 0x3f));
+		szResult[2] = (char)(0x80 | (ulChar & 0x3f));
 		szResult[3] = '\0';
 		return 3;
 	}
 	if (ulChar < 0x200000 && tMaxResultLen >= 5) {
-		szResult[0] = (int8_t)(0xf0 | ulChar >> 18);
-		szResult[1] = (int8_t)(0x80 | (ulChar >> 12 & 0x3f));
-		szResult[2] = (int8_t)(0x80 | (ulChar >> 6 & 0x3f));
-		szResult[3] = (int8_t)(0x80 | (ulChar & 0x3f));
+		szResult[0] = (char)(0xf0 | ulChar >> 18);
+		szResult[1] = (char)(0x80 | (ulChar >> 12 & 0x3f));
+		szResult[2] = (char)(0x80 | (ulChar >> 6 & 0x3f));
+		szResult[3] = (char)(0x80 | (ulChar & 0x3f));
 		szResult[4] = '\0';
 		return 4;
 	}
@@ -619,7 +619,7 @@ tUcs2Utf8(ULONG ulChar, int8_t *szResult, size_t tMaxResultLen)
  */
 void
 vGetBulletValue(conversion_type eConversionType, encoding_type eEncoding,
-	int8_t *szResult, size_t tMaxResultLen)
+	char *szResult, size_t tMaxResultLen)
 {
 	fail(szResult == NULL);
 	fail(tMaxResultLen < 2);
@@ -627,7 +627,7 @@ vGetBulletValue(conversion_type eConversionType, encoding_type eEncoding,
 	if (eEncoding == encoding_utf_8) {
 		(void)tUcs2Utf8(UNICODE_BULLET, szResult, tMaxResultLen);
 	} else {
-		szResult[0] = (int8_t)ucGetBulletCharacter(eConversionType,
+		szResult[0] = (char)ucGetBulletCharacter(eConversionType,
 							eEncoding);
 		szResult[1] = '\0';
 	}
@@ -664,14 +664,14 @@ bAllZero(const UCHAR *aucBytes, size_t tLength)
  * Returns TRUE when sucessful, otherwise FALSE
  */
 static BOOL
-bGetCodesetFromLocale(int8_t *szCodeset, size_t tMaxCodesetLength,
+bGetCodesetFromLocale(char *szCodeset, size_t tMaxCodesetLength,
 		      BOOL *pbEuro)
 {
 #if !defined(__dos)
-	const int8_t	*szLocale;
-	const int8_t	*pcTmp;
+	const char	*szLocale;
+	const char	*pcTmp;
 	size_t		tIndex;
-	int8_t		szModifier[6];
+	char		szModifier[6];
 #endif /* __dos */
 
 	if (pbEuro != NULL) {
@@ -753,13 +753,13 @@ bGetCodesetFromLocale(int8_t *szCodeset, size_t tMaxCodesetLength,
  * Returns TRUE when sucessful, otherwise FALSE
  */
 BOOL
-bGetNormalizedCodeset(int8_t *szCodeset, size_t tMaxCodesetLength,
+bGetNormalizedCodeset(char *szCodeset, size_t tMaxCodesetLength,
 		      BOOL *pbEuro)
 {
 	BOOL	bOnlyDigits;
-	const int8_t	*pcSrc;
-	int8_t	*pcDest;
-	int8_t	*szTmp, *szCodesetNorm;
+	const char	*pcSrc;
+	char	*pcDest;
+	char	*szTmp, *szCodesetNorm;
 
 	if (pbEuro != NULL) {
 		*pbEuro = FALSE;	/* Until proven otherwise */
@@ -810,12 +810,12 @@ bGetNormalizedCodeset(int8_t *szCodeset, size_t tMaxCodesetLength,
  *
  * Returns the basename of the default mapping file
  */
-const int8_t *
+const char *
 szGetDefaultMappingFile(void)
 {
 	static const struct {
-		const int8_t	*szCodeset;
-		const int8_t	*szMappingFile;
+		const char	*szCodeset;
+		const char	*szMappingFile;
 	} atMappingFile[] = {
 		{ "iso88591",	MAPPING_FILE_8859_1 },
 		{ "iso88592",	MAPPING_FILE_8859_2 },
@@ -846,7 +846,7 @@ szGetDefaultMappingFile(void)
 	};
 	size_t	tIndex;
 	BOOL	bEuro;
-	int8_t	szCodeset[20];
+	char	szCodeset[20];
 
 	szCodeset[0] = '\0';
 	bEuro = FALSE;

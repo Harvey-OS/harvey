@@ -17,12 +17,12 @@
 #include "io.h"
 #include "fns.h"
 #include "getflags.h"
-int8_t *Signame[] = {
+char *Signame[] = {
 	"sigexit",	"sighup",	"sigint",	"sigquit",
 	"sigalrm",	"sigkill",	"sigfpe",	"sigterm",
 	0
 };
-int8_t *syssigname[] = {
+char *syssigname[] = {
 	"exit",		/* can't happen */
 	"hangup",
 	"interrupt",
@@ -33,8 +33,8 @@ int8_t *syssigname[] = {
 	"term",
 	0
 };
-int8_t *Rcmain = "/rc/lib/rcmain";
-int8_t *Fdprefix = "/fd/";
+char *Rcmain = "/rc/lib/rcmain";
+char *Fdprefix = "/fd/";
 
 void execfinit(void);
 void execbind(void);
@@ -58,10 +58,10 @@ Vinit(void)
 {
 	int dir, f, len;
 	word *val;
-	int8_t *buf, *s;
+	char *buf, *s;
 	Dir *ent;
 	int i, nent;
-	int8_t envname[256];
+	char envname[256];
 	dir = open("/env", OREAD);
 	if(dir<0){
 		pfmt(err, "rc: can't open /env: %r\n");
@@ -111,7 +111,7 @@ Xrdfn(void)
 	static Dir *ent, *allocent;
 	static int nent;
 	Dir *e;
-	int8_t envname[256];
+	char envname[256];
 
 	for(;;){
 		if(nent == 0){
@@ -164,7 +164,7 @@ Waitfor(int pid, int persist)
 {
 	thread *p;
 	Waitmsg *w;
-	int8_t errbuf[ERRMAX];
+	char errbuf[ERRMAX];
 
 	while((w = wait()) != nil){
 		if(w->pid==pid){
@@ -185,11 +185,11 @@ Waitfor(int pid, int persist)
 	return 0;
 }
 
-int8_t*
+char*
 *mkargv(word *a)
 {
-	int8_t **argv = (int8_t **)emalloc((count(a)+2)*sizeof(int8_t *));
-	int8_t **argp = argv+1;	/* leave one at front for runcoms */
+	char **argv = (char **)emalloc((count(a)+2)*sizeof(char *));
+	char **argp = argv+1;	/* leave one at front for runcoms */
 	for(;a;a = a->next) *argp++=a->word;
 	*argp = 0;
 	return argv;
@@ -198,7 +198,7 @@ int8_t*
 void
 addenv(var *v)
 {
-	int8_t envname[256];
+	char envname[256];
 	word *w;
 	int f;
 	io *fd;
@@ -250,7 +250,7 @@ Updenv(void)
 }
 
 int
-ForkExecute(int8_t *file, int8_t **argv, int sin, int sout, int serr)
+ForkExecute(char *file, char **argv, int sin, int sout, int serr)
 {
 	int pid;
 
@@ -289,8 +289,8 @@ fprint(2, "exec: %r\n");
 void
 Execute(word *args, word *path)
 {
-	int8_t **argv = mkargv(args);
-	int8_t file[1024];
+	char **argv = mkargv(args);
+	char file[1024];
 	int nc;
 	Updenv();
 	for(;path;path = path->next){
@@ -310,12 +310,12 @@ Execute(word *args, word *path)
 	}
 	rerrstr(file, sizeof file);
 	pfmt(err, "%s: %s\n", argv[1], file);
-	efree((int8_t *)argv);
+	efree((char *)argv);
 }
 #define	NDIR	256		/* shoud be a better way */
 
 int
-Globsize(int8_t *p)
+Globsize(char *p)
 {
 	int isglob = 0, globlen = NDIR+1;
 	for(;*p;p++){
@@ -339,7 +339,7 @@ struct{
 }dir[NFD];
 
 int
-Opendir(int8_t *name)
+Opendir(char *name)
 {
 	Dir *db;
 	int f;
@@ -421,7 +421,7 @@ Closedir(int f)
 }
 int interrupted = 0;
 void
-notifyf(void*, int8_t *s)
+notifyf(void*, char *s)
 {
 	int i;
 	for(i = 0;syssigname[i];i++) if(strncmp(s, syssigname[i], strlen(syssigname[i]))==0){
@@ -450,7 +450,7 @@ Trapinit(void)
 }
 
 void
-Unlink(int8_t *name)
+Unlink(char *name)
 {
 	remove(name);
 }
@@ -474,7 +474,7 @@ Seek(int fd, int32_t cnt, int32_t whence)
 }
 
 int
-Executable(int8_t *file)
+Executable(char *file)
 {
 	Dir *statbuf;
 	int ret;
@@ -488,7 +488,7 @@ Executable(int8_t *file)
 }
 
 int
-Creat(int8_t *file)
+Creat(char *file)
 {
 	return create(file, 1, 0666L);
 }
@@ -506,7 +506,7 @@ Dup1(int)
 }
 
 void
-Exit(int8_t *stat)
+Exit(char *stat)
 {
 	Updenv();
 	setstatus(stat);

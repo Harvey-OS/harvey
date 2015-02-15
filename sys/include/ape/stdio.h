@@ -39,14 +39,14 @@
  */
 typedef struct{
 	int fd;		/* UNIX file pointer */
-	int8_t flags;	/* bits for must free buffer on close, line-buffered */
-	int8_t state;	/* last operation was read, write, position, error, eof */
-	int8_t *buf;	/* pointer to i/o buffer */
-	int8_t *rp;	/* read pointer (or write end-of-buffer) */
-	int8_t *wp;	/* write pointer (or read end-of-buffer) */
-	int8_t *lp;	/* actual write pointer used when line-buffering */
+	char flags;	/* bits for must free buffer on close, line-buffered */
+	char state;	/* last operation was read, write, position, error, eof */
+	char *buf;	/* pointer to i/o buffer */
+	char *rp;	/* read pointer (or write end-of-buffer) */
+	char *wp;	/* write pointer (or read end-of-buffer) */
+	char *lp;	/* actual write pointer used when line-buffering */
 	size_t bufl;	/* actual length of buffer */
-	int8_t unbuf[1];	/* tiny buffer for unbuffered io (used for ungetc?) */
+	char unbuf[1];	/* tiny buffer for unbuffered io (used for ungetc?) */
 }FILE;
 typedef long long fpos_t;
 #ifndef NULL
@@ -82,50 +82,50 @@ typedef long long fpos_t;
 extern "C" {
 #endif
 
-extern int remove(const int8_t *);
-extern int rename(const int8_t *, const int8_t *);
+extern int remove(const char *);
+extern int rename(const char *, const char *);
 extern FILE *tmpfile(void);
-extern int8_t *tmpnam(int8_t *);
+extern char *tmpnam(char *);
 extern int fclose(FILE *);
 extern int fflush(FILE *);
-extern FILE *fopen(const int8_t *, const int8_t *);
-extern FILE *freopen(const int8_t *, const int8_t *, FILE *);
-extern void setbuf(FILE *, int8_t *);
-extern int setvbuf(FILE *, int8_t *, int, size_t);
-extern int fprintf(FILE *, const int8_t *, ...);
-extern int fscanf(FILE *, const int8_t *, ...);
-extern int printf(const int8_t *, ...);
-extern int scanf(const int8_t *, ...);
-extern int sprintf(int8_t *, const int8_t *, ...);
+extern FILE *fopen(const char *, const char *);
+extern FILE *freopen(const char *, const char *, FILE *);
+extern void setbuf(FILE *, char *);
+extern int setvbuf(FILE *, char *, int, size_t);
+extern int fprintf(FILE *, const char *, ...);
+extern int fscanf(FILE *, const char *, ...);
+extern int printf(const char *, ...);
+extern int scanf(const char *, ...);
+extern int sprintf(char *, const char *, ...);
 
 /*
  * NB: C99 now *requires *snprintf to return the number of characters
  * that would have been written, had there been room.
  */
-extern int snprintf(int8_t *, size_t, const int8_t *, ...);
-extern int vsnprintf(int8_t *, size_t, const int8_t *, va_list);
+extern int snprintf(char *, size_t, const char *, ...);
+extern int vsnprintf(char *, size_t, const char *, va_list);
 
-extern int sscanf(const int8_t *, const int8_t *, ...);
-extern int vfprintf(FILE *, const int8_t *, va_list);
-extern int vprintf(const int8_t *, va_list);
-extern int vsprintf(int8_t *, const int8_t *, va_list);
-extern int vfscanf(FILE *, const int8_t *, va_list);
+extern int sscanf(const char *, const char *, ...);
+extern int vfprintf(FILE *, const char *, va_list);
+extern int vprintf(const char *, va_list);
+extern int vsprintf(char *, const char *, va_list);
+extern int vfscanf(FILE *, const char *, va_list);
 extern int fgetc(FILE *);
-extern int8_t *fgets(int8_t *, int, FILE *);
+extern char *fgets(char *, int, FILE *);
 extern int fputc(int, FILE *);
-extern int fputs(const int8_t *, FILE *);
+extern int fputs(const char *, FILE *);
 extern int getc(FILE *);
 #define	getc(f)	((f)->rp>=(f)->wp?_IO_getc(f):*(f)->rp++&_IO_CHMASK)
 extern int _IO_getc(FILE *f);
 extern int getchar(void);
 #define	getchar()	getc(stdin)
-extern int8_t *gets(int8_t *);
+extern char *gets(char *);
 extern int putc(int, FILE *);
 #define	putc(c, f) ((f)->wp>=(f)->rp?_IO_putc(c, f):(*(f)->wp++=c)&_IO_CHMASK)
 extern int _IO_putc(int, FILE *);
 extern int putchar(int);
 #define	putchar(c)	putc(c, stdout)
-extern int puts(const int8_t *);
+extern int puts(const char *);
 extern int ungetc(int, FILE *);
 extern size_t fread(void *, size_t, size_t, FILE *);
 extern size_t fwrite(const void *, size_t, size_t, FILE *);
@@ -139,23 +139,23 @@ extern void rewind(FILE *);
 extern void clearerr(FILE *);
 extern int feof(FILE *);
 extern int ferror(FILE *);
-extern void perror(const int8_t *);
+extern void perror(const char *);
 extern FILE _IO_stream[FOPEN_MAX];
 
 #ifdef _POSIX_SOURCE
 extern int fileno(FILE *);
-extern FILE* fdopen(int, const int8_t*);
-extern int8_t *ctermid(int8_t *);
+extern FILE* fdopen(int, const char*);
+extern char *ctermid(char *);
 #endif
 
 #ifdef _REENTRANT_SOURCE
-extern int8_t *tmpnam_r(int8_t *);
-extern int8_t *ctermid_r(int8_t *);
+extern char *tmpnam_r(char *);
+extern char *ctermid_r(char *);
 #endif
 
 #ifdef _BSD_EXTENSION
 #pragma lib "/$M/lib/ape/libbsd.a"
-extern FILE *popen(int8_t *, int8_t *);
+extern FILE *popen(char *, char *);
 extern int	pclose(FILE *);
 #endif
 

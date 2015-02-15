@@ -20,15 +20,15 @@ int	dbg	= 0;
 #ifndef GRAPDEFINES
 #define GRAPDEFINES "/sys/lib/grap.defines"
 #endif
-int8_t	*lib_defines	= GRAPDEFINES;
+char	*lib_defines	= GRAPDEFINES;
 
 int	lib	= 1;		/* 1 to include lib_defines */
 FILE	*tfd	= NULL;
-int8_t	tempfile[L_tmpnam];
+char	tempfile[L_tmpnam];
 
 int	synerr	= 0;
 int	codegen	= 0;   		/* 1=>output for this picture; 0=>no output */
-int8_t	*cmdname;
+char	*cmdname;
 
 Obj	*objlist = NULL;	/* all names stored here */
 
@@ -36,15 +36,15 @@ Obj	*objlist = NULL;	/* all names stored here */
 Point	ptmin	= { NULL, -BIG, -BIG };
 Point	ptmax	= { NULL, BIG, BIG };
 
-int8_t	*version = "version Dec 30, 1995";
+char	*version = "version Dec 30, 1995";
 
 extern int yyparse(void);
 extern void setdefaults(void);
 extern void getdata(void);
-extern	int	unlink(int8_t *);
+extern	int	unlink(char *);
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	extern void onintr(int), fpecatch(int);
 
@@ -107,9 +107,9 @@ void fpecatch(int n)
 	onintr(n);
 }
 
-int8_t *grow(int8_t *ptr, int8_t *name, int num, int size)	/* make array bigger */
+char *grow(char *ptr, char *name, int num, int size)	/* make array bigger */
 {
-	int8_t *p;
+	char *p;
 
 	if (ptr == NULL)
 		p = malloc(num * size);
@@ -121,7 +121,7 @@ int8_t *grow(int8_t *ptr, int8_t *name, int num, int size)	/* make array bigger 
 }
 
 static struct {
-	int8_t	*name;
+	char	*name;
 	double	val;
 } defaults[] ={
 	"frameht", FRAMEHT,
@@ -145,7 +145,7 @@ void setdefaults(void)	/* set default sizes for variables */
 void getdata(void)		/* read input */
 {
 	register FILE *fin;
-	int8_t buf[1000], buf1[100];
+	char buf[1000], buf1[100];
 	int ln;
 
 	fin = curfile->fin;

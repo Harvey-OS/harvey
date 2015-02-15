@@ -33,7 +33,7 @@ xfauthwrite(Xfid *xf, int32_t, uint8_t *, int32_t)
 }
 
 int
-xfauthremove(Xfid *, int8_t *)
+xfauthremove(Xfid *, char *)
 {
 	chat("authremove...");
 	return -1;

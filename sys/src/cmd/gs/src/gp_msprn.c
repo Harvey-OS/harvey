@@ -88,8 +88,8 @@ typedef struct tid_s {
 void mswin_printer_thread(void *arg)
 {
     int fd = (int)arg;
-    int8_t pname[gp_file_name_sizeof];
-    int8_t data[4096];
+    char pname[gp_file_name_sizeof];
+    char data[4096];
     HANDLE hprinter = INVALID_HANDLE_VALUE;
     int count;
     DWORD written;

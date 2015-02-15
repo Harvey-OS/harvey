@@ -520,7 +520,7 @@ alloc_is_since_save(const void *vptr, const alloc_save_t * save)
     /* A reference postdates a save iff it is in a chunk allocated */
     /* since the save (including any carried-over inner chunks). */
 
-    const int8_t *const ptr = (const int8_t *)vptr;
+    const char *const ptr = (const char *)vptr;
     register const gs_ref_memory_t *mem = save->space_local;
 
     if_debug2('U', "[U]is_since_save 0x%lx, 0x%lx:\n",

@@ -14,9 +14,9 @@
 #include "authlocal.h"
 
 Chalstate*
-auth_challenge(int8_t *fmt, ...)
+auth_challenge(char *fmt, ...)
 {
-	int8_t *p;
+	char *p;
 	va_list arg;
 	Chalstate *c;
 

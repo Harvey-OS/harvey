@@ -182,7 +182,7 @@ delete(List *l, int n, Node *res)
 }
 
 List*
-listvar(int8_t *s, int64_t v)
+listvar(char *s, int64_t v)
 {
 	List *l, *tl;
 

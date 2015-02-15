@@ -13,7 +13,7 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-int8_t *trivial[] = {
+char *trivial[] = {
 	"login",
 	"guest",
 	"change me",
@@ -23,11 +23,11 @@ int8_t *trivial[] = {
 	0
 };
 
-int8_t*
-okpasswd(int8_t *p)
+char*
+okpasswd(char *p)
 {
-	int8_t passwd[ANAMELEN];
-	int8_t back[ANAMELEN];
+	char passwd[ANAMELEN];
+	char back[ANAMELEN];
 	int i, n;
 
 	strncpy(passwd, p, sizeof passwd - 1);

@@ -29,7 +29,7 @@ typedef struct
 	uint8_t	csum;
 } Cpline;
 
-int8_t*	rdcpline(Biobuf*, Cpline*);
+char*	rdcpline(Biobuf*, Cpline*);
 void	clearmem(int);
 
 void
@@ -40,7 +40,7 @@ usage(void)
 }
 
 static void
-loadimage(int8_t* file, int mfd)
+loadimage(char* file, int mfd)
 {
 	uint8_t buf[256];
 	int fd, n, r;
@@ -61,12 +61,12 @@ loadimage(int8_t* file, int mfd)
 }
 
 static void
-loadhex(int8_t* file, int mfd)
+loadhex(char* file, int mfd)
 {
 	int done;
 	Cpline c;
 	Biobuf *b;
-	int8_t *err;
+	char *err;
 	uint32_t addr, seg;
 	int lineno;
 	uint8_t buf[1024];
@@ -195,8 +195,8 @@ main(int argc, char **argv)
 void
 clearmem(int fd)
 {
-	int8_t buf[4096];
-	int8_t buf2[4096];
+	char buf[4096];
+	char buf2[4096];
 	int i, n;
 
 	memset(buf, 0, sizeof buf);
@@ -218,7 +218,7 @@ clearmem(int fd)
 }
 
 int
-hex(int8_t c)
+hex(char c)
 {
 	if(c <= '9' && c >= '0')
 		return c - '0';
@@ -229,10 +229,10 @@ hex(int8_t c)
 	return -1;
 }
 
-int8_t*
+char*
 rdcpline(Biobuf *b, Cpline *cpl)
 {
-	int8_t *cp, *ep, *p;
+	char *cp, *ep, *p;
 	uint8_t *up;
 	uint8_t csum;
 	int c;

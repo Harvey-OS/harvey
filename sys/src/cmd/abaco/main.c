@@ -34,7 +34,7 @@ Channel	*cexit;
 Channel	*cplumb;
 Mousectl *mousectl;
 
-int8_t *fontnames[2] = {
+char *fontnames[2] = {
 	"/lib/font/bit/lucidasans/unicode.8.font",
 	"/lib/font/bit/lucidasans/passwd.6.font",
 };
@@ -43,15 +43,15 @@ int	snarffd = -1;
 int	mainpid;
 int	plumbwebfd;
 int	plumbsendfd ;
-int8_t	*webmountpt = "/mnt/web";
-int8_t	*charset = "iso-8859-1";
+char	*webmountpt = "/mnt/web";
+char	*charset = "iso-8859-1";
 int	mainstacksize = STACK;
 
-void	readpage(Column *, int8_t *);
-int	shutdown(void *, int8_t *);
+void	readpage(Column *, char *);
+int	shutdown(void *, char *);
 
 void
-derror(Display *, int8_t *s)
+derror(Display *, char *s)
 {
 	error(s);
 }
@@ -150,7 +150,7 @@ threadmain(int argc, char *argv[])
 }
 
 void
-readpage(Column *c, int8_t *s)
+readpage(Column *c, char *s)
 {
 	Window *w;
 	Runestr rs;
@@ -161,7 +161,7 @@ readpage(Column *c, int8_t *s)
 	closerunestr(&rs);
 }
 
-int8_t *oknotes[] = {
+char *oknotes[] = {
 	"delete",
 	"hangup",
 	"kill",
@@ -170,7 +170,7 @@ int8_t *oknotes[] = {
 };
 
 int
-shutdown(void*, int8_t *msg)
+shutdown(void*, char *msg)
 {
 	int i;
 
@@ -421,7 +421,7 @@ void
 getsnarf(Runestr *rs)
 {
 	int i, n, nb, nulls;
-	int8_t *sn, buf[BUFSIZE];
+	char *sn, buf[BUFSIZE];
 
 	if(snarffd < 0)
 		return;

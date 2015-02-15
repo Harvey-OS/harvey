@@ -328,7 +328,7 @@ getspeed(int rec, int which)
 }
 
 int
-setcontrol(int rec, int8_t *name, int32_t *value)
+setcontrol(int rec, char *name, int32_t *value)
 {
 	int i, ctl, m;
 	byte buf[3];
@@ -573,7 +573,7 @@ getspecialcontrol(int rec, int ctl, int req, int32_t *value)
 }
 
 int
-getcontrol(int rec, int8_t *name, int32_t *value)
+getcontrol(int rec, char *name, int32_t *value)
 {
 	int i;
 
@@ -642,11 +642,11 @@ getcontrols(void)
 }
 
 int
-ctlparse(int8_t *s, Audiocontrol *c, int32_t *v)
+ctlparse(char *s, Audiocontrol *c, int32_t *v)
 {
 	int i, j, nf, m;
-	int8_t *vals[9];
-	int8_t *p;
+	char *vals[9];
+	char *p;
 	int32_t val;
 
 	nf = tokenize(s, vals, nelem(vals));
@@ -685,10 +685,10 @@ ctlparse(int8_t *s, Audiocontrol *c, int32_t *v)
 int
 Aconv(Fmt *fp)
 {
-	int8_t str[256];
+	char str[256];
 	Audiocontrol *c;
 	int fst, i;
-	int8_t *p;
+	char *p;
 
 	c = va_arg(fp->args, Audiocontrol*);
 	p = str;

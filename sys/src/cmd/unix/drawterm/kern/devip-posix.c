@@ -50,7 +50,7 @@ addrlen(struct sockaddr_storage *ss)
 void
 osipinit(void)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	gethostname(buf, sizeof(buf));
 	kstrdup(&sysname, buf);
 
@@ -77,7 +77,7 @@ so_socket(int type, unsigned char *addr)
 		oserror();
 
 	one = 1;
-	if(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (int8_t*)&one, sizeof(one)) > 0){
+	if(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(one)) > 0){
 		oserrstr();
 		print("setsockopt: %r");
 	}
@@ -174,7 +174,7 @@ so_bind(int fd, int su, unsigned short port, unsigned char *addr)
 	struct sockaddr_storage ss;
 
 	one = 1;
-	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (int8_t*)&one, sizeof(one)) < 0){
+	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof(one)) < 0){
 		oserrstr();
 		print("setsockopt: %r");
 	}
@@ -216,10 +216,10 @@ so_bind(int fd, int su, unsigned short port, unsigned char *addr)
 }
 
 int
-so_gethostbyname(int8_t *host, int8_t**hostv, int n)
+so_gethostbyname(char *host, char**hostv, int n)
 {
 	int i;
-	int8_t buf[32];
+	char buf[32];
 	unsigned char *p;
 	struct hostent *hp;
 
@@ -237,10 +237,10 @@ so_gethostbyname(int8_t *host, int8_t**hostv, int n)
 	return i;
 }
 
-int8_t*
-hostlookup(int8_t *host)
+char*
+hostlookup(char *host)
 {
-	int8_t buf[INET6_ADDRSTRLEN];
+	char buf[INET6_ADDRSTRLEN];
 	uint8_t *p;
 	struct hostent *he;
 	struct addrinfo *result;
@@ -267,7 +267,7 @@ hostlookup(int8_t *host)
 }
 
 int
-so_getservbyname(int8_t *service, int8_t *net, int8_t *port)
+so_getservbyname(char *service, char *net, char *port)
 {
 	struct servent *s;
 

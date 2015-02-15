@@ -16,7 +16,7 @@
 typedef struct Hchar Hchar;
 struct Hchar
 {
-	int8_t *s;
+	char *s;
 	Rune r;
 };
 
@@ -343,7 +343,7 @@ html_init(void)
 }
 
 static Rune
-findbyname(int8_t *s)
+findbyname(char *s)
 {
 	Hchar *h;
 	int n, m, x;
@@ -364,7 +364,7 @@ findbyname(int8_t *s)
 	return Runeerror;
 }
 
-static int8_t*
+static char*
 findbyrune(Rune r)
 {
 	Hchar *h;
@@ -390,7 +390,7 @@ findbyrune(Rune r)
 void
 html_in(int fd, int32_t *x, struct convert *out)
 {
-	int8_t buf[100], *p;
+	char buf[100], *p;
 	Biobuf b;
 	Rune rbuf[N];
 	Rune *r, *er;
@@ -459,7 +459,7 @@ html_in(int fd, int32_t *x, struct convert *out)
 void
 html_out(Rune *r, int n, int32_t *x)
 {
-	int8_t *s;
+	char *s;
 	Biobuf b;
 	Rune *er;
 	

@@ -65,7 +65,7 @@ gs_private_st_complex_only(st_iostatic_state, iostatic_state,\
     "iostatic_state", iostatic_state_clear_marks, iostatic_state_enum_ptrs, 
     iostatic_state_reloc_ptrs, 0);
 
-const int8_t iodev_dtype_static[] = "Special";
+const char iodev_dtype_static[] = "Special";
 
 private int
 iostatic_init(gx_io_device * iodev, gs_memory_t * mem)

@@ -15,11 +15,11 @@
 #include "mad.h"
 
 /* Current input file */
-int8_t *name;
+char *name;
 int64_t offset;
 int rate = 44100;
 
-int8_t *outfile;
+char *outfile;
 int vfd; /* /dev/volume */
 
 static enum mad_flow
@@ -167,7 +167,7 @@ error(void *data, struct mad_stream *stream, struct mad_frame *frame)
 }
 
 void
-play(int fd, int8_t *nam)
+play(int fd, char *nam)
 {
 	struct mad_decoder decoder;
 	

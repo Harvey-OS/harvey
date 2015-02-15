@@ -9,8 +9,8 @@
 
 #include <plan9.h>
 
-int8_t*
-strecpy(int8_t *to, int8_t *e, int8_t *from)
+char*
+strecpy(char *to, char *e, char *from)
 {
 	if(to >= e)
 		return to;

@@ -39,9 +39,9 @@ typedef struct {
 	Daddr	maxoutsz;	/* maximum size of output file(s) */
 
 	Daddr	fileout;	/* bytes written to the current output file */
-	int8_t	*filenm;
+	char	*filenm;
 	int	filesz;		/* size of filenm */
-	int8_t	*prefix;
+	char	*prefix;
 	int32_t	filenum;
 	int	outf;		/* open output file */
 
@@ -49,7 +49,7 @@ typedef struct {
 } Copy;
 
 /* global data */
-int8_t *argv0;
+char *argv0;
 
 /* private data */
 static Copy cp = { 512*1024*1024 };	/* default maximum size */
@@ -70,7 +70,7 @@ bufinit(Buffer *bp, uint8_t *block, unsigned size)
 }
 
 static int 
-eopen(int8_t *file, int mode)
+eopen(char *file, int mode)
 {
 	int fd = open(file, mode);
 
@@ -80,7 +80,7 @@ eopen(int8_t *file, int mode)
 }
 
 static int 
-ecreate(int8_t *file, int mode)
+ecreate(char *file, int mode)
 {
 	int fd = create(file, mode, 0666);
 
@@ -89,7 +89,7 @@ ecreate(int8_t *file, int mode)
 	return fd;
 }
 
-static int8_t *
+static char *
 filename(Copy *cp)
 {
 	return cp->filenm;
@@ -122,7 +122,7 @@ closeout(Copy *cp)
  * process - process input file
  */
 static void
-process(int in, int8_t *inname)
+process(int in, char *inname)
 {
 	int n = 1;
 	unsigned avail, tolim, wsz;

@@ -41,10 +41,10 @@ void (*parse[256])(int, int) =
 int hex;
 
 void
-fatal(int8_t *fmt, ...)
+fatal(char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[512];
+	char buf[512];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -195,7 +195,7 @@ tdevice(int ttype, int len)
 	uint8_t speed, aespeed;
 	uint8_t size;
 	uint32_t bytes, ns;
-	int8_t *tname, *ttname;
+	char *tname, *ttname;
 
 	while(len > 0){
 		if(readc(&id) != 1)
@@ -270,7 +270,7 @@ tlonglnkmfc(int, int)
 	}
 }
 
-static int8_t *funcids[] = {
+static char *funcids[] = {
 	"MULTI",
 	"MEMORY",
 	"SERIAL",
@@ -297,7 +297,7 @@ tvers1(int ttype, int len)
 {
 	uint8_t c, major, minor;
 	int  i;
-	int8_t string[512];
+	char string[512];
 
 	USED(ttype);
 	if(readc(&major) != 1)
@@ -374,7 +374,7 @@ uint32_t vmant[16] =
 };
 
 void
-volt(int8_t *name)
+volt(char *name)
 {
 	uint8_t c;
 	uint32_t microv;
@@ -403,7 +403,7 @@ volt(int8_t *name)
 }
 
 void
-amps(int8_t *name)
+amps(char *name)
 {
 	uint8_t c;
 	uint32_t amps;
@@ -426,7 +426,7 @@ amps(int8_t *name)
 }
 
 void
-power(int8_t *name)
+power(char *name)
 {
 	uint8_t feature;
 
@@ -451,7 +451,7 @@ power(int8_t *name)
 }
 
 void
-ttiming(int8_t *name, int scale)
+ttiming(char *name, int scale)
 {
 	uint8_t unscaled;
 	uint32_t scaled;
@@ -491,7 +491,7 @@ range(int asize, int lsize)
 	print("\t\t%lux - %lux\n", address, address+len);
 }
 
-int8_t *ioaccess[4] =
+char *ioaccess[4] =
 {
 	" no access",
 	" 8bit access only",
@@ -575,8 +575,8 @@ void
 tentry(int ttype, int len)
 {
 	uint8_t c, i, feature;
-	int8_t *tname;
-	int8_t buf[16];
+	char *tname;
+	char buf[16];
 
 	USED(ttype, len);
 	if(readc(&c) != 1)

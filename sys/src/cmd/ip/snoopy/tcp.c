@@ -129,11 +129,11 @@ enum
 	FIN		= 0x01,		/* Start close down */
 };
 
-static int8_t*
+static char*
 flags(int f)
 {
-	static int8_t fl[20];
-	int8_t *p;
+	static char fl[20];
+	char *p;
 
 	p = fl;
 	if(f & URG)

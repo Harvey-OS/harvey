@@ -98,10 +98,10 @@ vtMemBrk(int n)
 }
 
 void
-vtThreadSetName(int8_t *name)
+vtThreadSetName(char *name)
 {
 	int fd;
-	int8_t buf[32];
+	char buf[32];
 
 	sprint(buf, "/proc/%d/args", getpid());
 	if((fd = open(buf, OWRITE)) >= 0){
@@ -148,7 +148,7 @@ vtFdClose(int fd)
 	close(fd);
 }
 
-int8_t *
+char *
 vtOSError(void)
 {
 	return vtSetError("%r");

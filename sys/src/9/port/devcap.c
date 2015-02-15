@@ -30,7 +30,7 @@ typedef struct Caphash	Caphash;
 struct Caphash
 {
 	Caphash	*next;
-	int8_t		hash[Hashlen];
+	char		hash[Hashlen];
 	uint32_t		ticks;
 };
 
@@ -58,13 +58,13 @@ Dirtab capdir[] =
 int ncapdir = nelem(capdir);
 
 static Chan*
-capattach(int8_t *spec)
+capattach(char *spec)
 {
 	return devattach(L'¤', spec);
 }
 
 static Walkqid*
-capwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+capwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, capdir, ncapdir, devgen);
 }
@@ -206,10 +206,10 @@ static int32_t
 capwrite(Chan *c, void *va, int32_t n, int64_t)
 {
 	Caphash *p;
-	int8_t *cp;
+	char *cp;
 	uint8_t hash[Hashlen];
-	int8_t *key, *from, *to;
-	int8_t err[256];
+	char *key, *from, *to;
+	char err[256];
 
 	switch((uint32_t)c->qid.path){
 	case Qhash:

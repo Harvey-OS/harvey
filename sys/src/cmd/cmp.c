@@ -19,8 +19,8 @@ int Lflag = 0;
 
 static void usage(void);
 
-int8_t **
-seekoff(int fd, int8_t *name, int8_t **argv)
+char **
+seekoff(int fd, char *name, char **argv)
 {
 	int64_t o;
 

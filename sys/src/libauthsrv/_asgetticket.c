@@ -11,10 +11,10 @@
 #include <libc.h>
 #include <authsrv.h>
 
-static int8_t *pbmsg = "AS protocol botch";
+static char *pbmsg = "AS protocol botch";
 
 int
-_asgetticket(int fd, int8_t *trbuf, int8_t *tbuf)
+_asgetticket(int fd, char *trbuf, char *tbuf)
 {
 	if(write(fd, trbuf, TICKREQLEN) < 0){
 		close(fd);

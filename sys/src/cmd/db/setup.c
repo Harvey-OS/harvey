@@ -14,8 +14,8 @@
 #include "defs.h"
 #include "fns.h"
 
-int8_t	*symfil;
-int8_t	*corfil;
+char	*symfil;
+char	*corfil;
 
 Map	*symmap;
 Map	*cormap;
@@ -24,7 +24,7 @@ Map	*dotmap;
 int fsym, fcor;
 static Fhdr fhdr;
 
-static int getfile(int8_t*, int, int);
+static int getfile(char*, int, int);
 
 void
 setsym(void)
@@ -107,9 +107,9 @@ void
 cmdmap(Map *map)
 {
 	int i;
-	int8_t name[MAXSYM];
+	char name[MAXSYM];
 
-	extern int8_t lastc;
+	extern char lastc;
 
 	rdc();
 	readsym(name);
@@ -148,7 +148,7 @@ cmdmap(Map *map)
 }
 
 static int
-getfile(int8_t *filnam, int cnt, int omode)
+getfile(char *filnam, int cnt, int omode)
 {
 	int f;
 
@@ -192,7 +192,7 @@ kmsys(void)
 void
 attachprocess(void)
 {
-	int8_t buf[100];
+	char buf[100];
 	Dir *sym, *mem;
 	int fd;
 

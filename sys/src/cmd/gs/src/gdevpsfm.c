@@ -37,10 +37,10 @@
 /* ---------------- Utilities ---------------- */
 
 typedef struct cmap_operators_s {
-    const int8_t *beginchar;
-    const int8_t *endchar;
-    const int8_t *beginrange;
-    const int8_t *endrange;
+    const char *beginchar;
+    const char *endchar;
+    const char *beginrange;
+    const char *endrange;
 } cmap_operators_t;
 private const cmap_operators_t
   cmap_cid_operators = {
@@ -65,7 +65,7 @@ private void
 pput_hex(stream *s, const byte *pcid, int size)
 {
     int i;
-    static const int8_t *const hex_digits = "0123456789abcdef";
+    static const char *const hex_digits = "0123456789abcdef";
 
     for (i = 0; i < size; ++i) {
 	stream_putc(s, hex_digits[pcid[i] >> 4]);
@@ -137,7 +137,7 @@ cmap_put_code_map(const gs_memory_t *mem,
 	    ++num_entries;
 	for (gi = 0; gi < num_entries; gi += 100) {
 	    int i = gi, ni = min(i + 100, num_entries);
-	    const int8_t *end;
+	    const char *end;
 
 	    pprintd1(s, "%d ", ni - i);
 	    if (lenum.entry.key_is_range) {

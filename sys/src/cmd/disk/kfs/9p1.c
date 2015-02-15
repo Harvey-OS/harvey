@@ -1408,7 +1408,7 @@ serve9p1(Chan *chan, uint8_t *ib, int nib)
 		 */
 		fo.err = 0;
 		if(t == Tread9p1)
-			fo.data = (int8_t*)outbuf + 8;
+			fo.data = (char*)outbuf + 8;
 	
 		/*
 		 * call the file system

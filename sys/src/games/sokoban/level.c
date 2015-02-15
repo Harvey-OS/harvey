@@ -23,11 +23,11 @@ consumeline(Biobuf *b)
 
 /* parse a level file */
 int
-loadlevels(int8_t *path)
+loadlevels(char *path)
 {
 	Biobuf *b;
 	int x = 0, y = 0, lnum = 0;
-	int8_t c;
+	char c;
 		
 	if(path == nil)
 		return 0;

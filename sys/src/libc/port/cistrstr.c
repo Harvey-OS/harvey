@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t*
-cistrstr(int8_t *s, int8_t *sub)
+char*
+cistrstr(char *s, char *sub)
 {
 	int c, csub, n;
 

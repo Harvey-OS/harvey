@@ -21,7 +21,7 @@ int interrupted;
 int localecho;
 int notkbd;
 
-static int8_t *srv;
+static char *srv;
 
 typedef struct Comm Comm;
 struct Comm {
@@ -30,15 +30,15 @@ struct Comm {
 };
 Comm *comm;
 
-int	dodial(int8_t*);
+int	dodial(char*);
 void	fromkbd(int);
 void	fromnet(int);
 int	menu(Biobuf*,  int);
-void	notifyf(void*, int8_t*);
+void	notifyf(void*, char*);
 void	rawoff(void);
 void	rawon(void);
 void	telnet(int);
-int8_t*	system(int, int8_t*);
+char*	system(int, char*);
 int	echochange(Biobuf*, int);
 int	termsub(Biobuf*, uint8_t*, int);
 int	xlocsub(Biobuf*, uint8_t*, int);
@@ -96,11 +96,11 @@ main(int argc, char *argv[])
  *  dial and return a data connection
  */
 int
-dodial(int8_t *dest)
+dodial(char *dest)
 {
-	int8_t *name;
+	char *name;
 	int data;
-	int8_t devdir[NETPATHLEN];
+	char devdir[NETPATHLEN];
 
 	name = netmkaddr(dest, "tcp", "telnet");
 	data = dial(name, 0, devdir, 0);
@@ -111,10 +111,10 @@ dodial(int8_t *dest)
 }
 
 void
-post(int8_t *srv, int fd)
+post(char *srv, int fd)
 {
 	int f;
-	int8_t buf[32];
+	char buf[32];
 
 	f = create(srv, OWRITE, 0666);
 	if(f < 0)
@@ -134,7 +134,7 @@ telnet(int net)
 {
 	int pid;
 	int p[2];
-	int8_t *svc;
+	char *svc;
 
 	rawoff();
 	svc = nil;
@@ -368,7 +368,7 @@ rawoff(void)
 int
 menu(Biobuf *bp, int net)
 {
-	int8_t *cp;
+	char *cp;
 	int done;
 
 	comm->stopped = 1;
@@ -430,7 +430,7 @@ menu(Biobuf *bp, int net)
  *  ignore interrupts
  */
 void
-notifyf(void *a, int8_t *msg)
+notifyf(void *a, char *msg)
 {
 	USED(a);
 	if(strcmp(msg, "interrupt") == 0){
@@ -445,8 +445,8 @@ notifyf(void *a, int8_t *msg)
 /*
  *  run a command with the network connection as standard IO
  */
-int8_t *
-system(int fd, int8_t *cmd)
+char *
+system(int fd, char *cmd)
 {
 	int pid;
 	int p;
@@ -499,9 +499,9 @@ echochange(Biobuf *bp, int cmd)
 int
 termsub(Biobuf *bp, uint8_t *sub, int n)
 {
-	int8_t buf[64];
-	int8_t *term;
-	int8_t *p = buf;
+	char buf[64];
+	char *term;
+	char *p = buf;
 
 	if(n < 1)
 		return 0;
@@ -529,9 +529,9 @@ termsub(Biobuf *bp, uint8_t *sub, int n)
 int
 xlocsub(Biobuf *bp, uint8_t *sub, int n)
 {
-	int8_t buf[64];
-	int8_t *term;
-	int8_t *p = buf;
+	char buf[64];
+	char *term;
+	char *p = buf;
 
 	if(n < 1)
 		return 0;
@@ -555,7 +555,7 @@ xlocsub(Biobuf *bp, uint8_t *sub, int n)
 static int
 islikeatty(int fd)
 {
-	int8_t buf[64];
+	char buf[64];
 
 	if(fd2path(fd, buf, sizeof buf) != 0)
 		return 0;

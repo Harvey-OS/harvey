@@ -13,7 +13,7 @@
 
 /* append a char array to a String */
 String *
-s_append(String *to, int8_t *from)
+s_append(String *to, char *from)
 {
 	if (to == 0)
 		to = s_new();

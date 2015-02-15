@@ -175,7 +175,7 @@ scsiexec(Target* tp, int rw, uint8_t* cmd, int cbytes, void* data,
 }
 
 static int
-scsitest(Target* tp, int8_t lun)
+scsitest(Target* tp, char lun)
 {
 	uint8_t cmd[6];
 
@@ -187,7 +187,7 @@ scsitest(Target* tp, int8_t lun)
 }
 
 static int
-scsistart(Target* tp, int8_t lun, int start)
+scsistart(Target* tp, char lun, int start)
 {
 	uint8_t cmd[6];
 
@@ -200,7 +200,7 @@ scsistart(Target* tp, int8_t lun, int start)
 }
 
 static int
-scsiinquiry(Target* tp, int8_t lun, int* nbytes)
+scsiinquiry(Target* tp, char lun, int* nbytes)
 {
 	uint8_t cmd[6];
 
@@ -212,7 +212,7 @@ scsiinquiry(Target* tp, int8_t lun, int* nbytes)
 	return scsiexec(tp, SCSIread, cmd, sizeof cmd, tp->inquiry, nbytes);
 }
 
-static int8_t *key[] =
+static char *key[] =
 {
 	"no sense",
 	"recovered error",
@@ -233,9 +233,9 @@ static int8_t *key[] =
 };
 
 static int
-scsireqsense(Target* tp, int8_t lun, int* nbytes, int quiet)
+scsireqsense(Target* tp, char lun, int* nbytes, int quiet)
 {
-	int8_t *s;
+	char *s;
 	int n, status, try;
 	uint8_t cmd[6], *sense;
 
@@ -382,7 +382,7 @@ again:
 		print("%s: inquiry failed, status %d\n", tp->id, s);
 		return;
 	}
-	print("%s: %s\n", tp->id, (int8_t*)tp->inquiry+8);
+	print("%s: %s\n", tp->id, (char*)tp->inquiry+8);
 	tp->ok = 1;
 }
 

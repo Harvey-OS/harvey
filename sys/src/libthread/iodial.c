@@ -15,19 +15,19 @@
 static int32_t
 _iodial(va_list *arg)
 {
-	int8_t *addr, *local, *dir;
+	char *addr, *local, *dir;
 	int *cdfp;
 
-	addr = va_arg(*arg, int8_t*);
-	local = va_arg(*arg, int8_t*);
-	dir = va_arg(*arg, int8_t*);
+	addr = va_arg(*arg, char*);
+	local = va_arg(*arg, char*);
+	dir = va_arg(*arg, char*);
 	cdfp = va_arg(*arg, int*);
 
 	return dial(addr, local, dir, cdfp);
 }
 
 int
-iodial(Ioproc *io, int8_t *addr, int8_t *local, int8_t *dir, int *cdfp)
+iodial(Ioproc *io, char *addr, char *local, char *dir, int *cdfp)
 {
 	return iocall(io, _iodial, addr, local, dir, cdfp);
 }

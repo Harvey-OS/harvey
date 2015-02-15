@@ -41,7 +41,7 @@
 
 /* Write a 0-terminated array of strings as lines. */
 int
-psw_print_lines(FILE *f, const int8_t *const lines[])
+psw_print_lines(FILE *f, const char *const lines[])
 {
     int i;
     for (i = 0; lines[i] != 0; ++i) {
@@ -294,7 +294,7 @@ psw_write_page_header(stream *s, const gx_device *dev,
 	int width = (int)(dev->width * 72.0 / dev->HWResolution[0] + 0.5);
 	int height = (int)(dev->height * 72.0 / dev->HWResolution[1] + 0.5);
 	typedef struct ps_ {
-	    const int8_t *size_name;
+	    const char *size_name;
 	    int width, height;
 	} page_size;
 	static const page_size sizes[] = {

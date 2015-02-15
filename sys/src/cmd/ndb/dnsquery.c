@@ -16,10 +16,10 @@
 #include "ip.h"
 
 static int domount;
-static int8_t *mtpt, *dns, *srv;
+static char *mtpt, *dns, *srv;
 
 static int
-setup(int argc, int8_t **argv)
+setup(int argc, char **argv)
 {
 	int fd;
 
@@ -45,9 +45,9 @@ setup(int argc, int8_t **argv)
 }
 
 static void
-querydns(int fd, int8_t *line, int n)
+querydns(int fd, char *line, int n)
 {
-	int8_t buf[1024];
+	char buf[1024];
 
 	seek(fd, 0, 0);
 	if(write(fd, line, n) != n) {
@@ -66,8 +66,8 @@ static void
 query(int fd)
 {
 	int n, len;
-	int8_t *lp, *p, *np;
-	int8_t buf[1024], line[1024];
+	char *lp, *p, *np;
+	char buf[1024], line[1024];
 	Biobuf in;
 
 	Binit(&in, 0, OREAD);

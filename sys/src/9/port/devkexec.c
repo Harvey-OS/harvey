@@ -46,7 +46,7 @@ kexeclookup(Kexecgrp *kg, uintptr addr, uint32_t qidpath)
 }
 
 static int
-kexecgen(Chan *c, int8_t *name, Dirtab*, int, int s, Dir *dp)
+kexecgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 {
 	Kexecgrp *kg;
 	Kvalue *e;
@@ -92,7 +92,7 @@ kexecgen(Chan *c, int8_t *name, Dirtab*, int, int s, Dir *dp)
 #define QPATH(p,d,t)    ((p)<<16 | (d)<<8 | (t)<<0)
 
 static Chan*
-kexecattach(int8_t *spec)
+kexecattach(char *spec)
 {
 	Chan *c;
 //	Kexecgrp *kgrp = nil;
@@ -105,7 +105,7 @@ kexecattach(int8_t *spec)
 }
 
 static Walkqid*
-kexecwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+kexecwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, kexecgen);
 }
@@ -167,7 +167,7 @@ kexecopen(Chan *c, int omode)
 }
 
 static void
-kexeccreate(Chan *c, int8_t *name, int omode, int)
+kexeccreate(Chan *c, char *name, int omode, int)
 {
 	Kexecgrp *kg;
 	Kvalue *e;

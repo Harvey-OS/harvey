@@ -13,9 +13,9 @@
 
 /* append a char array ( of up to n characters) to a String */
 String *
-s_memappend(String *to, int8_t *from, int n)
+s_memappend(String *to, char *from, int n)
 {
-	int8_t *e;
+	char *e;
 
 	if (to == 0)
 		to = s_new();

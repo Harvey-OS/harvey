@@ -27,7 +27,7 @@
 #include "fmtdef.h"
 
 Rune*
-runesmprint(int8_t *fmt, ...)
+runesmprint(char *fmt, ...)
 {
 	va_list args;
 	Rune *p;

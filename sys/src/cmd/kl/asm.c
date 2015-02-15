@@ -33,7 +33,7 @@
 int32_t
 entryvalue(void)
 {
-	int8_t *a;
+	char *a;
 	Sym *s;
 
 	a = INITENTRY;
@@ -255,7 +255,7 @@ asmsym(void)
 }
 
 void
-putsymb(int8_t *s, int t, int32_t v, int ver)
+putsymb(char *s, int t, int32_t v, int ver)
 {
 	int i, f;
 
@@ -385,7 +385,7 @@ void
 datblk(int32_t s, int32_t n)
 {
 	Prog *p;
-	int8_t *cast;
+	char *cast;
 	int32_t l, fl, j, d;
 	int i, c;
 
@@ -423,14 +423,14 @@ datblk(int32_t s, int32_t n)
 			default:
 			case 4:
 				fl = ieeedtof(&p->to.ieee);
-				cast = (int8_t*)&fl;
+				cast = (char*)&fl;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i+4]];
 					l++;
 				}
 				break;
 			case 8:
-				cast = (int8_t*)&p->to.ieee;
+				cast = (char*)&p->to.ieee;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i]];
 					l++;
@@ -457,7 +457,7 @@ datblk(int32_t s, int32_t n)
 				if(p->to.sym->type == SBSS)
 					d += p->to.sym->value + INITDAT;
 			}
-			cast = (int8_t*)&d;
+			cast = (char*)&d;
 			switch(c) {
 			default:
 				diag("bad nuxi %d %d\n%P", c, i, curp);

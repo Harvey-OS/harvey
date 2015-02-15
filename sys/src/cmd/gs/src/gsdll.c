@@ -72,11 +72,11 @@ static gs_main_instance *pgs_minst = NULL;
 
 
 /* local functions */
-private int GSDLLCALL gsdll_old_stdin(void *caller_handle, int8_t *buf,
+private int GSDLLCALL gsdll_old_stdin(void *caller_handle, char *buf,
 				      int len);
-private int GSDLLCALL gsdll_old_stdout(void *caller_handle, const int8_t *str,
+private int GSDLLCALL gsdll_old_stdout(void *caller_handle, const char *str,
 				       int len);
-private int GSDLLCALL gsdll_old_stderr(void *caller_handle, const int8_t *str,
+private int GSDLLCALL gsdll_old_stderr(void *caller_handle, const char *str,
 				       int len);
 private int GSDLLCALL gsdll_old_poll(void *caller_handle);
 
@@ -91,7 +91,7 @@ private int GSDLLCALL gsdll_old_poll(void *caller_handle);
  * 4. argv
  */
 int GSDLLEXPORT GSDLLAPI
-gsdll_init(GSDLL_CALLBACK callback, HWND hwnd, int argc, int8_t * argv[])
+gsdll_init(GSDLL_CALLBACK callback, HWND hwnd, int argc, char * argv[])
 {
     int code;
 
@@ -132,7 +132,7 @@ gsdll_execute_begin(void)
 /* if return value < 0, then error occured and caller should call */
 /* gsdll_execute_end, then gsdll_exit, then unload library */
 int GSDLLEXPORT GSDLLAPI
-gsdll_execute_cont(const int8_t * str, int len)
+gsdll_execute_cont(const char * str, int len)
 {
     int exit_code;
     int code = gsapi_run_string_continue(pgs_minst, str, len, 
@@ -164,7 +164,7 @@ gsdll_exit(void)
 /* Used for determining if wrong GSDLL loaded. */
 /* This may be called before any other function. */
 int GSDLLEXPORT GSDLLAPI
-gsdll_revision(const int8_t ** product, const int8_t ** copyright,
+gsdll_revision(const char ** product, const char ** copyright,
 	       int32_t * revision, int32_t * revisiondate)
 {
     if (product)
@@ -180,20 +180,20 @@ gsdll_revision(const int8_t ** product, const int8_t ** copyright,
 
 
 private int GSDLLCALL
-gsdll_old_stdin(void *caller_handle, int8_t *buf, int len)
+gsdll_old_stdin(void *caller_handle, char *buf, int len)
 {
     return (*pgsdll_callback)(GSDLL_STDIN, buf, len);
 }
 private int GSDLLCALL
-gsdll_old_stdout(void *caller_handle, const int8_t *str, int len)
+gsdll_old_stdout(void *caller_handle, const char *str, int len)
 {
-    return (*pgsdll_callback)(GSDLL_STDOUT, (int8_t *)str, len);
+    return (*pgsdll_callback)(GSDLL_STDOUT, (char *)str, len);
 }
 
 private int GSDLLCALL
-gsdll_old_stderr(void *caller_handle, const int8_t *str, int len)
+gsdll_old_stderr(void *caller_handle, const char *str, int len)
 {
-    return (*pgsdll_callback)(GSDLL_STDOUT, (int8_t *)str, len);
+    return (*pgsdll_callback)(GSDLL_STDOUT, (char *)str, len);
 }
 
 private int GSDLLCALL

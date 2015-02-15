@@ -11,9 +11,9 @@
 #include "send.h"
 
 static void
-mboxfile(dest *dp, String *user, String *path, int8_t *file)
+mboxfile(dest *dp, String *user, String *path, char *file)
 {
-	int8_t *cp;
+	char *cp;
 
 	mboxpath(s_to_c(user), s_to_c(dp->addr), path, 0);
 	cp = strrchr(s_to_c(path), '/');
@@ -34,7 +34,7 @@ expand_local(dest *dp)
 	String *file, *line, *s;
 	dest *rv;
 	int forwardok;
-	int8_t *user;
+	char *user;
 
 	/* short circuit obvious security problems */
 	if(strstr(s_to_c(dp->addr), "/../")){

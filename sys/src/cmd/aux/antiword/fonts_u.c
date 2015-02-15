@@ -128,7 +128,7 @@ drawfile_fontref
 tOpenFont(UCHAR ucWordFontNumber, USHORT usFontStyle, USHORT usWordFontSize)
 {
 	options_type	tOptions;
-	const int8_t	*szOurFontname;
+	const char	*szOurFontname;
 	size_t	tIndex;
 	int	iFontnumber;
 
@@ -205,7 +205,7 @@ tOpenTableFont(USHORT usWordFontSize)
 /*
  * szGetFontname - get the fontname
  */
-const int8_t *
+const char *
 szGetFontname(drawfile_fontref tFontRef)
 {
 	fail((size_t)(UCHAR)tFontRef >= elementsof(szFontnames));
@@ -221,7 +221,7 @@ szGetFontname(drawfile_fontref tFontRef)
  * Returns the string width in millipoints
  */
 int32_t
-lComputeStringWidth(const int8_t *szString, size_t tStringLength,
+lComputeStringWidth(const char *szString, size_t tStringLength,
 	drawfile_fontref tFontRef, USHORT usFontSize)
 {
 	USHORT	*ausCharWidths;
@@ -286,7 +286,7 @@ lComputeStringWidth(const int8_t *szString, size_t tStringLength,
  * Returns the number of columns
  */
 size_t
-tCountColumns(const int8_t *szString, size_t tLength)
+tCountColumns(const char *szString, size_t tLength)
 {
 	fail(szString == NULL);
 
@@ -303,7 +303,7 @@ tCountColumns(const int8_t *szString, size_t tLength)
  * Returns the length in bytes
  */
 size_t
-tGetCharacterLength(const int8_t *szString)
+tGetCharacterLength(const char *szString)
 {
 	fail(szString == NULL);
 

@@ -13,7 +13,7 @@
 #include <sunrpc.h>
 #include <nfs3.h>
 
-int8_t*
+char*
 nfs3StatusStr(Nfs3Status x)
 {
 	switch(x){
@@ -88,7 +88,7 @@ nfs3StatusStr(Nfs3Status x)
 
 static struct {
 	SunStatus status;
-	int8_t *msg;
+	char *msg;
 } etab[] = {
 	Nfs3ErrNotOwner,	"not owner",
 	Nfs3ErrNoEnt,		"directory entry not found",
@@ -137,7 +137,7 @@ nfs3Errstr(SunStatus status)
 	werrstr("unknown nfs3 error %d", (int)status);
 }
 
-int8_t*
+char*
 nfs3FileTypeStr(Nfs3FileType x)
 {
 	switch(x){
@@ -488,7 +488,7 @@ Err:
 	*pa = ea;
 	return -1;
 }
-int8_t*
+char*
 nfs3SetTimeStr(Nfs3SetTime x)
 {
 	switch(x){
@@ -1537,7 +1537,7 @@ Err:
 	*pa = ea;
 	return -1;
 }
-int8_t*
+char*
 nfs3SyncStr(Nfs3Sync x)
 {
 	switch(x){
@@ -1692,7 +1692,7 @@ Err:
 	*pa = ea;
 	return -1;
 }
-int8_t*
+char*
 nfs3CreateStr(Nfs3Create x)
 {
 	switch(x){

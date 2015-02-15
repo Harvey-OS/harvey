@@ -16,7 +16,7 @@
 static Disk*
 mkwidth(Disk *disk)
 {
-	int8_t buf[40];
+	char buf[40];
 
 	snprint(buf, sizeof buf, "%lld", disk->size);
 	disk->width = strlen(buf);
@@ -67,7 +67,7 @@ struct Table {
 static int
 partitiongeometry(Disk *disk)
 {
-	int8_t *rawname;
+	char *rawname;
 	int i, h, rawfd, s;
 	uint8_t buf[512];
 	Table *t;
@@ -244,7 +244,7 @@ static Disk*
 opensd(Disk *disk)
 {
 	Biobuf b;
-	int8_t *p, *f[10];
+	char *p, *f[10];
 	int nf;
 
 	Binit(&b, disk->ctlfd, OREAD);
@@ -278,9 +278,9 @@ opensd(Disk *disk)
 }
 
 Disk*
-opendisk(int8_t *disk, int rdonly, int noctl)
+opendisk(char *disk, int rdonly, int noctl)
 {
-	int8_t *p, *q;
+	char *p, *q;
 	Disk *d;
 
 	d = mallocz(sizeof(*d), 1);

@@ -281,7 +281,7 @@ typedef struct {
  * 
  */
 static void
-execac(Ar0* ar0, int flags, int8_t *ufile, int8_t **argv)
+execac(Ar0* ar0, int flags, char *ufile, char **argv)
 {
 	Hdr hdr;
 	Fgrp *f;
@@ -290,8 +290,8 @@ execac(Ar0* ar0, int flags, int8_t *ufile, int8_t **argv)
 	Image *img;
 	Segment *s;
 	int argc, i, n;
-	int8_t *a, *elem, *file, *p;
-	int8_t line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
+	char *a, *elem, *file, *p;
+	char line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
 	int32_t hdrsz, magic, textsz, datasz, bsssz;
 	uintptr textlim, datalim, bsslim, entry, stack;
 	static int colorgen;
@@ -344,9 +344,9 @@ execac(Ar0* ar0, int flags, int8_t *ufile, int8_t **argv)
 	hdrsz = ichan->dev->read(ichan, &hdr, sizeof(Hdr), 0);
 	if(hdrsz < 2)
 		error(Ebadexec);
-	p = (int8_t*)&hdr;
+	p = (char*)&hdr;
 	if(p[0] == '#' && p[1] == '!'){
-		p = memccpy(line, (int8_t*)&hdr, '\n',
+		p = memccpy(line, (char*)&hdr, '\n',
 			    MIN(sizeof(Exec), hdrsz));
 		if(p == nil)
 			error(Ebadexec);
@@ -476,11 +476,11 @@ execac(Ar0* ar0, int flags, int8_t *ufile, int8_t **argv)
 	 * the strings argv points to are valid.
 	 */
 	for(i = 0;; i++, argv++){
-		a = *(int8_t**)validaddr(argv, sizeof(int8_t**), 0);
+		a = *(char**)validaddr(argv, sizeof(char**), 0);
 		if(a == nil)
 			break;
 		a = validaddr(a, 1, 0);
-		n = ((int8_t*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
+		n = ((char*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
 
 		/*
 		 * This futzing is so argv[0] gets validated even
@@ -520,10 +520,10 @@ execac(Ar0* ar0, int flags, int8_t *ufile, int8_t **argv)
 	 */
 	a = p = UINT2PTR(stack);
 	stack = sysexecstack(stack, argc);
-	if(stack-(argc+1)*sizeof(int8_t**)-BIGPGSZ < TSTKTOP-USTKSIZE)
+	if(stack-(argc+1)*sizeof(char**)-BIGPGSZ < TSTKTOP-USTKSIZE)
 		error(Ebadexec);
 
-	argv = (int8_t**)stack;
+	argv = (char**)stack;
 	*--argv = nil;
 	for(i = 0; i < argc; i++){
 		*--argv = p + (USTKTOP-TSTKTOP);
@@ -677,16 +677,16 @@ void
 sysexecac(Ar0* ar0, va_list list)
 {
 	int flags;
-	int8_t *file, **argv;
+	char *file, **argv;
 
 	/*
 	 * void* execac(int flags, char* name, char* argv[]);
 	 */
 
 	flags = va_arg(list, unsigned int);
-	file = va_arg(list, int8_t*);
+	file = va_arg(list, char*);
 	file = validaddr(file, 1, 0);
-	argv = va_arg(list, int8_t**);
+	argv = va_arg(list, char**);
 	evenaddr(PTR2UINT(argv));
 	execac(ar0, flags, file, argv);
 }
@@ -694,14 +694,14 @@ sysexecac(Ar0* ar0, va_list list)
 void
 sysexec(Ar0* ar0, va_list list)
 {
-	int8_t *file, **argv;
+	char *file, **argv;
 
 	/*
 	 * void* exec(char* name, char* argv[]);
 	 */
-	file = va_arg(list, int8_t*);
+	file = va_arg(list, char*);
 	file = validaddr(file, 1, 0);
-	argv = va_arg(list, int8_t**);
+	argv = va_arg(list, char**);
 	evenaddr(PTR2UINT(argv));
 	execac(ar0, EXTC, file, argv);
 }
@@ -764,14 +764,14 @@ sysalarm(Ar0* ar0, va_list list)
 void
 sysexits(Ar0*, va_list list)
 {
-	int8_t *status;
-	int8_t *inval = "invalid exit string";
-	int8_t buf[ERRMAX];
+	char *status;
+	char *inval = "invalid exit string";
+	char buf[ERRMAX];
 
 	/*
 	 * void exits(char *msg);
 	 */
-	status = va_arg(list, int8_t*);
+	status = va_arg(list, char*);
 
 	if(status){
 		if(waserror())
@@ -830,14 +830,14 @@ sysawait(Ar0* ar0, va_list list)
 	int pid;
 	Waitmsg w;
 	usize n;
-	int8_t *p;
+	char *p;
 
 	/*
 	 * int await(char* s, int n);
 	 * should really be
 	 * usize await(char* s, usize n);
 	 */
-	p = va_arg(list, int8_t*);
+	p = va_arg(list, char*);
 	n = va_arg(list, int32_t);
 	p = validaddr(p, n, 1);
 
@@ -855,7 +855,7 @@ sysawait(Ar0* ar0, va_list list)
 }
 
 void
-werrstr(int8_t *fmt, ...)
+werrstr(char *fmt, ...)
 {
 	va_list va;
 
@@ -868,9 +868,9 @@ werrstr(int8_t *fmt, ...)
 }
 
 static void
-generrstr(int8_t *buf, int32_t n)
+generrstr(char *buf, int32_t n)
 {
-	int8_t *p, tmp[ERRMAX];
+	char *p, tmp[ERRMAX];
 
 	if(n <= 0)
 		error(Ebadarg);
@@ -889,7 +889,7 @@ generrstr(int8_t *buf, int32_t n)
 void
 syserrstr(Ar0* ar0, va_list list)
 {
-	int8_t *err;
+	char *err;
 	usize nerr;
 
 	/*
@@ -898,7 +898,7 @@ syserrstr(Ar0* ar0, va_list list)
 	 * usize errstr(char* err, usize nerr);
 	 * but errstr always returns 0.
 	 */
-	err = va_arg(list, int8_t*);
+	err = va_arg(list, char*);
 	nerr = va_arg(list, usize);
 	generrstr(err, nerr);
 
@@ -908,14 +908,14 @@ syserrstr(Ar0* ar0, va_list list)
 void
 sys_errstr(Ar0* ar0, va_list list)
 {
-	int8_t *p;
+	char *p;
 
 	/*
 	 * int errstr(char* err);
 	 *
 	 * Deprecated; backwards compatibility only.
 	 */
-	p = va_arg(list, int8_t*);
+	p = va_arg(list, char*);
 	generrstr(p, 64);
 
 	ar0->i = 0;
@@ -924,15 +924,15 @@ sys_errstr(Ar0* ar0, va_list list)
 void
 sysnotify(Ar0* ar0, va_list list)
 {
-	void (*f)(void*, int8_t*);
+	void (*f)(void*, char*);
 
 	/*
 	 * int notify(void (*f)(void*, char*));
 	 */
-	f = (void (*)(void*, int8_t*))va_arg(list, void*);
+	f = (void (*)(void*, char*))va_arg(list, void*);
 
 	if(f != nil)
-		validaddr(f, sizeof(void (*)(void*, int8_t*)), 0);
+		validaddr(f, sizeof(void (*)(void*, char*)), 0);
 	up->notify = f;
 
 	ar0->i = 0;

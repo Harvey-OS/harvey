@@ -16,10 +16,10 @@
 #define BIGN (BUFSIZ/2)
 
 size_t fwrite(const void *p, size_t recl, size_t nrec, FILE *f){
-	int8_t *s;
+	char *s;
 	int n, d;
 
-	s=(int8_t *)p;
+	s=(char *)p;
 	n=recl*nrec;
 	while(n>0){
 		d=f->rp-f->wp;
@@ -58,7 +58,7 @@ size_t fwrite(const void *p, size_t recl, size_t nrec, FILE *f){
 	}
     ret:
 	if(recl)
-		return (s-(int8_t*)p)/recl;
+		return (s-(char*)p)/recl;
 	else
-		return s-(int8_t*)p;
+		return s-(char*)p;
 }

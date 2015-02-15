@@ -71,13 +71,13 @@ rtcinit(void)
 }
 
 static Chan*
-rtcattach(int8_t* spec)
+rtcattach(char* spec)
 {
 	return devattach('r', spec);
 }
 
 static Walkqid*	 
-rtcwalk(Chan* c, Chan *nc, int8_t** name, int nname)
+rtcwalk(Chan* c, Chan *nc, char** name, int nname)
 {
 	return devwalk(c, nc, name, nname, rtcdir, nelem(rtcdir), devgen);
 }
@@ -185,7 +185,7 @@ static int32_t
 rtcread(Chan* c, void* buf, int32_t n, int64_t off)
 {
 	uint32_t t;
-	int8_t *a, *start;
+	char *a, *start;
 	uint32_t offset = off;
 
 	if(c->qid.type & QTDIR)
@@ -232,11 +232,11 @@ static int32_t
 rtcwrite(Chan* c, void* buf, int32_t n, int64_t off)
 {
 	int t;
-	int8_t *a, *start;
+	char *a, *start;
 	Rtc rtc;
 	uint32_t secs;
 	uint8_t bcdclock[Nbcd];
-	int8_t *cp, *ep;
+	char *cp, *ep;
 	uint32_t offset = off;
 
 	if(offset!=0)

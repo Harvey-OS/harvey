@@ -149,9 +149,9 @@ enum
 };
 
 static void
-ralog(int8_t *fmt, ...)
+ralog(char *fmt, ...)
 {
-	int8_t msg[512];
+	char msg[512];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -212,10 +212,10 @@ v6paraminit(Conf *cf)
 	cf->validlt = cf->preflt = ~0L;
 }
 
-static int8_t *
+static char *
 optname(unsigned opt)
 {
-	static int8_t buf[32];
+	static char buf[32];
 
 	if (opt >= nelem(icmp6opts) || icmp6opts[opt] == nil) {
 		snprint(buf, sizeof buf, "unknown option %d", opt);
@@ -224,12 +224,12 @@ optname(unsigned opt)
 		return icmp6opts[opt];
 }
 
-static int8_t*
-opt_seprint(uint8_t *ps, uint8_t *pe, int8_t *sps, int8_t *spe)
+static char*
+opt_seprint(uint8_t *ps, uint8_t *pe, char *sps, char *spe)
 {
 	int otype, osz, pktsz;
 	uint8_t *a;
-	int8_t *p = sps, *e = spe;
+	char *p = sps, *e = spe;
 
 	a = ps;
 	for (pktsz = pe - ps; pktsz > 0; pktsz -= osz) {
@@ -268,10 +268,10 @@ opt_seprint(uint8_t *ps, uint8_t *pe, int8_t *sps, int8_t *spe)
 }
 
 static void
-pkt2str(uint8_t *ps, uint8_t *pe, int8_t *sps, int8_t *spe)
+pkt2str(uint8_t *ps, uint8_t *pe, char *sps, char *spe)
 {
 	int pktlen;
-	int8_t *tn, *p, *e;
+	char *tn, *p, *e;
 	uint8_t *a;
 	Hdr *h;
 
@@ -318,7 +318,7 @@ pkt2str(uint8_t *ps, uint8_t *pe, int8_t *sps, int8_t *spe)
 }
 
 static void
-catch(void *a, int8_t *msg)
+catch(void *a, char *msg)
 {
 	USED(a);
 	if(strstr(msg, "alarm"))
@@ -332,11 +332,11 @@ catch(void *a, int8_t *msg)
  * actually just sets the arguments displayed.
  */
 void
-procsetname(int8_t *fmt, ...)
+procsetname(char *fmt, ...)
 {
 	int fd;
-	int8_t *cmdname;
-	int8_t buf[128];
+	char *cmdname;
+	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -356,8 +356,8 @@ int
 dialicmp(uint8_t *dst, int dport, int *ctlfd)
 {
 	int fd, cfd, n, m;
-	int8_t cmsg[100], name[128], connind[40];
-	int8_t hdrs[] = "headers";
+	char cmsg[100], name[128], connind[40];
+	char hdrs[] = "headers";
 
 	snprint(name, sizeof name, "%s/icmpv6/clone", conf.mpoint);
 	cfd = open(name, ORDWR);
@@ -395,8 +395,8 @@ int
 ip6cfg(int autoconf)
 {
 	int dupfound = 0, n;
-	int8_t *p;
-	int8_t buf[256];
+	char *p;
+	char buf[256];
 	uint8_t ethaddr[6];
 	Biobuf *bp;
 
@@ -466,7 +466,7 @@ ip6cfg(int autoconf)
 }
 
 static int
-recvra6on(int8_t *net, int conn)
+recvra6on(char *net, int conn)
 {
 	Ipifc* ifc;
 
@@ -519,7 +519,7 @@ recvrarouter(uint8_t buf[], int pktlen)
 /* host receiving a router advertisement calls this */
 
 static void
-ewrite(int fd, int8_t *str)
+ewrite(int fd, char *str)
 {
 	int n;
 
@@ -531,7 +531,7 @@ ewrite(int fd, int8_t *str)
 static void
 issuebasera6(Conf *cf)
 {
-	int8_t *cfg;
+	char *cfg;
 
 	cfg = smprint("ra6 mflag %d oflag %d reachtime %d rxmitra %d "
 		"ttl %d routerlt %d",
@@ -544,7 +544,7 @@ issuebasera6(Conf *cf)
 static void
 issuerara6(Conf *cf)
 {
-	int8_t *cfg;
+	char *cfg;
 
 	cfg = smprint("ra6 sendra %d recvra %d maxraint %d minraint %d "
 		"linkmtu %d",
@@ -557,7 +557,7 @@ issuerara6(Conf *cf)
 static void
 issueadd6(Conf *cf)
 {
-	int8_t *cfg;
+	char *cfg;
 
 	cfg = smprint("add6 %I %d %d %d %lud %lud", cf->v6pref, cf->prefixlen,
 		cf->onlink, cf->autoflag, cf->validlt, cf->preflt);
@@ -569,7 +569,7 @@ static void
 recvrahost(uint8_t buf[], int pktlen)
 {
 	int arpfd, m, n;
-	int8_t abuf[100];
+	char abuf[100];
 	uint8_t optype;
 	Lladdropt *llao;
 	Mtuopt *mtuo;
@@ -755,7 +755,7 @@ int
 recvrs(uint8_t *buf, int pktlen, uint8_t *sol)
 {
 	int n, optsz, arpfd;
-	int8_t abuf[256];
+	char abuf[256];
 	Routersol *rs;
 	Lladdropt *llao;
 
@@ -800,7 +800,7 @@ void
 sendra(int fd, uint8_t *dst, int rlt)
 {
 	int pktsz, preflen;
-	int8_t abuf[1024], tmp[40];
+	char abuf[1024], tmp[40];
 	uint8_t buf[1024], macaddr[6], src[IPaddrlen];
 	Ipifc *ifc = nil;
 	Iplifc *lifc, *nlifc;
@@ -961,7 +961,7 @@ sendra6(void)
 void
 startra6(void)
 {
-	static int8_t routeon[] = "iprouting 1";
+	static char routeon[] = "iprouting 1";
 
 	if (conf.recvra > 0)
 		recvra6();

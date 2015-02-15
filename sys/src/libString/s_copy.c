@@ -14,7 +14,7 @@
 
 /* return a String containing a copy of the passed char array */
 extern String*
-s_copy(int8_t *cp)
+s_copy(char *cp)
 {
 	String *sp;
 	int len;

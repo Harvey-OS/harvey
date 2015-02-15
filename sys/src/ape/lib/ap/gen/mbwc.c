@@ -31,10 +31,10 @@
  *	04000000	7FFFFFFF	T5 Tx Tx  Tx Tx Tx	31
  */
 int
-mbtowc(wchar_t *pwc, const int8_t *s, size_t n);
+mbtowc(wchar_t *pwc, const char *s, size_t n);
 
 int
-mblen(const int8_t *s, size_t n)
+mblen(const char *s, size_t n)
 {
 	return mbtowc(0, s, n);
 }
@@ -51,7 +51,7 @@ enum {
 };
 
 int
-mbtowc(wchar_t *pwc, const int8_t *s, size_t n)
+mbtowc(wchar_t *pwc, const char *s, size_t n)
 {
 	unsigned long long c[MB_LEN_MAX];
 	unsigned long long l, m, wm, b;
@@ -102,7 +102,7 @@ bad:
 }
 
 int
-wctomb(int8_t *s, wchar_t wchar)
+wctomb(char *s, wchar_t wchar)
 {
 	unsigned long long c, maxc, m;
 	int i, j;
@@ -133,7 +133,7 @@ wctomb(int8_t *s, wchar_t wchar)
 }
 
 size_t
-mbstowcs(wchar_t *pwcs, const int8_t *s, size_t n)
+mbstowcs(wchar_t *pwcs, const char *s, size_t n)
 {
 	int i, d, c;
 
@@ -156,12 +156,12 @@ mbstowcs(wchar_t *pwcs, const int8_t *s, size_t n)
 }
 
 size_t
-wcstombs(int8_t *s, const wchar_t *pwcs, size_t n)
+wcstombs(char *s, const wchar_t *pwcs, size_t n)
 {
 	int i, d;
 	int32_t c;
-	int8_t *p, *pe;
-	int8_t buf[MB_LEN_MAX];
+	char *p, *pe;
+	char buf[MB_LEN_MAX];
 
 	p = s;
 	pe = p+n-MB_LEN_MAX;

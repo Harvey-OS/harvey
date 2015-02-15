@@ -13,11 +13,11 @@
 #include "iolib.h"
 #include <string.h>
 
-int8_t *
-tmpnam(int8_t *s)
+char *
+tmpnam(char *s)
 {
-	static int8_t name[] = "/tmp/tn000000000000";
-	int8_t *p;
+	static char name[] = "/tmp/tn000000000000";
+	char *p;
 
 	do {
 		p = name + 7;
@@ -35,8 +35,8 @@ tmpnam(int8_t *s)
 }
 
 
-int8_t *
-tmpnam_r(int8_t *s)
+char *
+tmpnam_r(char *s)
 {
 	return s ? tmpnam(s) : NULL;
 }

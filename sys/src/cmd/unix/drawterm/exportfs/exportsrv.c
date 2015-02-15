@@ -13,15 +13,15 @@
 #define Extern	extern
 #include "exportfs.h"
 
-int8_t Ebadfid[] = "Bad fid";
-int8_t Enotdir[] = "Not a directory";
-int8_t Edupfid[] = "Fid already in use";
-int8_t Eopen[] = "Fid already opened";
-int8_t Exmnt[] = "Cannot .. past mount point";
-int8_t Emip[] = "Mount in progress";
-int8_t Enopsmt[] = "Out of pseudo mount points";
-int8_t Enomem[] = "No memory";
-int8_t Eversion[] = "Bad 9P2000 version";
+char Ebadfid[] = "Bad fid";
+char Enotdir[] = "Not a directory";
+char Edupfid[] = "Fid already in use";
+char Eopen[] = "Fid already opened";
+char Exmnt[] = "Cannot .. past mount point";
+char Emip[] = "Mount in progress";
+char Enopsmt[] = "Out of pseudo mount points";
+char Enomem[] = "No memory";
+char Eversion[] = "Bad 9P2000 version";
 
 int iounit(int x)
 {
@@ -173,7 +173,7 @@ clonefid(Fid *f, int new)
 void
 Xwalk(Fsrpc *t)
 {
-	int8_t err[ERRMAX], *e;
+	char err[ERRMAX], *e;
 	Fcall rhdr;
 	Fid *f, *nf;
 	File *wf;
@@ -255,7 +255,7 @@ Xclunk(Fsrpc *t)
 void
 Xstat(Fsrpc *t)
 {
-	int8_t err[ERRMAX], *path;
+	char err[ERRMAX], *path;
 	Fcall rhdr;
 	Fid *f;
 	Dir *d;
@@ -309,7 +309,7 @@ getiounit(int fd)
 void
 Xcreate(Fsrpc *t)
 {
-	int8_t err[ERRMAX], *path;
+	char err[ERRMAX], *path;
 	Fcall rhdr;
 	Fid *f;
 	File *nf;
@@ -352,7 +352,7 @@ Xcreate(Fsrpc *t)
 void
 Xremove(Fsrpc *t)
 {
-	int8_t err[ERRMAX], *path;
+	char err[ERRMAX], *path;
 	Fcall rhdr;
 	Fid *f;
 
@@ -386,11 +386,11 @@ Xremove(Fsrpc *t)
 void
 Xwstat(Fsrpc *t)
 {
-	int8_t err[ERRMAX], *path;
+	char err[ERRMAX], *path;
 	Fcall rhdr;
 	Fid *f;
 	int s;
-	int8_t *strings;
+	char *strings;
 	Dir d;
 
 	f = getfid(t->work.fid);
@@ -537,7 +537,7 @@ openmount(int sfd)
 void
 slaveopen(Fsrpc *p)
 {
-	int8_t err[ERRMAX], *path;
+	char err[ERRMAX], *path;
 	Fcall *work, rhdr;
 	Fid *f;
 	Dir *d;
@@ -593,7 +593,7 @@ slaveread(Fsrpc *p)
 	Fid *f;
 	int n, r;
 	Fcall *work, rhdr;
-	int8_t *data, err[ERRMAX];
+	char *data, err[ERRMAX];
 
 	work = &p->work;
 
@@ -632,7 +632,7 @@ slaveread(Fsrpc *p)
 void
 slavewrite(Fsrpc *p)
 {
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	Fcall *work, rhdr;
 	Fid *f;
 	int n;
@@ -671,7 +671,7 @@ reopen(Fid *f)
 }
 
 void
-flushaction(void *a, int8_t *cause)
+flushaction(void *a, char *cause)
 {
 	USED(a);
 	if(strncmp(cause, "sys:", 4) == 0 && !strstr(cause, "pipe")) {

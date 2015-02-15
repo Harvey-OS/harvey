@@ -36,7 +36,7 @@ enum {
 
 static void reverse(Image*, Image*, int);
 static void shuffle(Image*, Image*, int, int, Image*, int, int);
-static void writefile(int8_t *name, Image *im, int gran);
+static void writefile(char *name, Image *im, int gran);
 static void halvemaskdim(Image*);
 static void swapranges(Image*, Image*, int, int, int, int);
 
@@ -270,11 +270,11 @@ interlace(Image *im, Image *tmp, int axis, int n, Image *mask, int gran)
 
 
 static void
-writefile(int8_t *name, Image *im, int gran)
+writefile(char *name, Image *im, int gran)
 {
 	static int c = 100;
 	int fd;
-	int8_t buf[200];
+	char buf[200];
 
 	snprint(buf, sizeof buf, "%d%s%d", c++, name, gran);
 	fd = create(buf, OWRITE, 0666);

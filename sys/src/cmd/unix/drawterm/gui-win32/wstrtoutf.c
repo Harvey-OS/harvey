@@ -21,10 +21,10 @@ wstrutflen(Rune *s)
 }
 
 int
-wstrtoutf(int8_t *s, Rune *t, int n)
+wstrtoutf(char *s, Rune *t, int n)
 {
 	int i;
-	int8_t *s0;
+	char *s0;
 
 	s0 = s;
 	if(n <= 0)

@@ -14,7 +14,7 @@
 #include "netbios.h"
 
 static int
-decodehex(int8_t c)
+decodehex(char c)
 {
 	if (c >= '0' && c <= '9')
 		return c - '0';
@@ -25,7 +25,7 @@ decodehex(int8_t c)
 	return 0;
 }
 
-static int8_t
+static char
 encodehex(int n)
 {
 	if (n >= 0 && n <= 9)
@@ -127,7 +127,7 @@ nbnamecpy(NbName n1, NbName n2)
 }
 
 void
-nbmknamefromstring(NbName nbname, int8_t *s)
+nbmknamefromstring(NbName nbname, char *s)
 {
 	int i;
 	memset(nbname, ' ', NbNameLen - 1);
@@ -149,14 +149,14 @@ nbmknamefromstring(NbName nbname, int8_t *s)
 }
 
 void
-nbmknamefromstringandtype(NbName nbname, int8_t *s, uint8_t type)
+nbmknamefromstringandtype(NbName nbname, char *s, uint8_t type)
 {
 	nbmknamefromstring(nbname, s);
 	nbname[NbNameLen - 1] = type;
 }
 
 void
-nbmkstringfromname(int8_t *buf, int buflen, NbName name)
+nbmkstringfromname(char *buf, int buflen, NbName name)
 {
 	int x;
 	for (x = 0; x < NbNameLen - 1; x++) {
@@ -208,7 +208,7 @@ int
 nbnamefmt(Fmt *f)
 {
 	uint8_t *n;
-	int8_t buf[100];
+	char buf[100];
 	n = va_arg(f->args, uint8_t *);
 	nbmkstringfromname(buf, sizeof(buf), n);
 	return fmtstrcpy(f, buf);
@@ -253,7 +253,7 @@ nbnametablefind(NbName name, int add)
 typedef struct NbRemoteNameTableEntry NbRemoteNameTableEntry;
 struct NbRemoteNameTableEntry {
 	NbName name;
-	int8_t ipaddr[IPaddrlen];
+	char ipaddr[IPaddrlen];
 	int32_t expire;
 	NbRemoteNameTableEntry *next;
 };

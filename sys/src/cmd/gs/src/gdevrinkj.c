@@ -63,7 +63,7 @@ private dev_proc_decode_color(rinkj_decode_color);
 /*
  * Type definitions associated with the fixed color model names.
  */
-typedef const int8_t * fixed_colorant_name;
+typedef const char * fixed_colorant_name;
 typedef fixed_colorant_name fixed_colorant_names_list[];
 
 /*
@@ -516,7 +516,7 @@ rinkj_get_params(gx_device * pdev, gs_param_list * plist)
 
 #define compare_color_names(name, name_size, str, str_size) \
     (name_size == str_size && \
-	(strncmp((const int8_t *)name, (const int8_t *)str, name_size) == 0))
+	(strncmp((const char *)name, (const char *)str, name_size) == 0))
 
 /*
  * This routine will check if a name matches any item in a list of process model
@@ -604,10 +604,10 @@ rinkj_param_read_fn(gs_param_list *plist, const char *name,
 
 /* Compare a C string and a gs_param_string. */
 static bool
-param_string_eq(const gs_param_string *pcs, const int8_t *str)
+param_string_eq(const gs_param_string *pcs, const char *str)
 {
     return (strlen(str) == pcs->size &&
-	    !strncmp(str, (const int8_t *)pcs->data, pcs->size));
+	    !strncmp(str, (const char *)pcs->data, pcs->size));
 }
 
 private int
@@ -823,7 +823,7 @@ typedef struct rinkj_lutset_s rinkj_lutset;
 typedef struct rinkj_lutchain_s rinkj_lutchain;
 
 struct rinkj_lutset_s {
-    int8_t *plane_names;
+    char *plane_names;
     rinkj_lutchain *lut[MAX_CHAN];
 };
 
@@ -835,10 +835,10 @@ struct rinkj_lutchain_s {
 };
 
 static int
-rinkj_add_lut(rinkj_device *rdev, rinkj_lutset *lutset, int8_t plane,
+rinkj_add_lut(rinkj_device *rdev, rinkj_lutset *lutset, char plane,
               FILE *f)
 {
-    int8_t linebuf[256];
+    char linebuf[256];
     rinkj_lutchain *chain;
     int n_graph;
     int plane_ix;
@@ -905,12 +905,12 @@ rinkj_apply_luts(rinkj_device *rdev, RinkjDevice *cmyk_dev, const rinkj_lutset *
 static int
 rinkj_set_luts(rinkj_device *rdev,
 	       RinkjDevice *printer_dev, RinkjDevice *cmyk_dev,
-	       const int8_t *config_fn, const RinkjDeviceParams *params)
+	       const char *config_fn, const RinkjDeviceParams *params)
 {
     FILE *f = fopen(config_fn, "r");
-    int8_t linebuf[256];
-    int8_t key[256];
-    int8_t *val;
+    char linebuf[256];
+    char key[256];
+    char *val;
     rinkj_lutset lutset;
     int i;
 
@@ -997,8 +997,8 @@ rinkj_write_image_data(gx_device_printer *pdev, RinkjDevice *cmyk_dev)
     rinkj_device *rdev = (rinkj_device *)pdev;
     int raster = gdev_prn_raster(rdev);
     byte *line;
-    int8_t *plane_data[MAX_CHAN];
-    const int8_t *split_plane_data[MAX_CHAN];
+    char *plane_data[MAX_CHAN];
+    const char *split_plane_data[MAX_CHAN];
     int xsb;
     int n_planes;
     int n_planes_in = pdev->color_info.num_components;

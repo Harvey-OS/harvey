@@ -17,7 +17,7 @@ int
 cache(int fd)
 {
 	int argc, i, p[2];
-	int8_t *argv[5], bd[32], buf[256], partition[64], *pp;
+	char *argv[5], bd[32], buf[256], partition[64], *pp;
 
 	if(stat("/boot/cfs", statbuf, sizeof statbuf) < 0)
 		return fd;

@@ -13,11 +13,11 @@
 #include <string.h>
 
 int
-putenv(int8_t *s)
+putenv(char *s)
 {
 	int f, n;
-	int8_t *value;
-	int8_t buf[300];
+	char *value;
+	char buf[300];
 
 	value = strchr(s, '=');
 	if (value) {

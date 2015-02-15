@@ -217,10 +217,10 @@ ipv62smcast(uint8_t *smcast, uint8_t *a)
  *  parse a hex mac address
  */
 int
-parsemac(uint8_t *to, int8_t *from, int len)
+parsemac(uint8_t *to, char *from, int len)
 {
-	int8_t nip[4];
-	int8_t *p;
+	char nip[4];
+	char *p;
 	int i;
 
 	p = from;

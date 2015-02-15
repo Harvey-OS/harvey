@@ -641,8 +641,8 @@ nfsMount3ExportGroupSize(uint8_t *a)
 	return ng;
 }
 int
-nfsMount3ExportUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, int8_t **gp,
-		      int8_t ***pgp, NfsMount3Export *x)
+nfsMount3ExportUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, char **gp,
+		      char ***pgp, NfsMount3Export *x)
 {
 	int ng;
 	u1int u1;

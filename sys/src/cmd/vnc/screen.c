@@ -63,11 +63,11 @@ Cursor	arrow = {
 };
 
 void
-screeninit(int x, int y, int8_t *chanstr)
+screeninit(int x, int y, char *chanstr)
 {
 	Point p, q;
-	int8_t *greet;
-	int8_t buf[128];
+	char *greet;
+	char buf[128];
 	Memimage *grey;
 	Rectangle r;
 	int chan;
@@ -303,7 +303,7 @@ scroll(void)
 }
 
 static void
-screenputc(int8_t *buf)
+screenputc(char *buf)
 {
 	Point p;
 	int w, pos;
@@ -362,11 +362,11 @@ screenputc(int8_t *buf)
 }
 
 void
-screenputs(int8_t *s, int n)
+screenputs(char *s, int n)
 {
 	int i;
 	Rune r;
-	int8_t buf[4];
+	char buf[4];
 
 	drawlock();
 	while(n > 0){

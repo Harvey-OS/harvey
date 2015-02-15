@@ -25,7 +25,7 @@ static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
 	int i, id;
-	int8_t *p;
+	char *p;
 
 	/*
 	 * The Trio/ViRGE variants have some extra sequencer registers
@@ -213,7 +213,7 @@ options(Vga *vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	int8_t *p, *val;
+	char *p, *val;
 	Mode *mode;
 	uint32_t pclk, x;
 	int id, noclockset, width;

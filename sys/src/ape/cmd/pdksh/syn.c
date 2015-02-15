@@ -78,7 +78,7 @@ yyparse()
 	if (c == 0 && !outtree)
 		outtree = newtp(TEOF);
 	else if (c != '\n' && c != 0)
-		syntaxerr((int8_t *) 0);
+		syntaxerr((char *) 0);
 }
 
 static struct op *
@@ -91,7 +91,7 @@ pipeline(cf)
 	if (t != NULL) {
 		while (token(0) == '|') {
 			if ((p = get_command(CONTIN)) == NULL)
-				syntaxerr((int8_t *) 0);
+				syntaxerr((char *) 0);
 			if (tl == NULL)
 				t = tl = block(TPIPE, t, p, NOWORDS);
 			else
@@ -112,7 +112,7 @@ andor()
 	if (t != NULL) {
 		while ((c = token(0)) == LOGAND || c == LOGOR) {
 			if ((p = pipeline(CONTIN)) == NULL)
-				syntaxerr((int8_t *) 0);
+				syntaxerr((char *) 0);
 			t = block(c == LOGAND? TAND: TOR, t, p, NOWORDS);
 		}
 		REJECT;
@@ -188,7 +188,7 @@ musthave(c, cf)
 	int c, cf;
 {
 	if ((token(cf)) != c)
-		syntaxerr((int8_t *) 0);
+		syntaxerr((char *) 0);
 }
 
 static struct op *
@@ -273,7 +273,7 @@ get_command(cf)
 				/* Must be a function */
 				if (iopn != 0 || XPsize(args) != 1
 				    || XPsize(vars) != 0)
-					syntaxerr((int8_t *) 0);
+					syntaxerr((char *) 0);
 				ACCEPT;
 				/*(*/
 				musthave(')', 0);
@@ -299,7 +299,7 @@ get_command(cf)
 #ifdef KSH
 	  case MDPAREN:
 	  {
-		static const int8_t let_cmd[] = { CHAR, 'l', CHAR, 'e',
+		static const char let_cmd[] = { CHAR, 'l', CHAR, 'e',
 						CHAR, 't', EOS };
 		/* Leave KEYWORD in syniocf (allow if (( 1 )) then ...) */
 		t = newtp(TCOM);
@@ -377,7 +377,7 @@ get_command(cf)
 		syniocf &= ~(KEYWORD|ALIAS);
 		t = pipeline(0);
 		if (t == (struct op *) 0)
-			syntaxerr((int8_t *) 0);
+			syntaxerr((char *) 0);
 		t = block(TBANG, NOBLOCK, t, NOWORDS);
 		break;
 
@@ -411,9 +411,9 @@ get_command(cf)
 
 	if (t->type == TCOM || t->type == TDBRACKET) {
 		XPput(args, NULL);
-		t->args = (int8_t **) XPclose(args);
+		t->args = (char **) XPclose(args);
 		XPput(vars, NULL);
-		t->vars = (int8_t **) XPclose(vars);
+		t->vars = (char **) XPclose(vars);
 	} else {
 		XPfree(args);
 		XPfree(vars);
@@ -439,7 +439,7 @@ dogroup()
 	else if (c == '{')
 		c = '}';
 	else
-		syntaxerr((int8_t *) 0);
+		syntaxerr((char *) 0);
 	list = c_list(TRUE);
 	musthave(c, KEYWORD|ALIAS);
 	return list;
@@ -454,7 +454,7 @@ thenpart()
 	t = newtp(0);
 	t->left = c_list(TRUE);
 	if (t->left == NULL)
-		syntaxerr((int8_t *) 0);
+		syntaxerr((char *) 0);
 	t->right = elsepart();
 	return (t);
 }
@@ -467,7 +467,7 @@ elsepart()
 	switch (token(KEYWORD|ALIAS|VARASN)) {
 	  case ELSE:
 		if ((t = c_list(TRUE)) == NULL)
-			syntaxerr((int8_t *) 0);
+			syntaxerr((char *) 0);
 		return (t);
 
 	  case ELIF:
@@ -495,7 +495,7 @@ caselist()
 	else if (c == '{')
 		c = '}';
 	else
-		syntaxerr((int8_t *) 0);
+		syntaxerr((char *) 0);
 	t = tl = NULL;
 	while ((tpeek(CONTIN|KEYWORD|ESACONLY)) != c) { /* no ALIAS here */
 		struct op *tc = casepart(c);
@@ -527,7 +527,7 @@ casepart(endtok)
 	} while ((c = token(0)) == '|');
 	REJECT;
 	XPput(ptns, NULL);
-	t->vars = (int8_t **) XPclose(ptns);
+	t->vars = (char **) XPclose(ptns);
 	musthave(')', 0);
 
 	t->left = c_list(TRUE);
@@ -539,10 +539,10 @@ casepart(endtok)
 
 static struct op *
 function_body(name, ksh_func)
-	int8_t *name;
+	char *name;
 	int ksh_func;	/* function foo { ... } vs foo() { .. } */
 {
-	int8_t *sname, *p;
+	char *sname, *p;
 	struct op *t;
 	int old_func_parse;
 
@@ -582,14 +582,14 @@ function_body(name, ksh_func)
 		 * be used as input), we pretend there is a colon here.
 		 */
 		t->left = newtp(TCOM);
-		t->left->args = (int8_t **) alloc(sizeof(int8_t *) * 2, ATEMP);
-		t->left->args[0] = alloc(sizeof(int8_t) * 3, ATEMP);
+		t->left->args = (char **) alloc(sizeof(char *) * 2, ATEMP);
+		t->left->args[0] = alloc(sizeof(char) * 3, ATEMP);
 		t->left->args[0][0] = CHAR;
 		t->left->args[0][1] = ':';
 		t->left->args[0][2] = EOS;
-		t->left->args[1] = (int8_t *) 0;
-		t->left->vars = (int8_t **) alloc(sizeof(int8_t *), ATEMP);
-		t->left->vars[0] = (int8_t *) 0;
+		t->left->args[1] = (char *) 0;
+		t->left->vars = (char **) alloc(sizeof(char *), ATEMP);
+		t->left->vars[0] = (char *) 0;
 		t->left->lineno = 1;
 	}
 	if (!old_func_parse)
@@ -598,7 +598,7 @@ function_body(name, ksh_func)
 	return t;
 }
 
-static int8_t **
+static char **
 wordlist()
 {
 	register int c;
@@ -614,13 +614,13 @@ wordlist()
 	while ((c = token(0)) == LWORD)
 		XPput(args, yylval.cp);
 	if (c != '\n' && c != ';')
-		syntaxerr((int8_t *) 0);
+		syntaxerr((char *) 0);
 	if (XPsize(args) == 0) {
 		XPfree(args);
 		return NULL;
 	} else {
 		XPput(args, NULL);
-		return (int8_t **) XPclose(args);
+		return (char **) XPclose(args);
 	}
 }
 
@@ -632,7 +632,7 @@ static struct op *
 block(type, t1, t2, wp)
 	int type;
 	struct op *t1, *t2;
-	int8_t **wp;
+	char **wp;
 {
 	register struct op *t;
 
@@ -644,7 +644,7 @@ block(type, t1, t2, wp)
 }
 
 const	struct tokeninfo {
-	const int8_t *name;
+	const char *name;
 	int16_t	val;
 	int16_t	reserved;
 } tokentab[] = {
@@ -705,10 +705,10 @@ initkeywords()
 
 static void
 syntaxerr(what)
-	const int8_t *what;
+	const char *what;
 {
-	int8_t redir[6];	/* 2<<- is the longest redirection, I think */
-	const int8_t *s;
+	char redir[6];	/* 2<<- is the longest redirection, I think */
+	const char *s;
 	struct tokeninfo const *tt;
 	int c;
 
@@ -730,7 +730,7 @@ syntaxerr(what)
 		/*NOTREACHED*/
 
 	case LWORD:
-		s = snptreef((int8_t *) 0, 32, "%S", yylval.cp);
+		s = snptreef((char *) 0, 32, "%S", yylval.cp);
 		break;
 
 	case REDIR:
@@ -813,9 +813,9 @@ compile(s)
  */
 static int
 assign_command(s)
-	int8_t *s;
+	char *s;
 {
-	int8_t c = *s;
+	char c = *s;
 
 	if (Flag(FPOSIX) || !*s)
 		return 0;
@@ -843,18 +843,18 @@ inalias(s)
  * in normal shell input, so these can be interpreted unambiguously
  * in the evaluation pass.
  */
-static const int8_t dbtest_or[] = { CHAR, '|', CHAR, '|', EOS };
-static const int8_t dbtest_and[] = { CHAR, '&', CHAR, '&', EOS };
-static const int8_t dbtest_not[] = { CHAR, '!', EOS };
-static const int8_t dbtest_oparen[] = { CHAR, '(', EOS };
-static const int8_t dbtest_cparen[] = { CHAR, ')', EOS };
-const int8_t *const dbtest_tokens[] = {
+static const char dbtest_or[] = { CHAR, '|', CHAR, '|', EOS };
+static const char dbtest_and[] = { CHAR, '&', CHAR, '&', EOS };
+static const char dbtest_not[] = { CHAR, '!', EOS };
+static const char dbtest_oparen[] = { CHAR, '(', EOS };
+static const char dbtest_cparen[] = { CHAR, ')', EOS };
+const char *const dbtest_tokens[] = {
 			dbtest_or, dbtest_and, dbtest_not,
 			dbtest_oparen, dbtest_cparen
 		};
-const int8_t db_close[] = { CHAR, ']', CHAR, ']', EOS };
-const int8_t db_lthan[] = { CHAR, '<', EOS };
-const int8_t db_gthan[] = { CHAR, '>', EOS };
+const char db_close[] = { CHAR, ']', CHAR, ']', EOS };
+const char db_lthan[] = { CHAR, '<', EOS };
+const char db_gthan[] = { CHAR, '>', EOS };
 
 /* Test if the current token is a whatever.  Accepts the current token if
  * it is.  Returns 0 if it is not, non-zero if it is (in the case of
@@ -867,7 +867,7 @@ dbtestp_isa(te, meta)
 {
 	int c = tpeek(ARRAYVAR | (meta == TM_BINOP ? 0 : CONTIN));
 	int uqword = 0;
-	int8_t *save = (int8_t *) 0;
+	char *save = (char *) 0;
 	int ret = 0;
 
 	/* unquoted word? */
@@ -906,7 +906,7 @@ dbtestp_isa(te, meta)
 	return ret;
 }
 
-static const int8_t *
+static const char *
 dbtestp_getopnd(te, op, do_eval)
 	Test_env *te;
 	Test_op op;
@@ -915,7 +915,7 @@ dbtestp_getopnd(te, op, do_eval)
 	int c = tpeek(ARRAYVAR);
 
 	if (c != LWORD)
-		return (const int8_t *) 0;
+		return (const char *) 0;
 
 	ACCEPT;
 	XPput(*te->pos.av, yylval.cp);
@@ -927,8 +927,8 @@ static int
 dbtestp_eval(te, op, opnd1, opnd2, do_eval)
 	Test_env *te;
 	Test_op op;
-	const int8_t *opnd1;
-	const int8_t *opnd2;
+	const char *opnd1;
+	const char *opnd2;
 	int do_eval;
 {
 	return 1;
@@ -938,7 +938,7 @@ static void
 dbtestp_error(te, offset, msg)
 	Test_env *te;
 	int offset;
-	const int8_t *msg;
+	const char *msg;
 {
 	te->flags |= TEF_ERROR;
 

@@ -65,7 +65,7 @@ struct Ipifc
 
 	/* per ip interface */
 	int	index;			/* number of interface in ipifc dir */
-	int8_t	dev[64];
+	char	dev[64];
 	uint8_t	sendra6;		/* on == send router adv */
 	uint8_t	recvra6;		/* on == rcv router adv */
 	int	mtu;
@@ -169,17 +169,17 @@ uint8_t*	defmask(uint8_t*);
 void	maskip(uint8_t*, uint8_t*, uint8_t*);
 int	eipfmt(Fmt*);
 int	isv4(uint8_t*);
-int64_t	parseip(uint8_t*, int8_t*);
-int64_t	parseipmask(uint8_t*, int8_t*);
-int8_t*	v4parseip(uint8_t*, int8_t*);
-int8_t*	v4parsecidr(uint8_t*, uint8_t*, int8_t*);
-int	parseether(uint8_t*, int8_t*);
-int	myipaddr(uint8_t*, int8_t*);
-int	myetheraddr(uint8_t*, int8_t*);
+int64_t	parseip(uint8_t*, char*);
+int64_t	parseipmask(uint8_t*, char*);
+char*	v4parseip(uint8_t*, char*);
+char*	v4parsecidr(uint8_t*, uint8_t*, char*);
+int	parseether(uint8_t*, char*);
+int	myipaddr(uint8_t*, char*);
+int	myetheraddr(uint8_t*, char*);
 int	equivip4(uint8_t*, uint8_t*);
 int	equivip6(uint8_t*, uint8_t*);
 
-Ipifc*	readipifc(int8_t*, Ipifc*, int);
+Ipifc*	readipifc(char*, Ipifc*, int);
 
 void	hnputv(void*, uint64_t);
 void	hnputl(void*, uint);

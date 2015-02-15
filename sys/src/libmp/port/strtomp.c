@@ -25,15 +25,15 @@ enum {
 	INVAL=	255
 };
 
-static int8_t set64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-static int8_t set32[] = "23456789abcdefghijkmnpqrstuvwxyz";
-static int8_t set16[] = "0123456789ABCDEF0123456789abcdef";
-static int8_t set10[] = "0123456789";
+static char set64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static char set32[] = "23456789abcdefghijkmnpqrstuvwxyz";
+static char set16[] = "0123456789ABCDEF0123456789abcdef";
+static char set10[] = "0123456789";
 
 static void
 init(void)
 {
-	int8_t *p;
+	char *p;
 
 	memset(tab.t64, INVAL, sizeof(tab.t64));
 	memset(tab.t32, INVAL, sizeof(tab.t32));
@@ -52,10 +52,10 @@ init(void)
 	tab.inited = 1;
 }
 
-static int8_t*
-from16(int8_t *a, mpint *b)
+static char*
+from16(char *a, mpint *b)
 {
-	int8_t *p, *next;
+	char *p, *next;
 	int i;
 	mpdigit x;
 
@@ -82,8 +82,8 @@ static uint32_t mppow10[] = {
 	1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000
 };
 
-static int8_t*
-from10(int8_t *a, mpint *b)
+static char*
+from10(char *a, mpint *b)
 {
 	uint32_t x, y;
 	mpint *pow, *r;
@@ -120,10 +120,10 @@ from10(int8_t *a, mpint *b)
 	return a;
 }
 
-static int8_t*
-from64(int8_t *a, mpint *b)
+static char*
+from64(char *a, mpint *b)
 {
-	int8_t *buf = a;
+	char *buf = a;
 	uint8_t *p;
 	int n, m;
 
@@ -140,10 +140,10 @@ from64(int8_t *a, mpint *b)
 	return a;
 }
 
-static int8_t*
-from32(int8_t *a, mpint *b)
+static char*
+from32(char *a, mpint *b)
 {
-	int8_t *buf = a;
+	char *buf = a;
 	uint8_t *p;
 	int n, m;
 
@@ -164,10 +164,10 @@ from32(int8_t *a, mpint *b)
 }
 
 mpint*
-strtomp(int8_t *a, int8_t **pp, int base, mpint *b)
+strtomp(char *a, char **pp, int base, mpint *b)
 {
 	int sign;
-	int8_t *e;
+	char *e;
 
 	if(b == nil)
 		b = mpnew(0);

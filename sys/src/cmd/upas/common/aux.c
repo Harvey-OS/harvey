@@ -11,7 +11,7 @@
 
 /* expand a path relative to some `.' */
 extern String *
-abspath(int8_t *path, int8_t *dot, String *to)
+abspath(char *path, char *dot, String *to)
 {
 	if (*path == '/') {
 		to = s_append(to, path);
@@ -24,10 +24,10 @@ abspath(int8_t *path, int8_t *dot, String *to)
 }
 
 /* return a pointer to the base component of a pathname */
-extern int8_t *
-basename(int8_t *path)
+extern char *
+basename(char *path)
 {
-	int8_t *cp;
+	char *cp;
 
 	cp = strrchr(path, '/');
 	return cp==0 ? path : cp+1;
@@ -37,7 +37,7 @@ basename(int8_t *path)
 extern void
 append_match(Resub *subexp, String *sp, int se)
 {
-	int8_t *cp, *ep;
+	char *cp, *ep;
 
 	cp = subexp[se].sp;
 	ep = subexp[se].ep;
@@ -49,12 +49,12 @@ append_match(Resub *subexp, String *sp, int se)
 /*
  *  check for shell characters in a String
  */
-static int8_t *illegalchars = "\r\n";
+static char *illegalchars = "\r\n";
 
 extern int
-shellchars(int8_t *cp)
+shellchars(char *cp)
 {
-	int8_t *sp;
+	char *sp;
 
 	for(sp=illegalchars; *sp; sp++)
 		if(strchr(cp, *sp))
@@ -62,8 +62,8 @@ shellchars(int8_t *cp)
 	return 0;
 }
 
-static int8_t *specialchars = " ()<>{};=\\'\`^&|";
-static int8_t *escape = "%%";
+static char *specialchars = " ()<>{};=\\'\`^&|";
+static char *escape = "%%";
 
 int
 hexchar(int x)
@@ -82,7 +82,7 @@ extern String*
 escapespecial(String *s)
 {
 	String *ns;
-	int8_t *sp;
+	char *sp;
 
 	for(sp = specialchars; *sp; sp++)
 		if(strchr(s_to_c(s), *sp))
@@ -105,7 +105,7 @@ escapespecial(String *s)
 }
 
 int
-hex2uint(int8_t x)
+hex2uint(char x)
 {
 	if(x >= '0' && x <= '9')
 		return x - '0';
@@ -124,7 +124,7 @@ unescapespecial(String *s)
 {
 	int c;
 	String *ns;
-	int8_t *sp;
+	char *sp;
 	uint n;
 
 	if(strstr(s_to_c(s), escape) == 0)
@@ -151,7 +151,7 @@ unescapespecial(String *s)
 }
 
 int
-returnable(int8_t *path)
+returnable(char *path)
 {
 
 	return strcmp(path, "/dev/null") != 0;

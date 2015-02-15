@@ -32,7 +32,7 @@
  *
  */
  
-static int filemetaflush(VacFile*, int8_t*);
+static int filemetaflush(VacFile*, char*);
 
 struct VacFile
 {
@@ -282,7 +282,7 @@ VacFile*
 _vacfileroot(VacFs *fs, VtFile *r)
 {
 	int redirected;
-	int8_t err[ERRMAX];	
+	char err[ERRMAX];	
 	VtBlock *b;
 	VtFile *r0, *r1, *r2;
 	MetaBlock mb;
@@ -390,7 +390,7 @@ Err1:
  * f must be locked, f->msource must not.
  */
 static VacFile*
-dirlookup(VacFile *f, int8_t *elem)
+dirlookup(VacFile *f, char *elem)
 {
 	int i;
 	MetaBlock mb;
@@ -476,7 +476,7 @@ vacfilegetparent(VacFile *f)
  * Interprets . and .. as a convenience to callers.
  */
 VacFile*
-vacfilewalk(VacFile *f, int8_t *elem)
+vacfilewalk(VacFile *f, char *elem)
 {
 	VacFile *ff;
 
@@ -550,10 +550,10 @@ Err:
  * just walk each element one at a time.
  */
 VacFile*
-vacfileopen(VacFs *fs, int8_t *path)
+vacfileopen(VacFs *fs, char *path)
 {
 	VacFile *f, *ff;
-	int8_t *p, elem[VtMaxStringSize], *opath;
+	char *p, elem[VtMaxStringSize], *opath;
 	int n;
 
 	f = fs->root;
@@ -1032,7 +1032,7 @@ Err:
  * Assumes caller has filemetalock'ed f.
  */
 static int
-filemetaflush(VacFile *f, int8_t *oelem)
+filemetaflush(VacFile *f, char *oelem)
 {
 	int i, n;
 	MetaBlock mb;
@@ -1249,7 +1249,7 @@ vacfileflush(VacFile *f, int recursive)
  * The mode can be changed later except for the ModeDir bit.
  */
 VacFile*
-vacfilecreate(VacFile *fp, int8_t *elem, uint32_t mode)
+vacfilecreate(VacFile *fp, char *elem, uint32_t mode)
 {
 	VacFile *ff;
 	VacDir *dir;
@@ -1531,7 +1531,7 @@ int
 vacfilesetdir(VacFile *f, VacDir *dir)
 {
 	VacFile *ff;
-	int8_t *oelem;
+	char *oelem;
 	uint32_t mask;
 	uint64_t size;
 
@@ -1742,7 +1742,7 @@ Err1:
 /*
  * Vac file system format.
  */
-static int8_t EBadVacFormat[] = "bad format for vac file";
+static char EBadVacFormat[] = "bad format for vac file";
 
 static VacFs *
 vacfsalloc(VtConn *z, int bsize, int ncache, int mode)
@@ -1760,7 +1760,7 @@ vacfsalloc(VtConn *z, int bsize, int ncache, int mode)
 static int
 readscore(int fd, uint8_t score[VtScoreSize])
 {
-	int8_t buf[45], *pref;
+	char buf[45], *pref;
 	int n;
 
 	n = readn(fd, buf, sizeof(buf)-1);
@@ -1782,11 +1782,11 @@ readscore(int fd, uint8_t score[VtScoreSize])
 }
 
 VacFs*
-vacfsopen(VtConn *z, int8_t *file, int mode, int ncache)
+vacfsopen(VtConn *z, char *file, int mode, int ncache)
 {
 	int fd;
 	uint8_t score[VtScoreSize];
-	int8_t *prefix;
+	char *prefix;
 	
 	if(vtparsescore(file, &prefix, score) >= 0){
 		if(prefix == nil || strcmp(prefix, "vac") != 0){

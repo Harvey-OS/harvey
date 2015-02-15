@@ -27,9 +27,9 @@ pmem(Pkt *p, void *v, int len)
 }
 
 void *
-ppath(Pkt *p, int8_t *str)
+ppath(Pkt *p, char *str)
 {
-	int8_t c;
+	char c;
 	Rune r;
 	void *s = p->pos;
 
@@ -58,7 +58,7 @@ ppath(Pkt *p, int8_t *str)
 }
 
 void *
-pstr(Pkt *p, int8_t *str)
+pstr(Pkt *p, char *str)
 {
 	void *s = p->pos;
 	Rune r;
@@ -83,7 +83,7 @@ pstr(Pkt *p, int8_t *str)
 }
 
 void *
-pascii(Pkt *p, int8_t *str)
+pascii(Pkt *p, char *str)
 {
 	void *s = p->pos;
 
@@ -167,10 +167,10 @@ p8(Pkt *p, uint n)
  * Encode a Netbios name
  */
 void *
-pname(Pkt *p, int8_t *name, int8_t pad)
+pname(Pkt *p, char *name, char pad)
 {
 	int i, done = 0;
-	int8_t c;
+	char c;
 	void *s = p->pos;
 
 	*p->pos++ = ' ';
@@ -239,7 +239,7 @@ gmem(Pkt *p, void *v, int n)
  * of the output buffer but this is not so in Unicode mode!
  */
 void
-gstr(Pkt *p, int8_t *str, int n)
+gstr(Pkt *p, char *str, int n)
 {
 	int i;
 	Rune r;
@@ -276,7 +276,7 @@ gstr(Pkt *p, int8_t *str, int n)
 }
 
 void
-gascii(Pkt *p, int8_t *str, int n)
+gascii(Pkt *p, char *str, int n)
 {
 	if(!n || !str)
 		return;
@@ -437,7 +437,7 @@ gvtime(Pkt *p)
 }
 
 void
-gconv(Pkt *p, int conv, int8_t *str, int n)
+gconv(Pkt *p, int conv, char *str, int n)
 {
 	int off;
 	uint8_t *pos;
@@ -455,7 +455,7 @@ gconv(Pkt *p, int conv, int8_t *str, int n)
 }
 
 void
-goff(Pkt *p, uint8_t *base, int8_t *str, int n)
+goff(Pkt *p, uint8_t *base, char *str, int n)
 {
 	int off;
 	uint8_t *pos;

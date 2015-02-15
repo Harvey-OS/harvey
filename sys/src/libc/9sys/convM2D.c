@@ -36,13 +36,13 @@ statcheck(uint8_t *buf, uint nbuf)
 	return 0;
 }
 
-static int8_t nullstring[] = "";
+static char nullstring[] = "";
 
 uint
-convM2D(uint8_t *buf, uint nbuf, Dir *d, int8_t *strs)
+convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 {
 	uint8_t *p, *ebuf;
-	int8_t *sv[4];
+	char *sv[4];
 	int i, ns;
 
 	if(nbuf < STATFIXLEN)

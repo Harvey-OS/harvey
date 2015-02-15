@@ -23,7 +23,7 @@ enum{// PW status bits
 	STA 		= (1<<1),	// extra SecurID step
 };
 
-static int8_t testmess[] = "__secstore\tPAK\nC=%s\nm=0\n";
+static char testmess[] = "__secstore\tPAK\nC=%s\nm=0\n";
 
 int
 havesecstore(void)
@@ -31,7 +31,7 @@ havesecstore(void)
 	int m, n, fd;
 	uint8_t buf[500];
 
-	n = snprint((int8_t*)buf, sizeof buf, testmess, owner);
+	n = snprint((char*)buf, sizeof buf, testmess, owner);
 	hnputs(buf, 0x8000+n-2);
 
 	fd = secdial();
@@ -55,11 +55,11 @@ havesecstore(void)
 		return 0;
 	}
 	buf[n] = 0;
-	if(strcmp((int8_t*)buf, "!account expired") == 0){
+	if(strcmp((char*)buf, "!account expired") == 0){
 		werrstr("account expired");
 		return 0;
 	}
-	return strcmp((int8_t*)buf, "!account exists") == 0;
+	return strcmp((char*)buf, "!account exists") == 0;
 }
 
 // delimited, authenticated, encrypted connection
@@ -81,8 +81,8 @@ struct SConn{
 
 // error convention: write !message in-band
 #define readstr secstore_readstr
-static void writerr(SConn*, int8_t*);
-static int readstr(SConn*, int8_t*);  // call with buf of size Maxmsg+1
+static void writerr(SConn*, char*);
+static int readstr(SConn*, char*);  // call with buf of size Maxmsg+1
 	// returns -1 upon error, with error message in buf
 
 typedef struct ConnState {
@@ -270,16 +270,16 @@ newSConn(int fd)
 }
 
 static void
-writerr(SConn *conn, int8_t *s)
+writerr(SConn *conn, char *s)
 {
-	int8_t buf[Maxmsg];
+	char buf[Maxmsg];
 
 	snprint(buf, Maxmsg, "!%s", s);
 	conn->write(conn, (uint8_t*)buf, strlen(buf));
 }
 
 static int
-readstr(SConn *conn, int8_t *s)
+readstr(SConn *conn, char *s)
 {
 	int n;
 
@@ -299,9 +299,9 @@ readstr(SConn *conn, int8_t *s)
 static int
 getfile(SConn *conn, uint8_t *key, int nkey)
 {
-	int8_t *buf;
+	char *buf;
 	int nbuf, n, nr, len;
-	int8_t s[Maxmsg+1], *gf, *p, *q;
+	char s[Maxmsg+1], *gf, *p, *q;
 	uint8_t skey[SHA1dlen], ib[Maxmsg+CHK], *ibr, *ibw;
 	AESstate aes;
 	DigestState *sha;
@@ -385,7 +385,7 @@ getfile(SConn *conn, uint8_t *key, int nkey)
 	return 0;
 }
 
-static int8_t VERSION[] = "secstore";
+static char VERSION[] = "secstore";
 
 typedef struct PAKparams{
 	mpint *q, *p, *r, *g;
@@ -418,7 +418,7 @@ initPAKparams(void)
 // H = (sha(ver,C,sha(passphrase)))^r mod p,
 // a hash function expensive to attack by brute force.
 static void
-longhash(int8_t *ver, int8_t *C, uint8_t *passwd, mpint *H)
+longhash(char *ver, char *C, uint8_t *passwd, mpint *H)
 {
 	uint8_t *Cp;
 	int i, n, nver, nC;
@@ -443,8 +443,8 @@ longhash(int8_t *ver, int8_t *C, uint8_t *passwd, mpint *H)
 }
 
 // Hi = H^-1 mod p
-static int8_t *
-PAK_Hi(int8_t *C, int8_t *passphrase, mpint *H, mpint *Hi)
+static char *
+PAK_Hi(char *C, char *passphrase, mpint *H, mpint *Hi)
 {
 	uint8_t passhash[SHA1dlen];
 
@@ -458,8 +458,8 @@ PAK_Hi(int8_t *C, int8_t *passphrase, mpint *H, mpint *Hi)
 // another, faster, hash function for each party to
 // confirm that the other has the right secrets.
 static void
-shorthash(int8_t *mess, int8_t *C, int8_t *S, int8_t *m, int8_t *mu,
-	  int8_t *sigma, int8_t *Hi,
+shorthash(char *mess, char *C, char *S, char *m, char *mu,
+	  char *sigma, char *Hi,
 	  uint8_t *digest)
 {
 	SHA1state *state;
@@ -487,10 +487,10 @@ shorthash(int8_t *mess, int8_t *C, int8_t *S, int8_t *m, int8_t *mu,
 //	(unless return code is negative, which means failure).
 //    If pS is not nil, it is set to the (alloc'd) name the server calls itself.
 static int
-PAKclient(SConn *conn, int8_t *C, int8_t *pass, int8_t **pS)
+PAKclient(SConn *conn, char *C, char *pass, char **pS)
 {
-	int8_t *mess, *mess2, *eol, *S, *hexmu, *ks, *hexm, *hexsigma = nil, *hexHi;
-	int8_t kc[2*SHA1dlen+1];
+	char *mess, *mess2, *eol, *S, *hexmu, *ks, *hexm, *hexsigma = nil, *hexHi;
+	char kc[2*SHA1dlen+1];
 	uint8_t digest[SHA1dlen];
 	int rc = -1, n;
 	mpint *x, *m = mpnew(0), *mu = mpnew(0), *sigma = mpnew(0);
@@ -507,7 +507,7 @@ PAKclient(SConn *conn, int8_t *C, int8_t *pass, int8_t **pS)
 	mpmul(m, H, m);
 	mpmod(m, pak->p, m);
 	hexm = mptoa(m, 64, nil, 0);
-	mess = (int8_t*)emalloc(2*Maxmsg+2);
+	mess = (char*)emalloc(2*Maxmsg+2);
 	mess2 = mess+Maxmsg+1;
 	snprint(mess, Maxmsg, "%s\tPAK\nC=%s\nm=%s\n", VERSION, C, hexm);
 	conn->write(conn, (uint8_t*)mess, strlen(mess));
@@ -583,12 +583,12 @@ done:
 }
 
 int
-secstorefetch(int8_t *password)
+secstorefetch(char *password)
 {
 	int rv = -1, fd;
-	int8_t s[Maxmsg+1];
+	char s[Maxmsg+1];
 	SConn *conn;
-	int8_t *pass, *sta;
+	char *pass, *sta;
 
 	sta = nil;
 	conn = nil;

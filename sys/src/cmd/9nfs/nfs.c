@@ -14,14 +14,14 @@ extern uint8_t buf[];
 Xfid *
 rpc2xfid(Rpccall *cmd, Dir *dp)
 {
-	int8_t *argptr = cmd->args;
+	char *argptr = cmd->args;
 	Xfile *xp;
 	Xfid *xf;
 	Session *s;
-	int8_t *service;
+	char *service;
 	Authunix au;
 	Qid qid;
-	int8_t client[256], *user;
+	char client[256], *user;
 	Unixidmap *m;
 	int i;
 	uint64_t x1, x2;
@@ -65,7 +65,7 @@ rpc2xfid(Rpccall *cmd, Dir *dp)
  *			chat(", %d", au.gids[i]);
  *		chat("...");
  */
-		int8_t *p = memchr(au.mach.s, '.', au.mach.n);
+		char *p = memchr(au.mach.s, '.', au.mach.n);
 		chat("%ld@%.*s...", au.uid, utfnlen(au.mach.s, (p ? p-au.mach.s : au.mach.n)), au.mach.s);
 	}
 	if(au.mach.n >= sizeof client){
@@ -111,7 +111,7 @@ rpc2xfid(Rpccall *cmd, Dir *dp)
 }
 
 Xfid *
-setuser(Xfile *xp, int8_t *user)
+setuser(Xfile *xp, char *user)
 {
 	Xfid *xf, *xpf;
 	Session *s;
@@ -138,7 +138,7 @@ xfstat(Xfid *xf, Dir *dp)
 {
 	Xfile *xp;
 	Session *s;
-	int8_t buf[128];
+	char buf[128];
 
 	xp = xf->xp;
 	s = xp->s;
@@ -161,7 +161,7 @@ xfstat(Xfid *xf, Dir *dp)
 	}
 	setfid(s, xf->urfid);
 	if(xmesg(s, Tstat) == 0){
-		convM2D(s->f.stat, s->f.nstat, dp, (int8_t*)s->statbuf);
+		convM2D(s->f.stat, s->f.nstat, dp, (char*)s->statbuf);
 		if(xp->qid.path == dp->qid.path){
 			xp->name = strstore(dp->name);
 			return 0;

@@ -17,11 +17,11 @@
 
 static	int	checkmouse(void);
 static	int	buttondown(void);
-static	int8_t	*getmousestr(void);
-static	int8_t	*getkbdstr(int);
+static	char	*getmousestr(void);
+static	char	*getkbdstr(int);
 
 extern	Cursor	blot;
-extern	int8_t	*track;
+extern	char	*track;
 
 Mouse	mouse;
 
@@ -42,9 +42,9 @@ clearscreen(void)
 }
 
 void
-screenprint(int8_t *fmt, ...)
+screenprint(char *fmt, ...)
 {
-	int8_t buf[100];
+	char buf[100];
 	Point p;
 	va_list args;
 
@@ -57,7 +57,7 @@ screenprint(int8_t *fmt, ...)
 
 #define	Viewkey	0xb2
 
-int8_t *
+char *
 getcmdstr(void)
 {
 	Event ev;
@@ -98,11 +98,11 @@ getcmdstr(void)
 	}
 }
 
-static int8_t *
+static char *
 getkbdstr(int c0)
 {
-	static int8_t buf[100];
-	int8_t *p;
+	static char buf[100];
+	char *p;
 	int c;
 
 	if (c0 == '\n')
@@ -154,8 +154,8 @@ int waitup(void)
 	return mouse.buttons & 7;
 }
 
-int8_t *m3[]	= { "next", "prev", "page n", "again", "bigger", "smaller", "pan", "quit?", 0 };
-int8_t *m2[]	= { 0 };
+char *m3[]	= { "next", "prev", "page n", "again", "bigger", "smaller", "pan", "quit?", 0 };
+char *m2[]	= { 0 };
 
 enum { Next = 0, Prev, Page, Again, Bigger, Smaller, Pan, Quit };
 
@@ -165,7 +165,7 @@ Menu	mbut2	= { m2, 0, 0 };
 int	last_hit;
 int	last_but;
 
-int8_t *pan(void)
+char *pan(void)
 {
 	Point dd, xy, lastxy, min, max;
 
@@ -201,10 +201,10 @@ int8_t *pan(void)
 	return "p";
 }
 
-static int8_t *
+static char *
 getmousestr(void)
 {
-	static int8_t buf[64];
+	static char buf[64];
 
 	checkmouse();
 	if (last_but == 1)
@@ -244,7 +244,7 @@ static int
 checkmouse(void)	/* return button touched if any */
 {
 	int c, b;
-	int8_t *p;
+	char *p;
 	extern int confirm(int);
 
 	b = waitdown();

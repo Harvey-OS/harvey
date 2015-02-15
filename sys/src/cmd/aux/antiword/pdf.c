@@ -34,7 +34,7 @@
 /* The character set */
 static encoding_type	eEncoding = encoding_neutral;
 /* Current creator for a PDF header */
-static const int8_t	*szProducer = NULL;
+static const char	*szProducer = NULL;
 /* The height and width of a PDF page (in DrawUnits) */
 static int32_t		lPageHeight = LONG_MAX;
 static int32_t		lPageWidth = LONG_MAX;
@@ -72,8 +72,8 @@ static int		iObjectNumberCurr = 17;
 static void		vMoveTo(diagram_type *, int32_t);
 
 static const struct {
-	const int8_t	*szPDFname;
-	const int8_t	*szPSname;
+	const char	*szPDFname;
+	const char	*szPSname;
 } atFontname[] = {
 	{ "Courier",			FONT_MONOSPACED_PLAIN },
 	{ "Courier-Bold",		FONT_MONOSPACED_BOLD },
@@ -89,7 +89,7 @@ static const struct {
 	{ "Times-BoldItalic",		FONT_SERIF_BOLDITALIC },
 };
 
-static const int8_t *iso_8859_1[] = {
+static const char *iso_8859_1[] = {
 "128 /Euro",
 "140 /ellipsis /trademark /perthousand /bullet",
 "    /quoteleft /quoteright /guilsinglleft /guilsinglright",
@@ -115,7 +115,7 @@ static const int8_t *iso_8859_1[] = {
 "    /ucircumflex /udieresis /yacute /thorn /ydieresis",
 };
 
-static const int8_t *iso_8859_2[] = {
+static const char *iso_8859_2[] = {
 "160 /space /Aogonek /breve /Lslash /currency /Lcaron",
 "    /Sacute /section /dieresis /Scaron /Scommaaccent",
 "    /Tcaron /Zacute /hyphen /Zcaron /Zdotaccent /degree",
@@ -144,7 +144,7 @@ static const int8_t *iso_8859_2[] = {
 static size_t
 tGetFontIndex(drawfile_fontref tFontRef)
 {
-	const int8_t	*szFontname;
+	const char	*szFontname;
 	size_t		tIndex;
 
 	/* Get the font name */
@@ -218,7 +218,7 @@ vFillNextPageObject(void)
  * called with arguments like fprintf(3)
  */
 static void
-vFPprintf(FILE *pOutFile, const int8_t *szFormat, ...)
+vFPprintf(FILE *pOutFile, const char *szFormat, ...)
 {
 	va_list	tArg;
 
@@ -234,8 +234,8 @@ void
 vCreateInfoDictionary(diagram_type *pDiag, int iWordVersion)
 {
 	FILE	*pOutFile;
-	const int8_t	*szTitle, *szAuthor, *szSubject, *szCreator;
-	const int8_t	*szCreationDate, *szModDate;
+	const char	*szTitle, *szAuthor, *szSubject, *szCreator;
+	const char	*szCreationDate, *szModDate;
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -559,7 +559,7 @@ vMoveTo(diagram_type *pDiag, int32_t lLastVerticalMovement)
  */
 void
 vProloguePDF(diagram_type *pDiag,
-	const int8_t *szTask, const options_type *pOptions)
+	const char *szTask, const options_type *pOptions)
 {
 	FILE	*pOutFile;
 
@@ -985,7 +985,7 @@ vAddFontsPDF(diagram_type *pDiag)
  * vPrintPDF - print a PDF string
  */
 static void
-vPrintPDF(FILE *pFile, const int8_t *szString, size_t tStringLength,
+vPrintPDF(FILE *pFile, const char *szString, size_t tStringLength,
 	USHORT usFontstyle)
 {
 	const UCHAR	*aucBytes;
@@ -1080,7 +1080,7 @@ vMove2NextLinePDF(diagram_type *pDiag, USHORT usFontSize)
  */
 void
 vSubstringPDF(diagram_type *pDiag,
-	int8_t *szString, size_t tStringLength, int32_t lStringWidth,
+	char *szString, size_t tStringLength, int32_t lStringWidth,
 	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
 	USHORT usFontSize, USHORT usMaxFontSize)
 {

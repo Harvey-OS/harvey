@@ -23,32 +23,32 @@
 #define TNAMSIZ	100
 
 union hblock {
-	int8_t dummy[TBLOCK];
-	int8_t tbuf[Maxbuf];
+	char dummy[TBLOCK];
+	char tbuf[Maxbuf];
 	struct header {
-		int8_t magic[6];
-		int8_t dev[6];
-		int8_t ino[6];
-		int8_t mode[6];
-		int8_t uid[6];
-		int8_t gid[6];
-		int8_t nlink[6];
-		int8_t rdev[6];
-		int8_t mtime[11];
-		int8_t namesize[6];
-		int8_t size[11];
+		char magic[6];
+		char dev[6];
+		char ino[6];
+		char mode[6];
+		char uid[6];
+		char gid[6];
+		char nlink[6];
+		char rdev[6];
+		char mtime[11];
+		char namesize[6];
+		char size[11];
 	} dbuf;
 	struct hname {
 		struct	header x;
-		int8_t	name[1];
+		char	name[1];
 	} nbuf;
 } dblock;
 
 int	tapefile;
-int64_t	getoct(int8_t*, int);
+int64_t	getoct(char*, int);
 
 void
-populate(int8_t *name)
+populate(char *name)
 {
 	int64_t offset;
 	int32_t isabs, magic, namesize, mode;
@@ -60,7 +60,7 @@ populate(int8_t *name)
 	replete = 1;
 	for (offset = 0;;) {
 		seek(tapefile, offset, 0);
-		if (read(tapefile, (int8_t *)&dblock.dbuf, TBLOCK)<TBLOCK)
+		if (read(tapefile, (char *)&dblock.dbuf, TBLOCK)<TBLOCK)
 			break;
 		magic = getoct(dblock.dbuf.magic, sizeof(dblock.dbuf.magic));
 		if (magic != 070707){
@@ -95,7 +95,7 @@ populate(int8_t *name)
 }
 
 int64_t
-getoct(int8_t *p, int l)
+getoct(char *p, int l)
 {
 	int64_t r;
 
@@ -118,7 +118,7 @@ docreate(Ram *r)
 	USED(r);
 }
 
-int8_t *
+char *
 doread(Ram *r, int64_t off, int32_t cnt)
 {
 	seek(tapefile, r->addr+off, 0);
@@ -135,7 +135,7 @@ popdir(Ram *r)
 }
 
 void
-dowrite(Ram *r, int8_t *buf, int32_t off, int32_t cnt)
+dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }

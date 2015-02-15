@@ -21,7 +21,7 @@ pid_t
 getpgrp(void)
 {
 	int n, f, pid;
-	int8_t pgrpbuf[15], fname[30];
+	char pgrpbuf[15], fname[30];
 
 	pid = getpid();
 	sprintf(fname, "/proc/%d/noteid", pid);

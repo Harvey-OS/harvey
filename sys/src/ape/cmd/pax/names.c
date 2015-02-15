@@ -48,8 +48,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: names.c,v 1.2 89/02/12 10:05:05 mark Exp $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: names.c,v 1.2 89/02/12 10:05:05 mark Exp $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -67,11 +67,11 @@ static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights rese
 /* Internal Identifiers */
 
 static int      saveuid = -993;
-static int8_t     saveuname[TUNMLEN];
+static char     saveuname[TUNMLEN];
 static int      my_uid = -993;
 
 static int      savegid = -993;
-static int8_t     savegname[TGNMLEN];
+static char     savegname[TGNMLEN];
 static int      my_gid = -993;
 
 
@@ -101,7 +101,7 @@ static int      my_gid = -993;
 
 #ifdef __STDC__
 
-int8_t *finduname(int uuid)
+char *finduname(int uuid)
 
 #else
     
@@ -145,7 +145,7 @@ int             uuid;
 
 #ifdef __STDC__
 
-int finduid(int8_t *uname)
+int finduid(char *uname)
 
 #else
     
@@ -190,7 +190,7 @@ char            *uname;
 
 #ifdef __STDC__
 
-int8_t *findgname(int ggid)
+char *findgname(int ggid)
 
 #else
     
@@ -238,7 +238,7 @@ int             ggid;
 
 #ifdef __STDC__
 
-int findgid(int8_t *gname)
+int findgid(char *gname)
 
 #else
     

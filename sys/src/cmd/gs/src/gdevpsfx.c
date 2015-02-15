@@ -139,7 +139,7 @@ type1_stem1(gs_type1_state *pcis, cv_stem_hint_table *psht, const fixed *pv,
     }
     if (top > bot && v0 == top[-1].v0 && v1 == top[-1].v1) {
 	/* Duplicate hint, don't add it. */
-	memmove(top, top + 1, (int8_t *)orig_top - (int8_t *)top);
+	memmove(top, top + 1, (char *)orig_top - (char *)top);
 	if (active_hints) {
 	    uint index = top[-1].index;
 

@@ -165,7 +165,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	uint32_t grade;
-	int8_t *p;
+	char *p;
 
 	/*
 	 * Work out the part speed-grade from name. Name can have,

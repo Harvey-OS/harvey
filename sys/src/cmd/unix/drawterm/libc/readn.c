@@ -13,7 +13,7 @@
 int32_t
 readn(int f, void *av, int32_t n)
 {
-	int8_t *a;
+	char *a;
 	int32_t m, t;
 
 	a = av;

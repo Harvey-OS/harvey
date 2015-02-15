@@ -9,7 +9,7 @@
 
 #include "gc.h"
 
-static	int8_t	resvreg[nelem(reg)];
+static	char	resvreg[nelem(reg)];
 
 void
 ginit(void)

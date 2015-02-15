@@ -12,7 +12,7 @@
 #include <bio.h>
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	Biobuf bin, bout;
 	int32_t len, slen;

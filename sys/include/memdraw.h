@@ -85,10 +85,10 @@ struct Memcmap
 
 struct	Memsubfont
 {
-	int8_t		*name;
+	char		*name;
 	int16_t	n;		/* number of chars in font */
 	uint8_t	height;		/* height of bitmap */
-	int8_t	ascent;		/* top of bitmap to baseline */
+	char	ascent;		/* top of bitmap to baseline */
 	Fontchar *info;		/* n+1 character descriptors */
 	Memimage	*bits;		/* of font */
 };
@@ -153,7 +153,7 @@ extern int	hwdraw(Memdrawparam*);
 extern void	memimageline(Memimage*, Point, Point, int, int, int, Memimage*, Point, int);
 extern void	_memimageline(Memimage*, Point, Point, int, int, int, Memimage*, Point, Rectangle, int);
 extern Point	memimagestring(Memimage*, Point, Memimage*, Point, Memsubfont*,
-				   int8_t*);
+				   char*);
 extern void	memellipse(Memimage*, Point, int, int, int, Memimage*, Point, int);
 extern void	memarc(Memimage*, Point, int, int, int, Memimage*, Point, int, int, int);
 extern Rectangle	memlinebbox(Point, Point, int, int, int);
@@ -164,11 +164,11 @@ extern void	memimageinit(void);
 /*
  * Subfont management
  */
-extern Memsubfont*	allocmemsubfont(int8_t*, int, int, int,
+extern Memsubfont*	allocmemsubfont(char*, int, int, int,
 					  Fontchar*, Memimage*);
-extern Memsubfont*	openmemsubfont(int8_t*);
+extern Memsubfont*	openmemsubfont(char*);
 extern void	freememsubfont(Memsubfont*);
-extern Point	memsubfontwidth(Memsubfont*, int8_t*);
+extern Point	memsubfontwidth(Memsubfont*, char*);
 extern Memsubfont*	getmemdefont(void);
 
 /*
@@ -189,7 +189,7 @@ void		memimagemove(void*, void*);
  * Kernel cruft
  */
 extern void	rdb(void);
-extern int		iprint(int8_t*, ...);
+extern int		iprint(char*, ...);
 #pragma varargck argpos iprint 1
 extern int		drawdebug;
 

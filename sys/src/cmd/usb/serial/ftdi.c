@@ -540,10 +540,10 @@ ftgettype(Serial *ser)
 }
 
 int
-ftmatch(Serial *ser, int8_t *info)
+ftmatch(Serial *ser, char *info)
 {
 	Cinfo *ip;
-	int8_t buf[50];
+	char buf[50];
 
 	for(ip = ftinfo; ip->vid != 0; ip++){
 		snprint(buf, sizeof buf, "vid %#06x did %#06x", ip->vid, ip->did);
@@ -696,7 +696,7 @@ static void
 epreader(void *u)
 {
 	int dfd, rcount, cl, ntries, recov;
-	int8_t err[40];
+	char err[40];
 	Areader *a;
 	Channel *c;
 	Packser *pk;
@@ -942,7 +942,7 @@ ftsendlines(Serialport *p)
 static int
 ftseteps(Serialport *p)
 {
-	int8_t *s;
+	char *s;
 	Serial *ser;
 
 	ser = p->s;

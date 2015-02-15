@@ -20,7 +20,7 @@
  * O_NOCTTY has no effect
  */
 int
-open(const int8_t *path, int flags, ...)
+open(const char *path, int flags, ...)
 {
 	int n;
 	int32_t f;

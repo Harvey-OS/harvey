@@ -61,11 +61,11 @@ struct GREpriv
 
 static void grekick(void *x, Block *bp);
 
-static int8_t*
-greconnect(Conv *c, int8_t **argv, int argc)
+static char*
+greconnect(Conv *c, char **argv, int argc)
 {
 	Proto *p;
-	int8_t *err;
+	char *err;
 	Conv *tc, **cp, **ecp;
 
 	err = Fsstdconnect(c, argv, argc);
@@ -106,14 +106,14 @@ grecreate(Conv *c)
 }
 
 static int
-grestate(Conv *c, int8_t *state, int n)
+grestate(Conv *c, char *state, int n)
 {
 	USED(c);
 	return snprint(state, n, "%s\n", "Datagram");
 }
 
-static int8_t*
-greannounce(Conv*, int8_t**, int)
+static char*
+greannounce(Conv*, char**, int)
 {
 	return "pktifc does not support announce";
 }
@@ -237,7 +237,7 @@ greiput(Proto *gre, Ipifc*, Block *bp)
 }
 
 int
-grestats(Proto *gre, int8_t *buf, int len)
+grestats(Proto *gre, char *buf, int len)
 {
 	GREpriv *gpriv;
 
@@ -246,8 +246,8 @@ grestats(Proto *gre, int8_t *buf, int len)
 	return snprint(buf, len, "gre: len %lud\n", gpriv->lenerr);
 }
 
-int8_t*
-grectl(Conv *c, int8_t **f, int n)
+char*
+grectl(Conv *c, char **f, int n)
 {
 	GREpriv *gpriv;
 

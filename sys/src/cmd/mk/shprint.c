@@ -9,12 +9,12 @@
 
 #include	"mk.h"
 
-static int8_t *vexpand(int8_t*, Envy*, Bufblock*);
-static int8_t *shquote(int8_t*, Rune, Bufblock*);
-static int8_t *shbquote(int8_t*, Bufblock*);
+static char *vexpand(char*, Envy*, Bufblock*);
+static char *shquote(char*, Rune, Bufblock*);
+static char *shbquote(char*, Bufblock*);
 
 void
-shprint(int8_t *s, Envy *env, Bufblock *buf)
+shprint(char *s, Envy *env, Bufblock *buf)
 {
 	int n;
 	Rune r;
@@ -32,8 +32,8 @@ shprint(int8_t *s, Envy *env, Bufblock *buf)
 	insert(buf, 0);
 }
 
-static int8_t *
-mygetenv(int8_t *name, Envy *env)
+static char *
+mygetenv(char *name, Envy *env)
 {
 	if (!env)
 		return 0;
@@ -47,10 +47,10 @@ mygetenv(int8_t *name, Envy *env)
 	return 0;
 }
 
-static int8_t *
-vexpand(int8_t *w, Envy *env, Bufblock *buf)
+static char *
+vexpand(char *w, Envy *env, Bufblock *buf)
 {
-	int8_t *s, carry, *p, *q;
+	char *s, carry, *p, *q;
 
 	assert(/*vexpand no $*/ *w == '$');
 	p = w+1;	/* skip dollar sign */
@@ -76,11 +76,11 @@ vexpand(int8_t *w, Envy *env, Bufblock *buf)
 }
 
 void
-front(int8_t *s)
+front(char *s)
 {
-	int8_t *t, *q;
+	char *t, *q;
 	int i, j;
-	int8_t *flds[512];
+	char *flds[512];
 
 	q = strdup(s);
 	i = getfields(q, flds, nelem(flds), 0, " \t\n");

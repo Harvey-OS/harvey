@@ -23,7 +23,7 @@
 
 int	Glooping;
 int	nest;
-int8_t	Enoname[] = "no file name given";
+char	Enoname[] = "no file name given";
 
 Address	addr;
 File	*menu;
@@ -136,7 +136,7 @@ cmdexec(Text *t, Cmd *cp)
 	return 1;
 }
 
-int8_t*
+char*
 edittext(Window *w, int q, Rune *r, int nr)
 {
 	File *f;
@@ -250,7 +250,7 @@ D_cmd(Text *t, Cmd *cp)
 	int nr, nn;
 	Window *w;
 	Runestr dir, rs;
-	int8_t buf[128];
+	char buf[128];
 
 	list = filelist(t, cp->text->r, cp->text->n);
 	if(list == nil){
@@ -306,7 +306,7 @@ e_cmd(Text *t, Cmd *cp)
 	Rune *name;
 	File *f;
 	int i, isdir, q0, q1, fd, nulls, samename, allreplaced;
-	int8_t *s, tmp[128];
+	char *s, tmp[128];
 	Dir *d;
 
 	f = t->file;
@@ -455,7 +455,7 @@ s_cmd(Text *t, Cmd *cp)
 	int32_t p1, op, delta;
 	String *buf;
 	Rangeset *rp;
-	int8_t *err;
+	char *err;
 	Rune *rbuf;
 
 	n = cp->num;
@@ -1158,7 +1158,7 @@ matchfile(String *r)
 int
 filematch(File *f, String *r)
 {
-	int8_t *buf;
+	char *buf;
 	Rune *rbuf;
 	Window *w;
 	int match, i, dirty;

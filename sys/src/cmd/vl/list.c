@@ -29,7 +29,7 @@ prasm(Prog *p)
 int
 Pconv(Fmt *fp)
 {
-	int8_t str[STRINGSZ], *s;
+	char str[STRINGSZ], *s;
 	Prog *p;
 	int a;
 
@@ -61,7 +61,7 @@ Pconv(Fmt *fp)
 int
 Aconv(Fmt *fp)
 {
-	int8_t *s;
+	char *s;
 	int a;
 
 	a = va_arg(fp->args, int);
@@ -74,7 +74,7 @@ Aconv(Fmt *fp)
 int
 Dconv(Fmt *fp)
 {
-	int8_t str[STRINGSZ];
+	char str[STRINGSZ];
 	Adr *a;
 	int32_t v;
 
@@ -176,7 +176,7 @@ Dconv(Fmt *fp)
 int
 Nconv(Fmt *fp)
 {
-	int8_t str[STRINGSZ];
+	char str[STRINGSZ];
 	Adr *a;
 	Sym *s;
 
@@ -227,9 +227,9 @@ int
 Sconv(Fmt *fp)
 {
 	int i, c;
-	int8_t str[STRINGSZ], *p, *a;
+	char str[STRINGSZ], *p, *a;
 
-	a = va_arg(fp->args, int8_t*);
+	a = va_arg(fp->args, char*);
 	p = str;
 	for(i=0; i<sizeof(int32_t); i++) {
 		c = a[i] & 0xff;
@@ -265,9 +265,9 @@ Sconv(Fmt *fp)
 }
 
 void
-diag(int8_t *fmt, ...)
+diag(char *fmt, ...)
 {
-	int8_t buf[STRINGSZ], *tn;
+	char buf[STRINGSZ], *tn;
 	va_list arg;
 
 	tn = "??none??";

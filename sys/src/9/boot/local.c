@@ -11,14 +11,14 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
-static int8_t diskname[64];
-static int8_t *disk;
-static int8_t **args;
+static char diskname[64];
+static char *disk;
+static char **args;
 
 void
 configlocal(Method *mp)
 {
-	int8_t *p;
+	char *p;
 	int n;
 
 	if(*sys == '/' || *sys == '#'){
@@ -61,9 +61,9 @@ int
 connectlocalkfs(void)
 {
 	int i, pid, fd, p[2];
-	int8_t partition[64];
-	int8_t *dev;
-	int8_t **arg, **argp;
+	char partition[64];
+	char *dev;
+	char **arg, **argp;
 	Dir *d;
 
 	if(stat("/boot/kfs", statbuf, sizeof statbuf) < 0)
@@ -108,7 +108,7 @@ connectlocalkfs(void)
 	case -1:
 		fatal("fork");
 	case 0:
-		arg = malloc((bargc+5)*sizeof(int8_t*));
+		arg = malloc((bargc+5)*sizeof(char*));
 		argp = arg;
 		*argp++ = "kfs";
 		*argp++ = "-f";
@@ -139,7 +139,7 @@ connectlocalkfs(void)
 }
 
 void
-run(int8_t *file, ...)
+run(char *file, ...)
 {
 	int i, pid;
 
@@ -158,7 +158,7 @@ run(int8_t *file, ...)
 }
 
 static int
-print1(int fd, int8_t *s)
+print1(int fd, char *s)
 {
 	return write(fd, s, strlen(s));
 }
@@ -182,10 +182,10 @@ int
 connectlocalfossil(void)
 {
 	int fd;
-	int8_t *venti, *f[32], *p;
+	char *venti, *f[32], *p;
 	int nf;
-	int8_t partition[128], buf[512];
-	int8_t *dev;
+	char partition[128], buf[512];
+	char *dev;
 
 	if(stat("/boot/fossil", statbuf, sizeof statbuf) < 0)
 		return -1;

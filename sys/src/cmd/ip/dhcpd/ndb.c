@@ -18,7 +18,7 @@
 #include "dat.h"
 
 static Ndb *db;
-int8_t *ndbfile;
+char *ndbfile;
 
 /*
  * open ndbfile as db if not already open.  also check for stale data
@@ -78,14 +78,14 @@ forme(uint8_t *ip)
 uint8_t noetheraddr[6];
 
 static void
-setipaddr(uint8_t *addr, int8_t *ip)
+setipaddr(uint8_t *addr, char *ip)
 {
 	if(ipcmp(addr, IPnoaddr) == 0)
 		parseip(addr, ip);
 }
 
 static void
-setipmask(uint8_t *mask, int8_t *ip)
+setipmask(uint8_t *mask, char *ip)
 {
 	if(ipcmp(mask, IPnoaddr) == 0)
 		parseipmask(mask, ip);
@@ -97,9 +97,9 @@ setipmask(uint8_t *mask, int8_t *ip)
 int
 lookupip(uint8_t *ipaddr, Info *iip, int gate)
 {
-	int8_t ip[32];
+	char ip[32];
 	Ndbtuple *t, *nt;
-	int8_t *attrs[32], **p;
+	char *attrs[32], **p;
 
 	if(opendb() == nil){
 		warning(1, "can't open db");
@@ -210,8 +210,8 @@ lookup(Bootp *bp, Info *iip, Info *riip)
 {
 	Ndbtuple *t, *nt;
 	Ndbs s;
-	int8_t *hwattr;
-	int8_t *hwval, hwbuf[33];
+	char *hwattr;
+	char *hwval, hwbuf[33];
 	uint8_t ciaddr[IPaddrlen];
 
 	if(opendb() == nil){
@@ -287,9 +287,9 @@ lookup(Bootp *bp, Info *iip, Info *riip)
  *  interface to ndbipinfo
  */
 Ndbtuple*
-lookupinfo(uint8_t *ipaddr, int8_t **attr, int n)
+lookupinfo(uint8_t *ipaddr, char **attr, int n)
 {
-	int8_t ip[32];
+	char ip[32];
 
 	sprint(ip, "%I", ipaddr);
 	return ndbipinfo(db, "ip", ip, attr, n);
@@ -299,7 +299,7 @@ lookupinfo(uint8_t *ipaddr, int8_t **attr, int n)
  *  return the ip addresses for a type of server for system ip
  */
 int
-lookupserver(int8_t *attr, uint8_t **ipaddrs, Ndbtuple *t)
+lookupserver(char *attr, uint8_t **ipaddrs, Ndbtuple *t)
 {
 	Ndbtuple *nt;
 	int rv = 0;
@@ -316,7 +316,7 @@ lookupserver(int8_t *attr, uint8_t **ipaddrs, Ndbtuple *t)
  *  just lookup the name
  */
 void
-lookupname(int8_t *val, Ndbtuple *t)
+lookupname(char *val, Ndbtuple *t)
 {
 	Ndbtuple *nt;
 

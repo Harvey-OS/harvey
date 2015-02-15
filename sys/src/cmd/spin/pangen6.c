@@ -352,7 +352,7 @@ AST_add_alias(Lextok *n, int nr)
 }
 
 static void
-AST_run_alias(int8_t *pn, int8_t *s, Lextok *t, int parno)
+AST_run_alias(char *pn, char *s, Lextok *t, int parno)
 {	Lextok *v;
 	int cnt;
 
@@ -372,7 +372,7 @@ AST_run_alias(int8_t *pn, int8_t *s, Lextok *t, int parno)
 }
 
 static void
-AST_findrun(int8_t *s, int parno)
+AST_findrun(char *s, int parno)
 {	FSM_state *f;
 	FSM_trans *t;
 	AST *a;
@@ -569,7 +569,7 @@ AST_other(AST *a)	/* check chan params in asgns and recvs */
 			default:
 				printf("type = %d\n", t->step->n->ntyp);
 				non_fatal("unexpected chan def type",
-				          (int8_t *) 0);
+				          (char *) 0);
 				break;
 		}	}
 }
@@ -601,7 +601,7 @@ AST_aliases(void)
 }
 
 static void
-AST_indirect(FSM_use *uin, FSM_trans *t, int8_t *cause, int8_t *pn)
+AST_indirect(FSM_use *uin, FSM_trans *t, char *cause, char *pn)
 {	FSM_use *u;
 
 	/* this is a newly discovered relevant statement */
@@ -632,7 +632,7 @@ AST_indirect(FSM_use *uin, FSM_trans *t, int8_t *cause, int8_t *pn)
 }
 
 static void
-def_relevant(int8_t *pn, FSM_trans *t, Lextok *n, int ischan)
+def_relevant(char *pn, FSM_trans *t, Lextok *n, int ischan)
 {	FSM_use *u;
 	ALIAS *na, *ca;
 	int chanref;
@@ -710,7 +710,7 @@ AST_relevant(Lextok *n)
 }
 
 static int
-AST_relpar(int8_t *s)
+AST_relpar(char *s)
 {	FSM_trans *t, *T;
 	FSM_use *u;
 
@@ -761,13 +761,13 @@ AST_procisrelevant(Symbol *s)
 }
 
 static int
-AST_proc_isrel(int8_t *s)
+AST_proc_isrel(char *s)
 {	AST *a;
 
 	for (a = ast; a; a = a->nxt)
 		if (strcmp(a->p->n->name, s) == 0)
 			return (a->relevant&1);
-	non_fatal("cannot happen, missing proc in ast", (int8_t *) 0);
+	non_fatal("cannot happen, missing proc in ast", (char *) 0);
 	return 0;
 }
 
@@ -1176,7 +1176,7 @@ static int
 AST_dump_rel(void)
 {	Slicer *rv;
 	Ordered *walk;
-	int8_t buf[64];
+	char buf[64];
 	int banner=0;
 
 	if (verbose&32)
@@ -1766,7 +1766,7 @@ AST_add_explicit(Lextok *d, Lextok *u)
 }
 
 static void
-AST_fp1(int8_t *s, Lextok *t, Lextok *f, int parno)
+AST_fp1(char *s, Lextok *t, Lextok *f, int parno)
 {	Lextok *v;
 	int cnt;
 
@@ -1786,7 +1786,7 @@ AST_fp1(int8_t *s, Lextok *t, Lextok *f, int parno)
 }
 
 static void
-AST_mk1(int8_t *s, Lextok *c, int parno)
+AST_mk1(char *s, Lextok *c, int parno)
 {	AST *a;
 	FSM_state *f;
 	FSM_trans *t;

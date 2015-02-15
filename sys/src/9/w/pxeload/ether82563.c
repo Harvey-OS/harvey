@@ -432,7 +432,7 @@ enum {
 	i82576,
 };
 
-static int8_t *tname[] = {
+static char *tname[] = {
 	"i82563",
 	"i82566",
 	"i82567",

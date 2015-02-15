@@ -35,7 +35,7 @@ enum{
 	ESize,
 };
 
-static int8_t *cmds[] = {
+static char *cmds[] = {
 	[EAdd] =			"add",
 	[EBorder] =		"border",
 	[EBordercolor] =	"bordercolor",
@@ -374,7 +374,7 @@ activategroup(Control *c, int act)
 }
 
 Control *
-createrow(Controlset *cs, int8_t *name)
+createrow(Controlset *cs, char *name)
 {
 	Control *c;
 	c = _createctl(cs, "row", sizeof(Group), name);
@@ -385,7 +385,7 @@ createrow(Controlset *cs, int8_t *name)
 }
 
 Control *
-createcolumn(Controlset *cs, int8_t *name)
+createcolumn(Controlset *cs, char *name)
 {
 	Control *c;
 	c = _createctl(cs, "column", sizeof(Group), name);
@@ -396,7 +396,7 @@ createcolumn(Controlset *cs, int8_t *name)
 }
 
 Control *
-createboxbox(Controlset *cs, int8_t *name)
+createboxbox(Controlset *cs, char *name)
 {
 	Control *c;
 	c = _createctl(cs, "boxbox", sizeof(Group), name);
@@ -406,7 +406,7 @@ createboxbox(Controlset *cs, int8_t *name)
 }
 
 Control *
-createstack(Controlset *cs, int8_t *name)
+createstack(Controlset *cs, char *name)
 {
 	Control *c;
 	c = _createctl(cs, "stack", sizeof(Group), name);

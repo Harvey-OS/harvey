@@ -12,10 +12,10 @@
 #include <bio.h>
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Biobuf b;
-	int8_t *s;
+	char *s;
 	int n;
 
 

@@ -16,7 +16,7 @@
 
 #define UNKNOWNCHAR	"/sys/lib/postscript/prologues/pjw.char.ps"
 
-int8_t	*optnames = "a:c:f:l:m:n:o:p:s:t:x:y:P:";
+char	*optnames = "a:c:f:l:m:n:o:p:s:t:x:y:P:";
 
 double	aspectratio = 1.0;
 Biobuf	inbuf, outbuf;
@@ -31,7 +31,7 @@ int	linesperpage = 66;
 double	magnification = 1.0;
 int	page_no = 0;		/* page number in a document */
 int	pages_printed;
-int8_t	*passthrough = 0;
+char	*passthrough = 0;
 int	pointsize = 10;
 int	spaces = 0;
 int	tabs = 0;
@@ -44,7 +44,7 @@ uint8_t *pplist = 0;		/* bitmap list for storing pages to print */
 
 struct strtab {
 	int	size;
-	int8_t	*str;
+	char	*str;
 	int	used;
 };
 
@@ -162,9 +162,9 @@ struct strtab fontname[FONTABSIZE] = {
 /* This was taken from postprint */
 
 int
-cat(int8_t *filename) {
+cat(char *filename) {
 	int n;
-	int8_t buf[Bsize];
+	char buf[Bsize];
 	Biobuf *bfile;
 
 	if ((bfile = Bopen(filename, OREAD)) == nil)
@@ -180,7 +180,7 @@ cat(int8_t *filename) {
 
 void
 prologues(void) {
-	int8_t *ts;
+	char *ts;
 	int tabstop;
 
 	Bprint(bout, "%s", CONFORMING);
@@ -407,8 +407,8 @@ txt2post(void) {
 }
 
 void
-pagelist(int8_t *list) {
-	int8_t c;
+pagelist(char *list) {
+	char c;
 	int n, state, start;
 	unsigned m;
 

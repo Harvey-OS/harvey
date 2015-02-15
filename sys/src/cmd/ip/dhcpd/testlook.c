@@ -20,7 +20,7 @@ static uint8_t noether[6];
  *  then in the whole entry.
  */
 static Ndbtuple*
-lookval(Ndbtuple *entry, Ndbtuple *line, int8_t *attr, int8_t *to)
+lookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
 {
 	Ndbtuple *nt;
 
@@ -47,13 +47,13 @@ lookval(Ndbtuple *entry, Ndbtuple *line, int8_t *attr, int8_t *to)
  *  lookup an ip address
  */
 static uint8_t*
-lookupip(Ndb *db, int8_t *name, uint8_t *to, Ipinfo *iip)
+lookupip(Ndb *db, char *name, uint8_t *to, Ipinfo *iip)
 {
 	Ndbtuple *t, *nt;
-	int8_t buf[Ndbvlen];
+	char buf[Ndbvlen];
 	uint8_t subnet[IPaddrlen];
 	Ndbs s;
-	int8_t *attr;
+	char *attr;
 
 	attr = ipattr(name);
 	if(strcmp(attr, "ip") == 0){
@@ -85,13 +85,13 @@ lookupip(Ndb *db, int8_t *name, uint8_t *to, Ipinfo *iip)
  *  lookup a subnet and fill in anything we can
  */
 static void
-recursesubnet(Ndb *db, uint8_t *mask, Ipinfo *iip, int8_t *fs, int8_t *gw,
-	      int8_t *au)
+recursesubnet(Ndb *db, uint8_t *mask, Ipinfo *iip, char *fs, char *gw,
+	      char *au)
 {
 	Ndbs s;
 	Ndbtuple *t;
 	uint8_t submask[IPaddrlen];
-	int8_t ip[Ndbvlen];
+	char ip[Ndbvlen];
 
 	memmove(iip->ipmask, mask, 4);
 	maskip(iip->ipaddr, iip->ipmask, iip->ipnet);
@@ -126,15 +126,15 @@ print("%s->", ip);
  *  specified.
  */
 int
-ipinfo(Ndb *db, int8_t *etherin, int8_t *ipin, int8_t *name, Ipinfo *iip)
+ipinfo(Ndb *db, char *etherin, char *ipin, char *name, Ipinfo *iip)
 {
 	Ndbtuple *t;
 	Ndbs s;
-	int8_t ether[Ndbvlen];
-	int8_t ip[Ndbvlen];
-	int8_t fsname[Ndbvlen];
-	int8_t gwname[Ndbvlen];
-	int8_t auname[Ndbvlen];
+	char ether[Ndbvlen];
+	char ip[Ndbvlen];
+	char fsname[Ndbvlen];
+	char gwname[Ndbvlen];
+	char auname[Ndbvlen];
 
 	memset(iip, 0, sizeof(Ipinfo));
 	fsname[0] = 0;
@@ -209,7 +209,7 @@ ipinfo(Ndb *db, int8_t *etherin, int8_t *ipin, int8_t *name, Ipinfo *iip)
 }
 #endif
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Ipinfo ii;
 	Ndb *db;

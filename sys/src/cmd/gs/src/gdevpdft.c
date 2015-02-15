@@ -67,7 +67,7 @@ pdf_make_soft_mask_dict(gx_device_pdf * pdev, const gs_pdf14trans_params_t * ppa
     }
     if (pparams->transfer_function != NULL) {
 	int32_t id;
-	int8_t buf[20];
+	char buf[20];
 	
 	code = pdf_write_function(pdev, pparams->transfer_function, &id);
 	if (code < 0)
@@ -295,7 +295,7 @@ pdf_end_transparency_mask(gs_imager_state * pis, gx_device_pdf * pdev,
     else {
 	pdf_resource_t *pres = pdev->accumulating_substream_resource;
 	int code;
-	int8_t buf[20];
+	char buf[20];
 	
 	code = pdf_exit_substream(pdev);
 	if (code < 0)

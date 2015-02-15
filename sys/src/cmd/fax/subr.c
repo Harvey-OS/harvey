@@ -16,10 +16,10 @@
 int vflag;
 
 void
-verbose(int8_t *fmt, ...)
+verbose(char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[512];
+	char buf[512];
 
 	if(vflag){
 		va_start(arg, fmt);
@@ -30,10 +30,10 @@ verbose(int8_t *fmt, ...)
 }
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[512];
+	char buf[512];
 	int n;
 
 	n = sprint(buf, "%s: ", argv0);
@@ -70,7 +70,7 @@ seterror(Modem *m, int error)
 void
 faxrlog(Modem *m, int ok)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	int n;
 
 	n = sprint(buf, "receive %lud %c %d", m->time, ok == Eok ? 'Y': 'N', m->pageno-1);

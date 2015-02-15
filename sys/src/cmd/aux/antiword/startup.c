@@ -34,9 +34,9 @@
  * like strcmp, but this one ignores case
  */
 static BOOL
-bIsMatch(const int8_t *szStr1, const int8_t *szStr2)
+bIsMatch(const char *szStr1, const char *szStr2)
 {
-	const int8_t	*pcTmp1, *pcTmp2;
+	const char	*pcTmp1, *pcTmp2;
 
 	for (pcTmp1 = szStr1, pcTmp2 = szStr2;
 	     *pcTmp1 != '\0';
@@ -54,12 +54,12 @@ bIsMatch(const int8_t *szStr1, const int8_t *szStr2)
  * returns the task handle when found, otherwise 0
  */
 static task_handle
-tGetTaskHandle(const int8_t *szTaskname)
+tGetTaskHandle(const char *szTaskname)
 {
-	const int8_t	*pcTmp;
+	const char	*pcTmp;
 	int	iReg0, iIndex;
 	int	aiBuffer[4];
-	int8_t	szTmp[21];
+	char	szTmp[21];
 
 	iReg0 = 0;
 	do {
@@ -67,7 +67,7 @@ tGetTaskHandle(const int8_t *szTaskname)
 		Error_CheckFatal(SWI(3, 1, TaskManager_EnumerateTasks | XOS_Bit,
 			iReg0, aiBuffer, sizeof(aiBuffer), &iReg0));
 		/* Copy the (control character terminated) task name */
-		for (iIndex = 0, pcTmp = (const int8_t *)aiBuffer[1];
+		for (iIndex = 0, pcTmp = (const char *)aiBuffer[1];
 		     iIndex < elementsof(szTmp);
 		     iIndex++, pcTmp++) {
 			if (iscntrl(*pcTmp)) {
@@ -88,13 +88,13 @@ tGetTaskHandle(const int8_t *szTaskname)
 } /* end of tGetTaskHandle */
 
 int
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	message_block	tMsg;
 	task_handle	tTaskHandle;
 	size_t	tArgLen;
 	int	aiMessages[] = {0};
-	int8_t	szCommand[512];
+	char	szCommand[512];
 
 	Event_Initialise3("StartUp", 310, aiMessages);
 

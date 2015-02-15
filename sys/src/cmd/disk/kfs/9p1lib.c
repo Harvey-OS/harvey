@@ -210,7 +210,7 @@ fakeqid9p1(Dentry *f)
 }
 
 int
-convD2M9p1(Dentry *f, int8_t *ap)
+convD2M9p1(Dentry *f, char *ap)
 {
 	uint8_t *p;
 	uint32_t q;
@@ -219,10 +219,10 @@ convD2M9p1(Dentry *f, int8_t *ap)
 	STRING(name, sizeof(f->name));
 
 	memset(p, 0, 2*NAMELEN);
-	uidtostr((int8_t*)p, f->uid);
+	uidtostr((char*)p, f->uid);
 	p += NAMELEN;
 
-	uidtostr((int8_t*)p, f->gid);
+	uidtostr((char*)p, f->gid);
 	p += NAMELEN;
 
 	q = fakeqid9p1(f);
@@ -349,7 +349,7 @@ convM2S9p1(uint8_t *ap, Oldfcall *f, int n)
 		LONG(offset); p += 4;
 		SHORT(count);
 		p++;
-		f->data = (int8_t*)p; p += f->count;
+		f->data = (char*)p; p += f->count;
 		break;
 
 	case Tclunk9p1:
@@ -414,7 +414,7 @@ convM2S9p1(uint8_t *ap, Oldfcall *f, int n)
 		SHORT(fid);
 		SHORT(count);
 		p++;
-		f->data = (int8_t*)p; p += f->count;
+		f->data = (char*)p; p += f->count;
 		break;
 
 	case Rwrite9p1:
@@ -433,10 +433,10 @@ convM2S9p1(uint8_t *ap, Oldfcall *f, int n)
 }
 
 int
-convM2D9p1(int8_t *ap, Dentry *f)
+convM2D9p1(char *ap, Dentry *f)
 {
 	uint8_t *p;
-	int8_t str[28];
+	char str[28];
 
 	p = (uint8_t*)ap;
 	BYTES(name, sizeof(f->name));

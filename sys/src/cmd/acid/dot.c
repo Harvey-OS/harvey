@@ -16,7 +16,7 @@
 #include "acid.h"
 
 Type*
-srch(Type *t, int8_t *s)
+srch(Type *t, char *s)
 {
 	Type *f;
 
@@ -34,7 +34,7 @@ srch(Type *t, int8_t *s)
 void
 odot(Node *n, Node *r)
 {
-	int8_t *s;
+	char *s;
 	Type *t;
 	Node res;
 	uint64_t addr;

@@ -505,7 +505,7 @@ brloop(Prog *p)
 }
 
 int32_t
-atolwhex(int8_t *s)
+atolwhex(char *s)
 {
 	int32_t n;
 	int f;

@@ -58,7 +58,7 @@ enum
 #define PROTO(x) 	( (((ulong)(x).path) >> Shiftproto) & Maskproto )
 #define QID(p, c, y) 	( ((p)<<(Shiftproto)) | ((c)<<Shiftconv) | (y) )
 
-static int8_t network[] = "network";
+static char network[] = "network";
 
 QLock	fslock;
 Fs	*ipfs[Nfs];	/* attached fs's */
@@ -66,14 +66,14 @@ Queue	*qlog;
 
 extern	void nullmediumlink(void);
 extern	void pktmediumlink(void);
-	int32_t ndbwrite(Fs *f, int8_t *a, uint32_t off, int n);
+	int32_t ndbwrite(Fs *f, char *a, uint32_t off, int n);
 
 static int
 ip3gen(Chan *c, int i, Dir *dp)
 {
 	Qid q;
 	Conv *cv;
-	int8_t *p;
+	char *p;
 
 	cv = ipfs[c->devno]->p[PROTO(c->qid)]->conv[CONV(c->qid)];
 	if(cv->owner == nil)
@@ -136,7 +136,7 @@ static int
 ip1gen(Chan *c, int i, Dir *dp)
 {
 	Qid q;
-	int8_t *p;
+	char *p;
 	int prot;
 	int len = 0;
 	Fs *f;
@@ -180,7 +180,7 @@ ip1gen(Chan *c, int i, Dir *dp)
 }
 
 static int
-ipgen(Chan *c, int8_t*, Dirtab*, int, int s, Dir *dp)
+ipgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 {
 	Qid q;
 	Conv *cv;
@@ -292,7 +292,7 @@ ipgetfs(int dev)
 }
 
 IPaux*
-newipaux(int8_t *owner, int8_t *tag)
+newipaux(char *owner, char *tag)
 {
 	IPaux *a;
 	int n;
@@ -310,7 +310,7 @@ newipaux(int8_t *owner, int8_t *tag)
 #define ATTACHER(c) (((IPaux*)((c)->aux))->owner)
 
 static Chan*
-ipattach(int8_t* spec)
+ipattach(char* spec)
 {
 	Chan *c;
 	int devno;
@@ -330,7 +330,7 @@ ipattach(int8_t* spec)
 }
 
 static Walkqid*
-ipwalk(Chan* c, Chan *nc, int8_t **name, int nname)
+ipwalk(Chan* c, Chan *nc, char **name, int nname)
 {
 	IPaux *a = c->aux;
 	Walkqid* w;
@@ -515,7 +515,7 @@ ipopen(Chan* c, int omode)
 }
 
 static void
-ipcreate(Chan*, int8_t*, int, int)
+ipcreate(Chan*, char*, int, int)
 {
 	error(Eperm);
 }
@@ -628,7 +628,7 @@ ipread(Chan *ch, void *a, int32_t n, int64_t off)
 {
 	Conv *c;
 	Proto *x;
-	int8_t *buf, *p;
+	char *buf, *p;
 	int32_t offset, rv;
 	Fs *f;
 
@@ -744,7 +744,7 @@ setladdr(Conv* c)
 /*
  *  set a local port making sure the quad of raddr,rport,laddr,lport is unique
  */
-int8_t*
+char*
 setluniqueport(Conv* c, int lport)
 {
 	Proto *p;
@@ -827,11 +827,11 @@ setlport(Conv* c)
  *  set a local address and port from a string of the form
  *	[address!]port[!r]
  */
-int8_t*
-setladdrport(Conv* c, int8_t* str, int announcing)
+char*
+setladdrport(Conv* c, char* str, int announcing)
 {
-	int8_t *p;
-	int8_t *rv;
+	char *p;
+	char *rv;
 	uint16_t lport;
 	uint8_t addr[IPaddrlen];
 
@@ -882,10 +882,10 @@ setladdrport(Conv* c, int8_t* str, int announcing)
 	return rv;
 }
 
-static int8_t*
-setraddrport(Conv* c, int8_t* str)
+static char*
+setraddrport(Conv* c, char* str)
 {
-	int8_t *p;
+	char *p;
 
 	p = strchr(str, '!');
 	if(p == nil)
@@ -904,10 +904,10 @@ setraddrport(Conv* c, int8_t* str)
 /*
  *  called by protocol connect routine to set addresses
  */
-int8_t*
-Fsstdconnect(Conv *c, int8_t *argv[], int argc)
+char*
+Fsstdconnect(Conv *c, char *argv[], int argc)
 {
-	int8_t *p;
+	char *p;
 
 	switch(argc) {
 	default:
@@ -948,7 +948,7 @@ connected(void* a)
 static void
 connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
-	int8_t *p;
+	char *p;
 
 	if(c->state != 0)
 		error(Econinuse);
@@ -976,8 +976,8 @@ connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 /*
  *  called by protocol announce routine to set addresses
  */
-int8_t*
-Fsstdannounce(Conv* c, int8_t* argv[], int argc)
+char*
+Fsstdannounce(Conv* c, char* argv[], int argc)
 {
 	memset(c->raddr, 0, sizeof(c->raddr));
 	c->rport = 0;
@@ -1001,7 +1001,7 @@ announced(void* a)
 static void
 announcectlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
-	int8_t *p;
+	char *p;
 
 	if(c->state != 0)
 		error(Econinuse);
@@ -1029,8 +1029,8 @@ announcectlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 /*
  *  called by protocol bind routine to set addresses
  */
-int8_t*
-Fsstdbind(Conv* c, int8_t* argv[], int argc)
+char*
+Fsstdbind(Conv* c, char* argv[], int argc)
 {
 	switch(argc){
 	default:
@@ -1044,7 +1044,7 @@ Fsstdbind(Conv* c, int8_t* argv[], int argc)
 static void
 bindctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
-	int8_t *p;
+	char *p;
 
 	if(x->bind == nil)
 		p = Fsstdbind(c, cb->f, cb->nf);
@@ -1077,11 +1077,11 @@ ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 {
 	Conv *c;
 	Proto *x;
-	int8_t *p;
+	char *p;
 	Cmdbuf *cb;
 	uint8_t ia[IPaddrlen], ma[IPaddrlen];
 	Fs *f;
-	int8_t *a;
+	char *a;
 	uint32_t offset = off;
 
 	a = v;
@@ -1259,7 +1259,7 @@ Fsbuiltinproto(Fs* f, uint8_t proto)
  *  called with protocol locked
  */
 Conv*
-Fsprotoclone(Proto *p, int8_t *user)
+Fsprotoclone(Proto *p, char *user)
 {
 	Conv *c, **pp, **ep;
 
@@ -1326,7 +1326,7 @@ retry:
 }
 
 int
-Fsconnected(Conv* c, int8_t* msg)
+Fsconnected(Conv* c, char* msg)
 {
 	if(msg != nil && *msg != '\0')
 		strncpy(c->cerr, msg, ERRMAX-1);
@@ -1404,7 +1404,7 @@ Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr,
 }
 
 int32_t
-ndbwrite(Fs *f, int8_t *a, uint32_t off, int n)
+ndbwrite(Fs *f, char *a, uint32_t off, int n)
 {
 	if(off > strlen(f->ndb))
 		error(Eio);

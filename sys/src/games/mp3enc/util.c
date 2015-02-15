@@ -608,7 +608,7 @@ int fill_buffer_resample(
 *  Message Output
 *
 ***********************************************************************/
-void  lame_debugf (const lame_internal_flags *gfc, const int8_t* format,
+void  lame_debugf (const lame_internal_flags *gfc, const char* format,
                    ... )
 {
     va_list  args;
@@ -626,7 +626,7 @@ void  lame_debugf (const lame_internal_flags *gfc, const int8_t* format,
 }
 
 
-void  lame_msgf (const lame_internal_flags *gfc, const int8_t* format, ... )
+void  lame_msgf (const lame_internal_flags *gfc, const char* format, ... )
 {
     va_list  args;
 
@@ -643,7 +643,7 @@ void  lame_msgf (const lame_internal_flags *gfc, const int8_t* format, ... )
 }
 
 
-void  lame_errorf (const lame_internal_flags *gfc, const int8_t* format,
+void  lame_errorf (const lame_internal_flags *gfc, const char* format,
                    ... )
 {
     va_list  args;

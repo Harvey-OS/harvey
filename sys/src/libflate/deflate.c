@@ -1112,8 +1112,8 @@ struct Chain
 {
 	uint32_t	count;				/* occurances of everything in the chain */
 	uint16_t	leaf;				/* leaves to the left of chain, or leaf value */
-	int8_t	col;				/* ref count for collecting unused chains */
-	int8_t	gen;				/* need to generate chains for next lower level */
+	char	col;				/* ref count for collecting unused chains */
+	char	gen;				/* need to generate chains for next lower level */
 	Chain	*up;				/* Chain up in the lists */
 };
 
@@ -1126,7 +1126,7 @@ struct Chains
 	Chain	chains[ChainMem];
 	Chain	*echains;
 	Chain	*free;
-	int8_t	col;
+	char	col;
 	int	nlists;
 };
 

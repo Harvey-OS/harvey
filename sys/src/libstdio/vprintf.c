@@ -11,6 +11,6 @@
  * pANS stdio -- vprintf
  */
 #include "iolib.h"
-int vprintf(const int8_t *fmt, va_list args){
+int vprintf(const char *fmt, va_list args){
 	return vfprintf(stdout, fmt, args);
 }

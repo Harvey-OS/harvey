@@ -193,7 +193,7 @@ gs_sethalftone_prepare(gs_state * pgs, gs_halftone * pht,
 		gs_screen_halftone *phc =
 		    pht->params.colorscreen.screens.indexed;
 		static const int cindex[4] = {3, 0, 1, 2};
-		static const int8_t * color_names[4] = {"Gray", "Red", "Green", "Blue"};
+		static const char * color_names[4] = {"Gray", "Red", "Green", "Blue"};
 		int i;
 
 		pocs = gs_alloc_struct_array(mem, 4,

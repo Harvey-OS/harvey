@@ -80,7 +80,7 @@ flrect(Flayer *l, Rectangle r)
 }
 
 static void
-fontbuggered(int8_t *name)
+fontbuggered(char *name)
 {
 	fprint(2, "samterm: font %s has zero-width \"0\" character\n", name);
 	threadexits("font zero-width");

@@ -327,7 +327,7 @@ load(Vga* vga, Ctlr* ctlr)
 	int i;
 	uint32_t *rp;
 	I81x *i81x;
-	int8_t *p;
+	char *p;
 
 	i81x = vga->private;
 
@@ -353,11 +353,11 @@ load(Vga* vga, Ctlr* ctlr)
 	rp = (uint32_t*)(i81x->mmio+0x70008);
 	*rp = i81x->pixconf | (1<<8);
 
-	p = (int8_t*)(i81x->mmio+Pixmask);	/* DACMASK */
+	p = (char*)(i81x->mmio+Pixmask);	/* DACMASK */
 	*p = 0xff;
-	p = (int8_t*)(i81x->mmio+PaddrW);		/* DACWX */
+	p = (char*)(i81x->mmio+PaddrW);		/* DACWX */
 	*p = 0x04;
-	p = (int8_t*)(i81x->mmio+Pdata);		/* DACDATA */
+	p = (char*)(i81x->mmio+Pdata);		/* DACDATA */
 	*p = 0xff;
 	*p = 0xff;
 	*p = 0xff;
@@ -375,7 +375,7 @@ dump(Vga* vga, Ctlr* ctlr)
 	int i;
 	Pcidev *p;
 	I81x *i81x;
-	int8_t *name;
+	char *name;
 
 	name = ctlr->name;
 	i81x = vga->private;

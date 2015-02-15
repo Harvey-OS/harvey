@@ -235,7 +235,7 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i, id, interlace, mul, div;
-	int8_t *name;
+	char *name;
 	uint16_t shb, vrs, x;
 
 	name = ctlr->name;

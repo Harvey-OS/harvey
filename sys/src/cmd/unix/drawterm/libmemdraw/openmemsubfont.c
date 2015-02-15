@@ -13,13 +13,13 @@
 #include <memdraw.h>
 
 Memsubfont*
-openmemsubfont(int8_t *name)
+openmemsubfont(char *name)
 {
 	Memsubfont *sf;
 	Memimage *i;
 	Fontchar *fc;
 	int fd, n;
-	int8_t hdr[3*12+4+1];
+	char hdr[3*12+4+1];
 	uint8_t *p;
 
 	fd = open(name, OREAD);

@@ -42,8 +42,8 @@ writeimage(int fd, Image *i, int dolock)
 	int chunk, ncblock;
 	Rectangle r;
 	uint8_t *p, *q, *s, *es, *t;
-	int8_t hdr[11+5*12+1];
-	int8_t cbuf[20];
+	char hdr[11+5*12+1];
+	char cbuf[20];
 
 	chunk = i->display->bufsize - 32;	/* a little room for header */
 	r = i->r;

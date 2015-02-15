@@ -30,7 +30,7 @@ enum
 	AWAIT		= 2,
 };
 
-int8_t *arpstate[] =
+char *arpstate[] =
 {
 	"UNUSED",
 	"OK",
@@ -52,7 +52,7 @@ struct Arp
 	Block 	*dropf, *dropl;
 };
 
-int8_t *Ebadarp = "bad arp";
+char *Ebadarp = "bad arp";
 
 #define haship(s) ((s)[IPaddrlen-1]%NHASH)
 
@@ -409,7 +409,7 @@ arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n,
 }
 
 int
-arpwrite(Fs *fs, int8_t *s, int len)
+arpwrite(Fs *fs, char *s, int len)
 {
 	int n;
 	Route *r;
@@ -417,7 +417,7 @@ arpwrite(Fs *fs, int8_t *s, int len)
 	Block *bp;
 	Arpent *a, *fl, **l;
 	Medium *type;
-	int8_t *f[4], buf[256];
+	char *f[4], buf[256];
 	uint8_t ip[IPaddrlen], mac[MAClen];
 
 	arp = fs->arp;
@@ -527,21 +527,21 @@ enum
 	Alinelen=	90,
 };
 
-int8_t *aformat = "%-6.6s %-8.8s %-40.40I %-32.32s\n";
+char *aformat = "%-6.6s %-8.8s %-40.40I %-32.32s\n";
 
 static void
-convmac(int8_t *p, uint8_t *mac, int n)
+convmac(char *p, uint8_t *mac, int n)
 {
 	while(n-- > 0)
 		p += sprint(p, "%2.2ux", *mac++);
 }
 
 int
-arpread(Arp *arp, int8_t *p, uint32_t offset, int len)
+arpread(Arp *arp, char *p, uint32_t offset, int len)
 {
 	Arpent *a;
 	int n;
-	int8_t mac[2*MAClen+1];
+	char mac[2*MAClen+1];
 
 	if(offset % Alinelen)
 		return 0;

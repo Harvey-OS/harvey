@@ -1226,7 +1226,7 @@ media(Ether* ether, int wait)
 	return 0;
 }
 
-static int8_t* mediatable[9] = {
+static char* mediatable[9] = {
 	"10BASE-T",			/* TP */
 	"10BASE-2",			/* BNC */
 	"10BASE-5",			/* AUI */

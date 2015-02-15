@@ -91,11 +91,11 @@ private_st_pdf_pattern();
  */
 /* This function copied from geninit.c . */
 private int8_t *
-doit(int8_t *line, bool intact)
+doit(char *line, bool intact)
 {
-    int8_t *str = line;
-    int8_t *from;
-    int8_t *to;
+    char *str = line;
+    char *from;
+    char *to;
     int in_string = 0;
 
     if (intact)
@@ -708,7 +708,7 @@ pdf_close_contents(gx_device_pdf * pdev, bool last)
 /* ------ Resources et al ------ */
 
 /* Define the allocator descriptors for the resource types. */
-const int8_t *const pdf_resource_type_names[] = {
+const char *const pdf_resource_type_names[] = {
     PDF_RESOURCE_TYPE_NAMES
 };
 const gs_memory_struct_type_t *const pdf_resource_type_structs[] = {
@@ -911,7 +911,7 @@ pdf_print_resource_statistics(gx_device_pdf * pdev)
     for (rtype = 0; rtype < NUM_RESOURCE_TYPES; rtype++) {
 	pdf_resource_t **pchain = pdev->resources[rtype].chains;
 	pdf_resource_t *pres;
-	const int8_t *name = pdf_resource_type_names[rtype];
+	const char *name = pdf_resource_type_names[rtype];
 	int i, n = 0;
     
 	for (i = 0; i < NUM_RESOURCE_CHAINS; i++) {
@@ -1362,7 +1362,7 @@ pdf_unclip(gx_device_pdf * pdev)
 
 /* Generate the default Producer string. */
 void
-pdf_store_default_Producer(int8_t buf[PDF_MAX_PRODUCER])
+pdf_store_default_Producer(char buf[PDF_MAX_PRODUCER])
 {
     sprintf(buf, ((gs_revision % 100) == 0 ? "(%s %1.1f)" : "(%s %1.2f)"),
 	    gs_product, gs_revision / 100.0);
@@ -1370,8 +1370,8 @@ pdf_store_default_Producer(int8_t buf[PDF_MAX_PRODUCER])
 
 /* Write matrix values. */
 void
-pdf_put_matrix(gx_device_pdf * pdev, const int8_t *before,
-	       const gs_matrix * pmat, const int8_t *after)
+pdf_put_matrix(gx_device_pdf * pdev, const char *before,
+	       const gs_matrix * pmat, const char *after)
 {
     stream *s = pdev->strm;
 
@@ -1587,7 +1587,7 @@ int
 pdf_put_filters(cos_dict_t *pcd, gx_device_pdf *pdev, stream *s,
 		const pdf_filter_names_t *pfn)
 {
-    const int8_t *filter_name = 0;
+    const char *filter_name = 0;
     bool binary_ok = true;
     stream *fs = s;
     cos_dict_t *decode_parms = 0;
@@ -1716,11 +1716,11 @@ pdf_append_data_stream_filters(gx_device_pdf *pdev, pdf_data_writer_t *pdw,
     int options = orig_options;
 #define USE_ASCII85 1
 #define USE_FLATE 2
-    static const int8_t *const fnames[4] = {
+    static const char *const fnames[4] = {
 	"", "/Filter/ASCII85Decode", "/Filter/FlateDecode",
 	"/Filter[/ASCII85Decode/FlateDecode]"
     };
-    static const int8_t *const fnames1_2[4] = {
+    static const char *const fnames1_2[4] = {
 	"", "/Filter/ASCII85Decode", "/Filter/LZWDecode",
 	"/Filter[/ASCII85Decode/LZWDecode]"
     };

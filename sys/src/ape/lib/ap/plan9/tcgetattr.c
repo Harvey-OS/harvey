@@ -48,7 +48,7 @@ int
 tcgetattr(int fd, struct termios *t)
 {
 	int n;
-	int8_t buf[60];
+	char buf[60];
 
 	if(!isptty(fd)) {
 		if(isatty(fd)) {
@@ -99,7 +99,7 @@ int
 tcsetattr(int fd, int, const struct termios *t)
 {
 	int n, i;
-	int8_t buf[100];
+	char buf[100];
 
 	if(!isptty(fd)) {
 		if(!isatty(fd)) {
@@ -132,7 +132,7 @@ int
 tcsetpgrp(int fd, pid_t pgrpid)
 {
 	int n;
-	int8_t buf[30];
+	char buf[30];
 
 	if(!isptty(fd)) {
 		if(!isatty(fd)) {
@@ -161,7 +161,7 @@ tcgetpgrp(int fd)
 {
 	int n;
 	pid_t pgrp;
-	int8_t buf[100];
+	char buf[100];
 
 	if(!isptty(fd)) {
 		errno = ENOTTY;

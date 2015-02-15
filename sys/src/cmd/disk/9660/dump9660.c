@@ -23,10 +23,10 @@ int64_t dataoffset;
 int blocksize;
 Conform *map;
 
-static void addprotofile(int8_t *new, int8_t *old, Dir *d, void *a);
+static void addprotofile(char *new, char *old, Dir *d, void *a);
 void usage(void);
 
-int8_t *argv0;
+char *argv0;
 
 void
 usage(void)
@@ -414,9 +414,9 @@ Dofix:
 }
 
 static void
-addprotofile(int8_t *new, int8_t *old, Dir *d, void *a)
+addprotofile(char *new, char *old, Dir *d, void *a)
 {
-	int8_t *name, *p;
+	char *name, *p;
 	Direc *direc;
 	XDir xd;
 

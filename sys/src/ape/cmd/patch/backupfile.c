@@ -70,7 +70,7 @@
 #if STDC_HEADERS
 # include <stdlib.h>
 #else
-int8_t *malloc ();
+char *malloc ();
 #endif
 
 #if HAVE_DIRENT_H || HAVE_NDIR_H || HAVE_SYS_DIR_H || HAVE_SYS_NDIR_H
@@ -111,7 +111,7 @@ enum backup_type backup_type = none;
 
 /* The extension added to file names to produce a simple (as opposed
    to numbered) backup file name. */
-const int8_t *simple_backup_suffix = ".orig";
+const char *simple_backup_suffix = ".orig";
 
 static int max_backup_version __BACKUPFILE_P ((const char *, const char *));
 static int version_number __BACKUPFILE_P ((const char *, const char *, size_t));
@@ -173,8 +173,8 @@ find_backup_file_name (file)
 
 static int
 max_backup_version (file, dir)
-     const int8_t *file;
-     const int8_t *dir;
+     const char *file;
+     const char *dir;
 {
   DIR *dirp;
   struct dirent *dp;
@@ -209,12 +209,12 @@ max_backup_version (file, dir)
 
 static int
 version_number (base, backup, base_length)
-     const int8_t *base;
-     const int8_t *backup;
+     const char *base;
+     const char *backup;
      size_t base_length;
 {
   int version;
-  const int8_t *p;
+  const char *p;
 
   version = 0;
   if (strncmp (base, backup, base_length) == 0
@@ -230,7 +230,7 @@ version_number (base, backup, base_length)
 }
 #endif /* HAVE_DIR */
 
-static const int8_t * const backup_args[] =
+static const char * const backup_args[] =
 {
   "never", "simple", "nil", "existing", "t", "numbered", 0
 };
@@ -245,7 +245,7 @@ static const enum backup_type backup_types[] =
 
 enum backup_type
 get_version (version)
-     const int8_t *version;
+     const char *version;
 {
   int i;
 

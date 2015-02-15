@@ -15,7 +15,7 @@ int
 nbnameresolve(NbName nbname, uint8_t *ipaddr)
 {
 	uint32_t r, ttl;
-	int8_t name[NETPATHLEN];
+	char name[NETPATHLEN];
 	NbName copy;
 	Ndbtuple *t;
 

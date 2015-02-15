@@ -39,7 +39,7 @@ static
 int32_t
 dirpackage(uint8_t *buf, int32_t ts, Dir **d)
 {
-	int8_t *s;
+	char *s;
 	int32_t ss, i, n, nn, m;
 
 	if(ts == 0){
@@ -70,7 +70,7 @@ dirpackage(uint8_t *buf, int32_t ts, Dir **d)
 	/*
 	 * then convert all buffers
 	 */
-	s = (int8_t*)*d + n * sizeof(Dir);
+	s = (char*)*d + n * sizeof(Dir);
 	nn = 0;
 	for(i = 0; i < ts; i += m){
 		m = BIT16SZ + GBIT16((uint8_t*)&buf[i]);

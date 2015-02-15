@@ -113,7 +113,7 @@ prhideset(int hs)
 	Hideset np;
 
 	for (np = hidesets[hs]; *np; np++) {
-		fprintf(stderr, (int8_t*)(*np)->name, (*np)->len);
+		fprintf(stderr, (char*)(*np)->name, (*np)->len);
 		fprintf(stderr, " ", 1);
 	}
 }

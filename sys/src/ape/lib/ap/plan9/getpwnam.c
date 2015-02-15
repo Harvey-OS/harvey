@@ -13,17 +13,17 @@
 #include <string.h>
 
 static struct passwd holdpw;
-static int8_t dirbuf[40] = "/usr/";
-static int8_t *rc = "/bin/rc";
+static char dirbuf[40] = "/usr/";
+static char *rc = "/bin/rc";
 
 struct passwd *
-getpwnam(const int8_t *name)
+getpwnam(const char *name)
 {
 	int num;
-	int8_t *nam, *mem;
+	char *nam, *mem;
 
 	num = 0;
-	nam = (int8_t *)name;
+	nam = (char *)name;
 	mem = 0;
 	if(_getpw(&num, &nam, &mem)){
 		holdpw.pw_name = nam;

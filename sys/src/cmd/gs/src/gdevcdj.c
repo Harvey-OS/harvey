@@ -666,7 +666,7 @@ private int bjc_fscmyk(byte**, byte*[4][4], int**, int, int);
 /* String parameters manipulation */
 
 typedef struct {
-    const int8_t* p_name;
+    const char* p_name;
     int p_value;
 } stringParamDescription;
 

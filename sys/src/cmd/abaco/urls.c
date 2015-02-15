@@ -63,9 +63,9 @@ urldup(Url *a)
 
 static
 Runestr
-getattr(int conn, int8_t *s)
+getattr(int conn, char *s)
 {
-	int8_t buf[BUFSIZE];
+	char buf[BUFSIZE];
 	int fd, n;
 
 	snprint(buf, sizeof(buf), "%s/%d/%s", webmountpt, conn, s);
@@ -85,7 +85,7 @@ getattr(int conn, int8_t *s)
 int
 urlopen(Url *u)
 {
-	int8_t buf[BUFSIZE];
+	char buf[BUFSIZE];
 	int cfd, fd, conn, n;
 
 	snprint(buf, sizeof(buf), "%s/clone", webmountpt);
@@ -145,7 +145,7 @@ urlcanon(Rune *name){
 	/*
 	 * Break the name into a list of components
 	 */
-	comp=emalloc(runestrlen(name)*sizeof(int8_t *));
+	comp=emalloc(runestrlen(name)*sizeof(char *));
 	p=comp;
 	*p++=name;
 	for(s=name;;s++){

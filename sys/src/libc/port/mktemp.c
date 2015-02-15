@@ -10,13 +10,13 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t*
-mktemp(int8_t *as)
+char*
+mktemp(char *as)
 {
-	int8_t *s;
+	char *s;
 	unsigned pid;
 	int i;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 
 	pid = getpid();
 	s = as;

@@ -44,8 +44,8 @@
  */
 
 
-static const int8_t * progname;	/* program name for error messages */
-static int8_t * outfilename;	/* for -outfile switch */
+static const char * progname;	/* program name for error messages */
+static char * outfilename;	/* for -outfile switch */
 static JCOPY_OPTION copyoption;	/* -copy switch */
 static jpeg_transform_info transformoption; /* image transformation options */
 
@@ -340,7 +340,7 @@ parse_switches (j_compress_ptr cinfo, int argc, char **argv,
  */
 
 int
-main (int argc, int8_t **argv)
+main (int argc, char **argv)
 {
   struct jpeg_decompress_struct srcinfo;
   struct jpeg_compress_struct dstinfo;

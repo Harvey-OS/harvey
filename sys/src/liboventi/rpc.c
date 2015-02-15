@@ -14,16 +14,16 @@
 
 struct {
 	int version;
-	int8_t *s;
+	char *s;
 } vtVersions[] = {
 	VtVersion02, "02",
 	0, 0,
 };
 
-static int8_t EBigString[] = "string too long";
-static int8_t EBigPacket[] = "packet too long";
-static int8_t ENullString[] = "missing string";
-static int8_t EBadVersion[] = "bad format in version string";
+static char EBigString[] = "string too long";
+static char EBigPacket[] = "packet too long";
+static char ENullString[] = "missing string";
+static char EBadVersion[] = "bad format in version string";
 
 static Packet *vtRPC(VtSession *z, int op, Packet *p);
 
@@ -114,13 +114,13 @@ vtFree(VtSession *z)
 	vtMemFree(z);
 }
 
-int8_t *
+char *
 vtGetUid(VtSession *s)
 {
 	return s->uid;
 }
 
-int8_t *
+char *
 vtGetSid(VtSession *z)
 {
 	return z->sid;
@@ -211,7 +211,7 @@ vtGetCodec(VtSession *s)
 	return s->codec;
 }
 
-int8_t *
+char *
 vtGetVersion(VtSession *z)
 {
 	int v, i;
@@ -228,11 +228,11 @@ vtGetVersion(VtSession *z)
 
 /* hold z->inLock */
 static int
-vtVersionRead(VtSession *z, int8_t *prefix, int *ret)
+vtVersionRead(VtSession *z, char *prefix, int *ret)
 {
-	int8_t c;
-	int8_t buf[VtMaxStringSize];
-	int8_t *q, *p, *pp;
+	char c;
+	char buf[VtMaxStringSize];
+	char *q, *p, *pp;
 	int i;
 
 	q = prefix;
@@ -363,11 +363,11 @@ vtSendPacket(VtSession *z, Packet *p)
 
 
 int
-vtGetString(Packet *p, int8_t **ret)
+vtGetString(Packet *p, char **ret)
 {
 	uint8_t buf[2];
 	int n;
-	int8_t *s;
+	char *s;
 
 	if(!packetConsume(p, buf, 2))
 		return 0;
@@ -388,7 +388,7 @@ vtGetString(Packet *p, int8_t **ret)
 }
 
 int
-vtAddString(Packet *p, int8_t *s)
+vtAddString(Packet *p, char *s)
 {
 	uint8_t buf[2];
 	int n;
@@ -410,9 +410,9 @@ vtAddString(Packet *p, int8_t *s)
 }
 
 int
-vtConnect(VtSession *z, int8_t *password)
+vtConnect(VtSession *z, char *password)
 {
-	int8_t buf[VtMaxStringSize], *p, *ep, *prefix;
+	char buf[VtMaxStringSize], *p, *ep, *prefix;
 	int i;
 
 	USED(password);

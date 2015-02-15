@@ -14,9 +14,9 @@
 #define UVLONG_MAX	(1LL<<63)
 
 unsigned long long
-strtoull(int8_t *nptr, int8_t **endptr, int base)
+strtoull(char *nptr, char **endptr, int base)
 {
-	int8_t *p;
+	char *p;
 	unsigned long long n, nn, m;
 	int c, ovfl, v, neg, ndig;
 

@@ -17,7 +17,7 @@ enum {
 	CHANCLOSD = 0xc105ed,
 };
 
-static int8_t errcl[] = "channel was closed";
+static char errcl[] = "channel was closed";
 static Lock chanlock;		/* central channel access lock */
 
 static void enqueue(Alt*, Channel**);

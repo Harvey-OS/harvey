@@ -23,7 +23,7 @@ int	peek = '\n';	/* next input character */
 uint8_t	*pushptr = pushc;
 uint8_t	*slptr = slist;
 
-int8_t	*cname = "/sys/lib/lex/ncform";
+char	*cname = "/sys/lib/lex/ncform";
 
 int nine;
 int ccount = 1;
@@ -38,10 +38,10 @@ int report = 2;
 int debug;		/* 1 = on */
 int charc;
 int sargc;
-int8_t **sargv;
+char **sargv;
 uint8_t buf[520];
 int yyline;		/* line number of file */
-int8_t *yyfile;		/* filename for error messages */
+char *yyfile;		/* filename for error messages */
 int eof;
 int lgatflg;
 int divflg;
@@ -299,7 +299,7 @@ myalloc(int a, int b)
 }
 
 void
-yyerror(int8_t *s)
+yyerror(char *s)
 {
 	fprint(2, "%s:%d %s\n", yyfile, yyline, s);
 }

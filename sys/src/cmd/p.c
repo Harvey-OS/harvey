@@ -21,7 +21,7 @@ int pglen = DEF;
 void printfile(int);
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int n;
 	int f;
@@ -58,7 +58,7 @@ void
 printfile(int f)
 {
 	int i, j, n;
-	int8_t *s, *cmd;
+	char *s, *cmd;
 	Biobuf *b;
 
 	b = malloc(sizeof(Biobuf));

@@ -18,10 +18,10 @@
  *  771, before checking access rights
  */
 int
-noworld(int8_t *user)
+noworld(char *user)
 {
 	Biobuf *b;
-	int8_t *p;
+	char *p;
 	int n;
 
 	b = Bopen("/adm/users", OREAD);

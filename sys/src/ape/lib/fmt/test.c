@@ -25,7 +25,7 @@
 #include "fmt.h"
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	quotefmtinstall();
 	print("hello world\n");

@@ -16,9 +16,9 @@ typedef uint64_t u64int;
 
 
 uint64_t
-unittoull(int8_t *s)
+unittoull(char *s)
 {
-	int8_t *es;
+	char *es;
 	uint64_t n;
 
 	if(s == nil)

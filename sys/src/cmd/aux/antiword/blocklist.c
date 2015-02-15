@@ -267,7 +267,7 @@ ulComputeListLength(const list_mem_type *pAnchor)
  * vCheckList - check the number of bytes in a block list
  */
 static void
-vCheckList(const list_mem_type *pAnchor, ULONG ulListLen, int8_t *szMsg)
+vCheckList(const list_mem_type *pAnchor, ULONG ulListLen, char *szMsg)
 {
 	ULONG		ulTotal;
 
@@ -289,7 +289,7 @@ bIsEmptyBox(FILE *pFile, const list_mem_type *pAnchor)
 	const list_mem_type	*pCurr;
 	size_t	tIndex, tSize;
 	UCHAR	*aucBuffer;
-	int8_t	cChar;
+	char	cChar;
 
 	fail(pFile == NULL);
 
@@ -314,7 +314,7 @@ bIsEmptyBox(FILE *pFile, const list_mem_type *pAnchor)
 			return FALSE;
 		}
 		for (tIndex = 0; tIndex < tSize; tIndex++) {
-			cChar = (int8_t)aucBuffer[tIndex];
+			cChar = (char)aucBuffer[tIndex];
 			switch (cChar) {
 			case '\0': case '\r': case '\n':
 			case '\f': case '\t': case '\v':

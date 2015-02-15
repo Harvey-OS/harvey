@@ -28,7 +28,7 @@ struct a_fork {
 static struct a_fork the_fork[MAXFORKS];
 
 FILE *
-popen(int8_t *cmd, int8_t *mode)
+popen(char *cmd, char *mode)
 {
 	int p[2];
 	int myside, hisside, pid;

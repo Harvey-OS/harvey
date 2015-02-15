@@ -20,7 +20,7 @@
 
 #if !defined(NDEBUG)
 void
-__fail(int8_t *szExpression, int8_t *szFilename, int iLineNumber)
+__fail(char *szExpression, char *szFilename, int iLineNumber)
 {
 	if (szExpression == NULL || szFilename == NULL) {
 		werr(1, "Internal error: no expression");

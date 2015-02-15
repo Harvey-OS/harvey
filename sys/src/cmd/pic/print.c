@@ -23,7 +23,7 @@ void line(double, double, double, double);
 void box(double, double, double, double);
 void spline(double x, double y, double n, ofloat *p, int dashed, double ddval);
 void move(double, double);
-void troff(int8_t *);
+void troff(char *);
 void dot(void);
 void fillstart(double), fillend(int vis, int noedge);
 
@@ -237,7 +237,7 @@ void dotbox(double x0, double y0, double x1, double y1, int ddtype, double ddval
 void dotext(obj *p)	/* print text strings of p in proper vertical spacing */
 {
 	int i, nhalf;
-	void label(int8_t *, int, int);
+	void label(char *, int, int);
 
 	nhalf = p->o_nt2 - p->o_nt1 - 1;
 	for (i = p->o_nt1; i < p->o_nt2; i++) {

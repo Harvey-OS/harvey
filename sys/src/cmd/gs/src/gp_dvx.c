@@ -54,7 +54,7 @@ gp_do_exit(int exit_status)
 
 /* Get the string corresponding to an OS error number. */
 /* All reasonable compilers support it. */
-const int8_t *
+const char *
 gp_strerror(int errnum)
 {
     return strerror(errnum);
@@ -116,7 +116,7 @@ int gp_cache_query(int type, byte* key, int keylen, void **buffer,
 /* Return NULL if the connection could not be opened. */
 extern void gp_set_file_binary(int, int);
 FILE *
-gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
+gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 {
     if (strlen(fname) == 0 || !strcmp(fname, "PRN")) {
 	if (binary_mode)
@@ -129,7 +129,7 @@ gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
 
 /* Close the connection to the printer. */
 void
-gp_close_printer(FILE * pfile, const int8_t *fname)
+gp_close_printer(FILE * pfile, const char *fname)
 {
     if (pfile == stdprn)
 	fflush(pfile);
@@ -149,8 +149,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, int8_t **fontname,
-                            int8_t **path)
+int gp_enumerate_fonts_next(void *enum_state, char **fontname,
+                            char **path)
 {
     return 0;
 }

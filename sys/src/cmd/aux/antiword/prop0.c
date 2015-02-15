@@ -26,10 +26,10 @@
  * returns Unix time_t or -1
  */
 static time_t
-tConvertDosDate(const int8_t *szDosDate)
+tConvertDosDate(const char *szDosDate)
 {
 	struct tm	tTime;
-	const int8_t	*pcTmp;
+	const char	*pcTmp;
 	time_t		tResult;
 
 	memset(&tTime, 0, sizeof(tTime));
@@ -124,13 +124,13 @@ vGet0DopInfo(FILE *pFile, const UCHAR *aucHeader)
 			if (aucBuffer[usOffset] != 0) {
 				NO_DBG_STRN(aucBuffer + usOffset, 8);
 				tDocument.tRevisedDate =
-				tConvertDosDate((int8_t *)aucBuffer + usOffset);
+				tConvertDosDate((char *)aucBuffer + usOffset);
 			}
 			usOffset = usGetWord(14, aucBuffer);
 			if (aucBuffer[usOffset] != 0) {
 				NO_DBG_STRN(aucBuffer + usOffset, 8);
 				tDocument.tCreateDate =
-				tConvertDosDate((int8_t *)aucBuffer + usOffset);
+				tConvertDosDate((char *)aucBuffer + usOffset);
 			}
 		}
 		aucBuffer = xfree(aucBuffer);

@@ -177,7 +177,7 @@ Iswc1(uint32_t inst)
 void
 Ifsub(uint32_t ir)
 {
-	int8_t fmt;
+	char fmt;
 	int fs, ft, fd;
 
 	Getf3(fs, ft, fd, ir);
@@ -207,7 +207,7 @@ Ifsub(uint32_t ir)
 void
 Ifmov(uint32_t ir)
 {
-	int8_t fmt;
+	char fmt;
 	int fs, fd;
 
 	Getf2(fs, fd, ir);
@@ -238,7 +238,7 @@ Ifmov(uint32_t ir)
 void
 Ifabs(uint32_t ir)
 {
-	int8_t fmt;
+	char fmt;
 	int fs, fd;
 
 	Getf2(fs, fd, ir);
@@ -277,7 +277,7 @@ Ifabs(uint32_t ir)
 void
 Ifneg(uint32_t ir)
 {
-	int8_t fmt;
+	char fmt;
 	int fs, fd;
 
 	Getf2(fs, fd, ir);
@@ -307,7 +307,7 @@ Ifneg(uint32_t ir)
 void
 Icvtd(uint32_t ir)
 {
-	int8_t fmt;
+	char fmt;
 	int fs, fd;
 
 	Getf2(fs, fd, ir);
@@ -339,7 +339,7 @@ Icvtd(uint32_t ir)
 void
 Icvts(uint32_t ir)
 {
-	int8_t fmt;
+	char fmt;
 	int fs, fd;
 
 	Getf2(fs, fd, ir);
@@ -372,7 +372,7 @@ void
 Icvtw(uint32_t ir)
 {
 	int32_t v;
-	int8_t fmt;
+	char fmt;
 	int fs, fd;
 
 	Getf2(fs, fd, ir);
@@ -404,7 +404,7 @@ Icvtw(uint32_t ir)
 void
 Ifadd(uint32_t ir)
 {
-	int8_t fmt;
+	char fmt;
 	int fs, ft, fd;
 
 	Getf3(fs, ft, fd, ir);
@@ -434,7 +434,7 @@ Ifadd(uint32_t ir)
 void
 Ifmul(uint32_t ir)
 {
-	int8_t fmt;
+	char fmt;
 	int fs, ft, fd;
 
 	Getf3(fs, ft, fd, ir);
@@ -464,7 +464,7 @@ Ifmul(uint32_t ir)
 void
 Ifdiv(uint32_t ir)
 {
-	int8_t fmt;
+	char fmt;
 	int fs, ft, fd;
 
 	Getf3(fs, ft, fd, ir);
@@ -608,7 +608,7 @@ Icop1(uint32_t ir)
 void
 Ifcmp(uint32_t ir)
 {
-	int8_t fmt;
+	char fmt;
 	int fc;
 	int ft, fs;
 

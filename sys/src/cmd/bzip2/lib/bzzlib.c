@@ -122,16 +122,16 @@
 #endif
 static
 BZFILE * bzopen_or_bzdopen
-               ( const int8_t *path,   /* no use when bzdopen */
+               ( const char *path,   /* no use when bzdopen */
                  int fd,             /* no use when bzdopen */
-                 const int8_t *mode,
+                 const char *mode,
                  int open_mode)      /* bzopen: 0, bzdopen:1 */
 {
    int    bzerr;
-   int8_t   unused[BZ_MAX_UNUSED];
+   char   unused[BZ_MAX_UNUSED];
    int    blockSize100k = 9;
    int    writing       = 0;
-   int8_t   mode2[10]     = "";
+   char   mode2[10]     = "";
    FILE   *fp           = NULL;
    BZFILE *bzfp         = NULL;
    int    verbosity     = 0;
@@ -276,7 +276,7 @@ void BZ_API(BZ2_bzclose) (BZFILE* b)
 /*--
    return last error code 
 --*/
-static int8_t *bzerrorstrings[] = {
+static char *bzerrorstrings[] = {
        "OK"
       ,"SEQUENCE_ERROR"
       ,"PARAM_ERROR"

@@ -11,10 +11,10 @@
 #include <stdio.h>
 #include <string.h>
 
-int8_t *
-ctermid(int8_t *s)
+char *
+ctermid(char *s)
 {
-	static int8_t buf[L_ctermid];
+	static char buf[L_ctermid];
 
 	if(s == 0)
 		s = buf;
@@ -22,8 +22,8 @@ ctermid(int8_t *s)
 	return(s);
 }
 
-int8_t *
-ctermid_r(int8_t *s)
+char *
+ctermid_r(char *s)
 {
 	return s ? ctermid(s) : NULL;
 }

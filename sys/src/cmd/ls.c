@@ -16,7 +16,7 @@ typedef struct NDir NDir;
 struct NDir
 {
 	Dir *d;
-	int8_t	*prefix;
+	char	*prefix;
 };
 
 int	errs = 0;
@@ -36,16 +36,16 @@ int	Fflag;
 int	ndirbuf;
 int	ndir;
 NDir*	dirbuf;
-int	ls(int8_t*, int);
+int	ls(char*, int);
 int	compar(NDir*, NDir*);
-int8_t*	asciitime(int32_t);
-int8_t*	darwx(int32_t);
-void	rwx(int32_t, int8_t*);
+char*	asciitime(int32_t);
+char*	darwx(int32_t);
+void	rwx(int32_t, char*);
 void	growto(int32_t);
 void	dowidths(Dir*);
-void	format(Dir*, int8_t*);
+void	format(Dir*, char*);
 void	output(void);
-int8_t*	xcleanname(int8_t*);
+char*	xcleanname(char*);
 uint32_t	clk;
 int	swidth;			/* max width of -s size */
 int	qwidth;			/* max width of -q version */
@@ -95,11 +95,11 @@ main(int argc, char *argv[])
 }
 
 int
-ls(int8_t *s, int multi)
+ls(char *s, int multi)
 {
 	int fd;
 	int32_t i, n;
-	int8_t *p;
+	char *p;
 	Dir *db;
 
 	db = dirstat(s);
@@ -145,8 +145,8 @@ void
 output(void)
 {
 	int i;
-	int8_t buf[4096];
-	int8_t *s;
+	char buf[4096];
+	char *s;
 
 	if(!nflag)
 		qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(void*, void*))compar);
@@ -168,7 +168,7 @@ output(void)
 void
 dowidths(Dir *db)
 {
-	int8_t buf[256];
+	char buf[256];
 	int n;
 
 	if(sflag) {
@@ -202,7 +202,7 @@ dowidths(Dir *db)
 	}
 }
 
-int8_t*
+char*
 fileflag(Dir *db)
 {
 	if(Fflag == 0)
@@ -215,7 +215,7 @@ fileflag(Dir *db)
 }
 
 void
-format(Dir *db, int8_t *name)
+format(Dir *db, char *name)
 {
 	int i;
 
@@ -296,11 +296,11 @@ compar(NDir *a, NDir *b)
 	return i;
 }
 
-int8_t*
+char*
 asciitime(int32_t l)
 {
-	static int8_t buf[32];
-	int8_t *t;
+	static char buf[32];
+	char *t;
 
 	t = ctime(l);
 	/* 6 months in the past or a day in the future */
@@ -316,10 +316,10 @@ asciitime(int32_t l)
 /*
  * Compress slashes, remove trailing slash.  Don't worry about . and ..
  */
-int8_t*
-xcleanname(int8_t *name)
+char*
+xcleanname(char *name)
 {
-	int8_t *r, *w;
+	char *r, *w;
 
 	for(r=w=name; *r; r++){
 		if(*r=='/' && r>name && *(r-1)=='/')

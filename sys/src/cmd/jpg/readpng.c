@@ -103,7 +103,7 @@ pngmalloc(uint32_t n, int clear)
 }
 
 static int
-getchunk(Biobuf *b, int8_t *type, uint8_t *d, int m)
+getchunk(Biobuf *b, char *type, uint8_t *d, int m)
 {
 	uint8_t buf[8];
 	uint32_t crc = 0, crc2;
@@ -133,7 +133,7 @@ static int
 zread(void *va)
 {
 	ZlibR *z = va;
-	int8_t type[5];
+	char type[5];
 	int n;
 
 	if(z->p >= z->e){
@@ -390,7 +390,7 @@ zwrite(void *vz, void *vbuf, int n)
 static Rawimage*
 readslave(Biobuf *b)
 {
-	int8_t type[5];
+	char type[5];
 	int bpc, colorfmt, dx, dy, err, n, nchan, nout, useadam7;
 	uint8_t *buf, *h;
 	Rawimage *image;

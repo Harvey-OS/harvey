@@ -192,7 +192,7 @@ openmode(uint32_t o)
 }
 
 int32_t
-_sysfd2path(int fd, int8_t *buf, uint nbuf)
+_sysfd2path(int fd, char *buf, uint nbuf)
 {
 	Chan *c;
 
@@ -211,7 +211,7 @@ _syspipe(int fd[2])
 {
 	Chan *c[2];
 	Dev *d;
-	static int8_t *datastr[] = {"data", "data1"};
+	static char *datastr[] = {"data", "data1"};
 
 	d = devtab[devno('|', 0)];
 	c[0] = namec("#|", Atodir, 0, 0);
@@ -281,7 +281,7 @@ _sysdup(int fd0, int fd1)
 }
 
 int32_t
-_sysopen(int8_t *name, int mode)
+_sysopen(char *name, int mode)
 {
 	int fd;
 	Chan *c = 0;
@@ -569,7 +569,7 @@ void
 validstat(uint8_t *s, int n)
 {
 	int m;
-	int8_t buf[64];
+	char buf[64];
 
 	if(statcheck(s, n) < 0)
 		error(Ebadstat);
@@ -612,7 +612,7 @@ _sysfstat(int fd, void *buf, int32_t n)
 }
 
 int32_t
-_sysstat(int8_t *name, void *buf, int32_t n)
+_sysstat(char *name, void *buf, int32_t n)
 {
 	Chan *c;
 	uint l;
@@ -632,7 +632,7 @@ _sysstat(int8_t *name, void *buf, int32_t n)
 }
 
 int32_t
-_syschdir(int8_t *name)
+_syschdir(char *name)
 {
 	Chan *c;
 
@@ -645,16 +645,16 @@ _syschdir(int8_t *name)
 }
 
 int32_t
-bindmount(int ismount, int fd, int afd, int8_t* arg0, int8_t* arg1,
+bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
 	  uint32_t flag,
-	  int8_t* spec)
+	  char* spec)
 {
 	int ret;
 	Chan *c0, *c1, *ac, *bc;
 	struct{
 		Chan	*chan;
 		Chan	*authchan;
-		int8_t	*spec;
+		char	*spec;
 		int	flags;
 	}bogus;
 
@@ -690,7 +690,7 @@ bindmount(int ismount, int fd, int afd, int8_t* arg0, int8_t* arg1,
 		poperror();
 
 		ret = devno('M', 0);
-		c0 = devtab[ret]->attach((int8_t*)&bogus);
+		c0 = devtab[ret]->attach((char*)&bogus);
 
 		poperror();
 		if(ac)
@@ -727,19 +727,19 @@ bindmount(int ismount, int fd, int afd, int8_t* arg0, int8_t* arg1,
 }
 
 int32_t
-_sysbind(int8_t *old, int8_t *new, int flag)
+_sysbind(char *old, char *new, int flag)
 {
 	return bindmount(0, -1, -1, old, new, flag, nil);
 }
 
 int32_t
-_sysmount(int fd, int afd, int8_t *new, int flag, int8_t *spec)
+_sysmount(int fd, int afd, char *new, int flag, char *spec)
 {
 	return bindmount(1, fd, afd, nil, new, flag, spec);
 }
 
 int32_t
-_sysunmount(int8_t *old, int8_t *new)
+_sysunmount(char *old, char *new)
 {
 	Chan *cmount, *cmounted;
 
@@ -779,7 +779,7 @@ _sysunmount(int8_t *old, int8_t *new)
 }
 
 int32_t
-_syscreate(int8_t *name, int mode, uint32_t perm)
+_syscreate(char *name, int mode, uint32_t perm)
 {
 	int fd;
 	Chan *c = 0;
@@ -800,7 +800,7 @@ _syscreate(int8_t *name, int mode, uint32_t perm)
 }
 
 int32_t
-_sysremove(int8_t *name)
+_sysremove(char *name)
 {
 	Chan *c;
 
@@ -822,7 +822,7 @@ _sysremove(int8_t *name)
 }
 
 int32_t
-_syswstat(int8_t *name, void *buf, int32_t n)
+_syswstat(char *name, void *buf, int32_t n)
 {
 	Chan *c;
 	uint l;
@@ -871,7 +871,7 @@ starterror(void)
 static void
 _syserror(void)
 {
-	int8_t *p;
+	char *p;
 
 	p = up->syserrstr;
 	up->syserrstr = up->errstr;
@@ -886,7 +886,7 @@ enderror(void)
 }
 
 int
-sysbind(int8_t *old, int8_t *new, int flag)
+sysbind(char *old, char *new, int flag)
 {
 	int n;
 
@@ -901,7 +901,7 @@ sysbind(int8_t *old, int8_t *new, int flag)
 }
 
 int
-syschdir(int8_t *path)
+syschdir(char *path)
 {
 	int n;
 
@@ -931,7 +931,7 @@ sysclose(int fd)
 }
 
 int
-syscreate(int8_t *name, int mode, uint32_t perm)
+syscreate(char *name, int mode, uint32_t perm)
 {
 	int n;
 
@@ -987,7 +987,7 @@ sysfwstat(int fd, uint8_t *buf, int n)
 }
 
 int
-sysmount(int fd, int afd, int8_t *new, int flag, int8_t *spec)
+sysmount(int fd, int afd, char *new, int flag, char *spec)
 {
 	int n;
 
@@ -1002,7 +1002,7 @@ sysmount(int fd, int afd, int8_t *new, int flag, int8_t *spec)
 }
 
 int
-sysunmount(int8_t *old, int8_t *new)
+sysunmount(char *old, char *new)
 {
 	int n;
 
@@ -1017,7 +1017,7 @@ sysunmount(int8_t *old, int8_t *new)
 }
 
 int
-sysopen(int8_t *name, int mode)
+sysopen(char *name, int mode)
 {
 	int n;
 
@@ -1086,7 +1086,7 @@ sysread(int fd, void *buf, int32_t n)
 }
 
 int
-sysremove(int8_t *path)
+sysremove(char *path)
 {
 	int n;
 
@@ -1114,7 +1114,7 @@ sysseek(int fd, int64_t off, int whence)
 }
 
 int
-sysstat(int8_t *name, uint8_t *buf, int n)
+sysstat(char *name, uint8_t *buf, int n)
 {
 	starterror();
 	if(waserror()){
@@ -1140,7 +1140,7 @@ syswrite(int fd, void *buf, int32_t n)
 }
 
 int
-syswstat(int8_t *name, uint8_t *buf, int n)
+syswstat(char *name, uint8_t *buf, int n)
 {
 	starterror();
 	if(waserror()){
@@ -1153,9 +1153,9 @@ syswstat(int8_t *name, uint8_t *buf, int n)
 }
 
 void
-werrstr(int8_t *f, ...)
+werrstr(char *f, ...)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 	va_list arg;
 
 	va_start(arg, f);
@@ -1178,10 +1178,10 @@ __errfmt(Fmt *fmt)
 }
 
 int
-errstr(int8_t *buf, uint n)
+errstr(char *buf, uint n)
 {
-	int8_t tmp[ERRMAX];
-	int8_t *p;
+	char tmp[ERRMAX];
+	char *p;
 
 	p = up->nerrlab ? up->errstr : up->syserrstr;
 	memmove(tmp, p, ERRMAX);
@@ -1191,9 +1191,9 @@ errstr(int8_t *buf, uint n)
 }
 
 int
-rerrstr(int8_t *buf, uint n)
+rerrstr(char *buf, uint n)
 {
-	int8_t *p;
+	char *p;
 
 	p = up->nerrlab ? up->errstr : up->syserrstr;
 	utfecpy(buf, buf+n, p);

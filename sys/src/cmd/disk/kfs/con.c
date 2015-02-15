@@ -10,9 +10,9 @@
 #include	"all.h"
 #include	"9p1.h"
 
-static	int8_t	elem[NAMELEN];
+static	char	elem[NAMELEN];
 static	Filsys*	cur_fs;
-static	int8_t	conline[100];
+static	char	conline[100];
 
 void
 consserve(void)
@@ -23,9 +23,9 @@ consserve(void)
 }
 
 int
-cmd_exec(int8_t *arg)
+cmd_exec(char *arg)
 {
-	int8_t *s, *c;
+	char *s, *c;
 	int i;
 
 	for(i=0; s = command[i].string; i++) {
@@ -45,7 +45,7 @@ cmd_exec(int8_t *arg)
 void
 cmd_check(void)
 {
-	int8_t *s;
+	char *s;
 	int flags;
 
 	flags = 0;
@@ -145,8 +145,8 @@ cmd_create(void)
 {
 	int uid, gid, err;
 	int32_t perm;
-	int8_t oelem[NAMELEN];
-	int8_t name[NAMELEN];
+	char oelem[NAMELEN];
+	char name[NAMELEN];
 
 	if(err = con_clone(FID1, FID2)){
 		cprint("clone failed: %s\n", errstring[err]);
@@ -216,8 +216,8 @@ cmd_rename(void)
 {
 	uint32_t perm;
 	Dentry d;
-	int8_t stat[DIRREC];
-	int8_t oelem[NAMELEN], noelem[NAMELEN], nxelem[NAMELEN];
+	char stat[DIRREC];
+	char oelem[NAMELEN], noelem[NAMELEN], nxelem[NAMELEN];
 	int err;
 
 	if(con_clone(FID1, FID2))
@@ -349,7 +349,7 @@ cmd_cfs(void)
  * for the file system than in the os
  */
 static uint64_t
-statlen(int8_t *ap)
+statlen(char *ap)
 {
 	uint8_t *p;
 	uint32_t ll, hl;
@@ -362,10 +362,10 @@ statlen(int8_t *ap)
 }
 
 int
-adduser(int8_t *user, int isgroup)
+adduser(char *user, int isgroup)
 {
-	int8_t stat[DIRREC];
-	int8_t msg[100];
+	char stat[DIRREC];
+	char msg[100];
 	Uid *u;
 	int i, c, nu;
 
@@ -432,7 +432,7 @@ adduser(int8_t *user, int isgroup)
 void
 cmd_newuser(void)
 {
-	int8_t user[NAMELEN], param[NAMELEN], msg[100];
+	char user[NAMELEN], param[NAMELEN], msg[100];
 	int i, c;
 
 	/*
@@ -504,12 +504,12 @@ void
 cmd_checkuser(void)
 {
 	uint8_t buf[DIRREC], *p;
-	static int8_t utime[4];
+	static char utime[4];
 
 	if(con_clone(FID1, FID2)
 	|| con_path(FID2, "/adm/users")
 	|| con_open(FID2, 0)
-	|| con_stat(FID2, (int8_t*)buf))
+	|| con_stat(FID2, (char*)buf))
 		return;
 	p = buf + 3*NAMELEN + 4*4;
 	if(memcmp(utime, p, 4) == 0)
@@ -559,7 +559,7 @@ cmd_noneattach(void)
 void
 cmd_listen(void)
 {
-	int8_t addr[NAMELEN];
+	char addr[NAMELEN];
 
 	if(skipbl(0))
 		strcpy(addr, "tcp!*!564");	/* 9fs */
@@ -617,8 +617,8 @@ skipbl(int err)
 	return 0;
 }
 
-int8_t*
-_cname(int8_t *name)
+char*
+_cname(char *name)
 {
 	int i, c;
 
@@ -638,8 +638,8 @@ _cname(int8_t *name)
 	}
 }
 
-int8_t*
-cname(int8_t *name)
+char*
+cname(char *name)
 {
 	skipbl(0);
 	return _cname(name);
@@ -648,7 +648,7 @@ cname(int8_t *name)
 int
 nextelem(void)
 {
-	int8_t *e;
+	char *e;
 	int i, c;
 
 	e = elem;

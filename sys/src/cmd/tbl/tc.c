@@ -18,7 +18,7 @@ choochar(void)
 {
 				/* choose funny characters to delimit fields */
 	int	had[128], ilin, icol, k;
-	int8_t	*s;
+	char	*s;
 
 	for (icol = 0; icol < 128; icol++)
 		had[icol] = 0;
@@ -62,7 +62,7 @@ choochar(void)
 }
 
 int
-point(int8_t *ss)
+point(char *ss)
 {
 	int64_t s = (uintptr)ss;
 

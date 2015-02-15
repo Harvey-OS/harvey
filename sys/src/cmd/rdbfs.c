@@ -143,10 +143,10 @@ enum
 int	textfd;
 int	rfd;
 Biobuf	rfb;
-int8_t*	portname = "/dev/eia0";
-int8_t*	textfile = "/386/9pc";
-int8_t*	procname = "1";
-int8_t*	srvname;
+char*	portname = "/dev/eia0";
+char*	textfile = "/386/9pc";
+char*	procname = "1";
+char*	srvname;
 Channel* rchan;
 
 void
@@ -157,7 +157,7 @@ usage(void)
 }
 
 void
-noalarm(void*, int8_t *msg)
+noalarm(void*, char *msg)
 {
 	if(strstr(msg, "alarm"))
 		noted(NCONT);
@@ -171,10 +171,10 @@ void
 eiaread(void*)
 {
 	Req *r;
-	int8_t *p;
+	char *p;
 	uint8_t *data;
-	int8_t err[ERRMAX];
-	int8_t buf[1000];
+	char err[ERRMAX];
+	char buf[1000];
 	int i, tries;
 
 	notify(noalarm);
@@ -244,10 +244,10 @@ eiaread(void*)
 }
 
 void
-attachremote(int8_t* name)
+attachremote(char* name)
 {
 	int fd;
-	int8_t buf[128];
+	char buf[128];
 
 	print("attach %s\n", name);
 	rfd = open(name, ORDWR);
@@ -266,7 +266,7 @@ attachremote(int8_t* name)
 void
 fsopen(Req *r)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	switch((uintptr)r->fid->file->aux){
 	case Xtext:
@@ -286,7 +286,7 @@ void
 fsread(Req *r)
 {
 	int i, n;
-	int8_t buf[512];
+	char buf[512];
 
 	switch((uintptr)r->fid->file->aux) {
 	case Xfpregs:
@@ -327,7 +327,7 @@ fsread(Req *r)
 void
 fswrite(Req *r)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	switch((uintptr)r->fid->file->aux) {
 	case Xctl:
@@ -366,7 +366,7 @@ fswrite(Req *r)
 }
 
 struct {
-	int8_t *s;
+	char *s;
 	int id;
 	int mode;
 } tab[] = {

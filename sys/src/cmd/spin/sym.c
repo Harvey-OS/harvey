@@ -25,7 +25,7 @@ extern Symbol	*Fname, *owner;
 extern int	lineno, depth, verbose, NamesNotAdded, deadvar;
 extern int	has_hidden, m_loss, old_scope_rules;
 extern int16_t	has_xu;
-extern int8_t	CurScope[MAXSCOPESZ];
+extern char	CurScope[MAXSCOPESZ];
 
 Symbol	*context = ZS;
 Ordered	*all_names = (Ordered *)0;
@@ -46,7 +46,7 @@ samename(Symbol *a, Symbol *b)
 }
 
 int
-hash(int8_t *s)
+hash(char *s)
 {	int h=0;
 
 	while (*s)
@@ -73,16 +73,16 @@ disambiguate(void)
 	{	sp = walk->entry;
 		if (sp->type != 0
 		&&  sp->type != LABEL
-		&&  strlen((const int8_t *)sp->bscp) > 1)
-		{	int8_t *n = (int8_t *) emalloc(strlen((const int8_t *)sp->name)
-				+ strlen((const int8_t *)sp->bscp) + 1);
+		&&  strlen((const char *)sp->bscp) > 1)
+		{	char *n = (char *) emalloc(strlen((const char *)sp->name)
+				+ strlen((const char *)sp->bscp) + 1);
 			sprintf(n, "%s%s", sp->bscp, sp->name);
 			sp->name = n;	/* discord the old memory */
 	}	}
 }
 
 Symbol *
-lookup(int8_t *s)
+lookup(char *s)
 {	Symbol *sp; Ordered *no;
 	int h = hash(s);
 
@@ -99,8 +99,8 @@ lookup(int8_t *s)
 		for (sp = symtab[h]; sp; sp = sp->next)
 		{	if (strcmp(sp->name, s) == 0
 			&&  samename(sp->context, context)
-			&&  (strcmp((const int8_t *)sp->bscp, CurScope) == 0
-			||   strncmp((const int8_t *)sp->bscp, CurScope, strlen((const int8_t *)sp->bscp)) == 0)
+			&&  (strcmp((const char *)sp->bscp, CurScope) == 0
+			||   strncmp((const char *)sp->bscp, CurScope, strlen((const char *)sp->bscp)) == 0)
 			&&  samename(sp->owner, owner))
 			{
 				if (!samename(sp->owner, owner))
@@ -121,14 +121,14 @@ lookup(int8_t *s)
 	}	}
 
 	sp = (Symbol *) emalloc(sizeof(Symbol));
-	sp->name = (int8_t *) emalloc(strlen(s) + 1);
+	sp->name = (char *) emalloc(strlen(s) + 1);
 	strcpy(sp->name, s);
 	sp->nel = 1;
 	sp->setat = depth;
 	sp->context = context;
 	sp->owner = owner;			/* if fld in struct */
-	sp->bscp = (unsigned char *) emalloc(strlen((const int8_t *)CurScope)+1);
-	strcpy((int8_t *)sp->bscp, CurScope);
+	sp->bscp = (unsigned char *) emalloc(strlen((const char *)CurScope)+1);
+	strcpy((char *)sp->bscp, CurScope);
 
 	if (NamesNotAdded == 0)
 	{	sp->next = symtab[h];
@@ -178,7 +178,7 @@ trackrun(Lextok *n)
 void
 checkrun(Symbol *parnm, int posno)
 {	Lextok *n, *now, *v; int i, m;
-	int res = 0; int8_t buf[16], buf2[16];
+	int res = 0; char buf[16], buf2[16];
 
 	for (n = runstmnts; n; n = n->rgt)
 	{	now = n->lft;
@@ -337,7 +337,7 @@ setxus(Lextok *p, int t)
 	if (!context)
 	{	lineno = p->ln;
 		Fname = p->fn;
-		fatal("non-local x[rs] assertion", (int8_t *)0);
+		fatal("non-local x[rs] assertion", (char *)0);
 	}
 	for (m = p; m; m = m->rgt)
 	{	Lextok *Xu_new = (Lextok *) emalloc(sizeof(Lextok));
@@ -382,7 +382,7 @@ setmtype(Lextok *m)
 	{	if (!n->lft || !n->lft->sym
 		||   n->lft->ntyp != NAME
 		||   n->lft->lft)	/* indexed variable */
-			fatal("bad mtype definition", (int8_t *)0);
+			fatal("bad mtype definition", (char *)0);
 
 		/* label the name */
 		if (n->lft->sym->type != MTYPE)
@@ -396,11 +396,11 @@ setmtype(Lextok *m)
 	}
 	lineno = oln;
 	if (cnt > 256)
-		fatal("too many mtype elements (>255)", (int8_t *)0);
+		fatal("too many mtype elements (>255)", (char *)0);
 }
 
 int
-ismtype(int8_t *str)	/* name to number */
+ismtype(char *str)	/* name to number */
 {	Lextok *n;
 	int cnt = 1;
 
@@ -413,7 +413,7 @@ ismtype(int8_t *str)	/* name to number */
 }
 
 int
-sputtype(int8_t *foo, int m)
+sputtype(char *foo, int m)
 {
 	switch (m) {
 	case UNSIGNED:	strcpy(foo, "unsigned "); break;
@@ -434,7 +434,7 @@ sputtype(int8_t *foo, int m)
 
 static int
 puttype(int m)
-{	int8_t buf[128];
+{	char buf[128];
 
 	if (sputtype(buf, m))
 	{	printf("%s", buf);
@@ -517,7 +517,7 @@ chname(Symbol *sp)
 }
 
 static struct X {
-	int typ; int8_t *nm;
+	int typ; char *nm;
 } xx[] = {
 	{ 'A', "exported as run parameter" },
 	{ 'F', "imported as proctype parameter" },
@@ -565,7 +565,7 @@ report:
 void
 chanaccess(void)
 {	Ordered *walk;
-	int8_t buf[128];
+	char buf[128];
 	extern int Caccess, separate;
 	extern int16_t has_code;
 

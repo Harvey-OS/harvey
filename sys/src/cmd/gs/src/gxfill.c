@@ -140,7 +140,7 @@ gs_private_st_simple(st_active_line, active_line, "active_line");
 #ifdef DEBUG
 /* Internal procedures for printing and checking active lines. */
 private void
-print_active_line(const int8_t *label, const active_line * alp)
+print_active_line(const char *label, const active_line * alp)
 {
     dlprintf5("[f]%s 0x%lx(%d): x_current=%f x_next=%f\n",
 	      label, (uint32_t) alp, alp->direction,
@@ -169,7 +169,7 @@ print_line_list(const active_line * flp)
     }
 }
 inline private void
-print_al(const int8_t *label, const active_line * alp)
+print_al(const char *label, const active_line * alp)
 {
     if (gs_debug_c('F'))
 	print_active_line(label, alp);

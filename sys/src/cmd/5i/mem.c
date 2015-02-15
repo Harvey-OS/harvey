@@ -183,11 +183,11 @@ putmem_v(uint32_t addr, uint64_t data)
 	putmem_w(addr+4, data>>32);
 }
 
-int8_t *
-memio(int8_t *mb, uint32_t mem, int size, int dir)
+char *
+memio(char *mb, uint32_t mem, int size, int dir)
 {
 	int i;
-	int8_t *buf, c;
+	char *buf, c;
 
 	if(mb == 0)
 		mb = emalloc(size);

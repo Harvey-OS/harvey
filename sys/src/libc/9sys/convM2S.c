@@ -13,7 +13,7 @@
 
 static
 uint8_t*
-gstring(uint8_t *p, uint8_t *ep, int8_t **s)
+gstring(uint8_t *p, uint8_t *ep, char **s)
 {
 	uint n;
 
@@ -26,7 +26,7 @@ gstring(uint8_t *p, uint8_t *ep, int8_t **s)
 	/* move it down, on top of count, to make room for '\0' */
 	memmove(p, p + 1, n);
 	p[n] = '\0';
-	*s = (int8_t*)p;
+	*s = (char*)p;
 	p += n+1;
 	return p;
 }
@@ -193,7 +193,7 @@ convM2S(uint8_t *ap, uint nap, Fcall *f)
 		p += BIT32SZ;
 		if(p+f->count > ep)
 			return 0;
-		f->data = (int8_t*)p;
+		f->data = (char*)p;
 		p += f->count;
 		break;
 
@@ -286,7 +286,7 @@ convM2S(uint8_t *ap, uint nap, Fcall *f)
 		p += BIT32SZ;
 		if(p+f->count > ep)
 			return 0;
-		f->data = (int8_t*)p;
+		f->data = (char*)p;
 		p += f->count;
 		break;
 

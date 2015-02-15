@@ -11,7 +11,7 @@
  * pANS stdio -- setvbuf
  */
 #include "iolib.h"
-int setvbuf(FILE *f, int8_t *buf, int mode, int32_t size){
+int setvbuf(FILE *f, char *buf, int mode, int32_t size){
 	if(f->state!=OPEN){
 		f->state=ERR;
 		return -1;
@@ -43,13 +43,13 @@ int setvbuf(FILE *f, int8_t *buf, int mode, int32_t size){
 int _IO_setvbuf(FILE *f){
 	static int isatty(int);
 	if(f==stderr || (f==stdout && isatty(1)))
-		return setvbuf(f, (int8_t *)0, _IOLBF, BUFSIZ);
-	else return setvbuf(f, (int8_t *)0, _IOFBF, BUFSIZ);
+		return setvbuf(f, (char *)0, _IOLBF, BUFSIZ);
+	else return setvbuf(f, (char *)0, _IOFBF, BUFSIZ);
 }
 static int
 isatty(int fd)
 {
-	int8_t buf[64];
+	char buf[64];
 
 	if(fd2path(fd, buf, sizeof buf) != 0)
 		return 0;

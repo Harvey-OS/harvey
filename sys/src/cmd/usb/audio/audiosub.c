@@ -19,7 +19,7 @@ typedef struct Namelist Namelist;
 struct Namelist
 {
 	int16_t	index;
-	int8_t		*name;
+	char		*name;
 };
 
 Namelist terminal_types[] = {
@@ -67,7 +67,7 @@ audio_interface(Dev *, Desc *dd)
 	byte *p;
 	int class, subclass;
 	Audioalt *aa;
-	int8_t *hd;
+	char *hd;
 
 	class = Class(dd->iface->csp);
 	subclass = Subclass(dd->iface->csp);

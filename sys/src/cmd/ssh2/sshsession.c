@@ -17,20 +17,20 @@
 #include <auth.h>
 #include "ssh2.h"
 
-int8_t *confine(int8_t *, int8_t *);
-int8_t *get_string(int8_t *, int8_t *);
-void newchannel(int, int8_t *, int);
-void runcmd(int, int, int8_t *, int8_t *, int8_t *, int8_t *);
+char *confine(char *, char *);
+char *get_string(char *, char *);
+void newchannel(int, char *, int);
+void runcmd(int, int, char *, char *, char *, char *);
 
 int errfd, toppid, sflag, tflag, prevent;
 int debug;
-int8_t *idstring;
-int8_t *netdir;				/* /net/ssh/<conn> */
-int8_t *nsfile = nil;
-int8_t *restdir;
-int8_t *shell;
-int8_t *srvpt;
-int8_t *uname;
+char *idstring;
+char *netdir;				/* /net/ssh/<conn> */
+char *nsfile = nil;
+char *restdir;
+char *shell;
+char *srvpt;
+char *uname;
 
 void
 usage(void)
@@ -44,7 +44,7 @@ static int
 getctlfd(void)
 {
 	int ctlfd;
-	int8_t *name;
+	char *name;
 
 	name = smprint("%s/clone", netdir);
 	ctlfd = -1;
@@ -62,7 +62,7 @@ static int
 getdatafd(int ctlfd)
 {
 	int fd;
-	int8_t *name;
+	char *name;
 
 	name = smprint("%s/data", netdir);
 	fd = -1;
@@ -78,7 +78,7 @@ getdatafd(int ctlfd)
 }
 
 static void
-auth(int8_t *buf, int n, int ctlfd)
+auth(char *buf, int n, int ctlfd)
 {
 	int fd;
 
@@ -104,7 +104,7 @@ static void
 mounttunnel(int ctlfd)
 {
 	int fd;
-	int8_t *p, *np, *q;
+	char *p, *np, *q;
 
 	if (access(netdir, AEXIST) >= 0)
 		return;
@@ -132,9 +132,9 @@ mounttunnel(int ctlfd)
 }
 
 static int
-authnewns(int ctlfd, int8_t *buf, int size, int n)
+authnewns(int ctlfd, char *buf, int size, int n)
 {
-	int8_t *p, *q;
+	char *p, *q;
 
 	USED(size);
 	if (n <= 0)
@@ -162,7 +162,7 @@ authnewns(int ctlfd, int8_t *buf, int size, int n)
 }
 
 static void
-listenloop(int8_t *listfile, int ctlfd, int8_t *buf, int size)
+listenloop(char *listfile, int ctlfd, char *buf, int size)
 {
 	int fd, n;
 
@@ -297,7 +297,7 @@ main(int argc, char *argv[])
 #define REPLY(s)	if (want_reply) fprint(reqfd, s);
 
 static void
-forkshell(int8_t *cmd, int reqfd, int datafd, int want_reply)
+forkshell(char *cmd, int reqfd, int datafd, int want_reply)
 {
 	switch (fork()) {
 	case 0:
@@ -317,9 +317,9 @@ forkshell(int8_t *cmd, int reqfd, int datafd, int want_reply)
 }
 
 static void
-forkcmd(int8_t *cmd, int8_t *p, int reqfd, int datafd, int want_reply)
+forkcmd(char *cmd, char *p, int reqfd, int datafd, int want_reply)
 {
-	int8_t *q;
+	char *q;
 
 	switch (fork()) {
 	case 0:
@@ -343,11 +343,11 @@ forkcmd(int8_t *cmd, int8_t *p, int reqfd, int datafd, int want_reply)
 }
 
 void
-newchannel(int fd, int8_t *conndir, int channum)
+newchannel(int fd, char *conndir, int channum)
 {
-	int8_t *p, *reqfile, *datafile;
+	char *p, *reqfile, *datafile;
 	int n, reqfd, datafd, want_reply, already_done;
-	int8_t buf[Maxpayload], cmd[Bigbufsz];
+	char buf[Maxpayload], cmd[Bigbufsz];
 
 	close(fd);
 
@@ -411,8 +411,8 @@ newchannel(int fd, int8_t *conndir, int channum)
 	exits(nil);
 }
 
-int8_t *
-get_string(int8_t *q, int8_t *s)
+char *
+get_string(char *q, char *s)
 {
 	int n;
 
@@ -424,11 +424,11 @@ get_string(int8_t *q, int8_t *s)
 	return q;
 }
 
-int8_t *
-confine(int8_t *q, int8_t *s)
+char *
+confine(char *q, char *s)
 {
 	int i, n, m;
-	int8_t *p, *e, *r, *buf, *toks[Maxtoks];
+	char *p, *e, *r, *buf, *toks[Maxtoks];
 
 	n = nhgetl(q);
 	q += 4;
@@ -454,10 +454,10 @@ confine(int8_t *q, int8_t *s)
 }
 
 void
-runcmd(int reqfd, int datafd, int8_t *svc, int8_t *cmd, int8_t *arg1,
-       int8_t *arg2)
+runcmd(int reqfd, int datafd, char *svc, char *cmd, char *arg1,
+       char *arg2)
 {
-	int8_t *p;
+	char *p;
 	int fd, cmdpid, child;
 
 	cmdpid = rfork(RFPROC|RFMEM|RFNOTEG|RFFDG|RFENVG);

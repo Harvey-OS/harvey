@@ -93,12 +93,12 @@ extern "C" {
 #endif
 
 /* process primitives */
-extern int execl(const int8_t *, const int8_t *, ...);
-extern int execv(const int8_t *, const int8_t **);
-extern int execle(const int8_t *, const int8_t *, const int8_t *,  ...);
-extern int execve(const int8_t *, const int8_t **, const int8_t **);
-extern int execlp(const int8_t *, const int8_t *, ...);
-extern int execvp(const int8_t *, const int8_t **);
+extern int execl(const char *, const char *, ...);
+extern int execv(const char *, const char **);
+extern int execle(const char *, const char *, const char *,  ...);
+extern int execve(const char *, const char **, const char **);
+extern int execlp(const char *, const char *, ...);
+extern int execvp(const char *, const char **);
 extern void _exit(int);
 extern unsigned int alarm(unsigned int);
 extern int pause(void);
@@ -108,9 +108,9 @@ extern pid_t fork(void);
 #endif
 
 /* process environment */
-extern int8_t *getlogin(void);
-extern int8_t *cuserid(int8_t *);
-extern int8_t *ttyname(int);
+extern char *getlogin(void);
+extern char *cuserid(char *);
+extern char *ttyname(int);
 extern int isatty(int);
 extern int32_t sysconf(int);
 #ifdef __TYPES_H
@@ -129,17 +129,17 @@ extern pid_t setsid(void);
 #endif
 
 /* files and directories */
-extern int chdir(const int8_t *);
-extern int link(const int8_t *, const int8_t *);
-extern int8_t *getcwd(int8_t *, size_t);
-extern int unlink(const int8_t *);
-extern int rmdir(const int8_t *);
-extern int rename(const int8_t *, const int8_t *);
-extern int access(const int8_t *, int);
-extern int32_t pathconf(const int8_t *, int);
+extern int chdir(const char *);
+extern int link(const char *, const char *);
+extern char *getcwd(char *, size_t);
+extern int unlink(const char *);
+extern int rmdir(const char *);
+extern int rename(const char *, const char *);
+extern int access(const char *, int);
+extern int32_t pathconf(const char *, int);
 extern int32_t fpathconf(int, int);
 #ifdef __TYPES_H
-extern int chown(const int8_t *, uid_t, gid_t);
+extern int chown(const char *, uid_t, gid_t);
 #endif
 
 /* input and output primitives */
@@ -161,7 +161,7 @@ extern int tcsetpgrp(int, pid_t);
 #endif
 
 #ifdef _REENTRANT_SOURCE
-extern int8_t *getlogin_r(int8_t *, int);
+extern char *getlogin_r(char *, int);
 #endif
 
 /* berkeley specific functions */

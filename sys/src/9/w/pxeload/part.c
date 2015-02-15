@@ -55,7 +55,7 @@ static void
 oldp9part(SDunit *unit)
 {
 	SDpart *pp;
-	int8_t *field[3], *line[Npart+1];
+	char *field[3], *line[Npart+1];
 	uint32_t n, start, end;
 	int i;
 
@@ -75,13 +75,13 @@ oldp9part(SDunit *unit)
 	if(tsdbio(unit, pp, partbuf, 0, 0) < 0)
 		return;
 
-	if(strncmp((int8_t*)partbuf, MAGIC, sizeof(MAGIC)-1) != 0) {
+	if(strncmp((char*)partbuf, MAGIC, sizeof(MAGIC)-1) != 0) {
 		/* not found on 2nd last sector; look on last sector */
 		pp->start++;
 		pp->end++;
 		if(tsdbio(unit, pp, partbuf, 0, 0) < 0)
 			return;
-		if(strncmp((int8_t*)partbuf, MAGIC, sizeof(MAGIC)-1) != 0)
+		if(strncmp((char*)partbuf, MAGIC, sizeof(MAGIC)-1) != 0)
 			return;
 		print("%s: using old plan9 partition table on last sector\n", unit->name);
 	}else
@@ -94,7 +94,7 @@ oldp9part(SDunit *unit)
 	/*
 	 * parse partition table
 	 */
-	n = getfields((int8_t*)partbuf, line, Npart+1, '\n');
+	n = getfields((char*)partbuf, line, Npart+1, '\n');
 	if(n && strncmp(line[0], MAGIC, sizeof(MAGIC)-1) == 0){
 		for(i = 1; i < n && unit->npart < SDnpart; i++){
 			if(getfields(line[i], field, 3, ' ') != 3)
@@ -109,10 +109,10 @@ oldp9part(SDunit *unit)
 }
 
 static void
-p9part(SDunit *unit, int8_t *name)
+p9part(SDunit *unit, char *name)
 {
 	SDpart *p;
-	int8_t *field[4], *line[Npart+1];
+	char *field[4], *line[Npart+1];
 	uint32_t start, end;
 	int i, n;
 
@@ -124,10 +124,10 @@ p9part(SDunit *unit, int8_t *name)
 		return;
 	partbuf[unit->secsize-1] = '\0';
 
-	if(strncmp((int8_t*)partbuf, "part ", 5) != 0)
+	if(strncmp((char*)partbuf, "part ", 5) != 0)
 		return;
 
-	n = getfields((int8_t*)partbuf, line, Npart+1, '\n');
+	n = getfields((char*)partbuf, line, Npart+1, '\n');
 	if(n == 0)
 		return;
 	for(i = 0; i < n && unit->npart < SDnpart; i++){
@@ -166,7 +166,7 @@ mbrpart(SDunit *unit)
 	uint32_t taboffset, start, end;
 	uint32_t firstxpart, nxtxpart;
 	int havedos, i, nplan9;
-	int8_t name[10];
+	char name[10];
 
 	taboffset = 0;
 	dp = (Dospart*)&mbrbuf[0x1BE];
@@ -265,7 +265,7 @@ part9660(SDunit *unit)
 	if(sdbio(unit, &unit->part[0], buf, 2048, 17*2048) < 0)
 		return -1;
 
-	if(buf[0] || strcmp((int8_t*)buf+1, "CD001\x01EL TORITO SPECIFICATION") != 0)
+	if(buf[0] || strcmp((char*)buf+1, "CD001\x01EL TORITO SPECIFICATION") != 0)
 		return -1;
 
 
@@ -312,7 +312,7 @@ void
 partition(SDunit *unit)
 {
 	int type;
-	int8_t *p;
+	char *p;
 
 	if(unit->part == 0)
 		return;

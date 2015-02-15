@@ -9,10 +9,10 @@
 
 #include <lib9.h>
 
-extern	int	_MOUNT(int, int, int8_t*, int, int8_t*);
+extern	int	_MOUNT(int, int, char*, int, char*);
 
 int
-mount(int fd, int afd, int8_t *old, int flag, int8_t *aname)
+mount(int fd, int afd, char *old, int flag, char *aname)
 {
 	return _MOUNT(fd, afd, old, flag, aname);
 }

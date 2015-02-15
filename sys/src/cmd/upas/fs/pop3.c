@@ -19,11 +19,11 @@
 
 typedef struct Pop Pop;
 struct Pop {
-	int8_t *freep;	// free this to free the strings below
+	char *freep;	// free this to free the strings below
 
-	int8_t *host;
-	int8_t *user;
-	int8_t *port;
+	char *host;
+	char *user;
+	char *port;
 
 	int ppop;
 	int refreshtime;
@@ -38,15 +38,15 @@ struct Pop {
 	Biobuf bin;
 	Biobuf bout;
 	int fd;
-	int8_t *lastline;	// from Brdstr
+	char *lastline;	// from Brdstr
 
 	Thumbprint *thumb;
 };
 
-int8_t*
+char*
 geterrstr(void)
 {
-	static int8_t err[Errlen];
+	static char err[Errlen];
 
 	err[0] = '\0';
 	errstr(err, sizeof(err));
@@ -59,15 +59,15 @@ geterrstr(void)
 // will deal with that.
 //
 static int
-isokay(int8_t *s)
+isokay(char *s)
 {
 	return s!=nil && strncmp(s, "+OK", 3)==0;
 }
 
 static void
-pop3cmd(Pop *pop, int8_t *fmt, ...)
+pop3cmd(Pop *pop, char *fmt, ...)
 {
-	int8_t buf[128], *p;
+	char buf[128], *p;
 	va_list va;
 
 	va_start(va, fmt);
@@ -85,11 +85,11 @@ pop3cmd(Pop *pop, int8_t *fmt, ...)
 	Bflush(&pop->bout);
 }
 
-static int8_t*
+static char*
 pop3resp(Pop *pop)
 {
-	int8_t *s;
-	int8_t *p;
+	char *s;
+	char *p;
 
 	alarm(60*1000);
 	if((s = Brdstr(&pop->bin, '\n', 0)) == nil){
@@ -112,7 +112,7 @@ pop3resp(Pop *pop)
 }
 
 static int
-pop3log(int8_t *fmt, ...)
+pop3log(char *fmt, ...)
 {
 	va_list ap;
 
@@ -122,7 +122,7 @@ pop3log(int8_t *fmt, ...)
 	return 0;
 }
 
-static int8_t*
+static char*
 pop3pushtls(Pop *pop)
 {
 	int fd;
@@ -162,10 +162,10 @@ pop3pushtls(Pop *pop)
 //
 // get capability list, possibly start tls
 //
-static int8_t*
+static char*
 pop3capa(Pop *pop)
 {
-	int8_t *s;
+	char *s;
 	int hastls;
 
 	pop3cmd(pop, "CAPA");
@@ -198,13 +198,13 @@ pop3capa(Pop *pop)
 //
 // log in using APOP if possible, password if allowed by user
 //
-static int8_t*
+static char*
 pop3login(Pop *pop)
 {
 	int n;
-	int8_t *s, *p, *q;
-	int8_t ubuf[128], user[128];
-	int8_t buf[500];
+	char *s, *p, *q;
+	char ubuf[128], user[128];
+	char buf[500];
 	UserPasswd *up;
 
 	s = pop3resp(pop);
@@ -265,10 +265,10 @@ pop3login(Pop *pop)
 //
 // dial and handshake with pop server
 //
-static int8_t*
+static char*
 pop3dial(Pop *pop)
 {
-	int8_t *err;
+	char *err;
 
 	if((pop->fd = dial(netmkaddr(pop->host, "net", pop->needssl ? "pop3s" : "pop3"), 0, 0, 0)) < 0)
 		return geterrstr();
@@ -303,11 +303,11 @@ pop3hangup(Pop *pop)
 //
 // download a single message
 //
-static int8_t*
+static char*
 pop3download(Pop *pop, Message *m)
 {
-	int8_t *s, *f[3], *wp, *ep;
-	int8_t sdigest[SHA1dlen*2+1];
+	char *s, *f[3], *wp, *ep;
+	char sdigest[SHA1dlen*2+1];
 	int i, l, sz;
 
 	if(!pop->pipeline)
@@ -394,10 +394,10 @@ pop3download(Pop *pop, Message *m)
 // netscape requires it, so almost every server supports it.
 // we'll use it to make our lives easier.
 //
-static int8_t*
+static char*
 pop3read(Pop *pop, Mailbox *mb, int doplumb)
 {
-	int8_t *s, *p, *uidl, *f[2];
+	char *s, *p, *uidl, *f[2];
 	int mesgno, ignore, nnew;
 	Message *m, *next, **l;
 
@@ -565,10 +565,10 @@ pop3purge(Pop *pop, Mailbox *mb)
 
 
 // connect to pop3 server, sync mailbox
-static int8_t*
+static char*
 pop3sync(Mailbox *mb, int doplumb)
 {
-	int8_t *err;
+	char *err;
 	Pop *pop;
 
 	pop = mb->aux;
@@ -587,10 +587,10 @@ pop3sync(Mailbox *mb, int doplumb)
 	return err;
 }
 
-static int8_t Epop3ctl[] = "bad pop3 control message";
+static char Epop3ctl[] = "bad pop3 control message";
 
-static int8_t*
-pop3ctl(Mailbox *mb, int argc, int8_t **argv)
+static char*
+pop3ctl(Mailbox *mb, int argc, char **argv)
 {
 	int n;
 	Pop *pop;
@@ -645,10 +645,10 @@ pop3close(Mailbox *mb)
 //
 // open mailboxes of the form /pop/host/user or /apop/host/user
 //
-int8_t*
-pop3mbox(Mailbox *mb, int8_t *path)
+char*
+pop3mbox(Mailbox *mb, char *path)
 {
-	int8_t *f[10];
+	char *f[10];
 	int nf, apop, ppop, popssl, apopssl, apoptls, popnotls, apopnotls, poptls;
 	Pop *pop;
 

@@ -28,7 +28,7 @@ machinit(void)
  * Put a string on the console.
  */
 void
-puts(int8_t *s, int n)
+puts(char *s, int n)
 {
 	print("%.*s", n, s);
 }
@@ -42,7 +42,7 @@ prflush(void)
  * Print a string on the console.
  */
 void
-putstrn(int8_t *str, int n)
+putstrn(char *str, int n)
 {
 	puts(str, n);
 }
@@ -57,11 +57,11 @@ getc(void)
 }
 
 void
-panic(int8_t *fmt, ...)
+panic(char *fmt, ...)
 {
 	int n;
 	va_list arg;
-	int8_t buf[PRINTSIZE];
+	char buf[PRINTSIZE];
 
 	va_start(arg, fmt);
 	n = vseprint(buf, buf + sizeof buf, fmt, arg) - buf;
@@ -72,9 +72,9 @@ panic(int8_t *fmt, ...)
 }
 
 int
-okay(int8_t *quest)
+okay(char *quest)
 {
-	int8_t *ln;
+	char *ln;
 
 	print("okay to %s? ", quest);
 	if ((ln = Brdline(&bin, '\n')) == nil)
@@ -86,11 +86,11 @@ okay(int8_t *quest)
 }
 
 static void
-mapinit(int8_t *mapfile)
+mapinit(char *mapfile)
 {
 	int nf;
-	int8_t *ln;
-	int8_t *fields[2];
+	char *ln;
+	char *fields[2];
 	Biobuf *bp;
 	Map *map;
 
@@ -566,11 +566,11 @@ synccopy(void)
 }
 
 Devsize
-inqsize(int8_t *file)
+inqsize(char *file)
 {
 	int nf;
-	int8_t *ln, *end, *data = malloc(strlen(file) + 5 + 1);
-	int8_t *fields[4];
+	char *ln, *end, *data = malloc(strlen(file) + 5 + 1);
+	char *fields[4];
 	Devsize rv = -1;
 	Biobuf *bp;
 

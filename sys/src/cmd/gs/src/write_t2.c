@@ -78,17 +78,17 @@ static void write_type2_int(WRF_output* a_output,int32_t a_int)
 
 static void write_type2_float(WRF_output* a_output,double a_float)
 	{
-	int8_t buffer[32];
-	const int8_t* p = buffer;
+	char buffer[32];
+	const char* p = buffer;
 	int high = true;
-	int8_t c = 0;
+	char c = 0;
 	sprintf(buffer,"%f",a_float);
 	WRF_wbyte(a_output,30);
 	for (;;)
 		{
-		int8_t n = 0;
+		char n = 0;
 		if (*p >= '0' && *p <= '9')
-			n = (int8_t)(*p - '0');
+			n = (char)(*p - '0');
 		else if (*p == '.')
 			n = 0xA;
 		else if (*p == 'e' || *p == 'E')
@@ -110,7 +110,7 @@ static void write_type2_float(WRF_output* a_output,double a_float)
 			if (*p == 0)
 				WRF_wbyte(a_output,0xFF);
 			else
-				c = (int8_t)(n << 4);
+				c = (char)(n << 4);
 			}
 		else
 			{

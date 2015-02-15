@@ -52,7 +52,7 @@ typedef struct {
   int ac_tbl_no;		/* the table number of the single component */
   unsigned int EOBRUN;		/* run length of EOBs */
   unsigned int BE;		/* # of buffered correction bits before MCU */
-  int8_t * bit_buffer;		/* buffer for correction bits (1 per char) */
+  char * bit_buffer;		/* buffer for correction bits (1 per char) */
   /* packing correction bits tightly would save some space but cost time... */
 
   unsigned int restarts_to_go;	/* MCUs left in this restart interval */

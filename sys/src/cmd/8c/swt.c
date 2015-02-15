@@ -112,7 +112,7 @@ bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 }
 
 int32_t
-outstring(int8_t *s, int32_t n)
+outstring(char *s, int32_t n)
 {
 	int32_t r;
 
@@ -265,7 +265,7 @@ void
 outhist(Biobuf *b)
 {
 	Hist *h;
-	int8_t *p, *q, *op, c;
+	char *p, *q, *op, c;
 	Prog pg;
 	int n;
 
@@ -339,7 +339,7 @@ outhist(Biobuf *b)
 void
 zname(Biobuf *b, Sym *s, int t)
 {
-	int8_t *n;
+	char *n;
 	uint32_t sig;
 
 	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
@@ -371,7 +371,7 @@ zaddr(Biobuf *b, Adr *a, int s)
 {
 	int32_t l;
 	int i, t;
-	int8_t *n;
+	char *n;
 	Ieee e;
 
 	t = 0;

@@ -319,7 +319,7 @@ the Index-Number of the name.
 Actually
 */
 
-static const int8_t *const upd_version = "upVersion"; /** Readonly Version */
+static const char *const upd_version = "upVersion"; /** Readonly Version */
 
 /** Names for the multiple-choice-Parameters
 
@@ -331,7 +331,7 @@ For each of them, there is an array of constant strings that consists of
 n.       A terminating NULL
 */
 
-static const int8_t *const upd_mapper[] = { "upColorModel",
+static const char *const upd_mapper[] = { "upColorModel",
 #define MAP_GRAY        1   /** Monochrome & Grayscale Devices */
 "DeviceGray",               /** Monochrome & Grayscale Devices */
 #define MAP_RGBW        2   /** RGB with White-Generation */
@@ -349,7 +349,7 @@ static const int8_t *const upd_mapper[] = { "upColorModel",
 NULL
 };
 
-static const int8_t *const upd_render[] = { "upRendering",
+static const char *const upd_render[] = { "upRendering",
 #define RND_FSCOMP      1   /** Componentwise Floyd-Steinberg */
 "ErrorDiffusion",           /** Componentwise Floyd-Steinberg */
 #define RND_FSCMYK      2   /** CMYK-specialized 32Bit Floyd-Steinberg */
@@ -359,7 +359,7 @@ static const int8_t *const upd_render[] = { "upRendering",
 NULL
 };
 
-static const int8_t *const upd_format[] = { "upOutputFormat",
+static const char *const upd_format[] = { "upOutputFormat",
 #define FMT_RAS         1   /** Generates SUN-Rasterfiles */
 "SunRaster",                /** Generates SUN-Rasterfiles */
 #define FMT_EPSON       2   /** Generates X+Y-Weaved ESC/P-Output */
@@ -377,7 +377,7 @@ static const int8_t *const upd_format[] = { "upOutputFormat",
 NULL
 };
 
-static const int8_t *const *const upd_choice[] = {
+static const char *const *const upd_choice[] = {
 #define C_MAPPER        0   /** the selected Mapper */
    upd_mapper,
 #define C_RENDER        1   /** the selected Rendering */
@@ -389,7 +389,7 @@ static const int8_t *const *const upd_choice[] = {
 /** Names for the flags (bool)
 */
 
-static const int8_t *const upd_flags[] = {      /** */
+static const char *const upd_flags[] = {      /** */
 #define B_REVDIR            ((uint32_t) 1<<0)   /** FS-Dir-Flag */
 "upFSReverseDirection",                       /** FS-Dir-Flag */
 #define B_FIXDIR            ((uint32_t) 1<<1)   /** Do not alter FS-direction */
@@ -448,7 +448,7 @@ static const int8_t *const upd_flags[] = {      /** */
 /** Names for the ints
 */
 
-static const int8_t *const upd_ints[] = {
+static const char *const upd_ints[] = {
 #define I_PWIDTH            0                 /** Output-Width */
 "upOutputWidth",
 #define I_PHEIGHT           1                 /** Output-Height */
@@ -489,7 +489,7 @@ static const int8_t *const upd_ints[] = {
 /** Names for the Integer-Arrays
 */
 
-static const int8_t *const upd_int_a[] = {      /** */
+static const char *const upd_int_a[] = {      /** */
 #define IA_COLOR_INFO       0                 /** external color_info */
 "upColorInfo",                                /** external color_info */
 
@@ -525,7 +525,7 @@ static const int8_t *const upd_int_a[] = {      /** */
 /** Names of the String-Parameters
 */
 
-static const int8_t *const upd_strings[] = { /** */
+static const char *const upd_strings[] = { /** */
 #define S_MODEL             0                 /** Name of the Printer-Model */
 "upModel",                                    /** Name of the Printer-Model */
 #define S_OPEN              1                 /** Printer-Begin-Job */
@@ -554,7 +554,7 @@ static const int8_t *const upd_strings[] = { /** */
 /** Names for the String-Arrays
 */
 
-static const int8_t *const upd_string_a[] = {   /** */
+static const char *const upd_string_a[] = {   /** */
 #define SA_SETCOMP          0                 /** Select Components */
 "upSelectComponentCommands",                  /** Select Components */
 #define SA_WRITECOMP        1                 /** Write Component Comands */
@@ -563,7 +563,7 @@ static const int8_t *const upd_string_a[] = {   /** */
 
 /** Names for the float-Arrays
 */
-static const int8_t *const upd_float_a[] = {    /** */
+static const char *const upd_float_a[] = {    /** */
 #define FA_WXFER            0                 /** White-Transfer */
 "upWhiteTransfer",                            /** White-Transfer */
 #define FA_RXFER            1                 /** Red-Transfer */
@@ -982,7 +982,7 @@ Here are several Macros, named "UPD_MM_*" to deal with that.
 
 /** Version-String */
 
-static const int8_t rcsid[] = "$Revision: 1.16 $";
+static const char rcsid[] = "$Revision: 1.16 $";
 
 /** Default-Transfer-curve */
 

@@ -37,7 +37,7 @@ freenodes(void)
 		u = t->next;
 		if(t->str)
 			efree(t->str);
-		efree((int8_t *)t);
+		efree((char *)t);
 	}
 	treenodes = 0;
 }
@@ -120,7 +120,7 @@ simplemung(tree *t)
 	t = tree1(SIMPLE, t);
 	s = openstr();
 	pfmt(s, "%t", t);
-	t->str = strdup((int8_t *)s->strp);
+	t->str = strdup((char *)s->strp);
 	closeio(s);
 	for(u = t->child[0];u->type==ARGLIST;u = u->child[0]){
 		if(u->child[1]->type==DUP
@@ -134,7 +134,7 @@ simplemung(tree *t)
 }
 
 tree*
-token(int8_t *str, int type)
+token(char *str, int type)
 {
 	tree *t = newtree();
 
@@ -153,5 +153,5 @@ freetree(tree *p)
 	freetree(p->child[2]);
 	if(p->str)
 		efree(p->str);
-	efree((int8_t *)p);
+	efree((char *)p);
 }

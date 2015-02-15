@@ -183,7 +183,7 @@ void
 sysfd2path(Ar0* ar0, va_list list)
 {
 	Chan *c;
-	int8_t *buf;
+	char *buf;
 	int fd;
 	usize nbuf;
 
@@ -193,7 +193,7 @@ sysfd2path(Ar0* ar0, va_list list)
 	 * int fd2path(int fd, char* buf, usize nbuf);
 	 */
 	fd = va_arg(list, int);
-	buf = va_arg(list, int8_t*);
+	buf = va_arg(list, char*);
 	nbuf = va_arg(list, usize);
 	buf = validaddr(buf, nbuf, 1);
 
@@ -209,7 +209,7 @@ syspipe(Ar0* ar0, va_list list)
 {
 	int *a, fd[2];
 	Chan *c[2];
-	static int8_t *datastr[] = {"data", "data1"};
+	static char *datastr[] = {"data", "data1"};
 
 	/*
 	 * int pipe(int fd[2]);
@@ -295,14 +295,14 @@ sysdup(Ar0* ar0, va_list list)
 void
 sysopen(Ar0* ar0, va_list list)
 {
-	int8_t *aname;
+	char *aname;
 	int fd, omode;
 	Chan *c;
 
 	/*
 	 * int open(char* file, int omode);
 	 */
-	aname = va_arg(list, int8_t*);
+	aname = va_arg(list, char*);
 	omode = va_arg(list, int);
 	openmode(omode);	/* error check only */
 
@@ -472,20 +472,20 @@ dirfixed(uint8_t *p, uint8_t *e, Dir *d)
 	return len;
 }
 
-static int8_t*
+static char*
 dirname(uint8_t *p, usize *n)
 {
 	p += BIT16SZ+BIT16SZ+BIT32SZ+BIT8SZ+BIT32SZ+BIT64SZ
 		+ BIT32SZ+BIT32SZ+BIT32SZ+BIT64SZ;
 	*n = GBIT16(p);
 
-	return (int8_t*)p+BIT16SZ;
+	return (char*)p+BIT16SZ;
 }
 
 static usize
-dirsetname(int8_t *name, usize len, uint8_t *p, usize n, usize maxn)
+dirsetname(char *name, usize len, uint8_t *p, usize n, usize maxn)
 {
-	int8_t *oname;
+	char *oname;
 	usize nn, olen;
 
 	if(n == BIT16SZ)
@@ -602,7 +602,7 @@ mountrewind(Chan *c)
 static int32_t
 mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 {
-	int8_t *name;
+	char *name;
 	int nbuf;
 	Chan *nc;
 	Mhead *mh;
@@ -967,7 +967,7 @@ void
 validstat(uint8_t *s, usize n)
 {
 	usize m;
-	int8_t buf[64];
+	char buf[64];
 
 	if(statcheck(s, n) < 0)
 		error(Ebadstat);
@@ -990,10 +990,10 @@ validstat(uint8_t *s, usize n)
 		validname(buf, 0);
 }
 
-static int8_t*
+static char*
 pathlast(Path *p)
 {
-	int8_t *s;
+	char *s;
 
 	if(p == nil)
 		return nil;
@@ -1041,7 +1041,7 @@ sysfstat(Ar0* ar0, va_list list)
 void
 sysstat(Ar0* ar0, va_list list)
 {
-	int8_t *aname;
+	char *aname;
 	Chan *c;
 	usize n;
 	int r;
@@ -1054,7 +1054,7 @@ sysstat(Ar0* ar0, va_list list)
 	 * but returning an unsigned is probably too
 	 * radical.
 	 */
-	aname = va_arg(list, int8_t*);
+	aname = va_arg(list, char*);
 	aname = validaddr(aname, 1, 0);
 	p = va_arg(list, uint8_t*);
 	n = va_arg(list, usize);
@@ -1080,12 +1080,12 @@ void
 syschdir(Ar0* ar0, va_list list)
 {
 	Chan *c;
-	int8_t *aname;
+	char *aname;
 
 	/*
 	 * int chdir(char* dirname);
 	 */
-	aname = va_arg(list, int8_t*);
+	aname = va_arg(list, char*);
 	aname = validaddr(aname, 1, 0);
 
 	c = namec(aname, Atodir, 0, 0);
@@ -1096,8 +1096,8 @@ syschdir(Ar0* ar0, va_list list)
 }
 
 static int
-bindmount(int ismount, int fd, int afd, int8_t* arg0, int8_t* arg1,
-	  int flag, int8_t* spec)
+bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
+	  int flag, char* spec)
 {
 	int i;
 	Dev *dev;
@@ -1105,7 +1105,7 @@ bindmount(int ismount, int fd, int afd, int8_t* arg0, int8_t* arg1,
 	struct{
 		Chan	*chan;
 		Chan	*authchan;
-		int8_t	*spec;
+		char	*spec;
 		int	flags;
 	}bogus;
 
@@ -1149,7 +1149,7 @@ bindmount(int ismount, int fd, int afd, int8_t* arg0, int8_t* arg1,
 			//devtabdecr(dev);
 			nexterror();
 		}
-		c0 = dev->attach((int8_t*)&bogus);
+		c0 = dev->attach((char*)&bogus);
 		poperror();
 		//devtabdecr(dev);
 
@@ -1191,15 +1191,15 @@ void
 sysbind(Ar0* ar0, va_list list)
 {
 	int flag;
-	int8_t *name, *old;
+	char *name, *old;
 
 	/*
 	 * int bind(char* name, char* old, int flag);
 	 * should be
 	 * long bind(char* name, char* old, int flag);
 	 */
-	name = va_arg(list, int8_t*);
-	old = va_arg(list, int8_t*);
+	name = va_arg(list, char*);
+	old = va_arg(list, char*);
 	flag = va_arg(list, int);
 
 	ar0->i = bindmount(0, -1, -1, name, old, flag, nil);
@@ -1209,7 +1209,7 @@ void
 sysmount(Ar0* ar0, va_list list)
 {
 	int afd, fd, flag;
-	int8_t *aname, *old;
+	char *aname, *old;
 
 	/*
 	 * int mount(int fd, int afd, char* old, int flag, char* aname);
@@ -1218,9 +1218,9 @@ sysmount(Ar0* ar0, va_list list)
 	 */
 	fd = va_arg(list, int);
 	afd = va_arg(list, int);
-	old = va_arg(list, int8_t*);
+	old = va_arg(list, char*);
 	flag = va_arg(list, int);
-	aname = va_arg(list, int8_t*);
+	aname = va_arg(list, char*);
 
 	ar0->i = bindmount(1, fd, afd, nil, old, flag, aname);
 }
@@ -1229,7 +1229,7 @@ void
 sys_mount(Ar0* ar0, va_list list)
 {
 	int fd, flag;
-	int8_t *aname, *old;
+	char *aname, *old;
 
 	/*
 	 * int mount(int fd, char *old, int flag, char *aname);
@@ -1239,9 +1239,9 @@ sys_mount(Ar0* ar0, va_list list)
 	 * Deprecated; backwards compatibility only.
 	 */
 	fd = va_arg(list, int);
-	old = va_arg(list, int8_t*);
+	old = va_arg(list, char*);
 	flag = va_arg(list, int);
-	aname = va_arg(list, int8_t*);
+	aname = va_arg(list, char*);
 
 	ar0->i = bindmount(1, fd, -1, nil, old, flag, aname);
 }
@@ -1249,14 +1249,14 @@ sys_mount(Ar0* ar0, va_list list)
 void
 sysunmount(Ar0* ar0, va_list list)
 {
-	int8_t *name, *old;
+	char *name, *old;
 	Chan *cmount, *cmounted;
 
 	/*
 	 * int unmount(char* name, char* old);
 	 */
-	name = va_arg(list, int8_t*);
-	old = va_arg(list, int8_t*);
+	name = va_arg(list, char*);
+	old = va_arg(list, char*);
 	cmount = namec(validaddr(old, 1, 0), Amount, 0, 0);
 
 	cmounted = nil;
@@ -1295,7 +1295,7 @@ sysunmount(Ar0* ar0, va_list list)
 void
 syscreate(Ar0* ar0, va_list list)
 {
-	int8_t *aname;
+	char *aname;
 	int fd, omode, perm;
 	Chan *c;
 
@@ -1304,7 +1304,7 @@ syscreate(Ar0* ar0, va_list list)
 	 * should be
 	 * int create(char* file, int omode, int perm);
 	 */
-	aname = va_arg(list, int8_t*);
+	aname = va_arg(list, char*);
 	omode = va_arg(list, int);
 	perm = va_arg(list, int);
 
@@ -1328,12 +1328,12 @@ void
 sysremove(Ar0* ar0, va_list list)
 {
 	Chan *c;
-	int8_t *aname;
+	char *aname;
 
 	/*
 	 * int remove(char* file);
 	 */
-	aname = va_arg(list, int8_t*);
+	aname = va_arg(list, char*);
 	c = namec(validaddr(aname, 1, 0), Aremove, 0, 0);
 
 	/*
@@ -1394,7 +1394,7 @@ void
 syswstat(Ar0* ar0, va_list list)
 {
 	Chan *c;
-	int8_t *aname;
+	char *aname;
 	uint8_t *p;
 	usize n;
 
@@ -1405,7 +1405,7 @@ syswstat(Ar0* ar0, va_list list)
 	 * but returning an unsigned is probably too
 	 * radical.
 	 */
-	aname = va_arg(list, int8_t*);
+	aname = va_arg(list, char*);
 	p = va_arg(list, uint8_t*);
 	n = va_arg(list, usize);
 
@@ -1450,11 +1450,11 @@ packoldstat(uint8_t *buf, Dir *d)
 
 	/* lay down old stat buffer - grotty code but it's temporary */
 	p = buf;
-	strncpy((int8_t*)p, d->name, 28);
+	strncpy((char*)p, d->name, 28);
 	p += 28;
-	strncpy((int8_t*)p, d->uid, 28);
+	strncpy((char*)p, d->uid, 28);
 	p += 28;
-	strncpy((int8_t*)p, d->gid, 28);
+	strncpy((char*)p, d->gid, 28);
 	p += 28;
 	q = d->qid.path & ~DMDIR;	/* make sure doesn't accidentally look like directory */
 	if(d->qid.type & QTDIR)	/* this is the real test of a new directory */
@@ -1482,9 +1482,9 @@ sys_stat(Ar0* ar0, va_list list)
 	Chan *c;
 	int32_t l;
 	uint8_t buf[128], *p;
-	int8_t *aname, *name, strs[128];
+	char *aname, *name, strs[128];
 	Dir d;
-	int8_t old[] = "old stat system call - recompile";
+	char old[] = "old stat system call - recompile";
 
 	/*
 	 * int stat(char* name, char* edir);
@@ -1493,7 +1493,7 @@ sys_stat(Ar0* ar0, va_list list)
 	 *
 	 * Deprecated; backwards compatibility only.
 	 */
-	aname = va_arg(list, int8_t*);
+	aname = va_arg(list, char*);
 	p = va_arg(list, uint8_t*);
 
 	/*
@@ -1534,13 +1534,13 @@ void
 sys_fstat(Ar0* ar0, va_list list)
 {
 	Chan *c;
-	int8_t *name;
+	char *name;
 	int32_t l;
 	uint8_t buf[128], *p;
-	int8_t strs[128];
+	char strs[128];
 	Dir d;
 	int fd;
-	int8_t old[] = "old fstat system call - recompile";
+	char old[] = "old fstat system call - recompile";
 
 	/*
 	 * int fstat(int fd, char* edir);

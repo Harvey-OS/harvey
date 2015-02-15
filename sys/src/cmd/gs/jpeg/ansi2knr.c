@@ -285,10 +285,10 @@ BY ANY OTHER PARTY.
 #  include <malloc.h>
 # else
 #  ifdef VMS
-     extern int8_t *malloc();
+     extern char *malloc();
      extern void free();
 #  else
-     extern int8_t *malloc();
+     extern char *malloc();
      extern int free();
 #  endif
 # endif
@@ -319,7 +319,7 @@ BY ANY OTHER PARTY.
 #define isidfirstchar(ch) (is_alpha(ch) || (ch) == '_')
 
 /* Forward references */
-int8_t *skipspace();
+char *skipspace();
 int writeblanks();
 int test1();
 int convert1();
@@ -328,12 +328,12 @@ int convert1();
 int
 main(argc, argv)
     int argc;
-    int8_t *argv[];
+    char *argv[];
 {	FILE *in, *out;
 #define bufsize 5000			/* arbitrary size */
-	int8_t *buf;
-	int8_t *line;
-	int8_t *more;
+	char *buf;
+	char *line;
+	char *more;
 	/*
 	 * In previous versions, ansi2knr recognized a --varargs switch.
 	 * If this switch was supplied, ansi2knr would attempt to convert
@@ -433,9 +433,9 @@ wl:			fputs(buf, out);
 }
 
 /* Skip over space and comments, in either direction. */
-int8_t *
+char *
 skipspace(p, dir)
-    register int8_t *p;
+    register char *p;
     register int dir;			/* 1 for forward, -1 for backward */
 {	for ( ; ; )
 	   {	while ( is_space(*p) )
@@ -459,9 +459,9 @@ skipspace(p, dir)
  */
 int
 writeblanks(start, end)
-    int8_t *start;
-    int8_t *end;
-{	int8_t *p;
+    char *start;
+    char *end;
+{	char *p;
 	for ( p = start; p < end; p++ )
 	  if ( *p != '\r' && *p != '\n' )
 	    *p = ' ';
@@ -483,10 +483,10 @@ writeblanks(start, end)
  */
 int
 test1(buf)
-    int8_t *buf;
-{	register int8_t *p = buf;
-	int8_t *bend;
-	int8_t *endfn;
+    char *buf;
+{	register char *p = buf;
+	char *bend;
+	char *endfn;
 	int contin;
 
 	if ( !isidfirstchar(*p) )
@@ -512,15 +512,15 @@ test1(buf)
 	/* Check that the apparent function name isn't a keyword. */
 	/* We only need to check for keywords that could be followed */
 	/* by a left parenthesis (which, unfortunately, is most of them). */
-	   {	static int8_t *words[] =
+	   {	static char *words[] =
 		   {	"asm", "auto", "case", "char", "const", "double",
 			"extern", "float", "for", "if", "int", "long",
 			"register", "return", "short", "signed", "sizeof",
 			"static", "switch", "typedef", "unsigned",
 			"void", "volatile", "while", 0
 		   };
-		int8_t **key = words;
-		int8_t *kp;
+		char **key = words;
+		char *kp;
 		int len = endfn - buf;
 
 		while ( (kp = *key) != 0 )
@@ -535,25 +535,25 @@ test1(buf)
 /* Convert a recognized function definition or header to K&R syntax. */
 int
 convert1(buf, out, header, convert_varargs)
-    int8_t *buf;
+    char *buf;
     FILE *out;
     int header;			/* Boolean */
     int convert_varargs;	/* Boolean */
-{	int8_t *endfn;
-	register int8_t *p;
-	int8_t **breaks;
+{	char *endfn;
+	register char *p;
+	char **breaks;
 	unsigned num_breaks = 2;	/* for testing */
-	int8_t **btop;
-	int8_t **bp;
-	int8_t **ap;
-	int8_t *vararg = 0;
+	char **btop;
+	char **bp;
+	char **ap;
+	char *vararg = 0;
 
 	/* Pre-ANSI implementations don't agree on whether strchr */
 	/* is called strchr or index, so we open-code it here. */
 	for ( endfn = buf; *(endfn++) != '('; )
 	  ;
 top:	p = endfn;
-	breaks = (int8_t **)malloc(sizeof(int8_t *) * num_breaks * 2);
+	breaks = (char **)malloc(sizeof(char *) * num_breaks * 2);
 	if ( breaks == 0 )
 	   {	/* Couldn't allocate break table, give up */
 		fprintf(stderr, "Unable to allocate break table!\n");
@@ -565,14 +565,14 @@ top:	p = endfn;
 	/* Parse the argument list */
 	do
 	   {	int level = 0;
-		int8_t *lp = NULL;
-		int8_t *rp;
-		int8_t *end = NULL;
+		char *lp = NULL;
+		char *rp;
+		char *end = NULL;
 
 		if ( bp >= btop )
 		   {	/* Filled up break table. */
 			/* Allocate a bigger one and start over. */
-			free((int8_t *)breaks);
+			free((char *)breaks);
 			num_breaks <<= 1;
 			goto top;
 		   }
@@ -697,6 +697,6 @@ found:		if ( *p == '.' && p[-1] == '.' && p[-2] == '.' )
 		else
 		  fputs(breaks[0], out);
 	  }
-	free((int8_t *)breaks);
+	free((char *)breaks);
 	return 0;
 }

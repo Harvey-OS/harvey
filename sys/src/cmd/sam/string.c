@@ -142,11 +142,11 @@ Strispre(String *a, String *b)
 	return i == a->n;
 }
 
-int8_t*
+char*
 Strtoc(String *s)
 {
 	int i;
-	int8_t *c, *d;
+	char *c, *d;
 	Rune *r;
 	c = emalloc(s->n*UTFmax + 1);  /* worst case UTFmax bytes per rune, plus NUL */
 	d = c;
@@ -177,7 +177,7 @@ tmprstr(Rune *r, int n)
  * Convert null-terminated char* into String
  */
 String*
-tmpcstr(int8_t *s)
+tmpcstr(char *s)
 {
 	String *p;
 	Rune *r;

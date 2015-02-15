@@ -42,11 +42,11 @@
 int
 px_write_file_header(stream *s, const gx_device *dev)
 {
-    static const int8_t *const enter_pjl_header =
+    static const char *const enter_pjl_header =
         "\033%-12345X@PJL SET RENDERMODE=";
-    static const int8_t *const rendermode_gray = "GRAYSCALE";
-    static const int8_t *const rendermode_color = "COLOR";
-    static const int8_t *const file_header =
+    static const char *const rendermode_gray = "GRAYSCALE";
+    static const char *const rendermode_color = "COLOR";
+    static const char *const file_header =
 	"\n@PJL ENTER LANGUAGE = PCLXL\n\
 ) HP-PCL XL;1;1;Comment Copyright artofcode LLC 2005\000\n";
     static const byte stream_header[] = {

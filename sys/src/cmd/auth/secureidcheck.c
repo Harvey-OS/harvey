@@ -123,7 +123,7 @@ freePacket(Packet *p)
 }
 
 int
-ding(void*, int8_t *msg)
+ding(void*, char *msg)
 {
 	syslog(0, AUTHLOG, "ding %s", msg);
 	if(strstr(msg, "alarm"))
@@ -132,7 +132,7 @@ ding(void*, int8_t *msg)
 }
 
 Packet *
-rpc(int8_t *dest, Secret *shared, Packet *req)
+rpc(char *dest, Secret *shared, Packet *req)
 {
 	uint8_t buf[4096], buf2[4096], *b, *e;
 	Packet *resp;
@@ -263,11 +263,11 @@ setAttribute(Packet *p, uint8_t type, uint8_t *s, int n)
 }
 
 /* return a reply message attribute string */
-int8_t*
+char*
 replymsg(Packet *p)
 {
 	Attribute *a;
-	static int8_t buf[255];
+	static char buf[255];
 
 	for(a = &p->first; a; a = a->next)
 		if(a->type == R_ReplyMessage){
@@ -280,15 +280,15 @@ replymsg(Packet *p)
 }
 
 /* for convenience while debugging */
-int8_t *replymess;
+char *replymess;
 Attribute *stateattr;
 
 void
 logPacket(Packet *p)
 {
 	int i;
-	int8_t *np, *e;
-	int8_t buf[255], pbuf[4*1024];
+	char *np, *e;
+	char buf[255], pbuf[4*1024];
 	uint8_t *au = p->authenticator;
 	Attribute *a;
 
@@ -354,12 +354,12 @@ getipv4addr(void)
 extern Ndb *db;
 
 /* returns 0 on success, error message on failure */
-int8_t*
-secureidcheck(int8_t *user, int8_t *response)
+char*
+secureidcheck(char *user, char *response)
 {
-	int8_t *radiussecret = nil;
-	int8_t *rv = "authentication failed";
-	int8_t dest[3*IPaddrlen+20], ruser[64];
+	char *radiussecret = nil;
+	char *rv = "authentication failed";
+	char dest[3*IPaddrlen+20], ruser[64];
 	uint8_t *ip;
 	uint8_t x[16];
 	uint32_t u[4];

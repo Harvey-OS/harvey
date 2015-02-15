@@ -74,7 +74,7 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static int8_t *ctab[] = {
+static char *ctab[] = {
 	"read",
 	"write",
 	"force",
@@ -83,7 +83,7 @@ static int8_t *ctab[] = {
 static int
 p_seprint(Msg *m)
 {
-	int8_t *s;
+	char *s;
 	int i;
 	Hdr *h;
 

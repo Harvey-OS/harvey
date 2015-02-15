@@ -33,7 +33,7 @@ typedef struct word	word;
 
 struct word
 {
-	int8_t	*text;
+	char	*text;
 	int	length;
 	uint32_t	mask;
 	word	*next;
@@ -55,7 +55,7 @@ set	words;
 word	*list[LENLIMIT];
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	fprint(err_fd, "fatal error: %s\n", s);
 	exits("fatal error");
@@ -73,7 +73,7 @@ salloc(uint32_t z)
 }
 
 void
-clean_word(int8_t *s)
+clean_word(char *s)
 {
 	while (*s && *s != '\n')
 	{
@@ -89,7 +89,7 @@ clean_word(int8_t *s)
 int
 word_ok(word *w)
 {
-	int8_t	*s;
+	char	*s;
 	int	vowel;
 
 	if (w->length == 0 || w->length >= LENLIMIT)
@@ -124,7 +124,7 @@ word_ok(word *w)
 }
 
 uint32_t
-str_to_mask(int8_t *s)
+str_to_mask(char *s)
 {
 	uint32_t	m;
 
@@ -139,7 +139,7 @@ str_to_mask(int8_t *s)
 word	*
 get_word(Biobuf *bp)
 {
-	int8_t	*s;
+	char	*s;
 	word	*w;
 
 retry:
@@ -186,7 +186,7 @@ build_wordlist(void)
 }
 
 void
-count_letters(target *t, int8_t *s)
+count_letters(target *t, char *s)
 {
 	int	i;
 
@@ -206,7 +206,7 @@ int
 contained(word *i, target *t)
 {
 	int	n;
-	int8_t	*v;
+	char	*v;
 	target	it;
 
 	if ((i->mask & t->mask) != i->mask)
@@ -334,7 +334,7 @@ enumerate(word **p, target *i, set c)
 	target	t;
 	set	o;
 	word	*w, *h;
-	int8_t	*s;
+	char	*s;
 	int	l, m, b;
 
 	l = p - list;
@@ -378,9 +378,9 @@ enumerate(word **p, target *i, set c)
 }
 
 void
-clean(int8_t *s)
+clean(char *s)
 {
-	int8_t	*p, *q;
+	char	*p, *q;
 
 	for (p = s, q = s; *p != '\0'; p++)
 	{
@@ -394,7 +394,7 @@ clean(int8_t *s)
 }
 
 void
-anagramulate(int8_t *s)
+anagramulate(char *s)
 {
 	target	t;
 	set	subjects;
@@ -417,7 +417,7 @@ anagramulate(int8_t *s)
 }
 
 void
-set_fixed(int8_t *s)
+set_fixed(char *s)
 {
 	if ((fixed = atoi(s)) < 1)
 		fixed = 1;
@@ -426,7 +426,7 @@ set_fixed(int8_t *s)
 void
 read_words(void)
 {
-	int8_t	*s;
+	char	*s;
 	Biobuf  b;
 
 	Binit(&b, in_fd, OREAD);
@@ -448,7 +448,7 @@ read_words(void)
 }
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	build_wordlist();
 

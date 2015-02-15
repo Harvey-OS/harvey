@@ -13,14 +13,14 @@
 #include	"9p1.h"
 #pragma	varargck	type	"D"	Dir*	/* from fcall.h */
 
-static void dumpsome(int8_t*, int8_t*, int32_t);
+static void dumpsome(char*, char*, int32_t);
 
 int
 fcallfmt9p1(Fmt *f1)
 {
 	Fcall9p1 *f;
 	int fid, type, tag, n;
-	int8_t buf[512];
+	char buf[512];
 	Dir d;
 
 	f = va_arg(f1->args, Fcall9p1*);
@@ -149,10 +149,10 @@ fcallfmt9p1(Fmt *f1)
 #define DUMPL 64
 
 static void
-dumpsome(int8_t *ans, int8_t *buf, int32_t count)
+dumpsome(char *ans, char *buf, int32_t count)
 {
 	int i, printable;
-	int8_t *p;
+	char *p;
 
 	printable = 1;
 	if(count > DUMPL)
@@ -185,7 +185,7 @@ dumpsome(int8_t *ans, int8_t *buf, int32_t count)
 #define	STRING(x,n)	strncpy((char*)p, f->x, n); p += n
 
 int
-convS2M9p1(Fcall9p1 *f, int8_t *ap)
+convS2M9p1(Fcall9p1 *f, char *ap)
 {
 	uint8_t *p;
 	int t;
@@ -354,7 +354,7 @@ convS2M9p1(Fcall9p1 *f, int8_t *ap)
 }
 
 int
-convD2M9p1(Dir *f, int8_t *ap)
+convD2M9p1(Dir *f, char *ap)
 {
 	uint8_t *p;
 	uint32_t q;
@@ -378,7 +378,7 @@ convD2M9p1(Dir *f, int8_t *ap)
 }
 
 int
-convA2M9p1(Authenticator *f, int8_t *ap, int8_t *key)
+convA2M9p1(Authenticator *f, char *ap, char *key)
 {
 	int n;
 	uint8_t *p;
@@ -408,7 +408,7 @@ convA2M9p1(Authenticator *f, int8_t *ap, int8_t *key)
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 int
-convM2S9p1(int8_t *ap, Fcall9p1 *f, int n)
+convM2S9p1(char *ap, Fcall9p1 *f, int n)
 {
 	uint8_t *p;
 	int t;
@@ -493,7 +493,7 @@ convM2S9p1(int8_t *ap, Fcall9p1 *f, int n)
 		LONG(offset); p += 4;
 		SHORT(count);
 		p++;
-		f->data = (int8_t*)p; p += f->count;
+		f->data = (char*)p; p += f->count;
 		break;
 
 	case Tclunk9p1:
@@ -558,7 +558,7 @@ convM2S9p1(int8_t *ap, Fcall9p1 *f, int n)
 		SHORT(fid);
 		SHORT(count);
 		p++;
-		f->data = (int8_t*)p; p += f->count;
+		f->data = (char*)p; p += f->count;
 		break;
 
 	case Rwrite9p1:
@@ -577,17 +577,17 @@ convM2S9p1(int8_t *ap, Fcall9p1 *f, int n)
 }
 
 int
-convM2D9p1(int8_t *ap, Dir *f)
+convM2D9p1(char *ap, Dir *f)
 {
 	uint8_t *p;
 
 	p = (uint8_t*)ap;
-	f->name = (int8_t*)p;
+	f->name = (char*)p;
 	p += NAMEREC;
-	f->uid = (int8_t*)p;
-	f->muid = (int8_t*)p;
+	f->uid = (char*)p;
+	f->muid = (char*)p;
 	p += NAMEREC;
-	f->gid = (int8_t*)p;
+	f->gid = (char*)p;
 	p += NAMEREC;
 
 	LONG(qid.path);
@@ -604,7 +604,7 @@ convM2D9p1(int8_t *ap, Dir *f)
 }
 
 void
-convM2A9p1(int8_t *ap, Authenticator *f, int8_t *key)
+convM2A9p1(char *ap, Authenticator *f, char *key)
 {
 	uint8_t *p;
 
@@ -618,7 +618,7 @@ convM2A9p1(int8_t *ap, Authenticator *f, int8_t *key)
 }
 
 void
-convM2T9p1(int8_t *ap, Ticket *f, int8_t *key)
+convM2T9p1(char *ap, Ticket *f, char *key)
 {
 	uint8_t *p;
 

@@ -12,7 +12,7 @@
 #include <oventi.h>
 
 void
-vtFatal(int8_t *fmt, ...)
+vtFatal(char *fmt, ...)
 {
 	va_list arg;
 

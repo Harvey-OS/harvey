@@ -41,7 +41,7 @@
 #include "opdef.h"
 
 /* Table of type name strings */
-static const int8_t *const type_strings[] = {
+static const char *const type_strings[] = {
     REF_TYPE_DEBUG_PRINT_STRINGS
 };
 
@@ -128,7 +128,7 @@ debug_print_full_ref(const gs_memory_t *mem, const ref * pref)
 	    dprintf1("op(%u", size);
 	    if (size > 0 && size < op_def_count)	/* just in case */
 		dprintf1(":%s",
-                         (const int8_t *)(op_index_def(size)->oname + 1));
+                         (const char *)(op_index_def(size)->oname + 1));
 	    dprintf1(")0x%lx", (uint32_t) pref->value.opproc);
 	    break;
 	case t_real:
@@ -240,16 +240,16 @@ print_ref_data(const gs_memory_t *mem, const ref *p)
 
     if (obj_cvs(mem, p, buf, countof(buf) - 1, &plen, &pchars) >= 0 &&
 	pchars == buf &&
-	((buf[plen] = 0), strcmp((int8_t *)buf, "--nostringval--"))
+	((buf[plen] = 0), strcmp((char *)buf, "--nostringval--"))
 	)
-	dprintf1(" = %s", (int8_t *)buf);
+	dprintf1(" = %s", (char *)buf);
 #undef BUF_SIZE
 }
 
 /* Dump a region of memory containing refs. */
 void
 debug_dump_refs(const gs_memory_t *mem, const ref * from, 
-		uint size, const int8_t *msg)
+		uint size, const char *msg)
 {
     const ref *p = from;
     uint count = size;
@@ -267,10 +267,10 @@ debug_dump_refs(const gs_memory_t *mem, const ref * from,
 /* Dump a stack. */
 void
 debug_dump_stack(const gs_memory_t *mem, 
-		 const ref_stack_t * pstack, const int8_t *msg)
+		 const ref_stack_t * pstack, const char *msg)
 {
     uint i;
-    const int8_t *m = msg;
+    const char *m = msg;
 
     for (i = ref_stack_count(pstack); i != 0;) {
 	const ref *p = ref_stack_index(pstack, --i);

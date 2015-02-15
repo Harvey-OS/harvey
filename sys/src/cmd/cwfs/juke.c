@@ -99,7 +99,7 @@ static	Side*	wormunit(Device*);
 
 /* create a new label and try to write it */
 static void
-newlabel(Device *d, Off labelblk, int8_t *labelbuf, unsigned vord)
+newlabel(Device *d, Off labelblk, char *labelbuf, unsigned vord)
 {
 	Label *label = (Label *)labelbuf;
 
@@ -123,7 +123,7 @@ wormlabel(Device *d, Side *v)
 {
 	int vord;
 	Off labelblk = v->max - 1;	/* last block */
-	int8_t labelbuf[RBUFSIZE];
+	char labelbuf[RBUFSIZE];
 	Label *label = (Label *)labelbuf;
 	Juke *w = d->private;
 
@@ -306,7 +306,7 @@ static int
 waitready(Juke *w, Device *d)
 {
 	int p, e, rv;
-	int8_t *datanm;
+	char *datanm;
 
 	if (w->magic != Jukemagic)
 		panic("waitready: bad magic in Juke (d->private) for %Z", d);
@@ -664,7 +664,7 @@ wormread(Device *d, Off b, void *c)
 {
 	int r = 0;
 	int32_t max;
-	int8_t name[128];
+	char name[128];
 	Side *v = wormunit(d);
 	Juke *w = d->private;
 	Device *dr;
@@ -694,7 +694,7 @@ wormwrite(Device *d, Off b, void *c)
 {
 	int r = 0;
 	int32_t max;
-	int8_t name[128];
+	char name[128];
 	Side *v = wormunit(d);
 	Juke *w = d->private;
 	Device *dr;
@@ -996,7 +996,7 @@ jinit(Juke *w, Device *d, int o)
 }
 
 Side*
-wormi(int8_t *arg)
+wormi(char *arg)
 {
 	int i, j;
 	Juke *w;
@@ -1042,7 +1042,7 @@ wormi(int8_t *arg)
 }
 
 static void
-cmd_wormoffline(int argc, int8_t *argv[])
+cmd_wormoffline(int argc, char *argv[])
 {
 	int u, i;
 	Juke *w;
@@ -1068,7 +1068,7 @@ cmd_wormoffline(int argc, int8_t *argv[])
 }
 
 static void
-cmd_wormonline(int argc, int8_t *argv[])
+cmd_wormonline(int argc, char *argv[])
 {
 	int u;
 	Juke *w;
@@ -1089,7 +1089,7 @@ cmd_wormonline(int argc, int8_t *argv[])
 }
 
 void
-cmd_wormreset(int, int8_t *[])
+cmd_wormreset(int, char *[])
 {
 	Juke *w;
 
@@ -1101,7 +1101,7 @@ cmd_wormreset(int, int8_t *[])
 }
 
 static void
-cmd_wormeject(int argc, int8_t *argv[])
+cmd_wormeject(int argc, char *argv[])
 {
 	Juke *w;
 	Side *v;
@@ -1119,7 +1119,7 @@ cmd_wormeject(int argc, int8_t *argv[])
 }
 
 static void
-cmd_wormingest(int argc, int8_t *argv[])
+cmd_wormingest(int argc, char *argv[])
 {
 	Juke *w;
 	Side *v;

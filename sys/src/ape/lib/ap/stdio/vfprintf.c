@@ -158,7 +158,7 @@ ocvt_x,	0,	0,	0,	0,	0,	0,	0,	/*  x  y  z  {  |  }  ~ ^? */
 static int nprint;
 
 int
-vfprintf(FILE *f, const int8_t *s, va_list args)
+vfprintf(FILE *f, const char *s, va_list args)
 {
 	int tfl, flags, width, precision;
 
@@ -230,9 +230,9 @@ static int
 ocvt_s(FILE *f, va_list *args, int flags, int width, int precision)
 {
 	int i, n = 0;
-	int8_t *s;
+	char *s;
 
-	s = va_arg(*args, int8_t *);
+	s = va_arg(*args, char *);
 	if(!s)
 		s = "";
 	if(!(flags&LEFT)){
@@ -294,11 +294,11 @@ ocvt_n(FILE *f, va_list *args, int flags, int width, int precision)
  */
 static int
 ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
-	int radix, int sgned, int8_t alphabet[], int8_t *prefix)
+	int radix, int sgned, char alphabet[], char *prefix)
 {
-	int8_t digits[128];	/* no reasonable machine will ever overflow this */
-	int8_t *sign;
-	int8_t *dp;
+	char digits[128];	/* no reasonable machine will ever overflow this */
+	char *sign;
+	char *dp;
 	long long snum;
 	unsigned long long num;
 	int nout, npad, nlzero;
@@ -419,7 +419,7 @@ ocvt_x(FILE *f, va_list *args, int flags, int width, int precision)
 	return ocvt_fixed(f, args, flags, width, precision, 16, 0, "0123456789abcdef", "0x");
 }
 
-static int ocvt_flt(FILE *, va_list *, int, int, int, int8_t);
+static int ocvt_flt(FILE *, va_list *, int, int, int, char);
 
 static int
 ocvt_E(FILE *f, va_list *args, int flags, int width, int precision)
@@ -453,18 +453,18 @@ ocvt_g(FILE *f, va_list *args, int flags, int width, int precision)
 
 static int
 ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision,
-	 int8_t afmt)
+	 char afmt)
 {
-	extern int8_t *_dtoa(double, int, int, int*, int*, int8_t **);
+	extern char *_dtoa(double, int, int, int*, int*, char **);
 	int echr;
-	int8_t *digits, *edigits;
+	char *digits, *edigits;
 	int exponent;
-	int8_t fmt;
+	char fmt;
 	int sign;
 	int ndig;
 	int nout, i;
-	int8_t ebuf[20];	/* no sensible machine will overflow this */
-	int8_t *eptr;
+	char ebuf[20];	/* no sensible machine will overflow this */
+	char *eptr;
 	double d;
 
 	echr = 'e';

@@ -193,8 +193,8 @@ allocateWithReserve(
          MEMFILE  *f,			/* file to allocate mem to */
          int      sizeofBlock,		/* size of block to allocate */
          int      *return_code,         /* RET 0 ok, -ve GS-style error, or +1 if OK but low memory */
-	 const   int8_t     *allocName,		/* name to allocate by */
-	 const   int8_t     *errorMessage         /* error message to print */
+	 const   char     *allocName,		/* name to allocate by */
+	 const   char     *errorMessage         /* error message to print */
 )
 {
     int code = 0;	/* assume success */
@@ -231,7 +231,7 @@ allocateWithReserve(
 /* ---------------- Open/close/unlink ---------------- */
 
 int
-memfile_fopen(int8_t fname[gp_file_name_sizeof], const int8_t *fmode,
+memfile_fopen(char fname[gp_file_name_sizeof], const char *fmode,
 	      clist_file_ptr /*MEMFILE * */  * pf,
 	      gs_memory_t *mem, gs_memory_t *data_mem, bool ok_to_compress)
 {
@@ -332,7 +332,7 @@ finish:
 }
 
 int
-memfile_fclose(clist_file_ptr cf, const int8_t *fname, bool delete)
+memfile_fclose(clist_file_ptr cf, const char *fname, bool delete)
 {
     MEMFILE *const f = (MEMFILE *)cf;
 
@@ -368,7 +368,7 @@ memfile_fclose(clist_file_ptr cf, const int8_t *fname, bool delete)
 }
 
 int
-memfile_unlink(const int8_t *fname)
+memfile_unlink(const char *fname)
 {
     /*
      * Since we have no way to represent a memfile other than by the
@@ -460,7 +460,7 @@ compress_log_blk(MEMFILE * f, LOG_MEMFILE_BLK * bp)
     f->rd.limit = f->rd.ptr + MEMFILE_DATA_SIZE;
 
     bp->phys_blk = f->phys_curr;
-    bp->phys_pdata = (int8_t *)(f->wt.ptr) + 1;
+    bp->phys_pdata = (char *)(f->wt.ptr) + 1;
     if (f->compress_state->template->reinit != 0)
 	(*f->compress_state->template->reinit)(f->compress_state);
     compressed_size = 0;
@@ -468,7 +468,7 @@ compress_log_blk(MEMFILE * f, LOG_MEMFILE_BLK * bp)
     start_ptr = f->wt.ptr;
     status = (*f->compress_state->template->process)(f->compress_state,
 						     &(f->rd), &(f->wt), true);
-    bp->phys_blk->data_limit = (int8_t *)(f->wt.ptr);
+    bp->phys_blk->data_limit = (char *)(f->wt.ptr);
 
     if (status == 1) {		/* More output space needed (see strimpl.h) */
 	/* allocate another physical block, then compress remainder       */
@@ -498,7 +498,7 @@ compress_log_blk(MEMFILE * f, LOG_MEMFILE_BLK * bp)
 	    eprintf("Compression required more than one full block!\n");
 	    return_error(gs_error_Fatal);
 	}
-	newphys->data_limit = (int8_t *)(f->wt.ptr);
+	newphys->data_limit = (char *)(f->wt.ptr);
     }
     compressed_size += f->wt.ptr - start_ptr;
     if (compressed_size > MEMFILE_DATA_SIZE) {
@@ -626,7 +626,7 @@ memfile_next_blk(MEMFILE * f)
 int	/* returns # of chars actually written */
 memfile_fwrite_chars(const void *data, uint len, clist_file_ptr cf)
 {
-    const int8_t *str = (const int8_t *)data;
+    const char *str = (const char *)data;
     MEMFILE *f = (MEMFILE *) cf;
     uint count = len;
     int ecode;
@@ -839,7 +839,7 @@ memfile_get_pdata(MEMFILE * f)
 int
 memfile_fread_chars(void *data, uint len, clist_file_ptr cf)
 {
-    int8_t *str = (int8_t *)data;
+    char *str = (char *)data;
     MEMFILE *f = (MEMFILE *) cf;
     uint count = len, num_read, move_count;
 
@@ -883,7 +883,7 @@ memfile_ftell(clist_file_ptr cf)
 
 void
 memfile_rewind(clist_file_ptr cf, bool discard_data,
-               const int8_t *ignore_fname)
+               const char *ignore_fname)
 {
     MEMFILE *f = (MEMFILE *) cf;
 
@@ -900,7 +900,7 @@ memfile_rewind(clist_file_ptr cf, bool discard_data,
 
 int
 memfile_fseek(clist_file_ptr cf, int32_t offset, int mode,
-              const int8_t *ignore_fname)
+              const char *ignore_fname)
 {
     MEMFILE *f = (MEMFILE *) cf;
     int32_t i, block_num, new_pos;

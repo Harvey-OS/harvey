@@ -35,7 +35,7 @@ enum {
 typedef struct{
 	uint8_t	ea[Eaddrlen];
 	int	major;
-	int8_t	name[28];
+	char	name[28];
 } Shelf;
 
 int 	conn(int);
@@ -48,11 +48,11 @@ int	shelfidx(void);
 Shelf	*con;
 Shelf	tab[1000];
 
-int8_t	*host;
-int8_t	*srv;
-int8_t	*svc;
+char	*host;
+char	*srv;
+char	*svc;
 
-int8_t	pflag;
+char	pflag;
 
 int	ntab;
 int	shelf = -1;
@@ -66,9 +66,9 @@ uint8_t	unsetea[Eaddrlen];
 extern 	int fd;		/* set in netopen */
 
 void
-post(int8_t *srv, int fd)
+post(char *srv, int fd)
 {
-	int8_t buf[32];
+	char buf[32];
 	int f;
 
 	if((f = create(srv, OWRITE, 0666)) == -1)
@@ -80,7 +80,7 @@ post(int8_t *srv, int fd)
 }
 
 void
-dosrv(int8_t *s)
+dosrv(char *s)
 {
 	int p[2];
 
@@ -115,7 +115,7 @@ usage(void)
 }
 
 void
-catch(void*, int8_t *note)
+catch(void*, char *note)
 {
 	if(strcmp(note, "alarm") == 0)
 		noted(NCONT);
@@ -205,7 +205,7 @@ timewait(int ms)
 int
 didtimeout(void)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	rerrstr(buf, sizeof buf);
 	if(strcmp(buf, "interrupted") == 0){
@@ -257,7 +257,7 @@ tcmp(void *a, void *b)
 void
 probe(void)
 {
-	int8_t *sh, *other;
+	char *sh, *other;
 	int n;
 	Pkt q;
 	Shelf *p;
@@ -279,7 +279,7 @@ probe(void)
 			if(n < 60 || q.len == 0 || q.type != Toffer)
 				continue;
 			q.data[q.len] = 0;
-			sh = strtok((int8_t *)q.data, " \t");
+			sh = strtok((char *)q.data, " \t");
 			if(sh == nil)
 				continue;
 			if(!nilea(ea) && memcmp(ea, q.src, Eaddrlen) != 0)
@@ -319,7 +319,7 @@ showtable(void)
 int
 pickone(void)
 {
-	int8_t buf[80];
+	char buf[80];
 	int n, i;
 
 	for(;;){
@@ -399,10 +399,10 @@ ethopen(void)
 	return 0;
 }
 
-int8_t
+char
 escape(void)
 {
-	int8_t buf[64];
+	char buf[64];
 	int r;
 
 	for(;;){
@@ -556,7 +556,7 @@ conn(int n)
 }
 
 void
-exits0(int8_t *s)
+exits0(char *s)
 {
 	if(con != nil)
 		ethclose();

@@ -12,8 +12,8 @@
 #include "cec.h"
 
 typedef struct {
-	int8_t	type;
-	int8_t	pad[3];
+	char	type;
+	char	pad[3];
 	Pkt	p;
 } Muxmsg;
 

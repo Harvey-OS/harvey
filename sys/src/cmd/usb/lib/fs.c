@@ -54,22 +54,22 @@ struct Rpc
 	Fid*	fid;
 	int	flushed;
 	Rpc*	next;
-	int8_t	data[Bufsize];
+	char	data[Bufsize];
 };
 
 int usbfsdebug;
 
-int8_t Enotfound[] = "file not found";
-int8_t Etoosmall[] = "parameter too small";
-int8_t Eio[] = "i/o error";
-int8_t Eperm[] = "permission denied";
-int8_t Ebadcall[] = "unknown fs call";
-int8_t Ebadfid[] = "fid not found";
-int8_t Einuse[] = "fid already in use";
-int8_t Eisopen[] = "it is already open";
-int8_t Ebadctl[] = "unknown control request";
+char Enotfound[] = "file not found";
+char Etoosmall[] = "parameter too small";
+char Eio[] = "i/o error";
+char Eperm[] = "permission denied";
+char Ebadcall[] = "unknown fs call";
+char Ebadfid[] = "fid not found";
+char Einuse[] = "fid already in use";
+char Eisopen[] = "it is already open";
+char Ebadctl[] = "unknown control request";
 
-static int8_t *user;
+static char *user;
 static uint32_t epoch;
 static uint32_t msgsize = Msgsize;
 static int fsfd = -1;
@@ -165,7 +165,7 @@ newrpc(void)
 	r->t.type = r->r.type = 0;
 	r->flushed = 0;
 	r->fid = nil;
-	r->r.data = (int8_t*)r->data;
+	r->r.data = (char*)r->data;
 	qunlock(&rpclck);
 	return r;
 }
@@ -250,17 +250,17 @@ freefid(Fid *f)
 }
 
 static Rpc*
-fserror(Rpc *rpc, int8_t* fmt, ...)
+fserror(Rpc *rpc, char* fmt, ...)
 {
 	va_list arg;
-	int8_t *c;
+	char *c;
 
 	va_start(arg, fmt);
-	c = (int8_t*)rpc->data;
+	c = (char*)rpc->data;
 	vseprint(c, c+sizeof(rpc->data), fmt, arg);
 	va_end(arg);
 	rpc->r.type = Rerror;
-	rpc->r.ename = (int8_t*)rpc->data;
+	rpc->r.ename = (char*)rpc->data;
 	return rpc;
 }
 
@@ -409,12 +409,12 @@ fsopen(Rpc *r)
 }
 
 int
-usbdirread(Usbfs*f, Qid q, int8_t *data, int32_t cnt, int64_t off,
+usbdirread(Usbfs*f, Qid q, char *data, int32_t cnt, int64_t off,
 	   Dirgen gen,
 	   void *arg)
 {
 	int i, n, nd;
-	int8_t name[Namesz];
+	char name[Namesz];
 	Dir d;
 
 	memset(&d, 0, sizeof(d));
@@ -449,7 +449,7 @@ usbreadbuf(void *data, int32_t count, int64_t offset, void *buf, int32_t n)
 		return 0;
 	if(offset + count > n)
 		count = n - offset;
-	memmove(data, (int8_t*)buf + offset, count);
+	memmove(data, (char*)buf + offset, count);
 	return count;
 }
 
@@ -494,7 +494,7 @@ static Rpc*
 fsstat(Rpc *r)
 {
 	Dir d;
-	int8_t name[Namesz];
+	char name[Namesz];
 
 	memset(&d, 0, sizeof(d));
 	d.name = name;
@@ -645,12 +645,12 @@ usbfs(void*)
 }
 
 void
-usbfsinit(int8_t* srv, int8_t *mnt, Usbfs *f, int flag)
+usbfsinit(char* srv, char *mnt, Usbfs *f, int flag)
 {
 	int fd[2];
 	int sfd;
 	int afd;
-	int8_t sfile[40];
+	char sfile[40];
 
 	fsops = f;
 	if(pipe(fd) < 0)

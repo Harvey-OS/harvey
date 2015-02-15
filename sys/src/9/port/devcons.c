@@ -31,15 +31,15 @@ struct Consdev
 {
 	Chan*	c;			/* external file */
 	Queue*	q;			/* i/o queue, if any */
-	void	(*fn)(int8_t*, int);	/* i/o function when no queue */
+	void	(*fn)(char*, int);	/* i/o function when no queue */
 	int	flags;
 };
 
 void	(*consdebug)(void) = nil;
-void	(*consputs)(int8_t*, int) = nil;
+void	(*consputs)(char*, int) = nil;
 
-static void kmesgputs(int8_t *, int);
-static void kprintputs(int8_t*, int);
+static void kmesgputs(char *, int);
+static void kprintputs(char*, int);
 
 static	Lock	consdevslock;
 static	int	nconsdevs = 3;
@@ -89,14 +89,14 @@ static struct
 	.ie	= kbd.istage + sizeof(kbd.istage),
 };
 
-int8_t	*sysname;
+char	*sysname;
 int64_t	fasthz;
 
 static void	seedrand(void);
-static int	readtime(uint32_t, int8_t*, int);
-static int	readbintime(int8_t*, int);
-static int	writetime(int8_t*, int);
-static int	writebintime(int8_t*, int);
+static int	readtime(uint32_t, char*, int);
+static int	readbintime(char*, int);
+static int	writetime(char*, int);
+static int	writebintime(char*, int);
 
 enum
 {
@@ -114,14 +114,14 @@ Cmdtab rebootmsg[] =
 
 /* To keep the rest of the kernel unware of new consdevs for now */
 static void
-kprintputs(int8_t *s, int n)
+kprintputs(char *s, int n)
 {
 	if(consputs != nil)
 		consputs(s, n);
 }
 
 int
-addconsdev(Queue *q, void (*fn)(int8_t*,int), int i, int flags)
+addconsdev(Queue *q, void (*fn)(char*,int), int i, int flags)
 {
 	Consdev *c;
 
@@ -152,7 +152,7 @@ delconsdevs(void)
 static void
 conskbdqproc(void *a)
 {
-	int8_t buf[64];
+	char buf[64];
 	Queue *q;
 	int nr;
 
@@ -250,12 +250,12 @@ prflush(void)
  */
 struct {
 	Lock lk;
-	int8_t buf[16384];
+	char buf[16384];
 	uint n;
 } kmesg;
 
 static void
-kmesgputs(int8_t *str, int n)
+kmesgputs(char *str, int n)
 {
 	uint nn, d;
 
@@ -284,7 +284,7 @@ kmesgputs(int8_t *str, int n)
 }
 
 static void
-consdevputs(Consdev *c, int8_t *s, int n, int usewrite)
+consdevputs(Consdev *c, char *s, int n, int usewrite)
 {
 	Chan *cc;
 	Queue *q;
@@ -307,10 +307,10 @@ consdevputs(Consdev *c, int8_t *s, int n, int usewrite)
  *   interspersed with other messages.
  */
 static void
-putstrn0(int8_t *str, int n, int usewrite)
+putstrn0(char *str, int n, int usewrite)
 {
 	Consdev *c;
-	int8_t *s, *t;
+	char *s, *t;
 	int i, len, m;
 
 	if(!islo())
@@ -339,17 +339,17 @@ putstrn0(int8_t *str, int n, int usewrite)
 }
 
 void
-putstrn(int8_t *str, int n)
+putstrn(char *str, int n)
 {
 	putstrn0(str, n, 0);
 }
 
 int
-print(int8_t *fmt, ...)
+print(char *fmt, ...)
 {
 	int n;
 	va_list arg;
-	int8_t buf[PRINTSIZE];
+	char buf[PRINTSIZE];
 
 	va_start(arg, fmt);
 	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
@@ -383,12 +383,12 @@ iprintcanlock(Lock *l)
 }
 
 int
-iprint(int8_t *fmt, ...)
+iprint(char *fmt, ...)
 {
 	Mpl pl;
 	int i, n, locked;
 	va_list arg;
-	int8_t buf[PRINTSIZE];
+	char buf[PRINTSIZE];
 
 	pl = splhi();
 	va_start(arg, fmt);
@@ -411,12 +411,12 @@ iprint(int8_t *fmt, ...)
 
 #pragma profile 0
 void
-panic(int8_t *fmt, ...)
+panic(char *fmt, ...)
 {
 	int n;
 	Mpl pl;
 	va_list arg;
-	int8_t buf[PRINTSIZE];
+	char buf[PRINTSIZE];
 
 	consdevs[1].q = nil;	/* don't try to write to /dev/kprint */
 
@@ -444,9 +444,9 @@ panic(int8_t *fmt, ...)
 #pragma profile 1
 /* libmp at least contains a few calls to sysfatal; simulate with panic */
 void
-sysfatal(int8_t *fmt, ...)
+sysfatal(char *fmt, ...)
 {
-	int8_t err[256];
+	char err[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -456,18 +456,18 @@ sysfatal(int8_t *fmt, ...)
 }
 
 void
-_assert(int8_t *fmt)
+_assert(char *fmt)
 {
 	panic("assert failed at %#p: %s", getcallerpc(&fmt), fmt);
 }
 
 int
-pprint(int8_t *fmt, ...)
+pprint(char *fmt, ...)
 {
 	int n;
 	Chan *c;
 	va_list arg;
-	int8_t buf[2*PRINTSIZE];
+	char buf[2*PRINTSIZE];
 
 	if(up == nil || up->fgrp == nil)
 		return 0;
@@ -493,11 +493,11 @@ pprint(int8_t *fmt, ...)
 }
 
 static void
-echo(int8_t *buf, int n)
+echo(char *buf, int n)
 {
 	Mpl pl;
 	static int ctrlt, pid;
-	int8_t *e, *p;
+	char *e, *p;
 
 	if(n == 0)
 		return;
@@ -582,7 +582,7 @@ echo(int8_t *buf, int n)
 int
 kbdcr2nl(Queue*, int ch)
 {
-	int8_t *next;
+	char *next;
 
 	ilock(&kbd.lockputc);		/* just a mutex */
 	if(ch == '\r' && !kbd.raw)
@@ -606,9 +606,9 @@ int
 kbdputc(Queue*, int ch)
 {
 	int i, n;
-	int8_t buf[3];
+	char buf[3];
 	Rune r;
-	int8_t *next;
+	char *next;
 
 	if(kbd.ir == nil)
 		return 0;		/* in case we're not inited yet */
@@ -636,7 +636,7 @@ kbdputc(Queue*, int ch)
 static void
 kbdputcclock(void)
 {
-	int8_t *iw;
+	char *iw;
 
 	/* this amortizes cost of qproduce */
 	if(kbd.iw != kbd.ir){
@@ -712,9 +712,9 @@ static Dirtab consdir[]={
 };
 
 int
-readnum(uint32_t off, int8_t *buf, uint32_t n, uint32_t val, int size)
+readnum(uint32_t off, char *buf, uint32_t n, uint32_t val, int size)
 {
-	int8_t tmp[64];
+	char tmp[64];
 
 	snprint(tmp, sizeof(tmp), "%*lud", size-1, val);
 	tmp[size-1] = ' ';
@@ -727,7 +727,7 @@ readnum(uint32_t off, int8_t *buf, uint32_t n, uint32_t val, int size)
 }
 
 int32_t
-readstr(int32_t offset, int8_t *buf, int32_t n, int8_t *str)
+readstr(int32_t offset, char *buf, int32_t n, char *str)
 {
 	int32_t size;
 
@@ -754,13 +754,13 @@ consinit(void)
 }
 
 static Chan*
-consattach(int8_t *spec)
+consattach(char *spec)
 {
 	return devattach('c', spec);
 }
 
 static Walkqid*
-conswalk(Chan *c, Chan *nc, int8_t **name, int nname)
+conswalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name,nname, consdir, nelem(consdir), devgen);
 }
@@ -829,8 +829,8 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	uint32_t l;
 	Mach *mp;
-	int8_t *b, *bp, ch, *s, *e;
-	int8_t tmp[512];		/* Qswap is 381 bytes at clu */
+	char *b, *bp, ch, *s, *e;
+	char tmp[512];		/* Qswap is 381 bytes at clu */
 	int i, k, id, send;
 	int32_t offset;
 
@@ -1050,9 +1050,9 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 static int32_t
 conswrite(Chan *c, void *va, int32_t n, int64_t off)
 {
-	int8_t buf[256], ch;
+	char buf[256], ch;
 	int32_t l, bp;
-	int8_t *a;
+	char *a;
 	Mach *mp;
 	int i;
 	uint32_t offset;
@@ -1308,7 +1308,7 @@ long2le(uint8_t *t, int32_t from)
 	return t+sizeof(int32_t);
 }
 
-int8_t *Ebadtimectl = "bad time control";
+char *Ebadtimectl = "bad time control";
 
 /*
  *  like the old #c/time but with added info.  Return
@@ -1316,11 +1316,11 @@ int8_t *Ebadtimectl = "bad time control";
  *	secs	nanosecs	fastticks	fasthz
  */
 static int
-readtime(uint32_t off, int8_t *buf, int n)
+readtime(uint32_t off, char *buf, int n)
 {
 	int64_t nsec, ticks;
 	int32_t sec;
-	int8_t str[7*NUMSIZE];
+	char str[7*NUMSIZE];
 
 	nsec = todget(&ticks);
 	if(fasthz == 0LL)
@@ -1338,9 +1338,9 @@ readtime(uint32_t off, int8_t *buf, int n)
  *  set the time in seconds
  */
 static int
-writetime(int8_t *buf, int n)
+writetime(char *buf, int n)
 {
-	int8_t b[13];
+	char b[13];
 	int32_t i;
 	int64_t now;
 
@@ -1361,7 +1361,7 @@ writetime(int8_t *buf, int n)
  *  ticks and nsec are syncronized.
  */
 static int
-readbintime(int8_t *buf, int n)
+readbintime(char *buf, int n)
 {
 	int i;
 	int64_t nsec, ticks;
@@ -1393,7 +1393,7 @@ readbintime(int8_t *buf, int n)
  *	- clock frequency
  */
 static int
-writebintime(int8_t *buf, int n)
+writebintime(char *buf, int n)
 {
 	uint8_t *p;
 	int64_t delta;

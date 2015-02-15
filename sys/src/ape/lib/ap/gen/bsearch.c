@@ -20,7 +20,7 @@ bsearch(const void* key, const void* base, size_t nmemb, size_t size,
 	top = bot + nmemb - 1;
 	while(bot <= top){
 		new = (top + bot)/2;
-		p = (int8_t *)base+new*size;
+		p = (char *)base+new*size;
 		i = (*compar)(key, p);
 		if(i == 0)
 			return p;

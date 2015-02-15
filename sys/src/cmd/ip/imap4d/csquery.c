@@ -16,11 +16,11 @@
 /*
  *  query the connection server
  */
-int8_t*
-csquery(int8_t *attr, int8_t *val, int8_t *rattr)
+char*
+csquery(char *attr, char *val, char *rattr)
 {
-	int8_t token[64+4];
-	int8_t buf[256], *p, *sp;
+	char token[64+4];
+	char buf[256], *p, *sp;
 	int fd, n;
 
 	if(val == nil || val[0] == 0)

@@ -11,6 +11,6 @@
  * pANS stdio -- remove
  */
 #include "iolib.h"
-int remove(const int8_t *f){
-	return unlink((int8_t *)f);
+int remove(const char *f){
+	return unlink((char *)f);
 }

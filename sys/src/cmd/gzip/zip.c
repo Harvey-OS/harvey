@@ -18,7 +18,7 @@ enum
 	HeadAlloc	= 64,
 };
 
-static	void	zip(Biobuf *bout, int8_t *file, int stdout);
+static	void	zip(Biobuf *bout, char *file, int stdout);
 static	void	zipDir(Biobuf *bout, int fd, ZipHead *zh, int stdout);
 static	int	crcread(void *fd, void *buf, int n);
 static	int	zwrite(void *bout, void *buf, int n);
@@ -29,7 +29,7 @@ static	void	header(Biobuf *bout, ZipHead *zh);
 static	void	trailer(Biobuf *bout, ZipHead *zh, int64_t off);
 static	void	putCDir(Biobuf *bout);
 
-static	void	error(int8_t*, ...);
+static	void	error(char*, ...);
 #pragma	varargck	argpos	error	1
 
 static	Biobuf	bout;
@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 }
 
 static void
-zip(Biobuf *bout, int8_t *file, int stdout)
+zip(Biobuf *bout, char *file, int stdout)
 {
 	Tm *t;
 	ZipHead *zh;
@@ -195,7 +195,7 @@ static void
 zipDir(Biobuf *bout, int fd, ZipHead *zh, int stdout)
 {
 	Dir *dirs;
-	int8_t *file, *pfile;
+	char *file, *pfile;
 	int i, nf, nd;
 
 	nf = strlen(zh->file) + 1;
@@ -333,7 +333,7 @@ crcread(void *fd, void *buf, int n)
 
 	nr = 0;
 	for(; !eof && n > 0; n -= m){
-		m = read((int)(uintptr)fd, (int8_t*)buf+nr, n);
+		m = read((int)(uintptr)fd, (char*)buf+nr, n);
 		if(m <= 0){
 			eof = 1;
 			if(m < 0)
@@ -393,7 +393,7 @@ put1(Biobuf *b, int v)
 }
 
 static void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
 	va_list arg;
 

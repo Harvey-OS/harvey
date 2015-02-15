@@ -10,8 +10,8 @@
 #include <stddef.h>
 #include <grp.h>
 
-extern int _getpw(int *, int8_t **, int8_t **);
-extern int8_t **_grpmems(int8_t *);
+extern int _getpw(int *, char **, char **);
+extern char **_grpmems(char *);
 
 static struct group holdgroup;
 
@@ -19,7 +19,7 @@ struct group *
 getgrgid(gid_t gid)
 {
 	int num;
-	int8_t *nam, *mem;
+	char *nam, *mem;
 
 	num = gid;
 	nam = 0;

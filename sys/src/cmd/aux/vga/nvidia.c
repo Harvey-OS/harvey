@@ -474,7 +474,7 @@ init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
 	Nvidia *nv;
-	int8_t *p, *val;
+	char *p, *val;
 	int tmp, pixeldepth;
 	uint32_t cursorstart;
 

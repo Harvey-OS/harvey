@@ -17,7 +17,7 @@ enum
 };
 
 Dir*
-dirstat(int8_t *name)
+dirstat(char *name)
 {
 	Dir *d;
 	uint8_t *buf;
@@ -36,7 +36,7 @@ dirstat(int8_t *name)
 		}
 		nd = GBIT16((uint8_t*)buf);	/* upper bound on size of Dir + strings */
 		if(nd <= n){
-			convM2D(buf, n, d, (int8_t*)&d[1]);
+			convM2D(buf, n, d, (char*)&d[1]);
 			return d;
 		}
 		/* else sizeof(Dir)+BIT16SZ+nd is plenty */

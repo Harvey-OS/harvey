@@ -99,7 +99,7 @@ osyield(void)
 void
 oserrstr(void)
 {
-	int8_t *p;
+	char *p;
 
 	if((p = strerror(errno)) != nil)
 		strecpy(up->errstr, up->errstr+ERRMAX, p);
@@ -227,7 +227,7 @@ ticks(void)
 }
 
 int32_t
-showfilewrite(int8_t *a, int n)
+showfilewrite(char *a, int n)
 {
 	error("not implemented");
 	return -1;

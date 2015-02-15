@@ -19,7 +19,7 @@
  * not such a great idea.  it's grandfathered.
  */
 
-static int8_t*
+static char*
 rhostsauth(Fcall *rx, Fcall *tx)
 {
 	USED(rx);
@@ -28,7 +28,7 @@ rhostsauth(Fcall *rx, Fcall *tx)
 	return "u9fs rhostsauth: no authentication required";
 }
 
-static int8_t*
+static char*
 rhostsattach(Fcall *rx, Fcall *tx)
 {
 	USED(tx);

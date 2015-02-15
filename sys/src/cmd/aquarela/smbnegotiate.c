@@ -26,7 +26,7 @@ smbnegotiate(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 	i = 0;
 	index = 0xffff;
 	while (smbbuffergetb(b, &bufferformat)) {
-		int8_t *s;
+		char *s;
 		if (bufferformat != 0x02) {
 			smblogprint(-1, "smbnegotiate: unrecognised buffer format 0x%.2ux\n", bufferformat);
 			return SmbProcessResultFormat;

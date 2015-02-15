@@ -167,8 +167,8 @@ gs_heap_alloc_bytes(gs_memory_t * mem, uint size, client_name_t cname)
     byte *ptr = 0;
 
 #ifdef DEBUG
-    const int8_t *msg;
-    static const int8_t *const ok_msg = "OK";
+    const char *msg;
+    static const char *const ok_msg = "OK";
 
 #  define set_msg(str) (msg = (str))
 #else

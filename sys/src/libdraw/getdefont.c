@@ -14,7 +14,7 @@
 Subfont*
 getdefont(Display *d)
 {
-	int8_t *hdr, *p;
+	char *hdr, *p;
 	int n;
 	Fontchar *fc;
 	Subfont *f;
@@ -27,7 +27,7 @@ getdefont(Display *d)
 	 * but not in general.  the byte order is right because the data is
 	 * declared as char*, not ulong*.
 	 */
-	p = (int8_t*)defontdata;
+	p = (char*)defontdata;
 	n = (int)(uint64_t)p & 3;				/* stupid ape */
 	if(n != 0){
 		memmove(p+(4-n), p, sizeofdefont-n);

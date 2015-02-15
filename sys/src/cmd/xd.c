@@ -20,8 +20,8 @@ int		repeats;
 int		swizzle;
 int		flush;
 int		abase=2;
-int		xd(int8_t *, int);
-void		xprint(int8_t *, ...);
+int		xd(char *, int);
+void		xprint(char *, ...);
 void		initarg(void), swizz(void);
 enum{
 	Narg=10,
@@ -31,15 +31,15 @@ enum{
 	TRune,
 };
 typedef struct Arg Arg;
-typedef void fmtfn(int8_t *);
+typedef void fmtfn(char *);
 struct Arg
 {
 	int	chartype;		/* TNone, TAscii, TRunes */
 	int	loglen;		/* 0==1, 1==2, 2==4, 3==8 */
 	int	base;		/* 0==8, 1==10, 2==16 */
 	fmtfn	*fn;		/* function to call with data */
-	int8_t	*afmt;		/* format to use to print address */
-	int8_t	*fmt;		/* format to use to print data */
+	char	*afmt;		/* format to use to print address */
+	char	*fmt;		/* format to use to print data */
 }arg[Narg];
 int	narg;
 
@@ -51,24 +51,24 @@ fmtfn *fmt[4] = {
 	fmt3
 };
 
-int8_t *dfmt[4][3] = {
+char *dfmt[4][3] = {
 	" %.3uo",	" %.3ud",	" %.2ux",
 	" %.6uo",	" %.5ud",	" %.4ux",
 	" %.11luo",	" %.10lud",	" %.8lux",
 	" %.22lluo",	" %.20llud",	" %.16llux",
 };
 
-int8_t *cfmt[3][3] = {
+char *cfmt[3][3] = {
 	"   %c",	"   %c", 	"  %c",
 	" %.3s",	" %.3s",	" %.2s",
 	" %.3uo",	" %.3ud",	" %.2ux",
 };
 
-int8_t *rfmt[1][1] = {
+char *rfmt[1][1] = {
 	" %2.2C",
 };
 
-int8_t *afmt[2][3] = {
+char *afmt[2][3] = {
 	"%.7luo ",	"%.7lud ",	"%.7lux ",
 	"%7luo ",	"%7lud ",	"%7lux ",
 };
@@ -77,7 +77,7 @@ Biobuf	bin;
 Biobuf	bout;
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int i, err;
 	Arg *ap;
@@ -213,7 +213,7 @@ initarg(void)
 }
 
 int
-xd(int8_t *name, int title)
+xd(char *name, int title)
 {
 	int fd;
 	int i, star, nsee, nleft;
@@ -315,7 +315,7 @@ swizz(void)
 }
 
 void
-fmt0(int8_t *f)
+fmt0(char *f)
 {
 	int i;
 	for(i=0; i<ndata; i++)
@@ -323,7 +323,7 @@ fmt0(int8_t *f)
 }
 
 void
-fmt1(int8_t *f)
+fmt1(char *f)
 {
 	int i;
 	for(i=0; i<ndata; i+=sizeof(ushort))
@@ -331,7 +331,7 @@ fmt1(int8_t *f)
 }
 
 void
-fmt2(int8_t *f)
+fmt2(char *f)
 {
 	int i;
 	for(i=0; i<ndata; i+=sizeof(uint32_t))
@@ -339,7 +339,7 @@ fmt2(int8_t *f)
 }
 
 void
-fmt3(int8_t *f)
+fmt3(char *f)
 {
 	int i;
 	uint64_t v;
@@ -381,7 +381,7 @@ onefmtc(uint8_t c)
 }
 
 void
-fmtc(int8_t *f)
+fmtc(char *f)
 {
 	int i;
 
@@ -391,7 +391,7 @@ fmtc(int8_t *f)
 }
 
 void
-fmtr(int8_t *f)
+fmtr(char *f)
 {
 	int i, w, cw;
 	Rune r;
@@ -404,7 +404,7 @@ fmtr(int8_t *f)
 		if(data[i] < Runeself)
 			onefmtc(data[i++]);
 		else{
-			w = chartorune(&r, (int8_t *)data+i);
+			w = chartorune(&r, (char *)data+i);
 			if(w == 1 || i + w>nread)
 				onefmtc(data[i++]);
 			else{
@@ -423,7 +423,7 @@ fmtr(int8_t *f)
 }
 
 void
-xprint(int8_t *fmt, ...)
+xprint(char *fmt, ...)
 {
 	va_list arglist;
 

@@ -21,19 +21,19 @@ enum
 typedef struct Endpoints Endpoints;
 struct Endpoints
 {
-	int8_t 	*net;
-	int8_t	*lsys;
-	int8_t	*lserv;
-	int8_t	*rsys;
-	int8_t	*rserv;
+	char 	*net;
+	char	*lsys;
+	char	*lserv;
+	char	*rsys;
+	char	*rserv;
 };
 
 void		xfer(int, int);
 void		xfer9p(int, int);
-Endpoints*	getendpoints(int8_t*);
+Endpoints*	getendpoints(char*);
 void		freeendpoints(Endpoints*);
-int8_t*		iptomac(int8_t*, int8_t*);
-int		macok(int8_t*);
+char*		iptomac(char*, char*);
+int		macok(char*);
 
 void
 usage(void)
@@ -111,7 +111,7 @@ main(int argc, char **argv)
 void
 xfer(int from, int to)
 {
-	int8_t buf[12*1024];
+	char buf[12*1024];
 	int n;
 
 	while((n = read(from, buf, sizeof buf)) > 0)
@@ -151,11 +151,11 @@ xfer9p(int from, int to)
 }
 
 void
-getendpoint(int8_t *dir, int8_t *file, int8_t **sysp, int8_t **servp)
+getendpoint(char *dir, char *file, char **sysp, char **servp)
 {
 	int fd, n;
-	int8_t buf[Maxpath];
-	int8_t *sys, *serv;
+	char buf[Maxpath];
+	char *sys, *serv;
 
 	sys = serv = 0;
 
@@ -183,10 +183,10 @@ getendpoint(int8_t *dir, int8_t *file, int8_t **sysp, int8_t **servp)
 }
 
 Endpoints *
-getendpoints(int8_t *dir)
+getendpoints(char *dir)
 {
 	Endpoints *ep;
-	int8_t *p;
+	char *p;
 
 	ep = malloc(sizeof(*ep));
 	ep->net = strdup(dir);
@@ -211,13 +211,13 @@ freeendpoints(Endpoints *ep)
 	free(ep);
 }
 
-int8_t*
-iptomac(int8_t *ip, int8_t *net)
+char*
+iptomac(char *ip, char *net)
 {
-	int8_t file[Maxpath];
+	char file[Maxpath];
 	Biobuf *b;
-	int8_t *p;
-	int8_t *f[5];
+	char *p;
+	char *f[5];
 
 	snprint(file, sizeof(file), "%s/arp", net);
 	b = Bopen(file, OREAD);
@@ -239,9 +239,9 @@ iptomac(int8_t *ip, int8_t *net)
 }
 
 int
-macok(int8_t *mac)
+macok(char *mac)
 {
-	int8_t *p;
+	char *p;
 
 	if(mac == nil)
 		return 0;

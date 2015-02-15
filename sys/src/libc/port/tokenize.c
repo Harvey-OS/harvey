@@ -10,13 +10,13 @@
 #include <u.h>
 #include <libc.h>
 
-static int8_t qsep[] = " \t\r\n";
+static char qsep[] = " \t\r\n";
 
-static int8_t*
-qtoken(int8_t *s, int8_t *sep)
+static char*
+qtoken(char *s, char *sep)
 {
 	int quoting;
-	int8_t *t;
+	char *t;
 
 	quoting = 0;
 	t = s;	/* s is output string, t is input string */
@@ -50,8 +50,8 @@ qtoken(int8_t *s, int8_t *sep)
 	return t;
 }
 
-static int8_t*
-etoken(int8_t *t, int8_t *sep)
+static char*
+etoken(char *t, char *sep)
 {
 	int quoting;
 
@@ -82,7 +82,7 @@ etoken(int8_t *t, int8_t *sep)
 }
 
 int
-gettokens(int8_t *s, int8_t **args, int maxargs, int8_t *sep)
+gettokens(char *s, char **args, int maxargs, char *sep)
 {
 	int nargs;
 
@@ -99,7 +99,7 @@ gettokens(int8_t *s, int8_t **args, int maxargs, int8_t *sep)
 }
 
 int
-tokenize(int8_t *s, int8_t **args, int maxargs)
+tokenize(char *s, char **args, int maxargs)
 {
 	int nargs;
 

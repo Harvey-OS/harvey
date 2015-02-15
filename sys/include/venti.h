@@ -56,7 +56,7 @@ typedef struct VtLogChunk VtLogChunk;
 struct VtLog
 {
 	VtLog	*next;		/* in hash table */
-	int8_t	*name;
+	char	*name;
 	VtLogChunk *chunk;
 	uint	nchunk;
 	VtLogChunk *w;
@@ -66,17 +66,17 @@ struct VtLog
 
 struct VtLogChunk
 {
-	int8_t	*p;
-	int8_t	*ep;
-	int8_t	*wp;
+	char	*p;
+	char	*ep;
+	char	*wp;
 };
 
-VtLog*	vtlogopen(int8_t *name, uint size);
-void	vtlogprint(VtLog *log, int8_t *fmt, ...);
-void	vtlog(int8_t *name, int8_t *fmt, ...);
+VtLog*	vtlogopen(char *name, uint size);
+void	vtlogprint(VtLog *log, char *fmt, ...);
+void	vtlog(char *name, char *fmt, ...);
 void	vtlogclose(VtLog*);
-void	vtlogremove(int8_t *name);
-int8_t**	vtlognames(int*);
+void	vtlogremove(char *name);
+char**	vtlognames(int*);
 void	vtlogdump(int fd, VtLog*);
 
 /* XXX begin actual venti.h */
@@ -102,8 +102,8 @@ enum
 /* 
  * Strings in packets.
  */
-int vtputstring(Packet*, int8_t*);
-int vtgetstring(Packet*, int8_t**);
+int vtputstring(Packet*, char*);
+int vtgetstring(Packet*, char**);
 
 /*
  * Block types.
@@ -166,8 +166,8 @@ int vtentryunpack(VtEntry*, uint8_t*, int index);
 
 struct VtRoot
 {
-	int8_t	name[128];
-	int8_t	type[128];
+	char	name[128];
+	char	type[128];
 	uint8_t	score[VtScoreSize];	/* to a Dir block */
 	uint16_t	blocksize;		/* maximum block size */
 	uint8_t	prev[VtScoreSize];	/* last root block */
@@ -196,7 +196,7 @@ uint vtzerotruncate(int type, uint8_t *buf, uint n);
 /*
  * parse score: mungs s
  */
-int vtparsescore(int8_t *s, int8_t **prefix, uint8_t[VtScoreSize]);
+int vtparsescore(char *s, char **prefix, uint8_t[VtScoreSize]);
 
 /*
  * formatting
@@ -220,7 +220,7 @@ void*	vtmalloc(int);
 void*	vtmallocz(int);
 void*	vtrealloc(void *p, int);
 void*	vtbrk(int n);
-int8_t*	vtstrdup(int8_t *);
+char*	vtstrdup(char *);
 
 /*
  * Venti protocol
@@ -287,16 +287,16 @@ struct VtFcall
 	uint8_t	msgtype;
 	uint8_t	tag;
 
-	int8_t	*error;		/* Rerror */
+	char	*error;		/* Rerror */
 
-	int8_t	*version;	/* Thello */
-	int8_t	*uid;		/* Thello */
+	char	*version;	/* Thello */
+	char	*uid;		/* Thello */
 	uint8_t	strength;	/* Thello */
 	uint8_t	*crypto;	/* Thello */
 	uint	ncrypto;	/* Thello */
 	uint8_t	*codec;		/* Thello */
 	uint	ncodec;		/* Thello */
-	int8_t	*sid;		/* Rhello */
+	char	*sid;		/* Rhello */
 	uint8_t	rcrypto;	/* Rhello */
 	uint8_t	rcodec;		/* Rhello */
 	uint8_t	*auth;		/* TauthX, RauthX */
@@ -337,19 +337,19 @@ struct VtConn
 	Packet	*part;
 	Rendez	tagrend;
 	Rendez	rpcfork;
-	int8_t	*version;
-	int8_t	*uid;
-	int8_t	*sid;
-	int8_t	addr[256];	/* address of other side */
+	char	*version;
+	char	*uid;
+	char	*sid;
+	char	addr[256];	/* address of other side */
 };
 
 VtConn*	vtconn(int infd, int outfd);
-VtConn*	vtdial(int8_t*);
+VtConn*	vtdial(char*);
 void	vtfreeconn(VtConn*);
 int	vtsend(VtConn*, Packet*);
 Packet*	vtrecv(VtConn*);
 int	vtversion(VtConn* z);
-void	vtdebug(VtConn* z, int8_t*, ...);
+void	vtdebug(VtConn* z, char*, ...);
 void	vthangup(VtConn* z);
 int	vtgoodbye(VtConn* z);
 
@@ -369,7 +369,7 @@ struct VtReq
 };
 
 int	vtsrvhello(VtConn*);
-VtSrv*	vtlisten(int8_t *addr);
+VtSrv*	vtlisten(char *addr);
 VtReq*	vtgetreq(VtSrv*);
 void	vtrespond(VtReq*);
 
@@ -507,4 +507,4 @@ extern int chattyventi;
 extern int ventidoublechecksha1;
 extern int ventilogging;
 
-extern int8_t *VtServerLog;
+extern char *VtServerLog;

@@ -81,22 +81,22 @@ gp_setmode_binary(FILE * pfile, bool binary)
 /* ------ File names ------ */
 
 /* Define the character used for separating file names in a list. */
-const int8_t gp_file_name_list_separator = ';';
+const char gp_file_name_list_separator = ';';
 
 /* Define the string to be concatenated with the file mode */
 /* for opening files without end-of-line conversion. */
-const int8_t gp_fmode_binary_suffix[] = "b";
+const char gp_fmode_binary_suffix[] = "b";
 
 /* Define the file modes for binary reading or writing. */
-const int8_t gp_fmode_rb[] = "rb";
-const int8_t gp_fmode_wb[] = "wb";
+const char gp_fmode_rb[] = "rb";
+const char gp_fmode_wb[] = "wb";
 
 /* ------ File enumeration ------ */
 
 struct file_enum_s {
     WIN32_FIND_DATA find_data;
     HANDLE find_handle;
-    int8_t *pattern;		/* orig pattern + modified pattern */
+    char *pattern;		/* orig pattern + modified pattern */
     int patlen;			/* orig pattern length */
     int pat_size;		/* allocate space for pattern */
     int head_size;		/* pattern length through last */
@@ -111,11 +111,11 @@ gs_private_st_ptrs1(st_file_enum, struct file_enum_s, "file_enum",
 /* don't work with the OS call currently used. The '\' escape	*/
 /* character is removed for the 'Find...File' function.		*/
 file_enum *
-gp_enumerate_files_init(const int8_t *pat, uint patlen, gs_memory_t * mem)
+gp_enumerate_files_init(const char *pat, uint patlen, gs_memory_t * mem)
 {
     file_enum *pfen = gs_alloc_struct(mem, file_enum, &st_file_enum, "gp_enumerate_files");
     int pat_size = 2 * patlen + 1;
-    int8_t *pattern;
+    char *pattern;
     int hsize = 0;
     int i, j;
 
@@ -123,7 +123,7 @@ gp_enumerate_files_init(const int8_t *pat, uint patlen, gs_memory_t * mem)
 	return 0;
     /* pattern could be allocated as a string, */
     /* but it's simpler for GC and freeing to allocate it as bytes. */
-    pattern = (int8_t *)gs_alloc_bytes(mem, pat_size,
+    pattern = (char *)gs_alloc_bytes(mem, pat_size,
 				     "gp_enumerate_files(pattern)");
     if (pattern == 0)
 	return 0;
@@ -157,7 +157,7 @@ gp_enumerate_files_init(const int8_t *pat, uint patlen, gs_memory_t * mem)
 
 /* Enumerate the next file. */
 uint
-gp_enumerate_files_next(file_enum * pfen, int8_t *ptr, uint maxlen)
+gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen)
 {
     int code = 0;
     uint len;
@@ -218,7 +218,7 @@ gp_enumerate_files_close(file_enum * pfen)
 
 /* -------------- Helpers for gp_file_name_combine_generic ------------- */
 
-uint gp_file_name_root(const int8_t *fname, uint len)
+uint gp_file_name_root(const char *fname, uint len)
 {   int i = 0;
     
     if (len == 0)
@@ -243,8 +243,8 @@ uint gp_file_name_root(const int8_t *fname, uint len)
     return i;
 }
 
-uint gs_file_name_check_separator(const int8_t *fname, int len,
-                                  const int8_t *item)
+uint gs_file_name_check_separator(const char *fname, int len,
+                                  const char *item)
 {   if (len > 0) {
 	if (fname[0] == '/' || fname[0] == '\\')
 	    return 1;
@@ -255,27 +255,27 @@ uint gs_file_name_check_separator(const int8_t *fname, int len,
     return 0;
 }
 
-bool gp_file_name_is_parent(const int8_t *fname, uint len)
+bool gp_file_name_is_parent(const char *fname, uint len)
 {   return len == 2 && fname[0] == '.' && fname[1] == '.';
 }
 
-bool gp_file_name_is_current(const int8_t *fname, uint len)
+bool gp_file_name_is_current(const char *fname, uint len)
 {   return len == 1 && fname[0] == '.';
 }
 
-const int8_t *gp_file_name_separator(void)
+const char *gp_file_name_separator(void)
 {   return "/";
 }
 
-const int8_t *gp_file_name_directory_separator(void)
+const char *gp_file_name_directory_separator(void)
 {   return "/";
 }
 
-const int8_t *gp_file_name_parent(void)
+const char *gp_file_name_parent(void)
 {   return "..";
 }
 
-const int8_t *gp_file_name_current(void)
+const char *gp_file_name_current(void)
 {   return ".";
 }
 
@@ -288,9 +288,9 @@ bool gp_file_name_is_empty_item_meanful(void)
 }
 
 gp_file_name_combine_result
-gp_file_name_combine(const int8_t *prefix, uint plen, const int8_t *fname,
+gp_file_name_combine(const char *prefix, uint plen, const char *fname,
                      uint flen, 
-		    bool no_sibling, int8_t *buffer, uint *blen)
+		    bool no_sibling, char *buffer, uint *blen)
 {
     return gp_file_name_combine_generic(prefix, plen, 
 	    fname, flen, no_sibling, buffer, blen);

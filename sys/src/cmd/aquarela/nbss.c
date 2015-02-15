@@ -212,7 +212,7 @@ tcplistener(void *)
 {
 	for (;;) {
 		int dfd;
-		int8_t ldir[NETPATHLEN];
+		char ldir[NETPATHLEN];
 		int lcfd;
 //print("tcplistener: listening\n");
 		lcfd = listen(tcp.adir, ldir);
@@ -294,8 +294,8 @@ nbssconnect(NbName to, NbName from)
 {
 	Session *s;
 	uint8_t ipaddr[IPaddrlen];
-	int8_t dialaddress[100];
-	int8_t dir[NETPATHLEN];
+	char dialaddress[100];
+	char dir[NETPATHLEN];
 	uint8_t msg[576];
 	int fd;
 	int32_t o;

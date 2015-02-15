@@ -70,7 +70,7 @@ enum{
 	EValue,
 };
 
-static int8_t *cmds[] = {
+static char *cmds[] = {
 	[EAlign] =			"align",
 	[EBorder] =		"border",
 	[EBordercolor] = 	"bordercolor",
@@ -319,7 +319,7 @@ textbutton3ctl(Control *c, CParse *cp)
 		for(i=0; i<t->nline; i++)
 			free(t->line[i]);
 		t->nline = cp->nargs-1;
-		t->line = ctlrealloc(t->line, t->nline*sizeof(int8_t*));
+		t->line = ctlrealloc(t->line, t->nline*sizeof(char*));
 		for(i=0; i<t->nline; i++)
 			t->line[i] = ctlstrdup(cp->args[i+1]);
 		t->lastshow = -1;	/* force redraw */
@@ -374,12 +374,12 @@ textbutton3ctl(Control *c, CParse *cp)
 }
 
 Control*
-createtextbutton3(Controlset *cs, int8_t *name)
+createtextbutton3(Controlset *cs, char *name)
 {
 	Textbutton3 *t;
 
 	t = (Textbutton3 *)_createctl(cs, "textbutton3", sizeof(Textbutton3), name);
-	t->line = ctlmalloc(sizeof(int8_t*));
+	t->line = ctlmalloc(sizeof(char*));
 	t->nline = 0;
 	t->image = _getctlimage("white");
 	t->light = _getctlimage("yellow");

@@ -21,8 +21,8 @@
 
 int rawhack = 1;
 Conn *conn;
-int8_t *remoteip	= "<remote>";
-int8_t *mtpt;
+char *remoteip	= "<remote>";
+char *mtpt;
 
 Cipher *allcipher[] = {
 	&cipherrc4,
@@ -39,11 +39,11 @@ Auth *allauth[] = {
 	&authtis,
 };
 
-int8_t *cipherlist = "rc4 3des";
-int8_t *authlist = "rsa password tis";
+char *cipherlist = "rc4 3des";
+char *authlist = "rsa password tis";
 
 Cipher*
-findcipher(int8_t *name, Cipher **list, int nlist)
+findcipher(char *name, Cipher **list, int nlist)
 {
 	int i;
 
@@ -55,7 +55,7 @@ findcipher(int8_t *name, Cipher **list, int nlist)
 }
 
 Auth*
-findauth(int8_t *name, Auth **list, int nlist)
+findauth(char *name, Auth **list, int nlist)
 {
 	int i;
 
@@ -76,7 +76,7 @@ usage(void)
 int
 isatty(int fd)
 {
-	int8_t buf[64];
+	char buf[64];
 
 	buf[0] = '\0';
 	fd2path(fd, buf, sizeof buf);
@@ -118,7 +118,7 @@ enum
 	Teardown,
 };
 
-int8_t *statestr[] = {
+char *statestr[] = {
 	"Closed",
 	"Dialing",
 	"Established",
@@ -132,7 +132,7 @@ struct Client
 	int state;
 	int num;
 	int servernum;
-	int8_t *connect;
+	char *connect;
 	Req *rq;
 	Req **erq;
 	Msg *mq;
@@ -313,7 +313,7 @@ sshreadproc(void *a)
 typedef struct Tab Tab;
 struct Tab
 {
-	int8_t *name;
+	char *name;
 	uint32_t mode;
 };
 
@@ -415,11 +415,11 @@ clientgen(int i, Dir *d, void *aux)
 	return -1;
 }
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i, n;
-	int8_t buf[32];
+	char buf[32];
 	uint32_t path;
 
 	path = fid->qid.path;
@@ -469,14 +469,14 @@ fswalk1(Fid *fid, int8_t *name, Qid *qid)
 typedef struct Cs Cs;
 struct Cs
 {
-	int8_t *resp;
+	char *resp;
 	int isnew;
 };
 
 static int
-ndbfindport(int8_t *p)
+ndbfindport(char *p)
 {
-	int8_t *s, *port;
+	char *s, *port;
 	int n;
 	static Ndb *db;
 
@@ -528,7 +528,7 @@ static void
 cswrite(Req *r)
 {
 	int port, nf;
-	int8_t err[ERRMAX], *f[4], *s, *ns;
+	char err[ERRMAX], *f[4], *s, *ns;
 	Cs *cs;
 
 	cs = r->fid->aux;
@@ -572,7 +572,7 @@ cswrite(Req *r)
 static void
 ctlread(Req *r, Client *c)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	sprint(buf, "%d", c->num);
 	readstr(r, buf);
@@ -582,7 +582,7 @@ ctlread(Req *r, Client *c)
 static void
 ctlwrite(Req *r, Client *c)
 {
-	int8_t *f[3], *s;
+	char *f[3], *s;
 	int nf;
 	Msg *m;
 
@@ -665,7 +665,7 @@ datawrite(Req *r, Client *c)
 static void
 localread(Req *r)
 {
-	int8_t buf[128];
+	char buf[128];
 
 	snprint(buf, sizeof buf, "%s!%d\n", remoteip, 0);
 	readstr(r, buf);
@@ -675,8 +675,8 @@ localread(Req *r)
 static void
 remoteread(Req *r, Client *c)
 {
-	int8_t *s;
-	int8_t buf[128];
+	char *s;
+	char buf[128];
 
 	s = c->connect;
 	if(s == nil)
@@ -689,8 +689,8 @@ remoteread(Req *r, Client *c)
 static void
 statusread(Req *r, Client *c)
 {
-	int8_t buf[64];
-	int8_t *s;
+	char buf[64];
+	char *s;
 
 	snprint(buf, sizeof buf, "%s!%d", remoteip, 0);
 	s = statestr[c->state];
@@ -701,7 +701,7 @@ statusread(Req *r, Client *c)
 static void
 fsread(Req *r)
 {
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 	uint32_t path;
 
 	path = r->fid->qid.path;
@@ -756,7 +756,7 @@ static void
 fswrite(Req *r)
 {
 	uint32_t path;
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 
 	path = r->fid->qid.path;
 	switch(TYPE(path)){

@@ -15,7 +15,7 @@ struct Key
 {
 	mpint *mod;
 	mpint *ek;
-	int8_t *comment;
+	char *comment;
 };
 
 typedef struct Achan Achan;
@@ -34,8 +34,8 @@ struct Achan
 
 Achan achan[16];
 
-static int8_t*
-find(int8_t **f, int nf, int8_t *k)
+static char*
+find(char **f, int nf, char *k)
 {
 	int i, len;
 
@@ -52,7 +52,7 @@ listkeys(Key **kp)
 	Biobuf *b;
 	Key *k;
 	int nk;
-	int8_t *p, *f[20];
+	char *p, *f[20];
 	int nf;
 	mpint *mod, *ek;
 	
@@ -100,7 +100,7 @@ dorsa(mpint *mod, mpint *exp, mpint *chal, uint8_t chalbuf[32])
 	int afd;
 	AuthRpc *rpc;
 	mpint *m;
-	int8_t buf[4096], *p;
+	char buf[4096], *p;
 	mpint *decr, *unpad;
 
 	USED(exp);
@@ -125,7 +125,7 @@ dorsa(mpint *mod, mpint *exp, mpint *chal, uint8_t chalbuf[32])
 	m = nil;
 	debug(DBG_AUTH, "trying factotum rsa keys\n");
 	while(auth_rpc(rpc, "read", nil, 0) == ARok){
-		debug(DBG_AUTH, "try %s\n", (int8_t*)rpc->arg);
+		debug(DBG_AUTH, "try %s\n", (char*)rpc->arg);
 		m = strtomp(rpc->arg, nil, 16, nil);
 		if(mpcmp(m, mod) == 0)
 			break;

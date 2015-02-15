@@ -14,7 +14,7 @@
 #include "authcmdlib.h"
 
 int
-readfile(int8_t *file, int8_t *buf, int n)
+readfile(char *file, char *buf, int n)
 {
 	int fd;
 
@@ -29,7 +29,7 @@ readfile(int8_t *file, int8_t *buf, int n)
 }
 
 int
-writefile(int8_t *file, int8_t *buf, int n)
+writefile(char *file, char *buf, int n)
 {
 	int fd;
 
@@ -41,11 +41,11 @@ writefile(int8_t *file, int8_t *buf, int n)
 	return n;
 }
 
-int8_t*
-findkey(int8_t *db, int8_t *user, int8_t *key)
+char*
+findkey(char *db, char *user, char *key)
 {
 	int n;
-	int8_t filename[Maxpath];
+	char filename[Maxpath];
 
 	snprint(filename, sizeof filename, "%s/%s/key", db, user);
 	n = readfile(filename, key, DESKEYLEN);
@@ -55,11 +55,11 @@ findkey(int8_t *db, int8_t *user, int8_t *key)
 		return key;
 }
 
-int8_t*
-findsecret(int8_t *db, int8_t *user, int8_t *secret)
+char*
+findsecret(char *db, char *user, char *secret)
 {
 	int n;
-	int8_t filename[Maxpath];
+	char filename[Maxpath];
 
 	snprint(filename, sizeof filename, "%s/%s/secret", db, user);
 	n = readfile(filename, secret, SECRETLEN-1);
@@ -70,11 +70,11 @@ findsecret(int8_t *db, int8_t *user, int8_t *secret)
 		return secret;
 }
 
-int8_t*
-setkey(int8_t *db, int8_t *user, int8_t *key)
+char*
+setkey(char *db, char *user, char *key)
 {
 	int n;
-	int8_t filename[Maxpath];
+	char filename[Maxpath];
 
 	snprint(filename, sizeof filename, "%s/%s/key", db, user);
 	n = writefile(filename, key, DESKEYLEN);
@@ -84,11 +84,11 @@ setkey(int8_t *db, int8_t *user, int8_t *key)
 		return key;
 }
 
-int8_t*
-setsecret(int8_t *db, int8_t *user, int8_t *secret)
+char*
+setsecret(char *db, char *user, char *secret)
 {
 	int n;
-	int8_t filename[Maxpath];
+	char filename[Maxpath];
 
 	snprint(filename, sizeof filename, "%s/%s/secret", db, user);
 	n = writefile(filename, secret, strlen(secret));

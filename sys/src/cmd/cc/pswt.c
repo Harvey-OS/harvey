@@ -147,7 +147,7 @@ casf(void)
 int32_t
 outlstring(TRune *s, int32_t n)
 {
-	int8_t buf[sizeof(TRune)];
+	char buf[sizeof(TRune)];
 	uint c;
 	int i;
 	int32_t r;

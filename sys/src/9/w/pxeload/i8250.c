@@ -318,7 +318,7 @@ uartputc(int c)
 }
 
 void
-uartputs(IOQ *q, int8_t *s, int n)
+uartputs(IOQ *q, char *s, int n)
 {
 	Uart *up;
 	int c, x;

@@ -9,17 +9,17 @@
 
 #include	"mk.h"
 
-static	Word		*subsub(Word*, int8_t*, int8_t*);
-static	Word		*expandvar(int8_t**);
-static	Bufblock	*varname(int8_t**);
-static	Word		*extractpat(int8_t*, int8_t**, int8_t*,
-					      int8_t*);
-static	int		submatch(int8_t*, Word*, Word*, int*,
-					  int8_t**);
-static	Word		*varmatch(int8_t *);
+static	Word		*subsub(Word*, char*, char*);
+static	Word		*expandvar(char**);
+static	Bufblock	*varname(char**);
+static	Word		*extractpat(char*, char**, char*,
+					      char*);
+static	int		submatch(char*, Word*, Word*, int*,
+					  char**);
+static	Word		*varmatch(char *);
 
 Word *
-varsub(int8_t **s)
+varsub(char **s)
 {
 	Bufblock *b;
 	Word *w;
@@ -40,10 +40,10 @@ varsub(int8_t **s)
  *	extract a variable name
  */
 static Bufblock*
-varname(int8_t **s)
+varname(char **s)
 {
 	Bufblock *b;
-	int8_t *cp;
+	char *cp;
 	Rune r;
 	int n;
 
@@ -68,7 +68,7 @@ varname(int8_t **s)
 }
 
 static Word*
-varmatch(int8_t *name)
+varmatch(char *name)
 {
 	Word *w;
 	Symtab *sym;
@@ -84,12 +84,12 @@ varmatch(int8_t *name)
 }
 
 static Word*
-expandvar(int8_t **s)
+expandvar(char **s)
 {
 	Word *w;
 	Bufblock *buf;
 	Symtab *sym;
-	int8_t *cp, *begin, *end;
+	char *cp, *begin, *end;
 
 	begin = *s;
 	(*s)++;						/* skip the '{' */
@@ -129,10 +129,10 @@ expandvar(int8_t **s)
 }
 
 static Word*
-extractpat(int8_t *s, int8_t **r, int8_t *term, int8_t *end)
+extractpat(char *s, char **r, char *term, char *end)
 {
 	int save;
-	int8_t *cp;
+	char *cp;
 	Word *w;
 
 	cp = charin(s, term);
@@ -152,13 +152,13 @@ extractpat(int8_t *s, int8_t **r, int8_t *term, int8_t *end)
 }
 
 static Word*
-subsub(Word *v, int8_t *s, int8_t *end)
+subsub(Word *v, char *s, char *end)
 {
 	int nmid;
 	Word *head, *tail, *w, *h;
 	Word *a, *b, *c, *d;
 	Bufblock *buf;
-	int8_t *cp, *enda;
+	char *cp, *enda;
 
 	a = extractpat(s, &cp, "=%&", end);
 	b = c = d = 0;
@@ -232,11 +232,11 @@ subsub(Word *v, int8_t *s, int8_t *end)
 }
 
 static int
-submatch(int8_t *s, Word *a, Word *b, int *nmid, int8_t **enda)
+submatch(char *s, Word *a, Word *b, int *nmid, char **enda)
 {
 	Word *w;
 	int n;
-	int8_t *end;
+	char *end;
 
 	n = 0;
 	for(w = a; w; w = w->next){

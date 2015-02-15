@@ -32,7 +32,7 @@ enum {
 	Nfile,
 };
 
-static int8_t *filelist[] = {
+static char *filelist[] = {
 	"index.html",
 	"index.txt",
 	"current",
@@ -140,10 +140,10 @@ Return:
 	return s;
 }
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
-	int8_t *q;
+	char *q;
 	int i, isdotdot, n, t;
 	uint64_t path;
 	Aux *a;
@@ -352,7 +352,7 @@ fsopen(Req *r)
 	}
 }
 
-static int8_t*
+static char*
 fsclone(Fid *old, Fid *new)
 {
 	Aux *a;
@@ -397,7 +397,7 @@ fsdestroyfid(Fid *fid)
 static void
 fillstat(Dir *d, uint64_t path, uint32_t tm, uint32_t length)
 {
-	int8_t tmp[32], *p;
+	char tmp[32], *p;
 	int type;
 
 	memset(d, 0, sizeof(Dir));
@@ -566,7 +566,7 @@ secondgen(int i, Dir *d, void *aux)
 static void
 fsread(Req *r)
 {
-	int8_t *t, *s;
+	char *t, *s;
 	uint64_t path;
 	Aux *a;
 	Bogus b;
@@ -637,13 +637,13 @@ fsread(Req *r)
 
 typedef struct Sread Sread;
 struct Sread {
-	int8_t *rp;
+	char *rp;
 };
 
-static int8_t*
+static char*
 Srdline(void *v, int c)
 {
-	int8_t *p, *rv;
+	char *p, *rv;
 	Sread *s;
 
 	s = v;
@@ -663,7 +663,7 @@ Srdline(void *v, int c)
 static void
 responderrstr(Req *r)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	rerrstr(buf, sizeof buf);
 	if(buf[0] == '\0')
@@ -674,7 +674,7 @@ responderrstr(Req *r)
 static void
 fswrite(Req *r)
 {
-	int8_t *author, *comment, *net, *err, *p, *title, tmp[40];
+	char *author, *comment, *net, *err, *p, *title, tmp[40];
 	int rv, n;
 	uint32_t t;
 	Aux *a;

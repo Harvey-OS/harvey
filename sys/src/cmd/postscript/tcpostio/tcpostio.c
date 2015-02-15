@@ -26,7 +26,7 @@
 #include <sys/wait.h>
 
 extern	int dial_debug;
-extern	int dial(int8_t*, int8_t*, int8_t*, int*);
+extern	int dial(char*, char*, char*, int*);
 
 
 /* debug = 0 for no debugging */
@@ -45,8 +45,8 @@ rdtmout(void) {
 }
 
 int
-getline(int fd, int8_t *buf, int len) {
-	int8_t *bp, c;
+getline(int fd, char *buf, int len) {
+	char *bp, c;
 	int i = 0, n;
 
 	bp = buf;
@@ -67,7 +67,7 @@ getline(int fd, int8_t *buf, int len) {
 }
 
 typedef struct {
-	int8_t	*state;			/* printer's current status */
+	char	*state;			/* printer's current status */
 	int	val;			/* value returned by getstatus() */
 } Status;
 
@@ -120,9 +120,9 @@ Status	statuslist[] = {
 /* find returns a pointer to the location of string str2 in string str1,
  * if it exists.  Otherwise, it points to the end of str1.
  */
-int8_t *
-find(int8_t *str1, int8_t *str2) {
-	int8_t *s1, *s2;
+char *
+find(char *str1, char *str2) {
+	char *s1, *s2;
 
 	for (; *str1!='\0'; str1++) {
 		for (s1=str1,s2=str2; *s2!='\0'&&*s1==*s2; s1++,s2++) ;
@@ -137,15 +137,15 @@ find(int8_t *str1, int8_t *str2) {
 int blocksize = 1920;		/* 19200/10, with 1 sec delay between transfers
 				 * this keeps the queues from building up.
 				 */
-int8_t	mesg[MESGSIZE];			/* exactly what came back on ttyi */
+char	mesg[MESGSIZE];			/* exactly what came back on ttyi */
 
 int
-parsmesg(int8_t *buf) {
-	static int8_t sbuf[MESGSIZE];
-	int8_t	*s;		/* start of printer messsage in mesg[] */
-	int8_t	*e;		/* end of printer message in mesg[] */
-	int8_t	*key, *val;	/* keyword/value strings in sbuf[] */
-	int8_t	*p;		/* for converting to lower case etc. */
+parsmesg(char *buf) {
+	static char sbuf[MESGSIZE];
+	char	*s;		/* start of printer messsage in mesg[] */
+	char	*e;		/* end of printer message in mesg[] */
+	char	*key, *val;	/* keyword/value strings in sbuf[] */
+	char	*p;		/* for converting to lower case etc. */
 	int	i;		/* where *key was found in statuslist[] */
 
 	if (*(s=find(buf, "%[ "))!='\0' && *(e=find(s, " ]%"))!='\0') {
@@ -174,7 +174,7 @@ parsmesg(int8_t *buf) {
 	return(UNKNOWN);
 }
 
-int8_t buf[MESGSIZE];
+char buf[MESGSIZE];
 fd_set readfds, writefds, exceptfds;
 struct timeval rcvtimeout = { RCVSELTIMEOUT, 0 };
 struct timeval sndtimeout = { SNDSELTIMEOUT, 0 };
@@ -473,11 +473,11 @@ sendfile(int infd, int printerfd, int pipefd)
 		return(0);
 }
 
-void main(int argc, int8_t *argv[]) {
+void main(int argc, char *argv[]) {
 	int c, usgflg=0, infd, printerfd;
 	int cpid, sprv;
 	int pipefd[2];
-	int8_t *dialstr;
+	char *dialstr;
 	unsigned long rprv;
 
 	dialstr = 0;

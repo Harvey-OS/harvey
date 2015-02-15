@@ -96,7 +96,7 @@ bingrow(Bin **bin, void *op, uint32_t osize, uint32_t size, int zero)
 	if(b != nil && p == b->v && p + size <= b->end){
 		b->pos = p + size;
 		if(zero)
-			memset((int8_t*)p + osize, 0, size - osize);
+			memset((char*)p + osize, 0, size - osize);
 		return op;
 	}
 	np = binalloc(bin, size, zero);

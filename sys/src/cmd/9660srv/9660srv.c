@@ -19,19 +19,19 @@ static void	ireset(void);
 static int	iattach(Xfile*);
 static void	iclone(Xfile*, Xfile*);
 static void	iwalkup(Xfile*);
-static void	iwalk(Xfile*, int8_t*);
+static void	iwalk(Xfile*, char*);
 static void	iopen(Xfile*, int);
-static void	icreate(Xfile*, int8_t*, int32_t, int);
+static void	icreate(Xfile*, char*, int32_t, int);
 static int32_t	ireaddir(Xfile*, uint8_t*, int32_t, int32_t);
-static int32_t	iread(Xfile*, int8_t*, int64_t, int32_t);
-static int32_t	iwrite(Xfile*, int8_t*, int64_t, int32_t);
+static int32_t	iread(Xfile*, char*, int64_t, int32_t);
+static int32_t	iwrite(Xfile*, char*, int64_t, int32_t);
 static void	iclunk(Xfile*);
 static void	iremove(Xfile*);
 static void	istat(Xfile*, Dir*);
 static void	iwstat(Xfile*, Dir*);
 
-static int8_t*	nstr(uint8_t*, int);
-static int8_t*	rdate(uint8_t*, int);
+static char*	nstr(uint8_t*, int);
+static char*	rdate(uint8_t*, int);
 static int	getcontin(Xdata*, uint8_t*, uint8_t**);
 static int	getdrec(Xfile*, void*);
 static void	ungetdrec(Xfile*);
@@ -91,7 +91,7 @@ iattach(Xfile *root)
 			chat("iso, blksize=%d...", blksize);
 
 			v = (Voldesc*)(dirp->iobuf);
-			haveplan9 = (strncmp((int8_t*)v->z.boot.sysid, "PLAN 9", 6)==0);
+			haveplan9 = (strncmp((char*)v->z.boot.sysid, "PLAN 9", 6)==0);
 			if(haveplan9){
 				if(noplan9) {
 					chat("ignoring plan9");
@@ -250,7 +250,7 @@ iwalkup(Xfile *f)
 }
 
 static int
-casestrcmp(int isplan9, int8_t *a, int8_t *b)
+casestrcmp(int isplan9, char *a, char *b)
 {
 	if(isplan9)
 		return strcmp(a, b);
@@ -258,14 +258,14 @@ casestrcmp(int isplan9, int8_t *a, int8_t *b)
 }
 
 static void
-iwalk(Xfile *f, int8_t *name)
+iwalk(Xfile *f, char *name)
 {
 	Isofile *ip = f->ptr;
 	uint8_t dbuf[256];
-	int8_t nbuf[4*Maxname];
+	char nbuf[4*Maxname];
 	Drec *d = (Drec*)dbuf;
 	Dir dir;
-	int8_t *p;
+	char *p;
 	int len, vers, dvers;
 
 	vers = -1;
@@ -317,7 +317,7 @@ iopen(Xfile *f, int mode)
 }
 
 static void
-icreate(Xfile *f, int8_t *name, int32_t perm, int mode)
+icreate(Xfile *f, char *name, int32_t perm, int mode)
 {
 	USED(f, name, perm, mode);
 	error(Eperm);
@@ -328,7 +328,7 @@ ireaddir(Xfile *f, uint8_t *buf, int32_t offset, int32_t count)
 {
 	Isofile *ip = f->ptr;
 	Dir d;
-	int8_t names[4*Maxname];
+	char names[4*Maxname];
 	uint8_t dbuf[256];
 	Drec *drec = (Drec *)dbuf;
 	int n, rcnt;
@@ -361,7 +361,7 @@ ireaddir(Xfile *f, uint8_t *buf, int32_t offset, int32_t count)
 }
 
 static int32_t
-iread(Xfile *f, int8_t *buf, int64_t offset, int32_t count)
+iread(Xfile *f, char *buf, int64_t offset, int32_t count)
 {
 	int n, o, rcnt = 0;
 	int64_t size, addr;
@@ -395,7 +395,7 @@ iread(Xfile *f, int8_t *buf, int64_t offset, int32_t count)
 }
 
 static int32_t
-iwrite(Xfile *f, int8_t *buf, int64_t offset, int32_t count)
+iwrite(Xfile *f, char *buf, int64_t offset, int32_t count)
 {
 	USED(f, buf, offset, count);
 	error(Eperm);
@@ -575,8 +575,8 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 {
 	int n, flags, i, j, lj, nl, vers, sysl, mode, l, have;
 	uint8_t *s;
-	int8_t *p;
-	int8_t buf[Maxname+UTFmax+1];
+	char *p;
+	char buf[Maxname+UTFmax+1];
 	uint8_t *q;
 	Rune r;
 	enum { ONAMELEN = 28 };	/* old Plan 9 directory name length */
@@ -775,11 +775,11 @@ getcontin(Xdata *dev, uint8_t *p, uint8_t **s)
 	return len;
 }
 
-static int8_t *
+static char *
 nstr(uint8_t *p, int n)
 {
-	static int8_t buf[132];
-	int8_t *q = buf;
+	static char buf[132];
+	char *q = buf;
 
 	while(--n >= 0){
 		if(*p == '\\')
@@ -793,10 +793,10 @@ nstr(uint8_t *p, int n)
 	return buf;
 }
 
-static int8_t *
+static char *
 rdate(uint8_t *p, int fmt)
 {
-	static int8_t buf[64];
+	static char buf[64];
 	int htz, s, n;
 
 	n = sprint(buf, "%2.2d.%2.2d.%2.2d %2.2d:%2.2d:%2.2d",
@@ -813,7 +813,7 @@ rdate(uint8_t *p, int fmt)
 	return buf;
 }
 
-static int8_t
+static char
 dmsize[12] =
 {
 	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,

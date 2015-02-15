@@ -26,7 +26,7 @@ struct Graph
 	Rectangle	r;
 	uint64_t		*data;
 	int		ndata;
-	int8_t		*label;
+	char		*label;
 	void		(*newvalue)(Machine*, uint64_t*, uint64_t*, int);
 	void		(*update)(Graph*, uint64_t, uint64_t);
 	Machine		*mach;
@@ -62,8 +62,8 @@ enum
 
 struct Machine
 {
-	int8_t		*name;
-	int8_t		*shortname;
+	char		*name;
+	char		*shortname;
 	int		remote;
 	int		statsfd;
 	int		swapfd;
@@ -86,9 +86,9 @@ struct Machine
 	uint64_t		temp[10];
 
 	/* big enough to hold /dev/sysstat even with many processors */
-	int8_t		buf[8*1024];
-	int8_t		*bufp;
-	int8_t		*ebufp;
+	char		buf[8*1024];
+	char		*bufp;
+	char		*ebufp;
 };
 
 enum
@@ -133,7 +133,7 @@ enum Menu2
 	Nmenu2,
 };
 
-int8_t	*menu2str[Nmenu2+1] = {
+char	*menu2str[Nmenu2+1] = {
 	"add  battery ",
 	"add  context ",
 	"add  ether   ",
@@ -202,9 +202,9 @@ Image	*cols[Ncolor][3];
 Graph	*graph;
 Machine	*mach;
 Font	*mediumfont;
-int8_t	*mysysname;
-int8_t	*mycputype;
-int8_t	argchars[] = "8bceEfiImlnpstwz";
+char	*mysysname;
+char	*mycputype;
+char	argchars[] = "8bceEfiImlnpstwz";
 int	pids[NPROC];
 int 	parity;	/* toggled to avoid patterns in textured background */
 int	nmach;
@@ -215,10 +215,10 @@ int	ylabels = 0;
 int	oldsystem = 0;
 int 	sleeptime = 1000;
 
-int8_t	*procnames[NPROC] = {"main", "mouse"};
+char	*procnames[NPROC] = {"main", "mouse"};
 
 void
-killall(int8_t *s)
+killall(char *s)
 {
 	int i, pid;
 
@@ -253,10 +253,10 @@ erealloc(void *v, uint32_t sz)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *t;
+	char *t;
 	if((t = strdup(s)) == nil) {
 		fprint(2, "stats: out of memory in strdup(%.10s): %r\n", s);
 		killall("mem");
@@ -317,9 +317,9 @@ loadbuf(Machine *m, int *fd)
 }
 
 void
-label(Point p, int dy, int8_t *text)
+label(Point p, int dy, char *text)
 {
-	int8_t *s;
+	char *s;
 	Rune r[2];
 	int w, maxw, maxy;
 
@@ -416,7 +416,7 @@ redraw(Graph *g, uint64_t vmax)
 void
 update1(Graph *g, uint64_t v, uint64_t vmax)
 {
-	int8_t buf[48];
+	char buf[48];
 	int overflow;
 
 	if(g->overflow && g->overtmp!=nil)
@@ -443,7 +443,7 @@ int
 readnums(Machine *m, int n, uint64_t *a, int spanlines)
 {
 	int i;
-	int8_t *p, *q, *ep;
+	char *p, *q, *ep;
 
 	if(spanlines)
 		ep = m->ebufp;
@@ -500,9 +500,9 @@ filter(int fd)
  * 9fs
  */
 int
-connect9fs(int8_t *addr)
+connect9fs(char *addr)
 {
-	int8_t dir[256], *na;
+	char dir[256], *na;
 	int fd;
 
 	fprint(2, "connect9fs...");
@@ -561,11 +561,11 @@ old9p(int fd)
  * exportfs
  */
 int
-connectexportfs(int8_t *addr)
+connectexportfs(char *addr)
 {
-	int8_t buf[ERRMAX], dir[256], *na;
+	char buf[ERRMAX], dir[256], *na;
 	int fd, n;
-	int8_t *tree;
+	char *tree;
 	AuthInfo *ai;
 
 	tree = "/";
@@ -617,10 +617,10 @@ readswap(Machine *m, uint64_t *a)
 	return readnums(m, nelem(m->devswap), a, 0);
 }
 
-int8_t*
-shortname(int8_t *s)
+char*
+shortname(char *s)
 {
-	int8_t *p, *e;
+	char *p, *e;
 
 	p = estrdup(s);
 	e = strchr(p, '.');
@@ -640,11 +640,11 @@ ilog10(uint64_t j)
 }
 
 int
-initmach(Machine *m, int8_t *name)
+initmach(Machine *m, char *name)
 {
 	int n, fd;
 	uint64_t a[MAXNUM];
-	int8_t *p, mpt[256], buf[256];
+	char *p, mpt[256], buf[256];
 
 	p = strchr(name, '!');
 	if(p)
@@ -729,7 +729,7 @@ initmach(Machine *m, int8_t *name)
 jmp_buf catchalarm;
 
 void
-alarmed(void *a, int8_t *s)
+alarmed(void *a, char *s)
 {
 	if(strcmp(s, "alarm") == 0)
 		notejmp(a, catchalarm, 1);
@@ -780,7 +780,7 @@ readmach(Machine *m, int init)
 {
 	int n, i;
 	uint64_t a[nelem(m->devsysstat)];
-	int8_t buf[32];
+	char buf[32];
 
 	if(m->remote && (m->disable || setjmp(catchalarm))){
 		if (m->disable++ >= 5)
@@ -1081,7 +1081,7 @@ dropgraph(int which)
 }
 
 int
-addmachine(int8_t *name)
+addmachine(char *name)
 {
 	if(ngraph > 0){
 		fprint(2, "stats: internal error: ngraph>0 in addmachine()\n");
@@ -1099,7 +1099,7 @@ addmachine(int8_t *name)
 }
 
 void
-labelstrs(Graph *g, int8_t strs[Nlab][Lablen], int *np)
+labelstrs(Graph *g, char strs[Nlab][Lablen], int *np)
 {
 	int j;
 	uint64_t v, vmax;
@@ -1120,7 +1120,7 @@ int
 labelwidth(void)
 {
 	int i, j, n, w, maxw;
-	int8_t strs[Nlab][Lablen];
+	char strs[Nlab][Lablen];
 
 	maxw = 0;
 	for(i=0; i<ngraph; i++){
@@ -1142,7 +1142,7 @@ resize(void)
 	Graph *g;
 	Rectangle machr, r;
 	uint64_t v, vmax;
-	int8_t buf[128], labs[Nlab][Lablen];
+	char buf[128], labs[Nlab][Lablen];
 
 	draw(screen, screen->r, display->white, nil, ZP);
 

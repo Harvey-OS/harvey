@@ -34,7 +34,7 @@ static char *phasenames[Maxphase] = {
 
 struct State
 {
-	int8_t resp[MD5dlen*2+1];
+	char resp[MD5dlen*2+1];
 };
 
 static int
@@ -57,7 +57,7 @@ hdinit(Proto *p, Fsstate *fss)
 }
 
 static void
-strtolower(int8_t *s)
+strtolower(char *s)
 {
 	while(*s){
 		*s = tolower(*s);
@@ -66,13 +66,13 @@ strtolower(int8_t *s)
 }
 
 static void
-digest(int8_t *user, int8_t *realm, int8_t *passwd,
-	int8_t *nonce, int8_t *method, int8_t *uri,
-	int8_t *dig)
+digest(char *user, char *realm, char *passwd,
+	char *nonce, char *method, char *uri,
+	char *dig)
 {
 	uint8_t b[MD5dlen];
-	int8_t ha1[MD5dlen*2+1];
-	int8_t ha2[MD5dlen*2+1];
+	char ha1[MD5dlen*2+1];
+	char ha2[MD5dlen*2+1];
 	DigestState *s;
 
 	/*
@@ -112,8 +112,8 @@ hdwrite(Fsstate *fss, void *va, uint n)
 {
 	State *s;
 	int ret;
-	int8_t *a, *p, *r, *u, *t;
-	int8_t *tok[4];
+	char *a, *p, *r, *u, *t;
+	char *tok[4];
 	Key *k;
 	Keyinfo ki;
 	Attr *attr;

@@ -89,7 +89,7 @@ freearena(Arena *arena)
 }
 
 Arena*
-newarena(Part *part, uint32_t vers, int8_t *name, uint64_t base,
+newarena(Part *part, uint32_t vers, char *name, uint64_t base,
 	 uint64_t size,
 	 uint32_t blocksize)
 {

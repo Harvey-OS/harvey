@@ -107,16 +107,16 @@ obj *textgen(void)
 	return(p);
 }
 
-obj *troffgen(int8_t *s)	/* save away a string of troff commands */
+obj *troffgen(char *s)	/* save away a string of troff commands */
 {
 	savetext(CENTER, s);	/* use the existing text mechanism */
 	return makenode(TROFF, 0);
 }
 
-void savetext(int t, int8_t *s)	/* record text elements for current object */
+void savetext(int t, char *s)	/* record text elements for current object */
 {
 	if (ntext >= ntextlist)
-		text = (Text *) grow((int8_t *) text, "text",
+		text = (Text *) grow((char *) text, "text",
 				     ntextlist += 200, sizeof(Text));
 	text[ntext].t_type = t;
 	text[ntext].t_val = s;

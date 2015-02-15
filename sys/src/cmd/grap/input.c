@@ -159,7 +159,7 @@ int	argcnt;		/* number of arguments seen so far */
 void dodef(Obj *stp)	/* collect args and switch input to defn */
 {
 	int i, len;
-	int8_t *p;
+	char *p;
 	Arg *ap;
 
 	ap = argfp+1;
@@ -213,16 +213,16 @@ getarg(char *p)	/* pick up single argument, store in p, return length */
 }
 
 #define	PBSIZE	2000
-int8_t	pbuf[PBSIZE];		/* pushback buffer */
-int8_t	*pb	= pbuf-1;	/* next pushed back character */
+char	pbuf[PBSIZE];		/* pushback buffer */
+char	*pb	= pbuf-1;	/* next pushed back character */
 
-int8_t	ebuf[200];		/* collect input here for error reporting */
-int8_t	*ep	= ebuf;
+char	ebuf[200];		/* collect input here for error reporting */
+char	*ep	= ebuf;
 
 int	begin	= 0;
 extern	int	thru;
 extern	Obj	*thrudef;
-extern	int8_t	*untilstr;
+extern	char	*untilstr;
 
 input(void)
 {
@@ -319,7 +319,7 @@ nextchar(void)
 void do_thru(void)	/* read one line, make into a macro expansion */
 {
 	int c, i;
-	int8_t *p;
+	char *p;
 	Arg *ap;
 
 	ap = argfp+1;
@@ -366,7 +366,7 @@ void do_thru(void)	/* read one line, make into a macro expansion */
 	if (c == EOF)
 		ERROR "unexpected end of file in do_thru" FATAL;
 	if (argcnt == 0) {	/* ignore blank line */
-		pushsrc(Thru, (int8_t *) 0);
+		pushsrc(Thru, (char *) 0);
 		return;
 	}
 	for (i = argcnt; i < MAXARGS; i++)
@@ -387,7 +387,7 @@ void do_thru(void)	/* read one line, make into a macro expansion */
 		untilstr = 0;
 		return;
 	}
-	pushsrc(Thru, (int8_t *) 0);
+	pushsrc(Thru, (char *) 0);
 	dprintf("do_thru pushing back <%s>\n", thrudef->val);
 	argfp = ap;
 	pushsrc(Macro, thrudef->val);
@@ -404,7 +404,7 @@ unput(int c)
 	return c;
 }
 
-void pbstr(int8_t *s)
+void pbstr(char *s)
 {
 	pushsrc(String, s);
 }
@@ -423,11 +423,11 @@ double errcheck(double x, char *s)
 	return x;
 }
 
-int8_t	errbuf[200];
+char	errbuf[200];
 
-void yyerror(int8_t *s)
+void yyerror(char *s)
 {
-	extern int8_t *cmdname;
+	extern char *cmdname;
 	int ern = errno;	/* cause some libraries clobber it */
 
 	if (synerr)
@@ -447,7 +447,7 @@ void yyerror(int8_t *s)
 
 void eprint(void)	/* try to print context around error */
 {
-	int8_t *p, *q;
+	char *p, *q;
 
 	p = ep - 1;
 	if (p > ebuf && *p == '\n')
@@ -477,12 +477,12 @@ void eprint(void)	/* try to print context around error */
 
 int yywrap(void) {return 1;}
 
-int8_t	*newfile = 0;		/* filename for file copy */
-int8_t	*untilstr = 0;		/* string that terminates a thru */
+char	*newfile = 0;		/* filename for file copy */
+char	*untilstr = 0;		/* string that terminates a thru */
 int	thru	= 0;		/* 1 if copying thru macro */
 Obj	*thrudef = 0;		/* macro being used */
 
-void copyfile(int8_t *s)	/* remember file to start reading from */
+void copyfile(char *s)	/* remember file to start reading from */
 {
 	newfile = s;
 }
@@ -519,7 +519,7 @@ Obj *copythru(char *s)	/* collect the macro name or body for thru */
 	return p;
 }
 
-int8_t *addnewline(int8_t *p)	/* add newline to end of p */
+char *addnewline(char *p)	/* add newline to end of p */
 {
 	int n;
 
@@ -532,7 +532,7 @@ int8_t *addnewline(int8_t *p)	/* add newline to end of p */
 	return p;
 }
 
-void copyuntil(int8_t *s)	/* string that terminates a thru */
+void copyuntil(char *s)	/* string that terminates a thru */
 {
 	untilstr = s;
 }
@@ -558,7 +558,7 @@ void copy(void)	/* begin input from file, etc. */
 	}
 }
 
-int8_t	shellbuf[1000], *shellp;
+char	shellbuf[1000], *shellp;
 
 void shell_init(void)	/* set up to interpret a shell command */
 {
@@ -567,7 +567,7 @@ void shell_init(void)	/* set up to interpret a shell command */
 	shellp = shellbuf + strlen(shellbuf);
 }
 
-void shell_text(int8_t *s)	/* add string to command being collected */
+void shell_text(char *s)	/* add string to command being collected */
 {
 	/* fprintf(tfd, "#add <%s> to <%s>\n", s, shellbuf); */
 	while (*s) {

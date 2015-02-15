@@ -177,7 +177,7 @@ spread(struct segment *s, void *buf, int n, uint64_t off)
 
 	static struct {
 		struct segment *s;
-		int8_t a[8192];
+		char a[8192];
 		uint64_t off;
 	} cache;
 

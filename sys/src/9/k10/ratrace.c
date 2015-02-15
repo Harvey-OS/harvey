@@ -24,19 +24,19 @@ int nread = 0;
 
 typedef struct Str Str;
 struct Str {
-	int8_t	*buf;
+	char	*buf;
 	int	len;
 };
 
 void
-die(int8_t *s)
+die(char *s)
 {
 	fprint(2, "%s\n", s);
 	exits(s);
 }
 
 void
-cwrite(int fd, int8_t *path, int8_t *cmd, int len)
+cwrite(int fd, char *path, char *cmd, int len)
 {
 	if (write(fd, cmd, len) < len) {
 		fprint(2, "cwrite: %s: failed %d bytes: %r\n", path, len);
@@ -49,7 +49,7 @@ void
 reader(void *v)
 {
 	int cfd, tfd, forking = 0, pid, newpid;
-	int8_t *ctl, *truss;
+	char *ctl, *truss;
 	Str *s;
 
 	pid = (int)(uintptr)v;
@@ -64,7 +64,7 @@ reader(void *v)
 	cwrite(cfd, truss, "startsyscall", 12);
 
 	s = mallocz(sizeof(Str) + Bufsize, 1);
-	s->buf = (int8_t *)&s[1];
+	s->buf = (char *)&s[1];
 	while((s->len = pread(tfd, s->buf, Bufsize - 1, 0)) > 0){
 		if (forking && s->buf[1] == '=' && s->buf[3] != '-') {
 			forking = 0;
@@ -78,8 +78,8 @@ reader(void *v)
 		 * no false positives.
 		 */
 		if (strstr(s->buf, " Rfork") != nil) {
-			int8_t *a[8];
-			int8_t *rf;
+			char *a[8];
+			char *rf;
 
 			rf = strdup(s->buf);
          		if (tokenize(rf, a, 8) == 5) {
@@ -94,7 +94,7 @@ reader(void *v)
 		sendp(out, s);
 		cwrite(cfd, truss, "startsyscall", 12);
 		s = mallocz(sizeof(Str) + Bufsize, 1);
-		s->buf = (int8_t *)&s[1];
+		s->buf = (char *)&s[1];
 	}
 	sendp(quit, nil);
 	threadexitsall(nil);
@@ -147,11 +147,11 @@ usage(void)
 }
 
 void
-threadmain(int argc, int8_t **argv)
+threadmain(int argc, char **argv)
 {
 	int pid;
-	int8_t *cmd = nil;
-	int8_t **args = nil;
+	char *cmd = nil;
+	char **args = nil;
 
 	/*
 	 * don't bother with fancy arg processing, because it picks up options
@@ -189,8 +189,8 @@ threadmain(int argc, int8_t **argv)
 		pid = atoi(argv[1]);
 	}
 
-	out   = chancreate(sizeof(int8_t*), 0);
-	quit  = chancreate(sizeof(int8_t*), 0);
+	out   = chancreate(sizeof(char*), 0);
+	quit  = chancreate(sizeof(char*), 0);
 	forkc = chancreate(sizeof(uint32_t *), 0);
 	nread++;
 	procrfork(writer, nil, Stacksize, 0);

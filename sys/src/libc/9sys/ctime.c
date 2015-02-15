@@ -42,7 +42,7 @@
 #include <u.h>
 #include <libc.h>
 
-static	int8_t	dmsize[12] =
+static	char	dmsize[12] =
 {
 	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
@@ -54,23 +54,23 @@ static	int8_t	dmsize[12] =
  */
 
 static	int	dysize(int);
-static	void	ct_numb(int8_t*, int);
+static	void	ct_numb(char*, int);
 
 #define	TZSIZE	150
 static	void	readtimezone(void);
-static	int	rd_name(int8_t**, int8_t*);
-static	int	rd_long(int8_t**, int32_t*);
+static	int	rd_name(char**, char*);
+static	int	rd_long(char**, int32_t*);
 static
 struct
 {
-	int8_t	stname[4];
-	int8_t	dlname[4];
+	char	stname[4];
+	char	dlname[4];
 	int32_t	stdiff;
 	int32_t	dldiff;
 	int32_t	dlpairs[TZSIZE];
 } timezone;
 
-int8_t*
+char*
 ctime(int32_t t)
 {
 	return asctime(localtime(t));
@@ -166,11 +166,11 @@ gmtime(int32_t tim)
 	return &xtime;
 }
 
-int8_t*
+char*
 asctime(Tm *t)
 {
-	int8_t *ncp;
-	static int8_t cbuf[30];
+	char *ncp;
+	static char cbuf[30];
 
 	strcpy(cbuf, "Thu Jan 01 00:00:00 GMT 1970\n");
 	ncp = &"SunMonTueWedThuFriSat"[t->wday*3];
@@ -208,7 +208,7 @@ dysize(int y)
 
 static
 void
-ct_numb(int8_t *cp, int n)
+ct_numb(char *cp, int n)
 {
 
 	cp[0] = ' ';
@@ -221,7 +221,7 @@ static
 void
 readtimezone(void)
 {
-	int8_t buf[TZSIZE*11+30], *p;
+	char buf[TZSIZE*11+30], *p;
 	int i;
 
 	memset(buf, 0, sizeof(buf));
@@ -256,7 +256,7 @@ error:
 }
 
 static
-rd_name(int8_t **f, int8_t *p)
+rd_name(char **f, char *p)
 {
 	int c, i;
 
@@ -278,7 +278,7 @@ rd_name(int8_t **f, int8_t *p)
 }
 
 static
-rd_long(int8_t **f, int32_t *p)
+rd_long(char **f, int32_t *p)
 {
 	int c, s;
 	int32_t l;

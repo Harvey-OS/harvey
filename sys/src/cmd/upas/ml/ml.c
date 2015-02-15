@@ -17,9 +17,9 @@ int na;
 String *from;
 String *sender;
 
-void printmsg(int fd, String *msg, int8_t *replyto, int8_t *listname);
-void appendtoarchive(int8_t* listname, String *firstline, String *msg);
-void printsubject(int fd, Field *f, int8_t *listname);
+void printmsg(int fd, String *msg, char *replyto, char *listname);
+void appendtoarchive(char* listname, String *firstline, String *msg);
+void printsubject(int fd, Field *f, char *listname);
 
 void
 usage(void)
@@ -105,11 +105,11 @@ main(int argc, char **argv)
 
 /* send message filtering Reply-to out of messages */
 void
-printmsg(int fd, String *msg, int8_t *replyto, int8_t *listname)
+printmsg(int fd, String *msg, char *replyto, char *listname)
 {
 	Field *f, *subject;
 	Node *p;
-	int8_t *cp, *ocp;
+	char *cp, *ocp;
 
 	subject = nil;
 	cp = s_to_c(msg);
@@ -134,7 +134,7 @@ printmsg(int fd, String *msg, int8_t *replyto, int8_t *listname)
 
 /* if the mailbox exists, cat the mail to the end of it */
 void
-appendtoarchive(int8_t* listname, String *firstline, String *msg)
+appendtoarchive(char* listname, String *firstline, String *msg)
 {
 	String *mbox;
 	int fd;
@@ -153,11 +153,11 @@ appendtoarchive(int8_t* listname, String *firstline, String *msg)
 
 /* add the listname to the subject */
 void
-printsubject(int fd, Field *f, int8_t *listname)
+printsubject(int fd, Field *f, char *listname)
 {
-	int8_t *s, *e;
+	char *s, *e;
 	Node *p;
-	int8_t *ln;
+	char *ln;
 
 	if(f == nil || f->node == nil){
 		fprint(fd, "Subject: [%s]\n", listname);

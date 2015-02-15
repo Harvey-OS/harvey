@@ -14,13 +14,13 @@
 #include <9p.h>
 #include "cifs.h"
 
-static int8_t magic[] = { 0xff, 'S', 'M', 'B' };
+static char magic[] = { 0xff, 'S', 'M', 'B' };
 
 Session *
-cifsdial(int8_t *host, int8_t *called, int8_t *sysname)
+cifsdial(char *host, char *called, char *sysname)
 {
 	int nbt, fd;
-	int8_t *addr;
+	char *addr;
 	Session *s;
 
 	if(Debug)
@@ -149,7 +149,7 @@ cifsrpc(Pkt *p)
 	int flags2, got, err;
 	uint tid, uid, seq;
 	uint8_t *pos;
-	int8_t m[nelem(magic)];
+	char m[nelem(magic)];
 
 	pos = p->pos;
 	if(p->bytebase){
@@ -236,13 +236,13 @@ print("MAC signature bad\n");
  * more modern ones, so we don't give them the choice.
  */
 int
-CIFSnegotiate(Session *s, int32_t *svrtime, int8_t *domain, int domlen,
-	      int8_t *cname,
+CIFSnegotiate(Session *s, int32_t *svrtime, char *domain, int domlen,
+	      char *cname,
 	int cnamlen)
 {
 	int d, i;
-	int8_t *ispeak = "NT LM 0.12";
-	static int8_t *dialects[] = {
+	char *ispeak = "NT LM 0.12";
+	static char *dialects[] = {
 //		{ "PC NETWORK PROGRAM 1.0"},
 //		{ "MICROSOFT NETWORKS 1.03"},
 //		{ "MICROSOFT NETWORKS 3.0"},
@@ -294,7 +294,7 @@ CIFSnegotiate(Session *s, int32_t *svrtime, int8_t *domain, int domlen,
 	gstr(p, domain, domlen);		/* source domain */
 
 	{		/* NetApp Filer seem not to report its called name */
-		int8_t *cn = emalloc9p(cnamlen);
+		char *cn = emalloc9p(cnamlen);
 
 		gstr(p, cn, cnamlen);		/* their name */
 		if(strlen(cn) > 0)
@@ -312,7 +312,7 @@ CIFSnegotiate(Session *s, int32_t *svrtime, int8_t *domain, int domlen,
 int
 CIFSsession(Session *s)
 {
-	int8_t os[64], *q;
+	char os[64], *q;
 	Rune r;
 	Pkt *p;
 	enum {
@@ -470,7 +470,7 @@ CIFStreedisconnect(Session *s, Share *sp)
 
 
 int
-CIFSdeletefile(Session *s, Share *sp, int8_t *name)
+CIFSdeletefile(Session *s, Share *sp, char *name)
 {
 	int rc;
 	Pkt *p;
@@ -487,7 +487,7 @@ CIFSdeletefile(Session *s, Share *sp, int8_t *name)
 }
 
 int
-CIFSdeletedirectory(Session *s, Share *sp, int8_t *name)
+CIFSdeletedirectory(Session *s, Share *sp, char *name)
 {
 	int rc;
 	Pkt *p;
@@ -503,7 +503,7 @@ CIFSdeletedirectory(Session *s, Share *sp, int8_t *name)
 }
 
 int
-CIFScreatedirectory(Session *s, Share *sp, int8_t *name)
+CIFScreatedirectory(Session *s, Share *sp, char *name)
 {
 	int rc;
 	Pkt *p;
@@ -519,7 +519,7 @@ CIFScreatedirectory(Session *s, Share *sp, int8_t *name)
 }
 
 int
-CIFSrename(Session *s, Share *sp, int8_t *old, int8_t *new)
+CIFSrename(Session *s, Share *sp, char *old, char *new)
 {
 	int rc;
 	Pkt *p;
@@ -540,7 +540,7 @@ CIFSrename(Session *s, Share *sp, int8_t *old, int8_t *new)
 
 /* for NT4/Win2k/XP */
 int
-CIFS_NT_opencreate(Session *s, Share *sp, int8_t *name, int flags,
+CIFS_NT_opencreate(Session *s, Share *sp, char *name, int flags,
 		   int options,
 	int attrs, int access, int share, int action, int *result, FInfo *fi)
 {
@@ -796,7 +796,7 @@ CIFSecho(Session *s)
 
 
 int
-CIFSsetinfo(Session *s, Share *sp, int8_t *path, FInfo *fip)
+CIFSsetinfo(Session *s, Share *sp, char *path, FInfo *fip)
 {
 	int rc;
 	Pkt *p;

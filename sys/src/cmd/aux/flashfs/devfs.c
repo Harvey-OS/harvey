@@ -15,7 +15,7 @@
 #include <9p.h>
 #include "flashfs.h"
 
-static	int8_t*	file;
+static	char*	file;
 static	int	fd;
 static	uint8_t	*ones;
 
@@ -27,10 +27,10 @@ struct {
 } flash;
 
 void
-initdata(int8_t *f, int)
+initdata(char *f, int)
 {
-	int8_t err[ERRMAX];
-	int8_t buf[1024], *fld[8];
+	char err[ERRMAX];
+	char buf[1024], *fld[8];
 	int n;
 	Dir *d;
 

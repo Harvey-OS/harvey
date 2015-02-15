@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <auth.h>
 
-int8_t *namespace;
+char *namespace;
 
 void
 usage(void)

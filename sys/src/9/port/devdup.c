@@ -17,7 +17,7 @@
 /* Qid is (2*fd + (file is ctl))+1 */
 
 static int
-dupgen(Chan *c, int8_t *, Dirtab*, int, int s, Dir *dp)
+dupgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 {
 	Fgrp *fgrp = up->fgrp;
 	Chan *f;
@@ -49,13 +49,13 @@ dupgen(Chan *c, int8_t *, Dirtab*, int, int s, Dir *dp)
 }
 
 static Chan*
-dupattach(int8_t *spec)
+dupattach(char *spec)
 {
 	return devattach('d', spec);
 }
 
 static Walkqid*
-dupwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+dupwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, dupgen);
 }
@@ -108,7 +108,7 @@ dupclose(Chan*)
 static int32_t
 dupread(Chan *c, void *va, int32_t n, int64_t off)
 {
-	int8_t buf[256];
+	char buf[256];
 	int fd, twicefd;
 
 	if(c->qid.type & QTDIR)

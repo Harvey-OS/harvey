@@ -19,7 +19,7 @@ static SmbTransactionMethod method = {
 int
 smbclienttrans2(SmbClient *c, uint8_t scount, uint16_t *setup,
 		SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata,
-		SmbHeader *rh, int8_t **errmsgp)
+		SmbHeader *rh, char **errmsgp)
 {
 	SmbTransaction transaction;
 	SmbHeader h;
@@ -40,9 +40,9 @@ smbclienttrans2(SmbClient *c, uint8_t scount, uint16_t *setup,
 
 int
 smbclienttrans2findfirst2(SmbClient *c, uint16_t searchcount,
-			  int8_t *filename,
+			  char *filename,
 	uint16_t *sidp, uint16_t *searchcountp, uint16_t *endofsearchp,SmbFindFileBothDirectoryInfo *ip,
-			  int8_t **errmsgp)
+			  char **errmsgp)
 {
 	int rv;
 	uint16_t setup;

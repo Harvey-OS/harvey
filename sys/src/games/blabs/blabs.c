@@ -367,7 +367,7 @@ void
 drawdot(Dot *d)
 {
 	Rectangle r;
-	int8_t buf[10];
+	char buf[10];
 
 	r = d->face->r;
 	r = rectsubpt(r, d->face->r.min);
@@ -624,7 +624,7 @@ upd(Dot *d)
 
 static
 void
-setup(Dot *d, int8_t *who, uint8_t *face, int n_els)
+setup(Dot *d, char *who, uint8_t *face, int n_els)
 {
 	int	i, j, k, n;
 	int	repl;
@@ -732,7 +732,7 @@ msec(void)
 {
 	static int fd;
 	int n;
-	int8_t buf[64];
+	char buf[64];
 
 	if(fd <= 0)
 		fd = open("/dev/msec", OREAD);
@@ -752,7 +752,7 @@ msec(void)
  */
 jmp_buf j;
 static void
-myhandler(void *v, int8_t *s)
+myhandler(void *v, char *s)
 {
 	if(strcmp(s, "interrupt") == 0)
 		notejmp(v, j, -1);

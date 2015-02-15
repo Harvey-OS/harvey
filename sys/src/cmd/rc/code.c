@@ -20,7 +20,7 @@ int codep, ncode;
 #define	emiti(x) ((codep!=ncode || morecode()), codebuf[codep].i = (x), codep++)
 #define	emits(x) ((codep!=ncode || morecode()), codebuf[codep].s = (x), codep++)
 void stuffdot(int);
-int8_t *fnstr(tree*);
+char *fnstr(tree*);
 void outcode(tree*, int);
 void codeswitch(tree*, int);
 int iscase(tree*);
@@ -31,7 +31,7 @@ int
 morecode(void)
 {
 	ncode+=100;
-	codebuf = (code *)realloc((int8_t *)codebuf, ncode*sizeof codebuf[0]);
+	codebuf = (code *)realloc((char *)codebuf, ncode*sizeof codebuf[0]);
 	if(codebuf==0)
 		panic("Can't realloc %d bytes in morecode!",
 				ncode*sizeof codebuf[0]);
@@ -55,7 +55,7 @@ compile(tree *t)
 	emiti(0);			/* reference count */
 	outcode(t, flag['e']?1:0);
 	if(nerror){
-		efree((int8_t *)codebuf);
+		efree((char *)codebuf);
 		return 0;
 	}
 	readhere();
@@ -65,19 +65,19 @@ compile(tree *t)
 }
 
 void
-cleanhere(int8_t *f)
+cleanhere(char *f)
 {
 	emitf(Xdelhere);
 	emits(strdup(f));
 }
 
-int8_t*
+char*
 fnstr(tree *t)
 {
 	io *f = openstr();
 	void *v;
-	extern int8_t nl;
-	int8_t svnl = nl;
+	extern char nl;
+	char svnl = nl;
 
 	nl = ';';
 	pfmt(f, "%t", t);
@@ -491,5 +491,5 @@ codefree(code *cp)
 			p+=2;
 		}
 	}
-	efree((int8_t *)cp);
+	efree((char *)cp);
 }

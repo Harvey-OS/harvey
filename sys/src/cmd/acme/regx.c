@@ -144,7 +144,7 @@ rxinit(void)
 }
 
 void
-regerror(int8_t *e)
+regerror(char *e)
 {
 	lastregexp[0] = 0;
 	warning(nil, "regexp: %s\n", e);
@@ -291,7 +291,7 @@ pushator(int t)
 Node *
 popand(int op)
 {
-	int8_t buf[64];
+	char buf[64];
 
 	if(andp <= &andstack[0])
 		if(op){

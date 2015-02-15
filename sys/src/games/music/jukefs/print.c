@@ -33,9 +33,9 @@ listfiles(Object *o)
 }
 
 int
-indent(int8_t *lp, int ln, int n, int8_t *buf) {
+indent(char *lp, int ln, int n, char *buf) {
 	int sln;
-	int8_t *p, c;
+	char *p, c;
 
 	sln = ln;
 	if (ln <= 0)
@@ -71,9 +71,9 @@ out:
 }
 
 int32_t
-printchildren(int8_t *lp, int ln, Object *o) {
+printchildren(char *lp, int ln, Object *o) {
 	int i, r;
-	int8_t *sp;
+	char *sp;
 
 	sp = lp;
 	if (o->flags & Sort) {
@@ -89,8 +89,8 @@ printchildren(int8_t *lp, int ln, Object *o) {
 }
 
 int32_t
-printminiparentage(int8_t *lp, int ln, Object *o) {
-	int8_t *p, c;
+printminiparentage(char *lp, int ln, Object *o) {
+	char *p, c;
 	int r, sln;
 
 	if (ln <= 0) return 0;
@@ -125,7 +125,7 @@ printminiparentage(int8_t *lp, int ln, Object *o) {
 }
 
 int32_t
-printparentage(int8_t *lp, int ln, Object *o) {
+printparentage(char *lp, int ln, Object *o) {
 	int i;
 	int r, k, sln;
 
@@ -216,28 +216,28 @@ printparentage(int8_t *lp, int ln, Object *o) {
 }
 
 int32_t
-printparent(int8_t *lp, int ln, Object *o) {
+printparent(char *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%d", o->parent->tabno);
 }
 
 int32_t
-printkey(int8_t *lp, int ln, Object *o) {
+printkey(char *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%s", o->key?o->key:o->value);
 }
 
 int32_t
-printtype(int8_t *lp, int ln, Object *o) {
+printtype(char *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%s", tokenlist[o->type].name);
 }
 
 int32_t
-printtext(int8_t *lp, int ln, Object *o) {
+printtext(char *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%s", o->value?o->value:o->key);
 }
 
 int32_t
-printfulltext(int8_t *lp, int ln, Object *o) {
-	int8_t *sp, *p, *q;
+printfulltext(char *lp, int ln, Object *o) {
+	char *sp, *p, *q;
 	int i, j, k, c, depth;
 	Object *oo;
 
@@ -366,9 +366,9 @@ printfulltext(int8_t *lp, int ln, Object *o) {
 }
 
 int32_t
-printfiles(int8_t *lp, int ln, Object *o) {
+printfiles(char *lp, int ln, Object *o) {
 	int i, r;
-	int8_t *sp;
+	char *sp;
 
 	sp = lp;
 	if (o->type == File)
@@ -384,10 +384,10 @@ printfiles(int8_t *lp, int ln, Object *o) {
 }
 
 int32_t
-printdigest(int8_t *lp, int ln, Object *o) {
-	int8_t *p;
+printdigest(char *lp, int ln, Object *o) {
+	char *p;
 	int j, c, k;
-	int8_t *sp;
+	char *sp;
 
 	sp = lp;
 	switch(o->type){
@@ -444,8 +444,8 @@ printdigest(int8_t *lp, int ln, Object *o) {
 
 void
 printtree(Object *o, int ind) {
-	int8_t *p;
-	int8_t buf[2048];
+	char *p;
+	char buf[2048];
 	int i;
 
 	sprintf(buf, "%s {\n", tokenlist[o->type].name);

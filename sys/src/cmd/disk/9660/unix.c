@@ -21,13 +21,13 @@
 
 typedef struct Xarg Xarg;
 struct Xarg {
-	void (*enm)(int8_t*,int8_t*,XDir*,void*);
-	void (*warn)(int8_t*,void*);
+	void (*enm)(char*,char*,XDir*,void*);
+	void (*warn)(char*,void*);
 	void *arg;
 };
 
-static int32_t numericuid(int8_t *user);
-static int32_t numericgid(int8_t *gp);
+static int32_t numericuid(char *user);
+static int32_t numericgid(char *gp);
 
 void
 dirtoxdir(XDir *xd, Dir *d)
@@ -60,7 +60,7 @@ fdtruncate(int fd, uint32_t size)
 }
 
 static int32_t
-numericuid(int8_t *user)
+numericuid(char *user)
 {
 	struct passwd *pass;
 	static int warned = 0;
@@ -76,7 +76,7 @@ numericuid(int8_t *user)
 }
 
 static int32_t
-numericgid(int8_t *gp)
+numericgid(char *gp)
 {
 	struct group *gr;
 	static int warned = 0;

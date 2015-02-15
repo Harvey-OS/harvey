@@ -27,7 +27,7 @@ uint32_t time0;
 typedef struct Tab Tab;
 struct Tab
 {
-	int8_t *name;
+	char *name;
 	int64_t qid;
 	uint32_t time;
 	int ref;
@@ -49,7 +49,7 @@ findtab(int64_t path)
 }
 
 static int64_t
-hash(int8_t *name)
+hash(char *name)
 {
 	int64_t digest[MD5dlen / sizeof(int64_t) + 1];
 	md5((uint8_t *)name, strlen(name), (uint8_t *)digest, nil);
@@ -116,8 +116,8 @@ fsstat(Req *r)
 	respond(r, nil);
 }
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, void*)
+static char*
+fswalk1(Fid *fid, char *name, void*)
 {
 	int i;
 	Tab *t;
@@ -164,7 +164,7 @@ fswalk1(Fid *fid, int8_t *name, void*)
 	return nil;
 }
 
-static int8_t*
+static char*
 fsclone(Fid *fid, Fid*, void*)
 {
 	Tab *t;
@@ -203,7 +203,7 @@ fsclunk(Fid *fid)
 static void
 fsattach(Req *r)
 {
-	int8_t *spec;
+	char *spec;
 
 	spec = r->ifcall.aname;
 	if(spec && spec[0]){

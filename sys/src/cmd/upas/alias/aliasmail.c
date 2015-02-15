@@ -16,14 +16,14 @@
 
 /* predeclared */
 static String	*getdbfiles(void);
-static int	translate(int8_t*, int8_t**, String*, String*);
+static int	translate(char*, char**, String*, String*);
 static int	lookup(String**, String*, String*);
-static int	compare(String*, int8_t*);
-static int8_t*	mklower(int8_t*);
+static int	compare(String*, char*);
+static char*	mklower(char*);
 
 static int debug;
 static int from;
-static int8_t *namefiles = "namefiles";
+static char *namefiles = "namefiles";
 #define DEBUG if(debug)
 
 /* loop through the names to be translated */
@@ -101,7 +101,7 @@ getdbfiles(void)
 {
 	Sinstack *sp;
 	String *files = s_new();
-	int8_t *nf;
+	char *nf;
 
 	if(from)
 		nf = "fromfiles";
@@ -123,8 +123,8 @@ getdbfiles(void)
 
 /* loop through the translation files */
 static int
-translate(int8_t *name,		/* name to translate */
-	int8_t **namev,		/* names of this system */
+translate(char *name,		/* name to translate */
+	char **namev,		/* names of this system */
 	String *files,		/* names of system alias files */
 	String *alias)		/* where to put the alias */
 {
@@ -174,7 +174,7 @@ out:
 static String*
 attobang(String *token)
 {
-	int8_t *p;
+	char *p;
 	String *tok;
 
 	p = strchr(s_to_c(token), '@');
@@ -202,7 +202,7 @@ lookup(
 	String *token = s_new();
 	String *bangtoken;
 	int i, rv = -1;
-	int8_t *name =  s_to_c(namev[0]);
+	char *name =  s_to_c(namev[0]);
 	Sinstack *sp;
 
 	DEBUG print("lookup(%s, %s, %s, %s)\n", s_to_c(namev[0]), s_to_c(namev[1]),
@@ -261,9 +261,9 @@ lookup(
 /* compare two Strings (case insensitive) */
 static int
 compare(String *s1,
-	int8_t *p2)
+	char *p2)
 {
-	int8_t *p1 = s_to_c(s1);
+	char *p1 = s_to_c(s1);
 	int rv;
 
 	DEBUG print("comparing %s to %s\n", p1, p2);
@@ -276,11 +276,11 @@ compare(String *s1,
 	return rv;
 }
 
-static int8_t*
-mklower(int8_t *name)
+static char*
+mklower(char *name)
 {
-	int8_t *p;
-	int8_t c;
+	char *p;
+	char c;
 
 	for(p = name; *p; p++){
 		c = *p;

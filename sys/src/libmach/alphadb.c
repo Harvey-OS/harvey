@@ -15,10 +15,10 @@
  * Alpha-specific debugger interface
  */
 
-static 	int8_t	*alphaexcep(Map*, Rgetter);
+static 	char	*alphaexcep(Map*, Rgetter);
 static	int	alphafoll(Map*, uint64_t, Rgetter, uint64_t*);
-static	int	alphainst(Map*, uint64_t, int8_t, int8_t*, int);
-static	int	alphadas(Map*, uint64_t, int8_t*, int);
+static	int	alphainst(Map*, uint64_t, char, char*, int);
+static	int	alphadas(Map*, uint64_t, char*, int);
 static	int	alphainstlen(Map*, uint64_t);
 /*
  *	Debugger interface
@@ -43,7 +43,7 @@ Machdata alphamach =
 	alphainstlen,		/* instruction size */
 };
 
-static int8_t *illegaltype[] = {
+static char *illegaltype[] = {
 	"breakpoint",
 	"bugchk",
 	"gentrap",
@@ -51,11 +51,11 @@ static int8_t *illegaltype[] = {
 	"illegal instruction",
 };
 
-static int8_t *
+static char *
 alphaexcep(Map *map, Rgetter rget)
 {
 	uint32_t type, a0, a1;
-	static int8_t buf[256];
+	static char buf[256];
 
 	type = (*rget)(map, "TYPE");
 	a0 = (*rget)(map, "A0");
@@ -92,7 +92,7 @@ alphaexcep(Map *map, Rgetter rget)
 
 	/* alpha disassembler and related functions */
 
-static	int8_t FRAMENAME[] = ".frame";
+static	char FRAMENAME[] = ".frame";
 
 typedef struct {
 	uint64_t addr;
@@ -110,9 +110,9 @@ typedef struct {
 	int32_t w0;
 	int32_t w1;
 	int size;			/* instruction size */
-	int8_t *curr;			/* fill point in buffer */
-	int8_t *end;			/* end of buffer */
-	int8_t *err;			/* error message */
+	char *curr;			/* fill point in buffer */
+	char *end;			/* end of buffer */
+	char *err;			/* error message */
 } Instr;
 
 static Map *mymap;
@@ -181,7 +181,7 @@ mkinstr(uint64_t pc, Instr *i)
 #pragma	varargck	argpos	bprint		2
 
 static void
-bprint(Instr *i, int8_t *fmt, ...)
+bprint(Instr *i, char *fmt, ...)
 {
 	va_list arg;
 
@@ -193,18 +193,18 @@ bprint(Instr *i, int8_t *fmt, ...)
 typedef struct Opcode Opcode;
 
 struct Opcode {
-	int8_t *mnemonic;
+	char *mnemonic;
 	void (*f)(Opcode *, Instr *);
-	int8_t *ken;
+	char *ken;
 };
 
-static void format(int8_t *, Instr *, int8_t *);
+static void format(char *, Instr *, char *);
 
 static int
-plocal(Instr *i, int8_t *m, int8_t r, int store)
+plocal(Instr *i, char *m, char r, int store)
 {
 	int offset;
-	int8_t *reg;
+	char *reg;
 	Symbol s;
 
 	if (!findsym(i->addr, CTEXT, &s) || !findlocal(&s, FRAMENAME, &s))
@@ -228,9 +228,9 @@ plocal(Instr *i, int8_t *m, int8_t r, int store)
 }
 
 static void
-_load(Opcode *o, Instr *i, int8_t r)
+_load(Opcode *o, Instr *i, char r)
 {
-	int8_t *m;
+	char *m;
 
 	m = o->mnemonic;
 	if (i->rb == 30 && plocal(i, m, r, 0))
@@ -257,9 +257,9 @@ loadf(Opcode *o, Instr *i)
 }
 
 static void
-_store(Opcode *o, Instr *i, int8_t r)
+_store(Opcode *o, Instr *i, char r)
 {
-	int8_t *m;
+	char *m;
 
 	m = o->mnemonic;
 	if (i->rb == 30 && plocal(i, m, r, 1))
@@ -288,7 +288,7 @@ storef(Opcode *o, Instr *i)
 static void
 misc(Opcode *o, Instr *i)
 {
-	int8_t *f;
+	char *f;
 
 	USED(o);
 	switch (i->mem&0xFFFF) {
@@ -319,13 +319,13 @@ misc(Opcode *o, Instr *i)
 	format(0, i, f);
 }
 
-static int8_t	*jmpcode[4] = { "JMP", "JSR", "RET", "JSR_COROUTINE" };
+static char	*jmpcode[4] = { "JMP", "JSR", "RET", "JSR_COROUTINE" };
 
 static void
 jmp(Opcode *o, Instr *i)
 {
 	int hint;
-	int8_t *m;
+	char *m;
 
 	USED(o);
 	hint = (i->mem >> 14) & 3;
@@ -361,7 +361,7 @@ bsr(Opcode *o, Instr *i)
 static void
 mult(Opcode *o, Instr *i)
 {
-	int8_t *m;
+	char *m;
 
 	switch (i->function) {
 	case 0x00:
@@ -386,16 +386,16 @@ mult(Opcode *o, Instr *i)
 	format(m, i, o->ken);
 }
 
-static int8_t	alphaload[] = "%l,R%a";
-static int8_t	alphafload[] = "%l,F%a";
-static int8_t	alphastore[] = "R%a,%l";
-static int8_t	alphafstore[] = "F%a,%l";
-static int8_t	alphabranch[] = "R%a,%B";
-static int8_t	alphafbranch[] = "F%a,%B";
-static int8_t	alphaint[] = "%v,R%a,R%c";
-static int8_t	alphafp[] = "F%b,F%a,F%c";
-static int8_t	alphafp2[] = "F%b,F%c";
-static int8_t	alphaxxx[] = "%w";
+static char	alphaload[] = "%l,R%a";
+static char	alphafload[] = "%l,F%a";
+static char	alphastore[] = "R%a,%l";
+static char	alphafstore[] = "F%a,%l";
+static char	alphabranch[] = "R%a,%B";
+static char	alphafbranch[] = "F%a,%B";
+static char	alphaint[] = "%v,R%a,R%c";
+static char	alphafp[] = "F%b,F%a,F%c";
+static char	alphafp2[] = "F%b,F%c";
+static char	alphaxxx[] = "%w";
 
 static Opcode opcodes[64] = {
 	"PAL",		0,	alphaxxx,
@@ -750,7 +750,7 @@ static Opcode shiftopcodes[64] = {
 };
 
 static void
-format(int8_t *mnemonic, Instr *i, int8_t *f)
+format(char *mnemonic, Instr *i, char *f)
 {
 	if (mnemonic)
 		format(0, i, mnemonic);
@@ -815,7 +815,7 @@ format(int8_t *mnemonic, Instr *i, int8_t *f)
 }
 
 static int
-printins(Map *map, uint64_t pc, int8_t *buf, int n)
+printins(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 	Opcode *o;
@@ -866,14 +866,14 @@ printins(Map *map, uint64_t pc, int8_t *buf, int n)
 }
 
 static int
-alphainst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
+alphainst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	USED(modifier);
 	return printins(map, pc, buf, n);
 }
 
 static int
-alphadas(Map *map, uint64_t pc, int8_t *buf, int n)
+alphadas(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 
@@ -906,7 +906,7 @@ alphainstlen(Map *map, uint64_t pc)
 static int
 alphafoll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
-	int8_t buf[8];
+	char buf[8];
 	Instr i;
 
 	mymap = map;

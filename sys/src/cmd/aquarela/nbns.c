@@ -77,12 +77,12 @@ udplistener(void *)
 	}
 }
 
-static int8_t *
+static char *
 startlistener(void)
 {
 	qlock(&udp);
 	if (udp.thread < 0) {
-		int8_t *e;
+		char *e;
 		e = nbudpannounce(NbnsPort, &udp.fd);
 		if (e) {
 			qunlock(&udp);

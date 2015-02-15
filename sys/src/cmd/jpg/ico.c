@@ -312,11 +312,11 @@ buttons(int ud)
 }
 
 void
-mesg(int8_t *fmt, ...)
+mesg(char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[1024];
-	static int8_t obuf[1024];
+	char buf[1024];
+	static char obuf[1024];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -330,7 +330,7 @@ void
 doimage(Icon *icon)
 {
 	int rv;
-	int8_t file[256];
+	char file[256];
 	int fd;
 
 	rv = -1;
@@ -350,7 +350,7 @@ void
 domask(Icon *icon)
 {
 	int rv;
-	int8_t file[64];
+	char file[64];
 	int fd;
 
 	rv = -1;

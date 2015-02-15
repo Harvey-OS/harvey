@@ -73,10 +73,10 @@
 
 /* Read a source file into memory. */
 private int8_t *
-read_file(FILE *in, int8_t *cname)
+read_file(FILE *in, char *cname)
 {
     int len, nread;
-    int8_t *cont;
+    char *cont;
 
     fseek(in, 0L, 2 /*SEEK_END*/);
     len = ftell(in);
@@ -94,9 +94,9 @@ read_file(FILE *in, int8_t *cname)
 
 /* Parse a Halftone resource file into memory. */
 private bool
-parse_line(int8_t **pstr, int8_t **pline)
+parse_line(char **pstr, char **pline)
 {
-    int8_t *str = *pstr;
+    char *str = *pstr;
 
 top:
     while (*str && strchr(" \t\r\n", *str)) /* trim leading space */
@@ -284,17 +284,17 @@ write_halftone(FILE *out, gx_device_halftone_resource_t *phtr,
 
 /* Main program */
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
-    int8_t *iname;
+    char *iname;
     FILE *in;
-    int8_t *oname;
+    char *oname;
     FILE *out;
     int code;
-    int8_t *cont;
-    int8_t *line;
+    char *cont;
+    char *line;
     gx_device_halftone_resource_t res;
-    int8_t *prefix = 0;
+    char *prefix = 0;
     byte *Thresholds;
     gx_ht_order order;
     int index, i;

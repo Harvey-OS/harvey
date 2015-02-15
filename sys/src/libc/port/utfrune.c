@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t*
-utfrune(int8_t *s, int32_t c)
+char*
+utfrune(char *s, int32_t c)
 {
 	int32_t c1;
 	Rune r;

@@ -25,8 +25,8 @@ static encoding_type	eEncoding = encoding_neutral;
  * vPrologue1 - get options and call a specific initialization
  */
 static void
-vPrologue1(diagram_type *pDiag, const int8_t *szTask,
-	   const int8_t *szFilename)
+vPrologue1(diagram_type *pDiag, const char *szTask,
+	   const char *szFilename)
 {
 	options_type	tOptions;
 
@@ -163,7 +163,7 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
  * remark: does not return if the diagram can't be created
  */
 diagram_type *
-pCreateDiagram(const int8_t *szTask, const int8_t *szFilename)
+pCreateDiagram(const char *szTask, const char *szFilename)
 {
 	diagram_type	*pDiag;
 
@@ -258,7 +258,7 @@ vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
  */
 void
 vSubstring2Diagram(diagram_type *pDiag,
-	int8_t *szString, size_t tStringLength, int32_t lStringWidth,
+	char *szString, size_t tStringLength, int32_t lStringWidth,
 	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
 	USHORT usFontSize, USHORT usMaxFontSize)
 {
@@ -525,7 +525,7 @@ vEndOfTable(diagram_type *pDiag)
  * Returns TRUE when conversion type is XML
  */
 BOOL
-bAddTableRow(diagram_type *pDiag, int8_t **aszColTxt,
+bAddTableRow(diagram_type *pDiag, char **aszColTxt,
 	int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
 {
 	switch (eConversionType) {

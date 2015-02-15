@@ -263,13 +263,13 @@ FILE *fp
 }
 
 /* Create icmFile given a file name */
-icmFile *new_icmFileStd_name(int8_t *name,
-int8_t *mode
+icmFile *new_icmFileStd_name(char *name,
+char *mode
 ) {
 	FILE *fp;
 	icmFile *p;
 #if defined(O_BINARY)
-	int8_t nmode[50];
+	char nmode[50];
 #endif
 
 	if ((fp = fopen(name,mode)) == NULL)
@@ -461,27 +461,27 @@ icmAlloc *new_icmAllocStd() {
 /* Write routine return non-zero if numbers can't be represented */
 
 /* Unsigned */
-static unsigned int read_UInt8Number(int8_t *p) {
+static unsigned int read_UInt8Number(char *p) {
 	unsigned int rv;
 	rv = (unsigned int)((ORD8 *)p)[0];
 	return rv;
 }
 
-static int write_UInt8Number(unsigned int d, int8_t *p) {
+static int write_UInt8Number(unsigned int d, char *p) {
 	if (d > 255)
 		return 1;
 	((ORD8 *)p)[0] = (ORD8)d;
 	return 0;
 }
 
-static unsigned int read_UInt16Number(int8_t *p) {
+static unsigned int read_UInt16Number(char *p) {
 	unsigned int rv;
 	rv = 256 * (unsigned int)((ORD8 *)p)[0]
 	   +       (unsigned int)((ORD8 *)p)[1];
 	return rv;
 }
 
-static int write_UInt16Number(unsigned int d, int8_t *p) {
+static int write_UInt16Number(unsigned int d, char *p) {
 	if (d > 65535)
 		return 1;
 	((ORD8 *)p)[0] = (ORD8)(d >> 8);
@@ -489,7 +489,7 @@ static int write_UInt16Number(unsigned int d, int8_t *p) {
 	return 0;
 }
 
-static unsigned int read_UInt32Number(int8_t *p) {
+static unsigned int read_UInt32Number(char *p) {
 	unsigned int rv;
 	rv = 16777216 * (unsigned int)((ORD8 *)p)[0]
 	   +    65536 * (unsigned int)((ORD8 *)p)[1]
@@ -498,7 +498,7 @@ static unsigned int read_UInt32Number(int8_t *p) {
 	return rv;
 }
 
-static int write_UInt32Number(unsigned int d, int8_t *p) {
+static int write_UInt32Number(unsigned int d, char *p) {
 	((ORD8 *)p)[0] = (ORD8)(d >> 24);
 	((ORD8 *)p)[1] = (ORD8)(d >> 16);
 	((ORD8 *)p)[2] = (ORD8)(d >> 8);
@@ -506,7 +506,7 @@ static int write_UInt32Number(unsigned int d, int8_t *p) {
 	return 0;
 }
 
-static void read_UInt64Number(icmUint64 *d, int8_t *p) {
+static void read_UInt64Number(icmUint64 *d, char *p) {
 	d->h = 16777216 * (unsigned int)((ORD8 *)p)[0]
 	     +    65536 * (unsigned int)((ORD8 *)p)[1]
 	     +      256 * (unsigned int)((ORD8 *)p)[2]
@@ -517,7 +517,7 @@ static void read_UInt64Number(icmUint64 *d, int8_t *p) {
 	     +            (unsigned int)((ORD8 *)p)[7];
 }
 
-static int write_UInt64Number(icmUint64 *d, int8_t *p) {
+static int write_UInt64Number(icmUint64 *d, char *p) {
 	((ORD8 *)p)[0] = (ORD8)(d->h >> 24);
 	((ORD8 *)p)[1] = (ORD8)(d->h >> 16);
 	((ORD8 *)p)[2] = (ORD8)(d->h >> 8);
@@ -529,14 +529,14 @@ static int write_UInt64Number(icmUint64 *d, int8_t *p) {
 	return 0;
 }
 
-static double read_U8Fixed8Number(int8_t *p) {
+static double read_U8Fixed8Number(char *p) {
 	ORD32 o32;
 	o32 = 256 * (ORD32)((ORD8 *)p)[0]		/* Read big endian 16 bit unsigned */
         +       (ORD32)((ORD8 *)p)[1];
 	return (double)o32/256.0;
 }
 
-static int write_U8Fixed8Number(double d, int8_t *p) {
+static int write_U8Fixed8Number(double d, char *p) {
 	ORD32 o32;
 	d = d * 256.0 + 0.5;
 	if (d >= 65536.0)
@@ -549,7 +549,7 @@ static int write_U8Fixed8Number(double d, int8_t *p) {
 	return 0;
 }
 
-static double read_U16Fixed16Number(int8_t *p) {
+static double read_U16Fixed16Number(char *p) {
 	ORD32 o32;
 	o32 = 16777216 * (ORD32)((ORD8 *)p)[0]		/* Read big endian 32 bit unsigned */
         +    65536 * (ORD32)((ORD8 *)p)[1]
@@ -558,7 +558,7 @@ static double read_U16Fixed16Number(int8_t *p) {
 	return (double)o32/65536.0;
 }
 
-static int write_U16Fixed16Number(double d, int8_t *p) {
+static int write_U16Fixed16Number(double d, char *p) {
 	ORD32 o32;
 	d = d * 65536.0 + 0.5;
 	if (d >= 4294967296.0)
@@ -577,13 +577,13 @@ static int write_U16Fixed16Number(double d, int8_t *p) {
 #ifdef NEVER	/* Not currently used anywhere */
 
 /* Signed numbers */
-static int read_SInt8Number(int8_t *p) {
+static int read_SInt8Number(char *p) {
 	int rv;
 	rv = (int)((INR8 *)p)[0];
 	return rv;
 }
 
-static int write_SInt8Number(int d, int8_t *p) {
+static int write_SInt8Number(int d, char *p) {
 	if (d > 127)
 		return 1;
 	else if (d < -128)
@@ -592,14 +592,14 @@ static int write_SInt8Number(int d, int8_t *p) {
 	return 0;
 }
 
-static int read_SInt16Number(int8_t *p) {
+static int read_SInt16Number(char *p) {
 	int rv;
 	rv = 256 * (int)((INR8 *)p)[0]
 	   +       (int)((ORD8 *)p)[1];
 	return rv;
 }
 
-static int write_SInt16Number(int d, int8_t *p) {
+static int write_SInt16Number(int d, char *p) {
 	if (d > 32767)
 		return 1;
 	else if (d < -32768)
@@ -611,7 +611,7 @@ static int write_SInt16Number(int d, int8_t *p) {
 
 #endif /* NEVER */
 
-static int read_SInt32Number(int8_t *p) {
+static int read_SInt32Number(char *p) {
 	int rv;
 	rv = 16777216 * (int)((INR8 *)p)[0]
 	   +    65536 * (int)((ORD8 *)p)[1]
@@ -620,7 +620,7 @@ static int read_SInt32Number(int8_t *p) {
 	return rv;
 }
 
-static int write_SInt32Number(int d, int8_t *p) {
+static int write_SInt32Number(int d, char *p) {
 	((INR8 *)p)[0] = (INR8)(d >> 24);
 	((ORD8 *)p)[1] = (ORD8)(d >> 16);
 	((ORD8 *)p)[2] = (ORD8)(d >> 8);
@@ -630,7 +630,7 @@ static int write_SInt32Number(int d, int8_t *p) {
 
 #ifdef NEVER /* Not currently used anywhere */
 
-static void read_SInt64Number(icmInt64 *d, int8_t *p) {
+static void read_SInt64Number(icmInt64 *d, char *p) {
 	d->h = 16777216 * (int)((INR8 *)p)[0]
 	     +    65536 * (int)((ORD8 *)p)[1]
 	     +      256 * (int)((ORD8 *)p)[2]
@@ -641,7 +641,7 @@ static void read_SInt64Number(icmInt64 *d, int8_t *p) {
 	     +            (unsigned int)((ORD8 *)p)[7];
 }
 
-static int write_SInt64Number(icmInt64 *d, int8_t *p) {
+static int write_SInt64Number(icmInt64 *d, char *p) {
 	((INR8 *)p)[0] = (INR8)(d->h >> 24);
 	((ORD8 *)p)[1] = (ORD8)(d->h >> 16);
 	((ORD8 *)p)[2] = (ORD8)(d->h >> 8);
@@ -655,7 +655,7 @@ static int write_SInt64Number(icmInt64 *d, int8_t *p) {
 
 #endif /* NEVER */
 
-static double read_S15Fixed16Number(int8_t *p) {
+static double read_S15Fixed16Number(char *p) {
 	INR32 i32;
 	i32 = 16777216 * (INR32)((INR8 *)p)[0]		/* Read big endian 32 bit signed */
         +    65536 * (INR32)((ORD8 *)p)[1]
@@ -664,7 +664,7 @@ static double read_S15Fixed16Number(int8_t *p) {
 	return (double)i32/65536.0;
 }
 
-static int write_S15Fixed16Number(double d, int8_t *p) {
+static int write_S15Fixed16Number(double d, char *p) {
 	INR32 i32;
 	d = ceil(d * 65536.0);		/* Beware! (int)(d + 0.5) doesn't work! */
 	if (d >= 2147483648.0)
@@ -682,14 +682,14 @@ static int write_S15Fixed16Number(double d, int8_t *p) {
 /* PCS encoded numbers */
 
 /* 16 bit XYZ  - value range 0.0 - 1.9997 */
-static double read_PCSXYZ16Number(int8_t *p) {
+static double read_PCSXYZ16Number(char *p) {
 	ORD32 o32;
 	o32 = 256 * (ORD32)((ORD8 *)p)[0]		/* Read big endian 16 bit unsigned */
         +       (ORD32)((ORD8 *)p)[1];
 	return (double)o32/32768.0;
 }
 
-static int write_PCSXYZ16Number(double d, int8_t *p) {
+static int write_PCSXYZ16Number(double d, char *p) {
 	ORD32 o32;
 	d = d * 32768.0 + 0.5;
 	if (d >= 65536.0)
@@ -705,13 +705,13 @@ static int write_PCSXYZ16Number(double d, int8_t *p) {
 #ifdef NEVER /* Not currently used */
 
 /* L part of 8 bit Lab - value range 0.0 - 100.0 */
-static double read_PCSL8Number(int8_t *p) {
+static double read_PCSL8Number(char *p) {
 	ORD32 o32;
 	o32 = (ORD32)((ORD8 *)p)[0];		/* Read big endian 8 bit unsigned */
 	return (double)o32/2.550;
 }
 
-static int write_PCSL8Number(double d, int8_t *p) {
+static int write_PCSL8Number(double d, char *p) {
 	ORD32 o32;
 	d = d * 2.550 + 0.5;
 	if (d >= 256.0)
@@ -724,13 +724,13 @@ static int write_PCSL8Number(double d, int8_t *p) {
 }
 
 /* ab part of 8 bit Lab - value range -128.0 - 127.0 */
-static double read_PCSab8Number(int8_t *p) {
+static double read_PCSab8Number(char *p) {
 	ORD32 o32;
 	o32 = (ORD32)((ORD8 *)p)[0];	/* Read big endian 8 bit unsigned */
 	return (double)o32-128.0;
 }
 
-static int write_PCSab8Number(double d, int8_t *p) {
+static int write_PCSab8Number(double d, char *p) {
 	ORD32 o32;
 	d = (d+128.0) + 0.5;
 	if (d >= 256.0)
@@ -745,14 +745,14 @@ static int write_PCSab8Number(double d, int8_t *p) {
 #endif /* NEVER */
 
 /* L part of 16 bit Lab - value range 0.0 - 100.0 */
-static double read_PCSL16Number(int8_t *p) {
+static double read_PCSL16Number(char *p) {
 	ORD32 o32;
 	o32 = 256 * (ORD32)((ORD8 *)p)[0]		/* Read big endian 16 bit unsigned */
         +       (ORD32)((ORD8 *)p)[1];
 	return (double)o32/652.800;				/* 0xff00/100.0 */
 }
 
-static int write_PCSL16Number(double d, int8_t *p) {
+static int write_PCSL16Number(double d, char *p) {
 	ORD32 o32;
 	d = d * 652.800 + 0.5;
 	if (d >= 65536.0)
@@ -766,14 +766,14 @@ static int write_PCSL16Number(double d, int8_t *p) {
 }
 
 /* ab part of 16 bit Lab - value range -128.0 - 127.9961 */
-static double read_PCSab16Number(int8_t *p) {
+static double read_PCSab16Number(char *p) {
 	ORD32 o32;
 	o32 = 256 * (ORD32)((ORD8 *)p)[0]		/* Read big endian 16 bit unsigned */
         +       (ORD32)((ORD8 *)p)[1];
 	return ((double)o32/256.0)-128.0;
 }
 
-static int write_PCSab16Number(double d, int8_t *p) {
+static int write_PCSab16Number(double d, char *p) {
 	ORD32 o32;
 	d = (d+128.0) * 256.0 + 0.5;
 	if (d >= 65536.0)
@@ -787,13 +787,13 @@ static int write_PCSab16Number(double d, int8_t *p) {
 }
 
 /* Device coordinate as 8 bit value range 0.0 - 1.0 */
-static double read_DCS8Number(int8_t *p) {
+static double read_DCS8Number(char *p) {
 	unsigned int rv;
 	rv =   (unsigned int)((ORD8 *)p)[0];
 	return (double)rv/255.0;
 }
 
-static int write_DCS8Number(double d, int8_t *p) {
+static int write_DCS8Number(double d, char *p) {
 	ORD32 o32;
 	d = d * 255.0 + 0.5;
 	if (d >= 256.0)
@@ -806,14 +806,14 @@ static int write_DCS8Number(double d, int8_t *p) {
 }
 
 /* Device coordinate as 16 bit value range 0.0 - 1.0 */
-static double read_DCS16Number(int8_t *p) {
+static double read_DCS16Number(char *p) {
 	unsigned int rv;
 	rv = 256 * (unsigned int)((ORD8 *)p)[0]
 	   +       (unsigned int)((ORD8 *)p)[1];
 	return (double)rv/65535.0;
 }
 
-static int write_DCS16Number(double d, int8_t *p) {
+static int write_DCS16Number(double d, char *p) {
 	ORD32 o32;
 	d = d * 65535.0 + 0.5;
 	if (d >= 65536.0)
@@ -830,13 +830,13 @@ static int write_DCS16Number(double d, int8_t *p) {
 /* Auiliary function - return a string that represents a tag */
 /* Note - returned buffers are static, can only be used 5 */
 /* times before buffers get reused. */
-int8_t *tag2str(
+char *tag2str(
 	int tag
 ) {
 	int i;
 	static int si = 0;			/* String buffer index */
-	static int8_t buf[5][20];		/* String buffers */
-	int8_t *bp;
+	static char buf[5][20];		/* String buffers */
+	char *bp;
 	unsigned char c[4];
 
 	bp = buf[si++];
@@ -860,7 +860,7 @@ int8_t *tag2str(
 
 /* Auiliary function - return a tag created from a string */
 int str2tag(
-	const int8_t *str
+	const char *str
 ) {
 	unsigned long tag;
 	tag = (((unsigned long)str[0]) << 24)
@@ -873,7 +873,7 @@ int str2tag(
 /* helper - return 1 if the string doesn't have a */
 /*  null terminator, return 0 if it does. */
 /* Note: will return 1 if len == 0 */
-static int check_null_string(int8_t *cp, int len) {
+static int check_null_string(char *cp, int len) {
 	for (; len > 0; len--) {
 		if (*cp++ == '\000')
 			break;
@@ -887,7 +887,7 @@ static int check_null_string(int8_t *cp, int len) {
 /*  null terminator, return 0 if it does. */
 /* Note: will return 1 if len == 0 */
 /* Unicode version */
-static int check_null_string16(int8_t *cp, int len) {
+static int check_null_string16(char *cp, int len) {
 	for (; len > 0; len--) {	/* Length is in characters */
 		if (cp[0] == 0 && cp[1] == 0)
 			break;
@@ -967,10 +967,10 @@ static unsigned int number_ColorSpaceSignature(icColorSpaceSignature sig) {
 /* times before buffers get reused. */
 
 /* Screening Encodings */
-static int8_t *string_ScreenEncodings(unsigned long flags) {
+static char *string_ScreenEncodings(unsigned long flags) {
 	static int si = 0;			/* String buffer index */
-	static int8_t buf[5][80];		/* String buffers */
-	int8_t *bp, *cp;
+	static char buf[5][80];		/* String buffers */
+	char *bp, *cp;
 
 	cp = bp = buf[si++];
 	si %= 5;				/* Rotate through buffers */
@@ -992,10 +992,10 @@ static int8_t *string_ScreenEncodings(unsigned long flags) {
 }
 
 /* Device attributes */
-static int8_t *string_DeviceAttributes(unsigned long flags) {
+static char *string_DeviceAttributes(unsigned long flags) {
 	static int si = 0;			/* String buffer index */
-	static int8_t buf[5][80];		/* String buffers */
-	int8_t *bp, *cp;
+	static char buf[5][80];		/* String buffers */
+	char *bp, *cp;
 
 	cp = bp = buf[si++];
 	si %= 5;				/* Rotate through buffers */
@@ -1017,10 +1017,10 @@ static int8_t *string_DeviceAttributes(unsigned long flags) {
 }
 
 /* Profile header flags */
-static int8_t *string_ProfileHeaderFlags(unsigned long flags) {
+static char *string_ProfileHeaderFlags(unsigned long flags) {
 	static int si = 0;			/* String buffer index */
-	static int8_t buf[5][80];		/* String buffers */
-	int8_t *bp, *cp;
+	static char buf[5][80];		/* String buffers */
+	char *bp, *cp;
 
 	cp = bp = buf[si++];
 	si %= 5;				/* Rotate through buffers */
@@ -1042,10 +1042,10 @@ static int8_t *string_ProfileHeaderFlags(unsigned long flags) {
 }
 
 
-static int8_t *string_AsciiOrBinaryData(unsigned long flags) {
+static char *string_AsciiOrBinaryData(unsigned long flags) {
 	static int si = 0;			/* String buffer index */
-	static int8_t buf[5][80];		/* String buffers */
-	int8_t *bp, *cp;
+	static char buf[5][80];		/* String buffers */
+	char *bp, *cp;
 
 	cp = bp = buf[si++];
 	si %= 5;				/* Rotate through buffers */
@@ -1066,8 +1066,8 @@ static int8_t *string_AsciiOrBinaryData(unsigned long flags) {
 /* before buffers get reused if type is unknown. */
 
 /* public tags and sizes */
-static const int8_t *string_TagSignature(icTagSignature sig) {
-	static int8_t buf[80];
+static const char *string_TagSignature(icTagSignature sig) {
+	static char buf[80];
 	switch(sig) {
 		case icSigAToB0Tag:
 			return "AToB0 Multidimentional Transform";
@@ -1164,8 +1164,8 @@ static const int8_t *string_TagSignature(icTagSignature sig) {
 }
 
 /* technology signature descriptions */
-static const int8_t *string_TechnologySignature(icTechnologySignature sig) {
-	static int8_t buf[80];
+static const char *string_TechnologySignature(icTechnologySignature sig) {
+	static char buf[80];
 	switch(sig) {
 		case icSigDigitalCamera:
 			return "Digital Camera";
@@ -1218,8 +1218,8 @@ static const int8_t *string_TechnologySignature(icTechnologySignature sig) {
 }
 
 /* type signatures */
-static const int8_t *string_TypeSignature(icTagTypeSignature sig) {
-	static int8_t buf[80];
+static const char *string_TypeSignature(icTagTypeSignature sig) {
+	static char buf[80];
 	switch(sig) {
 		case icSigCurveType:
 			return "Curve";
@@ -1276,8 +1276,8 @@ static const int8_t *string_TypeSignature(icTagTypeSignature sig) {
 }
 
 /* Color Space Signatures */
-static const int8_t *string_ColorSpaceSignature(icColorSpaceSignature sig) {
-	static int8_t buf[80];
+static const char *string_ColorSpaceSignature(icColorSpaceSignature sig) {
+	static char buf[80];
 	switch(sig) {
 		case icSigXYZData:
 			return "XYZ";
@@ -1341,15 +1341,15 @@ static const int8_t *string_ColorSpaceSignature(icColorSpaceSignature sig) {
 
 #ifdef NEVER
 /* Public version of above */
-int8_t *ColorSpaceSignature2str(icColorSpaceSignature sig) {
+char *ColorSpaceSignature2str(icColorSpaceSignature sig) {
 	return string_ColorSpaceSignature(sig);
 }
 #endif
 
 
 /* profileClass enumerations */
-static const int8_t *string_ProfileClassSignature(icProfileClassSignature sig) {
-	static int8_t buf[80];
+static const char *string_ProfileClassSignature(icProfileClassSignature sig) {
+	static char buf[80];
 	switch(sig) {
 		case icSigInputClass:
 			return "Input";
@@ -1372,8 +1372,8 @@ static const int8_t *string_ProfileClassSignature(icProfileClassSignature sig) {
 }
 
 /* Platform Signatures */
-static const int8_t *string_PlatformSignature(icPlatformSignature sig) {
-	static int8_t buf[80];
+static const char *string_PlatformSignature(icPlatformSignature sig) {
+	static char buf[80];
 	switch(sig) {
 		case icSigMacintosh:
 			return "Macintosh";
@@ -1392,8 +1392,8 @@ static const int8_t *string_PlatformSignature(icPlatformSignature sig) {
 }
 
 /* Measurement Geometry, used in the measurmentType tag */
-static const int8_t *string_MeasurementGeometry(icMeasurementGeometry sig) {
-	static int8_t buf[30];
+static const char *string_MeasurementGeometry(icMeasurementGeometry sig) {
+	static char buf[30];
 	switch(sig) {
 		case icGeometryUnknown:
 			return "Unknown";
@@ -1408,8 +1408,8 @@ static const int8_t *string_MeasurementGeometry(icMeasurementGeometry sig) {
 }
 
 /* Rendering Intents, used in the profile header */
-static const int8_t *string_RenderingIntent(icRenderingIntent sig) {
-	static int8_t buf[30];
+static const char *string_RenderingIntent(icRenderingIntent sig) {
+	static char buf[30];
 	switch(sig) {
 		case icPerceptual:
 			return "Perceptual";
@@ -1426,8 +1426,8 @@ static const int8_t *string_RenderingIntent(icRenderingIntent sig) {
 }
 
 /* Different Spot Shapes currently defined, used for screeningType */
-static const int8_t *string_SpotShape(icSpotShape sig) {
-	static int8_t buf[30];
+static const char *string_SpotShape(icSpotShape sig) {
+	static char buf[30];
 	switch(sig) {
 		case icSpotShapeUnknown:
 			return "Unknown";
@@ -1452,8 +1452,8 @@ static const int8_t *string_SpotShape(icSpotShape sig) {
 }
 
 /* Standard Observer, used in the measurmentType tag */
-static const int8_t *string_StandardObserver(icStandardObserver sig) {
-	static int8_t buf[30];
+static const char *string_StandardObserver(icStandardObserver sig) {
+	static char buf[30];
 	switch(sig) {
 		case icStdObsUnknown:
 			return "Unknown";
@@ -1468,8 +1468,8 @@ static const int8_t *string_StandardObserver(icStandardObserver sig) {
 }
 
 /* Pre-defined illuminants, used in measurement and viewing conditions type */
-static const int8_t *string_Illuminant(icIlluminant sig) {
-	static int8_t buf[30];
+static const char *string_Illuminant(icIlluminant sig) {
+	static char buf[30];
 	switch(sig) {
 		case icIlluminantUnknown:
 			return "Unknown";
@@ -1496,8 +1496,8 @@ static const int8_t *string_Illuminant(icIlluminant sig) {
 }
 
 /* Return a text abreviation of a color lookup algorithm */
-static const int8_t *string_LuAlg(icmLuAlgType alg) {
-	static int8_t buf[80];
+static const char *string_LuAlg(icmLuAlgType alg) {
+	static char buf[80];
 
 	switch(alg) {
     	case icmMonoFwdType:
@@ -1518,7 +1518,7 @@ static const int8_t *string_LuAlg(icmLuAlgType alg) {
 
 /* Return a string description of the given enumeration value */
 /* Public: */
-const int8_t *icm2str(icmEnumType etype, int enumval) {
+const char *icm2str(icmEnumType etype, int enumval) {
 
 	switch(etype) {
 	    case icmScreenEncodings:
@@ -1584,7 +1584,7 @@ static int icmUInt8Array_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned long i, size;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 8) {
 		sprintf(icp->err,"icmUInt8Array_read: Tag too small to be legal");
@@ -1592,7 +1592,7 @@ static int icmUInt8Array_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmUInt8Array_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -1637,12 +1637,12 @@ static int icmUInt8Array_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmUInt8Array_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -1771,7 +1771,7 @@ static int icmUInt16Array_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned long i, size;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 8) {
 		sprintf(icp->err,"icmUInt16Array_read: Tag too small to be legal");
@@ -1779,7 +1779,7 @@ static int icmUInt16Array_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmUInt16Array_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -1824,12 +1824,12 @@ static int icmUInt16Array_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmUInt16Array_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -1958,7 +1958,7 @@ static int icmUInt32Array_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned long i, size;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 8) {
 		sprintf(icp->err,"icmUInt32Array_read: Tag too small to be legal");
@@ -1966,7 +1966,7 @@ static int icmUInt32Array_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmUInt32Array_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -2011,12 +2011,12 @@ static int icmUInt32Array_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmUInt32Array_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -2145,7 +2145,7 @@ static int icmUInt64Array_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned long i, size;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 8) {
 		sprintf(icp->err,"icmUInt64Array_read: Tag too small to be legal");
@@ -2153,7 +2153,7 @@ static int icmUInt64Array_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmUInt64Array_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -2198,12 +2198,12 @@ static int icmUInt64Array_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmUInt64Array_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -2332,7 +2332,7 @@ static int icmU16Fixed16Array_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned long i, size;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 8) {
 		sprintf(icp->err,"icmU16Fixed16Array_read: Tag too small to be legal");
@@ -2340,7 +2340,7 @@ static int icmU16Fixed16Array_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmU16Fixed16Array_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -2385,12 +2385,12 @@ static int icmU16Fixed16Array_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmU16Fixed16Array_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -2519,7 +2519,7 @@ static int icmS15Fixed16Array_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned long i, size;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 8) {
 		sprintf(icp->err,"icmS15Fixed16Array_read: Tag too small to be legal");
@@ -2527,7 +2527,7 @@ static int icmS15Fixed16Array_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmS15Fixed16Array_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -2572,12 +2572,12 @@ static int icmS15Fixed16Array_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmS15Fixed16Array_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -2685,7 +2685,7 @@ static icmBase *new_icmS15Fixed16Array(
 /* ---------------------------------------------------------- */
 
 /* Data conversion support functions */
-static int write_XYZNumber(icmXYZNumber *p, int8_t *d) {
+static int write_XYZNumber(icmXYZNumber *p, char *d) {
 	int rv;
 	if ((rv = write_S15Fixed16Number(p->X, d + 0)) != 0)
 		return rv;
@@ -2696,7 +2696,7 @@ static int write_XYZNumber(icmXYZNumber *p, int8_t *d) {
 	return 0;
 }
 
-static int read_XYZNumber(icmXYZNumber *p, int8_t *d) {
+static int read_XYZNumber(icmXYZNumber *p, char *d) {
 	p->X = read_S15Fixed16Number(d + 0);
 	p->Y = read_S15Fixed16Number(d + 4);
 	p->Z = read_S15Fixed16Number(d + 8);
@@ -2705,8 +2705,8 @@ static int read_XYZNumber(icmXYZNumber *p, int8_t *d) {
 
 
 /* Helper: Return a string that shows the XYZ number value */
-static int8_t *string_XYZNumber(icmXYZNumber *p) {
-	static int8_t buf[40];
+static char *string_XYZNumber(icmXYZNumber *p) {
+	static char buf[40];
 
 	sprintf(buf,"%f, %f, %f", p->X, p->Y, p->Z);
 	return buf;
@@ -2714,8 +2714,8 @@ static int8_t *string_XYZNumber(icmXYZNumber *p) {
 
 /* Helper: Return a string that shows the XYZ number value, */
 /* and the Lab D50 number in paren. */
-static int8_t *string_XYZNumber_and_Lab(icmXYZNumber *p) {
-	static int8_t buf[50];
+static char *string_XYZNumber_and_Lab(icmXYZNumber *p) {
+	static char buf[50];
 	double lab[3];
 	lab[0] = p->X;
 	lab[1] = p->Y;
@@ -2748,7 +2748,7 @@ static int icmXYZArray_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned long i, size;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 8) {
 		sprintf(icp->err,"icmXYZArray_read: Tag too small to be legal");
@@ -2756,7 +2756,7 @@ static int icmXYZArray_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmXYZArray_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -2801,12 +2801,12 @@ static int icmXYZArray_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmXYZArray_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -3163,7 +3163,7 @@ static int icmCurve_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned long i;
-	int8_t *bp, *buf, *end;
+	char *bp, *buf, *end;
 
 	if (len < 12) {
 		sprintf(icp->err,"icmCurve_read: Tag too small to be legal");
@@ -3171,7 +3171,7 @@ static int icmCurve_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmCurve_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -3241,12 +3241,12 @@ static int icmCurve_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmCurve_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -3427,7 +3427,7 @@ static int icmData_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned size, f;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 12) {
 		sprintf(icp->err,"icmData_read: Tag too small to be legal");
@@ -3435,7 +3435,7 @@ static int icmData_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmData_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -3496,12 +3496,12 @@ static int icmData_write(
 	icmData *p = (icmData *)pp;
 	icc *icp = p->icp;
 	unsigned int len, f;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmData_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -3536,7 +3536,7 @@ static int icmData_write(
 
 	if (p->data != NULL) {
 		if (p->flag == icmDataASCII) {
-			if ((rv = check_null_string((int8_t *)p->data, p->size)) != 0) {
+			if ((rv = check_null_string((char *)p->data, p->size)) != 0) {
 				sprintf(icp->err,"icmData_write: ASCII is not null terminated");
 				icp->al->free(icp->al, buf);
 				return icp->errc = 1;
@@ -3693,7 +3693,7 @@ static int icmText_read(
 	icmText *p = (icmText *)pp;
 	icc *icp = p->icp;
 	int rv = 0;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 8) {
 		sprintf(icp->err,"icmText_read: Tag too short to be legal");
@@ -3701,7 +3701,7 @@ static int icmText_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmText_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -3748,12 +3748,12 @@ static int icmText_write(
 	icmText *p = (icmText *)pp;
 	icc *icp = p->icp;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmText_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -3842,7 +3842,7 @@ static int icmText_allocate(
 	if (p->size != p->_size) {
 		if (p->data != NULL)
 			icp->al->free(icp->al, p->data);
-		if ((p->data = (int8_t *) icp->al->malloc(icp->al, p->size * sizeof(int8_t))) == NULL) {
+		if ((p->data = (char *) icp->al->malloc(icp->al, p->size * sizeof(char))) == NULL) {
 			sprintf(icp->err,"icmText_alloc: malloc() of icmText data failed");
 			return icp->errc = 2;
 		}
@@ -3886,7 +3886,7 @@ static icmBase *new_icmText(
 /* ---------------------------------------------------------- */
 
 /* Data conversion support functions */
-static int write_DateTimeNumber(icmDateTimeNumber *p, int8_t *d) {
+static int write_DateTimeNumber(icmDateTimeNumber *p, char *d) {
 	int rv;
 	if (p->year < 1900 || p->year > 3000
 	 || p->month == 0 || p->month > 12
@@ -3911,7 +3911,7 @@ static int write_DateTimeNumber(icmDateTimeNumber *p, int8_t *d) {
 	return 0;
 }
 
-static int read_DateTimeNumber(icmDateTimeNumber *p, int8_t *d) {
+static int read_DateTimeNumber(icmDateTimeNumber *p, char *d) {
 	p->year    = read_UInt16Number(d + 0);
 	p->month   = read_UInt16Number(d + 2);
 	p->day     = read_UInt16Number(d + 4);
@@ -3946,10 +3946,10 @@ static int read_DateTimeNumber(icmDateTimeNumber *p, int8_t *d) {
 }
 
 /* Return a string that shows the given date and time */
-static int8_t *string_DateTimeNumber(icmDateTimeNumber *p) {
-	static const int8_t *mstring[13] = {"Bad", "Jan","Feb","Mar","Apr","May","Jun",
+static char *string_DateTimeNumber(icmDateTimeNumber *p) {
+	static const char *mstring[13] = {"Bad", "Jan","Feb","Mar","Apr","May","Jun",
 					  "Jul","Aug","Sep","Oct","Nov","Dec"};
-	static int8_t buf[80];
+	static char buf[80];
 
 	sprintf(buf,"%d %s %4d, %d:%02d:%02d", 
 	                p->day, mstring[p->month > 12 ? 0 : p->month], p->year,
@@ -3992,7 +3992,7 @@ static int icmDateTimeNumber_read(
 	icmDateTimeNumber *p = (icmDateTimeNumber *)pp;
 	icc *icp = p->icp;
 	int rv;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 20) {
 		sprintf(icp->err,"icmDateTimeNumber_read: Tag too small to be legal");
@@ -4000,7 +4000,7 @@ static int icmDateTimeNumber_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmDateTimeNumber_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -4041,12 +4041,12 @@ static int icmDateTimeNumber_write(
 	icmDateTimeNumber *p = (icmDateTimeNumber *)pp;
 	icc *icp = p->icp;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmDateTimeNumber_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -4852,7 +4852,7 @@ static int icmLut_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned long i, j, g, size;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 4) {
 		sprintf(icp->err,"icmLut_read: Tag too small to be legal");
@@ -4860,7 +4860,7 @@ static int icmLut_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmLut_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -5004,12 +5004,12 @@ static int icmLut_write(
 	icc *icp = p->icp;
 	unsigned long i,j;
 	unsigned int len, size;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmLut_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -5384,7 +5384,7 @@ static int icmMeasurement_read(
 	icmMeasurement *p = (icmMeasurement *)pp;
 	icc *icp = p->icp;
 	int rv;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 36) {
 		sprintf(icp->err,"icmMeasurement_read: Tag too small to be legal");
@@ -5392,7 +5392,7 @@ static int icmMeasurement_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmMeasurement_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -5444,12 +5444,12 @@ static int icmMeasurement_write(
 	icmMeasurement *p = (icmMeasurement *)pp;
 	icc *icp = p->icp;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmMeasurement_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -5570,8 +5570,8 @@ static icmBase *new_icmMeasurement(
 /* Named color structure read/write support */
 static int read_NamedColorVal(
 	icmNamedColorVal *p,
-	int8_t *bp,
-	int8_t *end,
+	char *bp,
+	char *end,
 	icColorSpaceSignature pcs,		/* Header Profile Connection Space */
 	unsigned int ndc				/* Number of device corrds */
 ) {
@@ -5599,8 +5599,8 @@ static int read_NamedColorVal(
 
 static int read_NamedColorVal2(
 	icmNamedColorVal *p,
-	int8_t *bp,
-	int8_t *end,
+	char *bp,
+	char *end,
 	icColorSpaceSignature pcs,		/* Header Profile Connection Space */
 	unsigned int ndc				/* Number of device corrds */
 ) {
@@ -5636,7 +5636,7 @@ static int read_NamedColorVal2(
 
 static int write_NamedColorVal(
 	icmNamedColorVal *p,
-	int8_t *d,
+	char *d,
 	icColorSpaceSignature pcs,		/* Header Profile Connection Space */
 	unsigned int ndc				/* Number of device corrds */
 ) {
@@ -5660,7 +5660,7 @@ static int write_NamedColorVal(
 
 static int write_NamedColorVal2(
 	icmNamedColorVal *p,
-	int8_t *bp,
+	char *bp,
 	icColorSpaceSignature pcs,		/* Header Profile Connection Space */
 	unsigned int ndc				/* Number of device corrds */
 ) {
@@ -5740,7 +5740,7 @@ static int icmNamedColor_read(
 	icmNamedColor *p = (icmNamedColor *)pp;
 	icc *icp = p->icp;
 	unsigned long i;
-	int8_t *bp, *buf, *end;
+	char *bp, *buf, *end;
 	int rv = 0;
 
 	if (len < 4) {
@@ -5749,7 +5749,7 @@ static int icmNamedColor_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmNamedColor_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -5885,12 +5885,12 @@ static int icmNamedColor_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmNamedColor_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -6133,7 +6133,7 @@ static int icmTextDescription_read(
 	icmTextDescription *p = (icmTextDescription *)pp;
 	icc *icp = p->icp;
 	int rv;
-	int8_t *bp, *buf, *end;
+	char *bp, *buf, *end;
 
 #ifdef ICM_STRICT
 	if (len < (8 + 4 + 8 + 3 /* + 67 */)) {
@@ -6145,7 +6145,7 @@ static int icmTextDescription_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmTextDescription_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -6173,12 +6173,12 @@ static int icmTextDescription_read(
 /* core read the object, return 0 on success, error code on fail */
 static int icmTextDescription_core_read(
 	icmTextDescription *p,
-	int8_t **bpp,				/* Pointer to buffer pointer, returns next after read */
-	int8_t *end				/* Pointer to past end of read buffer */
+	char **bpp,				/* Pointer to buffer pointer, returns next after read */
+	char *end				/* Pointer to past end of read buffer */
 ) {
 	icc *icp = p->icp;
 	int rv = 0;
-	int8_t *bp = *bpp;
+	char *bp = *bpp;
 
 	if ((bp + 8) > end) {
 		sprintf(icp->err,"icmTextDescription_read: Data too short to type descriptor");
@@ -6297,12 +6297,12 @@ static int icmTextDescription_write(
 	icmTextDescription *p = (icmTextDescription *)pp;
 	icc *icp = p->icp;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmTextDescription_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -6328,10 +6328,10 @@ static int icmTextDescription_write(
 /* Core write the contents of the object. Return 0 on sucess, error code on failure */
 static int icmTextDescription_core_write(
 	icmTextDescription *p,
-	int8_t **bpp				/* Pointer to buffer pointer, returns next after read */
+	char **bpp				/* Pointer to buffer pointer, returns next after read */
 ) {
 	icc *icp = p->icp;
-	int8_t *bp = *bpp;
+	char *bp = *bpp;
 	int rv = 0;
 
 	/* Write type descriptor to the buffer */
@@ -6375,7 +6375,7 @@ static int icmTextDescription_core_write(
 	bp += 4;
 	if (p->ucSize > 0) {
 		ORD16 *up;
-		if (check_null_string16((int8_t *)p->ucDesc,p->ucSize)) {
+		if (check_null_string16((char *)p->ucDesc,p->ucSize)) {
 			*bpp = bp;
 			sprintf(icp->err,"icmTextDescription_write: Unicode string is not terminated");
 			return icp->errc = 1;
@@ -6411,7 +6411,7 @@ static int icmTextDescription_core_write(
 			sprintf(icp->err,"icmTextDescription_write: ScriptCode string too long");
 			return icp->errc = 1;
 		}
-		if (check_null_string((int8_t *)p->scDesc,p->scSize)) {
+		if (check_null_string((char *)p->scDesc,p->scSize)) {
 			*bpp = bp;
 			sprintf(icp->err,"icmTextDescription_write: ScriptCode string is not terminated");
 			return icp->errc = 1;
@@ -6543,7 +6543,7 @@ static int icmTextDescription_allocate(
 	if (p->size != p->_size) {
 		if (p->desc != NULL)
 			icp->al->free(icp->al, p->desc);
-		if ((p->desc = (int8_t *) icp->al->malloc(icp->al, p->size * sizeof(int8_t))) == NULL) {
+		if ((p->desc = (char *) icp->al->malloc(icp->al, p->size * sizeof(char))) == NULL) {
 			sprintf(icp->err,"icmTextDescription_alloc: malloc() of Ascii description failed");
 			return icp->errc = 2;
 		}
@@ -6635,11 +6635,11 @@ static unsigned int icmDescStruct_get_size(
 /* read the object, return 0 on success, error code on fail */
 static int icmDescStruct_read(
 	icmDescStruct *p,
-	int8_t **bpp,				/* Pointer to buffer pointer, returns next after read */
-	int8_t *end				/* Pointer to past end of read buffer */
+	char **bpp,				/* Pointer to buffer pointer, returns next after read */
+	char *end				/* Pointer to past end of read buffer */
 ) {
 	icc *icp = p->icp;
-	int8_t *bp = *bpp;
+	char *bp = *bpp;
 	int rv = 0;
 
 	if ((bp + 20) > end) {
@@ -6670,10 +6670,10 @@ static int icmDescStruct_read(
 /* Write the contents of the object. Return 0 on sucess, error code on failure */
 static int icmDescStruct_write(
 	icmDescStruct *p,
-	int8_t **bpp				/* Pointer to buffer pointer, returns next after read */
+	char **bpp				/* Pointer to buffer pointer, returns next after read */
 ) {
 	icc *icp = p->icp;
-	int8_t *bp = *bpp;
+	char *bp = *bpp;
 	int rv = 0;
 
     if ((rv = write_SInt32Number(p->deviceMfg, bp + 0)) != 0) {
@@ -6795,7 +6795,7 @@ static int icmProfileSequenceDesc_read(
 	icmProfileSequenceDesc *p = (icmProfileSequenceDesc *)pp;
 	icc *icp = p->icp;
 	unsigned long i;
-	int8_t *bp, *buf, *end;
+	char *bp, *buf, *end;
 	int rv = 0;
 
 	if (len < 12) {
@@ -6804,7 +6804,7 @@ static int icmProfileSequenceDesc_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmProfileSequenceDesc_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -6855,12 +6855,12 @@ static int icmProfileSequenceDesc_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmProfileSequenceDesc_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -7000,7 +7000,7 @@ static int icmSignature_read(
 ) {
 	icmSignature *p = (icmSignature *)pp;
 	icc *icp = p->icp;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 12) {
 		sprintf(icp->err,"icmSignature_read: Tag too small to be legal");
@@ -7008,7 +7008,7 @@ static int icmSignature_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmSignature_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -7044,12 +7044,12 @@ static int icmSignature_write(
 	icmSignature *p = (icmSignature *)pp;
 	icc *icp = p->icp;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmSignature_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -7136,14 +7136,14 @@ static icmBase *new_icmSignature(
 /* ---------------------------------------------------------- */
 
 /* Data conversion support functions */
-static int read_ScreeningData(icmScreeningData *p, int8_t *d) {
+static int read_ScreeningData(icmScreeningData *p, char *d) {
 	p->frequency = read_S15Fixed16Number(d + 0);
 	p->angle     = read_S15Fixed16Number(d + 4);
 	p->spotShape = (icSpotShape)read_SInt32Number(d + 8);
 	return 0;
 }
 
-static int write_ScreeningData(icmScreeningData *p, int8_t *d) {
+static int write_ScreeningData(icmScreeningData *p, char *d) {
 	int rv;
 	if ((rv = write_S15Fixed16Number(p->frequency, d + 0)) != 0)
 		return rv;
@@ -7178,7 +7178,7 @@ static int icmScreening_read(
 	icc *icp = p->icp;
 	int rv = 0;
 	unsigned long i;
-	int8_t *bp, *buf, *end;
+	char *bp, *buf, *end;
 
 	if (len < 12) {
 		sprintf(icp->err,"icmScreening_read: Tag too small to be legal");
@@ -7186,7 +7186,7 @@ static int icmScreening_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmScreening_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -7238,12 +7238,12 @@ static int icmScreening_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmScreening_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -7390,7 +7390,7 @@ static int icmUcrBg_read(
 	icc *icp = p->icp;
 	unsigned long i;
 	int rv = 0;
-	int8_t *bp, *buf, *end;
+	char *bp, *buf, *end;
 
 	if (len < 16) {
 		sprintf(icp->err,"icmUcrBg_read: Tag too small to be legal");
@@ -7398,7 +7398,7 @@ static int icmUcrBg_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmUcrBg_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -7501,12 +7501,12 @@ static int icmUcrBg_write(
 	icc *icp = p->icp;
 	unsigned long i;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmUcrBg_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -7689,7 +7689,7 @@ static int icmUcrBg_allocate(
 	if (p->size != p->_size) {
 		if (p->string != NULL)
 			icp->al->free(icp->al, p->string);
-		if ((p->string = (int8_t *) icp->al->malloc(icp->al, p->size * sizeof(int8_t))) == NULL) {
+		if ((p->string = (char *) icp->al->malloc(icp->al, p->size * sizeof(char))) == NULL) {
 			sprintf(icp->err,"icmUcrBg_allocate: malloc() of string data failed");
 			return icp->errc = 2;
 		}
@@ -7771,7 +7771,7 @@ static int icmVideoCardGamma_read(
 	icmVideoCardGamma *p = (icmVideoCardGamma *)pp;
 	icc *icp = p->icp;
 	int rv, c;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 	unsigned char *pchar;
 	unsigned short *pshort;
 
@@ -7781,7 +7781,7 @@ static int icmVideoCardGamma_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmVideoCardGamma_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -7872,14 +7872,14 @@ static int icmVideoCardGamma_write(
 	icmVideoCardGamma *p = (icmVideoCardGamma *)pp;
 	icc *icp = p->icp;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0, c;
 	unsigned char *pchar;
 	unsigned short *pshort;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmViewingConditions_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -8146,7 +8146,7 @@ static int icmViewingConditions_read(
 	icmViewingConditions *p = (icmViewingConditions *)pp;
 	icc *icp = p->icp;
 	int rv;
-	int8_t *bp, *buf;
+	char *bp, *buf;
 
 	if (len < 36) {
 		sprintf(icp->err,"icmViewingConditions_read: Tag too small to be legal");
@@ -8154,7 +8154,7 @@ static int icmViewingConditions_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmViewingConditions_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -8204,12 +8204,12 @@ static int icmViewingConditions_write(
 	icmViewingConditions *p = (icmViewingConditions *)pp;
 	icc *icp = p->icp;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmViewingConditions_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -8336,7 +8336,7 @@ static int icmCrdInfo_read(
 	icc *icp = p->icp;
 	unsigned long t;
 	int rv = 0;
-	int8_t *bp, *buf, *end;
+	char *bp, *buf, *end;
 
 	if (len < 28) {
 		sprintf(icp->err,"icmCrdInfo_read: Tag too small to be legal");
@@ -8344,7 +8344,7 @@ static int icmCrdInfo_read(
 	}
 
 	/* Allocate a file read buffer */
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmCrdInfo_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -8436,12 +8436,12 @@ static int icmCrdInfo_write(
 	icc *icp = p->icp;
 	unsigned long t;
 	unsigned int len;
-	int8_t *bp, *buf;		/* Buffer to write from */
+	char *bp, *buf;		/* Buffer to write from */
 	int rv = 0;
 
 	/* Allocate a file write buffer */
 	len = p->get_size((icmBase *)p);
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmCrdInfo_write malloc() failed");
 		return icp->errc = 2;
 	}
@@ -8593,7 +8593,7 @@ static int icmCrdInfo_allocate(
 	if (p->ppsize != p->_ppsize) {
 		if (p->ppname != NULL)
 			icp->al->free(icp->al, p->ppname);
-		if ((p->ppname = (int8_t *) icp->al->malloc(icp->al, p->ppsize * sizeof(int8_t))) == NULL) {
+		if ((p->ppname = (char *) icp->al->malloc(icp->al, p->ppsize * sizeof(char))) == NULL) {
 			sprintf(icp->err,"icmCrdInfo_alloc: malloc() of string data failed");
 			return icp->errc = 2;
 		}
@@ -8603,7 +8603,7 @@ static int icmCrdInfo_allocate(
 		if (p->crdsize[t] != p->_crdsize[t]) {
 			if (p->crdname[t] != NULL)
 				icp->al->free(icp->al, p->crdname[t]);
-			if ((p->crdname[t] = (int8_t *) icp->al->malloc(icp->al, p->crdsize[t] * sizeof(int8_t))) == NULL) {
+			if ((p->crdname[t] = (char *) icp->al->malloc(icp->al, p->crdsize[t] * sizeof(char))) == NULL) {
 				sprintf(icp->err,"icmCrdInfo_alloc: malloc() of CRD%d name string failed",t);
 				return icp->errc = 2;
 			}
@@ -8668,7 +8668,7 @@ static int icmHeader_read(
 	unsigned long of		/* start offset within file */
 ) {
 	icc *icp = p->icp;
-	int8_t *buf;
+	char *buf;
 	unsigned int tt;
 	int rv = 0;
 	
@@ -8677,7 +8677,7 @@ static int icmHeader_read(
 		return icp->errc = 1;
 	}
 
-	if ((buf = (int8_t *) icp->al->malloc(icp->al, len)) == NULL) {
+	if ((buf = (char *) icp->al->malloc(icp->al, len)) == NULL) {
 		sprintf(icp->err,"icmHeader_read: malloc() failed");
 		return icp->errc = 2;
 	}
@@ -8738,13 +8738,13 @@ static int icmHeader_write(
 	unsigned long of			/* File offset to write from */
 ) {
 	icc *icp = p->icp;
-	int8_t *buf;		/* Buffer to write from */
+	char *buf;		/* Buffer to write from */
 	unsigned int len;
 	unsigned int tt;
 	int rv = 0;
 
 	len = p->get_size(p);
-	if ((buf = (int8_t *) icp->al->calloc(icp->al,1,len)) == NULL) {			/* Zero it - some CMS are fussy */
+	if ((buf = (char *) icp->al->calloc(icp->al,1,len)) == NULL) {			/* Zero it - some CMS are fussy */
 		sprintf(icp->err,"icmHeader_write calloc() failed");
 		return icp->errc = 2;
 	}
@@ -9228,7 +9228,7 @@ static int icc_read(
 	icmFile *fp,			/* File to read from */
 	unsigned long of		/* File offset to read from */
 ) {
-	int8_t tcbuf[4];			/* Tag count read buffer */
+	char tcbuf[4];			/* Tag count read buffer */
 	int i;
 	unsigned int len;
 	int er = 0;				/* Error code */
@@ -9254,14 +9254,14 @@ static int icc_read(
 
 	p->count = read_UInt32Number(tcbuf);		/* Tag count */
 	if (p->count > 0) {
-		int8_t *bp, *buf;
+		char *bp, *buf;
 		if ((p->data = (icmTag *) p->al->malloc(p->al, p->count * sizeof(icmTag))) == NULL) {
 			sprintf(p->err,"icc_read: Tag table malloc() failed");
 			return p->errc = 2;
 		}
 	
 		len = 4 + p->count * 12;
-		if ((buf = (int8_t *) p->al->malloc(p->al, len)) == NULL) {
+		if ((buf = (char *) p->al->malloc(p->al, len)) == NULL) {
 			sprintf(p->err,"icc_read: Tag table read buffer malloc() failed");
 			p->al->free(p->al, p->data);
 			p->data = NULL;
@@ -9353,7 +9353,7 @@ static int icc_write(
 	icmFile *fp,		/* File to write to */
 	unsigned long of	/* File offset to write to */
 ) {
-	int8_t *bp, *buf;		/* Buffer to write to */
+	char *bp, *buf;		/* Buffer to write to */
 	unsigned int len;
 	int rv = 0;
 	int i;
@@ -9380,7 +9380,7 @@ static int icc_write(
 	size += len;
 	
 	/* Allocate memory buffer for tag table */
-	if ((buf = (int8_t *) p->al->malloc(p->al, len)) == NULL) {
+	if ((buf = (char *) p->al->malloc(p->al, len)) == NULL) {
 		sprintf(p->err,"icc_write malloc() failed");
 		return p->errc = 2;
 	}

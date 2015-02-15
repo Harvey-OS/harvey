@@ -385,9 +385,9 @@ msize(void* ap)
 }
 
 static void
-mallocreadfmt(int8_t* s, int8_t* e)
+mallocreadfmt(char* s, char* e)
 {
-	int8_t *p;
+	char *p;
 	Header *q;
 	int i, n, t;
 	Qlist *qlist;
@@ -445,7 +445,7 @@ mallocreadfmt(int8_t* s, int8_t* e)
 int32_t
 mallocreadsummary(Chan*, void *a, int32_t n, int32_t offset)
 {
-	int8_t *alloc;
+	char *alloc;
 
 	alloc = malloc(16*READSTR);
 	mallocreadfmt(alloc, alloc+16*READSTR);

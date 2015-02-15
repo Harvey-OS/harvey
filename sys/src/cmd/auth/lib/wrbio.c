@@ -14,9 +14,9 @@
 #include "authcmdlib.h"
 
 void
-wrbio(int8_t *file, Acctbio *a)
+wrbio(char *file, Acctbio *a)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	int i, fd, n;
 
 	fd = open(file, OWRITE);

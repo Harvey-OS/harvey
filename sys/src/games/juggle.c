@@ -127,7 +127,7 @@ diskinit(void)
 }
 
 void
-usage(int8_t *name)
+usage(char *name)
 {
 	fprint(2, "usage: %s [start] pattern\n", name);
 	exits("usage");

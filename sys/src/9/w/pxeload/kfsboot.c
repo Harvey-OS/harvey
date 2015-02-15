@@ -108,7 +108,7 @@ readinfo(Fs *fs)
 	if(memcmp(block+256, "kfs wren device\n", 16) != 0)
 		return -1;
 
-	fs->kfs.RBUFSIZE = atoi((int8_t*)block+256+16);
+	fs->kfs.RBUFSIZE = atoi((char*)block+256+16);
 	if(!fs->kfs.RBUFSIZE || (fs->kfs.RBUFSIZE&(fs->kfs.RBUFSIZE-1)))
 		return -1;
 
@@ -199,7 +199,7 @@ getdatablock(Fs *fs, Dentry *d, int32_t a)
 }
 
 static int
-walk(Fs *fs, Dentry *d, int8_t *name, Dentry *e)
+walk(Fs *fs, Dentry *d, char *name, Dentry *e)
 {
 	int i, n;
 	Dentry x;
@@ -241,7 +241,7 @@ kfsread(File *f, void *va, int32_t len)
 }
 
 static int
-kfswalk(File *f, int8_t *name)
+kfswalk(File *f, char *name)
 {
 	int n;
 

@@ -649,10 +649,10 @@ psd_param_read_fn(gs_param_list *plist, const char *name,
 
 /* Compare a C string and a gs_param_string. */
 static bool
-param_string_eq(const gs_param_string *pcs, const int8_t *str)
+param_string_eq(const gs_param_string *pcs, const char *str)
 {
     return (strlen(str) == pcs->size &&
-	    !strncmp(str, (const int8_t *)pcs->data, pcs->size));
+	    !strncmp(str, (const char *)pcs->data, pcs->size));
 }
 
 private int

@@ -11,7 +11,7 @@
 #include <libc.h>
 #include "flashfs.h"
 
-int8_t*	prog;
+char*	prog;
 uint32_t	sectsize;
 uint32_t	nsects;
 uint8_t*	sectbuff;

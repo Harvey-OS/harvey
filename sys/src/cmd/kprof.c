@@ -16,12 +16,12 @@
 
 struct COUNTER
 {
-	int8_t 	*name;		/* function name */
+	char 	*name;		/* function name */
 	int32_t	time;		/* ticks spent there */
 };
 
 void
-error(int perr, int8_t *s)
+error(int perr, char *s)
 {
 	fprint(2, "kprof: %s", s);
 	if(perr){
@@ -46,11 +46,11 @@ compar(void *va, void *vb)
 	return 1;
 }
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int fd;
 	int32_t i, j, k, n;
-	int8_t *name;
+	char *name;
 	uint32_t *data;
 	int64_t tbase;
 	uint32_t sum;

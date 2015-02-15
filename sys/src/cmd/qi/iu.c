@@ -211,8 +211,8 @@ mspr(uint32_t ir)
 {
 	int rd, ra, rb;
 	uint32_t *d;
-	int8_t *n;
-	int8_t buf[20];
+	char *n;
+	char buf[20];
 
 	getarrr(ir);
 	switch((rb<<5) | ra) {

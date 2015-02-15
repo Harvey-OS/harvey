@@ -12,14 +12,14 @@
 #include <stdio.h>
 #include "cpp.h"
 
-static int8_t wbuf[2*OBS];
-static int8_t *wbp = wbuf;
+static char wbuf[2*OBS];
+static char *wbp = wbuf;
 
 /*
  * 1 for tokens that don't need whitespace when they get inserted
  * by macro expansion
  */
-static int8_t wstab[] = {
+static char wstab[] = {
 	0,	/* END */
 	0,	/* UNCLASS */
 	0,	/* NAME */
@@ -123,7 +123,7 @@ comparetokens(Tokenrow *tr1, Tokenrow *tr2)
 		if (tp1->type != tp2->type
 		 || (tp1->wslen==0) != (tp2->wslen==0)
 		 || tp1->len != tp2->len
-		 || strncmp((int8_t*)tp1->t, (int8_t*)tp2->t, tp1->len)!=0)
+		 || strncmp((char*)tp1->t, (char*)tp2->t, tp1->len)!=0)
 			return 1;
 	}
 	return 0;
@@ -188,7 +188,7 @@ movetokenrow(Tokenrow *dtr, Tokenrow *str)
 	int nby;
 
 	/* nby = sizeof(Token) * (str->lp - str->bp); */
-	nby = (int8_t *)str->lp - (int8_t *)str->bp;
+	nby = (char *)str->lp - (char *)str->bp;
 	memmove(dtr->tp, str->bp, nby);
 }
 
@@ -209,7 +209,7 @@ adjustrow(Tokenrow *trp, int nt)
 	while (size > trp->max)
 		growtokenrow(trp);
 	/* nby = sizeof(Token) * (trp->lp - trp->tp); */
-	nby = (int8_t *)trp->lp - (int8_t *)trp->tp;
+	nby = (char *)trp->lp - (char *)trp->tp;
 	if (nby)
 		memmove(trp->tp+nt, trp->tp, nby);
 	trp->lp += nt;
@@ -265,7 +265,7 @@ normtokenrow(Tokenrow *trp)
  * Debugging
  */
 void
-peektokens(Tokenrow *trp, int8_t *str)
+peektokens(Tokenrow *trp, char *str)
 {
 	Token *tp;
 	int c;
@@ -357,8 +357,8 @@ setempty(Tokenrow *trp)
 /*
  * generate a number
  */
-int8_t *
-outnum(int8_t *p, int n)
+char *
+outnum(char *p, int n)
 {
 	if (n>=10)
 		p = outnum(p, n/10);
@@ -376,5 +376,5 @@ newstring(uint8_t *s, int l, int o)
 	uint8_t *ns = (uint8_t *)domalloc(l+o+1);
 
 	ns[l+o] = '\0';
-	return (uint8_t*)strncpy((int8_t*)ns+o, (int8_t*)s, l) - o;
+	return (uint8_t*)strncpy((char*)ns+o, (char*)s, l) - o;
 }

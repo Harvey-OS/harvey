@@ -66,15 +66,15 @@ struct Ipmcast
 /* quick hash for ip addresses */
 #define hashipa(a) ( ( ((a)[IPaddrlen-2]<<8) | (a)[IPaddrlen-1] )%NHASH )
 
-static int8_t tifc[] = "ifc ";
+static char tifc[] = "ifc ";
 
 static void	addselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uint8_t *a,
 				int type);
 static void	remselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uint8_t *a);
-static int8_t*	ipifcjoinmulti(Ipifc *ifc, int8_t **argv, int argc);
-static int8_t*	ipifcleavemulti(Ipifc *ifc, int8_t **argv, int argc);
+static char*	ipifcjoinmulti(Ipifc *ifc, char **argv, int argc);
+static char*	ipifcleavemulti(Ipifc *ifc, char **argv, int argc);
 static void	ipifcregisterproxy(Fs*, Ipifc*, uint8_t*);
-static int8_t*	ipifcremlifc(Ipifc*, Iplifc*);
+static char*	ipifcremlifc(Ipifc*, Iplifc*);
 
 /*
  *  link in a new medium
@@ -95,7 +95,7 @@ addipmedium(Medium *med)
  *  find the medium with this name
  */
 Medium*
-ipfindmedium(int8_t *name)
+ipfindmedium(char *name)
 {
 	Medium **mp;
 
@@ -109,8 +109,8 @@ ipfindmedium(int8_t *name)
  *  attach a device (or pkt driver) to the interface.
  *  called with c locked
  */
-static int8_t*
-ipifcbind(Conv *c, int8_t **argv, int argc)
+static char*
+ipifcbind(Conv *c, char **argv, int argc)
 {
 	Ipifc *ifc;
 	Medium *medium;
@@ -179,10 +179,10 @@ ipifcbind(Conv *c, int8_t **argv, int argc)
  *  detach a device from an interface, close the interface
  *  called with ifc->conv closed
  */
-static int8_t*
+static char*
 ipifcunbind(Ipifc *ifc)
 {
-	int8_t *err;
+	char *err;
 
 	if(waserror()){
 		wunlock(ifc);
@@ -224,14 +224,14 @@ ipifcunbind(Ipifc *ifc)
 	return nil;
 }
 
-int8_t sfixedformat[] = "device %s maxtu %d sendra %d recvra %d mflag %d oflag"
+char sfixedformat[] = "device %s maxtu %d sendra %d recvra %d mflag %d oflag"
 " %d maxraint %d minraint %d linkmtu %d reachtime %d rxmitra %d ttl %d routerlt"
 " %d pktin %lud pktout %lud errin %lud errout %lud\n";
 
-int8_t slineformat[] = "	%-40I %-10M %-40I %-12lud %-12lud\n";
+char slineformat[] = "	%-40I %-10M %-40I %-12lud %-12lud\n";
 
 static int
-ipifcstate(Conv *c, int8_t *state, int n)
+ipifcstate(Conv *c, char *state, int n)
 {
 	Ipifc *ifc;
 	Iplifc *lifc;
@@ -256,7 +256,7 @@ ipifcstate(Conv *c, int8_t *state, int n)
 }
 
 static int
-ipifclocal(Conv *c, int8_t *state, int n)
+ipifclocal(Conv *c, char *state, int n)
 {
 	Ipifc *ifc;
 	Iplifc *lifc;
@@ -354,8 +354,8 @@ ipifcclose(Conv *c)
 /*
  *  change an interface's mtu
  */
-int8_t*
-ipifcsetmtu(Ipifc *ifc, int8_t **argv, int argc)
+char*
+ipifcsetmtu(Ipifc *ifc, char **argv, int argc)
 {
 	int mtu;
 
@@ -371,8 +371,8 @@ ipifcsetmtu(Ipifc *ifc, int8_t **argv, int argc)
 /*
  *  add an address to an interface.
  */
-int8_t*
-ipifcadd(Ipifc *ifc, int8_t **argv, int argc, int tentative, Iplifc *lifcp)
+char*
+ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 {
 	int i, type, mtu, sendnbrdisc = 0;
 	uint8_t ip[IPaddrlen], mask[IPaddrlen], rem[IPaddrlen];
@@ -546,7 +546,7 @@ out:
  *  remove a logical interface from an ifc
  *  always called with ifc wlock'd
  */
-static int8_t*
+static char*
 ipifcremlifc(Ipifc *ifc, Iplifc *lifc)
 {
 	Iplifc **l;
@@ -590,10 +590,10 @@ ipifcremlifc(Ipifc *ifc, Iplifc *lifc)
  *  remove an address from an interface.
  *  called with c->car locked
  */
-int8_t*
-ipifcrem(Ipifc *ifc, int8_t **argv, int argc)
+char*
+ipifcrem(Ipifc *ifc, char **argv, int argc)
 {
-	int8_t *rv;
+	char *rv;
 	uint8_t ip[IPaddrlen], mask[IPaddrlen], rem[IPaddrlen];
 	Iplifc *lifc;
 
@@ -672,10 +672,10 @@ ipifcremroute(Fs *f, int vers, uint8_t *addr, uint8_t *mask)
  *  addresses.  This is a macro that means, remove all the old interfaces
  *  and add a new one.
  */
-static int8_t*
-ipifcconnect(Conv* c, int8_t **argv, int argc)
+static char*
+ipifcconnect(Conv* c, char **argv, int argc)
 {
-	int8_t *err;
+	char *err;
 	Ipifc *ifc;
 
 	ifc = (Ipifc*)c->ptcl;
@@ -704,8 +704,8 @@ ipifcconnect(Conv* c, int8_t **argv, int argc)
 	return nil;
 }
 
-int8_t*
-ipifcra6(Ipifc *ifc, int8_t **argv, int argc)
+char*
+ipifcra6(Ipifc *ifc, char **argv, int argc)
 {
 	int i, argsleft, vmax = ifc->rp.maxraint, vmin = ifc->rp.minraint;
 
@@ -758,8 +758,8 @@ ipifcra6(Ipifc *ifc, int8_t **argv, int argc)
  *  non-standard control messages.
  *  called with c->car locked.
  */
-static int8_t*
-ipifcctl(Conv* c, int8_t**argv, int argc)
+static char*
+ipifcctl(Conv* c, char**argv, int argc)
 {
 	Ipifc *ifc;
 	int i;
@@ -798,7 +798,7 @@ ipifcctl(Conv* c, int8_t**argv, int argc)
 }
 
 int
-ipifcstats(Proto *ipifc, int8_t *buf, int len)
+ipifcstats(Proto *ipifc, char *buf, int len)
 {
 	return ipstats(ipifc->f, buf, len);
 }
@@ -1028,19 +1028,19 @@ out:
 	qunlock(f->self);
 }
 
-static int8_t *stformat = "%-44.44I %2.2d %4.4s\n";
+static char *stformat = "%-44.44I %2.2d %4.4s\n";
 enum
 {
 	Nstformat= 41,
 };
 
 int32_t
-ipselftabread(Fs *f, int8_t *cp, uint32_t offset, int n)
+ipselftabread(Fs *f, char *cp, uint32_t offset, int n)
 {
 	int i, m, nifc, off;
 	Ipself *p;
 	Iplink *link;
-	int8_t state[8];
+	char state[8];
 
 	m = 0;
 	off = offset;
@@ -1512,15 +1512,15 @@ ipifcremmulti(Conv *c, uint8_t *ma, uint8_t *ia)
 /*
  *  make lifc's join and leave multicast groups
  */
-static int8_t*
-ipifcjoinmulti(Ipifc *ifc, int8_t **argv, int argc)
+static char*
+ipifcjoinmulti(Ipifc *ifc, char **argv, int argc)
 {
 	USED(ifc, argv, argc);
 	return nil;
 }
 
-static int8_t*
-ipifcleavemulti(Ipifc *ifc, int8_t **argv, int argc)
+static char*
+ipifcleavemulti(Ipifc *ifc, char **argv, int argc)
 {
 	USED(ifc, argv, argc);
 	return nil;
@@ -1607,13 +1607,13 @@ enum {
 	Ngates = 3,
 };
 
-int8_t*
-ipifcadd6(Ipifc *ifc, int8_t**argv, int argc)
+char*
+ipifcadd6(Ipifc *ifc, char**argv, int argc)
 {
 	int plen = 64;
 	int32_t origint = NOW / 1000, preflt = ~0L, validlt = ~0L;
-	int8_t addr[40], preflen[6];
-	int8_t *params[3];
+	char addr[40], preflen[6];
+	char *params[3];
 	uint8_t autoflag = 1, onlink = 1;
 	uint8_t prefix[IPaddrlen];
 	Iplifc *lifc;

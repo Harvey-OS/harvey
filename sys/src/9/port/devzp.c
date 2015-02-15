@@ -109,7 +109,7 @@ zqread(Zq *q, Kzio io[], int nio, usize count)
 	int32_t tot, nr;
 	Kzio *qio;
 	Segment *s;
-	int8_t *p;
+	char *p;
 
 	DBG("zqread %ld\n", count);
 	qlock(&q->rlck);
@@ -260,7 +260,7 @@ zqreopen(Zq *q)
  *  create a zp, no streams are created until an open
  */
 static Chan*
-zpattach(int8_t *spec)
+zpattach(char *spec)
 {
 	ZPipe *p;
 	Chan *c;
@@ -282,7 +282,7 @@ zpattach(int8_t *spec)
 }
 
 static int
-zpgen(Chan *c, int8_t*, Dirtab *tab, int ntab, int i, Dir *dp)
+zpgen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid q;
 	int len;
@@ -316,7 +316,7 @@ zpgen(Chan *c, int8_t*, Dirtab *tab, int ntab, int i, Dir *dp)
 
 
 static Walkqid*
-zpwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+zpwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	Walkqid *wq;
 	ZPipe *p;
@@ -513,7 +513,7 @@ zpwrite(Chan *c, void *va, int32_t n, int64_t)
 	int32_t tot, nw;
 	Segment *s;
 	Zq *q;
-	int8_t *cp;
+	char *cp;
 
 	if(n <= 0)
 		return n;

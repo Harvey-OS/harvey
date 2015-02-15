@@ -28,7 +28,7 @@
 #include "gdevprn.h"
 #define prn_dev ((gx_device_printer *)dev) /* needed in 5.31 et seq */
 /*#include <sys/types.h> problems with ushort! */
-typedef	int8_t *	caddr_t;
+typedef	char *	caddr_t;
 typedef	int32_t	off_t;
 #include <sys/uio.h>
 #include <newsiop/framebuf.h>

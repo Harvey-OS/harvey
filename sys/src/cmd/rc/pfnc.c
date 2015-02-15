@@ -14,7 +14,7 @@
 
 struct{
 	void	(*f)(void);
-	int8_t	*name;
+	char	*name;
 } fname[] = {
 	Xappend, "Xappend",
 	Xassign, "Xassign",

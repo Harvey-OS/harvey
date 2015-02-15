@@ -16,7 +16,7 @@
 Fid	*fids;
 Ram	*ram;
 int	mfd[2];
-int8_t	*user;
+char	*user;
 uint8_t	mdata[Maxbuf+IOHDRSZ];
 int	messagesize = Maxbuf+IOHDRSZ;
 Fcall	rhdr;
@@ -36,7 +36,7 @@ void	io(void);
 void	usage(void);
 int	perm(int);
 
-int8_t	*rflush(Fid*), *rversion(Fid*), *rauth(Fid*),
+char	*rflush(Fid*), *rversion(Fid*), *rauth(Fid*),
 	*rattach(Fid*), *rwalk(Fid*),
 	*ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
@@ -58,19 +58,19 @@ char 	*(*fcalls[])(Fid*) = {
 	[Twstat]	rwstat,
 };
 
-int8_t	Eperm[] =	"permission denied";
-int8_t	Enotdir[] =	"not a directory";
-int8_t	Enoauth[] =	"tapefs: authentication not required";
-int8_t	Enotexist[] =	"file does not exist";
-int8_t	Einuse[] =	"file in use";
-int8_t	Eexist[] =	"file exists";
-int8_t	Enotowner[] =	"not owner";
-int8_t	Eisopen[] = 	"file already open for I/O";
-int8_t	Excl[] = 	"exclusive use file already open";
-int8_t	Ename[] = 	"illegal name";
+char	Eperm[] =	"permission denied";
+char	Enotdir[] =	"not a directory";
+char	Enoauth[] =	"tapefs: authentication not required";
+char	Enotexist[] =	"file does not exist";
+char	Einuse[] =	"file in use";
+char	Eexist[] =	"file exists";
+char	Enotowner[] =	"not owner";
+char	Eisopen[] = 	"file already open for I/O";
+char	Excl[] = 	"exclusive use file already open";
+char	Ename[] = 	"illegal name";
 
 void
-notifyf(void *a, int8_t *s)
+notifyf(void *a, char *s)
 {
 	USED(a);
 	if(strncmp(s, "interrupt", 9) == 0)
@@ -159,7 +159,7 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
-int8_t*
+char*
 rversion(Fid *unused)
 {
 	Fid *f;
@@ -183,7 +183,7 @@ rversion(Fid *unused)
 	return 0;
 }
 
-int8_t*
+char*
 rauth(Fid *unused)
 {
 	USED(unused);
@@ -191,14 +191,14 @@ rauth(Fid *unused)
 	return Enoauth;
 }
 
-int8_t*
+char*
 rflush(Fid *f)
 {
 	USED(f);
 	return 0;
 }
 
-int8_t*
+char*
 rattach(Fid *f)
 {
 	/* no authentication! */
@@ -213,13 +213,13 @@ rattach(Fid *f)
 	return 0;
 }
 
-int8_t*
+char*
 rwalk(Fid *f)
 {
 	Fid *nf;
 	Ram *r;
-	int8_t *err;
-	int8_t *name;
+	char *err;
+	char *name;
 	Ram *dir;
 	int i;
 
@@ -294,7 +294,7 @@ rwalk(Fid *f)
 
 }
 
-int8_t *
+char *
 ropen(Fid *f)
 {
 	Ram *r;
@@ -340,7 +340,7 @@ ropen(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rcreate(Fid *f)
 {
 	USED(f);
@@ -348,12 +348,12 @@ rcreate(Fid *f)
 	return Eperm;
 }
 
-int8_t*
+char*
 rread(Fid *f)
 {
 	int i, len;
 	Ram *r;
-	int8_t *buf;
+	char *buf;
 	uint64_t off, end;
 	int n, cnt;
 
@@ -395,7 +395,7 @@ rread(Fid *f)
 	return 0;
 }
 
-int8_t*
+char*
 rwrite(Fid *f)
 {
 	Ram *r;
@@ -422,7 +422,7 @@ rwrite(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rclunk(Fid *f)
 {
 	if(f->open)
@@ -433,14 +433,14 @@ rclunk(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rremove(Fid *f)
 {
 	USED(f);
 	return Eperm;
 }
 
-int8_t *
+char *
 rstat(Fid *f)
 {
 	if(f->ram->busy == 0)
@@ -449,7 +449,7 @@ rstat(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rwstat(Fid *f)
 {
 	if(f->ram->busy == 0)
@@ -503,9 +503,9 @@ newfid(int fid)
 void
 io(void)
 {
-	int8_t *err;
+	char *err;
 	int n, nerr;
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	errstr(buf, sizeof buf);
 	for(nerr=0, buf[0]='\0'; nerr<100; nerr++){
@@ -533,7 +533,7 @@ io(void)
 		if(verbose)
 			fprint(2, "tapefs: <=%F\n", &rhdr);/**/
 
-		thdr.data = (int8_t*)mdata + IOHDRSZ;
+		thdr.data = (char*)mdata + IOHDRSZ;
 		thdr.stat = mdata + IOHDRSZ;
 		if(!fcalls[rhdr.type])
 			err = "bad fcall type";
@@ -570,17 +570,17 @@ perm(int p)
 }
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	fprint(2, "%s: %s: ", argv0, s);
 	perror("");
 	exits(s);
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *t;
+	char *t;
 
 	t = emalloc(strlen(s)+1);
 	strcpy(t, s);

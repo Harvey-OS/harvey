@@ -12,7 +12,7 @@
 void*
 mal(int n)
 {
-	static int8_t *s;
+	static char *s;
 	static int m = 0;
 	void *v;
 
@@ -57,7 +57,7 @@ ral(int type)
 }
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	fprint(2, "grep: internal error: %s\n", s);
 	exits(s);
@@ -159,7 +159,7 @@ addcase(Re *r)
 }
 
 void
-str2top(int8_t *p)
+str2top(char *p)
 {
 	Re2 oldtop;
 
@@ -321,7 +321,7 @@ loop:
 }
 
 void
-reprint(int8_t *s, Re *r)
+reprint(char *s, Re *r)
 {
 	print("%s:\n", s);
 	gen++;

@@ -9,7 +9,7 @@
 
 #include "sam.h"
 
-static int8_t *emsg[]={
+static char *emsg[]={
 	/* error_s */
 	"can't open",
 	"can't create",
@@ -61,7 +61,7 @@ static int8_t *emsg[]={
 	"no destination for plumb message",
 	"internal read error in buffer load",
 };
-static int8_t *wmsg[]={
+static char *wmsg[]={
 	/* warn_s */
 	"duplicate file name",
 	"no such file",
@@ -78,25 +78,25 @@ static int8_t *wmsg[]={
 void
 error(Err s)
 {
-	int8_t buf[512];
+	char buf[512];
 
 	sprint(buf, "?%s", emsg[s]);
 	hiccough(buf);
 }
 
 void
-error_s(Err s, int8_t *a)
+error_s(Err s, char *a)
 {
-	int8_t buf[512];
+	char buf[512];
 
 	sprint(buf, "?%s \"%s\"", emsg[s], a);
 	hiccough(buf);
 }
 
 void
-error_r(Err s, int8_t *a)
+error_r(Err s, char *a)
 {
-	int8_t buf[512];
+	char buf[512];
 
 	sprint(buf, "?%s \"%s\": %r", emsg[s], a);
 	hiccough(buf);
@@ -105,7 +105,7 @@ error_r(Err s, int8_t *a)
 void
 error_c(Err s, int c)
 {
-	int8_t buf[512];
+	char buf[512];
 
 	sprint(buf, "?%s `%C'", emsg[s], c);
 	hiccough(buf);
@@ -130,13 +130,13 @@ warn_SS(Warn s, String *a, String *b)
 }
 
 void
-warn_s(Warn s, int8_t *a)
+warn_s(Warn s, char *a)
 {
 	dprint("?warning: %s `%s'\n", wmsg[s], a);
 }
 
 void
-termwrite(int8_t *s)
+termwrite(char *s)
 {
 	String *p;
 

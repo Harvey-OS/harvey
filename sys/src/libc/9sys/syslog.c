@@ -26,7 +26,7 @@ static struct
 static void
 _syslogopen(void)
 {
-	int8_t buf[1024];
+	char buf[1024];
 
 	if(sl.fd >= 0)
 		close(sl.fd);
@@ -49,14 +49,14 @@ eqdirdev(Dir *a, Dir *b)
  * If cons or log file can't be opened, print on the system console, too.
  */
 void
-syslog(int cons, int8_t *logname, int8_t *fmt, ...)
+syslog(int cons, char *logname, char *fmt, ...)
 {
-	int8_t buf[1024];
-	int8_t *ctim, *p;
+	char buf[1024];
+	char *ctim, *p;
 	va_list arg;
 	int n;
 	Dir *d;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 
 	err[0] = '\0';
 	errstr(err, sizeof err);

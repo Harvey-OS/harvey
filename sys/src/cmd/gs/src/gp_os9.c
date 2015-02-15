@@ -38,7 +38,7 @@ int interrupted;
 
 /* Forward declarations */
 private void signalhandler(int);
-private FILE *rbfopen(int8_t *, int8_t *);
+private FILE *rbfopen(char *, char *);
 
 /* Do platform-dependent initialization */
 void
@@ -138,7 +138,7 @@ int gp_cache_query(int type, byte* key, int keylen, void **buffer,
 /* "|command" opens an output pipe. */
 /* Return NULL if the connection could not be opened. */
 FILE *
-gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
+gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 {
     return
 	(strlen(fname) == 0 ? 0 :
@@ -147,7 +147,7 @@ gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
 }
 
 FILE *
-rbfopen(int8_t *fname, int8_t *perm)
+rbfopen(char *fname, char *perm)
 {
     FILE *file = fopen(fname, perm);
 
@@ -157,7 +157,7 @@ rbfopen(int8_t *fname, int8_t *perm)
 
 /* Close the connection to the printer. */
 void
-gp_close_printer(FILE * pfile, const int8_t *fname)
+gp_close_printer(FILE * pfile, const char *fname)
 {
     if (fname[0] == '|')
 	pclose(pfile);
@@ -190,8 +190,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, int8_t **fontname,
-                            int8_t **path)
+int gp_enumerate_fonts_next(void *enum_state, char **fontname,
+                            char **path)
 {
     return 0;
 }

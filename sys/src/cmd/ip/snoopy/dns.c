@@ -79,10 +79,10 @@ char *rrtname[] =
 [Tall]		"all",
 		0,
 };
-static int8_t*
+static char*
 rrtypestr(int t)
 {
-	int8_t buf[20];
+	char buf[20];
 
 	if(t >= 0 && t < nelem(rrtname) && rrtname[t])
 		return rrtname[t];
@@ -189,7 +189,7 @@ static DNSmsg dm;
 static int
 p_seprint(Msg *m)
 {
-	int8_t *e;
+	char *e;
 
 	if((e = convM2DNS(m->ps, m->pe-m->ps, &dm, nil)) != nil){
 		m->p = seprint(m->p, m->e, "error: %s", e);
@@ -322,8 +322,8 @@ emalloc(int n)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
 	s = strdup(s);
 	if(s == nil)
@@ -334,7 +334,7 @@ estrdup(int8_t *s)
 DN *alldn;
 
 DN*
-dnlookup(int8_t *name, int class, int)
+dnlookup(char *name, int class, int)
 {
 	DN *dn;
 
@@ -363,7 +363,7 @@ int debug;				/* for ndb/dns.h */
 uint32_t now = 0;
 
 void
-dnslog(int8_t *fmt, ...)			/* don't log */
+dnslog(char *fmt, ...)			/* don't log */
 {
 	USED(fmt);
 }
@@ -376,10 +376,10 @@ dnslog(int8_t *fmt, ...)			/* don't log */
 /*
  *  convert an integer RR type to it's ascii name
  */
-int8_t*
-rrname(int type, int8_t *buf, int len)
+char*
+rrname(int type, char *buf, int len)
 {
-	int8_t *t;
+	char *t;
 
 	t = nil;
 	if(type >= 0 && type <= Tall)

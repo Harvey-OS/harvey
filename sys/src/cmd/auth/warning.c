@@ -20,13 +20,13 @@ int32_t	ndirbuf = 0;
 int debug;
 
 int32_t	readdirect(int);
-void	douser(Fs*, int8_t*);
+void	douser(Fs*, char*);
 void	dodir(Fs*);
-int	mail(Fs*, int8_t*, int8_t*, int32_t);
-int	mailin(Fs*, int8_t*, int32_t, int8_t*, int8_t*);
-void	complain(int8_t*, ...);
-int32_t	readnumfile(int8_t*);
-void	writenumfile(int8_t*, int32_t);
+int	mail(Fs*, char*, char*, int32_t);
+int	mailin(Fs*, char*, int32_t, char*, char*);
+void	complain(char*, ...);
+int32_t	readnumfile(char*);
+void	writenumfile(char*, int32_t);
 
 void
 usage(void)
@@ -89,12 +89,12 @@ dodir(Fs *f)
  *  check for expiration
  */
 void
-douser(Fs *f, int8_t *user)
+douser(Fs *f, char *user)
 {
 	int n, nwarn;
-	int8_t buf[128];
+	char buf[128];
 	int32_t rcvrs, et, now;
-	int8_t *l;
+	char *l;
 
 	snprint(buf, sizeof buf, "%s/expire", user);
 	et = readnumfile(buf);
@@ -162,12 +162,12 @@ douser(Fs *f, int8_t *user)
  *  anything in <>'s is an address
  */
 int
-mailin(Fs *f, int8_t *user, int32_t et, int8_t *l, int8_t *e)
+mailin(Fs *f, char *user, int32_t et, char *l, char *e)
 {
 	int n;
 	int rcvrs;
-	int8_t *p;
-	int8_t addr[256];
+	char *p;
+	char addr[256];
 
 	p = 0;
 	rcvrs = 0;
@@ -197,13 +197,13 @@ mailin(Fs *f, int8_t *user, int32_t et, int8_t *l, int8_t *e)
  *  send mail
  */
 int
-mail(Fs *f, int8_t *rcvr, int8_t *user, int32_t et)
+mail(Fs *f, char *rcvr, char *user, int32_t et)
 {
 	int pid, i, fd;
 	int pfd[2];
-	int8_t *ct, *p;
+	char *ct, *p;
 	Waitmsg *w;
-	int8_t buf[128];
+	char buf[128];
 
 	if(pipe(pfd) < 0){
 		complain("out of pipes: %r");
@@ -281,9 +281,9 @@ mail(Fs *f, int8_t *rcvr, int8_t *user, int32_t et)
 }
 
 void
-complain(int8_t *fmt, ...)
+complain(char *fmt, ...)
 {
-	int8_t buf[8192], *s;
+	char buf[8192], *s;
 	va_list arg;
 
 	s = buf;
@@ -296,10 +296,10 @@ complain(int8_t *fmt, ...)
 }
 
 int32_t
-readnumfile(int8_t *file)
+readnumfile(char *file)
 {
 	int fd, n;
-	int8_t buf[64];
+	char buf[64];
 
 	fd = open(file, OREAD);
 	if(fd < 0){
@@ -317,7 +317,7 @@ readnumfile(int8_t *file)
 }
 
 void
-writenumfile(int8_t *file, int32_t num)
+writenumfile(char *file, int32_t num)
 {
 	int fd;
 

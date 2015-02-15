@@ -482,7 +482,7 @@ static int32_t
 request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
 	int32_t n, r;
-	int8_t buf[16];
+	char buf[16];
 
 	/* this was an experiment but it seems to be a good idea */
 	*status = STok;
@@ -695,9 +695,9 @@ wormdevopen(ScsiReq *rp)
 }
 
 int
-SRopenraw(ScsiReq *rp, int8_t *unit)
+SRopenraw(ScsiReq *rp, char *unit)
 {
-	int8_t name[128];
+	char name[128];
 
 	if(rp->flags & Fopen){
 		if(debug)
@@ -719,7 +719,7 @@ SRopenraw(ScsiReq *rp, int8_t *unit)
 }
 
 int
-SRopen(ScsiReq *rp, int8_t *unit)
+SRopen(ScsiReq *rp, char *unit)
 {
 	if(SRopenraw(rp, unit) == -1)
 		return -1;

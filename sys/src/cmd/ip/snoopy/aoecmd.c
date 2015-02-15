@@ -80,7 +80,7 @@ p_seprint(Msg *m)
 	m->p = seprint(m->p, m->e, "bc=%d fw=%.4x sc=%d ver=%d ccmd=%d len=%d cfg=",
 		NetS(h->bc), NetS(h->fw), h->sc, h->ccmd >> 4, h->ccmd & 0xf,
 		NetS(h->len));
-	m->p = seprint(m->p, m->e, "%.*s", NetS(h->len), (int8_t*)m->ps);
+	m->p = seprint(m->p, m->e, "%.*s", NetS(h->len), (char*)m->ps);
 	return 0;
 }
 

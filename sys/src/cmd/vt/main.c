@@ -19,7 +19,7 @@ enum{
 	Ehost		= 4,
 };
 
-int8_t	*menutext2[] = {
+char	*menutext2[] = {
 	"backup",
 	"forward",
 	"reset",
@@ -29,7 +29,7 @@ int8_t	*menutext2[] = {
 	0
 };
 
-int8_t	*menutext3[] = {
+char	*menutext3[] = {
 	"24x80",
 	"crnl",
 	"nl",
@@ -41,7 +41,7 @@ int8_t	*menutext3[] = {
 /* variables associated with the screen */
 
 int	x, y;	/* character positions */
-int8_t	*backp;
+char	*backp;
 int	backc;
 int	atend;
 int	nbacklines;
@@ -54,8 +54,8 @@ int	peekc;
 int	cursoron = 1;
 Menu	menu2;
 Menu	menu3;
-int8_t	*histp;
-int8_t	hist[HISTSIZ];
+char	*histp;
+char	hist[HISTSIZ];
 int	yscrmin, yscrmax;
 int	attr, defattr;
 int	wctlout;
@@ -106,24 +106,24 @@ int	logfd = -1;
 int	outfd = -1;
 Biobuf	*snarffp = 0;
 
-int8_t	*host_buf;
-int8_t	*hostp;				/* input from host */
+char	*host_buf;
+char	*hostp;				/* input from host */
 int	host_bsize = 2*BSIZE;
 int	hostlength;			/* amount of input from host */
-int8_t	echo_input[BSIZE];
-int8_t	*echop = echo_input;		/* characters to echo, after canon */
-int8_t	sendbuf[BSIZE];	/* hope you can't type ahead more than BSIZE chars */
-int8_t	*sendp = sendbuf;
+char	echo_input[BSIZE];
+char	*echop = echo_input;		/* characters to echo, after canon */
+char	sendbuf[BSIZE];	/* hope you can't type ahead more than BSIZE chars */
+char	*sendp = sendbuf;
 
-int8_t *term;
+char *term;
 struct funckey *fk;
 
 /* functions */
-void	initialize(int, int8_t **);
+void	initialize(int, char **);
 void	ebegin(int);
 int	waitchar(void);
 int	rcvchar(void);
-void	set_input(int8_t *);
+void	set_input(char *);
 void	set_host(Event *);
 void	bigscroll(void);
 void	readmenu(void);
@@ -134,7 +134,7 @@ int	alnum(int);
 void	escapedump(int,uint8_t *,int);
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	initialize(argc, argv);
 	emulate();
@@ -315,7 +315,7 @@ get_next_char(void)
 }
 
 int
-canon(int8_t *ep, int c)
+canon(char *ep, int c)
 {
 	if(c&0200)
 		return(SCROLL);
@@ -382,7 +382,7 @@ canon(int8_t *ep, int c)
 }
 
 void
-sendfk(int8_t *name)
+sendfk(char *name)
 {
 	int i;
 	static int fd;
@@ -399,11 +399,11 @@ waitchar(void)
 {
 	Event e;
 	int c;
-	int8_t c2;
+	char c2;
 	int newmouse;
 	int wasblocked;
 	int kbdchar = -1;
-	int8_t echobuf[3*BSIZE];
+	char echobuf[3*BSIZE];
 	static int lastc = -1;
 
 
@@ -552,9 +552,9 @@ eresized(int new)
 }
 
 void
-putenvint(int8_t *name, int x)
+putenvint(char *name, int x)
 {
-	int8_t buf[20];
+	char buf[20];
 
 	snprint(buf, sizeof buf, "%d", x);
 	putenv(name, buf);
@@ -690,7 +690,7 @@ void
 backup(int count)
 {
 	register n;
-	register int8_t *cp;
+	register char *cp;
 
 	eresized(0);
 	n = 3*(count+1)*ymax/4;
@@ -749,7 +749,7 @@ bigscroll(void)			/* scroll up half a page */
 }
 
 int
-number(int8_t *p, int *got)
+number(char *p, int *got)
 {
 	int c, n = 0;
 
@@ -767,14 +767,14 @@ number(int8_t *p, int *got)
 /* stubs */
 
 void
-sendnchars(int n,int8_t *p)
+sendnchars(int n,char *p)
 {
 	sendnchars2(n, p);
 	p[n+1] = 0;
 }
 
 void
-sendnchars2(int n,int8_t *p)
+sendnchars2(int n,char *p)
 {
 	if(write(outfd,p,n) < 0) {
 		close(outfd);
@@ -861,7 +861,7 @@ funckey(int key)
 
 
 void
-drawstring(Point p, int8_t *str, int attr)
+drawstring(Point p, char *str, int attr)
 {
 	int i;
 	Image *txt, *bg, *tmp;

@@ -41,7 +41,7 @@ struct Intrtime {
 static Intrtime intrtimes[256];
 
 void*
-intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, int8_t *name)
+intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 {
 	int vno;
 	Vctl *v;
@@ -122,7 +122,7 @@ intrdisable(void* vector)
 static int32_t
 irqallocread(Chan*, void *vbuf, int32_t n, int64_t offset)
 {
-	int8_t *buf, *p, str[2*(11+1)+2*(20+1)+(KNAMELEN+1)+(8+1)+1];
+	char *buf, *p, str[2*(11+1)+2*(20+1)+(KNAMELEN+1)+(8+1)+1];
 	int m, vno;
 	int32_t oldn;
 	Intrtime *t;
@@ -162,7 +162,7 @@ irqallocread(Chan*, void *vbuf, int32_t n, int64_t offset)
 }
 
 void
-trapenable(int vno, void (*f)(Ureg*, void*), void* a, int8_t *name)
+trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 {
 	Vctl *v;
 
@@ -218,7 +218,7 @@ trapinit(void)
 	addarchfile("irqalloc", 0444, irqallocread, nil);
 }
 
-static int8_t* excname[32] = {
+static char* excname[32] = {
 	"#DE",					/* Divide-by-Zero Error */
 	"#DB",					/* Debug */
 	"#NMI",					/* Non-Maskable-Interrupt */
@@ -338,7 +338,7 @@ void
 trap(Ureg* ureg)
 {
 	int clockintr, vno, user;
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 	Vctl *ctl, *v;
 
 	vno = ureg->type;
@@ -527,7 +527,7 @@ callwithureg(void (*fn)(Ureg*))
 static void
 dumpstackwithureg(Ureg* ureg)
 {
-	int8_t *s;
+	char *s;
 	uintptr l, v, i, estack;
 	extern uint32_t etext;
 	int x;
@@ -581,7 +581,7 @@ dumpstack(void)
 static void
 debugbpt(Ureg* ureg, void*)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	if(up == 0)
 		panic("kernel bpt");
@@ -613,7 +613,7 @@ faultamd64(Ureg* ureg, void*)
 {
 	uint64_t addr;
 	int read, user, insyscall;
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	addr = m->cr2;
 	user = userureg(ureg);
@@ -673,7 +673,7 @@ userpc(Ureg* ureg)
  * TODO: fix this because the segment registers are wrong for 64-bit mode. 
  */
 void
-setregisters(Ureg* ureg, int8_t* pureg, int8_t* uva, int n)
+setregisters(Ureg* ureg, char* pureg, char* uva, int n)
 {
 	uint64_t cs, flags, ss;
 	uint16_t ds, es, fs, gs;

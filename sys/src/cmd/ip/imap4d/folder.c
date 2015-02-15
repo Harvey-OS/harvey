@@ -19,7 +19,7 @@ static	MbLock	mLock =
 	.fd = -1
 };
 
-static int8_t curDir[MboxNameLen];
+static char curDir[MboxNameLen];
 
 void
 resetCurDir(void)
@@ -28,7 +28,7 @@ resetCurDir(void)
 }
 
 int
-myChdir(int8_t *dir)
+myChdir(char *dir)
 {
 	if(strcmp(dir, curDir) == 0)
 		return 0;
@@ -43,7 +43,7 @@ myChdir(int8_t *dir)
 }
 
 int
-cdCreate(int8_t *dir, int8_t *file, int mode, uint32_t perm)
+cdCreate(char *dir, char *file, int mode, uint32_t perm)
 {
 	if(myChdir(dir) < 0)
 		return -1;
@@ -51,7 +51,7 @@ cdCreate(int8_t *dir, int8_t *file, int mode, uint32_t perm)
 }
 
 Dir*
-cdDirstat(int8_t *dir, int8_t *file)
+cdDirstat(char *dir, char *file)
 {
 	if(myChdir(dir) < 0)
 		return nil;
@@ -59,7 +59,7 @@ cdDirstat(int8_t *dir, int8_t *file)
 }
 
 int
-cdExists(int8_t *dir, int8_t *file)
+cdExists(char *dir, char *file)
 {
 	Dir *d;
 
@@ -71,7 +71,7 @@ cdExists(int8_t *dir, int8_t *file)
 }
 
 int
-cdDirwstat(int8_t *dir, int8_t *file, Dir *d)
+cdDirwstat(char *dir, char *file, Dir *d)
 {
 	if(myChdir(dir) < 0)
 		return -1;
@@ -79,7 +79,7 @@ cdDirwstat(int8_t *dir, int8_t *file, Dir *d)
 }
 
 int
-cdOpen(int8_t *dir, int8_t *file, int mode)
+cdOpen(char *dir, char *file, int mode)
 {
 	if(myChdir(dir) < 0)
 		return -1;
@@ -87,7 +87,7 @@ cdOpen(int8_t *dir, int8_t *file, int mode)
 }
 
 int
-cdRemove(int8_t *dir, int8_t *file)
+cdRemove(char *dir, char *file)
 {
 	if(myChdir(dir) < 0)
 		return -1;
@@ -127,7 +127,7 @@ mbUnlock(MbLock *ml)
 void
 mbLockRefresh(MbLock *ml)
 {
-	int8_t buf[1];
+	char buf[1];
 
 	seek(ml->fd, 0, 0);
 	read(ml->fd, buf, 1);
@@ -139,10 +139,10 @@ mbLocked(void)
 	return mLock.fd >= 0;
 }
 
-int8_t*
-impName(int8_t *name)
+char*
+impName(char *name)
 {
-	int8_t *s;
+	char *s;
 	int n;
 
 	if(cistrcmp(name, "inbox") == 0)
@@ -162,10 +162,10 @@ impName(int8_t *name)
  * massage the mailbox name into something valid
  * eliminates all .', and ..',s, redundatant and trailing /'s.
  */
-int8_t *
-mboxName(int8_t *s)
+char *
+mboxName(char *s)
 {
-	int8_t *ss;
+	char *ss;
 
 	ss = mutf7str(s);
 	if(ss == nil)
@@ -174,10 +174,10 @@ mboxName(int8_t *s)
 	return ss;
 }
 
-int8_t *
-strmutf7(int8_t *s)
+char *
+strmutf7(char *s)
 {
-	int8_t *m;
+	char *m;
 	int n;
 
 	n = strlen(s) * MUtf7Max + 1;
@@ -189,10 +189,10 @@ strmutf7(int8_t *s)
 	return m;
 }
 
-int8_t *
-mutf7str(int8_t *s)
+char *
+mutf7str(char *s)
 {
-	int8_t *m;
+	char *m;
 	int n;
 
 	/*
@@ -210,9 +210,9 @@ mutf7str(int8_t *s)
 }
 
 void
-splitr(int8_t *s, int c, int8_t **left, int8_t **right)
+splitr(char *s, int c, char **left, char **right)
 {
-	int8_t *d;
+	char *d;
 	int n;
 
 	n = strlen(s);
@@ -239,9 +239,9 @@ splitr(int8_t *s, int c, int8_t **left, int8_t **right)
  * return with the file open for write, or directory open for read.
  */
 int
-createBox(int8_t *mbox, int dir)
+createBox(char *mbox, int dir)
 {
-	int8_t *m;
+	char *m;
 	int fd;
 
 	fd = -1;
@@ -273,10 +273,10 @@ createBox(int8_t *mbox, int dir)
  * or a completely different directory.
  */
 int
-moveBox(int8_t *from, int8_t *to)
+moveBox(char *from, char *to)
 {
 	Dir *d;
-	int8_t *fd, *fe, *td, *te, *fimp;
+	char *fd, *fe, *td, *te, *fimp;
 
 	splitr(from, '/', &fd, &fe);
 	splitr(to, '/', &td, &te);
@@ -314,10 +314,10 @@ moveBox(int8_t *from, int8_t *to)
  * either truncates or removes the source box if it succeeds.
  */
 int
-copyBox(int8_t *from, int8_t *to, int doremove)
+copyBox(char *from, char *to, int doremove)
 {
 	MbLock *ml;
-	int8_t *fimp, *timp;
+	char *fimp, *timp;
 	int ffd, tfd, ok;
 
 	if(cistrcmp(from, "inbox") == 0)
@@ -379,7 +379,7 @@ static int
 copyData(int ffd, int tfd, MbLock *ml)
 {
 	Dir *fd, td;
-	int8_t buf[BufSize];
+	char buf[BufSize];
 	int n;
 
 	for(;;){

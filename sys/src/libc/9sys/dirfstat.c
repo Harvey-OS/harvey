@@ -36,7 +36,7 @@ dirfstat(int fd)
 		}
 		nd = GBIT16(buf);	/* upper bound on size of Dir + strings */
 		if(nd <= n){
-			convM2D(buf, n, d, (int8_t*)&d[1]);
+			convM2D(buf, n, d, (char*)&d[1]);
 			return d;
 		}
 		/* else sizeof(Dir)+BIT16SZ+nd is plenty */

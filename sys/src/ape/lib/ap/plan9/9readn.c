@@ -12,7 +12,7 @@
 int32_t
 _READN(int f, void *av, int32_t n)
 {
-	int8_t *a;
+	char *a;
 	int32_t m, t;
 
 	a = av;

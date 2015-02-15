@@ -16,7 +16,7 @@ extern int dbg;
 #define	abs(n)	(n >= 0 ? n : -(n))
 #define	max(x,y)	((x)>(y) ? (x) : (y))
 
-int8_t	*textshift = "\\v'.2m'";	/* move text this far down */
+char	*textshift = "\\v'.2m'";	/* move text this far down */
 
 /* scaling stuff defined by s command as X0,Y0 to X1,Y1 */
 /* output dimensions set by -l,-w options to 0,0 to hmax, vmax */
@@ -48,7 +48,7 @@ void	hgoto(double), vgoto(double), hmot(double), vmot(double);
 void	move(double, double), movehv(double, double);
 void	cont(double, double);
 
-void openpl(int8_t *s)	/* initialize device; s is residue of .PS invocation line */
+void openpl(char *s)	/* initialize device; s is residue of .PS invocation line */
 {
 	double maxw, maxh, ratio = 1;
 	double odeltx = deltx, odelty = delty;
@@ -111,7 +111,7 @@ double ysc(double y)	/* convert y from external to internal form, scaling only *
 	return (y) * yscale;
 }
 
-void closepl(int8_t *PEline)	/* clean up after finished */
+void closepl(char *PEline)	/* clean up after finished */
 {
 	movehv(0.0, 0.0);	/* get back to where we started */
 	if (strchr(PEline, 'F') == NULL) {
@@ -176,7 +176,7 @@ void flyback(void)	/* return to upper left corner (entry point) */
 	htrue = vtrue = 0;
 }
 
-void printlf(int n, int8_t *f)
+void printlf(int n, char *f)
 {
 	if (f)
 		printf(".lf %d %s\n", n, f);
@@ -184,15 +184,15 @@ void printlf(int n, int8_t *f)
 		printf(".lf %d\n", n);
 }
 
-void troff(int8_t *s)	/* output troff right here */
+void troff(char *s)	/* output troff right here */
 {
 	printf("%s\n", s);
 }
 
-void label(int8_t *s, int t, int nh)	/* text s of type t nh half-lines up */
+void label(char *s, int t, int nh)	/* text s of type t nh half-lines up */
 {
 	int q;
-	int8_t *p;
+	char *p;
 
 	if (!s)
 		return;

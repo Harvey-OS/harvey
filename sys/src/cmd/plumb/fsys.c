@@ -30,7 +30,7 @@ typedef struct Sendreq Sendreq;
 
 struct Dirtab
 {
-	int8_t		*name;
+	char		*name;
 	uint8_t	type;
 	uint		qid;
 	uint		perm;
@@ -50,7 +50,7 @@ struct Fid
 	Qid		qid;
 	Dirtab	*dir;
 	int32_t		offset;		/* zeroed at beginning of each message, read or write */
-	int8_t		*writebuf;		/* partial message written so far; offset tells how much */
+	char		*writebuf;		/* partial message written so far; offset tells how much */
 	Fid		*next;
 	Fid		*nextopen;
 };
@@ -69,7 +69,7 @@ struct Sendreq
 	int			nleft;		/* number left that haven't received it */
 	Fid			**fid;	/* fid[nfid] */
 	Plumbmsg	*msg;
-	int8_t			*pack;	/* plumbpack()ed message */
+	char			*pack;	/* plumbpack()ed message */
 	int			npack;	/* length of pack */
 	Sendreq		*next;
 };
@@ -114,11 +114,11 @@ static int		clock;
 static Fid		*fids[Nhash];
 static QLock	readlock;
 static QLock	queue;
-static int8_t	srvfile[128];
+static char	srvfile[128];
 static int		messagesize = 8192+IOHDRSZ;	/* good start */
 
 static void	fsysproc(void*);
-static void fsysrespond(Fcall*, uint8_t*, int8_t*);
+static void fsysrespond(Fcall*, uint8_t*, char*);
 static Fid*	newfid(int);
 
 static Fcall* fsysflush(Fcall*, uint8_t*, Fid*);
@@ -152,22 +152,22 @@ Fcall* 	(*fcall[Tmax])(Fcall*, uint8_t*, Fid*) =
 	[Twstat]	= fsyswstat,
 };
 
-int8_t	Ebadfcall[] =	"bad fcall type";
-int8_t	Eperm[] = 	"permission denied";
-int8_t	Enomem[] =	"malloc failed for buffer";
-int8_t	Enotdir[] =	"not a directory";
-int8_t	Enoexist[] =	"plumb file does not exist";
-int8_t	Eisdir[] =		"file is a directory";
-int8_t	Ebadmsg[] =	"bad plumb message format";
-int8_t Enosuchport[] ="no such plumb port";
-int8_t Enoport[] =	"couldn't find destination for message";
-int8_t	Einuse[] = 	"file already open";
+char	Ebadfcall[] =	"bad fcall type";
+char	Eperm[] = 	"permission denied";
+char	Enomem[] =	"malloc failed for buffer";
+char	Enotdir[] =	"not a directory";
+char	Enoexist[] =	"plumb file does not exist";
+char	Eisdir[] =		"file is a directory";
+char	Ebadmsg[] =	"bad plumb message format";
+char Enosuchport[] ="no such plumb port";
+char Enoport[] =	"couldn't find destination for message";
+char	Einuse[] = 	"file already open";
 
 /*
  * Add new port.  A no-op if port already exists or is the null string
  */
 void
-addport(int8_t *port)
+addport(char *port)
 {
 	int i;
 
@@ -185,14 +185,14 @@ addport(int8_t *port)
 	dir[i].qid = i;
 	dir[i].perm = 0400;
 	nports++;
-	ports = erealloc(ports, nports*sizeof(int8_t*));
+	ports = erealloc(ports, nports*sizeof(char*));
 	ports[nports-1] = dir[i].name;
 }
 
 static uint32_t
 getclock(void)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	seek(clockfd, 0, 0);
 	read(clockfd, buf, sizeof buf);
@@ -274,7 +274,7 @@ fsysproc(void*)
 }
 
 static void
-fsysrespond(Fcall *t, uint8_t *buf, int8_t *err)
+fsysrespond(Fcall *t, uint8_t *buf, char *err)
 {
 	int n;
 
@@ -533,7 +533,7 @@ static void
 dispose(Fcall *t, uint8_t *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
 {
 	int i;
-	int8_t *err;
+	char *err;
 
 	qlock(&queue);
 	err = nil;
@@ -636,7 +636,7 @@ fsyswalk(Fcall *t, uint8_t *buf, Fid *f)
 	Qid q;
 	int i;
 	uint8_t type;
-	int8_t *err;
+	char *err;
 
 	if(f->open){
 		fsysrespond(t, buf, "clone of an open fid");
@@ -779,7 +779,7 @@ fsyscreate(Fcall *t, uint8_t *buf, Fid*)
 static Fcall*
 fsysreadrules(Fcall *t, uint8_t *buf)
 {
-	int8_t *p;
+	char *p;
 	int n;
 
 	p = printrules();
@@ -839,7 +839,7 @@ fsysread(Fcall *t, uint8_t *buf, Fid *f)
 			n += len;
 		d++;
 	}
-	t->data = (int8_t*)b;
+	t->data = (char*)b;
 	t->count = n;
 	fsysrespond(t, buf, nil);
 	free(b);
@@ -852,7 +852,7 @@ fsyswrite(Fcall *t, uint8_t *buf, Fid *f)
 	Plumbmsg *m;
 	int i, n;
 	int32_t count;
-	int8_t *data;
+	char *data;
 	Exec *e;
 
 	switch((int)f->qid.path){

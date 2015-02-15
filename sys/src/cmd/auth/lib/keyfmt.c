@@ -19,7 +19,7 @@ int
 keyfmt(Fmt *f)
 {
 	uint8_t key[8];
-	int8_t buf[32];
+	char buf[32];
 	uint8_t *k;
 	int i;
 

@@ -50,15 +50,15 @@ static int		colormapsize[] = { 2, 4, 16, 256, 256 };	/* 2 for zero is an odd pro
 static void		writeheader(Biobuf*, Rectangle, int, uint32_t,
 				       int);
 static void		writedescriptor(Biobuf*, Rectangle);
-static int8_t*	writedata(Biobuf*, Image*, Memimage*);
+static char*	writedata(Biobuf*, Image*, Memimage*);
 static void		writetrailer(Biobuf *fd);
-static void		writecomment(Biobuf *fd, int8_t*);
+static void		writecomment(Biobuf *fd, char*);
 static void		writegraphiccontrol(Biobuf *fd, int, int);
 static void*	gifmalloc(uint32_t);
 static void		encode(Biobuf*, Rectangle, int, uint8_t*, uint);
 
 static
-int8_t*
+char*
 startgif0(Biobuf *fd, uint32_t chan, Rectangle r, int depth, int loopcount)
 {
 	int i;
@@ -82,24 +82,24 @@ startgif0(Biobuf *fd, uint32_t chan, Rectangle r, int depth, int loopcount)
 	return nil;
 }
 
-int8_t*
+char*
 startgif(Biobuf *fd, Image *image, int loopcount)
 {
 	return startgif0(fd, image->chan, image->r, image->depth, loopcount);
 }
 
-int8_t*
+char*
 memstartgif(Biobuf *fd, Memimage *memimage, int loopcount)
 {
 	return startgif0(fd, memimage->chan, memimage->r, memimage->depth, loopcount);
 }
 
 static
-int8_t*
+char*
 writegif0(Biobuf *fd, Image *image, Memimage *memimage, uint32_t chan,
-	  Rectangle r, int8_t *comment, int dt, int trans)
+	  Rectangle r, char *comment, int dt, int trans)
 {
-	int8_t *err;
+	char *err;
 
 	switch(chan){
 	case GREY1:
@@ -123,14 +123,14 @@ writegif0(Biobuf *fd, Image *image, Memimage *memimage, uint32_t chan,
 	return nil;
 }
 
-int8_t*
-writegif(Biobuf *fd, Image *image, int8_t *comment, int dt, int trans)
+char*
+writegif(Biobuf *fd, Image *image, char *comment, int dt, int trans)
 {
 	return writegif0(fd, image, nil, image->chan, image->r, comment, dt, trans);
 }
 
-int8_t*
-memwritegif(Biobuf *fd, Memimage *memimage, int8_t *comment, int dt,
+char*
+memwritegif(Biobuf *fd, Memimage *memimage, char *comment, int dt,
 	    int trans)
 {
 	return writegif0(fd, nil, memimage, memimage->chan, memimage->r, comment, dt, trans);
@@ -255,7 +255,7 @@ writeheader(Biobuf *fd, Rectangle r, int depth, uint32_t chan, int loopcount)
  */
 static
 void
-writecomment(Biobuf *fd, int8_t *comment)
+writecomment(Biobuf *fd, char *comment)
 {
 	int n;
 
@@ -339,10 +339,10 @@ writedescriptor(Biobuf *fd, Rectangle r)
  * Write data
  */
 static
-int8_t*
+char*
 writedata(Biobuf *fd, Image *image, Memimage *memimage)
 {
-	int8_t *err;
+	char *err;
 	uint8_t *data;
 	int ndata, depth;
 	Rectangle r;

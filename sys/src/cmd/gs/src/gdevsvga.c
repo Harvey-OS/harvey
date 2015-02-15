@@ -465,7 +465,7 @@ svga_put_params(gx_device * dev, gs_param_list * plist)
 {
     int ecode = 0;
     int code;
-    const int8_t *param_name;
+    const char *param_name;
 
     if ((code = ecode) < 0 ||
 	(code = gx_default_put_params(dev, plist)) < 0
@@ -592,7 +592,7 @@ svga_device(vesa_procs, "vesa", vesa_get_mode, vesa_set_mode, vesa_set_page);
 typedef struct {
     byte vesa_signature[4];	/* "VESA" */
     uint16_t vesa_version;
-    int8_t *product_info;		/* product name string */
+    char *product_info;		/* product name string */
     byte capabilities[4];	/* (undefined) */
     uint16_t *mode_list;		/* supported video modes, -1 ends */
 } vga_bios_info;

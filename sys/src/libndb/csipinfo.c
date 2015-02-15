@@ -20,13 +20,13 @@
  *  return nil if not found.
  */
 Ndbtuple*
-csipinfo(int8_t *netroot, int8_t *attr, int8_t *val, int8_t **list, int n)
+csipinfo(char *netroot, char *attr, char *val, char **list, int n)
 {
 	Ndbtuple *t, *first, *last;
 	int i;
-	int8_t line[1024];
+	char line[1024];
 	int fd;
-	int8_t *p, *e;
+	char *p, *e;
 
 	if(netroot)
 		snprint(line, sizeof(line), "%s/cs", netroot);

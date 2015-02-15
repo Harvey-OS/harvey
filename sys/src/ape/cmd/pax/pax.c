@@ -67,8 +67,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: pax.c,v 1.2 89/02/12 10:05:17 mark Exp $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: pax.c,v 1.2 89/02/12 10:05:17 mark Exp $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -80,12 +80,12 @@ static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights rese
 
 /* Globally Available Identifiers */
 
-int8_t           *ar_file;		/* File containing name of archive */
-int8_t           *bufend;			/* End of data within archive buffer */
-int8_t           *bufstart;		/* Archive buffer */
-int8_t           *bufidx;			/* Archive buffer index */
-int8_t           *myname;			/* name of executable (argv[0]) */
-int8_t          **n_argv;			/* Argv used by name routines */
+char           *ar_file;		/* File containing name of archive */
+char           *bufend;			/* End of data within archive buffer */
+char           *bufstart;		/* Archive buffer */
+char           *bufidx;			/* Archive buffer index */
+char           *myname;			/* name of executable (argv[0]) */
+char          **n_argv;			/* Argv used by name routines */
 int             n_argc;			/* Argc used by name routines */
 int             archivefd;		/* Archive file descriptor */
 int             blocking;		/* Size of each block, in records */
@@ -131,7 +131,7 @@ Replstr        *rpltail;		/* pointer to tail of replstr list */
 #ifdef __STDC__
 
 static void 	usage(void);
-static OFFSET   pax_optsize(int8_t *);
+static OFFSET   pax_optsize(char *);
 
 #else /* !__STDC__ */
 
@@ -159,7 +159,7 @@ static OFFSET   pax_optsize();
 
 #ifdef __STDC__
 
-int main(int argc, int8_t **argv)
+int main(int argc, char **argv)
 
 #else
 
@@ -170,7 +170,7 @@ char          **argv;
 #endif
 {
     /* strip the pathname off of the name of the executable */
-    if ((myname = strrchr(argv[0], '/')) != (int8_t *)NULL) {
+    if ((myname = strrchr(argv[0], '/')) != (char *)NULL) {
 	myname++;
     } else {
 	myname = argv[0];
@@ -223,7 +223,7 @@ char          **argv;
 
 #ifdef __STDC__
 
-int do_pax(int ac, int8_t **av)
+int do_pax(int ac, char **av)
 
 #else
 
@@ -234,7 +234,7 @@ char          **av;		/* arguments */
 #endif
 {
     int             c;
-    int8_t	   *dirname;
+    char	   *dirname;
     Stat	    st;
 
     /* default input/output file for PAX is STDIN/STDOUT */
@@ -456,7 +456,7 @@ void get_archive_type()
 
 #ifdef __STDC__
 
-static OFFSET pax_optsize(int8_t *str)
+static OFFSET pax_optsize(char *str)
 
 #else
 
@@ -465,7 +465,7 @@ char           *str;		/* pointer to string to interpret */
 
 #endif
 {
-    int8_t           *idx;
+    char           *idx;
     OFFSET          number;	/* temporary storage for current number */
     OFFSET          result;	/* cumulative total to be returned to caller */
 

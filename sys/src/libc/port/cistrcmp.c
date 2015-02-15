@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-cistrcmp(int8_t *s1, int8_t *s2)
+cistrcmp(char *s1, char *s2)
 {
 	int c1, c2;
 

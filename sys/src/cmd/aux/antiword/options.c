@@ -24,7 +24,7 @@
 #else
 #include <stdlib.h>
 #if defined(__dos) || defined(N_PLAT_NLM)
-extern int getopt(int, int8_t **, const int8_t *);
+extern int getopt(int, char **, const char *);
 #else
 #include <unistd.h>
 #endif /* __dos */
@@ -49,7 +49,7 @@ static options_type	tOptionsCurr;
 static options_type	tOptionsTemp;
 #else
 typedef struct papersize_tag {
-	int8_t	szName[16];	/* Papersize name */
+	char	szName[16];	/* Papersize name */
 	USHORT	usWidth;	/* In points */
 	USHORT	usHeight;	/* In points */
 } papersize_type;
@@ -101,7 +101,7 @@ static const options_type	tOptionsDefault = {
  * TRUE if the papersize is correct, otherwise FALSE
  */
 static BOOL
-bCorrectPapersize(const int8_t *szName, conversion_type eConversionType)
+bCorrectPapersize(const char *szName, conversion_type eConversionType)
 {
 	const papersize_type	*pPaperSize;
 
@@ -126,10 +126,10 @@ bCorrectPapersize(const int8_t *szName, conversion_type eConversionType)
  *
  * Returns the suffix
  */
-static const int8_t *
-szCreateSuffix(const int8_t *szLeafname)
+static const char *
+szCreateSuffix(const char *szLeafname)
 {
-	const int8_t	*pcDot;
+	const char	*pcDot;
 
 	pcDot = strrchr(szLeafname, '.');
 	if (pcDot != NULL && STRCEQ(pcDot, ".txt")) {
@@ -143,9 +143,9 @@ szCreateSuffix(const int8_t *szLeafname)
  * eMappingFile2Encoding - convert the mapping file to an encoding
  */
 static encoding_type
-eMappingFile2Encoding(const int8_t *szLeafname)
+eMappingFile2Encoding(const char *szLeafname)
 {
-	int8_t	szMappingFile[LEAFNAME_SIZE+4];
+	char	szMappingFile[LEAFNAME_SIZE+4];
 
 	fail(szLeafname == NULL);
 
@@ -183,13 +183,13 @@ eMappingFile2Encoding(const int8_t *szLeafname)
  * Returns the file pointer or NULL
  */
 static FILE *
-pOpenCharacterMappingFile(const int8_t *szLeafname)
+pOpenCharacterMappingFile(const char *szLeafname)
 {
 #if !defined(__riscos)
 	FILE	*pFile;
-	const int8_t	*szHome, *szAntiword, *szSuffix;
+	const char	*szHome, *szAntiword, *szSuffix;
 	size_t	tFilenameLen;
-	int8_t	szMappingFile[PATH_MAX+1];
+	char	szMappingFile[PATH_MAX+1];
 #endif /* !__riscos */
 
 	if (szLeafname == NULL || szLeafname[0] == '\0') {
@@ -285,19 +285,19 @@ vCloseCharacterMappingFile(FILE *pFile)
  *		>0: index first file argument
  */
 int
-iReadOptions(int argc, int8_t **argv)
+iReadOptions(int argc, char **argv)
 {
 #if defined(__riscos)
 	FILE	*pFile;
-	const int8_t	*szAlphabet;
+	const char	*szAlphabet;
 	int	iAlphabet;
-	int8_t	szLine[81];
+	char	szLine[81];
 #else
-	extern	int8_t	*optarg;
+	extern	char	*optarg;
 	extern int	optind;
-	int8_t	*pcChar, *szTmp;
+	char	*pcChar, *szTmp;
 	int	iChar;
-	int8_t	szLeafname[LEAFNAME_SIZE];
+	char	szLeafname[LEAFNAME_SIZE];
 #endif /* __riscos */
 	FILE	*pCharacterMappingFile;
 	int	iTmp;
@@ -559,7 +559,7 @@ static void
 vWriteOptions(void)
 {
 	FILE	*pFile;
-	int8_t	*szOptionsFile;
+	char	*szOptionsFile;
 
 	TRACE_MSG("vWriteOptions");
 
@@ -906,7 +906,7 @@ bChoicesKeyPressed(event_pollblock *pEvent, void *pvReference)
 {
 	icon_block	tIcon;
 	caret_block	*pCaret;
-	int8_t		*pcChar;
+	char		*pcChar;
 	int		iNumber;
 
 	DBG_MSG("bChoicesKeyPressed");

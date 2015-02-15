@@ -57,7 +57,7 @@ fsm_table(void)
 	{	o_max = max_st_id;
 		fsm_tbl = (FSM_state **) emalloc(max_st_id * sizeof(FSM_state *));
 	} else
-		memset((int8_t *)fsm_tbl, 0, max_st_id * sizeof(FSM_state *));
+		memset((char *)fsm_tbl, 0, max_st_id * sizeof(FSM_state *));
 	cur_st_id = max_st_id;
 	max_st_id = 0;
 
@@ -79,7 +79,7 @@ FSM_DFS(int from, FSM_use *u)
 
 	if (!f)
 	{	printf("cannot find state %d\n", from);
-		fatal("fsm_dfs: cannot happen\n", (int8_t *) 0);
+		fatal("fsm_dfs: cannot happen\n", (char *) 0);
 	}
 
 	if (f->seen)
@@ -210,7 +210,7 @@ static void
 popbuild(void)
 {	BuildStack *f;
 	if (!bs)
-		fatal("cannot happen, popbuild", (int8_t *) 0);
+		fatal("cannot happen, popbuild", (char *) 0);
 	f = bs;
 	bs = bs->nxt;
 	f->nxt = bf;
@@ -692,7 +692,7 @@ ana_stmnt(FSM_trans *t, Lextok *now, int usage)
 	default:
 		printf("spin: %s:%d, bad node type %d (ana_stmnt)\n",
 			now->fn->name, now->ln, now->ntyp);
-		fatal("aborting", (int8_t *) 0);
+		fatal("aborting", (char *) 0);
 	}
 }
 
@@ -768,7 +768,7 @@ markit:			fprintf(f2, "\tIs_Recv[%d] = 1;\n", e->Seqno);
 			switch (s->frst->n->ntyp) {
 			case DO:
 				fatal("unexpected: do at start of d_step",
-				      (int8_t *) 0);
+				      (char *) 0);
 			case IF: /* conservative: fall through */
 			case 'r': goto markit;
 			}

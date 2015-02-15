@@ -257,7 +257,7 @@ setup_cube(gx_device_X * xdev, int ramp_size, bool colors)
 int
 gdev_x_setup_colors(gx_device_X * xdev)
 {
-    int8_t palette =
+    char palette =
 	((xdev->vinfo->class != StaticGray) &&
 	 (xdev->vinfo->class != GrayScale) ? 'C' :	/* Color */
 	 (xdev->vinfo->colormap_size > 2) ? 'G' :		/* GrayScale */
@@ -268,7 +268,7 @@ gdev_x_setup_colors(gx_device_X * xdev)
 	Atom type;
 	int format;
 	unsigned long nitems, bytes_after;
-	int8_t *buf;
+	char *buf;
 
 	/* Delete property if explicit dest is given */
 	if (XGetWindowProperty(xdev->dpy, xdev->win, gv_colors, 0,

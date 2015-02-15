@@ -47,7 +47,7 @@ static Pcidev* pciroot;
 static Pcidev* pcilist;
 static Pcidev* pcitail;
 
-static int8_t* bustypes[] = {
+static char* bustypes[] = {
 	"CBUSI",
 	"CBUSII",
 	"EISA",
@@ -73,7 +73,7 @@ static	int	pcicfgrw(int, int, int, int, int);
 static int
 tbdffmt(Fmt* fmt)
 {
-	int8_t *p;
+	char *p;
 	int l, r;
 	uint type, tbdf;
 

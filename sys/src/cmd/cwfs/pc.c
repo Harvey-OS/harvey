@@ -17,8 +17,8 @@ mconfinit(void)
 {
 	int nf, pgsize = 0;
 	uint32_t size, userpgs = 0, userused = 0;
-	int8_t *ln, *sl;
-	int8_t *fields[2];
+	char *ln, *sl;
+	char *fields[2];
 	Biobuf *bp;
 	Mbank *mbp;
 
@@ -66,11 +66,11 @@ meminit(void)
  * actually just sets the arguments displayed.
  */
 void
-procsetname(int8_t *fmt, ...)
+procsetname(char *fmt, ...)
 {
 	int fd;
-	int8_t *cmdname;
-	int8_t buf[128];
+	char *cmdname;
+	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -87,7 +87,7 @@ procsetname(int8_t *fmt, ...)
 }
 
 void
-newproc(void (*f)(void *), void *arg, int8_t *text)
+newproc(void (*f)(void *), void *arg, char *text)
 {
 	int kid = rfork(RFPROC|RFMEM|RFNOWAIT);
 

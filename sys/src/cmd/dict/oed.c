@@ -996,17 +996,17 @@ static Rune suptab[128] = {
 };
 
 static int	tagstarts;
-static int8_t	tag[Buflen];
+static char	tag[Buflen];
 static int	naux;
-static int8_t	auxname[Maxaux][Buflen];
-static int8_t	auxval[Maxaux][Buflen];
-static int8_t	spec[Buflen];
-static int8_t	*auxstate[Naux];	/* vals for most recent tag */
+static char	auxname[Maxaux][Buflen];
+static char	auxval[Maxaux][Buflen];
+static char	spec[Buflen];
+static char	*auxstate[Naux];	/* vals for most recent tag */
 static Entry	curentry;
 #define cursize (curentry.end-curentry.start)
 
-static int8_t	*getspec(int8_t *, int8_t *);
-static int8_t	*gettag(int8_t *, int8_t *);
+static char	*getspec(char *, char *);
+static char	*gettag(char *, char *);
 static void	dostatus(void);
 
 /*
@@ -1018,7 +1018,7 @@ static void	dostatus(void);
 void
 oedprintentry(Entry e, int cmd)
 {
-	int8_t *p, *pe;
+	char *p, *pe;
 	int t, a, i;
 	int32_t r, rprev, rlig;
 	Rune *transtab;
@@ -1242,7 +1242,7 @@ oednextoff(int32_t fromoff)
 	return (Boffset(bdict)-n);
 }
 
-static int8_t *prkey =
+static char *prkey =
 "KEY TO THE PRONUNCIATION\n"
 "\n"
 "I. CONSONANTS\n"
@@ -1347,10 +1347,10 @@ oedprintkey(void)
  * and continuing until the next '.', in spec[].
  * Return pointer to char after '.'.
  */
-static int8_t *
-getspec(int8_t *f, int8_t *fe)
+static char *
+getspec(char *f, char *fe)
 {
-	int8_t *t;
+	char *t;
 	int c, i;
 
 	t = spec;
@@ -1376,10 +1376,10 @@ getspec(int8_t *f, int8_t *fe)
  * Set naux to the number of aux pairs found.
  * Return pointer to after final '>'.
  */
-static int8_t *
-gettag(int8_t *f, int8_t *fe)
+static char *
+gettag(char *f, char *fe)
 {
-	int8_t *t;
+	char *t;
 	int c, i;
 
 	t = tag;
@@ -1416,7 +1416,7 @@ gettag(int8_t *f, int8_t *fe)
 static void
 dostatus(void)
 {
-	int8_t *s;
+	char *s;
 
 	s = auxstate[St];
 	if(s) {

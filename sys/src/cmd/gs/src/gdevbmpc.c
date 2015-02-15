@@ -128,7 +128,7 @@ write_bmp_depth_header(gx_device_printer *pdev, FILE *file, int depth,
 	BMP_ASSIGN_DWORD(fhdr.offBits,
 		     sizeof_bmp_file_header +
 		     sizeof(bmp_info_header) + quads);
-	if (fwrite((const int8_t *)&fhdr, 1, sizeof(fhdr), file) != sizeof(fhdr))
+	if (fwrite((const char *)&fhdr, 1, sizeof(fhdr), file) != sizeof(fhdr))
 	    return_error(gs_error_ioerror);
     }
 
@@ -157,7 +157,7 @@ write_bmp_depth_header(gx_device_printer *pdev, FILE *file, int depth,
 #undef INCHES_PER_METER
 	BMP_ASSIGN_DWORD(ihdr.clrUsed, 0);
 	BMP_ASSIGN_DWORD(ihdr.clrImportant, 0);
-	if (fwrite((const int8_t *)&ihdr, 1, sizeof(ihdr), file) != sizeof(ihdr))
+	if (fwrite((const char *)&ihdr, 1, sizeof(ihdr), file) != sizeof(ihdr))
 	    return_error(gs_error_ioerror);
     }
 

@@ -40,20 +40,20 @@
  */
 
 #if BITS_IN_JSAMPLE == 8
-#define PUTPPMSAMPLE(ptr,v)  *ptr++ = (int8_t) (v)
+#define PUTPPMSAMPLE(ptr,v)  *ptr++ = (char) (v)
 #define BYTESPERSAMPLE 1
 #define PPM_MAXVAL 255
 #else
 #ifdef PPM_NORAWWORD
-#define PUTPPMSAMPLE(ptr,v)  *ptr++ = (int8_t) ((v) >> (BITS_IN_JSAMPLE-8))
+#define PUTPPMSAMPLE(ptr,v)  *ptr++ = (char) ((v) >> (BITS_IN_JSAMPLE-8))
 #define BYTESPERSAMPLE 1
 #define PPM_MAXVAL 255
 #else
 /* The word-per-sample format always puts the LSB first. */
 #define PUTPPMSAMPLE(ptr,v)			\
 	{ register int val_ = v;		\
-	  *ptr++ = (int8_t) (val_ & 0xFF);	\
-	  *ptr++ = (int8_t) ((val_ >> 8) & 0xFF);	\
+	  *ptr++ = (char) (val_ & 0xFF);	\
+	  *ptr++ = (char) ((val_ >> 8) & 0xFF);	\
 	}
 #define BYTESPERSAMPLE 2
 #define PPM_MAXVAL ((1<<BITS_IN_JSAMPLE)-1)
@@ -78,7 +78,7 @@ typedef struct {
   struct djpeg_dest_struct pub;	/* public fields */
 
   /* Usually these two pointers point to the same place: */
-  int8_t *iobuffer;		/* fwrite's I/O buffer */
+  char *iobuffer;		/* fwrite's I/O buffer */
   JSAMPROW pixrow;		/* decompressor output buffer */
   size_t buffer_width;		/* width of I/O buffer */
   JDIMENSION samples_per_row;	/* JSAMPLEs per output row */

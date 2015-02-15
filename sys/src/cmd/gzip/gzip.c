@@ -13,8 +13,8 @@
 #include <flate.h>
 #include "gzip.h"
 
-static	int	gzipf(int8_t*, int);
-static	int	gzip(int8_t*, int32_t, int, Biobuf*);
+static	int	gzipf(char*, int);
+static	int	gzip(char*, int32_t, int, Biobuf*);
 static	int	crcread(void *fd, void *buf, int n);
 static	int	gzwrite(void *bout, void *buf, int n);
 
@@ -78,10 +78,10 @@ main(int argc, char *argv[])
 }
 
 static int
-gzipf(int8_t *file, int stdout)
+gzipf(char *file, int stdout)
 {
 	Dir *dir;
-	int8_t ofile[256], *f, *s;
+	char ofile[256], *f, *s;
 	int ifd, ofd, ok;
 
 	ifd = open(file, OREAD);
@@ -143,7 +143,7 @@ gzipf(int8_t *file, int stdout)
 }
 
 static int
-gzip(int8_t *file, int32_t mtime, int ifd, Biobuf *bout)
+gzip(char *file, int32_t mtime, int ifd, Biobuf *bout)
 {
 	int flags, err;
 
@@ -196,7 +196,7 @@ crcread(void *fd, void *buf, int n)
 
 	nr = 0;
 	for(; !eof && n > 0; n -= m){
-		m = read((int)(uintptr)fd, (int8_t*)buf+nr, n);
+		m = read((int)(uintptr)fd, (char*)buf+nr, n);
 		if(m <= 0){
 			eof = 1;
 			if(m < 0)

@@ -24,7 +24,7 @@ enum {
  *  a hash table length (hlen)
  */
 uint32_t
-ndbhash(int8_t *vp, int hlen)
+ndbhash(char *vp, int hlen)
 {
 	uint32_t hash;
 	uint8_t *val = (uint8_t*)vp;
@@ -57,10 +57,10 @@ hfread(Ndbhf *hf, int32_t off, int len)
  *  base file
  */
 static Ndbhf*
-hfopen(Ndb *db, int8_t *attr)
+hfopen(Ndb *db, char *attr)
 {
 	Ndbhf *hf;
-	int8_t buf[sizeof(hf->attr)+sizeof(db->file)+2];
+	char buf[sizeof(hf->attr)+sizeof(db->file)+2];
 	uint8_t *p;
 	Dir *d;
 
@@ -121,7 +121,7 @@ hfopen(Ndb *db, int8_t *attr)
  *  return the first matching entry
  */
 Ndbtuple*
-ndbsearch(Ndb *db, Ndbs *s, int8_t *attr, int8_t *val)
+ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 {
 	uint8_t *p;
 	Ndbtuple *t;
@@ -178,7 +178,7 @@ ndbsearch(Ndb *db, Ndbs *s, int8_t *attr, int8_t *val)
 }
 
 static Ndbtuple*
-match(Ndbtuple *t, int8_t *attr, int8_t *val)
+match(Ndbtuple *t, char *attr, char *val)
 {
 	Ndbtuple *nt;
 
@@ -193,7 +193,7 @@ match(Ndbtuple *t, int8_t *attr, int8_t *val)
  *  return the next matching entry in the hash chain
  */
 Ndbtuple*
-ndbsnext(Ndbs *s, int8_t *attr, int8_t *val)
+ndbsnext(Ndbs *s, char *attr, char *val)
 {
 	Ndbtuple *t;
 	Ndb *db;

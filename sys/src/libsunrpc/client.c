@@ -18,7 +18,7 @@
 typedef struct Out Out;
 struct Out
 {
-	int8_t err[ERRMAX];	/* error string */
+	char err[ERRMAX];	/* error string */
 	Channel *creply;	/* send to finish rpc */
 	uint8_t *p;			/* pending request packet */
 	int n;				/* size of request */
@@ -316,7 +316,7 @@ Done:
 }
 
 SunClient*
-sunDial(int8_t *address)
+sunDial(char *address)
 {
 	int fd;
 	SunClient *cli;

@@ -34,14 +34,14 @@ enum
  *  for inet addresses only
  */
 struct servent*
-getservbyname(int8_t *name, int8_t *proto)
+getservbyname(char *name, char *proto)
 {
 	int i, fd, m, num;
-	int8_t *p, *bp;
+	char *p, *bp;
 	int nn, na;
 	static struct servent s;
-	static int8_t buf[1024];
-	static int8_t *nptr[Nname+1];
+	static char buf[1024];
+	static char *nptr[Nname+1];
 
 	num = 1;
 	for(p = name; *p; p++)

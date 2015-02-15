@@ -14,14 +14,14 @@
 int
 encodefmt(Fmt *f)
 {
-	int8_t *out;
-	int8_t *buf;
+	char *out;
+	char *buf;
 	int len;
 	int ilen;
 	int rv;
 	uint8_t *b;
-	int8_t *p;
-	int8_t obuf[64];	// rsc optimization
+	char *p;
+	char obuf[64];	// rsc optimization
 
 	if(!(f->flags&FmtPrec) || f->prec < 1)
 		goto error;

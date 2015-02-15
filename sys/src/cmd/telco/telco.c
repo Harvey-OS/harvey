@@ -41,7 +41,7 @@ struct Fid
 	int16_t	open;
 	int	fid;
 	Fid	*next;
-	int8_t	*user;
+	char	*user;
 };
 
 struct Request
@@ -133,12 +133,12 @@ enum
 
 struct Type
 {
-	int8_t	*name;
-	int8_t	*ident;		/* inquire request */
-	int8_t	*response;	/* inquire response (strstr) */
-	int8_t	*basetype;	/* name of base type */
+	char	*name;
+	char	*ident;		/* inquire request */
+	char	*response;	/* inquire response (strstr) */
+	char	*basetype;	/* name of base type */
 
-	int8_t	*commands[Ncommand];
+	char	*commands[Ncommand];
 };
 
 /*
@@ -231,7 +231,7 @@ enum
 typedef struct Msg	Msg;
 struct Msg
 {
-	int8_t	*text;
+	char	*text;
 	int	type;
 };
 
@@ -251,41 +251,41 @@ Fid	*fids;
 Dev	*dev;
 int	ndev;
 int	mfd[2];
-int8_t	*user;
+char	*user;
 uint8_t	mdata[8192+IOHDRSZ];
 int	messagesize = sizeof mdata;
 Fcall	thdr;
 Fcall	rhdr;
-int8_t	errbuf[ERRMAX];
+char	errbuf[ERRMAX];
 uint8_t	statbuf[STATMAX];
 int	pulsed;
 int	verbose;
 int	maxspeed = 56000;
-int8_t	*srcid = "plan9";
+char	*srcid = "plan9";
 int	answer = 1;
 
 Fid	*newfid(int);
 int	devstat(Dir*, uint8_t*, int);
 int	devgen(Qid, int, Dir*, uint8_t*, int);
-void	error(int8_t*);
+void	error(char*);
 void	io(void);
 void	*erealloc(void*, uint32_t);
 void	*emalloc(uint32_t);
 void	usage(void);
 int	perm(Fid*, Dev*, int);
 void	setspeed(Dev*, int);
-int	getspeed(int8_t*, int);
-int8_t	*dialout(Dev*, int8_t*);
+int	getspeed(char*, int);
+char	*dialout(Dev*, char*);
 void	onhook(Dev*);
-int	readmsg(Dev*, int, int8_t*);
+int	readmsg(Dev*, int, char*);
 void	monitor(Dev*);
-int	getinput(Dev*, int8_t*, int);
+int	getinput(Dev*, char*, int);
 void	serve(Dev*);
 void	receiver(Dev*);
-int8_t*	modemtype(Dev*, int, int);
+char*	modemtype(Dev*, int, int);
 
 
-int8_t	*rflush(Fid*), *rversion(Fid*),
+char	*rflush(Fid*), *rversion(Fid*),
 	*rattach(Fid*), *rauth(Fid*), *rwalk(Fid*),
 	*ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
@@ -307,16 +307,16 @@ char 	*(*fcalls[])(Fid*) = {
 	[Twstat]	rwstat,
 };
 
-int8_t	Eperm[] =	"permission denied";
-int8_t	Enotdir[] =	"not a directory";
-int8_t	Enotexist[] =	"file does not exist";
-int8_t	Ebadaddr[] = 	"bad address";
-int8_t	Eattn[] = 	"can't get modem's attention";
-int8_t	Edial[] = 	"can't dial";
-int8_t	Enoauth[] =	"telco: authentication not required";
-int8_t	Eisopen[] = 	"file already open for I/O";
-int8_t	Enodev[] = 	"no free modems";
-int8_t	Enostream[] =	"stream closed prematurely";
+char	Eperm[] =	"permission denied";
+char	Enotdir[] =	"not a directory";
+char	Enotexist[] =	"file does not exist";
+char	Ebadaddr[] = 	"bad address";
+char	Eattn[] = 	"can't get modem's attention";
+char	Edial[] = 	"can't dial";
+char	Enoauth[] =	"telco: authentication not required";
+char	Eisopen[] = 	"file already open for I/O";
+char	Enodev[] = 	"no free modems";
+char	Enostream[] =	"stream closed prematurely";
 
 void
 usage(void)
@@ -326,7 +326,7 @@ usage(void)
 }
 
 void
-notifyf(void *a, int8_t *s)
+notifyf(void *a, char *s)
 {
 	USED(a);
 	if(strncmp(s, "interrupt", 9) == 0)
@@ -417,7 +417,7 @@ devstat(Dir *dir, uint8_t *buf, int nbuf)
 {
 	Dev *d;
 	int t;
-	static int8_t tmp[10][32];
+	static char tmp[10][32];
 	static int ntmp;
 
 	t = TYPE(dir->qid);
@@ -513,7 +513,7 @@ devgen(Qid q, int i, Dir *d, uint8_t *buf, int nbuf)
 	return devstat(d, buf, nbuf);
 }
 
-int8_t*
+char*
 rversion(Fid *)
 {
 	Fid *f;
@@ -534,7 +534,7 @@ rversion(Fid *)
 	return 0;
 }
 
-int8_t*
+char*
 rflush(Fid *f)
 {
 	Request *r, **l;
@@ -554,14 +554,14 @@ rflush(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rauth(Fid *f)
 {
 	USED(f);
 	return Enoauth;
 }
 
-int8_t*
+char*
 rattach(Fid *f)
 {
 	f->busy = 1;
@@ -576,12 +576,12 @@ rattach(Fid *f)
 	return 0;
 }
 
-int8_t*
+char*
 rwalk(Fid *f)
 {
 	Fid *nf;
 	int i, nqid;
-	int8_t *name, *err;
+	char *name, *err;
 	Dir dir;
 	Qid q;
 
@@ -639,7 +639,7 @@ rwalk(Fid *f)
 	return err;
 }
 
-int8_t *
+char *
 ropen(Fid *f)
 {
 	Dev *d;
@@ -691,7 +691,7 @@ ropen(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rcreate(Fid *f)
 {
 	USED(f);
@@ -702,7 +702,7 @@ rcreate(Fid *f)
  *  intercept a note
  */
 void
-takeanote(void *u, int8_t *note)
+takeanote(void *u, char *note)
 {
 	USED(u);
 	if(strstr(note, "flushed"))
@@ -710,14 +710,14 @@ takeanote(void *u, int8_t *note)
 	noted(NDFLT);
 }
 
-int8_t*
+char*
 rread(Fid *f)
 {
-	int8_t *buf;
+	char *buf;
 	int32_t off, start;
 	int i, m, n, cnt, t;
 	Dir dir;
-	int8_t num[32];
+	char num[32];
 	Dev *d;
 	Request *r;
 
@@ -770,17 +770,17 @@ rread(Fid *f)
 	return 0;
 }
 
-int8_t *cmsg = "connect ";
+char *cmsg = "connect ";
 int clen;
 
-int8_t*
+char*
 rwrite(Fid *f)
 {
 	Dev *d;
 	uint32_t off;
 	int cnt;
-	int8_t *cp;
-	int8_t buf[64];
+	char *cp;
+	char buf[64];
 
 	off = thdr.offset;
 	cnt = thdr.count;
@@ -827,7 +827,7 @@ rwrite(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rclunk(Fid *f)
 {
 	Dev *d;
@@ -848,14 +848,14 @@ rclunk(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rremove(Fid *f)
 {
 	USED(f);
 	return Eperm;
 }
 
-int8_t *
+char *
 rstat(Fid *f)
 {
 	Dir d;
@@ -866,7 +866,7 @@ rstat(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rwstat(Fid *f)
 {
 	Dev *d;
@@ -920,7 +920,7 @@ newfid(int fid)
 void
 io(void)
 {
-	int8_t *err;
+	char *err;
 	int n;
 
 	for(;;){
@@ -940,7 +940,7 @@ io(void)
 		if(convM2S(mdata, n, &thdr) != n)
 			error("convM2S error");
 
-		rhdr.data = (int8_t*)mdata + IOHDRSZ;
+		rhdr.data = (char*)mdata + IOHDRSZ;
 		if(!fcalls[thdr.type])
 			err = "bad fcall type";
 		else
@@ -975,7 +975,7 @@ perm(Fid *f, Dev *d, int p)
 }
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	fprint(2, "%s: %s: %r\n", argv0, s);
 	syslog(0, LOGFILE, "%s: %r", s);
@@ -1008,7 +1008,7 @@ erealloc(void *p, uint32_t n)
  *  send bytes to modem
  */
 int
-send(Dev *d, int8_t *x)
+send(Dev *d, char *x)
 {
 	if(verbose)
 		syslog(0, LOGFILE, "->%s", x);
@@ -1019,10 +1019,10 @@ send(Dev *d, int8_t *x)
  *  apply a string of commands to modem
  */
 int
-apply(Dev *d, int8_t *s, int8_t *substr, int secs)
+apply(Dev *d, char *s, char *substr, int secs)
 {
-	int8_t buf[128];
-	int8_t *p;
+	char buf[128];
+	char *p;
 	int c, m;
 
 	p = buf;
@@ -1048,7 +1048,7 @@ apply(Dev *d, int8_t *s, int8_t *substr, int secs)
 int
 applyspecial(Dev *d, int index)
 {
-	int8_t *cmd;
+	char *cmd;
 
 	cmd = d->t->commands[index];
 	if(cmd == 0 && d->baset)
@@ -1090,12 +1090,12 @@ int portspeed[] = { 56000, 38400, 19200, 14400, 9600, 4800, 2400, 1200, 600, 300
 /*
  *  get the modem's type and speed
  */
-int8_t*
+char*
 modemtype(Dev *d, int limit,  int fax)
 {
 	int *p;
 	Type *t, *bt;
-	int8_t buf[28];
+	char buf[28];
 
 	d->t = typetab;
 	d->baset = 0;
@@ -1177,8 +1177,8 @@ void
 monitor(Dev *d)
 {
 	int n;
-	int8_t *p;
-	int8_t file[256];
+	char *p;
+	char file[256];
 	int background;
 
 	background = 0;
@@ -1262,9 +1262,9 @@ monitor(Dev *d)
  *  get bytes input by monitor() (only routine that changes d->rp)
  */
 int
-getinput(Dev *d, int8_t *buf, int n)
+getinput(Dev *d, char *buf, int n)
 {
-	int8_t *p;
+	char *p;
 	int i;
 
 	p = buf;
@@ -1298,7 +1298,7 @@ serve(Dev *d)
 	int n;
 	Fcall rhdr;
 	uint8_t *mdata;
-	int8_t *buf;
+	char *buf;
 
 	mdata = malloc(messagesize);
 	buf = malloc(messagesize-IOHDRSZ);
@@ -1332,13 +1332,13 @@ serve(Dev *d)
 /*
  *  dial a number
  */
-int8_t*
-dialout(Dev *d, int8_t *number)
+char*
+dialout(Dev *d, char *number)
 {
 	int i, m, compress, rateadjust, speed, fax;
-	int8_t *err;
-	int8_t *field[5];
-	int8_t dialstr[128];
+	char *err;
+	char *field[5];
+	char dialstr[128];
 
 	compress = Ok;
 	rateadjust = Failure;
@@ -1404,11 +1404,11 @@ void
 receiver(Dev *d)
 {
 	int fd;
-	int8_t file[256];
-	int8_t *argv[8];
+	char file[256];
+	char *argv[8];
 	int argc;
 	int pfd[2];
-	int8_t *prog;
+	char *prog;
 
 	pipe(pfd);
 	switch(rfork(RFPROC|RFMEM|RFFDG|RFNAMEG)){
@@ -1490,10 +1490,10 @@ onhook(Dev *d)
  *  read till we see a message or we time out
  */
 int
-readmsg(Dev *d, int secs, int8_t *substr)
+readmsg(Dev *d, int secs, char *substr)
 {
 	uint32_t start;
-	int8_t *p;
+	char *p;
 	int i, len;
 	Msg *pp;
 	int found = 0;
@@ -1533,9 +1533,9 @@ readmsg(Dev *d, int secs, int8_t *substr)
  *  get baud rate from a connect message
  */
 int
-getspeed(int8_t *msg, int speed)
+getspeed(char *msg, int speed)
 {
-	int8_t *p;
+	char *p;
 	int s;
 
 	p = msg + sizeof("CONNECT") - 1;
@@ -1554,7 +1554,7 @@ getspeed(int8_t *msg, int speed)
 void
 setspeed(Dev *d, int baud)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	if(d->ctl < 0)
 		return;

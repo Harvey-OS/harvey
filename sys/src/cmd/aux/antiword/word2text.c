@@ -163,7 +163,7 @@ vStoreByte(UCHAR ucChar, output_type *pOutput)
 		pOutput->szStorage = xrealloc(pOutput->szStorage,
 					pOutput->tStorageSize);
 	}
-	pOutput->szStorage[pOutput->tNextFree] = (int8_t)ucChar;
+	pOutput->szStorage[pOutput->tNextFree] = (char)ucChar;
 	pOutput->szStorage[pOutput->tNextFree + 1] = '\0';
 	pOutput->tNextFree++;
 } /* end of vStoreByte */
@@ -174,7 +174,7 @@ vStoreByte(UCHAR ucChar, output_type *pOutput)
 static void
 vStoreChar(ULONG ulChar, BOOL bChangeAllowed, output_type *pOutput)
 {
-	int8_t	szResult[4];
+	char	szResult[4];
 	size_t	tIndex, tLen;
 
 	fail(pOutput == NULL);
@@ -212,7 +212,7 @@ vStoreCharacter(ULONG ulChar, output_type *pOutput)
  * vStoreString - store a string
  */
 static void
-vStoreString(const int8_t *szString, size_t tStringLength,
+vStoreString(const char *szString, size_t tStringLength,
 	     output_type *pOutput)
 {
 	size_t	tIndex;
@@ -231,7 +231,7 @@ static void
 vStoreNumberAsDecimal(UINT uiNumber, output_type *pOutput)
 {
 	size_t	tLen;
-	int8_t	szString[3 * sizeof(UINT) + 1];
+	char	szString[3 * sizeof(UINT) + 1];
 
 	fail(uiNumber == 0);
 	fail(pOutput == NULL);
@@ -247,7 +247,7 @@ static void
 vStoreNumberAsRoman(UINT uiNumber, output_type *pOutput)
 {
 	size_t	tLen;
-	int8_t	szString[15];
+	char	szString[15];
 
 	fail(uiNumber == 0);
 	fail(pOutput == NULL);
@@ -264,7 +264,7 @@ vStoreStyle(diagram_type *pDiag, output_type *pOutput,
 	const style_block_type *pStyle)
 {
 	size_t	tLen;
-	int8_t	szString[120];
+	char	szString[120];
 
 	fail(pDiag == NULL);
 	fail(pOutput == NULL);
@@ -285,12 +285,12 @@ vStoreStyle(diagram_type *pDiag, output_type *pOutput,
 static void
 vPutIndentation(diagram_type *pDiag, output_type *pOutput,
 	BOOL bNoMarks, BOOL bFirstLine,
-	UINT uiListNumber, UCHAR ucNFC, const int8_t *szListChar,
+	UINT uiListNumber, UCHAR ucNFC, const char *szListChar,
 	int32_t lLeftIndentation, int32_t lLeftIndentation1)
 {
 	int32_t	lWidth;
 	size_t	tIndex, tNextFree;
-	int8_t	szLine[30];
+	char	szLine[30];
 
 	fail(pDiag == NULL);
 	fail(pOutput == NULL);
@@ -399,7 +399,7 @@ vPutSeparatorLine(output_type *pOutput)
 {
 	int32_t	lCharWidth;
 	int	iCounter, iChars;
-	int8_t	szOne[2];
+	char	szOne[2];
 
 	fail(pOutput == NULL);
 
@@ -650,7 +650,7 @@ bWordDecryptor(FILE *pFile, int32_t lFilesize, diagram_type *pDiag)
 	imagedata_type	tImage;
 	const style_block_type	*pStyleTmp;
 	const font_block_type	*pFontTmp;
-	const int8_t	*szListChar;
+	const char	*szListChar;
 	output_type	*pAnchor, *pOutput, *pLeftOver;
 	ULONG	ulChar;
 	int32_t	lBeforeIndentation, lAfterIndentation;
@@ -1398,14 +1398,14 @@ pHdrFtrDecryptor(FILE *pFile, ULONG ulCharPosStart, ULONG ulCharPosNext)
 /*
  * pFootnoteDecryptor - turn a footnote text list element into text
  */
-int8_t *
+char *
 szFootnoteDecryptor(FILE *pFile, ULONG ulCharPosStart, ULONG ulCharPosNext)
 {
-	int8_t	*szText;
+	char	*szText;
 	ULONG	ulChar, ulFileOffset, ulCharPos;
 	USHORT	usChar;
 	size_t	tLen, tIndex, tNextFree, tStorageSize;
-	int8_t	szResult[6];
+	char	szResult[6];
 	BOOL	bSkip;
 
 	fail(iWordVersion < 0);

@@ -86,7 +86,7 @@ ihashlookup(IHash *ih, uint8_t score[VtScoreSize], int type)
 }
 
 static void
-ihashdelete(IHash *ih, IEntry *ie, int8_t *what)
+ihashdelete(IHash *ih, IEntry *ie, char *what)
 {
 	uint32_t h;
 	IEntry **l;

@@ -17,7 +17,7 @@
 
 #undef getenv
 
-int8_t*
+char*
 getuser(void)
 {
 	return getenv("USER");

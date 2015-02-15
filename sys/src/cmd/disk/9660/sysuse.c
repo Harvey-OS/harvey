@@ -29,8 +29,8 @@ static int CputsuspER(Cdimg*, int);
 static int CputsuspRR(Cdimg*, int, int);
 static int CputsuspSP(Cdimg*, int);
 //static int CputsuspST(Cdimg*, int);
-static int Cputrripname(Cdimg*, int8_t*, int, int8_t*, int);
-static int CputrripSL(Cdimg*, int, int, int8_t*, int);
+static int Cputrripname(Cdimg*, char*, int, char*, int);
+static int CputrripSL(Cdimg*, int, int, char*, int);
 static int CputrripPX(Cdimg*, Direc*, int, int);
 static int CputrripTF(Cdimg*, Direc*, int, int);
 
@@ -153,10 +153,10 @@ ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
  * since they're already there.
  */
 Cbuf*
-Cputstring(Cdimg *cd, Cbuf *cp, Cbuf *cn, int8_t *nm, int8_t *p, int flags,
+Cputstring(Cdimg *cd, Cbuf *cp, Cbuf *cn, char *nm, char *p, int flags,
 	   int dowrite)
 {
-	int8_t buf[256], *q;
+	char buf[256], *q;
 	int free;
 
 	for(; p[0] != '\0'; p = q) {
@@ -182,7 +182,7 @@ Cputstring(Cdimg *cd, Cbuf *cp, Cbuf *cn, int8_t *nm, int8_t *p, int flags,
 int
 Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 {
-	int8_t buf[256], buf0[256], *nextpath, *p, *path, *q;
+	char buf[256], buf0[256], *nextpath, *p, *path, *q;
 	int flags, free, m, what;
 	uint64_t o;
 	Cbuf cn, co, *cp;
@@ -327,9 +327,9 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 	return co.len - initlen;
 }
 
-static int8_t SUSPrrip[10] = "RRIP_1991A";
-static int8_t SUSPdesc[84] = "RRIP <more garbage here>";
-static int8_t SUSPsrc[135] = "RRIP <more garbage here>";
+static char SUSPrrip[10] = "RRIP_1991A";
+static char SUSPdesc[84] = "RRIP <more garbage here>";
+static char SUSPsrc[135] = "RRIP <more garbage here>";
 
 static uint32_t
 CputsuspCE(Cdimg *cd, int64_t offset)
@@ -451,7 +451,7 @@ suspdirflags(Direc *d, int dot)
 }
 
 static int
-Cputrripname(Cdimg *cd, int8_t *nm, int flags, int8_t *name, int dowrite)
+Cputrripname(Cdimg *cd, char *nm, int flags, char *name, int dowrite)
 {
 	int l;
 
@@ -468,7 +468,7 @@ Cputrripname(Cdimg *cd, int8_t *nm, int flags, int8_t *name, int dowrite)
 }
 
 static int
-CputrripSL(Cdimg *cd, int contin, int flags, int8_t *name, int dowrite)
+CputrripSL(Cdimg *cd, int contin, int flags, char *name, int dowrite)
 {
 	int l;
 

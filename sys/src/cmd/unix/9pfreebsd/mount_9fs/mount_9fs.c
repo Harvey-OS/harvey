@@ -44,7 +44,7 @@
  */
 
 #ifndef lint
-static const int8_t copyright[] =
+static const char copyright[] =
 "@(#) Copyright (c) 1992, 1993, 1994\n\
 	The Regents of the University of California.  All rights reserved.\n";
 #endif /* not lint */
@@ -53,7 +53,7 @@ static const int8_t copyright[] =
 #if 0
 static char sccsid[] = "@(#)mount_nfs.c	8.11 (Berkeley) 5/4/95";
 #endif
-static const int8_t rcsid[] =
+static const char rcsid[] =
 	"$Id: mount_nfs.c,v 1.29 1998/07/06 07:15:53 charnier Exp $";
 #endif /* not lint */
 
@@ -163,7 +163,7 @@ struct u9fs_args u9fsdefargs = {
 	0,
 	0,
 	0,
-	(int8_t *)0,
+	(char *)0,
 	0,
 	0,
 	SOCK_SEQPACKET,
@@ -192,8 +192,8 @@ enum {
 } mountmode = ANY;
 
 #ifdef NFSKERB
-int8_t inst[INST_SZ];
-int8_t realm[REALM_SZ];
+char inst[INST_SZ];
+char realm[REALM_SZ];
 struct {
 	u_long		kind;
 	KTEXT_ST	kt;
@@ -215,7 +215,7 @@ void	usage __P((void)) __dead2;
 int	xdr_dir __P((XDR *, char *));
 int	xdr_fh __P((XDR *, struct nfhret *));
 
-void gethostaddr(int8_t * hostp, struct sockaddr_in * saddr);
+void gethostaddr(char * hostp, struct sockaddr_in * saddr);
 
 /*
  * Used to set mount flags with getmntopts.  Call with dir=TRUE to
@@ -258,14 +258,14 @@ setflags(int* altflags, int* nfsflags, int dir)
 int
 main(argc, argv)
 	int argc;
-	int8_t *argv[];
+	char *argv[];
 {
 	register int c;
 	register struct u9fs_args *nfsargsp;
 	struct u9fs_args u9fsargs;
 	struct nfsd_cargs ncd;
 	int mntflags, altflags, i, nfssvc_flag, num;
-	int8_t *name, *p, *spec;
+	char *name, *p, *spec;
 	struct vfsconf vfc;
 	int error = 0;
 	static struct sockaddr_in authaddr;
@@ -277,8 +277,8 @@ main(argc, argv)
 	(void)strcpy(realm, KRB_REALM);
 	if (sizeof (struct nfsrpc_nickverf) != RPCX_NICKVERF ||
 	    sizeof (struct nfsrpc_fullblock) != RPCX_FULLBLOCK ||
-	    ((int8_t *)&ktick.kt) - ((int8_t *)&ktick) != NFSX_UNSIGNED ||
-	    ((int8_t *)ktick.kt.dat) - ((int8_t *)&ktick) != 2 * NFSX_UNSIGNED)
+	    ((char *)&ktick.kt) - ((char *)&ktick) != NFSX_UNSIGNED ||
+	    ((char *)ktick.kt.dat) - ((char *)&ktick) != 2 * NFSX_UNSIGNED)
 		fprintf(stderr, "Yikes! NFSKERB structs not packed!!\n");
 #endif /* NFSKERB */
 	retrycnt = DEF_RETRY;
@@ -562,7 +562,7 @@ main(argc, argv)
 			 * in ONC RPC".
 			 */
 			if (ncd.ncd_authuid != last_ruid) {
-				int8_t buf[512];
+				char buf[512];
 				(void)sprintf(buf, "%s%d",
 					      TKT_ROOT, ncd.ncd_authuid);
 				krb_set_tkt_string(buf);
@@ -678,7 +678,7 @@ pingnfsserver(addr, version, sotype)
 int load_9uid(struct u9fs_args * nfsargsp)
 {
   FILE * fd;
-  int8_t line[80], * cp;
+  char line[80], * cp;
   int nusers, siz, n;
   struct p9user * p9p, * p9alloc;
 
@@ -718,7 +718,7 @@ int load_9uid(struct u9fs_args * nfsargsp)
 }
 
 int
-passtokey(int8_t *key, int8_t *p)
+passtokey(char *key, char *p)
 {
 	u_char buf[U9FS_NAMELEN], *t;
 	int i, n;
@@ -728,7 +728,7 @@ passtokey(int8_t *key, int8_t *p)
 		n = U9FS_NAMELEN-1;
 	memset(buf, ' ', 8);
 	t = buf;
-	strncpy((int8_t*)t, p, n);
+	strncpy((char*)t, p, n);
 	t[n] = '\0';
 	memset(key, 0, U9AUTH_DESKEYLEN);
 	for(;;){
@@ -749,13 +749,13 @@ passtokey(int8_t *key, int8_t *p)
 
 void load_9key(struct u9fs_args * nfsargsp)
 {
-  int8_t * p;
+  char * p;
 
   p = getpass("Plan 9 Password: ");
   passtokey(nfsargsp->key, p);
 }
 
-void gethostaddr(int8_t * hostp, struct sockaddr_in * saddr)
+void gethostaddr(char * hostp, struct sockaddr_in * saddr)
 {
   struct hostent *hp;
 	/*
@@ -776,7 +776,7 @@ void gethostaddr(int8_t * hostp, struct sockaddr_in * saddr)
 
 int
 getnfsargs(spec, nfsargsp)
-	int8_t *spec;
+	char *spec;
 	struct u9fs_args *nfsargsp;
 {
 	register CLIENT *clp;
@@ -790,13 +790,13 @@ getnfsargs(spec, nfsargsp)
 	struct timeval pertry, try;
 	enum clnt_stat clnt_stat;
 	int so = RPC_ANYSOCK, i, nfsvers, mntvers, orgcnt;
-	int8_t *hostp, *delimp;
+	char *hostp, *delimp;
 #ifdef NFSKERB
-	int8_t *cp;
+	char *cp;
 #endif
 	u_short tport;
 	static struct nfhret nfhret;
-	static int8_t nam[MNAMELEN + 1];
+	static char nam[MNAMELEN + 1];
 
 	strncpy(nam, spec, MNAMELEN);
 	nam[MNAMELEN] = '\0';
@@ -843,7 +843,7 @@ getnfsargs(spec, nfsargsp)
 	gethostaddr(hostp, & saddr);
 #ifdef NFSKERB
 	if ((nfsargsp->flags & NFSMNT_KERB)) {
-		if ((hp = gethostbyaddr((int8_t *)&saddr.sin_addr.s_addr,
+		if ((hp = gethostbyaddr((char *)&saddr.sin_addr.s_addr,
 		    sizeof (u_long), AF_INET)) == (struct hostent *)0) {
 			warnx("can't reverse resolve net address");
 			return (0);
@@ -994,7 +994,7 @@ tryagain:
 int
 xdr_dir(xdrsp, dirp)
 	XDR *xdrsp;
-	int8_t *dirp;
+	char *dirp;
 {
 	return (xdr_string(xdrsp, &dirp, RPCMNT_PATHLEN));
 }

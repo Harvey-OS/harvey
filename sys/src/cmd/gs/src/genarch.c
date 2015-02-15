@@ -45,13 +45,13 @@
 /* can't handle output redirection (sigh). */
 
 private void
-section(FILE * f, const int8_t *str)
+section(FILE * f, const char *str)
 {
     fprintf(f, "\n\t /* ---------------- %s ---------------- */\n\n", str);
 }
 
 private clock_t
-time_clear(int8_t *buf, int bsize, int nreps)
+time_clear(char *buf, int bsize, int nreps)
 {
     clock_t t = clock();
     int i;
@@ -93,37 +93,37 @@ ilog2(int n)
 }
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
-    int8_t *fname = argv[1];
+    char *fname = argv[1];
     int32_t one = 1;
     struct {
-	int8_t c;
+	char c;
 	int16_t s;
     } ss;
     struct {
-	int8_t c;
+	char c;
 	int i;
     } si;
     struct {
-	int8_t c;
+	char c;
 	int32_t l;
     } sl;
     struct {
-	int8_t c;
-	int8_t *p;
+	char c;
+	char *p;
     } sp;
     struct {
-	int8_t c;
+	char c;
 	float f;
     } sf;
     struct {
-	int8_t c;
+	char c;
 	double d;
     } sd;
     /* Some architectures have special alignment requirements for jmpbuf. */
     struct {
-	int8_t c;
+	char c;
 	jmp_buf j;
     } sj;
     int32_t lm1 = -1;
@@ -133,7 +133,7 @@ main(int argc, int8_t *argv[])
     int ir1 = im1 >> 1, ir2 = im1 >> 2;
     union {
 	int32_t l;
-	int8_t *p;
+	char *p;
     } pl0, pl1;
     int ars;
     int lwidth = size_of(int32_t) * 8;
@@ -174,14 +174,14 @@ main(int argc, int8_t *argv[])
 
     section(f, "Scalar sizes");
 
-    define_int(f, "ARCH_LOG2_SIZEOF_CHAR", ilog2(size_of(int8_t)));
+    define_int(f, "ARCH_LOG2_SIZEOF_CHAR", ilog2(size_of(char)));
     define_int(f, "ARCH_LOG2_SIZEOF_SHORT", ilog2(size_of(int16_t)));
     define_int(f, "ARCH_LOG2_SIZEOF_INT", ilog2(size_of(int)));
     define_int(f, "ARCH_LOG2_SIZEOF_LONG", ilog2(size_of(int32_t)));
 #ifdef HAVE_LONG_LONG
     define_int(f, "ARCH_LOG2_SIZEOF_LONG_LONG", ilog2(size_of(long long)));
 #endif
-    define_int(f, "ARCH_SIZEOF_PTR", size_of(int8_t *));
+    define_int(f, "ARCH_SIZEOF_PTR", size_of(char *));
     define_int(f, "ARCH_SIZEOF_FLOAT", size_of(float));
     define_int(f, "ARCH_SIZEOF_DOUBLE", size_of(double));
     if (floats_are_IEEE) {
@@ -233,7 +233,7 @@ main(int argc, int8_t *argv[])
     {
 #define MAX_BLOCK (1 << 22)	/* max 4M cache */
 #define MAX_NREPS (1 << 10)	/* limit the number of reps we try */
-	static int8_t buf[MAX_BLOCK];
+	static char buf[MAX_BLOCK];
 	int bsize = 1 << 10;
 	int nreps = 1;
 	clock_t t = 0;
@@ -288,7 +288,7 @@ main(int argc, int8_t *argv[])
 
     section(f, "Miscellaneous");
 
-    define_int(f, "ARCH_IS_BIG_ENDIAN", 1 - *(int8_t *)&one);
+    define_int(f, "ARCH_IS_BIG_ENDIAN", 1 - *(char *)&one);
     pl0.l = 0;
     pl1.l = -1;
     define_int(f, "ARCH_PTRS_ARE_SIGNED", (pl1.p < pl0.p));

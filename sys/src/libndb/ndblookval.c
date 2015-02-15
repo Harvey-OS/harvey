@@ -18,7 +18,7 @@
  *  then in the whole entry.
  */
 Ndbtuple*
-ndbfindattr(Ndbtuple *entry, Ndbtuple *line, int8_t *attr)
+ndbfindattr(Ndbtuple *entry, Ndbtuple *line, char *attr)
 {
 	Ndbtuple *nt;
 
@@ -40,7 +40,7 @@ ndbfindattr(Ndbtuple *entry, Ndbtuple *line, int8_t *attr)
 }
 
 Ndbtuple*
-ndblookval(Ndbtuple *entry, Ndbtuple *line, int8_t *attr, int8_t *to)
+ndblookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
 {
 	Ndbtuple *t;
 

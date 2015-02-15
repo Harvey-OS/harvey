@@ -14,7 +14,7 @@
 #include "authcmdlib.h"
 
 static int
-getkey(int8_t *authkey)
+getkey(char *authkey)
 {
 	Nvrsafe safe;
 
@@ -26,7 +26,7 @@ getkey(int8_t *authkey)
 }
 
 int
-getauthkey(int8_t *authkey)
+getauthkey(char *authkey)
 {
 	if(getkey(authkey) == 0)
 		return 1;

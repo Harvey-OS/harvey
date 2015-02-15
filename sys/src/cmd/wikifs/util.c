@@ -38,11 +38,11 @@ emalloc(uint32_t n)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
 	int l;
-	int8_t *t;
+	char *t;
 
 	if (s == nil)
 		return nil;
@@ -53,11 +53,11 @@ estrdup(int8_t *s)
 	return t;
 }
 
-int8_t*
-estrdupn(int8_t *s, int n)
+char*
+estrdupn(char *s, int n)
 {
 	int l;
-	int8_t *t;
+	char *t;
 
 	l = strlen(s);
 	if(l > n)
@@ -69,10 +69,10 @@ estrdupn(int8_t *s, int n)
 	return t;
 }
 
-int8_t*
-strlower(int8_t *s)
+char*
+strlower(char *s)
 {
-	int8_t *p;
+	char *p;
 
 	for(p=s; *p; p++)
 		if('A' <= *p && *p <= 'Z')
@@ -81,10 +81,10 @@ strlower(int8_t *s)
 }
 
 String*
-s_appendsub(String *s, int8_t *p, int n, Sub *sub, int nsub)
+s_appendsub(String *s, char *p, int n, Sub *sub, int nsub)
 {
 	int i, m;
-	int8_t *q, *r, *ep;
+	char *q, *r, *ep;
 
 	ep = p+n;
 	while(p<ep){
@@ -109,21 +109,21 @@ s_appendsub(String *s, int8_t *p, int n, Sub *sub, int nsub)
 String*
 s_appendlist(String *s, ...)
 {
-	int8_t *x;
+	char *x;
 	va_list arg;
 
 	va_start(arg, s);
-	while(x = va_arg(arg, int8_t*))
+	while(x = va_arg(arg, char*))
 		s = s_append(s, x);
 	va_end(arg);
 	return s;
 }
 
 int
-opentemp(int8_t *template)
+opentemp(char *template)
 {
 	int fd, i;
-	int8_t *p;
+	char *p;
 
 	p = estrdup(template);
 	fd = -1;

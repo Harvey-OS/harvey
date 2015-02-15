@@ -57,7 +57,7 @@ struct Kin
 {
 	int	ref;
 	int	fd;
-	int8_t*	name;
+	char*	name;
 };
 
 /*
@@ -213,7 +213,7 @@ recoverkb(KDev *f)
 }
 
 static void
-kbfatal(KDev *kd, int8_t *sts)
+kbfatal(KDev *kd, char *sts)
 {
 	Dev *dev;
 
@@ -271,7 +271,7 @@ scale(KDev *f, int x)
 static void
 sethipri(void)
 {
-	int8_t fn[30];
+	char fn[30];
 	int fd;
 
 	snprint(fn, sizeof fn, "/proc/%d/ctl", getpid());
@@ -286,7 +286,7 @@ static int
 ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
 {
 	int i, x, y, b, c;
-	static int8_t buts[] = {0x0, 0x2, 0x1};
+	static char buts[] = {0x0, 0x2, 0x1};
 
 	c = ch->e / 8;
 
@@ -322,8 +322,8 @@ static int
 ptrbootpvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
 {
 	int b, c;
-	int8_t x, y;
-	static int8_t maptab[] = {0x0, 0x1, 0x4, 0x5, 0x2, 0x3, 0x6, 0x7};
+	char x, y;
+	static char maptab[] = {0x0, 0x1, 0x4, 0x5, 0x2, 0x3, 0x6, 0x7};
 
 	c = ch->e / 8;
 	if(c < 3)
@@ -352,7 +352,7 @@ static void
 ptrwork(void* a)
 {
 	int hipri, mfd, nerrs, x, y, b, c, ptrfd;
-	int8_t mbuf[80];
+	char mbuf[80];
 	Chain ch;
 	KDev* f = a;
 
@@ -561,7 +561,7 @@ kbdwork(void *a)
 {
 	int c, i, kbdfd, nerrs;
 	uint8_t dk, buf[64], lbuf[64];
-	int8_t err[128];
+	char err[128];
 	KDev *f = a;
 
 	threadsetname("kbd %s", f->ep->dir);
@@ -661,7 +661,7 @@ kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), KDev *kd)
 		n = read(d->cfd, desc, sizeof desc - 1);
 		if(n > 0){
 			desc[n] = 0;
-			if(strstr((int8_t*)desc, "dwcotg") != nil)
+			if(strstr((char*)desc, "dwcotg") != nil)
 				kd->idle = Dwcidle;
 		}
 	}

@@ -14,11 +14,11 @@
 #include <libc.h>
 #include <String.h>
 
-extern	int64_t	du(int8_t*, Dir*);
-extern	void	err(int8_t*);
+extern	int64_t	du(char*, Dir*);
+extern	void	err(char*);
 extern	int64_t	blkmultiple(int64_t);
 extern	int	seen(Dir*);
-extern	int	warn(int8_t*);
+extern	int	warn(char*);
 
 enum {
 	Vkilo = 1024LL,
@@ -38,12 +38,12 @@ int	sflag;
 int	tflag;
 int	uflag;
 
-int8_t	*fmt = "%llud\t%q\n";
-int8_t	*readbuf;
+char	*fmt = "%llud\t%q\n";
+char	*readbuf;
 int64_t	blocksize = Vkilo;	/* actually more likely to be 4K or 8K */
 int64_t	unit;			/* scale factor for output */
 
-static int8_t *pfxes[] = {	/* SI prefixes for units > 1 */
+static char *pfxes[] = {	/* SI prefixes for units > 1 */
 	"",
 	"k", "M", "G",
 	"T", "P", "E",
@@ -59,7 +59,7 @@ usage(void)
 }
 
 void
-printamt(int64_t amt, int8_t *name)
+printamt(int64_t amt, char *name)
 {
 	if (readflg)
 		return;
@@ -186,7 +186,7 @@ dirval(Dir *d, int64_t size)
 }
 
 void
-readfile(int8_t *name)
+readfile(char *name)
 {
 	int n, fd = open(name, OREAD);
 
@@ -202,7 +202,7 @@ readfile(int8_t *name)
 }
 
 int64_t
-dufile(int8_t *name, Dir *d)
+dufile(char *name, Dir *d)
 {
 	int64_t t = blkmultiple(d->length);
 
@@ -221,7 +221,7 @@ dufile(int8_t *name, Dir *d)
 }
 
 int64_t
-du(int8_t *name, Dir *dir)
+du(char *name, Dir *dir)
 {
 	int fd, i, n;
 	Dir *buf, *d;
@@ -309,14 +309,14 @@ seen(Dir *dir)
 }
 
 void
-err(int8_t *s)
+err(char *s)
 {
 	fprint(2, "du: %s: %r\n", s);
 	exits(s);
 }
 
 int
-warn(int8_t *s)
+warn(char *s)
 {
 	if(fflag == 0)
 		fprint(2, "du: %s: %r\n", s);

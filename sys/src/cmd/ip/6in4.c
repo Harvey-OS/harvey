@@ -69,7 +69,7 @@ uint8_t myip[IPaddrlen];
 /* magic anycast address from rfc3068 */
 uint8_t anycast6to4[IPv4addrlen] = { 192, 88, 99, 1 };
 
-static int8_t *net = "/net";
+static char *net = "/net";
 
 static int	badipv4(uint8_t*);
 static int	badipv6(uint8_t*);
@@ -84,7 +84,7 @@ usage(void)
 	exits("Usage");
 }
 
-static int8_t *
+static char *
 defv6addr(void)
 {
 	uint8_t *ipv4 = &myip[IPaddrlen - IPv4addrlen];
@@ -95,9 +95,9 @@ defv6addr(void)
 
 /* process non-option arguments */
 static void
-procargs(int argc, int8_t **argv)
+procargs(int argc, char **argv)
 {
-	int8_t *p, *loc6;
+	char *p, *loc6;
 
 	if (argc < 1)
 		loc6 = defv6addr();
@@ -165,8 +165,8 @@ static void
 setup(int *v6net, int *tunp)
 {
 	int n, cfd;
-	int8_t *p, *cl, *ir;
-	int8_t buf[128], path[64];
+	char *p, *cl, *ir;
+	char buf[128], path[64];
 
 	/*
 	 * gain access to IPv6-in-IPv4 packets via ipmux
@@ -286,11 +286,11 @@ main(int argc, char **argv)
  * actually just sets the arguments displayed.
  */
 void
-procsetname(int8_t *fmt, ...)
+procsetname(char *fmt, ...)
 {
 	int fd;
-	int8_t *cmdname;
-	int8_t buf[128];
+	char *cmdname;
+	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -314,7 +314,7 @@ static void
 ip2tunnel(int in, int out)
 {
 	int n, m;
-	int8_t buf[64*1024];
+	char buf[64*1024];
 	Iphdr *op;
 	Ip6hdr *ip;
 
@@ -382,7 +382,7 @@ static void
 tunnel2ip(int in, int out)
 {
 	int n, m;
-	int8_t buf[64*1024];
+	char buf[64*1024];
 	uint8_t a[IPaddrlen];
 	Ip6hdr *op;
 	Iphdr *ip;

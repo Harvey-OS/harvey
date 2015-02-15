@@ -54,7 +54,7 @@ struct count_node_s {
 #  define debug_print_nodes(nodes, n, tag, lengths)\
      if ( gs_debug_c('W') ) print_nodes_proc(nodes, n, tag, lengths);
 private void
-print_nodes_proc(const count_node * nodes, int n, const int8_t *tag,
+print_nodes_proc(const count_node * nodes, int n, const char *tag,
                  int lengths)
 {
     int i;

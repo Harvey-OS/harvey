@@ -100,9 +100,9 @@ private float odsf(floatp, floatp);
 
 
 int
-main(int argc, const int8_t *argv[])
+main(int argc, const char *argv[])
 {
-    int8_t achar;
+    char achar;
     gs_ref_memory_t *imem;
 
 #define mem ((gs_memory_t *)imem)

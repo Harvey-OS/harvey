@@ -21,8 +21,8 @@
 #include "edit.h"
 #include "fns.h"
 
-static int8_t	linex[]="\n";
-static int8_t	wordx[]=" \t\n";
+static char	linex[]="\n";
+static char	wordx[]=" \t\n";
 struct cmdtab cmdtab[]={
 /*	cmdc	text	regexp	addr	defcmd	defaddr	count	token	 fn	*/
 	'\n',	0,	0,	0,	0,	aDot,	0,	0,	nl_cmd,
@@ -140,10 +140,10 @@ allupdate(Window *w, void*)
 }
 
 void
-editerror(int8_t *fmt, ...)
+editerror(char *fmt, ...)
 {
 	va_list arg;
-	int8_t *s;
+	char *s;
 
 	va_start(arg, fmt);
 	s = vsmprint(fmt, arg);
@@ -157,7 +157,7 @@ editerror(int8_t *fmt, ...)
 void
 editcmd(Text *ct, Rune *r, uint n)
 {
-	int8_t *err;
+	char *err;
 
 	if(n == 0)
 		return;
@@ -182,7 +182,7 @@ editcmd(Text *ct, Rune *r, uint n)
 		curtext = &ct->w->body;
 	resetxec();
 	if(editerrc == nil){
-		editerrc = chancreate(sizeof(int8_t*), 0);
+		editerrc = chancreate(sizeof(char*), 0);
 		lastpat = allocstring(0);
 	}
 	threadcreate(editthread, nil, STACK);
@@ -416,7 +416,7 @@ getrhs(String *s, int delim, int cmd)
 }
 
 String *
-collecttoken(int8_t *end)
+collecttoken(char *end)
 {
 	String *s = newstring(0);
 	int c;

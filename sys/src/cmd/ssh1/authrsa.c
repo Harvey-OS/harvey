@@ -13,7 +13,7 @@ static int
 authrsafn(Conn *c)
 {
 	uint8_t chalbuf[32+SESSIDLEN], response[MD5dlen];
-	int8_t *s, *p;
+	char *s, *p;
 	int afd, ret;
 	AuthRpc *rpc;
 	Msg *m;
@@ -41,7 +41,7 @@ authrsafn(Conn *c)
 	ret = -1;
 	debug(DBG_AUTH, "trying factotum rsa keys\n");
 	while(auth_rpc(rpc, "read", nil, 0) == ARok){
-		debug(DBG_AUTH, "try %s\n", (int8_t*)rpc->arg);
+		debug(DBG_AUTH, "try %s\n", (char*)rpc->arg);
 		mod = strtomp(rpc->arg, nil, 16, nil);
 		m = allocmsg(c, SSH_CMSG_AUTH_RSA, 16+(mpsignif(mod)+7/8));
 		putmpint(m, mod);
@@ -51,7 +51,7 @@ authrsafn(Conn *c)
 		switch(m->type){
 		case SSH_SMSG_FAILURE:
 			debug(DBG_AUTH, "\tnot accepted %s\n",
-			      (int8_t*)rpc->arg);
+			      (char*)rpc->arg);
 			free(m);
 			continue;
 		default:

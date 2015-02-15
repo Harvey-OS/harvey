@@ -30,7 +30,7 @@ Portmap map[] = {
 	0, 0, 0, 0,
 };
 
-static void	pmapinit(int, int8_t**);
+static void	pmapinit(int, char**);
 static int	pmapnull(int, Rpccall*, Rpccall*);
 static int	pmapset(int, Rpccall*, Rpccall*);
 static int	pmapunset(int, Rpccall*, Rpccall*);
@@ -56,7 +56,7 @@ Progmap progmap[] = {
 };
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	server(argc, argv, myport, progmap);
 }

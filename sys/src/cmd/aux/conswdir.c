@@ -21,14 +21,14 @@
 #include <libc.h>
 
 struct {
-	int8_t *file;
-	int8_t name[512];
+	char *file;
+	char name[512];
 } keep[] = {
 	{ "/dev/label" },
 	{ "/dev/wdir" }
 };
 
-int8_t *prog = "/bin/rwd";
+char *prog = "/bin/rwd";
 
 void
 usage(void)
@@ -63,7 +63,7 @@ rest(void)
 }
 
 void
-setpath(int8_t *s)
+setpath(char *s)
 {
 	switch(rfork(RFPROC|RFFDG|RFNOWAIT)){
 	case 0:
@@ -82,10 +82,10 @@ enum
 };
 
 int
-process(int8_t *buf, int n, int *pn)
+process(char *buf, int n, int *pn)
 {
-	int8_t *p;
-	int8_t path[4096];
+	char *p;
+	char path[4096];
 	int start, state;
 
 	start = 0;
@@ -139,7 +139,7 @@ process(int8_t *buf, int n, int *pn)
 }
 
 static void
-catchint(void*, int8_t *msg)
+catchint(void*, char *msg)
 {
 	if(strstr(msg, "interrupt"))
 		noted(NCONT);

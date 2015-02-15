@@ -47,7 +47,7 @@ writerawimage(int fd, Rawimage *i)
 	int ncblock;				/* size of buffer */
 	Rectangle r;
 	uint8_t *p, *q, *s, *es, *t;
-	int8_t hdr[11+5*12+1], buf[16];
+	char hdr[11+5*12+1], buf[16];
 	uint32_t desc;
 
 	r = i->r;

@@ -23,12 +23,12 @@ typedef struct keyword Keyword;
 typedef struct word Word;
 
 struct word{
-	int8_t	*string;
+	char	*string;
 	int	n;
 };
 
 struct	keyword{
-	int8_t	*string;
+	char	*string;
 	int	value;
 };
 
@@ -86,21 +86,21 @@ Patterns patterns[] = {
 [Nactions]	{ 0, 0, 0 },
 };
 
-static int8_t*	endofhdr(int8_t*, int8_t*);
-static	int	escape(int8_t**);
-static	int	extract(int8_t*);
-static	int	findkey(int8_t*);
+static char*	endofhdr(char*, char*);
+static	int	escape(char**);
+static	int	extract(char*);
+static	int	findkey(char*);
 static	int	hash(int);
-static	int	isword(Word*, int8_t*, int);
-static	void	parsealt(Biobuf*, int8_t*, Spat**);
+static	int	isword(Word*, char*, int);
+static	void	parsealt(Biobuf*, char*, Spat**);
 
 /*
  *	The canonicalizer: convert input to canonical representation
  */
-int8_t*
+char*
 readmsg(Biobuf *bp, int *hsize, int *bufsize)
 {
-	int8_t *p, *buf;
+	char *p, *buf;
 	int n, offset, eoh, bsize, delta;
 
 	buf = 0;
@@ -162,7 +162,7 @@ readmsg(Biobuf *bp, int *hsize, int *bufsize)
 }
 
 static	int
-isword(Word *wp, int8_t *text, int len)
+isword(Word *wp, char *text, int len)
 {
 	for(;wp->string; wp++)
 		if(len >= wp->n && strncmp(text, wp->string, wp->n) == 0)
@@ -170,12 +170,12 @@ isword(Word *wp, int8_t *text, int len)
 	return 0;
 }
 
-static int8_t*
-endofhdr(int8_t *raw, int8_t *end)
+static char*
+endofhdr(char *raw, char *end)
 {
 	int i;
-	int8_t *p, *q;
-	int8_t buf[HdrMax];
+	char *p, *q;
+	char buf[HdrMax];
 
 	/*
  	 * can't use strchr to search for newlines because
@@ -197,11 +197,11 @@ endofhdr(int8_t *raw, int8_t *end)
 }
 
 static	int
-htmlmatch(Word *wp, int8_t *text, int8_t *end, int *n)
+htmlmatch(Word *wp, char *text, char *end, int *n)
 {
-	int8_t *cp;
+	char *cp;
 	int i, c, lastc;
-	int8_t buf[MaxHtml];
+	char buf[MaxHtml];
 
 	/*
 	 * extract a string up to '>'
@@ -240,10 +240,10 @@ out:
 }
 
 static int
-escape(int8_t **msg)
+escape(char **msg)
 {
 	int c;
-	int8_t *p;
+	char *p;
 
 	p = *msg;
 	c = *p;
@@ -276,10 +276,10 @@ escape(int8_t **msg)
 }
 
 static int
-htmlchk(int8_t **msg, int8_t *end)
+htmlchk(char **msg, char *end)
 {
 	int n;
-	int8_t *p;
+	char *p;
 
 	static int ishtml;
 
@@ -309,10 +309,10 @@ htmlchk(int8_t **msg, int8_t *end)
  * decode a base 64 encode body
  */
 void
-conv64(int8_t *msg, int8_t *end, int8_t *buf, int bufsize)
+conv64(char *msg, char *end, char *buf, int bufsize)
 {
 	int len, i;
-	int8_t *cp;
+	char *cp;
 
 	len = end - msg;
 	i = (len*3)/4+1;	// room for max chars + null
@@ -323,10 +323,10 @@ conv64(int8_t *msg, int8_t *end, int8_t *buf, int bufsize)
 }
 
 int
-convert(int8_t *msg, int8_t *end, int8_t *buf, int bufsize, int isbody)
+convert(char *msg, char *end, char *buf, int bufsize, int isbody)
 {
 
-	int8_t *p;
+	char *p;
 	int c, lastc, base64;
 
 	lastc = 0;
@@ -389,7 +389,7 @@ hash(int c)
 }
 
 static	int
-findkey(int8_t *val)
+findkey(char *val)
 {
 	Keyword *kp;
 
@@ -405,7 +405,7 @@ void
 parsepats(Biobuf *bp)
 {
 	Pattern *p, *new;
-	int8_t *cp, *qp;
+	char *cp, *qp;
 	int type, action, n, h;
 	Spat *spat;
 
@@ -493,9 +493,9 @@ parsepats(Biobuf *bp)
 }
 
 static void
-parsealt(Biobuf *bp, int8_t *cp, Spat** head)
+parsealt(Biobuf *bp, char *cp, Spat** head)
 {
-	int8_t *p;
+	char *p;
 	Spat *alt;
 
 	while(cp){
@@ -524,10 +524,10 @@ parsealt(Biobuf *bp, int8_t *cp, Spat** head)
 }
 
 static int
-extract(int8_t *cp)
+extract(char *cp)
 {
 	int c;
-	int8_t *p, *q, *r;
+	char *p, *q, *r;
 
 	p = q = r = cp;
 	while(whitespace(*p))
@@ -564,7 +564,7 @@ extract(int8_t *cp)
  */
 
 static Spat*
-isalt(int8_t *message, Spat *alt)
+isalt(char *message, Spat *alt)
 {
 	while(alt) {
 		if(*cmd)
@@ -580,10 +580,10 @@ isalt(int8_t *message, Spat *alt)
 }
 
 int
-matchpat(Pattern *p, int8_t *message, Resub *m)
+matchpat(Pattern *p, char *message, Resub *m)
 {
 	Spat *spat;
-	int8_t *s;
+	char *s;
 	int c, c1;
 
 	if(p->type == string){
@@ -612,9 +612,9 @@ matchpat(Pattern *p, int8_t *message, Resub *m)
 
 
 void
-xprint(int fd, int8_t *type, Resub *m)
+xprint(int fd, char *type, Resub *m)
 {
-	int8_t *p, *q;
+	char *p, *q;
 	int i;
 
 	if(m->sp == 0 || m->ep == 0)

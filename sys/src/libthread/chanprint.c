@@ -12,10 +12,10 @@
 #include <thread.h>
 
 int
-chanprint(Channel *c, int8_t *fmt, ...)
+chanprint(Channel *c, char *fmt, ...)
 {
 	va_list arg;
-	int8_t *p;
+	char *p;
 	int n;
 
 	va_start(arg, fmt);

@@ -86,7 +86,7 @@ ztype(i_ctx_t *i_ctx_p)
 	/* Must be either a stack underflow or a t_[a]struct. */
 	check_op(2);
 	{			/* Get the type name from the structure. */
-	    const int8_t *sname =
+	    const char *sname =
 		gs_struct_type_name_string(gs_object_type(imemory,
 							  op[-1].value.pstruct));
 	    int code = name_ref(imemory, (const byte *)sname, strlen(sname),
@@ -108,7 +108,7 @@ private int
 ztypenames(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
-    static const int8_t *const tnames[] = { REF_TYPE_NAME_STRINGS };
+    static const char *const tnames[] = { REF_TYPE_NAME_STRINGS };
     int i;
 
     check_ostack(t_next_index);

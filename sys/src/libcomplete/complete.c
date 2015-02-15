@@ -12,7 +12,7 @@
 #include "complete.h"
 
 static int
-longestprefixlength(int8_t *a, int8_t *b, int n)
+longestprefixlength(char *a, char *b, int n)
 {
 	int i, w;
 	Rune ra, rb;
@@ -40,20 +40,20 @@ freecompletion(Completion *c)
 static int
 strpcmp(const void *va, const void *vb)
 {
-	int8_t *a, *b;
+	char *a, *b;
 
-	a = *(int8_t**)va;
-	b = *(int8_t**)vb;
+	a = *(char**)va;
+	b = *(char**)vb;
 	return strcmp(a, b);
 }
 
 Completion*
-complete(int8_t *dir, int8_t *s)
+complete(char *dir, char *s)
 {
 	int32_t i, l, n, nfile, len, nbytes;
 	int fd, minlen;
 	Dir *dirp;
-	int8_t **name, *p;
+	char **name, *p;
 	uint32_t* mode;
 	Completion *c;
 
@@ -80,7 +80,7 @@ complete(int8_t *dir, int8_t *s)
 			len = l;
 	}
 
-	name = malloc(n*sizeof(int8_t*));
+	name = malloc(n*sizeof(char*));
 	mode = malloc(n*sizeof(uint32_t));
 	c = malloc(sizeof(Completion) + len);
 	if(name == nil || mode == nil || c == nil)
@@ -109,7 +109,7 @@ complete(int8_t *dir, int8_t *s)
 		/* build the answer */
 		c->complete = (nfile == 1);
 		c->advance = c->complete || (minlen > len);
-		c->string = (int8_t*)(c+1);
+		c->string = (char*)(c+1);
 		memmove(c->string, name[0]+len, minlen-len);
 		if(c->complete)
 			c->string[minlen++ - len] = (mode[0]&DMDIR)? '/' : ' ';
@@ -126,13 +126,13 @@ complete(int8_t *dir, int8_t *s)
 	}
 
 	/* attach list of names */
-	nbytes = nfile * sizeof(int8_t*);
+	nbytes = nfile * sizeof(char*);
 	for(i=0; i<nfile; i++)
 		nbytes += strlen(name[i]) + 1 + 1;
 	c->filename = malloc(nbytes);
 	if(c->filename == nil)
 		goto Return;
-	p = (int8_t*)(c->filename + nfile);
+	p = (char*)(c->filename + nfile);
 	for(i=0; i<nfile; i++){
 		c->filename[i] = p;
 		strcpy(p, name[i]);

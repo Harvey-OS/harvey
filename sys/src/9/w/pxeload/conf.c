@@ -26,24 +26,24 @@
  * which we pick up before reading the plan9.ini file.
  */
 #define BOOTLINELEN	64
-#define BOOTARGS	((int8_t*)(CONFADDR+BOOTLINELEN))
+#define BOOTARGS	((char*)(CONFADDR+BOOTLINELEN))
 #define	BOOTARGSLEN	(3584-0x200-BOOTLINELEN)
 #define	MAXCONF		100
 
-static int8_t *confname[MAXCONF];
-static int8_t *confval[MAXCONF];
+static char *confname[MAXCONF];
+static char *confval[MAXCONF];
 static int nconf;
 
-extern int8_t **ini;
+extern char **ini;
 
 typedef struct {
-	int8_t*	name;
+	char*	name;
 	int	start;
 	int	end;
 } Mblock;
 
 typedef struct {
-	int8_t*	tag;
+	char*	tag;
 	Mblock*	mb;
 } Mitem;
 
@@ -51,14 +51,14 @@ static Mblock mblock[MAXCONF];
 static int nmblock;
 static Mitem mitem[MAXCONF];
 static int nmitem;
-static int8_t* mdefault;
-static int8_t mdefaultbuf[10];
+static char* mdefault;
+static char mdefaultbuf[10];
 static int mtimeout;
 
-static int8_t*
-comma(int8_t* line, int8_t** residue)
+static char*
+comma(char* line, char** residue)
 {
-	int8_t *q, *r;
+	char *q, *r;
 
 	if((q = strchr(line, ',')) != nil){
 		*q++ = 0;
@@ -76,10 +76,10 @@ comma(int8_t* line, int8_t** residue)
 }
 
 static Mblock*
-findblock(int8_t* name, int8_t** residue)
+findblock(char* name, char** residue)
 {
 	int i;
-	int8_t *p;
+	char *p;
 
 	p = comma(name, residue);
 	for(i = 0; i < nmblock; i++){
@@ -90,10 +90,10 @@ findblock(int8_t* name, int8_t** residue)
 }
 
 static Mitem*
-finditem(int8_t* name, int8_t** residue)
+finditem(char* name, char** residue)
 {
 	int i;
-	int8_t *p;
+	char *p;
 
 	p = comma(name, residue);
 	for(i = 0; i < nmitem; i++){
@@ -104,11 +104,11 @@ finditem(int8_t* name, int8_t** residue)
 }
 
 static void
-parsemenu(int8_t* str, int8_t* scratch, int len)
+parsemenu(char* str, char* scratch, int len)
 {
 	Mitem *mi;
 	Mblock *mb, *menu;
-	int8_t buf[20], *p, *q, *line[MAXCONF];
+	char buf[20], *p, *q, *line[MAXCONF];
 	int i, inblock, n, show;
 
 	inblock = 0;
@@ -325,11 +325,11 @@ readlsconf(void)
 	}
 }
 
-int8_t*
-getconf(int8_t *name)
+char*
+getconf(char *name)
 {
 	int i, n, nmatch;
-	int8_t buf[20];
+	char buf[20];
 
 	nmatch = 0;
 	for(i = 0; i < nconf; i++)
@@ -368,7 +368,7 @@ getconf(int8_t *name)
 }
 
 void
-addconf(int8_t *fmt, ...)
+addconf(char *fmt, ...)
 {
 	va_list arg;
 
@@ -378,10 +378,10 @@ addconf(int8_t *fmt, ...)
 }
 
 void
-changeconf(int8_t *fmt, ...)
+changeconf(char *fmt, ...)
 {
 	va_list arg;
-	int8_t *p, *q, pref[20], buf[128];
+	char *p, *q, pref[20], buf[128];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof buf, fmt, arg);
@@ -413,15 +413,15 @@ changeconf(int8_t *fmt, ...)
 /*
  *  read configuration file
  */
-static int8_t inibuf[BOOTARGSLEN];
-static int8_t id[8] = "ZORT 0\r\n";
+static char inibuf[BOOTARGSLEN];
+static char id[8] = "ZORT 0\r\n";
 
 int
 dotini(Fs *fs)
 {
 	File rc;
 	int blankline, i, incomment, inspace, n;
-	int8_t *cp, *p, *q, *line[MAXCONF];
+	char *cp, *p, *q, *line[MAXCONF];
 
 	if(fswalk(fs, *ini, &rc) <= 0)
 		return -1;
@@ -515,10 +515,10 @@ dotini(Fs *fs)
 }
 
 static int
-parseether(uint8_t *to, int8_t *from)
+parseether(uint8_t *to, char *from)
 {
-	int8_t nip[4];
-	int8_t *p;
+	char nip[4];
+	char *p;
 	int i;
 
 	p = from;
@@ -540,10 +540,10 @@ parseether(uint8_t *to, int8_t *from)
 }
 
 int
-isaconfig(int8_t *class, int ctlrno, ISAConf *isa)
+isaconfig(char *class, int ctlrno, ISAConf *isa)
 {
 	int i;
-	int8_t cc[NAMELEN], *p, *r;
+	char cc[NAMELEN], *p, *r;
 
 	snprint(cc, sizeof cc, "%s%d", class, ctlrno);
 	if((p = getconf(cc)) == nil)

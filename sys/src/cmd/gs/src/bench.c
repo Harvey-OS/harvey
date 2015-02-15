@@ -34,7 +34,7 @@
 FILE *gs_stdout;
 FILE *gs_stderr;
 FILE *gs_debug_out;
-const int8_t gp_scratch_file_name_prefix[] = "gs_";
+const char gp_scratch_file_name_prefix[] = "gs_";
 static void
 capture_stdio(void)
 {
@@ -50,7 +50,7 @@ capture_stdio(void)
 #undef stderr
 #define stderr gs_stderr
 FILE *
-gp_open_scratch_file(const int8_t *prefix, int8_t *fname, const int8_t *mode)
+gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
 {
     return NULL;
 }
@@ -64,7 +64,7 @@ gs_to_exit(int n)
 }
 #define eprintf_program_ident(f, pn, rn) (void)0
 void 
-lprintf_file_and_line(FILE * f, const int8_t *file, int line)
+lprintf_file_and_line(FILE * f, const char *file, int line)
 {
     fprintf(f, "%s(%d): ", file, line);
 }
@@ -84,7 +84,7 @@ lprintf_file_and_line(FILE * f, const int8_t *file, int line)
 
 /* Define the actual benchmarks. */
 static int
-iadd(int a, int n, int8_t **msg)
+iadd(int a, int n, char **msg)
 {
     int b = 0, i;
 
@@ -95,7 +95,7 @@ iadd(int a, int n, int8_t **msg)
     return b;
 }
 static int
-imul(int a, int n, int8_t **msg)
+imul(int a, int n, char **msg)
 {
     int b = 1, i;
 
@@ -106,7 +106,7 @@ imul(int a, int n, int8_t **msg)
     return b;
 }
 static int
-idiv(int a, int n, int8_t **msg)
+idiv(int a, int n, char **msg)
 {
     int b = 1, i;
 
@@ -118,7 +118,7 @@ idiv(int a, int n, int8_t **msg)
     return b;
 }
 static int
-fadd(float a, int n, int8_t **msg)
+fadd(float a, int n, char **msg)
 {
     float b = 0;
     int i;
@@ -130,7 +130,7 @@ fadd(float a, int n, int8_t **msg)
     return b;
 }
 static int
-fmul(float a, int n, int8_t **msg)
+fmul(float a, int n, char **msg)
 {
     float b = 1;
     int i;
@@ -142,7 +142,7 @@ fmul(float a, int n, int8_t **msg)
     return b;
 }
 static int
-fdiv(float a, int n, int8_t **msg)
+fdiv(float a, int n, char **msg)
 {
     float b = 1;
     int i;
@@ -154,7 +154,7 @@ fdiv(float a, int n, int8_t **msg)
     return b;
 }
 static int
-fconv(int a, int n, int8_t **msg)
+fconv(int a, int n, char **msg)
 {
     int b[10];
     float f[10];
@@ -170,7 +170,7 @@ fconv(int a, int n, int8_t **msg)
     return b[0];
 }
 static int
-mfast(int *m, int n, int8_t **msg)
+mfast(int *m, int n, char **msg)
 {
     int i;
 
@@ -182,7 +182,7 @@ mfast(int *m, int n, int8_t **msg)
     return m[0];
 }
 static int
-mslow(int *m, int n, int8_t **msg)
+mslow(int *m, int n, char **msg)
 {
     int *p;
     int i, k = 0;
@@ -199,7 +199,7 @@ mslow(int *m, int n, int8_t **msg)
 }
 
 int
-main(int argc, const int8_t *argv[])
+main(int argc, const char *argv[])
 {
     int i;
     int *mem = malloc(1100000);
@@ -207,7 +207,7 @@ main(int argc, const int8_t *argv[])
     capture_stdio();
     for (i = 0;; ++i) {
 	int32_t t0[2], t1[2];
-	int8_t *msg;
+	char *msg;
 	int n;
 
 	gp_get_usertime(t0);

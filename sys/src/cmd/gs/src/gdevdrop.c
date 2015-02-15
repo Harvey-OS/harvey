@@ -51,7 +51,7 @@ private const uint max_rop_bitmap = 1000;
 #ifdef DEBUG
 
 void
-trace_copy_rop(const int8_t *cname, gx_device * dev,
+trace_copy_rop(const char *cname, gx_device * dev,
 	       const byte * sdata, int sourcex, uint sraster, gx_bitmap_id id,
 	       const gx_color_index * scolors,
 	       const gx_strip_bitmap * textures,

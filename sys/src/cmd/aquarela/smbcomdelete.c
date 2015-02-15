@@ -11,7 +11,7 @@
 #include <String.h>
 
 int
-smbremovefile(SmbTree *t, int8_t *dir, int8_t *name)
+smbremovefile(SmbTree *t, char *dir, char *name)
 {
 	String *s;
 	int rv;
@@ -34,9 +34,9 @@ smbcomdelete(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	SmbProcessResult pr;
 	uint16_t sattr;
 	uint8_t fmt;
-	int8_t *pattern = nil;
-	int8_t *dir = nil;
-	int8_t *name = nil;
+	char *pattern = nil;
+	char *dir = nil;
+	char *name = nil;
 	Reprog *r = nil;
 	SmbTree *t;
 	int x, count;

@@ -20,13 +20,13 @@ enum
 	MAXARG	= 10*ANAMELEN,	/* max length of an argument */
 };
 
-static int	setenv(int8_t*, int8_t*);
-static int8_t	*expandarg(int8_t*, int8_t*);
-static int	splitargs(int8_t*, int8_t*[], int8_t*, int);
-static int	nsfile(int8_t*, Biobuf *, AuthRpc *);
-static int	nsop(int8_t*, int, int8_t*[], AuthRpc*);
-static int	callexport(int8_t*, int8_t*);
-static int	catch(void*, int8_t*);
+static int	setenv(char*, char*);
+static char	*expandarg(char*, char*);
+static int	splitargs(char*, char*[], char*, int);
+static int	nsfile(char*, Biobuf *, AuthRpc *);
+static int	nsop(char*, int, char*[], AuthRpc*);
+static int	callexport(char*, char*);
+static int	catch(void*, char*);
 
 int newnsdebug;
 
@@ -41,12 +41,12 @@ freecloserpc(AuthRpc *rpc)
 }
 
 static int
-buildns(int newns, int8_t *user, int8_t *file)
+buildns(int newns, char *user, char *file)
 {
 	Biobuf *b;
-	int8_t home[4*ANAMELEN];
+	char home[4*ANAMELEN];
 	int afd, cdroot;
-	int8_t *path;
+	char *path;
 	AuthRpc *rpc;
 
 	rpc = nil;
@@ -97,10 +97,10 @@ buildns(int newns, int8_t *user, int8_t *file)
 }
 
 static int
-nsfile(int8_t *fn, Biobuf *b, AuthRpc *rpc)
+nsfile(char *fn, Biobuf *b, AuthRpc *rpc)
 {
 	int argc;
-	int8_t *cmd, *argv[NARG+1], argbuf[MAXARG*NARG];
+	char *cmd, *argv[NARG+1], argbuf[MAXARG*NARG];
 	int cdroot;
 
 	cdroot = 0;
@@ -120,19 +120,19 @@ nsfile(int8_t *fn, Biobuf *b, AuthRpc *rpc)
 }
 
 int
-newns(int8_t *user, int8_t *file)
+newns(char *user, char *file)
 {
 	return buildns(1, user, file);
 }
 
 int
-addns(int8_t *user, int8_t *file)
+addns(char *user, char *file)
 {
 	return buildns(0, user, file);
 }
 
 static int
-famount(int fd, AuthRpc *rpc, int8_t *mntpt, int flags, int8_t *aname)
+famount(int fd, AuthRpc *rpc, char *mntpt, int flags, char *aname)
 {
 	int afd;
 	AuthInfo *ai;
@@ -225,19 +225,19 @@ nsop(char *fn, int argc, char *argv[], AuthRpc *rpc)
 	return cdroot;
 }
 
-static int8_t *wocp = "sys: write on closed pipe";
+static char *wocp = "sys: write on closed pipe";
 
 static int
-catch(void *x, int8_t *m)
+catch(void *x, char *m)
 {
 	USED(x);
 	return strncmp(m, wocp, strlen(wocp)) == 0;
 }
 
 static int
-callexport(int8_t *sys, int8_t *tree)
+callexport(char *sys, char *tree)
 {
-	int8_t *na, buf[3];
+	char *na, buf[3];
 	int fd;
 	AuthInfo *ai;
 
@@ -255,10 +255,10 @@ callexport(int8_t *sys, int8_t *tree)
 	return fd;
 }
 
-static int8_t*
-unquote(int8_t *s)
+static char*
+unquote(char *s)
 {
-	int8_t *r, *w;
+	char *r, *w;
 	int inquote;
 	
 	inquote = 0;
@@ -281,9 +281,9 @@ unquote(int8_t *s)
 }
 
 static int
-splitargs(int8_t *p, int8_t *argv[], int8_t *argbuf, int nargv)
+splitargs(char *p, char *argv[], char *argbuf, int nargv)
 {
-	int8_t *q;
+	char *q;
 	int i, n;
 
 	n = gettokens(p, argv, nargv, " \t\r");
@@ -300,10 +300,10 @@ splitargs(int8_t *p, int8_t *argv[], int8_t *argbuf, int nargv)
 	return n;
 }
 
-static int8_t*
-nextdollar(int8_t *arg)
+static char*
+nextdollar(char *arg)
 {
-	int8_t *p;
+	char *p;
 	int inquote;
 	
 	inquote = 0;
@@ -326,10 +326,10 @@ nextdollar(int8_t *arg)
  * the address of the byte after the terminating null is returned
  * any problems cause a 0 return;
  */
-static int8_t *
-expandarg(int8_t *arg, int8_t *buf)
+static char *
+expandarg(char *arg, char *buf)
 {
-	int8_t env[3+ANAMELEN], *p, *x;
+	char env[3+ANAMELEN], *p, *x;
 	int fd, n, len;
 
 	n = 0;
@@ -371,10 +371,10 @@ expandarg(int8_t *arg, int8_t *buf)
 }
 
 static int
-setenv(int8_t *name, int8_t *val)
+setenv(char *name, char *val)
 {
 	int f;
-	int8_t ename[ANAMELEN+6];
+	char ename[ANAMELEN+6];
 	int32_t s;
 
 	sprint(ename, "#e/%s", name);

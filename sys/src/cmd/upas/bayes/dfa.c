@@ -529,14 +529,14 @@ dregcvt(Reprog *p)
 }
 
 int
-dregexec(Dreprog *p, int8_t *s, int bol)
+dregexec(Dreprog *p, char *s, int bol)
 {
 	Rune r;
 	uint32_t rr;
 	Dreinst *i;
 	Drecase *c, *ec;
 	int best, n;
-	int8_t *os;
+	char *os;
 
 	i = p->start[(bol ? 1 : 0) | (s[1]=='\n' ? 2 : 0)];
 	best = -1;
@@ -665,7 +665,7 @@ dump(Dreprog *pp)
 
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	int i;
 	Reprog *p;
@@ -708,10 +708,10 @@ Bprintdfa(Biobuf *b, Dreprog *p)
 	}
 }
 
-static int8_t*
+static char*
 egetline(Biobuf *b, int c, jmp_buf jb)
 {
-	int8_t *p;
+	char *p;
 
 	p = Brdline(b, c);
 	if(p == nil)
@@ -758,7 +758,7 @@ egetnum(Biobuf *b, int want, jmp_buf jb)
 Dreprog*
 Breaddfa(Biobuf *b)
 {
-	int8_t *s;
+	char *s;
 	int ninst, nc;
 	jmp_buf jb;
 	Dreprog *p;

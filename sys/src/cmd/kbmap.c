@@ -14,8 +14,8 @@
 
 typedef struct KbMap KbMap;
 struct KbMap {
-	int8_t *name;
-	int8_t *file;
+	char *name;
+	char *file;
 	Rectangle r;
 	int current;
 };
@@ -30,7 +30,7 @@ enum {
 	MARGIN = 5
 };
 
-int8_t *dir = "/sys/lib/kbmap";
+char *dir = "/sys/lib/kbmap";
 
 void*
 erealloc(void *v, uint32_t n)
@@ -53,11 +53,11 @@ emalloc(uint32_t n)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
 	int l;
-	int8_t *t;
+	char *t;
 
 	if (s == nil)
 		return nil;
@@ -73,7 +73,7 @@ init(void)
 {
 	int i, fd, nr;
 	Dir *pd;
-	int8_t buf[128];
+	char buf[128];
 
 	if((fd = open(dir, OREAD)) < 0)
 		return;
@@ -141,10 +141,10 @@ eresized(int new)
 }
 
 int
-writemap(int8_t *file)
+writemap(char *file)
 {
 	int i, fd, ofd;
-	int8_t buf[8192];
+	char buf[8192];
 
 	if((fd = open(file, OREAD)) < 0){
 		fprint(2, "cannot open %s: %r", file);
@@ -170,7 +170,7 @@ void
 click(Mouse m)
 {
 	int i, j;
-	int8_t buf[128];
+	char buf[128];
 
 	if(m.buttons == 0 || (m.buttons & ~4))
 		return;
@@ -220,10 +220,10 @@ usage(void)
 }
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Event e;
-	int8_t *c;
+	char *c;
 
 	if(argc > 1) {
 		argv++; argc--;

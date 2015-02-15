@@ -29,7 +29,7 @@ l2be(int32_t l)
 static void
 readn(Chan *c, void *vp, int32_t n)
 {
-	int8_t *p;
+	char *p;
 	int32_t nn;
 
 	p = vp;
@@ -44,9 +44,9 @@ readn(Chan *c, void *vp, int32_t n)
 }
 
 static void
-setbootcmd(int argc, int8_t *argv[])
+setbootcmd(int argc, char *argv[])
 {
-	int8_t *buf, *p, *ep;
+	char *buf, *p, *ep;
 	int i;
 
 	buf = malloc(1024);
@@ -62,7 +62,7 @@ setbootcmd(int argc, int8_t *argv[])
 }
 
 void
-rebootcmd(int argc, int8_t *argv[])
+rebootcmd(int argc, char *argv[])
 {
 	Chan *c;
 	Exec exec;

@@ -11,9 +11,9 @@
 #include <libc.h>
 #include <fcall.h>
 
-static uint dumpsome(int8_t*, int8_t*, int8_t*, int32_t);
-static void fdirconv(int8_t*, int8_t*, Dir*);
-static int8_t *qidtype(int8_t*, uint8_t);
+static uint dumpsome(char*, char*, char*, int32_t);
+static void fdirconv(char*, char*, Dir*);
+static char *qidtype(char*, uint8_t);
 
 #define	QIDFMT	"(%.16llux %lud %s)"
 
@@ -22,8 +22,8 @@ fcallfmt(Fmt *fmt)
 {
 	Fcall *f;
 	int fid, type, tag, i;
-	int8_t buf[512], tmp[200];
-	int8_t *p, *e;
+	char buf[512], tmp[200];
+	char *p, *e;
 	Dir *d;
 	Qid *q;
 
@@ -131,7 +131,7 @@ fcallfmt(Fmt *fmt)
 			seprint(p, e, " stat(%d bytes)", f->nstat);
 		else{
 			d = (Dir*)tmp;
-			convM2D(f->stat, f->nstat, d, (int8_t*)(d+1));
+			convM2D(f->stat, f->nstat, d, (char*)(d+1));
 			seprint(p, e, " stat ");
 			fdirconv(p+6, e, d);
 		}
@@ -142,7 +142,7 @@ fcallfmt(Fmt *fmt)
 			seprint(p, e, " stat(%d bytes)", f->nstat);
 		else{
 			d = (Dir*)tmp;
-			convM2D(f->stat, f->nstat, d, (int8_t*)(d+1));
+			convM2D(f->stat, f->nstat, d, (char*)(d+1));
 			seprint(p, e, " stat ");
 			fdirconv(p+6, e, d);
 		}
@@ -156,10 +156,10 @@ fcallfmt(Fmt *fmt)
 	return fmtstrcpy(fmt, buf);
 }
 
-static int8_t*
-qidtype(int8_t *s, uint8_t t)
+static char*
+qidtype(char *s, uint8_t t)
 {
-	int8_t *p;
+	char *p;
 
 	p = s;
 	if(t & QTDIR)
@@ -177,16 +177,16 @@ qidtype(int8_t *s, uint8_t t)
 int
 dirfmt(Fmt *fmt)
 {
-	int8_t buf[160];
+	char buf[160];
 
 	fdirconv(buf, buf+sizeof buf, va_arg(fmt->args, Dir*));
 	return fmtstrcpy(fmt, buf);
 }
 
 static void
-fdirconv(int8_t *buf, int8_t *e, Dir *d)
+fdirconv(char *buf, char *e, Dir *d)
 {
-	int8_t tmp[16];
+	char tmp[16];
 
 	seprint(buf, e, "'%s' '%s' '%s' '%s' "
 		"q " QIDFMT " m %#luo "
@@ -206,10 +206,10 @@ fdirconv(int8_t *buf, int8_t *e, Dir *d)
 #define DUMPL 64
 
 static uint
-dumpsome(int8_t *ans, int8_t *e, int8_t *buf, int32_t count)
+dumpsome(char *ans, char *e, char *buf, int32_t count)
 {
 	int i, printable;
-	int8_t *p;
+	char *p;
 
 	if(buf == nil){
 		seprint(ans, e, "<no data>");

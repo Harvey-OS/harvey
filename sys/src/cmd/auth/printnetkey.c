@@ -13,7 +13,7 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-void	install(int8_t*, int8_t*, int);
+void	install(char*, char*, int);
 void	usage(void);
 
 void

@@ -19,10 +19,10 @@
  * Print functions for system call tracing.
  */
 static void
-fmtrwdata(Fmt* f, int8_t* a, int n, int8_t* suffix)
+fmtrwdata(Fmt* f, char* a, int n, char* suffix)
 {
 	int i;
-	int8_t *t;
+	char *t;
 
 	if(a == nil){
 		fmtprint(f, "0x0%s", suffix);
@@ -42,17 +42,17 @@ fmtrwdata(Fmt* f, int8_t* a, int n, int8_t* suffix)
 }
 
 static void
-fmtuserstring(Fmt* f, int8_t* a, int8_t* suffix)
+fmtuserstring(Fmt* f, char* a, char* suffix)
 {
 	int n;
-	int8_t *t;
+	char *t;
 
 	if(a == nil){
 		fmtprint(f, "0/\"\"%s", suffix);
 		return;
 	}
 	a = validaddr(a, 1, 0);
-	n = ((int8_t*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
+	n = ((char*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
 	t = smalloc(n);
 	memmove(t, a, n);
 	t[n] = 0;
@@ -72,7 +72,7 @@ syscallfmt(int syscallno, va_list list)
 	int64_t vl;
 	uintptr p;
 	int i[2], len, **ip;
-	int8_t *a, **argv;
+	char *a, **argv;
 
 	fmtstrinit(&fmt);
 	fmtprint(&fmt, "%d %s ", up->pid, up->text);
@@ -94,13 +94,13 @@ syscallfmt(int syscallno, va_list list)
 	case CHDIR:
 	case EXITS:
 	case REMOVE:
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
 		break;
 	case BIND:
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#ux",  i[0]);
@@ -122,12 +122,12 @@ syscallfmt(int syscallno, va_list list)
 	case EXECAC:
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%d", i[0]);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
-		argv = va_arg(list, int8_t**);
+		argv = va_arg(list, char**);
 		evenaddr(PTR2UINT(argv));
 		for(;;){
-			a = *(int8_t**)validaddr(argv, sizeof(int8_t**), 0);
+			a = *(char**)validaddr(argv, sizeof(char**), 0);
 			if(a == nil)
 				break;
 			fmtprint(&fmt, " ");
@@ -136,12 +136,12 @@ syscallfmt(int syscallno, va_list list)
 		}
 		break;
 	case EXEC:
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
-		argv = va_arg(list, int8_t**);
+		argv = va_arg(list, char**);
 		evenaddr(PTR2UINT(argv));
 		for(;;){
-			a = *(int8_t**)validaddr(argv, sizeof(int8_t**), 0);
+			a = *(char**)validaddr(argv, sizeof(char**), 0);
 			if(a == nil)
 				break;
 			fmtprint(&fmt, " ");
@@ -153,12 +153,12 @@ syscallfmt(int syscallno, va_list list)
 	case _FSTAT:					/* deprecated */
 	case _FWSTAT:					/* obsolete */
 		i[0] = va_arg(list, int);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtprint(&fmt, "%d %#p", i[0], a);
 		break;
 	case FAUTH:
 		i[0] = va_arg(list, int);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtprint(&fmt, "%d", i[0]);
 		fmtuserstring(&fmt, a, "");
 		break;
@@ -172,15 +172,15 @@ syscallfmt(int syscallno, va_list list)
 	case _MOUNT:					/* deprecated */
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%d ", i[0]);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#ux ", i[0]);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
 		break;
 	case OPEN:
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#ux", i[0]);
@@ -197,9 +197,9 @@ syscallfmt(int syscallno, va_list list)
 		break;
 	case _STAT:					/* obsolete */
 	case _WSTAT:					/* obsolete */
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtprint(&fmt, "%#p", a);
 		break;
 	case RFORK:
@@ -212,7 +212,7 @@ syscallfmt(int syscallno, va_list list)
 		fmtprint(&fmt, "%#p", v);
 		break;
 	case CREATE:
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		i[0] = va_arg(list, int);
 		i[1] = va_arg(list, int);
@@ -222,7 +222,7 @@ syscallfmt(int syscallno, va_list list)
 	case FSTAT:
 	case FWSTAT:
 		i[0] = va_arg(list, int);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%d %#p %lud", i[0], a, l);
 		break;
@@ -235,7 +235,7 @@ syscallfmt(int syscallno, va_list list)
 	case SEGATTACH:
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%d ", i[0]);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		/*FALLTHROUGH*/
 	case SEGFREE:
@@ -245,9 +245,9 @@ syscallfmt(int syscallno, va_list list)
 		fmtprint(&fmt, "%#p %lud", v, l);
 		break;
 	case UNMOUNT:
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
 		break;
 	case SEMACQUIRE:
@@ -283,19 +283,19 @@ syscallfmt(int syscallno, va_list list)
 		i[0] = va_arg(list, int);
 		i[1] = va_arg(list, int);
 		fmtprint(&fmt, "%d %d ", i[0], i[1]);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%lud", l);
 		break;
 	case WSTAT:
 	case STAT:
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		/*FALLTHROUGH*/
 	case ERRSTR:
 	case AWAIT:
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%#p %lud", a, l);
 		break;
@@ -303,11 +303,11 @@ syscallfmt(int syscallno, va_list list)
 		i[0] = va_arg(list, int);
 		i[1] = va_arg(list, int);
 		fmtprint(&fmt, "%d %d ", i[0], i[1]);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, " ");
 		i[0] = va_arg(list, int);
 		fmtprint(&fmt, "%#ux ", i[0]);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
 		break;
 	case _READ:					/* deprecated */
@@ -369,7 +369,7 @@ sysretfmt(int syscallno, va_list list, Ar0* ar0, uint64_t start,
 	Fmt fmt;
 	int64_t vl;
 	int i, len;
-	int8_t *a, *errstr;
+	char *a, *errstr;
 
 	fmtstrinit(&fmt);
 
@@ -400,7 +400,7 @@ sysretfmt(int syscallno, va_list list, Ar0* ar0, uint64_t start,
 		fmtprint(&fmt, " = %#p", ar0->v);
 		break;
 	case AWAIT:
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
 		if(ar0->i > 0){
 			fmtuserstring(&fmt, a, " ");
@@ -413,7 +413,7 @@ sysretfmt(int syscallno, va_list list, Ar0* ar0, uint64_t start,
 		break;
 	case _ERRSTR:
 	case ERRSTR:
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		if(syscallno == _ERRSTR)
 			l = 64;
 		else
@@ -430,7 +430,7 @@ sysretfmt(int syscallno, va_list list, Ar0* ar0, uint64_t start,
 	case FD2PATH:
 		i = va_arg(list, int);
 		USED(i);
-		a = va_arg(list, int8_t*);
+		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
 		if(ar0->i > 0){
 			fmtuserstring(&fmt, a, " ");

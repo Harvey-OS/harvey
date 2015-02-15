@@ -48,7 +48,7 @@ void	resetbbox(int);
 void	rotate(double);
 void	scale(double, double);
 void	translate(double, double);
-void	writebbox(FILE *, int8_t *, int);
+void	writebbox(FILE *, char *, int);
 
 void
 cover(x, y)
@@ -78,7 +78,7 @@ cover(x, y)
 void
 writebbox(fp, keyword, slop)
     FILE	*fp;			/* the comment is written here */
-    int8_t	*keyword;		/* the boundingbox comment string */
+    char	*keyword;		/* the boundingbox comment string */
     int		slop;			/* expand (or contract?) the box a bit */
 {
     Bbox	ubbox;			/* user space bounding box */

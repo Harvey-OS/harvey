@@ -72,13 +72,13 @@ collect(void)
 }
 
 static Chan*
-wsattach(int8_t *spec)
+wsattach(char *spec)
 {
 	return devattach('W', spec);
 }
 
 static Walkqid*
-wswalk(Chan *c, Chan *nc, int8_t **name, int nname)
+wswalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, Wstab, nelem(Wstab), devgen);
 }
@@ -131,7 +131,7 @@ wsread(Chan *c, void *va, int32_t n, int64_t off)
 static int32_t
 wswrite(Chan *c, void *a, int32_t n, int64_t)
 {
-	int8_t *buf;
+	char *buf;
 
 	switch((int)(c->qid.path)){
 	case WSctlqid:

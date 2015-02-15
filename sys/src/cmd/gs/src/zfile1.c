@@ -60,9 +60,9 @@ zfile_name_combine(i_ctx_t *i_ctx_p)
     prefix = op[-2].value.const_bytes;
     fname =  op[-1].value.const_bytes;
     no_sibling = op[0].value.boolval;
-    if (gp_file_name_combine((const int8_t *)prefix, plen, 
-			     (const int8_t *)fname, flen, no_sibling,
-		             (int8_t *)buffer, &blen) != gp_combine_success) {
+    if (gp_file_name_combine((const char *)prefix, plen, 
+			     (const char *)fname, flen, no_sibling,
+		             (char *)buffer, &blen) != gp_combine_success) {
 	make_bool(op, false);
     } else {
 	buffer = iresize_string(buffer, blen0, blen, "zfile_name_combine");
@@ -85,13 +85,13 @@ zfile_name_is_absolute(i_ctx_t *i_ctx_p)
 {   os_ptr op = osp;
 
     check_type(op[0], t_string);
-    make_bool(op, (gp_file_name_root((const int8_t *)op->value.const_bytes, 
+    make_bool(op, (gp_file_name_root((const char *)op->value.const_bytes, 
 					r_size(op)) > 0));
     return 0;
 }
 
 private int
-push_string(i_ctx_t *i_ctx_p, const int8_t *v)
+push_string(i_ctx_t *i_ctx_p, const char *v)
 {   os_ptr op = osp;
     int len = strlen(v);
 

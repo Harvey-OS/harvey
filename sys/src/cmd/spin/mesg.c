@@ -36,7 +36,7 @@ extern int16_t	Have_claim;
 Queue	*qtab = (Queue *) 0;	/* linked list of queues */
 Queue	*ltab[MAXQ];		/* linear list of queues */
 int	nqs = 0, firstrow = 1;
-int8_t	Buf[4096];
+char	Buf[4096];
 
 static Lextok	*n_rem = (Lextok *) 0;
 static Queue	*q_rem = (Queue  *) 0;
@@ -48,7 +48,7 @@ static int	s_snd(Queue *, Lextok *);
 extern void	sr_buf(int, int);
 extern void	sr_mesg(FILE *, int, int);
 extern void	putarrow(int, int);
-static void	sr_talk(Lextok *, int, int8_t *, int8_t *, int, Queue *);
+static void	sr_talk(Lextok *, int, char *, char *, int, Queue *);
 
 int
 cnt_mpars(Lextok *n)
@@ -75,7 +75,7 @@ qmake(Symbol *s)
 		fatal("too many queues (%s)", s->name);
 	}
 	if (analyze && nqs >= 255)
-	{	fatal("too many channel types", (int8_t *)0);
+	{	fatal("too many channel types", (char *)0);
 	}
 
 	if (s->ini->ntyp != CHAN)
@@ -167,7 +167,7 @@ qrecv(Lextok *n, int full)
 			{	int c = getchar();
 				(void) setval(m->lft, c);
 			} else
-				fatal("invalid use of STDIN", (int8_t *)0);
+				fatal("invalid use of STDIN", (char *)0);
 
 			whichq = 0;
 			return 1;
@@ -212,11 +212,11 @@ found:
 }
 
 void
-typ_ck(int ft, int at, int8_t *s)
+typ_ck(int ft, int at, char *s)
 {
 	if ((verbose&32) && ft != at
 	&& (ft == CHAN || at == CHAN))
-	{	int8_t buf[128], tag1[64], tag2[64];
+	{	char buf[128], tag1[64], tag2[64];
 		(void) sputtype(tag1, ft);
 		(void) sputtype(tag2, at);
 		sprintf(buf, "type-clash in %s, (%s<-> %s)", s, tag1, tag2);
@@ -371,7 +371,7 @@ s_snd(Queue *q, Lextok *n)
 		X = rX;	/* restore receiver's context */
 		if (!s_trail)
 		{	if (!n_rem || !q_rem)
-				fatal("cannot happen, s_snd", (int8_t *) 0);
+				fatal("cannot happen, s_snd", (char *) 0);
 			m = n_rem->rgt;
 			for (j = 0; m && j < q->nflds; m = m->rgt, j++)
 			{	if (m->lft->ntyp != NAME
@@ -396,7 +396,7 @@ s_snd(Queue *q, Lextok *n)
 
 static void
 channm(Lextok *n)
-{	int8_t lbuf[512];
+{	char lbuf[512];
 
 	if (n->sym->type == CHAN)
 		strcat(Buf, n->sym->name);
@@ -424,7 +424,7 @@ channm(Lextok *n)
 }
 
 static void
-difcolumns(Lextok *n, int8_t *tr, int v, int j, Queue *q)
+difcolumns(Lextok *n, char *tr, int v, int j, Queue *q)
 {	extern int pno;
 
 	if (j == 0)
@@ -444,7 +444,7 @@ difcolumns(Lextok *n, int8_t *tr, int v, int j, Queue *q)
 }
 
 static void
-docolumns(Lextok *n, int8_t *tr, int v, int j, Queue *q)
+docolumns(Lextok *n, char *tr, int v, int j, Queue *q)
 {	int i;
 
 	if (firstrow)
@@ -497,8 +497,8 @@ qishidden(int q)
 }
 
 static void
-sr_talk(Lextok *n, int v, int8_t *tr, int8_t *a, int j, Queue *q)
-{	int8_t s[128];
+sr_talk(Lextok *n, int v, char *tr, char *a, int j, Queue *q)
+{	char s[128];
 
 	if (qishidden(eval(n->lft)))
 		return;
@@ -525,10 +525,10 @@ sr_talk(Lextok *n, int v, int8_t *tr, int8_t *a, int j, Queue *q)
 	}
 
 	if (j == 0)
-	{	int8_t snm[128];
+	{	char snm[128];
 		whoruns(1);
-		{	int8_t *ptr = n->fn->name;
-			int8_t *qtr = snm;
+		{	char *ptr = n->fn->name;
+			char *qtr = snm;
 			while (*ptr != '\0')
 			{	if (*ptr != '\"')
 				{	*qtr++ = *ptr;
@@ -560,7 +560,7 @@ sr_talk(Lextok *n, int v, int8_t *tr, int8_t *a, int j, Queue *q)
 void
 sr_buf(int v, int j)
 {	int cnt = 1; Lextok *n;
-	int8_t lbuf[512];
+	char lbuf[512];
 
 	for (n = Mtype; n && j; n = n->rgt, cnt++)
 		if (cnt == v)
@@ -632,7 +632,7 @@ nochan_manip(Lextok *p, Lextok *n, int d)
 	{	setaccess(p->sym, ZS, 0, 'L');
 
 		if (n && n->ntyp == CONST)
-			fatal("invalid asgn to chan", (int8_t *) 0);
+			fatal("invalid asgn to chan", (char *) 0);
 
 		if (n && n->sym && n->sym->type == CHAN)
 		{	setaccess(n->sym, ZS, 0, 'V');
@@ -648,7 +648,7 @@ nochan_manip(Lextok *p, Lextok *n, int d)
 
 	if (n->sym && n->sym->type == CHAN)
 	{	if (d == 1)
-			fatal("invalid use of chan name", (int8_t *) 0);
+			fatal("invalid use of chan name", (char *) 0);
 		else
 			setaccess(n->sym, ZS, 0, 'V');	
 	}
@@ -662,14 +662,14 @@ nochan_manip(Lextok *p, Lextok *n, int d)
 }
 
 typedef struct BaseName {
-	int8_t *str;
+	char *str;
 	int cnt;
 	struct BaseName *nxt;
 } BaseName;
 BaseName *bsn;
 
 void
-newbasename(int8_t *s)
+newbasename(char *s)
 {	BaseName *b;
 
 /*	printf("+++++++++%s\n", s);	*/
@@ -687,7 +687,7 @@ newbasename(int8_t *s)
 }
 
 void
-delbasename(int8_t *s)
+delbasename(char *s)
 {	BaseName *b, *prv = (BaseName *) 0;
 
 	for (b = bsn; b; prv = b, b = b->nxt)
@@ -705,7 +705,7 @@ delbasename(int8_t *s)
 }
 
 void
-checkindex(int8_t *s, int8_t *t)
+checkindex(char *s, char *t)
 {	BaseName *b;
 
 /*	printf("xxx Check %s (%s)\n", s, t);	*/
@@ -719,9 +719,9 @@ checkindex(int8_t *s, int8_t *t)
 }
 
 void
-scan_tree(Lextok *t, int8_t *mn, int8_t *mx)
-{	int8_t sv[512];
-	int8_t tmp[32];
+scan_tree(Lextok *t, char *mn, char *mx)
+{	char sv[512];
+	char tmp[32];
 	int oln = lineno;
 
 	if (!t) return;
@@ -763,8 +763,8 @@ scan_tree(Lextok *t, int8_t *mn, int8_t *mx)
 
 void
 no_nested_array_refs(Lextok *n)	/* a [ a[1] ] with a[1] = 1, causes trouble in pan.b */
-{	int8_t mn[512];
-	int8_t mx[512];
+{	char mn[512];
+	char mx[512];
 
 /*	printf("==================================ZAP\n");	*/
 	bsn = (BaseName *) 0;	/* start new list */
@@ -777,7 +777,7 @@ no_nested_array_refs(Lextok *n)	/* a [ a[1] ] with a[1] = 1, causes trouble in p
 
 void
 no_internals(Lextok *n)
-{	int8_t *sp;
+{	char *sp;
 
 	if (!n->sym
 	||  !n->sym->name)

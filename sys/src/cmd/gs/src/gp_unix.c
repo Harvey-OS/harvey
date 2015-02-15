@@ -45,7 +45,7 @@
 #  include <stdlib.h>		/* for exit and getenv */
 #else
 extern void exit(int);
-extern int8_t *getenv(const int8_t *);
+extern char *getenv(const char *);
 #endif
 
 /* Do platform-dependent initialization. */
@@ -72,7 +72,7 @@ gp_do_exit(int exit_status)
 /* Get the string corresponding to an OS error number. */
 /* Unix systems support this so inconsistently that we don't attempt */
 /* to figure out whether it's available. */
-const int8_t *
+const char *
 gp_strerror(int errnum)
 {
     return NULL;
@@ -82,7 +82,7 @@ gp_strerror(int errnum)
 /* we don't try to implemented this since it requires support */
 /* for Apple's HFS(+) filesystem */
 int
-gp_read_macresource(byte *buf, const int8_t *filename, 
+gp_read_macresource(byte *buf, const char *filename, 
                     const uint type, const uint16_t id)
 {
     return 0;
@@ -150,7 +150,7 @@ gp_get_usertime(int32_t *pdt)
 /* ------ Screen management ------ */
 
 /* Get the environment variable that specifies the display to use. */
-const int8_t *
+const char *
 gp_getenv_display(void)
 {
     return getenv("DISPLAY");
@@ -160,16 +160,16 @@ gp_getenv_display(void)
 
 /* Open a connection to a printer.  See gp.h for details. */
 FILE *
-gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
+gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 {
-    const int8_t *fmode = (binary_mode ? "wb" : "w");
+    const char *fmode = (binary_mode ? "wb" : "w");
 
     return (strlen(fname) == 0 ? 0 : fopen(fname, fmode));
 }
 
 /* Close the connection to the printer. */
 void
-gp_close_printer(FILE * pfile, const int8_t *fname)
+gp_close_printer(FILE * pfile, const char *fname)
 {
     if (fname[0] == '|')
 	pclose(pfile);
@@ -189,8 +189,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, int8_t **fontname,
-                            int8_t **path)
+int gp_enumerate_fonts_next(void *enum_state, char **fontname,
+                            char **path)
 {
     return 0;
 }

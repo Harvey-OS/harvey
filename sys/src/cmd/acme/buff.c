@@ -242,7 +242,7 @@ bufloader(void *v, uint q0, Rune *r, int nr)
 uint
 loadfile(int fd, uint q0, int *nulls, int(*f)(void*, uint, Rune*, int), void *arg)
 {
-	int8_t *p;
+	char *p;
 	Rune *r;
 	int l, m, n, nb, nr;
 	uint q1;

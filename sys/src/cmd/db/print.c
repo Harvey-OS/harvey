@@ -21,7 +21,7 @@ extern	int	maxpos;
 
 /* general printing routines ($) */
 
-int8_t	*Ipath = INCDIR;
+char	*Ipath = INCDIR;
 static	int	tracetype;
 static void	printfp(Map*, int);
 
@@ -31,7 +31,7 @@ static void	printfp(Map*, int);
 static void
 ptrace(Map *map, uint64_t pc, uint64_t sp, Symbol *sym)
 {
-	int8_t buf[512];
+	char buf[512];
 
 	USED(map);
 	dprint("%s(", sym->name);
@@ -56,8 +56,8 @@ printtrace(int modif)
 	BKPT *bk;
 	Symbol s;
 	int stack;
-	int8_t *fname;
-	int8_t buf[512];
+	char *fname;
+	char buf[512];
 
 	if (cntflg==0)
 		cntval = -1;
@@ -190,11 +190,11 @@ printtrace(int modif)
 
 }
 
-int8_t *
+char *
 getfname(void)
 {
-	static int8_t fname[ARB];
-	int8_t *p;
+	static char fname[ARB];
+	char *p;
 
 	if (rdc() == EOR) {
 		reread();
@@ -217,7 +217,7 @@ printfp(Map *map, int modif)
 	Reglist *rp;
 	int i;
 	int ret;
-	int8_t buf[512];
+	char buf[512];
 
 	for (i = 0, rp = mach->reglist; rp->rname; rp += ret) {
 		ret = 1;
@@ -238,9 +238,9 @@ printfp(Map *map, int modif)
 }
 
 void
-redirin(int stack, int8_t *file)
+redirin(int stack, char *file)
 {
-	int8_t *pfile;
+	char *pfile;
 
 	if (file == 0) {
 		iclose(-1, 0);
@@ -259,7 +259,7 @@ redirin(int stack, int8_t *file)
 }
 
 void
-printmap(int8_t *s, Map *map)
+printmap(char *s, Map *map)
 {
 	int i;
 
@@ -321,7 +321,7 @@ printsym(void)
 void
 printsource(ADDR dot)
 {
-	int8_t str[STRINGSZ];
+	char str[STRINGSZ];
 
 	if (fileline(str, STRINGSZ, dot))
 		dprint("%s", str);
@@ -330,7 +330,7 @@ printsource(ADDR dot)
 void
 printpc(void)
 {
-	int8_t buf[512];
+	char buf[512];
 
 	dot = rget(cormap, mach->pc);
 	if(dot){

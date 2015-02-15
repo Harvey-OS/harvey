@@ -24,33 +24,33 @@ typedef struct System		System;
 
 struct Strings
 {
-	int8_t	*s1;
-	int8_t	*s2;
+	char	*s1;
+	char	*s2;
 };
 struct System {
-	int8_t	*rsys;
+	char	*rsys;
 	uint32_t	reqs;
 	uint32_t	first;
 	uint32_t	last;
 	System	*next;			/* next in chain */
 };
 
-int8_t	*netdir;
-int8_t	*HTTPLOG = "httpd/log";
+char	*netdir;
+char	*HTTPLOG = "httpd/log";
 
-static	int8_t		netdirb[256];
-static	int8_t		*namespace;
+static	char		netdirb[256];
+static	char		*namespace;
 static	System		syss[Nbuckets];
 
-static	void		becomenone(int8_t*);
-static	int8_t		*csquery(int8_t*, int8_t*, int8_t*);
-static	void		dolisten(int8_t*);
+static	void		becomenone(char*);
+static	char		*csquery(char*, char*, char*);
+static	void		dolisten(char*);
 static	int		doreq(HConnect*);
 static	int		send(HConnect*);
-static	Strings		stripmagic(HConnect*, int8_t*);
-static	int8_t*		stripprefix(int8_t*, int8_t*);
-static	int8_t*		sysdom(void);
-static	int		notfound(HConnect *c, int8_t *url);
+static	Strings		stripmagic(HConnect*, char*);
+static	char*		stripprefix(char*, char*);
+static	char*		sysdom(void);
+static	int		notfound(HConnect *c, char *url);
 
 uint8_t *certificate;
 int certlen;
@@ -149,7 +149,7 @@ main(int argc, char **argv)
 }
 
 static void
-becomenone(int8_t *namespace)
+becomenone(char *namespace)
 {
 	int fd;
 
@@ -164,7 +164,7 @@ becomenone(int8_t *namespace)
 }
 
 static HConnect*
-mkconnect(int8_t *scheme, int8_t *port)
+mkconnect(char *scheme, char *port)
 {
 	HConnect *c;
 
@@ -187,7 +187,7 @@ mkhspriv(void)
 }
 
 static uint 
-hashstr(int8_t* key)
+hashstr(char* key)
 {
 	/* asu works better than pjw for urls */
 	uint8_t *k = (unsigned char*)key;
@@ -199,7 +199,7 @@ hashstr(int8_t* key)
 }
 
 static System *
-hashsys(int8_t *rsys)
+hashsys(char *rsys)
 {
 	int notme;
 	System *sys;
@@ -231,7 +231,7 @@ hashsys(int8_t *rsys)
  * updated in the child.
  */
 static int
-isswamped(int8_t *rsys)
+isswamped(char *rsys)
 {
 	uint32_t period;
 	System *sys = hashsys(rsys);
@@ -258,12 +258,12 @@ throttle(int nctl, NetConnInfo *nci, int swamped)
 }
 
 static void
-dolisten(int8_t *address)
+dolisten(char *address)
 {
 	HSPriv *hp;
 	HConnect *c;
 	NetConnInfo *nci;
-	int8_t ndir[NETPATHLEN], dir[NETPATHLEN], *p, *scheme;
+	char ndir[NETPATHLEN], dir[NETPATHLEN], *p, *scheme;
 	int ctl, nctl, data, t, ok, spotchk, swamped;
 	TLSconn conn;
 
@@ -385,8 +385,8 @@ doreq(HConnect *c)
 {
 	HSPriv *hp;
 	Strings ss;
-	int8_t *magic, *uri, *newuri, *origuri, *newpath, *hb;
-	int8_t virtualhost[100], logfd0[10], logfd1[10], vers[16];
+	char *magic, *uri, *newuri, *origuri, *newpath, *hb;
+	char virtualhost[100], logfd0[10], logfd1[10], vers[16];
 	int n, nredirect;
 	uint flags;
 
@@ -498,7 +498,7 @@ static int
 send(HConnect *c)
 {
 	Dir *dir;
-	int8_t *w, *w2, *p, *masque;
+	char *w, *w2, *p, *masque;
 	int fd, fd1, n, force301, ok;
 
 /*
@@ -604,10 +604,10 @@ send(HConnect *c)
 }
 
 static Strings
-stripmagic(HConnect *hc, int8_t *uri)
+stripmagic(HConnect *hc, char *uri)
 {
 	Strings ss;
-	int8_t *newuri, *prog, *s;
+	char *newuri, *prog, *s;
 
 	prog = stripprefix("/magic/", uri);
 	if(prog == nil){
@@ -631,8 +631,8 @@ stripmagic(HConnect *hc, int8_t *uri)
 	return ss;
 }
 
-static int8_t*
-stripprefix(int8_t *pre, int8_t *str)
+static char*
+stripprefix(char *pre, char *str)
 {
 	while(*pre)
 		if(*str++ != *pre++)
@@ -645,7 +645,7 @@ stripprefix(int8_t *pre, int8_t *str)
  * figure out why and return and error message
  */
 static int
-notfound(HConnect *c, int8_t *url)
+notfound(HConnect *c, char *url)
 {
 	c->xferbuf[0] = 0;
 	rerrstr(c->xferbuf, sizeof c->xferbuf);
@@ -656,10 +656,10 @@ notfound(HConnect *c, int8_t *url)
 	return hfail(c, HNotFound, url);
 }
 
-static int8_t*
+static char*
 sysdom(void)
 {
-	int8_t *dn;
+	char *dn;
 
 	dn = csquery("sys" , sysname(), "dom");
 	if(dn == nil)
@@ -670,11 +670,11 @@ sysdom(void)
 /*
  *  query the connection server
  */
-static int8_t*
-csquery(int8_t *attr, int8_t *val, int8_t *rattr)
+static char*
+csquery(char *attr, char *val, char *rattr)
 {
-	int8_t token[64+4];
-	int8_t buf[256], *p, *sp;
+	char token[64+4];
+	char buf[256], *p, *sp;
 	int fd, n;
 
 	if(val == nil || val[0] == 0)

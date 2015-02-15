@@ -945,7 +945,7 @@ path_alloc_copy(gx_path * ppath)
 
 /* Print out a path with a label */
 void
-gx_dump_path(const gx_path * ppath, const int8_t *tag)
+gx_dump_path(const gx_path * ppath, const char *tag)
 {
     dlprintf2("[P]Path 0x%lx %s:\n", (uint32_t) ppath, tag);
     gx_path_print(ppath);

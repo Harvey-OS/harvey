@@ -17,7 +17,7 @@
 extern sigset_t	_psigblocked;
 
 static struct {
-	int8_t	*msg;	/* just check prefix */
+	char	*msg;	/* just check prefix */
 	int	num;
 } sigtab[] = {
 	{"hangup",				SIGHUP},
@@ -44,7 +44,7 @@ static struct {
 };
 #define NSIGTAB ((sizeof sigtab)/(sizeof (sigtab[0])))
 
-void	(*_sighdlr[MAXSIG+1])(int, int8_t*, Ureg*); /* 0 initialized: SIG_DFL */
+void	(*_sighdlr[MAXSIG+1])(int, char*, Ureg*); /* 0 initialized: SIG_DFL */
 
 /* must match signal.h: extern void (*signal(int, void (*)()))(); */
 //void (*signal(int sig, void (*func)(int, char*, Ureg*)))(int, char*, Ureg*)
@@ -99,10 +99,10 @@ sigaction(int sig, struct sigaction *act, struct sigaction *oact)
 
 /* this is registered in _envsetup */
 int
-_notehandler(void *u, int8_t *msg)
+_notehandler(void *u, char *msg)
 {
 	int i;
-	void(*f)(int, int8_t*, Ureg*);
+	void(*f)(int, char*, Ureg*);
 	extern void _doatexits(void);	/* in stdio/exit.c */
 
 	if(_finishing)
@@ -126,7 +126,7 @@ _notehandler(void *u, int8_t *msg)
 }
 
 int
-_stringsig(int8_t *nam)
+_stringsig(char *nam)
 {
 	int i;
 
@@ -136,7 +136,7 @@ _stringsig(int8_t *nam)
 	return 0;
 }
 
-int8_t *
+char *
 _sigstring(int sig)
 {
 	int i;

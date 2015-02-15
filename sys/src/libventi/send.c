@@ -61,7 +61,7 @@ _vtsend(VtConn *z, Packet *p)
 static int
 interrupted(void)
 {
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 
 	rerrstr(e, sizeof e);
 	return strstr(e, "interrupted") != nil;

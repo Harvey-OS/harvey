@@ -32,7 +32,7 @@ void	verifyrectrepl(int, int);
 void putpixel(Memimage *img, Point pt, uint32_t nv);
 uint32_t rgbatopix(uint8_t, uint8_t, uint8_t, uint8_t);
 
-int8_t *dchan, *schan, *mchan;
+char *dchan, *schan, *mchan;
 int dbpp, sbpp, mbpp;
 
 int drawdebug=0;
@@ -64,11 +64,11 @@ rdb(void)
 }
 
 int
-iprint(int8_t *fmt, ...)
+iprint(char *fmt, ...)
 {
 	int n;	
 	va_list va;
-	int8_t buf[1024];
+	char buf[1024];
 
 	va_start(va, fmt);
 	n = doprint(buf, buf+sizeof buf, fmt, va) - buf;
@@ -170,7 +170,7 @@ main(int argc, char *argv[])
  * a list of characters to put at various points in the picture.
  */
 static void
-Bprintr5g6b5(Biobuf *bio, int8_t*, uint32_t v)
+Bprintr5g6b5(Biobuf *bio, char*, uint32_t v)
 {
 	int r,g,b;
 	r = (v>>11)&31;
@@ -180,7 +180,7 @@ Bprintr5g6b5(Biobuf *bio, int8_t*, uint32_t v)
 }
 
 static void
-Bprintr5g5b5a1(Biobuf *bio, int8_t*, uint32_t v)
+Bprintr5g5b5a1(Biobuf *bio, char*, uint32_t v)
 {
 	int r,g,b,a;
 	r = (v>>11)&31;
@@ -191,13 +191,13 @@ Bprintr5g5b5a1(Biobuf *bio, int8_t*, uint32_t v)
 }
 
 void
-dumpimage(int8_t *name, Memimage *img, void *vdata, Point labelpt)
+dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 {
 	Biobuf b;
 	uint8_t *data;
 	uint8_t *p;
-	int8_t *arg;
-	void (*fmt)(Biobuf*, int8_t*, uint32_t);
+	char *arg;
+	void (*fmt)(Biobuf*, char*, uint32_t);
 	int npr, x, y, nb, bpp;
 	uint32_t v, mask;
 	Rectangle r;
@@ -208,11 +208,11 @@ dumpimage(int8_t *name, Memimage *img, void *vdata, Point labelpt)
 	case 1:
 	case 2:
 	case 4:
-		fmt = (void(*)(Biobuf*,int8_t*,uint32_t))Bprint;
+		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
 		arg = "%.1ux";
 		break;
 	case 8:
-		fmt = (void(*)(Biobuf*,int8_t*,uint32_t))Bprint;
+		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
 		arg = "%.2ux";
 		break;
 	case 16:
@@ -220,16 +220,16 @@ dumpimage(int8_t *name, Memimage *img, void *vdata, Point labelpt)
 		if(img->chan == RGB16)
 			fmt = Bprintr5g6b5;
 		else{
-			fmt = (void(*)(Biobuf*,int8_t*,uint32_t))Bprint;
+			fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
 			arg = "%.4ux";
 		}
 		break;
 	case 24:
-		fmt = (void(*)(Biobuf*,int8_t*,uint32_t))Bprint;
+		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
 		arg = "%.6lux";
 		break;
 	case 32:
-		fmt = (void(*)(Biobuf*,int8_t*,uint32_t))Bprint;
+		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
 		arg = "%.8lux";
 		break;
 	}

@@ -14,7 +14,7 @@
 void*
 Brdline(Biobufhdr *bp, int delim)
 {
-	int8_t *ip, *ep;
+	char *ip, *ep;
 	int i, j;
 
 	i = -bp->icount;
@@ -34,7 +34,7 @@ Brdline(Biobufhdr *bp, int delim)
 	/*
 	 * first try in remainder of buffer (gbuf doesn't change)
 	 */
-	ip = (int8_t*)bp->ebuf - i;
+	ip = (char*)bp->ebuf - i;
 	ep = memchr(ip, delim, i);
 	if(ep) {
 		j = (ep - ip) + 1;
@@ -53,7 +53,7 @@ Brdline(Biobufhdr *bp, int delim)
 	/*
 	 * append to buffer looking for the delim
 	 */
-	ip = (int8_t*)bp->bbuf + i;
+	ip = (char*)bp->bbuf + i;
 	while(i < bp->bsize) {
 		j = read(bp->fid, ip, bp->bsize-i);
 		if(j <= 0) {
@@ -74,12 +74,12 @@ Brdline(Biobufhdr *bp, int delim)
 			 * found in new piece
 			 * copy back up and reset everything
 			 */
-			ip = (int8_t*)bp->ebuf - i;
+			ip = (char*)bp->ebuf - i;
 			if(i < bp->bsize){
 				memmove(ip, bp->bbuf, i);
 				bp->gbuf = (uint8_t*)ip;
 			}
-			j = (ep - (int8_t*)bp->bbuf) + 1;
+			j = (ep - (char*)bp->bbuf) + 1;
 			bp->rdline = j;
 			bp->icount = j - i;
 			return ip;

@@ -21,7 +21,7 @@ struct IOMap
 {
 	IOMap	*next;
 	int	reserved;
-	int8_t	tag[13];
+	char	tag[13];
 	uint32_t	start;
 	uint32_t	end;
 };
@@ -71,7 +71,7 @@ int narchdir = Qbase;
  * like change the Qid version.  Changing the Qid path is disallowed.
  */
 Dirtab*
-addarchfile(int8_t *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
+addarchfile(char *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 {
 	int i;
 	Dirtab d;
@@ -106,7 +106,7 @@ addarchfile(int8_t *name, int perm, Rdwrfn *rdfn, Rdwrfn *wrfn)
 void
 ioinit(void)
 {
-	int8_t *excluded;
+	char *excluded;
 	int i;
 
 	for(i = 0; i < nelem(iomap.maps)-1; i++)
@@ -121,11 +121,11 @@ ioinit(void)
 					// entry is needed for swappable devs.
 
 	if ((excluded = getconf("ioexclude")) != nil) {
-		int8_t *s;
+		char *s;
 
 		s = excluded;
 		while (s && *s != '\0' && *s != '\n') {
-			int8_t *ends;
+			char *ends;
 			int io_s, io_e;
 
 			io_s = (int)strtol(s, &ends, 0);
@@ -150,7 +150,7 @@ ioinit(void)
 // This is in particular useful for exchangable cards, such
 // as pcmcia and cardbus cards.
 int
-ioreserve(int, int size, int align, int8_t *tag)
+ioreserve(int, int size, int align, char *tag)
 {
 	IOMap *map, **l;
 	int i, port;
@@ -200,7 +200,7 @@ ioreserve(int, int size, int align, int8_t *tag)
 //	alloced to.  if port < 0, find a free region.
 //
 int
-ioalloc(int port, int size, int align, int8_t *tag)
+ioalloc(int port, int size, int align, char *tag)
 {
 	IOMap *map, **l;
 	int i;
@@ -316,13 +316,13 @@ checkport(int start, int end)
 }
 
 static Chan*
-archattach(int8_t* spec)
+archattach(char* spec)
 {
 	return devattach('P', spec);
 }
 
 Walkqid*
-archwalk(Chan* c, Chan *nc, int8_t** name, int nname)
+archwalk(Chan* c, Chan *nc, char** name, int nname)
 {
 	return devwalk(c, nc, name, nname, archdir, narchdir, devgen);
 }
@@ -450,7 +450,7 @@ archread(Chan *c, void *a, long n, vlong offset)
 static int32_t
 archwrite(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	int8_t *p;
+	char *p;
 	int port;
 	uint16_t *sp;
 	uint32_t *lp;
@@ -525,7 +525,7 @@ void (*coherence)(void) = mfence;
 static int32_t
 cputyperead(Chan*, void *a, int32_t n, int64_t off)
 {
-	int8_t buf[512], *s, *e;
+	char buf[512], *s, *e;
 	int i, k;
 
 	e = buf+sizeof buf;

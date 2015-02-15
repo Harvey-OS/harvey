@@ -134,11 +134,11 @@ vncrdpixfmt(Vnc *v)
 	return fmt;
 }
 
-int8_t*
+char*
 vncrdstring(Vnc *v)
 {
 	uint32_t len;
-	int8_t *s;
+	char *s;
 
 	len = vncrdlong(v);
 	s = malloc(len+1);
@@ -159,11 +159,11 @@ vncrdstring(Vnc *v)
  * thus we read the response with vncrdstringx, which goes
  * behind bio's back.
  */
-int8_t*
+char*
 vncrdstringx(Vnc *v)
 {
-	int8_t tmp[4];
-	int8_t *s;
+	char tmp[4];
+	char *s;
 	uint32_t len;
 
 	assert(Bbuffered(&v->in) == 0);
@@ -183,7 +183,7 @@ vncrdstringx(Vnc *v)
 }
 
 void
-vncwrstring(Vnc *v, int8_t *s)
+vncwrstring(Vnc *v, char *s)
 {
 	uint32_t len;
 

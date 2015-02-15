@@ -329,7 +329,7 @@ typedef struct Ctlr {
 static Ctlr* bcm4401ctlrhead;
 static Ctlr* bcm4401ctlrtail;
 
-static int8_t* statistics[Nmib] = {
+static char* statistics[Nmib] = {
 	"Tx Good Octets",
 	"Tx Good Pkts",
 	"Tx Octets",
@@ -409,7 +409,7 @@ bcm4401mib(Ctlr* ctlr, uint* mib)
 static int32_t
 bcm4401ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 {
-	int8_t *p;
+	char *p;
 	Ctlr *ctlr;
 	int i, l, r;
 

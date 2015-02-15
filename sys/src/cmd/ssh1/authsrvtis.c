@@ -12,7 +12,7 @@
 static AuthInfo*
 authsrvtisfn(Conn *conn, Msg *m)
 {
-	int8_t *s;
+	char *s;
 	AuthInfo *ai;
 	Chalstate *c;
 

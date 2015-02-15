@@ -459,7 +459,7 @@ compout(Cstate *s, uint32_t data, int bits)
 void
 printkey(uint8_t *key)
 {
-	int8_t buf[200], *p;
+	char buf[200], *p;
 	int i;
 
 	p = buf;

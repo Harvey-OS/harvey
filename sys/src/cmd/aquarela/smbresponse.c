@@ -80,13 +80,13 @@ smbresponsecpy(SmbSession *s, uint8_t *data, uint16_t datalen)
 }
 
 int
-smbresponseputstring(SmbSession *s, int mustalign, int8_t *string)
+smbresponseputstring(SmbSession *s, int mustalign, char *string)
 {
 	return smbbufferputstring(s->response, &s->peerinfo, mustalign ? 0 : SMB_STRING_UNALIGNED, string);
 }
 
 int
-smbresponseputstr(SmbSession *s, int8_t *string)
+smbresponseputstr(SmbSession *s, char *string)
 {
 	return smbbufferputstring(s->response, nil, SMB_STRING_ASCII, string);
 }

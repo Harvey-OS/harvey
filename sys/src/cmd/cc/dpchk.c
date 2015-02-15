@@ -33,14 +33,14 @@ struct	Tprot
 typedef	struct	Tname	Tname;
 struct	Tname
 {
-	int8_t*	name;
+	char*	name;
 	int	param;
 	Tname*	link;
 };
 
 static	Type*	indchar;
 static	uint8_t	flagbits[512];
-static	int8_t	fmtbuf[100];
+static	char	fmtbuf[100];
 static	int	lastadj;
 static	int	lastverb;
 static	int	nstar;
@@ -72,11 +72,11 @@ argflag(int c, int v)
 }
 
 Bits
-getflag(int8_t *s)
+getflag(char *s)
 {
 	Bits flag;
 	int f;
-	int8_t *fmt;
+	char *fmt;
 	Rune c;
 
 	fmt = fmtbuf;
@@ -110,7 +110,7 @@ getflag(int8_t *s)
 }
 
 void
-newprot(Sym *m, Type *t, int8_t *s)
+newprot(Sym *m, Type *t, char *s)
 {
 	Bits flag;
 	Tprot *l;
@@ -131,7 +131,7 @@ newprot(Sym *m, Type *t, int8_t *s)
 }
 
 void
-newname(int8_t *s, int p)
+newname(char *s, int p)
 {
 	Tname *l;
 
@@ -184,7 +184,7 @@ pragvararg(void)
 {
 	Sym *s;
 	int n, c;
-	int8_t *t;
+	char *t;
 	Rune r;
 	Type *ty;
 
@@ -278,7 +278,7 @@ nextarg(Node *n, Node **a)
 }
 
 void
-checkargs(Node *nn, int8_t *s, int pos)
+checkargs(Node *nn, char *s, int pos)
 {
 	Node *a, *n;
 	Bits flag;
@@ -345,7 +345,7 @@ checkargs(Node *nn, int8_t *s, int pos)
 void
 dpcheck(Node *n)
 {
-	int8_t *s;
+	char *s;
 	Node *a, *b;
 	Tname *l;
 	int i;

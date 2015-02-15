@@ -11,11 +11,11 @@
 
 static	int	sunday(Tm *t, int d);
 static	int	dysize(int);
-static	void	ct_numb(int8_t*, int);
+static	void	ct_numb(char*, int);
 static	void	klocaltime(int32_t tim, Tm *ct);
 static	void	kgmtime(int32_t tim, Tm *ct);
 
-static	int8_t	dmsize[12] =
+static	char	dmsize[12] =
 {
 	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
@@ -145,7 +145,7 @@ kgmtime(int32_t tim, Tm *ct)
 }
 
 void
-datestr(int8_t *s, int32_t t)
+datestr(char *s, int32_t t)
 {
 	Tm tm;
 
@@ -156,8 +156,8 @@ datestr(int8_t *s, int32_t t)
 int
 Tfmt(Fmt *f1)
 {
-	int8_t s[30];
-	int8_t *cp;
+	char s[30];
+	char *cp;
 	int32_t t;
 	Tm tm;
 
@@ -199,7 +199,7 @@ dysize(int y)
 
 static
 void
-ct_numb(int8_t *cp, int n)
+ct_numb(char *cp, int n)
 {
 
 	if(n >= 10)

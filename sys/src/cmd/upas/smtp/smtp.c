@@ -14,28 +14,28 @@
 #include <libsec.h>
 #include <auth.h>
 
-static	int8_t*	connect(int8_t*);
-static	int8_t*	dotls(int8_t*);
-static	int8_t*	doauth(int8_t*);
+static	char*	connect(char*);
+static	char*	dotls(char*);
+static	char*	doauth(char*);
 
-void	addhostdom(String*, int8_t*);
-String*	bangtoat(int8_t*);
+void	addhostdom(String*, char*);
+String*	bangtoat(char*);
 String*	convertheader(String*);
-int	dBprint(int8_t*, ...);
+int	dBprint(char*, ...);
 int	dBputc(int);
-int8_t*	data(String*, Biobuf*);
-int8_t*	domainify(int8_t*, int8_t*);
+char*	data(String*, Biobuf*);
+char*	domainify(char*, char*);
 String*	fixrouteaddr(String*, Node*, Node*);
-int8_t*	getcrnl(String*);
+char*	getcrnl(String*);
 int	getreply(void);
-int8_t*	hello(int8_t*, int);
-int8_t*	mailfrom(int8_t*);
+char*	hello(char*, int);
+char*	mailfrom(char*);
 int	printdate(Node*);
 int	printheader(void);
-void	putcrnl(int8_t*, int);
-void	quit(int8_t*);
-int8_t*	rcptto(int8_t*);
-int8_t	*rewritezone(int8_t *);
+void	putcrnl(char*, int);
+void	quit(char*);
+char*	rcptto(char*);
+char	*rewritezone(char *);
 
 #define Retry	"Retry, Temporary Failure"
 #define Giveup	"Permanent Failure"
@@ -55,13 +55,13 @@ int	tryauth;	/* Try to authenticate, if supported */
 int	trysecure;	/* Try to use TLS if the other side supports it */
 int	okunksecure;	/* okay to use TLS to unknown servers */
 
-int8_t	*quitrv;	/* deferred return value when in quit */
-int8_t	ddomain[Maxdomain]; /* domain name of destination machine */
-int8_t	*gdomain;	/* domain name of gateway */
-int8_t	*uneaten;	/* first character after rfc822 headers */
-int8_t	*farend;	/* system we are trying to send to */
-int8_t	*user;		/* user we are authenticating as, if authenticating */
-int8_t	hostdomain[256];
+char	*quitrv;	/* deferred return value when in quit */
+char	ddomain[Maxdomain]; /* domain name of destination machine */
+char	*gdomain;	/* domain name of gateway */
+char	*uneaten;	/* first character after rfc822 headers */
+char	*farend;	/* system we are trying to send to */
+char	*user;		/* user we are authenticating as, if authenticating */
+char	hostdomain[256];
 
 Biobuf	bin;
 Biobuf	bout;
@@ -79,7 +79,7 @@ usage(void)
 }
 
 int
-timeout(void *x, int8_t *msg)
+timeout(void *x, char *msg)
 {
 	USED(x);
 	syslog(0, "smtp.fail", "interrupt: %s: %s", farend,  msg);
@@ -102,7 +102,7 @@ timeout(void *x, int8_t *msg)
 }
 
 void
-removenewline(int8_t *p)
+removenewline(char *p)
 {
 	int n = strlen(p)-1;
 
@@ -300,10 +300,10 @@ error:
 /*
  *  connect to the remote host
  */
-static int8_t *
-connect(int8_t* net)
+static char *
+connect(char* net)
 {
-	int8_t buf[Errlen];
+	char buf[Errlen];
 	int fd;
 
 	fd = mxdial(net, ddomain, gdomain);
@@ -325,14 +325,14 @@ connect(int8_t* net)
 	return 0;
 }
 
-static int8_t smtpthumbs[] =	"/sys/lib/tls/smtp";
-static int8_t smtpexclthumbs[] =	"/sys/lib/tls/smtp.exclude";
+static char smtpthumbs[] =	"/sys/lib/tls/smtp";
+static char smtpexclthumbs[] =	"/sys/lib/tls/smtp.exclude";
 
-static int8_t *
+static char *
 ckthumbs(TLSconn *c)
 {
 	Thumbprint *goodcerts;
-	int8_t *h, *err;
+	char *h, *err;
 	uint8_t hash[SHA1dlen];
 
 	err = nil;
@@ -364,11 +364,11 @@ ckthumbs(TLSconn *c)
  *  enable encryption and optionally authenticate.
  *  not fatal if we can't.
  */
-static int8_t *
-dotls(int8_t *me)
+static char *
+dotls(char *me)
 {
 	TLSconn *c;
-	int8_t *err;
+	char *err;
 	int fd;
 
 	c = mallocz(sizeof(*c), 1);	/* Note: not freed on success */
@@ -407,10 +407,10 @@ dotls(int8_t *me)
 	return(hello(me, 1));
 }
 
-static int8_t *
-doauth(int8_t *methods)
+static char *
+doauth(char *methods)
 {
-	int8_t *buf, *base64;
+	char *buf, *base64;
 	int n;
 	DS ds;
 	UserPasswd *p;
@@ -473,12 +473,12 @@ doauth(int8_t *methods)
 	return(0);
 }
 
-int8_t *
-hello(int8_t *me, int encrypted)
+char *
+hello(char *me, int encrypted)
 {
 	int ehlo;
 	String *r;
-	int8_t *ret, *s, *t;
+	char *ret, *s, *t;
 
 	if (!encrypted) {
 		/*
@@ -549,8 +549,8 @@ hello(int8_t *me, int encrypted)
 /*
  *  report sender to remote
  */
-int8_t *
-mailfrom(int8_t *from)
+char *
+mailfrom(char *from)
 {
 	if(!returnable(from))
 		dBprint("MAIL FROM:<>\r\n");
@@ -573,8 +573,8 @@ mailfrom(int8_t *from)
 /*
  *  report a recipient to remote
  */
-int8_t *
-rcptto(int8_t *to)
+char *
+rcptto(char *to)
 {
 	String *s;
 
@@ -603,19 +603,19 @@ rcptto(int8_t *to)
 	return 0;
 }
 
-static int8_t hex[] = "0123456789abcdef";
+static char hex[] = "0123456789abcdef";
 
 /*
  *  send the damn thing
  */
-int8_t *
+char *
 data(String *from, Biobuf *b)
 {
-	int8_t *buf, *cp;
+	char *buf, *cp;
 	int i, n, nbytes, bufsize, eof, r;
 	String *fromline;
-	int8_t errmsg[Errlen];
-	int8_t id[40];
+	char errmsg[Errlen];
+	char id[40];
 
 	/*
 	 *  input the header.
@@ -765,7 +765,7 @@ data(String *from, Biobuf *b)
  *  we're leaving
  */
 void
-quit(int8_t *rv)
+quit(char *rv)
 {
 		/* 60 minutes to quit */
 	quitting = 1;
@@ -783,7 +783,7 @@ quit(int8_t *rv)
 int
 getreply(void)
 {
-	int8_t *line;
+	char *line;
 	int rv;
 
 	reply = s_reset(reply);
@@ -804,7 +804,7 @@ getreply(void)
 	return rv;
 }
 void
-addhostdom(String *buf, int8_t *host)
+addhostdom(String *buf, char *host)
 {
 	s_append(buf, "@");
 	s_append(buf, host);
@@ -816,12 +816,12 @@ addhostdom(String *buf, int8_t *host)
  *	   a.x.y!b.p.o!c!d ->	@a.x.y:c!d@b.p.o
  */
 String *
-bangtoat(int8_t *addr)
+bangtoat(char *addr)
 {
 	String *buf;
 	register int i;
 	int j, d;
-	int8_t *field[128];
+	char *field[128];
 
 	/* parse the '!' format address */
 	buf = s_new();
@@ -944,8 +944,8 @@ printheader(void)
 	int n, len;
 	Field *f;
 	Node *p;
-	int8_t *cp;
-	int8_t c[1];
+	char *cp;
+	char c[1];
 
 	n = 0;
 	for(f = firstfield; f; f = f->next){
@@ -975,11 +975,11 @@ printheader(void)
 /*
  *  add a domain onto an name, return the new name
  */
-int8_t *
-domainify(int8_t *name, int8_t *domain)
+char *
+domainify(char *name, char *domain)
 {
 	static String *s;
-	int8_t *p;
+	char *p;
 
 	if(domain==0 || strchr(name, '.')!=0)
 		return name;
@@ -999,7 +999,7 @@ domainify(int8_t *name, int8_t *domain)
  *  print message observing '.' escapes and using \r\n for \n
  */
 void
-putcrnl(int8_t *cp, int n)
+putcrnl(char *cp, int n)
 {
 	int c;
 
@@ -1017,7 +1017,7 @@ putcrnl(int8_t *cp, int n)
 /*
  *  Get a line including a crnl into a string.  Convert crnl into nl.
  */
-int8_t *
+char *
 getcrnl(String *s)
 {
 	int c;
@@ -1088,13 +1088,13 @@ printdate(Node *p)
 	return n;
 }
 
-int8_t *
-rewritezone(int8_t *z)
+char *
+rewritezone(char *z)
 {
 	int mindiff;
-	int8_t s;
+	char s;
 	Tm *tm;
-	static int8_t x[7];
+	static char x[7];
 
 	tm = localtime(time(0));
 	mindiff = tm->tzoff/60;
@@ -1118,9 +1118,9 @@ rewritezone(int8_t *z)
  */
 #define	SIZE	4096
 int
-dBprint(int8_t *fmt, ...)
+dBprint(char *fmt, ...)
 {
-	int8_t buf[SIZE], *out;
+	char buf[SIZE], *out;
 	va_list arg;
 	int n;
 

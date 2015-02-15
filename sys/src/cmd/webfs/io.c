@@ -24,23 +24,23 @@ static int32_t
 _iovfprint(va_list *arg)
 {
 	int fd;
-	int8_t *fmt;
+	char *fmt;
 	va_list arg2;
 
 	fd = va_arg(*arg, int);
-	fmt = va_arg(*arg, int8_t*);
+	fmt = va_arg(*arg, char*);
 	arg2 = va_arg(*arg, va_list);
 	return vfprint(fd, fmt, arg2);
 }
 
 int
-iovfprint(Ioproc *io, int fd, int8_t *fmt, va_list arg)
+iovfprint(Ioproc *io, int fd, char *fmt, va_list arg)
 {
 	return iocall(io, _iovfprint, fd, fmt, arg);
 }
 
 int
-ioprint(Ioproc *io, int fd, int8_t *fmt, ...)
+ioprint(Ioproc *io, int fd, char *fmt, ...)
 {
 	int n;
 	va_list arg;
@@ -54,13 +54,13 @@ ioprint(Ioproc *io, int fd, int8_t *fmt, ...)
 static int32_t
 _iotlsdial(va_list *arg)
 {
-	int8_t *addr, *local, *dir;
+	char *addr, *local, *dir;
 	int *cfdp, fd, tfd, usetls;
 	TLSconn conn;
 
-	addr = va_arg(*arg, int8_t*);
-	local = va_arg(*arg, int8_t*);
-	dir = va_arg(*arg, int8_t*);
+	addr = va_arg(*arg, char*);
+	local = va_arg(*arg, char*);
+	dir = va_arg(*arg, char*);
 	cfdp = va_arg(*arg, int*);
 	usetls = va_arg(*arg, int);
 
@@ -87,7 +87,7 @@ _iotlsdial(va_list *arg)
 }
 
 int
-iotlsdial(Ioproc *io, int8_t *addr, int8_t *local, int8_t *dir, int *cfdp,
+iotlsdial(Ioproc *io, char *addr, char *local, char *dir, int *cfdp,
 	  int usetls)
 {
 	return iocall(io, _iotlsdial, addr, local, dir, cfdp, usetls);

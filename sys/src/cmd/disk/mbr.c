@@ -67,9 +67,9 @@ usage(void)
 }
 
 void
-fatal(int8_t *fmt, ...)
+fatal(char *fmt, ...)
 {
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	va_list arg;
 
 	va_start(arg, fmt);

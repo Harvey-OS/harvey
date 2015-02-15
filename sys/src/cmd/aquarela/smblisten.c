@@ -122,7 +122,7 @@ tcplistener(void *)
 {
 	for (;;) {
 		int dfd;
-		int8_t ldir[NETPATHLEN];
+		char ldir[NETPATHLEN];
 		int lcfd;
 //print("cifstcplistener: listening\n");
 		lcfd = listen(tcp.adir, ldir);

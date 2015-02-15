@@ -54,8 +54,8 @@ Procmap nfsproc[] = {
 	0, 0
 };
 
-void	nfsinit(int, int8_t**);
-extern void	mntinit(int, int8_t**);
+void	nfsinit(int, char**);
+extern void	mntinit(int, char**);
 extern Procmap	mntproc[];
 
 Progmap progmap[] = {
@@ -69,7 +69,7 @@ int32_t	nfstime;
 int	conftime;
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	server(argc, argv, myport, progmap);
 }
@@ -86,7 +86,7 @@ doalarm(void)
 }
 
 void
-nfsinit(int argc, int8_t **argv)
+nfsinit(int argc, char **argv)
 {
 	/*
 	 * mntinit will have already parsed our options.
@@ -330,7 +330,7 @@ nfswrite(int n, Rpccall *cmd, Rpccall *reply)
 		xf->opfid->tstale = nfstime + 60;
 		s->f.offset = offset;
 		s->f.count = count;
-		s->f.data = (int8_t *)argptr;
+		s->f.data = (char *)argptr;
 		if(xmesg(s, Twrite) < 0)
 			return error(reply, NFSERR_IO);
 	}
@@ -549,7 +549,7 @@ nfsreaddir(int n, Rpccall *cmd, Rpccall *reply)
 	Session *s;
 	Xfid *xf;
 	Dir dir;
-	int8_t *rdata;
+	char *rdata;
 	int k, offset, count, sfcount, entries, dsize;
 	uint8_t *argptr = cmd->args;
 	uint8_t *dataptr = reply->results;
@@ -606,7 +606,7 @@ chat("count %d data 0x%p\n", s->f.count, s->f.data);
 		/* now have a buffer of Plan 9 directories; unpack into NFS thingies */
 		while(sfcount >= 0){
 			dsize = convM2D((uint8_t*)rdata, sfcount, &dir,
-					(int8_t*)s->statbuf);
+					(char*)s->statbuf);
 			if(dsize <= BIT16SZ){
 				count = 0;	/* force break from outer loop */
 				break;

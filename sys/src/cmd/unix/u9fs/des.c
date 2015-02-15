@@ -16,9 +16,9 @@
  *	block_cipher(key, block, decrypting)
  */
 
-static	int32_t	ip_low(int8_t [8]);
-static	int32_t	ip_high(int8_t [8]);
-static	void	fp(int32_t, int32_t, int8_t[8]);
+static	int32_t	ip_low(char [8]);
+static	int32_t	ip_high(char [8]);
+static	void	fp(int32_t, int32_t, char[8]);
 
 extern int chatty9p;
 
@@ -118,9 +118,9 @@ static int32_t  s7p[] = {
  *	DES electronic codebook encryption of one block
  */
 void
-block_cipher(int8_t expanded_key[128], int8_t text[8], int decrypting)
+block_cipher(char expanded_key[128], char text[8], int decrypting)
 {
-	int8_t *key;
+	char *key;
 	int32_t crypto, temp, right, left;
 	int i, key_offset;
 
@@ -164,7 +164,7 @@ static int32_t iptab[] = {
 };
 
 static int32_t
-ip_low(int8_t block[8])
+ip_low(char block[8])
 {
 	int i;
 	int32_t l;
@@ -178,7 +178,7 @@ ip_low(int8_t block[8])
 }
 
 static int32_t
-ip_high(int8_t block[8])
+ip_high(char block[8])
 {
 	int i;
 	int32_t l;
@@ -200,7 +200,7 @@ static unsigned long	fptab[] = {
 };
 
 static void
-fp(int32_t left, int32_t right, int8_t text[8])
+fp(int32_t left, int32_t right, char text[8])
 {
 	unsigned long ta[2], t, v[2];
 	int i, j, sh;
@@ -345,7 +345,7 @@ static uint8_t keyexpand[][15][2] = {
 };
 
 void
-key_setup(int8_t key[DESKEYLEN], int8_t *ek)
+key_setup(char key[DESKEYLEN], char *ek)
 {
 	int i, j, k, mask;
 	uint8_t (*x)[2];

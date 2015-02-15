@@ -23,10 +23,10 @@ usage(void)
 }
 
 static uint32_t
-argval(int8_t *arg)
+argval(char *arg)
 {
 	int32_t v;
-	int8_t *extra;
+	char *extra;
 
 	if(arg == nil)
 		usage();

@@ -18,13 +18,13 @@
 typedef struct Stringtab	Stringtab;
 struct Stringtab {
 	Stringtab *link;
-	int8_t *str;
+	char *str;
 };
 
 static Stringtab *stab[1024];
 
 static uint
-hash(int8_t *s)
+hash(char *s)
 {
 	uint h;
 	uint8_t *p;
@@ -35,16 +35,16 @@ hash(int8_t *s)
 	return h;
 }
 
-static int8_t*
-estrdup(int8_t *s)
+static char*
+estrdup(char *s)
 {
 	if((s = strdup(s)) == nil)
 		sysfatal("strdup(%.10s): out of memory", s);
 	return s;
 }
 
-int8_t*
-atom(int8_t *str)
+char*
+atom(char *str)
 {
 	uint h;
 	Stringtab *tab;
@@ -80,10 +80,10 @@ erealloc(void *v, uint32_t n)
 	return v;
 }
 
-int8_t*
-struprcpy(int8_t *p, int8_t *s)
+char*
+struprcpy(char *p, char *s)
 {
-	int8_t *op;
+	char *op;
 
 	op = p;
 	for(; *s; s++)
@@ -94,7 +94,7 @@ struprcpy(int8_t *p, int8_t *s)
 }
 
 int
-chat(int8_t *fmt, ...)
+chat(char *fmt, ...)
 {
 	va_list arg;
 

@@ -10,11 +10,11 @@
 #include	<u.h>
 #include	<libc.h>
 
-int8_t*
+char*
 sysname(void)
 {
 	int f, n;
-	static int8_t b[128];
+	static char b[128];
 
 	if(b[0])
 		return b;

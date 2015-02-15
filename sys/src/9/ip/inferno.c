@@ -19,7 +19,7 @@
  *  some hacks for commonality twixt inferno and plan9
  */
 
-int8_t*
+char*
 commonuser(void)
 {
 	return up->user;
@@ -31,20 +31,20 @@ commonfdtochan(int fd, int mode, int a, int b)
 	return fdtochan(fd, mode, a, b);
 }
 
-int8_t*
+char*
 commonerror(void)
 {
 	return up->errstr;
 }
 
-int8_t*
+char*
 bootp(Ipifc*)
 {
 	return "unimplmented";
 }
 
 int
-bootpread(int8_t*, uint32_t, int)
+bootpread(char*, uint32_t, int)
 {
 	return	0;
 }

@@ -162,7 +162,7 @@ diskn(gs_iodev_disk6,"%disk6%");
 
 typedef struct diskn_state_s {
     int root_size;	    /* size of root buffer */
-    int8_t * root;            /* root path pointer  */
+    char * root;            /* root path pointer  */
     gs_memory_t * memory;   /* memory structure used */
 } diskn_state;
 
@@ -177,8 +177,8 @@ gs_private_st_ptrs1(st_diskn_state, struct diskn_state_s, "diskn_state",
 
 typedef struct map_file_enum_s {
     FILE *  stream;         /* stream to map file */
-    int8_t *  pattern;        /* pattern pointer    */
-    int8_t *  root;           /* root path pointer  */
+    char *  pattern;        /* pattern pointer    */
+    char *  root;           /* root path pointer  */
     gs_memory_t * memory;   /* memory structure used */
 } map_file_enum;
 
@@ -295,16 +295,16 @@ diskn_status(gx_io_device * iodev, const char *fname, struct stat *pstat)
 }
 
 private file_enum *
-diskn_enumerate_files_init(gx_io_device * iodev, const int8_t *pat,
+diskn_enumerate_files_init(gx_io_device * iodev, const char *pat,
                            uint patlen,
 	     gs_memory_t * mem)
 {
-    int8_t patstr[gp_file_name_sizeof];
+    char patstr[gp_file_name_sizeof];
     diskn_state * pstate = (diskn_state *)iodev->state;
 
     memcpy(patstr, pat, patlen);	/* Copy string to buffer */
     patstr[patlen]=0;			/* Terminate string */
-    return (file_enum *)map_file_enum_init(mem, (int8_t *)pstate->root,
+    return (file_enum *)map_file_enum_init(mem, (char *)pstate->root,
                                            patstr);
 }
 
@@ -315,7 +315,7 @@ diskn_enumerate_close(file_enum *pfen)
 }
 
 private uint
-diskn_enumerate_next(file_enum *pfen, int8_t *ptr, uint maxlen)
+diskn_enumerate_next(file_enum *pfen, char *ptr, uint maxlen)
 {
     if (map_file_enum_next((void *)pfen, ptr))
         return strlen(ptr);
@@ -422,10 +422,10 @@ diskn_put_params(gx_io_device *iodev, gs_param_list *plist)
  * Returns - NULL if error, file structure pointer if no error
  */
 private FILE *
-MapFileOpen(const int8_t * rootpath, const int8_t * filename,
-            const int8_t * attributes)
+MapFileOpen(const char * rootpath, const char * filename,
+            const char * attributes)
 {
-    int8_t fullname[BUFFER_LENGTH];
+    char fullname[BUFFER_LENGTH];
 
     if (strlen(rootpath) + strlen(filename) >= BUFFER_LENGTH)
         return NULL;
@@ -656,7 +656,7 @@ map_file_enum_init(gs_memory_t * mem, const char * root_name, const char * searc
  * search_pattern  char*   string array for next target
  */
 private bool
-map_file_enum_next(void * enum_mem, int8_t* target)
+map_file_enum_next(void * enum_mem, char* target)
 {
     int d = -1;
     map_file_enum * mapfileenum;
@@ -718,8 +718,8 @@ map_file_enum_close(void * enum_mem)
  * osname          char*   resulting os specific path to the file
  */
 private bool
-map_file_name_get(const int8_t * root_name, const int8_t * Fname,
-                  int8_t * osname)
+map_file_name_get(const char * root_name, const char * Fname,
+                  char * osname)
 {
     int d = MapToFile(root_name, Fname);
 

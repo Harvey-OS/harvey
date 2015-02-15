@@ -83,7 +83,7 @@ int
 convM2OD(Odir *f, void *buf, int nbuf)
 {
 	int i;
-	int8_t *p;
+	char *p;
 	int len;
 
 	if(nbuf < Odirsize)
@@ -118,7 +118,7 @@ convM2OD(Odir *f, void *buf, int nbuf)
 }
 
 int
-oreadblock(Ofile *f, int block, uint32_t off, int8_t *buf, int nbuf)
+oreadblock(Ofile *f, int block, uint32_t off, char *buf, int nbuf)
 {
 	int n;
 
@@ -166,7 +166,7 @@ chainlen(Ofile *f, uint32_t start)
  * like the MS-DOS file allocation tables.
  */
 int
-oreadchain(Ofile *f, uint32_t block, int off, int8_t *buf, int nbuf)
+oreadchain(Ofile *f, uint32_t block, int off, char *buf, int nbuf)
 {
 	int i;
 	int offblock;
@@ -178,7 +178,7 @@ oreadchain(Ofile *f, uint32_t block, int off, int8_t *buf, int nbuf)
 }
 
 int 
-oreadfile(Odir *d, int off, int8_t *buf, int nbuf)
+oreadfile(Odir *d, int off, char *buf, int nbuf)
 {
 	/*
 	 * if d->size < 0x1000 then d->start refers
@@ -204,7 +204,7 @@ oreadfile(Odir *d, int off, int8_t *buf, int nbuf)
 int
 oreaddir(Ofile *f, int entry, Odir *d)
 {
-	int8_t buf[Odirsize];
+	char buf[Odirsize];
 
 	if(oreadchain(f, f->rootblock, entry*Odirsize, buf, Odirsize) != Odirsize)
 		return -1;
@@ -233,7 +233,7 @@ dumpdir(Ofile *f, uint32_t dnum)
 }
 
 Ofile*
-oleopen(int8_t *fn)
+oleopen(char *fn)
 {
 	int i, j, k, block;
 	int ndepot;
@@ -244,7 +244,7 @@ oleopen(int8_t *fn)
 
 	Ofile *f;
 	Biobuf *b;
-	static int8_t magic[] = {
+	static char magic[] = {
 		0xD0, 0xCF, 0x11, 0xE0,
 		0xA1, 0xB1, 0x1A, 0xE1
 	};
@@ -372,7 +372,7 @@ void
 oleread(Req *r)
 {
 	Odir *d;
-	int8_t *p;
+	char *p;
 	int e, n;
 	int32_t c;
 	int64_t o;
@@ -431,7 +431,7 @@ filldir(File *t, Ofile *f, int dnum, int nrecur)
 	Odir d;
 	int i;
 	Rune rbuf[40];
-	int8_t buf[UTFmax*nelem(rbuf)];
+	char buf[UTFmax*nelem(rbuf)];
 	File *nt;
 
 	if(dnum == 0xFFFFFFFF || oreaddir(f, dnum, &d) != 1)

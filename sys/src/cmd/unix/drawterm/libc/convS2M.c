@@ -13,7 +13,7 @@
 
 static
 uint8_t*
-pstring(uint8_t *p, int8_t *s)
+pstring(uint8_t *p, char *s)
 {
 	uint n;
 
@@ -46,7 +46,7 @@ pqid(uint8_t *p, Qid *q)
 
 static
 uint
-stringsz(int8_t *s)
+stringsz(char *s)
 {
 	if(s == nil)
 		return BIT16SZ;

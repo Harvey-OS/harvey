@@ -15,7 +15,7 @@
 void
 thesprintentry(Entry e, int cmd)
 {
-	int8_t *p, *pe;
+	char *p, *pe;
 	int c, i;
 
 	p = e.start;
@@ -73,7 +73,7 @@ int32_t
 thesnextoff(int32_t fromoff)
 {
 	int32_t a;
-	int8_t *p;
+	char *p;
 
 	a = Bseek(bdict, fromoff, 0);
 	if(a < 0)

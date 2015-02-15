@@ -11,12 +11,12 @@
 # include "t.h"
 
 int
-gettext(int8_t *sp, int ilin, int icol, int8_t *fn, int8_t *sz)
+gettext(char *sp, int ilin, int icol, char *fn, char *sz)
 {
 					/* get a section of text */
-	int8_t	line[4096];
+	char	line[4096];
 	int	oname, startline;
-	int8_t	*vs;
+	char	*vs;
 
 	startline = iline;
 	if (texname == 0) 

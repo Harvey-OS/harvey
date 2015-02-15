@@ -25,13 +25,13 @@ enum
 	Ctlsize	= 5*12
 };
 
-int8_t	Edel[]		= "deleted window";
-int8_t	Ebadctl[]		= "ill-formed control message";
-int8_t	Ebadaddr[]	= "bad address syntax";
-int8_t	Eaddr[]		= "address out of range";
-int8_t	Einuse[]		= "already in use";
-int8_t	Ebadevent[]	= "bad event syntax";
-extern int8_t Eperm[];
+char	Edel[]		= "deleted window";
+char	Ebadctl[]		= "ill-formed control message";
+char	Ebadaddr[]	= "bad address syntax";
+char	Eaddr[]		= "address out of range";
+char	Einuse[]		= "already in use";
+char	Ebadevent[]	= "bad event syntax";
+extern char Eperm[];
 
 static
 void
@@ -101,7 +101,7 @@ xfidopen(Xfid *x)
 	Fcall fc;
 	Window *w;
 	Text *t;
-	int8_t *s;
+	char *s;
 	Rune *r;
 	int m, n, q, q0, q1;
 
@@ -268,8 +268,8 @@ xfidread(Xfid *x)
 	Fcall fc;
 	int n, q;
 	uint off;
-	int8_t *b;
-	int8_t buf[256];
+	char *b;
+	char buf[256];
 	Window *w;
 
 	q = FILE(x->f->qid);
@@ -414,7 +414,7 @@ xfidwrite(Xfid *x)
 {
 	Fcall fc;
 	int c, qid, nb, nr, eval;
-	int8_t buf[64], *err;
+	char buf[64], *err;
 	Window *w;
 	Rune *r;
 	Range a;
@@ -590,7 +590,7 @@ xfidctlwrite(Xfid *x, Window *w)
 	Fcall fc;
 	int i, m, n, nb, nr, nulls;
 	Rune *r;
-	int8_t *err, *p, *pp, *q, *e;
+	char *err, *p, *pp, *q, *e;
 	int isfbuf, scrdraw, settag;
 	Text *t;
 
@@ -802,7 +802,7 @@ xfideventwrite(Xfid *x, Window *w)
 	Fcall fc;
 	int m, n;
 	Rune *r;
-	int8_t *err, *p, *q;
+	char *err, *p, *q;
 	int isfbuf;
 	Text *t;
 	int c;
@@ -886,7 +886,7 @@ xfidutfread(Xfid *x, Text *t, uint q1, int qid)
 	Fcall fc;
 	Window *w;
 	Rune *r;
-	int8_t *b, *b1;
+	char *b, *b1;
 	uint q, off, boff;
 	int m, n, nr, nb;
 
@@ -951,7 +951,7 @@ xfidruneread(Xfid *x, Text *t, uint q0, uint q1)
 	Fcall fc;
 	Window *w;
 	Rune *r, junk;
-	int8_t *b, *b1;
+	char *b, *b1;
 	uint q, boff;
 	int i, rw, m, n, nr, nb;
 
@@ -1003,7 +1003,7 @@ void
 xfideventread(Xfid *x, Window *w)
 {
 	Fcall fc;
-	int8_t *b;
+	char *b;
 	int i, n;
 
 	i = 0;
@@ -1039,7 +1039,7 @@ xfidindexread(Xfid *x)
 	Fcall fc;
 	int i, j, m, n, nmax, isbuf, cnt, off;
 	Window *w;
-	int8_t *b;
+	char *b;
 	Rune *r;
 	Column *c;
 
@@ -1055,7 +1055,7 @@ xfidindexread(Xfid *x)
 	nmax++;
 	isbuf = (nmax<=RBUFSIZE);
 	if(isbuf)
-		b = (int8_t*)x->buf;
+		b = (char*)x->buf;
 	else
 		b = emalloc(nmax);
 	r = fbufalloc();
@@ -1086,7 +1086,7 @@ xfidindexread(Xfid *x)
 		cnt = n-off;
 	fc.count = cnt;
 	memmove(r, b+off, cnt);
-	fc.data = (int8_t*)r;
+	fc.data = (char*)r;
 	if(!isbuf)
 		free(b);
 	respond(x, &fc, nil);

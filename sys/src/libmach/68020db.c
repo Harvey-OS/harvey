@@ -16,11 +16,11 @@
  * 68020-specific debugger interface
  */
 
-static	int8_t	*m68020excep(Map*, Rgetter);
+static	char	*m68020excep(Map*, Rgetter);
 
 static	int	m68020foll(Map*, uint64_t, Rgetter, uint64_t*);
-static	int	m68020inst(Map*, uint64_t, int8_t, int8_t*, int);
-static	int	m68020das(Map*, uint64_t, int8_t*, int);
+static	int	m68020inst(Map*, uint64_t, char, char*, int);
+static	int	m68020das(Map*, uint64_t, char*, int);
 static	int	m68020instlen(Map*, uint64_t);
 
 Machdata m68020mach =
@@ -85,7 +85,7 @@ static
 struct ftype{
 	int16_t	fmt;
 	int16_t	len;
-	int8_t	*name;
+	char	*name;
 } ftype[] = {		/* section 6.5.7 page 6-24 */
 	{  0,  4*2, "Short Format" },
 	{  1,  4*2, "Throwaway" },
@@ -153,7 +153,7 @@ m68020ufix(Map *map)
 	return -1;
 }
 
-static int8_t *
+static char *
 m68020excep(Map *map, Rgetter rget)
 {
 	uint64_t pc;
@@ -371,8 +371,8 @@ struct optable
 	uint16_t	mask0;
 	uint16_t	op2;
 	uint16_t	mask1;
-	int8_t	opdata[2];
-	int8_t	*format;
+	char	opdata[2];
+	char	*format;
 };
 
 struct	operand
@@ -385,7 +385,7 @@ struct	operand
 			int32_t	disp;
 			int32_t	outer;
 		};
-		int8_t	floater[24];	/* floating point immediates */
+		char	floater[24];	/* floating point immediates */
 	};
 };
 
@@ -395,9 +395,9 @@ struct	inst
 	uint64_t	addr;		/* addr of start of instruction */
 	uint16_t	raw[4+12];	/* longest instruction: 24 byte packed immediate */
 	Operand	and[2];
-	int8_t	*end;		/* end of print buffer */
-	int8_t	*curr;		/* current fill point in buffer */
-	int8_t	*errmsg;
+	char	*end;		/* end of print buffer */
+	char	*curr;		/* current fill point in buffer */
+	char	*errmsg;
 };
 	/* class 0: bit field, MOVEP & immediate instructions */
 static Optable t0[] = {
@@ -902,7 +902,7 @@ static Optable	*optables[] =
 static	Map	*mymap;
 
 static int
-dumpinst(Inst *ip, int8_t *buf, int n)
+dumpinst(Inst *ip, char *buf, int n)
 {
 	int i;
 
@@ -1307,7 +1307,7 @@ instruction(Inst *ip)
 #pragma	varargck	argpos	bprint		2
 
 static void
-bprint(Inst *i, int8_t *fmt, ...)
+bprint(Inst *i, char *fmt, ...)
 {
 	va_list arg;
 
@@ -1316,7 +1316,7 @@ bprint(Inst *i, int8_t *fmt, ...)
 	va_end(arg);
 }
 
-static	int8_t	*regname[] =
+static	char	*regname[] =
 {
 	"R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "A0",
 	"A1", "A2", "A3", "A4", "A5", "A6", "A7", "PC", "SB"
@@ -1354,11 +1354,11 @@ none:		bprint(ip, "%lux", ap->disp);
  *	of an EA.
  */
 static int
-pidx(Inst *ip, int ext, int reg, int8_t *bfmt, int8_t *ifmt, int8_t *nobase)
+pidx(Inst *ip, int ext, int reg, char *bfmt, char *ifmt, char *nobase)
 {
-	int8_t *s;
+	char *s;
 	int printed;
-	int8_t buf[512];
+	char buf[512];
 
 	printed = 1;
 	if (ext&0x80) {				/* Base suppressed */
@@ -1591,30 +1591,30 @@ pea(int reg, Inst *ip, Operand *ap)
 	}
 }
 
-static int8_t *cctab[]  = { "F", "T", "HI", "LS", "CC", "CS", "NE", "EQ",
+static char *cctab[]  = { "F", "T", "HI", "LS", "CC", "CS", "NE", "EQ",
 			  "VC", "VS", "PL", "MI", "GE", "LT", "GT", "LE" };
-static	int8_t *fcond[] =
+static	char *fcond[] =
 {
 	"F",	"EQ",	"OGT",	"OGE",	"OLT",	"OLE",	"OGL", "OR",
 	"UN",	"UEQ",	"UGT",	"UGE",	"ULT",	"ULE",	"NE",	"T",
 	"SF",	"SEQ",	"GT",	"GE",	"LT",	"LE",	"GL",	"GLE",
 	"NGLE",	"NGL",	"NLE",	"NLT",	"NGE",	"NGT",	"SNE",	"ST"
 };
-static	int8_t *cachetab[] =	{ "NC", "DC", "IC", "BC" };
-static	int8_t *mmutab[] =	{ "TC", "??", "SRP", "CRP" };
-static	int8_t *crtab0[] =
+static	char *cachetab[] =	{ "NC", "DC", "IC", "BC" };
+static	char *mmutab[] =	{ "TC", "??", "SRP", "CRP" };
+static	char *crtab0[] =
 {
 	"SFC", "DFC", "CACR", "TC", "ITT0", "ITT1", "DTT0", "DTT1",
 };
-static	int8_t *crtab1[] =
+static	char *crtab1[] =
 {
 	"USP", "VBR", "CAAR", "MSP", "ISP", "MMUSR", "URP", "SRP",
 };
-static	int8_t typetab[] =	{ 'L', 'S', 'X', 'P', 'W', 'D', 'B', '?', };
-static	int8_t sztab[] =		{'?', 'B', 'W', 'L', '?' };
+static	char typetab[] =	{ 'L', 'S', 'X', 'P', 'W', 'D', 'B', '?', };
+static	char sztab[] =		{'?', 'B', 'W', 'L', '?' };
 
 static	void
-formatins(int8_t *fmt, Inst *ip)
+formatins(char *fmt, Inst *ip)
 {
 	int16_t op, w1;
 	int r1, r2;
@@ -1970,7 +1970,7 @@ static int
 eaval(Inst *ip, Operand *ap, Rgetter rget)
 {
 	int reg;
-	int8_t buf[8];
+	char buf[8];
 
 	reg = ip->raw[0]&0x07;
 	switch(ap->eatype)
@@ -2045,7 +2045,7 @@ m68020foll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 }
 
 static int
-m68020inst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
+m68020inst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	Inst i;
 	Optable *op;
@@ -2071,7 +2071,7 @@ m68020inst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
 }
 
 static int
-m68020das(Map *map, uint64_t pc, int8_t *buf, int n)
+m68020das(Map *map, uint64_t pc, char *buf, int n)
 {
 	Inst i;
 	Optable *op;

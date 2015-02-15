@@ -485,7 +485,7 @@ rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 	Ctlr *ctlr;
 	Dtcc *dtcc;
 	int timeo;
-	int8_t *alloc, *e, *p;
+	char *alloc, *e, *p;
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);

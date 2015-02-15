@@ -14,7 +14,7 @@ enum {
 };
 
 static uint8_t*
-gstring(uint8_t *p, uint8_t *ep, int8_t **s)
+gstring(uint8_t *p, uint8_t *ep, char **s)
 {
 	uint n;
 
@@ -77,7 +77,7 @@ convM2AI(uint8_t *p, int n, AuthInfo **aip)
 }
 
 static int
-dorpc(AuthRpc *rpc, int8_t *verb, int8_t *val, int len, AuthGetkey *getkey)
+dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
 {
 	int ret;
 
@@ -110,7 +110,7 @@ dowrite(Session *s, Fid *f, void *buf, int n)
 	s->f.fid = f - s->fids;
 	s->f.offset = 0;
 	s->f.count = n;
-	s->f.data = (int8_t *)buf;
+	s->f.data = (char *)buf;
 	if(xmesg(s, Twrite) < 0)
 		return -1;
 	return n;
@@ -121,12 +121,12 @@ dowrite(Session *s, Fid *f, void *buf, int n)
  */
 AuthInfo*
 authproto(Session *s, Fid *f, AuthRpc *rpc, AuthGetkey *getkey,
-	  int8_t *params)
+	  char *params)
 {
-	int8_t *buf;
+	char *buf;
 	int m, n, ret;
 	AuthInfo *a;
-	int8_t oerr[ERRMAX];
+	char oerr[ERRMAX];
 
 	rerrstr(oerr, sizeof oerr);
 	werrstr("UNKNOWN AUTH ERROR");

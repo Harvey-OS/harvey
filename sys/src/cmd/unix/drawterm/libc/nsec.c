@@ -36,7 +36,7 @@ be2vlong(int64_t *to, uint8_t *f)
 int64_t
 nsec(void)
 {
-	int8_t b[12+1];
+	char b[12+1];
 	static int f = -1;
 	static int usebintime;
 	int retries;

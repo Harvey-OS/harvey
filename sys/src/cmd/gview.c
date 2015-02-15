@@ -53,7 +53,7 @@ FILE* logfil = 0;		/* dump selected points here if nonzero */
 /* Prepend string s to null-terminated string in n-byte buffer buf[], truncating if
    necessary and using a space to separate s from the rest of buf[].
 */
-int8_t* str_insert(int8_t* buf, int8_t* s, int n)
+char* str_insert(char* buf, char* s, int n)
 {
 	int blen, slen = strlen(s) + 1;
 	if (slen >= n)
@@ -71,9 +71,9 @@ int8_t* str_insert(int8_t* buf, int8_t* s, int n)
    ssub, assuming ssub is ASCII.  Return nonzero (true) if string smain had to be changed.
    In spite of the ASCII-centric appearance, I think this can handle UTF in smain.
 */
-int remove_substr(int8_t* smain, int8_t* ssub)
+int remove_substr(char* smain, char* ssub)
 {
-	int8_t *ss, *s = strstr(smain, ssub);
+	char *ss, *s = strstr(smain, ssub);
 	int n = strlen(ssub);
 	if (s==0)
 		return 0;
@@ -142,7 +142,7 @@ int get_1click(int but, Mouse* m, Cursor* curs)
 /* Wait for a mouse click or keyboard event from the string of expected characters.  Return
    the character code or -1 for a button-but mouse event or 0 for wrong button.
 */
-int get_click_or_kbd(int but, Mouse* m, const int8_t* expected)
+int get_click_or_kbd(int but, Mouse* m, const char* expected)
 {
 	Event ev;
 	uint32_t expbits[4], ty;
@@ -202,7 +202,7 @@ typedef struct thick_color {
 
 typedef struct color_ref {
 	uint32_t c;			/* RGBA pixel color */
-	int8_t* nam;			/* ASCII name (matched to input, used in output)*/
+	char* nam;			/* ASCII name (matched to input, used in output)*/
 	int nam1;			/* single-letter version of color name */
 	Image* im;			/* replicated solid-color image */
 } color_ref;
@@ -283,12 +283,12 @@ thick_color* tc_default(thick_color *buf)
    of default color and thickness; e.g., "Multi(xxbadxx)" in a label prevents gview
    from recognizing anything that follows.
 */
-thick_color* parse_color_chars(const int8_t* c0, const int8_t* fin,
+thick_color* parse_color_chars(const char* c0, const char* fin,
 			       thick_color *buf)
 {
 	thick_color* tc;		/* Pending return value */
 	int i, j, n=fin-c0;		/* n is an upper bound on how many data members */
-	const int8_t* c;
+	const char* c;
 	for (c=c0; c<fin-1; c++)
 		if (*c=='T')
 			n--;
@@ -319,9 +319,9 @@ thick_color* parse_color_chars(const int8_t* c0, const int8_t* fin,
    an allocated array of alternative color and thickness values.  A nonzero idxdest
    requests the clrtab[] index in *idxdest and no allocated array.
 */
-thick_color* nam2thclr(const int8_t* nam, thick_color *r1, int *idxdest)
+thick_color* nam2thclr(const char* nam, thick_color *r1, int *idxdest)
 {
-	int8_t *c, *cbest=0, *rp=0;
+	char *c, *cbest=0, *rp=0;
 	int i, ibest=-1;
 	thick_color* tc = 0;
 	thick_color buf[2];
@@ -353,13 +353,13 @@ thick_color* nam2thclr(const int8_t* nam, thick_color *r1, int *idxdest)
    to the user, i.e., we try removing a suitably isolated color name before inserting
    a new one.
 */
-int8_t* nam_with_thclr(int8_t* nam, const thick_color *tc, int8_t* buf,
+char* nam_with_thclr(char* nam, const thick_color *tc, char* buf,
 		       int bufn)
 {
 	thick_color c0;
 	int clr0i;
 	nam2thclr(nam, &c0, &clr0i);
-	int8_t *clr0s;
+	char *clr0s;
 	if (c0.thick==tc->thick && c0.clr==tc->clr)
 		return nam;
 	clr0s = clrtab[clr0i].nam;
@@ -443,7 +443,7 @@ typedef struct fpolygon {
 	fpoint* p;			/* a malloc'ed array */
 	int n;				/* p[] has n elements: p[0..n] */
 	frectangle bb;			/* bounding box */
-	int8_t* nam;			/* name of this polygon (malloc'ed) */
+	char* nam;			/* name of this polygon (malloc'ed) */
 	thick_color c;			/* the current color and line thickness */
 	thick_color* ct;		/* 0 or malloc'ed color schemes, ct[1..ct->thick] */
 	struct fpolygon* link;
@@ -780,9 +780,9 @@ void set_fbb(fpolygon* fp)
 	fp->bb.max = hi;
 }
 
-int8_t* mystrdup(int8_t* s)
+char* mystrdup(char* s)
 {
-	int8_t *r, *t = strrchr(s,'"');
+	char *r, *t = strrchr(s,'"');
 	if (t==0) {
 		t = s + strlen(s);
 		while (t>s && (t[-1]=='\n' || t[-1]=='\r'))
@@ -794,9 +794,9 @@ int8_t* mystrdup(int8_t* s)
 	return r;
 }
 
-int is_valid_label(int8_t* lab)
+int is_valid_label(char* lab)
 {
-	int8_t* t;
+	char* t;
 	if (lab[0]=='"')
 		return (t=strrchr(lab,'"'))!=0 && t!=lab && strspn(t+1," \t\r\n")==strlen(t+1);
 	return strcspn(lab," \t")==strlen(lab);
@@ -807,7 +807,7 @@ int is_valid_label(int8_t* lab)
 */
 fpolygon* rd_fpoly(FILE* fin, int *lineno)
 {
-	int8_t buf[4096], junk[2];
+	char buf[4096], junk[2];
 	fpoint q;
 	fpolygon* fp;
 	int allocn;
@@ -863,7 +863,7 @@ int rd_fpolys(FILE* fin, fpolygons* fps)
 /* Read input from file fnam and return an error line no., -1 for "can't open"
    or 0 for success.
 */
-int doinput(int8_t* fnam)
+int doinput(char* fnam)
 {
 	FILE* fin = strcmp(fnam,"-")==0 ? stdin : fopen(fnam, "r");
 	int errline_or0;
@@ -892,7 +892,7 @@ fpolygon* fp_reverse(fpolygon* fp)
 
 void wr_fpoly(FILE* fout, const fpolygon* fp)
 {
-	int8_t buf[256];
+	char buf[256];
 	int i;
 	for (i=0; i<=fp->n; i++)
 		fprintf(fout,"%.12g\t%.12g\n", fp->p[i].x, fp->p[i].y);
@@ -909,7 +909,7 @@ void wr_fpolys(FILE* fout, fpolygons* fps)
 }
 
 
-int dooutput(int8_t* fnam)
+int dooutput(char* fnam)
 {
 	FILE* fout = fopen(fnam, "w");
 	if (fout==0)
@@ -1017,7 +1017,7 @@ double out_length(const fpoint* p0, const fpoint* pn, frectangle r, double slope
 
 #define Nthous  7
 #define Len_thous  30			/* bound on strlen(thous_nam[i]) */
-int8_t* thous_nam[Nthous] = {
+char* thous_nam[Nthous] = {
 	"one", "thousand", "million", "billion",
 	"trillion", "quadrillion", "quintillion",
 };
@@ -1031,9 +1031,9 @@ typedef struct lab_interval {
 } lab_interval;
 
 
-int8_t* abbrev_num(double x, const lab_interval* iv)
+char* abbrev_num(double x, const lab_interval* iv)
 {
-	static int8_t buf[16];
+	static char buf[16];
 	double dx = x - iv->off;
 	dx = iv->sep * floor(dx/iv->sep + .5);
 	sprintf(buf,"%g", dx/iv->unit);
@@ -1101,7 +1101,7 @@ lab_interval mark_x_axis(const transform* tr)
 	qbot.y = q.y + framewd + framesep;
 	seps0 = ceil(x0/iv.sep);
 	for (seps=0, nseps=floor(x1/iv.sep)-seps0; seps<=nseps; seps+=1) {
-		int8_t* num = abbrev_num((p.x=iv.sep*(seps0+seps)), &iv);
+		char* num = abbrev_num((p.x=iv.sep*(seps0+seps)), &iv);
 		Font* f = display->defaultfont;
 		q.x = qtop.x = qbot.x = xtransform(tr, p.x);
 		line(screen, qtop, q, Enddisc, Enddisc, 0, axis_color, q);
@@ -1127,7 +1127,7 @@ lab_interval mark_y_axis(const transform* tr)
 	qlft.x = q.x - (framewd + framesep);
 	seps0 = ceil(y0/iv.sep);
 	for (seps=0, nseps=floor(y1/iv.sep)-seps0; seps<=nseps; seps+=1) {
-		int8_t* num = abbrev_num((p.y=iv.sep*(seps0+seps)), &iv);
+		char* num = abbrev_num((p.y=iv.sep*(seps0+seps)), &iv);
 		Point qq = stringsize(f, num);
 		q.y = qrt.y = qlft.y = ytransform(tr, p.y);
 		line(screen, qrt, q, Enddisc, Enddisc, 0, axis_color, q);
@@ -1139,7 +1139,7 @@ lab_interval mark_y_axis(const transform* tr)
 }
 
 
-void lab_iv_info(const lab_interval *iv, double slant, int8_t* buf, int *n)
+void lab_iv_info(const lab_interval *iv, double slant, char* buf, int *n)
 {
 	if (iv->off > 0)
 		(*n) += sprintf(buf+*n,"-%.12g",iv->off);
@@ -1161,7 +1161,7 @@ void lab_iv_info(const lab_interval *iv, double slant, int8_t* buf, int *n)
 void draw_xy_ranges(const lab_interval *xiv, const lab_interval *yiv)
 {
 	Point p;
-	int8_t buf[2*(19+Len_thous+8)+50];
+	char buf[2*(19+Len_thous+8)+50];
 	int bufn = 0;
 	buf[bufn++] = 'x';
 	lab_iv_info(xiv, 0, buf, &bufn);
@@ -1372,7 +1372,7 @@ void unselect(const transform* tr)
    the new top-left text would overwrite it.  However, users of this routine should
    try to keep the new text short enough to avoid this.
 */
-void show_mytext(int8_t* msg)
+void show_mytext(char* msg)
 {
 	Point tmp, pt = screen->r.min;
 	int siz;
@@ -1416,7 +1416,7 @@ double t_tol(double xtol, double ytol)
 void say_where(const transform* tr)
 {
 	double xtol=dxuntransform(tr,1), ytol=dyuntransform(tr,-1);
-	int8_t buf[100];
+	char buf[100];
 	int n, nmax = (top_right - top_left)/smaxch.x;
 	if (nmax >= 100)
 		nmax = 100-1;
@@ -1477,7 +1477,7 @@ void do_select(Point pt)
 
 /***************************** Prompting for text *****************************/
 
-void unshow_mytext(int8_t* msg)
+void unshow_mytext(char* msg)
 {
 	Rectangle r;
 	Point siz = stringsize(display->defaultfont, msg);
@@ -1494,9 +1494,9 @@ void unshow_mytext(int8_t* msg)
    top left.  If it runs into the top right text, we stop echoing but let the user
    continue typing blind if he wants to.
 */
-int8_t* prompt_text(int8_t* prompt)
+char* prompt_text(char* prompt)
 {
-	static int8_t buf[200];
+	static char buf[200];
 	int n0, n=0, nshown=0;
 	Rune c;
 	unselect(0);
@@ -1822,7 +1822,7 @@ typedef enum e_index {
 		Emove
 } e_index;
 
-int8_t* e_items[Eoptions+1];
+char* e_items[Eoptions+1];
 
 Menu e_menu = {e_items, 0, 0};
 
@@ -1850,7 +1850,7 @@ void save_mv(fpoint movement)
 
 void init_e_menu(void)
 {
-	int8_t* u = "can't undo";
+	char* u = "can't undo";
 	e_items[Erecolor] = "recolor";
 	e_items[Edelete] = "delete";
 	e_items[Erotate] = "rotate";
@@ -1976,7 +1976,7 @@ e_action* do_undo(e_action* a0)		/* pop off an e_action and (un)do it */
 enum m_index {     Mzoom_in,  Mzoom_out,  Munzoom,  Mslant,    Munslant,
 		Msquare_up,  Mrecenter,  Mrecolor,  Mrestack,  Mread,
 		Mwrite,      Mexit};
-int8_t* m_items[] = {"zoom in", "zoom out", "unzoom", "slant",   "unslant",
+char* m_items[] = {"zoom in", "zoom out", "unzoom", "slant",   "unslant",
 		"square up", "recenter", "recolor", "restack", "read",
 		"write",     "exit", 0};
 
@@ -2034,7 +2034,7 @@ void do_mmenu(int but, Mouse* m)
 		else if (e<0)
 			show_mytext(" - can't read");
 		else {
-			int8_t ebuf[80];
+			char ebuf[80];
 			snprintf(ebuf, 80, " - error line %d", e);
 			show_mytext(ebuf);
 		}
@@ -2087,7 +2087,7 @@ void doevent(void)
 
 /******************************** Main program ********************************/
 
-extern int8_t* argv0;
+extern char* argv0;
 
 void usage(void)
 {

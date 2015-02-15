@@ -44,7 +44,7 @@ gs_setblendmode(gs_state *pgs, gs_blend_mode_t mode)
 {
 #ifdef DEBUG
     if (gs_debug_c('v')) {
-	static const int8_t *const bm_names[] = { GS_BLEND_MODE_NAMES };
+	static const char *const bm_names[] = { GS_BLEND_MODE_NAMES };
 
 	dlprintf1("[v](0x%lx)blend_mode = ", (uint32_t)pgs);
 	if (mode >= 0 && mode < countof(bm_names))
@@ -194,7 +194,7 @@ gs_begin_transparency_group(gs_state *pgs,
 
 #ifdef DEBUG
     if (gs_debug_c('v')) {
-	static const int8_t *const cs_names[] = {
+	static const char *const cs_names[] = {
 	    GS_COLOR_SPACE_TYPE_NAMES
 	};
 
@@ -248,7 +248,7 @@ gx_begin_transparency_group(gs_imager_state * pis, gx_device * pdev,
     bbox = pparams->bbox;
 #ifdef DEBUG
     if (gs_debug_c('v')) {
-	static const int8_t *const cs_names[] = {
+	static const char *const cs_names[] = {
 	    GS_COLOR_SPACE_TYPE_NAMES
 	};
 

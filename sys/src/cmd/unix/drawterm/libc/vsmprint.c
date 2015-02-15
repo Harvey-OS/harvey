@@ -14,14 +14,14 @@
 static int
 fmtStrFlush(Fmt *f)
 {
-	int8_t *s;
+	char *s;
 	int n;
 
 	if(f->start == nil)
 		return 0;
 	n = (uintptr)f->farg;
 	n *= 2;
-	s = (int8_t*)f->start;
+	s = (char*)f->start;
 	f->start = realloc(s, n);
 	if(f->start == nil){
 		f->farg = nil;
@@ -31,8 +31,8 @@ fmtStrFlush(Fmt *f)
 		return 0;
 	}
 	f->farg = (void*)(uintptr)n;
-	f->to = (int8_t*)f->start + ((int8_t*)f->to - s);
-	f->stop = (int8_t*)f->start + n - 1;
+	f->to = (char*)f->start + ((char*)f->to - s);
+	f->stop = (char*)f->start + n - 1;
 	return 1;
 }
 
@@ -48,7 +48,7 @@ fmtstrinit(Fmt *f)
 	if(f->start == nil)
 		return -1;
 	f->to = f->start;
-	f->stop = (int8_t*)f->start + n - 1;
+	f->stop = (char*)f->start + n - 1;
 	f->flush = fmtStrFlush;
 	f->farg = (void*)(uintptr)n;
 	f->nfmt = 0;
@@ -58,8 +58,8 @@ fmtstrinit(Fmt *f)
 /*
  * print into an allocated string buffer
  */
-int8_t*
-vsmprint(int8_t *fmt, va_list args)
+char*
+vsmprint(char *fmt, va_list args)
 {
 	Fmt f;
 	int n;

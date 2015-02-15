@@ -64,7 +64,7 @@ static Dirlist bootlist =
  *  add a file to the list
  */
 static void
-addlist(Dirlist *l, int8_t *name, uint8_t *contents, uint32_t len,
+addlist(Dirlist *l, char *name, uint8_t *contents, uint32_t len,
         int perm)
 {
 	Dirtab *d;
@@ -87,7 +87,7 @@ addlist(Dirlist *l, int8_t *name, uint8_t *contents, uint32_t len,
  *  add a root file
  */
 void
-addbootfile(int8_t *name, uint8_t *contents, uint32_t len)
+addbootfile(char *name, uint8_t *contents, uint32_t len)
 {
 	addlist(&bootlist, name, contents, len, 0555);
 }
@@ -96,7 +96,7 @@ addbootfile(int8_t *name, uint8_t *contents, uint32_t len)
  *  add a root directory
  */
 static void
-addrootdir(int8_t *name)
+addrootdir(char *name)
 {
 	addlist(&rootlist, name, nil, 0, DMDIR|0555);
 }
@@ -117,13 +117,13 @@ rootreset(void)
 }
 
 static Chan*
-rootattach(int8_t *spec)
+rootattach(char *spec)
 {
 	return devattach('/', spec);
 }
 
 static int
-rootgen(Chan *c, int8_t *name, Dirtab*, int, int s, Dir *dp)
+rootgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 {
 	int t;
 	Dirtab *d;
@@ -172,7 +172,7 @@ panic("whoops");
 }
 
 static Walkqid*
-rootwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+rootwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c,  nc, name, nname, nil, 0, rootgen);
 }

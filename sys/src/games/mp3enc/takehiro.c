@@ -154,7 +154,7 @@ count_bit_noESC(const int * ix, const int * const end, int * const s)
 {
     /* No ESC-words */
     int	sum1 = 0;
-    const int8_t *hlen1 = ht[1].hlen;
+    const char *hlen1 = ht[1].hlen;
 
     do {
 	int x = ix[0] * 2 + ix[1];
@@ -215,9 +215,9 @@ count_bit_noESC_from3(
     int	sum2 = 0;
     int	sum3 = 0;
     const int xlen = ht[t1].xlen;
-    const int8_t *hlen1 = ht[t1].hlen;
-    const int8_t *hlen2 = ht[t1+1].hlen;
-    const int8_t *hlen3 = ht[t1+2].hlen;
+    const char *hlen1 = ht[t1].hlen;
+    const char *hlen2 = ht[t1+1].hlen;
+    const char *hlen3 = ht[t1+2].hlen;
     int t;
 
     do {

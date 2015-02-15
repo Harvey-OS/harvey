@@ -136,7 +136,7 @@ end_phase(const char *str)
 	dflush();
     }
 }
-static const int8_t *const depth_dots_string = "..........";
+static const char *const depth_dots_string = "..........";
 private const char *
 depth_dots(const ms_entry * sp, const gc_mark_stack * pms)
 {
@@ -1228,7 +1228,7 @@ gc_do_reloc(chunk_t * cp, gs_ref_memory_t * mem, gc_state_t * pstate)
 /* We have to provide this procedure even if DEBUG is not defined, */
 /* in case one of the other GC modules was compiled with DEBUG. */
 const void *
-print_reloc_proc(const void *obj, const int8_t *cname, const void *robj)
+print_reloc_proc(const void *obj, const char *cname, const void *robj)
 {
     if_debug3('9', "  [9]relocate %s * 0x%lx to 0x%lx\n",
 	      cname, (uint32_t)obj, (uint32_t)robj);

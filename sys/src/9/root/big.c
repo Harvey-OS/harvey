@@ -11,7 +11,7 @@
 #include <libc.h>
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	uint32_t num = 1;
 	uint64_t size;

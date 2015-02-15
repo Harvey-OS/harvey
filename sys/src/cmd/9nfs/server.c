@@ -18,7 +18,7 @@ static void	cachereply(Rpccall*, void*, int);
 static int	replycache(int, Rpccall*, int32_t (*)(int, void*, int32_t));
 static void	udpserver(int, Progmap*);
 static void	tcpserver(int, Progmap*);
-static void	getendpoints(Udphdr*, int8_t*);
+static void	getendpoints(Udphdr*, char*);
 static int32_t	readtcp(int, void*, int32_t);
 static int32_t	writetcp(int, void*, int32_t);
 static int	servemsg(int, int32_t (*)(int, void*, int32_t),
@@ -37,7 +37,7 @@ uint8_t	resultbuf[9000];
 
 static int tcp;
 
-int8_t *commonopts = "[-9CDrtv]";			/* for usage() messages */
+char *commonopts = "[-9CDrtv]";			/* for usage() messages */
 
 /*
  * this recognises common, nominally rcp-related options.
@@ -75,7 +75,7 @@ argopt(int c)
  * here to argopt for common options.
  */
 void
-server(int argc, int8_t **argv, int myport, Progmap *progmap)
+server(int argc, char **argv, int myport, Progmap *progmap)
 {
 	Progmap *pg;
 
@@ -113,9 +113,9 @@ server(int argc, int8_t **argv, int myport, Progmap *progmap)
 static void
 udpserver(int myport, Progmap *progmap)
 {
-	int8_t service[128];
-	int8_t data[128];
-	int8_t devdir[40];
+	char service[128];
+	char data[128];
+	char devdir[40];
 	int ctlfd, datafd;
 
 	snprint(service, sizeof service, "udp!*!%d", myport);
@@ -141,9 +141,9 @@ udpserver(int myport, Progmap *progmap)
 static void
 tcpserver(int myport, Progmap *progmap)
 {
-	int8_t adir[40];
-	int8_t ldir[40];
-	int8_t ds[40];
+	char adir[40];
+	char ldir[40];
+	char ds[40];
 	int actl, lctl, data;
 
 	snprint(ds, sizeof ds, "tcp!*!%d", myport);
@@ -202,7 +202,7 @@ servemsg(int fd, int32_t (*readmsg)(int, void*, int32_t),
 	int vlo, vhi;
 	Progmap *pg;
 	Procmap *pp;
-	int8_t errbuf[ERRMAX];
+	char errbuf[ERRMAX];
 
 	if(alarmflag){
 		alarmflag = 0;
@@ -307,11 +307,11 @@ send_reply:
 }
 
 static void
-getendpoint(int8_t *dir, int8_t *file, uint8_t *addr, uint8_t *port)
+getendpoint(char *dir, char *file, uint8_t *addr, uint8_t *port)
 {
 	int fd, n;
-	int8_t buf[128];
-	int8_t *sys, *serv;
+	char buf[128];
+	char *sys, *serv;
 
 	sys = serv = 0;
 
@@ -341,7 +341,7 @@ getendpoint(int8_t *dir, int8_t *file, uint8_t *addr, uint8_t *port)
 
 /* set Udphdr values from protocol dir local & remote files */
 static void
-getendpoints(Udphdr *ep, int8_t *dir)
+getendpoints(Udphdr *ep, char *dir)
 {
 	getendpoint(dir, "local", ep->laddr, ep->lport);
 	getendpoint(dir, "remote", ep->raddr, ep->rport);
@@ -353,7 +353,7 @@ readtcp(int fd, void *vbuf, int32_t blen)
 	uint8_t mk[4];
 	int n, m, sofar;
 	uint32_t done;
-	int8_t *buf;
+	char *buf;
 
 	buf = vbuf;
 	buf += Udphdrsize;
@@ -379,7 +379,7 @@ readtcp(int fd, void *vbuf, int32_t blen)
 static int32_t
 writetcp(int fd, void *vbuf, int32_t len)
 {
-	int8_t *buf;
+	char *buf;
 
 	buf = vbuf;
 	buf += Udphdrsize;
@@ -428,7 +428,7 @@ niwrite(int fd, void *buf, int32_t n)
 
 typedef struct Namecache	Namecache;
 struct Namecache {
-	int8_t dom[256];
+	char dom[256];
 	uint32_t ipaddr;
 	Namecache *next;
 };
@@ -496,11 +496,11 @@ addcacheentry(void *name, int len, uint32_t ip)
 }
 
 int
-getdnsdom(uint32_t ip, int8_t *name, int len)
+getdnsdom(uint32_t ip, char *name, int len)
 {
-	int8_t buf[128];
+	char buf[128];
 	Namecache *nc;
-	int8_t *p;
+	char *p;
 
 	if(nc=iplookup(ip)) {
 		strncpy(name, nc->dom, len);
@@ -520,11 +520,11 @@ getdnsdom(uint32_t ip, int8_t *name, int len)
 }
 
 int
-getdom(uint32_t ip, int8_t *dom, int len)
+getdom(uint32_t ip, char *dom, int len)
 {
 	int i;
-	static int8_t *prefix[] = { "", "gate-", "fddi-", "u-", 0 };
-	int8_t **pr;
+	static char *prefix[] = { "", "gate-", "fddi-", "u-", 0 };
+	char **pr;
 
 	if(getdnsdom(ip, dom, len)<0)
 		return -1;
@@ -618,7 +618,7 @@ replycache(int fd, Rpccall *rp, int32_t (*writemsg)(int, void*, int32_t))
 static int
 Iconv(Fmt *f)
 {
-	int8_t buf[16];
+	char buf[16];
 	uint32_t h;
 
 	h = va_arg(f->args, uint32_t);

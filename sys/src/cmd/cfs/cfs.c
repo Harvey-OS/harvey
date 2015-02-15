@@ -35,7 +35,7 @@ typedef struct P9fs P9fs;
 struct Mfile
 {
 	Qid	qid;
-	int8_t	busy;
+	char	busy;
 };
 
 Mfile	mfile[Nfid];
@@ -48,14 +48,14 @@ struct P9fs
 	Fcall	rhdr;
 	Fcall	thdr;
 	int32_t	len;
-	int8_t	*name;
+	char	*name;
 };
 
 P9fs	c;	/* client conversation */
 P9fs	s;	/* server conversation */
 
 struct Cfsstat  cfsstat, cfsprev;
-int8_t	statbuf[2048];
+char	statbuf[2048];
 int	statlen;
 
 #define	MAXFDATA	8192	/* i/o size for read/write */
@@ -81,16 +81,16 @@ void	rclunk(Mfile*);
 void	rremove(Mfile*);
 void	rstat(Mfile*);
 void	rwstat(Mfile*);
-void	error(int8_t*, ...);
-void	warning(int8_t*);
-void	mountinit(int8_t*, int8_t*);
+void	error(char*, ...);
+void	warning(char*);
+void	mountinit(char*, char*);
 void	io(void);
-void	sendreply(int8_t*);
+void	sendreply(char*);
 void	sendmsg(P9fs*, Fcall*);
 void	rcvmsg(P9fs*, Fcall*);
 int	delegate(void);
 int	askserver(void);
-void	cachesetup(int, int8_t*, int8_t*);
+void	cachesetup(int, char*, char*);
 int	ctltest(Mfile*);
 void	genstats(void);
 
@@ -216,7 +216,7 @@ main(int argc, char *argv[])
 }
 
 void
-cachesetup(int format, int8_t *name, int8_t *partition)
+cachesetup(int format, char *name, char *partition)
 {
 	int f;
 	int secsize;
@@ -243,7 +243,7 @@ cachesetup(int format, int8_t *name, int8_t *partition)
 }
 
 void
-mountinit(int8_t *server, int8_t *mountpoint)
+mountinit(char *server, char *mountpoint)
 {
 	int err;
 	int p[2];
@@ -501,8 +501,8 @@ rread(Mfile *mf)
 	int cnt, done;
 	int32_t n;
 	int64_t off, first;
-	int8_t *cp;
-	int8_t data[MAXFDATA];
+	char *cp;
+	char data[MAXFDATA];
 	Ibuf *b;
 
 	off = c.thdr.offset;
@@ -614,7 +614,7 @@ void
 rwrite(Mfile *mf)
 {
 	Ibuf *b;
-	int8_t buf[MAXFDATA];
+	char buf[MAXFDATA];
 
 	if(statson && ctltest(mf)){
 		sendreply("read only");
@@ -699,10 +699,10 @@ rwstat(Mfile *mf)
 }
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
 	va_list arg;
-	static int8_t buf[2048];
+	static char buf[2048];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -712,7 +712,7 @@ error(int8_t *fmt, ...)
 }
 
 void
-warning(int8_t *s)
+warning(char *s)
 {
 	fprint(2, "cfs: %s: %r\n", s);
 }
@@ -721,7 +721,7 @@ warning(int8_t *s)
  *  send a reply to the client
  */
 void
-sendreply(int8_t *err)
+sendreply(char *err)
 {
 
 	if(err){
@@ -813,7 +813,7 @@ void
 rcvmsg(P9fs *p, Fcall *f)
 {
 	int olen, rlen;
-	int8_t buf[128];
+	char buf[128];
 
 	olen = p->len;
 	p->len = read9pmsg(p->fd[0], datarcv, sizeof(datarcv));
@@ -847,7 +847,7 @@ void
 genstats(void)
 {
 	int i;
-	int8_t *p;
+	char *p;
 
 	p = statbuf;
 

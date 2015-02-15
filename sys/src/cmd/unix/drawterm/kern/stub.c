@@ -79,7 +79,7 @@ xsummary(void)
 }
 
 void
-rebootcmd(int argc, int8_t **argv)
+rebootcmd(int argc, char **argv)
 {
 	USED(argc);
 	USED(argv);
@@ -91,7 +91,7 @@ kickpager(void)
 }
 
 int
-userwrite(int8_t *a, int n)
+userwrite(char *a, int n)
 {
 	error(Eperm);
 	return 0;
@@ -120,7 +120,7 @@ todsetfreq(int64_t a)
 }
 
 int32_t
-hostdomainwrite(int8_t *a, int n)
+hostdomainwrite(char *a, int n)
 {
 	USED(a);
 	USED(n);
@@ -129,7 +129,7 @@ hostdomainwrite(int8_t *a, int n)
 }
 
 int32_t
-hostownerwrite(int8_t *a, int n)
+hostownerwrite(char *a, int n)
 {
 	USED(a);
 	USED(n);
@@ -155,7 +155,7 @@ setmalloctag(void *v, uintptr tag)
 }
 
 int
-postnote(Proc *p, int x, int8_t *msg, int flag)
+postnote(Proc *p, int x, char *msg, int flag)
 {
 	USED(p);
 	USED(x);
@@ -165,7 +165,7 @@ postnote(Proc *p, int x, int8_t *msg, int flag)
 }
 
 void
-exhausted(int8_t *s)
+exhausted(char *s)
 {
 	panic("out of %s", s);
 }

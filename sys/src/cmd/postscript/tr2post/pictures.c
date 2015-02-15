@@ -54,17 +54,17 @@
 
 Biobuf	*bfp_pic = NULL;
 Biobufhdr	*Bfp_pic;
-Biobufhdr	*picopen(int8_t *);
+Biobufhdr	*picopen(char *);
 
 #define MAXGETFIELDS	16
-int8_t *fields[MAXGETFIELDS];
+char *fields[MAXGETFIELDS];
 int nfields;
 
 extern int	devres, hpos, vpos;
 extern int	picflag;
 
 void
-picture(Biobufhdr *inp, int8_t *buf) {
+picture(Biobufhdr *inp, char *buf) {
 	int	i;
 	int	indent;
 	int	length;		/* line length */
@@ -74,10 +74,10 @@ picture(Biobufhdr *inp, int8_t *buf) {
 	int	scaleboth = 0;	/* scale both dimensions? */
 	int	totrap;		/* distance to next trap */
 	int	whiteout = 0;	/* white out the box? */
-	int8_t	flags[20];	/* miscellaneous stuff */
-	int8_t	hwo[40], *p;	/* height, width and offset strings */
-	int8_t	name[100];	/* picture file and page string */
-	int8_t	units;		/* scale indicator for frame dimensions */
+	char	flags[20];	/* miscellaneous stuff */
+	char	hwo[40], *p;	/* height, width and offset strings */
+	char	name[100];	/* picture file and page string */
+	char	units;		/* scale indicator for frame dimensions */
 	double	adjx = 0.5;	/* left-right adjustment */
 	double	adjy = 0.5;	/* top-bottom adjustment */
 	double	frame[4];	/* height, width, y, and x offsets from hwo[] */
@@ -192,7 +192,7 @@ picture(Biobufhdr *inp, int8_t *buf) {
  * open file *path and return the resulting file pointer to the caller.
  */
 Biobufhdr *
-picopen(int8_t *path) {
+picopen(char *path) {
 /*	char	name[100];	/* pathnames */
 /*	long	pos;			/* current position */
 /*	long	total;			/* and sizes - from *fp_pic */
@@ -237,8 +237,8 @@ picopen(int8_t *path) {
 
 #ifdef UNDEF
 void
-inlinepic(Biobufhdr *Bfp, int8_t *buf) {
-	int8_t	name[100];		/* picture file pathname */
+inlinepic(Biobufhdr *Bfp, char *buf) {
+	char	name[100];		/* picture file pathname */
 	int32_t	total;			/* and size - both from *buf */
 
 	if (Bfp_pic == NULL ) {

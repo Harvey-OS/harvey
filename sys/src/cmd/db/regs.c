@@ -18,7 +18,7 @@
  * translate a name to a magic register offset
  */
 Reglist*
-rname(int8_t *name)
+rname(char *name)
 {
 	Reglist *rp;
 
@@ -66,7 +66,7 @@ getreg(Map *map, Reglist *rp)
 }
 
 uint64_t
-rget(Map *map, int8_t *name)
+rget(Map *map, char *name)
 {
 	Reglist *rp;
 
@@ -77,7 +77,7 @@ rget(Map *map, int8_t *name)
 }
 
 void
-rput(Map *map, int8_t *name, int64_t v)
+rput(Map *map, char *name, int64_t v)
 {
 	Reglist *rp;
 	int ret;

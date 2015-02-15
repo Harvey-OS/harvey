@@ -115,7 +115,7 @@ struct pdf_font_descriptor_s {
     bool embed;
     struct cid_ {		/* (CIDFonts only) */
 	cos_dict_t *Style;
-	int8_t Lang[3];		/* 2 chars + \0 */
+	char Lang[3];		/* 2 chars + \0 */
 	cos_dict_t *FD;		/* value = COS_VALUE_RESOURCE */
     } cid;
 };

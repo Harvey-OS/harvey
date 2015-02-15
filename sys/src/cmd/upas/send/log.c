@@ -15,7 +15,7 @@
 
 /* log mail delivery */
 extern void
-logdelivery(dest *list, int8_t *rcvr, message *mp)
+logdelivery(dest *list, char *rcvr, message *mp)
 {
 	dest *parent;
 	String *srcvr, *sender;
@@ -39,7 +39,7 @@ logdelivery(dest *list, int8_t *rcvr, message *mp)
 
 /* log mail forwarding */
 extern void
-loglist(dest *list, message *mp, int8_t *tag)
+loglist(dest *list, message *mp, char *tag)
 {
 	dest *next;
 	dest *parent;
@@ -67,10 +67,10 @@ loglist(dest *list, message *mp, int8_t *tag)
 
 /* log a mail refusal */
 extern void
-logrefusal(dest *dp, message *mp, int8_t *msg)
+logrefusal(dest *dp, message *mp, char *msg)
 {
-	int8_t buf[2048];
-	int8_t *cp, *ep;
+	char buf[2048];
+	char *cp, *ep;
 	String *sender, *srcvr;
 
 	srcvr = unescapespecial(s_clone(dp->addr));

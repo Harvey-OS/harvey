@@ -21,13 +21,13 @@ enum
 	Qkid,
 };
 
-int8_t *kidname;
+char *kidname;
 uint kidmode;
 
 void
 fsattach(Req *r)
 {
-	int8_t *spec;
+	char *spec;
 
 	spec = r->ifcall.aname;
 	if(spec && spec[0]){
@@ -39,8 +39,8 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	switch((int)fid->qid.path){
 	default:

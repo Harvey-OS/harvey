@@ -33,10 +33,10 @@ static int npage;
 static Page *pgtab[1<<10];
 
 Page*
-datapage(int8_t *p, int32_t len)
+datapage(char *p, int32_t len)
 {
 	Page *pg;
-	int8_t *q, *ep;
+	char *q, *ep;
 	int32_t	sum;
 	int iszero;
 
@@ -63,7 +63,7 @@ datapage(int8_t *p, int32_t len)
 		return pg;
 
 	pg = emalloc(sizeof(*pg)+len);
-	pg->data = (int8_t*)&pg[1];
+	pg->data = (char*)&pg[1];
 	pg->type = 0;
 	pg->len = len;
 	memmove(pg->data, p, len);
@@ -79,9 +79,9 @@ datapage(int8_t *p, int32_t len)
 }
 
 static Data*
-readsection(int32_t pid, int8_t *sec)
+readsection(int32_t pid, char *sec)
 {
-	int8_t buf[8192];
+	char buf[8192];
 	int n, fd;
 	int hdr, tot;
 	Data *d = nil;
@@ -105,9 +105,9 @@ readsection(int32_t pid, int8_t *sec)
 }
 
 static Seg*
-readseg(int fd, int64_t off, uint32_t len, int8_t *name)
+readseg(int fd, int64_t off, uint32_t len, char *name)
 {
-	int8_t buf[Pagesize];
+	char buf[Pagesize];
 	Page **pg;
 	int npg;
 	Seg *s;
@@ -156,7 +156,7 @@ Die:
 uint32_t
 stackptr(Proc *proc, int fd)
 {
-	int8_t *q;
+	char *q;
 	Fhdr f;
 	Reglist *r;
 	int32_t textoff;
@@ -209,7 +209,7 @@ snap(int32_t pid, int usetext)
 	Data *d;
 	Proc *proc;
 	Seg **s;
-	int8_t *name, *segdat, *q, *f[128+1], buf[128];
+	char *name, *segdat, *q, *f[128+1], buf[128];
 	int fd, i, stacki, nf, np;
 	uint64_t off, len, stackoff, stacklen;
 	uint64_t sp;

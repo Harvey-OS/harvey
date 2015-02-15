@@ -99,7 +99,7 @@ static void  ts_calc_times (
  */
 
 static void  ts_time_decompose ( const unsigned long time_in_sec,
-                                const int8_t padded_char )
+                                const char padded_char )
 {
     const unsigned long hour = time_in_sec / 3600;
     const unsigned int  min  = time_in_sec / 60 % 60;

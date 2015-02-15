@@ -9,7 +9,7 @@
 
 #include	"all.h"
 
-#define	PTR	sizeof(int8_t*)
+#define	PTR	sizeof(char*)
 #define	SHORT	sizeof(int)
 #define	INT	sizeof(int)
 #define	LONG	sizeof(int32_t)
@@ -54,7 +54,7 @@ char	fmtindex[128] =
 };
 
 int
-fmtinstall(int8_t c, int (*f)(Op*))
+fmtinstall(char c, int (*f)(Op*))
 {
 
 	c &= 0177;
@@ -67,8 +67,8 @@ fmtinstall(int8_t c, int (*f)(Op*))
 	return 0;
 }
 
-int8_t*
-doprint(int8_t *p, int8_t *ep, int8_t *fmt, void *argp)
+char*
+doprint(char *p, char *ep, char *fmt, void *argp)
 {
 	int sf1, c;
 	Op o;
@@ -121,14 +121,14 @@ l1:
 		c = *fmt++;
 		goto l1;
 	}
-	o.argp = (int8_t*)o.argp + c;
+	o.argp = (char*)o.argp + c;
 	goto loop;
 }
 
 int
 numbconv(Op *op, int base)
 {
-	int8_t b[IDIGIT];
+	char b[IDIGIT];
 	int i, f, n, r;
 	int32_t v;
 	int16_t h;
@@ -194,10 +194,10 @@ sout:
 }
 
 void
-strconv(int8_t *o, Op *op, int f1, int f2)
+strconv(char *o, Op *op, int f1, int f2)
 {
 	int n, c;
-	int8_t *p;
+	char *p;
 
 	n = strlen(o);
 	if(f1 >= 0)
@@ -230,7 +230,7 @@ noconv(Op *op)
 static	int
 cconv(Op *op)
 {
-	int8_t b[2];
+	char b[2];
 
 	b[0] = *(int*)op->argp;
 	b[1] = 0;
@@ -270,7 +270,7 @@ static	int
 sconv(Op *op)
 {
 
-	strconv(*(int8_t**)op->argp, op, op->f1, op->f2);
+	strconv(*(char**)op->argp, op, op->f1, op->f2);
 	return PTR;
 }
 

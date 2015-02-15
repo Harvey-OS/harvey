@@ -19,8 +19,8 @@
 
 int	errno;
 int rdonly;
-int8_t	*srvfile;
-int8_t	*deffile;
+char	*srvfile;
+char	*deffile;
 
 extern void iobuf_init(void);
 extern Srv ext2srv;
@@ -94,7 +94,7 @@ main(int argc, char **argv)
 	exits(0);
 }
 
-int8_t *
+char *
 xerrstr(int e)
 {
 	if (e < 0 || e >= sizeof errmsg/sizeof errmsg[0])

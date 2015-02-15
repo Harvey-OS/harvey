@@ -64,7 +64,7 @@ sqrt(double arg)
 	 * insert exponent/2 - 1.
 	 */
 	e = (((e - 1023) >> 1) + 1022) << 20;
-	u.ms = *(int32_t*)((int8_t*)sqtab + ((ms >> 13) & 0xfc)) | e;
+	u.ms = *(int32_t*)((char*)sqtab + ((ms >> 13) & 0xfc)) | e;
 	u.ls = 0;
 
 	/*

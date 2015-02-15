@@ -31,9 +31,9 @@ struct State
 	Key *key;
 	Ticket	t;
 	Ticketreq	tr;
-	int8_t chal[128];
-	int8_t	resp[64];
-	int8_t *user;
+	char chal[128];
+	char	resp[64];
+	char *user;
 };
 
 enum
@@ -58,7 +58,7 @@ static char *phasenames[Maxphase] = {
 };
 
 static int dochal(State*);
-static int doreply(State*, int8_t*, int8_t*);
+static int doreply(State*, char*, char*);
 
 static int
 apopinit(Proto *p, Fsstate *fss)
@@ -100,7 +100,7 @@ apopinit(Proto *p, Fsstate *fss)
 static int
 apopwrite(Fsstate *fss, void *va, uint n)
 {
-	int8_t *a, *v;
+	char *a, *v;
 	int i, ret;
 	uint8_t digest[MD5dlen];
 	DigestState *ds;
@@ -217,7 +217,7 @@ apopclose(Fsstate *fss)
 static int
 dochal(State *s)
 {
-	int8_t *dom, *user, trbuf[TICKREQLEN];
+	char *dom, *user, trbuf[TICKREQLEN];
 
 	s->asfd = -1;
 
@@ -255,10 +255,10 @@ err:
 }
 
 static int
-doreply(State *s, int8_t *user, int8_t *response)
+doreply(State *s, char *user, char *response)
 {
-	int8_t ticket[TICKETLEN+AUTHENTLEN];
-	int8_t trbuf[TICKREQLEN];
+	char ticket[TICKETLEN+AUTHENTLEN];
+	char trbuf[TICKREQLEN];
 	int n;
 	Authenticator a;
 
@@ -287,7 +287,7 @@ doreply(State *s, int8_t *user, int8_t *response)
 	close(s->asfd);
 	s->asfd = -1;
 
-	convM2T(ticket, &s->t, (int8_t*)s->key->priv);
+	convM2T(ticket, &s->t, (char*)s->key->priv);
 	if(s->t.num != AuthTs
 	|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
 		if(s->key->successes == 0)

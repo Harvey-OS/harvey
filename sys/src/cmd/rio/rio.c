@@ -51,7 +51,7 @@ void winclosethread(void*);
 void deletethread(void*);
 void	initcmd(void*);
 
-int8_t		*fontname;
+char		*fontname;
 int		mainpid;
 
 enum
@@ -106,13 +106,13 @@ Menu menu3 =
 	menu3str
 };
 
-int8_t *rcargv[] = { "rc", "-i", nil };
-int8_t *kbdargv[] = { "rc", "-c", nil, nil };
+char *rcargv[] = { "rc", "-i", nil };
+char *kbdargv[] = { "rc", "-c", nil, nil };
 
 int errorshouldabort = 0;
 
 void
-derror(Display*, int8_t *errorstr)
+derror(Display*, char *errorstr)
 {
 	error(errorstr);
 }
@@ -270,7 +270,7 @@ void
 getsnarf(void)
 {
 	int i, n, nb, nulls;
-	int8_t *sn, buf[1024];
+	char *sn, buf[1024];
 
 	if(snarffd < 0)
 		return;
@@ -293,7 +293,7 @@ getsnarf(void)
 void
 initcmd(void *arg)
 {
-	int8_t *cmd;
+	char *cmd;
 
 	cmd = arg;
 	rfork(RFENVG|RFFDG|RFNOTEG|RFNAMEG);
@@ -302,7 +302,7 @@ initcmd(void *arg)
 	exits("exec");
 }
 
-int8_t *oknotes[] =
+char *oknotes[] =
 {
 	"delete",
 	"hangup",
@@ -312,7 +312,7 @@ int8_t *oknotes[] =
 };
 
 int
-shutdown(void *, int8_t *msg)
+shutdown(void *, char *msg)
 {
 	int i;
 	static Lock shutdownlk;
@@ -363,7 +363,7 @@ keyboardthread(void*)
  * Used by /dev/kbdin
  */
 void
-keyboardsend(int8_t *s, int cnt)
+keyboardsend(char *s, int cnt)
 {
 	Rune *r;
 	int i, nb, nr;
@@ -424,7 +424,7 @@ winclosethread(void*)
 void
 deletethread(void*)
 {
-	int8_t *s;
+	char *s;
 	Image *i;
 
 	threadsetname("deletethread");
@@ -443,7 +443,7 @@ deletethread(void*)
 void
 deletetimeoutproc(void *v)
 {
-	int8_t *s;
+	char *s;
 
 	s = v;
 	sleep(750);	/* remove window from screen after 3/4 of a second */
@@ -1140,8 +1140,8 @@ unhide(int h)
 }
 
 Window*
-new(Image *i, int hideit, int scrollit, int pid, int8_t *dir, int8_t *cmd,
-    int8_t **argv)
+new(Image *i, int hideit, int scrollit, int pid, char *dir, char *cmd,
+    char **argv)
 {
 	Window *w;
 	Mousectl *mc;

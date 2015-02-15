@@ -417,7 +417,7 @@ discard_confusing_lines (filevec)
      struct file_data filevec[];
 {
   unsigned int f, i;
-  int8_t *discarded[2];
+  char *discarded[2];
   int *equiv_count[2];
   int *p;
 
@@ -445,11 +445,11 @@ discard_confusing_lines (filevec)
 
   /* Set up tables of which lines are going to be discarded.  */
 
-  discarded[0] = xmalloc (sizeof (int8_t)
+  discarded[0] = xmalloc (sizeof (char)
 			  * (filevec[0].buffered_lines
 			     + filevec[1].buffered_lines));
   discarded[1] = discarded[0] + filevec[0].buffered_lines;
-  bzero (discarded[0], sizeof (int8_t) * (filevec[0].buffered_lines
+  bzero (discarded[0], sizeof (char) * (filevec[0].buffered_lines
 					+ filevec[1].buffered_lines));
 
   /* Mark to be discarded each line that matches no line of the other file.
@@ -458,7 +458,7 @@ discard_confusing_lines (filevec)
   for (f = 0; f < 2; f++)
     {
       unsigned int end = filevec[f].buffered_lines;
-      int8_t *discards = discarded[f];
+      char *discards = discarded[f];
       int *counts = equiv_count[1 - f];
       int *equivs = filevec[f].equivs;
       unsigned int many = 5;
@@ -489,7 +489,7 @@ discard_confusing_lines (filevec)
   for (f = 0; f < 2; f++)
     {
       unsigned int end = filevec[f].buffered_lines;
-      register int8_t *discards = discarded[f];
+      register char *discards = discarded[f];
 
       for (i = 0; i < end; i++)
 	{
@@ -597,7 +597,7 @@ discard_confusing_lines (filevec)
   /* Actually discard the lines. */
   for (f = 0; f < 2; f++)
     {
-      int8_t *discards = discarded[f];
+      char *discards = discarded[f];
       unsigned int end = filevec[f].buffered_lines;
       unsigned int j = 0;
       for (i = 0; i < end; ++i)
@@ -638,8 +638,8 @@ shift_boundaries (filevec)
 
   for (f = 0; f < 2; f++)
     {
-      int8_t *changed = filevec[f].changed_flag;
-      int8_t const *other_changed = filevec[1-f].changed_flag;
+      char *changed = filevec[f].changed_flag;
+      char const *other_changed = filevec[1-f].changed_flag;
       int const *equivs = filevec[f].equivs;
       int i = 0;
       int j = 0;
@@ -759,8 +759,8 @@ build_reverse_script (filevec)
      struct file_data const filevec[];
 {
   struct change *script = 0;
-  int8_t *changed0 = filevec[0].changed_flag;
-  int8_t *changed1 = filevec[1].changed_flag;
+  char *changed0 = filevec[0].changed_flag;
+  char *changed1 = filevec[1].changed_flag;
   int len0 = filevec[0].buffered_lines;
   int len1 = filevec[1].buffered_lines;
 
@@ -797,8 +797,8 @@ build_script (filevec)
      struct file_data const filevec[];
 {
   struct change *script = 0;
-  int8_t *changed0 = filevec[0].changed_flag;
-  int8_t *changed1 = filevec[1].changed_flag;
+  char *changed0 = filevec[0].changed_flag;
+  char *changed1 = filevec[1].changed_flag;
   int i0 = filevec[0].buffered_lines, i1 = filevec[1].buffered_lines;
 
   /* Note that changedN[-1] does exist, and contains 0.  */

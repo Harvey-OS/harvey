@@ -51,27 +51,27 @@ int nnest;
 
 struct Troffchar
 {
-	int8_t *name;
-	int8_t *value;
+	char *name;
+	char *value;
 };
 
 struct Htmlchar
 {
-	int8_t *utf;
-	int8_t *name;
+	char *utf;
+	char *name;
 	int value;
 };
 
 #include "chars.h"
 
 struct Font{
-	int8_t		*name;
+	char		*name;
 	HTMLfont	*htmlfont;
 };
 
 struct HTMLfont{
-	int8_t	*name;
-	int8_t	*htmlname;
+	char	*name;
+	char	*htmlname;
 	int	bit;
 };
 
@@ -89,7 +89,7 @@ HTMLfont htmlfonts[] =
 
 #define TABLE "<table border=0 cellpadding=0 cellspacing=0>"
 
-int8_t*
+char*
 onattr[8*sizeof(int)] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -107,7 +107,7 @@ onattr[8*sizeof(int)] =
 	"<unused>",		/* anchor 26 */
 };
 
-int8_t*
+char*
 offattr[8*sizeof(int)] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -146,18 +146,18 @@ Char	attr = 0;	/* or'ed into each Char */
 Char	*chars;
 int	nchars;
 int	nalloc;
-int8_t**	anchors;	/* allocated in order */
+char**	anchors;	/* allocated in order */
 int	nanchors;
 
-int8_t	*filename;
+char	*filename;
 int	cno;
-int8_t	buf[8192];
-int8_t	*title = "Plan 9 man page";
+char	buf[8192];
+char	*title = "Plan 9 man page";
 
-void	process(Biobuf*, int8_t*);
-void	mountfont(int, int8_t*);
+void	process(Biobuf*, char*);
+void	mountfont(int, char*);
 void	switchfont(int);
-void	header(int8_t*);
+void	header(char*);
 void	flush(void);
 void	trailer(void);
 
@@ -182,10 +182,10 @@ erealloc(void *p, uint32_t n)
 	return p;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *t;
+	char *t;
 
 	t = strdup(s);
 	if(t == nil)
@@ -282,7 +282,7 @@ emit(Rune r)
 }
 
 void
-emitstr(int8_t *s)
+emitstr(char *s)
 {
 	emitchar(Estring);
 	emitchar((Char)s);
@@ -307,7 +307,7 @@ iputrune(Biobuf *b, Rune r)
 }
 
 void
-iputs(Biobuf *b, int8_t *s)
+iputs(Biobuf *b, char *s)
 {
 	if(s[0]=='<' && s[1]=='+'){
 		iputrune(b, '\n');
@@ -380,7 +380,7 @@ flush(void)
 		c = chars[i];
 		if(c == Estring){
 			/* next word is string to print */
-			iputs(&bout, (int8_t*)chars[++i]);
+			iputs(&bout, (char*)chars[++i]);
 			continue;
 		}
 		if(c == Epp){
@@ -403,7 +403,7 @@ flush(void)
 }
 
 void
-header(int8_t *s)
+header(char *s)
 {
 	Bprint(&bout, "<head>\n");
 	Bprint(&bout, "<title>%s</title>\n", s);
@@ -440,7 +440,7 @@ ungetc(Biobuf *b)
 	Bungetrune(b);
 }
 
-int8_t*
+char*
 getline(Biobuf *b)
 {
 	int i, c;
@@ -475,7 +475,7 @@ getnum(Biobuf *b)
 	return i;
 }
 
-int8_t*
+char*
 getstr(Biobuf *b)
 {
 	int i, c;
@@ -497,7 +497,7 @@ getstr(Biobuf *b)
 }
 
 int
-setnum(Biobuf *b, int8_t *name, int min, int max)
+setnum(Biobuf *b, char *name, int min, int max)
 {
 	int i;
 
@@ -513,7 +513,7 @@ setnum(Biobuf *b, int8_t *name, int min, int max)
 void
 xcmd(Biobuf *b)
 {
-	int8_t *p, *fld[16], buf[1024];
+	char *p, *fld[16], buf[1024];
 
 	int i, nfld;
 
@@ -570,7 +570,7 @@ xcmd(Biobuf *b)
 						fld[5][1], fld[4]);
 					nanchors++;
 					anchors = erealloc(anchors,
-						           nanchors*sizeof(int8_t*));
+						           nanchors*sizeof(char*));
 					anchors[nanchors-1] = estrdup(buf);
 				}else if(strcmp(fld[3], "end") == 0)
 					attr &= ~(1<<Anchor);
@@ -621,7 +621,7 @@ lookup(int c, Htmlchar tab[], int ntab)
 void
 emithtmlchar(int r)
 {
-	static int8_t buf[10];
+	static char buf[10];
 	int i;
 
 	i = lookup(r, htmlchars, nelem(htmlchars));
@@ -631,8 +631,8 @@ emithtmlchar(int r)
 		emit(r);
 }
 
-int8_t*
-troffchar(int8_t *s)
+char*
+troffchar(char *s)
 {
 	int i;
 
@@ -666,10 +666,10 @@ indent(void)
 }
 
 void
-process(Biobuf *b, int8_t *name)
+process(Biobuf *b, char *name)
 {
 	int c, r, v, i;
-	int8_t *p;
+	char *p;
 
 	cno = 0;
 	prevlineH = res;
@@ -762,7 +762,7 @@ process(Biobuf *b, int8_t *name)
 }
 
 HTMLfont*
-htmlfont(int8_t *name)
+htmlfont(char *name)
 {
 	int i;
 
@@ -773,7 +773,7 @@ htmlfont(int8_t *name)
 }
 
 void
-mountfont(int pos, int8_t *name)
+mountfont(int pos, char *name)
 {
 	if(debug)
 		fprint(2, "mount font %s on %d\n", name, pos);

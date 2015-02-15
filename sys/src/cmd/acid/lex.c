@@ -18,7 +18,7 @@
 
 struct keywd
 {
-	int8_t	*name;
+	char	*name;
 	int	terminal;
 }
 keywds[] =
@@ -72,17 +72,17 @@ kinit(void)
 typedef struct IOstack IOstack;
 struct IOstack
 {
-	int8_t	*name;
+	char	*name;
 	int	line;
-	int8_t	*text;
-	int8_t	*ip;
+	char	*text;
+	char	*ip;
 	Biobuf	*fin;
 	IOstack	*prev;
 };
 IOstack *lexio;
 
 void
-pushfile(int8_t *file)
+pushfile(char *file)
 {
 	Biobuf *b;
 	IOstack *io;
@@ -172,7 +172,7 @@ int
 Lfmt(Fmt *f)
 {
 	int i;
-	int8_t buf[1024];
+	char buf[1024];
 	IOstack *e;
 
 	e = lexio;
@@ -221,10 +221,10 @@ lexc(void)
 }
 
 int
-escchar(int8_t c)
+escchar(char c)
 {
 	int n;
-	int8_t buf[Strsize];
+	char buf[Strsize];
 
 	if(c >= '0' && c <= '9') {
 		n = 1;
@@ -255,7 +255,7 @@ void
 eatstring(void)
 {
 	int esc, c, cnt;
-	int8_t buf[Strsize];
+	char buf[Strsize];
 
 	esc = 0;
 	for(cnt = 0;;) {
@@ -315,7 +315,7 @@ int
 yylex(void)
 {
 	int c;
-	extern int8_t vfmt[];
+	extern char vfmt[];
 
 loop:
 	Bflush(bout);
@@ -478,10 +478,10 @@ loop:
 }
 
 int
-numsym(int8_t first)
+numsym(char first)
 {
 	int c, isbin, isfloat, ishex;
-	int8_t *sel, *p;
+	char *sel, *p;
 	Lsym *s;
 
 	symbol[0] = first;
@@ -558,11 +558,11 @@ numsym(int8_t first)
 }
 
 Lsym*
-enter(int8_t *name, int t)
+enter(char *name, int t)
 {
 	Lsym *s;
 	uint h;
-	int8_t *p;
+	char *p;
 	Value *v;
 
 	h = 0;
@@ -589,11 +589,11 @@ enter(int8_t *name, int t)
 }
 
 Lsym*
-look(int8_t *name)
+look(char *name)
 {
 	Lsym *s;
 	uint h;
-	int8_t *p;
+	char *p;
 
 	h = 0;
 	for(p = name; *p; p++)
@@ -607,7 +607,7 @@ look(int8_t *name)
 }
 
 Lsym*
-mkvar(int8_t *s)
+mkvar(char *s)
 {
 	Lsym *l;
 

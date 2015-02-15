@@ -9,15 +9,15 @@
 
 #include <string.h>
 
-int8_t*
-strrchr(const int8_t *s, int c)
+char*
+strrchr(const char *s, int c)
 {
-	int8_t *r;
+	char *r;
 
 	if(c == 0)
 		return strchr(s, 0);
 	r = 0;
 	while(s = strchr(s, c))
-		r = (int8_t *)s++;
+		r = (char *)s++;
 	return r;
 }

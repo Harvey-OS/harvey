@@ -20,8 +20,8 @@
  *  grab next element from a path, return the pointer to unprocessed portion of
  *  path.
  */
-int8_t *
-nextelem(int8_t *path, int8_t *elem)
+char *
+nextelem(char *path, char *elem)
 {
 	int i;
 
@@ -41,9 +41,9 @@ nextelem(int8_t *path, int8_t *elem)
 }
 
 int
-fswalk(Fs *fs, int8_t *path, File *f)
+fswalk(Fs *fs, char *path, File *f)
 {
-	int8_t element[NAMELEN];
+	char element[NAMELEN];
 
 	*f = fs->root;
 	if(BADPTR(fs->walk))
@@ -65,11 +65,11 @@ fswalk(Fs *fs, int8_t *path, File *f)
  *  boot
  */
 int
-fsboot(Fs *fs, int8_t *path, Boot *b)
+fsboot(Fs *fs, char *path, Boot *b)
 {
 	File file;
 	int32_t n;
-	static int8_t buf[8192];
+	static char buf[8192];
 
 	switch(fswalk(fs, path, &file)){
 	case -1:

@@ -35,7 +35,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	uint32_t x;
-	int8_t *val;
+	char *val;
 
 	s3generic.init(vga, ctlr);
 	vga->crt[0x3B] = vga->crt[0]-5;

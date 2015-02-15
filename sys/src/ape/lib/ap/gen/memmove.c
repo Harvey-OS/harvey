@@ -12,7 +12,7 @@
 void*
 memmove(void *a1, const void *a2, size_t n)
 {
-	int8_t *s1, *s2;
+	char *s1, *s2;
 	extern void abort(void);
 
 	if((int32_t)n < 0)
@@ -28,8 +28,8 @@ memmove(void *a1, const void *a2, size_t n)
 	return a1;
 
 back:
-	s1 = (int8_t*)a1 + n;
-	s2 = (int8_t*)a2 + n;
+	s1 = (char*)a1 + n;
+	s2 = (char*)a2 + n;
 	while(n > 0) {
 		*--s1 = *--s2;
 		n--;

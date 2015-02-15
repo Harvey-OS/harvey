@@ -16,7 +16,7 @@ ioreadv(int fd, IOchunk *io, int nio, int64_t offset)
 {
 	int i;
 	int32_t m, n, tot;
-	int8_t *buf, *p;
+	char *buf, *p;
 
 	tot = 0;
 	for(i=0; i<nio; i++)

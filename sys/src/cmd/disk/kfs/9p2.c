@@ -42,13 +42,13 @@ fsversion(Chan* chan, Fcall* f, Fcall* r)
 	return 0;
 }
 
-int8_t *keyspec = "proto=p9any role=server";
+char *keyspec = "proto=p9any role=server";
 
 static int
 fsauth(Chan *chan, Fcall *f, Fcall *r)
 {
 	int err, fd;
-	int8_t *aname;
+	char *aname;
 	File *file;
 	int afd;
 	AuthRpc *rpc;
@@ -235,7 +235,7 @@ checkattach(Chan *chan, File *afile, File *file, Filsys *fs)
 static int
 fsattach(Chan* chan, Fcall* f, Fcall* r)
 {
-	int8_t *aname;
+	char *aname;
 	Iobuf *p;
 	Dentry *d;
 	File *file;
@@ -361,7 +361,7 @@ clone(File* nfile, File* file)
 }
 
 static int
-walkname(File* file, int8_t* wname, Qid* wqid)
+walkname(File* file, char* wname, Qid* wqid)
 {
 	Wpath *w;
 	Iobuf *p, *p1;
@@ -759,7 +759,7 @@ out:
 static int
 dir9p2(Dir* dir, Dentry* dentry, void* strs)
 {
-	int8_t *op, *p;
+	char *op, *p;
 
 	memset(dir, 0, sizeof(Dir));
 	mkqid(&dir->qid, dentry, 1);
@@ -788,9 +788,9 @@ dir9p2(Dir* dir, Dentry* dentry, void* strs)
 }
 
 static int
-checkname9p2(int8_t* name)
+checkname9p2(char* name)
 {
-	int8_t *p;
+	char *p;
 
 	/*
 	 * Return length of string if valid, 0 if not.
@@ -1025,7 +1025,7 @@ fsread(Chan* chan, Fcall* f, Fcall* r)
 	int32_t addr, offset, start, tim;
 	int error, iounit, nread, count, n, o, slot;
 	Dir dir;
-	int8_t strdata[28*10];
+	char strdata[28*10];
 
 	p = nil;
 	data = (uint8_t*)r->data;
@@ -1204,7 +1204,7 @@ out:
 	if(file != nil)
 		qunlock(file);
 	r->count = nread;
-	r->data = (int8_t*)data;
+	r->data = (char*)data;
 
 	return error;
 }
@@ -1409,7 +1409,7 @@ out:
 }
 
 static int
-fswstat(Chan* chan, Fcall* f, Fcall*, int8_t *strs)
+fswstat(Chan* chan, Fcall* f, Fcall*, char *strs)
 {
 	Iobuf *p, *p1;
 	Dentry *d, *d1, xd;
@@ -1745,7 +1745,7 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 {
 	uint8_t inbuf[MSIZE+IOHDRSZ], outbuf[MSIZE+IOHDRSZ];
 	Fcall f, r;
-	int8_t ename[64];
+	char ename[64];
 	int error, n, type;
 
 	chan->msize = MSIZE;
@@ -1815,7 +1815,7 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 			error = fscreate(chan, &f, &r);
 			break;
 		case Tread:
-			r.data = (int8_t*)inbuf;
+			r.data = (char*)inbuf;
 			error = fsread(chan, &f, &r);
 			break;
 		case Twrite:
@@ -1831,7 +1831,7 @@ serve9p2(Chan *chan, uint8_t *ib, int nib)
 			error = fsstat(chan, &f, &r, inbuf);
 			break;
 		case Twstat:
-			error = fswstat(chan, &f, &r, (int8_t*)outbuf);
+			error = fswstat(chan, &f, &r, (char*)outbuf);
 			break;
 		}
 		runlock(&chan->reflock);

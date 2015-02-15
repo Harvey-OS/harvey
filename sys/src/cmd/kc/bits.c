@@ -111,7 +111,7 @@ bset(Bits a, unsigned n)
 int
 Bconv(va_list *arg, Fconv *fp)
 {
-	int8_t str[STRINGSZ], ss[STRINGSZ], *s;
+	char str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
 	int i;
 

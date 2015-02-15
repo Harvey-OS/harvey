@@ -155,7 +155,7 @@ png_write_sig(png_structp png_ptr)
 
 typedef struct
 {
-    int8_t *input;   /* the uncompressed input data */
+    char *input;   /* the uncompressed input data */
     int input_len;   /* its length */
     int num_output_ptr; /* number of output pointers used */
     int max_output_ptr; /* size of output_ptr */
@@ -185,7 +185,7 @@ png_text_compress(png_structp png_ptr,
    if (compression >= PNG_TEXT_COMPRESSION_LAST)
    {
 #if !defined(PNG_NO_STDIO) && !defined(_WIN32_WCE)
-      int8_t msg[50];
+      char msg[50];
       sprintf(msg, "Unknown compression type %d", compression);
       png_warning(png_ptr, msg);
 #else
@@ -1211,7 +1211,7 @@ png_check_keyword(png_structp png_ptr, png_charp key, png_charpp new_key)
       if (*kp < 0x20 || (*kp > 0x7E && (png_byte)*kp < 0xA1))
       {
 #if !defined(PNG_NO_STDIO) && !defined(_WIN32_WCE)
-         int8_t msg[40];
+         char msg[40];
 
          sprintf(msg, "invalid keyword character 0x%02X", *kp);
          png_warning(png_ptr, msg);
@@ -1347,7 +1347,7 @@ png_write_zTXt(png_structp png_ptr, png_charp key, png_charp text,
    PNG_zTXt;
 #endif
    png_size_t key_len;
-   int8_t buf[1];
+   char buf[1];
    png_charp new_key;
    compression_state comp;
 
@@ -1567,7 +1567,7 @@ png_write_sCAL(png_structp png_ptr, int unit, double width,double height)
    PNG_sCAL;
 #endif
    png_size_t total_len;
-   int8_t wbuf[32], hbuf[32];
+   char wbuf[32], hbuf[32];
    png_byte bunit = unit;
 
    png_debug(1, "in png_write_sCAL\n");
@@ -1605,13 +1605,13 @@ png_write_sCAL_s(png_structp png_ptr, int unit, png_charp width,
    PNG_sCAL;
 #endif
    png_size_t total_len;
-   int8_t wbuf[32], hbuf[32];
+   char wbuf[32], hbuf[32];
    png_byte bunit = unit;
 
    png_debug(1, "in png_write_sCAL_s\n");
 
-   png_strcpy(wbuf,(const int8_t *)width);
-   png_strcpy(hbuf,(const int8_t *)height);
+   png_strcpy(wbuf,(const char *)width);
+   png_strcpy(hbuf,(const char *)height);
    total_len = 1 + png_strlen(wbuf)+1 + png_strlen(hbuf);
 
    png_debug1(3, "sCAL total length = %d\n", total_len);

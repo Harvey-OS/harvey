@@ -12,7 +12,7 @@
 struct
 {
 	RWLock	uidlock;
-	int8_t*	uidbuf;
+	char*	uidbuf;
 	int	flen;
 	int	find;
 } uidgc;
@@ -52,7 +52,7 @@ fchar(void)
 }
 
 int
-fname(int8_t *name)
+fname(char *name)
 {
 	int i, c;
 
@@ -138,7 +138,7 @@ skipline:
 
 struct {
 	int	uid;
-	int8_t	*name;
+	char	*name;
 	int	leader;
 }
 admusers[] = {
@@ -157,7 +157,7 @@ void
 cmd_user(void)
 {
 	int c, n, o, u, g, i;
-	int8_t name[NAMELEN];
+	char name[NAMELEN];
 
 	if(con_clone(FID1, FID2))
 		goto ainitu;
@@ -340,7 +340,7 @@ out:
 }
 
 void
-uidtostr(int8_t *name, int id)
+uidtostr(char *name, int id)
 {
 	rlock(&uidgc.uidlock);
 	uidtostr1(name, id);
@@ -348,7 +348,7 @@ uidtostr(int8_t *name, int id)
 }
 
 void
-uidtostr1(int8_t *name, int id)
+uidtostr1(char *name, int id)
 {
 	Uid *u;
 	int i;
@@ -367,7 +367,7 @@ uidtostr1(int8_t *name, int id)
 }
 
 int
-strtouid(int8_t *s)
+strtouid(char *s)
 {
 	int i;
 
@@ -378,7 +378,7 @@ strtouid(int8_t *s)
 }
 
 int
-strtouid1(int8_t *s)
+strtouid1(char *s)
 {
 	Uid *u;
 	int i;

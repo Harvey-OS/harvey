@@ -30,21 +30,21 @@
 static Intmap *uidmap, *gidmap;
 
 static int
-getnum(int8_t *s, int *n)
+getnum(char *s, int *n)
 {
-	int8_t *r;
+	char *r;
 
 	*n = strtol(s, &r, 10);
 	return (r != s);
 }
 
 static Intmap*
-idfile(int8_t *f)
+idfile(char *f)
 {
 	Biobuf *bin;
 	Intmap *map;
-	int8_t *fields[3];
-	int8_t *s;
+	char *fields[3];
+	char *s;
 	int nf, id;
 
 	map = allocmap(0);
@@ -62,22 +62,22 @@ idfile(int8_t *f)
 }
 
 void
-uidfile(int8_t *f)
+uidfile(char *f)
 {
 	uidmap = idfile(f);
 }
 
 void
-gidfile(int8_t *f)
+gidfile(char *f)
 {
 	gidmap = idfile(f);
 }
 
-static int8_t*
+static char*
 mapuid(int id)
 {
-	static int8_t s[12];
-	int8_t *p;
+	static char s[12];
+	char *p;
 
 	if (uidmap && (p = lookupkey(uidmap, id)) != 0)
 		return p;
@@ -85,11 +85,11 @@ mapuid(int id)
 	return s;
 }
 
-static int8_t*
+static char*
 mapgid(int id)
 {
-	static int8_t s[12];
-	int8_t *p;
+	static char s[12];
+	char *p;
 
 	if (gidmap && (p = lookupkey(gidmap, id)) != 0)
 		return p;
@@ -159,7 +159,7 @@ ext2fs(Xfs *xf)
 	return 0;
 }
 Ext2
-getext2(Xfs *xf, int8_t type, int n)
+getext2(Xfs *xf, char type, int n)
 {
 	Iobuf *bd;
 	Ext2 e;
@@ -186,7 +186,7 @@ getext2(Xfs *xf, int8_t type, int n)
 			goto error;
 		}
 		putbuf(bd);
-		e.u.bmp = (int8_t *)e.buf->iobuf;
+		e.u.bmp = (char *)e.buf->iobuf;
 		e.type = EXT2_BBLOCK;
 		break;
 	case EXT2_BINODE:
@@ -198,7 +198,7 @@ getext2(Xfs *xf, int8_t type, int n)
 			goto error;
 		}
 		putbuf(bd);
-		e.u.bmp = (int8_t *)e.buf->iobuf;
+		e.u.bmp = (char *)e.buf->iobuf;
 		e.type = EXT2_BINODE;
 		break;
 	default:
@@ -242,7 +242,7 @@ get_inode( Xfile *file, uint nr )
 	return 1;
 }
 int
-get_file( Xfile *f, int8_t *name)
+get_file( Xfile *f, char *name)
 {	
 	uint offset, nr, i;
 	Xfs *xf = f->xf;
@@ -283,8 +283,8 @@ get_file( Xfile *f, int8_t *name)
 	errno = Enonexist;
 	return -1;
 }
-int8_t *
-getname(Xfile *f, int8_t *str)
+char *
+getname(Xfile *f, char *str)
 {
 	Xfile ft;
 	int offset, i, len;
@@ -336,7 +336,7 @@ dostat(Qid qid, Xfile *f, Dir *dir )
 {
 	Inode *inode;
 	Iobuf *ibuf;
-	int8_t *name;
+	char *name;
 
 	memset(dir, 0, sizeof(Dir));
 
@@ -371,7 +371,7 @@ dowstat(Xfile *f, Dir *stat)
 	Inode *inode;
 	Xfile fdir;
 	Iobuf *ibuf;
-	int8_t name[EXT2_NAME_LEN+1];
+	char name[EXT2_NAME_LEN+1];
 
 	/* change name */
 	getname(f, name);
@@ -451,7 +451,7 @@ readfile(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 
 	/* fast link */
 	if( S_ISLNK(getmode(f)) && (inode->i_size <= EXT2_N_BLOCKS<<2) ){
-		memcpy(&buf[0], ((int8_t *)inode->i_block)+offset, count);
+		memcpy(&buf[0], ((char *)inode->i_block)+offset, count);
 		putbuf(ibuf);	
 		return count;
 	}
@@ -499,7 +499,7 @@ readdir(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 	Dir pdir;
 	Xfile ft;
 	uint8_t *buf;
-	int8_t name[EXT2_NAME_LEN+1];
+	char name[EXT2_NAME_LEN+1];
 	unsigned int dirlen;
 	int index;
 
@@ -687,7 +687,7 @@ writefile(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 	Iobuf *buffer, *ibuf;
 	int32_t w;
 	int len, o, cur_block, baddr;
-	int8_t *buf;
+	char *buf;
 
 	buf = vbuf;
 
@@ -735,7 +735,7 @@ new_block( Xfile *f, int goal )
 	Xfs *xf= f->xf;
 	int group, block, baddr, k, redo;
 	uint32_t lmap;
-	int8_t *p, *r;
+	char *p, *r;
 	Iobuf *buf;
 	Ext2 ed, es, eb;
 	
@@ -1205,7 +1205,7 @@ error:
 	return j;
 }
 int
-create_file(Xfile *fdir, int8_t *name, int mode)
+create_file(Xfile *fdir, char *name, int mode)
 {
 	int inr;
 
@@ -1264,7 +1264,7 @@ free_inode( Xfs *xf, int inr)
 	dirtyext2(es); putext2(es);
 }
 int
-create_dir(Xfile *fdir, int8_t *name, int mode)
+create_dir(Xfile *fdir, char *name, int mode)
 {
 	Xfs *xf = fdir->xf;
 	DirEntry *de;
@@ -1325,7 +1325,7 @@ create_dir(Xfile *fdir, int8_t *name, int mode)
 	de->rec_len = DIR_REC_LEN(de->name_len);
 	strcpy(de->name, ".");
 	
-	de = (DirEntry *)( (int8_t *)de + de->rec_len);
+	de = (DirEntry *)( (char *)de + de->rec_len);
 	de->inode = fdir->inbr;
 	de->name_len = 2;
 	de->rec_len = xf->block_size - DIR_REC_LEN(1);
@@ -1351,7 +1351,7 @@ create_dir(Xfile *fdir, int8_t *name, int mode)
 	return inr;
 }
 int
-add_entry(Xfile *f, int8_t *name, int inr)
+add_entry(Xfile *f, char *name, int inr)
 {
 	Xfs *xf = f->xf;
 	DirEntry *de, *de1;
@@ -1381,7 +1381,7 @@ add_entry(Xfile *f, int8_t *name, int inr)
 	de = (DirEntry *)buf->iobuf;
 	
 	for(;;){
-		if( ((int8_t *)de) >= (xf->block_size + buf->iobuf) ){
+		if( ((char *)de) >= (xf->block_size + buf->iobuf) ){
 			putbuf(buf);
 			if( cur_block >= EXT2_NDIR_BLOCKS ){
 				errno = Enospace;
@@ -1418,7 +1418,7 @@ add_entry(Xfile *f, int8_t *name, int inr)
 		if( (de->inode == 0 && de->rec_len >= rec_len) ||
 				(de->rec_len >= DIR_REC_LEN(de->name_len) + rec_len) ){
 			if( de->inode ){
-				de1 = (DirEntry *) ((int8_t *)de + DIR_REC_LEN(de->name_len));
+				de1 = (DirEntry *) ((char *)de + DIR_REC_LEN(de->name_len));
 				de1->rec_len = de->rec_len - DIR_REC_LEN(de->name_len);
 				de->rec_len = DIR_REC_LEN(de->name_len);
 				de = de1;
@@ -1433,7 +1433,7 @@ add_entry(Xfile *f, int8_t *name, int inr)
 			putbuf(ibuf);
 			return 0;
 		}
-		de = (DirEntry *)((int8_t *)de + de->rec_len);
+		de = (DirEntry *)((char *)de + de->rec_len);
 	}
 	/* not reached */
 }
@@ -1787,7 +1787,7 @@ CleanSuper(Xfs *xf)
 int 
 test_bit(int i, void *data)
 {
-	int8_t *pt = (int8_t *)data;
+	char *pt = (char *)data;
 
 	return pt[i>>3] & (0x01 << (i&7));
 }
@@ -1795,12 +1795,12 @@ test_bit(int i, void *data)
 int
 set_bit(int i, void *data)
 {
-  	int8_t *pt;
+  	char *pt;
 
   	if( test_bit(i, data) )
     		return 1; /* bit already set !!! */
   
-  	pt = (int8_t *)data;
+  	pt = (char *)data;
   	pt[i>>3] |= (0x01 << (i&7));
 
   	return 0;
@@ -1809,12 +1809,12 @@ set_bit(int i, void *data)
 int 
 clear_bit(int i, void *data)
 {
-	int8_t *pt;
+	char *pt;
 
   	if( !test_bit(i, data) )
     		return 1; /* bit already clear !!! */
   
- 	 pt = (int8_t *)data;
+ 	 pt = (char *)data;
   	pt[i>>3] &= ~(0x01 << (i&7));
 	
 	return 0;
@@ -1822,7 +1822,7 @@ clear_bit(int i, void *data)
 void *
 memscan( void *data, int c, int count )
 {
-	int8_t *pt = (int8_t *)data;
+	char *pt = (char *)data;
 
 	while( count ){
 		if( *pt == c )
@@ -1836,7 +1836,7 @@ memscan( void *data, int c, int count )
 int 
 find_first_zero_bit( void *data, int count /* in byte */)
 {
-  int8_t *pt = (int8_t *)data;
+  char *pt = (char *)data;
   int n, i;
   
   n = 0;
@@ -1853,7 +1853,7 @@ find_first_zero_bit( void *data, int count /* in byte */)
 int 
 find_next_zero_bit( void *data, int count /* in byte */, int where)
 {
-  int8_t *pt = (((int8_t *)data) + (where >> 3));
+  char *pt = (((char *)data) + (where >> 3));
   int n, i;
   
   n = where >> 3;

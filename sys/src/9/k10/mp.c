@@ -45,7 +45,7 @@ typedef struct {				/* MP Configuration Table */
 } PCMP;
 
 typedef struct {
-	int8_t	type[6];
+	char	type[6];
 	int	polarity;			/* default for this bus */
 	int	trigger;			/* default for this bus */
 } Mpbus;
@@ -58,10 +58,10 @@ static Mpbus* mpbus[Nbus];
 int mpisabusno = -1;
 
 static void
-mpintrprint(int8_t* s, uint8_t* p)
+mpintrprint(char* s, uint8_t* p)
 {
-	int8_t buf[128], *b, *e;
-	int8_t format[] = " type %d flags %#ux bus %d IRQ %d APIC %d INTIN %d\n";
+	char buf[128], *b, *e;
+	char format[] = " type %d flags %#ux bus %d IRQ %d APIC %d INTIN %d\n";
 
 	b = buf;
 	e = b + sizeof(buf);
@@ -244,7 +244,7 @@ mpparse(PCMP* pcmp, int maxcores)
 		}
 		if(mpbus[p[1]] == nil)
 			print("mpparse: bus %d type %6.6s unknown\n",
-				p[1], (int8_t*)p+2);
+				p[1], (char*)p+2);
 
 		p += 8;
 		break;
@@ -372,7 +372,7 @@ sigchecksum(void* address, int length)
 }
 
 static void*
-sigscan(uint8_t* address, int length, int8_t* signature)
+sigscan(uint8_t* address, int length, char* signature)
 {
 	uint8_t *e, *p;
 	int siglength;
@@ -389,7 +389,7 @@ sigscan(uint8_t* address, int length, int8_t* signature)
 }
 
 static void*
-sigsearch(int8_t* signature)
+sigsearch(char* signature)
 {
 	uintptr p;
 	uint8_t *bda;

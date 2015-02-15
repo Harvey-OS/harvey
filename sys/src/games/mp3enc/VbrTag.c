@@ -75,7 +75,7 @@
 
 
 
-const static int8_t	VBRTag[]={"Xing"};
+const static char	VBRTag[]={"Xing"};
 const int SizeOfEmptyFrame[2][2]=
 {
 	{17,9},
@@ -432,10 +432,10 @@ int PutVbrTag(lame_global_flags *gfp,FILE *fpStream,int nVbrScale)
 
 	int32_t lFileSize;
 	int nStreamIndex;
-	int8_t abyte,bbyte;
+	char abyte,bbyte;
 	u_char		btToc[NUMTOCENTRIES];
 	u_char pbtStreamBuffer[MAXFRAMESIZE];
-	int8_t str1[80];
+	char str1[80];
         unsigned char id3v2Header[10];
         size_t id3v2TagSize;
 
@@ -467,7 +467,7 @@ int PutVbrTag(lame_global_flags *gfp,FILE *fpStream,int nVbrScale)
         /* read 10 bytes in case there's an ID3 version 2 header here */
         fread(id3v2Header,1,sizeof id3v2Header,fpStream);
         /* does the stream begin with the ID3 version 2 file identifier? */
-        if (!strncmp((int8_t *)id3v2Header,"ID3",3)) {
+        if (!strncmp((char *)id3v2Header,"ID3",3)) {
           /* the tag size (minus the 10-byte header) is encoded into four
            * bytes where the most significant bit is clear in each byte */
           id3v2TagSize=(((id3v2Header[6] & 0x7f)<<21)
@@ -490,7 +490,7 @@ int PutVbrTag(lame_global_flags *gfp,FILE *fpStream,int nVbrScale)
 	/* but sampling freq, mode andy copyright/copy protection taken */
 	/* from first valid frame */
 	pbtStreamBuffer[0]=(u_char) 0xff;
-	abyte = (pbtStreamBuffer[1] & (int8_t) 0xf1);
+	abyte = (pbtStreamBuffer[1] & (char) 0xf1);
 	{ int bitrate;
 	if (1==gfp->version) {
 	  bitrate = XING_BITRATE1;
@@ -508,14 +508,14 @@ int PutVbrTag(lame_global_flags *gfp,FILE *fpStream,int nVbrScale)
 	 */ 
 	if (gfp->version==1) {
 	  /* MPEG1 */
-	  pbtStreamBuffer[1]=abyte | (int8_t) 0x0a;     /* was 0x0b; */
-	  abyte = pbtStreamBuffer[2] & (int8_t) 0x0d;   /* AF keep also private bit */
-	  pbtStreamBuffer[2]=(int8_t) bbyte | abyte;     /* 64kbs MPEG1 frame */
+	  pbtStreamBuffer[1]=abyte | (char) 0x0a;     /* was 0x0b; */
+	  abyte = pbtStreamBuffer[2] & (char) 0x0d;   /* AF keep also private bit */
+	  pbtStreamBuffer[2]=(char) bbyte | abyte;     /* 64kbs MPEG1 frame */
 	}else{
 	  /* MPEG2 */
-	  pbtStreamBuffer[1]=abyte | (int8_t) 0x02;     /* was 0x03; */
-	  abyte = pbtStreamBuffer[2] & (int8_t) 0x0d;   /* AF keep also private bit */
-	  pbtStreamBuffer[2]=(int8_t) bbyte | abyte;     /* 64kbs MPEG2 frame */
+	  pbtStreamBuffer[1]=abyte | (char) 0x02;     /* was 0x03; */
+	  abyte = pbtStreamBuffer[2] & (char) 0x0d;   /* AF keep also private bit */
+	  pbtStreamBuffer[2]=(char) bbyte | abyte;     /* 64kbs MPEG2 frame */
 	}
 
 
@@ -559,7 +559,7 @@ int PutVbrTag(lame_global_flags *gfp,FILE *fpStream,int nVbrScale)
 
 	/* Put LAME ID */
         sprintf ( str1, "LAME%s", get_lame_short_version () );
-        strncpy ( (int8_t*)pbtStreamBuffer + nStreamIndex, str1, 20 );
+        strncpy ( (char*)pbtStreamBuffer + nStreamIndex, str1, 20 );
         nStreamIndex += 20;
 
 

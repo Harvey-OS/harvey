@@ -41,13 +41,13 @@ static int
 listenproc(Rock *r, int fd)
 {
 	Rock *nr;
-	int8_t *net;
+	char *net;
 	int cfd, nfd, dfd;
 	int pfd[2];
 	struct stat d;
-	int8_t *p;
-	int8_t listen[Ctlsize];
-	int8_t name[Ctlsize];
+	char *p;
+	char listen[Ctlsize];
+	char name[Ctlsize];
 
 	switch(r->stype){
 	case SOCK_DGRAM:
@@ -129,7 +129,7 @@ listen(int fd, int)
 {
 	Rock *r;
 	int n, cfd;
-	int8_t msg[128];
+	char msg[128];
 	struct sockaddr_in *lip;
 	struct sockaddr_un *lunix;
 

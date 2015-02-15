@@ -39,13 +39,13 @@ Dirtab mousedir[]={
 #define	NMOUSE	(sizeof(mousedir)/sizeof(Dirtab))
 
 static Chan*
-mouseattach(int8_t *spec)
+mouseattach(char *spec)
 {
 	return devattach('m', spec);
 }
 
 static Walkqid*
-mousewalk(Chan *c, Chan *nc, int8_t **name, int nname)
+mousewalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, mousedir, NMOUSE, devgen);
 }
@@ -99,7 +99,7 @@ mouseclose(Chan *c)
 int32_t
 mouseread(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	int8_t buf[4*12+1];
+	char buf[4*12+1];
 	uint8_t *p;
 	int i, nn;
 	uint32_t msec;
@@ -170,9 +170,9 @@ mouseread(Chan *c, void *va, int32_t n, int64_t offset)
 int32_t
 mousewrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	int8_t *p;
+	char *p;
 	Point pt;
-	int8_t buf[64];
+	char buf[64];
 
 	USED(offset);
 

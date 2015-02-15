@@ -25,11 +25,11 @@
 #include "dat.h"
 
 static int
-readmessage(Message *m, int8_t *msg)
+readmessage(Message *m, char *msg)
 {
 	int fd, i, n;
-	int8_t *buf, *name, *p;
-	int8_t hdr[128], sdigest[SHA1dlen*2+1];
+	char *buf, *name, *p;
+	char hdr[128], sdigest[SHA1dlen*2+1];
 	Dir *d;
 
 	buf = nil;
@@ -104,7 +104,7 @@ Fail:
 static void
 archive(Message *m)
 {
-	int8_t *dir, *p, *nname;
+	char *dir, *p, *nname;
 	Dir d;
 
 	dir = strdup(s_to_c(m->filename));
@@ -159,7 +159,7 @@ purgembox(Mailbox *mb, int virtual)
 }
 
 static int
-mustshow(int8_t* name)
+mustshow(char* name)
 {
 	if(isdigit(name[0]))
 		return 1;
@@ -171,10 +171,10 @@ mustshow(int8_t* name)
 }
 
 static int
-readpbmessage(Mailbox *mb, int8_t *msg, int doplumb)
+readpbmessage(Mailbox *mb, char *msg, int doplumb)
 {
 	Message *m, **l;
-	int8_t *x;
+	char *x;
 
 	m = newmessage(mb->root);
 	m->mallocd = 1;
@@ -213,7 +213,7 @@ readpbmessage(Mailbox *mb, int8_t *msg, int doplumb)
 static int
 dcmp(Dir *a, Dir *b)
 {
-	int8_t *an, *bn;
+	char *an, *bn;
 
 	an = a->name;
 	bn = b->name;
@@ -228,7 +228,7 @@ static void
 readpbmbox(Mailbox *mb, int doplumb)
 {
 	int fd, i, j, nd, nmd;
-	int8_t *month, *msg;
+	char *month, *msg;
 	Dir *d, *md;
 
 	fd = open(mb->path, OREAD);
@@ -275,7 +275,7 @@ readpbvmbox(Mailbox *mb, int doplumb)
 {
 	int fd, nr;
 	int32_t sz;
-	int8_t *data, *ln, *p, *nln, *msg;
+	char *data, *ln, *p, *nln, *msg;
 	Dir *d;
 
 	fd = open(mb->path, OREAD);
@@ -336,13 +336,13 @@ readpbvmbox(Mailbox *mb, int doplumb)
 	free(data);
 }
 
-static int8_t*
+static char*
 readmbox(Mailbox *mb, int doplumb, int virt)
 {
 	int fd;
 	Dir *d;
 	Message *m;
-	static int8_t err[Errlen];
+	static char err[Errlen];
 
 	if(debug)
 		fprint(2, "read mbox %s\n", mb->path);
@@ -396,31 +396,31 @@ readmbox(Mailbox *mb, int doplumb, int virt)
 	return nil;
 }
 
-static int8_t*
+static char*
 mbsync(Mailbox *mb, int doplumb)
 {
-	int8_t *rv;
+	char *rv;
 
 	rv = readmbox(mb, doplumb, 0);
 	purgembox(mb, 0);
 	return rv;
 }
 
-static int8_t*
+static char*
 mbvsync(Mailbox *mb, int doplumb)
 {
-	int8_t *rv;
+	char *rv;
 
 	rv = readmbox(mb, doplumb, 1);
 	purgembox(mb, 1);
 	return rv;
 }
 
-int8_t*
-planbmbox(Mailbox *mb, int8_t *path)
+char*
+planbmbox(Mailbox *mb, char *path)
 {
-	int8_t *list;
-	static int8_t err[64];
+	char *list;
+	static char err[64];
 
 	if(access(path, AEXIST) < 0)
 		return Enotme;
@@ -436,12 +436,12 @@ planbmbox(Mailbox *mb, int8_t *path)
 	return nil;
 }
 
-int8_t*
-planbvmbox(Mailbox *mb, int8_t *path)
+char*
+planbvmbox(Mailbox *mb, char *path)
 {
 	int fd, nr, i;
-	int8_t buf[64];
-	static int8_t err[64];
+	char buf[64];
+	static char err[64];
 
 	fd = open(path, OREAD);
 	if(fd < 0)

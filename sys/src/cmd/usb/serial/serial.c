@@ -36,7 +36,7 @@ enum {
 
 typedef struct Dirtab Dirtab;
 struct Dirtab {
-	int8_t	*name;
+	char	*name;
 	int	mode;
 };
 
@@ -110,7 +110,7 @@ serialreset(Serial *ser)
 
 /* call this if something goes wrong, must be qlocked */
 int
-serialrecover(Serial *ser, Serialport *p, Dev *ep, int8_t *err)
+serialrecover(Serial *ser, Serialport *p, Dev *ep, char *err)
 {
 	if(p != nil)
 		dprint(2, "serial[%d], %s: %s, level %d\n", p->interfc,
@@ -154,11 +154,11 @@ serialrecover(Serial *ser, Serialport *p, Dev *ep, int8_t *err)
 }
 
 static int
-serialctl(Serialport *p, int8_t *cmd)
+serialctl(Serialport *p, char *cmd)
 {
 	Serial *ser;
 	int c, i, n, nf, nop, nw, par, drain, set, lines;
-	int8_t *f[16];
+	char *f[16];
 	uint8_t x;
 
 	ser = p->s;
@@ -304,12 +304,12 @@ serialctl(Serialport *p, int8_t *cmd)
 	return 0;
 }
 
-int8_t *pformat = "noems";
+char *pformat = "noems";
 
-int8_t *
-serdumpst(Serialport *p, int8_t *buf, int bufsz)
+char *
+serdumpst(Serialport *p, char *buf, int bufsz)
 {
-	int8_t *e, *s;
+	char *e, *s;
 	Serial *ser;
 
 	ser = p->s;
@@ -356,10 +356,10 @@ serinit(Serialport *p)
 }
 
 static int
-dwalk(Usbfs *fs, Fid *fid, int8_t *name)
+dwalk(Usbfs *fs, Fid *fid, char *name)
 {
 	int i;
-	int8_t *dname;
+	char *dname;
 	Qid qid;
 	Serialport *p;
 
@@ -482,7 +482,7 @@ dread(Usbfs *fs, Fid *fid, void *data, int32_t count, int64_t offset)
 	int dfd;
 	int32_t rcount;
 	uint32_t path;
-	int8_t *e, *buf, *err;	/* change */
+	char *e, *buf, *err;	/* change */
 	Qid q;
 	Serialport *p;
 	Serial *ser;
@@ -573,7 +573,7 @@ static int32_t
 altwrite(Serialport *p, uint8_t *buf, int32_t count)
 {
 	int nw, dfd;
-	int8_t err[128];
+	char err[128];
 	Serial *ser;
 
 	ser = p->s;
@@ -606,7 +606,7 @@ static int32_t
 dwrite(Usbfs *fs, Fid *fid, void *buf, int32_t count, int64_t)
 {
 	uint32_t path;
-	int8_t *cmd;
+	char *cmd;
 	Serialport *p;
 	Serial *ser;
 

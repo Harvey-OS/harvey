@@ -21,10 +21,10 @@ struct Queue
 
 	Lock	lock;
 	int	notempty;
-	int8_t	buf[1024];
-	int8_t	*w;
-	int8_t	*r;
-	int8_t	*e;
+	char	buf[1024];
+	char	*w;
+	char	*r;
+	char	*e;
 };
 
 Queue*	kbdq;			/* unprocessed console input */
@@ -39,7 +39,7 @@ static struct
 	int	raw;		/* true if we shouldn't process input */
 	int	ctl;		/* number of opens to the control file */
 	int	x;		/* index into line */
-	int8_t	line[1024];	/* current input line */
+	char	line[1024];	/* current input line */
 } kbd;
 
 /*
@@ -48,7 +48,7 @@ static struct
 static void
 qwrite(Queue *q, void *v, int n)
 {
-	int8_t *buf, *next;
+	char *buf, *next;
 	int i;
 
 	buf = v;
@@ -83,7 +83,7 @@ qcanread(void *vq)
 static int
 qread(Queue *q, void *v, int n)
 {
-	int8_t *a;
+	char *a;
 	int nn, notempty;
 
 	if(n == 0)
@@ -134,10 +134,10 @@ mkqueue(void)
 }
 
 static void
-echoscreen(int8_t *buf, int n)
+echoscreen(char *buf, int n)
 {
-	int8_t *e, *p;
-	int8_t ebuf[128];
+	char *e, *p;
+	char ebuf[128];
 	int x;
 
 	p = ebuf;
@@ -167,7 +167,7 @@ void
 kbdputc(int ch)
 {
 	int n;
-	int8_t buf[UTFmax];
+	char buf[UTFmax];
 	Rune r;
 
 	r = ch;
@@ -210,13 +210,13 @@ consinit(void)
 }
 
 static Chan*
-consattach(int8_t *spec)
+consattach(char *spec)
 {
 	return devattach('c', spec);
 }
 
 static Walkqid*
-conswalk(Chan *c, Chan *nc, int8_t **name, int nname)
+conswalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name,nname, consdir, nelem(consdir), devgen);
 }
@@ -247,7 +247,7 @@ consopen(Chan *c, int omode)
 }
 
 void
-setsnarf(int8_t *buf, int n, int *vers)
+setsnarf(char *buf, int n, int *vers)
 {
 	int i;
 
@@ -298,7 +298,7 @@ consclose(Chan *c)
 static int32_t
 consread(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	int8_t ch;
+	char ch;
 	int	send;
 
 	if(n <= 0)
@@ -373,8 +373,8 @@ static int32_t
 conswrite(Chan *c, void *va, int32_t n, int64_t)
 {
 	Snarf *t;
-	int8_t buf[256], *a;
-	int8_t ch;
+	char buf[256], *a;
+	char ch;
 
 	switch((uint32_t)c->qid.path){
 	case Qcons:

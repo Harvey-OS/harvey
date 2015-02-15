@@ -32,7 +32,7 @@ void
 writef(File *f)
 {
 	Posn n;
-	int8_t *name;
+	char *name;
 	int i, samename, newfile;
 	uint32_t dev;
 	uint64_t qid;
@@ -91,7 +91,7 @@ readio(File *f, int *nulls, int setdate, int toterm)
 	uint32_t dev;
 	uint64_t qid;
 	int32_t mtime;
-	int8_t buf[BLOCKSIZE+1], *s;
+	char buf[BLOCKSIZE+1], *s;
 
 	*nulls = FALSE;
 	b = 0;
@@ -151,7 +151,7 @@ writeio(File *f)
 {
 	int m, n;
 	Posn p = addr.r.p1;
-	int8_t *c;
+	char *c;
 
 	while(p < addr.r.p2){
 		if(addr.r.p2-p>BLOCKSIZE)
@@ -185,7 +185,7 @@ int	remotefd0 = 0;
 int	remotefd1 = 1;
 
 void
-bootterm(int8_t *machine, int8_t **argv)
+bootterm(char *machine, char **argv)
 {
 	int ph2t[2], pt2h[2];
 
@@ -227,16 +227,16 @@ bootterm(int8_t *machine, int8_t **argv)
 }
 
 void
-connectto(int8_t *machine, int8_t **argv)
+connectto(char *machine, char **argv)
 {
 	int p1[2], p2[2];
-	int8_t **av;
+	char **av;
 	int ac;
 	
 	// count args
 	for(av = argv; *av; av++)
 		;
-	av = malloc(sizeof(int8_t*)*((av-argv) + 5));
+	av = malloc(sizeof(char*)*((av-argv) + 5));
 	if(av == nil){
 		dprint("out of memory\n");
 		exits("fork/exec");
@@ -277,7 +277,7 @@ connectto(int8_t *machine, int8_t **argv)
 }
 
 void
-startup(int8_t *machine, int Rflag, int8_t **argv, int8_t **files)
+startup(char *machine, int Rflag, char **argv, char **files)
 {
 	if(machine)
 		connectto(machine, files);

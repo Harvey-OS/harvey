@@ -18,11 +18,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-int8_t *
-tempnam(int8_t *dir, int8_t *pfx)
+char *
+tempnam(char *dir, char *pfx)
 {
 	int pid;
-	int8_t *tnm;
+	char *tnm;
 	struct stat stb;
 	static int seq = 0;
 

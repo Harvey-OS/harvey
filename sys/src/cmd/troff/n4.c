@@ -34,7 +34,7 @@ void setn(void)
 	int i, j, f;
 	Tchar ii;
 	Uchar *p;
-	int8_t buf[NTM];		/* for \n(.S */
+	char buf[NTM];		/* for \n(.S */
 
 	f = nform = 0;
 	if ((i = cbits(ii = getach())) == '+')
@@ -367,7 +367,7 @@ int roman(int i, int (*f)(Tchar))
 }
 
 
-int roman0(int i, int (*f)(Tchar), int8_t *onesp, int8_t *fivesp)
+int roman0(int i, int (*f)(Tchar), char *onesp, char *fivesp)
 {
 	int q, rem, k;
 
@@ -556,8 +556,8 @@ int32_t ckph(void)
  */
 void prnumerr(void)
 {
-	int8_t err_buf[40];
-	static int8_t warn[] = "Numeric argument expected";
+	char err_buf[40];
+	static char warn[] = "Numeric argument expected";
 	int savcd = numtabp[CD].val;
 
 	if (numerr.type == RQERR)

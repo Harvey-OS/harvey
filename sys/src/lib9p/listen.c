@@ -16,10 +16,10 @@
 
 static void listenproc(void*);
 static void srvproc(void*);
-static int8_t *getremotesys(int8_t*);
+static char *getremotesys(char*);
 
 void
-_listensrv(Srv *os, int8_t *addr)
+_listensrv(Srv *os, char *addr)
 {
 	Srv *s;
 
@@ -34,7 +34,7 @@ _listensrv(Srv *os, int8_t *addr)
 static void
 listenproc(void *v)
 {
-	int8_t ndir[NETPATHLEN], dir[NETPATHLEN];
+	char ndir[NETPATHLEN], dir[NETPATHLEN];
 	int ctl, data, nctl;
 	Srv *os, *s;
 	
@@ -86,10 +86,10 @@ srvproc(void *v)
 	free(s);
 }
 
-static int8_t*
-getremotesys(int8_t *ndir)
+static char*
+getremotesys(char *ndir)
 {
-	int8_t buf[128], *serv, *sys;
+	char buf[128], *serv, *sys;
 	int fd, n;
 
 	snprint(buf, sizeof buf, "%s/remote", ndir);

@@ -100,7 +100,7 @@ void
 wsetname(Window *w)
 {
 	int i, n;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	
 	n = sprint(w->name, "window.%d.%d", w->id, w->namecount++);
 	for(i='A'; i<='Z'; i++){
@@ -196,7 +196,7 @@ winctl(void *arg)
 	Rune *rp, *bp, *tp, *up, *kbdr;
 	uint qh;
 	int nr, nb, c, wid, i, npart, initial, lastb;
-	int8_t *s, *t, part[3];
+	char *s, *t, part[3];
 	Window *w;
 	Mousestate *mp, m;
 	enum { WKey, WMouse, WMouseread, WCtl, WCwrite, WCread, WWread, NWALT };
@@ -207,7 +207,7 @@ winctl(void *arg)
 	Consreadmesg cwrm;
 	Stringpair pair;
 	Wctlmesg wcm;
-	int8_t buf[4*12+1];
+	char buf[4*12+1];
 
 	w = arg;
 	snprint(buf, sizeof buf, "winctl-id%d", w->id);
@@ -476,7 +476,7 @@ showcandidates(Window *w, Completion *c)
 	Fmt f;
 	Rune *rp;
 	uint nr, qline, q0;
-	int8_t *s;
+	char *s;
 
 	runefmtstrinit(&f);
 	if (c->nmatch == 0)
@@ -514,7 +514,7 @@ namecomplete(Window *w)
 	int nstr, npath;
 	Rune *rp, *path, *str;
 	Completion *c;
-	int8_t *s, *dir, *root;
+	char *s, *dir, *root;
 
 	/* control-f: filename completion; works back to white space or / */
 	if(w->q0<w->nr && w->r[w->q0]>' ')	/* must be at end of word */
@@ -805,7 +805,7 @@ wplumb(Window *w)
 {
 	Plumbmsg *m;
 	static int fd = -2;
-	int8_t buf[32];
+	char buf[32];
 	uint p0, p1;
 	Cursor *c;
 
@@ -1059,7 +1059,7 @@ wsendctlmesg(Window *w, int type, Rectangle r, Image *image)
 int
 wctlmesg(Window *w, int m, Rectangle r, Image *i)
 {
-	int8_t buf[64];
+	char buf[64];
 
 	switch(m){
 	default:
@@ -1330,7 +1330,7 @@ wclosewin(Window *w)
 void
 wsetpid(Window *w, int pid, int dolabel)
 {
-	int8_t buf[128];
+	char buf[128];
 	int fd;
 
 	w->pid = pid;
@@ -1352,8 +1352,8 @@ winshell(void *args)
 	Window *w;
 	Channel *pidc;
 	void **arg;
-	int8_t *cmd, *dir;
-	int8_t **argv;
+	char *cmd, *dir;
+	char **argv;
 
 	arg = args;
 	w = arg[0];
@@ -1701,7 +1701,7 @@ wfill(Window *w)
 	free(rp);
 }
 
-int8_t*
+char*
 wcontents(Window *w, int *ip)
 {
 	return runetobyte(w->r, w->nr, ip);

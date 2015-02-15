@@ -24,21 +24,21 @@ extern int	nrand(int);
 extern int32_t	lrand(void);
 extern double	frand(void);
 
-extern int8_t	*getpass(int8_t *);
+extern char	*getpass(char *);
 extern int	tty_echoon(int);
 extern int	tty_echooff(int);
 
 extern int	min(int, int);
 extern int	max(int, int);
 
-extern void	_perror(int8_t *);
-extern int8_t	*_progname;
+extern void	_perror(char *);
+extern char	*_progname;
 
 extern int	nap(int);
 
-extern int8_t	*setfields(int8_t *);
-extern int	getfields(int8_t *, int8_t **, int);
-extern int	getmfields(int8_t *, int8_t **, int);
+extern char	*setfields(char *);
+extern int	getfields(char *, char **, int);
+extern int	getmfields(char *, char **, int);
 
 
 #ifdef __cplusplus

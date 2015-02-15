@@ -7,10 +7,10 @@
  * in the LICENSE file.
  */
 
-extern void startboot(int8_t*, int8_t**);
+extern void startboot(char*, char**);
 
 void
-main(int8_t* argv0)
+main(char* argv0)
 {
 	startboot(argv0, &argv0);
 }

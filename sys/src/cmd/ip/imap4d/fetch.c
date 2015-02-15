@@ -13,7 +13,7 @@
 #include <auth.h>
 #include "imap4d.h"
 
-int8_t *fetchPartNames[FPMax] =
+char *fetchPartNames[FPMax] =
 {
 	"",
 	"HEADER",
@@ -65,7 +65,7 @@ fetchMsg(Box *, Msg *m, int uids, void *vf)
 {
 	Tm tm;
 	Fetch *f;
-	int8_t *sep;
+	char *sep;
 	int todo;
 
 	if(m->expunged)
@@ -209,7 +209,7 @@ void
 fetchBody(Msg *m, Fetch *f)
 {
 	Pair p;
-	int8_t *s, *t, *e, buf[BufSize + 2];
+	char *s, *t, *e, buf[BufSize + 2];
 	uint32_t n, start, stop, pos;
 	int fd, nn;
 
@@ -369,7 +369,7 @@ fetchBodyFill(uint32_t n)
  * return a simple string
  */
 void
-fetchBodyStr(Fetch *f, int8_t *buf, uint32_t size)
+fetchBodyStr(Fetch *f, char *buf, uint32_t size)
 {
 	Pair p;
 
@@ -377,11 +377,11 @@ fetchBodyStr(Fetch *f, int8_t *buf, uint32_t size)
 	Bwrite(&bout, &buf[p.start], p.stop-p.start);
 }
 
-int8_t*
+char*
 printnlist(NList *sect)
 {
-	static int8_t buf[100];
-	int8_t *p;
+	static char buf[100];
+	char *p;
 
 	for(p= buf; sect; sect=sect->next){
 		p += sprint(p, "%ld", sect->n);
@@ -574,7 +574,7 @@ fetchStructExt(Header *h)
 int
 BimapMimeParams(Biobuf *b, MimeHdr *mh)
 {
-	int8_t *sep;
+	char *sep;
 	int n;
 
 	if(mh == nil)
@@ -603,7 +603,7 @@ BimapMimeParams(Biobuf *b, MimeHdr *mh)
 int
 Bimapaddr(Biobuf *b, MAddr *a)
 {
-	int8_t *host, *sep;
+	char *host, *sep;
 	int n;
 
 	if(a == nil)

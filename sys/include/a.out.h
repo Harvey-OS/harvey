@@ -51,6 +51,6 @@ struct	Sym
 {
 	int64_t	value;
 	uint	sig;
-	int8_t	type;
-	int8_t	*name;
+	char	type;
+	char	*name;
 };

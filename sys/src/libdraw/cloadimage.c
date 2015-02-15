@@ -26,8 +26,8 @@ cloadimage(Image *i, Rectangle r, uint8_t *data, int ndata)
 	m = 0;
 	ncblock = _compblocksize(r, i->depth);
 	while(miny != r.max.y){
-		maxy = atoi((int8_t*)data+0*12);
-		nb = atoi((int8_t*)data+1*12);
+		maxy = atoi((char*)data+0*12);
+		nb = atoi((char*)data+1*12);
 		if(maxy<=miny || r.max.y<maxy){
 			werrstr("creadimage: bad maxy %d", maxy);
 			return -1;

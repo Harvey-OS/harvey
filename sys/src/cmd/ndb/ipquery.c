@@ -25,7 +25,7 @@ usage(void)
 }
 
 void
-search(Ndb *db, int8_t *attr, int8_t *val, int8_t **rattr, int nrattr)
+search(Ndb *db, char *attr, char *val, char **rattr, int nrattr)
 {
 	Ndbtuple *t, *tt;
 

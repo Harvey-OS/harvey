@@ -16,7 +16,7 @@
 /*
  * these should be in libraries
  */
-int8_t	*csquery(int8_t *attr, int8_t *val, int8_t *rattr);
+char	*csquery(char *attr, char *val, char *rattr);
 
 /*
  * /lib/rfc/rfc2060 imap4rev1
@@ -46,71 +46,71 @@ enum
 
 struct ParseCmd
 {
-	int8_t	*name;
-	void	(*f)(int8_t *tg, int8_t *cmd);
+	char	*name;
+	void	(*f)(char *tg, char *cmd);
 };
 
-static	void	appendCmd(int8_t *tg, int8_t *cmd);
-static	void	authenticateCmd(int8_t *tg, int8_t *cmd);
-static	void	capabilityCmd(int8_t *tg, int8_t *cmd);
-static	void	closeCmd(int8_t *tg, int8_t *cmd);
-static	void	copyCmd(int8_t *tg, int8_t *cmd);
-static	void	createCmd(int8_t *tg, int8_t *cmd);
-static	void	deleteCmd(int8_t *tg, int8_t *cmd);
-static	void	expungeCmd(int8_t *tg, int8_t *cmd);
-static	void	fetchCmd(int8_t *tg, int8_t *cmd);
-static	void	idleCmd(int8_t *tg, int8_t *cmd);
-static	void	listCmd(int8_t *tg, int8_t *cmd);
-static	void	loginCmd(int8_t *tg, int8_t *cmd);
-static	void	logoutCmd(int8_t *tg, int8_t *cmd);
-static	void	namespaceCmd(int8_t *tg, int8_t *cmd);
-static	void	noopCmd(int8_t *tg, int8_t *cmd);
-static	void	renameCmd(int8_t *tg, int8_t *cmd);
-static	void	searchCmd(int8_t *tg, int8_t *cmd);
-static	void	selectCmd(int8_t *tg, int8_t *cmd);
-static	void	statusCmd(int8_t *tg, int8_t *cmd);
-static	void	storeCmd(int8_t *tg, int8_t *cmd);
-static	void	subscribeCmd(int8_t *tg, int8_t *cmd);
-static	void	uidCmd(int8_t *tg, int8_t *cmd);
-static	void	unsubscribeCmd(int8_t *tg, int8_t *cmd);
+static	void	appendCmd(char *tg, char *cmd);
+static	void	authenticateCmd(char *tg, char *cmd);
+static	void	capabilityCmd(char *tg, char *cmd);
+static	void	closeCmd(char *tg, char *cmd);
+static	void	copyCmd(char *tg, char *cmd);
+static	void	createCmd(char *tg, char *cmd);
+static	void	deleteCmd(char *tg, char *cmd);
+static	void	expungeCmd(char *tg, char *cmd);
+static	void	fetchCmd(char *tg, char *cmd);
+static	void	idleCmd(char *tg, char *cmd);
+static	void	listCmd(char *tg, char *cmd);
+static	void	loginCmd(char *tg, char *cmd);
+static	void	logoutCmd(char *tg, char *cmd);
+static	void	namespaceCmd(char *tg, char *cmd);
+static	void	noopCmd(char *tg, char *cmd);
+static	void	renameCmd(char *tg, char *cmd);
+static	void	searchCmd(char *tg, char *cmd);
+static	void	selectCmd(char *tg, char *cmd);
+static	void	statusCmd(char *tg, char *cmd);
+static	void	storeCmd(char *tg, char *cmd);
+static	void	subscribeCmd(char *tg, char *cmd);
+static	void	uidCmd(char *tg, char *cmd);
+static	void	unsubscribeCmd(char *tg, char *cmd);
 
-static	void	copyUCmd(int8_t *tg, int8_t *cmd, int uids);
-static	void	fetchUCmd(int8_t *tg, int8_t *cmd, int uids);
-static	void	searchUCmd(int8_t *tg, int8_t *cmd, int uids);
-static	void	storeUCmd(int8_t *tg, int8_t *cmd, int uids);
+static	void	copyUCmd(char *tg, char *cmd, int uids);
+static	void	fetchUCmd(char *tg, char *cmd, int uids);
+static	void	searchUCmd(char *tg, char *cmd, int uids);
+static	void	storeUCmd(char *tg, char *cmd, int uids);
 
 static	void	imap4(int);
 static	void	status(int expungeable, int uids);
 static	void	cleaner(void);
 static	void	check(void);
-static	int	catcher(void*, int8_t*);
+static	int	catcher(void*, char*);
 
 static	Search	*searchKey(int first);
 static	Search	*searchKeys(int first, Search *tail);
-static	int8_t	*astring(void);
-static	int8_t	*atomString(int8_t *disallowed, int8_t *initial);
-static	int8_t	*atom(void);
+static	char	*astring(void);
+static	char	*atomString(char *disallowed, char *initial);
+static	char	*atom(void);
 static	void	badsyn(void);
 static	void	clearcmd(void);
-static	int8_t	*command(void);
+static	char	*command(void);
 static	void	crnl(void);
-static	Fetch	*fetchAtt(int8_t *s, Fetch *f);
+static	Fetch	*fetchAtt(char *s, Fetch *f);
 static	Fetch	*fetchWhat(void);
 static	int	flagList(void);
 static	int	flags(void);
 static	int	getc(void);
-static	int8_t	*listmbox(void);
-static	int8_t	*literal(void);
+static	char	*listmbox(void);
+static	char	*literal(void);
 static	uint32_t	litlen(void);
 static	MsgSet	*msgSet(int);
 static	void	mustBe(int c);
 static	uint32_t	number(int nonzero);
 static	int	peekc(void);
-static	int8_t	*quoted(void);
+static	char	*quoted(void);
 static	void	sectText(Fetch *f, int mimeOk);
 static	uint32_t	seqNo(void);
 static	Store	*storeWhat(void);
-static	int8_t	*tag(void);
+static	char	*tag(void);
 static	uint32_t	uidNo(void);
 static	void	ungetc(void);
 
@@ -184,12 +184,12 @@ static	ParseCmd	SSelected[] =
 	nil
 };
 
-static	int8_t		*atomStop = "(){%*\"\\";
+static	char		*atomStop = "(){%*\"\\";
 static	Chalstate	*chal;
 static	int		chaled;
 static	ParseCmd	*imapState;
 static	jmp_buf		parseJmp;
-static	int8_t		*parseMsg;
+static	char		*parseMsg;
 static	int		allowPass;
 static	int		allowCR;
 static	int		exiting;
@@ -198,11 +198,11 @@ static	int		idlepid = -1;
 
 Biobuf	bout;
 Biobuf	bin;
-int8_t	username[UserNameLen];
-int8_t	mboxDir[MboxNameLen];
-int8_t	*servername;
-int8_t	*site;
-int8_t	*remote;
+char	username[UserNameLen];
+char	mboxDir[MboxNameLen];
+char	*servername;
+char	*site;
+char	*remote;
 Box	*selected;
 Bin	*parseBin;
 int	debug;
@@ -293,8 +293,8 @@ main(int argc, char *argv[])
 static void
 imap4(int preauth)
 {
-	int8_t *volatile tg;
-	int8_t *volatile cmd;
+	char *volatile tg;
+	char *volatile cmd;
 	ParseCmd *st;
 
 	if(preauth){
@@ -354,7 +354,7 @@ imap4(int preauth)
 }
 
 void
-bye(int8_t *fmt, ...)
+bye(char *fmt, ...)
 {
 	va_list arg;
 
@@ -368,7 +368,7 @@ exits("rob2");
 }
 
 void
-parseErr(int8_t *msg)
+parseErr(char *msg)
 {
 	parseMsg = msg;
 	longjmp(parseJmp, 1);
@@ -385,7 +385,7 @@ writeErr(void)
 }
 
 static int
-catcher(void *v, int8_t *msg)
+catcher(void *v, char *msg)
 {
 	USED(v);
 	if(strstr(msg, "closed pipe") != nil)
@@ -490,9 +490,9 @@ check(void)
 }
 
 static void
-appendCmd(int8_t *tg, int8_t *cmd)
+appendCmd(char *tg, char *cmd)
 {
-	int8_t *mbox, head[128];
+	char *mbox, head[128];
 	uint32_t t, n, now;
 	int flags, ok;
 
@@ -539,9 +539,9 @@ appendCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-authenticateCmd(int8_t *tg, int8_t *cmd)
+authenticateCmd(char *tg, char *cmd)
 {
-	int8_t *s, *t;
+	char *s, *t;
 
 	mustBe(' ');
 	s = atom();
@@ -560,7 +560,7 @@ authenticateCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-capabilityCmd(int8_t *tg, int8_t *cmd)
+capabilityCmd(char *tg, char *cmd)
 {
 	crnl();
 	check();
@@ -571,7 +571,7 @@ capabilityCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-closeCmd(int8_t *tg, int8_t *cmd)
+closeCmd(char *tg, char *cmd)
 {
 	crnl();
 	imapState = SAuthed;
@@ -584,16 +584,16 @@ closeCmd(int8_t *tg, int8_t *cmd)
  * note: message id's are before any pending expunges
  */
 static void
-copyCmd(int8_t *tg, int8_t *cmd)
+copyCmd(char *tg, char *cmd)
 {
 	copyUCmd(tg, cmd, 0);
 }
 
 static void
-copyUCmd(int8_t *tg, int8_t *cmd, int uids)
+copyUCmd(char *tg, char *cmd, int uids)
 {
 	MsgSet *ms;
-	int8_t *uid, *mbox;
+	char *uid, *mbox;
 	uint32_t max;
 	int ok;
 
@@ -635,9 +635,9 @@ copyUCmd(int8_t *tg, int8_t *cmd, int uids)
 }
 
 static void
-createCmd(int8_t *tg, int8_t *cmd)
+createCmd(char *tg, char *cmd)
 {
-	int8_t *mbox, *m;
+	char *mbox, *m;
 	int fd, slash;
 
 	mustBe(' ');
@@ -670,9 +670,9 @@ createCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-deleteCmd(int8_t *tg, int8_t *cmd)
+deleteCmd(char *tg, char *cmd)
 {
-	int8_t *mbox, *imp;
+	char *mbox, *imp;
 
 	mustBe(' ');
 	mbox = astring();
@@ -695,7 +695,7 @@ deleteCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-expungeCmd(int8_t *tg, int8_t *cmd)
+expungeCmd(char *tg, char *cmd)
 {
 	int ok;
 
@@ -709,18 +709,18 @@ expungeCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-fetchCmd(int8_t *tg, int8_t *cmd)
+fetchCmd(char *tg, char *cmd)
 {
 	fetchUCmd(tg, cmd, 0);
 }
 
 static void
-fetchUCmd(int8_t *tg, int8_t *cmd, int uids)
+fetchUCmd(char *tg, char *cmd, int uids)
 {
 	Fetch *f;
 	MsgSet *ms;
 	MbLock *ml;
-	int8_t *uid;
+	char *uid;
 	uint32_t max;
 	int ok;
 
@@ -746,7 +746,7 @@ fetchUCmd(int8_t *tg, int8_t *cmd, int uids)
 }
 
 static void
-idleCmd(int8_t *tg, int8_t *cmd)
+idleCmd(char *tg, char *cmd)
 {
 	int c, pid;
 
@@ -818,9 +818,9 @@ _exits("rob4");
 }
 
 static void
-listCmd(int8_t *tg, int8_t *cmd)
+listCmd(char *tg, char *cmd)
 {
-	int8_t *s, *t, *ss, *ref, *mbox;
+	char *s, *t, *ss, *ref, *mbox;
 	int n;
 
 	mustBe(' ');
@@ -914,12 +914,12 @@ listCmd(int8_t *tg, int8_t *cmd)
 	Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 }
 
-static int8_t*
-passCR(int8_t*u, int8_t*p)
+static char*
+passCR(char*u, char*p)
 {
-	static int8_t Ebadch[] = "can't get challenge";
-	static int8_t nchall[64];
-	static int8_t response[64];
+	static char Ebadch[] = "can't get challenge";
+	static char nchall[64];
+	static char response[64];
 	static Chalstate *ch = nil;
 	AuthInfo *ai;
 
@@ -945,11 +945,11 @@ again:
 }
 
 static void
-loginCmd(int8_t *tg, int8_t *cmd)
+loginCmd(char *tg, char *cmd)
 {
-	int8_t *s, *t;
+	char *s, *t;
 	AuthInfo *ai;
-	int8_t*r;
+	char*r;
 	mustBe(' ');
 	s = astring();	/* uid */
 	mustBe(' ');
@@ -981,7 +981,7 @@ loginCmd(int8_t *tg, int8_t *cmd)
  * logout or x-exit, which doesn't expunge the mailbox
  */
 static void
-logoutCmd(int8_t *tg, int8_t *cmd)
+logoutCmd(char *tg, char *cmd)
 {
 	crnl();
 
@@ -996,7 +996,7 @@ exits("rob6");
 }
 
 static void
-namespaceCmd(int8_t *tg, int8_t *cmd)
+namespaceCmd(char *tg, char *cmd)
 {
 	crnl();
 	check();
@@ -1010,7 +1010,7 @@ namespaceCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-noopCmd(int8_t *tg, int8_t *cmd)
+noopCmd(char *tg, char *cmd)
 {
 	crnl();
 	check();
@@ -1024,9 +1024,9 @@ noopCmd(int8_t *tg, int8_t *cmd)
  * and copy & truncate inbox
  */
 static void
-renameCmd(int8_t *tg, int8_t *cmd)
+renameCmd(char *tg, char *cmd)
 {
-	int8_t *from, *to;
+	char *from, *to;
 	int ok;
 
 	mustBe(' ');
@@ -1062,17 +1062,17 @@ renameCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-searchCmd(int8_t *tg, int8_t *cmd)
+searchCmd(char *tg, char *cmd)
 {
 	searchUCmd(tg, cmd, 0);
 }
 
 static void
-searchUCmd(int8_t *tg, int8_t *cmd, int uids)
+searchUCmd(char *tg, char *cmd, int uids)
 {
 	Search rock;
 	Msg *m;
-	int8_t *uid;
+	char *uid;
 	uint32_t id;
 
 	mustBe(' ');
@@ -1112,10 +1112,10 @@ searchUCmd(int8_t *tg, int8_t *cmd, int uids)
 }
 
 static void
-selectCmd(int8_t *tg, int8_t *cmd)
+selectCmd(char *tg, char *cmd)
 {
 	Msg *m;
-	int8_t *s, *mbox;
+	char *s, *mbox;
 
 	mustBe(' ');
 	mbox = astring();
@@ -1172,11 +1172,11 @@ static NamedInt	statusItems[] =
 };
 
 static void
-statusCmd(int8_t *tg, int8_t *cmd)
+statusCmd(char *tg, char *cmd)
 {
 	Box *box;
 	Msg *m;
-	int8_t *s, *mbox;
+	char *s, *mbox;
 	uint32_t v;
 	int si, i;
 
@@ -1253,18 +1253,18 @@ statusCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-storeCmd(int8_t *tg, int8_t *cmd)
+storeCmd(char *tg, char *cmd)
 {
 	storeUCmd(tg, cmd, 0);
 }
 
 static void
-storeUCmd(int8_t *tg, int8_t *cmd, int uids)
+storeUCmd(char *tg, char *cmd, int uids)
 {
 	Store *st;
 	MsgSet *ms;
 	MbLock *ml;
-	int8_t *uid;
+	char *uid;
 	uint32_t max;
 	int ok;
 
@@ -1293,10 +1293,10 @@ storeUCmd(int8_t *tg, int8_t *cmd, int uids)
  * and can't be unsubscribed
  */
 static void
-subscribeCmd(int8_t *tg, int8_t *cmd)
+subscribeCmd(char *tg, char *cmd)
 {
 	Box *box;
-	int8_t *mbox;
+	char *mbox;
 	int ok;
 
 	mustBe(' ');
@@ -1319,9 +1319,9 @@ subscribeCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-uidCmd(int8_t *tg, int8_t *cmd)
+uidCmd(char *tg, char *cmd)
 {
-	int8_t *sub;
+	char *sub;
 
 	mustBe(' ');
 	sub = atom();
@@ -1340,9 +1340,9 @@ uidCmd(int8_t *tg, int8_t *cmd)
 }
 
 static void
-unsubscribeCmd(int8_t *tg, int8_t *cmd)
+unsubscribeCmd(char *tg, char *cmd)
 {
-	int8_t *mbox;
+	char *mbox;
 
 	mustBe(' ');
 	mbox = astring();
@@ -1421,7 +1421,7 @@ static int
 flags(void)
 {
 	int ff, flags;
-	int8_t *s;
+	char *s;
 	int c;
 
 	flags = 0;
@@ -1458,7 +1458,7 @@ static Store*
 storeWhat(void)
 {
 	int f;
-	int8_t *s;
+	char *s;
 	int c, w;
 
 	c = peekc();
@@ -1486,12 +1486,12 @@ storeWhat(void)
  * fetchWhat	: "ALL" | "FULL" | "FAST" | fetchAtt | '(' fetchAtts ')'
  * fetchAtts	: fetchAtt | fetchAtts ' ' fetchAtt
  */
-static int8_t *fetchAtom	= "(){}%*\"\\[]";
+static char *fetchAtom	= "(){}%*\"\\[]";
 static Fetch*
 fetchWhat(void)
 {
 	Fetch *f;
-	int8_t *s;
+	char *s;
 
 	if(peekc() == '('){
 		getc();
@@ -1537,7 +1537,7 @@ fetchWhat(void)
  *		| sectPart '.' nz-number
  */
 static Fetch*
-fetchAtt(int8_t *s, Fetch *f)
+fetchAtt(char *s, Fetch *f)
 {
 	NList *sect;
 	int c;
@@ -1615,7 +1615,7 @@ static void
 sectText(Fetch *f, int mimeOk)
 {
 	SList *h;
-	int8_t *s;
+	char *s;
 
 	s = atomString(fetchAtom, "");
 	if(cistrcmp(s, "header") == 0){
@@ -1751,7 +1751,7 @@ searchKey(int first)
 {
 	Search *sr, rock;
 	Tm tm;
-	int8_t *a;
+	char *a;
 	int i, c;
 
 	sr = binalloc(&parseBin, sizeof(Search), 1);
@@ -1898,7 +1898,7 @@ uidNo(void)
  * 7 bit, non-ctl chars, no (){%*"\
  * NIL is special case for nstring or parenlist
  */
-static int8_t *
+static char *
 atom(void)
 {
 	return atomString(atomStop, "");
@@ -1907,7 +1907,7 @@ atom(void)
 /*
  * like an atom, but no +
  */
-static int8_t *
+static char *
 tag(void)
 {
 	return atomString("+(){%*\"\\", "");
@@ -1916,7 +1916,7 @@ tag(void)
 /*
  * string or atom allowing %*
  */
-static int8_t *
+static char *
 listmbox(void)
 {
 	int c;
@@ -1932,7 +1932,7 @@ listmbox(void)
 /*
  * string or atom
  */
-static int8_t *
+static char *
 astring(void)
 {
 	int c;
@@ -1948,10 +1948,10 @@ astring(void)
 /*
  * 7 bit, non-ctl chars, none from exception list
  */
-static int8_t *
-atomString(int8_t *disallowed, int8_t *initial)
+static char *
+atomString(char *disallowed, char *initial)
 {
-	int8_t *s;
+	char *s;
 	int c, ns, as;
 
 	ns = strlen(initial);
@@ -1984,10 +1984,10 @@ atomString(int8_t *disallowed, int8_t *initial)
  * quoted: '"' chars* '"'
  * chars:	1-128 except \r and \n
  */
-static int8_t *
+static char *
 quoted(void)
 {
-	int8_t *s;
+	char *s;
 	int c, ns, as;
 
 	mustBe('"');
@@ -2037,10 +2037,10 @@ litlen(void)
 /*
  * literal: litlen data<0:litlen>
  */
-static int8_t *
+static char *
 literal(void)
 {
-	int8_t *s;
+	char *s;
 	uint32_t v;
 
 	v = litlen();

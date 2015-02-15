@@ -61,7 +61,7 @@ private_st_pdf_article();
 #define PDFMARK_TRUECTM 16	/* pass the true CTM to the procedure, */
 				/* not the one transformed to reflect the default user space */
 typedef struct pdfmark_name_s {
-    const int8_t *mname;
+    const char *mname;
     pdfmark_proc((*proc));
     byte options;
 } pdfmark_name;
@@ -70,10 +70,10 @@ typedef struct pdfmark_name_s {
 
 /* Compare a C string and a gs_param_string. */
 bool
-pdf_key_eq(const gs_param_string * pcs, const int8_t *str)
+pdf_key_eq(const gs_param_string * pcs, const char *str)
 {
     return (strlen(str) == pcs->size &&
-	    !strncmp(str, (const int8_t *)pcs->data, pcs->size));
+	    !strncmp(str, (const char *)pcs->data, pcs->size));
 }
 
 /* Scan an integer out of a parameter string. */
@@ -82,7 +82,7 @@ pdfmark_scan_int(const gs_param_string * pstr, int *pvalue)
 {
 #define MAX_INT_STR 20
     uint size = pstr->size;
-    int8_t str[MAX_INT_STR + 1];
+    char str[MAX_INT_STR + 1];
 
     if (size > MAX_INT_STR)
 	return_error(gs_error_limitcheck);
@@ -97,7 +97,7 @@ pdfmark_scan_int(const gs_param_string * pstr, int *pvalue)
 
 /* Find a key in a dictionary. */
 private bool
-pdfmark_find_key(const int8_t *key, const gs_param_string * pairs,
+pdfmark_find_key(const char *key, const gs_param_string * pairs,
                  uint count,
 		 gs_param_string * pstr)
 {
@@ -387,7 +387,7 @@ setup_pdfmark_stream_compression(gx_device_psdf *pdev0,
 
 typedef struct ao_params_s {
     gx_device_pdf *pdev;	/* for pdfmark_make_dest */
-    const int8_t *subtype;	/* default Subtype in top-level dictionary */
+    const char *subtype;	/* default Subtype in top-level dictionary */
     int32_t src_pg;		/* set to SrcPg - 1 if any */
 } ao_params_t;
 private int
@@ -1965,7 +1965,7 @@ pdfmark_process(gx_device_pdf * pdev, const gs_param_string_array * pma)
     int code = 0;
 
     if (size < 2 ||
-	sscanf((const int8_t *)pts[-1].data, "[%g %g %g %g %g %g]",
+	sscanf((const char *)pts[-1].data, "[%g %g %g %g %g %g]",
 	       &ctm.xx, &ctm.xy, &ctm.yx, &ctm.yy, &ctm.tx, &ctm.ty) != 6
 	)
 	return_error(gs_error_rangecheck);

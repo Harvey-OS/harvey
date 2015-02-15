@@ -134,7 +134,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	uint32_t pclk;
-	int8_t *p;
+	char *p;
 
 	/*
 	 * Part comes in -135, -110 and -80MHz speed-grades.
@@ -232,7 +232,7 @@ dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 	uint8_t rs2, m, n;
-	int8_t buf[32];
+	char buf[32];
 	uint32_t f;
 
 	rs2 = setrs2(vga, ctlr);

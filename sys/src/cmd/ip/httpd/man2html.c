@@ -17,13 +17,13 @@ static	Hio		*hout;
 static	Hio		houtb;
 static	HConnect	*connect;
 
-void	doconvert(int8_t*, int);
+void	doconvert(char*, int);
 
 void
-error(int8_t *title, int8_t *fmt, ...)
+error(char *title, char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[1024], *out;
+	char buf[1024], *out;
 
 	va_start(arg, fmt);
 	out = vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -47,16 +47,16 @@ typedef struct Hit	Hit;
 struct Hit 
 {
 	Hit *next;
-	int8_t *file;
+	char *file;
 };
 
 void
-lookup(int8_t *object, int section, Hit **list)
+lookup(char *object, int section, Hit **list)
 {
 	int fd;
-	int8_t *p, *f;
+	char *p, *f;
 	Biobuf b;
-	int8_t file[256];
+	char file[256];
 	Hit *h;
 
 	while(*list != nil)
@@ -126,7 +126,7 @@ manindex(int sect, int vermaj)
 }
 
 void
-man(int8_t *o, int sect, int vermaj)
+man(char *o, int sect, int vermaj)
 {
 	int i;
 	Hit *list;
@@ -171,7 +171,7 @@ man(int8_t *o, int sect, int vermaj)
 }
 
 void
-strlwr(int8_t *p)
+strlwr(char *p)
 {
 	for(; *p; p++)
 		if('A' <= *p && *p <= 'Z')
@@ -179,7 +179,7 @@ strlwr(int8_t *p)
 }
 
 void
-redirectto(int8_t *uri)
+redirectto(char *uri)
 {
 	if(connect){
 		hmoved(connect, uri);
@@ -189,12 +189,12 @@ redirectto(int8_t *uri)
 }
 
 void
-searchfor(int8_t *search)
+searchfor(char *search)
 {
 	int i, j, n, fd;
-	int8_t *p, *sp;
+	char *p, *sp;
 	Biobufhdr *b;
-	int8_t *arg[32];
+	char *arg[32];
 
 	hprint(hout, "<head><title>plan 9 search for %H</title></head>\n", search);
 	hprint(hout, "<body>\n");
@@ -272,10 +272,10 @@ searchfor(int8_t *search)
  *  find man pages mentioning the search string
  */
 void
-dosearch(int vermaj, int8_t *search)
+dosearch(int vermaj, char *search)
 {
 	int sect;
-	int8_t *p;
+	char *p;
 
 	if(strncmp(search, "man=", 4) == 0){
 		sect = 0;
@@ -314,12 +314,12 @@ dosearch(int vermaj, int8_t *search)
  *  convert a man page to html and output
  */
 void
-doconvert(int8_t *uri, int vermaj)
+doconvert(char *uri, int vermaj)
 {
-	int8_t *p;
-	int8_t file[256];
-	int8_t title[256];
-	int8_t err[ERRMAX];
+	char *p;
+	char file[256];
+	char title[256];
+	char err[ERRMAX];
 	int pfd[2];
 	Dir *d;
 	Waitmsg *w;
@@ -419,7 +419,7 @@ doconvert(int8_t *uri, int vermaj)
 }
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	fmtinstall('H', httpfmt);
 	fmtinstall('U', hurlfmt);

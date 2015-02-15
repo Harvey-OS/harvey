@@ -47,7 +47,7 @@
 #define ROMFS_CBUFSIZE ((int)((ROMFS_BLOCKSIZE) * 1.001) + 12)
 
 typedef struct romfs_inode_s {
-    int8_t *name;
+    char *name;
     struct romfs_inode_s *next, *child;
     unsigned int blocks;
     unsigned long length;
@@ -122,7 +122,7 @@ inode_write(FILE *out, romfs_inode *node)
 
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
     int i, ret, block;
     romfs_inode *node;

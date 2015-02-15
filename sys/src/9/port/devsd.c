@@ -22,9 +22,9 @@
 extern Dev sddevtab;
 extern SDifc* sdifc[];
 
-static int8_t Echange[] = "media or partition has changed";
+static char Echange[] = "media or partition has changed";
 
-static int8_t devletters[] = "0123456789"
+static char devletters[] = "0123456789"
 	"abcdefghijklmnopqrstuvwxyz"
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -80,7 +80,7 @@ enum {
 
 
 static void
-sdaddpart(SDunit* unit, int8_t* name, uint64_t start, uint64_t end)
+sdaddpart(SDunit* unit, char* name, uint64_t start, uint64_t end)
 {
 	SDpart *pp;
 	int i, partno;
@@ -143,7 +143,7 @@ sdaddpart(SDunit* unit, int8_t* name, uint64_t start, uint64_t end)
 }
 
 static void
-sddelpart(SDunit* unit, int8_t* name)
+sddelpart(SDunit* unit, char* name)
 {
 	int i;
 	SDpart *pp;
@@ -185,7 +185,7 @@ sdinitpart(SDunit* unit)
 {
 	int nf;
 	uint64_t start, end;
-	int8_t *f[4], *p, *q, buf[10];
+	char *f[4], *p, *q, buf[10];
 
 	if(unit->sectors > 0){
 		unit->sectors = unit->secsize = 0;
@@ -241,7 +241,7 @@ sdinitpart(SDunit* unit)
 static int
 sdindex(int idno)
 {
-	int8_t *p;
+	char *p;
 
 	p = strchr(devletters, idno);
 	if(p == nil)
@@ -269,7 +269,7 @@ static SDunit*
 sdgetunit(SDev* sdev, int subno)
 {
 	SDunit *unit;
-	int8_t buf[32];
+	char buf[32];
 
 	/*
 	 * Associate a unit with a given device and sub-unit
@@ -457,7 +457,7 @@ sd1gen(Chan* c, int i, Dir* dp)
 }
 
 static int
-sdgen(Chan* c, int8_t*, Dirtab*, int, int s, Dir* dp)
+sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 {
 	Qid q;
 	int64_t l;
@@ -593,10 +593,10 @@ sdgen(Chan* c, int8_t*, Dirtab*, int, int s, Dir* dp)
 }
 
 static Chan*
-sdattach(int8_t* spec)
+sdattach(char* spec)
 {
 	Chan *c;
-	int8_t *p;
+	char *p;
 	SDev *sdev;
 	int idno, subno;
 
@@ -628,7 +628,7 @@ sdattach(int8_t* spec)
 }
 
 static Walkqid*
-sdwalk(Chan* c, Chan* nc, int8_t** name, int nname)
+sdwalk(Chan* c, Chan* nc, char** name, int nname)
 {
 	return devwalk(c, nc, name, nname, nil, 0, sdgen);
 }
@@ -714,7 +714,7 @@ sdclose(Chan* c)
 }
 
 static int32_t
-sdbio(Chan* c, int write, int8_t* a, int32_t len, int64_t off)
+sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 {
 	int nchange;
 	uint8_t *b;
@@ -1069,7 +1069,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 static int32_t
 sdread(Chan *c, void *a, int32_t n, int64_t off)
 {
-	int8_t *p, *e, *buf;
+	char *p, *e, *buf;
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
@@ -1109,7 +1109,7 @@ sdread(Chan *c, void *a, int32_t n, int64_t off)
 		m = 16*1024;	/* room for register dumps */
 		p = malloc(m);
 		l = snprint(p, m, "inquiry %.48s\n",
-			(int8_t*)unit->inquiry+8);
+			(char*)unit->inquiry+8);
 		qlock(&unit->ctl);
 		/*
 		 * If there's a device specific routine it must
@@ -1179,7 +1179,7 @@ static void legacytopctl(Cmdbuf*);
 static int32_t
 sdwrite(Chan* c, void* a, int32_t n, int64_t off)
 {
-	int8_t *f0;
+	char *f0;
 	int i;
 	Cmdbuf *cb;
 	SDifc *ifc;
@@ -1389,7 +1389,7 @@ sdwstat(Chan* c, uint8_t* dp, int32_t n)
 		error(Eperm);
 
 	d = smalloc(sizeof(Dir)+n);
-	n = convM2D(dp, n, &d[0], (int8_t*)&d[1]);
+	n = convM2D(dp, n, &d[0], (char*)&d[1]);
 	if(n == 0)
 		error(Eshortstat);
 	if(!emptystr(d[0].uid))
@@ -1405,10 +1405,10 @@ sdwstat(Chan* c, uint8_t* dp, int32_t n)
 }
 
 static int
-configure(int8_t* spec, DevConf* cf)
+configure(char* spec, DevConf* cf)
 {
 	SDev *s, *sdev;
-	int8_t *p;
+	char *p;
 	int i;
 
 	if(sdindex(*spec) < 0)
@@ -1436,7 +1436,7 @@ configure(int8_t* spec, DevConf* cf)
 }
 
 static int
-unconfigure(int8_t* spec)
+unconfigure(char* spec)
 {
 	int i;
 	SDev *sdev;
@@ -1476,7 +1476,7 @@ unconfigure(int8_t* spec)
 }
 
 static int
-sdconfig(int on, int8_t* spec, DevConf* cf)
+sdconfig(int on, char* spec, DevConf* cf)
 {
 	if(on)
 		return configure(spec, cf);
@@ -1512,12 +1512,12 @@ Dev sddevtab = {
 typedef struct Confdata Confdata;
 struct Confdata {
 	int	on;
-	int8_t*	spec;
+	char*	spec;
 	DevConf	cf;
 };
 
 static void
-parseswitch(Confdata* cd, int8_t* option)
+parseswitch(Confdata* cd, char* option)
 {
 	if(!strcmp("on", option))
 		cd->on = 1;
@@ -1528,7 +1528,7 @@ parseswitch(Confdata* cd, int8_t* option)
 }
 
 static void
-parsespec(Confdata* cd, int8_t* option)
+parsespec(Confdata* cd, char* option)
 {
 	if(strlen(option) > 1)
 		error(Ebadarg);
@@ -1553,9 +1553,9 @@ getnewport(DevConf* dc)
 }
 
 static void
-parseport(Confdata* cd, int8_t* option)
+parseport(Confdata* cd, char* option)
 {
-	int8_t *e;
+	char *e;
 	Devport *p;
 
 	if(cd->cf.nports == 0 || cd->cf.ports[cd->cf.nports-1].port != (ulong)-1)
@@ -1568,9 +1568,9 @@ parseport(Confdata* cd, int8_t* option)
 }
 
 static void
-parsesize(Confdata* cd, int8_t* option)
+parsesize(Confdata* cd, char* option)
 {
-	int8_t *e;
+	char *e;
 	Devport *p;
 
 	if(cd->cf.nports == 0 || cd->cf.ports[cd->cf.nports-1].size != -1)
@@ -1583,9 +1583,9 @@ parsesize(Confdata* cd, int8_t* option)
 }
 
 static void
-parseirq(Confdata* cd, int8_t* option)
+parseirq(Confdata* cd, char* option)
 {
-	int8_t *e;
+	char *e;
 
 	cd->cf.intnum = strtoul(option, &e, 0);
 	if(e == nil || *e != '\0')
@@ -1593,14 +1593,14 @@ parseirq(Confdata* cd, int8_t* option)
 }
 
 static void
-parsetype(Confdata* cd, int8_t* option)
+parsetype(Confdata* cd, char* option)
 {
 	cd->cf.type = option;
 }
 
 static struct {
-	int8_t	*name;
-	void	(*parse)(Confdata*, int8_t*);
+	char	*name;
+	void	(*parse)(Confdata*, char*);
 } options[] = {
 	"switch",	parseswitch,
 	"spec",		parsespec,
@@ -1613,7 +1613,7 @@ static struct {
 static void
 legacytopctl(Cmdbuf *cb)
 {
-	int8_t *opt;
+	char *opt;
 	int i, j;
 	Confdata cd;
 

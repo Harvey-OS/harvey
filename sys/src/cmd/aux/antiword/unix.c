@@ -25,7 +25,7 @@
  * werr - write an error message and exit if needed
  */
 void
-werr(int iFatal, const int8_t *szFormat, ...)
+werr(int iFatal, const char *szFormat, ...)
 {
 	va_list tArg;
 

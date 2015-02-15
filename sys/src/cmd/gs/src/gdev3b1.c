@@ -155,7 +155,7 @@ att3b1_open(gx_device *dev)
     struct uwdata uw;
 
 #ifdef ATT3B1_PERF
-    int8_t *getenv(const int8_t *);
+    char *getenv(const char *);
 #endif
 
     if (att3b1dev->fd >= 0) {
@@ -164,7 +164,7 @@ att3b1_open(gx_device *dev)
     }
 
     if (att3b1dev->screen != NULL) {
-	gs_free(dev->memory, (int8_t *)att3b1dev->screen,
+	gs_free(dev->memory, (char *)att3b1dev->screen,
 		att3b1dev->screen_size, 1, "att3b1_open");
 	att3b1dev->screen = 0;
 	att3b1dev->screen_size = 0;
@@ -215,7 +215,7 @@ att3b1_close(gx_device *dev)
     }
 
     if (att3b1dev->screen != NULL) {
-	gs_free(dev->memory, (int8_t *)att3b1dev->screen,
+	gs_free(dev->memory, (char *)att3b1dev->screen,
 		att3b1dev->screen_size, 1, "att3b1_close");
 	att3b1dev->screen = 0;
 	att3b1dev->screen_size = 0;
@@ -403,7 +403,7 @@ att3b1_copy_mono(gx_device *dev, const uint8_t *data,
 
 static int getKeyboard(gx_device *);
 
-const int8_t *help_msg[] = {
+const char *help_msg[] = {
     "h, j, k, l, UP, DOWN, LEFT, RIGHT  move the page (0.25\" h, 0.5\" v)",
     "H, J, K, L, BEG, END               move to far edge of the page",
     "^U, ^D, ROLL UP, ROLL DOWN	        scroll up or down (1/2 screen height)",
@@ -719,7 +719,7 @@ att3b1_output_page(gx_device *dev, int num_copies, int flush)
 static int
 get_char(gx_device *dev)
 {
-    int8_t ch;
+    char ch;
     int count;
 
     count = read(att3b1dev->fd, &ch, 1);
@@ -734,7 +734,7 @@ get_char(gx_device *dev)
 static int
 getKeyboard(gx_device *dev)
 {
-    int8_t ch;
+    char ch;
 
     ch = get_char(dev);
 

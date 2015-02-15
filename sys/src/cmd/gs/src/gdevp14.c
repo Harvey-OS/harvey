@@ -1960,7 +1960,7 @@ c_pdf14trans_equal(const gs_composite_t	* pct0,	const gs_composite_t * pct1)
 }
 
 #ifdef DEBUG
-static int8_t * pdf14_opcode_names[] = PDF14_OPCODE_NAMES;
+static char * pdf14_opcode_names[] = PDF14_OPCODE_NAMES;
 #endif
 
 #define	put_value(dp, value)\

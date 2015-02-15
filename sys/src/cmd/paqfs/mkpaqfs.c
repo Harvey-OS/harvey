@@ -19,12 +19,12 @@ enum {
 	OffsetSize = 4,	/* size of block offset */
 };
 
-void paqfs(int8_t *root, int8_t *label);
-PaqDir *paqFile(int8_t *name, Dir *dir);
-PaqDir *paqDir(int8_t *name, Dir *dir);
+void paqfs(char *root, char *label);
+PaqDir *paqFile(char *name, Dir *dir);
+PaqDir *paqDir(char *name, Dir *dir);
 PaqDir *paqDirAlloc(Dir *d, uint32_t offset);
 void paqDirFree(PaqDir *pd);
-void writeHeader(int8_t *label);
+void writeHeader(char *label);
 void writeTrailer(uint32_t root);
 uint32_t writeBlock(uint8_t *buf, int type);
 void usage(void);
@@ -36,9 +36,9 @@ void putBlock(uint8_t *p, PaqBlock *h);
 void putTrailer(uint8_t *p, PaqTrailer *t);
 void putl(uint8_t *p, uint32_t v);
 void puts(uint8_t *p, int x);
-uint8_t *putstr(uint8_t *p, int8_t *s);
+uint8_t *putstr(uint8_t *p, char *s);
 void *emallocz(int size);
-void warn(int8_t *fmt, ...);
+void warn(char *fmt, ...);
 
 int uflag=0;			/* uncompressed */
 int32_t blocksize = 4*1024;
@@ -119,7 +119,7 @@ usage(void)
 }
 
 void
-paqfs(int8_t *root, int8_t *label)
+paqfs(char *root, char *label)
 {
 	Dir *dir;
 	PaqDir *pd;
@@ -144,7 +144,7 @@ paqfs(int8_t *root, int8_t *label)
 
 
 PaqDir *
-paqFile(int8_t *name, Dir *dir)
+paqFile(char *name, Dir *dir)
 {
 	int fd, n, nn, nb;
 	int64_t tot;
@@ -204,13 +204,13 @@ Err:
 }
 
 PaqDir *
-paqDir(int8_t *name, Dir *dir)
+paqDir(char *name, Dir *dir)
 {
 	Dir *dirs, *p;
 	PaqDir *pd;
 	int i, n, nb, fd, ndir;
 	uint8_t *block, *pointer;
-	int8_t *nname;
+	char *nname;
 	uint32_t offset;
 
 	fd = open(name, OREAD);
@@ -330,7 +330,7 @@ paqDirFree(PaqDir *pd)
 
 
 void
-writeHeader(int8_t *label)
+writeHeader(char *label)
 {
 	PaqHeader hdr;
 	uint8_t buf[HeaderSize];
@@ -487,7 +487,7 @@ puts(uint8_t *p, int v)
 }
 
 uint8_t *
-putstr(uint8_t *p, int8_t *s)
+putstr(uint8_t *p, char *s)
 {
 	int n = strlen(s);
 	puts(p, n+2);
@@ -509,9 +509,9 @@ emallocz(int size)
 }
 
 void
-warn(int8_t *fmt, ...)
+warn(char *fmt, ...)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);

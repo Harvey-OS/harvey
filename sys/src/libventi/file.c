@@ -27,10 +27,10 @@
 
 #define MaxBlock (1UL<<31)
 
-static int8_t ENotDir[] = "walk in non-directory";
-static int8_t ETooBig[] = "file too big";
+static char ENotDir[] = "walk in non-directory";
+static char ETooBig[] = "file too big";
 /* static char EBadAddr[] = "bad address"; */
-static int8_t ELabelMismatch[] = "label mismatch";
+static char ELabelMismatch[] = "label mismatch";
 
 static int	sizetodepth(uint64_t s, int psize, int dsize);
 static VtBlock 	*fileload(VtFile *r, VtEntry *e);
@@ -836,7 +836,7 @@ vtfileclose(VtFile *r)
 static VtBlock*
 fileloadblock(VtFile *r, int mode)
 {
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 	uint32_t addr;
 	VtBlock *b;
 
@@ -1096,7 +1096,7 @@ vtfilewrite(VtFile *f, void *data, int32_t count, int64_t offset)
 	tot = 0;
 	m = 0;
 	while(tot < count){
-		m = filewrite1(f, (int8_t*)data+tot, count-tot, offset+tot);
+		m = filewrite1(f, (char*)data+tot, count-tot, offset+tot);
 		if(m <= 0)
 			break;
 		tot += m;

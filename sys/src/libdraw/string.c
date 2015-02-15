@@ -17,27 +17,27 @@ enum
 };
 
 Point
-string(Image *dst, Point pt, Image *src, Point sp, Font *f, int8_t *s)
+string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s)
 {
 	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, nil, ZP, SoverD);
 }
 
 Point
-stringop(Image *dst, Point pt, Image *src, Point sp, Font *f, int8_t *s,
+stringop(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s,
 	 Drawop op)
 {
 	return _string(dst, pt, src, sp, f, s, nil, 1<<24, dst->clipr, nil, ZP, op);
 }
 
 Point
-stringn(Image *dst, Point pt, Image *src, Point sp, Font *f, int8_t *s,
+stringn(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s,
 	int len)
 {
 	return _string(dst, pt, src, sp, f, s, nil, len, dst->clipr, nil, ZP, SoverD);
 }
 
 Point
-stringnop(Image *dst, Point pt, Image *src, Point sp, Font *f, int8_t *s,
+stringnop(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s,
 	  int len, Drawop op)
 {
 	return _string(dst, pt, src, sp, f, s, nil, len, dst->clipr, nil, ZP, op);
@@ -68,15 +68,15 @@ runestringnop(Image *dst, Point pt, Image *src, Point sp, Font *f, Rune *r, int 
 }
 
 Point
-_string(Image *dst, Point pt, Image *src, Point sp, Font *f, int8_t *s,
+_string(Image *dst, Point pt, Image *src, Point sp, Font *f, char *s,
 	Rune *r, int len, Rectangle clipr, Image *bg, Point bgp,
 	Drawop op)
 {
 	int m, n, wid, max;
 	uint16_t cbuf[Max], *c, *ec;
 	uint8_t *b;
-	int8_t *subfontname;
-	int8_t **sptr;
+	char *subfontname;
+	char **sptr;
 	Rune **rptr;
 	Font *def;
 	Subfont *sf;

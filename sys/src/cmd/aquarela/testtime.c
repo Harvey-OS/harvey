@@ -10,7 +10,7 @@
 #include "headers.h"
 
 void
-threadmain(int argc, int8_t **argv)
+threadmain(int argc, char **argv)
 {
 	uint32_t now, now2;
 	int64_t nttime;

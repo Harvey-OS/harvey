@@ -17,7 +17,7 @@
  * Regular expression for matching.
  */
 
-int8_t *ignore[] = 
+char *ignore[] = 
 {
 	/* HTML that isn't A, IMG, or FONT */
 	/* Must have a space somewhere to avoid catching <email@address> */
@@ -64,7 +64,7 @@ int8_t *ignore[] =
 	"\n",
 };
 
-int8_t *keywords[] =
+char *keywords[] =
 {
 	"([a-zA-Z'`$!¡-￿]|[0-9]([.,][0-9])*)+",
 };
@@ -72,7 +72,7 @@ int8_t *keywords[] =
 int debug;
 
 Dreprog*
-dregcomp(int8_t *buf)
+dregcomp(char *buf)
 {
 	Reprog *r;
 	Dreprog *d;
@@ -90,8 +90,8 @@ dregcomp(int8_t *buf)
 	return d;
 }
 
-int8_t*
-strcpycase(int8_t *d, int8_t *s)
+char*
+strcpycase(char *d, char *s)
 {
 	int cc, esc;
 
@@ -119,7 +119,7 @@ strcpycase(int8_t *d, int8_t *s)
 }
 
 void
-regerror(int8_t *msg)
+regerror(char *msg)
 {
 	sysfatal("regerror: %s", msg);
 }
@@ -128,7 +128,7 @@ void
 buildre(Dreprog *re[3])
 {
 	int i;
-	static int8_t buf[16384], *s;
+	static char buf[16384], *s;
 
 	re[0] = dregcomp("^From ");
 	

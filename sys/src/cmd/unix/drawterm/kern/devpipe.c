@@ -62,7 +62,7 @@ pipeinit(void)
  *  create a pipe, no streams are created until an open
  */
 static Chan*
-pipeattach(int8_t *spec)
+pipeattach(char *spec)
 {
 	Pipe *p;
 	Chan *c;
@@ -96,7 +96,7 @@ pipeattach(int8_t *spec)
 }
 
 static int
-pipegen(Chan *c, int8_t *name, Dirtab *tab, int ntab, int i, Dir *dp)
+pipegen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid q;
 	int len;
@@ -132,7 +132,7 @@ pipegen(Chan *c, int8_t *name, Dirtab *tab, int ntab, int i, Dir *dp)
 
 
 static Walkqid*
-pipewalk(Chan *c, Chan *nc, int8_t **name, int nname)
+pipewalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	Walkqid *wq;
 	Pipe *p;

@@ -12,7 +12,7 @@
 #include "cec.h"
 
 static	int	fd	= -1;
-extern	int8_t	*svc;
+extern	char	*svc;
 
 void
 rawon(void)
@@ -37,7 +37,7 @@ enum {
 	Perch	= 3,
 };
 
-int8_t	line[Perch*Perline+1];
+char	line[Perch*Perline+1];
 
 static void
 format(uint8_t *buf, int n, int t)

@@ -25,7 +25,7 @@ smblogprintattr(int cmd, uint16_t attr)
 }
 
 static SmbFile *
-openfile(SmbSession *s, SmbTree *t, int8_t *path, uint16_t mode,
+openfile(SmbSession *s, SmbTree *t, char *path, uint16_t mode,
 	 uint16_t attr,
 	 uint16_t ofun,
 	 uint32_t createoptions,
@@ -39,7 +39,7 @@ openfile(SmbSession *s, SmbTree *t, int8_t *path, uint16_t mode,
 	uint16_t action;
 	SmbFile *f = nil;
 	SmbSharedFile *sf = nil;
-	int8_t *fullpath = nil;
+	char *fullpath = nil;
 	int diropen = 0;
 
 //smblogprint(-1, "%s A %r", path);
@@ -177,7 +177,7 @@ smbcomopenandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 	uint32_t createtime;	
 	uint16_t ofun;
 	uint32_t createsize, timeout;
-	int8_t *path = nil;
+	char *path = nil;
 	uint32_t andxoffsetfixupoffset;
 	SmbProcessResult pr;
 	uint16_t action;
@@ -325,7 +325,7 @@ SmbProcessResult
 smbcomopen(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	uint8_t fmt;
-	int8_t *path;
+	char *path;
 	uint16_t mode, attr;
 	SmbTree *t;
 	uint16_t fid;
@@ -389,7 +389,7 @@ smbcomcreate(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	int ofun, attr, mode;
 	int32_t createtime;
-	int8_t *path;
+	char *path;
 	uint8_t fmt;
 	SmbFile *f;
 	SmbTree *t;
@@ -449,7 +449,7 @@ done:
 
 
 typedef struct SmbSblut {
-	int8_t *s;
+	char *s;
 	uint32_t mask;
 } SmbSblut;
 
@@ -535,7 +535,7 @@ smbcomntcreateandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	uint8_t andxcommand;
 	uint16_t andxoffset;
-	int8_t *path = nil;
+	char *path = nil;
 	SmbProcessResult pr;
 	uint32_t namelength;
 	uint32_t flags;

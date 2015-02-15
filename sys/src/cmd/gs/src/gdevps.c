@@ -663,7 +663,7 @@ psw_check_erasepage(gx_device_pswrite *pdev)
 private bool 
 psw_is_separate_pages(gx_device_vector *const vdev)
 {
-    const int8_t *fmt;
+    const char *fmt;
     gs_parsed_file_name_t parsed;
     int code = gx_parse_output_file_name(&parsed, &fmt, vdev->fname, strlen(vdev->fname));
     

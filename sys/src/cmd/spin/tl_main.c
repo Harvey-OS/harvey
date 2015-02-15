@@ -33,9 +33,9 @@ int	tl_clutter = 0;
 int	state_cnt = 0;
 
 unsigned long	All_Mem = 0;
-int8_t	*claim_name;
+char	*claim_name;
 
-static int8_t	uform[4096];
+static char	uform[4096];
 static int	hasuform=0, cnt=0;
 
 extern void cache_stats(void);
@@ -98,7 +98,7 @@ tl_stats(void)
 }
 
 int
-tl_main(int argc, int8_t *argv[])
+tl_main(int argc, char *argv[])
 {	int i;
 	extern int /* verbose, */ xspin;
 
@@ -113,7 +113,7 @@ tl_main(int argc, int8_t *argv[])
 	memset(uform, 0, sizeof(uform));
 	hasuform=0;
 	cnt=0;
-	claim_name = (int8_t *) 0;
+	claim_name = (char *) 0;
 
 	ini_buchi();
 	ini_cache();
@@ -140,7 +140,7 @@ tl_main(int argc, int8_t *argv[])
 		case 'n':	tl_terse = 1;
 				break;
 		case 'c':	argc--; argv++;
-				claim_name = (int8_t *) emalloc(strlen(argv[1])+1);
+				claim_name = (char *) emalloc(strlen(argv[1])+1);
 				strcpy(claim_name, argv[1]);
 				break;
 		default :	printf("spin -f: saw '-%c'\n", argv[1][1]);
@@ -239,7 +239,7 @@ tl_explain(int n)
 }
 
 static void
-tl_non_fatal(int8_t *s1, int8_t *s2)
+tl_non_fatal(char *s1, char *s2)
 {	extern int tl_yychar;
 	int i;
 
@@ -262,13 +262,13 @@ tl_non_fatal(int8_t *s1, int8_t *s2)
 }
 
 void
-tl_yyerror(int8_t *s1)
+tl_yyerror(char *s1)
 {
-	Fatal(s1, (int8_t *) 0);
+	Fatal(s1, (char *) 0);
 }
 
 void
-Fatal(int8_t *s1, int8_t *s2)
+Fatal(char *s1, char *s2)
 {
 	tl_non_fatal(s1, s2);
 	/* tl_stats(); */

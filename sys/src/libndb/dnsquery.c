@@ -13,9 +13,9 @@
 #include <ndb.h>
 #include <ndbhf.h>
 
-static void nstrcpy(int8_t*, int8_t*, int);
-static void mkptrname(int8_t*, int8_t*, int);
-static Ndbtuple *doquery(int, int8_t *dn, int8_t *type);
+static void nstrcpy(char*, char*, int);
+static void mkptrname(char*, char*, int);
+static Ndbtuple *doquery(int, char *dn, char *type);
 
 /*
  *  search for a tuple that has the given 'attr=val' and also 'rattr=x'.
@@ -24,10 +24,10 @@ static Ndbtuple *doquery(int, int8_t *dn, int8_t *type);
  *  return 0 if not found.
  */
 Ndbtuple*
-dnsquery(int8_t *net, int8_t *val, int8_t *type)
+dnsquery(char *net, char *val, char *type)
 {
-	int8_t rip[128];
-	int8_t *p;
+	char rip[128];
+	char *p;
 	Ndbtuple *t;
 	int fd;
 
@@ -84,10 +84,10 @@ dnsquery(int8_t *net, int8_t *val, int8_t *type)
  *  convert address into a reverse lookup address
  */
 static void
-mkptrname(int8_t *ip, int8_t *rip, int rlen)
+mkptrname(char *ip, char *rip, int rlen)
 {
-	int8_t buf[128];
-	int8_t *p, *np;
+	char buf[128];
+	char *p, *np;
 	int len;
 
 	if(cistrstr(ip, "in-addr.arpa") || cistrstr(ip, "ip6.arpa")){
@@ -116,16 +116,16 @@ mkptrname(int8_t *ip, int8_t *rip, int rlen)
 }
 
 static void
-nstrcpy(int8_t *to, int8_t *from, int len)
+nstrcpy(char *to, char *from, int len)
 {
 	strncpy(to, from, len);
 	to[len-1] = 0;
 }
 
 static Ndbtuple*
-doquery(int fd, int8_t *dn, int8_t *type)
+doquery(int fd, char *dn, char *type)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	int n;
 	Ndbtuple *t, *first, *last;
 

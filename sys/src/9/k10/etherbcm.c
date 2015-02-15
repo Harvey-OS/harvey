@@ -220,7 +220,7 @@ typedef struct Ctlrtype Ctlrtype;
 struct Ctlrtype {
 	int	mtu;
 	int	flag;
-	int8_t	*name;
+	char	*name;
 };
 
 static Ctlrtype cttab[Nctlrtype] = {
@@ -239,7 +239,7 @@ static Ctlrtype cttab[Nctlrtype] = {
 static Ctlr *bcmhead;
 static int debug=1;
 
-static int8_t*
+static char*
 cname(Ctlr *c)
 {
 	return cttab[c->type].name;
@@ -248,7 +248,7 @@ cname(Ctlr *c)
 static int32_t
 bcmifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 {
-	int8_t *s, *p, *e;
+	char *s, *p, *e;
 	Ctlr *c;
 
 	c = edev->ctlr;

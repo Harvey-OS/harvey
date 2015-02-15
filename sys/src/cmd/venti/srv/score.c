@@ -38,7 +38,7 @@ hexv(int c)
 }
 
 int
-strscore(int8_t *s, uint8_t *score)
+strscore(char *s, uint8_t *score)
 {
 	int i, c, d;
 

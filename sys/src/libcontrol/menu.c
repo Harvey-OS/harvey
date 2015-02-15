@@ -57,7 +57,7 @@ enum{
 	EWindow,
 };
 
-static int8_t *cmds[] = {
+static char *cmds[] = {
 	[EAdd] = 			"add",
 	[EAlign] = 			"align",
 	[EBorder] = 		"border",
@@ -226,7 +226,7 @@ menuctl(Control *c, CParse *cp)
 		break;
 	case EAdd:
 		_ctlargcount(m, cp, 2);
-		m->line = ctlrealloc(m->line, (m->nline+1)*sizeof(int8_t*));
+		m->line = ctlrealloc(m->line, (m->nline+1)*sizeof(char*));
 		m->line[m->nline++] = ctlstrdup(cp->args[1]);
 		menushow(m);
 		break;
@@ -350,7 +350,7 @@ menuctl(Control *c, CParse *cp)
 }
 
 Control*
-createmenu(Controlset *cs, int8_t *name)
+createmenu(Controlset *cs, char *name)
 {
 	Menu0 *m;
 

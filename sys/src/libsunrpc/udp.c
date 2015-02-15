@@ -83,10 +83,10 @@ sunUdpWrite(void *v)
 }
 
 int
-sunSrvUdp(SunSrv *srv, int8_t *address)
+sunSrvUdp(SunSrv *srv, char *address)
 {
 	int acfd, fd;
-	int8_t adir[40], data[60];
+	char adir[40], data[60];
 	Arg *arg;
 
 	acfd = announce(address, adir);

@@ -9,12 +9,12 @@
 
 #include "common.h"
 
-int8_t *MAILROOT =	"/mail";
-int8_t *UPASLOG =		"/sys/log";
-int8_t *UPASLIB = 	"/mail/lib";
-int8_t *UPASBIN=		"/bin/upas";
-int8_t *UPASTMP = 	"/mail/tmp";
-int8_t *SHELL = 		"/bin/rc";
-int8_t *POST =		"/sys/lib/post/dispatch";
+char *MAILROOT =	"/mail";
+char *UPASLOG =		"/sys/log";
+char *UPASLIB = 	"/mail/lib";
+char *UPASBIN=		"/bin/upas";
+char *UPASTMP = 	"/mail/tmp";
+char *SHELL = 		"/bin/rc";
+char *POST =		"/sys/lib/post/dispatch";
 
 int MBOXMODE = 0662;

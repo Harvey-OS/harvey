@@ -28,7 +28,7 @@ int debugarena = -1;		/* hack to improve error reporting */
 
 static struct {
 	uint32_t m;
-	int8_t *s;
+	char *s;
 } magics[] = {
 	ArenaPartMagic, "ArenaPartMagic",
 	ArenaHeadMagic, "ArenaHeadMagic",
@@ -37,8 +37,8 @@ static struct {
 	BloomMagic, "BloomMagic",
 };
 
-static int8_t*
-fmtmagic(int8_t *s, uint32_t m)
+static char*
+fmtmagic(char *s, uint32_t m)
 {
 	int i;
 
@@ -66,7 +66,7 @@ unpackarenapart(ArenaPart *ap, uint8_t *buf)
 {
 	uint8_t *p;
 	uint32_t m;
-	int8_t fbuf[20];
+	char fbuf[20];
 
 	p = buf;
 
@@ -117,7 +117,7 @@ unpackarena(Arena *arena, uint8_t *buf)
 	int sz;
 	uint8_t *p;
 	uint32_t m;
-	int8_t fbuf[20];
+	char fbuf[20];
 
 	p = buf;
 
@@ -131,7 +131,7 @@ unpackarena(Arena *arena, uint8_t *buf)
 	p += U32Size;
 	arena->version = U32GET(p);
 	p += U32Size;
-	namecp(arena->name, (int8_t*)p);
+	namecp(arena->name, (char*)p);
 	p += ANameSize;
 	arena->diskstats.clumps = U32GET(p);
 	p += U32Size;
@@ -254,7 +254,7 @@ _packarena(Arena *arena, uint8_t *buf, int forceext)
 	p += U32Size;
 	U32PUT(p, arena->version);
 	p += U32Size;
-	namecp((int8_t*)p, arena->name);
+	namecp((char*)p, arena->name);
 	p += ANameSize;
 	U32PUT(p, arena->diskstats.clumps);
 	p += U32Size;
@@ -316,7 +316,7 @@ unpackarenahead(ArenaHead *head, uint8_t *buf)
 	uint8_t *p;
 	uint32_t m;
 	int sz;
-	int8_t fbuf[20];
+	char fbuf[20];
 
 	p = buf;
 
@@ -331,7 +331,7 @@ unpackarenahead(ArenaHead *head, uint8_t *buf)
 	p += U32Size;
 	head->version = U32GET(p);
 	p += U32Size;
-	namecp(head->name, (int8_t*)p);
+	namecp(head->name, (char*)p);
 	p += ANameSize;
 	head->blocksize = U32GET(p);
 	p += U32Size;
@@ -390,7 +390,7 @@ packarenahead(ArenaHead *head, uint8_t *buf)
 	p += U32Size;
 	U32PUT(p, head->version);
 	p += U32Size;
-	namecp((int8_t*)p, head->name);
+	namecp((char*)p, head->name);
 	p += ANameSize;
 	U32PUT(p, head->blocksize);
 	p += U32Size;
@@ -537,7 +537,7 @@ unpackisect(ISect *is, uint8_t *buf)
 {
 	uint8_t *p;
 	uint32_t m;
-	int8_t fbuf[20];
+	char fbuf[20];
 
 	p = buf;
 
@@ -551,9 +551,9 @@ unpackisect(ISect *is, uint8_t *buf)
 	p += U32Size;
 	is->version = U32GET(p);
 	p += U32Size;
-	namecp(is->name, (int8_t*)p);
+	namecp(is->name, (char*)p);
 	p += ANameSize;
-	namecp(is->index, (int8_t*)p);
+	namecp(is->index, (char*)p);
 	p += ANameSize;
 	is->blocksize = U32GET(p);
 	p += U32Size;
@@ -589,9 +589,9 @@ packisect(ISect *is, uint8_t *buf)
 	p += U32Size;
 	U32PUT(p, is->version);
 	p += U32Size;
-	namecp((int8_t*)p, is->name);
+	namecp((char*)p, is->name);
 	p += ANameSize;
-	namecp((int8_t*)p, is->index);
+	namecp((char*)p, is->index);
 	p += ANameSize;
 	U32PUT(p, is->blocksize);
 	p += U32Size;
@@ -706,7 +706,7 @@ unpackbloomhead(Bloom *b, uint8_t *buf)
 {
 	uint8_t *p;
 	uint32_t m;
-	int8_t fbuf[20];
+	char fbuf[20];
 
 	p = buf;
 

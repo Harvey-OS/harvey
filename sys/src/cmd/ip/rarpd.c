@@ -34,21 +34,21 @@ struct Rarp
 
 uint8_t	myip[IPaddrlen];
 uint8_t	myether[6];
-int8_t	rlog[] = "ipboot";
-int8_t	*device = "ether0";
+char	rlog[] = "ipboot";
+char	*device = "ether0";
 int	debug;
 Ndb	*db;
 
-int8_t*	lookup(int8_t*, int8_t*, int8_t*, int8_t*, int);
+char*	lookup(char*, char*, char*, char*, int);
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	syslog(1, rlog, "error %s: %r", s);
 	exits(s);
 }
 
-int8_t net[32];
+char net[32];
 
 void
 usage(void)
@@ -175,11 +175,11 @@ main(int argc, char *argv[])
 	}
 }
 
-int8_t*
-lookup(int8_t *sattr, int8_t *sval, int8_t *tattr, int8_t *tval, int len)
+char*
+lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
 {
 	static Ndb *db;
-	int8_t *attrs[1];
+	char *attrs[1];
 	Ndbtuple *t;
 
 	if(db == nil)

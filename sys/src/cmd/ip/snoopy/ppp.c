@@ -102,7 +102,7 @@ enum
 	Oipwins2=	132,
 };
 
-int8_t *
+char *
 lcpcode[] = {
 	0,
 	"confreq",
@@ -212,7 +212,7 @@ static int
 p_seprintchap(Msg *m)
 {
 	Lcppkt *lcp;
-	int8_t *p, *e;
+	char *p, *e;
 	int len;
 
 	if(m->pe-m->ps < 4)
@@ -258,8 +258,8 @@ p_seprintchap(Msg *m)
 	return 0;
 }
 
-static int8_t*
-seprintlcpopt(int8_t *p, int8_t *e, void *a, int len)
+static char*
+seprintlcpopt(char *p, char *e, void *a, int len)
 {
 	Lcpopt *o;
 	int proto, x, period;
@@ -330,7 +330,7 @@ static int
 p_seprintlcp(Msg *m)
 {
 	Lcppkt *lcp;
-	int8_t *p, *e;
+	char *p, *e;
 	int len;
 
 	if(m->pe-m->ps < 4)
@@ -373,8 +373,8 @@ p_seprintlcp(Msg *m)
 	return 0;
 }
 
-static int8_t*
-seprintipcpopt(int8_t *p, int8_t *e, void *a, int len)
+static char*
+seprintipcpopt(char *p, char *e, void *a, int len)
 {
 	Lcpopt *o;
 	uint8_t *cp, *ecp;
@@ -423,7 +423,7 @@ static int
 p_seprintipcp(Msg *m)
 {
 	Lcppkt *lcp;
-	int8_t *p, *e;
+	char *p, *e;
 	int len;
 
 	if(m->pe-m->ps < 4)
@@ -461,8 +461,8 @@ p_seprintipcp(Msg *m)
 	return 0;
 }
 
-static int8_t*
-seprintccpopt(int8_t *p, int8_t *e, void *a, int len)
+static char*
+seprintccpopt(char *p, char *e, void *a, int len)
 {
 	Lcpopt *o;
 	uint8_t *cp, *ecp;
@@ -500,7 +500,7 @@ static int
 p_seprintccp(Msg *m)
 {
 	Lcppkt *lcp;
-	int8_t *p, *e;
+	char *p, *e;
 	int len;
 
 	if(m->pe-m->ps < 4)
@@ -544,7 +544,7 @@ p_seprintccp(Msg *m)
 static int
 p_seprintcomp(Msg *m)
 {
-	int8_t compflag[5];
+	char compflag[5];
 	uint16_t x;
 	int i;
 	int len;

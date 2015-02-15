@@ -28,16 +28,16 @@ enum {
 };
 
 static int ctlfd = -1;
-static int8_t ctlbuf[Nctlchar];
+static char ctlbuf[Nctlchar];
 static int ctlclean;
 
 static struct {
-	int8_t*	attr;
-	int8_t*	val;
+	char*	attr;
+	char*	val;
 } attr[Nattr];
 
 static int
-devopen(int8_t* device, int mode)
+devopen(char* device, int mode)
 {
 	int fd;
 
@@ -119,7 +119,7 @@ static void
 vgactlinit(void)
 {
 	int nattr;
-	int8_t *nl, *p, *vp;
+	char *nl, *p, *vp;
 
 	if(ctlclean)
 		return;
@@ -160,8 +160,8 @@ vgactlinit(void)
 	ctlclean = 1;
 }
 
-int8_t*
-vgactlr(int8_t* a, int8_t* v)
+char*
+vgactlr(char* a, char* v)
 {
 	int i;
 
@@ -180,10 +180,10 @@ vgactlr(int8_t* a, int8_t* v)
 }
 
 void
-vgactlw(int8_t* attr, int8_t* val)
+vgactlw(char* attr, char* val)
 {
 	int len;
-	int8_t buf[128];
+	char buf[128];
 
 	if(ctlfd == -1)
 		ctlfd = devopen("#v/vgactl", ORDWR);
@@ -208,9 +208,9 @@ setpalette(int p, int r, int g, int b)
 }
 
 static int32_t
-doreadbios(int8_t* buf, int32_t len, int32_t offset)
+doreadbios(char* buf, int32_t len, int32_t offset)
 {
-	int8_t file[64];
+	char file[64];
 
 	if(biosfd == -1){
 		biosfd = open("#v/vgabios", OREAD);
@@ -227,10 +227,10 @@ doreadbios(int8_t* buf, int32_t len, int32_t offset)
 	return read(biosfd, buf, len);
 }
 
-int8_t*
+char*
 readbios(int32_t len, int32_t offset)
 {
-	static int8_t bios[0x10000];
+	static char bios[0x10000];
 	static int32_t biosoffset;
 	static int32_t bioslen;
 	int n;
@@ -256,16 +256,16 @@ dumpbios(int32_t size)
 	uint8_t *buf;
 	int32_t offset;
 	int i, n;
-	int8_t c;
+	char c;
 
 	buf = alloc(size);
 	offset = 0xC0000;
-	if(doreadbios((int8_t*)buf, size, offset) != size)
+	if(doreadbios((char*)buf, size, offset) != size)
 		error("short bios read in dumpbios\n");
 
 	if(buf[0] != 0x55 || buf[1] != 0xAA){
 		offset = 0xE0000;
-		if(doreadbios((int8_t*)buf, size, offset) != size)
+		if(doreadbios((char*)buf, size, offset) != size)
 			error("short bios read in dumpbios\n");
 		if(buf[0] != 0x55 || buf[1] != 0xAA){
 			free(buf);
@@ -301,7 +301,7 @@ alloc(uint32_t nbytes)
 }
 
 void
-printitem(int8_t* ctlr, int8_t* item)
+printitem(char* ctlr, char* item)
 {
 	int n;
 
@@ -361,7 +361,7 @@ void
 printflag(uint32_t flag)
 {
 	int i;
-	int8_t first;
+	char first;
 
 	first = ' ';
 	for(i = 31; i >= 0; i--){

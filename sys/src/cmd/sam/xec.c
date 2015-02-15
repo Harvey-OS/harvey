@@ -395,7 +395,7 @@ display(File *f)
 {
 	Posn p1, p2;
 	int np;
-	int8_t *c;
+	char *c;
 
 	p1 = addr.r.p1;
 	p2 = addr.r.p2;

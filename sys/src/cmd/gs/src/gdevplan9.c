@@ -53,7 +53,7 @@ struct Rectangle {
 };
 private Point ZP = { 0, 0 };
 
-private WImage* initwriteimage(FILE *f, Rectangle r, int8_t*, int depth);
+private WImage* initwriteimage(FILE *f, Rectangle r, char*, int depth);
 private int writeimageblock(WImage *w, uchar *data, int ndata);
 private int bytesperline(Rectangle, int);
 private int rgb2cmap(int, int, int);
@@ -664,7 +664,7 @@ shiftwindow(WImage *w, uint8_t *data, uint8_t *edata)
 }
 
 private WImage*
-initwriteimage(FILE *f, Rectangle r, int8_t *chanstr, int depth)
+initwriteimage(FILE *f, Rectangle r, char *chanstr, int depth)
 {
 	WImage *w;
 	int n, bpl;

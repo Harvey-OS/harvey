@@ -820,7 +820,7 @@ pdf_end_charproc_accum(gx_device_pdf *pdev, gs_font *font, const pdf_char_glyph_
 int
 pdf_add_procsets(cos_dict_t *pcd, pdf_procset_t procsets)
 {
-    int8_t str[5 + 7 + 7 + 7 + 5 + 2];
+    char str[5 + 7 + 7 + 7 + 5 + 2];
     cos_value_t v;
 
     strcpy(str, "[/PDF");
@@ -839,14 +839,14 @@ pdf_add_procsets(cos_dict_t *pcd, pdf_procset_t procsets)
 
 /* Add a resource to substream Resources. */
 int
-pdf_add_resource(gx_device_pdf *pdev, cos_dict_t *pcd, const int8_t *key,
+pdf_add_resource(gx_device_pdf *pdev, cos_dict_t *pcd, const char *key,
                  pdf_resource_t *pres)
 {
     if (pcd != 0) {
 	const cos_value_t *v = cos_dict_find(pcd, (const byte *)key, strlen(key));
 	cos_dict_t *list;
 	int code;
-	int8_t buf[10 + (sizeof(int32_t) * 8 / 3 + 1)], buf1[sizeof(pres->rname) + 1];
+	char buf[10 + (sizeof(int32_t) * 8 / 3 + 1)], buf1[sizeof(pres->rname) + 1];
 
 	if (pdev->ForOPDFRead && !pres->global && pdev->accumulating_a_global_object) {
 	    pres->global = true;

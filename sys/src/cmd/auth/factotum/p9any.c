@@ -229,8 +229,8 @@ p9anyread(Fsstate *fss, void *a, uint *n)
 	}
 }
 
-static int8_t*
-getdom(int8_t *p)
+static char*
+getdom(char *p)
 {
 	p = strchr(p, '@');
 	if(p == nil)
@@ -239,10 +239,10 @@ getdom(int8_t *p)
 }
 
 static Proto*
-findneg(int8_t *name)
+findneg(char *name)
 {
 	int i, len;
-	int8_t *p;
+	char *p;
 
 	if(p = strchr(name, '@'))
 		len = p-name;
@@ -258,7 +258,7 @@ findneg(int8_t *name)
 static int
 p9anywrite(Fsstate *fss, void *va, uint n)
 {
-	int8_t *a, *dom, *user, *token[20];
+	char *a, *dom, *user, *token[20];
 	int asking, i, m, ophase, ret;
 	Attr *anew, *anewsf, *attr;
 	Key *k;

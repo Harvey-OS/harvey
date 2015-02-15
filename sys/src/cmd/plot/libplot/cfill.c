@@ -8,7 +8,7 @@
  */
 
 #include "mplot.h"
-void cfill(int8_t *s){
+void cfill(char *s){
 	int k=bcolor(s);
 	if(k>=0) e1->backgr=k;
 }

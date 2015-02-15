@@ -17,7 +17,7 @@
 int nclient;
 Client **client;
 #define Zmsg ((Msg*)~0)
-int8_t nocmd[] = "";
+char nocmd[] = "";
 
 static void readthread(void*);
 static void writethread(void*);
@@ -224,7 +224,7 @@ readthread(void *a)
 	Client *c;
 	Ioproc *io;
 	Msg *m;
-	int8_t tmp[32];
+	char tmp[32];
 
 	c = a;
 	snprint(tmp, sizeof tmp, "read%d", c->num);
@@ -281,13 +281,13 @@ datawrite(Req *r, Client *c)
 static void
 writethread(void *a)
 {
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 	uint8_t *buf;
 	int n;
 	Ioproc *io;
 	Req *r;
 	Client *c;
-	int8_t tmp[32];
+	char tmp[32];
 
 	c = a;
 	snprint(tmp, sizeof tmp, "write%d", c->num);
@@ -327,7 +327,7 @@ execproc(void *a)
 {
 	int i, fd;
 	Client *c;
-	int8_t tmp[32];
+	char tmp[32];
 
 	c = a;
 	snprint(tmp, sizeof tmp, "execproc%d", c->num);
@@ -353,7 +353,7 @@ execthread(void *a)
 {
 	Client *c;
 	int p;
-	int8_t tmp[32];
+	char tmp[32];
 
 	c = a;
 	snprint(tmp, sizeof tmp, "exec%d", c->num);
@@ -381,7 +381,7 @@ execthread(void *a)
 void
 ctlwrite(Req *r, Client *c)
 {
-	int8_t *f[3], *s, *p;
+	char *f[3], *s, *p;
 	int nf;
 
 	s = emalloc(r->ifcall.count+1);

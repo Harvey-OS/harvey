@@ -40,7 +40,7 @@ Dirtab kproftab[]={
 };
 
 static Chan*
-kprofattach(int8_t *spec)
+kprofattach(char *spec)
 {
 	uint32_t n;
 
@@ -96,7 +96,7 @@ kprofinit(void)
 }
 
 static Walkqid*
-kprofwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+kprofwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, kproftab, nelem(kproftab), devgen);
 }
@@ -173,7 +173,7 @@ kprofwrite(Chan *c, void *a, int32_t n, int64_t)
 	switch((int)(c->qid.path)){
 	case Kprofctlqid:
 		if(strncmp(a, "startclr", 8) == 0){
-			memset((int8_t *)kprof.buf, 0, kprof.nbuf*SZ);
+			memset((char *)kprof.buf, 0, kprof.nbuf*SZ);
 			kprof.time = 1;
 		}else if(strncmp(a, "start", 5) == 0)
 			kprof.time = 1;

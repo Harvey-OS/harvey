@@ -15,10 +15,10 @@
 static	Biobuf	bin;
 static	int	debug;
 static	int	verbose;
-static	int8_t	*delfile;
-static	int8_t	*infile;
-static	int	bunzipf(int8_t *file, int stdout);
-static	int	bunzip(int ofd, int8_t *ofile, Biobuf *bin);
+static	char	*delfile;
+static	char	*infile;
+static	int	bunzipf(char *file, int stdout);
+static	int	bunzip(int ofd, char *ofile, Biobuf *bin);
 
 void
 usage(void)
@@ -61,9 +61,9 @@ main(int argc, char **argv)
 }
 
 static int
-bunzipf(int8_t *file, int stdout)
+bunzipf(char *file, int stdout)
 {
-	int8_t ofile[64], *s;
+	char ofile[64], *s;
 	int ofd, ifd, ok;
 
 	infile = file;
@@ -131,11 +131,11 @@ bunzipf(int8_t *file, int stdout)
 }
 
 static int
-bunzip(int ofd, int8_t *ofile, Biobuf *bin)
+bunzip(int ofd, char *ofile, Biobuf *bin)
 {
 	int e, n, done, onemore;
-	int8_t buf[8192];
-	int8_t obuf[8192];
+	char buf[8192];
+	char obuf[8192];
 	Biobuf bout;
 	bz_stream strm;
 

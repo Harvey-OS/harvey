@@ -11,7 +11,7 @@
 # include "t.h"
 
 struct optstr {
-	int8_t	*optnam; 
+	char	*optnam; 
 	int	*optadd;
 } options [] = {
 	"expand", &expflg,
@@ -40,7 +40,7 @@ struct optstr {
 void
 getcomm(void)
 {
-	int8_t	line[200], *cp, nb[25], *t;
+	char	line[200], *cp, nb[25], *t;
 	struct optstr *lp;
 	int	c, ci, found;
 
@@ -97,9 +97,9 @@ getcomm(void)
 }
 
 void
-backrest(int8_t *cp)
+backrest(char *cp)
 {
-	int8_t	*s;
+	char	*s;
 
 	for (s = cp; *s; s++)
 		;

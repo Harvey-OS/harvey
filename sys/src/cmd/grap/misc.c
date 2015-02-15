@@ -139,10 +139,10 @@ Point makepoint(Obj *s, double x, double y)	/* make a Point */
 
 Attr *makefattr(int type, double fval)	/* set double in attribute */
 {
-	return makeattr(type, fval, (int8_t *) 0, 0, 0);
+	return makeattr(type, fval, (char *) 0, 0, 0);
 }
 
-Attr *makesattr(int8_t *s)		/* make an Attr cell containing s */
+Attr *makesattr(char *s)		/* make an Attr cell containing s */
 {
 	Attr *ap = makeattr(STRING, sizexpr, s, just, sizeop);
 	just = sizeop = 0;
@@ -188,16 +188,16 @@ void freeattr(Attr *ap)	/* free an attribute list */
 		p = ap->next;	/* save next */
 		if (ap->sval)
 			free(ap->sval);
-		free((int8_t *) ap);
+		free((char *) ap);
 		ap = p;
 	}
 }
 
-int8_t *slprint(Attr *stringlist)	/* print strings from stringlist */
+char *slprint(Attr *stringlist)	/* print strings from stringlist */
 {
 	int ntext, n, last_op, last_just;
 	double last_fval;
-	static int8_t buf[1000];
+	static char buf[1000];
 	Attr *ap;
 
 	buf[0] = '\0';
@@ -225,9 +225,9 @@ int8_t *slprint(Attr *stringlist)	/* print strings from stringlist */
 	return buf;	/* watch it:  static */
 }
 
-int8_t *juststr(int j)	/* convert RJUST, etc., into string */
+char *juststr(int j)	/* convert RJUST, etc., into string */
 {
-	static int8_t buf[50];
+	static char buf[50];
 
 	buf[0] = '\0';
 	if (j & RJUST)

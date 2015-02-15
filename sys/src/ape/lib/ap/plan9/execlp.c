@@ -16,13 +16,13 @@
  * just try prepending /bin/ if name fails...
  */
 
-extern int8_t **environ;
+extern char **environ;
 
 int
-execlp(const int8_t *name, const int8_t *arg0, ...)
+execlp(const char *name, const char *arg0, ...)
 {
 	int n;
-	int8_t buf[PATH_MAX];
+	char buf[PATH_MAX];
 
 	if((n=execve(name, &arg0, environ)) < 0){
 		strcpy(buf, "/bin/");

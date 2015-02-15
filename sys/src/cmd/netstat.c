@@ -13,13 +13,13 @@
 #include <ip.h>
 #include <ndb.h>
 
-void	pip(int8_t*, Dir*);
-void	nstat(int8_t*, void (*)(int8_t*, Dir*));
+void	pip(char*, Dir*);
+void	nstat(char*, void (*)(char*, Dir*));
 void	pipifc(void);
 
 Biobuf	out;
-int8_t	*netroot;
-int8_t *proto[20];
+char	*netroot;
+char *proto[20];
 int nproto;
 int	notrans;
 
@@ -93,11 +93,11 @@ main(int argc, char *argv[])
 }
 
 void
-nstat(int8_t *net, void (*f)(int8_t*, Dir*))
+nstat(char *net, void (*f)(char*, Dir*))
 {
 	int fdir, i, tot;
 	Dir *dir;
-	int8_t buf[128];
+	char buf[128];
 
 	snprint(buf, sizeof buf, "%s/%s", netroot, net);
 	fdir = open(buf, OREAD);
@@ -113,10 +113,10 @@ nstat(int8_t *net, void (*f)(int8_t*, Dir*))
 	close(fdir);
 }
 
-int8_t*
-getport(int8_t *net, int8_t *p)
+char*
+getport(char *net, char *p)
 {
-	static int8_t port[10];
+	static char port[10];
 
 	strncpy(port, p, sizeof(port)-1);
 	port[sizeof(port)-1] = 0;
@@ -129,11 +129,11 @@ getport(int8_t *net, int8_t *p)
 }
 
 void
-pip(int8_t *net, Dir *db)
+pip(char *net, Dir *db)
 {
 	int n, fd;
-	int8_t buf[128], *p;
-	int8_t *dname;
+	char buf[128], *p;
+	char *dname;
 
 	if(strcmp(db->name, "clone") == 0)
 		return;
@@ -215,7 +215,7 @@ pipifc(void)
 {
 	Ipifc *ip, *nip;
 	Iplifc *lifc;
-	int8_t buf[100];
+	char buf[100];
 	int l, i;
 
 	fmtinstall('I', eipfmt);

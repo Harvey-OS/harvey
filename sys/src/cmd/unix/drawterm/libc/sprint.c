@@ -12,7 +12,7 @@
 #include "fmtdef.h"
 
 int
-sprint(int8_t *buf, int8_t *fmt, ...)
+sprint(char *buf, char *fmt, ...)
 {
 	int n;
 	uint len;

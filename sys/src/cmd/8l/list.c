@@ -25,7 +25,7 @@ static	Prog	*bigP;
 int
 Pconv(Fmt *fp)
 {
-	int8_t str[STRINGSZ];
+	char str[STRINGSZ];
 	Prog *p;
 
 	p = va_arg(fp->args, Prog*);
@@ -64,7 +64,7 @@ Aconv(Fmt *fp)
 int
 Dconv(Fmt *fp)
 {
-	int8_t str[STRINGSZ+40], s[20];
+	char str[STRINGSZ+40], s[20];
 	Adr *a;
 	int i;
 
@@ -147,7 +147,7 @@ conv:
 	return fmtstrcpy(fp, str);
 }
 
-int8_t*	regstr[] =
+char*	regstr[] =
 {
 	"AL",		/* [D_AL] */
 	"CL",
@@ -222,7 +222,7 @@ int8_t*	regstr[] =
 int
 Rconv(Fmt *fp)
 {
-	int8_t str[20];
+	char str[20];
 	int r;
 
 	r = va_arg(fp->args, int);
@@ -238,9 +238,9 @@ int
 Sconv(Fmt *fp)
 {
 	int i, c;
-	int8_t str[30], *p, *a;
+	char str[30], *p, *a;
 
-	a = va_arg(fp->args, int8_t*);
+	a = va_arg(fp->args, char*);
 	p = str;
 	for(i=0; i<sizeof(double); i++) {
 		c = a[i] & 0xff;
@@ -280,9 +280,9 @@ Sconv(Fmt *fp)
 }
 
 void
-diag(int8_t *fmt, ...)
+diag(char *fmt, ...)
 {
-	int8_t buf[STRINGSZ], *tn;
+	char buf[STRINGSZ], *tn;
 	va_list arg;
 
 	tn = "??none??";

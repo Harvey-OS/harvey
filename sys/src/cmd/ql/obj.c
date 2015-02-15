@@ -18,12 +18,12 @@
 #define	OANAME	229	/* old ANAME */
 
 
-int8_t	*noname		= "<none>";
-int8_t	symname[]	= SYMDEF;
-int8_t	thechar		= 'q';
-int8_t	*thestring 	= "power";
+char	*noname		= "<none>";
+char	symname[]	= SYMDEF;
+char	thechar		= 'q';
+char	*thestring 	= "power";
 
-int8_t**	libdir;
+char**	libdir;
 int	nlibdir	= 0;
 static	int	maxlibdir = 0;
 
@@ -47,11 +47,11 @@ usage(void)
 }
 
 static int
-isobjfile(int8_t *f)
+isobjfile(char *f)
 {
 	int n, v;
 	Biobuf *b;
-	int8_t buf1[5], buf2[SARMAG];
+	char buf1[5], buf2[SARMAG];
 
 	b = Bopen(f, OREAD);
 	if(b == nil)
@@ -329,9 +329,9 @@ out:
 }
 
 void
-addlibpath(int8_t *arg)
+addlibpath(char *arg)
 {
-	int8_t **p;
+	char **p;
 
 	if(nlibdir >= maxlibdir) {
 		if(maxlibdir == 0)
@@ -350,11 +350,11 @@ addlibpath(int8_t *arg)
 	libdir[nlibdir++] = strdup(arg);
 }
 
-int8_t*
-findlib(int8_t *file)
+char*
+findlib(char *file)
 {
 	int i;
-	int8_t name[LIBNAMELEN];
+	char name[LIBNAMELEN];
 
 	for(i = 0; i < nlibdir; i++) {
 		snprint(name, sizeof(name), "%s/%s", libdir[i], file);
@@ -399,15 +399,15 @@ errorexit(void)
 }
 
 void
-objfile(int8_t *file)
+objfile(char *file)
 {
 	int32_t off, esym, cnt, l;
 	int f, work;
 	Sym *s;
-	int8_t magbuf[SARMAG];
-	int8_t name[LIBNAMELEN], pname[LIBNAMELEN];
+	char magbuf[SARMAG];
+	char name[LIBNAMELEN], pname[LIBNAMELEN];
 	struct ar_hdr arhdr;
-	int8_t *e, *start, *stop;
+	char *e, *start, *stop;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f ldobj: %s\n", cputime(), file);
@@ -600,9 +600,9 @@ out:
 }
 
 void
-addlib(int8_t *obj)
+addlib(char *obj)
 {
-	int8_t fn1[LIBNAMELEN], fn2[LIBNAMELEN], comp[LIBNAMELEN], *p, *name;
+	char fn1[LIBNAMELEN], fn2[LIBNAMELEN], comp[LIBNAMELEN], *p, *name;
 	int i, search;
 
 	if(histfrogp <= 0)
@@ -780,7 +780,7 @@ readsome(int f, uint8_t *buf, uint8_t *good, uint8_t *stop, int max)
 }
 
 void
-ldobj(int f, int32_t c, int8_t *pn)
+ldobj(int f, int32_t c, char *pn)
 {
 	Prog *p, *t;
 	Sym *h[NSYM], *s, *di;
@@ -789,12 +789,12 @@ ldobj(int f, int32_t c, int8_t *pn)
 	uint8_t *bloc, *bsize, *stop;
 	uint32_t sig;
 	static int files;
-	static int8_t **filen;
-	int8_t **nfilen;
+	static char **filen;
+	char **nfilen;
 
 	if((files&15) == 0){
-		nfilen = malloc((files+16)*sizeof(int8_t*));
-		memmove(nfilen, filen, files*sizeof(int8_t*));
+		nfilen = malloc((files+16)*sizeof(char*));
+		memmove(nfilen, filen, files*sizeof(char*));
 		free(filen);
 		filen = nfilen;
 	}
@@ -859,7 +859,7 @@ loop:
 		r = 0;
 		if(v == D_STATIC)
 			r = version;
-		s = lookup((int8_t*)bloc, r);
+		s = lookup((char*)bloc, r);
 		c -= &stop[1] - bloc;
 		bloc = stop + 1;
 		if(sig != 0){
@@ -1151,10 +1151,10 @@ eof:
 }
 
 Sym*
-lookup(int8_t *symb, int v)
+lookup(char *symb, int v)
 {
 	Sym *s;
-	int8_t *p;
+	char *p;
 	int32_t h;
 	int c, l;
 
@@ -1208,7 +1208,7 @@ prg(void)
 void
 gethunk(void)
 {
-	int8_t *h;
+	char *h;
 	int32_t nh;
 
 	nh = NHUNK;
@@ -1218,7 +1218,7 @@ gethunk(void)
 			nh = 25L*NHUNK;
 	}
 	h = mysbrk(nh);
-	if(h == (int8_t *)-1) {
+	if(h == (char *)-1) {
 		diag("out of memory");
 		errorexit();
 	}
@@ -1476,10 +1476,10 @@ nuxiinit(void)
 int
 find1(int32_t l, int c)
 {
-	int8_t *p;
+	char *p;
 	int i;
 
-	p = (int8_t*)&l;
+	p = (char*)&l;
 	for(i=0; i<4; i++)
 		if(*p++ == c)
 			return i;
@@ -1553,7 +1553,7 @@ undefsym(Sym *s)
 }
 
 void
-zerosig(int8_t *sp)
+zerosig(char *sp)
 {
 	Sym *s;
 
@@ -1562,12 +1562,12 @@ zerosig(int8_t *sp)
 }
 
 void
-readundefs(int8_t *f, int t)
+readundefs(char *f, int t)
 {
 	int i, n;
 	Sym *s;
 	Biobuf *b;
-	int8_t *l, buf[256], *fields[64];
+	char *l, buf[256], *fields[64];
 
 	if(f == nil)
 		return;

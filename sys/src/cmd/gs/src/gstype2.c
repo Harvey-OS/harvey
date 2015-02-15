@@ -219,7 +219,7 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_glyph_data_t *pgd,
 	}
 #ifdef DEBUG
 	if (gs_debug['1']) {
-	    static const int8_t *const c2names[] =
+	    static const char *const c2names[] =
 	    {char2_command_names};
 
 	    if (c2names[c] == 0)
@@ -555,7 +555,7 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_glyph_data_t *pgd,
 		++cip;
 #ifdef DEBUG
 		if (gs_debug['1'] && c < char2_extended_command_count) {
-		    static const int8_t *const ce2names[] =
+		    static const char *const ce2names[] =
 		    {char2_extended_command_names};
 
 		    if (ce2names[c] == 0)

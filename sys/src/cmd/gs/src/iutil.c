@@ -253,19 +253,19 @@ obj_string_data(const gs_memory_t *mem, const ref *op, const byte **pchars, uint
  * repeatedly to print on a stream, which may require suspending at any
  * point to handle stream callouts.
  */
-private void ensure_dot(int8_t *);
+private void ensure_dot(char *);
 int
 obj_cvp(const ref * op, byte * str, uint len, uint * prlen,
 	int full_print, uint start_pos, const gs_memory_t *mem)
 {
-    int8_t buf[50];  /* big enough for any float, double, or struct name */
+    char buf[50];  /* big enough for any float, double, or struct name */
     const byte *data = (const byte *)buf;
     uint size;
     int code;
     ref nref;
 
     if (full_print) {
-	static const int8_t * const type_strings[] = { REF_TYPE_PRINT_STRINGS };
+	static const char * const type_strings[] = { REF_TYPE_PRINT_STRINGS };
 
 	switch (r_btype(op)) {
 	case t_boolean:
@@ -413,7 +413,7 @@ obj_cvp(const ref * op, byte * str, uint len, uint * prlen,
 		gs_struct_type_name_string(
 		     gs_object_type((gs_memory_t *)mem,
 				    (const obj_header_t *)op->value.pstruct));
-	    size = strlen((const int8_t *)data);
+	    size = strlen((const char *)data);
 	    if (size > 4 && !memcmp(data + size - 4, "type", 4))
 		size -= 4;
 	    if (size > sizeof(buf) - 2)
@@ -489,7 +489,7 @@ other:
     default:
 	data = (const byte *)"--nostringval--";
     }
-rs: size = strlen((const int8_t *)data);
+rs: size = strlen((const char *)data);
 nl: if (size < start_pos)
 	return_error(e_rangecheck);
     size -= start_pos;
@@ -502,16 +502,16 @@ nl: if (size < start_pos)
  * is needed for compatibility with Adobe (and other) interpreters.
  */
 private void
-ensure_dot(int8_t *buf)
+ensure_dot(char *buf)
 {
     if (strchr(buf, '.') == NULL) {
-	int8_t *ept = strchr(buf, 'e');
+	char *ept = strchr(buf, 'e');
 
 	if (ept == NULL)
 	    strcat(buf, ".0");
 	else {
 	    /* Insert the .0 before the exponent.  What a nuisance! */
-	    int8_t buf1[30];
+	    char buf1[30];
 
 	    strcpy(buf1, ept);
 	    strcpy(ept, ".0");
@@ -669,7 +669,7 @@ refs_check_space(const ref * bot, uint size, uint space)
 
 /* Convert a C string to a Ghostscript string */
 int
-string_to_ref(const int8_t *cstr, ref * pref, gs_ref_memory_t * mem,
+string_to_ref(const char *cstr, ref * pref, gs_ref_memory_t * mem,
 	      client_name_t cname)
 {
     uint size = strlen(cstr);
@@ -683,15 +683,15 @@ string_to_ref(const int8_t *cstr, ref * pref, gs_ref_memory_t * mem,
 
 /* Convert a Ghostscript string to a C string. */
 /* Return 0 iff the buffer can't be allocated. */
-int8_t *
+char *
 ref_to_string(const ref * pref, gs_memory_t * mem, client_name_t cname)
 {
     uint size = r_size(pref);
-    int8_t *str = (int8_t *)gs_alloc_string(mem, size + 1, cname);
+    char *str = (char *)gs_alloc_string(mem, size + 1, cname);
 
     if (str == 0)
 	return 0;
-    memcpy(str, (const int8_t *)pref->value.bytes, size);
+    memcpy(str, (const char *)pref->value.bytes, size);
     str[size] = 0;
     return str;
 }

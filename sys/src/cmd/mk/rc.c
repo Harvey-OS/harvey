@@ -9,8 +9,8 @@
 
 #include	"mk.h"
 
-int8_t	*termchars = "'= \t";	/*used in parse.c to isolate assignment attribute*/
-int8_t	*shflags = "-I";	/* rc flag to force non-interactive mode */
+char	*termchars = "'= \t";	/*used in parse.c to isolate assignment attribute*/
+char	*shflags = "-I";	/* rc flag to force non-interactive mode */
 int	IWS = '\1';		/* inter-word separator in env - not used in plan 9 */
 
 /*
@@ -22,8 +22,8 @@ int	IWS = '\1';		/* inter-word separator in env - not used in plan 9 */
 /*
  *	skip a token in single quotes.
  */
-static int8_t *
-squote(int8_t *cp)
+static char *
+squote(char *cp)
 {
 	Rune r;
 	int n;
@@ -46,8 +46,8 @@ squote(int8_t *cp)
  *	search a string for characters in a pattern set
  *	characters in quotes and variable generators are escaped
  */
-int8_t *
-charin(int8_t *cp, int8_t *pat)
+char *
+charin(char *cp, char *pat)
 {
 	Rune r;
 	int n, vargen;
@@ -90,8 +90,8 @@ charin(int8_t *cp, int8_t *pat)
  *	double-quote,and backslash.  Only the first is valid for rc. the
  *	others are just inserted into the receiving buffer.
  */
-int8_t*
-expandquote(int8_t *s, Rune r, Bufblock *b)
+char*
+expandquote(char *s, Rune r, Bufblock *b)
 {
 	if (r != '\'') {
 		rinsert(b, r);
@@ -146,8 +146,8 @@ escapetoken(Biobuf *bp, Bufblock *buf, int preserve, int esc)
 /*
  *	copy a single-quoted string; s points to char after opening quote
  */
-static int8_t *
-copysingle(int8_t *s, Bufblock *buf)
+static char *
+copysingle(char *s, Bufblock *buf)
 {
 	Rune r;
 
@@ -163,8 +163,8 @@ copysingle(int8_t *s, Bufblock *buf)
  *	check for quoted strings.  backquotes are handled here; single quotes above.
  *	s points to char after opening quote, q.
  */
-int8_t *
-copyq(int8_t *s, Rune q, Bufblock *buf)
+char *
+copyq(char *s, Rune q, Bufblock *buf)
 {
 	if(q == '\'')				/* copy quoted string */
 		return copysingle(s, buf);

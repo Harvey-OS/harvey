@@ -138,7 +138,7 @@ isum(void)
 					taken, Percent(taken, branch));
 }
 
-int8_t *stype[] = { "Stack", "Text", "Data", "Bss" };
+char *stype[] = { "Stack", "Text", "Data", "Bss" };
 
 void
 segsum(void)

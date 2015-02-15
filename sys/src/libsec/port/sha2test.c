@@ -11,7 +11,7 @@
 #include <libc.h>
 #include "libsec.h"
 
-int8_t *tests[] = {
+char *tests[] = {
 	"",
 	"a",
 	"abc",
@@ -30,7 +30,7 @@ void
 main(void)
 {
 	int i;
-	int8_t **pp;
+	char **pp;
 	uint8_t *p;
 	uint8_t digest[SHA2_512dlen];
 

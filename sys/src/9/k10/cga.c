@@ -122,9 +122,9 @@ cgaputc(int c)
 void
 cgaprinthex(uintptr x)
 {
-	int8_t str[30];
-	int8_t *s;
-	static int8_t dig[] = "0123456789abcdef";
+	char str[30];
+	char *s;
+	static char dig[] = "0123456789abcdef";
 
 	str[29] = 0;
 	s = &str[29];
@@ -138,7 +138,7 @@ cgaprinthex(uintptr x)
 }
 
 void
-cgaconsputs(int8_t* s, int n)
+cgaconsputs(char* s, int n)
 {
 	ilock(&cgalock);
 	while(n-- > 0)
@@ -151,7 +151,7 @@ cgapost(int code)
 {
 	uint8_t *cga;
 
-	static int8_t hex[] = "0123456789ABCDEF";
+	static char hex[] = "0123456789ABCDEF";
 
 	cga = CGA;
 	cga[Width*Height-Postcodelen*2] = hex[(code>>4) & 0x0f];

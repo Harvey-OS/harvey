@@ -14,12 +14,12 @@
  * bug: should detect overflow, set errno = ERANGE, and return +/- HUGE_VAL
  */
 double
-strtod(const int8_t *cp, int8_t **endptr)
+strtod(const char *cp, char **endptr)
 {
 	double num, dem;
 	extern double pow10(int);
 	int neg, eneg, dig, predig, exp, c;
-	const int8_t *p;
+	const char *p;
 
 	p = cp;
 	num = 0;
@@ -51,7 +51,7 @@ strtod(const int8_t *cp, int8_t **endptr)
 	}
 	if(dig+predig == 0){
 		if(endptr)
-			*endptr = (int8_t *)cp;
+			*endptr = (char *)cp;
 		return 0.0;
 	}
 	if(c == 'e' || c == 'E'){
@@ -85,7 +85,7 @@ strtod(const int8_t *cp, int8_t **endptr)
 	if(neg)
 		num = -num;
 	if(endptr){
-		*endptr = (int8_t *)--p;
+		*endptr = (char *)--p;
 		/*
 		 * Fix cases like 2.3e+
 		 */

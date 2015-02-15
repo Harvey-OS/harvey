@@ -17,7 +17,7 @@
 
 #define NSIG SIGUSR2
 
-int8_t *signm[NSIG+1] = { 0,
+char *signm[NSIG+1] = { 0,
 "SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGABRT", "SIGFPE", "SIGKILL", /* 1-7 */
 "SIGSEGV", "SIGPIPE", "SIGALRM", "SIGTERM", "SIGUR1", "SIGUSR2", /* 8-13 */
 };

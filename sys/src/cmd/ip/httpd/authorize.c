@@ -13,7 +13,7 @@
 #include "httpd.h"
 #include "httpsrv.h"
 
-static int8_t*	readfile(int8_t*);
+static char*	readfile(char*);
 
 /*
  * these should be done better; see the response codes in /lib/rfc/rfc2616 for
@@ -32,13 +32,13 @@ static int8_t*	readfile(int8_t*);
  * returns 1 if authorized, 0 if unauthorized, -1 for io failure.
  */
 int
-authorize(HConnect *c, int8_t *file)
+authorize(HConnect *c, char *file)
 {
-	int8_t *p, *p0;
+	char *p, *p0;
 	Hio *hout;
-	int8_t *buf;
+	char *buf;
 	int i, n;
-	int8_t *t[257];
+	char *t[257];
 
 	p0 = halloc(c, strlen(file)+STRLEN("/.httplogin")+1);
 	strcpy(p0, file);
@@ -89,12 +89,12 @@ authorize(HConnect *c, int8_t *file)
 	return hflush(hout);
 }
 
-static int8_t*
-readfile(int8_t *file)
+static char*
+readfile(char *file)
 {
 	Dir *d;
 	int fd;
-	int8_t *buf;
+	char *buf;
 	int n, len;
 
 	fd = open(file, OREAD);

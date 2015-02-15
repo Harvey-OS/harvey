@@ -31,7 +31,7 @@ enum
 	Npatch=92053,	/* highest patch number */
 };
 
-int8_t		ngctype[NNGCrec];
+char		ngctype[NNGCrec];
 Mindexrec	mindex[NMrec];
 Namerec		name[NName];
 Bayerec		bayer[NBayer];
@@ -43,7 +43,7 @@ Record	*rec;
 Record	*orec;
 Record	*cur;
 
-int8_t	*dir=DIR;
+char	*dir=DIR;
 int	saodb;
 int	ngcdb;
 int	abelldb;
@@ -54,7 +54,7 @@ int	bayerdb;
 int	condb;
 int	conindexdb;
 int	patchdb;
-int8_t	parsed[3];
+char	parsed[3];
 int32_t	nrec;
 int32_t	nreca;
 int32_t	norec;
@@ -123,9 +123,9 @@ copy(void)
 }
 
 int
-eopen(int8_t *s)
+eopen(char *s)
 {
-	int8_t buf[128];
+	char buf[128];
 	int f;
 
 	sprint(buf, "%s/%s.scat", dir, s);
@@ -139,7 +139,7 @@ eopen(int8_t *s)
 
 
 void
-Eread(int f, int8_t *name, void *addr, int32_t n)
+Eread(int f, char *name, void *addr, int32_t n)
 {
 	if(read(f, addr, n) != n){	/* BUG! */
 		fprint(2, "scat: read error on %s\n", name);
@@ -147,16 +147,16 @@ Eread(int f, int8_t *name, void *addr, int32_t n)
 	}
 }
 
-int8_t*
-skipbl(int8_t *s)
+char*
+skipbl(char *s)
 {
 	while(*s!=0 && (*s==' ' || *s=='\t'))
 		s++;
 	return s;
 }
 
-int8_t*
-skipstr(int8_t *s, int8_t *t)
+char*
+skipstr(char *s, char *t)
 {
 	while(*s && *s==*t)
 		s++, t++;
@@ -188,7 +188,7 @@ nameopen(void)
 {
 	Biobuf b;
 	int i;
-	int8_t *l, *p;
+	char *l, *p;
 
 	if(namedb == 0){
 		namedb = eopen("name");
@@ -262,7 +262,7 @@ patchopen(void)
 {
 	Biobuf *b;
 	int32_t l, m;
-	int8_t buf[100];
+	char buf[100];
 
 	if(patchdb == 0){
 		patchdb = eopen("patch");
@@ -308,7 +308,7 @@ constelopen(void)
 }
 
 void
-lowercase(int8_t *s)
+lowercase(char *s)
 {
 	for(; *s; s++)
 		if('A'<=*s && *s<='Z')
@@ -529,8 +529,8 @@ ism(int index)
 	return 0;
 }
 
-int8_t*
-alpha(int8_t *s, int8_t *t)
+char*
+alpha(char *s, char *t)
 {
 	int n;
 
@@ -541,8 +541,8 @@ alpha(int8_t *s, int8_t *t)
 	
 }
 
-int8_t*
-text(int8_t *s, int8_t *t)
+char*
+text(char *s, char *t)
 {
 	int n;
 
@@ -554,14 +554,14 @@ text(int8_t *s, int8_t *t)
 }
 
 int
-cull(int8_t *s, int keep, int dobbox)
+cull(char *s, int keep, int dobbox)
 {
 	int i, j, nobj, keepthis;
 	Record *or;
-	int8_t *t;
+	char *t;
 	int dogrtr, doless, dom, dosao, dongc, doabell;
 	int mgrtr, mless;
-	int8_t obj[100];
+	char obj[100];
 
 	memset(obj, 0, sizeof(obj));
 	nobj = 0;
@@ -702,12 +702,12 @@ sort(void)
 	nrec = (s+1)-rec;
 }
 
-int8_t	greekbuf[128];
+char	greekbuf[128];
 
-int8_t*
-togreek(int8_t *s)
+char*
+togreek(char *s)
 {
-	int8_t *t;
+	char *t;
 	int i, n;
 	Rune r;
 
@@ -730,10 +730,10 @@ togreek(int8_t *s)
 	return greekbuf;
 }
 
-int8_t*
-fromgreek(int8_t *s)
+char*
+fromgreek(char *s)
 {
-	int8_t *t;
+	char *t;
 	int i, n;
 	Rune r;
 
@@ -857,7 +857,7 @@ coords(int deg)
 }
 
 void
-pplate(int8_t *flags)
+pplate(char *flags)
 {
 	int i;
 	int32_t c;
@@ -1006,11 +1006,11 @@ pplate(int8_t *flags)
 }
 
 void
-lookup(int8_t *s, int doreset)
+lookup(char *s, int doreset)
 {
 	int i, j, k;
 	int rah, ram, deg;
-	int8_t *starts, *inputline=s, *t, *u;
+	char *starts, *inputline=s, *t, *u;
 	Record *r;
 	int32_t n;
 	double x;
@@ -1346,7 +1346,7 @@ char *ngctypes[] =
 [PlateDefect]	"PD",
 };
 
-int8_t*
+char*
 ngcstring(int d)
 {
 	if(d<Galaxy || d>PlateDefect)
@@ -1381,7 +1381,7 @@ printnames(Record *r)
 }
 
 int
-equal(int8_t *s1, int8_t *s2)
+equal(char *s1, char *s2)
 {
 	int c;
 
@@ -1404,9 +1404,9 @@ equal(int8_t *s1, int8_t *s2)
 }
 
 int
-parsename(int8_t *s)
+parsename(char *s)
 {
-	int8_t *blank;
+	char *blank;
 	int i;
 
 	blank = strchr(s, ' ');
@@ -1438,7 +1438,7 @@ parsename(int8_t *s)
 	return 0;
 }
 
-int8_t*
+char*
 dist_grp(int dg)
 {
 	switch(dg){
@@ -1461,7 +1461,7 @@ dist_grp(int dg)
 	}
 }
 
-int8_t*
+char*
 rich_grp(int dg)
 {
 	switch(dg){
@@ -1482,13 +1482,13 @@ rich_grp(int dg)
 	}
 }
 
-int8_t*
+char*
 nameof(Record *r)
 {
 	NGCrec *n;
 	SAOrec *s;
 	Abellrec *a;
-	static int8_t buf[128];
+	static char buf[128];
 	int i;
 
 	switch(r->type){

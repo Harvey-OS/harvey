@@ -32,7 +32,7 @@ Part *dst;
 int force;
 int verbose;
 int dosha1 = 1;
-int8_t *status;
+char *status;
 uint64_t astart, aend;
 
 void
@@ -42,10 +42,10 @@ usage(void)
 	threadexitsall("usage");
 }
 
-int8_t *tagged;
+char *tagged;
 
 void
-tag(int8_t *fmt, ...)
+tag(char *fmt, ...)
 {
 	va_list arg;
 	
@@ -59,7 +59,7 @@ tag(int8_t *fmt, ...)
 }
 
 void
-chat(int8_t *fmt, ...)
+chat(char *fmt, ...)
 {
 	va_list arg;
 
@@ -118,7 +118,7 @@ writeproc(void *v)
 }
 
 int
-copy(uint64_t start, uint64_t end, int8_t *what, DigestState *ds)
+copy(uint64_t start, uint64_t end, char *what, DigestState *ds)
 {
 	int i, n;
 	uint64_t o;
@@ -177,7 +177,7 @@ error:
 
 /* single-threaded, for reference */
 int
-copy1(uint64_t start, uint64_t end, int8_t *what, DigestState *ds)
+copy1(uint64_t start, uint64_t end, char *what, DigestState *ds)
 {
 	int n;
 	uint64_t o;
@@ -412,10 +412,10 @@ mirror(Arena *sa, Arena *da)
 }
 
 void
-mirrormany(ArenaPart *sp, ArenaPart *dp, int8_t *range)
+mirrormany(ArenaPart *sp, ArenaPart *dp, char *range)
 {
 	int i, lo, hi;
-	int8_t *s, *t;
+	char *s, *t;
 	Arena *sa, *da;
 
 	if(range == nil){

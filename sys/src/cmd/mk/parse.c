@@ -9,20 +9,20 @@
 
 #include	"mk.h"
 
-int8_t *infile;
+char *infile;
 int mkinline;
-static int rhead(int8_t *, Word **, Word **, int *, int8_t **);
-static int8_t *rbody(Biobuf*);
+static int rhead(char *, Word **, Word **, int *, char **);
+static char *rbody(Biobuf*);
 extern Word *target1;
 
 void
-parse(int8_t *f, int fd, int varoverride)
+parse(char *f, int fd, int varoverride)
 {
 	int hline;
-	int8_t *body;
+	char *body;
 	Word *head, *tail;
 	int attr, set, pid;
-	int8_t *prog, *p;
+	char *prog, *p;
 	int newfd;
 	Biobuf in;
 	Bufblock *buf;
@@ -117,8 +117,8 @@ cp = wtos(tail, ' '); print("assign %s to %s\n", head->s, cp); free(cp);
 }
 
 void
-addrules(Word *head, Word *tail, int8_t *body, int attr, int hline,
-         int8_t *prog)
+addrules(Word *head, Word *tail, char *body, int attr, int hline,
+         char *prog)
 {
 	Word *w;
 
@@ -136,10 +136,10 @@ addrules(Word *head, Word *tail, int8_t *body, int attr, int hline,
 }
 
 static int
-rhead(int8_t *line, Word **h, Word **t, int *attr, int8_t **prog)
+rhead(char *line, Word **h, Word **t, int *attr, char **prog)
 {
-	int8_t *p;
-	int8_t *pp;
+	char *p;
+	char *pp;
 	int sep;
 	Rune r;
 	int n;
@@ -240,12 +240,12 @@ rhead(int8_t *line, Word **h, Word **t, int *attr, int8_t **prog)
 	return(sep);
 }
 
-static int8_t *
+static char *
 rbody(Biobuf *in)
 {
 	Bufblock *buf;
 	int r, lastr;
-	int8_t *p;
+	char *p;
 
 	lastr = '\n';
 	buf = newbuf();
@@ -274,7 +274,7 @@ rbody(Biobuf *in)
 
 struct input
 {
-	int8_t *file;
+	char *file;
 	int line;
 	struct input *next;
 };
@@ -315,5 +315,5 @@ ipop(void)
 	}
 	infile = me->file;
 	mkinline = me->line;
-	free((int8_t *)me);
+	free((char *)me);
 }

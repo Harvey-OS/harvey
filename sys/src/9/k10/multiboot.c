@@ -67,7 +67,7 @@ struct MMap {
 int
 multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 {
-	int8_t *p;
+	char *p;
 	int i, n;
 	Mbi *mbi;
 	Mod *mod;

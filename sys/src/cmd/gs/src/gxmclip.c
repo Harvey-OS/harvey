@@ -58,14 +58,14 @@ private RELOC_PTRS_WITH(device_mask_clip_reloc_ptrs, gx_device_mask_clip *mcdev)
 	 * Update the line pointers specially, since they point into the
 	 * buffer that is part of the mask clipping device itself.
 	 */
-	int32_t diff = (int8_t *)RELOC_OBJ(mcdev) - (int8_t *)mcdev;
+	int32_t diff = (char *)RELOC_OBJ(mcdev) - (char *)mcdev;
 	int i;
 
 	for (i = 0; i < mcdev->mdev.height; ++i)
 	    mcdev->mdev.line_ptrs[i] += diff;
 	mcdev->mdev.base = mcdev->mdev.line_ptrs[0];
 	mcdev->mdev.line_ptrs =
-	    (void *)((int8_t *)(mcdev->mdev.line_ptrs) + diff);
+	    (void *)((char *)(mcdev->mdev.line_ptrs) + diff);
     }
 }
 RELOC_PTRS_END

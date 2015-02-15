@@ -16,14 +16,14 @@
 #define MAXNAMLEN 255
 
 struct	dirent {
-	int8_t	d_name[MAXNAMLEN + 1];
+	char	d_name[MAXNAMLEN + 1];
 };
 
 typedef struct _dirdesc {
 	int	dd_fd;		/* file descriptor */
 	int32_t	dd_loc;		/* buf offset of entry from last readdir() */
 	int32_t	dd_size;	/* amount of valid data in buffer */
-	int8_t	*dd_buf;	/* directory data buffer */
+	char	*dd_buf;	/* directory data buffer */
 	void *dirs;
 	int	dirsize;
 	int	dirloc;
@@ -37,7 +37,7 @@ extern "C" {
 /*
  * functions defined on directories
  */
-DIR		*opendir(const int8_t *);
+DIR		*opendir(const char *);
 struct dirent	*readdir(DIR *);
 void		rewinddir(DIR *);
 int		closedir(DIR *);

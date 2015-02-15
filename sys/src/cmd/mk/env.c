@@ -16,7 +16,7 @@ enum {
 Envy	*envy;
 static int nextv;
 
-static int8_t	*myenv[] =
+static char	*myenv[] =
 {
 	"target",
 	"stem",
@@ -42,7 +42,7 @@ static int8_t	*myenv[] =
 void
 initenv(void)
 {
-	int8_t **p;
+	char **p;
 
 	for(p = myenv; *p; p++)
 		symlook(*p, S_INTERNAL, (void *)"");
@@ -50,20 +50,20 @@ initenv(void)
 }
 
 static void
-envinsert(int8_t *name, Word *value)
+envinsert(char *name, Word *value)
 {
 	static int envsize;
 
 	if (nextv >= envsize) {
 		envsize += ENVQUANTA;
-		envy = (Envy *) Realloc((int8_t *) envy, envsize*sizeof(Envy));
+		envy = (Envy *) Realloc((char *) envy, envsize*sizeof(Envy));
 	}
 	envy[nextv].name = name;
 	envy[nextv++].values = value;
 }
 
 static void
-envupd(int8_t *name, Word *value)
+envupd(char *name, Word *value)
 {
 	Envy *e;
 
@@ -81,7 +81,7 @@ envupd(int8_t *name, Word *value)
 static void
 ecopy(Symtab *s)
 {
-	int8_t **p;
+	char **p;
 
 	if(symlook(s->name, S_NOEXPORT, 0))
 		return;
@@ -94,7 +94,7 @@ ecopy(Symtab *s)
 void
 execinit(void)
 {
-	int8_t **p;
+	char **p;
 
 	nextv = 0;
 	for(p = myenv; *p; p++)
@@ -107,10 +107,10 @@ execinit(void)
 Envy*
 buildenv(Job *j, int slot)
 {
-	int8_t **p, *cp, *qp;
+	char **p, *cp, *qp;
 	Word *w, *v, **l;
 	int i;
-	int8_t buf[256];
+	char buf[256];
 
 	envupd("target", wdup(j->t));
 	if(j->r->attr&REGEXP)

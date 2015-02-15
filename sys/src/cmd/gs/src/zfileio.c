@@ -221,7 +221,7 @@ zwritehexstring_at(i_ctx_t *i_ctx_p, os_ptr op, uint odd)
     register stream *s;
     register byte ch;
     register const byte *p;
-    register const int8_t *const hex_digits = "0123456789abcdef";
+    register const char *const hex_digits = "0123456789abcdef";
     register uint len;
     int status;
 

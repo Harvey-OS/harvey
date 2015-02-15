@@ -26,7 +26,7 @@ struct mpint
 	int	size;	/* allocated digits */
 	int	top;	/* significant digits */
 	mpdigit	*p;
-	int8_t	flags;
+	char	flags;
 };
 
 enum
@@ -49,9 +49,9 @@ void	mpassign(mpint *old, mpint *new);
 mpint*	mprand(int bits, void (*gen)(uint8_t*, int), mpint *b);
 
 /* conversion */
-mpint*	strtomp(int8_t*, int8_t**, int, mpint*);	/* ascii */
+mpint*	strtomp(char*, char**, int, mpint*);	/* ascii */
 int	mpfmt(Fmt*);
-int8_t*	mptoa(mpint*, int, int8_t*, int);
+char*	mptoa(mpint*, int, char*, int);
 mpint*	letomp(uint8_t*, uint, mpint*);	/* byte array, little-endian */
 int	mptole(mpint*, uint8_t*, uint, uint8_t**);
 mpint*	betomp(uint8_t*, uint, mpint*);	/* byte array, little-endian */

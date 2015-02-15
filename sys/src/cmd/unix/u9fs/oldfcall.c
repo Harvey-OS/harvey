@@ -378,7 +378,7 @@ convM2Sold(uint8_t *ap, uint nap, Fcall *f)
 		SHORT(fid);
 		f->newfid = f->fid;
 		f->nwname = 1;
-		f->wname[0] = (int8_t*)p;
+		f->wname[0] = (char*)p;
 		p += 28;
 		break;
 
@@ -397,7 +397,7 @@ convM2Sold(uint8_t *ap, uint nap, Fcall *f)
 		if(p+2+28+4+1 > ep)
 			return 0;
 		SHORT(fid);
-		f->name = (int8_t*)p;
+		f->name = (char*)p;
 		p += 28;
 		LONG(perm);
 		CHAR(mode);
@@ -424,7 +424,7 @@ convM2Sold(uint8_t *ap, uint nap, Fcall *f)
 		p++;	/* pad(1) */
 		if(p+f->count > ep)
 			return 0;
-		f->data = (int8_t*)p;
+		f->data = (char*)p;
 		p += f->count;
 		break;
 
@@ -504,7 +504,7 @@ convM2Sold(uint8_t *ap, uint nap, Fcall *f)
 }
 
 uint
-convM2Dold(uint8_t *ap, uint nap, Dir *f, int8_t *strs)
+convM2Dold(uint8_t *ap, uint nap, Dir *f, char *strs)
 {
 	uint8_t *p;
 

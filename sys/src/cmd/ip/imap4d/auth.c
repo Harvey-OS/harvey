@@ -21,7 +21,7 @@
 void
 enableForwarding(void)
 {
-	int8_t buf[64], peer[64], *p;
+	char buf[64], peer[64], *p;
 	static uint32_t last;
 	uint32_t now;
 	int fd;
@@ -107,10 +107,10 @@ _exits("rob1");
 	free(w);
 }
 
-static int8_t*
+static char*
 authresp(void)
 {
-	int8_t *s, *t;
+	char *s, *t;
 	int n;
 
 	t = Brdline(&bin, '\n');
@@ -133,12 +133,12 @@ authresp(void)
 /*
  * rfc 2195 cram-md5 authentication
  */
-int8_t*
+char*
 cramauth(void)
 {
 	AuthInfo *ai;
 	Chalstate *cs;
-	int8_t *s, *t;
+	char *s, *t;
 	int n;
 
 	if((cs = auth_challenge("proto=cram role=server")) == nil)
@@ -175,12 +175,12 @@ cramauth(void)
 }
 
 AuthInfo*
-passLogin(int8_t *user, int8_t *secret)
+passLogin(char *user, char *secret)
 {
 	AuthInfo *ai;
 	Chalstate *cs;
 	uint8_t digest[MD5dlen];
-	int8_t response[2*MD5dlen+1];
+	char response[2*MD5dlen+1];
 	int i;
 
 	if((cs = auth_challenge("proto=cram role=server")) == nil)

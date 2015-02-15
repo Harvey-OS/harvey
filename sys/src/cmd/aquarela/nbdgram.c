@@ -109,12 +109,12 @@ print("udplistener - exiting\n");
 	qunlock(&udp);
 }
 
-static int8_t *
+static char *
 startlistener(void)
 {
 	qlock(&udp);
 	if (udp.thread < 0) {
-		int8_t *e;
+		char *e;
 		e = nbudpannounce(NbDgramPort, &udp.fd);
 		if (e) {
 			qunlock(&udp);
@@ -126,11 +126,11 @@ startlistener(void)
 	return nil;
 }
 
-int8_t *
+char *
 nbdgramlisten(NbName to, int (*deliver)(void *magic, NbDgram *s), void *magic)
 {
 	Listen *l;
-	int8_t *e;
+	char *e;
 	nbnametablefind(to, 1);
 	e = startlistener();
 	if (e)
@@ -153,7 +153,7 @@ nbdgramsendto(uint8_t *ipaddr, uint16_t port, NbDgram *s)
 	uint8_t msg[NbDgramMaxPacket + Udphdrsize];
 	int l;
 	int rv;
-	int8_t *e;
+	char *e;
 
 	e = startlistener();
 	if (e != nil)

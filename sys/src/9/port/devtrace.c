@@ -25,7 +25,7 @@ struct Trace {
 	void *start;
 	void *end;
 	int enabled;
-	int8_t name[16];
+	char name[16];
 };
 
 enum {
@@ -89,7 +89,7 @@ static uint64_t lastestamp; /* last entry timestamp */
 static uint64_t lastxstamp; /* last exit timestamp */
 
 /* Trace events can be either Entries or Exits */
-static int8_t eventname[] = {
+static char eventname[] = {
 	[TraceEntry] = 'E',
 	[TraceExit] = 'X',
 };
@@ -100,7 +100,7 @@ static Dirtab tracedir[]={
 	"trace",	{Qdata},	0,		0440,
 };
 
-int8_t hex[] = {
+char hex[] = {
 	'0',
 	'1',
 	'2',
@@ -121,7 +121,7 @@ int8_t hex[] = {
 
 /* big-endian ... */
 void
-hex8(uint32_t l, int8_t *c)
+hex8(uint32_t l, char *c)
 {
 	int i;
 	for(i = 2; i; i--){
@@ -131,7 +131,7 @@ hex8(uint32_t l, int8_t *c)
 }
 
 void
-hex16(uint32_t l, int8_t *c)
+hex16(uint32_t l, char *c)
 {
 	int i;
 	for(i = 4; i; i--){
@@ -141,7 +141,7 @@ hex16(uint32_t l, int8_t *c)
 }
 
 void
-hex32(uint32_t l, int8_t *c)
+hex32(uint32_t l, char *c)
 {
 	int i;
 	for(i = 8; i; i--){
@@ -151,7 +151,7 @@ hex32(uint32_t l, int8_t *c)
 }
 
 void
-hex64(uint64_t l, int8_t *c)
+hex64(uint64_t l, char *c)
 {
 	hex32(l>>32, c);
 	hex32(l, &c[8]);
@@ -452,13 +452,13 @@ freetrace(Trace *p)
 
 
 static Chan*
-traceattach(int8_t *spec)
+traceattach(char *spec)
 {
 	return devattach('T', spec);
 }
 
 static Walkqid*
-tracewalk(Chan *c, Chan *nc, int8_t **name, int nname)
+tracewalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, tracedir, nelem(tracedir), devgen);
 }
@@ -509,8 +509,8 @@ traceclose(Chan *)
 static int32_t
 traceread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	int8_t *buf;
-	int8_t *cp = a;
+	char *buf;
+	char *cp = a;
 	struct Tracelog *pl;
 	Trace *p;
 	int i, j;
@@ -660,8 +660,8 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 static int32_t
 tracewrite(Chan *c, void *a, int32_t n, int64_t)
 {
-	int8_t *tok[6]; //changed this so "tracein" works with the new 4th arg
-	int8_t *ep, *s = nil;
+	char *tok[6]; //changed this so "tracein" works with the new 4th arg
+	char *ep, *s = nil;
 	Trace *p, **pp, *foo;
 	int ntok;
 	int saveactive = traceactive;

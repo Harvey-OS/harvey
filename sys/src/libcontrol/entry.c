@@ -51,7 +51,7 @@ enum{
 	EValue,
 };
 
-static int8_t *cmds[] = {
+static char *cmds[] = {
 	[EAlign] =			"align",
 	[EBorder] =		"border",
 	[EBordercolor] =	"bordercolor",
@@ -272,7 +272,7 @@ entrykey(Entry *e, Rune r)
 {
 	Rune *s;
 	int n;
-	int8_t *p;
+	char *p;
 
 	switch(r){
 	default:
@@ -342,7 +342,7 @@ entrykeys(Control *c, Rune *rp)
 }
 
 Control*
-createentry(Controlset *cs, int8_t *name)
+createentry(Controlset *cs, char *name)
 {
 	Entry *e;
 

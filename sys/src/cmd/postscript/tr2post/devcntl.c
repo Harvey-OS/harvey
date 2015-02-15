@@ -14,12 +14,12 @@
 #include "../common/common.h"
 #include "tr2post.h"
 
-int8_t devname[20] = { 'u', 't', 'f', '\0' };
+char devname[20] = { 'u', 't', 'f', '\0' };
 int resolution;
 int minx, miny;
 
 struct sjt {
-	int8_t *str;
+	char *str;
 	void (*func)(void *);
 };
 
@@ -61,7 +61,7 @@ struct sjt specialjumptable[] = {
 
 void
 devcntl(Biobufhdr *inp) {
-	int8_t cmd[50], buf[256], str[MAXTOKENSIZE], *line;
+	char cmd[50], buf[256], str[MAXTOKENSIZE], *line;
 	int c, n;
 
 /*

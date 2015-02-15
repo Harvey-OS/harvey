@@ -201,7 +201,7 @@ tvp3026load(Vga* vga, Ctlr* ctlr)
 }
 
 static struct {
-	int8_t*	name;
+	char*	name;
 	void	(*load)(Vga*, Ctlr*);
 } clocks[] = {
 	{ "icd2061a",		icd2061aload, },
@@ -214,7 +214,7 @@ static struct {
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	int8_t name[Namelen+1], *p;
+	char name[Namelen+1], *p;
 	int i;
 
 	if(vga->clock == 0)
@@ -252,7 +252,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	int8_t name[Namelen+1], *p;
+	char name[Namelen+1], *p;
 	int i;
 
 	if(vga->clock == 0 || (vga->clock->flag & Fload))

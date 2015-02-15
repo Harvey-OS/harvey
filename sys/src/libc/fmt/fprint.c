@@ -11,7 +11,7 @@
 #include	<libc.h>
 
 int
-fprint(int fd, int8_t *fmt, ...)
+fprint(int fd, char *fmt, ...)
 {
 	int n;
 	va_list args;

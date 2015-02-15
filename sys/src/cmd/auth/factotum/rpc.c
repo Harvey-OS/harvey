@@ -44,7 +44,7 @@ Req *rpcwait;
 
 typedef struct Verb Verb;
 struct Verb {
-	int8_t *verb;
+	char *verb;
 	int iverb;
 };
 
@@ -66,7 +66,7 @@ Verb rpctab[] = {
 };
 
 static int
-classify(int8_t *s, Verb *verbtab, int nverbtab)
+classify(char *s, Verb *verbtab, int nverbtab)
 {
 	int i;
 
@@ -107,7 +107,7 @@ rpcwrite(Req *r)
 }
 
 static void
-retstring(Req *r, Fsstate *fss, int8_t *s)
+retstring(Req *r, Fsstate *fss, char *s)
 {
 	int n;
 
@@ -187,7 +187,7 @@ rdwrcheck(Req *r, Fsstate *fss)
 }
 
 static void
-logret(int8_t *pre, Fsstate *fss, int ret)
+logret(char *pre, Fsstate *fss, int ret)
 {
 	switch(ret){
 	default:
@@ -218,9 +218,9 @@ logret(int8_t *pre, Fsstate *fss, int ret)
 }
 
 void
-rpcrdwrlog(Fsstate *fss, int8_t *rdwr, uint n, int ophase, int ret)
+rpcrdwrlog(Fsstate *fss, char *rdwr, uint n, int ophase, int ret)
 {
-	int8_t buf0[40], buf1[40], pre[300];
+	char buf0[40], buf1[40], pre[300];
 
 	if(!debug)
 		return;
@@ -232,7 +232,7 @@ rpcrdwrlog(Fsstate *fss, int8_t *rdwr, uint n, int ophase, int ret)
 void
 rpcstartlog(Attr *attr, Fsstate *fss, int ret)
 {
-	int8_t pre[300], tmp[40];
+	char pre[300], tmp[40];
 
 	if(!debug)
 		return;
@@ -247,7 +247,7 @@ void
 rpcread(Req *r)
 {
 	Attr *attr;
-	int8_t *p;
+	char *p;
 	int ophase, ret;
 	uint8_t *e;
 	uint count;
@@ -393,9 +393,9 @@ Verb ctltab[] = {
  */
 
 int
-ctlwrite(int8_t *a, int atzero)
+ctlwrite(char *a, int atzero)
 {
-	int8_t *p;
+	char *p;
 	int i, nmatch, ret;
 	Attr *attr, **l, **lpriv, **lprotos, *pa, *priv, *protos;
 	Key *k;

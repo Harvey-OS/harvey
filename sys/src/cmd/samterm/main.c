@@ -31,13 +31,13 @@ int32_t	typestart = -1;
 int32_t	typeend = -1;
 int32_t	typeesc = -1;
 int32_t	modified = 0;		/* strange lookahead for menus */
-int8_t	hostlock = 1;
-int8_t	hasunlocked = 0;
+char	hostlock = 1;
+char	hasunlocked = 0;
 int	maxtab = 8;
 int	autoindent;
 
 void
-threadmain(int argc, int8_t *argv[])
+threadmain(int argc, char *argv[])
 {
 	int i, got, scr;
 	Text *t;
@@ -200,7 +200,7 @@ duplicate(Flayer *l, Rectangle r, Font *f, int close)
 	uint32_t n;
 
 	if(nl){
-		flnew(nl, gettext, l->user0, (int8_t *)t);
+		flnew(nl, gettext, l->user0, (char *)t);
 		flinit(nl, r, f, l->f.cols);
 		nl->origin = l->origin;
 		rp = (*l->textfn)(l, l->f.nchars, &n);
@@ -633,13 +633,13 @@ outcmd(void){
 }
 
 void
-panic(int8_t *s)
+panic(char *s)
 {
 	panic1(display, s);
 }
 
 void
-panic1(Display*, int8_t *s)
+panic1(Display*, char *s)
 {
 	fprint(2, "samterm:panic: ");
 	perror(s);

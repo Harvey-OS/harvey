@@ -74,7 +74,7 @@ Node*	nodmmv;
 
 Node*	nodvasop;
 
-int8_t	etconv[NTYPE];	/* for _vasop */
+char	etconv[NTYPE];	/* for _vasop */
 Init	initetconv[] =
 {
 	TCHAR,		1,	0,
@@ -91,7 +91,7 @@ Init	initetconv[] =
 };
 
 Node*
-fvn(int8_t *name, int type)
+fvn(char *name, int type)
 {
 	Node *n;
 

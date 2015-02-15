@@ -25,7 +25,7 @@ int
 fault(uintptr addr, int read)
 {
 	Segment *s;
-	int8_t *sps;
+	char *sps;
 	int i, color;
 
 if(up->nlocks) print("fault nlocks %d\n", up->nlocks);
@@ -68,9 +68,9 @@ if(up->nlocks) print("fault nlocks %d\n", up->nlocks);
 }
 
 static void
-faulterror(int8_t *s, Chan *c, int freemem)
+faulterror(char *s, Chan *c, int freemem)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	if(c && c->path){
 		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, up->errstr);
@@ -218,7 +218,7 @@ pio(Segment *s, uintptr addr, uint32_t soff, Page **p, int color)
 	Chan *c;
 	int n, ask;
 	uintmem pgsz;
-	int8_t *kaddr;
+	char *kaddr;
 	uint32_t daddr;
 	Page *loadrec;
 
@@ -246,7 +246,7 @@ pio(Segment *s, uintptr addr, uint32_t soff, Page **p, int color)
 
 	new = newpage(0, 0, addr, pgsz, color);
 	k = kmap(new);
-	kaddr = (int8_t*)VA(k);
+	kaddr = (char*)VA(k);
 
 	while(waserror()) {
 		if(strcmp(up->errstr, Eintr) == 0)

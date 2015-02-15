@@ -15,7 +15,7 @@ tbl	*restbl[TBLSIZE];	/* reserved words */
 tbl	*deftbl[TBLSIZE];	/* user-defined names */
 
 struct keyword {
-	int8_t	*key;
+	char	*key;
 	int	keyval;
 } keyword[]	={
 	"sub", 		SUB, 
@@ -82,8 +82,8 @@ struct keyword {
 };
 
 struct resword {
-	int8_t	*res;
-	int8_t	*resval;
+	char	*res;
+	char	*resval;
 } resword[]	={
 	">=",		"\\(>=",
 	"<=",		"\\(<=",
@@ -177,7 +177,7 @@ struct resword {
 	0,	0
 };
 
-int hash(int8_t *s)
+int hash(char *s)
 {
 	register unsigned int h;
 
@@ -187,7 +187,7 @@ int hash(int8_t *s)
 	return h;
 }
 
-tbl *lookup(tbl **tblp, int8_t *name)	/* find name in tbl */
+tbl *lookup(tbl **tblp, char *name)	/* find name in tbl */
 {
 	register tbl *p;
 
@@ -221,7 +221,7 @@ void init_tbl(void)	/* initialize tables */
 	extern int init_tune(void);
 
 	for (i = 0; keyword[i].key != NULL; i++)
-		install(keytbl, keyword[i].key, (int8_t *) 0,
+		install(keytbl, keyword[i].key, (char *) 0,
 			keyword[i].keyval);
 	for (i = 0; resword[i].res != NULL; i++)
 		install(restbl, resword[i].res, resword[i].resval, 0);

@@ -15,15 +15,15 @@
 
 int havefork = 0;
 
-static int8_t **
-rcargv(int8_t *s)
+static char **
+rcargv(char *s)
 {
 	int argc;
-	int8_t **argv;
+	char **argv;
 	word *p;
 
 	p = vlook("*")->val;
-	argv = emalloc((count(p)+6)*sizeof(int8_t*));
+	argv = emalloc((count(p)+6)*sizeof(char*));
 	argc = 0;
 	argv[argc++] = argv0;
 	if(flag['e'])
@@ -42,7 +42,7 @@ void
 Xasync(void)
 {
 	uint pid;
-	int8_t buf[20], **argv;
+	char buf[20], **argv;
 
 	Updenv();
 
@@ -63,9 +63,9 @@ Xasync(void)
 void
 Xbackq(void)
 {
-	int8_t wd[8193], **argv;
+	char wd[8193], **argv;
 	int c;
-	int8_t *s, *ewd=&wd[8192], *stop;
+	char *s, *ewd=&wd[8192], *stop;
 	struct io *f;
 	var *ifs = vlook("ifs");
 	word *v, *nextv;
@@ -128,7 +128,7 @@ Xpipe(void)
 	int pc=p->pc, pid;
 	int rfd=p->code[pc+1].i;
 	int pfd[2];
-	int8_t **argv;
+	char **argv;
 
 	if(pipe(pfd)<0){
 		Xerror1("can't get pipe");
@@ -163,7 +163,7 @@ Xpipefd(void)
 void
 Xsubshell(void)
 {
-	int8_t **argv;
+	char **argv;
 	int pid;
 
 	Updenv();
@@ -187,8 +187,8 @@ Xsubshell(void)
 int
 execforkexec(void)
 {
-	int8_t **argv;
-	int8_t file[1024];
+	char **argv;
+	char file[1024];
 	int nc;
 	word *path;
 	int pid;

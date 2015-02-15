@@ -80,9 +80,9 @@ static void memfree(Mem*);
 static int memhead(Mem *m, uint8_t *rp, int n);
 static int memtail(Mem *m, uint8_t *wp, int n);
 
-static int8_t EPacketSize[] = "bad packet size";
-static int8_t EPacketOffset[] = "bad packet offset";
-static int8_t EBadSize[] = "bad size";
+static char EPacketSize[] = "bad packet size";
+static char EPacketOffset[] = "bad packet offset";
+static char EBadSize[] = "bad size";
 
 #ifdef NOTDEF
 static void checkpacket(Packet*);
@@ -133,7 +133,7 @@ packetalloc(void)
 	p->first = nil;
 	p->last = nil;
 	p->next = nil;
-	p->pc = getcallerpc((int8_t*)&p+8);	/* might not work, but fine */
+	p->pc = getcallerpc((char*)&p+8);	/* might not work, but fine */
 
 	NOTFREE(p);
 	return p;

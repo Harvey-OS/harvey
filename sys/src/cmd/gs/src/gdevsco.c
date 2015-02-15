@@ -48,7 +48,7 @@
 #if defined(__STDC__)
 #include <stdlib.h>
 #else
-extern int8_t *getenv(const int8_t *);
+extern char *getenv(const char *);
 #endif
 
 #if defined(M_XENIX)
@@ -56,7 +56,7 @@ extern int8_t *getenv(const int8_t *);
 #include <fcntl.h>
 #else
 extern int ioctl(int, int,...);
-extern int open(const int8_t *, int,...);
+extern int open(const char *, int,...);
 #endif
 
 private int console_fd = -1;	/* file descriptor of console */
@@ -75,7 +75,7 @@ private void open_console(void);
 private void
 open_console()
 {
-    const int8_t *dev;
+    const char *dev;
 
     if (console_fd != -1)
 	return;

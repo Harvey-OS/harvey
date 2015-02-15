@@ -14,14 +14,14 @@
 
 struct here *here, **ehere;
 int ser = 0;
-int8_t tmp[] = "/tmp/here0000.0000";
-int8_t hex[] = "0123456789abcdef";
+char tmp[] = "/tmp/here0000.0000";
+char hex[] = "0123456789abcdef";
 
 void psubst(io*, uint8_t*);
 void pstrs(io*, word*);
 
 void
-hexnum(int8_t *p, int n)
+hexnum(char *p, int n)
 {
 	*p++ = hex[(n>>12)&0xF];
 	*p++ = hex[(n>>8)&0xF];
@@ -59,8 +59,8 @@ void
 readhere(void)
 {
 	int c, subst;
-	int8_t *s, *tag;
-	int8_t line[NLINE+1];
+	char *s, *tag;
+	char line[NLINE+1];
 	io *f;
 	struct here *h, *nexth;
 
@@ -95,7 +95,7 @@ readhere(void)
 		closeio(f);
 		cleanhere(h->name);
 		nexth = h->next;
-		efree((int8_t *)h);
+		efree((char *)h);
 	}
 	here = 0;
 	doprompt = 1;
@@ -114,7 +114,7 @@ psubst(io *f, uint8_t *s)
 			if(*s < Runeself)
 				pchr(f, *s++);
 			else{
-				n = chartorune(&r, (int8_t *)s);
+				n = chartorune(&r, (char *)s);
 				while(n-- > 0)
 					pchr(f, *s++);
 			}
@@ -138,7 +138,7 @@ psubst(io *f, uint8_t *s)
 						pstr(f, star->word);
 					}
 				}else
-					pstrs(f, vlook((int8_t *)s)->val);
+					pstrs(f, vlook((char *)s)->val);
 				*t = savec;
 				if(savec == '^')
 					t++;

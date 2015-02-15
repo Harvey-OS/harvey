@@ -33,7 +33,7 @@ clrbio(Acctbio *a)
 int
 ordbio(Biobuf *b, Acctbio *a)
 {
-	int8_t *p, *cp, *next;
+	char *p, *cp, *next;
 	int ne;
 
 	clrbio(a);

@@ -220,7 +220,7 @@ private int
 attach_cmap_resource(gx_device_pdf *pdev, pdf_font_resource_t *pdfont, 
 		const gs_cmap_t *pcmap, int font_index_only)
 {
-    const int8_t *const *pcmn =
+    const char *const *pcmn =
 	standard_cmap_names +
 	(pdev->CompatibilityLevel < 1.4 ? END_PDF14_CMAP_NAMES_INDEX : 0);
     bool is_identity = false;
@@ -418,7 +418,7 @@ scan_cmap_text(pdf_text_enum_t *pte)
 	    code = pdf_font_used_glyph(pfd, glyph, (gs_font_base *)subfont);
 	    if (code == gs_error_rangecheck) {
 		if (!(pdsubf->used[cid >> 3] & (0x80 >> (cid & 7)))) {
-		    int8_t buf[gs_font_name_max + 1];
+		    char buf[gs_font_name_max + 1];
 		    int l = min(sizeof(buf) - 1, subfont->font_name.size);
 
 		    memcpy(buf, subfont->font_name.chars, l);

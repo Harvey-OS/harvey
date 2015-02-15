@@ -28,7 +28,7 @@ static String*	getaddr(Node *p);
 extern int
 default_from(message *mp)
 {
-	int8_t *cp, *lp;
+	char *cp, *lp;
 
 	cp = getenv("upasname");
 	lp = getlog();
@@ -77,7 +77,7 @@ m_free(message *mp)
 	s_free(mp->havesender);
 	s_free(mp->havereplyto);
 	s_free(mp->havesubject);
-	free((int8_t *)mp);
+	free((char *)mp);
 }
 
 /* read a message into a temp file, return an open fd to it in mp->fd */
@@ -87,7 +87,7 @@ m_read_to_file(Biobuf *fp, message *mp)
 	int fd;
 	int n;
 	String *file;
-	int8_t buf[4*1024];
+	char buf[4*1024];
 
 	file = s_new();
 	/*
@@ -189,7 +189,7 @@ rfc822cruft(message *mp)
 	Field *f;
 	Node *p;
 	String *body, *s;
-	int8_t *cp;
+	char *cp;
 
 	/*
 	 *  parse headers in in-core part
@@ -266,7 +266,7 @@ m_read(Biobuf *fp, int rmail, int interactive)
 {
 	message *mp;
 	Resub subexp[10];
-	int8_t *line;
+	char *line;
 	int first;
 	int n;
 
@@ -362,9 +362,9 @@ m_read(Biobuf *fp, int rmail, int interactive)
 
 /* return a piece of message starting at `offset' */
 extern int
-m_get(message *mp, int32_t offset, int8_t **pp)
+m_get(message *mp, int32_t offset, char **pp)
 {
-	static int8_t buf[4*1024];
+	static char buf[4*1024];
 
 	/*
 	 *  are we past eof?
@@ -398,7 +398,7 @@ m_noescape(message *mp, Biobuf *fp)
 {
 	int32_t offset;
 	int n;
-	int8_t *p;
+	char *p;
 
 	for(offset = 0; offset < mp->size; offset += n){
 		n = m_get(mp, offset, &p);
@@ -420,11 +420,11 @@ m_noescape(message *mp, Biobuf *fp)
 static int
 m_escape(message *mp, Biobuf *fp)
 {
-	int8_t *p, *np;
-	int8_t *end;
+	char *p, *np;
+	char *end;
 	int32_t offset;
 	int m, n;
-	int8_t *start;
+	char *start;
 
 	for(offset = 0; offset < mp->size; offset += n){
 		n = m_get(mp, offset, &start);
@@ -473,13 +473,13 @@ printfrom(message *mp, Biobuf *fp)
 	return rv;
 }
 
-static int8_t *
-rewritezone(int8_t *z)
+static char *
+rewritezone(char *z)
 {
 	int mindiff;
-	int8_t s;
+	char s;
 	Tm *tm;
-	static int8_t x[7];
+	static char x[7];
 
 	tm = localtime(time(0));
 	mindiff = tm->tzoff/60;
@@ -501,7 +501,7 @@ rewritezone(int8_t *z)
 int
 isutf8(String *s)
 {
-	int8_t *p;
+	char *p;
 	
 	for(p = s_to_c(s);  *p; p++)
 		if(*p&0x80)
@@ -519,10 +519,10 @@ printutf8mime(Biobuf *b)
 
 /* output a message */
 extern int
-m_print(message *mp, Biobuf *fp, int8_t *remote, int mbox)
+m_print(message *mp, Biobuf *fp, char *remote, int mbox)
 {
 	String *date, *sender;
-	int8_t *f[6];
+	char *f[6];
 	int n;
 
 	sender = unescapespecial(s_clone(mp->sender));

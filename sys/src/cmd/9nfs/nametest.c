@@ -9,7 +9,7 @@
 
 #include "all.h"
 
-void	mapinit(int8_t*, int8_t*);
+void	mapinit(char*, char*);
 
 int	debug;
 int	rpcdebug;
@@ -88,7 +88,7 @@ main(int argc, char **argv)
 }
 
 void
-mapinit(int8_t *file, int8_t *client)
+mapinit(char *file, char *client)
 {
 	if(file){
 		print("reading %s...\n", file);

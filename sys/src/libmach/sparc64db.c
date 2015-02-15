@@ -16,10 +16,10 @@
  * Sparc64-specific debugger interface
  */
 
-static	int8_t	*sparc64excep(Map*, Rgetter);
+static	char	*sparc64excep(Map*, Rgetter);
 static	int	sparc64foll(Map*, uint64_t, Rgetter, uint64_t*);
-static	int	sparc64inst(Map*, uint64_t, int8_t, int8_t*, int);
-static	int	sparc64das(Map*, uint64_t, int8_t*, int);
+static	int	sparc64inst(Map*, uint64_t, char, char*, int);
+static	int	sparc64das(Map*, uint64_t, char*, int);
 static	int	sparc64instlen(Map*, uint64_t);
 
 Machdata sparc64mach =
@@ -42,7 +42,7 @@ Machdata sparc64mach =
 	sparc64instlen,		/* instruction size */
 };
 
-static int8_t *trapname[] =
+static char *trapname[] =
 {
 	0,
 	"power on reset",
@@ -79,12 +79,12 @@ static int8_t *trapname[] =
 	"STQF mem address not aligned",
 };
 
-static int8_t*
+static char*
 excname(uint32_t tt)
 {
-	static int8_t buf[32];
+	static char buf[32];
 
-	if(tt < sizeof trapname/sizeof(int8_t*) && trapname[tt])
+	if(tt < sizeof trapname/sizeof(char*) && trapname[tt])
 		return trapname[tt];
 	if(tt >= 258)
 		sprint(buf, "trap instruction %ld", tt-128);
@@ -111,7 +111,7 @@ excname(uint32_t tt)
 	return buf;
 }
 
-static int8_t*
+static char*
 sparc64excep(Map *map, Rgetter rget)
 {
 	int32_t tt;
@@ -123,12 +123,12 @@ sparc64excep(Map *map, Rgetter rget)
 	/* Sparc disassembler and related functions */
 
 struct opcode {
-	int8_t	*mnemonic;
-	void	(*f)(struct instr*, int8_t*);
+	char	*mnemonic;
+	void	(*f)(struct instr*, char*);
 	int	flag;
 };
 
-static	int8_t FRAMENAME[] = ".frame";
+static	char FRAMENAME[] = ".frame";
 
 typedef struct instr Instr;
 
@@ -153,38 +153,38 @@ struct instr {
 	int32_t	w0;
 	int32_t	w1;
 	uint64_t	addr;		/* pc of instruction */
-	int8_t	*curr;		/* current fill level in output buffer */
-	int8_t	*end;		/* end of buffer */
+	char	*curr;		/* current fill level in output buffer */
+	char	*end;		/* end of buffer */
 	int 	size;		/* number of longs in instr */
-	int8_t	*err;		/* errmsg */
+	char	*err;		/* errmsg */
 };
 
 static	Map	*mymap;		/* disassembler context */
 static	int	dascase;
 
 static int	mkinstr(uint64_t, Instr*);
-static void	bra1(Instr*, int8_t*, int8_t*[]);
-static void	bra(Instr*, int8_t*);
-static void	fbra(Instr*, int8_t*);
-static void	cbra(Instr*, int8_t*);
-static void	unimp(Instr*, int8_t*);
-static void	fpop(Instr*, int8_t*);
-static void	shift(Instr*, int8_t*);
-static void	sethi(Instr*, int8_t*);
-static void	load(Instr*, int8_t*);
-static void	loada(Instr*, int8_t*);
-static void	store(Instr*, int8_t*);
-static void	storea(Instr*, int8_t*);
-static void	add(Instr*, int8_t*);
-static void	cmp(Instr*, int8_t*);
-static void	wr(Instr*, int8_t*);
-static void	jmpl(Instr*, int8_t*);
-static void	rd(Instr*, int8_t*);
-static void	loadf(Instr*, int8_t*);
-static void	storef(Instr*, int8_t*);
-static void	loadc(Instr*, int8_t*);
-static void	loadcsr(Instr*, int8_t*);
-static void	trap(Instr*, int8_t*);
+static void	bra1(Instr*, char*, char*[]);
+static void	bra(Instr*, char*);
+static void	fbra(Instr*, char*);
+static void	cbra(Instr*, char*);
+static void	unimp(Instr*, char*);
+static void	fpop(Instr*, char*);
+static void	shift(Instr*, char*);
+static void	sethi(Instr*, char*);
+static void	load(Instr*, char*);
+static void	loada(Instr*, char*);
+static void	store(Instr*, char*);
+static void	storea(Instr*, char*);
+static void	add(Instr*, char*);
+static void	cmp(Instr*, char*);
+static void	wr(Instr*, char*);
+static void	jmpl(Instr*, char*);
+static void	rd(Instr*, char*);
+static void	loadf(Instr*, char*);
+static void	storef(Instr*, char*);
+static void	loadc(Instr*, char*);
+static void	loadcsr(Instr*, char*);
+static void	trap(Instr*, char*);
 
 static struct opcode sparc64op0[8] = {
 	[0]	"UNIMP",	unimp,	0,	/* page 137 */
@@ -320,10 +320,10 @@ static struct opcode sparc64op3[64]={
 static int
 Tfmt(Fmt *f)
 {
-	int8_t buf[128];
-	int8_t *s, *t, *oa;
+	char buf[128];
+	char *s, *t, *oa;
 
-	oa = va_arg(f->args, int8_t*);
+	oa = va_arg(f->args, char*);
 	if(dascase){
 		for(s=oa,t=buf; *t = *s; s++,t++)
 			if('A'<=*t && *t<='Z')
@@ -334,7 +334,7 @@ Tfmt(Fmt *f)
 }
 
 static void
-bprint(Instr *i, int8_t *fmt, ...)
+bprint(Instr *i, char *fmt, ...)
 {
 	va_list arg;
 
@@ -410,10 +410,10 @@ mkinstr(uint64_t pc, Instr *i)
 }
 
 static int
-printins(Map *map, uint64_t pc, int8_t *buf, int n)
+printins(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr instr;
-	void (*f)(Instr*, int8_t*);
+	void (*f)(Instr*, char*);
 
 	mymap = map;
 	memset(&instr, 0, sizeof(instr));
@@ -463,7 +463,7 @@ printins(Map *map, uint64_t pc, int8_t *buf, int n)
 }
 
 static int
-sparc64inst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
+sparc64inst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	static int fmtinstalled = 0;
 
@@ -481,7 +481,7 @@ sparc64inst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
 }
 
 static int
-sparc64das(Map *map, uint64_t pc, int8_t *buf, int n)
+sparc64das(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr instr;
 
@@ -565,7 +565,7 @@ address(Instr *i)
 }
 
 static void
-unimp(Instr *i, int8_t *m)
+unimp(Instr *i, char *m)
 {
 	bprint(i, "%T", m);
 }
@@ -628,7 +628,7 @@ static char	*cbratab[16] = {	/* page 91 */
 };
 
 static void
-bra1(Instr *i, int8_t *m, int8_t *tab[])
+bra1(Instr *i, char *m, char *tab[])
 {
 	int32_t imm;
 
@@ -643,25 +643,25 @@ bra1(Instr *i, int8_t *m, int8_t *tab[])
 }
 
 static void
-bra(Instr *i, int8_t *m)			/* page 91 */
+bra(Instr *i, char *m)			/* page 91 */
 {
 	bra1(i, m, bratab);
 }
 
 static void
-fbra(Instr *i, int8_t *m)			/* page 93 */
+fbra(Instr *i, char *m)			/* page 93 */
 {
 	bra1(i, m, fbratab);
 }
 
 static void
-cbra(Instr *i, int8_t *m)			/* page 95 */
+cbra(Instr *i, char *m)			/* page 95 */
 {
 	bra1(i, m, cbratab);
 }
 
 static void
-trap(Instr *i, int8_t *m)			/* page 101 */
+trap(Instr *i, char *m)			/* page 101 */
 {
 	if(i->i == 0)
 		bprint(i, "%T%T\tR%d+R%d", m, bratab[i->cond], i->rs2, i->rs1);
@@ -670,7 +670,7 @@ trap(Instr *i, int8_t *m)			/* page 101 */
 }
 
 static void
-sethi(Instr *i, int8_t *m)		/* page 89 */
+sethi(Instr *i, char *m)		/* page 89 */
 {
 	uint32_t imm;
 
@@ -690,19 +690,19 @@ sethi(Instr *i, int8_t *m)		/* page 89 */
 	bprint(i, "MOVW\t$%lux, R%d", i->imm32, i->target);
 }
 
-static int8_t ldtab[] = {
+static char ldtab[] = {
 	'W',
 	'B',
 	'H',
 	'D',
 };
 
-static int8_t*
-moveinstr(int op3, int8_t *m)
+static char*
+moveinstr(int op3, char *m)
 {
-	int8_t *s;
+	char *s;
 	int c;
-	static int8_t buf[8];
+	static char buf[8];
 
 	if(!dascase){
 		/* batshit cases */
@@ -721,7 +721,7 @@ moveinstr(int op3, int8_t *m)
 }
 
 static void
-load(Instr *i, int8_t *m)			/* page 68 */
+load(Instr *i, char *m)			/* page 68 */
 {
 	m = moveinstr(i->op3, m);
 	if(i->i == 0)
@@ -734,7 +734,7 @@ load(Instr *i, int8_t *m)			/* page 68 */
 }
 
 static void
-loada(Instr *i, int8_t *m)		/* page 68 */
+loada(Instr *i, char *m)		/* page 68 */
 {
 	m = moveinstr(i->op3, m);
 	if(i->i == 0)
@@ -744,7 +744,7 @@ loada(Instr *i, int8_t *m)		/* page 68 */
 }
 
 static void
-store(Instr *i, int8_t *m)		/* page 74 */
+store(Instr *i, char *m)		/* page 74 */
 {
 	m = moveinstr(i->op3, m);
 	if(i->i == 0)
@@ -757,7 +757,7 @@ store(Instr *i, int8_t *m)		/* page 74 */
 }
 
 static void
-storea(Instr *i, int8_t *m)		/* page 74 */
+storea(Instr *i, char *m)		/* page 74 */
 {
 	m = moveinstr(i->op3, m);
 	if(i->i == 0)
@@ -767,7 +767,7 @@ storea(Instr *i, int8_t *m)		/* page 74 */
 }
 
 static void
-shift(Instr *i, int8_t *m)		/* page 88 */
+shift(Instr *i, char *m)		/* page 88 */
 {
 	if(i->i == 0){
 		if(i->rs1 == i->rd)
@@ -795,7 +795,7 @@ shift(Instr *i, int8_t *m)		/* page 88 */
 }
 
 static void
-add(Instr *i, int8_t *m)			/* page 82 */
+add(Instr *i, char *m)			/* page 82 */
 {
 	if(i->i == 0){
 		if(dascase)
@@ -823,7 +823,7 @@ add(Instr *i, int8_t *m)			/* page 82 */
 }
 
 static void
-cmp(Instr *i, int8_t *m)
+cmp(Instr *i, char *m)
 {
 	if(dascase || i->rd){
 		add(i, m);
@@ -835,7 +835,7 @@ cmp(Instr *i, int8_t *m)
 		bprint(i, "CMP\tR%d, $%ux", i->rs1, i->simm13);
 }
 
-static int8_t *regtab[4] = {
+static char *regtab[4] = {
 	"Y",
 	"PSTATE",
 	"WIM",	/* XXX not any more */
@@ -843,7 +843,7 @@ static int8_t *regtab[4] = {
 };
 
 static void
-wr(Instr *i, int8_t *m)			/* page 82 */
+wr(Instr *i, char *m)			/* page 82 */
 {
 	if(dascase){
 		if(i->i == 0)
@@ -862,7 +862,7 @@ wr(Instr *i, int8_t *m)			/* page 82 */
 }
 
 static void
-rd(Instr *i, int8_t *m)			/* page 103 */
+rd(Instr *i, char *m)			/* page 103 */
 {
 	if(i->rs1==15 && i->rd==0){
 		m = "stbar";
@@ -877,7 +877,7 @@ rd(Instr *i, int8_t *m)			/* page 103 */
 }
 
 static void
-jmpl(Instr *i, int8_t *m)			/* page 82 */
+jmpl(Instr *i, char *m)			/* page 82 */
 {
 	if(i->i == 0){
 		if(i->rd == 15)
@@ -896,7 +896,7 @@ jmpl(Instr *i, int8_t *m)			/* page 82 */
 }
 
 static void
-loadf(Instr *i, int8_t *m)		/* page 70 */
+loadf(Instr *i, char *m)		/* page 70 */
 {
 	if(!dascase){
 		m = "FMOVD";
@@ -918,7 +918,7 @@ loadf(Instr *i, int8_t *m)		/* page 70 */
 }
 
 static
-void storef(Instr *i, int8_t *m)		/* page 70 */
+void storef(Instr *i, char *m)		/* page 70 */
 {
 	if(!dascase){
 		m = "FMOVD";
@@ -941,7 +941,7 @@ void storef(Instr *i, int8_t *m)		/* page 70 */
 }
 
 static
-void loadc(Instr *i, int8_t *m)		/* page 72 */
+void loadc(Instr *i, char *m)		/* page 72 */
 {
 	if(i->i == 0)
 		bprint(i, "%s\t(R%d+R%d), C%d", m, i->rs1, i->rs2, i->rd);
@@ -953,7 +953,7 @@ void loadc(Instr *i, int8_t *m)		/* page 72 */
 }
 
 static
-void loadcsr(Instr *i, int8_t *m)		/* page 72 */
+void loadcsr(Instr *i, char *m)		/* page 72 */
 {
 	if(i->i == 0)
 		bprint(i, "%s\t(R%d+R%d), CSR", m, i->rs1, i->rs2);
@@ -966,7 +966,7 @@ void loadcsr(Instr *i, int8_t *m)		/* page 72 */
 
 static struct{
 	int	opf;
-	int8_t	*name;
+	char	*name;
 } fptab1[] = {				/* ignores rs1 */
 	0xC4,	"FITOS",		/* page 109 */
 	0xC8,	"FITOD",
@@ -996,7 +996,7 @@ static struct{
 
 static struct{
 	int	opf;
-	int8_t	*name;
+	char	*name;
 } fptab2[] = {				/* uses rs1 */
 
 	0x41,	"FADDS",		/* page 114 */
@@ -1024,7 +1024,7 @@ static struct{
 };
 
 static void
-fpop(Instr *i, int8_t *m)			/* page 108-116 */
+fpop(Instr *i, char *m)			/* page 108-116 */
 {
 	int j;
 
@@ -1049,7 +1049,7 @@ static int
 sparc64foll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
 	uint32_t w, r1, r2;
-	int8_t buf[8];
+	char buf[8];
 	Instr i;
 
 	mymap = map;

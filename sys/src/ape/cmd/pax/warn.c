@@ -48,8 +48,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: warn.c,v 1.2 89/02/12 10:06:15 mark Exp $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: warn.c,v 1.2 89/02/12 10:06:15 mark Exp $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -89,7 +89,7 @@ static void prsize();
 
 #ifdef __STDC__
 
-void warnarch(int8_t *msg, OFFSET adjust)
+void warnarch(char *msg, OFFSET adjust)
 
 #else 
 
@@ -124,7 +124,7 @@ OFFSET          adjust;
 
 #ifdef __STDC__
 
-int8_t *strerror(void)
+char *strerror(void)
 
 #else
 
@@ -136,7 +136,7 @@ char *strerror()
 #undef strerror
     return (strerror(errno));
 #else
-    static int8_t     msg[40];		/* used for "Unknown error" messages */
+    static char     msg[40];		/* used for "Unknown error" messages */
 
     if (errno > 0 && errno < sys_nerr) {
 	return (sys_errlist[errno]);
@@ -209,7 +209,7 @@ OFFSET          size;		/* current archive position to be printed */
 
 #ifdef __STDC__
 
-void fatal(int8_t *why)
+void fatal(char *why)
 
 #else
 
@@ -242,7 +242,7 @@ char           *why;		/* description of reason for termination */
 
 #ifdef __STDC__
 
-void warn(int8_t *what, int8_t *why)
+void warn(char *what, char *why)
 
 #else
 

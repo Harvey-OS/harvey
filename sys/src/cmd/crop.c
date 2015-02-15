@@ -32,7 +32,7 @@ usage(void)
 }
 
 int
-getint(int8_t *s)
+getint(char *s)
 {
 	if(s == nil)
 		usage();

@@ -18,7 +18,7 @@ enum {
 	Cancel=	0x18,
 };
 
-int notifyf(void*, int8_t*);
+int notifyf(void*, char*);
 int readupto(uint8_t*, int);
 int receive(int, uint8_t);
 void send(int);
@@ -147,7 +147,7 @@ receive(int fd, uint8_t seqno)
 			if(debug){
 				fprint(dfd, "resync %2.2ux %d %d %ux %ux\n", buf[0],
 					buf[1], buf[2], sum, buf[131]);
-				write(dfd, (int8_t*)buf+3, 128);
+				write(dfd, (char*)buf+3, 128);
 				fprint(dfd, "\n");
 			}
 			p = memchr(buf+1, Soh, 131);
@@ -182,7 +182,7 @@ receive(int fd, uint8_t seqno)
 }
 
 int
-notifyf(void *a, int8_t *msg)
+notifyf(void *a, char *msg)
 {
 	USED(a);
 	if(strcmp(msg, "alarm") == 0)

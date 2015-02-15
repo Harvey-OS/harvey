@@ -97,7 +97,7 @@ zfont_encode_char(gs_font *pfont, gs_char chr, gs_glyph_space_t gspace)
 	       Low level devices don't pass here, because regular PS interpretation 
 	       doesn't need such names.
 	    */
-	    int8_t buf[20];
+	    char buf[20];
 	    int code;
 
 	    if (gspace == GLYPH_SPACE_NOGEN)
@@ -121,7 +121,7 @@ zfont_glyph_name(gs_font *font, gs_glyph index, gs_const_string *pstr)
     ref nref, sref;
 
     if (index >= gs_min_cid_glyph) {	/* Fabricate a numeric name. */
-	int8_t cid_name[sizeof(gs_glyph) * 3 + 1];
+	char cid_name[sizeof(gs_glyph) * 3 + 1];
 	int code;
 
 	sprintf(cid_name, "%lu", (uint32_t) index);
@@ -212,7 +212,7 @@ const op_def zbfont_op_defs[] =
 /* Convert strings to executable names for build_proc_refs. */
 int
 build_proc_name_refs(const gs_memory_t *mem, build_proc_refs * pbuild,
-		     const int8_t *bcstr, const int8_t *bgstr)
+		     const char *bcstr, const char *bgstr)
 {
     int code;
 

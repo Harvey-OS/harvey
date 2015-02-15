@@ -9,11 +9,11 @@
 
 #include "ssh.h"
 
-int8_t *cipherlist = "blowfish rc4 3des";
-int8_t *authlist = "tis";
+char *cipherlist = "blowfish rc4 3des";
+char *authlist = "tis";
 
 void fromnet(Conn*);
-void startcmd(Conn*, int8_t*, int*, int*);
+void startcmd(Conn*, char*, int*, int*);
 int maxmsg = 256*1024;
 
 Cipher *allcipher[] = {
@@ -31,7 +31,7 @@ Authsrv *allauthsrv[] = {
 };
 
 Cipher*
-findcipher(int8_t *name, Cipher **list, int nlist)
+findcipher(char *name, Cipher **list, int nlist)
 {
 	int i;
 
@@ -43,7 +43,7 @@ findcipher(int8_t *name, Cipher **list, int nlist)
 }
 
 Authsrv*
-findauthsrv(int8_t *name, Authsrv **list, int nlist)
+findauthsrv(char *name, Authsrv **list, int nlist)
 {
 	int i;
 
@@ -120,7 +120,7 @@ void
 fromnet(Conn *c)
 {
 	int infd, kidpid, n;
-	int8_t *cmd;
+	char *cmd;
 	Msg *m;
 
 	infd = kidpid = -1;
@@ -206,7 +206,7 @@ InteractiveMode:
 void
 copyout(Conn *c, int fd, int mtype)
 {
-	int8_t buf[8192];
+	char buf[8192];
 	int n, max, pid;
 	Msg *m;
 
@@ -236,12 +236,12 @@ copyout(Conn *c, int fd, int mtype)
 }
 
 void
-startcmd(Conn *c, int8_t *cmd, int *kidpid, int *kidin)
+startcmd(Conn *c, char *cmd, int *kidpid, int *kidin)
 {
 	int i, pid, kpid;
 	int pfd[3][2];
-	int8_t *dir;
-	int8_t *sysname, *tz;
+	char *dir;
+	char *sysname, *tz;
 	Msg *m;
 	Waitmsg *w;
 

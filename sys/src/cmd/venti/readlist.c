@@ -13,7 +13,7 @@
 #include <venti.h>
 #include <bio.h>
 
-int8_t *host;
+char *host;
 Biobuf b;
 VtConn *z;
 uint8_t *buf;
@@ -28,7 +28,7 @@ usage(void)
 }
 
 int
-parsescore(uint8_t *score, int8_t *buf, int n)
+parsescore(uint8_t *score, char *buf, int n)
 {
 	int i, c;
 
@@ -98,7 +98,7 @@ threadmain(int argc, char *argv[])
 void
 run(Biobuf *b)
 {
-	int8_t *p, *f[10];
+	char *p, *f[10];
 	int nf;
 	uint8_t score[20];
 	int type, n;

@@ -26,9 +26,9 @@ getl(uint8_t *p)	/* return next line of input, throw away trailing '\n' */
 }
 
 void
-printerr(int8_t *type, int8_t *fmt, va_list argl)
+printerr(char *type, char *fmt, va_list argl)
 {
-	int8_t buf[1024];
+	char buf[1024];
 
 	if(!eof)fprint(errorf,"%s:%d  ", yyfile, yyline);
 	fprint(errorf,"(%s) ", type);
@@ -38,7 +38,7 @@ printerr(int8_t *type, int8_t *fmt, va_list argl)
 
 
 void
-error(int8_t *s,...)
+error(char *s,...)
 {
 	va_list argl;
 
@@ -60,7 +60,7 @@ error(int8_t *s,...)
 }
 
 void
-warning(int8_t *s,...)
+warning(char *s,...)
 {
 	va_list argl;
 
@@ -170,7 +170,7 @@ lookup(uint8_t *s, uint8_t **t)
 	int i;
 	i = 0;
 	while(*t){
-		if(strcmp((int8_t *)s, *(int8_t **)t) == 0)
+		if(strcmp((char *)s, *(char **)t) == 0)
 			return(i);
 		i++;
 		t++;
@@ -183,7 +183,7 @@ cpyact(void)
 { /* copy C action to the next ; or closing } */
 	int brac, c, mth;
 	int savline, sw;
-	int8_t *savfile;
+	char *savfile;
 
 	brac = 0;
 	sw = TRUE;
@@ -438,7 +438,7 @@ munputs(uint8_t *p)
 	int i,j;
 	*pushptr++ = peek;
 	peek = p[0];
-	i = strlen((int8_t*)p);
+	i = strlen((char*)p);
 	for(j = i-1; j>=1; j--)
 		*pushptr++ = p[j];
 	if(pushptr >= pushc+TOKENSIZE)

@@ -15,7 +15,7 @@
 Memimage*
 creadmemimage(int fd)
 {
-	int8_t hdr[5*12+1];
+	char hdr[5*12+1];
 	Rectangle r;
 	int m, nb, miny, maxy, new, ldepth, ncblock;
 	uint8_t *buf;

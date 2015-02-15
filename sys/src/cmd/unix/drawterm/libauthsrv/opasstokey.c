@@ -12,7 +12,7 @@
 #include <authsrv.h>
 
 int
-opasstokey(int8_t *key, int8_t *p)
+opasstokey(char *key, char *p)
 {
 	uint8_t t[10];
 	int c, n;
@@ -23,7 +23,7 @@ opasstokey(int8_t *key, int8_t *p)
 		return 0;
 	if(n > 10)
 		n = 10;
-	strncpy((int8_t*)t, p, n);
+	strncpy((char*)t, p, n);
 	if(n >= 9){
 		c = p[8] & 0xf;
 		if(n == 10)

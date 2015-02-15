@@ -21,28 +21,28 @@ enum
 typedef struct Mx	Mx;
 struct Mx
 {
-	int8_t	host[Maxstring];
-	int8_t	ip[Maxipstr];		/* this is just the first ip */
+	char	host[Maxstring];
+	char	ip[Maxipstr];		/* this is just the first ip */
 	int	pref;
 };
 
-int8_t	*bustedmxs[Maxbustedmx];
+char	*bustedmxs[Maxbustedmx];
 Ndb *db;
 
 static Mx mx[Nmx];
 
-static int	callmx(DS*, int8_t*, int8_t*);
+static int	callmx(DS*, char*, char*);
 static int	compar(void*, void*);
 static void	expand_meta(DS *ds);
-static int	mxlookup(DS*, int8_t*);
-static int	mxlookup1(DS*, int8_t*);
+static int	mxlookup(DS*, char*);
+static int	mxlookup1(DS*, char*);
 
 int
-mxdial(int8_t *addr, int8_t *ddomain, int8_t *gdomain)
+mxdial(char *addr, char *ddomain, char *gdomain)
 {
 	int fd;
 	DS ds;
-	int8_t err[Errlen];
+	char err[Errlen];
 
 	addr = netmkaddr(addr, 0, "smtp");
 	dial_string_parse(addr, &ds);
@@ -59,9 +59,9 @@ mxdial(int8_t *addr, int8_t *ddomain, int8_t *gdomain)
 }
 
 static int
-busted(int8_t *mx)
+busted(char *mx)
 {
-	int8_t **bmp;
+	char **bmp;
 
 	for (bmp = bustedmxs; *bmp != nil; bmp++)
 		if (strcmp(mx, *bmp) == 0)
@@ -70,7 +70,7 @@ busted(int8_t *mx)
 }
 
 static int
-timeout(void*, int8_t *msg)
+timeout(void*, char *msg)
 {
 	if(strstr(msg, "alarm"))
 		return 1;
@@ -91,7 +91,7 @@ timedwrite(int fd, void *buf, int32_t len, int32_t ms)
 }
 
 static int
-isloopback(int8_t *ip)
+isloopback(char *ip)
 {
 	return strcmp(ip, "127.0.0.1") == 0 || strcmp(ip, "::1") == 0;
 }
@@ -101,11 +101,11 @@ isloopback(int8_t *ip)
  *  most preferred first
  */
 static int
-callmx(DS *ds, int8_t *dest, int8_t *domain)
+callmx(DS *ds, char *dest, char *domain)
 {
 	int fd, i, nmx;
-	int8_t *ip;
-	int8_t addr[Maxstring];
+	char *ip;
+	char addr[Maxstring];
 
 	/* get a list of mx entries */
 	nmx = mxlookup(ds, domain);
@@ -172,7 +172,7 @@ callmx(DS *ds, int8_t *dest, int8_t *domain)
  *  dns's seperately.
  */
 static int
-mxlookup(DS *ds, int8_t *domain)
+mxlookup(DS *ds, char *domain)
 {
 	int n;
 
@@ -194,11 +194,11 @@ mxlookup(DS *ds, int8_t *domain)
 }
 
 static int
-mxlookup1(DS *ds, int8_t *domain)
+mxlookup1(DS *ds, char *domain)
 {
 	int i, n, fd, nmx;
-	int8_t buf[Maxdomain], dnsname[Maxstring];
-	int8_t *fields[4];
+	char buf[Maxdomain], dnsname[Maxstring];
+	char *fields[4];
 	Mx *mxp;
 
 	snprint(dnsname, sizeof dnsname, "%s/dns", ds->netdir);
@@ -307,9 +307,9 @@ compar(void *a, void *b)
 
 /* break up an address to its component parts */
 void
-dial_string_parse(int8_t *str, DS *ds)
+dial_string_parse(char *str, DS *ds)
 {
-	int8_t *p, *p2;
+	char *p, *p2;
 
 	strncpy(ds->buf, str, sizeof(ds->buf));
 	ds->buf[sizeof(ds->buf)-1] = 0;
@@ -343,7 +343,7 @@ dial_string_parse(int8_t *str, DS *ds)
 static void
 expand_meta(DS *ds)
 {
-	int8_t buf[128], cs[128], *net, *p;
+	char buf[128], cs[128], *net, *p;
 	int fd, n;
 
 	net = ds->netdir;

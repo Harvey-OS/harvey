@@ -192,7 +192,7 @@ gs_currentdevice(const gs_state * pgs)
 }
 
 /* Get the name of a device. */
-const int8_t *
+const char *
 gs_devicename(const gx_device * dev)
 {
     return dev->dname;
@@ -725,7 +725,7 @@ gx_device_copy_params(gx_device *dev, const gx_device *target)
  * If there was a format, then return the max_width
  */
 private int
-gx_parse_output_format(gs_parsed_file_name_t *pfn, const int8_t **pfmt)
+gx_parse_output_format(gs_parsed_file_name_t *pfn, const char **pfmt)
 {
     bool have_format = false, field = 0;
     int width[2], int_width = sizeof(int) * 3, w = 0;
@@ -780,8 +780,8 @@ gx_parse_output_format(gs_parsed_file_name_t *pfn, const int8_t **pfmt)
  * is currently allowed.
  */
 int
-gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const int8_t **pfmt,
-			  const int8_t *fname, uint fnlen)
+gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const char **pfmt,
+			  const char *fname, uint fnlen)
 {
     int code;
 
@@ -831,12 +831,12 @@ gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const int8_t **pfmt,
 
 /* Open the output file for a device. */
 int
-gx_device_open_output_file(const gx_device * dev, int8_t *fname,
+gx_device_open_output_file(const gx_device * dev, char *fname,
 			   bool binary, bool positionable, FILE ** pfile)
 {
     gs_parsed_file_name_t parsed;
-    const int8_t *fmt;
-    int8_t pfname[gp_file_name_sizeof];
+    const char *fmt;
+    char pfname[gp_file_name_sizeof];
     int code = gx_parse_output_file_name(&parsed, &fmt, fname, strlen(fname));
 
     if (code < 0)
@@ -861,7 +861,7 @@ gx_device_open_output_file(const gx_device * dev, int8_t *fname,
 	parsed.len = strlen(parsed.fname);
     }
     if (positionable || (parsed.iodev && parsed.iodev != iodev_default)) {
-	int8_t fmode[4];
+	char fmode[4];
 
 	if (!parsed.fname)
 	    return_error(gs_error_undefinedfilename);
@@ -883,11 +883,11 @@ gx_device_open_output_file(const gx_device * dev, int8_t *fname,
 
 /* Close the output file for a device. */
 int
-gx_device_close_output_file(const gx_device * dev, const int8_t *fname,
+gx_device_close_output_file(const gx_device * dev, const char *fname,
 			    FILE *file)
 {
     gs_parsed_file_name_t parsed;
-    const int8_t *fmt;
+    const char *fmt;
     int code = gx_parse_output_file_name(&parsed, &fmt, fname, strlen(fname));
 
     if (code < 0)

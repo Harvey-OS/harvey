@@ -422,7 +422,7 @@ dict_find(const ref * pdref, const ref * pkey,
  * Return 1 if found, <= 0 if not.
  */
 int
-dict_find_string(const ref * pdref, const int8_t *kstr, ref ** ppvalue)
+dict_find_string(const ref * pdref, const char *kstr, ref ** ppvalue)
 {
     int code;
     ref kname;
@@ -544,7 +544,7 @@ dict_put(ref * pdref /* t_dictionary */ , const ref * pkey, const ref * pvalue,
  * Enter a key-value pair where the key is a (constant) C string.
  */
 int
-dict_put_string(ref * pdref, const int8_t *kstr, const ref * pvalue,
+dict_put_string(ref * pdref, const char *kstr, const ref * pvalue,
 		dict_stack_t *pds)
 {
     int code;

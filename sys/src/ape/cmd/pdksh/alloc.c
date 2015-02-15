@@ -528,7 +528,7 @@ aprint(ap, ptr, size)
 		bpp = ap->freelist->prev;
 		for (i = 0; ; i++) {
 			if (ptr) {
-				void *eptr = (void *) (((int8_t *) ptr) + size);
+				void *eptr = (void *) (((char *) ptr) + size);
 				/* print block only if it overlaps ptr/size */
 				if (!((ptr >= (void *) bp
 				       && ptr <= (void *) bp->last)
@@ -545,7 +545,7 @@ aprint(ap, ptr, size)
 			shellf("aprint: block %2d (p=%p,%p,n=%p): 0x%p .. 0x%p (%ld)\n", i,
 				bp->prev, bp, bp->next,
 				bp->cell, bp->last,
-				(int32_t) ((int8_t *) bp->last - (int8_t *) bp->cell));
+				(int32_t) ((char *) bp->last - (char *) bp->cell));
 			fp = bp->freelist;
 			if (bp->last <= bp->cell + NOBJECT_FIELDS)
 				shellf(

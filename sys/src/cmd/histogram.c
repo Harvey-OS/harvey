@@ -29,7 +29,7 @@ Image *light;
 Image *dark;
 Image *txtcolor;
 
-int8_t *title = "histogram";
+char *title = "histogram";
 Rectangle hrect;
 Point maxvloc;
 double *data;
@@ -108,7 +108,7 @@ drawdatum(int x, double prev, double v)
 void
 updatehistogram(double v)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	draw(screen, hrect, screen, nil, Pt(hrect.min.x+1, hrect.min.y));
 	if(v * scale > vmax)
@@ -129,7 +129,7 @@ redrawhistogram(int new)
 	Rectangle r;
 	uint onval = nval;
 	int i;
-	int8_t buf[32];
+	char buf[32];
 
 	if(new && getwindow(display, Refnone) < 0)
 		sysfatal("getwindow: %r");
@@ -171,7 +171,7 @@ reader(void *arg)
 {
 	int fd;
 	double v;
-	int8_t *p, *f[2];
+	char *p, *f[2];
 	uint8_t buf[512];
 	Biobufhdr b;
 	Channel *c = arg;
@@ -193,7 +193,7 @@ reader(void *arg)
 
 
 void
-histogram(int8_t *rect)
+histogram(char *rect)
 {
 	int rm;
 	double dm;
@@ -210,7 +210,7 @@ histogram(int8_t *rect)
 		{nil,	&rm,	CHANRCV},	/* resize event */
 		{nil,	nil,	CHANEND},
 	};
-	static int8_t *mitems[] = {
+	static char *mitems[] = {
 		"exit",
 		nil
 	};

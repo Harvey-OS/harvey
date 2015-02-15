@@ -41,7 +41,7 @@ usage(void)
 }
 
 void
-ding(void *, int8_t *msg)
+ding(void *, char *msg)
 {
 	if(strstr(msg, "alarm") != nil)
 		noted(NCONT);
@@ -82,7 +82,7 @@ pmem(uint8_t **p, void *v, int len)
 }
 
 void
-pname(uint8_t **p, int8_t *s)
+pname(uint8_t **p, char *s)
 {
 	uint8_t *len;
 

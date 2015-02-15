@@ -91,7 +91,7 @@ const op_def zmisc2_op_defs[] =
  * This is used for the .setlanguagelevel operator,
  * and (perhaps someday) after a restore.
  */
-private int swap_level_dict(i_ctx_t *i_ctx_p, const int8_t *dict_name);
+private int swap_level_dict(i_ctx_t *i_ctx_p, const char *dict_name);
 private int swap_entry(i_ctx_t *i_ctx_p, ref elt[2], ref * pdict,
 		       ref * pdict2);
 private int
@@ -190,7 +190,7 @@ set_language_level(i_ctx_t *i_ctx_p, int new_level)
  * to swap the contents of statusdict.)
  */
 private int
-swap_level_dict(i_ctx_t *i_ctx_p, const int8_t *dict_name)
+swap_level_dict(i_ctx_t *i_ctx_p, const char *dict_name)
 {
     ref *pleveldict;
     ref rleveldict;

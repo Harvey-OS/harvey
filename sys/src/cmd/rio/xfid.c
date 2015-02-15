@@ -22,28 +22,28 @@
 
 #define	MAXSNARF	100*1024
 
-int8_t Einuse[] =		"file in use";
-int8_t Edeleted[] =	"window deleted";
-int8_t Ebadreq[] =	"bad graphics request";
-int8_t Etooshort[] =	"buffer too small";
-int8_t Ebadtile[] =	"unknown tile";
-int8_t Eshort[] =		"short i/o request";
-int8_t Elong[] = 		"snarf buffer too long";
-int8_t Eunkid[] = 	"unknown id in attach";
-int8_t Ebadrect[] = 	"bad rectangle in attach";
-int8_t Ewindow[] = 	"cannot make window";
-int8_t Enowindow[] = 	"window has no image";
-int8_t Ebadmouse[] = 	"bad format on /dev/mouse";
-int8_t Ebadwrect[] = 	"rectangle outside screen";
-int8_t Ebadoffset[] = 	"window read not on scan line boundary";
-extern int8_t Eperm[];
+char Einuse[] =		"file in use";
+char Edeleted[] =	"window deleted";
+char Ebadreq[] =	"bad graphics request";
+char Etooshort[] =	"buffer too small";
+char Ebadtile[] =	"unknown tile";
+char Eshort[] =		"short i/o request";
+char Elong[] = 		"snarf buffer too long";
+char Eunkid[] = 	"unknown id in attach";
+char Ebadrect[] = 	"bad rectangle in attach";
+char Ewindow[] = 	"cannot make window";
+char Enowindow[] = 	"window has no image";
+char Ebadmouse[] = 	"bad format on /dev/mouse";
+char Ebadwrect[] = 	"rectangle outside screen";
+char Ebadoffset[] = 	"window read not on scan line boundary";
+extern char Eperm[];
 
 static	Xfid	*xfidfree;
 static	Xfid	*xfid;
 static	Channel	*cxfidalloc;	/* chan(Xfid*) */
 static	Channel	*cxfidfree;	/* chan(Xfid*) */
 
-static	int8_t	*tsnarf;
+static	char	*tsnarf;
 static	int	ntsnarf;
 
 void
@@ -112,7 +112,7 @@ xfidctl(void *arg)
 {
 	Xfid *x;
 	void (*f)(Xfid*);
-	int8_t buf[64];
+	char buf[64];
 
 	x = arg;
 	snprint(buf, sizeof buf, "xfid.%p", x);
@@ -159,7 +159,7 @@ xfidattach(Xfid *x)
 	Fcall t;
 	int id, hideit, scrollit;
 	Window *w;
-	int8_t *err, *n, *dir, errbuf[ERRMAX];
+	char *err, *n, *dir, errbuf[ERRMAX];
 	int pid, newlymade;
 	Rectangle r;
 	Image *i;
@@ -357,7 +357,7 @@ xfidwrite(Xfid *x)
 {
 	Fcall fc;
 	int c, cnt, qid, nb, off, nr;
-	int8_t buf[256], *p;
+	char buf[256], *p;
 	Point pt;
 	Window *w;
 	Rune *r;
@@ -563,7 +563,7 @@ xfidwrite(Xfid *x)
 }
 
 int
-readwindow(Image *i, int8_t *t, Rectangle r, int offset, int n)
+readwindow(Image *i, char *t, Rectangle r, int offset, int n)
 {
 	int ww, y;
 
@@ -586,8 +586,8 @@ xfidread(Xfid *x)
 	Fcall fc;
 	int n, off, cnt, c;
 	uint qid;
-	int8_t buf[128], *t;
-	int8_t cbuf[30];
+	char buf[128], *t;
+	char cbuf[30];
 	Window *w;
 	Mouse ms;
 	Rectangle r;

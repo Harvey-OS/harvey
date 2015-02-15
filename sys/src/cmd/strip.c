@@ -13,10 +13,10 @@
 #include <mach.h>
 
 void
-error(int8_t* fmt, ...)
+error(char* fmt, ...)
 {
 	va_list arg;
-	int8_t *e, s[256];
+	char *e, s[256];
 
 	va_start(arg, fmt);
 	e = seprint(s, s+sizeof(s), "%s: ", argv0);
@@ -35,7 +35,7 @@ usage(void)
 }
 
 static int
-strip(int8_t* file, int8_t* out)
+strip(char* file, char* out)
 {
 	Dir *dir;
 	int fd, i;

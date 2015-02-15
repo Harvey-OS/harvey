@@ -12,8 +12,8 @@
 #include "9.h"
 
 typedef struct {
-	int8_t*	argv0;
-	int	(*cmd)(int, int8_t*[]);
+	char*	argv0;
+	int	(*cmd)(int, char*[]);
 } Cmd;
 
 static struct {
@@ -28,9 +28,9 @@ enum {
 };
 
 int
-cliError(int8_t* fmt, ...)
+cliError(char* fmt, ...)
 {
-	int8_t *p;
+	char *p;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -43,10 +43,10 @@ cliError(int8_t* fmt, ...)
 }
 
 int
-cliExec(int8_t* buf)
+cliExec(char* buf)
 {
 	int argc, i, r;
-	int8_t *argv[20], *p;
+	char *argv[20], *p;
 
 	p = vtStrDup(buf);
 	if((argc = tokenize(p, argv, nelem(argv)-1)) == 0){
@@ -79,7 +79,7 @@ cliExec(int8_t* buf)
 }
 
 int
-cliAddCmd(int8_t* argv0, int (*cmd)(int, int8_t*[]))
+cliAddCmd(char* argv0, int (*cmd)(int, char*[]))
 {
 	int i;
 	Cmd *opt;

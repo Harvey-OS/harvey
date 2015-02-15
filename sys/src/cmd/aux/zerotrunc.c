@@ -17,8 +17,8 @@
 void
 main(void)
 {
-	int8_t buf[4096];
-	int8_t *p;
+	char buf[4096];
+	char *p;
 	int n;
 
 	while((n = read(0, buf, sizeof(buf))) > 0){

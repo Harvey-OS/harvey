@@ -14,17 +14,17 @@
 #include <signal.h>
 #include "sys9.h"
 
-extern int8_t **environ;
+extern char **environ;
 
 int
-execve(const int8_t *name, const int8_t *argv[], const int8_t *envp[])
+execve(const char *name, const char *argv[], const char *envp[])
 {
 	int n, f, i;
-	int8_t **e, *ss, *se;
+	char **e, *ss, *se;
 	Fdinfo *fi;
 	unsigned long flags;
-	int8_t nam[256+5];
-	int8_t buf[1000];
+	char nam[256+5];
+	char buf[1000];
 
 	_RFORK(RFCENVG);
 	/*
@@ -80,7 +80,7 @@ execve(const int8_t *name, const int8_t *argv[], const int8_t *envp[])
 	}
 	if(envp){
 		strcpy(nam, "#e/");
-		for(e = (int8_t **)envp; (ss = *e); e++) {
+		for(e = (char **)envp; (ss = *e); e++) {
 			se = strchr(ss, '=');
 			if(!se || ss==se)
 				continue;	/* what is name? value? */

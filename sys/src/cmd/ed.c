@@ -39,7 +39,7 @@ int32_t	count;
 int*	dol;
 int*	dot;
 int	fchange;
-int8_t	file[FNSIZE];
+char	file[FNSIZE];
 Rune	genbuf[LBSIZE];
 int	given;
 Rune*	globp;
@@ -48,7 +48,7 @@ int	ichanged;
 int	io;
 Biobuf	iobuf;
 int	lastc;
-int8_t	line[70];
+char	line[70];
 Rune*	linebp;
 Rune	linebuf[LBSIZE];
 int	listf;
@@ -64,23 +64,23 @@ int	peekc;
 int	pflag;
 int	rescuing;
 Rune	rhsbuf[LBSIZE/sizeof(Rune)];
-int8_t	savedfile[FNSIZE];
+char	savedfile[FNSIZE];
 jmp_buf	savej;
 int	subnewa;
 int	subolda;
 Resub	subexp[MAXSUB];
-int8_t*	tfname;
+char*	tfname;
 int	tline;
 int	waiting;
 int	wrapp;
 int*	zero;
 
-int8_t	Q[]	= "";
-int8_t	T[]	= "TMP";
-int8_t	WRERR[]	= "WRITE ERROR";
+char	Q[]	= "";
+char	T[]	= "TMP";
+char	WRERR[]	= "WRITE ERROR";
 int	bpagesize = 20;
-int8_t	hex[]	= "0123456789abcdef";
-int8_t*	linp	= line;
+char	hex[]	= "0123456789abcdef";
+char*	linp	= line;
 uint32_t	nlall = 128;
 int	tfile	= -1;
 int	vflag	= 1;
@@ -94,7 +94,7 @@ void	commands(void);
 void	compile(int);
 int	compsub(void);
 void	dosub(void);
-void	error(int8_t*);
+void	error(char*);
 int	match(int*);
 void	exfile(int);
 void	filename(int);
@@ -112,7 +112,7 @@ void	join(void);
 void	move(int);
 void	newline(void);
 void	nonzero(void);
-void	notifyf(void*, int8_t*);
+void	notifyf(void*, char*);
 Rune*	place(Rune*, Rune*, Rune*);
 void	printcom(void);
 void	putchr(int);
@@ -120,10 +120,10 @@ void	putd(void);
 void	putfile(void);
 int	putline(void);
 void	putshst(Rune*);
-void	putst(int8_t*);
+void	putst(char*);
 void	quit(void);
 void	rdelete(int*, int*);
-void	regerror(int8_t *);
+void	regerror(char *);
 void	reverse(int*, int*);
 void	setnoaddr(void);
 void	setwide(void);
@@ -176,7 +176,7 @@ void
 commands(void)
 {
 	int *a1, c, temp;
-	int8_t lastsep;
+	char lastsep;
 	Dir *d;
 
 	for(;;) {
@@ -580,7 +580,7 @@ newline(void)
 void
 filename(int comm)
 {
-	int8_t *p1, *p2;
+	char *p1, *p2;
 	Rune rune;
 	int c;
 
@@ -633,7 +633,7 @@ exfile(int om)
 }
 
 void
-error1(int8_t *s)
+error1(char *s)
 {
 	int c;
 
@@ -662,7 +662,7 @@ error1(int8_t *s)
 }
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	error1(s);
 	longjmp(savej, 1);
@@ -686,7 +686,7 @@ rescue(void)
 }
 
 void
-notifyf(void *a, int8_t *s)
+notifyf(void *a, char *s)
 {
 	if(strcmp(s, "interrupt") == 0){
 		if(rescuing || waiting)
@@ -905,8 +905,8 @@ callunix(void)
 {
 	int c, pid;
 	Rune rune;
-	int8_t buf[512];
-	int8_t *p;
+	char buf[512];
+	char *p;
 
 	setnoaddr();
 	p = buf;
@@ -1409,8 +1409,8 @@ void
 compile(int eof)
 {
 	Rune c;
-	int8_t *ep;
-	int8_t expbuf[ESIZE];
+	char *ep;
+	char expbuf[ESIZE];
 
 	if((c = getchr()) == '\n') {
 		peekc = c;
@@ -1485,7 +1485,7 @@ putd(void)
 }
 
 void
-putst(int8_t *sp)
+putst(char *sp)
 {
 	Rune r;
 
@@ -1511,7 +1511,7 @@ putshst(Rune *sp)
 void
 putchr(int ac)
 {
-	int8_t *lp;
+	char *lp;
 	int c;
 	Rune rune;
 
@@ -1563,10 +1563,10 @@ putchr(int ac)
 	linp = lp;
 }
 
-int8_t*
-mktemp(int8_t *as)
+char*
+mktemp(char *as)
 {
-	int8_t *s;
+	char *s;
 	unsigned pid;
 	int i;
 
@@ -1590,7 +1590,7 @@ mktemp(int8_t *as)
 }
 
 void
-regerror(int8_t *s)
+regerror(char *s)
 {
 	USED(s);
 	error(Q);

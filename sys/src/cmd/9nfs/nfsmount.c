@@ -32,7 +32,7 @@ Procmap mntproc[] = {
 
 int32_t		starttime;
 static int	noauth;
-int8_t *		config;
+char *		config;
 Session *	head;
 Session *	tail;
 int staletime = 10*60;
@@ -100,9 +100,9 @@ noauth=1;	/* ZZZ */
 }
 
 void
-srvinit(int fd, int8_t *file, int8_t *addr)
+srvinit(int fd, char *file, char *addr)
 {
-	int8_t fdservice[16], *naddr;
+	char fdservice[16], *naddr;
 	Session *s;
 	Xfile *xp;
 	Xfid *xf;
@@ -191,8 +191,8 @@ mntnull(int n, Rpccall *cmd, Rpccall *reply)
 	return 0;
 }
 
-static int8_t*
-Str2str(String s, int8_t *buf, int nbuf)
+static char*
+Str2str(String s, char *buf, int nbuf)
 {
 	int i;
 	i = s.n;
@@ -207,7 +207,7 @@ static int
 mntmnt(int n, Rpccall *cmd, Rpccall *reply)
 {
 	int i;
-	int8_t dom[64];
+	char dom[64];
 	uint8_t *argptr = cmd->args;
 	uint8_t *dataptr = reply->results;
 	Authunix au;
@@ -318,10 +318,10 @@ mntexport(int n, Rpccall *cmd, Rpccall *reply)
 }
 
 Xfile *
-xfroot(int8_t *name, int n)
+xfroot(char *name, int n)
 {
 	Session *s;
-	int8_t *p;
+	char *p;
 
 	if(n <= 0)
 		n = strlen(name);

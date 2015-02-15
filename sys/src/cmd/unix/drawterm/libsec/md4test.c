@@ -11,7 +11,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-int8_t *tests[] = {
+char *tests[] = {
 	"",
 	"a",
 	"abc",
@@ -25,7 +25,7 @@ int8_t *tests[] = {
 void
 main(void)
 {
-	int8_t **pp;
+	char **pp;
 	uint8_t *p;
 	int i;
 	uint8_t digest[MD5dlen];

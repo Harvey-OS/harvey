@@ -9,19 +9,19 @@
 
 #include "defs.h"
 
-static int	hasslash(int8_t *);
-static int	haspercent(int8_t *);
+static int	hasslash(char *);
+static int	haspercent(char *);
 static void	rehash(void);
 
 /* simple linear hash.  hash function is sum of
    characters mod hash table size.
 */
 static int
-hashloc(int8_t *s)
+hashloc(char *s)
 {
 int i;
 int hashval;
-int8_t *t;
+char *t;
 
 hashval = 0;
 
@@ -39,7 +39,7 @@ return i;
 
 
 nameblkp
-srchname(int8_t *s)
+srchname(char *s)
 {
 return  hashtab[hashloc(s)] ;
 }
@@ -47,7 +47,7 @@ return  hashtab[hashloc(s)] ;
 
 
 nameblkp
-makename(int8_t *s)
+makename(char *s)
 {
 nameblkp p;
 
@@ -69,7 +69,7 @@ return p;
 
 
 static int
-hasslash(int8_t *s)
+hasslash(char *s)
 {
 for( ; *s ; ++s)
 	if(*s == '/')
@@ -78,7 +78,7 @@ return NO;
 }
 
 static int
-haspercent(int8_t *s)
+haspercent(char *s)
 {
 for( ; *s ; ++s)
 	if(*s == '%')
@@ -87,7 +87,7 @@ return NO;
 }
 
 int
-hasparen(int8_t *s)
+hasparen(char *s)
 {
 for( ; *s ; ++s)
 	if(*s == '(')
@@ -109,7 +109,7 @@ while( hp<endohash )
 	if(p = *hp++)
 		hashtab[hashloc(p->namep)] = p;
 
-free( (int8_t *) ohash);
+free( (char *) ohash);
 }
 
 
@@ -123,7 +123,7 @@ hashthresh = (2*hashsize)/3;
 
 
 
-nameblkp chkname(int8_t *s)
+nameblkp chkname(char *s)
 {
 nameblkp p;
 time_t k;
@@ -143,10 +143,10 @@ return srchname(s);
 
 
 
-int8_t *
-copys(int8_t *s)
+char *
+copys(char *s)
 {
-int8_t *t;
+char *t;
 
 if( (t = malloc( strlen(s)+1 ) ) == NULL)
 	fatal("out of memory");
@@ -156,10 +156,10 @@ return t;
 
 
 
-int8_t *
-concat(int8_t *a, int8_t *b, int8_t *c)   /* c = concatenation of a and b */
+char *
+concat(char *a, char *b, char *c)   /* c = concatenation of a and b */
 {
-int8_t *t;
+char *t;
 t = c;
 
 while(*t = *a++) t++;
@@ -169,9 +169,9 @@ return c;
 
 
 int
-suffix(int8_t *a, int8_t *b, int8_t *p)  /* is b the suffix of a?  if so, set p = prefix */
+suffix(char *a, char *b, char *p)  /* is b the suffix of a?  if so, set p = prefix */
 {
-int8_t *a0,*b0;
+char *a0,*b0;
 a0 = a;
 b0 = b;
 
@@ -203,14 +203,14 @@ return 0;
 }
 
 /* copy string a into b, substituting for arguments */
-int8_t *
-subst(int8_t *a, int8_t *b, int8_t *e)
+char *
+subst(char *a, char *b, char *e)
 {
 static depth	= 0;
-int8_t *s;
-int8_t vname[100];
+char *s;
+char vname[100];
 struct varblock *vbp;
-int8_t closer;
+char closer;
 
 if(++depth > 100)
 	fatal("infinitely recursive macro?");
@@ -249,7 +249,7 @@ return b;
 }
 
 void
-setvar(int8_t *v, int8_t *s, int dyn)
+setvar(char *v, char *s, int dyn)
 {
 struct varblock *p;
 
@@ -263,10 +263,10 @@ if( ! p->noreset )
 	if(p->export)
 		{
 		/* change string pointed to by environment to new v=s */
-		int8_t *t;
+		char *t;
 		int lenv;
 		lenv = strlen(v);
-		*(p->export) = t = (int8_t *) ckalloc(lenv + strlen(s) + 2);
+		*(p->export) = t = (char *) ckalloc(lenv + strlen(s) + 2);
 		strcpy(t,v);
 		t[lenv] = '=';
 		strcpy(t+lenv+1, s);
@@ -279,10 +279,10 @@ if( ! p->noreset )
 
 /* for setting Bradford's *D and *F family of macros whens setting * etc */
 void
-set3var(int8_t *macro, int8_t *value)
+set3var(char *macro, char *value)
 {
-int8_t *s;
-int8_t macjunk[8], *lastslash, *dirpart, *filepart;
+char *s;
+char macjunk[8], *lastslash, *dirpart, *filepart;
 
 setvar(macro, value, YES);
 if(value == CHNULL)
@@ -311,10 +311,10 @@ setvar(concat(macro, "F", macjunk), filepart, YES);
 
 
 int
-eqsign(int8_t *a)   /*look for arguments with equal signs but not colons */
+eqsign(char *a)   /*look for arguments with equal signs but not colons */
 {
-int8_t *s, *t;
-int8_t c;
+char *s, *t;
+char c;
 
 while(*a == ' ') ++a;
 for(s=a  ;   *s!='\0' && *s!=':'  ; ++s)
@@ -334,7 +334,7 @@ return NO;
 }
 
 struct varblock *
-varptr(int8_t *v)
+varptr(char *v)
 {
 struct varblock *vp;
 
@@ -354,10 +354,10 @@ return vp;
 }
 
 int
-dynmacro(int8_t *line)
+dynmacro(char *line)
 {
-int8_t *s;
-int8_t endc, *endp;
+char *s;
+char endc, *endp;
 if(!isalpha(line[0]))
 	return NO;
 for(s=line+1 ; *s && (isalpha(*s) | isdigit(*s)) ; ++s)
@@ -378,16 +378,16 @@ return YES;
 
 
 void
-fatal1(int8_t *s, int8_t *t)
+fatal1(char *s, char *t)
 {
-int8_t buf[100];
+char buf[100];
 sprintf(buf, s, t);
 fatal(buf);
 }
 
 
 void
-fatal(int8_t *s)
+fatal(char *s)
 {
 fflush(stdout);
 if(s)
@@ -403,7 +403,7 @@ exit(1);
 
 /* appends to the chain for $? and $^ */
 chainp
-appendq(chainp head, int8_t *tail)
+appendq(chainp head, char *tail)
 {
 chainp p, q;
 
@@ -426,10 +426,10 @@ else
 
 
 /* builds the value for $? and $^ */
-int8_t *
-mkqlist(chainp p, int8_t *qbuf)
+char *
+mkqlist(chainp p, char *qbuf)
 {
-int8_t *qbufp, *s;
+char *qbufp, *s;
 
 if(p == NULL)
 	return "";
@@ -453,9 +453,9 @@ return qbuf;
 }
 
 wildp
-iswild(int8_t *name)
+iswild(char *name)
 {
-int8_t *s;
+char *s;
 wildp p;
 
 for(s=name; *s; ++s)
@@ -475,12 +475,12 @@ return NULL;
 }
 
 
-int8_t *
-wildmatch(wildp p, int8_t *name, int len)
+char *
+wildmatch(wildp p, char *name, int len)
 {
-int8_t *stem;
-int8_t *s;
-int8_t c;
+char *stem;
+char *s;
+char c;
 
 if(len < p->totlen ||
    strncmp(name, p->left, p->llen) ||
@@ -498,11 +498,11 @@ return stem;
 
 
 /* substitute stem for any % marks */
-int8_t *
-wildsub(int8_t *pat, int8_t *stem)
+char *
+wildsub(char *pat, char *stem)
 {
-static int8_t temp[100];
-int8_t *s, *t;
+static char temp[100];
+char *s, *t;
 
 s = temp;
 for(; *pat; ++pat)

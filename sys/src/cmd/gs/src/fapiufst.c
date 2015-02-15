@@ -61,7 +61,7 @@ typedef struct fco_list_elem_s fco_list_elem;
 struct fco_list_elem_s {
     int open_count;
     SW16 fcHandle;
-    int8_t *file_path;
+    char *file_path;
     fco_list_elem *next;
 };
 
@@ -73,7 +73,7 @@ typedef struct {
     UW16 platformId;
     UW16 specificId;
     pcleo_glyph_list_elem *glyphs;
-    int8_t decodingID[12];
+    char decodingID[12];
 } ufst_common_font_data;
 
 typedef struct { 
@@ -156,7 +156,7 @@ private FAPI_retcode ensure_open(FAPI_server *server)
 }
 
 private UW16 get_font_type(FILE *f)
-{   int8_t buf[20], mark_PS[]="%!";
+{   char buf[20], mark_PS[]="%!";
     int i;
 
     if (fread(buf, 1, sizeof(buf), f) != sizeof(buf))
@@ -526,7 +526,7 @@ private char *my_strdup(fapi_ufst_server *r, const char *s, const char *cname)
 }
 
 private FAPI_retcode fco_open(fapi_ufst_server *r,
-                              const int8_t *font_file_path,
+                              const char *font_file_path,
                               fco_list_elem **result)
 {   fco_list_elem *e = r->fco_list;
     int code;
@@ -561,7 +561,7 @@ private FAPI_retcode fco_open(fapi_ufst_server *r,
 }
 
 private FAPI_retcode make_font_data(fapi_ufst_server *r,
-                                    const int8_t *font_file_path,
+                                    const char *font_file_path,
                                     int subfont, FAPI_font *ff,
                                     ufst_common_font_data **return_data)
 {   uint32_t area_length = sizeof(ufst_common_font_data), tt_size = 0;
@@ -705,7 +705,7 @@ private void prepare_typeface(fapi_ufst_server *r, ufst_common_font_data *d)
 }
 
 private FAPI_retcode get_scaled_font(FAPI_server *server, FAPI_font *ff, int subfont, 
-         const FAPI_font_scale *font_scale, const int8_t *xlatmap,
+         const FAPI_font_scale *font_scale, const char *xlatmap,
                                      bool bVertical, FAPI_descendant_code dc)
 {   fapi_ufst_server *r = If_to_I(server);
     FONTCONTEXT *fc = &r->fc;
@@ -797,7 +797,7 @@ private FAPI_retcode get_scaled_font(FAPI_server *server, FAPI_font *ff, int sub
 }
 
 private FAPI_retcode get_decodingID(FAPI_server *server, FAPI_font *ff,
-                                    const int8_t **decodingID_result)
+                                    const char **decodingID_result)
 {   fapi_ufst_server *r = If_to_I(server);
     ufst_common_font_data *d = (ufst_common_font_data *)r->fc.font_hdr - 1;
 
@@ -891,7 +891,7 @@ private FAPI_retcode get_char_width(FAPI_server *server, FAPI_font *ff, FAPI_cha
 {   fapi_ufst_server *r = If_to_I(server);
     UW16 buffer[2];
     UW16 cc = (UW16)c->char_code;
-    int8_t PSchar_name[MAX_CHAR_NAME_LENGTH];
+    char PSchar_name[MAX_CHAR_NAME_LENGTH];
     int code;
 
     make_asciiz_char_name(PSchar_name, sizeof(PSchar_name), c);
@@ -965,7 +965,7 @@ private FAPI_retcode get_char(fapi_ufst_server *r, FAPI_font *ff, FAPI_char_ref 
     UW16 cc = (UW16)c->char_code;
     SL32 design_bbox[4];
     SW16 design_escapement;
-    int8_t PSchar_name[MAX_CHAR_NAME_LENGTH];
+    char PSchar_name[MAX_CHAR_NAME_LENGTH];
     MEM_HANDLE result;
 
     memset(metrics, 0, sizeof(*metrics));
@@ -991,7 +991,7 @@ private FAPI_retcode get_char(fapi_ufst_server *r, FAPI_font *ff, FAPI_char_ref 
         r->IFS.fcCur.ssnum = RAW_GLYPH;
         r->callback_error = 0;
         ff->char_data = NULL;
-        CGIFchIdptr(&r->IFS, &c1, (int8_t *)".notdef");
+        CGIFchIdptr(&r->IFS, &c1, (char *)".notdef");
         code = CGIFchar_with_design_bbox(&r->IFS, c1, &result, (SW16)0, design_bbox, &design_escapement);
         r->IFS.fcCur.ssnum = ssnum;
         ff->char_data = client_char_data;

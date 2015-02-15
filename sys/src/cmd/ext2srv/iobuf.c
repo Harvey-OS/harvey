@@ -132,7 +132,7 @@ iobuf_init(void)
 		p->next = p+1;
 		p->prev = p-1;
 		
-		p->iobuf = (int8_t *)malloc(EXT2_MAX_BLOCK_SIZE);
+		p->iobuf = (char *)malloc(EXT2_MAX_BLOCK_SIZE);
 		if(p->iobuf == 0)
 			panic("iobuf_init");
 	}

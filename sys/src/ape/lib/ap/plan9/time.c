@@ -19,7 +19,7 @@
 time_t
 time(time_t *tp)
 {
-	int8_t b[20];
+	char b[20];
 	int f;
 	time_t t;
 

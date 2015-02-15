@@ -82,7 +82,7 @@ gdev_fax_put_params(gx_device * dev, gs_param_list * plist)
     int ecode = 0;
     int code;
     int aw = fdev->AdjustWidth;
-    const int8_t *param_name;
+    const char *param_name;
 
     switch (code = param_read_int(plist, (param_name = "AdjustWidth"), &aw)) {
         case 0:

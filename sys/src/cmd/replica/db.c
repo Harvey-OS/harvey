@@ -20,7 +20,7 @@ allocentry(void)
 	if(fe == nil){
 		fe = emalloc(128*sizeof(Entry));
 		for(i=0; i<128-1; i++)
-			fe[i].name = (int8_t*)&fe[i+1];
+			fe[i].name = (char*)&fe[i+1];
 		fe[i].name = nil;
 	}
 
@@ -33,12 +33,12 @@ allocentry(void)
 static void
 freeentry(Entry *e)
 {
-	e->name = (int8_t*)fe;
+	e->name = (char*)fe;
 	fe = e;
 }
 
 static void
-_removedb(Db *db, int8_t *name)
+_removedb(Db *db, char *name)
 {
 	Entry *e, k;
 
@@ -76,9 +76,9 @@ entrycmp(Avl *a, Avl *b)
 }
 
 Db*
-opendb(int8_t *file)
+opendb(char *file)
 {
-	int8_t *f[10], *s, *t;
+	char *f[10], *s, *t;
 	int i, fd, nf;
 	Biobuf b;
 	Db *db;
@@ -122,7 +122,7 @@ opendb(int8_t *file)
 }
 
 static int
-_finddb(Db *db, int8_t *name, Dir *d, int domark)
+_finddb(Db *db, char *name, Dir *d, int domark)
 {
 	Entry *e, k;
 
@@ -145,19 +145,19 @@ _finddb(Db *db, int8_t *name, Dir *d, int domark)
 }
 
 int
-finddb(Db *db, int8_t *name, Dir *d)
+finddb(Db *db, char *name, Dir *d)
 {
 	return _finddb(db, name, d, 0);
 }
 
 int
-markdb(Db *db, int8_t *name, Dir *d)
+markdb(Db *db, char *name, Dir *d)
 {
 	return _finddb(db, name, d, 1);
 }
 
 void
-removedb(Db *db, int8_t *name)
+removedb(Db *db, char *name)
 {
 	if(db->fd>=0 && fprint(db->fd, "%q xxx REMOVED xxx xxx 0 0\n", name) < 0)
 		sysfatal("appending to db: %r");
@@ -165,9 +165,9 @@ removedb(Db *db, int8_t *name)
 }
 
 void
-insertdb(Db *db, int8_t *name, Dir *d)
+insertdb(Db *db, char *name, Dir *d)
 {
-	int8_t *dname;
+	char *dname;
 	Entry e;
 
 	memset(&e, 0, sizeof e);

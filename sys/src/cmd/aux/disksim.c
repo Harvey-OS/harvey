@@ -56,7 +56,7 @@ struct Part
 	int inuse;
 	int vers;
 	uint32_t mode;
-	int8_t *name;
+	char *name;
 	int64_t offset;	/* in sectors */
 	int64_t length;	/* in sectors */
 };
@@ -71,14 +71,14 @@ enum
 
 Part tab[64];
 int fd = -1;
-int8_t *sdname = "sdXX";
+char *sdname = "sdXX";
 uint32_t ctlmode = 0666;
-int8_t *inquiry = "aux/disksim hard drive";
+char *inquiry = "aux/disksim hard drive";
 int64_t nsect, sectsize, c, h, s;
 uint32_t time0;
 int rdonly;
 
-int8_t*
+char*
 ctlstring(void)
 {
 	int i;
@@ -94,7 +94,7 @@ ctlstring(void)
 }
 
 int
-addpart(int8_t *name, int64_t start, int64_t end)
+addpart(char *name, int64_t start, int64_t end)
 {
 	int i;
 
@@ -123,7 +123,7 @@ addpart(int8_t *name, int64_t start, int64_t end)
 }
 
 int
-delpart(int8_t *s)
+delpart(char *s)
 {
 	int i;
 
@@ -459,7 +459,7 @@ rdwrpart(Req *r)
 void
 fsread(Req *r)
 {
-	int8_t *s;
+	char *s;
 
 	switch((int)r->fid->qid.path){
 	case Qroot:
@@ -567,7 +567,7 @@ fsstat(Req *r)
 void
 fsattach(Req *r)
 {
-	int8_t *spec;
+	char *spec;
 
 	spec = r->ifcall.aname;
 	if(spec && spec[0]){
@@ -579,8 +579,8 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i;
 	switch((int)fid->qid.path){
@@ -623,8 +623,8 @@ Srv fs = {
 	.walk1=	fswalk1,
 };
 
-int8_t *mtpt = "/dev";
-int8_t *srvname;
+char *mtpt = "/dev";
+char *srvname;
 
 void
 usage(void)

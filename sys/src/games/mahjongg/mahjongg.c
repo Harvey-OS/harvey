@@ -15,18 +15,18 @@
 
 #define MJDIR "/sys/games/lib/mahjongg/"
 
-int8_t *Border	= MJDIR "images/border.bit";
-int8_t *Mask	= MJDIR "images/mask.bit";
-int8_t *Gameover	= MJDIR "images/gameover.bit";
+char *Border	= MJDIR "images/border.bit";
+char *Mask	= MJDIR "images/mask.bit";
+char *Gameover	= MJDIR "images/gameover.bit";
 
-int8_t *deftileset= MJDIR "tilesets/default.tileset";
-int8_t *defbackgr = MJDIR "backgrounds/default.bit";
-int8_t *deflayout = MJDIR "layouts/default.layout";
+char *deftileset= MJDIR "tilesets/default.tileset";
+char *defbackgr = MJDIR "backgrounds/default.bit";
+char *deflayout = MJDIR "layouts/default.layout";
 
 uint32_t defchan;
 int trace;
 
-int8_t *buttons[] =
+char *buttons[] =
 {
 	"deselect",
 	"new",
@@ -60,7 +60,7 @@ eallocimage(Rectangle r, int repl, uint chan, uint color)
 }
 
 Image *
-eloadfile(int8_t *path)
+eloadfile(char *path)
 {
 	Image *img;
 	int fd;

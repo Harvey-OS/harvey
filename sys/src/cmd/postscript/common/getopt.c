@@ -24,7 +24,7 @@
 int     opterr = 1;
 int     optind = 1;
 int	optopt;
-int8_t    *optarg;
+char    *optarg;
 
 int
 getopt (argc, argv, opts)

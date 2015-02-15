@@ -11,11 +11,11 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-int8_t*
-strdup(int8_t *p)
+char*
+strdup(char *p)
 {
 	int n;
-	int8_t *np;
+	char *np;
 
 	n = strlen(p)+1;
 	np = malloc(n);

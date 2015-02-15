@@ -22,12 +22,12 @@ typedef struct Aux Aux;
 struct Aux {
 	Aux	*next;
 	Aux	*prev;
-	int8_t	*path;		/* full path fo file */
+	char	*path;		/* full path fo file */
 	Share	*sp;		/* this share's info */
 	int32_t	expire;		/* expiration time of cache */
 	int32_t	off;		/* file pos of start of cache */
 	int32_t	end;		/* file pos of end of cache */
-	int8_t	*cache;
+	char	*cache;
 	int	fh;		/* file handle */
 	int	sh;		/* search handle */
 	int32_t	srch;		/* find first's internal state */
@@ -39,7 +39,7 @@ int Checkcase = 1;		/* enforce case significance on filenames */
 int Dfstout = 100;		/* timeout (in ms) for ping of dfs servers (assume they are local)  */
 int Billtrog = 1;		/* enable file owner/group resolution */
 int Attachpid;			/* pid of proc that attaches (ugh !) */
-int8_t *Debug = nil;		/* messages */
+char *Debug = nil;		/* messages */
 Qid Root;			/* root of remote system */
 Share Ipc;			/* Share info of IPC$ share */
 Session *Sess;			/* current session */
@@ -48,9 +48,9 @@ static int Keeppid;		/* process ID of keepalive thread */
 Share Shares[MAX_SHARES]; 	/* table of connected shares */
 int Nshares = 0;		/* number of Shares connected */
 Aux *Auxroot = nil;		/* linked list of Aux structs */
-int8_t *Host = nil;		/* host we are connected to */
+char *Host = nil;		/* host we are connected to */
 
-static int8_t *Ipcname = "IPC$";
+static char *Ipcname = "IPC$";
 
 #define ptype(x)	(((x) & 0xf))
 #define pindex(x)	(((x) & 0xff0) >> 4)
@@ -59,7 +59,7 @@ void
 setup(void)
 {
 	int fd;
-	int8_t buf[32];
+	char buf[32];
 
 	/*
 	 * This is revolting but I cannot see any other way to get
@@ -80,7 +80,7 @@ int
 filetableinfo(Fmt *f)
 {
 	Aux *ap;
-	int8_t *type;
+	char *type;
 
 	if((ap = Auxroot) != nil)
 		do{
@@ -96,7 +96,7 @@ filetableinfo(Fmt *f)
 }
 
 Qid
-mkqid(int8_t *s, int is_dir, int32_t vers, int subtype, int32_t path)
+mkqid(char *s, int is_dir, int32_t vers, int subtype, int32_t path)
 {
 	Qid q;
 	union {				/* align digest suitably */
@@ -121,7 +121,7 @@ mkqid(int8_t *s, int is_dir, int32_t vers, int subtype, int32_t path)
  * used only for root dir and shares
  */
 static void
-V2D(Dir *d, Qid qid, int8_t *name)
+V2D(Dir *d, Qid qid, char *name)
 {
 	memset(d, 0, sizeof(Dir));
 	d->type = 'C';
@@ -138,9 +138,9 @@ V2D(Dir *d, Qid qid, int8_t *name)
 }
 
 static void
-I2D(Dir *d, Share *sp, int8_t *path, FInfo *fi)
+I2D(Dir *d, Share *sp, char *path, FInfo *fi)
 {
-	int8_t *name;
+	char *name;
 
 	if((name = strrchr(fi->name, '\\')) != nil)
 		name++;
@@ -172,17 +172,17 @@ I2D(Dir *d, Share *sp, int8_t *path, FInfo *fi)
 static void
 responderrstr(Req *r)
 {
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 
 	*e = 0;
 	rerrstr(e, sizeof e);
 	respond(r, e);
 }
 
-static int8_t *
-newpath(int8_t *path, int8_t *name)
+static char *
+newpath(char *path, char *name)
 {
-	int8_t *p, *q;
+	char *p, *q;
 
 	assert((p = strrchr(path, '/')) != nil);
 
@@ -205,7 +205,7 @@ dirgen(int slot, Dir *d, void *aux)
 	FInfo *fi;
 	int rc, got;
 	Aux *a = aux;
-	int8_t *npath;
+	char *npath;
 	int numinf = numinfo();
 	int slots = min(Sess->mtu, MTU) / sizeof(FInfo);
 
@@ -284,7 +284,7 @@ fsattach(Req *r)
 {
 	Aux *a;
 	static int first = 1;
-	int8_t *spec = r->ifcall.aname;
+	char *spec = r->ifcall.aname;
 
 	if(first)
 		setup();
@@ -317,7 +317,7 @@ fsattach(Req *r)
 	respond(r, nil);
 }
 
-static int8_t*
+static char*
 fsclone(Fid *ofid, Fid *fid)
 {
 	Aux *oa = ofid->aux;
@@ -360,9 +360,9 @@ fsclone(Fid *ofid, Fid *fid)
  * be correct, having been enforced in the dfs layer.
  */
 static int
-validfile(int8_t *found, int8_t *want, int8_t *winpath, Share *sp)
+validfile(char *found, char *want, char *winpath, Share *sp)
 {
-	int8_t *share;
+	char *share;
 
 	if(strcmp(want, "..") == 0)
 		return 1;
@@ -387,14 +387,14 @@ validfile(int8_t *found, int8_t *want, int8_t *winpath, Share *sp)
 }
 
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	FInfo fi;
 	int rc, n, i;
 	Aux *a = fid->aux;
-	static int8_t e[ERRMAX];
-	int8_t *p, *npath, *winpath;
+	static char e[ERRMAX];
+	char *p, *npath, *winpath;
 
 	*e = 0;
 	npath = newpath(a->path, name);
@@ -510,7 +510,7 @@ fsstat(Req *r)
 }
 
 static int
-smbcreateopen(Aux *a, int8_t *path, int mode, int perm, int is_create,
+smbcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
 	int is_dir, FInfo *fip)
 {
 	int rc, action, attrs, access, result;
@@ -584,7 +584,7 @@ smbcreateopen(Aux *a, int8_t *path, int mode, int perm, int is_create,
 
 /* Uncle Bill, you have a lot to answer for... */
 static int
-ntcreateopen(Aux *a, int8_t *path, int mode, int perm, int is_create,
+ntcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
 	int is_dir, FInfo *fip)
 {
 	int options, result, attrs, flags, access, action, share;
@@ -671,7 +671,7 @@ fscreate(Req *r)
 {
 	FInfo fi;
 	int rc, is_dir;
-	int8_t *npath;
+	char *npath;
 	Aux *a = r->fid->aux;
 
 	a->end = a->off = 0;
@@ -744,7 +744,7 @@ fswrite(Req *r)
 	Aux *a = r->fid->aux;
 	int64_t len = r->ifcall.count;
 	int64_t off = r->ifcall.offset;
-	int8_t *buf = r->ifcall.data;
+	char *buf = r->ifcall.data;
 
 	got = 0;
 	n = Sess->mtu -OVERHEAD;
@@ -768,7 +768,7 @@ fsread(Req *r)
 {
 	int64_t n, m, got;
 	Aux *a = r->fid->aux;
-	int8_t *buf = r->ofcall.data;
+	char *buf = r->ofcall.data;
 	int64_t len = r->ifcall.count;
 	int64_t off = r->ifcall.offset;
 
@@ -835,7 +835,7 @@ fsdestroyfid(Fid *f)
 }
 
 int
-rdonly(Session *s, Share *sp, int8_t *path, int rdonly)
+rdonly(Session *s, Share *sp, char *path, int rdonly)
 {
 	int rc;
 	FInfo fi;
@@ -860,7 +860,7 @@ static void
 fsremove(Req *r)
 {
 	int try, rc;
-	int8_t e[ERRMAX];
+	char e[ERRMAX];
 	Aux *ap, *a = r->fid->aux;
 
 	*e = 0;
@@ -905,7 +905,7 @@ fswstat(Req *r)
 {
 	int fh, result, rc;
 	FInfo fi, tmpfi;
-	int8_t *p, *from, *npath;
+	char *p, *from, *npath;
 	Aux *a = r->fid->aux;
 
 	if(ptype(r->fid->qid.path) == Proot ||
@@ -1096,7 +1096,7 @@ usage(void)
 static void
 keepalive(void)
 {
-	int8_t buf[32];
+	char buf[32];
 	uint64_t tot, fre;
 	int fd, i, slot, rc;
 
@@ -1124,7 +1124,7 @@ keepalive(void)
 
 
 static void
-ding(void *u, int8_t *msg)
+ding(void *u, char *msg)
 {
 	USED(u);
 	if(strstr(msg, "alarm") != nil)
@@ -1133,7 +1133,7 @@ ding(void *u, int8_t *msg)
 }
 
 void
-dmpkey(int8_t *s, void *v, int n)
+dmpkey(char *s, void *v, int n)
 {
 	int i;
 	unsigned char *p = (unsigned char *)v;

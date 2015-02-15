@@ -392,7 +392,7 @@ gx_error_get_color_mapping_procs(const gx_device * dev)
 
 /* Default color component to index for a DeviceGray color model */
 int
-gx_default_DevGray_get_color_comp_index(gx_device * dev, const int8_t * pname,
+gx_default_DevGray_get_color_comp_index(gx_device * dev, const char * pname,
 					  int name_size, int component_type)
 {
     if (compare_color_names(pname, name_size, "Gray") ||
@@ -404,7 +404,7 @@ gx_default_DevGray_get_color_comp_index(gx_device * dev, const int8_t * pname,
 
 /* Default color component to index for a DeviceRGB color model */
 int
-gx_default_DevRGB_get_color_comp_index(gx_device * dev, const int8_t * pname,
+gx_default_DevRGB_get_color_comp_index(gx_device * dev, const char * pname,
 					   int name_size, int component_type)
 {
     if (compare_color_names(pname, name_size, "Red"))
@@ -419,7 +419,7 @@ gx_default_DevRGB_get_color_comp_index(gx_device * dev, const int8_t * pname,
 
 /* Default color component to index for a DeviceCMYK color model */
 int
-gx_default_DevCMYK_get_color_comp_index(gx_device * dev, const int8_t * pname,
+gx_default_DevCMYK_get_color_comp_index(gx_device * dev, const char * pname,
 					    int name_size, int component_type)
 {
     if (compare_color_names(pname, name_size, "Cyan"))
@@ -436,7 +436,7 @@ gx_default_DevCMYK_get_color_comp_index(gx_device * dev, const int8_t * pname,
 
 /* Default color component to index for a DeviceRGBK color model */
 int
-gx_default_DevRGBK_get_color_comp_index(gx_device * dev, const int8_t * pname,
+gx_default_DevRGBK_get_color_comp_index(gx_device * dev, const char * pname,
 					    int name_size, int component_type)
 {
     if (compare_color_names(pname, name_size, "Red"))
@@ -453,7 +453,7 @@ gx_default_DevRGBK_get_color_comp_index(gx_device * dev, const int8_t * pname,
 
 /* Default color component to index for an unknown color model */
 int
-gx_error_get_color_comp_index(gx_device * dev, const int8_t * pname,
+gx_error_get_color_comp_index(gx_device * dev, const char * pname,
 					int name_size, int component_type)
 {
     /*

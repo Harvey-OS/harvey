@@ -47,8 +47,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: pathname.c,v 1.2 89/02/12 10:05:13 mark Exp $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: pathname.c,v 1.2 89/02/12 10:05:13 mark Exp $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -85,7 +85,7 @@ static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights rese
 
 #ifdef __STDC__
 
-int dirneed(int8_t *name)
+int dirneed(char *name)
 
 #else
 
@@ -94,18 +94,18 @@ char           *name;
 
 #endif
 {
-    int8_t           *cp;
-    int8_t           *last;
+    char           *cp;
+    char           *last;
     int             ok;
     static Stat     sb;
 
-    last = (int8_t *)NULL;
+    last = (char *)NULL;
     for (cp = name; *cp;) {
 	if (*cp++ == '/') {
 	    last = cp;
 	}
     }
-    if (last == (int8_t *)NULL) {
+    if (last == (char *)NULL) {
 	return (STAT(".", &sb));
     }
     *--last = '\0';
@@ -136,7 +136,7 @@ char           *name;
 
 #ifdef __STDC__
 
-int nameopt(int8_t *begin)
+int nameopt(char *begin)
 
 #else
 
@@ -145,11 +145,11 @@ char           *begin;
 
 #endif
 {
-    int8_t           *name;
-    int8_t           *item;
+    char           *name;
+    char           *item;
     int             idx;
     int             absolute;
-    int8_t           *element[PATHELEM];
+    char           *element[PATHELEM];
 
     absolute = (*(name = begin) == '/');
     idx = 0;
@@ -188,7 +188,7 @@ char           *begin;
     if (idx == 0) {
 	element[idx++] = absolute ? "" : "."; 
     }
-    element[idx] = (int8_t *)NULL;
+    element[idx] = (char *)NULL;
     name = begin;
     if (absolute) {
 	*name++ = '/';
@@ -222,7 +222,7 @@ char           *begin;
 
 #ifdef __STDC__
 
-int dirmake(int8_t *name, Stat *asb)
+int dirmake(char *name, Stat *asb)
 
 #else
 

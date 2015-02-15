@@ -21,17 +21,17 @@ uint32_t hlen;
 Ndb *db;
 uint32_t nextchain;
 
-int8_t*
+char*
 syserr(void)
 {
-	static int8_t buf[ERRMAX];
+	static char buf[ERRMAX];
 
 	errstr(buf, sizeof buf);
 	return buf;
 }
 
 void
-enter(int8_t *val, uint32_t dboff)
+enter(char *val, uint32_t dboff)
 {
 	uint32_t h;
 	uint8_t *last;
@@ -73,13 +73,13 @@ enter(int8_t *val, uint32_t dboff)
 uint8_t nbuf[16*1024];
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Ndbtuple *t, *nt;
 	int n;
 	Dir *d;	
 	uint8_t buf[8];
-	int8_t file[128];
+	char file[128];
 	int fd;
 	uint32_t off;
 	uint8_t *p;

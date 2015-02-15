@@ -29,16 +29,16 @@ enum
 	HASHMUL	= 79L,
 };
 
-int	_is2(int8_t*),		/* in [$OS].c */
-	_is5(int8_t*),
-	_is6(int8_t*),
-	_is7(int8_t*),
-	_is8(int8_t*),
-	_is9(int8_t*),
-	_isk(int8_t*),
-	_isq(int8_t*),
-	_isv(int8_t*),
-	_isu(int8_t*),
+int	_is2(char*),		/* in [$OS].c */
+	_is5(char*),
+	_is6(char*),
+	_is7(char*),
+	_is8(char*),
+	_is9(char*),
+	_isk(char*),
+	_isq(char*),
+	_isv(char*),
+	_isu(char*),
 	_read2(Biobuf*, Prog*),
 	_read5(Biobuf*, Prog*),
 	_read6(Biobuf*, Prog*),
@@ -55,8 +55,8 @@ typedef struct Symtab	Symtab;
 
 struct	Obj		/* functions to handle each intermediate (.$O) file */
 {
-	int8_t	*name;				/* name of each $O file */
-	int	(*is)(int8_t*);			/* test for each type of $O file */
+	char	*name;				/* name of each $O file */
+	int	(*is)(char*);			/* test for each type of $O file */
 	int	(*read)(Biobuf*, Prog*);	/* read for each type of $O file*/
 };
 
@@ -86,14 +86,14 @@ static	Sym	*names[NNAMES];	/* working set of active names */
 
 static	int	processprog(Prog*,int);	/* decode each symbol reference */
 static	void	objreset(void);
-static	void	objlookup(int, int8_t *, int, uint);
+static	void	objlookup(int, char *, int, uint);
 static	void 	objupdate(int, int);
 
 int
-objtype(Biobuf *bp, int8_t **name)
+objtype(Biobuf *bp, char **name)
 {
 	int i;
-	int8_t buf[MAXIS];
+	char buf[MAXIS];
 
 	if(Bread(bp, buf, MAXIS) < MAXIS)
 		return -1;
@@ -112,7 +112,7 @@ int
 isar(Biobuf *bp)
 {
 	int n;
-	int8_t magbuf[SARMAG];
+	char magbuf[SARMAG];
 
 	n = Bread(bp, magbuf, SARMAG);
 	if(n == SARMAG && strncmp(magbuf, ARMAG, SARMAG) == 0)
@@ -187,10 +187,10 @@ processprog(Prog *p, int doautos)
  * make a new entry if it is not already there.
  */
 static void
-objlookup(int id, int8_t *name, int type, uint sig)
+objlookup(int id, char *name, int type, uint sig)
 {
 	int32_t h;
-	int8_t *cp;
+	char *cp;
 	Sym *s;
 	Symtab *sp;
 
@@ -296,7 +296,7 @@ objupdate(int id, int type)
  * look for the next file in an archive
  */
 int
-nextar(Biobuf *bp, int offset, int8_t *buf)
+nextar(Biobuf *bp, int offset, char *buf)
 {
 	struct ar_hdr a;
 	int i, r;

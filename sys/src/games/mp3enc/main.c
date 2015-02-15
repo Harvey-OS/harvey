@@ -67,11 +67,11 @@
 */
 
 int
-parse_args_from_string(lame_global_flags *const gfp, const int8_t *p)
+parse_args_from_string(lame_global_flags *const gfp, const char *p)
 {
 	/* Quick & very Dirty */
 	int c = 0, ret;
-	int8_t *f, *q, *r[128];
+	char *f, *q, *r[128];
 
 	if (p == NULL || *p == '\0')
 		return 0;
@@ -96,16 +96,16 @@ parse_args_from_string(lame_global_flags *const gfp, const int8_t *p)
 }
 
 int
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	int i, iread, imp3, ret;
 	int16_t Buffer[2][1152];
 	unsigned char mp3buffer[LAME_MAXMP3BUFFER];
 	FILE *outf;
 	lame_global_flags *gf;
-	static int8_t inPath[]  = "-";
-	static int8_t outPath[] = "-";
-	static const int8_t *mode_names[2][4] = {
+	static char inPath[]  = "-";
+	static char outPath[] = "-";
+	static const char *mode_names[2][4] = {
 		{ "stereo", "j-stereo", "dual-ch", "single-ch" },
 		{ "stereo", "force-ms", "dual-ch", "single-ch" }
 	};
@@ -184,7 +184,7 @@ main(int argc, int8_t **argv)
 			if (0)
 				fprintf(stderr, "VBR Ogg Vorbis\n" );
 		} else {
-			const int8_t *appendix = "";
+			const char *appendix = "";
 
 			switch (gf->VBR ) {
 			case vbr_mt:

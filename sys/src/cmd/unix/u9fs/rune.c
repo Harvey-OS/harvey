@@ -9,7 +9,7 @@
 
 #include	<plan9.h>
 
-int8_t *argv0;
+char *argv0;
 enum
 {
 	Bit1	= 7,
@@ -41,7 +41,7 @@ enum
 };
 
 int
-chartorune(Rune *rune, int8_t *str)
+chartorune(Rune *rune, char *str)
 {
 	int c, c1, c2, c3;
 	int32_t l;
@@ -119,7 +119,7 @@ bad:
 }
 
 int
-runetochar(int8_t *str, Rune *rune)
+runetochar(char *str, Rune *rune)
 {
 	int32_t c;
 
@@ -179,14 +179,14 @@ int
 runelen(int32_t c)
 {
 	Rune rune;
-	int8_t str[10];
+	char str[10];
 
 	rune = c;
 	return runetochar(str, &rune);
 }
 
 int
-utflen(int8_t *s)
+utflen(char *s)
 {
 	int c;
 	int32_t n;

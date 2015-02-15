@@ -13,7 +13,7 @@
 #include	<sys/limits.h>
 
 int32_t
-pathconf(const int8_t *, int name)
+pathconf(const char *, int name)
 {
 	switch(name)
 	{

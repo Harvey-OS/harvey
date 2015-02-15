@@ -127,9 +127,9 @@ static int
 p_seprint(Msg *m)
 {
 	Hdr *h;
-	int8_t *tn;
-	int8_t *p = m->p;
-	int8_t *e = m->e;
+	char *tn;
+	char *p = m->p;
+	char *e = m->e;
 	uint16_t cksum2, cksum;
 
 	h = (Hdr*)m->ps;

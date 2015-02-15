@@ -322,10 +322,10 @@ zcvsd(i_ctx_t *i_ctx_p)
     os_ptr op = osp;
     int code = double_params_result(op, 0, NULL);
     double num;
-    int8_t buf[MAX_CHARS + 2];
-    int8_t *str = buf;
+    char buf[MAX_CHARS + 2];
+    char *str = buf;
     uint len;
-    int8_t end;
+    char end;
 
     if (code < 0)
 	return code;
@@ -403,7 +403,7 @@ zdcvs(i_ctx_t *i_ctx_p)
     os_ptr op = osp;
     double num;
     int code = double_params(op - 1, 1, &num);
-    int8_t str[MAX_CHARS + 1];
+    char str[MAX_CHARS + 1];
     int len;
 
     if (code < 0)

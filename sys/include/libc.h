@@ -27,26 +27,26 @@ extern	void*	memchr(void*, int, uint32_t);
 /*
  * string routines
  */
-extern	int8_t*	strcat(int8_t*, int8_t*);
-extern	int8_t*	strchr(int8_t*, int);
-extern	int	strcmp(int8_t*, int8_t*);
-extern	int8_t*	strcpy(int8_t*, int8_t*);
-extern	int8_t*	strecpy(int8_t*, int8_t*, int8_t*);
-extern	int8_t*	strdup(int8_t*);
-extern	int8_t*	strncat(int8_t*, int8_t*, int32_t);
-extern	int8_t*	strncpy(int8_t*, int8_t*, int32_t);
-extern	int	strncmp(int8_t*, int8_t*, int32_t);
-extern	int8_t*	strpbrk(int8_t*, int8_t*);
-extern	int8_t*	strrchr(int8_t*, int);
-extern	int8_t*	strtok(int8_t*, int8_t*);
-extern	int32_t	strlen(int8_t*);
-extern	int32_t	strspn(int8_t*, int8_t*);
-extern	int32_t	strcspn(int8_t*, int8_t*);
-extern	int8_t*	strstr(int8_t*, int8_t*);
-extern	int	cistrncmp(int8_t*, int8_t*, int);
-extern	int	cistrcmp(int8_t*, int8_t*);
-extern	int8_t*	cistrstr(int8_t*, int8_t*);
-extern	int	tokenize(int8_t*, int8_t**, int);
+extern	char*	strcat(char*, char*);
+extern	char*	strchr(char*, int);
+extern	int	strcmp(char*, char*);
+extern	char*	strcpy(char*, char*);
+extern	char*	strecpy(char*, char*, char*);
+extern	char*	strdup(char*);
+extern	char*	strncat(char*, char*, int32_t);
+extern	char*	strncpy(char*, char*, int32_t);
+extern	int	strncmp(char*, char*, int32_t);
+extern	char*	strpbrk(char*, char*);
+extern	char*	strrchr(char*, int);
+extern	char*	strtok(char*, char*);
+extern	int32_t	strlen(char*);
+extern	int32_t	strspn(char*, char*);
+extern	int32_t	strcspn(char*, char*);
+extern	char*	strstr(char*, char*);
+extern	int	cistrncmp(char*, char*, int);
+extern	int	cistrcmp(char*, char*);
+extern	char*	cistrstr(char*, char*);
+extern	int	tokenize(char*, char**, int);
 
 enum
 {
@@ -61,17 +61,17 @@ enum
 /*
  * rune routines
  */
-extern	int	runetochar(int8_t*, Rune*);
-extern	int	chartorune(Rune*, int8_t*);
+extern	int	runetochar(char*, Rune*);
+extern	int	chartorune(Rune*, char*);
 extern	int	runelen(int32_t);
 extern	int	runenlen(Rune*, int);
-extern	int	fullrune(int8_t*, int);
-extern	int	utflen(int8_t*);
-extern	int	utfnlen(int8_t*, int32_t);
-extern	int8_t*	utfrune(int8_t*, int32_t);
-extern	int8_t*	utfrrune(int8_t*, int32_t);
-extern	int8_t*	utfutf(int8_t*, int8_t*);
-extern	int8_t*	utfecpy(int8_t*, int8_t*, int8_t*);
+extern	int	fullrune(char*, int);
+extern	int	utflen(char*);
+extern	int	utfnlen(char*, int32_t);
+extern	char*	utfrune(char*, int32_t);
+extern	char*	utfrrune(char*, int32_t);
+extern	char*	utfutf(char*, char*);
+extern	char*	utfecpy(char*, char*, char*);
 
 extern	Rune*	runestrcat(Rune*, Rune*);
 extern	Rune*	runestrchr(Rune*, Rune);
@@ -151,29 +151,29 @@ enum{
 	FmtFlag		= FmtByte << 1
 };
 
-extern	int	print(int8_t*, ...);
-extern	int8_t*	seprint(int8_t*, int8_t*, int8_t*, ...);
-extern	int8_t*	vseprint(int8_t*, int8_t*, int8_t*, va_list);
-extern	int	snprint(int8_t*, int, int8_t*, ...);
-extern	int	vsnprint(int8_t*, int, int8_t*, va_list);
-extern	int8_t*	smprint(int8_t*, ...);
-extern	int8_t*	vsmprint(int8_t*, va_list);
-extern	int	sprint(int8_t*, int8_t*, ...);
-extern	int	fprint(int, int8_t*, ...);
-extern	int	vfprint(int, int8_t*, va_list);
+extern	int	print(char*, ...);
+extern	char*	seprint(char*, char*, char*, ...);
+extern	char*	vseprint(char*, char*, char*, va_list);
+extern	int	snprint(char*, int, char*, ...);
+extern	int	vsnprint(char*, int, char*, va_list);
+extern	char*	smprint(char*, ...);
+extern	char*	vsmprint(char*, va_list);
+extern	int	sprint(char*, char*, ...);
+extern	int	fprint(int, char*, ...);
+extern	int	vfprint(int, char*, va_list);
 
-extern	int	runesprint(Rune*, int8_t*, ...);
-extern	int	runesnprint(Rune*, int, int8_t*, ...);
-extern	int	runevsnprint(Rune*, int, int8_t*, va_list);
-extern	Rune*	runeseprint(Rune*, Rune*, int8_t*, ...);
-extern	Rune*	runevseprint(Rune*, Rune*, int8_t*, va_list);
-extern	Rune*	runesmprint(int8_t*, ...);
-extern	Rune*	runevsmprint(int8_t*, va_list);
+extern	int	runesprint(Rune*, char*, ...);
+extern	int	runesnprint(Rune*, int, char*, ...);
+extern	int	runevsnprint(Rune*, int, char*, va_list);
+extern	Rune*	runeseprint(Rune*, Rune*, char*, ...);
+extern	Rune*	runevseprint(Rune*, Rune*, char*, va_list);
+extern	Rune*	runesmprint(char*, ...);
+extern	Rune*	runevsmprint(char*, va_list);
 
-extern	int	fmtfdinit(Fmt*, int, int8_t*, int);
+extern	int	fmtfdinit(Fmt*, int, char*, int);
 extern	int	fmtfdflush(Fmt*);
 extern	int	fmtstrinit(Fmt*);
-extern	int8_t*	fmtstrflush(Fmt*);
+extern	char*	fmtstrflush(Fmt*);
 extern	int	runefmtstrinit(Fmt*);
 extern	Rune*	runefmtstrflush(Fmt*);
 
@@ -237,12 +237,12 @@ extern	Rune*	runefmtstrflush(Fmt*);
 #pragma varargck	type	"lH"	void*
 
 extern	int	fmtinstall(int, int (*)(Fmt*));
-extern	int	dofmt(Fmt*, int8_t*);
+extern	int	dofmt(Fmt*, char*);
 extern	int	dorfmt(Fmt*, Rune*);
-extern	int	fmtprint(Fmt*, int8_t*, ...);
-extern	int	fmtvprint(Fmt*, int8_t*, va_list);
+extern	int	fmtprint(Fmt*, char*, ...);
+extern	int	fmtvprint(Fmt*, char*, va_list);
 extern	int	fmtrune(Fmt*, int);
-extern	int	fmtstrcpy(Fmt*, int8_t*);
+extern	int	fmtstrcpy(Fmt*, char*);
 extern	int	fmtrunestrcpy(Fmt*, Rune*);
 /*
  * error string for %r
@@ -253,9 +253,9 @@ extern	int	errfmt(Fmt *f);
 /*
  * quoted strings
  */
-extern	int8_t	*unquotestrdup(int8_t*);
+extern	char	*unquotestrdup(char*);
 extern	Rune	*unquoterunestrdup(Rune*);
-extern	int8_t	*quotestrdup(int8_t*);
+extern	char	*quotestrdup(char*);
 extern	Rune	*quoterunestrdup(Rune*);
 extern	int	quotestrfmt(Fmt*);
 extern	int	quoterunestrfmt(Fmt*);
@@ -329,14 +329,14 @@ struct Tm
 	int	year;
 	int	wday;
 	int	yday;
-	int8_t	zone[4];
+	char	zone[4];
 	int	tzoff;
 } Tm;
 
 extern	Tm*	gmtime(int32_t);
 extern	Tm*	localtime(int32_t);
-extern	int8_t*	asctime(Tm*);
-extern	int8_t*	ctime(int32_t);
+extern	char*	asctime(Tm*);
+extern	char*	ctime(int32_t);
 extern	double	cputime(void);
 extern	int32_t	times(int32_t*);
 extern	int32_t	tm2sec(Tm*);
@@ -353,57 +353,57 @@ enum
 	PNGROUP		= 2,
 };
 
-extern	void	_assert(int8_t*);
+extern	void	_assert(char*);
 extern	int	abs(int);
 extern	int	atexit(void(*)(void));
 extern	void	atexitdont(void(*)(void));
-extern	int	atnotify(int(*)(void*, int8_t*), int);
-extern	double	atof(int8_t*);
-extern	int	atoi(int8_t*);
-extern	int32_t	atol(int8_t*);
-extern	int64_t	atoll(int8_t*);
+extern	int	atnotify(int(*)(void*, char*), int);
+extern	double	atof(char*);
+extern	int	atoi(char*);
+extern	int32_t	atol(char*);
+extern	int64_t	atoll(char*);
 extern	double	charstod(int(*)(void*), void*);
-extern	int8_t*	cleanname(int8_t*);
+extern	char*	cleanname(char*);
 extern	int	decrypt(void*, void*, int);
 extern	int	encrypt(void*, void*, int);
-extern	int	dec64(uint8_t*, int, int8_t*, int);
-extern	int	enc64(int8_t*, int, uint8_t*, int);
-extern	int	dec32(uint8_t*, int, int8_t*, int);
-extern	int	enc32(int8_t*, int, uint8_t*, int);
-extern	int	dec16(uint8_t*, int, int8_t*, int);
-extern	int	enc16(int8_t*, int, uint8_t*, int);
+extern	int	dec64(uint8_t*, int, char*, int);
+extern	int	enc64(char*, int, uint8_t*, int);
+extern	int	dec32(uint8_t*, int, char*, int);
+extern	int	enc32(char*, int, uint8_t*, int);
+extern	int	dec16(uint8_t*, int, char*, int);
+extern	int	enc16(char*, int, uint8_t*, int);
 extern	int	encodefmt(Fmt*);
-extern	void	exits(int8_t*);
+extern	void	exits(char*);
 extern	double	frexp(double, int*);
 extern	uintptr	getcallerpc(void*);
-extern	int8_t*	getenv(int8_t*);
-extern	int	getfields(int8_t*, int8_t**, int, int, int8_t*);
-extern	int	gettokens(int8_t *, int8_t **, int, int8_t *);
-extern	int8_t*	getuser(void);
-extern	int8_t*	getwd(int8_t*, int);
+extern	char*	getenv(char*);
+extern	int	getfields(char*, char**, int, int, char*);
+extern	int	gettokens(char *, char **, int, char *);
+extern	char*	getuser(void);
+extern	char*	getwd(char*, int);
 extern	int	iounit(int);
 extern	int32_t	labs(int32_t);
 extern	double	ldexp(double, int);
 extern	void	longjmp(jmp_buf, int);
-extern	int8_t*	mktemp(int8_t*);
+extern	char*	mktemp(char*);
 extern	double	modf(double, double*);
 extern	int	netcrypt(void*, void*);
 extern	void	notejmp(void*, jmp_buf, int);
-extern	void	perror(const int8_t*);
-extern	int	postnote(int, int, int8_t *);
+extern	void	perror(const char*);
+extern	int	postnote(int, int, char *);
 extern	double	pow10(int);
-extern	int	putenv(int8_t*, int8_t*);
+extern	int	putenv(char*, char*);
 extern	void	qsort(void*, int32_t, int32_t,
 				int (*)(void*, void*));
 extern	int	setjmp(jmp_buf);
-extern	double	strtod(int8_t*, int8_t**);
-extern	int32_t	strtol(int8_t*, int8_t**, int);
-extern	uint32_t	strtoul(int8_t*, int8_t**, int);
-extern	int64_t	strtoll(int8_t*, int8_t**, int);
-extern	uint64_t	strtoull(int8_t*, int8_t**, int);
-extern	void	sysfatal(int8_t*, ...);
+extern	double	strtod(char*, char**);
+extern	int32_t	strtol(char*, char**, int);
+extern	uint32_t	strtoul(char*, char**, int);
+extern	int64_t	strtoll(char*, char**, int);
+extern	uint64_t	strtoull(char*, char**, int);
+extern	void	sysfatal(char*, ...);
 #pragma	varargck	argpos	sysfatal	1
-extern	void	syslog(int, int8_t*, int8_t*, ...);
+extern	void	syslog(int, char*, char*, ...);
 #pragma	varargck	argpos	syslog	3
 extern	int32_t	time(int32_t*);
 extern	int	tolower(int);
@@ -450,7 +450,7 @@ struct QLp
 {
 	int	inuse;
 	QLp	*next;
-	int8_t	state;
+	char	state;
 };
 
 typedef
@@ -502,21 +502,21 @@ extern	void	privfree(void**);
  *  network dialing
  */
 #define NETPATHLEN 40
-extern	int	accept(int, int8_t*);
-extern	int	announce(int8_t*, int8_t*);
-extern	int	dial(int8_t*, int8_t*, int8_t*, int*);
-extern	void	setnetmtpt(int8_t*, int, int8_t*);
+extern	int	accept(int, char*);
+extern	int	announce(char*, char*);
+extern	int	dial(char*, char*, char*, int*);
+extern	void	setnetmtpt(char*, int, char*);
 extern	int	hangup(int);
-extern	int	listen(int8_t*, int8_t*);
-extern	int8_t*	netmkaddr(int8_t*, int8_t*, int8_t*);
-extern	int	reject(int, int8_t*, int8_t*);
+extern	int	listen(char*, char*);
+extern	char*	netmkaddr(char*, char*, char*);
+extern	int	reject(int, char*, char*);
 
 /*
  *  encryption
  */
-extern	int	pushssl(int, int8_t*, int8_t*, int8_t*, int*);
-extern	int	pushtls(int, int8_t*, int8_t*, int, int8_t*,
-				 int8_t*);
+extern	int	pushssl(int, char*, char*, char*, int*);
+extern	int	pushtls(int, char*, char*, int, char*,
+				 char*);
 
 /*
  *  network services
@@ -524,17 +524,17 @@ extern	int	pushtls(int, int8_t*, int8_t*, int, int8_t*,
 typedef struct NetConnInfo NetConnInfo;
 struct NetConnInfo
 {
-	int8_t	*dir;		/* connection directory */
-	int8_t	*root;		/* network root */
-	int8_t	*spec;		/* binding spec */
-	int8_t	*lsys;		/* local system */
-	int8_t	*lserv;		/* local service */
-	int8_t	*rsys;		/* remote system */
-	int8_t	*rserv;		/* remote service */
-	int8_t	*laddr;		/* local address */
-	int8_t	*raddr;		/* remote address */
+	char	*dir;		/* connection directory */
+	char	*root;		/* network root */
+	char	*spec;		/* binding spec */
+	char	*lsys;		/* local system */
+	char	*lserv;		/* local service */
+	char	*rsys;		/* remote system */
+	char	*rserv;		/* remote service */
+	char	*laddr;		/* local address */
+	char	*raddr;		/* remote address */
 };
-extern	NetConnInfo*	getnetconninfo(int8_t*, int);
+extern	NetConnInfo*	getnetconninfo(char*, int);
 extern	void		freenetconninfo(NetConnInfo*);
 
 /*
@@ -633,10 +633,10 @@ struct Dir {
 	uint32_t	atime;	/* last read time */
 	uint32_t	mtime;	/* last write time */
 	int64_t	length;	/* file length */
-	int8_t	*name;	/* last element of path */
-	int8_t	*uid;	/* owner name */
-	int8_t	*gid;	/* group name */
-	int8_t	*muid;	/* last modifier name */
+	char	*name;	/* last element of path */
+	char	*uid;	/* owner name */
+	char	*gid;	/* group name */
+	char	*muid;	/* last modifier name */
 } Dir;
 
 /* keep /sys/src/ape/lib/ap/plan9/sys9.h in sync with this -rsc */
@@ -645,7 +645,7 @@ struct Waitmsg
 {
 	int	pid;		/* of loved one */
 	uint32_t	time[3];	/* of loved one & descendants */
-	int8_t	*msg;
+	char	*msg;
 } Waitmsg;
 
 typedef
@@ -655,33 +655,33 @@ struct IOchunk
 	uint32_t	len;
 } IOchunk;
 
-extern	void	_exits(int8_t*);
+extern	void	_exits(char*);
 
 extern	void	abort(void);
-extern	int	access(int8_t*, int);
+extern	int	access(char*, int);
 extern	int32_t	alarm(uint32_t);
-extern	int	await(int8_t*, int);
-extern	int	bind(int8_t*, int8_t*, int);
+extern	int	await(char*, int);
+extern	int	bind(char*, char*, int);
 extern	int	brk(void*);
-extern	int	chdir(int8_t*);
+extern	int	chdir(char*);
 extern	int	close(int);
-extern	int	create(int8_t*, int, uint32_t);
+extern	int	create(char*, int, uint32_t);
 extern	int	dup(int, int);
-extern	int	errstr(int8_t*, uint);
-extern	int	exec(int8_t*, int8_t*[]);
-extern	int	execl(int8_t*, ...);
+extern	int	errstr(char*, uint);
+extern	int	exec(char*, char*[]);
+extern	int	execl(char*, ...);
 extern	int	fork(void);
 extern	int	rfork(int);
-extern	int	fauth(int, int8_t*);
+extern	int	fauth(int, char*);
 extern	int	fstat(int, uint8_t*, int);
 extern	int	fwstat(int, uint8_t*, int);
-extern	int	fversion(int, int, int8_t*, int);
-extern	int	mount(int, int, int8_t*, int, int8_t*);
-extern	int	unmount(int8_t*, int8_t*);
+extern	int	fversion(int, int, char*, int);
+extern	int	mount(int, int, char*, int, char*);
+extern	int	unmount(char*, char*);
 extern	int	noted(int);
-extern	int	notify(void(*)(void*, int8_t*));
-extern	int	open(int8_t*, int);
-extern	int	fd2path(int, int8_t*, int);
+extern	int	notify(void(*)(void*, char*));
+extern	int	open(char*, int);
+extern	int	fd2path(int, char*, int);
 // extern	int	fdflush(int);
 extern	int	pipe(int*);
 extern	int32_t	pread(int, void*, int32_t, int64_t);
@@ -691,11 +691,11 @@ extern	int32_t	pwritev(int, IOchunk*, int, int64_t);
 extern	int32_t	read(int, void*, int32_t);
 extern	int32_t	readn(int, void*, int32_t);
 extern	int32_t	readv(int, IOchunk*, int);
-extern	int	remove(int8_t*);
+extern	int	remove(char*);
 extern	void*	sbrk(uint32_t);
 extern	int32_t	oseek(int, int32_t, int);
 extern	int64_t	seek(int, int64_t, int);
-extern	void*	segattach(int, int8_t*, void*, uint32_t);
+extern	void*	segattach(int, char*, void*, uint32_t);
 extern	void*	segbrk(void*, void*);
 extern	int	segdetach(void*);
 extern	int	segflush(void*, uint32_t);
@@ -703,27 +703,27 @@ extern	int	segfree(void*, uint32_t);
 extern	int	semacquire(int32_t*, int);
 extern	int32_t	semrelease(int32_t*, int32_t);
 extern	int	sleep(int32_t);
-extern	int	stat(int8_t*, uint8_t*, int);
+extern	int	stat(char*, uint8_t*, int);
 extern	int	tsemacquire(int32_t*, uint32_t);
 extern	Waitmsg*	wait(void);
 extern	int	waitpid(void);
 extern	int32_t	write(int, void*, int32_t);
 extern	int32_t	writev(int, IOchunk*, int);
-extern	int	wstat(int8_t*, uint8_t*, int);
+extern	int	wstat(char*, uint8_t*, int);
 extern	void*	rendezvous(void*, void*);
 
-extern	Dir*	dirstat(int8_t*);
+extern	Dir*	dirstat(char*);
 extern	Dir*	dirfstat(int);
-extern	int	dirwstat(int8_t*, Dir*);
+extern	int	dirwstat(char*, Dir*);
 extern	int	dirfwstat(int, Dir*);
 extern	int32_t	dirread(int, Dir**);
 extern	void	nulldir(Dir*);
 extern	int32_t	dirreadall(int, Dir**);
 extern	int	getpid(void);
 extern	int	getppid(void);
-extern	void	rerrstr(int8_t*, uint);
-extern	int8_t*	sysname(void);
-extern	void	werrstr(int8_t*, ...);
+extern	void	rerrstr(char*, uint);
+extern	char*	sysname(void);
+extern	void	werrstr(char*, ...);
 #pragma	varargck	argpos	werrstr	1
 
 /* compiler directives on plan 9 */
@@ -736,7 +736,7 @@ extern	void	werrstr(int8_t*, ...);
 #       endif
 #endif
 
-extern int8_t *argv0;
+extern char *argv0;
 /* #define	ARGBEGIN	for((argv0||(argv0=*argv)),argv++,argc--;\ */
 #define ARGBEGIN        for((argv0?0:(argv0=*argv)),argv++,argc--;\
 			    argv[0] && argv[0][0]=='-' && argv[0][1];\
@@ -755,11 +755,11 @@ extern int8_t *argv0;
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
 #define	EARGF(x)	(_argt=_args, _args="",\
-				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), abort(), (int8_t*)0)))
+				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), abort(), (char*)0)))
 
 #define	ARGC()		_argc
 
 /* this is used by sbrk and brk,  it's a really bad idea to redefine it */
-extern	int8_t	_end[];
+extern	char	_end[];
 /* In order to not to break GNU ld internal linker script */
 #define end _end

@@ -73,7 +73,7 @@ extern Relist*
 _renewemptythread(Relist *lp,	/* _relist to add to */
 	Reinst *ip,		/* instruction to add */
 	int ms,
-	int8_t *sp)		/* pointers to subexpressions */
+	char *sp)		/* pointers to subexpressions */
 {
 	Relist *p;
 

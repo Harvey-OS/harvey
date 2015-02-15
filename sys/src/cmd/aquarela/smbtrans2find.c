@@ -163,9 +163,9 @@ SmbProcessResult
 smbtrans2findfirst2(SmbSession *s, SmbHeader *h)
 {
 	SmbBuffer *b;
-	int8_t *pattern = nil;
-	int8_t *dir = nil;
-	int8_t *name = nil;
+	char *pattern = nil;
+	char *dir = nil;
+	char *name = nil;
 	uint16_t searchattributes, searchcount, flags, informationlevel;
 	uint32_t searchstoragetype;
 	SmbDirCache *dc = nil;
@@ -261,7 +261,7 @@ smbtrans2findnext2(SmbSession *s, SmbHeader *h)
 	uint16_t sid, scount, infolevel;
 	uint32_t resumekey;
 	uint16_t flags;
-	int8_t *filename = nil;
+	char *filename = nil;
 	SmbProcessResult pr;
 	uint16_t e;
 	uint32_t nameoffset;

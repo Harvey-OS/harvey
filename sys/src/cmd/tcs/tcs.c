@@ -36,13 +36,13 @@ int squawk = 1;
 int clean = 0;
 int verbose = 0;
 int32_t ninput, noutput, nrunes, nerrors;
-int8_t *file = "stdin";
-int8_t *argv0;
+char *file = "stdin";
+char *argv0;
 Rune runes[N];
-int8_t obuf[UTFmax*N];	/* maximum bloat from N runes */
+char obuf[UTFmax*N];	/* maximum bloat from N runes */
 int32_t tab[NRUNE];
 #ifndef	PLAN9
-extern int8_t version[];
+extern char version[];
 #endif
 
 void intable(int, int32_t *, struct convert *);
@@ -183,9 +183,9 @@ conv(char *name, int from)
 }
 
 void
-swab2(int8_t *b, int n)
+swab2(char *b, int n)
 {
-	int8_t *e, p;
+	char *e, p;
 
 	for(e = b+n; b < e; b++){
 		p = *b;
@@ -304,11 +304,11 @@ unicode_out(Rune *base, int n, int32_t *notused)
 	if(first){
 		unsigned short x = 0xFEFF;
 		noutput += 2;
-		write(1, (int8_t *)&x, 2);
+		write(1, (char *)&x, 2);
 		first = 0;
 	}
 	noutput += 2*n;
-	write(1, (int8_t *)base, 2*n);
+	write(1, (char *)base, 2*n);
 }
 
 void
@@ -327,7 +327,7 @@ unicode_out_be(Rune *base, int n, int32_t *notused)
 	}
 	nrunes += n;
 	noutput += 2*n;
-	write(1, (int8_t *)base, 2*n);
+	write(1, (char *)base, 2*n);
 }
 
 void
@@ -346,7 +346,7 @@ unicode_out_le(Rune *base, int n, int32_t *notused)
 	}
 	nrunes += n;
 	noutput += 2*n;
-	write(1, (int8_t *)base, 2*n);
+	write(1, (char *)base, 2*n);
 }
 
 void

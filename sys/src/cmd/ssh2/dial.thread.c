@@ -43,20 +43,20 @@ enum
 
 struct DS {
 	/* dial string */
-	int8_t	buf[Maxstring];
-	int8_t	*netdir;
-	int8_t	*proto;
-	int8_t	*rem;
+	char	buf[Maxstring];
+	char	*netdir;
+	char	*proto;
+	char	*rem;
 
 	/* other args */
-	int8_t	*local;
-	int8_t	*dir;
+	char	*local;
+	char	*dir;
 	int	*cfdp;
 };
 
 struct Conn {
 	int	cfd;
-	int8_t	dir[NETPATHLEN+1];
+	char	dir[NETPATHLEN+1];
 };
 struct Dest {
 	DS	*ds;
@@ -66,43 +66,43 @@ struct Dest {
 	int	kidthrids[64];		/* one per addr; ought to be enough */
 
 	int	windfd;
-	int8_t	err[ERRMAX];
+	char	err[ERRMAX];
 
 	int32_t	oalarm;
 
 	int	naddrs;
-	int8_t	*nextaddr;
-	int8_t	addrlist[Maxcsreply];
+	char	*nextaddr;
+	char	addrlist[Maxcsreply];
 };
 
 struct Kidargs {			/* arguments to callproc */
 	Dest	*dp;
 	int	thridsme;
-	int8_t	*clone;
-	int8_t	*dest;
+	char	*clone;
+	char	*dest;
 };
 
 struct Restup {				/* result tuple from callproc */
 	int	dfd;
 	int	cfd;
-	int8_t	*err;
-	int8_t	*conndir;
+	char	*err;
+	char	*conndir;
 };
 
-static int	call(int8_t*, int8_t*, Dest*, Conn*);
-static int	call1(int8_t*, int8_t*, Dest*, Conn*);
+static int	call(char*, char*, Dest*, Conn*);
+static int	call1(char*, char*, Dest*, Conn*);
 static int	csdial(DS*);
-static void	_dial_string_parse(int8_t*, DS*);
+static void	_dial_string_parse(char*, DS*);
 
 /*
  *  the dialstring is of the form '[/net/]proto!dest'
  */
 static int
-dialimpl(int8_t *dest, int8_t *local, int8_t *dir, int *cfdp)
+dialimpl(char *dest, char *local, char *dir, int *cfdp)
 {
 	DS ds;
 	int rv;
-	int8_t err[ERRMAX], alterr[ERRMAX];
+	char err[ERRMAX], alterr[ERRMAX];
 
 	ds.local = local;
 	ds.dir = dir;
@@ -140,10 +140,10 @@ dialimpl(int8_t *dest, int8_t *local, int8_t *dir, int *cfdp)
  * the thread library can't cope with rfork(RFMEM|RFPROC),
  * so it must override _dial with this version of dial.
  */
-int (*_dial)(int8_t *, int8_t *, int8_t *, int *) = dialimpl;
+int (*_dial)(char *, char *, char *, int *) = dialimpl;
 
 int
-dial(int8_t *dest, int8_t *local, int8_t *dir, int *cfdp)
+dial(char *dest, char *local, char *dir, int *cfdp)
 {
 	return (*_dial)(dest, local, dir, cfdp);
 }
@@ -168,9 +168,9 @@ closeopenfd(int *fdp)
 }
 
 static int
-parsecs(Dest *dp, int8_t **clonep, int8_t **destp)
+parsecs(Dest *dp, char **clonep, char **destp)
 {
-	int8_t *dest, *p;
+	char *dest, *p;
 
 	dest = strchr(dp->nextaddr, ' ');
 	if(dest == nil)
@@ -187,9 +187,9 @@ parsecs(Dest *dp, int8_t **clonep, int8_t **destp)
 }
 
 static void
-pickuperr(int8_t *besterr)
+pickuperr(char *besterr)
 {
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 
 	err[0] = '\0';
 	errstr(err, ERRMAX);
@@ -198,7 +198,7 @@ pickuperr(int8_t *besterr)
 }
 
 static int
-catcher(void *, int8_t *s)
+catcher(void *, char *s)
 {
 	return strstr(s, "alarm") != nil;
 }
@@ -207,7 +207,7 @@ static void
 callproc(void *p)
 {
 	int dfd;
-	int8_t besterr[ERRMAX];
+	char besterr[ERRMAX];
 	Conn lconn;
 	Conn *conn;
 	Kidargs *args;
@@ -296,7 +296,7 @@ static int
 dialmulti(Dest *dp)
 {
 	int kidme;
-	int8_t *clone, *dest;
+	char *clone, *dest;
 	Kidargs *argp;
 
 	dp->reschan = chancreate(sizeof(void *), 0);
@@ -328,7 +328,7 @@ dialmulti(Dest *dp)
 
 /* call a single address and pass back cfd & conn dir after */
 static int
-call1(int8_t *clone, int8_t *rem, Dest *dp, Conn *conn)
+call1(char *clone, char *rem, Dest *dp, Conn *conn)
 {
 	int dfd;
 	DS *ds;
@@ -351,9 +351,9 @@ static int
 csdial(DS *ds)
 {
 	int n, fd, dfd, addrs, bleft;
-	int8_t c;
-	int8_t *addrp, *clone2, *dest;
-	int8_t buf[Maxstring], clone[Maxpath], besterr[ERRMAX];
+	char c;
+	char *addrp, *clone2, *dest;
+	char buf[Maxstring], clone[Maxpath], besterr[ERRMAX];
 	Conn lconn;
 	Conn *conn;
 	Dest *dp;
@@ -437,10 +437,10 @@ csdial(DS *ds)
 
 /* returns dfd, stores cfd through cfdp */
 static int
-call(int8_t *clone, int8_t *dest, Dest *dp, Conn *conn)
+call(char *clone, char *dest, Dest *dp, Conn *conn)
 {
 	int fd, cfd, n, calleralarm, oalarm;
-	int8_t cname[Maxpath], name[Maxpath], data[Maxpath], *p;
+	char cname[Maxpath], name[Maxpath], data[Maxpath], *p;
 	DS *ds;
 
 	/* because cs is in a different name space, replace the mount point */
@@ -516,10 +516,10 @@ call(int8_t *clone, int8_t *dest, Dest *dp, Conn *conn)
  * part of the proto string, so skip numeric components.
  * returns pointer to delimiter after right-most non-numeric component.
  */
-static int8_t *
-backoverchans(int8_t *st, int8_t *p)
+static char *
+backoverchans(char *st, char *p)
 {
-	int8_t *sl;
+	char *sl;
 
 	for (sl = p; --p >= st && isascii(*p) && isdigit(*p); sl = p) {
 		while (--p >= st && isascii(*p) && isdigit(*p))
@@ -536,9 +536,9 @@ backoverchans(int8_t *st, int8_t *p)
  *  parse a dial string
  */
 static void
-_dial_string_parse(int8_t *str, DS *ds)
+_dial_string_parse(char *str, DS *ds)
 {
-	int8_t *p, *p2;
+	char *p, *p2;
 
 	strncpy(ds->buf, str, Maxstring);
 	ds->buf[Maxstring-1] = 0;

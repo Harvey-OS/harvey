@@ -48,8 +48,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: list.c,v 1.2 89/02/12 10:04:43 mark Exp $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: list.c,v 1.2 89/02/12 10:04:43 mark Exp $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -70,11 +70,11 @@ static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights rese
 
 #ifdef __STDC__
 
-static void cpio_entry(int8_t *, Stat *);
-static void tar_entry(int8_t *, Stat *);
-static void pax_entry(int8_t *, Stat *);
+static void cpio_entry(char *, Stat *);
+static void tar_entry(char *, Stat *);
+static void pax_entry(char *, Stat *);
 static void print_mode(ushort);
-static int32_t from_oct(int digs, int8_t *where);
+static int32_t from_oct(int digs, char *where);
 
 #else /* !__STDC__ */
 
@@ -89,7 +89,7 @@ static long from_oct();
 
 /* Internal Identifiers */
 
-static int8_t       *monnames[] = {
+static char       *monnames[] = {
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
@@ -118,7 +118,7 @@ static int8_t       *monnames[] = {
 
 #ifdef __STDC__
 
-int read_header(int8_t *name, Stat *asb)
+int read_header(char *name, Stat *asb)
 
 #else
     
@@ -132,10 +132,10 @@ Stat           *asb;
     int32_t            sum;
     int32_t	    recsum;
     Link           *link;
-    int8_t           *p;
-    int8_t            hdrbuf[BLOCKSIZE];
+    char           *p;
+    char            hdrbuf[BLOCKSIZE];
 
-    memset((int8_t *)asb, 0, sizeof(Stat));
+    memset((char *)asb, 0, sizeof(Stat));
     /* read the header from the buffer */
     if (buf_read(hdrbuf, BLOCKSIZE) != 0) {
 	return (EOF);
@@ -277,7 +277,7 @@ Stat           *asb;
 
 #ifdef __STDC__
 
-void print_entry(int8_t *name, Stat *asb)
+void print_entry(char *name, Stat *asb)
 
 #else
     
@@ -316,7 +316,7 @@ Stat	        *asb;
 
 #ifdef __STDC__
 
-static void cpio_entry(int8_t *name, Stat *asb)
+static void cpio_entry(char *name, Stat *asb)
 
 #else
     
@@ -373,7 +373,7 @@ Stat	       *asb;
 
 #ifdef __STDC__
 
-static void tar_entry(int8_t *name, Stat *asb)
+static void tar_entry(char *name, Stat *asb)
 
 #else
     
@@ -386,7 +386,7 @@ Stat            *asb;
     struct tm  	       *atm;
     int			i;
     int			mode;
-    int8_t               *symnam = "NULL";
+    char               *symnam = "NULL";
     Link               *link;
 
     if ((mode = asb->sb_mode & S_IFMT) == S_IFDIR) {
@@ -490,7 +490,7 @@ Stat            *asb;
 
 #ifdef __STDC__
 
-static void pax_entry(int8_t *name, Stat *asb)
+static void pax_entry(char *name, Stat *asb)
 
 #else
     
@@ -648,7 +648,7 @@ ushort	mode;
 
 #ifdef __STDC__
 
-static int32_t from_oct(int digs, int8_t *where)
+static int32_t from_oct(int digs, char *where)
 
 #else
 

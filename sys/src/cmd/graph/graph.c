@@ -33,7 +33,7 @@ struct val {
 	int lblptr;
 } *xx;
 
-int8_t *labels;
+char *labels;
 int labelsiz;
 
 int tick = 50;
@@ -50,13 +50,13 @@ int	equf;
 int	brkf;
 int	ovlay = 1;
 float	dx;
-int8_t	*plotsymb;
+char	*plotsymb;
 
 #define BSIZ 80
-int8_t	labbuf[BSIZ];
-int8_t	titlebuf[BSIZ];
+char	labbuf[BSIZ];
+char	titlebuf[BSIZ];
 
-int8_t *modes[] = {
+char *modes[] = {
 	"disconnected",
 	"solid",
 	"dotted",
@@ -89,15 +89,15 @@ struct {
 int pencolor = 'k';
 
 void init(struct xy *);
-void setopt(int, int8_t *[]);
+void setopt(int, char *[]);
 void readin(void);
 void transpose(void);
 void getlim(struct xy *, struct val *);
 void equilibrate(struct xy *, struct xy *);
 void scale(struct xy *);
-void limread(struct xy *, int *, int8_t ***);
-int numb(float *, int *, int8_t ***);
-void colread(int *, int8_t ***);
+void limread(struct xy *, int *, char ***);
+int numb(float *, int *, char ***);
+void colread(int *, char ***);
 int copystring(int);
 struct z setloglim(int, int, float, float);
 struct z setlinlim(int, int, float, float);
@@ -111,9 +111,9 @@ void title(void);
 void badarg(void);
 int conv(float, struct xy *, int *);
 int symbol(int, int, int);
-void axlab(int8_t, struct xy *, int8_t *);
+void axlab(char, struct xy *, char *);
 
-void main(int argc,int8_t *argv[]){
+void main(int argc,char *argv[]){
 
 	openpl();
 	range(0,0,4096,4096);
@@ -148,8 +148,8 @@ void init(struct xy *p){
 	p->xmult = 1;
 }
 
-void setopt(int argc, int8_t *argv[]){
-	int8_t *p1, *p2;
+void setopt(int argc, char *argv[]){
+	char *p1, *p2;
 	float temp;
 
 	xd.xlb = yd.xlb = INF;
@@ -255,7 +255,7 @@ again:		switch(argv[0][0]) {
 	}
 }
 
-void limread(struct xy *p, int *argcp, int8_t ***argvp){
+void limread(struct xy *p, int *argcp, char ***argvp){
 	if(*argcp>1 && (*argvp)[1][0]=='l') {
 		(*argcp)--;
 		(*argvp)++;
@@ -290,7 +290,7 @@ numb(float *np, int *argcp, char ***argvp){
 	return(1);
 }
 
-void colread(int *argcp, int8_t ***argvp){
+void colread(int *argcp, char ***argvp){
 	int c, cnext;
 	int i, n;
 
@@ -321,7 +321,7 @@ void readin(void){
 			absbot = 1;
 	}
 	for(;;) {
-		temp = (struct val *)realloc((int8_t*)xx,
+		temp = (struct val *)realloc((char*)xx,
 			(unsigned)(n+ovlay)*sizeof(struct val));
 		if(temp==0)
 			return;
@@ -362,7 +362,7 @@ void transpose(void){
 }
 
 int copystring(int k){
-	int8_t *temp;
+	char *temp;
 	int i;
 	int q;
 
@@ -686,7 +686,7 @@ getfloat(float *p){
 int
 getstring(void){
 	int i;
-	int8_t junk[20];
+	char junk[20];
 	i = scanf("%1s",labbuf);
 	if(i==-1)
 		return(-1);
@@ -729,7 +729,7 @@ symbol(int ix, int iy, int k){
 }
 
 void title(void){
-	int8_t buf[BSIZ+100];
+	char buf[BSIZ+100];
 	buf[0] = ' ';
 	buf[1] = ' ';
 	buf[2] = ' ';
@@ -743,8 +743,8 @@ void title(void){
 	text(buf);
 }
 
-void axlab(int8_t c, struct xy *p, int8_t *b){
-	int8_t *dir;
+void axlab(char c, struct xy *p, char *b){
+	char *dir;
 	dir = p->xlb<p->xub? "<=": ">=";
 	sprintf(b+strlen(b), " %g %s %c%s %s %g", p->xlb/p->xmult,
 		dir, c, p->xf==log10?" (log)":"", dir, p->xub/p->xmult);

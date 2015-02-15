@@ -23,7 +23,7 @@ typedef struct Thread Thread;
 struct Thread {
 	int pid;
 	int ref;
-	int8_t *error;
+	char *error;
 	int state;
 	Thread *next;
 };
@@ -124,10 +124,10 @@ vtDetach(void)
 	}
 }
 
-int8_t *
+char *
 vtGetError(void)
 {
-	int8_t *s;
+	char *s;
 
 	if(ERROR)
 		fprint(2, "vtGetError: %s\n", threadLookup()->error);
@@ -137,11 +137,11 @@ vtGetError(void)
 	return s;
 }
 
-int8_t*
-vtSetError(int8_t* fmt, ...)
+char*
+vtSetError(char* fmt, ...)
 {
 	Thread *p;
-	int8_t *s;
+	char *s;
 	va_list args;
 
 	p = threadLookup();

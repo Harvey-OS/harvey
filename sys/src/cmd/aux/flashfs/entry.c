@@ -19,7 +19,7 @@ static	int	nextfnum;
 static	Intmap*	map;
 static	Dir	dirproto;
 
-static	int8_t	user[]	= "flash";
+static	char	user[]	= "flash";
 
 	Entry	*root;
 	uint32_t	used;
@@ -45,7 +45,7 @@ maxfnum(int n)
 }
 
 static int
-hash(int8_t *s)
+hash(char *s)
 {
 	int c, d, h;
 
@@ -209,8 +209,8 @@ edestroy(Entry *e)
 }
 
 Entry *
-ecreate(Entry *d, int8_t *name, uint32_t n, uint32_t mode, uint32_t mtime,
-	int8_t **err)
+ecreate(Entry *d, char *name, uint32_t n, uint32_t mode, uint32_t mtime,
+	char **err)
 {
 	int h;
 	Entry *e, *f;
@@ -279,7 +279,7 @@ etrunc(Entry *e, uint32_t n, uint32_t mtime)
 	e->parent->mtime = mtime;
 }
 
-int8_t *
+char *
 eremove(Entry *e)
 {
 	Dirr *r;
@@ -323,7 +323,7 @@ eremove(Entry *e)
 }
 
 Entry *
-ewalk(Entry *d, int8_t *name, int8_t **err)
+ewalk(Entry *d, char *name, char **err)
 {
 	Entry *e;
 
@@ -522,7 +522,7 @@ ediropen(Entry *e)
 }
 
 int
-edirread(Dirr *r, int8_t *a, int32_t n)
+edirread(Dirr *r, char *a, int32_t n)
 {
 	Dir d;
 	Entry *e;

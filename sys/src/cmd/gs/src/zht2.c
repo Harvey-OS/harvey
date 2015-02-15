@@ -426,7 +426,7 @@ dict_spot_params(const ref * pdict, gs_spot_halftone * psp,
 
 /* Set actual frequency and angle in a dictionary. */
 private int
-dict_real_result(i_ctx_t *i_ctx_p, ref * pdict, const int8_t *kstr,
+dict_real_result(i_ctx_t *i_ctx_p, ref * pdict, const char *kstr,
                  floatp val)
 {
     int code = 0;

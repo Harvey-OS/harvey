@@ -17,10 +17,10 @@ enum { Stralloc = 100, };
 int pfmtnest = 0;
 
 void
-pfmt(io *f, int8_t *fmt, ...)
+pfmt(io *f, char *fmt, ...)
 {
 	va_list ap;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 
 	va_start(ap, fmt);
 	pfmtnest++;
@@ -45,16 +45,16 @@ pfmt(io *f, int8_t *fmt, ...)
 			pptr(f, va_arg(ap, void*));
 			break;
 		case 'Q':
-			pquo(f, va_arg(ap, int8_t *));
+			pquo(f, va_arg(ap, char *));
 			break;
 		case 'q':
-			pwrd(f, va_arg(ap, int8_t *));
+			pwrd(f, va_arg(ap, char *));
 			break;
 		case 'r':
 			errstr(err, sizeof err); pstr(f, err);
 			break;
 		case 's':
-			pstr(f, va_arg(ap, int8_t *));
+			pstr(f, va_arg(ap, char *));
 			break;
 		case 't':
 			pcmd(f, va_arg(ap, struct tree *));
@@ -89,7 +89,7 @@ rchr(io *b)
 }
 
 int
-rutf(io *b, int8_t *buf, Rune *r)
+rutf(io *b, char *buf, Rune *r)
 {
 	int n, i, c;
 
@@ -118,7 +118,7 @@ rutf(io *b, int8_t *buf, Rune *r)
 }
 
 void
-pquo(io *f, int8_t *s)
+pquo(io *f, char *s)
 {
 	pchr(f, '\'');
 	for(;*s;s++)
@@ -129,9 +129,9 @@ pquo(io *f, int8_t *s)
 }
 
 void
-pwrd(io *f, int8_t *s)
+pwrd(io *f, char *s)
 {
-	int8_t *t;
+	char *t;
 	for(t = s;*t;t++) if(*t >= 0 && needsrcquote(*t)) break;
 	if(t==s || *t)
 		pquo(f, s);
@@ -152,7 +152,7 @@ pptr(io *f, void *v)
 }
 
 void
-pstr(io *f, int8_t *s)
+pstr(io *f, char *s)
 {
 	if(s==0)
 		s="(null)";
@@ -194,11 +194,11 @@ pval(io *f, word *a)
 {
 	if(a){
 		while(a->next && a->next->word){
-			pwrd(f, (int8_t *)a->word);
+			pwrd(f, (char *)a->word);
 			pchr(f, ' ');
 			a = a->next;
 		}
-		pwrd(f, (int8_t *)a->word);
+		pwrd(f, (char *)a->word);
 	}
 }
 
@@ -262,7 +262,7 @@ openstr(void)
  */
 
 io*
-opencore(int8_t *s, int len)
+opencore(char *s, int len)
 {
 	io *f = new(struct io);
 	uint8_t *buf = emalloc(len);

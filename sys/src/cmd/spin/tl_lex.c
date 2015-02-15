@@ -30,15 +30,15 @@ static int	tl_lex(void);
 extern int tl_peek(int);
 
 extern YYSTYPE	tl_yylval;
-extern int8_t	yytext[];
+extern char	yytext[];
 
 #define Token(y)        tl_yylval = tl_nn(y,ZN,ZN); return y
 
 static void
 tl_getword(int first, int (*tst)(int))
-{	int i=0; int8_t c;
+{	int i=0; char c;
 
-	yytext[i++] = (int8_t ) first;
+	yytext[i++] = (char ) first;
 	while (tst(c = tl_Getchar()))
 		yytext[i++] = c;
 	yytext[i] = '\0';
@@ -48,7 +48,7 @@ tl_getword(int first, int (*tst)(int))
 static int
 tl_follow(int tok, int ifyes, int ifno)
 {	int c;
-	int8_t buf[32];
+	char buf[32];
 	extern int tl_yychar;
 
 	if ((c = tl_Getchar()) == tok)
@@ -71,10 +71,10 @@ tl_yylex(void)
 
 static int
 is_predicate(int z)
-{	int8_t c, c_prev = z;
-	int8_t want = (z == '{') ? '}' : ')';
+{	char c, c_prev = z;
+	char want = (z == '{') ? '}' : ')';
 	int i = 0, j, nesting = 0;
-	int8_t peek_buf[512];
+	char peek_buf[512];
 
 	c = tl_peek(i++);	/* look ahead without changing position */
 	while ((c != want || nesting > 0) && c != -1 && i < 2047)
@@ -98,7 +98,7 @@ is_predicate(int z)
 			{	return 0;
 			}
 		} else
-		{	int8_t c_nxt = tl_peek(i);
+		{	char c_nxt = tl_peek(i);
 			if (((c == 'U' || c == 'V' || c == 'X') && !isalnum_(c_prev) && !isalnum_(c_nxt))
 			||  (c == '<' && c_nxt == '>')
 			||  (c == '[' && c_nxt == ']'))
@@ -119,7 +119,7 @@ is_predicate(int z)
 
 static void
 read_upto_closing(int z)
-{	int8_t c, want = (z == '{') ? '}' : ')';
+{	char c, want = (z == '{') ? '}' : ')';
 	int i = 0, nesting = 0;
 
 	c = tl_Getchar();
@@ -142,7 +142,7 @@ tl_lex(void)
 
 	do {
 		c = tl_Getchar();
-		yytext[0] = (int8_t ) c;
+		yytext[0] = (char ) c;
 		yytext[1] = '\0';
 
 		if (c <= 0)
@@ -228,7 +228,7 @@ tl_lex(void)
 }
 
 Symbol *
-tl_lookup(int8_t *s)
+tl_lookup(char *s)
 {	Symbol *sp;
 	int h = hash(s);
 
@@ -237,7 +237,7 @@ tl_lookup(int8_t *s)
 			return sp;
 
 	sp = (Symbol *) tl_emalloc(sizeof(Symbol));
-	sp->name = (int8_t *) tl_emalloc((int) strlen(s) + 1);
+	sp->name = (char *) tl_emalloc((int) strlen(s) + 1);
 	strcpy(sp->name, s);
 	sp->next = symtab[h];
 	symtab[h] = sp;

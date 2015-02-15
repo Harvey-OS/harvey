@@ -18,8 +18,8 @@
 typedef struct Srv Srv;
 struct Srv
 {
-	int8_t	*name;
-	int8_t	*owner;
+	char	*name;
+	char	*owner;
 	uint32_t	perm;
 	Chan	*chan;
 	Srv	*link;
@@ -31,7 +31,7 @@ static Srv	*srv;
 static int	qidpath;
 
 static int
-srvgen(Chan *c, int8_t*, Dirtab*, int, int s, Dir *dp)
+srvgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 {
 	Srv *sp;
 	Qid q;
@@ -65,19 +65,19 @@ srvinit(void)
 }
 
 static Chan*
-srvattach(int8_t *spec)
+srvattach(char *spec)
 {
 	return devattach('s', spec);
 }
 
 static Walkqid*
-srvwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+srvwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, srvgen);
 }
 
 static Srv*
-srvlookup(int8_t *name, uint32_t qidpath)
+srvlookup(char *name, uint32_t qidpath)
 {
 	Srv *sp;
 	for(sp = srv; sp; sp = sp->link)
@@ -92,11 +92,11 @@ srvstat(Chan *c, uint8_t *db, int32_t n)
 	return devstat(c, db, n, 0, 0, srvgen);
 }
 
-int8_t*
+char*
 srvname(Chan *c)
 {
 	Srv *sp;
-	int8_t *s;
+	char *s;
 
 	for(sp = srv; sp; sp = sp->link)
 		if(sp->chan == c){
@@ -146,10 +146,10 @@ srvopen(Chan *c, int omode)
 }
 
 static void
-srvcreate(Chan *c, int8_t *name, int omode, int perm)
+srvcreate(Chan *c, char *name, int omode, int perm)
 {
 	Srv *sp;
-	int8_t *sname;
+	char *sname;
 
 	if(openmode(omode) != OWRITE)
 		error(Eperm);
@@ -243,7 +243,7 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	Dir d;
 	Srv *sp;
-	int8_t *strs;
+	char *strs;
 
 	if(c->qid.type & QTDIR)
 		error(Eperm);
@@ -312,7 +312,7 @@ srvwrite(Chan *c, void *va, int32_t n, int64_t)
 	Srv *sp;
 	Chan *c1;
 	int fd;
-	int8_t buf[32];
+	char buf[32];
 
 	if(n >= sizeof buf)
 		error(Egreg);

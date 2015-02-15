@@ -1666,10 +1666,10 @@ blistFree(Cache *c, BList *bl)
 	vtUnlock(c->lk);
 }
 
-int8_t*
+char*
 bsStr(int state)
 {
-	static int8_t s[100];
+	static char s[100];
 
 	if(state == BsFree)
 		return "Free";
@@ -1688,7 +1688,7 @@ bsStr(int state)
 	return s;
 }
 
-int8_t *
+char *
 bioStr(int iostate)
 {
 	switch(iostate){
@@ -1715,7 +1715,7 @@ bioStr(int iostate)
 	}
 }
 
-static int8_t *bttab[] = {
+static char *bttab[] = {
 	"BtData",
 	"BtData+1",
 	"BtData+2",
@@ -1734,7 +1734,7 @@ static int8_t *bttab[] = {
 	"BtDir+7",
 };
 
-int8_t*
+char*
 btStr(int type)
 {
 	if(type < nelem(bttab))

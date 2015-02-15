@@ -184,7 +184,7 @@ pdf_base_font_alloc(gx_device_pdf *pdev, pdf_base_font_t **ppbfont,
 			&st_pdf_base_font, "pdf_base_font_alloc");
     const gs_font_name *pfname = pdf_choose_font_name((gs_font *)font, orig_name);
     gs_const_string font_name;
-    int8_t fnbuf[3 + sizeof(int32_t) / 3 + 1]; /* .F#######\0 */
+    char fnbuf[3 + sizeof(int32_t) / 3 + 1]; /* .F#######\0 */
     int code;
 
     if (pbfont == 0)
@@ -406,7 +406,7 @@ int
 pdf_write_FontFile_entry(gx_device_pdf *pdev, pdf_base_font_t *pbfont)
 {
     stream *s = pdev->strm;
-    const int8_t *FontFile_key;
+    const char *FontFile_key;
 
     switch (pbfont->copied->FontType) {
     case ft_TrueType:

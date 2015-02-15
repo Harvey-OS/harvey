@@ -262,7 +262,7 @@ cos_string_value(cos_value_t *pcv, const byte *data, uint size)
     return pcv;
 }
 const cos_value_t *
-cos_c_string_value(cos_value_t *pcv, const int8_t *str)
+cos_c_string_value(cos_value_t *pcv, const char *str)
 {
     /*
      * We shouldn't break const here, because the value will not be copied
@@ -624,7 +624,7 @@ cos_array_add_no_copy(cos_array_t *pca, const cos_value_t *pvalue)
     return cos_array_put_no_copy(pca, cos_array_next_index(pca), pvalue);
 }
 int
-cos_array_add_c_string(cos_array_t *pca, const int8_t *str)
+cos_array_add_c_string(cos_array_t *pca, const char *str)
 {
     cos_value_t value;
 
@@ -633,7 +633,7 @@ cos_array_add_c_string(cos_array_t *pca, const int8_t *str)
 int
 cos_array_add_int(cos_array_t *pca, int i)
 {
-    int8_t str[sizeof(int) * 8 / 3 + 3]; /* sign, rounding, 0 terminator */
+    char str[sizeof(int) * 8 / 3 + 3]; /* sign, rounding, 0 terminator */
     cos_value_t v;
 
     sprintf(str, "%d", i);
@@ -913,14 +913,14 @@ cos_dict_put_no_copy(cos_dict_t *pcd, const byte *key_data, uint key_size,
 			     DICT_COPY_KEY | DICT_FREE_KEY);
 }
 int
-cos_dict_put_c_key(cos_dict_t *pcd, const int8_t *key,
+cos_dict_put_c_key(cos_dict_t *pcd, const char *key,
                    const cos_value_t *pvalue)
 {
     return cos_dict_put_copy(pcd, (const byte *)key, strlen(key), pvalue,
 			     DICT_COPY_VALUE);
 }
 int
-cos_dict_put_c_key_string(cos_dict_t *pcd, const int8_t *key,
+cos_dict_put_c_key_string(cos_dict_t *pcd, const char *key,
 			  const byte *data, uint size)
 {
     cos_value_t value;
@@ -929,22 +929,22 @@ cos_dict_put_c_key_string(cos_dict_t *pcd, const int8_t *key,
     return cos_dict_put_c_key(pcd, key, &value);
 }
 int
-cos_dict_put_c_key_int(cos_dict_t *pcd, const int8_t *key, int value)
+cos_dict_put_c_key_int(cos_dict_t *pcd, const char *key, int value)
 {
-    int8_t str[sizeof(int) * 8 / 3 + 3]; /* sign, rounding, 0 terminator */
+    char str[sizeof(int) * 8 / 3 + 3]; /* sign, rounding, 0 terminator */
 
     sprintf(str, "%d", value);
     return cos_dict_put_c_key_string(pcd, key, (byte *)str, strlen(str));
 }
 int
-cos_dict_put_c_key_bool(cos_dict_t *pcd, const int8_t *key, bool value)
+cos_dict_put_c_key_bool(cos_dict_t *pcd, const char *key, bool value)
 {
     return cos_dict_put_c_key_string(pcd, key, 
 		(const byte *)(value ? "true" : "false"),
 			      (value ? 4 : 5));
 }
 int
-cos_dict_put_c_key_real(cos_dict_t *pcd, const int8_t *key, floatp value)
+cos_dict_put_c_key_real(cos_dict_t *pcd, const char *key, floatp value)
 {
     byte str[50];		/****** ADHOC ******/
     stream s;
@@ -954,7 +954,7 @@ cos_dict_put_c_key_real(cos_dict_t *pcd, const int8_t *key, floatp value)
     return cos_dict_put_c_key_string(pcd, key, str, stell(&s));
 }
 int
-cos_dict_put_c_key_floats(cos_dict_t *pcd, const int8_t *key,
+cos_dict_put_c_key_floats(cos_dict_t *pcd, const char *key,
                           const float *pf,
 			  uint size)
 {
@@ -970,7 +970,7 @@ cos_dict_put_c_key_floats(cos_dict_t *pcd, const int8_t *key,
     return code;
 }
 int
-cos_dict_put_c_key_object(cos_dict_t *pcd, const int8_t *key,
+cos_dict_put_c_key_object(cos_dict_t *pcd, const char *key,
                           cos_object_t *pco)
 {
     cos_value_t value;
@@ -987,14 +987,14 @@ cos_dict_put_string(cos_dict_t *pcd, const byte *key_data, uint key_size,
 			cos_string_value(&cvalue, value_data, value_size));
 }
 int
-cos_dict_put_string_copy(cos_dict_t *pcd, const int8_t *key,
-                         const int8_t *value)
+cos_dict_put_string_copy(cos_dict_t *pcd, const char *key,
+                         const char *value)
 {
     return cos_dict_put_c_key_string(pcd, key, (byte *)value, strlen(value));
 }
 int
-cos_dict_put_c_strings(cos_dict_t *pcd, const int8_t *key,
-                       const int8_t *value)
+cos_dict_put_c_strings(cos_dict_t *pcd, const char *key,
+                       const char *value)
 {
     cos_value_t cvalue;
 
@@ -1038,7 +1038,7 @@ cos_dict_find(const cos_dict_t *pcd, const byte *key_data, uint key_size)
     return 0;
 }
 const cos_value_t *
-cos_dict_find_c_key(const cos_dict_t *pcd, const int8_t *key)
+cos_dict_find_c_key(const cos_dict_t *pcd, const char *key)
 {
     return cos_dict_find(pcd, (const byte *)key, strlen(key));
 }

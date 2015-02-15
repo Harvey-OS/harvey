@@ -17,14 +17,14 @@ typedef
 struct
 {
 	int	(*cmp)(void*, void*);
-	void	(*swap)(int8_t*, int8_t*, int32_t);
+	void	(*swap)(char*, char*, int32_t);
 	int32_t	es;
 } Sort;
 
 static	void
-swapb(int8_t *i, int8_t *j, int32_t es)
+swapb(char *i, char *j, int32_t es)
 {
-	int8_t c;
+	char c;
 
 	do {
 		c = *i;
@@ -36,7 +36,7 @@ swapb(int8_t *i, int8_t *j, int32_t es)
 }
 
 static	void
-swapi(int8_t *ii, int8_t *ij, int32_t es)
+swapi(char *ii, char *ij, int32_t es)
 {
 	int32_t *i, *j, c;
 
@@ -50,11 +50,11 @@ swapi(int8_t *ii, int8_t *ij, int32_t es)
 	} while(es != 0);
 }
 
-static	int8_t*
-pivot(int8_t *a, int32_t n, Sort *p)
+static	char*
+pivot(char *a, int32_t n, Sort *p)
 {
 	int32_t j;
-	int8_t *pi, *pj, *pk;
+	char *pi, *pj, *pk;
 
 	j = n/6 * p->es;
 	pi = a + j;	/* 1/6 */
@@ -78,10 +78,10 @@ pivot(int8_t *a, int32_t n, Sort *p)
 }
 
 static	void
-qsorts(int8_t *a, int32_t n, Sort *p)
+qsorts(char *a, int32_t n, Sort *p)
 {
 	int32_t j, es;
-	int8_t *pi, *pj, *pn;
+	char *pi, *pj, *pn;
 
 	es = p->es;
 	while(n > 1) {
@@ -129,5 +129,5 @@ qsort(void *va, int32_t n, int32_t es, int (*cmp)(void*, void*))
 	s.swap = swapi;
 	if(((uintptr)va | es) % sizeof(int32_t))
 		s.swap = swapb;
-	qsorts((int8_t*)va, n, &s);
+	qsorts((char*)va, n, &s);
 }

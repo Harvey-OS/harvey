@@ -68,7 +68,7 @@ enum prec {
 #define MAX_PREC	P_COMMA
 
 struct opinfo {
-	int8_t		name[4];
+	char		name[4];
 	int		len;	/* name length */
 	enum prec	prec;	/* precidence: lower is higher */
 };
@@ -122,8 +122,8 @@ static const struct opinfo opinfo[] = {
 
 typedef struct expr_state Expr_state;
 struct expr_state {
-	const int8_t *expression;		/* expression being evaluated */
-	const int8_t *tokp;		/* lexical position */
+	const char *expression;		/* expression being evaluated */
+	const char *tokp;		/* lexical position */
 	enum token  tok;		/* token from token() */
 	int	    noassign;		/* don't do assigns (for ?:,&&,||) */
 	struct tbl *val;		/* value from token() */
@@ -151,7 +151,7 @@ static struct tbl *intvar   ARGS((Expr_state *es, struct tbl *vp));
  */
 int
 evaluate(expr, rval, error_ok)
-	const int8_t *expr;
+	const char *expr;
 	int32_t *rval;
 	int error_ok;
 {
@@ -171,7 +171,7 @@ evaluate(expr, rval, error_ok)
 int
 v_evaluate(vp, expr, error_ok)
 	struct tbl *vp;
-	const int8_t *expr;
+	const char *expr;
 	volatile int error_ok;
 {
 	struct tbl *v;
@@ -210,7 +210,7 @@ v_evaluate(vp, expr, error_ok)
 	v = intvar(es, evalexpr(es, MAX_PREC));
 
 	if (es->tok != END)
-		evalerr(es, ET_UNEXPECTED, (int8_t *) 0);
+		evalerr(es, ET_UNEXPECTED, (char *) 0);
 
 	if (vp->flag & INTEGER)
 		setint_v(vp, v);
@@ -227,10 +227,10 @@ static void
 evalerr(es, type, str)
 	Expr_state *es;
 	enum error_type type;
-	const int8_t *str;
+	const char *str;
 {
-	int8_t tbuf[2];
-	const int8_t *s;
+	char tbuf[2];
+	const char *s;
 
 	switch (type) {
 	case ET_UNEXPECTED:
@@ -467,9 +467,9 @@ static void
 token(es)
 	Expr_state *es;
 {
-	const int8_t *cp;
+	const char *cp;
 	int c;
-	int8_t *tvar;
+	char *tvar;
 
 	/* skip white space */
 	for (cp = es->tokp; (c = *cp), isspace(c); cp++)

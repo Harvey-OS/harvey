@@ -21,7 +21,7 @@ enum
 };
 
 static Ndbtuple*	filter(Ndb *db, Ndbtuple *t, Ndbtuple *f);
-static Ndbtuple*	mkfilter(int argc, int8_t **argv);
+static Ndbtuple*	mkfilter(int argc, char **argv);
 static int		filtercomplete(Ndbtuple *f);
 static Ndbtuple*	toipaddr(Ndb *db, Ndbtuple *t);
 static int		prefixlen(uint8_t *ip);
@@ -30,10 +30,10 @@ static Ndbtuple*	subnet(Ndb *db, uint8_t *net, Ndbtuple *f,
 
 /* make a filter to be used in filter */
 static Ndbtuple*
-mkfilter(int argc, int8_t **argv)
+mkfilter(int argc, char **argv)
 {
 	Ndbtuple *t, *first, *last;
-	int8_t *p;
+	char *p;
 
 	last = first = nil;
 	while(argc-- > 0){
@@ -66,7 +66,7 @@ filtercomplete(Ndbtuple *f)
 
 /* set the attribute of all entries in a tuple */
 static Ndbtuple*
-setattr(Ndbtuple *t, int8_t *attr)
+setattr(Ndbtuple *t, char *attr)
 {
 	Ndbtuple *nt;
 
@@ -132,7 +132,7 @@ subnet(Ndb *db, uint8_t *net, Ndbtuple *f, int prefix)
 {
 	Ndbs s;
 	Ndbtuple *t, *nt, *xt;
-	int8_t netstr[128];
+	char netstr[128];
 	uint8_t mask[IPaddrlen];
 	int masklen;
 
@@ -167,11 +167,11 @@ subnet(Ndb *db, uint8_t *net, Ndbtuple *f, int prefix)
  *  for inherited attributes.
  */
 Ndbtuple*
-ndbipinfo(Ndb *db, int8_t *attr, int8_t *val, int8_t **alist, int n)
+ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 {
 	Ndbtuple *t, *nt, *f;
 	Ndbs s;
-	int8_t *ipstr;
+	char *ipstr;
 	uint8_t net[IPaddrlen], ip[IPaddrlen];
 	int prefix, smallestprefix, force;
 	int64_t r;
@@ -253,7 +253,7 @@ ndbipinfo(Ndb *db, int8_t *attr, int8_t *val, int8_t **alist, int n)
 	 */
 	nt = ndbfindattr(f, f, "ipmask");
 	if(nt && !(nt->ptr & Fignore)){
-		int8_t x[64];
+		char x[64];
 
 		snprint(x, sizeof(x), "%M", defmask(ip));
 		t = ndbconcatenate(t, ndbnew("ipmask", x));

@@ -43,7 +43,7 @@ enum{
 	Rl,
 };
 
-static int8_t *testschedulability(Proc*);
+static char *testschedulability(Proc*);
 static Proc *qschedulability;
 
 enum {
@@ -56,7 +56,7 @@ enum {
 static int
 timeconv(Fmt *f)
 {
-	int8_t buf[128], *sign;
+	char buf[128], *sign;
 	int64_t t;
 
 	buf[0] = 0;
@@ -344,10 +344,10 @@ edfrun(Proc *p, int edfpri)
 	e->s = now;
 }
 
-int8_t *
+char *
 edfadmit(Proc *p)
 {
-	int8_t *err;
+	char *err;
 	Edf *e;
 	int i;
 	Proc *r;
@@ -623,7 +623,7 @@ testenq(Proc *p)
 	xp->edf->testnext = p;
 }
 
-static int8_t *
+static char *
 testschedulability(Proc *theproc)
 {
 	Proc *p;

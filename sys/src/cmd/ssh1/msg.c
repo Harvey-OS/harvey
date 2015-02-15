@@ -11,7 +11,7 @@
 
 static uint32_t sum32(uint32_t, void*, int);
 
-int8_t *msgnames[] =
+char *msgnames[] =
 {
 /* 0 */
 	"SSH_MSG_NONE",
@@ -72,7 +72,7 @@ int8_t *msgnames[] =
 void
 badmsg(Msg *m, int want)
 {
-	int8_t *s, buf[20+ERRMAX];
+	char *s, buf[20+ERRMAX];
 
 	if(m==nil){
 		snprint(buf, sizeof buf, "<early eof: %r>");
@@ -288,17 +288,17 @@ getlong(Msg *m)
 	return x;
 }
 
-int8_t*
+char*
 getstring(Msg *m)
 {
-	int8_t *p;
+	char *p;
 	uint32_t len;
 
 	/* overwrites length to make room for NUL */
 	len = getlong(m);
 	if(m->rp+len > m->ep)
 		error(Edecode);
-	p = (int8_t*)m->rp-1;
+	p = (char*)m->rp-1;
 	memmove(p, m->rp, len);
 	p[len] = '\0';
 	return p;
@@ -367,7 +367,7 @@ putlong(Msg *m, uint32_t x)
 }
 
 void
-putstring(Msg *m, int8_t *s)
+putstring(Msg *m, char *s)
 {
 	int len;
 

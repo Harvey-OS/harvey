@@ -528,8 +528,8 @@ igc_reloc_refs(ref_packed * from, ref_packed * to, gc_state_t * gcst)
 
 			SET_RELOC(pref->value.pname,
 				  (name *)
-				  ((int8_t *)rsub + ((int8_t *)pref->value.pname -
-						   (int8_t *)psub)));
+				  ((char *)rsub + ((char *)pref->value.pname -
+						   (char *)psub)));
 		    } break;
 		case t_string:
 		    {
@@ -606,7 +606,7 @@ igc_reloc_ref_ptr(const ref_packed * prp, gc_state_t *gcst)
 		    rputc('\n');
 		    rp = print_reloc(prp, "ref",
 				     (const ref_packed *)
-				     ((const int8_t *)prp -
+				     ((const char *)prp -
 				      (*rp & packed_value_mask) + dec));
 		    break;
 		}
@@ -627,7 +627,7 @@ igc_reloc_ref_ptr(const ref_packed * prp, gc_state_t *gcst)
 	    rp = print_reloc(prp, "ref",
 			     (const ref_packed *)
 			     (r_size(RP_REF(rp)) == 0 ? prp :
-			      (const ref_packed *)((const int8_t *)prp -
+			      (const ref_packed *)((const char *)prp -
 						   r_size(RP_REF(rp)) + dec)));
 	    break;
 	}

@@ -32,12 +32,12 @@
 			cflush();\
 	}
 
-void	strnput(int8_t*, int);
+void	strnput(char*, int);
 
 int32_t
 entryvalue(void)
 {
-	int8_t *a;
+	char *a;
 	Sym *s;
 
 	a = INITENTRY;
@@ -100,7 +100,7 @@ asmb(void)
 		}
 		pc += o->size;
 		if (prevpc & (1<<31) && (pc & (1<<31)) == 0) {
-			int8_t *tn;
+			char *tn;
 
 			tn = "??none??";
 			if(curtext != P && curtext->from.sym != S)
@@ -142,7 +142,7 @@ asmb(void)
 	}
 
 	if(dlm){
-		int8_t buf[8];
+		char buf[8];
 
 		write(cout, buf, INITDAT-textsize);
 		textsize = INITDAT;
@@ -349,7 +349,7 @@ asmb(void)
 }
 
 void
-strnput(int8_t *s, int n)
+strnput(char *s, int n)
 {
 	for(; *s; s++){
 		CPUT(*s);
@@ -497,7 +497,7 @@ asmsym(void)
 }
 
 void
-putsymb(int8_t *s, int t, int32_t v, int ver)
+putsymb(char *s, int t, int32_t v, int ver)
 {
 	int i, f;
 
@@ -627,7 +627,7 @@ void
 datblk(int32_t s, int32_t n)
 {
 	Prog *p;
-	int8_t *cast;
+	char *cast;
 	int32_t l, fl, j, d;
 	int i, c;
 
@@ -665,14 +665,14 @@ datblk(int32_t s, int32_t n)
 			default:
 			case 4:
 				fl = ieeedtof(&p->to.ieee);
-				cast = (int8_t*)&fl;
+				cast = (char*)&fl;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i+4]];
 					l++;
 				}
 				break;
 			case 8:
-				cast = (int8_t*)&p->to.ieee;
+				cast = (char*)&p->to.ieee;
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i]];
 					l++;
@@ -705,7 +705,7 @@ datblk(int32_t s, int32_t n)
 				if(dlm)
 					dynreloc(p->to.sym, l+s+INITDAT, 1, 0, 0);
 			}
-			cast = (int8_t*)&d;
+			cast = (char*)&d;
 			switch(c) {
 			default:
 				diag("bad nuxi %d %d\n%P", c, i, curp);

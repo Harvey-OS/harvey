@@ -26,7 +26,7 @@ static Rune intab[256] = {
 	[0xf9] L'·',
 };
 
-static int8_t	tag[64];
+static char	tag[64];
 
 enum{
 	Run, Openper, Openat, Closeat
@@ -37,7 +37,7 @@ ahdprintentry(Entry e, int cmd)
 {
 	static int inited;
 	int32_t addr;
-	int8_t *p, *t = tag;
+	char *p, *t = tag;
 	int obreaklen;
 	int c, state = Run;
 
@@ -116,9 +116,9 @@ out:
 int32_t
 ahdnextoff(int32_t fromoff)
 {
-	static int8_t *patterns[] = { "%@NL@%", "%@2@%", 0 };
+	static char *patterns[] = { "%@NL@%", "%@2@%", 0 };
 	int c, k = 0, state = 0;
-	int8_t *pat = patterns[0];
+	char *pat = patterns[0];
 	int32_t defoff = -1;
 
 	if(Bseek(bdict, fromoff, 0) < 0)

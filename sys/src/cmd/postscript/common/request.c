@@ -27,9 +27,9 @@
 
 Request	request[MAXREQUEST];		/* next page or global request */
 int	nextreq = 0;			/* goes in request[nextreq] */
-int8_t	*requestfile = REQUESTFILE;	/* default lookup file */
+char	*requestfile = REQUESTFILE;	/* default lookup file */
 
-void	dumprequest(int8_t *, int8_t *, FILE *);
+void	dumprequest(char *, char *, FILE *);
 void	writerequest(int, FILE *);
 
 /*
@@ -42,9 +42,9 @@ void	writerequest(int, FILE *);
  */
 void
 saverequest(want)
-    int8_t	*want;			/* grab code for this stuff */
+    char	*want;			/* grab code for this stuff */
 {
-    int8_t	*page;			/* and save it for this page */
+    char	*page;			/* and save it for this page */
 
     if ( nextreq < MAXREQUEST )  {
 	request[nextreq].want = strtok(want, ": ");
@@ -82,11 +82,11 @@ writerequest(page, fp_out)
  */
 void
 dumprequest(want, file, fp_out)
-    int8_t	*want;			/* look for this string */
-    int8_t	*file;			/* in this file */
+    char	*want;			/* look for this string */
+    char	*file;			/* in this file */
     FILE	*fp_out;		/* and write the value out here */
 {
-    int8_t	buf[100];		/* line buffer for reading *file */
+    char	buf[100];		/* line buffer for reading *file */
     FILE	*fp_in;
 
     if ( (fp_in = fopen(file, "r")) != NULL )  {

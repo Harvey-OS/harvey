@@ -21,9 +21,9 @@ static void memFree(Mem*);
 static int memHead(Mem *m, uint8_t *rp, int n);
 static int memTail(Mem *m, uint8_t *wp, int n);
 
-static int8_t EPacketSize[] = "bad packet size";
-static int8_t EPacketOffset[] = "bad packet offset";
-static int8_t EBadSize[] = "bad size";
+static char EPacketSize[] = "bad packet size";
+static char EPacketOffset[] = "bad packet offset";
+static char EBadSize[] = "bad size";
 
 static struct {
 	Lock lk;

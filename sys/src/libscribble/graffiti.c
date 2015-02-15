@@ -42,7 +42,7 @@
 
 int ScribbleDebug;
 
-int8_t *cl_name[3] = {
+char *cl_name[3] = {
 	DEFAULT_LETTERS_FILE,
 	DEFAULT_DIGITS_FILE,
 	DEFAULT_PUNC_FILE
@@ -174,7 +174,7 @@ static int
 graffiti_load_recognizers(struct graffiti *pg)
 {
 	bool usingDefault;
-	int8_t* homedir;
+	char* homedir;
 	int i;
 	rec_fn *fns;
 
@@ -194,7 +194,7 @@ graffiti_load_recognizers(struct graffiti *pg)
 	}
 
 	/* ...then figure out where the classifiers are... */
-	if ( (homedir = (int8_t*)getenv("home")) == nil ) {
+	if ( (homedir = (char*)getenv("home")) == nil ) {
 		if(0)fprint(2, "no homedir, using = %s\n", REC_DEFAULT_USER_DIR);
 		strecpy(pg->cldir, pg->cldir+sizeof pg->cldir, REC_DEFAULT_USER_DIR);
 		usingDefault = true;
@@ -207,7 +207,7 @@ graffiti_load_recognizers(struct graffiti *pg)
 	/* ...then load the classifiers... */
 	for (i = 0; i < NUM_RECS; i++) {
 		int rec_return;
-		int8_t *s;
+		char *s;
 
 		rec_return = recognizer_load_state(pg->rec[i], pg->cldir, cl_name[i]);
 		if ((rec_return == -1) && (usingDefault == false)) {

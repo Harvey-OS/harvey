@@ -14,13 +14,13 @@
 #include <libsec.h>
 #include <9p.h>
 
-extern int8_t *Debug;
+extern char *Debug;
 
 typedef struct Pingcache Pingcache;
 struct Pingcache {
 	Pingcache*next;
 	int32_t	rtt;
-	int8_t	*host;
+	char	*host;
 	int32_t	expire;
 };
 
@@ -70,7 +70,7 @@ static Pingcache *Cache;
  * than expected due to IP sorting out the routing to the host
  */
 int
-ping(int8_t *host, int timeout)
+ping(char *host, int timeout)
 {
 	int rtt, fd, i, seq;
 	int32_t now;

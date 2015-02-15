@@ -48,8 +48,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: cpio.c,v 1.2 89/02/12 10:04:13 mark Exp $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: cpio.c,v 1.2 89/02/12 10:04:13 mark Exp $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -87,7 +87,7 @@ static void 	usage();
 
 #ifdef __STDC__
 
-int do_cpio(int argc, int8_t **argv)
+int do_cpio(int argc, char **argv)
 
 #else
 
@@ -98,7 +98,7 @@ char          **argv;
 #endif
 {
     int             c;
-    int8_t           *dirname;
+    char           *dirname;
     Stat            st;
 
     /* default input/output file for CPIO is STDIN/STDOUT */

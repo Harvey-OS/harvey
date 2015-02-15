@@ -21,37 +21,37 @@ enum
 static	int	cheader(Biobuf *bin, ZipHead *zh);
 static	int	copyout(int ofd, Biobuf *bin, int32_t len);
 static	int	crcwrite(void *ofd, void *buf, int n);
-static	int	findCDir(Biobuf *bin, int8_t *file);
+static	int	findCDir(Biobuf *bin, char *file);
 static	int	get1(Biobuf *b);
 static	int	get2(Biobuf *b);
 static	uint32_t	get4(Biobuf *b);
-static	int8_t	*getname(Biobuf *b, int len);
+static	char	*getname(Biobuf *b, int len);
 static	int	header(Biobuf *bin, ZipHead *zh);
 static	int32_t	msdos2time(int time, int date);
 static	int	sunzip(Biobuf *bin);
 static	int	sunztable(Biobuf *bin);
 static	void	trailer(Biobuf *bin, ZipHead *zh);
-static	int	unzip(Biobuf *bin, int8_t *file);
+static	int	unzip(Biobuf *bin, char *file);
 static	int	unzipEntry(Biobuf *bin, ZipHead *czh);
-static	int	unztable(Biobuf *bin, int8_t *file);
-static	int	wantFile(int8_t *file);
+static	int	unztable(Biobuf *bin, char *file);
+static	int	wantFile(char *file);
 
 static	void	*emalloc(uint32_t);
-static	void	error(int8_t*, ...);
+static	void	error(char*, ...);
 #pragma	varargck	argpos	error	1
 
 static	Biobuf	bin;
 static	uint32_t	crc;
 static	uint32_t	*crctab;
 static	int	debug;
-static	int8_t	*delfile;
+static	char	*delfile;
 static	int	lower;
 static	int	nwant;
 static	uint32_t	rlen;
 static	int	settimes;
 static	int	stdout;
 static	int	verbose;
-static	int8_t	**want;
+static	char	**want;
 static	int	wbad;
 static	uint32_t	wlen;
 static	jmp_buf	zjmp;
@@ -152,7 +152,7 @@ main(int argc, char *argv[])
  * print the table of contents from the "central directory structure"
  */
 static int
-unztable(Biobuf *bin, int8_t *file)
+unztable(Biobuf *bin, char *file)
 {
 	ZipHead zh;
 	int entries;
@@ -287,7 +287,7 @@ sunztable(Biobuf *bin)
  * extract files using the info in the central directory structure
  */
 static int
-unzip(Biobuf *bin, int8_t *file)
+unzip(Biobuf *bin, char *file)
 {
 	ZipHead zh;
 	int64_t off;
@@ -351,17 +351,17 @@ sunzip(Biobuf *bin)
 	}
 }
 
-static int mkdirs(int8_t *);
+static int mkdirs(char *);
 
 /*
  * if any directories leading up to path don't exist, create them.
  * modifies but restores path.
  */
 static int
-mkpdirs(int8_t *path)
+mkpdirs(char *path)
 {
 	int rv = 0;
-	int8_t *sl = strrchr(path, '/');
+	char *sl = strrchr(path, '/');
 print("%s\n", path);
 	if (sl != nil) {
 		*sl = '\0';
@@ -376,7 +376,7 @@ print("%s\n", path);
  * modifies but restores path.
  */
 static int
-mkdirs(int8_t *path)
+mkdirs(char *path)
 {
 	int fd;
 
@@ -409,7 +409,7 @@ unzipEntry(Biobuf *bin, ZipHead *czh)
 {
 	Dir *d;
 	ZipHead zh;
-	int8_t *p;
+	char *p;
 	int64_t off;
 	int fd, isdir, ok, err;
 
@@ -513,7 +513,7 @@ unzipEntry(Biobuf *bin, ZipHead *czh)
 }
 
 static int
-wantFile(int8_t *file)
+wantFile(char *file)
 {
 	int i, n;
 
@@ -535,7 +535,7 @@ wantFile(int8_t *file)
  * or -1 if there was an error
  */
 static int
-findCDir(Biobuf *bin, int8_t *file)
+findCDir(Biobuf *bin, char *file)
 {
 	int64_t ecoff;
 	int32_t off, size, m;
@@ -666,10 +666,10 @@ trailer(Biobuf *bin, ZipHead *zh)
 	}
 }
 
-static int8_t*
+static char*
 getname(Biobuf *bin, int len)
 {
-	int8_t *s;
+	char *s;
 	int i, c;
 
 	s = emalloc(len + 1);
@@ -702,7 +702,7 @@ crcwrite(void *out, void *buf, int n)
 static int
 copyout(int ofd, Biobuf *bin, int32_t len)
 {
-	int8_t buf[BufSize];
+	char buf[BufSize];
 	int n;
 
 	for(; len > 0; len -= n){
@@ -790,7 +790,7 @@ emalloc(uint32_t n)
 }
 
 static void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
 	va_list arg;
 

@@ -130,7 +130,7 @@ struct Cdir {
 static int
 Dfmt(Fmt *fmt)
 {
-	int8_t buf[128];
+	char buf[128];
 	Cdir *c;
 
 	c = va_arg(fmt->args, Cdir*);
@@ -145,7 +145,7 @@ Dfmt(Fmt *fmt)
 	return 0;
 }
 
-int8_t longc, shortc;
+char longc, shortc;
 static void
 bigend(void)
 {
@@ -192,7 +192,7 @@ BLfmt(Fmt *fmt)
 {
 	uint32_t v;
 	uint8_t *p;
-	int8_t buf[20];
+	char buf[20];
 
 	p = va_arg(fmt->args, uint8_t*);
 
@@ -216,7 +216,7 @@ BLfmt(Fmt *fmt)
 static int
 Nfmt(Fmt *fmt)
 {
-	int8_t buf[100];
+	char buf[100];
 	uint8_t *p;
 
 	p = va_arg(fmt->args, uint8_t*);
@@ -230,10 +230,10 @@ Nfmt(Fmt *fmt)
 static int
 asciiTfmt(Fmt *fmt)
 {
-	int8_t *p, buf[256];
+	char *p, buf[256];
 	int i;
 
-	p = va_arg(fmt->args, int8_t*);
+	p = va_arg(fmt->args, char*);
 	for(i=0; i<fmt->prec; i++)
 		buf[i] = *p++;
 	buf[i] = '\0';
@@ -281,7 +281,7 @@ abort();
 
 static Header *h;
 static int fd;
-static int8_t *file9660;
+static char *file9660;
 static int off9660;
 static uint32_t startoff;
 static uint32_t endoff;
@@ -293,7 +293,7 @@ static void iso9660copydir(Fs*, File*, Cdir*);
 static void iso9660copyfile(Fs*, File*, Cdir*);
 
 void
-iso9660init(int xfd, Header *xh, int8_t *xfile9660, int xoff9660)
+iso9660init(int xfd, Header *xh, char *xfile9660, int xoff9660)
 {
 	uint8_t sect[2048], sect2[2048];
 
@@ -441,7 +441,7 @@ iso9660copydir(Fs *fs, File *dir, Cdir *cd)
 	}
 }
 
-static int8_t*
+static char*
 getname(uint8_t **pp)
 {
 	uint8_t *p;
@@ -454,14 +454,14 @@ getname(uint8_t **pp)
 		return "";
 	memmove(p, p+1, l);
 	p[l] = 0;
-	return (int8_t*)p;
+	return (char*)p;
 }
 
-static int8_t*
+static char*
 getcname(Cdir *c)
 {
 	uint8_t *up;
-	int8_t *p, *q;
+	char *p, *q;
 
 	up = &c->namelen;
 	p = getname(&up);
@@ -470,7 +470,7 @@ getcname(Cdir *c)
 	return p;
 }
 
-static int8_t
+static char
 dmsize[12] =
 {
 	31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,

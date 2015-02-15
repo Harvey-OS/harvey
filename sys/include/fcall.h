@@ -23,13 +23,13 @@ struct	Fcall
 	union {
 		struct {
 			uint32_t	msize;		/* Tversion, Rversion */
-			int8_t	*version;	/* Tversion, Rversion */
+			char	*version;	/* Tversion, Rversion */
 		};
 		struct {
 			uint16_t	oldtag;		/* Tflush */
 		};
 		struct {
-			int8_t	*ename;		/* Rerror */
+			char	*ename;		/* Rerror */
 		};
 		struct {
 			Qid	qid;		/* Rattach, Ropen, Rcreate */
@@ -40,18 +40,18 @@ struct	Fcall
 		};
 		struct {
 			uint32_t	afid;		/* Tauth, Tattach */
-			int8_t	*uname;		/* Tauth, Tattach */
-			int8_t	*aname;		/* Tauth, Tattach */
+			char	*uname;		/* Tauth, Tattach */
+			char	*aname;		/* Tauth, Tattach */
 		};
 		struct {
 			uint32_t	perm;		/* Tcreate */ 
-			int8_t	*name;		/* Tcreate */
+			char	*name;		/* Tcreate */
 			uint8_t	mode;		/* Tcreate, Topen */
 		};
 		struct {
 			uint32_t	newfid;		/* Twalk */
 			uint16_t	nwname;		/* Twalk */
-			int8_t	*wname[MAXWELEM];	/* Twalk */
+			char	*wname[MAXWELEM];	/* Twalk */
 		};
 		struct {
 			uint16_t	nwqid;		/* Rwalk */
@@ -60,7 +60,7 @@ struct	Fcall
 		struct {
 			int64_t	offset;		/* Tread, Twrite */
 			uint32_t	count;		/* Tread, Twrite, Rread */
-			int8_t	*data;		/* Twrite, Rread */
+			char	*data;		/* Twrite, Rread */
 		};
 		struct {
 			uint16_t	nstat;		/* Twstat, Rstat */
@@ -134,7 +134,7 @@ uint	convS2M(Fcall*, uint8_t*, uint);
 uint	sizeS2M(Fcall*);
 
 int	statcheck(uint8_t *abuf, uint nbuf);
-uint	convM2D(uint8_t*, uint, Dir*, int8_t*);
+uint	convM2D(uint8_t*, uint, Dir*, char*);
 uint	convD2M(Dir*, uint8_t*, uint);
 uint	sizeD2M(Dir*);
 

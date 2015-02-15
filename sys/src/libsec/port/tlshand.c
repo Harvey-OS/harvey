@@ -48,8 +48,8 @@ typedef struct Ints{
 } Ints;
 
 typedef struct Algs{
-	int8_t *enc;
-	int8_t *digest;
+	char *enc;
+	char *digest;
 	int nsecret;
 	int tlsid;
 	int ok;
@@ -64,7 +64,7 @@ typedef struct TlsConnection{
 	TlsSec *sec;	// security management goo
 	int hand, ctl;	// record layer file descriptors
 	int erred;		// set when tlsError called
-	int (*trace)(int8_t*fmt, ...); // for debugging
+	int (*trace)(char*fmt, ...); // for debugging
 	int version;	// protocol we are speaking
 	int verset;		// version has been set
 	int ver2hi;		// server got a version 2 hello
@@ -82,8 +82,8 @@ typedef struct TlsConnection{
 	uint8_t crandom[RandomSize];	// client random
 	uint8_t srandom[RandomSize];	// server random
 	int clientVersion;	// version in ClientHello
-	int8_t *digest;	// name of digest algorithm to use
-	int8_t *enc;		// name of encryption algorithm to use
+	char *digest;	// name of digest algorithm to use
+	char *enc;		// name of encryption algorithm to use
 	int nsecret;	// amount of secret data to init keys
 
 	// for finished messages
@@ -126,7 +126,7 @@ typedef struct Msg{
 } Msg;
 
 typedef struct TlsSec{
-	int8_t *server;	// name of remote; nil for server
+	char *server;	// name of remote; nil for server
 	int ok;	// <0 killed; == 0 in progress; >0 reusable
 	RSApub *rsapub;
 	AuthRpc *rpc;	// factotum for rsa private key
@@ -136,7 +136,7 @@ typedef struct TlsSec{
 	int clientVers;		// version in ClientHello
 	int vers;			// final version
 	// byte generation and handshake checksum
-	void (*prf)(uint8_t*, int, uint8_t*, int, int8_t*, uint8_t*, int,
+	void (*prf)(uint8_t*, int, uint8_t*, int, char*, uint8_t*, int,
 		    uint8_t*, int);
 	void (*setFinished)(TlsSec*, MD5state, SHAstate, uint8_t*, int);
 	int nfin;
@@ -261,16 +261,16 @@ static uint8_t compressors[] = {
 };
 
 static TlsConnection *tlsServer2(int ctl, int hand, uint8_t *cert, int ncert,
-				 int (*trace)(int8_t*fmt, ...),
+				 int (*trace)(char*fmt, ...),
 				 PEMChain *chain);
 static TlsConnection *tlsClient2(int ctl, int hand, uint8_t *csid, int ncsid,
-				 int (*trace)(int8_t*fmt, ...));
+				 int (*trace)(char*fmt, ...));
 
 static void	msgClear(Msg *m);
-static int8_t* msgPrint(int8_t *buf, int n, Msg *m);
+static char* msgPrint(char *buf, int n, Msg *m);
 static int	msgRecv(TlsConnection *c, Msg *m);
 static int	msgSend(TlsConnection *c, Msg *m, int act);
-static void	tlsError(TlsConnection *c, int err, int8_t *msg, ...);
+static void	tlsError(TlsConnection *c, int err, char *msg, ...);
 #pragma	varargck argpos	tlsError 3
 static int setVersion(TlsConnection *c, int version);
 static int finishedMatch(TlsConnection *c, Finished *f);
@@ -309,7 +309,7 @@ static void	tlsSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
 static void	sslSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
 				  uint8_t *finished, int isClient);
 static void	sslPRF(uint8_t *buf, int nbuf, uint8_t *key, int nkey,
-			  int8_t *label,
+			  char *label,
 			uint8_t *seed0, int nseed0, uint8_t *seed1,
 			  int nseed1);
 static int setVers(TlsSec *sec, int version);
@@ -340,8 +340,8 @@ static void freeints(Ints* b);
 int
 tlsServer(int fd, TLSconn *conn)
 {
-	int8_t buf[8];
-	int8_t dname[64];
+	char buf[8];
+	char dname[64];
 	int n, data, ctl, hand;
 	TlsConnection *tls;
 
@@ -395,8 +395,8 @@ tlsServer(int fd, TLSconn *conn)
 int
 tlsClient(int fd, TLSconn *conn)
 {
-	int8_t buf[8];
-	int8_t dname[64];
+	char buf[8];
+	char dname[64];
 	int n, data, ctl, hand;
 	TlsConnection *tls;
 
@@ -457,13 +457,13 @@ countchain(PEMChain *p)
 
 static TlsConnection *
 tlsServer2(int ctl, int hand, uint8_t *cert, int ncert,
-	   int (*trace)(int8_t*fmt, ...), PEMChain *chp)
+	   int (*trace)(char*fmt, ...), PEMChain *chp)
 {
 	TlsConnection *c;
 	Msg m;
 	Bytes *csid;
 	uint8_t sid[SidSize], kd[MaxKeyData];
-	int8_t *secrets;
+	char *secrets;
 	int cipher, compressor, nsid, rv, numcerts, i;
 
 	if(trace)
@@ -569,7 +569,7 @@ tlsServer2(int ctl, int hand, uint8_t *cert, int ncert,
 	}
 	if(trace)
 		trace("tls secrets\n");
-	secrets = (int8_t*)emalloc(2*c->nsecret);
+	secrets = (char*)emalloc(2*c->nsecret);
 	enc64(secrets, 2*c->nsecret, kd, c->nsecret);
 	rv = fprint(c->ctl, "secret %s %s 0 %s", c->digest, c->enc, secrets);
 	memset(secrets, 0, 2*c->nsecret);
@@ -629,12 +629,12 @@ Err:
 
 static TlsConnection *
 tlsClient2(int ctl, int hand, uint8_t *csid, int ncsid,
-	   int (*trace)(int8_t*fmt, ...))
+	   int (*trace)(char*fmt, ...))
 {
 	TlsConnection *c;
 	Msg m;
 	uint8_t kd[MaxKeyData], *epm;
-	int8_t *secrets;
+	char *secrets;
 	int creq, nepm, rv;
 
 	if(!initCiphers())
@@ -734,7 +734,7 @@ tlsClient2(int ctl, int hand, uint8_t *csid, int ncsid,
 		tlsError(c, EBadCertificate, "invalid x509/rsa certificate");
 		goto Err;
 	}
-	secrets = (int8_t*)emalloc(2*c->nsecret);
+	secrets = (char*)emalloc(2*c->nsecret);
 	enc64(secrets, 2*c->nsecret, kd, c->nsecret);
 	rv = fprint(c->ctl, "secret %s %s 1 %s", c->digest, c->enc, secrets);
 	memset(secrets, 0, 2*c->nsecret);
@@ -841,7 +841,7 @@ msgSend(TlsConnection *c, Msg *m, int act)
 	p = sendp;
 	if(c->trace)
 		c->trace("send %s",
-			 msgPrint((int8_t*)p, (sizeof sendbuf) - (p-sendbuf), m));
+			 msgPrint((char*)p, (sizeof sendbuf) - (p-sendbuf), m));
 
 	p[0] = m->tag;	// header - fill in size later
 	p += 4;
@@ -1236,7 +1236,7 @@ msgRecv(TlsConnection *c, Msg *m)
 		goto Short;
 Ok:
 	if(c->trace){
-		int8_t *buf;
+		char *buf;
 		buf = emalloc(8000);
 		c->trace("recv %s", msgPrint(buf, 8000, m));
 		free(buf);
@@ -1289,8 +1289,8 @@ msgClear(Msg *m)
 	memset(m, 0, sizeof(Msg));
 }
 
-static int8_t *
-bytesPrint(int8_t *bs, int8_t *be, int8_t *s0, Bytes *b, int8_t *s1)
+static char *
+bytesPrint(char *bs, char *be, char *s0, Bytes *b, char *s1)
 {
 	int i;
 
@@ -1308,8 +1308,8 @@ bytesPrint(int8_t *bs, int8_t *be, int8_t *s0, Bytes *b, int8_t *s1)
 	return bs;
 }
 
-static int8_t *
-intsPrint(int8_t *bs, int8_t *be, int8_t *s0, Ints *b, int8_t *s1)
+static char *
+intsPrint(char *bs, char *be, char *s0, Ints *b, char *s1)
 {
 	int i;
 
@@ -1327,11 +1327,11 @@ intsPrint(int8_t *bs, int8_t *be, int8_t *s0, Ints *b, int8_t *s1)
 	return bs;
 }
 
-static int8_t*
-msgPrint(int8_t *buf, int n, Msg *m)
+static char*
+msgPrint(char *buf, int n, Msg *m)
 {
 	int i;
-	int8_t *bs = buf, *be = buf+n;
+	char *bs = buf, *be = buf+n;
 
 	switch(m->tag) {
 	default:
@@ -1390,9 +1390,9 @@ msgPrint(int8_t *buf, int n, Msg *m)
 }
 
 static void
-tlsError(TlsConnection *c, int err, int8_t *fmt, ...)
+tlsError(TlsConnection *c, int err, char *fmt, ...)
 {
-	int8_t msg[512];
+	char msg[512];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1543,7 +1543,7 @@ static int
 initCiphers(void)
 {
 	enum {MaxAlgF = 1024, MaxAlgs = 10};
-	int8_t s[MaxAlgF], *flds[MaxAlgs];
+	char s[MaxAlgF], *flds[MaxAlgs];
 	int i, j, n, ok;
 
 	lock(&ciphLock);
@@ -1629,7 +1629,7 @@ static AuthRpc*
 factotum_rsa_open(uint8_t *cert, int certlen)
 {
 	int afd;
-	int8_t *s;
+	char *s;
 	mpint *pub = nil;
 	RSApub *rsapub;
 	AuthRpc *rpc;
@@ -1669,7 +1669,7 @@ done:
 static mpint*
 factotum_rsa_decrypt(AuthRpc *rpc, mpint *cipher)
 {
-	int8_t *p;
+	char *p;
 	int rv;
 
 	if((p = mptoa(cipher, 16, nil, 0)) == nil)
@@ -1755,7 +1755,7 @@ tlsPsha1(uint8_t *buf, int nbuf, uint8_t *key, int nkey, uint8_t *label,
 
 // fill buf with md5(args)^sha1(args)
 static void
-tlsPRF(uint8_t *buf, int nbuf, uint8_t *key, int nkey, int8_t *label,
+tlsPRF(uint8_t *buf, int nbuf, uint8_t *key, int nkey, char *label,
        uint8_t *seed0, int nseed0, uint8_t *seed1, int nseed1)
 {
 	int i;
@@ -2018,7 +2018,7 @@ sslSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
 {
 	DigestState *s;
 	uint8_t h0[MD5dlen], h1[SHA1dlen], pad[48];
-	int8_t *label;
+	char *label;
 
 	if(isClient)
 		label = "CLNT";
@@ -2052,7 +2052,7 @@ tlsSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
 	       uint8_t *finished, int isClient)
 {
 	uint8_t h0[MD5dlen], h1[SHA1dlen];
-	int8_t *label;
+	char *label;
 
 	// get current hash value, but allow further messages to be hashed in
 	md5(nil, 0, h0, &hsmd5);
@@ -2066,7 +2066,7 @@ tlsSetFinished(TlsSec *sec, MD5state hsmd5, SHAstate hssha1,
 }
 
 static void
-sslPRF(uint8_t *buf, int nbuf, uint8_t *key, int nkey, int8_t *label,
+sslPRF(uint8_t *buf, int nbuf, uint8_t *key, int nkey, char *label,
        uint8_t *seed0, int nseed0, uint8_t *seed1, int nseed1)
 {
 	DigestState *s;

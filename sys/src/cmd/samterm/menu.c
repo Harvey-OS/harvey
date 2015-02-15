@@ -25,9 +25,9 @@ int	nname;
 int	mname;
 int	mw;
 
-int8_t	*genmenu3(int);
-int8_t	*genmenu2(int);
-int8_t	*genmenu2c(int);
+char	*genmenu3(int);
+char	*genmenu2(int);
+char	*genmenu2c(int);
 
 enum Menu2
 {
@@ -53,7 +53,7 @@ enum Menu3
 	NMENU3
 };
 
-int8_t	*menu2str[] = {
+char	*menu2str[] = {
 	"cut",
 	"paste",
 	"snarf",
@@ -63,7 +63,7 @@ int8_t	*menu2str[] = {
 	0,		/* storage for last pattern */
 };
 
-int8_t	*menu3str[] = {
+char	*menu3str[] = {
 	"new",
 	"zerox",
 	"resize",
@@ -217,7 +217,7 @@ sweeptext(int new, int tag)
 	if(getr(&r) && (t = malloc(sizeof(Text)))){
 		memset((void*)t, 0, sizeof(Text));
 		current((Flayer *)0);
-		flnew(&t->l[0], gettext, 0, (int8_t *)t);
+		flnew(&t->l[0], gettext, 0, (char *)t);
 		flinit(&t->l[0], r, font, maincols);	/*bnl*/
 		t->nwin = 1;
 		rinit(&t->rasp);
@@ -264,9 +264,9 @@ menuins(int n, uint8_t *s, Text *t, int m, int tg)
 		name[i]=name[i-1], text[i]=text[i-1], tag[i]=tag[i-1];
 	text[n] = t;
 	tag[n] = tg;
-	name[n] = alloc(strlen((int8_t*)s)+2);
+	name[n] = alloc(strlen((char*)s)+2);
 	name[n][0] = m;
-	strcpy((int8_t*)name[n]+1, (int8_t*)s);
+	strcpy((char*)name[n]+1, (char*)s);
 	nname++;
 	menu3.lasthit = n+NMENU3;
 }
@@ -285,9 +285,9 @@ menudel(int n)
 }
 
 void
-setpat(int8_t *s)
+setpat(char *s)
 {
-	static int8_t pat[17];
+	static char pat[17];
 
 	pat[0] = '/';
 	strncpy(pat+1, s, 15);
@@ -297,8 +297,8 @@ setpat(int8_t *s)
 #define	NBUF	64
 static uint8_t buf[NBUF*UTFmax]={' ', ' ', ' ', ' '};
 
-int8_t *
-paren(int8_t *s)
+char *
+paren(char *s)
 {
 	uint8_t *t = buf;
 
@@ -306,13 +306,13 @@ paren(int8_t *s)
 	do; while(*t++ = *s++);
 	t[-1] = ')';
 	*t = 0;
-	return (int8_t *)buf;
+	return (char *)buf;
 }
-int8_t*
+char*
 genmenu2(int n)
 {
 	Text *t=(Text *)which->user1;
-	int8_t *p;
+	char *p;
 	if(n>=NMENU2+(menu2str[Search]!=0))
 		return 0;
 	p = menu2str[n];
@@ -320,11 +320,11 @@ genmenu2(int n)
 		return p;
 	return paren(p);
 }
-int8_t*
+char*
 genmenu2c(int n)
 {
 	Text *t=(Text *)which->user1;
-	int8_t *p;
+	char *p;
 	if(n >= NMENU2C)
 		return 0;
 	if(n == Send)
@@ -335,13 +335,13 @@ genmenu2c(int n)
 		return p;
 	return paren(p);
 }
-int8_t *
+char *
 genmenu3(int n)
 {
 	Text *t;
 	int c, i, k, l, w;
 	Rune r;
-	int8_t *p;
+	char *p;
 
 	if(n >= NMENU3+nname)
 		return 0;
@@ -353,11 +353,11 @@ genmenu3(int n)
 	}
 	n -= NMENU3;
 	if(n == 0)	/* unless we've been fooled, this is cmd */
-		return (int8_t *)&name[n][1];
+		return (char *)&name[n][1];
 	if(mw == -1){
 		mw = 7;	/* strlen("~~sam~~"); */
 		for(i=1; i<nname; i++){
-			w = utflen((int8_t*)name[i]+1)+4;	/* include "'+. " */
+			w = utflen((char*)name[i]+1)+4;	/* include "'+. " */
 			if(w > mw)
 				mw = w;
 		}
@@ -380,32 +380,32 @@ genmenu3(int n)
 				buf[0] = '\'';
 		}
 	}
-	l = utflen((int8_t*)name[n]+1);
+	l = utflen((char*)name[n]+1);
 	if(l > NBUF-4-2){
 		i = 4;
 		k = 1;
 		while(i < NBUF/2){
-			k += chartorune(&r, (int8_t*)name[n]+k);
+			k += chartorune(&r, (char*)name[n]+k);
 			i++;
 		}
 		c = name[n][k];
 		name[n][k] = 0;
-		strcpy((int8_t*)buf+4, (int8_t*)name[n]+1);
+		strcpy((char*)buf+4, (char*)name[n]+1);
 		name[n][k] = c;
-		strcat((int8_t*)buf, "...");
+		strcat((char*)buf, "...");
 		while((l-i) >= NBUF/2-4){
-			k += chartorune(&r, (int8_t*)name[n]+k);
+			k += chartorune(&r, (char*)name[n]+k);
 			i++;
 		}
-		strcat((int8_t*)buf, (int8_t*)name[n]+k);
+		strcat((char*)buf, (char*)name[n]+k);
 	}else
-		strcpy((int8_t*)buf+4, (int8_t*)name[n]+1);
-	i = utflen((int8_t*)buf);
-	k = strlen((int8_t*)buf);
+		strcpy((char*)buf+4, (char*)name[n]+1);
+	i = utflen((char*)buf);
+	k = strlen((char*)buf);
 	while(i<mw && k<sizeof buf-1){
 		buf[k++] = ' ';
 		i++;
 	}
 	buf[k] = 0;
-	return (int8_t *)buf;
+	return (char *)buf;
 }

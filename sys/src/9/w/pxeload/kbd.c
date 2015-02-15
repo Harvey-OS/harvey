@@ -97,7 +97,7 @@ uchar kbtabesc1[] =
 struct latin
 {
 	uint8_t	l;
-	int8_t	c[2];
+	char	c[2];
 }latintab[] = {
 	L'¡',	"!!",	/* spanish initial ! */
 	L'¢',	"c|",	/* cent */
@@ -457,7 +457,7 @@ i8042intr(Ureg*, void*)
 	kbdchar(c);
 }
 
-static int8_t *initfailed = "i8042: kbdinit failed\n";
+static char *initfailed = "i8042: kbdinit failed\n";
 
 static int
 outbyte(int port, int c)

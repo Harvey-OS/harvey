@@ -152,7 +152,7 @@ matchfile(String *r)
 int
 filematch(File *f, String *r)
 {
-	int8_t *c, buf[STRSIZE+100];
+	char *c, buf[STRSIZE+100];
 	String *t;
 
 	c = Strtoc(&f->name);

@@ -165,7 +165,7 @@ static Uart i8250uart[2] = {
 static int32_t
 i8250status(Uart* uart, void* buf, int32_t n, int32_t offset)
 {
-	int8_t *p;
+	char *p;
 	Ctlr *ctlr;
 	uint8_t ier, lcr, mcr, msr;
 
@@ -740,12 +740,12 @@ PhysUart i8250physuart = {
 };
 
 Uart*
-i8250console(int8_t* cfg)
+i8250console(char* cfg)
 {
 	int i;
 	Uart *uart;
 	Ctlr *ctlr;
-	int8_t *cmd, *p;
+	char *cmd, *p;
 
 	/*
 	 * Before i8250pnp() is run can only set the console

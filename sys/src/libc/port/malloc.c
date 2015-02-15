@@ -16,8 +16,8 @@ static void*	sbrkalloc(ulong);
 static int		sbrkmerge(void*, void*);
 static void		plock(Pool*);
 static void		punlock(Pool*);
-static void		pprint(Pool*, int8_t*, ...);
-static void		ppanic(Pool*, int8_t*, ...);
+static void		pprint(Pool*, char*, ...);
+static void		ppanic(Pool*, char*, ...);
 
 typedef struct Private Private;
 struct Private {
@@ -107,7 +107,7 @@ static int
 checkenv(void)
 {
 	int n, fd;
-	int8_t buf[20];
+	char buf[20];
 	fd = open("/env/MALLOCFD", OREAD);
 	if(fd < 0)
 		return -1;
@@ -125,7 +125,7 @@ checkenv(void)
 }
 
 static void
-pprint(Pool *p, int8_t *fmt, ...)
+pprint(Pool *p, char *fmt, ...)
 {
 	va_list v;
 	Private *pv;
@@ -142,13 +142,13 @@ pprint(Pool *p, int8_t *fmt, ...)
 	va_end(v);
 }
 
-static int8_t panicbuf[256];
+static char panicbuf[256];
 static void
-ppanic(Pool *p, int8_t *fmt, ...) 
+ppanic(Pool *p, char *fmt, ...) 
 {
 	va_list v;
 	int n;
-	int8_t *msg;
+	char *msg;
 	Private *pv;
 
 	pv = p->private;

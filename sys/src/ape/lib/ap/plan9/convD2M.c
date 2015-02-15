@@ -16,7 +16,7 @@ uint
 _convD2M(Dir *d, uint8_t *buf, uint nbuf)
 {
 	uint8_t *p, *ebuf;
-	int8_t *sv[4];
+	char *sv[4];
 	int i, ns, nsv[4], ss;
 
 	if(nbuf < BIT16SZ)
@@ -84,7 +84,7 @@ _convD2M(Dir *d, uint8_t *buf, uint nbuf)
 uint
 _sizeD2M(Dir *d)
 {
-	int8_t *sv[4];
+	char *sv[4];
 	int i, ns;
 
 	sv[0] = d->name;

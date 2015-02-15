@@ -80,7 +80,7 @@ ginit(void)
 }
 
 static void
-mklabel(int8_t *str, int v)
+mklabel(char *str, int v)
 {
 	if(v < 0){
 		v = -v;
@@ -97,7 +97,7 @@ mklabel(int8_t *str, int v)
 static void
 drawlabel(Memimage *m, Point p, int n)
 {
-	int8_t buf[30];
+	char buf[30];
 	Point w;
 	
 	mklabel(buf, n);

@@ -50,9 +50,9 @@ typedef struct cmyrow_s
 	    int current;
             int _cmylen[NPASS];
 	    int is_used;
-	    int8_t cname[4];
-	    int8_t mname[4];
-	    int8_t yname[4];
+	    char cname[4];
+	    char mname[4];
+	    char yname[4];
             unsigned char *_cmybuf[NPASS];
 	  } cmyrow;
 
@@ -68,7 +68,7 @@ typedef struct cmyrow_s
 
 private int alloc_rb( gs_memory_t *mem, cmyrow **rb, int rows);
 private int alloc_line( gs_memory_t *mem, cmyrow *row, int cols);
-private void add_cmy8(cmyrow *rb, int8_t c, int8_t m, int8_t y);
+private void add_cmy8(cmyrow *rb, char c, char m, char y);
 private void write_cpass(cmyrow *buf, int rows, int pass, FILE * pstream);
 private void free_rb_line( gs_memory_t *mem, cmyrow *rbuf, int rows, int cols);
 

@@ -14,7 +14,7 @@
 #include "imap4d.h"
 
 void
-debuglog(int8_t *fmt, ...)
+debuglog(char *fmt, ...)
 {
 	va_list arg;
 	static int logfd;
@@ -82,7 +82,7 @@ openfiles(void)
 }
 
 void
-ls(int8_t *file)
+ls(char *file)
 {
 	Dir *d;
 	int fd, i, nd;

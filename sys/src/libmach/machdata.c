@@ -26,7 +26,7 @@ int	asstype = AMIPS;		/* disassembler type */
 Machdata *machdata;		/* machine-dependent functions */
 
 int
-localaddr(Map *map, int8_t *fn, int8_t *var, uint64_t *r, Rgetter rget)
+localaddr(Map *map, char *fn, char *var, uint64_t *r, Rgetter rget)
 {
 	Symbol s;
 	uint64_t fp, pc, sp, link;
@@ -75,7 +75,7 @@ localaddr(Map *map, int8_t *fn, int8_t *var, uint64_t *r, Rgetter rget)
  * Print value v as s.name[+offset] if possible, or just v.
  */
 int
-symoff(int8_t *buf, int n, uint64_t v, int space)
+symoff(char *buf, int n, uint64_t v, int space)
 {
 	Symbol s;
 	int r;
@@ -110,9 +110,9 @@ symoff(int8_t *buf, int n, uint64_t v, int space)
  *	'3' - little endian 80-bit ieee extended float with hole in bytes 8&9
  */
 int
-fpformat(Map *map, Reglist *rp, int8_t *buf, int n, int modif)
+fpformat(Map *map, Reglist *rp, char *buf, int n, int modif)
 {
-	int8_t reg[12];
+	char reg[12];
 	uint32_t r;
 
 	switch(rp->rformat)
@@ -160,8 +160,8 @@ fpformat(Map *map, Reglist *rp, int8_t *buf, int n, int modif)
 	return 1;
 }
 
-int8_t *
-_hexify(int8_t *buf, uint32_t p, int zeros)
+char *
+_hexify(char *buf, uint32_t p, int zeros)
 {
 	uint32_t d;
 
@@ -181,7 +181,7 @@ _hexify(int8_t *buf, uint32_t p, int zeros)
  * double format.  Naive but workable, probably.
  */
 int
-ieeedftos(int8_t *buf, int n, uint32_t h, uint32_t l)
+ieeedftos(char *buf, int n, uint32_t h, uint32_t l)
 {
 	double fr;
 	int exp;
@@ -219,7 +219,7 @@ ieeedftos(int8_t *buf, int n, uint32_t h, uint32_t l)
 }
 
 int
-ieeesftos(int8_t *buf, int n, uint32_t h)
+ieeesftos(char *buf, int n, uint32_t h)
 {
 	double fr;
 	int exp;
@@ -252,26 +252,26 @@ ieeesftos(int8_t *buf, int n, uint32_t h)
 }
 
 int
-beieeesftos(int8_t *buf, int n, void *s)
+beieeesftos(char *buf, int n, void *s)
 {
 	return ieeesftos(buf, n, beswal(*(uint32_t*)s));
 }
 
 int
-beieeedftos(int8_t *buf, int n, void *s)
+beieeedftos(char *buf, int n, void *s)
 {
 	return ieeedftos(buf, n, beswal(*(uint32_t*)s),
 			 beswal(((uint32_t*)(s))[1]));
 }
 
 int
-leieeesftos(int8_t *buf, int n, void *s)
+leieeesftos(char *buf, int n, void *s)
 {
 	return ieeesftos(buf, n, leswal(*(uint32_t*)s));
 }
 
 int
-leieeedftos(int8_t *buf, int n, void *s)
+leieeedftos(char *buf, int n, void *s)
 {
 	return ieeedftos(buf, n, leswal(((uint32_t*)(s))[1]),
 			 leswal(*(uint32_t*)s));
@@ -279,7 +279,7 @@ leieeedftos(int8_t *buf, int n, void *s)
 
 /* packed in 12 bytes, with s[2]==s[3]==0; mantissa starts at s[4]*/
 int
-beieee80ftos(int8_t *buf, int n, void *s)
+beieee80ftos(char *buf, int n, void *s)
 {
 	uint8_t *reg = (uint8_t*)s;
 	int i;
@@ -329,13 +329,13 @@ beieee80ftos(int8_t *buf, int n, void *s)
 }
 
 int
-leieee80ftos(int8_t *buf, int n, void *s)
+leieee80ftos(char *buf, int n, void *s)
 {
 	int i;
-	int8_t *cp;
-	int8_t b[12];
+	char *cp;
+	char b[12];
 
-	cp = (int8_t*) s;
+	cp = (char*) s;
 	for(i=0; i<12; i++)
 		b[11-i] = *cp++;
 	return beieee80ftos(buf, n, b);

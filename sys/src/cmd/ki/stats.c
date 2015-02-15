@@ -139,7 +139,7 @@ isum(void)
 					nopcount, Percent(nopcount, total));
 }
 
-int8_t *stype[] = { "Stack", "Text", "Data", "Bss" };
+char *stype[] = { "Stack", "Text", "Data", "Bss" };
 
 void
 segsum(void)

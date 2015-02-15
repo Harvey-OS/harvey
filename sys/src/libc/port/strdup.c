@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t*
-strdup(int8_t *s) 
+char*
+strdup(char *s) 
 {  
-	int8_t *ns;
+	char *ns;
 
 	ns = malloc(strlen(s) + 1);
 	if(ns == 0)

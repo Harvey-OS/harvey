@@ -63,10 +63,10 @@ orig_sqrt(double x)
 #include <stdarg.h>
 #define PRINTF_BUF_LENGTH 1024
 
-int outprintf(const gs_memory_t *mem, const int8_t *fmt, ...)
+int outprintf(const gs_memory_t *mem, const char *fmt, ...)
 {
     int count;
-    int8_t buf[PRINTF_BUF_LENGTH];
+    char buf[PRINTF_BUF_LENGTH];
     va_list args;
 
     va_start(args, fmt);
@@ -83,10 +83,10 @@ int outprintf(const gs_memory_t *mem, const int8_t *fmt, ...)
     return count;
 }
 
-int errprintf(const int8_t *fmt, ...)
+int errprintf(const char *fmt, ...)
 {
     int count;
-    int8_t buf[PRINTF_BUF_LENGTH];
+    char buf[PRINTF_BUF_LENGTH];
     va_list args;
 
     va_start(args, fmt);
@@ -108,7 +108,7 @@ int errprintf(const int8_t *fmt, ...)
 /* Ghostscript writes debugging output to gs_debug_out. */
 /* We define gs_debug and gs_debug_out even if DEBUG isn't defined, */
 /* so that we can compile individual modules with DEBUG set. */
-int8_t gs_debug[128];
+char gs_debug[128];
 FILE *gs_debug_out;
 
 /* Test whether a given debugging option is selected. */
@@ -121,8 +121,8 @@ gs_debug_c(int c)
 }
 
 /* Define the formats for debugging printout. */
-const int8_t *const dprintf_file_and_line_format = "%10s(%4d): ";
-const int8_t *const dprintf_file_only_format = "%10s(unkn): ";
+const char *const dprintf_file_and_line_format = "%10s(%4d): ";
+const char *const dprintf_file_only_format = "%10s(unkn): ";
 
 /*
  * Define the trace printout procedures.  We always include these, in case
@@ -148,7 +148,7 @@ dprintf_file_tail(const int8_t *file)
 }
 #if __LINE__			/* compiler provides it */
 void
-dprintf_file_and_line(const int8_t *file, int line)
+dprintf_file_and_line(const char *file, int line)
 {
     if (gs_debug['/'])
 	dpf(dprintf_file_and_line_format,
@@ -156,14 +156,14 @@ dprintf_file_and_line(const int8_t *file, int line)
 }
 #else
 void
-dprintf_file_only(const int8_t *file)
+dprintf_file_only(const char *file)
 {
     if (gs_debug['/'])
 	dpf(dprintf_file_only_format, dprintf_file_tail(file));
 }
 #endif
 void
-printf_program_ident(const gs_memory_t *mem, const int8_t *program_name,
+printf_program_ident(const gs_memory_t *mem, const char *program_name,
                      int32_t revision_number)
 {
     if (program_name)
@@ -175,7 +175,7 @@ printf_program_ident(const gs_memory_t *mem, const int8_t *program_name,
     }
 }
 void
-eprintf_program_ident(const int8_t *program_name,
+eprintf_program_ident(const char *program_name,
 		      int32_t revision_number)
 {
     if (program_name) {
@@ -190,13 +190,13 @@ eprintf_program_ident(const int8_t *program_name,
 }
 #if __LINE__			/* compiler provides it */
 void
-lprintf_file_and_line(const int8_t *file, int line)
+lprintf_file_and_line(const char *file, int line)
 {
     epf("%s(%d): ", file, line);
 }
 #else
 void
-lprintf_file_only(FILE * f, const int8_t *file)
+lprintf_file_only(FILE * f, const char *file)
 {
     epf("%s(?): ", file);
 }
@@ -206,14 +206,14 @@ lprintf_file_only(FILE * f, const int8_t *file)
 /* modules were compiled with DEBUG set. */
 #undef gs_log_error		/* in case DEBUG isn't set */
 int
-gs_log_error(int err, const int8_t *file, int line)
+gs_log_error(int err, const char *file, int line)
 {
     if (gs_log_errors) {
 	if (file == NULL)
 	    dprintf1("Returning error %d.\n", err);
 	else
 	    dprintf3("%s(%d): Returning error %d.\n",
-		     (const int8_t *)file, line, err);
+		     (const char *)file, line, err);
     }
     return err;
 }
@@ -321,11 +321,11 @@ void *
 gs_memchr(const void *ptr, int ch, size_t len)
 {
     if (len > 0) {
-	register const int8_t *p = ptr;
+	register const char *p = ptr;
 	register uint count = len;
 
 	do {
-	    if (*p == (int8_t)ch)
+	    if (*p == (char)ch)
 		return (void *)p;
 	    p++;
 	} while (--count);
@@ -344,7 +344,7 @@ gs_memset(void *dest, register int ch, size_t len)
      * This procedure is used a lot to fill large regions of images,
      * so we take some trouble to optimize it.
      */
-    register int8_t *p = dest;
+    register char *p = dest;
     register size_t count = len;
 
     ch &= 255;
@@ -352,7 +352,7 @@ gs_memset(void *dest, register int ch, size_t len)
 	int32_t wd = (ch << 24) | (ch << 16) | (ch << 8) | ch;
 
 	while (ALIGNMENT_MOD(p, sizeof(int32_t)))
-	    *p++ = (int8_t)ch, --count;
+	    *p++ = (char)ch, --count;
 	for (; count >= sizeof(int32_t) * 4;
 	     p += sizeof(int32_t) * 4, count -= sizeof(int32_t) * 4
 	     )
@@ -373,7 +373,7 @@ gs_memset(void *dest, register int ch, size_t len)
     }
     /* Do any leftover bytes. */
     for (; count > 0; --count)
-	*p++ = (int8_t)ch;
+	*p++ = (char)ch;
     return dest;
 }
 #endif
@@ -406,7 +406,7 @@ gs_realloc(void *old_ptr, size_t old_size, size_t new_size)
 
 /* Dump a region of memory. */
 void
-debug_dump_bytes(const byte * from, const byte * to, const int8_t *msg)
+debug_dump_bytes(const byte * from, const byte * to, const char *msg)
 {
     const byte *p = from;
 
@@ -425,7 +425,7 @@ debug_dump_bytes(const byte * from, const byte * to, const int8_t *msg)
 /* Dump a bitmap. */
 void
 debug_dump_bitmap(const byte * bits, uint raster, uint height,
-		  const int8_t *msg)
+		  const char *msg)
 {
     uint y;
     const byte *data = bits;
@@ -945,10 +945,10 @@ fixed_mult_quo(fixed signed_A, fixed B, fixed C)
 
 /* Trace calls on sqrt when debugging. */
 double
-gs_sqrt(double x, const int8_t *file, int line)
+gs_sqrt(double x, const char *file, int line)
 {
     if (gs_debug_c('~')) {
-	dprintf3("[~]sqrt(%g) at %s:%d\n", x, (const int8_t *)file, line);
+	dprintf3("[~]sqrt(%g) at %s:%d\n", x, (const char *)file, line);
 	dflush();
     }
     return orig_sqrt(x);

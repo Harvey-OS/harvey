@@ -19,11 +19,11 @@
 int diffbflag;
 int diffwflag;
 
-void copy(Biobuf*, int8_t*, Biobuf*, int8_t*);
-void idiff(Biobuf*, int8_t*, Biobuf*, int8_t*, Biobuf*, int8_t*, Biobuf*,
-	   int8_t*);
-int opentemp(int8_t*, int, int32_t);
-void rundiff(int8_t*, int8_t*, int);
+void copy(Biobuf*, char*, Biobuf*, char*);
+void idiff(Biobuf*, char*, Biobuf*, char*, Biobuf*, char*, Biobuf*,
+	   char*);
+int opentemp(char*, int, int32_t);
+void rundiff(char*, char*, int);
 
 void
 usage(void)
@@ -89,10 +89,10 @@ main(int argc, char **argv)
 }
 
 int
-opentemp(int8_t *template, int mode, int32_t perm)
+opentemp(char *template, int mode, int32_t perm)
 {
 	int fd, i;
-	int8_t *p;	
+	char *p;	
 
 	p = strdup(template);
 	if(p == nil)
@@ -113,9 +113,9 @@ opentemp(int8_t *template, int mode, int32_t perm)
 }
 
 void
-rundiff(int8_t *arg1, int8_t *arg2, int outfd)
+rundiff(char *arg1, char *arg2, int outfd)
 {
-	int8_t *arg[10], *p;
+	char *arg[10], *p;
 	int narg, pid;
 	Waitmsg *w;
 
@@ -153,9 +153,9 @@ rundiff(int8_t *arg1, int8_t *arg2, int outfd)
 }
 
 void
-runcmd(int8_t *cmd)
+runcmd(char *cmd)
 {
-	int8_t *arg[10];
+	char *arg[10];
 	int narg, pid, wpid;
 
 	narg = 0;
@@ -182,7 +182,7 @@ runcmd(int8_t *cmd)
 }
 
 void
-parse(int8_t *s, int *pfrom1, int *pto1, int *pcmd, int *pfrom2,
+parse(char *s, int *pfrom1, int *pto1, int *pcmd, int *pfrom2,
       int *pto2)
 {
 	*pfrom1 = *pto1 = *pfrom2 = *pto2 = 0;
@@ -215,7 +215,7 @@ parse(int8_t *s, int *pfrom1, int *pto1, int *pcmd, int *pfrom2,
 }
 
 void
-skiplines(Biobuf *b, int8_t *name, int n)
+skiplines(Biobuf *b, char *name, int n)
 {
 	int i;
 
@@ -229,9 +229,9 @@ skiplines(Biobuf *b, int8_t *name, int n)
 }
 
 void
-copylines(Biobuf *bin, int8_t *nin, Biobuf *bout, int8_t *nout, int n)
+copylines(Biobuf *bin, char *nin, Biobuf *bout, char *nout, int n)
 {
-	int8_t buf[4096], *p;
+	char buf[4096], *p;
 	int i, m;
 
 	for(i=0; i<n; i++){
@@ -251,9 +251,9 @@ copylines(Biobuf *bin, int8_t *nin, Biobuf *bout, int8_t *nout, int n)
 }
 
 void
-copy(Biobuf *bin, int8_t *nin, Biobuf *bout, int8_t *nout)
+copy(Biobuf *bin, char *nin, Biobuf *bout, char *nout)
 {
-	int8_t buf[4096];
+	char buf[4096];
 	int m;
 
 	USED(nin);
@@ -263,10 +263,10 @@ copy(Biobuf *bin, int8_t *nin, Biobuf *bout, int8_t *nout)
 }
 
 void
-idiff(Biobuf *b1, int8_t *name1, Biobuf *b2, int8_t *name2, Biobuf *bdiff,
-      int8_t *namediff, Biobuf *bout, int8_t *nameout)
+idiff(Biobuf *b1, char *name1, Biobuf *b2, char *name2, Biobuf *bdiff,
+      char *namediff, Biobuf *bout, char *nameout)
 {
-	int8_t buf[256], *p;
+	char buf[256], *p;
 	int interactive, defaultanswer, cmd, diffoffset;
 	int n, from1, to1, from2, to2, nf1, nf2;
 	Biobuf berr;

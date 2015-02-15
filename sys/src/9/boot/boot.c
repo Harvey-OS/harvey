@@ -13,19 +13,19 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-int8_t	cputype[64];
-int8_t	sys[2*64];
-int8_t 	reply[256];
+char	cputype[64];
+char	sys[2*64];
+char 	reply[256];
 int	printcol;
 int	mflag;
 int	fflag;
 int	kflag;
 
-int8_t	*bargv[Nbarg];
+char	*bargv[Nbarg];
 int	bargc;
 
 static void	swapproc(void);
-static Method	*rootserver(int8_t*);
+static Method	*rootserver(char*);
 static void	usbinit(void);
 static void	kbmap(void);
 
@@ -190,11 +190,11 @@ print("\n");
 }
 
 static Method*
-findmethod(int8_t *a)
+findmethod(char *a)
 {
 	Method *mp;
 	int i, j;
-	int8_t *cp;
+	char *cp;
 
 	if((i = strlen(a)) == 0)
 		return nil;
@@ -217,11 +217,11 @@ findmethod(int8_t *a)
  *  ask user from whence cometh the root file system
  */
 static Method*
-rootserver(int8_t *arg)
+rootserver(char *arg)
 {
-	int8_t prompt[256];
+	char prompt[256];
 	Method *mp;
-	int8_t *cp;
+	char *cp;
 	int n;
 
 	/* look for required reply */
@@ -313,7 +313,7 @@ old9p(int fd)
 static void
 usbinit(void)
 {
-	static int8_t usbd[] = "/boot/usbd";
+	static char usbd[] = "/boot/usbd";
 
 	if(access("#u/usb/ctl", 0) >= 0 && bind("#u", "/dev", MAFTER) >= 0 &&
 	    access(usbd, AEXIST) >= 0)
@@ -323,9 +323,9 @@ usbinit(void)
 static void
 kbmap(void)
 {
-	int8_t *f;
+	char *f;
 	int n, in, out;
-	int8_t buf[1024];
+	char buf[1024];
 
 	f = getenv("kbmap");
 	if(f == nil)

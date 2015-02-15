@@ -45,7 +45,7 @@ static void _copyproc(int, Muxbuf*);
 static void _timerproc(void);
 static void _resettimer(void);
 
-static int copynotehandler(void *, int8_t *);
+static int copynotehandler(void *, char *);
 
 /* assume FD_SETSIZE is 96 */
 #define FD_ANYSET(p)	((p)->fds_bits[0] || (p)->fds_bits[1] || (p)->fds_bits[2])
@@ -463,7 +463,7 @@ _detachbuf(void)
 }
 
 static int
-copynotehandler(void *, int8_t *)
+copynotehandler(void *, char *)
 {
 	if(_finishing)
 		_finish(0, 0);

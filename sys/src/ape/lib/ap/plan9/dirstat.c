@@ -19,7 +19,7 @@ enum
 };
 
 Dir*
-_dirstat(int8_t *name)
+_dirstat(char *name)
 {
 	Dir *d;
 	uint8_t *buf;
@@ -38,7 +38,7 @@ _dirstat(int8_t *name)
 		}
 		nd = GBIT16((uint8_t*)buf);	/* size needed to store whole stat buffer */
 		if(nd <= n){
-			_convM2D(buf, n, d, (int8_t*)&d[1]);
+			_convM2D(buf, n, d, (char*)&d[1]);
 			return d;
 		}
 		/* else sizeof(Dir)+BIT16SZ+nd is plenty */
@@ -48,7 +48,7 @@ _dirstat(int8_t *name)
 }
 
 int
-_dirwstat(int8_t *name, Dir *d)
+_dirwstat(char *name, Dir *d)
 {
 	uint8_t *buf;
 	int r;
@@ -83,7 +83,7 @@ _dirfstat(int fd)
 		}
 		nd = GBIT16(buf);	/* size needed to store whole stat buffer */
 		if(nd <= n){
-			_convM2D(buf, n, d, (int8_t*)&d[1]);
+			_convM2D(buf, n, d, (char*)&d[1]);
 			return d;
 		}
 		/* else sizeof(Dir)+nd is plenty */

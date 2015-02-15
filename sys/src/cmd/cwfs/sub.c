@@ -15,7 +15,7 @@ enum {
 };
 
 Filsys*
-fsstr(int8_t *p)
+fsstr(char *p)
 {
 	Filsys *fs;
 
@@ -539,7 +539,7 @@ loop:
  * b) '/' may not be the separator
  */
 int
-checkname(int8_t *n)
+checkname(char *n)
 {
 	int i, c;
 
@@ -601,7 +601,7 @@ Zfmt(Fmt* fmt)
 {
 	Device *d;
 	int c, c1;
-	int8_t s[100];
+	char s[100];
 
 	d = va_arg(fmt->args, Device*);
 	if(d == nil) {
@@ -681,7 +681,7 @@ static int
 Gfmt(Fmt* fmt)
 {
 	int t;
-	int8_t *s;
+	char *s;
 
 	t = va_arg(fmt->args, int);
 	s = "<badtag>";
@@ -887,8 +887,8 @@ prime(int64_t n)
 	}
 }
 
-int8_t*
-getwrd(int8_t *word, int8_t *line)
+char*
+getwrd(char *word, char *line)
 {
 	int c, n;
 
@@ -908,7 +908,7 @@ getwrd(int8_t *word, int8_t *line)
 void
 hexdump(void *a, int n)
 {
-	int8_t s1[30], s2[4];
+	char s1[30], s2[4];
 	uint8_t *p;
 	int i;
 
@@ -979,7 +979,7 @@ fs_send(Queue *q, void *a)
 }
 
 Queue*
-newqueue(int size, int8_t *name)
+newqueue(int size, char *name)
 {
 	Queue *q;
 
@@ -1152,10 +1152,10 @@ devsize(Device *d)
 }
 
 /* result is malloced */
-int8_t *
+char *
 sdof(Device *d)
 {
-	static int8_t name[256];
+	static char name[256];
 
 	for (;;)
 		switch(d->type) {

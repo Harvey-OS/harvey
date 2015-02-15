@@ -132,7 +132,7 @@ uartdisable(Uart *p)
 }
 
 Uart*
-uartconsole(int i, int8_t *cmd)
+uartconsole(int i, char *cmd)
 {
 	Uart *p;
 
@@ -259,13 +259,13 @@ uartreset(void)
 
 
 static Chan*
-uartattach(int8_t *spec)
+uartattach(char *spec)
 {
 	return devattach('t', spec);
 }
 
 static Walkqid*
-uartwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+uartwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, uartdir, uartndir, devgen);
 }
@@ -389,9 +389,9 @@ uartread(Chan *c, void *buf, int32_t n, int64_t off)
 }
 
 int
-uartctl(Uart *p, int8_t *cmd)
+uartctl(Uart *p, char *cmd)
 {
-	int8_t *f[16];
+	char *f[16];
 	int i, n, nf;
 
 	nf = tokenize(cmd, f, nelem(f));
@@ -507,7 +507,7 @@ static int32_t
 uartwrite(Chan *c, void *buf, int32_t n, int64_t)
 {
 	Uart *p;
-	int8_t *cmd;
+	char *cmd;
 
 	if(c->qid.type & QTDIR)
 		error(Eperm);
@@ -690,7 +690,7 @@ uartstageinput(Uart *p)
  *  receive a character at interrupt time
  */
 void
-uartrecv(Uart *p,  int8_t ch)
+uartrecv(Uart *p,  char ch)
 {
 	uint8_t *next;
 
@@ -787,9 +787,9 @@ uartputc(int c)
 }
 
 void
-uartputs(int8_t *s, int n)
+uartputs(char *s, int n)
 {
-	int8_t *e;
+	char *e;
 
 	if(consuart == nil || consuart->phys->putc == nil)
 		return;

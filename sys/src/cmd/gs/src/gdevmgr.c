@@ -141,7 +141,7 @@ private int
 mgr_next_row(mgr_cursor *pcur)
 {	if ( pcur->lnum >= pcur->dev->height )
 	{	gs_free(((gx_device_printer *)pcur->dev)->memory,
-			(int8_t *)pcur->data, pcur->line_size, 1,
+			(char *)pcur->data, pcur->line_size, 1,
 			"mgr_next_row(done)");
 		return 1;
 	   }
@@ -167,7 +167,7 @@ mgr_print_page(gx_device_printer *pdev, FILE *pstream)
 	   mgr_wide += 8 - (mgr_wide & 7);
 	   
 	while ( !(code = mgr_next_row(&cur)) )
-	   {	if ( fwrite(cur.data, sizeof(int8_t), mgr_wide / 8, pstream) <
+	   {	if ( fwrite(cur.data, sizeof(char), mgr_wide / 8, pstream) <
                     mgr_wide / 8)
 		return_error(gs_error_ioerror);
 	   }
@@ -253,7 +253,7 @@ mgrN_print_page(gx_device_printer *pdev, FILE *pstream)
 		}  
 	   }
 	if (bdev->mgr_depth != 8)
-	    gs_free(bdev->memory, (int8_t *)data, mgr_line_size, 1,
+	    gs_free(bdev->memory, (char *)data, mgr_line_size, 1,
 		    "mgrN_print_page(done)");
 
 	if (bdev->mgr_depth == 2) {
@@ -337,7 +337,7 @@ cmgrN_print_page(gx_device_printer *pdev, FILE *pstream)
 				break;
 		}  
 	   }
-       	gs_free(bdev->memory, (int8_t *)data, mgr_line_size, 1,
+       	gs_free(bdev->memory, (char *)data, mgr_line_size, 1,
 		       "cmgrN_print_page(done)");
        	
 	if (bdev->mgr_depth == 4) {

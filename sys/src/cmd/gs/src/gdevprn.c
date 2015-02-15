@@ -533,7 +533,7 @@ gdev_prn_put_params(gx_device * pdev, gs_param_list * plist)
     gx_device_printer * const ppdev = (gx_device_printer *)pdev;
     int ecode = 0;
     int code;
-    const int8_t *param_name;
+    const char *param_name;
     bool is_open = pdev->is_open;
     bool oof = ppdev->OpenOutputFile;
     bool rpp = ppdev->ReopenPerPage;
@@ -1233,7 +1233,7 @@ gdev_prn_close_printer(gx_device * pdev)
 {
     gx_device_printer * const ppdev = (gx_device_printer *)pdev;
     gs_parsed_file_name_t parsed;
-    const int8_t *fmt;
+    const char *fmt;
     int code = gx_parse_output_file_name(&parsed, &fmt, ppdev->fname,
 					 strlen(ppdev->fname));
 

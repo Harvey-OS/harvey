@@ -15,12 +15,12 @@
 #include "page.h"
 
 Document*
-initfilt(Biobuf *b, int argc, int8_t **argv, uint8_t *buf, int nbuf,
-	 int8_t *type, int8_t *cmd, int docopy)
+initfilt(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf,
+	 char *type, char *cmd, int docopy)
 {
 	int ofd;
 	int p[2];
-	int8_t xbuf[8192];
+	char xbuf[8192];
 	int n;
 
 	if(argc > 1) {
@@ -78,12 +78,12 @@ initfilt(Biobuf *b, int argc, int8_t **argv, uint8_t *buf, int nbuf,
 }
 
 Document*
-initdvi(Biobuf *b, int argc, int8_t **argv, uint8_t *buf, int nbuf)
+initdvi(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	int fd;
-	int8_t *name;
-	int8_t cmd[256];
-	int8_t fdbuf[20];
+	char *name;
+	char cmd[256];
+	char fdbuf[20];
 
 	/*
 	 * Stupid DVIPS won't take standard input.
@@ -105,14 +105,14 @@ initdvi(Biobuf *b, int argc, int8_t **argv, uint8_t *buf, int nbuf)
 }
 
 Document*
-inittroff(Biobuf *b, int argc, int8_t **argv, uint8_t *buf, int nbuf)
+inittroff(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	/* Added -H to eliminate header page [sape] */
 	return initfilt(b, argc, argv, buf, nbuf, "troff", "lp -H -dstdout", 1);
 }
 
 Document*
-initmsdoc(Biobuf *b, int argc, int8_t **argv, uint8_t *buf, int nbuf)
+initmsdoc(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	return initfilt(b, argc, argv, buf, nbuf, "microsoft office", "doc2ps", 1);
 }

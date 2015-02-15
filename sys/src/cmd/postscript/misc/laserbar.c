@@ -61,7 +61,7 @@ void laserbar();
 #ifdef MAIN
 
 main(argc, argv)
-int8_t **argv;
+char **argv;
 {
 	int c, flags = 0, error = 0;
 	double rotate = 0, xoffset = 0, yoffset = 0, xscale = 1, yscale = 1;

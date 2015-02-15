@@ -42,13 +42,13 @@ Font *font;
 Biobuf	bin;
 Biobuf	bout;
 
-void getwidth(void), readbuf(int), error(int8_t *);
+void getwidth(void), readbuf(int), error(char *);
 void scanwords(void), columnate(void), morechars(void);
 int wordwidth(Rune*, int);
 int nexttab(int);
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int i;
 	int lineset;
@@ -102,7 +102,7 @@ main(int argc, int8_t *argv[])
 	exits(0);
 }
 void
-error(int8_t *s)
+error(char *s)
 {
 	fprint(2, "mc: %s\n", s);
 	exits(s);
@@ -257,7 +257,7 @@ morechars(void)
 jmp_buf	drawjmp;
 
 void
-terror(Display*, int8_t*)
+terror(Display*, char*)
 {
 	longjmp(drawjmp, 1);
 }
@@ -266,7 +266,7 @@ void
 getwidth(void)
 {
 	int n, fd;
-	int8_t buf[128], *f[10], *p;
+	char buf[128], *f[10], *p;
 
 	if(access("/dev/acme", OREAD) >= 0){
 		if((fd = open("/dev/acme/ctl", OREAD)) < 0)

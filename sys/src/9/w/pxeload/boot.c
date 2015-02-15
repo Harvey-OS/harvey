@@ -148,7 +148,7 @@ readehdr(Boot *b)
 	curoff = sizeof(Ehdr);
 	i = ehdr.phoff+ehdr.phentsize*ehdr.phnum - curoff;
 	b->state = READPHDR;
-	b->bp = (int8_t*)malloc(i);
+	b->bp = (char*)malloc(i);
 	b->wp = b->bp;
 	b->ep = b->wp + i;
 	phdr = (Phdr*)(b->bp + ehdr.phoff-sizeof(Ehdr));
@@ -163,7 +163,7 @@ nextphdr(Boot *b)
 {
 	Phdr *php;
 	uint32_t entry, offset;
-	int8_t *paddr;
+	char *paddr;
 
 	if(debug)
 		print("readedata %d\n", curphdr);
@@ -173,7 +173,7 @@ nextphdr(Boot *b)
 		if(php->type != LOAD)
 			continue;
 		offset = php->offset;
-		paddr = (int8_t*)PADDR(php->paddr);
+		paddr = (char*)PADDR(php->paddr);
 		if(offset < curoff){
 			/*
 			 * Can't (be bothered to) rewind the
@@ -185,7 +185,7 @@ nextphdr(Boot *b)
 		}
 		if(php->offset > curoff){
 			b->state = READEPAD;
-			b->bp = (int8_t*)malloc(offset - curoff);
+			b->bp = (char*)malloc(offset - curoff);
 			b->wp = b->bp;
 			b->ep = b->wp + offset - curoff;
 			if(debug)
@@ -239,7 +239,7 @@ readedata(Boot *b)
 	if(php->filesz < php->memsz){
 		print("%lud",  php->memsz-php->filesz);
 		elftotal += php->memsz-php->filesz;
-		memset((int8_t*)(PADDR(php->paddr)+php->filesz), 0,
+		memset((char*)(PADDR(php->paddr)+php->filesz), 0,
 		       php->memsz-php->filesz);
 	}
 	curoff = php->offset+php->filesz;
@@ -266,7 +266,7 @@ readphdr(Boot *b)
 }
 
 static int
-addbytes(int8_t **dbuf, int8_t *edbuf, int8_t **sbuf, int8_t *esbuf)
+addbytes(char **dbuf, char *edbuf, char **sbuf, char *esbuf)
 {
 	int n;
 
@@ -287,7 +287,7 @@ addbytes(int8_t **dbuf, int8_t *edbuf, int8_t **sbuf, int8_t *esbuf)
 int
 bootpass(Boot *b, void *vbuf, int nbuf)
 {
-	int8_t *buf, *ebuf;
+	char *buf, *ebuf;
 	Hdr *hdr;
 	uint32_t magic, entry, data, text, bss;
 	uint64_t entry64;
@@ -304,7 +304,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 		switch(b->state) {
 		case INITKERNEL:
 			b->state = READEXEC;
-			b->bp = (int8_t*)&b->hdr;
+			b->bp = (char*)&b->hdr;
 			b->wp = b->bp;
 			b->ep = b->bp+sizeof(Hdr);
 			break;
@@ -313,7 +313,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			magic = GLLONG(hdr->magic);
 			if(magic == I_MAGIC || magic == S_MAGIC) {
 				b->state = READ9TEXT;
-				b->bp = (int8_t*)PADDR(GLLONG(hdr->entry));
+				b->bp = (char*)PADDR(GLLONG(hdr->entry));
 				b->wp = b->bp;
 				b->ep = b->wp+GLLONG(hdr->text);
 
@@ -329,7 +329,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			/* check for gzipped kernel */
 			if(b->bp[0] == 0x1F && (uint8_t)b->bp[1] == 0x8B && b->bp[2] == 0x08) {
 				b->state = READGZIP;
-				b->bp = (int8_t*)malloc(1440*1024);
+				b->bp = (char*)malloc(1440*1024);
 				b->wp = b->bp;
 				b->ep = b->wp + 1440*1024;
 				memmove(b->bp, &b->hdr, sizeof(Hdr));
@@ -343,7 +343,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			 */
 			if(memcmp(b->bp, elfident, 4) == 0){
 				b->state = READEHDR;
-				b->bp = (int8_t*)&ehdr;
+				b->bp = (char*)&ehdr;
 				b->wp = b->bp;
 				b->ep = b->wp + sizeof(Ehdr);
 				memmove(b->bp, &b->hdr, sizeof(Hdr));
@@ -359,7 +359,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 		case READ9TEXT:
 			hdr = &b->hdr;
 			b->state = READ9DATA;
-			b->bp = (int8_t*)PGROUND(PADDR(GLLONG(hdr->entry))+GLLONG(hdr->text));
+			b->bp = (char*)PGROUND(PADDR(GLLONG(hdr->entry))+GLLONG(hdr->text));
 			b->wp = b->bp;
 			b->ep = b->wp + GLLONG(hdr->data);
 			print("+%ld", GLLONG(hdr->data));

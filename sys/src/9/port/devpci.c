@@ -55,7 +55,7 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 }
 
 static int
-pcigen(Chan *c, int8_t *, Dirtab*, int, int s, Dir *dp)
+pcigen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 {
 	int tbdf;
 	Pcidev *p;
@@ -99,13 +99,13 @@ pcigen(Chan *c, int8_t *, Dirtab*, int, int s, Dir *dp)
 }
 
 static Chan*
-pciattach(int8_t *spec)
+pciattach(char *spec)
 {
 	return devattach(pcidevtab.dc, spec);
 }
 
 Walkqid*
-pciwalk(Chan* c, Chan *nc, int8_t** name, int nname)
+pciwalk(Chan* c, Chan *nc, char** name, int nname)
 {
 	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, pcigen);
 }
@@ -135,7 +135,7 @@ pciclose(Chan*)
 static int32_t
 pciread(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	int8_t buf[256], *ebuf, *w, *a;
+	char buf[256], *ebuf, *w, *a;
 	int i, tbdf, r;
 	uint32_t x;
 	Pcidev *p;
@@ -197,7 +197,7 @@ pciread(Chan *c, void *va, int32_t n, int64_t offset)
 static int32_t
 pciwrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
-	int8_t buf[256];
+	char buf[256];
 	uint8_t *a;
 	int i, r, tbdf;
 	uint32_t x;
@@ -206,7 +206,7 @@ pciwrite(Chan *c, void *va, int32_t n, int64_t offset)
 	if(n >= sizeof(buf))
 		n = sizeof(buf)-1;
 	a = va;
-	strncpy(buf, (int8_t*)a, n);
+	strncpy(buf, (char*)a, n);
 	buf[n] = 0;
 
 	switch(TYPE(c->qid)){

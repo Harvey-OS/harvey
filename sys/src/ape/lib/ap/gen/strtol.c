@@ -12,9 +12,9 @@
 #include <errno.h>
 
 int32_t
-strtol(const int8_t *nptr, int8_t **endptr, int base)
+strtol(const char *nptr, char **endptr, int base)
 {
-	const int8_t *p;
+	const char *p;
 	int32_t n, nn;
 	int c, ovfl, v, neg, ndig;
 
@@ -90,7 +90,7 @@ strtol(const int8_t *nptr, int8_t **endptr, int base)
 	if(ndig == 0)
 		p = nptr;
 	if(endptr)
-		*endptr = (int8_t *)p;
+		*endptr = (char *)p;
 	if(ovfl){
 		errno = ERANGE;
 		if(neg)

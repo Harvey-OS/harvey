@@ -21,24 +21,24 @@
 
 int	debug;
 
-int	becomeuser(int8_t*);
+int	becomeuser(char*);
 void	createuser(void);
 void	*emalloc(ulong);
 void	*erealloc(void*, uint32_t);
 void	initcap(void);
-int	mkcmd(int8_t*, int8_t*, int);
-int	myauth(int, int8_t*);
+int	mkcmd(char*, char*, int);
+int	myauth(int, char*);
 int	qidcmp(Qid, Qid);
-void	runas(int8_t *, int8_t *);
+void	runas(char *, char *);
 void	usage(void);
 
 #pragma varargck	argpos clog 1
 #pragma varargck	argpos fatal 1
 
 static void
-fatal(int8_t *fmt, ...)
+fatal(char *fmt, ...)
 {
-	int8_t msg[256];
+	char msg[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 }
 
 void
-runas(int8_t *user, int8_t *cmd)
+runas(char *user, char *cmd)
 {
 	if(becomeuser(user) < 0)
 		sysfatal("can't change uid for %s: %r", user);
@@ -126,12 +126,12 @@ initcap(void)
 /*
  *  create a change uid capability 
  */
-int8_t*
-mkcap(int8_t *from, int8_t *to)
+char*
+mkcap(char *from, char *to)
 {
 	uint8_t rand[20];
-	int8_t *cap;
-	int8_t *key;
+	char *cap;
+	char *key;
 	int nfrom, nto, ncap;
 	uint8_t hash[SHA1dlen];
 
@@ -163,7 +163,7 @@ mkcap(int8_t *from, int8_t *to)
 }
 
 int
-usecap(int8_t *cap)
+usecap(char *cap)
 {
 	int fd, rv;
 
@@ -176,9 +176,9 @@ usecap(int8_t *cap)
 }
 
 int
-becomeuser(int8_t *new)
+becomeuser(char *new)
 {
-	int8_t *cap;
+	char *cap;
 	int rv;
 
 	cap = mkcap(getuser(), new);

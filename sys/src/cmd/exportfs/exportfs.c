@@ -54,19 +54,19 @@ int	ncollision;
 int	netfd;				/* initially stdin */
 int	srvfd = -1;
 int	nonone = 1;
-int8_t	*filterp;
-int8_t	*ealgs = "rc4_256 sha1";
-int8_t	*aanfilter = "/bin/aan";
+char	*filterp;
+char	*ealgs = "rc4_256 sha1";
+char	*aanfilter = "/bin/aan";
 int	encproto = Encnone;
 int	readonly;
 
-static void	mksecret(int8_t *, uint8_t *);
+static void	mksecret(char *, uint8_t *);
 static int localread9pmsg(int, void *, uint, uint32_t *);
-static int8_t *anstring  = "tcp!*!0";
+static char *anstring  = "tcp!*!0";
 
-int8_t *netdir = "", *local = "", *remote = "";
+char *netdir = "", *local = "", *remote = "";
 
-int	filter(int, int8_t *);
+int	filter(int, char *);
 
 void
 usage(void)
@@ -450,7 +450,7 @@ localread9pmsg(int fd, void *abuf, uint n, uint32_t *initial)
 	return BIT32SZ+m;
 }
 void
-reply(Fcall *r, Fcall *t, int8_t *err)
+reply(Fcall *r, Fcall *t, char *err)
 {
 	uint8_t *data;
 	int n;
@@ -493,7 +493,7 @@ int
 freefid(int nr)
 {
 	Fid *f, **l;
-	int8_t buf[128];
+	char buf[128];
 
 	l = &fidhash(nr);
 	for(f = *l; f; f = f->next) {
@@ -624,10 +624,10 @@ Loop:
 }
 
 File *
-file(File *parent, int8_t *name)
+file(File *parent, char *name)
 {
 	Dir *dir;
-	int8_t *path;
+	char *path;
 	File *f;
 
 	DEBUG(DFD, "\tfile: 0x%p %s name %s\n", parent, parent->name, name);
@@ -708,11 +708,11 @@ initroot(void)
 	psmpt = file(psmpt, "exportfs");
 }
 
-int8_t*
-makepath(File *p, int8_t *name)
+char*
+makepath(File *p, char *name)
 {
 	int i, n;
-	int8_t *c, *s, *path, *seg[256];
+	char *c, *s, *path, *seg[256];
 
 	seg[0] = name;
 	n = strlen(name)+2;
@@ -840,9 +840,9 @@ uniqueqid(Dir *d)
 }
 
 void
-fatal(int8_t *s, ...)
+fatal(char *s, ...)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 	va_list arg;
 	Proc *m;
 
@@ -874,10 +874,10 @@ emallocz(uint n)
 	return p;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *t;
+	char *t;
 
 	t = strdup(s);
 	if(t == nil)
@@ -887,10 +887,10 @@ estrdup(int8_t *s)
 
 /* Network on fd1, mount driver on fd0 */
 int
-filter(int fd, int8_t *cmd)
+filter(int fd, char *cmd)
 {
 	int p[2], lfd, len, nb, argc;
-	int8_t newport[128], buf[128], devdir[40], *s, *file, *argv[16];
+	char newport[128], buf[128], devdir[40], *s, *file, *argv[16];
 
 	/* Get a free port and post it to the client. */
 	if (announce(anstring, devdir) < 0)
@@ -944,7 +944,7 @@ filter(int fd, int8_t *cmd)
 }
 
 static void
-mksecret(int8_t *t, uint8_t *f)
+mksecret(char *t, uint8_t *f)
 {
 	sprint(t, "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);

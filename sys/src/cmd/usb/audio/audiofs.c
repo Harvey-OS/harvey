@@ -34,7 +34,7 @@ struct Audioctldata
 {
 	int32_t	offoff;			/* offset of the offset for audioctl */
 	int32_t	values[2][Ncontrol][8];	/* last values transmitted */
-	int8_t	*s;
+	char	*s;
 	int	ns;
 };
 
@@ -95,10 +95,10 @@ Fcall	thdr;
 Fcall	rhdr;
 Worker *workers;
 
-int8_t srvfile[64], mntdir[64], epdata[64], audiofile[64];
+char srvfile[64], mntdir[64], epdata[64], audiofile[64];
 int mfd[2], p[2];
-int8_t user[32];
-int8_t *srvpost;
+char user[32];
+char *srvpost;
 
 Channel *procchan;
 Channel *replchan;
@@ -109,9 +109,9 @@ Fid*		newfid(int);
 void		io(void *);
 void		usage(void);
 
-extern int8_t *mntpt;
+extern char *mntpt;
 
-int8_t	*rflush(Fid*), *rauth(Fid*),
+char	*rflush(Fid*), *rauth(Fid*),
 	*rattach(Fid*), *rwalk(Fid*),
 	*ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
@@ -134,20 +134,20 @@ char 	*(*fcalls[])(Fid*) = {
 	[Twstat]	rwstat,
 };
 
-int8_t	Eperm[] =	"permission denied";
-int8_t	Enotdir[] =	"not a directory";
-int8_t	Enoauth[] =	"no authentication in ramfs";
-int8_t	Enotexist[] =	"file does not exist";
-int8_t	Einuse[] =	"file in use";
-int8_t	Eexist[] =	"file exists";
-int8_t	Enotowner[] =	"not owner";
-int8_t	Eisopen[] = 	"file already open for I/O";
-int8_t	Excl[] = 	"exclusive use file already open";
-int8_t	Ename[] = 	"illegal name";
-int8_t	Ebadctl[] =	"unknown control message";
+char	Eperm[] =	"permission denied";
+char	Enotdir[] =	"not a directory";
+char	Enoauth[] =	"no authentication in ramfs";
+char	Enotexist[] =	"file does not exist";
+char	Einuse[] =	"file in use";
+char	Eexist[] =	"file exists";
+char	Enotowner[] =	"not owner";
+char	Eisopen[] = 	"file already open for I/O";
+char	Excl[] = 	"exclusive use file already open";
+char	Ename[] = 	"illegal name";
+char	Ebadctl[] =	"unknown control message";
 
 int
-notifyf(void *, int8_t *s)
+notifyf(void *, char *s)
 {
 	if(strncmp(s, "interrupt", 9) == 0)
 		return 1;
@@ -155,10 +155,10 @@ notifyf(void *, int8_t *s)
 }
 
 void
-post(int8_t *name, int8_t *envname, int srvfd)
+post(char *name, char *envname, int srvfd)
 {
 	int fd;
-	int8_t buf[32];
+	char buf[32];
 
 	fd = create(name, OWRITE, attachok?0666:0600);
 	if(fd < 0)
@@ -224,7 +224,7 @@ serve(void *)
 	threadexits(nil);
 }
 
-int8_t*
+char*
 rversion(Fid*)
 {
 	Fid *f;
@@ -244,13 +244,13 @@ rversion(Fid*)
 	return nil;
 }
 
-int8_t*
+char*
 rauth(Fid*)
 {
 	return "usbaudio: no authentication required";
 }
 
-int8_t*
+char*
 rflush(Fid *)
 {
 	Worker *w;
@@ -270,7 +270,7 @@ rflush(Fid *)
 	return 0;
 }
 
-int8_t*
+char*
 rattach(Fid *f)
 {
 	f->flags |= Busy;
@@ -295,8 +295,8 @@ doclone(Fid *f, int nfid)
 	return nf;
 }
 
-int8_t*
-dowalk(Fid *f, int8_t *name)
+char*
+dowalk(Fid *f, char *name)
 {
 	int t;
 
@@ -317,11 +317,11 @@ dowalk(Fid *f, int8_t *name)
 	return Enotexist;
 }
 
-int8_t*
+char*
 rwalk(Fid *f)
 {
 	Fid *nf;
-	int8_t *rv;
+	char *rv;
 	int i;
 	Dir *savedir;
 
@@ -379,7 +379,7 @@ allocaudioctldata(void)
 	return a;
 }
 
-int8_t *
+char *
 ropen(Fid *f)
 {
 	if(f->flags & Open)
@@ -397,7 +397,7 @@ ropen(Fid *f)
 	return nil;
 }
 
-int8_t *
+char *
 rcreate(Fid*)
 {
 	return Eperm;
@@ -431,7 +431,7 @@ makeaudioctldata(Fid *f)
 {
 	int rec, ctl, i, diff;
 	int32_t *actls;		/* 8 of them */
-	int8_t *p, *e;
+	char *p, *e;
 	Audiocontrol *c;
 	Audioctldata *a;
 
@@ -544,16 +544,16 @@ flush:
 	threadexits(nil);
 }
 
-int8_t*
+char*
 rread(Fid *f)
 {
 	int i, n, cnt, rec, div;
 	int64_t off;
-	int8_t *p;
+	char *p;
 	Audiocontrol *c;
 	Audioctldata *a;
 	Worker *w;
-	static int8_t buf[1024];
+	static char buf[1024];
 
 	rhdr.count = 0;
 	off = thdr.offset;
@@ -562,7 +562,7 @@ rread(Fid *f)
 	if(cnt > messagesize - IOHDRSZ)
 		cnt = messagesize - IOHDRSZ;
 
-	rhdr.data = (int8_t*)mbuf;
+	rhdr.data = (char*)mbuf;
 
 	if(f->dir == &dirs[Qdir]){
 		n = readtopdir(f, mbuf, off, cnt, messagesize - IOHDRSZ);
@@ -674,21 +674,21 @@ rread(Fid *f)
 		hdr->fid = thdr.fid;
 		hdr->tag = thdr.tag;
 		sendul(w->eventc, Work);
-		return (int8_t*)~0;
+		return (char*)~0;
 	}
 
 	return Eperm;
 }
 
-int8_t*
+char*
 rwrite(Fid *f)
 {
 	int32_t cnt, value;
-	int8_t *lines[2*Ncontrol], *fields[4], *subfields[9], *err, *p;
+	char *lines[2*Ncontrol], *fields[4], *subfields[9], *err, *p;
 	int nlines, i, nf, nnf, rec, ctl;
 	Audiocontrol *c;
 	Worker *w;
-	static int8_t buf[256];
+	static char buf[256];
 
 	rhdr.count = 0;
 	cnt = thdr.count;
@@ -794,7 +794,7 @@ rwrite(Fid *f)
 	return Eperm;
 }
 
-int8_t *
+char *
 rclunk(Fid *f)
 {
 	Audioctldata *a;
@@ -813,13 +813,13 @@ rclunk(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rremove(Fid *)
 {
 	return Eperm;
 }
 
-int8_t *
+char *
 rstat(Fid *f)
 {
 	Audioctldata *a;
@@ -839,7 +839,7 @@ rstat(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rwstat(Fid*)
 {
 	return Eperm;
@@ -870,13 +870,13 @@ newfid(int fid)
 void
 io(void *)
 {
-	int8_t *err, e[32];
+	char *err, e[32];
 	int n;
 
 	close(p[1]);
 
 	procchan = chancreate(sizeof(Channel*), 8);
-	replchan = chancreate(sizeof(int8_t*), 0);
+	replchan = chancreate(sizeof(char*), 0);
 	for(;;){
 		/*
 		 * reading from a pipe or a network device
@@ -902,12 +902,12 @@ io(void *)
 
 		ddprint(2, "io:<-%F\n", &thdr);
 
-		rhdr.data = (int8_t*)mdata + messagesize;
+		rhdr.data = (char*)mdata + messagesize;
 		if(!fcalls[thdr.type])
 			err = "bad fcall type";
 		else
 			err = (*fcalls[thdr.type])(newfid(thdr.fid));
-		if(err == (int8_t*)~0)
+		if(err == (char*)~0)
 			continue;	/* handled off line */
 		if(err){
 			rhdr.type = Rerror;

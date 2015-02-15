@@ -26,39 +26,39 @@
 #define Maxfdata 8192
 #define MaxStr 128
 
-static void	fatal(int, int8_t*, ...);
+static void	fatal(int, char*, ...);
 static void	usage(void);
-static void	writestr(int, int8_t*, int8_t*, int);
-static int	readstr(int, int8_t*, int);
-static int8_t	*rexcall(int*, int8_t*, int8_t*);
-static int8_t *keyspec = "";
+static void	writestr(int, char*, char*, int);
+static int	readstr(int, char*, int);
+static char	*rexcall(int*, char*, char*);
+static char *keyspec = "";
 static AuthInfo *p9any(int);
 
 #define system csystem
-static int8_t	*system;
+static char	*system;
 static int	cflag;
 extern int	dbg;
-extern int8_t*   base;   // fs base for devroot 
+extern char*   base;   // fs base for devroot 
 
-static int8_t	*srvname = "ncpu";
-static int8_t	*ealgs = "rc4_256 sha1";
+static char	*srvname = "ncpu";
+static char	*ealgs = "rc4_256 sha1";
 
 /* message size for exportfs; may be larger so we can do big graphics in CPU window */
 static int	msgsize = Maxfdata+IOHDRSZ;
 
 /* authentication mechanisms */
 static int	netkeyauth(int);
-static int	netkeysrvauth(int, int8_t*);
+static int	netkeysrvauth(int, char*);
 static int	p9auth(int);
-static int	srvp9auth(int, int8_t*);
+static int	srvp9auth(int, char*);
 
-int8_t *authserver;
+char *authserver;
 
 typedef struct AuthMethod AuthMethod;
 struct AuthMethod {
-	int8_t	*name;			/* name of method */
+	char	*name;			/* name of method */
 	int	(*cf)(int);		/* client side authentication */
-	int	(*sf)(int, int8_t*);	/* server side authentication */
+	int	(*sf)(int, char*);	/* server side authentication */
 } authmethod[] =
 {
 	{ "p9",		p9auth,		srvp9auth,},
@@ -68,12 +68,12 @@ struct AuthMethod {
 };
 AuthMethod *am = authmethod;	/* default is p9 */
 
-int8_t *p9authproto = "p9any";
+char *p9authproto = "p9any";
 
-int setam(int8_t*);
+int setam(char*);
 
 void
-exits(int8_t *s)
+exits(char *s)
 {
 	print("\ngoodbye\n");
 	for(;;) osyield();
@@ -224,10 +224,10 @@ cpumain(int argc, char **argv)
 }
 
 void
-fatal(int syserr, int8_t *fmt, ...)
+fatal(int syserr, char *fmt, ...)
 {
 	Fmt f;
-	int8_t *str;
+	char *str;
 	va_list arg;
 
 	fmtstrinit(&f);
@@ -243,17 +243,17 @@ fatal(int syserr, int8_t *fmt, ...)
 	exits(str);
 }
 
-int8_t *negstr = "negotiating authentication method";
+char *negstr = "negotiating authentication method";
 
-int8_t bug[256];
+char bug[256];
 
-int8_t*
-rexcall(int *fd, int8_t *host, int8_t *service)
+char*
+rexcall(int *fd, char *host, char *service)
 {
-	int8_t *na;
-	int8_t dir[MaxStr];
-	int8_t err[ERRMAX];
-	int8_t msg[MaxStr];
+	char *na;
+	char dir[MaxStr];
+	char err[ERRMAX];
+	char msg[MaxStr];
 	int n;
 
 	na = netmkaddr(host, "tcp", "17010");
@@ -282,7 +282,7 @@ rexcall(int *fd, int8_t *host, int8_t *service)
 }
 
 void
-writestr(int fd, int8_t *str, int8_t *thing, int ignore)
+writestr(int fd, char *str, char *thing, int ignore)
 {
 	int l, n;
 
@@ -293,7 +293,7 @@ writestr(int fd, int8_t *str, int8_t *thing, int ignore)
 }
 
 int
-readstr(int fd, int8_t *str, int len)
+readstr(int fd, char *str, int len)
 {
 	int n;
 
@@ -310,10 +310,10 @@ readstr(int fd, int8_t *str, int len)
 }
 
 static int
-readln(int8_t *buf, int n)
+readln(char *buf, int n)
 {
 	int i;
-	int8_t *p;
+	char *p;
 
 	n--;	/* room for \0 */
 	p = buf;
@@ -334,8 +334,8 @@ readln(int8_t *buf, int n)
 static int
 netkeyauth(int fd)
 {
-	int8_t chall[32];
-	int8_t resp[32];
+	char chall[32];
+	char resp[32];
 
 	strecpy(chall, chall+sizeof chall, getuser());
 	print("user[%s]: ", chall);
@@ -359,13 +359,13 @@ netkeyauth(int fd)
 }
 
 static int
-netkeysrvauth(int fd, int8_t *user)
+netkeysrvauth(int fd, char *user)
 {
 	return -1;
 }
 
 static void
-mksecret(int8_t *t, uint8_t *f)
+mksecret(char *t, uint8_t *f)
 {
 	sprint(t, "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
@@ -379,8 +379,8 @@ p9auth(int fd)
 {
 	uint8_t key[16];
 	uint8_t digest[SHA1dlen];
-	int8_t fromclientsecret[21];
-	int8_t fromserversecret[21];
+	char fromclientsecret[21];
+	char fromserversecret[21];
 	int i;
 	AuthInfo *ai;
 
@@ -412,7 +412,7 @@ p9auth(int fd)
 }
 
 int
-authdial(int8_t *net, int8_t *dom)
+authdial(char *net, char *dom)
 {
 	int fd;
 	fd = dial(netmkaddr(authserver, "tcp", "567"), 0, 0, 0);
@@ -421,10 +421,10 @@ authdial(int8_t *net, int8_t *dom)
 }
 
 static int
-getastickets(Ticketreq *tr, int8_t *trbuf, int8_t *tbuf)
+getastickets(Ticketreq *tr, char *trbuf, char *tbuf)
 {
 	int asfd, rv;
-	int8_t *dom;
+	char *dom;
 
 	dom = tr->authdom;
 	asfd = authdial(nil, dom);
@@ -436,7 +436,7 @@ getastickets(Ticketreq *tr, int8_t *trbuf, int8_t *tbuf)
 }
 
 static int
-mkserverticket(Ticketreq *tr, int8_t *authkey, int8_t *tbuf)
+mkserverticket(Ticketreq *tr, char *authkey, char *tbuf)
 {
 	int i;
 	Ticket t;
@@ -457,7 +457,7 @@ mkserverticket(Ticketreq *tr, int8_t *authkey, int8_t *tbuf)
 }
 
 static int
-gettickets(Ticketreq *tr, int8_t *key, int8_t *trbuf, int8_t *tbuf)
+gettickets(Ticketreq *tr, char *key, char *trbuf, char *tbuf)
 {
 	if(getastickets(tr, trbuf, tbuf) >= 0)
 		return 0;
@@ -468,12 +468,12 @@ gettickets(Ticketreq *tr, int8_t *key, int8_t *trbuf, int8_t *tbuf)
  *  prompt user for a key.  don't care about memory leaks, runs standalone
  */
 static Attr*
-promptforkey(int8_t *params)
+promptforkey(char *params)
 {
-	int8_t *v;
+	char *v;
 	int fd;
 	Attr *a, *attr;
-	int8_t *def;
+	char *def;
 
 	fd = open("/dev/cons", ORDWR);
 	if(fd < 0)
@@ -522,7 +522,7 @@ static int
 sendkey(Attr *attr)
 {
 	int fd, rv;
-	int8_t buf[1024];
+	char buf[1024];
 
 	fd = open("/mnt/factotum/ctl", ORDWR);
 	if(fd < 0)
@@ -534,7 +534,7 @@ sendkey(Attr *attr)
 }
 
 int
-askuser(int8_t *params)
+askuser(char *params)
 {
 	Attr *attr;
 	
@@ -557,10 +557,10 @@ p9anyfactotum(int fd, int afd)
 AuthInfo*
 p9any(int fd)
 {
-	int8_t buf[1024], buf2[1024], cchal[CHALLEN], *bbuf, *p, *dom, *u;
-	int8_t *pass;
-	int8_t tbuf[TICKETLEN+TICKETLEN+AUTHENTLEN], trbuf[TICKREQLEN];
-	int8_t authkey[DESKEYLEN];
+	char buf[1024], buf2[1024], cchal[CHALLEN], *bbuf, *p, *dom, *u;
+	char *pass;
+	char tbuf[TICKETLEN+TICKETLEN+AUTHENTLEN], trbuf[TICKREQLEN];
+	char authkey[DESKEYLEN];
 	Authenticator auth;
 	int afd, i, n, v2;
 	Ticketreq tr;
@@ -699,7 +699,7 @@ srvnoauth(int fd, char *user)
 void
 loghex(uint8_t *p, int n)
 {
-	int8_t buf[100];
+	char buf[100];
 	int i;
 
 	for(i = 0; i < n; i++)
@@ -708,7 +708,7 @@ loghex(uint8_t *p, int n)
 }
 
 static int
-srvp9auth(int fd, int8_t *user)
+srvp9auth(int fd, char *user)
 {
 	return -1;
 }
@@ -717,7 +717,7 @@ srvp9auth(int fd, int8_t *user)
  *  set authentication mechanism
  */
 int
-setam(int8_t *name)
+setam(char *name)
 {
 	for(am = authmethod; am->name != nil; am++)
 		if(strcmp(am->name, name) == 0)

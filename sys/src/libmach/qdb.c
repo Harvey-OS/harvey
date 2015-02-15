@@ -18,11 +18,11 @@
  *	forsyth@terzarima.net
  */
 
-static	int8_t	*powerexcep(Map*, Rgetter);
+static	char	*powerexcep(Map*, Rgetter);
 static	int	powerfoll(Map*, uint64_t, Rgetter, uint64_t*);
-static	int	powerinst(Map*, uint64_t, int8_t, int8_t*, int);
+static	int	powerinst(Map*, uint64_t, char, char*, int);
 static	int	powerinstlen(Map*, uint64_t);
-static	int	powerdas(Map*, uint64_t, int8_t*, int);
+static	int	powerdas(Map*, uint64_t, char*, int);
 
 /*
  *	Machine description
@@ -47,7 +47,7 @@ Machdata powermach =
 	powerinstlen,		/* instruction size */
 };
 
-static int8_t *excname[] =
+static char *excname[] =
 {
 	"reserved 0",
 	"system reset",
@@ -84,11 +84,11 @@ static int8_t *excname[] =
 	"illegal operation",
 };
 
-static int8_t*
+static char*
 powerexcep(Map *map, Rgetter rget)
 {
 	int32_t c;
-	static int8_t buf[32];
+	static char buf[32];
 
 	c = (*rget)(map, "CAUSE") >> 8;
 	if(c < nelem(excname))
@@ -104,7 +104,7 @@ powerexcep(Map *map, Rgetter rget)
 #define	REGSP	1	/* should come from q.out.h, but there's a clash */
 #define	REGSB	2
 
-static	int8_t FRAMENAME[] = ".frame";
+static	char FRAMENAME[] = ".frame";
 
 static Map *mymap;
 
@@ -161,10 +161,10 @@ typedef struct {
 	uint64_t	addr;		/* pc of instruction */
 	int16_t	target;
 	int16_t	m64;		/* 64-bit mode */
-	int8_t	*curr;		/* current fill level in output buffer */
-	int8_t	*end;		/* end of buffer */
+	char	*curr;		/* current fill level in output buffer */
+	char	*end;		/* end of buffer */
 	int 	size;		/* number of longs in instr */
-	int8_t	*err;		/* errmsg */
+	char	*err;		/* errmsg */
 } Instr;
 
 #define	IBF(v,a,b) (((ulong)(v)>>(32-(b)-1)) & ~(~0L<<(((b)-(a)+1))))
@@ -173,7 +173,7 @@ typedef struct {
 #pragma	varargck	argpos	bprint		2
 
 static void
-bprint(Instr *i, int8_t *fmt, ...)
+bprint(Instr *i, char *fmt, ...)
 {
 	va_list arg;
 
@@ -298,7 +298,7 @@ plocal(Instr *i)
 }
 
 static int
-pglobal(Instr *i, uint64_t off, int anyoff, int8_t *reg)
+pglobal(Instr *i, uint64_t off, int anyoff, char *reg)
 {
 	Symbol s, s2;
 	uint64_t off1;
@@ -339,8 +339,8 @@ address(Instr *i)
 		bprint(i, "%llux(R%d)", i->imm64, i->ra);
 }
 
-static	int8_t	*tcrbits[] = {"LT", "GT", "EQ", "VS"};
-static	int8_t	*fcrbits[] = {"GE", "LE", "NE", "VC"};
+static	char	*tcrbits[] = {"LT", "GT", "EQ", "VS"};
+static	char	*fcrbits[] = {"GE", "LE", "NE", "VC"};
 
 typedef struct Opcode Opcode;
 
@@ -348,18 +348,18 @@ struct Opcode {
 	uint8_t	op;
 	uint16_t	xo;
 	uint16_t	xomask;
-	int8_t	*mnemonic;
+	char	*mnemonic;
 	void	(*f)(Opcode *, Instr *);
-	int8_t	*ken;
+	char	*ken;
 	int	flags;
 };
 
-static void format(int8_t *, Instr *, int8_t *);
+static void format(char *, Instr *, char *);
 
 static void
 branch(Opcode *o, Instr *i)
 {
-	int8_t buf[8];
+	char buf[8];
 	int bo, bi;
 
 	bo = i->bo & ~1;	/* ignore prediction bit */
@@ -508,7 +508,7 @@ dcb(Opcode *o, Instr *i)
 }
 
 static void
-lw(Opcode *o, Instr *i, int8_t r)
+lw(Opcode *o, Instr *i, char r)
 {
 	format(o->mnemonic, i, nil);
 	bprint(i, "\t");
@@ -529,7 +529,7 @@ fload(Opcode *o, Instr *i)
 }
 
 static void
-sw(Opcode *o, Instr *i, int8_t r)
+sw(Opcode *o, Instr *i, char r)
 {
 	int offset;
 	Symbol s;
@@ -677,29 +677,29 @@ neg(Opcode *o, Instr *i)
 		format(o->mnemonic, i, o->ken);
 }
 
-static	int8_t	ir2[] = "R%a,R%d";		/* reverse of IBM order */
-static	int8_t	ir3[] = "R%b,R%a,R%d";
-static	int8_t	ir3r[] = "R%a,R%b,R%d";
-static	int8_t	il3[] = "R%b,R%s,R%a";
-static	int8_t	il2u[] = "%I,R%d,R%a";
-static	int8_t	il3s[] = "$%k,R%s,R%a";
-static	int8_t	il2[] = "R%s,R%a";
-static	int8_t	icmp3[] = "R%a,R%b,%D";
-static	int8_t	cr3op[] = "%b,%a,%d";
-static	int8_t	ir2i[] = "%i,R%a,R%d";
-static	int8_t	fp2[] = "F%b,F%d";
-static	int8_t	fp3[] = "F%b,F%a,F%d";
-static	int8_t	fp3c[] = "F%c,F%a,F%d";
-static	int8_t	fp4[] = "F%a,F%c,F%b,F%d";
-static	int8_t	fpcmp[] = "F%a,F%b,%D";
-static	int8_t	ldop[] = "%l,R%d";
-static	int8_t	stop[] = "R%d,%l";
-static	int8_t	fldop[] = "%l,F%d";
-static	int8_t	fstop[] = "F%d,%l";
-static	int8_t	rldc[] = "R%b,R%s,$%E,R%a";
-static	int8_t	rlim[] = "R%b,R%s,$%z,R%a";
-static	int8_t	rlimi[] = "$%k,R%s,$%z,R%a";
-static	int8_t	rldi[] = "$%e,R%s,$%E,R%a";
+static	char	ir2[] = "R%a,R%d";		/* reverse of IBM order */
+static	char	ir3[] = "R%b,R%a,R%d";
+static	char	ir3r[] = "R%a,R%b,R%d";
+static	char	il3[] = "R%b,R%s,R%a";
+static	char	il2u[] = "%I,R%d,R%a";
+static	char	il3s[] = "$%k,R%s,R%a";
+static	char	il2[] = "R%s,R%a";
+static	char	icmp3[] = "R%a,R%b,%D";
+static	char	cr3op[] = "%b,%a,%d";
+static	char	ir2i[] = "%i,R%a,R%d";
+static	char	fp2[] = "F%b,F%d";
+static	char	fp3[] = "F%b,F%a,F%d";
+static	char	fp3c[] = "F%c,F%a,F%d";
+static	char	fp4[] = "F%a,F%c,F%b,F%d";
+static	char	fpcmp[] = "F%a,F%b,%D";
+static	char	ldop[] = "%l,R%d";
+static	char	stop[] = "R%d,%l";
+static	char	fldop[] = "%l,F%d";
+static	char	fstop[] = "F%d,%l";
+static	char	rldc[] = "R%b,R%s,$%E,R%a";
+static	char	rlim[] = "R%b,R%s,$%z,R%a";
+static	char	rlimi[] = "$%k,R%s,$%z,R%a";
+static	char	rldi[] = "$%e,R%s,$%E,R%a";
 
 #define	OEM	IBF(~0,22,30)
 #define	FP4	IBF(~0,26,30)
@@ -993,7 +993,7 @@ static Opcode opcodes[] = {
 typedef struct Spr Spr;
 struct Spr {
 	int	n;
-	int8_t	*name;
+	char	*name;
 };
 
 static	Spr	sprname[] = {
@@ -1066,7 +1066,7 @@ shmask(uint64_t *m)
 }
 
 static void
-format(int8_t *mnemonic, Instr *i, int8_t *f)
+format(char *mnemonic, Instr *i, char *f)
 {
 	int n, s;
 	uint32_t mask;
@@ -1267,7 +1267,7 @@ format(int8_t *mnemonic, Instr *i, int8_t *f)
 }
 
 static int
-printins(Map *map, uint64_t pc, int8_t *buf, int n)
+printins(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 	Opcode *o;
@@ -1291,14 +1291,14 @@ printins(Map *map, uint64_t pc, int8_t *buf, int n)
 }
 
 static int
-powerinst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
+powerinst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	USED(modifier);
 	return printins(map, pc, buf, n);
 }
 
 static int
-powerdas(Map *map, uint64_t pc, int8_t *buf, int n)
+powerdas(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr instr;
 
@@ -1332,7 +1332,7 @@ powerinstlen(Map *map, uint64_t pc)
 static int
 powerfoll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
-	int8_t *reg;
+	char *reg;
 	Instr i;
 
 	mymap = map;

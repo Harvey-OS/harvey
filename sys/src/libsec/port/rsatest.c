@@ -17,7 +17,7 @@ main(void)
 {
 	int n;
 	int64_t start;
-	int8_t *p;
+	char *p;
 	uint8_t buf[4096];
 	Biobuf b;
 	RSApriv *rsa;

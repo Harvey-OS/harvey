@@ -46,7 +46,7 @@ enum {
 static uint32_t	*crctab;
 static uint32_t	crc;
 
-extern void diff(int8_t*);	//XXX
+extern void diff(char*);	//XXX
 int
 gunzip(uint8_t *out, int outn, uint8_t *in, int inn)
 {

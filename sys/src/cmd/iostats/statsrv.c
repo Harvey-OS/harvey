@@ -14,16 +14,16 @@
 #define Extern	extern
 #include "statfs.h"
 
-int8_t Ebadfid[]	= "Bad fid";
-int8_t Enotdir[]	="Not a directory";
-int8_t Edupfid[]	= "Fid already in use";
-int8_t Eopen[]	= "Fid already opened";
-int8_t Exmnt[]	= "Cannot .. past mount point";
-int8_t Enoauth[]	= "iostats: Authentication failed";
-int8_t Ebadver[]	= "Unrecognized 9P version";
+char Ebadfid[]	= "Bad fid";
+char Enotdir[]	="Not a directory";
+char Edupfid[]	= "Fid already in use";
+char Eopen[]	= "Fid already opened";
+char Exmnt[]	= "Cannot .. past mount point";
+char Enoauth[]	= "iostats: Authentication failed";
+char Ebadver[]	= "Unrecognized 9P version";
 
 int
-okfile(int8_t *s, int mode)
+okfile(char *s, int mode)
 {
 	if(strncmp(s, "/fd/", 3) == 0){
 		/* 0, 1, and 2 we handle ourselves */
@@ -151,7 +151,7 @@ Xattach(Fsrpc *r)
 void
 Xwalk(Fsrpc *r)
 {
-	int8_t errbuf[ERRMAX], *err;
+	char errbuf[ERRMAX], *err;
 	Fcall thdr;
 	Fid *f, *n;
 	File *nf;
@@ -256,7 +256,7 @@ Xclunk(Fsrpc *r)
 void
 Xstat(Fsrpc *r)
 {
-	int8_t err[ERRMAX], path[128];
+	char err[ERRMAX], path[128];
 	uint8_t statbuf[STATMAX];
 	Fcall thdr;
 	Fid *f;
@@ -301,7 +301,7 @@ Xstat(Fsrpc *r)
 void
 Xcreate(Fsrpc *r)
 {
-	int8_t err[ERRMAX], path[128];
+	char err[ERRMAX], path[128];
 	Fcall thdr;
 	Fid *f;
 	File *nf;
@@ -348,7 +348,7 @@ Xcreate(Fsrpc *r)
 void
 Xremove(Fsrpc *r)
 {
-	int8_t err[ERRMAX], path[128];
+	char err[ERRMAX], path[128];
 	Fcall thdr;
 	Fid *f;
 	int64_t t;
@@ -386,7 +386,7 @@ Xremove(Fsrpc *r)
 void
 Xwstat(Fsrpc *r)
 {
-	int8_t err[ERRMAX], path[128];
+	char err[ERRMAX], path[128];
 	Fcall thdr;
 	Fid *f;
 	int s;
@@ -509,7 +509,7 @@ blockingslave(void)
 void
 slaveopen(Fsrpc *p)
 {
-	int8_t err[ERRMAX], path[128];
+	char err[ERRMAX], path[128];
 	Fcall *work, thdr;
 	Fid *f;
 	int64_t t;
@@ -562,7 +562,7 @@ slaveopen(Fsrpc *p)
 void
 slaveread(Fsrpc *p)
 {
-	int8_t data[Maxfdata], err[ERRMAX];
+	char data[Maxfdata], err[ERRMAX];
 	Fcall *work, thdr;
 	Fid *f;
 	int n, r;
@@ -624,7 +624,7 @@ slaveread(Fsrpc *p)
 void
 slavewrite(Fsrpc *p)
 {
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 	Fcall *work, thdr;
 	Fid *f;
 	int n;
@@ -671,7 +671,7 @@ reopen(Fid *f)
 }
 
 void
-flushaction(void *a, int8_t *cause)
+flushaction(void *a, char *cause)
 {
 	USED(a);
 	if(strncmp(cause, "kill", 4) == 0)

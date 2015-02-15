@@ -44,8 +44,8 @@ struct	Sch
 	Dep	set;
 	Dep	used;
 	int32_t	soffset;
-	int8_t	size;
-	int8_t	comp;
+	char	size;
+	char	comp;
 };
 
 void	regused(Sch*, Prog*);

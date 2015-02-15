@@ -76,7 +76,7 @@ struct direct {			/* data from read()/_getdirentries() */
     unsigned long   d_fileno;	/* unique ident of entry */
     unsigned short  d_reclen;	/* length of this record */
     unsigned short  d_namlen;	/* length of string in d_name */
-    int8_t            d_name[MAXNAMELEN + 1];	/* NUL-terminated filename */
+    char            d_name[MAXNAMELEN + 1];	/* NUL-terminated filename */
 };
 
 /*
@@ -142,7 +142,7 @@ extern int      read();
 extern int      _getdents();	/* actual system call */
 #endif
 
-extern int8_t    *strncpy();
+extern char    *strncpy();
 extern int      fstat();
 extern OFFSET   lseek();
 
@@ -175,7 +175,7 @@ extern int      errno;
 
 extern int      getdents();	/* SVR3 system call, or emulation */
 
-typedef int8_t   *pointer;	/* (void *) if you have it */
+typedef char   *pointer;	/* (void *) if you have it */
 
 extern void     free();
 extern pointer  malloc();
@@ -208,7 +208,7 @@ typedef int     bool;		/* Boolean data type */
 
 #ifdef __STDC__
 
-DIR *opendir(int8_t *dirname)
+DIR *opendir(char *dirname)
 
 #else
     
@@ -230,7 +230,7 @@ char           *dirname;	/* name of directory */
 	return ((DIR *)NULL);		/* not a directory */
     }
     if ((dirp = (DIR *) malloc(sizeof(DIR))) == (DIR *)NULL
-	|| (dirp->dd_buf = (int8_t *) malloc((unsigned) DIRBUF)) == (int8_t *)NULL
+	|| (dirp->dd_buf = (char *) malloc((unsigned) DIRBUF)) == (char *)NULL
 	) {
 	register int    serrno = errno;
 	/* errno set to ENOMEM by sbrk() */
@@ -268,7 +268,7 @@ register DIR	*dirp;		/* stream from opendir() */
 {
     register int	fd;
 
-    if ( dirp == (DIR *)NULL || dirp->dd_buf == (int8_t *)NULL ) {
+    if ( dirp == (DIR *)NULL || dirp->dd_buf == (char *)NULL ) {
 	errno = EFAULT;
 	return -1;			/* invalid pointer */
     }
@@ -299,7 +299,7 @@ register DIR   *dirp;		/* stream from opendir() */
 {
     register struct dirent *dp;	/* -> directory data */
 
-    if (dirp == (DIR *)NULL || dirp->dd_buf == (int8_t *)NULL) {
+    if (dirp == (DIR *)NULL || dirp->dd_buf == (char *)NULL) {
 	errno = EFAULT;
 	return (struct dirent *)NULL;		/* invalid pointer */
     }
@@ -349,7 +349,7 @@ register OFFSET  loc;		/* position from telldir() */
 {
     register bool   rewind;	/* "start over when stymied" flag */
 
-    if (dirp == (DIR *)NULL || dirp->dd_buf == (int8_t *)NULL) {
+    if (dirp == (DIR *)NULL || dirp->dd_buf == (char *)NULL) {
 	errno = EFAULT;
 	return;			/* invalid pointer */
     }
@@ -388,12 +388,12 @@ register OFFSET  loc;		/* position from telldir() */
 	    <= loc		/* match possible in this buffer */
 	    ) {
 	    for ( /* dp initialized above */ ;
-		 (int8_t *) dp < &dirp->dd_buf[dirp->dd_size];
-		 dp = (struct dirent *) ((int8_t *) dp + dp->d_reclen)
+		 (char *) dp < &dirp->dd_buf[dirp->dd_size];
+		 dp = (struct dirent *) ((char *) dp + dp->d_reclen)
 		)
 		if (dp->d_off == loc) {	/* found it! */
 		    dirp->dd_loc =
-			(int8_t *) dp - dirp->dd_buf;
+			(char *) dp - dirp->dd_buf;
 		    return;
 		}
 	    rewind = false;	/* no point in backing up later */
@@ -451,7 +451,7 @@ DIR            *dirp;		/* stream from opendir() */
 
 #endif
 {
-    if (dirp == (DIR *)NULL || dirp->dd_buf == (int8_t *)NULL) {
+    if (dirp == (DIR *)NULL || dirp->dd_buf == (char *)NULL) {
 	errno = EFAULT;
 	return -1;		/* invalid pointer */
     }
@@ -474,7 +474,7 @@ DIR            *dirp;		/* stream from opendir() */
 
 #ifdef __STDC__
 
-static int NameLen(int8_t *name)
+static int NameLen(char *name)
 
 #else
     
@@ -483,8 +483,8 @@ char            *name;		/* -> name embedded in struct direct */
 
 #endif
 {
-    register int8_t  *s;		/* -> name[.] */
-    register int8_t  *stop = &name[DIRSIZ];	/* -> past end of name field */
+    register char  *s;		/* -> name[.] */
+    register char  *stop = &name[DIRSIZ];	/* -> past end of name field */
 
     for (s = &name[1];		/* (empty names are impossible) */
 	 *s != '\0'		/* not NUL terminator */
@@ -553,7 +553,7 @@ int             sig;		/* must be SIGSYS */
 
 #ifdef __STDC__
 
-int getdents(int fildes, int8_t *buf, unsigned nbyte)
+int getdents(int fildes, char *buf, unsigned nbyte)
 
 #else
     
@@ -570,9 +570,9 @@ unsigned        nbyte;		/* size of buf[] */
     union {
 	/* directory file block buffer */
 #ifdef UFS
-	int8_t		dblk[DIRBLKSIZ + 1];
+	char		dblk[DIRBLKSIZ + 1];
 #else
-	int8_t            dblk[DIRBLKSIZ];
+	char            dblk[DIRBLKSIZ];
 #endif
 	struct direct   dummy;	/* just for alignment */
     } u;		/* (avoids having to malloc()) */
@@ -602,7 +602,7 @@ unsigned        nbyte;		/* size of buf[] */
     }
 #endif
 
-    if (buf == (int8_t *)NULL
+    if (buf == (char *)NULL
 #ifdef ATT_SPEC
 	|| (unsigned long) buf % sizeof(int32_t) != 0	/* ugh */
 #endif
@@ -645,8 +645,8 @@ unsigned        nbyte;		/* size of buf[] */
 	}
 
 	for (dp = (struct direct *) u.dblk;
-	     (int8_t *) dp < &u.dblk[size];
-	     dp = (struct direct *) ((int8_t *) dp + RecLen(dp))
+	     (char *) dp < &u.dblk[size];
+	     dp = (struct direct *) ((char *) dp + RecLen(dp))
 	    ) {
 #ifndef UFS
 	    if (dp->d_reclen <= 0) {
@@ -659,19 +659,19 @@ unsigned        nbyte;		/* size of buf[] */
 		register int    reclen =
 		DIRENTSIZ(NameLen(dp->d_name));
 
-		if ((int8_t *) bp + reclen > &buf[nbyte]) {
+		if ((char *) bp + reclen > &buf[nbyte]) {
 		    errno = EINVAL;
 		    return -1;	/* buf too small */
 		}
 		bp->d_ino = dp->d_fileno;
-		bp->d_off = offset + ((int8_t *) dp - u.dblk);
+		bp->d_off = offset + ((char *) dp - u.dblk);
 		bp->d_reclen = reclen;
 
 		{
 #ifdef UFS
 		    /* Is the following kludge ugly?  You bet. */
 
-		    register int8_t   save = dp->d_name[DIRSIZ];
+		    register char   save = dp->d_name[DIRSIZ];
 		    /* save original data */
 
 		    dp->d_name[DIRSIZ] = '\0';
@@ -685,12 +685,12 @@ unsigned        nbyte;		/* size of buf[] */
 #endif
 		}
 
-		bp = (struct dirent *) ((int8_t *) bp + reclen);
+		bp = (struct dirent *) ((char *) bp + reclen);
 	    }
 	}
 
 #ifndef BFS			/* 4.2BSD screwed up; fixed in 4.3BSD */
-	if ((int8_t *) dp > &u.dblk[size]) {
+	if ((char *) dp > &u.dblk[size]) {
 	    errno = EIO;	/* corrupted directory */
 	    return -1;
 	}
@@ -698,5 +698,5 @@ unsigned        nbyte;		/* size of buf[] */
     }
 
     errno = serrno;		/* restore entry errno */
-    return (int8_t *) bp - buf;	/* return # bytes read */
+    return (char *) bp - buf;	/* return # bytes read */
 }

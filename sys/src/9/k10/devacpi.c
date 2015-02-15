@@ -82,15 +82,15 @@ static Reg*	reg;	/* region used for I/O */
 static Gpe*	gpes;	/* General purpose events */
 static int	ngpes;
 
-static int8_t* regnames[] = {
+static char* regnames[] = {
 	"mem", "io", "pcicfg", "embed",
 	"smb", "cmos", "pcibar",
 };
 
-static int8_t*
+static char*
 acpiregstr(int id)
 {
-	static int8_t buf[20];	/* BUG */
+	static char buf[20];	/* BUG */
 
 	if(id >= 0 && id < nelem(regnames))
 		return regnames[id];
@@ -99,7 +99,7 @@ acpiregstr(int id)
 }
 
 static int
-acpiregid(int8_t *s)
+acpiregid(char *s)
 {
 	int i;
 
@@ -1017,7 +1017,7 @@ acpimadt(uint8_t *p, int len)
 				free(st);
 				st = nil;
 			}else
-				kstrdup(&st->lsapic.puids, (int8_t*)p+16);
+				kstrdup(&st->lsapic.puids, (char*)p+16);
 			break;
 		case ASintsrc:
 			st->intsrc.flags = l16get(p+2);
@@ -1068,7 +1068,7 @@ acpitable(uint8_t *p, int len)
 }
 
 static void
-dumptable(int8_t *sig, uint8_t *p, int l)
+dumptable(char *sig, uint8_t *p, int l)
 {
 	int n, i;
 
@@ -1090,8 +1090,8 @@ dumptable(int8_t *sig, uint8_t *p, int l)
 	}
 }
 
-static int8_t*
-seprinttable(int8_t *s, int8_t *e, Atable *t)
+static char*
+seprinttable(char *s, char *e, Atable *t)
 {
 	uint8_t *p;
 	int i, n;
@@ -1114,12 +1114,12 @@ seprinttable(int8_t *s, int8_t *e, Atable *t)
  * (XXX: should be able to search for sig, oemid, oemtblid)
  */
 static int
-acpixsdtload(int8_t *sig)
+acpixsdtload(char *sig)
 {
 	int i, l, t, unmap, found;
 	uintptr dhpa;
 	uint8_t *sdt;
-	int8_t tsig[5];
+	char tsig[5];
 
 	found = 0;
 	for(i = 0; i < xsdt->len; i += xsdt->asize){
@@ -1149,7 +1149,7 @@ acpixsdtload(int8_t *sig)
 }
 
 static void*
-rsdscan(uint8_t* addr, int len, int8_t* signature)
+rsdscan(uint8_t* addr, int len, char* signature)
 {
 	int sl;
 	uint8_t *e, *p;
@@ -1166,7 +1166,7 @@ rsdscan(uint8_t* addr, int len, int8_t* signature)
 }
 
 static void*
-rsdsearch(int8_t* signature)
+rsdsearch(char* signature)
 {
 	uintptr p;
 	uint8_t *bda;
@@ -1177,7 +1177,7 @@ rsdsearch(int8_t* signature)
 	 * 1) in the first KB of the EBDA;
 	 * 2) in the BIOS ROM between 0xE0000 and 0xFFFFF.
 	 */
-	if(strncmp((int8_t*)KADDR(0xFFFD9), "EISA", 4) == 0){
+	if(strncmp((char*)KADDR(0xFFFD9), "EISA", 4) == 0){
 		bda = BIOSSEG(0x40);
 		if((p = (bda[0x0F]<<8)|bda[0x0E])){
 			if(rsd = rsdscan(KADDR(p), 1024, signature))
@@ -1250,7 +1250,7 @@ acpirsdptr(void)
 }
 
 static int
-acpigen(Chan *c, int8_t*, Dirtab *tab, int ntab, int i, Dir *dp)
+acpigen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid qid;
 
@@ -1273,7 +1273,7 @@ acpigen(Chan *c, int8_t*, Dirtab *tab, int ntab, int i, Dir *dp)
 static int
 Gfmt(Fmt* f)
 {
-	static int8_t* rnames[] = {
+	static char* rnames[] = {
 			"mem", "io", "pcicfg", "embed",
 			"smb", "cmos", "pcibar", "ipmi"};
 	Gas *g;
@@ -1507,7 +1507,7 @@ acpiinit(void)
 }
 
 static Chan*
-acpiattach(int8_t *spec)
+acpiattach(char *spec)
 {
 	int i;
 
@@ -1553,7 +1553,7 @@ acpiattach(int8_t *spec)
 }
 
 static Walkqid*
-acpiwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+acpiwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, acpidir, nelem(acpidir), acpigen);
 }
@@ -1575,7 +1575,7 @@ acpiclose(Chan *)
 {
 }
 
-static int8_t*ttext;
+static char*ttext;
 static int tlen;
 
 static int32_t
@@ -1583,7 +1583,7 @@ acpiread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	int32_t q;
 	Atable *t;
-	int8_t *ns, *s, *e, *ntext;
+	char *ns, *s, *e, *ntext;
 
 	q = c->qid.path;
 	switch(q){

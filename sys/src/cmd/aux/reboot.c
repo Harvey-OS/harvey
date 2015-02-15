@@ -20,12 +20,12 @@ reboot(void)
 	exits(0);
 }
 
-int8_t*
-readenv(int8_t *name, int8_t *buf, int n)
+char*
+readenv(char *name, char *buf, int n)
 {
-	int8_t *ans;
+	char *ans;
 	int f;
-	int8_t ename[200];
+	char ename[200];
 
 	ans = buf;
 	ename[0] = 0;
@@ -46,7 +46,7 @@ readenv(int8_t *name, int8_t *buf, int n)
 int alarmed;
 
 void
-ding(void*, int8_t*msg)
+ding(void*, char*msg)
 {
 	if(strstr(msg, "alarm")){
 		alarmed = 1;
@@ -56,12 +56,12 @@ ding(void*, int8_t*msg)
 }
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	int fd;
-	int8_t buf[256];
-	int8_t file[128];
-	int8_t *p;
+	char buf[256];
+	char file[128];
+	char *p;
 	Dir *d;
 
 	if(argc > 1)

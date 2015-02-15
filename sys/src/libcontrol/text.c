@@ -82,7 +82,7 @@ enum{
 	EWarp,
 };
 
-static int8_t *cmds[] = {
+static char *cmds[] = {
 	[EAccumulate] =	"accumulate",
 	[EAdd] =			"add",
 	[EAlign] =			"align",
@@ -523,7 +523,7 @@ texttoggle(Text *t, Point p)
 }
 
 Control*
-createtext(Controlset *cs, int8_t *name)
+createtext(Controlset *cs, char *name)
 {
 	Text *t;
 

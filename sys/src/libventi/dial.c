@@ -12,9 +12,9 @@
 #include <venti.h>
 
 VtConn*
-vtdial(int8_t *addr)
+vtdial(char *addr)
 {
-	int8_t *na;
+	char *na;
 	int fd;
 	VtConn *z;
 

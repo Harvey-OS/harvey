@@ -27,7 +27,7 @@ _allocimage(Image *ai, Display *d, Rectangle r, uint32_t chan, int repl,
 	    uint32_t val, int screenid, int refresh)
 {
 	uint8_t *a;
-	int8_t *err;
+	char *err;
 	Image *i;
 	Rectangle clipr;
 	int id;
@@ -110,10 +110,10 @@ _allocimage(Image *ai, Display *d, Rectangle r, uint32_t chan, int repl,
 }
 
 Image*
-namedimage(Display *d, int8_t *name)
+namedimage(Display *d, char *name)
 {
 	uint8_t *a;
-	int8_t *err, buf[12*12+1];
+	char *err, buf[12*12+1];
 	Image *i;
 	int id, n;
 	uint32_t chan;
@@ -185,7 +185,7 @@ namedimage(Display *d, int8_t *name)
 }
 
 int
-nameimage(Image *i, int8_t *name, int in)
+nameimage(Image *i, char *name, int in)
 {
 	uint8_t *a;
 	int n;

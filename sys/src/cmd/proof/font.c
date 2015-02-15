@@ -14,26 +14,26 @@
 #include <bio.h>
 #include "proof.h"
 
-int8_t	fname[NFONT][20];	/* font names */
-int8_t lastload[NFONT][20];	/* last file name prefix loaded for this font */
+char	fname[NFONT][20];	/* font names */
+char lastload[NFONT][20];	/* last file name prefix loaded for this font */
 Font	*fonttab[NFONT][NSIZE];	/* pointers to fonts */
 int	fmap[NFONT];		/* what map to use with this font */
 
 static void	bufchar(Point, Subfont *, uint8_t *);
 static void	loadfont(int, int);
-static void	fontlookup(int, int8_t *);
+static void	fontlookup(int, char *);
 static void	buildxheight(Biobuf*);
 static void	buildmap(Biobuf*);
-static void	buildtroff(int8_t *);
-static void	addmap(int, int8_t *, int);
-static int8_t	*map(Rune*, int);
-static void	scanstr(int8_t *, int8_t *, int8_t **);
+static void	buildtroff(char *);
+static void	addmap(int, char *, int);
+static char	*map(Rune*, int);
+static void	scanstr(char *, char *, char **);
 
 int	specfont;	/* somehow, number of special font */
 
 #define	NMAP	5
 #define	QUICK	2048	/* char values less than this are quick to look up */
-#define	eq(s,t)	strcmp((int8_t *) s, (int8_t *) t) == 0
+#define	eq(s,t)	strcmp((char *) s, (char *) t) == 0
 
 int	curmap	= -1;	/* what map are we working on */
 
@@ -58,10 +58,10 @@ Map	charmap[5];
 typedef struct Fontmap Fontmap;
 struct Fontmap	/* mapping from troff name to filename */
 {
-	int8_t	*troffname;
-	int8_t	*prefix;
+	char	*troffname;
+	char	*prefix;
 	int	map;		/* which charmap to use for this font */
-	int8_t	*fallback;	/* font to look in if can't find char here */
+	char	*fallback;	/* font to look in if can't find char here */
 };
 
 Fontmap	fontmap[100];
@@ -72,11 +72,11 @@ int	nfontmap	= 0;	/* how many are there */
 void
 dochar(Rune r[])
 {
-	int8_t *s, *fb;
+	char *s, *fb;
 	Font *f;
 	Point p;
 	int fontno, fm, i;
-	int8_t buf[32];
+	char buf[32];
 
 	fontno = curfont;
 	if((s = map(r, curfont)) == 0){		/* not on current font */
@@ -127,9 +127,9 @@ static int log2[] = {
 static void
 loadfont(int n, int s)
 {
-	int8_t file[256];
+	char file[256];
 	int i, fd, t, deep;
-	static int8_t *try[3] = {"", "times/R.", "pelm/"};
+	static char *try[3] = {"", "times/R.", "pelm/"};
 	Subfont *f;
 	Font *ff;
 
@@ -178,7 +178,7 @@ loadfont(int n, int s)
 }
 
 void
-loadfontname(int n, int8_t *s)
+loadfontname(int n, char *s)
 {
 	int i;
 	Font *f, *g = 0;
@@ -212,10 +212,10 @@ allfree(void)
 
 
 void
-readmapfile(int8_t *file)
+readmapfile(char *file)
 {
 	Biobuf *fp;
-	int8_t *p, cmd[100];
+	char *p, cmd[100];
 
 	if ((fp=Bopen(file, OREAD)) == 0){
 		fprint(2, "proof: can't open map file %s\n", file);
@@ -243,7 +243,7 @@ readmapfile(int8_t *file)
 static void
 buildxheight(Biobuf *fp)	/* map goes from char name to value to print via *string() */
 {
-	int8_t *line;
+	char *line;
 
 	line = Brdline(fp, '\n');
 	if(line == 0){
@@ -269,24 +269,24 @@ buildmap(Biobuf *fp)	/* map goes from char name to value to print via *string() 
 		if (line[0] == '\n')
 			return;
 		line[Blinelen(fp)-1] = 0;
-		scanstr((int8_t *) line, (int8_t *) ch, (int8_t **) &p);
+		scanstr((char *) line, (char *) ch, (char **) &p);
 		if (ch[0] == '\0') {
-			fprint(2, "bad map file line '%s'\n", (int8_t*)line);
+			fprint(2, "bad map file line '%s'\n", (char*)line);
 			continue;
 		}
-		val = strtol((int8_t *) p, 0, 10);
-dprint(2, "buildmap %s (%x %x) %s %d\n", (int8_t*)ch, ch[0], ch[1],
-       (int8_t*)p, val);
-		chartorune(&r, (int8_t*)ch);
-		if(utflen((int8_t*)ch)==1 && r<QUICK)
+		val = strtol((char *) p, 0, 10);
+dprint(2, "buildmap %s (%x %x) %s %d\n", (char*)ch, ch[0], ch[1],
+       (char*)p, val);
+		chartorune(&r, (char*)ch);
+		if(utflen((char*)ch)==1 && r<QUICK)
 			charmap[curmap].quick[r] = val;
 		else
-			addmap(curmap, strdup((int8_t *) ch), val);	/* put somewhere else */
+			addmap(curmap, strdup((char *) ch), val);	/* put somewhere else */
 	}
 }
 
 static void
-addmap(int n, int8_t *s, int val)	/* stick a new link on */
+addmap(int n, char *s, int val)	/* stick a new link on */
 {
 	Link *p = (Link *) malloc(sizeof(Link));
 	Link *prev = charmap[n].slow;
@@ -300,9 +300,9 @@ addmap(int n, int8_t *s, int val)	/* stick a new link on */
 }
 
 static void
-buildtroff(int8_t *buf)	/* map troff names into bitmap filenames */
+buildtroff(char *buf)	/* map troff names into bitmap filenames */
 {				/* e.g., R -> times/R., I -> times/I., etc. */
-	int8_t *p, cmd[100], name[200], prefix[400], fallback[100];
+	char *p, cmd[100], name[200], prefix[400], fallback[100];
 
 	scanstr(buf, cmd, &p);
 	scanstr(p, name, &p);
@@ -324,7 +324,7 @@ buildtroff(int8_t *buf)	/* map troff names into bitmap filenames */
 }
 
 static void
-fontlookup(int n, int8_t *s)	/* map troff name of s into position n */
+fontlookup(int n, char *s)	/* map troff name of s into position n */
 {
 	int i;
 
@@ -342,12 +342,12 @@ fontlookup(int n, int8_t *s)	/* map troff name of s into position n */
 }
 
 
-static int8_t *
+static char *
 map(Rune rp[], int font)	/* figure out mapping for char in this font */
 {
-	static int8_t s[100];
+	static char s[100];
 	unsigned m;
-	int8_t c[32];
+	char c[32];
 	Link *p;
 	Rune r;
 
@@ -382,7 +382,7 @@ map(Rune rp[], int font)	/* figure out mapping for char in this font */
 }
 
 static void
-scanstr(int8_t *s, int8_t *ans, int8_t **ep)
+scanstr(char *s, char *ans, char **ep)
 {
 	for (; isspace((uint8_t) *s); s++)
 		;

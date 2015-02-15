@@ -46,7 +46,7 @@
 #include <unistd.h>
 #include <string.h>
 
-static	int8_t	dmsize[12] =
+static	char	dmsize[12] =
 {
 	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
@@ -58,24 +58,24 @@ static	int8_t	dmsize[12] =
  */
 
 static	int	dysize(int);
-static	void	ct_numb(int8_t*, int);
+static	void	ct_numb(char*, int);
 static	void	readtimezone(void);
-static	int	rd_name(int8_t**, int8_t*);
-static	int	rd_long(int8_t**, int32_t*);
+static	int	rd_name(char**, char*);
+static	int	rd_long(char**, int32_t*);
 
 #define	TZSIZE	150
 
 static
 struct
 {
-	int8_t	stname[4];
-	int8_t	dlname[4];
+	char	stname[4];
+	char	dlname[4];
 	int32_t	stdiff;
 	int32_t	dldiff;
 	int32_t	dlpairs[TZSIZE];
 } timezone;
 
-int8_t*
+char*
 ctime(const time_t *t)
 {
 	return asctime(localtime(t));
@@ -184,10 +184,10 @@ localtime(const time_t *timp)
 	return localtime_r(timp, &xtime);
 }
 
-int8_t*
-asctime_r(const struct tm *t, int8_t *buf)
+char*
+asctime_r(const struct tm *t, char *buf)
 {
-	int8_t *ncp;
+	char *ncp;
 
 	strcpy(buf, "Thu Jan 01 00:00:00 1970\n");
 	ncp = &"SunMonTueWedThuFriSat"[t->tm_wday*3];
@@ -210,10 +210,10 @@ asctime_r(const struct tm *t, int8_t *buf)
 	return buf;
 }
 
-int8_t*
+char*
 asctime(const struct tm *t)
 {
-	static int8_t cbuf[30];
+	static char cbuf[30];
 
 	return asctime_r(t, cbuf);
 }
@@ -228,7 +228,7 @@ dysize(int y)
 
 static
 void
-ct_numb(int8_t *cp, int n)
+ct_numb(char *cp, int n)
 {
 	cp[0] = ' ';
 	if(n >= 10)
@@ -240,7 +240,7 @@ static
 void
 readtimezone(void)
 {
-	int8_t buf[TZSIZE*11+30], *p;
+	char buf[TZSIZE*11+30], *p;
 	int i;
 
 	memset(buf, 0, sizeof(buf));
@@ -273,7 +273,7 @@ error:
 }
 
 static
-rd_name(int8_t **f, int8_t *p)
+rd_name(char **f, char *p)
 {
 	int c, i;
 
@@ -295,7 +295,7 @@ rd_name(int8_t **f, int8_t *p)
 }
 
 static
-rd_long(int8_t **f, int32_t *p)
+rd_long(char **f, int32_t *p)
 {
 	int c, s;
 	int32_t l;

@@ -493,7 +493,7 @@ make_upath(i_ctx_t *i_ctx_p, ref *rupath, gs_state *pgs, gx_path *ppath,
 	gs_path_enum_copy_init(&penum, pgs, false);
 	pgs->path = save_path;
 	while ((op = gs_path_enum_next(&penum, pts)) != 0) {
-	    const int8_t *opstr;
+	    const char *opstr;
 
 	    switch (op) {
 		case gs_pe_moveto:

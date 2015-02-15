@@ -25,11 +25,11 @@
 /*
  * return the name of the slave
  */
-int8_t*
+char*
 ptsname(int fd)
 {
 	Dir *d;
-	static int8_t buf[32];
+	static char buf[32];
 
 	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4){
 		free(d);
@@ -44,11 +44,11 @@ ptsname(int fd)
 /*
  * return the name of the master
  */
-int8_t*
+char*
 ptmname(int fd)
 {
 	Dir *d;
-	static int8_t buf[32];
+	static char buf[32];
 
 	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4){
 		free(d);
@@ -60,14 +60,14 @@ ptmname(int fd)
 	return buf;
 }
 
-static int8_t ptycl[] = "/dev/ptyclone";
-static int8_t fssrv[] = "/srv/ptyfs";
+static char ptycl[] = "/dev/ptyclone";
+static char fssrv[] = "/srv/ptyfs";
 
 static void
 mkserver(void)
 {
 	int fd, i;
-	int8_t *argv[3];
+	char *argv[3];
 
 	fd = _OPEN(fssrv, O_RDWR);
 	if(_MOUNT(fd, -1, "/dev", MAFTER, "") < 0) {

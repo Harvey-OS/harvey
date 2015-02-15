@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-void (*__assert)(int8_t*);
+void (*__assert)(char*);
 
 void
-_assert(int8_t *s)
+_assert(char *s)
 {
 	if(__assert)
 		(*__assert)(s);

@@ -28,8 +28,8 @@ Obj2*	objlst[] =
 
 struct	idata
 {
-	int8_t*	name;
-	int8_t*	name1;
+	char*	name;
+	char*	name1;
 	void	(*obj)(void);
 } idata[] =
 {

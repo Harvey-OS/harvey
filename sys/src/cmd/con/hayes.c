@@ -11,14 +11,14 @@
 #include <libc.h>
 
 void setspeed(int, int);
-int getspeed(int8_t*, int);
-void godial(int, int, int8_t*);
+int getspeed(char*, int);
+void godial(int, int, char*);
 int readmsg(int, int);
-void punt(int8_t*, ...);
+void punt(char*, ...);
 
 int pulsed;
 int verbose;
-int8_t msgbuf[128];		/* last message read */
+char msgbuf[128];		/* last message read */
 
 enum
 {
@@ -31,7 +31,7 @@ enum
 typedef struct Msg	Msg;
 struct Msg
 {
-	int8_t	*text;
+	char	*text;
 	int	type;
 };
 
@@ -95,15 +95,15 @@ main(int argc, char **argv)
 }
 
 int
-send(int fd, int8_t *x)
+send(int fd, char *x)
 {
 	return write(fd, x, strlen(x));
 }
 
 void
-godial(int data, int ctl, int8_t *number)
+godial(int data, int ctl, char *number)
 {
-	int8_t *dialstr;
+	char *dialstr;
 	int m;
 	int baud;
 
@@ -160,7 +160,7 @@ int
 readmsg(int f, int secs)
 {
 	uint32_t start;
-	int8_t *p;
+	char *p;
 	int len;
 	Dir *d;
 	Msg *pp;
@@ -201,9 +201,9 @@ readmsg(int f, int secs)
  *  get baud rate from a connect message
  */
 int
-getspeed(int8_t *msg, int speed)
+getspeed(char *msg, int speed)
 {
-	int8_t *p;
+	char *p;
 	int s;
 
 	p = msg + sizeof("CONNECT") - 1;
@@ -222,7 +222,7 @@ getspeed(int8_t *msg, int speed)
 void
 setspeed(int ctl, int baud)
 {
-	int8_t buf[32];
+	char buf[32];
 
 	if(ctl < 0)
 		return;
@@ -233,9 +233,9 @@ setspeed(int ctl, int baud)
 
 
 void
-punt(int8_t *fmt, ...)
+punt(char *fmt, ...)
 {
-	int8_t buf[256];
+	char buf[256];
 	va_list arg;
 	int n;
 

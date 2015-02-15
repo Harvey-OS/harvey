@@ -10,13 +10,13 @@
 #include "rc.h"
 #include "io.h"
 #include "fns.h"
-int8_t nl='\n';		/* change to semicolon for bourne-proofing */
+char nl='\n';		/* change to semicolon for bourne-proofing */
 #define	c0	t->child[0]
 #define	c1	t->child[1]
 #define	c2	t->child[2]
 
 void
-pdeglob(io *f, int8_t *s)
+pdeglob(io *f, char *s)
 {
 	while(*s){
 		if(*s==GLOB)

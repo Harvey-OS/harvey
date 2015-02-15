@@ -119,7 +119,7 @@ win_close(gx_device * dev)
 		wdev->mapped_color_flags, 4096, 1, "win_set_bits_per_pixel");
 	DeleteObject(wdev->himgpalette);
 	gs_free(dev->memory, 
-		(int8_t *)(wdev->limgpalette), 1, sizeof(LOGPALETTE) +
+		(char *)(wdev->limgpalette), 1, sizeof(LOGPALETTE) +
 		(1 << (wdev->color_info.depth)) * sizeof(PALETTEENTRY),
 		"win_close");
     }

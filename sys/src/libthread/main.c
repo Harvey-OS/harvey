@@ -16,7 +16,7 @@ typedef struct Mainarg Mainarg;
 struct Mainarg
 {
 	int	argc;
-	int8_t	**argv;
+	char	**argv;
 };
 
 int	mainstacksize;
@@ -24,16 +24,16 @@ int	_threadnotefd;
 int	_threadpasserpid;
 static jmp_buf _mainjmp;
 static void mainlauncher(void*);
-extern void (*_sysfatal)(int8_t*, va_list);
-extern void (*__assert)(int8_t*);
-extern int (*_dial)(int8_t*, int8_t*, int8_t*, int*);
+extern void (*_sysfatal)(char*, va_list);
+extern void (*__assert)(char*);
+extern int (*_dial)(char*, char*, char*, int*);
 
-extern int _threaddial(int8_t*, int8_t*, int8_t*, int*);
+extern int _threaddial(char*, char*, char*, int*);
 
 static Proc **mainp;
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	Mainarg *a;
 	Proc *p;
@@ -72,8 +72,8 @@ mainlauncher(void *arg)
 	threadexits("threadmain");
 }
 
-static int8_t*
-skip(int8_t *p)
+static char*
+skip(char *p)
 {
 	while(*p == ' ')
 		p++;
@@ -85,7 +85,7 @@ skip(int8_t *p)
 static int32_t
 _times(int32_t *t)
 {
-	int8_t b[200], *p;
+	char b[200], *p;
 	int f;
 	uint32_t r;
 
@@ -117,7 +117,7 @@ _times(int32_t *t)
 static void
 efork(Execargs *e)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 
 	_threaddebug(DBGEXEC, "_schedexec %s", e->prog);
 	close(e->fd[0]);
@@ -161,7 +161,7 @@ _schedfork(Proc *p)
 void
 _schedexit(Proc *p)
 {
-	int8_t ex[ERRMAX];
+	char ex[ERRMAX];
 	Proc **l;
 
 	lock(&_threadpq.lock);

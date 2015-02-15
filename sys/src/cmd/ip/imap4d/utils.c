@@ -17,7 +17,7 @@
  * reverse string [s:e) in place
  */
 void
-strrev(int8_t *s, int8_t *e)
+strrev(char *s, char *e)
 {
 	int c;
 
@@ -29,13 +29,13 @@ strrev(int8_t *s, int8_t *e)
 }
 
 int
-isdotdot(int8_t *s)
+isdotdot(char *s)
 {
 	return s[0] == '.' && s[1] == '.' && (s[2] == '/' || s[2] == '\0');
 }
 
 int
-issuffix(int8_t *suf, int8_t *s)
+issuffix(char *suf, char *s)
 {
 	int n;
 
@@ -46,23 +46,23 @@ issuffix(int8_t *suf, int8_t *s)
 }
 
 int
-isprefix(int8_t *pre, int8_t *s)
+isprefix(char *pre, char *s)
 {
 	return strncmp(pre, s, strlen(pre)) == 0;
 }
 
 int
-ciisprefix(int8_t *pre, int8_t *s)
+ciisprefix(char *pre, char *s)
 {
 	return cistrncmp(pre, s, strlen(pre)) == 0;
 }
 
-int8_t*
+char*
 readFile(int fd)
 {
 	Dir *d;
 	int32_t length;
-	int8_t *s;
+	char *s;
 
 	d = dirfstat(fd);
 	if(d == nil)
@@ -83,7 +83,7 @@ readFile(int fd)
 int
 imapTmp(void)
 {
-	int8_t buf[ERRMAX], name[MboxNameLen];
+	char buf[ERRMAX], name[MboxNameLen];
 	int tries, fd;
 
 	snprint(name, sizeof(name), "/mail/box/%s/mbox.tmp.imp", username);
@@ -104,9 +104,9 @@ imapTmp(void)
  * if it is, spin until available
  */
 int
-openLocked(int8_t *dir, int8_t *file, int mode)
+openLocked(char *dir, char *file, int mode)
 {
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 	int tries, fd;
 
 	for(tries = 0; tries < LockSecs*2; tries++){
@@ -135,7 +135,7 @@ fqid(int fd, Qid *qid)
 }
 
 uint32_t
-mapInt(NamedInt *map, int8_t *name)
+mapInt(NamedInt *map, char *name)
 {
 	int i;
 
@@ -145,10 +145,10 @@ mapInt(NamedInt *map, int8_t *name)
 	return map[i].v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
-	int8_t *t;
+	char *t;
 
 	t = emalloc(strlen(s) + 1);
 	strcpy(t, s);

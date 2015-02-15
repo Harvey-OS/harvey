@@ -49,7 +49,7 @@ run(Job *j)
 static void
 sched(void)
 {
-	int8_t *flags;
+	char *flags;
 	Job *j;
 	Bufblock *buf;
 	int slot;
@@ -108,7 +108,7 @@ waitup(int echildok, int *retstatus)
 	Symtab *s;
 	Word *w;
 	Job *j;
-	int8_t buf[ERRMAX];
+	char buf[ERRMAX];
 	Bufblock *bp;
 	int uarg = 0;
 	int done;
@@ -202,7 +202,7 @@ nproc(void)
 		fprint(1, "nprocs = %d\n", nproclimit);
 	if(nproclimit > nevents){
 		if(nevents)
-			events = (Event *)Realloc((int8_t *)events,
+			events = (Event *)Realloc((char *)events,
 						  nproclimit*sizeof(Event));
 		else
 			events = (Event *)Malloc(nproclimit*sizeof(Event));
@@ -268,7 +268,7 @@ pdelete(Process *p)
 }
 
 void
-killchildren(int8_t *msg)
+killchildren(char *msg)
 {
 	Process *p;
 

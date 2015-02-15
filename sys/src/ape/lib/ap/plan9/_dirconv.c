@@ -20,7 +20,7 @@
 #define	STRING(x,n)	memcpy(p, f->x, n); p += n
 
 int
-convD2M(Dir *f, int8_t *ap)
+convD2M(Dir *f, char *ap)
 {
 	unsigned char *p;
 
@@ -54,7 +54,7 @@ convD2M(Dir *f, int8_t *ap)
 #define	STRING(x,n)	memcpy(f->x, p, n); p += n
 
 int
-convM2D(int8_t *ap, Dir *f)
+convM2D(char *ap, Dir *f)
 {
 	unsigned char *p;
 

@@ -20,7 +20,7 @@
 
 #ifdef STRICT
 	/* not in ANSI or POSIX */
-FILE*	popen(int8_t*, int8_t*);
+FILE*	popen(char*, char*);
 #endif
 
 
@@ -28,12 +28,12 @@ extern	jmp_buf	sjbuf;
 int	toolate;
 int	error;
 
-int8_t	obuf[2*BUFSIZ];
-int8_t	*obufp = obuf;
+char	obuf[2*BUFSIZ];
+char	*obufp = obuf;
 
 	/* pipe command structure; allows redicously long commends for .pi */
 struct Pipe {
-	int8_t	*buf;
+	char	*buf;
 	int	tick;
 	int	cnt;
 } Pipe;

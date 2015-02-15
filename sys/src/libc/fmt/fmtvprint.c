@@ -17,7 +17,7 @@
  * designed for formats which themselves call fmt
  */
 int
-fmtvprint(Fmt *f, int8_t *fmt, va_list args)
+fmtvprint(Fmt *f, char *fmt, va_list args)
 {
 	va_list va;
 	int n;

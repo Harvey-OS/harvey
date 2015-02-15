@@ -69,7 +69,7 @@ gs_settrapparams(gs_trap_params_t * pparams, gs_param_list * plist)
 {
     gs_trap_params_t params;
     int ecode = 0;
-    static const int8_t *const trap_placement_names[] = {
+    static const char *const trap_placement_names[] = {
 	gs_trap_placement_names, 0
     };
 

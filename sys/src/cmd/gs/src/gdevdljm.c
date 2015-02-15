@@ -58,7 +58,7 @@
 int
 dljet_mono_print_page(gx_device_printer * pdev, FILE * prn_stream,
 		      int dots_per_inch, int features,
-                      const int8_t *page_init)
+                      const char *page_init)
 {
     return dljet_mono_print_page_copies(pdev, prn_stream, 1, dots_per_inch,
 					features, page_init);
@@ -66,7 +66,7 @@ dljet_mono_print_page(gx_device_printer * pdev, FILE * prn_stream,
 int
 dljet_mono_print_page_copies(gx_device_printer * pdev, FILE * prn_stream,
 			     int num_copies, int dots_per_inch, int features,
-			     const int8_t *page_init)
+			     const char *page_init)
 {
     int line_size = gdev_mem_bytes_per_scan_line((gx_device *) pdev);
     int line_size_words = (line_size + W - 1) / W;
@@ -89,8 +89,8 @@ dljet_mono_print_page_copies(gx_device_printer * pdev, FILE * prn_stream,
 
     int out_count;
     int compression = -1;
-    static const int8_t *const from2to3 = "\033*b3M";
-    static const int8_t *const from3to2 = "\033*b2M";
+    static const char *const from2to3 = "\033*b3M";
+    static const char *const from3to2 = "\033*b2M";
     int penalty_from2to3 = strlen(from2to3);
     int penalty_from3to2 = strlen(from3to2);
     int paper_size = gdev_pcl_paper_size((gx_device *) pdev);

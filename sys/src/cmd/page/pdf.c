@@ -27,7 +27,7 @@ struct PDFInfo {
 };
 
 static Image*	pdfdrawpage(Document *d, int page);
-static int8_t*	pdfpagename(Document*, int);
+static char*	pdfpagename(Document*, int);
 
 char *pdfprolog = 
 #include "pdfprolog.c"
@@ -55,13 +55,13 @@ pdfbbox(GSInfo *gs)
 }
 
 Document*
-initpdf(Biobuf *b, int argc, int8_t **argv, uint8_t *buf, int nbuf)
+initpdf(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	Document *d;
 	PDFInfo *pdf;
-	int8_t *p;
-	int8_t *fn;
-	int8_t fdbuf[20];
+	char *p;
+	char *fn;
+	char fdbuf[20];
 	int fd;
 	int i, npage;
 	Rectangle bbox;
@@ -153,10 +153,10 @@ pdfdrawpage(Document *doc, int page)
 	return im;
 }
 
-static int8_t*
+static char*
 pdfpagename(Document*, int page)
 {
-	static int8_t str[15];
+	static char str[15];
 	sprint(str, "p %d", page+1);
 	return str;
 }

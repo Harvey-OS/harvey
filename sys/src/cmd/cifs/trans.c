@@ -123,7 +123,7 @@ int
 RAPshareenum(Session *s, Share *sp, Share **ent)
 {
 	int ngot = 0, err, navail, nret;
-	int8_t tmp[1024];
+	char tmp[1024];
 	Pkt *p;
 	Share *q;
 
@@ -177,10 +177,10 @@ RAPshareenum(Session *s, Share *sp, Share **ent)
 
 
 int
-RAPshareinfo(Session *s, Share *sp, int8_t *share, Shareinfo2 *si2p)
+RAPshareinfo(Session *s, Share *sp, char *share, Shareinfo2 *si2p)
 {
 	int conv, err;
-	int8_t tmp[1024];
+	char tmp[1024];
 	Pkt *p;
 
 	p = thdr(s, sp);
@@ -249,7 +249,7 @@ int
 RAPsessionenum(Session *s, Share *sp, Sessinfo **sip)
 {
 	int ngot = 0, conv, err, navail, nret;
-	int8_t tmp[1024];
+	char tmp[1024];
 	Pkt *p;
 	Sessinfo *q;
 
@@ -308,7 +308,7 @@ int
 RAPgroupenum(Session *s, Share *sp, Namelist **nlp)
 {
 	int ngot, err, navail, nret;
-	int8_t tmp[1024];
+	char tmp[1024];
 	Pkt *p;
 	Namelist *q;
 
@@ -360,10 +360,10 @@ RAPgroupenum(Session *s, Share *sp, Namelist **nlp)
 
 
 int
-RAPgroupusers(Session *s, Share *sp, int8_t *group, Namelist **nlp)
+RAPgroupusers(Session *s, Share *sp, char *group, Namelist **nlp)
 {
 	int ngot, err, navail, nret;
-	int8_t tmp[1024];
+	char tmp[1024];
 	Pkt *p;
 	Namelist *q;
 
@@ -418,7 +418,7 @@ int
 RAPuserenum(Session *s, Share *sp, Namelist **nlp)
 {
 	int ngot, err, navail, nret;
-	int8_t tmp[1024];
+	char tmp[1024];
 	Pkt *p;
 	Namelist *q;
 
@@ -472,7 +472,7 @@ int
 RAPuserenum2(Session *s, Share *sp, Namelist **nlp)
 {
 	int ngot, resume, err, navail, nret;
-	int8_t tmp[1024];
+	char tmp[1024];
 	Pkt *p;
 	Namelist *q;
 
@@ -530,10 +530,10 @@ more:
 }
 
 int
-RAPuserinfo(Session *s, Share *sp, int8_t *user, Userinfo *uip)
+RAPuserinfo(Session *s, Share *sp, char *user, Userinfo *uip)
 {
 	int conv, err;
-	int8_t tmp[1024];
+	char tmp[1024];
 	Pkt *p;
 
 	p = thdr(s, sp);
@@ -585,12 +585,12 @@ RAPuserinfo(Session *s, Share *sp, int8_t *user, Userinfo *uip)
  * against XP with the undocumented error 71/0x47
  */
 int
-RAPServerenum2(Session *s, Share *sp, int8_t *workgroup, int type,
+RAPServerenum2(Session *s, Share *sp, char *workgroup, int type,
 	       int *more,
 	Serverinfo **si)
 {
 	int ngot = 0, conv, err, nret, navail;
-	int8_t tmp[1024];
+	char tmp[1024];
 	Pkt *p;
 	Serverinfo *q;
 
@@ -646,11 +646,11 @@ RAPServerenum2(Session *s, Share *sp, int8_t *workgroup, int type,
 }
 
 int
-RAPServerenum3(Session *s, Share *sp, int8_t *workgroup, int type, int last,
+RAPServerenum3(Session *s, Share *sp, char *workgroup, int type, int last,
 	Serverinfo *si)
 {
 	int conv, err, ngot, nret, navail;
-	int8_t *first, tmp[1024];
+	char *first, tmp[1024];
 	Pkt *p;
 	Serverinfo *q;
 
@@ -721,11 +721,11 @@ more:
 
 /* Only the Administrator has permission to do this */
 int
-RAPFileenum2(Session *s, Share *sp, int8_t *user, int8_t *path,
+RAPFileenum2(Session *s, Share *sp, char *user, char *path,
 	     Fileinfo **fip)
 {
 	int conv, err, ngot, resume, nret, navail;
-	int8_t tmp[1024];
+	char tmp[1024];
 	Pkt *p;
 	Fileinfo *q;
 

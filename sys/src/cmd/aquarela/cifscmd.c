@@ -17,14 +17,14 @@ static int verbose = 1;
 #define	SEP(c)	(((c)==' ')||((c)=='\t')||((c)=='\n'))
 
 typedef struct Slut {
-	int8_t *name;
+	char *name;
 	int val;
 } Slut;
 
-static int8_t *
-tokenise(int8_t *s, int8_t **start, int8_t **end)
+static char *
+tokenise(char *s, char **start, char **end)
 {
-	int8_t *to;
+	char *to;
 	Rune r;
 	int n;
 
@@ -67,10 +67,10 @@ tokenise(int8_t *s, int8_t **start, int8_t **end)
 }
 
 static int
-parse(int8_t *s, int8_t *fields[], int nfields)
+parse(char *s, char *fields[], int nfields)
 {
 	int c, argc;
-	int8_t *start, *end;
+	char *start, *end;
 
 	argc = 0;
 	c = *s;
@@ -90,18 +90,18 @@ Bprint(&bout, "parse returns %d\n", argc);
 }
 
 typedef struct {
-	int8_t *name;
-	int32_t (*f)(SmbClient *, int, int8_t *[]);
+	char *name;
+	int32_t (*f)(SmbClient *, int, char *[]);
 	int connected;
-	int8_t *help;
+	char *help;
 } Cmd;
 static Cmd cmd[];
 
 static int32_t
-cmdhelp(SmbClient *, int argc, int8_t *argv[])
+cmdhelp(SmbClient *, int argc, char *argv[])
 {
 	Cmd *cp;
-	int8_t *p;
+	char *p;
 
 	if(argc)
 		p = argv[0];
@@ -132,7 +132,7 @@ static Slut openmodeslut[] = {
 };
 
 static int
-slut(Slut *s, int8_t *pat)
+slut(Slut *s, char *pat)
 {
 	while (s->name) {
 		if (cistrcmp(s->name, pat) == 0)
@@ -144,9 +144,9 @@ slut(Slut *s, int8_t *pat)
 }
 
 static int32_t
-cmdopen(SmbClient *c, int argc, int8_t *argv[])
+cmdopen(SmbClient *c, int argc, char *argv[])
 {
-	int8_t *errmsg;
+	char *errmsg;
 	int sm, om;
 	int rv;
 	uint8_t errclass;
@@ -187,11 +187,11 @@ static Cmd cmd[] = {
 };
 
 void
-threadmain(int argc, int8_t *argv[])
+threadmain(int argc, char *argv[])
 {
-	int8_t *errmsg;
+	char *errmsg;
 	int ac;
-	int8_t *ap, *av[256];
+	char *ap, *av[256];
 	Cmd *cp;
 	int32_t status;
 

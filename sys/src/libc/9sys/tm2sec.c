@@ -12,13 +12,13 @@
 
 #define	TZSIZE	150
 static	void	readtimezone(void);
-static	int	rd_name(int8_t**, int8_t*);
-static	int	rd_long(int8_t**, int32_t*);
+static	int	rd_name(char**, char*);
+static	int	rd_long(char**, int32_t*);
 static
 struct
 {
-	int8_t	stname[4];
-	int8_t	dlname[4];
+	char	stname[4];
+	char	dlname[4];
 	int32_t	stdiff;
 	int32_t	dldiff;
 	int32_t	dlpairs[TZSIZE];
@@ -113,7 +113,7 @@ static
 void
 readtimezone(void)
 {
-	int8_t buf[TZSIZE*11+30], *p;
+	char buf[TZSIZE*11+30], *p;
 	int i;
 
 	memset(buf, 0, sizeof(buf));
@@ -146,7 +146,7 @@ error:
 }
 
 static int
-rd_name(int8_t **f, int8_t *p)
+rd_name(char **f, char *p)
 {
 	int c, i;
 
@@ -168,7 +168,7 @@ rd_name(int8_t **f, int8_t *p)
 }
 
 static int
-rd_long(int8_t **f, int32_t *p)
+rd_long(char **f, int32_t *p)
 {
 	int c, s;
 	int32_t l;

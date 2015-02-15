@@ -44,7 +44,7 @@ typedef	struct	Err	Err;
 struct	Fils
 {
 	Biobuf*	f_f;
-	int8_t*	f_name;
+	char*	f_name;
 	int32_t	f_nextc;
 };
 struct	Colp
@@ -56,7 +56,7 @@ struct	Colp
 struct	Err
 {
 	Err*	e_nextp;
-	int8_t*	e_mess;
+	char*	e_mess;
 };
 
 int	Balance = 0;
@@ -74,7 +74,7 @@ int	Etabn = 0;
 Fils*	Files;
 int	Formfeed = 0;
 int	Fpage = 1;
-int8_t*	Head = 0;
+char*	Head = 0;
 int	Inpos;
 int	Itabc = '\t';
 int	Itabn = 0;
@@ -90,7 +90,7 @@ int	Ncols = 1;
 int	Nfiles = 0;
 int	Nsepc = NSEPC;
 int	Nspace;
-int8_t	nulls[] = "";
+char	nulls[] = "";
 int	Numw;
 int	Offset = 0;
 int	Outpos;
@@ -100,19 +100,19 @@ int	Pcolpos;
 int	Plength;
 int	Sepc = 0;
 
-extern	int	atoix(int8_t**);
+extern	int	atoix(char**);
 extern	void	balance(int);
-extern	void	die(int8_t*);
+extern	void	die(char*);
 extern	void	errprint(void);
-extern	int8_t*	ffiler(int8_t*);
-extern	int	findopt(int, int8_t**);
+extern	char*	ffiler(char*);
+extern	int	findopt(int, char**);
 extern	int	get(int);
 extern	void*	getspace(ulong);
-extern	int	intopt(int8_t**, int*);
-extern	void	main(int, int8_t**);
-extern	Biobuf*	mustopen(int8_t*, Fils*);
+extern	int	intopt(char**, int*);
+extern	void	main(int, char**);
+extern	Biobuf*	mustopen(char*, Fils*);
 extern	void	nexbuf(void);
-extern	int	pr(int8_t*);
+extern	int	pr(char*);
 extern	void	put(int32_t);
 extern	void	putpage(void);
 extern	void	putspace(void);
@@ -120,10 +120,10 @@ extern	void	putspace(void);
 /*
  * return date file was last modified
  */
-int8_t*
+char*
 getdate(void)
 {
-	static int8_t *now = 0;
+	static char *now = 0;
 	static Dir *sbuf;
 	uint32_t mtime;
 
@@ -143,14 +143,14 @@ getdate(void)
 	return ctime(mtime);
 }
 
-int8_t*
-ffiler(int8_t *s)
+char*
+ffiler(char *s)
 {
 	return smprint("can't open %s\n", s);
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	Fils fstr[NFILES];
 	int nfdone = 0;
@@ -175,9 +175,9 @@ main(int argc, int8_t *argv[])
 }
 
 int
-findopt(int argc, int8_t *argv[])
+findopt(int argc, char *argv[])
 {
-	int8_t **eargv = argv;
+	char **eargv = argv;
 	int eargc = 0, c;
 
 	while(--argc > 0) {
@@ -278,7 +278,7 @@ findopt(int argc, int8_t *argv[])
 	if((Colw = (Linew - Ncols + 1)/Ncols) < 1)
 		die("width too small");
 	if(Ncols != 1 && Multi == 0) {
-		uint32_t buflen = ((uint32_t)(Plength/Dblspace + 1))*(Linew+1)*sizeof(int8_t);
+		uint32_t buflen = ((uint32_t)(Plength/Dblspace + 1))*(Linew+1)*sizeof(char);
 		Buffer = getspace(buflen*sizeof(*Buffer));
 		Bufend = &Buffer[buflen];
 		Colpts = getspace((Ncols+1)*sizeof(*Colpts));
@@ -287,7 +287,7 @@ findopt(int argc, int8_t *argv[])
 }
 
 int
-intopt(int8_t *argv[], int *optp)
+intopt(char *argv[], int *optp)
 {
 	int c;
 
@@ -300,9 +300,9 @@ intopt(int8_t *argv[], int *optp)
 }
 
 int
-pr(int8_t *name)
+pr(char *name)
 {
-	int8_t *date = 0, *head = 0;
+	char *date = 0, *head = 0;
 
 	if(Multi != 'm' && mustopen(name, &Files[0]) == 0)
 		return 0;
@@ -583,7 +583,7 @@ putspace(void)
 }
 
 int
-atoix(int8_t **p)
+atoix(char **p)
 {
 	int n = 0, c;
 
@@ -599,9 +599,9 @@ atoix(int8_t **p)
  * Treat empty file as special case and report as diagnostic.
  */
 Biobuf*
-mustopen(int8_t *s, Fils *f)
+mustopen(char *s, Fils *f)
 {
-	int8_t *tmp;
+	char *tmp;
 
 	if(*s == '\0') {
 		f->f_name = STDINNAME();
@@ -612,13 +612,13 @@ mustopen(int8_t *s, Fils *f)
 	} else
 	if((f->f_f = Bopen(f->f_name = s, OREAD)) == 0) {
 		tmp = ffiler(f->f_name);
-		s = strcpy((int8_t*)getspace(strlen(tmp) + 1), tmp);
+		s = strcpy((char*)getspace(strlen(tmp) + 1), tmp);
 		free(tmp);
 	}
 	if(f->f_f != 0) {
 		if((f->f_nextc = Bgetrune(f->f_f)) >= 0 || Multi == 'm')
 			return f->f_f;
-		sprint(s = (int8_t*)getspace(strlen(f->f_name) + 1 + EMPTY),
+		sprint(s = (char*)getspace(strlen(f->f_name) + 1 + EMPTY),
 			"%s -- empty file\n", f->f_name);
 		Bterm(f->f_f);
 	}
@@ -639,7 +639,7 @@ getspace(uint32_t n)
 }
 
 void
-die(int8_t *s)
+die(char *s)
 {
 	error++;
 	errprint();

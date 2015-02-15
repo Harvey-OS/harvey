@@ -16,10 +16,10 @@
 #include "acid.h"
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
 	int i;
-	int8_t buf[2048];
+	char buf[2048];
 	va_list arg;
 
 	/* Unstack io channels */
@@ -195,9 +195,9 @@ bool(Node *n)
 }
 
 void
-convflt(Node *r, int8_t *flt)
+convflt(Node *r, char *flt)
 {
-	int8_t c;
+	char c;
 
 	c = flt[0];
 	if(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
@@ -212,7 +212,7 @@ convflt(Node *r, int8_t *flt)
 }
 
 void
-indir(Map *m, uint64_t addr, int8_t fmt, Node *r)
+indir(Map *m, uint64_t addr, char fmt, Node *r)
 {
 	int i;
 	uint32_t lval;
@@ -220,7 +220,7 @@ indir(Map *m, uint64_t addr, int8_t fmt, Node *r)
 	int ret;
 	uint8_t cval;
 	uint16_t sval;
-	int8_t buf[512], reg[12];
+	char buf[512], reg[12];
 
 	r->op = OCONST;
 	r->fmt = fmt;
@@ -436,7 +436,7 @@ windir(Map *m, Node *addr, Node *rval, Node *r)
 }
 
 void
-call(int8_t *fn, Node *parameters, Node *local, Node *body, Node *retexp)
+call(char *fn, Node *parameters, Node *local, Node *body, Node *retexp)
 {
 	int np, i;
 	Rplace rlab;

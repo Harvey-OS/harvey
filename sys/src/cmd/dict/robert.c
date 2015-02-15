@@ -85,16 +85,16 @@ static Rune subtab[] = {
 #define	GSHORT(p)	(((p)[0]<<8) | (p)[1])
 #define	GLONG(p)	(((p)[0]<<24) | ((p)[1]<<16) | ((p)[2]<<8) | (p)[3])
 
-static int8_t	cfile[] = "/lib/dict/robert/cits.rob";
-static int8_t	dfile[] = "/lib/dict/robert/defs.rob";
-static int8_t	efile[] = "/lib/dict/robert/etym.rob";
-static int8_t	kfile[] = "/lib/dict/robert/_phon";
+static char	cfile[] = "/lib/dict/robert/cits.rob";
+static char	dfile[] = "/lib/dict/robert/defs.rob";
+static char	efile[] = "/lib/dict/robert/etym.rob";
+static char	kfile[] = "/lib/dict/robert/_phon";
 
 static Biobuf *	cb;
 static Biobuf *	db;
 static Biobuf *	eb;
 
-static Biobuf *	Bouvrir(int8_t*);
+static Biobuf *	Bouvrir(char*);
 static void	citation(int, int);
 static void	robertprintentry(Entry*, Entry*, int);
 
@@ -247,7 +247,7 @@ void
 robertprintkey(void)
 {
 	Biobuf *db;
-	int8_t *l;
+	char *l;
 
 	db = Bouvrir(kfile);
 	while(l = Brdline(db, '\n'))	/* assign = */
@@ -308,7 +308,7 @@ robertnextflex(int32_t fromoff)
 }
 
 static Biobuf *
-Bouvrir(int8_t *fichier)
+Bouvrir(char *fichier)
 {
 	Biobuf *db;
 

@@ -27,7 +27,7 @@
  *  nab is the first inode block.
  */
 int
-iinit(Icache *ic, int f, int psize, int8_t* name)
+iinit(Icache *ic, int f, int psize, char* name)
 {
 	Ibuf *b;
 	Imap *m;
@@ -112,7 +112,7 @@ iinit(Icache *ic, int f, int psize, int8_t* name)
  *  format the inode blocks
  */
 int
-iformat(Icache *ic, int f, uint32_t nino, int8_t *name, int bsize,
+iformat(Icache *ic, int f, uint32_t nino, char *name, int bsize,
 	int psize)
 {
 	int nib;

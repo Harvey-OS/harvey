@@ -61,7 +61,7 @@ alloc_trace_space(const gs_ref_memory_t *imem)
     return imem->space + (imem->stable_memory == (const gs_memory_t *)imem);
 }
 private void
-alloc_trace(const int8_t *chars, gs_ref_memory_t * imem, client_name_t cname,
+alloc_trace(const char *chars, gs_ref_memory_t * imem, client_name_t cname,
 	    gs_memory_type_ptr_t stype, uint size, const void *ptr)
 {
     if_debug7('A', "[a%d%s]%s %s(%u) %s0x%lx\n",
@@ -657,7 +657,7 @@ i_alloc_struct_array(gs_memory_t * mem, uint num_elements,
 	      struct_type_name_string(pstype),
 	      (uint32_t) num_elements * pstype->ssize,
 	      num_elements, pstype->ssize, (uint32_t) obj);
-    return (int8_t *)obj;
+    return (char *)obj;
 }
 private void *
 i_alloc_struct_array_immovable(gs_memory_t * mem, uint num_elements,
@@ -675,7 +675,7 @@ i_alloc_struct_array_immovable(gs_memory_t * mem, uint num_elements,
 	      struct_type_name_string(pstype),
 	      (uint32_t) num_elements * pstype->ssize,
 	      num_elements, pstype->ssize, (uint32_t) obj);
-    return (int8_t *)obj;
+    return (char *)obj;
 }
 private void *
 i_resize_object(gs_memory_t * mem, void *obj, uint new_num_elements,

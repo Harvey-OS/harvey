@@ -17,7 +17,7 @@ Bwrite(Biobufhdr *bp, void *ap, int32_t count)
 	int32_t c;
 	uint8_t *p;
 	int i, n, oc;
-	int8_t errbuf[ERRMAX];
+	char errbuf[ERRMAX];
 
 	p = ap;
 	c = count;

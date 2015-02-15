@@ -27,15 +27,15 @@ uint32_t memend;
 int vflag = 0;
 int debug = 0;
 
-static int8_t *diskparts[] = { "dos", "9fat", "fs", "data", "cdboot", 0 };
-static int8_t *etherparts[] = { "*", 0 };
+static char *diskparts[] = { "dos", "9fat", "fs", "data", "cdboot", 0 };
+static char *etherparts[] = { "*", 0 };
 
-static int8_t *diskinis[] = {
+static char *diskinis[] = {
 	"plan9/plan9.ini",
 	"plan9.ini",
 	0
 };
-static int8_t *etherinis[] = {
+static char *etherinis[] = {
 	"/cfg/pxe/%E",
 	0
 };
@@ -137,17 +137,17 @@ struct Medium {
 	Type*	type;
 	int	flag;
 	int	dev;
-	int8_t name[NAMELEN];
+	char name[NAMELEN];
 
 	Fs *inifs;
-	int8_t *part;
-	int8_t *ini;
+	char *part;
+	char *ini;
 
 	Medium*	next;
 };
 
 typedef struct Mode {
-	int8_t*	name;
+	char*	name;
 	int	mode;
 } Mode;
 
@@ -160,16 +160,16 @@ static Mode modes[NMode+1] = {
 	[Manual]	{ "manual", Manual, },
 };
 
-int8_t **ini;
+char **ini;
 
 int scsi0port;
-int8_t *defaultpartition;
+char *defaultpartition;
 int iniread;
 
 static Medium*
-parse(int8_t *line, int8_t **file)
+parse(char *line, char **file)
 {
-	int8_t *p;
+	char *p;
 	Type *tp;
 	Medium *mp;
 
@@ -189,13 +189,13 @@ parse(int8_t *line, int8_t **file)
 }
 
 static int
-boot(Medium *mp, int8_t *file)
+boot(Medium *mp, char *file)
 {
 	Type *tp;
 	Medium *xmp;
 	static int didaddconf;
 	Boot b;
-	int8_t *p;
+	char *p;
 
 	memset(&b, 0, sizeof b);
 	b.state = INITKERNEL;
@@ -240,7 +240,7 @@ probe(int type, int flag, int dev)
 	Medium *mp;
 	File f;
 	Fs *fs;
-	int8_t **partp;
+	char **partp;
 
 	for(tp = types; tp->type != Tnil; tp++){
 		if(type != Tany && type != tp->type)
@@ -302,7 +302,7 @@ main(void)
 {
 	Medium *mp;
 	int cons, flag, i, mode, tried;
-	int8_t def[2*NAMELEN], line[80], *p, *file;
+	char def[2*NAMELEN], line[80], *p, *file;
 	Type *tp;
 
 	i8042a20();
@@ -431,7 +431,7 @@ done:
 }
 
 int
-getfields(int8_t *lp, int8_t **fields, int n, int8_t sep)
+getfields(char *lp, char **fields, int n, char sep)
 {
 	int i;
 
@@ -451,7 +451,7 @@ getfields(int8_t *lp, int8_t **fields, int n, int8_t sep)
 }
 
 int
-cistrcmp(int8_t *a, int8_t *b)
+cistrcmp(char *a, char *b)
 {
 	int ac, bc;
 
@@ -473,7 +473,7 @@ cistrcmp(int8_t *a, int8_t *b)
 }
 
 int
-cistrncmp(int8_t *a, int8_t *b, int n)
+cistrncmp(char *a, char *b, int n)
 {
 	unsigned ac, bc;
 

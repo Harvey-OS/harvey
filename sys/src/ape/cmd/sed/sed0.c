@@ -13,11 +13,11 @@
 #include "sed.h"
 
 struct label	*labtab = ltab;
-int8_t	CGMES[]	= "sed: Command garbled: %s\n";
-int8_t	TMMES[]	= "sed: Too much text: %s\n";
-int8_t	LTL[]	= "sed: Label too long: %s\n";
-int8_t	AD0MES[]	= "sed: No addresses allowed: %s\n";
-int8_t	AD1MES[]	= "sed: Only one address allowed: %s\n";
+char	CGMES[]	= "sed: Command garbled: %s\n";
+char	TMMES[]	= "sed: Too much text: %s\n";
+char	LTL[]	= "sed: Label too long: %s\n";
+char	AD0MES[]	= "sed: No addresses allowed: %s\n";
+char	AD1MES[]	= "sed: Only one address allowed: %s\n";
 uint8_t	bittab[]  = {
 		1,
 		2,
@@ -30,7 +30,7 @@ uint8_t	bittab[]  = {
 	};
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 
 	eargc = argc;
@@ -71,7 +71,7 @@ main(int argc, int8_t **argv)
 		case 'f':
 			if(eargc-- <= 0)	exit(2);
 
-			if((fin = fopen((int8_t*)(*++eargv), "r")) == NULL) {
+			if((fin = fopen((char*)(*++eargv), "r")) == NULL) {
 				fprintf(stderr, "sed: Cannot open pattern-file: %s\n", *eargv);
 				exit(2);
 			}

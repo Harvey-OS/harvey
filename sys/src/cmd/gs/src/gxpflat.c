@@ -575,7 +575,7 @@ top :
 		if (!more)
 		    return 0;
 		notes |= sn_not_first;
-		memcpy(points, pe, (int8_t *)ppt - (int8_t *)pe);
+		memcpy(points, pe, (char *)ppt - (char *)pe);
 		ppt = points + (ppt - pe);
 	    }
 	}

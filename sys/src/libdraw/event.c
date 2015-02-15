@@ -44,7 +44,7 @@ static	int	epipe[2];
 static	int	eforkslave(ulong);
 static	void	extract(void);
 static	void	ekill(void);
-static	int	enote(void *, int8_t *);
+static	int	enote(void *, char *);
 
 static	int	mousefd;
 static	int	cursorfd;
@@ -154,7 +154,7 @@ ecanread(uint32_t keys)
 uint32_t
 estartfn(uint32_t key, int fd, int n, int (*fn)(int, Event*, uint8_t*, int))
 {
-	int8_t buf[EMAXMSG+1];
+	char buf[EMAXMSG+1];
 	int i, r;
 
 	if(fd < 0)
@@ -185,7 +185,7 @@ estart(uint32_t key, int fd, int n)
 uint32_t
 etimer(uint32_t key, int n)
 {
-	int8_t t[2];
+	char t[2];
 
 	if(Stimer != -1)
 		drawerror(display, "events: timer started twice");
@@ -208,7 +208,7 @@ static void
 ekeyslave(int fd)
 {
 	Rune r;
-	int8_t t[3], k[10];
+	char t[3], k[10];
 	int kr, kn, w;
 
 	if(eforkslave(Ekeyboard) < MAXSLAVE)
@@ -240,7 +240,7 @@ void
 einit(uint32_t keys)
 {
 	int ctl, fd;
-	int8_t buf[256];
+	char buf[256];
 
 	parentpid = getpid();
 	if(pipe(epipe) < 0)
@@ -366,9 +366,9 @@ eforkslave(uint32_t key)
 }
 
 static int
-enote(void *v, int8_t *s)
+enote(void *v, char *s)
 {
-	int8_t t[1];
+	char t[1];
 	int i, pid;
 
 	USED(v);USED(s);
@@ -412,11 +412,11 @@ emouse(void)
 	if(Smouse < 0)
 		drawerror(display, "events: mouse not initialized");
 	eb = ebread(&eslave[Smouse]);
-	m.xy.x = atoi((int8_t*)eb->buf+1+0*12);
-	m.xy.y = atoi((int8_t*)eb->buf+1+1*12);
-	b = atoi((int8_t*)eb->buf+1+2*12);
+	m.xy.x = atoi((char*)eb->buf+1+0*12);
+	m.xy.y = atoi((char*)eb->buf+1+1*12);
+	b = atoi((char*)eb->buf+1+2*12);
 	m.buttons = b;
-	m.msec = atoi((int8_t*)eb->buf+1+3*12);
+	m.msec = atoi((char*)eb->buf+1+3*12);
 	if (logfid)
 		fprint(logfid, "b: %d xy: %P\n", m.buttons, m.xy);
 	free(eb);
@@ -440,7 +440,7 @@ ekbd(void)
 void
 emoveto(Point pt)
 {
-	int8_t buf[2*12+2];
+	char buf[2*12+2];
 	int n;
 
 	n = sprint(buf, "m%d %d", pt.x, pt.y);
@@ -466,7 +466,7 @@ int
 ereadmouse(Mouse *m)
 {
 	int n;
-	int8_t buf[128];
+	char buf[128];
 
 	do{
 		n = read(mousefd, buf, sizeof(buf));
@@ -478,7 +478,7 @@ ereadmouse(Mouse *m)
 }
 
 int
-eatomouse(Mouse *m, int8_t *buf, int n)
+eatomouse(Mouse *m, char *buf, int n)
 {
 	if(n != 1+4*12){
 		werrstr("atomouse: bad count");

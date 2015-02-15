@@ -62,7 +62,7 @@
  * computed at compile time.
  * THE SECOND MACRO ARGUMENT MUST BE A STRING LITERAL.
  */
-#define COMPARE(p,str) (strncmp((const int8_t *)(p), (str), sizeof(str)-1)==0)
+#define COMPARE(p,str) (strncmp((const char *)(p), (str), sizeof(str)-1)==0)
 #define IS_DSC(line, str) (COMPARE((line), (str)))
 
 /* Macros for comparing the first one or two characters */
@@ -196,7 +196,7 @@ enum CDSC_SCAN_SECTION {
     scan_eof = 14
 };
 
-static const int8_t * const dsc_scan_section_name[15] = {
+static const char * const dsc_scan_section_name[15] = {
  "Type", "Comments", 
  "pre-Preview", "Preview",
  "pre-Defaults", "Defaults",
@@ -306,7 +306,7 @@ dsc_set_length(CDSC *dsc, DSC_OFFSET len)
  *  other values indicate the last DSC comment read
  */ 
 int
-dsc_scan_data(CDSC *dsc, const int8_t *data, int length)
+dsc_scan_data(CDSC *dsc, const char *data, int length)
 {
     int bytes_read;
     int code = 0;
@@ -451,7 +451,7 @@ int
 dsc_fixup(CDSC *dsc)
 {
     unsigned int i;
-    int8_t buf[32];
+    char buf[32];
     DSC_OFFSET *last;
 
     if (dsc->id == CDSC_NOTDSC)
@@ -602,7 +602,7 @@ dsc_fixup(CDSC *dsc)
 	if (strlen(dsc->page[i].label) == 0) {
 	    sprintf(buf, "%d", i+1);
 	    if ((dsc->page[i].label = dsc_alloc_string(dsc, buf, (int)strlen(buf))) 
-		== (int8_t *)NULL)
+		== (char *)NULL)
 		return CDSC_ERROR;	/* no memory */
 	}
     }
@@ -616,7 +616,7 @@ dsc_fixup(CDSC *dsc)
 void 
 dsc_set_error_function(CDSC *dsc, 
 	int (*fn)(void *caller_data, CDSC *dsc, 
-	unsigned int explanation, const int8_t *line, unsigned int line_len))
+	unsigned int explanation, const char *line, unsigned int line_len))
 {
     dsc->dsc_error_fn = fn;
 }
@@ -626,7 +626,7 @@ dsc_set_error_function(CDSC *dsc,
 /* This is optional */
 void 
 dsc_set_debug_function(CDSC *dsc, 
-	void (*debug_fn)(void *caller_data, const int8_t *str))
+	void (*debug_fn)(void *caller_data, const char *str))
 {
     dsc->debug_print_fn = debug_fn;
 }
@@ -634,7 +634,7 @@ dsc_set_debug_function(CDSC *dsc,
 /* Doesn't need to be public for PostScript documents */
 /* Made public so GSview can add pages when processing PDF files */
 int 
-dsc_add_page(CDSC *dsc, int ordinal, int8_t *label)
+dsc_add_page(CDSC *dsc, int ordinal, char *label)
 {
     dsc->page[dsc->page_count].ordinal = ordinal;
     dsc->page[dsc->page_count].label = 
@@ -786,7 +786,7 @@ dsc_init2(CDSC *dsc)
     }
     dsc->string = dsc->string_head;
     dsc->string->next = NULL;
-    dsc->string->data = (int8_t *)dsc_memalloc(dsc, CDSC_STRING_CHUNK);
+    dsc->string->data = (char *)dsc_memalloc(dsc, CDSC_STRING_CHUNK);
     if (dsc->string->data == NULL) {
 	dsc_free(dsc);
 	return NULL;	/* no memory */
@@ -1212,7 +1212,7 @@ dsc_unknown(CDSC *dsc)
 
 
 dsc_private GSBOOL
-dsc_is_section(int8_t *line)
+dsc_is_section(char *line)
 {
     if ( !((line[0]=='%') && (line[1]=='%')) )
 	return FALSE;
@@ -3709,7 +3709,7 @@ dsc_get_real(const char *line, unsigned int len, unsigned int *offset)
 }
 
 int
-dsc_stricmp(const int8_t *s, const int8_t *t)
+dsc_stricmp(const char *s, const char *t)
 {
     while (toupper(*s) == toupper(*t)) {
 	if (*s == '\0')
@@ -3787,7 +3787,7 @@ dsc_parse_page(CDSC *dsc)
 /* DSC error reporting */
 
 void 
-dsc_debug_print(CDSC *dsc, const int8_t *str)
+dsc_debug_print(CDSC *dsc, const char *str)
 {
     if (dsc->debug_print_fn)
 	dsc->debug_print_fn(dsc->caller_data, str);
@@ -4150,7 +4150,7 @@ dsc_parse_dcs1plate(CDSC *dsc)
  * or single file DCS 2.0.
  * Caller will need to obtain the filesize from the file.
  */
-const int8_t *
+const char *
 dsc_find_platefile(CDSC *dsc, int page)
 {
     CDCS2 *pdcs = dsc->dcs2;
@@ -4173,7 +4173,7 @@ dsc_find_platefile(CDSC *dsc, int page)
 
 
 dsc_private CDSCCOLOUR *
-dsc_find_colour(CDSC *dsc, const int8_t *colourname)
+dsc_find_colour(CDSC *dsc, const char *colourname)
 {
     CDSCCOLOUR *colour = dsc->colours;
     while (colour) {

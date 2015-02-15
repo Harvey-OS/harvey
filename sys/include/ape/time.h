@@ -47,16 +47,16 @@ extern clock_t clock(void);
 extern double difftime(time_t, time_t);
 extern time_t mktime(struct tm *);
 extern time_t time(time_t *);
-extern int8_t *asctime(const struct tm *);
-extern int8_t *ctime(const time_t *);
+extern char *asctime(const struct tm *);
+extern char *ctime(const time_t *);
 extern struct tm *gmtime(const time_t *);
 extern struct tm *localtime(const time_t *);
-extern size_t strftime(int8_t *, size_t, const int8_t *, const struct tm *);
+extern size_t strftime(char *, size_t, const char *, const struct tm *);
 
 #ifdef _REENTRANT_SOURCE
 extern struct tm *gmtime_r(const time_t *, struct tm *);
 extern struct tm *localtime_r(const time_t *, struct tm *);
-extern int8_t *ctime_r(const time_t *, int8_t *);
+extern char *ctime_r(const time_t *, char *);
 #endif
 
 #ifdef _POSIX_SOURCE
@@ -68,7 +68,7 @@ extern void tzset(void);
 #endif
 
 #ifdef _POSIX_SOURCE
-extern int8_t *tzname[2];
+extern char *tzname[2];
 #endif
 
 #endif /* __TIME_H */

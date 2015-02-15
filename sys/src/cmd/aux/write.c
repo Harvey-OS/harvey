@@ -10,8 +10,8 @@
 #include <u.h>
 #include <libc.h>
 
-static int8_t x[1024];
-static int8_t s[64] = "  ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+static char x[1024];
+static char s[64] = "  ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 static void
 fill(void)
@@ -26,7 +26,7 @@ fill(void)
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int i = 2560;
 

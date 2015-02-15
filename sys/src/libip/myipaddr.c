@@ -27,7 +27,7 @@ static uint8_t loopbackmask[IPaddrlen] = {
 // find first ip addr that isn't the friggin loopback address
 // unless there are no others
 int
-myipaddr(uint8_t *ip, int8_t *net)
+myipaddr(uint8_t *ip, char *net)
 {
 	Ipifc *nifc;
 	Iplifc *lifc;

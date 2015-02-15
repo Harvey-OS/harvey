@@ -135,7 +135,7 @@ typedef	struct	Machdata Machdata;
 struct Map {
 	int	nsegs;			/* number of segments */
 	struct segment {		/* per-segment map */
-		int8_t	*name;		/* the segment name */
+		char	*name;		/* the segment name */
 		int	fd;		/* file descriptor */
 		int	inuse;		/* in use - not in use */
 		int	cache;		/* should cache reads? */
@@ -151,10 +151,10 @@ struct Map {
 struct Symbol {
 	void 	*handle;		/* used internally - owning func */
 	struct {
-		int8_t	*name;
+		char	*name;
 		int64_t	value;		/* address or stack offset */
-		int8_t	type;		/* as in a.out.h */
-		int8_t	class;		/* as above */
+		char	type;		/* as in a.out.h */
+		char	class;		/* as above */
 		int	index;		/* in findlocal, globalsym, textsym */
 	};
 };
@@ -163,10 +163,10 @@ struct Symbol {
  *	machine register description
  */
 struct Reglist {
-	int8_t	*rname;			/* register name */
+	char	*rname;			/* register name */
 	int16_t	roffs;			/* offset in u-block */
-	int8_t	rflags;			/* INTEGER/FLOAT, WRITABLE */
-	int8_t	rformat;		/* print format: 'x', 'X', 'f', '8', '3', 'Y', 'W' */
+	char	rflags;			/* INTEGER/FLOAT, WRITABLE */
+	char	rformat;		/* print format: 'x', 'X', 'f', '8', '3', 'Y', 'W' */
 };
 
 enum {					/* bits in rflags field */
@@ -186,15 +186,15 @@ enum {					/* bits in rflags field */
  *		and set in the debugger startup.
  */
 struct Mach{
-	int8_t	*name;
+	char	*name;
 	int	mtype;			/* machine type code */
 	Reglist *reglist;		/* register set */
 	int32_t	regsize;		/* sizeof registers in bytes */
 	int32_t	fpregsize;		/* sizeof fp registers in bytes */
-	int8_t	*pc;			/* pc name */
-	int8_t	*sp;			/* sp name */
-	int8_t	*link;			/* link register name */
-	int8_t	*sbreg;			/* static base register name */
+	char	*pc;			/* pc name */
+	char	*sp;			/* sp name */
+	char	*link;			/* link register name */
+	char	*sbreg;			/* static base register name */
 	uint64_t	sb;			/* static base register value */
 	int	pgsize;			/* page size */
 	uint64_t	kbase;			/* kernel base address */
@@ -209,7 +209,7 @@ struct Mach{
 
 extern	Mach	*mach;			/* Current machine */
 
-typedef uint64_t	(*Rgetter)(Map*, int8_t*);
+typedef uint64_t	(*Rgetter)(Map*, char*);
 typedef	void	(*Tracer)(Map*, uint64_t, uint64_t, Symbol*);
 
 struct	Machdata {		/* Machine-dependent debugger support */
@@ -222,13 +222,13 @@ struct	Machdata {		/* Machine-dependent debugger support */
 	int	(*ctrace)(Map*, uint64_t, uint64_t, uint64_t, Tracer); /* C traceback */
 	uint64_t	(*findframe)(Map*, uint64_t, uint64_t, uint64_t,
 				     uint64_t);/* frame finder */
-	int8_t*	(*excep)(Map*, Rgetter);	/* last exception */
+	char*	(*excep)(Map*, Rgetter);	/* last exception */
 	uint32_t	(*bpfix)(uint64_t);		/* breakpoint fixup */
-	int	(*sftos)(int8_t*, int, void*);	/* single precision float */
-	int	(*dftos)(int8_t*, int, void*);	/* double precision float */
+	int	(*sftos)(char*, int, void*);	/* single precision float */
+	int	(*dftos)(char*, int, void*);	/* double precision float */
 	int	(*foll)(Map*, uint64_t, Rgetter, uint64_t*);/* follow set */
-	int	(*das)(Map*, uint64_t, int8_t, int8_t*, int);	/* symbolic disassembly */
-	int	(*hexinst)(Map*, uint64_t, int8_t*, int); 	/* hex disassembly */
+	int	(*das)(Map*, uint64_t, char, char*, int);	/* symbolic disassembly */
+	int	(*hexinst)(Map*, uint64_t, char*, int); 	/* hex disassembly */
 	int	(*instsize)(Map*, uint64_t);	/* instruction size */
 };
 
@@ -237,7 +237,7 @@ struct	Machdata {		/* Machine-dependent debugger support */
  */
 typedef struct Fhdr
 {
-	int8_t	*name;		/* identifier of executable */
+	char	*name;		/* identifier of executable */
 	uint8_t	type;		/* file type - see codes above */
 	uint8_t	hdrsz;		/* header size */
 	uint8_t	_magic;		/* _MAGIC() magic */
@@ -263,9 +263,9 @@ extern	int	asstype;	/* dissembler type - machdata.c */
 extern	Machdata *machdata;	/* jump vector - machdata.c */
 
 Map*		attachproc(int, int, int, Fhdr*);
-int		beieee80ftos(int8_t*, int, void*);
-int		beieeesftos(int8_t*, int, void*);
-int		beieeedftos(int8_t*, int, void*);
+int		beieee80ftos(char*, int, void*);
+int		beieeesftos(char*, int, void*);
+int		beieeedftos(char*, int, void*);
 uint16_t		beswab(uint16_t);
 uint32_t		beswal(uint32_t);
 uint64_t		beswav(uint64_t);
@@ -273,15 +273,15 @@ uint64_t		ciscframe(Map*, uint64_t, uint64_t, uint64_t,
 				  uint64_t);
 int		cisctrace(Map*, uint64_t, uint64_t, uint64_t, Tracer);
 int		crackhdr(int fd, Fhdr*);
-uint64_t		file2pc(int8_t*, int32_t);
-int		fileelem(Sym**, uint8_t *, int8_t*, int);
-int32_t		fileline(int8_t*, int, uint64_t);
-int		filesym(int, int8_t*, int);
-int		findlocal(Symbol*, int8_t*, Symbol*);
-int		findseg(Map*, int8_t*);
+uint64_t		file2pc(char*, int32_t);
+int		fileelem(Sym**, uint8_t *, char*, int);
+int32_t		fileline(char*, int, uint64_t);
+int		filesym(int, char*, int);
+int		findlocal(Symbol*, char*, Symbol*);
+int		findseg(Map*, char*);
 int		findsym(uint64_t, int, Symbol *);
 int		fnbound(uint64_t, uint64_t*);
-int		fpformat(Map*, Reglist*, int8_t*, int, int);
+int		fpformat(Map*, Reglist*, char*, int, int);
 int		get1(Map*, uint64_t, uint8_t*, int);
 int		get2(Map*, uint64_t, uint16_t*);
 int		get4(Map*, uint64_t, uint32_t*);
@@ -290,27 +290,27 @@ int		geta(Map*, uint64_t, uint64_t*);
 int		getauto(Symbol*, int, int, Symbol*);
 Sym*		getsym(int);
 int		globalsym(Symbol *, int);
-int8_t*		_hexify(int8_t*, uint32_t, int);
-int		ieeesftos(int8_t*, int, uint32_t);
-int		ieeedftos(int8_t*, int, uint32_t, uint32_t);
+char*		_hexify(char*, uint32_t, int);
+int		ieeesftos(char*, int, uint32_t);
+int		ieeedftos(char*, int, uint32_t, uint32_t);
 int		isar(Biobuf*);
-int		leieee80ftos(int8_t*, int, void*);
-int		leieeesftos(int8_t*, int, void*);
-int		leieeedftos(int8_t*, int, void*);
+int		leieee80ftos(char*, int, void*);
+int		leieeesftos(char*, int, void*);
+int		leieeedftos(char*, int, void*);
 uint16_t		leswab(uint16_t);
 uint32_t		leswal(uint32_t);
 uint64_t		leswav(uint64_t);
 uint64_t		line2addr(int32_t, uint64_t, uint64_t);
 Map*		loadmap(Map*, int, Fhdr*);
-int		localaddr(Map*, int8_t*, int8_t*, uint64_t*, Rgetter);
+int		localaddr(Map*, char*, char*, uint64_t*, Rgetter);
 int		localsym(Symbol*, int);
-int		lookup(int8_t*, int8_t*, Symbol*);
+int		lookup(char*, char*, Symbol*);
 void		machbytype(int);
-int		machbyname(int8_t*);
-int		nextar(Biobuf*, int, int8_t*);
+int		machbyname(char*);
+int		nextar(Biobuf*, int, char*);
 Map*		newmap(Map*, int);
 void		objtraverse(void(*)(Sym*, void*), void*);
-int		objtype(Biobuf*, int8_t**);
+int		objtype(Biobuf*, char**);
 uint64_t		pc2sp(uint64_t);
 int32_t		pc2line(uint64_t);
 int		put1(Map*, uint64_t, uint8_t*, int);
@@ -323,10 +323,10 @@ int		readobj(Biobuf*, int);
 uint64_t		riscframe(Map*, uint64_t, uint64_t, uint64_t,
 				  uint64_t);
 int		risctrace(Map*, uint64_t, uint64_t, uint64_t, Tracer);
-int		setmap(Map*, int, uint64_t, uint64_t, int64_t, int8_t*);
+int		setmap(Map*, int, uint64_t, uint64_t, int64_t, char*);
 Sym*		symbase(int32_t*);
 int		syminit(int, Fhdr*);
-int		symoff(int8_t*, int, uint64_t, int);
+int		symoff(char*, int, uint64_t, int);
 void		textseg(uint64_t, Fhdr*);
 int		textsym(Symbol*, int);
 void		unusemap(Map*, int);

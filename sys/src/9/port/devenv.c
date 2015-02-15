@@ -25,7 +25,7 @@ static int	envwriteable(Chan *c);
 static Egrp	confegrp;	/* global environment group containing the kernel configuration */
 
 static Evalue*
-envlookup(Egrp *eg, int8_t *name, uint32_t qidpath)
+envlookup(Egrp *eg, char *name, uint32_t qidpath)
 {
 	Evalue *e;
 	int i;
@@ -39,7 +39,7 @@ envlookup(Egrp *eg, int8_t *name, uint32_t qidpath)
 }
 
 static int
-envgen(Chan *c, int8_t *name, Dirtab*, int, int s, Dir *dp)
+envgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 {
 	Egrp *eg;
 	Evalue *e;
@@ -70,7 +70,7 @@ envgen(Chan *c, int8_t *name, Dirtab*, int, int s, Dir *dp)
 }
 
 static Chan*
-envattach(int8_t *spec)
+envattach(char *spec)
 {
 	Chan *c;
 	Egrp *egrp = nil;
@@ -88,7 +88,7 @@ envattach(int8_t *spec)
 }
 
 static Walkqid*
-envwalk(Chan *c, Chan *nc, int8_t **name, int nname)
+envwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, 0, 0, envgen);
 }
@@ -147,7 +147,7 @@ envopen(Chan *c, int omode)
 }
 
 static void
-envcreate(Chan *c, int8_t *name, int omode, int)
+envcreate(Chan *c, char *name, int omode, int)
 {
 	Egrp *eg;
 	Evalue *e;
@@ -271,7 +271,7 @@ envread(Chan *c, void *a, int32_t n, int64_t off)
 static int32_t
 envwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
-	int8_t *s;
+	char *s;
 	Egrp *eg;
 	Evalue *e;
 	int32_t len, offset;
@@ -391,10 +391,10 @@ envwriteable(Chan *c)
  *  to let the kernel set environment variables
  */
 void
-ksetenv(int8_t *ename, int8_t *eval, int conf)
+ksetenv(char *ename, char *eval, int conf)
 {
 	Chan *c;
-	int8_t buf[2*KNAMELEN];
+	char buf[2*KNAMELEN];
 
 	snprint(buf, sizeof(buf), "#e%s/%s", conf?"c":"", ename);
 	c = namec(buf, Acreate, OWRITE, 0600);
@@ -407,12 +407,12 @@ ksetenv(int8_t *ename, int8_t *eval, int conf)
  * The strings alternate between name and value.  A zero length name string
  * indicates the end of the list
  */
-int8_t *
+char *
 getconfenv(void)
 {
 	Egrp *eg = &confegrp;
 	Evalue *e;
-	int8_t *p, *q;
+	char *p, *q;
 	int i, n;
 
 	rlock(eg);

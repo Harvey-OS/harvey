@@ -125,7 +125,7 @@ gt2data(Pkt *p)
 
 
 int
-T2findfirst(Session *s, Share *sp, int slots, int8_t *path, int *got,
+T2findfirst(Session *s, Share *sp, int slots, char *path, int *got,
 	int32_t *resume, FInfo *fip)
 {
 	int pktlen, i, n, sh;
@@ -193,7 +193,7 @@ T2findfirst(Session *s, Share *sp, int slots, int8_t *path, int *got,
 }
 
 int
-T2findnext(Session *s, Share *sp, int slots, int8_t *path, int *got,
+T2findnext(Session *s, Share *sp, int slots, char *path, int *got,
 	int32_t *resume, FInfo *fip, int sh)
 {
 	Pkt *p;
@@ -260,7 +260,7 @@ T2findnext(Session *s, Share *sp, int slots, int8_t *path, int *got,
 
 /* supported by 2k/XP/NT4 */
 int
-T2queryall(Session *s, Share *sp, int8_t *path, FInfo *fip)
+T2queryall(Session *s, Share *sp, char *path, FInfo *fip)
 {
 	int n;
 	Pkt *p;
@@ -308,7 +308,7 @@ T2queryall(Session *s, Share *sp, int8_t *path, FInfo *fip)
 
 /* supported by 95/98/ME */
 int
-T2querystandard(Session *s, Share *sp, int8_t *path, FInfo *fip)
+T2querystandard(Session *s, Share *sp, char *path, FInfo *fip)
 {
 	Pkt *p;
 
@@ -339,7 +339,7 @@ T2querystandard(Session *s, Share *sp, int8_t *path, FInfo *fip)
 }
 
 int
-T2setpathinfo(Session *s, Share *sp, int8_t *path, FInfo *fip)
+T2setpathinfo(Session *s, Share *sp, char *path, FInfo *fip)
 {
 	int rc;
 	Pkt *p;
@@ -391,7 +391,7 @@ T2setfilelength(Session *s, Share *sp, int fh, FInfo *fip) /* FIXME: maybe broke
 
 int
 T2fsvolumeinfo(Session *s, Share *sp, int32_t *created, int32_t *serialno,
-	int8_t *label, int labellen)
+	char *label, int labellen)
 {
 	Pkt *p;
 	int32_t ct, sn, n;
@@ -459,12 +459,12 @@ T2fssizeinfo(Session *s, Share *sp, uint64_t *total, uint64_t *unused)
 }
 
 int
-T2getdfsreferral(Session *s, Share *sp, int8_t *path, int *gflags,
+T2getdfsreferral(Session *s, Share *sp, char *path, int *gflags,
 		 int *used,
 	Refer *re, int nent)
 {
 	int i, vers, nret, len;
-	int8_t tmp[1024];
+	char tmp[1024];
 	uint8_t *base;
 	Pkt *p;
 

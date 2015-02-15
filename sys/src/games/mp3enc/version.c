@@ -87,20 +87,20 @@
   \param void
   \return a pointer to a string which describes the version of LAME.
 */
-const int8_t*  get_lame_version ( void )		/* primary to write screen reports */
+const char*  get_lame_version ( void )		/* primary to write screen reports */
 {
     /* Here we can also add informations about compile time configurations */
 
 #if   LAME_ALPHA_VERSION > 0
-    static /*@observer@*/ const int8_t *const str =
+    static /*@observer@*/ const char *const str =
         XSTR(LAME_MAJOR_VERSION) "." XSTR(LAME_MINOR_VERSION) " " V
         "(alpha " XSTR(LAME_ALPHA_VERSION) ", " __DATE__ " " __TIME__ ")";
 #elif LAME_BETA_VERSION > 0
-    static /*@observer@*/ const int8_t *const str =
+    static /*@observer@*/ const char *const str =
         XSTR(LAME_MAJOR_VERSION) "." XSTR(LAME_MINOR_VERSION) " " V
         "(beta " XSTR(LAME_BETA_VERSION) ", " __DATE__ ")";
 #else
-    static /*@observer@*/ const int8_t *const str =
+    static /*@observer@*/ const char *const str =
         XSTR(LAME_MAJOR_VERSION) "." XSTR(LAME_MINOR_VERSION) " " V;
 #endif
 
@@ -140,18 +140,18 @@ const char*  get_lame_short_version ( void )
   \param void
   \return a pointer to a string which describes the version of GPSYCHO.
 */
-const int8_t*  get_psy_version ( void )
+const char*  get_psy_version ( void )
 {
 #if   PSY_ALPHA_VERSION > 0
-    static /*@observer@*/ const int8_t *const str =
+    static /*@observer@*/ const char *const str =
         XSTR(PSY_MAJOR_VERSION) "." XSTR(PSY_MINOR_VERSION)
         " (alpha " XSTR(PSY_ALPHA_VERSION) ", " __DATE__ " " __TIME__ ")";
 #elif PSY_BETA_VERSION > 0
-    static /*@observer@*/ const int8_t *const str =
+    static /*@observer@*/ const char *const str =
         XSTR(PSY_MAJOR_VERSION) "." XSTR(PSY_MINOR_VERSION)
         " (beta " XSTR(PSY_BETA_VERSION) ", " __DATE__ ")";
 #else
-    static /*@observer@*/ const int8_t *const str =
+    static /*@observer@*/ const char *const str =
         XSTR(PSY_MAJOR_VERSION) "." XSTR(PSY_MINOR_VERSION);
 #endif
 
@@ -164,18 +164,18 @@ const int8_t*  get_psy_version ( void )
   \param void
   \return a pointer to a string which describes the version of mp3x.
 */
-const int8_t*  get_mp3x_version ( void )
+const char*  get_mp3x_version ( void )
 {
 #if   MP3X_ALPHA_VERSION > 0
-    static /*@observer@*/ const int8_t *const str =
+    static /*@observer@*/ const char *const str =
         XSTR(MP3X_MAJOR_VERSION) "." XSTR(MP3X_MINOR_VERSION)
         " (alpha " XSTR(MP3X_ALPHA_VERSION) ", " __DATE__ " " __TIME__ ")";
 #elif MP3X_BETA_VERSION > 0
-    static /*@observer@*/ const int8_t *const str =
+    static /*@observer@*/ const char *const str =
         XSTR(MP3X_MAJOR_VERSION) "." XSTR(MP3X_MINOR_VERSION)
         " (beta " XSTR(MP3X_BETA_VERSION) ", " __DATE__ ")";
 #else
-    static /*@observer@*/ const int8_t *const str =
+    static /*@observer@*/ const char *const str =
         XSTR(MP3X_MAJOR_VERSION) "." XSTR(MP3X_MINOR_VERSION);
 #endif
 
@@ -188,9 +188,9 @@ const int8_t*  get_mp3x_version ( void )
   \param void
   \return a pointer to a string which is a URL for the LAME website.
 */
-const int8_t*  get_lame_url ( void )
+const char*  get_lame_url ( void )
 {
-    static /*@observer@*/ const int8_t *const str = LAME_URL;
+    static /*@observer@*/ const char *const str = LAME_URL;
 
     return str;
 }    
@@ -205,7 +205,7 @@ const int8_t*  get_lame_url ( void )
 */
 void get_lame_version_numerical ( lame_version_t *const lvp )
 {
-    static /*@observer@*/ const int8_t *const features = V;
+    static /*@observer@*/ const char *const features = V;
 
     /* generic version */
     lvp->major = LAME_MAJOR_VERSION;

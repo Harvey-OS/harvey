@@ -92,7 +92,7 @@ smbcomsetinformation(SmbSession *s, SmbHeader *h, uint8_t *pdata,
 {
 	uint16_t attr;
 	uint32_t utime;
-	int8_t *name;
+	char *name;
 	if (h->wordcount != 8)
 		return SmbProcessResultFormat;
 	attr = smbnhgets(pdata); pdata += 2;

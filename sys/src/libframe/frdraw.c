@@ -24,7 +24,7 @@ _frdrawtext(Frame *f, Point pt, Image *text, Image *back)
 	for(nb=0,b=f->box; nb<f->nbox; nb++, b++){
 		_frcklinewrap(f, &pt, b);
 		if(b->nrune >= 0){
-			stringbg(f->b, pt, text, ZP, f->font, (int8_t*)b->ptr,
+			stringbg(f->b, pt, text, ZP, f->font, (char*)b->ptr,
 				 back, ZP);
 		}
 		pt.x += b->wid;
@@ -32,9 +32,9 @@ _frdrawtext(Frame *f, Point pt, Image *text, Image *back)
 }
 
 static int
-nbytes(int8_t *s0, int nr)
+nbytes(char *s0, int nr)
 {
-	int8_t *s;
+	char *s;
 	Rune r;
 
 	s = s0;
@@ -75,7 +75,7 @@ frdrawsel0(Frame *f, Point pt, uint32_t p0, uint32_t p1, Image *back,
 	int nb, nr, w, x, trim;
 	Point qt;
 	uint p;
-	int8_t *ptr;
+	char *ptr;
 
 	p = 0;
 	b = f->box;
@@ -93,7 +93,7 @@ frdrawsel0(Frame *f, Point pt, uint32_t p0, uint32_t p1, Image *back,
 			if(pt.y > qt.y)
 				draw(f->b, Rect(qt.x, qt.y, f->r.max.x, pt.y), back, nil, qt);
 		}
-		ptr = (int8_t*)b->ptr;
+		ptr = (char*)b->ptr;
 		if(p < p0){	/* beginning of region: advance into box */
 			ptr += nbytes(ptr, p0-p);
 			nr -= (p0-p);

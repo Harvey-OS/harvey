@@ -15,14 +15,14 @@
 
 #include <tos.h>
 
-int8_t*	file = "5.out";
+char*	file = "5.out";
 int	datasize;
 uint32_t	textbase;
 Biobuf	bp, bi;
 Fhdr	fhdr;
 
 void
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 
 	argc--;
@@ -146,12 +146,12 @@ reset(void)
 }
 
 void
-initstk(int argc, int8_t *argv[])
+initstk(int argc, char *argv[])
 {
 	uint32_t size;
 	uint32_t sp, ap, tos;
 	int i;
-	int8_t *p;
+	char *p;
 
 	initmap();
 	tos = STACKTOP - sizeof(Tos)*2;	/* we'll assume twice the host's is big enough */
@@ -206,9 +206,9 @@ initstk(int argc, int8_t *argv[])
 }
 
 void
-fatal(int syserr, int8_t *fmt, ...)
+fatal(int syserr, char *fmt, ...)
 {
-	int8_t buf[ERRMAX], *s;
+	char buf[ERRMAX], *s;
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -222,9 +222,9 @@ fatal(int syserr, int8_t *fmt, ...)
 }
 
 void
-itrace(int8_t *fmt, ...)
+itrace(char *fmt, ...)
 {
-	int8_t buf[128];
+	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);

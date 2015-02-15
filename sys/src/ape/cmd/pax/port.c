@@ -51,8 +51,8 @@
  */
 
 #ifndef lint
-static int8_t *ident = "$Id: port.c,v 1.2 89/02/12 10:05:35 mark Exp $";
-static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
+static char *ident = "$Id: port.c,v 1.2 89/02/12 10:05:35 mark Exp $";
+static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserved.\n";
 #endif /* ! lint */
 
 
@@ -91,7 +91,7 @@ static int8_t *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights rese
 
 #ifdef __STDC__
 
-int mkdir(int8_t *dpath, int dmode)
+int mkdir(char *dpath, int dmode)
 
 #else
     
@@ -122,7 +122,7 @@ int             dmode;
 
 	status = umask(0);	/* Get current umask */
 	status = umask(status | (0777 & ~dmode));	/* Set for mkdir */
-	execl("/bin/mkdir", "mkdir", dpath, (int8_t *) 0);
+	execl("/bin/mkdir", "mkdir", dpath, (char *) 0);
 	_exit(-1);		/* Can't exec /bin/mkdir */
 
     default:			/* Parent process */
@@ -159,7 +159,7 @@ int             dmode;
 
 #ifdef __STDC__
 
-int rmdir(int8_t *dpath)
+int rmdir(char *dpath)
 
 #else
     
@@ -182,7 +182,7 @@ char           *dpath;
 	return (-1);		/* Errno is set already */
 
     case 0:			/* Child process */
-	execl("/bin/rmdir", "rmdir", dpath, (int8_t *) 0);
+	execl("/bin/rmdir", "rmdir", dpath, (char *) 0);
 	_exit(-1);		/* Can't exec /bin/rmdir */
 
     default:			/* Parent process */

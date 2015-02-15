@@ -18,7 +18,7 @@ double	LN2	= 0.69314718055994530941723212145817656807550013436025;
 static double angledangle=(180./PI)*MILLIARCSEC;
 
 int
-rint(int8_t *p, int n)
+rint(char *p, int n)
 {
 	int i=0;
 
@@ -42,7 +42,7 @@ angle(DAngle dangle)
 }
 
 double
-rfloat(int8_t *p, int n)
+rfloat(char *p, int n)
 {
 	double i, d=0;
 
@@ -75,10 +75,10 @@ sign(int c)
 	return 1;
 }
 
-int8_t*
+char*
 hms(Angle a)
 {
-	static int8_t buf[20];
+	static char buf[20];
 	double x;
 	int h, m, s, ts;
 
@@ -97,10 +97,10 @@ hms(Angle a)
 	return buf;
 }
 
-int8_t*
+char*
 dms(Angle a)
 {
-	static int8_t buf[20];
+	static char buf[20];
 	double x;
 	int sign, d, m, s, ts;
 
@@ -124,10 +124,10 @@ dms(Angle a)
 	return buf;
 }
 
-int8_t*
+char*
 ms(Angle a)
 {
-	static int8_t buf[20];
+	static char buf[20];
 	double x;
 	int d, m, s, ts;
 
@@ -149,10 +149,10 @@ ms(Angle a)
 	return buf;
 }
 
-int8_t*
+char*
 hm(Angle a)
 {
-	static int8_t buf[20];
+	static char buf[20];
 	double x;
 	int h, m, n;
 
@@ -169,10 +169,10 @@ hm(Angle a)
 	return buf;
 }
 
-int8_t*
+char*
 hm5(Angle a)
 {
-	static int8_t buf[20];
+	static char buf[20];
 	double x;
 	int h, m;
 
@@ -187,10 +187,10 @@ hm5(Angle a)
 	return buf;
 }
 
-int8_t*
+char*
 dm(Angle a)
 {
-	static int8_t buf[20];
+	static char buf[20];
 	double x;
 	int sign, d, m, n;
 
@@ -212,10 +212,10 @@ dm(Angle a)
 	return buf;
 }
 
-int8_t*
+char*
 deg(Angle a)
 {
-	static int8_t buf[20];
+	static char buf[20];
 	double x;
 	int sign, d;
 
@@ -231,8 +231,8 @@ deg(Angle a)
 	return buf;
 }
 
-int8_t*
-getword(int8_t *ou, int8_t *in)
+char*
+getword(char *ou, char *in)
 {
 	int c;
 
@@ -274,10 +274,10 @@ getword(int8_t *ou, int8_t *in)
  * Read formatted angle.  Must contain no embedded blanks
  */
 Angle
-getra(int8_t *p)
+getra(char *p)
 {
 	Rune r;
-	int8_t *q;
+	char *q;
 	Angle f, d;
 	int neg;
 

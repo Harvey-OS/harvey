@@ -23,7 +23,7 @@
  *  data if the ranges don't overlap.
  */
 void
-fmerge(Dptr *p, int8_t *to, int8_t *from, int start, int len)
+fmerge(Dptr *p, char *to, char *from, int start, int len)
 {
 	int end;
 
@@ -58,7 +58,7 @@ fmerge(Dptr *p, int8_t *to, int8_t *from, int start, int len)
  *	N.B. ordering is everything
  */
 int
-fbwrite(Icache *ic, Ibuf *b, int8_t *a, uint32_t off, int len)
+fbwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int len)
 {
 	int wrinode;
 	uint32_t fbno;
@@ -167,7 +167,7 @@ dowrite:
  *  return number of bytes written
  */
 int32_t
-fwrite(Icache *ic, Ibuf *b, int8_t *a, uint32_t off, int32_t n)
+fwrite(Icache *ic, Ibuf *b, char *a, uint32_t off, int32_t n)
 {
 	int len;
 	int32_t sofar;
@@ -262,7 +262,7 @@ fpget(Icache *ic, Ibuf *b, uint32_t off)
  *  if there are no bytes cached, return 0.
  */
 int32_t
-fread(Icache *ic, Ibuf *b, int8_t *a, uint32_t off, int32_t n)
+fread(Icache *ic, Ibuf *b, char *a, uint32_t off, int32_t n)
 {
 	int len, start;
 	int32_t sofar, gap;

@@ -46,18 +46,18 @@ Fcall *req;
 Fcall *rep;
 
 uint8_t mdata[Maxiosize];
-int8_t fdata[Maxfdata];
+char fdata[Maxfdata];
 uint8_t statbuf[STATMAX];
 int errno;
 
-static int8_t	srvfile[64];
+static char	srvfile[64];
 
 extern Xfsub	*xsublist[];
 extern int	nclust;
 
 jmp_buf	err_lab[16];
 int	nerr_lab;
-int8_t	err_msg[ERRMAX];
+char	err_msg[ERRMAX];
 
 int	chatty;
 int	nojoliet;
@@ -235,7 +235,7 @@ usage(void)
 }
 
 void
-error(int8_t *p)
+error(char *p)
 {
 	strecpy(err_msg, err_msg+sizeof err_msg, p);
 	nexterror();
@@ -259,7 +259,7 @@ ealloc(int32_t n)
 }
 
 void
-setnames(Dir *d, int8_t *n)
+setnames(Dir *d, char *n)
 {
 	d->name = n;
 	d->uid = n+Maxname;
@@ -545,8 +545,8 @@ openflags(int mode)
 void
 showdir(int fd, Dir *s)
 {
-	int8_t a_time[32], m_time[32];
-	int8_t *p;
+	char a_time[32], m_time[32];
+	char *p;
 
 	strcpy(a_time, ctime(s->atime));
 	if(p=strchr(a_time, '\n'))	/* assign = */
@@ -564,7 +564,7 @@ mode=0x%8.8lux=0%luo atime=%s mtime=%s length=%lld uid=\"%s\" gid=\"%s\"...",
 #define	SIZE	1024
 
 void
-chat(int8_t *fmt, ...)
+chat(char *fmt, ...)
 {
 	va_list arg;
 
@@ -576,10 +576,10 @@ chat(int8_t *fmt, ...)
 }
 
 void
-panic(int rflag, int8_t *fmt, ...)
+panic(int rflag, char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[SIZE]; int n;
+	char buf[SIZE]; int n;
 
 	n = sprint(buf, "%s %d: ", argv0, getpid());
 	va_start(arg, fmt);

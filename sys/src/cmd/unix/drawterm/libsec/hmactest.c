@@ -20,7 +20,7 @@ main(void)
 	int i;
 	uint8_t hash[MD5dlen];
 
-	hmac_md5(data, strlen((int8_t*)data), key, 4, hash, nil);
+	hmac_md5(data, strlen((char*)data), key, 4, hash, nil);
 	for(i=0; i<MD5dlen; i++)
 		print("%2.2x", hash[i]);
 	print("\n");

@@ -47,7 +47,7 @@ getpeername(int fd, void *addr, int *alen)
 		break;
 	case PF_UNIX:
 		runix = (struct sockaddr_un*)&r->raddr;
-		i = &runix->sun_path[strlen(runix->sun_path)] - (int8_t*)runix;
+		i = &runix->sun_path[strlen(runix->sun_path)] - (char*)runix;
 		memmove(addr, runix, i);
 		*alen = i;
 		break;

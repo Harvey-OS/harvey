@@ -62,13 +62,13 @@ stream_free(stream *sp)
 	fd = Bfildes(sp->fp);
 	Bterm(sp->fp);
 	close(fd);
-	free((int8_t *)sp);
+	free((char *)sp);
 }
 
 /* start a new process */
 extern process *
-noshell_proc_start(int8_t **av, stream *inp, stream *outp, stream *errp,
-		   int newpg, int8_t *who)
+noshell_proc_start(char **av, stream *inp, stream *outp, stream *errp,
+		   int newpg, char *who)
 {
 	process *pp;
 	int i, n;
@@ -120,10 +120,10 @@ noshell_proc_start(int8_t **av, stream *inp, stream *outp, stream *errp,
 
 /* start a new process under a shell */
 extern process *
-proc_start(int8_t *cmd, stream *inp, stream *outp, stream *errp, int newpg,
-	   int8_t *who)
+proc_start(char *cmd, stream *inp, stream *outp, stream *errp, int newpg,
+	   char *who)
 {
-	int8_t *av[4];
+	char *av[4];
 
 	av[0] = SHELL;
 	av[1] = "-c";
@@ -137,7 +137,7 @@ extern int
 proc_wait(process *pp)
 {
 	Waitmsg *status;
-	int8_t err[Errlen];
+	char err[Errlen];
 
 	for(;;){
 		status = wait();
@@ -172,7 +172,7 @@ proc_free(process *pp)
 	if (pp->pid >= 0)
 		proc_wait(pp);
 	free(pp->waitmsg);
-	free((int8_t *)pp);
+	free((char *)pp);
 	return 0;
 }
 

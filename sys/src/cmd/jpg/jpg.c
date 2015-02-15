@@ -33,7 +33,7 @@ enum{
 	Edge		= 5
 };
 
-int8_t	*show(int, int8_t*, int);
+char	*show(int, char*, int);
 
 void
 eresized(int new)
@@ -234,15 +234,15 @@ vidmerge(Rawimage **aa1, Rawimage **aa2)
 	return aao;
 }
 
-int8_t*
-show(int fd, int8_t *name, int outc)
+char*
+show(int fd, char *name, int outc)
 {
 	Rawimage **array, *r, *c;
 	static int inited;
 	Image *i;
 	int j, ch, outchan;
 	Biobuf b;
-	int8_t buf[32];
+	char buf[32];
 
 	if(Binit(&b, fd, OREAD) < 0)
 		return nil;

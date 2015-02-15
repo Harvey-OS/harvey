@@ -21,12 +21,12 @@ enum {
 	PermR		= 4,
 };
 
-static int8_t EPermission[] = "permission denied";
+static char EPermission[] = "permission denied";
 
 static int
 permFile(File* file, Fid* fid, int perm)
 {
-	int8_t *u;
+	char *u;
 	DirEntry de;
 
 	if(!fileGetDir(file, &de))
@@ -95,9 +95,9 @@ permParent(Fid* fid, int p)
 }
 
 int
-validFileName(int8_t* name)
+validFileName(char* name)
 {
-	int8_t *p;
+	char *p;
 
 	if(name == nil || name[0] == '\0'){
 		vtSetError("no file name");
@@ -127,7 +127,7 @@ rTwstat(Msg* m)
 	Fid *fid;
 	uint32_t mode, oldmode;
 	DirEntry de;
-	int8_t *gid, *strs, *uid;
+	char *gid, *strs, *uid;
 	int gl, op, retval, tsync, wstatallow;
 
 	if((fid = fidGet(m->con, m->t.fid, FidFWlock)) == nil)
@@ -567,7 +567,7 @@ rTread(Msg* m)
 		goto error;
 
 	m->r.count = n;
-	m->r.data = (int8_t*)data;
+	m->r.data = (char*)data;
 
 	fidPut(fid);
 	return 1;
@@ -929,9 +929,9 @@ rTflush(Msg* m)
 }
 
 static void
-parseAname(int8_t *aname, int8_t **fsname, int8_t **path)
+parseAname(char *aname, char **fsname, char **path)
 {
-	int8_t *s;
+	char *s;
 
 	if(aname && aname[0])
 		s = vtStrDup(aname);
@@ -953,7 +953,7 @@ parseAname(int8_t *aname, int8_t **fsname, int8_t **path)
 static int
 conIPCheck(Con* con)
 {
-	int8_t ok[256], *p;
+	char ok[256], *p;
 	int fd;
 
 	if(con->flags&ConIPCheck){
@@ -987,7 +987,7 @@ rTattach(Msg* m)
 {
 	Fid *fid;
 	Fsys *fsys;
-	int8_t *fsname, *path;
+	char *fsname, *path;
 
 	if((fid = fidGet(m->con, m->t.fid, FidFWlock|FidFCreate)) == nil)
 		return 0;
@@ -1045,7 +1045,7 @@ rTauth(Msg* m)
 	Con *con;
 	Fid *afid;
 	Fsys *fsys;
-	int8_t *fsname, *path;
+	char *fsname, *path;
 
 	parseAname(m->t.aname, &fsname, &path);
 	if((fsys = fsysGet(fsname)) == nil){

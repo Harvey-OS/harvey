@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-static int8_t *nsgetwd(int8_t*, int);
+static char *nsgetwd(char*, int);
 
-int8_t*
-getwd(int8_t *buf, int nbuf)
+char*
+getwd(char *buf, int nbuf)
 {
 	int n, fd;
 

@@ -57,7 +57,7 @@ vEpilogueTXT(FILE *pOutFile)
  * vPrintTXT - print a Text string
  */
 static void
-vPrintTXT(FILE *pFile, const int8_t *szString, size_t tStringLength)
+vPrintTXT(FILE *pFile, const char *szString, size_t tStringLength)
 {
 	const UCHAR	*ucBytes;
 	size_t		tCount;
@@ -129,7 +129,7 @@ vMove2NextLineTXT(diagram_type *pDiag)
  */
 void
 vSubstringTXT(diagram_type *pDiag,
-	const int8_t *szString, size_t tStringLength, int32_t lStringWidth)
+	const char *szString, size_t tStringLength, int32_t lStringWidth)
 {
 	fail(pDiag == NULL || szString == NULL);
 	fail(pDiag->pOutFile == NULL);

@@ -18,7 +18,7 @@
  *	name:x:nn:other stuff
  */
 
-static int isnumber(int8_t *s);
+static int isnumber(char *s);
 
 sniff(Biobuf *b)
 {
@@ -39,9 +39,9 @@ sniff(Biobuf *b)
 
 
 int
-isnumber(int8_t *s)
+isnumber(char *s)
 {
-	int8_t *q;
+	char *q;
 
 	strtol(s, &q, 10);
 	return *q == '\0';

@@ -14,7 +14,7 @@
 #include "SConn.h"
 
 static int32_t
-ls(int8_t *p, Dir **dirbuf)
+ls(char *p, Dir **dirbuf)
 {
 	int fd;
 	int32_t n;
@@ -31,10 +31,10 @@ ls(int8_t *p, Dir **dirbuf)
 }
 
 static uint8_t*
-sha1file(int8_t *pfx, int8_t *nm)
+sha1file(char *pfx, char *nm)
 {
 	int n, fd, len;
-	int8_t *tmp;
+	char *tmp;
 	uint8_t buf[8192];
 	static uint8_t digest[SHA1dlen];
 	DigestState *s;
@@ -62,10 +62,10 @@ compare(Dir *a, Dir *b)
 }
 
 /* list the (name mtime size sum) of regular, readable files in path */
-int8_t *
-dirls(int8_t *path)
+char *
+dirls(char *path)
 {
-	int8_t *list, *date, dig[30], buf[128];
+	char *list, *date, dig[30], buf[128];
 	int m, nmwid, lenwid;
 	int32_t i, n, ndir, len;
 	Dir *dirbuf;

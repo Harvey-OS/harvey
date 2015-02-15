@@ -33,7 +33,7 @@ struct Pc
 
 struct Acc
 {
-	int8_t	*name;
+	char	*name;
 	uint32_t	pc;
 	uint32_t	ms;
 	uint32_t	calls;
@@ -50,13 +50,13 @@ Biobuf	bout;
 int	tabstop = 4;
 int	verbose;
 
-void	syms(int8_t*);
-void	datas(int8_t*);
+void	syms(char*);
+void	datas(char*);
 void	graph(int, uint32_t, Pc*);
 void	plot(void);
-int8_t*	name(uint32_t);
+char*	name(uint32_t);
 void	indent(int);
-int8_t*	defaout(void);
+char*	defaout(void);
 
 void
 main(int argc, char *argv[])
@@ -127,7 +127,7 @@ acmp(void *va, void *vb)
 }
 
 void
-syms(int8_t *cout)
+syms(char *cout)
 {
 	Fhdr f;
 	int fd;
@@ -152,7 +152,7 @@ syms(int8_t *cout)
 }
 
 void
-datas(int8_t *dout)
+datas(char *dout)
 {
 	int fd;
 	Dir *d;
@@ -183,11 +183,11 @@ datas(int8_t *dout)
 		swapdata(data+i);
 }
 
-int8_t*
+char*
 name(uint32_t pc)
 {
 	Symbol s;
-	static int8_t buf[16];
+	static char buf[16];
 
 	if (findsym(pc, CTEXT, &s))
 		return(s.name);
@@ -340,7 +340,7 @@ indent(int ind)
 		Bwrite(&bout, ".                            ", j);
 }
 
-int8_t*	trans[] =
+char*	trans[] =
 {
 	"386",		"8.out",
 	"68020",		"2.out",
@@ -354,10 +354,10 @@ int8_t*	trans[] =
 	0,0
 };
 
-int8_t*
+char*
 defaout(void)
 {
-	int8_t *p;
+	char *p;
 	int i;
 
 	p = getenv("objtype");

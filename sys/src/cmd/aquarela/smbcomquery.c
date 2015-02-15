@@ -14,9 +14,9 @@ smbcomqueryinformation(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 {
 	SmbTree *t;
 	uint8_t fmt;
-	int8_t *path;
+	char *path;
 	Dir *d;
-	int8_t *fullpath;
+	char *fullpath;
 
 	if (!smbcheckwordcount("comqueryinformation", h, 0)
 		|| !smbbuffergetb(b, &fmt)

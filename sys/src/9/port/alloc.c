@@ -18,16 +18,16 @@ extern void* xalloc(ulong);
 extern void xinit(void);
 extern int xmerge(void*, void*);
 
-static void poolprint(Pool*, int8_t*, ...);
-static void ppanic(Pool*, int8_t*, ...);
+static void poolprint(Pool*, char*, ...);
+static void ppanic(Pool*, char*, ...);
 static void plock(Pool*);
 static void punlock(Pool*);
 
 typedef struct Private	Private;
 struct Private {
 	Lock		lk;
-	int8_t*		end;
-	int8_t		msg[256];	/* a rock for messages to be printed at unlock */
+	char*		end;
+	char		msg[256];	/* a rock for messages to be printed at unlock */
 };
 
 static Private pmainpriv;
@@ -74,7 +74,7 @@ Pool*	imagmem = &pimagmem;
  * we have the save the message and print it once we let go.
  */
 static void
-poolprint(Pool *p, int8_t *fmt, ...)
+poolprint(Pool *p, char *fmt, ...)
 {
 	va_list v;
 	Private *pv;
@@ -86,11 +86,11 @@ poolprint(Pool *p, int8_t *fmt, ...)
 }
 
 static void
-ppanic(Pool *p, int8_t *fmt, ...)
+ppanic(Pool *p, char *fmt, ...)
 {
 	va_list v;
 	Private *pv;
-	int8_t msg[sizeof pv->msg];
+	char msg[sizeof pv->msg];
 
 	pv = p->private;
 	va_start(v, fmt);
@@ -116,7 +116,7 @@ static void
 punlock(Pool *p)
 {
 	Private *pv;
-	int8_t msg[sizeof pv->msg];
+	char msg[sizeof pv->msg];
 
 	pv = p->private;
 	if(pv->end == pv->msg){
@@ -130,8 +130,8 @@ punlock(Pool *p)
 	iprint("%.*s", sizeof pv->msg, msg);
 }
 
-static int8_t*
-poolsummary(Pool* p, int8_t* s, int8_t* e)
+static char*
+poolsummary(Pool* p, char* s, char* e)
 {
 	return seprint(s, e, "%s max %lud cur %lud free %lud alloc %lud\n",
 		p->name, p->maxsize, p->cursize, p->curfree, p->curalloc);
@@ -140,7 +140,7 @@ poolsummary(Pool* p, int8_t* s, int8_t* e)
 void
 mallocsummary(void)
 {
-	int8_t buf[256], *p;
+	char buf[256], *p;
 
 	p = poolsummary(mainmem, buf, buf+sizeof(buf));
 	poolsummary(imagmem, p, buf+sizeof(buf));
@@ -151,7 +151,7 @@ mallocsummary(void)
 int32_t
 mallocreadsummary(Chan*, void *a, int32_t n, int32_t offset)
 {
-	int8_t buf[256], *p;
+	char buf[256], *p;
 
 	p = poolsummary(mainmem, buf, buf+sizeof(buf));
 	poolsummary(imagmem, p, buf+sizeof(buf));

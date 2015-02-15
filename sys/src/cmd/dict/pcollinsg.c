@@ -118,14 +118,14 @@ static Nassoc overtab[] = {
 static uint8_t *reach(uint8_t*, int);
 
 static Entry	curentry;
-static int8_t	tag[Taglen];
+static char	tag[Taglen];
 
 void
 pcollgprintentry(Entry e, int cmd)
 {
 	uint8_t *p, *pe;
 	int r, rprev = NONE, rx, over = 0, font;
-	int8_t buf[16];
+	char buf[16];
 
 	p = (uint8_t *)e.start;
 	pe = (uint8_t *)e.end;
@@ -242,7 +242,7 @@ pcollgprintkey(void)
 static uint8_t *
 reach(uint8_t *p, int tagchar)
 {
-	int c; int8_t *q=tag;
+	int c; char *q=tag;
 
 	while(p < (uint8_t *)curentry.end){
 		c = *p++;

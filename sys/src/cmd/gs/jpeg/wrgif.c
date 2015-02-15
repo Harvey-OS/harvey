@@ -71,7 +71,7 @@ typedef struct {
 
   /* GIF data packet construction buffer */
   int bytesinpkt;		/* # of bytes in current packet */
-  int8_t packetbuf[256];		/* workspace for accumulating packet */
+  char packetbuf[256];		/* workspace for accumulating packet */
 
 } gif_dest_struct;
 
@@ -102,7 +102,7 @@ flush_packet (gif_dest_ptr dinfo)
 
 /* Add a character to current packet; flush to disk if necessary */
 #define CHAR_OUT(dinfo,c)  \
-	{ (dinfo)->packetbuf[++(dinfo)->bytesinpkt] = (int8_t) (c);  \
+	{ (dinfo)->packetbuf[++(dinfo)->bytesinpkt] = (char) (c);  \
 	    if ((dinfo)->bytesinpkt >= 255)  \
 	      flush_packet(dinfo);  \
 	}

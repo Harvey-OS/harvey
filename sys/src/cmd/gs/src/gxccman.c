@@ -132,7 +132,7 @@ gx_char_cache_init(register gs_font_dir * dir)
     gx_bits_cache_chunk_init(cck, NULL, 0);
     gx_bits_cache_init((gx_bits_cache *) & dir->ccache, cck);
     dir->ccache.bspace = 0;
-    memset((int8_t *)dir->ccache.table, 0,
+    memset((char *)dir->ccache.table, 0,
 	   (dir->ccache.table_mask + 1) * sizeof(cached_char *));
     for (i = 0, pair = dir->fmcache.mdata;
 	 i < dir->fmcache.mmax; i++, pair++) {
@@ -523,7 +523,7 @@ gx_open_cache_device(gx_device_memory * dev, cached_char * cc)
 
     dev->width = cc->width;
     dev->height = cc->height;
-    memset((int8_t *)bits, 0, (uint) gdev_mem_bitmap_size(dev));
+    memset((char *)bits, 0, (uint) gdev_mem_bitmap_size(dev));
     dev->base = bits;
     (*dev_proc(dev, open_device)) ((gx_device *) dev);	/* initialize */
 }

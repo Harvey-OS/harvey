@@ -21,11 +21,11 @@
 
 static	int	multabp;
 static	int32_t	mulval;
-static	int8_t*	mulcp;
+static	char*	mulcp;
 static	int32_t	valmax;
 static	int	shmax;
 
-static int	docode(int8_t *hp, int8_t *cp, int r0, int r1);
+static int	docode(char *hp, char *cp, int r0, int r1);
 static int	gen1(int len);
 static int	gen2(int len, int32_t r1);
 static int	gen3(int len, int32_t r0, int32_t r1, int flag);
@@ -42,7 +42,7 @@ mulcon0(Node *n, int32_t v)
 {
 	int a1, a2, g;
 	Multab *m, *m1;
-	int8_t hint[10];
+	char hint[10];
 
 	if(v < 0)
 		v = -v;
@@ -136,7 +136,7 @@ no:
 }
 
 static int
-docode(int8_t *hp, int8_t *cp, int r0, int r1)
+docode(char *hp, char *cp, int r0, int r1)
 {
 	int c, i;
 

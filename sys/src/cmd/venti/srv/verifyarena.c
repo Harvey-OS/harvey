@@ -60,7 +60,7 @@ readblock(uint8_t *buf, int n)
 }
 
 static void
-verifyarena(int8_t *name, int64_t len)
+verifyarena(char *name, int64_t len)
 {
 	Arena arena;
 	ArenaHead head;
@@ -162,7 +162,7 @@ verifyarena(int8_t *name, int64_t len)
 }
 
 static int
-shouldcheck(int8_t *name, int8_t **s, int n)
+shouldcheck(char *name, char **s, int n)
 {
 	int i;
 	

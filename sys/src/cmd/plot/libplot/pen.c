@@ -8,7 +8,7 @@
  */
 
 #include "mplot.h"
-void pen(int8_t *s){
+void pen(char *s){
 	/* BUG: NO OP */
 	USED(s);
 	/* was this error:	color(s); */

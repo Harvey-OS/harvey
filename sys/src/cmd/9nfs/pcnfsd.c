@@ -9,15 +9,15 @@
 
 #include "all.h"
 
-static void	pcinit(int, int8_t**);
+static void	pcinit(int, char**);
 static int	pcnull(int, Rpccall*, Rpccall*);
 static int	pcinfo(int, Rpccall*, Rpccall*);
 static int	pcauth(int, Rpccall*, Rpccall*);
 static int	pc1auth(int, Rpccall*, Rpccall*);
 static int	pcfacilities[15];
-static int8_t	no_comment[] = "Trust me.";
-static int8_t	pc_vers[] = "@(#)pcnfsd_v2.c	1.6 - rpc.pcnfsd V2.0 (c) 1994 P9, GmbH";
-static int8_t	pc_home[] = "merrimack:/";
+static char	no_comment[] = "Trust me.";
+static char	pc_vers[] = "@(#)pcnfsd_v2.c	1.6 - rpc.pcnfsd V2.0 (c) 1994 P9, GmbH";
+static char	pc_home[] = "merrimack:/";
 
 static Procmap pcproc[] = {	/* pcnfsd v2 */
 	0, pcnull,
@@ -41,7 +41,7 @@ Progmap progmap[] = {
 };
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	server(argc, argv, myport, progmap);
 }

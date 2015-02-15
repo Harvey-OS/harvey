@@ -501,7 +501,7 @@ wincommit(Window *w, Text *t)
 void
 winaddincl(Window *w, Rune *r, int n)
 {
-	int8_t *a;
+	char *a;
 	Dir *d;
 	Runestr rs;
 
@@ -565,8 +565,8 @@ winclean(Window *w, int conservative)	/* as it stands, conservative is always TR
 	return TRUE;
 }
 
-int8_t*
-winctlprint(Window *w, int8_t *buf, int fonts)
+char*
+winctlprint(Window *w, char *buf, int fonts)
 {
 	sprint(buf, "%11d %11d %11d %11d %11d ", w->id, w->tag.file->nc,
 		w->body.file->nc, w->isdir, w->dirty);
@@ -577,10 +577,10 @@ winctlprint(Window *w, int8_t *buf, int fonts)
 }
 
 void
-winevent(Window *w, int8_t *fmt, ...)
+winevent(Window *w, char *fmt, ...)
 {
 	int n;
-	int8_t *b;
+	char *b;
 	Xfid *x;
 	va_list arg;
 

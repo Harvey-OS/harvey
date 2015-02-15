@@ -110,19 +110,19 @@ int likely[] = {
 	[Tall]		95,
 };
 
-static RR*	dnresolve1(int8_t*, int, int, Request*, int, int);
+static RR*	dnresolve1(char*, int, int, Request*, int, int);
 static int	netquery(Query *, int);
 
 /*
  * reading /proc/pid/args yields either "name args" or "name [display args]",
  * so return only display args, if any.
  */
-static int8_t *
+static char *
 procgetname(void)
 {
 	int fd, n;
-	int8_t *lp, *rp;
-	int8_t buf[256];
+	char *lp, *rp;
+	char buf[256];
 
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
 	if((fd = open(buf, OREAD)) < 0)
@@ -162,15 +162,15 @@ rrfreelistptr(RR **rpp)
  *  retried several times until we get an answer or a time-out.
  */
 RR*
-dnresolve(int8_t *name, int class, int type, Request *req, RR **cn,
+dnresolve(char *name, int class, int type, Request *req, RR **cn,
 	  int depth,
 	int recurse, int rooted, int *status)
 {
 	RR *rp, *nrp, *drp;
 	DN *dp;
 	int loops;
-	int8_t *procname;
-	int8_t nname[Domlen];
+	char *procname;
+	char nname[Domlen];
 
 	if(status)
 		*status = 0;
@@ -353,9 +353,9 @@ netqueryns(Query *qp, int depth, RR *nsrp)
 }
 
 static RR*
-issuequery(Query *qp, int8_t *name, int class, int depth, int recurse)
+issuequery(Query *qp, char *name, int class, int depth, int recurse)
 {
-	int8_t *cp;
+	char *cp;
 	DN *nsdp;
 	RR *rp, *nsrp, *dbnsrp;
 
@@ -431,7 +431,7 @@ issuequery(Query *qp, int8_t *name, int class, int depth, int recurse)
 }
 
 static RR*
-dnresolve1(int8_t *name, int class, int type, Request *req, int depth,
+dnresolve1(char *name, int class, int type, Request *req, int depth,
 	int recurse)
 {
 	Area *area;
@@ -550,10 +550,10 @@ dnresolve1(int8_t *name, int class, int type, Request *req, int depth,
  *  return a pointer to that element.
  *  in other words, return a pointer to the parent domain name.
  */
-int8_t*
-walkup(int8_t *name)
+char*
+walkup(char *name)
 {
-	int8_t *cp;
+	char *cp;
 
 	cp = strchr(name, '.');
 	if(cp)
@@ -568,13 +568,13 @@ walkup(int8_t *name)
  *  Get a udp port for sending requests and reading replies.  Put the port
  *  into "headers" mode.
  */
-static int8_t *hmsg = "headers";
+static char *hmsg = "headers";
 
 int
-udpport(int8_t *mtpt)
+udpport(char *mtpt)
 {
 	int fd, ctl;
-	int8_t ds[64], adir[64];
+	char ds[64], adir[64];
 
 	/* get a udp port */
 	snprint(ds, sizeof ds, "%s/udp!*!0", (mtpt? mtpt: "/net"));
@@ -729,8 +729,8 @@ readreply(Query *qp, int medium, uint16_t req, uint8_t *ibuf, DNSmsg *mp,
 	uint64_t endms)
 {
 	int len;
-	int8_t *err;
-	int8_t tbuf[32];
+	char *err;
+	char tbuf[32];
 	uint8_t *reply;
 	uint8_t srcip[IPaddrlen];
 	RR *rp;
@@ -990,8 +990,8 @@ static int
 mydnsquery(Query *qp, int medium, uint8_t *udppkt, int len)
 {
 	int rv = -1, nfd;
-	int8_t *domain;
-	int8_t conndir[NETPATHLEN], net[NETPATHLEN];
+	char *domain;
+	char conndir[NETPATHLEN], net[NETPATHLEN];
 	uint8_t belen[2];
 	NetConnInfo *nci;
 
@@ -1071,7 +1071,7 @@ xmitquery(Query *qp, int medium, int depth, uint8_t *obuf, int inns,
 	  int len)
 {
 	int j, n;
-	int8_t buf[32];
+	char buf[32];
 	Dest *p;
 
 	queryck(qp);
@@ -1199,7 +1199,7 @@ procansw(Query *qp, DNSmsg *mp, uint8_t *srcip, int depth, Dest *p)
 {
 	int rv;
 //	int lcktype;
-	int8_t buf[32];
+	char buf[32];
 	DN *ndp;
 	Query *nqp;
 	RR *tp, *soarr;
@@ -1390,7 +1390,7 @@ queryns(Query *qp, int depth, uint8_t *ibuf, uint8_t *obuf, uint32_t waitms,
 	int ndest, len, replywaits, rv;
 	uint16_t req;
 	uint64_t endms;
-	int8_t buf[12];
+	char buf[12];
 	uint8_t srcip[IPaddrlen];
 	Dest *p, *np, *dest;
 
@@ -1489,8 +1489,8 @@ queryns(Query *qp, int depth, uint8_t *ibuf, uint8_t *obuf, uint32_t waitms,
 /*
  *  run a command with a supplied fd as standard input
  */
-int8_t *
-system(int fd, int8_t *cmd)
+char *
+system(int fd, char *cmd)
 {
 	int pid, p, i;
 	static Waitmsg msg;
@@ -1531,12 +1531,12 @@ weight(uint32_t ms, unsigned pcntprob)
  * but we'd have to sort out the answers by dns-query id.
  */
 static int
-udpquery(Query *qp, int8_t *mntpt, int depth, int patient, int inns)
+udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 {
 	int fd, rv;
 	uint32_t now, pcntprob;
 	uint64_t wait, reqtm;
-	int8_t *msg;
+	char *msg;
 	uint8_t *obuf, *ibuf;
 	static QLock mntlck;
 	static uint32_t lastmount;
@@ -1607,7 +1607,7 @@ static int
 netquery(Query *qp, int depth)
 {
 	int lock, rv, triedin, inname;
-	int8_t buf[32];
+	char buf[32];
 	RR *rp;
 	DN *dp;
 	Querylck *qlp;
@@ -1708,7 +1708,7 @@ int
 seerootns(void)
 {
 	int rv;
-	int8_t root[] = "";
+	char root[] = "";
 	Request req;
 	RR *rr;
 	Query *qp;

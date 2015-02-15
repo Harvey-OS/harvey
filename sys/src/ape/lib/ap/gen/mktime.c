@@ -27,7 +27,7 @@ dysize(int y)
 static int
 dmsize(int m, int y)
 {
-	static	int8_t	sizes[12] =
+	static	char	sizes[12] =
 		{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 	if(m == 1)

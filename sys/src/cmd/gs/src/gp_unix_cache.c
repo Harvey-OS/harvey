@@ -44,7 +44,7 @@ typedef struct gp_cache_entry_s {
     int keylen;
     byte *key;
     md5_byte_t hash[16];
-    int8_t *filename;
+    char *filename;
     int len;
     void *buffer;
     int dirty;
@@ -67,11 +67,11 @@ private void gp_cache_clear_entry(gp_cache_entry *item)
 /* get the cache directory's path */
 private int8_t *gp_cache_prefix(void)
 {
-    int8_t *prefix = NULL;
+    char *prefix = NULL;
     int plen = 0;
     
     /* get the cache directory path */
-    if (gp_getenv("GS_CACHE_DIR", (int8_t *)NULL, &plen) < 0) {
+    if (gp_getenv("GS_CACHE_DIR", (char *)NULL, &plen) < 0) {
         prefix = malloc(plen);
         gp_getenv("GS_CACHE_DIR", prefix, &plen);
         plen--;
@@ -86,12 +86,12 @@ private int8_t *gp_cache_prefix(void)
     
     /* substitute $HOME for '~' */
     if (plen > 1 && prefix[0] == '~') {
-        int8_t *home, *path;
+        char *home, *path;
         int hlen = 0;
 	unsigned int pathlen = 0;
         gp_file_name_combine_result result;
         
-        if (gp_getenv("HOME", (int8_t *)NULL, &hlen) < 0) {
+        if (gp_getenv("HOME", (char *)NULL, &hlen) < 0) {
             home = malloc(hlen);
             if (home == NULL) return prefix;
             gp_getenv("HOME", home, &hlen);
@@ -123,10 +123,10 @@ private int8_t *gp_cache_prefix(void)
 
 /* compute the cache index file's path */
 private int8_t *
-gp_cache_indexfilename(const int8_t *prefix)
+gp_cache_indexfilename(const char *prefix)
 {
-    const int8_t *fn = "gs_cache";
-    int8_t *path;
+    const char *fn = "gs_cache";
+    char *path;
     unsigned int len;
     gp_file_name_combine_result result;
     
@@ -181,11 +181,11 @@ private void gp_cache_filename(const int8_t *prefix, gp_cache_entry *item)
 }
 
 /* generate an access path for a cache item */
-private int8_t *gp_cache_itempath(const int8_t *prefix, gp_cache_entry *item)
+private int8_t *gp_cache_itempath(const char *prefix, gp_cache_entry *item)
 {
-    const int8_t *fn = item->filename;
+    const char *fn = item->filename;
     gp_file_name_combine_result result;
-    int8_t *path;
+    char *path;
     unsigned int len;
     
     len = strlen(prefix) + strlen(fn) + 2;
@@ -330,8 +330,8 @@ gp_cache_write_entry(FILE *file, gp_cache_entry *item)
 /* insert a buffer under a (type, key) pair */
 int gp_cache_insert(int type, byte *key, int keylen, void *buffer, int buflen)
 {
-    int8_t *prefix, *path;
-    int8_t *infn,*outfn;
+    char *prefix, *path;
+    char *infn,*outfn;
     FILE *file, *in, *out;
     gp_cache_entry item, item2;
     int code, hit = 0;
@@ -414,8 +414,8 @@ int gp_cache_insert(int type, byte *key, int keylen, void *buffer, int buflen)
 int gp_cache_query(int type, byte* key, int keylen, void **buffer,
     gp_cache_alloc alloc, void *userdata)
 {
-    int8_t *prefix, *path;
-    int8_t *infn,*outfn;
+    char *prefix, *path;
+    char *infn,*outfn;
     FILE *file, *in, *out;
     gp_cache_entry item, item2;
     int code, hit = 0;

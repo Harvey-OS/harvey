@@ -22,16 +22,16 @@
 #include <setjmp.h>
 #include <time.h>
 
-int8_t	*Version	= "March 11, 1994";
+char	*Version	= "March 11, 1994";
 
 #ifndef DWBVERSION
 #define DWBVERSION      "???"
 #endif
 
-int8_t	*DWBfontdir = FONTDIR;
-int8_t	*DWBntermdir = NTERMDIR;
-int8_t	*DWBalthyphens = ALTHYPHENS;
-int8_t	*DWBhomedir = "";
+char	*DWBfontdir = FONTDIR;
+char	*DWBntermdir = NTERMDIR;
+char	*DWBalthyphens = ALTHYPHENS;
+char	*DWBhomedir = "";
 
 dwbinit dwbpaths[] = {
 	&DWBfontdir, NULL, 0,
@@ -49,9 +49,9 @@ Offset	ipl[NSO];
 
 static	FILE	*ifile	= stdin;
 static	FILE	*ifl[NSO];	/* open input file pointers */
-int8_t	cfname[NSO+1][NS] = {  "stdin" };	/* file name stack */
+char	cfname[NSO+1][NS] = {  "stdin" };	/* file name stack */
 int	cfline[NSO];		/* input line count stack */
-int8_t	*progname;		/* program name (troff or nroff) */
+char	*progname;		/* program name (troff or nroff) */
 
 int	trace = 0;	/* tracing mode: default off */
 int	trace1 = 0;
@@ -230,7 +230,7 @@ Lt:
 void init2(void)
 {
 	int i;
-	int8_t buf[100];
+	char buf[100];
 
 	for (i = NTRTAB; --i; )
 		trtab[i] = i;
@@ -296,7 +296,7 @@ void cvtime(void)
 
 
 
-int8_t	errbuf[200];
+char	errbuf[200];
 
 void errprint(void)	/* error message printer */
 {
@@ -383,7 +383,7 @@ rtn:
  * in getch, viz FLSS, RPT, f, \b, \n, fc, tabch, ldrch
  */
 
-int8_t gchtab[NCHARS] = {
+char gchtab[NCHARS] = {
 	000,004,000,000,010,000,000,000, /* fc, ldr */
 	001,002,001,000,001,000,000,000, /* \b, tab, nl, RPT */
 	000,000,000,000,000,000,000,000,
@@ -675,7 +675,7 @@ void setxon(void)	/* \X'...' for copy through */
 }
 
 
-int8_t	ifilt[32] = { 0, 001, 002, 003, 0, 005, 006, 007, 010, 011, 012 };
+char	ifilt[32] = { 0, 001, 002, 003, 0, 005, 006, 007, 010, 011, 012 };
 
 Tchar getch0(void)
 {
@@ -745,7 +745,7 @@ g4:
 Tchar get1ch(FILE *fp)	/* get one "character" from input, figure out what alphabet */
 {
 	wchar_t wc;
-	int8_t buf[100], *p;
+	char buf[100], *p;
 	int i, n, c;
 
 	n = c = 0;
@@ -782,9 +782,9 @@ void pushback(Tchar *b)
 	}
 }
 
-void cpushback(int8_t *b)
+void cpushback(char *b)
 {
-	int8_t *ob = b;
+	char *ob = b;
 
 	while (*b++)
 		;
@@ -974,13 +974,13 @@ void caself(void)	/* set line number and file */
 		}
 }
 
-void cpout(FILE *fin, int8_t *token)
+void cpout(FILE *fin, char *token)
 {
 	int n;
-	int8_t buf[1024];
+	char buf[1024];
 
 	if (token) {	/* BUG: There should be no NULL bytes in input */
-		int8_t *newl = buf;
+		char *newl = buf;
 		while ((fgets(buf, sizeof buf, fin)) != NULL) {
 			if (newl) {
 				numtabp[CD].val++; /* line number */
@@ -1054,7 +1054,7 @@ void casecf(void)
 	ptfont();
 }
 
-void getline(int8_t *s, int n)	/* get rest of input line into s */
+void getline(char *s, int n)	/* get rest of input line into s */
 {
 	int i;
 
@@ -1071,14 +1071,14 @@ void getline(int8_t *s, int n)	/* get rest of input line into s */
 
 void casesy(void)	/* call system */
 {
-	int8_t sybuf[NTM];
+	char sybuf[NTM];
 
 	getline(sybuf, NTM);
 	system(sybuf);
 }
 
 
-void getpn(int8_t *a)
+void getpn(char *a)
 {
 	int n, neg;
 

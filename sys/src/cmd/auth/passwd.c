@@ -13,12 +13,12 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-static int8_t *pbmsg = "AS protocol botch";
+static char *pbmsg = "AS protocol botch";
 
 int
-asrdresp(int fd, int8_t *buf, int len)
+asrdresp(int fd, char *buf, int len)
 {
-	int8_t error[AERRLEN];
+	char error[AERRLEN];
 
 	if(read(fd, buf, 1) != 1){
 		werrstr(pbmsg);

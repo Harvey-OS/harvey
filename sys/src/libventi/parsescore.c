@@ -12,10 +12,10 @@
 #include <venti.h>
 
 int
-vtparsescore(int8_t *s, int8_t **prefix, uint8_t score[VtScoreSize])
+vtparsescore(char *s, char **prefix, uint8_t score[VtScoreSize])
 {
 	int i, c;
-	int8_t *buf, *colon;
+	char *buf, *colon;
 
 	if((colon = strchr(s, ':')) != nil)
 		buf = colon+1;

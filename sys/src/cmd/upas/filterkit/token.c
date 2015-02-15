@@ -21,11 +21,11 @@ usage(void)
 }
 
 static String*
-mktoken(int8_t *key, int32_t thetime)
+mktoken(char *key, int32_t thetime)
 {
-	int8_t *now;
+	char *now;
 	uint8_t digest[SHA1dlen];
-	int8_t token[64];
+	char token[64];
 	String *s;
 	
 	now = ctime(thetime);
@@ -38,13 +38,13 @@ mktoken(int8_t *key, int32_t thetime)
 	return s;
 }
 
-static int8_t*
-check_token(int8_t *key, int8_t *file)
+static char*
+check_token(char *key, char *file)
 {
 	String *s;
 	int32_t now;
 	int i;
-	int8_t buf[1024];
+	char buf[1024];
 	int fd;
 
 	fd = open(file, OREAD);
@@ -69,8 +69,8 @@ check_token(int8_t *key, int8_t *file)
 	return "no match";
 }
 
-static int8_t*
-create_token(int8_t *key)
+static char*
+create_token(char *key)
 {
 	String *s;
 

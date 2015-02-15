@@ -94,7 +94,7 @@ CIE image  Cal/ICC Cal/ICC          Cal/ICC          CalRGB/sRGB
  */
 
 typedef struct psdf_image_filter_name_s {
-    const int8_t *pname;
+    const char *pname;
     const stream_template *template;
     psdf_version min_version;
 } psdf_image_filter_name;
@@ -115,12 +115,12 @@ private const psdf_image_filter_name Mono_filters[] = {
 };
 
 typedef struct psdf_image_param_names_s {
-    const int8_t *ACSDict;	/* not used for mono */
-    const int8_t *Dict;
-    const int8_t *DownsampleType;
+    const char *ACSDict;	/* not used for mono */
+    const char *Dict;
+    const char *DownsampleType;
     float DownsampleThreshold_default;
     const psdf_image_filter_name *filter_names;
-    const int8_t *Filter;
+    const char *Filter;
     gs_param_item_t items[8];	/* AutoFilter (not used for mono), */
 				/* AntiAlias, */
 				/* Depth, Downsample, DownsampleThreshold, */
@@ -237,7 +237,7 @@ private const gs_param_item_t psdf_param_items[] = {
 /* -------- Get parameters -------- */
 
 private int
-psdf_write_name(gs_param_list *plist, const int8_t *key, const int8_t *str)
+psdf_write_name(gs_param_list *plist, const char *key, const char *str)
 {
     gs_param_string pstr;
 
@@ -246,7 +246,7 @@ psdf_write_name(gs_param_list *plist, const int8_t *key, const int8_t *str)
 }
 
 private int
-psdf_write_string_param(gs_param_list *plist, const int8_t *key,
+psdf_write_string_param(gs_param_list *plist, const char *key,
 			const gs_const_string *pstr)
 {
     gs_param_string ps;
@@ -427,8 +427,8 @@ psdf_read_string_param(gs_param_list *plist, const char *key,
  * we must cast the value both going in and coming out.
  */
 private int
-psdf_put_enum(gs_param_list *plist, const int8_t *key, int value,
-	      const int8_t *const pnames[], int *pecode)
+psdf_put_enum(gs_param_list *plist, const char *key, int value,
+	      const char *const pnames[], int *pecode)
 {
     *pecode = param_put_enum(plist, key, &value, pnames, *pecode);
     return value;

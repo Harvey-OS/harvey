@@ -32,7 +32,7 @@ nextID(void)
  */
 static int
 newthread(Proc *p, void (*f)(void *arg), void *arg, uint stacksize,
-	  int8_t *name, int grp)
+	  char *name, int grp)
 {
 	int id;
 	Thread *t;
@@ -81,7 +81,7 @@ threadcreate(void (*f)(void *arg), void *arg, uint stacksize)
  * running inside it.  Add the Proc to the global process list.
  */
 Proc*
-_newproc(void (*f)(void *arg), void *arg, uint stacksize, int8_t *name,
+_newproc(void (*f)(void *arg), void *arg, uint stacksize, char *name,
 	 int grp, int rforkflag)
 {
 	Proc *p;

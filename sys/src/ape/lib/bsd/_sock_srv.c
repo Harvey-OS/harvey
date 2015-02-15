@@ -24,9 +24,9 @@
 
 /* we can't avoid overrunning npath because we don't know how big it is. */
 void
-_sock_srvname(int8_t *npath, int8_t *path)
+_sock_srvname(char *npath, char *path)
 {
-	int8_t *p;
+	char *p;
 
 	strcpy(npath, "/srv/UD.");
 	p = strrchr(path, '/');
@@ -38,10 +38,10 @@ _sock_srvname(int8_t *npath, int8_t *path)
 }
 
 int
-_sock_srv(int8_t *path, int fd)
+_sock_srv(char *path, int fd)
 {
 	int sfd;
-	int8_t msg[8+256+1];
+	char msg[8+256+1];
 
 	/* change the path to something in srv */
 	_sock_srvname(msg, path);

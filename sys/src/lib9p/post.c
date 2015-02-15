@@ -17,7 +17,7 @@
 static void postproc(void*);
 
 void
-_postmountsrv(Srv *s, int8_t *name, int8_t *mtpt, int flag)
+_postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 {
 	int fd[2];
 

@@ -14,9 +14,9 @@
  */
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
-	int8_t pathname[512];
+	char pathname[512];
 
 	USED(argc, argv);
 	if(getwd(pathname, sizeof(pathname)) == 0) {

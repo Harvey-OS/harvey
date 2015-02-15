@@ -31,5 +31,5 @@
  */
 struct	sockaddr_un {
 	int16_t	sun_family;		/* AF_UNIX */
-	int8_t	sun_path[108];		/* path name (gag) */
+	char	sun_path[108];		/* path name (gag) */
 };

@@ -31,9 +31,9 @@ accept(int fd, void *a, int *alen)
 	int n, nfd, cfd;
 	Rock *r, *nr;
 	struct sockaddr_in *ip;
-	int8_t name[Ctlsize];
-	int8_t file[8+Ctlsize+1];
-	int8_t *net;
+	char name[Ctlsize];
+	char file[8+Ctlsize+1];
+	char *net;
 
 	r = _sock_findrock(fd, 0);
 	if(r == 0){

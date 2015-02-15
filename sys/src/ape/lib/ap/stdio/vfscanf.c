@@ -67,9 +67,9 @@ icvt_x,	0,	0,	0,	0,	0,	0,	0,	/*  x  y  z  {  |  }  ~ ^? */
 #define	wgetc(c, f, out)	if(width--==0) goto out; (c)=ngetc(f)
 #define	wungetc(c, f)		(++width, nungetc(c, f))
 static int nread, ncvt;
-static const int8_t *fmtp;
+static const char *fmtp;
 
-int vfscanf(FILE *f, const int8_t *s, va_list args){
+int vfscanf(FILE *f, const char *s, va_list args){
 	int c, width, type, store;
 	nread=0;
 	ncvt=0;
@@ -240,8 +240,8 @@ static int icvt_p(FILE *f, va_list *args, int store, int width, int type){
 }
 #define	NBUF	509
 static int icvt_f(FILE *f, va_list *args, int store, int width, int type){
-	int8_t buf[NBUF+1];
-	int8_t *s=buf;
+	char buf[NBUF+1];
+	char *s=buf;
 	int c, ndig=0, ndpt=0, nexp=1;
 	if(width<0 || NBUF<width) width=NBUF;	/* bug -- no limit specified in ansi */
 	do
@@ -290,8 +290,8 @@ Done:
 static int icvt_s(FILE *f, va_list *args, int store, int width, int type){
 #pragma ref type
 	int c, nn;
-	register int8_t *s;
-	if(store) s=va_arg(*args, int8_t *);
+	register char *s;
+	if(store) s=va_arg(*args, char *);
 	do
 		c=ngetc(f);
 	while(isspace(c));
@@ -318,8 +318,8 @@ Done:
 static int icvt_c(FILE *f, va_list *args, int store, int width, int type){
 #pragma ref type
 	int c;
-	register int8_t *s;
-	if(store) s=va_arg(*args, int8_t *);
+	register char *s;
+	if(store) s=va_arg(*args, char *);
 	if(width<0) width=1;
 	for(;;){
 		wgetc(c, f, Done);
@@ -329,7 +329,7 @@ static int icvt_c(FILE *f, va_list *args, int store, int width, int type){
 Done:
 	return 1;
 }
-static int match(int c, const int8_t *pat){
+static int match(int c, const char *pat){
 	int ok=1;
 	if(*pat=='^'){
 		ok=!ok;
@@ -350,13 +350,13 @@ static int match(int c, const int8_t *pat){
 static int icvt_sq(FILE *f, va_list *args, int store, int width, int type){
 #pragma ref type
 	int c, nn;
-	register int8_t *s;
-	register const int8_t *pat;
+	register char *s;
+	register const char *pat;
 	pat=++fmtp;
 	if(*fmtp=='^') fmtp++;
 	if(*fmtp!='\0') fmtp++;
 	while(*fmtp!='\0' && *fmtp!=']') fmtp++;
-	if(store) s=va_arg(*args, int8_t *);
+	if(store) s=va_arg(*args, char *);
 	nn=0;
 	for(;;){
 		wgetc(c, f, Done);

@@ -55,7 +55,7 @@ void	dofmtsize(Node*, Node*) ;
 typedef struct Btab Btab;
 struct Btab
 {
-	int8_t	*name;
+	char	*name;
 	void	(*fn)(Node*, Node*);
 } tab[] =
 {
@@ -96,7 +96,7 @@ struct Btab
 	0
 };
 
-int8_t vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ38";
+char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ38";
 
 void
 mkprint(Lsym *s)
@@ -197,8 +197,8 @@ newproc(Node *r, Node *args)
 {
 	int i;
 	Node res;
-	int8_t *p, *e;
-	int8_t *argv[Maxarg], buf[Strsize];
+	char *p, *e;
+	char *argv[Maxarg], buf[Strsize];
 
 	i = 1;
 	argv[0] = aout;
@@ -320,7 +320,7 @@ void
 status(Node *r, Node *args)
 {
 	Node res;
-	int8_t *p;
+	char *p;
 
 	USED(r);
 	if(args == 0)
@@ -426,7 +426,7 @@ void
 filepc(Node *r, Node *args)
 {
 	Node res;
-	int8_t *p, c;
+	char *p, c;
 
 	if(args == 0)
 		error("filepc(filename:line): arg count");
@@ -503,7 +503,7 @@ rc(Node *r, Node *args)
 {
 	Node res;
 	int pid;
-	int8_t *p, *q, *argv[4];
+	char *p, *q, *argv[4];
 	Waitmsg *w;
 
 	USED(r);
@@ -579,7 +579,7 @@ readfile(Node *r, Node *args)
 {
 	Node res;
 	int n, fd;
-	int8_t *buf;
+	char *buf;
 	Dir *db;
 
 	if(args == 0)
@@ -616,7 +616,7 @@ void
 getfile(Node *r, Node *args)
 {
 	int n;
-	int8_t *p;
+	char *p;
 	Node res;
 	String *s;
 	Biobuf *bp;
@@ -693,13 +693,13 @@ cvtatoi(Node *r, Node *args)
 	r->fmt = 'V';
 }
 
-static int8_t *fmtflags = "-0123456789. #,u";
-static int8_t *fmtverbs = "bdox";
+static char *fmtflags = "-0123456789. #,u";
+static char *fmtverbs = "bdox";
 
 static int
-acidfmt(int8_t *fmt, int8_t *buf, int blen)
+acidfmt(char *fmt, char *buf, int blen)
 {
-	int8_t *r, *w, *e;
+	char *r, *w, *e;
 	
 	w = buf;
 	e = buf+blen;
@@ -745,7 +745,7 @@ cvtitoa(Node *r, Node *args)
 	Node res;
 	Node *av[Maxarg];
 	int64_t ival;
-	int8_t buf[128], fmt[32];
+	char buf[128], fmt[32];
 
 	if(args == 0)
 err:
@@ -814,7 +814,7 @@ map(Node *r, Node *args)
 	int i;
 	Map *m;
 	List *l;
-	int8_t *ent;
+	char *ent;
 	Node *av[Maxarg], res;
 
 	na = 0;
@@ -925,7 +925,7 @@ strace(Node *r, Node *args)
 }
 
 void
-regerror(int8_t *msg)
+regerror(char *msg)
 {
 	error(msg);
 }
@@ -970,17 +970,17 @@ fmt(Node *r, Node *args)
 		error("fmt(obj, fmt): arg count");
 	expr(av[1], &res);
 	if(res.type != TINT || strchr(vfmt, res.ival) == 0)
-		error("fmt(obj, fmt): bad format '%c'", (int8_t)res.ival);
+		error("fmt(obj, fmt): bad format '%c'", (char)res.ival);
 	expr(av[0], r);
 	r->fmt = res.ival;
 }
 
 void
-patom(int8_t type, Store *res)
+patom(char type, Store *res)
 {
 	int i;
-	int8_t buf[512];
-	extern int8_t *typenames[];
+	char buf[512];
+	extern char *typenames[];
 
 	switch(res->fmt) {
 	case 'c':
@@ -1233,7 +1233,7 @@ void
 pcfile(Node *r, Node *args)
 {
 	Node res;
-	int8_t *p, buf[128];
+	char *p, buf[128];
 
 	if(args == 0)
 		error("pcfile(addr): arg count");
@@ -1258,7 +1258,7 @@ void
 pcline(Node *r, Node *args)
 {
 	Node res;
-	int8_t *p, buf[128];
+	char *p, buf[128];
 
 	if(args == 0)
 		error("pcline(addr): arg count");

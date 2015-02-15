@@ -72,10 +72,10 @@
 #if defined(__DLL__) && defined( __EMX__)
 /* This isn't provided in any of the libraries */
 /* We set this to the process environment in gp_init */
-int8_t *fake_environ[3] =
+char *fake_environ[3] =
 {"", NULL, NULL};
-int8_t **environ = fake_environ;
-int8_t **_environ = fake_environ;
+char **environ = fake_environ;
+char **_environ = fake_environ;
 HWND hwndtext = (HWND) NULL;
 
 #endif
@@ -92,14 +92,14 @@ extern jmp_buf gsdll_env;
 #else
 #define isos2 (_osmode == OS2_MODE)
 #endif
-int8_t pm_prntmp[256];		/* filename of printer spool temporary file */
+char pm_prntmp[256];		/* filename of printer spool temporary file */
 
 
 /* ------ Miscellaneous ------ */
 
 /* Get the string corresponding to an OS error number. */
 /* All reasonable compilers support it. */
-const int8_t *
+const char *
 gp_strerror(int errnum)
 {
     return strerror(errnum);
@@ -187,24 +187,24 @@ int gp_cache_query(int type, byte* key, int keylen, void **buffer,
 /* ------ File naming and accessing ------ */
 
 /* Define the character used for separating file names in a list. */
-const int8_t gp_file_name_list_separator = ';';
+const char gp_file_name_list_separator = ';';
 
 /* Define the default scratch file name prefix. */
-const int8_t gp_scratch_file_name_prefix[] = "gs";
+const char gp_scratch_file_name_prefix[] = "gs";
 
 /* Define the name of the null output file. */
-const int8_t gp_null_file_name[] = "nul";
+const char gp_null_file_name[] = "nul";
 
 /* Define the name that designates the current directory. */
-const int8_t gp_current_directory_name[] = ".";
+const char gp_current_directory_name[] = ".";
 
 /* Define the string to be concatenated with the file mode */
 /* for opening files without end-of-line conversion. */
-const int8_t gp_fmode_binary_suffix[] = "b";
+const char gp_fmode_binary_suffix[] = "b";
 
 /* Define the file modes for binary reading or writing. */
-const int8_t gp_fmode_rb[] = "rb";
-const int8_t gp_fmode_wb[] = "wb";
+const char gp_fmode_rb[] = "rb";
+const char gp_fmode_wb[] = "wb";
 
 /* ------ File enumeration ------ */
 
@@ -212,7 +212,7 @@ const int8_t gp_fmode_wb[] = "wb";
 struct file_enum_s {
     FILEFINDBUF3 findbuf;
     HDIR hdir;
-    int8_t *pattern;
+    char *pattern;
     int patlen;			/* orig pattern length */
     int pat_size;		/* allocate space for pattern */
     int head_size;		/* pattern length through last */
@@ -225,11 +225,11 @@ gs_private_st_ptrs1(st_file_enum, struct file_enum_s, "file_enum",
 
 /* Initialize an enumeration.  may NEED WORK ON HANDLING * ? \. */
 file_enum *
-gp_enumerate_files_init(const int8_t *pat, uint patlen, gs_memory_t * mem)
+gp_enumerate_files_init(const char *pat, uint patlen, gs_memory_t * mem)
 {
     file_enum *pfen = gs_alloc_struct(mem, file_enum, &st_file_enum, "gp_enumerate_files");
     int pat_size = 2 * patlen + 1;
-    int8_t *pattern;
+    char *pattern;
     int hsize = 0;
     int i;
 
@@ -239,7 +239,7 @@ gp_enumerate_files_init(const int8_t *pat, uint patlen, gs_memory_t * mem)
     /* pattern could be allocated as a string, */
     /* but it's simpler for GC and freeing to allocate it as bytes. */
 
-    pattern = (int8_t *)gs_alloc_bytes(mem, pat_size,
+    pattern = (char *)gs_alloc_bytes(mem, pat_size,
 				     "gp_enumerate_files(pattern)");
     if (pattern == 0)
 	return 0;
@@ -269,7 +269,7 @@ gp_enumerate_files_init(const int8_t *pat, uint patlen, gs_memory_t * mem)
 
 /* Enumerate the next file. */
 uint
-gp_enumerate_files_next(file_enum * pfen, int8_t *ptr, uint maxlen)
+gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen)
 {
     APIRET rc;
     ULONG cFilenames = 1;
@@ -277,7 +277,7 @@ gp_enumerate_files_next(file_enum * pfen, int8_t *ptr, uint maxlen)
     if (!isos2) {
 	/* CAN'T DO IT SO JUST RETURN THE PATTERN. */
 	if (pfen->first_time) {
-	    int8_t *pattern = pfen->pattern;
+	    char *pattern = pfen->pattern;
 	    uint len = strlen(pattern);
 
 	    pfen->first_time = 0;
@@ -350,13 +350,13 @@ gp_init(void)
     PTIB pptib;
     PPIB pppib;
     int i;
-    int8_t *p;
+    char *p;
 
     /* get environment of EXE */
     DosGetInfoBlocks(&pptib, &pppib);
     for (i = 0, p = pppib->pib_pchenv; *p; p += strlen(p) + 1)
 	i++;
-    _environ = environ = (int8_t **)malloc((i + 2) * sizeof(int8_t *));
+    _environ = environ = (char **)malloc((i + 2) * sizeof(char *));
 
     for (i = 0, p = pppib->pib_pchenv; *p; p += strlen(p) + 1) {
 	environ[i] = p;
@@ -407,7 +407,7 @@ gp_do_exit(int exit_status)
 }
 
 /* ------ Printer accessing ------ */
-private int is_os2_spool(const int8_t *queue);
+private int is_os2_spool(const char *queue);
 
 /* Put a printer file (which might be stdout) into binary or text mode. */
 /* This is not a standard gp procedure, */
@@ -446,7 +446,7 @@ gp_set_file_binary(int prnfno, int binary)
  *   "port"            open port using fopen()
  */
 FILE *
-gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
+gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 {
     FILE *pfile;
 
@@ -475,7 +475,7 @@ gp_open_printer(int8_t fname[gp_file_name_sizeof], int binary_mode)
 
 /* Close the connection to the printer. */
 void
-gp_close_printer(FILE * pfile, const int8_t *fname)
+gp_close_printer(FILE * pfile, const char *fname)
 {
     if (isos2 && (fname[0] == '|'))
 	pclose(pfile);
@@ -509,7 +509,7 @@ gp_setmode_binary(FILE * pfile, bool binary)
 /* If queue_name supplied, return driver_name */
 /* returns 0 if OK, non-zero for error */
 int
-pm_find_queue(int8_t *queue_name, int8_t *driver_name)
+pm_find_queue(char *queue_name, char *driver_name)
 {
     SPLERR splerr;
     USHORT jobCount;
@@ -548,7 +548,7 @@ pm_find_queue(int8_t *queue_name, int8_t *driver_name)
 				strcpy(queue_name, prq->pszName);
 			}
 			if (strcmp(prq->pszName, queue_name) == 0) {
-			    int8_t *p;
+			    char *p;
 
 			    for (p = prq->pszDriverName; *p && (*p != '.'); p++)
 				/* do nothing */ ;
@@ -587,9 +587,9 @@ pm_find_queue(int8_t *queue_name, int8_t *driver_name)
 
 /* return TRUE if queue looks like a valid OS/2 queue name */
 private int
-is_os2_spool(const int8_t *queue)
+is_os2_spool(const char *queue)
 {
-    int8_t *prefix = "\\\\spool\\";	/* 8 characters long */
+    char *prefix = "\\\\spool\\";	/* 8 characters long */
     int i;
 
     for (i = 0; i < 8; i++) {
@@ -609,16 +609,16 @@ is_os2_spool(const int8_t *queue)
 /* return 0 if successful, non-zero if error */
 /* if filename is NULL, return 0 if spool queue is valid, non-zero if error */
 int
-pm_spool(int8_t *filename, const int8_t *queue)
+pm_spool(char *filename, const char *queue)
 {
     HSPL hspl;
     PDEVOPENSTRUC pdata;
     PSZ pszToken = "*";
     ULONG jobid;
     BOOL rc;
-    int8_t queue_name[256];
-    int8_t driver_name[256];
-    int8_t *buffer;
+    char queue_name[256];
+    char driver_name[256];
+    char *buffer;
     FILE *f;
     int count;
 
@@ -639,7 +639,7 @@ pm_spool(int8_t *filename, const int8_t *queue)
 	return 0;		/* we were only asked to check the queue */
 
 
-    if ((buffer = malloc(PRINT_BUF_SIZE)) == (int8_t *)NULL) {
+    if ((buffer = malloc(PRINT_BUF_SIZE)) == (char *)NULL) {
 	eprintf("Out of memory in pm_spool\n");
 	return 1;
     }
@@ -706,13 +706,13 @@ pm_spool(int8_t *filename, const int8_t *queue)
 /* Create and open a scratch file with a given name prefix. */
 /* Write the actual file name at fname. */
 FILE *
-gp_open_scratch_file(const int8_t *prefix, int8_t fname[gp_file_name_sizeof],
-		     const int8_t *mode)
+gp_open_scratch_file(const char *prefix, char fname[gp_file_name_sizeof],
+		     const char *mode)
 {
     FILE *f;
 #ifdef __IBMC__
-    int8_t *temp = 0;
-    int8_t *tname;
+    char *temp = 0;
+    char *tname;
     int prefix_length = strlen(prefix);
 
     if (!gp_file_name_is_absolute(prefix, prefix_length)) {
@@ -721,7 +721,7 @@ gp_open_scratch_file(const int8_t *prefix, int8_t fname[gp_file_name_sizeof],
 	    temp = getenv("TEMP");
     }
     *fname = 0;
-    tname = _tempnam(temp, (int8_t *)prefix);
+    tname = _tempnam(temp, (char *)prefix);
     if (tname) {
 	if (strlen(tname) > gp_file_name_sizeof - 1) {
 	    free(tname);
@@ -739,8 +739,8 @@ gp_open_scratch_file(const int8_t *prefix, int8_t fname[gp_file_name_sizeof],
 	gp_gettmpdir(fname, &len) != 0)
 	*fname = 0;
     else {
-	int8_t last = '\\';
-	int8_t *temp;
+	char last = '\\';
+	char *temp;
 
 	/* Prevent X's in path from being converted by mktemp. */
 	for (temp = fname; *temp; temp++)
@@ -767,14 +767,14 @@ gp_open_scratch_file(const int8_t *prefix, int8_t fname[gp_file_name_sizeof],
 
 /* Open a file with the given name, as a stream of uninterpreted bytes. */
 FILE *
-gp_fopen(const int8_t *fname, const int8_t *mode)
+gp_fopen(const char *fname, const char *mode)
 {
     return fopen(fname, mode);
 }
 
 /* -------------- Helpers for gp_file_name_combine_generic ------------- */
 
-uint gp_file_name_root(const int8_t *fname, uint len)
+uint gp_file_name_root(const char *fname, uint len)
 {   int i = 0;
     
     if (len == 0)
@@ -799,8 +799,8 @@ uint gp_file_name_root(const int8_t *fname, uint len)
     return i;
 }
 
-uint gs_file_name_check_separator(const int8_t *fname, int len,
-                                  const int8_t *item)
+uint gs_file_name_check_separator(const char *fname, int len,
+                                  const char *item)
 {   if (len > 0) {
 	if (fname[0] == '/' || fname[0] == '\\')
 	    return 1;
@@ -811,27 +811,27 @@ uint gs_file_name_check_separator(const int8_t *fname, int len,
     return 0;
 }
 
-bool gp_file_name_is_parent(const int8_t *fname, uint len)
+bool gp_file_name_is_parent(const char *fname, uint len)
 {   return len == 2 && fname[0] == '.' && fname[1] == '.';
 }
 
-bool gp_file_name_is_current(const int8_t *fname, uint len)
+bool gp_file_name_is_current(const char *fname, uint len)
 {   return len == 1 && fname[0] == '.';
 }
 
-const int8_t *gp_file_name_separator(void)
+const char *gp_file_name_separator(void)
 {   return "/";
 }
 
-const int8_t *gp_file_name_directory_separator(void)
+const char *gp_file_name_directory_separator(void)
 {   return "/";
 }
 
-const int8_t *gp_file_name_parent(void)
+const char *gp_file_name_parent(void)
 {   return "..";
 }
 
-const int8_t *gp_file_name_current(void)
+const char *gp_file_name_current(void)
 {   return ".";
 }
 
@@ -844,9 +844,9 @@ bool gp_file_name_is_empty_item_meanful(void)
 }
 
 gp_file_name_combine_result
-gp_file_name_combine(const int8_t *prefix, uint plen, const int8_t *fname,
+gp_file_name_combine(const char *prefix, uint plen, const char *fname,
                      uint flen, 
-		    bool no_sibling, int8_t *buffer, uint *blen)
+		    bool no_sibling, char *buffer, uint *blen)
 {
     return gp_file_name_combine_generic(prefix, plen, 
 	    fname, flen, no_sibling, buffer, blen);
@@ -864,8 +864,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, int8_t **fontname,
-                            int8_t **path)
+int gp_enumerate_fonts_next(void *enum_state, char **fontname,
+                            char **path)
 {
     return 0;
 }

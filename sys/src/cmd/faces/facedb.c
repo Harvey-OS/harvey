@@ -22,16 +22,16 @@ enum	/* number of deleted faces to cache */
 
 static Facefile	*facefiles;
 static int		nsaved;
-static int8_t	*facedom;
-static int8_t *homeface;
+static char	*facedom;
+static char *homeface;
 
 /*
  * Loading the files is slow enough on a dial-up line to be worth this trouble
  */
 typedef struct Readcache	Readcache;
 struct Readcache {
-	int8_t *file;
-	int8_t *data;
+	char *file;
+	char *data;
 	int32_t mtime;
 	int32_t rdtime;
 	Readcache *next;
@@ -40,7 +40,7 @@ struct Readcache {
 static Readcache *rcache;
 
 uint32_t
-dirlen(int8_t *s)
+dirlen(char *s)
 {
 	Dir *d;
 	uint32_t len;
@@ -54,7 +54,7 @@ dirlen(int8_t *s)
 }
 
 uint32_t
-dirmtime(int8_t *s)
+dirmtime(char *s)
 {
 	Dir *d;
 	uint32_t t;
@@ -67,10 +67,10 @@ dirmtime(int8_t *s)
 	return t;
 }
 
-static int8_t*
-doreadfile(int8_t *s)
+static char*
+doreadfile(char *s)
 {
-	int8_t *p;
+	char *p;
 	int fd, n;
 	uint32_t len;
 
@@ -93,11 +93,11 @@ doreadfile(int8_t *s)
 	return p;
 }
 
-static int8_t*
-readfile(int8_t *s)
+static char*
+readfile(char *s)
 {
 	Readcache *r, **l;
-	int8_t *p;
+	char *p;
 	uint32_t mtime;
 
 	for(l=&rcache, r=*l; r; l=&r->next, r=*l) {
@@ -143,12 +143,12 @@ readfile(int8_t *s)
 	return strdup(r->data);
 }
 
-static int8_t*
-translatedomain(int8_t *dom, int8_t *list)
+static char*
+translatedomain(char *dom, char *list)
 {
-	static int8_t buf[200];
-	int8_t *p, *ep, *q, *nextp, *file;
-	int8_t *bbuf, *ebuf;
+	static char buf[200];
+	char *p, *ep, *q, *nextp, *file;
+	char *bbuf, *ebuf;
 	Reprog *exp;
 
 	if(dom == nil || *dom == 0)
@@ -203,11 +203,11 @@ translatedomain(int8_t *dom, int8_t *list)
 	return dom;
 }
 
-static int8_t*
-tryfindpicture(int8_t *dom, int8_t *user, int8_t *dir, int8_t *dict)
+static char*
+tryfindpicture(char *dom, char *user, char *dir, char *dict)
 {
-	static int8_t buf[1024];
-	int8_t *file, *p, *nextp, *q;
+	static char buf[1024];
+	char *file, *p, *nextp, *q;
 	
 	if((file = readfile(dict)) == nil)
 		return nil;
@@ -236,10 +236,10 @@ tryfindpicture(int8_t *dom, int8_t *user, int8_t *dir, int8_t *dict)
 	return nil;
 }
 
-static int8_t*
-estrstrdup(int8_t *a, int8_t *b)
+static char*
+estrstrdup(char *a, char *b)
 {
-	int8_t *t;
+	char *t;
 	
 	t = emalloc(strlen(a)+strlen(b)+1);
 	strcpy(t, a);
@@ -247,10 +247,10 @@ estrstrdup(int8_t *a, int8_t *b)
 	return t;
 }
 
-static int8_t*
-tryfindfiledir(int8_t *dom, int8_t *user, int8_t *dir)
+static char*
+tryfindfiledir(char *dom, char *user, char *dir)
 {
-	int8_t *dict, *ndir, *x;
+	char *dict, *ndir, *x;
 	int fd;
 	int i, n;
 	Dir *d;
@@ -320,10 +320,10 @@ tryfindfiledir(int8_t *dom, int8_t *user, int8_t *dir)
 	return nil;
 }
 
-static int8_t*
-tryfindfile(int8_t *dom, int8_t *user)
+static char*
+tryfindfile(char *dom, char *user)
 {
-	int8_t *p;
+	char *p;
 
 	while(dom && *dom){
 		if(homeface && (p = tryfindfiledir(dom, user, homeface)) != nil)
@@ -337,10 +337,10 @@ tryfindfile(int8_t *dom, int8_t *user)
 	return nil;
 }
 
-int8_t*
-findfile(Face *f, int8_t *dom, int8_t *user)
+char*
+findfile(Face *f, char *dom, char *user)
 {
-	int8_t *p;
+	char *p;
 
 	if(facedom == nil){
 		facedom = getenv("facedom");
@@ -412,7 +412,7 @@ myallocimage(uint32_t chan)
 static Image*
 readbit(int fd, uint32_t chan)
 {
-	int8_t buf[4096], hx[4], *p;
+	char buf[4096], hx[4], *p;
 	uint8_t data[Facesize*Facesize];	/* more than enough */
 	int nhx, i, n, ndata, nbit;
 	Image *img;
@@ -455,14 +455,14 @@ readbit(int fd, uint32_t chan)
 }
 
 static Facefile*
-readface(int8_t *fn)
+readface(char *fn)
 {
 	int x, y, fd;
 	uint8_t bits;
 	uint8_t *p;
 	Image *mask;
 	Image *face;
-	int8_t buf[16];
+	char buf[16];
 	uint8_t data[Facesize*Facesize];
 	uint8_t mdata[(Facesize*Facesize)/8];
 	Facefile *f;
@@ -567,7 +567,7 @@ Done:
 void
 findbit(Face *f)
 {
-	int8_t *fn;
+	char *fn;
 
 	fn = findfile(f, f->str[Sdomain], f->str[Suser]);
 	if(fn) {

@@ -16,9 +16,9 @@
 #include "rsa2any.h"
 
 RSApriv*
-getkey(int argc, int8_t **argv, int needprivate, Attr **pa)
+getkey(int argc, char **argv, int needprivate, Attr **pa)
 {
-	int8_t *file, *s, *p;
+	char *file, *s, *p;
 	int sz;
 	RSApriv *key;
 	Biobuf *b;
@@ -168,9 +168,9 @@ call:
 }
 
 DSApriv*
-getdsakey(int argc, int8_t **argv, int needprivate, Attr **pa)
+getdsakey(int argc, char **argv, int needprivate, Attr **pa)
 {
-	int8_t *file, *s, *p;
+	char *file, *s, *p;
 	DSApriv *key;
 	Biobuf *b;
 	Attr *a;
@@ -283,7 +283,7 @@ putn(uint8_t *p, void *v, uint n)
 }
 
 uint8_t*
-putstr(uint8_t *p, int8_t *s)
+putstr(uint8_t *p, char *s)
 {
 	p = put4(p, strlen(s));
 	p = putn(p, s, strlen(s));

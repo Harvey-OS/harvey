@@ -106,7 +106,7 @@ doredir(redir *rp)
 }
 
 word*
-searchpath(int8_t *w)
+searchpath(char *w)
 {
 	word *path;
 	if(strncmp(w, "/", 1)==0
@@ -146,7 +146,7 @@ execfunc(var *func)
 }
 
 int
-dochdir(int8_t *word)
+dochdir(char *word)
 {
 	/* report to /dev/wdir if it exists and we're interactive */
 	static int wdirfd = -2;
@@ -162,11 +162,11 @@ dochdir(int8_t *word)
 	return 1;
 }
 
-static int8_t *
-appfile(int8_t *dir, int8_t *comp)
+static char *
+appfile(char *dir, char *comp)
 {
 	int dirlen, complen;
-	int8_t *s, *p;
+	char *s, *p;
 
 	dirlen = strlen(dir);
 	complen = strlen(comp);
@@ -184,7 +184,7 @@ execcd(void)
 {
 	word *a = runq->argv->words;
 	word *cdpath;
-	int8_t *dir;
+	char *dir;
 
 	setstatus("can't cd");
 	cdpath = vlook("cdpath")->val;
@@ -264,7 +264,7 @@ execshift(void)
 	for(;n && star->val;--n){
 		a = star->val->next;
 		efree(star->val->word);
-		efree((int8_t *)star->val);
+		efree((char *)star->val);
 		star->val = a;
 		star->changed = 1;
 	}
@@ -273,7 +273,7 @@ execshift(void)
 }
 
 int
-octal(int8_t *s)
+octal(char *s)
 {
 	int n = 0;
 	while(*s==' ' || *s=='\t' || *s=='\n') s++;
@@ -320,7 +320,7 @@ execcmds(io *f)
 void
 execeval(void)
 {
-	int8_t *cmdline, *s, *t;
+	char *cmdline, *s, *t;
 	int len = 0;
 	word *ap;
 	if(count(runq->argv->words)<=1){
@@ -350,7 +350,7 @@ execdot(void)
 	int fd;
 	list *av;
 	thread *p = runq;
-	int8_t *zero, *file;
+	char *zero, *file;
 	word *path;
 	static int first = 1;
 
@@ -420,7 +420,7 @@ execdot(void)
 	/* free caller's copy of $* */
 	av = p->argv;
 	p->argv = av->next;
-	efree((int8_t *)av);
+	efree((char *)av);
 	/* push $0 value */
 	pushlist();
 	pushword(zero);
@@ -430,7 +430,7 @@ execdot(void)
 void
 execflag(void)
 {
-	int8_t *letter, *val;
+	char *letter, *val;
 	switch(count(runq->argv->words)){
 	case 2:
 		setstatus(flag[(uint8_t)runq->argv->words->next->word[0]]?"":"flag not set");
@@ -460,7 +460,7 @@ execwhatis(void){	/* mildly wrong -- should fork before writing */
 	word *a, *b, *path;
 	var *v;
 	struct builtin *bp;
-	int8_t *file;
+	char *file;
 	struct io out[1];
 	int found, sep;
 	a = runq->argv->words->next;

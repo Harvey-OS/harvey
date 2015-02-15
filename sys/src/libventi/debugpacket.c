@@ -17,7 +17,7 @@
 
 struct Packet
 {
-	int8_t *data;
+	char *data;
 	int len;
 	void (*free)(void*);
 	void *arg;
@@ -142,7 +142,7 @@ packetforeign(uint8_t *buf, int n, void (*free)(void*), void *a)
 	if(n < 0)
 		abort();
 	p = packetalloc();
-	p->data = (int8_t*)buf;
+	p->data = (char*)buf;
 	p->len = n;
 	p->free = free;
 	p->arg = a;

@@ -510,7 +510,7 @@ struct Ctlrtype {
 	int	type;
 	int	mtu;
 	int	flag;
-	int8_t	*name;
+	char	*name;
 };
 
 static Ctlrtype cttab[Nctlrtype] = {
@@ -609,7 +609,7 @@ static Lock i82563rblock;		/* free receive Blocks */
 static Block* i82563rbpool;
 
 
-static int8_t *statistics[Nstatistics] = {
+static char *statistics[Nstatistics] = {
 	"CRC Error",
 	"Alignment Error",
 	"Symbol Error",
@@ -685,7 +685,7 @@ static int8_t *statistics[Nstatistics] = {
 	"Interrupt Rx Overrun",
 };
 
-static int8_t*
+static char*
 cname(Ctlr* c)
 {
 	if (c->type == Iany)
@@ -697,7 +697,7 @@ static int32_t
 i82563ifstat(Ether *edev, void *a, int32_t n, uint32_t offset)
 {
 	Ctlr *ctlr;
-	int8_t *s, *p, *e, *stat;
+	char *s, *p, *e, *stat;
 	int i, r;
 	uint64_t tuvl, ruvl;
 
@@ -1421,7 +1421,7 @@ i82563tproc(void *v)
 static void
 i82563attach(Ether* edev)
 {
-	int8_t name[KNAMELEN];
+	char name[KNAMELEN];
 	Block *bp;
 	Ctlr *ctlr;
 
@@ -1806,7 +1806,7 @@ static Cmdtab i82563ctlmsg[] = {
 static int32_t
 i82563ctl(Ether *edev, void *buf, int32_t n)
 {
-	int8_t *p;
+	char *p;
 	uint32_t v;
 	Ctlr *ctlr;
 	Cmdbuf *cb;

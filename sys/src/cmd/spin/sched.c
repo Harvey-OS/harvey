@@ -23,7 +23,7 @@
 #include "y.tab.h"
 
 extern int	verbose, s_trail, analyze, no_wrapup;
-extern int8_t	*claimproc, *eventmap, Buf[];
+extern char	*claimproc, *eventmap, Buf[];
 extern Ordered	*all_names;
 extern Symbol	*Fname, *context;
 extern int	lineno, nr_errs, dumptab, xspin, jumpsteps, columns;
@@ -135,10 +135,10 @@ formdump(void)
 }
 
 void
-announce(int8_t *w)
+announce(char *w)
 {
 	if (columns)
-	{	extern int8_t Buf[];
+	{	extern char Buf[];
 		extern int firstrow;
 		firstrow = 1;
 		if (columns == 2)
@@ -188,7 +188,7 @@ enable(Lextok *m)
 				break;
 			}
 			runnable(p, m->val, 0);
-			announce((int8_t *) 0);
+			announce((char *) 0);
 			setparams(run, p, n);
 			setlocals(run); /* after setparams */
 			return run->pid - Have_claim + Skip_claim; /* effective simu pid */
@@ -241,7 +241,7 @@ start_claim(int n)
 found:
 	/* move claim to far end of runlist, and reassign it pid 0 */
 	if (columns == 2)
-	{	extern int8_t Buf[];
+	{	extern char Buf[];
 		depth = 0;
 		sprintf(Buf, "%d:%s", 0, p->n->name);
 		pstext(0, Buf);
@@ -266,7 +266,7 @@ done:
 }
 
 int
-f_pid(int8_t *n)
+f_pid(char *n)
 {	RunList *r;
 	int rval = -1;
 
@@ -314,7 +314,7 @@ short_cut:
 	if (fini)  alldone(1);
 }
 
-static int8_t is_blocked[256];
+static char is_blocked[256];
 
 static int
 p_blocked(int p)
@@ -367,7 +367,7 @@ pickproc(RunList *Y)
 	if (!interactive || depth < jumpsteps)
 	{	/* was: j = (int) Rand()%(nproc-nstop); */
 		if (Priority_Sum < nproc-nstop)
-			fatal("cannot happen - weights", (int8_t *)0);
+			fatal("cannot happen - weights", (char *)0);
 		j = (int) Rand()%Priority_Sum;
 
 		while (j - X->priority >= 0)
@@ -477,7 +477,7 @@ try_more:	for (X = run, k = 1; X; X = X->nxt)
 		{	printf("%d\n", only_choice);
 			j = only_choice;
 		} else
-		{	int8_t buf[256];
+		{	char buf[256];
 			fflush(stdout);
 			if (scanf("%64s", buf) == 0)
 			{	printf("\tno input\n");
@@ -639,7 +639,7 @@ sched(void)
 		{	depth--;
 			if (oX->pc && (oX->pc->status & D_ATOM))
 			{	non_fatal("stmnt in d_step blocks",
-					   (int8_t *)0);
+					   (char *)0);
 			}
 			if (X->pc
 			&&  X->pc->n
@@ -691,7 +691,7 @@ complete_rendez(void)
 	if (s_trail)
 		return 1;
 	if (orun->pc->status & D_ATOM)
-		fatal("rv-attempt in d_step sequence", (int8_t *)0);
+		fatal("rv-attempt in d_step sequence", (char *)0);
 	Rvous = 1;
 	interactive = 0;
 
@@ -750,7 +750,7 @@ addsymbol(RunList *r, Symbol  *s)
 	for (t = r->symtab; t; t = t->next)
 		if (strcmp(t->name, s->name) == 0
 		&& (old_scope_rules
-		 || strcmp((const int8_t *)t->bscp, (const int8_t *)s->bscp) == 0))
+		 || strcmp((const char *)t->bscp, (const char *)s->bscp) == 0))
 			return;		/* it's already there */
 
 	t = (Symbol *) emalloc(sizeof(Symbol));
@@ -763,8 +763,8 @@ addsymbol(RunList *r, Symbol  *s)
 	t->setat = depth;
 	t->context = r->n;
 
-	t->bscp  = (unsigned char *) emalloc(strlen((const int8_t *)s->bscp)+1);
-	strcpy((int8_t *)t->bscp, (const int8_t *)s->bscp);
+	t->bscp  = (unsigned char *) emalloc(strlen((const char *)s->bscp)+1);
+	strcpy((char *)t->bscp, (const char *)s->bscp);
 
 	if (s->type != STRUCT)
 	{	if (s->val)	/* if already initialized, copy info */
@@ -831,7 +831,7 @@ oneparam(RunList *r, Lextok *t, Lextok *a, ProcList *p)
 	ft = Sym_typ(t);
 
 	if (at != ft && (at == CHAN || ft == CHAN))
-	{	int8_t buf[256], tag1[64], tag2[64];
+	{	char buf[256], tag1[64], tag2[64];
 		(void) sputtype(tag1, ft);
 		(void) sputtype(tag2, at);
 		sprintf(buf, "type-clash in params of %s(..), (%s<-> %s)",
@@ -873,7 +873,7 @@ findloc(Symbol *s)
 	}
 	for (r = X->symtab; r; r = r->next)
 		if (strcmp(r->name, s->name) == 0
-		&& (old_scope_rules || strcmp((const int8_t *)r->bscp, (const int8_t *)s->bscp) == 0))
+		&& (old_scope_rules || strcmp((const char *)r->bscp, (const char *)s->bscp) == 0))
 			break;
 	if (!r)
 	{	addsymbol(X, s);
@@ -959,7 +959,7 @@ talk(RunList *r)
 void
 p_talk(Element *e, int lnr)
 {	static int lastnever = -1;
-	static int8_t nbuf[128];
+	static char nbuf[128];
 	int newnever = -1;
 
 	if (e && e->n)
@@ -984,8 +984,8 @@ p_talk(Element *e, int lnr)
 	whoruns(lnr);
 	if (e)
 	{	if (e->n)
-		{	int8_t *ptr = e->n->fn->name;
-			int8_t *qtr = nbuf;
+		{	char *ptr = e->n->fn->name;
+			char *qtr = nbuf;
 			while (*ptr != '\0')
 			{	if (*ptr != '"')
 				{	*qtr++ = *ptr;

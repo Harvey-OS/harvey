@@ -31,10 +31,10 @@ enum {
 };
 
 
-int8_t *dir = "/tmp";	/* directory sample files live in */
-int8_t *logfile = "timesync";
-int8_t *timeserver;
-int8_t *Rootid;
+char *dir = "/tmp";	/* directory sample files live in */
+char *logfile = "timesync";
+char *timeserver;
+char *Rootid;
 int utcfil;
 int gpsfil;
 int debug;
@@ -51,7 +51,7 @@ int64_t mydelay, rootdelay;
 int64_t avgdelay;
 int64_t lastutc;
 uint8_t rootid[4];
-int8_t *sysid;
+char *sysid;
 int myprec;
 
 /* list of time samples */
@@ -88,7 +88,7 @@ typedef struct NTPserver NTPserver;
 struct NTPserver
 {
 	NTPserver *next;
-	int8_t	*name;
+	char	*name;
 	uint8_t	stratum;
 	uint8_t	precision;
 	int64_t	rootdelay;
@@ -108,7 +108,7 @@ enum
 /* error bound of last sample */
 ulong	ε;
 
-static void	addntpserver(int8_t *name);
+static void	addntpserver(char *name);
 static int	adjustperiod(int64_t diff, int64_t accuracy, int secs);
 static void	background(void);
 static int	caperror(int64_t dhz, int tsecs, int64_t taccuracy);
@@ -121,7 +121,7 @@ static void	hnputts(void *p, int64_t nsec);
 static void	inittime(void);
 static int64_t	nhgetts(void *p);
 static int64_t	nhgetts(void *p);
-static void	ntpserver(int8_t*);
+static void	ntpserver(char*);
 static int64_t	ntpsample(void);
 static int	ntptimediff(NTPserver *ns);
 static int	openfreqfile(void);
@@ -130,7 +130,7 @@ static int64_t	readfreqfile(int fd, int64_t ohz, int64_t minhz,
 static int32_t	rtctime(void);
 static int64_t	sample(int32_t (*get)(void));
 static void	setpriority(void);
-static void	setrootid(int8_t *d);
+static void	setrootid(char *d);
 static void	settime(int64_t now, uint64_t hz, int64_t delta, int n); /* set time, hz, delta, period */
 static int64_t	utcsample(void);
 static uint64_t	vabs(int64_t);
@@ -700,7 +700,7 @@ gettime(int64_t *nsec, uint64_t *ticks, uint64_t *hz)
 {
 	int i, n;
 	uint8_t ub[3*8], *p;
-	int8_t b[2*24+1];
+	char b[2*24+1];
 
 	switch(ifc){
 	case Ibintime:
@@ -831,7 +831,7 @@ static void
 setpriority(void)
 {
 	int fd;
-	int8_t buf[32];
+	char buf[32];
 
 	sprint(buf, "/proc/%d/ctl", getpid());
 	fd = open(buf, ORDWR);
@@ -912,11 +912,11 @@ nhgetfp(void *p)
 
 /* get network address of the server */
 static void
-setrootid(int8_t *d)
+setrootid(char *d)
 {
-	int8_t buf[128];
+	char buf[128];
 	int fd, n;
-	int8_t *p;
+	char *p;
 
 	snprint(buf, sizeof buf, "%s/remote", d);
 	fd = open(buf, OREAD);
@@ -933,7 +933,7 @@ setrootid(int8_t *d)
 }
 
 static void
-ding(void*, int8_t *s)
+ding(void*, char *s)
 {
 	if(strstr(s, "alarm") != nil)
 		noted(NCONT);
@@ -941,7 +941,7 @@ ding(void*, int8_t *s)
 }
 
 static void
-addntpserver(int8_t *name)
+addntpserver(char *name)
 {
 	NTPserver *ns, **l;
 
@@ -965,7 +965,7 @@ ntptimediff(NTPserver *ns)
 	int fd, tries, n;
 	NTPpkt ntpin, ntpout;
 	int64_t dt, recvts, origts, xmitts, destts, x;
-	int8_t dir[64];
+	char dir[64];
 	static int whined;
 
 	notify(ding);
@@ -1030,7 +1030,7 @@ gpssample(void)
 {
 	int64_t	l, g, d;
 	int	i, n;
-	int8_t	*v[4], buf[128];
+	char	*v[4], buf[128];
 
 	d = -1000000000000000000LL;
 	for(i = 0; i < 5; i++){
@@ -1097,7 +1097,7 @@ utcsample(void)
 {
 	int64_t	s;
 	int	n;
-	int8_t	*v[2], buf[128];
+	char	*v[2], buf[128];
 
 	s = 0;
 	seek(utcfil, 0, 0);
@@ -1120,10 +1120,10 @@ utcsample(void)
  *  sntp server
  */
 static int
-openlisten(int8_t *net)
+openlisten(char *net)
 {
 	int fd, cfd;
-	int8_t data[128], devdir[40];
+	char data[128], devdir[40];
 
 	sprint(data, "%s/udp!*!ntp", net);
 	cfd = announce(data, devdir);
@@ -1140,11 +1140,11 @@ openlisten(int8_t *net)
 }
 
 static void
-ntpserver(int8_t *servenet)
+ntpserver(char *servenet)
 {
 	int fd, n, vers, mode;
 	int64_t recvts, x;
-	int8_t buf[512];
+	char buf[512];
 	NTPpkt *ntp;
 
 	fd = openlisten(servenet);
@@ -1226,7 +1226,7 @@ fstime(void)
 static int32_t
 rtctime(void)
 {
-	int8_t b[20];
+	char b[20];
 	static int f = -1;
 	int i, retries;
 
@@ -1279,7 +1279,7 @@ sample(int32_t (*get)(void))
 static int
 openfreqfile(void)
 {
-	int8_t *p;
+	char *p;
 	int fd;
 
 	if(sysid == nil)
@@ -1310,7 +1310,7 @@ static int64_t
 readfreqfile(int fd, int64_t ohz, int64_t minhz, int64_t maxhz)
 {
 	int n;
-	int8_t buf[128];
+	char buf[128];
 	int64_t hz;
 
 	n = read(fd, buf, sizeof buf-1);

@@ -56,11 +56,11 @@ okThumbprint(uint8_t *sum, Thumbprint *table)
 }
 
 static void
-loadThumbprints(int8_t *file, Thumbprint *table, Thumbprint *crltab)
+loadThumbprints(char *file, Thumbprint *table, Thumbprint *crltab)
 {
 	Thumbprint *entry;
 	Biobuf *bin;
-	int8_t *line, *field[50];
+	char *line, *field[50];
 	uint8_t sum[SHA1dlen];
 	int i;
 
@@ -90,7 +90,7 @@ loadThumbprints(int8_t *file, Thumbprint *table, Thumbprint *crltab)
 }
 
 Thumbprint *
-initThumbprints(int8_t *ok, int8_t *crl)
+initThumbprints(char *ok, char *crl)
 {
 	Thumbprint *table, *crltab = nil;
 

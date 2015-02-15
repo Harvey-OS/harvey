@@ -31,8 +31,8 @@ _frcanfit(Frame *f, Point pt, Frbox *b)
 		if(r < Runeself)
 			w = 1;
 		else
-			w = chartorune(&r, (int8_t*)p);
-		left -= stringnwidth(f->font, (int8_t*)p, 1);
+			w = chartorune(&r, (char*)p);
+		left -= stringnwidth(f->font, (char*)p, 1);
 		if(left < 0)
 			return nr;
 	}

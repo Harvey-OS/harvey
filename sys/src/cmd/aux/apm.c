@@ -112,10 +112,10 @@ static char* eventstr[] = {
 [NotifyCapabilitiesChange]	"capabilities change",
 };
 
-static int8_t*
+static char*
 apmevent(int e)
 {
-	static int8_t buf[32];
+	static char buf[32];
 
 	if(0 <= e && e < nelem(eventstr) && eventstr[e])
 		return eventstr[e];
@@ -142,11 +142,11 @@ static char *error[256] = {
 [0x86]	"apm not present",
 };
 
-static int8_t*
+static char*
 apmerror(int id)
 {
-	int8_t *e;
-	static int8_t buf[64];
+	char *e;
+	static char buf[64];
 
 	if(e = error[id&0xFF])
 		return e;
@@ -256,27 +256,27 @@ powerstatestr[] = {
 [PowerEnabled]	"on",
 };
 
-static int8_t*
-xstatus(int8_t **str, int nstr, int x)
+static char*
+xstatus(char **str, int nstr, int x)
 {
 	if(0 <= x && x < nstr && str[x])
 		return str[x];
 	return "unknown";
 }
 
-static int8_t*
+static char*
 batterystatus(int b)
 {
 	return xstatus(batterystatusstr, nelem(batterystatusstr), b);
 }
 
-static int8_t*
+static char*
 powerstate(int s)
 {
 	return xstatus(powerstatestr, nelem(powerstatestr), s);
 }
 
-static int8_t*
+static char*
 acstatus(int a)
 {
 	return xstatus(acstatusstr, nelem(acstatusstr), a);
@@ -569,11 +569,11 @@ emalloc(uint32_t n)
 	return v;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
 	int l;
-	int8_t *t;
+	char *t;
 
 	if (s == nil)
 		return nil;
@@ -584,11 +584,11 @@ estrdup(int8_t *s)
 	return t;
 }
 
-int8_t*
-estrdupn(int8_t *s, int n)
+char*
+estrdupn(char *s, int n)
 {
 	int l;
-	int8_t *t;
+	char *t;
 
 	l = strlen(s);
 	if(l > n)
@@ -616,7 +616,7 @@ static void batteryread(Req*);
 typedef struct Dfile Dfile;
 struct Dfile {
 	Qid qid;
-	int8_t *name;
+	char *name;
 	uint32_t mode;
 	void (*read)(Req*);
 	void (*write)(Req*);
@@ -651,8 +651,8 @@ fillstat(uint64_t path, Dir *d, int doalloc)
 	return 0;
 }
 
-static int8_t*
-fswalk1(Fid *fid, int8_t *name, Qid *qid)
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i;
 
@@ -724,7 +724,7 @@ rootread(Req *r)
 {
 	int n;
 	uint64_t offset;
-	int8_t *p, *ep;
+	char *p, *ep;
 	Dir d;
 
 	if(r->ifcall.offset == 0)
@@ -753,7 +753,7 @@ rootread(Req *r)
 static void
 batteryread(Req *r)
 {
-	int8_t buf[Mbattery*80], *ep, *p;
+	char buf[Mbattery*80], *ep, *p;
 	int i;
 
 	apmgetpowerstatus(&apm, DevAll);
@@ -771,7 +771,7 @@ batteryread(Req *r)
 }
 
 int
-iscmd(int8_t *p, int8_t *cmd)
+iscmd(char *p, char *cmd)
 {
 	int l;
 
@@ -779,8 +779,8 @@ iscmd(int8_t *p, int8_t *cmd)
 	return strncmp(p, cmd, l)==0 && p[l]=='\0' || p[l]==' ' || p[l]=='\t';
 }
 
-int8_t*
-skip(int8_t *p, int8_t *cmd)
+char*
+skip(char *p, char *cmd)
 {
 	p += strlen(cmd);
 	while(*p==' ' || *p=='\t')
@@ -791,7 +791,7 @@ skip(int8_t *p, int8_t *cmd)
 static void
 respondx(Req *r, int c)
 {
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 
 	if(c == 0)
 		respond(r, nil);
@@ -808,7 +808,7 @@ respondx(Req *r, int c)
 static void
 ctlwrite(Req *r)
 {
-	int8_t buf[80], *p, *q;
+	char buf[80], *p, *q;
 	int dev;
 	int32_t count;
 
@@ -868,10 +868,10 @@ ctlwrite(Req *r)
 }
 
 static int
-statusline(int8_t *buf, int nbuf, int8_t *name, int dev)
+statusline(char *buf, int nbuf, char *name, int dev)
 {
 	int s;
-	int8_t *state;
+	char *state;
 
 	state = "unknown";
 	if((s = apmgetpowerstate(&apm, dev)) >= 0)
@@ -882,7 +882,7 @@ statusline(int8_t *buf, int nbuf, int8_t *name, int dev)
 static void
 ctlread(Req *r)
 {
-	int8_t buf[256+7*50], *ep, *p;
+	char buf[256+7*50], *ep, *p;
 
 	p = buf;
 	ep = buf+sizeof buf;
@@ -920,7 +920,7 @@ Channel *cevent;
 Req *rlist, **tailp;
 int rp, wp;
 int nopoll;
-int8_t eventq[32][80];
+char eventq[32][80];
 
 static void
 flushthread(void*)
@@ -946,7 +946,7 @@ flushthread(void*)
 static void
 answerany(void)
 {
-	int8_t *buf;
+	char *buf;
 	int l, m;
 	Req *r;
 
@@ -1060,7 +1060,7 @@ eventread(Req *r)
 static void
 fsattach(Req *r)
 {
-	int8_t *spec;
+	char *spec;
 	static int first = 1;
 
 	spec = r->ifcall.aname;

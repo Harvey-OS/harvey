@@ -183,7 +183,7 @@ gs_type1_interpret(gs_type1_state * pcis, const gs_glyph_data_t *pgd,
 	}
 #ifdef DEBUG
 	if (gs_debug['1']) {
-	    static const int8_t *const c1names[] =
+	    static const char *const c1names[] =
 	    {char1_command_names};
 
 	    if (c1names[c] == 0)
@@ -354,7 +354,7 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 		++cip;
 #ifdef DEBUG
 		if (gs_debug['1'] && c < char1_extended_command_count) {
-		    static const int8_t *const ce1names[] =
+		    static const char *const ce1names[] =
 		    {char1_extended_command_names};
 
 		    if (ce1names[c] == 0)

@@ -43,21 +43,21 @@ static int if_truth[MAXNEST];
 static int printing[MAXNEST];
 static int if_depth, nr_defs, verbose = 0;
 static enum cstate state = PLAIN;
-static int8_t Out1[GENEROUS], Out2[GENEROUS];
+static char Out1[GENEROUS], Out2[GENEROUS];
 
 static struct Defines {
 	int exists;
-	int8_t *src, *trg;
+	char *src, *trg;
 } d[MAXDEF];
 
-static int process(int8_t *, int, int8_t *);
-static int zpp_do(int8_t *);
+static int process(char *, int, char *);
+static int zpp_do(char *);
 
-extern int8_t *emalloc(size_t);	/* main.c */
+extern char *emalloc(size_t);	/* main.c */
 
 static int
-do_define(int8_t *p)
-{	int8_t *q, *r, *s;
+do_define(char *p)
+{	char *q, *r, *s;
 
 	for (q = p+strlen(p)-1; q > p; q--)
 		if (*q == '\n' || *q == '\t' || *q == ' ')
@@ -104,9 +104,9 @@ isvalid(int c)
 	return (isalnum(c) || c == '_');
 }
 
-static int8_t *
-apply(int8_t *p0)
-{	int8_t *out, *in1, *in2, *startat;
+static char *
+apply(char *p0)
+{	char *out, *in1, *in2, *startat;
 	int i, j;
 
 	startat = in1 = Out2; strcpy(Out2, p0);
@@ -149,9 +149,9 @@ more:		in2 = strstr(startat, d[i].src);
 	return in1;
 }
 
-static int8_t *
-do_common(int8_t *p)
-{	int8_t *q, *s;
+static char *
+do_common(char *p)
+{	char *q, *s;
 
 	q = p + strspn(p, " \t");
 	for (s = (q + strlen(q) - 1); s > q; s--)
@@ -163,8 +163,8 @@ do_common(int8_t *p)
 }
 
 static int
-do_undefine(int8_t *p)
-{	int i; int8_t *q = do_common(p);
+do_undefine(char *p)
+{	int i; char *q = do_common(p);
 
 	for (i = 0; i < nr_defs; i++)
 		if (!strcmp(d[i].src, q))
@@ -172,45 +172,45 @@ do_undefine(int8_t *p)
 	return 1;
 }
 
-static int8_t *
-check_ifdef(int8_t *p)
-{	int i; int8_t *q = do_common(p);
+static char *
+check_ifdef(char *p)
+{	int i; char *q = do_common(p);
 
 	for (i = 0; i < nr_defs; i++)
 		if (d[i].exists
 		&&  !strcmp(d[i].src, q))
 			return d[i].trg;
-	return (int8_t *) 0;
+	return (char *) 0;
 }
 
 static int
-do_ifdef(int8_t *p)
+do_ifdef(char *p)
 {
 	if (++if_depth >= MAXNEST)
 	{	debug("zpp: too deeply nested (max %d)\n", MAXNEST);
 		return 0;
 	}
-	if_truth[if_depth] = (check_ifdef(p) != (int8_t *)0);
+	if_truth[if_depth] = (check_ifdef(p) != (char *)0);
 	printing[if_depth] = printing[if_depth-1]&&if_truth[if_depth];
 
 	return 1;
 }
 
 static int
-do_ifndef(int8_t *p)
+do_ifndef(char *p)
 {
 	if (++if_depth >= MAXNEST)
 	{	debug("zpp: too deeply nested (max %d)\n", MAXNEST);
 		return 0;
 	}
-	if_truth[if_depth] = (check_ifdef(p) == (int8_t *)0);
+	if_truth[if_depth] = (check_ifdef(p) == (char *)0);
 	printing[if_depth] = printing[if_depth-1]&&if_truth[if_depth];
 
 	return 1;
 }
 
 static int
-is_simple(int8_t *q)
+is_simple(char *q)
 {
 	if (!q) return 0;
 	if (strcmp(q, "0") == 0)
@@ -223,8 +223,8 @@ is_simple(int8_t *q)
 }
 
 static int
-do_if(int8_t *p)
-{	int8_t *q = do_common(p);
+do_if(char *p)
+{	char *q = do_common(p);
 	if (++if_depth >= MAXNEST)
 	{	debug("zpp: too deeply nested (max %d)\n", MAXNEST);
 		return 0;
@@ -240,7 +240,7 @@ do_if(int8_t *p)
 }
 
 static int
-do_else(int8_t *p)
+do_else(char *p)
 {
 	debug("zpp: do_else %s", p);
 	if_truth[if_depth] = 1-if_truth[if_depth];
@@ -250,7 +250,7 @@ do_else(int8_t *p)
 }
 
 static int
-do_endif(int8_t *p)
+do_endif(char *p)
 {
 	if (--if_depth < 0)
 	{	debug("zpp: unbalanced #endif %s\n", p);
@@ -260,8 +260,8 @@ do_endif(int8_t *p)
 }
 
 static int
-do_include(int8_t *p)
-{	int8_t *r, *q;
+do_include(char *p)
+{	char *r, *q;
 
 	q = strchr(p, '<');
 	r = strrchr(p, '>');
@@ -277,8 +277,8 @@ do_include(int8_t *p)
 }
 
 static int
-in_comment(int8_t *p)
-{	int8_t *q = p;
+in_comment(char *p)
+{	char *q = p;
 
 	for (q = p; *q != '\n' && *q != '\0'; q++)
 		switch (state) {
@@ -323,8 +323,8 @@ in_comment(int8_t *p)
 }
 
 static int
-strip_cpp_comments(int8_t *p)
-{	int8_t *q;
+strip_cpp_comments(char *p)
+{	char *q;
 
 	q = strstr(p, "//");
 	if (q)
@@ -339,8 +339,8 @@ strip_cpp_comments(int8_t *p)
 }
 
 static int
-zpp_do(int8_t *fnm)
-{	int8_t buf[2048], buf2[MAXLINE], *p; int n, on;
+zpp_do(char *fnm)
+{	char buf[2048], buf2[MAXLINE], *p; int n, on;
 	FILE *inp; int lno = 0, nw_lno = 0;
 
 	if ((inp = fopen(fnm, "r")) == NULL)
@@ -390,7 +390,7 @@ feedme:
 }
 
 int
-try_zpp(int8_t *fnm, int8_t *onm)
+try_zpp(char *fnm, char *onm)
 {	int r;
 	if ((outpp = fopen(onm, MFLAGS)) == NULL)
 		return 0;
@@ -401,8 +401,8 @@ try_zpp(int8_t *fnm, int8_t *onm)
 
 static struct Directives {
 	int len;
-	int8_t *directive;
-	int (*handler)(int8_t *);
+	char *directive;
+	int (*handler)(char *);
 	int interp;
 } s[] = {
 	{ 6, "define",	 do_define,	1 },
@@ -416,8 +416,8 @@ static struct Directives {
 };
 
 static int
-process(int8_t *q, int lno, int8_t *fnm)
-{	int8_t *p; int i, r;
+process(char *q, int lno, char *fnm)
+{	char *p; int i, r;
 
 	for (p = q; *p; p++)
 		if (*p != ' ' && *p != '\t')

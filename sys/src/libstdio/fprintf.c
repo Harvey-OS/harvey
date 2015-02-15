@@ -11,7 +11,7 @@
  * pANS stdio -- fprintf
  */
 #include "iolib.h"
-int fprintf(FILE *f, const int8_t *fmt, ...){
+int fprintf(FILE *f, const char *fmt, ...){
 	int n;
 	va_list args;
 	va_start(args, fmt);

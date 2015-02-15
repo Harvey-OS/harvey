@@ -54,7 +54,7 @@ TW *tw;
 static const LPSTR szAppName = "Ghostscript";
 
 const LPSTR szIniName = "gswin32.ini";
-const int8_t *szDllName = "gsdll32.dll";
+const char *szDllName = "gsdll32.dll";
 const LPSTR szIniSection = "Text";
 
 
@@ -62,7 +62,7 @@ GSDLL gsdll;
 void *instance;
 HWND hwndtext;
 
-int8_t start_string[] = "systemdict /start get exec\n";
+char start_string[] = "systemdict /start get exec\n";
 
 static int poll(void)
 {
@@ -80,20 +80,20 @@ static int poll(void)
 /*********************************************************************/
 /* stdio functions */
 static int GSDLLCALL
-gsdll_stdin(void *instance, int8_t *buf, int len)
+gsdll_stdin(void *instance, char *buf, int len)
 {
     return text_read_line(tw, buf, len);
 }
 
 static int GSDLLCALL
-gsdll_stdout(void *instance, const int8_t *str, int len)
+gsdll_stdout(void *instance, const char *str, int len)
 {
     text_write_buf(tw, str, len);
     return len;
 }
 
 static int GSDLLCALL
-gsdll_stderr(void *instance, const int8_t *str, int len)
+gsdll_stderr(void *instance, const char *str, int len)
 {
     text_write_buf(tw, str, len);
     return len;
@@ -118,7 +118,7 @@ static int display_open(void *handle, void *device)
 {
     IMAGE *img;
 #ifdef DISPLAY_DEBUG
-    int8_t buf[256];
+    char buf[256];
     sprintf(buf, "display_open(0x%x, 0x%x)\n", handle, device);
     text_puts(tw, buf);
 #endif
@@ -133,7 +133,7 @@ static int display_open(void *handle, void *device)
 static int display_preclose(void *handle, void *device)
 {
 #ifdef DISPLAY_DEBUG
-    int8_t buf[256];
+    char buf[256];
     sprintf(buf, "display_preclose(0x%x, 0x$x)\n", handle, device);
     text_puts(tw, buf);
 #endif
@@ -147,7 +147,7 @@ static int display_close(void *handle, void *device)
 {
     IMAGE *img;
 #ifdef DISPLAY_DEBUG
-    int8_t buf[256];
+    char buf[256];
     sprintf(buf, "display_close(0x%x, 0x$x)\n", handle, device);
     text_puts(tw, buf);
 #endif
@@ -165,7 +165,7 @@ static int display_presize(void *handle, void *device, int width, int height,
 	int raster, unsigned int format)
 {
 #ifdef DISPLAY_DEBUG
-    int8_t buf[256];
+    char buf[256];
     sprintf(buf, "display_presize(0x%x, 0x%x, width=%d height=%d raster=%d\n\
   format=%d)\n", 
        handle, device, width, height, raster, format);
@@ -181,7 +181,7 @@ static int display_size(void *handle, void *device, int width, int height,
 {
     IMAGE *img;
 #ifdef DISPLAY_DEBUG
-    int8_t buf[256];
+    char buf[256];
     sprintf(buf, "display_size(0x%x, 0x%x, width=%d height=%d raster=%d\n\
   format=%d image=0x%x)\n", 
        handle, device, width, height, raster, format, pimage);
@@ -198,7 +198,7 @@ static int display_sync(void *handle, void *device)
 {
     IMAGE *img;
 #ifdef DISPLAY_DEBUG
-    int8_t buf[256];
+    char buf[256];
     sprintf(buf, "display_sync(0x%x, 0x%x)\n", handle, device);
     text_puts(tw, buf);
 #endif
@@ -213,7 +213,7 @@ static int display_page(void *handle, void *device, int copies, int flush)
 {
     IMAGE *img;
 #ifdef DISPLAY_DEBUG
-    int8_t buf[256];
+    char buf[256];
     sprintf(buf, "display_page(0x%x, 0x%x, copies=%d flush=%d)\n", 
 	handle, device, copies, flush);
     text_puts(tw, buf);
@@ -235,7 +235,7 @@ static int display_update(void *handle, void *device,
 }
 
 int display_separation(void *handle, void *device, 
-   int comp_num, const int8_t *name,
+   int comp_num, const char *name,
    unsigned short c, unsigned short m,
    unsigned short y, unsigned short k)
 {
@@ -384,8 +384,8 @@ void
 set_font(void)
 {
     int fontsize;
-    int8_t fontname[256];
-    int8_t buf[32];
+    char fontname[256];
+    char buf[32];
 
     /* read ini file */
     GetPrivateProfileString(szIniSection, "FontName", "Courier New", fontname, sizeof(fontname), szIniName);
@@ -411,10 +411,10 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmd
     int argc;
     LPSTR argv[MAXCMDTOKENS];
     LPSTR p;
-    int8_t command[256];
-    int8_t *args;
-    int8_t *d, *e;
-    int8_t winposbuf[256];
+    char command[256];
+    char *args;
+    char *d, *e;
+    char winposbuf[256];
     int len = sizeof(winposbuf);
     int x, y, cx, cy;
  
@@ -441,8 +441,8 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmd
     p = GetCommandLine();
 
     argc = 0;
-    args = (int8_t *)malloc(lstrlen(p)+1);
-    if (args == (int8_t *)NULL) {
+    args = (char *)malloc(lstrlen(p)+1);
+    if (args == (char *)NULL) {
 	fprintf(stdout, "Insufficient memory in WinMain()\n");
 	return 1;
     }

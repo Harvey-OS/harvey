@@ -295,7 +295,7 @@ perm_get_color_mapping_procs(const gx_device *dev)
 
 #define compare_color_names(name, name_size, str, str_size) \
     (name_size == str_size && \
-	(strncmp((const int8_t *)name, (const int8_t *)str, name_size) == 0))
+	(strncmp((const char *)name, (const char *)str, name_size) == 0))
 
 private int
 perm_get_color_comp_index(const gx_device *pdev, const char *pname,

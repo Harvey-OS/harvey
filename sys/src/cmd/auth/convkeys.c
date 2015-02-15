@@ -16,12 +16,12 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-int8_t	authkey[DESKEYLEN];
+char	authkey[DESKEYLEN];
 int	verb;
 int	usepass;
 
-int	convert(int8_t*, int8_t*, int);
-int	dofcrypt(int, int8_t*, int8_t*, int);
+int	convert(char*, char*, int);
+int	dofcrypt(int, char*, char*, int);
 void	usage(void);
 
 void
@@ -96,7 +96,7 @@ randombytes(uint8_t *p, int len)
 }
 
 void
-oldCBCencrypt(int8_t *key7, int8_t *p, int len)
+oldCBCencrypt(char *key7, char *p, int len)
 {
 	uint8_t ivec[8];
 	uint8_t key[8];
@@ -109,7 +109,7 @@ oldCBCencrypt(int8_t *key7, int8_t *p, int len)
 }
 
 void
-oldCBCdecrypt(int8_t *key7, int8_t *p, int len)
+oldCBCdecrypt(char *key7, char *p, int len)
 {
 	uint8_t ivec[8];
 	uint8_t key[8];
@@ -123,7 +123,7 @@ oldCBCdecrypt(int8_t *key7, int8_t *p, int len)
 }
 
 static int
-badname(int8_t *s)
+badname(char *s)
 {
 	int n;
 	Rune r;
@@ -137,7 +137,7 @@ badname(int8_t *s)
 }
 
 int
-convert(int8_t *p, int8_t *key, int len)
+convert(char *p, char *key, int len)
 {
 	int i;
 

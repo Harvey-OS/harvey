@@ -99,7 +99,7 @@ struct Value {
 		Bytes*	otherval;
 		Bits*	bitstringval;
 		Ints*	objidval;
-		int8_t*	stringval;
+		char*	stringval;
 		Elist*	seqval;
 		Elist*	setval;
 	} u;  /* (Don't use anonymous unions, for ease of porting) */
@@ -141,8 +141,8 @@ static int	is_bigint(Elem* pe, Bytes** pbigint);
 static int	is_bitstring(Elem* pe, Bits** pbits);
 static int	is_octetstring(Elem* pe, Bytes** poctets);
 static int	is_oid(Elem* pe, Ints** poid);
-static int	is_string(Elem* pe, int8_t** pstring);
-static int	is_time(Elem* pe, int8_t** ptime);
+static int	is_string(Elem* pe, char** pstring);
+static int	is_time(Elem* pe, char** ptime);
 static int	decode(uint8_t* a, int alen, Elem* pelem);
 static int	decode_seq(uint8_t* a, int alen, Elist** pelist);
 static int	decode_value(uint8_t* a, int alen, int kind, int isconstr,
@@ -192,10 +192,10 @@ emalloc(int n)
 	return p;
 }
 
-static int8_t*
-estrdup(int8_t *s)
+static char*
+estrdup(char *s)
 {
-	int8_t *d, *d0;
+	char *d, *d0;
 
 	if(!s)
 		return 0;
@@ -550,7 +550,7 @@ value_decode(uint8_t** pp, uint8_t* pend, int length, int kind,
 		err = octet_decode(&p, pend, length, isconstr, &va);
 		if(err == ASN_OK) {
 			pval->tag = VString;
-			pval->u.stringval = (int8_t*)emalloc(va->len+1);
+			pval->u.stringval = (char*)emalloc(va->len+1);
 			memmove(pval->u.stringval, va->data, va->len);
 			pval->u.stringval[va->len] = 0;
 			free(va);
@@ -876,7 +876,7 @@ val_enc(uint8_t** pp, Elem e, int *pconstr, int lenonly)
 	Ints* oid;
 	int k;
 	Elist* el;
-	int8_t* s;
+	char* s;
 
 	p = *pp;
 	err = ASN_OK;
@@ -1264,7 +1264,7 @@ is_oid(Elem* pe, Ints** poid)
 }
 
 static int
-is_string(Elem* pe, int8_t** pstring)
+is_string(Elem* pe, char** pstring)
 {
 	if(pe->tag.class == Universal) {
 		switch(pe->tag.num) {
@@ -1289,7 +1289,7 @@ is_string(Elem* pe, int8_t** pstring)
 }
 
 static int
-is_time(Elem* pe, int8_t** ptime)
+is_time(Elem* pe, char** ptime)
 {
 	if(pe->tag.class == Universal
 	   && (pe->tag.num == UTCTime || pe->tag.num == GeneralizedTime)
@@ -1582,10 +1582,10 @@ freevalfields(Value* v)
 
 typedef struct CertX509 {
 	int	serial;
-	int8_t*	issuer;
-	int8_t*	validity_start;
-	int8_t*	validity_end;
-	int8_t*	subject;
+	char*	issuer;
+	char*	validity_start;
+	char*	validity_end;
+	char*	subject;
 	int	publickey_alg;
 	Bytes*	publickey;
 	int	signature_alg;
@@ -1653,7 +1653,7 @@ freecert(CertX509* c)
  * from most specific to least specific, separated by commas.
  * Return name-as-string (which must be freed by caller).
  */
-static int8_t*
+static char*
 parse_name(Elem* e)
 {
 	Elist* el;
@@ -1661,12 +1661,12 @@ parse_name(Elem* e)
 	Elist* esetl;
 	Elem* eat;
 	Elist* eatl;
-	int8_t* s;
+	char* s;
 	enum { MAXPARTS = 100 };
-	int8_t* parts[MAXPARTS];
+	char* parts[MAXPARTS];
 	int i;
 	int plen;
-	int8_t* ans = nil;
+	char* ans = nil;
 
 	if(!is_seq(e, &el))
 		goto errret;
@@ -1689,7 +1689,7 @@ parse_name(Elem* e)
 		el = el->tl;
 	}
 	if(i > 0) {
-		ans = (int8_t*)emalloc(plen);
+		ans = (char*)emalloc(plen);
 		*ans = '\0';
 		while(--i >= 0) {
 			s = parts[i];
@@ -2126,7 +2126,7 @@ digest_certinfo(Bytes *cert, DigestFun digestfun, uint8_t *digest)
 	(*digestfun)(info, infolen, digest, nil);
 }
 
-static int8_t*
+static char*
 verify_signature(Bytes* signature, RSApub *pk, uint8_t *edigest,
 		 Elem **psigalg)
 {
@@ -2137,7 +2137,7 @@ verify_signature(Bytes* signature, RSApub *pk, uint8_t *edigest,
 	int buflen;
 	mpint *pkcs1;
 	int nlen;
-	int8_t *err;
+	char *err;
 
 	err = nil;
 	pkcs1buf = nil;
@@ -2182,9 +2182,9 @@ end:
 }
 
 RSApub*
-X509toRSApub(uint8_t *cert, int ncert, int8_t *name, int nname)
+X509toRSApub(uint8_t *cert, int ncert, char *name, int nname)
 {
-	int8_t *e;
+	char *e;
 	Bytes *b;
 	CertX509 *c;
 	RSApub *pk;
@@ -2296,10 +2296,10 @@ errret:
 	return nil;
 }
 
-int8_t*
+char*
 X509verify(uint8_t *cert, int ncert, RSApub *pk)
 {
-	int8_t *e;
+	char *e;
 	Bytes *b;
 	CertX509 *c;
 	uint8_t digest[SHA1dlen];
@@ -2358,7 +2358,7 @@ mkbigint(mpint *p)
 }
 
 static Elem
-mkstring(int8_t *s)
+mkstring(char *s)
 {
 	Elem e;
 
@@ -2397,7 +2397,7 @@ static Elem
 mkutc(int32_t t)
 {
 	Elem e;
-	int8_t utc[50];
+	char utc[50];
 	Tm *tm = gmtime(t);
 
 	e.tag.class = Universal;
@@ -2454,7 +2454,7 @@ mkalg(int alg)
 typedef struct Ints7pref {
 	int		len;
 	int		data[7];
-	int8_t	prefix[4];
+	char	prefix[4];
 } Ints7pref;
 Ints7pref DN_oid[] = {
 	{4, 2, 5, 4, 6, 0, 0, 0,  "C="},
@@ -2467,16 +2467,16 @@ Ints7pref DN_oid[] = {
 };
 
 static Elem
-mkname(Ints7pref *oid, int8_t *subj)
+mkname(Ints7pref *oid, char *subj)
 {
 	return mkset(mkel(mkseq(mkel(mkoid((Ints*)oid), mkel(mkstring(subj), nil))), nil));
 }
 
 static Elem
-mkDN(int8_t *dn)
+mkDN(char *dn)
 {
 	int i, j, nf;
-	int8_t *f[20], *prefix, *d2 = estrdup(dn);
+	char *f[20], *prefix, *d2 = estrdup(dn);
 	Elist* el = nil;
 
 	nf = tokenize(d2, f, nelem(f));
@@ -2523,7 +2523,7 @@ errret:
 }
 
 uint8_t*
-X509gen(RSApriv *priv, int8_t *subj, uint32_t valid[2], int *certlen)
+X509gen(RSApriv *priv, char *subj, uint32_t valid[2], int *certlen)
 {
 	int serial = 0;
 	uint8_t *cert = nil;
@@ -2590,7 +2590,7 @@ errret:
 }
 
 uint8_t*
-X509req(RSApriv *priv, int8_t *subj, int *certlen)
+X509req(RSApriv *priv, char *subj, int *certlen)
 {
 	/* RFC 2314, PKCS #10 Certification Request Syntax */
 	int version = 0;
@@ -2649,7 +2649,7 @@ errret:
 	return cert;
 }
 
-static int8_t*
+static char*
 tagdump(Tag tag)
 {
 	if(tag.class != Universal)
@@ -2740,7 +2740,7 @@ asn1dump(uint8_t *der, int len)
 void
 X509dump(uint8_t *cert, int ncert)
 {
-	int8_t *e;
+	char *e;
 	Bytes *b;
 	CertX509 *c;
 	RSApub *pk;

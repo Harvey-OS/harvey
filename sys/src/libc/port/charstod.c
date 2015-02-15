@@ -22,7 +22,7 @@
 double
 charstod(int(*f)(void*), void *vp)
 {
-	int8_t str[400], *s, *e, *start;
+	char str[400], *s, *e, *start;
 	int c;
 
 	s = str;

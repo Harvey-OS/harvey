@@ -22,7 +22,7 @@ struct Oproc {
 
 static int tlsx = TLS_OUT_OF_INDEXES;
 
-int8_t	*argv0;
+char	*argv0;
 
 Proc*
 _getproc(void)
@@ -184,9 +184,9 @@ randomread(void *v, uint32_t n)
 	for(i=0; i<n; i+=20){
 		random20(p);
 		if(i+20 <= n)
-			memmove((int8_t*)v+i, p, 20);
+			memmove((char*)v+i, p, 20);
 		else
-			memmove((int8_t*)v+i, p, n-i);
+			memmove((char*)v+i, p, n-i);
 	}
 	return n;
 }
@@ -216,7 +216,7 @@ fastticks(uvlong *v)
 }
 #endif
 
-extern int	main(int, int8_t*[]);
+extern int	main(int, char*[]);
 
 
 int
@@ -230,10 +230,10 @@ wstrutflen(Rune *s)
 }
 
 int
-wstrtoutf(int8_t *s, Rune *t, int n)
+wstrtoutf(char *s, Rune *t, int n)
 {
 	int i;
-	int8_t *s0;
+	char *s0;
 
 	s0 = s;
 	if(n <= 0)
@@ -286,13 +286,13 @@ wstrlen(Rune *s)
 		;
 	return n;
 }
-static int	args(int8_t *argv[], int n, int8_t *p);
+static int	args(char *argv[], int n, char *p);
 
 int APIENTRY
 WinMain(HINSTANCE x, HINSTANCE y, LPSTR z, int w)
 {
 	int argc, n;
-	int8_t *arg, *p, **argv;
+	char *arg, *p, **argv;
 	Rune *warg;
 
 	if(0 && win_hasunicode()){
@@ -307,7 +307,7 @@ WinMain(HINSTANCE x, HINSTANCE y, LPSTR z, int w)
 	for(argc=4,p=arg; *p; p++)
 		if(*p == ' ' || *p == '\t')
 			argc++;
-	argv = malloc(argc*sizeof(int8_t*));
+	argv = malloc(argc*sizeof(char*));
 	argc = args(argv, argc, arg);
 
 	mymain(argc, argv);
@@ -326,9 +326,9 @@ WinMain(HINSTANCE x, HINSTANCE y, LPSTR z, int w)
  * N backslashes not followed by " ==> N backslashes
  */
 static int
-args(int8_t *argv[], int n, int8_t *p)
+args(char *argv[], int n, char *p)
 {
-	int8_t *p2;
+	char *p2;
 	int i, j, quote, nbs;
 
 	for(i=0; *p && i<n-1; i++) {
@@ -370,7 +370,7 @@ args(int8_t *argv[], int n, int8_t *p)
  */
 static struct {
 	int e;
-	int8_t *s;
+	char *s;
 } tab[] = {
 	{ 10004, "interrupted function call" },
 	{ 10013, "permission denied" },
@@ -418,9 +418,9 @@ static struct {
 };
 
 void
-osrerrstr(int8_t *buf, uint nbuf)
+osrerrstr(char *buf, uint nbuf)
 {
-	int8_t *p, *q;
+	char *p, *q;
 	int e, i, r;
 
 	e = GetLastError();
@@ -455,7 +455,7 @@ oserrstr(void)
 }
 
 int32_t
-showfilewrite(int8_t *a, int n)
+showfilewrite(char *a, int n)
 {
 	Rune *action, *arg, *cmd, *p;
 	static Rune Lopen[] = { 'o', 'p', 'e', 'n', 0 };

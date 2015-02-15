@@ -19,10 +19,10 @@
 #include <netinet/in.h>
 #include <sys/un.h>
 
-int8_t*
+char*
 inet_ntoa(struct in_addr in)
 {
-	static int8_t s[18];
+	static char s[18];
 	unsigned char *p;	
 
 	p = (unsigned char*)&in.s_addr;

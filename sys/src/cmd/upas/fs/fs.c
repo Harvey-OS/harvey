@@ -41,14 +41,14 @@ struct Fid
 uint32_t	path;		// incremented for each new file
 Fid	*fids;
 int	mfd[2];
-int8_t	user[Elemlen];
+char	user[Elemlen];
 int	messagesize = 4*1024+IOHDRSZ;
 uint8_t	mdata[8*1024+IOHDRSZ];
 uint8_t	mbuf[8*1024+IOHDRSZ];
 Fcall	thdr;
 Fcall	rhdr;
 int	fflg;
-int8_t	*mntpt;
+char	*mntpt;
 int	biffing;
 int	plumbing = 1;
 
@@ -56,19 +56,19 @@ QLock	mbllock;
 Mailbox	*mbl;
 
 Fid		*newfid(int);
-void		error(int8_t*);
+void		error(char*);
 void		io(void);
 void		*erealloc(void*, uint32_t);
 void		*emalloc(uint32_t);
 void		usage(void);
 void		reader(void);
-int		readheader(Message*, int8_t*, int, int);
-int		cistrncmp(int8_t*, int8_t*, int);
-int		tokenconvert(String*, int8_t*, int);
-String*		stringconvert(String*, int8_t*, int);
-void		post(int8_t*, int8_t*, int);
+int		readheader(Message*, char*, int, int);
+int		cistrncmp(char*, char*, int);
+int		tokenconvert(String*, char*, int);
+String*		stringconvert(String*, char*, int);
+void		post(char*, char*, int);
 
-int8_t	*rflush(Fid*), *rauth(Fid*),
+char	*rflush(Fid*), *rauth(Fid*),
 	*rattach(Fid*), *rwalk(Fid*),
 	*ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
@@ -91,17 +91,17 @@ char 	*(*fcalls[])(Fid*) = {
 	[Twstat]	rwstat,
 };
 
-int8_t	Eperm[] =	"permission denied";
-int8_t	Enotdir[] =	"not a directory";
-int8_t	Enoauth[] =	"upas/fs: authentication not required";
-int8_t	Enotexist[] =	"file does not exist";
-int8_t	Einuse[] =	"file in use";
-int8_t	Eexist[] =	"file exists";
-int8_t	Enotowner[] =	"not owner";
-int8_t	Eisopen[] = 	"file already open for I/O";
-int8_t	Excl[] = 	"exclusive use file already open";
-int8_t	Ename[] = 	"illegal name";
-int8_t	Ebadctl[] =	"unknown control message";
+char	Eperm[] =	"permission denied";
+char	Enotdir[] =	"not a directory";
+char	Enoauth[] =	"upas/fs: authentication not required";
+char	Enotexist[] =	"file does not exist";
+char	Einuse[] =	"file in use";
+char	Eexist[] =	"file exists";
+char	Enotowner[] =	"not owner";
+char	Eisopen[] = 	"file already open for I/O";
+char	Excl[] = 	"exclusive use file already open";
+char	Ename[] = 	"illegal name";
+char	Ebadctl[] =	"unknown control message";
 
 char *dirtab[] =
 {
@@ -154,7 +154,7 @@ usage(void)
 }
 
 void
-notifyf(void *a, int8_t *s)
+notifyf(void *a, char *s)
 {
 	USED(a);
 	if(strncmp(s, "interrupt", 9) == 0)
@@ -262,9 +262,9 @@ main(int argc, char *argv[])
 }
 
 static int
-fileinfo(Message *m, int t, int8_t **pp)
+fileinfo(Message *m, int t, char **pp)
 {
-	int8_t *p;
+	char *p;
 	int len;
 
 	p = "";
@@ -455,9 +455,9 @@ int infofields[] = {
 };
 
 static int
-readinfo(Message *m, int8_t *buf, int32_t off, int count)
+readinfo(Message *m, char *buf, int32_t off, int count)
 {
-	int8_t *p;
+	char *p;
 	int len, i, n;
 	String *s;
 
@@ -491,7 +491,7 @@ readinfo(Message *m, int8_t *buf, int32_t off, int count)
 static void
 mkstat(Dir *d, Mailbox *mb, Message *m, int t)
 {
-	int8_t *p;
+	char *p;
 
 	d->uid = user;
 	d->gid = user;
@@ -560,7 +560,7 @@ mkstat(Dir *d, Mailbox *mb, Message *m, int t)
 	}
 }
 
-int8_t*
+char*
 rversion(Fid*)
 {
 	Fid *f;
@@ -580,20 +580,20 @@ rversion(Fid*)
 	return nil;
 }
 
-int8_t*
+char*
 rauth(Fid*)
 {
 	return Enoauth;
 }
 
-int8_t*
+char*
 rflush(Fid *f)
 {
 	USED(f);
 	return 0;
 }
 
-int8_t*
+char*
 rattach(Fid *f)
 {
 	f->busy = 1;
@@ -632,12 +632,12 @@ doclone(Fid *f, int nfid)
 	return nf;
 }
 
-int8_t*
-dowalk(Fid *f, int8_t *name)
+char*
+dowalk(Fid *f, char *name)
 {
 	int t;
 	Mailbox *omb, *mb;
-	int8_t *rv, *p;
+	char *rv, *p;
 	Hash *h;
 
 	t = FILE(f->qid.path);
@@ -726,11 +726,11 @@ retry:
 	return rv;
 }
 
-int8_t*
+char*
 rwalk(Fid *f)
 {
 	Fid *nf;
-	int8_t *rv;
+	char *rv;
 	int i;
 
 	if(f->open)
@@ -771,7 +771,7 @@ rwalk(Fid *f)
 	return rv;
 }
 
-int8_t *
+char *
 ropen(Fid *f)
 {
 	int file;
@@ -798,7 +798,7 @@ ropen(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rcreate(Fid*)
 {
 	return Eperm;
@@ -930,12 +930,12 @@ readmsgdir(Fid *f, uint8_t *buf, int32_t off, int cnt, int blen)
 	return n;
 }
 
-int8_t*
+char*
 rread(Fid *f)
 {
 	int32_t off;
 	int t, i, n, cnt;
-	int8_t *p;
+	char *p;
 
 	rhdr.count = 0;
 	off = thdr.offset;
@@ -944,7 +944,7 @@ rread(Fid *f)
 	if(cnt > messagesize - IOHDRSZ)
 		cnt = messagesize - IOHDRSZ;
 
-	rhdr.data = (int8_t*)mbuf;
+	rhdr.data = (char*)mbuf;
 
 	t = FILE(f->qid.path);
 	if(f->qid.type & QTDIR){
@@ -969,12 +969,12 @@ rread(Fid *f)
 	}
 
 	if(FILE(f->qid.path) == Qheader){
-		rhdr.count = readheader(f->m, (int8_t*)mbuf, off, cnt);
+		rhdr.count = readheader(f->m, (char*)mbuf, off, cnt);
 		return nil;
 	}
 
 	if(FILE(f->qid.path) == Qinfo){
-		rhdr.count = readinfo(f->m, (int8_t*)mbuf, off, cnt);
+		rhdr.count = readinfo(f->m, (char*)mbuf, off, cnt);
 		return nil;
 	}
 
@@ -988,11 +988,11 @@ rread(Fid *f)
 	return nil;
 }
 
-int8_t*
+char*
 rwrite(Fid *f)
 {
-	int8_t *err;
-	int8_t *token[1024];
+	char *err;
+	char *token[1024];
 	int t, n;
 	String *file;
 
@@ -1060,7 +1060,7 @@ rwrite(Fid *f)
 	return Eperm;
 }
 
-int8_t *
+char *
 rclunk(Fid *f)
 {
 	Mailbox *mb;
@@ -1085,7 +1085,7 @@ rclunk(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rremove(Fid *f)
 {
 	if(f->m != nil){
@@ -1096,7 +1096,7 @@ rremove(Fid *f)
 	return rclunk(f);
 }
 
-int8_t *
+char *
 rstat(Fid *f)
 {
 	Dir d;
@@ -1112,7 +1112,7 @@ rstat(Fid *f)
 	return 0;
 }
 
-int8_t *
+char *
 rwstat(Fid*)
 {
 	return Eperm;
@@ -1158,7 +1158,7 @@ fidmboxrefs(Mailbox *mb)
 void
 io(void)
 {
-	int8_t *err;
+	char *err;
 	int n;
 
 	/* start a process to watch the mailboxes*/
@@ -1196,7 +1196,7 @@ io(void)
 		if(debug)
 			fprint(2, "%s:<-%F\n", argv0, &thdr);
 
-		rhdr.data = (int8_t*)mdata + messagesize;
+		rhdr.data = (char*)mdata + messagesize;
 		if(!fcalls[thdr.type])
 			err = "bad fcall type";
 		else
@@ -1274,7 +1274,7 @@ newid(void)
 }
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	postnote(PNGROUP, getpid(), "die yankee pig dog");
 	fprint(2, "%s: %s: %r\n", argv0, s);
@@ -1286,7 +1286,7 @@ typedef struct Ignorance Ignorance;
 struct Ignorance
 {
 	Ignorance *next;
-	int8_t	*str;		/* string */
+	char	*str;		/* string */
 	int	partial;	/* true if not exact match */
 };
 Ignorance *ignorance;
@@ -1297,7 +1297,7 @@ Ignorance *ignorance;
 void
 readignore(void)
 {
-	int8_t *p;
+	char *p;
 	Ignorance *i;
 	Biobuf *b;
 
@@ -1329,7 +1329,7 @@ readignore(void)
 }
 
 int
-ignore(int8_t *p)
+ignore(char *p)
 {
 	Ignorance *i;
 
@@ -1341,9 +1341,9 @@ ignore(int8_t *p)
 }
 
 int
-hdrlen(int8_t *p, int8_t *e)
+hdrlen(char *p, char *e)
 {
-	int8_t *ep;
+	char *ep;
 
 	ep = p;
 	do {
@@ -1363,9 +1363,9 @@ hdrlen(int8_t *p, int8_t *e)
 
 // rfc2047 non-ascii: =?charset?q?encoded-text?=
 int
-rfc2047convert(String *s, int8_t *token, int len)
+rfc2047convert(String *s, char *token, int len)
 {
-	int8_t charset[100], decoded[1024], *e, *x;
+	char charset[100], decoded[1024], *e, *x;
 	int l;
 
 	if(len == 0)
@@ -1410,8 +1410,8 @@ rfc2047convert(String *s, int8_t *token, int len)
 	return 0;
 }
 
-int8_t*
-rfc2047start(int8_t *start, int8_t *end)
+char*
+rfc2047start(char *start, char *end)
 {
 	int quests;
 
@@ -1443,9 +1443,9 @@ rfc2047start(int8_t *start, int8_t *end)
 
 // convert a header line
 String*
-stringconvert(String *s, int8_t *uneaten, int len)
+stringconvert(String *s, char *uneaten, int len)
 {
-	int8_t *token, *p, *e;
+	char *token, *p, *e;
 
 	s = s_reset(s);
 	p = uneaten;
@@ -1467,11 +1467,11 @@ stringconvert(String *s, int8_t *uneaten, int len)
 }
 
 int
-readheader(Message *m, int8_t *buf, int off, int cnt)
+readheader(Message *m, char *buf, int off, int cnt)
 {
-	int8_t *p, *e;
+	char *p, *e;
 	int n, ns;
-	int8_t *to = buf;
+	char *to = buf;
 	String *s;
 
 	p = m->header;
@@ -1513,7 +1513,7 @@ readheader(Message *m, int8_t *buf, int off, int cnt)
 int
 headerlen(Message *m)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	int i, n;
 
 	if(m->hlen >= 0)
@@ -1530,7 +1530,7 @@ headerlen(Message *m)
 QLock hashlock;
 
 uint
-hash(uint32_t ppath, int8_t *name)
+hash(uint32_t ppath, char *name)
 {
 	uint8_t *p;
 	uint h;
@@ -1544,7 +1544,7 @@ hash(uint32_t ppath, int8_t *name)
 }
 
 Hash*
-hlook(uint32_t ppath, int8_t *name)
+hlook(uint32_t ppath, char *name)
 {
 	int h;
 	Hash *hp;
@@ -1561,7 +1561,7 @@ hlook(uint32_t ppath, int8_t *name)
 }
 
 void
-henter(uint32_t ppath, int8_t *name, Qid qid, Message *m, Mailbox *mb)
+henter(uint32_t ppath, char *name, Qid qid, Message *m, Mailbox *mb)
 {
 	int h;
 	Hash *hp, **l;
@@ -1589,7 +1589,7 @@ henter(uint32_t ppath, int8_t *name, Qid qid, Message *m, Mailbox *mb)
 }
 
 void
-hfree(uint32_t ppath, int8_t *name)
+hfree(uint32_t ppath, char *name)
 {
 	int h;
 	Hash *hp, **l;
@@ -1645,10 +1645,10 @@ checkmboxrefs(void)
 }
 
 void
-post(int8_t *name, int8_t *envname, int srvfd)
+post(char *name, char *envname, int srvfd)
 {
 	int fd;
-	int8_t buf[32];
+	char buf[32];
 
 	fd = create(name, OWRITE, 0600);
 	if(fd < 0)

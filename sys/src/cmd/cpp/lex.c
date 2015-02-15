@@ -316,7 +316,7 @@ gettokens(Tokenrow *trp, int reset)
 	int runelen;
 	Source *s = cursource;
 	int nmac = 0;
-	extern int8_t outbuf[];
+	extern char outbuf[];
 
 	tp = trp->lp;
 	ip = s->inp;
@@ -543,7 +543,7 @@ fillbuf(Source *s)
 {
 	int n;
 
-	while((int8_t *)s->inl+s->ins/8 > (int8_t *)s->inb+s->ins) {
+	while((char *)s->inl+s->ins/8 > (char *)s->inb+s->ins) {
 		int l = s->inl - s->inb;
 		int p = s->inp - s->inb;
 		if(l < 0) 
@@ -556,7 +556,7 @@ fillbuf(Source *s)
 		s->inl = s->inb + l;
 		s->inp = s->inb + p;
 	}
-	if (s->fd<0 || (n=read(s->fd, (int8_t *)s->inl, s->ins/8)) <= 0)
+	if (s->fd<0 || (n=read(s->fd, (char *)s->inl, s->ins/8)) <= 0)
 		n = 0;
 	if ((*s->inp&0xff) == EOB) /* sentinel character appears in input */
 		*s->inp = EOFC;
@@ -575,7 +575,7 @@ fillbuf(Source *s)
  * if fd==-1 and str, then from the string.
  */
 Source *
-setsource(int8_t *name, int fd, int8_t *str)
+setsource(char *name, int fd, char *str)
 {
 	Source *s = new(Source);
 	int len;
@@ -592,7 +592,7 @@ setsource(int8_t *name, int fd, int8_t *str)
 		len = strlen(str);
 		s->inb = domalloc(len+4);
 		s->inp = s->inb;
-		strncpy((int8_t *)s->inp, str, len);
+		strncpy((char *)s->inp, str, len);
 	} else {
 		Dir *d;
 		int junk;

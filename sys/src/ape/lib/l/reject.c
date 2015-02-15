@@ -13,8 +13,8 @@
 extern	FILE*	yyout;
 extern	FILE*	yyin;
 extern	int	yyprevious, *yyfnd;
-extern	int8_t	yyextra[];
-extern	int8_t	yytext[];
+extern	char	yyextra[];
+extern	char	yytext[];
 extern	int	yyleng;
 
 extern

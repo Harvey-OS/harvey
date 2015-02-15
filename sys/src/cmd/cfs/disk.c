@@ -21,11 +21,11 @@ int	icformat(Disk*, uint32_t);
  *  is inconsistent.
  */
 int
-dinit(Disk *d, int f, int psize, int8_t *expname)
+dinit(Disk *d, int f, int psize, char *expname)
 {
 	uint32_t	i;
 	uint64_t	length;
-	int8_t	buf[1024];
+	char	buf[1024];
 	Bbuf	*b;
 	Dalloc	*ba;
 	Dir	*dir;
@@ -114,7 +114,7 @@ dinit(Disk *d, int f, int psize, int8_t *expname)
  *  format the disk as a cache
  */
 int
-dformat(Disk *d, int f, int8_t *name, uint32_t bsize, uint32_t psize)
+dformat(Disk *d, int f, char *name, uint32_t bsize, uint32_t psize)
 {
 	int	i;
 	uint64_t	length;

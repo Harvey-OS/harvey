@@ -15,7 +15,7 @@
 Memsubfont*
 getmemdefont(void)
 {
-	int8_t *hdr, *p;
+	char *hdr, *p;
 	int n;
 	Fontchar *fc;
 	Memsubfont *f;
@@ -29,7 +29,7 @@ getmemdefont(void)
 	 * but not in general.  the byte order is right because the data is
 	 * declared as char*, not ulong*.
 	 */
-	p = (int8_t*)defontdata;
+	p = (char*)defontdata;
 	n = (uintptr)p & 3;
 	if(n != 0){
 		memmove(p+(4-n), p, sizeofdefont-n);

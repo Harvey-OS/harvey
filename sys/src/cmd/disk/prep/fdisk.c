@@ -43,12 +43,12 @@ static int sec2cyl;
 static int written;
 
 static void 	cmdsum(Edit*, Part*, int64_t, int64_t);
-static int8_t 	*cmdadd(Edit*, int8_t*, int64_t, int64_t);
-static int8_t 	*cmddel(Edit*, Part*);
-static int8_t 	*cmdext(Edit*, int, int8_t**);
-static int8_t 	*cmdhelp(Edit*);
-static int8_t 	*cmdokname(Edit*, int8_t*);
-static int8_t 	*cmdwrite(Edit*);
+static char 	*cmdadd(Edit*, char*, int64_t, int64_t);
+static char 	*cmddel(Edit*, Part*);
+static char 	*cmdext(Edit*, int, char**);
+static char 	*cmdhelp(Edit*);
+static char 	*cmdokname(Edit*, char*);
+static char 	*cmdwrite(Edit*);
 static void	cmdprintctl(Edit*, int);
 
 #pragma varargck type "D" uchar*
@@ -70,9 +70,9 @@ Edit edit = {
  * Catch the obvious error routines to fix up the disk.
  */
 void
-sysfatal(int8_t *fmt, ...)
+sysfatal(char *fmt, ...)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -269,8 +269,8 @@ enum {
 };
 
 struct Type {
-	int8_t *desc;
-	int8_t *name;
+	char *desc;
+	char *name;
 };
 
 struct Dospart {
@@ -342,10 +342,10 @@ static Type types[256] = {
 static Dospart	part[Mpart];
 static int		npart;
 
-static int8_t*
+static char*
 typestr0(int type)
 {
-	static int8_t buf[100];
+	static char buf[100];
 
 	sprint(buf, "type %d", type);
 	if(type < 0 || type >= 256)
@@ -404,7 +404,7 @@ Error:
 }
 
 static Dospart*
-mkpart(int8_t *name, int primary, int64_t lba, int64_t size, Tentry *t)
+mkpart(char *name, int primary, int64_t lba, int64_t size, Tentry *t)
 {
 	static int n;
 	Dospart *p;
@@ -502,7 +502,7 @@ recover(Edit *edit)
 static void
 rdpart(Edit *edit, uint64_t lba, uint64_t xbase)
 {
-	int8_t *err;
+	char *err;
 	Table table;
 	Tentry *tp, *ep;
 	Dospart *p;
@@ -614,7 +614,7 @@ haveroom(Edit *edit, int primary, int64_t start)
 static void
 autopart(Edit *edit)
 {
-	int8_t *err;
+	char *err;
 	int active, i;
 	int64_t bigstart, bigsize, start;
 	Dospart *p;
@@ -671,7 +671,7 @@ autopart(Edit *edit)
 
 typedef struct Name Name;
 struct Name {
-	int8_t *name;
+	char *name;
 	Name *link;
 };
 Name *namelist;
@@ -679,10 +679,10 @@ static void
 plan9print(Dospart *part, int fd)
 {
 	int i, ok;
-	int8_t *name, *vname;
+	char *name, *vname;
 	Name *n;
 	int64_t start, end;
-	int8_t *sep;
+	char *sep;
 
 	vname = types[part->type].name;
 	if(vname==nil || strcmp(vname, "")==0) {
@@ -748,10 +748,10 @@ cmdprintctl(Edit *edit, int ctlfd)
 	ctldiff(edit, ctlfd);
 }
 
-static int8_t*
-cmdokname(Edit*, int8_t *name)
+static char*
+cmdokname(Edit*, char *name)
 {
-	int8_t *q;
+	char *q;
 
 	if(name[0] != 'p' && name[0] != 's')
 		return "name must be pN or sN";
@@ -771,9 +771,9 @@ cmdokname(Edit*, int8_t *name)
 static void
 cmdsum(Edit *edit, Part *vp, int64_t a, int64_t b)
 {
-	int8_t *name, *ty;
-	int8_t buf[3];
-	int8_t *suf;
+	char *name, *ty;
+	char buf[3];
+	char *suf;
 	Dospart *p;
 	int64_t sz, div;
 
@@ -813,8 +813,8 @@ cmdsum(Edit *edit, Part *vp, int64_t a, int64_t b)
 			sz/div, (int)(((sz%div)*100)/div), suf, ty);
 }
 
-static int8_t*
-cmdadd(Edit *edit, int8_t *name, int64_t start, int64_t end)
+static char*
+cmdadd(Edit *edit, char *name, int64_t start, int64_t end)
 {
 	Dospart *p;
 
@@ -830,35 +830,35 @@ cmdadd(Edit *edit, int8_t *name, int64_t start, int64_t end)
 	return addpart(edit, p);
 }
 
-static int8_t*
+static char*
 cmddel(Edit *edit, Part *p)
 {
 	return delpart(edit, p);
 }
 
-static int8_t*
+static char*
 cmdwrite(Edit *edit)
 {
 	wrpart(edit);
 	return nil;
 }
 
-static int8_t *help = 
+static char *help = 
 	"A name - set partition active\n"
 	"P - print table in ctl format\n"
 	"R - restore disk back to initial configuration and exit\n"
 	"e - show empty dos partitions\n"
 	"t name [type] - set partition type\n";
 
-static int8_t*
+static char*
 cmdhelp(Edit*)
 {
 	print("%s\n", help);
 	return nil;
 }
 
-static int8_t*
-cmdactive(Edit *edit, int nf, int8_t **f)
+static char*
+cmdactive(Edit *edit, int nf, char **f)
 {
 	int i;
 	Dospart *p, *ip;
@@ -890,10 +890,10 @@ cmdactive(Edit *edit, int nf, int8_t **f)
 	return nil;
 }
 
-static int8_t*
-strupr(int8_t *s)
+static char*
+strupr(char *s)
 {
-	int8_t *p;
+	char *p;
 
 	for(p=s; *p; p++)
 		*p = toupper(*p);
@@ -917,10 +917,10 @@ dumplist(void)
 		print("\n");
 }
 
-static int8_t*
-cmdtype(Edit *edit, int nf, int8_t **f)
+static char*
+cmdtype(Edit *edit, int nf, char **f)
 {
-	int8_t *q;
+	char *q;
 	Dospart *p;
 	int i;
 
@@ -954,8 +954,8 @@ cmdtype(Edit *edit, int nf, int8_t **f)
 	return nil;
 }
 
-static int8_t*
-cmdext(Edit *edit, int nf, int8_t **f)
+static char*
+cmdext(Edit *edit, int nf, char **f)
 {
 	switch(f[0][0]) {
 	case 'A':
@@ -973,7 +973,7 @@ cmdext(Edit *edit, int nf, int8_t **f)
 static int
 Dfmt(Fmt *f)
 {
-	int8_t buf[60];
+	char buf[60];
 	uint8_t *p;
 	int c, h, s;
 

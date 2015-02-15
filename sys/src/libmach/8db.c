@@ -17,20 +17,20 @@
  * also amd64 extensions
  */
 
-static	int8_t	*i386excep(Map*, Rgetter);
+static	char	*i386excep(Map*, Rgetter);
 
 static	int	i386trace(Map*, uint64_t, uint64_t, uint64_t,
 				   Tracer);
 static	uint64_t	i386frame(Map*, uint64_t, uint64_t, uint64_t,
 					uint64_t);
 static	int	i386foll(Map*, uint64_t, Rgetter, uint64_t*);
-static	int	i386inst(Map*, uint64_t, int8_t, int8_t*, int);
-static	int	i386das(Map*, uint64_t, int8_t*, int);
+static	int	i386inst(Map*, uint64_t, char, char*, int);
+static	int	i386das(Map*, uint64_t, char*, int);
 static	int	i386instlen(Map*, uint64_t);
 
-static	int8_t	STARTSYM[] =	"_main";
-static	int8_t	PROFSYM[] =	"_mainp";
-static	int8_t	FRAMENAME[] =	".frame";
+static	char	STARTSYM[] =	"_main";
+static	char	PROFSYM[] =	"_mainp";
+static	char	FRAMENAME[] =	".frame";
 static char *excname[] =
 {
 [0]	"divide error",
@@ -81,12 +81,12 @@ Machdata i386mach =
 	i386instlen,		/* instruction size calculation */
 };
 
-static int8_t*
+static char*
 i386excep(Map *map, Rgetter rget)
 {
 	uint32_t c;
 	uint64_t pc;
-	static int8_t buf[16];
+	static char buf[16];
 
 	c = (*rget)(map, "TRAP");
 	if(c > 64 || excname[c] == 0) {
@@ -178,28 +178,28 @@ struct	Instr
 	uint8_t	mem[1+1+1+1+2+1+1+4+4];		/* raw instruction */
 	uint64_t	addr;		/* address of start of instruction */
 	int	n;		/* number of bytes in instruction */
-	int8_t	*prefix;	/* instr prefix */
-	int8_t	*segment;	/* segment override */
+	char	*prefix;	/* instr prefix */
+	char	*segment;	/* segment override */
 	uint8_t	jumptype;	/* set to the operand type for jump/ret/call */
 	uint8_t	amd64;
 	uint8_t	rex;		/* REX prefix (or zero) */
-	int8_t	osize;		/* 'W' or 'L' (or 'Q' on amd64) */
-	int8_t	asize;		/* address size 'W' or 'L' (or 'Q' or amd64) */
+	char	osize;		/* 'W' or 'L' (or 'Q' on amd64) */
+	char	asize;		/* address size 'W' or 'L' (or 'Q' or amd64) */
 	uint8_t	mod;		/* bits 6-7 of mod r/m field */
 	uint8_t	reg;		/* bits 3-5 of mod r/m field */
-	int8_t	ss;		/* bits 6-7 of SIB */
-	int8_t	index;		/* bits 3-5 of SIB */
-	int8_t	base;		/* bits 0-2 of SIB */
-	int8_t	rip;		/* RIP-relative in amd64 mode */
+	char	ss;		/* bits 6-7 of SIB */
+	char	index;		/* bits 3-5 of SIB */
+	char	base;		/* bits 0-2 of SIB */
+	char	rip;		/* RIP-relative in amd64 mode */
 	uint8_t	opre;		/* f2/f3 could introduce media */
 	int16_t	seg;		/* segment of far address */
 	uint32_t	disp;		/* displacement */
 	uint32_t 	imm;		/* immediate */
 	uint32_t 	imm2;		/* second immediate operand */
 	uint64_t	imm64;		/* big immediate */
-	int8_t	*curr;		/* fill level in output buffer */
-	int8_t	*end;		/* end of output buffer */
-	int8_t	*err;		/* error message */
+	char	*curr;		/* fill level in output buffer */
+	char	*end;		/* end of output buffer */
+	char	*err;		/* error message */
 };
 
 	/* 386 register (ha!) set */
@@ -255,7 +255,7 @@ enum{
 typedef struct Optable Optable;
 struct Optable
 {
-	int8_t	operand[2];
+	char	operand[2];
 	void	*proto;		/* actually either (char*) or (Optable*) */
 };
 	/* Operand decoding codes */
@@ -1410,7 +1410,7 @@ mkinstr(Map *map, Instr *ip, uint64_t pc)
 	uint8_t c;
 	uint16_t s;
 	Optable *op, *obase;
-	int8_t buf[128];
+	char buf[128];
 
 	memset(ip, 0, sizeof(*ip));
 	norex = 1;
@@ -1674,14 +1674,14 @@ badop:
 			ip->opre = c;
 			/* fall through */
 		case PRE:	/* Instr Prefix */
-			ip->prefix = (int8_t*)op->proto;
+			ip->prefix = (char*)op->proto;
 			if (igetc(map, ip, &c) < 0)
 				return 0;
 			if (ip->opre && c == 0x0F)
 				ip->prefix = 0;
 			goto newop;
 		case SEG:	/* Segment Prefix */
-			ip->segment = (int8_t*)op->proto;
+			ip->segment = (char*)op->proto;
 			if (igetc(map, ip, &c) < 0)
 				return 0;
 			goto newop;
@@ -1715,7 +1715,7 @@ badop:
 #pragma	varargck	argpos	bprint		2
 
 static void
-bprint(Instr *ip, int8_t *fmt, ...)
+bprint(Instr *ip, char *fmt, ...)
 {
 	va_list arg;
 
@@ -1755,10 +1755,10 @@ static char *reg[] =  {
 [R15]	"R15",
 };
 
-static int8_t *breg[] = { "AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH" };
-static int8_t *breg64[] = { "AL", "CL", "DL", "BL", "SPB", "BPB", "SIB", "DIB",
+static char *breg[] = { "AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH" };
+static char *breg64[] = { "AL", "CL", "DL", "BL", "SPB", "BPB", "SIB", "DIB",
 	"R8B", "R9B", "R10B", "R11B", "R12B", "R13B", "R14B", "R15B" };
-static int8_t *sreg[] = { "ES", "CS", "SS", "DS", "FS", "GS" };
+static char *sreg[] = { "ES", "CS", "SS", "DS", "FS", "GS" };
 
 static void
 plocal(Instr *ip)
@@ -1766,7 +1766,7 @@ plocal(Instr *ip)
 	int ret;
 	int32_t offset;
 	Symbol s;
-	int8_t *reg;
+	char *reg;
 
 	offset = ip->disp;
 	if (!findsym(ip->addr, CTEXT, &s) || !findlocal(&s, FRAMENAME, &s)) {
@@ -1914,7 +1914,7 @@ pea(Instr *ip)
 }
 
 static void
-prinstr(Instr *ip, int8_t *fmt)
+prinstr(Instr *ip, char *fmt)
 {
 	int64_t v;
 
@@ -2063,7 +2063,7 @@ prinstr(Instr *ip, int8_t *fmt)
 }
 
 static int
-i386inst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
+i386inst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	Instr instr;
 	Optable *op;
@@ -2081,7 +2081,7 @@ i386inst(Map *map, uint64_t pc, int8_t modifier, int8_t *buf, int n)
 }
 
 static int
-i386das(Map *map, uint64_t pc, int8_t *buf, int n)
+i386das(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr instr;
 	int i;

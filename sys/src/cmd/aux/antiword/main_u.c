@@ -57,7 +57,7 @@
 #include "antiword.h"
 
 /* The name of this program */
-static const int8_t	*szTask = NULL;
+static const char	*szTask = NULL;
 
 
 static void
@@ -157,7 +157,7 @@ pStdin2TmpFile(int32_t *lFilesize)
  * returns: TRUE when the given file is a supported Word file, otherwise FALSE
  */
 static BOOL
-bProcessFile(const int8_t *szFilename)
+bProcessFile(const char *szFilename)
 {
 	FILE		*pFile;
 	diagram_type	*pDiag;
@@ -228,10 +228,10 @@ bProcessFile(const int8_t *szFilename)
 } /* end of bProcessFile */
 
 int
-main(int argc, int8_t **argv)
+main(int argc, char **argv)
 {
 	options_type	tOptions;
-	const int8_t	*szWordfile;
+	const char	*szWordfile;
 	int	iFirst, iIndex, iGoodCount;
 	BOOL	bUsage, bMultiple, bUseTXT, bUseXML;
 

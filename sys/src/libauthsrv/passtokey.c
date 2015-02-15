@@ -12,7 +12,7 @@
 #include <authsrv.h>
 
 int
-passtokey(int8_t *key, int8_t *p)
+passtokey(char *key, char *p)
 {
 	uint8_t buf[ANAMELEN], *t;
 	int i, n;
@@ -22,7 +22,7 @@ passtokey(int8_t *key, int8_t *p)
 		n = ANAMELEN-1;
 	memset(buf, ' ', 8);
 	t = buf;
-	strncpy((int8_t*)t, p, n);
+	strncpy((char*)t, p, n);
 	t[n] = 0;
 	memset(key, 0, DESKEYLEN);
 	for(;;){

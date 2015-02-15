@@ -18,7 +18,7 @@ enum {
 };
 
 static uint8_t*
-gstring(uint8_t *p, uint8_t *ep, int8_t **s)
+gstring(uint8_t *p, uint8_t *ep, char **s)
 {
 	uint n;
 
@@ -108,7 +108,7 @@ auth_getinfo(AuthRpc *rpc)
 }
 
 static int
-dorpc(AuthRpc *rpc, int8_t *verb, int8_t *val, int len, AuthGetkey *getkey)
+dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
 {
 	int ret;
 
@@ -126,12 +126,12 @@ dorpc(AuthRpc *rpc, int8_t *verb, int8_t *val, int len, AuthGetkey *getkey)
  *  this just proxies what the factotum tells it to.
  */
 AuthInfo*
-fauth_proxy(int fd, AuthRpc *rpc, AuthGetkey *getkey, int8_t *params)
+fauth_proxy(int fd, AuthRpc *rpc, AuthGetkey *getkey, char *params)
 {
-	int8_t *buf;
+	char *buf;
 	int m, n, ret;
 	AuthInfo *a;
-	int8_t oerr[ERRMAX];
+	char oerr[ERRMAX];
 
 	rerrstr(oerr, sizeof oerr);
 	werrstr("UNKNOWN AUTH ERROR");
@@ -187,10 +187,10 @@ Error:
 }
 
 AuthInfo*
-auth_proxy(int fd, AuthGetkey *getkey, int8_t *fmt, ...)
+auth_proxy(int fd, AuthGetkey *getkey, char *fmt, ...)
 {
 	int afd;
-	int8_t *p;
+	char *p;
 	va_list arg;
 	AuthInfo *ai;
 	AuthRpc *rpc;

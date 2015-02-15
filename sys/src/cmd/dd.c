@@ -21,11 +21,11 @@
 int	cflag;
 int	fflag;
 
-int8_t	*string;
-int8_t	*ifile;
-int8_t	*ofile;
-int8_t	*ibuf;
-int8_t	*obuf;
+char	*string;
+char	*ifile;
+char	*ofile;
+char	*ibuf;
+char	*obuf;
 
 int64_t	skip;
 int64_t	oseekn;
@@ -52,7 +52,7 @@ int dotrunc = 1;
 int	ibf;
 int	obf;
 
-int8_t	*op;
+char	*op;
 int	nspace;
 
 uint8_t	etoa[256];
@@ -62,7 +62,7 @@ uint8_t	atoibm[256];
 int	quiet;
 
 void	flsh(void);
-int	match(int8_t *s);
+int	match(char *s);
 int64_t	number(int64_t big);
 void	cnull(int cc);
 void	null(int c);
@@ -71,17 +71,17 @@ void	unblock(int cc);
 void	ebcdic(int cc);
 void	ibm(int cc);
 void	block(int cc);
-void	term(int8_t*);
+void	term(char*);
 void	stats(void);
 
 #define	iskey(s)	((key[0] == '-') && (strcmp(key+1, s) == 0))
 
 int
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	void (*conv)(int);
-	int8_t *ip;
-	int8_t *key;
+	char *ip;
+	char *key;
 	int a, c;
 
 	conv = null;
@@ -244,7 +244,7 @@ main(int argc, int8_t *argv[])
 	else
 		obuf = sbrk(obs);
 	sbrk(64);	/* For good measure */
-	if(ibuf == (int8_t *)-1 || obuf == (int8_t *)-1) {
+	if(ibuf == (char *)-1 || obuf == (char *)-1) {
 		fprint(2, "dd: not enough memory: %r\n");
 		exits("memory");
 	}
@@ -347,9 +347,9 @@ flsh(void)
 }
 
 int
-match(int8_t *s)
+match(char *s)
 {
-	int8_t *cs;
+	char *cs;
 
 	cs = string;
 	while(*cs++ == *s)
@@ -367,7 +367,7 @@ true:
 int64_t
 number(int64_t big)
 {
-	int8_t *cs;
+	char *cs;
 	uint64_t n;
 
 	cs = string;
@@ -572,7 +572,7 @@ block(int cc)
 }
 
 void
-term(int8_t *status)
+term(char *status)
 {
 	stats();
 	exits(status);

@@ -14,14 +14,14 @@
 #include "arm.h"
 
 static	int	dummy;
-static	int8_t*	shtype[4] =
+static	char*	shtype[4] =
 {
 	"<<",
 	">>",
 	"->",
 	"@>",
 };
-static	int8_t*	cond[16] =
+static	char*	cond[16] =
 {
 	".EQ",	".NE",	".HS",	".LO",
 	".MI",	".PL",	".VS",	".VC",
@@ -645,7 +645,7 @@ Iswap(uint32_t inst)
 	reg.r[rd] = value;
 
 	if(trace) {
-		int8_t *bw, *dotc;
+		char *bw, *dotc;
 
 		bw = "";
 		if(bbit)
@@ -721,7 +721,7 @@ Imem1(uint32_t inst)
 		reg.r[rn] += off;
 
 	if(trace) {
-		int8_t *bw, *dotp, *dotc;
+		char *bw, *dotp, *dotc;
 
 		bw = "W";
 		if(bbit)
@@ -821,7 +821,7 @@ Imem2(uint32_t inst)
 		reg.r[rn] += off;
 
 	if(trace) {
-		int8_t *hb, *dotp, *dotc;
+		char *hb, *dotp, *dotc;
 
 		hb = "B";
 		if(hbit)
@@ -860,7 +860,7 @@ Imem2(uint32_t inst)
 void
 Ilsm(uint32_t inst)
 {
-	int8_t pbit, ubit, sbit, wbit, lbit;
+	char pbit, ubit, sbit, wbit, lbit;
 	int i, rn, reglist;
 	uint32_t address, predelta, postdelta;
 

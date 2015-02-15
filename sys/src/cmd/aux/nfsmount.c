@@ -86,7 +86,7 @@ mountCall(SunCall *c, NfsMount3CallType type)
 }
 
 void
-tnull(int8_t **argv)
+tnull(char **argv)
 {
 	NfsMount3TNull tx;
 	NfsMount3RNull rx;
@@ -104,7 +104,7 @@ tnull(int8_t **argv)
 }
 
 void
-tmnt(int8_t **argv)
+tmnt(char **argv)
 {
 	int i;
 	NfsMount3TMnt tx;
@@ -133,7 +133,7 @@ tmnt(int8_t **argv)
 }
 
 void
-tdump(int8_t **argv)
+tdump(char **argv)
 {
 	uint8_t *p, *ep;
 	NfsMount3TDump tx;
@@ -160,7 +160,7 @@ tdump(int8_t **argv)
 }
 
 void
-tumnt(int8_t **argv)
+tumnt(char **argv)
 {
 	NfsMount3TUmnt tx;
 	NfsMount3RUmnt rx;
@@ -179,7 +179,7 @@ tumnt(int8_t **argv)
 }
 
 void
-tumntall(int8_t **argv)
+tumntall(char **argv)
 {
 	NfsMount3TUmntall tx;
 	NfsMount3RUmntall rx;
@@ -198,10 +198,10 @@ tumntall(int8_t **argv)
 }
 
 void
-texport(int8_t **argv)
+texport(char **argv)
 {
 	uint8_t *p, *ep, *tofree;
-	int8_t **g, **gg;
+	char **g, **gg;
 	int ng, i, n;
 	NfsMount3TDump tx;
 	NfsMount3RDump rx;
@@ -238,9 +238,9 @@ texport(int8_t **argv)
 }
 
 static struct {
-	int8_t *cmd;
+	char *cmd;
 	int narg;
-	void (*fn)(int8_t**);
+	void (*fn)(char**);
 } tab[] = {
 	"null",	0,	tnull,
 	"mnt",	1,	tmnt,
@@ -250,11 +250,11 @@ static struct {
 	"export",	0,	texport,
 };
 
-int8_t*
-netchangeport(int8_t *addr, int8_t *port)
+char*
+netchangeport(char *addr, char *port)
 {
-	static int8_t buf[256];
-	int8_t *r;
+	static char buf[256];
+	char *r;
 
 	strecpy(buf, buf+sizeof buf, addr);
 	r = strrchr(buf, '!');

@@ -70,11 +70,11 @@ struct Vmware {
 
 	uint32_t	r[Nreg];
 
-	int8_t	chan[32];
+	char	chan[32];
 	int	depth;
 };
 
-static int8_t*
+static char*
 rname[Nreg] = {
 	"ID",
 	"Enable",
@@ -243,7 +243,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr *ctlr)
 {
-	int8_t buf[64];
+	char buf[64];
 	int x;
 	Vmware *vm;
 

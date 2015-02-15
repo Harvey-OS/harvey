@@ -365,7 +365,7 @@ static OSStatus MainWindowEventHandler(EventHandlerCallRef nextHandler, EventRef
 	static uint32_t mouseY = 0; 
 
 	if(class == kEventClassKeyboard) {
-		int8_t macCharCodes;
+		char macCharCodes;
 		UInt32 macKeyCode;
 		UInt32 macKeyModifiers;
 
@@ -620,10 +620,10 @@ setcolor(uint32_t index, uint32_t red, uint32_t green, uint32_t blue)
 }
 
 
-static int8_t snarf[3*SnarfSize+1];
+static char snarf[3*SnarfSize+1];
 static Rune rsnarf[SnarfSize+1];
 
-int8_t*
+char*
 clipread(void)
 {
 	CFDataRef cfdata;
@@ -669,7 +669,7 @@ clipread(void)
 				if (length > sizeof rsnarf) length = sizeof rsnarf;
 				CFDataGetBytes(cfdata, CFRangeMake(0, length), (uint8_t *)rsnarf);
 				snprint(snarf, sizeof snarf, "%.*S", length/sizeof(Rune), rsnarf);
-				int8_t *s = snarf;
+				char *s = snarf;
 				while (*s) {
 					if (*s == '\r') *s = '\n';
 					s++;
@@ -683,7 +683,7 @@ clipread(void)
 }
 
 int
-clipwrite(int8_t *snarf)
+clipwrite(char *snarf)
 {
 	CFDataRef cfdata;
 	PasteboardSyncFlags flags;

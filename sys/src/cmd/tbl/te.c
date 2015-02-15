@@ -11,7 +11,7 @@
 # include "t.h"
 
 void
-error(int8_t *s)
+error(char *s)
 {
 	fprint(2, "\n%s:%d: %s\n", ifile, iline, s);
 	fprint(2, "tbl quits\n");
@@ -19,10 +19,10 @@ error(int8_t *s)
 }
 
 
-int8_t	*
-gets1(int8_t *s, int size)
+char	*
+gets1(char *s, int size)
 {
-	int8_t	*p, *ns;
+	char	*p, *ns;
 	int	nbl;
 
 	iline++;
@@ -49,8 +49,8 @@ gets1(int8_t *s, int size)
 
 
 # define BACKMAX 500
-int8_t	backup[BACKMAX];
-int8_t	*backp = backup;
+char	backup[BACKMAX];
+char	*backp = backup;
 
 void
 un1getc(int c)

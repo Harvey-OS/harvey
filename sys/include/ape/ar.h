@@ -20,13 +20,13 @@
 
 struct	ar_hdr
 {
-	int8_t	ar_name[16];
-	int8_t	ar_date[12];
-	int8_t	ar_uid[6];
-	int8_t	ar_gid[6];
-	int8_t	ar_mode[8];
-	int8_t	ar_size[10];
-	int8_t	ar_fmag[2];
+	char	ar_name[16];
+	char	ar_date[12];
+	char	ar_uid[6];
+	char	ar_gid[6];
+	char	ar_mode[8];
+	char	ar_size[10];
+	char	ar_fmag[2];
 };
 #define	SAR_HDR	60
 

@@ -187,15 +187,15 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-static int8_t*
+static char*
 opt_seprint(Msg *m)
 {
 	int otype, osz, pktsz;
 	uint8_t *a;
-	int8_t *p = m->p;
-	int8_t *e = m->e;
-	int8_t *opt;
-	int8_t optbuf[12];
+	char *p = m->p;
+	char *e = m->e;
+	char *opt;
+	char optbuf[12];
 
 	pktsz = m->pe - m->ps;
 	a = m->ps;
@@ -290,9 +290,9 @@ p_seprint(Msg *m)
 {
 	int i;
 //	ushort cksum2, cksum;
-	int8_t *tn;
-	int8_t *p = m->p;
-	int8_t *e = m->e;
+	char *tn;
+	char *p = m->p;
+	char *e = m->e;
 	uint8_t *a;
 	Hdr *h;
 

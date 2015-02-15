@@ -12,13 +12,13 @@
 /* table-driven version in bootes dump of 12/31/96 */
 
 uint32_t
-mtime(int8_t *name)
+mtime(char *name)
 {
 	return mkmtime(name, 1);
 }
 
 uint32_t
-timeof(int8_t *name, int force)
+timeof(char *name, int force)
 {
 	Symtab *sym;
 	uint32_t t;
@@ -42,7 +42,7 @@ timeof(int8_t *name, int force)
 }
 
 void
-touch(int8_t *name)
+touch(char *name)
 {
 	Bprint(&bout, "touch(%s)\n", name);
 	if(nflag)
@@ -57,7 +57,7 @@ touch(int8_t *name)
 }
 
 void
-delete(int8_t *name)
+delete(char *name)
 {
 	if(utfrune(name, '(') == 0) {		/* file */
 		if(remove(name) < 0)
@@ -67,10 +67,10 @@ delete(int8_t *name)
 }
 
 void
-timeinit(int8_t *s)
+timeinit(char *s)
 {
 	uint32_t t;
-	int8_t *cp;
+	char *cp;
 	Rune r;
 	int c, n;
 

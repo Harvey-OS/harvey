@@ -22,7 +22,7 @@ usage(void)
 void
 xfer(int from, int to)
 {
-	int8_t buf[12*1024];
+	char buf[12*1024];
 	int n;
 
 	while((n = read(from, buf, sizeof buf)) > 0)

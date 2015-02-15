@@ -13,8 +13,8 @@ SmbProcessResult
 smbcomdeletedirectory(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 {
 	int rv;
-	int8_t *path;
-	int8_t *fullpath = nil;
+	char *path;
+	char *fullpath = nil;
 	SmbTree *t;
 	uint8_t fmt;
 

@@ -58,7 +58,7 @@ vUpdateRadioButton(window_handle tWindow, icon_handle tIconNumber,
  */
 void
 vUpdateWriteable(window_handle tWindow, icon_handle tIconNumber,
-	const int8_t *szString)
+	const char *szString)
 {
 	icon_block	tIcon;
 	caret_block	tCaret;
@@ -98,7 +98,7 @@ void
 vUpdateWriteableNumber(window_handle tWindow, icon_handle tIconNumber,
 	int iNumber)
 {
-	int8_t	szTmp[1+3*sizeof(int)+1];
+	char	szTmp[1+3*sizeof(int)+1];
 
 	(void)sprintf(szTmp, "%d", iNumber);
 	vUpdateWriteable(tWindow, tIconNumber, szTmp);

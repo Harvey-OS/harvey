@@ -12,7 +12,7 @@
 typedef struct RapTableEntry RapTableEntry;
 
 struct RapTableEntry {
-	int8_t *name;
+	char *name;
 	SmbProcessResult (*procedure)(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata);
 };
 
@@ -254,7 +254,7 @@ static SmbProcessResult
 netserverenum2(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 {
 	uint16_t level, rbl;
-	int8_t *domain;
+	char *domain;
 	uint32_t servertype;
 	SmbProcessResult pr;
 	SmbServerInfo *si[3];
@@ -313,7 +313,7 @@ done:
 static SmbProcessResult
 netsharegetinfo(SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata)
 {
-	int8_t *netname;
+	char *netname;
 	uint16_t level;
 	SmbProcessResult pr;
 	SmbService *serv;
@@ -451,8 +451,8 @@ static RapTableEntry raptable[] = {
 SmbProcessResult
 smbrap2(SmbSession *s)
 {
-	int8_t *pstring;
-	int8_t *dstring;
+	char *pstring;
+	char *dstring;
 	uint16_t pno;
 	RapTableEntry *e;
 	SmbProcessResult pr;

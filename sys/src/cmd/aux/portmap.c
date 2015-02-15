@@ -40,7 +40,7 @@ portCall(SunCall *c, PortCallType type)
 }
 
 void
-tnull(int8_t **argv)
+tnull(char **argv)
 {
 	PortTNull tx;
 	PortRNull rx;
@@ -58,7 +58,7 @@ tnull(int8_t **argv)
 }
 
 void
-tset(int8_t **argv)
+tset(char **argv)
 {
 	PortTSet tx;
 	PortRSet rx;
@@ -81,7 +81,7 @@ tset(int8_t **argv)
 }
 
 void
-tunset(int8_t **argv)
+tunset(char **argv)
 {
 	PortTUnset tx;
 	PortRUnset rx;
@@ -104,7 +104,7 @@ tunset(int8_t **argv)
 }
 
 void
-tgetport(int8_t **argv)
+tgetport(char **argv)
 {
 	PortTGetport tx;
 	PortRGetport rx;
@@ -125,7 +125,7 @@ tgetport(int8_t **argv)
 }
 
 void
-tdump(int8_t **argv)
+tdump(char **argv)
 {
 	int i;
 	uint8_t *p;
@@ -151,9 +151,9 @@ tdump(int8_t **argv)
 }
 
 static struct {
-	int8_t *cmd;
+	char *cmd;
 	int narg;
-	void (*fn)(int8_t**);
+	void (*fn)(char**);
 } tab[] = {
 	"null",	0,	tnull,
 	"set",	4,	tset,

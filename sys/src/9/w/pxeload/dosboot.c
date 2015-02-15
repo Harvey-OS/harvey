@@ -73,7 +73,7 @@ struct Dosdir{
  *  predeclared
  */
 static void	bootdump(Dosboot*);
-static void	setname(Dosfile*, int8_t*);
+static void	setname(Dosfile*, char*);
 
 /*
  *  debugging
@@ -332,7 +332,7 @@ dosread(Dosfile *fp, void *a, int32_t n)
  *	 1 if found
  */
 int
-doswalk(File *f, int8_t *name)
+doswalk(File *f, char *name)
 {
 	Dosdir d;
 	int32_t n;
@@ -351,15 +351,15 @@ doswalk(File *f, int8_t *name)
 
 	file->offset = 0;	/* start at the beginning */
 	while((n = dosread(file, &d, sizeof(d))) == sizeof(d)){
-		chat("comparing to %8.8s.%3.3s\n", (int8_t*)d.name,
-		     (int8_t*)d.ext);
+		chat("comparing to %8.8s.%3.3s\n", (char*)d.name,
+		     (char*)d.ext);
 		if(memcmp(file->name, d.name, sizeof(d.name)) != 0)
 			continue;
 		if(memcmp(file->ext, d.ext, sizeof(d.ext)) != 0)
 			continue;
 		if(d.attr & DOSVLABEL){
-			chat("%8.8s.%3.3s is a LABEL\n", (int8_t*)d.name,
-			     (int8_t*)d.ext);
+			chat("%8.8s.%3.3s is a LABEL\n", (char*)d.name,
+			     (char*)d.ext);
 			continue;
 		}
 		file->attr = d.attr;
@@ -387,7 +387,7 @@ doswalk(File *f, int8_t *name)
 int32_t
 dosreadseg(File *f, void *va, int32_t len)
 {
-	int8_t *a;
+	char *a;
 	int32_t n, sofar;
 	Dosfile *fp;
 
@@ -531,7 +531,7 @@ bootdump(Dosboot *b)
 		return;
 	print("magic: 0x%2.2x 0x%2.2x 0x%2.2x ",
 		b->magic[0], b->magic[1], b->magic[2]);
-	print("version: \"%8.8s\"\n", (int8_t*)b->version);
+	print("version: \"%8.8s\"\n", (char*)b->version);
 	print("sectsize: %d ", GSHORT(b->sectsize));
 	print("allocsize: %d ", b->clustsize);
 	print("nresrv: %d ", GSHORT(b->nresrv));
@@ -558,9 +558,9 @@ bootdump(Dosboot *b)
  *  set up a dos file name
  */
 static void
-setname(Dosfile *fp, int8_t *from)
+setname(Dosfile *fp, char *from)
 {
-	int8_t *to;
+	char *to;
 
 	to = fp->name;
 	for(; *from && to-fp->name < 8; from++, to++){

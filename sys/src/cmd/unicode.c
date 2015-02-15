@@ -11,16 +11,16 @@
 #include <libc.h>
 #include <bio.h>
 
-int8_t	usage[] = "unicode { [-t] hex hex ... | hexmin-hexmax ... | [-n] char ... }";
-int8_t	hex[] = "0123456789abcdefABCDEF";
+char	usage[] = "unicode { [-t] hex hex ... | hexmin-hexmax ... | [-n] char ... }";
+char	hex[] = "0123456789abcdefABCDEF";
 int	numout = 0;
 int	text = 0;
-int8_t	*err;
+char	*err;
 Biobuf	bout;
 
-int8_t	*range(int8_t*[]);
-int8_t	*nums(int8_t*[]);
-int8_t	*chars(int8_t*[]);
+char	*range(char*[]);
+char	*nums(char*[]);
+char	*chars(char*[]);
 
 void
 main(int argc, char *argv[])
@@ -45,10 +45,10 @@ main(int argc, char *argv[])
 	exits(chars(argv));
 }
 
-int8_t*
-range(int8_t *argv[])
+char*
+range(char *argv[])
 {
-	int8_t *q;
+	char *q;
 	int min, max;
 	int i;
 
@@ -83,13 +83,13 @@ range(int8_t *argv[])
 	return 0;
 }
 
-int8_t*
-nums(int8_t *argv[])
+char*
+nums(char *argv[])
 {
-	int8_t *q;
+	char *q;
 	Rune r;
 	int w, rsz;
-	int8_t utferr[UTFmax];
+	char utferr[UTFmax];
 
 	r = Runeerror;
 	rsz = runetochar(utferr, &r);
@@ -111,10 +111,10 @@ nums(int8_t *argv[])
 	return 0;
 }
 
-int8_t*
-chars(int8_t *argv[])
+char*
+chars(char *argv[])
 {
-	int8_t *q;
+	char *q;
 	int m;
 
 	while(*argv){

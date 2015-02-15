@@ -15,7 +15,7 @@
 #define PIPEMNT	"/mnt/temp"
 
 void
-procexec(Channel *pidc, int8_t *prog, int8_t *args[])
+procexec(Channel *pidc, char *prog, char *args[])
 {
 	int n;
 	Proc *p;
@@ -82,7 +82,7 @@ procexec(Channel *pidc, int8_t *prog, int8_t *args[])
 }
 
 void
-procexecl(Channel *pidc, int8_t *f, ...)
+procexecl(Channel *pidc, char *f, ...)
 {
 	procexec(pidc, f, &f+1);
 }

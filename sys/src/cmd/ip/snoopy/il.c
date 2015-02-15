@@ -97,7 +97,7 @@ p_filter(Filter *f, Msg *m)
 	return 0;
 }
 
-int8_t *pktnames[] = 
+char *pktnames[] = 
 {
 	"Sync",	
 	"Data",
@@ -108,10 +108,10 @@ int8_t *pktnames[] =
 	"Close"
 };
 
-static int8_t*
+static char*
 pkttype(int t)
 {
-	static int8_t b[10];
+	static char b[10];
 	
 	if(t > 6){
 		sprint(b, "%d", t);

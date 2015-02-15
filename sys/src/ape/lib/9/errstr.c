@@ -9,10 +9,10 @@
 
 #include <lib9.h>
 
-extern	int	_ERRSTR(int8_t*, unsigned int);
+extern	int	_ERRSTR(char*, unsigned int);
 
 int
-errstr(int8_t *err, unsigned int nerr)
+errstr(char *err, unsigned int nerr)
 {
 	return _ERRSTR(err, nerr);
 }

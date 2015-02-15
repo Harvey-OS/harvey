@@ -63,7 +63,7 @@ rgba(uint32_t rgba)
 }
 
 void
-colorinit(int8_t *roman, int8_t *bold)
+colorinit(char *roman, char *bold)
 {
 	Rectangle r = Rect(0, 0, 1, 1);
 

@@ -106,7 +106,7 @@ top:
 	    if (ss->binary_to_hex) {
 		/* Translate binary to hex. */
 		int count;
-		const int8_t *const hex_digits = "0123456789abcdef";
+		const char *const hex_digits = "0123456789abcdef";
 
 		wcount >>= 1;	/* 2 chars per input byte */
 		count = (wcount < rcount ? (status = 1, wcount) : rcount);

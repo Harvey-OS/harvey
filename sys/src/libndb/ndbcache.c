@@ -15,8 +15,8 @@
 struct Ndbcache
 {
 	Ndbcache	*next;
-	int8_t		*attr;
-	int8_t		*val;
+	char		*attr;
+	char		*val;
 	Ndbs		s;
 	Ndbtuple	*t;	
 };
@@ -81,7 +81,7 @@ ndbcopy(Ndb *db, Ndbtuple *from_t, Ndbs *from_s, Ndbs *to_s)
  *  if found, move to front
  */
 int
-_ndbcachesearch(Ndb *db, Ndbs *s, int8_t *attr, int8_t *val, Ndbtuple **t)
+_ndbcachesearch(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple **t)
 {
 	Ndbcache *c, **l;
 
@@ -105,7 +105,7 @@ _ndbcachesearch(Ndb *db, Ndbs *s, int8_t *attr, int8_t *val, Ndbtuple **t)
 }
 
 Ndbtuple*
-_ndbcacheadd(Ndb *db, Ndbs *s, int8_t *attr, int8_t *val, Ndbtuple *t)
+_ndbcacheadd(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple *t)
 {
 	Ndbcache *c, **l;
 

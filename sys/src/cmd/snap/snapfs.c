@@ -54,7 +54,7 @@ usage(void)
 	exits("usage");
 }
 
-int8_t*
+char*
 memread(Proc *p, File *f, void *buf, int32_t *count, int64_t offset)
 {
 	Page *pg;
@@ -71,7 +71,7 @@ memread(Proc *p, File *f, void *buf, int32_t *count, int64_t offset)
 	return nil;
 }
 
-int8_t*
+char*
 dataread(Data *d, void *buf, int32_t *count, int64_t offset)
 {
 	assert(d != nil);
@@ -91,7 +91,7 @@ dataread(Data *d, void *buf, int32_t *count, int64_t offset)
 void
 fsread(Req *r)
 {
-	int8_t *e;
+	char *e;
 	PD *pd;
 	Fid *fid;
 	void *data;
@@ -119,7 +119,7 @@ Srv fs = {
 };
 
 File*
-ecreatefile(File *a, int8_t *b, int8_t *c, uint32_t d, void *e)
+ecreatefile(File *a, char *b, char *c, uint32_t d, void *e)
 {
 	File *f;
 

@@ -19,7 +19,7 @@
 #include "vga.h"
 
 typedef struct {
-	int8_t*	name[2];
+	char*	name[2];
 	uint32_t	frequency[16];
 } Pattern;
 
@@ -42,7 +42,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	Pattern *pattern;
-	int8_t *p;
+	char *p;
 	int f, index, divisor, maxdivisor;
 
 	if(ctlr->flag & Finit)

@@ -20,9 +20,9 @@ enum{
 	CHUNK	=	256	/* must be power of 2 */
 };
 
-int8_t	*errs;			/* exit status */
-int8_t	*filename;		/* current file */
-int8_t	symname[]="__.SYMDEF";	/* table of contents file name */
+char	*errs;			/* exit status */
+char	*filename;		/* current file */
+char	symname[]="__.SYMDEF";	/* table of contents file name */
 int	multifile;		/* processing multiple files */
 int	aflag;
 int	gflag;
@@ -38,7 +38,7 @@ int	nsym;
 Biobuf	bout;
 
 int	cmp(void*, void*);
-void	error(int8_t*, ...);
+void	error(char*, ...);
 void	execsyms(int);
 void	psym(Sym*, void*);
 void	printsyms(Sym**, int32_t);
@@ -101,7 +101,7 @@ void
 doar(Biobuf *bp)
 {
 	int offset, size, obj;
-	int8_t membername[SARNAME];
+	char membername[SARNAME];
 
 	multifile = 1;
 	for (offset = Boffset(bp);;offset += size) {
@@ -272,8 +272,8 @@ printsyms(Sym **symptr, int32_t nsym)
 {
 	int i, wid;
 	Sym *s;
-	int8_t *cp;
-	int8_t path[512];
+	char *cp;
+	char path[512];
 
 	if(!sflag)
 		qsort(symptr, nsym, sizeof(*symptr), cmp);
@@ -306,10 +306,10 @@ printsyms(Sym **symptr, int32_t nsym)
 }
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
 	Fmt f;
-	int8_t buf[128];
+	char buf[128];
 	va_list arg;
 
 	fmtfdinit(&f, 2, buf, sizeof buf);

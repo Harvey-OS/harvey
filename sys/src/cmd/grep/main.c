@@ -10,7 +10,7 @@
 #define	EXTERN
 #include	"grep.h"
 
-int8_t *validflags = "bchiLlnsv";
+char *validflags = "bchiLlnsv";
 void
 usage(void)
 {
@@ -80,7 +80,7 @@ main(int argc, char *argv[])
 }
 
 int
-search(int8_t *file, int flag)
+search(char *file, int flag)
 {
 	State *s, *ns;
 	int c, fid, eof, nl, empty;

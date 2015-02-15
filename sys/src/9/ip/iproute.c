@@ -297,7 +297,7 @@ addnode(Fs *f, Route **cur, Route *new)
 #define	V4H(a)	((a&0x07ffffff)>>(32-Lroot-5))
 
 void
-v4addroute(Fs *f, int8_t *tag, uint8_t *a, uint8_t *mask, uint8_t *gate,
+v4addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask, uint8_t *gate,
 	   int type)
 {
 	Route *p;
@@ -336,7 +336,7 @@ v4addroute(Fs *f, int8_t *tag, uint8_t *a, uint8_t *mask, uint8_t *gate,
 #define ISDFLT(a, mask, tag) ((ipcmp((a),v6Unspecified)==0) && (ipcmp((mask),v6Unspecified)==0) && (strcmp((tag), "ra")!=0))
 
 void
-v6addroute(Fs *f, int8_t *tag, uint8_t *a, uint8_t *mask, uint8_t *gate,
+v6addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask, uint8_t *gate,
 	   int type)
 {
 	Route *p;
@@ -608,7 +608,7 @@ next:		;
 }
 
 void
-routetype(int type, int8_t *p)
+routetype(int type, char *p)
 {
 	memset(p, ' ', 4);
 	p[4] = 0;
@@ -628,10 +628,10 @@ routetype(int type, int8_t *p)
 		*p = 'p';
 }
 
-int8_t *rformat = "%-15I %-4M %-15I %4.4s %4.4s %3s\n";
+char *rformat = "%-15I %-4M %-15I %4.4s %4.4s %3s\n";
 
 void
-convroute(Route *r, uint8_t *addr, uint8_t *mask, uint8_t *gate, int8_t *t,
+convroute(Route *r, uint8_t *addr, uint8_t *mask, uint8_t *gate, char *t,
           int *nifc)
 {
 	int i;
@@ -666,9 +666,9 @@ static void
 sprintroute(Route *r, Routewalk *rw)
 {
 	int nifc, n;
-	int8_t t[5], *iname, ifbuf[5];
+	char t[5], *iname, ifbuf[5];
 	uint8_t addr[IPaddrlen], mask[IPaddrlen], gate[IPaddrlen];
-	int8_t *p;
+	char *p;
 
 	convroute(r, addr, mask, gate, t, &nifc);
 	iname = "-";
@@ -736,7 +736,7 @@ ipwalkroutes(Fs *f, Routewalk *rw)
 }
 
 int32_t
-routeread(Fs *f, int8_t *p, uint32_t offset, int n)
+routeread(Fs *f, char *p, uint32_t offset, int n)
 {
 	Routewalk rw;
 
@@ -759,7 +759,7 @@ delroute(Fs *f, Route *r, int dolock)
 	uint8_t addr[IPaddrlen];
 	uint8_t mask[IPaddrlen];
 	uint8_t gate[IPaddrlen];
-	int8_t t[5];
+	char t[5];
 	int nifc;
 
 	convroute(r, addr, mask, gate, t, &nifc);
@@ -774,7 +774,7 @@ delroute(Fs *f, Route *r, int dolock)
  *  returns 0 if nothing is deleted, 1 otherwise
  */
 int
-routeflush(Fs *f, Route *r, int8_t *tag)
+routeflush(Fs *f, Route *r, char *tag)
 {
 	if(r == nil)
 		return 0;
@@ -794,10 +794,10 @@ routeflush(Fs *f, Route *r, int8_t *tag)
 }
 
 int32_t
-routewrite(Fs *f, Chan *c, int8_t *p, int n)
+routewrite(Fs *f, Chan *c, char *p, int n)
 {
 	int h, changed;
-	int8_t *tag;
+	char *tag;
 	Cmdbuf *cb;
 	uint8_t addr[IPaddrlen];
 	uint8_t mask[IPaddrlen];

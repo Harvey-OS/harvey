@@ -45,8 +45,8 @@ writememimage(int fd, Memimage *i)
 	int ncblock;				/* size of compressed blocks */
 	Rectangle r;
 	uint8_t *p, *q, *s, *es, *t;
-	int8_t hdr[11+5*12+1];
-	int8_t cbuf[20];
+	char hdr[11+5*12+1];
+	char cbuf[20];
 
 	r = i->r;
 	bpl = bytesperline(r, i->depth);

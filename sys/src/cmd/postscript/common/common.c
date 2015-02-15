@@ -92,8 +92,8 @@ static int pplistmaxsize=0;
 static unsigned char *pplist=0;	/* bitmap list for storing pages to print */
 
 void
-pagelist(int8_t *list) {
-	int8_t c;
+pagelist(char *list) {
+	char c;
 	int n, m;
 	int state, start;
 
@@ -216,11 +216,11 @@ endpage(void) {
 /* This was taken from postprint */
 
 int
-cat(int8_t *filename) {
+cat(char *filename) {
 	Biobuf *bfile;
 	Biobufhdr *Bfile;
 	int n;
-	static int8_t buf[Bsize];
+	static char buf[Bsize];
 
 	if ((bfile = Bopen(filename, OREAD)) == 0) {
 		return(1);
@@ -238,7 +238,7 @@ cat(int8_t *filename) {
 }
 extern int debug;
 void *
-galloc(void *ptr, int size, int8_t *perstr) {
+galloc(void *ptr, int size, char *perstr) {
 	void *x;
 
 	if ((x=realloc(ptr, size)) == 0) {
@@ -248,18 +248,18 @@ galloc(void *ptr, int size, int8_t *perstr) {
 	return(x);
 }
 
-static int8_t *errorstrings[] = {
+static char *errorstrings[] = {
 	{""},	/* NONE */
 	{"WARNING"},
 	{"FATAL"}
 };
 
-int8_t *programname;
-int8_t *inputfilename = "<stdin>";
+char *programname;
+char *inputfilename = "<stdin>";
 int inputlineno;
 
 void
-error(int errtype, int8_t *fmt, ...) {
+error(int errtype, char *fmt, ...) {
 	va_list arg;
 
 	Bflush(Bstdout);

@@ -523,13 +523,13 @@ toStr(uint8_t* buf, int n, int chset)
 	case UTF_8:
 		m = 0;
 		for(i = 0; i < n; ) {
-			i += chartorune(&ch, (int8_t*)(buf+i));
+			i += chartorune(&ch, (char*)(buf+i));
 			m++;
 		}
 		ans = (Rune*)emalloc((m+1)*sizeof(Rune));
 		m = 0;
 		for(i = 0; i < n; ) {
-			i += chartorune(&ch, (int8_t*)(buf+i));
+			i += chartorune(&ch, (char*)(buf+i));
 			ans[m++] = ch;
 		}
 		ans[m] = 0;
@@ -572,12 +572,12 @@ fromStr(Rune* buf, int n, int chset)
 	case UTF_8:
 		m = 0;
 		for(i = 0; i < n; i++) {
-			m += runetochar((int8_t*)s, &buf[i]);
+			m += runetochar((char*)s, &buf[i]);
 		}
 		ans = (uint8_t*)emalloc(m+1);
 		p = ans;
 		for(i = 0; i < n; i++)
-			p += runetochar((int8_t*)p, &buf[i]);
+			p += runetochar((char*)p, &buf[i]);
 		*p = 0;
 		break;
 

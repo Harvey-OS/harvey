@@ -39,7 +39,7 @@ double	venfp[]	=
 	0.,
 };
 
-int8_t	vencp[]	=
+char	vencp[]	=
 {
 	1,-1,0,0,
 	2,-2,0,0,

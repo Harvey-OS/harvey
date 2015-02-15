@@ -43,7 +43,7 @@ d_free(dest *dp)
 		s_free(dp->addr);
 		s_free(dp->repl1);
 		s_free(dp->repl2);
-		free((int8_t *)dp);
+		free((char *)dp);
 	}
 }
 
@@ -172,7 +172,7 @@ d_to(dest *list)
 	dest *np, *sp;
 	String *s;
 	int i, n;
-	int8_t *cp;
+	char *cp;
 
 	s = s_new();
 	s_append(s, "To: ");

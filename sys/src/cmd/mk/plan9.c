@@ -9,18 +9,18 @@
 
 #include	"mk.h"
 
-int8_t 	*shell =	"/bin/rc";
-int8_t 	*shellname =	"rc";
+char 	*shell =	"/bin/rc";
+char 	*shellname =	"rc";
 
-static	Word	*encodenulls(int8_t*, int);
+static	Word	*encodenulls(char*, int);
 
 void
 readenv(void)
 {
-	int8_t *p;
+	char *p;
 	int envf, f;
 	Dir *e;
-	int8_t nam[1024];
+	char nam[1024];
 	int i, n, len;
 	Word *w;
 
@@ -67,10 +67,10 @@ readenv(void)
 
 /* break string of values into words at 01's or nulls*/
 static Word *
-encodenulls(int8_t *s, int n)
+encodenulls(char *s, int n)
 {
 	Word *w, *head;
-	int8_t *cp;
+	char *cp;
 
 	head = w = 0;
 	while (n-- > 0) {
@@ -98,7 +98,7 @@ exportenv(Envy *e)
 	int f, n, hasvalue, first;
 	Word *w;
 	Symtab *sy;
-	int8_t nam[256];
+	char nam[256];
 
 	for(;e->name; e++){
 		sy = symlook(e->name, S_VAR, 0);
@@ -145,7 +145,7 @@ exportenv(Envy *e)
 }
 
 int
-waitfor(int8_t *msg)
+waitfor(char *msg)
 {
 	Waitmsg *w;
 	int pid;
@@ -159,15 +159,15 @@ waitfor(int8_t *msg)
 }
 
 void
-expunge(int pid, int8_t *msg)
+expunge(int pid, char *msg)
 {
 	postnote(PNPROC, pid, msg);
 }
 
 int
-execsh(int8_t *args, int8_t *cmd, Bufblock *buf, Envy *e)
+execsh(char *args, char *cmd, Bufblock *buf, Envy *e)
 {
-	int8_t *p;
+	char *p;
 	int tot, n, pid, in[2], out[2];
 
 	if(buf && pipe(out) < 0){
@@ -240,7 +240,7 @@ execsh(int8_t *args, int8_t *cmd, Bufblock *buf, Envy *e)
 }
 
 int
-pipecmd(int8_t *cmd, Envy *e, int *fd)
+pipecmd(char *cmd, Envy *e, int *fd)
 {
 	int pid, pfd[2];
 
@@ -287,7 +287,7 @@ Exit(void)
 }
 
 int
-notifyf(void *a, int8_t *msg)
+notifyf(void *a, char *msg)
 {
 	static int nnote;
 
@@ -309,17 +309,17 @@ catchnotes()
 	atnotify(notifyf, 1);
 }
 
-int8_t*
+char*
 maketmp(void)
 {
-	static int8_t temp[] = "/tmp/mkargXXXXXX";
+	static char temp[] = "/tmp/mkargXXXXXX";
 
 	mktemp(temp);
 	return temp;
 }
 
 int
-chgtime(int8_t *name)
+chgtime(char *name)
 {
 	Dir sbuf;
 
@@ -332,10 +332,10 @@ chgtime(int8_t *name)
 }
 
 void
-rcopy(int8_t **to, Resub *match, int n)
+rcopy(char **to, Resub *match, int n)
 {
 	int c;
-	int8_t *p;
+	char *p;
 
 	*to = match->sp;		/* stem0 matches complete target */
 	for(to++, match++; --n > 0; to++, match++){
@@ -352,12 +352,12 @@ rcopy(int8_t **to, Resub *match, int n)
 }
 
 void
-dirtime(int8_t *dir, int8_t *path)
+dirtime(char *dir, char *path)
 {
 	int i, fd, n;
 	uint32_t mtime;
 	Dir *d;
-	int8_t buf[4096];
+	char buf[4096];
 
 	fd = open(dir, OREAD);
 	if(fd >= 0){
@@ -380,10 +380,10 @@ dirtime(int8_t *dir, int8_t *path)
 }
 
 void
-bulkmtime(int8_t *dir)
+bulkmtime(char *dir)
 {
-	int8_t buf[4096];
-	int8_t *ss, *s, *sym;
+	char buf[4096];
+	char *ss, *s, *sym;
 
 	if(dir){
 		sym = dir;
@@ -405,13 +405,13 @@ bulkmtime(int8_t *dir)
 }
 
 uint32_t
-mkmtime(int8_t *name, int force)
+mkmtime(char *name, int force)
 {
 	Dir *d;
-	int8_t *s, *ss, carry;
+	char *s, *ss, carry;
 	uint32_t t;
 	Symtab *sym;
-	int8_t buf[4096];
+	char buf[4096];
 
 	strecpy(buf, buf + sizeof buf - 1, name);
 	cleanname(buf);

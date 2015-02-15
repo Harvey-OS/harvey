@@ -80,13 +80,13 @@ now(void)
 }
 
 static void
-damaged(int8_t *mesg)
+damaged(char *mesg)
 {
 	sysfatal("damaged filesystem: %s", mesg);
 }
 
 static void
-lddisc(int8_t *mesg)
+lddisc(char *mesg)
 {
 	if(debug)
 		fprint(2, "discard %s\n", mesg);
@@ -330,7 +330,7 @@ load1(Sect *s, int parity)
 	int n;
 	Jrec j;
 	uint8_t *b;
-	int8_t *err;
+	char *err;
 	Extent *x;
 	Entry *d, *e;
 	uint32_t ctime, off, mtime;
@@ -860,7 +860,7 @@ summarize(void)
 	}
 }
 
-int8_t *
+char *
 need(int bytes)
 {
 	Gen *g;

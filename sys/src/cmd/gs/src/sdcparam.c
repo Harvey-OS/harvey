@@ -207,7 +207,7 @@ s_DCT_get_quantization_tables(gs_param_list * plist,
     if (code < 0)
 	return code;
     for (i = 0; i < num_in_tables; ++i) {
-	int8_t key[3];
+	char key[3];
 	gs_param_string str;
 	gs_param_float_array fa;
 
@@ -483,7 +483,7 @@ s_DCT_put_quantization_tables(gs_param_list * plist, stream_DCT_state * pdct,
     }
     num_out_tables = 0;
     for (i = 0; i < num_in_tables; ++i) {
-	int8_t istr[5];		/* i converted to string key */
+	char istr[5];		/* i converted to string key */
 	UINT16 values[DCTSIZE2];
 
 	sprintf(istr, "%d", i);
@@ -574,7 +574,7 @@ s_DCT_put_huffman_tables(gs_param_list * plist, stream_DCT_state * pdct,
     }
     ndc = nac = 0;
     for (i = 0; i < num_in_tables; ++i) {
-	int8_t istr[5];		/* i converted to string key */
+	char istr[5];		/* i converted to string key */
 	UINT8 counts[16], values[256];
 
 	/* Collect the Huffman parameters. */

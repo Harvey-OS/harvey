@@ -53,52 +53,52 @@ enum
 
 struct Ticketreq
 {
-	int8_t	type;
-	int8_t	authid[NAMELEN];	/* server's encryption id */
-	int8_t	authdom[DOMLEN];	/* server's authentication domain */
-	int8_t	chal[CHALLEN];		/* challenge from server */
-	int8_t	hostid[NAMELEN];	/* host's encryption id */
-	int8_t	uid[NAMELEN];		/* uid of requesting user on host */
+	char	type;
+	char	authid[NAMELEN];	/* server's encryption id */
+	char	authdom[DOMLEN];	/* server's authentication domain */
+	char	chal[CHALLEN];		/* challenge from server */
+	char	hostid[NAMELEN];	/* host's encryption id */
+	char	uid[NAMELEN];		/* uid of requesting user on host */
 };
 #define	TICKREQLEN	(3*NAMELEN+CHALLEN+DOMLEN+1)
 
 struct Ticket
 {
-	int8_t	num;			/* replay protection */
-	int8_t	chal[CHALLEN];		/* server challenge */
-	int8_t	cuid[NAMELEN];		/* uid on client */
-	int8_t	suid[NAMELEN];		/* uid on server */
-	int8_t	key[DESKEYLEN];		/* nonce DES key */
+	char	num;			/* replay protection */
+	char	chal[CHALLEN];		/* server challenge */
+	char	cuid[NAMELEN];		/* uid on client */
+	char	suid[NAMELEN];		/* uid on server */
+	char	key[DESKEYLEN];		/* nonce DES key */
 };
 #define	TICKETLEN	(CHALLEN+2*NAMELEN+DESKEYLEN+1)
 
 struct Authenticator
 {
-	int8_t	num;			/* replay protection */
-	int8_t	chal[CHALLEN];
+	char	num;			/* replay protection */
+	char	chal[CHALLEN];
 	uint32_t	id;			/* authenticator id, ++'d with each auth */
 };
 #define	AUTHENTLEN	(CHALLEN+4+1)
 
 struct Passwordreq
 {
-	int8_t	num;
-	int8_t	old[NAMELEN];
-	int8_t	new[NAMELEN];
+	char	num;
+	char	old[NAMELEN];
+	char	new[NAMELEN];
 };
 #define	PASSREQLEN	(2*NAMELEN+1)
 
 struct Nvrsafe
 {
-	int8_t	machkey[DESKEYLEN];
+	char	machkey[DESKEYLEN];
 	uint8_t	machsum;
-	int8_t	authkey[DESKEYLEN];
+	char	authkey[DESKEYLEN];
 	uint8_t	authsum;
-	int8_t	config[CONFIGLEN];
+	char	config[CONFIGLEN];
 	uint8_t	configsum;
-	int8_t	authid[NAMELEN];
+	char	authid[NAMELEN];
 	uint8_t	authidsum;
-	int8_t	authdom[DOMLEN];
+	char	authdom[DOMLEN];
 	uint8_t	authdomsum;
 };
 
@@ -106,7 +106,7 @@ struct Chalstate
 {
 	int	afd;			/* /dev/authenticate */
 	int	asfd;			/* authdial() */
-	int8_t	chal[NETCHLEN];		/* challenge/response */
+	char	chal[NETCHLEN];		/* challenge/response */
 };
 
 
@@ -117,11 +117,11 @@ struct Chalstate
  *
  *	block_cipher(key, block, decrypting)
  */
-static	int32_t	ip_low(int8_t [8]);
-static	int32_t	ip_high(int8_t [8]);
-static	void	fp(int32_t, int32_t, int8_t[8]);
-static	void	key_setup(int8_t[DESKEYLEN], int8_t[128]);
-static	void	block_cipher(int8_t[128], int8_t[8], int);
+static	int32_t	ip_low(char [8]);
+static	int32_t	ip_high(char [8]);
+static	void	fp(int32_t, int32_t, char[8]);
+static	void	key_setup(char[DESKEYLEN], char[128]);
+static	void	block_cipher(char[128], char[8], int);
 
 /*
  * destructively encrypt the buffer, which
@@ -130,7 +130,7 @@ static	void	block_cipher(int8_t[128], int8_t[8], int);
 int
 encrypt9(void *key, void *vbuf, int n)
 {
-	int8_t ekey[128], *buf;
+	char ekey[128], *buf;
 	int i, r;
 
 	if(n < 8)
@@ -156,7 +156,7 @@ encrypt9(void *key, void *vbuf, int n)
 int
 decrypt(void *key, void *vbuf, int n)
 {
-	int8_t ekey[128], *buf;
+	char ekey[128], *buf;
 	int i, r;
 
 	if(n < 8)
@@ -272,9 +272,9 @@ static int32_t  s7p[] = {
  *	DES electronic codebook encryption of one block
  */
 static void
-block_cipher(int8_t expanded_key[128], int8_t text[8], int decrypting)
+block_cipher(char expanded_key[128], char text[8], int decrypting)
 {
-	int8_t *key;
+	char *key;
 	int32_t crypto, temp, right, left;
 	int i, key_offset;
 
@@ -318,7 +318,7 @@ static int32_t iptab[] = {
 };
 
 static int32_t
-ip_low(int8_t block[8])
+ip_low(char block[8])
 {
 	int i;
 	int32_t l;
@@ -332,7 +332,7 @@ ip_low(int8_t block[8])
 }
 
 static int32_t
-ip_high(int8_t block[8])
+ip_high(char block[8])
 {
 	int i;
 	int32_t l;
@@ -354,7 +354,7 @@ static unsigned long	fptab[] = {
 };
 
 static void
-fp(int32_t left, int32_t right, int8_t text[8])
+fp(int32_t left, int32_t right, char text[8])
 {
 	unsigned long ta[2], t, v[2];
 	int i, j, sh;
@@ -375,7 +375,7 @@ fp(int32_t left, int32_t right, int8_t text[8])
 	}
 	for(i = 0; i < 2; i++)
 		for(j = 0; j < 4; j++){
-			*text++ = (int8_t)(v[i]&0xff);
+			*text++ = (char)(v[i]&0xff);
 			v[i] >>= 8;
 		}
 }
@@ -499,7 +499,7 @@ static uint8_t keyexpand[][15][2] = {
 };
 
 static void
-key_setup(int8_t key[DESKEYLEN], int8_t *ek)
+key_setup(char key[DESKEYLEN], char *ek)
 {
 	int i, j, k, mask;
 	uint8_t (*x)[2];
@@ -520,7 +520,7 @@ key_setup(int8_t key[DESKEYLEN], int8_t *ek)
 
 /************ netkey main.c *************/
 int
-passtokey(int8_t *key, int8_t *p)
+passtokey(char *key, char *p)
 {
 	uint8_t buf[NAMELEN], *t;
 	int i, n;
@@ -530,7 +530,7 @@ passtokey(int8_t *key, int8_t *p)
 		n = NAMELEN-1;
 	memset(buf, ' ', 8);
 	t = buf;
-	strncpy((int8_t*)t, p, n);
+	strncpy((char*)t, p, n);
 	t[n] = '\0';
 	memset(key, 0, DESKEYLEN);
 	for(;;){
@@ -553,7 +553,7 @@ netcrypt(void *key, void *chal)
 {
         uint8_t buf[8], *p;
 
-        strncpy((int8_t*)buf, chal, 7);
+        strncpy((char*)buf, chal, 7);
         buf[7] = '\0';
         for(p = buf; *p && *p != '\n'; p++)
                 ;
@@ -564,9 +564,9 @@ netcrypt(void *key, void *chal)
 }
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
-	int8_t buf[32], pass[32], key[DESKEYLEN];
+	char buf[32], pass[32], key[DESKEYLEN];
 	int n;
 
 	printf("Run this directly on the local processor, NOT in a\n");

@@ -20,15 +20,15 @@
 typedef struct Addr	Addr;
 struct Addr
 {
-	int8_t	sym;
-	int8_t	flags;
+	char	sym;
+	char	flags;
 };
 static Addr addr(Biobuf *);
-static int8_t type2char(int);
+static char type2char(int);
 static void skip(Biobuf*, int);
 
 int
-_is2(int8_t *t)
+_is2(char *t)
 {
 	uint8_t *s = (uint8_t *)t;
 
@@ -131,7 +131,7 @@ addr(Biobuf *bp)
 	return a;
 }
 
-static int8_t
+static char
 type2char(int t)
 {
 	switch(t){

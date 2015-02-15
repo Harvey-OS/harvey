@@ -56,7 +56,7 @@ kickround(Round *r, int wait)
 }
 
 void
-initround(Round *r, int8_t *name, int delay)
+initround(Round *r, char *name, int delay)
 {
 	memset(r, 0, sizeof *r);
 	r->name = name;

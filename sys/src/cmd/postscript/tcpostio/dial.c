@@ -31,12 +31,12 @@
 int dial_debug = 0;
 
 int
-dial(int8_t *dest, int8_t *local, int8_t *dir, int *cfdp) {
+dial(char *dest, char *local, char *dir, int *cfdp) {
 	int sockconn, lport;
 	struct hostent *hp;		/* Pointer to host info */
 	struct sockaddr_in sin;		/* Socket address, Internet style */
 	struct servent *sp = 0;
-	int8_t *tdest, *netname, *hostname, *servname;
+	char *tdest, *netname, *hostname, *servname;
 	int sock_type;
 #ifndef plan9
 #define	USED(x)	if(x); else

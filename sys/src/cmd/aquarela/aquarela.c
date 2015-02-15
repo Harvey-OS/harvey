@@ -190,7 +190,7 @@ usage(void)
 }
 
 static void
-logset(int8_t *cmd)
+logset(char *cmd)
 {
 	int x;
 	if (strcmp(cmd, "allcmds") == 0) {

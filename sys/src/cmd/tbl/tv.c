@@ -13,7 +13,7 @@
 void
 drawvert(int start, int end, int c, int lwid)
 {
-	int8_t	*exb = 0, *ext = 0;
+	char	*exb = 0, *ext = 0;
 	int	tp = 0, sl, ln, pos, epb, ept, vm;
 
 	end++;
@@ -170,7 +170,7 @@ midbcol(int i, int c)
 
 
 int
-barent(int8_t *s)
+barent(char *s)
 {
 	if (s == 0) 
 		return (1);

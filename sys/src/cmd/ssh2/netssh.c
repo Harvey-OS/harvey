@@ -56,7 +56,7 @@ Kex *kexes[] = {
 
 PKA *pkas[3];
 
-int8_t *macnames[] = {
+char *macnames[] = {
 	"hmac-sha1",
 };
 
@@ -76,8 +76,8 @@ char *st_names[] = {
 
 int debug;
 int kflag;
-int8_t *mntpt = "/net";
-int8_t uid[32];
+char *mntpt = "/net";
+char uid[32];
 Conn *connections[MAXCONN];
 File *rootfile, *clonefile, *ctlfile, *keysfile;
 Ioproc *io9p;
@@ -89,14 +89,14 @@ SSHChan *alloc_chan(Conn *);
 Conn *alloc_conn(void);
 int auth_req(Packet *, Conn *);
 int client_auth(Conn *, Ioproc *);
-int dohandshake(Conn *, int8_t *);
-int8_t *factlookup(int, int, int8_t *[]);
+int dohandshake(Conn *, char *);
+char *factlookup(int, int, char *[]);
 void filedup(Req *, File *);
 void readdata(void *);
 void reader(void *);
 void readreqrem(void *);
 void send_kexinit(Conn *);
-void server(int8_t *, int8_t *);
+void server(char *, char *);
 void shutdown(Conn *);
 void stlisconn(void *);
 void stlischan(void *);
@@ -110,9 +110,9 @@ void writereqremproc(void *);
 static int deferredinit(Conn *c);
 
 static void
-sshlogint(Conn *c, int8_t *file, int8_t *p)
+sshlogint(Conn *c, char *file, char *p)
 {
-	int8_t *role, *id;
+	char *role, *id;
 
 	if (c == nil)
 		role = "";
@@ -132,10 +132,10 @@ sshlogint(Conn *c, int8_t *file, int8_t *p)
 }
 
 void
-sshlog(Conn *c, int8_t *fmt, ...)
+sshlog(Conn *c, char *fmt, ...)
 {
 	va_list args;
-	int8_t *p;
+	char *p;
 
 	/* do this first in case fmt contains "%r" */
 	va_start(args, fmt);
@@ -148,10 +148,10 @@ sshlog(Conn *c, int8_t *fmt, ...)
 }
 
 void
-sshdebug(Conn *c, int8_t *fmt, ...)
+sshdebug(Conn *c, char *fmt, ...)
 {
 	va_list args;
-	int8_t *p;
+	char *p;
 
 	if (!debug)
 		return;
@@ -283,10 +283,10 @@ stend(Srv *)
 }
 
 void
-server(int8_t *mntpt, int8_t *srvpt)
+server(char *mntpt, char *srvpt)
 {
 	Dir d;
-	int8_t *p;
+	char *p;
 	int fd;
 
 	netsshsrv.tree = alloctree(uid, uid, 0777, nil);
@@ -320,7 +320,7 @@ server(int8_t *mntpt, int8_t *srvpt)
 }
 
 static void
-respexit(Conn *c, Req *r, void *freeme, int8_t *msg)
+respexit(Conn *c, Req *r, void *freeme, char *msg)
 {
 	if (msg)
 		sshdebug(c, "%s", msg);
@@ -335,8 +335,8 @@ stopen(Req *r)
 {
 	int lev, xconn, fd;
 	uint64_t qidpath;
-	int8_t *p;
-	int8_t buf[32];
+	char *p;
+	char buf[32];
 	Conn *c;
 	SSHChan *sc;
 
@@ -414,8 +414,8 @@ stlisconn(void *a)
 {
 	int xconn, fd, n;
 	uint64_t qidpath;
-	int8_t *msg;
-	int8_t buf[Numbsz], path[NETPATHLEN];
+	char *msg;
+	char buf[Numbsz], path[NETPATHLEN];
 	Conn *c, *cl;
 	Ioproc *io;
 	Req *r;
@@ -621,7 +621,7 @@ stread(Req *r)
 	SSHChan *sc;
 	int n, lev, cnum, xconn;
 	uint64_t qidpath;
-	int8_t buf[Arbbufsz], path[NETPATHLEN];
+	char buf[Arbbufsz], path[NETPATHLEN];
 
 	threadsetname("stread");
 	qidpath = (uint64_t)r->fid->file->aux;
@@ -752,7 +752,7 @@ readreqrem(void *a)
 	SSHChan *sc;
 	int fd, n, lev, cnum, xconn;
 	uint64_t qidpath;
-	int8_t buf[Arbbufsz], path[NETPATHLEN];
+	char buf[Arbbufsz], path[NETPATHLEN];
 
 	threadsetname("readreqrem");
 	r = a;
@@ -991,7 +991,7 @@ stwrite(Req *r)
 }
 
 static int
-dialbyhand(Conn *c, int ntok, int8_t *toks[])
+dialbyhand(Conn *c, int ntok, char *toks[])
 {
 	/*
 	 * this uses /net/tcp to connect directly.
@@ -1002,10 +1002,10 @@ dialbyhand(Conn *c, int ntok, int8_t *toks[])
 }
 
 static void
-userauth(Conn *c, Req *r, int8_t *buf, int ntok, int8_t *toks[])
+userauth(Conn *c, Req *r, char *buf, int ntok, char *toks[])
 {
 	int n;
-	int8_t *attrs[5];
+	char *attrs[5];
 	Packet *p;
 
 	if (ntok < 3 || ntok > 4)
@@ -1086,10 +1086,10 @@ writectlproc(void *a)
 	Packet *p;
 	Conn *c;
 	SSHChan *ch;
-	int8_t *tcpconn2, *buf, *toks[4];
+	char *tcpconn2, *buf, *toks[4];
 	int n, ntok, lev, xconn;
 	uint64_t qidpath;
-	int8_t path[NETPATHLEN], tcpconn[Numbsz];
+	char path[NETPATHLEN], tcpconn[Numbsz];
 
 	threadsetname("writectlproc");
 	r = a;
@@ -1277,7 +1277,7 @@ writereqremproc(void *a)
 	Packet *p;
 	Conn *c;
 	SSHChan *ch;
-	int8_t *cmd, *q, *buf, *toks[4];
+	char *cmd, *q, *buf, *toks[4];
 	int n, ntok, lev, xconn;
 	uint64_t qidpath;
 
@@ -1555,7 +1555,7 @@ Conn *
 alloc_conn(void)
 {
 	int slevconn, i, s, firstnil;
-	int8_t buf[Numbsz];
+	char buf[Numbsz];
 	Conn *c;
 	static QLock aclock;
 
@@ -1641,7 +1641,7 @@ SSHChan *
 alloc_chan(Conn *c)
 {
 	int cnum, slcn;
-	int8_t buf[Numbsz];
+	char buf[Numbsz];
 	Plist *p, *next;
 	SSHChan *sc;
 
@@ -1707,10 +1707,10 @@ alloc_chan(Conn *c)
 }
 
 static int
-readlineio(Conn *, Ioproc *io, int fd, int8_t *buf, int size)
+readlineio(Conn *, Ioproc *io, int fd, char *buf, int size)
 {
 	int n;
-	int8_t *p;
+	char *p;
 
 	for (p = buf; p < buf + size - 1; p++) {
 		n = ioread(io, fd, p, 1);
@@ -1722,12 +1722,12 @@ readlineio(Conn *, Ioproc *io, int fd, int8_t *buf, int size)
 	return p - buf;
 }
 
-static int8_t *
-readremote(Conn *c, Ioproc *io, int8_t *tcpconn)
+static char *
+readremote(Conn *c, Ioproc *io, char *tcpconn)
 {
 	int n, remfd;
-	int8_t *p, *remote;
-	int8_t path[Arbbufsz], buf[NETPATHLEN];
+	char *p, *remote;
+	char path[Arbbufsz], buf[NETPATHLEN];
 
 	remote = nil;
 	snprint(path, sizeof path, "%s/tcp/%s/remote", mntpt, tcpconn);
@@ -1751,7 +1751,7 @@ readremote(Conn *c, Ioproc *io, int8_t *tcpconn)
 static void
 sendmyid(Conn *c, Ioproc *io)
 {
-	int8_t path[Arbbufsz];
+	char path[Arbbufsz];
 
 	snprint(path, sizeof path, "%s\r\n", MYID);
 	iowrite(io, c->datafd, path, strlen(path));
@@ -1759,9 +1759,9 @@ sendmyid(Conn *c, Ioproc *io)
 
 /* save and tidy up the remote id */
 static void
-stashremid(Conn *c, int8_t *remid)
+stashremid(Conn *c, char *remid)
 {
-	int8_t *nl;
+	char *nl;
 
 	if (c->otherid)
 		free(c->otherid);
@@ -1786,7 +1786,7 @@ hangupconn(Conn *c)
 
 #ifdef COEXIST
 static int
-exchids(Conn *c, Ioproc *io, int8_t *remid, int remsz)
+exchids(Conn *c, Ioproc *io, char *remid, int remsz)
 {
 	int n;
 
@@ -1852,7 +1852,7 @@ negotiate(Conn *c)
 static int
 deferredinit(Conn *c)
 {
-	int8_t remid[Arbbufsz];
+	char remid[Arbbufsz];
 	Ioproc *io;
 
 	io = ioproc();
@@ -1881,11 +1881,11 @@ deferredinit(Conn *c)
 }
 
 int
-dohandshake(Conn *c, int8_t *tcpconn)
+dohandshake(Conn *c, char *tcpconn)
 {
 	int tcpdfd;
-	int8_t *remote;
-	int8_t path[Arbbufsz];
+	char *remote;
+	char path[Arbbufsz];
 	Ioproc *io;
 
 	io = ioproc();
@@ -1913,11 +1913,11 @@ dohandshake(Conn *c, int8_t *tcpconn)
 #endif					/* COEXIST */
 
 int
-dohandshake(Conn *c, int8_t *tcpconn)
+dohandshake(Conn *c, char *tcpconn)
 {
 	int fd, n;
-	int8_t *p, *othid;
-	int8_t path[Arbbufsz], buf[NETPATHLEN];
+	char *p, *othid;
+	char path[Arbbufsz], buf[NETPATHLEN];
 	Ioproc *io;
 
 	io = ioproc();
@@ -2018,7 +2018,7 @@ void
 send_kexinit(Conn *c)
 {
 	Packet *ptmp;
-	int8_t *buf, *p, *e;
+	char *buf, *p, *e;
 	int i, msglen;
 
 	sshdebug(c, "initializing kexinit packet");
@@ -2092,7 +2092,7 @@ establish(Conn *c)
 }
 
 static int
-negotiating(Conn *c, Packet *p, Packet *p2, int8_t *buf, int size)
+negotiating(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 {
 	int i, n;
 
@@ -2247,7 +2247,7 @@ nochans(Conn *c, Packet *p, Packet *p2)
 }
 
 static int
-established(Conn *c, Packet *p, Packet *p2, int8_t *buf, int size)
+established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 {
 	int i, n, cnum;
 	uint8_t *q;
@@ -2420,10 +2420,10 @@ established(Conn *c, Packet *p, Packet *p2, int8_t *buf, int size)
 		q = get_string(p, p->payload+5, buf, Arbbufsz, nil);
 		pl = emalloc9p(sizeof(Plist));
 		pl->pack = emalloc9p(sizeof(Packet));
-		n = snprint((int8_t *)pl->pack->payload,
+		n = snprint((char *)pl->pack->payload,
 			Maxpayload, "%s %c", buf, *q? 't': 'f');
 		sshdebug(c, "request message begins: %s",
-			(int8_t *)pl->pack->payload);
+			(char *)pl->pack->payload);
 		memmove(pl->pack->payload + n, q + 1, p->rlength - (11 + n-2));
 		pl->rem = p->rlength - 11 + 2;
 		pl->st = pl->pack->payload;
@@ -2444,7 +2444,7 @@ established(Conn *c, Packet *p, Packet *p2, int8_t *buf, int size)
 }
 
 static void
-bail(Conn *c, Packet *p, Packet *p2, int8_t *sts)
+bail(Conn *c, Packet *p, Packet *p2, char *sts)
 {
 	shutdown(c);
 	free(p);
@@ -2461,7 +2461,7 @@ static void
 reader0(Conn *c, Packet *p, Packet *p2)
 {
 	int i, n, nl, np, nm, nb;
-	int8_t buf[Arbbufsz];
+	char buf[Arbbufsz];
 
 	nm = 0;
 	nb = 4;
@@ -2604,9 +2604,9 @@ int
 validatekexs(Packet *p)
 {
 	uint8_t *q;
-	int8_t *toks[Maxtoks];
+	char *toks[Maxtoks];
 	int i, j, n;
-	int8_t *buf;
+	char *buf;
 
 	buf = emalloc9p(Bigbufsz);
 	q = p->payload + 17;
@@ -2703,9 +2703,9 @@ int
 validatekexc(Packet *p)
 {
 	uint8_t *q;
-	int8_t *toks[Maxtoks];
+	char *toks[Maxtoks];
 	int i, j, n;
-	int8_t *buf;
+	char *buf;
 
 	buf = emalloc9p(Bigbufsz);
 	q = p->payload + 17;
@@ -2795,11 +2795,11 @@ memrandom(void *p, int n)
 /*
  *  create a change uid capability
  */
-int8_t*
-mkcap(int8_t *from, int8_t *to)
+char*
+mkcap(char *from, char *to)
 {
 	int fd, fromtosz;
-	int8_t *cap, *key;
+	char *cap, *key;
 	uint8_t rand[SHA1dlen], hash[SHA1dlen];
 
 	fd = open("#¤/caphash", OWRITE);
@@ -2834,10 +2834,10 @@ mkcap(int8_t *from, int8_t *to)
  * ask keyfs (assumes we are on an auth server)
  */
 static AuthInfo *
-keyfsauth(int8_t *me, int8_t *user, int8_t *pw, int8_t *key1, int8_t *key2)
+keyfsauth(char *me, char *user, char *pw, char *key1, char *key2)
 {
 	int fd;
-	int8_t path[Arbpathlen];
+	char path[Arbpathlen];
 	AuthInfo *ai;
 
 	if (passtokey(key1, pw) == 0)
@@ -2878,12 +2878,12 @@ userauthfailed(Packet *p2)
 }
 
 static int
-authreqpk(Packet *p, Packet *p2, Conn *c, int8_t *user, uint8_t *q,
-	int8_t *alg, int8_t *blob, int8_t *sig, int8_t *service,
-	  int8_t *me)
+authreqpk(Packet *p, Packet *p2, Conn *c, char *user, uint8_t *q,
+	char *alg, char *blob, char *sig, char *service,
+	  char *me)
 {
 	int n, thisway, nblob, nsig;
-	int8_t method[32];
+	char method[32];
 
 	sshdebug(c, "auth_req publickey for user %s", user);
 	thisway = *q == '\0';
@@ -2945,8 +2945,8 @@ int
 auth_req(Packet *p, Conn *c)
 {
 	int n, ret;
-	int8_t *alg, *blob, *sig, *service, *me, *user, *pw, *path;
-	int8_t key1[DESKEYLEN], key2[DESKEYLEN], method[32];
+	char *alg, *blob, *sig, *service, *me, *user, *pw, *path;
+	char key1[DESKEYLEN], key2[DESKEYLEN], method[32];
 	uint8_t *q;
 	AuthInfo *ai;
 	Packet *p2;
@@ -3019,7 +3019,7 @@ int
 client_auth(Conn *c, Ioproc *io)
 {
 	Packet *p2, *p3, *p4;
-	int8_t *r, *s;
+	char *r, *s;
 	mpint *ek, *nk;
 	int i, n;
 
@@ -3095,11 +3095,11 @@ client_auth(Conn *c, Ioproc *io)
 }
 
 /* should use auth_getkey or something similar */
-int8_t *
-factlookup(int nattr, int nreq, int8_t *attrs[])
+char *
+factlookup(int nattr, int nreq, char *attrs[])
 {
 	Biobuf *bp;
-	int8_t *buf, *toks[Maxtoks], *res, *q;
+	char *buf, *toks[Maxtoks], *res, *q;
 	int ntok, nmatch, maxmatch;
 	int i, j;
 

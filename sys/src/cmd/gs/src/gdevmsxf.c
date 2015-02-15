@@ -128,8 +128,8 @@ private const byte far_data gs_map_iso_to_oem[256] =
 /* but that will have to wait till later. */
 
 typedef struct font_entry_s {
-    const int8_t *key;
-    const int8_t *value;
+    const char *key;
+    const char *value;
     uint pitchAndFamily;
 } font_entry;
 
@@ -298,7 +298,7 @@ win_char_metrics(gx_xfont * xf, gx_xglyph xg, int wmode,
 {
     int code;
     HDC hdc;
-    int8_t chr = (int8_t)xg;
+    char chr = (char)xg;
 
     if (wmode != 0)
 	return gs_error_undefined;
@@ -343,7 +343,7 @@ int
 win_render_char(gx_xfont * xf, gx_xglyph xg, gx_device * dev,
 		int xo, int yo, gx_color_index color, int required)
 {
-    int8_t chr = (int8_t)xg;
+    char chr = (char)xg;
     int code;
 
 #ifdef NOTUSED			/* we don't own any windows so we can no longer do this */

@@ -55,7 +55,7 @@ eresized(int new)
 	flushimage(display, 1);
 }
 
-int8_t *buttons[] =
+char *buttons[] =
 {
 	"exit",
 	0

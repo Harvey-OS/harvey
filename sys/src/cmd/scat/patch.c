@@ -55,7 +55,7 @@ patcha(Angle ra, Angle dec)
 	return patch(floor(ra/15), ((int)floor(ra*4))%60, -floor(dec));
 }
 
-int8_t round[91]={	/* extra 0 is to offset the array */
+char round[91]={	/* extra 0 is to offset the array */
 	/*  0 */    0,	 1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
 	/* 10 */	 1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
 	/* 20 */	 1,  1,  1,  1,  1,  1,  1,  1,  1,  1,

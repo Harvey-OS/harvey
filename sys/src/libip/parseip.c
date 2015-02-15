@@ -12,11 +12,11 @@
 #include <ctype.h>
 #include <ip.h>
 
-int8_t*
-v4parseip(uint8_t *to, int8_t *from)
+char*
+v4parseip(uint8_t *to, char *from)
 {
 	int i;
-	int8_t *p;
+	char *p;
 
 	p = from;
 	for(i = 0; i < 4 && *p; i++){
@@ -71,11 +71,11 @@ delimchar(int c)
  * set `to' to something distinctive in the case of a parse error.
  */
 int64_t
-parseip(uint8_t *to, int8_t *from)
+parseip(uint8_t *to, char *from)
 {
 	int i, elipsis = 0, v4 = 1;
 	uint32_t x;
-	int8_t *p, *op;
+	char *p, *op;
 
 	memset(to, 0, IPaddrlen);
 	p = from;
@@ -128,7 +128,7 @@ parseip(uint8_t *to, int8_t *from)
  *  style
  */
 int64_t
-parseipmask(uint8_t *to, int8_t *from)
+parseipmask(uint8_t *to, char *from)
 {
 	int i, w;
 	int64_t x;
@@ -169,11 +169,11 @@ parseipmask(uint8_t *to, int8_t *from)
 /*
  *  parse a v4 ip address/mask in cidr format
  */
-int8_t*
-v4parsecidr(uint8_t *addr, uint8_t *mask, int8_t *from)
+char*
+v4parsecidr(uint8_t *addr, uint8_t *mask, char *from)
 {
 	int i;
-	int8_t *p;
+	char *p;
 	uint8_t *a;
 
 	p = v4parseip(addr, from);

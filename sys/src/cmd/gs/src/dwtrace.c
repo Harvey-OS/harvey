@@ -67,7 +67,7 @@ struct vd_trace_host_s {
 
 static struct vd_trace_host_s host = {false, NULL, NULL};
 vd_trace_interface visual_tracer = { &host, 1, 1, 0, 0, 0, 0 };
-static const int8_t *vdtrace_ini = "gs_vdtrace.ini";
+static const char *vdtrace_ini = "gs_vdtrace.ini";
 
 private void get_window()
 {   if (!host.inited) {
@@ -293,7 +293,7 @@ private void dw_gt_setlinewidth(vd_trace_interface *I, unsigned int width)
 }
 
 private void dw_gt_text(vd_trace_interface *I, double x, double y,
-                        int8_t *ASCIIZ)
+                        char *ASCIIZ)
 {   get_window(); 
     if (host.tw == NULL) 
         return;

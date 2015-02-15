@@ -28,7 +28,7 @@
  * where a new such entry would go.
  */
 static Tx*
-txsearch(int8_t *atom, Tx *t, int n)
+txsearch(char *atom, Tx *t, int n)
 {
 	while(n > 0) {
 		if(atom < t[n/2].bad)
@@ -43,7 +43,7 @@ txsearch(int8_t *atom, Tx *t, int n)
 }
 
 void
-addtx(int8_t *b, int8_t *g)
+addtx(char *b, char *g)
 {
 	Tx *t;
 	Conform *c;
@@ -67,11 +67,11 @@ addtx(int8_t *b, int8_t *g)
 	c->nt++;
 }
 
-int8_t*
-conform(int8_t *s, int isdir)
+char*
+conform(char *s, int isdir)
 {
 	Tx *t;
-	int8_t buf[10], *g;
+	char buf[10], *g;
 	Conform *c;
 
 	c = map;
@@ -90,7 +90,7 @@ conform(int8_t *s, int isdir)
 
 #ifdef NOTUSED
 static int
-isalldigit(int8_t *s)
+isalldigit(char *s)
 {
 	while(*s)
 		if(!isdigit(*s++))
@@ -126,7 +126,7 @@ badatomcmp(const void *va, const void *vb)
 void
 wrconform(Cdimg *cd, int n, uint32_t *pblock, uint64_t *plength)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	int i;
 	Conform *c;
 

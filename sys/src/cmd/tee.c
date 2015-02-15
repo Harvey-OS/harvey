@@ -18,9 +18,9 @@ int	uflag;
 int	aflag;
 int	*openf;
 
-int8_t in[8192];
+char in[8192];
 
-int	intignore(void*, int8_t*);
+int	intignore(void*, char*);
 
 void
 main(int argc, char **argv)
@@ -78,7 +78,7 @@ main(int argc, char **argv)
 }
 
 int
-intignore(void *a, int8_t *msg)
+intignore(void *a, char *msg)
 {
 	USED(a);
 	if(strcmp(msg, "interrupt") == 0)

@@ -15,19 +15,19 @@ enum {
 	Timeout =	2*60*60,	/* seconds until temporarily trusted addr times out */
 };
 
-static	int	accountmatch(int8_t*, int8_t**, int, int8_t*);
-static	Node*	acctwalk(int8_t*,  Node*);
-static	int	dommatch(int8_t*, int8_t*);
+static	int	accountmatch(char*, char**, int, char*);
+static	Node*	acctwalk(char*,  Node*);
+static	int	dommatch(char*, char*);
 static	Address* ipsearch(uint32_t, Address*, int);
-static	Node*	ipwalk(int8_t*,  Node*);
-static	Node*	trwalk(int8_t*, Node*);
-static	int	usermatch(int8_t*, int8_t*);
+static	Node*	ipwalk(char*,  Node*);
+static	Node*	trwalk(char*, Node*);
+static	int	usermatch(char*, char*);
 
 /*
  *	Do a walk
  */
-int8_t*
-walk(int8_t *name, Fid *fidp)
+char*
+walk(char *name, Fid *fidp)
 {
 	Node *np;
 
@@ -71,7 +71,7 @@ walk(int8_t *name, Fid *fidp)
  *	Walk to a subdirectory
  */
 Node*
-dirwalk(int8_t *name, Node *np)
+dirwalk(char *name, Node *np)
 {
 	Node *p;
 
@@ -85,7 +85,7 @@ dirwalk(int8_t *name, Node *np)
  *	Walk the directory of trusted files
  */
 static Node*
-trwalk(int8_t *name, Node *np)
+trwalk(char *name, Node *np)
 {
 	Node *p;
 	uint32_t peerip;
@@ -104,7 +104,7 @@ trwalk(int8_t *name, Node *np)
  *	Walk a directory of IP addresses
  */
 static Node*
-ipwalk(int8_t *name,  Node *np)
+ipwalk(char *name,  Node *np)
 {
 	Address *ap;
 	uint32_t peerip;
@@ -128,13 +128,13 @@ ipwalk(int8_t *name,  Node *np)
  *	Walk a directory of account names
  */
 static Node*
-acctwalk(int8_t *name, Node *np)
+acctwalk(char *name, Node *np)
 {
 	int i, n;
 	Address *ap;
-	int8_t *p, *cp, *user;
-	int8_t buf[512];
-	int8_t *doms[Maxdoms];
+	char *p, *cp, *user;
+	char buf[512];
+	char *doms[Maxdoms];
 
 	strecpy(buf, buf+sizeof buf, name);
 	subslash(buf);
@@ -313,9 +313,9 @@ cleantrusted(void)
  * true for the *.domain!* form of the pattern.
  */
 static int
-accountmatch(int8_t *spec, int8_t **doms, int ndoms, int8_t *user)
+accountmatch(char *spec, char **doms, int ndoms, char *user)
 {
-	int8_t *cp, *userp;
+	char *cp, *userp;
 	int i, ret;
 
 	userp = 0;
@@ -353,7 +353,7 @@ accountmatch(int8_t *spec, int8_t **doms, int ndoms, int8_t *user)
  *	trailing characters.
  */
 static int
-usermatch(int8_t *pathuser, int8_t *specuser)
+usermatch(char *pathuser, char *specuser)
 {
 	int n;
 
@@ -370,7 +370,7 @@ usermatch(int8_t *pathuser, int8_t *specuser)
  *	Match a domain specification
  */
 static int
-dommatch(int8_t *pathdom, int8_t *specdom)
+dommatch(char *pathdom, char *specdom)
 {
 	int n;
 
@@ -393,7 +393,7 @@ dommatch(int8_t *pathdom, int8_t *specdom)
 typedef struct Stringtab	Stringtab;
 struct Stringtab {
 	Stringtab *link;
-	int8_t *str;
+	char *str;
 };
 static Stringtab*
 taballoc(void)
@@ -411,12 +411,12 @@ taballoc(void)
 	return t++;
 }
 
-static int8_t*
-xstrdup(int8_t *s)
+static char*
+xstrdup(char *s)
 {
-	int8_t *r;
+	char *r;
 	int len;
-	static int8_t *t;
+	static char *t;
 	static int nt;
 
 	len = strlen(s)+1;
@@ -446,7 +446,7 @@ xstrdup(int8_t *s)
 static Stringtab *stab[1024];
 
 static uint
-hash(int8_t *s)
+hash(char *s)
 {
 	uint h;
 	uint8_t *p;
@@ -457,8 +457,8 @@ hash(int8_t *s)
 	return h;
 }
 
-int8_t*
-atom(int8_t *str)
+char*
+atom(char *str)
 {
 	uint h;
 	Stringtab *tab;

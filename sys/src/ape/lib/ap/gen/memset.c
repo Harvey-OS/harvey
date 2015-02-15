@@ -12,7 +12,7 @@
 void*
 memset(void *ap, int c, size_t n)
 {
-	int8_t *p;
+	char *p;
 
 	p = ap;
 	while(n > 0) {

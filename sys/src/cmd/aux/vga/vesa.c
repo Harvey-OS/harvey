@@ -40,14 +40,14 @@ struct Vbe
 
 struct Vmode
 {
-	int8_t	name[32];
-	int8_t	chan[32];
+	char	name[32];
+	char	chan[32];
 	int	id;
 	int	attr;	/* flags */
 	int	bpl;
 	int	dx, dy;
 	int	depth;
-	int8_t	*model;
+	char	*model;
 	int	r, g, b, x;
 	int	ro, go, bo, xo;
 	int	directcolor;	/* flags */
@@ -55,9 +55,9 @@ struct Vmode
 };
 
 struct Edid {
-	int8_t		mfr[4];		/* manufacturer */
-	int8_t		serialstr[16];	/* serial number as string (in extended data) */
-	int8_t		name[16];		/* monitor name as string (in extended data) */
+	char		mfr[4];		/* manufacturer */
+	char		serialstr[16];	/* serial number as string (in extended data) */
+	char		name[16];		/* monitor name as string (in extended data) */
 	uint16_t	product;		/* product code, 0 = unused */
 	uint32_t	serial;		/* serial number, 0 = unused */
 	uint8_t	version;		/* major version number */
@@ -107,7 +107,7 @@ int vbemodeinfo(Vbe*, int, Vmode*);
 int vbegetmode(Vbe*);
 int vbesetmode(Vbe*, int);
 void vbeprintinfo(Vbe*);
-void vbeprintmodeinfo(Vbe*, int, int8_t*);
+void vbeprintmodeinfo(Vbe*, int, char*);
 int vbesnarf(Vbe*, Vga*);
 void vesaddc(void);
 int vbeddcedid(Vbe *vbe, Edid *e);
@@ -138,7 +138,7 @@ dbvesa(Vga* vga)
 }
 
 Mode*
-dbvesamode(int8_t *mode)
+dbvesamode(char *mode)
 {
 	int i;
 	uint8_t *p, *ep;
@@ -221,7 +221,7 @@ static void
 dump(Vga*, Ctlr*)
 {
 	int i;
-	int8_t did[0x200];
+	char did[0x200];
 	uint8_t *p, *ep;
 
 	if(!vbe){
@@ -270,7 +270,7 @@ Ctlr softhwgc = {
 typedef struct Flag Flag;
 struct Flag {
 	int bit;
-	int8_t *desc;
+	char *desc;
 };
 
 static Flag capabilityflag[] = {
@@ -311,7 +311,7 @@ static Flag directcolorflags[] = {
 	0
 };
 
-static int8_t *modelstr[] = {
+static char *modelstr[] = {
 	"text", "cga", "hercules", "planar", "packed", "non-chain4", "direct", "YUV"
 };
 
@@ -408,7 +408,7 @@ vbecheck(Vbe *vbe)
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F00);
-	strcpy((int8_t*)p, "VBE2");
+	strcpy((char*)p, "VBE2");
 	if(vbecall(vbe, &u) < 0)
 		return -1;
 	if(memcmp(p, "VESA", 4) != 0 || p[5] < 2){
@@ -425,7 +425,7 @@ vbesnarf(Vbe *vbe, Vga *vga)
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F00);
-	strcpy((int8_t*)p, "VBE2");
+	strcpy((char*)p, "VBE2");
 	if(vbecall(vbe, &u) < 0)
 		return -1;
 	if(memcmp(p, "VESA", 4) != 0 || p[5] < 2)
@@ -441,12 +441,12 @@ vbeprintinfo(Vbe *vbe)
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F00);
-	strcpy((int8_t*)p, "VBE2");
+	strcpy((char*)p, "VBE2");
 	if(vbecall(vbe, &u) < 0)
 		return;
 
 	printitem("vesa", "sig");
-	Bprint(&stdout, "%.4s %d.%d\n", (int8_t*)p, p[5], p[4]);
+	Bprint(&stdout, "%.4s %d.%d\n", (char*)p, p[5], p[4]);
 	if(p[5] < 2)
 		return;
 
@@ -473,7 +473,7 @@ vbemodes(Vbe *vbe)
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F00);
-	strcpy((int8_t*)p, "VBE2");
+	strcpy((char*)p, "VBE2");
 	if(vbecall(vbe, &u) < 0)
 		return nil;
 	memmove(vbe->modebuf, unfarptr(vbe, p+14), 1024);
@@ -486,7 +486,7 @@ vbemodeinfo(Vbe *vbe, int id, Vmode *m)
 	int o;
 	uint32_t d, c, x;
 	uint8_t *p;
-	int8_t tmp[sizeof m->chan];
+	char tmp[sizeof m->chan];
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F01);
@@ -554,7 +554,7 @@ vbemodeinfo(Vbe *vbe, int id, Vmode *m)
 }
 
 void
-vbeprintmodeinfo(Vbe *vbe, int id, int8_t *suffix)
+vbeprintmodeinfo(Vbe *vbe, int id, char *suffix)
 {
 	Vmode m;
 
@@ -740,7 +740,7 @@ addmode(Modelist *l, Mode m)
  * of these have VESA definitions.  Those that don't are marked
  * as such, and we ignore them (the lookup fails).
  */
-static int8_t *estabtime[] = {
+static char *estabtime[] = {
 	"720x400@70Hz",	/* non-VESA: IBM, VGA */
 	"720x400@88Hz",	/* non-VESA: IBM, XGA2 */
 	"640x480@60Hz",
@@ -844,7 +844,7 @@ decodedtb(Mode *m, uint8_t *p)
 extern Mode *vesamodes[];
 
 int
-vesalookup(Mode *m, int8_t *name)
+vesalookup(Mode *m, char *name)
 {
 	Mode **p;
 
@@ -861,7 +861,7 @@ static int
 decodesti(Mode *m, uint8_t *p)
 {
 	int x, y, rr;
-	int8_t str[20];
+	char str[20];
 
 	x = (p[0]+31)*8;
 	switch((p[1]>>6) & 3){
@@ -1017,7 +1017,7 @@ fprint(2, "%.8H\n", p);
 				if(q = memchr(p+5, 0x0A, 13))
 					*q = '\0';
 				memset(e->serialstr, 0, sizeof(e->serialstr));
-				strncpy(e->serialstr, (int8_t*)p+5, 13);
+				strncpy(e->serialstr, (char*)p+5, 13);
 				break;
 			case 0xFE:	/* ascii string (13-byte ascii, 0A terminated) */
 				break;
@@ -1034,7 +1034,7 @@ fprint(2, "%.8H\n", p);
 				if(q = memchr(p+5, 0x0A, 13))
 					*q = '\0';
 				memset(e->name, 0, sizeof(e->name));
-				strncpy(e->name, (int8_t*)p+5, 13);
+				strncpy(e->name, (char*)p+5, 13);
 				break;
 			case 0xFB:	/* extra color point data */
 				break;

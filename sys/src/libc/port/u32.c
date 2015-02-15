@@ -11,9 +11,9 @@
 #include <libc.h>
 
 int
-dec32(uint8_t *dest, int ndest, int8_t *src, int nsrc)
+dec32(uint8_t *dest, int ndest, char *src, int nsrc)
 {
-	int8_t *s, *tab;
+	char *s, *tab;
 	uint8_t *start;
 	int i, u[8];
 
@@ -57,9 +57,9 @@ out:
 }
 
 int
-enc32(int8_t *dest, int ndest, uint8_t *src, int nsrc)
+enc32(char *dest, int ndest, uint8_t *src, int nsrc)
 {
-	int8_t *tab, *start;
+	char *tab, *start;
 	int j;
 
 	if(ndest <= (8*nsrc+4)/5 )

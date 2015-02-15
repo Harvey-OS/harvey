@@ -159,7 +159,7 @@ static int rrequiv(RR *r1, RR *r2);
 static int sencodefmt(Fmt*);
 
 static void
-ding(void*, int8_t *msg)
+ding(void*, char *msg)
 {
 	if(strstr(msg, "alarm") != nil) {
 		stats.alarms++;
@@ -189,7 +189,7 @@ dninit(void)
  *  hash for a domain name
  */
 static uint32_t
-dnhash(int8_t *name)
+dnhash(char *name)
 {
 	uint32_t hash;
 	uint8_t *val = (uint8_t*)name;
@@ -204,7 +204,7 @@ dnhash(int8_t *name)
  *  not found, create it.
  */
 DN*
-dnlookup(int8_t *name, int class, int enter)
+dnlookup(char *name, int class, int enter)
 {
 	DN **l;
 	DN *dp;
@@ -261,7 +261,7 @@ rronlist(RR *rp, RR *lp)
  * dump the stats
  */
 void
-dnstats(int8_t *file)
+dnstats(char *file)
 {
 	int i, fd;
 
@@ -303,7 +303,7 @@ dnstats(int8_t *file)
  *  dump the cache
  */
 void
-dndump(int8_t *file)
+dndump(char *file)
 {
 	int i, fd;
 	DN *dp;
@@ -1083,7 +1083,7 @@ out:
  *  convert an ascii RR type name to its integer representation
  */
 int
-rrtype(int8_t *atype)
+rrtype(char *atype)
 {
 	int i;
 
@@ -1200,7 +1200,7 @@ rrremtype(RR **l, int type)
 	return first;
 }
 
-static int8_t *
+static char *
 dnname(DN *dn)
 {
 	return dn? dn->name: "<null>";
@@ -1213,8 +1213,8 @@ int
 rrfmt(Fmt *f)
 {
 	int rv;
-	int8_t *strp;
-	int8_t buf[Domlen];
+	char *strp;
+	char buf[Domlen];
 	Fmt fstr;
 	RR *rp;
 	Server *s;
@@ -1339,7 +1339,7 @@ int
 rravfmt(Fmt *f)
 {
 	int rv, quote;
-	int8_t *strp;
+	char *strp;
 	Fmt fstr;
 	RR *rp;
 	Server *s;
@@ -1469,9 +1469,9 @@ out:
 }
 
 void
-warning(int8_t *fmt, ...)
+warning(char *fmt, ...)
 {
-	int8_t dnserr[256];
+	char dnserr[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1481,9 +1481,9 @@ warning(int8_t *fmt, ...)
 }
 
 void
-dnslog(int8_t *fmt, ...)
+dnslog(char *fmt, ...)
 {
-	int8_t dnserr[256];
+	char dnserr[256];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1497,11 +1497,11 @@ dnslog(int8_t *fmt, ...)
  * actually just sets the arguments displayed.
  */
 void
-procsetname(int8_t *fmt, ...)
+procsetname(char *fmt, ...)
 {
 	int fd;
-	int8_t *cmdname;
-	int8_t buf[128];
+	char *cmdname;
+	char buf[128];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1645,7 +1645,7 @@ unique(RR *rp)
  *  true if second domain is subsumed by the first
  */
 int
-subsume(int8_t *higher, int8_t *lower)
+subsume(char *higher, char *lower)
 {
 	int hn, ln;
 
@@ -1720,9 +1720,9 @@ static int
 sencodefmt(Fmt *f)
 {
 	int i, len, ilen, rv;
-	int8_t *out, *buf;
+	char *out, *buf;
 	uint8_t *b;
-	int8_t obuf[64];		/* rsc optimization */
+	char obuf[64];		/* rsc optimization */
 
 	if(!(f->flags&FmtPrec) || f->prec < 1)
 		goto error;
@@ -1800,7 +1800,7 @@ error:
 void*
 emalloc(int size)
 {
-	int8_t *x;
+	char *x;
 
 	x = mallocz(size, 1);
 	if(x == nil)
@@ -1809,11 +1809,11 @@ emalloc(int size)
 	return x;
 }
 
-int8_t*
-estrdup(int8_t *s)
+char*
+estrdup(char *s)
 {
 	int size;
-	int8_t *p;
+	char *p;
 
 	size = strlen(s)+1;
 	p = mallocz(size, 0);
@@ -1828,7 +1828,7 @@ estrdup(int8_t *s)
  *  create a pointer record
  */
 static RR*
-mkptr(DN *dp, int8_t *ptr, uint32_t ttl)
+mkptr(DN *dp, char *ptr, uint32_t ttl)
 {
 	DN *ipdp;
 	RR *rp;
@@ -1851,12 +1851,12 @@ void	bytes2nibbles(uint8_t *nibbles, uint8_t *bytes, int nbytes);
  *  pointer records for them.
  */
 void
-dnptr(uint8_t *net, uint8_t *mask, int8_t *dom, int forwtype, int subdoms,
+dnptr(uint8_t *net, uint8_t *mask, char *dom, int forwtype, int subdoms,
       int ttl)
 {
 	int i, j, len;
-	int8_t *p, *e;
-	int8_t ptr[Domlen];
+	char *p, *e;
+	char ptr[Domlen];
 	uint8_t *ipp;
 	uint8_t ip[IPaddrlen], nnet[IPaddrlen];
 	uint8_t nibip[IPaddrlen*2];
@@ -1903,7 +1903,7 @@ dnptr(uint8_t *net, uint8_t *mask, int8_t *dom, int forwtype, int subdoms,
 }
 
 void
-addserver(Server **l, int8_t *name)
+addserver(Server **l, char *name)
 {
 	Server *s;
 
@@ -1912,7 +1912,7 @@ addserver(Server **l, int8_t *name)
 	s = malloc(sizeof(Server)+strlen(name)+1);
 	if(s == nil)
 		return;
-	s->name = (int8_t*)(s+1);
+	s->name = (char*)(s+1);
 	strcpy(s->name, name);
 	s->next = nil;
 	*l = s;
@@ -1934,10 +1934,10 @@ copyserverlist(Server *s)
 /*
  *  convert an integer RR type to it's ascii name
  */
-int8_t*
-rrname(int type, int8_t *buf, int len)
+char*
+rrname(int type, char *buf, int len)
 {
-	int8_t *t;
+	char *t;
 
 	t = nil;
 	if(type >= 0 && type <= Tall)

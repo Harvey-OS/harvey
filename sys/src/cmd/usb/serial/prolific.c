@@ -62,10 +62,10 @@ Cinfo plinfo[] = {
 };
 
 int
-plmatch(int8_t *info)
+plmatch(char *info)
 {
 	Cinfo *ip;
-	int8_t buf[50];
+	char buf[50];
 
 	for(ip = plinfo; ip->vid != 0; ip++){
 		snprint(buf, sizeof buf, "vid %#06x did %#06x",
@@ -243,7 +243,7 @@ heuristicid(uint32_t csp, uint32_t maxpkt)
 static int
 plinit(Serialport *p)
 {
-	int8_t *st;
+	char *st;
 	uint8_t *buf;
 	uint32_t csp, maxpkt, dno;
 	Serial *ser;
@@ -363,7 +363,7 @@ static int
 plreadstatus(Serialport *p)
 {
 	int nr, dfd;
-	int8_t err[40];
+	char err[40];
 	uint8_t buf[VendorReqSz];
 	Serial *ser;
 

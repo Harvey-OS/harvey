@@ -15,12 +15,12 @@
 
 struct	ar_hdr
 {
-	int8_t	name[SARNAME];
-	int8_t	date[12];
-	int8_t	uid[6];
-	int8_t	gid[6];
-	int8_t	mode[8];
-	int8_t	size[10];
-	int8_t	fmag[2];
+	char	name[SARNAME];
+	char	date[12];
+	char	uid[6];
+	char	gid[6];
+	char	mode[8];
+	char	size[10];
+	char	fmag[2];
 };
 #define	SAR_HDR	(SARNAME+44)

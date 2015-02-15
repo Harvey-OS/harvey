@@ -40,10 +40,10 @@
 
 size_t
 quote_system_arg (quoted, arg)
-     int8_t *quoted;
-     int8_t const *arg;
+     char *quoted;
+     char const *arg;
 {
-  int8_t const *a;
+  char const *a;
   size_t len = 0;
 
   /* Scan ARG, copying it to QUOTED if QUOTED is not null,
@@ -51,7 +51,7 @@ quote_system_arg (quoted, arg)
 
   for (a = arg; ; a++)
     {
-      int8_t c = *a;
+      char c = *a;
       switch (c)
 	{
 	case 0:

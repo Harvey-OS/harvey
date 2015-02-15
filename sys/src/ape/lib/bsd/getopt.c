@@ -14,14 +14,14 @@
 int     opterr = 1;
 int     optind = 1;
 int	optopt;
-int8_t    *optarg;
+char    *optarg;
 
 int
-getopt (int argc, int8_t **argv, int8_t *opts)
+getopt (int argc, char **argv, char *opts)
 {
 	static int sp = 1;
 	register c;
-	register int8_t *cp;
+	register char *cp;
 
 	if (sp == 1)
 		if (optind >= argc ||

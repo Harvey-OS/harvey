@@ -25,7 +25,7 @@
 
 static Lock masklck;
 extern Devtab devtab[];
-static int8_t* cputype;
+static char* cputype;
 
 int
 getdevnb(uint64_t *maskp)
@@ -99,7 +99,7 @@ devmatch(Devtab *dt, Usbdev *d)
  * all the shared state of the thread library. It should run unnoticed.
  */
 static void
-xexec(Channel *c, int8_t *nm, int8_t *args[])
+xexec(Channel *c, char *nm, char *args[])
 {
 	int	pid;
 
@@ -123,9 +123,9 @@ struct Sarg{
 	Port *pp;
 	Devtab* dt;
 	Channel*rc;
-	int8_t fname[80];
-	int8_t	args[128];
-	int8_t	*argv[40];
+	char fname[80];
+	char	args[128];
+	char	*argv[40];
 };
 
 static void
@@ -135,8 +135,8 @@ startdevproc(void *a)
 	Dev	*d;
 	Devtab *dt;
 	int	argc;
-	int8_t *args, *argse, **argv;
-	int8_t *fname;
+	char *args, *argse, **argv;
+	char *fname;
 
 	threadsetgrp(threadid());
 	d = sa->pp->dev;
@@ -201,9 +201,9 @@ startdevproc(void *a)
 static void
 writeinfo(Dev *d)
 {
-	int8_t buf[128];
-	int8_t *s;
-	int8_t *se;
+	char buf[128];
+	char *s;
+	char *se;
 	Usbdev *ud;
 	Conf *c;
 	Iface *ifc;

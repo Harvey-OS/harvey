@@ -26,7 +26,7 @@ typedef struct pps_entry_tag {
 	ULONG	ulSB;
 	ULONG	ulSize;
 	int	iLevel;
-	int8_t	szName[32];
+	char	szName[32];
 	UCHAR	ucType;
 } pps_entry_type;
 
@@ -66,9 +66,9 @@ ulReadLong(FILE *pFile, ULONG ulOffset)
  * vName2String - turn the name into a proper string.
  */
 static void
-vName2String(int8_t *szName, const UCHAR *aucBytes, size_t tNameSize)
+vName2String(char *szName, const UCHAR *aucBytes, size_t tNameSize)
 {
-	int8_t	*pcChar;
+	char	*pcChar;
 	size_t	tIndex;
 
 	fail(aucBytes == NULL || szName == NULL);
@@ -80,7 +80,7 @@ vName2String(int8_t *szName, const UCHAR *aucBytes, size_t tNameSize)
 	for (tIndex = 0, pcChar = szName;
 	     tIndex < 2 * tNameSize;
 	     tIndex += 2, pcChar++) {
-		*pcChar = (int8_t)aucBytes[tIndex];
+		*pcChar = (char)aucBytes[tIndex];
 	}
 	szName[tNameSize - 1] = '\0';
 } /* end of vName2String */

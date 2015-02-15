@@ -37,15 +37,15 @@ struct Mousectl
 
 struct Menu
 {
-	int8_t	**item;
-	int8_t	*(*gen)(int);
+	char	**item;
+	char	*(*gen)(int);
 	int	lasthit;
 };
 
 /*
  * Mouse
  */
-extern Mousectl*	initmouse(int8_t*, Image*);
+extern Mousectl*	initmouse(char*, Image*);
 extern void		moveto(Mousectl*, Point);
 extern int			readmouse(Mousectl*);
 extern void		closemouse(Mousectl*);

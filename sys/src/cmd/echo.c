@@ -11,11 +11,11 @@
 #include <libc.h>
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	int nflag;
 	int i, len;
-	int8_t *buf, *p;
+	char *buf, *p;
 
 	nflag = 0;
 	if(argc > 1 && strcmp(argv[1], "-n") == 0)
@@ -45,5 +45,5 @@ main(int argc, int8_t *argv[])
 		exits("write error");
 	}
 
-	exits((int8_t *)0);
+	exits((char *)0);
 }

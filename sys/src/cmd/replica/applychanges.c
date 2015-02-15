@@ -14,22 +14,22 @@
 
 int douid;
 Db *db;
-int8_t **x;
+char **x;
 int nx;
 int justshow;
 int verbose;
 int conflicts;
-int8_t newpath[10000];
-int8_t oldpath[10000];
-int8_t *clientroot;
-int8_t *serverroot;
-int copyfile(int8_t*, int8_t*, Dir*, int);
-int metafile(int8_t*, Dir*);
-int8_t **match;
+char newpath[10000];
+char oldpath[10000];
+char *clientroot;
+char *serverroot;
+int copyfile(char*, char*, Dir*, int);
+int metafile(char*, Dir*);
+char **match;
 int nmatch;
 
 int
-ismatch(int8_t *s)
+ismatch(char *s)
 {
 	int i, len;
 
@@ -46,7 +46,7 @@ ismatch(int8_t *s)
 }
 
 void
-xlog(int8_t c, int8_t *path, Dir *d)
+xlog(char c, char *path, Dir *d)
 {
 	if(!verbose)
 		return;
@@ -54,7 +54,7 @@ xlog(int8_t c, int8_t *path, Dir *d)
 }
 
 void
-walk(int8_t *new, int8_t *old, Dir *pd, void*)
+walk(char *new, char *old, Dir *pd, void*)
 {
 	int i, len;
 	Dir od, d;
@@ -239,12 +239,12 @@ main(int argc, char **argv)
 enum { DEFB = 8192 };
 
 static int
-copy1(int fdf, int fdt, int8_t *from, int8_t *to)
+copy1(int fdf, int fdt, char *from, char *to)
 {
-	int8_t buf[DEFB];
+	char buf[DEFB];
 	int32_t n, n1, rcount;
 	int rv;
-	int8_t err[ERRMAX];
+	char err[ERRMAX];
 
 	/* clear any residual error */
 	err[0] = '\0';
@@ -269,7 +269,7 @@ copy1(int fdf, int fdt, int8_t *from, int8_t *to)
 }
 
 int
-copyfile(int8_t *from, int8_t *to, Dir *d, int dowstat)
+copyfile(char *from, char *to, Dir *d, int dowstat)
 {
 	Dir nd;
 	int rfd, wfd, didcreate;
@@ -324,7 +324,7 @@ copyfile(int8_t *from, int8_t *to, Dir *d, int dowstat)
 }
 
 int
-metafile(int8_t *path, Dir *d)
+metafile(char *path, Dir *d)
 {
 	Dir nd;
 

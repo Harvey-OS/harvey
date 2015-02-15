@@ -121,8 +121,8 @@ int	ripfd;
 int32_t	now;
 int	debug;
 int	readonly;
-int8_t	routefile[256];
-int8_t	netdir[256];
+char	routefile[256];
+char	netdir[256];
 
 int	openport(void);
 void	readroutes(void);
@@ -135,9 +135,9 @@ void	broadcast(void);
 void	timeoutroutes(void);
 
 void
-fatal(int syserr, int8_t *fmt, ...)
+fatal(int syserr, char *fmt, ...)
 {
-	int8_t buf[ERRMAX], sysbuf[ERRMAX];
+	char buf[ERRMAX], sysbuf[ERRMAX];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -153,7 +153,7 @@ fatal(int syserr, int8_t *fmt, ...)
 }
 
 uint32_t
-v4parseipmask(uint8_t *ip, int8_t *p)
+v4parseipmask(uint8_t *ip, char *p)
 {
 	uint32_t x;
 	uint8_t v6ip[IPaddrlen];
@@ -191,7 +191,7 @@ v6tov4mask(uint8_t *v4, uint8_t *v6)
 #define equivip(a, b) (memcmp((a), (b), Pasize) == 0)
 
 void
-ding(void *u, int8_t *msg)
+ding(void *u, char *msg)
 {
 	USED(u);
 
@@ -332,7 +332,7 @@ int
 openport(void)
 {
 	int ripctl, rip;
-	int8_t data[128], devdir[40];
+	char data[128], devdir[40];
 
 	snprint(data, sizeof(data), "%s/udp!*!rip", netdir);
 	ripctl = announce(data, devdir);
@@ -399,9 +399,9 @@ void
 readroutes(void)
 {
 	int n;
-	int8_t *p;
+	char *p;
 	Biobuf *b;
-	int8_t *f[6];
+	char *f[6];
 	Route route;
 
 	b = Bopen(routefile, OREAD);

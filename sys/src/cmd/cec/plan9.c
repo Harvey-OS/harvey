@@ -17,9 +17,9 @@ int	cfd = -1;
 int	efd = -1;
 
 int
-netopen0(int8_t *e)
+netopen0(char *e)
 {
-	int8_t buf[128], ctl[13];
+	char buf[128], ctl[13];
 	int n;
 
 	snprint(buf, sizeof buf, "%s/clone", e);
@@ -55,7 +55,7 @@ netclose(void)
 }
 
 int
-netopen(int8_t *e)
+netopen(char *e)
 {
 	int r;
 

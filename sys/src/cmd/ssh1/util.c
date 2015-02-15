@@ -11,19 +11,19 @@
 #include <bio.h>
 #include <ndb.h>
 
-int8_t Edecode[] = "error decoding input packet";
-int8_t Eencode[] = "out of space encoding output packet (BUG)";
-int8_t Ehangup[] = "hungup connection";
-int8_t Ememory[] = "out of memory";
+char Edecode[] = "error decoding input packet";
+char Eencode[] = "out of space encoding output packet (BUG)";
+char Ehangup[] = "hungup connection";
+char Ememory[] = "out of memory";
 
 int debuglevel;
 int doabort;
 
 void
-error(int8_t *fmt, ...)
+error(char *fmt, ...)
 {
 	va_list arg;
-	int8_t buf[2048];
+	char buf[2048];
 
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof(buf), fmt, arg);
@@ -35,7 +35,7 @@ error(int8_t *fmt, ...)
 }
 
 void
-debug(int level, int8_t *fmt, ...)
+debug(int level, char *fmt, ...)
 {
 	va_list arg;
 
@@ -91,7 +91,7 @@ atexitkill(int pid)
 }
 
 int
-readstrnl(int fd, int8_t *buf, int nbuf)
+readstrnl(int fd, char *buf, int nbuf)
 {
 	int i;
 
@@ -128,9 +128,9 @@ calcsessid(Conn *c)
 }
 
 void
-sshlog(int8_t *f, ...)
+sshlog(char *f, ...)
 {
-	int8_t *s;
+	char *s;
 	va_list arg;
 	Fmt fmt;
 	static int pid;
@@ -160,16 +160,16 @@ sshlog(int8_t *f, ...)
 static int
 pstrcmp(const void *a, const void *b)
 {
-	return strcmp(*(int8_t**)a, *(int8_t**)b);
+	return strcmp(*(char**)a, *(char**)b);
 }
 
-static int8_t*
-trim(int8_t *s)
+static char*
+trim(char *s)
 {
-	int8_t *t;
+	char *t;
 	int i, last, n, nf;
-	int8_t **f;
-	int8_t *p;
+	char **f;
+	char *p;
 
 	t = emalloc(strlen(s)+1);
 	t[0] = '\0';
@@ -197,7 +197,7 @@ usetuple(Conn *c, Ndbtuple *t, int scanentries)
 {
 	int first;
 	Ndbtuple *l, *e;
-	int8_t *s;
+	char *s;
 
 	first=1;
 	s = c->host;
@@ -224,10 +224,10 @@ usetuple(Conn *c, Ndbtuple *t, int scanentries)
 }
 
 void
-setaliases(Conn *c, int8_t *name)
+setaliases(Conn *c, char *name)
 {
-	int8_t *p, *net;
-	int8_t *attr[2];
+	char *p, *net;
+	char *attr[2];
 	Ndbtuple *t;
 
 	net = "/net";
@@ -263,7 +263,7 @@ setaliases(Conn *c, int8_t *name)
 void
 privatefactotum(void)
 {
-	int8_t *user;
+	char *user;
 	Dir *d;
 
 	if((user=getuser()) && (d=dirstat("/mnt/factotum/rpc")) && strcmp(user, d->uid)!=0){

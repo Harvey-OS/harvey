@@ -99,7 +99,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	uint32_t fref, maxpclk;
-	int8_t *p, *val;
+	char *p, *val;
 
 	/*
 	 * Part comes in at least a -170MHz speed-grade.
@@ -135,7 +135,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	int8_t *val;
+	char *val;
 	int hsyncdelay, x;
 
 	if(rgb524mnxi == nil && rgb524mnxo == nil)
@@ -224,7 +224,7 @@ sleep(50);
 
 static void
 dumpclock(Vga*, Ctlr* ctlr, uint32_t fref, uint32_t m, uint32_t n,
-	  int8_t* name)
+	  char* name)
 {
 	uint32_t df, f;
 
@@ -255,7 +255,7 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	int8_t *val;
+	char *val;
 	uint8_t x[256];
 	uint32_t fref, fs;
 

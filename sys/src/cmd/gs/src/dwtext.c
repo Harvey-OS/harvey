@@ -58,18 +58,18 @@
 #define M_PASTE_CLIP 2
 
 LRESULT CALLBACK WndTextProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-static void text_error(int8_t *message);
+static void text_error(char *message);
 static void text_new_line(TW *tw);
 static void text_update_text(TW *tw, int count);
 static void text_drag_drop(TW *tw, HDROP hdrop);
 static void text_copy_to_clipboard(TW *tw);
 static void text_paste_from_clipboard(TW *tw);
 
-static const int8_t* TextWinClassName = "rjlTextWinClass";
+static const char* TextWinClassName = "rjlTextWinClass";
 static const POINT TextWinMinSize = {16, 4};
 
 static void
-text_error(int8_t *message)
+text_error(char *message)
 {
     MessageBox((HWND)NULL,message,(LPSTR)NULL, MB_ICONHAND | MB_SYSTEMMODAL);
 }
@@ -157,7 +157,7 @@ text_size(TW *tw, int width, int height)
 }
 
 void
-text_font(TW *tw, const int8_t *name, int size)
+text_font(TW *tw, const char *name, int size)
 {
     /* make a new font */
     LOGFONT lf;
@@ -174,7 +174,7 @@ text_font(TW *tw, const int8_t *name, int size)
     /* set new name and size */
     if (tw->fontname)
 	free(tw->fontname);
-    tw->fontname = (int8_t *)malloc(strlen(name)+1);
+    tw->fontname = (char *)malloc(strlen(name)+1);
     if (tw->fontname == NULL)
 	return;
     strcpy(tw->fontname, name);
@@ -220,14 +220,14 @@ text_font(TW *tw, const int8_t *name, int size)
 
 /* Set drag strings */
 void
-text_drag(TW *tw, const int8_t *pre, const int8_t *post)
+text_drag(TW *tw, const char *pre, const char *post)
 {
     /* remove old strings */
     if (tw->DragPre)
-	free((int8_t *)tw->DragPre);
+	free((char *)tw->DragPre);
     tw->DragPre = NULL;
     if (tw->DragPost)
-	free((int8_t *)tw->DragPost);
+	free((char *)tw->DragPost);
     tw->DragPost = NULL;
 
     /* add new strings */
@@ -302,23 +302,23 @@ text_destroy(TW *tw)
     tw->hfont = NULL;
 
     if (tw->KeyBuf)
-	free((int8_t *)tw->KeyBuf);
+	free((char *)tw->KeyBuf);
     tw->KeyBuf = NULL;
 
     if (tw->ScreenBuffer)
-	free((int8_t *)tw->ScreenBuffer);
+	free((char *)tw->ScreenBuffer);
     tw->ScreenBuffer = NULL;
 
     if (tw->DragPre)
-	free((int8_t *)tw->DragPre);
+	free((char *)tw->DragPre);
     tw->DragPre = NULL;
 
     if (tw->DragPost)
-	free((int8_t *)tw->DragPost);
+	free((char *)tw->DragPost);
     tw->DragPost = NULL;
 
     if (tw->fontname)
-	free((int8_t *)tw->fontname);
+	free((char *)tw->fontname);
     tw->fontname = NULL;
 }
 
@@ -347,7 +347,7 @@ text_register_class(TW *tw, HICON hicon)
 
 /* Show the window */
 int
-text_create(TW *tw, const int8_t *app_name, int show_cmd)
+text_create(TW *tw, const char *app_name, int show_cmd)
 {
     HMENU sysmenu;
     HINSTANCE hInstance = GetModuleHandle(NULL);
@@ -445,7 +445,7 @@ int n;
 }
 
 void 
-text_write_buf(TW *tw, const int8_t *str, int cnt)
+text_write_buf(TW *tw, const char *str, int cnt)
 {
 BYTE *p;
 int count, limit;
@@ -487,7 +487,7 @@ int n;
 
 /* Put string to window */
 void
-text_puts(TW *tw, const int8_t *str)
+text_puts(TW *tw, const char *str)
 {
     text_write_buf(tw, str, strlen(str));
 }
@@ -554,7 +554,7 @@ text_getch(TW *tw)
  * Do not mix this with calls to text_getch()
  */
 int
-text_read_line(TW *tw, int8_t *line, int len)
+text_read_line(TW *tw, char *line, int len)
 {	
 int ch;
     if (tw->line_eof)
@@ -620,7 +620,7 @@ int ch;
 /* Read a string from the keyboard, of up to len characters */
 /* (not including trailing NULL) */
 int
-text_gets(TW *tw, int8_t *line, int len)
+text_gets(TW *tw, char *line, int len)
 {
 LPSTR dest = line;
 LPSTR limit = dest + len;  /* don't leave room for '\0' */
@@ -665,9 +665,9 @@ int ch;
 void
 text_drag_drop(TW *tw, HDROP hdrop)
 {
-    int8_t szFile[256];
+    char szFile[256];
     int i, cFiles;
-    const int8_t *p;
+    const char *p;
     if ( (tw->DragPre==NULL) || (tw->DragPost==NULL) )
 	    return;
 
@@ -1015,7 +1015,7 @@ WndTextProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 	    /* Tell user that we heard them */
 	    if (!tw->quitnow) {
-		int8_t title[256];
+		char title[256];
 		int count = GetWindowText(hwnd, title, sizeof(title)-11);
 		strcpy(title+count, " - closing");
 		SetWindowText(hwnd, title);

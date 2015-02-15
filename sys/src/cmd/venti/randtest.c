@@ -20,7 +20,7 @@ int32_t xxxlrand(void);
 
 Channel *cw;
 Channel *cr;
-int8_t *host;
+char *host;
 int blocksize, seed, randpct;
 int doread, dowrite, packets, permute;
 int64_t totalbytes, cur;
@@ -39,7 +39,7 @@ usage(void)
 }
 
 void
-wr(int8_t *buf, int8_t *buf2)
+wr(char *buf, char *buf2)
 {
 	uint8_t score[VtScoreSize], score2[VtScoreSize];
 	DigestState ds;
@@ -57,7 +57,7 @@ wr(int8_t *buf, int8_t *buf2)
 void
 wrthread(void *v)
 {
-	int8_t *p;
+	char *p;
 
 	USED(v);
 	while((p = recvp(cw)) != nil){
@@ -67,7 +67,7 @@ wrthread(void *v)
 }
 
 void
-rd(int8_t *buf, int8_t *buf2)
+rd(char *buf, char *buf2)
 {
 	uint8_t score[VtScoreSize];
 	DigestState ds;
@@ -83,7 +83,7 @@ rd(int8_t *buf, int8_t *buf2)
 void
 rdthread(void *v)
 {
-	int8_t *p, *buf2;
+	char *p, *buf2;
 
 	buf2 = vtmalloc(blocksize);
 	USED(v);
@@ -93,13 +93,13 @@ rdthread(void *v)
 	}
 }
 
-int8_t *template;
+char *template;
 
 void
-run(void (*fn)(int8_t*, int8_t*), Channel *c)
+run(void (*fn)(char*, char*), Channel *c)
 {
 	int i, t, j, packets;
-	int8_t *buf2, *buf;
+	char *buf2, *buf;
 
 	buf2 = vtmalloc(blocksize);
 	buf = vtmalloc(blocksize);
@@ -134,9 +134,9 @@ run(void (*fn)(int8_t*, int8_t*), Channel *c)
 #define TWID64	((uint64_t)~(uint64_t)0)
 
 uint64_t
-unittoull(int8_t *s)
+unittoull(char *s)
 {
-	int8_t *es;
+	char *es;
 	uint64_t n;
 
 	if(s == nil)

@@ -61,7 +61,7 @@ readblock(int fd, uint8_t *buf, int n)
 }
 
 static int
-printheader(int8_t *name, ArenaHead *head, int fd)
+printheader(char *name, ArenaHead *head, int fd)
 {
 	Arena arena;
 	int64_t baseoff, lo, hi, off;
@@ -107,14 +107,14 @@ printheader(int8_t *name, ArenaHead *head, int fd)
 }
 
 static void
-cmparena(int8_t *name, int64_t len)
+cmparena(char *name, int64_t len)
 {
 	ArenaHead head;
 	DigestState s;
 	uint64_t n, e;
 	uint32_t bs;
 	int i, j;
-	int8_t buf[20];
+	char buf[20];
 
 	fprint(2, "cmp %s\n", name);
 
@@ -202,7 +202,7 @@ cmparena(int8_t *name, int64_t len)
 }
 
 static int
-shouldcheck(int8_t *name, int8_t **s, int n)
+shouldcheck(char *name, char **s, int n)
 {
 	int i;
 	
@@ -218,10 +218,10 @@ shouldcheck(int8_t *name, int8_t **s, int n)
 	return 0;
 }
 
-int8_t *
+char *
 readap(int fd, ArenaPart *ap)
 {
-	int8_t *table;
+	char *table;
 	
 	if(preadblock(fd, data, 8192, PartBlank) < 0)
 		sysfatal("read arena part header: %r");

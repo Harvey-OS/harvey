@@ -218,7 +218,7 @@ vJustify2Window(diagram_type *pDiag, output_type *pAnchor,
 	int32_t lScreenWidth, int32_t lRightIndentation, UCHAR ucAlignment)
 {
 	output_type	*pTmp;
-	int8_t	*pcNew, *pcOld, *szStorage;
+	char	*pcNew, *pcOld, *szStorage;
 	int32_t	lNetWidth, lSpaceWidth, lToAdd;
 	int	iFillerLen, iHoles;
 
@@ -326,11 +326,11 @@ vResetStyles(void)
  * Returns the length of the resulting string
  */
 size_t
-tStyle2Window(int8_t *szLine, size_t tLineSize,
+tStyle2Window(char *szLine, size_t tLineSize,
 	      const style_block_type *pStyle,
 	const section_block_type *pSection)
 {
-	int8_t	*pcTxt;
+	char	*pcTxt;
 	size_t	tIndex, tStyleIndex;
 	BOOL	bNeedPrevLvl;
 	level_type_enum	eNumType;
@@ -434,7 +434,7 @@ tStyle2Window(int8_t *szLine, size_t tLineSize,
  * Special: remove the TABLE_SEPARATOR, 0x0a sequence
  */
 static void
-vRemoveRowEnd(int8_t *szRowTxt)
+vRemoveRowEnd(char *szRowTxt)
 {
 	int	iLastIndex;
 
@@ -445,14 +445,14 @@ vRemoveRowEnd(int8_t *szRowTxt)
 	iLastIndex = (int)strlen(szRowTxt) - 1;
 
 	if (szRowTxt[iLastIndex] == TABLE_SEPARATOR ||
-	    szRowTxt[iLastIndex] == (int8_t)0x0a) {
+	    szRowTxt[iLastIndex] == (char)0x0a) {
 		szRowTxt[iLastIndex] = '\0';
 		iLastIndex--;
 	} else {
 		DBG_HEX(szRowTxt[iLastIndex]);
 	}
 
-	if (iLastIndex >= 0 && szRowTxt[iLastIndex] == (int8_t)0x0a) {
+	if (iLastIndex >= 0 && szRowTxt[iLastIndex] == (char)0x0a) {
 		szRowTxt[iLastIndex] = '\0';
 		iLastIndex--;
 	}
@@ -473,9 +473,9 @@ vRemoveRowEnd(int8_t *szRowTxt)
  * Return the maximum string length
  */
 static size_t
-tComputeStringLengthMax(const int8_t *szString, size_t tColumnWidthMax)
+tComputeStringLengthMax(const char *szString, size_t tColumnWidthMax)
 {
-	const int8_t	*pcTmp;
+	const char	*pcTmp;
 	size_t	tLengthMax, tLenPrev, tLen, tWidth;
 
 	TRACE_MSG("tComputeStringLengthMax");
@@ -517,7 +517,7 @@ tComputeStringLengthMax(const int8_t *szString, size_t tColumnWidthMax)
  * Returns the number of bytes that fit the column
  */
 static size_t
-tGetBreakingPoint(const int8_t *szString,
+tGetBreakingPoint(const char *szString,
 	size_t tLen, size_t tWidth, size_t tColumnWidthMax)
 {
 	int	iIndex;
@@ -584,8 +584,8 @@ vTableRow2Window(diagram_type *pDiag, output_type *pOutput,
 	conversion_type eConversionType, int iParagraphBreak)
 {
 	output_type	tRow;
-	int8_t	*aszColTxt[TABLE_COLUMN_MAX];
-	int8_t	*szLine, *pcTxt;
+	char	*aszColTxt[TABLE_COLUMN_MAX];
+	char	*szLine, *pcTxt;
 	double	dMagnify;
 	int32_t	lCharWidthLarge, lCharWidthSmall;
 	size_t	tColumnWidthTotal, atColumnWidthMax[TABLE_COLUMN_MAX];
@@ -700,7 +700,7 @@ vTableRow2Window(diagram_type *pDiag, output_type *pOutput,
 				for (iTmp = 0;
 				     iTmp < (int)tColumnWidthMax;
 				     iTmp++) {
-					*pcTxt++ = (int8_t)FILLER_CHAR;
+					*pcTxt++ = (char)FILLER_CHAR;
 				}
 				*pcTxt++ = TABLE_SEPARATOR_CHAR;
 				*pcTxt = '\0';
@@ -751,7 +751,7 @@ vTableRow2Window(diagram_type *pDiag, output_type *pOutput,
 			for (iTmp = 0;
 			     iTmp < (int)tColumnWidthMax - (int)tWidth;
 			     iTmp++) {
-				*pcTxt++ = (int8_t)FILLER_CHAR;
+				*pcTxt++ = (char)FILLER_CHAR;
 			}
 			/* End of column */
 			*pcTxt++ = TABLE_SEPARATOR_CHAR;

@@ -49,7 +49,7 @@ struct iteminfo {
 	int ascent;		/* ascent of the item */
 	int font;		/* font */
 	int line;		/* line its on */
-	int8_t *buf;	
+	char *buf;	
 };
 
 struct lineinfo {
@@ -68,7 +68,7 @@ struct lineinfo {
 /* PTPI : con 100;
 /* 
 */
-int8_t *noinit = "pslib not properly initialized";
+char *noinit = "pslib not properly initialized";
 /* 
 */
 static int boxes;
@@ -76,7 +76,7 @@ static int debug;
 static int totitems;
 static int totlines;
 static int curfont;
-static int8_t *def_font;
+static char *def_font;
 static int def_font_type;
 static int curfonttype;
 static int pagestart;
@@ -92,12 +92,12 @@ static int ystart;
 static double xmagnification = 1.0, ymagnification = 1.0;
 static int rotation = 0;
 static int landscape = 0;
-static int8_t *Patch = nil;
+static char *Patch = nil;
 
 /* ctxt 		: ref Draw->Context;
 /* t 		: ref Toplevel;
 */
-int8_t*
+char*
 psinit(int box, int deb) { /* d: ref Toplevel, */
 /* 	t=d; */
 	debug = deb;
@@ -136,7 +136,7 @@ psinit(int box, int deb) { /* d: ref Toplevel, */
 /* }
 /* 
 */
-static int8_t *username;
+static char *username;
 
 int
 preamble(Biobuf *ioutb, Rectangle bb) {
@@ -696,8 +696,8 @@ imagebits(Biobuf *ioutb, Memimage *im)
 	n4 = (n / 4) * 4;
 	for (i = 0; i < n4; i += 4){
 		cmap2ascii85(data+i, c85);
-		lsf += strlen((int8_t *)c85);
-		Bprint(ioutb, "%s", (int8_t *)c85);
+		lsf += strlen((char *)c85);
+		Bprint(ioutb, "%s", (char *)c85);
 		if (lsf > 74) {
 			Bprint(ioutb, "\n");
 			lsf = 0;
@@ -712,9 +712,9 @@ imagebits(Biobuf *ioutb, Memimage *im)
 		for (i=nrest; i<4; i++)
 			foo[i] = '\0';
 		cmap2ascii85(foo, c85);
-		if (strcmp((int8_t *)c85, "z") == 0 )
-			strcpy((int8_t *)c85, "!!!!!");
-		Bprint(ioutb, "%.*s", nrest+1, (int8_t *)c85);
+		if (strcmp((char *)c85, "z") == 0 )
+			strcpy((char *)c85, "!!!!!");
+		Bprint(ioutb, "%.*s", nrest+1, (char *)c85);
 	}
 	Bprint(ioutb, "\n~>");
 	Bprint(ioutb, "\n");
@@ -807,7 +807,7 @@ image2psfile(int fd, Memimage *im, int dpi) {
  *   char *Patch
  */
 void
-psopt(int8_t *s, void *val)
+psopt(char *s, void *val)
 {
 	if(s == nil)
 		return;
@@ -818,5 +818,5 @@ psopt(int8_t *s, void *val)
 	if(strcmp("landscape", s) == 0)
 		landscape = *((int *)val);
 	if(strcmp("Patch", s) == 0)
-		Patch = *((int8_t **)val);
+		Patch = *((char **)val);
 }

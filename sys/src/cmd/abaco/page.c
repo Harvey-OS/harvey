@@ -73,8 +73,8 @@ loadchilds(Page *p, Kidinfo *k)
 }
 
 static struct {
-	int8_t *mime;
-	int8_t *filter;
+	char *mime;
+	char *filter;
 }filtertab[] = {
 	"image/gif",	"gif -t9",
 	"image/jpeg",	"jpg -t9",
@@ -85,10 +85,10 @@ static struct {
 	nil,	nil,
 };
 
-int8_t *
+char *
 getfilter(Rune *r, int x, int y)
 {
-	int8_t buf[128];
+	char buf[128];
 	int i;
 
 	snprint(buf, sizeof(buf), "%S", r);
@@ -163,7 +163,7 @@ loadimg(Rune *src, int x , int y)
 	Cimage *ci;
 	Runestr rs;
 	Exec *e;
-	int8_t *filter;
+	char *filter;
 	int fd, p[2], q[2];
 
 	ci = emalloc(sizeof(Cimage));
@@ -260,7 +260,7 @@ loadimages(Page *p)
 	}
 }
 
-static int8_t *mimetab[] = {
+static char *mimetab[] = {
 	"text/html",
 	"application/xhtml",
 	nil,
@@ -271,7 +271,7 @@ void
 pageloadproc(void *v)
 {
 	Page *p;
-	int8_t buf[BUFSIZE], *s;
+	char buf[BUFSIZE], *s;
 	int32_t n, l;
 	int fd, i, ctype;
 
@@ -793,7 +793,7 @@ pagesetrefresh(Page *p)
 {
 	Runestr rs;
 	Rune *s, *q, *t;
-	int8_t *v;
+	char *v;
 	int n;
 
 	if(!p->doc || !p->doc->refresh)

@@ -25,15 +25,15 @@
 
 #define dbprt	if (debug) fprintf
 
-int8_t	*optnames = "a:c:fglm:n:o:p:x:y:C:E:DG:IL:P:";
-int8_t    *prologue = POSTGIF;		/* default PostScript prologue */
-int8_t    *formfile = FORMFILE;           /* stuff for multiple pages per sheet */
+char	*optnames = "a:c:fglm:n:o:p:x:y:C:E:DG:IL:P:";
+char    *prologue = POSTGIF;		/* default PostScript prologue */
+char    *formfile = FORMFILE;           /* stuff for multiple pages per sheet */
 int     formsperpage = 1;               /* page images on each piece of paper */
 int	copies = 1;                     /* and this many copies of each sheet */
 int     page = 0;                       /* last page we worked on */
 int     printed = 0;                    /* and the number of pages printed */
 
-extern int8_t *malloc();
+extern char *malloc();
 extern void free();
 extern double atof(), pow();
 
@@ -60,11 +60,11 @@ int bburx = -32767, bbury = -32767;
 FILE *fp_in = NULL;
 FILE *fp_out = stdout;
 
-int8_t *
+char *
 allocate(size)
     int size;
 {
-    int8_t *p;
+    char *p;
 
     if ((p = malloc(size)) == NULL) error(FATAL, "not enough memory");
     return(p);
@@ -75,7 +75,7 @@ puthex(c, fp)
     unsigned char c;
     FILE *fp;
 {
-    static int8_t hextbl[16] = {
+    static char hextbl[16] = {
 	'0', '1', '2', '3', '4', '5', '6', '7',
 	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
     };
@@ -504,11 +504,11 @@ readgif()
 
     fread(ibuf, sizeof(*ibuf), 6, fp_in);
 dbprt(stderr, "%.6s\n", ibuf);
-    if (strncmp((int8_t *)ibuf, "GIF87a", 6) != 0) {
+    if (strncmp((char *)ibuf, "GIF87a", 6) != 0) {
     	fread(ibuf, sizeof(*ibuf), 122, fp_in);
     	fread(ibuf, sizeof(*ibuf), 6, fp_in);
 dbprt(stderr, "%.6s\n", ibuf);
-    	if (strncmp((int8_t *)ibuf, "GIF87a", 6) != 0)
+    	if (strncmp((char *)ibuf, "GIF87a", 6) != 0)
 		 error(FATAL, "wrong GIF signature");
     }
     fread(ibuf, sizeof(*ibuf), 7, fp_in);

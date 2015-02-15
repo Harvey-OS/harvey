@@ -41,7 +41,7 @@
 /* ---------------- Statistics ---------------- */
 
 #ifdef DEBUG
-const int8_t *const cmd_op_names[16] =
+const char *const cmd_op_names[16] =
 {cmd_op_name_strings};
 private const int8_t *const cmd_misc_op_names[16] =
 {cmd_misc_op_name_strings};
@@ -51,7 +51,7 @@ private const int8_t *const cmd_segment_op_names[16] =
 {cmd_segment_op_name_strings};
 private const int8_t *const cmd_path_op_names[16] =
 {cmd_path_op_name_strings};
-const int8_t *const *const cmd_sub_op_names[16] =
+const char *const *const cmd_sub_op_names[16] =
 {cmd_misc_op_names, 0, 0, 0, 0, 0, 0, 0,
  0, 0, 0, 0,
  0, cmd_misc2_op_names, cmd_segment_op_names, cmd_path_op_names
@@ -69,7 +69,7 @@ cmd_count_op(int op, uint size)
     stats_cmd.op_counts[op]++;
     stats_cmd.op_sizes[op] += size;
     if (gs_debug_c('L')) {
-	const int8_t *const *sub = cmd_sub_op_names[op >> 4];
+	const char *const *sub = cmd_sub_op_names[op >> 4];
 
 	if (sub)
 	    dlprintf2(", %s(%u)\n", sub[op & 0xf], size);
@@ -104,7 +104,7 @@ cmd_print_stats(void)
     dlprintf2("     same_band = %lu, other_band = %lu\n",
 	      stats_cmd.same_band, stats_cmd.other_band);
     for (ci = 0; ci < 0x100; ci += 0x10) {
-	const int8_t *const *sub = cmd_sub_op_names[ci >> 4];
+	const char *const *sub = cmd_sub_op_names[ci >> 4];
 
 	if (sub != 0) {
 	    dlprintf1("[l]  %s =", cmd_op_names[ci >> 4]);

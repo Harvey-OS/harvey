@@ -18,7 +18,7 @@ pid_t
 getpid(void)
 {
 	int n, f;
-	int8_t pidbuf[15];
+	char pidbuf[15];
 
 	f = _OPEN("#c/pid", 0);
 	n = _READ(f, pidbuf, sizeof pidbuf);

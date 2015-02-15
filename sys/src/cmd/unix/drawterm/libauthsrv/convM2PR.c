@@ -18,7 +18,7 @@
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 void
-convM2PR(int8_t *ap, Passwordreq *f, int8_t *key)
+convM2PR(char *ap, Passwordreq *f, char *key)
 {
 	uint8_t *p;
 

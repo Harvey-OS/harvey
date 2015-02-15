@@ -58,7 +58,7 @@ preadblock(uint8_t *buf, int n, int64_t off)
 }
 
 static int
-loadheader(int8_t *name, ArenaHead *head, Arena *arena, int64_t off)
+loadheader(char *name, ArenaHead *head, Arena *arena, int64_t off)
 {
 	if(preadblock(data, head->blocksize, off + head->size - head->blocksize) < 0){
 		fprint(2, "%s: reading arena tail: %r\n", name);
@@ -133,7 +133,7 @@ verify(Arena *arena, void *data, uint8_t *newscore)
 }
 
 static void
-resealarena(int8_t *name, int64_t len)
+resealarena(char *name, int64_t len)
 {
 	ArenaHead head;
 	Arena arena;
@@ -194,7 +194,7 @@ resealarena(int8_t *name, int64_t len)
 }
 
 static int
-shouldcheck(int8_t *name, int8_t **s, int n)
+shouldcheck(char *name, char **s, int n)
 {
 	int i;
 	
@@ -210,10 +210,10 @@ shouldcheck(int8_t *name, int8_t **s, int n)
 	return 0;
 }
 
-int8_t *
+char *
 readap(ArenaPart *ap)
 {
-	int8_t *table;
+	char *table;
 	
 	if(preadblock(data, 8192, PartBlank) < 0)
 		sysfatal("read arena part header: %r");

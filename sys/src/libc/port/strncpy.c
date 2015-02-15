@@ -10,11 +10,11 @@
 #include <u.h>
 #include <libc.h>
 
-int8_t*
-strncpy(int8_t *s1, int8_t *s2, int32_t n)
+char*
+strncpy(char *s1, char *s2, int32_t n)
 {
 	int i;
-	int8_t *os1;
+	char *os1;
 
 	os1 = s1;
 	for(i = 0; i < n; i++)

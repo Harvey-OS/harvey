@@ -71,7 +71,7 @@ struct NfsMount3RNull {
 
 struct NfsMount3TMnt {
 	NfsMount3Call call;
-	int8_t *path;
+	char *path;
 };
 
 struct NfsMount3RMnt {
@@ -88,8 +88,8 @@ struct NfsMount3TDump {
 };
 
 struct NfsMount3Entry {
-	int8_t *host;
-	int8_t *path;
+	char *host;
+	char *path;
 };
 
 struct NfsMount3RDump {
@@ -100,7 +100,7 @@ struct NfsMount3RDump {
 
 struct NfsMount3TUmnt {
 	NfsMount3Call call;
-	int8_t *path;
+	char *path;
 };
 
 struct NfsMount3RUmnt {
@@ -108,8 +108,8 @@ struct NfsMount3RUmnt {
 };
 
 struct NfsMount3Export {
-	int8_t *path;
-	int8_t **g;
+	char *path;
+	char **g;
 	uint32_t ng;
 };
 
@@ -134,7 +134,7 @@ struct NfsMount3RExport {
 uint nfsMount3ExportGroupSize(uint8_t*);
 uint nfsMount3ExportSize(NfsMount3Export*);
 int nfsMount3ExportPack(uint8_t*, uint8_t*, uint8_t**, NfsMount3Export*);
-int nfsMount3ExportUnpack(uint8_t*, uint8_t*, uint8_t**, int8_t**, int8_t***,
+int nfsMount3ExportUnpack(uint8_t*, uint8_t*, uint8_t**, char**, char***,
 			  NfsMount3Export*);
 int nfsMount3EntryPack(uint8_t*, uint8_t*, uint8_t**, NfsMount3Entry*);
 int nfsMount3EntryUnpack(uint8_t*, uint8_t*, uint8_t**, NfsMount3Entry*);
@@ -439,7 +439,7 @@ struct Nfs3RSetattr {
 struct Nfs3TLookup {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	int8_t *name;
+	char *name;
 };
 
 struct Nfs3RLookup {
@@ -476,7 +476,7 @@ struct Nfs3RReadlink {
 	Nfs3Status status;
 	u1int haveAttr;
 	Nfs3Attr attr;
-	int8_t *data;
+	char *data;
 };
 
 struct Nfs3TRead {
@@ -519,7 +519,7 @@ struct Nfs3RWrite {
 struct Nfs3TCreate {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	int8_t *name;
+	char *name;
 	Nfs3Create mode;
 	Nfs3SetAttr attr;
 	uint8_t verf[Nfs3CreateVerfSize];
@@ -538,7 +538,7 @@ struct Nfs3RCreate {
 struct Nfs3TMkdir {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	int8_t *name;
+	char *name;
 	Nfs3SetAttr attr;
 };
 
@@ -555,9 +555,9 @@ struct Nfs3RMkdir {
 struct Nfs3TSymlink {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	int8_t *name;
+	char *name;
 	Nfs3SetAttr attr;
-	int8_t *data;
+	char *data;
 };
 
 struct Nfs3RSymlink {
@@ -573,7 +573,7 @@ struct Nfs3RSymlink {
 struct Nfs3TMknod {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	int8_t *name;
+	char *name;
 	Nfs3FileType type;
 	Nfs3SetAttr attr;
 	uint32_t major;
@@ -593,7 +593,7 @@ struct Nfs3RMknod {
 struct Nfs3TRemove {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	int8_t *name;
+	char *name;
 };
 
 struct Nfs3RRemove {
@@ -605,7 +605,7 @@ struct Nfs3RRemove {
 struct Nfs3TRmdir {
 	Nfs3Call call;
 	Nfs3Handle handle;
-	int8_t *name;
+	char *name;
 };
 
 struct Nfs3RRmdir {
@@ -618,11 +618,11 @@ struct Nfs3TRename {
 	Nfs3Call call;
 	struct {
 		Nfs3Handle handle;
-		int8_t *name;
+		char *name;
 	} from;
 	struct {
 		Nfs3Handle handle;
-		int8_t *name;
+		char *name;
 	} to;
 };
 
@@ -638,7 +638,7 @@ struct Nfs3TLink {
 	Nfs3Handle handle;
 	struct {
 		Nfs3Handle handle;
-		int8_t *name;
+		char *name;
 	} link;
 };
 
@@ -680,7 +680,7 @@ struct Nfs3TReadDirPlus {
 
 struct Nfs3Entry {
 	uint64_t fileid;
-	int8_t *name;
+	char *name;
 	uint64_t cookie;
 	u1int haveAttr;
 	Nfs3Attr attr;
@@ -772,10 +772,10 @@ struct Nfs3RCommit {
 	uint8_t verf[Nfs3WriteVerfSize];
 };
 
-int8_t *nfs3StatusStr(Nfs3Status);
-int8_t *nfs3TypeStr(Nfs3CallType);
-int8_t *nfs3SetTimeStr(Nfs3SetTime);
-int8_t *nfs3SyncStr(Nfs3Sync);
+char *nfs3StatusStr(Nfs3Status);
+char *nfs3TypeStr(Nfs3CallType);
+char *nfs3SetTimeStr(Nfs3SetTime);
+char *nfs3SyncStr(Nfs3Sync);
 
 void nfs3HandlePrint(Fmt*, Nfs3Handle*);
 uint32_t nfs3HandleSize(Nfs3Handle*);

@@ -569,7 +569,7 @@ gdev_pdf_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 	pprintg2(s, "/Matrix[%g 0 0 %g 0 0]", tw / xscale, th / yscale);
 	stream_puts(s, "/BBox[0 0 1 1]/XStep 1/YStep 1/Length ");
 	if (image_id) {
-	    int8_t buf[MAX_REF_CHARS + 6 + 1]; /* +6 for /R# Do\n */
+	    char buf[MAX_REF_CHARS + 6 + 1]; /* +6 for /R# Do\n */
 
 	    sprintf(buf, "/R%ld Do\n", image_id);
 	    pprintd1(s, "%d>>stream\n", strlen(buf));

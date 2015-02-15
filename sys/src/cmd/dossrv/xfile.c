@@ -29,12 +29,12 @@ okmode(int omode, int fmode)
 }
 
 Xfs *
-getxfs(int8_t *user, int8_t *name)
+getxfs(char *user, char *name)
 {
 	Xfs *xf, *fxf;
 	Dir *dir;
 	Qid dqid;
-	int8_t *p, *q;
+	char *p, *q;
 	int32_t offset;
 	int fd, omode;
 

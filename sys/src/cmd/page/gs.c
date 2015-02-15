@@ -27,7 +27,7 @@ static void	killgs(void);
 static void
 killgs(void)
 {
-	int8_t tmpfile[100];
+	char tmpfile[100];
 
 	close(gsfd);
 	postnote(PNGROUP, getpid(), "die");
@@ -48,7 +48,7 @@ killgs(void)
 int
 spawnwriter(GSInfo *g, Biobuf *b)
 {
-	int8_t buf[4096];
+	char buf[4096];
 	int n;
 	int fd;
 
@@ -71,7 +71,7 @@ int
 spawnreader(int fd)
 {
 	int n, pfd[2];
-	int8_t buf[1024];
+	char buf[1024];
 
 	if(pipe(pfd)<0)
 		return -1;
@@ -110,8 +110,8 @@ spawnreader(int fd)
 void
 spawnmonitor(int fd)
 {
-	int8_t buf[4096];
-	int8_t *xbuf;
+	char buf[4096];
+	char *xbuf;
 	int n;
 	int out;
 	int first;
@@ -143,10 +143,10 @@ spawnmonitor(int fd)
 }
 
 int 
-spawngs(GSInfo *g, int8_t *safer)
+spawngs(GSInfo *g, char *safer)
 {
-	int8_t *args[16];
-	int8_t tb[32], gb[32];
+	char *args[16];
+	char tb[32], gb[32];
 	int i, nargs;
 	int devnull;
 	int stdinout[2];
@@ -234,9 +234,9 @@ spawngs(GSInfo *g, int8_t *safer)
 }
 
 int
-gscmd(GSInfo *gs, int8_t *fmt, ...)
+gscmd(GSInfo *gs, char *fmt, ...)
 {
-	int8_t buf[1024];
+	char buf[1024];
 	int n;
 
 	va_list v;
@@ -311,7 +311,7 @@ waitgs(GSInfo *gs)
 	/* we figure out that gs is done by telling it to
 	 * print something and waiting until it does.
 	 */
-	int8_t *p;
+	char *p;
 	Biobuf *b = &gs->gsrd;
 	uint8_t buf[1024];
 	int n;

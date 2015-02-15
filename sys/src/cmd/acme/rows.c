@@ -300,12 +300,12 @@ rowclean(Row *row)
 }
 
 void
-rowdump(Row *row, int8_t *file)
+rowdump(Row *row, char *file)
 {
 	int i, j, fd, m, n, dumped;
 	uint q0, q1;
 	Biobuf *b;
-	int8_t *buf, *a, *fontname;
+	char *buf, *a, *fontname;
 	Rune *r;
 	Column *c;
 	Window *w, *w1;
@@ -440,10 +440,10 @@ rowdump(Row *row, int8_t *file)
 }
 
 static
-int8_t*
+char*
 rdline(Biobuf *b, int *linep)
 {
-	int8_t *l;
+	char *l;
 
 	l = Brdline(b, '\n');
 	if(l)
@@ -455,11 +455,11 @@ rdline(Biobuf *b, int *linep)
  * Get font names from load file so we don't load fonts we won't use
  */
 void
-rowloadfonts(int8_t *file)
+rowloadfonts(char *file)
 {
 	int i;
 	Biobuf *b;
-	int8_t *l;
+	char *l;
 
 	b = Bopen(file, OREAD);
 	if(b == nil)
@@ -484,11 +484,11 @@ rowloadfonts(int8_t *file)
 }
 
 int
-rowload(Row *row, int8_t *file, int initing)
+rowload(Row *row, char *file, int initing)
 {
 	int i, j, line, percent, y, nr, nfontr, n, ns, ndumped, dumpid, x, fd;
 	Biobuf *b, *bout;
-	int8_t *buf, *l, *t, *fontname;
+	char *buf, *l, *t, *fontname;
 	Rune *r, rune, *fontr;
 	Column *c, *c1, *c2;
 	uint q0, q1;

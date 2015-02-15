@@ -33,18 +33,18 @@ erealloc(void *p, uint32_t n)
 	return p;
 }
 
-int8_t *
-estrdup(int8_t *s)
+char *
+estrdup(char *s)
 {
 	if ((s = strdup(s)) == nil)
 		sysfatal("estrdup");
 	return s;
 }
 
-int8_t*
-getpassm(int8_t *prompt)
+char*
+getpassm(char *prompt)
 {
-	int8_t *p, line[4096];
+	char *p, line[4096];
 	int n, nr;
 	static int cons, consctl; /* closing & reopening fails in ssh environment */
 
@@ -96,17 +96,17 @@ getpassm(int8_t *prompt)
 	}
 }
 
-static int8_t *
-illegal(int8_t *f)
+static char *
+illegal(char *f)
 {
 	syslog(0, LOG, "illegal name: %s", f);
 	return nil;
 }
 
-int8_t *
-validatefile(int8_t *f)
+char *
+validatefile(char *f)
 {
-	int8_t *p;
+	char *p;
 
 	if(f == nil || *f == '\0')
 		return nil;

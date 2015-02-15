@@ -13,7 +13,7 @@
 #include <disk.h>
 
 static void
-enm(int8_t *new, int8_t *old, Dir *d, void*)
+enm(char *new, char *old, Dir *d, void*)
 {
 	print("%s %s%s%s%luo %s %s %s\n",
 		new, (d->mode&DMDIR)?"d":"", (d->mode&DMAPPEND)?"a":"",

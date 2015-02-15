@@ -34,7 +34,7 @@ static void genkeys(Conn *, uint8_t [], mpint *);
 /*
  * Second Oakley Group from RFC 2409
  */
-static int8_t *group1p =
+static char *group1p =
          "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
          "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"
          "EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245"
@@ -45,7 +45,7 @@ static int8_t *group1p =
 /*
  * 2048-bit MODP group (id 14) from RFC 3526
 */
-static int8_t *group14p =
+static char *group14p =
       "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
       "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"
       "EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245"
@@ -67,7 +67,7 @@ static RSApriv myrsakey;
 void
 dh_init(PKA *pkas[])
 {
-	int8_t *buf, *p, *st, *end;
+	char *buf, *p, *st, *end;
 	int fd, n, k;
 
 	if(debug > 1)
@@ -320,10 +320,10 @@ rsa_sign(Conn *c, uint8_t *m, int nm)
  * -1 - If factotum found a key, but the verification fails
  */
 static int
-rsa_verify(Conn *c, uint8_t *m, int nm, int8_t *user, int8_t *sig, int)
+rsa_verify(Conn *c, uint8_t *m, int nm, char *user, char *sig, int)
 {
 	int fd, n, retval, nbit;
-	int8_t *buf, *p, *sigblob;
+	char *buf, *p, *sigblob;
 	uint8_t *sstr, *em;
 	uint8_t hh[SHA1dlen];
 	mpint *s, *mm, *rsa_exponent, *host_modulus;
@@ -358,7 +358,7 @@ rsa_verify(Conn *c, uint8_t *m, int nm, int8_t *user, int8_t *sig, int)
 		}
 		buf = emalloc9p(Blobsz / 2);
 		sigblob = emalloc9p(Blobsz);
-		p = (int8_t *)get_string(nil, (uint8_t *)sig, buf, Blobsz / 2,
+		p = (char *)get_string(nil, (uint8_t *)sig, buf, Blobsz / 2,
 				       nil);
 		get_string(nil, (uint8_t *)p, sigblob, Blobsz, &n);
 		sha1(m, nm, hh, nil);
@@ -448,7 +448,7 @@ dss_sign(Conn *c, uint8_t *m, int nm)
 }
 
 static int
-dss_verify(Conn *c, uint8_t *m, int nm, int8_t *user, int8_t *sig, int nsig)
+dss_verify(Conn *c, uint8_t *m, int nm, char *user, char *sig, int nsig)
 {
 	sshdebug(c, "in dss_verify for connection: %d", c->id);
 	USED(m, nm, user, sig, nsig);
@@ -598,7 +598,7 @@ static int
 findkeyinuserring(Conn *c, RSApub *srvkey)
 {
 	int n;
-	int8_t *home, *newkey, *r;
+	char *home, *newkey, *r;
 
 	home = getenv("home");
 	if (home == nil) {
@@ -640,7 +640,7 @@ static int
 verifyhostkey(Conn *c, RSApub *srvkey, Packet *sig)
 {
 	int fd, n;
-	int8_t *newkey;
+	char *newkey;
 	uint8_t h[SHA1dlen];
 
 	sshdebug(c, "verifying server signature");
@@ -673,7 +673,7 @@ verifyhostkey(Conn *c, RSApub *srvkey, Packet *sig)
 	keymbox.msg = nil;
 
 	n = pkas[c->pkalg]->verify(c, h, SHA1dlen, nil,
-				   (int8_t *)sig->payload,
+				   (char *)sig->payload,
 		sig->rlength);
 
 	/* fd is perhaps still open */
@@ -696,9 +696,9 @@ dh_client12(Conn *c, Packet *p)
 {
 	int n, retval;
 #ifdef VERIFYKEYS
-	int8_t *newkey;
+	char *newkey;
 #endif
-	int8_t buf[10];
+	char buf[10];
 	uint8_t *q;
 	uint8_t h[SHA1dlen];
 	mpint *f, *k;
@@ -709,12 +709,12 @@ dh_client12(Conn *c, Packet *p)
 	sig = new_packet(c);
 	pack2 = new_packet(c);
 
-	q = get_string(p, p->payload+1, (int8_t *)ks->payload, Maxpktpay,
+	q = get_string(p, p->payload+1, (char *)ks->payload, Maxpktpay,
 		       &n);
 	ks->rlength = n + 1;
 	f = get_mp(q);
 	q += nhgetl(q) + 4;
-	get_string(p, q, (int8_t *)sig->payload, Maxpktpay, &n);
+	get_string(p, q, (char *)sig->payload, Maxpktpay, &n);
 	sig->rlength = n;
 	k = mpnew(1024);
 	mpexp(f, c->x, p1, k);
@@ -837,7 +837,7 @@ static void
 genkeys(Conn *c, uint8_t h[], mpint *k)
 {
 	Packet *pack2;
-	int8_t buf[82], *bp, *be;			/* magic 82 */
+	char buf[82], *bp, *be;			/* magic 82 */
 	int n;
 
 	pack2 = new_packet(c);

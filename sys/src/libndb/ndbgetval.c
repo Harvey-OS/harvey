@@ -18,12 +18,12 @@
  *
  *  return 0 if not found.
  */
-int8_t*
-ndbgetvalue(Ndb *db, Ndbs *s, int8_t *attr, int8_t *val, int8_t *rattr,
+char*
+ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr,
 	    Ndbtuple **pp)
 {
 	Ndbtuple *t, *nt;
-	int8_t *rv;
+	char *rv;
 	Ndbs temps;
 
 	if(s == nil)
@@ -65,11 +65,11 @@ ndbgetvalue(Ndb *db, Ndbs *s, int8_t *attr, int8_t *val, int8_t *rattr,
 }
 
 Ndbtuple*
-ndbgetval(Ndb *db, Ndbs *s, int8_t *attr, int8_t *val, int8_t *rattr,
-	  int8_t *buf)
+ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr,
+	  char *buf)
 {
 	Ndbtuple *t;
-	int8_t *p;
+	char *p;
 
 	p = ndbgetvalue(db, s, attr, val, rattr, &t);
 	if(p == nil){

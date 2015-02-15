@@ -191,15 +191,15 @@
 #include "ext.h"			/* external variable declarations */
 #include "postbgi.h"			/* a few definitions just used here */
 
-int8_t	*optnames = "a:c:f:m:n:o:p:w:x:y:A:C:E:J:L:P:R:DI";
+char	*optnames = "a:c:f:m:n:o:p:w:x:y:A:C:E:J:L:P:R:DI";
 
-int8_t	*prologue = POSTBGI;		/* default PostScript prologue */
-int8_t	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
+char	*prologue = POSTBGI;		/* default PostScript prologue */
+char	*formfile = FORMFILE;		/* stuff for multiple pages per sheet */
 
 int	formsperpage = 1;		/* page images on each piece of paper */
 int	copies = 1;			/* and this many copies of each sheet */
 
-int8_t	*styles[] = STYLES;		/* descriptions of line styles */
+char	*styles[] = STYLES;		/* descriptions of line styles */
 
 int	hpos = 0;			/* current horizontal */
 int	vpos = 0;			/* and vertical position */
@@ -217,7 +217,7 @@ int	svpos = 0;			/* and vertical positions - subroutines */
 Disp	displacement[64];		/* dx and dy after a subroutine call */
 
 Fontmap	fontmap[] = FONTMAP;		/* for translating font names */
-int8_t	*fontname = "Courier";		/* use this PostScript font */
+char	*fontname = "Courier";		/* use this PostScript font */
 
 int	page = 0;			/* page we're working on */
 int	printed = 0;			/* printed this many pages */
@@ -446,9 +446,9 @@ options()
 
 /*****************************************************************************/
 
-int8_t *get_font(name)
+char *get_font(name)
 
-    int8_t	*name;			/* name the user asked for */
+    char	*name;			/* name the user asked for */
 
 {
 

@@ -29,11 +29,11 @@
 	unsigned char.
 */
 
-int our_wctomb(int8_t *s, unsigned long wc);
-int our_mbtowc(unsigned long *p, int8_t *s, unsigned n);
-int runetoisoutf(int8_t *str, Rune *rune);
-int fullisorune(int8_t *str, int n);
-int isochartorune(Rune *rune, int8_t *str);
+int our_wctomb(char *s, unsigned long wc);
+int our_mbtowc(unsigned long *p, char *s, unsigned n);
+int runetoisoutf(char *str, Rune *rune);
+int fullisorune(char *str, int n);
+int isochartorune(Rune *rune, char *str);
 
 void
 utf_in(int fd, long *notused, struct convert *out)
@@ -76,7 +76,7 @@ utf_in(int fd, long *notused, struct convert *out)
 void
 utf_out(Rune *base, int n, int32_t *notused)
 {
-	int8_t *p;
+	char *p;
 	Rune *r;
 
 	USED(notused);
@@ -128,7 +128,7 @@ isoutf_in(int fd, long *notused, struct convert *out)
 void
 isoutf_out(Rune *base, int n, int32_t *notused)
 {
-	int8_t *p;
+	char *p;
 	Rune *r;
 
 	USED(notused);
@@ -172,7 +172,7 @@ mktable(void)
 }
 
 int
-isochartorune(Rune *rune, int8_t *str)
+isochartorune(Rune *rune, char *str)
 {
 	int c, c1, c2;
 	int32_t l;
@@ -239,7 +239,7 @@ bad:
 }
 
 int
-runetoisoutf(int8_t *str, Rune *rune)
+runetoisoutf(char *str, Rune *rune)
 {
 	int32_t c;
 
@@ -289,7 +289,7 @@ runetoisoutf(int8_t *str, Rune *rune)
 }
 
 int
-fullisorune(int8_t *str, int n)
+fullisorune(char *str, int n)
 {
 	int c;
 
@@ -346,7 +346,7 @@ enum
 };
 
 int
-our_wctomb(int8_t *s, unsigned long wc)
+our_wctomb(char *s, unsigned long wc)
 {
 	if(s == 0)
 		return 0;		/* no shift states */
@@ -396,7 +396,7 @@ our_wctomb(int8_t *s, unsigned long wc)
 }
 
 int
-our_mbtowc(unsigned long *p, int8_t *s, unsigned n)
+our_mbtowc(unsigned long *p, char *s, unsigned n)
 {
 	uint8_t *us;
 	int c0, c1, c2, c3, c4, c5;

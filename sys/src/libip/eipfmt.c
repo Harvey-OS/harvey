@@ -32,9 +32,9 @@ uchar prefixvals[256] =
 int
 eipfmt(Fmt *f)
 {
-	int8_t buf[5*8];
-	static int8_t *efmt = "%.2ux%.2ux%.2ux%.2ux%.2ux%.2ux";
-	static int8_t *ifmt = "%d.%d.%d.%d";
+	char buf[5*8];
+	static char *efmt = "%.2ux%.2ux%.2ux%.2ux%.2ux%.2ux";
+	static char *ifmt = "%d.%d.%d.%d";
 	uint8_t *p, ip[16];
 	uint32_t *lp;
 	uint16_t s;

@@ -12,7 +12,7 @@
 #include	<bio.h>
 
 int
-Bprint(Biobufhdr *bp, int8_t *fmt, ...)
+Bprint(Biobufhdr *bp, char *fmt, ...)
 {
 	va_list arg;
 	int n;

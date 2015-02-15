@@ -14,17 +14,17 @@ typedef struct	Mparam	Mparam;
 
 struct	Malg
 {
-	int8_t	vals[10];
+	char	vals[10];
 };
 
 struct	Mparam
 {
 	uint32_t	value;
-	int8_t	alg;
-	int8_t	neg;
-	int8_t	shift;
-	int8_t	arg;
-	int8_t	off;
+	char	alg;
+	char	neg;
+	char	shift;
+	char	arg;
+	char	off;
 };
 
 static	Mparam	multab[32];
@@ -80,7 +80,7 @@ mulparam(uint32_t m, Mparam *mp)
 {
 	int c, i, j, n, o, q, s;
 	int bc, bi, bn, bo, bq, bs, bt;
-	int8_t *p;
+	char *p;
 	int32_t u;
 	uint32_t t;
 

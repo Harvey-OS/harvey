@@ -28,7 +28,7 @@
  */
 
 static uint8_t mt64d[256];
-static int8_t mt64e[64];
+static char mt64e[64];
 
 static void
 initm64(void)
@@ -57,12 +57,12 @@ initm64(void)
 }
 
 int
-encmutf7(int8_t *out, int lim, int8_t *in)
+encmutf7(char *out, int lim, char *in)
 {
 	Rune rr;
 	uint32_t r, b;
-	int8_t *start = out;
-	int8_t *e = out + lim;
+	char *start = out;
+	char *e = out + lim;
 	int nb;
 
 	if(mt64e[0] == 0)
@@ -123,11 +123,11 @@ encmutf7(int8_t *out, int lim, int8_t *in)
 }
 
 int
-decmutf7(int8_t *out, int lim, int8_t *in)
+decmutf7(char *out, int lim, char *in)
 {
 	Rune rr;
-	int8_t *start = out;
-	int8_t *e = out + lim;
+	char *start = out;
+	char *e = out + lim;
 	int c, b, nb;
 
 	if(mt64e[0] == 0)

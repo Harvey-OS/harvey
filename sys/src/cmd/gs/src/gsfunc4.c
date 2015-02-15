@@ -626,7 +626,7 @@ calc_put_ops(stream *s, const byte *ops, uint size)
 	    return 1;
 	/*case PtCr_return:*/	/* not possible */
 	default: {		/* must be < PtCr_NUM_OPS */
-		static const int8_t *const op_names[] = {
+		static const char *const op_names[] = {
 		    /* Keep this consistent with opcodes in gsfunc4.h! */
 		    "abs", "add", "and", "atan", "bitshift",
 		    "ceiling", "cos", "cvi", "cvr", "div", "exp",
@@ -657,7 +657,7 @@ calc_access(const gs_data_source_t *psrc, uint32_t start, uint length,
 {
     const gs_function_PtCr_t *const pfn =
 	(const gs_function_PtCr_t *)
-	  ((const int8_t *)psrc - offset_of(gs_function_PtCr_t, data_source));
+	  ((const char *)psrc - offset_of(gs_function_PtCr_t, data_source));
     /*
      * The caller wants a specific substring of the symbolic definition.
      * Generate the entire definition, using a SubFileDecode filter (in an

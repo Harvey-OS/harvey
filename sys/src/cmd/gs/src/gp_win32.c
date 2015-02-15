@@ -41,7 +41,7 @@
 /* Get the string corresponding to an OS error number. */
 /* This is compiler-, not OS-, specific, but it is ANSI-standard and */
 /* all MS-DOS and MS Windows compilers support it. */
-const int8_t *
+const char *
 gp_strerror(int errnum)
 {
     return strerror(errnum);
@@ -108,7 +108,7 @@ gp_file_is_console(FILE * f)
 /* ------ Screen management ------ */
 
 /* Get the environment variable that specifies the display to use. */
-const int8_t *
+const char *
 gp_getenv_display(void)
 {
     return NULL;
@@ -117,10 +117,10 @@ gp_getenv_display(void)
 /* ------ File names ------ */
 
 /* Define the default scratch file name prefix. */
-const int8_t gp_scratch_file_name_prefix[] = "_temp_";
+const char gp_scratch_file_name_prefix[] = "_temp_";
 
 /* Define the name of the null output file. */
-const int8_t gp_null_file_name[] = "nul";
+const char gp_null_file_name[] = "nul";
 
 /* Define the name that designates the current directory. */
-const int8_t gp_current_directory_name[] = ".";
+const char gp_current_directory_name[] = ".";

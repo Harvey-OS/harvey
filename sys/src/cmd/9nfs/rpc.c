@@ -126,7 +126,7 @@ int
 string2S(void *arg, String *r)
 {
 	uint8_t *p;
-	int8_t *s;
+	char *s;
 
 	p = arg;
 	LONG(n);
@@ -305,7 +305,7 @@ showauth(Auth *ap)
 }
 
 int
-garbage(Rpccall *reply, int8_t *msg)
+garbage(Rpccall *reply, char *msg)
 {
 	chat("%s\n", msg ? msg : "garbage");
 	reply->astat = GARBAGE_ARGS;

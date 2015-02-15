@@ -18,7 +18,7 @@ static SmbTransactionMethod smbtransactionmethodrap = {
 
 int
 smbclientrap(SmbClient *c, SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata,
-	     int8_t **errmsgp)
+	     char **errmsgp)
 {
 	SmbTransaction transaction;
 	SmbHeader h;
@@ -37,9 +37,9 @@ smbclientrap(SmbClient *c, SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *o
 }
 
 int
-smbnetserverenum2(SmbClient *c, uint32_t stype, int8_t *domain,
+smbnetserverenum2(SmbClient *c, uint32_t stype, char *domain,
 		  int *entriesp,
-		  SmbRapServerInfo1 **sip, int8_t **errmsgp)
+		  SmbRapServerInfo1 **sip, char **errmsgp)
 {
 	int rv;
 	uint16_t ec, entries, total, converter;
@@ -57,7 +57,7 @@ smbnetserverenum2(SmbClient *c, uint32_t stype, int8_t *domain,
 	rv = !smbclientrap(c, ipb, opb, odb, errmsgp);
 	smbbufferfree(&ipb);
 	if (rv == 0) {
-		int8_t *remark, *eremark;
+		char *remark, *eremark;
 		int remarkspace;
 		int i;
 		if (!smbbuffergets(opb, &ec)
@@ -79,7 +79,7 @@ smbnetserverenum2(SmbClient *c, uint32_t stype, int8_t *domain,
 		}
 		remarkspace = smbbufferreadspace(odb) - entries * 26;
 		si = smbemalloc(entries * sizeof(SmbRapServerInfo1) + remarkspace);
-		remark = (int8_t *)&si[entries];
+		remark = (char *)&si[entries];
 		eremark = remark + remarkspace;
 		for (i = 0; i < entries; i++) {
 			uint32_t offset;

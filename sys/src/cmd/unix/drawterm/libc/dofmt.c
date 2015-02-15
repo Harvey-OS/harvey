@@ -13,11 +13,11 @@
 
 /* format the output into f->to and return the number of characters fmted  */
 int
-dofmt(Fmt *f, int8_t *fmt)
+dofmt(Fmt *f, char *fmt)
 {
 	Rune rune, *rt, *rs;
 	int r;
-	int8_t *t, *s;
+	char *t, *s;
 	int n, nfmt;
 
 	nfmt = f->nfmt;
@@ -41,8 +41,8 @@ dofmt(Fmt *f, int8_t *fmt)
 				return f->nfmt - nfmt;
 			f->stop = rs;
 		}else{
-			t = (int8_t*)f->to;
-			s = (int8_t*)f->stop;
+			t = (char*)f->to;
+			s = (char*)f->stop;
 			while((r = *(uint8_t*)fmt) && r != '%'){
 				if(r < Runeself){
 					FMTCHAR(f, t, s, r);
@@ -50,9 +50,9 @@ dofmt(Fmt *f, int8_t *fmt)
 				}else{
 					n = chartorune(&rune, fmt);
 					if(t + n > s){
-						t = (int8_t*)__fmtflush(f, t, n);
+						t = (char*)__fmtflush(f, t, n);
 						if(t != nil)
-							s = (int8_t*)f->stop;
+							s = (char*)f->stop;
 						else
 							return -1;
 					}
@@ -61,14 +61,14 @@ dofmt(Fmt *f, int8_t *fmt)
 				}
 			}
 			fmt++;
-			f->nfmt += t - (int8_t *)f->to;
+			f->nfmt += t - (char *)f->to;
 			f->to = t;
 			if(!r)
 				return f->nfmt - nfmt;
 			f->stop = s;
 		}
 
-		fmt = (int8_t*)__fmtdispatch(f, fmt, 0);
+		fmt = (char*)__fmtdispatch(f, fmt, 0);
 		if(fmt == nil)
 			return -1;
 	}
@@ -80,9 +80,9 @@ __fmtflush(Fmt *f, void *t, int len)
 	if(f->runes)
 		f->nfmt += (Rune*)t - (Rune*)f->to;
 	else
-		f->nfmt += (int8_t*)t - (int8_t *)f->to;
+		f->nfmt += (char*)t - (char *)f->to;
 	f->to = t;
-	if(f->flush == 0 || (*f->flush)(f) == 0 || (int8_t*)f->to + len > (int8_t*)f->stop){
+	if(f->flush == 0 || (*f->flush)(f) == 0 || (char*)f->to + len > (char*)f->stop){
 		f->stop = f->to;
 		return nil;
 	}
@@ -96,14 +96,14 @@ __fmtflush(Fmt *f, void *t, int len)
 int
 __fmtpad(Fmt *f, int n)
 {
-	int8_t *t, *s;
+	char *t, *s;
 	int i;
 
-	t = (int8_t*)f->to;
-	s = (int8_t*)f->stop;
+	t = (char*)f->to;
+	s = (char*)f->stop;
 	for(i = 0; i < n; i++)
 		FMTCHAR(f, t, s, ' ');
-	f->nfmt += t - (int8_t *)f->to;
+	f->nfmt += t - (char *)f->to;
 	f->to = t;
 	return 0;
 }
@@ -127,11 +127,11 @@ int
 __fmtcpy(Fmt *f, const void *vm, int n, int sz)
 {
 	Rune *rt, *rs, r;
-	int8_t *t, *s, *m, *me;
+	char *t, *s, *m, *me;
 	uint32_t fl;
 	int nc, w;
 
-	m = (int8_t*)vm;
+	m = (char*)vm;
 	me = m + sz;
 	w = f->width;
 	fl = f->flags;
@@ -159,8 +159,8 @@ __fmtcpy(Fmt *f, const void *vm, int n, int sz)
 	}else{
 		if(!(fl & FmtLeft) && __fmtpad(f, w - n) < 0)
 			return -1;
-		t = (int8_t*)f->to;
-		s = (int8_t*)f->stop;
+		t = (char*)f->to;
+		s = (char*)f->stop;
 		for(nc = n; nc > 0; nc--){
 			r = *(uint8_t*)m;
 			if(r < Runeself)
@@ -171,7 +171,7 @@ __fmtcpy(Fmt *f, const void *vm, int n, int sz)
 				break;
 			FMTRUNE(f, t, s, r);
 		}
-		f->nfmt += t - (int8_t *)f->to;
+		f->nfmt += t - (char *)f->to;
 		f->to = t;
 		if(fl & FmtLeft && __fmtpad(f, w - n) < 0)
 			return -1;
@@ -183,7 +183,7 @@ int
 __fmtrcpy(Fmt *f, const void *vm, int n)
 {
 	Rune r, *m, *me, *rt, *rs;
-	int8_t *t, *s;
+	char *t, *s;
 	uint32_t fl;
 	int w;
 
@@ -206,13 +206,13 @@ __fmtrcpy(Fmt *f, const void *vm, int n)
 	}else{
 		if(!(fl & FmtLeft) && __fmtpad(f, w - n) < 0)
 			return -1;
-		t = (int8_t*)f->to;
-		s = (int8_t*)f->stop;
+		t = (char*)f->to;
+		s = (char*)f->stop;
 		for(me = m + n; m < me; m++){
 			r = *m;
 			FMTRUNE(f, t, s, r);
 		}
-		f->nfmt += t - (int8_t *)f->to;
+		f->nfmt += t - (char *)f->to;
 		f->to = t;
 		if(fl & FmtLeft && __fmtpad(f, w - n) < 0)
 			return -1;
@@ -224,11 +224,11 @@ __fmtrcpy(Fmt *f, const void *vm, int n)
 int
 __charfmt(Fmt *f)
 {
-	int8_t x[1];
+	char x[1];
 
 	x[0] = va_arg(f->args, int);
 	f->prec = 1;
-	return __fmtcpy(f, (const int8_t*)x, 1, 1);
+	return __fmtcpy(f, (const char*)x, 1, 1);
 }
 
 /* fmt out one rune */
@@ -243,7 +243,7 @@ __runefmt(Fmt *f)
 
 /* public helper routine: fmt out a null terminated string already in hand */
 int
-fmtstrcpy(Fmt *f, int8_t *s)
+fmtstrcpy(Fmt *f, char *s)
 {
 	int i, j;
 	Rune r;
@@ -264,9 +264,9 @@ fmtstrcpy(Fmt *f, int8_t *s)
 int
 __strfmt(Fmt *f)
 {
-	int8_t *s;
+	char *s;
 
-	s = va_arg(f->args, int8_t *);
+	s = va_arg(f->args, char *);
 	return fmtstrcpy(f, s);
 }
 
@@ -318,7 +318,7 @@ __percentfmt(Fmt *f)
 int
 __ifmt(Fmt *f)
 {
-	int8_t buf[70], *p, *conv;
+	char buf[70], *p, *conv;
 	uint64_t vu;
 	uint32_t u;
 	int neg, base, i, n, fl, w, isv;
@@ -364,7 +364,7 @@ __ifmt(Fmt *f)
 		if(fl & FmtUnsigned)
 			u = (uint8_t)va_arg(f->args, int);
 		else
-			u = (int8_t)va_arg(f->args, int);
+			u = (char)va_arg(f->args, int);
 	}else if(fl & FmtShort){
 		if(fl & FmtUnsigned)
 			u = (uint16_t)va_arg(f->args, int);
@@ -485,7 +485,7 @@ __countfmt(Fmt *f)
 	}else if(fl & FmtLong){
 		*(int32_t*)p = f->nfmt;
 	}else if(fl & FmtByte){
-		*(int8_t*)p = f->nfmt;
+		*(char*)p = f->nfmt;
 	}else if(fl & FmtShort){
 		*(int16_t*)p = f->nfmt;
 	}else{
@@ -537,7 +537,7 @@ __flagfmt(Fmt *f)
 int
 __badfmt(Fmt *f)
 {
-	int8_t x[3];
+	char x[3];
 
 	x[0] = '%';
 	x[1] = f->r;

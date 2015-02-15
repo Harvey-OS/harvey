@@ -66,7 +66,7 @@ int lame_decode_ogg_initfile( lame_global_flags*  gfp,
 {
 
   lame_internal_flags *gfc = gfp->internal_flags;
-  int8_t *buffer;
+  char *buffer;
   int  bytes;
   int i;
 
@@ -296,7 +296,7 @@ int lame_decode_ogg_fromfile( lame_global_flags*  gfp,
     if(ogg_page_eos(&og))eos=1;
     
     if(!eos){
-      int8_t *buffer;
+      char *buffer;
       int bytes;
       buffer=ogg_sync_buffer(&oy,4096);
       bytes=fread(buffer,1,4096,fd);
@@ -359,7 +359,7 @@ vorbis_block      vb2;  // local working space for packet->PCM decode
 int lame_encode_ogg_init(lame_global_flags *gfp)
 {
   lame_internal_flags *gfc=gfp->internal_flags;
-  int8_t comment[MAX_COMMENT_LENGTH+1];
+  char comment[MAX_COMMENT_LENGTH+1];
 
   
   /********** Encode setup ************/
@@ -464,7 +464,7 @@ int lame_encode_ogg_init(lame_global_flags *gfp)
 
 
 int lame_encode_ogg_finish(lame_global_flags *gfp,
-			  int8_t *mp3buf, int mp3buf_size)
+			  char *mp3buf, int mp3buf_size)
 {
   int eos=0,bytes=0;
 

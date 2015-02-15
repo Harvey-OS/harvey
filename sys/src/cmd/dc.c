@@ -66,10 +66,10 @@ typedef	void*	pointer;
 typedef	struct	Blk	Blk;
 struct	Blk
 {
-	int8_t	*rd;
-	int8_t	*wt;
-	int8_t	*beg;
-	int8_t	*last;
+	char	*rd;
+	char	*wt;
+	char	*beg;
+	char	*last;
 };
 typedef	struct	Sym	Sym;
 struct	Sym
@@ -119,22 +119,22 @@ void	(*outdit)(Blk *p, int flg);
 int	logo;
 int	logten;
 int	count;
-int8_t	*pp;
-int8_t	*dummy;
+char	*pp;
+char	*dummy;
 int32_t	longest, maxsize, active;
 int	lall, lrel, lcopy, lmore, lbytes;
 int	inside;
 Biobuf	bin;
 Biobuf	bout;
 
-void	main(int argc, int8_t *argv[]);
+void	main(int argc, char *argv[]);
 void	commnds(void);
 Blk*	readin(void);
 Blk*	div(Blk *ddivd, Blk *ddivr);
 int	dscale(void);
 Blk*	removr(Blk *p, int n);
 Blk*	dcsqrt(Blk *p);
-void	init(int argc, int8_t *argv[]);
+void	init(int argc, char *argv[]);
 void	onintr(void);
 void	pushp(Blk *p);
 Blk*	pop(void);
@@ -143,13 +143,13 @@ Blk*	add0(Blk *p, int ct);
 Blk*	mult(Blk *p, Blk *q);
 void	chsign(Blk *p);
 int	readc(void);
-void	unreadc(int8_t c);
-void	binop(int8_t c);
+void	unreadc(char c);
+void	binop(char c);
 void	dcprint(Blk *hptr);
 Blk*	dcexp(Blk *base, Blk *ex);
 Blk*	getdec(Blk *p, int sc);
 void	tenot(Blk *p, int sc);
-void	oneot(Blk *p, int sc, int8_t ch);
+void	oneot(Blk *p, int sc, char ch);
 void	hexot(Blk *p, int flg);
 void	bigot(Blk *p, int flg);
 Blk*	add(Blk *a1, Blk *a2);
@@ -159,18 +159,18 @@ Blk*	scalint(Blk *p);
 Blk*	scale(Blk *p, int n);
 int	subt(void);
 int	command(void);
-int	cond(int8_t c);
+int	cond(char c);
 void	load(void);
 int	log2(int32_t n);
 Blk*	salloc(int size);
 Blk*	morehd(void);
 Blk*	copy(Blk *hptr, int size);
-void	sdump(int8_t *s1, Blk *hptr);
+void	sdump(char *s1, Blk *hptr);
 void	seekc(Blk *hptr, int n);
 void	salterwd(Blk *hptr, Blk *n);
 void	more(Blk *hptr);
-void	ospace(int8_t *s);
-void	garbage(int8_t *s);
+void	ospace(char *s);
+void	garbage(char *s);
 void	release(Blk *p);
 Blk*	dcgetwd(Blk *p);
 void	putwd(Blk *p, Blk *c);
@@ -179,7 +179,7 @@ int	getstk(void);
 
 /********debug only**/
 void
-tpr(int8_t *cp, Blk *bp)
+tpr(char *cp, Blk *bp)
 {
 	print("%s-> ", cp);
 	print("beg: %lx rd: %lx wt: %lx last: %lx\n", bp->beg, bp->rd,
@@ -194,7 +194,7 @@ tpr(int8_t *cp, Blk *bp)
 /************/
 
 void
-main(int argc, int8_t *argv[])
+main(int argc, char *argv[])
 {
 	Binit(&bin, 0, OREAD);
 	Binit(&bout, 1, OWRITE);
@@ -1402,7 +1402,7 @@ void
 chsign(Blk *p)
 {
 	int carry;
-	int8_t ct;
+	char ct;
 
 	carry=0;
 	rewind(p);
@@ -1463,7 +1463,7 @@ loop:
 }
 
 void
-unreadc(int8_t c)
+unreadc(char c)
 {
 
 	if((readptr != &readstk[0]) && (*readptr != 0)) {
@@ -1474,7 +1474,7 @@ unreadc(int8_t c)
 }
 
 void
-binop(int8_t c)
+binop(char c)
 {
 	Blk *r;
 
@@ -1675,7 +1675,7 @@ tenot(Blk *p, int sc)
 }
 
 void
-oneot(Blk *p, int sc, int8_t ch)
+oneot(Blk *p, int sc, char ch)
 {
 	Blk *q;
 
@@ -1916,7 +1916,7 @@ subt(void)
 int
 command(void)
 {
-	int8_t line[100], *sl;
+	char line[100], *sl;
 	int pid, p, c;
 
 	switch(c = readc()) {
@@ -1948,7 +1948,7 @@ command(void)
 }
 
 int
-cond(int8_t c)
+cond(char c)
 {
 	Blk *p;
 	int cc;
@@ -2050,7 +2050,7 @@ Blk*
 salloc(int size)
 {
 	Blk *hdr;
-	int8_t *ptr;
+	char *ptr;
 
 	all++;
 	lall++;
@@ -2091,7 +2091,7 @@ morehd(void)
 	}
 	kk = h;
 	while(h<hfree+(HEADSZ/BLK))
-		(h++)->rd = (int8_t*)++kk;
+		(h++)->rd = (char*)++kk;
 	(h-1)->rd=0;
 	return(hfree);
 }
@@ -2101,7 +2101,7 @@ copy(Blk *hptr, int size)
 {
 	Blk *hdr;
 	unsigned sz;
-	int8_t *ptr;
+	char *ptr;
 
 	all++;
 	lall++;
@@ -2134,9 +2134,9 @@ copy(Blk *hptr, int size)
 }
 
 void
-sdump(int8_t *s1, Blk *hptr)
+sdump(char *s1, Blk *hptr)
 {
-	int8_t *p;
+	char *p;
 
 	if(hptr == nil) {
 		Bprint(&bout, "%s no block\n", s1);
@@ -2153,7 +2153,7 @@ sdump(int8_t *s1, Blk *hptr)
 void
 seekc(Blk *hptr, int n)
 {
-	int8_t *nn,*p;
+	char *nn,*p;
 
 	nn = hptr->beg+n;
 	if(nn > hptr->last) {
@@ -2197,7 +2197,7 @@ void
 more(Blk *hptr)
 {
 	unsigned size;
-	int8_t *p;
+	char *p;
 
 	if((size=(hptr->last-hptr->beg)*2) == 0)
 		size=2;
@@ -2224,7 +2224,7 @@ more(Blk *hptr)
 }
 
 void
-ospace(int8_t *s)
+ospace(char *s)
 {
 	Bprint(&bout,"out of space: %s\n",s);
 	Bprint(&bout,"all %ld rel %ld headmor %ld\n",all,rel,headmor);
@@ -2234,7 +2234,7 @@ ospace(int8_t *s)
 }
 
 void
-garbage(int8_t *s)
+garbage(char *s)
 {
 	USED(s);
 }
@@ -2245,7 +2245,7 @@ release(Blk *p)
 	rel++;
 	lrel++;
 	nbytes -= p->last - p->beg;
-	p->rd = (int8_t*)hfree;
+	p->rd = (char*)hfree;
 	hfree = p;
 	free(p->beg);
 }

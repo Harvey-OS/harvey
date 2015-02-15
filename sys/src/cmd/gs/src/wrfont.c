@@ -69,7 +69,7 @@ void WRF_wtext(WRF_output* a_output,const unsigned char* a_string,int32_t a_leng
 		}
 	}
 
-void WRF_wstring(WRF_output* a_output,const int8_t* a_string)
+void WRF_wstring(WRF_output* a_output,const char* a_string)
 	{
 	while (*a_string)
 		WRF_wbyte(a_output,*a_string++);
@@ -77,14 +77,14 @@ void WRF_wstring(WRF_output* a_output,const int8_t* a_string)
 
 void WRF_wfloat(WRF_output* a_output,double a_float)
 	{
-	int8_t buffer[32];
+	char buffer[32];
 	sprintf(buffer,"%f",a_float);
 	WRF_wstring(a_output,buffer);
 	}
 
 void WRF_wint(WRF_output* a_output,int32_t a_int)
 	{
-	int8_t buffer[32];
+	char buffer[32];
 	sprintf(buffer,"%ld",a_int);
 	WRF_wstring(a_output,buffer);
 	}

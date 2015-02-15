@@ -10,7 +10,7 @@
 #include "headers.h"
 
 int
-smbmatch(int8_t *name, Reprog *rep)
+smbmatch(char *name, Reprog *rep)
 {
 	Resub sub;
 	sub.sp = nil;
@@ -21,11 +21,11 @@ smbmatch(int8_t *name, Reprog *rep)
 }
 
 Reprog *
-smbmkrep(int8_t *pattern)
+smbmkrep(char *pattern)
 {
 	Reprog *r;
 	int l;
-	int8_t *tmp, *p, *q, *t;
+	char *tmp, *p, *q, *t;
 	l = strlen(pattern);
 	tmp = smbemalloc(l * 5 + 1);
 	t = tmp;
