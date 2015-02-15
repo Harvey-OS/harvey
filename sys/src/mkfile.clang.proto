@@ -1,0 +1,18 @@
+#
+# common mkfile parameters shared by all architectures
+#
+
+OS=568qv
+CPUS=arm amd64 386 power mips
+CFLAGS=-I/sys/include -I/amd64/include
+LEX=lex
+YACC=yacc
+MK=/bin/mk
+
+# recursive mk will have these set from the parent
+# this is never what we want.  clear them
+
+TARG=
+OFILES=
+HFILES=
+YFILES=

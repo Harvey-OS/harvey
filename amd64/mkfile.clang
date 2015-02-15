@@ -1,5 +1,5 @@
 
-</sys/src/mkfile.proto
+</sys/src/mkfile.clang.proto
 
 CC=clang
 LD=clang
