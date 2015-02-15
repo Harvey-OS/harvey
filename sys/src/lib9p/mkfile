@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/lib9p.a
+LIB=/$objtype/lib/lib9p.a
 OFILES=\
 	auth.$O\
 	dirread.$O\
@@ -18,7 +18,7 @@ OFILES=\
 	uid.$O\
 	util.$O\
 
-HFILES=$ROOT/sys/include/9p.h
+HFILES=/sys/include/9p.h
 
 UPDATE=\
 	mkfile\
@@ -26,7 +26,7 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib
 
 $O.ramfs: ramfs.$O $LIB
 	$LD -o $target $prereq

@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libframe.a
+LIB=/$objtype/lib/libframe.a
 OFILES=\
 	frbox.$O\
 	frdraw.$O\
@@ -18,4 +18,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib

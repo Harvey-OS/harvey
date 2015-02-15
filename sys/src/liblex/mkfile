@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libl.a
+LIB=/$objtype/lib/libl.a
 OFILES=\
 	allprint.$O\
 	main.$O\
@@ -14,5 +14,5 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/amd64/%}\
 
-CFLAGS=$CFLAGS -I$ROOT/sys/src/cmd/lex
-<$ROOT/sys/src/cmd/mksyslib
+CFLAGS=$CFLAGS -I/sys/src/cmd/lex
+</sys/src/cmd/mksyslib

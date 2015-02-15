@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libbio.a
+LIB=/$objtype/lib/libbio.a
 OFILES=\
 	bbuffered.$O\
 	bfildes.$O\
@@ -20,7 +20,7 @@ OFILES=\
 	bwrite.$O\
 	bvprint.$O\
 
-HFILES=$ROOT/sys/include/bio.h
+HFILES=/sys/include/bio.h
 
 UPDATE=\
 	mkfile\
@@ -28,5 +28,5 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib
 

@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libhtml.a
+LIB=/$objtype/lib/libhtml.a
 
 OFILES=\
 	build.$O\
@@ -9,7 +9,7 @@ OFILES=\
 	utils.$O\
 
 HFILES=\
-	$ROOT/sys/include/html.h\
+	/sys/include/html.h\
 	impl.h\
 
 UPDATE=\
@@ -18,4 +18,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib

@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libc.a
+LIB=/$objtype/lib/libc.a
 CFILES=\
 	_assert.c\
 	abs.c\
@@ -119,12 +119,12 @@ ALLOFILES=${CFILES:%.c=%.$O}
 # OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
 OFILES=${CFILES:%.c=%.$O}
 
-HFILES=$ROOT/sys/include/libc.h
+HFILES=/sys/include/libc.h
 
 UPDATE=mkfile\
 	$HFILES\
 	$CFILES\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib
 
-profile.$O: $ROOT/sys/include/tos.h
+profile.$O: /sys/include/tos.h

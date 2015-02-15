@@ -1,7 +1,7 @@
 # You need to setup this environment variable pointing to your plan9port path
 MKSHELL=$PLAN9/bin/rc
 
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
 PORTDIRS=9sys 9syscall fmt port
 DIRS=$PORTDIRS $CPUS

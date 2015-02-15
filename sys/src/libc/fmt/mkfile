@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libc.a
+LIB=/$objtype/lib/libc.a
 
 OFILES=\
 	dofmt.$O\
@@ -34,7 +34,7 @@ OFILES=\
 	vsmprint.$O\
 	vsnprint.$O\
 
-HFILES=$ROOT/sys/include/libc.h\
+HFILES=/sys/include/libc.h\
 	fmtdef.h\
 
 UPDATE=\
@@ -42,5 +42,5 @@ UPDATE=\
 	$HFILES\
 	${OFILES:%.$O=%.c}
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib
 

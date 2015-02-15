@@ -1,10 +1,10 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libcomplete.a
+LIB=/$objtype/lib/libcomplete.a
 OFILES=\
 	complete.$O\
 
-HFILES=$ROOT/sys/include/complete.h
+HFILES=/sys/include/complete.h
 
 UPDATE=\
 	mkfile\
@@ -12,4 +12,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib

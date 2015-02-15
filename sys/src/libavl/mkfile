@@ -1,10 +1,10 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libavl.a
+LIB=/$objtype/lib/libavl.a
 OFILES=\
 	avl.$O\
 
-HFILES=$ROOT/sys/include/avl.h
+HFILES=/sys/include/avl.h
 
 UPDATE=\
 	mkfile\
@@ -12,4 +12,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib

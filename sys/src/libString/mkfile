@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libString.a
+LIB=/$objtype/lib/libString.a
 
 OFILES=\
 	s_alloc.$O\
@@ -21,7 +21,7 @@ OFILES=\
 	s_tolower.$O\
 	s_unique.$O\
 
-HFILES=$ROOT/sys/include/String.h
+HFILES=/sys/include/String.h
 
 UPDATE=\
 	mkfile\
@@ -29,4 +29,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib

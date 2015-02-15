@@ -1,11 +1,11 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libbin.a
+LIB=/$objtype/lib/libbin.a
 OFILES=\
 	bin.$O\
 
 HFILES=\
-	$ROOT/sys/include/bin.h\
+	/sys/include/bin.h\
 
 UPDATE=\
 	mkfile\
@@ -13,4 +13,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib

@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libauth.a
+LIB=/$objtype/lib/libauth.a
 OFILES=\
 	amount.$O\
 	amount_getkey.$O\
@@ -20,7 +20,7 @@ OFILES=\
 	noworld.$O\
 
 HFILES=\
-	$ROOT/sys/include/auth.h\
+	/sys/include/auth.h\
 	authlocal.h\
 
 UPDATE=\
@@ -29,4 +29,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib

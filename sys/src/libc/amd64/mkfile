@@ -1,7 +1,7 @@
 objtype=amd64
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libc.a
+LIB=/$objtype/lib/libc.a
 SFILES=\
 #	argv0.s\
 #	atom.s\
@@ -35,7 +35,7 @@ CFILES=\
 	argv0.c\
 	rdpmc.c\
 
-HFILES=$ROOT/sys/include/libc.h
+HFILES=/sys/include/libc.h
 
 OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O} ${GSFILES:%.S=%.$O}
 
@@ -44,4 +44,4 @@ UPDATE=mkfile\
 	$CFILES\
 	$SFILES\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib

@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libhttpd.a
+LIB=/$objtype/lib/libhttpd.a
 OFILES=\
 	alloc.$O\
 	checkcontent.$O\
@@ -21,7 +21,7 @@ OFILES=\
 	urlunesc.$O\
 
 HFILES=\
-	$ROOT/sys/include/httpd.h\
+	/sys/include/httpd.h\
 	escape.h\
 
 UPDATE=\
@@ -30,4 +30,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib

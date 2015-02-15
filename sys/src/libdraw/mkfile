@@ -1,6 +1,6 @@
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
-LIB=$ROOT/$objtype/lib/libdraw.a
+LIB=/$objtype/lib/libdraw.a
 
 OFILES=\
 	alloc.$O\
@@ -61,10 +61,10 @@ OFILES=\
 	writesubfont.$O\
 
 HFILES=\
-	$ROOT/sys/include/draw.h\
-	$ROOT/sys/include/event.h\
-	$ROOT/sys/include/mouse.h\
-	$ROOT/sys/include/keyboard.h
+	/sys/include/draw.h\
+	/sys/include/event.h\
+	/sys/include/mouse.h\
+	/sys/include/keyboard.h
 
 UPDATE=\
 	mkfile\
@@ -72,4 +72,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-<$ROOT/sys/src/cmd/mksyslib
+</sys/src/cmd/mksyslib
