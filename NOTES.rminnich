@@ -1,7 +1,8 @@
+# These notes are also a script.
 # I want to try building with clang.
-sudo mkdir /amd64
+sudo mkdir -p /amd64
 sudo  mount --bind amd64/ /amd64/
 sudo  mount --bind sys /sys
 sudo mount --bind `which rc` /bin/sh
-sudo mount --bind /amd64/mkfile.clank /amd64/mkfile
+sudo mount --bind /amd64/mkfile.clang /amd64/mkfile
 
