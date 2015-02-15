@@ -66,4 +66,4 @@ UPDATE=\
 CFLAGS= -FTV
 
 test:V:	$OFILES
-	ar vu libstdio.a $OFILES
+	ar rv libstdio.a $OFILES

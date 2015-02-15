@@ -12,5 +12,5 @@ for(I in $SYS) {
 	n=`{sed -n '/[ 	]'$I'[ 	]/s/.*	//p' $SYSH}
 	gencall
 }
-ar vu /$objtype/lib/ape/libap.a *.$O
+ar rv /$objtype/lib/ape/libap.a *.$O
 rm -f *.$O *.s

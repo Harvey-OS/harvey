@@ -152,7 +152,7 @@ awk -f ../mk/parse -- -mkerrstr > errstr.h
  xd -1x init.out | sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
  echo '};'} > init.h
 names=`{membername $newprereq}
-ar vu ../boot/libboot.a6 $names
+ar rv ../boot/libboot.a6 $names
 rm $names
 6c -FTVw sipi.c
 6c -FTVw -I. -D'_DBGC_=''x''' ./main.c

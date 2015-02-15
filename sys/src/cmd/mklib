@@ -9,7 +9,7 @@ default:V:	$LIB
 all:V:	$LIB
 
 $LIB:	$LIBOBJ
-#	ar vu $LIB $newmember
+#	ar rv $LIB $newmember
 	ar rv $LIB $newmember
 
 %.$O:	$HFILES		# don't combine with following %.$O rules

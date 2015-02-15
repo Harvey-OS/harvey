@@ -56,7 +56,7 @@ trial2: $O.netlib_find
 	sed 17q /tmp/search
 
 $LIBS:	$LIBSOFILES
-	ar vu $LIBS $newprereq
+	ar rv $LIBS $newprereq
 	rm $newprereq
 	# rm $newmember - cannot do this because of mk race
 
