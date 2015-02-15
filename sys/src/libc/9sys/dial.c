@@ -304,7 +304,7 @@ pickuperr(int8_t *besterr, int8_t *err)
 }
 
 static int
-catcher(void *, int8_t *s)
+catcher(void *v, int8_t *s)
 {
 	return strstr(s, "alarm") != nil;
 }

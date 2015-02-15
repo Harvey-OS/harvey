@@ -5,7 +5,7 @@ NPROC=1
 # Note that mksys needs to be in your path, somewhere.
 install:V:
 	mksys $objtype
-	$(AS) *.s
+	$(AS) -c *.s
 	ar rvu $NXM/$objtype/lib/libc.a *.$O
 	rm -f *.$O *.s
 
