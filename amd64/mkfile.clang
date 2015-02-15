@@ -3,5 +3,5 @@
 
 CC=clang
 LD=clang
-O=6
+O=o
 AS=clang
