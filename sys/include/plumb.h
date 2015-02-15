@@ -26,33 +26,34 @@ typedef struct Plumbmsg Plumbmsg;
 
 struct Plumbmsg
 {
-	char		*src;
-	char		*dst;
-	char		*wdir;
-	char		*type;
+	int8_t		*src;
+	int8_t		*dst;
+	int8_t		*wdir;
+	int8_t		*type;
 	Plumbattr	*attr;
 	int		ndata;
-	char		*data;
+	int8_t		*data;
 };
 
 struct Plumbattr
 {
-	char		*name;
-	char		*value;
+	int8_t		*name;
+	int8_t		*value;
 	Plumbattr	*next;
 };
 
 int			plumbsend(int, Plumbmsg*);
-int			plumbsendtext(int, char*, char*, char*, char*);
+int			plumbsendtext(int, int8_t*, int8_t*, int8_t*,
+					 int8_t*);
 Plumbmsg*	plumbrecv(int);
-char*		plumbpack(Plumbmsg*, int*);
-Plumbmsg*	plumbunpack(char*, int);
-Plumbmsg*	plumbunpackpartial(char*, int, int*);
-char*		plumbpackattr(Plumbattr*);
-Plumbattr*	plumbunpackattr(char*);
+int8_t*		plumbpack(Plumbmsg*, int*);
+Plumbmsg*	plumbunpack(int8_t*, int);
+Plumbmsg*	plumbunpackpartial(int8_t*, int, int*);
+int8_t*		plumbpackattr(Plumbattr*);
+Plumbattr*	plumbunpackattr(int8_t*);
 Plumbattr*	plumbaddattr(Plumbattr*, Plumbattr*);
-Plumbattr*	plumbdelattr(Plumbattr*, char*);
+Plumbattr*	plumbdelattr(Plumbattr*, int8_t*);
 void			plumbfree(Plumbmsg*);
-char*		plumblookup(Plumbattr*, char*);
-int			plumbopen(char*, int);
-int			eplumb(int, char*);
+int8_t*		plumblookup(Plumbattr*, int8_t*);
+int			plumbopen(int8_t*, int);
+int			eplumb(int, int8_t*);

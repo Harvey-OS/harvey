@@ -13,7 +13,7 @@
 
 #ifndef _CLOCK_T
 #define _CLOCK_T
-typedef long clock_t;
+typedef int32_t clock_t;
 #endif
 
 struct tms {

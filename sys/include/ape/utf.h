@@ -30,29 +30,29 @@ enum
 /*
  * rune routines
  */
-extern	int	runetochar(char*, Rune*);
-extern	int	chartorune(Rune*, char*);
-extern	int	runelen(long);
+extern	int	runetochar(int8_t*, Rune*);
+extern	int	chartorune(Rune*, int8_t*);
+extern	int	runelen(int32_t);
 extern	int	runenlen(Rune*, int);
-extern	int	fullrune(char*, int);
-extern	int	utflen(char*);
-extern	int	utfnlen(char*, long);
-extern	char*	utfrune(char*, long);
-extern	char*	utfrrune(char*, long);
-extern	char*	utfutf(char*, char*);
-extern	char*	utfecpy(char*, char*, char*);
+extern	int	fullrune(int8_t*, int);
+extern	int	utflen(int8_t*);
+extern	int	utfnlen(int8_t*, int32_t);
+extern	int8_t*	utfrune(int8_t*, int32_t);
+extern	int8_t*	utfrrune(int8_t*, int32_t);
+extern	int8_t*	utfutf(int8_t*, int8_t*);
+extern	int8_t*	utfecpy(int8_t*, int8_t*, int8_t*);
 
 extern	Rune*	runestrcat(Rune*, Rune*);
 extern	Rune*	runestrchr(Rune*, Rune);
 extern	int	runestrcmp(Rune*, Rune*);
 extern	Rune*	runestrcpy(Rune*, Rune*);
-extern	Rune*	runestrncpy(Rune*, Rune*, long);
+extern	Rune*	runestrncpy(Rune*, Rune*, int32_t);
 extern	Rune*	runestrecpy(Rune*, Rune*, Rune*);
 extern	Rune*	runestrdup(Rune*);
-extern	Rune*	runestrncat(Rune*, Rune*, long);
-extern	int	runestrncmp(Rune*, Rune*, long);
+extern	Rune*	runestrncat(Rune*, Rune*, int32_t);
+extern	int	runestrncmp(Rune*, Rune*, int32_t);
 extern	Rune*	runestrrchr(Rune*, Rune);
-extern	long	runestrlen(Rune*);
+extern	int32_t	runestrlen(Rune*);
 extern	Rune*	runestrstr(Rune*, Rune*);
 
 extern	Rune	tolowerrune(Rune);

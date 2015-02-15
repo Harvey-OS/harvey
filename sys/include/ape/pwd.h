@@ -16,11 +16,11 @@
 #include <sys/types.h>
 
 struct passwd {
-	char	*pw_name;
+	int8_t	*pw_name;
 	uid_t	pw_uid;
 	gid_t	pw_gid;
-	char	*pw_dir;
-	char	*pw_shell;
+	int8_t	*pw_dir;
+	int8_t	*pw_shell;
 };
 
 #ifdef __cplusplus
@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 extern struct passwd *getpwuid(uid_t);
-extern struct passwd *getpwnam(const char *);
+extern struct passwd *getpwnam(const int8_t *);
 
 #ifdef __cplusplus
 }

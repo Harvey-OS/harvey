@@ -47,7 +47,7 @@ enum
 	RFREND		= (1<<13)
 };
 
-extern char *argv0;
+extern int8_t *argv0;
 #define	ARGBEGIN	for((argv0||(argv0=*argv)),argv++,argc--;\
 			    argv[0] && argv[0][0]=='-' && argv[0][1];\
 			    argc--, argv++) {\
@@ -64,16 +64,16 @@ extern char *argv0;
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
 #define	EARGF(x)	(_argt=_args, _args="",\
-				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), abort(), (char*)0)))
+				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), abort(), (int8_t*)0)))
 
 #define	ARGC()		_argc
 
-extern	int	errstr(char*, unsigned int);
-extern	int	bind(char*, char*, int);
-extern	int	mount(int, int, char*, int, char*);
-extern	int	unmount(char*, char*);
+extern	int	errstr(int8_t*, unsigned int);
+extern	int	bind(int8_t*, int8_t*, int);
+extern	int	mount(int, int, int8_t*, int, int8_t*);
+extern	int	unmount(int8_t*, int8_t*);
 extern	int	rfork(int);
-extern	int	segattach(int, char*, void*, unsigned long);
+extern	int	segattach(int, int8_t*, void*, unsigned long);
 extern	int	segbrk(void*, void*);
 extern	int	segdetach(void*);
 extern	int	segflush(void*, unsigned long);

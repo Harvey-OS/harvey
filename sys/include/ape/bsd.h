@@ -42,18 +42,18 @@ extern void	bzero(void*, size_t);
 extern int	ffs(unsigned int);
 extern void	bhappy(void*);
 extern int	rresvport(int*);
-extern int	rcmd(char**, int, char*, char*, char*, int*);
-extern int	strcasecmp(char*, char*);
-extern int 	putenv(char*);
-extern int	strncasecmp(char*, char*,int);
+extern int	rcmd(int8_t**, int, int8_t*, int8_t*, int8_t*, int*);
+extern int	strcasecmp(int8_t*, int8_t*);
+extern int 	putenv(int8_t*);
+extern int	strncasecmp(int8_t*, int8_t*,int);
 
-extern int	getopt(int, char**, char*);
+extern int	getopt(int, int8_t**, int8_t*);
 extern int	opterr;
 extern int	optind;
 extern int	optopt;
-extern char	*optarg;
-extern char	*mktemp(char *);
-extern char	*sys_errlist[];
+extern int8_t	*optarg;
+extern int8_t	*mktemp(int8_t *);
+extern int8_t	*sys_errlist[];
 extern int		sys_nerr;
 
 #ifdef __cplusplus

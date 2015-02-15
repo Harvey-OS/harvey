@@ -38,7 +38,7 @@ struct Channel {
 	volatile Alt **qentry;	/* Receivers/senders waiting (malloc) */
 	volatile int nentry;	/* # of entries malloc-ed */
 	volatile int closed;	/* channel is closed */
-	uchar	v[1];		/* Array of s values in the channel */
+	uint8_t	v[1];		/* Array of s values in the channel */
 };
 
 
@@ -55,7 +55,7 @@ struct Alt {
 	Channel	*c;		/* channel */
 	void	*v;		/* pointer to value */
 	ChanOp	op;		/* operation */
-	char	*err;		/* did the op fail? */
+	int8_t	*err;		/* did the op fail? */
 	/*
 	 * the next variables are used internally to alt
 	 * they need not be initialized
@@ -65,7 +65,7 @@ struct Alt {
 };
 
 struct Ref {
-	long	ref;
+	int32_t	ref;
 };
 
 int	alt(Alt alts[]);
@@ -74,44 +74,44 @@ int	chanclosing(Channel *c);
 Channel*chancreate(int elemsize, int bufsize);
 int	chaninit(Channel *c, int elemsize, int elemcnt);
 void	chanfree(Channel *c);
-int	chanprint(Channel *, char *, ...);
-long	decref(Ref *r);			/* returns 0 iff value is now zero */
+int	chanprint(Channel *, int8_t *, ...);
+int32_t	decref(Ref *r);			/* returns 0 iff value is now zero */
 void	incref(Ref *r);
 int	nbrecv(Channel *c, void *v);
 void*	nbrecvp(Channel *c);
-ulong	nbrecvul(Channel *c);
+uint32_t	nbrecvul(Channel *c);
 int	nbsend(Channel *c, void *v);
 int	nbsendp(Channel *c, void *v);
-int	nbsendul(Channel *c, ulong v);
+int	nbsendul(Channel *c, uint32_t v);
 void	needstack(int);
 int	proccreate(void (*f)(void *arg), void *arg, uint stacksize);
 int	procrfork(void (*f)(void *arg), void *arg, uint stacksize, int flag);
 void**	procdata(void);
-void	procexec(Channel *, char *, char *[]);
-void	procexecl(Channel *, char *, ...);
+void	procexec(Channel *, int8_t *, int8_t *[]);
+void	procexecl(Channel *, int8_t *, ...);
 int	recv(Channel *c, void *v);
 void*	recvp(Channel *c);
-ulong	recvul(Channel *c);
+uint32_t	recvul(Channel *c);
 int	send(Channel *c, void *v);
 int	sendp(Channel *c, void *v);
-int	sendul(Channel *c, ulong v);
+int	sendul(Channel *c, uint32_t v);
 int	threadcreate(void (*f)(void *arg), void *arg, uint stacksize);
 void**	threaddata(void);
-void	threadexits(char *);
-void	threadexitsall(char *);
+void	threadexits(int8_t *);
+void	threadexitsall(int8_t *);
 int	threadgetgrp(void);	/* return thread group of current thread */
-char*	threadgetname(void);
+int8_t*	threadgetname(void);
 void	threadint(int);		/* interrupt thread */
 void	threadintgrp(int);	/* interrupt threads in grp */
 void	threadkill(int);	/* kill thread */
 void	threadkillgrp(int);	/* kill threads in group */
-void	threadmain(int argc, char *argv[]);
+void	threadmain(int argc, int8_t *argv[]);
 void	threadnonotes(void);
-int	threadnotify(int (*f)(void*, char*), int in);
+int	threadnotify(int (*f)(void*, int8_t*), int in);
 int	threadid(void);
 int	threadpid(int);
 int	threadsetgrp(int);		/* set thread group, return old */
-void	threadsetname(char *fmt, ...);
+void	threadsetname(int8_t *fmt, ...);
 Channel*threadwaitchan(void);
 int	tprivalloc(void);
 void	tprivfree(int);
@@ -131,12 +131,12 @@ void	closeioproc(Ioproc*);
 void	iointerrupt(Ioproc*);
 
 int	ioclose(Ioproc*, int);
-int	iodial(Ioproc*, char*, char*, char*, int*);
-int	ioopen(Ioproc*, char*, int);
-long	ioread(Ioproc*, int, void*, long);
-long	ioreadn(Ioproc*, int, void*, long);
-long	iowrite(Ioproc*, int, void*, long);
-int	iosleep(Ioproc*, long);
+int	iodial(Ioproc*, int8_t*, int8_t*, int8_t*, int*);
+int	ioopen(Ioproc*, int8_t*, int);
+int32_t	ioread(Ioproc*, int, void*, int32_t);
+int32_t	ioreadn(Ioproc*, int, void*, int32_t);
+int32_t	iowrite(Ioproc*, int, void*, int32_t);
+int	iosleep(Ioproc*, int32_t);
 
-long	iocall(Ioproc*, long (*)(va_list*), ...);
+int32_t	iocall(Ioproc*, int32_t (*)(va_list*), ...);
 void	ioret(Ioproc*, int);

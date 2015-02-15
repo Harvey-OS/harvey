@@ -16,9 +16,9 @@
 #include <sys/types.h>
 
 struct	group {
-	char	*gr_name;
+	int8_t	*gr_name;
 	gid_t	gr_gid;
-	char	**gr_mem;
+	int8_t	**gr_mem;
 };
 
 #ifdef __cplusplus
@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 extern struct group *getgrgid(gid_t);
-extern struct group *getgrnam(const char *);
+extern struct group *getgrnam(const int8_t *);
 
 #ifdef __cplusplus
 }

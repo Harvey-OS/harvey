@@ -42,8 +42,8 @@
 #define FD_CLOEXEC	1
 
 struct flock {
-	short	l_type;
-	short	l_whence;
+	int16_t	l_type;
+	int16_t	l_whence;
 	off_t	l_start;
 	off_t	l_len;
 	pid_t	l_pid;
@@ -58,8 +58,8 @@ extern "C" {
 #endif
 
 extern int fcntl(int, int, ...);
-extern int open(const char *, int, ...);
-extern int creat(const char *, mode_t);
+extern int open(const int8_t *, int, ...);
+extern int creat(const int8_t *, mode_t);
 
 #ifdef __cplusplus
 }

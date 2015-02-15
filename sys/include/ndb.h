@@ -36,12 +36,12 @@ struct Ndb
 	Ndb		*next;
 
 	Biobufhdr	b;		/* buffered input file */
-	uchar		buf[256];	/* and its buffer */
+	uint8_t		buf[256];	/* and its buffer */
 
-	ulong		mtime;		/* mtime of db file */
+	uint32_t		mtime;		/* mtime of db file */
 	Qid		qid;		/* qid of db file */
-	char		file[128];/* path name of db file */
-	ulong		length;		/* length of db file */
+	int8_t		file[128];/* path name of db file */
+	uint32_t		length;		/* length of db file */
 
 	int		nohash;		/* don't look for hash files */
 	Ndbhf		*hf;		/* open hash files */
@@ -55,12 +55,12 @@ struct Ndb
  */
 struct Ndbtuple
 {
-	char		attr[Ndbalen];		/* attribute name */
-	char		*val;			/* value(s) */
+	int8_t		attr[Ndbalen];		/* attribute name */
+	int8_t		*val;			/* value(s) */
 	Ndbtuple	*entry;			/* next tuple in this entry */
 	Ndbtuple	*line;			/* next tuple on this line */
-	ulong		ptr;			/* (for the application - starts 0) */
-	char		valbuf[Ndbvlen];	/* initial allocation for value */
+	uint32_t		ptr;			/* (for the application - starts 0) */
+	int8_t		valbuf[Ndbvlen];	/* initial allocation for value */
 };
 
 /*
@@ -107,8 +107,8 @@ struct Ndbs
 	Ndb	*db;	/* data base file being searched */
 	Ndbhf	*hf;	/* hash file being searched */
 	int	type;
-	ulong	ptr;	/* current pointer */
-	ulong	ptr1;	/* next pointer */
+	uint32_t	ptr;	/* current pointer */
+	uint32_t	ptr1;	/* next pointer */
 	Ndbtuple *t;	/* last attribute value pair found */
 };
 
@@ -133,31 +133,33 @@ struct Ndbs
 
 #define NDB_IPlen 16
 
-Ndbtuple*	csgetval(char*, char*, char*, char*, char*);
-char*		csgetvalue(char*, char*, char*, char*, Ndbtuple**);
-Ndbtuple*	csipinfo(char*, char*, char*, char**, int);
-Ndbtuple*	dnsquery(char*, char*, char*);
-char*		ipattr(char*);
+Ndbtuple*	csgetval(int8_t*, int8_t*, int8_t*, int8_t*, int8_t*);
+int8_t*		csgetvalue(int8_t*, int8_t*, int8_t*, int8_t*,
+				  Ndbtuple**);
+Ndbtuple*	csipinfo(int8_t*, int8_t*, int8_t*, int8_t**, int);
+Ndbtuple*	dnsquery(int8_t*, int8_t*, int8_t*);
+int8_t*		ipattr(int8_t*);
 Ndb*		ndbcat(Ndb*, Ndb*);
 int		ndbchanged(Ndb*);
 void		ndbclose(Ndb*);
 Ndbtuple*	ndbconcatenate(Ndbtuple*, Ndbtuple*);
 Ndbtuple*	ndbdiscard(Ndbtuple*, Ndbtuple*);
 void		ndbfree(Ndbtuple*);
-Ndbtuple*	ndbgetipaddr(Ndb*, char*);
-Ndbtuple*	ndbgetval(Ndb*, Ndbs*, char*, char*, char*, char*);
-char*		ndbgetvalue(Ndb*, Ndbs*, char*, char*, char*, Ndbtuple**);
-Ndbtuple*	ndbfindattr(Ndbtuple*, Ndbtuple*, char*);
-ulong		ndbhash(char*, int);
-Ndbtuple*	ndbipinfo(Ndb*, char*, char*, char**, int);
-Ndbtuple*	ndblookval(Ndbtuple*, Ndbtuple*, char*, char*);
-Ndbtuple*	ndbnew(char*, char*);
-Ndb*		ndbopen(char*);
+Ndbtuple*	ndbgetipaddr(Ndb*, int8_t*);
+Ndbtuple*	ndbgetval(Ndb*, Ndbs*, int8_t*, int8_t*, int8_t*, int8_t*);
+int8_t*		ndbgetvalue(Ndb*, Ndbs*, int8_t*, int8_t*, int8_t*,
+				   Ndbtuple**);
+Ndbtuple*	ndbfindattr(Ndbtuple*, Ndbtuple*, int8_t*);
+uint32_t		ndbhash(int8_t*, int);
+Ndbtuple*	ndbipinfo(Ndb*, int8_t*, int8_t*, int8_t**, int);
+Ndbtuple*	ndblookval(Ndbtuple*, Ndbtuple*, int8_t*, int8_t*);
+Ndbtuple*	ndbnew(int8_t*, int8_t*);
+Ndb*		ndbopen(int8_t*);
 Ndbtuple*	ndbparse(Ndb*);
 int		ndbreopen(Ndb*);
 Ndbtuple*	ndbreorder(Ndbtuple*, Ndbtuple*);
-Ndbtuple*	ndbsearch(Ndb*, Ndbs*, char*, char*);
-void		ndbsetval(Ndbtuple*, char*, int);
-Ndbtuple*	ndbsnext(Ndbs*, char*, char*);
+Ndbtuple*	ndbsearch(Ndb*, Ndbs*, int8_t*, int8_t*);
+void		ndbsetval(Ndbtuple*, int8_t*, int);
+Ndbtuple*	ndbsnext(Ndbs*, int8_t*, int8_t*);
 Ndbtuple*	ndbsubstitute(Ndbtuple*, Ndbtuple*, Ndbtuple*);
 void		ndbsetmalloctag(Ndbtuple*, uintptr);

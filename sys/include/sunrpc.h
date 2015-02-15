@@ -14,7 +14,7 @@
 #pragma lib "libsunrpc.a"
 #pragma src "/sys/src/libsunrpc"
 
-typedef uchar u1int;
+typedef uint8_t u1int;
 
 typedef struct SunAuthInfo SunAuthInfo;
 typedef struct SunAuthUnix SunAuthUnix;
@@ -58,43 +58,43 @@ typedef enum {
 struct SunAuthInfo
 {
 	uint flavor;
-	uchar *data;
+	uint8_t *data;
 	uint ndata;
 };
 
 struct SunAuthUnix
 {
-	u32int stamp;
-	char *sysname;
-	u32int uid;
-	u32int gid;
-	u32int g[16];
-	u32int ng;
+	uint32_t stamp;
+	int8_t *sysname;
+	uint32_t uid;
+	uint32_t gid;
+	uint32_t g[16];
+	uint32_t ng;
 };
 
 struct SunRpc
 {
-	u32int xid;
+	uint32_t xid;
 	uint iscall;
 
 	/*
 	 * only sent on wire in call
 	 * caller fills in for the reply unpackers.
 	 */
-	u32int proc;
+	uint32_t proc;
 
 	/* call */
 	// uint proc;
-	u32int prog, vers;
+	uint32_t prog, vers;
 	SunAuthInfo cred;
 	SunAuthInfo verf;
-	uchar *data;
+	uint8_t *data;
 	uint ndata;
 
 	/* reply */
-	u32int status;
+	uint32_t status;
 	// SunAuthInfo verf;
-	u32int low, high;
+	uint32_t low, high;
 	// uchar *data;
 	// uint ndata;
 };
@@ -115,40 +115,42 @@ void sunErrstr(SunStatus);
 
 void sunRpcPrint(Fmt*, SunRpc*);
 uint sunRpcSize(SunRpc*);
-SunStatus sunRpcPack(uchar*, uchar*, uchar**, SunRpc*);
-SunStatus sunRpcUnpack(uchar*, uchar*, uchar**, SunRpc*);
+SunStatus sunRpcPack(uint8_t*, uint8_t*, uint8_t**, SunRpc*);
+SunStatus sunRpcUnpack(uint8_t*, uint8_t*, uint8_t**, SunRpc*);
 
 void sunAuthInfoPrint(Fmt*, SunAuthInfo*);
 uint sunAuthInfoSize(SunAuthInfo*);
-int sunAuthInfoPack(uchar*, uchar*, uchar**, SunAuthInfo*);
-int sunAuthInfoUnpack(uchar*, uchar*, uchar**, SunAuthInfo*);
+int sunAuthInfoPack(uint8_t*, uint8_t*, uint8_t**, SunAuthInfo*);
+int sunAuthInfoUnpack(uint8_t*, uint8_t*, uint8_t**, SunAuthInfo*);
 
 void sunAuthUnixPrint(Fmt*, SunAuthUnix*);
 uint sunAuthUnixSize(SunAuthUnix*);
-int sunAuthUnixPack(uchar*, uchar*, uchar**, SunAuthUnix*);
-int sunAuthUnixUnpack(uchar*, uchar*, uchar**, SunAuthUnix*);
+int sunAuthUnixPack(uint8_t*, uint8_t*, uint8_t**, SunAuthUnix*);
+int sunAuthUnixUnpack(uint8_t*, uint8_t*, uint8_t**, SunAuthUnix*);
 
-int sunEnumPack(uchar*, uchar*, uchar**, int*);
-int sunEnumUnpack(uchar*, uchar*, uchar**, int*);
-int sunUint1Pack(uchar*, uchar*, uchar**, u1int*);
-int sunUint1Unpack(uchar*, uchar*, uchar**, u1int*);
+int sunEnumPack(uint8_t*, uint8_t*, uint8_t**, int*);
+int sunEnumUnpack(uint8_t*, uint8_t*, uint8_t**, int*);
+int sunUint1Pack(uint8_t*, uint8_t*, uint8_t**, u1int*);
+int sunUint1Unpack(uint8_t*, uint8_t*, uint8_t**, u1int*);
 
-int sunStringPack(uchar*, uchar*, uchar**, char**, u32int);
-int sunStringUnpack(uchar*, uchar*, uchar**, char**, u32int);
-uint sunStringSize(char*);
+int sunStringPack(uint8_t*, uint8_t*, uint8_t**, int8_t**, uint32_t);
+int sunStringUnpack(uint8_t*, uint8_t*, uint8_t**, int8_t**, uint32_t);
+uint sunStringSize(int8_t*);
 
-int sunUint32Pack(uchar*, uchar*, uchar**, u32int*);
-int sunUint32Unpack(uchar*, uchar*, uchar**, u32int*);
-int sunUint64Pack(uchar*, uchar*, uchar**, u64int*);
-int sunUint64Unpack(uchar*, uchar*, uchar**, u64int*);
+int sunUint32Pack(uint8_t*, uint8_t*, uint8_t**, uint32_t*);
+int sunUint32Unpack(uint8_t*, uint8_t*, uint8_t**, uint32_t*);
+int sunUint64Pack(uint8_t*, uint8_t*, uint8_t**, uint64_t*);
+int sunUint64Unpack(uint8_t*, uint8_t*, uint8_t**, uint64_t*);
 
-int sunVarOpaquePack(uchar*, uchar*, uchar**, uchar**, u32int*, u32int);
-int sunVarOpaqueUnpack(uchar*, uchar*, uchar**, uchar**, u32int*, u32int);
-uint sunVarOpaqueSize(u32int);
+int sunVarOpaquePack(uint8_t*, uint8_t*, uint8_t**, uint8_t**, uint32_t*,
+		     uint32_t);
+int sunVarOpaqueUnpack(uint8_t*, uint8_t*, uint8_t**, uint8_t**, uint32_t*,
+		       uint32_t);
+uint sunVarOpaqueSize(uint32_t);
 
-int sunFixedOpaquePack(uchar*, uchar*, uchar**, uchar*, u32int);
-int sunFixedOpaqueUnpack(uchar*, uchar*, uchar**, uchar*, u32int);
-uint sunFixedOpaqueSize(u32int);
+int sunFixedOpaquePack(uint8_t*, uint8_t*, uint8_t**, uint8_t*, uint32_t);
+int sunFixedOpaqueUnpack(uint8_t*, uint8_t*, uint8_t**, uint8_t*, uint32_t);
+uint sunFixedOpaqueSize(uint32_t);
 
 /*
  * Sun RPC Program
@@ -165,16 +167,17 @@ struct SunProg
 
 struct SunProc
 {
-	int (*pack)(uchar*, uchar*, uchar**, SunCall*);
-	int (*unpack)(uchar*, uchar*, uchar**, SunCall*);
+	int (*pack)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
+	int (*unpack)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
 	uint (*size)(SunCall*);
 	void (*fmt)(Fmt*, SunCall*);
 	uint sizeoftype;
 };
 
-SunStatus sunCallPack(SunProg*, uchar*, uchar*, uchar**, SunCall*);
-SunStatus sunCallUnpack(SunProg*, uchar*, uchar*, uchar**, SunCall*);
-SunStatus sunCallUnpackAlloc(SunProg*, SunCallType, uchar*, uchar*, uchar**, SunCall**);
+SunStatus sunCallPack(SunProg*, uint8_t*, uint8_t*, uint8_t**, SunCall*);
+SunStatus sunCallUnpack(SunProg*, uint8_t*, uint8_t*, uint8_t**, SunCall*);
+SunStatus sunCallUnpackAlloc(SunProg*, SunCallType, uint8_t*, uint8_t*,
+			     uint8_t**, SunCall**);
 uint sunCallSize(SunProg*, SunCall*);
 void sunCallSetup(SunCall*, SunProg*, uint);
 
@@ -202,7 +205,7 @@ enum
 
 struct SunMsg
 {
-	uchar *data;
+	uint8_t *data;
 	int count;
 	SunSrv *srv;
 	SunRpc rpc;
@@ -231,9 +234,9 @@ struct SunSrv
 SunSrv *sunSrv(void);
 
 void	sunSrvProg(SunSrv *srv, SunProg *prog, Channel *c);
-int	sunSrvAnnounce(SunSrv *srv, char *address);
-int	sunSrvUdp(SunSrv *srv, char *address);
-int	sunSrvNet(SunSrv *srv, char *address);
+int	sunSrvAnnounce(SunSrv *srv, int8_t *address);
+int	sunSrvUdp(SunSrv *srv, int8_t *address);
+int	sunSrvNet(SunSrv *srv, int8_t *address);
 int	sunSrvFd(SunSrv *srv, int fd);
 void	sunSrvThreadCreate(SunSrv *srv, void (*fn)(void*), void*);
 void	sunSrvClose(SunSrv*);
@@ -252,14 +255,14 @@ struct SunClient
 	int		fd;
 	int		chatty;
 	int		needcount;
-	ulong	maxwait;
-	ulong	xidgen;
+	uint32_t	maxwait;
+	uint32_t	xidgen;
 	int		nsend;
 	int		nresend;
 	struct {
-		ulong min;
-		ulong max;
-		ulong avg;
+		uint32_t min;
+		uint32_t max;
+		uint32_t avg;
 	} rtt;
 	Channel	*dying;
 	Channel	*rpcchan;
@@ -272,11 +275,11 @@ struct SunClient
 	int 		nettid;
 };
 
-SunClient	*sunDial(char*);
+SunClient	*sunDial(int8_t*);
 
-int	sunClientRpc(SunClient*, ulong, SunCall*, SunCall*, uchar**);
+int	sunClientRpc(SunClient*, uint32_t, SunCall*, SunCall*, uint8_t**);
 void	sunClientClose(SunClient*);
-void	sunClientFlushRpc(SunClient*, ulong);
+void	sunClientFlushRpc(SunClient*, uint32_t);
 void	sunClientProg(SunClient*, SunProg*);
 
 
@@ -284,8 +287,8 @@ void	sunClientProg(SunClient*, SunProg*);
  * Provided by callers.
  * Should remove dependence on this, but hard.
  */
-void	*emalloc(ulong);
-void *erealloc(void*, ulong);
+void	*emalloc(uint32_t);
+void *erealloc(void*, uint32_t);
 
 
 /*
@@ -332,10 +335,10 @@ enum
 };
 
 struct PortMap {
-	u32int prog;
-	u32int vers;
-	u32int prot;
-	u32int port;
+	uint32_t prog;
+	uint32_t vers;
+	uint32_t prot;
+	uint32_t port;
 };
 
 struct PortTNull {
@@ -373,7 +376,7 @@ struct PortTGetport {
 
 struct PortRGetport {
 	SunCall call;
-	u32int port;
+	uint32_t port;
 };
 
 struct PortTDump {
@@ -388,18 +391,18 @@ struct PortRDump {
 
 struct PortTCallit {
 	SunCall call;
-	u32int prog;
-	u32int vers;
-	u32int proc;
-	uchar *data;
-	u32int count;
+	uint32_t prog;
+	uint32_t vers;
+	uint32_t proc;
+	uint8_t *data;
+	uint32_t count;
 };
 
 struct PortRCallit {
 	SunCall call;
-	u32int port;
-	uchar *data;
-	u32int count;
+	uint32_t port;
+	uint8_t *data;
+	uint32_t count;
 };
 
 extern SunProg portProg;

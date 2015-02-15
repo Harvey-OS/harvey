@@ -14,8 +14,8 @@
 #ifndef __TIMEVAL__
 #define __TIMEVAL__
 struct timeval {
-	long	tv_sec;
-	long	tv_usec;
+	int32_t	tv_sec;
+	int32_t	tv_usec;
 };
 
 #ifdef _BSD_EXTENSION

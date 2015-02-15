@@ -10,14 +10,14 @@
 typedef	struct	Exec	Exec;
 struct	Exec
 {
-	long	magic;		/* magic number */
-	long	text;	 	/* size of text segment */
-	long	data;	 	/* size of initialized data */
-	long	bss;	  	/* size of uninitialized data */
-	long	syms;	 	/* size of symbol table */
-	long	entry;	 	/* entry point */
-	long	spsz;		/* size of pc/sp offset table */
-	long	pcsz;		/* size of pc/line number table */
+	int32_t	magic;		/* magic number */
+	int32_t	text;	 	/* size of text segment */
+	int32_t	data;	 	/* size of initialized data */
+	int32_t	bss;	  	/* size of uninitialized data */
+	int32_t	syms;	 	/* size of symbol table */
+	int32_t	entry;	 	/* entry point */
+	int32_t	spsz;		/* size of pc/sp offset table */
+	int32_t	pcsz;		/* size of pc/line number table */
 };
 
 #define HDR_MAGIC	0x00008000		/* header expansion */
@@ -49,8 +49,8 @@ struct	Exec
 typedef	struct	Sym	Sym;
 struct	Sym
 {
-	vlong	value;
+	int64_t	value;
 	uint	sig;
-	char	type;
-	char	*name;
+	int8_t	type;
+	int8_t	*name;
 };

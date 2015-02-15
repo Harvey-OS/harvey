@@ -66,7 +66,7 @@ struct Controlset
 struct Control
 {
 	/* known to client */
-	char		*name;
+	int8_t		*name;
 	Rectangle	rect;
 	Rectangle	size;		/* minimum/maximum Dx, Dy (not a rect) */
 	Channel		*event;		/* chan(char*) to client */
@@ -77,9 +77,9 @@ struct Control
 	int		hidden;		/* hide hides, show unhides (and redraws) */
 	Controlset	*controlset;
 	Image		*screen;	/* where Control appears */
-	char		*format;	/* used to generate events */
-	char		wevent;		/* event channel rewired */
-	char		wdata;		/* data channel rewired */
+	int8_t		*format;	/* used to generate events */
+	int8_t		wevent;		/* event channel rewired */
+	int8_t		wdata;		/* data channel rewired */
 
 	/* method table */
 	void		(*ctl)(Control*, CParse*);
@@ -98,20 +98,20 @@ struct CCache
 		Image	*image;
 		Font	*font;
 	};
-	char		*name;
+	int8_t		*name;
 	int		index;		/* entry number in cache */
 	int		ref;		/* one for client, plus one for each use */
 };
 
 struct CParse
 {
-	char	str[256];
-	char	*sender;
-	char	*receiver;
+	int8_t	str[256];
+	int8_t	*sender;
+	int8_t	*receiver;
 	int	cmd;
-	char	*pargs[32];
+	int8_t	*pargs[32];
 	int	iargs[32];
-	char	**args;
+	int8_t	**args;
 	int	nargs;
 };
 
@@ -134,89 +134,89 @@ enum
 	_Ctlmaxsize = 10000,
 };
 
-extern char *ctltypenames[];
+extern int8_t *ctltypenames[];
 
 /* Functions used internally */
 void		_ctladdgroup(Control*, Control*);
 void		_ctlargcount(Control*, CParse*, int);
-Control*	_createctl(Controlset*, char*, uint, char*);
-Rune*		_ctlrunestr(char*);
-char*		_ctlstrrune(Rune*);
+Control*	_createctl(Controlset*, int8_t*, uint, int8_t*);
+Rune*		_ctlrunestr(int8_t*);
+int8_t*		_ctlstrrune(Rune*);
 void		_ctlputsnarf(Rune*);
 Rune*		_ctlgetsnarf(void);
-int		_ctlalignment(char*);
+int		_ctlalignment(int8_t*);
 Point		_ctlalignpoint(Rectangle, int, int, int);
 void		_ctlfocus(Control*, int);
 void		_activategroup(Control*);
 void		_deactivategroup(Control*);
-int		_ctllookup(char *s, char *tab[], int ntab);
-void		_ctlprint(Control *c, char *fmt, ...);
+int		_ctllookup(int8_t *s, int8_t *tab[], int ntab);
+void		_ctlprint(Control *c, int8_t *fmt, ...);
 
 /* images */
-CImage*		_getctlimage(char*);
-void		_setctlimage(Control*, CImage**, char*);
+CImage*		_getctlimage(int8_t*);
+void		_setctlimage(Control*, CImage**, int8_t*);
 void		_putctlimage(CImage*);
-CFont*		_getctlfont(char*);
+CFont*		_getctlfont(int8_t*);
 void		_putctlfont(CFont*);
 
 /* fonts */
-CImage*		_getctlfont(char*);
-void		_setctlfont(Control*, CImage**, char*);
+CImage*		_getctlfont(int8_t*);
+void		_setctlfont(Control*, CImage**, int8_t*);
 void		_putctlfont(CImage*);
-CFont*		_getctlfont(char*);
+CFont*		_getctlfont(int8_t*);
 void		_putctlfont(CFont*);
 
 /* Public functions */
 
 /* images */
-int		namectlimage(Image*, char*);
-int		freectlimage(char*);
+int		namectlimage(Image*, int8_t*);
+int		freectlimage(int8_t*);
 
 /* fonts */
-int		namectlfont(Font*, char*);
-int		freectlfont(char*);
+int		namectlfont(Font*, int8_t*);
+int		freectlfont(int8_t*);
 
 /* commands */
-int		ctlprint(Control*, char*, ...);
+int		ctlprint(Control*, int8_t*, ...);
 
 /* general */
 void		initcontrols(void);
 Controlset*	newcontrolset(Image*, Channel*, Channel*, Channel*);
 void		closecontrolset(Controlset*);
 void		closecontrol(Control*);
-void		ctlerror(char*, ...);
-Control*	controlcalled(char*);
+void		ctlerror(int8_t*, ...);
+Control*	controlcalled(int8_t*);
 
 /* publicly visible error-checking allocation routines */
 void*		ctlmalloc(uint);
 void*		ctlrealloc(void*, uint);
-char*		ctlstrdup(char*);
+int8_t*		ctlstrdup(int8_t*);
 
 /* creation */
-void		controlwire(Control*, char*, Channel*);
+void		controlwire(Control*, int8_t*, Channel*);
 void		activate(Control*);
 void		deactivate(Control*);
-Control*	createbox(Controlset*, char*);
-Control*	createbutton(Controlset*, char*);
-Control*	createcolumn(Controlset*, char*);
-Control*	createboxbox(Controlset*, char*);
-Control*	createentry(Controlset*, char*);
-Control*	createkeyboard(Controlset*, char*);
-Control*	createlabel(Controlset*, char*);
-Control*	createmenu(Controlset*, char*);
-Control*	createradiobutton(Controlset*, char*);
-Control*	createrow(Controlset*, char*);
-Control*	createscribble(Controlset*, char*);
-Control*	createslider(Controlset*, char*);
-Control*	createstack(Controlset*, char*);
-Control*	createtab(Controlset*, char*);
-Control*	createtext(Controlset*, char*);
-Control*	createtextbutton(Controlset*, char*);
-Control*	createtextbutton3(Controlset*, char*);
+Control*	createbox(Controlset*, int8_t*);
+Control*	createbutton(Controlset*, int8_t*);
+Control*	createcolumn(Controlset*, int8_t*);
+Control*	createboxbox(Controlset*, int8_t*);
+Control*	createentry(Controlset*, int8_t*);
+Control*	createkeyboard(Controlset*, int8_t*);
+Control*	createlabel(Controlset*, int8_t*);
+Control*	createmenu(Controlset*, int8_t*);
+Control*	createradiobutton(Controlset*, int8_t*);
+Control*	createrow(Controlset*, int8_t*);
+Control*	createscribble(Controlset*, int8_t*);
+Control*	createslider(Controlset*, int8_t*);
+Control*	createstack(Controlset*, int8_t*);
+Control*	createtab(Controlset*, int8_t*);
+Control*	createtext(Controlset*, int8_t*);
+Control*	createtextbutton(Controlset*, int8_t*);
+Control*	createtextbutton3(Controlset*, int8_t*);
 
 /* user-supplied */
 void		resizecontrolset(Controlset*);
 
 int		_ctlsnarffd;
-char		*alignnames[];
+int8_t		*alignnames[];
 int		ctldeletequits;

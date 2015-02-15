@@ -17,21 +17,21 @@
 struct rusage {
 	struct timeval ru_utime;	/* user time used */
 	struct timeval ru_stime;	/* system time used */
-	long	ru_maxrss;		/* max resident set size */
+	int32_t	ru_maxrss;		/* max resident set size */
 #define	ru_first	ru_ixrss
-	long	ru_ixrss;		/* integral shared memory size */
-	long	ru_idrss;		/* integral unshared data " */
-	long	ru_isrss;		/* integral unshared stack " */
-	long	ru_minflt;		/* page reclaims */
-	long	ru_majflt;		/* page faults */
-	long	ru_nswap;		/* swaps */
-	long	ru_inblock;		/* block input operations */
-	long	ru_oublock;		/* block output operations */
-	long	ru_msgsnd;		/* messages sent */
-	long	ru_msgrcv;		/* messages received */
-	long	ru_nsignals;		/* signals received */
-	long	ru_nvcsw;		/* voluntary context switches */
-	long	ru_nivcsw;		/* involuntary " */
+	int32_t	ru_ixrss;		/* integral shared memory size */
+	int32_t	ru_idrss;		/* integral unshared data " */
+	int32_t	ru_isrss;		/* integral unshared stack " */
+	int32_t	ru_minflt;		/* page reclaims */
+	int32_t	ru_majflt;		/* page faults */
+	int32_t	ru_nswap;		/* swaps */
+	int32_t	ru_inblock;		/* block input operations */
+	int32_t	ru_oublock;		/* block output operations */
+	int32_t	ru_msgsnd;		/* messages sent */
+	int32_t	ru_msgrcv;		/* messages received */
+	int32_t	ru_nsignals;		/* signals received */
+	int32_t	ru_nvcsw;		/* voluntary context switches */
+	int32_t	ru_nivcsw;		/* involuntary " */
 #define	ru_last		ru_nivcsw
 };
 

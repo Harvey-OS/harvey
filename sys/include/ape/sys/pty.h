@@ -19,8 +19,8 @@
 
 #pragma lib "/$M/lib/ape/libbsd.a"
 
-char*	ptsname(int);
-char*	ptmname(int);
+int8_t*	ptsname(int);
+int8_t*	ptmname(int);
 
 int	_getpty(void);
 

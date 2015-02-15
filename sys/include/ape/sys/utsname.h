@@ -12,11 +12,11 @@
 #pragma lib "/$M/lib/ape/libap.a"
 
 struct utsname {
-	char	*sysname;
-	char	*nodename;
-	char	*release;
-	char	*version;
-	char	*machine;
+	int8_t	*sysname;
+	int8_t	*nodename;
+	int8_t	*release;
+	int8_t	*version;
+	int8_t	*machine;
 };
 
 #ifdef __cplusplus

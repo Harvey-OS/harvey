@@ -21,31 +21,31 @@
 #define LC_TIME		5
 
 struct lconv {
-	char *decimal_point;
-	char *thousands_sep;
-	char *grouping;
-	char *int_curr_symbol;
-	char *currency_symbol;
-	char *mon_decimal_point;
-	char *mon_thousands_sep;
-	char *mon_grouping;
-	char *positive_sign;
-	char *negative_sign;
-	char int_frac_digits;
-	char frac_digits;
-	char p_cs_precedes;
-	char p_sep_by_space;
-	char n_cs_precedes;
-	char n_sep_by_space;
-	char p_sign_posn;
-	char n_sign_posn;
+	int8_t *decimal_point;
+	int8_t *thousands_sep;
+	int8_t *grouping;
+	int8_t *int_curr_symbol;
+	int8_t *currency_symbol;
+	int8_t *mon_decimal_point;
+	int8_t *mon_thousands_sep;
+	int8_t *mon_grouping;
+	int8_t *positive_sign;
+	int8_t *negative_sign;
+	int8_t int_frac_digits;
+	int8_t frac_digits;
+	int8_t p_cs_precedes;
+	int8_t p_sep_by_space;
+	int8_t n_cs_precedes;
+	int8_t n_sep_by_space;
+	int8_t p_sign_posn;
+	int8_t n_sign_posn;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern char *setlocale(int, const char *);
+extern int8_t *setlocale(int, const int8_t *);
 extern struct lconv *localeconv(void);
 
 #ifdef __cplusplus

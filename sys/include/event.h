@@ -30,7 +30,7 @@ struct	Mouse
 {
 	int	buttons;	/* bit array: LMR=124 */
 	Point	xy;
-	ulong	msec;
+	uint32_t	msec;
 };
 
 struct	Event
@@ -39,37 +39,38 @@ struct	Event
 	Mouse	mouse;
 	int	n;		/* number of characters in message */
 	void	*v;		/* data unpacked by general event-handling function */
-	uchar	data[EMAXMSG];	/* message from an arbitrary file descriptor */
+	uint8_t	data[EMAXMSG];	/* message from an arbitrary file descriptor */
 };
 
 struct Menu
 {
-	char	**item;
-	char	*(*gen)(int);
+	int8_t	**item;
+	int8_t	*(*gen)(int);
 	int	lasthit;
 };
 
 /*
  * Events
  */
-extern void	 einit(ulong);
-extern ulong	 estart(ulong, int, int);
-extern ulong	 estartfn(ulong, int, int, int (*fn)(int, Event*, uchar*, int));
-extern ulong	 etimer(ulong, int);
-extern ulong	 event(Event*);
-extern ulong	 eread(ulong, Event*);
+extern void	 einit(uint32_t);
+extern uint32_t	 estart(uint32_t, int, int);
+extern uint32_t	 estartfn(uint32_t, int, int,
+				 int (*fn)(int, Event*, uint8_t*, int));
+extern uint32_t	 etimer(uint32_t, int);
+extern uint32_t	 event(Event*);
+extern uint32_t	 eread(uint32_t, Event*);
 extern Mouse	 emouse(void);
 extern int	 ekbd(void);
-extern int	 ecanread(ulong);
+extern int	 ecanread(uint32_t);
 extern int	 ecanmouse(void);
 extern int	 ecankbd(void);
 extern void	 eresized(int);	/* supplied by user */
 extern int	 emenuhit(int, Mouse*, Menu*);
-extern int	eatomouse(Mouse*, char*, int);
+extern int	eatomouse(Mouse*, int8_t*, int);
 extern Rectangle	getrect(int, Mouse*);
 extern void	 esetcursor(Cursor*);
 extern void	 emoveto(Point);
 extern Rectangle	egetrect(int, Mouse*);
 extern void		edrawgetrect(Rectangle, int);
 extern int		ereadmouse(Mouse*);
-extern int		eatomouse(Mouse*, char*, int);
+extern int		eatomouse(Mouse*, int8_t*, int);

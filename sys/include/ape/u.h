@@ -23,6 +23,6 @@ typedef	long long	vlong;
 typedef	unsigned long long uvlong;
 typedef	unsigned int		Rune;
 typedef 	union FPdbleword FPdbleword;
-typedef	char*	p9va_list;
+typedef	int8_t*	p9va_list;
 
 #endif

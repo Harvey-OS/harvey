@@ -11,8 +11,8 @@
 #pragma src "/sys/src/libhtml"
 
 /* UTILS */
-extern uchar*	fromStr(Rune* buf, int n, int chset);
-extern Rune*	toStr(uchar* buf, int n, int chset);
+extern uint8_t*	fromStr(Rune* buf, int n, int chset);
+extern Rune*	toStr(uint8_t* buf, int n, int chset);
 
 /* Common LEX and BUILD enums */
 
@@ -134,8 +134,8 @@ enum {
 
 struct Align
 {
-	uchar	halign;		/* one of ALnone, ALleft, etc. */
-	uchar	valign;		/* one of ALnone, ALtop, etc. */
+	uint8_t	halign;		/* one of ALnone, ALleft, etc. */
+	uint8_t	valign;		/* one of ALnone, ALtop, etc. */
 };
 
 /*
@@ -206,15 +206,15 @@ struct Itext
 	Rune*	s;		/* the characters */
 	int	fnt;		/* style*NumSize+size (see font stuff, below) */
 	int	fg;		/* Pixel (color) for text */
-	uchar	voff; /* Voffbias+vertical offset from baseline, in pixels (+ve == down) */
-	uchar	ul;		/* ULnone, ULunder, or ULmid */
+	uint8_t	voff; /* Voffbias+vertical offset from baseline, in pixels (+ve == down) */
+	uint8_t	ul;		/* ULnone, ULunder, or ULmid */
 };
 
 struct Irule
 {
 	Item;			/* (with tag ==Iruletag) */
-	uchar	align;		/* alignment spec */
-	uchar	noshade;	/* if true, don't shade */
+	uint8_t	align;		/* alignment spec */
+	uint8_t	noshade;	/* if true, don't shade */
 	int	size;		/* size attr (rule height) */
 	int	color;		/* color attr */
 	Dimen	wspec;		/* width spec */
@@ -230,10 +230,10 @@ struct Iimage
 	Rune*	altrep;		/* alternate representation, in absence of image */
 	Map*	map;		/* if non-nil, client side map */
 	int	ctlid;		/* if animated */
-	uchar	align;		/* vertical alignment */
-	uchar	hspace;		/* in pixels; buffer space on each side */
-	uchar	vspace;		/* in pixels; buffer space on top and bottom */
-	uchar	border;		/* in pixels: border width to draw around image */
+	uint8_t	align;		/* vertical alignment */
+	uint8_t	hspace;		/* in pixels; buffer space on each side */
+	uint8_t	vspace;		/* in pixels; buffer space on top and bottom */
+	uint8_t	border;		/* in pixels: border width to draw around image */
 	Iimage*	nextimage;	/* next in list of document's images */
 	void*	aux;
 };
@@ -260,8 +260,8 @@ struct Ifloat
 	Item*	item;		/* table or image item that floats */
 	int	x;		/* x coord of top (from right, if ALright) */
 	int	y;		/* y coord of top */
-	uchar	side;		/* margin it floats to: ALleft or ALright */
-	uchar	infloats;	/* true if this has been added to a lay.floats */
+	uint8_t	side;		/* margin it floats to: ALleft or ALright */
+	uint8_t	infloats;	/* true if this has been added to a lay.floats */
 	Ifloat*	nextfloat;	/* in list of floats */
 };
 
@@ -355,7 +355,7 @@ struct Formfield
 	int	maxlength;	/* maxlength attr */
 	int	rows;		/* rows attr */
 	int	cols;		/* cols attr */
-	uchar	flags;		/* FFchecked, etc. */
+	uint8_t	flags;		/* FFchecked, etc. */
 	Option*	options;	/* for Fselect fields */
 	Item*	image;		/* image item, for Fimage fields */
 	int	ctlid;		/* identifies control for this field in layout */
@@ -416,14 +416,14 @@ struct Table
 	int	cellpadding;	/* cellpadding attr */
 	Background background;	/* table background */
 	Item*	caption;	/* linked list of Items, giving caption */
-	uchar	caption_place;	/* ALtop or ALbottom */
+	uint8_t	caption_place;	/* ALtop or ALbottom */
 	Lay*	caption_lay;	/* layout of caption */
 	int	totw;		/* total width */
 	int	toth;		/* total height */
 	int	caph;		/* caption height */
 	int	availw;		/* used for previous 3 sizes */
 	Token*	tabletok;	/* token that started the table */
-	uchar	flags;		/* Lchanged, perhaps */
+	uint8_t	flags;		/* Lchanged, perhaps */
 };
 
 
@@ -444,7 +444,7 @@ struct Tablerow
 	Align	align;
 	Background background;
 	Point	pos;
-	uchar	flags;		/* 0 or TFparsing */
+	uint8_t	flags;		/* 0 or TFparsing */
 };
 
 /*
@@ -464,7 +464,7 @@ struct Tablecell
 	int	rowspan;	/* number of rows spanned by this cell */
 	int	colspan;	/* number of cols spanned by this cell */
 	Align	align;		/* alignment spec */
-	uchar	flags;		/* TFparsing, TFnowrap, TFisth */
+	uint8_t	flags;		/* TFparsing, TFnowrap, TFisth */
 	Dimen	wspec;		/* suggested width */
 	int	hspec;		/* suggested height */
 	Background background;	/* cell background */
@@ -621,8 +621,9 @@ extern int	dimenkind(Dimen d);
 extern int	dimenspec(Dimen d);
 extern void	freedocinfo(Docinfo* d);
 extern void	freeitems(Item* ithead);
-extern Item*	parsehtml(uchar* data, int datalen, Rune* src, int mtype, int chset, Docinfo** pdi);
-extern void	printitems(Item* items, char* msg);
+extern Item*	parsehtml(uint8_t* data, int datalen, Rune* src,
+			      int mtype, int chset, Docinfo** pdi);
+extern void	printitems(Item* items, int8_t* msg);
 extern int	targetid(Rune* s);
 extern Rune*	targetname(int targid);
 extern int	validitems(Item* i);
@@ -640,4 +641,4 @@ extern int	dbgbuild;
  * emalloc should zero its memory.
  */
 extern void*	emalloc(ulong);
-extern void*	erealloc(void* p, ulong size);
+extern void*	erealloc(void* p, uint32_t size);

@@ -44,25 +44,25 @@ enum
 struct AuthRpc
 {
 	int afd;
-	char ibuf[AuthRpcMax+1];	/* +1 for NUL in auth_rpc.c */
-	char obuf[AuthRpcMax];
-	char *arg;
+	int8_t ibuf[AuthRpcMax+1];	/* +1 for NUL in auth_rpc.c */
+	int8_t obuf[AuthRpcMax];
+	int8_t *arg;
 	uint narg;
 };
 
 struct AuthInfo
 {
-	char	*cuid;		/* caller id */
-	char	*suid;		/* server id */
-	char	*cap;		/* capability (only valid on server side) */
+	int8_t	*cuid;		/* caller id */
+	int8_t	*suid;		/* server id */
+	int8_t	*cap;		/* capability (only valid on server side) */
 	int	nsecret;	/* length of secret */
-	uchar	*secret;	/* secret */
+	uint8_t	*secret;	/* secret */
 };
 
 struct Chalstate
 {
-	char	*user;
-	char	chal[MAXCHLEN];
+	int8_t	*user;
+	int8_t	chal[MAXCHLEN];
 	int	nchal;
 	void	*resp;
 	int	nresp;
@@ -70,37 +70,37 @@ struct Chalstate
 /* for implementation only */
 	int	afd;			/* to factotum */
 	AuthRpc	*rpc;			/* to factotum */
-	char	userbuf[MAXNAMELEN];	/* temp space if needed */
+	int8_t	userbuf[MAXNAMELEN];	/* temp space if needed */
 	int	userinchal;		/* user was sent to obtain challenge */
 };
 
 struct	Chapreply		/* for protocol "chap" */
 {
-	uchar	id;
-	char	resp[MD5LEN];
+	uint8_t	id;
+	int8_t	resp[MD5LEN];
 };
 
 struct	MSchapreply	/* for protocol "mschap" */
 {
-	char	LMresp[24];		/* Lan Manager response */
-	char	NTresp[24];		/* NT response */
+	int8_t	LMresp[24];		/* Lan Manager response */
+	int8_t	NTresp[24];		/* NT response */
 };
 
 struct	UserPasswd
 {
-	char	*user;
-	char	*passwd;
+	int8_t	*user;
+	int8_t	*passwd;
 };
 
-extern	int	newns(char*, char*);
-extern	int	addns(char*, char*);
+extern	int	newns(int8_t*, int8_t*);
+extern	int	addns(int8_t*, int8_t*);
 
-extern	int	noworld(char*);
-extern	int	amount(int, char*, int, char*);
+extern	int	noworld(int8_t*);
+extern	int	amount(int, int8_t*, int, int8_t*);
 
 /* these two may get generalized away -rsc */
-extern	int	login(char*, char*, char*);
-extern	int	httpauth(char*, char*);
+extern	int	login(int8_t*, int8_t*, int8_t*);
+extern	int	httpauth(int8_t*, int8_t*);
 
 typedef struct Attr Attr;
 enum {
@@ -112,40 +112,46 @@ struct Attr
 {
 	int type;
 	Attr *next;
-	char *name;
-	char *val;
+	int8_t *name;
+	int8_t *val;
 };
 
-typedef int AuthGetkey(char*);
+typedef int AuthGetkey(int8_t*);
 
 int	_attrfmt(Fmt*);
 Attr	*_copyattr(Attr*);
-Attr	*_delattr(Attr*, char*);
-Attr	*_findattr(Attr*, char*);
+Attr	*_delattr(Attr*, int8_t*);
+Attr	*_findattr(Attr*, int8_t*);
 void	_freeattr(Attr*);
-Attr	*_mkattr(int, char*, char*, Attr*);
-Attr	*_parseattr(char*);
-char	*_strfindattr(Attr*, char*);
+Attr	*_mkattr(int, int8_t*, int8_t*, Attr*);
+Attr	*_parseattr(int8_t*);
+int8_t	*_strfindattr(Attr*, int8_t*);
 #pragma varargck type "A" Attr*
 
-extern AuthInfo*	fauth_proxy(int, AuthRpc *rpc, AuthGetkey *getkey, char *params);
-extern AuthInfo*	auth_proxy(int fd, AuthGetkey *getkey, char *fmt, ...);
-extern int		auth_getkey(char*);
-extern int		(*amount_getkey)(char*);
+extern AuthInfo*	fauth_proxy(int, AuthRpc *rpc, AuthGetkey *getkey,
+				    int8_t *params);
+extern AuthInfo*	auth_proxy(int fd, AuthGetkey *getkey, int8_t *fmt,
+				   ...);
+extern int		auth_getkey(int8_t*);
+extern int		(*amount_getkey)(int8_t*);
 extern void		auth_freeAI(AuthInfo *ai);
-extern int		auth_chuid(AuthInfo *ai, char *ns);
-extern Chalstate	*auth_challenge(char*, ...);
+extern int		auth_chuid(AuthInfo *ai, int8_t *ns);
+extern Chalstate	*auth_challenge(int8_t*, ...);
 extern AuthInfo*	auth_response(Chalstate*);
-extern int		auth_respond(void*, uint, char*, uint, void*, uint, AuthGetkey *getkey, char*, ...);
+extern int		auth_respond(void*, uint, int8_t*, uint, void*,
+				       uint, AuthGetkey *getkey, int8_t*,
+				       ...);
 extern void		auth_freechal(Chalstate*);
-extern AuthInfo*	auth_userpasswd(char *user, char *passwd);
-extern UserPasswd*	auth_getuserpasswd(AuthGetkey *getkey, char*, ...);
+extern AuthInfo*	auth_userpasswd(int8_t *user, int8_t *passwd);
+extern UserPasswd*	auth_getuserpasswd(AuthGetkey *getkey, int8_t*,
+					     ...);
 extern AuthInfo*	auth_getinfo(AuthRpc *rpc);
 extern AuthRpc*		auth_allocrpc(int afd);
 extern Attr*		auth_attr(AuthRpc *rpc);
 extern void		auth_freerpc(AuthRpc *rpc);
-extern uint		auth_rpc(AuthRpc *rpc, char *verb, void *a, int n);
-extern int		auth_wep(char*, char*, ...);
+extern uint		auth_rpc(AuthRpc *rpc, int8_t *verb, void *a,
+				    int n);
+extern int		auth_wep(int8_t*, int8_t*, ...);
 #pragma varargck argpos auth_proxy 3
 #pragma varargck argpos auth_challenge 1
 #pragma varargck argpos auth_respond 8

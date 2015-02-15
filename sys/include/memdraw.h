@@ -29,8 +29,8 @@ typedef struct	Memdrawparam	Memdrawparam;
 
 struct Memdata
 {
-	ulong	*base;	/* allocated data pointer */
-	uchar	*bdata;	/* pointer to first byte of actual data; word-aligned */
+	uint32_t	*base;	/* allocated data pointer */
+	uint8_t	*bdata;	/* pointer to first byte of actual data; word-aligned */
 	int		ref;		/* number of Memimages using this data */
 	void*	imref;
 	int		allocd;	/* is this malloc'd? */
@@ -51,14 +51,14 @@ struct Memimage
 	Rectangle	clipr;		/* clipping region */
 	int		depth;	/* number of bits of storage per pixel */
 	int		nchan;	/* number of channels */
-	ulong	chan;	/* channel descriptions */
+	uint32_t	chan;	/* channel descriptions */
 	Memcmap	*cmap;
 
 	Memdata	*data;	/* pointer to data; shared by windows in this image */
 	int		zero;		/* data->bdata+zero==&byte containing (0,0) */
-	ulong	width;	/* width in words of a single scan line */
+	uint32_t	width;	/* width in words of a single scan line */
 	Memlayer	*layer;	/* nil if not a layer*/
-	ulong	flags;
+	uint32_t	flags;
 
 	int		shift[NChan];
 	int		mask[NChan];
@@ -67,8 +67,8 @@ struct Memimage
 
 struct Memcmap
 {
-	uchar	cmap2rgb[3*256];
-	uchar	rgb2cmap[16*16*16];
+	uint8_t	cmap2rgb[3*256];
+	uint8_t	rgb2cmap[16*16*16];
 };
 
 /*
@@ -85,10 +85,10 @@ struct Memcmap
 
 struct	Memsubfont
 {
-	char		*name;
-	short	n;		/* number of chars in font */
-	uchar	height;		/* height of bitmap */
-	char	ascent;		/* top of bitmap to baseline */
+	int8_t		*name;
+	int16_t	n;		/* number of chars in font */
+	uint8_t	height;		/* height of bitmap */
+	int8_t	ascent;		/* top of bitmap to baseline */
 	Fontchar *info;		/* n+1 character descriptors */
 	Memimage	*bits;		/* of font */
 };
@@ -113,32 +113,32 @@ struct	Memdrawparam
 	Rectangle mr;
 	int op;
 
-	ulong state;
-	ulong mval;	/* if Simplemask, the mask pixel in mask format */
-	ulong mrgba;	/* mval in rgba */
-	ulong sval;	/* if Simplesrc, the source pixel in src format */
-	ulong srgba;	/* sval in rgba */
-	ulong sdval;	/* sval in dst format */
+	uint32_t state;
+	uint32_t mval;	/* if Simplemask, the mask pixel in mask format */
+	uint32_t mrgba;	/* mval in rgba */
+	uint32_t sval;	/* if Simplesrc, the source pixel in src format */
+	uint32_t srgba;	/* sval in rgba */
+	uint32_t sdval;	/* sval in dst format */
 };
 
 /*
  * Memimage management
  */
 
-extern Memimage*	allocmemimage(Rectangle, ulong);
-extern Memimage*	allocmemimaged(Rectangle, ulong, Memdata*);
+extern Memimage*	allocmemimage(Rectangle, uint32_t);
+extern Memimage*	allocmemimaged(Rectangle, uint32_t, Memdata*);
 extern Memimage*	readmemimage(int);
 extern Memimage*	creadmemimage(int);
 extern int	writememimage(int, Memimage*);
 extern void	freememimage(Memimage*);
-extern int		loadmemimage(Memimage*, Rectangle, uchar*, int);
-extern int		cloadmemimage(Memimage*, Rectangle, uchar*, int);
-extern int		unloadmemimage(Memimage*, Rectangle, uchar*, int);
-extern ulong*	wordaddr(Memimage*, Point);
-extern uchar*	byteaddr(Memimage*, Point);
+extern int		loadmemimage(Memimage*, Rectangle, uint8_t*, int);
+extern int		cloadmemimage(Memimage*, Rectangle, uint8_t*, int);
+extern int		unloadmemimage(Memimage*, Rectangle, uint8_t*, int);
+extern uint32_t*	wordaddr(Memimage*, Point);
+extern uint8_t*	byteaddr(Memimage*, Point);
 extern int		drawclip(Memimage*, Rectangle*, Memimage*, Point*, Memimage*, Point*, Rectangle*, Rectangle*);
-extern void	memfillcolor(Memimage*, ulong);
-extern int		memsetchan(Memimage*, ulong);
+extern void	memfillcolor(Memimage*, uint32_t);
+extern int		memsetchan(Memimage*, uint32_t);
 
 /*
  * Graphics
@@ -152,7 +152,8 @@ extern void	memimagedraw(Memimage*, Rectangle, Memimage*, Point, Memimage*, Poin
 extern int	hwdraw(Memdrawparam*);
 extern void	memimageline(Memimage*, Point, Point, int, int, int, Memimage*, Point, int);
 extern void	_memimageline(Memimage*, Point, Point, int, int, int, Memimage*, Point, Rectangle, int);
-extern Point	memimagestring(Memimage*, Point, Memimage*, Point, Memsubfont*, char*);
+extern Point	memimagestring(Memimage*, Point, Memimage*, Point, Memsubfont*,
+				   int8_t*);
 extern void	memellipse(Memimage*, Point, int, int, int, Memimage*, Point, int);
 extern void	memarc(Memimage*, Point, int, int, int, Memimage*, Point, int, int, int);
 extern Rectangle	memlinebbox(Point, Point, int, int, int);
@@ -163,10 +164,11 @@ extern void	memimageinit(void);
 /*
  * Subfont management
  */
-extern Memsubfont*	allocmemsubfont(char*, int, int, int, Fontchar*, Memimage*);
-extern Memsubfont*	openmemsubfont(char*);
+extern Memsubfont*	allocmemsubfont(int8_t*, int, int, int,
+					  Fontchar*, Memimage*);
+extern Memsubfont*	openmemsubfont(int8_t*);
 extern void	freememsubfont(Memsubfont*);
-extern Point	memsubfontwidth(Memsubfont*, char*);
+extern Point	memsubfontwidth(Memsubfont*, int8_t*);
 extern Memsubfont*	getmemdefont(void);
 
 /*
@@ -187,7 +189,7 @@ void		memimagemove(void*, void*);
  * Kernel cruft
  */
 extern void	rdb(void);
-extern int		iprint(char*, ...);
+extern int		iprint(int8_t*, ...);
 #pragma varargck argpos iprint 1
 extern int		drawdebug;
 

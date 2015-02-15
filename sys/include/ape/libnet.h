@@ -16,14 +16,14 @@
 
 #define NETPATHLEN 40
 
-extern	int	accept(int, char*);
-extern	int	announce(char*, char*);
-extern	int	dial(char*, char*, char*, int*);
+extern	int	accept(int, int8_t*);
+extern	int	announce(int8_t*, int8_t*);
+extern	int	dial(int8_t*, int8_t*, int8_t*, int*);
 extern	int	hangup(int);
-extern	int	listen(char*, char*);
-extern	char*	netmkaddr(char*, char*, char*);
-extern	int	reject(int, char*, char *);
+extern	int	listen(int8_t*, int8_t*);
+extern	int8_t*	netmkaddr(int8_t*, int8_t*, int8_t*);
+extern	int	reject(int, int8_t*, int8_t *);
 
-extern char    dialerrstr[64];
+extern int8_t    dialerrstr[64];
 
 #endif /* __LIBNET_H */

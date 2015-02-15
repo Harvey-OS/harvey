@@ -36,11 +36,11 @@ struct Iplifc
 	Iplifc	*next;
 
 	/* per address on the ip interface */
-	uchar	ip[IPaddrlen];
-	uchar	mask[IPaddrlen];
-	uchar	net[IPaddrlen];		/* ip & mask */
-	ulong	preflt;			/* preferred lifetime */
-	ulong	validlt;		/* valid lifetime */
+	uint8_t	ip[IPaddrlen];
+	uint8_t	mask[IPaddrlen];
+	uint8_t	net[IPaddrlen];		/* ip & mask */
+	uint32_t	preflt;			/* preferred lifetime */
+	uint32_t	validlt;		/* valid lifetime */
 };
 
 /* default values, one per stack */
@@ -65,14 +65,14 @@ struct Ipifc
 
 	/* per ip interface */
 	int	index;			/* number of interface in ipifc dir */
-	char	dev[64];
-	uchar	sendra6;		/* on == send router adv */
-	uchar	recvra6;		/* on == rcv router adv */
+	int8_t	dev[64];
+	uint8_t	sendra6;		/* on == send router adv */
+	uint8_t	recvra6;		/* on == rcv router adv */
 	int	mtu;
-	ulong	pktin;
-	ulong	pktout;
-	ulong	errin;
-	ulong	errout;
+	uint32_t	pktin;
+	uint32_t	pktout;
+	uint32_t	errin;
+	uint32_t	errout;
 	Ipv6rp	rp;
 };
 
@@ -128,13 +128,13 @@ enum {
 /* V6 header on the wire */
 typedef struct Ip6hdr Ip6hdr;
 struct Ip6hdr {
-	uchar	vcf[4];		/* version:4, traffic class:8, flow label:20 */
-	uchar	ploadlen[2];	/* payload length: packet length - 40 */
-	uchar	proto;		/* next header type */
-	uchar	ttl;		/* hop limit */
-	uchar	src[IPaddrlen];	/* source address */
-	uchar	dst[IPaddrlen];	/* destination address */
-	uchar	payload[];
+	uint8_t	vcf[4];		/* version:4, traffic class:8, flow label:20 */
+	uint8_t	ploadlen[2];	/* payload length: packet length - 40 */
+	uint8_t	proto;		/* next header type */
+	uint8_t	ttl;		/* hop limit */
+	uint8_t	src[IPaddrlen];	/* source address */
+	uint8_t	dst[IPaddrlen];	/* destination address */
+	uint8_t	payload[];
 };
 
 /*
@@ -142,9 +142,9 @@ struct Ip6hdr {
  */
 typedef struct Icmp6hdr Icmp6hdr;
 struct Icmp6hdr {
-	uchar	_0_[8];
-	uchar	laddr[IPaddrlen];	/* local address */
-	uchar	raddr[IPaddrlen];	/* remote address */
+	uint8_t	_0_[8];
+	uint8_t	laddr[IPaddrlen];	/* local address */
+	uint8_t	raddr[IPaddrlen];	/* remote address */
 };
 
 /*
@@ -158,52 +158,52 @@ enum
 typedef struct Udphdr Udphdr;
 struct Udphdr
 {
-	uchar	raddr[IPaddrlen];	/* V6 remote address */
-	uchar	laddr[IPaddrlen];	/* V6 local address */
-	uchar	ifcaddr[IPaddrlen];	/* V6 ifc addr msg was received on */
-	uchar	rport[2];		/* remote port */
-	uchar	lport[2];		/* local port */
+	uint8_t	raddr[IPaddrlen];	/* V6 remote address */
+	uint8_t	laddr[IPaddrlen];	/* V6 local address */
+	uint8_t	ifcaddr[IPaddrlen];	/* V6 ifc addr msg was received on */
+	uint8_t	rport[2];		/* remote port */
+	uint8_t	lport[2];		/* local port */
 };
 
-uchar*	defmask(uchar*);
-void	maskip(uchar*, uchar*, uchar*);
+uint8_t*	defmask(uint8_t*);
+void	maskip(uint8_t*, uint8_t*, uint8_t*);
 int	eipfmt(Fmt*);
-int	isv4(uchar*);
-vlong	parseip(uchar*, char*);
-vlong	parseipmask(uchar*, char*);
-char*	v4parseip(uchar*, char*);
-char*	v4parsecidr(uchar*, uchar*, char*);
-int	parseether(uchar*, char*);
-int	myipaddr(uchar*, char*);
-int	myetheraddr(uchar*, char*);
-int	equivip4(uchar*, uchar*);
-int	equivip6(uchar*, uchar*);
+int	isv4(uint8_t*);
+int64_t	parseip(uint8_t*, int8_t*);
+int64_t	parseipmask(uint8_t*, int8_t*);
+int8_t*	v4parseip(uint8_t*, int8_t*);
+int8_t*	v4parsecidr(uint8_t*, uint8_t*, int8_t*);
+int	parseether(uint8_t*, int8_t*);
+int	myipaddr(uint8_t*, int8_t*);
+int	myetheraddr(uint8_t*, int8_t*);
+int	equivip4(uint8_t*, uint8_t*);
+int	equivip6(uint8_t*, uint8_t*);
 
-Ipifc*	readipifc(char*, Ipifc*, int);
+Ipifc*	readipifc(int8_t*, Ipifc*, int);
 
-void	hnputv(void*, uvlong);
+void	hnputv(void*, uint64_t);
 void	hnputl(void*, uint);
-void	hnputs(void*, ushort);
-uvlong	nhgetv(void*);
+void	hnputs(void*, uint16_t);
+uint64_t	nhgetv(void*);
 uint	nhgetl(void*);
-ushort	nhgets(void*);
-ushort	ptclbsum(uchar*, int);
+uint16_t	nhgets(void*);
+uint16_t	ptclbsum(uint8_t*, int);
 
-int	v6tov4(uchar*, uchar*);
-void	v4tov6(uchar*, uchar*);
+int	v6tov4(uint8_t*, uint8_t*);
+void	v4tov6(uint8_t*, uint8_t*);
 
 #define	ipcmp(x, y) memcmp(x, y, IPaddrlen)
 #define	ipmove(x, y) memmove(x, y, IPaddrlen)
 
-extern uchar IPv4bcast[IPaddrlen];
-extern uchar IPv4bcastobs[IPaddrlen];
-extern uchar IPv4allsys[IPaddrlen];
-extern uchar IPv4allrouter[IPaddrlen];
-extern uchar IPnoaddr[IPaddrlen];
-extern uchar v4prefix[IPaddrlen];
-extern uchar IPallbits[IPaddrlen];
+extern uint8_t IPv4bcast[IPaddrlen];
+extern uint8_t IPv4bcastobs[IPaddrlen];
+extern uint8_t IPv4allsys[IPaddrlen];
+extern uint8_t IPv4allrouter[IPaddrlen];
+extern uint8_t IPnoaddr[IPaddrlen];
+extern uint8_t v4prefix[IPaddrlen];
+extern uint8_t IPallbits[IPaddrlen];
 
-#define CLASS(p) ((*(uchar*)(p))>>6)
+#define CLASS(p) ((*(uint8_t*)(p))>>6)
 
 #pragma	varargck	type	"I"	uchar*
 #pragma	varargck	type	"V"	uchar*

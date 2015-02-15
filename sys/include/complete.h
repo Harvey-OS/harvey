@@ -13,13 +13,13 @@
 typedef struct Completion Completion;
 
 struct Completion{
-	uchar advance;		/* whether forward progress has been made */
-	uchar complete;	/* whether the completion now represents a file or directory */
-	char *string;		/* the string to advance, suffixed " " or "/" for file or directory */
+	uint8_t advance;		/* whether forward progress has been made */
+	uint8_t complete;	/* whether the completion now represents a file or directory */
+	int8_t *string;		/* the string to advance, suffixed " " or "/" for file or directory */
 	int nmatch;		/* number of files that matched */
 	int nfile;			/* number of files returned */
-	char **filename;	/* their names */
+	int8_t **filename;	/* their names */
 };
 
-Completion* complete(char *dir, char *s);
+Completion* complete(int8_t *dir, int8_t *s);
 void freecompletion(Completion*);

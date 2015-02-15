@@ -21,24 +21,24 @@ extern "C" {
 extern void	srand(unsigned int);
 extern int	rand(void);
 extern int	nrand(int);
-extern long	lrand(void);
+extern int32_t	lrand(void);
 extern double	frand(void);
 
-extern char	*getpass(char *);
+extern int8_t	*getpass(int8_t *);
 extern int	tty_echoon(int);
 extern int	tty_echooff(int);
 
 extern int	min(int, int);
 extern int	max(int, int);
 
-extern void	_perror(char *);
-extern char	*_progname;
+extern void	_perror(int8_t *);
+extern int8_t	*_progname;
 
 extern int	nap(int);
 
-extern char	*setfields(char *);
-extern int	getfields(char *, char **, int);
-extern int	getmfields(char *, char **, int);
+extern int8_t	*setfields(int8_t *);
+extern int	getfields(int8_t *, int8_t **, int);
+extern int	getmfields(int8_t *, int8_t **, int);
 
 
 #ifdef __cplusplus

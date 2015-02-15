@@ -73,17 +73,17 @@ extern "C" {
 #endif
 
 extern mode_t umask(mode_t);
-extern int mkdir(const char *, mode_t);
-extern int mkfifo(const char *, mode_t);
-extern int stat(const char *, struct stat *);
+extern int mkdir(const int8_t *, mode_t);
+extern int mkfifo(const int8_t *, mode_t);
+extern int stat(const int8_t *, struct stat *);
 extern int fstat(int, struct stat *);
-extern int chmod(const char *, mode_t);
+extern int chmod(const int8_t *, mode_t);
 
 #ifdef _BSD_EXTENSION
 #pragma lib "/$M/lib/ape/libbsd.a"
-extern int	lstat(char *, struct stat *);
-extern int	symlink(char *, char *);
-extern int	readlink(char *, char*, int);
+extern int	lstat(int8_t *, struct stat *);
+extern int	symlink(int8_t *, int8_t *);
+extern int	readlink(int8_t *, int8_t*, int);
 #endif
 
 #ifdef __cplusplus

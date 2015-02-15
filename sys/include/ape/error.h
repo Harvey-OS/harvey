@@ -18,8 +18,8 @@
 extern "C" {
 #endif
 
-extern char *_progname;		/* program name */
-extern void _perror(char *);	/* perror but with _progname */
+extern int8_t *_progname;		/* program name */
+extern void _perror(int8_t *);	/* perror but with _progname */
 
 #ifdef __cplusplus
 }

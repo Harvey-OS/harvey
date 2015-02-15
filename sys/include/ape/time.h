@@ -20,11 +20,11 @@
 
 #ifndef _CLOCK_T
 #define _CLOCK_T
-typedef long clock_t;
+typedef int32_t clock_t;
 #endif
 #ifndef _TIME_T
 #define _TIME_T
-typedef long time_t;
+typedef int32_t time_t;
 #endif
 
 struct tm {
@@ -47,16 +47,16 @@ extern clock_t clock(void);
 extern double difftime(time_t, time_t);
 extern time_t mktime(struct tm *);
 extern time_t time(time_t *);
-extern char *asctime(const struct tm *);
-extern char *ctime(const time_t *);
+extern int8_t *asctime(const struct tm *);
+extern int8_t *ctime(const time_t *);
 extern struct tm *gmtime(const time_t *);
 extern struct tm *localtime(const time_t *);
-extern size_t strftime(char *, size_t, const char *, const struct tm *);
+extern size_t strftime(int8_t *, size_t, const int8_t *, const struct tm *);
 
 #ifdef _REENTRANT_SOURCE
 extern struct tm *gmtime_r(const time_t *, struct tm *);
 extern struct tm *localtime_r(const time_t *, struct tm *);
-extern char *ctime_r(const time_t *, char *);
+extern int8_t *ctime_r(const time_t *, int8_t *);
 #endif
 
 #ifdef _POSIX_SOURCE
@@ -68,7 +68,7 @@ extern void tzset(void);
 #endif
 
 #ifdef _POSIX_SOURCE
-extern char *tzname[2];
+extern int8_t *tzname[2];
 #endif
 
 #endif /* __TIME_H */

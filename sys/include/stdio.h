@@ -35,16 +35,16 @@
  */
 typedef struct{
 	int fd;		/* UNIX file pointer */
-	char flags;	/* bits for must free buffer on close, line-buffered */
-	char state;	/* last operation was read, write, position, error, eof */
-	char *buf;	/* pointer to i/o buffer */
-	char *rp;	/* read pointer (or write end-of-buffer) */
-	char *wp;	/* write pointer (or read end-of-buffer) */
-	char *lp;	/* actual write pointer used when line-buffering */
-	long bufl;	/* actual length of buffer */
-	char unbuf[1];	/* tiny buffer for unbuffered io (used for ungetc?) */
+	int8_t flags;	/* bits for must free buffer on close, line-buffered */
+	int8_t state;	/* last operation was read, write, position, error, eof */
+	int8_t *buf;	/* pointer to i/o buffer */
+	int8_t *rp;	/* read pointer (or write end-of-buffer) */
+	int8_t *wp;	/* write pointer (or read end-of-buffer) */
+	int8_t *lp;	/* actual write pointer used when line-buffering */
+	int32_t bufl;	/* actual length of buffer */
+	int8_t unbuf[1];	/* tiny buffer for unbuffered io (used for ungetc?) */
 }FILE;
-typedef long fpos_t;
+typedef int32_t fpos_t;
 #ifndef NULL
 #define	NULL	((void*)0)
 #endif
@@ -70,58 +70,58 @@ typedef long fpos_t;
 #define	stdout	(&_IO_stream[1])
 #define	_IO_CHMASK	0377		/* mask for 8 bit characters */
 FILE *tmpfile(void);
-char *tmpnam(char *);
+int8_t *tmpnam(int8_t *);
 int fclose(FILE *);
 int fflush(FILE *);
-FILE *fopen(const char *, const char *);
-FILE *fdopen(const int, const char *);
-FILE *freopen(const char *, const char *, FILE *);
-void setbuf(FILE *, char *);
-int setvbuf(FILE *, char *, int, long);
-int fprintf(FILE *, const char *, ...);
-int fscanf(FILE *, const char *, ...);
-int printf(const char *, ...);
-int scanf(const char *, ...);
-int sprintf(char *, const char *, ...);
-int snprintf(char *, int, const char *, ...);
-int sscanf(const char *, const char *, ...);
-int vfprintf(FILE *, const char *, va_list);
-int vprintf(const char *, va_list);
-int vsprintf(char *, const char *, va_list);
-int vsnprintf(char *, int, const char *, va_list);
-int vfscanf(FILE *, const char *, va_list);
+FILE *fopen(const int8_t *, const int8_t *);
+FILE *fdopen(const int, const int8_t *);
+FILE *freopen(const int8_t *, const int8_t *, FILE *);
+void setbuf(FILE *, int8_t *);
+int setvbuf(FILE *, int8_t *, int, int32_t);
+int fprintf(FILE *, const int8_t *, ...);
+int fscanf(FILE *, const int8_t *, ...);
+int printf(const int8_t *, ...);
+int scanf(const int8_t *, ...);
+int sprintf(int8_t *, const int8_t *, ...);
+int snprintf(int8_t *, int, const int8_t *, ...);
+int sscanf(const int8_t *, const int8_t *, ...);
+int vfprintf(FILE *, const int8_t *, va_list);
+int vprintf(const int8_t *, va_list);
+int vsprintf(int8_t *, const int8_t *, va_list);
+int vsnprintf(int8_t *, int, const int8_t *, va_list);
+int vfscanf(FILE *, const int8_t *, va_list);
 int fgetc(FILE *);
-char *fgets(char *, int, FILE *);
+int8_t *fgets(int8_t *, int, FILE *);
 int fputc(int, FILE *);
-int fputs(const char *, FILE *);
+int fputs(const int8_t *, FILE *);
 int getc(FILE *);
 #define	getc(f)	((f)->rp>=(f)->wp?_IO_getc(f):*(f)->rp++&_IO_CHMASK)
 int _IO_getc(FILE *f);
 int getchar(void);
 #define	getchar()	getc(stdin)
-char *gets(char *);
+int8_t *gets(int8_t *);
 int putc(int, FILE *);
 #define	putc(c, f) ((f)->wp>=(f)->rp?_IO_putc(c, f):(*(f)->wp++=c)&_IO_CHMASK)
 int _IO_putc(int, FILE *);
 int putchar(int);
 #define	putchar(c)	putc(c, stdout)
-int puts(const char *);
+int puts(const int8_t *);
 int ungetc(int, FILE *);
-long fread(void *, long, long, FILE *);
-long fwrite(const void *, long, long, FILE *);
+int32_t fread(void *, int32_t, int32_t, FILE *);
+int32_t fwrite(const void *, int32_t, int32_t, FILE *);
 int fgetpos(FILE *, fpos_t *);
-int fseek(FILE *, long, int);
+int fseek(FILE *, int32_t, int);
 int fseeko(FILE *, long long, int);
 int fsetpos(FILE *, const fpos_t *);
-long ftell(FILE *);
+int32_t ftell(FILE *);
 long long ftello(FILE *);
 void rewind(FILE *);
 void clearerr(FILE *);
 int feof(FILE *);
 int ferror(FILE *);
-void perror(const char *);
+void perror(const int8_t *);
 extern FILE _IO_stream[FOPEN_MAX];
-FILE *sopenr(const char *);
+FILE *sopenr(const int8_t *);
 FILE *sopenw(void);
-char *sclose(FILE *);
+int8_t *sclose(FILE *);
 int fileno(FILE *);

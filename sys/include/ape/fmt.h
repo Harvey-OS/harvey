@@ -74,29 +74,29 @@ enum{
 extern "C" { 
 #endif
 
-extern	int	print(char*, ...);
-extern	char*	seprint(char*, char*, char*, ...);
-extern	char*	vseprint(char*, char*, char*, va_list);
-extern	int	snprint(char*, int, char*, ...);
-extern	int	vsnprint(char*, int, char*, va_list);
-extern	char*	smprint(char*, ...);
-extern	char*	vsmprint(char*, va_list);
-extern	int	sprint(char*, char*, ...);
-extern	int	fprint(int, char*, ...);
-extern	int	vfprint(int, char*, va_list);
+extern	int	print(int8_t*, ...);
+extern	int8_t*	seprint(int8_t*, int8_t*, int8_t*, ...);
+extern	int8_t*	vseprint(int8_t*, int8_t*, int8_t*, va_list);
+extern	int	snprint(int8_t*, int, int8_t*, ...);
+extern	int	vsnprint(int8_t*, int, int8_t*, va_list);
+extern	int8_t*	smprint(int8_t*, ...);
+extern	int8_t*	vsmprint(int8_t*, va_list);
+extern	int	sprint(int8_t*, int8_t*, ...);
+extern	int	fprint(int, int8_t*, ...);
+extern	int	vfprint(int, int8_t*, va_list);
 
-extern	int	runesprint(Rune*, char*, ...);
-extern	int	runesnprint(Rune*, int, char*, ...);
-extern	int	runevsnprint(Rune*, int, char*, va_list);
-extern	Rune*	runeseprint(Rune*, Rune*, char*, ...);
-extern	Rune*	runevseprint(Rune*, Rune*, char*, va_list);
-extern	Rune*	runesmprint(char*, ...);
-extern	Rune*	runevsmprint(char*, va_list);
+extern	int	runesprint(Rune*, int8_t*, ...);
+extern	int	runesnprint(Rune*, int, int8_t*, ...);
+extern	int	runevsnprint(Rune*, int, int8_t*, va_list);
+extern	Rune*	runeseprint(Rune*, Rune*, int8_t*, ...);
+extern	Rune*	runevseprint(Rune*, Rune*, int8_t*, va_list);
+extern	Rune*	runesmprint(int8_t*, ...);
+extern	Rune*	runevsmprint(int8_t*, va_list);
 
-extern	int	fmtfdinit(Fmt*, int, char*, int);
+extern	int	fmtfdinit(Fmt*, int, int8_t*, int);
 extern	int	fmtfdflush(Fmt*);
 extern	int	fmtstrinit(Fmt*);
-extern	char*	fmtstrflush(Fmt*);
+extern	int8_t*	fmtstrflush(Fmt*);
 extern	int	runefmtstrinit(Fmt*);
 
 extern	int	quotestrfmt(Fmt *f);
@@ -105,16 +105,16 @@ extern	int	(*fmtdoquote)(int);
 
 
 extern	int	fmtinstall(int, int (*)(Fmt*));
-extern	int	dofmt(Fmt*, char*);
-extern	int	fmtprint(Fmt*, char*, ...);
-extern	int	fmtvprint(Fmt*, char*, va_list);
+extern	int	dofmt(Fmt*, int8_t*);
+extern	int	fmtprint(Fmt*, int8_t*, ...);
+extern	int	fmtvprint(Fmt*, int8_t*, va_list);
 extern	int	fmtrune(Fmt*, int);
-extern	int	fmtstrcpy(Fmt*, char*);
+extern	int	fmtstrcpy(Fmt*, int8_t*);
 
-extern	double	fmtstrtod(const char *, char **);
+extern	double	fmtstrtod(const int8_t *, int8_t **);
 extern	double	fmtcharstod(int(*)(void*), void*);
 
-extern	void	werrstr(const char*, ...);
+extern	void	werrstr(const int8_t*, ...);
 
 #ifdef	__cplusplus
 }
