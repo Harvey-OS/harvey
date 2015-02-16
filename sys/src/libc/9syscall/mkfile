@@ -6,8 +6,8 @@ NPROC=1
 install:V:
 	mksys $objtype
 	$(AS) -c *.s
-	ar rvu $NXM/$objtype/lib/libc.a *.$O
-	rm -f *.$O *.s
+	ar rvu $ROOT/$objtype/lib/libc.a *.$O
+	rm -f *.o *.[$OS] *.s
 
 nuke clean:V:
 	rm -f *.[$OS] *.s
