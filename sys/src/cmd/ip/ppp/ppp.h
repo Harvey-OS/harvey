@@ -37,8 +37,8 @@ struct Block
 	uchar	*base;			/* start of the buffer */
 	uchar	flags;
 	void	*flow;
-	ulong	pc;
-	ulong	bsz;
+	uint32_t	pc;
+	uint32_t	bsz;
 };
 #define BLEN(b)	((b)->wptr-(b)->rptr)
 
@@ -212,13 +212,13 @@ struct Pstate
 	int	proto;		/* protocol type */
 	int	timeout;	/* for current state */
 	int	rxtimeout;	/* for current retransmit */
-	ulong	flags;		/* options received */
+	uint32_t	flags;		/* options received */
 	uchar	id;		/* id of current message */
 	uchar	confid;		/* id of current config message */
 	uchar	termid;		/* id of current termination message */
 	uchar	rcvdconfid;	/* id of last conf message received */
 	uchar	state;		/* PPP link state */
-	ulong	optmask;	/* which options to request */
+	uint32_t	optmask;	/* which options to request */
 	int	echoack;	/* recieved echo ack */
 	int	echotimeout;	/* echo timeout */
 };
@@ -235,11 +235,11 @@ struct Chap
 
 struct Qualstats
 {
-	ulong	reports;
-	ulong	packets;
-	ulong	uchars;
-	ulong	discards;
-	ulong	errors;
+	uint32_t	reports;
+	uint32_t	packets;
+	uint32_t	uchars;
+	uint32_t	discards;
+	uint32_t	errors;
 };
 
 struct Comptype

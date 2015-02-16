@@ -97,7 +97,7 @@ mountCall(Auth *a, SunCall *c, NfsMount3CallType type)
 }
 
 int
-mountNull(ulong tag)
+mountNull(uint32_t tag)
 {
 	NfsMount3TNull tx;
 	NfsMount3RNull rx;
@@ -112,7 +112,7 @@ mountNull(ulong tag)
 }
 
 int
-mountMnt(Auth *a, ulong tag, char *path, Nfs3Handle *h)
+mountMnt(Auth *a, uint32_t tag, char *path, Nfs3Handle *h)
 {
 	uchar *freeme;
 	NfsMount3TMnt tx;
@@ -158,7 +158,7 @@ nfs3Call(Auth *a, SunCall *c, Nfs3CallType type)
 }
 
 int
-nfsNull(ulong tag)
+nfsNull(uint32_t tag)
 {
 	Nfs3TNull tx;
 	Nfs3RNull rx;
@@ -173,7 +173,7 @@ nfsNull(ulong tag)
 }
 
 int
-nfsGetattr(Auth *a, ulong tag, Nfs3Handle *h, Nfs3Attr *attr)
+nfsGetattr(Auth *a, uint32_t tag, Nfs3Handle *h, Nfs3Attr *attr)
 {
 	Nfs3TGetattr tx;
 	Nfs3RGetattr rx;
@@ -197,7 +197,8 @@ nfsGetattr(Auth *a, ulong tag, Nfs3Handle *h, Nfs3Attr *attr)
 }
 
 int
-nfsAccess(Auth *a, ulong tag, Nfs3Handle *h, ulong want, ulong *got, u1int *have, Nfs3Attr *attr)
+nfsAccess(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t want,
+	  uint32_t *got, u1int *have, Nfs3Attr *attr)
 {
 	Nfs3TAccess tx;
 	Nfs3RAccess rx;
@@ -226,7 +227,8 @@ nfsAccess(Auth *a, ulong tag, Nfs3Handle *h, ulong want, ulong *got, u1int *have
 }
 
 int
-nfsMkdir(Auth *a, ulong tag, Nfs3Handle *h, char *name, Nfs3Handle *nh, ulong mode, uint gid,
+nfsMkdir(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
+	 uint32_t mode, uint gid,
 	u1int *have, Nfs3Attr *attr)
 {
 	Nfs3TMkdir tx;
@@ -264,7 +266,8 @@ nfsMkdir(Auth *a, ulong tag, Nfs3Handle *h, char *name, Nfs3Handle *nh, ulong mo
 }
 
 int
-nfsCreate(Auth *a, ulong tag, Nfs3Handle *h, char *name, Nfs3Handle *nh, ulong mode, uint gid,
+nfsCreate(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
+	  uint32_t mode, uint gid,
 	u1int *have, Nfs3Attr *attr)
 {
 	Nfs3TCreate tx;
@@ -302,7 +305,7 @@ nfsCreate(Auth *a, ulong tag, Nfs3Handle *h, char *name, Nfs3Handle *nh, ulong m
 }
 
 int
-nfsRead(Auth *a, ulong tag, Nfs3Handle *h, u32int count, u64int offset,
+nfsRead(Auth *a, uint32_t tag, Nfs3Handle *h, u32int count, u64int offset,
 	uchar **pp, u32int *pcount, uchar **pfreeme)
 {
 	uchar *freeme;
@@ -336,7 +339,8 @@ nfsRead(Auth *a, ulong tag, Nfs3Handle *h, u32int count, u64int offset,
 }
 
 int
-nfsWrite(Auth *a, ulong tag, Nfs3Handle *h, uchar *data, u32int count, u64int offset, u32int *pcount)
+nfsWrite(Auth *a, uint32_t tag, Nfs3Handle *h, uchar *data, u32int count,
+	 u64int offset, u32int *pcount)
 {
 	Nfs3TWrite tx;
 	Nfs3RWrite rx;
@@ -364,7 +368,7 @@ nfsWrite(Auth *a, ulong tag, Nfs3Handle *h, uchar *data, u32int count, u64int of
 }
 
 int
-nfsRmdir(Auth *a, ulong tag, Nfs3Handle *h, char *name)
+nfsRmdir(Auth *a, uint32_t tag, Nfs3Handle *h, char *name)
 {
 	Nfs3TRmdir tx;
 	Nfs3RRmdir rx;
@@ -387,7 +391,7 @@ nfsRmdir(Auth *a, ulong tag, Nfs3Handle *h, char *name)
 }
 
 int
-nfsRemove(Auth *a, ulong tag, Nfs3Handle *h, char *name)
+nfsRemove(Auth *a, uint32_t tag, Nfs3Handle *h, char *name)
 {
 	Nfs3TRemove tx;
 	Nfs3RRemove rx;
@@ -410,7 +414,8 @@ nfsRemove(Auth *a, ulong tag, Nfs3Handle *h, char *name)
 }
 
 int
-nfsRename(Auth *a, ulong tag, Nfs3Handle *h, char *name, Nfs3Handle *th, char *tname)
+nfsRename(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *th,
+	  char *tname)
 {
 	Nfs3TRename tx;
 	Nfs3RRename rx;
@@ -435,7 +440,7 @@ nfsRename(Auth *a, ulong tag, Nfs3Handle *h, char *name, Nfs3Handle *th, char *t
 }
 
 int
-nfsSetattr(Auth *a, ulong tag, Nfs3Handle *h, Nfs3SetAttr *attr)
+nfsSetattr(Auth *a, uint32_t tag, Nfs3Handle *h, Nfs3SetAttr *attr)
 {
 	Nfs3TSetattr tx;
 	Nfs3RSetattr rx;
@@ -458,7 +463,7 @@ nfsSetattr(Auth *a, ulong tag, Nfs3Handle *h, Nfs3SetAttr *attr)
 }
 
 int
-nfsCommit(Auth *a, ulong tag, Nfs3Handle *h)
+nfsCommit(Auth *a, uint32_t tag, Nfs3Handle *h)
 {
 	Nfs3TCommit tx;
 	Nfs3RCommit rx;
@@ -481,7 +486,8 @@ nfsCommit(Auth *a, ulong tag, Nfs3Handle *h)
 }
 
 int
-nfsLookup(Auth *a, ulong tag, Nfs3Handle *h, char *name, Nfs3Handle *nh, u1int *have, Nfs3Attr *attr)
+nfsLookup(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
+	  u1int *have, Nfs3Attr *attr)
 {
 	Nfs3TLookup tx;
 	Nfs3RLookup rx;
@@ -509,7 +515,8 @@ nfsLookup(Auth *a, ulong tag, Nfs3Handle *h, char *name, Nfs3Handle *nh, u1int *
 }
 
 int
-nfsReadDirPlus(Auth *a, ulong tag, Nfs3Handle *h, u32int count, u64int cookie, uchar **pp,
+nfsReadDirPlus(Auth *a, uint32_t tag, Nfs3Handle *h, u32int count,
+	       u64int cookie, uchar **pp,
 	u32int *pcount, int (**unpack)(uchar*, uchar*, uchar**, Nfs3Entry*), uchar **pfreeme)
 {
 	Nfs3TReadDirPlus tx;
@@ -541,7 +548,8 @@ nfsReadDirPlus(Auth *a, ulong tag, Nfs3Handle *h, u32int count, u64int cookie, u
 }
 
 int
-nfsReadDir(Auth *a, ulong tag, Nfs3Handle *h, u32int count, u64int cookie, uchar **pp,
+nfsReadDir(Auth *a, uint32_t tag, Nfs3Handle *h, u32int count,
+	   u64int cookie, uchar **pp,
 	u32int *pcount, int (**unpack)(uchar*, uchar*, uchar**, Nfs3Entry*), uchar **pfreeme)
 {
 	/* BUG: try readdirplus */
@@ -1027,7 +1035,7 @@ fsopen(Req *r)
 	Nfs3Attr attr;
 	Nfs3SetAttr sa;
 	u1int have;
-	ulong a, b;
+	uint32_t a, b;
 
 	aux = r->fid->aux;
 	a = 0;
@@ -1076,9 +1084,10 @@ fscreate(Req *r)
 	u1int have;
 	Nfs3Attr attr;
 	Nfs3Handle h;
-	ulong mode;
+	uint32_t mode;
 	uint gid;
-	int (*mk)(Auth*, ulong, Nfs3Handle*, char*, Nfs3Handle*, ulong, uint, u1int*, Nfs3Attr*);
+	int (*mk)(Auth*, uint32_t, Nfs3Handle*, char*, Nfs3Handle*,
+		  uint32_t, uint, u1int*, Nfs3Attr*);
 
 	aux = r->fid->aux;
 
@@ -1359,12 +1368,12 @@ char*
 fswalk1(Fid *fid, char *name, void *v)
 {
 	u1int have;
-	ulong tag;
+	uint32_t tag;
 	FidAux *aux;
 	Nfs3Attr attr;
 	Nfs3Handle h;
 
-	tag = *(ulong*)v;
+	tag = *(uint32_t*)v;
 	aux = fid->aux;
 
 	if(nfsLookup(aux->auth, tag, &aux->handle, name, &h, &have, &attr) < 0
@@ -1418,9 +1427,9 @@ fsflush(Req *r)
 	 */
 	or = r->oldreq;
 	if(nfscli)
-		sendul(nfscli->flushchan, (ulong)or->tag);
+		sendul(nfscli->flushchan, (uint32_t)or->tag);
 	if(mntcli)
-		sendul(mntcli->flushchan, (ulong)or->tag);
+		sendul(mntcli->flushchan, (uint32_t)or->tag);
 	respond(r, nil);
 }
 

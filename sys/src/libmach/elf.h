@@ -15,9 +15,9 @@ typedef struct {
 	ushort	type;		/* file type */
 	ushort	machine;	/* target machine */
 	int	version;	/* file version */
-	ulong	elfentry;	/* start address */
-	ulong	phoff;		/* phdr file offset */
-	ulong	shoff;		/* shdr file offset */
+	uint32_t	elfentry;	/* start address */
+	uint32_t	phoff;		/* phdr file offset */
+	uint32_t	shoff;		/* shdr file offset */
 	int	flags;		/* file flags */
 	ushort	ehsize;		/* sizeof ehdr */
 	ushort	phentsize;	/* sizeof phdr */
@@ -46,11 +46,11 @@ typedef struct {
 
 typedef struct {
 	int	type;		/* entry type */
-	ulong	offset;		/* file offset */
-	ulong	vaddr;		/* virtual address */
-	ulong	paddr;		/* physical address */
+	uint32_t	offset;		/* file offset */
+	uint32_t	vaddr;		/* virtual address */
+	uint32_t	paddr;		/* physical address */
 	int	filesz;		/* file size */
-	ulong	memsz;		/* memory size */
+	uint32_t	memsz;		/* memory size */
 	int	flags;		/* entry flags */
 	int	align;		/* memory/file alignment */
 } Phdr;
@@ -67,16 +67,16 @@ typedef struct {
 } P64hdr;
 
 typedef struct {
-	ulong	name;		/* section name */
-	ulong	type;		/* SHT_... */
-	ulong	flags;		/* SHF_... */
-	ulong	addr;		/* virtual address */
-	ulong	offset;		/* file offset */
-	ulong	size;		/* section size */
-	ulong	link;		/* misc info */
-	ulong	info;		/* misc info */
-	ulong	addralign;	/* memory alignment */
-	ulong	entsize;	/* entry size if table */
+	uint32_t	name;		/* section name */
+	uint32_t	type;		/* SHT_... */
+	uint32_t	flags;		/* SHF_... */
+	uint32_t	addr;		/* virtual address */
+	uint32_t	offset;		/* file offset */
+	uint32_t	size;		/* section size */
+	uint32_t	link;		/* misc info */
+	uint32_t	info;		/* misc info */
+	uint32_t	addralign;	/* memory alignment */
+	uint32_t	entsize;	/* entry size if table */
 } Shdr;
 
 typedef struct {

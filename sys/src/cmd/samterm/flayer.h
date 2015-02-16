@@ -25,7 +25,7 @@ struct Flayer
 	long		origin;	/* offset of first char in flayer */
 	long		p0, p1;
 	long		click;	/* time at which selection click occurred, in HZ */
-	Rune		*(*textfn)(Flayer*, long, ulong*);
+	Rune		*(*textfn)(Flayer*, long, uint32_t*);
 	int		user0;
 	void		*user1;
 	Rectangle	entire;
@@ -37,10 +37,11 @@ struct Flayer
 void	flborder(Flayer*, int);
 void	flclose(Flayer*);
 void	fldelete(Flayer*, long, long);
-void	flfp0p1(Flayer*, ulong*, ulong*);
+void	flfp0p1(Flayer*, uint32_t*, uint32_t*);
 void	flinit(Flayer*, Rectangle, Font*, Image**);
 void	flinsert(Flayer*, Rune*, Rune*, long);
-void	flnew(Flayer*, Rune *(*fn)(Flayer*, long, ulong*), int, void*);
+void	flnew(Flayer*, Rune *(*fn)(Flayer*, long, uint32_t*), int,
+		  void*);
 int	flprepare(Flayer*);
 Rectangle flrect(Flayer*, Rectangle);
 void	flrefresh(Flayer*, Rectangle, int);

@@ -217,14 +217,14 @@ struct Querylck
 struct DN
 {
 	DN	*next;		/* hash collision list */
-	ulong	magic;
+	uint32_t	magic;
 	char	*name;		/* owner */
 	RR	*rr;		/* resource records off this name */
-	ulong	referenced;	/* time last referenced */
-	ulong	lookuptime;	/* last time we tried to get a better value */
+	uint32_t	referenced;	/* time last referenced */
+	uint32_t	lookuptime;	/* last time we tried to get a better value */
 	/* refs was `char' but we've seen refs > 120, so go whole hog */
-	ulong	refs;		/* for mark and sweep */
-	ulong	ordinal;
+	uint32_t	refs;		/* for mark and sweep */
+	uint32_t	ordinal;
 	ushort	class;		/* RR class */
 	uchar	keep;		/* flag: never age this name */
 	uchar	respcode;	/* response code */
@@ -259,9 +259,9 @@ struct Sig
 {
 	Cert;
 	int	labels;
-	ulong	ttl;
-	ulong	exp;
-	ulong	incep;
+	uint32_t	ttl;
+	uint32_t	exp;
+	uint32_t	incep;
 	DN	*signer;
 };
 struct Null
@@ -284,12 +284,12 @@ struct Txt
 struct RR
 {
 	RR	*next;
-	ulong	magic;
+	uint32_t	magic;
 	DN	*owner;		/* domain that owns this resource record */
 	uintptr	pc;		/* for tracking memory allocation */
-	ulong	ttl;		/* time to live to be passed on */
-	ulong	expire;		/* time this entry expires locally */
-	ulong	marker;		/* used locally when scanning rrlists */
+	uint32_t	ttl;		/* time to live to be passed on */
+	uint32_t	expire;		/* time this entry expires locally */
+	uint32_t	marker;		/* used locally when scanning rrlists */
 	ushort	type;		/* RR type */
 	ushort	query;		/* query type is in response to */
 	uchar	auth;		/* flag: authoritative */
@@ -311,8 +311,8 @@ struct RR
 		DN	*rmb;	/* responsible maibox - minfo, soa, rp */
 		DN	*ptr;	/* pointer to domain name - ptr */
 		DN	*os;	/* operating system - hinfo */
-		ulong	pref;	/* preference value - mx */
-		ulong	local;	/* ns served from local database - ns */
+		uint32_t	pref;	/* preference value - mx */
+		uint32_t	local;	/* ns served from local database - ns */
 		ushort	port;	/* - srv */
 		uintptr	arg1;	/* arg[01] are compared to find dups in dn.c */
 	};
@@ -341,11 +341,11 @@ struct Server
  */
 struct SOA
 {
-	ulong	serial;		/* zone serial # */
-	ulong	refresh;	/* zone refresh interval */
-	ulong	retry;		/* zone retry interval */
-	ulong	expire;		/* time to expiration */
-	ulong	minttl;		/* min. time to live for any entry */
+	uint32_t	serial;		/* zone serial # */
+	uint32_t	refresh;	/* zone refresh interval */
+	uint32_t	retry;		/* zone retry interval */
+	uint32_t	expire;		/* time to expiration */
+	uint32_t	minttl;		/* min. time to live for any entry */
 
 	Server	*slaves;	/* slave servers */
 };
@@ -450,11 +450,11 @@ extern int	maxage;		/* age of oldest entry in cache (secs) */
 extern char	mntpt[];
 extern int	needrefresh;
 extern int	norecursion;
-extern ulong	now;		/* time base */
+extern uint32_t	now;		/* time base */
 extern vlong	nowns;
 extern Area	*owned;
 extern int	sendnotifies;
-extern ulong	target;
+extern uint32_t	target;
 extern int	testing;	/* test cache whenever removing a DN */
 extern char	*trace;
 extern int	traceactivity;

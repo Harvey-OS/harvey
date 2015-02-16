@@ -7,27 +7,27 @@
  * in the LICENSE file.
  */
 
-Block*	sourceBlock(Source*, ulong, int);
-Block*	_sourceBlock(Source*, ulong, int, int, ulong);
+Block*	sourceBlock(Source*, uint32_t, int);
+Block*	_sourceBlock(Source*, uint32_t, int, int, uint32_t);
 void	sourceClose(Source*);
 Source*	sourceCreate(Source*, int, int, u32int);
-ulong	sourceGetDirSize(Source*);
+uint32_t	sourceGetDirSize(Source*);
 int	sourceGetEntry(Source*, Entry*);
 uvlong	sourceGetSize(Source*);
 int	sourceLock2(Source*, Source*, int);
 int	sourceLock(Source*, int);
 char	*sourceName(Source *s);
-Source*	sourceOpen(Source*, ulong, int, int);
+Source*	sourceOpen(Source*, uint32_t, int, int);
 int	sourceRemove(Source*);
 Source*	sourceRoot(Fs*, u32int, int);
-int	sourceSetDirSize(Source*, ulong);
+int	sourceSetDirSize(Source*, uint32_t);
 int	sourceSetEntry(Source*, Entry*);
 int	sourceSetSize(Source*, uvlong);
 int	sourceTruncate(Source*);
 void	sourceUnlock(Source*);
 
 Block*	cacheAllocBlock(Cache*, int, u32int, u32int, u32int);
-Cache*	cacheAlloc(Disk*, VtSession*, ulong, int);
+Cache*	cacheAlloc(Disk*, VtSession*, uint32_t, int);
 void	cacheCountUsed(Cache*, u32int, u32int*, u32int*, u32int*);
 int	cacheDirty(Cache*);
 void	cacheFlush(Cache*, int);

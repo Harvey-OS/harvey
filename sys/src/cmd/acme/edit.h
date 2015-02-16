@@ -29,7 +29,7 @@ struct Addr
 		String	*re;
 		Addr	*left;		/* left side of , and ; */
 	};
-	ulong	num;
+	uint32_t	num;
 	Addr	*next;			/* or right side of , and ; */
 };
 

@@ -132,7 +132,7 @@ rdmsf(uchar *p)
 	return msf;
 }
 
-static ulong
+static uint32_t
 rdlba(uchar *p)
 {
 	return (p[0]<<16) | (p[1]<<8) | p[2];

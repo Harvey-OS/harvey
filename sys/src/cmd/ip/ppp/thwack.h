@@ -39,7 +39,7 @@ enum
 
 struct ThwBlock
 {
-	ulong	seq;			/* sequence number for this data */
+	uint32_t	seq;			/* sequence number for this data */
 	uchar	acked;			/* ok to use this block; the decoder has it */
 	ushort	begin;			/* time of first byte in hash */
 	uchar	*edata;			/* last byte of valid data */
@@ -59,7 +59,7 @@ struct Thwack
 
 struct UnthwBlock
 {
-	ulong	seq;			/* sequence number for this data */
+	uint32_t	seq;			/* sequence number for this data */
 	ushort	maxoff;			/* valid data in each block */
 	uchar	*data;
 };
@@ -75,8 +75,10 @@ struct Unthwack
 void	thwackinit(Thwack*);
 void	thwackcleanup(Thwack *tw);
 void	unthwackinit(Unthwack*);
-int	thwack(Thwack*, int mustadd, uchar *dst, int ndst, Block *bsrc, ulong seq, ulong stats[ThwStats]);
-void	thwackack(Thwack*, ulong seq, ulong mask);
-int	unthwack(Unthwack*, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq);
-ulong	unthwackstate(Unthwack *ut, uchar *mask);
-int	unthwackadd(Unthwack *ut, uchar *src, int nsrc, ulong seq);
+int	thwack(Thwack*, int mustadd, uchar *dst, int ndst, Block *bsrc,
+		  uint32_t seq, uint32_t stats[ThwStats]);
+void	thwackack(Thwack*, uint32_t seq, uint32_t mask);
+int	unthwack(Unthwack*, uchar *dst, int ndst, uchar *src, int nsrc,
+		    uint32_t seq);
+uint32_t	unthwackstate(Unthwack *ut, uchar *mask);
+int	unthwackadd(Unthwack *ut, uchar *src, int nsrc, uint32_t seq);

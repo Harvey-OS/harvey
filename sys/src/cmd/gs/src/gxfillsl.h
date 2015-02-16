@@ -154,7 +154,7 @@ TEMPLATE_spot_into_scanlines (line_list *ll, fixed band_mask)
 		 ) {
 		int x0 = pcr->rmin, x1 = pcr->rmax;
 
-		if_debug4('Q', "[Qr]draw 0x%lx: [%d,%d),%d\n", (ulong)pcr,
+		if_debug4('Q', "[Qr]draw 0x%lx: [%d,%d),%d\n", (uint32_t)pcr,
 			  x0, x1, y0);
 		VD_RECT(x0, y0, x1 - x0, 1, VD_TRAP_COLOR);
 		code = LOOP_FILL_RECTANGLE_DIRECT(&fo, x0, y0, x1 - x0, 1);

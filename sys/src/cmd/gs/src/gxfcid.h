@@ -78,7 +78,7 @@ typedef struct gs_font_cid0_s gs_font_cid0;
 #define MAX_FDBytes 4
 typedef struct gs_font_cid0_data_s {
     gs_font_cid_data common;
-    ulong CIDMapOffset;		/* optional, for standard glyph_data */
+    uint32_t CIDMapOffset;		/* optional, for standard glyph_data */
     gs_font_type1 **FDArray;
     uint FDArray_size;
     int FDBytes;		/* optional, for standard glyph_data */

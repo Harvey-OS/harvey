@@ -36,7 +36,7 @@ typedef struct Xfile	Xfile;
 
 struct String
 {
-	ulong	n;
+	uint32_t	n;
 	char *	s;
 };
 
@@ -56,43 +56,43 @@ struct Procmap
 
 struct Auth
 {
-	ulong	flavor;
-	ulong	count;
+	uint32_t	flavor;
+	uint32_t	count;
 	void *	data;
 };
 
 struct Authunix
 {
-	ulong	stamp;
+	uint32_t	stamp;
 	String	mach;
-	ulong	uid;
-	ulong	gid;
+	uint32_t	uid;
+	uint32_t	gid;
 	int	gidlen;
-	ulong	gids[10];
+	uint32_t	gids[10];
 };
 
 struct Accept
 {
 	Auth	averf;
-	ulong	astat;
+	uint32_t	astat;
 	union{
 		void *	results;	/* SUCCESS */
 		struct{			/* PROG_MISMATCH */
-			ulong	plow;	/* acceptable version numbers */
-			ulong	phigh;
+			uint32_t	plow;	/* acceptable version numbers */
+			uint32_t	phigh;
 		};
 	};
 };
 
 struct Reject
 {
-	ulong	rstat;
+	uint32_t	rstat;
 	union{
 		struct{			/* RPC_MISMATCH */
-			ulong	rlow;	/* acceptable  rpc version numbers */
-			ulong	rhigh;
+			uint32_t	rlow;	/* acceptable  rpc version numbers */
+			uint32_t	rhigh;
 		};
-		ulong	authstat;	/* AUTH_ERROR */
+		uint32_t	authstat;	/* AUTH_ERROR */
 	};
 };
 
@@ -100,21 +100,21 @@ struct Rpccall
 {
 	/* corresponds to Udphdr */
 	uchar	prefix0[12];
-	ulong	host;		/* ipv4 subset: prefixed to RPC message */
+	uint32_t	host;		/* ipv4 subset: prefixed to RPC message */
 	uchar	prefix1[12];
-	ulong	lhost;		/* ipv4 subset: prefixed to RPC message */
+	uint32_t	lhost;		/* ipv4 subset: prefixed to RPC message */
 	/* ignore ifcaddr */
-	ulong	port;		/* prefixed to RPC message */
-	ulong	lport;		/* prefixed to RPC message */
+	uint32_t	port;		/* prefixed to RPC message */
+	uint32_t	lport;		/* prefixed to RPC message */
 
-	ulong	xid;		/* transaction id */
-	ulong	mtype;		/* CALL or REPLY */
+	uint32_t	xid;		/* transaction id */
+	uint32_t	mtype;		/* CALL or REPLY */
 	union{
 		struct{		/* CALL */
-			ulong	rpcvers;	/* must be equal to two (2) */
-			ulong	prog;		/* program number */
-			ulong	vers;		/* program version */
-			ulong	proc;		/* procedure number */
+			uint32_t	rpcvers;	/* must be equal to two (2) */
+			uint32_t	prog;		/* program number */
+			uint32_t	vers;		/* program version */
+			uint32_t	proc;		/* procedure number */
 			Auth	cred;		/* authentication credentials */
 			Auth	verf;		/* authentication verifier */
 			Unixidmap *up;
@@ -122,7 +122,7 @@ struct Rpccall
 			void *	args;		/* procedure-specific */
 		};
 		struct{		/* REPLY */
-			ulong	stat;		/* MSG_ACCEPTED or MSG_DENIED */
+			uint32_t	stat;		/* MSG_ACCEPTED or MSG_DENIED */
 			union{
 				Accept;
 				Reject;
@@ -135,23 +135,23 @@ struct Rpccache
 {
 	Rpccache *prev;
 	Rpccache *next;
-	ulong	host;
-	ulong	port;
-	ulong	xid;
+	uint32_t	host;
+	uint32_t	port;
+	uint32_t	xid;
 	int	n;
 	uchar	data[4];
 };
 
 struct Sattr
 {
-	ulong	mode;
-	ulong	uid;
-	ulong	gid;
-	ulong	size;
-	ulong	atime;		/* sec's */
-	ulong	ausec;		/* microsec's */
-	ulong	mtime;
-	ulong	musec;
+	uint32_t	mode;
+	uint32_t	uid;
+	uint32_t	gid;
+	uint32_t	size;
+	uint32_t	atime;		/* sec's */
+	uint32_t	ausec;		/* microsec's */
+	uint32_t	mtime;
+	uint32_t	musec;
 };
 
 struct Strnode
@@ -191,7 +191,7 @@ struct Unixscmap
 {
 	Unixscmap *next;
 	char *	server;
-	ulong	clientip;
+	uint32_t	clientip;
 	Unixidmap *map;
 };
 
@@ -222,8 +222,8 @@ struct Xfid
 	char *	uid;
 	Fid *	urfid;
 	Fid *	opfid;
-	ulong	mode;		/* open mode, if opfid is non-zero */
-	ulong	offset;
+	uint32_t	mode;		/* open mode, if opfid is non-zero */
+	uint32_t	offset;
 };
 
 struct Fid

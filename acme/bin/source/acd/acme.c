@@ -40,7 +40,7 @@ skip(char *s, char *cmd)
  * if q0, q1 are non-nil, set them to the addr of the string.
  */
 int
-findplay(Window *w, char *s, ulong *q0, ulong *q1)
+findplay(Window *w, char *s, uint32_t *q0, uint32_t *q1)
 {
 	char xbuf[25];
 	if(w->data < 0)
@@ -69,7 +69,7 @@ int
 setplaytime(Window *w, char *new)
 {
 	char buf[40];
-	ulong q0, q1;
+	uint32_t q0, q1;
 
 return 1;
 	if(!findplay(w, PLAYSTRING, &q0, &q1))
@@ -93,7 +93,8 @@ return 1;
  * (presumably a track number).
  */
 static int
-unmarkplay(Window *w, char *buf, int n, ulong *q0, ulong *q1, ulong *qbegin)
+unmarkplay(Window *w, char *buf, int n, uint32_t *q0, uint32_t *q1,
+	   uint32_t *qbegin)
 {
 	char xbuf[24];
 
@@ -121,7 +122,7 @@ unmarkplay(Window *w, char *buf, int n, ulong *q0, ulong *q1, ulong *qbegin)
 }
 
 int
-markplay(Window *w, ulong q0)
+markplay(Window *w, uint32_t q0)
 {
 	char buf[20];
 
@@ -219,7 +220,7 @@ void
 advancetrack(Drive *d, Window *w)
 {
 	int n;
-	ulong q0, q1, qnext;
+	uint32_t q0, q1, qnext;
 	char buf[20];
 
 	q0 = q1 = 0;
@@ -259,7 +260,7 @@ acmeevent(Drive *d, Window *w, Event *e)
 	Event *ea, *e2, *eq;
 	char *s, *t, *buf;
 	int n, na;
-	ulong q0, q1;
+	uint32_t q0, q1;
 
 	switch(e->c1){	/* origin of action */
 	default:

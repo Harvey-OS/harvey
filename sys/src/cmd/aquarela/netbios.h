@@ -94,12 +94,14 @@ struct NbnsMessageResource {
 	NbName name;
 	ushort type;
 	ushort class;
-	ulong ttl;
+	uint32_t ttl;
 	ushort rdlength;
 	uchar *rdata;
 	NbnsMessageResource *next;
 };
-NbnsMessageResource *nbnsmessageresourcenew(NbName name, ushort type, ushort class, ulong ttl, int rdcount, uchar *rdata);
+NbnsMessageResource *nbnsmessageresourcenew(NbName name, ushort type, ushort class,
+					    uint32_t ttl, int rdcount,
+					    uchar *rdata);
 
 typedef struct NbnsMessage {
 	ushort id;
@@ -127,7 +129,9 @@ int nbnsconvS2M(NbnsMessage *s, uchar *ap, int nap);
 
 
 NbnsMessage *nbnsmessagenamequeryrequestnew(ushort id, int broadcast, NbName name);
-NbnsMessage *nbnsmessagenameregistrationrequestnew(ushort id, int broadcast, NbName name, ulong ttl, uchar *ipaddr);
+NbnsMessage *nbnsmessagenameregistrationrequestnew(ushort id, int broadcast, NbName name,
+						   uint32_t ttl,
+						   uchar *ipaddr);
 
 typedef struct NbnsTransaction NbnsTransaction;
 
@@ -138,8 +142,10 @@ struct NbnsTransaction {
 };
 ushort nbnsnextid(void);
 
-int nbnsfindname(uchar *serveripaddr, NbName name, uchar *ipaddr, ulong *ttlp);
-int nbnsaddname(uchar *serveripaddr, NbName name, ulong ttl, uchar *ipaddr);
+int nbnsfindname(uchar *serveripaddr, NbName name, uchar *ipaddr,
+		 uint32_t *ttlp);
+int nbnsaddname(uchar *serveripaddr, NbName name, uint32_t ttl,
+		uchar *ipaddr);
 
 NbnsTransaction *nbnstransactionnew(NbnsMessage *request, uchar *ipaddr);
 void nbnstransactionfree(NbnsTransaction **tp);
@@ -152,7 +158,7 @@ struct NbnsAlarm {
 	NbnsAlarm *next;
 };
 
-void nbnsalarmset(NbnsAlarm *a, ulong millisec);
+void nbnsalarmset(NbnsAlarm *a, uint32_t millisec);
 void nbnsalarmcancel(NbnsAlarm *a);
 void nbnsalarmfree(NbnsAlarm **ap);
 NbnsAlarm *nbnsalarmnew(void);
@@ -183,7 +189,7 @@ int nbssgatherwrite(NbSession *s, NbScatterGather *a);
 long nbssscatterread(NbSession *, NbScatterGather *a);
 int nbsswrite(NbSession *s, void *buf, long n);
 long nbssread(NbSession *s, void *buf, long n);
-void *nbemalloc(ulong);
+void *nbemalloc(uint32_t);
 
 int nbnameresolve(NbName name, uchar *ipaddr);
 
@@ -243,7 +249,7 @@ int nbnametablefind(NbName name, int add);
 int nbnameisany(NbName name);
 
 int nbremotenametablefind(NbName name, uchar *ipaddr);
-int nbremotenametableadd(NbName name, uchar *ipaddr, ulong ttl);
+int nbremotenametableadd(NbName name, uchar *ipaddr, uint32_t ttl);
 
 typedef struct NbGlobals {
 	uchar myipaddr[IPaddrlen];

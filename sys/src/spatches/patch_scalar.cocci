@@ -66,9 +66,4 @@ typedef u8int;
 -u8int
 +uint8_t
 
-@@
-typedef int8_t;
-@@
--char
-+int8_t
 

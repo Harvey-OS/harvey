@@ -28,7 +28,7 @@ typedef	struct	File	File;
 typedef	struct	Filsys	Filsys;
 typedef	struct	Filta	Filta;
 typedef	struct	Filter	Filter;
-typedef		ulong	Float;
+typedef		uint32_t	Float;
 typedef	struct	Hiob	Hiob;
 typedef	struct	Iobuf	Iobuf;
 typedef	struct	P9call	P9call;
@@ -124,8 +124,8 @@ struct	Device
  */
 struct	Filter
 {
-	ulong	count;			/* count and old count kept separate */
-	ulong	oldcount;		/* so interrput can read them */
+	uint32_t	count;			/* count and old count kept separate */
+	uint32_t	oldcount;		/* so interrput can read them */
 	Float	filter[3];		/* filters for 1m 10m 100m */ 
 };
 

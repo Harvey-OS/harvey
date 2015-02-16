@@ -37,7 +37,7 @@
  * procedure to ask for, or offer to provide, data in more than one format.
  */
 
-typedef ulong gx_bitmap_format_t;
+typedef uint32_t gx_bitmap_format_t;
 
     /*
      * Define the supported color space alternatives.

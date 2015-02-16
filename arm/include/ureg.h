@@ -8,28 +8,28 @@
  */
 
 typedef struct Ureg {
-	ulong	r0;
-	ulong	r1;
-	ulong	r2;
-	ulong	r3;
-	ulong	r4;
-	ulong	r5;
-	ulong	r6;
-	ulong	r7;
-	ulong	r8;
-	ulong	r9;
-	ulong	r10;
-	ulong	r11;
-	ulong	r12;	/* sb */
+	uint32_t	r0;
+	uint32_t	r1;
+	uint32_t	r2;
+	uint32_t	r3;
+	uint32_t	r4;
+	uint32_t	r5;
+	uint32_t	r6;
+	uint32_t	r7;
+	uint32_t	r8;
+	uint32_t	r9;
+	uint32_t	r10;
+	uint32_t	r11;
+	uint32_t	r12;	/* sb */
 	union {
-		ulong	r13;
-		ulong	sp;
+		uint32_t	r13;
+		uint32_t	sp;
 	};
 	union {
-		ulong	r14;
-		ulong	link;
+		uint32_t	r14;
+		uint32_t	link;
 	};
-	ulong	type;	/* of exception */
-	ulong	psr;
-	ulong	pc;	/* interrupted addr */
+	uint32_t	type;	/* of exception */
+	uint32_t	psr;
+	uint32_t	pc;	/* interrupted addr */
 } Ureg;

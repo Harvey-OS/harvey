@@ -9,23 +9,23 @@
 
 struct Ureg
 {
-	ulong	status;
+	uint32_t	status;
 	long	pc;
 	union
 	{
 		struct
 		{
 			long	sp;	/* r29 */
-			ulong	cause;
+			uint32_t	cause;
 		};
 		struct
 		{
 			long	usp;	/* r29 */
-			ulong	ucause;
+			uint32_t	ucause;
 		};
 	};
-	ulong	badvaddr;
-	ulong	tlbvirt;
+	uint32_t	badvaddr;
+	uint32_t	tlbvirt;
 
 	long	hhi;	long	hi;
 	long	hlo;	long	lo;

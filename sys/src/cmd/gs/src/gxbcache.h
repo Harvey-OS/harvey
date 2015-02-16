@@ -117,7 +117,7 @@ void gx_bits_cache_chunk_init(gx_bits_cache_chunk *, byte *, uint);
 /* Attempt to allocate an entry.  If successful, set *pcbh and return 0. */
 /* If there isn't enough room, set *pcbh to an entry requiring freeing, */
 /* or to 0 if we are at the end of the chunk, and return -1. */
-int gx_bits_cache_alloc(gx_bits_cache *, ulong, gx_cached_bits_head **);
+int gx_bits_cache_alloc(gx_bits_cache *, uint32_t, gx_cached_bits_head **);
 
 /* Shorten an entry by a given amount. */
 void gx_bits_cache_shorten(gx_bits_cache *, gx_cached_bits_head *,

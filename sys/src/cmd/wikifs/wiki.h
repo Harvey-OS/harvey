@@ -52,7 +52,7 @@ struct Wdoc {
 	char *author;
 	char *comment;
 	int conflict;
-	ulong time;
+	uint32_t time;
 	Wpage *wtxt;
 };
 
@@ -86,8 +86,8 @@ struct Map {
 	Qid qid;
 };
 
-void *erealloc(void*, ulong);
-void *emalloc(ulong);
+void *erealloc(void*, uint32_t);
+void *emalloc(uint32_t);
 char *estrdup(char*);
 char *estrdupn(char*, int);
 char *strcondense(char*, int);
@@ -113,7 +113,7 @@ int allocnum(char*, int);
 void freepage(Wpage*);
 int nametonum(char*);
 char *numtoname(int);
-int writepage(int, ulong, String*, char*);
+int writepage(int, uint32_t, String*, char*);
 void voidcache(int);
 
 void closemap(Map*);

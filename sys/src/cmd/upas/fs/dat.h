@@ -126,7 +126,7 @@ extern Mailboxinit	planbvmbox;
 char*		syncmbox(Mailbox*, int);
 char*		geterrstr(void);
 void*		emalloc(ulong);
-void*		erealloc(void*, ulong);
+void*		erealloc(void*, uint32_t);
 Message*	newmessage(Message*);
 void		delmessage(Mailbox*, Message*);
 void		delmessages(int, char**);
@@ -216,15 +216,15 @@ typedef struct Hash Hash;
 struct Hash {
 	Hash	*next;
 	char	*name;
-	ulong	ppath;
+	uint32_t	ppath;
 	Qid	qid;
 	Mailbox	*mb;
 	Message	*m;
 };
 
-Hash	*hlook(ulong, char*);
-void	henter(ulong, char*, Qid, Message*, Mailbox*);
-void	hfree(ulong, char*);
+Hash	*hlook(uint32_t, char*);
+void	henter(uint32_t, char*, Qid, Message*, Mailbox*);
+void	hfree(uint32_t, char*);
 
-ulong msgallocd, msgfreed;
+uint32_t msgallocd, msgfreed;
 

@@ -40,5 +40,5 @@ void	writerr(SConn*, char*);
 int	readstr(SConn*, char*);
 
 void	*emalloc(ulong);		/* dies on failure; clears memory */
-void	*erealloc(void*, ulong);
+void	*erealloc(void*, uint32_t);
 char	*estrdup(char*);

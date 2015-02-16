@@ -185,14 +185,14 @@ enum
 #define PLONG(p,v)	((p)[0]=(v),(p)[1]=(v)>>8,(p)[2]=(v)>>16,(p)[3]=(v)>>24)
 
 struct Dosptr{
-	ulong	addr;		/* sector & entry within of file's directory entry */
-	ulong	offset;
-	ulong	paddr;		/* of parent's directory entry */
-	ulong	poffset;
-	ulong	iclust;		/* ordinal within file */
-	ulong	clust;
-	ulong	naddr;		/* next block in directory (for writing multi entry elements) */
-	ulong	prevaddr;
+	uint32_t	addr;		/* sector & entry within of file's directory entry */
+	uint32_t	offset;
+	uint32_t	paddr;		/* of parent's directory entry */
+	uint32_t	poffset;
+	uint32_t	iclust;		/* ordinal within file */
+	uint32_t	clust;
+	uint32_t	naddr;		/* next block in directory (for writing multi entry elements) */
+	uint32_t	prevaddr;
 	Iosect *p;
 	Dosdir *d;
 };
@@ -217,7 +217,7 @@ struct Xfs{
 struct Xfile{
 	Xfile	*next;		/* in hash bucket */
 	long	fid;
-	ulong	flags;
+	uint32_t	flags;
 	Qid	qid;
 	Xfs	*xf;
 	Dosptr	*ptr;

@@ -9,45 +9,45 @@
 
 struct Ureg
 {
-	ulong	status;
-	ulong	pc;
+	uint32_t	status;
+	uint32_t	pc;
 	union{
-		ulong	sp;		/* r29 */
-		ulong	usp;		/* r29 */
+		uint32_t	sp;		/* r29 */
+		uint32_t	usp;		/* r29 */
 	};
-	ulong	cause;
-	ulong	badvaddr;
-	ulong	tlbvirt;
-	ulong	hi;
-	ulong	lo;
-	ulong	r31;
-	ulong	r30;
-	ulong	r28;
-	ulong	r27;		/* unused */
-	ulong	r26;		/* unused */
-	ulong	r25;
-	ulong	r24;
-	ulong	r23;
-	ulong	r22;
-	ulong	r21;
-	ulong	r20;
-	ulong	r19;
-	ulong	r18;
-	ulong	r17;
-	ulong	r16;
-	ulong	r15;
-	ulong	r14;
-	ulong	r13;
-	ulong	r12;
-	ulong	r11;
-	ulong	r10;
-	ulong	r9;
-	ulong	r8;
-	ulong	r7;
-	ulong	r6;
-	ulong	r5;
-	ulong	r4;
-	ulong	r3;
-	ulong	r2;
-	ulong	r1;
+	uint32_t	cause;
+	uint32_t	badvaddr;
+	uint32_t	tlbvirt;
+	uint32_t	hi;
+	uint32_t	lo;
+	uint32_t	r31;
+	uint32_t	r30;
+	uint32_t	r28;
+	uint32_t	r27;		/* unused */
+	uint32_t	r26;		/* unused */
+	uint32_t	r25;
+	uint32_t	r24;
+	uint32_t	r23;
+	uint32_t	r22;
+	uint32_t	r21;
+	uint32_t	r20;
+	uint32_t	r19;
+	uint32_t	r18;
+	uint32_t	r17;
+	uint32_t	r16;
+	uint32_t	r15;
+	uint32_t	r14;
+	uint32_t	r13;
+	uint32_t	r12;
+	uint32_t	r11;
+	uint32_t	r10;
+	uint32_t	r9;
+	uint32_t	r8;
+	uint32_t	r7;
+	uint32_t	r6;
+	uint32_t	r5;
+	uint32_t	r4;
+	uint32_t	r3;
+	uint32_t	r2;
+	uint32_t	r1;
 };

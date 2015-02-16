@@ -34,7 +34,7 @@
  * string, but because of composite fonts, character codes must be
  * at least 32 bits.
  */
-typedef ulong gs_char;
+typedef uint32_t gs_char;
 
 #define GS_NO_CHAR ((gs_char)~0L)
 /* Backward compatibility */
@@ -81,7 +81,7 @@ typedef ulong gs_char;
  * "name", not an integer), but should not make assumptions about whether
  * GS_NO_GLYPH is less than or greater than gs_c_min_std_encoding_glyph.
  */
-typedef ulong gs_glyph;
+typedef uint32_t gs_glyph;
 
 #define GS_NO_GLYPH ((gs_glyph)0x7fffffff)
 #if arch_sizeof_long > 4

@@ -17,11 +17,11 @@
 /*
  * mem routines
  */
-extern	void*	memccpy(void*, void*, int, ulong);
-extern	void*	memset(void*, int, ulong);
-extern	int	memcmp(void*, void*, ulong);
-extern	void*	memmove(void*, void*, ulong);
-extern	void*	memchr(void*, int, ulong);
+extern	void*	memccpy(void*, void*, int, uint32_t);
+extern	void*	memset(void*, int, uint32_t);
+extern	int	memcmp(void*, void*, uint32_t);
+extern	void*	memmove(void*, void*, uint32_t);
+extern	void*	memchr(void*, int, uint32_t);
 
 /*
  * string routines
@@ -63,16 +63,16 @@ extern	char*	utfrune(char*, long);
 /*
  * malloc
  */
-extern	void*	malloc(ulong);
-extern	void*	mallocz(ulong, int);
+extern	void*	malloc(uint32_t);
+extern	void*	mallocz(uint32_t, int);
 extern	void	free(void*);
-extern	ulong	msize(void*);
-extern	void*	mallocalign(ulong, ulong, long, ulong);
-extern	void	setmalloctag(void*, ulong);
-extern	void	setrealloctag(void*, ulong);
-extern	ulong	getmalloctag(void*);
-extern	ulong	getrealloctag(void*);
-extern	void*	realloc(void *, ulong);
+extern	uint32_t	msize(void*);
+extern	void*	mallocalign(uint32_t, uint32_t, long, uint32_t);
+extern	void	setmalloctag(void*, uint32_t);
+extern	void	setrealloctag(void*, uint32_t);
+extern	uint32_t	getmalloctag(void*);
+extern	uint32_t	getrealloctag(void*);
+extern	void*	realloc(void *, uint32_t);
 
 /*
  * print routines
@@ -90,7 +90,7 @@ struct Fmt{
 	int	r;			/* % format Rune */
 	int	width;
 	int	prec;
-	ulong	flags;
+	uint32_t	flags;
 };
 
 enum {
@@ -187,7 +187,7 @@ extern	uintptr	getcallerpc(void*);
 extern	int	getfields(char*, char**, int, int, char*);
 extern	int	gettokens(char *, char **, int, char *);
 extern	long	strtol(char*, char**, int);
-extern	ulong	strtoul(char*, char**, int);
+extern	uint32_t	strtoul(char*, char**, int);
 extern	vlong	strtoll(char*, char**, int);
 extern	uvlong	strtoull(char*, char**, int);
 extern	void	qsort(void*, long, long, int (*)(void*, void*));
@@ -244,7 +244,7 @@ typedef struct Waitmsg	Waitmsg;
 struct Qid
 {
 	uvlong	path;
-	ulong	vers;
+	uint32_t	vers;
 	uchar	type;
 };
 
@@ -254,9 +254,9 @@ struct Dir {
 	uint	dev;	/* server subtype */
 	/* file data */
 	Qid	qid;	/* unique id from server */
-	ulong	mode;	/* permissions */
-	ulong	atime;	/* last read time */
-	ulong	mtime;	/* last write time */
+	uint32_t	mode;	/* permissions */
+	uint32_t	atime;	/* last read time */
+	uint32_t	mtime;	/* last write time */
 	vlong	length;	/* file length: see <u.h> */
 	char	*name;	/* last element of path */
 	char	*uid;	/* owner name */
@@ -274,7 +274,7 @@ struct OWaitmsg
 struct Waitmsg
 {
 	int	pid;		/* of loved one */
-	ulong	time[3];	/* of loved one and descendants */
+	uint32_t	time[3];	/* of loved one and descendants */
 	char	msg[ERRMAX];	/* actually variable-size in user mode */
 };
 
@@ -286,7 +286,7 @@ typedef struct Zio Zio;
 struct Zio
 {
 	void*	data;
-	ulong	size;
+	uint32_t	size;
 };
 
 extern	char	etext[];

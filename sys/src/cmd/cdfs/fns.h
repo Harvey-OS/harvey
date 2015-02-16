@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-Buf*	bopen(long (*)(Buf*, void*, long, ulong), int, int, int);
+Buf*	bopen(long (*)(Buf*, void*, long, uint32_t), int, int, int);
 long	bread(Buf*, void*, long, vlong);
 void	bterm(Buf*);
 long	bufread(Otrack*, void*, long, vlong);
 long	bufwrite(Otrack*, void*, long);
 long	bwrite(Buf*, void*, long);
 char*	disctype(Drive *drive);
-void	*emalloc(ulong);
+void	*emalloc(uint32_t);
 char*	geterrstr(void);
 Drive*	mmcprobe(Scsi*);

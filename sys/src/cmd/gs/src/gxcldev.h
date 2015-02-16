@@ -264,7 +264,7 @@ struct gx_clist_state_s {
     /* Following are only used when writing */
     cmd_list list;		/* list of commands for band */
     /* Following are set when writing, read when reading */
-    ulong cost;			/* cost of rendering the band */
+    uint32_t cost;			/* cost of rendering the band */
     gx_colors_used_t colors_used;
 };
 

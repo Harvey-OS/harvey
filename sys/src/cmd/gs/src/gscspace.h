@@ -286,7 +286,7 @@ typedef struct gs_device_n_map_s gs_device_n_map;
  * Non-base direct color spaces: Separation and DeviceN.
  * These include a base alternative color space.
  */
-typedef ulong gs_separation_name;	/* BOGUS */
+typedef uint32_t gs_separation_name;	/* BOGUS */
 
 /*
  * Define callback function for graphics library to ask

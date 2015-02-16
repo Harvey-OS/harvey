@@ -58,8 +58,8 @@ typedef struct Btail	Btail;
 typedef struct Free	Free;
 
 struct Bhdr {
-	ulong	magic;
-	ulong	size;
+	uint32_t	magic;
+	uint32_t	size;
 };
 enum {
 	NOT_MAGIC = 0xdeadfa11,
@@ -80,7 +80,7 @@ struct Btail {
 	uchar	magic0;
 	uchar	datasize[2];
 	uchar	magic1;
-	ulong	size;	/* same as Bhdr->size */
+	uint32_t	size;	/* same as Bhdr->size */
 };
 #define B2T(b)	((Btail*)((uchar*)(b)+(b)->size-sizeof(Btail)))
 #define B2PT(b) ((Btail*)((uchar*)(b)-sizeof(Btail)))
@@ -112,8 +112,8 @@ struct Arena {
 			Bhdr;
 	Arena*	aup;
 	Arena*	down;
-	ulong	asize;
-	ulong	pad;	/* to a multiple of 8 bytes */
+	uint32_t	asize;
+	uint32_t	pad;	/* to a multiple of 8 bytes */
 };
 enum {
 	ARENA_MAGIC = 0xC0A1E5CE + 1,
@@ -144,18 +144,18 @@ static Alloc*	D2B(Pool*, void*);
 static Arena*	arenamerge(Pool*, Arena*, Arena*);
 static void		blockcheck(Pool*, Bhdr*);
 static Alloc*	blockmerge(Pool*, Bhdr*, Bhdr*);
-static Alloc*	blocksetdsize(Pool*, Alloc*, ulong);
-static Bhdr*	blocksetsize(Bhdr*, ulong);
-static ulong	bsize2asize(Pool*, ulong);
-static ulong	dsize2bsize(Pool*, ulong);
-static ulong	getdsize(Alloc*);
-static Alloc*	trim(Pool*, Alloc*, ulong);
+static Alloc*	blocksetdsize(Pool*, Alloc*, uint32_t);
+static Bhdr*	blocksetsize(Bhdr*, uint32_t);
+static uint32_t	bsize2asize(Pool*, uint32_t);
+static uint32_t	dsize2bsize(Pool*, uint32_t);
+static uint32_t	getdsize(Alloc*);
+static Alloc*	trim(Pool*, Alloc*, uint32_t);
 static Free*	listadd(Free*, Free*);
 static void		logstack(Pool*);
-static Free**	ltreewalk(Free**, ulong);
-static void		memmark(void*, int, ulong);
+static Free**	ltreewalk(Free**, uint32_t);
+static void		memmark(void*, int, uint32_t);
 static Free*	pooladd(Pool*, Alloc*);
-static void*	poolallocl(Pool*, ulong);
+static void*	poolallocl(Pool*, uint32_t);
 static void		poolcheckl(Pool*);
 static void		poolcheckarena(Pool*, Arena*);
 static int		poolcompactl(Pool*);
@@ -163,12 +163,12 @@ static Alloc*	pooldel(Pool*, Free*);
 static void		pooldumpl(Pool*);
 static void		pooldumparena(Pool*, Arena*);
 static void		poolfreel(Pool*, void*);
-static void		poolnewarena(Pool*, ulong);
-static void*	poolreallocl(Pool*, void*, ulong);
+static void		poolnewarena(Pool*, uint32_t);
+static void*	poolreallocl(Pool*, void*, uint32_t);
 static Free*	treedelete(Free*, Free*);
 static Free*	treeinsert(Free*, Free*);
-static Free*	treelookup(Free*, ulong);
-static Free*	treelookupgt(Free*, ulong);
+static Free*	treelookup(Free*, uint32_t);
+static Free*	treelookupgt(Free*, uint32_t);
 
 /*
  * Debugging
@@ -236,7 +236,7 @@ checktree(Free *t, int a, int b)
 
 /* ltreewalk: return address of pointer to node of size == size */
 static Free**
-ltreewalk(Free **t, ulong size)
+ltreewalk(Free **t, uint32_t size)
 {
 	assert(t != nil /* ltreewalk */);
 
@@ -257,7 +257,7 @@ ltreewalk(Free **t, ulong size)
 
 /* treelookup: find node in tree with size == size */
 static Free*
-treelookup(Free *t, ulong size)
+treelookup(Free *t, uint32_t size)
 {
 	return *ltreewalk(&t, size);
 }
@@ -315,7 +315,7 @@ treedelete(Free *tree, Free *node)
 
 /* treelookupgt: find smallest node in tree with size >= size */
 static Free*
-treelookupgt(Free *t, ulong size)
+treelookupgt(Free *t, uint32_t size)
 {
 	Free *lastgood;	/* last node we saw that was big enough */
 
@@ -437,8 +437,8 @@ pooldel(Pool *p, Free *node)
  * Block maintenance 
  */
 /* block allocation */
-static ulong
-dsize2bsize(Pool *p, ulong sz)
+static uint32_t
+dsize2bsize(Pool *p, uint32_t sz)
 {
 	sz += sizeof(Bhdr)+sizeof(Btail);
 	if(sz < p->minblock)
@@ -449,8 +449,8 @@ dsize2bsize(Pool *p, ulong sz)
 	return sz;
 }
 
-static ulong
-bsize2asize(Pool *p, ulong sz)
+static uint32_t
+bsize2asize(Pool *p, uint32_t sz)
 {
 	sz += sizeof(Arena)+sizeof(Btail);
 	if(sz < p->minarena)
@@ -474,7 +474,7 @@ blockmerge(Pool *pool, Bhdr *a, Bhdr *b)
 		pooldel(pool, (Free*)b);
 
 	t = B2T(a);
-	t->size = (ulong)Poison;
+	t->size = (uint32_t)Poison;
 	t->magic0 = NOT_MAGIC;
 	t->magic1 = NOT_MAGIC;
 	PSHORT(t->datasize, NOT_MAGIC);
@@ -493,7 +493,7 @@ blockmerge(Pool *pool, Bhdr *a, Bhdr *b)
 
 /* blocksetsize: set the total size of a block, fixing tail pointers */
 static Bhdr*
-blocksetsize(Bhdr *b, ulong bsize)
+blocksetsize(Bhdr *b, uint32_t bsize)
 {
 	Btail *t;
 
@@ -508,7 +508,7 @@ blocksetsize(Bhdr *b, ulong bsize)
 }
 
 /* getdsize: return the requested data size for an allocated block */
-static ulong
+static uint32_t
 getdsize(Alloc *b)
 {
 	Btail *t;
@@ -518,7 +518,7 @@ getdsize(Alloc *b)
 
 /* blocksetdsize: set the user data size of a block */
 static Alloc*
-blocksetdsize(Pool *p, Alloc *b, ulong dsize)
+blocksetdsize(Pool *p, Alloc *b, uint32_t dsize)
 {
 	Btail *t;
 	uchar *q, *eq;
@@ -534,16 +534,16 @@ blocksetdsize(Pool *p, Alloc *b, ulong dsize)
 	if(eq > q+4)
 		eq = q+4;
 	for(; q<eq; q++)
-		*q = datamagic[((ulong)(uintptr)q)%nelem(datamagic)];
+		*q = datamagic[((uint32_t)(uintptr)q)%nelem(datamagic)];
 
 	return b;
 }
 
 /* trim: trim a block down to what is needed to hold dsize bytes of user data */
 static Alloc*
-trim(Pool *p, Alloc *b, ulong dsize)
+trim(Pool *p, Alloc *b, uint32_t dsize)
 {
-	ulong extra, bsize;
+	uint32_t extra, bsize;
 	Alloc *frag;
 
 	bsize = dsize2bsize(p, dsize);
@@ -568,7 +568,7 @@ trim(Pool *p, Alloc *b, ulong dsize)
 }
 
 static Alloc*
-freefromfront(Pool *p, Alloc *b, ulong skip)
+freefromfront(Pool *p, Alloc *b, uint32_t skip)
 {
 	Alloc *bb;
 
@@ -591,7 +591,7 @@ freefromfront(Pool *p, Alloc *b, ulong skip)
 
 /* arenasetsize: set arena size, updating tail */
 static void
-arenasetsize(Arena *a, ulong asize)
+arenasetsize(Arena *a, uint32_t asize)
 {
 	Bhdr *atail;
 
@@ -603,7 +603,7 @@ arenasetsize(Arena *a, ulong asize)
 
 /* poolnewarena: allocate new arena */
 static void
-poolnewarena(Pool *p, ulong asize)
+poolnewarena(Pool *p, uint32_t asize)
 {
 	Arena *a;
 	Arena *ap, *lastap;
@@ -663,7 +663,7 @@ poolnewarena(Pool *p, ulong asize)
 /* blockresize: grow a block to encompass space past its end, possibly by */
 /* trimming it into two different blocks. */
 static void
-blockgrow(Pool *p, Bhdr *b, ulong nsize)
+blockgrow(Pool *p, Bhdr *b, uint32_t nsize)
 {
 	if(b->magic == FREE_MAGIC) {
 		Alloc *a;
@@ -679,7 +679,7 @@ blockgrow(Pool *p, Bhdr *b, ulong nsize)
 		pooladd(p, a);
 	} else {
 		Alloc *a;
-		ulong dsize;
+		uint32_t dsize;
 
 		a = (Alloc*)b;
 		dsize = getdsize(a);
@@ -728,15 +728,15 @@ arenamerge(Pool *p, Arena *bot, Arena *top)
 static void
 dumpblock(Pool *p, Bhdr *b)
 {
-	ulong *dp;
-	ulong dsize;
+	uint32_t *dp;
+	uint32_t dsize;
 	uchar *cp;
 
-	dp = (ulong*)b;
+	dp = (uint32_t*)b;
 	p->print(p, "pool %s block %p\nhdr %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux\n",
 		p->name, b, dp[0], dp[1], dp[2], dp[3], dp[4], dp[5], dp[6]);
 
-	dp = (ulong*)B2T(b);
+	dp = (uint32_t*)B2T(b);
 	p->print(p, "tail %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux | %.8lux %.8lux\n",
 		dp[-6], dp[-5], dp[-4], dp[-3], dp[-2], dp[-1], dp[0], dp[1]);
 
@@ -778,7 +778,7 @@ blockcheck(Pool *p, Bhdr *b)
 	Btail *t;
 	int i, n;
 	uchar *q, *bq, *eq;
-	ulong dsize;
+	uint32_t dsize;
 
 	switch(b->magic) {
 	default:
@@ -965,10 +965,10 @@ static Alloc*
 D2B(Pool *p, void *v)
 {
 	Alloc *a;
-	ulong *u;
+	uint32_t *u;
 
-	if((uintptr)v&(sizeof(ulong)-1))
-		v = (char*)v - ((uintptr)v&(sizeof(ulong)-1));
+	if((uintptr)v&(sizeof(uint32_t)-1))
+		v = (char*)v - ((uintptr)v&(sizeof(uint32_t)-1));
 	u = v;
 	while(u[-1] == ALIGN_MAGIC)
 		u--;
@@ -980,9 +980,9 @@ D2B(Pool *p, void *v)
 
 /* poolallocl: attempt to allocate block to hold dsize user bytes; assumes lock held */
 static void*
-poolallocl(Pool *p, ulong dsize)
+poolallocl(Pool *p, uint32_t dsize)
 {
-	ulong bsize;
+	uint32_t bsize;
 	Free *fb;
 	Alloc *ab;
 
@@ -1012,14 +1012,14 @@ poolallocl(Pool *p, ulong dsize)
 
 /* poolreallocl: attempt to grow v to ndsize bytes; assumes lock held */
 static void*
-poolreallocl(Pool *p, void *v, ulong ndsize)
+poolreallocl(Pool *p, void *v, uint32_t ndsize)
 {
 	Alloc *a;
 	Bhdr *left, *right, *newb;
 	Btail *t;
-	ulong nbsize;
-	ulong odsize;
-	ulong obsize;
+	uint32_t nbsize;
+	uint32_t odsize;
+	uint32_t obsize;
 	void *nv;
 
 	if(v == nil)	/* for ANSI */
@@ -1092,10 +1092,10 @@ poolreallocl(Pool *p, void *v, ulong ndsize)
 }
 
 static void*
-alignptr(void *v, ulong align, long offset)
+alignptr(void *v, uint32_t align, long offset)
 {
 	char *c;
-	ulong off;
+	uint32_t off;
 
 	c = v;
 	if(align){
@@ -1111,12 +1111,13 @@ alignptr(void *v, ulong align, long offset)
 
 /* poolallocalignl: allocate as described below; assumes pool locked */
 static void*
-poolallocalignl(Pool *p, ulong dsize, ulong align, long offset, ulong span)
+poolallocalignl(Pool *p, uint32_t dsize, uint32_t align, long offset,
+		uint32_t span)
 {
-	ulong asize;
+	uint32_t asize;
 	void *v;
 	char *c;
-	ulong *u;
+	uint32_t *u;
 	int skip;
 	Alloc *b;
 
@@ -1177,7 +1178,7 @@ poolallocalignl(Pool *p, ulong dsize, ulong align, long offset, ulong span)
 	skip = c - (char*)v;
 	if(c > (char*)v){
 		u = v;
-		while(c >= (char*)u+sizeof(ulong))
+		while(c >= (char*)u+sizeof(uint32_t))
 			*u++ = ALIGN_MAGIC;
 	}
 	trim(p, b, skip+dsize);
@@ -1225,7 +1226,7 @@ poolfreel(Pool *p, void *v)
 }
 
 void*
-poolalloc(Pool *p, ulong n)
+poolalloc(Pool *p, uint32_t n)
 {
 	void *v;
 
@@ -1250,7 +1251,8 @@ poolalloc(Pool *p, ulong n)
 }
 
 void*
-poolallocalign(Pool *p, ulong n, ulong align, long offset, ulong span)
+poolallocalign(Pool *p, uint32_t n, uint32_t align, long offset,
+	       uint32_t span)
 {
 	void *v;
 
@@ -1299,7 +1301,7 @@ poolcompact(Pool *p)
 }
 
 void*
-poolrealloc(Pool *p, void *v, ulong n)
+poolrealloc(Pool *p, void *v, uint32_t n)
 {
 	void *nv;
 
@@ -1348,11 +1350,11 @@ poolfree(Pool *p, void *v)
 /*
  * Return the real size of a block, and let the user use it. 
  */
-ulong
+uint32_t
 poolmsize(Pool *p, void *v)
 {
 	Alloc *b;
-	ulong dsize;
+	uint32_t dsize;
 
 	p->lock(p);
 	paranoia {
@@ -1462,10 +1464,10 @@ pooldumparena(Pool *p, Arena *a)
  * (via the signature) and we know where the marking started.
  */
 static void
-memmark(void *v, int sig, ulong size)
+memmark(void *v, int sig, uint32_t size)
 {
 	uchar *p, *ep;
-	ulong *lp, *elp;
+	uint32_t *lp, *elp;
 	lp = v;
 	elp = lp+size/4;
 	while(lp < elp)

@@ -176,7 +176,7 @@ void	_schedinit(void*);
 void	_systhreadinit(void);
 void	_threadassert(char*);
 void	_threadbreakrendez(void);
-void	_threaddebug(ulong, char*, ...);
+void	_threaddebug(uint32_t, char*, ...);
 void	_threadexitsall(char*);
 void	_threadflagrendez(Thread*);
 Proc*	_threadgetproc(void);

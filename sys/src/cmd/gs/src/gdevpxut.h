@@ -81,7 +81,7 @@ void px_put_usq_fixed(stream * s, fixed x0, fixed y0, fixed x1, fixed y1);
 void px_put_ss(stream * s, int i);
 void px_put_ssp(stream * s, int ix, int iy);
 
-void px_put_l(stream * s, ulong l);
+void px_put_l(stream * s, uint32_t l);
 
 void px_put_r(stream * s, floatp r);  /* no tag */
 void px_put_rl(stream * s, floatp r);  /* pxt_real32 tag */

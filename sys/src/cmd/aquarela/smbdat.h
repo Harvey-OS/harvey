@@ -35,14 +35,14 @@ typedef int SMBCIFSACCEPTFN(SmbCifsSession *cifs, SMBCIFSWRITEFN **fnp);
 typedef void SMBIDMAPAPPLYFN(void *magic, void *p);
 
 struct SmbPeerInfo {
-	ulong capabilities;
+	uint32_t capabilities;
 	ushort maxlen;
 	uchar securitymode;
 	ushort maxmpxcount;
 	ushort maxnumbervcs;
-	ulong maxbuffersize;
-	ulong maxrawsize;
-	ulong sessionkey;
+	uint32_t maxbuffersize;
+	uint32_t maxrawsize;
+	uint32_t sessionkey;
 	vlong utc;
 	short tzoff;
 	uchar encryptionkeylength;
@@ -53,22 +53,22 @@ struct SmbPeerInfo {
 struct SmbTransaction {
 	struct {
 		char *name;
-		ulong tpcount;
+		uint32_t tpcount;
 		uchar *parameters;
-		ulong pcount;
-		ulong tdcount;
+		uint32_t pcount;
+		uint32_t tdcount;
 		uchar *data;
-		ulong maxpcount;
-		ulong maxdcount;
-		ulong maxscount;
-		ulong dcount;
+		uint32_t maxpcount;
+		uint32_t maxdcount;
+		uint32_t maxscount;
+		uint32_t dcount;
 		ushort scount;
 		ushort *setup;
 		ushort flags;
 	} in;
 	struct {
-		ulong tpcount;
-		ulong tdcount;
+		uint32_t tpcount;
+		uint32_t tdcount;
 		SmbBuffer *parameters;
 		SmbBuffer *data;
 		ushort *setup;
@@ -114,7 +114,7 @@ typedef struct SmbHeader {
 			uchar errclass;
 			ushort error;
 		};
-		ulong status;
+		uint32_t status;
 	};
 	uchar flags;
 	ushort flags2;
@@ -159,7 +159,7 @@ struct SmbServerInfo {
 	char *name;
 	char *nativelanman;
 	uchar vmaj, vmin;
-	ulong stype;
+	uint32_t stype;
 	char *remark;
 };
 
@@ -249,7 +249,7 @@ struct SmbFile {
 
 struct SmbSharedFile {
 	ushort type;
-	ulong dev;
+	uint32_t dev;
 	vlong path;
 //	char *name;
 	int share;			// current share level
@@ -282,19 +282,19 @@ struct SmbRapServerInfo1 {
 	char name[16];
 	uchar vmaj;
 	uchar vmin;
-	ulong type;
+	uint32_t type;
 	char *remark;
 };
 
 struct SmbFindFileBothDirectoryInfo {
-	ulong fileindex;
+	uint32_t fileindex;
 	vlong creationtime;
 	vlong lastaccesstime;
 	vlong lastwritetime;
 	vlong changetime;
 	vlong endoffile;
 	vlong allocationsize;
-	ulong extfileattributes;
+	uint32_t extfileattributes;
 	char *filename;
 };
 

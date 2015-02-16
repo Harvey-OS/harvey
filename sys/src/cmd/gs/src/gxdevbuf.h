@@ -48,8 +48,8 @@ typedef struct gx_device_s gx_device;
 
 /* Define the structure for returning buffer space requirements. */
 typedef struct gx_device_buf_space_s {
-    ulong bits;
-    ulong line_ptrs;
+    uint32_t bits;
+    uint32_t line_ptrs;
     uint raster;
 } gx_device_buf_space_t;
 

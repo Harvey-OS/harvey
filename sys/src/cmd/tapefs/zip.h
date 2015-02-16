@@ -82,11 +82,11 @@ struct ZipHead
 	int	meth;
 	int	modtime;
 	int	moddate;
-	ulong	crc;
-	ulong	csize;
-	ulong	uncsize;
+	uint32_t	crc;
+	uint32_t	csize;
+	uint32_t	uncsize;
 	int	iattr;
-	ulong	eattr;
-	ulong	off;
+	uint32_t	eattr;
+	uint32_t	off;
 	char	*file;
 };

@@ -89,7 +89,7 @@ struct Xfile
 	Xfile*	next;		/* in fid hash bucket */
 	Xfs*	xf;
 	long	fid;
-	ulong	flags;
+	uint32_t	flags;
 	Qid	qid;
 	int	len;		/* of private data */
 	Isofile*	ptr;

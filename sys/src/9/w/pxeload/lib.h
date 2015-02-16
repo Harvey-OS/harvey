@@ -14,11 +14,11 @@
 /*
  * mem routines
  */
-extern	void*	memccpy(void*, void*, int, ulong);
-extern	void*	memset(void*, int, ulong);
-extern	int	memcmp(void*, void*, ulong);
-extern	void*	memmove(void*, void*, ulong);
-extern	void*	memchr(void*, int, ulong);
+extern	void*	memccpy(void*, void*, int, uint32_t);
+extern	void*	memset(void*, int, uint32_t);
+extern	int	memcmp(void*, void*, uint32_t);
+extern	void*	memmove(void*, void*, uint32_t);
+extern	void*	memchr(void*, int, uint32_t);
 
 /*
  * string routines
@@ -53,7 +53,7 @@ struct Fmt{
 	int	r;			/* % format Rune */
 	int	width;
 	int	prec;
-	ulong	flags;
+	uint32_t	flags;
 };
 extern	int	print(char*, ...);
 extern	char*	vseprint(char*, char*, char*, va_list);
@@ -106,9 +106,9 @@ extern	int	fmtstrcpy(Fmt*, char*);
  * one-of-a-kind
  */
 extern	int	atoi(char*);
-extern	ulong	getcallerpc(void*);
+extern	uint32_t	getcallerpc(void*);
 extern	long	strtol(char*, char**, int);
-extern	ulong	strtoul(char*, char**, int);
+extern	uint32_t	strtoul(char*, char**, int);
 extern	char	end[];
 
 #define	NAMELEN	28

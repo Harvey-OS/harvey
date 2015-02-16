@@ -30,7 +30,7 @@ extern	void*	memccpy(void*, void*, int, uint32_t);
 //extern	char*	strcat(char*, char*);
 //extern	char*	strchr(char*, int);
 //extern	int	strcmp(char*, char*);
-//extern	char*	strcpy(char*, char*);
+char*	strcpy(char*, const char*);
 extern	char*	strecpy(char*, char*, char*);
 //extern	char*	strdup(char*);
 //extern	char*	strncat(char*, char*, int32_t);

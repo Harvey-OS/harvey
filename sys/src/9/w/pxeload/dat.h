@@ -37,7 +37,7 @@ struct Block {
 	uchar*	wp;			/* first empty byte */
 	uchar*	lim;			/* 1 past the end of the buffer */
 	uchar*	base;			/* start of the buffer */
-	ulong	flag;
+	uint32_t	flag;
 };
 #define BLEN(s)	((s)->wp - (s)->rp)
 
@@ -75,18 +75,18 @@ extern uchar broadcast[Eaddrlen];
 typedef struct Ureg Ureg;
 
 typedef struct Segdesc {
-	ulong	d0;
-	ulong	d1;
+	uint32_t	d0;
+	uint32_t	d1;
 } Segdesc;
 
 typedef struct Mach {
 	int	machno;			/* physical id of processor (KNOWN TO ASSEMBLY) */
-	ulong	splpc;			/* pc of last caller to splhi */
+	uint32_t	splpc;			/* pc of last caller to splhi */
 
-	ulong*	pdb;			/* page directory base for this processor (va) */
+	uint32_t*	pdb;			/* page directory base for this processor (va) */
 	Segdesc	*gdt;			/* gdt for this processor */
 
-	ulong	ticks;			/* of the clock since boot time */
+	uint32_t	ticks;			/* of the clock since boot time */
 	void	*alarm;			/* alarms bound to this clock */
 } Mach;
 
@@ -116,12 +116,12 @@ struct	Exec
 
 typedef struct  ISAConf {
 	char*	type;
-	ulong	port;
-	ulong	irq;
-	ulong	dma;
-	ulong	mem;
-	ulong	size;
-	ulong	freq;
+	uint32_t	port;
+	uint32_t	irq;
+	uint32_t	dma;
+	uint32_t	mem;
+	uint32_t	size;
+	uint32_t	freq;
 	uchar	ea[6];
 
 	int	nopt;
@@ -323,7 +323,7 @@ typedef struct Netif Netif;
 typedef struct Ether Ether;
 struct Netif {
 	/* Ether */
-	long	(*ifstat)(Ether*, void*, long, ulong);
+	long	(*ifstat)(Ether*, void*, long, uint32_t);
 	long 	(*ctl)(Ether*, void*, long);
 
 	/* Netif */

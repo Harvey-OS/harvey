@@ -172,12 +172,12 @@ typedef struct Pcidev {
 	uchar	ltr;
 
 	struct {
-		ulong	bar;		/* base address */
+		uint32_t	bar;		/* base address */
 		int	size;
 	} mem[6];
 
 	struct {
-		ulong	bar;
+		uint32_t	bar;
 		int	size;
 	} rom;
 	uchar	intl;			/* interrupt line */
@@ -188,7 +188,7 @@ typedef struct Pcidev {
 
 	Pcidev*	bridge;			/* down a bus */
 	struct {
-		ulong	bar;
+		uint32_t	bar;
 		int	size;
 	} ioa, mema;
 
@@ -210,9 +210,9 @@ typedef struct PCMconftab	PCMconftab;
  * Map between ISA memory space and PCMCIA card memory space.
  */
 struct PCMmap {
-	ulong	ca;			/* card address */
-	ulong	cea;			/* card end address */
-	ulong	isa;			/* ISA address */
+	uint32_t	ca;			/* card address */
+	uint32_t	cea;			/* card end address */
+	uint32_t	isa;			/* ISA address */
 	int	len;			/* length of the ISA area */
 	int	attr;			/* attribute memory */
 	int	ref;
@@ -226,16 +226,16 @@ struct PCMconftab
 	uchar	irqtype;
 	uchar	bit16;		/* true for 16 bit access */
 	struct {
-		ulong	start;
-		ulong	len;
+		uint32_t	start;
+		uint32_t	len;
 	} io[16];
 	int	nio;
 	uchar	vpp1;
 	uchar	vpp2;
 	uchar	memwait;
-	ulong	maxwait;
-	ulong	readywait;
-	ulong	otherwait;
+	uint32_t	maxwait;
+	uint32_t	readywait;
+	uint32_t	otherwait;
 };
 
 /* a card slot */

@@ -31,9 +31,9 @@ enum
 /*
  *  Macros to manage Qid's used for multiplexed devices
  */
-#define NETTYPE(x)	(((ulong)x)&0x1f)
-#define NETID(x)	((((ulong)x))>>5)
-#define NETQID(i,t)	((((ulong)i)<<5)|(t))
+#define NETTYPE(x)	(((uint32_t)x)&0x1f)
+#define NETID(x)	((((uint32_t)x))>>5)
+#define NETQID(i,t)	((((uint32_t)i)<<5)|(t))
 
 /*
  *  one per multiplexed connection
@@ -118,7 +118,7 @@ struct Netif
 	void	(*scanbs)(void*, uint);	/* scan for base stations */
 };
 
-void	netifinit(Netif*, char*, int, ulong);
+void	netifinit(Netif*, char*, int, uint32_t);
 Walkqid*	netifwalk(Netif*, Chan*, Chan*, char **, int);
 Chan*	netifopen(Netif*, Chan*, int);
 void	netifclose(Netif*, Chan*);

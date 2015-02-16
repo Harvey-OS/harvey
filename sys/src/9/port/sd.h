@@ -20,7 +20,7 @@ typedef struct SDunit SDunit;
 struct SDperm {
 	char*	name;
 	char*	user;
-	ulong	perm;
+	uint32_t	perm;
 };
 
 struct SDpart {
@@ -28,7 +28,7 @@ struct SDpart {
 	uvlong	end;
 	SDperm;
 	int	valid;
-	ulong	vers;
+	uint32_t	vers;
 };
 
 struct SDunit {
@@ -40,14 +40,14 @@ struct SDunit {
 
 	QLock	ctl;
 	uvlong	sectors;
-	ulong	secsize;
+	uint32_t	secsize;
 	SDpart*	part;			/* nil or array of size npart */
 	int	npart;
-	ulong	vers;
+	uint32_t	vers;
 	SDperm	ctlperm;
 
 	QLock	raw;			/* raw read or write in progress */
-	ulong	rawinuse;		/* really just a test-and-set */
+	uint32_t	rawinuse;		/* really just a test-and-set */
 	int	state;
 	SDreq*	req;
 	SDperm	rawperm;
@@ -149,13 +149,13 @@ extern SDev* scsiid(SDev*, SDifc*);
  *  hardware info about a device
  */
 typedef struct {
-	ulong	port;	
+	uint32_t	port;	
 	int	size;
 } Devport;
 
 struct DevConf
 {
-	ulong	intnum;			/* interrupt number */
+	uint32_t	intnum;			/* interrupt number */
 	char	*type;			/* card type, malloced */
 	int	nports;			/* Number of ports */
 	Devport	*ports;			/* The ports themselves */

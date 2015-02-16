@@ -101,7 +101,7 @@ typedef struct Pcidev {
 	uchar	rid;			/* revision ID */
 
 	struct {
-		ulong	bar;		/* base address */
+		uint32_t	bar;		/* base address */
 		int	size;
 	} mem[6];
 

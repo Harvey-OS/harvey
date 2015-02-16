@@ -14,5 +14,5 @@ uintptr
 getcallerpc(void* x)
 {
 	//return 0;
-	return (((ulong*)(x))[-1]);
+	return (((uint32_t*)(x))[-1]);
 }

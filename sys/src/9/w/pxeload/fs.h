@@ -42,4 +42,4 @@ extern int fswalk(Fs*, char*, File*);
 extern int fsread(File*, void*, long);
 extern int fsboot(Fs*, char*, Boot*);
 
-#define BADPTR(x) ((ulong)x < (ulong)(KZERO+0x7c00))
+#define BADPTR(x) ((uint32_t)x < (uint32_t)(KZERO+0x7c00))

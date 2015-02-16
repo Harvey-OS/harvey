@@ -48,12 +48,12 @@ struct Chan
 	Chan*	link;
 	vlong	offset;			/* in file */
 	ushort	type;
-	ulong	dev;
+	uint32_t	dev;
 	ushort	mode;			/* read/write */
 	ushort	flag;
 	Qid	qid;
 	int	fid;			/* for devmnt */
-	ulong	iounit;			/* chunk size for i/o; 0==default */
+	uint32_t	iounit;			/* chunk size for i/o; 0==default */
 	void*	aux;
 	Cname	*name;
 };
@@ -77,12 +77,12 @@ struct Dev
 	Walkqid*	(*walk)(Chan*, Chan*, char**, int);
 	int	(*stat)(Chan*, uchar*, int);
 	Chan*	(*open)(Chan*, int);
-	void	(*create)(Chan*, char*, int, ulong);
+	void	(*create)(Chan*, char*, int, uint32_t);
 	void	(*close)(Chan*);
 	long	(*read)(Chan*, void*, long, vlong);
-	Block*	(*bread)(Chan*, long, ulong);
+	Block*	(*bread)(Chan*, long, uint32_t);
 	long	(*write)(Chan*, void*, long, vlong);
-	long	(*bwrite)(Chan*, Block*, ulong);
+	long	(*bwrite)(Chan*, Block*, uint32_t);
 	void	(*remove)(Chan*);
 	int	(*wstat)(Chan*, uchar*, int);
 };
@@ -128,9 +128,9 @@ void		cclose(Chan*);
 void		cnameclose(Cname*);
 int		decref(Ref*);
 Chan*		devattach(int, char*);
-Block*		devbread(Chan*, long, ulong);
-long		devbwrite(Chan*, Block*, ulong);
-void		devcreate(Chan*, char*, int, ulong);
+Block*		devbread(Chan*, long, uint32_t);
+long		devbwrite(Chan*, Block*, uint32_t);
+void		devcreate(Chan*, char*, int, uint32_t);
 void		devdir(Chan*, Qid, char*, vlong, char*, long, Dir*);
 long		devdirread(Chan*, char*, long, Dirtab*, int, Devgen*);
 Devgen		devgen;
@@ -145,15 +145,15 @@ void		error(char*);
 int		incref(Ref*);
 void		isdir(Chan*);
 void		kproc(char*, void(*)(void*), void*);
-void		mkqid(Qid*, vlong, ulong, int);
+void		mkqid(Qid*, vlong, uint32_t, int);
 void		nexterror(void);
 Chan*		newchan(void);
 Cname*		newcname(char*);
-int		openmode(ulong);
+int		openmode(uint32_t);
 void		panic(char*, ...);
-int		readstr(ulong, char*, ulong, char*);
+int		readstr(uint32_t, char*, uint32_t, char*);
 long		seconds(void);
-void*		smalloc(ulong);
+void*		smalloc(uint32_t);
 
 #define		poperror()	up->nerrlab--
 #define		waserror()	(up->nerrlab++, setjmp(up->errlab[up->nerrlab-1]))

@@ -74,7 +74,7 @@ struct gs_main_instance_s {
     /* The following are set during initialization. */
     gs_memory_t *heap;		/* (C) heap allocator */
     uint memory_chunk_size;	/* 'wholesale' allocation unit */
-    ulong name_table_size;
+    uint32_t name_table_size;
     uint run_buffer_size;
     int init_done;		/* highest init done so far */
     int user_errors;		/* define what to do with errors */

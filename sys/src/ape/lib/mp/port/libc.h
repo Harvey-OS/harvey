@@ -19,9 +19,9 @@ typedef unsigned long long u64int;
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
-extern	ulong	getcallerpc(void*);
-extern	void*	mallocz(ulong, int);
-extern	void	setmalloctag(void*, ulong);
+extern	uint32_t	getcallerpc(void*);
+extern	void*	mallocz(uint32_t, int);
+extern	void	setmalloctag(void*, uint32_t);
 
 extern int  dec16(uchar *, int, char *, int);
 extern int  enc16(char *, int, uchar *, int);

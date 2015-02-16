@@ -63,7 +63,7 @@ struct psf_glyph_enum_s {
 	uint size;
     } subset;
     gs_glyph_space_t glyph_space;
-    ulong index;
+    uint32_t index;
     int (*enumerate_next)(psf_glyph_enum_t *, gs_glyph *);
 };
 

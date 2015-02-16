@@ -52,7 +52,7 @@ int create_dir(Xfile *, char *, int);
 int unlink(Xfile *);
 int  delete_entry(Xfs *, Inode *, int);
 int  free_block_inode(Xfile *);
-void free_block( Xfs *, ulong);
+void free_block( Xfs *, uint32_t);
 void free_inode( Xfs *, int);
 int empty_dir(Xfile *);
 int truncfile(Xfile *);

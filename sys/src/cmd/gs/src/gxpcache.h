@@ -50,8 +50,8 @@ struct gx_pattern_cache_s {
     uint num_tiles;
     uint tiles_used;
     uint next;			/* round-robin index */
-    ulong bits_used;
-    ulong max_bits;
+    uint32_t bits_used;
+    uint32_t max_bits;
     void (*free_all) (gx_pattern_cache *);
 };
 

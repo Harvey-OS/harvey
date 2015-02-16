@@ -395,7 +395,7 @@ struct ref_s {
 	long intval;
 	ushort boolval;
 	float realval;
-	ulong saveid;
+	uint32_t saveid;
 	byte *bytes;
 	const byte *const_bytes;
 	ref *refs;

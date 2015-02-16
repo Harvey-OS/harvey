@@ -192,7 +192,7 @@ struct Iplink
 	Iplifc	*lifc;
 	Iplink	*selflink;	/* next link for this local address */
 	Iplink	*lifclink;	/* next link for this ifc */
-	ulong	expire;
+	uint32_t	expire;
 	Iplink	*next;		/* free list */
 	int	ref;
 };
@@ -386,7 +386,7 @@ Proto*	Fsrcvpcolx(Fs*, uchar);
 char*	Fsstdconnect(Conv*, char**, int);
 char*	Fsstdannounce(Conv*, char**, int);
 char*	Fsstdbind(Conv*, char**, int);
-ulong	scalednconv(void);
+uint32_t	scalednconv(void);
 void	closeconv(Conv*);
 /*
  *  logging
@@ -417,10 +417,10 @@ void	netloginit(Fs*);
 void	netlogopen(Fs*);
 void	netlogclose(Fs*);
 void	netlogctl(Fs*, char*, int);
-long	netlogread(Fs*, void*, ulong, long);
+long	netlogread(Fs*, void*, uint32_t, long);
 void	netlog(Fs*, int, char*, ...);
 void	ifcloginit(Fs*);
-long	ifclogread(Fs*, Chan *,void*, ulong, long);
+long	ifclogread(Fs*, Chan *,void*, uint32_t, long);
 void	ifclog(Fs*, uchar *, int);
 void	ifclogopen(Fs*, Chan*);
 void	ifclogclose(Fs*, Chan*);
@@ -471,15 +471,15 @@ struct	RouteTree
 
 struct V4route
 {
-	ulong	address;
-	ulong	endaddress;
+	uint32_t	address;
+	uint32_t	endaddress;
 	uchar	gate[IPv4addrlen];
 };
 
 struct V6route
 {
-	ulong	address[IPllen];
-	ulong	endaddress[IPllen];
+	uint32_t	address[IPllen];
+	uint32_t	endaddress[IPllen];
 	uchar	gate[IPaddrlen];
 };
 
@@ -498,7 +498,7 @@ extern void	v4delroute(Fs *f, uchar *a, uchar *mask, int dolock);
 extern void	v6delroute(Fs *f, uchar *a, uchar *mask, int dolock);
 extern Route*	v4lookup(Fs *f, uchar *a, Conv *c);
 extern Route*	v6lookup(Fs *f, uchar *a, Conv *c);
-extern long	routeread(Fs *f, char*, ulong, int);
+extern long	routeread(Fs *f, char*, uint32_t, int);
 extern long	routewrite(Fs *f, Chan*, char*, int);
 extern void	routetype(int, char*);
 extern void	ipwalkroutes(Fs*, Routewalk*);
@@ -542,7 +542,7 @@ struct Arpent
 };
 
 extern void	arpinit(Fs*);
-extern int	arpread(Arp*, char*, ulong, int);
+extern int	arpread(Arp*, char*, uint32_t, int);
 extern int	arpwrite(Fs*, char*, int);
 extern Arpent*	arpget(Arp*, Block *bp, int version, Ipifc *ifc, uchar *ip, uchar *h);
 extern void	arprelease(Arp*, Arpent *a);
@@ -612,7 +612,7 @@ extern void	ipifcremmulti(Conv *c, uchar *ma, uchar *ia);
 extern void	ipifcaddmulti(Conv *c, uchar *ma, uchar *ia);
 extern char*	ipifcrem(Ipifc *ifc, char **argv, int argc);
 extern char*	ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp);
-extern long	ipselftabread(Fs*, char *a, ulong offset, int n);
+extern long	ipselftabread(Fs*, char *a, uint32_t offset, int n);
 extern char*	ipifcadd6(Ipifc *ifc, char**argv, int argc);
 /*
  *  ip.c
@@ -634,7 +634,7 @@ extern void	ip_init(Fs*);
  * bootp.c
  */
 extern char*	bootp(Ipifc*);
-extern int	bootpread(char*, ulong, int);
+extern int	bootpread(char*, uint32_t, int);
 
 /*
  *  resolving inferno/plan9 differences

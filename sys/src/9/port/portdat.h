@@ -114,20 +114,20 @@ extern Waitstats waitstats;
 
 struct Lockstats
 {
-	ulong	locks;
-	ulong	glare;
-	ulong	inglare;
+	uint32_t	locks;
+	uint32_t	glare;
+	uint32_t	inglare;
 };
 extern Lockstats lockstats;
 
 struct QLockstats
 {
-	ulong rlock;
-	ulong rlockq;
-	ulong wlock;
-	ulong wlockq;
-	ulong qlock;
-	ulong qlockq;
+	uint32_t rlock;
+	uint32_t rlockq;
+	uint32_t wlock;
+	uint32_t wlockq;
+	uint32_t qlock;
+	uint32_t qlockq;
 };
 extern QLockstats qlockstats;
 
@@ -218,7 +218,7 @@ struct Chan
 	ushort	flag;
 	Qid	qid;
 	int	fid;			/* for devmnt */
-	ulong	iounit;			/* chunk size for i/o; 0==default */
+	uint32_t	iounit;			/* chunk size for i/o; 0==default */
 	Mhead*	umh;			/* mount point that derived Chan; used in unionread */
 	Chan*	umc;			/* channel in union; held for union read */
 	QLock	umqlock;		/* serialize unionreads */
@@ -234,7 +234,7 @@ struct Chan
 	union {
 		void*	aux;
 		Qid	pgrpid;		/* for #p/notepg */
-		ulong	mid;		/* for ns in devproc */
+		uint32_t	mid;		/* for ns in devproc */
 	};
 	Chan*	mchan;			/* channel to mounted server */
 	Qid	mqid;			/* qid of root of mount point */
@@ -372,7 +372,7 @@ struct Page
 	Lock;
 	uintmem	pa;			/* Physical address in memory */
 	uintptr	va;			/* Virtual address for user */
-	ulong	daddr;			/* Disc address on swap */
+	uint32_t	daddr;			/* Disc address on swap */
 	int	ref;			/* Reference count */
 	uchar	modref;			/* Simulated modify/reference bits */
 	int	color;			/* Cache coloring */
@@ -451,7 +451,7 @@ enum
 
 struct Physseg
 {
-	ulong	attr;			/* Segment attributes */
+	uint32_t	attr;			/* Segment attributes */
 	char	*name;			/* Attach name */
 	uintmem	pa;			/* Physical address */
 	usize	size;			/* Maximum segment size in pages */
@@ -511,12 +511,12 @@ struct Segment
 	uintptr	base;		/* virtual base */
 	uintptr	top;		/* virtual top */
 	usize	size;		/* size in pages */
-	ulong	fstart;		/* start address in file for demand load */
-	ulong	flen;		/* length of segment in file */
+	uint32_t	fstart;		/* start address in file for demand load */
+	uint32_t	flen;		/* length of segment in file */
 	int	flushme;	/* maintain icache for this segment */
 	Image	*image;		/* text in file attached to this segment */
 	Physseg *pseg;
-	ulong*	profile;	/* Tick profile area */
+	uint32_t*	profile;	/* Tick profile area */
 	Pte	**map;
 	int	mapsize;
 	Pte	*ssegmap[SSEGMAPSIZE];
@@ -552,7 +552,7 @@ struct Pgrp
 {
 	Ref;				/* also used as a lock when mounting */
 	int	noattach;
-	ulong	pgrpid;
+	uint32_t	pgrpid;
 	QLock	debug;			/* single access via devproc.c */
 	RWlock	ns;			/* Namespace n read/one write lock */
 	Mhead	*mnthash[MNTHASH];
@@ -571,8 +571,8 @@ struct Egrp
 	Evalue	**ent;
 	int	nent;
 	int	ment;
-	ulong	path;	/* qid.path of next Evalue to be allocated */
-	ulong	vers;	/* of Egrp */
+	uint32_t	path;	/* qid.path of next Evalue to be allocated */
+	uint32_t	vers;	/* of Egrp */
 };
 
 struct Evalue
@@ -601,12 +601,12 @@ enum
 struct Pallocmem
 {
 	uintmem	base;
-	ulong	npage;
+	uint32_t	npage;
 };
 
 struct Pgsza
 {
-	ulong	freecount;	/* how many pages in the free list? */
+	uint32_t	freecount;	/* how many pages in the free list? */
 	Ref	npages;		/* how many pages of this size? */
 	Page	*head;		/* MRU */
 	Page	*tail;		/* LRU */
@@ -747,15 +747,15 @@ struct Sched
 {
 	Lock;			/* runq */
 	int	nrdy;
-	ulong delayedscheds;	/* statistics */
+	uint32_t delayedscheds;	/* statistics */
 	long skipscheds;
 	long preempts;
 	int schedgain;
-	ulong balancetime;
+	uint32_t balancetime;
 	Schedq	runq[Nrq];
-	ulong	runvec;
+	uint32_t	runvec;
 	int	nmach;		/* # of cores with this color */
-	ulong	nrun;		/* to compute load */
+	uint32_t	nrun;		/* to compute load */
 };
 
 typedef union Ar0 Ar0;
@@ -1059,7 +1059,7 @@ struct Uart
 	void*	regs;			/* hardware stuff */
 	void*	saveregs;		/* place to put registers on power down */
 	char*	name;			/* internal name */
-	ulong	freq;			/* clock frequency */
+	uint32_t	freq;			/* clock frequency */
 	int	bits;			/* bits per character */
 	int	stop;			/* stop bits */
 	int	parity;			/* even, odd or no parity */
@@ -1118,13 +1118,13 @@ extern	Uart*	consuart;
  */
 struct Perf
 {
-	ulong	intrts;		/* time of last interrupt */
-	ulong	inintr;		/* time since last clock tick in interrupt handlers */
-	ulong	avg_inintr;	/* avg time per clock tick in interrupt handlers */
-	ulong	inidle;		/* time since last clock tick in idle loop */
-	ulong	avg_inidle;	/* avg time per clock tick in idle loop */
-	ulong	last;		/* value of perfticks() at last clock tick */
-	ulong	period;		/* perfticks() per clock tick */
+	uint32_t	intrts;		/* time of last interrupt */
+	uint32_t	inintr;		/* time since last clock tick in interrupt handlers */
+	uint32_t	avg_inintr;	/* avg time per clock tick in interrupt handlers */
+	uint32_t	inidle;		/* time since last clock tick in idle loop */
+	uint32_t	avg_inidle;	/* avg time per clock tick in idle loop */
+	uint32_t	last;		/* value of perfticks() at last clock tick */
+	uint32_t	period;		/* perfticks() per clock tick */
 };
 
 struct Watchdog

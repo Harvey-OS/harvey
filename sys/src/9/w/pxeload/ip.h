@@ -101,7 +101,7 @@ struct Bootp
 typedef struct Netaddr Netaddr;
 struct Netaddr
 {
-	ulong	ip;
+	uint32_t	ip;
 	ushort	port;
 	char	ea[Eaddrlen];
 };

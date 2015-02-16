@@ -23,9 +23,9 @@ struct Disk
 };
 
 int	dinit(Disk*, int, int, char*);
-int	dformat(Disk*, int, char*, ulong, ulong);
-ulong	dalloc(Disk*, Dptr*);
-ulong	dpalloc(Disk*, Dptr*);
+int	dformat(Disk*, int, char*, uint32_t, uint32_t);
+uint32_t	dalloc(Disk*, Dptr*);
+uint32_t	dpalloc(Disk*, Dptr*);
 int	dfree(Disk*, Dptr*);
 
 extern int debug;

@@ -98,7 +98,7 @@ enum {
  * and as something to compare against.
  * the bytes are stored in little-endian format.
  */
-typedef ulong Color;
+typedef uint32_t Color;
 
 /* auth.c */
 extern	int		vncauth(Vnc*, char*);
@@ -110,7 +110,7 @@ extern	int		vncsrvhandshake(Vnc*);
 extern	Vnc*		vncinit(int, int, Vnc*);
 extern	uchar		vncrdchar(Vnc*);
 extern	ushort		vncrdshort(Vnc*);
-extern	ulong		vncrdlong(Vnc*);
+extern	uint32_t		vncrdlong(Vnc*);
 extern	Point		vncrdpoint(Vnc*);
 extern	Rectangle	vncrdrect(Vnc*);
 extern	Rectangle	vncrdcorect(Vnc*);
@@ -124,7 +124,7 @@ extern  void    	vncgobble(Vnc*, long);
 extern	void		vncflush(Vnc*);
 extern	void		vncterm(Vnc*);
 extern	void		vncwrbytes(Vnc*, void*, int);
-extern	void		vncwrlong(Vnc*, ulong);
+extern	void		vncwrlong(Vnc*, uint32_t);
 extern	void		vncwrshort(Vnc*, ushort);
 extern	void		vncwrchar(Vnc*, uchar);
 extern	void		vncwrpixfmt(Vnc*, Pixfmt*);

@@ -25,7 +25,7 @@ struct FDrive
 	int	dt;		/* drive type */
 	int	dev;
 
-	ulong	lasttouched;	/* time last touched */
+	uint32_t	lasttouched;	/* time last touched */
 	int	cyl;		/* current arm position */
 	int	confused;	/* needs to be recalibrated */
 	int	offset;		/* current offset */

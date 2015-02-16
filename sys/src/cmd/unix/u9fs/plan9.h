@@ -74,7 +74,7 @@ typedef ushort Rune;
 #define nil ((void*)0)
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 #ifndef offsetof
-#define	offsetof(s, m)	(ulong)(&(((s*)0)->m))
+#define	offsetof(s, m)	(uint32_t)(&(((s*)0)->m))
 #endif
 #define	assert(x)	if(x);else _assert("x")
 
@@ -174,7 +174,7 @@ typedef
 struct Qid
 {
 	vlong	path;
-	ulong	vers;
+	uint32_t	vers;
 	uchar	type;
 } Qid;
 
@@ -185,9 +185,9 @@ struct Dir {
 	uint	dev;	/* server subtype */
 	/* file data */
 	Qid	qid;	/* unique id from server */
-	ulong	mode;	/* permissions */
-	ulong	atime;	/* last read time */
-	ulong	mtime;	/* last write time */
+	uint32_t	mode;	/* permissions */
+	uint32_t	atime;	/* last read time */
+	uint32_t	mtime;	/* last write time */
 	vlong	length;	/* file length: see <u.h> */
 	char	*name;	/* last element of path */
 	char	*uid;	/* owner name */

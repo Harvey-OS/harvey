@@ -87,12 +87,12 @@ struct Fspar {
 	long	declared;
 } fspar[];
 
-ulong	roflag;
-ulong	errorflag;
-ulong	chatflag;
-ulong	attachflag;
-ulong	authdebugflag;
-ulong	authdisableflag;
+uint32_t	roflag;
+uint32_t	errorflag;
+uint32_t	chatflag;
+uint32_t	attachflag;
+uint32_t	authdebugflag;
+uint32_t	authdisableflag;
 int	noattach;
 int	wstatallow;		/* set to circumvent wstat permissions */
 int	writeallow;		/* set to circumvent write permissions */

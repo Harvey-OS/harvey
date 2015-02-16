@@ -3,7 +3,7 @@
 
 void _cycles(uvlong *x)
 {
-        ulong a, d;
+        uint32_t a, d;
 
         asm __volatile__ ("rdtsc" : "=a" (a), "=d" (d));
 

@@ -77,7 +77,7 @@ void	resize(int, int);
 int	max(int, int);
 int	min(int, int);
 void	wexits(char*);
-Image*	xallocimage(Display*, Rectangle, ulong, int, ulong);
+Image*	xallocimage(Display*, Rectangle, uint32_t, int, uint32_t);
 int	bell(void*, char*);
 int	opentemp(char *template);
 Image*	cachedpage(Document*, int, int);

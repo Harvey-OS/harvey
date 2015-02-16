@@ -35,7 +35,7 @@
  * These IDs bear no relation to any other ID space; we generate them all
  * ourselves.
  */
-typedef ulong gs_id;
+typedef uint32_t gs_id;
 
 #define gs_no_id 0L
 

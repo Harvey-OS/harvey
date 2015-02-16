@@ -84,7 +84,7 @@ typedef struct Arc
 typedef struct Node
 {
 	char		*name;
-	ulong		time;
+	uint32_t		time;
 	ushort		flags;
 	Arc		*prereqs;
 	struct Node	*next;		/* list for a rule */

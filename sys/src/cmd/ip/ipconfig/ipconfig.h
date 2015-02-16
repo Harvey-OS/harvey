@@ -40,16 +40,16 @@ struct Conf
 	/* dhcp specific */
 	int	state;
 	int	fd;
-	ulong	xid;
-	ulong	starttime;
+	uint32_t	xid;
+	uint32_t	starttime;
 	char	sname[64];
 	char	hostname[32];
 	char	domainname[64];
 	uchar	server[IPaddrlen];	/* server IP address */
-	ulong	offered;		/* offered lease time */
-	ulong	lease;			/* lease time */
-	ulong	resend;			/* # of resends for current state */
-	ulong	timeout;		/* time to timeout - seconds */
+	uint32_t	offered;		/* offered lease time */
+	uint32_t	lease;			/* lease time */
+	uint32_t	resend;			/* # of resends for current state */
+	uint32_t	timeout;		/* time to timeout - seconds */
 
 	/*
 	 * IPv6
@@ -78,8 +78,8 @@ struct Conf
 	int	prefixlen;
 	uchar	onlink;		/* flag: address is `on-link' */
 	uchar	autoflag;	/* flag: autonomous */
-	ulong	validlt;	/* valid lifetime (seconds) */
-	ulong	preflt;		/* preferred lifetime (seconds) */
+	uint32_t	validlt;	/* valid lifetime (seconds) */
+	uint32_t	preflt;		/* preferred lifetime (seconds) */
 };
 
 struct Ctl
@@ -128,20 +128,20 @@ uchar	*optaddaddr(uchar*, int, uchar*);
 uchar	*optaddbyte(uchar*, int, int);
 uchar	*optaddstr(uchar*, int, char*);
 uchar	*optadd(uchar*, int, void*, int);
-uchar	*optaddulong(uchar*, int, ulong);
+uchar	*optaddulong(uchar*, int, uint32_t);
 uchar	*optaddvec(uchar*, int, uchar*, int);
 int	optgetaddrs(uchar*, int, uchar*, int);
 int	optgetaddr(uchar*, int, uchar*);
 int	optgetbyte(uchar*, int);
 int	optgetstr(uchar*, int, char*, int);
 uchar	*optget(uchar*, int, int*);
-ulong	optgetulong(uchar*, int);
+uint32_t	optgetulong(uchar*, int);
 int	optgetvec(uchar*, int, uchar*, int);
 int	parseoptions(uchar *p, int n);
 int	parseverb(char*);
 void	procsetname(char *fmt, ...);
 void	putndb(void);
-ulong	randint(ulong low, ulong hi);
+uint32_t	randint(uint32_t low, uint32_t hi);
 void	tweakservers(void);
 void	usage(void);
 int	validip(uchar*);

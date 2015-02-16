@@ -197,8 +197,8 @@ struct gx_color_tile_s {
 /* We shorten the procedure names because some VMS compilers */
 /* truncate names to 23 characters. */
 uint gx_pat_cache_default_tiles(void);
-ulong gx_pat_cache_default_bits(void);
-gx_pattern_cache *gx_pattern_alloc_cache(gs_memory_t *, uint, ulong);
+uint32_t gx_pat_cache_default_bits(void);
+gx_pattern_cache *gx_pattern_alloc_cache(gs_memory_t *, uint, uint32_t);
 
 /* Get or set the Pattern cache in a gstate. */
 gx_pattern_cache *gstate_pattern_cache(gs_state *);

@@ -247,12 +247,12 @@ struct Pcidev
 	uchar	ltr;
 
 	struct {
-		ulong	bar;		/* base address */
+		uint32_t	bar;		/* base address */
 		int	size;
 	} mem[6];
 
 	struct {
-		ulong	bar;
+		uint32_t	bar;
 		int	size;
 	} rom;
 	uchar	intl;			/* interrupt line */
@@ -262,7 +262,7 @@ struct Pcidev
 
 	Pcidev*	bridge;			/* down a bus */
 	struct {
-		ulong	bar;
+		uint32_t	bar;
 		int	size;
 	} ioa, mema;
 };

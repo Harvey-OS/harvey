@@ -119,13 +119,13 @@ struct Confmem
 
 struct Conf
 {
-	ulong	nproc;		/* processes */
+	uint32_t	nproc;		/* processes */
 	Confmem	mem[4];		/* physical memory */
 	uvlong	npage;		/* total physical pages of memory */
 	usize	upages;		/* user page pool */
-	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
-	ulong	ialloc;		/* max interrupt time allocation in bytes */
-	ulong	nimage;		/* number of page cache image headers */
+	uint32_t	copymode;	/* 0 is copy on write, 1 is copy on reference */
+	uint32_t	ialloc;		/* max interrupt time allocation in bytes */
+	uint32_t	nimage;		/* number of page cache image headers */
 };
 
 enum
@@ -268,13 +268,13 @@ struct Mach
 	void*	gdt;
 	void*	tss;
 
-	ulong	ticks;			/* of the clock since boot time */
+	uint32_t	ticks;			/* of the clock since boot time */
 	Label	sched;			/* scheduler wakeup */
 	Lock	alarmlock;		/* access to alarm list */
 	void*	alarm;			/* alarms bound to this clock */
 	int	inclockintr;
 
-	ulong	qstart;			/* time when up started running */
+	uint32_t	qstart;			/* time when up started running */
 	int	qexpired;		/* quantum expired */
 
 	int	tlbfault;
@@ -346,7 +346,7 @@ struct Sys {
 			int		nc[NIXROLES];		/* number of online processors */
 			int		nmach;
 			int		load;
-			ulong	ticks;			/* of the clock since boot time */
+			uint32_t	ticks;			/* of the clock since boot time */
 		};
 		uchar	syspage[4*KiB];
 	};
@@ -389,10 +389,10 @@ struct ISAConf {
 	char	*type;
 	uintptr	port;
 	int	irq;
-	ulong	dma;
+	uint32_t	dma;
 	uintptr	mem;
 	usize	size;
-	ulong	freq;
+	uint32_t	freq;
 
 	int	nopt;
 	char	*opt[NISAOPT];

@@ -60,7 +60,7 @@ typedef struct Ctlr {
 	void	(*dump)(Vga*, Ctlr*);
 	char*	type;
 
-	ulong	flag;
+	uint32_t	flag;
 
 	Ctlr*	link;
 } Ctlr;
@@ -124,7 +124,7 @@ typedef struct Mode {
 	int		vbs;		/* optional Vertical Blank Start */
 	int		vbe;		/* optional Vertical Blank End */
 	
-	ulong	videobw;
+	uint32_t	videobw;
 
 	char	hsync;
 	char	vsync;
@@ -166,21 +166,21 @@ typedef struct Vga {
 	uchar	pstatus;
 	uchar	palette[Pcolours][3];
 
-	ulong	f[2];			/* clock */
-	ulong	d[2];
-	ulong	i[2];
-	ulong	m[2];
-	ulong	n[2];
-	ulong	p[2];
-	ulong	q[2];
-	ulong	r[2];
+	uint32_t	f[2];			/* clock */
+	uint32_t	d[2];
+	uint32_t	i[2];
+	uint32_t	m[2];
+	uint32_t	n[2];
+	uint32_t	p[2];
+	uint32_t	q[2];
+	uint32_t	r[2];
 
-	ulong	vma;			/* video memory linear-address alignment */
-	ulong	vmb;			/* video memory linear-address base */
-	ulong	apz;			/* aperture size */
-	ulong	vmz;			/* video memory size */
+	uint32_t	vma;			/* video memory linear-address alignment */
+	uint32_t	vmb;			/* video memory linear-address base */
+	uint32_t	apz;			/* aperture size */
+	uint32_t	vmz;			/* video memory size */
 
-	ulong	membw;			/* memory bandwidth, MB/s */
+	uint32_t	membw;			/* memory bandwidth, MB/s */
 
 	long	offset;			/* BIOS string offset */
 	char*	bios;			/* matching BIOS string */
@@ -188,8 +188,8 @@ typedef struct Vga {
 
 	Mode*	mode;
 
-	ulong	virtx;			/* resolution of virtual screen */
-	ulong	virty;
+	uint32_t	virtx;			/* resolution of virtual screen */
+	uint32_t	virty;
 
 	int	panning;		/* pan the virtual screen */
 
@@ -298,17 +298,17 @@ extern uchar inportb(long);
 extern void outportb(long, uchar);
 extern ushort inportw(long);
 extern void outportw(long, ushort);
-extern ulong inportl(long);
-extern void outportl(long, ulong);
+extern uint32_t inportl(long);
+extern void outportl(long, uint32_t);
 extern char* vgactlr(char*, char*);
 extern void vgactlw(char*, char*);
 extern char* readbios(long, long);
 extern void dumpbios(long);
 extern void error(char*, ...);
-extern void* alloc(ulong);
+extern void* alloc(uint32_t);
 extern void printitem(char*, char*);
-extern void printreg(ulong);
-extern void printflag(ulong);
+extern void printreg(uint32_t);
+extern void printflag(uint32_t);
 extern void setpalette(int, int, int, int);
 extern int curprintindex;
 
@@ -324,7 +324,7 @@ extern Ctlr mach64xxhwgc;
 
 /* main.c */
 extern char* chanstr[];
-extern void resyncinit(Vga*, Ctlr*, ulong, ulong);
+extern void resyncinit(Vga*, Ctlr*, uint32_t, uint32_t);
 extern void sequencer(Vga*, int);
 extern void main(int, char*[]);
 Biobuf stdout;

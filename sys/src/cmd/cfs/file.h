@@ -8,7 +8,7 @@
  */
 
 void	fmerge(Dptr*, char*, char*, int, int);
-int	fbwrite(Icache*, Ibuf*, char*, ulong, int);
-long	fwrite(Icache*, Ibuf*, char*, ulong, long);
-Dptr*	fpget(Icache*, Ibuf*, ulong);
-long	fread(Icache*, Ibuf*, char*, ulong, long);
+int	fbwrite(Icache*, Ibuf*, char*, uint32_t, int);
+long	fwrite(Icache*, Ibuf*, char*, uint32_t, long);
+Dptr*	fpget(Icache*, Ibuf*, uint32_t);
+long	fread(Icache*, Ibuf*, char*, uint32_t, long);

@@ -202,7 +202,7 @@ struct Msg
 {
 	Conn *c;
 	uchar type;
-	ulong len;		/* output: #bytes before pos, input: #bytes after pos */
+	uint32_t len;		/* output: #bytes before pos, input: #bytes after pos */
 	uchar *bp;	/* beginning of allocated space */
 	uchar *rp;		/* read pointer */
 	uchar *wp;	/* write pointer */
@@ -247,14 +247,14 @@ void		unrecvmsg(Conn*, Msg*);
 int		sendmsg(Msg*);
 uchar	getbyte(Msg*);
 ushort	getshort(Msg*);
-ulong	getlong(Msg*);
+uint32_t	getlong(Msg*);
 char*	getstring(Msg*);
 void*	getbytes(Msg*, int);
 mpint*	getmpint(Msg*);
 RSApub*	getRSApub(Msg*);
 void		putbyte(Msg*, uchar);
 void		putshort(Msg*, ushort);
-void		putlong(Msg*, ulong);
+void		putlong(Msg*, uint32_t);
 void		putstring(Msg*, char*);
 void		putbytes(Msg*, void*, long);
 void		putmpint(Msg*, mpint*);

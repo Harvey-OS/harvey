@@ -47,8 +47,8 @@ struct Entry
 		char *name;
 		char *uid;
 		char *gid;
-		ulong mtime;
-		ulong mode;
+		uint32_t mtime;
+		uint32_t mode;
 		int mark;
 		vlong length;
 	} d;

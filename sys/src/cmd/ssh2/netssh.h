@@ -166,10 +166,10 @@ struct SSHChan {
 	int	state;
 	int	waker;
 	int	conn;
-	ulong	rwindow;
-	ulong	twindow;
-	ulong	sent;
-	ulong	inrqueue;
+	uint32_t	rwindow;
+	uint32_t	twindow;
+	uint32_t	sent;
+	uint32_t	inrqueue;
 	char	*ann;
 	Req	*lreq;
 
@@ -291,8 +291,8 @@ struct Conn {
 
 struct Packet {
 	Conn	*c;
-	ulong	rlength;
-	ulong	tlength;
+	uint32_t	rlength;
+	uint32_t	tlength;
 	uchar	nlength[4];
 	uchar	pad_len;
 	uchar	payload[Maxpktpay];
@@ -349,12 +349,12 @@ void	add_byte(Packet *, char);
 void	add_mp(Packet *, mpint *);
 int	add_packet(Packet *, void *, int);
 void	add_string(Packet *, char *);
-void	add_uint32(Packet *, ulong);
+void	add_uint32(Packet *, uint32_t);
 void	dump_packet(Packet *);
 int	finish_packet(Packet *);
 mpint	*get_mp(uchar *q);
 uchar	*get_string(Packet *, uchar *, char *, int, int *);
-ulong	get_uint32(Packet *, uchar **);
+uint32_t	get_uint32(Packet *, uchar **);
 void	init_packet(Packet *);
 Packet	*new_packet(Conn *);
 int	undo_packet(Packet *);

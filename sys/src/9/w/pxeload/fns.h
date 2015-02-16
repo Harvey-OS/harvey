@@ -46,23 +46,23 @@ void	floppyprintdevs(int);
 void*	floppygetfspart(int, char*, int);
 void	freeb(Block*);
 char*	getconf(char*);
-ulong	getcr0(void);
-ulong	getcr2(void);
-ulong	getcr3(void);
-ulong	getcr4(void);
+uint32_t	getcr0(void);
+uint32_t	getcr2(void);
+uint32_t	getcr3(void);
+uint32_t	getcr4(void);
 int	getfields(char*, char**, int, char);
 int	getstr(char*, char*, int, char*, int);
 int	gunzip(uchar*, int, uchar*, int);
 void	i8042a20(void);
 void	i8042init(void);
 void	i8042reset(void);
-void*	ialloc(ulong, int);
+void*	ialloc(uint32_t, int);
 void	idle(void);
 void	ilock(Lock*);
 void	impulse(void);
 int	inb(int);
 ushort	ins(int);
-ulong	inl(int);
+uint32_t	inl(int);
 void	insb(int, void*, int);
 void	inss(int, void*, int);
 void	insl(int, void*, int);
@@ -75,8 +75,8 @@ void	kbdchar(int);
 void	lgdt(ushort[3]);
 void	lidt(ushort[3]);
 void	machinit(void);
-void	mapraminit(uvlong, ulong);
-void	mapupainit(uvlong, ulong);
+void	mapraminit(uvlong, uint32_t);
+void	mapupainit(uvlong, uint32_t);
 void	mb386(void);
 void	meminit(u32int);
 void	microdelay(int);
@@ -87,12 +87,12 @@ char*	nextelem(char*, char*);
 uchar	nvramread(int);
 void	outb(int, int);
 void	outs(int, ushort);
-void	outl(int, ulong);
+void	outl(int, uint32_t);
 void	outsb(int, void*, int);
 void	outss(int, void*, int);
 void	outsl(int, void*, int);
 void	panic(char*, ...);
-ulong	pcibarsize(Pcidev*, int);
+uint32_t	pcibarsize(Pcidev*, int);
 int	pcicfgr8(Pcidev*, int);
 int	pcicfgr16(Pcidev*, int);
 int	pcicfgr32(Pcidev*, int);
@@ -114,12 +114,12 @@ void	pcisetmwi(Pcidev*);
 int	pcisetpms(Pcidev*, int);
 void	pcmcisread(PCMslot*);
 int	pcmcistuple(int, int, int, void*, int);
-PCMmap*	pcmmap(int, ulong, int, int);
+PCMmap*	pcmmap(int, uint32_t, int, int);
 int	pcmspecial(char*, ISAConf*);
 void	pcmspecialclose(int);
 void	pcmunmap(int, PCMmap*);
 void	ptcheck(char*);
-void	putcr3(ulong);
+void	putcr3(uint32_t);
 void	putidt(Segdesc*, int);
 void*	pxegetfspart(int, char*, int);
 void	qinit(IOQ*);
@@ -145,16 +145,16 @@ void	turnwheel(int);
 void	uartdrain(IOQ*);
 int	uartspecial(int, void (*)(int), int (*)(void), int);
 void	uartputs(IOQ*, char*, int);
-ulong	umbmalloc(ulong, int, int);
-void	umbfree(ulong, int);
-ulong	umbrwmalloc(ulong, int, int);
-void	upafree(ulong, int);
-ulong	upamalloc(ulong, int, int);
+uint32_t	umbmalloc(uint32_t, int, int);
+void	umbfree(uint32_t, int);
+uint32_t	umbrwmalloc(uint32_t, int, int);
+void	upafree(uint32_t, int);
+uint32_t	upamalloc(uint32_t, int, int);
 void	warp64(uvlong);
-void	warp86(char*, ulong);
-void	warp9(ulong);
+void	warp86(char*, uint32_t);
+void	warp9(uint32_t);
 int	x86cpuid(int*, int*);
-void*	xspanalloc(ulong, int, ulong);
+void*	xspanalloc(uint32_t, int, uint32_t);
 
 #define malloc(n)	ialloc(n, 0)
 #define mallocz(n, c)	ialloc(n, 0)
@@ -163,11 +163,11 @@ void*	xspanalloc(ulong, int, ulong);
 #define	GSHORT(p)	(((p)[1]<<8)|(p)[0])
 #define	GLONG(p)	((GSHORT(p+2)<<16)|GSHORT(p))
 #define	GLSHORT(p)	(((p)[0]<<8)|(p)[1])
-#define	GLLONG(p)	(((ulong)GLSHORT(p)<<16)|GLSHORT(p+2))
+#define	GLLONG(p)	(((uint32_t)GLSHORT(p)<<16)|GLSHORT(p+2))
 #define	PLLONG(p,v)	(p)[3]=(v);(p)[2]=(v)>>8;(p)[1]=(v)>>16;(p)[0]=(v)>>24
 
-#define KADDR(a)	((void*)((ulong)(a)|KZERO))
-#define PADDR(a)	((ulong)(a)&~0xF0000000)
+#define KADDR(a)	((void*)((uint32_t)(a)|KZERO))
+#define PADDR(a)	((uint32_t)(a)&~0xF0000000)
 
 #define	HOWMANY(x, y)	(((x)+((y)-1))/(y))
 #define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))
