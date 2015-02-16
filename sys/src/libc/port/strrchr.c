@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-strrchr(char *s, int c)
+strrchr(const char *s, int c)
 {
 	char *r;
 

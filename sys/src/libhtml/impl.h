@@ -47,7 +47,7 @@ extern Rune*	_Strndup(Rune* s, int n);
 extern Rune*	_Strnrclass(Rune* s, Rune* cl, int n);
 extern Rune*	_Strrclass(Rune* s, Rune* cl);
 extern Rune*	_Strsubstr(Rune* s, int start, int stop);
-extern long	_Strtol(Rune* s, Rune** eptr, int base);
+extern int32_t	_Strtol(Rune* s, Rune** eptr, int base);
 extern void	_trimwhite(Rune* s, int n, Rune** pans, int* panslen);
 
 extern Rune*	notwhitespace;
@@ -163,7 +163,7 @@ extern Rune*	tagnames[];
 extern Rune*	attrnames[];
 
 extern void	_freetokens(Token* tarray, int n);
-extern Token*	_gettoks(uchar* data, int datalen, int chset, int mtype, int* plen);
+extern Token*	_gettoks(unsigned char* data, int datalen, int chset, int mtype, int* plen);
 extern int		_tokaval(Token* t, int attid, Rune** pans, int xfer);
 
 #pragma varargck	type "T"	Token*

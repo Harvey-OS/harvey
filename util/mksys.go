@@ -39,7 +39,7 @@ func main(){
 		}
 		ass = ass + fmt.Sprintf("%v\n%v: ", name, name)
 		ass = ass + "\tMOVQ $"+ll[2]
-		ass = ass + ",%r9  // Put the system call into arg 6, which is never used on Plan 9. minimizes work on system calls\n"
+		ass = ass + ",%r9  /* Put the system call into arg 6, which is never used on Plan 9. minimizes work on system calls */\n"
 		ass = ass + "\tSYSCALL\n\tRET\n"
 		err = ioutil.WriteFile(filename, []byte(ass), 0666)
 		if err != nil {

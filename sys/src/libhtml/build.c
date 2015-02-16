@@ -167,7 +167,7 @@ enum {
 // If we want a line of space before the given element, SPBefore is OR'd in.
 // If we want a line of space after the given element, SPAfter is OR'd in.
 
-static uchar blockbrk[Numtags]= {
+static unsigned char blockbrk[Numtags]= {
 	[Taddress] BLBA, [Tblockquote] BLBA, [Tcenter] BL,
 	[Tdir] BLBA, [Tdiv] BL, [Tdd] BL, [Tdl] BLBA,
 	[Tdt] BL, [Tform] BLBA,
@@ -185,7 +185,7 @@ enum {
 
 // attrinfo is information about attributes.
 // The AGEN value means that the attribute is generic (applies to almost all elements)
-static uchar attrinfo[Numattrs]= {
+static unsigned char attrinfo[Numattrs]= {
 	[Aid] AGEN, [Aclass] AGEN, [Astyle] AGEN, [Atitle] AGEN,
 	[Aonblur] AGEN, [Aonchange] AGEN, [Aonclick] AGEN,
 	[Aondblclick] AGEN, [Aonfocus] AGEN, [Aonkeypress] AGEN,
@@ -195,7 +195,7 @@ static uchar attrinfo[Numattrs]= {
 	[Aonsubmit] AGEN, [Aonunload] AGEN
 };
 
-static uchar scriptev[Numattrs]= {
+static unsigned char scriptev[Numattrs]= {
 	[Aonblur] SEonblur, [Aonchange] SEonchange, [Aonclick] SEonclick,
 	[Aondblclick] SEondblclick, [Aonfocus] SEonfocus, [Aonkeypress] SEonkeypress,
 	[Aonkeyup] SEonkeyup, [Aonload] SEonload, [Aonmousedown] SEonmousedown,

@@ -687,7 +687,7 @@ static void intl_initialize(void)
 
 /*make_rec_info-Create a rec_info structure*/
 
-static rec_info* make_rec_info(char*, char*, char** subset)
+static rec_info* make_rec_info(char* c, char* d, char** subset)
 {
     int i,len;
     rec_info* ri;

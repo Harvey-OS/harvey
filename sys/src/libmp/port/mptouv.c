@@ -11,7 +11,7 @@
 #include <mp.h>
 #include "dat.h"
 
-#define VLDIGITS (sizeof(vlong)/sizeof(mpdigit))
+#define VLDIGITS (sizeof(int64_t)/sizeof(mpdigit))
 
 /*
  *  this code assumes that a vlong is an integral number of

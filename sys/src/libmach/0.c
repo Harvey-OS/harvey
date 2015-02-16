@@ -19,7 +19,7 @@
 #include <mach.h>
 
 #define	FPREGBYTES	4
-#define	REGOFF(x)	(ulong)(&((struct Ureg *) 0)->x)
+#define	REGOFF(x)	(unsigned long)(&((struct Ureg *) 0)->x)
 
 #define SP		REGOFF(sp)
 #define PC		REGOFF(pc)

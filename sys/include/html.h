@@ -640,5 +640,5 @@ extern int	dbgbuild;
  * emalloc and erealloc should not return if can't get memory.
  * emalloc should zero its memory.
  */
-extern void*	emalloc(ulong);
+extern void*	emalloc(unsigned long);
 extern void*	erealloc(void* p, uint32_t size);

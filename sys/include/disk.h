@@ -17,7 +17,7 @@ struct Scsi {
 	char*	inquire;
 	int	rawfd;
 	int	nchange;
-	ulong	changetime;
+	unsigned long	changetime;
 };
 
 enum {

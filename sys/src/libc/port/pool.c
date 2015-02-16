@@ -1251,7 +1251,7 @@ poolalloc(Pool *p, uint32_t n)
 }
 
 void*
-poolallocalign(Pool *p, uint32_t n, uint32_t align, long offset,
+poolallocalign(Pool *p, uint32_t n, uint32_t align, int32_t offset,
 	       uint32_t span)
 {
 	void *v;

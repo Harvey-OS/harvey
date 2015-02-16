@@ -28,9 +28,9 @@ vtServerAlloc(VtServerVtbl *vtbl)
 }
 
 static int
-srvHello(VtSession *z, char *version, char *uid, int , uint8_t *,
-	 int ,
-	 uint8_t *, int )
+srvHello(VtSession *z, char *version, char *uid, int n, uint8_t *m,
+	 int p,
+	 uint8_t *q, int r)
 {
 	vtLock(z->lk);
 	if(z->auth.state != VtAuthHello) {

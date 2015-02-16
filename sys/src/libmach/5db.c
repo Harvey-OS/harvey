@@ -16,7 +16,7 @@ static int debug = 0;
 
 #define	BITS(a, b)	((1<<(b+1))-(1<<a))
 
-#define LSR(v, s)	((ulong)(v) >> (s))
+#define LSR(v, s)	((unsigned long)(v) >> (s))
 #define ASR(v, s)	((int32_t)(v) >> (s))
 #define ROR(v, s)	(LSR((v), (s)) | (((v) & ((1 << (s))-1)) << (32 - (s))))
 

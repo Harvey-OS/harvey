@@ -91,7 +91,7 @@ enum
 /*
 #define hashit(c)	(((ulong)(c) * 0x6b43a9) >> (24 - HashLog))
 */
-#define hashit(c)	((((ulong)(c) & 0xffffff) * 0x6b43a9b5) >> (32 - HashLog))
+#define hashit(c)	((((unsigned long)(c) & 0xffffff) * 0x6b43a9b5) >> (32 - HashLog))
 
 /*
  * lempel-ziv style compression state

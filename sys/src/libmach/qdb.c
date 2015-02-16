@@ -167,7 +167,7 @@ typedef struct {
 	char	*err;		/* errmsg */
 } Instr;
 
-#define	IBF(v,a,b) (((ulong)(v)>>(32-(b)-1)) & ~(~0L<<(((b)-(a)+1))))
+#define	IBF(v,a,b) (((unsigned long)(v)>>(32-(b)-1)) & ~(~0L<<(((b)-(a)+1))))
 #define	IB(v,b) IBF((v),(b),(b))
 
 #pragma	varargck	argpos	bprint		2

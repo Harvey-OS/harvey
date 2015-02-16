@@ -102,7 +102,7 @@ delete_examples(point_list* l)
  */
 
 static char*
-recognize_internal(rClassifier* rec, Stroke* str, int*)
+recognize_internal(rClassifier* rec, Stroke* str, int* i)
 {
 	char *res;
 	point_list *stroke;
@@ -291,7 +291,7 @@ recognizer_getClasses (recognizer r, char ***list, int *nc)
 }
 
 static int
-recognizer_clearState (recognizer)
+recognizer_clearState (recognizer r)
 {
   /*This operation isn't supported by the LI recognizer.*/
 
@@ -304,7 +304,7 @@ static bool isa_li(recognizer r)
 { return(CHECK_LI_MAGIC(r)); }
 
 static int
-recognizer_train(recognizer, rc*, uint, Stroke*, rec_element*, bool)
+recognizer_train(recognizer r, rc* rc, uint u, Stroke* s, rec_element* re, bool b)
 {
   /*This operation isn't supported by the LI recognizer.*/
 
@@ -443,7 +443,7 @@ static int li_recognizer_load(recognizer r, char* dir, char* filename)
 
 /*li_recognizer_save-Save a classifier file.*/
 
-static int li_recognizer_save(recognizer, char*, char*)
+static int li_recognizer_save(recognizer r, char* c, char* d)
 { 
 		/*This operation isn't supported by the LI recognizer.*/
 
@@ -452,7 +452,7 @@ static int li_recognizer_save(recognizer, char*, char*)
 }
 
 static wordset
-li_recognizer_load_dictionary(recognizer, char*, char*)
+li_recognizer_load_dictionary(recognizer r, char* c, char* d)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 
@@ -461,7 +461,7 @@ li_recognizer_load_dictionary(recognizer, char*, char*)
 }
 
 static int
-li_recognizer_save_dictionary(recognizer, char*, char*, wordset)
+li_recognizer_save_dictionary(recognizer r, char* c, char* d, wordset w)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Dictionaries are not supported by the LI recognizer";
@@ -469,7 +469,7 @@ li_recognizer_save_dictionary(recognizer, char*, char*, wordset)
 }
 
 static int
-li_recognizer_free_dictionary(recognizer, wordset)
+li_recognizer_free_dictionary(recognizer r, wordset w)
 {
   /*This operation isn't supported by the LI recognizer.*/
 
@@ -480,7 +480,7 @@ li_recognizer_free_dictionary(recognizer, wordset)
 }
 
 static int
-li_recognizer_add_to_dictionary(recognizer, letterset*, wordset)
+li_recognizer_add_to_dictionary(recognizer r, letterset* l, wordset w)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Dictionaries are not supported by the LI recognizer";
@@ -488,7 +488,7 @@ li_recognizer_add_to_dictionary(recognizer, letterset*, wordset)
 }
 
 static int
-li_recognizer_delete_from_dictionary(recognizer, letterset*, wordset)
+li_recognizer_delete_from_dictionary(recognizer r, letterset* l, wordset w)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Dictionaries are not supported by the LI recognizer";
@@ -511,7 +511,7 @@ li_recognizer_error(recognizer rec)
 }
 
 static int 
-li_recognizer_clear(recognizer r, bool)
+li_recognizer_clear(recognizer r, bool b)
 {
 		li_recognizer* rec; 
 
@@ -525,7 +525,7 @@ li_recognizer_clear(recognizer r, bool)
 }
 
 static int 
-li_recognizer_set_context(recognizer, rc*)
+li_recognizer_set_context(recognizer r, rc* rc)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Contexts are not supported by the LI recognizer";
@@ -533,7 +533,7 @@ li_recognizer_set_context(recognizer, rc*)
 }
 
 static rc*
-li_recognizer_get_context(recognizer)
+li_recognizer_get_context(recognizer r)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Contexts are not supported by the LI recognizer";
@@ -541,7 +541,7 @@ li_recognizer_get_context(recognizer)
 }
 
 static int 
-li_recognizer_get_buffer(recognizer, uint*, Stroke**)
+li_recognizer_get_buffer(recognizer r, uint* u, Stroke** s)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Buffer get/set are not supported by the LI recognizer";
@@ -549,7 +549,7 @@ li_recognizer_get_buffer(recognizer, uint*, Stroke**)
 }
 
 static int 
-li_recognizer_set_buffer(recognizer, uint, Stroke*)
+li_recognizer_set_buffer(recognizer r, uint u, Stroke* s)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Buffer get/set are not supported by the LI recognizer";
@@ -557,7 +557,7 @@ li_recognizer_set_buffer(recognizer, uint, Stroke*)
 }
 
 static int
-li_recognizer_translate(recognizer r, uint ncs, Stroke* tps, bool, int* nret, rec_alternative** ret)
+li_recognizer_translate(recognizer r, uint ncs, Stroke* tps, bool b, int* nret, rec_alternative** ret)
 {
 	char* clss;
 	li_recognizer* rec; 
@@ -639,7 +639,7 @@ li_recognizer_get_extension_functions(recognizer rec)
 }
 
 static char**
-li_recognizer_get_gesture_names(recognizer)
+li_recognizer_get_gesture_names(recognizer r)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Gestures are not supported by the LI recognizer";
@@ -647,7 +647,7 @@ li_recognizer_get_gesture_names(recognizer)
 }
 
 static xgesture
-li_recognizer_set_gesture_action(recognizer, char*, xgesture, void*)
+li_recognizer_set_gesture_action(recognizer r, char* c, xgesture x, void* v)
 {
 		/*This operation isn't supported by the LI recognizer.*/
 		li_err_msg = "Gestures are not supported by the LI recognizer";

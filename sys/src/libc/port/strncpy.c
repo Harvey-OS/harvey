@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-strncpy(char *s1, char *s2, int32_t n)
+strncpy(char *s1, const char *s2, unsigned long n)
 {
 	int i;
 	char *os1;

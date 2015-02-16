@@ -23,9 +23,11 @@ typedef struct {
 	union{
 		struct {
 			Exec;		/* a.out.h */
-			uvlong hdr[1];
+			unsigned long long hdr[1];
 		};
+#ifdef HARVEY32
 		Ehdr;			/* elf.h */
+#endif
 		E64hdr;
 		struct mipsexec;	/* bootexec.h */
 		struct mips4kexec;	/* bootexec.h */
@@ -35,10 +37,14 @@ typedef struct {
 	long dummy;			/* padding to ensure extra long */
 } ExecHdr;
 
+#ifdef HARVEYNEXT
 static	int	nextboot(int, Fhdr*, ExecHdr*);
+#elif HARVEYSPARC
 static	int	sparcboot(int, Fhdr*, ExecHdr*);
+#elif HARVEYMIPS
 static	int	mipsboot(int, Fhdr*, ExecHdr*);
 static	int	mips4kboot(int, Fhdr*, ExecHdr*);
+#endif
 static	int	common(int, Fhdr*, ExecHdr*);
 static	int	commonllp64(int, Fhdr*, ExecHdr*);
 static	int	adotout(int, Fhdr*, ExecHdr*);
@@ -49,7 +55,7 @@ static	void	setdata(Fhdr*, uint64_t, int32_t, int64_t,
 				  int32_t);
 static	void	settext(Fhdr*, uint64_t, uint64_t, int32_t,
 				  int64_t);
-static	void	hswal(void*, int, ulong(*)(ulong));
+static	void	hswal(void*, int, uint32_t(*)(uint32_t));
 static	uint64_t	_round(uint64_t, uint32_t);
 
 /*
@@ -119,6 +125,7 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		adotout },
+#ifdef HARVEYMIPS
 	{ 0x160<<16,			/* Mips boot image */
 		"mips plan 9 boot image",
 		nil,
@@ -137,6 +144,7 @@ ExecTable exectab[] =
 		sizeof(struct mips4kexec),
 		beswal,
 		mips4kboot },
+#elif HARVEYSPARC
 	{ K_MAGIC,			/* Sparc k.out */
 		"sparc plan 9 executable",
 		"sparc plan 9 dlm",
@@ -173,6 +181,7 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
+#elif HARVEYNEXT
 	{ 0xFEEDFACE,			/* Next boot image */
 		"next plan 9 boot image",
 		nil,
@@ -182,6 +191,7 @@ ExecTable exectab[] =
 		sizeof(struct nextexec),
 		beswal,
 		nextboot },
+#endif
 	{ I_MAGIC,			/* I386 8.out & boot image */
 		"386 plan 9 executable",
 		"386 plan 9 dlm",
@@ -223,8 +233,10 @@ ExecTable exectab[] =
 		nil,
 		FNONE,
 		0,
-		&mi386,
-		sizeof(Ehdr),
+/*		&mi386,
+		sizeof(Ehdr), */
+		&mamd64,
+		sizeof(E64hdr),
 		nil,
 		elfdotout },
 	{ E_MAGIC,			/* Arm 5.out and boot image */
@@ -454,7 +466,7 @@ common(int fd, Fhdr *fp, ExecHdr *hp)
 }
 
 static int
-commonllp64(int, Fhdr *fp, ExecHdr *hp)
+commonllp64(int i, Fhdr *fp, ExecHdr *hp)
 {
 	int32_t pgsize;
 	uint64_t entry;
@@ -488,6 +500,7 @@ commonllp64(int, Fhdr *fp, ExecHdr *hp)
 	return 1;
 }
 
+#ifdef HARVEYMIPS
 /*
  *	mips bootable image.
  */
@@ -547,7 +560,8 @@ mips4kboot(int fd, Fhdr *fp, ExecHdr *hp)
 	fp->hdrsz = 0;			/* header stripped */
 	return 1;
 }
-
+#endif
+#ifdef HARVEYSPARC
 /*
  *	sparc bootable image
  */
@@ -564,7 +578,8 @@ sparcboot(int fd, Fhdr *fp, ExecHdr *hp)
 	fp->hdrsz = 0;			/* header stripped */
 	return 1;
 }
-
+#endif
+#ifdef HARVEYNEXT
 /*
  *	next bootable image
  */
@@ -582,6 +597,7 @@ nextboot(int fd, Fhdr *fp, ExecHdr *hp)
 	fp->hdrsz = 0;			/* header stripped */
 	return 1;
 }
+#endif
 
 /*
  * ELF64 binaries.
@@ -696,6 +712,7 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 	return 1;
 }
 
+#ifdef HARVEY32
 /*
  * ELF32 binaries.
  */
@@ -844,22 +861,26 @@ elf32dotout(int fd, Fhdr *fp, ExecHdr *hp)
 	return 1;
 }
 
+#endif
 /*
  * Elf binaries.
  */
 static int
 elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	Ehdr *ep;
+//	Ehdr *ep;
+	E64hdr *ep;
 
 	/* bitswap the header according to the DATA format */
 	ep = &hp->e;
-	if(ep->ident[CLASS] == ELFCLASS32)
-		return elf32dotout(fd, fp, hp);
-	else if(ep->ident[CLASS] == ELFCLASS64)
+//	if(ep->ident[CLASS] == ELFCLASS32)
+//		return elf32dotout(fd, fp, hp);
+//	else if(ep->ident[CLASS] == ELFCLASS64)
+	if(ep->ident[CLASS] == ELFCLASS64)
 		return elf64dotout(fd, fp, hp);
 
-	werrstr("bad ELF class - not 32- nor 64-bit");
+//	werrstr("bad ELF class - not 32- nor 64-bit");
+	werrstr("bad ELF class - not 64-bit");
 	return 0;
 }
 

@@ -50,8 +50,8 @@ enum {
 
 struct VtAuth {
 	int state;
-	uchar client[VtScoreSize];
-	uchar sever[VtScoreSize];
+	unsigned char client[VtScoreSize];
+	unsigned char sever[VtScoreSize];
 };
 
 struct VtSession {

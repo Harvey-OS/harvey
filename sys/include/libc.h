@@ -11,7 +11,7 @@
 #pragma	src	"/sys/src/libc"
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
-#define	offsetof(s, m)	(ulong)(&(((s*)0)->m))
+#define	offsetof(s, m)	(unsigned long)(&(((s*)0)->m))
 #define	assert(x)	if(x){}else _assert("x")
 
 /*
@@ -19,33 +19,33 @@
  */
 extern	void*	memccpy(void*, void*, int, uint32_t);
 void*	memset(void*, int, unsigned long);
-//extern	int	memcmp(void*, void*, uint32_t);
-//extern	void*	memcpy(void*, void*, uint32_t);
+extern	int	memcmp(void*, void*, uint32_t);
+extern	void*	memcpy(void*, const void*, size_t);
 void*	memmove(void*, const void*, size_t);
-//extern	void*	memchr(void*, int, uint32_t);
+extern	void*	memchr(void*, int, uint32_t);
 
 /*
  * string routines
  */
-//extern	char*	strcat(char*, char*);
-//extern	char*	strchr(char*, int);
-//extern	int	strcmp(char*, char*);
+extern	char*	strcat(char*, char*);
+extern	char*	strchr(char*, int);
+extern	int	strcmp(char*, char*);
 char*	strcpy(char*, const char*);
 extern	char*	strecpy(char*, char*, char*);
-//extern	char*	strdup(char*);
-//extern	char*	strncat(char*, char*, int32_t);
+extern	char*	strdup(char*);
+extern	char*	strncat(char*, char*, int32_t);
 char*	strncpy(char*, const char*, unsigned long);
-//extern	int	strncmp(char*, char*, int32_t);
-//extern	char*	strpbrk(char*, char*);
+extern	int	strncmp(char*, char*, int32_t);
+extern	char*	strpbrk(char*, char*);
 char*	strrchr(const char*, int);
-//extern	char*	strtok(char*, char*);
+extern	char*	strtok(char*, char*);
 unsigned long	strlen(const char*);
-//extern	int32_t	strspn(char*, char*);
-//extern	int32_t	strcspn(char*, char*);
-//extern	char*	strstr(char*, char*);
-//extern	int	cistrncmp(char*, char*, int);
-//extern	int	cistrcmp(char*, char*);
-//extern	char*	cistrstr(char*, char*);
+extern	int32_t	strspn(char*, char*);
+extern	int32_t	strcspn(char*, char*);
+extern	char*	strstr(char*, char*);
+extern	int	cistrncmp(char*, char*, int);
+extern	int	cistrcmp(char*, char*);
+extern	char*	cistrstr(char*, char*);
 extern	int	tokenize(char*, char**, int);
 
 enum
@@ -73,18 +73,18 @@ extern	char*	utfrrune(char*, int32_t);
 extern	char*	utfutf(char*, char*);
 extern	char*	utfecpy(char*, char*, char*);
 
-//extern	Rune*	runestrcat(Rune*, Rune*);
-//extern	Rune*	runestrchr(Rune*, Rune);
-//extern	int	runestrcmp(Rune*, Rune*);
-//extern	Rune*	runestrcpy(Rune*, Rune*);
-//extern	Rune*	runestrncpy(Rune*, Rune*, int32_t);
+extern	Rune*	runestrcat(Rune*, Rune*);
+extern	Rune*	runestrchr(Rune*, Rune);
+extern	int	runestrcmp(Rune*, Rune*);
+extern	Rune*	runestrcpy(Rune*, Rune*);
+extern	Rune*	runestrncpy(Rune*, Rune*, int32_t);
 extern	Rune*	runestrecpy(Rune*, Rune*, Rune*);
-//extern	Rune*	runestrdup(Rune*);
-//extern	Rune*	runestrncat(Rune*, Rune*, int32_t);
-//extern	int	runestrncmp(Rune*, Rune*, int32_t);
-//extern	Rune*	runestrrchr(Rune*, Rune);
-//extern	int32_t	runestrlen(Rune*);
-//extern	Rune*	runestrstr(Rune*, Rune*);
+extern	Rune*	runestrdup(Rune*);
+extern	Rune*	runestrncat(Rune*, Rune*, int32_t);
+extern	int	runestrncmp(Rune*, Rune*, int32_t);
+extern	Rune*	runestrrchr(Rune*, Rune);
+extern	int32_t	runestrlen(Rune*);
+extern	Rune*	runestrstr(Rune*, Rune*);
 
 extern	Rune	tolowerrune(Rune);
 extern	Rune	totitlerune(Rune);
@@ -99,15 +99,15 @@ extern	int	istitlerune(Rune);
 extern	int	isupperrune(Rune);
 
 /*
-// * malloc
+ * malloc
  */
-//extern	void*	malloc(uint32_t);
-//extern	void*	mallocz(uint32_t, int);
+extern	void*	malloc(size_t);
+extern	void*	mallocz(uint32_t, int);
 extern	void	free(void*);
 extern	uint32_t	msize(void*);
-//extern	void*	mallocalign(uint32_t, uint32_t, int32_t, uint32_t);
-//extern	void*	calloc(uint32_t, uint32_t);
-//extern	void*	realloc(void*, uint32_t);
+extern	void*	mallocalign(uint32_t, uint32_t, int32_t, uint32_t);
+extern	void*	calloc(uint32_t, size_t);
+extern	void*	realloc(void*, size_t);
 void	setmalloctag(void*, uint32_t);
 void	setrealloctag(void*, uint32_t);
 uint32_t	getmalloctag(void*);
@@ -242,8 +242,8 @@ extern	int	dorfmt(Fmt*, Rune*);
 extern	int	fmtprint(Fmt*, char*, ...);
 extern	int	fmtvprint(Fmt*, char*, va_list);
 extern	int	fmtrune(Fmt*, int);
-//extern	int	fmtstrcpy(Fmt*, char*);
-//extern	int	fmtrunestrcpy(Fmt*, Rune*);
+extern	int	fmtstrcpy(Fmt*, char*);
+extern	int	fmtrunestrcpy(Fmt*, Rune*);
 /*
  * error string for %r
  * supplied on per os basis, not part of fmt library
@@ -253,10 +253,10 @@ extern	int	errfmt(Fmt *f);
 /*
  * quoted strings
  */
-//extern	char	*unquotestrdup(char*);
-//extern	Rune	*unquoterunestrdup(Rune*);
-//extern	char	*quotestrdup(char*);
-//extern	Rune	*quoterunestrdup(Rune*);
+extern	char	*unquotestrdup(char*);
+extern	Rune	*unquoterunestrdup(Rune*);
+extern	char	*quotestrdup(char*);
+extern	Rune	*quoterunestrdup(Rune*);
 extern	int	quotestrfmt(Fmt*);
 extern	int	quoterunestrfmt(Fmt*);
 extern	void	quotefmtinstall(void);
@@ -382,7 +382,7 @@ extern	int	gettokens(char *, char **, int, char *);
 extern	char*	getuser(void);
 extern	char*	getwd(char*, int);
 extern	int	iounit(int);
-//extern	int32_t	labs(int32_t);
+extern	int32_t	labs(int32_t);
 extern	double	ldexp(double, int);
 extern	void	longjmp(jmp_buf, int);
 extern	char*	mktemp(char*);

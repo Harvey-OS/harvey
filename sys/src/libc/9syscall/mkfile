@@ -1,12 +1,11 @@
-MKSHELL=$PLAN9/bin/rc
 NPROC=1
-<$ROOT/$objtype/mkfile
+</$objtype/mkfile
 
 # Note that mksys needs to be in your path, somewhere.
 install:V:
 	mksys $objtype
-	$(AS) -c *.s
-	ar rvu $ROOT/$objtype/lib/libc.a *.$O
+	$CC -c *.s
+	$AR rv /$objtype/lib/libc.a *.$O
 	rm -f *.o *.[$OS] *.s
 
 nuke clean:V:

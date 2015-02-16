@@ -154,7 +154,7 @@ static int
 nsop(char *fn, int argc, char *argv[], AuthRpc *rpc)
 {
 	char *argv0;
-	ulong flags;
+	unsigned long flags;
 	int fd, i;
 	Biobuf *b;
 	int cdroot;

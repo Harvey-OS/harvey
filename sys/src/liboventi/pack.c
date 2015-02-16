@@ -16,7 +16,7 @@
  */
 #define	U8GET(p)	((p)[0])
 #define	U16GET(p)	(((p)[0]<<8)|(p)[1])
-#define	U32GET(p)	((u32int)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
+#define	U32GET(p)	((uint32_t)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
 #define	U48GET(p)	(((int64_t)U16GET(p)<<32)|(int64_t)U32GET((p)+2))
 #define	U64GET(p)	(((int64_t)U32GET(p)<<32)|(int64_t)U32GET((p)+4))
 

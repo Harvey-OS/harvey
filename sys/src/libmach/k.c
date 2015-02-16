@@ -6,7 +6,7 @@
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
  */
-
+#ifdef HARVEYSPARC
 /*
  * sparc definition
  */
@@ -126,3 +126,4 @@ Mach msparc =
 	4,		/* szfloat */
 	8,		/* szdouble */
 };
+#endif

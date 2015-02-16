@@ -17,7 +17,7 @@ struct Ndbhf
 	int	hlen;		/* length (in entries) of hash table */
 	char	attr[Ndbalen];	/* attribute hashed */
 
-	uchar	buf[256];	/* hash file buffer */
+	unsigned char	buf[256];	/* hash file buffer */
 	long	off;		/* offset of first byte of buffer */
 	int	len;		/* length of valid data in buffer */
 };

@@ -6,7 +6,7 @@
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
  */
-
+#ifdef HARVEYPPC64
 /*
  * PowerPC 64 definition
  *	forsyth@vitanuova.com
@@ -128,3 +128,4 @@ Mach mpower64 =
 	4,			/* szfloat */
 	8,			/* szdouble */
 };
+#endif

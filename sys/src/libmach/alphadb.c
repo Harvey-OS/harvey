@@ -604,7 +604,7 @@ static Opcode ieeeopcodes[64] = {
 	"???",		0,	alphaxxx,
 };
 
-static uchar	amap[128] = {
+static unsigned char	amap[128] = {
 	[0x00]	1,
 	[0x40]	2,
 	[0x20]	3,
@@ -655,7 +655,7 @@ static Opcode arithopcodes[64] = {
 	"S8SUBQ",	0,	alphaint,
 };
 
-static uchar	lmap[128] = {
+static unsigned char	lmap[128] = {
 	[0x00]	1,
 	[0x20]	2,
 	[0x40]	3,
@@ -690,7 +690,7 @@ static Opcode logicalopcodes[64] = {
 	"CMOVLBC",	0,	alphaint,
 };
 
-static uchar	smap[128] = {
+static unsigned char	smap[128] = {
 	[0x39]	1,
 	[0x3C]	2,
 	[0x34]	3,

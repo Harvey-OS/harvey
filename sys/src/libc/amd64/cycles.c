@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
 
-void _cycles(uvlong *x)
+void _cycles(uint64_t *x)
 {
         uint32_t a, d;
 

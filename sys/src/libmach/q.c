@@ -6,7 +6,7 @@
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
  */
-
+#ifdef HARVEYNEXT
 /*
  * PowerPC definition
  *	forsyth@terzarima.net
@@ -131,3 +131,4 @@ Mach mpower =
 	4,		/* szfloat */
 	8,		/* szdouble */
 };
+#endif

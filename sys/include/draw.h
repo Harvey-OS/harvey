@@ -293,7 +293,7 @@ struct Cacheinfo
 {
 	uint16_t		x;		/* left edge of bits */
 	uint8_t		width;		/* width of baseline */
-	schar		left;		/* offset of baseline */
+	int8_t		left;		/* offset of baseline */
 	Rune		value;	/* value of character at this slot in cache */
 	uint16_t		age;
 };

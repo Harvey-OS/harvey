@@ -4,16 +4,18 @@
 
 # Provisional for cross compiling
 objtype=amd64
+PLAN9=/home/elbing/source/plan9port
 
 #OS=568qv
 OS=o
-CPUS=arm amd64 386 power mips
+#CPUS=arm amd64 386 power mips
+CPUS=amd64
 #CFLAGS=-FTVw
-CFLAGS=-O0 -static -fplan9-extensions -ffreestanding -fno-builtin --sysroot=$ROOT $WARNFLAGS -I$INCX86_64_DIR -I$INC_DIR
+CFLAGS=-O0 -static -fplan9-extensions -ffreestanding -fno-builtin $WARNFLAGS -I$INCX86_64_DIR -I$INC_DIR
 LEX=lex
 YACC=yacc
 
-MK=/bin/mk
+#MK=/bin/mk
 
 # recursive mk will have these set from the parent
 # this is never what we want.  clear them

@@ -36,7 +36,7 @@ struct Text
 	Rune		**line;
 	int		selectmode;	// Selsingle, Selmulti
 	int		selectstyle;	// Seldown, Selup (use Selup only with Selsingle)
-	uchar	*selected;
+	uint8_t	*selected;
 	int		nline;
 	int		warp;
 	int		align;

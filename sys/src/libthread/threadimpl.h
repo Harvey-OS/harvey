@@ -81,7 +81,7 @@ struct Thread
 	int		moribund;	/* thread needs to die */
 	State		state;		/* run state */
 	State		nextstate;	/* next run state */
-	uchar		*stk;		/* top of stack (lowest address of stack) */
+	unsigned char		*stk;		/* top of stack (lowest address of stack) */
 	uint		stksize;	/* stack size */
 	Thread		*next;		/* next on ready queue */
 
@@ -182,15 +182,15 @@ void	_threadflagrendez(Thread*);
 Proc*	_threadgetproc(void);
 void	_threadsetproc(Proc*);
 void	_threadinitstack(Thread*, void(*)(void*), void*);
-void*	_threadmalloc(long, int);
+void*	_threadmalloc(int32_t, int);
 void	_threadnote(void*, char*);
 void	_threadready(Thread*);
 void*	_threadrendezvous(void*, void*);
 void	_threadsignal(void);
 void	_threadsysfatal(char*, va_list);
 void**	_workerdata(void);
-void	_xinc(long*);
-long	_xdec(long*);
+void	_xinc(int32_t*);
+long	_xdec(int32_t*);
 
 extern int			_threaddebuglevel;
 extern char*		_threadexitsallstatus;

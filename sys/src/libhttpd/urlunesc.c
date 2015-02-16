@@ -57,7 +57,7 @@ hurlunesc(HConnect *cc, char *s)
 	while(*s){
 		/* in decoding error, assume latin1 */
 		if((n=chartorune(&r, s)) == 1 && r == Runeerror)
-			r = (uchar)*s;
+			r = (unsigned char)*s;
 		s += n;
 		t += runetochar(t, &r);
 	}

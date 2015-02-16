@@ -14,7 +14,7 @@
 
 /* first argument goes in a register; simplest just to ignore it */
 static void
-launcheramd64(int, void (*f)(void *arg), void *arg)
+launcheramd64(int i, void (*f)(void *arg), void *arg)
 {
 	(*f)(arg);
 	threadexits(nil);

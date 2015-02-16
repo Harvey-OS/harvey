@@ -28,10 +28,10 @@ struct Mem
 {
 	Lock lk;
 	int ref;
-	uchar *bp;
-	uchar *ep;
-	uchar *rp;
-	uchar *wp;
+	unsigned char *bp;
+	unsigned char *ep;
+	unsigned char *rp;
+	unsigned char *wp;
 	Mem *next;
 };
 
@@ -45,8 +45,8 @@ struct Frag
 {
 	int state;
 	Mem *mem;
-	uchar *rp;
-	uchar *wp;
+	unsigned char *rp;
+	unsigned char *wp;
 	Frag *next;
 };
 

@@ -31,4 +31,4 @@ struct Prog		/* info from .$O files */
 };
 
 #define UNKNOWN	'?'
-void		_offset(int, vlong);
+void		_offset(int, int64_t);

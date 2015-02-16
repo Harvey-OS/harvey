@@ -173,7 +173,7 @@ walkandclone(Req *r, char *(*walk1)(Fid*, char*, void*),
 }
 
 static void
-sversion(Srv*, Req *r)
+sversion(Srv* s, Req *r)
 {
 	if(strncmp(r->ifcall.version, "9P", 2) != 0){
 		r->ofcall.version = "unknown";
@@ -560,7 +560,7 @@ sclunk(Srv *srv, Req *r)
 		respond(r, nil);
 }
 static void
-rclunk(Req*, char*)
+rclunk(Req* r, char* c)
 {
 }
 
@@ -688,7 +688,7 @@ swstat(Srv *srv, Req *r)
 	srv->wstat(r);
 }
 static void
-rwstat(Req*, char*)
+rwstat(Req* r, char* c)
 {
 }
 

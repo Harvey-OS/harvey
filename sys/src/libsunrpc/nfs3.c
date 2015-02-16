@@ -124,7 +124,7 @@ static struct {
 };
 
 void
-nfs3Errstr(SunStatus status)
+nfs3Errstr(Nfs3Status status)
 {
 	int i;
 
