@@ -4,7 +4,6 @@
 
 # Provisional for cross compiling
 objtype=amd64
-PLAN9=/home/elbing/source/plan9port
 
 #OS=568qv
 OS=o
