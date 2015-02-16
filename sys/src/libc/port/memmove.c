@@ -11,7 +11,7 @@
 #include	<libc.h>
 
 void*
-memmove(void *a1, void *a2, uint32_t n)
+memmove(void *a1, const void *a2, size_t n)
 {
 	char *s1, *s2;
 
@@ -38,7 +38,7 @@ back:
 }
 
 void*
-memcpy(void *a1, void *a2, uint32_t n)
+memcpy(void *a1, const void *a2, size_t n)
 {
 	return memmove(a1, a2, n);
 }

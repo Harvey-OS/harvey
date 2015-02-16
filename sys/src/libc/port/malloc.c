@@ -12,7 +12,7 @@
 #include <pool.h>
 #include <tos.h>
 
-static void*	sbrkalloc(ulong);
+static void*	sbrkalloc(uint32_t);
 static int		sbrkmerge(void*, void*);
 static void		plock(Pool*);
 static void		punlock(Pool*);
@@ -209,7 +209,7 @@ enum {
 };
 
 void*
-malloc(uint32_t size)
+malloc(size_t size)
 {
 	void *v;
 
@@ -261,7 +261,7 @@ free(void *v)
 }
 
 void*
-realloc(void *v, uint32_t size)
+realloc(void *v, size_t size)
 {
 	void *nv;
 
@@ -274,7 +274,7 @@ realloc(void *v, uint32_t size)
 		v = (uint32_t*)v-Npadlong;
 	size += Npadlong*sizeof(uint32_t);
 
-	if(nv = poolrealloc(mainmem, v, size)){
+	if((nv = poolrealloc(mainmem, v, size))){
 		nv = (uint32_t*)nv+Npadlong;
 		setrealloctag(nv, getcallerpc(&v));
 		if(v == nil)
@@ -290,10 +290,10 @@ msize(void *v)
 }
 
 void*
-calloc(uint32_t n, uint32_t szelem)
+calloc(uint32_t n, size_t szelem)
 {
 	void *v;
-	if(v = mallocz(n*szelem, 1))
+	if((v = mallocz(n*szelem, 1)))
 		setmalloctag(v, getcallerpc(&n));
 	return v;
 }
@@ -302,7 +302,7 @@ void
 setmalloctag(void *v, uint32_t pc)
 {
 	uint32_t *u;
-	USED(v, pc);
+	//USED(v, pc);
 	if(Npadlong <= MallocOffset || v == nil)
 		return;
 	u = v;
@@ -313,7 +313,7 @@ void
 setrealloctag(void *v, uint32_t pc)
 {
 	uint32_t *u;
-	USED(v, pc);
+	//USED(v, pc);
 	if(Npadlong <= ReallocOffset || v == nil)
 		return;
 	u = v;

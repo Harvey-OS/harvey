@@ -19,7 +19,8 @@ typedef	unsigned long long uint64_t;
 typedef	long long	int64_t;
 typedef uint64_t uintptr;
 typedef uint32_t	usize;
-typedef	uint		Rune;
+typedef int64_t size_t;
+typedef	uint32_t		Rune;
 typedef union FPdbleword FPdbleword;
 typedef uintptr		jmp_buf[2];
 #define	JMPBUFSP	0
