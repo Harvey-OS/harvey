@@ -1,9 +1,10 @@
 # These notes are also a script.
 # I want to try building with clang.
 #unshare -m /bin/bash
+echo "can not use clang for now, due to issues between clang and gcc builtin definitions. Damn"
 sudo mkdir -p /amd64
 sudo  mount --bind amd64/ /amd64/
 sudo  mount --bind sys /sys
-sudo mount --bind `which rc` /bin/sh
-sudo mount --bind /amd64/mkfile.clang /amd64/mkfile
+#sudo mount --bind /amd64/mkfile.clang /amd64/mkfile
+PATH=$PATH:~rminnich/projects/plan9-gpl/util
 
