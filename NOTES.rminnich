@@ -1,5 +1,6 @@
 # These notes are also a script.
 # I want to try building with clang.
+#unshare -m /bin/bash
 sudo mkdir -p /amd64
 sudo  mount --bind amd64/ /amd64/
 sudo  mount --bind sys /sys
