@@ -1,4 +1,4 @@
-#!/bin/rc
+#!$PLAN9/bin/rc
 
 rfork e
 n=`{echo $#*^'%3' | hoc}

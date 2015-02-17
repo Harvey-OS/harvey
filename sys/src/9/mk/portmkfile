@@ -1,8 +1,9 @@
+MKSHELL=$PLAN9/bin/rc
 %.$O:	%.s
-	$AS $AFLAGS $stem.s
+	$AS $AFLAGS -o $stem.o -c $stem.s
 
 %.$O:	%.c
-	$CC $CFLAGS $stem.c
+	$CC $CFLAGS -c $stem.c
 
 %.m:	%.$O
 	$LD -o $target -uX -l $prereq

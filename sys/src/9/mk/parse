@@ -1,3 +1,4 @@
+MKSHELL=$PLAN9/bin/rc
 BEGIN{
 	oargc = 0;
 	for(argc = 1; argc < ARGC; argc++){
@@ -495,7 +496,7 @@ function mkrules(dir, exists, ameta, cmeta, flags,		f, i, s, t){
 			t = "$AS $AFLAGS " flags;
 		}
 		s = s $0 ".$O:\t" dir "/" f "\n";
-		s = s "\t" t " -D'_DBGC_='" dbgc[$0] "'' " dir "/" f "\n";
+#		s = s "\t" t " -D'_DBGC_='" dbgc[$0] "'' " dir "/" f "\n";
 	}
 	return s;
 }

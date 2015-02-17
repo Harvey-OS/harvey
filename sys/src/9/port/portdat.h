@@ -86,7 +86,7 @@ struct Ref
 struct Rendez
 {
 	Lock;
-	Proc	*p;
+	Proc	*_p;
 };
 
 enum{
@@ -107,8 +107,8 @@ struct Waitstats
 	int*	type;
 	uintptr*	pcs;
 	int*	ns;
-	uvlong*	wait;
-	uvlong* total;
+	uint64_t*	wait;
+	uint64_t* total;
 };
 extern Waitstats waitstats;
 
@@ -154,7 +154,7 @@ struct RWlock
 struct Alarms
 {
 	QLock;
-	Proc	*head;
+	Proc	*_head;
 };
 
 /*
@@ -172,7 +172,7 @@ enum
 
 	COPEN	= 0x0001,		/* for i/o */
 	CMSG	= 0x0002,		/* the message channel for a mount */
-/*rsc	CCREATE	= 0x0004,		/* permits creation if c->mnt */
+/*rsc	CCREATE	= 0x0004,*/		/* permits creation if c->mnt */
 	CCEXEC	= 0x0008,		/* close on exec */
 	CFREE	= 0x0010,		/* not in use */
 	CRCLOSE	= 0x0020,		/* remove on close */
@@ -194,13 +194,13 @@ struct Block
 {
 	Block*	next;
 	Block*	list;
-	uchar*	rp;			/* first unconsumed byte */
-	uchar*	wp;			/* first empty byte */
-	uchar*	lim;			/* 1 past the end of the buffer */
-	uchar*	base;			/* start of the buffer */
+	unsigned char*	rp;			/* first unconsumed byte */
+	unsigned char*	wp;			/* first empty byte */
+	unsigned char*	lim;			/* 1 past the end of the buffer */
+	unsigned char*	base;			/* start of the buffer */
 	void	(*free)(Block*);
-	ushort	flag;
-	ushort	checksum;		/* IP checksum of complete packet (minus media header) */
+	uint16_t	flag;
+	uint16_t	checksum;		/* IP checksum of complete packet (minus media header) */
 };
 #define BLEN(s)	((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)
@@ -210,12 +210,12 @@ struct Chan
 	Ref;				/* the Lock in this Ref is also Chan's lock */
 	Chan*	next;			/* allocation */
 	Chan*	link;
-	vlong	offset;			/* in fd */
-	vlong	devoffset;		/* in underlying device; see read */
+	int64_t	offset;			/* in fd */
+	int64_t	devoffset;		/* in underlying device; see read */
 	Dev*	dev;
 	uint	devno;
-	ushort	mode;			/* read/write */
-	ushort	flag;
+	uint16_t	mode;			/* read/write */
+	uint16_t	flag;
 	Qid	qid;
 	int	fid;			/* for devmnt */
 	uint32_t	iounit;			/* chunk size for i/o; 0==default */
@@ -224,7 +224,7 @@ struct Chan
 	QLock	umqlock;		/* serialize unionreads */
 	int	uri;			/* union read index */
 	int	dri;			/* devdirread index */
-	uchar*	dirrock;		/* directory entry rock for translations */
+	unsigned char*	dirrock;		/* directory entry rock for translations */
 	int	nrock;
 	int	mrock;
 	QLock	rockqlock;
@@ -262,27 +262,27 @@ struct Dev
 	void	(*shutdown)(void);
 	Chan*	(*attach)(char*);
 	Walkqid*(*walk)(Chan*, Chan*, char**, int);
-	long	(*stat)(Chan*, uchar*, long);
+	long	(*stat)(Chan*, unsigned char*, long);
 	Chan*	(*open)(Chan*, int);
 	void	(*create)(Chan*, char*, int, int);
 	void	(*close)(Chan*);
-	long	(*read)(Chan*, void*, long, vlong);
-	Block*	(*bread)(Chan*, long, vlong);
-	long	(*write)(Chan*, void*, long, vlong);
-	long	(*bwrite)(Chan*, Block*, vlong);
+	long	(*read)(Chan*, void*, long, int64_t);
+	Block*	(*bread)(Chan*, long, int64_t);
+	long	(*write)(Chan*, void*, long, int64_t);
+	long	(*bwrite)(Chan*, Block*, int64_t);
 	void	(*remove)(Chan*);
-	long	(*wstat)(Chan*, uchar*, long);
+	long	(*wstat)(Chan*, unsigned char*, long);
 	void	(*power)(int);	/* power mgt: power(1) => on, power (0) => off */
 	int	(*config)(int, char*, DevConf*);	/* returns 0 on error */
-	int	(*zread)(Chan*, Kzio*, int, usize, vlong);
-	int	(*zwrite)(Chan*, Kzio*, int, vlong);
+	int	(*zread)(Chan*, Kzio*, int, usize, int64_t);
+	int	(*zwrite)(Chan*, Kzio*, int, int64_t);
 };
 
 struct Dirtab
 {
 	char	name[KNAMELEN];
 	Qid	qid;
-	vlong	length;
+	int64_t	length;
 	long	perm;
 };
 
@@ -374,7 +374,7 @@ struct Page
 	uintptr	va;			/* Virtual address for user */
 	uint32_t	daddr;			/* Disc address on swap */
 	int	ref;			/* Reference count */
-	uchar	modref;			/* Simulated modify/reference bits */
+	unsigned char	modref;			/* Simulated modify/reference bits */
 	int	color;			/* Cache coloring */
 	char	cachectl[MACHMAX];	/* Cache flushing control for mmuput */
 	Image	*image;			/* Associated text or swap image */
@@ -503,8 +503,8 @@ struct Segment
 {
 	Ref;
 	QLock	lk;
-	ushort	steal;		/* Page stealer lock */
-	ushort	type;		/* segment type */
+	uint16_t	steal;		/* Page stealer lock */
+	uint16_t	type;		/* segment type */
 	int	pgszi;		/* page size index in Mach MMMU */
 	uint	ptepertab;
 	int	color;
@@ -642,13 +642,13 @@ struct Timer
 {
 	/* Public interface */
 	int	tmode;		/* See above */
-	vlong	tns;		/* meaning defined by mode */
+	int64_t	tns;		/* meaning defined by mode */
 	void	(*tf)(Ureg*, Timer*);
 	void	*ta;
 	/* Internal */
 	Lock;
 	Timers	*tt;		/* Timers queue this timer runs on */
-	vlong	twhen;		/* ns represented in fastticks */
+	int64_t	twhen;		/* ns represented in fastticks */
 	Timer	*tnext;
 };
 
@@ -765,7 +765,7 @@ union Ar0 {
 	uintptr	p;
 	usize	u;
 	void*	v;
-	vlong	vl;
+	int64_t	vl;
 };
 
 typedef struct Nixpctl Nixpctl;
@@ -810,9 +810,9 @@ struct Proc
 	Fgrp	*closingfgrp;	/* used during teardown */
 
 	int	parentpid;
-	ulong	time[6];	/* User, Sys, Real; child U, S, R */
+	uint32_t	time[6];	/* User, Sys, Real; child U, S, R */
 
-	uvlong	kentry;		/* Kernel entry time stamp (for profiling) */
+	uint64_t	kentry;		/* Kernel entry time stamp (for profiling) */
 	/*
 	 * pcycles: cycles spent in this process (updated on procsave/restore)
 	 * when this is the current proc and we're in the kernel
@@ -821,14 +821,14 @@ struct Proc
 	 * when this is not the current process or we're in user mode
 	 * (procrestores and procsaves balance), it is pcycles.
 	 */
-	vlong	pcycles;
+	int64_t	pcycles;
 
 	int	insyscall;
 
 	QLock	debug;		/* to access debugging elements of User */
 	Proc	*pdbg;		/* the debugging process */
-	ulong	procmode;	/* proc device file mode */
-	ulong	privatemem;	/* proc does not let anyone read mem */
+	uint32_t	procmode;	/* proc device file mode */
+	uint32_t	privatemem;	/* proc does not let anyone read mem */
 	int	hang;		/* hang at next exec for debug */
 	int	procctl;	/* Control for /proc debugging */
 	uintptr	pc;		/* DEBUG only */
@@ -839,7 +839,7 @@ struct Proc
 	int	notepending;	/* note issued but not acted on */
 	int	kp;		/* true if a kernel process */
 	Proc	*palarm;	/* Next alarm time */
-	ulong	alarm;		/* Time of call */
+	uint32_t	alarm;		/* Time of call */
 	int	newtlb;		/* Pager has changed my pte's, I must flush */
 	int	noswap;		/* process is not swappable */
 
@@ -854,7 +854,7 @@ struct Proc
 	void	*kparg;
 
 	int	scallnr;	/* system call number */
-	uchar	arg[MAXSYSARG*sizeof(void*)];	/* system call arguments */
+	unsigned char	arg[MAXSYSARG*sizeof(void*)];	/* system call arguments */
 	int	nerrlab;
 	Label	errlab[NERR];
 	char	*syserrstr;	/* last error from a system call, errbuf0 or 1 */
@@ -878,14 +878,14 @@ struct Proc
 	Mach	*wired;
 	Mach	*mp;		/* machine this process last ran on */
 	int	nlocks;		/* number of locks held by proc */
-	ulong	delaysched;
-	ulong	priority;	/* priority level */
-	ulong	basepri;	/* base priority level */
+	uint32_t	delaysched;
+	uint32_t	priority;	/* priority level */
+	uint32_t	basepri;	/* base priority level */
 	int	fixedpri;	/* priority level does not change */
-	ulong	cpu;		/* cpu average */
-	ulong	lastupdate;
-	ulong	readytime;	/* time process came ready */
-	ulong	movetime;	/* last time process switched processors */
+	uint32_t	cpu;		/* cpu average */
+	uint32_t	lastupdate;
+	uint32_t	readytime;	/* time process came ready */
+	uint32_t	movetime;	/* last time process switched processors */
 	int	preempted;	/* true if this process hasn't finished the interrupt
 				 *  that last preempted it
 				 */
@@ -916,9 +916,9 @@ struct Proc
 	uint	nactrap;	/* # of traps in the AC for this process */
 	uint	nacsyscall;	/* # of syscalls in the AC for this process */
 	uint	nicc;		/* # of ICCs for the process */
-	uvlong	actime1;		/* ticks as of last call in AC */
-	uvlong	actime;		/* ∑time from call in AC to ret to AC, and... */
-	uvlong	tctime;		/* ∑time from call received to call handled */
+	uint64_t	actime1;		/* ticks as of last call in AC */
+	uint64_t	actime;		/* ∑time from call in AC to ret to AC, and... */
+	uint64_t	tctime;		/* ∑time from call received to call handled */
 	int	nqtrap;		/* # of traps in last quantum */
 	int	nqsyscall;	/* # of syscalls in the last quantum */
 	int	nfullq;
@@ -956,7 +956,7 @@ extern	char*	conffile;
 extern	int	cpuserver;
 extern  char*	eve;
 extern	char	hostdomain[];
-extern	uchar	initcode[];
+extern	unsigned char	initcode[];
 extern	int	kbdbuttons;
 extern  Ref	noteidalloc;
 extern	int	nphysseg;
@@ -1089,15 +1089,15 @@ struct Uart
 	Queue	*oq;
 
 	Lock	rlock;
-	uchar	istage[Stagesize];
-	uchar	*iw;
-	uchar	*ir;
-	uchar	*ie;
+	unsigned char	istage[Stagesize];
+	unsigned char	*iw;
+	unsigned char	*ir;
+	unsigned char	*ie;
 
 	Lock	tlock;			/* transmit */
-	uchar	ostage[Stagesize];
-	uchar	*op;
-	uchar	*oe;
+	unsigned char	ostage[Stagesize];
+	unsigned char	*op;
+	unsigned char	*oe;
 	int	drain;
 
 	int	modem;			/* hardware flow control on */
@@ -1154,16 +1154,16 @@ struct Fastcall {
 	void	(*fun)(Ar0*, Fastcall*);
 	void*	buf;
 	int	n;
-	vlong	offset;
+	int64_t	offset;
 };
 
 
 
 #define DEVDOTDOT -1
 
-#pragma	varargck	type	"I"	uchar*
-#pragma	varargck	type	"V"	uchar*
-#pragma	varargck	type	"E"	uchar*
-#pragma	varargck	type	"M"	uchar*
-#pragma	varargck	type	"W"	u64int
+#pragma	varargck	type	"I"	unsigned char*
+#pragma	varargck	type	"V"	unsigned char*
+#pragma	varargck	type	"E"	unsigned char*
+#pragma	varargck	type	"M"	unsigned char*
+#pragma	varargck	type	"W"	uint64_t
 #pragma	varargck	type	"Z"	Kzio*

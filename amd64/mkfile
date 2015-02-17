@@ -1,4 +1,4 @@
-<$ROOT/sys/src/mkfile.proto
+</sys/src/mkfile.proto
 
 #CC=6c
 #LD=6l

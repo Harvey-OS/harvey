@@ -43,20 +43,20 @@ struct Edf {
 	long		testtime;
 	Proc		*testnext;
 	/* other */
-	ushort		flags;
+	uint16_t		flags;
 	Timer;
 	/* Stats */
 	long		edfused;
 	long		extraused;
 	long		aged;
-	ulong		periods;
-	ulong		missed;
+	uint32_t		periods;
+	uint32_t		missed;
 };
 
 extern Lock	edftestlock;	/* for atomic admitting/expelling */
 
 #pragma	varargck	type	"t"		long
-#pragma	varargck	type	"U"		uvlong
+#pragma	varargck	type	"U"		uint64_t
 
 /* Interface: */
 Edf*		edflock(Proc*);

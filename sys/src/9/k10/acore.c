@@ -138,7 +138,7 @@ acmmuswitch(void)
 void
 actouser(void)
 {
-	void xactouser(u64int);
+	void xactouser(uint64_t);
 	Ureg *u;
 
 	acfpusysprocsetup(m->proc);

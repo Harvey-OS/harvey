@@ -24,8 +24,8 @@ struct SDperm {
 };
 
 struct SDpart {
-	uvlong	start;
-	uvlong	end;
+	uint64_t	start;
+	uint64_t	end;
 	SDperm;
 	int	valid;
 	uint32_t	vers;
@@ -34,12 +34,12 @@ struct SDpart {
 struct SDunit {
 	SDev*	dev;
 	int	subno;
-	uchar	inquiry[255];		/* format follows SCSI spec */
-	uchar	sense[18];		/* format follows SCSI spec */
+	unsigned char	inquiry[255];		/* format follows SCSI spec */
+	unsigned char	sense[18];		/* format follows SCSI spec */
 	SDperm;
 
 	QLock	ctl;
-	uvlong	sectors;
+	uint64_t	sectors;
 	uint32_t	secsize;
 	SDpart*	part;			/* nil or array of size npart */
 	int	npart;
@@ -86,7 +86,7 @@ struct SDifc {
 	int	(*rctl)(SDunit*, char*, int);
 	int	(*wctl)(SDunit*, Cmdbuf*);
 
-	long	(*bio)(SDunit*, int, int, void*, long, vlong);
+	long	(*bio)(SDunit*, int, int, void*, long, int64_t);
 	SDev*	(*probe)(DevConf*);
 	void	(*clear)(SDev*);
 	char*	(*rtopctl)(SDev*, char*, char*);
@@ -97,7 +97,7 @@ struct SDreq {
 	SDunit*	unit;
 	int	lun;
 	int	write;
-	uchar	cmd[16];
+	unsigned char	cmd[16];
 	int	clen;
 	void*	data;
 	int	dlen;
@@ -106,7 +106,7 @@ struct SDreq {
 
 	int	status;
 	long	rlen;
-	uchar	sense[256];
+	unsigned char	sense[256];
 };
 
 enum {
@@ -136,13 +136,13 @@ enum {
 /* devsd.c */
 extern void sdadddevs(SDev*);
 extern int sdsetsense(SDreq*, int, int, int, int);
-extern int sdmodesense(SDreq*, uchar*, void*, int);
+extern int sdmodesense(SDreq*, unsigned char*, void*, int);
 extern int sdfakescsi(SDreq*, void*, int);
 
 /* sdscsi.c */
 extern int scsiverify(SDunit*);
 extern int scsionline(SDunit*);
-extern long scsibio(SDunit*, int, int, void*, long, vlong);
+extern long scsibio(SDunit*, int, int, void*, long, int64_t);
 extern SDev* scsiid(SDev*, SDifc*);
 
 /*

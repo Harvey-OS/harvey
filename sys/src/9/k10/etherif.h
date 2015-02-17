@@ -24,13 +24,13 @@ struct Ether {
 
 	int	ctlrno;
 	int	tbdf;			/* type+busno+devno+funcno */
-	uchar	ea[Eaddrlen];
+	unsigned char	ea[Eaddrlen];
 
 	void	(*attach)(Ether*);	/* filled in by reset routine */
 	void	(*detach)(Ether*);
 	void	(*transmit)(Ether*);
 	void	(*interrupt)(Ureg*, void*);
-	long	(*ifstat)(Ether*, void*, long, ulong);
+	long	(*ifstat)(Ether*, void*, long, uint32_t);
 	long 	(*ctl)(Ether*, void*, long); /* custom ctl messages */
 	void	(*power)(Ether*, int);	/* power on/off */
 	void	(*shutdown)(Ether*);	/* shutdown hardware before reboot */
@@ -45,16 +45,16 @@ struct Ether {
 typedef struct Etherpkt Etherpkt;
 struct Etherpkt
 {
-	uchar	d[Eaddrlen];
-	uchar	s[Eaddrlen];
-	uchar	type[2];
-	uchar	data[1500];
+	unsigned char	d[Eaddrlen];
+	unsigned char	s[Eaddrlen];
+	unsigned char	type[2];
+	unsigned char	data[1500];
 };
 
 extern Block* etheriq(Ether*, Block*, int);
 extern void addethercard(char*, int(*)(Ether*));
-extern uint32_t ethercrc(uchar*, int);
-extern int parseether(uchar*, char*);
+extern uint32_t ethercrc(unsigned char*, int);
+extern int parseether(unsigned char*, char*);
 
 #define NEXT(x, l)	(((x)+1)%(l))
 #define PREV(x, l)	(((x) == 0) ? (l)-1: (x)-1)
