@@ -11,7 +11,7 @@
  * functions (possibly) linked in, complete, from libc.
  */
 #define nelem(x)	(sizeof(x)/sizeof((x)[0]))
-#define offsetof(s, m)	(ulong)(&(((s*)0)->m))
+#define offsetof(s, m)	(uint32_t)(&(((s*)0)->m))
 #define assert(x)	if(x){}else _assert("x")
 
 /*
@@ -79,7 +79,7 @@ extern	void*	realloc(void *, uint32_t);
  */
 typedef struct Fmt	Fmt;
 struct Fmt{
-	uchar	runes;			/* output buffer is runes or chars? */
+	unsigned char	runes;			/* output buffer is runes or chars? */
 	void	*start;			/* of buffer */
 	void	*to;			/* current place in the buffer */
 	void	*stop;			/* end of the buffer; overwritten if flush fails */
@@ -124,14 +124,14 @@ extern	int	sprint(char*, char*, ...);
 #pragma	varargck	argpos	snprint		3
 #pragma	varargck	argpos	sprint		2
 
-#pragma	varargck	type	"lld"	vlong
-#pragma	varargck	type	"llx"	vlong
-#pragma	varargck	type	"lld"	uvlong
-#pragma	varargck	type	"llx"	uvlong
+#pragma	varargck	type	"lld"	int64_t
+#pragma	varargck	type	"llx"	int64_t
+#pragma	varargck	type	"lld"	uint64_t
+#pragma	varargck	type	"llx"	uint64_t
 #pragma	varargck	type	"ld"	long
 #pragma	varargck	type	"lx"	long
-#pragma	varargck	type	"ld"	ulong
-#pragma	varargck	type	"lx"	ulong
+#pragma	varargck	type	"ld"	uint32_t
+#pragma	varargck	type	"lx"	uint32_t
 #pragma	varargck	type	"d"	int
 #pragma	varargck	type	"x"	int
 #pragma	varargck	type	"c"	int
@@ -162,7 +162,7 @@ extern	void	quotefmtinstall(void);
 /*
  * Time-of-day
  */
-extern	void	cycles(uvlong*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
+extern	void	cycles(uint64_t*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
 
 /*
  * NIX core types
@@ -182,14 +182,14 @@ enum
 extern	int	abs(int);
 extern	int	atoi(char*);
 extern	char*	cleanname(char*);
-extern	int	dec64(uchar*, int, char*, int);
+extern	int	dec64(unsigned char*, int, char*, int);
 extern	uintptr	getcallerpc(void*);
 extern	int	getfields(char*, char**, int, int, char*);
 extern	int	gettokens(char *, char **, int, char *);
 extern	long	strtol(char*, char**, int);
 extern	uint32_t	strtoul(char*, char**, int);
-extern	vlong	strtoll(char*, char**, int);
-extern	uvlong	strtoull(char*, char**, int);
+extern	int64_t	strtoll(char*, char**, int);
+extern	uint64_t	strtoull(char*, char**, int);
 extern	void	qsort(void*, long, long, int (*)(void*, void*));
 /*
  * Syscall data structures
@@ -243,21 +243,21 @@ typedef struct Waitmsg	Waitmsg;
 
 struct Qid
 {
-	uvlong	path;
+	uint64_t	path;
 	uint32_t	vers;
-	uchar	type;
+	unsigned char	type;
 };
 
 struct Dir {
 	/* system-modified data */
-	ushort	type;	/* server type */
+	uint16_t	type;	/* server type */
 	uint	dev;	/* server subtype */
 	/* file data */
 	Qid	qid;	/* unique id from server */
 	uint32_t	mode;	/* permissions */
 	uint32_t	atime;	/* last read time */
 	uint32_t	mtime;	/* last write time */
-	vlong	length;	/* file length: see <u.h> */
+	int64_t	length;	/* file length: see <u.h> */
 	char	*name;	/* last element of path */
 	char	*uid;	/* owner name */
 	char	*gid;	/* group name */

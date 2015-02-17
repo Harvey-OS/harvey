@@ -43,7 +43,7 @@ struct Netfile
 	QLock;
 
 	int	inuse;
-	ulong	mode;
+	uint32_t	mode;
 	char	owner[KNAMELEN];
 
 	int	type;			/* multiplexor type */
@@ -51,7 +51,7 @@ struct Netfile
 	int	scan;			/* base station scanning interval */
 	int	bridge;			/* bridge mode */
 	int	headersonly;		/* headers only - no data */
-	uchar	maddr[8];		/* bitmask of multicast addresses requested */
+	unsigned char	maddr[8];		/* bitmask of multicast addresses requested */
 	int	nmaddr;			/* number of multicast addresses */
 
 	Queue*	iq;			/* input */
@@ -64,7 +64,7 @@ struct Netaddr
 {
 	Netaddr	*next;			/* allocation chain */
 	Netaddr	*hnext;
-	uchar	addr[Nmaxaddr];
+	unsigned char	addr[Nmaxaddr];
 	int	ref;
 };
 
@@ -88,8 +88,8 @@ struct Netif
 	int	minmtu;
 	int 	maxmtu;
 	int	mtu;
-	uchar	addr[Nmaxaddr];
-	uchar	bcast[Nmaxaddr];
+	unsigned char	addr[Nmaxaddr];
+	unsigned char	bcast[Nmaxaddr];
 	Netaddr	*maddr;			/* known multicast addresses */
 	int	nmaddr;			/* number of known multicast addresses */
 	Netaddr *mhash[Nmhash];		/* hash table of multicast addresses */
@@ -100,20 +100,20 @@ struct Netif
 	Queue*	oq;			/* output */
 
 	/* statistics */
-	uvlong	misses;
-	uvlong	inpackets;
-	uvlong	outpackets;
-	uvlong	crcs;			/* input crc errors */
-	uvlong	oerrs;			/* output errors */
-	uvlong	frames;			/* framing errors */
-	uvlong	overflows;		/* packet overflows */
-	uvlong	buffs;			/* buffering errors */
-	uvlong	soverflows;		/* software overflow */
+	uint64_t	misses;
+	uint64_t	inpackets;
+	uint64_t	outpackets;
+	uint64_t	crcs;			/* input crc errors */
+	uint64_t	oerrs;			/* output errors */
+	uint64_t	frames;			/* framing errors */
+	uint64_t	overflows;		/* packet overflows */
+	uint64_t	buffs;			/* buffering errors */
+	uint64_t	soverflows;		/* software overflow */
 
 	/* routines for touching the hardware */
 	void	*arg;
 	void	(*promiscuous)(void*, int);
-	void	(*multicast)(void*, uchar*, int);
+	void	(*multicast)(void*, unsigned char*, int);
 	int	(*hwmtu)(void*, int);	/* get/set mtu */
 	void	(*scanbs)(void*, uint);	/* scan for base stations */
 };
@@ -122,9 +122,9 @@ void	netifinit(Netif*, char*, int, uint32_t);
 Walkqid*	netifwalk(Netif*, Chan*, Chan*, char **, int);
 Chan*	netifopen(Netif*, Chan*, int);
 void	netifclose(Netif*, Chan*);
-long	netifread(Netif*, Chan*, void*, long, vlong);
-Block*	netifbread(Netif*, Chan*, long, vlong);
+long	netifread(Netif*, Chan*, void*, long, int64_t);
+Block*	netifbread(Netif*, Chan*, long, int64_t);
 long	netifwrite(Netif*, Chan*, void*, long);
-long	netifwstat(Netif*, Chan*, uchar*, long);
-long	netifstat(Netif*, Chan*, uchar*, long);
-int	activemulti(Netif*, uchar*, int);
+long	netifwstat(Netif*, Chan*, unsigned char*, long);
+long	netifstat(Netif*, Chan*, unsigned char*, long);
+int	activemulti(Netif*, unsigned char*, int);

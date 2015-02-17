@@ -1,3 +1,4 @@
+MKSHELL=$PLAN9/bin/rc
 BOOTDIR=../boot
 BOOTLIB=$BOOTDIR/libboot.a$O
 

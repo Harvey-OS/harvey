@@ -1,12 +1,13 @@
 CONF=k8cpu
 CONFLIST=k8cpu
+objtype=amd64
+PORT=../port
 
 # override with the list of paths where to put extra
 # copies of the kernel. for each word $w in OTHERCOPIES,
 # the kernel is copied to $w/$objtype/...
 OTHERCOPIES=''
 
-objtype=amd64
 </$objtype/mkfile
 p=9
 
@@ -17,7 +18,8 @@ p=9
 <../mk/bootmkfile
 <../mk/portmkfile
 
-OBJ=$MACH $CONF.root.$O $DEVS $PORT
+#OBJ=$MACH $CONF.root.$O $DEVS $PORT
+OBJ=$MACH $DEVS $PORT
 
 $p$CONF:	$CONF.c $OBJ $LIB
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
@@ -38,8 +40,11 @@ install:QV:	$p$CONF $p$CONF.gz
 	}
 	echo done
 
-init.out:	init9.$O initcode.$O /$objtype/lib/libc.a
-	$LD -l -R1 -s -o init.out init9.$O initcode.$O -lc
+init.out:
+	$CC $CFLAGS -o initcode.$O -c ../port/initcode.c
+	$CC $CFLAGS -o init9.$O -c init9.c
+	$CC $CFLAGS -o init.out init9.$O initcode.$O /$objtype/lib/libc.a
+	#$LD -l -R1 -s -o init.out init9.$O initcode.$O -lc
 
 l32p.$O:	${objtype}l.h
 l64idt.$O:	${objtype}l.h

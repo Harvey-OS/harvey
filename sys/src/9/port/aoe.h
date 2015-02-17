@@ -44,41 +44,41 @@ enum {
 };
 
 typedef struct {
-	uchar	dst[Eaddrlen];
-	uchar	src[Eaddrlen];
-	uchar	type[2];
-	uchar	verflag;
-	uchar	error;
-	uchar	major[2];
-	uchar	minor;
-	uchar	cmd;
-	uchar	tag[4];
-	uchar	payload[];
+	unsigned char	dst[Eaddrlen];
+	unsigned char	src[Eaddrlen];
+	unsigned char	type[2];
+	unsigned char	verflag;
+	unsigned char	error;
+	unsigned char	major[2];
+	unsigned char	minor;
+	unsigned char	cmd;
+	unsigned char	tag[4];
+	unsigned char	payload[];
 } Aoehdr;
 
 #define AOEHDRSZ	offsetof(Aoehdr, payload[0])
 
 typedef struct {
 	Aoehdr;
-	uchar	aflag;
-	uchar	errfeat;
-	uchar	scnt;
-	uchar	cmdstat;
-	uchar	lba[6];
-	uchar	res[2];
-	uchar	payload[];
+	unsigned char	aflag;
+	unsigned char	errfeat;
+	unsigned char	scnt;
+	unsigned char	cmdstat;
+	unsigned char	lba[6];
+	unsigned char	res[2];
+	unsigned char	payload[];
 } Aoeata;
 
 #define AOEATASZ	offsetof(Aoeata, payload[0])
 
 typedef struct {
 	Aoehdr;
-	uchar	bufcnt[2];
-	uchar	fwver[2];
-	uchar	scnt;
-	uchar	verccmd;
-	uchar	cslen[2];
-	uchar	payload[];
+	unsigned char	bufcnt[2];
+	unsigned char	fwver[2];
+	unsigned char	scnt;
+	unsigned char	verccmd;
+	unsigned char	cslen[2];
+	unsigned char	payload[];
 } Aoeqc;
 
 #define AOEQCSZ		offsetof(Aoeqc, payload[0])

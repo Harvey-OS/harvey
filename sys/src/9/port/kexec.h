@@ -15,7 +15,7 @@ typedef struct Kexecgrp Kexecgrp;
 struct Kvalue
 {
 	uintptr addr;
-	uvlong size;
+	uint64_t size;
 	int	len;
 	int inuse;
 	Kvalue	*link;
@@ -29,8 +29,8 @@ struct Kexecgrp
 	Kvalue	**ent;
 	int	nent;
 	int	ment;
-	ulong	path;	/* qid.path of next Kvalue to be allocated */
-	ulong	vers;	/* of Kexecgrp */
+	uint32_t	path;	/* qid.path of next Kvalue to be allocated */
+	uint32_t	vers;	/* of Kexecgrp */
 };
 
 void	kforkexecac(Proc*, int, char*, char**);

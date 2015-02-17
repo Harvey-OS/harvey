@@ -107,7 +107,7 @@ struct Atable
 	char	sig[5];		/* signature */
 	char	oemid[7];	/* oem id str. */
 	char	oemtblid[9];	/* oem tbl. id str. */
-	uchar* tbl;		/* pointer to table in memory */
+	unsigned char* tbl;		/* pointer to table in memory */
 	long	dlen;		/* size of data in table, after Stdhdr */
 };
 
@@ -125,28 +125,28 @@ struct Gpe
 struct Parse
 {
 	char*	sig;
-	Atable*	(*f)(uchar*, int);	/* return nil to keep vmap */
+	Atable*	(*f)(unsigned char*, int);	/* return nil to keep vmap */
 };
 
 struct Regio{
 	void	*arg;
-	u8int	(*get8)(uintptr, void*);
-	void	(*set8)(uintptr, u8int, void*);
-	u16int	(*get16)(uintptr, void*);
-	void	(*set16)(uintptr, u16int, void*);
-	u32int	(*get32)(uintptr, void*);
-	void	(*set32)(uintptr, u32int, void*);
-	u64int	(*get64)(uintptr, void*);
-	void	(*set64)(uintptr, u64int, void*);
+	uint8_t	(*get8)(uintptr, void*);
+	void	(*set8)(uintptr, uint8_t, void*);
+	uint16_t	(*get16)(uintptr, void*);
+	void	(*set16)(uintptr, uint16_t, void*);
+	uint32_t	(*get32)(uintptr, void*);
+	void	(*set32)(uintptr, uint32_t, void*);
+	uint64_t	(*get64)(uintptr, void*);
+	void	(*set64)(uintptr, uint64_t, void*);
 };
 
 struct Reg
 {
 	char*	name;
 	int	spc;		/* io space */
-	u64int	base;		/* address, physical */
-	uchar*	p;		/* address, kmapped */
-	u64int	len;
+	uint64_t	base;		/* address, physical */
+	unsigned char*	p;		/* address, kmapped */
+	uint64_t	len;
 	int	tbdf;
 	int	accsz;		/* access size */
 };
@@ -156,11 +156,11 @@ struct Reg
 #pragma pack on
 struct Gas
 {
-	u8int	spc;	/* address space id */
-	u8int	len;	/* register size in bits */
-	u8int	off;	/* bit offset */
-	u8int	accsz;	/* 1: byte; 2: word; 3: dword; 4: qword */
-	u64int	addr;	/* address (or acpi encoded tbdf + reg) */
+	uint8_t	spc;	/* address space id */
+	uint8_t	len;	/* register size in bits */
+	uint8_t	off;	/* bit offset */
+	uint8_t	accsz;	/* 1: byte; 2: word; 3: dword; 4: qword */
+	uint64_t	addr;	/* address (or acpi encoded tbdf + reg) */
 };
 
 /* Root system description table pointer.
@@ -175,43 +175,43 @@ struct Gas
 
 struct Rsdp
 {
-	u8int	signature[8];			/* "RSD PTR " */
-	u8int	rchecksum;
-	u8int	oemid[6];
-	u8int	revision;
-	u8int	raddr[4];			/* RSDT */
-	u8int	length[4];
-	u8int	xaddr[8];			/* XSDT */
-	u8int	xchecksum;			/* XSDT */
-	u8int	_33_[3];			/* reserved */
+	uint8_t	signature[8];			/* "RSD PTR " */
+	uint8_t	rchecksum;
+	uint8_t	oemid[6];
+	uint8_t	revision;
+	uint8_t	raddr[4];			/* RSDT */
+	uint8_t	length[4];
+	uint8_t	xaddr[8];			/* XSDT */
+	uint8_t	xchecksum;			/* XSDT */
+	uint8_t	_33_[3];			/* reserved */
 };
 
 /* Header for ACPI description tables
  */
 struct Sdthdr
 {
-	u8int	sig[4];			/* "FACP" or whatever */
-	u8int	length[4];
-	u8int	rev;
-	u8int	csum;
-	u8int	oemid[6];
-	u8int	oemtblid[8];
-	u8int	oemrev[4];
-	u8int	creatorid[4];
-	u8int	creatorrev[4];
+	uint8_t	sig[4];			/* "FACP" or whatever */
+	uint8_t	length[4];
+	uint8_t	rev;
+	uint8_t	csum;
+	uint8_t	oemid[6];
+	uint8_t	oemtblid[8];
+	uint8_t	oemrev[4];
+	uint8_t	creatorid[4];
+	uint8_t	creatorrev[4];
 };
 
 /* Firmware control structure
  */
 struct Facs
 {
-	u32int	hwsig;
-	u32int	wakingv;
-	u32int	glock;
-	u32int	flags;
-	u64int	xwakingv;
-	u8int	vers;
-	u32int	ospmflags;
+	uint32_t	hwsig;
+	uint32_t	wakingv;
+	uint32_t	glock;
+	uint32_t	flags;
+	uint64_t	xwakingv;
+	uint8_t	vers;
+	uint32_t	ospmflags;
 };
 
 #pragma pack off
@@ -222,7 +222,7 @@ struct Msct
 {
 	int	ndoms;		/* number of domains */
 	int	nclkdoms;	/* number of clock domains */
-	u64int	maxpa;		/* max physical address */
+	uint64_t	maxpa;		/* max physical address */
 
 	Mdom*	dom;		/* domain information list */
 };
@@ -233,7 +233,7 @@ struct Mdom
 	int	start;		/* start dom id */
 	int	end;		/* end dom id */
 	int	maxproc;	/* max processor capacity */
-	u64int	maxmem;		/* max memory capacity */
+	uint64_t	maxmem;		/* max memory capacity */
 };
 
 /* Multiple APIC description table
@@ -244,7 +244,7 @@ struct Mdom
  */
 struct Madt
 {
-	u64int	lapicpa;		/* local APIC addr */
+	uint64_t	lapicpa;		/* local APIC addr */
 	int	pcat;		/* the machine has PC/AT 8259s */
 	Apicst*	st;		/* list of Apic related structures */
 };
@@ -260,8 +260,8 @@ struct Apicst
 		} lapic;
 		struct{
 			int	id;	/* io apic id */
-			u32int	ibase;	/* interrupt base addr. */
-			u64int	addr;	/* base address */
+			uint32_t	ibase;	/* interrupt base addr. */
+			uint64_t	addr;	/* base address */
 		} ioapic, iosapic;
 		struct{
 			int	irq;	/* bus intr. source (ISA only) */
@@ -320,8 +320,8 @@ struct Srat
 		} lapic;
 		struct{
 			int	dom;	/* proximity domain */
-			u64int	addr;	/* base address */
-			u64int	len;
+			uint64_t	addr;	/* base address */
+			uint64_t	len;
 			int	hplug;	/* hot pluggable */
 			int	nvram;	/* non volatile */	
 		} mem;
@@ -336,7 +336,7 @@ struct Srat
 /* System locality information table
  */
 struct Slit {
-	uvlong rowlen;
+	int64_t rowlen;
 	SlEntry **e;
 };
 
@@ -354,49 +354,49 @@ struct SlEntry {
  */
 struct Fadt
 {
-	u32int	facs;
-	u32int	dsdt;
+	uint32_t	facs;
+	uint32_t	dsdt;
 	/* 1 reserved */
-	u8int	pmprofile;
-	u16int	sciint;
-	u32int	smicmd;
-	u8int	acpienable;
-	u8int	acpidisable;
-	u8int	s4biosreq;
-	u8int	pstatecnt;
-	u32int	pm1aevtblk;
-	u32int	pm1bevtblk;
-	u32int	pm1acntblk;
-	u32int	pm1bcntblk;
-	u32int	pm2cntblk;
-	u32int	pmtmrblk;
-	u32int	gpe0blk;
-	u32int	gpe1blk;
-	u8int	pm1evtlen;
-	u8int	pm1cntlen;
-	u8int	pm2cntlen;
-	u8int	pmtmrlen;
-	u8int	gpe0blklen;
-	u8int	gpe1blklen;
-	u8int	gp1base;
-	u8int	cstcnt;
-	u16int	plvl2lat;
-	u16int	plvl3lat;
-	u16int	flushsz;
-	u16int	flushstride;
-	u8int	dutyoff;
-	u8int	dutywidth;
-	u8int	dayalrm;
-	u8int	monalrm;
-	u8int	century;
-	u16int	iapcbootarch;
+	uint8_t	pmprofile;
+	uint16_t	sciint;
+	uint32_t	smicmd;
+	uint8_t	acpienable;
+	uint8_t	acpidisable;
+	uint8_t	s4biosreq;
+	uint8_t	pstatecnt;
+	uint32_t	pm1aevtblk;
+	uint32_t	pm1bevtblk;
+	uint32_t	pm1acntblk;
+	uint32_t	pm1bcntblk;
+	uint32_t	pm2cntblk;
+	uint32_t	pmtmrblk;
+	uint32_t	gpe0blk;
+	uint32_t	gpe1blk;
+	uint8_t	pm1evtlen;
+	uint8_t	pm1cntlen;
+	uint8_t	pm2cntlen;
+	uint8_t	pmtmrlen;
+	uint8_t	gpe0blklen;
+	uint8_t	gpe1blklen;
+	uint8_t	gp1base;
+	uint8_t	cstcnt;
+	uint16_t	plvl2lat;
+	uint16_t	plvl3lat;
+	uint16_t	flushsz;
+	uint16_t	flushstride;
+	uint8_t	dutyoff;
+	uint8_t	dutywidth;
+	uint8_t	dayalrm;
+	uint8_t	monalrm;
+	uint8_t	century;
+	uint16_t	iapcbootarch;
 	/* 1 reserved */
-	u32int	flags;
+	uint32_t	flags;
 	Gas	resetreg;
-	u8int	resetval;
+	uint8_t	resetval;
 	/* 3 reserved */
-	u64int	xfacs;
-	u64int	xdsdt;
+	uint64_t	xfacs;
+	uint64_t	xdsdt;
 	Gas	xpm1aevtblk;
 	Gas	xpm1bevtblk;
 	Gas	xpm1acntblk;
@@ -413,7 +413,7 @@ struct Xsdt
 {
 	int	len;
 	int	asize;
-	u8int*	p;
+	uint8_t*	p;
 };
 
 extern uintmem acpimblocksize(uintmem, int*);

@@ -234,17 +234,17 @@ typedef struct Pcidev Pcidev;
 struct Pcidev
 {
 	int	tbdf;			/* type+bus+device+function */
-	ushort	vid;			/* vendor ID */
-	ushort	did;			/* device ID */
+	uint16_t	vid;			/* vendor ID */
+	uint16_t	did;			/* device ID */
 
-	ushort	pcr;
+	uint16_t	pcr;
 
-	uchar	rid;
-	uchar	ccrp;
-	uchar	ccru;
-	uchar	ccrb;
-	uchar	cls;
-	uchar	ltr;
+	unsigned char	rid;
+	unsigned char	ccrp;
+	unsigned char	ccru;
+	unsigned char	ccrb;
+	unsigned char	cls;
+	unsigned char	ltr;
 
 	struct {
 		uint32_t	bar;		/* base address */
@@ -255,7 +255,7 @@ struct Pcidev
 		uint32_t	bar;
 		int	size;
 	} rom;
-	uchar	intl;			/* interrupt line */
+	unsigned char	intl;			/* interrupt line */
 
 	Pcidev*	list;
 	Pcidev*	link;			/* next device on this bno */

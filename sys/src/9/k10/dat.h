@@ -21,7 +21,7 @@ typedef struct MFPU MFPU;
 typedef struct MMMU MMMU;
 typedef struct NIX NIX;
 typedef struct Mach Mach;
-typedef u64int Mpl;
+typedef uint64_t Mpl;
 typedef struct Page Page;
 typedef struct Pcidev Pcidev;
 typedef struct PFPU PFPU;
@@ -30,10 +30,10 @@ typedef struct PmcCtl PmcCtl;
 typedef struct PmcWait PmcWait;
 typedef struct PMMU PMMU;
 typedef struct PNOTIFY PNOTIFY;
-typedef u64int PTE;
+typedef uint64_t PTE;
 typedef struct Proc Proc;
 typedef struct Sys Sys;
-typedef u64int uintmem;				/* Physical address (hideous) */
+typedef uint64_t uintmem;				/* Physical address (hideous) */
 typedef struct Ureg Ureg;
 typedef struct Vctl Vctl;
 
@@ -53,13 +53,13 @@ typedef struct Vctl Vctl;
 
 struct Lock
 {
-	u32int	key;
+	uint32_t	key;
 	int	isilock;
 	Mpl	pl;
-	uintptr	pc;
+	uintptr	_pc;
 	Proc*	p;
 	Mach*	m;
-	uvlong	lockcycles;
+	uint64_t	lockcycles;
 };
 
 struct Label
@@ -69,18 +69,18 @@ struct Label
 };
 
 struct Fxsave {
-	u16int	fcw;			/* x87 control word */
-	u16int	fsw;			/* x87 status word */
-	u8int	ftw;			/* x87 tag word */
-	u8int	zero;			/* 0 */
-	u16int	fop;			/* last x87 opcode */
-	u64int	rip;			/* last x87 instruction pointer */
-	u64int	rdp;			/* last x87 data pointer */
-	u32int	mxcsr;			/* MMX control and status */
-	u32int	mxcsrmask;		/* supported MMX feature bits */
-	uchar	st[128];		/* shared 64-bit media and x87 regs */
-	uchar	xmm[256];		/* 128-bit media regs */
-	uchar	ign[96];		/* reserved, ignored */
+	uint16_t	fcw;			/* x87 control word */
+	uint16_t	fsw;			/* x87 status word */
+	uint8_t	ftw;			/* x87 tag word */
+	uint8_t	zero;			/* 0 */
+	uint16_t	fop;			/* last x87 opcode */
+	uint64_t	rip;			/* last x87 instruction pointer */
+	uint64_t	rdp;			/* last x87 data pointer */
+	uint32_t	mxcsr;			/* MMX control and status */
+	uint32_t	mxcsrmask;		/* supported MMX feature bits */
+	unsigned char	st[128];		/* shared 64-bit media and x87 regs */
+	unsigned char	xmm[256];		/* 128-bit media regs */
+	unsigned char	ign[96];		/* reserved, ignored */
 };
 
 /*
@@ -88,7 +88,7 @@ struct Fxsave {
  */
 struct PFPU {
 	int	fpustate;
-	uchar	fxsave[sizeof(Fxsave)+15];
+	unsigned char	fxsave[sizeof(Fxsave)+15];
 	void*	fpusave;
 };
 
@@ -106,7 +106,8 @@ struct PMMU
  */
 struct PNOTIFY
 {
-	void	emptiness;
+//	void	emptiness;
+	char	emptiness;
 };
 
 struct Confmem
@@ -121,7 +122,7 @@ struct Conf
 {
 	uint32_t	nproc;		/* processes */
 	Confmem	mem[4];		/* physical memory */
-	uvlong	npage;		/* total physical pages of memory */
+	uint64_t	npage;		/* total physical pages of memory */
 	usize	upages;		/* user page pool */
 	uint32_t	copymode;	/* 0 is copy on write, 1 is copy on reference */
 	uint32_t	ialloc;		/* max interrupt time allocation in bytes */
@@ -140,7 +141,7 @@ enum
  */
 struct MCPU
 {
-	u32int	cpuinfo[3][4];			/*  CPUID Functions 0, 1, and 5 (n.b.: 2-4 are invalid) */
+	uint32_t	cpuinfo[3][4];			/*  CPUID Functions 0, 1, and 5 (n.b.: 2-4 are invalid) */
 	int	ncpuinfos;			/* number of standard entries */
 	int	ncpuinfoe;			/* number of extended entries */
 	int	isintelcpu;			/*  */
@@ -151,9 +152,9 @@ struct MCPU
  */
 struct MFPU
 {
-	u16int	fcw;			/* x87 control word */
-	u32int	mxcsr;			/* MMX control and status */
-	u32int	mxcsrmask;		/* supported MMX feature bits */
+	uint16_t	fcw;			/* x87 control word */
+	uint32_t	mxcsr;			/* MMX control and status */
+	uint32_t	mxcsrmask;		/* supported MMX feature bits */
 };
 
 struct NIX
@@ -197,12 +198,12 @@ struct ICC
 	/* fn is kept in its own cache line */
 	union{
 		void	(*fn)(void);
-		uchar	_ln1_[ICCLNSZ];
+		unsigned char	_ln1_[ICCLNSZ];
 	};
 	int	flushtlb;	/* on the AC, before running fn */
 	int	rc;		/* return code from AC to TC */
 	char*	note;		/* to be posted in the TC after returning */
-	uchar	data[ICCLNSZ];	/* sent to the AC */
+	unsigned char	data[ICCLNSZ];	/* sent to the AC */
 };
 
 /*
@@ -210,7 +211,7 @@ struct ICC
  */
 struct PmcCtl {
 	Ref;
-	u32int coreno;
+	uint32_t coreno;
 	int enab;
 	int user;
 	int os;
@@ -228,7 +229,7 @@ struct PmcWait{
 struct PmcCtr{
 	int stale;
 	PmcWait *wq;
-	u64int ctr;
+	uint64_t ctr;
 	int ctrset;
 	PmcCtl;
 	int ctlset;
@@ -264,7 +265,7 @@ struct Mach
 
 	MMMU;
 
-	uchar*	vsvm;
+	unsigned char*	vsvm;
 	void*	gdt;
 	void*	tss;
 
@@ -290,10 +291,10 @@ struct Mach
 	int	lastintr;
 
 	Lock	apictimerlock;
-	uvlong	cyclefreq;		/* Frequency of user readable cycle counter */
-	vlong	cpuhz;
+	uint64_t	cyclefreq;		/* Frequency of user readable cycle counter */
+	int64_t	cpuhz;
 	int	cpumhz;
-	u64int	rdtsc;
+	uint64_t	rdtsc;
 
 	Lock	pmclock;
 	PmcCtr	pmc[PmcMaxCtrs];
@@ -317,46 +318,46 @@ struct Mach
  * the unions.
  */
 struct Sys {
-	uchar	machstk[MACHSTKSZ];
+	unsigned char	machstk[MACHSTKSZ];
 
 	PTE	pml4[PTSZ/sizeof(PTE)];	/*  */
 	PTE	pdp[PTSZ/sizeof(PTE)];
 	PTE	pd[PTSZ/sizeof(PTE)];
 	PTE	pt[PTSZ/sizeof(PTE)];
 
-	uchar	vsvmpage[4*KiB];
+	unsigned char	vsvmpage[4*KiB];
 
 	union {
 		Mach	mach;
-		uchar	machpage[MACHSZ];
+		unsigned char	machpage[MACHSZ];
 	};
 
 	union {
 		struct {
-			u64int	pmstart;	/* physical memory */
-			u64int	pmoccupied;	/* how much is occupied */
-			u64int	pmend;		/* total span */
+			uint64_t	pmstart;	/* physical memory */
+			uint64_t	pmoccupied;	/* how much is occupied */
+			uint64_t	pmend;		/* total span */
 
 			uintptr	vmstart;	/* base address for malloc */
 			uintptr	vmunused;	/* 1st unused va */
 			uintptr	vmunmapped;	/* 1st unmapped va */
 			uintptr	vmend;		/* 1st unusable va */
-			u64int	epoch;		/* crude time synchronisation */
+			uint64_t	epoch;		/* crude time synchronisation */
 
 			int		nc[NIXROLES];		/* number of online processors */
 			int		nmach;
 			int		load;
 			uint32_t	ticks;			/* of the clock since boot time */
 		};
-		uchar	syspage[4*KiB];
+		unsigned char	syspage[4*KiB];
 	};
 
 	union {
 		Mach*	machptr[MACHMAX];
-		uchar	ptrpage[4*KiB];
+		unsigned char	ptrpage[4*KiB];
 	};
 
-	uchar	_57344_[2][4*KiB];		/* unused */
+	unsigned char	_57344_[2][4*KiB];		/* unused */
 };
 
 extern Sys* sys;
@@ -403,8 +404,10 @@ struct ISAConf {
  * MMU information array machptr, mainly for disambiguation and access to
  * the clock which is only maintained by the bootstrap processor (0).
  */
-extern register Mach* m;			/* R15 */
-extern register Proc* up;			/* R14 */
+//extern register Mach* m;			/* R15 */
+//extern register Proc* up;			/* R14 */
+extern Mach* m;                      /* R15 */
+extern Proc* up;                     /* R14 */
 
 extern uintptr kseg0;
 

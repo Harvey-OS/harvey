@@ -18,21 +18,21 @@ void	acsysret(void);
 void	actouser(void);
 void		runacore(void);
 void	aamloop(int);
-Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,vlong), long(*)(Chan*,void*,long,vlong));
+Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,int64_t), long(*)(Chan*,void*,long,int64_t));
 void	acmmuswitch(void);
 void	acmodeset(int);
 void	archfmtinstall(void);
 void	archidle(void);
 int	archmmu(void);
 int	asmfree(uintmem, uintmem, int);
-uvlong	asmalloc(uintmem, uintmem, int, int);
+uint64_t	asmalloc(uintmem, uintmem, int, int);
 void	asminit(void);
 void	asmmapinit(uintmem, uintmem, int);
-extern void asmmodinit(u32int, u32int, char*);
+extern void asmmodinit(uint32_t, uint32_t, char*);
 void	noerrorsleft(void);
 void	archinit(void);
 void	archreset(void);
-vlong	archhz(void);
+int64_t	archhz(void);
 void	cgaconsputs(char*, int);
 void	cgainit(void);
 void	cgapost(int);
@@ -40,12 +40,12 @@ void	checkpa(char*, uintmem);
 #define	clearmmucache()				/* x86 doesn't have one */
 void	(*coherence)(void);
 int	corecolor(int);
-u32int	cpuid(u32int, u32int, u32int[4]);
+uint32_t	cpuid(uint32_t, uint32_t, uint32_t[4]);
 int	dbgprint(char*, ...);
 int	decref(Ref*);
 void	delay(int);
 void	dumpmmu(Proc*);
-void	dumpmmuwalk(u64int pa);
+void	dumpmmuwalk(uint64_t pa);
 void	dumpptepg(int lvl,uintptr pa);
 #define	evenaddr(x)				/* x86 doesn't care */
 int	fpudevprocio(Proc*, void*, long, uintptr, int);
@@ -62,19 +62,19 @@ char*	getconf(char*);
 void	halt(void);
 void	hardhalt(void);
 int	i8042auxcmd(int);
-int	i8042auxcmds(uchar*, int);
+int	i8042auxcmds(unsigned char*, int);
 void	i8042auxenable(void (*)(int, int));
 void	i8042reset(void);
 Uart*	i8250console(char*);
 void*	i8250alloc(int, int, int);
-vlong	i8254hz(u32int[2][4]);
+int64_t	i8254hz(uint32_t[2][4]);
 void	idlehands(void);
 void	acidthandlers(void);
 void	idthandlers(void);
 int	inb(int);
 int	incref(Ref*);
 void	insb(int, void*, int);
-ushort	ins(int);
+uint16_t	ins(int);
 void	inss(int, void*, int);
 uint32_t	inl(int);
 void	insl(int, void*, int);
@@ -96,24 +96,24 @@ void	lfence(void);
 void	links(void);
 void	machinit(void);
 void	mach0init(void);
-void	mapraminit(uvlong, uvlong);
-void	mapupainit(uvlong, uint32_t);
+void	mapraminit(uint64_t, uint64_t);
+void	mapupainit(uint64_t, uint32_t);
 void	meminit(void);
 void	mfence(void);
-void	mmuflushtlb(u64int);
+void	mmuflushtlb(uint64_t);
 void	mmuinit(void);
 uintptr	mmukmap(uintptr, uintptr, usize);
-int	mmukmapsync(uvlong);
+int	mmukmapsync(uint64_t);
 uintmem	mmuphysaddr(uintptr);
 int	mmuwalk(PTE*, uintptr, int, PTE**, PTE (*)(usize));
-int	multiboot(u32int, u32int, int);
+int	multiboot(uint32_t, uint32_t, int);
 void	ndnr(void);
-uchar	nvramread(int);
-void	nvramwrite(int, uchar);
+unsigned char	nvramread(int);
+void	nvramwrite(int, unsigned char);
 void	optionsinit(char*);
 void	outb(int, int);
 void	outsb(int, void*, int);
-void	outs(int, ushort);
+void	outs(int, uint16_t);
 void	outss(int, void*, int);
 void	outl(int, uint32_t);
 void	outsl(int, void*, int);
@@ -141,17 +141,17 @@ void	runapcore(int);
 int	screenprint(char*, ...);			/* debugging */
 void	sfence(void);
 void	spldone(void);
-u64int	splhi(void);
-u64int	spllo(void);
-void	splx(u64int);
-void	splxpc(u64int);
+uint64_t	splhi(void);
+uint64_t	spllo(void);
+void	splx(uint64_t);
+void	splxpc(uint64_t);
 void	stopac(void);
 void	syncclock(void);
 void	syscall(int scallnr, Ureg* ureg);
 void*	sysexecregs(uintptr, uint32_t, uint32_t);
 uintptr	sysexecstack(uintptr, int);
 void	sysprocsetup(Proc*);
-void	tssrsp0(u64int);
+void	tssrsp0(uint64_t);
 void	trapenable(int, void (*)(Ureg*, void*), void*, char*);
 void	trapinit(void);
 void	trap(Ureg*);
@@ -164,20 +164,20 @@ void*	vmap(uintptr, usize);
 void	vsvminit(int, int);
 void	vunmap(void*, usize);
 
-extern u64int cr0get(void);
-extern void cr0put(u64int);
-extern u64int cr2get(void);
-extern u64int cr3get(void);
-extern void cr3put(u64int);
-extern u64int cr4get(void);
-extern void cr4put(u64int);
+extern uint64_t cr0get(void);
+extern void cr0put(uint64_t);
+extern uint64_t cr2get(void);
+extern uint64_t cr3get(void);
+extern void cr3put(uint64_t);
+extern uint64_t cr4get(void);
+extern void cr4put(uint64_t);
 extern void gdtget(void*);
-extern void gdtput(int, u64int, u16int);
-extern void idtput(int, u64int);
-extern u64int rdmsr(u32int);
-extern u64int rdtsc(void);
-extern void trput(u64int);
-extern void wrmsr(u32int, u64int);
+extern void gdtput(int, uint64_t, uint16_t);
+extern void idtput(int, uint64_t);
+extern uint64_t rdmsr(uint32_t);
+extern uint64_t rdtsc(void);
+extern void trput(uint64_t);
+extern void wrmsr(uint32_t, uint64_t);
 
 extern int islo(void);
 extern void spldone(void);
@@ -185,17 +185,17 @@ extern Mpl splhi(void);
 extern Mpl spllo(void);
 extern void splx(Mpl);
 
-int	cas32(void*, u32int, u32int);
-int	cas64(void*, u64int, u64int);
+int	cas32(void*, uint32_t, uint32_t);
+int	cas64(void*, uint64_t, uint64_t);
 int	tas32(void*);
-u64int	fas64(u64int*, u64int);
+uint64_t	fas64(uint64_t*, uint64_t);
 
-#define CASU(p, e, n)	cas64((p), (u64int)(e), (u64int)(n))
-#define CASV(p, e, n)	cas64((p), (u64int)(e), (u64int)(n))
-#define CASP(p, e, n)	cas64((p), (u64int)(e), (u64int)(n))
+#define CASU(p, e, n)	cas64((p), (uint64_t)(e), (uint64_t)(n))
+#define CASV(p, e, n)	cas64((p), (uint64_t)(e), (uint64_t)(n))
+#define CASP(p, e, n)	cas64((p), (uint64_t)(e), (uint64_t)(n))
 #define CASW(p, e, n)	cas32((p), (e), (n))
 #define TAS(addr)	tas32((addr))
-#define	FASP(p, v)	((void*)fas64((u64int*)(p), (u64int)(v)))
+#define	FASP(p, v)	((void*)fas64((uint64_t*)(p), (uint64_t)(v)))
 
 void	touser(uintptr);
 void	syscallentry(void);
@@ -227,7 +227,7 @@ extern void apicpri(int);
 extern void apicsipi(int, uintmem);
 
 extern void ioapicinit(int, uintmem);
-extern void ioapicintrinit(int, int, int, int, u32int);
+extern void ioapicintrinit(int, int, int, int, uint32_t);
 extern void ioapiconline(void);
 
 /*
