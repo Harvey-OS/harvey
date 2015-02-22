@@ -717,7 +717,7 @@ enum
 struct {
 	char	*name;
 	Qid	qid;
-	ulong	perm;
+	uint32_t	perm;
 } fstab[] =
 {
 	[Qdir]		{ ".",		{Qdir, 0, QTDIR},	DMDIR|0555	},

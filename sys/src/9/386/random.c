@@ -18,7 +18,7 @@ struct Rb
 	QLock;
 	Rendez	producer;
 	Rendez	consumer;
-	ulong	randomcount;
+	uint32_t	randomcount;
 	uchar	buf[1024];
 	uchar	*ep;
 	uchar	*rp;
@@ -26,7 +26,7 @@ struct Rb
 	uchar	next;
 	uchar	wakeme;
 	ushort	bits;
-	ulong	randn;
+	uint32_t	randn;
 } rb;
 
 static int

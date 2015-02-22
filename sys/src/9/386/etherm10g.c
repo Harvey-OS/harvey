@@ -142,7 +142,7 @@ typedef struct {
 	uint	i;		/* number of segments (not frames) queued */
 	uint	cnt;		/* number of segments sent by the card */
 
-	ulong	npkt;
+	uint32_t	npkt;
 	vlong	nbytes;
 } Tx;
 
@@ -221,7 +221,7 @@ typedef struct Ctlr {
 	u32int	*coal;
 
 	char	eprom[Epromsz];
-	ulong	serial;		/* unit serial number */
+	uint32_t	serial;		/* unit serial number */
 
 	QLock	cmdl;
 	Cmd	*cmd;		/* address of command return */

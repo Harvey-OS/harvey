@@ -355,11 +355,11 @@ archread(Chan *c, void *a, long n, vlong offset)
 	char *buf, *p;
 	int port;
 	ushort *sp;
-	ulong *lp;
+	uint32_t *lp;
 	IOMap *map;
 	Rdwrfn *fn;
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 
 	case Qdir:
 		return devdirread(c, a, n, archdir, narchdir, devgen);
@@ -405,7 +405,7 @@ archread(Chan *c, void *a, long n, vlong offset)
 	n = n/Linelen;
 	offset = offset/Linelen;
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qioalloc:
 		lock(&iomap);
 		for(map = iomap.map; n > 0 && map != nil; map = map->next){
@@ -580,7 +580,7 @@ fastticks(uint64_t* hz)
 	return rdtsc();
 }
 
-ulong
+uint32_t
 µs(void)
 {
 	return fastticks2us(rdtsc());
