@@ -1273,9 +1273,9 @@ systsemacquire(Ar0* ar0, va_list list)
 	int *addr, ms;
 
 	/*
-	 * int tsemacquire(long* addr, ulong ms);
+	 * int tsemacquire(long* addr, uint32_t ms);
 	 * should be (and will be implemented below as) perhaps
-	 * int tsemacquire(int* addr, ulong ms);
+	 * int tsemacquire(int* addr, uint32_t ms);
 	 */
 	addr = va_arg(list, int*);
 	addr = validaddr(addr, sizeof(int), 1);

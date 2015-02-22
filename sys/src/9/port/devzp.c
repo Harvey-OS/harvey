@@ -41,7 +41,7 @@ struct ZPipe
 	QLock;
 	ZPipe	*next;
 	int	ref;
-	ulong	path;
+	uint32_t	path;
 	Zq	q[2];
 	int	qref[2];
 };
@@ -49,7 +49,7 @@ struct ZPipe
 struct
 {
 	Lock;
-	ulong	path;
+	uint32_t	path;
 } zpalloc;
 
 enum

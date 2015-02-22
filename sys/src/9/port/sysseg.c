@@ -326,7 +326,7 @@ syssegattach(Ar0* ar0, va_list list)
 	usize len;
 
 	/*
-	 * long segattach(int, char*, void*, ulong);
+	 * long segattach(int, char*, void*, uint32_t);
 	 * should be
 	 * void* segattach(int, char*, void*, usize);
 	 */
@@ -398,7 +398,7 @@ syssegfree(Ar0* ar0, va_list list)
 	usize len;
 
 	/*
-	 * int segfree(void*, ulong);
+	 * int segfree(void*, uint32_t);
 	 * should be
 	 * int segfree(void*, usize);
 	 */
@@ -443,7 +443,7 @@ syssegflush(Ar0* ar0, va_list list)
 	usize chunk, l, len, pe, ps;
 
 	/*
-	 * int segflush(void*, ulong);
+	 * int segflush(void*, uint32_t);
 	 * should be
 	 * int segflush(void*, usize);
 	 */

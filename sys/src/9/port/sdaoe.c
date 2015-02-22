@@ -54,7 +54,7 @@ struct Ctlr{
 	char	path[Maxpath];
 	Chan	*c;
 
-	ulong	vers;
+	uint32_t	vers;
 	uchar	mediachange;
 	uchar	flag;
 	uchar	smart;

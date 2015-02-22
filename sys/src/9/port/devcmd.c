@@ -32,8 +32,8 @@ enum
 
 	Debug=0	/* to help debug os.c */
 };
-#define TYPE(x) 	((ulong)(x).path & 0xf)
-#define CONV(x) 	(((ulong)(x).path >> 4)&0xfff)
+#define TYPE(x) 	((uint32_t)(x).path & 0xf)
+#define CONV(x) 	(((uint32_t)(x).path >> 4)&0xfff)
 #define QID(c, y) 	(((c)<<4) | (y))
 
 typedef struct Conv	Conv;

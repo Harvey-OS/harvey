@@ -161,8 +161,8 @@ static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
 #define	QIDMASK	((1<<QSHIFT)-1)
 #define	SLOTMASK	((1<<SLOTBITS)-1 << QSHIFT)
 
-#define QID(q)		((((ulong)(q).path)&QIDMASK)>>0)
-#define SLOT(q)		(((((ulong)(q).path)&SLOTMASK)>>QSHIFT)-1)
+#define QID(q)		((((uint32_t)(q).path)&QIDMASK)>>0)
+#define SLOT(q)		(((((uint32_t)(q).path)&SLOTMASK)>>QSHIFT)-1)
 #define PID(q)		((q).vers)
 #define NOTEID(q)	((q).vers)
 

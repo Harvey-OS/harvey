@@ -14,7 +14,7 @@
 #include	"fns.h"
 #include	<pool.h>
 
-extern void* xalloc(ulong);
+extern void* xalloc(uint32_t);
 extern void xinit(void);
 extern int xmerge(void*, void*);
 

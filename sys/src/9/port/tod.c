@@ -44,7 +44,7 @@
 
 struct {
 	int	init;		/* true if initialized */
-	ulong	cnt;
+	uint32_t	cnt;
 	Lock;
 	uvlong	multiplier;	/* ns = off + (multiplier*ticks)>>31 */
 	uvlong	divider;	/* ticks = (divider*(ns-off))>>31 */
@@ -55,8 +55,8 @@ struct {
 	vlong	off;		/* offset from epoch to last */
 	vlong	lasttime;	/* last return value from todget */
 	vlong	delta;	/* add 'delta' each slow clock tick from sstart to send */
-	ulong	sstart;		/* ... */
-	ulong	send;		/* ... */
+	uint32_t	sstart;		/* ... */
+	uint32_t	send;		/* ... */
 } tod;
 
 static void todfix(void);

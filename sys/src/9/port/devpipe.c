@@ -20,7 +20,7 @@ struct Pipe
 	QLock;
 	Pipe	*next;
 	int	ref;
-	ulong	path;
+	uint32_t	path;
 	Queue	*q[2];
 	int	qref[2];
 };
@@ -28,7 +28,7 @@ struct Pipe
 struct
 {
 	Lock;
-	ulong	path;
+	uint32_t	path;
 } pipealloc;
 
 enum

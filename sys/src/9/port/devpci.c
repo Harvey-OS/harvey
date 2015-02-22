@@ -23,7 +23,7 @@ enum {
 	Qpciraw,
 };
 
-#define TYPE(q)		((ulong)(q).path & 0x0F)
+#define TYPE(q)		((uint32_t)(q).path & 0x0F)
 #define QID(c, t)	(((c)<<4)|(t))
 
 static Dirtab topdir[] = {

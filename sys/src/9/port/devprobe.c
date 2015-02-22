@@ -323,7 +323,7 @@ probewrite(Chan *c, void *a, int32_t n, int64_t)
 				func = (void*)addr;
 				if(*ep)
 					error("devprobe: address not in recognized format");
-			//	if(addr < ((ulong) start) || addr > ((ulong) end))
+			//	if(addr < ((uint32_t) start) || addr > ((ulong) end))
 			//		error("devprobe: address out of bounds");
 				if(p != nil)
 					error("devprobe: 0x%p already has probe");

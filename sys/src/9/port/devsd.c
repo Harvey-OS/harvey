@@ -71,10 +71,10 @@ enum {
 	Ncmd = 20,
 };
 
-#define TYPE(q)		((((ulong)(q).path)>>TypeSHIFT) & TypeMASK)
-#define PART(q)		((((ulong)(q).path)>>PartSHIFT) & PartMASK)
-#define UNIT(q)		((((ulong)(q).path)>>UnitSHIFT) & UnitMASK)
-#define DEV(q)		((((ulong)(q).path)>>DevSHIFT) & DevMASK)
+#define TYPE(q)		((((uint32_t)(q).path)>>TypeSHIFT) & TypeMASK)
+#define PART(q)		((((uint32_t)(q).path)>>PartSHIFT) & PartMASK)
+#define UNIT(q)		((((uint32_t)(q).path)>>UnitSHIFT) & UnitMASK)
+#define DEV(q)		((((uint32_t)(q).path)>>DevSHIFT) & DevMASK)
 #define QID(d,u, p, t)	(((d)<<DevSHIFT)|((u)<<UnitSHIFT)|\
 					 ((p)<<PartSHIFT)|((t)<<TypeSHIFT))
 
@@ -1548,7 +1548,7 @@ getnewport(DevConf* dc)
 	dc->ports = p;
 	p = &dc->ports[dc->nports++];
 	p->size = -1;
-	p->port = (ulong)-1;
+	p->port = (uint32_t)-1;
 	return p;
 }
 
@@ -1558,7 +1558,7 @@ parseport(Confdata* cd, char* option)
 	char *e;
 	Devport *p;
 
-	if(cd->cf.nports == 0 || cd->cf.ports[cd->cf.nports-1].port != (ulong)-1)
+	if(cd->cf.nports == 0 || cd->cf.ports[cd->cf.nports-1].port != (uint32_t)-1)
 		p = getnewport(&cd->cf);
 	else
 		p = &cd->cf.ports[cd->cf.nports-1];

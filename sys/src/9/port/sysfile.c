@@ -1300,7 +1300,7 @@ syscreate(Ar0* ar0, va_list list)
 	Chan *c;
 
 	/*
-	 * int create(char* file, int omode, ulong perm);
+	 * int create(char* file, int omode, uint32_t perm);
 	 * should be
 	 * int create(char* file, int omode, int perm);
 	 */

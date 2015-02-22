@@ -22,7 +22,7 @@ enum
 struct
 {
 	Lock;
-	ulong	bytes;
+	uint32_t	bytes;
 } ialloc;
 
 static Block*

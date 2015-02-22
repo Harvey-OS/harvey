@@ -24,7 +24,7 @@ struct
 	uintptr	maxpc;
 	int	nbuf;
 	int	time;
-	ulong	*buf;
+	uint32_t	*buf;
 	Lock;
 }kprof;
 

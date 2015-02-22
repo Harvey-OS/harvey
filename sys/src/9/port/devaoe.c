@@ -41,9 +41,9 @@ enum {
 //	ETHERMAXTU	= 1514,		/* maximum transmit size */
 };
 
-#define TYPE(q)		((ulong)(q).path & 0xf)
-#define UNIT(q)		(((ulong)(q).path>>4) & 0xff)
-#define L(q)		(((ulong)(q).path>>12) & 0xf)
+#define TYPE(q)		((uint32_t)(q).path & 0xf)
+#define UNIT(q)		(((uint32_t)(q).path>>4) & 0xff)
+#define L(q)		(((uint32_t)(q).path>>12) & 0xf)
 #define QID(u, t) 	((u)<<4 | (t))
 #define Q3(l, u, t)	((l)<<8 | QID(u, t))
 #define UP(d)		((d)->flag & Dup)
@@ -161,8 +161,8 @@ typedef struct Srb Srb;
 struct Srb {
 	Rendez;
 	Srb	*next;
-	ulong	ticksent;
-	ulong	len;
+	uint32_t	ticksent;
+	uint32_t	len;
 	vlong	sector;
 	short	write;
 	short	nout;
@@ -191,10 +191,10 @@ struct Aoedev {
 	QLock;
 	Aoedev	*next;
 
-	ulong	vers;
+	uint32_t	vers;
 
 	int	ndl;
-	ulong	dlidx;
+	uint32_t	dlidx;
 	Devlink	*dl;
 	Devlink	dltab[Ndevlink];
 
@@ -211,10 +211,10 @@ struct Aoedev {
 	vlong	realbsize;
 
 	uint	maxbcnt;
-	ulong	lostjumbo;
+	uint32_t	lostjumbo;
 	ushort	nout;
 	ushort	maxout;
-	ulong	lastwadj;
+	uint32_t	lastwadj;
 	Srb	*head;
 	Srb	*tail;
 	Srb	*inprocess;
