@@ -86,7 +86,7 @@ extern void _ldmxcsr(u32int);
 extern void _stts(void);
 
 int
-fpudevprocio(Proc* proc, void* a, int32_t n, uintptr offset, int write)
+fpudevprocio(Proc* proc, void* a, int32_t n, uintptr_t offset, int write)
 {
 	uint8_t *p;
 

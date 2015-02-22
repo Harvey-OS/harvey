@@ -1195,7 +1195,7 @@ igbeattach(Ether* edev)
 		qunlock(&ctlr->alock);
 		return;
 	}
-	ctlr->rdba = (Rd*)ROUNDUP((uintptr)ctlr->alloc, 128);
+	ctlr->rdba = (Rd*)ROUNDUP((uintptr_t)ctlr->alloc, 128);
 	ctlr->tdba = (Td*)(ctlr->rdba+ctlr->nrd);
 
 	ctlr->rb = malloc(ctlr->nrd*sizeof(Block*));

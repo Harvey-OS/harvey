@@ -120,7 +120,7 @@ cgaputc(int c)
  * debug
  */
 void
-cgaprinthex(uintptr x)
+cgaprinthex(uintptr_t x)
 {
 	char str[30];
 	char *s;

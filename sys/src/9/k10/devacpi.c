@@ -122,99 +122,99 @@ l64get(uint8_t* p)
 }
 
 static uint8_t
-mget8(uintptr p, void*)
+mget8(uintptr_t p, void*)
 {
 	uint8_t *cp = (uint8_t*)p;
 	return *cp;
 }
 
 static void
-mset8(uintptr p, uint8_t v, void*)
+mset8(uintptr_t p, uint8_t v, void*)
 {
 	uint8_t *cp = (uint8_t*)p;
 	*cp = v;
 }
 
 static uint16_t
-mget16(uintptr p, void*)
+mget16(uintptr_t p, void*)
 {
 	uint16_t *cp = (uint16_t*)p;
 	return *cp;
 }
 
 static void
-mset16(uintptr p, uint16_t v, void*)
+mset16(uintptr_t p, uint16_t v, void*)
 {
 	uint16_t *cp = (uint16_t*)p;
 	*cp = v;
 }
 
 static uint32_t
-mget32(uintptr p, void*)
+mget32(uintptr_t p, void*)
 {
 	uint32_t *cp = (uint32_t*)p;
 	return *cp;
 }
 
 static void
-mset32(uintptr p, uint32_t v, void*)
+mset32(uintptr_t p, uint32_t v, void*)
 {
 	uint32_t *cp = (uint32_t*)p;
 	*cp = v;
 }
 
 static uint64_t
-mget64(uintptr p, void*)
+mget64(uintptr_t p, void*)
 {
 	uint64_t *cp = (uint64_t*)p;
 	return *cp;
 }
 
 static void
-mset64(uintptr p, uint64_t v, void*)
+mset64(uintptr_t p, uint64_t v, void*)
 {
 	uint64_t *cp = (uint64_t*)p;
 	*cp = v;
 }
 
 static uint8_t
-ioget8(uintptr p, void*)
+ioget8(uintptr_t p, void*)
 {
 	return inb(p);
 }
 
 static void
-ioset8(uintptr p, uint8_t v, void*)
+ioset8(uintptr_t p, uint8_t v, void*)
 {
 	outb(p, v);
 }
 
 static uint16_t
-ioget16(uintptr p, void*)
+ioget16(uintptr_t p, void*)
 {
 	return ins(p);
 }
 
 static void
-ioset16(uintptr p, uint16_t v, void*)
+ioset16(uintptr_t p, uint16_t v, void*)
 {
 	outs(p, v);
 }
 
 static uint32_t
-ioget32(uintptr p, void*)
+ioget32(uintptr_t p, void*)
 {
 	return inl(p);
 }
 
 static void
-ioset32(uintptr p, uint32_t v, void*)
+ioset32(uintptr_t p, uint32_t v, void*)
 {
 	outl(p, v);
 }
 
 static uint8_t
-cfgget8(uintptr p, void* r)
+cfgget8(uintptr_t p, void* r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -224,7 +224,7 @@ cfgget8(uintptr p, void* r)
 }
 
 static void
-cfgset8(uintptr p, uint8_t v, void* r)
+cfgset8(uintptr_t p, uint8_t v, void* r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -234,7 +234,7 @@ cfgset8(uintptr p, uint8_t v, void* r)
 }
 
 static uint16_t
-cfgget16(uintptr p, void* r)
+cfgget16(uintptr_t p, void* r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -244,7 +244,7 @@ cfgget16(uintptr p, void* r)
 }
 
 static void
-cfgset16(uintptr p, uint16_t v, void* r)
+cfgset16(uintptr_t p, uint16_t v, void* r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -254,7 +254,7 @@ cfgset16(uintptr p, uint16_t v, void* r)
 }
 
 static uint32_t
-cfgget32(uintptr p, void* r)
+cfgget32(uintptr_t p, void* r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -264,7 +264,7 @@ cfgget32(uintptr p, void* r)
 }
 
 static void
-cfgset32(uintptr p, uint32_t v, void* r)
+cfgset32(uintptr_t p, uint32_t v, void* r)
 {
 	Reg *ro = r;
 	Pcidev d;
@@ -298,7 +298,7 @@ static Regio cfgio =
  * Copy memory, 1/2/4/8-bytes at a time, to/from a region.
  */
 static int32_t
-regcpy(Regio *dio, uintptr da, Regio *sio, uintptr sa, int32_t len,
+regcpy(Regio *dio, uintptr_t da, Regio *sio, uintptr_t sa, int32_t len,
        int align)
 {
 	int n, i;
@@ -339,10 +339,10 @@ regcpy(Regio *dio, uintptr da, Regio *sio, uintptr sa, int32_t len,
  * All units in bytes.
  */
 static int32_t
-regio(Reg *r, void *p, uint32_t len, uintptr off, int iswr)
+regio(Reg *r, void *p, uint32_t len, uintptr_t off, int iswr)
 {
 	Regio rio;
-	uintptr rp;
+	uintptr_t rp;
 
 	DBG("reg%s %s %#p %#ullx %#lx sz=%d\n",
 		iswr ? "out" : "in", r->name, p, off, len, r->accsz);
@@ -363,7 +363,7 @@ regio(Reg *r, void *p, uint32_t len, uintptr off, int iswr)
 			r->p = vmap(r->base, len);
 		if(r->p == nil)
 			error("regio: vmap failed");
-		rp = (uintptr)r->p + off;
+		rp = (uintptr_t)r->p + off;
 		rio = memio;
 		break;
 	case Rsysio:
@@ -385,9 +385,9 @@ regio(Reg *r, void *p, uint32_t len, uintptr off, int iswr)
 		error("region not supported");
 	}
 	if(iswr)
-		regcpy(&rio, rp, &memio, (uintptr)p, len, r->accsz);
+		regcpy(&rio, rp, &memio, (uintptr_t)p, len, r->accsz);
 	else
-		regcpy(&memio, (uintptr)p, &rio, rp, len, r->accsz);
+		regcpy(&memio, (uintptr_t)p, &rio, rp, len, r->accsz);
 	return len;
 }
 
@@ -435,7 +435,7 @@ sdtchecksum(void* addr, int len)
 }
 
 static void *
-sdtmap(uintptr pa, int *n, int cksum)
+sdtmap(uintptr_t pa, int *n, int cksum)
 {
 	Sdthdr* sdt;
 
@@ -459,7 +459,7 @@ sdtmap(uintptr pa, int *n, int cksum)
 }
 
 static int
-loadfacs(uintptr pa)
+loadfacs(uintptr_t pa)
 {
 	int n;
 
@@ -484,7 +484,7 @@ loadfacs(uintptr pa)
 }
 
 static void
-loaddsdt(uintptr pa)
+loaddsdt(uintptr_t pa)
 {
 	int n;
 	uint8_t *dsdtp;
@@ -1117,7 +1117,7 @@ static int
 acpixsdtload(char *sig)
 {
 	int i, l, t, unmap, found;
-	uintptr dhpa;
+	uintptr_t dhpa;
 	uint8_t *sdt;
 	char tsig[5];
 
@@ -1168,7 +1168,7 @@ rsdscan(uint8_t* addr, int len, char* signature)
 static void*
 rsdsearch(char* signature)
 {
-	uintptr p;
+	uintptr_t p;
 	uint8_t *bda;
 	void *rsd;
 
@@ -1192,7 +1192,7 @@ acpirsdptr(void)
 {
 	Rsdp *rsd;
 	int asize;
-	uintptr sdtpa;
+	uintptr_t sdtpa;
 
 	if((rsd = rsdsearch("RSD PTR ")) == nil)
 		return;
@@ -1307,7 +1307,7 @@ Gfmt(Fmt* f)
 }
 
 static uint
-getbanked(uintptr ra, uintptr rb, int sz)
+getbanked(uintptr_t ra, uintptr_t rb, int sz)
 {
 	uint r;
 
@@ -1338,7 +1338,7 @@ getbanked(uintptr ra, uintptr rb, int sz)
 }
 
 static uint
-setbanked(uintptr ra, uintptr rb, int sz, int v)
+setbanked(uintptr_t ra, uintptr_t rb, int sz, int v)
 {
 	uint r;
 

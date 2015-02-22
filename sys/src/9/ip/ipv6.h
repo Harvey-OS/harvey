@@ -132,50 +132,50 @@ typedef struct Routinghdr Routinghdr;
 typedef struct Fraghdr6	Fraghdr6;
 
 struct	Ip6hdr {
-	uchar	vcf[4];		/* version:4, traffic class:8, flow label:20 */
-	uchar	ploadlen[2];	/* payload length: packet length - 40 */
-	uchar	proto;		/* next header type */
-	uchar	ttl;		/* hop limit */
-	uchar	src[IPaddrlen];
-	uchar	dst[IPaddrlen];
+	uint8_t	vcf[4];		/* version:4, traffic class:8, flow label:20 */
+	uint8_t	ploadlen[2];	/* payload length: packet length - 40 */
+	uint8_t	proto;		/* next header type */
+	uint8_t	ttl;		/* hop limit */
+	uint8_t	src[IPaddrlen];
+	uint8_t	dst[IPaddrlen];
 };
 
 struct	Opthdr {
-	uchar	nexthdr;
-	uchar	len;
+	uint8_t	nexthdr;
+	uint8_t	len;
 };
 
 struct	Routinghdr {
-	uchar	nexthdr;
-	uchar	len;
-	uchar	rtetype;
-	uchar	segrem;
+	uint8_t	nexthdr;
+	uint8_t	len;
+	uint8_t	rtetype;
+	uint8_t	segrem;
 };
 
 struct	Fraghdr6 {
-	uchar	nexthdr;
-	uchar	res;
-	uchar	offsetRM[2];	/* Offset, Res, M flag */
-	uchar	id[4];
+	uint8_t	nexthdr;
+	uint8_t	res;
+	uint8_t	offsetRM[2];	/* Offset, Res, M flag */
+	uint8_t	id[4];
 };
 
-extern uchar v6allnodesN[IPaddrlen];
-extern uchar v6allnodesL[IPaddrlen];
-extern uchar v6allroutersN[IPaddrlen];
-extern uchar v6allroutersL[IPaddrlen];
-extern uchar v6allnodesNmask[IPaddrlen];
-extern uchar v6allnodesLmask[IPaddrlen];
-extern uchar v6allroutersS[IPaddrlen];
-extern uchar v6solicitednode[IPaddrlen];
-extern uchar v6solicitednodemask[IPaddrlen];
-extern uchar v6Unspecified[IPaddrlen];
-extern uchar v6loopback[IPaddrlen];
-extern uchar v6loopbackmask[IPaddrlen];
-extern uchar v6linklocal[IPaddrlen];
-extern uchar v6linklocalmask[IPaddrlen];
-extern uchar v6glunicast[IPaddrlen];
-extern uchar v6multicast[IPaddrlen];
-extern uchar v6multicastmask[IPaddrlen];
+extern uint8_t v6allnodesN[IPaddrlen];
+extern uint8_t v6allnodesL[IPaddrlen];
+extern uint8_t v6allroutersN[IPaddrlen];
+extern uint8_t v6allroutersL[IPaddrlen];
+extern uint8_t v6allnodesNmask[IPaddrlen];
+extern uint8_t v6allnodesLmask[IPaddrlen];
+extern uint8_t v6allroutersS[IPaddrlen];
+extern uint8_t v6solicitednode[IPaddrlen];
+extern uint8_t v6solicitednodemask[IPaddrlen];
+extern uint8_t v6Unspecified[IPaddrlen];
+extern uint8_t v6loopback[IPaddrlen];
+extern uint8_t v6loopbackmask[IPaddrlen];
+extern uint8_t v6linklocal[IPaddrlen];
+extern uint8_t v6linklocalmask[IPaddrlen];
+extern uint8_t v6glunicast[IPaddrlen];
+extern uint8_t v6multicast[IPaddrlen];
+extern uint8_t v6multicastmask[IPaddrlen];
 
 extern int v6llpreflen;
 extern int v6lbpreflen;
@@ -186,9 +186,11 @@ extern int v6aLpreflen;
 
 extern int ReTransTimer;
 
-void ipv62smcast(uchar *, uchar *);
-void icmpns(Fs *f, uchar* src, int suni, uchar* targ, int tuni, uchar* mac);
-void icmpna(Fs *f, uchar* src, uchar* dst, uchar* targ, uchar* mac, uchar flags);
+void ipv62smcast(uint8_t *, uint8_t *);
+void icmpns(Fs *f, uint8_t* src, int suni, uint8_t* targ, int tuni,
+	    uint8_t* mac);
+void icmpna(Fs *f, uint8_t* src, uint8_t* dst, uint8_t* targ, uint8_t* mac,
+	    uint8_t flags);
 void icmpttlexceeded6(Fs *f, Ipifc *ifc, Block *bp);
 void icmppkttoobig6(Fs *f, Ipifc *ifc, Block *bp);
 void icmphostunr(Fs *f, Ipifc *ifc, Block *bp, int code, int free);

@@ -88,7 +88,7 @@ tabs(int n)
 }
 
 void
-dumpptepg(int lvl, uintptr pa)
+dumpptepg(int lvl, uintptr_t pa)
 {
 	PTE *pte;
 	int tab, i;
@@ -378,7 +378,7 @@ pteflags(uint attr)
  * For 1*GiB pages, we use two levels.
  */
 void
-mmuput(uintptr va, Page *pg, uint attr)
+mmuput(uintptr_t va, Page *pg, uint attr)
 {
 	int lvl, user, x, pgsz;
 	PTE *pte;
@@ -496,7 +496,7 @@ mmukmapsync(uint64_t va)
 }
 
 static PTE
-pdeget(uintptr va)
+pdeget(uintptr_t va)
 {
 	PTE *pdp;
 
@@ -513,9 +513,9 @@ pdeget(uintptr va)
  * Called only after the va range is known to be unoccupied.
  */
 static int
-pdmap(uintptr pa, int attr, uintptr va, usize size)
+pdmap(uintptr_t pa, int attr, uintptr_t va, usize size)
 {
-	uintptr pae;
+	uintptr_t pae;
 	PTE *pd, *pde, *pt, *pte;
 	int pdx, pgsz;
 	Page *pg;
@@ -578,7 +578,7 @@ findhole(PTE* a, int n, int count)
 /*
  * Look for free space in the vmap.
  */
-static uintptr
+static uintptr_t
 vmapalloc(usize size)
 {
 	int i, n, o;
@@ -635,9 +635,9 @@ vmapalloc(usize size)
  * vmap() is required to access them.
  */
 void*
-vmap(uintptr pa, usize size)
+vmap(uintptr_t pa, usize size)
 {
-	uintptr va;
+	uintptr_t va;
 	usize o, sz;
 
 	DBG("vmap(%#p, %lud) pc=%#p\n", pa, size, getcallerpc(&pa));
@@ -689,7 +689,7 @@ vmap(uintptr pa, usize size)
 void
 vunmap(void* v, usize size)
 {
-	uintptr va;
+	uintptr_t va;
 
 	DBG("vunmap(%#p, %lud)\n", v, size);
 
@@ -712,7 +712,8 @@ vunmap(void* v, usize size)
 }
 
 int
-mmuwalk(PTE* pml4, uintptr va, int level, PTE** ret, uint64_t (*alloc)(usize))
+mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
+	uint64_t (*alloc)(usize))
 {
 	int l;
 	uintmem pa;
@@ -747,7 +748,7 @@ mmuwalk(PTE* pml4, uintptr va, int level, PTE** ret, uint64_t (*alloc)(usize))
 }
 
 uintmem
-mmuphysaddr(uintptr va)
+mmuphysaddr(uintptr_t va)
 {
 	int l;
 	PTE *pte;

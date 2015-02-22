@@ -123,10 +123,10 @@ static	Lock		mainlock;
 #define QLIST	quicklist
 
 static void*
-qmallocalign(usize nbytes, uintptr align, int32_t offset, usize span)
+qmallocalign(usize nbytes, uintptr_t align, int32_t offset, usize span)
 {
 	Qlist *qlist;
-	uintptr aligned;
+	uintptr_t aligned;
 	Header **pp, *p, *q, *r;
 	uint naligned, nunits, n;
 

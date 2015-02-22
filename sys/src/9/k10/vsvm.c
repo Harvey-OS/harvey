@@ -100,7 +100,7 @@ mkgd(Gd* gd, uint64_t offset, Ss ss, uint64_t bits, int ist)
 }
 
 static void
-idtinit(Gd *gd, uintptr offset)
+idtinit(Gd *gd, uintptr_t offset)
 {
 	int ist, v;
 	uint64_t dpl;
@@ -126,7 +126,7 @@ idtinit(Gd *gd, uintptr offset)
 }
 
 void
-tssrsp0(uintptr sp)
+tssrsp0(uintptr_t sp)
 {
 	Tss *tss;
 
@@ -136,7 +136,7 @@ tssrsp0(uintptr sp)
 }
 
 static void
-tssinit(uintptr sp)
+tssinit(uintptr_t sp)
 {
 	int ist;
 	Tss *tss;

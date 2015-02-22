@@ -19,7 +19,7 @@
 #define TMFM		(64*MiB)
 
 void*
-KADDR(uintptr pa)
+KADDR(uintptr_t pa)
 {
 	uint8_t* va;
 

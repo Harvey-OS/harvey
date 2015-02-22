@@ -391,7 +391,7 @@ sigscan(uint8_t* address, int length, char* signature)
 static void*
 sigsearch(char* signature)
 {
-	uintptr p;
+	uintptr_t p;
 	uint8_t *bda;
 	void *r;
 

@@ -66,4 +66,10 @@ typedef u8int;
 -u8int
 +uint8_t
 
+@@
+typedef uintptr;
+typedef uintptr_t;
+@@
+- uintptr
++ uintptr_t
 

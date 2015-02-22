@@ -52,7 +52,7 @@ reader(void *v)
 	char *ctl, *truss;
 	Str *s;
 
-	pid = (int)(uintptr)v;
+	pid = (int)(uintptr_t)v;
 	ctl = smprint("/proc/%d/ctl", pid);
 	if ((cfd = open(ctl, OWRITE)) < 0)
 		die(smprint("%s: %r", ctl));

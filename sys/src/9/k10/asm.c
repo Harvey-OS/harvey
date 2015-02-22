@@ -284,7 +284,7 @@ static int npg[4];
 void*
 asmbootalloc(usize size)
 {
-	uintptr va;
+	uintptr_t va;
 
 	assert(sys->vmunused+size <= sys->vmunmapped);
 	va = sys->vmunused;

@@ -18,7 +18,9 @@ void	acsysret(void);
 void	actouser(void);
 void		runacore(void);
 void	aamloop(int);
-Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,int64_t), long(*)(Chan*,void*,long,int64_t));
+Dirtab*	addarchfile(char*, int,
+			   int32_t(*)(Chan*,void*,int32_t,int64_t),
+			   int32_t(*)(Chan*,void*,int32_t,int64_t));
 void	acmmuswitch(void);
 void	acmodeset(int);
 void	archfmtinstall(void);
@@ -46,9 +48,9 @@ int	decref(Ref*);
 void	delay(int);
 void	dumpmmu(Proc*);
 void	dumpmmuwalk(uint64_t pa);
-void	dumpptepg(int lvl,uintptr pa);
+void	dumpptepg(int lvl,uintptr_t pa);
 #define	evenaddr(x)				/* x86 doesn't care */
-int	fpudevprocio(Proc*, void*, long, uintptr, int);
+int	fpudevprocio(Proc*, void*, int32_t, uintptr_t, int);
 void	fpuinit(void);
 void	fpunoted(void);
 void	fpunotify(Ureg*);
@@ -80,7 +82,7 @@ uint32_t	inl(int);
 void	insl(int, void*, int);
 int	intrdisable(void*);
 void*	intrenable(int, void (*)(Ureg*, void*), void*, int, char*);
-void	invlpg(uintptr);
+void	invlpg(uintptr_t);
 void	iofree(int);
 void	ioinit(void);
 int	iounused(int, int);
@@ -102,10 +104,10 @@ void	meminit(void);
 void	mfence(void);
 void	mmuflushtlb(uint64_t);
 void	mmuinit(void);
-uintptr	mmukmap(uintptr, uintptr, usize);
+uintptr_t	mmukmap(uintptr_t, uintptr_t, usize);
 int	mmukmapsync(uint64_t);
-uintmem	mmuphysaddr(uintptr);
-int	mmuwalk(PTE*, uintptr, int, PTE**, PTE (*)(usize));
+uintmem	mmuphysaddr(uintptr_t);
+int	mmuwalk(PTE*, uintptr_t, int, PTE**, PTE (*)(usize));
 int	multiboot(uint32_t, uint32_t, int);
 void	ndnr(void);
 unsigned char	nvramread(int);
@@ -148,19 +150,19 @@ void	splxpc(uint64_t);
 void	stopac(void);
 void	syncclock(void);
 void	syscall(int scallnr, Ureg* ureg);
-void*	sysexecregs(uintptr, uint32_t, uint32_t);
-uintptr	sysexecstack(uintptr, int);
+void*	sysexecregs(uintptr_t, uint32_t, uint32_t);
+uintptr_t	sysexecstack(uintptr_t, int);
 void	sysprocsetup(Proc*);
 void	tssrsp0(uint64_t);
 void	trapenable(int, void (*)(Ureg*, void*), void*, char*);
 void	trapinit(void);
 void	trap(Ureg*);
 void	umeminit(void);
-void	upafree(uintptr, usize);
-uintptr	upamalloc(uintptr, usize, usize);
-void	upareserve(uintptr, usize);
+void	upafree(uintptr_t, usize);
+uintptr_t	upamalloc(uintptr_t, usize, usize);
+void	upareserve(uintptr_t, usize);
 int	userureg(Ureg*);
-void*	vmap(uintptr, usize);
+void*	vmap(uintptr_t, usize);
 void	vsvminit(int, int);
 void	vunmap(void*, usize);
 
@@ -197,7 +199,7 @@ uint64_t	fas64(uint64_t*, uint64_t);
 #define TAS(addr)	tas32((addr))
 #define	FASP(p, v)	((void*)fas64((uint64_t*)(p), (uint64_t)(v)))
 
-void	touser(uintptr);
+void	touser(uintptr_t);
 void	syscallentry(void);
 void	acsyscallentry(void);
 void	syscallreturn(void);
@@ -207,10 +209,10 @@ void	sysrforkret(void);
 
 #define	dcflush(a, b)
 
-#define PTR2UINT(p)	((uintptr)(p))
+#define PTR2UINT(p)	((uintptr_t)(p))
 #define UINT2PTR(i)	((void*)(i))
 
-void*	KADDR(uintptr);
+void*	KADDR(uintptr_t);
 uintmem	PADDR(void*);
 
 #define BIOSSEG(a)	KADDR(((uint)(a))<<4)

@@ -356,7 +356,7 @@ pcirouting(void)
 
 	if(0)
 		print("PCI interrupt routing table version %d.%d at %.6llux\n",
-			r->version[0], r->version[1], (uintptr)r & 0xfffff);
+			r->version[0], r->version[1], (uintptr_t)r & 0xfffff);
 
 	tbdf = (BusPCI << 24)|(r->bus << 16)|(r->devfn << 8);
 	sbpci = pcimatchtbdf(tbdf);

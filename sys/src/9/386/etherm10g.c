@@ -739,7 +739,7 @@ fwtype(uint32_t type)
 static int
 chkfw(Ctlr *c)
 {
-	uintptr off;
+	uintptr_t off;
 	Fwhdr *h;
 	uint32_t type;
 
@@ -889,7 +889,7 @@ smbfree(Block *b)
 {
 	Bpool *p;
 
-	b->rp = b->wp = (uint8_t*)ROUNDUP((uintptr)b->base, 4*KiB);
+	b->rp = b->wp = (uint8_t*)ROUNDUP((uintptr_t)b->base, 4*KiB);
  	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
 
 	p = &smpool;
@@ -906,7 +906,7 @@ bgbfree(Block *b)
 {
 	Bpool *p;
 
-	b->rp = b->wp = (uint8_t*)ROUNDUP((uintptr)b->base, 4*KiB);
+	b->rp = b->wp = (uint8_t*)ROUNDUP((uintptr_t)b->base, 4*KiB);
  	b->flag &= ~(Bpktck|Btcpck|Budpck|Bipck);
 
 	p = &bgpool;
@@ -1190,7 +1190,7 @@ submittx(Tx *tx, int n)
 static int
 nsegments(Block *b, int segsz)
 {
-	uintptr bus, end, slen, len;
+	uintptr_t bus, end, slen, len;
 	int i;
 
 	bus = PCIWADDR(b->rp);

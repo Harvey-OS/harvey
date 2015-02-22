@@ -56,7 +56,7 @@ struct Lock
 	uint32_t	key;
 	int	isilock;
 	Mpl	pl;
-	uintptr	_pc;
+	uintptr_t	_pc;
 	Proc*	p;
 	Mach*	m;
 	uint64_t	lockcycles;
@@ -64,8 +64,8 @@ struct Lock
 
 struct Label
 {
-	uintptr	sp;
-	uintptr	pc;
+	uintptr_t	sp;
+	uintptr_t	pc;
 };
 
 struct Fxsave {
@@ -112,10 +112,10 @@ struct PNOTIFY
 
 struct Confmem
 {
-	uintptr	base;
+	uintptr_t	base;
 	usize	npage;
-	uintptr	kbase;
-	uintptr	klimit;
+	uintptr_t	kbase;
+	uintptr_t	klimit;
 };
 
 struct Conf
@@ -168,7 +168,7 @@ struct NIX
  */
 struct MMMU
 {
-	uintptr cr2;
+	uintptr_t cr2;
 	Page*	pml4;			/* pml4 for this processor */
 	PTE*	pmap;			/* unused as of yet */
 
@@ -255,10 +255,10 @@ enum {
 struct Mach
 {
 	int	machno;			/* physical id of processor */
-	uintptr	splpc;			/* pc of last caller to splhi */
+	uintptr_t	splpc;			/* pc of last caller to splhi */
 
 	Proc*	proc;			/* current process on this processor */
-	uintptr	stack;
+	uintptr_t	stack;
 
 	int	apicno;
 	int	online;
@@ -338,10 +338,10 @@ struct Sys {
 			uint64_t	pmoccupied;	/* how much is occupied */
 			uint64_t	pmend;		/* total span */
 
-			uintptr	vmstart;	/* base address for malloc */
-			uintptr	vmunused;	/* 1st unused va */
-			uintptr	vmunmapped;	/* 1st unmapped va */
-			uintptr	vmend;		/* 1st unusable va */
+			uintptr_t	vmstart;	/* base address for malloc */
+			uintptr_t	vmunused;	/* 1st unused va */
+			uintptr_t	vmunmapped;	/* 1st unmapped va */
+			uintptr_t	vmend;		/* 1st unusable va */
 			uint64_t	epoch;		/* crude time synchronisation */
 
 			int		nc[NIXROLES];		/* number of online processors */
@@ -388,10 +388,10 @@ struct
 
 struct ISAConf {
 	char	*type;
-	uintptr	port;
+	uintptr_t	port;
 	int	irq;
 	uint32_t	dma;
-	uintptr	mem;
+	uintptr_t	mem;
 	usize	size;
 	uint32_t	freq;
 
@@ -409,7 +409,7 @@ struct ISAConf {
 extern Mach* m;                      /* R15 */
 extern Proc* up;                     /* R14 */
 
-extern uintptr kseg0;
+extern uintptr_t kseg0;
 
 extern char*rolename[];
 

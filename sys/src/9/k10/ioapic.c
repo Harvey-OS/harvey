@@ -130,7 +130,7 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, uint32_t lo)
 }
 
 void
-ioapicinit(int id, uintptr pa)
+ioapicinit(int id, uintptr_t pa)
 {
 	Apic *apic;
 

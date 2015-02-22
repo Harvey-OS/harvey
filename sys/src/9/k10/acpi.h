@@ -108,14 +108,14 @@ struct Atable
 	char	oemid[7];	/* oem id str. */
 	char	oemtblid[9];	/* oem tbl. id str. */
 	unsigned char* tbl;		/* pointer to table in memory */
-	long	dlen;		/* size of data in table, after Stdhdr */
+	int32_t	dlen;		/* size of data in table, after Stdhdr */
 };
 
 struct Gpe
 {
-	uintptr	stsio;		/* port used for status */
+	uintptr_t	stsio;		/* port used for status */
 	int	stsbit;		/* bit number */
-	uintptr	enio;		/* port used for enable */
+	uintptr_t	enio;		/* port used for enable */
 	int	enbit;		/* bit number */
 	int	nb;		/* event number */
 	char*	obj;		/* handler object  */
@@ -130,14 +130,14 @@ struct Parse
 
 struct Regio{
 	void	*arg;
-	uint8_t	(*get8)(uintptr, void*);
-	void	(*set8)(uintptr, uint8_t, void*);
-	uint16_t	(*get16)(uintptr, void*);
-	void	(*set16)(uintptr, uint16_t, void*);
-	uint32_t	(*get32)(uintptr, void*);
-	void	(*set32)(uintptr, uint32_t, void*);
-	uint64_t	(*get64)(uintptr, void*);
-	void	(*set64)(uintptr, uint64_t, void*);
+	uint8_t	(*get8)(uintptr_t, void*);
+	void	(*set8)(uintptr_t, uint8_t, void*);
+	uint16_t	(*get16)(uintptr_t, void*);
+	void	(*set16)(uintptr_t, uint16_t, void*);
+	uint32_t	(*get32)(uintptr_t, void*);
+	void	(*set32)(uintptr_t, uint32_t, void*);
+	uint64_t	(*get64)(uintptr_t, void*);
+	void	(*set64)(uintptr_t, uint64_t, void*);
 };
 
 struct Reg

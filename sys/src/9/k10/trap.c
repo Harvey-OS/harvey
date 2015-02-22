@@ -528,7 +528,7 @@ static void
 dumpstackwithureg(Ureg* ureg)
 {
 	char *s;
-	uintptr l, v, i, estack;
+	uintptr_t l, v, i, estack;
 	extern uint32_t etext;
 	int x;
 
@@ -543,9 +543,9 @@ dumpstackwithureg(Ureg* ureg)
 	i = 0;
 	if(up != nil
 //	&& (uintptr)&l >= (uintptr)up->kstack
-	&& (uintptr)&l <= (uintptr)up->kstack+KSTACK)
-		estack = (uintptr)up->kstack+KSTACK;
-	else if((uintptr)&l >= m->stack && (uintptr)&l <= m->stack+MACHSTKSZ)
+	&& (uintptr_t)&l <= (uintptr_t)up->kstack+KSTACK)
+		estack = (uintptr_t)up->kstack+KSTACK;
+	else if((uintptr_t)&l >= m->stack && (uintptr_t)&l <= m->stack+MACHSTKSZ)
 		estack = m->stack+MACHSTKSZ;
 	else{
 		if(up != nil)
@@ -556,10 +556,10 @@ dumpstackwithureg(Ureg* ureg)
 	}
 	x += iprint("estackx %#p\n", estack);
 
-	for(l = (uintptr)&l; l < estack; l += sizeof(uintptr)){
-		v = *(uintptr*)l;
-		if((KTZERO < v && v < (uintptr)&etext)
-		|| ((uintptr)&l < v && v < estack) || estack-l < 256){
+	for(l = (uintptr_t)&l; l < estack; l += sizeof(uintptr_t)){
+		v = *(uintptr_t*)l;
+		if((KTZERO < v && v < (uintptr_t)&etext)
+		|| ((uintptr_t)&l < v && v < estack) || estack-l < 256){
 			x += iprint("%#16.16p=%#16.16p ", l, v);
 			i++;
 		}
@@ -660,7 +660,7 @@ faultamd64(Ureg* ureg, void*)
 /*
  *  return the userpc the last exception happened at
  */
-uintptr
+uintptr_t
 userpc(Ureg* ureg)
 {
 	if(ureg == nil)
@@ -705,7 +705,7 @@ setkernur(Ureg* ureg, Proc* p)
 	ureg->sp = p->sched.sp+BY2SE;
 }
 
-uintptr
+uintptr_t
 dbgpc(Proc *p)
 {
 	Ureg *ureg;

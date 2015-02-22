@@ -23,7 +23,7 @@
 #include "ureg.h"
 
 typedef struct {
-	uintptr	ip;
+	uintptr_t	ip;
 	Ureg*	arg0;
 	char*	arg1;
 	char	msg[ERRMAX];
@@ -35,7 +35,7 @@ typedef struct {
  *   Return user to state before notify()
  */
 void
-noted(Ureg* cur, uintptr arg0)
+noted(Ureg* cur, uintptr_t arg0)
 {
 	NFrame *nf;
 	Note note;
@@ -131,7 +131,7 @@ notify(Ureg* ureg)
 	int l;
 	Mpl pl;
 	Note note;
-	uintptr sp;
+	uintptr_t sp;
 	NFrame *nf;
 
 	/*
@@ -234,7 +234,7 @@ syscall(int badscallnr, Ureg* ureg)
 {
 	unsigned int scallnr = (unsigned int) badscallnr;
 	char *e;
-	uintptr	sp;
+	uintptr_t	sp;
 	int s;
 	int64_t startns, stopns;
 	Ar0 ar0;
@@ -354,7 +354,7 @@ syscall(int badscallnr, Ureg* ureg)
 	up->psstate = 0;
 
 	if(scallnr == NOTED)
-		noted(ureg, *(uintptr*)(sp+BY2SE));
+		noted(ureg, *(uintptr_t*)(sp+BY2SE));
 
 	splhi();
 	if(scallnr != RFORK && (up->procctl || up->nnote))
@@ -368,8 +368,8 @@ syscall(int badscallnr, Ureg* ureg)
 	kexit(ureg);
 }
 
-uintptr
-sysexecstack(uintptr stack, int argc)
+uintptr_t
+sysexecstack(uintptr_t stack, int argc)
 {
 	/*
 	 * Given a current bottom-of-stack and a count
@@ -389,12 +389,12 @@ sysexecstack(uintptr stack, int argc)
 }
 
 void*
-sysexecregs(uintptr entry, uint32_t ssize, uint32_t nargs)
+sysexecregs(uintptr_t entry, uint32_t ssize, uint32_t nargs)
 {
-	uintptr *sp;
+	uintptr_t *sp;
 	Ureg *ureg;
 
-	sp = (uintptr*)(USTKTOP - ssize);
+	sp = (uintptr_t*)(USTKTOP - ssize);
 	*--sp = nargs;
 
 	ureg = up->dbgreg;
