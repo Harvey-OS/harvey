@@ -46,15 +46,15 @@ struct {
 	int	init;		/* true if initialized */
 	uint32_t	cnt;
 	Lock;
-	uvlong	multiplier;	/* ns = off + (multiplier*ticks)>>31 */
-	uvlong	divider;	/* ticks = (divider*(ns-off))>>31 */
-	uvlong	umultiplier;	/* µs = (µmultiplier*ticks)>>31 */
-	uvlong	udivider;	/* ticks = (µdivider*µs)>>31 */
-	vlong	hz;		/* frequency of fast clock */
-	vlong	last;		/* last reading of fast clock */
-	vlong	off;		/* offset from epoch to last */
-	vlong	lasttime;	/* last return value from todget */
-	vlong	delta;	/* add 'delta' each slow clock tick from sstart to send */
+	uint64_t	multiplier;	/* ns = off + (multiplier*ticks)>>31 */
+	uint64_t	divider;	/* ticks = (divider*(ns-off))>>31 */
+	uint64_t	umultiplier;	/* µs = (µmultiplier*ticks)>>31 */
+	uint64_t	udivider;	/* ticks = (µdivider*µs)>>31 */
+	int64_t	hz;		/* frequency of fast clock */
+	int64_t	last;		/* last reading of fast clock */
+	int64_t	off;		/* offset from epoch to last */
+	int64_t	lasttime;	/* last return value from todget */
+	int64_t	delta;	/* add 'delta' each slow clock tick from sstart to send */
 	uint32_t	sstart;		/* ... */
 	uint32_t	send;		/* ... */
 } tod;
@@ -138,7 +138,7 @@ todget(int64_t *ticksp)
 
 	/*
 	 * we don't want time to pass twixt the measuring of fastticks
-	 * and grabbing tod.last.  Also none of the vlongs are atomic so
+	 * and grabbing tod.last.  Also none of the int64_ts are atomic so
 	 * we have to look at them inside the lock.
 	 */
 	ilock(&tod);

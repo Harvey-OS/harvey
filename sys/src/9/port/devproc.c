@@ -178,9 +178,9 @@ static char *tpids, *tpidsc, *tpidse;
 static Lock tlock;
 static int topens;
 static int tproduced, tconsumed;
-static void notrace(Proc*, int, vlong);
+static void notrace(Proc*, int, int64_t);
 
-void (*proctrace)(Proc*, int, vlong) = notrace;
+void (*proctrace)(Proc*, int, int64_t) = notrace;
 
 static void
 profclock(Ureg *ur, Timer *)
@@ -303,7 +303,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 }
 
 static void
-notrace(Proc*, Tevent, vlong)
+notrace(Proc*, Tevent, int64_t)
 {
 }
 static Lock tlck;

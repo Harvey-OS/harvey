@@ -350,7 +350,7 @@ enum
 };
 
 static long
-archread(Chan *c, void *a, long n, vlong offset)
+archread(Chan *c, void *a, long n, int64_t offset)
 {
 	char *buf, *p;
 	int port;

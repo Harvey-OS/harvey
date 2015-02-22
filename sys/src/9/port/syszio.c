@@ -480,7 +480,7 @@ sysziopread(Ar0 *ar0, va_list list)
 	Zio *io;
 
 	/*
-	 * int zpread(int fd, Zio *io[], int nio, usize count, vlong offset);
+	 * int zpread(int fd, Zio *io[], int nio, usize count, int64_t offset);
 	 */
 	fd = va_arg(list, int);
 	io = va_arg(list, Zio*);
@@ -498,7 +498,7 @@ sysziopwrite(Ar0 *ar0, va_list list)
 	Zio *io;
 
 	/*
-	 * int zpwrite(int fd, Zio *io[], int nio, vlong offset);
+	 * int zpwrite(int fd, Zio *io[], int nio, int64_t offset);
 	 */
 	fd = va_arg(list, int);
 	io = va_arg(list, Zio*);

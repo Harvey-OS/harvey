@@ -61,7 +61,7 @@ struct Ctlr{
 	uchar	smartrs;
 	uchar	feat;
 
-	uvlong	sectors;
+	uint64_t	sectors;
 	char	serial[20+1];
 	char	firmware[8+1];
 	char	model[40+1];

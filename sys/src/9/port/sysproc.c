@@ -272,7 +272,7 @@ l2be(int32_t l)
 
 typedef struct {
 	Exec;
-	uvlong hdr[1];
+	uint64_t hdr[1];
 } Hdr;
 
 /*

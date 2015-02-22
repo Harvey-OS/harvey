@@ -326,7 +326,7 @@ void
 sysnsec(Ar0* ar0, va_list)
 {
 	/*
-	 * vlong nsec(void);
+	 * int64_t nsec(void);
 	 */
 	ar0->vl = todget(nil);
 }
@@ -788,7 +788,7 @@ void
 syspread(Ar0* ar0, va_list list)
 {
 	/*
-	 * long pread(int fd, void* buf, long nbytes, vlong offset);
+	 * long pread(int fd, void* buf, long nbytes, int64_t offset);
 	 */
 	ar0->l = read(list, 1);
 }
@@ -861,7 +861,7 @@ void
 syspwrite(Ar0* ar0, va_list list)
 {
 	/*
-	 * long pwrite(int fd, void *buf, long nbytes, vlong offset);
+	 * long pwrite(int fd, void *buf, long nbytes, int64_t offset);
 	 */
 	ar0->l = write(list, 1);
 }
@@ -926,10 +926,10 @@ sysseek(Ar0* ar0, va_list list)
 	int64_t offset, *rv;
 
 	/*
-	 * vlong seek(int fd, vlong n, int type);
+	 * int64_t seek(int fd, int64_t n, int type);
 	 *
 	 * The system call actually has 4 arguments,
-	 *	int _seek(vlong*, int, vlong, int);
+	 *	int _seek(int64_t*, int, int64_t, int);
 	 * and the first argument is where the offset
 	 * is returned. The C library arranges the
 	 * argument/return munging if necessary.

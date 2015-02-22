@@ -163,7 +163,7 @@ struct Srb {
 	Srb	*next;
 	uint32_t	ticksent;
 	uint32_t	len;
-	vlong	sector;
+	int64_t	sector;
 	short	write;
 	short	nout;
 	char	*error;
@@ -207,8 +207,8 @@ struct Aoedev {
 	int	lasttag;
 	int	nframes;
 	Frame	*frames;
-	vlong	bsize;
-	vlong	realbsize;
+	int64_t	bsize;
+	int64_t	realbsize;
 
 	uint	maxbcnt;
 	uint32_t	lostjumbo;

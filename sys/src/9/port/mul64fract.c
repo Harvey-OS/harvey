@@ -9,7 +9,7 @@
 
 #include "u.h"
 
-/* mul64fract(uvlong*r, uvlong a, uvlong b)
+/* mul64fract(uint64_t*r, uint64_t a, uint64_t b)
  *
  * Multiply two 64 numbers and return the middle 64 bits of the 128 bit result.
  *

@@ -143,7 +143,7 @@ typedef struct {
 	uint	cnt;		/* number of segments sent by the card */
 
 	uint32_t	npkt;
-	vlong	nbytes;
+	int64_t	nbytes;
 } Tx;
 
 typedef struct {

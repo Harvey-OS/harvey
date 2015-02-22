@@ -1255,7 +1255,7 @@ rand(void)
 static uint64_t uvorder = 0x0001020304050607ULL;
 
 static uint8_t*
-le2vlong(int64_t *to, uint8_t *f)
+le2int64_t(int64_t *to, uint8_t *f)
 {
 	uint8_t *t, *o;
 	int i;
@@ -1268,7 +1268,7 @@ le2vlong(int64_t *to, uint8_t *f)
 }
 
 static uint8_t*
-vlong2le(uint8_t *t, int64_t from)
+int64_t2le(uint8_t *t, int64_t from)
 {
 	uint8_t *f, *o;
 	int i;
@@ -1372,15 +1372,15 @@ readbintime(char *buf, int n)
 		fastticks((uint64_t*)&fasthz);
 	nsec = todget(&ticks);
 	if(n >= 3*sizeof(uint64_t)){
-		vlong2le(b+2*sizeof(uint64_t), fasthz);
+		int64_t2le(b+2*sizeof(uint64_t), fasthz);
 		i += sizeof(uint64_t);
 	}
 	if(n >= 2*sizeof(uint64_t)){
-		vlong2le(b+sizeof(uint64_t), ticks);
+		int64_t2le(b+sizeof(uint64_t), ticks);
 		i += sizeof(uint64_t);
 	}
 	if(n >= 8){
-		vlong2le(b, nsec);
+		int64_t2le(b, nsec);
 		i += sizeof(int64_t);
 	}
 	return i;
@@ -1405,20 +1405,20 @@ writebintime(char *buf, int n)
 	case 'n':
 		if(n < sizeof(int64_t))
 			error(Ebadtimectl);
-		le2vlong(&delta, p);
+		le2int64_t(&delta, p);
 		todset(delta, 0, 0);
 		break;
 	case 'd':
 		if(n < sizeof(int64_t)+sizeof(int32_t))
 			error(Ebadtimectl);
-		p = le2vlong(&delta, p);
+		p = le2int64_t(&delta, p);
 		le2long(&period, p);
 		todset(-1, delta, period);
 		break;
 	case 'f':
 		if(n < sizeof(uint64_t))
 			error(Ebadtimectl);
-		le2vlong(&fasthz, p);
+		le2int64_t(&fasthz, p);
 		todsetfreq(fasthz);
 		break;
 	}

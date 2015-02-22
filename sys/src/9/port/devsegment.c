@@ -49,7 +49,7 @@ struct Globalseg
 
 	char	*name;
 	char	*uid;
-	vlong	length;
+	int64_t	length;
 	long	perm;
 
 	Freemsg	*free;

@@ -259,7 +259,7 @@ static char* excname[32] = {
 void
 intrtime(int vno)
 {
-	uint32_t diff, x;		/* should be uvlong */
+	uint32_t diff, x;		/* should be uint64_t */
 
 	x = perfticks();
 	diff = x - m->perf.intrts;
