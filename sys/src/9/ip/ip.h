@@ -91,11 +91,11 @@ struct Conv
 	uint	tos;			/* type of service */
 	int	ignoreadvice;		/* don't terminate connection on icmp errors */
 
-	uchar	ipversion;
-	uchar	laddr[IPaddrlen];	/* local IP address */
-	uchar	raddr[IPaddrlen];	/* remote IP address */
-	ushort	lport;			/* local port number */
-	ushort	rport;			/* remote port number */
+	uint8_t	ipversion;
+	uint8_t	laddr[IPaddrlen];	/* local IP address */
+	uint8_t	raddr[IPaddrlen];	/* remote IP address */
+	uint16_t	lport;			/* local port number */
+	uint16_t	rport;			/* remote port number */
 
 	char	*owner;			/* protections */
 	int	perm;
@@ -128,7 +128,7 @@ struct Conv
 	void*	ptcl;			/* protocol specific stuff */
 
 	Route	*r;			/* last route used */
-	ulong	rgen;			/* routetable generation for *r */
+	uint32_t	rgen;			/* routetable generation for *r */
 };
 
 struct Medium
@@ -232,20 +232,20 @@ struct Ipifc
 
 	/* these are used so that we can unbind on the fly */
 	Lock	idlock;
-	uchar	ifcid;		/* incremented each 'bind/unbind/add/remove' */
+	uint8_t	ifcid;		/* incremented each 'bind/unbind/add/remove' */
 	int	ref;		/* number of proc's using this ipifc */
 	Rendez	wait;		/* where unbinder waits for ref == 0 */
 	int	unbinding;
 
-	uchar	mac[MAClen];	/* MAC address */
+	uint8_t	mac[MAClen];	/* MAC address */
 
 	Iplifc	*lifc;		/* logical interfaces on this physical one */
 
-	ulong	in, out;	/* message statistics */
-	ulong	inerr, outerr;	/* ... */
+	uint32_t	in, out;	/* message statistics */
+	uint32_t	inerr, outerr;	/* ... */
 
-	uchar	sendra6;	/* flag: send router advs on this ifc */
-	uchar	recvra6;	/* flag: recv router advs on this ifc */
+	uint8_t	sendra6;	/* flag: send router advs on this ifc */
+	uint8_t	recvra6;	/* flag: recv router advs on this ifc */
 	Routerparams rp;	/* router parameters as in RFC 2461, pp.40—43.
 					used only if node is router */
 };
@@ -320,8 +320,8 @@ struct Proto
 	int		nc;		/* number of conversations */
 	int		ac;
 	Qid		qid;		/* qid for protocol directory */
-	ushort		nextport;
-	ushort		nextrport;
+	uint16_t		nextport;
+	uint16_t		nextrport;
 
 	void		*priv;
 };
