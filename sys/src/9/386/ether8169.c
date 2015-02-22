@@ -307,7 +307,7 @@ static Ctlr* rtl8169ctlrtail;
 #define csr8r(c, r)	(inb((c)->port+(r)))
 #define csr16r(c, r)	(ins((c)->port+(r)))
 #define csr32r(c, r)	(inl((c)->port+(r)))
-#define csr8w(c, r, b)	(outb((c)->port+(r), (u8int)(b)))
+#define csr8w(c, r, b)	(outb((c)->port+(r), (uint8_t)(b)))
 #define csr16w(c, r, w)	(outs((c)->port+(r), (uint16_t)(w)))
 #define csr32w(c, r, l)	(outl((c)->port+(r), (uint32_t)(l)))
 
