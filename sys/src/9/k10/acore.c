@@ -40,9 +40,9 @@
  * saving, so it does not have to be restored.
  */
 
-extern char* acfpunm(Ureg* ureg, void*);
-extern char* acfpumf(Ureg* ureg, void*);
-extern char* acfpuxf(Ureg* ureg, void*);
+extern char* acfpunm(Ureg* ureg, void *unused_voidp);
+extern char* acfpumf(Ureg* ureg, void *unused_voidp);
+extern char* acfpuxf(Ureg* ureg, void *unused_voidp);
 extern void acfpusysprocsetup(Proc*);
 
 extern void _acsysret(void);
@@ -57,7 +57,7 @@ ACVctl *acvctl[256];
 static void
 testiccfn(void)
 {
-	print("called: %s\n", (char*)m->icc->data);
+	print("called: %s\n", ( char *)m->icc->data);
 }
 
 void
@@ -72,7 +72,7 @@ testicc(int i)
 		}
 		print("calling core %d... ", i);
 		mp->icc->flushtlb = 0;
-		snprint((char*)mp->icc->data, ICCLNSZ, "<%d>", i);
+		snprint(( char *)mp->icc->data, ICCLNSZ, "<%d>", i);
 		mfence();
 		mp->icc->fn = testiccfn;
 		mwait(&mp->icc->fn);
