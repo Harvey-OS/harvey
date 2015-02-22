@@ -70,7 +70,7 @@ syscallfmt(int syscallno, va_list list)
 	Fmt fmt;
 	void *v;
 	int64_t vl;
-	uintptr p;
+	uintptr_t p;
 	int i[2], len, **ip;
 	char *a, **argv;
 
@@ -87,7 +87,7 @@ syscallfmt(int syscallno, va_list list)
 
 	switch(syscallno){
 	case SYSR1:
-		p = va_arg(list, uintptr);
+		p = va_arg(list, uintptr_t);
 		fmtprint(&fmt, "%#p", p);
 		break;
 	case _ERRSTR:					/* deprecated */

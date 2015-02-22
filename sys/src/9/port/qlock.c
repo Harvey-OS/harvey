@@ -17,13 +17,13 @@
 QLockstats qlockstats;
 
 static void
-lockstat(uintptr pc, uint64_t w)
+lockstat(uintptr_t pc, uint64_t w)
 {
 	addwaitstat(pc, w, WSqlock);
 }
 
 static void
-slockstat(uintptr pc, uint64_t w)
+slockstat(uintptr_t pc, uint64_t w)
 {
 	addwaitstat(pc, w, WSslock);
 }

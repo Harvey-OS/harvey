@@ -105,7 +105,7 @@ struct Waitstats
 	int	on;
 	int	npcs;
 	int*	type;
-	uintptr*	pcs;
+	uintptr_t*	pcs;
 	int*	ns;
 	uint64_t*	wait;
 	uint64_t* total;
@@ -137,7 +137,7 @@ struct QLock
 	Proc	*head;		/* next process waiting for object */
 	Proc	*tail;		/* last process waiting for object */
 	int	locked;		/* flag */
-	uintptr	pc;
+	uintptr_t	pc;
 };
 
 struct RWlock
@@ -145,7 +145,7 @@ struct RWlock
 	Lock	use;
 	Proc	*head;		/* list of waiting processes */
 	Proc	*tail;
-	uintptr	wpc;		/* pc of writer */
+	uintptr_t	wpc;		/* pc of writer */
 	Proc	*wproc;		/* writing proc */
 	int	readers;	/* number of readers */
 	int	writer;		/* number of writers */
@@ -262,16 +262,16 @@ struct Dev
 	void	(*shutdown)(void);
 	Chan*	(*attach)(char*);
 	Walkqid*(*walk)(Chan*, Chan*, char**, int);
-	long	(*stat)(Chan*, unsigned char*, long);
+	int32_t	(*stat)(Chan*, unsigned char*, int32_t);
 	Chan*	(*open)(Chan*, int);
 	void	(*create)(Chan*, char*, int, int);
 	void	(*close)(Chan*);
-	long	(*read)(Chan*, void*, long, int64_t);
-	Block*	(*bread)(Chan*, long, int64_t);
-	long	(*write)(Chan*, void*, long, int64_t);
-	long	(*bwrite)(Chan*, Block*, int64_t);
+	int32_t	(*read)(Chan*, void*, int32_t, int64_t);
+	Block*	(*bread)(Chan*, int32_t, int64_t);
+	int32_t	(*write)(Chan*, void*, int32_t, int64_t);
+	int32_t	(*bwrite)(Chan*, Block*, int64_t);
 	void	(*remove)(Chan*);
-	long	(*wstat)(Chan*, unsigned char*, long);
+	int32_t	(*wstat)(Chan*, unsigned char*, int32_t);
 	void	(*power)(int);	/* power mgt: power(1) => on, power (0) => off */
 	int	(*config)(int, char*, DevConf*);	/* returns 0 on error */
 	int	(*zread)(Chan*, Kzio*, int, usize, int64_t);
@@ -283,7 +283,7 @@ struct Dirtab
 	char	name[KNAMELEN];
 	Qid	qid;
 	int64_t	length;
-	long	perm;
+	int32_t	perm;
 };
 
 struct Walkqid
@@ -371,7 +371,7 @@ struct Page
 {
 	Lock;
 	uintmem	pa;			/* Physical address in memory */
-	uintptr	va;			/* Virtual address for user */
+	uintptr_t	va;			/* Virtual address for user */
 	uint32_t	daddr;			/* Disc address on swap */
 	int	ref;			/* Reference count */
 	unsigned char	modref;			/* Simulated modify/reference bits */
@@ -456,9 +456,9 @@ struct Physseg
 	uintmem	pa;			/* Physical address */
 	usize	size;			/* Maximum segment size in pages */
 	int	pgszi;			/* Page size index in Mach  */
-	Page	*(*pgalloc)(Segment*, uintptr);	/* Allocation if we need it */
+	Page	*(*pgalloc)(Segment*, uintptr_t);	/* Allocation if we need it */
 	void	(*pgfree)(Page*);
-	uintptr	gva;			/* optional global virtual address */
+	uintptr_t	gva;			/* optional global virtual address */
 };
 
 struct Sema
@@ -491,7 +491,7 @@ struct Sems
 struct Zseg
 {
 	void*	map;	/* memory map for buffers within this segment */
-	uintptr	*addr;	/* array of addresses released */
+	uintptr_t	*addr;	/* array of addresses released */
 	int	naddr;	/* size allocated for the array */
 	int	end;	/* 1+ last used index in addr */
 	Rendez	rr;	/* process waiting to read free addresses */
@@ -508,8 +508,8 @@ struct Segment
 	int	pgszi;		/* page size index in Mach MMMU */
 	uint	ptepertab;
 	int	color;
-	uintptr	base;		/* virtual base */
-	uintptr	top;		/* virtual top */
+	uintptr_t	base;		/* virtual base */
+	uintptr_t	top;		/* virtual top */
 	usize	size;		/* size in pages */
 	uint32_t	fstart;		/* start address in file for demand load */
 	uint32_t	flen;		/* length of segment in file */
@@ -748,8 +748,8 @@ struct Sched
 	Lock;			/* runq */
 	int	nrdy;
 	uint32_t delayedscheds;	/* statistics */
-	long skipscheds;
-	long preempts;
+	int32_t skipscheds;
+	int32_t preempts;
 	int schedgain;
 	uint32_t balancetime;
 	Schedq	runq[Nrq];
@@ -761,8 +761,8 @@ struct Sched
 typedef union Ar0 Ar0;
 union Ar0 {
 	int	i;
-	long	l;
-	uintptr	p;
+	int32_t	l;
+	uintptr_t	p;
 	usize	u;
 	void*	v;
 	int64_t	vl;
@@ -1039,7 +1039,7 @@ struct PhysUart
 	void	(*modemctl)(Uart*, int);
 	void	(*rts)(Uart*, int);
 	void	(*dtr)(Uart*, int);
-	long	(*status)(Uart*, void*, long, long);
+	int32_t	(*status)(Uart*, void*, int32_t, int32_t);
 	void	(*fifo)(Uart*, int);
 	void	(*power)(Uart*, int);
 	int	(*getc)(Uart*);			/* polling version for rdb */

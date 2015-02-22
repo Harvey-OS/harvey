@@ -32,7 +32,7 @@ static int	kexecwriteable(Chan *c);
 static Kexecgrp	kgrp;	/* global kexec group containing the kernel configuration */
 
 static Kvalue*
-kexeclookup(Kexecgrp *kg, uintptr addr, uint32_t qidpath)
+kexeclookup(Kexecgrp *kg, uintptr_t addr, uint32_t qidpath)
 {
 	Kvalue *e;
 	int i;
@@ -50,7 +50,7 @@ kexecgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 {
 	Kexecgrp *kg;
 	Kvalue *e;
-	uintptr addr;
+	uintptr_t addr;
 
 	print("starting gen name %s\n", name);
 
@@ -172,7 +172,7 @@ kexeccreate(Chan *c, char *name, int omode, int)
 	Kexecgrp *kg;
 	Kvalue *e;
 	Kvalue **ent;
-	uintptr addr;
+	uintptr_t addr;
 
 	addr = strtoull(name, nil, 0);
 

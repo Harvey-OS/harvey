@@ -363,7 +363,7 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 
 enum{PTRSIZE = 19};	/* "0x1234567812345678 " */
 static int
-readptr(char *buf, int32_t n, uintptr val)
+readptr(char *buf, int32_t n, uintptr_t val)
 {
 	if(n < PTRSIZE)
 		return 0;
@@ -386,7 +386,7 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 {
 	Globalseg *g;
 	Zseg *zs;
-	uintptr va;
+	uintptr_t va;
 	char *p, *s;
 	int32_t tot;
 	char buf[64];
@@ -431,7 +431,7 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 		else
 			s = "addr";
 		snprint(buf, sizeof(buf), "%s %#p %#p\n",
-			s, g->s->base, (uintptr)(g->s->top-g->s->base));
+			s, g->s->base, (uintptr_t)(g->s->top-g->s->base));
 		return readstr(voff, a, n, buf);
 	case Qdata:
 		if(voff < 0)
@@ -495,7 +495,7 @@ segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 {
 	Cmdbuf *cb;
 	Globalseg *g;
-	uintptr va, len, top;
+	uintptr_t va, len, top;
 	int i;
 	struct{
 		char *name;

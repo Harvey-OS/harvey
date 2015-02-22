@@ -22,7 +22,7 @@
  * other one, if we failed for some time.
  */
 int
-fault(uintptr addr, int read)
+fault(uintptr_t addr, int read)
 {
 	Segment *s;
 	char *sps;
@@ -85,16 +85,16 @@ faulterror(char *s, Chan *c, int freemem)
 
 
 int
-fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
+fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 {
 	int type;
 	int ref;
 	Pte **p, *etp;
-	uintptr soff;
+	uintptr_t soff;
 	uintmem pgsz;
 	uint mmuattr;
 	Page **pg, *lkp, *new;
-	Page *(*fn)(Segment*, uintptr);
+	Page *(*fn)(Segment*, uintptr_t);
 
 	pgsz = m->pgsz[s->pgszi];
 	addr &= ~(pgsz-1);
@@ -211,7 +211,7 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
 }
 
 void
-pio(Segment *s, uintptr addr, uint32_t soff, Page **p, int color)
+pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 {
 	Page *new;
 	KMap *k;
@@ -290,7 +290,7 @@ pio(Segment *s, uintptr addr, uint32_t soff, Page **p, int color)
  * Called only in a system call
  */
 int
-okaddr(uintptr addr, int32_t len, int write)
+okaddr(uintptr_t addr, int32_t len, int write)
 {
 	Segment *s;
 
@@ -332,7 +332,7 @@ void*
 vmemchr(void *s, int c, int n)
 {
 	int m;
-	uintptr a;
+	uintptr_t a;
 	void *t;
 
 	a = PTR2UINT(s);
@@ -353,7 +353,7 @@ vmemchr(void *s, int c, int n)
 }
 
 Segment*
-seg(Proc *p, uintptr addr, int dolock)
+seg(Proc *p, uintptr_t addr, int dolock)
 {
 	Segment **s, **et, *n;
 

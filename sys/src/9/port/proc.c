@@ -1485,7 +1485,7 @@ pwait(Waitmsg *w)
 void
 dumpaproc(Proc *p)
 {
-	uintptr bss;
+	uintptr_t bss;
 	char *s;
 
 	if(p == 0)

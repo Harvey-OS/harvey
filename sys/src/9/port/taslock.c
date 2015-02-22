@@ -22,8 +22,8 @@
 
 uint64_t maxlockcycles;
 uint64_t maxilockcycles;
-uintptr maxlockpc;
-uintptr maxilockpc;
+uintptr_t maxlockpc;
+uintptr_t maxilockpc;
 
 Lockstats lockstats;
 Waitstats waitstats;
@@ -60,7 +60,7 @@ clearwaitstats(void)
 }
 
 void
-addwaitstat(uintptr pc, uint64_t t0, int type)
+addwaitstat(uintptr_t pc, uint64_t t0, int type)
 {
 	uint i;
 	uint64_t w;
@@ -108,7 +108,7 @@ addwaitstat(uintptr pc, uint64_t t0, int type)
 }
 
 void
-lockloop(Lock *l, uintptr pc)
+lockloop(Lock *l, uintptr_t pc)
 {
 	Proc *p;
 
@@ -124,7 +124,7 @@ int
 lock(Lock *l)
 {
 	int i;
-	uintptr pc;
+	uintptr_t pc;
 	uint64_t t0;
 
 	pc = getcallerpc(&l);
@@ -189,7 +189,7 @@ void
 ilock(Lock *l)
 {
 	Mpl pl;
-	uintptr pc;
+	uintptr_t pc;
 	uint64_t t0;
 
 	pc = getcallerpc(&l);

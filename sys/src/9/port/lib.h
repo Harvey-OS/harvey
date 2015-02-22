@@ -31,11 +31,11 @@ extern	char*	strchr(char*, int);
 extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
 extern	char*	strecpy(char*, char*, char*);
-extern	char*	strncat(char*, char*, long);
-extern	char*	strncpy(char*, char*, long);
-extern	int	strncmp(char*, char*, long);
+extern	char*	strncat(char*, char*, int32_t);
+extern	char*	strncpy(char*, char*, int32_t);
+extern	int	strncmp(char*, char*, int32_t);
 extern	char*	strrchr(char*, int);
-extern	long	strlen(char*);
+extern	int32_t	strlen(char*);
 extern	char*	strstr(char*, char*);
 extern	int	cistrncmp(char*, char*, int);
 extern	int	cistrcmp(char*, char*);
@@ -54,11 +54,11 @@ enum
  */
 extern	int	runetochar(char*, Rune*);
 extern	int	chartorune(Rune*, char*);
-extern	int	runelen(long);
+extern	int	runelen(int32_t);
 extern	int	fullrune(char*, int);
 extern	int	utflen(char*);
-extern	int	utfnlen(char*, long);
-extern	char*	utfrune(char*, long);
+extern	int	utfnlen(char*, int32_t);
+extern	char*	utfrune(char*, int32_t);
 
 /*
  * malloc
@@ -67,7 +67,7 @@ extern	void*	malloc(uint32_t);
 extern	void*	mallocz(uint32_t, int);
 extern	void	free(void*);
 extern	uint32_t	msize(void*);
-extern	void*	mallocalign(uint32_t, uint32_t, long, uint32_t);
+extern	void*	mallocalign(uint32_t, uint32_t, int32_t, uint32_t);
 extern	void	setmalloctag(void*, uint32_t);
 extern	void	setrealloctag(void*, uint32_t);
 extern	uint32_t	getmalloctag(void*);
@@ -183,14 +183,15 @@ extern	int	abs(int);
 extern	int	atoi(char*);
 extern	char*	cleanname(char*);
 extern	int	dec64(unsigned char*, int, char*, int);
-extern	uintptr	getcallerpc(void*);
+extern	uintptr_t	getcallerpc(void*);
 extern	int	getfields(char*, char**, int, int, char*);
 extern	int	gettokens(char *, char **, int, char *);
-extern	long	strtol(char*, char**, int);
+extern	int32_t	strtol(char*, char**, int);
 extern	uint32_t	strtoul(char*, char**, int);
 extern	int64_t	strtoll(char*, char**, int);
 extern	uint64_t	strtoull(char*, char**, int);
-extern	void	qsort(void*, long, long, int (*)(void*, void*));
+extern	void	qsort(void*, int32_t, int32_t,
+				int (*)(void*, void*));
 /*
  * Syscall data structures
  */

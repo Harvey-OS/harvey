@@ -49,9 +49,9 @@ typedef struct Tracelog Tracelog;
 struct Tracelog {
 	uint64_t ticks;
 	int info;
-	uintptr pc;
+	uintptr_t pc;
 	/* these are different depending on type */
-	uintptr dat[5];
+	uintptr_t dat[5];
 	int machno;
 };
 
@@ -213,7 +213,7 @@ traceslot(void *pc, int dopanic)
 		print("Invalid PC %p\n", pc);
 		return nil;
 	}
-	index = (int)((uintptr)pc - KTZERO);
+	index = (int)((uintptr_t)pc - KTZERO);
 	if (index > codesize){
 		if (dopanic) {
 			panic("Bad PC %p", pc);
@@ -345,7 +345,7 @@ newpl(void)
 /* Called every time a (traced) function starts */
 /* this is not really smp safe. FIX */
 void
-tracein(void* pc, uintptr a1, uintptr a2, uintptr a3, uintptr a4)
+tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 {	
 	struct Tracelog *pl;
 
@@ -374,7 +374,7 @@ tracein(void* pc, uintptr a1, uintptr a2, uintptr a3, uintptr a4)
 
 	cycles(&pl->ticks);
 
-	pl->pc = (uintptr)pc;
+	pl->pc = (uintptr_t)pc;
 	if (up)
 		pl->dat[0] = up->pid;
 	else
@@ -392,7 +392,7 @@ tracein(void* pc, uintptr a1, uintptr a2, uintptr a3, uintptr a4)
 
 /* Called every time a traced function exits */
 void
-traceout(void* pc, uintptr retval)
+traceout(void* pc, uintptr_t retval)
 {
 	struct Tracelog *pl;
 	/* if we are here, tracing is active. Turn it off. */
@@ -416,7 +416,7 @@ traceout(void* pc, uintptr retval)
 
 	cycles(&pl->ticks);
 
-	pl->pc = (uintptr)pc;
+	pl->pc = (uintptr_t)pc;
 	if (up)
 		pl->dat[0] = up->pid;
 	else
@@ -477,7 +477,7 @@ traceopen(Chan *c, int omode)
 	 * if the basic alloc fails. You can resize it later. 
 	 */
 
-	codesize = (uintptr)etext - (uintptr)KTZERO;
+	codesize = (uintptr_t)etext - (uintptr_t)KTZERO;
 	if (! tracemap)
 		//tracemap = mallocz(sizeof(struct tracemap *)*codesize, 1);
 		tracemap = mallocz(sizeof(struct Trace *)*codesize, 1);
@@ -567,7 +567,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 
 		// Set the printsize
 		/* 32-bit E PCPCPCPC TIMETIMETIMETIME PID# CR XXARG1XX XXARG2XX XXARG3XX XXARG4XX\n */
-		if (sizeof(uintptr) == 4) {
+		if (sizeof(uintptr_t) == 4) {
 			printsize = 73;		// 32-bit format
 		} else {
 			printsize = 121;	// must be 64-bit
@@ -585,7 +585,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 			if ((i + printsize) > n)
 				break;
 			/* simple format */
-			if (sizeof(uintptr) == 4) {
+			if (sizeof(uintptr_t) == 4) {
 				cp[0] = eventname[pl->info];
 				cp ++;
 				*cp++ = ' ';
@@ -674,7 +674,7 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t)
 		traceactive = saveactive;
 		nexterror();
 	}
-	switch((uintptr)c->qid.path){
+	switch((uintptr_t)c->qid.path){
 	default:
 		error("tracewrite: bad qid");
 	case Qctl:
@@ -692,19 +692,19 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t)
 }
 			p = *pp;
 			if((ntok > 3) && (!strcmp(tok[3], "new"))){
-				uintptr addr;
+				uintptr_t addr;
 				void *start, *end, *func;
 				if (ntok != 5) {
 					error("devtrace: usage: trace <ktextstart> <ktextend> new <name>");
 				}
-				addr = (uintptr)strtoul(tok[1], &ep, 16);
+				addr = (uintptr_t)strtoul(tok[1], &ep, 16);
 				if (addr < KTZERO)
 					addr |= KTZERO;
 				func = start = (void *)addr;
 				if(*ep) {
 					error("devtrace: start address not in recognized format");
 				}
-				addr = (uintptr)strtoul(tok[2], &ep, 16);
+				addr = (uintptr_t)strtoul(tok[2], &ep, 16);
 				if (addr < KTZERO)
 					addr |= KTZERO;
 				end = (void *)addr;
@@ -768,11 +768,11 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t)
 		} else if(!strcmp(tok[0], "query")){
 			/* See if addr is being traced */
 			Trace* p;
-			uintptr addr;
+			uintptr_t addr;
 			if (ntok != 2) {
 				error("devtrace: usage: query <addr>");
 			}
-			addr = (uintptr)strtoul(tok[1], &ep, 16);
+			addr = (uintptr_t)strtoul(tok[1], &ep, 16);
 			if (addr < KTZERO)
 				addr |= KTZERO;
 			p = traced((void *)addr, 0);
@@ -808,19 +808,19 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t)
 			}
 		} else if (!strcmp(tok[0], "testtracein")) {
 			/* Manually jump to a certain bit of traced code */
-			uintptr pc, a1, a2, a3, a4;
+			uintptr_t pc, a1, a2, a3, a4;
 			int x;
 
 			if (ntok != 6)
 				error("devtrace: usage: testtracein <pc> <arg1> <arg2> <arg3> <arg4>");
 
-			pc = (uintptr)strtoul(tok[1], &ep, 16);
+			pc = (uintptr_t)strtoul(tok[1], &ep, 16);
 			if (pc < KTZERO)
 				pc |= KTZERO;
-			a1 = (uintptr)strtoul(tok[2], &ep, 16);
-			a2 = (uintptr)strtoul(tok[3], &ep, 16);
-			a3 = (uintptr)strtoul(tok[4], &ep, 16);
-			a4 = (uintptr)strtoul(tok[5], &ep, 16);
+			a1 = (uintptr_t)strtoul(tok[2], &ep, 16);
+			a2 = (uintptr_t)strtoul(tok[3], &ep, 16);
+			a3 = (uintptr_t)strtoul(tok[4], &ep, 16);
+			a4 = (uintptr_t)strtoul(tok[5], &ep, 16);
 			
 			if (traced((void *)pc, 0)) {
 				x = splhi();

@@ -210,7 +210,7 @@ findpg(Page *pl, int color)
  * can be called with up == nil during boot.
  */
 Page*
-newpage(int clear, Segment **s, uintptr va, usize size, int color)
+newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 {
 	Page *p;
 	KMap *k;

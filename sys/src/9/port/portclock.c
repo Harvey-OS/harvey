@@ -153,7 +153,7 @@ timerdel(Timer *dt)
 void
 hzclock(Ureg *ur)
 {
-	uintptr pc;
+	uintptr_t pc;
 
 	m->ticks++;
 	if(m->machno == 0)

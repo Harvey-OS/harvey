@@ -59,7 +59,7 @@ kprofattach(char *spec)
 }
 
 static void
-_kproftimer(uintptr pc)
+_kproftimer(uintptr_t pc)
 {
 	if(kprof.time == 0)
 		return;

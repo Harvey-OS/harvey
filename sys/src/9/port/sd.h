@@ -86,7 +86,7 @@ struct SDifc {
 	int	(*rctl)(SDunit*, char*, int);
 	int	(*wctl)(SDunit*, Cmdbuf*);
 
-	long	(*bio)(SDunit*, int, int, void*, long, int64_t);
+	int32_t	(*bio)(SDunit*, int, int, void*, int32_t, int64_t);
 	SDev*	(*probe)(DevConf*);
 	void	(*clear)(SDev*);
 	char*	(*rtopctl)(SDev*, char*, char*);
@@ -105,7 +105,7 @@ struct SDreq {
 	int	flags;
 
 	int	status;
-	long	rlen;
+	int32_t	rlen;
 	unsigned char	sense[256];
 };
 
@@ -142,7 +142,7 @@ extern int sdfakescsi(SDreq*, void*, int);
 /* sdscsi.c */
 extern int scsiverify(SDunit*);
 extern int scsionline(SDunit*);
-extern long scsibio(SDunit*, int, int, void*, long, int64_t);
+extern int32_t scsibio(SDunit*, int, int, void*, int32_t, int64_t);
 extern SDev* scsiid(SDev*, SDifc*);
 
 /*

@@ -14,7 +14,7 @@ typedef struct Kexecgrp Kexecgrp;
 /* Kexec structures */
 struct Kvalue
 {
-	uintptr addr;
+	uintptr_t addr;
 	uint64_t size;
 	int	len;
 	int inuse;

@@ -14,7 +14,7 @@
 #include "fns.h"
 
 void
-rmapfree(RMap* rmap, uintptr addr, uint size)
+rmapfree(RMap* rmap, uintptr_t addr, uint size)
 {
 	Map *mp;
 	uint t;
@@ -58,8 +58,8 @@ rmapfree(RMap* rmap, uintptr addr, uint size)
 	unlock(rmap);
 }
 
-uintptr
-rmapalloc(RMap* rmap, uintptr addr, uint size, int align)
+uintptr_t
+rmapalloc(RMap* rmap, uintptr_t addr, uint size, int align)
 {
 	Map *mp;
 	uint32_t maddr, oaddr;

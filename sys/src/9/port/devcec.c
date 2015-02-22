@@ -724,7 +724,7 @@ cecread(Chan *c, void *a, int32_t n, int64_t offset)
 			j += snprint(p+j, Size-j,
 				"%E %3d %-6s %12d %d %d %.8lux\n",
 				cp->ea, cp->cno, cstate[cp->state], cp->idle,
-				cp->to, cp->retries, (uintptr)cp->bp);
+				cp->to, cp->retries, (uintptr_t)cp->bp);
 		n = readstr(offset, a, n, p);
 		free(p);
 		return n;

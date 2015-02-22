@@ -211,7 +211,7 @@ imagechanreclaim(void)
 }
 
 Image*
-attachimage(int type, Chan *c, int color, uintptr base, usize len)
+attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
 {
 	Image *i, **l;
 

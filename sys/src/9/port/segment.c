@@ -30,7 +30,7 @@ segppn(Segment *s, uintmem pa)
  * if base is aligned to 1G and size is >= 1G and we support 1G pages.
  */
 Segment *
-newseg(int type, uintptr base, uint64_t size)
+newseg(int type, uintptr_t base, uint64_t size)
 {
 	Segment *s;
 	int mapsize;
@@ -148,7 +148,7 @@ putseg(Segment *s)
 }
 
 void
-relocateseg(Segment *s, uintptr offset)
+relocateseg(Segment *s, uintptr_t offset)
 {
 	Page **pg, *x;
 	Pte *pte, **p, **endpte;
@@ -239,7 +239,7 @@ void
 segpage(Segment *s, Page *p)
 {
 	Pte **pte;
-	uintptr soff;
+	uintptr_t soff;
 	uintmem pgsz;
 	Page **pg;
 
@@ -270,10 +270,10 @@ segpage(Segment *s, Page *p)
  *  called with s->lk locked
  */
 void
-mfreeseg(Segment *s, uintptr start, int pages)
+mfreeseg(Segment *s, uintptr_t start, int pages)
 {
 	int i, j, size;
-	uintptr soff;
+	uintptr_t soff;
 	uintmem pgsz;
 	Page *pg;
 	Page *list;
@@ -333,11 +333,11 @@ out:
 }
 
 Segment*
-isoverlap(Proc* p, uintptr va, usize len)
+isoverlap(Proc* p, uintptr_t va, usize len)
 {
 	int i;
 	Segment *ns;
-	uintptr newtop;
+	uintptr_t newtop;
 
 	newtop = va+len;
 	for(i = 0; i < NSEG; i++) {
@@ -352,7 +352,7 @@ isoverlap(Proc* p, uintptr va, usize len)
 }
 
 void
-segclock(uintptr pc)
+segclock(uintptr_t pc)
 {
 	Segment *s;
 
@@ -371,7 +371,7 @@ static void
 prepageseg(int i)
 {
 	Segment *s;
-	uintptr addr, pgsz;
+	uintptr_t addr, pgsz;
 
 	s = up->seg[i];
 	if(s == nil)

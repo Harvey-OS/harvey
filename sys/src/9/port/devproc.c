@@ -167,7 +167,7 @@ static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
 #define NOTEID(q)	((q).vers)
 
 static void	procctlreq(Proc*, char*, int);
-static int	procctlmemio(Proc*, uintptr, int, void*, int);
+static int	procctlmemio(Proc*, uintptr_t, int, void*, int);
 static Chan*	proctext(Chan*, Proc*);
 static Segment* txt2data(Proc*, Segment*);
 static int	procstopped(void*);
@@ -770,7 +770,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 	Segment *sg, *s;
 	int i, j, navail, pid, rsize;
 	char flag[10], *sps, *srv, statbuf[NSEG*64];
-	uintptr offset, u;
+	uintptr_t offset, u;
 	int tesz;
 
 	if(c->qid.type & QTDIR)
@@ -1173,7 +1173,7 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 	Proc *p, *t;
 	int i, id, l;
 	char *args, buf[ERRMAX];
-	uintptr offset;
+	uintptr_t offset;
 
 	if(c->qid.type & QTDIR)
 		error(Eisdir);
@@ -1667,13 +1667,13 @@ procstopped(void *a)
 }
 
 static int
-procctlmemio(Proc *p, uintptr offset, int n, void *va, int read)
+procctlmemio(Proc *p, uintptr_t offset, int n, void *va, int read)
 {
 	KMap *k;
 	Pte *pte;
 	Page *pg;
 	Segment *s;
-	uintptr soff, l;	/* hmmmm */
+	uintptr_t soff, l;	/* hmmmm */
 	uint8_t *b;
 	uintmem pgsz;
 

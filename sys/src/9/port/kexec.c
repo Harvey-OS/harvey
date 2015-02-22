@@ -64,7 +64,7 @@ Proc*
 setupseg(int core)
 {
 	Segment *s;
-	uintptr  ka;
+	uintptr_t  ka;
 	Proc *p;
 	static Pgrp *kpgrp;
 
@@ -115,14 +115,14 @@ setupseg(int core)
 	  
 	// XXX: now that we are asmalloc we are no long proc. 
 
-	ka = (uintptr)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
+	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
 	s = newseg(SG_TEXT|SG_RONLY, ka, 1);
 	p->seg[TSEG] = s;
 //	s->color = acpicorecolor(core);
 
 	/* Data. Shared. */
 	// XXX; Now that the address space is all funky how are we going to handle shared data segments?
-	ka = (uintptr)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 2));
+	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 2));
 	s = newseg(SG_DATA, ka, 1);
 	p->seg[DSEG] = s;
 	s->color = p->seg[TSEG]->color;
@@ -132,7 +132,7 @@ setupseg(int core)
 	p->seg[BSEG]->color= up->seg[TSEG]->color;
 
 	/* Stack */
-	ka = (uintptr)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
+	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
 	p->seg[SSEG] = newseg(SG_STACK, ka, 1);
 	nixprepage(-1);
 	
@@ -148,7 +148,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	int argc, i, n;
 	char *a, *elem, *file, *args;
 	int32_t hdrsz, magic, textsz, datasz, bsssz;
-	uintptr textlim, datalim, bsslim, entry, tbase, tsize, dbase, dsize, bbase, bsize, sbase, ssize, stack;
+	uintptr_t textlim, datalim, bsslim, entry, tbase, tsize, dbase, dsize, bbase, bsize, sbase, ssize, stack;
 	Mach *mp;
 	static Pgrp *kpgrp;
 	

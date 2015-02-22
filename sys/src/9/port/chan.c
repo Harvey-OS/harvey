@@ -1616,7 +1616,7 @@ char isfrog[256]={
  * to access unchecked addresses.)
  */
 static char*
-validname0(char *aname, int slashok, int dup, uintptr pc)
+validname0(char *aname, int slashok, int dup, uintptr_t pc)
 {
 	char *ename, *name, *s;
 	int c, n;

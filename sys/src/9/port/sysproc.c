@@ -293,7 +293,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	char *a, *elem, *file, *p;
 	char line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
 	int32_t hdrsz, magic, textsz, datasz, bsssz;
-	uintptr textlim, datalim, bsslim, entry, stack;
+	uintptr_t textlim, datalim, bsslim, entry, stack;
 	static int colorgen;
 
 
@@ -958,7 +958,7 @@ void
 sysrendezvous(Ar0* ar0, va_list list)
 {
 	Proc *p, **l;
-	uintptr tag, val;
+	uintptr_t tag, val;
 
 	/*
 	 * void* rendezvous(void*, void*);
