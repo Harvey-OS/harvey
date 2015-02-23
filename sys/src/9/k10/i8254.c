@@ -129,7 +129,7 @@ i8254hz(uint32_t info[2][4])
 	/*
 	 * Find biggest loop that doesn't wrap.
 	 */
-	SET(a, b);
+	SET(a); SET(b);
 	incr = 16000000/(aamcycles*Hz*2);
 	x = 2000;
 	for(loops = incr; loops < 64*1024; loops += incr) {

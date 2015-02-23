@@ -42,7 +42,7 @@ netifinit(Netif *nif, char *name, int nfile, uint32_t limit)
  *  generate a 3 level directory
  */
 static int
-netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
+netifgen(Chan *c, char* j, Dirtab *vp, int n, int i, Dir *dp)
 {
 	Qid q;
 	Netif *nif = (Netif*)vp;
@@ -355,7 +355,7 @@ netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 			if(nif->scanbs != nil)
 				nif->scanbs(nif->arg, type);
 			f->scan = type;
-			nif->scan++;
+			nif->_scan++;
 		}
 	} else if((p = matchtoken(buf, "mtu")) != 0){
 		/* poor planning. */
@@ -455,7 +455,7 @@ netifclose(Netif *nif, Chan *c)
 		}
 		if(f->scan){
 			qlock(nif);
-			if(--(nif->scan) == 0 && nif->scanbs != nil)
+			if(--(nif->_scan) == 0 && nif->scanbs != nil)
 				nif->scanbs(nif->arg, 0);
 			qunlock(nif);
 			f->prom = 0;

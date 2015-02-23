@@ -967,11 +967,11 @@ extern	Procalloc	procalloc;
 extern	uint	qiomaxatomic;
 extern	char*	statename[];
 extern	char*	sysname;
-extern struct {
-	char*	n;
-	void (*f)(Ar0*, va_list);
-	Ar0	r;
-} systab[];
+//extern struct {
+//	char*	n;
+//	void (*f)(Ar0*, va_list);
+//	Ar0	r;
+//} systab[];
 
 enum
 {

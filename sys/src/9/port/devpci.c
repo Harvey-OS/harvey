@@ -55,7 +55,7 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 }
 
 static int
-pcigen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
+pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 {
 	int tbdf;
 	Pcidev *p;
@@ -128,7 +128,7 @@ pciopen(Chan *c, int omode)
 }
 
 static void
-pciclose(Chan*)
+pciclose(Chan* c)
 {
 }
 

@@ -39,13 +39,13 @@ swapinit(void)
 }
 
 void
-putswap(Page*)
+putswap(Page* p)
 {
 	panic("putswap");
 }
 
 void
-dupswap(Page*)
+dupswap(Page* p)
 {
 	panic("dupswap");
 }

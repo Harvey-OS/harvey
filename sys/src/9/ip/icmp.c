@@ -330,7 +330,7 @@ static char *unreachcode[] =
 };
 
 static void
-icmpiput(Proto *icmp, Ipifc*, Block *bp)
+icmpiput(Proto *icmp, Ipifc* i, Block *bp)
 {
 	int	n, iplen;
 	Icmp	*p;

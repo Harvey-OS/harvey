@@ -23,7 +23,7 @@ enum {
  *  action log
  */
 struct Netlog {
-	Lock;
+	Lock	_lock;
 	int	opens;
 	char*	buf;
 	char	*end;
@@ -31,7 +31,7 @@ struct Netlog {
 	int	len;
 
 	int	logmask;			/* mask of things to debug */
-	uchar	iponly[IPaddrlen];		/* ip address to print debugging for */
+	unsigned char	iponly[IPaddrlen];		/* ip address to print debugging for */
 	int	iponlyset;
 
 	QLock;
@@ -130,7 +130,7 @@ netlogready(void *a)
 }
 
 int32_t
-netlogread(Fs *f, void *a, uint32_t, int32_t n)
+netlogread(Fs *f, void *a, uint32_t m, int32_t n)
 {
 	int i, d;
 	char *p, *rptr;

@@ -29,7 +29,7 @@
 #define PPN(x)		((x)&~(PGSZ-1))
 
 void
-mmuflushtlb(u64int)
+mmuflushtlb(uint64_t u)
 {
 
 	m->tlbpurge++;

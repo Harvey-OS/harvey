@@ -1238,7 +1238,7 @@ igbeattach(Ether* edev)
 }
 
 static void
-igbeinterrupt(Ureg*, void* arg)
+igbeinterrupt(Ureg* ureg, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;

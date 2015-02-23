@@ -11,5 +11,5 @@ cp $1 $2.out
 t=`{file $2.out}
 if(~ $"t *executable*)
 	strip $2.out
-aux/data2s $2 < $2.out > $2.root.s
+	data2c $2 < $2.out > $2.root.c
 echo mkroot $* done

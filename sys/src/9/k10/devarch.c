@@ -150,7 +150,7 @@ ioinit(void)
 // This is in particular useful for exchangable cards, such
 // as pcmcia and cardbus cards.
 int
-ioreserve(int, int size, int align, char *tag)
+ioreserve(int n, int size, int align, char *tag)
 {
 	IOMap *map, **l;
 	int i, port;
@@ -340,7 +340,7 @@ archopen(Chan* c, int omode)
 }
 
 static void
-archclose(Chan*)
+archclose(Chan* c)
 {
 }
 
@@ -354,7 +354,7 @@ archread(Chan *c, void *a, long n, int64_t offset)
 {
 	char *buf, *p;
 	int port;
-	ushort *sp;
+	uint16_t *sp;
 	uint32_t *lp;
 	IOMap *map;
 	Rdwrfn *fn;
@@ -523,7 +523,7 @@ nop(void)
 void (*coherence)(void) = mfence;
 
 static int32_t
-cputyperead(Chan*, void *a, int32_t n, int64_t off)
+cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 {
 	char buf[512], *s, *e;
 	int i, k;
@@ -581,7 +581,7 @@ fastticks(uint64_t* hz)
 }
 
 uint32_t
-µs(void)
+ms(void)
 {
 	return fastticks2us(rdtsc());
 }

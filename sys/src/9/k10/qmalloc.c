@@ -443,7 +443,7 @@ mallocreadfmt(char* s, char* e)
 }
 
 int32_t
-mallocreadsummary(Chan*, void *a, int32_t n, int32_t offset)
+mallocreadsummary(Chan* c, void *a, int32_t n, int32_t offset)
 {
 	char *alloc;
 
@@ -639,7 +639,7 @@ realloc(void* ap, uint32_t size)
 }
 
 void
-setmalloctag(void*, uint32_t)
+setmalloctag(void* v, uint32_t i)
 {
 }
 

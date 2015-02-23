@@ -1,3 +1,4 @@
+MKSHELL=$PLAN9/bin/rc
 objtype=amd64
 </$objtype/mkfile
 

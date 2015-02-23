@@ -323,7 +323,7 @@ sysopen(Ar0* ar0, va_list list)
 }
 
 void
-sysnsec(Ar0* ar0, va_list)
+sysnsec(Ar0* ar0, va_list list)
 {
 	/*
 	 * int64_t nsec(void);
@@ -1586,13 +1586,13 @@ sys_fstat(Ar0* ar0, va_list list)
 }
 
 void
-sys_wstat(Ar0*, va_list)
+sys_wstat(Ar0* ar, va_list list)
 {
 	error("old wstat system call - recompile");
 }
 
 void
-sys_fwstat(Ar0*, va_list)
+sys_fwstat(Ar0* ar, va_list list)
 {
 	error("old fwstat system call - recompile");
 }

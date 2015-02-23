@@ -707,19 +707,19 @@ sysexec(Ar0* ar0, va_list list)
 }
 
 void
-sysr1(Ar0* , va_list )
+sysr1(Ar0* ar, va_list va)
 {
 	print("sysr1() called. recompile your binary\n");
 }
 
 void
-sysnixsyscall(Ar0* , va_list )
+sysnixsyscall(Ar0* ar, va_list va)
 {
 	print("nixsyscall() called. recompile your binary\n");
 }
 
 int
-return0(void*)
+return0(void* v)
 {
 	return 0;
 }
@@ -762,7 +762,7 @@ sysalarm(Ar0* ar0, va_list list)
 }
 
 void
-sysexits(Ar0*, va_list list)
+sysexits(Ar0* ar, va_list list)
 {
 	char *status;
 	char *inval = "invalid exit string";

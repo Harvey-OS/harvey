@@ -264,7 +264,7 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip,
  * called with arp locked
  */
 void
-arprelease(Arp *arp, Arpent*)
+arprelease(Arp *arp, Arpent* arpen)
 {
 	qunlock(arp);
 }

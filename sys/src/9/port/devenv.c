@@ -39,7 +39,7 @@ envlookup(Egrp *eg, char *name, uint32_t qidpath)
 }
 
 static int
-envgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+envgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 {
 	Egrp *eg;
 	Evalue *e;
@@ -147,7 +147,7 @@ envopen(Chan *c, int omode)
 }
 
 static void
-envcreate(Chan *c, char *name, int omode, int)
+envcreate(Chan *c, char *name, int omode, int i)
 {
 	Egrp *eg;
 	Evalue *e;

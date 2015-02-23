@@ -67,7 +67,7 @@ etheropen(Chan* chan, int omode)
 }
 
 static void
-ethercreate(Chan*, char*, int, int)
+ethercreate(Chan* c, char* d, int i, int n)
 {
 }
 
@@ -250,7 +250,7 @@ etheroq(Ether* ether, Block* bp)
 }
 
 static int32_t
-etherwrite(Chan* chan, void* buf, int32_t n, int64_t)
+etherwrite(Chan* chan, void* buf, int32_t n, int64_t m)
 {
 	Ether *ether;
 	Block *bp;
@@ -299,7 +299,7 @@ etherwrite(Chan* chan, void* buf, int32_t n, int64_t)
 }
 
 static int32_t
-etherbwrite(Chan* chan, Block* bp, int64_t)
+etherbwrite(Chan* chan, Block* bp, int64_t m)
 {
 	Ether *ether;
 	int32_t n;

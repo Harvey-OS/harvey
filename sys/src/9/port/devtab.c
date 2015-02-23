@@ -69,7 +69,7 @@ devtabget(int dc, int user)
 }
 
 int32_t
-devtabread(Chan*, void* buf, int32_t n, int64_t off)
+devtabread(Chan* c, void* buf, int32_t n, int64_t off)
 {
 	int i;
 	Dev *dev;

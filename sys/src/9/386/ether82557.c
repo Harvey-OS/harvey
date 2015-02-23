@@ -349,12 +349,14 @@ rfdalloc(uint32_t link)
 	return bp;
 }
 
+static void txstart(Ether*);
+
 static void
 watchdog(void* arg)
 {
 	Ether *ether;
 	Ctlr *ctlr;
-	static void txstart(Ether*);
+	//static void txstart(Ether*);
 
 	ether = arg;
 	for(;;){
@@ -407,6 +409,8 @@ attach(Ether* ether)
 	}
 	unlock(&ctlr->slock);
 }
+
+static int miir(Ctlr*, int, int);
 
 static int32_t
 ifstat(Ether* ether, void* a, int32_t n, uint32_t offset)
@@ -478,7 +482,7 @@ ifstat(Ether* ether, void* a, int32_t n, uint32_t offset)
 		phyaddr = ctlr->eeprom[6] & 0x00FF;
 		len += snprint(p+len, READSTR-len, "\nphy %2d:", phyaddr);
 		for(i = 0; i < 6; i++){
-			static int miir(Ctlr*, int, int);
+			//static int miir(Ctlr*, int, int);
 
 			len += snprint(p+len, READSTR-len, " %4.4ux",
 				miir(ctlr, phyaddr, i));
@@ -698,7 +702,7 @@ receive(Ether* ether)
 }
 
 static void
-interrupt(Ureg*, void* arg)
+interrupt(Ureg* ureg, void* arg)
 {
 	Cb* cb;
 	Ctlr *ctlr;

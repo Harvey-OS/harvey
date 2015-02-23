@@ -99,11 +99,11 @@ edflock(Proc *p)
 		return nil;
 	ilock(&thelock);
 	if((e = p->edf) && (e->flags & Admitted)){
-		thelock.pc = getcallerpc(&p);
+		thelock._pc = getcallerpc(&p);
 #ifdef EDFCYCLES
 		edfcycles -= lcycles();
 #endif
-		now = µs();
+		now = ms();
 		return e;
 	}
 	iunlock(&thelock);
@@ -128,7 +128,7 @@ edfinit(Proc*p)
 		fmtinstall('t', timeconv);
 		edfinited++;
 	}
-	now = µs();
+	now = ms();
 	DPRINT("%lud edfinit %d[%s]\n", now, p->pid, statename[p->state]);
 	p->edf = malloc(sizeof(Edf));
 	if(p->edf == nil)
@@ -137,7 +137,7 @@ edfinit(Proc*p)
 }
 
 static void
-deadlineintr(Ureg*, Timer *t)
+deadlineintr(Ureg* ureg, Timer *t)
 {
 	/* Proc reached deadline */
 	extern int panicking;
@@ -148,7 +148,7 @@ deadlineintr(Ureg*, Timer *t)
 		return;
 
 	p = t->ta;
-	now = µs();
+	now = ms();
 	DPRINT("%lud deadlineintr %d[%s]\n", now, p->pid, statename[p->state]);
 	/* If we're interrupting something other than the proc pointed to by t->a,
 	 * we've already achieved recheduling, so we need not do anything
@@ -213,7 +213,7 @@ release(Proc *p)
 }
 
 static void
-releaseintr(Ureg*, Timer *t)
+releaseintr(Ureg* ureg, Timer *t)
 {
 	Proc *p;
 	extern int panicking;
@@ -458,9 +458,9 @@ edfstop(Proc *p)
 }
 
 static int
-yfn(void *)
+yfn(void *v)
 {
-	now = µs();
+	now = ms();
 	return up->trend == nil || now - up->edf->r >= 0;
 }
 

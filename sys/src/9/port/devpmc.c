@@ -141,7 +141,7 @@ pmcattach(char *spec)
 	return devattach(L'ε', spec);
 }
 int
-pmcgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+pmcgen(Chan *c, char *name, Dirtab* dir, int j, int s, Dir *dp)
 {
 	int t, i, n;
 	Dirtab *l, *d;
@@ -207,7 +207,7 @@ pmcopen(Chan *c, int omode)
 }
 
 static void
-pmcclose(Chan *)
+pmcclose(Chan *c)
 {
 }
 
@@ -238,7 +238,7 @@ pmcread(Chan *c, void *a, int32_t n, int64_t offset)
 		nexterror();
 	}
 	coreno = (uint64_t)c->aux;
-	p.coreno = coreno;
+	p._coreno = coreno;
 	switch(type){
 	case Qdata:
 		v = pmcgetctr(coreno, id);
@@ -330,7 +330,7 @@ acpmcsetctr(void)
 
 
 static int32_t
-pmcwrite(Chan *c, void *a, int32_t n, int64_t)
+pmcwrite(Chan *c, void *a, int32_t n, int64_t m)
 {
 	Cmdbuf *cb;
 	Cmdtab *ct;

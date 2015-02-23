@@ -25,7 +25,7 @@ while(! ~ $#* 0){
 	t=`{file $tmp}
 	# do not strip venti - it uses its own symbols
 	if(~ $"t *executable* && ! ~ $name venti)
-		strip $tmp
-	aux/data2s $cname < $tmp
+#		strip $tmp
+		data2c $cname < $tmp
 }
 exit 0

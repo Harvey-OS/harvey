@@ -64,7 +64,7 @@ char *statename[] =
 };
 
 Sched*
-procsched(Proc *)
+procsched(Proc *p)
 {
 	return &run;
 }
@@ -159,7 +159,7 @@ sched(void)
 			m->machno,
 			m->ilockdepth,
 			up? up->lastilock: nil,
-			(up && up->lastilock)? up->lastilock->pc: 0,
+			(up && up->lastilock)? up->lastilock->_pc: 0,
 			getcallerpc(&p+2));
 
 	if(up){
@@ -975,7 +975,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 
 	if(up->nlocks)
 		print("process %d sleeps with %d locks held, last lock %#p locked at pc %#p, sleep called from %#p\n",
-			up->pid, up->nlocks, up->lastlock, up->lastlock->pc, getcallerpc(&r));
+			up->pid, up->nlocks, up->lastlock, up->lastlock->_pc, getcallerpc(&r));
 	lock(r);
 	lock(&up->rlock);
 	if(r->p){
@@ -1049,7 +1049,7 @@ tfn(void *arg)
 }
 
 void
-twakeup(Ureg*, Timer *t)
+twakeup(Ureg* ureg, Timer *t)
 {
 	Proc *p;
 	Rendez *trend;
@@ -1503,7 +1503,7 @@ dumpaproc(Proc *p)
 	print("%3d:%10s pc %#p dbgpc %#p  %8s (%s) ut %ld st %ld bss %#p qpc %#p nl %d nd %lud lpc %#p pri %lud\n",
 		p->pid, p->text, p->pc, dbgpc(p), s, statename[p->state],
 		p->time[0], p->time[1], bss, p->qpc, p->nlocks,
-		p->delaysched, p->lastlock ? p->lastlock->pc : 0, p->priority);
+		p->delaysched, p->lastlock ? p->lastlock->_pc : 0, p->priority);
 }
 
 void

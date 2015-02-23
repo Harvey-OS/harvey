@@ -120,7 +120,7 @@ typedef struct Ctlr {
 	void*	vector;
 	int	poll;
 
-	uchar	sticky[8];
+	unsigned char	sticky[8];
 
 	Lock;
 	int	hasfifo;
@@ -470,7 +470,7 @@ i8250kick(Uart* uart)
 }
 
 static void
-i8250interrupt(Ureg*, void* arg)
+i8250interrupt(Ureg* ureg, void* arg)
 {
 	Ctlr *ctlr;
 	Uart *uart;

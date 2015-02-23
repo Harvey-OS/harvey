@@ -17,7 +17,7 @@ static Alarms	alarms;
 static Rendez	alarmr;
 
 void
-alarmkproc(void*)
+alarmkproc(void* v)
 {
 	Proc *rp;
 	uint32_t now;

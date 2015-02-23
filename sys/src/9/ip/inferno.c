@@ -38,13 +38,13 @@ commonerror(void)
 }
 
 char*
-bootp(Ipifc*)
+bootp(Ipifc* i)
 {
 	return "unimplmented";
 }
 
 int
-bootpread(char*, uint32_t, int)
+bootpread(char* c, uint32_t n, int i)
 {
 	return	0;
 }

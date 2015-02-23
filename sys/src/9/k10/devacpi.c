@@ -122,93 +122,93 @@ l64get(uint8_t* p)
 }
 
 static uint8_t
-mget8(uintptr_t p, void*)
+mget8(uintptr_t p, void *j)
 {
 	uint8_t *cp = (uint8_t*)p;
 	return *cp;
 }
 
 static void
-mset8(uintptr_t p, uint8_t v, void*)
+mset8(uintptr_t p, uint8_t v, void *j)
 {
 	uint8_t *cp = (uint8_t*)p;
 	*cp = v;
 }
 
 static uint16_t
-mget16(uintptr_t p, void*)
+mget16(uintptr_t p, void *j)
 {
 	uint16_t *cp = (uint16_t*)p;
 	return *cp;
 }
 
 static void
-mset16(uintptr_t p, uint16_t v, void*)
+mset16(uintptr_t p, uint16_t v, void *j)
 {
 	uint16_t *cp = (uint16_t*)p;
 	*cp = v;
 }
 
 static uint32_t
-mget32(uintptr_t p, void*)
+mget32(uintptr_t p, void *j)
 {
 	uint32_t *cp = (uint32_t*)p;
 	return *cp;
 }
 
 static void
-mset32(uintptr_t p, uint32_t v, void*)
+mset32(uintptr_t p, uint32_t v, void *j)
 {
 	uint32_t *cp = (uint32_t*)p;
 	*cp = v;
 }
 
 static uint64_t
-mget64(uintptr_t p, void*)
+mget64(uintptr_t p, void *j)
 {
 	uint64_t *cp = (uint64_t*)p;
 	return *cp;
 }
 
 static void
-mset64(uintptr_t p, uint64_t v, void*)
+mset64(uintptr_t p, uint64_t v, void *j)
 {
 	uint64_t *cp = (uint64_t*)p;
 	*cp = v;
 }
 
 static uint8_t
-ioget8(uintptr_t p, void*)
+ioget8(uintptr_t p, void *j)
 {
 	return inb(p);
 }
 
 static void
-ioset8(uintptr_t p, uint8_t v, void*)
+ioset8(uintptr_t p, uint8_t v, void *j)
 {
 	outb(p, v);
 }
 
 static uint16_t
-ioget16(uintptr_t p, void*)
+ioget16(uintptr_t p, void *j)
 {
 	return ins(p);
 }
 
 static void
-ioset16(uintptr_t p, uint16_t v, void*)
+ioset16(uintptr_t p, uint16_t v, void *j)
 {
 	outs(p, v);
 }
 
 static uint32_t
-ioget32(uintptr_t p, void*)
+ioget32(uintptr_t p, void *j)
 {
 	return inl(p);
 }
 
 static void
-ioset32(uintptr_t p, uint32_t v, void*)
+ioset32(uintptr_t p, uint32_t v, void *j)
 {
 	outl(p, v);
 }
@@ -563,7 +563,7 @@ dumpfadt(Fadt *fp)
 }
 
 static Atable*
-acpifadt(uint8_t *p, int)
+acpifadt(uint8_t *p, int i)
 {
 	Fadt *fp;
 
@@ -1250,7 +1250,7 @@ acpirsdptr(void)
 }
 
 static int
-acpigen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
+acpigen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid qid;
 
@@ -1428,7 +1428,7 @@ getgpests(int n)
 }
 
 static void
-acpiintr(Ureg*, void*)
+acpiintr(Ureg* ureg, void *j)
 {
 	int i;
 	uint sts, en;
@@ -1571,7 +1571,7 @@ acpiopen(Chan *c, int omode)
 }
 
 static void
-acpiclose(Chan *)
+acpiclose(Chan *c)
 {
 }
 

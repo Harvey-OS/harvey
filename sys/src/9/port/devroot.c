@@ -123,7 +123,7 @@ rootattach(char *spec)
 }
 
 static int
-rootgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+rootgen(Chan *c, char *name, Dirtab* dir, int j, int s, Dir *dp)
 {
 	int t;
 	Dirtab *d;
@@ -193,7 +193,7 @@ rootopen(Chan *c, int omode)
  * sysremove() knows this is a nop
  */
 static void
-rootclose(Chan*)
+rootclose(Chan* c)
 {
 }
 
@@ -235,7 +235,7 @@ rootread(Chan *c, void *buf, int32_t n, int64_t off)
 }
 
 static int32_t
-rootwrite(Chan*, void*, int32_t, int64_t)
+rootwrite(Chan* c, void* v, int32_t n, int64_t m)
 {
 	error(Egreg);
 	return 0;

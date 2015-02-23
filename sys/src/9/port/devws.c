@@ -129,7 +129,7 @@ wsread(Chan *c, void *va, int32_t n, int64_t off)
 }
 
 static int32_t
-wswrite(Chan *c, void *a, int32_t n, int64_t)
+wswrite(Chan *c, void *a, int32_t n, int64_t m)
 {
 	char *buf;
 

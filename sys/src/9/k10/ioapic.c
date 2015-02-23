@@ -327,7 +327,7 @@ intrenablemsi(Vctl* v, Pcidev *p)
 }
 
 int
-disablemsi(Vctl*, Pcidev *p)
+disablemsi(Vctl* v, Pcidev *p)
 {
 	if(p == nil)
 		return -1;
@@ -387,7 +387,7 @@ ioapicintrenable(Vctl* v)
 			v->tbdf, busno, devno);
 	}
 	else{
-		SET(busno, devno);
+		SET(busno); SET(devno);
 		panic("unknown tbdf %#8.8ux\n", v->tbdf);
 	}
 

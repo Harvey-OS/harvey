@@ -293,3 +293,14 @@ struct Zio
 extern	char	etext[];
 extern	char	edata[];
 extern	char	end[];
+
+/* compiler directives on plan 9 */
+#define SET(x)  ((x)=0)
+#define USED(x) if(x){}else{}
+#ifdef __GNUC__
+#       if __GNUC__ >= 3
+#               undef USED
+#               define USED(x) ((void)(x))
+#       endif
+#endif
+

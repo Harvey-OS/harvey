@@ -94,7 +94,7 @@ struct Netif
 	int	nmaddr;			/* number of known multicast addresses */
 	Netaddr *mhash[Nmhash];		/* hash table of multicast addresses */
 	int	prom;			/* number of promiscuous opens */
-	int	scan;			/* number of base station scanners */
+	int	_scan;			/* number of base station scanners */
 	int	all;			/* number of -1 multiplexors */
 
 	Queue*	oq;			/* output */

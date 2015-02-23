@@ -1,4 +1,5 @@
 MKSHELL=$PLAN9/bin/rc
+
 %.$O:	%.s
 	$AS $AFLAGS -o $stem.o -c $stem.s
 
@@ -83,18 +84,18 @@ taslock.$O:	../port/edf.h
 	awk -f ../mk/parse -- -mksystab /sys/src/libc/9syscall/sys.h $CONF > $target
 
 systab.$O:	../port/systab.c
-	$CC $CFLAGS -I. ../port/systab.c
+	$CC $CFLAGS -I. -c ../port/systab.c
 
 errstr.h:	../mk/parse ../port/error.h
 	awk -f ../mk/parse -- -mkerrstr > $target
 
 init.h:		init.out
-	{echo 'uchar initcode[]={'
+	{echo 'unsigned char initcode[]={'
 	 xd -1x $prereq | sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
 
 $CONF.$O:	$CONF.c
-	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$CC $CFLAGS '-DKERNDATE='`{date -n} -c $CONF.c
 
 $CONF.c:	../mk/parse $CONF
 	awk -f ../mk/parse -- -mkdevc $CONF > $CONF.c
@@ -124,6 +125,6 @@ clean:V:
 	if(test -d ./root) @{cd ./root; mk clean}; status=''	
 
 nuke:V:	clean
-	rm -f ../boot/libboot.a$O *.elf *.rr
+	rm -f ../boot/libboot.a *.elf *.rr
 	@{cd ../root; mk clean nuke}
 	if(test -d ./root) @{cd ./root; mk clean nuke}; status=''

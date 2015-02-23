@@ -120,7 +120,7 @@ intrdisable(void* vector)
 }
 
 static int32_t
-irqallocread(Chan*, void *vbuf, int32_t n, int64_t offset)
+irqallocread(Chan* c, void *vbuf, int32_t n, int64_t offset)
 {
 	char *buf, *p, str[2*(11+1)+2*(20+1)+(KNAMELEN+1)+(8+1)+1];
 	int m, vno;
@@ -274,7 +274,7 @@ intrtime(int vno)
 }
 
 static void
-pmcnop(Mach *)
+pmcnop(Mach *m)
 {
 }
 
@@ -282,7 +282,7 @@ void (*_pmcupdate)(Mach *m) = pmcnop;
 
 /* go to user space */
 void
-kexit(Ureg*)
+kexit(Ureg* u)
 {
  	uint64_t t;
 	Tos *tos;
@@ -529,7 +529,7 @@ dumpstackwithureg(Ureg* ureg)
 {
 	char *s;
 	uintptr_t l, v, i, estack;
-	extern uint32_t etext;
+//	extern char etext;
 	int x;
 
 	if((s = getconf("*nodumpstack")) != nil && atoi(s) != 0){
@@ -579,7 +579,7 @@ dumpstack(void)
 }
 
 static void
-debugbpt(Ureg* ureg, void*)
+debugbpt(Ureg* ureg, void* v)
 {
 	char buf[ERRMAX];
 
@@ -592,24 +592,24 @@ debugbpt(Ureg* ureg, void*)
 }
 
 static void
-doublefault(Ureg*, void*)
+doublefault(Ureg* ureg, void* v)
 {
 	panic("double fault");
 }
 
 static void
-unexpected(Ureg* ureg, void*)
+unexpected(Ureg* ureg, void* v)
 {
 	iprint("unexpected trap %llud; ignoring\n", ureg->type);
 }
 
 static void
-expected(Ureg*, void*)
+expected(Ureg* ureg, void* v)
 {
 }
 
 static void
-faultamd64(Ureg* ureg, void*)
+faultamd64(Ureg* ureg, void* v)
 {
 	uint64_t addr;
 	int read, user, insyscall;

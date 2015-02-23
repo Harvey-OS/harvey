@@ -121,7 +121,7 @@ kprofopen(Chan *c, int omode)
 }
 
 static void
-kprofclose(Chan*)
+kprofclose(Chan* c)
 {
 }
 
@@ -168,7 +168,7 @@ kprofread(Chan *c, void *va, int32_t n, int64_t off)
 }
 
 static int32_t
-kprofwrite(Chan *c, void *a, int32_t n, int64_t)
+kprofwrite(Chan *c, void *a, int32_t n, int64_t m)
 {
 	switch((int)(c->qid.path)){
 	case Kprofctlqid:

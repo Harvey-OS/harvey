@@ -133,7 +133,7 @@ char *sslnames[] = {
 };
 
 static int
-sslgen(Chan *c, char*, Dirtab *d, int nd, int s, Dir *dp)
+sslgen(Chan *c, char* j, Dirtab *d, int nd, int s, Dir *dp)
 {
 	Qid q;
 	Dstate *ds;
@@ -553,7 +553,7 @@ qtake(Block **l, int n, int discard)
  *  consumed before the last ensure.
  */
 static Block*
-sslbread(Chan *c, int32_t n, int64_t)
+sslbread(Chan *c, int32_t n, int64_t m)
 {
 	Dstate * volatile s;
 	Block *b;
@@ -725,7 +725,7 @@ randfill(uint8_t *buf, int len)
 }
 
 static int32_t
-sslbwrite(Chan *c, Block *b, int64_t)
+sslbwrite(Chan *c, Block *b, int64_t m)
 {
 	Dstate * volatile s;
 	int32_t rv;
@@ -1051,7 +1051,7 @@ parseencryptalg(char *p, Dstate *s)
 }
 
 static int32_t
-sslwrite(Chan *c, void *a, int32_t n, int64_t)
+sslwrite(Chan *c, void *a, int32_t n, int64_t m)
 {
 	Dstate * volatile s;
 	Block * volatile b;

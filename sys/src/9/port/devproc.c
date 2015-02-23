@@ -183,7 +183,7 @@ static void notrace(Proc*, int, int64_t);
 void (*proctrace)(Proc*, int, int64_t) = notrace;
 
 static void
-profclock(Ureg *ur, Timer *)
+profclock(Ureg *ur, Timer *ti)
 {
 	Tos *tos;
 
@@ -199,7 +199,7 @@ profclock(Ureg *ur, Timer *)
 }
 
 static int
-procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
+procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 {
 	Qid qid;
 	Proc *p;
@@ -303,7 +303,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 }
 
 static void
-notrace(Proc*, Tevent, int64_t)
+notrace(Proc* p, int n, int64_t m)
 {
 }
 static Lock tlck;
@@ -751,7 +751,7 @@ procargs(Proc *p, char *buf, int nbuf)
 }
 
 static int
-eventsavailable(void *)
+eventsavailable(void *v)
 {
 	return tproduced > tconsumed;
 }

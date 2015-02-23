@@ -92,7 +92,7 @@ netdevunbind(Ipifc *ifc)
  *  called by ipoput with a single block to write
  */
 static void
-netdevbwrite(Ipifc *ifc, Block *bp, int, uint8_t*)
+netdevbwrite(Ipifc *ifc, Block *bp, int i, uint8_t* n)
 {
 	Netdevrock *er = ifc->arg;
 

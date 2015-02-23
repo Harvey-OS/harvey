@@ -105,7 +105,7 @@ rtcopen(Chan* c, int omode)
 }
 
 static void	 
-rtcclose(Chan*)
+rtcclose(Chan* c)
 {
 }
 

@@ -508,7 +508,7 @@ sysziopwrite(Ar0 *ar0, va_list list)
 }
 
 void
-sysziofree(Ar0 *, va_list list)
+sysziofree(Ar0 *a, va_list list)
 {
 	Zio *io;
 	int nio, i;

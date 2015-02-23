@@ -115,7 +115,7 @@ putgseg(Globalseg *g)
 }
 
 static int
-segmentgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+segmentgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 {
 	Qid q;
 	Globalseg *g;

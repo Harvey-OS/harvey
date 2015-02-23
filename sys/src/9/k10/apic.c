@@ -189,7 +189,7 @@ apicdump(void)
 }
 
 static void
-apictimer(Ureg* ureg, void*)
+apictimer(Ureg* ureg, void* v)
 {
 	timerintr(ureg, 0);
 }

@@ -146,24 +146,51 @@ Rune kbtabaltgr[Nscan] =
 [0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
 };
 
+/*
 Rune kbtabctrl[] =
 {
 [0x00]	No,	'', 	'', 	'', 	'', 	'', 	'', 	'', 
-[0x08]	'', 	'', 	'', 	'', 	'', 	'', 	'\b',	'\t',
+[0x08]	'', 	'', 	'', 	'', 	'
+', 	'', 	'\b',	'\t',
 [0x10]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'\t',
 [0x18]	'', 	'', 	'', 	'', 	'\n',	Ctrl,	'', 	'', 
 [0x20]	'', 	'', 	'', 	'\b',	'\n',	'', 	'', 	'', 
 [0x28]	'', 	No, 	Shift,	'', 	'', 	'', 	'', 	'', 
-[0x30]	'', 	'', 	'', 	'', 	'', 	'', 	Shift,	'\n',
+[0x30]	'', 	'', 	'
+', 	'', 	'', 	'', 	Shift,	'\n',
 [0x38]	Latin,	No, 	Ctrl,	'', 	'', 	'', 	'', 	'', 
-[0x40]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'', 
-[0x48]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'', 
+[0x40]	'', 	'', 	'', 	'
+', 	'', 	'', 	'', 	'', 
+[0x48]	'', 	'', 	'
+', 	'', 	'', 	'', 	'', 	'', 
 [0x50]	'', 	'', 	'', 	'', 	No,	No,	No,	'', 
 [0x58]	'', 	No,	No,	No,	No,	No,	No,	No,
 [0x60]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x68]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x70]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x78]	No,	'', 	No,	'\b',	No,	No,	No,	No,
+};
+*/
+
+/* From LP49 */
+Rune kbtabctrl[] =  /* GCC cannot handle plan9 code !? */
+{
+[0x00]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x08]  No,     No,     No,     No,     No,     No,     '\177', No,
+[0x10]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x18]  No,     No,     No,     No,     '\n',   Ctrl,   No,     No,
+[0x20]  No,     No,     No,     '\b',   '\n',   No,     No,     No,
+[0x28]  No,     No,     Shift,  No,     No,     No,     No,     No,
+[0x30]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x38]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x40]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x48]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x50]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x58]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x60]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x68]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x70]  No,     No,     No,     No,     No,     No,     No,     No,
+[0x78]  No,     Up,     No,     No,     No,     No,     No,     No,
 };
 
 enum
@@ -325,7 +352,7 @@ struct {
  *  keyboard interrupt
  */
 static void
-i8042intr(Ureg*, void*)
+i8042intr(Ureg* u, void* v)
 {
 	int s, c, i;
 	int keyup;

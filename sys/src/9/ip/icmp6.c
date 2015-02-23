@@ -121,7 +121,7 @@ typedef struct Icmppriv6
 typedef struct Icmpcb6
 {
 	QLock;
-	uchar	headers;
+	unsigned char	headers;
 } Icmpcb6;
 
 char *icmpnames6[Maxtype6+1] =

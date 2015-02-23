@@ -555,7 +555,7 @@ shutdown(int ispanic)
 }
 
 void
-reboot(void*, void*, int32_t)
+reboot(void* v, void* w, int32_t i)
 {
 	panic("reboot\n");
 }

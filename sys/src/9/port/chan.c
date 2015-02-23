@@ -442,13 +442,13 @@ ccloseq(Chan *c)
 }
 
 static int
-clunkwork(void*)
+clunkwork(void* v)
 {
 	return clunkq.head != nil;
 }
 
 static void
-closeproc(void*)
+closeproc(void* v)
 {
 	Chan *c;
 

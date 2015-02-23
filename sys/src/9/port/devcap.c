@@ -184,12 +184,12 @@ addcap(uint8_t *hash)
 }
 
 static void
-capclose(Chan*)
+capclose(Chan* c)
 {
 }
 
 static int32_t
-capread(Chan *c, void *va, int32_t n, int64_t)
+capread(Chan *c, void *va, int32_t n, int64_t m)
 {
 	switch((uint32_t)c->qid.path){
 	case Qdir:
@@ -203,7 +203,7 @@ capread(Chan *c, void *va, int32_t n, int64_t)
 }
 
 static int32_t
-capwrite(Chan *c, void *va, int32_t n, int64_t)
+capwrite(Chan *c, void *va, int32_t n, int64_t m)
 {
 	Caphash *p;
 	char *cp;

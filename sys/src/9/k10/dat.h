@@ -211,7 +211,7 @@ struct ICC
  */
 struct PmcCtl {
 	Ref;
-	uint32_t coreno;
+	uint32_t _coreno;
 	int enab;
 	int user;
 	int os;

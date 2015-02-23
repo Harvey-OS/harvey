@@ -124,7 +124,7 @@ Done:
 }
 
 void
-syssemsleep(Ar0*, va_list list)
+syssemsleep(Ar0* ar, va_list list)
 {
 	int *np;
 	int dontblock;
@@ -145,7 +145,7 @@ syssemsleep(Ar0*, va_list list)
 }
 
 void
-syssemwakeup(Ar0*, va_list list)
+syssemwakeup(Ar0* ar, va_list list)
 {
 	int *np;
 	Sem *s;

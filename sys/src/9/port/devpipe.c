@@ -100,7 +100,7 @@ pipeattach(char *spec)
 }
 
 static int
-pipegen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
+pipegen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid q;
 	int len;
@@ -276,7 +276,7 @@ pipeclose(Chan *c)
 }
 
 static int32_t
-piperead(Chan *c, void *va, int32_t n, int64_t)
+piperead(Chan *c, void *va, int32_t n, int64_t m)
 {
 	Pipe *p;
 
@@ -317,7 +317,7 @@ pipebread(Chan *c, int32_t n, int64_t offset)
  *  the process.
  */
 static int32_t
-pipewrite(Chan *c, void *va, int32_t n, int64_t)
+pipewrite(Chan *c, void *va, int32_t n, int64_t m)
 {
 	Pipe *p;
 
@@ -350,7 +350,7 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t)
 }
 
 static int32_t
-pipebwrite(Chan *c, Block *bp, int64_t)
+pipebwrite(Chan *c, Block *bp, int64_t m)
 {
 	int32_t n;
 	Pipe *p;

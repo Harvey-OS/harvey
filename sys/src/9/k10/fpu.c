@@ -76,13 +76,13 @@ enum {						/* PFPU.state */
 };
 
 extern void _clts(void);
-extern void _fldcw(u16int);
+extern void _fldcw(uint16_t);
 extern void _fnclex(void);
 extern void _fninit(void);
 extern void _fxrstor(Fxsave*);
 extern void _fxsave(Fxsave*);
 extern void _fwait(void);
-extern void _ldmxcsr(u32int);
+extern void _ldmxcsr(uint32_t);
 extern void _stts(void);
 
 int
@@ -118,7 +118,7 @@ fpudevprocio(Proc* proc, void* a, int32_t n, uintptr_t offset, int write)
 }
 
 void
-fpunotify(Ureg*)
+fpunotify(Ureg* u)
 {
 	/*
 	 * Called when a note is about to be delivered to a
@@ -147,7 +147,7 @@ fpunoted(void)
 }
 
 void
-fpusysrfork(Ureg*)
+fpusysrfork(Ureg* u)
 {
 	/*
 	 * Called early in the non-interruptible path of
@@ -303,7 +303,7 @@ fpunote(void)
 }
 
 char*
-xfpuxf(Ureg* ureg, void*)
+xfpuxf(Ureg* ureg, void* v)
 {
 	uint32_t mxcsr;
 	Fxsave *fpusave;
@@ -368,7 +368,7 @@ acfpuxf(Ureg *ureg, void *p)
 }
 
 static char*
-xfpumf(Ureg* ureg, void*)
+xfpumf(Ureg* ureg, void* v)
 {
 	Fxsave *fpusave;
 
@@ -420,7 +420,7 @@ acfpumf(Ureg *ureg, void *p)
 }
 
 static char*
-xfpunm(Ureg* ureg, void*)
+xfpunm(Ureg* ureg, void* v)
 {
 	Fxsave *fpusave;
 

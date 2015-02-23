@@ -28,7 +28,7 @@ _fmtunlock(void)
 }
 
 int
-_efgfmt(Fmt*)
+_efgfmt(Fmt* fmt)
 {
 	return -1;
 }

@@ -1490,7 +1490,7 @@ i82563attach(Ether* edev)
 }
 
 static void
-i82563interrupt(Ureg*, void* arg)
+i82563interrupt(Ureg* ureg, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
@@ -1530,7 +1530,7 @@ i82563interrupt(Ureg*, void* arg)
 
 /* assume misrouted interrupts and check all controllers */
 static void
-i82575interrupt(Ureg*, void *)
+i82575interrupt(Ureg* ureg, void *v)
 {
 	Ctlr *ctlr;
 
@@ -1636,7 +1636,7 @@ eeload(Ctlr *ctlr)
 }
 
 static int
-fcycle(Ctlr *, Flash *f)
+fcycle(Ctlr *ctlr, Flash *f)
 {
 	uint16_t s, i;
 

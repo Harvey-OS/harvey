@@ -433,7 +433,7 @@ etherread6(void *a)
 }
 
 static void
-etheraddmulti(Ipifc *ifc, uint8_t *a, uint8_t *)
+etheraddmulti(Ipifc *ifc, uint8_t *a, uint8_t *b)
 {
 	uint8_t mac[6];
 	char buf[64];
@@ -455,7 +455,7 @@ etheraddmulti(Ipifc *ifc, uint8_t *a, uint8_t *)
 }
 
 static void
-etherremmulti(Ipifc *ifc, uint8_t *a, uint8_t *)
+etherremmulti(Ipifc *ifc, uint8_t *a, uint8_t *b)
 {
 	uint8_t mac[6];
 	char buf[64];

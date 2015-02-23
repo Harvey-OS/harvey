@@ -1,4 +1,3 @@
-MKSHELL=$PLAN9/bin/rc
 BEGIN{
 	oargc = 0;
 	for(argc = 1; argc < ARGC; argc++){
@@ -11,7 +10,8 @@ BEGIN{
 		ARGV[argc] = "";
 	}
 
-	objtype = ENVIRON["objtype"];
+#	objtype = ENVIRON["objtype"];
+	objtype = "amd64";
 
 	while(getline > 0){
 		if(/^[ \t]*$/ || /^#/)
@@ -80,18 +80,18 @@ BEGIN{
 			l = listolate(a, "|");
 			if(l != ""){
 				o = o "^(" l ")\\.$O:R:	" dir "/\\1.s\n";
-				o = o "\t$AS $AFLAGS " s " " dir "/$stem1.s\n";
+				o = o "\t$AS $AFLAGS -o /$stem1.o " s " -c " dir "/$stem1.s\n";
 			}
 			l = listolate(c, "|");
 			if(l != ""){
 				o = o "^(" l ")\\.$O:R:	" dir "/\\1.c\n";
-				o = o "\t$CC $CFLAGS " s " " dir "/$stem1.c\n";
+				o = o "\t$CC $CFLAGS " s " -c " dir "/$stem1.c\n";
 			}
 		}
 	}
 	if((!oargc || ("-mkrootrules" in oargv)) && ("rootdir" in section)){
 		mkrootrules(name, cname, src);
-		s = ARGV[argc] ".root.s:D:";
+		s = ARGV[argc] ".root.c:D:";
 		for(i = 1; i < section["rootdir"]; i++)
 			s = s " " src[i];
 		s = s "\n\t../mk/mkrootall\\\n";
@@ -295,7 +295,7 @@ function mkdevc(		a, d, i, m, n, s, t, u, name, cname){
 	mkrootrules(name, cname, m);
 	t = "";
 	for(i = 1; i < section["rootdir"]; i++){
-		s = s "extern uchar " cname[i] "code[];\n";
+		s = s "extern unsigned char " cname[i] "code[];\n";
 		s = s "extern usize " cname[i] "len;\n";
 		t = t "\taddbootfile(\"" name[i] "\", " cname[i] "code, " cname[i] "len);\n";
 	}
@@ -390,21 +390,21 @@ function mkdevc(		a, d, i, m, n, s, t, u, name, cname){
 	if("cache" in m){
 		s = s "extern void cinit(void);\n";
 		s = s "extern void copen(Chan*);\n";
-		s = s "extern int cread(Chan*, uchar*, int, vlong);\n";
-		s = s "extern void cupdate(Chan*, uchar*, int, vlong);\n";
-		s = s "extern void cwrite(Chan*, uchar*, int, vlong);\n\n";
+		s = s "extern int cread(Chan*, unsigned char*, int, int64_t);\n";
+		s = s "extern void cupdate(Chan*, unsigned char*, int, int64_t);\n";
+		s = s "extern void cwrite(Chan*, unsigned char*, int, int64_t);\n\n";
 		s = s "void (*mfcinit)(void) = cinit;\n";
 		s = s "void (*mfcopen)(Chan*) = copen;\n";
-		s = s "int (*mfcread)(Chan*, uchar*, int, vlong) = cread;\n";
-		s = s "void (*mfcupdate)(Chan*, uchar*, int, vlong) = cupdate;\n";
-		s = s "void (*mfcwrite)(Chan*, uchar*, int, vlong) = cwrite;\n\n";
+		s = s "int (*mfcread)(Chan*, unsigned char*, int, int64_t) = cread;\n";
+		s = s "void (*mfcupdate)(Chan*, unsigned char*, int, int64_t) = cupdate;\n";
+		s = s "void (*mfcwrite)(Chan*, unsigned char*, int, int64_t) = cwrite;\n\n";
 	}
 	else{
 		s = s "void (*mfcinit)(void) = nil;\n";
 		s = s "void (*mfcopen)(Chan*) = nil;\n";
-		s = s "int (*mfcread)(Chan*, uchar*, int, vlong) = nil;\n";
-		s = s "void (*mfcupdate)(Chan*, uchar*, int, vlong) = nil;\n";
-		s = s "void (*mfcwrite)(Chan*, uchar*, int, vlong) = nil;\n\n";
+		s = s "int (*mfcread)(Chan*, unsigned char*, int, int64_t) = nil;\n";
+		s = s "void (*mfcupdate)(Chan*, unsigned char*, int, int64_t) = nil;\n";
+		s = s "void (*mfcwrite)(Chan*, unsigned char*, int, int64_t) = nil;\n\n";
 	}
 	if(!("rdb" in misc)){
 		s = s "void\n";
@@ -472,7 +472,7 @@ function mkrules(dir, exists, ameta, cmeta, flags,		f, i, s, t){
 		delete cmeta[i];
 
 	s = "";
-	while("cd " dir "; /bin/ls *.[cs]" | getline > 0){
+	while("cd " dir "; ls *.[cs]" | getline > 0){
 		if($0 !~ /^[A-Za-z0-9]*\.[cs]$/)
 			continue;
 		f = $0;
@@ -497,6 +497,7 @@ function mkrules(dir, exists, ameta, cmeta, flags,		f, i, s, t){
 		}
 		s = s $0 ".$O:\t" dir "/" f "\n";
 #		s = s "\t" t " -D'_DBGC_='" dbgc[$0] "'' " dir "/" f "\n";
+		s = s "\t" t " -c " dir "/" f "\n";
 	}
 	return s;
 }

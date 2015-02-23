@@ -114,7 +114,7 @@ lockloop(Lock *l, uintptr_t pc)
 
 	p = l->p;
 	print("lock %#p loop key %#ux pc %#p held by pc %#p proc %d\n",
-		l, l->key, pc, l->pc, p ? p->pid : 0);
+		l, l->key, pc, l->_pc, p ? p->pid : 0);
 	dumpaproc(up);
 	if(p != nil)
 		dumpaproc(p);
@@ -135,7 +135,7 @@ lock(Lock *l)
 	if(TAS(&l->key) == 0){
 		if(up)
 			up->lastlock = l;
-		l->pc = pc;
+		l->_pc = pc;
 		l->p = up;
 		l->isilock = 0;
 		if(LOCKCYCLES)
@@ -158,7 +158,7 @@ lock(Lock *l)
 				 * multiprocessor, the other processor will unlock
 				 */
 				print("inversion %#p pc %#p proc %d held by pc %#p proc %d\n",
-					l, pc, up ? up->pid : 0, l->pc, l->p ? l->p->pid : 0);
+					l, pc, up ? up->pid : 0, l->_pc, l->p ? l->p->pid : 0);
 				up->edf->d = todget(nil);	/* yield to process with lock */
 			}
 			if(i++ > 100000000){
@@ -171,7 +171,7 @@ lock(Lock *l)
 		if(TAS(&l->key) == 0){
 			if(up)
 				up->lastlock = l;
-			l->pc = pc;
+			l->_pc = pc;
 			l->p = up;
 			l->isilock = 0;
 			if(LOCKCYCLES)
@@ -222,7 +222,7 @@ acquire:
 	if(up)
 		up->lastilock = l;
 	l->pl = pl;
-	l->pc = pc;
+	l->_pc = pc;
 	l->p = up;
 	l->isilock = 1;
 	l->m = m;
@@ -243,7 +243,7 @@ canlock(Lock *l)
 
 	if(up)
 		up->lastlock = l;
-	l->pc = getcallerpc(&l);
+	l->_pc = getcallerpc(&l);
 	l->p = up;
 	l->m = m;
 	l->isilock = 0;
@@ -263,16 +263,16 @@ unlock(Lock *l)
 		l->lockcycles = x - l->lockcycles;
 		if(l->lockcycles > maxlockcycles){
 			maxlockcycles = l->lockcycles;
-			maxlockpc = l->pc;
+			maxlockpc = l->_pc;
 		}
 	}
 
 	if(l->key == 0)
 		print("unlock: not locked: pc %#p\n", getcallerpc(&l));
 	if(l->isilock)
-		print("unlock of ilock: pc %#p, held by %#p\n", getcallerpc(&l), l->pc);
+		print("unlock of ilock: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
 	if(l->p != up)
-		print("unlock: up changed: pc %#p, acquired at pc %#p, lock p %#p, unlock up %#p\n", getcallerpc(&l), l->pc, l->p, up);
+		print("unlock: up changed: pc %#p, acquired at pc %#p, lock p %#p, unlock up %#p\n", getcallerpc(&l), l->_pc, l->p, up);
 	l->m = nil;
 	l->key = 0;
 	coherence();
@@ -297,19 +297,19 @@ iunlock(Lock *l)
 		l->lockcycles = x - l->lockcycles;
 		if(l->lockcycles > maxilockcycles){
 			maxilockcycles = l->lockcycles;
-			maxilockpc = l->pc;
+			maxilockpc = l->_pc;
 		}
 	}
 
 	if(l->key == 0)
 		print("iunlock: not locked: pc %#p\n", getcallerpc(&l));
 	if(!l->isilock)
-		print("iunlock of lock: pc %#p, held by %#p\n", getcallerpc(&l), l->pc);
+		print("iunlock of lock: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
 	if(islo())
-		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(&l), l->pc);
+		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
 	if(l->m != m){
 		print("iunlock by cpu%d, locked by cpu%d: pc %#p, held by %#p\n",
-			m->machno, l->m->machno, getcallerpc(&l), l->pc);
+			m->machno, l->m->machno, getcallerpc(&l), l->_pc);
 	}
 
 	pl = l->pl;

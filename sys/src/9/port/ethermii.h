@@ -117,7 +117,7 @@ typedef struct MiiPhy {
 	int	fd;
 	int	rfc;
 	int	tfc;
-};
+} MiiPhy;
 
 extern int miiane(Mii*, int, int, int);
 extern Mii* miiattach(void*, int, int (*)(Mii*, int, int, int, int));

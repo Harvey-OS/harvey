@@ -15,6 +15,12 @@
 
 #include "/sys/src/libc/9syscall/sys.h"
 
+extern struct {
+      char*   n;
+      void (*f)(Ar0*, va_list);
+      Ar0     r;
+} systab[];
+
 /*
  * Print functions for system call tracing.
  */

@@ -1515,14 +1515,14 @@ ipifcremmulti(Conv *c, uint8_t *ma, uint8_t *ia)
 static char*
 ipifcjoinmulti(Ipifc *ifc, char **argv, int argc)
 {
-	USED(ifc, argv, argc);
+	USED(ifc); USED(argv); USED(argc);
 	return nil;
 }
 
 static char*
 ipifcleavemulti(Ipifc *ifc, char **argv, int argc)
 {
-	USED(ifc, argv, argc);
+	USED(ifc); USED(argv); USED(argc);
 	return nil;
 }
 

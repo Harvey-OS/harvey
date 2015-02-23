@@ -32,7 +32,7 @@ struct LB
 static void loopbackread(void *a);
 
 static void
-loopbackbind(Ipifc *ifc, int, char**)
+loopbackbind(Ipifc *ifc, int i, char** c)
 {
 	LB *lb;
 
@@ -64,7 +64,7 @@ loopbackunbind(Ipifc *ifc)
 }
 
 static void
-loopbackbwrite(Ipifc *ifc, Block *bp, int, uint8_t*)
+loopbackbwrite(Ipifc *ifc, Block *bp, int i, uint8_t* m)
 {
 	LB *lb;
 

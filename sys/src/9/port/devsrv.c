@@ -31,7 +31,7 @@ static Srv	*srv;
 static int	qidpath;
 
 static int
-srvgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 {
 	Srv *sp;
 	Qid q;
@@ -300,14 +300,14 @@ srvclose(Chan *c)
 }
 
 static int32_t
-srvread(Chan *c, void *va, int32_t n, int64_t)
+srvread(Chan *c, void *va, int32_t n, int64_t m)
 {
 	isdir(c);
 	return devdirread(c, va, n, 0, 0, srvgen);
 }
 
 static int32_t
-srvwrite(Chan *c, void *va, int32_t n, int64_t)
+srvwrite(Chan *c, void *va, int32_t n, int64_t m)
 {
 	Srv *sp;
 	Chan *c1;

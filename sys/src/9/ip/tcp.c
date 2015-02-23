@@ -1975,7 +1975,7 @@ done:
 }
 
 static void
-tcpiput(Proto *tcp, Ipifc*, Block *bp)
+tcpiput(Proto *tcp, Ipifc* i, Block *bp)
 {
 	Tcp seg;
 	Tcp4hdr *h4;
@@ -2783,7 +2783,7 @@ tcpstartka(Conv *s, char **f, int n)
  *  turn checksums on/off
  */
 static char*
-tcpsetchecksum(Conv *s, char **f, int)
+tcpsetchecksum(Conv *s, char **f, int i)
 {
 	Tcpctl *tcb;
 

@@ -580,7 +580,7 @@ echo(char *buf, int n)
  *  turn '\r' into '\n' before putting it into the queue.
  */
 int
-kbdcr2nl(Queue*, int ch)
+kbdcr2nl(Queue* q, int ch)
 {
 	char *next;
 
@@ -603,7 +603,7 @@ kbdcr2nl(Queue*, int ch)
  *  Called at interrupt time to process a character.
  */
 int
-kbdputc(Queue*, int ch)
+kbdputc(Queue* q, int ch)
 {
 	int i, n;
 	char buf[3];

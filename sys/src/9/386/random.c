@@ -19,18 +19,18 @@ struct Rb
 	Rendez	producer;
 	Rendez	consumer;
 	uint32_t	randomcount;
-	uchar	buf[1024];
-	uchar	*ep;
-	uchar	*rp;
-	uchar	*wp;
-	uchar	next;
-	uchar	wakeme;
-	ushort	bits;
+	unsigned char	buf[1024];
+	unsigned char	*ep;
+	unsigned char	*rp;
+	unsigned char	*wp;
+	unsigned char	next;
+	unsigned char	wakeme;
+	uint16_t	bits;
 	uint32_t	randn;
 } rb;
 
 static int
-rbnotfull(void*)
+rbnotfull(void* v)
 {
 	int i;
 
@@ -39,13 +39,13 @@ rbnotfull(void*)
 }
 
 static int
-rbnotempty(void*)
+rbnotempty(void* v)
 {
 	return rb.wp != rb.rp;
 }
 
 static void
-genrandom(void*)
+genrandom(void* v)
 {
 	up->basepri = PriNormal;
 	up->priority = up->basepri;

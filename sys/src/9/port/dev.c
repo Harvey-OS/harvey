@@ -410,7 +410,7 @@ Return:
 }
 
 void
-devcreate(Chan*, char*, int, int)
+devcreate(Chan* c, char* d, int i, int n)
 {
 	error(Eperm);
 }
@@ -449,26 +449,26 @@ devbwrite(Chan *c, Block *bp, int64_t offset)
 }
 
 void
-devremove(Chan*)
+devremove(Chan* c)
 {
 	error(Eperm);
 }
 
 int32_t
-devwstat(Chan*, uint8_t*, int32_t)
+devwstat(Chan* c, uint8_t* i, int32_t n)
 {
 	error(Eperm);
 	return 0;
 }
 
 void
-devpower(int)
+devpower(int i)
 {
 	error(Eperm);
 }
 
 int
-devconfig(int, char *, DevConf *)
+devconfig(int i, char *c, DevConf *d)
 {
 	error(Eperm);
 	return 0;

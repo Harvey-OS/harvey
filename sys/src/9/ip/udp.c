@@ -111,7 +111,7 @@ typedef struct Udpcb Udpcb;
 struct Udpcb
 {
 	QLock;
-	uchar	headers;
+	unsigned char	headers;
 };
 
 static char*

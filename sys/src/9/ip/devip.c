@@ -180,7 +180,7 @@ ip1gen(Chan *c, int i, Dir *dp)
 }
 
 static int
-ipgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+ipgen(Chan *c, char* j, Dirtab* dir, int m, int s, Dir *dp)
 {
 	Qid q;
 	Conv *cv;
@@ -515,13 +515,13 @@ ipopen(Chan* c, int omode)
 }
 
 static void
-ipcreate(Chan*, char*, int, int)
+ipcreate(Chan* c, char* n, int i, int m)
 {
 	error(Eperm);
 }
 
 static void
-ipremove(Chan*)
+ipremove(Chan* c)
 {
 	error(Eperm);
 }

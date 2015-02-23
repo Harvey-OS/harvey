@@ -1,3 +1,4 @@
+MKSHELL=$PLAN9/bin/rc
 </$objtype/mkfile
 
 TARG=`{ls *.[cy] | sed '/\.tab\.c$/d;s/..$//'}

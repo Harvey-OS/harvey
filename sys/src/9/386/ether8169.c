@@ -1020,7 +1020,7 @@ rtl8169receive(Ether* edev)
 }
 
 static void
-rtl8169interrupt(Ureg*, void* arg)
+rtl8169interrupt(Ureg* ureg, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
