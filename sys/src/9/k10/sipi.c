@@ -14,7 +14,7 @@
 #include "fns.h"
 
 #include "apic.h"
-#include "sipi.h"
+//#include "sipi.h"
 
 #define SIPIHANDLER	(KZERO+0x3000)
 
@@ -37,7 +37,8 @@ sipi(void)
 	if((sipipa & (4*KiB - 1)) || sipipa > (1*MiB - 2*4*KiB))
 		return;
 	sipiptr = UINT2PTR(SIPIHANDLER);
-	memmove(sipiptr, sipihandler, sizeof(sipihandler));
+	panic("no sipi handler");
+	//memmove(sipiptr, sipihandler, sizeof(sipihandler));
 	DBG("sipiptr %#p sipipa %#llux\n", sipiptr, sipipa);
 
 	/*
