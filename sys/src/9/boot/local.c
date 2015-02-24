@@ -13,7 +13,6 @@
 
 static char diskname[64];
 static char *disk;
-static char **args;
 
 void
 configlocal(Method *mp)

@@ -24,7 +24,6 @@ int	kflag;
 char	*bargv[Nbarg];
 int	bargc;
 
-static void	swapproc(void);
 static Method	*rootserver(char*);
 static void	usbinit(void);
 static void	kbmap(void);
@@ -60,7 +59,7 @@ boot(int argc, char *argv[])
 	for(fd = 0; fd < argc; fd++)
 		print("%#p %s ", argv[fd], argv[fd]);
 	print("\n");
-#endif DEBUG
+#endif //DEBUG
 
 	ARGBEGIN{
 	case 'k':
@@ -266,21 +265,6 @@ HaveMethod:
 	if(cp)
 		strcpy(sys, cp+1);
 	return mp;
-}
-
-static void
-swapproc(void)
-{
-	int fd;
-
-	fd = open("#c/swap", OWRITE);
-	if(fd < 0){
-		warning("opening #c/swap");
-		return;
-	}
-	if(write(fd, "start", 5) <= 0)
-		warning("starting swap kproc");
-	close(fd);
 }
 
 int
