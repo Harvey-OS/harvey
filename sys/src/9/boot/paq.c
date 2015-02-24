@@ -21,7 +21,7 @@ char *fparts[] =
 };
 
 void
-configpaq(Method*)
+configpaq(Method* m)
 {
 	int fd;
 	int i;

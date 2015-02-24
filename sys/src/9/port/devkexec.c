@@ -46,7 +46,7 @@ kexeclookup(Kexecgrp *kg, uintptr_t addr, uint32_t qidpath)
 }
 
 static int
-kexecgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 {
 	Kexecgrp *kg;
 	Kvalue *e;
@@ -167,7 +167,7 @@ kexecopen(Chan *c, int omode)
 }
 
 static void
-kexeccreate(Chan *c, char *name, int omode, int)
+kexeccreate(Chan *c, char *name, int omode, int i)
 {
 	Kexecgrp *kg;
 	Kvalue *e;

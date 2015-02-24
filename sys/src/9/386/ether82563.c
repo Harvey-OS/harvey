@@ -1288,7 +1288,7 @@ i82563attach(Ether* edev)
 }
 
 static void
-i82563interrupt(Ureg*, void* arg)
+i82563interrupt(Ureg* ureg, void* arg)
 {
 	Ctlr *ctlr;
 	Ether *edev;
@@ -1430,7 +1430,7 @@ eeload(Ctlr *ctlr)
 }
 
 static int
-fcycle(Ctlr *, Flash *f)
+fcycle(Ctlr *ctlr, Flash *f)
 {
 	uint16_t s, i;
 

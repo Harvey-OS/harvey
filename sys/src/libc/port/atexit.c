@@ -63,10 +63,7 @@ exits(char *s)
 			onex[i].f = 0;
 			(*f)();
 		}
-//	_exits(s);
-	if(s == 0 || *s == 0)
-                exit(0);
-        exit(exitcode(s));
+	_exits(s);
 }
 
 #pragma profile on

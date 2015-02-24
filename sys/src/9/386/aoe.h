@@ -66,7 +66,7 @@ typedef struct {
 	uint8_t	cmdstat;
 	uint8_t	lba[6];
 	uint8_t	res[2];
-	uint8_t	payload[];
+	uint8_t	_payload[];
 } Aoeata;
 
 #define AOEATASZ	offsetof(Aoeata, payload[0])

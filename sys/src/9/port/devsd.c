@@ -457,7 +457,7 @@ sd1gen(Chan* c, int i, Dir* dp)
 }
 
 static int
-sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
+sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 {
 	Qid q;
 	int64_t l;

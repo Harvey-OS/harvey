@@ -499,7 +499,8 @@ userinit(void)
 	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 	segpage(s, pg);
 	k = kmap(s->map[0]->pages[0]);
-	memmove(UINT2PTR(VA(k)), initcode, sizeof initcode);
+	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
+	memmove(UINT2PTR(VA(k)), initcode, sizeof(uint8_t));
 	kunmap(k);
 
 	ready(p);

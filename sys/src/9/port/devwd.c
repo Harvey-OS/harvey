@@ -64,7 +64,7 @@ wdopen(Chan* c, int omode)
 }
 
 static void
-wdclose(Chan*)
+wdclose(Chan* c)
 {
 }
 

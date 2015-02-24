@@ -113,7 +113,7 @@ grestate(Conv *c, char *state, int n)
 }
 
 static char*
-greannounce(Conv*, char**, int)
+greannounce(Conv* conv, char** c, int i)
 {
 	return "pktifc does not support announce";
 }
@@ -174,7 +174,7 @@ grekick(void *x, Block *bp)
 }
 
 static void
-greiput(Proto *gre, Ipifc*, Block *bp)
+greiput(Proto *gre, Ipifc* i, Block *bp)
 {
 	int len;
 	GREhdr *ghp;

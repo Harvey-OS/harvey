@@ -258,7 +258,7 @@ function mksystab(					a, i, f, n, s, t){
 		}
 	}
 	s = s "struct {\n\tchar*\tn;\n\tvoid (*f)(Ar0*, va_list);\n\tAr0\tr;\n}";
-	s = s " systab[] = {\n" t "};\n\nint nsyscall = nelem(systab);\n";
+	s = s " systab_t[] = {\n" t "};\n\nint nsyscall = nelem(systab_t);\n";
 
 	return s;
 }
@@ -428,7 +428,7 @@ function mkdevc(		a, d, i, m, n, s, t, u, name, cname){
 			s = s "\tfor(;;);\n";
 			s = s "}\n\n";
 			s = s "void*\n";
-			s = s "cnksysexecregs(uintptr, ulong, ulong)\n";
+			s = s "cnksysexecregs(uintptr, uint32_t, uint32_t)\n";
 			s = s "{\n";
 			s = s "\tpanic(\"cnkemu...not installed\\n\");\n";
 			s = s "\tfor(;;);\n";
@@ -446,7 +446,7 @@ function mkdevc(		a, d, i, m, n, s, t, u, name, cname){
 			t = $0;
 	}
 	s = s "char* conffile = \"" t "/" ARGV[argc] "\";\n";
-	s = s "ulong kerndate = KERNDATE;\n";
+#	s = s "uint32_t kerndate = KERNDATE;\n";
 
 	return s;
 }

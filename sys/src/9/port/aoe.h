@@ -66,7 +66,7 @@ typedef struct {
 	unsigned char	cmdstat;
 	unsigned char	lba[6];
 	unsigned char	res[2];
-	unsigned char	payload[];
+	unsigned char	_payload[];
 } Aoeata;
 
 #define AOEATASZ	offsetof(Aoeata, payload[0])
@@ -78,7 +78,7 @@ typedef struct {
 	unsigned char	scnt;
 	unsigned char	verccmd;
 	unsigned char	cslen[2];
-	unsigned char	payload[];
+	unsigned char	__payload[];
 } Aoeqc;
 
 #define AOEQCSZ		offsetof(Aoeqc, payload[0])

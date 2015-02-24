@@ -130,7 +130,7 @@ setauthaddr(char *proto, int port)
 }
 
 void
-configtcp(Method*)
+configtcp(Method* m)
 {
 	configip(bargc, bargv, 1);
 	setauthaddr("tcp", 567);

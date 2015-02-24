@@ -1,14 +1,156 @@
+#!/bin/bash
+
+## General script for compiling kernel ##
+##-------------------------------------##
+
 set -e
 
-CC=gcc 
-CFLAGS='-O0 -static -fplan9-extensions -ffreestanding -fno-builtin -Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized -I/amd64/include -I/sys/include -I .'
+## Params ##
+##--------##
 
-awk -f ../mk/parse -- -mksystab /sys/src/libc/9syscall/sys.h k8cpu > systab.c
-$CC $CFLAGS -c systab.c
+CONF="k8cpu"
+objtype=amd64
+AS=as
+LD=gcc
+CC=gcc
+COLLECT=/usr/lib/gcc/x86_64-linux-gnu/4.9/collect2
+COLLECTFLAGS="-plugin /usr/lib/gcc/x86_64-linux-gnu/4.9/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/4.9/lto-wrapper --sysroot=/ --build-id -m elf_x86_64 --hash-style=gnu"
+AR=ar
+LEX=lex
+YACC=yacc
+AWK=awk
+XD=xxd
 
-xxd -i init.out > init.h
+INC_DIR="/sys/include"
+INCX86_64_DIR="/${objtype}/include"
+LIB_DIR="/${objtype}/lib"
+LDFLAGS=-L${LIB_DIR}
 
-gcc -O0 -static -fplan9-extensions -ffreestanding -fno-builtin -Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized -I/amd64/include -I/sys/include -I . -c *.c
-gcc -O0 -static -fplan9-extensions -ffreestanding -fno-builtin -Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized -I/amd64/include -I/sys/include -I . -c ../386/*.c
-gcc -O0 -static -fplan9-extensions -ffreestanding -fno-builtin -Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized -I/amd64/include -I/sys/include -I . -c ../ip/*.c
-gcc -O0 -static -fplan9-extensions -ffreestanding -fno-builtin -Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized -I/amd64/include -I/sys/include -I . -c ../port/*.c
+## Compiler options ##
+##------------------##
+
+WARNFLAGS="-Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized"
+GDBFLAG=	# -g
+PICFLAG=	# -fPIC
+OPTIMIZE=0
+EXTENSIONS="-fplan9-extensions"
+
+compiling()
+{
+	CFLAGS="-O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin"
+
+	## General conf file ##
+	##-------------------##
+
+	$AWK -v objtype=$objtype -f ../mk/parse -- -mkdevc $CONF > $CONF.c
+
+	## Assembly world ##
+	##----------------##
+
+	$AWK -f ../mk/mkenumb amd64.h > amd64l.h # mkenumb is shell independent
+
+	# We don't want one these (sipi.c depends on sipi.h from l64sipi.s)#
+	GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:*etherbcm.c:*ratrace.c:*etherm10g.c:*devaoe.c:*devcec.c:*devprobe.c:*rmap.c:*tcklock.c:*sipi.c
+
+	## Boot ##
+	##------##
+
+	# Do we really need this?? ##
+
+	BOOTDIR=../boot
+	BOOTLIB=$BOOTDIR/libboot.a
+
+	echo "Parsing boot${CONF}.c"
+	$AWK -f ../mk/parse -- -mkbootconf $CONF > boot$CONF.c
+
+	echo "Making Boot"
+	echo
+	for i in ../boot/*.c
+		do
+			echo "CC ${i}"
+			$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
+			# We don't want these files into kernel
+			mv *.o $BOOTDIR
+		done
+
+	echo "AR ${BOOTLIB}"
+	$AR rv $BOOTLIB  $BOOTDIR/bootauth.o $BOOTDIR/aux.o $BOOTDIR/boot.o $BOOTDIR/bootcache.o $BOOTDIR/bootip.o $BOOTDIR/local.o $BOOTDIR/embed.o $BOOTDIR/settime.o $BOOTDIR/sac.o $BOOTDIR/paq.o $BOOTDIR/printstub.o
+
+	echo "CC boot${CONF}"
+	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c boot$CONF.c
+	echo "CC printstub"
+	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c ../boot/printstub.c
+	echo "LD boot${CONF}.out"
+
+	$COLLECT $COLLECTFLAGS -static -o boot$CONF.out boot$CONF.o printstub.o $LDFLAGS -L$BOOTDIR -lboot -lip -lauth -lc
+
+	## systab.c ##
+	##----------##
+
+	$AWK -f ../mk/parse -- -mksystab /sys/src/libc/9syscall/sys.h $CONF > systab.c
+	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c systab.c
+
+	## init.h ##
+	##--------##
+
+	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c init9.c
+	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c ../port/initcode.c
+
+	# I'm sure this binary is wrong. Check when kernel will build entirely
+
+	$COLLECT $COLLECTFLAGS -static -o init.out init9.o initcode.o $LDFLAGS -lc
+	$XD -i init.out > init.h
+
+	## errstr.h ##
+	##----------##
+
+	$AWK -f ../mk/parse -- -mkerrstr $CONF > errstr.h
+
+	## Let's go! ##
+	##-----------##
+
+	# Do we really need all of *.c sources?? #
+
+	echo "Making all in kernel directories"
+	echo
+	for i in *.c
+		do
+			echo "CC ${i}"
+			$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
+		done
+	for i in ../386/*.c
+		do
+			echo "CC ${i}"
+			$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
+		done
+	for i in ../ip/*.c
+		do
+			echo "CC ${i}"
+			$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
+		done
+	for i in ../port/*.c
+		do
+			echo "CC ${i}"
+			$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
+		done
+}
+
+## Cleaning ##
+##----------##
+
+cleaning()
+{
+	set -x
+	rm -f *.o *.root.c *.out errstr.h init.h amd64^l.h $BOOTLIB ../boot/*.o boot$CONF.c
+	set +x
+}
+
+## Options, -clean = cleaning, nothing = compile kernel ##
+##------------------------------------------------------##
+
+args=("$@")
+if [[ ${args[0]} == "clean" ]]; then
+	cleaning
+else
+	compiling
+fi

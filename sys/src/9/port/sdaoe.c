@@ -55,11 +55,11 @@ struct Ctlr{
 	Chan	*c;
 
 	uint32_t	vers;
-	uchar	mediachange;
-	uchar	flag;
-	uchar	smart;
-	uchar	smartrs;
-	uchar	feat;
+	unsigned char	mediachange;
+	unsigned char	flag;
+	unsigned char	smart;
+	unsigned char	smartrs;
+	unsigned char	feat;
 
 	uint64_t	sectors;
 	char	serial[20+1];
@@ -566,7 +566,7 @@ aoerctl(SDunit *u, char *p, int l)
 }
 
 static int
-aoewctl(SDunit *, Cmdbuf *cmd)
+aoewctl(SDunit *sd, Cmdbuf *cmd)
 {
 	cmderror(cmd, Ebadarg);
 	return 0;
@@ -603,7 +603,7 @@ aoertopctl(SDev *s, char *p, char *e)
 }
 
 static int
-aoewtopctl(SDev *, Cmdbuf *cmd)
+aoewtopctl(SDev *sd, Cmdbuf *cmd)
 {
 	switch(cmd->nf){
 	default:

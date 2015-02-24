@@ -108,7 +108,7 @@ plock(Pool *p)
 
 	pv = p->private;
 	ilock(&pv->lk);
-	pv->lk.pc = getcallerpc(&p);
+	pv->lk._pc = getcallerpc(&p);
 	pv->end = pv->msg;
 }
 
@@ -149,7 +149,7 @@ mallocsummary(void)
 }
 
 int32_t
-mallocreadsummary(Chan*, void *a, int32_t n, int32_t offset)
+mallocreadsummary(Chan* c, void *a, int32_t n, int32_t offset)
 {
 	char buf[256], *p;
 
@@ -303,7 +303,7 @@ void
 setmalloctag(void *v, uint32_t pc)
 {
 	uint32_t *u;
-	USED(v, pc);
+	USED(v); USED(pc);
 	if(Npadlong <= MallocOffset || v == nil)
 		return;
 	u = v;
@@ -314,7 +314,7 @@ void
 setrealloctag(void *v, uint32_t pc)
 {
 	uint32_t *u;
-	USED(v, pc);
+	USED(v); USED(pc);
 	if(Npadlong <= ReallocOffset || v == nil)
 		return;
 	u = v;

@@ -198,8 +198,8 @@ struct Aoedev {
 	Devlink	*dl;
 	Devlink	dltab[Ndevlink];
 
-	ushort	fwver;
-	uchar	flag;
+	uint16_t	fwver;
+	unsigned char	flag;
 	int	nopen;
 	int	major;
 	int	minor;
@@ -212,11 +212,11 @@ struct Aoedev {
 
 	uint	maxbcnt;
 	uint32_t	lostjumbo;
-	ushort	nout;
-	ushort	maxout;
+	uint16_t	nout;
+	uint16_t	maxout;
 	uint32_t	lastwadj;
-	Srb	*head;
-	Srb	*tail;
+	Srb	*_head;
+	Srb	*_tail;
 	Srb	*inprocess;
 
 	/* magic numbers 'R' us */
@@ -224,8 +224,8 @@ struct Aoedev {
 	char	firmware[8+1];
 	char	model[40+1];
 	int	nconfig;
-	uchar	config[1024];
-	uchar	ident[512];
+	unsigned char	config[1024];
+	unsigned char	ident[512];
 };
 
 #pragma	varargck type	"æ"	Aoedev*
@@ -274,7 +274,7 @@ srballoc(uint32_t sz)
 }
 
 static Srb*
-srbkalloc(void *db, uint32_t)
+srbkalloc(void *db, uint32_t n)
 {
 	Srb *srb;
 
@@ -317,7 +317,7 @@ unitname(Aoedev *d)
 }
 
 static int
-eventlogready(void*)
+eventlogready(void* v)
 {
 	return *events.rp;
 }
@@ -592,7 +592,7 @@ discover(int major, int minor)
  * outstanding for 200% of the device round trip time average.
  */
 static void
-aoesweepproc(void*)
+aoesweepproc(void* v)
 {
 	uint32_t i, tx, timeout, nbc;
 	int64_t starttick;
@@ -668,7 +668,7 @@ loop:
 }
 
 static int
-fmtæ(Fmt *f)
+fmta(Fmt *f)
 {
 	char buf[8];
 	Aoedev *d;
@@ -713,7 +713,7 @@ aoeinit(void)
 	if(!canqlock(&l))
 		return;
 	if(init == 0){
-		fmtinstall(L'æ', fmtæ);
+		fmtinstall(L'a', fmta);
 		events.rp = events.wp = events.buf;
 		kproc("aoesweep", aoesweepproc, nil);
 		aoecfg();
@@ -831,7 +831,7 @@ topgen(Chan *c, uint32_t type, Dir *d)
 }
 
 static int
-aoegen(Chan *c, char *, Dirtab *, int, int s, Dir *dp)
+aoegen(Chan *c, char *e, Dirtab *dir, int j, int s, Dir *dp)
 {
 	int i;
 	Aoedev *d;
@@ -1317,7 +1317,7 @@ devlinkread(Chan *c, void *db, int len, int off)
 }
 
 static int32_t
-topctlread(Chan *, void *db, int len, int off)
+topctlread(Chan *c, void *db, int len, int off)
 {
 	int i;
 	char *s, *p, *e;

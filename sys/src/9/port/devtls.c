@@ -277,7 +277,7 @@ static char *tlsnames[] = {
 static int convdir[] = { Qctl, Qdata, Qhand, Qstatus, Qstats };
 
 static int
-tlsgen(Chan *c, char*, Dirtab *, int, int s, Dir *dp)
+tlsgen(Chan *c, char* d, Dirtab *dir, int j, int s, Dir *dp)
 {
 	Qid q;
 	TlsRec *tr;
@@ -1383,7 +1383,7 @@ initmd5key(Hashalg *ha, int version, Secret *s, uint8_t *p)
 }
 
 static void
-initclearmac(Hashalg *, int, Secret *s, uint8_t *)
+initclearmac(Hashalg *ha, int version, Secret *s, uint8_t *p)
 {
 	s->maclen = 0;
 	s->mac = nomac;
@@ -1430,7 +1430,7 @@ struct Encalg
 };
 
 static void
-initRC4key(Encalg *ea, Secret *s, uint8_t *p, uint8_t *)
+initRC4key(Encalg *ea, Secret *s, uint8_t *p, uint8_t *iv)
 {
 	s->enckey = smalloc(sizeof(RC4state));
 	s->enc = rc4enc;
@@ -1440,7 +1440,7 @@ initRC4key(Encalg *ea, Secret *s, uint8_t *p, uint8_t *)
 }
 
 static void
-initDES3key(Encalg *, Secret *s, uint8_t *p, uint8_t *iv)
+initDES3key(Encalg *ea, Secret *s, uint8_t *p, uint8_t *iv)
 {
 	s->enckey = smalloc(sizeof(DES3state));
 	s->enc = des3enc;
@@ -1450,7 +1450,7 @@ initDES3key(Encalg *, Secret *s, uint8_t *p, uint8_t *iv)
 }
 
 static void
-initclearenc(Encalg *, Secret *s, uint8_t *, uint8_t *)
+initclearenc(Encalg *ea, Secret *s, uint8_t *p, uint8_t *iv)
 {
 	s->enc = noenc;
 	s->dec = noenc;
@@ -1971,7 +1971,7 @@ freeSec(Secret *s)
 }
 
 static int
-noenc(Secret *, uint8_t *, int n)
+noenc(Secret *sec, uint8_t *buf, int n)
 {
 	return n;
 }
@@ -2038,7 +2038,7 @@ des3dec(Secret *sec, uint8_t *buf, int n)
 	return (*sec->unpad)(buf, n, 8);
 }
 static DigestState*
-nomac(uint8_t *, uint32_t, uint8_t *, uint32_t, uint8_t *, DigestState *)
+nomac(uint8_t *i, uint32_t j, uint8_t *k, uint32_t l, uint8_t *m, DigestState *ds)
 {
 	return nil;
 }

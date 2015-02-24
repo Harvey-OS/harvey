@@ -428,7 +428,7 @@ syskforkexecac(Ar0* ar0, va_list list)
 //	uintptr base, size;
 //	char *file, **argv;
 	//XXX: get system call working.
-	USED(ar0, list);
+	USED(ar0); USED(list);
 
 	// XXX: fix sysexecregs
 	panic("syskforkexecac: don't call me yet");

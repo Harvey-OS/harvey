@@ -158,7 +158,7 @@ hex64(uint64_t l, char *c)
 }
 
 static int
-lognonempty(void *)
+lognonempty(void *v)
 {
 	return pw - pr;
 }
@@ -497,7 +497,7 @@ traceopen(Chan *c, int omode)
 }
 
 static void
-traceclose(Chan *)
+traceclose(Chan *c)
 {
 }
 
@@ -658,7 +658,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
  * Process commands sent to the ctl file.
  */
 static int32_t
-tracewrite(Chan *c, void *a, int32_t n, int64_t)
+tracewrite(Chan *c, void *a, int32_t n, int64_t m)
 {
 	char *tok[6]; //changed this so "tracein" works with the new 4th arg
 	char *ep, *s = nil;
