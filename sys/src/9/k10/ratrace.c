@@ -101,7 +101,7 @@ reader(void *v)
 }
 
 void
-writer(void *)
+writer(void *v)
 {
 	int newpid;
 	Alt a[4];

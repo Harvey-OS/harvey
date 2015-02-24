@@ -153,7 +153,6 @@ struct Reg
 
 /* Generic address structure. 
  */
-#pragma pack on
 struct Gas
 {
 	uint8_t	spc;	/* address space id */
@@ -161,7 +160,7 @@ struct Gas
 	uint8_t	off;	/* bit offset */
 	uint8_t	accsz;	/* 1: byte; 2: word; 3: dword; 4: qword */
 	uint64_t	addr;	/* address (or acpi encoded tbdf + reg) */
-};
+} __attribute__ ((packed));
 
 /* Root system description table pointer.
  * Used to locate the root system description table RSDT
@@ -184,7 +183,7 @@ struct Rsdp
 	uint8_t	xaddr[8];			/* XSDT */
 	uint8_t	xchecksum;			/* XSDT */
 	uint8_t	_33_[3];			/* reserved */
-};
+}  __attribute__ ((packed));
 
 /* Header for ACPI description tables
  */
@@ -199,7 +198,7 @@ struct Sdthdr
 	uint8_t	oemrev[4];
 	uint8_t	creatorid[4];
 	uint8_t	creatorrev[4];
-};
+}  __attribute__ ((packed));
 
 /* Firmware control structure
  */
@@ -212,9 +211,8 @@ struct Facs
 	uint64_t	xwakingv;
 	uint8_t	vers;
 	uint32_t	ospmflags;
-};
+}  __attribute__ ((packed));
 
-#pragma pack off
 
 /* Maximum System Characteristics table
  */

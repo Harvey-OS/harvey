@@ -522,7 +522,7 @@ bcmerror(Ether *edev)
 }
 
 static void
-bcminterrupt(Ureg*, void *arg)
+bcminterrupt(Ureg*u, void *arg)
 {
 	uint32_t status, tag, dummy;
 	Ether *edev;
@@ -569,7 +569,7 @@ mem32r(Ctlr *c, uint r)
 }
 
 static int
-bcmµwait(Ctlr *ctlr, uint to, uint r, uint m, uint v)
+bcmmicrowait(Ctlr *ctlr, uint to, uint r, uint m, uint v)
 {
 	int i;
 
@@ -586,7 +586,7 @@ static int
 bcminit(Ether *edev)
 {
 	uint i;
-	u32int j;
+	uint32_t j;
 	Ctlr *ctlr;
 	
 	ctlr = edev->ctlr;
@@ -594,7 +594,7 @@ bcminit(Ether *edev)
 	/* initialization procedure according to the datasheet */
 	csr32(ctlr, MiscHostCtl) |= MaskPCIInt | ClearIntA | WordSwap | IndirAccessEn;
 	csr32(ctlr, SwArbitration) |= SwArbitSet1;
-	if(bcmµwait(ctlr, 2000, SwArbitration, SwArbitWon1, SwArbitWon1) == -1){
+	if(bcmmicrowait(ctlr, 2000, SwArbitration, SwArbitWon1, SwArbitWon1) == -1){
 		print("bcm: arbiter failed to respond\n");
 		return -1;
 	}
@@ -615,7 +615,7 @@ bcminit(Ether *edev)
 	for(i = 0;; i += 100){
 		if(mem32r(ctlr, Fwmbox) == ~Fwmagic)
 			break;
-		if(i == 20*10000 /* µs */){
+		if(i == 20*10000 /* micros */){
 			print("bcm: fw failed to respond %#.8ux\n", mem32r(ctlr, Fwmbox));
 			break; //return -1;
 		}
@@ -634,13 +634,13 @@ bcminit(Ether *edev)
 	csr32(ctlr, MBUFHighWater) = 0x60;
 	csr32(ctlr, LowWaterMax) = (csr32(ctlr, LowWaterMax) & LowWaterMaxMask) | LowWaterMaxValue;
 	csr32(ctlr, BufferManMode) |= Enable | Attn;
-	if(bcmµwait(ctlr, 2000, BufferManMode, Enable, Enable) == -1){
+	if(bcmmicrowait(ctlr, 2000, BufferManMode, Enable, Enable) == -1){
 		print("bcm: failed to enable buffers\n");
 		return -1;
 	}
 	csr32(ctlr, FTQReset) = ~0;
 	csr32(ctlr, FTQReset) = 0;
-	if(bcmµwait(ctlr, 2000, FTQReset, ~0, 0) == -1){
+	if(bcmmicrowait(ctlr, 2000, FTQReset, ~0, 0) == -1){
 		print("bcm: failed to bring ftq out of reset\n");
 		return -1;
 	}
@@ -681,7 +681,7 @@ bcminit(Ether *edev)
 	csr32(ctlr, SendInitiatorMask) = 0xFFFFFF;
 	csr32(ctlr, SendInitiatorConf) |= SendStats;
 	csr32(ctlr, HostCoalMode) = 0;
-	if(bcmµwait(ctlr, 2000, HostCoalMode, ~0, 0) == -1){
+	if(bcmmicrowait(ctlr, 2000, HostCoalMode, ~0, 0) == -1){
 		print("bcm: failed to unset coalescing\n");
 		return -1;
 	}
@@ -727,7 +727,7 @@ bcminit(Ether *edev)
 		for(i = 0;; i += 100){
 			if((miir(ctlr, Bmcr) & BmcrR) == 0)
 				break;
-			if(i == 10000 /* µs */){
+			if(i == 10000 /* micros */){
 				print("bcm: phy reset failure\n");
 				return -1;
 			}
@@ -843,7 +843,7 @@ bcmpromiscuous(void* arg, int on)
 }
 
 static void
-bcmmulticast(void*, uint8_t*, int)
+bcmmulticast(void*v, uint8_t*u, int i)
 {
 }
 
