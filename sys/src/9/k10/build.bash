@@ -112,6 +112,11 @@ compiling()
 	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
 }
 
+linking()
+{
+	$LD -o 9 *.o
+}
 
 args=("$@")
 compiling
+linking
