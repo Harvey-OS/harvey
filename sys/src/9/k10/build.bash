@@ -50,7 +50,7 @@ compiling()
 	$AWK -f ../mk/mkenumb amd64.h > amd64l.h # mkenumb is shell independent
 
 	# We don't want one of these (sipi.c depends on sipi.h from l64sipi.s)#
-	GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:*etherbcm.c:*devprobe.c:*tcklock.c:*sipi.c
+	GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:*alloc.c:*rdb.c:*etherbcm.c:*devprobe.c:*tcklock.c:*sipi.c
 
 	## Boot ##
 	##------##
