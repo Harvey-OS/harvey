@@ -156,7 +156,7 @@ tssinit(uintptr_t sp)
 
 void acsyscallentry(void)
 {
-	panic("acsyscallentry")
+	panic("acsyscallentry");
 }
 
 void
