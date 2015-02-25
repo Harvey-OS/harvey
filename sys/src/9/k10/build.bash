@@ -56,25 +56,19 @@ compiling()
 	##------##
 
 	# Do we really need this?? ##
-
 	BOOTDIR=../boot
-	BOOTLIB=$BOOTDIR/libboot.a
+	BOOTLIB=libboot.a
 
 	echo "Parsing boot${CONF}.c"
 	$AWK -f ../mk/parse -- -mkbootconf $CONF > boot$CONF.c
 
 	echo "Making Boot"
-	echo
-	for i in ../boot/*.c
-		do
-			echo "CC ${i}"
-			$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
-			# We don't want these files into kernel
-			mv *.o $BOOTDIR
-		done
-
-	echo "AR ${BOOTLIB}"
-	$AR rv $BOOTLIB  $BOOTDIR/bootauth.o $BOOTDIR/aux.o $BOOTDIR/boot.o $BOOTDIR/bootcache.o $BOOTDIR/bootip.o $BOOTDIR/local.o $BOOTDIR/embed.o $BOOTDIR/settime.o $BOOTDIR/sac.o $BOOTDIR/paq.o $BOOTDIR/printstub.o
+	(cd ../boot && 
+		echo "CC *.c"
+		$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c *.c && 
+		echo "AR ${BOOTLIB}" &&
+		$AR rv $BOOTLIB  *.o
+	)
 
 	echo "CC boot${CONF}"
 	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c boot$CONF.c
@@ -113,26 +107,9 @@ compiling()
 
 	echo "Making all in kernel directories"
 	echo
-	for i in *.c
-		do
-			echo "CC ${i}"
-			$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
-		done
-	for i in ../386/*.c
-		do
-			echo "CC ${i}"
-			$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
-		done
-	for i in ../ip/*.c
-		do
-			echo "CC ${i}"
-			$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
-		done
-	for i in ../port/*.c
-		do
-			echo "CC ${i}"
-			$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
-		done
+	i="*.c ../386/*.c ../ip/*.c ../port/*.c"
+	echo "CC ${i}"
+	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
 }
 
 
