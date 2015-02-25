@@ -136,7 +136,7 @@ typedef struct {
 	Block	**bring;
 //	uchar	*wcfifo;	/* what the heck is a w/c fifo? */
 	int	size;		/* of buffers in the z8's memory */
-	u32int	segsz;
+	uint32_t	segsz;
 	uint	n;		/* rxslots */
 	uint	m;		/* mask; rxslots must be a power of two */
 	uint	i;		/* number of segments (not frames) queued */
@@ -205,61 +205,63 @@ typedef struct Ctlr {
 	QLock;
 	int	state;
 	int	kprocs;
-	u64int	port;
+	uint64_t	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
 	int	active;
 	int	id;		/* do we need this? */
 
-	uchar	ra[Eaddrlen];
+	unsigned char	ra[Eaddrlen];
 
 	int	ramsz;
-	uchar	*ram;
+	unsigned char	*ram;
 
-	u32int	*irqack;
-	u32int	*irqdeass;
-	u32int	*coal;
+	uint32_t	*irqack;
+	uint32_t	*irqdeass;
+	uint32_t	*coal;
 
 	char	eprom[Epromsz];
 	uint32_t	serial;		/* unit serial number */
 
 	QLock	cmdl;
 	Cmd	*cmd;		/* address of command return */
-	u64int	cprt;		/* bus address of command */
+	uint64_t	cprt;		/* bus address of command */
 
-	u64int	boot;		/* boot address */
+	uint64_t	boot;		/* boot address */
 
 	Done	done;
 	Tx	tx;
 	Rx	sm;
 	Rx	bg;
 	Stats	*stats;
-	u64int	statsprt;
+	uint64_t	statsprt;
 
 	Rendez	rxrendez;
 	Rendez	txrendez;
 
 	int	msi;
-	u32int	linkstat;
-	u32int	nrdma;
+	uint32_t	linkstat;
+	uint32_t	nrdma;
 } Ctlr;
 
 static Ctlr 	*ctlrs;
 
+/*
 enum {
-	PciCapPMG	 = 0x01,	/* power management */
+	PciCapPMG	 = 0x01,	/ * power management * /
 	PciCapAGP	 = 0x02,
-	PciCapVPD	 = 0x03,	/* vital product data */
-	PciCapSID	 = 0x04,	/* slot id */
+	PciCapVPD	 = 0x03,	/ * vital product data * /
+	PciCapSID	 = 0x04,	/ * slot id * /
 	PciCapMSI	 = 0x05,
-	PciCapCHS	 = 0x06,	/* compact pci hot swap */
+	PciCapCHS	 = 0x06,	/ * compact pci hot swap * /
 	PciCapPCIX	 = 0x07,
-	PciCapHTC	 = 0x08,	/* hypertransport irq conf */
-	PciCapVND	 = 0x09,	/* vendor specific information */
-	PciCapHSW	 = 0x0C,	/* hot swap */
+	PciCapHTC	 = 0x08,	/ * hypertransport irq conf * /
+	PciCapVND	 = 0x09,	/ * vendor specific information * /
+	PciCapHSW	 = 0x0C,	/ * hot swap * /
 	PciCapPCIe	 = 0x10,
 	PciCapMSIX	 = 0x11,
 };
+*/
 
 enum {
 	PcieAERC = 1,
@@ -278,13 +280,14 @@ enum {
 	PcieMRD	= 0x7000,	/* maximum read size */
 };
 
+/*
 static int
 pcicap(Pcidev *p, int cap)
 {
 	int i, c, off;
 
 	pcicapdbg("pcicap: %x:%d\n", p->vid, p->did);
-	off = 0x34;			/* 0x14 for cardbus */
+	off = 0x34;			/ * 0x14 for cardbus * /
 	for(i = 48; i--; ){
 		pcicapdbg("\t" "loop %x\n", off);
 		off = pcicfgr8(p, off);
@@ -302,6 +305,7 @@ pcicap(Pcidev *p, int cap)
 	}
 	return 0;
 }
+*/
 
 /*
  * this function doesn't work because pcicgr32 doesn't have access
@@ -1301,7 +1305,7 @@ waitintx(Ctlr *c)
 }
 
 static void
-m10ginterrupt(Ureg *, void *v)
+m10ginterrupt(Ureg *ureg, void *v)
 {
 	Ether *e;
 	Ctlr *c;

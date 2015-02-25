@@ -21,9 +21,9 @@ typedef struct Trace Trace;
 /* This is a trace--a segment of memory to watch for entries and exits */
 struct Trace {
 	struct Trace *next;
-	void *func;
-	void *start;
-	void *end;
+	char *func;
+	char *start;
+	char *end;
 	int enabled;
 	char name[16];
 };
@@ -201,7 +201,7 @@ overlapping(Trace *p) {
 /* Make sure a PC is valid and traced; if so, return its Trace */
 /* if dopanic == 1, the kernel will panic on an invalid PC */
 struct Trace **
-traceslot(void *pc, int dopanic)
+traceslot(char *pc, int dopanic)
 {
 	int index;
 	struct Trace **p;
@@ -230,7 +230,7 @@ traceslot(void *pc, int dopanic)
 
 /* Check if the given PC is traced and return a Trace if so */
 struct Trace *
-traced(void *pc, int dopanic)
+traced(char *pc, int dopanic)
 {
 	struct Trace **p;
 
@@ -266,7 +266,7 @@ watchingpid(int pid) {
  */
 void
 removetrace(Trace *p) {
-	unsigned char *cp;
+	char *cp;
 	struct Trace *prev;
 	struct Trace *curr;
 	struct Trace **slot;
@@ -307,7 +307,7 @@ removetrace(Trace *p) {
 void
 traceon(struct Trace *p)
 {
-	unsigned char *cp;
+	char *cp;
 	struct Trace **slot;
 	slot = traceslot(p->start, 0);
 	for(cp = p->start; cp <= p->end; slot++, cp++)
@@ -320,7 +320,7 @@ traceon(struct Trace *p)
 void
 traceoff(struct Trace  *p)
 {
-	unsigned char *cp;
+	char *cp;
 	struct Trace **slot;
 	slot = traceslot(p->start, 0);
 	for(cp = p->start; cp <= p->end; slot++, cp++)
@@ -693,7 +693,7 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t m)
 			p = *pp;
 			if((ntok > 3) && (!strcmp(tok[3], "new"))){
 				uintptr_t addr;
-				void *start, *end, *func;
+				char *start, *end, *func;
 				if (ntok != 5) {
 					error("devtrace: usage: trace <ktextstart> <ktextend> new <name>");
 				}

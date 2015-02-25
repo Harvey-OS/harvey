@@ -49,8 +49,8 @@ compiling()
 
 	$AWK -f ../mk/mkenumb amd64.h > amd64l.h # mkenumb is shell independent
 
-	# We don't want one these (sipi.c depends on sipi.h from l64sipi.s)#
-	GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:*etherbcm.c:*ratrace.c:*etherm10g.c:*devaoe.c:*devcec.c:*devprobe.c:*rmap.c:*tcklock.c:*sipi.c
+	# We don't want one of these (sipi.c depends on sipi.h from l64sipi.s)#
+	GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:*etherbcm.c:*devprobe.c:*tcklock.c:*sipi.c
 
 	## Boot ##
 	##------##
@@ -64,7 +64,6 @@ compiling()
 
 	echo "Making Boot"
 	(cd ../boot && 
-		echo "CC *.c"
 		$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c *.c && 
 		echo "AR ${BOOTLIB}" &&
 		$AR rv $BOOTLIB  *.o
@@ -114,7 +113,9 @@ compiling()
 
 linking()
 {
-	$LD -o 9 *.o /amd64/lib/*.a
+	# These are not part of the kernel
+	rm init9.o initcode.o bootk8cpu.o printstub.o
+	$COLLECT $COLLECTFLAGS -static -o 9 *.o $LDFLAGS -lip -lauth -lc
 }
 
 args=("$@")

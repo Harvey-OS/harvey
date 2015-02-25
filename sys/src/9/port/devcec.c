@@ -80,17 +80,17 @@ typedef struct {
 typedef struct {
 	QLock;
 	Lock;
-	uchar	ea[6];		/* along with cno, the key to the connection */
-	uchar	cno;		/* connection number on remote host */
-	uchar	stalled;		/* cectimer needs to kick it */
+	unsigned char	ea[6];		/* along with cno, the key to the connection */
+	unsigned char	cno;		/* connection number on remote host */
+	unsigned char	stalled;		/* cectimer needs to kick it */
 	int	state;		/* connection state */
 	int	idle;		/* idle ticks */
 	int	to;		/* ticks to timeout */
 	int	retries;		/* remaining retries */
 	Block	*bp;		/* unacked message */
 	If	*ifc;		/* interface for this connection */
-	uchar	sndseq;		/* sequence number of last sent message */
-	uchar	rcvseq;		/* sequence number of last rcv'd message */
+	unsigned char	sndseq;		/* sequence number of last sent message */
+	unsigned char	rcvseq;		/* sequence number of last rcv'd message */
 	char	cbuf[Ncbuf];	/* curcular buffer */
 	int	r, w;		/* indexes into cbuf */
 	int	pwi;		/* index into passwd; */
@@ -377,13 +377,13 @@ conputs(Conn *c, char *s)
 }
 
 static int
-icansleep(void*)
+icansleep(void* v)
 {
 	return tcond != 0;
 }
 
 static void
-cectimer(void *)
+cectimer(void * v)
 {
 	Conn *cp;
 
@@ -411,7 +411,7 @@ cectimer(void *)
 }
 
 static int
-cecqlen(void*)
+cecqlen(void* v)
 {
 	int n;
 	Conn *c;
@@ -701,7 +701,7 @@ cecopen(Chan *c, int omode)
 }
 
 static void
-cecclose(Chan*)
+cecclose(Chan* c)
 {
 }
 
@@ -833,7 +833,7 @@ rst(Conn *c)
 }
 
 static int32_t
-cecwrite(Chan *c, void *a, int32_t n, int64_t)
+cecwrite(Chan *c, void *a, int32_t n, int64_t m)
 {
 	Cmdbuf *cb;
 	Cmdtab *cp;

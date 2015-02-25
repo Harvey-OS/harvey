@@ -19,7 +19,7 @@ dev +dev
 	ws
 
 # add to get cec in the kernel
-#	cec
+	cec
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno

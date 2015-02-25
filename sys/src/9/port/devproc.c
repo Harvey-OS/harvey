@@ -309,7 +309,7 @@ notrace(Proc* p, int n, int64_t m)
 static Lock tlck;
 
 static void
-_proctrace(Proc* p, Tevent etype, int64_t ts)
+_proctrace(Proc* p, int etype, int64_t ts)
 {
 	Traceevent *te;
 	int tp;

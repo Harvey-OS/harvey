@@ -13,6 +13,21 @@
 #include "dat.h"
 #include "fns.h"
 
+typedef struct Map Map;
+struct Map {
+        uint32_t   size;
+        uint32_t   addr;
+};
+
+typedef struct RMap RMap;
+struct RMap {
+        char*   name;
+        Map*    map;
+        Map*    mapend;
+
+        Lock;
+};
+
 void
 rmapfree(RMap* rmap, uintptr_t addr, uint size)
 {

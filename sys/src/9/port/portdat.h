@@ -86,7 +86,7 @@ struct Ref
 struct Rendez
 {
 	Lock;
-	Proc	*_p;
+	Proc	*_p; // There is already a Proc *p into Lock
 };
 
 enum{

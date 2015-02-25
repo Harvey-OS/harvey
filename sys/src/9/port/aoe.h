@@ -44,44 +44,44 @@ enum {
 };
 
 typedef struct {
-	unsigned char	dst[Eaddrlen];
-	unsigned char	src[Eaddrlen];
-	unsigned char	type[2];
-	unsigned char	verflag;
-	unsigned char	error;
-	unsigned char	major[2];
-	unsigned char	minor;
-	unsigned char	cmd;
-	unsigned char	tag[4];
-	unsigned char	payload[];
+	uint8_t	dst[Eaddrlen];
+	uint8_t	src[Eaddrlen];
+	uint8_t	type[2];
+	uint8_t	verflag;
+	uint8_t	error;
+	uint8_t	major[2];
+	uint8_t	minor;
+	uint8_t	cmd;
+	uint8_t	tag[4];
+	uint8_t	payload[];
 } Aoehdr;
 
 #define AOEHDRSZ	offsetof(Aoehdr, payload[0])
 
 typedef struct {
 	Aoehdr;
-	unsigned char	aflag;
-	unsigned char	errfeat;
-	unsigned char	scnt;
-	unsigned char	cmdstat;
-	unsigned char	lba[6];
-	unsigned char	res[2];
-	unsigned char	_payload[];
+	uint8_t	aflag;
+	uint8_t	errfeat;
+	uint8_t	scnt;
+	uint8_t	cmdstat;
+	uint8_t	lba[6];
+	uint8_t	res[2];
+	uint8_t	_payload[];
 } Aoeata;
 
-#define AOEATASZ	offsetof(Aoeata, payload[0])
+#define AOEATASZ	offsetof(Aoeata, _payload[0])
 
 typedef struct {
 	Aoehdr;
-	unsigned char	bufcnt[2];
-	unsigned char	fwver[2];
-	unsigned char	scnt;
-	unsigned char	verccmd;
-	unsigned char	cslen[2];
-	unsigned char	__payload[];
+	uint8_t	bufcnt[2];
+	uint8_t	fwver[2];
+	uint8_t	scnt;
+	uint8_t	verccmd;
+	uint8_t	cslen[2];
+	uint8_t	__payload[];
 } Aoeqc;
 
-#define AOEQCSZ		offsetof(Aoeqc, payload[0])
+#define AOEQCSZ		offsetof(Aoeqc, __payload[0])
 
 extern char Echange[];
 extern char Enotup[];

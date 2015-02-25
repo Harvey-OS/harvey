@@ -30,8 +30,8 @@ struct Ether {
 	void	(*detach)(Ether*);
 	void	(*transmit)(Ether*);
 	void	(*interrupt)(Ureg*, void*);
-	long	(*ifstat)(Ether*, void*, long, uint32_t);
-	long 	(*ctl)(Ether*, void*, long); /* custom ctl messages */
+	int32_t	(*ifstat)(Ether*, void*, int32_t, uint32_t);
+	int32_t 	(*ctl)(Ether*, void*, int32_t); /* custom ctl messages */
 	void	(*power)(Ether*, int);	/* power on/off */
 	void	(*shutdown)(Ether*);	/* shutdown hardware before reboot */
 	void	*ctlr;

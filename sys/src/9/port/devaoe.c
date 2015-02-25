@@ -233,7 +233,7 @@ struct Aoedev {
 static struct {
 	Lock;
 	QLock;
-	Rendez;
+	Rendez	_rendez;
 	char	buf[Eventlen*Nevents];
 	char	*rp;
 	char	*wp;
@@ -380,7 +380,7 @@ eventlog(char *fmt, ...)
 	if(dragrp)
 		events.rp = p;
 	unlock(&events);
-	wakeup(&events);
+	wakeup(&events._rendez);
 	return n;
 }
 
@@ -1109,8 +1109,8 @@ work(Aoedev *d)
 		if(d->inprocess == nil){
 			if(d->head == nil)
 				return;
-			d->inprocess = d->head;
-			d->head = d->head->next;
+			d->inprocess = d->_head;
+			d->_head = d->_head->next;
 			if(d->head == nil)
 				d->tail = nil;
 		}
@@ -1128,10 +1128,10 @@ strategy(Aoedev *d, Srb *srb)
 	}
 	srb->next = nil;
 	if(d->tail)
-		d->tail->next = srb;
-	d->tail = srb;
-	if(d->head == nil)
-		d->head = srb;
+		d->_tail->next = srb;
+	d->_tail = srb;
+	if(d->_head == nil)
+		d->_head = srb;
 	work(d);
 	poperror();
 	qunlock(d);

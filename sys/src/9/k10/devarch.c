@@ -349,8 +349,8 @@ enum
 	Linelen= 31,
 };
 
-static long
-archread(Chan *c, void *a, long n, int64_t offset)
+static int32_t
+archread(Chan *c, void *a, int32_t n, int64_t offset)
 {
 	char *buf, *p;
 	int port;
