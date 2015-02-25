@@ -154,6 +154,11 @@ tssinit(uintptr_t sp)
 	tss->iomap = 0xdfff;
 }
 
+void acsyscallentry(void)
+{
+	panic("acsyscallentry")
+}
+
 void
 vsvminit(int size, int nixtype)
 {
