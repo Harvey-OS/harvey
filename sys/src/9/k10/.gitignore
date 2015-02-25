@@ -1,2 +1,6 @@
 /init.h
 /systab.c
+/bootk8cpu.c
+/tags
+/amd64l.h
+/k8cpu.c
