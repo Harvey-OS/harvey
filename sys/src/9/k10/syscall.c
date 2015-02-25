@@ -228,11 +228,6 @@ noerrorsleft(void)
 	}
 }
 
-extern struct {
-	char*	n;
-	void (*f)(Ar0*, va_list);
-	Ar0	r;
-} systab[];
 /* it should be unsigned. FIXME */
 void
 syscall(int badscallnr, Ureg* ureg)
