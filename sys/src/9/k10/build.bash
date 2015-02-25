@@ -114,7 +114,7 @@ compiling()
 
 linking()
 {
-	$LD -o 9 *.o
+	$LD -o 9 *.o /amd64/lib/*.a
 }
 
 args=("$@")

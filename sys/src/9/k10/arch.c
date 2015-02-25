@@ -20,6 +20,10 @@
 #include "fns.h"
 #include "../port/error.h"
 
+/* the rules are different for different compilers. We need to define up. */
+Proc *up;
+Mach *m;
+
 int
 incref(Ref *r)
 {
