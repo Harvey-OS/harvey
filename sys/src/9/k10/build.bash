@@ -106,7 +106,7 @@ compiling()
 
 	echo "Making all in kernel directories"
 	echo
-	i="*.c ../386/*.c ../ip/*.c ../port/*.c"
+	i="*.c ../386/*.c ../ip/*.c ../port/*.c entry.s"
 	echo "CC ${i}"
 	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
 }
