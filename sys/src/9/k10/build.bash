@@ -48,9 +48,12 @@ compiling()
 	##----------------##
 
 	$AWK -f ../mk/mkenumb amd64.h > amd64l.h # mkenumb is shell independent
+	# gas not accept [u]l* suffixes :(
+	sed -e 's/ull//g' amd64l.h >> amd64l.h-new
+	mv amd64l.h-new amd64l.h
 
 	# We don't want one of these (sipi.c depends on sipi.h from l64sipi.s)#
-	GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:*alloc.c:*rdb.c:*etherbcm.c:*devprobe.c:*tcklock.c:*sipi.c
+	GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:alloc.c:*rdb.c:*etherbcm.c:*devprobe.c:*tcklock.c:*sipi.c
 
 	## Boot ##
 	##------##
@@ -106,7 +109,7 @@ compiling()
 
 	echo "Making all in kernel directories"
 	echo
-	i="*.c ../386/*.c ../ip/*.c ../port/*.c entry.s l64v.s"
+	i="*.c ../386/*.c ../ip/*.c ../port/*.c entry.S l64v.S"
 	echo "CC ${i}"
 	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
 }

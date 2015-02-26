@@ -213,7 +213,7 @@ rdmsr:
 
 .global wrmsr
 wrmsr:
-	MOVL	%edi, CX
+	MOVL	%edi, %ecx
 	MOVL	%esi, %eax
 	MOVL	%edx, %edx
 
@@ -390,9 +390,9 @@ _cas64r0:
 .global gotolabel
 gotolabel:
 
-#	MOVQ	0(%rdi), SP			/* restore SP */
-#	MOVQ	8(%rdi), %rax			/* put return PC on the stack */
-#	MOVQ	%rax, 0(SP)
+//	MOVQ	0(%rdi), SP			/* restore SP */
+//	MOVQ	8(%rdi), %rax			/* put return PC on the stack */
+//	MOVQ	%rax, 0(SP)
 
 	MOVL	$1, %eax				/* return 1 */
 	RET
@@ -400,9 +400,9 @@ gotolabel:
 .global setlabel
 setlabel:
 
-#	MOVQ	SP, 0(%rdi)			/* store SP */
-#	MOVQ	0(SP), BX			/* store return PC */
-#	MOVQ	BX, 8(%rdi)
+//	MOVQ	SP, 0(%rdi)			/* store SP */
+//	MOVQ	0(SP), BX			/* store return PC */
+//	MOVQ	BX, 8(%rdi)
 
 	MOVL	$0, %eax				/* return 0 */
 	RET
@@ -423,7 +423,7 @@ _monitor:
 
 .global _mwait
 _mwait:
-#	MOVLQZX	%rdi, %rcx			/* optional extensions */
+	movq	%rdi, %rcx			/* optional extensions */
 	.byte 0x0f; .byte 0x01; .byte 0xc9	/* MWAIT */
 	RET
 
@@ -431,16 +431,16 @@ _mwait:
 k10mwait:
 k10mwloop:
 	MOVQ	%rdi,%rcx
-	MOVQ	(%rcx),%rax
-#	CMPQ	%rax,$0
+	MOVQ	(%rcx), %rax
+	CMPQ	$0, %rax
 	JNE		k10mwdone
 	MOVQ	%rdi, %rax			/* linear address to monitor */
 	XORQ	%rcx, %rcx				/* no optional extensions yet */
 	XORQ	%rdx, %rdx				/* no optional hints yet */
 	.byte 0x0f; .byte 0x01; .byte 0xc8	/* MONITOR */
-	MOVQ	%rdi,%rcx
-	MOVQ	0(%rcx),%rax
-#	CMPQ	%rax,$0
+	MOVQ	%rdi, %rcx
+	MOVQ	0(%rcx), %rax
+	CMPQ	$0, %rax
 	JNE		k10mwdone
 	XORQ %rcx, %rcx			/* optional extensions */
 	.byte 0x0f; .byte 0x01; .byte 0xc9	/* MWAIT */
@@ -452,7 +452,7 @@ k10mwdone:
 .global mul64fract
 mul64fract:
 	MOVQ	%rdi, %rax
-	MULQ	%rsi			/* a*b *
+	MULQ	%rsi			/ * a*b *
 	SHRQ	$32, %rax:DX
 	MOVQ	%rax, (%rdi)
 	RET
