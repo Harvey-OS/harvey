@@ -6,8 +6,8 @@
 
 .code32
 
-#define pFARJMP32(s, o)	.byte $0xea;		/* far jump to ptr32:16 */
-			.long $o; .word $s
+#define pFARJMP32(s, o)	.byte 0xea;	.long o; .word s	/* far jump to ptr32:16 */
+			
 
 /* do we enter in 16-bit mode? If so, take the code from coreboot that goes from
  * 16->32
@@ -48,7 +48,7 @@ _multibootheader:	/* must be 4-byte aligned */
 	.long	0x00000003			/* flags */
 	.long	-(0x1badb002 + 0x00000003)	/* checksum */
 
-gdt32p:	
+_gdt32p:	
 	.quad	0x0000000000000000		/* NULL descriptor */
 	.quad	0x00cf9a000000ffff		/* CS */
 	.quad	0x00cf92000000ffff		/* DS */
@@ -77,11 +77,11 @@ _endofheader:
 	lgdt	(%eax)
 
 	movl	$SSEL(SiDS, SsTIGDT|SsRPL0), %eax
-	movw	%ax, ds
-	movw	%ax, es
-	movw	%ax, fs
-	movw	%ax, gs
-	movw	%ax, ss
+	movw	%ax, %ds
+	movw	%ax, %es
+	movw	%ax, %fs
+	movw	%ax, %gs
+	movw	%ax, %ss
 
 	pFARJMP32(SSEL(SiCS, SsTIGDT|SsRPL0), _warp64-KZERO)
 
@@ -178,12 +178,12 @@ lme:
 	ORL	$Lme, %eax			/* Long Mode Enable */
 	WRMSR
 
-	movl	CR0, %edx
+	movl	%cr0, %edx
 	ANDL	$~(Cd|Nw|Ts|Mp), %edx
 	ORL	$(Pg|Wp), %edx			/* Paging Enable */
 	movl	%edx, %cr0
 
-	pFARJMP32(SSEL(3, SsTIGDT|SsRPL0), _identity-KZERO(SB))
+	pFARJMP32(SSEL(3, SsTIGDT|SsRPL0), _identity-KZERO)
 
 /*
  * Long mode. Welcome to 2003.

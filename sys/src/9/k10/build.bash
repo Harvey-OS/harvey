@@ -53,7 +53,7 @@ compiling()
 	mv amd64l.h-new amd64l.h
 
 	# We don't want one of these (sipi.c depends on sipi.h from l64sipi.s)#
-	GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:alloc.c:*rdb.c:*etherbcm.c:*devprobe.c:*tcklock.c:*sipi.c
+	GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:*rdb.c:*etherbcm.c:*devprobe.c:*tcklock.c:*sipi.c
 
 	## Boot ##
 	##------##

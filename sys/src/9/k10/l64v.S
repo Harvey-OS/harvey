@@ -373,7 +373,7 @@ _cas32r0:
 .global cas64
 cas64:
 	MOVQ	%rdi, %rax
-	MOVQ	%rsi, BX
+	MOVQ	%rsi, %rbx
 	LOCK; CMPXCHGQ %rbx, (%rdi)
 	MOVL	$1, %eax				/* use CMOVLEQ etc. here? */
 	JNZ	_cas64r0
