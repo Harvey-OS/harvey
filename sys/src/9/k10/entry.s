@@ -22,17 +22,17 @@ entry32:
 	/* save the IP. We will then use this to get the
 	 * physical address of the gdt.
 	 */
-	movl	%ip, %bp
+	movl	%ieip, %ebp
 	/* when you execute this instruction, bp as the value
 	 * of the ip at the start of this instruction.
 	 * So add the length of this instruction and the
 	 * 5 bytes of the jmp that follows it.
 	 * It will then point to start of header.
 	 */
-	addl $7, %bp
+	addl $7, %ebp
 	/* Now make it point to gdt32p (gdt, 32 bits, physical)
 	 */
-	addl $14, %bp
+	addl $14, %ebp
 	.byte $0xe9; .long $0x00000058;		/* JMP _endofheader */
 
 _startofheader:
@@ -124,35 +124,35 @@ TEXT _warp64<>(SB), 1, $-4
 	movl	$_protected<>-(MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ+KZERO)(SB), SI
 
 	movl	%esi, %edi
-	XORL	%eax, %eax
+	xorl	%eax, %eax
 	movl	$((MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ)>>2), CX
 
 	cld
 	rep;	stosl				/* stack, P*, vsvm, m, sys */
 
-	movl	SI, %AX				/* sys-KZERO */
-	ADDL	$(MACHSTKSZ), %AX		/* PML4 */
-	movl	%AX, CR3				/* load the mmu */
-	movl	%AX, DX
-	ADDL	$(PTSZ|PteRW|PteP), DX		/* PDP at PML4 + PTSZ */
-	movl	DX, PML4O(0)(%AX)		/* PML4E for identity map */
-	movl	DX, PML4O(KZERO)(%AX)		/* PML4E for KZERO, PMAPADDR */
+	movl	%esi, %eax				/* sys-KZERO */
+	addl	$(MACHSTKSZ), %eax		/* PML4 */
+	movl	%eAX, %CR3				/* load the mmu */
+	movl	%eAX, %e%edx
+	addl	$(PTSZ|PteRW|PteP), %edx		/* PDP at PML4 + PTSZ */
+	movl	%edx, PML4O(0)(%AX)		/* PML4E for identity map */
+	movl	%edx, PML4O(KZERO)(%AX)		/* PML4E for KZERO, PMAPADDR */
 
-	ADDL	$PTSZ, %AX			/* PDP at PML4 + PTSZ */
-	ADDL	$PTSZ, DX			/* PD at PML4 + 2*PTSZ */
-	movl	DX, PDPO(0)(%AX)			/* PDPE for identity map */
-	movl	DX, PDPO(KZERO)(%AX)		/* PDPE for KZERO, PMAPADDR */
+	addl	$PTSZ, %eax			/* PDP at PML4 + PTSZ */
+	addl	$PTSZ, %edx			/* PD at PML4 + 2*PTSZ */
+	movl	%edx, PDPO(0)(%eax)			/* PDPE for identity map */
+	movl	%edx, PDPO(KZERO)(%eax)		/* PDPE for KZERO, PMAPADDR */
 
-	ADDL	$PTSZ, %AX			/* PD at PML4 + 2*PTSZ */
-	movl	$(PtePS|PteRW|PteP), DX
-	movl	DX, PDO(0)(%AX)			/* PDE for identity 0-[24]MiB */
-	movl	DX, PDO(KZERO)(%AX)		/* PDE for KZERO 0-[24]MiB */
-	ADDL	$PGLSZ(1), DX
-	movl	DX, PDO(KZERO+PGLSZ(1))(%AX)	/* PDE for KZERO [24]-[48]MiB */
+	addl	$PTSZ, %eax			/* PD at PML4 + 2*PTSZ */
+	movl	$(PtePS|PteRW|PteP), %edx
+	movl	%edx, PDO(0)(%eax)			/* PDE for identity 0-[24]MiB */
+	movl	%edx, PDO(KZERO)(%eax)		/* PDE for KZERO 0-[24]MiB */
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+PGLSZ(1))(%eax)	/* PDE for KZERO [24]-[48]MiB */
 
-	movl	%AX, DX				/* PD at PML4 + 2*PTSZ */
-	ADDL	$(PTSZ|PteRW|PteP), DX		/* PT at PML4 + 3*PTSZ */
-	movl	DX, PDO(PMAPADDR)(%AX)		/* PDE for PMAPADDR */
+	movl	%eax, %edx				/* PD at PML4 + 2*PTSZ */
+	addl	$(PTSZ|PteRW|PteP), %edx		/* PT at PML4 + 3*PTSZ */
+	movl	%edx, PDO(PMAPADDR)(%eax)		/* PDE for PMAPADDR */
 
 /*
  * Enable and activate Long Mode. From the manual:
@@ -164,20 +164,20 @@ TEXT _warp64<>(SB), 1, $-4
  * It's all in 32-bit mode until the jump is made.
  */
 lme:
-	movl	CR4, %AX
-	ANDL	$~Pse, %AX			/* Page Size */
-	ORL	$(Pge|Pae), %AX			/* Page Global, Phys. Address */
-	movl	%AX, CR4
+	movl	%cr4
+	ANDL	$~Pse, %eax			/* Page Size */
+	ORL	$(Pge|Pae), %eax			/* Page Global, Phys. Address */
+	movl	%eax, %cr4
 
-	movl	$Efer, CX			/* Extended Feature Enable */
+	movl	$Efer, %ecx			/* Extended Feature Enable */
 	RDMSR
-	ORL	$Lme, %AX			/* Long Mode Enable */
+	ORL	$Lme, %eax			/* Long Mode Enable */
 	WRMSR
 
-	movl	CR0, DX
-	ANDL	$~(Cd|Nw|Ts|Mp), DX
-	ORL	$(Pg|Wp), DX			/* Paging Enable */
-	movl	DX, CR0
+	movl	CR0, %edx
+	ANDL	$~(Cd|Nw|Ts|Mp), %edx
+	ORL	$(Pg|Wp), %edx			/* Paging Enable */
+	movl	%edx, %cr0
 
 	pFARJMP32(SSEL(3, SsTIGDT|SsRPL0), _identity<>-KZERO(SB))
 
@@ -190,63 +190,63 @@ lme:
 
 _identity:
 	movq	$_start64v<>(SB), %AX
-	JMP*	%AX
+	JMP*	%%eax
 
 _start64v:
 	movq	$_gdtptr64v<>(SB), %AX
 	movl	(%AX), GDTR
 
-	XORQ	DX, DX
-	movw	DX, DS				/* not used in long mode */
-	movw	DX, ES				/* not used in long mode */
-	movw	DX, FS
-	movw	DX, GS
-	movw	DX, SS				/* not used in long mode */
+	XORQ	%rdx, %rdx
+	movw	%dx, %ds				/* not used in long mode */
+	movw	%dx, %es				/* not used in long mode */
+	movw	%dx, %fs
+	movw	%dx, %gs
+	movw	%dx, %ss				/* not used in long mode */
 
-	movlQZX	SI, SI				/* sys-KZERO */
-	movq	SI, %AX
-	addq	$KZERO, %AX
-	movq	%AX, sys(SB)			/* sys */
+	movlQZX	%rsi, %rsi				/* sys-KZERO */
+	movq	%rsi, %rax
+	addq	$KZERO, %rax
+	movq	%rax, sys(SB)			/* sys */
 
-	addq	$(MACHSTKSZ), %AX		/* PML4 and top of stack */
-	movq	%AX, SP				/* set stack */
+	addq	$(MACHSTKSZ), %rax		/* PML4 and top of stack */
+	movq	%rax, %rsp				/* set stack */
 
 _zap0pml4:
-	cmpq	DX, $PML4O(KZERO)		/* KZER0 & 0x0000ff8000000000 */
+	cmpq	%rdx, $PML4O(KZERO)		/* KZER0 & 0x0000ff8000000000 */
 	JEQ	_zap0pdp
-	movq	DX, PML4O(0)(%AX) 		/* zap identity map PML4E */
+	movq	%rdx, PML4O(0)(%rax) 		/* zap identity map PML4E */
 _zap0pdp:
 	addq	$PTSZ, %AX			/* PDP at PML4 + PTSZ */
-	cmpq	DX, $PDPO(KZERO)		/* KZER0 & 0x0000007fc0000000 */
+	cmpq	%rdx, $PDPO(KZERO)		/* KZER0 & 0x0000007fc0000000 */
 	JEQ	_zap0pd
-	movq	DX, PDPO(0)(%AX)			/* zap identity map PDPE */
+	movq	%rdx, PDPO(0)(%AX)			/* zap identity map PDPE */
 _zap0pd:
-	addq	$PTSZ, %AX			/* PD at PML4 + 2*PTSZ */
-	cmpq	DX, $PDO(KZERO)			/* KZER0 & 0x000000003fe00000 */
+	addq	$PTSZ, %rax			/* PD at PML4 + 2*PTSZ */
+	cmpq	%rdx, $PDO(KZERO)			/* KZER0 & 0x000000003fe00000 */
 	JEQ	_zap0done
-	movq	DX, PDO(0)(%AX)			/* zap identity map PDE */
+	movq	%rdx, PDO(0)(%rax)			/* zap identity map PDE */
 _zap0done:
 
-	addq	$(MACHSTKSZ), SI		/* PML4-KZERO */
-	movq	SI, CR3				/* flush TLB */
+	addq	$(MACHSTKSZ), %rsi		/* PML4-KZERO */
+	movq	%rsi, %CR3				/* flush TLB */
 
-	addq	$(2*PTSZ+4*KiB), %AX		/* PD+PT+vsvm */
-	movq	%AX, RMACH			/* Mach */
-	movq	DX, RUSER
+	addq	$(2*PTSZ+4*KiB), %rax		/* PD+PT+vsvm */
+	movq	%rax, RMACH			/* Mach */
+	movq	%rdx, RUSER
 
-	PUSHQ	DX				/* clear flags */
+	PUSHQ	%rdx				/* clear flags */
 	POPFQ
 
-	movlQZX	BX, BX				/* push multiboot args */
-	PUSHQ	BX				/* multiboot info* */
-	movlQZX	RARG, RARG
-	PUSHQ	RARG				/* multiboot magic */
+	movlQZX	%rbx, %rbx				/* push multiboot args */
+	PUSHQ	%rbx				/* multiboot info* */
+	movlQZX	%r3, %r3
+	pushq	%r3				/* multiboot magic */
 
 	CALL	main(SB)
 
 TEXT ndnr(SB), 1, $-4				/* no deposit, no return */
 _dnr:
-	STI
-	HLT
+	sti
+	htl
 	JMP	_dnr				/* do not resuscitate */
 
