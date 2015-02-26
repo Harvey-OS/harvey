@@ -418,13 +418,13 @@ _monitor:
 	MOVQ	%rdi, %rax			/* linear address to monitor */
 	XORQ	%rcx, %rcx				/* no optional extensions yet */
 	XORQ	%rdx, %rdx				/* no optional hints yet */
-	.byte $0x0f; .byte $0x01; .byte $0xc8	/* MONITOR */
+	.byte 0x0f; .byte 0x01; .byte 0xc8	/* MONITOR */
 	RET
 
 .global _mwait
 _mwait:
 #	MOVLQZX	%rdi, %rcx			/* optional extensions */
-	.byte $0x0f; .byte $0x01; .byte $0xc9	/* MWAIT */
+	.byte 0x0f; .byte 0x01; .byte 0xc9	/* MWAIT */
 	RET
 
 .global k10mwait
@@ -437,13 +437,13 @@ k10mwloop:
 	MOVQ	%rdi, %rax			/* linear address to monitor */
 	XORQ	%rcx, %rcx				/* no optional extensions yet */
 	XORQ	%rdx, %rdx				/* no optional hints yet */
-	.byte $0x0f; .byte $0x01; .byte $0xc8	/* MONITOR */
+	.byte 0x0f; .byte 0x01; .byte 0xc8	/* MONITOR */
 	MOVQ	%rdi,%rcx
 	MOVQ	0(%rcx),%rax
 #	CMPQ	%rax,$0
 	JNE		k10mwdone
 	XORQ %rcx, %rcx			/* optional extensions */
-	.byte $0x0f; .byte $0x01; .byte $0xc9	/* MWAIT */
+	.byte 0x0f; .byte 0x01; .byte 0xc9	/* MWAIT */
 	JMP		k10mwloop
 k10mwdone:
 	RET

@@ -245,6 +245,7 @@ _zap0done:
 
 	CALL	main
 
+.globl ndnr
 ndnr:	/* no deposit, no return */
 	/* do not resuscitate */
 _dnr:
