@@ -93,7 +93,7 @@
 #else
 #define USTKTOP         (0x00007ffffffff000 & ~(BIGPGSZ-1))
 #endif
-#define USTKSIZE		(16*1024*1024)		/* size of user stack */
+#define USTKSIZE	(16*1024*1024)		/* size of user stack */
 #define TSTKTOP		(USTKTOP-USTKSIZE)	/* end of new stack in sysexec */
 #define	NIXCALL		(TSTKTOP-USTKSIZE)	/* nix syscall queues (2MiB) */
 #ifndef __ASSEMBLER__

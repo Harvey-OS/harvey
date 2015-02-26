@@ -73,6 +73,7 @@ enum
 	Nstats,
 };
 
+#if 0
 static char *statnames[] =
 {
 [Forwarding]	"Forwarding",
@@ -95,6 +96,7 @@ static char *statnames[] =
 [FragFails]	"FragFails",
 [FragCreates]	"FragCreates",
 };
+#endif
 
 struct Fragment4
 {

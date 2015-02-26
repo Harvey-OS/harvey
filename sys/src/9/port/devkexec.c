@@ -96,7 +96,7 @@ kexecattach(char *spec)
 {
 	Chan *c;
 //	Kexecgrp *kgrp = nil;
-        Qid qid;
+//        Qid qid;
 	
 
 	c = devattach(L'§', spec);

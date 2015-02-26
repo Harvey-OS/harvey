@@ -426,7 +426,7 @@ static uint32_t
 ethercrcbe(uint8_t *addr, int32_t len)
 {
 	int i, j;
-	uint32_t c, crc, carry;
+	uintptr_t c, crc, carry;
 
 	crc = ~0UL;
 	for (i = 0; i < len; i++) {

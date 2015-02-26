@@ -35,7 +35,7 @@ usize sizeofSys = sizeof(Sys);
  * Optionsinit() is called from multiboot() to
  * set it all up.
  */
-static int oargc;
+static int64_t oargc;
 static char* oargv[20];
 static char oargb[128];
 static int oargblen;

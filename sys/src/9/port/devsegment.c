@@ -473,8 +473,8 @@ segmentread(Chan *c, void *a, int32_t n, int64_t voff)
  * back when the segment is destroyed.
  * BUG: what if we overlap other segments attached by the user?
  */
-static uint32_t
-placeseg(uint32_t len)
+static uintptr_t
+placeseg(uintptr_t len)
 {
 	static Lock lck;
 	static uint32_t va = HEAPTOP;

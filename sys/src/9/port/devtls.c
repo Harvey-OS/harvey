@@ -245,7 +245,7 @@ static void	put64(uint8_t *p, int64_t x);
 static void	put32(uint8_t *p, uint32_t);
 static void	put24(uint8_t *p, int);
 static void	put16(uint8_t *p, int);
-static uint32_t	get32(uint8_t *p);
+//static uint32_t	get32(uint8_t *p);
 static int	get16(uint8_t *p);
 static void	tlsSetState(TlsRec *tr, int new, int old);
 static void	rcvAlert(TlsRec *tr, int err);
@@ -2163,11 +2163,13 @@ put16(uint8_t *p, int x)
 	p[1] = x;
 }
 
+#if 0
 static uint32_t
 get32(uint8_t *p)
 {
 	return (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];
 }
+#endif
 
 static int
 get16(uint8_t *p)

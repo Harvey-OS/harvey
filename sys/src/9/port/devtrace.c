@@ -56,12 +56,12 @@ struct Tracelog {
 };
 
 
-static Rendez tracesleep;
+//static Rendez tracesleep;
 static QLock traceslock;
 /* this will contain as many entries as there are valid pc values */
 static Trace **tracemap;
 static Trace *traces; /* This stores all the traces */
-static Lock loglk;
+//static Lock loglk;
 static Tracelog *tracelog = nil;
 int traceactive = 0;
 /* trace indices. These are just unsigned longs. You mask them 
@@ -81,12 +81,12 @@ static int printsize = 0;	//The length of a line being printed
 /* These are for observing a single process */
 static int *pidwatch = nil;
 static int numpids = 0;
-static const PIDWATCHSIZE = 32; /* The number of PIDS that can be watched. Pretty arbitrary. */
+static const int PIDWATCHSIZE = 32; /* The number of PIDS that can be watched. Pretty arbitrary. */
 
 int codesize = 0;
 
-static uint64_t lastestamp; /* last entry timestamp */
-static uint64_t lastxstamp; /* last exit timestamp */
+//static uint64_t lastestamp; /* last entry timestamp */
+//static uint64_t lastxstamp; /* last exit timestamp */
 
 /* Trace events can be either Entries or Exits */
 static char eventname[] = {
@@ -163,11 +163,13 @@ lognonempty(void *v)
 	return pw - pr;
 }
 
+#if 0
 static int
 logfull(void)
 {
 	return (pw - pr) >= logsize;
 }
+#endif
 
 static uint64_t 
 idx(uint64_t f)
@@ -443,13 +445,14 @@ mktrace(void *func, void *start, void *end)
 	return p;
 }
 
+#if 0
 /* Get rid of an old trace */
 static void
 freetrace(Trace *p)
 {
 	free(p);
 }
-
+#endif
 
 static Chan*
 traceattach(char *spec)
@@ -516,7 +519,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 	int i, j;
 	int saveactive = traceactive;
 	traceactive = 0;
-	static QLock gate;
+	//	static QLock gate;
 
 	if (waserror()) {
 		traceactive = saveactive;

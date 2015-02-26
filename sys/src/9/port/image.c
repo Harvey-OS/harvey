@@ -41,6 +41,7 @@ static struct {
 	int	nolock;			/* # of times we couldn't get the lock */
 } irstats;
 
+#if 0
 static void
 dumplru(void)
 {
@@ -51,6 +52,7 @@ dumplru(void)
 		print(" %p(c%p,r%d)", i, i->c, i->ref);
 	print("\n");
 }
+#endif
 
 /*
  * imagealloc and i must be locked.

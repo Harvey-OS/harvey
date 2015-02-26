@@ -1585,6 +1585,7 @@ ipifcregisterproxy(Fs *f, Ipifc *ifc, uint8_t *ip)
 }
 
 
+#if 0
 /* added for new v6 mesg types */
 static void
 adddefroute6(Fs *f, uint8_t *gate, int force)
@@ -1602,7 +1603,7 @@ adddefroute6(Fs *f, uint8_t *gate, int force)
 	v6delroute(f, v6Unspecified, v6Unspecified, 1);
 	v6addroute(f, "ra", v6Unspecified, v6Unspecified, gate, 0);
 }
-
+#endif
 enum {
 	Ngates = 3,
 };

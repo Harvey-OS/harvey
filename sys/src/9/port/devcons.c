@@ -56,7 +56,7 @@ static	Queue*	kbdqs[Nconsdevs];
 static	int	kbdprocs[Nconsdevs];
 static	Queue*	kbdq;		/* unprocessed console input */
 static	Queue*	lineq;		/* processed console input */
-static	Queue*	serialoq;	/* serial console output */
+//static	Queue*	serialoq;	/* serial console output */
 static	Queue*	kprintoq;	/* console output, for /dev/kprint */
 static	uint32_t	kprintinuse;	/* test and set whether /dev/kprint is open */
 
@@ -496,7 +496,7 @@ static void
 echo(char *buf, int n)
 {
 	Mpl pl;
-	static int ctrlt, pid;
+	static int ctrlt;
 	char *e, *p;
 
 	if(n == 0)
@@ -1295,6 +1295,7 @@ le2long(int32_t *to, uint8_t *f)
 	return f+sizeof(int32_t);
 }
 
+#if 0
 static uint8_t*
 long2le(uint8_t *t, int32_t from)
 {
@@ -1307,6 +1308,7 @@ long2le(uint8_t *t, int32_t from)
 		t[i] = f[o[i]];
 	return t+sizeof(int32_t);
 }
+#endif
 
 char *Ebadtimectl = "bad time control";
 

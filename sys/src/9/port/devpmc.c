@@ -32,9 +32,9 @@ enum{
 	PmcCtlRdStr = 4*1024,
 };
 
-#define PMCTYPE(x)	(((unsigned)x)&0xffful)
-#define PMCID(x)	(((unsigned)x)>>12)
-#define PMCQID(i, t)	((((unsigned)i)<<12)|(t))
+#define PMCTYPE(x)	(((uintptr_t)x)&0xffful)
+#define PMCID(x)	(((uintptr_t)x)>>12)
+#define PMCQID(i, t)	((((uintptr_t)i)<<12)|(t))
 
 Dirtab *pmctab;
 static int npmctab;

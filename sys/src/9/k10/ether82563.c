@@ -920,6 +920,7 @@ i82563cleanup(Ctlr *c)
 	return c->tdh = tdh;
 }
 
+#if 0
 static int
 notrim(void *v)
 {
@@ -928,6 +929,7 @@ notrim(void *v)
 	c = v;
 	return (c->im & Txdw) == 0;
 }
+#endif
 
 static void
 i82563transmit(Ether* edev)

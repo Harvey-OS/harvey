@@ -113,29 +113,30 @@ gdtget:
 //	MOVL	GDTR, (RARG)			/* Note: 10 bytes returned */
 	RET
 
-#warning fix gdtput
-/*
+	// Called with the address of gdt in rdi.
+	// Trying to figure out what they were doing here ...
+	// This is almost certainly wrong. Probably the
+	// segment is in rdi and the address in rsi.
 .global gdtput
 gdtput:
-	SHLQ	$48, RARG
-	MOVQ	%r15, m16+0(FP)
-	LEAQ	m16+6(FP), RARG
+//	SHLQ	$48, $rdi
+//	MOVQ	%r15, m16+0(FP)
+//	LEAQ	m16+6(FP), RARG
+	
+//	MOVL	(RARG), GDTR
+#warning "no lgdt"
+//x	lgdt (%rdi):(%rsi)
 
-	MOVL	(RARG), GDTR
+	XORQ	%rax, %rax
+	MOVW	%ax, DS
+	MOVW	%ax, ES
+	MOVW	%ax, FS
+	MOVW	%ax, GS
+	MOVW	%ax, SS
 
-	XORQ	AX, AX
-	MOVW	AX, DS
-	MOVW	AX, ES
-	MOVW	AX, FS
-	MOVW	AX, GS
-	MOVW	AX, SS
-
-	POPQ	AX
-	MOVWQZX	cs+16(FP), BX
-	PUSHQ	BX
-	PUSHQ	AX
-	RETFQ
-
+	POPQ	%ax
+	RET
+#if 0
 .global idtput
 idtput:
 	SHLQ	$48, RARG
@@ -148,7 +149,7 @@ idtput:
 trput:
 	MOVW	RARG, TASK
 	RET
-*/
+#endif
 
 /*
  * Read/write various system registers.

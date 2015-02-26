@@ -1029,7 +1029,7 @@ Encalg encrypttab[] =
 	{ "rc4_40", 1, RC4, initRC4key_40, },
 	{ 0 }
 };
-#endif NOSPOOKS
+#endif //NOSPOOKS
 
 static int
 parseencryptalg(char *p, Dstate *s)

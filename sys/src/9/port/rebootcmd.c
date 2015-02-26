@@ -66,7 +66,7 @@ rebootcmd(int argc, char *argv[])
 {
 	Chan *c;
 	Exec exec;
-	uint32_t magic, text, rtext, entry, data, size;
+	uintptr_t magic, text, rtext, entry, data, size;
 	uint8_t *p;
 
 	if(argc == 0)

@@ -625,6 +625,7 @@ tcpwqsize(int maxwin)
 	return (5*maxwin)/2;
 }
 
+#if 0
 /*
  *  limit maximum packet bursts due to stretched acks
  *  and application limited periods. increase ssthresh
@@ -642,6 +643,7 @@ tcplimitmaxburst(Tcpctl *tcb)
 		tcb->cwind = cwindmax;
 	}
 }
+#endif
 
 static void
 tcpcongestion(Tcpctl *tcb)
@@ -968,6 +970,7 @@ tcpstart(Conv *s, int mode)
 	}
 }
 
+#if 0
 static char*
 tcpflag(uint16_t flag)
 {
@@ -989,6 +992,7 @@ tcpflag(uint16_t flag)
 
 	return buf;
 }
+#endif
 
 static Block*
 htontcp6(Tcp *tcph, Block *data, Tcp6hdr *ph, Tcpctl *tcb)
@@ -1795,11 +1799,13 @@ seq_lt(uint32_t x, uint32_t y)
 	return (int)(x-y) < 0;
 }
 
+#if 0
 static int
 seq_le(uint32_t x, uint32_t y)
 {
 	return (int)(x-y) <= 0;
 }
+#endif
 
 static int
 seq_gt(uint32_t x, uint32_t y)

@@ -217,7 +217,7 @@ newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 	uint8_t ct;
 	Pgsza *pa;
 	int i, dontalloc, si;
-	static int once;
+	//	static int once;
 
 	si = getpgszi(size);
 	pa = &pga.pgsza[si];

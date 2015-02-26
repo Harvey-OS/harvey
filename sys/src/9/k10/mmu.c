@@ -479,7 +479,9 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 	invlpg(va);			/* only if old entry valid? */
 }
 
+#if 0
 static Lock mmukmaplock;
+#endif
 static Lock vmaplock;
 
 #define PML4X(v)	PTLX((v), 3)

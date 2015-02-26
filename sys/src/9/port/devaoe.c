@@ -316,11 +316,13 @@ unitname(Aoedev *d)
 	return up->genbuf;
 }
 
+#if 0
 static int
 eventlogready(void* v)
 {
 	return *events.rp;
 }
+#endif
 
 static int32_t
 eventlogread(void *a, int32_t n)

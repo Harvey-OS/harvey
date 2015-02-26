@@ -48,7 +48,7 @@ cwrite(int fd, char *path, char *cmd, int len)
 void
 reader(void *v)
 {
-	int cfd, tfd, forking = 0, pid, newpid;
+	uintptr_t cfd, tfd, forking = 0, pid, newpid;
 	char *ctl, *truss;
 	Str *s;
 
@@ -149,7 +149,7 @@ usage(void)
 void
 threadmain(int argc, char **argv)
 {
-	int pid;
+	uintptr_t pid;
 	char *cmd = nil;
 	char **args = nil;
 

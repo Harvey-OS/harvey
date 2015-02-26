@@ -150,7 +150,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	int32_t hdrsz, magic, textsz, datasz, bsssz;
 	uintptr_t textlim, datalim, bsslim, entry, tbase, tsize, dbase, dsize, bbase, bsize, sbase, ssize, stack;
 	Mach *mp;
-	static Pgrp *kpgrp;
+	//	static Pgrp *kpgrp;
 	
 	DBG("kexec on core %d\n", core);
 	// XXX: since this is kernel code we can't do attachimage,

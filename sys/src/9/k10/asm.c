@@ -44,7 +44,7 @@ enum {
 
 static Lock asmlock;
 static Asm asmarray[64] = {
-	{ 0, ~0, AsmNONE, nil, },
+	{ 0, ~0, AsmNONE, 0, },
 };
 static int asmindex = 1;
 static Asm* asmlist = &asmarray[0];

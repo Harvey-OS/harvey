@@ -691,6 +691,7 @@ bootfw(Ctlr *c)
 	return 0;
 }
 
+#if 0
 static int
 kickthebaby(Pcidev *p, Ctlr *c)
 {
@@ -706,6 +707,7 @@ kickthebaby(Pcidev *p, Ctlr *c)
 		return -1;
 	return 0;
 }
+#endif
 
 typedef struct {
 	uint8_t	len[4];

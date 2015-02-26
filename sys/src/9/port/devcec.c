@@ -298,6 +298,7 @@ resend(Conn *cp)
 	cp->to = 4;
 }
 
+#if 0
 static void
 reset(If *ifc, uint8_t conn)
 {
@@ -310,6 +311,7 @@ reset(If *ifc, uint8_t conn)
 	trace(bp);
 	ifc->d->bwrite(ifc->dc, bp, 0);
 }
+#endif
 
 static void
 ack(Conn *cp)
@@ -410,6 +412,7 @@ cectimer(void * v)
 	}
 }
 
+#if 0
 static int
 cecqlen(void* v)
 {
@@ -434,6 +437,7 @@ cecqlen(void* v)
 	}
 	return n;
 }
+#endif
 
 static void
 discover(If *ifc, Pkt *p)

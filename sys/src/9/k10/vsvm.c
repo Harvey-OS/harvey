@@ -63,7 +63,7 @@ static Sd gdt64[Ngdt] = {
 	0ull,					/* TSS lower */
 	0ull,					/* TSS upper */
 };
-static int ngdt64 = 10;
+//static int ngdt64 = 10;
 
 static Gd idt64[Nidt];
 static Gd acidt64[Nidt];	/* NIX application core IDT */

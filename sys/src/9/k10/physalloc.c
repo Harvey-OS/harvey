@@ -375,6 +375,7 @@ physalloc(uint64_t size, int *colorp, void *tag)
 	return m;
 }
 
+#if 0
 static void
 dump(Bal *b)
 {
@@ -398,6 +399,7 @@ dump(Bal *b)
 		print("\n");
 	}
 }
+#endif
 
 void
 physallocdump(void)

@@ -69,7 +69,7 @@ static struct
 } cmd;
 
 static	Conv*	cmdclone(char*);
-static	void	cmdproc(void*);
+//static	void	cmdproc(void*);
 
 static int
 cmd3gen(Chan *c, int i, Dir *dp)
@@ -450,6 +450,7 @@ cmdread(Chan *ch, void *a, int32_t n, int64_t offset)
 	}
 }
 
+#if 0
 static int
 cmdstarted(void *a)
 {
@@ -458,6 +459,7 @@ cmdstarted(void *a)
 	c = a;
 	return c->child != nil || c->error != nil || strcmp(c->state, "Execute") != 0;
 }
+#endif
 
 enum
 {
@@ -482,7 +484,7 @@ Cmdtab cmdtab[] = {
 static int32_t
 cmdwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 {
-	int i, r;
+	int i, r = 0;
 	Conv *c;
 	Segment *s;
 	Cmdbuf *cb;
@@ -661,13 +663,14 @@ cmdclone(char *user)
 	return c;
 }
 
+#if 0
 static void
 cmdproc(void *a)
 {
 	Conv *c;
-	int n;
+	int n = 0;
 	char status[ERRMAX];
-	void *t;
+	void *t = NULL;
 
 	c = a;
 	qlock(&c->l);
@@ -719,6 +722,7 @@ cmdproc(void *a)
 	qunlock(&c->l);
 	pexit("", 0);
 }
+#endif
 
 Dev cmddevtab = {
 	'C',
