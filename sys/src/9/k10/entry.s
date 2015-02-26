@@ -3,8 +3,8 @@
 
 .code32
 
-#define pFARJMP32(s, o)	BYTE $0xea;		/* far jump to ptr32:16 */\
-			LONG $o; WORD $s
+#define pFARJMP32(s, o)	.byte $0xea;		/* far jump to ptr32:16 */\
+			.long $o; .word $s
 
 /* do we enter in 16-bit mode? If so, take the code from coreboot that goes from
  * 16->32
@@ -33,7 +33,7 @@ entry32:
 	/* Now make it point to gdt32p (gdt, 32 bits, physical)
 	 */
 	addl $14, %bp
-	BYTE $0xe9; LONG $0x00000058;		/* JMP _endofheader */
+	.byte $0xe9; .long $0x00000058;		/* JMP _endofheader */
 
 _startofheader:
 	.byte	$0x90				/* NOP */
@@ -51,7 +51,7 @@ TEXT _gdt32p<>(SB), 1, $-4
 	.quad	$0x0020980000000000		/* Long mode CS */
 
 TEXT _gdtptr32p<>(SB), 1, $-4
-	.word	$(4*8-1)
+	.word	$4*8-1
 	.long	$_gdt32p<>-KZERO(SB)
 
 TEXT _gdt64<>(SB), 1, $-4
@@ -67,17 +67,17 @@ TEXT _gdtptr64v<>(SB), 1, $-4
 	.quad	$_gdt64<>(SB)
 
 _endofheader:
-	MOVL	AX, BP				/* possible passed-in magic */
+	movl	%eAX, %ebp				/* possible passed-in magic */
 
-	MOVL	$_gdtptr32p<>-KZERO(SB), AX
-	MOVL	(AX), GDTR
+	movl	$_gdtptr32p<>-KZERO(SB), %eAX
+	lgdt
 
-	MOVL	$SSEL(SiDS, SsTIGDT|SsRPL0), AX
-	MOVW	AX, DS
-	MOVW	AX, ES
-	MOVW	AX, FS
-	MOVW	AX, GS
-	MOVW	AX, SS
+	//movl	$SSEL(SiDS, SsTIGDT|SsRPL0), %AX
+	movw	%ax, ds
+	movw	%ax, es
+	movw	%ax, fs
+	movw	%ax, gs
+	movw	%ax, ss
 
 	pFARJMP32(SSEL(SiCS, SsTIGDT|SsRPL0), _warp64<>-KZERO(SB))
 
@@ -121,38 +121,38 @@ _endofheader:
 #define PTO(v)		((PTLX((v), 0))<<3)
 
 TEXT _warp64<>(SB), 1, $-4
-	MOVL	$_protected<>-(MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ+KZERO)(SB), SI
+	movl	$_protected<>-(MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ+KZERO)(SB), SI
 
-	MOVL	SI, DI
-	XORL	AX, AX
-	MOVL	$((MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ)>>2), CX
+	movl	%esi, %edi
+	XORL	%eax, %eax
+	movl	$((MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ)>>2), CX
 
-	CLD
-	REP;	STOSL				/* stack, P*, vsvm, m, sys */
+	cld
+	rep;	stosl				/* stack, P*, vsvm, m, sys */
 
-	MOVL	SI, AX				/* sys-KZERO */
-	ADDL	$(MACHSTKSZ), AX		/* PML4 */
-	MOVL	AX, CR3				/* load the mmu */
-	MOVL	AX, DX
+	movl	SI, %AX				/* sys-KZERO */
+	ADDL	$(MACHSTKSZ), %AX		/* PML4 */
+	movl	%AX, CR3				/* load the mmu */
+	movl	%AX, DX
 	ADDL	$(PTSZ|PteRW|PteP), DX		/* PDP at PML4 + PTSZ */
-	MOVL	DX, PML4O(0)(AX)		/* PML4E for identity map */
-	MOVL	DX, PML4O(KZERO)(AX)		/* PML4E for KZERO, PMAPADDR */
+	movl	DX, PML4O(0)(%AX)		/* PML4E for identity map */
+	movl	DX, PML4O(KZERO)(%AX)		/* PML4E for KZERO, PMAPADDR */
 
-	ADDL	$PTSZ, AX			/* PDP at PML4 + PTSZ */
+	ADDL	$PTSZ, %AX			/* PDP at PML4 + PTSZ */
 	ADDL	$PTSZ, DX			/* PD at PML4 + 2*PTSZ */
-	MOVL	DX, PDPO(0)(AX)			/* PDPE for identity map */
-	MOVL	DX, PDPO(KZERO)(AX)		/* PDPE for KZERO, PMAPADDR */
+	movl	DX, PDPO(0)(%AX)			/* PDPE for identity map */
+	movl	DX, PDPO(KZERO)(%AX)		/* PDPE for KZERO, PMAPADDR */
 
-	ADDL	$PTSZ, AX			/* PD at PML4 + 2*PTSZ */
-	MOVL	$(PtePS|PteRW|PteP), DX
-	MOVL	DX, PDO(0)(AX)			/* PDE for identity 0-[24]MiB */
-	MOVL	DX, PDO(KZERO)(AX)		/* PDE for KZERO 0-[24]MiB */
+	ADDL	$PTSZ, %AX			/* PD at PML4 + 2*PTSZ */
+	movl	$(PtePS|PteRW|PteP), DX
+	movl	DX, PDO(0)(%AX)			/* PDE for identity 0-[24]MiB */
+	movl	DX, PDO(KZERO)(%AX)		/* PDE for KZERO 0-[24]MiB */
 	ADDL	$PGLSZ(1), DX
-	MOVL	DX, PDO(KZERO+PGLSZ(1))(AX)	/* PDE for KZERO [24]-[48]MiB */
+	movl	DX, PDO(KZERO+PGLSZ(1))(%AX)	/* PDE for KZERO [24]-[48]MiB */
 
-	MOVL	AX, DX				/* PD at PML4 + 2*PTSZ */
+	movl	%AX, DX				/* PD at PML4 + 2*PTSZ */
 	ADDL	$(PTSZ|PteRW|PteP), DX		/* PT at PML4 + 3*PTSZ */
-	MOVL	DX, PDO(PMAPADDR)(AX)		/* PDE for PMAPADDR */
+	movl	DX, PDO(PMAPADDR)(%AX)		/* PDE for PMAPADDR */
 
 /*
  * Enable and activate Long Mode. From the manual:
@@ -163,21 +163,21 @@ TEXT _warp64<>(SB), 1, $-4
  *	make an inter-segment jump to the Long Mode code.
  * It's all in 32-bit mode until the jump is made.
  */
-TEXT _lme<>(SB), 1, $-4
-	MOVL	CR4, AX
-	ANDL	$~Pse, AX			/* Page Size */
-	ORL	$(Pge|Pae), AX			/* Page Global, Phys. Address */
-	MOVL	AX, CR4
+lme:
+	movl	CR4, %AX
+	ANDL	$~Pse, %AX			/* Page Size */
+	ORL	$(Pge|Pae), %AX			/* Page Global, Phys. Address */
+	movl	%AX, CR4
 
-	MOVL	$Efer, CX			/* Extended Feature Enable */
+	movl	$Efer, CX			/* Extended Feature Enable */
 	RDMSR
-	ORL	$Lme, AX			/* Long Mode Enable */
+	ORL	$Lme, %AX			/* Long Mode Enable */
 	WRMSR
 
-	MOVL	CR0, DX
+	movl	CR0, DX
 	ANDL	$~(Cd|Nw|Ts|Mp), DX
 	ORL	$(Pg|Wp), DX			/* Paging Enable */
-	MOVL	DX, CR0
+	movl	DX, CR0
 
 	pFARJMP32(SSEL(3, SsTIGDT|SsRPL0), _identity<>-KZERO(SB))
 
@@ -186,60 +186,60 @@ TEXT _lme<>(SB), 1, $-4
  * Jump out of the identity map space;
  * load a proper long mode GDT.
  */
-MODE $64
+.code64
 
-TEXT _identity<>(SB), 1, $-4
-	MOVQ	$_start64v<>(SB), AX
-	JMP*	AX
+_identity:
+	movq	$_start64v<>(SB), %AX
+	JMP*	%AX
 
-TEXT _start64v<>(SB), 1, $-4
-	MOVQ	$_gdtptr64v<>(SB), AX
-	MOVL	(AX), GDTR
+_start64v:
+	movq	$_gdtptr64v<>(SB), %AX
+	movl	(%AX), GDTR
 
 	XORQ	DX, DX
-	MOVW	DX, DS				/* not used in long mode */
-	MOVW	DX, ES				/* not used in long mode */
-	MOVW	DX, FS
-	MOVW	DX, GS
-	MOVW	DX, SS				/* not used in long mode */
+	movw	DX, DS				/* not used in long mode */
+	movw	DX, ES				/* not used in long mode */
+	movw	DX, FS
+	movw	DX, GS
+	movw	DX, SS				/* not used in long mode */
 
-	MOVLQZX	SI, SI				/* sys-KZERO */
-	MOVQ	SI, AX
-	ADDQ	$KZERO, AX
-	MOVQ	AX, sys(SB)			/* sys */
+	movlQZX	SI, SI				/* sys-KZERO */
+	movq	SI, %AX
+	addq	$KZERO, %AX
+	movq	%AX, sys(SB)			/* sys */
 
-	ADDQ	$(MACHSTKSZ), AX		/* PML4 and top of stack */
-	MOVQ	AX, SP				/* set stack */
+	addq	$(MACHSTKSZ), %AX		/* PML4 and top of stack */
+	movq	%AX, SP				/* set stack */
 
 _zap0pml4:
-	CMPQ	DX, $PML4O(KZERO)		/* KZER0 & 0x0000ff8000000000 */
+	cmpq	DX, $PML4O(KZERO)		/* KZER0 & 0x0000ff8000000000 */
 	JEQ	_zap0pdp
-	MOVQ	DX, PML4O(0)(AX) 		/* zap identity map PML4E */
+	movq	DX, PML4O(0)(%AX) 		/* zap identity map PML4E */
 _zap0pdp:
-	ADDQ	$PTSZ, AX			/* PDP at PML4 + PTSZ */
-	CMPQ	DX, $PDPO(KZERO)		/* KZER0 & 0x0000007fc0000000 */
+	addq	$PTSZ, %AX			/* PDP at PML4 + PTSZ */
+	cmpq	DX, $PDPO(KZERO)		/* KZER0 & 0x0000007fc0000000 */
 	JEQ	_zap0pd
-	MOVQ	DX, PDPO(0)(AX)			/* zap identity map PDPE */
+	movq	DX, PDPO(0)(%AX)			/* zap identity map PDPE */
 _zap0pd:
-	ADDQ	$PTSZ, AX			/* PD at PML4 + 2*PTSZ */
-	CMPQ	DX, $PDO(KZERO)			/* KZER0 & 0x000000003fe00000 */
+	addq	$PTSZ, %AX			/* PD at PML4 + 2*PTSZ */
+	cmpq	DX, $PDO(KZERO)			/* KZER0 & 0x000000003fe00000 */
 	JEQ	_zap0done
-	MOVQ	DX, PDO(0)(AX)			/* zap identity map PDE */
+	movq	DX, PDO(0)(%AX)			/* zap identity map PDE */
 _zap0done:
 
-	ADDQ	$(MACHSTKSZ), SI		/* PML4-KZERO */
-	MOVQ	SI, CR3				/* flush TLB */
+	addq	$(MACHSTKSZ), SI		/* PML4-KZERO */
+	movq	SI, CR3				/* flush TLB */
 
-	ADDQ	$(2*PTSZ+4*KiB), AX		/* PD+PT+vsvm */
-	MOVQ	AX, RMACH			/* Mach */
-	MOVQ	DX, RUSER
+	addq	$(2*PTSZ+4*KiB), %AX		/* PD+PT+vsvm */
+	movq	%AX, RMACH			/* Mach */
+	movq	DX, RUSER
 
 	PUSHQ	DX				/* clear flags */
 	POPFQ
 
-	MOVLQZX	BX, BX				/* push multiboot args */
+	movlQZX	BX, BX				/* push multiboot args */
 	PUSHQ	BX				/* multiboot info* */
-	MOVLQZX	RARG, RARG
+	movlQZX	RARG, RARG
 	PUSHQ	RARG				/* multiboot magic */
 
 	CALL	main(SB)
