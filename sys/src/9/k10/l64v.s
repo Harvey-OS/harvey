@@ -1,89 +1,100 @@
 #include "amd64l.h"
 
-MODE $64
+.code64
 
 /*
  * Port I/O.
  */
-TEXT inb(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	XORL	AX, AX
-	INB
+.global inb
+inb:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	XORL	%eax, %eax
+	INB	%dx
 	RET
 
-TEXT insb(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	MOVQ	address+8(FP), DI
-	MOVL	count+16(FP), CX
+.global insb
+insb:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	MOVQ	%rsi, %rdi
+	MOVL	%edx, %ecx
 	CLD
 	REP;	INSB
 	RET
 
-TEXT ins(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	XORL	AX, AX
-	INW
+.global ins
+ins:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	XORL	%eax, %eax
+	INW	%dx
 	RET
 
-TEXT inss(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	MOVQ	address+8(FP), DI
-	MOVL	count+16(FP), CX
+.global inss
+inss:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	MOVQ	%rsi, %rdi
+	MOVL	%edx, %ecx
 	CLD
 	REP;	INSW
 	RET
 
-TEXT inl(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	INL
+.global inl
+inl:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	INL	%dx
 	RET
 
-TEXT insl(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	MOVQ	address+8(FP), DI
-	MOVL	count+16(FP), CX
+.global insl
+insl:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	MOVQ	%rsi, %rdi
+	MOVL	%edx, %ecx
 	CLD
 	REP; INSL
 	RET
 
-TEXT outb(SB), 1, $-1
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	MOVL	byte+8(FP), AX
-	OUTB
+.global outb
+outb:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	MOVL	%esi, %eax
+	OUTB	%dx
 	RET
 
-TEXT outsb(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	MOVQ	address+8(FP), SI
-	MOVL	count+16(FP), CX
+.global outsb
+outsb:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	MOVQ	%rsi, %rdi
+	MOVL	%edx, %ecx
 	CLD
 	REP; OUTSB
 	RET
 
-TEXT outs(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	MOVL	short+8(FP), AX
-	OUTW
+.global outs
+outs:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	MOVL	%esi, %eax
+	OUTW	%dx
 	RET
 
-TEXT outss(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	MOVQ	address+8(FP), SI
-	MOVL	count+16(FP), CX
+.global outss
+outss:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	MOVL	%edx, %ecx
 	CLD
 	REP; OUTSW
 	RET
 
-TEXT outl(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	MOVL	long+8(FP), AX
-	OUTL
+.global outl
+outl:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	MOVL	%esi, %eax
+	OUTL	%dx
 	RET
 
-TEXT outsl(SB), 1, $-4
-	MOVL	RARG, DX			/* MOVL	port+0(FP), DX */
-	MOVQ	address+8(FP), SI
-	MOVL	count+16(FP), CX
+.global outsl
+outsl:
+	MOVL	%edi, %edx			/* MOVL	port+0(FP), DX */
+	MOVQ	%rsi, %rdi
+	MOVL	%edx, %ecx
 	CLD
 	REP; OUTSL
 	RET
@@ -97,13 +108,17 @@ TEXT outsl(SB), 1, $-4
  * so shuffle the stack arguments to
  * get it in the right format.
  */
-TEXT gdtget(SB), 1, $-4
-	MOVL	GDTR, (RARG)			/* Note: 10 bytes returned */
+.global gdtget
+gdtget:
+//	MOVL	GDTR, (RARG)			/* Note: 10 bytes returned */
 	RET
 
-TEXT gdtput(SB), 1, $-4
+#warning fix gdtput
+/*
+.global gdtput
+gdtput:
 	SHLQ	$48, RARG
-	MOVQ	RARG, m16+0(FP)
+	MOVQ	%r15, m16+0(FP)
 	LEAQ	m16+6(FP), RARG
 
 	MOVL	(RARG), GDTR
@@ -121,101 +136,119 @@ TEXT gdtput(SB), 1, $-4
 	PUSHQ	AX
 	RETFQ
 
-TEXT idtput(SB), 1, $-4
+.global idtput
+idtput:
 	SHLQ	$48, RARG
 	MOVQ	RARG, m16+0(FP)
 	LEAQ	m16+6(FP), RARG
 	MOVL	(RARG), IDTR
 	RET
 
-TEXT trput(SB), 1, $-4
+.global trput
+trput:
 	MOVW	RARG, TASK
 	RET
+*/
 
 /*
  * Read/write various system registers.
  */
-TEXT cr0get(SB), 1, $-4				/* Processor Control */
-	MOVQ	CR0, AX
+.global cr0get
+cr0get:
+	MOVQ	%cr0, %rax
 	RET
 
-TEXT cr0put(SB), 1, $-4
-	MOVQ	RARG, AX
-	MOVQ	AX, CR0
+.global cr0put
+cr0put:
+	MOVQ	%rdi, %rax
+	MOVQ	%rax, %cr0
 	RET
 
-TEXT cr2get(SB), 1, $-4				/* #PF Linear Address */
-	MOVQ	CR2, AX
+.global cr2get
+cr2get:
+	MOVQ	%cr2, %rax
 	RET
 
-TEXT cr3get(SB), 1, $-4				/* PML4 Base */
-	MOVQ	CR3, AX
+.global cr3get
+cr3get:
+	MOVQ	%cr3, %rax
 	RET
 
-TEXT cr3put(SB), 1, $-4
-	MOVQ	RARG, AX
-	MOVQ	AX, CR3
+.global cr3put
+cr3put:
+	MOVQ	%rdi, %rax
+	MOVQ	%rax, %CR3
 	RET
 
-TEXT cr4get(SB), 1, $-4				/* Extensions */
-	MOVQ	CR4, AX
+.global cr4get
+cr4get:
+	MOVQ	%CR4, %rax
 	RET
 
-TEXT cr4put(SB), 1, $-4
-	MOVQ	RARG, AX
-	MOVQ	AX, CR4
+.global cr4put
+cr4put:
+	MOVQ	%rdi, %rax
+	MOVQ	%rax, %CR4
 	RET
 
-TEXT rdtsc(SB), 1, $-4				/* Time Stamp Counter */
+.global rdtsc
+rdtsc:
 	RDTSC
 						/* u64int rdtsc(void); */
-	XCHGL	DX, AX				/* swap lo/hi, zero-extend */
-	SHLQ	$32, AX				/* hi<<32 */
-	ORQ	DX, AX				/* (hi<<32)|lo */
+	XCHGL	%edx, %eax				/* swap lo/hi, zero-extend */
+	SHLQ	$32, %rax				/* hi<<32 */
+	ORQ	%rdx, %rax				/* (hi<<32)|lo */
 	RET
 
-TEXT rdmsr(SB), 1, $-4				/* Model-Specific Register */
-	MOVL	RARG, CX
+.global rdmsr
+rdmsr:
+	MOVL	%edi, %ecx
 
 	RDMSR
 						/* u64int rdmsr(u32int); */
-	XCHGL	DX, AX				/* swap lo/hi, zero-extend */
-	SHLQ	$32, AX				/* hi<<32 */
-	ORQ	DX, AX				/* (hi<<32)|lo */
+	XCHGL	%edx, %eax				/* swap lo/hi, zero-extend */
+	SHLQ	$32, %rax				/* hi<<32 */
+	ORQ	%rdx, %rax				/* (hi<<32)|lo */
 	RET
 
-TEXT wrmsr(SB), 1, $-4
-	MOVL	RARG, CX
-	MOVL	lo+8(FP), AX
-	MOVL	hi+12(FP), DX
+.global wrmsr
+wrmsr:
+	MOVL	%edi, CX
+	MOVL	%esi, %eax
+	MOVL	%edx, %edx
 
 	WRMSR
 
 	RET
 
-TEXT invlpg(SB), 1, $-4				/* INVLPG va+0(FP) */
-	MOVQ	RARG, va+0(FP)
+.global invlpg
+invlpg:
+#	MOVQ	%rdi, va+0(FP)
 
-	INVLPG	va+0(FP)
+#	INVLPG	va+0(FP)
 
 	RET
 
-TEXT wbinvd(SB), 1, $-4
+.global wbinvd
+wbinvd:
 	WBINVD
 	RET
 
 /*
  * Serialisation.
  */
-TEXT lfence(SB), 1, $-4
+.global lfence
+lfence:
 	LFENCE
 	RET
 
-TEXT mfence(SB), 1, $-4
+.global mfence
+mfence:
 	MFENCE
 	RET
 
-TEXT sfence(SB), 1, $-4
+.global sfence
+sfence:
 	SFENCE
 	RET
 
@@ -223,66 +256,73 @@ TEXT sfence(SB), 1, $-4
  * Note: CLI and STI are not serialising instructions.
  * Is that assumed anywhere?
  */
-TEXT splhi(SB), 1, $-4
+.global splhi
+splhi:
 _splhi:
 	PUSHFQ
-	POPQ	AX
-	TESTQ	$If, AX				/* If - Interrupt Flag */
+	POPQ	%rax
+	TESTQ	$If, %rax				/* If - Interrupt Flag */
 	JZ	_alreadyhi			/* use CMOVLEQ etc. here? */
 
-	MOVQ	(SP), BX
-	MOVQ	BX, 8(RMACH) 			/* save PC in m->splpc */
+	MOVQ	(%rsp), %rbx
+	MOVQ	%rbx, 8(%r15) 			/* save PC in m->splpc */
 
 _alreadyhi:
 	CLI
 	RET
 
-TEXT spllo(SB), 1, $-4
+.global spllo
+spllo:
 _spllo:
 	PUSHFQ
-	POPQ	AX
-	TESTQ	$If, AX				/* If - Interrupt Flag */
+	POPQ	%rax
+	TESTQ	$If, %rax				/* If - Interrupt Flag */
 	JNZ	_alreadylo			/* use CMOVLEQ etc. here? */
 
-	MOVQ	$0, 8(RMACH)			/* clear m->splpc */
+	MOVQ	$0, 8(%r15)			/* clear m->splpc */
 
 _alreadylo:
 	STI
 	RET
 
-TEXT splx(SB), 1, $-4
-	TESTQ	$If, RARG			/* If - Interrupt Flag */
+.global splx
+splx:
+	TESTQ	$If, %rdi			/* If - Interrupt Flag */
 	JNZ	_spllo
 	JMP	_splhi
 
-TEXT spldone(SB), 1, $-4
+.global spldone
+spldone:
 	RET
 
-TEXT islo(SB), 1, $-4
+.global islo
+islo:
 	PUSHFQ
-	POPQ	AX
-	ANDQ	$If, AX				/* If - Interrupt Flag */
+	POPQ	%rax
+	ANDQ	$If, %rax				/* If - Interrupt Flag */
 	RET
 
 /*
  * Synchronisation
  */
-TEXT ainc(SB), 1, $-4				/* int ainc(int*); */
-	MOVL	$1, AX
-	LOCK; XADDL AX, (RARG)
-	ADDL	$1, AX				/* overflow if -ve or 0 */
-	JGT	_return
+.global ainc
+ainc:
+	MOVL	$1, %eax
+	LOCK; XADDL %eax, (%rdi)
+	ADDL	$1, %eax				/* overflow if -ve or 0 */
+	JG	_return
 _trap:
-	XORQ	BX, BX
-	MOVQ	(BX), BX			/* over under sideways down */
+	XORQ	%rbx, %rbx
+	MOVQ	(%rbx), %rbx			/* over under sideways down */
 _return:
 	RET
 
-TEXT adec(SB), 1, $-4				/* int adec(int*); */
-	MOVL	$-1, AX
-	LOCK; XADDL AX, (RARG)
-	SUBL	$1, AX				/* underflow if -ve */
-	JLT	_trap
+.global adec
+adec:
+	MOVL	$-1, %eax
+	LOCK; XADDL %eax, (%rdi)
+	SUBL	$1, %eax				/* underflow if -ve */
+	JL	_trap
 
 	RET
 
@@ -291,117 +331,138 @@ TEXT adec(SB), 1, $-4				/* int adec(int*); */
  * and don't have the same overflow/underflow conditions
  * as ainc/adec.
  */
-TEXT semainc(SB), 1, $-4			/* int semainc(int*); */
-	MOVL	$1, AX
-	LOCK; XADDL AX, (RARG)
-	ADDL	$1, AX
+.global semainc
+semainc:
+	MOVL	$1, %eax
+	LOCK; XADDL %eax, (%rdi)
+	ADDL	$1, %eax
 	RET
 
-TEXT semadec(SB), 1, $-4			/* int semadec(int*); */
-	MOVL	$-1, AX
-	LOCK; XADDL AX, (RARG)
-	SUBL	$1, AX
+.global semadec
+semadec:
+	MOVL	$-1, %eax
+	LOCK; XADDL %eax, (%rdi)
+	SUBL	$1, %eax
 	RET
 
-TEXT tas32(SB), 1, $-4
-	MOVL	$0xdeaddead, AX
-	XCHGL	AX, (RARG)			/*  */
+.global tas32
+tas32:
+	MOVL	$0xdeaddead, %eax
+	XCHGL	%eax, (%rdi)			/*  */
 	RET
 
-TEXT fas64(SB), 1, $-4
-	MOVQ	p+8(FP), AX
-	LOCK; XCHGQ	AX, (RARG)			/*  */
+.global fas64
+fas64:
+	MOVQ	%rdi, %rax
+	//LOCK; XCHGQ	%eax, (%rdi)			/*  */
 	RET
 
-TEXT cas32(SB), 1, $-4
-	MOVL	exp+8(FP), AX
-	MOVL	new+16(FP), BX
-	LOCK; CMPXCHGL BX, (RARG)
-	MOVL	$1, AX				/* use CMOVLEQ etc. here? */
+.global cas32
+cas32:
+	MOVL	%edi, %eax
+	MOVL	%esi, %ebx
+	LOCK; CMPXCHGL %ebx, (%rdi)
+	MOVL	$1, %eax				/* use CMOVLEQ etc. here? */
 	JNZ	_cas32r0
 _cas32r1:
 	RET
 _cas32r0:
-	DECL	AX
+	DECL	%eax
 	RET
 
-TEXT cas64(SB), 1, $-4
-	MOVQ	exp+8(FP), AX
-	MOVQ	new+16(FP), BX
-	LOCK; CMPXCHGQ BX, (RARG)
-	MOVL	$1, AX				/* use CMOVLEQ etc. here? */
+.global cas64
+cas64:
+	MOVQ	%rdi, %rax
+	MOVQ	%rsi, BX
+	LOCK; CMPXCHGQ %rbx, (%rdi)
+	MOVL	$1, %eax				/* use CMOVLEQ etc. here? */
 	JNZ	_cas64r0
 _cas64r1:
 	RET
 _cas64r0:
-	DECL	AX
+	DECL	%eax
 	RET
 
 /*
  * Label consists of a stack pointer and a programme counter
+ * NOT ON GCC!
  */
-TEXT gotolabel(SB), 1, $-4
-	MOVQ	0(RARG), SP			/* restore SP */
-	MOVQ	8(RARG), AX			/* put return PC on the stack */
-	MOVQ	AX, 0(SP)
-	MOVL	$1, AX				/* return 1 */
+.global gotolabel
+gotolabel:
+
+#	MOVQ	0(%rdi), SP			/* restore SP */
+#	MOVQ	8(%rdi), %rax			/* put return PC on the stack */
+#	MOVQ	%rax, 0(SP)
+
+	MOVL	$1, %eax				/* return 1 */
 	RET
 
-TEXT setlabel(SB), 1, $-4
-	MOVQ	SP, 0(RARG)			/* store SP */
-	MOVQ	0(SP), BX			/* store return PC */
-	MOVQ	BX, 8(RARG)
-	MOVL	$0, AX				/* return 0 */
+.global setlabel
+setlabel:
+
+#	MOVQ	SP, 0(%rdi)			/* store SP */
+#	MOVQ	0(SP), BX			/* store return PC */
+#	MOVQ	BX, 8(%rdi)
+
+	MOVL	$0, %eax				/* return 0 */
 	RET
 
-TEXT hardhalt(SB), 1, $-4
+.global hardhalt
+hardhalt:
 	STI
 	HLT
 	RET
 
-TEXT _monitor(SB), 1, $-4			/* void monitor(void*); */
-	MOVQ	RARG, AX			/* linear address to monitor */
-	XORQ	CX, CX				/* no optional extensions yet */
-	XORQ	DX, DX				/* no optional hints yet */
-	BYTE $0x0f; BYTE $0x01; BYTE $0xc8	/* MONITOR */
+.global _monitor
+_monitor:
+	MOVQ	%rdi, %rax			/* linear address to monitor */
+	XORQ	%rcx, %rcx				/* no optional extensions yet */
+	XORQ	%rdx, %rdx				/* no optional hints yet */
+	.byte $0x0f; .byte $0x01; .byte $0xc8	/* MONITOR */
 	RET
 
-TEXT _mwait(SB), 1, $-4				/* void mwait(u32int); */
-	MOVLQZX	RARG, CX			/* optional extensions */
-	BYTE $0x0f; BYTE $0x01; BYTE $0xc9	/* MWAIT */
+.global _mwait
+_mwait:
+#	MOVLQZX	%rdi, %rcx			/* optional extensions */
+	.byte $0x0f; .byte $0x01; .byte $0xc9	/* MWAIT */
 	RET
 
-TEXT	k10mwait+0(SB),0,$16
+.global k10mwait
+k10mwait:
 k10mwloop:
-	MOVQ	RARG,CX
-	MOVQ	(CX),AX
-	CMPQ	AX,$0
+	MOVQ	%rdi,%rcx
+	MOVQ	(%rcx),%rax
+#	CMPQ	%rax,$0
 	JNE		k10mwdone
-	MOVQ	RARG, AX			/* linear address to monitor */
-	XORQ	CX, CX				/* no optional extensions yet */
-	XORQ	DX, DX				/* no optional hints yet */
-	BYTE $0x0f; BYTE $0x01; BYTE $0xc8	/* MONITOR */
-	MOVQ	RARG,CX
-	MOVQ	(CX),AX
-	CMPQ	AX,$0
+	MOVQ	%rdi, %rax			/* linear address to monitor */
+	XORQ	%rcx, %rcx				/* no optional extensions yet */
+	XORQ	%rdx, %rdx				/* no optional hints yet */
+	.byte $0x0f; .byte $0x01; .byte $0xc8	/* MONITOR */
+	MOVQ	%rdi,%rcx
+	MOVQ	0(%rcx),%rax
+#	CMPQ	%rax,$0
 	JNE		k10mwdone
-	XORQ CX, CX			/* optional extensions */
-	BYTE $0x0f; BYTE $0x01; BYTE $0xc9	/* MWAIT */
+	XORQ %rcx, %rcx			/* optional extensions */
+	.byte $0x0f; .byte $0x01; .byte $0xc9	/* MWAIT */
 	JMP		k10mwloop
 k10mwdone:
-	RET	,
-
-TEXT mul64fract(SB), 1, $-4
-	MOVQ	a+8(FP), AX
-	MULQ	b+16(FP)			/* a*b */
-	SHRQ	$32, AX:DX
-	MOVQ	AX, (RARG)
 	RET
+
+/* not needed.
+.global mul64fract
+mul64fract:
+	MOVQ	%rdi, %rax
+	MULQ	%rsi			/* a*b *
+	SHRQ	$32, %rax:DX
+	MOVQ	%rax, (%rdi)
+	RET
+*/
 
 ///*
 // * Testing.
 // */
-//TEXT ud2(SB), $-4
+//.global ud2
+ud2:
 //	BYTE $0x0f; BYTE $0x0b
 //	RET
 //
