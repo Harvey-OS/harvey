@@ -4,6 +4,10 @@
 #define __ASSEMBLER__
 #endif
 
+// It gets REALLY ugly to try  to link this at some low address and then have the rest of the
+// kernel linked high. Really, really ugly. And that defines any attempt to load at a randome
+// address. So, you have to learn to write position independent code here. 
+// It will make you stronger. Assuming you survive the training.
 .code32
 
 #define pFARJMP32(s, o)	.byte 0xea;	.long o; .word s	/* far jump to ptr32:16 */
@@ -58,7 +62,7 @@ _gdt32p:
 
 _gdtptr32p:	
 	.word	4*8-1
-	.long	_gdt32p
+	.long	0 // _gdt32p
 
 _gdt64:	
 	.quad	0x0000000000000000		/* NULL descriptor */
@@ -66,26 +70,27 @@ _gdt64:
 
 _gdtptr64p:	
 	.word	2*8-1
-	.quad	_gdt64
+	.quad	0 // _gdt64
 
 _gdtptr64v:	
 	.word	3*8-1
-	.quad	_gdt64
+	.quad	0 // _gdt64
 
 _endofheader:
 	movl	%eAX, %ebp				/* possible passed-in magic */
 
-	movl	_gdtptr32p, %eax
-	lgdt	(%eax)
+#warning need to make this all pc-rel
+//	movl	_gdtptr32p, %eax
+//	lgdt	(%eax)
 
-	movl	$SSEL(SiDS, SsTIGDT|SsRPL0), %eax
+//	movl	$SSEL(SiDS, SsTIGDT|SsRPL0), %eax
 	movw	%ax, %ds
 	movw	%ax, %es
 	movw	%ax, %fs
 	movw	%ax, %gs
 	movw	%ax, %ss
 
-	pFARJMP32(SSEL(SiCS, SsTIGDT|SsRPL0), _warp64-KZERO)
+//	pFARJMP32(SSEL(SiCS, SsTIGDT|SsRPL0), _warp64-KZERO)
 
 /*
  * Make the basic page tables for CPU0 to map 0-4MiB physical
@@ -127,7 +132,7 @@ _endofheader:
 #define PTO(v)		((PTLX((v), 0))<<3)
 
 _warp64:	
-	movl	$_protected-(MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ+KZERO), %esi
+//	movl	$_protected-(MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ+KZERO), %esi
 
 	movl	%esi, %edi
 	xorl	%eax, %eax
@@ -172,20 +177,20 @@ _warp64:
 lme:
 	movl	%cr4, %eax
 	ANDL	$~Pse, %eax			/* Page Size */
-	ORL	$(Pge|Pae), %eax			/* Page Global, Phys. Address */
+//	ORL	$(Pge|Pae), %eax			/* Page Global, Phys. Address */
 	movl	%eax, %cr4
 
-	movl	$Efer, %ecx			/* Extended Feature Enable */
+//	movl	$Efer, %ecx			/* Extended Feature Enable */
 	RDMSR
-	ORL	$Lme, %eax			/* Long Mode Enable */
+//	ORL	$Lme, %eax			/* Long Mode Enable */
 	WRMSR
 
 	movl	%cr0, %edx
-	ANDL	$~(Cd|Nw|Ts|Mp), %edx
-	ORL	$(Pg|Wp), %edx			/* Paging Enable */
+	//ANDL	$~(Cd|Nw|Ts|Mp), %edx
+	//ORL	$(Pg|Wp), %edx			/* Paging Enable */
 	movl	%edx, %cr0
 
-	pFARJMP32(SSEL(3, SsTIGDT|SsRPL0), _identity-KZERO)
+	//pFARJMP32(SSEL(3, SsTIGDT|SsRPL0), _identity-KZERO)
 
 /*
  * Long mode. Welcome to 2003.
@@ -195,9 +200,11 @@ lme:
 .code64
 
 _identity:
-	movq	$_start64v, %rax
+	//movq	$_start64v, %rax
 	JMP	*%rax
 
+// At this point, we are safe to use kernel addresses, as we are in
+// kernel virtual address space.
 _start64v:
 	movq	$_gdtptr64v, %rax
 	lgdt	(%eax)
