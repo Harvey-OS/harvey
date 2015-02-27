@@ -50,10 +50,7 @@ compiling()
 	## Assembly world ##
 	##----------------##
 
-	# This is the wrong way to fix this. We need to fix the script. But it will do until we can.
-	$AWK -f ../mk/mkenumb amd64.h | sed 's/\([0-9][0-9a-fA-F]*\)ull/\1/' > amd64l.h # mkenumb is shell independent
-
-	# We don't want one of these (sipi.c depends on sipi.h from l64sipi.s)#
+	$AWK -f ../mk/mkenumb amd64.h > amd64l.h # mkenumb is shell independent
 
 	## Boot ##
 	##------##

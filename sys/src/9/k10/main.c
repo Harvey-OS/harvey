@@ -500,7 +500,7 @@ userinit(void)
 	segpage(s, pg);
 	k = kmap(s->map[0]->pages[0]);
 	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
-	memmove(UINT2PTR(VA(k)), initcode, sizeof(uint8_t));
+	memmove(UINT2PTR(VA(k)), init_out, sizeof(init_out));
 	kunmap(k);
 
 	ready(p);

@@ -8,49 +8,46 @@
 .globl _clts
 _clts:
 	CLTS
-	RET
+	ret
 
 .globl _fldcw
 _fldcw:
-//	MOVQ	%rdi, cw+0(FP)
-//	FLDCW	cw+0(FP)
-	RET
+	fldcw	(%rdi)
+	ret
 
 .globl _fnclex
 _fnclex:
 	FCLEX
-	RET
+	ret
 
 .globl _fninit
 _fninit:
 	FINIT					/* no WAIT */
-	RET
+	ret
 
 .globl _fxrstor
 _fxrstor:
 	FXRSTOR64 0(%rdi)
-	RET
+	ret
 
 .globl _fxsave
 _fxsave:
 	FXSAVE64 0(%rdi)
-	RET
+	ret
 
 .globl _fwait
 _fwait:
 	WAIT
-	RET
+	ret
 
 .globl _ldmxcsr
 _ldmxcsr:
-#warning "(FP)?"
-//	MOVQ	%rdi, mxcsr+0(FP)
-	//LDMXCSR	mxcsr+0(FP)
-	RET
+	LDMXCSR	(%rdi)
+	ret
 
 .globl _stts
 _stts:
 	MOVQ	%CR0, %rax
 	ORQ	$8, %rax				/* Ts */
 	MOVQ	%rax, %CR0
-	RET
+	ret

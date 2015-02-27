@@ -95,12 +95,12 @@ _endofheader:
 /*
  * Make the basic page tables for CPU0 to map 0-4MiB physical
  * to KZERO, and include an identity map for the switch from protected
- * to paging mode. There's an assumption here that the creation and later
+ * to paging mode. There`s an assumption here that the creation and later
  * removal of the identity map will not interfere with the KZERO mappings;
  * the conditions for clearing the identity map are
  *	clear PML4 entry when (KZER0 & 0x0000ff8000000000) != 0;
  *	clear PDP entry when (KZER0 & 0x0000007fc0000000) != 0;
- *	don't clear PD entry when (KZER0 & 0x000000003fe00000) == 0;
+ *	don`t clear PD entry when (KZER0 & 0x000000003fe00000) == 0;
  * the code below assumes these conditions are met.
  *
  * Assume a recent processor with Page Size Extensions
@@ -172,7 +172,7 @@ _warp64:
  *	set Long Mode Enable in the Extended Feature Enable MSR;
  *	set Paging Enable in CR0;
  *	make an inter-segment jump to the Long Mode code.
- * It's all in 32-bit mode until the jump is made.
+ * It`s all in 32-bit mode until the jump is made.
  */
 lme:
 	movl	%cr4, %eax

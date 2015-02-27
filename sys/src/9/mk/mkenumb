@@ -31,6 +31,7 @@ inenum && $0 ~ /^[ \t]+[_A-Za-z][_0-9A-Za-z]+[ \t]+=[ \t]+[0-9A-Z_a-z()<> ]+,/{
 	else
 		sep = tab;
 	split($3, a, ",");
+	gsub(/ull/, "", a[1])
 	printf "#define %s%s%s", $1, sep, a[1];
 	if(match($0, /\/\*.*\*\/$/)){
 		len = length(a[1]);

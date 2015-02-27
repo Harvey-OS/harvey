@@ -3,17 +3,23 @@
  */
 .globl cpuid
 cpuid:
-	MOVQ	%rdi, %rax
+	pushq	%rbp
+	movq	%rsp, %rbp
+	pushq	%rbx
+	movl	%edi, -12(%rbp)
+	movq	%rsi, -24(%rbp)
+	movq	%rdx, -32(%rbp)
+	movl	-12(%rbp), %eax
 
-	CPUID					/* argument in %rax */
+	cpuid 	/* Argument in %rax */
 
-	MOVQ	%rsi, %rbp
-#warning "multipel return"
-//	MOVL	%rax, 0(%rpb)
-//	MOVL	BX, 4(%rpb)
-//	MOVL	CX, 8(%rpb)
-//	MOVL	DX, 12(%rpb)
-	RET
+	movq	-24(%rbp), %rcx
+	movl	%eax, (%rcx)
+	movq	-32(%rbp), %rax
+	movl	%edx, (%rax)
+	popq	%rbx
+	popq	%rbp
+	ret
 
 /*
  * Basic timing loop to determine CPU frequency.
@@ -21,8 +27,8 @@ cpuid:
  */
 .globl aamloop
 aamloop:
-	MOVQ	%rdi, %rcx
+	movq	%rdi, %rcx
 aaml1:
-	XORQ	%rax, %rax				/* close enough */
-	LOOP	aaml1
-	RET
+	xorq	%rax, %rax				/* close enough */
+	loop	aaml1
+	ret
