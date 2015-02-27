@@ -1,0 +1,212 @@
+.global abs
+abs:
+.global acidthandlers
+acidthandlers:
+.global _acsysret
+_acsysret:
+.global alt
+alt:
+.global _amd64_bin_auth_factotumcode
+_amd64_bin_auth_factotumcode:
+.global _amd64_bin_auth_factotumlen
+_amd64_bin_auth_factotumlen:
+.global _amd64_bin_ip_ipconfigcode
+_amd64_bin_ip_ipconfigcode:
+.global _amd64_bin_ip_ipconfiglen
+_amd64_bin_ip_ipconfiglen:
+.global atoi
+atoi:
+.global chancreate
+chancreate:
+.global chartorune
+chartorune:
+.global cistrcmp
+cistrcmp:
+.global cistrncmp
+cistrncmp:
+.global cleanname
+cleanname:
+.global convD2M
+convD2M:
+.global convM2D
+convM2D:
+.global convM2S
+convM2S:
+.global convS2M
+convS2M:
+.global defmask
+defmask:
+.global dirfmt
+dirfmt:
+.global DS
+DS:
+.global eipfmt
+eipfmt:
+.global ES
+ES:
+.global exec
+exec:
+.global exits
+exits:
+.global fcallfmt
+fcallfmt:
+.global fmtinstall
+fmtinstall:
+.global fmtprint
+fmtprint:
+.global fmtstrcpy
+fmtstrcpy:
+.global fmtstrflush
+fmtstrflush:
+.global fmtstrinit
+fmtstrinit:
+.global fork
+fork:
+.global fprint
+fprint:
+.global FS
+FS:
+.global getcallerpc
+getcallerpc:
+.global getfields
+getfields:
+.global GS
+GS:
+.global hmac_sha1
+hmac_sha1:
+.global hnputl
+hnputl:
+.global hnputs
+hnputs:
+.global idthandlers
+idthandlers:
+.global idtput
+idtput:
+.global initcode
+initcode:
+.global IPallbits
+IPallbits:
+.global IPnoaddr
+IPnoaddr:
+.global IPv4bcast
+IPv4bcast:
+.global isv4
+isv4:
+.global kerndate
+kerndate:
+.global maskip
+maskip:
+.global memccpy
+memccpy:
+.global memchr
+memchr:
+.global memcmp
+memcmp:
+.global memmove
+memmove:
+.global memset
+memset:
+.global nhgetl
+nhgetl:
+.global nhgets
+nhgets:
+.global open
+open:
+.global parseip
+parseip:
+.global parseipmask
+parseipmask:
+.global pread
+pread:
+.global procrfork
+procrfork:
+.global _protected
+_protected:
+.global qsort
+qsort:
+.global quotefmtinstall
+quotefmtinstall:
+.global runetochar
+runetochar:
+.global sdfakescsi
+sdfakescsi:
+.global sdsetsense
+sdsetsense:
+.global sendp
+sendp:
+.global seprint
+seprint:
+.global sipi
+sipi:
+.global smprint
+smprint:
+.global snprint
+snprint:
+.global sprint
+sprint:
+.global SS
+SS:
+.global ssldevtab
+ssldevtab:
+.global statcheck
+statcheck:
+.global strchr
+strchr:
+.global strcmp
+strcmp:
+.global strcpy
+strcpy:
+.global strdup
+strdup:
+.global strecpy
+strecpy:
+.global strlen
+strlen:
+.global strncmp
+strncmp:
+.global strncpy
+strncpy:
+.global strrchr
+strrchr:
+.global strstr
+strstr:
+.global strtol
+strtol:
+.global strtoul
+strtoul:
+.global strtoull
+strtoull:
+.global syscallentry
+syscallentry:
+.global sysrforkret
+sysrforkret:
+.global systab
+systab:
+.global threadexits
+threadexits:
+.global threadexitsall
+threadexitsall:
+.global tokenize
+tokenize:
+.global touser
+touser:
+.global trput
+trput:
+.global utfnlen
+utfnlen:
+.global utfrune
+utfrune:
+.global v4prefix
+v4prefix:
+.global v4tov6
+v4tov6:
+.global v6tov4
+v6tov4:
+.global vseprint
+vseprint:
+.global vsnprint
+vsnprint:
+.global write
+write:
+.global xactouser
+xactouser:

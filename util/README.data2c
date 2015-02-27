@@ -1,0 +1,3 @@
+data2.c needs to be compiled with plan9port.
+It's a substitute to data2s needed to kernel compiling.
+
