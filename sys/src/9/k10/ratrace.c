@@ -35,7 +35,7 @@ die(char *s)
 	exits(s);
 }
 
-void
+static void
 cwrite(int fd, char *path, char *cmd, int len)
 {
 	if (write(fd, cmd, len) < len) {
