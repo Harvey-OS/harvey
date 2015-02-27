@@ -34,6 +34,8 @@ GDBFLAG=	# -g
 PICFLAG=	# -fPIC
 OPTIMIZE=0
 EXTENSIONS="-fplan9-extensions"
+GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:*rdb.c:*etherbcm.c:*devprobe.c:*tcklock.c:*sipi.c:*sd.c:*ssl.c:*tls.c
+SOURCE="entry.S *.c ../386/*.c ../ip/*.c ../port/*.c l64v.S l64fpu.S cpuidamd64.S hack.S"
 
 compiling()
 {
@@ -52,7 +54,6 @@ compiling()
 	$AWK -f ../mk/mkenumb amd64.h | sed 's/\([0-9][0-9a-fA-F]*\)ull/\1/' > amd64l.h # mkenumb is shell independent
 
 	# We don't want one of these (sipi.c depends on sipi.h from l64sipi.s)#
-	GLOBIGNORE=*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:*rdb.c:*etherbcm.c:*devprobe.c:*tcklock.c:*sipi.c:*sd.c:*ssl.c:*tls.c
 
 	## Boot ##
 	##------##
@@ -108,9 +109,8 @@ compiling()
 
 	echo "Making all in kernel directories"
 	echo
-	i="entry.S *.c ../386/*.c ../ip/*.c ../port/*.c l64v.S l64fpu.S cpuidamd64.S hack.S"
-	echo $CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
-	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
+	echo $CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $SOURCE
+	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $SOURCE
 }
 
 linking()
@@ -119,7 +119,9 @@ linking()
 	rm init9.o initcode.o bootk8cpu.o printstub.o
 
 	# building from akaros
-  /bin/bash link.bash 
+	# this just got ugly.
+	# entry.o MUST be first.
+  /bin/bash link.bash  entry.o `echo *.o | sed s/entry.o//`
   # not likely what we want for a kernel. $COLLECT $COLLECTFLAGS -static -o 9 *.o $LDFLAGS -lip -lauth -lc
 }
 
