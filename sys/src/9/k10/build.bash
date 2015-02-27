@@ -38,7 +38,7 @@ EXTENSIONS="-fplan9-extensions"
 compiling()
 {
 	CFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin"
-	USERCFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin"
+	UCFLAGS="-O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin"
 
 	## General conf file ##
 	##-------------------##
@@ -109,7 +109,7 @@ compiling()
 	echo "Making all in kernel directories"
 	echo
 	i="*.c ../386/*.c ../ip/*.c ../port/*.c entry.S l64v.S l64fpu.S cpuidamd64.S"
-	echo "CC ${i}"
+	echo $CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
 	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c $i
 }
 
@@ -119,7 +119,7 @@ linking()
 	rm init9.o initcode.o bootk8cpu.o printstub.o
 
 	# building from akaros
-  /bin/bash link.bash 9k kernel64.ld -z max-page-size=0x1000
+  /bin/bash link.bash 
   # not likely what we want for a kernel. $COLLECT $COLLECTFLAGS -static -o 9 *.o $LDFLAGS -lip -lauth -lc
 }
 

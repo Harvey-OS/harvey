@@ -6,3 +6,6 @@ clean:
 
 build:
 	bash build.bash
+
+link:
+	bash link.bash

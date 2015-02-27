@@ -12,25 +12,32 @@
 # Linux's kallsyms, their build script, and
 # http://stackoverflow.com/questions/11254891/can-a-running-c-program-access-its-own-symbol-table
 
+NM=nm
+CC=gcc
+LD=ld
+OBJDUMP=objdump
+OBJDIR=.
+
 gen_symtab_obj()
 {
 	$NM -n $KERNEL_OBJECT > $KSYM_MAP
-	awk 'BEGIN{ print "#include <kdebug.h>";
-	            print "struct symtab_entry gbl_symtab[]={" }
-	     { if(NF==3){print "{\"" $3 "\", 0x" $1 "},"}}
-	     END{print "{0,0} };"}' $KSYM_MAP > $KSYM_C
-	$CC $NOSTDINC_FLAGS $AKAROSINCLUDE $CFLAGS_KERNEL -o $KSYM_O -c $KSYM_C
+	#awk 'BEGIN{ print "//#include <kdebug.h>";
+	            #print "struct symtab_entry gbl_symtab[]={" }
+	     #{ if(NF==3){print "{\"" $3 "\", 0x" $1 "},"}}
+	     #END{print "{0,0} };"}' $KSYM_MAP > $KSYM_C
+	echo "FIX THIS SOMEDAY"
+	#$CC $NOSTDINC_FLAGS $AKAROSINCLUDE $CFLAGS_KERNEL -o $KSYM_O -c $KSYM_C
 }
 
-KERNEL_OBJECT=$1
+KERNEL_OBJECT=9k
 shift
-LINKER_SCRIPT=$1
+LINKER_SCRIPT=kernel.ld
 shift
-REMAINING_ARGS=$@
+REMAINING_ARGS="-z max-page-size=0x1000 *.o $@"
 
-KSYM_MAP=$OBJDIR/kern/ksyms.map
-KSYM_C=$OBJDIR/kern/ksyms-refl.c
-KSYM_O=$OBJDIR/kern/ksyms-refl.o
+KSYM_MAP=$OBJDIR/ksyms.map
+KSYM_C=$OBJDIR/ksyms-refl.c
+KSYM_O=$OBJDIR/ksyms-refl.o
 
 # Use "make V=1" to debug this script (from Linux)
 case "${KBUILD_VERBOSE}" in
@@ -43,16 +50,16 @@ esac
 $LD -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS
 
 # Generates a C and obj file with a table of the correct size, with relocs
-gen_symtab_obj
+echo FIX ME gen_symtab_obj
 
 # Links the syms with the kernel and inserts the glb_symtab in the kernel.
-$LD -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS $KSYM_O
+$LD -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS # $KSYM_O
 
 # Need to recheck/compute the symbols (table size won't change)
-gen_symtab_obj
+# gen_symtab_obj
 
 # Final link
-$LD -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS $KSYM_O
+# $LD -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS # $KSYM_O
 
 # And objdump for debugging
 $OBJDUMP -S $KERNEL_OBJECT > $KERNEL_OBJECT.asm
