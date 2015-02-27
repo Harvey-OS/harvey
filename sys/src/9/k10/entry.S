@@ -20,6 +20,8 @@
  *	load all the data segments
  *	load the code segment via a far jump.
  */
+	.globl _start
+_start:	
 entry32: 
 	cli
 	/* save the IP. We will then use this to get the

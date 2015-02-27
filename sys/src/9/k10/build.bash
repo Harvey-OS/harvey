@@ -37,7 +37,8 @@ EXTENSIONS="-fplan9-extensions"
 
 compiling()
 {
-	CFLAGS="-O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin"
+	CFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin"
+	USERCFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin"
 
 	## General conf file ##
 	##-------------------##
@@ -87,8 +88,8 @@ compiling()
 	## init.h ##
 	##--------##
 
-	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c init9.c
-	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c ../port/initcode.c
+	$CC $UCFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c init9.c
+	$CC $UCFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c ../port/initcode.c
 
 	# I'm sure this binary is wrong. Check when kernel will build entirely
 
@@ -116,7 +117,10 @@ linking()
 {
 	# These are not part of the kernel
 	rm init9.o initcode.o bootk8cpu.o printstub.o
-	$COLLECT $COLLECTFLAGS -static -o 9 *.o $LDFLAGS -lip -lauth -lc
+
+	# building from akaros
+  /bin/bash link.bash 9k kernel64.ld -z max-page-size=0x1000
+  # not likely what we want for a kernel. $COLLECT $COLLECTFLAGS -static -o 9 *.o $LDFLAGS -lip -lauth -lc
 }
 
 args=("$@")
