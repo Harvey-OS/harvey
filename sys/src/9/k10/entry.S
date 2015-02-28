@@ -28,15 +28,14 @@
 _start:	
 entry32: 
 	cli
-	call 1f
-1:
 	/* save the IP. We will then use this to get the
 	 * physical address of the gdt.
 	 */
-	// WTF is it called again?
-	//movl	%ip, %ebp
-	/* when you execute this instruction, bp as the value
-	 * of the ip at the start of this instruction.
+	call 1f
+1:
+	popl	%ebp
+	/* when you execute this instruction, bp has the value
+	 * of 1f.
 	 * So add the length of this instruction and the
 	 * 5 bytes of the jmp that follows it.
 	 * It will then point to start of header.
