@@ -24,9 +24,35 @@
  *	load all the data segments
  *	load the code segment via a far jump.
  */
+#define MULTIBOOT_PAGE_ALIGN  (1<<0)
+#define MULTIBOOT_MEMORY_INFO (1<<1)
+#define MULTIBOOT_HEADER_MAGIC (0x1BADB002)
+#define MULTIBOOT_HEADER_FLAGS (MULTIBOOT_MEMORY_INFO | MULTIBOOT_PAGE_ALIGN)
+#define CHECKSUM (-(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS))
+
+# The kernel bootstrap (this code) is linked and loaded at physical address
+# 0x00100000 (1MB), which is the start of extended memory.  (See kernel.ld)
+
+# Flagging boottext to be text.  Check out:
+# http://sourceware.org/binutils/docs/as/Section.html
+.section .boottext, "awx"
+
+.code32
+.align 4
+multiboot_header:
+.long MULTIBOOT_HEADER_MAGIC
+.long MULTIBOOT_HEADER_FLAGS
+.long CHECKSUM
+
 	.globl _start
 _start:	
-entry32: 
+entry32:
+1:
+	movb	$0x30, %al
+	movw $0x30, %dx
+	outb %dx
+	jmp 1b
+	hlt
 	cli
 	/* save the IP. We will then use this to get the
 	 * physical address of the gdt.

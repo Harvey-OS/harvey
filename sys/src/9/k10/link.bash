@@ -64,3 +64,6 @@ $LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS # $KSYM_O
 
 # And objdump for debugging
 $OBJDUMP -S $KERNEL_OBJECT > $KERNEL_OBJECT.asm
+
+
+objcopy -I elf64-x86-64 -O elf32-i386 9k 9k.32bit

@@ -7,10 +7,21 @@
 
 OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
 ENTRY(_start)
-KERN_LOAD_ADDR = 0xffffffffc0000000;
+KERN_LOAD_ADDR = 0xffffffffc0100000;
 
 SECTIONS
 {
+	/* Entry Linked and loaded at 0x00100000 (includes multiboot) */
+	. = 0x00100000;
+
+	.bootstrap : {
+		*(.boottext .bootdata)
+	}
+
+	/* Needed this for syslinux, which was sitting around 16MB phys.  This just
+	 * jumps us forward to the 32MB mark, both physically and virtually. */
+	. = 0x02000000;
+
 	/* Link the main kernel for the space after entry + KERN_LOAD_ADDR.  We'll
 	 * still load it adjacent in physical memory */
 	. += KERN_LOAD_ADDR;
