@@ -66,7 +66,7 @@ entry32:
 	 * 5 bytes of the jmp that follows it.
 	 * It will then point to start of header.
 	 */
-	addl $7, %ebp
+	addl $12, %ebp
 	/* Now make it point to gdt32p (gdt, 32 bits, physical)
 	 */
 	addl $14, %ebp
