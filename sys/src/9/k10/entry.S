@@ -45,13 +45,75 @@ multiboot_header:
 .long CHECKSUM
 
 	.globl _start
-_start:	
+_start:
+	jmp 1f
+
+
+	/* This is the GDT for the ROM stage part of coreboot. It
+	 * is different from the RAM stage GDT which is defined in
+	 * c_start.S
+	 */
+
+	.align	4
+.globl gdtptr
+gdt:
+gdtptr:
+	.word	gdt_end - gdt -1 /* compute the table limit */
+	.long	gdt		 /* we know the offset */
+	.word	0
+
+	/* selgdt 0x08, flat code segment */
+	.word	0xffff, 0x0000
+	.byte	0x00, 0x9b, 0xcf, 0x00 /* G=1 and 0x0f, So we get 4Gbytes for limit */
+
+	/* selgdt 0x10,flat data segment */
+	.word	0xffff, 0x0000
+	.byte	0x00, 0x93, 0xcf, 0x00
+
+gdt_end:
+
+
+/*
+ *	When we come here we are in protected mode. We expand
+ *	the stack and copies the data segment from ROM to the
+ *	memory.
+ *
+ *	After that, we call the chipset bootstrap routine that
+ *	does what is left of the chipset initialization.
+ *
+ *	NOTE aligned to 4 so that we are sure that the prefetch
+ *	cache will be reloaded.
+ */
+	.align	4
+1: 
+	jmp 1b
+.globl protected_start
+protected_start:
+
+	lgdt	%cs:gdtptr
+	ljmp	$8, $__protected_start
+
+__protected_start:
+	/* Save the BIST value */
+	movl	%eax, %ebp
+	movw	$0x10, %ax
+	movw	%ax, %ds
+	movw	%ax, %es
+	movw	%ax, %ss
+	movw	%ax, %fs
+	movw	%ax, %gs
+
+	/* Restore the BIST value to %eax */
+	movl	%ebp, %eax
+	
 entry32:
 1:
 	movb	$0x30, %al
 	movw $0x30, %dx
 	outb %dx
 	jmp 1b
+// CODE IS KNOWN GOOD TO THIS POINT.
+// This gets us into a reasonable mode. We can skip the plan 9 gdt code.
 	hlt
 	cli
 	/* save the IP. We will then use this to get the
@@ -104,20 +166,23 @@ _gdtptr64v:
 	.quad	0 // _gdt64
 
 _endofheader:
-	movl	%eAX, %ebp				/* possible passed-in magic */
+	pushl %eax				/* possible passed-in magic */
 
-#warning need to make this all pc-rel
-//	movl	_gdtptr32p, %eax
-//	lgdt	(%eax)
+	// remember, ebp has the pointer to the 32-bit physically-addressed
+	// gdtptr32p (gdt pointer 32 bit mode physical)
+	//movl	$_gdtptr32p, %eax
+	//movl	%ebp, %eax
+	//lgdt	(%eax)
 
-//	movl	$SSEL(SiDS, SsTIGDT|SsRPL0), %eax
-	movw	%ax, %ds
-	movw	%ax, %es
-	movw	%ax, %fs
-	movw	%ax, %gs
-	movw	%ax, %ss
-
-//	pFARJMP32(SSEL(SiCS, SsTIGDT|SsRPL0), _warp64-KZERO)
+	//movl	$SSEL(SiDS, SsTIGDT|SsRPL0), %eax
+	//movw	%ax, %ds
+	//movw	%ax, %es
+	//movw	%ax, %fs
+	//movw	%ax, %gs
+	//movw	%ax, %ss
+	//
+	//ljmp $8, $_warp64
+	//pFARJMP32(SSEL(SiCS, SsTIGDT|SsRPL0), _warp64-KZERO)
 
 /*
  * Make the basic page tables for CPU0 to map 0-4MiB physical
