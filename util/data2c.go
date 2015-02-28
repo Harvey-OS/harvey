@@ -10,13 +10,13 @@ import (
 func main() {
 	flag.Parse()
 	a := flag.Args()
-	i := a[0]
-	o := a[1]
 	if len(a) != 2 {
 		fmt.Fprintf(os.Stderr, "[%v]usage: data2s name\n", a)
 		os.Exit(1)
 	}
 
+	i := a[0]
+	o := a[1]
 	in, err := ioutil.ReadFile(i)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Read %v: %v\n", a[0], err)
