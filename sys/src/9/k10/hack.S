@@ -180,8 +180,6 @@ strtoull:
 syscallentry:
 .global sysrforkret
 sysrforkret:
-.global systab
-systab:
 .global threadexits
 threadexits:
 .global threadexitsall
