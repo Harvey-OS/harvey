@@ -46,6 +46,7 @@ multiboot_header:
 
 	.globl _start
 _start:
+	cli
 	jmp 1f
 
 
@@ -69,6 +70,9 @@ gdtptr:
 	/* selgdt 0x10,flat data segment */
 	.word	0xffff, 0x0000
 	.byte	0x00, 0x93, 0xcf, 0x00
+
+	/* long mode code segment. */
+	.quad	0x0020980000000000		/* Long mode CS */
 
 gdt_end:
 
@@ -114,11 +118,6 @@ entry32:
 	jmp 1b
 // CODE IS KNOWN GOOD TO THIS POINT.
 // This gets us into a reasonable mode. We can skip the plan 9 gdt code.
-	hlt
-	cli
-	/* save the IP. We will then use this to get the
-	 * physical address of the gdt.
-	 */
 	call 1f
 1:
 	popl	%ebp
