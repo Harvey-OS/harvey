@@ -257,8 +257,8 @@ function mksystab(					a, i, f, n, s, t){
 			t = t "{ \"" n "\", " f ", {" a[2] " },\n";
 		}
 	}
-	s = s "struct {\n\tchar*\tn;\n\tvoid (*f)(Ar0*, va_list);\n\tAr0\tr;\n}";
-	s = s " systab_t[] = {\n" t "};\n\nint nsyscall = nelem(systab_t);\n";
+	#s = s "struct {\n\tchar*\tn;\n\tvoid (*f)(Ar0*, va_list);\n\tAr0\tr;\n}";
+	s = s " systab_t systab = {\n" t "};\n\nint nsyscall = nelem(systab);\n";
 
 	return s;
 }

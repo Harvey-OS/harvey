@@ -128,11 +128,11 @@ gdtput:
 //x	lgdt (%rdi):(%rsi)
 
 	XORQ	%rax, %rax
-	MOVW	%ax, DS
-	MOVW	%ax, ES
-	MOVW	%ax, FS
-	MOVW	%ax, GS
-	MOVW	%ax, SS
+	MOVW	%ax, %ds
+	MOVW	%ax, %es
+	MOVW	%ax, %fs
+	MOVW	%ax, %gs
+	MOVW	%ax, %ss
 
 	POPQ	%ax
 	RET
