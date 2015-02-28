@@ -28,6 +28,8 @@
 _start:	
 entry32: 
 	cli
+	call 1f
+1:
 	/* save the IP. We will then use this to get the
 	 * physical address of the gdt.
 	 */

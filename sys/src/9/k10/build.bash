@@ -106,13 +106,13 @@ compiling()
 
 	# Do we must strip binary?
 	# strip bootk8cpu.out
-	data2c bootk8cpu_out < bootk8cpu.out >> k8cpu.root.c
+	data2c bootk8cpu_out bootk8cpu.out >> k8cpu.root.c
 
 	# We haven't these for now. If strip it's not needed, cp step should be gone and /amd64/binary should be passed to data2c.
 	#cp /amd64/bin/auth/factotum factotum; strip factotum
-    #data2c _amd64_bin_auth_factotum < factotum >> k8cpu.root.c
+    #data2c _amd64_bin_auth_factotum  factotum >> k8cpu.root.c
     #cp /amd64/bin/ip/ipconfig ipconfig; strip ipconfig
-	#data2c _amd64_bin_ip_ipconfig < ipconfig >> k8cpu.root.c
+	#data2c _amd64_bin_ip_ipconfig  ipconfig >> k8cpu.root.c
 
 	## Let's go! ##
 	##-----------##
