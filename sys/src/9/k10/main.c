@@ -272,8 +272,8 @@ main(uint32_t ax, uint32_t bx)
 	int64_t hz;
 
 	wave('H');
-	die("Stop here until we implement memset\n");
 	memset(edata, 0, end - edata);
+	die("Right after memset\n");
 
 	wave('a');
 	/*

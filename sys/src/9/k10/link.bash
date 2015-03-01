@@ -17,7 +17,7 @@ CC=gcc
 LD=ld
 OBJDUMP=objdump
 OBJDIR=.
-LDFLAGS="-z max-page-size=0x1000"
+LDFLAGS="-z max-page-size=0x1000 -nostdlib"
 
 gen_symtab_obj()
 {
@@ -46,15 +46,15 @@ case "${KBUILD_VERBOSE}" in
 esac
 
 # Generates the first version of $KERNEL_OBJECT
-echo $LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS
-$LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS
+echo $LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS 
+$LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS 
 
 # Generates a C and obj file with a table of the correct size, with relocs
 echo FIX ME gen_symtab_obj
 
 # Links the syms with the kernel and inserts the glb_symtab in the kernel.
-echo $LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS # $KSYM_O
-$LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS # $KSYM_O
+echo $LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS # $KSYM_O 
+$LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS # $KSYM_O 
 
 # Need to recheck/compute the symbols (table size won't change)
 # gen_symtab_obj

@@ -104,8 +104,8 @@ memchr:
 memcmp:
 .global memmove
 memmove:
-.global memset
-memset:
+#.global memset
+#memset:
 .global nhgetl
 nhgetl:
 .global nhgets
