@@ -250,21 +250,31 @@ HERE(void)
 	delay(5000);
 }
 
+// The old plan 9 standby ... wave ... 
+void wave(int c)
+{
+	outb(0x3f8, c);
+}
+
 void
 main(uint32_t ax, uint32_t bx)
 {
 	int64_t hz;
-	while (1);
 
+	wave('H');
 	memset(edata, 0, end - edata);
 
+	wave('a');
+	while(1);
 	/*
 	 * ilock via i8250enable via i8250console
 	 * needs m->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
 	cgapost(sizeof(uintptr_t)*8);
+	wave('r');
 	memset(m, 0, sizeof(Mach));
+	wave('v');
 	m->machno = 0;
 	m->online = 1;
 	m->nixtype = NIXTC;
@@ -275,10 +285,15 @@ main(uint32_t ax, uint32_t bx)
 	active.nonline = 1;
 	active.exiting = 0;
 	active.nbooting = 0;
+	wave('e');
 	asminit();
+	wave('y');
 	multiboot(ax, bx, 0);
+	wave(';');
 	options(oargc, oargv);
+	wave('s');
 	crapoptions();
+	wave('a');
 
 	/*
 	 * Need something for initial delays
@@ -288,10 +303,12 @@ main(uint32_t ax, uint32_t bx)
 	m->cpumhz = 2000;
 
 	cgainit();
+	wave('y');
 	i8250console("0");
 	consputs = cgaconsputs;
 
 	vsvminit(MACHSTKSZ, NIXTC);
+	wave('s');
 
 	sys->nmach = 1;			
 
