@@ -264,9 +264,7 @@ lme:
 	ANDL	$~(Cd|Nw|Ts|Mp), %edx
 	ORL	$(Pg|Wp), %edx			/* Paging Enable */
 	movl	%edx, %cr0
-1: 
-	jmp 1b
-	// it is good to here.
+	ljmp $0x18, $_identity
 	//pFARJMP32(SSEL(3, SsTIGDT|SsRPL0), _identity-KZERO)
 
 /*
@@ -277,12 +275,16 @@ lme:
 .code64
 
 _identity:
-	//movq	$_start64v, %rax
+// gets here
+	movq	$_start64v, %rax
 	JMP	*%rax
+// dies here ... paging is wrong I guess.
+.section .text
 
 // At this point, we are safe to use kernel addresses, as we are in
 // kernel virtual address space.
 _start64v:
+1: jmp 1b
 	movq	$_gdtptr64v, %rax
 	lgdt	(%eax)
 //	movl	0(%eax), GDTR
