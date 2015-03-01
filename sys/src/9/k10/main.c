@@ -254,6 +254,7 @@ void
 main(uint32_t ax, uint32_t bx)
 {
 	int64_t hz;
+	while (1);
 
 	memset(edata, 0, end - edata);
 

@@ -10,7 +10,7 @@ ENTRY(_start)
 /* start the kernel at 0x110000. 
  * That way we can use lower ram for critical structures
  */
-KERN_LOAD_ADDR = 0xffffffffc0110000;
+KERN_LOAD_ADDR = 0xfffffffff0000000;
 
 SECTIONS
 {

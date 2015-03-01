@@ -258,7 +258,6 @@ lme:
 	RDMSR
 	ORL	$Lme, %eax			/* Long Mode Enable */
 	WRMSR
-	// We get to there.
 
 	movl	%cr0, %edx
 	ANDL	$~(Cd|Nw|Ts|Mp), %edx
@@ -275,19 +274,16 @@ lme:
 .code64
 
 _identity:
-// gets here
 	movq	$_start64v, %rax
 	JMP	*%rax
-// dies here ... paging is wrong I guess.
 .section .text
 
 // At this point, we are safe to use kernel addresses, as we are in
 // kernel virtual address space.
 _start64v:
-1: jmp 1b
 	movq	$_gdtptr64v, %rax
-	lgdt	(%eax)
-//	movl	0(%eax), GDTR
+	lgdt	(%rax)
+// WE GET TO HERE!
 
 	XORQ	%rdx, %rdx
 	movw	%dx, %ds				/* not used in long mode */
@@ -304,6 +300,8 @@ _start64v:
 	addq	$(MACHSTKSZ), %rax		/* PML4 and top of stack */
 	movq	%rax, %rsp				/* set stack */
 
+	// OK, this part is called "we climbed up the tree on a ladder, now pull
+	// the ladder up after us.". We remove the identity mapping. 
 _zap0pml4:
 	cmpq	$PML4O(KZERO), %rdx		/* KZER0 & 0x0000ff8000000000 */
 	JE	_zap0pdp
@@ -319,6 +317,8 @@ _zap0pd:
 	JE	_zap0done
 	movq	%rdx, PDO(0)(%rax)			/* zap identity map PDE */
 _zap0done:
+	// now for the scary part. In some sense, all page table zapping to date
+	// has been theoretical. This is going to flush it. If we survive this ...
 
 	addq	$(MACHSTKSZ), %rsi		/* PML4-KZERO */
 	movq	%rsi, %CR3				/* flush TLB */
@@ -334,7 +334,8 @@ _zap0done:
 	PUSHQ	%rbx				/* multiboot info* */
 	movq	%rax, %rax
 	pushq	%rax				/* multiboot magic */
-
+	// we get here!!!
+	// Now it's time to work on C code!
 	CALL	main
 
 .globl ndnr
