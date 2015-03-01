@@ -120,8 +120,6 @@ parseipmask:
 pread:
 .global procrfork
 procrfork:
-.global _protected
-_protected:
 .global qsort
 qsort:
 .global quotefmtinstall

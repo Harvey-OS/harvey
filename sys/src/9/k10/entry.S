@@ -39,6 +39,7 @@
 
 .code32
 .align 4
+_protected:
 multiboot_header:
 .long MULTIBOOT_HEADER_MAGIC
 .long MULTIBOOT_HEADER_FLAGS
@@ -90,7 +91,7 @@ gdt_end:
  */
 	.align	4
 1: 
-	jmp 1b
+//	jmp 1b
 .globl protected_start
 protected_start:
 
@@ -115,8 +116,6 @@ entry32:
 	movb	$0x30, %al
 	movw $0x30, %dx
 	outb %dx
-	jmp 1b
-// CODE IS KNOWN GOOD TO THIS POINT.
 // This gets us into a reasonable mode. We can skip the plan 9 gdt code.
 	call 1f
 1:
@@ -131,7 +130,7 @@ entry32:
 	/* Now make it point to gdt32p (gdt, 32 bits, physical)
 	 */
 	addl $14, %ebp
-	.byte 0xe9; .long 0x00000058;		/* JMP _endofheader */
+	JMP _endofheader
 
 _startofheader:
 	.byte	0x90				/* NOP */
@@ -166,22 +165,6 @@ _gdtptr64v:
 
 _endofheader:
 	pushl %eax				/* possible passed-in magic */
-
-	// remember, ebp has the pointer to the 32-bit physically-addressed
-	// gdtptr32p (gdt pointer 32 bit mode physical)
-	//movl	$_gdtptr32p, %eax
-	//movl	%ebp, %eax
-	//lgdt	(%eax)
-
-	//movl	$SSEL(SiDS, SsTIGDT|SsRPL0), %eax
-	//movw	%ax, %ds
-	//movw	%ax, %es
-	//movw	%ax, %fs
-	//movw	%ax, %gs
-	//movw	%ax, %ss
-	//
-	//ljmp $8, $_warp64
-	//pFARJMP32(SSEL(SiCS, SsTIGDT|SsRPL0), _warp64-KZERO)
 
 /*
  * Make the basic page tables for CPU0 to map 0-4MiB physical
@@ -223,7 +206,7 @@ _endofheader:
 #define PTO(v)		((PTLX((v), 0))<<3)
 
 _warp64:	
-//	movl	$_protected-(MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ+KZERO), %esi
+	movl	$_protected-(MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ/*+KZERO*/), %esi
 
 	movl	%esi, %edi
 	xorl	%eax, %eax
@@ -255,6 +238,9 @@ _warp64:
 	movl	%eax, %edx				/* PD at PML4 + 2*PTSZ */
 	addl	$(PTSZ|PteRW|PteP), %edx		/* PT at PML4 + 3*PTSZ */
 	movl	%edx, PDO(PMAPADDR)(%eax)		/* PDE for PMAPADDR */
+1: 
+	jmp 1b
+// CODE IS KNOWN GOOD TO THIS POINT.
 
 /*
  * Enable and activate Long Mode. From the manual:
