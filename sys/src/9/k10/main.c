@@ -256,16 +256,26 @@ void wave(int c)
 	outb(0x3f8, c);
 }
 
+void die(char *s)
+{
+	wave('d');
+	wave('i');
+	wave('e');
+	wave(':');
+	while (*s)
+		wave(*s++);
+	while(1);
+}
 void
 main(uint32_t ax, uint32_t bx)
 {
 	int64_t hz;
 
 	wave('H');
+	die("Stop here until we implement memset\n");
 	memset(edata, 0, end - edata);
 
 	wave('a');
-	while(1);
 	/*
 	 * ilock via i8250enable via i8250console
 	 * needs m->machno, sys->machptr[] set, and

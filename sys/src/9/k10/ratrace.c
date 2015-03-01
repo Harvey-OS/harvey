@@ -28,7 +28,7 @@ struct Str {
 	int	len;
 };
 
-void
+static void
 die(char *s)
 {
 	fprint(2, "%s\n", s);
