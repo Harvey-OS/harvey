@@ -238,9 +238,6 @@ _warp64:
 	movl	%eax, %edx				/* PD at PML4 + 2*PTSZ */
 	addl	$(PTSZ|PteRW|PteP), %edx		/* PT at PML4 + 3*PTSZ */
 	movl	%edx, PDO(PMAPADDR)(%eax)		/* PDE for PMAPADDR */
-1: 
-	jmp 1b
-// CODE IS KNOWN GOOD TO THIS POINT.
 
 /*
  * Enable and activate Long Mode. From the manual:
@@ -254,19 +251,22 @@ _warp64:
 lme:
 	movl	%cr4, %eax
 	ANDL	$~Pse, %eax			/* Page Size */
-//	ORL	$(Pge|Pae), %eax			/* Page Global, Phys. Address */
+	ORL	$(Pge|Pae), %eax			/* Page Global, Phys. Address */
 	movl	%eax, %cr4
 
-//	movl	$Efer, %ecx			/* Extended Feature Enable */
+	movl	$Efer, %ecx			/* Extended Feature Enable */
 	RDMSR
-//	ORL	$Lme, %eax			/* Long Mode Enable */
+	ORL	$Lme, %eax			/* Long Mode Enable */
 	WRMSR
+	// We get to there.
 
 	movl	%cr0, %edx
-	//ANDL	$~(Cd|Nw|Ts|Mp), %edx
-	//ORL	$(Pg|Wp), %edx			/* Paging Enable */
+	ANDL	$~(Cd|Nw|Ts|Mp), %edx
+	ORL	$(Pg|Wp), %edx			/* Paging Enable */
 	movl	%edx, %cr0
-
+1: 
+	jmp 1b
+	// it is good to here.
 	//pFARJMP32(SSEL(3, SsTIGDT|SsRPL0), _identity-KZERO)
 
 /*

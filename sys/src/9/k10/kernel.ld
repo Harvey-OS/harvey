@@ -7,12 +7,15 @@
 
 OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
 ENTRY(_start)
-KERN_LOAD_ADDR = 0xffffffffc0100000;
+/* start the kernel at 0x110000. 
+ * That way we can use lower ram for critical structures
+ */
+KERN_LOAD_ADDR = 0xffffffffc0110000;
 
 SECTIONS
 {
 	/* Entry Linked and loaded at 0x00100000 (includes multiboot) */
-	. = 0x00100000;
+	. = 0x00110000;
 
 	.bootstrap : {
 		*(.boottext .bootdata)
