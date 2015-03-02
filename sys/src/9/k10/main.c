@@ -274,12 +274,18 @@ void bmemset(void *p)
 {
 	__asm__ __volatile__("1: jmp 1b");
 }
+
+static int x = 0x123456;
 void
 main(uint32_t ax, uint32_t bx)
 {
 	assert(sizeof(Mach) <= PGSZ);
 	int64_t hz;
 
+	// Check that our data is on the right boundaries.
+	// This works because the immediate value is in code.
+	if (x != 0x123456) 
+		die("data is not set up correctly\n");
 	wave('H');
 	memset(edata, 0, end - edata);
 
@@ -338,9 +344,11 @@ main(uint32_t ax, uint32_t bx)
 	wave('2');
 	// It all ends here.
 	vsvminit(MACHSTKSZ, NIXTC);
+	hi("we're back from vsvminit\n");
 	wave('s');
 
 	fmtinit();
+	hi("we're back from fmtinit\n");
 	print("\nNIX\n");
 	sys->nmach = 1;			
 
