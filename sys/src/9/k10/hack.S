@@ -208,9 +208,8 @@ vseprint:
 vsnprint:
 .global write
 write:
-#if 0
 .global xactouser
 xactouser:
-#endif
+	ret
 .global rerrstr
 rerrstr:
