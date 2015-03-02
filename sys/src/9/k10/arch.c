@@ -21,8 +21,10 @@
 #include "../port/error.h"
 
 /* the rules are different for different compilers. We need to define up. */
-Proc *up;
-Mach *m;
+// Initialize it to force it into data. 
+// That way, if we set them in assembly, they won't get zero'd by the bss init in main
+Proc *up = (void *)0;
+Mach *m = (void *)0;
 
 int
 incref(Ref *r)

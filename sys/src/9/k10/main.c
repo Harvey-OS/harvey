@@ -266,6 +266,10 @@ void die(char *s)
 		wave(*s++);
 	while(1);
 }
+void bmemset(void *p)
+{
+	__asm__ __volatile__("1: jmp 1b");
+}
 void
 main(uint32_t ax, uint32_t bx)
 {
@@ -274,6 +278,8 @@ main(uint32_t ax, uint32_t bx)
 	wave('H');
 	memset(edata, 0, end - edata);
 
+	m = (void *) (KZERO + 1048576 + 11*4096);
+	sys = (void *) (KZERO + 1048576);
 	wave('a');
 	/*
 	 * ilock via i8250enable via i8250console
@@ -285,12 +291,18 @@ main(uint32_t ax, uint32_t bx)
 	memset(m, 0, sizeof(Mach));
 	wave('v');
 	m->machno = 0;
+	wave('1');
 	m->online = 1;
+	wave('2');
 	m->nixtype = NIXTC;
+	wave('3');
 	sys->machptr[m->machno] = &sys->mach;
+	wave('4');
 	m->stack = PTR2UINT(sys->machstk);
+	wave('5');
 	m->vsvm = sys->vsvmpage;
-	up = nil;
+	wave('6');
+	up = (void *)0;
 	active.nonline = 1;
 	active.exiting = 0;
 	active.nbooting = 0;
@@ -301,7 +313,8 @@ main(uint32_t ax, uint32_t bx)
 	wave(';');
 	options(oargc, oargv);
 	wave('s');
-	crapoptions();
+	// later.
+	//crapoptions();
 	wave('a');
 
 	/*
@@ -314,15 +327,20 @@ main(uint32_t ax, uint32_t bx)
 	cgainit();
 	wave('y');
 	i8250console("0");
+	
+	wave('1');
 	consputs = cgaconsputs;
 
+	wave('2');
+	// It all ends here.
+	die("need to fix idtinit\n");
 	vsvminit(MACHSTKSZ, NIXTC);
 	wave('s');
 
-	sys->nmach = 1;			
-
 	fmtinit();
 	print("\nNIX\n");
+	sys->nmach = 1;			
+
 	if(vflag){
 		print("&ax = %#p, ax = %#ux, bx = %#ux\n", &ax, ax, bx);
 		multiboot(ax, bx, vflag);

@@ -326,6 +326,7 @@ _zap0done:
 	addq	$(2*PTSZ+4*KiB), %rax		/* PD+PT+vsvm */
 	movq	%rax, %r15 # we thinkgRMACH			/* Mach */
 	movq	%rdx, %r13 # we think RUSER
+	movq	%rax, m
 
 	PUSHQ	%rdx				/* clear flags */
 	POPFQ
