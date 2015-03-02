@@ -85,6 +85,7 @@ i8254set(int port, int hz)
 		if(!(inb(port+Counter0) & RbNULL))
 			break;
 	}
+	hi("done i8254set\n");
 }
 
 int64_t

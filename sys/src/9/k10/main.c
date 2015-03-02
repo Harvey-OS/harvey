@@ -261,6 +261,16 @@ void hi(char *s)
 	while (*s)
 		wave(*s++);
 }
+	// for gdb: 
+	// call this anywhere in your code. 
+	//die("yourturn with gdb\n");
+	// gdb 9k
+	// target remote localhost:1234
+	// display/i $pc
+	// set staydead = 0
+	// stepi, and debug. 
+	// note, you can always resume after a die. Just set staydead = 0
+int staydead = 1;
 void die(char *s)
 {
 	wave('d');
@@ -268,7 +278,8 @@ void die(char *s)
 	wave('e');
 	wave(':');
 	hi(s);
-	while(1);
+	while(staydead);
+	staydead = 1;
 }
 void bmemset(void *p)
 {
@@ -336,7 +347,7 @@ main(uint32_t ax, uint32_t bx)
 
 	cgainit();
 	wave('y');
-	i8250console("0");
+	//i8250console("0");
 	
 	wave('1');
 	consputs = cgaconsputs;
@@ -348,7 +359,7 @@ main(uint32_t ax, uint32_t bx)
 	wave('s');
 
 	fmtinit();
-	hi("we're back from fmtinit\n");
+	die("we're back from fmtinit\n");
 	print("\nNIX\n");
 	sys->nmach = 1;			
 

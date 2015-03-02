@@ -18,8 +18,10 @@ _amd64_bin_ip_ipconfiglen:
 atoi:
 .global chancreate
 chancreate:
+#if 0
 .global chartorune
 chartorune:
+#endif
 .global cistrcmp
 cistrcmp:
 .global cistrncmp
@@ -50,6 +52,7 @@ exec:
 exits:
 .global fcallfmt
 fcallfmt:
+#if 0
 .global fmtinstall
 fmtinstall:
 .global fmtprint
@@ -60,6 +63,7 @@ fmtstrcpy:
 fmtstrflush:
 .global fmtstrinit
 fmtstrinit:
+#endif
 .global fork
 fork:
 .global fprint
@@ -122,10 +126,12 @@ pread:
 procrfork:
 .global qsort
 qsort:
+#if 0
 .global quotefmtinstall
 quotefmtinstall:
 .global runetochar
 runetochar:
+#endif
 .global sdfakescsi
 sdfakescsi:
 .global sdsetsense
@@ -202,5 +208,9 @@ vseprint:
 vsnprint:
 .global write
 write:
+#if 0
 .global xactouser
 xactouser:
+#endif
+.global rerrstr
+rerrstr:

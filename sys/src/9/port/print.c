@@ -36,6 +36,10 @@ _efgfmt(Fmt* fmt)
 void
 fmtinit(void)
 {
+hi("q");
+return;
 	quotefmtinstall();
+hi("u");
 	archfmtinstall();
+hi("arch\n");
 }
