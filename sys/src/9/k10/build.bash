@@ -133,7 +133,7 @@ linking()
 	# building from akaros
 	# this just got ugly.
 	# entry.o MUST be first.
-  /bin/bash link.bash  entry.o `echo *.o | sed s/entry.o//` /amd64/lib/libc.a
+  /bin/bash link.bash  entry.o `echo *.o | sed s/entry.o//` /amd64/lib/klibc.a
 
   # not likely what we want for a kernel. $COLLECT $COLLECTFLAGS -static -o 9 *.o $LDFLAGS -lip -lauth -lc
 }

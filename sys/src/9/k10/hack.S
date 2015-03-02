@@ -96,6 +96,7 @@ isv4:
 kerndate:
 .global maskip
 maskip:
+#if 0
 .global memccpy
 memccpy:
 .global memchr
@@ -104,8 +105,9 @@ memchr:
 memcmp:
 .global memmove
 memmove:
-#.global memset
-#memset:
+.global memset
+memset:
+#endif
 .global nhgetl
 nhgetl:
 .global nhgets

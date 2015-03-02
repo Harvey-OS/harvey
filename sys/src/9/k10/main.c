@@ -273,7 +273,6 @@ main(uint32_t ax, uint32_t bx)
 
 	wave('H');
 	memset(edata, 0, end - edata);
-	die("Right after memset\n");
 
 	wave('a');
 	/*
