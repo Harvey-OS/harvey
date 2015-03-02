@@ -261,3 +261,5 @@ extern void sipi(void);
  */
 void HERE(void);
 void DONE(void);
+
+void hi(char *s);

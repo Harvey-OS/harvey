@@ -23,6 +23,10 @@
 /* the rules are different for different compilers. We need to define up. */
 // Initialize it to force it into data. 
 // That way, if we set them in assembly, they won't get zero'd by the bss init in main
+// N.B. There was an interesting hack in plan 9 c. You could grab up to two registers for your
+// program. In the case of Plan 9, m was r15, and up was r14. Very slick, and if there is a way to do
+// this in gcc or clang I don't know it. This also nicely handled per cpu info; R15/14 were always right for 
+// your core and context.
 Proc *up = (void *)0;
 Mach *m = (void *)0;
 

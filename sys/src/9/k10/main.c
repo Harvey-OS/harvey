@@ -256,14 +256,18 @@ void wave(int c)
 	outb(0x3f8, c);
 }
 
+void hi(char *s) 
+{
+	while (*s)
+		wave(*s++);
+}
 void die(char *s)
 {
 	wave('d');
 	wave('i');
 	wave('e');
 	wave(':');
-	while (*s)
-		wave(*s++);
+	hi(s);
 	while(1);
 }
 void bmemset(void *p)
@@ -273,6 +277,7 @@ void bmemset(void *p)
 void
 main(uint32_t ax, uint32_t bx)
 {
+	assert(sizeof(Mach) <= PGSZ);
 	int64_t hz;
 
 	wave('H');
@@ -316,7 +321,6 @@ main(uint32_t ax, uint32_t bx)
 	// later.
 	//crapoptions();
 	wave('a');
-
 	/*
 	 * Need something for initial delays
 	 * until a timebase is worked out.
@@ -333,7 +337,6 @@ main(uint32_t ax, uint32_t bx)
 
 	wave('2');
 	// It all ends here.
-	die("need to fix idtinit\n");
 	vsvminit(MACHSTKSZ, NIXTC);
 	wave('s');
 

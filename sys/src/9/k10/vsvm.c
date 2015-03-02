@@ -164,43 +164,54 @@ vsvminit(int size, int nixtype)
 {
 	Sd *sd;
 	uint64_t r;
-
+hi("vsvminit\n");
 	if(m->machno == 0){
+hi("idtinit\n");
 		idtinit(idt64, PTR2UINT(idthandlers));
+hi("idtinit\n");
 		idtinit(acidt64, PTR2UINT(acidthandlers));
 	}
-
+hi("set m->gdt\n");
 	m->gdt = m->vsvm;
 	memmove(m->gdt, gdt64, sizeof(gdt64));
 	m->tss = &m->vsvm[ROUNDUP(sizeof(gdt64), 16)];
 
 	sd = &((Sd*)m->gdt)[SiTSS];
 	*sd = mksd(PTR2UINT(m->tss), sizeof(Tss)-1, SdP|SdDPL0|SdaTSS, sd+1);
-
+hi("tssinti\n");
 	tssinit(m->stack+size);
-
-	gdtput(sizeof(gdt64)-1, PTR2UINT(m->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
+hi("call gdtput...");
+hi("SKIPPING gdtput for now until we figure out what we want. \n");
+	//gdtput(sizeof(gdt64)-1, PTR2UINT(m->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
+hi("gdtput\n");
 	if(nixtype != NIXAC)
 		idtput(sizeof(idt64)-1, PTR2UINT(idt64));
 	else
 		idtput(sizeof(acidt64)-1, PTR2UINT(acidt64));
 	trput(SSEL(SiTSS, SsTIGDT|SsRPL0));
 
+hi("idtput done\n");
+hi("write fsbase, then gsbase, then etc.\n");
 	wrmsr(FSbase, 0ull);
 	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
 	wrmsr(KernelGSbase, 0ull);
+hi("done that\n");
 
 	r = rdmsr(Efer);
 	r |= Sce;
 	wrmsr(Efer, r);
 	r = ((uint64_t)SSEL(SiU32CS, SsRPL3))<<48;
 	r |= ((uint64_t)SSEL(SiCS, SsRPL0))<<32;
+hi("wirte star!\n");
 	wrmsr(Star, r);
+hi("wirte Lstar!\n");
 	if(nixtype != NIXAC)
 		wrmsr(Lstar, PTR2UINT(syscallentry));
 	else
 		wrmsr(Lstar, PTR2UINT(acsyscallentry));
+hi("wirte Sfmask!\n");
 	wrmsr(Sfmask, If);
+hi("vsvminit done!\n");
 }
 
 int

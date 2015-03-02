@@ -114,19 +114,10 @@ gdtget:
 	RET
 
 	// Called with the address of gdt in rdi.
-	// Trying to figure out what they were doing here ...
-	// This is almost certainly wrong. Probably the
-	// segment is in rdi and the address in rsi.
 .global gdtput
 gdtput:
-//	SHLQ	$48, $rdi
-//	MOVQ	%r15, m16+0(FP)
-//	LEAQ	m16+6(FP), RARG
-	
-//	MOVL	(RARG), GDTR
-#warning "no lgdt"
-//x	lgdt (%rdi):(%rsi)
-
+	movq	%rdi, %rax
+	lgdt	(%rax)
 	XORQ	%rax, %rax
 	MOVW	%ax, %ds
 	MOVW	%ax, %es
@@ -134,22 +125,19 @@ gdtput:
 	MOVW	%ax, %gs
 	MOVW	%ax, %ss
 
-	POPQ	%ax
 	RET
-#if 0
 .global idtput
 idtput:
-	SHLQ	$48, RARG
-	MOVQ	RARG, m16+0(FP)
-	LEAQ	m16+6(FP), RARG
-	MOVL	(RARG), IDTR
+//	SHLQ	$48, RARG
+//	MOVQ	RARG, m16+0(FP)
+//	LEAQ	m16+6(FP), RARG
+//	MOVL	(RARG), IDTR
 	RET
 
 .global trput
 trput:
-	MOVW	RARG, TASK
+//	MOVW	%di, TASK
 	RET
-#endif
 
 /*
  * Read/write various system registers.

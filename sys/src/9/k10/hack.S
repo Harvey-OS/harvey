@@ -80,8 +80,6 @@ hnputl:
 hnputs:
 .global idthandlers
 idthandlers:
-.global idtput
-idtput:
 .global initcode
 initcode:
 .global IPallbits
@@ -188,8 +186,6 @@ threadexitsall:
 tokenize:
 .global touser
 touser:
-.global trput
-trput:
 .global utfnlen
 utfnlen:
 .global utfrune
