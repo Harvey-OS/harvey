@@ -44,7 +44,7 @@ static int maxcores = 1024;	/* max # of cores given as an argument */
 static int numtcs = 32;		/* initial # of TCs */
 
 char dbgflg[256];
-static int vflag = 0;
+static int vflag = 1;
 
 void
 optionsinit(char* s)
@@ -359,7 +359,7 @@ main(uint32_t ax, uint32_t bx)
 	wave('s');
 
 	fmtinit();
-	die("we're back from fmtinit\n");
+	hi("we're back from fmtinit\n");
 	print("\nNIX\n");
 	sys->nmach = 1;			
 
@@ -379,14 +379,14 @@ main(uint32_t ax, uint32_t bx)
 	 * Mmuinit before meminit because it
 	 * flushes the TLB via m->pml4->pa.
 	 */
-	mmuinit();
+{	mmuinit(); hi("	mmuinit();");}
 
-	ioinit();
-	kbdinit();
-	meminit();
-	confinit();
-	archinit();
-	mallocinit();
+{	ioinit(); hi("	ioinit();");}
+{	kbdinit(); hi("	kbdinit();");}
+{	meminit(); hi("	meminit();");}
+{	confinit(); hi("	confinit();");}
+{	archinit(); hi("	archinit();");}
+{	mallocinit(); hi("	mallocinit();");}
 
 	/*
 	 * Acpiinit will cause the first malloc
@@ -397,11 +397,11 @@ main(uint32_t ax, uint32_t bx)
 	 * (it's amazing how far you can get with
 	 * things like that completely broken).
 	 */
-	acpiinit();
+{	acpiinit(); hi("	acpiinit();");}
 	
-	umeminit();
-	trapinit();
-	printinit();
+{	umeminit(); hi("	umeminit();");}
+{	trapinit(); hi("	trapinit();");}
+{	printinit(); hi("	printinit();");}
 
 	/*
 	 * This is necessary with GRUB and QEMU.
@@ -409,27 +409,27 @@ main(uint32_t ax, uint32_t bx)
 	 * because the vector base is likely different, causing
 	 * havoc. Do it before any APIC initialisation.
 	 */
-	i8259init(32);
+{	i8259init(32); hi("	i8259init(32);");}
 
 
-	procinit0();
-	mpsinit(maxcores);
-	apiconline();
-	sipi();
+{	procinit0(); hi("	procinit0();");}
+{	mpsinit(maxcores); hi("	mpsinit(maxcores);");}
+{	apiconline(); hi("	apiconline();");}
+{	sipi(); hi("	sipi();");}
 
-	timersinit();
-	kbdenable();
-	fpuinit();
-	psinit(conf.nproc);
-	initimage();
-	links();
-	devtabreset();
-	pageinit();
-	swapinit();
-	userinit();
-	nixsquids();
-testiccs();	
-print("schedinit...\n");
+{	timersinit(); hi("	timersinit();");}
+{	kbdenable(); hi("	kbdenable();");}
+{	fpuinit(); hi("	fpuinit();");}
+{	psinit(conf.nproc); hi("	psinit(conf.nproc);");}
+{	initimage(); hi("	initimage();");}
+{	links(); hi("	links();");}
+{	devtabreset(); hi("	devtabreset();");}
+{	pageinit(); hi("	pageinit();");}
+{	swapinit(); hi("	swapinit();");}
+{	userinit(); hi("	userinit();");}
+{	nixsquids(); hi("	nixsquids();");}
+{testiccs(); hi("testiccs();");}	
+	print("schedinit...\n");
 	schedinit();
 }
 

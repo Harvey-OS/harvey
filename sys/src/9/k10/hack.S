@@ -40,12 +40,8 @@ convS2M:
 defmask:
 .global dirfmt
 dirfmt:
-.global DS
-DS:
 .global eipfmt
 eipfmt:
-.global ES
-ES:
 .global exec
 exec:
 .global exits
@@ -68,14 +64,10 @@ fmtstrinit:
 fork:
 .global fprint
 fprint:
-.global FS
-FS:
 .global getcallerpc
 getcallerpc:
 .global getfields
 getfields:
-.global GS
-GS:
 .global hmac_sha1
 hmac_sha1:
 .global hnputl
@@ -148,8 +140,6 @@ smprint:
 snprint:
 .global sprint
 sprint:
-.global SS
-SS:
 .global ssldevtab
 ssldevtab:
 .global statcheck
