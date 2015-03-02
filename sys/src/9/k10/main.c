@@ -286,6 +286,38 @@ void bmemset(void *p)
 	__asm__ __volatile__("1: jmp 1b");
 }
 
+void put8(uint8_t c)
+{
+	char x[] = "0123456789abcdef";
+	wave(x[c>>4]);
+	wave(x[c&0xf]);
+}
+
+void put16(uint16_t s)
+{
+	put8(s>>8);
+	put8(s);
+}
+
+void put32(uint32_t u)
+{
+	put16(u>>16);
+	put16(u);
+}
+
+void put64(uint64_t v)
+{
+	put32(v>>32);
+	put32(v);
+}
+
+void badcall(uint64_t where, uint64_t what)
+{
+	hi("Bad call from function "); put64(where); hi(" to "); put64(what); hi("\n");
+	while (1)
+		;
+}
+
 static int x = 0x123456;
 void
 main(uint32_t ax, uint32_t bx)
@@ -361,12 +393,16 @@ main(uint32_t ax, uint32_t bx)
 	fmtinit();
 	
 	print("\nNIX\n");
-	die("we're back from fmtinit\n");
+	print("NIX m %p sys %p \n", m, sys);
+	hi("m is "); put64((uint64_t) m); hi("\n");
+	hi("sys is "); put64((uint64_t) sys); hi("\n");
+	die("right before using sys\n");
 	sys->nmach = 1;			
 
 	if(vflag){
 		print("&ax = %#p, ax = %#ux, bx = %#ux\n", &ax, ax, bx);
-		multiboot(ax, bx, vflag);
+		// multiboot needs work.
+		//multiboot(ax, bx, vflag);
 	}
 
 	m->perf.period = 1;

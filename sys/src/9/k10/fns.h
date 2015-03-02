@@ -262,4 +262,9 @@ extern void sipi(void);
 void HERE(void);
 void DONE(void);
 
+/* all these go to 0x3f8 */
 void hi(char *s);
+void put64(uint64_t);
+void put32(uint32_t);
+void put16(uint16_t);
+void put8(uint8_t);
