@@ -17,6 +17,8 @@
 #include "apic.h"
 #include "io.h"
 
+#warning "what is kerndate?"
+uint32_t kerndate = 0;
 
 Conf conf;			/* XXX - must go - gag */
 
@@ -396,7 +398,6 @@ main(uint32_t ax, uint32_t bx)
 	print("NIX m %p sys %p \n", m, sys);
 	hi("m is "); put64((uint64_t) m); hi("\n");
 	hi("sys is "); put64((uint64_t) sys); hi("\n");
-	die("right before using sys\n");
 	sys->nmach = 1;			
 
 	if(vflag){
@@ -405,6 +406,7 @@ main(uint32_t ax, uint32_t bx)
 		//multiboot(ax, bx, vflag);
 	}
 
+	die("right before using sys\n");
 	m->perf.period = 1;
 	if((hz = archhz()) != 0ll){
 		m->cpuhz = hz;
@@ -452,7 +454,10 @@ main(uint32_t ax, uint32_t bx)
 {	procinit0(); hi("	procinit0();");}
 {	mpsinit(maxcores); hi("	mpsinit(maxcores);");}
 {	apiconline(); hi("	apiconline();");}
-{	sipi(); hi("	sipi();");}
+#warning "Not doing sipi");
+#if 0
+	sipi(); 
+#endif
 
 {	timersinit(); hi("	timersinit();");}
 {	kbdenable(); hi("	kbdenable();");}

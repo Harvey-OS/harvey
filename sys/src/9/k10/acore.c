@@ -138,6 +138,7 @@ acmmuswitch(void)
 void
 actouser(void)
 {
+#if 0
 	void xactouser(uint64_t);
 	Ureg *u;
 
@@ -146,6 +147,7 @@ actouser(void)
 	u = m->proc->dbgreg;
 	DBG("cpu%d: touser usp = %#p entry %#p\n", m->machno, u->sp, u->ip);
 	xactouser(u->sp);
+#endif
 	panic("actouser");
 }
 
@@ -168,6 +170,8 @@ actrapret(void)
 void
 actrap(Ureg *u)
 {
+	panic("actrap");
+#if 0
 	char *n;
 	ACVctl *v;
 
@@ -231,11 +235,14 @@ Post:
 	memmove(u, m->proc->dbgreg, sizeof *u);
 	if(m->proc)
 		m->proc->actime += fastticks2us(fastticks(nil) - m->proc->actime1);
+#endif
 }
 
 void
 acsyscall(void)
 {
+	panic("acsyscall");
+#if 0
 	Proc *p;
 
 	/*
@@ -263,6 +270,7 @@ acsyscall(void)
 	 * We don't nest calls in the current stack for too long.
 	 */
 	acsched();
+#endif
 }
 
 /*
@@ -271,10 +279,13 @@ acsyscall(void)
 void
 acsysret(void)
 {
+panic("acsysret");
+#if 0
 	DBG("acsysret\n");
 	if(m->proc != nil)
 		m->proc->actime += fastticks2us(fastticks(nil) - m->proc->actime1);
 	_acsysret();
+#endif
 }
 
 void

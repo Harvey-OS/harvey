@@ -9,8 +9,8 @@ dev +dev
 	srv
 	dup
 	rtc
-	ssl
-	cap
+#	ssl
+#	cap
 	kprof
 	pmc	pmcio
 	segment

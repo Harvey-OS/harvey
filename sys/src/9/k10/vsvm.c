@@ -164,13 +164,13 @@ vsvminit(int size, int nixtype)
 {
 	Sd *sd;
 	uint64_t r;
-hi("vsvminit\n");
+#warning "no idt setup"
+#if 0
 	if(m->machno == 0){
-hi("idtinit\n");
 		idtinit(idt64, PTR2UINT(idthandlers));
-hi("idtinit\n");
 		idtinit(acidt64, PTR2UINT(acidthandlers));
 	}
+#endif
 hi("set m->gdt\n");
 	m->gdt = m->vsvm;
 	memmove(m->gdt, gdt64, sizeof(gdt64));
@@ -184,10 +184,12 @@ hi("call gdtput...");
 hi("SKIPPING gdtput for now until we figure out what we want. \n");
 	//gdtput(sizeof(gdt64)-1, PTR2UINT(m->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
 hi("gdtput\n");
+#if 0
 	if(nixtype != NIXAC)
 		idtput(sizeof(idt64)-1, PTR2UINT(idt64));
 	else
 		idtput(sizeof(acidt64)-1, PTR2UINT(acidt64));
+#endif
 	trput(SSEL(SiTSS, SsTIGDT|SsRPL0));
 
 hi("idtput done\n");
