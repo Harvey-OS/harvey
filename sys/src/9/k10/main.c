@@ -359,7 +359,7 @@ main(uint32_t ax, uint32_t bx)
 	wave('s');
 
 	fmtinit();
-	hi("we're back from fmtinit\n");
+	die("we're back from fmtinit\n");
 	print("\nNIX\n");
 	sys->nmach = 1;			
 

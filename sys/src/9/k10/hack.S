@@ -78,14 +78,8 @@ hnputs:
 idthandlers:
 .global initcode
 initcode:
-.global IPallbits
-IPallbits:
 .global IPnoaddr
 IPnoaddr:
-.global IPv4bcast
-IPv4bcast:
-.global isv4
-isv4:
 .global kerndate
 kerndate:
 .global maskip
@@ -186,12 +180,6 @@ touser:
 utfnlen:
 .global utfrune
 utfrune:
-.global v4prefix
-v4prefix:
-.global v4tov6
-v4tov6:
-.global v6tov4
-v6tov4:
 .global vseprint
 vseprint:
 .global vsnprint
