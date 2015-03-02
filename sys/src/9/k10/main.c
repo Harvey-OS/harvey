@@ -359,8 +359,9 @@ main(uint32_t ax, uint32_t bx)
 	wave('s');
 
 	fmtinit();
-	die("we're back from fmtinit\n");
+	
 	print("\nNIX\n");
+	die("we're back from fmtinit\n");
 	sys->nmach = 1;			
 
 	if(vflag){

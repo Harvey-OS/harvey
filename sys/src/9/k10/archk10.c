@@ -346,11 +346,13 @@ archfmtinstall(void)
 	 * on the compiler to optimise-away impossible conditions,
 	 * and/or by exploiting the innards of the fmt library.
 	 */
-hi("archfmtinstall\n");
+	hi("fmtP");
 	fmtinstall('P', fmtP);
-
+	hi("fmtL");
 	fmtinstall('L', fmtL);
+	hi("fmtR");
 	fmtinstall('R', fmtR);
+	hi("fmtW");
 	fmtinstall('W', fmtW);
 }
 

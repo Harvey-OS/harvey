@@ -62,12 +62,14 @@ fmtstrinit:
 #endif
 .global fork
 fork:
+#if 0
 .global fprint
 fprint:
 .global getcallerpc
 getcallerpc:
 .global getfields
 getfields:
+#endif
 .global hmac_sha1
 hmac_sha1:
 .global hnputl
@@ -124,20 +126,23 @@ sdfakescsi:
 sdsetsense:
 .global sendp
 sendp:
-.global seprint
-seprint:
 .global sipi
 sipi:
+#if 0
+.global seprint
+seprint:
 .global smprint
 smprint:
 .global snprint
 snprint:
 .global sprint
 sprint:
+#endif
 .global ssldevtab
 ssldevtab:
 .global statcheck
 statcheck:
+#if 0
 .global strchr
 strchr:
 .global strcmp
@@ -164,6 +169,7 @@ strtol:
 strtoul:
 .global strtoull
 strtoull:
+#endif
 .global syscallentry
 syscallentry:
 .global sysrforkret
@@ -176,6 +182,7 @@ threadexitsall:
 tokenize:
 .global touser
 touser:
+#if 0
 .global utfnlen
 utfnlen:
 .global utfrune
@@ -184,6 +191,7 @@ utfrune:
 vseprint:
 .global vsnprint
 vsnprint:
+#endif
 .global write
 write:
 .global xactouser
