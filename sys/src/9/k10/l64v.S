@@ -204,7 +204,8 @@ rdmsr:
 wrmsr:
 	MOVL	%edi, %ecx
 	MOVL	%esi, %eax
-	MOVL	%edx, %edx
+	MOVQ	%rsi, %rdx
+	SHRQ	$32, %rdx
 
 	WRMSR
 
@@ -436,6 +437,11 @@ k10mwloop:
 	JMP		k10mwloop
 k10mwdone:
 	RET
+
+.global machp
+machp:
+	movq	%gs:0, %rax
+	ret
 
 /* not needed.
 .global mul64fract
