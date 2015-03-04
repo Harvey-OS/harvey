@@ -419,6 +419,9 @@ extern char*rolename[];
 /*
  * Horrid.
  */
+// HARVEY: TODO: bring this back, it's actually nice. Or do something better. 
+// Talk to Ron before you condemn it.
+
 #ifdef _DBGC_
 #define DBGFLG		(dbgflg[_DBGC_])
 #else
