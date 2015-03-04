@@ -35,7 +35,7 @@ PICFLAG=	# -fPIC
 OPTIMIZE=0
 EXTENSIONS="-fplan9-extensions"
 GLOBIGNORE=*devcap.c:*sdaoe.c:ratrace.c:*doauthenticate.c:*getpasswd.c:*nopsession.c:*archk8.c:*rdb.c:*etherbcm.c:*devprobe.c:*tcklock.c:*sipi.c:*sd.c:*ssl.c:*tls.c
-SOURCE="entry.S *.c ../386/*.c ../ip/*.c ../port/*.c l64v.S l64fpu.S cpuidamd64.S hack.S"
+SOURCE="entry.S *.c ../386/*.c ../ip/*.c ../port/*.c l64v.S l64fpu.S cpuidamd64.S hack.S l64vsyscall.S "
 
 compiling()
 {
