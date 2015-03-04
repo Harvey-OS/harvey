@@ -3,22 +3,23 @@
  */
 .globl cpuid
 cpuid:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	pushq	%rbx
-	movl	%edi, -12(%rbp)
-	movq	%rsi, -24(%rbp)
-	movq	%rdx, -32(%rbp)
-	movl	-12(%rbp), %eax
+	pushq %rbx
+	pushq %rcx
+	pushq %rdx
+	movq	%rdi, %rax
+	movq	%rsi, %rcx
+	pushq	%r15
+	movq	%rdx, %r15
 
 	cpuid 	/* Argument in %rax */
 
-	movq	-24(%rbp), %rcx
-	movl	%eax, (%rcx)
-	movq	-32(%rbp), %rax
-	movl	%edx, (%rax)
-	popq	%rbx
-	popq	%rbp
+	movl	%ebx, 0(%r15)
+	movl	%ecx, 8(%r15)
+	movl	%edx, 24(%r15)
+	popq	%r15
+	popq	%rdx
+	popq	%rcx
+	pop	%rbx
 	ret
 
 /*
