@@ -39,8 +39,8 @@ SOURCE="entry.S *.c ../386/*.c ../ip/*.c ../port/*.c l64v.S l64fpu.S cpuidamd64.
 
 compiling()
 {
-	CFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin"
-	UCFLAGS="-O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin"
+	CFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin -g"
+	UCFLAGS="-O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin -g"
 
 	## General conf file ##
 	##-------------------##

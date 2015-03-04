@@ -17,7 +17,7 @@ CC=gcc
 LD=ld
 OBJDUMP=objdump
 OBJDIR=.
-LDFLAGS="-z max-page-size=0x1000 -nostdlib"
+LDFLAGS="-z max-page-size=0x1000 -nostdlib -g"
 
 gen_symtab_obj()
 {
