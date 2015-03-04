@@ -69,7 +69,7 @@ void	i8042auxenable(void (*)(int, int));
 void	i8042reset(void);
 Uart*	i8250console(char*);
 void*	i8250alloc(int, int, int);
-int64_t	i8254hz(uint32_t[2][4]);
+int64_t	i8254hz(uint32_t *info0, uint32_t *info1);
 void	idlehands(void);
 void	acidthandlers(void);
 void	idthandlers(void);

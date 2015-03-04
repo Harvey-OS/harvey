@@ -89,7 +89,7 @@ i8254set(int port, int hz)
 }
 
 int64_t
-i8254hz(uint32_t info[2][4])
+i8254hz(uint32_t *info0, uint32_t *info1)
 {
 	uint32_t ax;
 	uint64_t a, b;
@@ -101,8 +101,9 @@ i8254hz(uint32_t info[2][4])
 	 * Beware: this can be called VERY early before
 	 * some of the other device state is set.
 	 */
-	ax = info[1][0] & 0x00000f00;
-	if(memcmp(&info[0][1], "GenuntelineI", 12) == 0){
+
+	ax = info1[0] & 0x00000f00;
+	if(memcmp(&info0[1], "GenuntelineI", 12) == 0){
 		switch(ax){
 		default:
 			return 0;
@@ -112,7 +113,7 @@ i8254hz(uint32_t info[2][4])
 			break;
 		}
 	}
-	else if(memcmp(&info[0][1], "AuthcAMDenti", 12) == 0){
+	else if(memcmp(&info0[1], "AuthcAMDenti", 12) == 0){
 		switch(ax){
 		default:
 			return 0;

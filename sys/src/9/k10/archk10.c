@@ -65,14 +65,14 @@ cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 }
 
 static int64_t
-cpuidhz(uint32_t info[2][4])
+cpuidhz(uint32_t *info0, uint32_t *info1)
 {
 	int f, r;
 	int64_t hz;
 	uint64_t msr;
 
-	if(memcmp(&info[0][1], "GenuntelineI", 12) == 0){
-		switch(info[1][0] & 0x0fff3ff0){
+	if(memcmp(&info0[1], "GenuntelineI", 12) == 0){
+		switch(info1[0] & 0x0fff3ff0){
 		default:
 			return 0;
 		case 0x00000f30:		/* Xeon (MP), Pentium [4D] */
@@ -121,7 +121,7 @@ cpuidhz(uint32_t info[2][4])
 			 * If processor has Enhanced Intel Speedstep Technology
 			 * then non-integer bus frequency ratios are possible.
 			 */
-			if(info[1][2] & 0x00000080){
+			if(info1[2] & 0x00000080){
 				msr = rdmsr(0x198);
 				r = (msr>>40) & 0x1f;
 			}
@@ -169,8 +169,8 @@ cpuidhz(uint32_t info[2][4])
 		}
 		DBG("cpuidhz: 0x2a: %#llux hz %lld\n", rdmsr(0x2a), hz);
 	}
-	else if(memcmp(&info[0][1], "AuthcAMDenti", 12) == 0){
-		switch(info[1][0] & 0x0fff0ff0){
+	else if(memcmp(&info0[1], "AuthcAMDenti", 12) == 0){
+		switch(info1[0] & 0x0fff0ff0){
 		default:
 			return 0;
 		case 0x00000f50:		/* K8 */
@@ -222,16 +222,16 @@ int64_t
 archhz(void)
 {
 	int64_t hz;
-	uint32_t info[2][4];
+	uint32_t info0[4], info1[4];
 
-	if(!cpuidinfo(0, 0, info[0]) || !cpuidinfo(1, 0, info[1]))
+	if(!cpuidinfo(0, 0, info0) || !cpuidinfo(1, 0, info1))
 		return 0;
 
-	hz = cpuidhz(info);
+	hz = cpuidhz(info0, info1);
 	if(hz != 0 || m->machno != 0)
 		return hz;
 
-	return i8254hz(info);
+	return i8254hz(info0, info1);
 }
 
 int

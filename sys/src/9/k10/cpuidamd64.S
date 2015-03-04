@@ -28,8 +28,10 @@ cpuid:
  */
 .globl aamloop
 aamloop:
+	pushq	%rcx
 	movq	%rdi, %rcx
 aaml1:
 	xorq	%rax, %rax				/* close enough */
 	loop	aaml1
+	popq	%rcx
 	ret

@@ -410,8 +410,9 @@ main(uint32_t ax, uint32_t bx)
 		//multiboot(ax, bx, vflag);
 	}
 
-	die("right before using sys\n");
+	hi("m: "); put64(m); hi("\n");
 	m->perf.period = 1;
+	hi("archhz\n");
 	if((hz = archhz()) != 0ll){
 		m->cpuhz = hz;
 		m->cyclefreq = hz;
@@ -422,6 +423,7 @@ main(uint32_t ax, uint32_t bx)
 	 * Mmuinit before meminit because it
 	 * flushes the TLB via m->pml4->pa.
 	 */
+hi("call mmuinit\n");
 {	mmuinit(); hi("	mmuinit();");}
 
 {	ioinit(); hi("	ioinit();");}
