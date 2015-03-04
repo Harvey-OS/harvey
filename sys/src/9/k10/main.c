@@ -320,6 +320,10 @@ void badcall(uint64_t where, uint64_t what)
 		;
 }
 
+void errstr(char *s, int i) {
+	panic("errstr");
+}
+
 static int x = 0x123456;
 void
 main(uint32_t ax, uint32_t bx)
