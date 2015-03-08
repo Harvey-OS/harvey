@@ -198,6 +198,7 @@ asctime(Tm *t)
 }
 
 static
+int
 dysize(int y)
 {
 
@@ -256,6 +257,7 @@ error:
 }
 
 static
+int
 rd_name(char **f, char *p)
 {
 	int c, i;
@@ -278,6 +280,7 @@ rd_name(char **f, char *p)
 }
 
 static
+int
 rd_long(char **f, int32_t *p)
 {
 	int c, s;

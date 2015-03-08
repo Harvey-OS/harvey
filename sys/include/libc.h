@@ -11,17 +11,17 @@
 #pragma	src	"/sys/src/libc"
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
-#define	offsetof(s, m)	(unsigned long)(&(((s*)0)->m))
+#define	offsetof(s, m)	(uint32_t)(&(((s*)0)->m))
 #define	assert(x)	if(x){}else _assert("x")
 
 /*
  * mem routines
  */
 extern	void*	memccpy(void*, void*, int, uint32_t);
-void*	memset(void*, int, unsigned long);
+extern	void*	memset(void*, int, uint32_t);
 extern	int	memcmp(void*, void*, uint32_t);
-extern	void*	memcpy(void*, const void*, size_t);
-void*	memmove(void*, const void*, size_t);
+extern	void*	memcpy(void*, void*, size_t);
+extern	void*	memmove(void*, void*, size_t);
 extern	void*	memchr(void*, int, uint32_t);
 
 /*
@@ -30,16 +30,16 @@ extern	void*	memchr(void*, int, uint32_t);
 extern	char*	strcat(char*, char*);
 extern	char*	strchr(char*, int);
 extern	int	strcmp(char*, char*);
-char*	strcpy(char*, const char*);
+extern	char*	strcpy(char*, char*);
 extern	char*	strecpy(char*, char*, char*);
 extern	char*	strdup(char*);
 extern	char*	strncat(char*, char*, int32_t);
-char*	strncpy(char*, const char*, unsigned long);
+extern	char*	strncpy(char*, char*, uint32_t);
 extern	int	strncmp(char*, char*, int32_t);
 extern	char*	strpbrk(char*, char*);
-char*	strrchr(const char*, int);
+extern	char*	strrchr(char*, int);
 extern	char*	strtok(char*, char*);
-unsigned long	strlen(const char*);
+extern	int32_t	strlen(char*);
 extern	int32_t	strspn(char*, char*);
 extern	int32_t	strcspn(char*, char*);
 extern	char*	strstr(char*, char*);
@@ -760,6 +760,5 @@ extern char *argv0;
 #define	ARGC()		_argc
 
 /* this is used by sbrk and brk,  it's a really bad idea to redefine it */
-extern	char	_end[];
-/* In order to not to break GNU ld internal linker script */
-#define end _end
+extern	char	end[];
+

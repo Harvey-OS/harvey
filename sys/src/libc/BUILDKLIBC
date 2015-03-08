@@ -157,9 +157,6 @@ $CC $CFLAGS -c \
 ./port/sin.c \
 ./port/sinh.c \
 ./port/sqrt.c \
-./power/sqrt.c \
-./mips/sqrt.c \
-./sparc/sqrt.c \
 ./port/strcat.c \
 ./port/strchr.c \
 ./port/strcmp.c \
@@ -195,16 +192,8 @@ $CC $CFLAGS -c \
 ./port/u32.c \
 ./port/u64.c \
 ./amd64/_seek.c \
-./arm/notejmp.c \
 ./amd64/notejmp.c \
-./power/notejmp.c \
-./mips/notejmp.c \
-./sparc/notejmp.c \
-./386/notejmp.c \
-./arm/cycles.c \
 ./amd64/cycles.c \
-./mips/cycles.c \
-./sparc/cycles.c \
 ./amd64/argv0.c \
 ./amd64/rdpmc.c 
 ar rv /amd64/lib/klibc.a *.o

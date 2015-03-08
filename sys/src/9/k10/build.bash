@@ -30,7 +30,7 @@ LDFLAGS=-L${LIB_DIR}
 ##------------------##
 
 WARNFLAGS="-Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized"
-GDBFLAG=	# -g
+GDBFLAG="-g"
 PICFLAG=	# -fPIC
 OPTIMIZE=0
 EXTENSIONS="-fplan9-extensions"
@@ -39,7 +39,7 @@ SOURCE="entry.S *.c ../386/*.c ../ip/*.c ../port/*.c l64v.S l64fpu.S cpuidamd64.
 
 compiling()
 {
-	CFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin -g"
+	CFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin ${GDBFLAG}"
 	UCFLAGS="-O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin -g"
 
 	## General conf file ##

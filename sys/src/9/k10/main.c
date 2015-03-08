@@ -403,6 +403,9 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	print("NIX m %p sys %p \n", m, sys);
 	hi("m is "); put64((uint64_t) m); hi("\n");
 	hi("sys is "); put64((uint64_t) sys); hi("\n");
+	int prueba = 123456;
+	print("Probando: %d", prueba);
+	die("lalalalala");
 	sys->nmach = 1;			
 
 	if(1){
