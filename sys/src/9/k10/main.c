@@ -437,6 +437,14 @@ hi("wait for gdb");
 {	archinit(); hi("	archinit();");}
 {	mallocinit(); hi("	mallocinit();");}
 
+	/* test malloc. It's easier to find out it's broken here, 
+	 * not deep in some call chain.
+	 * See next note. 
+	 */
+	void *v = malloc(1234);
+	hi("v "); put64(v); hi("\n");
+	free(v);
+	hi("free ok\n");
 	/*
 	 * Acpiinit will cause the first malloc
 	 * call to happen.
@@ -446,7 +454,7 @@ hi("wait for gdb");
 	 * (it's amazing how far you can get with
 	 * things like that completely broken).
 	 */
-{	acpiinit(); hi("	acpiinit();");}
+if (0){	acpiinit(); hi("	acpiinit();");}
 	
 {	umeminit(); hi("	umeminit();");}
 {	trapinit(); hi("	trapinit();");}
@@ -479,8 +487,10 @@ hi("wait for gdb");
 {	pageinit(); hi("	pageinit();");}
 {	swapinit(); hi("	swapinit();");}
 {	userinit(); hi("	userinit();");}
-{	nixsquids(); hi("	nixsquids();");}
-{testiccs(); hi("testiccs();");}	
+	if (0) { // NO NIX YET
+		{	nixsquids(); hi("	nixsquids();");}
+		{testiccs(); hi("testiccs();");}	
+	}
 	print("schedinit...\n");
 	schedinit();
 }
@@ -537,7 +547,7 @@ bootargs(uintptr_t base)
 	 * args by subtracting sizeof(up->arg).
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(up->arg) - i));
+	p = UINT2PTR(STACKALIGN(base + /*BIG*/PGSZ - sizeof(up->arg) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -550,10 +560,10 @@ bootargs(uintptr_t base)
 	 * unused so it doesn't matter (at the moment...).
 	 */
 	av = (char**)(p - (oargc+2)*sizeof(char*));
-	ssize = base + BIGPGSZ - PTR2UINT(av);
+	ssize = base + /*BIG*/PGSZ - PTR2UINT(av);
 	*av++ = (char*)oargc;
 	for(i = 0; i < oargc; i++)
-		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BIGPGSZ);
+		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - /*BIG*/PGSZ);
 	*av = nil;
 
 	sp = USTKTOP - ssize;
@@ -566,7 +576,7 @@ userinit(void)
 	Segment *s;
 	KMap *k;
 	Page *pg;
-
+hi("1\n");
 	p = newproc();
 	p->pgrp = newpgrp();
 	p->egrp = smalloc(sizeof(Egrp));
@@ -575,10 +585,12 @@ userinit(void)
 	p->rgrp = newrgrp();
 	p->procmode = 0640;
 
+hi("2\n");
 	kstrdup(&eve, "");
 	kstrdup(&p->text, "*init*");
 	kstrdup(&p->user, eve);
 
+hi("3\n");
 	/*
 	 * Kernel Stack
 	 *
@@ -591,6 +603,7 @@ userinit(void)
 	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr_t));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
+hi("4\n");
 	/*
 	 * User Stack
 	 *
@@ -599,30 +612,38 @@ userinit(void)
 	 * try to sleep if there are no pages available, but that
 	 * shouldn't be the case here.
 	 */
-	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKSIZE/BIGPGSZ);
+	// Big pages are not working yet.
+#warning "Fix back to use big pages"
+	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKSIZE/ /*BIG*/PGSZ);
 	p->seg[SSEG] = s;
 
-	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
+hi("5\n");
+	pg = newpage(1, 0, USTKTOP-/*BIG*/PGSZ, /*BIG*/PGSZ, -1);
 	segpage(s, pg);
 	k = kmap(pg);
 	bootargs(VA(k));
 	kunmap(k);
 
+hi("6\n");
 	/*
 	 * Text
 	 */
 	s = newseg(SG_TEXT, UTZERO, 1);
 	s->flushme++;
 	p->seg[TSEG] = s;
-	pg = newpage(1, 0, UTZERO, BIGPGSZ, -1);
+	pg = newpage(1, 0, UTZERO, /*BIG*/PGSZ, -1);
+hi("7\n");
 	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 	segpage(s, pg);
+hi("8\n");
 	k = kmap(s->map[0]->pages[0]);
 	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
 	memmove(UINT2PTR(VA(k)), init_out, sizeof(init_out));
 	kunmap(k);
 
+hi("9\n");
 	ready(p);
+hi("done \n");
 }
 
 void
