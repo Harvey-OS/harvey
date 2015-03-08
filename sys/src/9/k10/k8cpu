@@ -21,7 +21,7 @@ dev +dev
 # add to get cec in the kernel
 	cec
 
-	ether		netif
+#	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
 
 	pci
@@ -40,12 +40,12 @@ ip +dev
 	icmp6
 
 link +dev
-	ether8169	pci ethermii
-	ether82557	pci
-	ether82563	pci
-	etherigbe	pci ethermii
-#	etherbcm	pci ethermii
-	ethermedium
+#	ether8169	pci ethermii
+#	ether82557	pci
+#	ether82563	pci
+#	etherigbe	pci ethermii
+##	etherbcm	pci ethermii
+#	ethermedium
 	loopbackmedium
 	netdevmedium
 
