@@ -24,8 +24,11 @@ devtabreset(void)
 {
 	int i;
 
-	for(i = 0; devtab[i] != nil; i++)
+	for(i = 0; devtab[i] != nil; i++) {
+		hi("dtreset "); put64(i); hi(" call ");
+		put64(devtab[i]->reset); hi("\n");
 		devtab[i]->reset();
+	}
 }
 
 void
@@ -33,8 +36,11 @@ devtabinit(void)
 {
 	int i;
 
-	for(i = 0; devtab[i] != nil; i++)
+	for(i = 0; devtab[i] != nil; i++) {
+		hi("dtinit "); put64(i); hi(" call ");
+		put64(devtab[i]->init); hi("\n");
 		devtab[i]->init();
+	}
 }
 
 void
