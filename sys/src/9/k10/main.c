@@ -122,7 +122,6 @@ squidboy(int apicno)
 	m->cpuhz = hz;
 	m->cyclefreq = hz;
 	m->cpumhz = hz/1000000ll;
-
 	mmuinit();
 	if(!apiconline())
 		ndnr();
@@ -326,8 +325,10 @@ void errstr(char *s, int i) {
 
 static int x = 0x123456;
 void
-main(uint32_t ax, uint32_t bx)
+main(uint32_t mbmagic, uint32_t mbaddress)
 {
+	hi("mbmagic "); put32(mbmagic); hi("\n");
+	hi("mbaddress "); put32(mbaddress); hi("\n");
 	assert(sizeof(Mach) <= PGSZ);
 	int64_t hz;
 
@@ -369,7 +370,7 @@ main(uint32_t ax, uint32_t bx)
 	wave('e');
 	asminit();
 	wave('y');
-	multiboot(ax, bx, 0);
+	multiboot(mbmagic, mbaddress, 0);
 	wave(';');
 	options(oargc, oargv);
 	wave('s');
@@ -404,10 +405,8 @@ main(uint32_t ax, uint32_t bx)
 	hi("sys is "); put64((uint64_t) sys); hi("\n");
 	sys->nmach = 1;			
 
-	if(vflag){
-		print("&ax = %#p, ax = %#ux, bx = %#ux\n", &ax, ax, bx);
-		// multiboot needs work.
-		//multiboot(ax, bx, vflag);
+	if(1){
+		multiboot(mbmagic, mbaddress, vflag);
 	}
 
 	hi("m: "); put64(m); hi("\n");
@@ -419,6 +418,10 @@ main(uint32_t ax, uint32_t bx)
 		m->cpumhz = hz/1000000ll;
 	}
 
+hi("gdb");
+print("hi %d", 1);
+print("hi %d", 2);
+print("hi %d", 0x1234);
 	/*
 	 * Mmuinit before meminit because it
 	 * flushes the TLB via m->pml4->pa.
@@ -426,6 +429,7 @@ main(uint32_t ax, uint32_t bx)
 hi("call mmuinit\n");
 {	mmuinit(); hi("	mmuinit();");}
 
+hi("wait for gdb");
 {	ioinit(); hi("	ioinit();");}
 {	kbdinit(); hi("	kbdinit();");}
 {	meminit(); hi("	meminit();");}

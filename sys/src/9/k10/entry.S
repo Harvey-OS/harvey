@@ -324,17 +324,15 @@ _zap0done:
 	movq	%rsi, %CR3				/* flush TLB */
 
 	addq	$(2*PTSZ+4*KiB), %rax		/* PD+PT+vsvm */
-	movq	%rax, %r15 # we thinkgRMACH			/* Mach */
-	movq	%rdx, %r13 # we think RUSER
 	movq	%rax, m
 
 	PUSHQ	%rdx				/* clear flags */
 	POPFQ
 
 	movq	%rbx, %rbx				/* push multiboot args */
-	PUSHQ	%rbx				/* multiboot info* */
+	movq	%rbx, %rsi
 	movq	%rax, %rax
-	pushq	%rax				/* multiboot magic */
+	movq	%rax, %rdi				/* multiboot magic */
 	// we get here!!!
 	// Now it's time to work on C code!
 	CALL	main

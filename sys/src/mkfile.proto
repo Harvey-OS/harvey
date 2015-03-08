@@ -17,7 +17,7 @@ OS=o
 #CPUS=arm amd64 386 power mips
 CPUS=amd64
 #CFLAGS=-FTVw
-CFLAGS=-O0 -static -fplan9-extensions -ffreestanding -fno-builtin -Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized -I$INCX86_64_DIR -I$INC_DIR
+CFLAGS=-O0 -g -static -fplan9-extensions -ffreestanding -fno-builtin -Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized -I$INCX86_64_DIR -I$INC_DIR
 LEX=lex
 YACC=yacc
 

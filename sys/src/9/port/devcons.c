@@ -417,6 +417,7 @@ panic(char *fmt, ...)
 	Mpl pl;
 	va_list arg;
 	char buf[PRINTSIZE];
+hi(fmt);
 
 	consdevs[1].q = nil;	/* don't try to write to /dev/kprint */
 
