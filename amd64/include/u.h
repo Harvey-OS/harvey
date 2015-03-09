@@ -64,6 +64,7 @@ union FPdbleword
 	};
 };
 
+#if 0
 typedef	char*	va_list;
 #define va_start(list, start) list =\
 	(sizeof(start) < 8?\
@@ -79,3 +80,5 @@ typedef	char*	va_list;
 	(sizeof(mode) == 4)?\
 		((list += 8), (mode*)list)[-2]:\
 		((list += sizeof(mode)), (mode*)list)[-1])
+#endif
+#include <stdarg.h>
