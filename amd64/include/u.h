@@ -64,6 +64,7 @@ union FPdbleword
 	};
 };
 
+/*
 #if 0
 typedef	char*	va_list;
 #define va_start(list, start) list =\
@@ -81,4 +82,12 @@ typedef	char*	va_list;
 		((list += 8), (mode*)list)[-2]:\
 		((list += sizeof(mode)), (mode*)list)[-1])
 #endif
-#include <stdarg.h>
+*/
+
+typedef __builtin_va_list va_list;
+
+#define va_start(v,l)	__builtin_va_start(v,l)
+#define va_end(v)	__builtin_va_end(v)
+#define va_arg(v,l)	__builtin_va_arg(v,l)
+#define va_copy(v,l)	__builtin_va_copy(v,l)
+
