@@ -324,6 +324,39 @@ void errstr(char *s, int i) {
 }
 
 static int x = 0x123456;
+
+static int  __attribute__((regparm(0)))
+testvarargs(char *fmt, ...)
+{
+           va_list ap;
+           int d;
+           char c, *s;
+
+           va_start(ap, fmt);
+           while (*fmt) {
+		wave(*fmt);
+               switch (*fmt++) {
+               case 's':              /* string */
+                   s = va_arg(ap, char *);
+			put64(s);
+                   //hi(s);
+                   break;
+               case 'd':              /* int */
+                   d = va_arg(ap, int);
+		   put64(d);
+                   break;
+               case 'c':              /* char */
+                   /* need a cast here since va_arg only
+                      takes fully promoted types */
+		   c = (char) va_arg(ap, int);
+                   wave(c);
+                   break;
+               }
+	}
+           va_end(ap);
+	   return 0;
+}
+
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
@@ -399,6 +432,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 	fmtinit();
 	
+	testvarargs("Should print hi, 1, and 0: %s %d %c\n", "hi", 1, '0');
 	print("\nNIX\n");
 	print("NIX m %p sys %p \n", m, sys);
 	hi("m is "); put64((uint64_t) m); hi("\n");
@@ -412,7 +446,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 		multiboot(mbmagic, mbaddress, vflag);
 	}
 
-	hi("m: "); put64(m); hi("\n");
+	hi("m: "); put64((uint64_t)m); hi("\n");
 	m->perf.period = 1;
 	hi("archhz\n");
 	if((hz = archhz()) != 0ll){
@@ -445,7 +479,7 @@ hi("wait for gdb");
 	 * See next note. 
 	 */
 	void *v = malloc(1234);
-	hi("v "); put64(v); hi("\n");
+	hi("v "); put64((uint64_t)v); hi("\n");
 	free(v);
 	hi("free ok\n");
 	/*

@@ -65,8 +65,8 @@ static Sd gdt64[Ngdt] = {
 };
 //static int ngdt64 = 10;
 
-static Gd idt64[Nidt];
-static Gd acidt64[Nidt];	/* NIX application core IDT */
+//static Gd idt64[Nidt];
+//static Gd acidt64[Nidt];	/* NIX application core IDT */
 
 static Sd
 mksd(uint64_t base, uint64_t limit, uint64_t bits, uint64_t* upper)
@@ -85,6 +85,7 @@ mksd(uint64_t base, uint64_t limit, uint64_t bits, uint64_t* upper)
 	return sd;
 }
 
+#if 0
 static void
 mkgd(Gd* gd, uint64_t offset, Ss ss, uint64_t bits, int ist)
 {
@@ -124,7 +125,7 @@ idtinit(Gd *gd, uintptr_t offset)
 		offset += 6;
 	}
 }
-
+#endif
 void
 tssrsp0(uintptr_t sp)
 {
