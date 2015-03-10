@@ -375,25 +375,61 @@ _cas64r0:
 
 /*
  * Label consists of a stack pointer and a programme counter
- * NOT ON GCC!
+ * 0(%rdi) is the SP, 8(%rdi) is the PC
  */
 .global gotolabel
 gotolabel:
+	MOVQ	%rdi, %rax			/* store return PC */
+	MOVQ	0(%rdi), %rsp
 
-//	MOVQ	0(%rdi), SP			/* restore SP */
-//	MOVQ	8(%rdi), %rax			/* put return PC on the stack */
-//	MOVQ	%rax, 0(SP)
+	POPQ	%r15
+	POPQ	%r14
+	POPQ	%r13
+	POPQ	%r12
+	POPQ	%r11
+	POPQ	%r10
+	POPQ	%r9
+	POPQ	%r8
+	POPQ	%rbp
+	POPQ	%rdi
+	POPQ	%rsi
+	POPQ	%rdx
+	POPQ	%rcx
+	POPQ	%rbx
+	
 
-	MOVL	$1, %eax				/* return 1 */
+	MOVQ	8(%rax), %rax			/* put return PC on the stack */
+						/* NOTE: replaces previous caller? */
+	MOVQ	%rax, (%rSP)
+	MOVQ	$1, %rax				/* return 1 */
 	RET
 
+	/* save all registers on this stack, the save stack
+	* in the label struct.
+	*/
 .global setlabel
 setlabel:
+	// %rax is trashable.
+	MOVQ	0(%rSP), %rax			/* store return PC */
+	MOVQ	%rax, 8(%rdi)
 
-//	MOVQ	SP, 0(%rdi)			/* store SP */
-//	MOVQ	0(SP), BX			/* store return PC */
-//	MOVQ	BX, 8(%rdi)
+	SUBQ	$(14*8), %rsp			/* unsaved registers */
+	MOVQ	%rBX, (1*8)(%rsp)
+	MOVQ	%rCX, (1*8)(%rsp)
+	MOVQ	%rDX, (2*8)(%rsp)
+	MOVQ	%rSI, (3*8)(%rsp)
+	MOVQ	%rDI, (4*8)(%rsp)
+	MOVQ	%rBP, (5*8)(%rsp)
+	MOVQ	%r8, (6*8)(%rsp)
+	MOVQ	%r9, (7*8)(%rsp)
+	MOVQ	%r10, (8*8)(%rsp)
+	MOVQ	%r11, (9*8)(%rsp)
+	MOVQ	%r12, (10*8)(%rsp)
+	MOVQ	%r13, (11*8)(%rsp)
+	MOVQ	%r14, (12*8)(%rsp)
+	MOVQ	%r15, (13*8)(%rsp)
 
+	MOVQ	%rSP, 0(%rdi)			/* store SP */
 	MOVL	$0, %eax				/* return 0 */
 	RET
 
