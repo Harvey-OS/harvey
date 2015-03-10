@@ -325,38 +325,6 @@ void errstr(char *s, int i) {
 
 static int x = 0x123456;
 
-static int  __attribute__((regparm(0)))
-testvarargs(char *fmt, ...)
-{
-           va_list ap;
-           int d;
-           char c, *s;
-
-           va_start(ap, fmt);
-           while (*fmt) {
-		wave(*fmt);
-               switch (*fmt++) {
-               case 's':              /* string */
-                   s = va_arg(ap, char *);
-			put64(s);
-                   //hi(s);
-                   break;
-               case 'd':              /* int */
-                   d = va_arg(ap, int);
-		   put64(d);
-                   break;
-               case 'c':              /* char */
-                   /* need a cast here since va_arg only
-                      takes fully promoted types */
-		   c = (char) va_arg(ap, int);
-                   wave(c);
-                   break;
-               }
-	}
-           va_end(ap);
-	   return 0;
-}
-
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
@@ -432,7 +400,6 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 	fmtinit();
 	
-	testvarargs("Should print hi, 1, and 0: %s %d %c\n", "hi", 1, '0');
 	print("\nNIX\n");
 	print("NIX m %p sys %p \n", m, sys);
 	hi("m is "); put64((uint64_t) m); hi("\n");
@@ -506,10 +473,7 @@ if (0){	acpiinit(); hi("	acpiinit();");}
 {	procinit0(); hi("	procinit0();");}
 {	mpsinit(maxcores); hi("	mpsinit(maxcores);");}
 {	apiconline(); hi("	apiconline();");}
-#warning "Not doing sipi");
-#if 0
-	sipi(); 
-#endif
+if (0) sipi(); 
 
 {	timersinit(); hi("	timersinit();");}
 {	kbdenable(); hi("	kbdenable();");}
