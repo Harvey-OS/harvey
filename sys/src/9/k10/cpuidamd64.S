@@ -13,9 +13,11 @@ cpuid:
 
 	cpuid 	/* Argument in %rax */
 
-	movl	%ebx, 0(%r15)
+	// Plan 9 just moves them as a,b,c,d. Weird.
+	movl	%eax, 0(%r15)
+	movl	%ebx, 4(%r15)
 	movl	%ecx, 8(%r15)
-	movl	%edx, 24(%r15)
+	movl	%edx, 12(%r15)
 	popq	%r15
 	popq	%rdx
 	popq	%rcx
