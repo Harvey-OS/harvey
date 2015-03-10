@@ -205,7 +205,7 @@ hi("done that\n");
 	wrmsr(Efer, r);
 	r = ((uint64_t)SSEL(SiU32CS, SsRPL3))<<48;
 	r |= ((uint64_t)SSEL(SiCS, SsRPL0))<<32;
-hi("wirte star!\n");
+hi("wirte Star!\n");
 	wrmsr(Star, r);
 hi("wirte Lstar!\n");
 	if(nixtype != NIXAC)

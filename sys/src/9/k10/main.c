@@ -401,7 +401,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	fmtinit();
 	
 	print("\nNIX\n");
-	print("NIX m %p sys %p \n", m, sys);
+	print("NIX m = %p / sys = %p \n", m, sys);
 	hi("m is "); put64((uint64_t) m); hi("\n");
 	hi("sys is "); put64((uint64_t) sys); hi("\n");
 	sys->nmach = 1;			
@@ -419,7 +419,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 		m->cpumhz = hz/1000000ll;
 	}
 
-hi("gdb");
+hi("gdb\n");
 print("hi %d", 1);
 print("hi %d", 2);
 print("hi %d", 0x1234);
@@ -428,15 +428,15 @@ print("hi %d", 0x1234);
 	 * flushes the TLB via m->pml4->pa.
 	 */
 hi("call mmuinit\n");
-{	mmuinit(); hi("	mmuinit();");}
+{	mmuinit(); hi("	mmuinit();\n");}
 
-hi("wait for gdb");
-{	ioinit(); hi("	ioinit();");}
-{	kbdinit(); hi("	kbdinit();");}
-{	meminit(); hi("	meminit();");}
-{	confinit(); hi("	confinit();");}
-{	archinit(); hi("	archinit();");}
-{	mallocinit(); hi("	mallocinit();");}
+hi("wait for gdb\n");
+{	ioinit(); hi("	ioinit();\n");}
+{	kbdinit(); hi("	kbdinit();\n");}
+{	meminit(); hi("	meminit();\n");}
+{	confinit(); hi("	confinit();\n");}
+{	archinit(); hi("	archinit();\n");}
+{	mallocinit(); hi("	mallocinit();\n");}
 
 	/* test malloc. It's easier to find out it's broken here, 
 	 * not deep in some call chain.
@@ -455,11 +455,11 @@ hi("wait for gdb");
 	 * (it's amazing how far you can get with
 	 * things like that completely broken).
 	 */
-if (0){	acpiinit(); hi("	acpiinit();");}
+if (0){	acpiinit(); hi("	acpiinit();\n");}
 	
-{	umeminit(); hi("	umeminit();");}
-{	trapinit(); hi("	trapinit();");}
-{	printinit(); hi("	printinit();");}
+{	umeminit(); hi("	umeminit();\n");}
+{	trapinit(); hi("	trapinit();\n");}
+{	printinit(); hi("	printinit();\n");}
 
 	/*
 	 * This is necessary with GRUB and QEMU.
@@ -467,29 +467,30 @@ if (0){	acpiinit(); hi("	acpiinit();");}
 	 * because the vector base is likely different, causing
 	 * havoc. Do it before any APIC initialisation.
 	 */
-{	i8259init(32); hi("	i8259init(32);");}
+{	i8259init(32); hi("	i8259init(32);\n");}
 
 
-{	procinit0(); hi("	procinit0();");}
-{	mpsinit(maxcores); hi("	mpsinit(maxcores);");}
-{	apiconline(); hi("	apiconline();");}
+{	procinit0(); hi("	procinit0();\n");}
+{	mpsinit(maxcores); hi("	mpsinit(maxcores);\n");}
+{	apiconline(); hi("	apiconline();\n");}
 if (0) sipi(); 
 
-{	timersinit(); hi("	timersinit();");}
-{	kbdenable(); hi("	kbdenable();");}
-{	fpuinit(); hi("	fpuinit();");}
-{	psinit(conf.nproc); hi("	psinit(conf.nproc);");}
-{	initimage(); hi("	initimage();");}
-{	links(); hi("	links();");}
-{	devtabreset(); hi("	devtabreset();");}
-{	pageinit(); hi("	pageinit();");}
-{	swapinit(); hi("	swapinit();");}
-{	userinit(); hi("	userinit();");}
+{	timersinit(); hi("	timersinit();\n");}
+{	kbdenable(); hi("	kbdenable();\n");}
+{	fpuinit(); hi("	fpuinit();\n");}
+{	psinit(conf.nproc); hi("	psinit(conf.nproc);\n");}
+{	initimage(); hi("	initimage();\n");}
+{	links(); hi("	links();\n");}
+{	devtabreset(); hi("	devtabreset();\n");}
+{	pageinit(); hi("	pageinit();\n");}
+{	swapinit(); hi("	swapinit();\n");}
+{	userinit(); hi("	userinit();\n");}
 	if (0) { // NO NIX YET
-		{	nixsquids(); hi("	nixsquids();");}
-		{testiccs(); hi("testiccs();");}	
+		{	nixsquids(); hi("	nixsquids();\n");}
+		{testiccs(); hi("testiccs();\n");}	
 	}
 	print("schedinit...\n");
+	die("stop here!!\n");
 	schedinit();
 }
 
