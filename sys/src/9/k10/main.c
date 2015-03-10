@@ -490,7 +490,6 @@ if (0) sipi();
 		{testiccs(); hi("testiccs();\n");}	
 	}
 	print("schedinit...\n");
-	die("stop here!!\n");
 	schedinit();
 }
 
