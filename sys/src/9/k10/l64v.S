@@ -382,26 +382,26 @@ gotolabel:
 	MOVQ	%rdi, %rax			/* store return PC */
 	MOVQ	0(%rdi), %rsp
 
-	POPQ	%r15
-	POPQ	%r14
-	POPQ	%r13
-	POPQ	%r12
-	POPQ	%r11
-	POPQ	%r10
-	POPQ	%r9
-	POPQ	%r8
-	POPQ	%rbp
-	POPQ	%rdi
-	POPQ	%rsi
-	POPQ	%rdx
-	POPQ	%rcx
-	POPQ	%rbx
-	
+	MOVQ	(0*8)(%rsp), %rBX
+	MOVQ	(1*8)(%rsp), %rCX
+	MOVQ	(2*8)(%rsp), %rDX
+	MOVQ	(3*8)(%rsp), %rSI
+	MOVQ	(4*8)(%rsp), %rDI
+	MOVQ	(5*8)(%rsp), %rBP
+	MOVQ	(6*8)(%rsp), %r8
+	MOVQ	(7*8)(%rsp), %r9
+	MOVQ	(8*8)(%rsp), %r10
+	MOVQ	(9*8)(%rsp), %r11
+	MOVQ	(10*8)(%rsp), %r12
+	MOVQ	(11*8)(%rsp), %r13
+	MOVQ	(12*8)(%rsp), %r14
+	MOVQ	(13*8)(%rsp), %r15
+	ADDQ	$(14*8), %rsp			/* unsaved registers */
 
 	MOVQ	8(%rax), %rax			/* put return PC on the stack */
 						/* NOTE: replaces previous caller? */
 	MOVQ	%rax, (%rSP)
-	MOVQ	$1, %rax				/* return 1 */
+	MOVQ	$1, %rax			/* return 1 */
 	RET
 
 	/* save all registers on this stack, the save stack
@@ -414,7 +414,7 @@ setlabel:
 	MOVQ	%rax, 8(%rdi)
 
 	SUBQ	$(14*8), %rsp			/* unsaved registers */
-	MOVQ	%rBX, (1*8)(%rsp)
+	MOVQ	%rBX, (0*8)(%rsp)
 	MOVQ	%rCX, (1*8)(%rsp)
 	MOVQ	%rDX, (2*8)(%rsp)
 	MOVQ	%rSI, (3*8)(%rsp)
@@ -430,7 +430,8 @@ setlabel:
 	MOVQ	%r15, (13*8)(%rsp)
 
 	MOVQ	%rSP, 0(%rdi)			/* store SP */
-	MOVL	$0, %eax				/* return 0 */
+	PUSHQ	%rax				/* so ret works */
+	MOVL	$0, %eax			/* return 0 */
 	RET
 
 .global hardhalt
