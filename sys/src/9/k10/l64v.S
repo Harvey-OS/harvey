@@ -254,8 +254,11 @@ _splhi:
 	TESTQ	$If, %rax				/* If - Interrupt Flag */
 	JZ	_alreadyhi			/* use CMOVLEQ etc. here? */
 
+	MOVQ	%gs:0, %rax
+	PUSHQ	%rbx
 	MOVQ	(%rsp), %rbx
-	MOVQ	%rbx, 8(%r15) 			/* save PC in m->splpc */
+	MOVQ	%rbx, 8(%rax) 			/* save PC in m->splpc */
+	POPQ	%rbx
 
 _alreadyhi:
 	CLI
@@ -268,8 +271,8 @@ _spllo:
 	POPQ	%rax
 	TESTQ	$If, %rax				/* If - Interrupt Flag */
 	JNZ	_alreadylo			/* use CMOVLEQ etc. here? */
-
-	MOVQ	$0, 8(%r15)			/* clear m->splpc */
+	MOVQ	%gs:0, %rax
+	MOVQ	$0, 8(%rax)			/* clear m->splpc */
 
 _alreadylo:
 	STI
