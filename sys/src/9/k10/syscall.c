@@ -236,7 +236,7 @@ syscall(int badscallnr, Ureg* ureg)
 	char *e;
 	uintptr_t	sp;
 	int s;
-	int64_t startns, stopns;
+	//int64_t startns, stopns;
 	Ar0 ar0;
 	static Ar0 zar0;
 
@@ -252,7 +252,7 @@ syscall(int badscallnr, Ureg* ureg)
 	up->pc = ureg->ip;
 	up->dbgreg = ureg;
 	sp = ureg->sp;
-	startns = 0;
+	//startns = 0;
 
 	if(up->procctl == Proc_tracesyscall){
 		/*
@@ -271,7 +271,7 @@ syscall(int badscallnr, Ureg* ureg)
 		if(up->syscalltrace)
 			free(up->syscalltrace);
 		up->syscalltrace = nil;
-		startns = todget(nil);		
+		//startns = todget(nil);		
 	}
 
 	up->scallnr = scallnr;
@@ -337,7 +337,7 @@ syscall(int badscallnr, Ureg* ureg)
 	ureg->ax = ar0.p;
 
 	if(up->procctl == Proc_tracesyscall){
-		stopns = todget(nil);
+		//stopns = todget(nil);
 		up->procctl = Proc_stopme;
 		//		sysretfmt(scallnr, (va_list)(sp+BY2SE), &ar0, startns, stopns);
 		s = splhi();

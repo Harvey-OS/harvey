@@ -65,7 +65,7 @@ static Sd gdt64[Ngdt] = {
 };
 //static int ngdt64 = 10;
 
-//static Gd idt64[Nidt];
+static Gd idt64[Nidt];
 //static Gd acidt64[Nidt];	/* NIX application core IDT */
 
 static Sd
@@ -85,7 +85,6 @@ mksd(uint64_t base, uint64_t limit, uint64_t bits, uint64_t* upper)
 	return sd;
 }
 
-#if 0
 static void
 mkgd(Gd* gd, uint64_t offset, Ss ss, uint64_t bits, int ist)
 {
@@ -125,7 +124,7 @@ idtinit(Gd *gd, uintptr_t offset)
 		offset += 6;
 	}
 }
-#endif
+
 void
 tssrsp0(uintptr_t sp)
 {
@@ -165,13 +164,10 @@ vsvminit(int size, int nixtype)
 {
 	Sd *sd;
 	uint64_t r;
-#warning "no idt setup"
-#if 0
 	if(m->machno == 0){
 		idtinit(idt64, PTR2UINT(idthandlers));
-		idtinit(acidt64, PTR2UINT(acidthandlers));
+		//idtinit(acidt64, PTR2UINT(acidthandlers));
 	}
-#endif
 hi("set m->gdt\n");
 	m->gdt = m->vsvm;
 	memmove(m->gdt, gdt64, sizeof(gdt64));
@@ -185,9 +181,11 @@ hi("call gdtput...");
 hi("SKIPPING gdtput for now until we figure out what we want. \n");
 	//gdtput(sizeof(gdt64)-1, PTR2UINT(m->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
 hi("gdtput\n");
-#if 0
+#if 0 // NO ACs YET
 	if(nixtype != NIXAC)
+#endif
 		idtput(sizeof(idt64)-1, PTR2UINT(idt64));
+#if 0
 	else
 		idtput(sizeof(acidt64)-1, PTR2UINT(acidt64));
 #endif
