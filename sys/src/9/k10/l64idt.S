@@ -21,8 +21,7 @@ _intrcommon:
 	XCHGQ	%rax, (%rsp)
 
 	SUBQ	$24, %rsp				/* R1[45], [DEFG]S */
-#warning "fix me"
-	//CMPW	48(%rsp), $SSEL(SiCS, SsTIGDT|SsRPL0)	/* old CS */
+	CMPW	$SSEL(SiCS, SsTIGDT|SsRPL0), 48(%rsp) 	/* old CS */
 	JE	_intrnested
 
 #if 0 // skip this stuff -- not needed?
@@ -78,7 +77,7 @@ _intrr:
 	POPQ	%r12
 	POPQ	%r13
 
-//	CMPQ	48(%rsp), $SSEL(SiCS, SsTIGDT|SsRPL0)
+	CMPW	$SSEL(SiCS, SsTIGDT|SsRPL0), 48(%rsp) 	/* old CS */
 	JE	_iretnested
 
 	SWAPGS
