@@ -135,8 +135,10 @@ gdtput:
 	MOVW	%ax, %fs
 	MOVW	%ax, %gs
 	MOVW	%ax, %ss
-	pushw	%dx
-	RETF
+	POPQ	%rax
+	PUSHQ	%rdx
+	PUSHQ	%rax
+	lretq
 
 .global idtput
 idtput:
