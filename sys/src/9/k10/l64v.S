@@ -128,10 +128,19 @@ gdtput:
 	RET
 .global idtput
 idtput:
-//	SHLQ	$48, RARG
-//	MOVQ	RARG, m16+0(FP)
-//	LEAQ	m16+6(FP), RARG
-//	MOVL	(RARG), IDTR
+	// save %rdi, since we are going to modify it.
+	pushq	%rdi
+	// Push the two quads onto the stack,
+	// which arranges them in memory.
+	pushq	%rsi
+	shlq	$48, %rdi
+	pushq	%rdi
+	movq	%rsp, %rax
+	addq	$6, %rax
+	lidt	(%rax)
+	popq	%rdi
+	popq	%rsi
+	popq	%rdi
 	RET
 
 .global trput
