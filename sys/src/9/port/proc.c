@@ -92,7 +92,6 @@ schedinit(void)		/* never returns */
 	ainc(&run.nmach);
 
 	setlabel(&m->sched);
-die("hi");
 	if(up) {
 		if((e = up->edf) && (e->flags & Admitted))
 			edfrecord(up);
@@ -199,7 +198,6 @@ sched(void)
 
 		procsave(up);
 		mmuflushtlb(m->pml4->pa);
-die("let's to setlabel etc.\n");
 		if(setlabel(&up->sched)){
 			procrestore(up);
 			spllo();

@@ -245,7 +245,7 @@ timersinit(void)
 	t = malloc(sizeof(*t));
 	t->tmode = Tperiodic;
 	t->tt = nil;
-	t->tns = 1000000000/HZ;
+	t->tns = 10000000000; // 10 seconds.1000000000/HZ;
 	t->tf = nil;
 	timeradd(t);
 }
@@ -259,7 +259,7 @@ addclock0link(void (*f)(void), int ms)
 	/* Synchronize to hztimer if ms is 0 */
 	nt = malloc(sizeof(Timer));
 	if(ms == 0)
-		ms = 1000/HZ;
+		ms = 10000; // 10 seconds. 1000/HZ;
 	nt->tns = (int64_t)ms*1000000LL;
 	nt->tmode = Tperiodic;
 	nt->tt = nil;

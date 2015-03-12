@@ -322,7 +322,6 @@ _trap(Ureg *ureg)
 	 * and then call trap().
 	 * If we do this in trap(), we would overwrite that with our own cr2.
 	 */
-hi("TRAP\n");
 	if(ureg->type == VectorPF)
 		m->cr2 = cr2get();
 	trap(ureg);
@@ -343,7 +342,8 @@ trap(Ureg* ureg)
 	Vctl *ctl, *v;
 
 	vno = ureg->type;
-
+print("teyp %x\n", ureg->type);
+die("TRAP HANG\n");
 	m->perf.intrts = perfticks();
 	user = userureg(ureg);
 	if(user && (m->nixtype == NIXTC)){

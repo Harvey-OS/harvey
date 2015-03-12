@@ -17,7 +17,7 @@ _intre:
 	XCHGQ	%rax, (%rsp)
 _intrcommon:
 	//MOVBQZX	(%rax), %rAX
-	MOVQ	(%rax), %rAX
+	MOVL	%eax, %eax
 	XCHGQ	%rax, (%rsp)
 
 	SUBQ	$24, %rsp				/* R1[45], [DEFG]S */
