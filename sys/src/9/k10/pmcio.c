@@ -450,6 +450,7 @@ pmcupdate(Mach *m)
 	int i, maxct, wk;
 	PmcWait *w;
 
+	return;
 	maxct = pmcnregs();
 	for (i = 0; i < maxct; i++) {
 		p = &m->pmc[i];
