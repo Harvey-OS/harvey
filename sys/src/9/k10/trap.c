@@ -322,6 +322,7 @@ _trap(Ureg *ureg)
 	 * and then call trap().
 	 * If we do this in trap(), we would overwrite that with our own cr2.
 	 */
+hi("TRAP\n");
 	if(ureg->type == VectorPF)
 		m->cr2 = cr2get();
 	trap(ureg);
