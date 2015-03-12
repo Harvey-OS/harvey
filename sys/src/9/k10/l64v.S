@@ -110,22 +110,34 @@ outsl:
  */
 .global gdtget
 gdtget:
+	// panic.
+	mov 0, %rax
+	//sgdt	%rdi
 //	MOVL	GDTR, (RARG)			/* Note: 10 bytes returned */
 	RET
 
 	// Called with the address of gdt in rdi.
+// Load the gdt, then do a ret which will use the argument on the stack as
+// a segment #. This stuff is just crazy.
+// We have to push %rsi, then 16 bits(really!) of %rdi.
 .global gdtput
 gdtput:
+	pushq	%rsi
 	movq	%rdi, %rax
+	pushw	%ax
+	mov	%rsp, %rax
 	lgdt	(%rax)
+	popw 	%ax
+	popq	%rax
 	XORQ	%rax, %rax
 	MOVW	%ax, %ds
 	MOVW	%ax, %es
 	MOVW	%ax, %fs
 	MOVW	%ax, %gs
 	MOVW	%ax, %ss
+	pushw	%dx
+	RETF
 
-	RET
 .global idtput
 idtput:
 	// save %rdi, since we are going to modify it.

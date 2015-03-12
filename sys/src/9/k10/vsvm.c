@@ -177,13 +177,13 @@ hi("set m->gdt\n");
 	*sd = mksd(PTR2UINT(m->tss), sizeof(Tss)-1, SdP|SdDPL0|SdaTSS, sd+1);
 hi("tssinti\n");
 	tssinit(m->stack+size);
-hi("call gdtput...");
-hi("SKIPPING gdtput for now until we figure out what we want. \n");
-	//gdtput(sizeof(gdt64)-1, PTR2UINT(m->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
+	die("gdtput");
+	gdtput(sizeof(gdt64)-1, PTR2UINT(m->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
 hi("gdtput\n");
 #if 0 // NO ACs YET
 	if(nixtype != NIXAC)
 #endif
+	die("idtput");
 		idtput(sizeof(idt64)-1, PTR2UINT(idt64));
 #if 0
 	else
