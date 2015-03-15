@@ -40,6 +40,8 @@ SOURCE="entry.S *.c ../386/*.c ../ip/*.c ../port/*.c l64v.S l64fpu.S cpuidamd64.
 compiling()
 {
 	CFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin ${GDBFLAG}"
+	# oh, gcc.
+	CFLAGS="$CFLAGS -fvar-tracking -fvar-tracking-assignments"
 	UCFLAGS="-O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin -g"
 
 	## General conf file ##

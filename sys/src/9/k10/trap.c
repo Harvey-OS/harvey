@@ -342,8 +342,7 @@ trap(Ureg* ureg)
 	Vctl *ctl, *v;
 
 	vno = ureg->type;
-print("teyp %x\n", ureg->type);
-die("TRAP HANG\n");
+print("type %x\n", ureg->type);
 	m->perf.intrts = perfticks();
 	user = userureg(ureg);
 	if(user && (m->nixtype == NIXTC)){
@@ -355,6 +354,7 @@ die("TRAP HANG\n");
 
 	_pmcupdate(m);
 
+print("vno %d\n", vno);
 	if(ctl = vctl[vno]){
 		if(ctl->isintr){
 			m->intr++;
@@ -493,6 +493,7 @@ dumpgpr(Ureg* ureg)
 void
 dumpregs(Ureg* ureg)
 {
+die("dumpregs");
 	dumpgpr(ureg);
 
 	/*

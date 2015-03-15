@@ -62,7 +62,8 @@ _intre:
 // At this point, %rax is at TOS and all is well.
 // If this is nested we need to not do a swapgs.
 _intrcommon:
-	MOVQ	(%rax), %rax
+	MOVb	(%rax), %al
+	ANDQ	$0xff, %rax
 	// restore the rax you saved earlier.
 	XCHGQ	%rax, 0(%rsp)
 	CMPW	$SSEL(SiCS, SsTIGDT|SsRPL0), 24(%rsp) 	/* old CS */
@@ -81,7 +82,6 @@ _intrnested:
 	PUSHQ	%r8
 	PUSHQ	%rBP
 	PUSHQ	%rDI
-	PUSHQ	%rdi
 	PUSHQ	%rSI
 	PUSHQ	%rDX
 	PUSHQ	%rCX
