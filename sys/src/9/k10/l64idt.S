@@ -5,42 +5,74 @@
 
 .code64
 
-// _intrp and _intre make the stack look the same to the C code and intrcommon. 
+	/* Interrupts.  * Let's just talk about hardware
+	* interrupts. What has to happen is that we save enough state to
+	* return to where we were, and that's all we do. Hardware needs a stack,
+	* so it pushes SS and %rsp. Hardware has to
+	* clear If, which means we have to save the flags. We might be
+	* in user mode, so we need to change CS, so we need to save
+	* CS. Finally, we have to know where we were, so we need to save
+	* the RIP. And that's all get saved.
+	* Further, if you look at idthandlers below, you see a call to intrp.
+	* So on entry to intrp, the stack looks like this:
+	* EFLAGS 24(%rsp)
+	* CS	16(%rsp)
+	* EIP of interrupted code 8(%rsp)
+	* EIP from the call from the idthandlers. (%rsp)
+	* We, finally, need to push the error code and type.,
+	* then the registers. 
+	* Why the call from IDThandlers? So we can get a way to point
+	* to the type. We don't need to save 0(%rsp), we just need
+	* it to get the type. We can pop it and throw it away when
+	* needed.
+	* What does the C level function need?
+	* It needs a pointer to the Uregs, as defined in ureg.h
+	* The other problem: all the regs have to be saved, so
+	* Plan 9 code can see them all.
+	* Finally, if it's a nested interrupt, we need to know that
+	* so we don't swapgs at the wrong time.
+	* Finally, this is utterly different from how Plan 9 does it, because
+	* all args are on the stack in Plan 9. We need %rdi for the pointer.
+	* And, the final x86 mess: for some things, the error code pointer
+	* is on the stack. For others, it's not. To make the stacks
+	* look identical for the common code and exit we save %rax and line things up.
+	*/
+	
+// When we enter: 
+// registers are NOT saved. We need to save them all.
+// return PC is on the stat8(%rsp). It should be left there.
+// @ (%rsp) is the PC from the vector table. 
+// So indirecting on that will get us the interrupt #.
+// We need to get what the return PC is pointing to into %rdi.
+// We no longer need to make the stack look the same as in Plan 9
+// because the arg is in %rdi
 .globl _intrp
 _intrp:
-	PUSHQ	%rax				/* save AX */
-	MOVQ	8(%rsp), %rax			/* idthandlers(SB) PC */
+	pushq	%rax // bogus error code. Makes stack look like intre.
+	MOVQ	8(%rsp), %rax
 	JMP	_intrcommon
 
+// or intre, I guess %rax has an interrupt number. I'm a little unsure on this
+// part.
 .globl _intre
 _intre:
-	XCHGQ	%rax, (%rsp)
-_intrcommon:
-	//MOVBQZX	(%rax), %rAX
-	MOVL	%eax, %eax
+	// The error code has been pushed. How I love the x86.
 	XCHGQ	%rax, (%rsp)
 
-	SUBQ	$24, %rsp				/* R1[45], [DEFG]S */
-	CMPW	$SSEL(SiCS, SsTIGDT|SsRPL0), 48(%rsp) 	/* old CS */
+// At this point, %rax is at TOS and all is well.
+// If this is nested we need to not do a swapgs.
+_intrcommon:
+	MOVQ	(%rax), %rax
+	// restore the rax you saved earlier.
+	XCHGQ	%rax, 0(%rsp)
+	CMPW	$SSEL(SiCS, SsTIGDT|SsRPL0), 24(%rsp) 	/* old CS */
 	JE	_intrnested
 
-#if 0 // skip this stuff -- not needed?
-	MOVQ	RUSER, 0(SP)
-	MOVQ	RMACH, 8(SP)
-	MOVW	DS, 16(SP)
-	MOVW	ES, 18(SP)
-	MOVW	FS, 20(SP)
-	MOVW	GS, 22(SP)
-#endif
-
 	SWAPGS
-#if 0
-	// no longer used.
-	BYTE $0x65; MOVQ 0, RMACH		/* m-> (MOVQ GS:0x0, R15) */
-	MOVQ	16(RMACH), RUSER		/* up */
-#endif
 
 _intrnested:
+	PUSHQ	%r15
+	PUSHQ	%r14
 	PUSHQ	%r13
 	PUSHQ	%r12
 	PUSHQ	%r11
@@ -49,20 +81,17 @@ _intrnested:
 	PUSHQ	%r8
 	PUSHQ	%rBP
 	PUSHQ	%rDI
+	PUSHQ	%rdi
 	PUSHQ	%rSI
 	PUSHQ	%rDX
 	PUSHQ	%rCX
 	PUSHQ	%rbx
 	PUSHQ	%rax
 
-	MOVQ	%rsp, %rdi
-	PUSHQ	%rSP
+	MOVQ	%rsp, %rdi // it's ok, we saved %rdi.
 	CALL	_trap
-
 .globl _intrr
 _intrr:
-	POPQ	%rax
-
 	POPQ	%rax
 	POPQ	%rbx
 	POPQ	%rCX
@@ -76,23 +105,19 @@ _intrr:
 	POPQ	%r11
 	POPQ	%r12
 	POPQ	%r13
+	POPQ	%r14
+	POPQ	%r15
 
-	CMPW	$SSEL(SiCS, SsTIGDT|SsRPL0), 48(%rsp) 	/* old CS */
+	CMPW	$SSEL(SiCS, SsTIGDT|SsRPL0), 24(%rsp) 	/* old CS */
 	JE	_iretnested
 
 	SWAPGS
-	/*	per the architecture manual, moving 16 bits to FS can zero it. Bad ... 
-	 *	not restoring it gives back the bad segment selector bug
-	MOVW	22(SP), GS
-	MOVW	20(SP), FS
-	MOVW	18(SP), ES
-	MOVW	16(SP), DS
-	MOVQ	8(SP), RMACH
-	MOVQ	0(SP), RUSER
-	 */
 
 _iretnested:
-	ADDQ	$40, %rsp
+	// Throw away:
+	// The %rax you pushed (error code)
+	// EIP from the vector table.
+	ADDQ	$16, %rsp
 	retq
 
 .globl idthandlers

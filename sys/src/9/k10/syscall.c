@@ -63,9 +63,7 @@ noted(Ureg* cur, uintptr_t arg0)
 	 * Check the segment selectors are all valid.
 	 */
 	nur = &nf->ureg;
-	if(nur->cs != SSEL(SiUCS, SsRPL3) || nur->ss != SSEL(SiUDS, SsRPL3)
-	|| nur->ds != SSEL(SiUDS, SsRPL3) || nur->es != SSEL(SiUDS, SsRPL3)
-	|| nur->fs != SSEL(SiUDS, SsRPL3) || nur->gs != SSEL(SiUDS, SsRPL3)){
+	if(nur->cs != SSEL(SiUCS, SsRPL3) || nur->ss != SSEL(SiUDS, SsRPL3)) {
 		qunlock(&up->debug);
 		pprint("suicide: bad segment selector in noted\n");
 		pexit("Suicide", 0);

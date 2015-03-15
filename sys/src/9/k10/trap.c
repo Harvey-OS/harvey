@@ -476,9 +476,6 @@ dumpgpr(Ureg* ureg)
 	iprint("r13\t%#16.16llux\n", ureg->r13);
 	iprint("r14\t%#16.16llux\n", ureg->r14);
 	iprint("r15\t%#16.16llux\n", ureg->r15);
-	iprint("ds  %#4.4ux   es  %#4.4ux   fs  %#4.4ux   gs  %#4.4ux\n",
-		ureg->ds, ureg->es, ureg->fs, ureg->gs);
-	iprint("ureg fs\t%#ux\n", *(unsigned int *)&ureg->ds);
 	iprint("type\t%#llux\n", ureg->type);
 	iprint("error\t%#llux\n", ureg->error);
 	iprint("pc\t%#llux\n", ureg->ip);
@@ -677,20 +674,11 @@ void
 setregisters(Ureg* ureg, char* pureg, char* uva, int n)
 {
 	uint64_t cs, flags, ss;
-	uint16_t ds, es, fs, gs;
 
 	ss = ureg->ss;
 	flags = ureg->flags;
 	cs = ureg->cs;
-	gs = ureg->cs;
-	fs = ureg->cs;
-	es = ureg->cs;
-	ds = ureg->cs;
 	memmove(pureg, uva, n);
-	ureg->ds = ds;
-	ureg->es = es;
-	ureg->fs = fs;
-	ureg->gs = gs;
 	ureg->cs = cs;
 	ureg->flags = (ureg->flags & 0x00ff) | (flags & 0xff00);
 	ureg->ss = ss;
