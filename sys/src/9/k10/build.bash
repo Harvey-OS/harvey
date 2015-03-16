@@ -11,7 +11,7 @@ set -e
 CONF="k8cpu"
 objtype=amd64
 AS=as
-LD=gcc
+LD=ld
 CC=gcc
 COLLECT=/usr/lib/gcc/x86_64-linux-gnu/4.9/collect2
 COLLECTFLAGS="-plugin /usr/lib/gcc/x86_64-linux-gnu/4.9/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/4.9/lto-wrapper --sysroot=/ --build-id -m elf_x86_64 --hash-style=gnu"
@@ -42,7 +42,7 @@ compiling()
 	CFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin ${GDBFLAG}"
 	# oh, gcc.
 	CFLAGS="$CFLAGS -fvar-tracking -fvar-tracking-assignments"
-	UCFLAGS="-O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin -g"
+	UCFLAGS="-O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin ${GDBFLAG}"
 
 	## General conf file ##
 	##-------------------##
@@ -77,7 +77,7 @@ compiling()
 	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c ../boot/printstub.c
 	echo "LD boot${CONF}.out"
 
-	$COLLECT $COLLECTFLAGS -static -o boot$CONF.out boot$CONF.o printstub.o $LDFLAGS -L$BOOTDIR -lboot -lip -lauth -lc
+	$LD -static -o boot$CONF.out boot$CONF.o printstub.o $LDFLAGS -L$BOOTDIR -lboot -lip -lauth -lc -emain
 
 	## systab.c ##
 	##----------##
@@ -88,12 +88,13 @@ compiling()
 	## init.h ##
 	##--------##
 
-	$CC $UCFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c init9.c
-	$CC $UCFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c ../port/initcode.c
+	$CC $UCFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -mcmodel=small -c init9.c
+	$CC $UCFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -mcmodel=small -c ../port/initcode.c
 
 	# I'm sure this binary is wrong. Check when kernel will build entirely
 
-	$COLLECT $COLLECTFLAGS -static -o init.out init9.o initcode.o $LDFLAGS -lc
+	$LD -static -o init.out init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x1020
+	strip init.out
 	$XD -i init.out > init.h
 
 	## errstr.h ##
@@ -107,7 +108,7 @@ compiling()
 	# We need data2c!! added to plan9-gpl/util
 
 	# Do we must strip binary?
-	# strip bootk8cpu.out
+	strip bootk8cpu.out
 	data2c bootk8cpu_out bootk8cpu.out >> k8cpu.root.c
 
 	# We haven't these for now. If strip it's not needed, cp step should be gone and /amd64/binary should be passed to data2c.
