@@ -66,6 +66,7 @@ struct Label
 {
 	uintptr_t	sp;
 	uintptr_t	pc;
+	uintptr_t	regs[14];
 };
 
 struct Fxsave {

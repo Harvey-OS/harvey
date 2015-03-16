@@ -405,24 +405,23 @@ _cas64r0:
  */
 .global gotolabel
 gotolabel:
-	MOVQ	%rdi, %rax			/* store return PC */
+	MOVQ	%rdi, %rax
 	MOVQ	0(%rdi), %rsp
 
-	MOVQ	(0*8)(%rsp), %rBX
-	MOVQ	(1*8)(%rsp), %rCX
-	MOVQ	(2*8)(%rsp), %rDX
-	MOVQ	(3*8)(%rsp), %rSI
-	MOVQ	(4*8)(%rsp), %rDI
-	MOVQ	(5*8)(%rsp), %rBP
-	MOVQ	(6*8)(%rsp), %r8
-	MOVQ	(7*8)(%rsp), %r9
-	MOVQ	(8*8)(%rsp), %r10
-	MOVQ	(9*8)(%rsp), %r11
-	MOVQ	(10*8)(%rsp), %r12
-	MOVQ	(11*8)(%rsp), %r13
-	MOVQ	(12*8)(%rsp), %r14
-	MOVQ	(13*8)(%rsp), %r15
-	ADDQ	$(14*8), %rsp			/* unsaved registers */
+	MOVQ	(16+0*8)(%rdi), %rBX
+	MOVQ	(16+1*8)(%rdi), %rCX
+	MOVQ	(16+2*8)(%rdi), %rDX
+	MOVQ	(16+3*8)(%rdi), %rSI
+	MOVQ	(16+4*8)(%rdi), %rDI
+	MOVQ	(16+5*8)(%rdi), %rBP
+	MOVQ	(16+6*8)(%rdi), %r8
+	MOVQ	(16+7*8)(%rdi), %r9
+	MOVQ	(16+8*8)(%rdi), %r10
+	MOVQ	(16+9*8)(%rdi), %r11
+	MOVQ	(16+10*8)(%rdi), %r12
+	MOVQ	(16+11*8)(%rdi), %r13
+	MOVQ	(16+12*8)(%rdi), %r14
+	MOVQ	(16+13*8)(%rdi), %r15
 
 	MOVQ	8(%rax), %rax			/* put return PC on the stack */
 						/* NOTE: replaces previous caller? */
@@ -439,25 +438,23 @@ setlabel:
 	MOVQ	0(%rSP), %rax			/* store return PC */
 	MOVQ	%rax, 8(%rdi)
 
-	SUBQ	$(14*8), %rsp			/* unsaved registers */
-	MOVQ	%rBX, (0*8)(%rsp)
-	MOVQ	%rCX, (1*8)(%rsp)
-	MOVQ	%rDX, (2*8)(%rsp)
-	MOVQ	%rSI, (3*8)(%rsp)
-	MOVQ	%rDI, (4*8)(%rsp)
-	MOVQ	%rBP, (5*8)(%rsp)
-	MOVQ	%r8, (6*8)(%rsp)
-	MOVQ	%r9, (7*8)(%rsp)
-	MOVQ	%r10, (8*8)(%rsp)
-	MOVQ	%r11, (9*8)(%rsp)
-	MOVQ	%r12, (10*8)(%rsp)
-	MOVQ	%r13, (11*8)(%rsp)
-	MOVQ	%r14, (12*8)(%rsp)
-	MOVQ	%r15, (13*8)(%rsp)
+	MOVQ	%rBX, (16+0*8)(%rdi)
+	MOVQ	%rCX, (16+1*8)(%rdi)
+	MOVQ	%rDX, (16+2*8)(%rdi)
+	MOVQ	%rSI, (16+3*8)(%rdi)
+	MOVQ	%rDI, (16+4*8)(%rdi)
+	MOVQ	%rBP, (16+5*8)(%rdi)
+	MOVQ	%r8, (16+6*8)(%rdi)
+	MOVQ	%r9, (16+7*8)(%rdi)
+	MOVQ	%r10, (16+8*8)(%rdi)
+	MOVQ	%r11, (16+9*8)(%rdi)
+	MOVQ	%r12, (16+10*8)(%rdi)
+	MOVQ	%r13, (16+11*8)(%rdi)
+	MOVQ	%r14, (16+12*8)(%rdi)
+	MOVQ	%r15, (16+13*8)(%rdi)
 
-	MOVQ	%rSP, 0(%rdi)			/* store SP */
-	PUSHQ	%rax				/* so ret works */
-	MOVL	$0, %eax			/* return 0 */
+	MOVQ	%rSP, 0(%rdi)	/* store SP */
+	MOVL	$0, %eax	/* return 0 */
 	RET
 
 .global hardhalt

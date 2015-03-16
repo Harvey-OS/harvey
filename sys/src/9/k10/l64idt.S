@@ -56,6 +56,7 @@ _intrp:
 // part.
 .globl _intre
 _intre:
+//jmp	_intre
 	// The error code has been pushed. How I love the x86.
 	XCHGQ	%rax, (%rsp)
 
