@@ -77,7 +77,7 @@ compiling()
 	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c ../boot/printstub.c
 	echo "LD boot${CONF}.out"
 
-	$LD -static -o boot$CONF.out boot$CONF.o printstub.o $LDFLAGS -L$BOOTDIR -lboot -lip -lauth -lc -emain
+	$LD -static -o boot$CONF.out boot$CONF.o printstub.o $LDFLAGS -L$BOOTDIR -lboot -lip -lauth -lc -emain -Ttext=0x1020
 
 	## systab.c ##
 	##----------##
