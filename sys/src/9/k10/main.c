@@ -387,7 +387,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 	cgainit();
 	wave('y');
-	//i8250console("0");
+	i8250console("0");
 	
 	wave('1');
 	consputs = cgaconsputs;
