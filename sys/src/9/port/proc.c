@@ -214,12 +214,16 @@ sched(void)
 		updatecpu(p);
 		p->priority = reprioritize(p);
 	}
+	if(p != m->readied)
+		m->schedticks = m->ticks + HZ/10;
+	m->readied = 0;
 	up = p;
 	m->qstart = m->ticks;
 	up->nqtrap = 0;
 	up->nqsyscall = 0;
 	up->state = Running;
-	up->mach = m;
+	//up->mach = m;
+	up->mach = sys->machptr[m->machno];
 	m->proc = up;
 	mmuswitch(up);
 
@@ -242,7 +246,7 @@ anyhigher(void)
 /*
  *  here once per clock tick to see if we should resched
  */
-
+#if 0
 void
 hzsched(void)
 {
@@ -261,11 +265,28 @@ hzsched(void)
 	if(m->qexpired && anyready())
 		up->delaysched++;
 }
+#endif
+
+void
+hzsched(void)
+{
+	/* once a second, rebalance will reprioritize ready procs */
+	if(m->machno == 0)
+		rebalance();
+
+	/* unless preempted, get to run for at least 100ms */
+	if(anyhigher()
+	|| (!up->fixedpri && m->ticks > m->schedticks && anyready())){
+		m->readied = nil;	/* avoid cooperative scheduling */
+		up->delaysched++;
+	}
+}
 
 /*
  *  here at the end of non-clock interrupts to see if we should preempt the
  *  current process.  Returns 1 if preempted, 0 otherwise.
  */
+#if 0
 int
 preempted(void)
 {
@@ -280,6 +301,24 @@ preempted(void)
 		panic("preemted used");
 		 */
 
+		up->preempted = 1;
+		sched();
+		splhi();
+		up->preempted = 0;
+		return 1;
+	}
+	return 0;
+}
+#endif
+
+int
+preempted(void)
+{
+	if(up && up->state == Running)
+	if(up->preempted == 0)
+	if(anyhigher())
+	if(!active.exiting){
+		m->readied = nil;	/* avoid cooperative scheduling */
 		up->preempted = 1;
 		sched();
 		splhi();
@@ -481,6 +520,9 @@ schedready(Sched *sch, Proc *p, int locked)
 		splx(pl);
 		return;
 	}
+
+	if(up != p)
+		m->readied = p;	/* group scheduling, will be removed */
 
 	updatecpu(p);
 	pri = reprioritize(p);
@@ -761,6 +803,7 @@ found:
  *  In the case of other cores we wait until a process is given
  *  by core 0.
  */
+#if 0
 Proc*
 runproc(void)
 {
@@ -799,6 +842,90 @@ runproc(void)
 
 	mach0sched();
 	return nil;	/* not reached */
+}
+#endif
+
+Proc*
+runproc(void)
+{
+	Schedq *rq;
+	Proc *p;
+	uint32_t start, now, skipscheds;
+	int i;
+	void (*pt)(Proc*, int, int64_t);
+
+	start = perfticks();
+
+	/* cooperative scheduling until the clock ticks */
+	if((p=m->readied) && p->mach==0 && p->state==Ready
+	&& &run.runq[Nrq-1].head == nil && &run.runq[Nrq-2].head == nil){
+		skipscheds++;
+		rq = &run.runq[p->priority];
+		hi("runproc going to found...\n");
+		goto found;
+	}
+
+	run.preempts++;
+
+loop:
+	/*
+	 *  find a process that last ran on this processor (affinity),
+	 *  or one that hasn't moved in a while (load balancing).  Every
+	 *  time around the loop affinity goes down.
+	 */
+	spllo();
+	for(i = 0;; i++){
+		/*
+		 *  find the highest priority target process that this
+		 *  processor can run given affinity constraints.
+		 *
+		 */
+		for(rq = &run.runq[Nrq-1]; rq >= run.runq; rq--){
+			for(p = rq->head; p; p = p->rnext){
+				if(p->mp == nil || p->mp == sys->machptr[m->machno]
+				|| (!p->wired && i > 0))
+				{
+					hi("runproc going to found...\n");
+					goto found;
+				}
+			}
+		}
+
+		/* waste time or halt the CPU */
+		idlehands();
+
+		/* remember how much time we're here */
+		now = perfticks();
+		m->perf.inidle += now-start;
+		start = now;
+	}
+
+found:
+	splhi();
+	hi("runproc into found...\n");
+	p = dequeueproc(&run, rq, p);
+	if(p == nil)
+	{
+		hi("runproc p=nil :(\n");
+			goto loop;
+	}
+
+	p->state = Scheding;
+	hi("runproc, pm->mp = sys->machptr[m->machno]\n");
+	hi("runproc, sys->machptr[m->machno] = "); put64(&sys->machptr[m->machno]); hi("\n");
+	p->mp = sys->machptr[m->machno];
+
+	if(edflock(p)){
+		edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
+		edfunlock();
+	}
+	pt = proctrace;
+	if(pt)
+		pt(p, SRun, 0);
+	/* avoiding warnings, this will be removed */
+	USED(mach0sched); USED(smprunproc);
+	hi("runproc, returning p ¿?\n");
+	return p;
 }
 
 int
