@@ -214,6 +214,8 @@ rdtsc:
 
 .global rdmsr
 rdmsr:
+	PUSHQ	%rcx
+	PUSHQ	%rdx
 	MOVL	%edi, %ecx
 
 	RDMSR
@@ -221,10 +223,15 @@ rdmsr:
 	XCHGL	%edx, %eax				/* swap lo/hi, zero-extend */
 	SHLQ	$32, %rax				/* hi<<32 */
 	ORQ	%rdx, %rax				/* (hi<<32)|lo */
+	POPQ	%rdx
+	POPQ	%rcx
 	RET
 
 .global wrmsr
 wrmsr:
+	PUSHQ	%rax	// do we need to do this?
+	PUSHQ	%rcx
+	PUSHQ	%rdx
 	MOVL	%edi, %ecx
 	MOVL	%esi, %eax
 	MOVQ	%rsi, %rdx
@@ -232,6 +239,9 @@ wrmsr:
 
 	WRMSR
 
+	POPQ	%rdx
+	POPQ	%rcx
+	POPQ	%rax
 	RET
 
 .global invlpg
