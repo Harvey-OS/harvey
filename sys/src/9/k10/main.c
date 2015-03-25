@@ -330,7 +330,11 @@ void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
   // when we get here, m is set to core0 mach.
+	sys->machptr[m->machno] = m;
 	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
+	hi("m "); put64(m); hi(" machp "); put64(machp()); hi("\n");
+	if (machp() != m)
+		die("================= m and machp() are different");
 	hi("mbmagic "); put32(mbmagic); hi("\n");
 	hi("mbaddress "); put32(mbaddress); hi("\n");
 	assert(sizeof(Mach) <= PGSZ);
@@ -399,6 +403,8 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	// It all ends here.
 	vsvminit(MACHSTKSZ, NIXTC);
 	hi("we're back from vsvminit\n");
+	if (machp() != m)
+		die("================= after vsvminit, m and machp() are different");
 	wave('s');
 
 	fmtinit();
