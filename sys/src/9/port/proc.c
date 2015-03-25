@@ -661,7 +661,7 @@ mach0sched(void)
 	int n, i, j;
 
 	assert(m->machno == 0);
-	acmodeset(NIXKC);		/* we don't time share any more */
+//	acmodeset(NIXKC);		/* we don't time share any more */
 	n = 0;
 	start = perfticks();
 loop:
