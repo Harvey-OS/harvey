@@ -16,6 +16,7 @@
 #include "init.h"
 #include "apic.h"
 #include "io.h"
+#include "amd64.h"
 
 #warning "what is kerndate?"
 uint32_t kerndate = 0;
@@ -328,6 +329,8 @@ static int x = 0x123456;
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
+  // when we get here, m is set to core0 mach.
+	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
 	hi("mbmagic "); put32(mbmagic); hi("\n");
 	hi("mbaddress "); put32(mbaddress); hi("\n");
 	assert(sizeof(Mach) <= PGSZ);
