@@ -912,8 +912,8 @@ found:
 
 	p->state = Scheding;
 	hi("runproc, pm->mp = sys->machptr[m->machno]\n");
-	hi("runproc, sys->machptr[m->machno] = "); put64((uint64_t)&sys->machptr[m->machno]); hi("\n");
 	p->mp = sys->machptr[m->machno];
+	hi("runproc, sys->machptr[m->machno] = "); put64((uint64_t)p->mp); hi("\n");
 
 	if(edflock(p)){
 		edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
