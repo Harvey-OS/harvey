@@ -269,4 +269,4 @@ void put32(uint32_t);
 void put16(uint16_t);
 void put8(uint8_t);
 
-uint64_t machp(void);
+Mach *machp(void);

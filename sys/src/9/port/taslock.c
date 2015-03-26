@@ -218,14 +218,14 @@ ilock(Lock *l)
 		}
 	}
 acquire:
-	m->ilockdepth++;
+	machp()->ilockdepth++;
 	if(up)
 		up->lastilock = l;
 	l->pl = pl;
 	l->_pc = pc;
 	l->p = up;
 	l->isilock = 1;
-	l->m = m;
+	l->m = machp();
 	if(LOCKCYCLES)
 		cycles(&l->lockcycles);
 }
@@ -245,7 +245,7 @@ canlock(Lock *l)
 		up->lastlock = l;
 	l->_pc = getcallerpc(&l);
 	l->p = up;
-	l->m = m;
+	l->m = machp();
 	l->isilock = 0;
 	if(LOCKCYCLES)
 		cycles(&l->lockcycles);
@@ -307,16 +307,16 @@ iunlock(Lock *l)
 		print("iunlock of lock: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
 	if(islo())
 		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
-	if(l->m != m){
+	if(l->m != machp()){
 		print("iunlock by cpu%d, locked by cpu%d: pc %#p, held by %#p\n",
-			m->machno, l->m->machno, getcallerpc(&l), l->_pc);
+			machp()->machno, l->m->machno, getcallerpc(&l), l->_pc);
 	}
 
 	pl = l->pl;
 	l->m = nil;
 	l->key = 0;
 	coherence();
-	m->ilockdepth--;
+	machp()->ilockdepth--;
 	if(up)
 		up->lastilock = nil;
 	splx(pl);
