@@ -153,7 +153,7 @@ void	syscall(int scallnr, Ureg* ureg);
 void*	sysexecregs(uintptr_t, uint32_t, uint32_t);
 uintptr_t	sysexecstack(uintptr_t, int);
 void	sysprocsetup(Proc*);
-void	tssrsp0(uint64_t);
+void	tssrsp0(Mach *, uint64_t);
 void	trapenable(int, void (*)(Ureg*, void*), void*, char*);
 void	trapinit(void);
 void	trap(Ureg*);
@@ -270,3 +270,6 @@ void put16(uint16_t);
 void put8(uint8_t);
 
 Mach *machp(void);
+
+/* temporary. */
+void die(char *);

@@ -493,7 +493,7 @@ dumpgpr(Ureg* ureg)
 void
 dumpregs(Ureg* ureg)
 {
-die("dumpregs");
+
 	dumpgpr(ureg);
 
 	/*
@@ -506,7 +506,7 @@ die("dumpregs");
 	iprint("cr0\t%#16.16llux\n", cr0get());
 	iprint("cr2\t%#16.16llux\n", m->cr2);
 	iprint("cr3\t%#16.16llux\n", cr3get());
-
+die("dumpregs");
 //	archdumpregs();
 }
 

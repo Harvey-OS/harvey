@@ -126,7 +126,7 @@ idtinit(Gd *gd, uintptr_t offset)
 }
 
 void
-tssrsp0(uintptr_t sp)
+tssrsp0(Mach *m, uintptr_t sp)
 {
 	Tss *tss;
 
@@ -136,7 +136,7 @@ tssrsp0(uintptr_t sp)
 }
 
 static void
-tssinit(uintptr_t sp)
+tssinit(Mach *m, uintptr_t sp)
 {
 	int ist;
 	Tss *tss;
@@ -144,7 +144,7 @@ tssinit(uintptr_t sp)
 	tss = m->tss;
 	memset(tss, 0, sizeof(Tss));
 
-	tssrsp0(sp);
+	tssrsp0(m, sp);
 
 	sp = PTR2UINT(m->vsvm+PGSZ);
 	for(ist = 0; ist < 14; ist += 2){
@@ -164,6 +164,7 @@ vsvminit(int size, int nixtype)
 {
 	Sd *sd;
 	uint64_t r;
+	Mach *m = machp();
 	if(m->machno == 0){
 		idtinit(idt64, PTR2UINT(idthandlers));
 		//idtinit(acidt64, PTR2UINT(acidthandlers));
@@ -176,7 +177,7 @@ hi("set m->gdt\n");
 	sd = &((Sd*)m->gdt)[SiTSS];
 	*sd = mksd(PTR2UINT(m->tss), sizeof(Tss)-1, SdP|SdDPL0|SdaTSS, sd+1);
 hi("tssinti\n");
-	tssinit(m->stack+size);
+	tssinit(m, m->stack+size);
 	gdtput(sizeof(gdt64)-1, PTR2UINT(m->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
 hi("gdtput\n");
 #if 0 // NO ACs YET
@@ -210,6 +211,9 @@ hi("wirte Lstar!\n");
 		wrmsr(Lstar, PTR2UINT(acsyscallentry));
 hi("wirte Sfmask!\n");
 	wrmsr(Sfmask, If);
+	if (m != machp()) {
+		die("vsvminit: m is not machp() at end\n");
+	}
 hi("vsvminit done!\n");
 }
 

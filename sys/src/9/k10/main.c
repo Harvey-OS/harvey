@@ -332,7 +332,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
   // when we get here, m is set to core0 mach.
 	sys->machptr[m->machno] = m;
 	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
-	hi("m "); put64(m); hi(" machp "); put64(machp()); hi("\n");
+	hi("m "); put64((uint64_t)m); hi(" machp "); put64((uint64_t)machp()); hi("\n");
 	if (machp() != m)
 		die("================= m and machp() are different");
 	hi("mbmagic "); put32(mbmagic); hi("\n");

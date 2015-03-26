@@ -229,7 +229,7 @@ mmuswitch(Proc* proc)
 		page->prev = m->pml4;
 	}
 
-	tssrsp0(STACKALIGN(PTR2UINT(proc->kstack+KSTACK)));
+	tssrsp0(machp(), STACKALIGN(PTR2UINT(proc->kstack+KSTACK)));
 	cr3put(m->pml4->pa);
 	splx(pl);
 }
@@ -256,7 +256,7 @@ mmurelease(Proc* proc)
 		wakeup(&pga.r);
 	proc->mmuptp[0] = nil;
 
-	tssrsp0(STACKALIGN(m->stack+MACHSTKSZ));
+	tssrsp0(m, STACKALIGN(m->stack+MACHSTKSZ));
 	cr3put(m->pml4->pa);
 }
 
