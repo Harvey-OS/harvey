@@ -288,8 +288,10 @@ _splhi:
 	JZ	_alreadyhi			/* use CMOVLEQ etc. here? */
 
 	MOVQ	%gs:0, %rax
+	// Until we know we have a register we can trash, we have to
+	// save and restore this one. Callee save
 	PUSHQ	%rbx
-	MOVQ	(%rsp), %rbx
+	MOVQ	8(%rsp), %rbx
 	MOVQ	%rbx, 8(%rax) 			/* save PC in m->splpc */
 	POPQ	%rbx
 

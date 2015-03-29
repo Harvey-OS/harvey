@@ -342,7 +342,7 @@ trap(Ureg* ureg)
 	Vctl *ctl, *v;
 
 	vno = ureg->type;
-print("type %x\n", ureg->type);
+//iprint("type %x\n", ureg->type);
 	m->perf.intrts = perfticks();
 	user = userureg(ureg);
 	if(user && (m->nixtype == NIXTC)){
@@ -354,7 +354,7 @@ print("type %x\n", ureg->type);
 
 	_pmcupdate(m);
 
-print("vno %d\n", vno);
+//iprint("vno %d\n", vno);
 	if(ctl = vctl[vno]){
 		if(ctl->isintr){
 			m->intr++;

@@ -228,6 +228,7 @@ sched(void)
 	mmuswitch(up);
 
 	assert(!up->wired || up->wired == m);
+die("gotolabel\n");
 	gotolabel(&up->sched);
 }
 
@@ -924,7 +925,10 @@ found:
 		pt(p, SRun, 0);
 	/* avoiding warnings, this will be removed */
 	USED(mach0sched); USED(smprunproc);
-	hi("runproc, returning p ¿?\n");
+	hi("runproc, returning p ");
+	put64((uint64_t)p);
+	hi("\n");
+	
 	return p;
 }
 
