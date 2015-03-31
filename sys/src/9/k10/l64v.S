@@ -424,7 +424,6 @@ gotolabel:
 	MOVQ	(16+1*8)(%rdi), %rCX
 	MOVQ	(16+2*8)(%rdi), %rDX
 	MOVQ	(16+3*8)(%rdi), %rSI
-	MOVQ	(16+4*8)(%rdi), %rDI
 	MOVQ	(16+5*8)(%rdi), %rBP
 	MOVQ	(16+6*8)(%rdi), %r8
 	MOVQ	(16+7*8)(%rdi), %r9
@@ -434,6 +433,7 @@ gotolabel:
 	MOVQ	(16+11*8)(%rdi), %r13
 	MOVQ	(16+12*8)(%rdi), %r14
 	MOVQ	(16+13*8)(%rdi), %r15
+	MOVQ	(16+4*8)(%rdi), %rDI
 
 	MOVQ	8(%rax), %rax			/* put return PC on the stack */
 						/* NOTE: replaces previous caller? */

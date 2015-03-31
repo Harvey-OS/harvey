@@ -225,10 +225,15 @@ sched(void)
 	//up->mach = m;
 	up->mach = sys->machptr[m->machno];
 	m->proc = up;
+//	iprint("up->sched.sp %p * %p\n", up->sched.sp,
+//		*(void **) up->sched.sp);
+	hi("PRE MMU SWITCH\n");
 	mmuswitch(up);
+	hi("POST MMUS\n");
+	hi("POST MMU SWITCH\n");
 
 	assert(!up->wired || up->wired == m);
-die("gotolabel\n");
+hi("gotolabel\n");
 	gotolabel(&up->sched);
 }
 

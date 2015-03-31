@@ -608,6 +608,7 @@ hi("3\n");
 	 */
 	p->sched.pc = PTR2UINT(init0);
 	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr_t));
+hi("SP "); put64(p->sched.sp); hi("\n");
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 hi("4\n");
