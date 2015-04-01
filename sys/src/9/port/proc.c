@@ -867,7 +867,7 @@ runproc(void)
 	&& &run.runq[Nrq-1].head == nil && &run.runq[Nrq-2].head == nil){
 		skipscheds++;
 		rq = &run.runq[p->priority];
-		hi("runproc going to found...\n");
+		hi("runproc going to found before loop...\n");
 		goto found;
 	}
 
@@ -891,7 +891,7 @@ loop:
 				if(p->mp == nil || p->mp == sys->machptr[m->machno]
 				|| (!p->wired && i > 0))
 				{
-					hi("runproc going to found...\n");
+					hi("runproc going to found inside loop...\n");
 					goto found;
 				}
 			}
