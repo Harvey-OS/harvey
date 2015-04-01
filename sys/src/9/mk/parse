@@ -214,7 +214,7 @@ function mksystab(					a, i, f, n, s, t){
 		else
 			n = substr($2, 1, 1) tolower(substr($2, 2));
 
-		s = s "extern void " f "(Ar0*, va_list);\n";
+		s = s "extern void " f "(Ar0*, ...);\n";
 		t = t "\t[" $2 "]\t";
 		if(length($2) < 6)
 			t = t "\t";
@@ -257,7 +257,7 @@ function mksystab(					a, i, f, n, s, t){
 			t = t "{ \"" n "\", " f ", {" a[2] " },\n";
 		}
 	}
-	#s = s "struct {\n\tchar*\tn;\n\tvoid (*f)(Ar0*, va_list);\n\tAr0\tr;\n}";
+	#s = s "struct {\n\tchar*\tn;\n\tvoid (*f)(Ar0*, ...);\n\tAr0\tr;\n}";
 	s = s " systab_t systab = {\n" t "};\n\nint nsyscall = nelem(systab);\n";
 
 	return s;

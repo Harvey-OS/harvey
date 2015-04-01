@@ -63,8 +63,9 @@ fmtuserstring(Fmt* f, char* a, char* suffix)
 /*
  */
 void
-syscallfmt(int syscallno, va_list list)
+syscallfmt(int syscallno, ...)
 {
+	va_list list;
 	int32_t l;
 	uint32_t ul;
 	Fmt fmt;
@@ -74,6 +75,7 @@ syscallfmt(int syscallno, va_list list)
 	int i[2], len, **ip;
 	char *a, **argv;
 
+	va_start(list, syscallno);
 	fmtstrinit(&fmt);
 	fmtprint(&fmt, "%d %s ", up->pid, up->text);
 
@@ -361,9 +363,10 @@ syscallfmt(int syscallno, va_list list)
 }
 
 void
-sysretfmt(int syscallno, va_list list, Ar0* ar0, uint64_t start,
-	  uint64_t stop)
+sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
+	  uint64_t stop, ...)
 {
+	va_list list;
 	int32_t l;
 	void* v;
 	Fmt fmt;
@@ -372,7 +375,7 @@ sysretfmt(int syscallno, va_list list, Ar0* ar0, uint64_t start,
 	char *a, *errstr;
 
 	fmtstrinit(&fmt);
-
+	va_start(list, stop);
 	if(up->syscalltrace)
 		free(up->syscalltrace);
 

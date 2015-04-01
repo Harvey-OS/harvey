@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -149,7 +149,8 @@ void	splx(uint64_t);
 void	splxpc(uint64_t);
 void	stopac(void);
 void	syncclock(void);
-void	syscall(int scallnr, Ureg* ureg);
+void	syscall(int scallnr, uintptr a0, uintptr a1, uintptr a2, uintptr a3, uintptr a4,
+	uintptr_t a5, Ureg *ureg);
 void*	sysexecregs(uintptr_t, uint32_t, uint32_t);
 uintptr_t	sysexecstack(uintptr_t, int);
 void	sysprocsetup(Proc*);

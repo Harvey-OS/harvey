@@ -969,7 +969,7 @@ extern	char*	statename[];
 extern	char*	sysname;
 typedef	struct {
 	char*	n;
-	void (*f)(Ar0*, va_list);
+	void (*f)(Ar0*, ...);
 	Ar0	r;
 } systab_t[];
 extern systab_t systab;

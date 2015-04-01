@@ -297,7 +297,7 @@ runacore(void)
 			DBG("runacore: syscall ax %#ullx ureg %#p\n",
 				ureg->ax, ureg);
 			cr3put(m->pml4->pa);
-			syscall(ureg->ax, ureg);
+			//syscall(ureg->ax, ureg);
 			flush = 1;
 			fn = acsysret;
 			if(0)

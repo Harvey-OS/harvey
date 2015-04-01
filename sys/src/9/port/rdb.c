@@ -23,7 +23,7 @@ static void
 scrprint(char *fmt, ...)
 {
 	char buf[128];
-	va_list va;
+	...;
 	int n;
 
 	va_start(va, fmt);

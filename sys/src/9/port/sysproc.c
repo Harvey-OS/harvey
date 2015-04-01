@@ -707,13 +707,13 @@ sysexec(Ar0* ar0, va_list list)
 }
 
 void
-sysr1(Ar0* ar, va_list va)
+sysr1(Ar0* ar, ...)
 {
 	print("sysr1() called. recompile your binary\n");
 }
 
 void
-sysnixsyscall(Ar0* ar, va_list va)
+sysnixsyscall(Ar0* ar, ...)
 {
 	print("nixsyscall() called. recompile your binary\n");
 }

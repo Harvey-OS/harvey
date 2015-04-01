@@ -39,7 +39,7 @@ syscallentry:
 	SWAPGS	
 	movq	%gs:0, %r15
 	movq	16(%r15), %r15			/* m->proc */
-	MOVQ	%rsp, %r14
+	MOVQ	%rsp, up			/* BOGUS! ONLY WORK ON uni-p! */
 	// NOTE! This assumes sizeof(Label) == 16!
 	MOVQ	16(%r15), %rsp 			/* m->proc->kstack */
 	ADDQ	$KSTACK, %rSP
@@ -68,10 +68,11 @@ syscallentry:
 	MOVW	ES, (15*8+2)(%rsp)
 	MOVW	FS, (15*8+4)(%rsp)
 	MOVW	GS, (15*8+6)(%rsp)
-	#endif
+#endif
 
 	PUSHQ	%rsp				/* Ureg* */
-	PUSHQ	%RDI				/* system call number */
+//	PUSHQ	%RDI				/* system call number */
+	// system call # is in %rdi so no need to push it.
 	CALL	syscall
 
 	.globl	syscallreturn
