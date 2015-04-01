@@ -417,7 +417,6 @@ panic(char *fmt, ...)
 	Mpl pl;
 	va_list arg;
 	char buf[PRINTSIZE];
-die(fmt);
 
 	consdevs[1].q = nil;	/* don't try to write to /dev/kprint */
 
@@ -440,6 +439,7 @@ die(fmt);
 	dumpstack();
 	delay(1000);	/* give time to consoles */
 
+die(fmt);
 	exit(1);
 }
 #pragma profile 1
