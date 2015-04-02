@@ -413,7 +413,7 @@ struct ISAConf {
 //extern register Mach* m;			/* R15 */
 //extern register Proc* up;			/* R14 */
 extern Mach* m;                      /* R15 */
-extern Proc* up;                     /* R14 */
+//extern Proc* up;                     /* R14 */
 
 extern uintptr_t kseg0;
 

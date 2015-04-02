@@ -474,7 +474,7 @@ tlsopen(Chan *c, int omode)
 		if(tr == nil)
 			error("must open connection using clone");
 		if((perm & (tr->perm>>6)) != perm
-		&& (strcmp(up->user, tr->user) != 0
+		&& (strcmp(m->externup->user, tr->user) != 0
 		    || (perm & tr->perm) != perm))
 			error(Eperm);
 		if(t == Qhand){
@@ -527,7 +527,7 @@ tlswstat(Chan *c, uint8_t *dp, int32_t n)
 	tr = tlsdevs[CONV(c->qid)];
 	if(tr == nil)
 		error(Ebadusefd);
-	if(strcmp(tr->user, up->user) != 0)
+	if(strcmp(tr->user, m->externup->user) != 0)
 		error(Eperm);
 
 	d = smalloc(n + sizeof *d);
@@ -756,7 +756,7 @@ tlsrecread(TlsRec *tr)
 
 	nconsumed = 0;
 	if(waserror()){
-		if(strcmp(up->errstr, Eintr) == 0 && !waserror()){
+		if(strcmp(m->externup->errstr, Eintr) == 0 && !waserror()){
 			regurgitate(tr, header, nconsumed);
 			poperror();
 		}else
@@ -1120,7 +1120,7 @@ if(tr->debug) pdump(BLEN(b), b->rp, "consumed:");
 		if(tr->hprocessed == nil){
 			b = qbread(tr->handq, MaxRecLen + 1);
 			if(*b->rp++ == RAlert){
-				kstrcpy(up->errstr, (char*)b->rp, ERRMAX);
+				kstrcpy(m->externup->errstr, (char*)b->rp, ERRMAX);
 				freeb(b);
 				nexterror();
 			}
@@ -1321,7 +1321,7 @@ if(tr->debug)pdump(BLEN(b), b->rp, "sent:");
 		 * if not, we're out of sync with the receiver and will not recover.
 		 */
 		if(waserror()){
-			if(strcmp(up->errstr, "interrupted") != 0)
+			if(strcmp(m->externup->errstr, "interrupted") != 0)
 				tlsError(tr, "channel error");
 			nexterror();
 		}
@@ -1934,7 +1934,7 @@ mktlsrec(void)
 		error(Enomem);
 	tr->state = SClosed;
 	tr->ref = 1;
-	kstrdup(&tr->user, up->user);
+	kstrdup(&tr->user, m->externup->user);
 	tr->perm = 0660;
 	return tr;
 }

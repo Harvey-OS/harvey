@@ -360,7 +360,7 @@ watchdog(void* arg)
 
 	ether = arg;
 	for(;;){
-		tsleep(&up->sleep, return0, 0, 4000);
+		tsleep(&m->externup->sleep, return0, 0, 4000);
 
 		/*
 		 * Hmmm. This doesn't seem right. Currently
@@ -369,7 +369,7 @@ watchdog(void* arg)
 		 */
 		ctlr = ether->ctlr;
 		if(ctlr == nil || ctlr->state == 0){
-			print("%s: exiting\n", up->text);
+			print("%s: exiting\n", m->externup->text);
 			pexit("disabled", 0);
 		}
 

@@ -393,7 +393,7 @@ duppage(Page *p)				/* Always call with p locked */
 retry:
 
 	if(retries++ > dupretries){
-		print("duppage %d, up %#p\n", retries, up);
+		print("duppage %d, up %#p\n", retries, m->externup);
 		dupretries += 100;
 		if(dupretries > 100000)
 			panic("duppage\n");
@@ -414,7 +414,7 @@ retry:
 	 */
 	if(!canlock(&pga)){
 		unlock(p);
-		if(up)
+		if(m->externup)
 			sched();
 		lock(p);
 		goto retry;

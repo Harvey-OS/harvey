@@ -46,8 +46,8 @@ mmuflush(void)
 	Mpl pl;
 
 	pl = splhi();
-	up->newtlb = 1;
-	mmuswitch(up);
+	m->externup->newtlb = 1;
+	mmuswitch(m->externup);
 	splx(pl);
 }
 
@@ -394,7 +394,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 
 	if(DBGFLG){
 		snprint(buf, sizeof buf, "cpu%d: up %#p mmuput %#p %#P %#ux\n", 
-			m->machno, up, va, pa, attr);
+			m->machno, m->externup, va, pa, attr);
 		print("%s", buf);
 	}
 	assert(pg->pgszi >= 0);
@@ -405,7 +405,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 
 	pl = splhi();
 	if(DBGFLG)
-		mmuptpcheck(up);
+		mmuptpcheck(m->externup);
 	user = (va < KZERO);
 	x = PTLX(va, 3);
 
@@ -420,7 +420,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			if(pgsz == 1ull*GiB && lvl == 2)	/* use 1G */
 				break;
 		}
-		for(page = up->mmuptp[lvl]; page != nil; page = page->next)
+		for(page = m->externup->mmuptp[lvl]; page != nil; page = page->next)
 			if(page->prev == prev && page->daddr == x){
 				if(*pte == 0){
 					print("mmu: jmk and nemo had fun\n");
@@ -430,15 +430,15 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			}
 
 		if(page == nil){
-			if(up->mmuptp[0] == nil)
+			if(m->externup->mmuptp[0] == nil)
 				page = mmuptpalloc();
 			else {
-				page = up->mmuptp[0];
-				up->mmuptp[0] = page->next;
+				page = m->externup->mmuptp[0];
+				m->externup->mmuptp[0] = page->next;
 			}
 			page->daddr = x;
-			page->next = up->mmuptp[lvl];
-			up->mmuptp[lvl] = page;
+			page->next = m->externup->mmuptp[lvl];
+			m->externup->mmuptp[lvl] = page;
 			page->prev = prev;
 			*pte = PPN(page->pa)|PteU|PteRW|PteP;
 			if(lvl == 3 && x >= m->pml4->daddr)
@@ -472,7 +472,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 
 	if(DBGFLG){
 		snprint(buf, sizeof buf, "cpu%d: up %#p new pte %#p = %#llux\n", 
-			m->machno, up, pte, pte?*pte:~0);
+			m->machno, m->externup, pte, pte?*pte:~0);
 		print("%s", buf);
 	}
 

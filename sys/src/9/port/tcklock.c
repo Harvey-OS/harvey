@@ -178,23 +178,23 @@ lock(Lock *l)
 	pc = getcallerpc(&l);
 	lockstats.locks++;
 	if(up)
-		ainc(&up->nlocks);	/* prevent being scheded */
+		ainc(&m->externup->nlocks);	/* prevent being scheded */
 	cycles(&t0);
 	user = incuser(&l->key);
 	if(getticket(l->key) != myticket(user)){
 		if(up)
-			adec(&up->nlocks);
+			adec(&m->externup->nlocks);
 		lockstats.glare++;
 		i = 0;
 		while(getticket(l->key) != myticket(user)){
-			if(conf.nmach < 2 && up && up->edf && (up->edf->flags & Admitted)){
+			if(conf.nmach < 2 && up && m->externup->edf && (up->edf->flags & Admitted)){
 				/*
 				 * Priority inversion, yield on a uniprocessor; on a
 				 * multiprocessor, the other processor will unlock
 				 */
 				print("inversion %#p pc %#p proc %d held by pc %#p proc %d\n",
-					l, pc, up ? up->pid : 0, l->pc, l->p ? l->p->pid : 0);
-				up->edf->d = todget(nil);	/* yield to process with lock */
+					l, pc, up ? m->externup->pid : 0, l->pc, l->p ? l->p->pid : 0);
+				m->externup->edf->d = todget(nil);	/* yield to process with lock */
 			}
 			if(i++ > 100000000){
 				i = 0;
@@ -202,14 +202,14 @@ lock(Lock *l)
 			}
 		}
 		if(up)
-			ainc(&up->nlocks);
+			ainc(&m->externup->nlocks);
 	}
 	l->pc = pc;
 	l->p = up;
 	l->m = m;
 	l->isilock = 0;
 	if(up)
-		up->lastlock = l;
+		m->externup->lastlock = l;
 	if(l != &waitstatslk)
 		addwaitstat(pc, t0, WSlock);
 	return 0;
@@ -238,7 +238,7 @@ ilock(Lock *l)
 	}
 	m->ilockdepth++;
 	if(up)
-		up->lastilock = l;
+		m->externup->lastilock = l;
 	l->pl = pl;
 	l->pc = pc;
 	l->p = up;
@@ -259,14 +259,14 @@ canlock(Lock *l)
 
 	lockstats.locks++;
 	if(up)
-		ainc(&up->nlocks);	/* prevent being scheded */
+		ainc(&m->externup->nlocks);	/* prevent being scheded */
 	cycles(&t0);
 
 	try = *l;
 	if(getuser(try.key) != getticket(try.key)){
 	Cant:
 		if(up)
-			adec(&up->nlocks);
+			adec(&m->externup->nlocks);
 		return 0;
 	}
 	new = try;
@@ -277,7 +277,7 @@ canlock(Lock *l)
 	l->p = up;
 	l->m = m;
 	if(up)
-		up->lastlock = l;
+		m->externup->lastlock = l;
 	l->isilock = 0;
 	return 1;
 }
@@ -295,7 +295,7 @@ unlock(Lock *l)
 	l->m = nil;
 	incticket(&l->key);
 
-	if(up && adec(&up->nlocks) == 0 && up->delaysched && islo()){
+	if(up && adec(&m->externup->nlocks) == 0 && up->delaysched && islo()){
 		/*
 		 * Call sched if the need arose while locks were held
 		 * But, don't do it from interrupt routines, hence the islo() test
@@ -325,7 +325,7 @@ iunlock(Lock *l)
 	incticket(&l->key);
 	m->ilockdepth--;
 	if(up)
-		up->lastilock = nil;
+		m->externup->lastilock = nil;
 	splx(pl);
 }
 

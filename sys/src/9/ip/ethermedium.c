@@ -278,7 +278,7 @@ etherunbind(Ipifc *ifc)
 
 	/* wait for readers to die */
 	while(er->arpp != 0 || er->read4p != 0 || er->read6p != 0)
-		tsleep(&up->sleep, return0, 0, 300);
+		tsleep(&m->externup->sleep, return0, 0, 300);
 
 	if(er->mchan4 != nil)
 		cclose(er->mchan4);
@@ -367,7 +367,7 @@ etherread4(void *a)
 
 	ifc = a;
 	er = ifc->arg;
-	er->read4p = up;	/* hide identity under a rock for unbind */
+	er->read4p = m->externup;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		er->read4p = 0;
 		pexit("hangup", 1);
@@ -406,7 +406,7 @@ etherread6(void *a)
 
 	ifc = a;
 	er = ifc->arg;
-	er->read6p = up;	/* hide identity under a rock for unbind */
+	er->read6p = m->externup;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		er->read6p = 0;
 		pexit("hangup", 1);
@@ -707,7 +707,7 @@ recvarpproc(void *v)
 	Ipifc *ifc = v;
 	Etherrock *er = ifc->arg;
 
-	er->arpp = up;
+	er->arpp = m->externup;
 	if(waserror()){
 		er->arpp = 0;
 		pexit("hangup", 1);

@@ -167,7 +167,7 @@ kickkbdq(void)
 {
 	int i;
 
-	if(up != nil && nkbdqs > 1 && nkbdprocs != nkbdqs){
+	if(m->externup != nil && nkbdqs > 1 && nkbdprocs != nkbdqs){
 		lock(&consdevslock);
 		if(nkbdprocs == nkbdqs){
 			unlock(&consdevslock);
@@ -470,13 +470,13 @@ pprint(char *fmt, ...)
 	va_list arg;
 	char buf[2*PRINTSIZE];
 
-	if(up == nil || up->fgrp == nil)
+	if(m->externup == nil || m->externup->fgrp == nil)
 		return 0;
 
-	c = up->fgrp->fd[2];
+	c = m->externup->fgrp->fd[2];
 	if(c==0 || (c->mode!=OWRITE && c->mode!=ORDWR))
 		return 0;
-	n = snprint(buf, sizeof buf, "%s %d: ", up->text, up->pid);
+	n = snprint(buf, sizeof buf, "%s %d: ", m->externup->text, m->externup->pid);
 	va_start(arg, fmt);
 	n = vseprint(buf+n, buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
@@ -897,7 +897,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 			n = 6*NUMSIZE - k;
 		/* easiest to format in a separate buffer and copy out */
 		for(i=0; i<6 && NUMSIZE*i<k+n; i++){
-			l = up->time[i];
+			l = m->externup->time[i];
 			if(i == TReal)
 				l = sys->ticks - l;
 			l = TK2MS(l);
@@ -926,13 +926,13 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return qread(kprintoq, buf, n);
 
 	case Qpgrpid:
-		return readnum(offset, buf, n, up->pgrp->pgrpid, NUMSIZE);
+		return readnum(offset, buf, n, m->externup->pgrp->pgrpid, NUMSIZE);
 
 	case Qpid:
-		return readnum(offset, buf, n, up->pid, NUMSIZE);
+		return readnum(offset, buf, n, m->externup->pid, NUMSIZE);
 
 	case Qppid:
-		return readnum(offset, buf, n, up->parentpid, NUMSIZE);
+		return readnum(offset, buf, n, m->externup->parentpid, NUMSIZE);
 
 	case Qtime:
 		return readtime(offset, buf, n);
@@ -947,7 +947,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return readstr(offset, buf, n, hostdomain);
 
 	case Quser:
-		return readstr(offset, buf, n, up->user);
+		return readstr(offset, buf, n, m->externup->user);
 
 	case Qnull:
 		return 0;

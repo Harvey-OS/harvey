@@ -554,10 +554,10 @@ udpctl(Conv *c, char **f, int n)
 	if(n == 1){
 		if(strcmp(f[0], "oldheaders") == 0){	/* OBS */
 			ucb->headers = 6;
-			if (up)
+			if (m->externup)
 				print("program %s wrote `oldheaders' to udp "
 					"ctl file; fix or recompile it\n",
-					up->text);
+					m->externup->text);
 			return nil;
 		} else if(strcmp(f[0], "headers") == 0){
 			ucb->headers = 7;	/* new headers format */

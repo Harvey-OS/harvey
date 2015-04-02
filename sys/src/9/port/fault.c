@@ -28,23 +28,23 @@ fault(uintptr_t addr, int read)
 	char *sps;
 	int i, color;
 
-if(up->nlocks) print("fault nlocks %d\n", up->nlocks);
+if(m->externup->nlocks) print("fault nlocks %d\n", m->externup->nlocks);
 
-	sps = up->psstate;
-	up->psstate = "Fault";
+	sps = m->externup->psstate;
+	m->externup->psstate = "Fault";
 	spllo();
 
 	m->pfault++;
 	for(i = 0;; i++) {
-		s = seg(up, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
+		s = seg(m->externup, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
 		if(s == 0) {
-			up->psstate = sps;
+			m->externup->psstate = sps;
 			return -1;
 		}
 
 		if(!read && (s->type&SG_RONLY)) {
 			qunlock(&s->lk);
-			up->psstate = sps;
+			m->externup->psstate = sps;
 			return -1;
 		}
 
@@ -63,7 +63,7 @@ if(up->nlocks) print("fault nlocks %d\n", up->nlocks);
 			print("fault: tried %d times\n", i);
 	}
 
-	up->psstate = sps;
+	m->externup->psstate = sps;
 	return 0;
 }
 
@@ -73,11 +73,11 @@ faulterror(char *s, Chan *c, int freemem)
 	char buf[ERRMAX];
 
 	if(c && c->path){
-		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, up->errstr);
+		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, m->externup->errstr);
 		s = buf;
 	}
-	if(up->nerrlab) {
-		postnote(up, 1, s, NDebug);
+	if(m->externup->nerrlab) {
+		postnote(m->externup, 1, s, NDebug);
 		error(s);
 	}
 	pexit(s, freemem);
@@ -249,7 +249,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	kaddr = (char*)VA(k);
 
 	while(waserror()) {
-		if(strcmp(up->errstr, Eintr) == 0)
+		if(strcmp(m->externup->errstr, Eintr) == 0)
 			continue;
 		kunmap(k);
 		putpage(new);
@@ -296,7 +296,7 @@ okaddr(uintptr_t addr, int32_t len, int write)
 
 	if(len >= 0) {
 		for(;;) {
-			s = seg(up, addr, 0);
+			s = seg(m->externup, addr, 0);
 			if(s == 0 || (write && (s->type&SG_RONLY)))
 				break;
 

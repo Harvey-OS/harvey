@@ -317,8 +317,9 @@ pipebread(Chan *c, int32_t n, int64_t offset)
  *  the process.
  */
 static int32_t
-pipewrite(Chan *c, void *va, int32_t n, int64_t m)
+pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
+	Mach *m = machp();
 	Pipe *p;
 
 	if(!islo())
@@ -326,7 +327,7 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t m)
 	if(waserror()) {
 		/* avoid notes when pipe is a mounted queue */
 		if((c->flag & CMSG) == 0)
-			postnote(up, 1, "sys: write on closed pipe", NUser);
+			postnote(m->externup, 1, "sys: write on closed pipe", NUser);
 		nexterror();
 	}
 
@@ -350,15 +351,16 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t m)
 }
 
 static int32_t
-pipebwrite(Chan *c, Block *bp, int64_t m)
+pipebwrite(Chan *c, Block *bp, int64_t mm)
 {
+	Mach *m = machp();
 	int32_t n;
 	Pipe *p;
 
 	if(waserror()) {
 		/* avoid notes when pipe is a mounted queue */
 		if((c->flag & CMSG) == 0)
-			postnote(up, 1, "sys: write on closed pipe", NUser);
+			postnote(m->externup, 1, "sys: write on closed pipe", NUser);
 		nexterror();
 	}
 

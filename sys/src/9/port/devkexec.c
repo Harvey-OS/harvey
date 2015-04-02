@@ -78,11 +78,11 @@ kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 
 	/* make sure name string continues to exist after we release lock */
 	// how will we free this?
-	snprint(up->genbuf, sizeof up->genbuf, "0x%p", addr);
-	print("up->genbuf %s e 0x%p\n", up->genbuf, e);
+	snprint(m->externup->genbuf, sizeof m->externup->genbuf, "0x%p", addr);
+	print("m->externup->genbuf %s e 0x%p\n", m->externup->genbuf, e);
 	print("e qid %d e->addr 0x%p size %ld len %ld\n", e->qid, e->addr, e->size, e->len);
 
-	devdir(c, e->qid, up->genbuf, e->len, eve, 0666, dp);
+	devdir(c, e->qid, m->externup->genbuf, e->len, eve, 0666, dp);
 	runlock(kg);
 	print("finished gen\n");
 	

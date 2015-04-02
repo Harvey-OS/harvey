@@ -168,7 +168,7 @@ scsirio(SDreq* r)
 
 			while(waserror())
 				;
-			tsleep(&up->sleep, return0, 0, 500);
+			tsleep(&m->externup->sleep, return0, 0, 500);
 			poperror();
 			scsitest(r);
 			return 2;

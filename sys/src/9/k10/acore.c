@@ -159,7 +159,7 @@ actrapret(void)
 
 /*
  * Entered in AP core context, upon traps (system calls go through acsyscall)
- * using up->dbgreg means cores MUST be homogeneous.
+ * using m->externup->dbgreg means cores MUST be homogeneous.
  *
  * BUG: We should setup some trapenable() mechanism for the AC,
  * so that code like fpu.c could arrange for handlers specific for

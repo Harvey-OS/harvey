@@ -78,7 +78,7 @@ ibrk(uintptr_t addr, int seg)
 	Pte **map;
 	uintmem pgsz;
 
-	s = up->seg[seg];
+	s = m->externup->seg[seg];
 	if(s == 0)
 		error(Ebadarg);
 
@@ -93,7 +93,7 @@ ibrk(uintptr_t addr, int seg)
 
 	/* We may start with the bss overlapping the data */
 	if(addr < s->base) {
-		if(seg != BSEG || up->seg[DSEG] == 0 || addr < up->seg[DSEG]->base) 
+		if(seg != BSEG || m->externup->seg[DSEG] == 0 || addr < m->externup->seg[DSEG]->base) 
 			error(Enovmem);
 		addr = s->base;
 	}
@@ -117,7 +117,7 @@ ibrk(uintptr_t addr, int seg)
 		error(Enovmem);
 
 	for(i = 0; i < NSEG; i++) {
-		ns = up->seg[i];
+		ns = m->externup->seg[i];
 		if(ns == 0 || ns == s)
 			continue;
 		if(newtop >= ns->base && newtop < ns->top)
@@ -139,7 +139,7 @@ assert(newsize >= 0);
 		DBG("ibrk: newseg %#ullx %ullx\n", newtop, (rtop-newtop)/BIGPGSZ);
 		ns = newseg(SG_BSS, newtop, (rtop-newtop)/BIGPGSZ);
 		ns->color= s->color;
-		up->seg[HSEG] = ns;
+		m->externup->seg[HSEG] = ns;
 		DBG("ibrk: newtop %#ullx newsize %#ulx \n", newtop, newsize);
 		/* now extend the bss up to newtop */
 	}else
@@ -178,14 +178,14 @@ syssegbrk(Ar0* ar0, va_list list)
 	 */
 	addr = PTR2UINT(va_arg(list, void*));
 	if(addr == 0){
-		if(up->seg[HSEG])
-			ar0->v = UINT2PTR(up->seg[HSEG]->top);
+		if(m->externup->seg[HSEG])
+			ar0->v = UINT2PTR(m->externup->seg[HSEG]->top);
 		else
-			ar0->v = UINT2PTR(up->seg[BSEG]->top);
+			ar0->v = UINT2PTR(m->externup->seg[BSEG]->top);
 		return;
 	}
 	for(i = 0; i < NSEG; i++) {
-		s = up->seg[i];
+		s = m->externup->seg[i];
 		if(s == nil)
 			continue;
 		/* Ok to extend an empty segment */
@@ -252,7 +252,7 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 		s = (*_globalsegattach)(p, name);
 		if(s != nil){
 			p->seg[sno] = s;
-			if(p == up && up->prepagemem)
+			if(p == m->externup && m->externup->prepagemem)
 				nixprepage(sno);
 			return s->base;
 		}
@@ -311,7 +311,7 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 	s->pseg = ps;
 	p->seg[sno] = s;
 
-	if(p == up && up->prepagemem)
+	if(p == m->externup && m->externup->prepagemem)
 		nixprepage(sno);
 
 	return va;
@@ -335,7 +335,7 @@ syssegattach(Ar0* ar0, va_list list)
 	va = PTR2UINT(va_arg(list, void*));
 	len = va_arg(list, usize);
 
-	ar0->v = UINT2PTR(segattach(up, attr, validaddr(name, 1, 0), va, len));
+	ar0->v = UINT2PTR(segattach(m->externup, attr, validaddr(name, 1, 0), va, len));
 }
 
 void
@@ -350,15 +350,15 @@ syssegdetach(Ar0* ar0, va_list list)
 	 */
 	addr = PTR2UINT(va_arg(list, void*));
 
-	qlock(&up->seglock);
+	qlock(&m->externup->seglock);
 	if(waserror()){
-		qunlock(&up->seglock);
+		qunlock(&m->externup->seglock);
 		nexterror();
 	}
 
 	s = 0;
 	for(i = 0; i < NSEG; i++)
-		if(s = up->seg[i]) {
+		if(s = m->externup->seg[i]) {
 			qlock(&s->lk);
 			if((addr >= s->base && addr < s->top) ||
 			   (s->top == s->base && addr == s->base))
@@ -374,14 +374,14 @@ found:
 	 * because the clock writes profiling info
 	 * there.
 	 */
-	if(s == up->seg[SSEG]){
+	if(s == m->externup->seg[SSEG]){
 		qunlock(&s->lk);
 		error(Ebadarg);
 	}
-	up->seg[i] = 0;
+	m->externup->seg[i] = 0;
 	qunlock(&s->lk);
 	putseg(s);
-	qunlock(&up->seglock);
+	qunlock(&m->externup->seglock);
 	poperror();
 
 	/* Ensure we flush any entries from the lost segment */
@@ -403,7 +403,7 @@ syssegfree(Ar0* ar0, va_list list)
 	 * int segfree(void*, usize);
 	 */
 	from = PTR2UINT(va_arg(list, void*));
-	s = seg(up, from, 1);
+	s = seg(m->externup, from, 1);
 	if(s == nil)
 		error(Ebadarg);
 	len = va_arg(list, usize);
@@ -451,7 +451,7 @@ syssegflush(Ar0* ar0, va_list list)
 	len = va_arg(list, usize);
 
 	while(len > 0) {
-		s = seg(up, addr, 1);
+		s = seg(m->externup, addr, 1);
 		if(s == nil)
 			error(Ebadarg);
 

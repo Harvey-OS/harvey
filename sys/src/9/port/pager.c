@@ -202,7 +202,7 @@ freepages(int si, int once)
 		pa = &pga.pgsza[si];
 		if(pa->freecount > 0){
 			DBG("kickpager() up %#p: releasing %udK pages\n",
-				up, m->pgsz[si]/KiB);
+				m->externup, m->pgsz[si]/KiB);
 			lock(&pga);
 			if(pa->freecount == 0){
 				unlock(&pga);
@@ -263,7 +263,7 @@ kickpager(int pgszi, int color)
 	Pgsza *pa;
 
 	if(DBGFLG>1)
-		DBG("kickpager() %#p\n", up);
+		DBG("kickpager() %#p\n", m->externup);
 	if(waserror())
 		panic("error in kickpager");
 	qlock(&pagerlck);
@@ -287,7 +287,7 @@ kickpager(int pgszi, int color)
 	 */
 	if(m->pgsz[pgszi] <= 2*MiB){
 		pstats.ntext++;
-		DBG("kickpager() up %#p: reclaiming text pages\n", up);
+		DBG("kickpager() up %#p: reclaiming text pages\n", m->externup);
 		pageouttext(pgszi, color);
 		tryalloc(pgszi, color);
 		if(hascolor(pa->head, color)){
@@ -311,7 +311,7 @@ kickpager(int pgszi, int color)
 	 * Really the last resort. Try releasing memory from all pages.
 	 */
 	pstats.nall++;
-	DBG("kickpager() up %#p: releasing all pages\n", up);
+	DBG("kickpager() up %#p: releasing all pages\n", m->externup);
 	freepages(0, 0);
 	tryalloc(pgszi, color);
 	if(pa->freecount > 0){
@@ -332,7 +332,7 @@ Done:
 	poperror();
 	qunlock(&pagerlck);
 	if(DBGFLG>1)
-		DBG("kickpager() done %#p\n", up);
+		DBG("kickpager() done %#p\n", m->externup);
 }
 
 void

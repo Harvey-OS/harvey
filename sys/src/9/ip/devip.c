@@ -180,7 +180,7 @@ ip1gen(Chan *c, int i, Dir *dp)
 }
 
 static int
-ipgen(Chan *c, char* j, Dirtab* dir, int m, int s, Dir *dp)
+ipgen(Chan *c, char* j, Dirtab* dir, int mm, int s, Dir *dp)
 {
 	Qid q;
 	Conv *cv;
@@ -192,8 +192,8 @@ ipgen(Chan *c, char* j, Dirtab* dir, int m, int s, Dir *dp)
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, Qtopdir), 0, QTDIR);
-			sprint(up->genbuf, "#I%ud", c->devno);
-			devdir(c, q, up->genbuf, 0, network, 0555, dp);
+			sprint(m->externup->genbuf, "#I%ud", c->devno);
+			devdir(c, q, m->externup->genbuf, 0, network, 0555, dp);
 			return 1;
 		}
 		if(s < f->np) {
@@ -215,15 +215,15 @@ ipgen(Chan *c, char* j, Dirtab* dir, int m, int s, Dir *dp)
 	case Qprotodir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, Qtopdir), 0, QTDIR);
-			sprint(up->genbuf, "#I%ud", c->devno);
-			devdir(c, q, up->genbuf, 0, network, 0555, dp);
+			sprint(m->externup->genbuf, "#I%ud", c->devno);
+			devdir(c, q, m->externup->genbuf, 0, network, 0555, dp);
 			return 1;
 		}
 		if(s < f->p[PROTO(c->qid)]->ac) {
 			cv = f->p[PROTO(c->qid)]->conv[s];
-			sprint(up->genbuf, "%d", s);
+			sprint(m->externup->genbuf, "%d", s);
 			mkqid(&q, QID(PROTO(c->qid), s, Qconvdir), 0, QTDIR);
-			devdir(c, q, up->genbuf, 0, cv->owner, 0555, dp);
+			devdir(c, q, m->externup->genbuf, 0, cv->owner, 0555, dp);
 			return 1;
 		}
 		s -= f->p[PROTO(c->qid)]->ac;

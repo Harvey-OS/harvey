@@ -356,7 +356,7 @@ segclock(uintptr_t pc)
 {
 	Segment *s;
 
-	s = up->seg[TSEG];
+	s = m->externup->seg[TSEG];
 	if(s == 0 || s->profile == 0)
 		return;
 
@@ -373,7 +373,7 @@ prepageseg(int i)
 	Segment *s;
 	uintptr_t addr, pgsz;
 
-	s = up->seg[i];
+	s = m->externup->seg[i];
 	if(s == nil)
 		return;
 	DBG("prepage: base %#p top %#p\n", s->base, s->top);
@@ -384,7 +384,7 @@ prepageseg(int i)
 
 /*
  * BUG: should depend only in segment attributes, not in
- * the slot used in up->seg.
+ * the slot used in m->externup->seg.
  */
 void
 nixprepage(int i)

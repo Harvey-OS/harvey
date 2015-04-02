@@ -371,7 +371,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	wave('5');
 	m->vsvm = sys->vsvmpage;
 	wave('6');
-	up = (void *)0;
+	m->externup = (void *)0;
 	active.nonline = 1;
 	active.exiting = 0;
 	active.nbooting = 0;
@@ -507,7 +507,7 @@ init0(void)
 {
 	char buf[2*KNAMELEN];
 
-	up->nerrlab = 0;
+	m->externup->nerrlab = 0;
 
 //	if(consuart == nil)
 //		i8250console("0");
@@ -517,10 +517,10 @@ init0(void)
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
-	up->slash = namec("#/", Atodir, 0, 0);
-	pathclose(up->slash->path);
-	up->slash->path = newpath("/");
-	up->dot = cclone(up->slash);
+	m->externup->slash = namec("#/", Atodir, 0, 0);
+	pathclose(m->externup->slash->path);
+	m->externup->slash->path = newpath("/");
+	m->externup->dot = cclone(m->externup->slash);
 
 	devtabinit();
 
@@ -551,10 +551,10 @@ bootargs(uintptr_t base)
 	 * Push the boot args onto the stack.
 	 * Make sure the validaddr check in syscall won't fail
 	 * because there are fewer than the maximum number of
-	 * args by subtracting sizeof(up->arg).
+	 * args by subtracting sizeof(m->externup->arg).
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + /*BIG*/PGSZ - sizeof(up->arg) - i));
+	p = UINT2PTR(STACKALIGN(base + /*BIG*/PGSZ - sizeof(m->externup->arg) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -607,7 +607,7 @@ hi("3\n");
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr_t));
+	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(m->externup->arg)-sizeof(uintptr_t));
 hi("SP "); put64(p->sched.sp); hi("\n");
 	p->sched.sp = STACKALIGN(p->sched.sp);
 

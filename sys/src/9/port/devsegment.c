@@ -346,7 +346,7 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 	g = smalloc(sizeof(Globalseg));
 	g->ref = 1;
 	kstrdup(&g->name, name);
-	kstrdup(&g->uid, up->user);
+	kstrdup(&g->uid, m->externup->user);
 	g->perm = 0660; 
 	globalseg[xfree] = g;
 	unlock(&globalseglock);
@@ -606,7 +606,7 @@ segmentwstat(Chan *c, uint8_t *dp, int32_t n)
 		nexterror();
 	}
 
-	if(strcmp(g->uid, up->user)!=0 && !iseve())
+	if(strcmp(g->uid, m->externup->user)!=0 && !iseve())
 		error(Eperm);
 	d = smalloc(sizeof(Dir)+n);
 	if(waserror()){
@@ -717,19 +717,19 @@ segmentkproc(void *arg)
 	int sno;
 
 	for(sno = 0; sno < NSEG; sno++)
-		if(up->seg[sno] == nil && sno != ESEG)
+		if(m->externup->seg[sno] == nil && sno != ESEG)
 			break;
 	if(sno == NSEG)
 		panic("segmentkproc");
-	g->kproc = up;
+	g->kproc = m->externup;
 
 	incref(g->s);
-	up->seg[sno] = g->s;
+	m->externup->seg[sno] = g->s;
 
 	for(done = 0; !done;){
 		sleep(&g->cmdwait, cmdready, g);
 		if(waserror()){
-			strncpy(g->err, up->errstr, sizeof(g->err));
+			strncpy(g->err, m->externup->errstr, sizeof(g->err));
 		} else {
 			switch(g->cmd){
 			case Cstart:

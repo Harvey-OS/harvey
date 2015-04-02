@@ -25,7 +25,7 @@ char	hostdomain[DOMLEN];
 int
 iseve(void)
 {
-	return strcmp(eve, up->user) == 0;
+	return strcmp(eve, m->externup->user) == 0;
 }
 
 void
@@ -142,8 +142,8 @@ userwrite(char* a, int32_t n)
 {
 	if(n != 4 || strncmp(a, "none", 4) != 0)
 		error(Eperm);
-	kstrdup(&up->user, "none");
-	up->basepri = PriNormal;
+	kstrdup(&m->externup->user, "none");
+	m->externup->basepri = PriNormal;
 
 	return n;
 }
@@ -167,8 +167,8 @@ hostownerwrite(char* a, int32_t n)
 
 	renameuser(eve, buf);
 	kstrdup(&eve, buf);
-	kstrdup(&up->user, buf);
-	up->basepri = PriNormal;
+	kstrdup(&m->externup->user, buf);
+	m->externup->basepri = PriNormal;
 
 	return n;
 }

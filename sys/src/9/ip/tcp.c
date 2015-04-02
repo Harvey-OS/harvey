@@ -719,7 +719,7 @@ tcpackproc(void *a)
 	priv = tcp->priv;
 
 	for(;;) {
-		tsleep(&up->sleep, return0, 0, MSPTICK);
+		tsleep(&m->externup->sleep, return0, 0, MSPTICK);
 
 		qlock(&priv->tl);
 		timeo = nil;

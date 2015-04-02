@@ -308,7 +308,7 @@ acpmcsetctl(void)
 	AcPmcArg p;
 	Mach *mp;
 
-	mp = up->ac;
+	mp = m->externup->ac;
 	memmove(&p, mp->icc->data, sizeof(AcPmcArg));
 	
 	mp->icc->rc = pmcsetctl(p.coreno, &p, p.regno);
@@ -321,7 +321,7 @@ acpmcsetctr(void)
 	AcCtrArg ctr;
 	Mach *mp;
 
-	mp = up->ac;
+	mp = m->externup->ac;
 	memmove(&ctr, mp->icc->data, sizeof(AcCtrArg));
 	
 	mp->icc->rc = pmcsetctr(ctr.coreno, ctr.v, ctr.regno);
@@ -330,8 +330,9 @@ acpmcsetctr(void)
 
 
 static int32_t
-pmcwrite(Chan *c, void *a, int32_t n, int64_t m)
+pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
 {
+	Mach *m = machp();
 	Cmdbuf *cb;
 	Cmdtab *ct;
 	uint32_t type;
@@ -355,7 +356,7 @@ pmcwrite(Chan *c, void *a, int32_t n, int64_t m)
 	p.regno = PMCID(c->qid.path);
 	memmove(str, a, n);
 	str[n] = '\0';
-	mp = up->ac;
+	mp = m->externup->ac;
 
 	ctr.coreno = coreno;
 	ctr.regno = p.regno;

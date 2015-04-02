@@ -247,7 +247,7 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 			Notfound:
 				if(j == 0)
 					error(Enonexist);
-				kstrcpy(up->errstr, Enonexist, ERRMAX);
+				kstrcpy(m->externup->errstr, Enonexist, ERRMAX);
 				goto Done;
 			case 0:
 				continue;
@@ -359,7 +359,7 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 }
 
 /*
- * error(Eperm) if open permission not granted for up->user.
+ * error(Eperm) if open permission not granted for m->externup->user.
  */
 void
 devpermcheck(char *fileuid, int perm, int omode)
@@ -367,10 +367,10 @@ devpermcheck(char *fileuid, int perm, int omode)
 	int t;
 	static int access[] = { 0400, 0200, 0600, 0100 };
 
-	if(strcmp(up->user, fileuid) == 0)
+	if(strcmp(m->externup->user, fileuid) == 0)
 		perm <<= 0;
 	else
-	if(strcmp(up->user, eve) == 0)
+	if(strcmp(m->externup->user, eve) == 0)
 		perm <<= 3;
 	else
 		perm <<= 6;

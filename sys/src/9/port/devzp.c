@@ -455,7 +455,7 @@ zpclose(Chan *c)
 }
 
 static int32_t
-zpread(Chan *c, void *va, int32_t n, int64_t  m)
+zpread(Chan *c, void *va, int32_t n, int64_t  mm)
 {
 	ZPipe *p;
 	Kzio io[32];	/* might read less than we could */
@@ -506,8 +506,9 @@ zpzread(Chan *c, Kzio io[], int nio, usize n, int64_t offset)
  *  be copying it again, probably.
  */
 static int32_t
-zpwrite(Chan *c, void *va, int32_t n, int64_t m)
+zpwrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
+	Mach *m = machp();
 	ZPipe *p;
 	Kzio io;	/* might write less than we could */
 	int32_t tot, nw;
@@ -554,7 +555,7 @@ zpwrite(Chan *c, void *va, int32_t n, int64_t m)
 }
 
 static int
-zpzwrite(Chan *c, Kzio io[], int nio, int64_t m)
+zpzwrite(Chan *c, Kzio io[], int nio, int64_t mm)
 {
 	ZPipe *p;
 

@@ -250,7 +250,7 @@ etheroq(Ether* ether, Block* bp)
 }
 
 static int32_t
-etherwrite(Chan* chan, void* buf, int32_t n, int64_t m)
+etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
 {
 	Ether *ether;
 	Block *bp;
@@ -299,7 +299,7 @@ etherwrite(Chan* chan, void* buf, int32_t n, int64_t m)
 }
 
 static int32_t
-etherbwrite(Chan* chan, Block* bp, int64_t m)
+etherbwrite(Chan* chan, Block* bp, int64_t mm)
 {
 	Ether *ether;
 	int32_t n;

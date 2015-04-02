@@ -77,19 +77,19 @@ setupseg(int core)
 	p->kp = 1;
 	p->noswap = 1;
 
-	p->scallnr = up->scallnr;
-	memmove(p->arg, up->arg, sizeof(up->arg));
+	p->scallnr = m->externup->scallnr;
+	memmove(p->arg, m->externup->arg, sizeof(m->externup->arg));
 	p->nerrlab = 0;
-	p->slash = up->slash;
-	p->dot = up->dot;
+	p->slash = m->externup->slash;
+	p->dot = m->externup->dot;
 	if(p->dot)
 		incref(p->dot);
 
-	memmove(p->note, up->note, sizeof(p->note));
-	p->nnote = up->nnote;
+	memmove(p->note, m->externup->note, sizeof(p->note));
+	p->nnote = m->externup->nnote;
 	p->notified = 0;
-	p->lastnote = up->lastnote;
-	p->notify = up->notify;
+	p->lastnote = m->externup->lastnote;
+	p->notify = m->externup->notify;
 	p->ureg = 0;
 	p->dbgreg = 0;
 
@@ -129,7 +129,7 @@ setupseg(int core)
 
 	/* BSS. Uses asm from data map. */
 	p->seg[BSEG] = newseg(SG_BSS, ka+BIGPGSZ, 1);
-	p->seg[BSEG]->color= up->seg[TSEG]->color;
+	p->seg[BSEG]->color= m->externup->seg[TSEG]->color;
 
 	/* Stack */
 	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
@@ -166,7 +166,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	USED(chan);
 
 	if(waserror()){
-		DBG("kforkexecac: failing: %s\n", up->errstr);
+		DBG("kforkexecac: failing: %s\n", m->externup->errstr);
 		if(file)
 			free(file);
 		if(elem)
@@ -187,9 +187,9 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	if(ufile != nil){
 		panic("ufile not implemented yet");
 		file = validnamedup(ufile, 1);
-		DBG("kforkexecac: up %#p file %s\n", up, file);
+		DBG("kforkexecac: up %#p file %s\n", m->externup, file);
 		chan = namec(file, Aopen, OEXEC, 0);
-		kstrdup(&elem, up->genbuf);
+		kstrdup(&elem, m->externup->genbuf);
 	
 		hdrsz = chan->dev->read(chan, &hdr, sizeof(Khdr), 0);
 		DBG("wrote ufile\n");
@@ -366,7 +366,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 //	elem = nil;
 //	p->args = args;
 //	p->nargs = n;
-	poperror();				/* p (up->args) */
+	poperror();				/* p (m->externup->args) */
 
 
 
@@ -417,7 +417,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	}
 	DBG("kforkexecac up %#p done\n"
 		"textsz %lx datasz %lx bsssz %lx hdrsz %lx\n"
-		"textlim %ullx datalim %ullx bsslim %ullx\n", up,
+		"textlim %ullx datalim %ullx bsslim %ullx\n", m->externup,
 		textsz, datasz, bsssz, hdrsz, textlim, datalim, bsslim);
 }
 

@@ -64,7 +64,7 @@ isdotdot(char *p)
  * Rather than strncpy, which zeros the rest of the buffer, kstrcpy
  * truncates if necessary, always zero terminates, does not zero fill,
  * and puts ... at the end of the string if it's too long.  Usually used to
- * save a string in up->genbuf;
+ * save a string in m->externup->genbuf;
  */
 void
 kstrcpy(char *s, char *t, int ns)
@@ -113,7 +113,7 @@ kstrdup(char **p, char *s)
 
 	n = strlen(s)+1;
 	/* if it's a user, we can wait for memory; if not, something's very wrong */
-	if(up){
+	if(m->externup){
 		t = smalloc(n);
 		setmalloctag(t, getcallerpc(&p));
 	}else{
@@ -587,7 +587,7 @@ cmount(Chan **newp, Chan *old, int flag, char *spec)
 	&& (mh->mount->next || !(mh->mount->mflag&MCREATE)))
 		error(Emount);
 
-	pg = up->pgrp;
+	pg = m->externup->pgrp;
 	wlock(&pg->ns);
 
 	l = &MOUNTH(pg, old->qid);
@@ -679,7 +679,7 @@ cunmount(Chan *mnt, Chan *mounted)
 	 * cclose will take care of freeing the umh.
 	 */
 
-	pg = up->pgrp;
+	pg = m->externup->pgrp;
 	wlock(&pg->ns);
 
 	l = &MOUNTH(pg, mnt->qid);
@@ -757,7 +757,7 @@ findmount(Chan **cp, Mhead **mp, int dc, uint devno, Qid qid)
 	Pgrp *pg;
 	Mhead *mh;
 
-	pg = up->pgrp;
+	pg = m->externup->pgrp;
 	rlock(&pg->ns);
 	for(mh = MOUNTH(pg, qid); mh; mh = mh->hash){
 		rlock(&mh->lock);
@@ -898,7 +898,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 				*nerror = nhave;
 			pathclose(path);
 			cclose(c);
-			strcpy(up->errstr, Enotdir);
+			strcpy(m->externup->errstr, Enotdir);
 			if(mh != nil)
 				putmhead(mh);
 			return -1;
@@ -979,11 +979,11 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 					if(wq->nqid==0 || (wq->qid[wq->nqid-1].type & QTDIR)){
 						if(nerror)
 							*nerror = nhave+wq->nqid+1;
-						strcpy(up->errstr, Edoesnotexist);
+						strcpy(m->externup->errstr, Edoesnotexist);
 					}else{
 						if(nerror)
 							*nerror = nhave+wq->nqid;
-						strcpy(up->errstr, Enotdir);
+						strcpy(m->externup->errstr, Enotdir);
 					}
 					free(wq);
 					if(mh != nil)
@@ -1158,7 +1158,7 @@ namelenerror(char *aname, int len, char *err)
 	 */
 	errlen = strlen(err);
 	if(len < ERRMAX/3 || len+errlen < 2*ERRMAX/3)
-		snprint(up->genbuf, sizeof up->genbuf, "%.*s",
+		snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%.*s",
 			utfnlen(aname, len), aname);
 	else{
 		/*
@@ -1185,10 +1185,10 @@ namelenerror(char *aname, int len, char *err)
 			for(i=0; (*name&0xC0)==0x80 && i<UTFmax; i++)
 				name++;
 		}
-		snprint(up->genbuf, sizeof up->genbuf, "...%.*s",
+		snprint(m->externup->genbuf, sizeof m->externup->genbuf, "...%.*s",
 			utfnlen(name, ename-name), name);
 	}
-	snprint(up->errstr, ERRMAX, "%#q %s", up->genbuf, err);
+	snprint(m->externup->errstr, ERRMAX, "%#q %s", m->externup->genbuf, err);
 	nexterror();
 }
 
@@ -1245,20 +1245,20 @@ namec(char *aname, int amode, int omode, int perm)
 	nomount = 0;
 	switch(name[0]){
 	case '/':
-		c = up->slash;
+		c = m->externup->slash;
 		incref(c);
 		break;
 
 	case '#':
 		nomount = 1;
-		up->genbuf[0] = '\0';
+		m->externup->genbuf[0] = '\0';
 		n = 0;
 		while(*name != '\0' && (*name != '/' || n < 2)){
-			if(n >= sizeof(up->genbuf)-1)
+			if(n >= sizeof(m->externup->genbuf)-1)
 				error(Efilename);
-			up->genbuf[n++] = *name++;
+			m->externup->genbuf[n++] = *name++;
 		}
-		up->genbuf[n] = '\0';
+		m->externup->genbuf[n] = '\0';
 		/*
 		 *  noattach is sandboxing.
 		 *
@@ -1271,11 +1271,11 @@ namec(char *aname, int amode, int omode, int perm)
 		 *	p  control of your own processes (and unfortunately
 		 *	   any others left unprotected)
 		 */
-		n = chartorune(&r, up->genbuf+1)+1;
+		n = chartorune(&r, m->externup->genbuf+1)+1;
 		/* actually / is caught by parsing earlier */
 		if(utfrune("M", r))
 			error(Enoattach);
-		if(up->pgrp->noattach && utfrune("|decp", r)==nil)
+		if(m->externup->pgrp->noattach && utfrune("|decp", r)==nil)
 			error(Enoattach);
 		dev = devtabget(r, 1);			//XDYNX
 		if(dev == nil)
@@ -1284,13 +1284,13 @@ namec(char *aname, int amode, int omode, int perm)
 		//	devtabdecr(dev);
 		//	nexterror();
 		//}
-		c = dev->attach(up->genbuf+n);
+		c = dev->attach(m->externup->genbuf+n);
 		//poperror();
 		//devtabdecr(dev);
 		break;
 
 	default:
-		c = up->dot;
+		c = m->externup->dot;
 		incref(c);
 		break;
 	}
@@ -1311,7 +1311,7 @@ namec(char *aname, int amode, int omode, int perm)
 		 */
 		if(e.nerror == 0)
 			nexterror();
-		strcpy(tmperrbuf, up->errstr);
+		strcpy(tmperrbuf, m->externup->errstr);
 		if(e.off[e.nerror]==0)
 			print("nerror=%d but off=%d\n",
 				e.nerror, e.off[e.nerror]);
@@ -1550,14 +1550,14 @@ if(c->umh != nil){
 		if(omode & OEXCL)
 			nexterror();
 		/* save error */
-		createerr = up->errstr;
-		up->errstr = tmperrbuf;
+		createerr = m->externup->errstr;
+		m->externup->errstr = tmperrbuf;
 		/* note: we depend that walk does not error */
 		if(walk(&c, e.elems+e.nelems-1, 1, nomount, nil) < 0){
-			up->errstr = createerr;
+			m->externup->errstr = createerr;
 			error(createerr);	/* report true error */
 		}
-		up->errstr = createerr;
+		m->externup->errstr = createerr;
 		omode |= OTRUNC;
 		goto Open;
 
@@ -1567,9 +1567,9 @@ if(c->umh != nil){
 
 	/* place final element in genbuf for e.g. exec */
 	if(e.nelems > 0)
-		kstrcpy(up->genbuf, e.elems[e.nelems-1], sizeof up->genbuf);
+		kstrcpy(m->externup->genbuf, e.elems[e.nelems-1], sizeof m->externup->genbuf);
 	else
-		kstrcpy(up->genbuf, ".", sizeof up->genbuf);
+		kstrcpy(m->externup->genbuf, ".", sizeof m->externup->genbuf);
 	free(e.name);
 	free(e.elems);
 	free(e.off);
@@ -1652,9 +1652,9 @@ validname0(char *aname, int slashok, int dup, uintptr_t pc)
 		else{
 			if(isfrog[c])
 				if(!slashok || c!='/'){
-					snprint(up->genbuf, sizeof(up->genbuf), "%s: %q", Ebadchar, aname);
+					snprint(m->externup->genbuf, sizeof(m->externup->genbuf), "%s: %q", Ebadchar, aname);
 					free(s);
-					error(up->genbuf);
+					error(m->externup->genbuf);
 			}
 			name++;
 		}

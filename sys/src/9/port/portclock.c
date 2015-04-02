@@ -164,7 +164,7 @@ hzclock(Ureg *ur)
 		m->proc->pc = pc;
 
 	if(m->mmuflush){
-		if(up)
+		if(m->externup)
 			mmuflush();
 		m->mmuflush = 0;
 	}
@@ -185,7 +185,7 @@ hzclock(Ureg *ur)
 
 	checkalarms();
 
-	if(up && up->state == Running)
+	if(m->externup && m->externup->state == Running)
 		hzsched();	/* in proc.c */
 }
 

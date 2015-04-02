@@ -150,8 +150,8 @@ cmdgen(Chan *c, char *name, Dirtab *d, int nd, int s, Dir *dp)
 		if(s < cmd.nc) {
 			cv = cmd.conv[s];
 			mkqid(&q, QID(s, Qconvdir), 0, QTDIR);
-			sprint(up->genbuf, "%d", s);
-			devdir(c, q, up->genbuf, 0, cv->owner, DMDIR|0555, dp);
+			sprint(m->externup->genbuf, "%d", s);
+			devdir(c, q, m->externup->genbuf, 0, cv->owner, DMDIR|0555, dp);
 			return 1;
 		}
 		s -= cmd.nc;
@@ -251,7 +251,7 @@ cmdopen(Chan *c, int omode)
 			qunlock(&cmd.l);
 			nexterror();
 		}
-		cv = cmdclone(up->user);
+		cv = cmdclone(m->externup->user);
 		poperror();
 		qunlock(&cmd.l);
 		if(cv == 0)
@@ -272,7 +272,7 @@ cmdopen(Chan *c, int omode)
 			qunlock(&cmd.l);
 			nexterror();
 		}
-		user = up->user;
+		user = m->externup->user;
 		if((perm & (cv->perm>>6)) != perm) {
 			if(strcmp(user, cv->owner) != 0 ||
 		 	  (perm & cv->perm) != perm)
@@ -403,8 +403,8 @@ cmdread(Chan *ch, void *a, int32_t n, int64_t offset)
 	case Qconvdir:
 		return devdirread(ch, a, n, 0, 0, cmdgen);
 	case Qctl:
-		sprint(up->genbuf, "%ld", CONV(ch->qid));
-		return readstr(offset, s, n, up->genbuf);
+		sprint(m->externup->genbuf, "%ld", CONV(ch->qid));
+		return readstr(offset, s, n, m->externup->genbuf);
 	case Qalloc:
 		c = cmd.conv[CONV(ch->qid)];
 		p = c->p;
@@ -416,16 +416,16 @@ cmdread(Chan *ch, void *a, int32_t n, int64_t offset)
 		return readstr(offset, s, n, buf);
 	case Qexec:
 		c = cmd.conv[CONV(ch->qid)];	
-		snprint(up->genbuf, sizeof(up->genbuf), "%ld", c->esz);
-		return readstr(offset, s, n, up->genbuf);	
+		snprint(m->externup->genbuf, sizeof(m->externup->genbuf), "%ld", c->esz);
+		return readstr(offset, s, n, m->externup->genbuf);	
 	case Qstatus:
 		c = cmd.conv[CONV(ch->qid)];
 		cmds = "";
 		if(c->cmd != nil)
 			cmds = c->cmd->f[1];
-		snprint(up->genbuf, sizeof(up->genbuf), "cmd/%d %d %s %q %q\n",
+		snprint(m->externup->genbuf, sizeof(m->externup->genbuf), "cmd/%d %d %s %q %q\n",
 			c->x, c->inuse, c->state, c->dir, cmds);
-		return readstr(offset, s, n, up->genbuf);
+		return readstr(offset, s, n, m->externup->genbuf);
 	case Qdata:
 	case Qstderr:
 		fd = 1;
@@ -605,7 +605,7 @@ cmdwstat(Chan *c, uint8_t *dp, int32_t n)
 		if(n == 0)
 			error(Eshortstat);
 		cv = cmd.conv[CONV(c->qid)];
-		if(!iseve() && strcmp(up->user, cv->owner) != 0)
+		if(!iseve() && strcmp(m->externup->user, cv->owner) != 0)
 			error(Eperm);
 		if(!emptystr(d->uid))
 			kstrdup(&cv->owner, d->uid);
@@ -678,8 +678,8 @@ cmdproc(void *a)
 		print("f[0]=%q f[1]=%q\n", c->cmd->f[0], c->cmd->f[1]);
 	if(waserror()){
 		if(Debug)
-			print("failed: %q\n", up->errstr);
-		kstrdup(&c->error, up->errstr);
+			print("failed: %q\n", m->externup->errstr);
+		kstrdup(&c->error, m->externup->errstr);
 		c->state = "Done";
 		qunlock(&c->l);
 //		Wakeup(&c->startr);
@@ -703,8 +703,8 @@ cmdproc(void *a)
 //	n = oscmdwait(t, status, sizeof(status));
 //	osleave();
 	if(n < 0){
-//		oserrstr(up->genbuf, sizeof(up->genbuf));
-		n = snprint(status, sizeof(status), "0 0 0 0 %q", up->genbuf);
+//		oserrstr(m->externup->genbuf, sizeof(up->genbuf));
+		n = snprint(status, sizeof(status), "0 0 0 0 %q", m->externup->genbuf);
 	}
 	qlock(&c->l);
 	c->child = nil;

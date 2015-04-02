@@ -130,7 +130,7 @@ netlogready(void *a)
 }
 
 int32_t
-netlogread(Fs *f, void *a, uint32_t m, int32_t n)
+netlogread(Fs *f, void *a, uint32_t mm, int32_t n)
 {
 	int i, d;
 	char *p, *rptr;

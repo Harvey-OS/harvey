@@ -47,8 +47,8 @@ rbnotempty(void* v)
 static void
 genrandom(void* v)
 {
-	up->basepri = PriNormal;
-	up->priority = up->basepri;
+	m->externup->basepri = PriNormal;
+	m->externup->priority = m->externup->basepri;
 
 	for(;;){
 		for(;;)

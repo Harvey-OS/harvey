@@ -319,7 +319,7 @@ sslopen(Chan *c, int omode)
 			dsnew(c, pp);
 		else {
 			if((perm & (s->perm>>6)) != perm
-			   && (strcmp(up->user, s->user) != 0
+			   && (strcmp(m->externup->user, s->user) != 0
 			     || (perm & s->perm) != perm))
 				error(Eperm);
 
@@ -350,7 +350,7 @@ sslwstat(Chan *c, uint8_t *db, int32_t n)
 	s = dstate[CONV(c->qid)];
 	if(s == 0)
 		error(Ebadusefd);
-	if(strcmp(s->user, up->user) != 0)
+	if(strcmp(s->user, m->externup->user) != 0)
 		error(Eperm);
 
 	dir = smalloc(sizeof(Dir)+n);
@@ -1505,7 +1505,7 @@ dsnew(Chan *ch, Dstate **pp)
 	memset(s, 0, sizeof(*s));
 	s->state = Sincomplete;
 	s->ref = 1;
-	kstrdup(&s->user, up->user);
+	kstrdup(&s->user, m->externup->user);
 	s->perm = 0660;
 	t = TYPE(ch->qid);
 	if(t == Qclonus)

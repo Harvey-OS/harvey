@@ -36,7 +36,7 @@ semwakeup(Sem *s, int didwake, int dolock)
 {
 	Proc *p;
 
-	DBG("semwakeup up %#p sem %#p\n", up, s->np);
+	DBG("semwakeup up %#p sem %#p\n", m->externup, s->np);
 	if(dolock)
 		lock(s);
 	/*
@@ -49,7 +49,7 @@ semwakeup(Sem *s, int didwake, int dolock)
 		s->nq--;
 		s->q[0] = s->q[s->nq];
 		if(didwake){
-			DBG("semwakeup up %#p waking up %#p\n", up, p);
+			DBG("semwakeup up %#p waking up %#p\n", m->externup, p);
 			p->waitsem = s;
 			/*
 			 * p can be up if it's being killed, in which
@@ -60,7 +60,7 @@ semwakeup(Sem *s, int didwake, int dolock)
 			 * that other process no longer sleeps.
 			 * But we can't be put in the scheduler queue.
 			 */
-			if(p != up)
+			if(p != m->externup)
 				ready(p);
 		}
 	}
@@ -71,7 +71,7 @@ semwakeup(Sem *s, int didwake, int dolock)
 static void
 semsleep(Sem *s, int dontblock)
 {
-	DBG("semsleep up %#p sem %#p\n", up, s->np);
+	DBG("semsleep up %#p sem %#p\n", m->externup, s->np);
 	if(dontblock){
 		/*
 		 * User tried to down non-blocking, but someone else
@@ -103,15 +103,15 @@ semsleep(Sem *s, int dontblock)
 	s->q = realloc(s->q, (s->nq+1) * sizeof s->q[0]);
 	if(s->q == nil)
 		panic("semsleep: no memory");
-	s->q[s->nq++] = up;
-	up->waitsem = nil;
-	up->state = Semdown;
+	s->q[s->nq++] = m->externup;
+	m->externup->waitsem = nil;
+	m->externup->state = Semdown;
 	unlock(s);
-	DBG("semsleep up %#p blocked\n", up);
+	DBG("semsleep up %#p blocked\n", m->externup);
 	sched();
 Done:
-	DBG("semsleep up %#p awaken\n", up);
-	if(up->waitsem == nil){
+	DBG("semsleep up %#p awaken\n", m->externup);
+	if(m->externup->waitsem == nil){
 		/*
 		 * nobody did awake us, we are probably being
 		 * killed; we no longer want a ticket.
@@ -138,7 +138,7 @@ syssemsleep(Ar0* ar, va_list list)
 	np = validaddr(np, sizeof *np, 1);
 	evenaddr(PTR2UINT(np));
 	dontblock = va_arg(list, int);
-	if((sg = seg(up, PTR2UINT(np), 0)) == nil)
+	if((sg = seg(m->externup, PTR2UINT(np), 0)) == nil)
 		error(Ebadarg);
 	s = segmksem(sg, np);
 	semsleep(s, dontblock);
@@ -157,7 +157,7 @@ syssemwakeup(Ar0* ar, va_list list)
 	np = va_arg(list, int*);
 	np = validaddr(np, sizeof *np, 1);
 	evenaddr(PTR2UINT(np));
-	if((sg = seg(up, PTR2UINT(np), 0)) == nil)
+	if((sg = seg(m->externup, PTR2UINT(np), 0)) == nil)
 		error(Ebadarg);
 	s = segmksem(sg, np);
 	semwakeup(s, 1, 1);
@@ -171,7 +171,7 @@ semdequeue(Sem *s)
 	assert(s != nil);
 	lock(s);
 	for(i = 0; i < s->nq; i++)
-		if(s->q[i] == up)
+		if(s->q[i] == m->externup)
 			break;
 
 	if(i == s->nq){
@@ -199,7 +199,7 @@ semalt(Sem *ss[], int n)
 	int i, j, r;
 	Sem *s;
 
-	DBG("semalt up %#p ss[0] %#p\n", up, ss[0]->np);
+	DBG("semalt up %#p ss[0] %#p\n", m->externup, ss[0]->np);
 	r = -1;
 	for(i = 0; i < n; i++){
 		s = ss[i];
@@ -212,19 +212,19 @@ semalt(Sem *ss[], int n)
 		s->q = realloc(s->q, (s->nq+1) * sizeof s->q[0]);
 		if(s->q == nil)
 			panic("semalt: not enough memory");
-		s->q[s->nq++] = up;
+		s->q[s->nq++] = m->externup;
 		unlock(s);
 	}
 
-	DBG("semalt up %#p blocked\n", up);
-	up->state = Semdown;
+	DBG("semalt up %#p blocked\n", m->externup);
+	m->externup->state = Semdown;
 	sched();
 
 Done:
-	DBG("semalt up %#p awaken\n", up);
+	DBG("semalt up %#p awaken\n", m->externup);
 	for(j = 0; j < i; j++){
 		assert(ss[j] != nil);
-		if(ss[j] != up->waitsem)
+		if(ss[j] != m->externup->waitsem)
 			semdequeue(ss[j]);
 		else
 			r = j;
@@ -255,7 +255,7 @@ syssemalt(Ar0 *ar0, va_list list)
 		np = sl[i];
 		np = validaddr(np, sizeof(int), 1);
 		evenaddr(PTR2UINT(np));
-		if((sg = seg(up, PTR2UINT(np), 0)) == nil)
+		if((sg = seg(m->externup, PTR2UINT(np), 0)) == nil)
 			error(Ebadarg);
 		ksl[i] = segmksem(sg, np);
 	}	

@@ -361,7 +361,7 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 	ainc((int *)&traceinhits);
 	/* Continue if we are watching this pid or we're not watching any */
 	if (!all)
-		if (!up || !watchingpid(up->pid)){
+		if (!m->externup || !watchingpid(m->externup->pid)){
 			traceactive = 1;
 			return;
 	}
@@ -377,8 +377,8 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 	cycles(&pl->ticks);
 
 	pl->pc = (uintptr_t)pc;
-	if (up)
-		pl->dat[0] = up->pid;
+	if (m->externup)
+		pl->dat[0] = m->externup->pid;
 	else
 		pl->dat[0] = (unsigned long)-1;
 
@@ -405,7 +405,7 @@ traceout(void* pc, uintptr_t retval)
 	}
 		
 	if (!all)
-		if (!up || !watchingpid(up->pid)){
+		if (!m->externup || !watchingpid(m->externup->pid)){
 			traceactive = 1;
 			return;
 		}
@@ -419,8 +419,8 @@ traceout(void* pc, uintptr_t retval)
 	cycles(&pl->ticks);
 
 	pl->pc = (uintptr_t)pc;
-	if (up)
-		pl->dat[0] = up->pid;
+	if (m->externup)
+		pl->dat[0] = m->externup->pid;
 	else
 		pl->dat[0] = (unsigned long)-1;
 
@@ -661,8 +661,9 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
  * Process commands sent to the ctl file.
  */
 static int32_t
-tracewrite(Chan *c, void *a, int32_t n, int64_t m)
+tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 {
+	Mach *m = machp();
 	char *tok[6]; //changed this so "tracein" works with the new 4th arg
 	char *ep, *s = nil;
 	Trace *p, **pp, *foo;

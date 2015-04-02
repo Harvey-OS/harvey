@@ -674,7 +674,7 @@ rxmitproc(void *v)
 	Arp *arp = v;
 	int32_t wakeupat;
 
-	arp->rxmitp = up;
+	arp->rxmitp = m->externup;
 	//print("arp rxmitproc started\n");
 	if(waserror()){
 		arp->rxmitp = 0;

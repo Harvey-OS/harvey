@@ -552,7 +552,7 @@ smalloc(uint32_t size)
 	void *v;
 
 	while((v = malloc(size)) == nil)
-		tsleep(&up->sleep, return0, 0, 100);
+		tsleep(&m->externup->sleep, return0, 0, 100);
 	memset(v, 0, size);
 
 	return v;

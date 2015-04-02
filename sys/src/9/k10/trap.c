@@ -266,7 +266,7 @@ intrtime(int vno)
 	m->perf.intrts = x;
 
 	m->perf.inintr += diff;
-	if(up == nil && m->perf.inidle > diff)
+	if(m->externup == nil && m->perf.inidle > diff)
 		m->perf.inidle -= diff;
 
 	intrtimes[vno].cycles += diff;
@@ -294,11 +294,11 @@ kexit(Ureg* u)
 	 */
 	tos = (Tos*)(USTKTOP-sizeof(Tos));
 	cycles(&t);
-	tos->kcycles += t - up->kentry;
-	tos->pcycles = up->pcycles;
-	tos->pid = up->pid;
-	if (up->ac != nil)
-		mp = up->ac;
+	tos->kcycles += t - m->externup->kentry;
+	tos->pcycles = m->externup->pcycles;
+	tos->pid = m->externup->pid;
+	if (m->externup->ac != nil)
+		mp = m->externup->ac;
 	else
 		mp = m;
 	tos->core = mp->machno;	
@@ -346,8 +346,8 @@ trap(Ureg* ureg)
 	m->perf.intrts = perfticks();
 	user = userureg(ureg);
 	if(user && (m->nixtype == NIXTC)){
-		up->dbgreg = ureg;
-		cycles(&up->kentry);
+		m->externup->dbgreg = ureg;
+		cycles(&m->externup->kentry);
 	}
 
 	clockintr = 0;
@@ -361,8 +361,8 @@ trap(Ureg* ureg)
 			if(vno >= VectorPIC && vno != VectorSYSCALL)
 				m->lastintr = ctl->irq;
 		}else
-			if(up)
-				up->nqtrap++;
+			if(m->externup)
+				m->externup->nqtrap++;
 
 		if(ctl->isr)
 			ctl->isr(vno);
@@ -377,14 +377,14 @@ trap(Ureg* ureg)
 			if(ctl->irq == IrqCLOCK || ctl->irq == IrqTIMER)
 				clockintr = 1;
 
-			if(up && !clockintr)
+			if(m->externup && !clockintr)
 				preempted();
 		}
 	}
 	else if(vno < nelem(excname) && user){
 		spllo();
 		snprint(buf, sizeof buf, "sys: trap: %s", excname[vno]);
-		postnote(up, 1, buf, NDebug);
+		postnote(m->externup, 1, buf, NDebug);
 	}
 	else if(vno >= VectorPIC && vno != VectorSYSCALL){
 		/*
@@ -427,11 +427,11 @@ trap(Ureg* ureg)
 	splhi();
 
 	/* delaysched set because we held a lock or because our quantum ended */
-	if(up && up->delaysched && clockintr){
+	if(m->externup && m->externup->delaysched && clockintr){
 		if(0)
-		if(user && up->ac == nil && up->nqtrap == 0 && up->nqsyscall == 0){
+		if(user && m->externup->ac == nil && m->externup->nqtrap == 0 && m->externup->nqsyscall == 0){
 			if(!waserror()){
-				up->ac = getac(up, -1);
+				m->externup->ac = getac(m->externup, -1);
 				poperror();
 				runacore();
 				return;
@@ -443,7 +443,7 @@ trap(Ureg* ureg)
 
 
 	if(user){
-		if(up && up->procctl || up->nnote)
+		if(m->externup && m->externup->procctl || m->externup->nnote)
 			notify(ureg);
 		kexit(ureg);
 	}
@@ -455,9 +455,9 @@ trap(Ureg* ureg)
 static void
 dumpgpr(Ureg* ureg)
 {
-	if(up != nil)
+	if(m->externup != nil)
 		iprint("cpu%d: registers for %s %d\n",
-			m->machno, up->text, up->pid);
+			m->machno, m->externup->text, m->externup->pid);
 	else
 		iprint("cpu%d: registers for kernel\n", m->machno);
 
@@ -487,7 +487,7 @@ dumpgpr(Ureg* ureg)
 	iprint("FS\t%#llux\n", rdmsr(FSbase));
 	iprint("GS\t%#llux\n", rdmsr(GSbase));
 
-	iprint("m\t%#16.16p\nup\t%#16.16p\n", m, up);
+	iprint("m\t%#16.16p\nup\t%#16.16p\n", m, m->externup);
 }
 
 void
@@ -540,15 +540,15 @@ dumpstackwithureg(Ureg* ureg)
 	x = 0;
 	x += iprint("ktrace 9%s %#p %#p\n", strrchr(conffile, '/')+1, ureg->ip, ureg->sp);
 	i = 0;
-	if(up != nil
-//	&& (uintptr)&l >= (uintptr)up->kstack
-	&& (uintptr_t)&l <= (uintptr_t)up->kstack+KSTACK)
-		estack = (uintptr_t)up->kstack+KSTACK;
+	if(m->externup != nil
+//	&& (uintptr)&l >= (uintptr)m->externup->kstack
+	&& (uintptr_t)&l <= (uintptr_t)m->externup->kstack+KSTACK)
+		estack = (uintptr_t)m->externup->kstack+KSTACK;
 	else if((uintptr_t)&l >= m->stack && (uintptr_t)&l <= m->stack+MACHSTKSZ)
 		estack = m->stack+MACHSTKSZ;
 	else{
-		if(up != nil)
-			iprint("&up->kstack %#p &l %#p\n", up->kstack, &l);
+		if(m->externup != nil)
+			iprint("&m->externup->kstack %#p &l %#p\n", m->externup->kstack, &l);
 		else
 			iprint("&m %#p &l %#p\n", m, &l);
 		return;
@@ -582,12 +582,12 @@ debugbpt(Ureg* ureg, void* v)
 {
 	char buf[ERRMAX];
 
-	if(up == 0)
+	if(m->externup == 0)
 		panic("kernel bpt");
 	/* restore pc to instruction that caused the trap */
 	ureg->ip--;
 	sprint(buf, "sys: breakpoint");
-	postnote(up, 1, buf, NDebug);
+	postnote(m->externup, 1, buf, NDebug);
 }
 
 static void
@@ -624,14 +624,14 @@ faultamd64(Ureg* ureg, void* v)
 	 * If not, the usual problem is causing a fault during
 	 * initialisation before the system is fully up.
 	 */
-	if(up == nil){
+	if(m->externup == nil){
 		panic("fault with up == nil; pc %#llux addr %#llux\n",
 			ureg->ip, addr);
 	}
 	read = !(ureg->error & 2);
 
-	insyscall = up->insyscall;
-	up->insyscall = 1;
+	insyscall = m->externup->insyscall;
+	m->externup->insyscall = 1;
 	if(fault(addr, read) < 0){
 
 		/*
@@ -642,18 +642,18 @@ faultamd64(Ureg* ureg, void* v)
 		 * process resumes it may fault while in kernel mode.
 		 * No need to panic this case, post a note to the process
 		 * and unwind the error stack. There must be an error stack
-		 * (up->nerrlab != 0) if this is a system call, if not then
+		 * (m->externup->nerrlab != 0) if this is a system call, if not then
 		 * the game's a bogey.
 		 */
-		if(!user && (!insyscall || up->nerrlab == 0))
+		if(!user && (!insyscall || m->externup->nerrlab == 0))
 			panic("fault: %#llux\n", addr);
 		sprint(buf, "sys: trap: fault %s addr=%#llux",
 			read? "read": "write", addr);
-		postnote(up, 1, buf, NDebug);
+		postnote(m->externup, 1, buf, NDebug);
 		if(insyscall)
 			error(buf);
 	}
-	up->insyscall = insyscall;
+	m->externup->insyscall = insyscall;
 }
 
 /*
@@ -663,7 +663,7 @@ uintptr_t
 userpc(Ureg* ureg)
 {
 	if(ureg == nil)
-		ureg = up->dbgreg;
+		ureg = m->externup->dbgreg;
 	return ureg->ip;
 }
 

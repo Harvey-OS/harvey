@@ -115,7 +115,7 @@ lockloop(Lock *l, uintptr_t pc)
 	p = l->p;
 	print("lock %#p loop key %#ux pc %#p held by pc %#p proc %d\n",
 		l, l->key, pc, l->_pc, p ? p->pid : 0);
-	dumpaproc(up);
+	dumpaproc(m->externup);
 	if(p != nil)
 		dumpaproc(p);
 }
@@ -130,21 +130,21 @@ lock(Lock *l)
 	pc = getcallerpc(&l);
 
 	lockstats.locks++;
-	if(up)
-		ainc(&up->nlocks);	/* prevent being scheded */
+	if(m->externup)
+		ainc(&m->externup->nlocks);	/* prevent being scheded */
 	if(TAS(&l->key) == 0){
-		if(up)
-			up->lastlock = l;
+		if(m->externup)
+			m->externup->lastlock = l;
 		l->_pc = pc;
-		l->p = up;
+		l->p = m->externup;
 		l->isilock = 0;
 		if(LOCKCYCLES)
 			cycles(&l->lockcycles);
 
 		return 0;
 	}
-	if(up)
-		adec(&up->nlocks);
+	if(m->externup)
+		adec(&m->externup->nlocks);
 
 	cycles(&t0);
 	lockstats.glare++;
@@ -152,27 +152,27 @@ lock(Lock *l)
 		lockstats.inglare++;
 		i = 0;
 		while(l->key){
-			if(sys->nmach < 2 && up && up->edf && (up->edf->flags & Admitted)){
+			if(sys->nmach < 2 && m->externup && m->externup->edf && (m->externup->edf->flags & Admitted)){
 				/*
 				 * Priority inversion, yield on a uniprocessor; on a
 				 * multiprocessor, the other processor will unlock
 				 */
 				print("inversion %#p pc %#p proc %d held by pc %#p proc %d\n",
-					l, pc, up ? up->pid : 0, l->_pc, l->p ? l->p->pid : 0);
-				up->edf->d = todget(nil);	/* yield to process with lock */
+					l, pc, m->externup ? m->externup->pid : 0, l->_pc, l->p ? l->p->pid : 0);
+				m->externup->edf->d = todget(nil);	/* yield to process with lock */
 			}
 			if(i++ > 100000000){
 				i = 0;
 				lockloop(l, pc);
 			}
 		}
-		if(up)
-			ainc(&up->nlocks);
+		if(m->externup)
+			ainc(&m->externup->nlocks);
 		if(TAS(&l->key) == 0){
-			if(up)
-				up->lastlock = l;
+			if(m->externup)
+				m->externup->lastlock = l;
 			l->_pc = pc;
-			l->p = up;
+			l->p = m->externup;
 			l->isilock = 0;
 			if(LOCKCYCLES)
 				cycles(&l->lockcycles);
@@ -180,8 +180,8 @@ lock(Lock *l)
 				addwaitstat(pc, t0, WSlock);
 			return 1;
 		}
-		if(up)
-			adec(&up->nlocks);
+		if(m->externup)
+			adec(&m->externup->nlocks);
 	}
 }
 
@@ -219,11 +219,11 @@ ilock(Lock *l)
 	}
 acquire:
 	machp()->ilockdepth++;
-	if(up)
-		up->lastilock = l;
+	if(m->externup)
+		m->externup->lastilock = l;
 	l->pl = pl;
 	l->_pc = pc;
-	l->p = up;
+	l->p = m->externup;
 	l->isilock = 1;
 	l->m = machp();
 	if(LOCKCYCLES)
@@ -233,18 +233,18 @@ acquire:
 int
 canlock(Lock *l)
 {
-	if(up)
-		ainc(&up->nlocks);
+	if(m->externup)
+		ainc(&m->externup->nlocks);
 	if(TAS(&l->key)){
-		if(up)
-			adec(&up->nlocks);
+		if(m->externup)
+			adec(&m->externup->nlocks);
 		return 0;
 	}
 
-	if(up)
-		up->lastlock = l;
+	if(m->externup)
+		m->externup->lastlock = l;
 	l->_pc = getcallerpc(&l);
-	l->p = up;
+	l->p = m->externup;
 	l->m = machp();
 	l->isilock = 0;
 	if(LOCKCYCLES)
@@ -271,13 +271,13 @@ unlock(Lock *l)
 		print("unlock: not locked: pc %#p\n", getcallerpc(&l));
 	if(l->isilock)
 		print("unlock of ilock: pc %#p, held by %#p\n", getcallerpc(&l), l->_pc);
-	if(l->p != up)
-		print("unlock: up changed: pc %#p, acquired at pc %#p, lock p %#p, unlock up %#p\n", getcallerpc(&l), l->_pc, l->p, up);
+	if(l->p != m->externup)
+		print("unlock: up changed: pc %#p, acquired at pc %#p, lock p %#p, unlock up %#p\n", getcallerpc(&l), l->_pc, l->p, m->externup);
 	l->m = nil;
 	l->key = 0;
 	coherence();
 
-	if(up && adec(&up->nlocks) == 0 && up->delaysched && islo()){
+	if(m->externup && adec(&m->externup->nlocks) == 0 && m->externup->delaysched && islo()){
 		/*
 		 * Call sched if the need arose while locks were held
 		 * But, don't do it from interrupt routines, hence the islo() test
@@ -317,8 +317,8 @@ iunlock(Lock *l)
 	l->key = 0;
 	coherence();
 	machp()->ilockdepth--;
-	if(up)
-		up->lastilock = nil;
+	if(m->externup)
+		m->externup->lastilock = nil;
 	splx(pl);
 }
 

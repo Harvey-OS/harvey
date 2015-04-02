@@ -30,7 +30,7 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 	memmove(buf, a, n);
 	buf[n] = 0;
 	for(i = 0; (p = psincref(i)) != nil; i++){
-		if(p == up || p->state == Dead || p->noteid != noteid || p->kp){
+		if(p == m->externup || p->state == Dead || p->noteid != noteid || p->kp){
 			psdecref(p);
 			continue;
 		}
@@ -225,14 +225,14 @@ closefgrp(Fgrp *f)
 	 * If we get into trouble, forceclosefgrp
 	 * will bail us out.
 	 */
-	up->closingfgrp = f;
+	m->externup->closingfgrp = f;
 	for(i = 0; i <= f->maxfd; i++){
 		if(c = f->fd[i]){
 			f->fd[i] = nil;
 			cclose(c);
 		}
 	}
-	up->closingfgrp = nil;
+	m->externup->closingfgrp = nil;
 
 	free(f->fd);
 	free(f);
@@ -255,12 +255,12 @@ forceclosefgrp(void)
 	Chan *c;
 	Fgrp *f;
 
-	if(up->procctl != Proc_exitme || up->closingfgrp == nil){
+	if(m->externup->procctl != Proc_exitme || m->externup->closingfgrp == nil){
 		print("bad forceclosefgrp call");
 		return;
 	}
 
-	f = up->closingfgrp;
+	f = m->externup->closingfgrp;
 	for(i = 0; i <= f->maxfd; i++){
 		if(c = f->fd[i]){
 			f->fd[i] = nil;
@@ -306,15 +306,15 @@ resrcwait(char *reason)
 {
 	char *p;
 
-	if(up == nil)
+	if(m->externup == nil)
 		panic("resrcwait");
 
-	p = up->psstate;
+	p = m->externup->psstate;
 	if(reason) {
-		up->psstate = reason;
+		m->externup->psstate = reason;
 		print("%s\n", reason);
 	}
 
-	tsleep(&up->sleep, return0, 0, 300);
-	up->psstate = p;
+	tsleep(&m->externup->sleep, return0, 0, 300);
+	m->externup->psstate = p;
 }

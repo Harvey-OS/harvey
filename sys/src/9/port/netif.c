@@ -65,8 +65,8 @@ netifgen(Chan *c, char* j, Dirtab *vp, int n, int i, Dir *dp)
 		case 0:
 			q.path = N2ndqid;
 			q.type = QTDIR;
-			strcpy(up->genbuf, nif->name);
-			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
+			strcpy(m->externup->genbuf, nif->name);
+			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
 			break;
 		default:
 			return -1;
@@ -112,8 +112,8 @@ netifgen(Chan *c, char* j, Dirtab *vp, int n, int i, Dir *dp)
 				return 0;
 			q.type = QTDIR;
 			q.path = NETQID(i, N3rdqid);
-			snprint(up->genbuf, sizeof up->genbuf, "%d", i);
-			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
+			snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%d", i);
+			devdir(c, q, m->externup->genbuf, 0, eve, DMDIR|0555, dp);
 			break;
 		}
 		return 1;
@@ -134,8 +134,8 @@ netifgen(Chan *c, char* j, Dirtab *vp, int n, int i, Dir *dp)
 	case DEVDOTDOT:
 		q.type = QTDIR;
 		q.path = N2ndqid;
-		strcpy(up->genbuf, nif->name);
-		devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
+		strcpy(m->externup->genbuf, nif->name);
+		devdir(c, q, m->externup->genbuf, 0, eve, DMDIR|0555, dp);
 		break;
 	case 0:
 		q.path = NETQID(NETID(c->qid.path), Ndataqid);
@@ -198,7 +198,7 @@ netifopen(Netif *nif, Chan *c, int omode)
 		case Ndataqid:
 		case Nctlqid:
 			f = nif->f[id];
-			if(netown(f, up->user, omode&7) < 0){
+			if(netown(f, m->externup->user, omode&7) < 0){
 				netifclose(nif, c);
 				error(Eperm);
 			}
@@ -266,8 +266,8 @@ netifread(Netif *nif, Chan *c, void *a, int32_t n, int64_t off)
 	case Nifstatqid:
 		return 0;
 	case Nmtuqid:
-		snprint(up->genbuf, sizeof up->genbuf, "%11.ud %11.ud %11.ud\n", nif->minmtu, nif->mtu, nif->maxmtu);
-		return readstr(offset, a, n, up->genbuf);
+		snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%11.ud %11.ud %11.ud\n", nif->minmtu, nif->mtu, nif->maxmtu);
+		return readstr(offset, a, n, m->externup->genbuf);
 	}
 	error(Ebadarg);
 	return -1;	/* not reached */
@@ -406,7 +406,7 @@ netifwstat(Netif *nif, Chan *c, uint8_t *db, int32_t n)
 	if(f == 0)
 		error(Enonexist);
 
-	if(netown(f, up->user, OWRITE) < 0)
+	if(netown(f, m->externup->user, OWRITE) < 0)
 		error(Eperm);
 
 	dir = smalloc(sizeof(Dir)+n);
@@ -566,7 +566,7 @@ openfile(Netif *nif, int id)
 		}
 		f->inuse = 1;
 		qreopen(f->iq);
-		netown(f, up->user, 0);
+		netown(f, m->externup->user, 0);
 		qunlock(f);
 		qunlock(nif);
 		poperror();

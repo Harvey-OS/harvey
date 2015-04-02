@@ -836,7 +836,7 @@ rtl8169attach(Ether* edev)
 	for(timeo = 0; timeo < 350; timeo++){
 		if(miistatus(ctlr->mii) == 0)
 			break;
-		tsleep(&up->sleep, return0, 0, 10);
+		tsleep(&m->externup->sleep, return0, 0, 10);
 	}
 	phy = ctlr->mii->curphy;
 	print("%s: speed %d fd %d link %d rfc %d tfc %d\n",

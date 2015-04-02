@@ -65,7 +65,7 @@ allocb(int size)
 	 * Check in a process and wait until successful.
 	 * Can still error out of here, though.
 	 */
-	if(up == nil)
+	if(m->externup == nil)
 		panic("allocb without up: %#p\n", getcallerpc(&size));
 	if((b = _allocb(size)) == nil){
 		mallocsummary();

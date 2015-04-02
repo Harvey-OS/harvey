@@ -28,7 +28,7 @@
 #pragma	varargck argpos	eventlog	1
 
 #define dprint(...)	if(debug) eventlog(__VA_ARGS__); else USED(debug);
-#define uprint(...)	snprint(up->genbuf, sizeof up->genbuf, __VA_ARGS__);
+#define uprint(...)	snprint(m->externup->genbuf, sizeof m->externup->genbuf, __VA_ARGS__);
 
 enum {
 	Maxunits	= 0xff,
@@ -313,7 +313,7 @@ static char*
 unitname(Aoedev *d)
 {
 	uprint("%d.%d", d->major, d->minor);
-	return up->genbuf;
+	return m->externup->genbuf;
 }
 
 #if 0
@@ -665,7 +665,7 @@ loop:
 	runlock(&devs);
 	i = Nms - TK2MS(sys->ticks - starttick);
 	if(i > 0)
-		tsleep(&up->sleep, return0, 0, i);
+		tsleep(&m->externup->sleep, return0, 0, i);
 	goto loop;
 }
 
@@ -752,7 +752,7 @@ unit2dev(uint32_t unit)
 		}
 	runlock(&devs);
 	uprint("unit lookup failure: %lux pc %p", unit, getcallerpc(&unit));
-	error(up->genbuf);
+	error(m->externup->genbuf);
 	return nil;
 }
 
@@ -882,7 +882,7 @@ aoegen(Chan *c, char *e, Dirtab *dir, int j, int s, Dir *dp)
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, Qtopdir), 0, QTDIR);
 			uprint("%uld", UNIT(c->qid));
-			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
+			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
 		return unitgen(c, Qunitbase+s, dp);
@@ -905,12 +905,12 @@ aoegen(Chan *c, char *e, Dirtab *dir, int j, int s, Dir *dp)
 			return -1;
 		uprint("%d", s);
 		mkqid(&q, Q3(s, i, Qdevlink), 0, QTFILE);
-		devdir(c, q, up->genbuf, 0, eve, 0755, dp);
+		devdir(c, q, m->externup->genbuf, 0, eve, 0755, dp);
 		return 1;
 	case Qdevlink:
 		uprint("%d", s);
 		mkqid(&q, Q3(s, UNIT(c->qid), Qdevlink), 0, QTFILE);
-		devdir(c, q, up->genbuf, 0, eve, 0755, dp);
+		devdir(c, q, m->externup->genbuf, 0, eve, 0755, dp);
 		return 1;
 	}
 }
@@ -1408,7 +1408,7 @@ configwrite(Aoedev *d, void *db, int32_t len)
 		qunlock(d);
 		if(waserror())
 			nexterror();
-		tsleep(&up->sleep, return0, 0, 100);
+		tsleep(&m->externup->sleep, return0, 0, 100);
 		poperror();
 	}
 	f->nhdr = AOEQCSZ;
@@ -1459,7 +1459,7 @@ static int getmtu(Chan*);
 static int
 devmaxdata(Aoedev *d)
 {
-	int i, m, mtu;
+	int i, mm, mtu;
 	Devlink *l;
 	Netlink *n;
 
@@ -1469,9 +1469,9 @@ devmaxdata(Aoedev *d)
 		n = l->nl;
 		if((l->flag & Dup) == 0 || (n->flag & Dup) == 0)
 			continue;
-		m = getmtu(n->mtu);
-		if(m < mtu)
-			mtu = m;
+		mm = getmtu(n->mtu);
+		if(mm < mtu)
+			mtu = mm;
 	}
 	if(mtu == 100000)
 		mtu = 0;
@@ -1492,7 +1492,8 @@ static void ataident(Aoedev*);
 static int32_t
 unitctlwrite(Aoedev *d, void *db, int32_t n)
 {
-	uint maxbcnt, m;
+	Mach *m = machp();
+	uint maxbcnt, mm;
 	uint64_t bsize;
 	enum {
 		Failio,
@@ -1529,11 +1530,11 @@ unitctlwrite(Aoedev *d, void *db, int32_t n)
 		ataident(d);
 		break;
 	case Jumbo:
-		m = 0;
+		mm = 0;
 		if(d->flag & Djumbo)
-			m = 1;
-		toggle(cb->f[1], m);
-		if(m)
+			mm = 1;
+		toggle(cb->f[1], mm);
+		if(mm)
 			d->flag |= Djumbo;
 		else
 			d->flag &= ~Djumbo;
@@ -1544,16 +1545,16 @@ unitctlwrite(Aoedev *d, void *db, int32_t n)
 		if(cb->nf > 2)
 			error(Ecmdargs);
 		if(cb->nf == 2){
-			m = strtoul(cb->f[1], 0, 0);
+			mm = strtoul(cb->f[1], 0, 0);
 			if(ct->index == Maxbno)
-				m *= Aoesectsz;
+				mm *= Aoesectsz;
 			else{
-				m -= AOEATASZ;
-				m &= ~(Aoesectsz-1);
+				mm -= AOEATASZ;
+				mm &= ~(Aoesectsz-1);
 			}
-			if(m > maxbcnt)
+			if(mm > maxbcnt)
 				cmderror(cb, "maxb greater than media mtu");
-			maxbcnt = m;
+			maxbcnt = mm;
 		}
 		d->maxbcnt = maxbcnt;
 		break;
@@ -1789,15 +1790,15 @@ ataident(Aoedev *d)
 }
 
 static int
-getmtu(Chan *m)
+getmtu(Chan *mm)
 {
 	int n, mtu;
 	char buf[36];
 
 	mtu = 1514;
-	if(m == nil || waserror())
+	if(mm == nil || waserror())
 		return mtu;
-	n = m->dev->read(m, buf, sizeof buf - 1, 0);
+	n = mm->dev->read(mm, buf, sizeof buf - 1, 0);
 	if(n > 12){
 		buf[n] = 0;
 		mtu = strtoul(buf + 12, 0, 0);
@@ -1921,7 +1922,7 @@ qcfgrsp(Block *b, Netlink *nl)
 		n = Maxframes;
 
 	if(waserror()){
-		eventlog("getdev: %d.%d ignored: %s\n", major, ch->minor, up->errstr);
+		eventlog("getdev: %d.%d ignored: %s\n", major, ch->minor, m->externup->errstr);
 		return;
 	}
 	d = getdev(major, ch->minor, n);
@@ -1930,7 +1931,7 @@ qcfgrsp(Block *b, Netlink *nl)
 	qlock(d);
 	if(waserror()){
 		qunlock(d);
-		eventlog("%æ: %s\n", d, up->errstr);
+		eventlog("%æ: %s\n", d, m->externup->errstr);
 		nexterror();
 	}
 
@@ -2151,29 +2152,29 @@ netrdaoeproc(void *v)
 	kstrcpy(name, nl->path, Maxpath);
 
 	if(waserror()){
-		eventlog("netrdaoe exiting: %s\n", up->errstr);
+		eventlog("netrdaoe exiting: %s\n", m->externup->errstr);
 		netlinks.reader[idx] = 0;
 		wakeup(netlinks.rendez + idx);
-		pexit(up->errstr, 1);
+		pexit(m->externup->errstr, 1);
 	}
 	if(autodiscover)
 		discover(0xffff, 0xff);
 	for (;;) {
 		if(!(nl->flag & Dup)) {
 			uprint("%s: netlink is down", name);
-			error(up->genbuf);
+			error(m->externup->genbuf);
 		}
 		if (nl->dc == nil)
 			panic("netrdaoe: nl->dc == nil");
 		b = nl->dc->dev->bread(nl->dc, 1<<16, 0);
 		if(b == nil) {
 			uprint("%s: nil read from network", name);
-			error(up->genbuf);
+			error(m->externup->genbuf);
 		}
 		h = (Aoehdr*)b->rp;
 		if(h->verflag & AFrsp)
 			if(s = aoeerror(h)){
-				eventlog("%s: %s\n", nl->path, up->errstr);
+				eventlog("%s: %s\n", nl->path, m->externup->errstr);
 				errrsp(b, s);
 			}else
 				switch(h->cmd){
@@ -2201,7 +2202,7 @@ getaddr(char *path, uint8_t *ea)
 	extern int parseether(uint8_t*, char*);
 
 	uprint("%s/addr", path);
-	c = namec(up->genbuf, Aopen, OREAD, 0);
+	c = namec(m->externup->genbuf, Aopen, OREAD, 0);
 	if(waserror()) {
 		cclose(c);
 		nexterror();

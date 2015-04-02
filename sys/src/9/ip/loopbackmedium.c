@@ -56,7 +56,7 @@ loopbackunbind(Ipifc *ifc)
 
 	/* wait for reader to die */
 	while(lb->readp != 0)
-		tsleep(&up->sleep, return0, 0, 300);
+		tsleep(&m->externup->sleep, return0, 0, 300);
 
 	/* clean up */
 	qfree(lb->q);
@@ -83,7 +83,7 @@ loopbackread(void *a)
 
 	ifc = a;
 	lb = ifc->arg;
-	lb->readp = up;	/* hide identity under a rock for unbind */
+	lb->readp = m->externup;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		lb->readp = 0;
 		pexit("hangup", 1);

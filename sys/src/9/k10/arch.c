@@ -89,7 +89,7 @@ static void
 linkproc(void)
 {
 	spllo();
-	up->kpfun(up->kparg);
+	m->externup->kpfun(up->kparg);
 	pexit("kproc dying", 0);
 }
 

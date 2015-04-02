@@ -67,12 +67,12 @@ procalarm(uint32_t time)
 	Proc **l, *f;
 	uint32_t when, old;
 
-	if(up->alarm)
-		old = tk2ms(up->alarm - sys->ticks);
+	if(m->externup->alarm)
+		old = tk2ms(m->externup->alarm - sys->ticks);
 	else
 		old = 0;
 	if(time == 0) {
-		up->alarm = 0;
+		m->externup->alarm = 0;
 		return old;
 	}
 	when = ms2tk(time)+sys->ticks;
@@ -80,30 +80,30 @@ procalarm(uint32_t time)
 	qlock(&alarms);
 	l = &alarms.head;
 	for(f = *l; f; f = f->palarm) {
-		if(up == f){
+		if(m->externup == f){
 			*l = f->palarm;
 			break;
 		}
 		l = &f->palarm;
 	}
 
-	up->palarm = 0;
+	m->externup->palarm = 0;
 	if(alarms.head) {
 		l = &alarms.head;
 		for(f = *l; f; f = f->palarm) {
 			if(f->alarm > when) {
-				up->palarm = f;
-				*l = up;
+				m->externup->palarm = f;
+				*l = m->externup;
 				goto done;
 			}
 			l = &f->palarm;
 		}
-		*l = up;
+		*l = m->externup;
 	}
 	else
-		alarms.head = up;
+		alarms.head = m->externup;
 done:
-	up->alarm = when;
+	m->externup->alarm = when;
 	qunlock(&alarms);
 
 	return old;

@@ -512,7 +512,7 @@ cmd(Ctlr *c, int type, uint64_t data)
 				dprint("[%ux]", i);
 			return i;
 		}
-		tsleep(&up->sleep, return0, 0, 1);
+		tsleep(&m->externup->sleep, return0, 0, 1);
 	}
 	qunlock(&c->cmdl);
 	iprint("m10g: cmd timeout [%ux %ux] cmd=%d\n",
@@ -522,7 +522,7 @@ cmd(Ctlr *c, int type, uint64_t data)
 }
 
 uint32_t
-maccmd(Ctlr *c, int type, uint8_t *m)
+maccmd(Ctlr *c, int type, uint8_t *mac)
 {
 	uint32_t buf[16], i;
 	Cmd *cmd;
@@ -532,8 +532,8 @@ maccmd(Ctlr *c, int type, uint8_t *m)
 	cmd->i[1] = Noconf;
 	memset(buf, 0, sizeof buf);
 	buf[0] = type;
-	buf[1] = m[0]<<24 | m[1]<<16 | m[2]<<8 | m[3];
-	buf[2] = m[4]<< 8 | m[5];
+	buf[1] = mac[0]<<24 | mac[1]<<16 | mac[2]<<8 | mac[3];
+	buf[2] = mac[4]<< 8 | mac[5];
 	buf[4] = c->cprt >> 32;
 	buf[5] = c->cprt;
 	prepcmd(buf, 6);
@@ -551,7 +551,7 @@ maccmd(Ctlr *c, int type, uint8_t *m)
 				dprint("[%ux]", i);
 			return i;
 		}
-		tsleep(&up->sleep, return0, 0, 1);
+		tsleep(&m->externup->sleep, return0, 0, 1);
 	}
 	qunlock(&c->cmdl);
 	iprint("m10g: maccmd timeout [%ux %ux] cmd=%d\n",
@@ -593,7 +593,7 @@ dmatestcmd(Ctlr *c, int type, uint64_t addr, int len)
 			poperror();
 			return i;
 		}
-		tsleep(&up->sleep, return0, 0, 5);
+		tsleep(&m->externup->sleep, return0, 0, 5);
 	}
 	error(Etimeout);
 	return ~0;			/* silence! */
@@ -623,7 +623,7 @@ rdmacmd(Ctlr *c, int on)
 			poperror();
 			return gbit32(c->cmd->c);
 		}
-		tsleep(&up->sleep, return0, 0, 1);
+		tsleep(&m->externup->sleep, return0, 0, 1);
 	}
 	error(Etimeout);
 	iprint("m10g: rdmacmd timeout\n");

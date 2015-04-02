@@ -289,7 +289,7 @@ mntauth(Chan *c, char *spec)
 
 	r->request.type = Tauth;
 	r->request.afid = c->fid;
-	r->request.uname = up->user;
+	r->request.uname = m->externup->user;
 	r->request.aname = spec;
 	mountrpc(mnt, r);
 
@@ -355,7 +355,7 @@ mntattach(char *muxattach)
 		r->request.afid = NOFID;
 	else
 		r->request.afid = bogus.authchan->fid;
-	r->request.uname = up->user;
+	r->request.uname = m->externup->user;
 	r->request.aname = bogus.spec;
 	mountrpc(mnt, r);
 
@@ -743,7 +743,7 @@ mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 		uba += nr;
 		cnt += nr;
 		n -= nr;
-		if(nr != nreq || n == 0 || up->nnote)
+		if(nr != nreq || n == 0 || m->externup->nnote)
 			break;
 	}
 	return cnt;
@@ -776,7 +776,7 @@ mountrpc(Mnt *mnt, Mntrpc *r)
 		if(r->c != nil && r->c->path != nil)
 			cn = r->c->path->s;
 		print("mnt: proc %s %d: mismatch from %s %s rep %#p tag %d fid %d T%d R%d rp %d\n",
-			up->text, up->pid, sn, cn,
+			m->externup->text, m->externup->pid, sn, cn,
 			r, r->request.tag, r->request.fid, r->request.type,
 			r->reply.type, r->reply.tag);
 		error(Emountrpc);
@@ -789,9 +789,9 @@ mountio(Mnt *mnt, Mntrpc *r)
 	int n;
 
 	while(waserror()) {
-		if(mnt->rip == up)
+		if(mnt->rip == m->externup)
 			mntgate(mnt);
-		if(strcmp(up->errstr, Eintr) != 0){
+		if(strcmp(m->externup->errstr, Eintr) != 0){
 			mntflushfree(mnt, r);
 			nexterror();
 		}
@@ -828,7 +828,7 @@ mountio(Mnt *mnt, Mntrpc *r)
 			return;
 		}
 	}
-	mnt->rip = up;
+	mnt->rip = m->externup;
 	unlock(mnt);
 	while(r->done == 0) {
 		if(mntrpcread(mnt, r) < 0)

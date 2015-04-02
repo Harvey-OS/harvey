@@ -52,8 +52,8 @@ srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 
 	mkqid(&q, sp->path, 0, QTFILE);
 	/* make sure name string continues to exist after we release lock */
-	kstrcpy(up->genbuf, sp->name, sizeof up->genbuf);
-	devdir(c, q, up->genbuf, 0, sp->owner, sp->perm, dp);
+	kstrcpy(m->externup->genbuf, sp->name, sizeof m->externup->genbuf);
+	devdir(c, q, m->externup->genbuf, 0, sp->owner, sp->perm, dp);
 	qunlock(&srvlk);
 	return 1;
 }
@@ -182,7 +182,7 @@ srvcreate(Chan *c, char *name, int omode, int perm)
 	qunlock(&srvlk);
 	poperror();
 
-	kstrdup(&sp->owner, up->user);
+	kstrdup(&sp->owner, m->externup->user);
 	sp->perm = perm&0777;
 
 	c->flag |= COPEN;
@@ -224,7 +224,7 @@ srvremove(Chan *c)
 	/*
 	 * No removing personal services.
 	 */
-	if((sp->perm&7) != 7 && strcmp(sp->owner, up->user) && !iseve())
+	if((sp->perm&7) != 7 && strcmp(sp->owner, m->externup->user) && !iseve())
 		error(Eperm);
 
 	*l = sp->link;
@@ -260,7 +260,7 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 	if(sp == 0)
 		error(Enonexist);
 
-	if(strcmp(sp->owner, up->user) != 0 && !iseve())
+	if(strcmp(sp->owner, m->externup->user) != 0 && !iseve())
 		error(Eperm);
 
 	strs = smalloc(n);
@@ -307,8 +307,9 @@ srvread(Chan *c, void *va, int32_t n, int64_t m)
 }
 
 static int32_t
-srvwrite(Chan *c, void *va, int32_t n, int64_t m)
+srvwrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
+	Mach *m = machp();
 	Srv *sp;
 	Chan *c1;
 	int fd;

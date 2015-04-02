@@ -86,7 +86,7 @@ newfd(Chan *c)
 	int fd;
 	Fgrp *f;
 
-	f = up->fgrp;
+	f = m->externup->fgrp;
 	lock(f);
 	fd = findfreefd(f, 0);
 	if(fd < 0){
@@ -105,7 +105,7 @@ newfd2(int fd[2], Chan *c[2])
 {
 	Fgrp *f;
 
-	f = up->fgrp;
+	f = m->externup->fgrp;
 	lock(f);
 	fd[0] = findfreefd(f, 0);
 	if(fd[0] < 0){
@@ -133,7 +133,7 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 	Fgrp *f;
 
 	c = nil;
-	f = up->fgrp;
+	f = m->externup->fgrp;
 
 	lock(f);
 	if(fd<0 || f->nfd<=fd || (c = f->fd[fd])==0) {
@@ -263,7 +263,7 @@ sysdup(Ar0* ar0, va_list list)
 	nfd = va_arg(list, int);
 
 	if(nfd != -1){
-		f = up->fgrp;
+		f = m->externup->fgrp;
 		lock(f);
 		if(nfd < 0 || growfd(f, nfd) < 0) {
 			unlockfgrp(f);
@@ -338,7 +338,7 @@ fdclose(int fd, int flag)
 	Chan *c;
 	Fgrp *f;
 
-	f = up->fgrp;
+	f = m->externup->fgrp;
 	lock(f);
 	c = f->fd[fd];
 	if(c == nil){
@@ -1089,8 +1089,8 @@ syschdir(Ar0* ar0, va_list list)
 	aname = validaddr(aname, 1, 0);
 
 	c = namec(aname, Atodir, 0, 0);
-	cclose(up->dot);
-	up->dot = c;
+	cclose(m->externup->dot);
+	m->externup->dot = c;
 
 	ar0->i = 0;
 }
@@ -1115,7 +1115,7 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
 	bogus.flags = flag & MCACHE;
 
 	if(ismount){
-		if(up->pgrp->noattach)
+		if(m->externup->pgrp->noattach)
 			error(Enoattach);
 
 		ac = nil;

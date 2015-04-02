@@ -219,17 +219,17 @@ getzkseg(void)
 	Segment *s;
 	int i;
 
-	qlock(&up->seglock);
+	qlock(&m->externup->seglock);
 	for(i = 0; i < NSEG; i++){
-		s = up->seg[i];
+		s = m->externup->seg[i];
 		if(s != nil && (s->type&SG_KZIO) != 0){
 			incref(s);
-			qunlock(&up->seglock);
+			qunlock(&m->externup->seglock);
 			DBG("getzkseg: %#p\n", s);
 			return s;
 		}
 	}
-	qunlock(&up->seglock);
+	qunlock(&m->externup->seglock);
 	DBG("getzkseg: nil\n");
 	return nil;
 }
@@ -418,7 +418,7 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 	for(i = 0; i < nio; i++){
 		kio[i].Zio = io[i];
 		if(iswrite){
-			kio[i].seg = seg(up, PTR2UINT(io[i].data), 1);
+			kio[i].seg = seg(m->externup, PTR2UINT(io[i].data), 1);
 			if(kio[i].seg == nil)
 				error("invalid address in zio");
 			incref(kio[i].seg);
@@ -521,7 +521,7 @@ sysziofree(Ar0 *a, va_list list)
 	nio = va_arg(list, int);
 	io = validaddr(io, sizeof io[0] * nio, 1);
 	for(i = 0; i < nio; i++){
-		s = seg(up, PTR2UINT(io[i].data), 1);
+		s = seg(m->externup, PTR2UINT(io[i].data), 1);
 		if(s == nil)
 			error("invalid address in zio");
 		if((s->type&SG_ZIO) == 0){

@@ -80,7 +80,7 @@ netdevunbind(Ipifc *ifc)
 
 	/* wait for readers to die */
 	while(er->readp != nil)
-		tsleep(&up->sleep, return0, 0, 300);
+		tsleep(&m->externup->sleep, return0, 0, 300);
 
 	if(er->mchan != nil)
 		cclose(er->mchan);
@@ -111,6 +111,7 @@ netdevbwrite(Ipifc *ifc, Block *bp, int i, uint8_t* n)
 static void
 netdevread(void *a)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
 	Block *bp;
 	Netdevrock *er;
@@ -118,7 +119,7 @@ netdevread(void *a)
 
 	ifc = a;
 	er = ifc->arg;
-	er->readp = up;	/* hide identity under a rock for unbind */
+	er->readp = m->externup;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		er->readp = nil;
 		pexit("hangup", 1);
