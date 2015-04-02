@@ -39,7 +39,6 @@ syscallentry:
 	SWAPGS	
 	movq	%gs:0, %r15
 	movq	16(%r15), %r15			/* m->proc */
-	MOVQ	%rsp, up			/* BOGUS! ONLY WORK ON uni-p! */
 	// NOTE! This assumes sizeof(Label) == 16!
 	MOVQ	16(%r15), %rsp 			/* m->proc->kstack */
 	ADDQ	$KSTACK, %rSP
