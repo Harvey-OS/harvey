@@ -23,6 +23,7 @@
 void
 sysrfork(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Proc *p;
 	int flag, i, n, pid;
 	Fgrp *ofg;

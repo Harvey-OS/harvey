@@ -305,6 +305,7 @@ struct AcCtrArg {
 void
 acpmcsetctl(void)
 {
+	Mach *m = machp();
 	AcPmcArg p;
 	Mach *mp;
 
@@ -318,6 +319,7 @@ acpmcsetctl(void)
 void
 acpmcsetctr(void)
 {
+	Mach *m = machp();
 	AcCtrArg ctr;
 	Mach *mp;
 

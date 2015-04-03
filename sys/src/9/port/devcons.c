@@ -828,6 +828,7 @@ consclose(Chan *c)
 static int32_t
 consread(Chan *c, void *buf, int32_t n, int64_t off)
 {
+	Mach *m = machp();
 	uint32_t l;
 	Mach *mp;
 	char *b, *bp, ch, *s, *e;
@@ -1051,6 +1052,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 static int32_t
 conswrite(Chan *c, void *va, int32_t n, int64_t off)
 {
+	Mach *m = machp();
 	char buf[256], ch;
 	int32_t l, bp;
 	char *a;

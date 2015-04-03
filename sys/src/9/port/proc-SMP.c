@@ -566,6 +566,7 @@ another:
 static void
 preemptfor(Proc *p)
 {
+	Mach *m = machp();
 	uint32_t delta;
 	uint i, j, rr;
 	Proc *mup;
@@ -902,6 +903,7 @@ newproc(void)
 void
 procwired(Proc *p, int bm)
 {
+	Mach *m = machp();
 	Proc *pp;
 	int i;
 	char nwired[MACHMAX];
@@ -1530,6 +1532,7 @@ procdump(void)
 void
 procflushseg(Segment *s)
 {
+	Mach *m = machp();
 	int i, ns, nm, nwait;
 	Proc *p;
 	Mach *mp;

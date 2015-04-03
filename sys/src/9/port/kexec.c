@@ -142,6 +142,7 @@ setupseg(int core)
 void
 kforkexecac(Proc *p, int core, char *ufile, char **argv)
 {
+	Mach *m = machp();
 	Khdr hdr;
 	Tos *tos;
 	Chan *chan;

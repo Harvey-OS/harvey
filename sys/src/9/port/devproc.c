@@ -759,6 +759,7 @@ eventsavailable(void *v)
 static int32_t
 procread(Chan *c, void *va, int32_t n, int64_t off)
 {
+	Mach *m = machp();
 	Proc *p;
 	Mach *ac, *wired;
 	int32_t l, r;
