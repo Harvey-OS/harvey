@@ -27,7 +27,7 @@
 // program. In the case of Plan 9, m was r15, and up was r14. Very slick, and if there is a way to do
 // this in gcc or clang I don't know it. This also nicely handled per cpu info; R15/14 were always right for 
 // your core and context.
-Mach *m = (void *)0;
+//Mach *m = (void *)0;
 
 int
 incref(Ref *r)
@@ -87,6 +87,7 @@ procsave(Proc *p)
 static void
 linkproc(void)
 {
+	Mach *m = machp();
 	spllo();
 	m->externup->kpfun(m->externup->kparg);
 	pexit("kproc dying", 0);
@@ -118,6 +119,7 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 void
 idlehands(void)
 {
+Mach *m = machp();
 if(0)
 	if(m->machno != 0)
 		halt();

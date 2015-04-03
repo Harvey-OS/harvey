@@ -31,6 +31,7 @@
 void
 mmuflushtlb(uint64_t u)
 {
+	Mach *m = machp();
 
 	m->tlbpurge++;
 	if(m->pml4->daddr){
@@ -43,6 +44,7 @@ mmuflushtlb(uint64_t u)
 void
 mmuflush(void)
 {
+	Mach *m = machp();
 	Mpl pl;
 
 	pl = splhi();
@@ -54,6 +56,7 @@ mmuflush(void)
 static void
 mmuptpfree(Proc* proc, int clear)
 {
+	Mach *m = machp();
 	int l;
 	PTE *pte;
 	Page **last, *page;
@@ -114,6 +117,7 @@ dumpptepg(int lvl, uintptr_t pa)
 void
 dumpmmu(Proc *p)
 {
+	Mach *m = machp();
 	int i;
 	Page *pg;
 
@@ -132,6 +136,7 @@ dumpmmu(Proc *p)
 void
 dumpmmuwalk(uint64_t addr)
 {
+	Mach *m = machp();
 	int l;
 	PTE *pte, *pml4;
 
@@ -201,6 +206,7 @@ mmuptpalloc(void)
 void
 mmuswitch(Proc* proc)
 {
+	Mach *m = machp();
 	PTE *pte;
 	Page *page;
 	Mpl pl;
@@ -237,6 +243,7 @@ mmuswitch(Proc* proc)
 void
 mmurelease(Proc* proc)
 {
+	Mach *m = machp();
 	Page *page, *next;
 
 	mmuptpfree(proc, 0);
@@ -263,6 +270,7 @@ mmurelease(Proc* proc)
 static void
 checkpte(uintmem ppn, void *a)
 {
+	Mach *m = machp();
 	int l;
 	PTE *pte, *pml4;
 	uint64_t addr;
@@ -307,6 +315,7 @@ Panic:
 static void
 mmuptpcheck(Proc *proc)
 {
+	Mach *m = machp();
 	int lvl, npgs, i;
 	Page *lp, *p, *pgs[16], *fp;
 	uint idx[16];
@@ -380,6 +389,7 @@ pteflags(uint attr)
 void
 mmuput(uintptr_t va, Page *pg, uint attr)
 {
+	Mach *m = machp();
 	int lvl, user, x, pgsz;
 	PTE *pte;
 	Page *page, *prev;
@@ -639,6 +649,7 @@ vmapalloc(usize size)
 void*
 vmap(uintptr_t pa, usize size)
 {
+	Mach *m = machp();
 	uintptr_t va;
 	usize o, sz;
 
@@ -691,6 +702,7 @@ vmap(uintptr_t pa, usize size)
 void
 vunmap(void* v, usize size)
 {
+	Mach *m = machp();
 	uintptr_t va;
 
 	DBG("vunmap(%#p, %lud)\n", v, size);
@@ -752,6 +764,7 @@ mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 uintmem
 mmuphysaddr(uintptr_t va)
 {
+	Mach *m = machp();
 	int l;
 	PTE *pte;
 	uintmem mask, pa;
@@ -780,6 +793,7 @@ Page mach0pml4;
 void
 mmuinit(void)
 {
+	Mach *m = machp();
 	uint8_t *p;
 	Page *page;
 	uint64_t o, pa, r, sz;

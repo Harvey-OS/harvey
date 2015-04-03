@@ -32,6 +32,7 @@ uintptr_t kseg0 = KZERO;
 Sys* sys = nil;
 usize sizeofSys = sizeof(Sys);
 
+Mach *m;
 /*
  * Option arguments from the command line.
  * oargv[0] is the boot file.

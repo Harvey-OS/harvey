@@ -549,6 +549,7 @@ mallocalign(uint32_t nbytes, uint32_t align, int32_t offset, uint32_t span)
 void*
 smalloc(uint32_t size)
 {
+	Mach *m = machp();
 	void *v;
 
 	while((v = malloc(size)) == nil)

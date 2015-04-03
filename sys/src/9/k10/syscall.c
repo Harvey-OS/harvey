@@ -37,6 +37,7 @@ typedef struct {
 void
 noted(Ureg* cur, uintptr_t arg0)
 {
+	Mach *m = machp();
 	NFrame *nf;
 	Note note;
 	Ureg *nur;
@@ -126,6 +127,7 @@ noted(Ureg* cur, uintptr_t arg0)
 int
 notify(Ureg* ureg)
 {
+	Mach *m = machp();
 	int l;
 	Mpl pl;
 	Note note;
@@ -211,6 +213,7 @@ notify(Ureg* ureg)
 void
 noerrorsleft(void)
 {
+	Mach *m = machp();
 	int i;
 
 	if(m->externup->nerrlab){
@@ -231,6 +234,7 @@ void
 syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, 
 	uintptr_t a4, uintptr_t a5, Ureg *ureg)
 {
+	Mach *m = machp();
 	unsigned int scallnr = (unsigned int) badscallnr;
 	char *e;
 	uintptr_t	sp;
@@ -390,6 +394,7 @@ sysexecstack(uintptr_t stack, int argc)
 void*
 sysexecregs(uintptr_t entry, uint32_t ssize, uint32_t nargs)
 {
+	Mach *m = machp();
 	uintptr_t *sp;
 	Ureg *ureg;
 

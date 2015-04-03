@@ -846,8 +846,8 @@ acpimblocksize(uintmem addr, int *dom)
 int
 corecolor(int core)
 {
+	Mach *m = machp();
 	Srat *sl;
-	Mach *m;
 	static int colors[32];
 
 	if(core < 0 || core >= MACHMAX)

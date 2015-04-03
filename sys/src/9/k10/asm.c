@@ -317,6 +317,7 @@ asmwalkalloc(usize size)
 void
 asmmeminit(void)
 {
+	Mach *m = machp();
 	int i, l;
 	Asm* assem;
 	PTE *pte, *pml4;

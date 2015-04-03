@@ -120,6 +120,7 @@ fpudevprocio(Proc* proc, void* a, int32_t n, uintptr_t offset, int write)
 void
 fpunotify(Ureg* u)
 {
+	Mach *m = machp();
 	/*
 	 * Called when a note is about to be delivered to a
 	 * user process, usually at the end of a system call.
@@ -138,6 +139,7 @@ fpunotify(Ureg* u)
 void
 fpunoted(void)
 {
+	Mach *m = machp();
 	/*
 	 * Called from sysnoted() via the machine-dependent
 	 * noted() routine.
@@ -149,6 +151,7 @@ fpunoted(void)
 void
 fpusysrfork(Ureg* u)
 {
+	Mach *m = machp();
 	/*
 	 * Called early in the non-interruptible path of
 	 * sysrfork() via the machine-dependent syscall() routine.
@@ -166,6 +169,7 @@ fpusysrfork(Ureg* u)
 void
 fpusysrforkchild(Proc* child, Proc* parent)
 {
+	Mach *m = machp();
 	/*
 	 * Called later in sysrfork() via the machine-dependent
 	 * sysrforkchild() routine.
@@ -262,6 +266,7 @@ acfpusysprocsetup(Proc *p)
 static char*
 fpunote(void)
 {
+	Mach *m = machp();
 	uint16_t fsw;
 	Fxsave *fpusave;
 	char *cm;
@@ -305,6 +310,7 @@ fpunote(void)
 char*
 xfpuxf(Ureg* ureg, void* v)
 {
+	Mach *m = machp();
 	uint32_t mxcsr;
 	Fxsave *fpusave;
 	char *cm;
@@ -354,6 +360,7 @@ xfpuxf(Ureg* ureg, void* v)
 void
 fpuxf(Ureg *ureg, void *p)
 {
+	Mach *m = machp();
 	char *n;
 
 	n = xfpuxf(ureg, p);
@@ -370,6 +377,7 @@ acfpuxf(Ureg *ureg, void *p)
 static char*
 xfpumf(Ureg* ureg, void* v)
 {
+	Mach *m = machp();
 	Fxsave *fpusave;
 
 	/*
@@ -406,6 +414,7 @@ xfpumf(Ureg* ureg, void* v)
 void
 fpumf(Ureg *ureg, void *p)
 {
+	Mach *m = machp();
 	char *n;
 
 	n = xfpumf(ureg, p);
@@ -422,6 +431,7 @@ acfpumf(Ureg *ureg, void *p)
 static char*
 xfpunm(Ureg* ureg, void* v)
 {
+	Mach *m = machp();
 	Fxsave *fpusave;
 
 	/*
@@ -488,6 +498,7 @@ xfpunm(Ureg* ureg, void* v)
 void
 fpunm(Ureg *ureg, void *p)
 {
+	Mach *m = machp();
 	char *n;
 
 	n = xfpunm(ureg, p);
@@ -504,6 +515,7 @@ acfpunm(Ureg *ureg, void *p)
 void
 fpuinit(void)
 {
+	Mach *m = machp();
 	uint64_t r;
 	Fxsave *fxsave;
 	uint8_t buf[sizeof(Fxsave)+15];

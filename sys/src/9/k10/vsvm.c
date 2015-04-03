@@ -162,9 +162,9 @@ void acsyscallentry(void)
 void
 vsvminit(int size, int nixtype)
 {
+	Mach *m = machp();
 	Sd *sd;
 	uint64_t r;
-	Mach *m = machp();
 	if(m->machno == 0){
 		idtinit(idt64, PTR2UINT(idthandlers));
 		//idtinit(acidt64, PTR2UINT(acidthandlers));

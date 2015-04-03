@@ -16,6 +16,7 @@
 static int
 cpuidinit(void)
 {
+	Mach *m = machp();
 	uint32_t eax, info[4];
 
 	/*
@@ -49,6 +50,7 @@ cpuidinit(void)
 static int
 cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 {
+	Mach *m = machp();
 	if(m->ncpuinfos == 0 && cpuidinit() == 0)
 		return 0;
 
@@ -197,6 +199,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 void
 cpuiddump(void)
 {
+	Mach *m = machp();
 	int i;
 	uint32_t info[4];
 
@@ -221,6 +224,7 @@ cpuiddump(void)
 int64_t
 archhz(void)
 {
+	Mach *m = machp();
 	int64_t hz;
 	uint32_t info0[4], info1[4];
 
@@ -237,6 +241,7 @@ archhz(void)
 int
 archmmu(void)
 {
+	Mach *m = machp();
 	uint32_t info[4];
 
 	/*
@@ -361,6 +366,7 @@ archidle(void)
 void
 microdelay(int microsecs)
 {
+	Mach *m = machp();
 	uint64_t r, t;
 
 	r = rdtsc();
@@ -371,6 +377,7 @@ microdelay(int microsecs)
 void
 millidelay(int millisecs)
 {
+	Mach *m = machp();
 	uint64_t r, t;
 
 	r = rdtsc();

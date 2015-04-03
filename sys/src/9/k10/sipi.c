@@ -21,6 +21,7 @@
 void
 sipi(void)
 {
+	Mach *m = machp();
 	Apic *apic;
 	Mach *mach;
 	int apicno, i;

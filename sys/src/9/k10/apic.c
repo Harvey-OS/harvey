@@ -118,6 +118,7 @@ apicisr(int vecno)
 void
 apicinit(int apicno, uintmem pa, int isbp)
 {
+	Mach *m = machp();
 	Apic *apic;
 
 	/*
@@ -197,6 +198,7 @@ apictimer(Ureg* ureg, void* v)
 int
 apiconline(void)
 {
+	Mach *m = machp();
 	Apic *apic;
 	uint64_t tsc;
 	uint32_t dfr, ver;
@@ -350,6 +352,7 @@ apictimerenab(void)
 void
 apictimerset(uint64_t next)
 {
+	Mach *m = machp();
 	Mpl pl;
 	Apic *apic;
 	int64_t period;
