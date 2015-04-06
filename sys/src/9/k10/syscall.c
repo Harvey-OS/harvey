@@ -242,6 +242,7 @@ syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3,
 	int64_t startns, stopns;
 	Ar0 ar0;
 	static Ar0 zar0;
+	int printallsyscalls = 1;
 
 	if(!userureg(ureg))
 		panic("syscall: cs %#llux\n", ureg->cs);
@@ -257,7 +258,15 @@ syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3,
 	sp = ureg->sp;
 	startns = 0;
 
-	if(1 || m->externup->procctl == Proc_tracesyscall){
+	if (printallsyscalls) {
+		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
+		if(m->externup->syscalltrace) {
+			iprint("E %s\n", m->externup->syscalltrace);
+			free(m->externup->syscalltrace);
+		}
+	}
+
+	if(m->externup->procctl == Proc_tracesyscall){
 		/*
 		 * Redundant validaddr.  Do we care?
 		 * Tracing syscalls is not exactly a fast path...
@@ -338,6 +347,14 @@ syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3,
 	 * Put return value in frame.
 	 */
 	ureg->ax = ar0.p;
+
+	if (printallsyscalls) {
+		sysretfmt(scallnr, a0, a1, a2, a3, a4, a5);
+		if(m->externup->syscalltrace) {
+			iprint("X %s\n", m->externup->syscalltrace);
+			free(m->externup->syscalltrace);
+		}
+	}
 
 	if(m->externup->procctl == Proc_tracesyscall){
 		stopns = todget(nil);
