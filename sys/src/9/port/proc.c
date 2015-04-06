@@ -1118,10 +1118,10 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	lock(&m->externup->rlock);
 hi("sleep "); put64((uint64_t)r); hi(" up "); put64((uint64_t) m->externup);
 hi(" and m->externup->rlock "); put64((uint64_t) &m->externup->rlock); hi("\n");
-	if(r->p){
-		iprint("r %p p %p up %p\n", r, r->p, m->externup);
+	if(r->_p){
+		iprint("r %p p %p up %p\n", r, r->_p, m->externup);
 		iprint("double sleep called from %#p, %d %d\n",
-			getcallerpc(&r), r->p->pid, m->externup->pid);
+			getcallerpc(&r), r->_p->pid, m->externup->pid);
 		dumpstack();
 		die("double sleep");
 	}
@@ -1132,14 +1132,14 @@ hi(" and m->externup->rlock "); put64((uint64_t) &m->externup->rlock); hi("\n");
 	 *  Flush that information out to memory in case the sleep is
 	 *  committed.
 	 */
-	r->p = m->externup;
+	r->_p = m->externup;
 
 	if((*f)(arg) || m->externup->notepending){
 		/*
 		 *  if condition happened or a note is pending
 		 *  never mind
 		 */
-		r->p = nil;
+		r->_p = nil;
 		unlock(&m->externup->rlock);
 		unlock(r);
 	} else {
@@ -1245,13 +1245,13 @@ wakeup(Rendez *r)
 	pl = splhi();
 
 	lock(r);
-	p = r->p;
+	p = r->_p;
 
 	if(p != nil){
 		lock(&p->rlock);
 		if(p->state != Wakeme || p->r != r)
 			panic("wakeup: state");
-		r->p = nil;
+		r->_p = nil;
 		p->r = nil;
 		ready(p);
 		unlock(&p->rlock);
@@ -1317,10 +1317,10 @@ postnote(Proc *p, int dolock, char *n, int flag)
 
 		/* try for the second lock */
 		if(canlock(r)){
-			if(p->state != Wakeme || r->p != p)
-				panic("postnote: state %d %d %d", r->p != p, p->r != r, p->state);
+			if(p->state != Wakeme || r->_p != p)
+				panic("postnote: state %d %d %d", r->_p != p, p->r != r, p->state);
 			p->r = nil;
-			r->p = nil;
+			r->_p = nil;
 			ready(p);
 			unlock(r);
 			break;
