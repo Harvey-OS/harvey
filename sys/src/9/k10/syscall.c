@@ -349,7 +349,7 @@ syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3,
 	ureg->ax = ar0.p;
 
 	if (printallsyscalls) {
-		sysretfmt(scallnr, a0, a1, a2, a3, a4, a5);
+		sysretfmt(scallnr, &ar0, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
 			iprint("X %s\n", m->externup->syscalltrace);
 			free(m->externup->syscalltrace);
