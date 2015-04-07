@@ -44,6 +44,9 @@ static void updatecpu(Proc*);
 
 static void rebalance(void);
 
+// Debugging until death!!
+static void debuggotolabel(Label*);
+
 char *statename[] =
 {	/* BUG: generate automatically */
 	"Dead",
@@ -62,6 +65,13 @@ char *statename[] =
 	"Exotic",
 	"Down",
 };
+
+void
+debuggotolabel(Label *p)
+{
+	die("debuggotolabel");
+	gotolabel(p);
+}
 
 Sched*
 procsched(Proc *p)
@@ -203,7 +213,7 @@ sched(void)
 			spllo();
 			return;
 		}
-		gotolabel(&m->sched);
+		debuggotolabel(&m->sched);
 	}
 
 	m->inidle = 1;
@@ -234,7 +244,7 @@ sched(void)
 
 	assert(!m->externup->wired || m->externup->wired == m);
 hi("gotolabel\n");
-	gotolabel(&m->externup->sched);
+	debuggotolabel(&m->externup->sched);
 }
 
 int
@@ -861,7 +871,6 @@ runproc(void)
 	Proc *p;
 	uint32_t start, now, skipscheds;
 	int i;
-	void (*pt)(Proc*, int, int64_t);
 
 	start = perfticks();
 
@@ -1170,7 +1179,7 @@ hi(" and m->externup->rlock "); put64((uint64_t) &m->externup->rlock); hi("\n");
 			 */
 			unlock(&m->externup->rlock);
 			unlock(r);
-			gotolabel(&m->sched);
+			debuggotolabel(&m->sched);
 		}
 	}
 
@@ -1867,7 +1876,7 @@ error(char *err)
 void
 nexterror(void)
 {
-	gotolabel(&m->externup->errlab[--m->externup->nerrlab]);
+	debuggotolabel(&m->externup->errlab[--m->externup->nerrlab]);
 }
 
 void
