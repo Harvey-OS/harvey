@@ -382,7 +382,8 @@ updatecpu(Proc *p)
 	if(p->edf)
 		return;
 
-	t = sys->ticks*Scaling + Scaling/2;
+	//t = sys->ticks*Scaling + Scaling/2;
+	t = sys->machptr[0]->ticks*Scaling + Scaling/2; //Originally MACHP(0)
 	n = t - p->lastupdate;
 	p->lastupdate = t;
 
@@ -587,7 +588,7 @@ another:
 		p = rq->head;
 		if(p == nil)
 			continue;
-		if(p->mp != m)
+		if(p->mp != sys->machptr[m->machno]) //MACHP(m->machno)
 			continue;
 		if(pri == p->basepri)
 			continue;
@@ -628,7 +629,8 @@ preemptfor(Proc *p)
 	for(rr = 0; rr < 2; rr++)
 		for(i = 0; i < MACHMAX; i++){
 			j = pickcore(p->color, i);
-			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){
+			//if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){
+			if((mp = sys->machptr[j]) != nil && mp->online){
 				if(mp == m)
 					continue;
 				/*
@@ -668,7 +670,7 @@ mach0sched(void)
 	int n, i, j;
 
 	assert(m->machno == 0);
-//	acmodeset(NIXKC);		/* we don't time share any more */
+	acmodeset(NIXKC);		/* we don't time share any more */
 	n = 0;
 	start = perfticks();
 loop:
@@ -926,9 +928,8 @@ found:
 		edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
 		edfunlock();
 	}
-	pt = proctrace;
-	if(pt)
-		pt(p, SRun, 0);
+	if(p->trace)
+		proctrace(p, SRun, 0);
 	/* avoiding warnings, this will be removed */
 	USED(mach0sched); USED(smprunproc);
 	hi("runproc, returning p ");
@@ -1497,7 +1498,7 @@ pexit(char *exitstr, int freemem)
 		stime = m->externup->time[TSys] + m->externup->time[TCSys];
 		wq->w.time[TUser] = tk2ms(utime);
 		wq->w.time[TSys] = tk2ms(stime);
-		wq->w.time[TReal] = tk2ms(sys->ticks - m->externup->time[TReal]);
+		wq->w.time[TReal] = tk2ms(sys->machptr[0]->ticks - m->externup->time[TReal]);
 		if(exitstr && exitstr[0])
 			snprint(wq->w.msg, sizeof(wq->w.msg), "%s %d: %s",
 				m->externup->text, m->externup->pid, exitstr);
@@ -1986,7 +1987,8 @@ accounttime(void)
 	/* only one processor gets to compute system load averages.
 	 * it has to be mach 1 when we use AMP.
 	 */
-	if(sys->nmach > 1 && m->machno != 1)
+	//if(sys->nmach > 1 && m->machno != 1)
+	 if(m->machno != 0) //Change to non-AMP
 		return;
 
 	/*

@@ -25,7 +25,7 @@ alarmkproc(void* v)
 	for(;;){
 		now = sys->ticks;
 		qlock(&alarms);
-		while((rp = alarms.head) && rp->alarm <= now){
+		while((rp = alarms._head) && rp->alarm <= now){
 			if(rp->alarm != 0L){
 				if(canqlock(&rp->debug)){
 					if(!waserror()){
@@ -37,7 +37,7 @@ alarmkproc(void* v)
 				}else
 					break;
 			}
-			alarms.head = rp->palarm;
+			alarms._head = rp->palarm;
 		}
 		qunlock(&alarms);
 
@@ -54,7 +54,7 @@ checkalarms(void)
 	Proc *p;
 	uint32_t now;
 
-	p = alarms.head;
+	p = alarms._head;
 	now = sys->ticks;
 
 	if(p && p->alarm <= now)
@@ -78,7 +78,7 @@ procalarm(uint32_t time)
 	when = ms2tk(time)+sys->ticks;
 
 	qlock(&alarms);
-	l = &alarms.head;
+	l = &alarms._head;
 	for(f = *l; f; f = f->palarm) {
 		if(m->externup == f){
 			*l = f->palarm;
@@ -88,8 +88,8 @@ procalarm(uint32_t time)
 	}
 
 	m->externup->palarm = 0;
-	if(alarms.head) {
-		l = &alarms.head;
+	if(alarms._head) {
+		l = &alarms._head;
 		for(f = *l; f; f = f->palarm) {
 			if(f->alarm > when) {
 				m->externup->palarm = f;
@@ -101,7 +101,7 @@ procalarm(uint32_t time)
 		*l = m->externup;
 	}
 	else
-		alarms.head = m->externup;
+		alarms._head = m->externup;
 done:
 	m->externup->alarm = when;
 	qunlock(&alarms);
