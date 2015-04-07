@@ -294,6 +294,14 @@ extern	char	etext[];
 extern	char	edata[];
 extern	char	end[];
 
+/* debugging. */
+void __print_func_entry(const char *func, const char *file);
+void __print_func_exit(const char *func, const char *file);
+#define print_func_entry() __print_func_entry(__FUNCTION__, __FILE__)
+#define print_func_exit() __print_func_exit(__FUNCTION__, __FILE__)
+extern int printx_on;
+void set_printx(int mode);
+
 /* compiler directives on plan 9 */
 #define SET(x)  ((x)=0)
 #define USED(x) if(x){}else{}

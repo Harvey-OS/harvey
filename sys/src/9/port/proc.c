@@ -69,7 +69,11 @@ char *statename[] =
 void
 debuggotolabel(Label *p)
 {
-	die("debuggotolabel");
+	hi("debuggotolabel");
+	iprint("rip %p sp %p\n", 
+		(void *)p->pc, 
+		(void *)p->sp);
+
 	gotolabel(p);
 }
 

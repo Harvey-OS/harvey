@@ -19,9 +19,11 @@ extern uint32_t	kerndate;
 void
 mkqid(Qid *q, int64_t path, uint32_t vers, int type)
 {
+	print_func_entry();
 	q->type = type;
 	q->vers = vers;
 	q->path = path;
+	print_func_exit();
 }
 
 void
@@ -29,6 +31,7 @@ devdir(Chan *c, Qid qid, char *n, int64_t length, char *user,
        int32_t perm,
        Dir *db)
 {
+	print_func_entry();
 	db->name = n;
 	if(c->flag&CMSG)
 		qid.type |= QTMOUNT;
@@ -50,6 +53,7 @@ devdir(Chan *c, Qid qid, char *n, int64_t length, char *user,
 	db->uid = user;
 	db->gid = eve;
 	db->muid = user;
+	print_func_exit();
 }
 
 /*
@@ -88,46 +92,61 @@ devdir(Chan *c, Qid qid, char *n, int64_t length, char *user,
 int
 devgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
 {
-	if(tab == 0)
-		return -1;
+	print_func_entry();
+	if(tab == 0) {
+	print_func_exit();
+	return -1;
+	}
 	if(i == DEVDOTDOT){
 		/* nothing */
 	}else if(name){
 		for(i=1; i<ntab; i++)
 			if(strcmp(tab[i].name, name) == 0)
 				break;
-		if(i==ntab)
+		if(i==ntab) {
+			print_func_exit();
 			return -1;
+		}
 		tab += i;
 	}else{
 		/* skip over the first element, that for . itself */
 		i++;
-		if(i >= ntab)
-			return -1;
+		if(i >= ntab) {
+		print_func_exit();
+		return -1;
+		}
 		tab += i;
 	}
 	devdir(c, tab->qid, tab->name, tab->length, eve, tab->perm, dp);
+	print_func_exit();
 	return 1;
 }
 
 void
 devreset(void)
 {
+	print_func_entry();
+	print_func_exit();
 }
 
 void
 devinit(void)
 {
+	print_func_entry();
+	print_func_exit();
 }
 
 void
 devshutdown(void)
 {
+	print_func_entry();
+	print_func_exit();
 }
 
 Chan*
 devattach(int dc, char *spec)
 {
+	print_func_entry();
 	Chan *c;
 	char *buf;
 
@@ -146,6 +165,7 @@ devattach(int dc, char *spec)
 	sprint(buf, "#%C%s", dc, spec);
 	c->path = newpath(buf);
 	free(buf);
+	print_func_exit();
 	return c;
 }
 
@@ -153,6 +173,7 @@ devattach(int dc, char *spec)
 Chan*
 devclone(Chan *c)
 {
+	print_func_entry();
 	Chan *nc;
 
 	if(c->flag & COPEN){
@@ -174,6 +195,7 @@ devclone(Chan *c)
 	nc->aux = c->aux;
 	nc->mqid = c->mqid;
 	nc->mc = c->mc;
+	print_func_exit();
 	return nc;
 }
 
@@ -181,6 +203,7 @@ Walkqid*
 devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 	Devgen *gen)
 {
+	print_func_entry();
 	int i, j, alloc;
 	Walkqid *wq;
 	char *n;
@@ -195,6 +218,7 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 		if(alloc && wq->clone!=nil)
 			cclose(wq->clone);
 		free(wq);
+		print_func_exit();
 		return nil;
 	}
 	if(nc == nil){
@@ -280,6 +304,7 @@ Done:
 		//if(wq->clone->dev)			//XDYNX
 		//	devtabincr(wq->clone->dev);
 	}
+	print_func_exit();
 	return wq;
 }
 
@@ -287,6 +312,7 @@ int32_t
 devstat(Chan *c, uint8_t *db, int32_t n, Dirtab *tab, int ntab,
 	Devgen *gen)
 {
+	print_func_entry();
 	int i;
 	Dir dir;
 	char *p, *elem;
@@ -307,6 +333,7 @@ devstat(Chan *c, uint8_t *db, int32_t n, Dirtab *tab, int ntab,
 				n = convD2M(&dir, db, n);
 				if(n == 0)
 					error(Ebadarg);
+				print_func_exit();
 				return n;
 			}
 
@@ -320,23 +347,27 @@ devstat(Chan *c, uint8_t *db, int32_t n, Dirtab *tab, int ntab,
 				n = convD2M(&dir, db, n);
 				if(n == 0)
 					error(Ebadarg);
+				print_func_exit();
 				return n;
 			}
 			break;
 		}
 	}
+	print_func_exit();
 }
 
 int32_t
 devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 	   Devgen *gen)
 {
+	print_func_entry();
 	int32_t m, dsz;
 	Dir dir;
 
 	for(m=0; m<n; c->dri++) {
 		switch((*gen)(c, nil, tab, ntab, c->dri, &dir)){
 		case -1:
+			print_func_exit();
 			return m;
 
 		case 0:
@@ -347,6 +378,7 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 			if(dsz <= BIT16SZ){	/* <= not < because this isn't stat; read is stuck */
 				if(m == 0)
 					error(Eshort);
+				print_func_exit();
 				return m;
 			}
 			m += dsz;
@@ -355,6 +387,7 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 		}
 	}
 
+	print_func_exit();
 	return m;
 }
 
@@ -364,6 +397,7 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 void
 devpermcheck(char *fileuid, int perm, int omode)
 {
+	print_func_entry();
 	int t;
 	static int access[] = { 0400, 0200, 0600, 0100 };
 
@@ -378,11 +412,13 @@ devpermcheck(char *fileuid, int perm, int omode)
 	t = access[omode&3];
 	if((t&perm) != t)
 		error(Eperm);
+	print_func_exit();
 }
 
 Chan*
 devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 {
+	print_func_entry();
 	int i;
 	Dir dir;
 
@@ -406,18 +442,22 @@ Return:
 		error(Eperm);
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
+	print_func_exit();
 	return c;
 }
 
 void
 devcreate(Chan* c, char* d, int i, int n)
 {
+	print_func_entry();
 	error(Eperm);
+	print_func_exit();
 }
 
 Block*
 devbread(Chan *c, int32_t n, int64_t offset)
 {
+	print_func_entry();
 	Block *bp;
 
 	bp = allocb(n);
@@ -429,12 +469,14 @@ devbread(Chan *c, int32_t n, int64_t offset)
 	}
 	bp->wp += c->dev->read(c, bp->wp, n, offset);
 	poperror();
+	print_func_exit();
 	return bp;
 }
 
 int32_t
 devbwrite(Chan *c, Block *bp, int64_t offset)
 {
+	print_func_entry();
 	int32_t n;
 
 	if(waserror()) {
@@ -445,31 +487,40 @@ devbwrite(Chan *c, Block *bp, int64_t offset)
 	poperror();
 	freeb(bp);
 
+	print_func_exit();
 	return n;
 }
 
 void
 devremove(Chan* c)
 {
+	print_func_entry();
 	error(Eperm);
+	print_func_exit();
 }
 
 int32_t
 devwstat(Chan* c, uint8_t* i, int32_t n)
 {
+	print_func_entry();
 	error(Eperm);
+	print_func_exit();
 	return 0;
 }
 
 void
 devpower(int i)
 {
+	print_func_entry();
 	error(Eperm);
+	print_func_exit();
 }
 
 int
 devconfig(int i, char *c, DevConf *d)
 {
+	print_func_entry();
 	error(Eperm);
+	print_func_exit();
 	return 0;
 }
