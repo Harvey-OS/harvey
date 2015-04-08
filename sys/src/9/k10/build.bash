@@ -93,7 +93,7 @@ compiling()
 
 	# I'm sure this binary is wrong. Check when kernel will build entirely
 
-	$LD -static -o init.out init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x1020
+	$LD -static -o init.out init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020
 	strip init.out
 	$XD -i init.out > init.h
 
