@@ -538,6 +538,7 @@ init0(void)
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
+	iprint("TOUSER!\n");
 	touser(sp);
 }
 
