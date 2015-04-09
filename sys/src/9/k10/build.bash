@@ -93,8 +93,10 @@ compiling()
 
 	# I'm sure this binary is wrong. Check when kernel will build entirely
 
-	$LD -static -o init.out init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020
-	strip init.out
+	$LD -static -o init.elf.out init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020
+	strip init.elf.out
+	objcopy -j .text -O binary init.elf.out init.out
+	file init*.out
 	$XD -i init.out > init.h
 
 	## errstr.h ##

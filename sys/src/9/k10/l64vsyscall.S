@@ -30,7 +30,6 @@ touser:
 #warning "remove this line when init works better, it disables interrupts for user processes"
 	MOVQ	$0, %R11			/* flags */
 
-	MOVW	$0xebfe,	0(%rcx)
 	MOVQ	%RDI, %RSP			/* sp */
 
 	sysretq
