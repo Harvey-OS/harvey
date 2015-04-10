@@ -314,6 +314,16 @@ void put64(uint64_t v)
 	put32(v);
 }
 
+void debugtouser()
+{
+	Mach *m = machp();
+	PTE *pte, *pml4;
+
+	pml4 = UINT2PTR(m->pml4->va);
+	mmuwalk(pml4, 0x200000, 0, &pte, nil);
+	iprint("PTE 0x%lx\n", *pte);
+}
+
 void badcall(uint64_t where, uint64_t what)
 {
 	hi("Bad call from function "); put64(where); hi(" to "); put64(what); hi("\n");
@@ -538,6 +548,7 @@ init0(void)
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
+	debugtouser();
 	die("TOUSER!\n");
 	touser(sp);
 }
