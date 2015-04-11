@@ -49,24 +49,35 @@
 .globl _intrp
 _intrp:
 	pushq	%rax // bogus error code. Makes stack look like intre.
+	// Except in this case, bogus error code is at 0(%rsp)
+	// vno pointer is at 8(%rsp)
 	MOVQ	8(%rsp), %rax
+	// Now %rax points to the vector number.
 	JMP	_intrcommon
 
-// or intre, I guess %rax has an interrupt number. I'm a little unsure on this
-// part.
+// For intre, error is at top of stack on trap. But then we call here 
+// from the interrupt vectors so error is at 8(%rsp). 
+// I just realized I think intre means interrupt exception, e.g. page fault.
 .globl _intre
 _intre:
 //jmp	_intre
 	// The error code has been pushed. How I love the x86.
+	// So the error code is ABOVE the pointer to the vector #.
 	XCHGQ	%rax, (%rsp)
+	// Now %rax points to the vector number.
 
-// At this point, %rax is at TOS and all is well.
-// If this is nested we need to not do a swapgs.
+// When we get here: 
+// %RAX points to our vector number, i.e. "return" pc from calls below.
+// For intrp, (%rsp) is bogus code, 8(%rsp) is pointer to vno
+// for intre, (%rsp) is pointer to vno, 8(%rsp) is error code.
+// The rest of the stack is the same.
 _intrcommon:
+	// Get the vector number into %al
 	MOVb	(%rax), %al
 	ANDQ	$0xff, %rax
-	// restore the rax you saved earlier.
+	// Put that at TOS (this is plan 9 argument style)
 	XCHGQ	%rax, 0(%rsp)
+	// 0(%rsp) now has the vno
 	CMPW	$SSEL(SiCS, SsTIGDT|SsRPL0), 24(%rsp) 	/* old CS */
 	JE	_intrnested
 
