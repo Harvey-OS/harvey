@@ -11,7 +11,7 @@
 .code32
 
 #define pFARJMP32(s, o)	.byte 0xea;	.long o; .word s	/* far jump to ptr32:16 */
-			
+
 
 /* do we enter in 16-bit mode? If so, take the code from coreboot that goes from
  * 16->32
@@ -110,7 +110,7 @@ __protected_start:
 
 	/* Restore the BIST value to %eax */
 	movl	%ebp, %eax
-	
+
 entry32:
 1:
 	movb	$0x30, %al
@@ -141,27 +141,24 @@ _multibootheader:	/* must be 4-byte aligned */
 	.long	0x00000003			/* flags */
 	.long	-(0x1badb002 + 0x00000003)	/* checksum */
 
-_gdt32p:	
+_gdt32p:
 	.quad	0x0000000000000000		/* NULL descriptor */
 	.quad	0x00cf9a000000ffff		/* CS */
 	.quad	0x00cf92000000ffff		/* DS */
 	.quad	0x0020980000000000		/* Long mode CS */
 
-_gdtptr32p:	
+_gdtptr32p:
 	.word	4*8-1
-	.long	0 // _gdt32p
+	.long	_gdt32p
 
-_gdt64:	
+_gdt64p:
 	.quad	0x0000000000000000		/* NULL descriptor */
 	.quad	0x0020980000000000		/* CS */
 
-_gdtptr64p:	
+_gdtptr64p:
 	.word	2*8-1
-	.quad	0 // _gdt64
+	.quad	_gdt64p
 
-_gdtptr64v:	
-	.word	3*8-1
-	.quad	0 // _gdt64
 
 _endofheader:
 	pushl %eax				/* possible passed-in magic */
@@ -205,7 +202,7 @@ _endofheader:
 #define PDO(v)		((PTLX((v), 1))<<3)
 #define PTO(v)		((PTLX((v), 0))<<3)
 
-_warp64:	
+_warp64:
 	movl	$_protected-(MACHSTKSZ+4*PTSZ+5*(4*KiB)+MACHSZ/*+KZERO*/), %esi
 
 	movl	%esi, %edi
@@ -277,13 +274,19 @@ _identity:
 	movq	$_start64v, %rax
 	JMP	*%rax
 .section .text
+_gdt64v:
+	.quad	0x0000000000000000		/* NULL descriptor */
+	.quad	0x0020980000000000		/* CS */
+
+_gdtptr64v:
+	.word	3*8-1
+	.quad	_gdt64v
 
 // At this point, we are safe to use kernel addresses, as we are in
 // kernel virtual address space.
 _start64v:
 	movq	$_gdtptr64v, %rax
 	lgdt	(%rax)
-// WE GET TO HERE!
 
 	XORQ	%rdx, %rdx
 	movw	%dx, %ds				/* not used in long mode */
