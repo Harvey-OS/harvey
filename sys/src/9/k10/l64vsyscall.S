@@ -12,23 +12,21 @@
 touser:	
 	CLI
 	SWAPGS
-#if 0
 	// we should be able to skip this step. We'll see.
-	MOVQ	$SSEL(SiUDS, SsRPL3), AX
-	MOVW	AX, DS
-	MOVW	AX, ES
+	MOVQ	$SSEL(SiUDS, SsRPL3), %rax
+	MOVW	%ax, %ds
+	MOVW	%ax, %es
 	/*
 	 * FS is used for TLS. Don't touch!
 	MOVW	AX, FS
  	 */
-	MOVW	AX, GS
-#endif
+	MOVW	%ax, %gs
 	// Hmm. Assuumes many things, eh? Assumes plan 9 a.out
 	// format. This will fail.
-	MOVQ	$(UTZERO+0x28), %rcx		/* ip */
+	MOVQ	$(UTZERO+0x20), %rcx		/* ip */
 	MOVQ	$If, %R11			/* flags */
 #warning "remove this line when init works better, it disables interrupts for user processes"
-	MOVQ	$0, %R11			/* flags */
+//	MOVQ	$0, %R11			/* flags */
 
 	MOVQ	%RDI, %RSP			/* sp */
 

@@ -159,7 +159,9 @@ idtput:
 
 .global trput
 trput:
-//	MOVW	%di, TASK
+	// panic
+	mov 0, %rax
+	//ltr	%rdi
 	RET
 
 /*

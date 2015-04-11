@@ -9,13 +9,13 @@
 touser:
 	CLI
 	SWAPGS
-	MOVQ	$SSEL(SiUDS, SsRPL3), AX
+	MOVQ	$SSEL(SiUDS, SsRPL3), %rax
 	MOVW	%ax, %DS
 	MOVW	%ax, %ES
 	MOVW	%ax, %FS
 	MOVW	%ax, %GS
 
-#	MOVQ	$(UTZERO+0x28), %rcx		/* ip */
+	MOVQ	$(UTZERO+0x28), %rcx		/* ip */
 	MOVQ	$If, %r11			/* flags */
 
 	MOVQ	%rdi, %rsp			/* sp */

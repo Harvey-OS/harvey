@@ -305,7 +305,7 @@ kexit(Ureg* u)
 		mp = m;
 	tos->core = mp->machno;	
 	tos->nixtype = mp->nixtype;
-	_pmcupdate(m);	
+	//_pmcupdate(m);	
 	/*
 	 * The process may change its core.
 	 * Be sure it has the right cyclefreq.
@@ -346,6 +346,8 @@ trap(Ureg* ureg)
 	Vctl *ctl, *v;
 
 	vno = ureg->type;
+if (vno == 14) //die("S");
+wave('T');
 //iprint("type %x\n", ureg->type);
 	m->perf.intrts = perfticks();
 	user = userureg(ureg);
@@ -356,7 +358,7 @@ trap(Ureg* ureg)
 
 	clockintr = 0;
 
-	_pmcupdate(m);
+	//_pmcupdate(m);
 
 //iprint("vno %d\n", vno);
 	if(ctl = vctl[vno]){
@@ -628,6 +630,7 @@ faultamd64(Ureg* ureg, void* v)
 //	if(!user && mmukmapsync(addr))
 //		return;
 
+splhi(); die("amd64fault");
 	/*
 	 * There must be a user context.
 	 * If not, the usual problem is causing a fault during

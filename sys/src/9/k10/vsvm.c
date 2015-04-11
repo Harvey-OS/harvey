@@ -188,7 +188,9 @@ hi("gdtput\n");
 	else
 		idtput(sizeof(acidt64)-1, PTR2UINT(acidt64));
 #endif
-	trput(SSEL(SiTSS, SsTIGDT|SsRPL0));
+	// I have no idea how to do this another way.
+	//trput(SSEL(SiTSS, SsTIGDT|SsRPL0));
+	asm volatile("ltr %w0"::"q" (SSEL(SiTSS, SsTIGDT|SsRPL0)));
 
 hi("idtput done\n");
 hi("write fsbase, then gsbase, then etc.\n");

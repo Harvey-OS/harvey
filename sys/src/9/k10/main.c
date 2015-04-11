@@ -314,14 +314,16 @@ void put64(uint64_t v)
 	put32(v);
 }
 
-void debugtouser()
+void debugtouser(void *va)
 {
 	Mach *m = machp();
+	uintptr_t uva = (uintptr_t) va;
 	PTE *pte, *pml4;
 
 	pml4 = UINT2PTR(m->pml4->va);
-	mmuwalk(pml4, 0x200000, 0, &pte, nil);
-	iprint("PTE 0x%lx\n", *pte);
+	mmuwalk(pml4, uva, 0, &pte, nil);
+	iprint("va %p m %p m>pml4 %p m->pml4->va %p pml4 %p PTE 0x%lx\n", va,
+			m, m->pml4, m->pml4->va, (void *)pml4, *pte);
 }
 
 void badcall(uint64_t where, uint64_t what)
@@ -548,8 +550,8 @@ init0(void)
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
-	debugtouser();
-	die("TOUSER!\n");
+	debugtouser((void *)UTZERO);
+	hi("TOUSER!\n");
 	touser(sp);
 }
 
@@ -660,6 +662,7 @@ hi("8\n");
 	k = kmap(s->map[0]->pages[0]);
 	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
 	memmove(UINT2PTR(VA(k)), init_out, sizeof(init_out));
+	debugtouser((void *)UTZERO);
 	kunmap(k);
 
 hi("9\n");
