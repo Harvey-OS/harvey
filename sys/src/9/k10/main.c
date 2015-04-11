@@ -641,7 +641,7 @@ hi("4\n");
 	p->seg[SSEG] = s;
 
 hi("5\n");
-	pg = newpage(1, 0, USTKTOP-BIGPGSZ, /*BIG*/PGSZ, -1);
+	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
 	segpage(s, pg);
 	k = kmap(pg);
 	bootargs(VA(k));

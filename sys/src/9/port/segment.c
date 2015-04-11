@@ -39,7 +39,7 @@ newseg(int type, uintptr_t base, uint64_t size)
 	if(size > SEGMAPSIZE*(PTEMAPMEM/BIGPGSZ))
 		error(Enovmem);
 
-	pgsz = /*BIG*/PGSZ;
+	pgsz = BIGPGSZ;
 	if(size*BIGPGSZ >= 1*GiB && getpgszi(1*GiB) >= 0 &&
 	   (base&(1ULL*GiB-1)) == 0 && ((size*BIGPGSZ)&(1ULL*GiB-1)) == 0){
 		DBG("newseg: using 1G pages\n");
@@ -247,8 +247,11 @@ segpage(Segment *s, Page *p)
 		s->pgszi = p->pgszi;
 	if(s->color == NOCOLOR)
 		s->color = p->color;
-	if(s->pgszi != p->pgszi)
+	if(s->pgszi != p->pgszi) {
+		iprint("s %p s->pgszi %d p %p p->pgszi %p\n", s, s->pgszi, p, p->pgszi);
+		die("BAD!");
 		panic("segpage: s->pgszi != p->pgszi");
+	}
 
 	if(p->va < s->base || p->va >= s->top)
 		panic("segpage: p->va < s->base || p->va >= s->top");

@@ -630,7 +630,6 @@ faultamd64(Ureg* ureg, void* v)
 //	if(!user && mmukmapsync(addr))
 //		return;
 
-splhi(); die("amd64fault");
 	/*
 	 * There must be a user context.
 	 * If not, the usual problem is causing a fault during
@@ -641,10 +640,14 @@ splhi(); die("amd64fault");
 			ureg->ip, addr);
 	}
 	read = !(ureg->error & 2);
+if (read) hi("read fault\n"); else hi("write fault\n");
+hi("addr "); put64(addr); hi("\n");
 
 	insyscall = m->externup->insyscall;
 	m->externup->insyscall = 1;
+hi("call fault\n");
 	if(fault(addr, read) < 0){
+hi("fault went bad\n");
 
 		/*
 		 * It is possible to get here with !user if, for example,
@@ -665,6 +668,7 @@ splhi(); die("amd64fault");
 		if(insyscall)
 			error(buf);
 	}
+hi("back from fault\n");
 	m->externup->insyscall = insyscall;
 }
 
