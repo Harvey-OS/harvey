@@ -569,7 +569,7 @@ bootargs(uintptr_t base)
 	 * args by subtracting sizeof(m->externup->arg).
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + /*BIG*/PGSZ - sizeof(m->externup->arg) - i));
+	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(m->externup->arg) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -582,10 +582,10 @@ bootargs(uintptr_t base)
 	 * unused so it doesn't matter (at the moment...).
 	 */
 	av = (char**)(p - (oargc+2)*sizeof(char*));
-	ssize = base + /*BIG*/PGSZ - PTR2UINT(av);
+	ssize = base + BIGPGSZ - PTR2UINT(av);
 	*av++ = (char*)oargc;
 	for(i = 0; i < oargc; i++)
-		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - /*BIG*/PGSZ);
+		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BIGPGSZ);
 	*av = nil;
 
 	sp = USTKTOP - ssize;
@@ -637,11 +637,11 @@ hi("4\n");
 	 */
 	// Big pages are not working yet.
 #warning "Fix back to use big pages"
-	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKSIZE/ /*BIG*/PGSZ);
+	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
 	p->seg[SSEG] = s;
 
 hi("5\n");
-	pg = newpage(1, 0, USTKTOP-/*BIG*/PGSZ, /*BIG*/PGSZ, -1);
+	pg = newpage(1, 0, USTKTOP-BIGPGSZ, /*BIG*/PGSZ, -1);
 	segpage(s, pg);
 	k = kmap(pg);
 	bootargs(VA(k));
@@ -654,7 +654,7 @@ hi("6\n");
 	s = newseg(SG_TEXT, UTZERO, 1);
 	s->flushme++;
 	p->seg[TSEG] = s;
-	pg = newpage(1, 0, UTZERO, /*BIG*/PGSZ, -1);
+	pg = newpage(1, 0, UTZERO, BIGPGSZ, -1);
 hi("7\n");
 	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 	segpage(s, pg);
