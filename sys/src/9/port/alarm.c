@@ -19,6 +19,7 @@ static Rendez	alarmr;
 void
 alarmkproc(void* v)
 {
+	Mach *m = machp();
 	Proc *rp;
 	uint32_t now;
 
@@ -64,6 +65,7 @@ checkalarms(void)
 uint32_t
 procalarm(uint32_t time)
 {
+	Mach *m = machp();
 	Proc **l, *f;
 	uint32_t when, old;
 
