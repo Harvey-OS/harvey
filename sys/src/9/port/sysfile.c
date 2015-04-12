@@ -293,8 +293,9 @@ sysdup(Ar0* ar0, va_list list)
 }
 
 void
-sysopen(Ar0* ar0, va_list list)
+sysopen(Ar0* ar0, ...)
 {
+	va_list list;
 	char *aname;
 	int fd, omode;
 	Chan *c;
@@ -302,8 +303,10 @@ sysopen(Ar0* ar0, va_list list)
 	/*
 	 * int open(char* file, int omode);
 	 */
+	va_start(list, ar0);
 	aname = va_arg(list, char*);
 	omode = va_arg(list, int);
+	va_end(list);
 	openmode(omode);	/* error check only */
 
 	c = nil;

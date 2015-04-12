@@ -477,8 +477,8 @@ static uintptr_t
 placeseg(uintptr_t len)
 {
 	static Lock lck;
-	static uint32_t va = HEAPTOP;
-	uint32_t v;
+	static uintptr_t va = HEAPTOP;
+	uintptr_t v;
 
 	len += BIGPGSZ;	/* so we fault upon overflows */
 	lock(&lck);

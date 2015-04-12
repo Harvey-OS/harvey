@@ -94,10 +94,11 @@ compiling()
 	# I'm sure this binary is wrong. Check when kernel will build entirely
 
 	$LD -static -o init.elf.out init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020
-	strip init.elf.out
-	objcopy -j .text -O binary init.elf.out init.out
+	objcopy -j .text  -O binary init.elf.out init.code.out
+	objcopy -j .data -O binary init.elf.out init.data.out
 	file init*.out
-	$XD -i init.out > init.h
+	$XD -i init.code.out > init.h
+	$XD -i init.data.out >> init.h
 
 	## errstr.h ##
 	##----------##

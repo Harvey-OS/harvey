@@ -659,10 +659,24 @@ hi("7\n");
 hi("8\n");
 	k = kmap(s->map[0]->pages[0]);
 	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
-	memmove(UINT2PTR(VA(k)+0x20), init_out, sizeof(init_out));
-	debugtouser((void *)UTZERO);
+	memmove(UINT2PTR(VA(k)+0x20), init_code_out, sizeof(init_code_out));
 	kunmap(k);
 
+	/*
+	 * Data
+	 */
+	s = newseg(SG_DATA, UTZERO + BIGPGSZ, 1);
+	s->flushme++;
+	p->seg[DSEG] = s;
+	pg = newpage(1, 0, UTZERO + BIGPGSZ, BIGPGSZ, -1);
+hi("7\n");
+	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
+	segpage(s, pg);
+hi("8\n");
+	k = kmap(s->map[0]->pages[0]);
+	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
+	memmove(UINT2PTR(VA(k)), init_data_out, sizeof(init_data_out));
+	kunmap(k);
 hi("9\n");
 	ready(p);
 hi("done \n");

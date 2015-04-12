@@ -343,9 +343,6 @@ trap(Ureg* ureg)
 	int clockintr, vno, user;
 	vno = ureg->type;
 	uint64_t gsbase = rdmsr(GSbase);
-if (vno == 14) {//die("S");
-	iprint("trap: GS\t%#llux\n", gsbase);
-	}
 	if (gsbase < 1ULL<<63)
 		die("bogus gsbase");
 	Mach *m = machp();
@@ -624,8 +621,6 @@ expected(Ureg* ureg, void* v)
 static void
 faultamd64(Ureg* ureg, void* v)
 {
-	uint64_t gsbase = rdmsr(GSbase);
-	iprint("trap: GS\t%#llux\n", gsbase);
 	static int times = 0;
 	times++;
 	hi("before machp\n");
