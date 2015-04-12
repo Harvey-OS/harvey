@@ -357,7 +357,7 @@ vmemchr(void *s, int c, int n)
 	}
 
 	/* fits in one page */
-	for(t = UINT2PTR(a); m > 0; m--, t++)
+	for(t = UINT2PTR(a); n > 0; n--, t++)
 		if (*t == c)
 			break;
 	if(*t != c)
