@@ -1197,11 +1197,13 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
 }
 
 void
-sysbind(Ar0* ar0, va_list list)
+sysbind(Ar0* ar0, ...)
 {
 	int flag;
 	char *name, *old;
 
+	va_list list;
+	va_start(list, ar0);
 	/*
 	 * int bind(char* name, char* old, int flag);
 	 * should be
@@ -1210,6 +1212,7 @@ sysbind(Ar0* ar0, va_list list)
 	name = va_arg(list, char*);
 	old = va_arg(list, char*);
 	flag = va_arg(list, int);
+	va_end(list);
 
 	ar0->i = bindmount(0, -1, -1, name, old, flag, nil);
 }

@@ -693,9 +693,12 @@ sysexecac(Ar0* ar0, va_list list)
 }
 
 void
-sysexec(Ar0* ar0, va_list list)
+sysexec(Ar0* ar0, ...)
 {
 	char *file, **argv;
+	va_list list;
+
+	va_start(list, ar0);
 
 	/*
 	 * void* exec(char* name, char* argv[]);
@@ -703,6 +706,7 @@ sysexec(Ar0* ar0, va_list list)
 	file = va_arg(list, char*);
 	file = validaddr(file, 1, 0);
 	argv = va_arg(list, char**);
+	va_end(list);
 	evenaddr(PTR2UINT(argv));
 	execac(ar0, EXTC, file, argv);
 }

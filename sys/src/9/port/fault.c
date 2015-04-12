@@ -347,13 +347,21 @@ vmemchr(void *s, int c, int n)
 			return t;
 		a += m;
 		n -= m;
+		/* N.B. You're either going to find the character
+		 * or validaddr will error() and bounce you way back
+		 * up the call chain. That's why there's no worry about
+		 * returning NULL.
+		 */
 		if((a & KZERO) != KZERO)
 			validaddr(UINT2PTR(a), 1, 0);
 	}
 
 	/* fits in one page */
-	t =  memchr(UINT2PTR(a), c, n);
-	die("memchr after fits on page FIX ME");
+	for(t = UINT2PTR(a); m > 0; m--, t++)
+		if (*t == c)
+			break;
+	if(*t != c)
+		error("Bogus string");
 	return t;
 }
 
