@@ -234,6 +234,7 @@ void
 syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, 
 	uintptr_t a4, uintptr_t a5, Ureg *ureg)
 {
+die("syscall!\n");
 	Mach *m = machp();
 	unsigned int scallnr = (unsigned int) badscallnr;
 	char *e;
@@ -242,7 +243,7 @@ syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3,
 	int64_t startns, stopns;
 	Ar0 ar0;
 	static Ar0 zar0;
-	int printallsyscalls = 1;
+	int printallsyscalls = 0;
 
 	if(!userureg(ureg))
 		panic("syscall: cs %#llux\n", ureg->cs);
@@ -257,7 +258,7 @@ syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3,
 	m->externup->dbgreg = ureg;
 	sp = ureg->sp;
 	startns = 0;
-
+hi("so far syscall!\n");
 	if (printallsyscalls) {
 		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
@@ -285,7 +286,7 @@ syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3,
 		m->externup->syscalltrace = nil;
 		startns = todget(nil);
 	}
-
+hi("more syscall!\n");
 	m->externup->scallnr = scallnr;
 	if(scallnr == RFORK)
 		fpusysrfork(ureg);
@@ -307,8 +308,9 @@ syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3,
 
 		memmove(m->externup->arg, UINT2PTR(sp+BY2SE), sizeof(m->externup->arg));
 		m->externup->psstate = systab[scallnr].n;
-
+hi("call syscall!\n");
 		systab[scallnr].f(&ar0, a0, a1, a2, a3, a4, a5);
+hi("it returned!\n");
 		if(scallnr == SYSR1){
 			/*
 			 * BUG: must go when ron binaries go.

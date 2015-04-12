@@ -659,7 +659,7 @@ hi("7\n");
 hi("8\n");
 	k = kmap(s->map[0]->pages[0]);
 	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
-	memmove(UINT2PTR(VA(k)), init_out, sizeof(init_out));
+	memmove(UINT2PTR(VA(k)+0x20), init_out, sizeof(init_out));
 	debugtouser((void *)UTZERO);
 	kunmap(k);
 

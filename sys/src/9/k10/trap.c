@@ -630,7 +630,7 @@ faultamd64(Ureg* ureg, void* v)
 	times++;
 	hi("before machp\n");
 	Mach *m = machp();
-	if (times == 3) die ("3rd rock\n");
+//	if (times == 3) die ("3rd rock\n");
 	uint64_t addr;
 	int read, user, insyscall;
 	char buf[ERRMAX];
@@ -657,7 +657,7 @@ hi("addr "); put64(addr); hi("\n");
 	m->externup->insyscall = 1;
 hi("call fault\n");
 	if(fault(addr, read) < 0){
-hi("fault went bad\n");
+die("fault went bad\n");
 
 		/*
 		 * It is possible to get here with !user if, for example,
@@ -680,7 +680,7 @@ hi("fault went bad\n");
 	}
 hi("back from fault\n");
 	m->externup->insyscall = insyscall;
-	if (! read) die("ret from write fault\n");
+	if (! read) hi("ret from write fault\n");
 }
 
 /*

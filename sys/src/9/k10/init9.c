@@ -13,5 +13,5 @@ void
 main(char* argv0)
 {
 //	startboot(argv0, &argv0);
-	while(1);// write(1, "hi\n", 3);
+	while(1) write(1, "hi\n", 3);
 }

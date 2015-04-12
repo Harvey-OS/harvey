@@ -1499,6 +1499,7 @@ pexit(char *exitstr, int freemem)
 		if(p == 0) {
 			if(exitstr == 0)
 				exitstr = "unknown";
+			die("bootprocessdeath");
 			panic("boot process died: %s", exitstr);
 		}
 
