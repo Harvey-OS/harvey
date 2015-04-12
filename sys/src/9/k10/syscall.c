@@ -231,10 +231,17 @@ noerrorsleft(void)
 
 /* it should be unsigned. FIXME */
 void
-syscall(int badscallnr, uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, 
-	uintptr_t a4, uintptr_t a5, Ureg *ureg)
+syscall(int badscallnr, Ureg *ureg)
 {
-die("syscall!\n");
+	// can only handle 4 args right now.
+	uintptr_t a0, a1, a2, a3; 
+	uintptr_t a4 = 0, a5 = 0;
+
+hi("syscall!\n");
+	a0 = ureg->di;
+	a1 = ureg->si;
+	a2 = ureg->dx;
+	a3 = ureg->r8;
 	Mach *m = machp();
 	unsigned int scallnr = (unsigned int) badscallnr;
 	char *e;
@@ -243,7 +250,7 @@ die("syscall!\n");
 	int64_t startns, stopns;
 	Ar0 ar0;
 	static Ar0 zar0;
-	int printallsyscalls = 0;
+	int printallsyscalls = 1;
 
 	if(!userureg(ureg))
 		panic("syscall: cs %#llux\n", ureg->cs);
@@ -263,7 +270,8 @@ hi("so far syscall!\n");
 		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
 			iprint("E %s\n", m->externup->syscalltrace);
-			free(m->externup->syscalltrace);
+			//free(m->externup->syscalltrace);
+			m->externup->syscalltrace = nil;
 		}
 	}
 
@@ -282,7 +290,7 @@ hi("so far syscall!\n");
 		m->externup->procctl = Proc_stopme;
 		procctl(m->externup);
 		if(m->externup->syscalltrace)
-			free(m->externup->syscalltrace);
+			//free(m->externup->syscalltrace);
 		m->externup->syscalltrace = nil;
 		startns = todget(nil);
 	}
@@ -354,7 +362,8 @@ hi("it returned!\n");
 		sysretfmt(scallnr, &ar0, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
 			iprint("X %s\n", m->externup->syscalltrace);
-			free(m->externup->syscalltrace);
+			//free(m->externup->syscalltrace);
+			m->externup->syscalltrace = nil;
 		}
 	}
 
@@ -366,18 +375,19 @@ hi("it returned!\n");
 		procctl(m->externup);
 		splx(s);
 		if(m->externup->syscalltrace)
-			free(m->externup->syscalltrace);
+			//free(m->externup->syscalltrace);
 		m->externup->syscalltrace = nil;
 	}else if(m->externup->procctl == Proc_totc || m->externup->procctl == Proc_toac)
 		procctl(m->externup);
 
-
+hi("past sysretfmt\n");
 	m->externup->insyscall = 0;
 	m->externup->psstate = 0;
 
 	if(scallnr == NOTED)
 		noted(ureg, *(uintptr_t*)(sp+BY2SE));
 
+hi("now to splihi\n");
 	splhi();
 	if(scallnr != RFORK && (m->externup->procctl || m->externup->nnote))
 		notify(ureg);
@@ -388,6 +398,7 @@ hi("it returned!\n");
 		splhi();
 	}
 	kexit(ureg);
+hi("done kexit\n");
 }
 
 uintptr_t

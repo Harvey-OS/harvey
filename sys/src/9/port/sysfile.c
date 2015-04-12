@@ -794,17 +794,12 @@ syspread(Ar0* ar0, va_list list)
 }
 
 static int32_t
-write(va_list list, int ispwrite)
+write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 {
-	int fd;
-	int32_t n, r;
-	void *p;
+	int32_t r;
 	Chan *c;
-	int64_t off;
 
-	fd = va_arg(list, int);
-	p = va_arg(list, void*);
-	r = n = va_arg(list, int32_t);
+	r = n;
 
 	p = validaddr(p, n, 0);
 	n = 0;
@@ -824,9 +819,6 @@ write(va_list list, int ispwrite)
 
 	n = r;
 
-	off = ~0LL;
-	if(ispwrite)
-		off = va_arg(list, int64_t);
 	if(off == ~0LL){	/* use and maintain channel's offset */
 		lock(c);
 		off = c->offset;
@@ -849,21 +841,35 @@ write(va_list list, int ispwrite)
 }
 
 void
-sys_write(Ar0* ar0, va_list list)
+sys_write(Ar0* ar0, ...)
 {
+	va_list list;
+	va_start(list, ar0);
+	int fd = va_arg(list, int);
+	void *buf = va_arg(list, void *);
+	long nbytes = va_arg(list, long);	
+	int64_t offset = -1ULL;
+	va_end(list);
 	/*
 	 * long write(int fd, void* buf, long nbytes);
 	 */
-	ar0->l = write(list, 0);
+	ar0->l = write(fd, buf, nbytes, offset, 0);
 }
 
 void
-syspwrite(Ar0* ar0, va_list list)
+syspwrite(Ar0* ar0, ...)
 {
+	va_list list;
+	va_start(list, ar0);
+	int fd = va_arg(list, int);
+	void *buf = va_arg(list, void *);
+	long nbytes = va_arg(list, long);	
+	int64_t offset = va_arg(list, int64_t);
+	va_end(list);
 	/*
 	 * long pwrite(int fd, void *buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = write(list, 1);
+	ar0->l = write(fd, buf, nbytes, offset, 1);
 }
 
 static int64_t

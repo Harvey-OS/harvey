@@ -36,15 +36,18 @@ syscallentry:
 	movq	%gs:0, %r15
 	movq	16(%r15), %r15			/* m->proc */
 	// NOTE! This assumes sizeof(Label) == 16!
+	MOVQ	%rsp, %r14
 	MOVQ	16(%r15), %rsp 			/* m->proc->kstack */
 	ADDQ	$KSTACK, %rSP
 	PUSHQ	$SSEL(SiUDS, SsRPL3)		/* old stack segment */
-	PUSHQ	%r13				/* old sp */
+	PUSHQ	%r14				/* old sp */
 	PUSHQ	%r11				/* old flags */
 	PUSHQ	$SSEL(SiUCS, SsRPL3)		/* old code segment */
 	PUSHQ	%rCX				/* old ip */
 
-	SUBQ	$(18*8), %rsp			/* unsaved registers */
+	// NOTE: we need to make this look like uregs. That includes
+	// two uint64_ts for type and error. Total is 17.
+	SUBQ	$(17*8), %rsp			/* unsaved registers */
 	MOVQ	%rAX, (0)(%rsp)
 	MOVQ	%rBX, (1*8)(%rsp)
 	MOVQ	%rCX, (2*8)(%rsp)
@@ -65,9 +68,9 @@ syscallentry:
 	MOVW	GS, (15*8+6)(%rsp)
 #endif
 
-	PUSHQ	%rsp				/* Ureg* */
-//	PUSHQ	%RDI				/* system call number */
-	// system call # is in %rdi so no need to push it.
+	MOVQ	%rsp, %rsi 				/* Ureg* */
+	// system call number is in %r9
+	movq	%r9, %rdi
 	CALL	syscall
 
 	.globl	syscallreturn
@@ -93,22 +96,21 @@ syscallreturn:
 	MOVL	$0xC0000100, CX
 	WRMSR
 #endif
-	MOVQ	16(%rsp), %rAX			/* Ureg.ax */
-	MOVQ	(16+6*8)(%rsp), %rBP		/* Ureg.bp */
+	MOVQ	0(%rsp), %rAX			/* Ureg.ax */
+	MOVQ	(6*8)(%rsp), %rBP		/* Ureg.bp */
 _linuxsyscallreturn:
-	/* aka RMACH and RUSER */
-	MOVQ	(16+14*8)(%rsp),%r15
-	MOVQ	(16+13*8)(%rsp),%r14
-	MOVQ	(16+12*8)(%rsp),%r13
-	MOVQ	(16+11*8)(%rsp),%r12
-	MOVQ	(16+9*8)(%rsp),%r10
-	MOVQ	(16+8*8)(%rsp),%r9
-	MOVQ	(16+7*8)(%rsp),%r8
-	MOVQ	(16+6*8)(%rsp),%rBP
-	MOVQ	(16+5*8)(%rsp),%rDI
-	MOVQ	(16+4*8)(%rsp),%rSI
-	MOVQ	(16+3*8)(%rsp),%rDX
-	MOVQ	(16+1*8)(%rsp),%rBX
+	MOVQ	(14*8)(%rsp),%r15
+	MOVQ	(13*8)(%rsp),%r14
+	MOVQ	(12*8)(%rsp),%r13
+	MOVQ	(11*8)(%rsp),%r12
+	MOVQ	(9*8)(%rsp),%r10
+	MOVQ	(8*8)(%rsp),%r9
+	MOVQ	(7*8)(%rsp),%r8
+	MOVQ	(6*8)(%rsp),%rBP
+	MOVQ	(5*8)(%rsp),%rDI
+	MOVQ	(4*8)(%rsp),%rSI
+	MOVQ	(3*8)(%rsp),%rDX
+	MOVQ	(1*8)(%rsp),%rBX
 	ADDQ	$(17*8), %rsp			/* registers + arguments */
 
 	/* the CLI should maybe be done sooner */
@@ -123,10 +125,10 @@ _linuxsyscallreturn:
 	MOVW	6(%rsp), GS
 #endif	
 
-	MOVQ	24(%rsp), %rCX			/* ip */
-	MOVQ	40(%rsp), %r11			/* flags */
+	MOVQ	0(%rsp), %rCX			/* ip */
+	MOVQ	16(%rsp), %r11			/* flags */
 
-	MOVQ	48(%rsp), %rSP			/* sp */
+	MOVQ	24(%rsp), %rSP			/* sp */
 
 	sysretq
 //	BYTE $0x48; SYSRET			/* SYSRETQ */
