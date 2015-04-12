@@ -60,7 +60,7 @@ _intrp:
 // I just realized I think intre means interrupt exception, e.g. page fault.
 .globl _intre
 _intre:
-//jmp	_intre
+///jmp	_intre
 	// The error code has been pushed. How I love the x86.
 	// So the error code is ABOVE the pointer to the vector #.
 	XCHGQ	%rax, (%rsp)
@@ -130,7 +130,7 @@ _iretnested:
 	// The %rax you pushed (error code)
 	// EIP from the vector table.
 	ADDQ	$16, %rsp
-	retq
+	iretq
 
 .globl idthandlers
 idthandlers:

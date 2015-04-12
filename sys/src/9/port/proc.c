@@ -74,6 +74,8 @@ debuggotolabel(Label *p)
 		(void *)p->pc, 
 		(void *)p->sp);
 
+	if (!p->pc)
+		die("PC IS ZERO!");
 	gotolabel(p);
 }
 

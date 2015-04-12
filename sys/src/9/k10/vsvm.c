@@ -202,10 +202,20 @@ hi("done that\n");
 	r = rdmsr(Efer);
 	r |= Sce;
 	wrmsr(Efer, r);
+	/* Hey! This is weird! Why a 32-bit CS?
+	 * Because, when you do a retq, the CPU adds 16 to
+	 * the bits derived from 63:48, and then uses that. See the
+	 * GDT above: 64-bit CS is 16 more than the 32-bit CS.
+	 * If you return with 32-bit ret, then the CS is taken
+	 * as-is. For the SS, 8 is added and you get the DS
+	 * shown above.
+	 */
 	r = ((uint64_t)SSEL(SiU32CS, SsRPL3))<<48;
 	r |= ((uint64_t)SSEL(SiCS, SsRPL0))<<32;
 hi("wirte Star!\n");
 	wrmsr(Star, r);
+	uint64_t x = rdmsr(Star);
+iprint("start 0x%lx\n", x);
 hi("wirte Lstar!\n");
 	if(nixtype != NIXAC)
 		wrmsr(Lstar, PTR2UINT(syscallentry));

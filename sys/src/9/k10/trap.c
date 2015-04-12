@@ -340,14 +340,18 @@ _trap(Ureg *ureg)
 void
 trap(Ureg* ureg)
 {
-	Mach *m = machp();
 	int clockintr, vno, user;
+	vno = ureg->type;
+	uint64_t gsbase = rdmsr(GSbase);
+if (vno == 14) {//die("S");
+	iprint("trap: GS\t%#llux\n", gsbase);
+	}
+	if (gsbase < 1ULL<<63)
+		die("bogus gsbase");
+	Mach *m = machp();
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 
-	vno = ureg->type;
-if (vno == 14) //die("S");
-wave('T');
 //iprint("type %x\n", ureg->type);
 	m->perf.intrts = perfticks();
 	user = userureg(ureg);
@@ -620,7 +624,13 @@ expected(Ureg* ureg, void* v)
 static void
 faultamd64(Ureg* ureg, void* v)
 {
+	uint64_t gsbase = rdmsr(GSbase);
+	iprint("trap: GS\t%#llux\n", gsbase);
+	static int times = 0;
+	times++;
+	hi("before machp\n");
 	Mach *m = machp();
+	if (times == 3) die ("3rd rock\n");
 	uint64_t addr;
 	int read, user, insyscall;
 	char buf[ERRMAX];
@@ -670,6 +680,7 @@ hi("fault went bad\n");
 	}
 hi("back from fault\n");
 	m->externup->insyscall = insyscall;
+	if (! read) die("ret from write fault\n");
 }
 
 /*

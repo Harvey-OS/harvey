@@ -635,8 +635,6 @@ hi("4\n");
 	 * try to sleep if there are no pages available, but that
 	 * shouldn't be the case here.
 	 */
-	// Big pages are not working yet.
-#warning "Fix back to use big pages"
 	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
 	p->seg[SSEG] = s;
 

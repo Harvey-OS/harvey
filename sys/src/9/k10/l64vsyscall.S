@@ -25,11 +25,7 @@ touser:
 	// format. This will fail.
 	MOVQ	$(UTZERO+0x20), %rcx		/* ip */
 	MOVQ	$If, %R11			/* flags */
-#warning "remove this line when init works better, it disables interrupts for user processes"
-//	MOVQ	$0, %R11			/* flags */
-
 	MOVQ	%RDI, %RSP			/* sp */
-
 	sysretq
 //	BYTE $0x48; SYSRET			/* SYSRETQ */
 /*
