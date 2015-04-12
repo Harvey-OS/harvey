@@ -85,7 +85,8 @@ syscallfmt(int syscallno, ...)
 		fmtprint(&fmt, "%s ", systab[syscallno].n);
 
 	if(m->externup->syscalltrace != nil)
-		;//free(m->externup->syscalltrace);
+		free(m->externup->syscalltrace);
+	m->externup->syscalltrace = nil;
 
 	switch(syscallno){
 	case SYSR1:
@@ -377,7 +378,8 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 	fmtstrinit(&fmt);
 	va_start(list, stop);
 	if(m->externup->syscalltrace)
-		;//free(m->externup->syscalltrace);
+		free(m->externup->syscalltrace);
+	m->externup->syscalltrace = nil;
 
 	errstr = "\"\"";
 	switch(syscallno){

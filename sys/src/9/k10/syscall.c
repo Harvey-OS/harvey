@@ -270,7 +270,7 @@ hi("so far syscall!\n");
 		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
 			iprint("E %s\n", m->externup->syscalltrace);
-			//free(m->externup->syscalltrace);
+			free(m->externup->syscalltrace);
 			m->externup->syscalltrace = nil;
 		}
 	}
@@ -290,7 +290,7 @@ hi("so far syscall!\n");
 		m->externup->procctl = Proc_stopme;
 		procctl(m->externup);
 		if(m->externup->syscalltrace)
-			//free(m->externup->syscalltrace);
+			free(m->externup->syscalltrace);
 		m->externup->syscalltrace = nil;
 		startns = todget(nil);
 	}
@@ -362,7 +362,7 @@ hi("it returned!\n");
 		sysretfmt(scallnr, &ar0, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
 			iprint("X %s\n", m->externup->syscalltrace);
-			//free(m->externup->syscalltrace);
+			free(m->externup->syscalltrace);
 			m->externup->syscalltrace = nil;
 		}
 	}
@@ -375,7 +375,7 @@ hi("it returned!\n");
 		procctl(m->externup);
 		splx(s);
 		if(m->externup->syscalltrace)
-			//free(m->externup->syscalltrace);
+			free(m->externup->syscalltrace);
 		m->externup->syscalltrace = nil;
 	}else if(m->externup->procctl == Proc_totc || m->externup->procctl == Proc_toac)
 		procctl(m->externup);
