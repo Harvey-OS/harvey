@@ -333,14 +333,17 @@ vmemchr(void *s, int c, int n)
 {
 	int m;
 	uintptr_t a;
-	void *t;
+	char *t;
 
 	a = PTR2UINT(s);
 	while(ROUNDUP(a, BIGPGSZ) != ROUNDUP(a+n-1, BIGPGSZ)){
 		/* spans pages; handle this page */
 		m = BIGPGSZ - (a & (BIGPGSZ-1));
-		t = memchr(UINT2PTR(a), c, m);
-		if(t)
+//		t = memchr(UINT2PTR(a), c, m);
+		for(t = UINT2PTR(a); m > 0; m--, t++)
+			if (*t == c)
+				break;
+		if(*t == c)
 			return t;
 		a += m;
 		n -= m;
@@ -349,7 +352,9 @@ vmemchr(void *s, int c, int n)
 	}
 
 	/* fits in one page */
-	return memchr(UINT2PTR(a), c, n);
+	t =  memchr(UINT2PTR(a), c, n);
+	die("memchr after fits on page FIX ME");
+	return t;
 }
 
 Segment*
