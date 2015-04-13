@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -697,6 +696,7 @@ static Cmdtab i82563ctlmsg[] = {
 static int32_t
 i82563ctl(Ether* edev, void* buf, int32_t n)
 {
+	Mach *m = machp();
 	uint32_t v;
 	char *p;
 	Ctlr *ctlr;
@@ -1222,6 +1222,7 @@ i82563tproc(void *v)
 static void
 i82563attach(Ether* edev)
 {
+	Mach *m = machp();
 	Block *bp;
 	Ctlr *ctlr;
 	char name[KNAMELEN];

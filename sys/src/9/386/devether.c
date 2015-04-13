@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -24,6 +23,7 @@ static Ether *etherxx[MaxEther];
 Chan*
 etherattach(char* spec)
 {
+	Mach *m = machp();
 	uint32_t ctlrno;
 	char *p;
 	Chan *chan;
@@ -253,6 +253,7 @@ etheroq(Ether* ether, Block* bp)
 static int32_t
 etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
 {
+	Mach *m = machp();
 	Ether *ether;
 	Block *bp;
 	int nn, onoff;
@@ -302,6 +303,7 @@ etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
 static int32_t
 etherbwrite(Chan* chan, Block* bp, int64_t mm)
 {
+	Mach *m = machp();
 	Ether *ether;
 	int32_t n;
 

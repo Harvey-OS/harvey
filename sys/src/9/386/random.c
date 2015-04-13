@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -48,6 +47,7 @@ rbnotempty(void* v)
 static void
 genrandom(void* v)
 {
+	Mach *m = machp();
 	m->externup->basepri = PriNormal;
 	m->externup->priority = m->externup->basepri;
 
@@ -105,6 +105,7 @@ randominit(void)
 uint32_t
 randomread(void *xp, uint32_t n)
 {
+	Mach *m = machp();
 	uint8_t *e, *p;
 	uint32_t x;
 

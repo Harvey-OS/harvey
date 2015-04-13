@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -483,6 +482,7 @@ rtl8169multicast(void* ether, uint8_t *eaddr, int add)
 static int32_t
 rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 {
+	Mach *m = machp();
 	Ctlr *ctlr;
 	Dtcc *dtcc;
 	int timeo;
@@ -809,6 +809,7 @@ rtl8169init(Ether* edev)
 static void
 rtl8169attach(Ether* edev)
 {
+	Mach *m = machp();
 	int timeo;
 	Ctlr *ctlr;
 	MiiPhy *phy;
