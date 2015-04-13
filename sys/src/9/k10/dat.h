@@ -410,8 +410,6 @@ struct ISAConf {
  * MMU information array machptr, mainly for disambiguation and access to
  * the clock which is only maintained by the bootstrap processor (0).
  */
-// THIS MUST DIE.
-extern Mach* m;                      /* R15 */
 
 extern uintptr_t kseg0;
 

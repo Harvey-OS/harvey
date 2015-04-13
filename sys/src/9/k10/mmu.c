@@ -729,6 +729,7 @@ int
 mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 	uint64_t (*alloc)(usize))
 {
+	Mach *m = machp();
 	int l;
 	uintmem pa;
 	PTE *pte;
