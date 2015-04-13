@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -308,6 +307,7 @@ void
 arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n,
 	 int refresh)
 {
+	Mach *m = machp();
 	Arp *arp;
 	Route *r;
 	Arpent *a, *f, **l;
@@ -672,6 +672,7 @@ rxready(void *v)
 static void
 rxmitproc(void *v)
 {
+	Mach *m = machp();
 	Arp *arp = v;
 	int32_t wakeupat;
 

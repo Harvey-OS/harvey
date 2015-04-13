@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -89,6 +88,7 @@ netloginit(Fs *f)
 void
 netlogopen(Fs *f)
 {
+	Mach *m = machp();
 	lock(f->alog);
 	if(waserror()){
 		unlock(f->alog);
@@ -108,6 +108,7 @@ netlogopen(Fs *f)
 void
 netlogclose(Fs *f)
 {
+	Mach *m = machp();
 	lock(f->alog);
 	if(waserror()){
 		unlock(f->alog);
@@ -133,6 +134,7 @@ netlogready(void *a)
 int32_t
 netlogread(Fs *f, void *a, uint32_t mm, int32_t n)
 {
+	Mach *m = machp();
 	int i, d;
 	char *p, *rptr;
 
@@ -178,6 +180,7 @@ netlogread(Fs *f, void *a, uint32_t mm, int32_t n)
 void
 netlogctl(Fs *f, char* s, int n)
 {
+	Mach *m = machp();
 	int i, set;
 	Netlogflag *fp;
 	Cmdbuf *cb;

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -233,6 +232,7 @@ iprouting(Fs *f, int on)
 int
 ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
 	uint8_t *gate;
 	uint32_t fragoff;

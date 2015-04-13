@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -154,6 +153,7 @@ static char *nbmsg = "nonblocking";
 static void
 etherbind(Ipifc *ifc, int argc, char **argv)
 {
+	Mach *m = machp();
 	Chan *mchan4, *cchan4, *achan, *mchan6, *cchan6, *schan;
 	char addr[Maxpath];	//char addr[2*KNAMELEN];
 	char dir[Maxpath];	//char dir[2*KNAMELEN];
@@ -268,6 +268,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 static void
 etherunbind(Ipifc *ifc)
 {
+	Mach *m = machp();
 	Etherrock *er = ifc->arg;
 
 	if(er->read4p)
@@ -362,6 +363,7 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip)
 static void
 etherread4(void *a)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
 	Block *bp;
 	Etherrock *er;
@@ -401,6 +403,7 @@ etherread4(void *a)
 static void
 etherread6(void *a)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
 	Block *bp;
 	Etherrock *er;
@@ -705,6 +708,7 @@ recvarp(Ipifc *ifc)
 static void
 recvarpproc(void *v)
 {
+	Mach *m = machp();
 	Ipifc *ifc = v;
 	Etherrock *er = ifc->arg;
 

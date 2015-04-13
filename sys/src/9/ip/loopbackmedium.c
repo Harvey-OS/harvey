@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -50,6 +49,7 @@ loopbackbind(Ipifc *ifc, int i, char** c)
 static void
 loopbackunbind(Ipifc *ifc)
 {
+	Mach *m = machp();
 	LB *lb = ifc->arg;
 
 	if(lb->readp)
@@ -78,6 +78,7 @@ loopbackbwrite(Ipifc *ifc, Block *bp, int i, uint8_t* m)
 static void
 loopbackread(void *a)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
 	Block *bp;
 	LB *lb;

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -146,6 +145,7 @@ struct IP
 int
 ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 {
+	Mach *m = machp();
 	int medialen, len, chunk, uflen, flen, seglen, lid, offset, fragoff;
 	int morefrags, blklen, rv = 0, tentative;
 	uint8_t *gate, nexthdr;

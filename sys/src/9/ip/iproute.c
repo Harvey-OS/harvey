@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -797,6 +796,7 @@ routeflush(Fs *f, Route *r, char *tag)
 int32_t
 routewrite(Fs *f, Chan *c, char *p, int n)
 {
+	Mach *m = machp();
 	int h, changed;
 	char *tag;
 	Cmdbuf *cb;

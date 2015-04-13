@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -183,6 +182,7 @@ ip1gen(Chan *c, int i, Dir *dp)
 static int
 ipgen(Chan *c, char* j, Dirtab* dir, int mm, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Qid q;
 	Conv *cv;
 	Fs *f;
@@ -366,6 +366,7 @@ static int m2p[] = {
 static Chan*
 ipopen(Chan* c, int omode)
 {
+	Mach *m = machp();
 	Conv *cv, *nc;
 	Proto *p;
 	int perm;
@@ -949,6 +950,7 @@ connected(void* a)
 static void
 connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
+	Mach *m = machp();
 	char *p;
 
 	if(c->state != 0)
@@ -1002,6 +1004,7 @@ announced(void* a)
 static void
 announcectlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
+	Mach *m = machp();
 	char *p;
 
 	if(c->state != 0)
@@ -1076,6 +1079,7 @@ ttlctlmsg(Conv *c, Cmdbuf *cb)
 static int32_t
 ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 {
+	Mach *m = machp();
 	Conv *c;
 	Proto *x;
 	char *p;
