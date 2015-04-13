@@ -32,7 +32,7 @@ uintptr_t kseg0 = KZERO;
 Sys* sys = nil;
 usize sizeofSys = sizeof(Sys);
 
-Mach *m;
+Mach *entrym;
 /*
  * Option arguments from the command line.
  * oargv[0] is the boot file.
@@ -98,6 +98,8 @@ options(int argc, char* argv[])
 void
 squidboy(int apicno)
 {
+	// no idea if this will work here. 
+	Mach *m = machp();
 	int64_t hz;
 
 	sys->machptr[m->machno] = m;
@@ -201,6 +203,7 @@ testiccs(void)
 static void
 nixsquids(void)
 {
+	Mach *m = machp();
 	Mach *mp;
 	int i;
 	uint64_t now, start;
@@ -342,7 +345,8 @@ static int x = 0x123456;
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
-  // when we get here, m is set to core0 mach.
+	Mach *m = entrym;
+  // when we get here, entrym is set to core0 mach.
 	sys->machptr[m->machno] = m;
 	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
 	hi("m "); put64((uint64_t)m); hi(" machp "); put64((uint64_t)machp()); hi("\n");
@@ -518,6 +522,7 @@ if (0) sipi();
 void
 init0(void)
 {
+	Mach *m = machp();
 	char buf[2*KNAMELEN];
 
 	m->externup->nerrlab = 0;
@@ -569,7 +574,7 @@ bootargs(uintptr_t base)
 	 * args by subtracting sizeof(m->externup->arg).
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(m->externup->arg) - i));
+	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(entrym->externup->arg) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -594,6 +599,7 @@ bootargs(uintptr_t base)
 void
 userinit(void)
 {
+	Mach *m = machp();
 	Proc *p;
 	Segment *s;
 	KMap *k;
@@ -697,6 +703,7 @@ confinit(void)
 static void
 shutdown(int ispanic)
 {
+	Mach *m = machp();
 	int ms, once;
 
 	lock(&active);

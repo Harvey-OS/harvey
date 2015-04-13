@@ -327,7 +327,7 @@ _zap0done:
 	movq	%rsi, %CR3				/* flush TLB */
 
 	addq	$(2*PTSZ+4*KiB), %rax		/* PD+PT+vsvm */
-	movq	%rax, m
+	movq	%rax, entrym
 	movq	$0, (%rax) 				/* m->machno = 0 */
 
 	PUSHQ	%rdx				/* clear flags */

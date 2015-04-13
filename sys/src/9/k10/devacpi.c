@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -1631,6 +1630,7 @@ acpiread(Chan *c, void *a, int32_t n, int64_t off)
 static int32_t
 acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
+	Mach *m = machp();
 	Cmdtab *ct;
 	Cmdbuf *cb;
 	Reg *r;

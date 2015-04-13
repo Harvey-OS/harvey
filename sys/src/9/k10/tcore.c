@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -32,6 +31,7 @@ extern void acsysret(void);
 Mach*
 getac(Proc *p, int core)
 {
+	Mach *m = machp();
 	int i;
 	Mach *mp;
 
@@ -101,6 +101,7 @@ putac(Mach *m)
 void
 stopac(void)
 {
+	Mach *m = machp();
 	Mach *mp;
 
 	mp = m->externup->ac;
@@ -139,6 +140,7 @@ extern int notify(Ureg*);
 int
 runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 {
+	Mach *m = machp();
 	uint8_t *dpg, *spg;
 
 	if (n > sizeof(mp->icc->data))
@@ -191,6 +193,7 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 static void
 fakeretfromsyscall(Ureg *ureg)
 {
+	Mach *m = machp();
 	int s;
 
 	poperror();	/* as syscall() would do if we would return */
@@ -233,6 +236,7 @@ fakeretfromsyscall(Ureg *ureg)
 void
 runacore(void)
 {
+	Mach *m = machp();
 	Ureg *ureg;
 	void (*fn)(void);
 	int rc, flush, s;
