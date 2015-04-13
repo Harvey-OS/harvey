@@ -446,7 +446,7 @@ function mkdevc(		a, d, i, m, n, s, t, u, name, cname){
 			t = $0;
 	}
 	s = s "char* conffile = \"" t "/" ARGV[argc] "\";\n";
-#	s = s "uint32_t kerndate = KERNDATE;\n";
+	s = s "uint32_t kerndate = KERNDATE;\n";
 
 	return s;
 }

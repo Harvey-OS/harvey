@@ -21,6 +21,9 @@ YACC=yacc
 AWK=awk
 XD=xxd
 
+DATE=$(date +%s)
+EXTKERNDATE="-DKERNDATE=${DATE}"
+
 INC_DIR="/sys/include"
 INCX86_64_DIR="/${objtype}/include"
 LIB_DIR="/${objtype}/lib"
@@ -39,25 +42,21 @@ SOURCE="entry.S *.c ../386/*.c ../ip/*.c ../port/*.c l64v.S l64fpu.S cpuidamd64.
 
 compiling()
 {
-	CFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin ${GDBFLAG}"
+	CFLAGS="-mcmodel=kernel -O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin ${GDBFLAG} ${EXTKERNDATE}"
 	# oh, gcc.
 	CFLAGS="$CFLAGS -fvar-tracking -fvar-tracking-assignments"
 	UCFLAGS="-O${OPTIMIZE} -static ${EXTENSIONS} -ffreestanding -fno-builtin ${GDBFLAG}"
 
 	## General conf file ##
-	##-------------------##
 
 	$AWK -v objtype=$objtype -f ../mk/parse -- -mkdevc $CONF > $CONF.c
 
 	## Assembly world ##
-	##----------------##
 
 	$AWK -f ../mk/mkenumb amd64.h > amd64l.h # mkenumb is shell independent
 
 	## Boot ##
-	##------##
 
-	# Do we really need this?? ##
 	BOOTDIR=../boot
 	BOOTLIB=libboot.a
 
@@ -72,26 +71,22 @@ compiling()
 	)
 
 	echo "CC boot${CONF}"
-	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c boot$CONF.c
+	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -mcmodel=small -c boot$CONF.c
 	echo "CC printstub"
-	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c ../boot/printstub.c
+	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -mcmodel=small -c ../boot/printstub.c
 	echo "LD boot${CONF}.out"
 
-	$LD -static -o boot$CONF.out boot$CONF.o printstub.o $LDFLAGS -L$BOOTDIR -lboot -lip -lauth -lc -emain -Ttext=0x1020
+	$LD -static -o boot$CONF.elf.out boot$CONF.o printstub.o $LDFLAGS -L$BOOTDIR -lboot -lip -lauth -lc -emain -Ttext=0x200020
 
 	## systab.c ##
-	##----------##
 
 	$AWK -f ../mk/parse -- -mksystab /sys/src/libc/9syscall/sys.h $CONF > systab.c
 	$CC $CFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -c systab.c
 
 	## init.h ##
-	##--------##
 
 	$CC $UCFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -mcmodel=small -c init9.c
 	$CC $UCFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -mcmodel=small -c ../port/initcode.c
-
-	# I'm sure this binary is wrong. Check when kernel will build entirely
 
 	$LD -static -o init.elf.out init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020
 	objcopy -j .text  -O binary init.elf.out init.code.out
@@ -101,29 +96,37 @@ compiling()
 	$XD -i init.data.out >> init.h
 
 	## errstr.h ##
-	##----------##
 
 	$AWK -f ../mk/parse -- -mkerrstr $CONF > errstr.h
 
 	## mkroot ##
-	##--------##
 
-	# We need data2c!! added to plan9-gpl/util
+	# We need data2c, look at plan9-gpl/util
 
-	# Do we must strip binary?
-	strip bootk8cpu.out
-	data2c bootk8cpu_out bootk8cpu.out >> k8cpu.root.c
+	objcopy -j .text  -O binary boot$CONF.elf.out boot$CONF.code.out
+	objcopy -j .data  -O binary boot$CONF.elf.out boot$CONF.data.out
+	file boot$CONF*.out
+	cat boot$CONF.code.out boot$CONF.data.out >> boot$CONF.all.out
+	
+	data2c bootk8cpu_out boot$CONF.all.out >> k8cpu.root.c
 
-	# We haven't these for now. If strip it's not needed, cp step should be gone and /amd64/binary should be passed to data2c.
-	#cp /amd64/bin/auth/factotum factotum; strip factotum
-    #data2c _amd64_bin_auth_factotum  factotum >> k8cpu.root.c
-    #cp /amd64/bin/ip/ipconfig ipconfig; strip ipconfig
-	#data2c _amd64_bin_ip_ipconfig  ipconfig >> k8cpu.root.c
+	# We haven't these for now. Must be concatenated text+data as with boot$CONF.elf.out.
 
-	## Let's go! ##
-	##-----------##
+	#cp /amd64/bin/auth/factotum factotum
+	#objcopy -j .text  -O binary factotum.elf.out factotum.code.out
+	#objcopy -j .data  -O binary factotum.elf.out factotum.data.out
+	#file factotum*.out
+	#cat factotum.code.out factotum.data.out >> factotum.all.out
+    #data2c _amd64_bin_auth_factotum  factotum.all.out >> k8cpu.root.c
 
-	# Do we really need all of *.c sources?? #
+    #cp /amd64/bin/ip/ipconfig ipconfig
+    #objcopy -j .text  -O binary ipconfig.elf.out ipconfig.code.out
+	#objcopy -j .data  -O binary ipconfig.elf.out ipconfig.data.out
+	#file ipconfig*.out
+	#cat ipconfig.code.out ipconfig.data.out >> ipconfig.all.out
+	#data2c _amd64_bin_ip_ipconfig  ipconfig.all.out >> k8cpu.root.c
+
+	## Making all ##
 
 	echo "Making all in kernel directories"
 	echo
@@ -139,9 +142,7 @@ linking()
 	# building from akaros
 	# this just got ugly.
 	# entry.o MUST be first.
-  /bin/bash link.bash  entry.o `echo *.o | sed s/entry.o//` /amd64/lib/klibc.a /amd64/lib/klibip.a
-
-  # not likely what we want for a kernel. $COLLECT $COLLECTFLAGS -static -o 9 *.o $LDFLAGS -lip -lauth -lc
+	/bin/bash link.bash  entry.o `echo *.o | sed s/entry.o//` /amd64/lib/klibc.a /amd64/lib/klibip.a
 }
 
 args=("$@")

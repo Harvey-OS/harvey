@@ -18,9 +18,6 @@
 #include "io.h"
 #include "amd64.h"
 
-#warning "what is kerndate?"
-uint32_t kerndate = 0;
-
 Conf conf;			/* XXX - must go - gag */
 
 extern void crapoptions(void);	/* XXX - must go */
