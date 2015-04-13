@@ -886,7 +886,7 @@ ipunconfig(void)
 }
 
 void
-ding(void*, char *msg)
+ding(void* v, char *msg)
 {
 	if(strstr(msg, "alarm"))
 		noted(NCONT);

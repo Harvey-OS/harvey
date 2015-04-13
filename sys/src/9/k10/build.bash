@@ -120,12 +120,14 @@ compiling()
 	cat factotum.code.out factotum.data.out >> factotum.all.out
 	data2c _amd64_bin_auth_factotum  factotum.all.out >> k8cpu.root.c
 
-	#cp /amd64/bin/ip/ipconfig ipconfig
-	#objcopy -j .text  -O binary ipconfig.elf.out ipconfig.code.out
-	#objcopy -j .data  -O binary ipconfig.elf.out ipconfig.data.out
-	#file ipconfig*.out
-	#cat ipconfig.code.out ipconfig.data.out >> ipconfig.all.out
-	#data2c _amd64_bin_ip_ipconfig  ipconfig.all.out >> k8cpu.root.c
+	# You need to run BUILDKIPCONFIG into /sys/src/cmd/ip/ipconfig
+	# in order to have working this.
+	
+	objcopy -j .text  -O binary /sys/src/cmd/ip/ipconfig/ipconfig.elf.out ipconfig.code.out
+	objcopy -j .data  -O binary /sys/src/cmd/ip/ipconfig/ipconfig.elf.out ipconfig.data.out
+	file ipconfig*.out
+	cat ipconfig.code.out ipconfig.data.out >> ipconfig.all.out
+	data2c _amd64_bin_ip_ipconfig  ipconfig.all.out >> k8cpu.root.c
 
 	## Making all ##
 

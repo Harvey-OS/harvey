@@ -134,7 +134,7 @@ enum
 	OP9ipaddr=		132,	/* client's address */
 	OP9ipmask=		133,	/* client's subnet mask */
 	OP9ipgw=		134,	/* client's gateway */
-/*	OP9dns=			135,	/* dns servers */
+/*	OP9dns=			135,*/	/* dns servers */
 };
 
 /* a lease that never expires */
@@ -154,22 +154,22 @@ typedef struct Bootp	Bootp;
 struct Bootp
 {
 	/* Udphdr (included because of structure alignment on the alpha) */
-	uchar	udphdr[Udphdrsize];
+	unsigned char	udphdr[Udphdrsize];
 
-	uchar	op;			/* opcode */
-	uchar	htype;			/* hardware type */
-	uchar	hlen;			/* hardware address len */
-	uchar	hops;			/* hops */
-	uchar	xid[4];			/* a random number */
-	uchar	secs[2];		/* elapsed since client started booting */
-	uchar	flags[2];
-	uchar	ciaddr[IPv4addrlen];	/* client IP address (client tells server) */
-	uchar	yiaddr[IPv4addrlen];	/* client IP address (server tells client) */
-	uchar	siaddr[IPv4addrlen];	/* server IP address */
-	uchar	giaddr[IPv4addrlen];	/* gateway IP address */
-	uchar	chaddr[Maxhwlen];	/* client hardware address */
+	unsigned char	op;			/* opcode */
+	unsigned char	htype;			/* hardware type */
+	unsigned char	hlen;			/* hardware address len */
+	unsigned char	hops;			/* hops */
+	unsigned char	xid[4];			/* a random number */
+	unsigned char	secs[2];		/* elapsed since client started booting */
+	unsigned char	flags[2];
+	unsigned char	ciaddr[IPv4addrlen];	/* client IP address (client tells server) */
+	unsigned char	yiaddr[IPv4addrlen];	/* client IP address (server tells client) */
+	unsigned char	siaddr[IPv4addrlen];	/* server IP address */
+	unsigned char	giaddr[IPv4addrlen];	/* gateway IP address */
+	unsigned char	chaddr[Maxhwlen];	/* client hardware address */
 	char	sname[64];		/* server host name (optional) */
 	char	file[Maxfilelen];	/* boot file name */
-	uchar	optmagic[4];
-	uchar	optdata[Maxoptlen];
+	unsigned char	optmagic[4];
+	unsigned char	optdata[Maxoptlen];
 };

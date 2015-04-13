@@ -24,9 +24,9 @@
 
 #define RALOG "v6routeradv"
 
-#define NetS(x) (((uchar*)x)[0]<< 8 | ((uchar*)x)[1])
-#define NetL(x) (((uchar*)x)[0]<<24 | ((uchar*)x)[1]<<16 | \
-		 ((uchar*)x)[2]<< 8 | ((uchar*)x)[3])
+#define NetS(x) (((unsigned char*)x)[0]<< 8 | ((unsigned char*)x)[1])
+#define NetL(x) (((unsigned char*)x)[0]<<24 | ((unsigned char*)x)[1]<<16 | \
+		 ((unsigned char*)x)[2]<< 8 | ((unsigned char*)x)[3])
 
 enum {
 	ICMP6LEN=	4,
@@ -512,7 +512,7 @@ sendrs(int fd)
 static void
 recvrarouter(uint8_t buf[], int pktlen)
 {
-	USED(buf, pktlen);
+	USED(buf); USED(pktlen);
 	ralog("i am a router and got a router advert");
 }
 

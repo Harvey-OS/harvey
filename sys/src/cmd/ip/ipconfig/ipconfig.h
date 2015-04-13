@@ -19,22 +19,22 @@ struct Conf
 	int	cfd;			/* ifc control channel */
 	int	dfd;			/* ifc data channel (for ppp) */
 	char	*cputype;
-	uchar	hwa[32];		/* hardware address */
+	unsigned char	hwa[32];		/* hardware address */
 	int	hwatype;
 	int	hwalen;
-	uchar	cid[32];
+	unsigned char	cid[32];
 	int	cidlen;
 	char	*baud;
 
 	/* learned info */
-	uchar	gaddr[IPaddrlen];
-	uchar	laddr[IPaddrlen];
-	uchar	mask[IPaddrlen];
-	uchar	raddr[IPaddrlen];
-	uchar	dns[2*IPaddrlen];
-	uchar	fs[2*IPaddrlen];
-	uchar	auth[2*IPaddrlen];
-	uchar	ntp[IPaddrlen];
+	unsigned char	gaddr[IPaddrlen];
+	unsigned char	laddr[IPaddrlen];
+	unsigned char	mask[IPaddrlen];
+	unsigned char	raddr[IPaddrlen];
+	unsigned char	dns[2*IPaddrlen];
+	unsigned char	fs[2*IPaddrlen];
+	unsigned char	auth[2*IPaddrlen];
+	unsigned char	ntp[IPaddrlen];
 	int	mtu;
 
 	/* dhcp specific */
@@ -45,7 +45,7 @@ struct Conf
 	char	sname[64];
 	char	hostname[32];
 	char	domainname[64];
-	uchar	server[IPaddrlen];	/* server IP address */
+	unsigned char	server[IPaddrlen];	/* server IP address */
 	uint32_t	offered;		/* offered lease time */
 	uint32_t	lease;			/* lease time */
 	uint32_t	resend;			/* # of resends for current state */
@@ -59,10 +59,10 @@ struct Conf
 //	ulong	solicit_retries;
 
 	/* router-advertisement related */
-	uchar	sendra;
-	uchar	recvra;
-	uchar	mflag;
-	uchar	oflag;
+	unsigned char	sendra;
+	unsigned char	recvra;
+	unsigned char	mflag;
+	unsigned char	oflag;
 	int 	maxraint; /* rfc2461, p.39: 4sec ≤ maxraint ≤ 1800sec, def 600 */
 	int	minraint;	/* 3sec ≤ minraint ≤ 0.75*maxraint */
 	int	linkmtu;
@@ -70,14 +70,14 @@ struct Conf
 	int	rxmitra;	/* default 0 */
 	int	ttl;		/* default 0 (unspecified) */
 	/* default gateway params */
-	uchar	v6gaddr[IPaddrlen];
+	unsigned char	v6gaddr[IPaddrlen];
 	int	routerlt;	/* router life time */
 
 	/* prefix related */
-	uchar	v6pref[IPaddrlen];
+	unsigned char	v6pref[IPaddrlen];
 	int	prefixlen;
-	uchar	onlink;		/* flag: address is `on-link' */
-	uchar	autoflag;	/* flag: autonomous */
+	unsigned char	onlink;		/* flag: address is `on-link' */
+	unsigned char	autoflag;	/* flag: autonomous */
 	uint32_t	validlt;	/* valid lifetime (seconds) */
 	uint32_t	preflt;		/* preferred lifetime (seconds) */
 };
@@ -104,7 +104,7 @@ extern int	dupl_disc;
 extern int	myifc;
 extern char	*vs;
 
-void	adddefroute(char*, uchar*);
+void	adddefroute(char*, unsigned char*);
 void	binddevice(void);
 void	bootprequest(void);
 void	controldevice(void);
@@ -119,32 +119,32 @@ void	dounbind(void);
 int	getndb(void);
 int	ipconfig4(void);
 int	ipconfig6(int);
-long	jitter(void);
+int32_t	jitter(void);
 void	lookforip(char*);
 void	mkclientid(void);
 int	nipifcs(char*);
 int	openlisten(void);
-uchar	*optaddaddr(uchar*, int, uchar*);
-uchar	*optaddbyte(uchar*, int, int);
-uchar	*optaddstr(uchar*, int, char*);
-uchar	*optadd(uchar*, int, void*, int);
-uchar	*optaddulong(uchar*, int, uint32_t);
-uchar	*optaddvec(uchar*, int, uchar*, int);
-int	optgetaddrs(uchar*, int, uchar*, int);
-int	optgetaddr(uchar*, int, uchar*);
-int	optgetbyte(uchar*, int);
-int	optgetstr(uchar*, int, char*, int);
-uchar	*optget(uchar*, int, int*);
-uint32_t	optgetulong(uchar*, int);
-int	optgetvec(uchar*, int, uchar*, int);
-int	parseoptions(uchar *p, int n);
+unsigned char	*optaddaddr(unsigned char*, int, unsigned char*);
+unsigned char	*optaddbyte(unsigned char*, int, int);
+unsigned char	*optaddstr(unsigned char*, int, char*);
+unsigned char	*optadd(unsigned char*, int, void*, int);
+unsigned char	*optaddulong(unsigned char*, int, uint32_t);
+unsigned char	*optaddvec(unsigned char*, int, unsigned char*, int);
+int	optgetaddrs(unsigned char*, int, unsigned char*, int);
+int	optgetaddr(unsigned char*, int, unsigned char*);
+int	optgetbyte(unsigned char*, int);
+int	optgetstr(unsigned char*, int, char*, int);
+unsigned char	*optget(unsigned char*, int, int*);
+uint32_t	optgetulong(unsigned char*, int);
+int	optgetvec(unsigned char*, int, unsigned char*, int);
+int	parseoptions(unsigned char *p, int n);
 int	parseverb(char*);
 void	procsetname(char *fmt, ...);
 void	putndb(void);
 uint32_t	randint(uint32_t low, uint32_t hi);
 void	tweakservers(void);
 void	usage(void);
-int	validip(uchar*);
+int	validip(unsigned char*);
 void	warning(char *fmt, ...);
 void	writendb(char*, int, int);
 
@@ -208,63 +208,63 @@ enum {
 };
 
 struct Headers {
-	uchar	dst[IPaddrlen];
-	uchar	src[IPaddrlen];
+	unsigned char	dst[IPaddrlen];
+	unsigned char	src[IPaddrlen];
 };
 
 struct Routersol {
-	uchar	vcf[4];		/* version:4, traffic class:8, flow label:20 */
-	uchar	ploadlen[2];	/* payload length: packet length - 40 */
-	uchar	proto;		/* next header	type */
-	uchar	ttl;		/* hop limit */
-	uchar	src[IPaddrlen];
-	uchar	dst[IPaddrlen];
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	res[4];
+	unsigned char	vcf[4];		/* version:4, traffic class:8, flow label:20 */
+	unsigned char	ploadlen[2];	/* payload length: packet length - 40 */
+	unsigned char	proto;		/* next header	type */
+	unsigned char	ttl;		/* hop limit */
+	unsigned char	src[IPaddrlen];
+	unsigned char	dst[IPaddrlen];
+	unsigned char	type;
+	unsigned char	code;
+	unsigned char	cksum[2];
+	unsigned char	res[4];
 };
 
 struct Routeradv {
-	uchar	vcf[4];		/* version:4, traffic class:8, flow label:20 */
-	uchar	ploadlen[2];	/* payload length: packet length - 40 */
-	uchar	proto;		/* next header	type */
-	uchar	ttl;		/* hop limit */
-	uchar	src[IPaddrlen];
-	uchar	dst[IPaddrlen];
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	cttl;
-	uchar	mor;
-	uchar	routerlt[2];
-	uchar	rchbltime[4];
-	uchar	rxmtimer[4];
+	unsigned char	vcf[4];		/* version:4, traffic class:8, flow label:20 */
+	unsigned char	ploadlen[2];	/* payload length: packet length - 40 */
+	unsigned char	proto;		/* next header	type */
+	unsigned char	ttl;		/* hop limit */
+	unsigned char	src[IPaddrlen];
+	unsigned char	dst[IPaddrlen];
+	unsigned char	type;
+	unsigned char	code;
+	unsigned char	cksum[2];
+	unsigned char	cttl;
+	unsigned char	mor;
+	unsigned char	routerlt[2];
+	unsigned char	rchbltime[4];
+	unsigned char	rxmtimer[4];
 };
 
 struct Lladdropt {
-	uchar	type;
-	uchar	len;
-	uchar	lladdr[MAClen];
+	unsigned char	type;
+	unsigned char	len;
+	unsigned char	lladdr[MAClen];
 };
 
 struct Prefixopt {
-	uchar	type;
-	uchar	len;
-	uchar	plen;
-	uchar	lar;
-	uchar	validlt[4];
-	uchar	preflt[4];
-	uchar	reserv[4];
-	uchar	pref[IPaddrlen];
+	unsigned char	type;
+	unsigned char	len;
+	unsigned char	plen;
+	unsigned char	lar;
+	unsigned char	validlt[4];
+	unsigned char	preflt[4];
+	unsigned char	reserv[4];
+	unsigned char	pref[IPaddrlen];
 };
 
 struct Mtuopt {
-	uchar	type;
-	uchar	len;
-	uchar	reserv[2];
-	uchar	mtu[4];
+	unsigned char	type;
+	unsigned char	len;
+	unsigned char	reserv[2];
+	unsigned char	mtu[4];
 };
 
-void	ea2lla(uchar *lla, uchar *ea);
-void	ipv62smcast(uchar *smcast, uchar *a);
+void	ea2lla(unsigned char *lla, unsigned char *ea);
+void	ipv62smcast(unsigned char *smcast, unsigned char *a);
