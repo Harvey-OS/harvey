@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -72,6 +71,7 @@ isphysseg(char *name)
 uintptr_t
 ibrk(uintptr_t addr, int seg)
 {
+	Mach *m = machp();
 	Segment *s, *ns;
 	uintptr_t newtop, rtop;
 	int32_t newsize;
@@ -168,6 +168,7 @@ assert(newsize >= 0);
 void
 syssegbrk(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	int i;
 	uintptr_t addr;
 	Segment *s;
@@ -228,6 +229,7 @@ sysbrk_(Ar0* ar0, va_list list)
 static uintptr_t
 segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 {
+	Mach *m = machp();
 	int sno;
 	Segment *s, *os;
 	Physseg *ps;
@@ -321,6 +323,7 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 void
 syssegattach(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	int attr;
 	char *name;
 	uintptr_t va;
@@ -342,6 +345,7 @@ syssegattach(Ar0* ar0, va_list list)
 void
 syssegdetach(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	int i;
 	uintptr_t addr;
 	Segment *s;
@@ -394,6 +398,7 @@ found:
 void
 syssegfree(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Segment *s;
 	uintptr_t from, to;
 	usize len;
@@ -438,6 +443,7 @@ pteflush(Pte *pte, int s, int e)
 void
 syssegflush(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Segment *s;
 	uintptr_t addr;
 	Pte *pte;

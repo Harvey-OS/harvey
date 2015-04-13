@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -108,6 +107,7 @@ mntreset(void)
 usize
 mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 {
+	Mach *m = machp();
 	Fcall f;
 	uint8_t *msg;
 	Mnt *mnt;
@@ -260,6 +260,7 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 Chan*
 mntauth(Chan *c, char *spec)
 {
+	Mach *m = machp();
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -312,6 +313,7 @@ mntauth(Chan *c, char *spec)
 static Chan*
 mntattach(char *muxattach)
 {
+	Mach *m = machp();
 	Mnt *mnt;
 	Chan *c;
 	Mntrpc *r;
@@ -393,6 +395,7 @@ mntchan(void)
 static Walkqid*
 mntwalk(Chan *c, Chan *nc, char **name, int nname)
 {
+	Mach *m = machp();
 	int i, alloc;
 	Mnt *mnt;
 	Mntrpc *r;
@@ -476,6 +479,7 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 static int32_t
 mntstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Mach *m = machp();
 	Mnt *mnt;
 	Mntrpc *r;
 	usize nstat;
@@ -510,6 +514,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 static Chan*
 mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 {
+	Mach *m = machp();
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -559,6 +564,7 @@ mntcreate(Chan *c, char *name, int omode, int perm)
 static void
 mntclunk(Chan *c, int t)
 {
+	Mach *m = machp();
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -629,6 +635,7 @@ mntremove(Chan *c)
 static int32_t
 mntwstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Mach *m = machp();
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -701,6 +708,7 @@ mntwrite(Chan *c, void *buf, int32_t n, int64_t off)
 int32_t
 mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 {
+	Mach *m = machp();
 	Mnt *mnt;
  	Mntrpc *r;
 	char *uba;
@@ -753,6 +761,7 @@ mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 void
 mountrpc(Mnt *mnt, Mntrpc *r)
 {
+	Mach *m = machp();
 	char *sn, *cn;
 	int t;
 
@@ -787,6 +796,7 @@ mountrpc(Mnt *mnt, Mntrpc *r)
 void
 mountio(Mnt *mnt, Mntrpc *r)
 {
+	Mach *m = machp();
 	int n;
 
 	while(waserror()) {

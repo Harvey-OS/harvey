@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -37,6 +36,7 @@ extern Dev pcidevtab;
 static int
 pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 {
+	Mach *m = machp();
 	Qid q;
 
 	q = (Qid){BUSBDF(tbdf)|t, 0, 0};
@@ -58,6 +58,7 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 static int
 pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 {
+	Mach *m = machp();
 	int tbdf;
 	Pcidev *p;
 	Qid q;

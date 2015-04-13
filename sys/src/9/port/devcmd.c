@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -116,6 +115,7 @@ cmd3gen(Chan *c, int i, Dir *dp)
 static int
 cmdgen(Chan *c, char *name, Dirtab *d, int nd, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Qid q;
 	Conv *cv;
 
@@ -218,6 +218,7 @@ cmdstat(Chan *c, uint8_t *db, int32_t n)
 static Chan *
 cmdopen(Chan *c, int omode)
 {
+	Mach *m = machp();
 	int perm;
 	Conv *cv;
 	char *user;
@@ -387,6 +388,7 @@ cmdclose(Chan *c)
 static int32_t
 cmdread(Chan *ch, void *a, int32_t n, int64_t offset)
 {
+	Mach *m = machp();
 	Conv *c;
 	Proc *p;
 	char *s, *cmds;
@@ -485,6 +487,7 @@ Cmdtab cmdtab[] = {
 static int32_t
 cmdwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 {
+	Mach *m = machp();
 	int i, r = 0;
 	Conv *c;
 	Segment *s;
@@ -586,6 +589,7 @@ cmdwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 static int32_t
 cmdwstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Mach *m = machp();
 	Dir *d;
 	Conv *cv;
 

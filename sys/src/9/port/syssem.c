@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -35,6 +34,7 @@ static int semtrytimes = 100;
 static void
 semwakeup(Sem *s, int didwake, int dolock)
 {
+	Mach *m = machp();
 	Proc *p;
 
 	DBG("semwakeup up %#p sem %#p\n", m->externup, s->np);
@@ -72,6 +72,7 @@ semwakeup(Sem *s, int didwake, int dolock)
 static void
 semsleep(Sem *s, int dontblock)
 {
+	Mach *m = machp();
 	DBG("semsleep up %#p sem %#p\n", m->externup, s->np);
 	if(dontblock){
 		/*
@@ -127,6 +128,7 @@ Done:
 void
 syssemsleep(Ar0* ar, va_list list)
 {
+	Mach *m = machp();
 	int *np;
 	int dontblock;
 	Sem *s;
@@ -148,6 +150,7 @@ syssemsleep(Ar0* ar, va_list list)
 void
 syssemwakeup(Ar0* ar, va_list list)
 {
+	Mach *m = machp();
 	int *np;
 	Sem *s;
 	Segment *sg;
@@ -167,6 +170,7 @@ syssemwakeup(Ar0* ar, va_list list)
 static void
 semdequeue(Sem *s)
 {
+	Mach *m = machp();
 	int i;
 
 	assert(s != nil);
@@ -197,6 +201,7 @@ semdequeue(Sem *s)
 static int
 semalt(Sem *ss[], int n)
 {
+	Mach *m = machp();
 	int i, j, r;
 	Sem *s;
 
@@ -238,6 +243,7 @@ Done:
 void
 syssemalt(Ar0 *ar0, va_list list)
 {
+	Mach *m = machp();
 	int **sl;
 	int i, *np, ns;
 	Segment *sg;

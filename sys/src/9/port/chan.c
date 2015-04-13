@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -109,6 +108,7 @@ emptystr(char *s)
 void
 kstrdup(char **p, char *s)
 {
+	Mach *m = machp();
 	int n;
 	char *t, *prev;
 
@@ -387,6 +387,7 @@ chanfree(Chan *c)
 void
 cclose(Chan *c)
 {
+	Mach *m = machp();
 	if(c->flag&CFREE)
 		panic("cclose %#p", getcallerpc(&c));
 
@@ -451,6 +452,7 @@ clunkwork(void* v)
 static void
 closeproc(void* v)
 {
+	Mach *m = machp();
 	Chan *c;
 
 	for(;;){
@@ -546,6 +548,7 @@ newmhead(Chan *from)
 int
 cmount(Chan **newp, Chan *old, int flag, char *spec)
 {
+	Mach *m = machp();
 	int order, flg;
 	Chan *new;
 	Mhead *mhead, **l, *mh;
@@ -664,6 +667,7 @@ cmount(Chan **newp, Chan *old, int flag, char *spec)
 void
 cunmount(Chan *mnt, Chan *mounted)
 {
+	Mach *m = machp();
 	Pgrp *pg;
 	Mhead *mh, **l;
 	Mount *f, **p;
@@ -755,6 +759,7 @@ cclone(Chan *c)
 int
 findmount(Chan **cp, Mhead **mp, int dc, uint devno, Qid qid)
 {
+	Mach *m = machp();
 	Pgrp *pg;
 	Mhead *mh;
 
@@ -849,6 +854,7 @@ undomount(Chan *c, Path *path)
 static Walkqid*
 ewalk(Chan *c, Chan *nc, char **name, int nname)
 {
+	Mach *m = machp();
 	Walkqid *wq;
 
 	if(waserror())
@@ -866,6 +872,7 @@ static char Edoesnotexist[] = "does not exist";
 int
 walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 {
+	Mach *m = machp();
 	int dc, devno, didmount, dotdot, i, n, nhave, ntry;
 	Chan *c, *nc, *mtpt;
 	Path *path;
@@ -1041,6 +1048,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 Chan*
 createdir(Chan *c, Mhead *mh)
 {
+	Mach *m = machp();
 	Chan *nc;
 	Mount *f;
 
@@ -1151,6 +1159,7 @@ memrchr(void *va, int c, int32_t n)
 static void
 namelenerror(char *aname, int len, char *err)
 {
+	Mach *m = machp();
 	char *ename, *name, *next;
 	int i, errlen;
 
@@ -1218,6 +1227,7 @@ nameerror(char *name, char *err)
 Chan*
 namec(char *aname, int amode, int omode, int perm)
 {
+	Mach *m = machp();
 	int len, n, nomount;
 	Chan *c, *cnew;
 	Path *path;
@@ -1619,6 +1629,7 @@ char isfrog[256]={
 static char*
 validname0(char *aname, int slashok, int dup, uintptr_t pc)
 {
+	Mach *m = machp();
 	char *ename, *name, *s;
 	int c, n;
 	Rune r;

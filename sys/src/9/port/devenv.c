@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -42,6 +41,7 @@ envlookup(Egrp *eg, char *name, uint32_t qidpath)
 static int
 envgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Egrp *eg;
 	Evalue *e;
 
@@ -150,6 +150,7 @@ envopen(Chan *c, int omode)
 static void
 envcreate(Chan *c, char *name, int omode, int i)
 {
+	Mach *m = machp();
 	Egrp *eg;
 	Evalue *e;
 	Evalue **ent;
@@ -377,6 +378,7 @@ closeegrp(Egrp *eg)
 static Egrp*
 envgrp(Chan *c)
 {
+	Mach *m = machp();
 	if(c->aux == nil)
 		return m->externup->egrp;
 	return c->aux;
@@ -411,6 +413,7 @@ ksetenv(char *ename, char *eval, int conf)
 char *
 getconfenv(void)
 {
+	Mach *m = machp();
 	Egrp *eg = &confegrp;
 	Evalue *e;
 	char *p, *q;

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -126,6 +125,7 @@ scsiverify(SDunit* unit)
 static int
 scsirio(SDreq* r)
 {
+	Mach *m = machp();
 	/*
 	 * Perform an I/O request, returning
 	 *	-1	failure

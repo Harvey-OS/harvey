@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -66,6 +65,7 @@ fmtuserstring(Fmt* f, char* a, char* suffix)
 void
 syscallfmt(int syscallno, ...)
 {
+	Mach *m = machp();
 	va_list list;
 	int32_t l;
 	uint32_t ul;
@@ -368,6 +368,7 @@ void
 sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 	  uint64_t stop, ...)
 {
+	Mach *m = machp();
 	va_list list;
 	int32_t l;
 	void* v;

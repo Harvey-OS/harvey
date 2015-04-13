@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -64,6 +63,7 @@ enum {
 Proc*
 setupseg(int core)
 {
+	Mach *m = machp();
 	Segment *s;
 	uintptr_t  ka;
 	Proc *p;

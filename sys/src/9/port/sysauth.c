@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -26,12 +25,14 @@ char	hostdomain[DOMLEN];
 int
 iseve(void)
 {
+	Mach *m = machp();
 	return strcmp(eve, m->externup->user) == 0;
 }
 
 void
 sysfversion(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Chan *c;
 	char *version;
 	int fd;
@@ -88,6 +89,7 @@ sys_fsession(Ar0* ar0, va_list list)
 void
 sysfauth(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Chan *c, *ac;
 	char *aname;
 	int fd;
@@ -141,6 +143,7 @@ sysfauth(Ar0* ar0, va_list list)
 int32_t
 userwrite(char* a, int32_t n)
 {
+	Mach *m = machp();
 	if(n != 4 || strncmp(a, "none", 4) != 0)
 		error(Eperm);
 	kstrdup(&m->externup->user, "none");
@@ -157,6 +160,7 @@ userwrite(char* a, int32_t n)
 int32_t
 hostownerwrite(char* a, int32_t n)
 {
+	Mach *m = machp();
 	char buf[128];
 
 	if(!iseve())

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -204,6 +203,7 @@ Walkqid*
 devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 	Devgen *gen)
 {
+	Mach *m = machp();
 	print_func_entry();
 	int i, j, alloc;
 	Walkqid *wq;
@@ -399,6 +399,7 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 void
 devpermcheck(char *fileuid, int perm, int omode)
 {
+	Mach *m = machp();
 	print_func_entry();
 	int t;
 	static int access[] = { 0400, 0200, 0600, 0100 };
@@ -459,6 +460,7 @@ devcreate(Chan* c, char* d, int i, int n)
 Block*
 devbread(Chan *c, int32_t n, int64_t offset)
 {
+	Mach *m = machp();
 	print_func_entry();
 	Block *bp;
 
@@ -478,6 +480,7 @@ devbread(Chan *c, int32_t n, int64_t offset)
 int32_t
 devbwrite(Chan *c, Block *bp, int64_t offset)
 {
+	Mach *m = machp();
 	print_func_entry();
 	int32_t n;
 

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -114,6 +113,7 @@ tdel(Timer *dt)
 void
 timeradd(Timer *nt)
 {
+	Mach *m = machp();
 	Timers *tt;
 	int64_t when;
 
@@ -137,6 +137,7 @@ timeradd(Timer *nt)
 void
 timerdel(Timer *dt)
 {
+	Mach *m = machp();
 	Timers *tt;
 	int64_t when;
 
@@ -154,6 +155,7 @@ timerdel(Timer *dt)
 void
 hzclock(Ureg *ur)
 {
+	Mach *m = machp();
 	uintptr_t pc;
 
 	m->ticks++;
@@ -193,6 +195,7 @@ hzclock(Ureg *ur)
 void
 timerintr(Ureg *u, int64_t j)
 {
+	Mach *m = machp();
 	Timer *t;
 	Timers *tt;
 	int64_t when, now;

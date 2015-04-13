@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -771,6 +770,7 @@ cecfixup(void)
 static void
 cecon(char *path)
 {
+	Mach *m = machp();
 	char buf[64];
 	uint8_t ea[6];
 	Chan *dc, *cc;

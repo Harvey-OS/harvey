@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -78,6 +77,7 @@ devtabget(int dc, int user)
 int32_t
 devtabread(Chan* c, void* buf, int32_t n, int64_t off)
 {
+	Mach *m = machp();
 	int i;
 	Dev *dev;
 	char *alloc, *e, *p;

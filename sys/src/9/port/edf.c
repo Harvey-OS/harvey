@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -140,6 +139,7 @@ edfinit(Proc*p)
 static void
 deadlineintr(Ureg* ureg, Timer *t)
 {
+	Mach *m = machp();
 	/* Proc reached deadline */
 	extern int panicking;
 	Sched *sch;
@@ -216,6 +216,7 @@ release(Proc *p)
 static void
 releaseintr(Ureg* ureg, Timer *t)
 {
+	Mach *m = machp();
 	Proc *p;
 	extern int panicking;
 	Sched *sch;
@@ -348,6 +349,7 @@ edfrun(Proc *p, int edfpri)
 char *
 edfadmit(Proc *p)
 {
+	Mach *m = machp();
 	char *err;
 	Edf *e;
 	int i;
@@ -461,6 +463,7 @@ edfstop(Proc *p)
 static int
 yfn(void *v)
 {
+	Mach *m = machp();
 	now = ms();
 	return m->externup->trend == nil || now - m->externup->edf->r >= 0;
 }
@@ -468,6 +471,7 @@ yfn(void *v)
 void
 edfyield(void)
 {
+	Mach *m = machp();
 	/* sleep until next release */
 	Edf *e;
 	int32_t n;
@@ -504,6 +508,7 @@ edfyield(void)
 int
 edfready(Proc *p)
 {
+	Mach *m = machp();
 	Edf *e;
 	Sched *sch;
 	Schedq *rq;

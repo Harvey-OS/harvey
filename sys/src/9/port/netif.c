@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -45,6 +44,7 @@ netifinit(Netif *nif, char *name, int nfile, uint32_t limit)
 static int
 netifgen(Chan *c, char* j, Dirtab *vp, int n, int i, Dir *dp)
 {
+	Mach *m = machp();
 	Qid q;
 	Netif *nif = (Netif*)vp;
 	Netfile *f;
@@ -173,6 +173,7 @@ netifwalk(Netif *nif, Chan *c, Chan *nc, char **name, int nname)
 Chan*
 netifopen(Netif *nif, Chan *c, int omode)
 {
+	Mach *m = machp();
 	int id;
 	Netfile *f;
 
@@ -216,6 +217,7 @@ netifopen(Netif *nif, Chan *c, int omode)
 int32_t
 netifread(Netif *nif, Chan *c, void *a, int32_t n, int64_t off)
 {
+	Mach *m = machp();
 	int i, j;
 	Netfile *f;
 	char *p;
@@ -311,6 +313,7 @@ typeinuse(Netif *nif, int type)
 int32_t
 netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 {
+	Mach *m = machp();
 	Netfile *f;
 	int type, mtu;
 	char *p, buf[64];
@@ -399,6 +402,7 @@ netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 int32_t
 netifwstat(Netif *nif, Chan *c, uint8_t *db, int32_t n)
 {
+	Mach *m = machp();
 	Dir *dir;
 	Netfile *f;
 	int l;
@@ -526,6 +530,7 @@ netown(Netfile *p, char *o, int omode)
 static int
 openfile(Netif *nif, int id)
 {
+	Mach *m = machp();
 	Netfile *f, **fp, **efp;
 
 	if(id >= 0){

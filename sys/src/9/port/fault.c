@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -25,6 +24,7 @@ typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 int
 fault(uintptr_t addr, int read)
 {
+	Mach *m = machp();
 	Segment *s;
 	char *sps;
 	int i, color;
@@ -71,6 +71,7 @@ if(m->externup->nlocks) print("fault nlocks %d\n", m->externup->nlocks);
 static void
 faulterror(char *s, Chan *c, int freemem)
 {
+	Mach *m = machp();
 	char buf[ERRMAX];
 
 	if(c && c->path){
@@ -88,6 +89,7 @@ faulterror(char *s, Chan *c, int freemem)
 int
 fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 {
+	Mach *m = machp();
 	int type;
 	int ref;
 	Pte **p, *etp;
@@ -214,6 +216,7 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 void
 pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 {
+	Mach *m = machp();
 	Page *new;
 	KMap *k;
 	Chan *c;
@@ -293,6 +296,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 int
 okaddr(uintptr_t addr, int32_t len, int write)
 {
+	Mach *m = machp();
 	Segment *s;
 
 	if(len >= 0) {

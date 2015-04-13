@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -106,6 +105,7 @@ zqdump(Zq *q)
 static int
 zqread(Zq *q, Kzio io[], int nio, usize count)
 {
+	Mach *m = machp();
 	int i;
 	int32_t tot, nr;
 	Kzio *qio;
@@ -173,6 +173,7 @@ zqread(Zq *q, Kzio io[], int nio, usize count)
 static int32_t
 zqwrite(Zq *q, Kzio io[], int nio)
 {
+	Mach *m = machp();
 	int i, ei, ri, wi, awake;
 
 	lock(q);

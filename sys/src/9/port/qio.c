@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -958,6 +957,7 @@ bl2mem(uint8_t *p, Block *b, int n)
 Block*
 mem2bl(uint8_t *p, int len)
 {
+	Mach *m = machp();
 	int n;
 	Block *b, *first, **l;
 
@@ -1033,6 +1033,7 @@ qwakeup_iunlock(Queue *q)
 Block*
 qbread(Queue *q, int len)
 {
+	Mach *m = machp();
 	Block *b, *nb;
 	int n;
 
@@ -1088,6 +1089,7 @@ qbread(Queue *q, int len)
 int32_t
 qread(Queue *q, void *vp, int len)
 {
+	Mach *m = machp();
 	Block *b, *first, **l;
 	int blen, n;
 
@@ -1183,6 +1185,7 @@ uint32_t noblockcnt;
 int32_t
 qbwrite(Queue *q, Block *b)
 {
+	Mach *m = machp();
 	int n, dowakeup;
 
 	n = BLEN(b);
@@ -1282,6 +1285,7 @@ qbwrite(Queue *q, Block *b)
 int
 qwrite(Queue *q, void *vp, int len)
 {
+	Mach *m = machp();
 	int n, sofar;
 	Block *b;
 	uint8_t *p = vp;

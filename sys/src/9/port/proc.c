@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -102,6 +101,7 @@ procinit0(void)
 void
 schedinit(void)		/* never returns */
 {
+	Mach *m = machp();
 	Edf *e;
 
 	m->inidle = 1;
@@ -154,6 +154,7 @@ schedinit(void)		/* never returns */
 static void
 stackok(void)
 {
+	Mach *m = machp();
 	char dummy;
 
 	if(&dummy < (char*)m->externup->kstack + 4*KiB){
@@ -169,6 +170,7 @@ stackok(void)
 void
 sched(void)
 {
+	Mach *m = machp();
 	Proc *p;
 
 	if(m->ilockdepth)
@@ -263,6 +265,7 @@ anyready(void)
 int
 anyhigher(void)
 {
+	Mach *m = machp();
 	return run.runvec & ~((1<<(m->externup->priority+1))-1);
 }
 
@@ -293,6 +296,7 @@ hzsched(void)
 void
 hzsched(void)
 {
+	Mach *m = machp();
 	/* once a second, rebalance will reprioritize ready procs */
 	if(m->machno == 0)
 		rebalance();
@@ -337,6 +341,7 @@ preempted(void)
 int
 preempted(void)
 {
+	Mach *m = machp();
 	if(m->externup && m->externup->state == Running)
 	if(m->externup->preempted == 0)
 	if(anyhigher())
@@ -394,6 +399,7 @@ preempted(void)
 static void
 updatecpu(Proc *p)
 {
+	Mach *m = machp();
 	int D, n, t, ocpu;
 
 	if(p->edf)
@@ -535,6 +541,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 static void
 schedready(Sched *sch, Proc *p, int locked)
 {
+	Mach *m = machp();
 	Mpl pl;
 	int pri;
 	Schedq *rq;
@@ -575,6 +582,7 @@ ready(Proc *p)
 void
 yield(void)
 {
+	Mach *m = machp();
 	if(anyready()){
 		/* pretend we just used 1/2 tick */
 		m->externup->lastupdate -= Scaling/2;
@@ -590,6 +598,7 @@ yield(void)
 static void
 rebalance(void)
 {
+	Mach *m = machp();
 	Mpl pl;
 	int pri, npri, t;
 	Schedq *rq;
@@ -680,6 +689,7 @@ preemptfor(Proc *p)
 static void
 mach0sched(void)
 {
+	Mach *m = machp();
 	Schedq *rq;
 	Proc *p;
 	Mach *mp;
@@ -765,6 +775,7 @@ found:
 static Proc*
 smprunproc(void)
 {
+	Mach *m = machp();
 	Schedq *rq;
 	Proc *p;
 	uint32_t start, now;
@@ -874,6 +885,7 @@ runproc(void)
 Proc*
 runproc(void)
 {
+	Mach *m = machp();
 	Schedq *rq;
 	Proc *p;
 	uint32_t start, now, skipscheds;
@@ -980,6 +992,7 @@ canpage(Proc *p)
 Proc*
 newproc(void)
 {
+	Mach *m = machp();
 	Proc *p;
 
 	p = psalloc();
@@ -1124,6 +1137,7 @@ procpriority(Proc *p, int pri, int fixed)
 void
 sleep(Rendez *r, int (*f)(void*), void *arg)
 {
+	Mach *m = machp();
 	Mpl pl;
 
 	pl = splhi();
@@ -1204,6 +1218,7 @@ hi(" and m->externup->rlock "); put64((uint64_t) &m->externup->rlock); hi("\n");
 static int
 tfn(void *arg)
 {
+	Mach *m = machp();
 	return m->externup->trend == nil || m->externup->tfn(arg);
 }
 
@@ -1223,6 +1238,7 @@ twakeup(Ureg* ureg, Timer *t)
 void
 tsleep(Rendez *r, int (*fn)(void*), void *arg, int32_t ms)
 {
+	Mach *m = machp();
 	if (m->externup->tt){
 		print("tsleep: timer active: mode %d, tf %#p\n",
 			m->externup->tmode, m->externup->tf);
@@ -1388,6 +1404,7 @@ struct
 void
 addbroken(Proc *p)
 {
+	Mach *m = machp();
 	qlock(&broken);
 	if(broken.n == NBROKEN) {
 		ready(broken.p[0]);
@@ -1440,6 +1457,7 @@ freebroken(void)
 void
 pexit(char *exitstr, int freemem)
 {
+	Mach *m = machp();
 	Proc *p;
 	Segment **s, **es;
 	int32_t utime, stime;
@@ -1605,6 +1623,7 @@ haswaitq(void *x)
 int
 pwait(Waitmsg *w)
 {
+	Mach *m = machp();
 	int cpid;
 	Waitq *wq;
 
@@ -1669,6 +1688,7 @@ dumpaproc(Proc *p)
 void
 procdump(void)
 {
+	Mach *m = machp();
 	int i;
 	Proc *p;
 
@@ -1740,6 +1760,7 @@ procflushseg(Segment *s)
 void
 scheddump(void)
 {
+	Mach *m = machp();
 	Proc *p;
 	Schedq *rq;
 
@@ -1758,6 +1779,7 @@ scheddump(void)
 void
 kproc(char *name, void (*func)(void *), void *arg)
 {
+	Mach *m = machp();
 	Proc *p;
 	static Pgrp *kpgrp;
 
@@ -1813,6 +1835,7 @@ kproc(char *name, void (*func)(void *), void *arg)
 void
 procctl(Proc *p)
 {
+	Mach *m = machp();
 	Mpl pl;
 	char *state;
 
@@ -1873,6 +1896,7 @@ procctl(Proc *p)
 void
 error(char *err)
 {
+	Mach *m = machp();
 	spllo();
 
 	assert(m->externup->nerrlab < NERR);
@@ -1884,6 +1908,7 @@ error(char *err)
 void
 nexterror(void)
 {
+	Mach *m = machp();
 	debuggotolabel(&m->externup->errlab[--m->externup->nerrlab]);
 }
 
@@ -1977,6 +2002,7 @@ renameuser(char *old, char *new)
 void
 accounttime(void)
 {
+	Mach *m = machp();
 	Proc *p;
 	uint32_t n, per;
 

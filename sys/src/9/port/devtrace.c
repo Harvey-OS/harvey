@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -349,7 +348,8 @@ newpl(void)
 /* this is not really smp safe. FIX */
 void
 tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
-{	
+{
+	Mach *m = machp();	
 	struct Tracelog *pl;
 
 	/* if we are here, tracing is active. Turn it off. */
@@ -397,6 +397,7 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 void
 traceout(void* pc, uintptr_t retval)
 {
+	Mach *m = machp();
 	struct Tracelog *pl;
 	/* if we are here, tracing is active. Turn it off. */
 	traceactive = 0;
@@ -513,6 +514,7 @@ traceclose(Chan *c)
 static int32_t
 traceread(Chan *c, void *a, int32_t n, int64_t offset)
 {
+	Mach *m = machp();
 	char *buf;
 	char *cp = a;
 	struct Tracelog *pl;

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -84,6 +83,7 @@ findfreefd(Fgrp *f, int start)
 int
 newfd(Chan *c)
 {
+	Mach *m = machp();
 	int fd;
 	Fgrp *f;
 
@@ -104,6 +104,7 @@ newfd(Chan *c)
 static int
 newfd2(int fd[2], Chan *c[2])
 {
+	Mach *m = machp();
 	Fgrp *f;
 
 	f = m->externup->fgrp;
@@ -130,6 +131,7 @@ newfd2(int fd[2], Chan *c[2])
 Chan*
 fdtochan(int fd, int mode, int chkmnt, int iref)
 {
+	Mach *m = machp();
 	Chan *c;
 	Fgrp *f;
 
@@ -208,6 +210,7 @@ sysfd2path(Ar0* ar0, va_list list)
 void
 syspipe(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	int *a, fd[2];
 	Chan *c[2];
 	static char *datastr[] = {"data", "data1"};
@@ -250,6 +253,7 @@ syspipe(Ar0* ar0, va_list list)
 void
 sysdup(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	int nfd, ofd;
 	Chan *nc, *oc;
 	Fgrp *f;
@@ -296,6 +300,7 @@ sysdup(Ar0* ar0, va_list list)
 void
 sysopen(Ar0* ar0, ...)
 {
+	Mach *m = machp();
 	va_list list;
 	char *aname;
 	int fd, omode;
@@ -338,6 +343,7 @@ sysnsec(Ar0* ar0, va_list list)
 void
 fdclose(int fd, int flag)
 {
+	Mach *m = machp();
 	int i;
 	Chan *c;
 	Fgrp *f;
@@ -384,6 +390,7 @@ sysclose(Ar0* ar0, va_list list)
 static int32_t
 unionread(Chan *c, void *va, int32_t n)
 {
+	Mach *m = machp();
 	int i;
 	int32_t nr;
 	Mhead *mh;
@@ -606,6 +613,7 @@ mountrewind(Chan *c)
 static int32_t
 mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 {
+	Mach *m = machp();
 	char *name;
 	int nbuf;
 	Chan *nc;
@@ -697,6 +705,7 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 static int32_t
 read(va_list list, int ispread)
 {
+	Mach *m = machp();
 	int fd;
 	int32_t n, nn, nnn;
 	void *p;
@@ -800,6 +809,7 @@ syspread(Ar0* ar0, va_list list)
 static int32_t
 write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 {
+	Mach *m = machp();
 	int32_t r;
 	Chan *c;
 
@@ -879,6 +889,7 @@ syspwrite(Ar0* ar0, ...)
 static int64_t
 sseek(int fd, int64_t offset, int whence)
 {
+	Mach *m = machp();
 	Chan *c;
 	uint8_t buf[sizeof(Dir)+100];
 	Dir dir;
@@ -1018,6 +1029,7 @@ pathlast(Path *p)
 void
 sysfstat(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	int fd;
 	Chan *c;
 	usize n;
@@ -1051,6 +1063,7 @@ sysfstat(Ar0* ar0, va_list list)
 void
 sysstat(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	char *aname;
 	Chan *c;
 	usize n;
@@ -1089,6 +1102,7 @@ sysstat(Ar0* ar0, va_list list)
 void
 syschdir(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Chan *c;
 	char *aname;
 
@@ -1109,6 +1123,7 @@ static int
 bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
 	  int flag, char* spec)
 {
+	Mach *m = machp();
 	int i;
 	Dev *dev;
 	Chan *c0, *c1, *ac, *bc;
@@ -1262,6 +1277,7 @@ sys_mount(Ar0* ar0, va_list list)
 void
 sysunmount(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	char *name, *old;
 	Chan *cmount, *cmounted;
 
@@ -1308,6 +1324,7 @@ sysunmount(Ar0* ar0, va_list list)
 void
 syscreate(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	char *aname;
 	int fd, omode, perm;
 	Chan *c;
@@ -1340,6 +1357,7 @@ syscreate(Ar0* ar0, va_list list)
 void
 sysremove(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Chan *c;
 	char *aname;
 
@@ -1379,6 +1397,7 @@ Not sure this dicking around is right for Dev ref counts.
 static int32_t
 wstat(Chan* c, uint8_t* p, usize n)
 {
+	Mach *m = machp();
 	int32_t l;
 	usize namelen;
 
@@ -1492,6 +1511,7 @@ packoldstat(uint8_t *buf, Dir *d)
 void
 sys_stat(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Chan *c;
 	int32_t l;
 	uint8_t buf[128], *p;
@@ -1546,6 +1566,7 @@ sys_stat(Ar0* ar0, va_list list)
 void
 sys_fstat(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Chan *c;
 	char *name;
 	int32_t l;

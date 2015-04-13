@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -118,6 +117,7 @@ putgseg(Globalseg *g)
 static int
 segmentgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Qid q;
 	Globalseg *g;
 	uint32_t size;
@@ -232,6 +232,7 @@ cmddone(void *arg)
 static Chan*
 segmentopen(Chan *c, int omode)
 {
+	Mach *m = machp();
 	Globalseg *g;
 
 	switch(TYPE(c)){
@@ -299,6 +300,7 @@ segmentclose(Chan *c)
 static void
 segmentcreate(Chan *c, char *name, int omode, int perm)
 {
+	Mach *m = machp();
 	int x, xfree;
 	Globalseg *g;
 	char *ep;
@@ -385,6 +387,7 @@ znotempty(void *x)
 static int32_t
 segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 {
+	Mach *m = machp();
 	Globalseg *g;
 	Zseg *zs;
 	uintptr_t va;
@@ -494,6 +497,7 @@ placeseg(uintptr_t len)
 static int32_t
 segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 {
+	Mach *m = machp();
 	Cmdbuf *cb;
 	Globalseg *g;
 	uintptr_t va, len, top;
@@ -595,6 +599,7 @@ segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 static int32_t
 segmentwstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Mach *m = machp();
 	Globalseg *g;
 	Dir *d;
 
@@ -651,6 +656,7 @@ segmentremove(Chan *c)
 static Segment*
 globalsegattach(Proc *p, char *name)
 {
+	Mach *m = machp();
 	int x;
 	Globalseg *g;
 	Segment *s;
@@ -686,6 +692,7 @@ globalsegattach(Proc *p, char *name)
 static void
 docmd(Globalseg *g, int cmd)
 {
+	Mach *m = machp();
 	g->err[0] = 0;
 	g->cmd = cmd;
 	wakeup(&g->cmdwait);
@@ -713,6 +720,7 @@ cmdready(void *arg)
 static void
 segmentkproc(void *arg)
 {
+	Mach *m = machp();
 	Globalseg *g = arg;
 	int done;
 	int sno;

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -317,6 +316,7 @@ uartdrained(void* arg)
 static void
 uartdrainoutput(Uart *p)
 {
+	Mach *m = machp();
 	if(!p->enabled)
 		return;
 
@@ -332,6 +332,7 @@ uartdrainoutput(Uart *p)
 static void
 uartclose(Chan *c)
 {
+	Mach *m = machp();
 	Uart *p;
 
 	if(c->qid.type & QTDIR)

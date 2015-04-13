@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -277,6 +276,7 @@ cdev(Mntcache *mc, Chan *c)
 int
 cread(Chan *c, uint8_t *buf, int len, int64_t off)
 {
+	Mach *m = machp();
 	KMap *k;
 	Page *p;
 	Mntcache *mc;
@@ -357,6 +357,7 @@ cread(Chan *c, uint8_t *buf, int len, int64_t off)
 Extent*
 cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
 {
+	Mach *m = machp();
 	int l;
 	Page *p;
 	KMap *k;
@@ -424,6 +425,7 @@ cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
 int
 cpgmove(Extent *e, uint8_t *buf, int boff, int len)
 {
+	Mach *m = machp();
 	Page *p;
 	KMap *k;
 

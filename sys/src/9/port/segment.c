@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -18,6 +17,7 @@ typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 uintmem
 segppn(Segment *s, uintmem pa)
 {
+	Mach *m = machp();
 	uintmem pgsz;
 
 	pgsz = m->pgsz[s->pgszi];
@@ -169,6 +169,7 @@ relocateseg(Segment *s, uintptr_t offset)
 Segment*
 dupseg(Segment **seg, int segno, int share)
 {
+	Mach *m = machp();
 	int i, size;
 	Pte *pte;
 	Segment *n, *s;
@@ -239,6 +240,7 @@ sameseg:
 void
 segpage(Segment *s, Page *p)
 {
+	Mach *m = machp();
 	Pte **pte;
 	uintptr_t soff;
 	uintmem pgsz;
@@ -276,6 +278,7 @@ segpage(Segment *s, Page *p)
 void
 mfreeseg(Segment *s, uintptr_t start, int pages)
 {
+	Mach *m = machp();
 	int i, j, size;
 	uintptr_t soff;
 	uintmem pgsz;
@@ -358,6 +361,7 @@ isoverlap(Proc* p, uintptr_t va, usize len)
 void
 segclock(uintptr_t pc)
 {
+	Mach *m = machp();
 	Segment *s;
 
 	s = m->externup->seg[TSEG];
@@ -374,6 +378,7 @@ segclock(uintptr_t pc)
 static void
 prepageseg(int i)
 {
+	Mach *m = machp();
 	Segment *s;
 	uintptr_t addr, pgsz;
 

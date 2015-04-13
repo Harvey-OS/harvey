@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -285,6 +284,7 @@ typedef struct {
 static void
 execac(Ar0* ar0, int flags, char *ufile, char **argv)
 {
+	Mach *m = machp();
 	Hdr hdr;
 	Fgrp *f;
 	Tos *tos;
@@ -733,6 +733,7 @@ return0(void* v)
 void
 syssleep(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	int32_t ms;
 
 	/*
@@ -770,6 +771,7 @@ sysalarm(Ar0* ar0, va_list list)
 void
 sysexits(Ar0* ar, va_list list)
 {
+	Mach *m = machp();
 	char *status;
 	char *inval = "invalid exit string";
 	char buf[ERRMAX];
@@ -863,6 +865,7 @@ sysawait(Ar0* ar0, va_list list)
 void
 werrstr(char *fmt, ...)
 {
+	Mach *m = machp();
 	va_list va;
 
 	if(m->externup == nil)
@@ -876,6 +879,7 @@ werrstr(char *fmt, ...)
 static void
 generrstr(char *buf, int32_t n)
 {
+	Mach *m = machp();
 	char *p, tmp[ERRMAX];
 
 	if(n <= 0)
@@ -930,6 +934,7 @@ sys_errstr(Ar0* ar0, va_list list)
 void
 sysnotify(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	void (*f)(void*, char*);
 
 	/*
@@ -947,6 +952,7 @@ sysnotify(Ar0* ar0, va_list list)
 void
 sysnoted(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	int v;
 
 	/*
@@ -963,6 +969,7 @@ sysnoted(Ar0* ar0, va_list list)
 void
 sysrendezvous(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Proc *p, **l;
 	uintptr_t tag, val;
 
@@ -1174,6 +1181,7 @@ semawoke(void* p)
 static int
 semacquire(Segment* s, int* addr, int block)
 {
+	Mach *m = machp();
 	int acquired;
 	Sema phore;
 
@@ -1210,6 +1218,7 @@ semacquire(Segment* s, int* addr, int block)
 static int
 tsemacquire(Segment* s, int* addr, int32_t ms)
 {
+	Mach *m = machp();
 	int acquired;
 	uint32_t t;
 	Sema phore;
@@ -1251,6 +1260,7 @@ tsemacquire(Segment* s, int* addr, int32_t ms)
 void
 syssemacquire(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Segment *s;
 	int *addr, block;
 
@@ -1275,6 +1285,7 @@ syssemacquire(Ar0* ar0, va_list list)
 void
 systsemacquire(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Segment *s;
 	int *addr, ms;
 
@@ -1299,6 +1310,7 @@ systsemacquire(Ar0* ar0, va_list list)
 void
 syssemrelease(Ar0* ar0, va_list list)
 {
+	Mach *m = machp();
 	Segment *s;
 	int *addr, delta;
 

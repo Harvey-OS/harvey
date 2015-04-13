@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -92,6 +91,7 @@ canflush(Proc *p, Segment *s)
 static int
 pageout(Proc *p, Segment *s)
 {
+	Mach *m = machp();
 	int i, size, n;
 	Pte *l;
 	Page **pg, *entry;
@@ -196,6 +196,7 @@ Again:
 static void
 freepages(int si, int once)
 {
+	Mach *m = machp();
 	Pgsza *pa;
 	Page *p;
 
@@ -224,6 +225,7 @@ freepages(int si, int once)
 static int
 tryalloc(int pgszi, int color)
 {
+	Mach *m = machp();
 	Page *p;
 
 	p = pgalloc(m->pgsz[pgszi], color);
@@ -261,6 +263,7 @@ hascolor(Page *pl, int color)
 void
 kickpager(int pgszi, int color)
 {
+	Mach *m = machp();
 	Pgsza *pa;
 
 	if(DBGFLG>1)

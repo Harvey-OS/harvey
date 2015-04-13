@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -216,6 +215,7 @@ imagechanreclaim(void)
 Image*
 attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
 {
+	Mach *m = machp();
 	Image *i, **l;
 
 	/* reclaim any free channels from reclaimed segments */

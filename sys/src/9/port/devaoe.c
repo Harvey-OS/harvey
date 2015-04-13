@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -313,6 +312,7 @@ frameerror(Aoedev *d, Frame *f, char *s)
 static char*
 unitname(Aoedev *d)
 {
+	Mach *m = machp();
 	uprint("%d.%d", d->major, d->minor);
 	return m->externup->genbuf;
 }
@@ -328,6 +328,7 @@ eventlogready(void* v)
 static int32_t
 eventlogread(void *a, int32_t n)
 {
+	Mach *m = machp();
 	int len;
 	char *p, *buf;
 
@@ -535,6 +536,7 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 static int
 resend(Aoedev *d, Frame *f)
 {
+	Mach *m = machp();
 	uint32_t n;
 	Aoeata *a;
 
@@ -560,6 +562,7 @@ resend(Aoedev *d, Frame *f)
 static void
 discover(int major, int minor)
 {
+	Mach *m = machp();
 	Aoehdr *h;
 	Block *b;
 	Netlink *nl, *e;
@@ -597,6 +600,7 @@ discover(int major, int minor)
 static void
 aoesweepproc(void* v)
 {
+	Mach *m = machp();
 	uint32_t i, tx, timeout, nbc;
 	int64_t starttick;
 	enum { Nms = 100, Nbcms = 30*1000, };
@@ -686,6 +690,7 @@ static void netbind(char *path);
 static void
 aoecfg(void)
 {
+	Mach *m = machp();
 	int n, i;
 	char *p, *f[32], buf[24];
 
@@ -741,6 +746,7 @@ aoeattach(char *spec)
 static Aoedev*
 unit2dev(uint32_t unit)
 {
+	Mach *m = machp();
 	int i;
 	Aoedev *d;
 
@@ -836,6 +842,7 @@ topgen(Chan *c, uint32_t type, Dir *d)
 static int
 aoegen(Chan *c, char *e, Dirtab *dir, int j, int s, Dir *dp)
 {
+	Mach *m = machp();
 	int i;
 	Aoedev *d;
 	Qid q;
@@ -931,6 +938,7 @@ aoestat(Chan *c, uint8_t *db, int32_t n)
 static Chan*
 aoeopen(Chan *c, int omode)
 {
+	Mach *m = machp();
 	Aoedev *d;
 
 	if(TYPE(c->qid) != Qdata)
@@ -954,6 +962,7 @@ aoeopen(Chan *c, int omode)
 static void
 aoeclose(Chan *c)
 {
+	Mach *m = machp();
 	Aoedev *d;
 
 	if(TYPE(c->qid) != Qdata || (c->flag&COPEN) == 0)
@@ -971,6 +980,7 @@ aoeclose(Chan *c)
 static void
 atarw(Aoedev *d, Frame *f)
 {
+	Mach *m = machp();
 	uint32_t bcnt;
 	char extbit, writebit;
 	Aoeata *ah;
@@ -1124,6 +1134,7 @@ work(Aoedev *d)
 static void
 strategy(Aoedev *d, Srb *srb)
 {
+	Mach *m = machp();
 	qlock(d);
 	if(waserror()){
 		qunlock(d);
@@ -1150,6 +1161,7 @@ strategy(Aoedev *d, Srb *srb)
 static int32_t
 rw(Aoedev *d, int write, uint8_t *db, int32_t len, uint64_t off)
 {
+	Mach *m = machp();
 	int32_t n, nlen, copy;
 	enum { Srbsz = 1<<18, };
 	Srb *srb;
@@ -1379,6 +1391,7 @@ aoeread(Chan *c, void *db, int32_t n, int64_t off)
 static int32_t
 configwrite(Aoedev *d, void *db, int32_t len)
 {
+	Mach *m = machp();
 	char *s;
 	Aoeqc *ch;
 	Frame *f;
@@ -1611,6 +1624,7 @@ unitwrite(Chan *c, void *db, int32_t n, int64_t off)
 static Netlink*
 addnet(char *path, Chan *cc, Chan *dc, Chan *mtu, uint8_t *ea)
 {
+	Mach *m = machp();
 	Netlink *nl, *e;
 
 	lock(&netlinks);
@@ -1712,6 +1726,7 @@ mm2dev(int major, int minor)
 static Aoedev*
 getdev(int32_t major, int32_t minor, int n)
 {
+	Mach *m = machp();
 	Aoedev *d;
 
 	wlock(&devs);
@@ -1793,6 +1808,7 @@ ataident(Aoedev *d)
 static int
 getmtu(Chan *mm)
 {
+	Mach *m = machp();
 	int n, mtu;
 	char buf[36];
 
@@ -1872,6 +1888,7 @@ errrsp(Block *b, char *s)
 static void
 qcfgrsp(Block *b, Netlink *nl)
 {
+	Mach *m = machp();
 	int major, cmd, cslen, blen;
 	unsigned n;
 	Aoedev *d;
@@ -2058,6 +2075,7 @@ identify(Aoedev *d, uint16_t *id)
 static void
 atarsp(Block *b)
 {
+	Mach *m = machp();
 	unsigned n;
 	int16_t major;
 	Aoeata *ahin, *ahout;
@@ -2141,6 +2159,7 @@ bail:
 static void
 netrdaoeproc(void *v)
 {
+	Mach *m = machp();
 	int idx;
 	char name[Maxpath+1], *s;
 	Aoehdr *h;
@@ -2197,6 +2216,7 @@ netrdaoeproc(void *v)
 static void
 getaddr(char *path, uint8_t *ea)
 {
+	Mach *m = machp();
 	int n;
 	char buf[2*Eaddrlen+1];
 	Chan *c;
@@ -2221,6 +2241,7 @@ getaddr(char *path, uint8_t *ea)
 static void
 netbind(char *path)
 {
+	Mach *m = machp();
 	char addr[Maxpath];
 	uint8_t ea[2*Eaddrlen+1];
 	Chan *dc, *cc, *mtu;
@@ -2261,6 +2282,7 @@ unbound(void *v)
 static void
 netunbind(char *path)
 {
+	Mach *m = machp();
 	int i, idx;
 	Aoedev *d, *p, *next;
 	Chan *dc, *cc;
@@ -2417,6 +2439,7 @@ discoverstr(char *f)
 static int32_t
 topctlwrite(void *db, int32_t n)
 {
+	Mach *m = machp();
 	enum {
 		Autodiscover,
 		Bind,

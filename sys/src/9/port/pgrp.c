@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -21,6 +20,7 @@ static Ref mountid;
 void
 pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 {
+	Mach *m = machp();
 	int i;
 	Proc *p;
 	char buf[ERRMAX];
@@ -213,6 +213,7 @@ dupfgrp(Fgrp *f)
 void
 closefgrp(Fgrp *f)
 {
+	Mach *m = machp();
 	int i;
 	Chan *c;
 
@@ -252,6 +253,7 @@ closefgrp(Fgrp *f)
 void
 forceclosefgrp(void)
 {
+	Mach *m = machp();
 	int i;
 	Chan *c;
 	Fgrp *f;
@@ -305,6 +307,7 @@ mountfree(Mount *mount)
 void
 resrcwait(char *reason)
 {
+	Mach *m = machp();
 	char *p;
 
 	if(m->externup == nil)

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -166,6 +165,7 @@ conskbdqproc(void *a)
 static void
 kickkbdq(void)
 {
+	Mach *m = machp();
 	int i;
 
 	if(m->externup != nil && nkbdqs > 1 && nkbdprocs != nkbdqs){
@@ -237,6 +237,7 @@ consactive(void)
 void
 prflush(void)
 {
+	Mach *m = machp();
 	uint32_t now;
 
 	now = m->ticks;
@@ -371,6 +372,7 @@ static Lock iprintlock;
 static int
 iprintcanlock(Lock *l)
 {
+	Mach *m = machp();
 	int i;
 
 	for(i=0; i<1000; i++){
@@ -414,6 +416,7 @@ iprint(char *fmt, ...)
 void
 panic(char *fmt, ...)
 {
+	Mach *m = machp();
 	int n;
 	Mpl pl;
 	va_list arg;
@@ -466,6 +469,7 @@ _assert(char *fmt)
 int
 pprint(char *fmt, ...)
 {
+	Mach *m = machp();
 	int n;
 	Chan *c;
 	va_list arg;
@@ -1234,6 +1238,7 @@ static	uint32_t	randn;
 static void
 seedrand(void)
 {
+	Mach *m = machp();
 	if(!waserror()){
 		randomread((void*)&randn, sizeof(randn));
 		poperror();

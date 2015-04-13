@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -111,6 +110,7 @@ addwaitstat(uintptr_t pc, uint64_t t0, int type)
 void
 lockloop(Lock *l, uintptr_t pc)
 {
+	Mach *m = machp();
 	Proc *p;
 
 	p = l->p;
@@ -124,6 +124,7 @@ lockloop(Lock *l, uintptr_t pc)
 int
 lock(Lock *l)
 {
+	Mach *m = machp();
 	int i;
 	uintptr_t pc;
 	uint64_t t0;
@@ -189,6 +190,7 @@ lock(Lock *l)
 void
 ilock(Lock *l)
 {
+	Mach *m = machp();
 	Mpl pl;
 	uintptr_t pc;
 	uint64_t t0;
@@ -234,6 +236,7 @@ acquire:
 int
 canlock(Lock *l)
 {
+	Mach *m = machp();
 	if(m->externup)
 		ainc(&m->externup->nlocks);
 	if(TAS(&l->key)){
@@ -257,6 +260,7 @@ canlock(Lock *l)
 void
 unlock(Lock *l)
 {
+	Mach *m = machp();
 	uint64_t x;
 
 	if(LOCKCYCLES){
@@ -290,6 +294,7 @@ unlock(Lock *l)
 void
 iunlock(Lock *l)
 {
+	Mach *m = machp();
 	Mpl pl;
 	uint64_t x;
 

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -32,6 +31,7 @@ slockstat(uintptr_t pc, uint64_t w)
 void
 qlock(QLock *q)
 {
+	Mach *m = machp();
 	Proc *p;
 	uint64_t t0;
 
@@ -119,6 +119,7 @@ qunlock(QLock *q)
 void
 rlock(RWlock *q)
 {
+	Mach *m = machp();
 	Proc *p;
 	uint64_t t0;
 
@@ -184,6 +185,7 @@ runlock(RWlock *q)
 void
 wlock(RWlock *q)
 {
+	Mach *m = machp();
 	Proc *p;
 	uint64_t t0;
 

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -41,6 +40,7 @@ Pgalloc pga;		/* new allocator */
 char*
 seprintpagestats(char *s, char *e)
 {
+	Mach *m = machp();
 	int i;
 
 	lock(&pga);
@@ -61,6 +61,7 @@ seprintpagestats(char *s, char *e)
 void
 pageinit(void)
 {
+	Mach *m = machp();
 	int si, i, color;
 	Page *pg;
 
@@ -95,6 +96,7 @@ pageinit(void)
 int
 getpgszi(usize size)
 {
+	Mach *m = machp();
 	int si;
 
 	for(si = 0; si < m->npgsz; si++)
@@ -130,6 +132,7 @@ pgalloc(usize size, int color)
 void
 pgfree(Page* pg)
 {
+	Mach *m = machp();
 	decref(&pga.pgsza[pg->pgszi].npages);
 	physfree(pg->pa, m->pgsz[pg->pgszi]);
 	free(pg);
@@ -213,6 +216,7 @@ findpg(Page *pl, int color)
 Page*
 newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 {
+	Mach *m = machp();
 	Page *p;
 	KMap *k;
 	uint8_t ct;
@@ -386,6 +390,7 @@ static int dupretries = 15000;
 int
 duppage(Page *p)				/* Always call with p locked */
 {
+	Mach *m = machp();
 	Pgsza *pa;
 	Page *np;
 	int color;
@@ -477,6 +482,7 @@ retry:
 void
 copypage(Page *f, Page *t)
 {
+	Mach *m = machp();
 	KMap *ks, *kd;
 
 	if(f->pgszi != t->pgszi || t->pgszi < 0)

@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -34,6 +33,7 @@ static int	qidpath;
 static int
 srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Srv *sp;
 	Qid q;
 
@@ -111,6 +111,7 @@ srvname(Chan *c)
 static Chan*
 srvopen(Chan *c, int omode)
 {
+	Mach *m = machp();
 	Srv *sp;
 
 	if(c->qid.type == QTDIR){
@@ -149,6 +150,7 @@ srvopen(Chan *c, int omode)
 static void
 srvcreate(Chan *c, char *name, int omode, int perm)
 {
+	Mach *m = machp();
 	Srv *sp;
 	char *sname;
 
@@ -193,6 +195,7 @@ srvcreate(Chan *c, char *name, int omode, int perm)
 static void
 srvremove(Chan *c)
 {
+	Mach *m = machp();
 	Srv *sp, **l;
 
 	if(c->qid.type == QTDIR)
@@ -242,6 +245,7 @@ srvremove(Chan *c)
 static int32_t
 srvwstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Mach *m = machp();
 	Dir d;
 	Srv *sp;
 	char *strs;
@@ -287,6 +291,7 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 static void
 srvclose(Chan *c)
 {
+	Mach *m = machp();
 	/*
 	 * in theory we need to override any changes in removability
 	 * since open, but since all that's checked is the owner,

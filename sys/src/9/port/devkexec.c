@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -49,6 +48,7 @@ kexeclookup(Kexecgrp *kg, uintptr_t addr, uint32_t qidpath)
 static int
 kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Kexecgrp *kg;
 	Kvalue *e;
 	uintptr_t addr;
@@ -170,6 +170,7 @@ kexecopen(Chan *c, int omode)
 static void
 kexeccreate(Chan *c, char *name, int omode, int i)
 {
+	Mach *m = machp();
 	Kexecgrp *kg;
 	Kvalue *e;
 	Kvalue **ent;

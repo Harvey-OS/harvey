@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -186,6 +185,7 @@ void (*proctrace)(Proc*, int, int64_t) = notrace;
 static void
 profclock(Ureg *ur, Timer *ti)
 {
+	Mach *m = machp();
 	Tos *tos;
 
 	if(m->externup == nil || m->externup->state != Running)
@@ -202,6 +202,7 @@ profclock(Ureg *ur, Timer *ti)
 static int
 procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Qid qid;
 	Proc *p;
 	char *ename;
@@ -312,6 +313,7 @@ static Lock tlck;
 static void
 _proctrace(Proc* p, int etype, int64_t ts)
 {
+	Mach *m = machp();
 	Traceevent *te;
 	int tp;
 
@@ -380,6 +382,7 @@ procstat(Chan *c, uint8_t *db, int32_t n)
 static void
 nonone(Proc *p)
 {
+	Mach *m = machp();
 	if(p == m->externup)
 		return;
 	if(strcmp(m->externup->user, "none") != 0)
@@ -392,6 +395,7 @@ nonone(Proc *p)
 static Chan*
 procopen(Chan *c, int omode)
 {
+	Mach *m = machp();
 	Proc *p;
 	Pgrp *pg;
 	Chan *tc;
@@ -546,6 +550,7 @@ procopen(Chan *c, int omode)
 static int32_t
 procwstat(Chan *c, uint8_t *db, int32_t n)
 {
+	Mach *m = machp();
 	Proc *p;
 	Dir *d;
 
@@ -637,6 +642,7 @@ procfdprint(Chan *c, int fd, int w, char *s, int ns)
 static int
 procfds(Proc *p, char *va, int count, int32_t offset)
 {
+	Mach *m = machp();
 	Fgrp *f;
 	Chan *c;
 	char buf[256];
@@ -1172,6 +1178,7 @@ mntscan(Mntwalk *mw, Proc *p)
 static int32_t
 procwrite(Chan *c, void *va, int32_t n, int64_t off)
 {
+	Mach *m = machp();
 	Proc *p, *t;
 	int i, id, l;
 	char *args, buf[ERRMAX];
@@ -1316,6 +1323,7 @@ Dev procdevtab = {
 static Chan*
 proctext(Chan *c, Proc *p)
 {
+	Mach *m = machp();
 	Chan *tc;
 	Image *i;
 	Segment *s;
@@ -1363,6 +1371,7 @@ proctext(Chan *c, Proc *p)
 void
 procstopwait(Proc *p, int ctl)
 {
+	Mach *m = machp();
 	int pid;
 
 	if(p->pdbg)
@@ -1461,6 +1470,7 @@ parsetime(int64_t *rt, char *s)
 static void
 procctlreq(Proc *p, char *va, int n)
 {
+	Mach *m = machp();
 	Segment *s;
 	int npc, pri, core;
 	Cmdbuf *cb;
@@ -1671,6 +1681,7 @@ procstopped(void *a)
 static int
 procctlmemio(Proc *p, uintptr_t offset, int n, void *va, int read)
 {
+	Mach *m = machp();
 	KMap *k;
 	Pte *pte;
 	Page *pg;

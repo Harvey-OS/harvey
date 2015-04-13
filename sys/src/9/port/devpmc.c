@@ -1,4 +1,3 @@
-typedef struct Mach Mach; extern Mach *m; // REMOVE ME
 /*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
@@ -217,6 +216,7 @@ pmcclose(Chan *c)
 static int32_t
 pmcread(Chan *c, void *a, int32_t n, int64_t offset)
 {
+	Mach *m = machp();
 	uint32_t type, id;
 	PmcCtl p;
 	char *s;
