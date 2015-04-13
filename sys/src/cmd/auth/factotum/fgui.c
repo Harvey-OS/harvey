@@ -204,7 +204,7 @@ readreq(void *a)
 		sleep(5000);
 	}
 }
-#endif asdf
+#endif //asdf
 
 /*
  *  open/close the keyboard, mouse and resize channels

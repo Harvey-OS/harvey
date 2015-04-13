@@ -242,7 +242,7 @@ vncclosekey(Key *k)
 }
 
 static int
-vncresponse(Fsstate*, State *s)
+vncresponse(Fsstate* f, State *s)
 {
 	DESstate des;
 

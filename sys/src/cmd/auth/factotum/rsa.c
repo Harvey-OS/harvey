@@ -98,7 +98,7 @@ Error:
 }
 
 static int
-rsainit(Proto*, Fsstate *fss)
+rsainit(Proto* p, Fsstate *fss)
 {
 	Keyinfo ki;
 	State *s;

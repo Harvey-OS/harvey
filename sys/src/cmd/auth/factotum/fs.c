@@ -226,7 +226,7 @@ private(void)
 }
 
 static void
-notifyf(void*, char *s)
+notifyf(void* v, char *s)
 {
 	if(strncmp(s, "interrupt", 9) == 0)
 		noted(NCONT);
@@ -296,7 +296,7 @@ fillstat(Dir *dir, char *name, int type, int path, uint32_t perm)
 }
 
 static int
-rootdirgen(int n, Dir *dir, void*)
+rootdirgen(int n, Dir *dir, void* v)
 {
 	if(n > 0)
 		return -1;
@@ -305,7 +305,7 @@ rootdirgen(int n, Dir *dir, void*)
 }
 
 static int
-fsdirgen(int n, Dir *dir, void*)
+fsdirgen(int n, Dir *dir, void* v)
 {
 	if(n >= nelem(dirtab))
 		return -1;
