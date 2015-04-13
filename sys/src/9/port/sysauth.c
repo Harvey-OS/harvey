@@ -30,7 +30,7 @@ iseve(void)
 }
 
 void
-sysfversion(Ar0* ar0, va_list list)
+sysfversion(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Chan *c;
@@ -38,6 +38,8 @@ sysfversion(Ar0* ar0, va_list list)
 	int fd;
 	uint32_t msize;
 	usize nversion;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int fversion(int fd, int bufsize, char *version, int nversion);
@@ -48,6 +50,7 @@ sysfversion(Ar0* ar0, va_list list)
 	msize = va_arg(list, uint32_t);
 	version = va_arg(list, char*);
 	nversion = va_arg(list, usize);
+	va_end(list);
 	version = validaddr(version, nversion, 1);
 	/* check there's a NUL in the version string */
 	if(nversion == 0 || memchr(version, 0, nversion) == nil)
@@ -66,10 +69,12 @@ sysfversion(Ar0* ar0, va_list list)
 }
 
 void
-sys_fsession(Ar0* ar0, va_list list)
+sys_fsession(Ar0* ar0, ...)
 {
 	int fd;
 	char *trbuf;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int fsession(int fd, char trbuf[TICKREQLEN]);
@@ -78,6 +83,7 @@ sys_fsession(Ar0* ar0, va_list list)
 	 */
 	fd = va_arg(list, int);
 	trbuf = va_arg(list, char*);
+	va_end(list);
 
 	USED(fd);
 	trbuf = validaddr(trbuf, 1, 1);
@@ -87,18 +93,21 @@ sys_fsession(Ar0* ar0, va_list list)
 }
 
 void
-sysfauth(Ar0* ar0, va_list list)
+sysfauth(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Chan *c, *ac;
 	char *aname;
 	int fd;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int fauth(int fd, char *aname);
 	 */
 	fd = va_arg(list, int);
 	aname = va_arg(list, char*);
+	va_end(list);
 
 	aname = validaddr(aname, 1, 0);
 	aname = validnamedup(aname, 1);

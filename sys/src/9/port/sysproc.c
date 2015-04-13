@@ -21,7 +21,7 @@
 
 
 void
-sysrfork(Ar0* ar0, va_list list)
+sysrfork(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Proc *p;
@@ -31,11 +31,14 @@ sysrfork(Ar0* ar0, va_list list)
 	Rgrp *org;
 	Egrp *oeg;
 	Mach *wm;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int rfork(int);
 	 */
 	flag = va_arg(list, int);
+	va_end(list);
 
 	/* Check flags before we commit */
 	if((flag & (RFFDG|RFCFDG)) == (RFFDG|RFCFDG))
@@ -676,10 +679,12 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 }
 
 void
-sysexecac(Ar0* ar0, va_list list)
+sysexecac(Ar0* ar0, ...)
 {
 	int flags;
 	char *file, **argv;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * void* execac(int flags, char* name, char* argv[]);
@@ -689,6 +694,7 @@ sysexecac(Ar0* ar0, va_list list)
 	file = va_arg(list, char*);
 	file = validaddr(file, 1, 0);
 	argv = va_arg(list, char**);
+	va_end(list);
 	evenaddr(PTR2UINT(argv));
 	execac(ar0, flags, file, argv);
 }
@@ -731,15 +737,18 @@ return0(void* v)
 }
 
 void
-syssleep(Ar0* ar0, va_list list)
+syssleep(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	int32_t ms;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int sleep(long millisecs);
 	 */
 	ms = va_arg(list, int32_t);
+	va_end(list);
 
 	ar0->i = 0;
 	if(ms <= 0) {
@@ -755,31 +764,37 @@ syssleep(Ar0* ar0, va_list list)
 }
 
 void
-sysalarm(Ar0* ar0, va_list list)
+sysalarm(Ar0* ar0, ...)
 {
 	unsigned long ms;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * long alarm(unsigned long millisecs);
 	 * Odd argument type...
 	 */
 	ms = va_arg(list, unsigned long);
+	va_end(list);
 
 	ar0->l = procalarm(ms);
 }
 
 void
-sysexits(Ar0* ar, va_list list)
+sysexits(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	char *status;
 	char *inval = "invalid exit string";
 	char buf[ERRMAX];
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * void exits(char *msg);
 	 */
 	status = va_arg(list, char*);
+	va_end(list);
 
 	if(status){
 		if(waserror())
@@ -799,11 +814,13 @@ sysexits(Ar0* ar, va_list list)
 }
 
 void
-sys_wait(Ar0* ar0, va_list list)
+sys_wait(Ar0* ar0, ...)
 {
 	int pid;
 	Waitmsg w;
 	OWaitmsg *ow;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int wait(Waitmsg* w);
@@ -815,6 +832,7 @@ sys_wait(Ar0* ar0, va_list list)
 		ar0->i = pwait(nil);
 		return;
 	}
+	va_end(list);
 
 	ow = validaddr(ow, sizeof(OWaitmsg), 1);
 	evenaddr(PTR2UINT(ow));
@@ -832,13 +850,15 @@ sys_wait(Ar0* ar0, va_list list)
 }
 
 void
-sysawait(Ar0* ar0, va_list list)
+sysawait(Ar0* ar0, ...)
 {
 	int i;
 	int pid;
 	Waitmsg w;
 	usize n;
 	char *p;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int await(char* s, int n);
@@ -848,6 +868,7 @@ sysawait(Ar0* ar0, va_list list)
 	p = va_arg(list, char*);
 	n = va_arg(list, int32_t);
 	p = validaddr(p, n, 1);
+	va_end(list);
 
 	pid = pwait(&w);
 	if(pid < 0){
@@ -897,10 +918,12 @@ generrstr(char *buf, int32_t n)
 }
 
 void
-syserrstr(Ar0* ar0, va_list list)
+syserrstr(Ar0* ar0, ...)
 {
 	char *err;
 	usize nerr;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int errstr(char* err, uint nerr);
@@ -911,14 +934,17 @@ syserrstr(Ar0* ar0, va_list list)
 	err = va_arg(list, char*);
 	nerr = va_arg(list, usize);
 	generrstr(err, nerr);
+	va_end(list);
 
 	ar0->i = 0;
 }
 
 void
-sys_errstr(Ar0* ar0, va_list list)
+sys_errstr(Ar0* ar0, ...)
 {
 	char *p;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int errstr(char* err);
@@ -927,15 +953,18 @@ sys_errstr(Ar0* ar0, va_list list)
 	 */
 	p = va_arg(list, char*);
 	generrstr(p, 64);
+	va_end(list);
 
 	ar0->i = 0;
 }
 
 void
-sysnotify(Ar0* ar0, va_list list)
+sysnotify(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	void (*f)(void*, char*);
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int notify(void (*f)(void*, char*));
@@ -945,20 +974,24 @@ sysnotify(Ar0* ar0, va_list list)
 	if(f != nil)
 		validaddr(f, sizeof(void (*)(void*, char*)), 0);
 	m->externup->notify = f;
+	va_end(list);
 
 	ar0->i = 0;
 }
 
 void
-sysnoted(Ar0* ar0, va_list list)
+sysnoted(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	int v;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int noted(int v);
 	 */
 	v = va_arg(list, int);
+	va_end(list);
 
 	if(v != NRSTR && !m->externup->notified)
 		error(Egreg);
@@ -967,16 +1000,19 @@ sysnoted(Ar0* ar0, va_list list)
 }
 
 void
-sysrendezvous(Ar0* ar0, va_list list)
+sysrendezvous(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Proc *p, **l;
 	uintptr_t tag, val;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * void* rendezvous(void*, void*);
 	 */
 	tag = PTR2UINT(va_arg(list, void*));
+	va_end(list);
 
 	l = &REND(m->externup->rgrp, tag);
 	m->externup->rendval = ~0;
@@ -1258,11 +1294,13 @@ tsemacquire(Segment* s, int* addr, int32_t ms)
 }
 
 void
-syssemacquire(Ar0* ar0, va_list list)
+syssemacquire(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Segment *s;
 	int *addr, block;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int semacquire(long* addr, int block);
@@ -1273,6 +1311,7 @@ syssemacquire(Ar0* ar0, va_list list)
 	addr = validaddr(addr, sizeof(int), 1);
 	evenaddr(PTR2UINT(addr));
 	block = va_arg(list, int);
+	va_end(list);
 
 	if((s = seg(m->externup, PTR2UINT(addr), 0)) == nil)
 		error(Ebadarg);
@@ -1283,11 +1322,13 @@ syssemacquire(Ar0* ar0, va_list list)
 }
 
 void
-systsemacquire(Ar0* ar0, va_list list)
+systsemacquire(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Segment *s;
 	int *addr, ms;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int tsemacquire(long* addr, uint32_t ms);
@@ -1298,6 +1339,7 @@ systsemacquire(Ar0* ar0, va_list list)
 	addr = validaddr(addr, sizeof(int), 1);
 	evenaddr(PTR2UINT(addr));
 	ms = va_arg(list, uint32_t);
+	va_end(list);
 
 	if((s = seg(m->externup, PTR2UINT(addr), 0)) == nil)
 		error(Ebadarg);
@@ -1308,11 +1350,13 @@ systsemacquire(Ar0* ar0, va_list list)
 }
 
 void
-syssemrelease(Ar0* ar0, va_list list)
+syssemrelease(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Segment *s;
 	int *addr, delta;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * long semrelease(long* addr, long count);
@@ -1323,6 +1367,7 @@ syssemrelease(Ar0* ar0, va_list list)
 	addr = validaddr(addr, sizeof(int), 1);
 	evenaddr(PTR2UINT(addr));
 	delta = va_arg(list, int);
+	va_end(list);
 
 	if((s = seg(m->externup, PTR2UINT(addr), 0)) == nil)
 		error(Ebadarg);

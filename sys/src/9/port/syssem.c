@@ -126,13 +126,15 @@ Done:
 }
 
 void
-syssemsleep(Ar0* ar, va_list list)
+syssemsleep(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	int *np;
 	int dontblock;
 	Sem *s;
 	Segment *sg;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * void semsleep(int*);
@@ -145,15 +147,18 @@ syssemsleep(Ar0* ar, va_list list)
 		error(Ebadarg);
 	s = segmksem(sg, np);
 	semsleep(s, dontblock);
+	va_end(list);
 }
 
 void
-syssemwakeup(Ar0* ar, va_list list)
+syssemwakeup(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	int *np;
 	Sem *s;
 	Segment *sg;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * void semwakeup(int*);
@@ -165,6 +170,7 @@ syssemwakeup(Ar0* ar, va_list list)
 		error(Ebadarg);
 	s = segmksem(sg, np);
 	semwakeup(s, 1, 1);
+	va_end(list);
 }
 
 static void
@@ -241,13 +247,15 @@ Done:
 }
 
 void
-syssemalt(Ar0 *ar0, va_list list)
+syssemalt(Ar0 *ar0, ...)
 {
 	Mach *m = machp();
 	int **sl;
 	int i, *np, ns;
 	Segment *sg;
 	Sem *ksl[16];
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * void semalt(int*[], int);
@@ -267,6 +275,7 @@ syssemalt(Ar0 *ar0, va_list list)
 		ksl[i] = segmksem(sg, np);
 	}	
 	ar0->i = semalt(ksl, ns);
+	va_end(list);
 }
 
 /*

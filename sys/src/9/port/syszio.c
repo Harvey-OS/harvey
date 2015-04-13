@@ -476,12 +476,14 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 }
 
 void
-sysziopread(Ar0 *ar0, va_list list)
+sysziopread(Ar0 *ar0, ...)
 {
 	int fd, nio;
 	int32_t count;
 	int64_t offset;
 	Zio *io;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int zpread(int fd, Zio *io[], int nio, usize count, int64_t offset);
@@ -491,15 +493,18 @@ sysziopread(Ar0 *ar0, va_list list)
 	nio = va_arg(list, int);
 	count = va_arg(list, usize);
 	offset = va_arg(list, int64_t);
+	va_end(list);
 	ar0->i = ziorw(fd, io, nio, count, offset, 0);
 }
 
 void
-sysziopwrite(Ar0 *ar0, va_list list)
+sysziopwrite(Ar0 *ar0, ...)
 {
 	int fd, nio;
 	int64_t offset;
 	Zio *io;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int zpwrite(int fd, Zio *io[], int nio, int64_t offset);
@@ -508,22 +513,26 @@ sysziopwrite(Ar0 *ar0, va_list list)
 	io = va_arg(list, Zio*);
 	nio = va_arg(list, int);
 	offset = va_arg(list, int64_t);
+	va_end(list);
 	ar0->i = ziorw(fd, io, nio, 0, offset, 1);
 }
 
 void
-sysziofree(Ar0 *a, va_list list)
+sysziofree(Ar0 *ar0, ...)
 {
 	Mach *m = machp();
 	Zio *io;
 	int nio, i;
 	Segment *s;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * zfree(Zio io[], int nio);
 	 */
 	io = va_arg(list, Zio*);
 	nio = va_arg(list, int);
+	va_end(list);
 	io = validaddr(io, sizeof io[0] * nio, 1);
 	for(i = 0; i < nio; i++){
 		s = seg(m->externup, PTR2UINT(io[i].data), 1);

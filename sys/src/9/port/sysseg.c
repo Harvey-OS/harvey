@@ -166,12 +166,14 @@ assert(newsize >= 0);
 }
 
 void
-syssegbrk(Ar0* ar0, va_list list)
+syssegbrk(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	int i;
 	uintptr_t addr;
 	Segment *s;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int segbrk(void*, void*);
@@ -206,13 +208,16 @@ syssegbrk(Ar0* ar0, va_list list)
 			return;
 		}
 	}
+	va_end(list);
 	error(Ebadarg);
 }
 
 void
-sysbrk_(Ar0* ar0, va_list list)
+sysbrk_(Ar0* ar0, ...)
 {
 	uintptr_t addr;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int brk(void*);
@@ -220,6 +225,7 @@ sysbrk_(Ar0* ar0, va_list list)
 	 * Deprecated; should be for backwards compatibility only.
 	 */
 	addr = PTR2UINT(va_arg(list, void*));
+	va_end(list);
 
 	ibrk(addr, BSEG);
 
@@ -321,13 +327,15 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 }
 
 void
-syssegattach(Ar0* ar0, va_list list)
+syssegattach(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	int attr;
 	char *name;
 	uintptr_t va;
 	usize len;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * long segattach(int, char*, void*, uint32_t);
@@ -338,22 +346,26 @@ syssegattach(Ar0* ar0, va_list list)
 	name = va_arg(list, char*);
 	va = PTR2UINT(va_arg(list, void*));
 	len = va_arg(list, usize);
+	va_end(list);
 
 	ar0->v = UINT2PTR(segattach(m->externup, attr, validaddr(name, 1, 0), va, len));
 }
 
 void
-syssegdetach(Ar0* ar0, va_list list)
+syssegdetach(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	int i;
 	uintptr_t addr;
 	Segment *s;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int segdetach(void*);
 	 */
 	addr = PTR2UINT(va_arg(list, void*));
+	va_end(list);
 
 	qlock(&m->externup->seglock);
 	if(waserror()){
@@ -396,12 +408,14 @@ found:
 }
 
 void
-syssegfree(Ar0* ar0, va_list list)
+syssegfree(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Segment *s;
 	uintptr_t from, to;
 	usize len;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int segfree(void*, uint32_t);
@@ -419,6 +433,7 @@ syssegfree(Ar0* ar0, va_list list)
 		error(Ebadarg);
 	}
 	from = BIGPGROUND(from);
+	va_end(list);
 
 	mfreeseg(s, from, (to - from) / BIGPGSZ);
 	qunlock(&s->lk);
@@ -441,13 +456,15 @@ pteflush(Pte *pte, int s, int e)
 }
 
 void
-syssegflush(Ar0* ar0, va_list list)
+syssegflush(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Segment *s;
 	uintptr_t addr;
 	Pte *pte;
 	usize chunk, l, len, pe, ps;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int segflush(void*, uint32_t);
@@ -456,6 +473,7 @@ syssegflush(Ar0* ar0, va_list list)
 	 */
 	addr = PTR2UINT(va_arg(list, void*));
 	len = va_arg(list, usize);
+	va_end(list);
 
 	while(len > 0) {
 		s = seg(m->externup, addr, 1);

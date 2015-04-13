@@ -183,12 +183,14 @@ openmode(int omode)
 }
 
 void
-sysfd2path(Ar0* ar0, va_list list)
+sysfd2path(Ar0* ar0, ...)
 {
 	Chan *c;
 	char *buf;
 	int fd;
 	usize nbuf;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int fd2path(int fd, char* buf, int nbuf);
@@ -198,6 +200,7 @@ sysfd2path(Ar0* ar0, va_list list)
 	fd = va_arg(list, int);
 	buf = va_arg(list, char*);
 	nbuf = va_arg(list, usize);
+	va_end(list);
 	buf = validaddr(buf, nbuf, 1);
 
 	c = fdtochan(fd, -1, 0, 1);
@@ -208,17 +211,20 @@ sysfd2path(Ar0* ar0, va_list list)
 }
 
 void
-syspipe(Ar0* ar0, va_list list)
+syspipe(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	int *a, fd[2];
 	Chan *c[2];
 	static char *datastr[] = {"data", "data1"};
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int pipe(int fd[2]);
 	 */
 	a = va_arg(list, int*);
+	va_end(list);
 	a = validaddr(a, sizeof(fd), 1);
 	evenaddr(PTR2UINT(a));
 
@@ -251,12 +257,14 @@ syspipe(Ar0* ar0, va_list list)
 }
 
 void
-sysdup(Ar0* ar0, va_list list)
+sysdup(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	int nfd, ofd;
 	Chan *nc, *oc;
 	Fgrp *f;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int dup(int oldfd, int newfd);
@@ -266,6 +274,7 @@ sysdup(Ar0* ar0, va_list list)
 	ofd = va_arg(list, int);
 	oc = fdtochan(ofd, -1, 0, 1);
 	nfd = va_arg(list, int);
+	va_end(list);
 
 	if(nfd != -1){
 		f = m->externup->fgrp;
@@ -332,8 +341,11 @@ sysopen(Ar0* ar0, ...)
 }
 
 void
-sysnsec(Ar0* ar0, va_list list)
+sysnsec(Ar0* ar0, ...)
 {
+	va_list list;
+	va_start(list, ar0);
+	va_end(list);
 	/*
 	 * int64_t nsec(void);
 	 */
@@ -372,14 +384,17 @@ fdclose(int fd, int flag)
 }
 
 void
-sysclose(Ar0* ar0, va_list list)
+sysclose(Ar0* ar0, ...)
 {
 	int fd;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int close(int fd);
 	 */
 	fd = va_arg(list, int);
+	va_end(list);
 
 	fdtochan(fd, -1, 0, 0);
 	fdclose(fd, 0);
@@ -703,7 +718,7 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 }
 
 static int32_t
-read(va_list list, int ispread)
+read(int ispread, ...)
 {
 	Mach *m = machp();
 	int fd;
@@ -711,6 +726,8 @@ read(va_list list, int ispread)
 	void *p;
 	Chan *c;
 	int64_t off;
+	va_list list;
+	va_start(list, ispread);
 
 	fd = va_arg(list, int);
 	p = va_arg(list, void*);
@@ -742,7 +759,6 @@ read(va_list list, int ispread)
 	}
 	else
 		off = c->offset;
-
 	if(c->qid.type & QTDIR){
 		/*
 		 * Directory read:
@@ -784,26 +800,33 @@ read(va_list list, int ispread)
 
 	poperror();
 	cclose(c);
+	va_end(list);
 
 	return nnn;
 }
 
 void
-sys_read(Ar0* ar0, va_list list)
+sys_read(Ar0* ar0, ...)
 {
+	va_list list;
+	va_start(list, ar0);
+	va_end(list);
 	/*
 	 * long read(int fd, void* buf, long nbytes);
 	 */
-	ar0->l = read(list, 0);
+	ar0->l = read(0, list);
 }
 
 void
-syspread(Ar0* ar0, va_list list)
+syspread(Ar0* ar0, ...)
 {
+	va_list list;
+	va_start(list, ar0);
+	va_end(list);
 	/*
 	 * long pread(int fd, void* buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = read(list, 1);
+	ar0->l = read(1, list);
 }
 
 static int32_t
@@ -941,10 +964,12 @@ sseek(int fd, int64_t offset, int whence)
 }
 
 void
-sysseek(Ar0* ar0, va_list list)
+sysseek(Ar0* ar0, ...)
 {
 	int fd, whence;
 	int64_t offset, *rv;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int64_t seek(int fd, int64_t n, int type);
@@ -961,16 +986,19 @@ sysseek(Ar0* ar0, va_list list)
 	fd = va_arg(list, int);
 	offset = va_arg(list, int64_t);
 	whence = va_arg(list, int);
+	va_end(list);
 	*rv = sseek(fd, offset, whence);
 
 	ar0->i = 0;
 }
 
 void
-sysoseek(Ar0* ar0, va_list list)
+sysoseek(Ar0* ar0, ...)
 {
 	int32_t offset;
 	int fd, whence;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * long oseek(int fd, long n, int type);
@@ -980,6 +1008,7 @@ sysoseek(Ar0* ar0, va_list list)
 	fd = va_arg(list, int);
 	offset = va_arg(list, int32_t);
 	whence = va_arg(list, int);
+	va_end(list);
 
 	ar0->l = sseek(fd, offset, whence);
 }
@@ -1027,7 +1056,7 @@ pathlast(Path *p)
 }
 
 void
-sysfstat(Ar0* ar0, va_list list)
+sysfstat(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	int fd;
@@ -1035,6 +1064,8 @@ sysfstat(Ar0* ar0, va_list list)
 	usize n;
 	int r;
 	uint8_t *p;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int fstat(int fd, uchar* edir, int nedir);
@@ -1046,6 +1077,7 @@ sysfstat(Ar0* ar0, va_list list)
 	fd = va_arg(list, int);
 	p = va_arg(list, uint8_t*);
 	n = va_arg(list, usize);
+	va_end(list);
 
 	p = validaddr(p, n, 1);
 	c = fdtochan(fd, -1, 0, 1);
@@ -1061,7 +1093,7 @@ sysfstat(Ar0* ar0, va_list list)
 }
 
 void
-sysstat(Ar0* ar0, va_list list)
+sysstat(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	char *aname;
@@ -1069,6 +1101,8 @@ sysstat(Ar0* ar0, va_list list)
 	usize n;
 	int r;
 	uint8_t *p;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int stat(char* name, uchar* edir, int nedir);
@@ -1081,6 +1115,7 @@ sysstat(Ar0* ar0, va_list list)
 	aname = validaddr(aname, 1, 0);
 	p = va_arg(list, uint8_t*);
 	n = va_arg(list, usize);
+	va_end(list);
 
 	p = validaddr(p, n, 1);
 	c = namec(aname, Aaccess, 0, 0);
@@ -1100,17 +1135,20 @@ sysstat(Ar0* ar0, va_list list)
 }
 
 void
-syschdir(Ar0* ar0, va_list list)
+syschdir(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Chan *c;
 	char *aname;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int chdir(char* dirname);
 	 */
 	aname = va_arg(list, char*);
 	aname = validaddr(aname, 1, 0);
+	va_end(list);
 
 	c = namec(aname, Atodir, 0, 0);
 	cclose(m->externup->dot);
@@ -1234,10 +1272,12 @@ sysbind(Ar0* ar0, ...)
 }
 
 void
-sysmount(Ar0* ar0, va_list list)
+sysmount(Ar0* ar0, ...)
 {
 	int afd, fd, flag;
 	char *aname, *old;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int mount(int fd, int afd, char* old, int flag, char* aname);
@@ -1249,15 +1289,18 @@ sysmount(Ar0* ar0, va_list list)
 	old = va_arg(list, char*);
 	flag = va_arg(list, int);
 	aname = va_arg(list, char*);
+	va_end(list);
 
 	ar0->i = bindmount(1, fd, afd, nil, old, flag, aname);
 }
 
 void
-sys_mount(Ar0* ar0, va_list list)
+sys_mount(Ar0* ar0, ...)
 {
 	int fd, flag;
 	char *aname, *old;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int mount(int fd, char *old, int flag, char *aname);
@@ -1270,16 +1313,19 @@ sys_mount(Ar0* ar0, va_list list)
 	old = va_arg(list, char*);
 	flag = va_arg(list, int);
 	aname = va_arg(list, char*);
+	va_end(list);
 
 	ar0->i = bindmount(1, fd, -1, nil, old, flag, aname);
 }
 
 void
-sysunmount(Ar0* ar0, va_list list)
+sysunmount(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	char *name, *old;
 	Chan *cmount, *cmounted;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int unmount(char* name, char* old);
@@ -1287,6 +1333,7 @@ sysunmount(Ar0* ar0, va_list list)
 	name = va_arg(list, char*);
 	old = va_arg(list, char*);
 	cmount = namec(validaddr(old, 1, 0), Amount, 0, 0);
+	va_end(list);
 
 	cmounted = nil;
 	if(name != nil) {
@@ -1322,12 +1369,14 @@ sysunmount(Ar0* ar0, va_list list)
 }
 
 void
-syscreate(Ar0* ar0, va_list list)
+syscreate(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	char *aname;
 	int fd, omode, perm;
 	Chan *c;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int create(char* file, int omode, uint32_t perm);
@@ -1337,6 +1386,7 @@ syscreate(Ar0* ar0, va_list list)
 	aname = va_arg(list, char*);
 	omode = va_arg(list, int);
 	perm = va_arg(list, int);
+	va_end(list);
 
 	openmode(omode & ~OEXCL);	/* error check only; OEXCL okay here */
 	c = nil;
@@ -1355,17 +1405,20 @@ syscreate(Ar0* ar0, va_list list)
 }
 
 void
-sysremove(Ar0* ar0, va_list list)
+sysremove(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Chan *c;
 	char *aname;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int remove(char* file);
 	 */
 	aname = va_arg(list, char*);
 	c = namec(validaddr(aname, 1, 0), Aremove, 0, 0);
+	va_end(list);
 
 	/*
 	 * Removing mount points is disallowed to avoid surprises
@@ -1423,12 +1476,14 @@ wstat(Chan* c, uint8_t* p, usize n)
 }
 
 void
-syswstat(Ar0* ar0, va_list list)
+syswstat(Ar0* ar0, ...)
 {
 	Chan *c;
 	char *aname;
 	uint8_t *p;
 	usize n;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int wstat(char* name, uchar* edir, int nedir);
@@ -1444,17 +1499,20 @@ syswstat(Ar0* ar0, va_list list)
 	p = validaddr(p, n, 0);
 	validstat(p, n);
 	c = namec(validaddr(aname, 1, 0), Aaccess, 0, 0);
+	va_end(list);
 
 	ar0->l = wstat(c, p, n);
 }
 
 void
-sysfwstat(Ar0* ar0, va_list list)
+sysfwstat(Ar0* ar0, ...)
 {
 	Chan *c;
 	int fd;
 	uint8_t *p;
 	usize n;
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int fwstat(int fd, uchar* edir, int nedir);
@@ -1470,6 +1528,7 @@ sysfwstat(Ar0* ar0, va_list list)
 	p = validaddr(p, n, 0);
 	validstat(p, n);
 	c = fdtochan(fd, -1, 1, 1);
+	va_end(list);
 
 	ar0->l = wstat(c, p, n);
 }
@@ -1509,7 +1568,7 @@ packoldstat(uint8_t *buf, Dir *d)
 }
 
 void
-sys_stat(Ar0* ar0, va_list list)
+sys_stat(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Chan *c;
@@ -1518,6 +1577,8 @@ sys_stat(Ar0* ar0, va_list list)
 	char *aname, *name, strs[128];
 	Dir d;
 	char old[] = "old stat system call - recompile";
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int stat(char* name, char* edir);
@@ -1528,6 +1589,7 @@ sys_stat(Ar0* ar0, va_list list)
 	 */
 	aname = va_arg(list, char*);
 	p = va_arg(list, uint8_t*);
+	va_end(list);
 
 	/*
 	 * Old DIRLEN (116) plus a little should be plenty
@@ -1564,7 +1626,7 @@ sys_stat(Ar0* ar0, va_list list)
 }
 
 void
-sys_fstat(Ar0* ar0, va_list list)
+sys_fstat(Ar0* ar0, ...)
 {
 	Mach *m = machp();
 	Chan *c;
@@ -1575,6 +1637,8 @@ sys_fstat(Ar0* ar0, va_list list)
 	Dir d;
 	int fd;
 	char old[] = "old fstat system call - recompile";
+	va_list list;
+	va_start(list, ar0);
 
 	/*
 	 * int fstat(int fd, char* edir);
@@ -1585,6 +1649,7 @@ sys_fstat(Ar0* ar0, va_list list)
 	 */
 	fd = va_arg(list, int);
 	p = va_arg(list, uint8_t*);
+	va_end(list);
 
 	/*
 	 * Old DIRLEN (116) plus a little should be plenty
@@ -1620,13 +1685,19 @@ sys_fstat(Ar0* ar0, va_list list)
 }
 
 void
-sys_wstat(Ar0* ar, va_list list)
+sys_wstat(Ar0* ar0, ...)
 {
+	va_list list;
+	va_start(list, ar0);
+	va_end(list);
 	error("old wstat system call - recompile");
 }
 
 void
-sys_fwstat(Ar0* ar, va_list list)
+sys_fwstat(Ar0* ar0, ...)
 {
+	va_list list;
+	va_start(list, ar0);
+	va_end(list);
 	error("old fwstat system call - recompile");
 }

@@ -424,11 +424,13 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 }
 
 void
-syskforkexecac(Ar0* ar0, va_list list)
+syskforkexecac(Ar0* ar0, ...)
 {
 //	int core;
 //	uintptr base, size;
 //	char *file, **argv;
+	va_list list;
+	va_start(list, ar0);
 	//XXX: get system call working.
 	USED(ar0); USED(list);
 
@@ -443,6 +445,7 @@ syskforkexecac(Ar0* ar0, va_list list)
 //	file = va_arg(list, char*);
 //	file = validaddr(file, 1, 0);
 //	argv = va_arg(list, char**);
+	va_end(list);
 //	evenaddr(PTR2UINT(argv));
 	// XXX: going to need to setup segs here.
 	//kforkexecac(p, core, file, argv);
