@@ -12,8 +12,8 @@
 
 struct io{
 	int	fd;
-	uchar	*bufp, *ebuf, *strp;
-	uchar	buf[NBUF];
+	unsigned char	*bufp, *ebuf, *strp;
+	unsigned char	buf[NBUF];
 };
 io *err;
 

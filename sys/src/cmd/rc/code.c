@@ -16,9 +16,9 @@
 #define	c1	t->child[1]
 #define	c2	t->child[2]
 int codep, ncode;
-#define	emitf(x) ((codep!=ncode || morecode()), codebuf[codep].f = (x), codep++)
-#define	emiti(x) ((codep!=ncode || morecode()), codebuf[codep].i = (x), codep++)
-#define	emits(x) ((codep!=ncode || morecode()), codebuf[codep].s = (x), codep++)
+#define	emitf(x) ((void)(codep!=ncode || morecode()), codebuf[codep].f = (x), codep++)
+#define	emiti(x) ((void)(codep!=ncode || morecode()), codebuf[codep].i = (x), codep++)
+#define	emits(x) ((void)(codep!=ncode || morecode()), codebuf[codep].s = (x), codep++)
 void stuffdot(int);
 char *fnstr(tree*);
 void outcode(tree*, int);

@@ -221,7 +221,7 @@ execfinit(void)
 }
 
 int
-Waitfor(int pid, int)
+Waitfor(int pid, int n)
 {
 	thread *p;
 	Waitmsg *w;
@@ -493,7 +493,7 @@ Closedir(int f)
 }
 int interrupted = 0;
 void
-notifyf(void*, char *s)
+notifyf(void* v, char *s)
 {
 	int i;
 	for(i = 0;syssigname[i];i++) if(strncmp(s, syssigname[i], strlen(syssigname[i]))==0){
@@ -572,7 +572,7 @@ Dup(int a, int b)
 }
 
 int
-Dup1(int)
+Dup1(int i)
 {
 	return -1;
 }
@@ -675,7 +675,7 @@ havewaitpid(int pid)
 
 /* avoid loading any floating-point library code */
 int
-_efgfmt(Fmt *)
+_efgfmt(Fmt *f)
 {
 	return -1;
 }
