@@ -88,12 +88,8 @@ compiling()
 	$CC $UCFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -mcmodel=small -c init9.c
 	$CC $UCFLAGS $WARNFLAGS -I$INC_DIR -I$INCX86_64_DIR -I. -mcmodel=small -c ../port/initcode.c
 
-	$LD -static -o init.elf.out init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020
-	objcopy -j .text  -O binary init.elf.out init.code.out
-	objcopy -j .data -O binary init.elf.out init.data.out
-	file init*.out
-	$XD -i init.code.out > init.h
-	$XD -i init.data.out >> init.h
+	$LD -static -o init init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020
+	elf2c init > init.h
 
 	## errstr.h ##
 
