@@ -42,10 +42,12 @@ Reglist amd64reglist[] = {
 	{"R13",		REGOFF(r13),	RINT, 'Y'},
 	{"R14",		REGOFF(r14),	RINT, 'Y'},
 	{"R15",		REGOFF(r15),	RINT, 'Y'},
+#if 0
 	{"DS",		REGOFF(ds),	RINT, 'x'},
 	{"ES",		REGOFF(es),	RINT, 'x'},
 	{"FS",		REGOFF(fs),	RINT, 'x'},
 	{"GS",		REGOFF(gs),	RINT, 'x'},
+#endif
 	{"TYPE",	REGOFF(type), 	RINT, 'Y'},
 	{"TRAP",	REGOFF(type), 	RINT, 'Y'},	/* alias for acid */
 	{"ERROR",	REGOFF(error),	RINT, 'Y'},
