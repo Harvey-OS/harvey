@@ -1,42 +1,42 @@
 package main
 
 import (
-	"bufio"
-	"flag"
-	"fmt"
-	"io"
-	"math"
-	"debug/elf"
-	"os"
-	"path"
+"bufio"
+"flag"
+"fmt"
+"io"
+"math"
+"debug/elf"
+"os"
+"path"
 )
 
 var dry = flag.Bool("dryrun", true, "don't really do it")
 
 func gencode(w io.Writer, n, t string, m []byte, start, end uint64) {
-	fmt.Fprintf(os.Stderr, "Write %v %v start %v end %v\n", n, t, start, end)
-	fmt.Fprintf(w, "int %v_%v_start = %v;\n", n, t, start)
-	fmt.Fprintf(w, "int %v_%v_end = %v;\n", n, t, end)
-	fmt.Fprintf(w, "int %v_%v_len = %v;\n", n, t, end-start)
-	fmt.Fprintf(w, "uint8_t %v_%v_out_data = {\n", n, t)
-	for i := uint64(start); i < end; i += 16 {
-		for j := uint64(0); i + j < end && j < 16; j++ {
-			fmt.Fprintf(w, "0x%02x, ", m[j + i])
-		}
-		fmt.Fprintf(w, "\n")
+fmt.Fprintf(os.Stderr, "Write %v %v start %v end %v\n", n, t, start, end)
+fmt.Fprintf(w, "int %v_%v_start = %v;\n", n, t, start)
+fmt.Fprintf(w, "int %v_%v_end = %v;\n", n, t, end)
+fmt.Fprintf(w, "int %v_%v_len = %v;\n", n, t, end-start)
+fmt.Fprintf(w, "uint8_t %v_%v_out[] = {\n", n, t)
+for i := uint64(start); i < end; i += 16 {
+	for j := uint64(0); i + j < end && j < 16; j++ {
+		fmt.Fprintf(w, "0x%02x, ", m[j + i])
 	}
-	fmt.Fprintf(w, "}\n")
+	fmt.Fprintf(w, "\n")
+}
+fmt.Fprintf(w, "};\n")
 }
 func main() {
-	flag.Parse()
-	a := flag.Args()
-	for _, n := range a {
-		f, err := elf.Open(n)
-		if err != nil {
-			fmt.Printf("%v %v\n", n, err)
-			continue
-		}
-		var dataend, codeend, end uint64
+flag.Parse()
+a := flag.Args()
+for _, n := range a {
+	f, err := elf.Open(n)
+	if err != nil {
+		fmt.Printf("%v %v\n", n, err)
+		continue
+	}
+	var dataend, codeend, end uint64
 		var datastart, codestart, start uint64
 		datastart, codestart, start = math.MaxUint64, math.MaxUint64, math.MaxUint64
 		mem := []byte{}
@@ -105,7 +105,7 @@ func main() {
 		// Gen code to stdout. For each file, create an array, a start, and an end variable.
 		w := bufio.NewWriter(os.Stdout)
 		_, file := path.Split(n)
-		gencode(w, file, "text", mem, codestart, codeend)
+		gencode(w, file, "code", mem, codestart, codeend)
 		gencode(w, file, "data", mem, datastart, dataend)
 		w.Flush()
 	}
