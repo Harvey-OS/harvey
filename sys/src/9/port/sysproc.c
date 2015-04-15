@@ -18,6 +18,7 @@
 #include	"../port/edf.h"
 #include	<a.out.h>
 #include 	<trace.h>
+#include	"elf.h"
 
 
 void
@@ -274,9 +275,22 @@ l2be(int32_t l)
 	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
 }
 
+/*
 typedef struct {
 	Exec;
 	uint64_t hdr[1];
+} Hdr;
+*/
+
+typedef struct {
+        union{
+                struct {
+                        Exec;           /* a.out.h */
+                        uint64_t hdr[1];
+                };
+                E64hdr;                 /* elf */
+        } e;
+        int32_t dummy;                  /* padding to ensure extra long */
 } Hdr;
 
 /*
@@ -388,21 +402,23 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/*
 	 * #! has had its chance, now we need a real binary.
 	 */
-	magic = l2be(hdr.magic);
-	if(hdrsz != sizeof(Hdr) || magic != AOUT_MAGIC || magic != ELF_MAGIC)
+	magic = l2be(hdr.e.magic);
+	if(hdrsz != sizeof(Hdr) || magic != AOUT_MAGIC || magic != ELF_MAGIC) {
+		iprint("sysproc 414: bad exechdr\n");
 		error(Ebadexec);
+	}
 	if(magic & HDR_MAGIC){
-		entry = vl2be(hdr.hdr[0]);
+		entry = vl2be(hdr.e.hdr[0]);
 		hdrsz = sizeof(Hdr);
 	}
 	else{
-		entry = l2be(hdr.entry);
+		entry = l2be(hdr.e.entry);
 		hdrsz = sizeof(Exec);
 	}
 
-	textsz = l2be(hdr.text);
-	datasz = l2be(hdr.data);
-	bsssz = l2be(hdr.bss);
+	textsz = l2be(hdr.e.text);
+	datasz = l2be(hdr.e.data);
+	bsssz = l2be(hdr.e.bss);
 
 	textlim = UTROUND(UTZERO+hdrsz+textsz);
 	datalim = BIGPGROUND(textlim+datasz);

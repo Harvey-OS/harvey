@@ -23,7 +23,7 @@ typedef struct {
 	union{
 		struct {
 			Exec;		/* a.out.h */
-			unsigned long long hdr[1];
+			uint64_t hdr[1];
 		};
 #ifdef HARVEY32
 		Ehdr;			/* elf.h */
@@ -34,7 +34,7 @@ typedef struct {
 		struct sparcexec;	/* bootexec.h */
 		struct nextexec;	/* bootexec.h */
 	} e;
-	long dummy;			/* padding to ensure extra long */
+	int32_t dummy;			/* padding to ensure extra long */
 } ExecHdr;
 
 #ifdef HARVEYNEXT
