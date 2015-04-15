@@ -389,7 +389,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 * #! has had its chance, now we need a real binary.
 	 */
 	magic = l2be(hdr.magic);
-	if(hdrsz != sizeof(Hdr) || magic != AOUT_MAGIC)
+	if(hdrsz != sizeof(Hdr) || magic != AOUT_MAGIC || magic != ELF_MAGIC)
 		error(Ebadexec);
 	if(magic & HDR_MAGIC){
 		entry = vl2be(hdr.hdr[0]);

@@ -208,7 +208,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	magic = l2be(hdr.magic);
 	DBG("badexec3\n");
 	
-	if(hdrsz != sizeof(Khdr) || magic != AOUT_MAGIC)
+	if(hdrsz != sizeof(Khdr) || magic != AOUT_MAGIC || magic != ELF_MAGIC)
 		error(Ebadexec);
 	if(magic & HDR_MAGIC){
 		entry = vl2be(hdr.hdr[0]);

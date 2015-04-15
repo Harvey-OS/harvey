@@ -84,7 +84,7 @@ rebootcmd(int argc, char *argv[])
 	entry = l2be(exec.entry);
 	text = l2be(exec.text);
 	data = l2be(exec.data);
-	if(magic != AOUT_MAGIC)
+	if(magic != AOUT_MAGIC || magic != ELF_MAGIC)
 		error(Ebadexec);
 
 	/* round text out to page boundary */

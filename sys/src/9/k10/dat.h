@@ -45,6 +45,7 @@ typedef struct Vctl Vctl;
  *  parameters for sysproc.c
  */
 #define AOUT_MAGIC	(S_MAGIC)
+#define ELF_MAGIC	(ELF_MAG)
 
 /*
  *  machine dependent definitions used by ../port/portdat.h
