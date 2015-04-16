@@ -19,6 +19,36 @@
 #include	<a.out.h>
 #include 	<trace.h>
 
+/* this is ugly but we need libmach in the kernel. So this is a first pass.
+ * FIX ME.
+ */
+/*
+ *	Common a.out header describing all architectures
+ */
+typedef struct Fhdr
+{
+	char	*name;		/* identifier of executable */
+	uint8_t	type;		/* file type - see codes above */
+	uint8_t	hdrsz;		/* header size */
+	uint8_t	_magic;		/* _MAGIC() magic */
+	uint8_t	spare;
+	int32_t	magic;		/* magic number */
+	uint64_t	txtaddr;	/* text address */
+	int64_t	txtoff;		/* start of text in file */
+	uint64_t	dataddr;	/* start of data segment */
+	int64_t	datoff;		/* offset to data seg in file */
+	int64_t	symoff;		/* offset of symbol table in file */
+	uint64_t	entry;		/* entry point */
+	int64_t	sppcoff;	/* offset of sp-pc table in file */
+	int64_t	lnpcoff;	/* offset of line number-pc table in file */
+	int32_t	txtsz;		/* text size */
+	int32_t	datsz;		/* size of data seg */
+	int32_t	bsssz;		/* size of bss */
+	int32_t	symsz;		/* size of symbol table */
+	int32_t	sppcsz;		/* size of sp-pc table */
+	int32_t	lnpcsz;		/* size of line number-pc table */
+} Fhdr;
+
 
 void
 sysrfork(Ar0* ar0, ...)
@@ -699,10 +729,23 @@ sysexecac(Ar0* ar0, ...)
 	execac(ar0, flags, file, argv);
 }
 
+static void crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
+{
+}
+
 static void
 machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 {
+	Mach *m = machp();
+	Fhdr f;
+	// just catch the error and ignore it for now.
+	if (waserror()) {
+		return;
+	}
+	Chan *c = namec(m->externup->genbuf, Aopen, OREAD, 0);
+
 	// call crackhdr
+	crackhdr(ar0, c, &f);
 	// ar0->i will be -1; leave until alvaro fills this in, just return,
 	// and the regular a.out exec will take over.
 	// Until this works, just set ar0->i to -1;
