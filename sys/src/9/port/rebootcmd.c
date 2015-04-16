@@ -64,6 +64,7 @@ setbootcmd(int argc, char *argv[])
 void
 rebootcmd(int argc, char *argv[])
 {
+	panic("not supported yet");
 	Mach *m = machp();
 	Chan *c;
 	Exec exec;
@@ -84,7 +85,7 @@ rebootcmd(int argc, char *argv[])
 	entry = l2be(exec.entry);
 	text = l2be(exec.text);
 	data = l2be(exec.data);
-	if(magic != AOUT_MAGIC || magic != ELF_MAGIC)
+	if(magic != AOUT_MAGIC /*|| magic != ELF_MAGIC*/)
 		error(Ebadexec);
 
 	/* round text out to page boundary */
