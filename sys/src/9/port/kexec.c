@@ -17,7 +17,6 @@
 
 #include	"../port/edf.h"
 #include	<a.out.h>
-#include	"elf.h"
 #include "kexec.h"
 
 
@@ -46,22 +45,9 @@ l2be(int32_t l)
 	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
 }
 
-/*
 typedef struct {
 	Exec;
 	uint64_t hdr[1];
-} Khdr;
-*/
-
-typedef struct {
-        union{
-                struct {
-                        Exec;           /* a.out.h */
-                        uint64_t hdr[1];
-                };
-                E64hdr;			/* elf */
-        } e;
-        int32_t dummy;                  /* padding to ensure extra long */
 } Khdr;
 
 enum {
@@ -219,23 +205,23 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	}
 
 //	p = (char*)&hdr;
-	magic = l2be(hdr.e.magic);
+	magic = l2be(hdr.magic);
 	DBG("badexec3\n");
 	
-	if(hdrsz != sizeof(Khdr) || magic != AOUT_MAGIC || magic != ELF_MAGIC)
+	if(hdrsz != sizeof(Khdr) || magic != AOUT_MAGIC)
 		error(Ebadexec);
 	if(magic & HDR_MAGIC){
-		entry = vl2be(hdr.e.hdr[0]);
+		entry = vl2be(hdr.hdr[0]);
 		hdrsz = sizeof(Khdr);
 	}
 	else{
-		entry = l2be(hdr.e.entry);
+		entry = l2be(hdr.entry);
 		hdrsz = sizeof(Exec);
 	}
 
-	textsz = l2be(hdr.e.text);
-	datasz = l2be(hdr.e.data);
-	bsssz = l2be(hdr.e.bss);
+	textsz = l2be(hdr.text);
+	datasz = l2be(hdr.data);
+	bsssz = l2be(hdr.bss);
 
 	tbase = p->seg[TSEG]->base;
 	tsize = tbase - p->seg[TSEG]->top;

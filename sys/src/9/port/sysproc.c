@@ -18,8 +18,46 @@
 #include	"../port/edf.h"
 #include	<a.out.h>
 #include 	<trace.h>
-#include	"elf.h"
 
+/*
+ * Common a.out header describing all architectures
+ */
+
+typedef struct Fhdr
+{
+		char    *name;			/* identifier of executable */
+		uint8_t type;			/* file type - see codes above */
+		uint8_t hdrsz;			/* header size */
+		uint8_t _magic;			/* _MAGIC() magic */
+		uint8_t spare;
+		int32_t magic;			/* magic number */
+		uint64_t txtaddr;		/* text address */
+		int64_t txtoff;			/* start of text in file */
+		uint64_t dataddr;		/* start of data segment */
+		int64_t datoff;			/* offset to data seg in file */
+		int64_t symoff;			/* offset of symbol table in file */
+		uint64_t entry;			/* entry point */
+		int64_t sppcoff;		/* offset of sp-pc table in file */
+		int64_t lnpcoff;		/* offset of line number-pc table in file */
+		int32_t txtsz;			/* text size */
+		int32_t datsz;			/* size of data seg */
+		int32_t bsssz;			/* size of bss */
+		int32_t symsz;			/* size of symbol table */
+		int32_t sppcsz;			/* size of sp-pc table */
+		int32_t lnpcsz;			/* size of line number-pc table */
+} Fhdr;
+
+/* From mach.h in order not to collide with dat.h */
+typedef struct  Map     Map;
+
+/* Some standards needed for crackhdr */
+extern int open(char*, int);
+extern int32_t read(int, void*, int32_t);
+extern Dir* dirstat(char*);
+extern int64_t seek(int, int64_t, int);
+
+/* From mach.h */
+extern int crackhdr(int fd, Fhdr*);
 
 void
 sysrfork(Ar0* ar0, ...)
@@ -275,22 +313,9 @@ l2be(int32_t l)
 	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
 }
 
-/*
 typedef struct {
 	Exec;
 	uint64_t hdr[1];
-} Hdr;
-*/
-
-typedef struct {
-        union{
-                struct {
-                        Exec;           /* a.out.h */
-                        uint64_t hdr[1];
-                };
-                E64hdr;                 /* elf */
-        } e;
-        int32_t dummy;                  /* padding to ensure extra long */
 } Hdr;
 
 /*
@@ -315,6 +340,9 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	uintptr_t textlim, datalim, bsslim, entry, stack;
 	//	static int colorgen;
 
+	/* ELF */
+	Fhdr fp;
+	int fd;
 
 	file = nil;
 	elem = nil;
@@ -344,6 +372,17 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	argc = 0;
 	file = validnamedup(ufile, 1);
 	DBG("execac: up %#p file %s\n", m->externup, file);
+	iprint("execac: up %#p file %s\n", m->externup, file);
+
+	/*
+	 * Crack the file with libmach
+	 */
+	hi("I'm going to crack file!"); hi("\n");
+	fd = open(file, OREAD);
+	if (crackhdr(fd, &fp) < 0)
+	 	iprint("sysproc 342: Error cracking file.\n");
+	hi("Cracked!!"); hi("\n");
+
 	if(m->externup->trace)
 		proctracepid(m->externup);
 	ichan = namec(file, Aopen, OEXEC, 0);
@@ -402,23 +441,21 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/*
 	 * #! has had its chance, now we need a real binary.
 	 */
-	magic = l2be(hdr.e.magic);
-	if(hdrsz != sizeof(Hdr) || magic != AOUT_MAGIC || magic != ELF_MAGIC) {
-		iprint("sysproc 414: bad exechdr\n");
+	magic = l2be(hdr.magic);
+	if(hdrsz != sizeof(Hdr) || magic != AOUT_MAGIC) 
 		error(Ebadexec);
-	}
 	if(magic & HDR_MAGIC){
-		entry = vl2be(hdr.e.hdr[0]);
+		entry = vl2be(hdr.hdr[0]);
 		hdrsz = sizeof(Hdr);
 	}
 	else{
-		entry = l2be(hdr.e.entry);
+		entry = l2be(hdr.entry);
 		hdrsz = sizeof(Exec);
 	}
 
-	textsz = l2be(hdr.e.text);
-	datasz = l2be(hdr.e.data);
-	bsssz = l2be(hdr.e.bss);
+	textsz = l2be(hdr.text);
+	datasz = l2be(hdr.data);
+	bsssz = l2be(hdr.bss);
 
 	textlim = UTROUND(UTZERO+hdrsz+textsz);
 	datalim = BIGPGROUND(textlim+datasz);

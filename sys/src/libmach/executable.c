@@ -74,21 +74,30 @@ typedef struct Exectable{
 	int	(*hparse)(int, Fhdr*, ExecHdr*);
 } ExecTable;
 
+#ifdef HARVEYMIPS
 extern	Mach	mmips;
 extern	Mach	mmips2le;
 extern	Mach	mmips2be;
+#elif HARVEYSPARC
 extern	Mach	msparc;
 extern	Mach	msparc64;
 extern	Mach	m68020;
+#elif HARVEY32
 extern	Mach	mi386;
+#endif
 extern	Mach	mamd64;
+#ifdef HARVEYARM
 extern	Mach	marm;
+#elif HARVEYPPC
 extern	Mach	mpower;
 extern	Mach	mpower64;
+#elif HARVEYALPHA
 extern	Mach	malpha;
+#endif
 
 ExecTable exectab[] =
 {
+#ifdef HARVEYMIPS
 	{ V_MAGIC,			/* Mips v.out */
 		"mips plan 9 executable BE",
 		"mips plan 9 dlm BE",
@@ -125,7 +134,6 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		adotout },
-#ifdef HARVEYMIPS
 	{ 0x160<<16,			/* Mips boot image */
 		"mips plan 9 boot image",
 		nil,
@@ -191,7 +199,7 @@ ExecTable exectab[] =
 		sizeof(struct nextexec),
 		beswal,
 		nextboot },
-#endif
+#elif HARVEY32
 	{ I_MAGIC,			/* I386 8.out & boot image */
 		"386 plan 9 executable",
 		"386 plan 9 dlm",
@@ -201,6 +209,7 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
+#endif
 	{ S_MAGIC,			/* amd64 6.out & boot image */
 		"amd64 plan 9 executable",
 		"amd64 plan 9 dlm",
@@ -210,6 +219,7 @@ ExecTable exectab[] =
 		sizeof(Exec)+8,
 		nil,
 		commonllp64 },
+#ifdef HARVEYPPC
 	{ Q_MAGIC,			/* PowerPC q.out & boot image */
 		"power plan 9 executable",
 		"power plan 9 dlm",
@@ -228,6 +238,7 @@ ExecTable exectab[] =
 		sizeof(Exec)+8,
 		nil,
 		commonllp64 },
+#endif
 	{ ELF_MAG,			/* any ELF */
 		"elf executable",
 		nil,
@@ -239,6 +250,7 @@ ExecTable exectab[] =
 		sizeof(E64hdr),
 		nil,
 		elfdotout },
+#ifdef HARVEYARM
 	{ E_MAGIC,			/* Arm 5.out and boot image */
 		"arm plan 9 executable",
 		"arm plan 9 dlm",
@@ -257,6 +269,7 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		leswal,
 		armdotout },
+#elif HARVEYALPHA
 	{ L_MAGIC,			/* alpha 7.out */
 		"alpha plan 9 executable",
 		"alpha plan 9 dlm",
@@ -275,24 +288,29 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
+#endif
 	{ 0 },
 };
 
+#ifdef HARVEY32
 Mach	*mach = &mi386;			/* Global current machine table */
+#endif
+Mach	*mach = &mamd64;
 
 static ExecTable*
 couldbe4k(ExecTable *mp)
 {
-	Dir *d;
+//	Dir *d;
 	ExecTable *f;
 
+/* undefined for use with kernel
 	if((d=dirstat("/proc/1/regs")) == nil)
 		return mp;
-	if(d->length < 32*8){		/* R3000 */
+	if(d->length < 32*8){		/ * R3000 * /
 		free(d);
 		return mp;
 	}
-	free(d);
+	free(d); */
 	for (f = exectab; f->magic; f++)
 		if(f->magic == M_MAGIC) {
 			f->name = "mips plan 9 executable on mips2 kernel";
@@ -654,7 +672,9 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 		fp->name = "amd64 ELF64 executable";
 		break;
 	case POWER64:
+#ifdef HARVEYPPC
 		mach = &mpower64;
+#endif
 		fp->type = FPOWER64;
 		fp->name = "power64 ELF64 executable";
 		break;
