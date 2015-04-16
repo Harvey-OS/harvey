@@ -699,6 +699,18 @@ sysexecac(Ar0* ar0, ...)
 	execac(ar0, flags, file, argv);
 }
 
+static void
+machexec(Ar0* ar0, int flags, char *ufile, char **argv)
+{
+	// call crackhdr
+	// ar0->i will be -1; leave until alvaro fills this in, just return,
+	// and the regular a.out exec will take over.
+	// Until this works, just set ar0->i to -1;
+	// once this works, it replaces execac.
+	// NOTE: does not need to have full functionality of execac;
+	// just getting a process going on timesharing cores is ok for now.
+}
+
 void
 sysexec(Ar0* ar0, ...)
 {
@@ -715,7 +727,9 @@ sysexec(Ar0* ar0, ...)
 	argv = va_arg(list, char**);
 	va_end(list);
 	evenaddr(PTR2UINT(argv));
-	execac(ar0, EXTC, file, argv);
+	machexec(ar0, EXTC, file, argv);
+	if (ar0->i == -1)
+		execac(ar0, EXTC, file, argv);
 }
 
 void
