@@ -752,6 +752,7 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 	// once this works, it replaces execac.
 	// NOTE: does not need to have full functionality of execac;
 	// just getting a process going on timesharing cores is ok for now.
+	poperror();
 }
 
 void
