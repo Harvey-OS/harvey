@@ -694,8 +694,8 @@ aoecfg(void)
 	int n, i;
 	char *p, *f[32], buf[24];
 
-	if((p = getconf("aoeif")) == nil || (n = tokenize(p, f, nelem(f))) < 1)
-		return;
+	// if((p = getconf("aoeif")) == nil || (n = tokenize(p, f, nelem(f))) < 1)
+	return;
 	/* goo! */
 	for(i = 0; i < n; i++){
 		p = f[i];

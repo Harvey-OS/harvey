@@ -486,13 +486,14 @@ pcicfginit(void)
 		}
 	}
 
-	if(pciroot != nil && getconf("*nopcirouting") == nil)
-		pcirouting();
+	// no longer. 
+	//if(pciroot != nil && getconf("*nopcirouting") == nil)
+	pcirouting();
 	pcireservemem();
 	unlock(&pcicfginitlock);
 
-	if(getconf("*pcihinv"))
-		pcihinv(nil);
+	//if(getconf("*pcihinv"))
+	pcihinv(nil);
 }
 
 static int

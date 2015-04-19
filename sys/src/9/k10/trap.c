@@ -560,12 +560,11 @@ static void
 dumpstackwithureg(Ureg* ureg)
 {
 	Mach *m = machp();
-	char *s;
 	uintptr_t l, v, i, estack;
 //	extern char etext;
 	int x;
 
-	if((s = getconf("*nodumpstack")) != nil && atoi(s) != 0){
+	if (0) { //if((s = getconf("*nodumpstack")) != nil && atoi(s) != 0){
 		iprint("dumpstack disabled\n");
 		return;
 	}

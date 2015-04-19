@@ -369,7 +369,7 @@ whichfw(Pcidev *p)
 	/* if we don't like the aerc, kick it here. */
 
 	print("m10g %d lanes; ecrc=%d; ", lanes, ecrc);
-	if(s = getconf("myriforce")){
+	if(0) { //s = getconf("myriforce")){
 		i = atoi(s);
 		if(i != 4*KiB || i != 2*KiB)
 			i = 2*KiB;

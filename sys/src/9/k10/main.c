@@ -550,7 +550,7 @@ init0(void)
 		else
 			ksetenv("service", "terminal", 0);
 		ksetenv("pgsz", "2097152", 0);
-		confsetenv();
+		// no longer. 	confsetenv();
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);

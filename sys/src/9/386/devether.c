@@ -388,24 +388,6 @@ etherprobe(int cardno, int ctlrno)
 	ether->mtu = ETHERMAXTU;
 	ether->maxmtu = ETHERMAXTU;
 
-	if(cardno < 0){
-		if(isaconfig("ether", ctlrno, ether) == 0){
-			free(ether);
-			return nil;
-		}
-		for(cardno = 0; cards[cardno].type; cardno++){
-			if(cistrcmp(cards[cardno].type, ether->type))
-				continue;
-			for(i = 0; i < ether->nopt; i++){
-				if(strncmp(ether->opt[i], "ea=", 3))
-					continue;
-				if(parseether(ether->ea, &ether->opt[i][3]))
-					memset(ether->ea, 0, Eaddrlen);
-			}
-			break;
-		}
-	}
-
 	if(cardno >= MaxEther || cards[cardno].type == nil){
 		free(ether);
 		return nil;
@@ -472,9 +454,6 @@ etherreset(void)
 			continue;
 		etherxx[ctlrno] = ether;
 	}
-
-	if(getconf("*noetherprobe"))
-		return;
 
 	cardno = ctlrno = 0;
 	while(cards[cardno].type != nil && ctlrno < MaxEther){

@@ -753,7 +753,7 @@ i8250console(char* cfg)
 	 * to 0 or 1 because those are the only uart structs which
 	 * will be the same before and after that.
 	 */
-	if((p = getconf("console")) == nil && (p = cfg) == nil)
+	if(/*(p = getconf("console")) == nil &&*/ (p = cfg) == nil)
 		return nil;
 	i = strtoul(p, &cmd, 0);
 	if(p == cmd)
