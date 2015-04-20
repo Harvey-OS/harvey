@@ -181,28 +181,6 @@ chanseek(Ar0 *ar0, Chan *c, int64_t offset, int whence)
 	return offset;
 }
 
-/* Trying read */
-
-static int32_t
-readn(Chan *c, void *vp, int32_t n)
-{
-	char *p;
-	int32_t nn, t;
-
-	p = vp;
-	t = 0;
-	while(t < n) {
-		nn = c->dev->read(c, p+t, n-t, c->offset);
-		if(nn <= 0) {
-			if(t == 0)
-				return nn;
-			break;
-		}
-		t += nn;
-	}
-	return t;
-}
-
 /* libmach swap.c */
 
 /*
@@ -452,7 +430,7 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	if(ph == nil)
 		return 0;
 	chanseek(ar0, c, ep->phoff, 0);
-	if(readn(c, ph, phsz) < 0){
+	if(c->dev->read(c, ph, phsz, c->offset) < 0){
 		free(ph);
 		return 0;
 	}
@@ -1223,7 +1201,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 	uint32_t magic;
 
 	fp->type = 0; /* FNONE */
-	nb = readn(c, (char *)&d.e, sizeof(d.e));
+	nb = c->dev->read(c, &d.e, sizeof(d.e), c->offset);
 	if (nb <= 0)
 		return 0;
 	ret = 0;
@@ -1286,7 +1264,8 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 	c = namec(m->externup->genbuf, Aopen, OREAD, 0);
 
 	// call crackhdr
-	crackhdr(ar0, c, &f);
+	if(crackhdr(ar0, c, &f) < 0)
+		error("crackhdr failed");
 	// ar0->i will be -1; leave until alvaro fills this in, just return,
 	// and the regular a.out exec will take over.
 	// Until this works, just set ar0->i to -1;
