@@ -59,7 +59,7 @@ typedef struct {
 			Exec;		/* a.out.h */
 			uint64_t hdr[1];
 		};
-		E64hdr;
+		E64hdr;			/* elf.h */
 	} e;
 	int32_t dummy;			/* padding to ensure extra long */
 } ExecHdr;
@@ -411,15 +411,9 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 
 	fp->magic = ELF_MAG;
 	fp->hdrsz = (ep->ehsize+ep->phnum*ep->phentsize+16)&~15;
-	switch(ep->machine) {
-	default:
-		return 0;
-	case AMD64:
-		elfmach = &mamd64;
-		fp->type = FAMD64;
-		fp->name = "amd64 ELF64 executable";
-		break;
-	}
+	elfmach = &mamd64;
+	fp->type = FAMD64;
+	fp->name = "amd64 ELF64 executable";
 
 	if(ep->phentsize != sizeof(P64hdr)) {
 		error("bad ELF64 header size");
@@ -430,7 +424,7 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	if(ph == nil)
 		return 0;
 	chanseek(ar0, c, ep->phoff, 0);
-	if(c->dev->read(c, ph, phsz, c->offset) < 0){
+	if(c->dev->read(c, ph, phsz, 0) < 0){
 		free(ph);
 		return 0;
 	}
@@ -1201,14 +1195,21 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 	uint32_t magic;
 
 	fp->type = 0; /* FNONE */
-	nb = c->dev->read(c, &d.e, sizeof(d.e), c->offset);
+	nb = c->dev->read(c, (char *)&d.e, sizeof(d.e), 0);
+	hi("Sysproc.c 1199, after c->dev->read\n");
+	hi("Sysproc.c 1200, nb = "); put64((uint64_t)nb); hi("\n");
 	if (nb <= 0)
 		return 0;
+
 	ret = 0;
 	magic = beswal(d.e.magic);		/* big-endian */
+	hi("Sysproc.c 1205, after magic=beswal\n");
 	for (mp = exectab; mp->magic; mp++) {
-		if (nb < mp->hsize)
+		hi("Sysproc.c 1207, inside for loop\n");
+		if (nb < mp->hsize) {
+			hi("Sysproc.c 1209, nb < mp->hsize\n");
 			continue;
+		}
 
 		/*
 		 * The magic number has morphed into something
@@ -1221,6 +1222,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		 * time to step back and redo it all.
 		 */
 		if(mp->_magic){
+			hi("Sysproc.c 1224, mp->_magic\n");
 			if(mp->magic != (magic & ~DYN_MAGIC))
 				continue;
 
@@ -1230,6 +1232,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 				fp->name = mp->name;
 		}
 		else{
+			hi("Sysproc.c 1234, mp->magic != magic\n");
 			if(mp->magic != magic)
 				continue;
 			fp->name = mp->name;
@@ -1239,6 +1242,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		fp->_magic = mp->_magic;
 		fp->magic = magic;
 
+		hi("Sysproc.c 1244, to the end\n");
 		machkind = mp->elfmach;
 		if(mp->swal != nil)
 			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
@@ -1247,7 +1251,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		break;
 	}
 	if(mp->magic == 0)
-		error("unknown header type");
+		error("Sysproc 1253: unknown header type");
 	return ret;
 }
 
@@ -1264,8 +1268,7 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 	c = namec(m->externup->genbuf, Aopen, OREAD, 0);
 
 	// call crackhdr
-	if(crackhdr(ar0, c, &f) < 0)
-		error("crackhdr failed");
+	crackhdr(ar0, c, &f);
 	// ar0->i will be -1; leave until alvaro fills this in, just return,
 	// and the regular a.out exec will take over.
 	// Until this works, just set ar0->i to -1;
