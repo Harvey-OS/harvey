@@ -64,15 +64,6 @@ typedef struct {
 	int32_t dummy;			/* padding to ensure extra long */
 } ExecHdr;
 
-/* machine register description */
-
-typedef struct Reglist {
-        char    *rname;                 /* register name */
-        int16_t roffs;                  /* offset in u-block */
-        char    rflags;                 /* INTEGER/FLOAT, WRITABLE */
-        char    rformat;                /* print format: 'x', 'X', 'f', '8', '3', 'Y', 'W' */
-} Reglist;
-
 typedef struct Elfmach
 {
 	char    *name;
@@ -104,9 +95,6 @@ enum {
 #define REGSIZE	sizeof(struct Ureg)
 #define FPREGSIZE	512		/* TO DO? currently only 0x1A0 used */
 
-/* Dummy, Do we really need entire amd63 registers list? */
-Reglist *amd64reglist[] = {};
-
 Elfmach mamd64=
 {
 	"amd64",
@@ -131,6 +119,7 @@ Elfmach mamd64=
 
 /* definition of per-executable file type structures */
 Elfmach *elfmach;
+Elfmach *machkind = &mamd64;
 
 typedef struct Exectable{
 	int32_t	magic;			/* big-endian magic number of file */
@@ -202,14 +191,13 @@ readn(Chan *c, void *vp, int32_t n)
 
 	p = vp;
 	t = 0;
-	while(n > 0) {
+	while(t < n) {
 		nn = c->dev->read(c, p+t, n-t, c->offset);
 		if(nn <= 0) {
 			if(t == 0)
 				return nn;
 			break;
 		}
-		c->offset += nn;
 		t += nn;
 	}
 	return t;
@@ -1273,7 +1261,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		fp->_magic = mp->_magic;
 		fp->magic = magic;
 
-		//mach = mp->mach;
+		machkind = mp->elfmach;
 		if(mp->swal != nil)
 			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
 		ret = mp->hparse(ar0, c, fp, &d);
