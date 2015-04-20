@@ -144,23 +144,77 @@ typedef struct Exectable{
 	int	(*hparse)(Ar0*, Chan*, Fhdr*, ExecHdr*);
 } ExecTable;
 
+/* Trying seek */
+
+static int64_t
+chanseek(Ar0 *ar0, Chan *c, int64_t offset, int whence)
+{
+	uint8_t buf[sizeof(Dir)+100];
+	Dir dir;
+	int n;
+
+	if(c->dev->dc == '|')
+		error(Eisstream);
+
+	switch(whence){
+	case 0:
+		if((c->qid.type & QTDIR) && offset != 0LL)
+			error(Eisdir);
+		c->offset = offset;
+		break;
+
+	case 1:
+		if(c->qid.type & QTDIR)
+			error(Eisdir);
+		lock(c);	/* lock for read/write update */
+		offset += c->offset;
+		c->offset = offset;
+		unlock(c);
+		break;
+
+	case 2:
+		if(c->qid.type & QTDIR)
+			error(Eisdir);
+		n = c->dev->stat(c, buf, sizeof buf);
+		if(convM2D(buf, n, &dir, nil) == 0)
+			error("internal error: stat error in seek");
+		offset += dir.length;
+		c->offset = offset;
+		break;
+
+	default:
+		error(Ebadarg);
+	}
+	c->uri = 0;
+	c->dri = 0;
+	cclose(c);
+
+	return offset;
+}
+
 /* Trying read */
 
-static void
+static int32_t
 readn(Chan *c, void *vp, int32_t n)
 {
 	char *p;
-	int32_t nn;
+	int32_t nn, t;
 
 	p = vp;
+	t = 0;
 	while(n > 0) {
-		nn = c->dev->read(c, p, n, c->offset);
-		if(nn == 0)
-			error(Eshort);
+		nn = c->dev->read(c, p+t, n-t, c->offset);
+		if(nn <= 0) {
+			if(t == 0)
+				return nn;
+			break;
+		}
 		c->offset += nn;
 		p += nn;
 		n -= nn;
+		t += nn;
 	}
+	return t;
 }
 
 /* libmach swap.c */
@@ -409,12 +463,11 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	}
 	phsz = sizeof(P64hdr)*ep->phnum;
 	ph = malloc(phsz);
-	if(!ph)
+	if(ph == nil)
 		return 0;
-	//seek(fd, ep->phoff, 0);
-	readn(c, ph, phsz);
-	if(ph < 0){
-		free(ph);
+	chanseek(ar0, c, ep->phoff, 0);
+	if(readn(c, ph, phsz) < 0){
+		//free(ph);
 		return 0;
 	}
 	for(i = 0; i < ep->phnum; i++) {
@@ -442,7 +495,7 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	}
 	if(it == -1 || id == -1) {
 		error("No ELF64 TEXT or DATA sections");
-		free(ph);
+		//free(ph);
 		return 0;
 	}
 
@@ -452,7 +505,7 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	setdata(fp, ph[id].vaddr, ph[id].filesz, ph[id].offset, uvl);
 	if(is != -1)
 		setsym(fp, ph[is].filesz, 0, ph[is].memsz, ph[is].offset);
-	free(ph);
+	//free(ph);
 	return 1;
 }
 
@@ -1175,21 +1228,22 @@ sysexecac(Ar0* ar0, ...)
 	execac(ar0, flags, file, argv);
 }
 
-static int crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
+static int
+crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 {
 	ExecTable *mp;
 	ExecHdr d;
-	int ret;
+	int nb, ret;
 	uint32_t magic;
 
 	fp->type = 0; /* FNONE */
-	readn(c, (char *)&d.e, sizeof(d.e));
-	if ((char *)&d.e <= 0)
+	nb = readn(c, (char *)&d.e, sizeof(d.e));
+	if (nb <= 0)
 		return 0;
 	ret = 0;
 	magic = beswal(d.e.magic);		/* big-endian */
 	for (mp = exectab; mp->magic; mp++) {
-		if (sizeof(d.e) < mp->hsize)
+		if (nb < mp->hsize)
 			continue;
 
 		/*
@@ -1225,7 +1279,7 @@ static int crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		if(mp->swal != nil)
 			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
 		ret = mp->hparse(ar0, c, fp, &d);
-		//seek(fd, mp->hsize, 0);		/* seek to end of header */
+		chanseek(ar0, c, mp->hsize, 0);		/* seek to end of header */
 		break;
 	}
 	if(mp->magic == 0)
@@ -1237,12 +1291,13 @@ static void
 machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 {
 	Mach *m = machp();
+	Chan *c;
 	Fhdr f;
 	// just catch the error and ignore it for now.
 	if (waserror()) {
 		return;
 	}
-	Chan *c = namec(m->externup->genbuf, Aopen, OREAD, 0);
+	c = namec(m->externup->genbuf, Aopen, OEXEC, 0);
 
 	// call crackhdr
 	crackhdr(ar0, c, &f);
