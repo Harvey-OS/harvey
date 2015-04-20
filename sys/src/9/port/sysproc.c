@@ -210,8 +210,6 @@ readn(Chan *c, void *vp, int32_t n)
 			break;
 		}
 		c->offset += nn;
-		p += nn;
-		n -= nn;
 		t += nn;
 	}
 	return t;
@@ -1297,7 +1295,7 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 	if (waserror()) {
 		return;
 	}
-	c = namec(m->externup->genbuf, Aopen, OEXEC, 0);
+	c = namec(m->externup->genbuf, Aopen, OREAD, 0);
 
 	// call crackhdr
 	crackhdr(ar0, c, &f);
