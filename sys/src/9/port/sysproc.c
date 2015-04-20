@@ -22,6 +22,10 @@
 /* this is ugly but we need libmach in the kernel. So this is a first pass.
  * FIX ME.
  */
+
+#include	"elf.h"
+#include "/amd64/include/ureg.h"  /* for Elfmach struct */
+
 /*
  *	Common a.out header describing all architectures
  */
@@ -49,6 +53,455 @@ typedef struct Fhdr
 	int32_t	lnpcsz;		/* size of line number-pc table */
 } Fhdr;
 
+typedef struct {
+	union{
+		struct {
+			Exec;		/* a.out.h */
+			uint64_t hdr[1];
+		};
+		E64hdr;
+	} e;
+	int32_t dummy;			/* padding to ensure extra long */
+} ExecHdr;
+
+/* machine register description */
+
+typedef struct Reglist {
+        char    *rname;                 /* register name */
+        int16_t roffs;                  /* offset in u-block */
+        char    rflags;                 /* INTEGER/FLOAT, WRITABLE */
+        char    rformat;                /* print format: 'x', 'X', 'f', '8', '3', 'Y', 'W' */
+} Reglist;
+
+typedef struct Elfmach
+{
+	char    *name;
+	int     mtype;                  /* machine type code */
+	Reglist *reglist;               /* register set */
+	int32_t regsize;                /* sizeof registers in bytes */
+	int32_t fpregsize;              /* sizeof fp registers in bytes */
+	char    *pc;                    /* pc name */
+	char    *sp;                    /* sp name */
+	char    *link;                  /* link register name */
+	char    *sbreg;                 /* static base register name */
+	uint64_t        sb;                     /* static base register value */
+	int     pgsize;                 /* page size */
+	uint64_t        kbase;                  /* kernel base address */
+	uint64_t        ktmask;                 /* ktzero = kbase & ~ktmask */
+	uint64_t        utop;                   /* user stack top */
+	int     pcquant;                /* quantization of pc */
+	int     szaddr;                 /* sizeof(void*) */
+	int     szreg;                  /* sizeof(register) */
+	int     szfloat;                /* sizeof(float) */
+	int     szdouble;               /* sizeof(double) */
+} Elfmach;
+
+enum {
+	MAMD64,
+	FAMD64,
+	FAMD64B,
+};
+
+#define REGSIZE	sizeof(struct Ureg)
+#define FPREGSIZE	512		/* TO DO? currently only 0x1A0 used */
+
+/* Dummy, Do we really need entire amd63 registers list? */
+Reglist *amd64reglist[] = {};
+
+Elfmach mamd64=
+{
+	"amd64",
+	MAMD64,                 /* machine type */
+	amd64reglist,           /* register list */
+	REGSIZE,                /* size of registers in bytes */
+	FPREGSIZE,              /* size of fp registers in bytes */
+	"PC",                   /* name of PC */
+	"SP",                   /* name of SP */
+	0,                      /* link register */
+	"setSB",                /* static base register name (bogus anyways) */
+	0,                      /* static base register value */
+	0x200000,               /* page size */
+	0xfffffffff0110000ull,  /* kernel base */
+	0xffff800000000000ull,  /* kernel text mask */
+	0x00007ffffffff000ull,  /* user stack top */
+	1,                      /* quantization of pc */
+	8,                      /* szaddr */
+	4,                      /* szreg */
+	4,                      /* szfloat */
+	8,                      /* szdouble */
+};
+
+/* definition of per-executable file type structures */
+Elfmach *elfmach;
+
+typedef struct Exectable{
+	int32_t	magic;			/* big-endian magic number of file */
+	char	*name;			/* executable identifier */
+	char	*dlmname;		/* dynamically loadable module identifier */
+	uint8_t	type;			/* Internal code */
+	uint8_t	_magic;			/* _MAGIC() magic */
+	Elfmach	*elfmach;			/* Per-machine data */
+	int32_t	hsize;			/* header size */
+	uint32_t	(*swal)(uint32_t);		/* beswal or leswal */
+	int	(*hparse)(int, Fhdr*, ExecHdr*);
+} ExecTable;
+
+/* Trying read */
+
+static int32_t
+readn(Chan *c, void *vp, int32_t n)
+{
+	char *p;
+	int32_t nn, t;
+
+	p = vp;
+	t = 0;
+	while(t < n) {
+		nn = c->dev->read(c, p+t, n-t, c->offset);
+		if(nn <= 0) {
+			if (t == 0)
+				return nn;
+			//error(Eshort);
+			break;
+		}
+		c->offset += nn;
+		p += nn;
+		t += nn;
+	}
+	return t;
+}
+
+/* libmach swap.c */
+
+/*
+ * big-endian int8_t
+ */
+uint16_t
+beswab(uint16_t s)
+{
+	uint8_t *p;
+
+	p = (uint8_t*)&s;
+	return (p[0]<<8) | p[1];
+}
+
+/* big-endian int32_t */
+
+uint32_t
+beswal(uint32_t l)
+{
+	uint8_t *p;
+
+	p = (uint8_t*)&l;
+	return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
+}
+
+/* big-endian int64_t */
+
+uint64_t
+beswav(uint64_t v)
+{
+	uint8_t *p;
+
+	p = (uint8_t*)&v;
+	return ((uint64_t)p[0]<<56) | ((uint64_t)p[1]<<48) | ((uint64_t)p[2]<<40)
+				  | ((uint64_t)p[3]<<32) | ((uint64_t)p[4]<<24)
+				  | ((uint64_t)p[5]<<16) | ((uint64_t)p[6]<<8)
+				  | (uint64_t)p[7];
+}
+
+/*
+ * little-endian int8_t (short)
+ */
+uint16_t
+leswab(uint16_t s)
+{
+	uint8_t *p;
+
+	p = (uint8_t*)&s;
+	return (p[1]<<8) | p[0];
+}
+
+/*
+ * little-endian int32_t
+ */
+uint32_t
+leswal(uint32_t l)
+{
+	uint8_t *p;
+
+	p = (uint8_t*)&l;
+	return (p[3]<<24) | (p[2]<<16) | (p[1]<<8) | p[0];
+}
+
+/*
+ * little-endian int64_t
+ */
+uint64_t
+leswav(uint64_t v)
+{
+	uint8_t *p;
+
+	p = (uint8_t*)&v;
+	return ((uint64_t)p[7]<<56) | ((uint64_t)p[6]<<48) | ((uint64_t)p[5]<<40)
+				  | ((uint64_t)p[4]<<32) | ((uint64_t)p[3]<<24)
+				  | ((uint64_t)p[2]<<16) | ((uint64_t)p[1]<<8)
+				  | (uint64_t)p[0];
+}
+
+/* Atomics */
+
+static void
+settext(Fhdr *fp, uint64_t e, uint64_t a, int32_t s, int64_t off)
+{
+	fp->txtaddr = a;
+	fp->entry = e;
+	fp->txtsz = s;
+	fp->txtoff = off;
+}
+
+static void
+setdata(Fhdr *fp, uint64_t a, int32_t s, int64_t off, int32_t bss)
+{
+	fp->dataddr = a;
+	fp->datsz = s;
+	fp->datoff = off;
+	fp->bsssz = bss;
+}
+
+static void
+setsym(Fhdr *fp, int32_t symsz, int32_t sppcsz, int32_t lnpcsz,
+       int64_t symoff)
+{
+	fp->symsz = symsz;
+	fp->symoff = symoff;
+	fp->sppcsz = sppcsz;
+	fp->sppcoff = fp->symoff+fp->symsz;
+	fp->lnpcsz = lnpcsz;
+	fp->lnpcoff = fp->sppcoff+fp->sppcsz;
+}
+
+
+static uint64_t
+_round(uint64_t a, uint32_t b)
+{
+	uint64_t w;
+
+	w = (a/b)*b;
+	if (a!=w)
+		w += b;
+	return(w);
+}
+
+/*  Convert header to canonical form */
+static void
+hswal(void *v, int n, uint32_t (*swap)(uint32_t))
+{
+	uint32_t *ulp;
+
+	for(ulp = v; n--; ulp++)
+		*ulp = (*swap)(*ulp);
+}
+
+/* commons */
+
+static void
+commonboot(Fhdr *fp)
+{
+	switch(fp->type) {				/* boot image */
+	case FAMD64:
+		fp->type = FAMD64B;
+		fp->txtaddr = fp->entry;
+		fp->name = "amd64 plan 9 boot image";
+		fp->dataddr = _round(fp->txtaddr+fp->txtsz, 4096);
+		break;
+	default:
+		return;
+	}
+	fp->hdrsz = 0;			/* header stripped */
+}
+
+static int
+commonllp64(int i, Fhdr *fp, ExecHdr *hp)
+{
+	int32_t pgsize;
+	uint64_t entry;
+
+	hswal(&hp->e, sizeof(Exec)/sizeof(int32_t), beswal);
+	if(!(hp->e.magic & HDR_MAGIC))
+		return 0;
+
+	/*
+	 * There can be more magic here if the
+	 * header ever needs more expansion.
+	 * For now just catch use of any of the
+	 * unused bits.
+	 */
+	if((hp->e.magic & ~DYN_MAGIC)>>16)
+		return 0;
+	entry = beswav(hp->e.hdr[0]);
+
+	pgsize = elfmach->pgsize;
+	settext(fp, entry, pgsize+fp->hdrsz, hp->e.text, fp->hdrsz);
+	setdata(fp, _round(pgsize+fp->txtsz+fp->hdrsz, pgsize),
+		hp->e.data, fp->txtsz+fp->hdrsz, hp->e.bss);
+	setsym(fp, hp->e.syms, hp->e.spsz, hp->e.pcsz, fp->datoff+fp->datsz);
+
+	if(hp->e.magic & DYN_MAGIC) {
+		fp->txtaddr = 0;
+		fp->dataddr = fp->txtsz;
+		return 1;
+	}
+	commonboot(fp);
+	return 1;
+}
+
+/* ELF */
+
+static int
+elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
+{
+	E64hdr *ep;
+	P64hdr *ph;
+	uint16_t (*swab)(uint16_t);
+	uint32_t (*swal)(uint32_t);
+	uint64_t (*swav)(uint64_t);
+	int i, it, id, is, phsz;
+	uint64_t uvl;
+
+	ep = &hp->e;
+	if(ep->ident[DATA] == ELFDATA2LSB) {
+		swab = leswab;
+		swal = leswal;
+		swav = leswav;
+	} else if(ep->ident[DATA] == ELFDATA2MSB) {
+		swab = beswab;
+		swal = beswal;
+		swav = beswav;
+	} else {
+		error("bad ELF64 encoding - not big or little endian");
+		return 0;
+	}
+
+	ep->type = swab(ep->type);
+	ep->machine = swab(ep->machine);
+	ep->version = swal(ep->version);
+	if(ep->type != EXEC || ep->version != CURRENT)
+		return 0;
+	ep->elfentry = swav(ep->elfentry);
+	ep->phoff = swav(ep->phoff);
+	ep->shoff = swav(ep->shoff);
+	ep->flags = swal(ep->flags);
+	ep->ehsize = swab(ep->ehsize);
+	ep->phentsize = swab(ep->phentsize);
+	ep->phnum = swab(ep->phnum);
+	ep->shentsize = swab(ep->shentsize);
+	ep->shnum = swab(ep->shnum);
+	ep->shstrndx = swab(ep->shstrndx);
+
+	fp->magic = ELF_MAG;
+	fp->hdrsz = (ep->ehsize+ep->phnum*ep->phentsize+16)&~15;
+	switch(ep->machine) {
+	default:
+		return 0;
+	case AMD64:
+		elfmach = &mamd64;
+		fp->type = FAMD64;
+		fp->name = "amd64 ELF64 executable";
+		break;
+	}
+
+	if(ep->phentsize != sizeof(P64hdr)) {
+		error("bad ELF64 header size");
+		return 0;
+	}
+	phsz = sizeof(P64hdr)*ep->phnum;
+	ph = malloc(phsz);
+	if(!ph)
+		return 0;
+	//seek(fd, ep->phoff, 0);
+	if(readn(c, ph, phsz) < 0) {
+		free(ph);
+		return 0;
+	}
+	for(i = 0; i < ep->phnum; i++) {
+		ph[i].type = swal(ph[i].type);
+		ph[i].flags = swal(ph[i].flags);
+		ph[i].offset = swav(ph[i].offset);
+		ph[i].vaddr = swav(ph[i].vaddr);
+		ph[i].paddr = swav(ph[i].paddr);
+		ph[i].filesz = swav(ph[i].filesz);
+		ph[i].memsz = swav(ph[i].memsz);
+		ph[i].align = swav(ph[i].align);
+	}
+
+	/* find text, data and symbols and install them */
+	it = id = is = -1;
+	for(i = 0; i < ep->phnum; i++) {
+		if(ph[i].type == LOAD
+		&& (ph[i].flags & (R|X)) == (R|X) && it == -1)
+			it = i;
+		else if(ph[i].type == LOAD
+		&& (ph[i].flags & (R|W)) == (R|W) && id == -1)
+			id = i;
+		else if(ph[i].type == NOPTYPE && is == -1)
+			is = i;
+	}
+	if(it == -1 || id == -1) {
+		error("No ELF64 TEXT or DATA sections");
+		free(ph);
+		return 0;
+	}
+
+	settext(fp, ep->elfentry, ph[it].vaddr, ph[it].memsz, ph[it].offset);
+	/* 8c: out of fixed registers */
+	uvl = ph[id].memsz - ph[id].filesz;
+	setdata(fp, ph[id].vaddr, ph[id].filesz, ph[id].offset, uvl);
+	if(is != -1)
+		setsym(fp, ph[is].filesz, 0, ph[is].memsz, ph[is].offset);
+	free(ph);
+	return 1;
+}
+
+static int
+elfdotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
+{
+	E64hdr *ep;
+
+	/* bitswap the header according to the DATA format */
+	ep = &hp->e;
+
+	if(ep->ident[CLASS] == ELFCLASS64)
+		return elf64dotout(ar0, c, fp, hp);
+
+	error("bad ELF class - not 64-bit");
+	return 0;
+}
+
+ExecTable exectab[] =
+{
+	{ S_MAGIC,			/* amd64 6.out & boot image */
+		"amd64 plan 9 executable",
+		"amd64 plan 9 dlm",
+		FAMD64,
+		1,
+		&mamd64,		/* Mach* type */
+		sizeof(Exec)+8,
+		nil,
+		commonllp64 },
+	{ ELF_MAG,			/* any ELF */
+		"elf executable",
+		nil,
+		0,				/* FNONE */
+		0,
+		&mamd64,		/* Mach* type */
+		sizeof(E64hdr),
+		nil,
+		elfdotout },
+	{ 0 },
+};
+
+/* End of libmach */
 
 void
 sysrfork(Ar0* ar0, ...)
@@ -729,8 +1182,62 @@ sysexecac(Ar0* ar0, ...)
 	execac(ar0, flags, file, argv);
 }
 
-static void crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
+static int crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 {
+	ExecTable *mp;
+	ExecHdr d;
+	int nb, ret;
+	uint32_t magic;
+
+	fp->type = 0; /* FNONE */
+	nb = readn(c, (char *)&d.e, sizeof(d.e));
+	if (nb <= 0)
+		return 0;
+	ret = 0;
+	magic = beswal(d.e.magic);		/* big-endian */
+	for (mp = exectab; mp->magic; mp++) {
+		if (nb < mp->hsize)
+			continue;
+
+		/*
+		 * The magic number has morphed into something
+		 * with fields (the straw was DYN_MAGIC) so now
+		 * a flag is needed in Fhdr to distinguish _MAGIC()
+		 * magic numbers from foreign magic numbers.
+		 *
+		 * This code is creaking a bit and if it has to
+		 * be modified/extended much more it's probably
+		 * time to step back and redo it all.
+		 */
+		if(mp->_magic){
+			if(mp->magic != (magic & ~DYN_MAGIC))
+				continue;
+
+			if ((magic & DYN_MAGIC) && mp->dlmname != nil)
+				fp->name = mp->dlmname;
+			else
+				fp->name = mp->name;
+		}
+		else{
+			if(mp->magic != magic)
+				continue;
+			fp->name = mp->name;
+		}
+		fp->type = mp->type;
+		fp->hdrsz = mp->hsize;		/* will be zero on bootables */
+		fp->_magic = mp->_magic;
+		fp->magic = magic;
+
+		//mach = mp->mach;
+		if(mp->swal != nil)
+			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
+		ret = mp->hparse(0, fp, &d);
+		//seek(fd, mp->hsize, 0);		/* seek to end of header */
+		break;
+	}
+	if(mp->magic == 0)
+		error("unknown header type");
+	return ret;
 }
 
 static void
