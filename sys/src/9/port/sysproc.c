@@ -31,18 +31,18 @@
  */
 typedef struct Fhdr
 {
-	char	*name;		/* identifier of executable */
+	char *name;			/* identifier of executable */
 	uint8_t	type;		/* file type - see codes above */
 	uint8_t	hdrsz;		/* header size */
 	uint8_t	_magic;		/* _MAGIC() magic */
 	uint8_t	spare;
 	int32_t	magic;		/* magic number */
-	uint64_t	txtaddr;	/* text address */
+	uint64_t txtaddr;	/* text address */
 	int64_t	txtoff;		/* start of text in file */
-	uint64_t	dataddr;	/* start of data segment */
+	uint64_t dataddr;	/* start of data segment */
 	int64_t	datoff;		/* offset to data seg in file */
 	int64_t	symoff;		/* offset of symbol table in file */
-	uint64_t	entry;		/* entry point */
+	uint64_t entry;		/* entry point */
 	int64_t	sppcoff;	/* offset of sp-pc table in file */
 	int64_t	lnpcoff;	/* offset of line number-pc table in file */
 	int32_t	txtsz;		/* text size */
@@ -56,34 +56,34 @@ typedef struct Fhdr
 typedef struct {
 	union{
 		struct {
-			Exec;		/* a.out.h */
+			Exec;			/* a.out.h */
 			uint64_t hdr[1];
 		};
-		E64hdr;			/* elf.h */
+		E64hdr;				/* elf.h */
 	} e;
 	int32_t dummy;			/* padding to ensure extra long */
 } ExecHdr;
 
 typedef struct Elfmach
 {
-	char    *name;
-	int     mtype;                  /* machine type code */
-	int32_t regsize;                /* sizeof registers in bytes */
-	int32_t fpregsize;              /* sizeof fp registers in bytes */
-	char    *pc;                    /* pc name */
-	char    *sp;                    /* sp name */
-	char    *link;                  /* link register name */
-	char    *sbreg;                 /* static base register name */
-	uint64_t        sb;                     /* static base register value */
-	int     pgsize;                 /* page size */
-	uint64_t        kbase;                  /* kernel base address */
-	uint64_t        ktmask;                 /* ktzero = kbase & ~ktmask */
-	uint64_t        utop;                   /* user stack top */
-	int     pcquant;                /* quantization of pc */
-	int     szaddr;                 /* sizeof(void*) */
-	int     szreg;                  /* sizeof(register) */
-	int     szfloat;                /* sizeof(float) */
-	int     szdouble;               /* sizeof(double) */
+	char *name;
+	int mtype;				/* machine type code */
+	int32_t regsize;		/* sizeof registers in bytes */
+	int32_t fpregsize;		/* sizeof fp registers in bytes */
+	char *pc;				/* pc name */
+	char *sp;				/* sp name */
+	char *link;				/* link register name */
+	char *sbreg;			/* static base register name */
+	uint64_t sb;			/* static base register value */
+	int pgsize;				/* page size */
+	uint64_t kbase;			/* kernel base address */
+	uint64_t ktmask;		/* ktzero = kbase & ~ktmask */
+	uint64_t utop;			/* user stack top */
+	int pcquant;			/* quantization of pc */
+	int szaddr;				/* sizeof(void*) */
+	int szreg;				/* sizeof(register) */
+	int szfloat;			/* sizeof(float) */
+	int szdouble;			/* sizeof(double) */
 } Elfmach;
 
 enum {
@@ -98,23 +98,23 @@ enum {
 Elfmach mamd64=
 {
 	"amd64",
-	MAMD64,                 /* machine type */
-	REGSIZE,                /* size of registers in bytes */
-	FPREGSIZE,              /* size of fp registers in bytes */
-	"PC",                   /* name of PC */
-	"SP",                   /* name of SP */
-	0,                      /* link register */
-	"setSB",                /* static base register name (bogus anyways) */
-	0,                      /* static base register value */
-	0x200000,               /* page size */
-	0xfffffffff0110000ull,  /* kernel base */
-	0xffff800000000000ull,  /* kernel text mask */
-	0x00007ffffffff000ull,  /* user stack top */
-	1,                      /* quantization of pc */
-	8,                      /* szaddr */
-	4,                      /* szreg */
-	4,                      /* szfloat */
-	8,                      /* szdouble */
+	MAMD64,					/* machine type */
+	REGSIZE,				/* size of registers in bytes */
+	FPREGSIZE,				/* size of fp registers in bytes */
+	"PC",					/* name of PC */
+	"SP",					/* name of SP */
+	0,						/* link register */
+	"setSB",				/* static base register name (bogus anyways) */
+	0,						/* static base register value */
+	0x200000,				/* page size */
+	0xfffffffff0110000ull,	/* kernel base */
+	0xffff800000000000ull,	/* kernel text mask */
+	0x00007ffffffff000ull,	/* user stack top */
+	1,						/* quantization of pc */
+	8,						/* szaddr */
+	4,						/* szreg */
+	4,						/* szfloat */
+	8,						/* szdouble */
 };
 
 /* definition of per-executable file type structures */
@@ -123,13 +123,13 @@ Elfmach *machkind = &mamd64;
 
 typedef struct Exectable{
 	int32_t	magic;			/* big-endian magic number of file */
-	char	*name;			/* executable identifier */
-	char	*dlmname;		/* dynamically loadable module identifier */
+	char *name;				/* executable identifier */
+	char *dlmname;			/* dynamically loadable module identifier */
 	uint8_t	type;			/* Internal code */
 	uint8_t	_magic;			/* _MAGIC() magic */
-	Elfmach	*elfmach;			/* Per-machine data */
+	Elfmach	*elfmach;		/* Per-machine data */
 	int32_t	hsize;			/* header size */
-	uint32_t	(*swal)(uint32_t);		/* beswal or leswal */
+	uint32_t (*swal)(uint32_t);		/* beswal or leswal */
 	int	(*hparse)(Ar0*, Chan*, Fhdr*, ExecHdr*);
 } ExecTable;
 
@@ -424,7 +424,7 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	if(ph == nil)
 		return 0;
 	chanseek(ar0, c, ep->phoff, 0);
-	if(c->dev->read(c, ph, phsz, 0) < 0){
+	if(c->dev->read(c, ph, phsz, c->offset) < 0){
 		free(ph);
 		return 0;
 	}
@@ -1195,7 +1195,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 	uint32_t magic;
 
 	fp->type = 0; /* FNONE */
-	nb = c->dev->read(c, (char *)&d.e, sizeof(d.e), 0);
+	nb = c->dev->read(c, (char *)&d.e, sizeof(d.e), c->offset);
 	hi("Sysproc.c 1199, after c->dev->read\n");
 	hi("Sysproc.c 1200, nb = "); put64((uint64_t)nb); hi("\n");
 	if (nb <= 0)
@@ -1203,11 +1203,11 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 
 	ret = 0;
 	magic = beswal(d.e.magic);		/* big-endian */
-	hi("Sysproc.c 1205, after magic=beswal\n");
+	hi("Sysproc.c 1206, after magic=beswal\n");
 	for (mp = exectab; mp->magic; mp++) {
-		hi("Sysproc.c 1207, inside for loop\n");
+		hi("Sysproc.c 1208, inside for loop\n");
 		if (nb < mp->hsize) {
-			hi("Sysproc.c 1209, nb < mp->hsize\n");
+			hi("Sysproc.c 1210, nb < mp->hsize\n");
 			continue;
 		}
 
@@ -1222,7 +1222,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		 * time to step back and redo it all.
 		 */
 		if(mp->_magic){
-			hi("Sysproc.c 1224, mp->_magic\n");
+			hi("Sysproc.c 1225, mp->_magic\n");
 			if(mp->magic != (magic & ~DYN_MAGIC))
 				continue;
 
@@ -1232,7 +1232,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 				fp->name = mp->name;
 		}
 		else{
-			hi("Sysproc.c 1234, mp->magic != magic\n");
+			hi("Sysproc.c 1235, mp->magic != magic\n");
 			if(mp->magic != magic)
 				continue;
 			fp->name = mp->name;
@@ -1242,7 +1242,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		fp->_magic = mp->_magic;
 		fp->magic = magic;
 
-		hi("Sysproc.c 1244, to the end\n");
+		hi("Sysproc.c 1245, to the end\n");
 		machkind = mp->elfmach;
 		if(mp->swal != nil)
 			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
@@ -1251,7 +1251,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		break;
 	}
 	if(mp->magic == 0)
-		error("Sysproc 1253: unknown header type");
+		error("Sysproc 1254: unknown header type");
 	return ret;
 }
 
@@ -1266,6 +1266,8 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 		return;
 	}
 	c = namec(m->externup->genbuf, Aopen, OREAD, 0);
+	if (c == nil)
+		panic("machexec: getaddr: c == nil");
 
 	// call crackhdr
 	crackhdr(ar0, c, &f);
