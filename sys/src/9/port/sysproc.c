@@ -1297,7 +1297,7 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 	if (waserror()) {
 		return;
 	}
-	c = namec(argv[0], Aopen, OEXEC, 0);
+	c = namec(m->externup->genbuf, Aopen, OEXEC, 0);
 
 	// call crackhdr
 	crackhdr(ar0, c, &f);
