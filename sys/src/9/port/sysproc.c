@@ -77,7 +77,6 @@ typedef struct Elfmach
 {
 	char    *name;
 	int     mtype;                  /* machine type code */
-	Reglist *reglist;               /* register set */
 	int32_t regsize;                /* sizeof registers in bytes */
 	int32_t fpregsize;              /* sizeof fp registers in bytes */
 	char    *pc;                    /* pc name */
@@ -112,7 +111,6 @@ Elfmach mamd64=
 {
 	"amd64",
 	MAMD64,                 /* machine type */
-	amd64reglist,           /* register list */
 	REGSIZE,                /* size of registers in bytes */
 	FPREGSIZE,              /* size of fp registers in bytes */
 	"PC",                   /* name of PC */
@@ -143,32 +141,26 @@ typedef struct Exectable{
 	Elfmach	*elfmach;			/* Per-machine data */
 	int32_t	hsize;			/* header size */
 	uint32_t	(*swal)(uint32_t);		/* beswal or leswal */
-	int	(*hparse)(int, Fhdr*, ExecHdr*);
+	int	(*hparse)(Ar0*, Chan*, Fhdr*, ExecHdr*);
 } ExecTable;
 
 /* Trying read */
 
-static int32_t
+static void
 readn(Chan *c, void *vp, int32_t n)
 {
 	char *p;
-	int32_t nn, t;
+	int32_t nn;
 
 	p = vp;
-	t = 0;
-	while(t < n) {
-		nn = c->dev->read(c, p+t, n-t, c->offset);
-		if(nn <= 0) {
-			if (t == 0)
-				return nn;
-			//error(Eshort);
-			break;
-		}
+	while(n > 0) {
+		nn = c->dev->read(c, p, n, c->offset);
+		if(nn == 0)
+			error(Eshort);
 		c->offset += nn;
 		p += nn;
-		t += nn;
+		n -= nn;
 	}
-	return t;
 }
 
 /* libmach swap.c */
@@ -322,7 +314,7 @@ commonboot(Fhdr *fp)
 }
 
 static int
-commonllp64(int i, Fhdr *fp, ExecHdr *hp)
+commonllp64(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 {
 	int32_t pgsize;
 	uint64_t entry;
@@ -420,7 +412,8 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	if(!ph)
 		return 0;
 	//seek(fd, ep->phoff, 0);
-	if(readn(c, ph, phsz) < 0) {
+	readn(c, ph, phsz);
+	if(ph < 0){
 		free(ph);
 		return 0;
 	}
@@ -1186,17 +1179,17 @@ static int crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 {
 	ExecTable *mp;
 	ExecHdr d;
-	int nb, ret;
+	int ret;
 	uint32_t magic;
 
 	fp->type = 0; /* FNONE */
-	nb = readn(c, (char *)&d.e, sizeof(d.e));
-	if (nb <= 0)
+	readn(c, (char *)&d.e, sizeof(d.e));
+	if ((char *)&d.e <= 0)
 		return 0;
 	ret = 0;
 	magic = beswal(d.e.magic);		/* big-endian */
 	for (mp = exectab; mp->magic; mp++) {
-		if (nb < mp->hsize)
+		if (sizeof(d.e) < mp->hsize)
 			continue;
 
 		/*
@@ -1231,7 +1224,7 @@ static int crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		//mach = mp->mach;
 		if(mp->swal != nil)
 			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
-		ret = mp->hparse(0, fp, &d);
+		ret = mp->hparse(ar0, c, fp, &d);
 		//seek(fd, mp->hsize, 0);		/* seek to end of header */
 		break;
 	}
