@@ -1265,7 +1265,9 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 	if (waserror()) {
 		return;
 	}
-	c = namec(m->externup->genbuf, Aopen, OREAD, 0);
+	// memmove ufile to genbuf in a bit.
+	c = namec(ufile, Aopen, OREAD, 0);
+	iprint("MACHEEC ---------> %s, %p\n", ufile, c);
 	if (c == nil)
 		panic("machexec: getaddr: c == nil");
 
