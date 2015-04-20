@@ -467,7 +467,7 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 		return 0;
 	chanseek(ar0, c, ep->phoff, 0);
 	if(readn(c, ph, phsz) < 0){
-		//free(ph);
+		free(ph);
 		return 0;
 	}
 	for(i = 0; i < ep->phnum; i++) {
@@ -495,7 +495,7 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	}
 	if(it == -1 || id == -1) {
 		error("No ELF64 TEXT or DATA sections");
-		//free(ph);
+		free(ph);
 		return 0;
 	}
 
@@ -505,7 +505,7 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	setdata(fp, ph[id].vaddr, ph[id].filesz, ph[id].offset, uvl);
 	if(is != -1)
 		setsym(fp, ph[is].filesz, 0, ph[is].memsz, ph[is].offset);
-	//free(ph);
+	free(ph);
 	return 1;
 }
 
@@ -1297,7 +1297,7 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 	if (waserror()) {
 		return;
 	}
-	c = namec(m->externup->genbuf, Aopen, OEXEC, 0);
+	c = namec(argv[0], Aopen, OEXEC, 0);
 
 	// call crackhdr
 	crackhdr(ar0, c, &f);
