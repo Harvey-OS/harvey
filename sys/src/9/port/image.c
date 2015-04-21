@@ -255,7 +255,6 @@ attachimage(int type, Chan *c, int color, uintptr_t base, usize len)
 
 	lock(i);
 	incref(c);
-	i->c = c;
 	i->dc = c->dev->dc;
 //subtype
 	i->qid = c->qid;

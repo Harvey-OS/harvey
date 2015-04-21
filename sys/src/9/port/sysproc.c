@@ -24,11 +24,9 @@
  */
 
 #include	"elf.h"
-#include "/amd64/include/ureg.h"  /* for Elfmach struct */
+#include "ureg.h"  /* for Elfmach struct */
 
-/*
- *	Common a.out header describing all architectures
- */
+typedef struct Fhdr Fhdr;
 typedef struct Fhdr
 {
 	char *name;			/* identifier of executable */
@@ -53,6 +51,9 @@ typedef struct Fhdr
 	int32_t	lnpcsz;		/* size of line number-pc table */
 } Fhdr;
 
+/*
+ *	Common a.out header describing all architectures
+ */
 typedef struct {
 	union{
 		struct {
@@ -149,6 +150,8 @@ typedef struct Map {
 			int64_t f;		/* offset within file */
 		} seg[1];			/* actually n of these */
 } Map;
+
+static int crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp);
 
 /* Trying seek */
 
@@ -309,7 +312,7 @@ setsym(Fhdr *fp, int32_t symsz, int32_t sppcsz, int32_t lnpcsz,
 	fp->lnpcoff = fp->sppcoff+fp->sppcsz;
 }
 
-
+#if 0
 static uint64_t
 _round(uint64_t a, uint32_t b)
 {
@@ -320,7 +323,7 @@ _round(uint64_t a, uint32_t b)
 		w += b;
 	return(w);
 }
-
+#endif
 /*  Convert header to canonical form */
 static void
 hswal(void *v, int n, uint32_t (*swap)(uint32_t))
@@ -388,7 +391,7 @@ loadmap(Map *map, int fd, Fhdr *fp)
 }
 
 /* commons */
-
+#if 0
 static void
 commonboot(Fhdr *fp)
 {
@@ -439,7 +442,7 @@ commonllp64(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	commonboot(fp);
 	return 1;
 }
-
+#endif
 /* ELF */
 
 static int
@@ -575,15 +578,6 @@ iprint("elfdotout\n");
 
 ExecTable exectab[] =
 {
-	{ S_MAGIC,			/* amd64 6.out & boot image */
-		"amd64 plan 9 executable",
-		"amd64 plan 9 dlm",
-		FAMD64,
-		1,
-		&mamd64,		/* Mach* type */
-		sizeof(Exec)+8,
-		nil,
-		commonllp64 },
 	{ ELF_MAG,			/* any ELF */
 		"elf executable",
 		nil,
@@ -832,7 +826,7 @@ sysrfork(Ar0* ar0, ...)
 
 	ar0->i = pid;
 }
-
+#if 0
 static uint64_t
 vl2be(uint64_t v)
 {
@@ -843,6 +837,7 @@ vl2be(uint64_t v)
 	      |((uint64_t)(p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7]);
 }
 
+
 static uint32_t
 l2be(int32_t l)
 {
@@ -851,7 +846,7 @@ l2be(int32_t l)
 	cp = (uint8_t*)&l;
 	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
 }
-
+#endif
 typedef struct {
 	Exec;
 	uint64_t hdr[1];
@@ -865,9 +860,10 @@ typedef struct {
 static void
 execac(Ar0* ar0, int flags, char *ufile, char **argv)
 {
+	Fhdr f;
 	Mach *m = machp();
 	Hdr hdr;
-	Fgrp *f;
+	Fgrp *fg;
 	Tos *tos;
 	Chan *chan, *ichan;
 	Image *img;
@@ -875,7 +871,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	int argc, i, n;
 	char *a, *elem, *file, *p;
 	char line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
-	int32_t hdrsz, magic, textsz, datasz, bsssz;
+	int32_t hdrsz, textsz, datasz, bsssz;
 	uintptr_t textlim, datalim, bsslim, entry, stack;
 	//	static int colorgen;
 
@@ -912,6 +908,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		proctracepid(m->externup);
 	ichan = namec(file, Aopen, OEXEC, 0);
 	if(waserror()){
+iprint("ERROR ON OPEN\n");
 		cclose(ichan);
 		nexterror();
 	}
@@ -957,30 +954,23 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		chan = ichan;
 		incref(ichan);
 	}
-
+iprint("NOT #! chan is %p\n", chan);
 	/* chan is the chan to use, initial or not. ichan is irrelevant now */
 	cclose(ichan);
 	poperror();
 
-
+	/* start over. */
+	chanseek(ar0, chan, 0, 0);
 	/*
 	 * #! has had its chance, now we need a real binary.
 	 */
-	magic = l2be(hdr.magic);
-	if(hdrsz != sizeof(Hdr) || magic != AOUT_MAGIC)
-		error(Ebadexec);
-	if(magic & HDR_MAGIC){
-		entry = vl2be(hdr.hdr[0]);
-		hdrsz = sizeof(Hdr);
-	}
-	else{
-		entry = l2be(hdr.entry);
-		hdrsz = sizeof(Exec);
-	}
 
-	textsz = l2be(hdr.text);
-	datasz = l2be(hdr.data);
-	bsssz = l2be(hdr.bss);
+	crackhdr(ar0, chan, &f);
+
+	textsz = f.txtsz;
+	datasz =f.datsz;
+	bsssz = f.bsssz;
+	entry = f.entry;
 
 	textlim = UTROUND(UTZERO+hdrsz+textsz);
 	datalim = BIGPGROUND(textlim+datasz);
@@ -1151,8 +1141,8 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/*
 	 * Close on exec
 	 */
-	f = m->externup->fgrp;
-	for(i=0; i<=f->maxfd; i++)
+	fg = m->externup->fgrp;
+	for(i=0; i<=fg->maxfd; i++)
 		fdclose(i, CCEXEC);
 
 	/*
@@ -1178,7 +1168,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	s = img->s;
 	m->externup->seg[TSEG] = s;
 	s->flushme = 1;
-	s->fstart = 0;
+	s->fstart = (uint32_t) f.txtoff;
 	s->flen = hdrsz+textsz;
  	if(img->color != m->externup->color){
  		m->externup->color = img->color;
@@ -1193,7 +1183,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/* Attached by hand */
 	incref(img);
 	s->image = img;
-	s->fstart = hdrsz+textsz;
+	s->fstart = (uint32_t) f.datoff;
 	s->flen = datasz;
 
 	/* BSS. Zero fill on demand for TS */
@@ -1289,9 +1279,9 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 	nb = c->dev->read(c, (char *)&d.e, sizeof(d.e), c->offset);
 	hi("Sysproc.c 1217, after c->dev->read\n");
 	hi("Sysproc.c 1218, nb = "); put64((uint64_t)nb); hi("\n");
-	//iprint("header: "); hexdump(&d.e, nb);iprint("end of header\n");
+	iprint("header: "); hexdump(&d.e, nb);iprint("end of header\n");
 	if (nb <= 0)
-		return 0;
+		error("crackhdr: header read failed");
 
 	ret = 0;
 	magic = beswal(d.e.magic);		/* big-endian */
@@ -1351,84 +1341,6 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 	return ret;
 }
 
-/* Do we need this, Ron? */
-#define RNDM(size) ((size+0xfffff)&0xfff00000)
-
-static void
-machexec(Ar0* ar0, int flags, char *ufile, char **argv)
-{
-	Mach *m = machp();
-	Chan *c;
-	Fhdr f;
-	Map *map;
-	ExecHdr d;
-	int fd, textseg, dataseg;
-	uint8_t  *textp, *datap, *bssp;
-	uint32_t bsssize, bssbase;
-
-	// just catch the error and ignore it for now.
-	if (waserror()) {
-		return;
-	}
-	// memmove ufile to genbuf in a bit.
-	// We need to to TOCTOU prevention.
-	c = namec(ufile, Aopen, OREAD, 0);
-	iprint("MACHEEC ---------> %s, %p\n", ufile, c);
-	if (c == nil)
-		panic("machexec: getaddr: c == nil");
-
-	// call crackhdr
-	if(crackhdr(ar0, c, &f) < 0)
-		 error("crackhdr failed");
-
-	/* Ron has a better solution to this, sure! */
-	iprint("10\n");
-	fd = c->dev->read(c, (char *)&d.e, sizeof(d.e), c->offset);
-	iprint("11\n");
-	map = loadmap(nil, fd, &f);
-
-	if (!map)
-		error("loadmap failed");
-
-	iprint("12\n");
-	textseg = findseg(map, "text");
-		if (textseg < 0)
-			error("no text segment");
-	iprint("13\n");
-	dataseg = findseg(map, "data");
-		if (dataseg < 0)
-			error("no data segment");
-
-	iprint("14\n");
-	bssbase = f.dataddr + RNDM( f.datsz + f.bsssz),
-
-	textp = (void *)f.txtaddr;
-	datap = (void *)f.dataddr;
-	bssp = (void *)(uintptr_t)bssbase;
-
-	/* NO print's past this point if you want to live. */
-	/* We need brk from libc */
-	//if (brk(bssp + f.bsssz) < 0)
-	//	error("no brk");
-
-	/* clear out bss ... */
-	memset(bssp, 0, f.bsssz);
-
-	USED(bsssize);USED(*textp); USED(*datap);
-	// TO BE CONTINUED...
-
-	// fill in the rest here. We've cracked the header
-	// maybe, so time to read it all in.
-	// Or create the maps at least.
-	// ar0->i will be -1; leave until alvaro fills this in, just return,
-	// and the regular a.out exec will take over.
-	// Until this works, just set ar0->i to -1;
-	// once this works, it replaces execac.
-	// NOTE: does not need to have full functionality of execac;
-	// just getting a process going on timesharing cores is ok for now.
-	poperror();
-}
-
 void
 sysexec(Ar0* ar0, ...)
 {
@@ -1445,9 +1357,7 @@ sysexec(Ar0* ar0, ...)
 	argv = va_arg(list, char**);
 	va_end(list);
 	evenaddr(PTR2UINT(argv));
-	machexec(ar0, EXTC, file, argv);
-	if (ar0->i == -1)
-		execac(ar0, EXTC, file, argv);
+	execac(ar0, EXTC, file, argv);
 }
 
 void

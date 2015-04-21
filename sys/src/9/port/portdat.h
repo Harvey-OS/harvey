@@ -387,7 +387,7 @@ struct Page
 struct Image
 {
 	Ref;
-	Chan	*c;			/* channel to text file */
+	Chan *c;
 	Qid 	qid;			/* Qid for page cache coherence */
 	Qid	mqid;
 	Chan	*mchan;
