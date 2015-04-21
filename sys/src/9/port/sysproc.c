@@ -176,6 +176,7 @@ chanseek(Ar0 *ar0, Chan *c, int64_t offset, int whence)
 	}
 	c->uri = 0;
 	c->dri = 0;
+	if (0) // FIX ME: this cclose is needed later.
 	cclose(c);
 
 	return offset;
@@ -371,6 +372,7 @@ commonllp64(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 static int
 elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 {
+iprint("elf64doutout\n");
 	E64hdr *ep;
 	P64hdr *ph;
 	uint16_t (*swab)(uint16_t);
@@ -381,14 +383,17 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 
 	ep = &hp->e;
 	if(ep->ident[DATA] == ELFDATA2LSB) {
+iprint("lsb\n");
 		swab = leswab;
 		swal = leswal;
 		swav = leswav;
 	} else if(ep->ident[DATA] == ELFDATA2MSB) {
+iprint("msb\n");
 		swab = beswab;
 		swal = beswal;
 		swav = beswav;
 	} else {
+iprint("BOGUS\n");
 		error("bad ELF64 encoding - not big or little endian");
 		return 0;
 	}
@@ -396,6 +401,7 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	ep->type = swab(ep->type);
 	ep->machine = swab(ep->machine);
 	ep->version = swal(ep->version);
+iprint("1\n");
 	if(ep->type != EXEC || ep->version != CURRENT)
 		return 0;
 	ep->elfentry = swav(ep->elfentry);
@@ -409,12 +415,14 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	ep->shnum = swab(ep->shnum);
 	ep->shstrndx = swab(ep->shstrndx);
 
+iprint("2\n");
 	fp->magic = ELF_MAG;
 	fp->hdrsz = (ep->ehsize+ep->phnum*ep->phentsize+16)&~15;
 	elfmach = &mamd64;
 	fp->type = FAMD64;
 	fp->name = "amd64 ELF64 executable";
 
+iprint("3\n");
 	if(ep->phentsize != sizeof(P64hdr)) {
 		error("bad ELF64 header size");
 		return 0;
@@ -423,11 +431,16 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 	ph = malloc(phsz);
 	if(ph == nil)
 		return 0;
+iprint("4\n");
 	chanseek(ar0, c, ep->phoff, 0);
+iprint("4.1\n");
+iprint("Read @ %p for %d bytes @ %p\n", ph, phsz, (void *)c->offset);
 	if(c->dev->read(c, ph, phsz, c->offset) < 0){
+iprint("SHIT bad read\n");
 		free(ph);
 		return 0;
 	}
+iprint("5\n");
 	for(i = 0; i < ep->phnum; i++) {
 		ph[i].type = swal(ph[i].type);
 		ph[i].flags = swal(ph[i].flags);
@@ -451,19 +464,23 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 		else if(ph[i].type == NOPTYPE && is == -1)
 			is = i;
 	}
+iprint("6\n");
 	if(it == -1 || id == -1) {
 		error("No ELF64 TEXT or DATA sections");
 		free(ph);
 		return 0;
 	}
 
+iprint("7\n");
 	settext(fp, ep->elfentry, ph[it].vaddr, ph[it].memsz, ph[it].offset);
 	/* 8c: out of fixed registers */
 	uvl = ph[id].memsz - ph[id].filesz;
 	setdata(fp, ph[id].vaddr, ph[id].filesz, ph[id].offset, uvl);
+iprint("8\n");
 	if(is != -1)
 		setsym(fp, ph[is].filesz, 0, ph[is].memsz, ph[is].offset);
 	free(ph);
+iprint("9\n");
 	return 1;
 }
 
@@ -472,6 +489,7 @@ elfdotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 {
 	E64hdr *ep;
 
+iprint("elfdotout\n");
 	/* bitswap the header according to the DATA format */
 	ep = &hp->e;
 
@@ -1204,11 +1222,12 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 
 	ret = 0;
 	magic = beswal(d.e.magic);		/* big-endian */
-	hi("Sysproc.c 1206, after magic=beswal\n");
+	iprint("Sysproc.c 1206, after magic=beswal\n");
 	for (mp = exectab; mp->magic; mp++) {
-		hi("Sysproc.c 1208, inside for loop\n");
+		iprint("Sysproc.c 1208, inside for loop\n");
 		if (nb < mp->hsize) {
-			hi("Sysproc.c 1210, nb < mp->hsize\n");
+			iprint("nb %d, mp->hsize %d, too SMALL\n", nb, mp->hsize);
+
 			continue;
 		}
 
@@ -1222,8 +1241,9 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		 * be modified/extended much more it's probably
 		 * time to step back and redo it all.
 		 */
+		iprint("_magic %x\n", mp->_magic);
 		if(mp->_magic){
-			hi("Sysproc.c 1225, mp->_magic\n");
+			iprint("Sysproc.c 1225, mp->_magic\n");
 			if(mp->magic != (magic & ~DYN_MAGIC))
 				continue;
 
@@ -1233,7 +1253,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 				fp->name = mp->name;
 		}
 		else{
-			hi("Sysproc.c 1235, mp->magic != magic\n");
+			iprint("Sysproc.c 1235, mp->magic %x != magic %x\n", mp->_magic, magic);
 			if(mp->magic != magic)
 				continue;
 			fp->name = mp->name;
@@ -1243,16 +1263,19 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		fp->_magic = mp->_magic;
 		fp->magic = magic;
 
-		hi("Sysproc.c 1245, to the end\n");
+		iprint("mp->_magic %x \n", mp->_magic);
 		machkind = mp->elfmach;
+		iprint("seems to be elf\n");
 		if(mp->swal != nil)
 			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
 		ret = mp->hparse(ar0, c, fp, &d);
 		chanseek(ar0, c, mp->hsize, 0);		/* seek to end of header */
 		break;
 	}
-	if(mp->magic == 0)
+	if(mp->magic == 0) {
+		iprint("mp->magic == 0!\n");
 		error("Sysproc 1254: unknown header type");
+	}
 	return ret;
 }
 
