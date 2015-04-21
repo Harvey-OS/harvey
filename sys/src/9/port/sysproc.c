@@ -1214,20 +1214,19 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 
 	fp->type = 0; /* FNONE */
 	nb = c->dev->read(c, (char *)&d.e, sizeof(d.e), c->offset);
-	hi("Sysproc.c 1199, after c->dev->read\n");
-	hi("Sysproc.c 1200, nb = "); put64((uint64_t)nb); hi("\n");
-	iprint("header: "); hexdump(&d.e, nb);iprint("end of header\n");
+	hi("Sysproc.c 1217, after c->dev->read\n");
+	hi("Sysproc.c 1218, nb = "); put64((uint64_t)nb); hi("\n");
+	//iprint("header: "); hexdump(&d.e, nb);iprint("end of header\n");
 	if (nb <= 0)
 		return 0;
 
 	ret = 0;
 	magic = beswal(d.e.magic);		/* big-endian */
-	iprint("Sysproc.c 1206, after magic=beswal\n");
+	iprint("Sysproc.c 1225, after magic=beswal\n");
 	for (mp = exectab; mp->magic; mp++) {
-		iprint("Sysproc.c 1208, inside for loop\n");
+		iprint("Sysproc.c 1227, inside for loop\n");
 		if (nb < mp->hsize) {
 			iprint("nb %d, mp->hsize %d, too SMALL\n", nb, mp->hsize);
-
 			continue;
 		}
 
@@ -1243,7 +1242,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		 */
 		iprint("_magic %x\n", mp->_magic);
 		if(mp->_magic){
-			iprint("Sysproc.c 1225, mp->_magic\n");
+			iprint("Sysproc.c 1245, mp->_magic\n");
 			if(mp->magic != (magic & ~DYN_MAGIC))
 				continue;
 
@@ -1253,7 +1252,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 				fp->name = mp->name;
 		}
 		else{
-			iprint("Sysproc.c 1235, mp->magic %x != magic %x\n", mp->_magic, magic);
+			iprint("Sysproc.c 1255, mp->magic %x != magic %x\n", mp->_magic, magic);
 			if(mp->magic != magic)
 				continue;
 			fp->name = mp->name;
@@ -1274,7 +1273,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 	}
 	if(mp->magic == 0) {
 		iprint("mp->magic == 0!\n");
-		error("Sysproc 1254: unknown header type");
+		error("Sysproc 1276: unknown header type");
 	}
 	return ret;
 }

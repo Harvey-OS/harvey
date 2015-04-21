@@ -106,24 +106,20 @@ compiling()
 	
 	data2c bootk8cpu_out boot$CONF.all.out >> k8cpu.root.c
 
-	# We haven't these for now. Must be concatenated text+data as with boot$CONF.elf.out.
+	# We haven't these for now.
 	# You need to run BUILDKFACTOTUM into /sys/src/cmd/auth/factotum
 	# in order to have working this.
 
-	objcopy -j .text  -O binary /sys/src/cmd/auth/factotum/factotum.elf.out factotum.code.out
-	objcopy -j .data  -O binary /sys/src/cmd/auth/factotum/factotum.elf.out factotum.data.out
-	file factotum*.out
-	cat factotum.code.out factotum.data.out >> factotum.all.out
-	data2c _amd64_bin_auth_factotum  factotum.all.out >> k8cpu.root.c
+	##cp /sys/src/cmd/auth/factotum/factotum.elf.out factotum.elf.out
+	##strip factotum.elf.out
+	##data2c _amd64_bin_auth_factotum factotum.elf.out >> k8cpu.root.c
 
 	# You need to run BUILDKIPCONFIG into /sys/src/cmd/ip/ipconfig
 	# in order to have working this.
 	
-	objcopy -j .text  -O binary /sys/src/cmd/ip/ipconfig/ipconfig.elf.out ipconfig.code.out
-	objcopy -j .data  -O binary /sys/src/cmd/ip/ipconfig/ipconfig.elf.out ipconfig.data.out
-	file ipconfig*.out
-	cat ipconfig.code.out ipconfig.data.out >> ipconfig.all.out
-	data2c _amd64_bin_ip_ipconfig  ipconfig.all.out >> k8cpu.root.c
+	##cp /sys/src/cmd/ip/ipconfig/ipconfig.elf.out ipconfig.elf.out
+	##strip ipconfig.elf.out
+	##data2c _amd64_bin_ip_ipconfig ipconfig.elf.out >> k8cpu.root.c
 
 	# You need to run BUILDKRC into /sys/src/cmd/rc
 	# in order to have working this.
