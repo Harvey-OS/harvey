@@ -1298,6 +1298,10 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 
 	// call crackhdr
 	crackhdr(ar0, c, &f);
+
+	// fill in the rest here. We've cracked the header
+	// maybe, so time to read it all in.
+	// Or create the maps at least.
 	// ar0->i will be -1; leave until alvaro fills this in, just return,
 	// and the regular a.out exec will take over.
 	// Until this works, just set ar0->i to -1;
