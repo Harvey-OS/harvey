@@ -1198,6 +1198,7 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 	nb = c->dev->read(c, (char *)&d.e, sizeof(d.e), c->offset);
 	hi("Sysproc.c 1199, after c->dev->read\n");
 	hi("Sysproc.c 1200, nb = "); put64((uint64_t)nb); hi("\n");
+	iprint("header: "); hexdump(&d.e, nb);iprint("end of header\n");
 	if (nb <= 0)
 		return 0;
 
@@ -1266,6 +1267,7 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 		return;
 	}
 	// memmove ufile to genbuf in a bit.
+	// We need to to TOCTOU prevention.
 	c = namec(ufile, Aopen, OREAD, 0);
 	iprint("MACHEEC ---------> %s, %p\n", ufile, c);
 	if (c == nil)

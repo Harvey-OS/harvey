@@ -139,6 +139,8 @@ int		getpgszi(uint32_t);
 Segment*	getzkseg(void);
 void		gotolabel(Label*);
 int		haswaitq(void*);
+void hexdump(void *v, int length);
+void pahexdump(uintptr_t pa, int len);
 void		hnputl(void*, uint);
 void		hnputs(void*, uint16_t);
 void		hnputv(void*, uint64_t);

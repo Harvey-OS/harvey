@@ -231,6 +231,10 @@ _warp64:
 	movl	%edx, PDO(KZERO)(%eax)		/* PDE for KZERO 0-[24]MiB */
 	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+PGLSZ(1))(%eax)	/* PDE for KZERO [24]-[48]MiB */
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1))(%eax)	/* PDE for KZERO [4]-[6]MiB */
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1)+PGLSZ(1))(%eax)	/* PDE for KZERO [6]-[8]MiB */
 
 	movl	%eax, %edx				/* PD at PML4 + 2*PTSZ */
 	addl	$(PTSZ|PteRW|PteP), %edx		/* PT at PML4 + 3*PTSZ */

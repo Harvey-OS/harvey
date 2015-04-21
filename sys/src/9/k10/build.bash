@@ -128,11 +128,9 @@ compiling()
 	# You need to run BUILDKRC into /sys/src/cmd/rc
 	# in order to have working this.
 	
-	objcopy -j .text  -O binary /sys/src/cmd/rc/rc.elf.out rc.code.out
-	objcopy -j .data  -O binary /sys/src/cmd/rc/rc.elf.out rc.data.out
-	file rc*.out
-	cat rc.code.out rc.data.out >> rc.all.out
-	data2c _amd64_bin_rc rc.all.out >> k8cpu.root.c
+	cp /sys/src/cmd/rc/rc.elf.out rc.elf.out 
+	strip rc.elf.out
+	data2c _amd64_bin_rc rc.elf.out >> k8cpu.root.c
 
 	## Making all ##
 
