@@ -133,6 +133,23 @@ typedef struct Exectable{
 	int	(*hparse)(Ar0*, Chan*, Fhdr*, ExecHdr*);
 } ExecTable;
 
+/* Map from mach.h */
+
+/* Structure to map a segment to a position in a file */
+
+typedef struct Map {
+		int     nsegs;		/* number of segments */
+		struct segment {	/* per-segment map */
+			char *name;		/* the segment name */
+			int fd;			/* file descriptor */
+			int inuse;		/* in use - not in use */
+			int cache;		/* should cache reads? */
+			uint64_t b;		/* base */
+			uint64_t e;		/* end */
+			int64_t f;		/* offset within file */
+		} seg[1];			/* actually n of these */
+} Map;
+
 /* Trying seek */
 
 static int64_t
@@ -312,6 +329,62 @@ hswal(void *v, int n, uint32_t (*swap)(uint32_t))
 
 	for(ulp = v; n--; ulp++)
 		*ulp = (*swap)(*ulp);
+}
+
+/* map.c */
+
+int
+findseg(Map *map, char *name)
+{
+	int i;
+
+	if (!map)
+		return -1;
+	for (i = 0; i < map->nsegs; i++)
+		if (map->seg[i].inuse && !strcmp(map->seg[i].name, name))
+			return i;
+	return -1;
+}
+
+Map *
+newmap(Map *map, int n)
+{
+	int size;
+
+	size = sizeof(Map)+(n-1)*sizeof(struct segment);
+	if (map == 0)
+		map = malloc(size);
+	else
+		map = realloc(map, size);
+	if (map == 0) {
+		error("out of memory: %r");
+		return 0;
+	}
+	memset(map, 0, size);
+	map->nsegs = n;
+	return map;
+}
+
+Map*
+loadmap(Map *map, int fd, Fhdr *fp)
+{
+	map = newmap(map, 2);
+	if (map == 0)
+		return 0;
+
+	map->seg[0].b = fp->txtaddr;
+	map->seg[0].e = fp->txtaddr+fp->txtsz;
+	map->seg[0].f = fp->txtoff;
+	map->seg[0].fd = fd;
+	map->seg[0].inuse = 1;
+	map->seg[0].name = "text";
+	map->seg[1].b = fp->dataddr;
+	map->seg[1].e = fp->dataddr+fp->datsz;
+	map->seg[1].f = fp->datoff;
+	map->seg[1].fd = fd;
+	map->seg[1].inuse = 1;
+	map->seg[1].name = "data";
+	return map;
 }
 
 /* commons */
@@ -1278,12 +1351,21 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 	return ret;
 }
 
+/* Do we need this, Ron? */
+#define RNDM(size) ((size+0xfffff)&0xfff00000)
+
 static void
 machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 {
 	Mach *m = machp();
 	Chan *c;
 	Fhdr f;
+	Map *map;
+	ExecHdr d;
+	int fd, textseg, dataseg;
+	uint8_t  *textp, *datap, *bssp;
+	uint32_t bsssize, bssbase;
+
 	// just catch the error and ignore it for now.
 	if (waserror()) {
 		return;
@@ -1296,7 +1378,44 @@ machexec(Ar0* ar0, int flags, char *ufile, char **argv)
 		panic("machexec: getaddr: c == nil");
 
 	// call crackhdr
-	crackhdr(ar0, c, &f);
+	if(crackhdr(ar0, c, &f) < 0)
+		 error("crackhdr failed");
+
+	/* Ron has a better solution to this, sure! */
+	iprint("10\n");
+	fd = c->dev->read(c, (char *)&d.e, sizeof(d.e), c->offset);
+	iprint("11\n");
+	map = loadmap(nil, fd, &f);
+
+	if (!map)
+		error("loadmap failed");
+
+	iprint("12\n");
+	textseg = findseg(map, "text");
+		if (textseg < 0)
+			error("no text segment");
+	iprint("13\n");
+	dataseg = findseg(map, "data");
+		if (dataseg < 0)
+			error("no data segment");
+
+	iprint("14\n");
+	bssbase = f.dataddr + RNDM( f.datsz + f.bsssz),
+
+	textp = (void *)f.txtaddr;
+	datap = (void *)f.dataddr;
+	bssp = (void *)(uintptr_t)bssbase;
+
+	/* NO print's past this point if you want to live. */
+	/* We need brk from libc */
+	//if (brk(bssp + f.bsssz) < 0)
+	//	error("no brk");
+
+	/* clear out bss ... */
+	memset(bssp, 0, f.bsssz);
+
+	USED(bsssize);USED(*textp); USED(*datap);
+	// TO BE CONTINUED...
 
 	// fill in the rest here. We've cracked the header
 	// maybe, so time to read it all in.
