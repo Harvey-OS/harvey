@@ -31,6 +31,6 @@ y.tab.c \
 
 echo "linking.."
 echo
-$LD -static -o rc.elf.out *.o $LDFLAGS -lString -lc -emain -Ttext=0x200020
+$LD -static -o rc.elf.out *.o $LDFLAGS -lString -lc -emain -Ttext=0x200000
 
 rm *.o
