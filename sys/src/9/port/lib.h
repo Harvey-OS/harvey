@@ -6,7 +6,7 @@
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
  */
-
+#include <elf.h>
 /*
  * functions (possibly) linked in, complete, from libc.
  */

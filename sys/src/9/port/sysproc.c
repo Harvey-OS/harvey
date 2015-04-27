@@ -23,7 +23,6 @@
  * FIX ME.
  */
 
-#include	"elf.h"
 #include "ureg.h"  /* for Elfmach struct */
 
 typedef struct Fhdr Fhdr;
