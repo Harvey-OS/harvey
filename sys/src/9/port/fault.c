@@ -231,7 +231,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	c = nil;
 	pgsz = m->pgsz[s->pgszi];
 	if(loadrec == nil) {	/* from a text/data image */
-		daddr = s->fstart+soff;
+		daddr = s->ph.offset+soff;
 		new = lookpage(s->image, daddr);
 		if(new != nil) {
 			*p = new;
