@@ -239,7 +239,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		}
 
 		c = s->image->c;
-		ask = s->flen-soff;
+		ask = s->ph.filesz-soff;
 		if(ask > pgsz)
 			ask = pgsz;
 	}

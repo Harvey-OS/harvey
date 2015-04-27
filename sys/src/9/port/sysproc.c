@@ -1172,7 +1172,6 @@ iprint("NOT #! chan is %p\n", chan);
 	s->ph = d.e.ph[f.it];
 	m->externup->seg[TSEG] = s;
 	s->flushme = 1;
-	s->flen = hdrsz+textsz;
  	if(img->color != m->externup->color){
  		m->externup->color = img->color;
  	}
@@ -1187,7 +1186,6 @@ iprint("NOT #! chan is %p\n", chan);
 	incref(img);
 	s->image = img;
 	s->ph = d.e.ph[f.id];
-	s->flen = datasz;
 
 	/* BSS. Zero fill on demand for TS */
 	m->externup->seg[BSEG] = newseg(SG_BSS, datalim, (bsslim-datalim)/BIGPGSZ);

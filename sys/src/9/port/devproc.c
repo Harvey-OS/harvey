@@ -1762,7 +1762,6 @@ txt2data(Proc *p, Segment *s)
 	ps->image = s->image;
 	incref(ps->image);
 	ps->ph = s->ph;
-	ps->flen = s->flen;
 	ps->flushme = 1;
 
 	qlock(&p->seglock);
@@ -1790,7 +1789,6 @@ data2txt(Segment *s)
 	ps->image = s->image;
 	incref(ps->image);
 	ps->ph = s->ph;
-	ps->flen = s->flen;
 	ps->flushme = 1;
 
 	return ps;

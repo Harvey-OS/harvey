@@ -513,7 +513,6 @@ struct Segment
 	usize	size;		/* size in pages */
 	/* We will be using the ELF ProgHdr for getting file contents into the segment. */
 	ProgHdr ph;
-	uint32_t	flen;		/* length of segment in file */
 	int	flushme;	/* maintain icache for this segment */
 	Image	*image;		/* text in file attached to this segment */
 	Physseg *pseg;

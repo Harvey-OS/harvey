@@ -212,7 +212,6 @@ dupseg(Segment **seg, int segno, int share)
 		incref(s->image);
 		n->image = s->image;
 		n->ph = s->ph;
-		n->flen = s->flen;
 		n->pgszi = s->pgszi;
 		n->color = s->color;
 		n->ptepertab = s->ptepertab;
