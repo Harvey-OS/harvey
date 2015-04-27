@@ -512,7 +512,7 @@ struct Segment
 	uintptr_t	top;		/* virtual top */
 	usize	size;		/* size in pages */
 	/* We will be using the ELF ProgHdr for getting file contents into the segment. */
-	ProgHdr f;
+	ProgHdr ph;
 	uint32_t	fstart;		/* start address in file for demand load */
 	uint32_t	flen;		/* length of segment in file */
 	int	flushme;	/* maintain icache for this segment */

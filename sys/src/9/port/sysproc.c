@@ -48,6 +48,10 @@ typedef struct Fhdr
 	int32_t	symsz;		/* size of symbol table */
 	int32_t	sppcsz;		/* size of sp-pc table */
 	int32_t	lnpcsz;		/* size of line number-pc table */
+	/* add the indexes of the ELF text and data segments. This is one awful hack
+	 * but we want to get this plane off the ground. We can fix it better later.
+	 */
+	int it, id;
 } Fhdr;
 
 /*
@@ -448,11 +452,11 @@ elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 {
 iprint("elf64doutout\n");
 	E64hdr *ep;
-	P64hdr *ph;
+
 	uint16_t (*swab)(uint16_t);
 	uint32_t (*swal)(uint32_t);
 	uint64_t (*swav)(uint64_t);
-	int i, it, id, is, phsz;
+	int i, is, phsz;
 	uint64_t uvl;
 
 	ep = &hp->e;
@@ -502,58 +506,58 @@ iprint("3\n");
 		return 0;
 	}
 	phsz = sizeof(P64hdr)*ep->phnum;
-	ph = malloc(phsz);
-	if(ph == nil)
+	hp->e.ph = malloc(phsz);
+	if(hp->e.ph == nil)
 		return 0;
 iprint("4\n");
 	chanseek(ar0, c, ep->phoff, 0);
 iprint("4.1\n");
-iprint("Read @ %p for %d bytes @ %p\n", ph, phsz, (void *)c->offset);
-	if(c->dev->read(c, ph, phsz, c->offset) < 0){
+iprint("Read @ %p for %d bytes @ %p\n", hp->e.ph, phsz, (void *)c->offset);
+	if(c->dev->read(c, hp->e.ph, phsz, c->offset) < 0){
 iprint("SHIT bad read\n");
-		free(ph);
+		free(hp->e.ph);
 		return 0;
 	}
 iprint("5\n");
 	for(i = 0; i < ep->phnum; i++) {
-		ph[i].type = swal(ph[i].type);
-		ph[i].flags = swal(ph[i].flags);
-		ph[i].offset = swav(ph[i].offset);
-		ph[i].vaddr = swav(ph[i].vaddr);
-		ph[i].paddr = swav(ph[i].paddr);
-		ph[i].filesz = swav(ph[i].filesz);
-		ph[i].memsz = swav(ph[i].memsz);
-		ph[i].align = swav(ph[i].align);
+		hp->e.ph[i].type = swal(hp->e.ph[i].type);
+		hp->e.ph[i].flags = swal(hp->e.ph[i].flags);
+		hp->e.ph[i].offset = swav(hp->e.ph[i].offset);
+		hp->e.ph[i].vaddr = swav(hp->e.ph[i].vaddr);
+		hp->e.ph[i].paddr = swav(hp->e.ph[i].paddr);
+		hp->e.ph[i].filesz = swav(hp->e.ph[i].filesz);
+		hp->e.ph[i].memsz = swav(hp->e.ph[i].memsz);
+		hp->e.ph[i].align = swav(hp->e.ph[i].align);
 	}
 
 	/* find text, data and symbols and install them */
-	it = id = is = -1;
+	fp->it = fp->id = is = -1;
 	for(i = 0; i < ep->phnum; i++) {
-		if(ph[i].type == LOAD
-		&& (ph[i].flags & (R|X)) == (R|X) && it == -1)
-			it = i;
-		else if(ph[i].type == LOAD
-		&& (ph[i].flags & (R|W)) == (R|W) && id == -1)
-			id = i;
-		else if(ph[i].type == NOPTYPE && is == -1)
+		if(hp->e.ph[i].type == LOAD
+		&& (hp->e.ph[i].flags & (R|X)) == (R|X) && fp->it == -1)
+			fp->it = i;
+		else if(hp->e.ph[i].type == LOAD
+		&& (hp->e.ph[i].flags & (R|W)) == (R|W) && fp->id == -1)
+			fp->id = i;
+		else if(hp->e.ph[i].type == NOPTYPE && is == -1)
 			is = i;
 	}
 iprint("6\n");
-	if(it == -1 || id == -1) {
+	if(fp->it == -1 || fp->id == -1) {
 		error("No ELF64 TEXT or DATA sections");
-		free(ph);
+		free(hp->e.ph);
 		return 0;
 	}
 
 iprint("7\n");
-	settext(fp, ep->elfentry, ph[it].vaddr, ph[it].memsz, ph[it].offset);
+	settext(fp, ep->elfentry, hp->e.ph[fp->it].vaddr, hp->e.ph[fp->it].memsz, hp->e.ph[fp->it].offset);
+	/* note: this comment refers to a bug in 8c. Who cares? We need to move on. */
 	/* 8c: out of fixed registers */
-	uvl = ph[id].memsz - ph[id].filesz;
-	setdata(fp, ph[id].vaddr, ph[id].filesz, ph[id].offset, uvl);
+	uvl = hp->e.ph[fp->id].memsz - hp->e.ph[fp->id].filesz;
+	setdata(fp, hp->e.ph[fp->id].vaddr, hp->e.ph[fp->id].filesz, hp->e.ph[fp->id].offset, uvl);
 iprint("8\n");
 	if(is != -1)
-		setsym(fp, ph[is].filesz, 0, ph[is].memsz, ph[is].offset);
-	free(ph);
+		setsym(fp, hp->e.ph[is].filesz, 0, hp->e.ph[is].memsz, hp->e.ph[is].offset);
 iprint("9\n");
 	return 1;
 }
@@ -1165,6 +1169,7 @@ iprint("NOT #! chan is %p\n", chan);
 	 */
 	img = attachimage(SG_TEXT|SG_RONLY, chan, m->externup->color, UTZERO, (textlim-UTZERO)/BIGPGSZ);
 	s = img->s;
+	s->ph = d.e.ph[f.it];
 	m->externup->seg[TSEG] = s;
 	s->flushme = 1;
 	s->fstart = (uint32_t) f.txtoff;
@@ -1182,6 +1187,7 @@ iprint("NOT #! chan is %p\n", chan);
 	/* Attached by hand */
 	incref(img);
 	s->image = img;
+	s->ph = d.e.ph[f.id];
 	s->fstart = (uint32_t) f.datoff;
 	s->flen = datasz;
 
