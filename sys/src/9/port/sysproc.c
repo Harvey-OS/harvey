@@ -150,8 +150,7 @@ typedef struct Map {
 		} seg[1];			/* actually n of these */
 } Map;
 
-static int crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp);
-
+static int crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *d);
 /* Trying seek */
 
 static int64_t
@@ -859,6 +858,7 @@ typedef struct {
 static void
 execac(Ar0* ar0, int flags, char *ufile, char **argv)
 {
+	ExecHdr d;
 	Fhdr f;
 	Mach *m = machp();
 	Hdr hdr;
@@ -964,7 +964,7 @@ iprint("NOT #! chan is %p\n", chan);
 	 * #! has had its chance, now we need a real binary.
 	 */
 
-	crackhdr(ar0, chan, &f);
+	crackhdr(ar0, chan, &f, &d);
 
 	textsz = f.txtsz;
 	datasz =f.datsz;
@@ -1267,23 +1267,19 @@ sysexecac(Ar0* ar0, ...)
 }
 
 static int
-crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
+	crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *d)
 {
 	ExecTable *mp;
-	ExecHdr d;
 	int nb, ret;
 	uint32_t magic;
 
 	fp->type = 0; /* FNONE */
-	nb = c->dev->read(c, (char *)&d.e, sizeof(d.e), c->offset);
-	hi("Sysproc.c 1217, after c->dev->read\n");
-	hi("Sysproc.c 1218, nb = "); put64((uint64_t)nb); hi("\n");
-	iprint("header: "); hexdump(&d.e, nb);iprint("end of header\n");
+	nb = c->dev->read(c, (char *)&d->e, sizeof(d->e), c->offset);
 	if (nb <= 0)
 		error("crackhdr: header read failed");
 
 	ret = 0;
-	magic = beswal(d.e.magic);		/* big-endian */
+	magic = beswal(d->e.magic);		/* big-endian */
 	iprint("Sysproc.c 1225, after magic=beswal\n");
 	for (mp = exectab; mp->magic; mp++) {
 		iprint("Sysproc.c 1227, inside for loop\n");
@@ -1328,8 +1324,8 @@ crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp)
 		machkind = mp->elfmach;
 		iprint("seems to be elf\n");
 		if(mp->swal != nil)
-			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
-		ret = mp->hparse(ar0, c, fp, &d);
+			hswal(d, sizeof(d->e)/sizeof(uint32_t), mp->swal);
+		ret = mp->hparse(ar0, c, fp, d);
 		chanseek(ar0, c, mp->hsize, 0);		/* seek to end of header */
 		break;
 	}
