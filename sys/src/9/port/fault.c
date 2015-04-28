@@ -260,7 +260,12 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		faulterror(Eioload, c, 0);
 	}
 
-	n = c->dev->read(c, kaddr, ask, daddr);
+	// kaddr needs to be offset by the start of the memory address.
+	int off = s->ph.vaddr & 0x1fffff;
+	iprint("pio chan %c kaddr %p kaddr+off %p ask 0x%x daddr 0x%lx\n",
+	       c, kaddr, kaddr+off, ask, daddr);
+	n = c->dev->read(c, kaddr+off, ask, daddr);
+hexdump(kaddr+off, n);
 	if(n != ask)
 		faulterror(Eioload, c, 0);
 	if(ask < pgsz)

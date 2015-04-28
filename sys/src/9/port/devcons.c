@@ -495,6 +495,7 @@ pprint(char *fmt, ...)
 	c->offset += n;
 	unlock(c);
 
+die("pprint");
 	return n;
 }
 
