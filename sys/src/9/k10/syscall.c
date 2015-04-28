@@ -423,19 +423,20 @@ sysexecstack(uintptr_t stack, int argc)
 }
 
 void*
-sysexecregs(uintptr_t entry, uint32_t ssize, uint32_t nargs)
+sysexecregs(uintptr_t entry, uint32_t ssize, void *argv, uint32_t nargs)
 {
 	Mach *m = machp();
 	uintptr_t *sp;
 	Ureg *ureg;
 
 	sp = (uintptr_t*)(USTKTOP - ssize);
-	*--sp = nargs;
 
 	ureg = m->externup->dbgreg;
 	ureg->sp = PTR2UINT(sp);
 	ureg->ip = entry;
 	ureg->type = 64;			/* fiction for acid */
+	ureg->di = nargs;
+	ureg->si = (uintptr_t)argv;
 
 	/*
 	 * return the address of kernel/user shared data

@@ -265,7 +265,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	iprint("pio chan %c kaddr %p kaddr+off %p ask 0x%x daddr 0x%lx\n",
 	       c, kaddr, kaddr+off, ask, daddr);
 	n = c->dev->read(c, kaddr+off, ask, daddr);
-hexdump(kaddr+off, n);
+	//hexdump(kaddr+off, n);
 	if(n != ask)
 		faulterror(Eioload, c, 0);
 	if(ask < pgsz)
