@@ -718,20 +718,12 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 }
 
 static int32_t
-read(int ispread, ...)
+read(int ispread, int fd, void *p, int32_t n, int64_t off)
 {
 	Mach *m = machp();
-	int fd;
-	int32_t n, nn, nnn;
-	void *p;
+	int32_t nn, nnn;
 	Chan *c;
-	int64_t off;
-	va_list list;
-	va_start(list, ispread);
 
-	fd = va_arg(list, int);
-	p = va_arg(list, void*);
-	n = va_arg(list, int32_t);
 	p = validaddr(p, n, 1);
 
 	c = fdtochan(fd, OREAD, 1, 1);
@@ -751,7 +743,6 @@ read(int ispread, ...)
 	 * due to rewritings in mountfix.
 	 */
 	if(ispread){
-		off = va_arg(list, int64_t);
 		if(off == ~0LL){	/* use and maintain channel's offset */
 			off = c->offset;
 			ispread = 0;
@@ -800,7 +791,6 @@ read(int ispread, ...)
 
 	poperror();
 	cclose(c);
-	va_end(list);
 
 	return nnn;
 }
@@ -808,25 +798,40 @@ read(int ispread, ...)
 void
 sys_read(Ar0* ar0, ...)
 {
+	int fd;
+	void *p;
+	int32_t n;
+	int64_t off = ~0ULL;
 	va_list list;
 	va_start(list, ar0);
+	fd = va_arg(list, int);
+	p = va_arg(list, void*);
+	n = va_arg(list, int32_t);
 	va_end(list);
 	/*
 	 * long read(int fd, void* buf, long nbytes);
 	 */
-	ar0->l = read(0, list);
+	ar0->l = read(0, fd, p, n, off);
 }
 
 void
 syspread(Ar0* ar0, ...)
 {
+	int fd;
+	void *p;
+	int32_t n;
+	int64_t off;
 	va_list list;
 	va_start(list, ar0);
+	fd = va_arg(list, int);
+	p = va_arg(list, void*);
+	n = va_arg(list, int32_t);
+	off = va_arg(list, int64_t);
 	va_end(list);
 	/*
 	 * long pread(int fd, void* buf, long nbytes, int64_t offset);
 	 */
-	ar0->l = read(1, list);
+	ar0->l = read(1, fd, p, n, off);
 }
 
 static int32_t
