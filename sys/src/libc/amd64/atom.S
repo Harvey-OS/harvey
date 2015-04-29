@@ -11,6 +11,7 @@ ainclp:
 	incl	%ecx		/* new */
 	lock; cmpxchgl %ecx, (%rdi)
 	jnz	ainclp
+	movw	%ecx, %eax
 	popq %rcx
 	ret
 
@@ -23,6 +24,7 @@ adeclp:
 	decl	%ecx		/* new */
 	lock; cmpxchgl %ecx, (%rdi)
 	jnz	adeclp
+	movw	%ecx, %eax
 	popq %rcx
 	ret
 
