@@ -143,10 +143,10 @@ main(int argc, char *argv[])
 {
 	char line[128];
 	int amt;
-	/* this hangs on semacquire.
+	/* this hangs on semacquire.*/
 	sprint(line, "argc %d argv %p\n", argc, argv);
 	write(1, line, 128);
-	*/
+	/**/
 	while (1) {
 		write(1, "hi\n", 3);
 		amt = read(0, line, 128);
