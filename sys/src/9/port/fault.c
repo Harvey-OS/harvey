@@ -163,6 +163,8 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 		if(ref > 1) {
 			unlock(lkp);
 
+			// No need to zero here as it is copied
+			// over.
 			new = newpage(0, &s, addr, pgsz, color);
 			if(s == 0)
 				return -1;
@@ -248,7 +250,12 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 
 	qunlock(&s->lk);
 
-	new = newpage(0, 0, addr, pgsz, color);
+	// For plan 9 a.out format the amount of data
+	// we read covered the page; the first parameter
+	// of newpage here was 0 -- "don't zero".
+	// It is now 1 -- "do zero" because ELF only covers
+	// part of the page.
+	new = newpage(1, 0, addr, pgsz, color);
 	k = kmap(new);
 	kaddr = (char*)VA(k);
 
