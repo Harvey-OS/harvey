@@ -241,7 +241,7 @@ hi("syscall!\n");
 	a0 = ureg->di;
 	a1 = ureg->si;
 	a2 = ureg->dx;
-	a3 = ureg->r8;
+	a3 = ureg->cx;
 	Mach *m = machp();
 	unsigned int scallnr = (unsigned int) badscallnr;
 iprint("Syscall %d, %lx, %lx, %lx\n", scallnr, a0, a1, a2);
