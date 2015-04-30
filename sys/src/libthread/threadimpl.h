@@ -187,7 +187,7 @@ void	_threadnote(void*, char*);
 void	_threadready(Thread*);
 void*	_threadrendezvous(void*, void*);
 void	_threadsignal(void);
-void	_threadsysfatal(char*, va_list);
+void	_threadsysfatal(char*, ...);
 void**	_workerdata(void);
 void	_xinc(int32_t*);
 long	_xdec(int32_t*);

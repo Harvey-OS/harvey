@@ -186,12 +186,13 @@ timefmt(Fmt *fmt)
 }
 
 void
-vtlogvprint(VtLog *l, char *fmt, va_list arg)
+vtlogvprint(VtLog *l, char *fmt, ...)
 {
 	int n;
 	char *p;
 	VtLogChunk *c;
 	static int first = 1;
+	va_list arg;
 
 	if(l == nil)
 		return;
@@ -212,7 +213,9 @@ vtlogvprint(VtLog *l, char *fmt, va_list arg)
 		c->wp = c->p;
 		l->w = c;
 	}
+	va_start(arg, fmt);
 	p = vseprint(c->wp, c->ep, fmt, arg);
+	va_end(arg);
 	if(p)
 		c->wp = p;
 	qunlock(&l->lk);

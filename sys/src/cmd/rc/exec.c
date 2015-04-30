@@ -155,6 +155,7 @@ main(int argc, char *argv[])
 		}
 		line[amt] = 0;
 		print(line);
+		print("Hello, I am Harvey!!\n");
 	}
 	code bootstrap[17];
 	char num[12], *rcmain;

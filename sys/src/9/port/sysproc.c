@@ -1507,7 +1507,6 @@ sysawait(Ar0* ar0, ...)
 	p = va_arg(list, char*);
 	n = va_arg(list, int32_t);
 	p = validaddr(p, n, 1);
-	va_end(list);
 
 	pid = pwait(&w);
 	if(pid < 0){
@@ -1519,6 +1518,7 @@ sysawait(Ar0* ar0, ...)
 		w.time[TUser], w.time[TSys], w.time[TReal],
 		w.msg);
 
+	va_end(list);
 	ar0->i = i;
 }
 
@@ -1651,7 +1651,6 @@ sysrendezvous(Ar0* ar0, ...)
 	 * void* rendezvous(void*, void*);
 	 */
 	tag = PTR2UINT(va_arg(list, void*));
-	va_end(list);
 
 	l = &REND(m->externup->rgrp, tag);
 	m->externup->rendval = ~0;
@@ -1686,6 +1685,7 @@ sysrendezvous(Ar0* ar0, ...)
 
 	sched();
 
+	va_end(list);
 	ar0->v = UINT2PTR(m->externup->rendval);
 }
 
