@@ -1,7 +1,8 @@
 # These notes are also a script.
 # I want to try building with clang.
-unshare -m /bin/bash
-su - rminnich
+# Do this:
+# sudo unshare -m /bin/bash
+#su - rminnich
 echo "can not use clang for now, due to issues between clang and gcc builtin definitions. Damn"
 (cd util; go build mksys.go)
 sudo mkdir -p /amd64
