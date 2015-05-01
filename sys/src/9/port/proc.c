@@ -69,11 +69,12 @@ char *statename[] =
 void
 debuggotolabel(Label *p)
 {
-	hi("debuggotolabel");
+/*
+	if(0)hi("debuggotolabel");
 	iprint("rip %p sp %p\n", 
 		(void *)p->pc, 
 		(void *)p->sp);
-
+*/
 	if (!p->pc)
 		die("PC IS ZERO!");
 	gotolabel(p);
@@ -246,14 +247,11 @@ sched(void)
 	m->proc = m->externup;
 //	iprint("m->externup->sched.sp %p * %p\n", up->sched.sp,
 //		*(void **) m->externup->sched.sp);
-	hi("PRE MMU SWITCH\n");
 	mmuswitch(m->externup);
-	hi("POST MMUS\n");
-	hi("POST MMU SWITCH\n");
 
 	assert(!m->externup->wired || m->externup->wired == m);
-hi("gotolabel\n");
-	debuggotolabel(&m->externup->sched);
+	if (0) hi("gotolabel\n");
+	/*debug*/gotolabel(&m->externup->sched);
 }
 
 int
@@ -898,7 +896,7 @@ runproc(void)
 	&& &run.runq[Nrq-1].head == nil && &run.runq[Nrq-2].head == nil){
 		skipscheds++;
 		rq = &run.runq[p->priority];
-		hi("runproc going to found before loop...\n");
+		if(0)hi("runproc going to found before loop...\n");
 		goto found;
 	}
 
@@ -922,7 +920,7 @@ loop:
 				if(p->mp == nil || p->mp == sys->machptr[m->machno]
 				|| (!p->wired && i > 0))
 				{
-					hi("runproc going to found inside loop...\n");
+					if(0)hi("runproc going to found inside loop...\n");
 					goto found;
 				}
 			}
@@ -939,18 +937,18 @@ loop:
 
 found:
 	splhi();
-	hi("runproc into found...\n");
+	if(0)hi("runproc into found...\n");
 	p = dequeueproc(&run, rq, p);
 	if(p == nil)
 	{
-		hi("runproc p=nil :(\n");
+		if(0)hi("runproc p=nil :(\n");
 			goto loop;
 	}
 
 	p->state = Scheding;
-	hi("runproc, pm->mp = sys->machptr[m->machno]\n");
+	if(0)hi("runproc, pm->mp = sys->machptr[m->machno]\n");
 	p->mp = sys->machptr[m->machno];
-	hi("runproc, sys->machptr[m->machno] = "); put64((uint64_t)p->mp); hi("\n");
+	if(0){hi("runproc, sys->machptr[m->machno] = "); put64((uint64_t)p->mp); hi("\n");}
 
 	if(edflock(p)){
 		edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
@@ -960,9 +958,10 @@ found:
 		proctrace(p, SRun, 0);
 	/* avoiding warnings, this will be removed */
 	USED(mach0sched); USED(smprunproc);
-	hi("runproc, returning p ");
+	if(0){hi("runproc, returning p ");
 	put64((uint64_t)p);
-	hi("\n");
+	hi("\n");}
+
 	
 	return p;
 }
@@ -1147,8 +1146,6 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 			m->externup->pid, m->externup->nlocks, m->externup->lastlock, m->externup->lastlock->_pc, getcallerpc(&r));
 	lock(r);
 	lock(&m->externup->rlock);
-hi("sleep "); put64((uint64_t)r); hi(" up "); put64((uint64_t) m->externup);
-hi(" and m->externup->rlock "); put64((uint64_t) &m->externup->rlock); hi("\n");
 	if(r->_p){
 		iprint("r %p p %p up %p\n", r, r->_p, m->externup);
 		iprint("double sleep called from %#p, %d %d\n",

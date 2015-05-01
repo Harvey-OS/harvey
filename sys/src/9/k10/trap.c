@@ -645,12 +645,14 @@ faultamd64(Ureg* ureg, void* v)
 			ureg->ip, addr);
 	}
 	read = !(ureg->error & 2);
+/*
 if (read) hi("read fault\n"); else hi("write fault\n");
 hi("addr "); put64(addr); hi("\n");
+ */
 
 	insyscall = m->externup->insyscall;
 	m->externup->insyscall = 1;
-hi("call fault\n");
+	if (0)hi("call fault\n");
 	if(fault(addr, read) < 0){
 die("fault went bad\n");
 
