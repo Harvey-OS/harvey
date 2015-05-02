@@ -30,7 +30,6 @@ LIBS=\
 	libndb\
 	libplumb\
 	libregexp\
-	libscribble\
 	libsec\
 	libstdio\
 	libsunrpc\
@@ -38,6 +37,7 @@ LIBS=\
 	libventi\
 
 MORENOLIBS=\
+	libscribble\
 	liboventi\
 
 NOCMDS=\
