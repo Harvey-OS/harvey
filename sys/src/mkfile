@@ -3,7 +3,7 @@ objtype=amd64
 
 </$objtype/mkfile
 
-LIBS=\
+NOLIBS=\
 	lib9p\
 	libString\
 	libauth\
@@ -11,7 +11,11 @@ LIBS=\
 	libavl\
 	libbin\
 	libbio\
+
+LIBS=\
 	libc\
+
+MORENOLIBS=\
 	libcomplete\
 	libcontrol\
 	libdisk\
@@ -39,10 +43,10 @@ LIBS=\
 	libventi\
 
 
-CMDS=cmd\
+NOCMDS=cmd\
 	games\
 
-SUBSYS=ape\
+NOSUBSYS=ape\
 	/acme\
 
 none:VQ:
