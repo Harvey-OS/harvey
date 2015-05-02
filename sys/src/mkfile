@@ -3,7 +3,7 @@ objtype=amd64
 
 </$objtype/mkfile
 
-NOLIBS=\
+LIBS=\
 	lib9p\
 	libString\
 	libauth\
@@ -11,11 +11,7 @@ NOLIBS=\
 	libavl\
 	libbin\
 	libbio\
-
-LIBS=\
 	libc\
-
-MORENOLIBS=\
 	libcomplete\
 	libcontrol\
 	libdisk\
@@ -32,7 +28,6 @@ MORENOLIBS=\
 	libmemlayer\
 	libmp\
 	libndb\
-	liboventi\
 	libplumb\
 	libregexp\
 	libscribble\
@@ -42,8 +37,11 @@ MORENOLIBS=\
 	libthread\
 	libventi\
 
+MORENOLIBS=\
+	liboventi\
 
-NOCMDS=cmd\
+NOCMDS=\
+	cmd\
 	games\
 
 NOSUBSYS=ape\
