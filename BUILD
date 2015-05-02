@@ -34,6 +34,7 @@ build_go_utils()
 		if [ $? -ne 0 ]
 		then
 			printf "\nERROR compiling $i \n"
+			exit 1
 		fi
 	done
 	cd - > /dev/null
@@ -50,29 +51,57 @@ check_utils()
 }
 
 #ARGS:
+
+build_l()
+{
+	if [ $DO_NOTHING -eq 0 ]
+	then
+		for j in $BUILD_IN
+		do
+			echo "$CC $CFLAGS $CFLAGS_EXTRA -c $j"
+			$CC $CFLAGS $CFLAGS_EXTRA -c $j
+			if [ $? -ne 0 ]
+			then
+				printf "\n\n ERROR COMPILING $1\n"
+				exit 1
+			fi
+		done
+		echo "$AR rv \"$BUILD_OUT\" *.o"
+		$AR rv "$BUILD_OUT" *.o
+		if [ $? -ne 0 ]
+		then
+			printf "\n\n ERROR CREATING LIBRARY $1\n"
+		fi
+	fi
+}
+
+
+#ARGS:
 #$1 -> Lib name
 build_a_lib()
 {
+	PATH_ORI=`pwd`
 	cd "${SRC_DIR}/$1"
 	CFLAGS_EXTRA=
+	SUBDIRS=
+	DO_NOTHING=0
 	$1
-	for j in $BUILD_IN
-	do
-		echo "$CC $CFLAGS $CFLAGS_EXTRA -c $j"
-		$CC $CFLAGS $CFLAGS_EXTRA -c $j
-		if [ $? -ne 0 ]
-		then
-			printf "\n\n ERROR COMPILING $1\n"
-			exit 1
-		fi
-	done
-	echo "$AR rv \"$BUILD_OUT\" *.o"
-	$AR rv "$BUILD_OUT" *.o
-	if [ $? -ne 0 ]
+	if [ -n "$SUBDIRS" ]
 	then
-		printf "\n\n ERROR CREATING LIBRARY $1\n"
+		for k in $SUBDIRS
+		do
+			CFLAGS_EXTRA=
+			DO_NOTHING=0
+			cd $k
+			$1_$k
+			build_l
+			cd ..
+		done
+	else
+		build_l
 	fi
-	cd - > /dev/null
+	
+	cd "$PATH_ORI" > /dev/null
 }
 
 #ARGS:
