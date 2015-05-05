@@ -278,6 +278,110 @@ build_klibs()
 	fi
 }
 
+#ARGS:
+#   $1 -> LIB name
+do_link_lib()
+{
+	AUX=`echo $1 | grep ^lib`
+	_LIB_NAME=
+	if [ -n "$AUX" ]
+	then
+		#Name format is libName
+		_LIB_NAME=`echo $AUX | cut -c 4-`
+		_LIB_NAME="-l$_LIB_NAME"
+	else
+		#Name format is Name
+		_LIB_NAME="-l$1"
+	fi
+	echo $_LIB_NAME
+}
+
+#ARGS:
+#	$1 -> libs list
+process_libs_to_link()
+{
+	_RETURN=
+	for i in $1
+	do
+		_RETURN=${_RETURN}" "`do_link_lib $i`
+	done
+	echo $_RETURN
+}
+
+#ARGS:
+#  $1 -> cmd name
+build_a_cmd()
+{
+	cd ${CMD_DIR}/$1
+	DO_NOTHING=0
+	LDFLAGS_EXTRA=
+	CFLAGS_EXTRA=
+	cmd_${1} 1
+	if [ $DO_NOTHING -eq 0 ]
+	then
+		echo "$CC $CFLAGS_CMD $CFLAGS_EXTRA $BUILD_DEBUG -c $BUILD_IN"
+		$CC $CFLAGS_CMD $CFLAGS_EXTRA $BUILD_DEBUG -c $BUILD_IN 
+		if [ $? -ne 0 ]
+		then
+			echo "ERROR compiling $1"
+			cd - > /dev/null
+			exit 1
+		fi
+		LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
+		echo $LD $LDFLAGS $LDFLAGS_EXTRA $LD_LIBS -o $BUILD_OUT *.o
+		$LD $LDFLAGS_EXTRA $LDFLAGS -o $BUILD_OUT *.o $LD_LIBS
+		if [ $? -ne 0 ]
+		then
+			echo "ERROR linking $1"
+			cd - > /dev/null
+			exit 1
+		fi
+	fi
+	cd - > /dev/null
+}
+
+#ARGS:
+#   $1 -> cmd name
+clean_a_cmd()
+{
+	cd ${CMD_DIR}/$1
+	DO_NOTHING=0
+	cmd_${1} 2
+	if [ $DO_NOTHING -eq 0 ]
+	then
+		printf "Cleaning $1 "
+		$CLEAN_COM
+		if [ $? -eq 0 ]
+		then
+			printf "OK\n"
+		else
+			printf "ERROR\n"
+		fi 
+	fi
+}
+
+#ARGS:
+#$1 -> ACTION:
+#      1) Build
+#      2) Clean
+build_cmds()
+{
+	for i in $BUILD_CMD
+	do
+		if [ $1 -eq 1 ]
+		then
+			build_a_cmd $i
+		else
+			clean_a_cmd $i
+		fi
+	done
+	
+	if [ $1 -eq 1 ]
+	then
+		echo "ALL CMDS COMPILED OK"
+	fi
+}
+
 show_help()
 {
 	printf "\n\nBUILD script for Harvey\n\n"
@@ -291,6 +395,9 @@ show_help()
 	printf "  klibs <libname>\tBuild the Klibrary <libname>\n"
 	printf "  cleanklibs\tClean the Klibraries\n"
 	printf "  utils     \tBuild go utils\n"
+	printf "  cmd       \tBuild all cmds \n"
+	printf "  cmd <cmdname>\tBuild cmd named <cmdname>\n"
+	printf "  cleancmd   tClean the cmds\n"
 	printf "\nFLAGS:\n"
 	printf "  -g        \tCompile with debugs flags"
 	printf "\n"
@@ -313,11 +420,13 @@ else
 			"all")
 					build_libs 1
 					build_klibs 1
+					build_cmds 1
 					printf "\n\nALL COMPONENTS COMPILED\n\n"
 					;;
 			"cleanall")
 					build_libs 2
 					build_klibs 2
+					build_cmds 2
 					printf "\n\nALL COMPONENTS CLEANED\n\n"
 					;;
 			"libs")
@@ -346,6 +455,18 @@ else
 					;;
 			"utils")
 					build_go_utils
+					;;
+			"cmd")
+					if [ -z "$2" ]
+					then
+						build_cmds 1
+					else
+						build_a_cmd "$2"
+						shift
+					fi
+					;;
+			"cleancmd")
+					build_cmds 2
 					;;
 			*)
 				echo "Invalid option <$1>"
