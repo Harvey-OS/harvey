@@ -138,14 +138,79 @@ newvar(char *name, var *next)
  * start interpreting code
  */
 
+#ifndef CRAP
+// The old plan 9 standby ... wave ... 
+void wave(int c)
+{
+	write(1, &c, 1);
+}
+
+void hi(char *s) 
+{
+	while (*s)
+		wave(*s++);
+}
+	// for gdb: 
+	// call this anywhere in your code. 
+	//die("yourturn with gdb\n");
+	// gdb 9k
+	// target remote localhost:1234
+	// display/i $pc
+	// set staydead = 0
+	// stepi, and debug. 
+	// note, you can always resume after a die. Just set staydead = 0
+int staydead = 1;
+void die(char *s)
+{
+	wave('d');
+	wave('i');
+	wave('e');
+	wave(':');
+	hi(s);
+	while(staydead);
+	staydead = 1;
+}
+void bmemset(void *p)
+{
+	__asm__ __volatile__("1: jmp 1b");
+}
+
+void put8(uint8_t c)
+{
+	static char x[] = "0123456789abcdef";
+	wave(x[c>>4]);
+	wave(x[c&0xf]);
+}
+
+void put16(uint16_t s)
+{
+	put8(s>>8);
+	put8(s);
+}
+
+void put32(uint32_t u)
+{
+	put16(u>>16);
+	put16(u);
+}
+
+void put64(uint64_t v)
+{
+	put32(v>>32);
+	put32(v);
+}
+#endif
 void
 main(int argc, char *argv[])
 {
 	char line[128];
 	int amt;
+	hi("HI!\n");
+	int cnt;
+	put64((uint64_t)argc); hi(" "); put64((uint64_t)argv); hi("\n");
 	amt = sprint(line, "----------->argc %d argv %p,<------\n", argc, argv);
 	write(1, line, amt);
-	while (1) {
+	while (cnt++ < 4) {
 		write(1, "hi\n", 3);
 		amt = read(0, line, 128);
 		if (amt < 0) {

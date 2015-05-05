@@ -275,7 +275,11 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	//hexdump(kaddr+off, n);
 	if(n != ask)
 		faulterror(Eioload, c, 0);
-	if(ask < pgsz)
+	// There's no need to do this; we did a request to
+	// clear the page, above. Save this code for now;
+	// at some future time we might want to revive it for
+	// performance measurement.
+	if(0 && ask < pgsz)
 		memset(kaddr+ask, 0, pgsz-ask);
 
 	poperror();
