@@ -450,7 +450,6 @@ commonllp64(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 static int
 elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 {
-iprint("elf64doutout\n");
 	E64hdr *ep;
 
 	uint16_t (*swab)(uint16_t);
@@ -461,17 +460,14 @@ iprint("elf64doutout\n");
 
 	ep = &hp->e;
 	if(ep->ident[DATA] == ELFDATA2LSB) {
-iprint("lsb\n");
 		swab = leswab;
 		swal = leswal;
 		swav = leswav;
 	} else if(ep->ident[DATA] == ELFDATA2MSB) {
-iprint("msb\n");
 		swab = beswab;
 		swal = beswal;
 		swav = beswav;
 	} else {
-iprint("BOGUS\n");
 		error("bad ELF64 encoding - not big or little endian");
 		return 0;
 	}
@@ -479,7 +475,6 @@ iprint("BOGUS\n");
 	ep->type = swab(ep->type);
 	ep->machine = swab(ep->machine);
 	ep->version = swal(ep->version);
-iprint("1\n");
 	if(ep->type != EXEC || ep->version != CURRENT)
 		return 0;
 	ep->elfentry = swav(ep->elfentry);
@@ -493,14 +488,12 @@ iprint("1\n");
 	ep->shnum = swab(ep->shnum);
 	ep->shstrndx = swab(ep->shstrndx);
 
-iprint("2\n");
 	fp->magic = ELF_MAG;
 	fp->hdrsz = (ep->ehsize+ep->phnum*ep->phentsize+16)&~15;
 	elfmach = &mamd64;
 	fp->type = FAMD64;
 	fp->name = "amd64 ELF64 executable";
 
-iprint("3\n");
 	if(ep->phentsize != sizeof(P64hdr)) {
 		error("bad ELF64 header size");
 		return 0;
@@ -509,16 +502,11 @@ iprint("3\n");
 	hp->e.ph = malloc(phsz);
 	if(hp->e.ph == nil)
 		return 0;
-iprint("4\n");
 	chanseek(ar0, c, ep->phoff, 0);
-iprint("4.1\n");
-iprint("Read @ %p for %d bytes @ %p\n", hp->e.ph, phsz, (void *)c->offset);
 	if(c->dev->read(c, hp->e.ph, phsz, c->offset) < 0){
-iprint("SHIT bad read\n");
 		free(hp->e.ph);
 		return 0;
 	}
-iprint("5\n");
 	for(i = 0; i < ep->phnum; i++) {
 		hp->e.ph[i].type = swal(hp->e.ph[i].type);
 		hp->e.ph[i].flags = swal(hp->e.ph[i].flags);
@@ -542,23 +530,19 @@ iprint("5\n");
 		else if(hp->e.ph[i].type == NOPTYPE && is == -1)
 			is = i;
 	}
-iprint("6\n");
 	if(fp->it == -1 || fp->id == -1) {
 		error("No ELF64 TEXT or DATA sections");
 		free(hp->e.ph);
 		return 0;
 	}
 
-iprint("7\n");
 	settext(fp, ep->elfentry, hp->e.ph[fp->it].vaddr, hp->e.ph[fp->it].memsz, hp->e.ph[fp->it].offset);
 	/* note: this comment refers to a bug in 8c. Who cares? We need to move on. */
 	/* 8c: out of fixed registers */
 	uvl = hp->e.ph[fp->id].memsz - hp->e.ph[fp->id].filesz;
 	setdata(fp, hp->e.ph[fp->id].vaddr, hp->e.ph[fp->id].filesz, hp->e.ph[fp->id].offset, uvl);
-iprint("8\n");
 	if(is != -1)
 		setsym(fp, hp->e.ph[is].filesz, 0, hp->e.ph[is].memsz, hp->e.ph[is].offset);
-iprint("9\n");
 	return 1;
 }
 
@@ -567,7 +551,6 @@ elfdotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
 {
 	E64hdr *ep;
 
-iprint("elfdotout\n");
 	/* bitswap the header according to the DATA format */
 	ep = &hp->e;
 
@@ -957,7 +940,6 @@ iprint("ERROR ON OPEN\n");
 		chan = ichan;
 		incref(ichan);
 	}
-iprint("NOT #! chan is %p\n", chan);
 	/* chan is the chan to use, initial or not. ichan is irrelevant now */
 	cclose(ichan);
 	poperror();
@@ -1096,8 +1078,10 @@ iprint("NOT #! chan is %p\n", chan);
 	 */
 	a = p = UINT2PTR(stack);
 	stack = sysexecstack(stack, argc);
-	if(stack-(argc+1)*sizeof(char**)-BIGPGSZ < TSTKTOP-USTKSIZE)
+	if(stack-(argc+1)*sizeof(char**)-BIGPGSZ < TSTKTOP-USTKSIZE) {
+		iprint("stck too small?\n");
 		error(Ebadexec);
+	}
 
 	argv = (char**)stack;
 	*--argv = nil;
@@ -1234,7 +1218,7 @@ iprint("NOT #! chan is %p\n", chan);
 	if(m->externup->hang)
 		m->externup->procctl = Proc_stopme;
 
-	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), argv, argc);
+	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), argv + (USTKTOP-TSTKTOP)/sizeof(void *), argc);
 
 	if(flags == EXAC){
 		m->externup->procctl = Proc_toac;
