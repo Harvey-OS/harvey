@@ -249,6 +249,7 @@ link_kernel()
 
 build_kernel()
 {
+	clean_kernel
 	compile_kernel
 	link_kernel
 	echo "KERNEL COMPILED OK"
