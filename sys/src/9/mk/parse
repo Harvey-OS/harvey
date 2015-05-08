@@ -9,7 +9,6 @@ BEGIN{
 			DEBUG = 1;
 		ARGV[argc] = "";
 	}
-
 #	objtype = ENVIRON["objtype"];
 	objtype = "amd64";
 
@@ -197,10 +196,12 @@ function mksystab(					a, i, f, n, s, t){
 	s = s "#include \"mem.h\"\n";
 	s = s "#include \"dat.h\"\n";
 	s = s "#include \"fns.h\"\n\n";
-	s = s "#include \"/sys/src/libc/9syscall/sys.h\"\n\n";
+#	s = s "#include \"/sys/src/libc/9syscall/sys.h\"\n\n";
+
+	s = s "#include \"../../libc/9syscall/sys.h\"\n\n";
 
 	t = "";
-	while(getline < "/sys/src/libc/9syscall/sys.h"){
+	while(getline < "../../libc/9syscall/sys.h"){
 		if($1 != "#define" || NF != 3)
 			continue;
 

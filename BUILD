@@ -22,7 +22,237 @@
 
 #Search for config:
 _BUILD_DIR=`dirname $0`
+export _BUILD_DIR=$(cd "$_BUILD_DIR"; pwd)
 . ${_BUILD_DIR}/BUILD.conf
+
+#ARGS:
+#  $1 -> pass the $? return
+#  $2 -> component name 
+check_error()
+{
+	if [ $1 -ne 0 ]
+	then
+		echo "ERROR $2"
+		exit 1
+	fi
+}
+
+clean_kernel()
+{
+	cd "$KRL_DIR"
+	
+	printf "Cleaning kernel "
+	rm -f *.o *.root.c *.out errstr.h init.h amd64^l.h libboot.a ../boot/*.o boot$CONF.c
+	if [ $? -eq 0 ]
+	then
+		printf "OK\n"
+	else
+		printf "ERROR\n"
+	fi 
+	cd - > /dev/null
+}
+
+compile_kernel()
+{
+	CONF=$KERNEL_CONF
+	SOURCE=$KERNEL_SOURCE
+	CFLAGS="$KERNEL_CFLAGS"
+	if [ -n "$BUILD_DEBUG" ]
+	then
+		CFLAGS="$KERNEL_CFLAGS $KERNEL_CFLAGS_DEBUG"
+	fi
+	
+	WARNFLAGS="$KERNEL_WARNFLAGS"
+	UCFLAGS="$KERNEL_UCFLAGS $BUILD_DEBUG"
+	GLOBIGNORE=$KERNEL_GLOBIGNORE
+
+	PATH_ORI=`pwd`
+	cd "$KRL_DIR"
+	
+	echo "$AWK -v objtype=$ARCH -f ../mk/parse -- -mkdevc $CONF > $CONF.c"
+	$AWK -v objtype=$ARCH -f ../mk/parse -- -mkdevc $CONF > $CONF.c
+	check_error $? "executing $AWK"
+	echo "$AWK -f ../mk/mkenumb amd64.h > amd64l.h"
+	$AWK -f ../mk/mkenumb amd64.h > amd64l.h # mkenumb is shell independent
+	check_error $? "executing $AWK"
+	
+	## BOOT ##
+	
+	BOOTDIR=../boot
+    BOOTLIB=libboot.a
+	echo "Parsing boot${CONF}.c"
+	echo "$AWK -f ../mk/parse -- -mkbootconf $CONF > boot$CONF.c"
+    $AWK -f ../mk/parse -- -mkbootconf $CONF > boot$CONF.c
+    check_error $? "executing $AWK"
+	echo "Making Boot"
+    cd ../boot
+    echo $CC $CFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -c *.c
+    $CC $CFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -c *.c
+    check_error $? "compiling $BOOTLIB"
+    echo "$AR ${BOOTLIB} *.o"
+    $AR rv $BOOTLIB  *.o
+    check_error $? "building $BOOTLIB"
+    cd - > /dev/null
+	echo "$CC boot${CONF}"
+	echo "$CC $CFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -mcmodel=small -c boot$CONF.c"
+    $CC $CFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -mcmodel=small -c boot$CONF.c
+    check_error $? "compiling boot${CONF}"
+    echo "$CC printstub"
+    echo "$CC $CFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -mcmodel=small -c ../boot/printstub.c"
+    $CC $CFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -mcmodel=small -c ../boot/printstub.c
+    check_error $? "compiling printstub.c"
+    echo "$LD boot${CONF}.out"
+    $LD -static -o boot$CONF.elf.out boot$CONF.o printstub.o $LDFLAGS -L$BOOTDIR -lboot -lip -lauth -lc -emain -Ttext=0x200020
+	check_error $? "linking boot$CONF.elf.out"
+	
+	## systab.c ##
+
+	echo "$AWK -f ../mk/parse -- -mksystab ${SRC_DIR}/libc/9syscall/sys.h $CONF > systab.c"
+    $AWK -f ../mk/parse -- -mksystab ${SRC_DIR}/libc/9syscall/sys.h $CONF > systab.c
+    check_error $? "parsing systab.c"
+    echo "$CC $CFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -c systab.c"
+    $CC $CFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -c systab.c
+	check_error $? "compiling systab.c"
+
+    ## init.h ##
+
+	echo "$CC $UCFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -mcmodel=small -c init9.c"
+    $CC $UCFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -mcmodel=small -c init9.c
+    check_error $? "compiling init9.c"
+    echo "$CC $UCFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -mcmodel=small -c ../port/initcode.c"
+    $CC $UCFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -mcmodel=small -c ../port/initcode.c
+    check_error $? "compiling initcode.c"
+
+	echo "$LD -static -o init init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020"
+    $LD -static -o init init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020
+    check_error $? "linking init"
+    echo "${UTIL_DIR}/elf2c init > init.h"
+    ${UTIL_DIR}/elf2c init > init.h
+    check_error $? "executing elf2c"
+
+    ## errstr.h ##
+
+	echo "$AWK -f ../mk/parse -- -mkerrstr $CONF > errstr.h"
+    $AWK -f ../mk/parse -- -mkerrstr $CONF > errstr.h
+	check_error $? "parsing errstr"
+	
+	## mkroot ##
+	echo "objcopy -j .text  -O binary boot$CONF.elf.out boot$CONF.code.out"
+	objcopy -j .text  -O binary boot$CONF.elf.out boot$CONF.code.out
+	check_error $? "executing objcopy"
+	echo "objcopy -j .data  -O binary boot$CONF.elf.out boot$CONF.data.out"
+    objcopy -j .data  -O binary boot$CONF.elf.out boot$CONF.data.out
+    check_error $? "executing objcopy"
+    file boot$CONF*.out
+    echo "cat boot$CONF.code.out boot$CONF.data.out >> boot$CONF.all.out"
+    cat boot$CONF.code.out boot$CONF.data.out >> boot$CONF.all.out
+	check_error $? "copying boot$CONF.code.out boot$CONF.data.out in boot$CONF.all.out"
+	echo "${UTIL_DIR}/data2c bootk8cpu_out boot$CONF.all.out >> k8cpu.root.c"
+	${UTIL_DIR}/data2c bootk8cpu_out boot$CONF.all.out >> k8cpu.root.c
+	check_error $? "executing data2c"
+	
+	##### FACTOTUM ######
+	
+	##cp /sys/src/cmd/auth/factotum/factotum.elf.out factotum.elf.out
+    ##strip factotum.elf.out
+    ##data2c _amd64_bin_auth_factotum factotum.elf.out >> k8cpu.root.c
+
+    # You need to run BUILDKIPCONFIG into /sys/src/cmd/ip/ipconfig
+    # in order to have working this.
+
+    ##cp /sys/src/cmd/ip/ipconfig/ipconfig.elf.out ipconfig.elf.out
+    ##strip ipconfig.elf.out
+    ##data2c _amd64_bin_ip_ipconfig ipconfig.elf.out >> k8cpu.root.c
+	
+	## rc ##
+	
+	echo "cp ${CMD_DIR}/rc/rc.elf.out rc.elf.out"
+	cp ${CMD_DIR}/rc/rc.elf.out rc.elf.out
+	check_error $? "copying rc"
+	echo "strip rc.elf.out"
+    strip rc.elf.out
+    check_error $? "to strip rc"
+    echo "${UTIL_DIR}/data2c _amd64_bin_rc rc.elf.out >> k8cpu.root.c"
+    ${UTIL_DIR}/data2c _amd64_bin_rc rc.elf.out >> k8cpu.root.c
+	check_error $? "executing data2c"
+	
+	## Making all ##
+
+	echo
+	echo "Making all in kernel directories"
+    echo
+    echo $CC $CFLAGS $WARNFLAGS -I${INC_DIR} -I${INC_ARCH} -I. -c $SOURCE
+    $CC $CFLAGS $WARNFLAGS -I${INC_DIR} -I${INC_ARCH} -I. -c $SOURCE
+	check_error $? "compiling kernel"
+	GLOBIGNORE=
+	cd "$PATH_ORI" > /dev/null
+}
+
+gen_symtab_obj()
+{
+        $NM -n $KERNEL_OBJECT > $KSYM_MAP
+        #awk 'BEGIN{ print "//#include <kdebug.h>";
+                    #print "struct symtab_entry gbl_symtab[]={" }
+             #{ if(NF==3){print "{\"" $3 "\", 0x" $1 "},"}}
+             #END{print "{0,0} };"}' $KSYM_MAP > $KSYM_C
+        echo "FIX THIS SOMEDAY"
+        #$CC $NOSTDINC_FLAGS $AKAROSINCLUDE $CFLAGS_KERNEL -o $KSYM_O -c $KSYM_C
+}
+
+link_kernel()
+{
+	PATH_ORI=`pwd`
+	cd "$KRL_DIR"
+	rm init9.o initcode.o bootk8cpu.o printstub.o
+
+	LDFLAGS="$KERNEL_LDFLAGS"
+	LINKER_SCRIPT=kernel.ld
+	KSYM_MAP=./ksyms.map
+	KSYM_C=./ksyms-refl.c
+	KSYM_O=./ksyms-refl.o
+	
+	#entry.o MUST be first.
+	GLOBIGNORE=entry.o
+	LIST_OBJ=`ls *.o`
+	REMAINING_ARGS="entry.o $LIST_OBJ ${LIB_DIR}/klibc.a ${LIB_DIR}/klibip.a"
+	
+
+	# Generates the first version of $KERNEL_OBJECT
+	echo $LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS
+	$LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS
+	check_error $? "linking $KERNEL_OBJECT"
+
+	# Generates a C and obj file with a table of the correct size, with relocs
+	echo FIX ME gen_symtab_obj
+
+	# Links the syms with the kernel and inserts the glb_symtab in the kernel.
+	echo $LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS # $KSYM_O
+	$LD $LDFLAGS -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS # $KSYM_O
+	check_error $? "linking $KERNEL_OBJECT"
+
+	# Need to recheck/compute the symbols (table size won't change)
+	# gen_symtab_obj
+
+	# Final link
+	# $LD -T $LINKER_SCRIPT -o $KERNEL_OBJECT $REMAINING_ARGS # $KSYM_O
+
+	# And objdump for debugging
+	echo "objdump -S $KERNEL_OBJECT > $KERNEL_OBJECT.asm"
+	objdump -S $KERNEL_OBJECT > $KERNEL_OBJECT.asm
+	check_error $? "generating $KERNEL_OBJECT.asm"
+
+	objcopy -I elf64-x86-64 -O elf32-i386 9k 9k.32bit
+	check_error $? "creating 9k.32bit"
+
+	cd "$PATH_ORI"
+}
+
+build_kernel()
+{
+	compile_kernel
+	link_kernel
+	echo "KERNEL COMPILED OK"
+}
 
 
 build_go_utils()
@@ -47,6 +277,18 @@ check_utils()
 		echo 0
 	else
 		echo 1
+	fi
+}
+
+check_lib_dir()
+{
+	if [ ! -d "$LIB_DIR" ]
+	then
+		mkdir "$LIB_DIR"
+		if [ $? -ne 0 ]
+		then
+			echo "ERROR creating <$LIB_DIR> directory"
+		fi
 	fi
 }
 
@@ -397,7 +639,9 @@ show_help()
 	printf "  utils     \tBuild go utils\n"
 	printf "  cmd       \tBuild all cmds \n"
 	printf "  cmd <cmdname>\tBuild cmd named <cmdname>\n"
-	printf "  cleancmd   tClean the cmds\n"
+	printf "  cleancmd   \tClean the cmds\n"
+	printf "  kernel     \tBuild kernel\n"
+	printf "  cleankernel\tClean kernel\n"
 	printf "\nFLAGS:\n"
 	printf "  -g        \tCompile with debugs flags"
 	printf "\n"
@@ -418,18 +662,23 @@ else
 					BUILD_DEBUG="$CFLAGS_DEBUG"
 					;;
 			"all")
+					check_lib_dir
+					build_go_utils
 					build_libs 1
 					build_klibs 1
 					build_cmds 1
+					build_kernel
 					printf "\n\nALL COMPONENTS COMPILED\n\n"
 					;;
 			"cleanall")
 					build_libs 2
 					build_klibs 2
 					build_cmds 2
+					clean_kernel
 					printf "\n\nALL COMPONENTS CLEANED\n\n"
 					;;
 			"libs")
+					check_lib_dir
 					if [ -z "$2" ]
 					then
 						build_libs 1
@@ -439,6 +688,7 @@ else
 					fi
 					;;
 			"klibs")
+					check_lib_dir
 					if [ -z "$2" ]
 					then
 						build_klibs 1
@@ -467,6 +717,12 @@ else
 					;;
 			"cleancmd")
 					build_cmds 2
+					;;
+			"kernel")
+					build_kernel
+					;;
+			"cleankernel")
+					clean_kernel
 					;;
 			*)
 				echo "Invalid option <$1>"
