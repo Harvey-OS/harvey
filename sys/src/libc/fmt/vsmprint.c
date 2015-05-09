@@ -44,6 +44,8 @@ fmtstrinit(Fmt *f)
 	memset(f, 0, sizeof *f);
 	f->runes = 0;
 	n = 32;
+	/* this should not be necessary */
+	n = 4096;
 	f->start = malloc(n);
 	if(f->start == nil)
 		return -1;

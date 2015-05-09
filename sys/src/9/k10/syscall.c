@@ -251,7 +251,7 @@ syscall(int badscallnr, Ureg *ureg)
 	int64_t startns, stopns;
 	Ar0 ar0;
 	static Ar0 zar0;
-	int printallsyscalls = 0;
+	int printallsyscalls = 1;
 
 	if(!userureg(ureg))
 		panic("syscall: cs %#llux\n", ureg->cs);
