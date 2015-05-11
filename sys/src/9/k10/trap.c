@@ -654,6 +654,7 @@ hi("addr "); put64(addr); hi("\n");
 	m->externup->insyscall = 1;
 	if (0)hi("call fault\n");
 	if(fault(addr, read) < 0){
+iprint(" ould not fault %p\n", addr);
 die("fault went bad\n");
 
 		/*
