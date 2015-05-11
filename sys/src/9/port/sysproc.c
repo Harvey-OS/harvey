@@ -1218,7 +1218,7 @@ iprint("ERROR ON OPEN\n");
 	if(m->externup->hang)
 		m->externup->procctl = Proc_stopme;
 
-	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), argv + (USTKTOP-TSTKTOP)/sizeof(void *), argc);
+	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), argv + (USTKTOP-TSTKTOP)/sizeof(void *), argc, tos);
 
 	if(flags == EXAC){
 		m->externup->procctl = Proc_toac;
