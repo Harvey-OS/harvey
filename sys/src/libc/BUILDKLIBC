@@ -39,6 +39,7 @@ $CC $CFLAGS -c \
 ./9sys/rerrstr.c \
 ./9sys/sbrk.c \
 ./9sys/setnetmtpt.c \
+./amd64/main9.S \
 ./9sys/sysfatal.c \
 ./9sys/syslog.c \
 ./9sys/sysname.c \
@@ -195,6 +196,7 @@ $CC $CFLAGS -c \
 ./amd64/notejmp.c \
 ./amd64/cycles.c \
 ./amd64/argv0.c \
+./amd64/main9.S \
 ./amd64/rdpmc.c 
 ar rv /amd64/lib/klibc.a *.o
 rm *.o
