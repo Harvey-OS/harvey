@@ -143,6 +143,14 @@ compile_kernel()
     ${UTIL_DIR}/data2c "boot$CONF"_out boot$CONF.elf.out >> k8cpu.root.c
 	check_error $? "executing data2c"
 	
+
+	# we need a WAY better way to do this. We're having to do it for each file.
+    echo "${UTIL_DIR}/data2c boot_fs boot.fs >> k8cpu.root.c"
+    ${UTIL_DIR}/data2c boot_fs boot.fs >> k8cpu.root.c
+	check_error $? "executing data2c"
+    echo "${UTIL_DIR}/data2c rcmain rcmain >> k8cpu.root.c"
+    ${UTIL_DIR}/data2c rcmain rcmain >> k8cpu.root.c
+	check_error $? "executing data2c"
 	##### FACTOTUM ######
 	
 	##cp /sys/src/cmd/auth/factotum/factotum.elf.out factotum.elf.out
