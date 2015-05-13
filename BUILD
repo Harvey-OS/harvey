@@ -137,18 +137,10 @@ compile_kernel()
 	check_error $? "parsing errstr"
 	
 	## mkroot ##
-	echo "objcopy -j .text  -O binary boot$CONF.elf.out boot$CONF.code.out"
-	objcopy -j .text  -O binary boot$CONF.elf.out boot$CONF.code.out
-	check_error $? "executing objcopy"
-	echo "objcopy -j .data  -O binary boot$CONF.elf.out boot$CONF.data.out"
-    objcopy -j .data  -O binary boot$CONF.elf.out boot$CONF.data.out
-    check_error $? "executing objcopy"
-    file boot$CONF*.out
-    echo "cat boot$CONF.code.out boot$CONF.data.out >> boot$CONF.all.out"
-    cat boot$CONF.code.out boot$CONF.data.out >> boot$CONF.all.out
-	check_error $? "copying boot$CONF.code.out boot$CONF.data.out in boot$CONF.all.out"
-	echo "${UTIL_DIR}/data2c bootk8cpu_out boot$CONF.all.out >> k8cpu.root.c"
-	${UTIL_DIR}/data2c bootk8cpu_out boot$CONF.all.out >> k8cpu.root.c
+	strip boot$CONF.elf.out
+    check_error $? "to strip boot$CONF.elf.out"
+    echo "${UTIL_DIR}/data2c "boot$CONF"_out boot$CONF.elf.out >> k8cpu.root.c"
+    ${UTIL_DIR}/data2c "boot$CONF"_out boot$CONF.elf.out >> k8cpu.root.c
 	check_error $? "executing data2c"
 	
 	##### FACTOTUM ######
