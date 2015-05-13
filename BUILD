@@ -148,8 +148,11 @@ compile_kernel()
     echo "${UTIL_DIR}/data2c boot_fs boot.fs >> k8cpu.root.c"
     ${UTIL_DIR}/data2c boot_fs boot.fs >> k8cpu.root.c
 	check_error $? "executing data2c"
-    echo "${UTIL_DIR}/data2c rcmain rcmain >> k8cpu.root.c"
-    ${UTIL_DIR}/data2c rcmain rcmain >> k8cpu.root.c
+
+	echo "cp ${BASEDIR}/rc/lib/rcmain rcmain"
+	cp ${BASEDIR}/rc/lib/rcmain rcmain
+    echo "${UTIL_DIR}/data2c _rc_lib_rcmain rcmain >> k8cpu.root.c"
+    ${UTIL_DIR}/data2c _rc_lib_rcmain rcmain >> k8cpu.root.c
 	check_error $? "executing data2c"
 	##### FACTOTUM ######
 	

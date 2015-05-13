@@ -78,7 +78,7 @@ rootdir
 #	/amd64/bin/auth/factotum factotum
 #	/amd64/bin/ip/ipconfig ipconfig
 	/amd64/bin/rc rc
-	rcmain rcmain
+	/rc/lib/rcmain rcmain
 #	../root/nvram nvram
 
 conf
