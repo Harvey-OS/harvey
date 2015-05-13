@@ -22,7 +22,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
-	
+
 	total := len(in)
 
 	fmt.Printf("unsigned char %vcode[] = {\n", n)
@@ -32,8 +32,8 @@ func main() {
 			in = in[1:]
 		}
 		fmt.Printf("\n")
-		
+
 	}
-		
+
 	fmt.Printf("0,\n};\nint %vlen = %v;\n", n, total)
 }

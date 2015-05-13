@@ -2,14 +2,13 @@ package main
 
 import (
 	"bytes"
+	"debug/elf"
 	"flag"
-	"path/filepath"
 	"fmt"
 	"io/ioutil"
-	"debug/elf"
 	"os"
+	"path/filepath"
 	"strings"
-
 )
 
 var dry = flag.Bool("dryrun", true, "don't really do it")
@@ -55,7 +54,7 @@ func main() {
 					fmt.Fprintf(os.Stderr, "%v: %v\n", file, err)
 				}
 				header := []byte("extern Mach *m; // REMOVE ME\n")
-				if bytes.Compare(header[:],b[0:len(header)]) == 0 {
+				if bytes.Compare(header[:], b[0:len(header)]) == 0 {
 					fmt.Fprintf(os.Stderr, "%v already done; skipping\n", file)
 					continue
 				}
@@ -67,9 +66,9 @@ func main() {
 				if err := ioutil.WriteFile(file, out, fi.Mode()); err != nil {
 					fmt.Fprintf(os.Stderr, "Write %v failed: %v; git checkout %v\n", file, err, file)
 				}
-			} 
+			}
 		}
-		if ! usem {
+		if !usem {
 			fmt.Fprintf(os.Stderr, "Ignored %v as it did not reference Mach *m\n", n)
 		} else {
 			fmt.Fprintf(os.Stderr, "Procssed %v as it did reference Mach *m\n", n)
