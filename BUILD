@@ -37,6 +37,38 @@ check_error()
 	fi
 }
 
+#ARGS:
+#  $1 -> test name
+build_a_test()
+{
+	cd ${TEST_DIR}/$1
+	DO_NOTHING=0
+	LDFLAGS_EXTRA=
+	CFLAGS_EXTRA=
+	test_${1} 1
+	if [ $DO_NOTHING -eq 0 ]
+	then
+		echo "$CC $CFLAGS_CMD $CFLAGS_EXTRA $BUILD_DEBUG -c $BUILD_IN"
+		$CC $CFLAGS_CMD $CFLAGS_EXTRA $BUILD_DEBUG -c $BUILD_IN 
+		if [ $? -ne 0 ]
+		then
+			echo "ERROR compiling $1"
+			cd - > /dev/null
+			exit 1
+		fi
+		LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
+		echo $LD $LDFLAGS_EXTRA $LDFLAGS $LD_LIBS -o $BUILD_OUT *.o
+		$LD $LDFLAGS_EXTRA $LDFLAGS -o $BUILD_OUT *.o $LD_LIBS
+		if [ $? -ne 0 ]
+		then
+			echo "ERROR linking $1"
+			cd - > /dev/null
+			exit 1
+		fi
+	fi
+	cd - > /dev/null
+}
+
 clean_kernel()
 {
 	cd "$KRL_DIR"
@@ -164,11 +196,19 @@ compile_kernel()
     ##strip ipconfig.elf.out
     ##data2c _amd64_bin_ip_ipconfig ipconfig.elf.out >> k8cpu.root.c
 	
-	## rc ##
+	## rc or test ##
 	
-	echo "cp ${CMD_DIR}/rc/rc.elf.out rc.elf.out"
-	cp ${CMD_DIR}/rc/rc.elf.out rc.elf.out
-	check_error $? "copying rc"
+	if [ -n "$TEST_APP" ]
+	then
+		build_a_test "$TEST_APP"
+		#test_${1} 1
+		cp ${TEST_DIR}/${TEST_APP}/${BUILD_OUT} rc.elf.out
+		check_error $? "copying test $TEST_APP"
+	else
+		echo "cp ${CMD_DIR}/rc/rc.elf.out rc.elf.out"
+		cp ${CMD_DIR}/rc/rc.elf.out rc.elf.out
+		check_error $? "copying rc"
+	fi
 	echo "strip rc.elf.out"
     strip rc.elf.out
     check_error $? "to strip rc"
@@ -644,7 +684,8 @@ show_help()
 	printf "  kernel     \tBuild kernel\n"
 	printf "  cleankernel\tClean kernel\n"
 	printf "\nFLAGS:\n"
-	printf "  -g        \tCompile with debugs flags"
+	printf "  -g        \tCompile with debugs flags\n"
+	printf "  -t <test> \tCompile <test> app and package it with the kernel"
 	printf "\n"
 
 }
@@ -656,11 +697,29 @@ then
 	exit 1
 else
 	BUILD_DEBUG=
+	TEST_APP=
 	while [ -n "$1" ]
 	do
 		case "$1" in
 			"-g")
 					BUILD_DEBUG="$CFLAGS_DEBUG"
+					;;
+			"-t"*)
+					#is -tSomething?
+					TEST_APP=${1:2}
+					if [ -z "$TEST_APP" ]
+					then
+						if [ -n "$2" ]
+						then
+							#form -t something
+							TEST_APP="$2"
+							shift
+						else
+							#-t nothing
+							echo "Error. Use -t testapp"
+							exit 1
+						fi
+					fi
 					;;
 			"all")
 					check_lib_dir
