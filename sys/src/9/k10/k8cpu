@@ -79,6 +79,8 @@ rootdir
 #	/amd64/bin/ip/ipconfig ipconfig
 	/amd64/bin/rc rc
 	/rc/lib/rcmain rcmain
+	/amd64/bin/bind bind
+	/amd64/bin/mount mount
 #	../root/nvram nvram
 
 conf

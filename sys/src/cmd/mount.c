@@ -40,7 +40,7 @@ void
 main(int argc, char *argv[])
 {
 	char *spec;
-	ulong flag = 0;
+	uint32_t flag = 0;
 	int qflag = 0;
 	int noauth = 0;
 	int fd, rv;

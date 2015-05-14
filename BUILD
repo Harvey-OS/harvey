@@ -169,6 +169,7 @@ compile_kernel()
 	check_error $? "parsing errstr"
 	
 	## mkroot ##
+	
 	strip boot$CONF.elf.out
     check_error $? "to strip boot$CONF.elf.out"
     echo "${UTIL_DIR}/data2c "boot$CONF"_out boot$CONF.elf.out >> k8cpu.root.c"
@@ -186,14 +187,12 @@ compile_kernel()
     echo "${UTIL_DIR}/data2c _rc_lib_rcmain rcmain >> k8cpu.root.c"
     ${UTIL_DIR}/data2c _rc_lib_rcmain rcmain >> k8cpu.root.c
 	check_error $? "executing data2c"
-	##### FACTOTUM ######
+
+	##### Factotum / ipconfig ######
 	
 	##cp /sys/src/cmd/auth/factotum/factotum.elf.out factotum.elf.out
     ##strip factotum.elf.out
     ##data2c _amd64_bin_auth_factotum factotum.elf.out >> k8cpu.root.c
-
-    # You need to run BUILDKIPCONFIG into /sys/src/cmd/ip/ipconfig
-    # in order to have working this.
 
     ##cp /sys/src/cmd/ip/ipconfig/ipconfig.elf.out ipconfig.elf.out
     ##strip ipconfig.elf.out
@@ -218,6 +217,23 @@ compile_kernel()
     echo "${UTIL_DIR}/data2c _amd64_bin_rc rc.elf.out >> k8cpu.root.c"
     ${UTIL_DIR}/data2c _amd64_bin_rc rc.elf.out >> k8cpu.root.c
 	check_error $? "executing data2c"
+
+	## Rest of programs into ramfs ##
+
+	RAMFS_LIST="bind mount"
+
+	for elem in $RAMFS_LIST
+	do
+		echo "cp ${CMD_DIR}/$elem.elf.out $elem.elf.out"
+		cp ${CMD_DIR}/$elem.elf.out $elem.elf.out
+		check_error $? "copying $elem"
+		echo "strip $elem.elf.out"
+		strip $elem.elf.out
+		check_error $? "to strip $elem"
+		echo "${UTIL_DIR}/data2c _amd64_bin_$elem $elem.elf.out >> k8cpu.root.c"
+		${UTIL_DIR}/data2c _amd64_bin_$elem $elem.elf.out>> k8cpu.root.c
+		check_error $? "executing data2c"
+	done
 	
 	## Making all ##
 
@@ -598,7 +614,13 @@ process_libs_to_link()
 #  $1 -> cmd name
 build_a_cmd()
 {
-	cd ${CMD_DIR}/$1
+	# test if binary has its own subdir
+	if [ -d "${CMD_DIR}/$1" ]
+	then
+		cd ${CMD_DIR}/$1
+	else
+		cd ${CMD_DIR}
+	fi
 	DO_NOTHING=0
 	LDFLAGS_EXTRA=
 	CFLAGS_EXTRA=
@@ -613,9 +635,17 @@ build_a_cmd()
 			cd - > /dev/null
 			exit 1
 		fi
-		LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
-		echo $LD $LDFLAGS $LDFLAGS_EXTRA $LD_LIBS -o $BUILD_OUT *.o
-		$LD $LDFLAGS_EXTRA $LDFLAGS -o $BUILD_OUT *.o $LD_LIBS
+	# If it's a stand alone source don't get all object files
+		if [ -d "${CMD_DIR}/$1" ]
+		then
+			LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
+			echo $LD $LDFLAGS $LDFLAGS_EXTRA $LD_LIBS -o $BUILD_OUT *.o
+			$LD $LDFLAGS_EXTRA $LDFLAGS -o $BUILD_OUT *.o $LD_LIBS
+		else
+			LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
+			echo $LD $LDFLAGS $LDFLAGS_EXTRA $LD_LIBS -o $BUILD_OUT $1.o
+			$LD $LDFLAGS_EXTRA $LDFLAGS -o $BUILD_OUT $1.o $LD_LIBS
+		fi
 		if [ $? -ne 0 ]
 		then
 			echo "ERROR linking $1"
