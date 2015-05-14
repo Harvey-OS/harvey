@@ -203,25 +203,7 @@ void put64(uint64_t v)
 void
 main(int argc, char *argv[])
 {
-	char line[128];
-	int amt;
-	hi("HI!\n");
-	int cnt;
-	put64((uint64_t)argc); hi(" "); put64((uint64_t)argv); hi("\n");
-	amt = sprint(line, "----------->argc %d argv %p,<------\n", argc, argv);
-	write(1, line, amt);
-	while (cnt++ < 4) {
-		write(1, "hi\n", 3);
-		amt = read(0, line, 128);
-		if (amt < 0) {
-			char *panic = "PANIC! Can't read stdin\n"; 
-			write(1, panic, strlen(panic));
-			return;
-		}
-		line[amt] = 0;
-		print(line);
-		print("Hello, I am Harvey!!\n");
-	}
+	print("Hello, I am Harvey!!\n");
 	code bootstrap[17];
 	char num[12], *rcmain;
 	int i;
