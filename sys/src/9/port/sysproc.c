@@ -859,6 +859,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	char line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
 	int32_t hdrsz, textsz, datasz, bsssz;
 	uintptr_t textlim, datalim, bsslim, entry, stack;
+	uintptr_t textaddr, dataaddr;
 	//	static int colorgen;
 
 
@@ -952,12 +953,15 @@ iprint("ERROR ON OPEN\n");
 
 	crackhdr(ar0, chan, &f, &d);
 
+iprint("DONE CRACHKERD\n");
 	textsz = f.txtsz;
 	datasz =f.datsz;
 	bsssz = f.bsssz;
 	entry = f.entry;
+	textaddr = f.txtaddr;
+	//dataaddr = f.dataaddr;
 
-	textlim = UTROUND(UTZERO+hdrsz+textsz);
+	textlim = UTROUND(textaddr+hdrsz+textsz);
 	datalim = BIGPGROUND(textlim+datasz);
 	bsslim = BIGPGROUND(textlim+datasz+bsssz);
 
@@ -966,7 +970,7 @@ iprint("ERROR ON OPEN\n");
 	 * e.g. the entry point is within the text segment and
 	 * the segments don't overlap each other.
 	 */
-	if(entry < UTZERO+hdrsz || entry >= UTZERO+hdrsz+textsz)
+	if(entry < textaddr+hdrsz || entry >= textaddr+hdrsz+textsz)
 		error(Ebadexec);
 
 	if(textsz >= textlim || datasz > datalim || bsssz > bsslim
@@ -1151,7 +1155,8 @@ iprint("ERROR ON OPEN\n");
 	/* Text.  Shared. Attaches to cache image if possible
 	 * but prepaged if EXAC
 	 */
-	img = attachimage(SG_TEXT|SG_RONLY, chan, m->externup->color, UTZERO, (textlim-UTZERO)/BIGPGSZ);
+	// TODO: Just use the program header instead of these other things.
+	img = attachimage(SG_TEXT|SG_RONLY, chan, m->externup->color, textaddr, (textlim-textaddr)/BIGPGSZ);
 	s = img->s;
 	s->ph = d.e.ph[f.it];
 	m->externup->seg[TSEG] = s;

@@ -39,6 +39,7 @@ if(m->externup->nlocks) print("fault nlocks %d\n", m->externup->nlocks);
 	for(i = 0;; i++) {
 		s = seg(m->externup, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
 		if(s == 0) {
+iprint("fault: no seg for %p\n", addr);
 			m->externup->psstate = sps;
 			return -1;
 		}

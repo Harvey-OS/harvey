@@ -676,7 +676,7 @@ die("fault went bad\n");
 		if(insyscall)
 			error(buf);
 	}
-hi("back from fault\n");
+iprint("back from fault %p\n", addr);
 	m->externup->insyscall = insyscall;
 	if (! read) hi("ret from write fault\n");
 }
