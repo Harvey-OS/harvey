@@ -235,6 +235,12 @@ _warp64:
 	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1))(%eax)	/* PDE for KZERO [4]-[6]MiB */
 	addl	$PGLSZ(1), %edx
 	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1)+PGLSZ(1))(%eax)	/* PDE for KZERO [6]-[8]MiB */
+	// and up through 12. This sucks, we'll make it better later. //
+	// We'll just have init the pml2 at compile time. Apologies.
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1)+PGLSZ(1)+PGLSZ(1))(%eax)
+	addl	$PGLSZ(1), %edx
+	movl	%edx, PDO(KZERO+PGLSZ(1)+PGLSZ(1)+PGLSZ(1)+PGLSZ(1)+PGLSZ(1))(%eax)
 
 	movl	%eax, %edx				/* PD at PML4 + 2*PTSZ */
 	addl	$(PTSZ|PteRW|PteP), %edx		/* PT at PML4 + 3*PTSZ */
