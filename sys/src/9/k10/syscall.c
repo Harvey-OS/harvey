@@ -463,10 +463,10 @@ sysrforkchild(Proc* child, Proc* parent)
 	 *  - the return PC
 	 *  - trap's arguments (syscallnr, ureg)
 	 */
-	child->sched.sp = PTR2UINT(child->kstack+KSTACK-(sizeof(Ureg)+3*BY2SE));
+	child->sched.sp = PTR2UINT(child->kstack+KSTACK/*-(sizeof(Ureg)+3*BY2SE)*/);
 	child->sched.pc = PTR2UINT(sysrforkret);
 
-	cureg = (Ureg*)(child->sched.sp+3*BY2SE);
+	cureg = (Ureg*)(child->sched.sp/*+3*BY2SE*/);
 	memmove(cureg, parent->dbgreg, sizeof(Ureg));
 
 	/* Things from bottom of syscall which were never executed */

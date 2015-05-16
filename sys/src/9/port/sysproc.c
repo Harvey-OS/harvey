@@ -806,8 +806,7 @@ sysrfork(Ar0* ar0, ...)
 	if(wm)
 		procwired(p, wm->machno);
 	p->color = m->externup->color;
-	iprint("DON't ready p\n");
-	if (0) ready(p);
+	if (1) ready(p);
 	sched();
 
 	ar0->i = pid;
