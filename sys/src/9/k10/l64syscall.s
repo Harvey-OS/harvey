@@ -72,5 +72,8 @@ _syscallreturn:
 
 .globl sysrforkret
 sysrforkret:
+	// DEBUG
+	cli
+1: jmp 1b
 	MOVQ	$0, %rax
 	JMP	_syscallreturn
