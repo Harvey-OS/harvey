@@ -241,10 +241,10 @@ syscall(int badscallnr, Ureg *ureg)
 	a0 = ureg->di;
 	a1 = ureg->si;
 	a2 = ureg->dx;
-	a3 = ureg->cx;
+	a3 = ureg->r10;
 	Mach *m = machp();
 	unsigned int scallnr = (unsigned int) badscallnr;
-	if (0) iprint("Syscall %d, %lx, %lx, %lx\n", scallnr, a0, a1, a2);
+	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx\n", scallnr, a0, a1, a2, a3);
 	char *e;
 	uintptr_t	sp;
 	int s;
@@ -360,7 +360,7 @@ syscall(int badscallnr, Ureg *ureg)
 	ureg->ax = ar0.p;
 
 	if (printallsyscalls) {
-		sysretfmt(scallnr, &ar0, a0, a1, a2, a3, a4, a5);
+		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
 			iprint("X %s\n", m->externup->syscalltrace);
 			free(m->externup->syscalltrace);

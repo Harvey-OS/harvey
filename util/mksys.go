@@ -37,6 +37,9 @@ func main() {
 			name = "_" + name
 		}
 		ass = ass + fmt.Sprintf("%v\n%v: ", name, name)
+		// linux system call args. di si dx r10 r8 r0
+		// rcx is not used because it is needed for sysenter
+		ass = ass + "\tMOVQ %rcx, %r10 /* rcx gets smashed by systenter. Use r10.*/\n"
 		ass = ass + "\tMOVQ $" + ll[2]
 		ass = ass + ",%r9  /* Put the system call into arg 6, which is never used on Plan 9. minimizes work on system calls */\n"
 		ass = ass + "\tSYSCALL\n\tRET\n"

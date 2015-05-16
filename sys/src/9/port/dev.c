@@ -213,7 +213,7 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 	if(nname > 0)
 		isdir(c);
 
-	{ int i; print("%d names:", nname); for(i = 0; i < nname; i++) iprint("%s ", name[i]); iprint("\n");}
+	{ int i; iprint("%d names:", nname); for(i = 0; i < nname; i++) iprint("%s ", name[i]); iprint("\n");}
 	alloc = 0;
 	wq = smalloc(sizeof(Walkqid)+(nname-1)*sizeof(Qid));
 	if(waserror()){

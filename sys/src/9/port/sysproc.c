@@ -859,7 +859,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	char line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
 	int32_t hdrsz, textsz, datasz, bsssz;
 	uintptr_t textlim, datalim, bsslim, entry, stack;
-	uintptr_t textaddr, dataaddr;
+	uintptr_t textaddr; //, dataaddr;
 	//	static int colorgen;
 
 
