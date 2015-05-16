@@ -360,6 +360,7 @@ syscall(int badscallnr, Ureg *ureg)
 	ureg->ax = ar0.p;
 
 	if (printallsyscalls) {
+		stopns = todget(nil);
 		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
 			iprint("X %s\n", m->externup->syscalltrace);
