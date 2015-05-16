@@ -69,18 +69,20 @@ misc +dev
 #boot boot $3
 #	char* bootdisk = "$3";
 #
-boot cpu
-	tcp
+#boot cpu
+#	tcp
 
 rootdir
-	boot.fs boot
+	boot.fs	boot
 #	bootk8cpu.out boot
 #	/amd64/bin/auth/factotum factotum
 #	/amd64/bin/ip/ipconfig ipconfig
-	/amd64/bin/rc rc
-	/rc/lib/rcmain rcmain
-	/amd64/bin/bind bind
-	/amd64/bin/mount mount
+	/amd64/bin/rc
+	/rc/lib/rcmain
+	/amd64/bin/bind
+	/amd64/bin/mount
+	/amd64/bin/echo
+	/amd64/bin/cat
 #	../root/nvram nvram
 
 conf

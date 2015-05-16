@@ -134,7 +134,7 @@ compile_kernel()
     $CC $CFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -mcmodel=small -c ../boot/printstub.c
     check_error $? "compiling printstub.c"
     echo "$LD boot${CONF}.out"
-    $LD -static -o boot$CONF.elf.out boot$CONF.o printstub.o $LDFLAGS -L$BOOTDIR -lboot -lip -lauth -lc -emain -Ttext=0x200020
+    $LD -static -o boot$CONF.elf.out boot$CONF.o printstub.o $LDFLAGS -L$BOOTDIR -lboot -lip -lauth -lc -e_main
 	check_error $? "linking boot$CONF.elf.out"
 	
 	## systab.c ##
@@ -155,8 +155,8 @@ compile_kernel()
     $CC $UCFLAGS $WARNFLAGS -I${INC_ARCH} -I${INC_DIR} -I. -mcmodel=small -c ../port/initcode.c
     check_error $? "compiling initcode.c"
 
-	echo "$LD -static -o init init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020"
-    $LD -static -o init init9.o initcode.o $LDFLAGS -lc -emain -Ttext=0x200020
+	echo "$LD -static -o init init9.o initcode.o $LDFLAGS -lc -e_main -Ttext=0x200020"
+    $LD -static -o init init9.o initcode.o $LDFLAGS -lc -e_main -Ttext=0x200020
     check_error $? "linking init"
     echo "${UTIL_DIR}/elf2c init > init.h"
     ${UTIL_DIR}/elf2c init > init.h
@@ -170,11 +170,11 @@ compile_kernel()
 	
 	## mkroot ##
 	
-	strip boot$CONF.elf.out
-    check_error $? "to strip boot$CONF.elf.out"
-    echo "${UTIL_DIR}/data2c "boot$CONF"_out boot$CONF.elf.out >> k8cpu.root.c"
-    ${UTIL_DIR}/data2c "boot$CONF"_out boot$CONF.elf.out >> k8cpu.root.c
-	check_error $? "executing data2c"
+	#strip boot$CONF.elf.out
+    #check_error $? "to strip boot$CONF.elf.out"
+    #echo "${UTIL_DIR}/data2c "boot$CONF"_out boot$CONF.elf.out >> k8cpu.root.c"
+    #${UTIL_DIR}/data2c "boot$CONF"_out boot$CONF.elf.out >> k8cpu.root.c
+	#check_error $? "executing data2c"
 	
 
 	# we need a WAY better way to do this. We're having to do it for each file.
