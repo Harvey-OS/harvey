@@ -157,6 +157,8 @@ stackok(void)
 {
 	Mach *m = machp();
 	char dummy;
+	// this check is probably bogus. Don't bother.
+	return;
 
 	if(&dummy < (char*)m->externup->kstack + 4*KiB){
 		print("tc kernel stack overflow, cpu%d stopped\n", m->machno);
