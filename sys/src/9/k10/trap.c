@@ -459,7 +459,7 @@ trap(Ureg* ureg)
 /*
  * Dump general registers.
  */
-static void
+void
 dumpgpr(Ureg* ureg)
 {
 	Mach *m = machp();

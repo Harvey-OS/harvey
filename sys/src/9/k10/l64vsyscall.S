@@ -136,5 +136,8 @@ _linuxsyscallreturn:
 	.globl sysrforkret
 sysrforkret:	
 //	CALL	linuxclonefinish(SB)
+	// DEBUG
+	cli
+1: jmp 1b
 	MOVQ	$0, %rAX
 	JMP	syscallreturn

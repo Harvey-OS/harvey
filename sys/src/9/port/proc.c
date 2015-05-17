@@ -79,6 +79,15 @@ debuggotolabel(Label *p)
 */
 	if (!p->pc)
 		die("PC IS ZERO!");
+	/* this is an example of putting a breakpoint
+	 * here so we can capture a particular process.
+	 * startup is very deterministic so this can
+	 * be very useful. You can then attach with
+	 * gdb and single step. In practice this helped us show
+	 * that our return stack for sysrforkret was bogus.
+	if (m && m->externup && m->externup->pid == 6)
+		die("PID 6\n");
+	 */
 	gotolabel(p);
 }
 

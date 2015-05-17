@@ -273,3 +273,4 @@ Mach *machp(void);
 
 /* temporary. */
 void die(char *);
+void dumpgpr(Ureg* ureg);

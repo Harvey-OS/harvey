@@ -761,7 +761,9 @@ sysrfork(Ar0* ar0, ...)
 	/* Craft a return frame which will cause the child to pop out of
 	 * the scheduler in user mode with the return register zero
 	 */
+iprint("sysrforkchild %p %p\n", p, m->externup);
 	sysrforkchild(p, m->externup);
+iprint("back\n");
 
 	p->parent = m->externup;
 	p->parentpid = m->externup->pid;
@@ -779,6 +781,7 @@ sysrfork(Ar0* ar0, ...)
 	memset(p->time, 0, sizeof(p->time));
 	p->time[TReal] = sys->ticks;
 
+iprint("before prepage test\n");
 	if(flag & (RFPREPAGE|RFCPREPAGE)){
 		p->prepagemem = flag&RFPREPAGE;
 		/*
@@ -797,6 +800,7 @@ sysrfork(Ar0* ar0, ...)
 	 *  (i.e. has bad properties) and has to be discarded.
 	 */
 	mmuflush();
+iprint("after mmuflush\n");
 	p->basepri = m->externup->basepri;
 	p->priority = m->externup->basepri;
 	p->fixedpri = m->externup->fixedpri;
@@ -806,9 +810,13 @@ sysrfork(Ar0* ar0, ...)
 	if(wm)
 		procwired(p, wm->machno);
 	p->color = m->externup->color;
-	if (1) ready(p);
+	iprint("ready %p\n", p);
+	//dumpgpr(p->ureg);
+	ready(p);
+	iprint("sched %p\n", p);
 	sched();
 
+	iprint("return pid %d\n", pid);
 	ar0->i = pid;
 }
 #if 0
