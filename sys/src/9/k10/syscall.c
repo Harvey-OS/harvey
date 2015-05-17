@@ -458,10 +458,11 @@ sysrforkchild(Proc* child, Proc* parent)
 {
 	Ureg *cureg;
 // If STACKPAD is 1 things go very bad very quickly. 
+// But it is the right value ...
 #define STACKPAD 1 /* for return PC? */
 	/*
 	 * Add STACKPAD*BY2SE to the stack to account for
-	 *  (NOT NOW) - the return PC
+	 *  - the return PC
 	 *  (NOT NOW) - trap's arguments (syscallnr, ureg)
 	 */
 	child->sched.sp = PTR2UINT(child->kstack+KSTACK-((sizeof(Ureg)+STACKPAD*BY2SE)));
