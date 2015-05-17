@@ -69,11 +69,13 @@ char *statename[] =
 void
 debuggotolabel(Label *p)
 {
-/*
+	Mach *m = machp();
 	if(0)hi("debuggotolabel");
-	iprint("rip %p sp %p\n", 
+	iprint("gotolabel: pid %p rip %p sp %p\n", 
+		m && m->externup? m->externup->pid : 0,
 		(void *)p->pc, 
 		(void *)p->sp);
+/*
 */
 	if (!p->pc)
 		die("PC IS ZERO!");
@@ -253,7 +255,7 @@ sched(void)
 
 	assert(!m->externup->wired || m->externup->wired == m);
 	if (0) hi("gotolabel\n");
-	/*debug*/gotolabel(&m->externup->sched);
+	debuggotolabel(&m->externup->sched);
 }
 
 int
