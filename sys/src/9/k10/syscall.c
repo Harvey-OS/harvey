@@ -458,13 +458,13 @@ sysrforkchild(Proc* child, Proc* parent)
 {
 	Ureg *cureg;
 // If STACKPAD is 1 things go very bad very quickly. 
-#define STACKPAD 0 /* for return PC? */
+#define STACKPAD 1 /* for return PC? */
 	/*
 	 * Add STACKPAD*BY2SE to the stack to account for
 	 *  (NOT NOW) - the return PC
 	 *  (NOT NOW) - trap's arguments (syscallnr, ureg)
 	 */
-	child->sched.sp = PTR2UINT(child->kstack+KSTACK-(sizeof(Ureg)+STACKPAD*BY2SE));
+	child->sched.sp = PTR2UINT(child->kstack+KSTACK-((sizeof(Ureg)+STACKPAD*BY2SE)));
 	child->sched.pc = PTR2UINT(sysrforkret);
 
 	cureg = (Ureg*)(child->sched.sp+STACKPAD*BY2SE);
@@ -473,6 +473,7 @@ sysrforkchild(Proc* child, Proc* parent)
 	/* Things from bottom of syscall which were never executed */
 	child->psstate = 0;
 	child->insyscall = 0;
+	iprint("Child SP set tp %p\n", (void *)child->sched.sp);
 
 	fpusysrforkchild(child, parent);
 }
