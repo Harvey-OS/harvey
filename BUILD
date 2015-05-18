@@ -729,7 +729,9 @@ then
 	show_help
 	exit 1
 else
-	BUILD_DEBUG=
+	#BUILD_DEBUG=
+	#Until we have a stable kernel, debug mode is the default.
+	BUILD_DEBUG="$CFLAGS_DEBUG"
 	TEST_APP=
 	while [ -n "$1" ]
 	do
