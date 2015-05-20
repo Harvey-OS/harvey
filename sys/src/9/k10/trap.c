@@ -52,7 +52,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	int vno;
 	Vctl *v;
 	extern int ioapicintrenable(Vctl*);
-
+iprint("INTRENABLE %d -> %s\n", irq, name);
 	if(f == nil){
 		print("intrenable: nil handler for %d, tbdf %#ux for %s\n",
 			irq, tbdf, name);
