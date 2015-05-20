@@ -21,6 +21,12 @@
 #include	"io.h"
 #include	"amd64.h"
 
+
+// counters. Set by assembly code.
+// interrupt enter and exit, systecm call enter and exit.
+unsigned long ire, irx, sce, scx;
+
+static int trip6;
 extern int notify(Ureg*);
 
 static void debugbpt(Ureg*, void*);
@@ -341,15 +347,30 @@ void
 trap(Ureg* ureg)
 {
 	int clockintr, vno, user;
+	// cache the previous vno to see what might be causing
+	// trouble
+	static int lastvno;
 	vno = ureg->type;
 	uint64_t gsbase = rdmsr(GSbase);
+	if (vno == 8) {
+		iprint("Lstar is %p\n", (void *)rdmsr(Lstar));
+		iprint("GSbase is %p\n", (void *)gsbase);
+		iprint("ire %d irx %d sce %d scx %d lastvno %d\n", 
+			ire, irx, sce, scx, lastvno);
+		die("8");
+	}
+	lastvno = vno;
 	if (gsbase < 1ULL<<63)
 		die("bogus gsbase");
 	Mach *m = machp();
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 
-//iprint("type %x\n", ureg->type);
+	if (0 && m && m->externup && m->externup->pid == 6) {
+		//iprint("type %x\n", ureg->type);
+		if (ureg->type != 0x49)
+			die("6\n");
+	}
 	m->perf.intrts = perfticks();
 	user = userureg(ureg);
 	if(user && (m->nixtype == NIXTC)){
@@ -361,7 +382,13 @@ trap(Ureg* ureg)
 
 	//_pmcupdate(m);
 
-//iprint("vno %d\n", vno);
+	if (1 && m->externup && m->externup->pid == 6) {
+		//iprint("type %x\n", ureg->type);
+		if (ureg->type != 0x49) {
+			iprint("vno %d\n", vno);
+			//die("6\n");
+		}
+	}
 	if(ctl = vctl[vno]){
 		if(ctl->isintr){
 			m->intr++;
@@ -377,6 +404,10 @@ trap(Ureg* ureg)
 			if(v->f)
 				v->f(ureg, v->a);
 		}
+	if (1 && m->externup && m->externup->pid == 6) {
+		if (ureg->type != 0x49)
+			hi("Done v->f\n");
+	}
 		if(ctl->eoi)
 			ctl->eoi(vno);
 		intrtime(vno);
@@ -433,6 +464,10 @@ trap(Ureg* ureg)
 	}
 	splhi();
 
+	if (1 && m->externup && m->externup->pid == 6) {
+		if (ureg->type != 0x49)
+			hi("SPLHIblock\n");
+	}
 	/* delaysched set because we held a lock or because our quantum ended */
 	if(m->externup && m->externup->delaysched && clockintr){
 		if(0)
@@ -450,10 +485,19 @@ trap(Ureg* ureg)
 
 
 	if(user){
+	if (1 && m->externup && m->externup->pid == 6) {
+		if (ureg->type != 0x49)
+		hi("if (user)\n");
+	}
 		if(m->externup && m->externup->procctl || m->externup->nnote)
 			notify(ureg);
 		kexit(ureg);
 	}
+	if (1 && m->externup && m->externup->pid == 6) {
+		if (ureg->type != 0x49)
+		hi("trap for pid 6 done\n");
+	}
+	if (0 && trip6) hi("trip6");
 }
 
 /*
@@ -604,6 +648,7 @@ debugbpt(Ureg* ureg, void* v)
 static void
 doublefault(Ureg* ureg, void* v)
 {
+	iprint("cr2 %p\n", (void *)cr2get());
 	panic("double fault");
 }
 
@@ -630,6 +675,9 @@ faultamd64(Ureg* ureg, void* v)
 	int read, user, insyscall;
 	char buf[ERRMAX];
 
+	if (1 && m->externup && m->externup->pid == 6) {
+		hi("faultamd64 pid 6\n");
+	}
 	addr = m->cr2;
 	user = userureg(ureg);
 //	if(!user && mmukmapsync(addr))
@@ -653,6 +701,7 @@ hi("addr "); put64(addr); hi("\n");
 	insyscall = m->externup->insyscall;
 	m->externup->insyscall = 1;
 	if (0)hi("call fault\n");
+iprint("fault %p\n", (void *)addr);
 	if(fault(addr, read) < 0){
 iprint("could not fault %p\n", addr);
 die("fault went bad\n");
@@ -679,6 +728,10 @@ die("fault went bad\n");
 iprint("back from fault %p\n", addr);
 	m->externup->insyscall = insyscall;
 	if (! read) hi("ret from write fault\n");
+	if (1 && m && m->externup && m->externup->pid == 6) {
+		if (addr == 0x7ffffeffffe0ULL)
+			trip6 = 1;
+	}
 }
 
 /*

@@ -75,8 +75,8 @@ syscallfmt(int syscallno, ...)
 	uintptr_t p;
 	int i[2], len, **ip;
 	char *a, **argv;
-
 	va_start(list, syscallno);
+iprint("%d: %d nsyscall %d\n", m->externup->pid, syscallno, nsyscall);
 	fmtstrinit(&fmt);
 	fmtprint(&fmt, "%d %s ", m->externup->pid, m->externup->text);
 

@@ -38,6 +38,8 @@
 	* look identical for the common code and exit we save %rax and line things up.
 	*/
 	
+.globl ire
+.globl irx
 // When we enter: 
 // registers are NOT saved. We need to save them all.
 // return PC is on the stat8(%rsp). It should be left there.
@@ -84,6 +86,7 @@ _intrcommon:
 	SWAPGS
 
 _intrnested:
+	incq ire
 	PUSHQ	%r15
 	PUSHQ	%r14
 	PUSHQ	%r13
@@ -130,6 +133,7 @@ _iretnested:
 	// The %rax you pushed (error code)
 	// EIP from the vector table.
 	ADDQ	$16, %rsp
+	incq irx
 	iretq
 
 .globl idthandlers

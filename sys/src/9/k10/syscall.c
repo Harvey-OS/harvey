@@ -237,7 +237,7 @@ syscall(int badscallnr, Ureg *ureg)
 	uintptr_t a0, a1, a2, a3; 
 	uintptr_t a4 = 0, a5 = 0;
 
-	if (0) hi("syscall!\n");
+	if (1) hi("syscall!\n");
 	a0 = ureg->di;
 	a1 = ureg->si;
 	a2 = ureg->dx;

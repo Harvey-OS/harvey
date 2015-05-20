@@ -4,7 +4,8 @@
 #define __ASSEMBLER__
 #endif
 
-
+.globl sce
+.globl scx
 /*
  * starting the user program up. First time.
  */
@@ -32,6 +33,7 @@ touser:
  */
 .global syscallentry
 syscallentry:
+	incq	sce
 	SWAPGS	
 	movq	%gs:0, %r15
 	movq	16(%r15), %r15			/* m->proc */
@@ -130,6 +132,7 @@ _linuxsyscallreturn:
 
 	MOVQ	24(%rsp), %rSP			/* sp */
 
+	incq	scx
 	sysretq
 //	BYTE $0x48; SYSRET			/* SYSRETQ */
 
@@ -137,7 +140,5 @@ _linuxsyscallreturn:
 sysrforkret:	
 //	CALL	linuxclonefinish(SB)
 	// DEBUG
-	cli
-1: jmp 1b
 	MOVQ	$0, %rAX
 	JMP	syscallreturn
