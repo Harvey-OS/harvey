@@ -402,10 +402,6 @@ trap(Ureg* ureg)
 			if(v->f)
 				v->f(ureg, v->a);
 		}
-	if (1 && m->externup && m->externup->pid == 6) {
-		if (ureg->type != 0x49)
-			hi("Done v->f\n");
-	}
 		if(ctl->eoi)
 			ctl->eoi(vno);
 		intrtime(vno);
@@ -462,10 +458,6 @@ trap(Ureg* ureg)
 	}
 	splhi();
 
-	if (1 && m->externup && m->externup->pid == 6) {
-		if (ureg->type != 0x49)
-			hi("SPLHIblock\n");
-	}
 	/* delaysched set because we held a lock or because our quantum ended */
 	if(m->externup && m->externup->delaysched && clockintr){
 		if(0)
@@ -483,19 +475,10 @@ trap(Ureg* ureg)
 
 
 	if(user){
-	if (1 && m->externup && m->externup->pid == 6) {
-		if (ureg->type != 0x49)
-		hi("if (user)\n");
-	}
 		if(m->externup && m->externup->procctl || m->externup->nnote)
 			notify(ureg);
 		kexit(ureg);
 	}
-	if (1 && m->externup && m->externup->pid == 6) {
-		if (ureg->type != 0x49)
-		hi("trap for pid 6 done\n");
-	}
-	if (0 && trip6) hi("trip6");
 }
 
 /*
@@ -669,9 +652,6 @@ faultamd64(Ureg* ureg, void* v)
 	int read, user, insyscall;
 	char buf[ERRMAX];
 
-	if (1 && m->externup && m->externup->pid == 6) {
-		hi("faultamd64 pid 6\n");
-	}
 	addr = m->cr2;
 	user = userureg(ureg);
 //	if(!user && mmukmapsync(addr))
