@@ -33,14 +33,13 @@ touser:
  */
 .global syscallentry
 syscallentry:
-1: jmp 1b
 	incq	sce
 	SWAPGS	
 	movq	%gs:0, %r15
 	movq	16(%r15), %r15			/* m->proc */
 	// NOTE! This assumes sizeof(Label) == 16!
 	MOVQ	%rsp, %r14
-	MOVQ	16(%r15), %rsp 			/* m->proc->kstack */
+	MOVQ	16*8(%r15), %rsp 		/* m->proc->kstack */
 	ADDQ	$KSTACK, %rSP
 	PUSHQ	$SSEL(SiUDS, SsRPL3)		/* old stack segment */
 	PUSHQ	%r14				/* old sp */

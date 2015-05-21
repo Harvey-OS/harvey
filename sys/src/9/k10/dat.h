@@ -257,8 +257,8 @@ enum {
 struct Mach
 {
 	/* WARNING! Known to assembly! */
-	int	machno;			/* physical id of processor */
-	uintptr_t	splpc;			/* pc of last caller to splhi */
+	uint64_t	machno;			/* physical id of processor */
+	uint64_t	splpc;			/* pc of last caller to splhi */
 
 	Proc*	proc;			/* current process on this processor */
 	uintptr_t	stack;

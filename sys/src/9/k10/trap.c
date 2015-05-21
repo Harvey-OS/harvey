@@ -355,7 +355,7 @@ trap(Ureg* ureg)
 	static int lastvno;
 	vno = ureg->type;
 	uint64_t gsbase = rdmsr(GSbase);
-	if (sce > scx) iprint("====================");
+	//if (sce > scx) iprint("====================");
 	if (vno == 8) {
 		iprint("Lstar is %p\n", (void *)rdmsr(Lstar));
 		iprint("GSbase is %p\n", (void *)gsbase);
