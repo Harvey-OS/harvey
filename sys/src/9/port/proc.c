@@ -236,7 +236,7 @@ sched(void)
 			spllo();
 			return;
 		}
-		debuggotolabel(&m->sched);
+		/*debug*/gotolabel(&m->sched);
 	}
 
 	m->inidle = 1;
@@ -264,7 +264,7 @@ sched(void)
 
 	assert(!m->externup->wired || m->externup->wired == m);
 	if (0) hi("gotolabel\n");
-	debuggotolabel(&m->externup->sched);
+	/*debug*/gotolabel(&m->externup->sched);
 }
 
 int
@@ -1210,7 +1210,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 			 */
 			unlock(&m->externup->rlock);
 			unlock(r);
-			debuggotolabel(&m->sched);
+			/*debug*/gotolabel(&m->sched);
 		}
 	}
 
@@ -1919,7 +1919,7 @@ void
 nexterror(void)
 {
 	Mach *m = machp();
-	debuggotolabel(&m->externup->errlab[--m->externup->nerrlab]);
+	/*debug*/gotolabel(&m->externup->errlab[--m->externup->nerrlab]);
 }
 
 void
