@@ -55,7 +55,6 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	int vno;
 	Vctl *v;
 	extern int ioapicintrenable(Vctl*);
-iprint("INTRENABLE %d -> %s\n", irq, name);
 	if(f == nil){
 		print("intrenable: nil handler for %d, tbdf %#ux for %s\n",
 			irq, tbdf, name);
@@ -388,13 +387,6 @@ trap(Ureg* ureg)
 
 	//_pmcupdate(m);
 
-	if (1 && m->externup && m->externup->pid == 6) {
-		//iprint("type %x\n", ureg->type);
-		if (ureg->type != 0x49) {
-			iprint("vno %d\n", vno);
-			//die("6\n");
-		}
-	}
 	if(ctl = vctl[vno]){
 		if(ctl->isintr){
 			m->intr++;
@@ -672,11 +664,7 @@ expected(Ureg* ureg, void* v)
 static void
 faultamd64(Ureg* ureg, void* v)
 {
-	static int times = 0;
-	times++;
-	hi("before machp\n");
 	Mach *m = machp();
-//	if (times == 3) die ("3rd rock\n");
 	uint64_t addr;
 	int read, user, insyscall;
 	char buf[ERRMAX];
@@ -707,7 +695,7 @@ hi("addr "); put64(addr); hi("\n");
 	insyscall = m->externup->insyscall;
 	m->externup->insyscall = 1;
 	if (0)hi("call fault\n");
-iprint("fault %p\n", (void *)addr);
+
 	if(fault(addr, read) < 0){
 iprint("could not fault %p\n", addr);
 die("fault went bad\n");
@@ -731,13 +719,7 @@ die("fault went bad\n");
 		if(insyscall)
 			error(buf);
 	}
-iprint("back from fault %p\n", addr);
 	m->externup->insyscall = insyscall;
-	if (! read) hi("ret from write fault\n");
-	if (1 && m && m->externup && m->externup->pid == 6) {
-		if (addr == 0x7ffffeffffe0ULL)
-			trip6 = 1;
-	}
 }
 
 /*
