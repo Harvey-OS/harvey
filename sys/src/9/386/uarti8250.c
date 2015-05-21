@@ -134,7 +134,7 @@ static Ctlr i8250ctlr[2] = {
 {	.io	= Uart0,
 	.irq	= Uart0IRQ,
 	.tbdf	= -1,
-	.poll	= 0, },
+	.poll	= 1 | 0, },
 
 {	.io	= Uart1,
 	.irq	= Uart1IRQ,
