@@ -38,9 +38,9 @@ if(m->externup->nlocks) print("fault nlocks %d\n", m->externup->nlocks);
 	m->pfault++;
 	for(i = 0;; i++) {
 		s = seg(m->externup, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
-iprint("seg for %p is %p base %p top %p\n", addr, s, s->base, s->top);
+		//iprint("seg for %p is %p base %p top %p\n", addr, s, s->base, s->top);
 		if(s == 0) {
-iprint("fault: no seg for %p\n", addr);
+			//iprint("fault: no seg for %p\n", addr);
 			m->externup->psstate = sps;
 			return -1;
 		}
@@ -271,8 +271,8 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 
 	// kaddr needs to be offset by the start of the memory address.
 	int off = s->ph.vaddr & 0x1fffff;
-	iprint("pio chan %c kaddr %p kaddr+off %p ask 0x%x daddr 0x%lx\n",
-	       c, kaddr, kaddr+off, ask, daddr);
+	//iprint("pio chan %c kaddr %p kaddr+off %p ask 0x%x daddr 0x%lx\n",
+	       //c, kaddr, kaddr+off, ask, daddr);
 	n = c->dev->read(c, kaddr+off, ask, daddr);
 	//hexdump(kaddr+off, n);
 	if(n != ask)

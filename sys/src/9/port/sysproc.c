@@ -761,9 +761,7 @@ sysrfork(Ar0* ar0, ...)
 	/* Craft a return frame which will cause the child to pop out of
 	 * the scheduler in user mode with the return register zero
 	 */
-iprint("sysrforkchild %p %p\n", p, m->externup);
 	sysrforkchild(p, m->externup);
-iprint("back\n");
 
 	p->parent = m->externup;
 	p->parentpid = m->externup->pid;
@@ -781,7 +779,6 @@ iprint("back\n");
 	memset(p->time, 0, sizeof(p->time));
 	p->time[TReal] = sys->ticks;
 
-iprint("before prepage test\n");
 	if(flag & (RFPREPAGE|RFCPREPAGE)){
 		p->prepagemem = flag&RFPREPAGE;
 		/*
@@ -800,7 +797,6 @@ iprint("before prepage test\n");
 	 *  (i.e. has bad properties) and has to be discarded.
 	 */
 	mmuflush();
-iprint("after mmuflush\n");
 	p->basepri = m->externup->basepri;
 	p->priority = m->externup->basepri;
 	p->fixedpri = m->externup->fixedpri;
@@ -810,13 +806,9 @@ iprint("after mmuflush\n");
 	if(wm)
 		procwired(p, wm->machno);
 	p->color = m->externup->color;
-	iprint("ready %p\n", p);
-	//dumpgpr(p->ureg);
 	ready(p);
-	iprint("sched %p\n", p);
 	sched();
 
-	iprint("return pid %d\n", pid);
 	ar0->i = pid;
 }
 #if 0
@@ -903,7 +895,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		proctracepid(m->externup);
 	ichan = namec(file, Aopen, OEXEC, 0);
 	if(waserror()){
-iprint("ERROR ON OPEN\n");
+		iprint("ERROR ON OPEN\n");
 		cclose(ichan);
 		nexterror();
 	}
@@ -961,7 +953,6 @@ iprint("ERROR ON OPEN\n");
 
 	crackhdr(ar0, chan, &f, &d);
 
-iprint("DONE CRACHKERD\n");
 	textsz = f.txtsz;
 	datasz =f.datsz;
 	bsssz = f.bsssz;
@@ -1279,11 +1270,8 @@ static int
 
 	ret = 0;
 	magic = beswal(d->e.magic);		/* big-endian */
-	iprint("Sysproc.c 1225, after magic=beswal\n");
 	for (mp = exectab; mp->magic; mp++) {
-		iprint("Sysproc.c 1227, inside for loop\n");
 		if (nb < mp->hsize) {
-			iprint("nb %d, mp->hsize %d, too SMALL\n", nb, mp->hsize);
 			continue;
 		}
 
@@ -1297,9 +1285,7 @@ static int
 		 * be modified/extended much more it's probably
 		 * time to step back and redo it all.
 		 */
-		iprint("_magic %x\n", mp->_magic);
 		if(mp->_magic){
-			iprint("Sysproc.c 1245, mp->_magic\n");
 			if(mp->magic != (magic & ~DYN_MAGIC))
 				continue;
 
@@ -1309,7 +1295,6 @@ static int
 				fp->name = mp->name;
 		}
 		else{
-			iprint("Sysproc.c 1255, mp->magic %x != magic %x\n", mp->_magic, magic);
 			if(mp->magic != magic)
 				continue;
 			fp->name = mp->name;
@@ -1319,9 +1304,7 @@ static int
 		fp->_magic = mp->_magic;
 		fp->magic = magic;
 
-		iprint("mp->_magic %x \n", mp->_magic);
 		machkind = mp->elfmach;
-		iprint("seems to be elf\n");
 		if(mp->swal != nil)
 			hswal(d, sizeof(d->e)/sizeof(uint32_t), mp->swal);
 		ret = mp->hparse(ar0, c, fp, d);
@@ -1329,7 +1312,6 @@ static int
 		break;
 	}
 	if(mp->magic == 0) {
-		iprint("mp->magic == 0!\n");
 		error("Sysproc 1276: unknown header type");
 	}
 	return ret;

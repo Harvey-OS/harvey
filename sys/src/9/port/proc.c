@@ -44,9 +44,6 @@ static void updatecpu(Proc*);
 
 static void rebalance(void);
 
-// Debugging until death!!
-static void debuggotolabel(Label*);
-
 char *statename[] =
 {	/* BUG: generate automatically */
 	"Dead",
@@ -66,6 +63,7 @@ char *statename[] =
 	"Down",
 };
 
+#if 0
 void
 debuggotolabel(Label *p)
 {
@@ -90,6 +88,7 @@ debuggotolabel(Label *p)
 	 */
 	gotolabel(p);
 }
+#endif
 
 Sched*
 procsched(Proc *p)
