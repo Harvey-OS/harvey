@@ -225,7 +225,7 @@ newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 	//	static int once;
 
 	si = getpgszi(size);
-iprint("newpage, size %x, si %d\n", size, si);
+iprint("(remove this print and diea)newpage, size %x, si %d\n", size, si);
 	pa = &pga.pgsza[si];
 
 	lock(&pga);
