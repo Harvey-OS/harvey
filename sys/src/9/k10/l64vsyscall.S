@@ -33,6 +33,7 @@ touser:
  */
 .global syscallentry
 syscallentry:
+1: jmp 1b
 	incq	sce
 	SWAPGS	
 	movq	%gs:0, %r15

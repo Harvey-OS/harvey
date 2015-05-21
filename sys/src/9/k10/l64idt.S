@@ -40,6 +40,7 @@
 	
 .globl ire
 .globl irx
+.globl irxe
 // When we enter: 
 // registers are NOT saved. We need to save them all.
 // return PC is on the stat8(%rsp). It should be left there.
@@ -107,6 +108,7 @@ _intrnested:
 	CALL	_trap
 .globl _intrr
 _intrr:
+	incq	irxe
 	POPQ	%rax
 	POPQ	%rbx
 	POPQ	%rCX

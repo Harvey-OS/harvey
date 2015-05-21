@@ -25,6 +25,9 @@
 // counters. Set by assembly code.
 // interrupt enter and exit, systecm call enter and exit.
 unsigned long ire, irx, sce, scx;
+// Did we start doing an exit for the interrupts?
+// ir exit entry :-)
+unsigned long irxe;
 
 static int trip6;
 extern int notify(Ureg*);
@@ -352,11 +355,14 @@ trap(Ureg* ureg)
 	static int lastvno;
 	vno = ureg->type;
 	uint64_t gsbase = rdmsr(GSbase);
+	if (sce > scx) iprint("====================");
 	if (vno == 8) {
 		iprint("Lstar is %p\n", (void *)rdmsr(Lstar));
 		iprint("GSbase is %p\n", (void *)gsbase);
 		iprint("ire %d irx %d sce %d scx %d lastvno %d\n", 
 			ire, irx, sce, scx, lastvno);
+		iprint("irxe %d \n",
+			irxe);
 		die("8");
 	}
 	lastvno = vno;
