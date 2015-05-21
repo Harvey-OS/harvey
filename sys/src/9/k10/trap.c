@@ -29,7 +29,6 @@ unsigned long ire, irx, sce, scx;
 // ir exit entry :-)
 unsigned long irxe;
 
-static int trip6;
 extern int notify(Ureg*);
 
 static void debugbpt(Ureg*, void*);
