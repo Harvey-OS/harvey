@@ -95,7 +95,7 @@ options(int argc, char* argv[])
 void
 squidboy(int apicno)
 {
-	// no idea if this will work here. 
+	/* no idea if this will work here. */
 	Mach *m = machp();
 	int64_t hz;
 
@@ -253,7 +253,9 @@ HERE(void)
 	delay(5000);
 }
 
-// The old plan 9 standby ... wave ... 
+/* The old plan 9 standby ... wave ... */
+
+/* Keep to debug trap.c */
 void wave(int c)
 {
 	outb(0x3f8, c);
@@ -261,20 +263,22 @@ void wave(int c)
 
 void hi(char *s) 
 {
-	if (! s)
-		s = "<NULL>";
 	while (*s)
 		wave(*s++);
 }
-	// for gdb: 
-	// call this anywhere in your code. 
-	//die("yourturn with gdb\n");
-	// gdb 9k
-	// target remote localhost:1234
-	// display/i $pc
-	// set staydead = 0
-	// stepi, and debug. 
-	// note, you can always resume after a die. Just set staydead = 0
+
+/*
+ * for gdb: 
+ * call this anywhere in your code. 
+ *   die("yourturn with gdb\n");
+ *   gdb 9k
+ *   target remote localhost:1234
+ *   display/i $pc
+ *   set staydead = 0
+ *   stepi, and debug. 
+ * note, you can always resume after a die. Just set staydead = 0
+ */
+
 int staydead = 1;
 void die(char *s)
 {
@@ -286,6 +290,8 @@ void die(char *s)
 	while(staydead);
 	staydead = 1;
 }
+
+/*
 void bmemset(void *p)
 {
 	__asm__ __volatile__("1: jmp 1b");
@@ -315,6 +321,7 @@ void put64(uint64_t v)
 	put32(v>>32);
 	put32(v);
 }
+*/
 
 void debugtouser(void *va)
 {
@@ -328,12 +335,14 @@ void debugtouser(void *va)
 			m, m->pml4, m->pml4->va, (void *)pml4, *pte);
 }
 
+/*
 void badcall(uint64_t where, uint64_t what)
 {
 	hi("Bad call from function "); put64(where); hi(" to "); put64(what); hi("\n");
 	while (1)
 		;
 }
+*/
 
 void errstr(char *s, int i) {
 	panic("errstr");
@@ -345,62 +354,52 @@ void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
 	Mach *m = entrym;
-  // when we get here, entrym is set to core0 mach.
+	/* when we get here, entrym is set to core0 mach. */
 	sys->machptr[m->machno] = m;
 	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
-	hi("m "); put64((uint64_t)m); hi(" machp "); put64((uint64_t)machp()); hi("\n");
 	if (machp() != m)
-		die("================= m and machp() are different");
-	hi("mbmagic "); put32(mbmagic); hi("\n");
-	hi("mbaddress "); put32(mbaddress); hi("\n");
+		panic("m and machp() are different!!\n");
 	assert(sizeof(Mach) <= PGSZ);
 	int64_t hz;
 
-	// Check that our data is on the right boundaries.
-	// This works because the immediate value is in code.
+	/*
+	 * Check that our data is on the right boundaries.
+	 * This works because the immediate value is in code.
+	 */
 	if (x != 0x123456) 
-		die("data is not set up correctly\n");
-	wave('H');
+		panic("Data is not set up correctly\n");
 	memset(edata, 0, end - edata);
 
 	m = (void *) (KZERO + 1048576 + 11*4096);
 	sys = (void *) (KZERO + 1048576);
-	wave('a');
+
 	/*
 	 * ilock via i8250enable via i8250console
 	 * needs m->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
 	cgapost(sizeof(uintptr_t)*8);
-	wave('r');
 	memset(m, 0, sizeof(Mach));
-	wave('v');
+
 	m->machno = 0;
-	wave('1');
 	m->online = 1;
-	wave('2');
 	m->nixtype = NIXTC;
-	wave('3');
 	sys->machptr[m->machno] = &sys->mach;
-	wave('4');
 	m->stack = PTR2UINT(sys->machstk);
-	wave('5');
 	m->vsvm = sys->vsvmpage;
-	wave('6');
 	m->externup = (void *)0;
 	active.nonline = 1;
 	active.exiting = 0;
 	active.nbooting = 0;
-	wave('e');
+
 	asminit();
-	wave('y');
 	multiboot(mbmagic, mbaddress, 0);
-	wave(';');
 	options(oargc, oargv);
-	wave('s');
-	// later.
-	//crapoptions();
-	wave('a');
+	/*
+	 * later.
+	 * crapoptions();
+	 */
+
 	/*
 	 * Need something for initial delays
 	 * until a timebase is worked out.
@@ -409,68 +408,52 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	m->cpumhz = 2000;
 
 	cgainit();
-	wave('y');
 	i8250console("0");
 	
-	wave('1');
 	consputs = cgaconsputs;
 
-	wave('2');
-	// It all ends here.
+	/* It all ends here. */
 	vsvminit(MACHSTKSZ, NIXTC);
-	hi("we're back from vsvminit\n");
 	if (machp() != m)
-		die("================= after vsvminit, m and machp() are different");
-	wave('s');
-
+		panic("After vsvminit, m and machp() are different");
 	fmtinit();
 	
-	print("\nNIX\n");
-	print("NIX m = %p / sys = %p \n", m, sys);
-	hi("m is "); put64((uint64_t) m); hi("\n");
-	hi("sys is "); put64((uint64_t) sys); hi("\n");
+	print("\nHarvey\n");
 	sys->nmach = 1;			
 
 	if(1){
 		multiboot(mbmagic, mbaddress, vflag);
 	}
 
-	hi("m: "); put64((uint64_t)m); hi("\n");
 	m->perf.period = 1;
-	hi("archhz\n");
 	if((hz = archhz()) != 0ll){
 		m->cpuhz = hz;
 		m->cyclefreq = hz;
 		m->cpumhz = hz/1000000ll;
 	}
 
-hi("gdb\n");
-print("hi %d", 1);
-print("hi %d", 2);
-print("hi %d", 0x1234);
 	/*
 	 * Mmuinit before meminit because it
 	 * flushes the TLB via m->pml4->pa.
 	 */
-hi("call mmuinit\n");
-{	mmuinit(); hi("	mmuinit();\n");}
-
-hi("wait for gdb\n");
-{	ioinit(); hi("	ioinit();\n");}
-{	kbdinit(); hi("	kbdinit();\n");}
-{	meminit(); hi("	meminit();\n");}
-{	confinit(); hi("	confinit();\n");}
-{	archinit(); hi("	archinit();\n");}
-{	mallocinit(); hi("	mallocinit();\n");}
+	mmuinit();
+	ioinit();
+	kbdinit();
+	meminit();
+	confinit();
+	archinit();
+	mallocinit();
 
 	/* test malloc. It's easier to find out it's broken here, 
 	 * not deep in some call chain.
 	 * See next note. 
-	 */
+	 *
 	void *v = malloc(1234);
 	hi("v "); put64((uint64_t)v); hi("\n");
 	free(v);
 	hi("free ok\n");
+	 */
+
 	/*
 	 * Acpiinit will cause the first malloc
 	 * call to happen.
@@ -482,9 +465,9 @@ hi("wait for gdb\n");
 	 */
 if (0){	acpiinit(); hi("	acpiinit();\n");}
 	
-{	umeminit(); hi("	umeminit();\n");}
-{	trapinit(); hi("	trapinit();\n");}
-{	printinit(); hi("	printinit();\n");}
+	umeminit();
+	trapinit();
+	printinit();
 
 	/*
 	 * This is necessary with GRUB and QEMU.
@@ -492,27 +475,26 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	 * because the vector base is likely different, causing
 	 * havoc. Do it before any APIC initialisation.
 	 */
-{	i8259init(32); hi("	i8259init(32);\n");}
+	i8259init(32);
 
-
-{	procinit0(); hi("	procinit0();\n");}
-{	mpsinit(maxcores); hi("	mpsinit(maxcores);\n");}
-{	apiconline(); hi("	apiconline();\n");}
+	procinit0();
+	mpsinit(maxcores);
+	apiconline();
 if (0) sipi(); 
 
-{	timersinit(); hi("	timersinit();\n");}
-{	kbdenable(); hi("	kbdenable();\n");}
-{	fpuinit(); hi("	fpuinit();\n");}
-{	psinit(conf.nproc); hi("	psinit(conf.nproc);\n");}
-{	initimage(); hi("	initimage();\n");}
-{	links(); hi("	links();\n");}
-{	devtabreset(); hi("	devtabreset();\n");}
-{	pageinit(); hi("	pageinit();\n");}
-{	swapinit(); hi("	swapinit();\n");}
-{	userinit(); hi("	userinit();\n");}
-	if (0) { // NO NIX YET
-		{	nixsquids(); hi("	nixsquids();\n");}
-		{testiccs(); hi("testiccs();\n");}	
+	timersinit();
+	kbdenable();
+	fpuinit();
+	psinit(conf.nproc);
+	initimage();
+	links();
+	devtabreset();
+	pageinit();
+	swapinit();
+	userinit();
+	if (0) { /* NO NIX YET */
+			nixsquids();
+			testiccs();
 	}
 	print("schedinit...\n");
 	schedinit();
@@ -526,8 +508,10 @@ init0(void)
 
 	m->externup->nerrlab = 0;
 
-//	if(consuart == nil)
-//		i8250console("0");
+	/*
+	 * if(consuart == nil)
+	 * i8250console("0");
+	 */
 	spllo();
 
 	/*
@@ -555,7 +539,6 @@ init0(void)
 	}
 	kproc("alarm", alarmkproc, 0);
 	debugtouser((void *)UTZERO);
-	hi("TOUSER!\n");
 	touser(sp);
 }
 
@@ -603,7 +586,7 @@ userinit(void)
 	Segment *s;
 	KMap *k;
 	Page *pg;
-hi("1\n");
+
 	p = newproc();
 	p->pgrp = newpgrp();
 	p->egrp = smalloc(sizeof(Egrp));
@@ -612,12 +595,10 @@ hi("1\n");
 	p->rgrp = newrgrp();
 	p->procmode = 0640;
 
-hi("2\n");
 	kstrdup(&eve, "");
 	kstrdup(&p->text, "*init*");
 	kstrdup(&p->user, eve);
 
-hi("3\n");
 	/*
 	 * Kernel Stack
 	 *
@@ -628,10 +609,8 @@ hi("3\n");
 	 */
 	p->sched.pc = PTR2UINT(init0);
 	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(m->externup->arg)-sizeof(uintptr_t));
-hi("SP "); put64(p->sched.sp); hi("\n");
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
-hi("4\n");
 	/*
 	 * User Stack
 	 *
@@ -642,15 +621,12 @@ hi("4\n");
 	 */
 	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
 	p->seg[SSEG] = s;
-
-hi("5\n");
 	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
 	segpage(s, pg);
 	k = kmap(pg);
 	bootargs(VA(k));
 	kunmap(k);
 
-hi("6\n");
 	/*
 	 * Text
 	 */
@@ -658,10 +634,8 @@ hi("6\n");
 	s->flushme++;
 	p->seg[TSEG] = s;
 	pg = newpage(1, 0, UTZERO, BIGPGSZ, -1);
-hi("7\n");
 	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 	segpage(s, pg);
-hi("8\n");
 	k = kmap(s->map[0]->pages[0]);
 	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
 	memmove(UINT2PTR(VA(k)), init_code_out, sizeof(init_code_out));
@@ -674,17 +648,13 @@ hi("8\n");
 	s->flushme++;
 	p->seg[DSEG] = s;
 	pg = newpage(1, 0, UTZERO + BIGPGSZ, BIGPGSZ, -1);
-hi("7\n");
 	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 	segpage(s, pg);
-hi("8\n");
 	k = kmap(s->map[0]->pages[0]);
 	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
 	memmove(UINT2PTR(VA(k)), init_data_out, sizeof(init_data_out));
 	kunmap(k);
-hi("9\n");
 	ready(p);
-hi("done \n");
 }
 
 void

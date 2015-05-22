@@ -443,7 +443,6 @@ panic(char *fmt, ...)
 	//dumpstack();
 	delay(1000);	/* give time to consoles */
 
-die(fmt);
 	exit(1);
 }
 #pragma profile 1
@@ -495,7 +494,6 @@ pprint(char *fmt, ...)
 	c->offset += n;
 	unlock(c);
 
-die("pprint");
 	return n;
 }
 

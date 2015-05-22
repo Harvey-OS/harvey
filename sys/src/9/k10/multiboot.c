@@ -77,7 +77,7 @@ multiboot(uint32_t magic, uint32_t pmbi, int vflag)
 	if(vflag)
 		print("magic %#ux pmbi %#ux\n", magic, pmbi);
 	if(magic != 0x2badb002)
-		hi("no magic but hey ... \n");//return -1;
+		print("no magic in multiboot\n");//return -1;
 
 	mbi = KADDR(pmbi);
 	if(vflag)

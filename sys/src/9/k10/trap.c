@@ -679,7 +679,6 @@ iprint("could not fault %p\n", addr);
 	if (! user)
 		die("fault went bad in kernel\n");
 	else
-		hi("User mode fault\n");
 
 		/*
 		 * It is possible to get here with !user if, for example,

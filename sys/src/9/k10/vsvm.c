@@ -169,17 +169,15 @@ vsvminit(int size, int nixtype)
 		idtinit(idt64, PTR2UINT(idthandlers));
 		//idtinit(acidt64, PTR2UINT(acidthandlers));
 	}
-hi("set m->gdt\n");
 	m->gdt = m->vsvm;
 	memmove(m->gdt, gdt64, sizeof(gdt64));
 	m->tss = &m->vsvm[ROUNDUP(sizeof(gdt64), 16)];
 
 	sd = &((Sd*)m->gdt)[SiTSS];
 	*sd = mksd(PTR2UINT(m->tss), sizeof(Tss)-1, SdP|SdDPL0|SdaTSS, sd+1);
-hi("tssinti\n");
 	tssinit(m, m->stack+size);
 	gdtput(sizeof(gdt64)-1, PTR2UINT(m->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
-hi("gdtput\n");
+
 #if 0 // NO ACs YET
 	if(nixtype != NIXAC)
 #endif
@@ -192,16 +190,14 @@ hi("gdtput\n");
 	//trput(SSEL(SiTSS, SsTIGDT|SsRPL0));
 	asm volatile("ltr %w0"::"q" (SSEL(SiTSS, SsTIGDT|SsRPL0)));
 
-hi("idtput done\n");
-hi("write fsbase, then gsbase, then etc.\n");
 	wrmsr(FSbase, 0ull);
 	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
 	wrmsr(KernelGSbase, 0ull);
-hi("done that\n");
 
 	r = rdmsr(Efer);
 	r |= Sce;
 	wrmsr(Efer, r);
+
 	/* Hey! This is weird! Why a 32-bit CS?
 	 * Because, when you do a retq, the CPU adds 16 to
 	 * the bits derived from 63:48, and then uses that. See the
@@ -212,21 +208,17 @@ hi("done that\n");
 	 */
 	r = ((uint64_t)SSEL(SiU32CS, SsRPL3))<<48;
 	r |= ((uint64_t)SSEL(SiCS, SsRPL0))<<32;
-hi("wirte Star!\n");
 	wrmsr(Star, r);
-	uint64_t x = rdmsr(Star);
-iprint("start 0x%lx\n", x);
-hi("wirte Lstar!\n");
+
 	if(nixtype != NIXAC)
 		wrmsr(Lstar, PTR2UINT(syscallentry));
 	else
 		wrmsr(Lstar, PTR2UINT(acsyscallentry));
-hi("wirte Sfmask!\n");
+
 	wrmsr(Sfmask, If);
 	if (m != machp()) {
-		die("vsvminit: m is not machp() at end\n");
+		panic("vsvminit: m is not machp() at end\n");
 	}
-hi("vsvminit done!\n");
 }
 
 int

@@ -1163,7 +1163,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		iprint("double sleep called from %#p, %d %d\n",
 			getcallerpc(&r), r->_p->pid, m->externup->pid);
 		dumpstack();
-		die("double sleep");
+		panic("double sleep");
 	}
 
 	/*
@@ -1527,7 +1527,7 @@ pexit(char *exitstr, int freemem)
 		if(p == 0) {
 			if(exitstr == 0)
 				exitstr = "unknown";
-			die("bootprocessdeath");
+			//die("bootprocessdeath");
 			panic("boot process died: %s", exitstr);
 		}
 

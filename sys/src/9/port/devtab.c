@@ -25,8 +25,6 @@ devtabreset(void)
 	int i;
 
 	for(i = 0; devtab[i] != nil; i++) {
-		hi("dtreset "); put64(i); hi(" call ");
-		put64((uint64_t)devtab[i]->reset); hi("\n");
 		devtab[i]->reset();
 	}
 }
@@ -37,8 +35,6 @@ devtabinit(void)
 	int i;
 
 	for(i = 0; devtab[i] != nil; i++) {
-		hi("dtinit "); put64(i); hi(" call ");
-		put64((uint64_t)devtab[i]->init); hi("\n");
 		devtab[i]->init();
 	}
 }

@@ -250,7 +250,9 @@ syscall(int badscallnr, Ureg *ureg)
 	int64_t startns, stopns;
 	Ar0 ar0;
 	static Ar0 zar0;
-	int printallsyscalls = 1;
+
+	/* Do you want to print syscalls for debugging? */
+	int printallsyscalls = 0;
 
 	if(!userureg(ureg))
 		panic("syscall: cs %#llux\n", ureg->cs);
@@ -362,7 +364,7 @@ syscall(int badscallnr, Ureg *ureg)
 		stopns = todget(nil);
 		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
-			iprint("X %s\n", m->externup->syscalltrace);
+			if (0) iprint("X %s\n", m->externup->syscalltrace);
 			free(m->externup->syscalltrace);
 			m->externup->syscalltrace = nil;
 		}
@@ -473,7 +475,7 @@ sysrforkchild(Proc* child, Proc* parent)
 	/* Things from bottom of syscall which were never executed */
 	child->psstate = 0;
 	child->insyscall = 0;
-	iprint("Child SP set tp %p\n", (void *)child->sched.sp);
+	//iprint("Child SP set tp %p\n", (void *)child->sched.sp);
 
 	fpusysrforkchild(child, parent);
 }

@@ -251,7 +251,6 @@ segpage(Segment *s, Page *p)
 		s->color = p->color;
 	if(s->pgszi != p->pgszi) {
 		iprint("s %p s->pgszi %d p %p p->pgszi %p\n", s, s->pgszi, p, p->pgszi);
-		die("BAD!");
 		panic("segpage: s->pgszi != p->pgszi");
 	}
 
