@@ -249,7 +249,7 @@ timersinit(void)
 	t = malloc(sizeof(*t));
 	t->tmode = Tperiodic;
 	t->tt = nil;
-	t->tns = 10000000000; // 10 seconds.1000000000/HZ;
+	t->tns = 1000000000/HZ;
 	t->tf = nil;
 	timeradd(t);
 }
