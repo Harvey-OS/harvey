@@ -18,16 +18,20 @@
 
 #define TMFM		(64*MiB)
 
+int km, ku, k2;
 void*
 KADDR(uintptr_t pa)
 {
 	uint8_t* va;
 
 	va = UINT2PTR(pa);
-	if(pa < TMFM)
+	if(pa < TMFM) {
+		km++;
 		return KSEG0+va;
+	}
 
 	assert(pa < KSEG2);
+	k2++;
 	return KSEG2+va;
 }
 

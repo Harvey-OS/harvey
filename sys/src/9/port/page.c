@@ -210,6 +210,7 @@ findpg(Page *pl, int color)
 			return p;
 	return nil;
 }
+int trip;
 /*
  * can be called with up == nil during boot.
  */
@@ -225,7 +226,7 @@ newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 	//	static int once;
 
 	si = getpgszi(size);
-iprint("(remove this print and diea)newpage, size %x, si %d\n", size, si);
+//iprint("(remove this print and diea)newpage, size %x, si %d\n", size, si);
 	pa = &pga.pgsza[si];
 
 	lock(&pga);
@@ -305,7 +306,13 @@ iprint("(remove this print and diea)newpage, size %x, si %d\n", size, si);
 
 	if(clear) {
 		k = kmap(p);
-		memset((void*)VA(k), 0, m->pgsz[p->pgszi]);
+if (VA(k) == 0xfffffe007d800000ULL) trip++;
+	if (trip) die("trip before memset");
+		// This will frequently die if we use 3K-1 (3071 -- 0xbff)
+		// it will not if we use 3070.	
+		// The fault is a null pointer deref.
+		memset((void*)VA(k), 0, trip? 3071 : m->pgsz[p->pgszi]);
+if (trip) die("trip");
 		kunmap(k);
 	}
 	DBG("newpage: va %#p pa %#ullx pgsz %#ux color %d\n",

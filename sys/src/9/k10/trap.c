@@ -653,8 +653,8 @@ faultamd64(Ureg* ureg, void* v)
 
 	addr = m->cr2;
 	user = userureg(ureg);
-//	if(!user && mmukmapsync(addr))
-//		return;
+	if(!user && mmukmapsync(addr))
+		return;
 
 	/*
 	 * There must be a user context.
@@ -677,7 +677,10 @@ hi("addr "); put64(addr); hi("\n");
 
 	if(fault(addr, read) < 0){
 iprint("could not fault %p\n", addr);
-die("fault went bad\n");
+	if (! user)
+		die("fault went bad in kernel\n");
+	else
+		hi("User mode fault\n");
 
 		/*
 		 * It is possible to get here with !user if, for example,

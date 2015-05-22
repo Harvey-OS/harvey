@@ -261,6 +261,8 @@ void wave(int c)
 
 void hi(char *s) 
 {
+	if (! s)
+		s = "<NULL>";
 	while (*s)
 		wave(*s++);
 }
