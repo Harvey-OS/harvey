@@ -220,7 +220,7 @@ compile_kernel()
 
 	## Rest of programs into ramfs ##
 
-	RAMFS_LIST="bind mount echo cat cp"
+	RAMFS_LIST="bind mount echo cat cp ls"
 
 	for elem in $RAMFS_LIST
 	do
