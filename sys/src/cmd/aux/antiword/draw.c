@@ -328,12 +328,12 @@ vPrologue2(diagram_type *pDiag, int iWordVersion)
  */
 void
 vSubstring2Diagram(diagram_type *pDiag,
-	char *szString, size_t tStringLength, long lStringWidth,
+	char *szString, size_t tStringLength, int32_t lStringWidth,
 	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
 	USHORT usFontSize, USHORT usMaxFontSize)
 {
 	drawfile_object	*pNew;
-	long	lSizeX, lSizeY, lOffset, l20, lYMove;
+	int32_t	lSizeX, lSizeY, lOffset, l20, lYMove;
 	size_t	tRealSize, tSize;
 
 	TRACE_MSG("vSubstring2Diagram");
@@ -365,11 +365,11 @@ vSubstring2Diagram(diagram_type *pDiag,
 
 	/* Up for superscript */
 	if (bIsSuperscript(usFontstyle)) {
-		lYMove = lMilliPoints2DrawUnits((((long)usFontSize + 1) / 2) * 375);
+		lYMove = lMilliPoints2DrawUnits((((int32_t)usFontSize + 1) / 2) * 375);
 	}
 	/* Down for subscript */
 	if (bIsSubscript(usFontstyle)) {
-		lYMove = -lMilliPoints2DrawUnits((long)usFontSize * 125);
+		lYMove = -lMilliPoints2DrawUnits((int32_t)usFontSize * 125);
 	}
 
 	tRealSize = offsetof(drawfile_object, data);
@@ -412,7 +412,7 @@ vImage2Diagram(diagram_type *pDiag, const imagedata_type *pImg,
 	UCHAR *pucImage, size_t tImageSize)
 {
   	drawfile_object	*pNew;
-	long	lWidth, lHeight;
+	int32_t	lWidth, lHeight;
 	size_t	tRealSize, tSize;
 
 	TRACE_MSG("vImage2Diagram");
@@ -498,7 +498,7 @@ bAddDummyImage(diagram_type *pDiag, const imagedata_type *pImg)
 {
   	drawfile_object	*pNew;
 	int	*piTmp;
-	long	lWidth, lHeight;
+	int32_t	lWidth, lHeight;
 	size_t	tRealSize, tSize;
 
 	TRACE_MSG("bAddDummyImage");
@@ -567,7 +567,7 @@ void
 vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
 	USHORT usFontSize)
 {
-	long	l20;
+	int32_t	l20;
 
 	TRACE_MSG("vMove2NextLine");
 
@@ -586,7 +586,7 @@ vMove2NextLine(diagram_type *pDiag, drawfile_fontref tFontRef,
  * Create an start of paragraph (Phase 1)
  */
 void
-vStartOfParagraph1(diagram_type *pDiag, long lBeforeIndentation)
+vStartOfParagraph1(diagram_type *pDiag, int32_t lBeforeIndentation)
 {
 	TRACE_MSG("vStartOfParagraph1");
 
@@ -612,7 +612,8 @@ vStartOfParagraph2(diagram_type *pDiag)
  */
 void
 vEndOfParagraph(diagram_type *pDiag,
-	drawfile_fontref tFontRef, USHORT usFontSize, long lAfterIndentation)
+	drawfile_fontref tFontRef, USHORT usFontSize,
+		int32_t lAfterIndentation)
 {
 	TRACE_MSG("vEndOfParagraph");
 
@@ -628,7 +629,7 @@ vEndOfParagraph(diagram_type *pDiag,
  * Create an end of page
  */
 void
-vEndOfPage(diagram_type *pDiag, long lAfterIndentation, BOOL bNewSection)
+vEndOfPage(diagram_type *pDiag, int32_t lAfterIndentation, BOOL bNewSection)
 {
 	TRACE_MSG("vEndOfPage");
 
@@ -697,7 +698,7 @@ vEndOfTable(diagram_type *pDiag)
  */
 BOOL
 bAddTableRow(diagram_type *pDiag, char **aszColTxt,
-	int iNbrOfColumns, const short *asColumnWidth, UCHAR ucBorderInfo)
+	int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
 {
 	TRACE_MSG("bAddTableRow");
 

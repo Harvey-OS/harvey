@@ -803,7 +803,7 @@ shf_snprintf(buf, bsize, fmt, va_alist)
 
 	if (!buf || bsize <= 0)
 		internal_errorf(1, "shf_snprintf: buf %lx, bsize %d",
-			(long) buf, bsize);
+			(int32_t) buf, bsize);
 
 	shf_sopen(buf, bsize, SHF_WR, &shf);
 	SH_VA_START(args, fmt);
@@ -853,9 +853,9 @@ shf_smprintf(fmt, va_alist)
 #define POP_INT(f, s, a) (((f) & FL_LONG) ?				\
 				va_arg((a), unsigned long)		\
 			    :						\
-				(sizeof(int) < sizeof(long) ?		\
+				(sizeof(int) < sizeof(int32_t) ?		\
 					((s) ?				\
-						(long) va_arg((a), int)	\
+						(int32_t) va_arg((a), int)	\
 					    :				\
 						va_arg((a), unsigned))	\
 				    :					\
@@ -902,7 +902,7 @@ shf_vfprintf(shf, fmt, args)
 	int		flags;
 	unsigned long	lnum;
 					/* %#o produces the longest output */
-	char		numbuf[(BITS(long) + 2) / 3 + 1];
+	char		numbuf[(BITS(int32_t) + 2) / 3 + 1];
 	/* this stuff for dealing with the buffer */
 	int		nwritten = 0;
 #ifdef FP
@@ -1024,8 +1024,8 @@ shf_vfprintf(shf, fmt, args)
 			switch (c) {
 			case 'd':
 			case 'i':
-				if (0 > (long) lnum)
-					lnum = - (long) lnum, tmp = 1;
+				if (0 > (int32_t) lnum)
+					lnum = - (int32_t) lnum, tmp = 1;
 				else
 					tmp = 0;
 				/* aaahhhh..... */

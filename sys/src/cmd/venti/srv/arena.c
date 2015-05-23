@@ -31,7 +31,7 @@ static QLock	sumlock;
 static Rendez	sumwait;
 static ASum	*sumq;
 static ASum	*sumqtail;
-static uchar zero[8192];
+static uint8_t zero[8192];
 
 int	arenasumsleeptime;
 
@@ -53,7 +53,7 @@ initarenasum(void)
  * make an Arena, and initialize it based upon the disk header and trailer.
  */
 Arena*
-initarena(Part *part, u64int base, u64int size, u32int blocksize)
+initarena(Part *part, uint64_t base, uint64_t size, uint32_t blocksize)
 {
 	Arena *arena;
 
@@ -89,7 +89,9 @@ freearena(Arena *arena)
 }
 
 Arena*
-newarena(Part *part, u32int vers, char *name, u64int base, u64int size, u32int blocksize)
+newarena(Part *part, uint32_t vers, char *name, uint64_t base,
+	 uint64_t size,
+	 uint32_t blocksize)
 {
 	int bsize;
 	Arena *arena;
@@ -184,8 +186,8 @@ writeclumpinfo(Arena *arena, int clump, ClumpInfo *ci)
 	return 0;
 }
 
-u64int
-arenadirsize(Arena *arena, u32int clumps)
+uint64_t
+arenadirsize(Arena *arena, uint32_t clumps)
 {
 	return ((clumps / arena->clumpmax) + 1) * arena->blocksize;
 }
@@ -195,13 +197,13 @@ arenadirsize(Arena *arena, u32int clumps)
  * n is a hint of the size of the data, not including the header
  * make sure it won't run off the end, then return the number of bytes actually read
  */
-u32int
-readarena(Arena *arena, u64int aa, u8int *buf, long n)
+uint32_t
+readarena(Arena *arena, uint64_t aa, uint8_t *buf, int32_t n)
 {
 	DBlock *b;
-	u64int a;
-	u32int blocksize, off, m;
-	long nn;
+	uint64_t a;
+	uint32_t blocksize, off, m;
+	int32_t nn;
 
 	if(n == 0)
 		return -1;
@@ -243,13 +245,13 @@ readarena(Arena *arena, u64int aa, u8int *buf, long n)
  * write some data to the clump section at a given offset
  * used to fix up corrupted arenas.
  */
-u32int
-writearena(Arena *arena, u64int aa, u8int *clbuf, u32int n)
+uint32_t
+writearena(Arena *arena, uint64_t aa, uint8_t *clbuf, uint32_t n)
 {
 	DBlock *b;
-	u64int a;
-	u32int blocksize, off, m;
-	long nn;
+	uint64_t a;
+	uint32_t blocksize, off, m;
+	int32_t nn;
 	int ok;
 
 	if(n == 0)
@@ -301,12 +303,12 @@ writearena(Arena *arena, u64int aa, u8int *clbuf, u32int n)
 ZZZ question: should this distinguish between an arena
 filling up and real errors writing the clump?
  */
-u64int
-writeaclump(Arena *arena, Clump *c, u8int *clbuf)
+uint64_t
+writeaclump(Arena *arena, Clump *c, uint8_t *clbuf)
 {
 	DBlock *b;
-	u64int a, aa;
-	u32int clump, n, nn, m, off, blocksize;
+	uint64_t a, aa;
+	uint32_t clump, n, nn, m, off, blocksize;
 	int ok;
 
 	n = c->info.size + ClumpSize + U32Size;
@@ -532,10 +534,10 @@ sumarena(Arena *arena)
 {
 	ZBlock *b;
 	DigestState s;
-	u64int a, e;
-	u32int bs;
+	uint64_t a, e;
+	uint32_t bs;
 	int t;
-	u8int score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 
 	bs = MaxIoSize;
 	if(bs < arena->blocksize)
@@ -693,8 +695,8 @@ loadarena(Arena *arena)
 				arena->name, head.name);
 		else if(arena->clumpmagic != head.clumpmagic)
 			logerr(ECorrupt, "arena %d tail clumpmagic 0x%lux head 0x%lux",
-				debugarena, (ulong)arena->clumpmagic,
-				(ulong)head.clumpmagic);
+				debugarena, (uint32_t)arena->clumpmagic,
+				(uint32_t)head.clumpmagic);
 		else if(arena->version != head.version)
 			logerr(ECorrupt, "arena tail version %d head version %d",
 				arena->version, head.version);
@@ -703,7 +705,8 @@ loadarena(Arena *arena)
 				arena->blocksize, head.blocksize);
 		else if(arena->size+2*arena->blocksize != head.size)
 			logerr(ECorrupt, "arena tail size %lud head %lud",
-				(ulong)arena->size+2*arena->blocksize, head.size);
+				(uint32_t)arena->size+2*arena->blocksize,
+			       head.size);
 		else
 			logerr(ECorrupt, "arena header inconsistent with arena data");
 	}
@@ -715,7 +718,7 @@ loadarena(Arena *arena)
 static int
 okarena(Arena *arena)
 {
-	u64int dsize;
+	uint64_t dsize;
 	int ok;
 
 	ok = 0;
@@ -749,7 +752,7 @@ getcib(Arena *arena, int clump, int writing, CIBlock *rock)
 {
 	int mode;
 	CIBlock *cib;
-	u32int block, off;
+	uint32_t block, off;
 
 	if(clump >= arena->memstats.clumps){
 		seterr(EOk, "clump directory access out of range");
@@ -808,10 +811,10 @@ putcib(Arena *arena, CIBlock *cib)
 static void
 loadcig(Arena *arena)
 {
-	u32int i, j, ncig, nci;
+	uint32_t i, j, ncig, nci;
 	ArenaCIG *cig;
 	ClumpInfo *ci;
-	u64int offset;
+	uint64_t offset;
 	int ms;
 
 	if(arena->cig || arena->ncig < 0)
@@ -859,7 +862,8 @@ out:
  * convert arena address into arena group + data boundaries.
  */
 int
-arenatog(Arena *arena, u64int addr, u64int *gstart, u64int *glimit, int *g)
+arenatog(Arena *arena, uint64_t addr, uint64_t *gstart, uint64_t *glimit,
+	 int *g)
 {
 	int r, l, m;
 
@@ -899,7 +903,7 @@ int
 asumload(Arena *arena, int g, IEntry *entries, int nentries)
 {
 	int i, base, limit;
-	u64int addr;
+	uint64_t addr;
 	ClumpInfo ci;
 	IEntry *ie;
 

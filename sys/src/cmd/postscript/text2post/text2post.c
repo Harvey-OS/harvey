@@ -40,7 +40,7 @@ double	yoffset = .25;
 
 static int pplistmaxsize = 0;
 
-uchar *pplist = 0;		/* bitmap list for storing pages to print */
+uint8_t *pplist = 0;		/* bitmap list for storing pages to print */
 
 struct strtab {
 	int	size;
@@ -312,7 +312,7 @@ txt2post(void) {
 	int lastfont = -1;
 	int lastchar = -1;
 	int thisfont, thischar;
-	long r;
+	int32_t r;
 
 	in_string = 0;
 	char_no = 0;

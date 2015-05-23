@@ -14,13 +14,13 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-static ulong padblockcnt;
-static ulong concatblockcnt;
-static ulong pullupblockcnt;
-static ulong copyblockcnt;
-static ulong consumecnt;
-static ulong producecnt;
-static ulong qcopycnt;
+static uint32_t padblockcnt;
+static uint32_t concatblockcnt;
+static uint32_t pullupblockcnt;
+static uint32_t copyblockcnt;
+static uint32_t consumecnt;
+static uint32_t producecnt;
+static uint32_t qcopycnt;
 
 static int debugging;
 
@@ -86,8 +86,7 @@ freeblist(Block *b)
 
 	for(; b != 0; b = next){
 		next = b->next;
-		if(b->ref == 1)
-			b->next = nil;
+		b->next = 0;
 		freeb(b);
 	}
 }
@@ -238,7 +237,7 @@ pullupblock(Block *bp, int n)
 		} else {
 			/* shouldn't happen but why crash if it does */
 			if(i < 0){
-				print("pullup negative length packet, called from %#p\n",
+				print("pullupblock -ve length, from %#p\n",
 					getcallerpc(&bp));
 				i = 0;
 			}
@@ -282,7 +281,7 @@ pullupqueue(Queue *q, int n)
 Block *
 trimblock(Block *bp, int offset, int len)
 {
-	ulong l;
+	int32_t l;
 	Block *nb, *startb;
 
 	QDEBUG checkb(bp, "trimblock 1");
@@ -327,7 +326,12 @@ copyblock(Block *bp, int count)
 	Block *nbp;
 
 	QDEBUG checkb(bp, "copyblock 0");
-	nbp = allocb(count);
+	if(bp->flag & BINTR){
+		nbp = iallocb(count);
+		if(nbp == nil)
+			return nil;
+	}else
+		nbp = allocb(count);
 	for(; count > 0 && bp != 0; bp = bp->next){
 		l = BLEN(bp);
 		if(l > count)
@@ -485,8 +489,10 @@ qdiscard(Queue *q, int len)
 	 *  I really don't understand it completely.  It may be
 	 *  due to the queue draining so fast that the transmission
 	 *  stalls waiting for the app to produce more data.  - presotto
+	 *
+	 *  changed back from q->len < q->limit for reno tcp. - jmk
 	 */
-	if((q->state & Qflow) && q->len < q->limit){
+	if((q->state & Qflow) && q->len < q->limit/2){
 		q->state &= ~Qflow;
 		dowakeup = 1;
 	} else
@@ -508,7 +514,7 @@ qconsume(Queue *q, void *vp, int len)
 {
 	Block *b;
 	int n, dowakeup;
-	uchar *p = vp;
+	uint8_t *p = vp;
 	Block *tofree = nil;
 
 	/* sync with qwrite */
@@ -634,9 +640,10 @@ qpassnolim(Queue *q, Block *b)
 	ilock(q);
 
 	if(q->state & Qclosed){
+		len = BALLOC(b);
 		freeblist(b);
 		iunlock(q);
-		return BALLOC(b);
+		return len;
 	}
 
 	/* add buffer to queue */
@@ -702,7 +709,7 @@ qproduce(Queue *q, void *vp, int len)
 {
 	Block *b;
 	int dowakeup;
-	uchar *p = vp;
+	uint8_t *p = vp;
 
 	/* sync with qread */
 	dowakeup = 0;
@@ -753,12 +760,12 @@ qproduce(Queue *q, void *vp, int len)
  *  copy from offset in the queue
  */
 Block*
-qcopy(Queue *q, int len, ulong offset)
+qcopy(Queue *q, int len, uint32_t offset)
 {
 	int sofar;
 	int n;
 	Block *b, *nb;
-	uchar *p;
+	uint8_t *p;
 
 	nb = allocb(len);
 
@@ -816,7 +823,7 @@ qopen(int limit, int msg, void (*kick)(void*), void *arg)
 	q->kick = kick;
 	q->arg = arg;
 	q->state = msg;
-	
+
 	q->state |= Qstarve;
 	q->eof = 0;
 	q->noblock = 0;
@@ -921,7 +928,7 @@ qremove(Queue *q)
  *  pointer to first unconsumed block.
  */
 Block*
-bl2mem(uchar *p, Block *b, int n)
+bl2mem(uint8_t *p, Block *b, int n)
 {
 	int i;
 	Block *next;
@@ -948,8 +955,9 @@ bl2mem(uchar *p, Block *b, int n)
  *  return nil on error.
  */
 Block*
-mem2bl(uchar *p, int len)
+mem2bl(uint8_t *p, int len)
 {
+	Mach *m = machp();
 	int n;
 	Block *b, *first, **l;
 
@@ -965,7 +973,7 @@ mem2bl(uchar *p, int len)
 			n = Maxatomic;
 
 		*l = b = allocb(n);
-		setmalloctag(b, (up->text[0]<<24)|(up->text[1]<<16)|(up->text[2]<<8)|up->text[3]);
+		setmalloctag(b, (m->externup->text[0]<<24)|(m->externup->text[1]<<16)|(m->externup->text[2]<<8)|m->externup->text[3]);
 		memmove(b->wp, p, n);
 		b->wp += n;
 		p += n;
@@ -999,13 +1007,15 @@ qputback(Queue *q, Block *b)
 static void
 qwakeup_iunlock(Queue *q)
 {
-	int dowakeup = 0;
+	int dowakeup;
 
 	/* if writer flow controlled, restart */
 	if((q->state & Qflow) && q->len < q->limit/2){
 		q->state &= ~Qflow;
 		dowakeup = 1;
 	}
+	else
+		dowakeup = 0;
 
 	iunlock(q);
 
@@ -1023,6 +1033,7 @@ qwakeup_iunlock(Queue *q)
 Block*
 qbread(Queue *q, int len)
 {
+	Mach *m = machp();
 	Block *b, *nb;
 	int n;
 
@@ -1075,11 +1086,12 @@ qbread(Queue *q, int len)
  *  read a queue.  if no data is queued, post a Block
  *  and wait on its Rendez.
  */
-long
+int32_t
 qread(Queue *q, void *vp, int len)
 {
+	Mach *m = machp();
 	Block *b, *first, **l;
-	int m, n;
+	int blen, n;
 
 	qlock(&q->rlock);
 	if(waserror()){
@@ -1117,17 +1129,17 @@ again:
 		 */
 		n = 0;
 		l = &first;
-		m = BLEN(b);
+		blen = BLEN(b);
 		for(;;) {
 			*l = qremove(q);
 			l = &b->next;
-			n += m;
+			n += blen;
 
 			b = q->bfirst;
 			if(b == nil)
 				break;
-			m = BLEN(b);
-			if(n+m > len)
+			blen = BLEN(b);
+			if(n+blen > len)
 				break;
 		}
 	} else {
@@ -1165,16 +1177,16 @@ qnotfull(void *a)
 	return q->len < q->limit || (q->state & Qclosed);
 }
 
-ulong noblockcnt;
+uint32_t noblockcnt;
 
 /*
  *  add a block to a queue obeying flow control
  */
-long
+int32_t
 qbwrite(Queue *q, Block *b)
 {
+	Mach *m = machp();
 	int n, dowakeup;
-	Proc *p;
 
 	n = BLEN(b);
 
@@ -1236,13 +1248,8 @@ qbwrite(Queue *q, Block *b)
 		q->kick(q->arg);
 
 	/* wakeup anyone consuming at the other end */
-	if(dowakeup){
-		p = wakeup(&q->rr);
-
-		/* if we just wokeup a higher priority process, let it run */
-		if(p != nil && p->priority > up->priority)
-			sched();
-	}
+	if(dowakeup)
+		wakeup(&q->rr);
 
 	/*
 	 *  flow control, wait for queue to get below the limit
@@ -1278,9 +1285,10 @@ qbwrite(Queue *q, Block *b)
 int
 qwrite(Queue *q, void *vp, int len)
 {
+	Mach *m = machp();
 	int n, sofar;
 	Block *b;
-	uchar *p = vp;
+	uint8_t *p = vp;
 
 	QDEBUG if(!islo())
 		print("qwrite hi %#p\n", getcallerpc(&q));
@@ -1292,7 +1300,7 @@ qwrite(Queue *q, void *vp, int len)
 			n = Maxatomic;
 
 		b = allocb(n);
-		setmalloctag(b, (up->text[0]<<24)|(up->text[1]<<16)|(up->text[2]<<8)|up->text[3]);
+		setmalloctag(b, (m->externup->text[0]<<24)|(m->externup->text[1]<<16)|(m->externup->text[2]<<8)|m->externup->text[3]);
 		if(waserror()){
 			freeb(b);
 			nexterror();
@@ -1321,7 +1329,7 @@ qiwrite(Queue *q, void *vp, int len)
 {
 	int n, sofar, dowakeup;
 	Block *b;
-	uchar *p = vp;
+	uint8_t *p = vp;
 
 	dowakeup = 0;
 

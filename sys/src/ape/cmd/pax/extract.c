@@ -425,20 +425,20 @@ Stat           *asb;
 
 #endif
 {
-    ushort          namesize;
+    uint16_t          namesize;
     uint            namefull;
     Binary          binary;
 
-    if (*((ushort *) magic) != SWAB(M_BINARY)) {
+    if (*((uint16_t *) magic) != SWAB(M_BINARY)) {
 	return (-1);
     }
     memcpy((char *) &binary,
-		  magic + sizeof(ushort),
-		  M_STRLEN - sizeof(ushort));
-    if (buf_read((char *) &binary + M_STRLEN - sizeof(ushort),
-		 sizeof(binary) - (M_STRLEN - sizeof(ushort))) < 0) {
+		  magic + sizeof(uint16_t),
+		  M_STRLEN - sizeof(uint16_t));
+    if (buf_read((char *) &binary + M_STRLEN - sizeof(uint16_t),
+		 sizeof(binary) - (M_STRLEN - sizeof(uint16_t))) < 0) {
 	warnarch("Corrupt swapped header",
-		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(ushort)));
+		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
 	return (-1);
     }
     asb->sb_dev = (dev_t) SWAB(binary.b_dev);
@@ -454,7 +454,7 @@ Stat           *asb;
     asb->sb_size = SWAB(binary.b_size[0]) << 16 | SWAB(binary.b_size[1]);
     if ((namesize = SWAB(binary.b_name)) == 0 || namesize >= PATH_MAX) {
 	warnarch("Bad swapped pathname length",
-		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(ushort)));
+		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
 	return (-1);
     }
     if (buf_read(name, namefull = namesize + namesize % 2) < 0) {
@@ -579,16 +579,16 @@ Stat           *asb;
     uint            namefull;
     Binary          binary;
 
-    if (*((ushort *) magic) != M_BINARY) {
+    if (*((uint16_t *) magic) != M_BINARY) {
 	return (-1);
     }
     memcpy((char *) &binary,
-		  magic + sizeof(ushort),
-		  M_STRLEN - sizeof(ushort));
-    if (buf_read((char *) &binary + M_STRLEN - sizeof(ushort),
-		 sizeof(binary) - (M_STRLEN - sizeof(ushort))) < 0) {
+		  magic + sizeof(uint16_t),
+		  M_STRLEN - sizeof(uint16_t));
+    if (buf_read((char *) &binary + M_STRLEN - sizeof(uint16_t),
+		 sizeof(binary) - (M_STRLEN - sizeof(uint16_t))) < 0) {
 	warnarch("Corrupt binary header",
-		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(ushort)));
+		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
 	return (-1);
     }
     asb->sb_dev = binary.b_dev;
@@ -604,7 +604,7 @@ Stat           *asb;
     asb->sb_size = binary.b_size[0] << 16 | binary.b_size[1];
     if (binary.b_name == 0 || binary.b_name >= PATH_MAX) {
 	warnarch("Bad binary pathname length",
-		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(ushort)));
+		 (OFFSET) sizeof(binary) - (M_STRLEN - sizeof(uint16_t)));
 	return (-1);
     }
     if (buf_read(name, namefull = binary.b_name + binary.b_name % 2) < 0) {

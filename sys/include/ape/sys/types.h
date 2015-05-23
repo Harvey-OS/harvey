@@ -15,9 +15,9 @@ typedef	unsigned short	ino_t;
 typedef	unsigned short	dev_t;
 typedef	long long		off_t;
 typedef unsigned short	mode_t;
-typedef short		uid_t;
-typedef short		gid_t;
-typedef short		nlink_t;
+typedef int16_t		uid_t;
+typedef int16_t		gid_t;
+typedef int16_t		nlink_t;
 typedef int		pid_t;
 
 #ifndef _SIZE_T
@@ -31,7 +31,7 @@ typedef long ssize_t;
 
 #ifndef _TIME_T
 #define _TIME_T
-typedef long time_t;
+typedef int32_t time_t;
 #endif
 
 #ifdef _BSD_EXTENSION
@@ -43,7 +43,7 @@ typedef char * caddr_t;
 #define _FD_SET_T
 /* also cf <select.h> */
 typedef struct fd_set {
-	long fds_bits[3];
+	int32_t fds_bits[3];
 } fd_set;
 #define FD_SET(n,p)	((p)->fds_bits[(n)>>5] |= (1 << ((n) &0x1f)))
 #define FD_CLR(n,p)	((p)->fds_bits[(n)>>5] &= ~(1 << ((n) &0x1f)))

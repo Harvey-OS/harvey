@@ -41,10 +41,10 @@ typedef struct{
 	char *rp;	/* read pointer (or write end-of-buffer) */
 	char *wp;	/* write pointer (or read end-of-buffer) */
 	char *lp;	/* actual write pointer used when line-buffering */
-	long bufl;	/* actual length of buffer */
+	int32_t bufl;	/* actual length of buffer */
 	char unbuf[1];	/* tiny buffer for unbuffered io (used for ungetc?) */
 }FILE;
-typedef long fpos_t;
+typedef int32_t fpos_t;
 #ifndef NULL
 #define	NULL	((void*)0)
 #endif
@@ -77,7 +77,7 @@ FILE *fopen(const char *, const char *);
 FILE *fdopen(const int, const char *);
 FILE *freopen(const char *, const char *, FILE *);
 void setbuf(FILE *, char *);
-int setvbuf(FILE *, char *, int, long);
+int setvbuf(FILE *, char *, int, int32_t);
 int fprintf(FILE *, const char *, ...);
 int fscanf(FILE *, const char *, ...);
 int printf(const char *, ...);
@@ -107,13 +107,13 @@ int putchar(int);
 #define	putchar(c)	putc(c, stdout)
 int puts(const char *);
 int ungetc(int, FILE *);
-long fread(void *, long, long, FILE *);
-long fwrite(const void *, long, long, FILE *);
+int32_t fread(void *, int32_t, int32_t, FILE *);
+int32_t fwrite(const void *, int32_t, int32_t, FILE *);
 int fgetpos(FILE *, fpos_t *);
-int fseek(FILE *, long, int);
+int fseek(FILE *, int32_t, int);
 int fseeko(FILE *, long long, int);
 int fsetpos(FILE *, const fpos_t *);
-long ftell(FILE *);
+int32_t ftell(FILE *);
 long long ftello(FILE *);
 void rewind(FILE *);
 void clearerr(FILE *);

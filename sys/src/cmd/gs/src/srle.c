@@ -63,7 +63,7 @@ s_RLE_process(stream_state * st, stream_cursor_read * pr,
     const byte *rlimit = pr->limit;
     byte *wlimit = pw->limit;
     int status = 0;
-    ulong rleft = ss->record_left;
+    uint32_t rleft = ss->record_left;
 
     /*
      * We thought that the Genoa CET demands that the output from this

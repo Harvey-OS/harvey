@@ -77,10 +77,10 @@ timeout(void*, char *msg)
 	return 0;
 }
 
-long
-timedwrite(int fd, void *buf, long len, long ms)
+int32_t
+timedwrite(int fd, void *buf, int32_t len, int32_t ms)
 {
-	long n, oalarm;
+	int32_t n, oalarm;
 
 	atnotify(timeout, 1);
 	oalarm = alarm(ms);

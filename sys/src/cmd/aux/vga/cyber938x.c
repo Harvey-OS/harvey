@@ -18,7 +18,7 @@
  * Trident Cyber938x.
  */
 typedef struct {
-	uchar	old[3];
+	uint8_t	old[3];
 	int	pcr;		/* Pixel Command Register */
 
 	int	x;

@@ -63,8 +63,8 @@ struct Fid
 
 struct	Cidraddr
 {
-	ulong	ipaddr;		/* CIDR base addr */
-	ulong	mask;		/* CIDR mask */
+	uint32_t	ipaddr;		/* CIDR base addr */
+	uint32_t	mask;		/* CIDR mask */
 };
 
 	/* an address is either an account name (domain!user) or Ip address */
@@ -80,7 +80,7 @@ struct Node
 	Dir	d;		/* d.name, d.uid, d.gid, d.muid are atoms */
 	int	count;
 	int	allocated;	/* number of Address structs allocated */
-	ulong	baseqid;	/* base of Qid's in this set */
+	uint32_t	baseqid;	/* base of Qid's in this set */
 	Node	*parent;	/* points to self in root node*/
 	Node	*sibs;		/* 0 in Ipaddr and Acctaddr dirs */
 	union {
@@ -117,7 +117,7 @@ int	findkey(char*, Keyword*);
 void	getconf(void);
 int	hread(Fid*, int);
 void	io(void);
-Node*	newnode(Node*, char*, ushort, int, ulong);
+Node*	newnode(Node*, char*, ushort, int, uint32_t);
 void	printfid(Fid*);
 void	printnode(Node*);
 void	printtree(Node*);

@@ -54,7 +54,7 @@ recv_ssh_cmsg_session_key(Conn *c, AuthRpc *rpc)
 {
 	int i, id, n, serverkeylen, hostkeylen;
 	mpint *a, *b;
-	uchar *buf;
+	uint8_t *buf;
 	Msg *m;
 	RSApriv *ksmall, *kbig;
 

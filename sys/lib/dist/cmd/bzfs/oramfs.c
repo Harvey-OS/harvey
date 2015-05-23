@@ -50,8 +50,8 @@ struct Ram
 	Qid	qid;
 	long	perm;
 	char	*name;
-	ulong	atime;
-	ulong	mtime;
+	uint32_t	atime;
+	uint32_t	mtime;
 	char	*user;
 	char	*group;
 	char	*muid;
@@ -69,7 +69,7 @@ enum
 	Powner =	64,
 };
 
-ulong	path;		/* incremented for each new file */
+uint32_t	path;		/* incremented for each new file */
 Fid	*fids;
 Ram	ram[Nram];
 int	nram;
@@ -85,8 +85,8 @@ int	messagesize = sizeof mdata;
 Fid *	newfid(int);
 uint	ramstat(Ram*, uchar*, uint);
 void	io(void);
-void	*erealloc(void*, ulong);
-void	*emalloc(ulong);
+void	*erealloc(void*, uint32_t);
+void	*emalloc(uint32_t);
 char	*estrdup(char*);
 void	ramfsusage(void);
 int	perm(Fid*, Ram*, int);
@@ -295,7 +295,7 @@ rwalk(Fid *f)
 	Ram *parent;
 	Fid *nf;
 	char *err;
-	ulong t;
+	uint32_t t;
 	int i;
 
 	err = nil;
@@ -524,7 +524,7 @@ char*
 rwrite(Fid *f)
 {
 	Ram *r;
-	ulong off;
+	uint32_t off;
 	int cnt;
 
 	r = f->ram;
@@ -805,7 +805,7 @@ perm(Fid *f, Ram *r, int p)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -817,7 +817,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(!p)

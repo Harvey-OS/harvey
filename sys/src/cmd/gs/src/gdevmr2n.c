@@ -89,7 +89,7 @@ mem_gray_strip_copy_rop(gx_device * dev,
     const gx_color_index *real_tcolors = tcolors;
     gx_strip_bitmap texture2;
     const gx_strip_bitmap *real_texture = textures;
-    long tdata;
+    int32_t tdata;
     int depth = dev->color_info.depth;
     int log2_depth = depth >> 1;	/* works for 2, 4 */
     gx_color_index max_pixel = (1 << depth) - 1;

@@ -103,8 +103,8 @@ struct HSPairs
 struct HRange
 {
 	int		suffix;			/* is this a suffix request? */
-	ulong		start;
-	ulong		stop;			/* ~0UL -> not given */
+	uint32_t		start;
+	uint32_t		stop;			/* ~0UL -> not given */
 	HRange		*next;
 };
 
@@ -137,14 +137,14 @@ enum
 struct Hio {
 	Hio		*hh; /* next lower layer Hio, or nil if reads from fd */
 	int		fd;		/* associated file descriptor */
-	ulong		seek;		/* of start */
-	uchar		state;		/* state of the file */
-	uchar		xferenc;	/* chunked transfer encoding state */
-	uchar		*pos;		/* current position in the buffer */
-	uchar		*stop;		/* last character active in the buffer */
-	uchar		*start;		/* start of data buffer */
-	ulong		bodylen;	/* remaining length of message body */
-	uchar		buf[Hsize+32];
+	uint32_t		seek;		/* of start */
+	uint8_t		state;		/* state of the file */
+	uint8_t		xferenc;	/* chunked transfer encoding state */
+	uint8_t		*pos;		/* current position in the buffer */
+	uint8_t		*stop;		/* last character active in the buffer */
+	uint8_t		*start;		/* start of data buffer */
+	uint32_t		bodylen;	/* remaining length of message body */
+	uint8_t		buf[Hsize+32];
 };
 
 /*
@@ -167,11 +167,11 @@ struct HttpReq
 struct HttpHead
 {
 	int	closeit;	/* http1.1 close connection after this request? */
-	uchar	persist;	/* http/1.1 requests a persistent connection */
+	uint8_t	persist;	/* http/1.1 requests a persistent connection */
 
-	uchar	expectcont;	/* expect a 100-continue */
-	uchar	expectother; /* expect anything else; should reject with ExpectFail */
-	ulong	contlen;	/* if != ~0UL, length of included message body */
+	uint8_t	expectcont;	/* expect a 100-continue */
+	uint8_t	expectother; /* expect anything else; should reject with ExpectFail */
+	uint32_t	contlen;	/* if != ~0UL, length of included message body */
 	HFields	*transenc;  /* if present, encoding of included message body */
 	char	*client;
 	char	*host;
@@ -179,9 +179,9 @@ struct HttpHead
 	HContent *oklang;
 	HContent *oktype;
 	HContent *okchar;
-	ulong	ifmodsince;
-	ulong	ifunmodsince;
-	ulong	ifrangedate;
+	uint32_t	ifmodsince;
+	uint32_t	ifunmodsince;
+	uint32_t	ifrangedate;
 	HETag	*ifmatch;
 	HETag	*ifnomatch;
 	HETag	*ifrangeetag;
@@ -214,11 +214,11 @@ struct HConnect
 
 	Bin	*bin;
 
-	ulong	reqtime;		/* time at start of request */
+	uint32_t	reqtime;		/* time at start of request */
 	char	xferbuf[HBufSize]; /* buffer for making up or transferring data */
-	uchar	header[HBufSize + 2];	/* room for \n\0 */
-	uchar	*hpos;
-	uchar	*hstop;
+	uint8_t	header[HBufSize + 2];	/* room for \n\0 */
+	uint8_t	*hpos;
+	uint8_t	*hstop;
 	Hio	hin;
 	Hio	hout;
 };
@@ -233,12 +233,12 @@ extern	Htmlesc		htmlesc[];
 /*
  * .+2,/^$/ | sort -bd +1
  */
-void			*halloc(HConnect *c, ulong size);
-Hio			*hbodypush(Hio *hh, ulong len, HFields *te);
+void			*halloc(HConnect *c, uint32_t size);
+Hio			*hbodypush(Hio *hh, uint32_t len, HFields *te);
 int			hbuflen(Hio *h, void *p);
 int			hcheckcontent(HContent*, HContent*, char*, int);
 void			hclose(Hio*);
-ulong			hdate2sec(char*);
+uint32_t			hdate2sec(char*);
 int			hdatefmt(Fmt*);
 int			hfail(HConnect*, int, ...);
 int			hflush(Hio*);
@@ -249,10 +249,13 @@ int			hiserror(Hio *h);
 int			hlflush(Hio*);
 int			hload(Hio*, char*);
 char			*hlower(char*);
-HContent		*hmkcontent(HConnect *c, char *generic, char *specific, HContent *next);
-HFields			*hmkhfields(HConnect *c, char *s, HSPairs *p, HFields *next);
+HContent		*hmkcontent(HConnect *c, char *generic,
+				    char *specific, HContent *next);
+HFields			*hmkhfields(HConnect *c, char *s,
+					   HSPairs *p, HFields *next);
 char			*hmkmimeboundary(HConnect *c);
-HSPairs			*hmkspairs(HConnect *c, char *s, char *t, HSPairs *next);
+HSPairs			*hmkspairs(HConnect *c, char *s, char *t,
+					  HSPairs *next);
 int			hmoved(HConnect *c, char *uri);
 void			hokheaders(HConnect *c);
 int			hparseheaders(HConnect*, int timeout);

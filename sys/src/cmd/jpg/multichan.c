@@ -19,7 +19,7 @@
 
 static
 int
-notrans(ulong chan)
+notrans(uint32_t chan)
 {
 	switch(chan){
 	case GREY1:

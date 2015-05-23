@@ -11,14 +11,14 @@
 #include <mp.h>
 #include <libsec.h>
 
-uchar key[] = "Jefe";
-uchar data[] = "what do ya want for nothing?";
+uint8_t key[] = "Jefe";
+uint8_t data[] = "what do ya want for nothing?";
 
 void
 main(void)
 {
 	int i;
-	uchar hash[MD5dlen];
+	uint8_t hash[MD5dlen];
 
 	hmac_md5(data, strlen((char*)data), key, 4, hash, nil);
 	for(i=0; i<MD5dlen; i++)

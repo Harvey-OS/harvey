@@ -16,7 +16,7 @@ enum
 	Isprefix= 16,
 };
 
-uchar prefixvals[256] =
+unsigned char prefixvals[256] =
 {
 [0x00] 0 | Isprefix,
 [0x80] 1 | Isprefix,
@@ -35,19 +35,19 @@ eipfmt(Fmt *f)
 	char buf[5*8];
 	static char *efmt = "%.2ux%.2ux%.2ux%.2ux%.2ux%.2ux";
 	static char *ifmt = "%d.%d.%d.%d";
-	uchar *p, ip[16];
-	ulong *lp;
-	ushort s;
+	uint8_t *p, ip[16];
+	uint32_t *lp;
+	uint16_t s;
 	int i, j, n, eln, eli;
 
 	switch(f->r) {
 	case 'E':		/* Ethernet address */
-		p = va_arg(f->args, uchar*);
+		p = va_arg(f->args, uint8_t*);
 		snprint(buf, sizeof buf, efmt, p[0], p[1], p[2], p[3], p[4], p[5]);
 		return fmtstrcpy(f, buf);
 
 	case 'I':		/* Ip address */
-		p = va_arg(f->args, uchar*);
+		p = va_arg(f->args, uint8_t*);
 common:
 		if(memcmp(p, v4prefix, 12) == 0){
 			snprint(buf, sizeof buf, ifmt, p[12], p[13], p[14], p[15]);
@@ -82,19 +82,19 @@ common:
 		return fmtstrcpy(f, buf);
 
 	case 'i':		/* v6 address as 4 longs */
-		lp = va_arg(f->args, ulong*);
+		lp = va_arg(f->args, uint32_t*);
 		for(i = 0; i < 4; i++)
 			hnputl(ip+4*i, *lp++);
 		p = ip;
 		goto common;
 
 	case 'V':		/* v4 ip address */
-		p = va_arg(f->args, uchar*);
+		p = va_arg(f->args, uint8_t*);
 		snprint(buf, sizeof buf, ifmt, p[0], p[1], p[2], p[3]);
 		return fmtstrcpy(f, buf);
 
 	case 'M':		/* ip mask */
-		p = va_arg(f->args, uchar*);
+		p = va_arg(f->args, uint8_t*);
 
 		/* look for a prefix mask */
 		for(i = 0; i < 16; i++)

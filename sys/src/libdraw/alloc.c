@@ -12,7 +12,7 @@
 #include <draw.h>
 
 Image*
-allocimage(Display *d, Rectangle r, ulong chan, int repl, ulong val)
+allocimage(Display *d, Rectangle r, uint32_t chan, int repl, uint32_t val)
 {
 	Image*	i;
 
@@ -23,9 +23,10 @@ allocimage(Display *d, Rectangle r, ulong chan, int repl, ulong val)
 }
 
 Image*
-_allocimage(Image *ai, Display *d, Rectangle r, ulong chan, int repl, ulong val, int screenid, int refresh)
+_allocimage(Image *ai, Display *d, Rectangle r, uint32_t chan, int repl,
+	    uint32_t val, int screenid, int refresh)
 {
-	uchar *a;
+	uint8_t *a;
 	char *err;
 	Image *i;
 	Rectangle clipr;
@@ -111,11 +112,11 @@ _allocimage(Image *ai, Display *d, Rectangle r, ulong chan, int repl, ulong val,
 Image*
 namedimage(Display *d, char *name)
 {
-	uchar *a;
+	uint8_t *a;
 	char *err, buf[12*12+1];
 	Image *i;
 	int id, n;
-	ulong chan;
+	uint32_t chan;
 
 	err = 0;
 	i = 0;
@@ -186,7 +187,7 @@ namedimage(Display *d, char *name)
 int
 nameimage(Image *i, char *name, int in)
 {
-	uchar *a;
+	uint8_t *a;
 	int n;
 
 	n = strlen(name);
@@ -206,7 +207,7 @@ nameimage(Image *i, char *name, int in)
 int
 _freeimage1(Image *i)
 {
-	uchar *a;
+	uint8_t *a;
 	Display *d;
 	Image *w;
 

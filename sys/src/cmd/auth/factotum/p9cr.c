@@ -175,8 +175,8 @@ static int
 p9response(Fsstate *fss, State *s)
 {
 	char key[DESKEYLEN];
-	uchar buf[8];
-	ulong chal;
+	uint8_t buf[8];
+	uint32_t chal;
 	char *pw;
 
 	pw = _strfindattr(s->key->privattr, "!password");
@@ -192,7 +192,7 @@ p9response(Fsstate *fss, State *s)
 	return RpcOk;
 }
 
-static uchar tab[256];
+static uint8_t tab[256];
 
 /* VNC reverses the bits of each byte before using as a des key */
 static void
@@ -218,7 +218,7 @@ mktab(void)
 static int
 vncaddkey(Key *k, int before)
 {
-	uchar *p;
+	uint8_t *p;
 	char *s;
 
 	k->priv = emalloc(8+1);
@@ -242,13 +242,13 @@ vncclosekey(Key *k)
 }
 
 static int
-vncresponse(Fsstate*, State *s)
+vncresponse(Fsstate* f, State *s)
 {
 	DESstate des;
 
 	memmove(s->resp, s->chal, sizeof s->chal);
 	setupDESstate(&des, s->key->priv, nil);
-	desECBencrypt((uchar*)s->resp, s->challen, &des);
+	desECBencrypt((uint8_t*)s->resp, s->challen, &des);
 	s->resplen = s->challen;
 	return RpcOk;
 }

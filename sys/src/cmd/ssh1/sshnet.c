@@ -108,7 +108,7 @@ Channel *fsreqchan;			/* chan(Req*) */
 Channel *fsreqwaitchan;		/* chan(nil) */
 Channel *fsclunkchan;		/* chan(Fid*) */
 Channel *fsclunkwaitchan;	/* chan(nil) */
-ulong time0;
+uint32_t time0;
 
 enum
 {
@@ -314,7 +314,7 @@ typedef struct Tab Tab;
 struct Tab
 {
 	char *name;
-	ulong mode;
+	uint32_t mode;
 };
 
 Tab tab[] =
@@ -332,7 +332,7 @@ Tab tab[] =
 };
 
 static void
-fillstat(Dir *d, uvlong path)
+fillstat(Dir *d, uint64_t path)
 {
 	Tab *t;
 
@@ -420,7 +420,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i, n;
 	char buf[32];
-	ulong path;
+	uint32_t path;
 
 	path = fid->qid.path;
 	if(!(fid->qid.type&QTDIR))
@@ -702,7 +702,7 @@ static void
 fsread(Req *r)
 {
 	char e[ERRMAX];
-	ulong path;
+	uint32_t path;
 
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
@@ -755,7 +755,7 @@ fsread(Req *r)
 static void
 fswrite(Req *r)
 {
-	ulong path;
+	uint32_t path;
 	char e[ERRMAX];
 
 	path = r->fid->qid.path;
@@ -783,7 +783,7 @@ static void
 fsopen(Req *r)
 {
 	static int need[4] = { 4, 2, 6, 1 };
-	ulong path;
+	uint32_t path;
 	int n;
 	Tab *t;
 	Cs *cs;
@@ -915,7 +915,7 @@ handlemsg(Msg *m)
 void
 fsnetproc(void*)
 {
-	ulong path;
+	uint32_t path;
 	Alt a[4];
 	Cs *cs;
 	Fid *fid;

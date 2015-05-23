@@ -41,7 +41,7 @@ gc_strings_set_marks(chunk_t * cp, bool mark)
 {
     if (cp->smark != 0) {
 	if_debug3('6', "[6]clearing string marks 0x%lx[%u] to %d\n",
-		  (ulong) cp->smark, cp->smark_size, (int)mark);
+		  (uint32_t) cp->smark, cp->smark_size, (int)mark);
 	memset(cp->smark, 0, cp->smark_size);
 	if (mark)
 	    gc_mark_string(cp->sbase, cp->climit - cp->sbase, true, cp);
@@ -137,7 +137,7 @@ gc_string_mark(const byte * ptr, uint size, bool set, gc_state_t * gcst)
     if (!(cp = gc_locate(ptr, gcst))) {		/* not in a chunk */
 #ifdef DEBUG
 	if (gs_debug_c('5')) {
-	    dlprintf2("[5]0x%lx[%u]", (ulong) ptr, size);
+	    dlprintf2("[5]0x%lx[%u]", (uint32_t) ptr, size);
 	    dprintstr();
 	    dputs(" not in a chunk\n");
 	}
@@ -149,7 +149,8 @@ gc_string_mark(const byte * ptr, uint size, bool set, gc_state_t * gcst)
 #ifdef DEBUG
     if (ptr < cp->ctop) {
 	lprintf4("String pointer 0x%lx[%u] outside [0x%lx..0x%lx)\n",
-		 (ulong) ptr, size, (ulong) cp->ctop, (ulong) cp->climit);
+		 (uint32_t) ptr, size, (uint32_t) cp->ctop,
+                 (uint32_t) cp->climit);
 	return false;
     } else if (ptr + size > cp->climit) {	/*
 						 * If this is the bottommost string in a chunk that has
@@ -168,8 +169,8 @@ gc_string_mark(const byte * ptr, uint size, bool set, gc_state_t * gcst)
 	    scp = scp->outer;
 	if (ptr + size > scp->climit) {
 	    lprintf4("String pointer 0x%lx[%u] outside [0x%lx..0x%lx)\n",
-		     (ulong) ptr, size,
-		     (ulong) scp->ctop, (ulong) scp->climit);
+		     (uint32_t) ptr, size,
+		     (uint32_t) scp->ctop, (uint32_t) scp->climit);
 	    return false;
 	}
     }
@@ -179,7 +180,7 @@ gc_string_mark(const byte * ptr, uint size, bool set, gc_state_t * gcst)
     if (gs_debug_c('5')) {
 	dlprintf4("[5]%s%smarked 0x%lx[%u]",
 		  (marks ? "" : "already "), (set ? "" : "un"),
-		  (ulong) ptr, size);
+		  (uint32_t) ptr, size);
 	dprintstr();
 	dputc('\n');
     }
@@ -195,7 +196,7 @@ gc_strings_clear_reloc(chunk_t * cp)
     if (cp->sreloc != 0) {
 	gc_strings_set_marks(cp, true);
 	if_debug1('6', "[6]clearing string reloc 0x%lx\n",
-		  (ulong) cp->sreloc);
+		  (uint32_t) cp->sreloc);
 	gc_strings_set_reloc(cp);
     }
 }
@@ -315,7 +316,7 @@ igc_reloc_string(gs_string * sptr, gc_state_t * gcst)
     byt = *bitp & (0xff >> (8 - (offset & 7)));
     reloc -= byte_count_one_bits(byt);
     if_debug2('5', "[5]relocate string 0x%lx to 0x%lx\n",
-	      (ulong) ptr, (ulong) (cp->sdest - reloc));
+	      (uint32_t) ptr, (uint32_t) (cp->sdest - reloc));
     sptr->data = cp->sdest - reloc;
 }
 void
@@ -354,7 +355,7 @@ gc_strings_compact(chunk_t * cp)
 	    for (; i < n; i += R) {
 		uint j;
 
-		dlprintf1("[4]0x%lx: ", (ulong) (base + i));
+		dlprintf1("[4]0x%lx: ", (uint32_t) (base + i));
 		for (j = i; j < i + R; j++) {
 		    byte ch = base[j];
 

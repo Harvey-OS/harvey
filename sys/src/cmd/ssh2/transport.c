@@ -45,16 +45,16 @@ add_byte(Packet *p, char c)
 }
 
 void
-add_uint32(Packet *p, ulong l)
+add_uint32(Packet *p, uint32_t l)
 {
 	hnputl(p->payload+p->rlength-1, l);
 	p->rlength += 4;
 }
 
-ulong
-get_uint32(Packet *, uchar **data)
+uint32_t
+get_uint32(Packet *, uint8_t **data)
 {
-	ulong x;
+	uint32_t x;
 	x = nhgetl(*data);
 	*data += 4;
 	return x;
@@ -81,9 +81,9 @@ add_block(Packet *p, void *data, int len)
 void 
 add_string(Packet *p, char *s)
 {
-	uchar *q;
+	uint8_t *q;
 	int n;
-	uchar nn[4];
+	uint8_t nn[4];
 
 	n = strlen(s);
 	hnputl(nn, n);
@@ -93,8 +93,8 @@ add_string(Packet *p, char *s)
 	p->rlength += n + 4;
 }
 
-uchar *
-get_string(Packet *p, uchar *q, char *s, int lim, int *len)
+uint8_t *
+get_string(Packet *p, uint8_t *q, char *s, int lim, int *len)
 {
 	int n, m;
 
@@ -117,7 +117,7 @@ get_string(Packet *p, uchar *q, char *s, int lim, int *len)
 void
 add_mp(Packet *p, mpint *x)
 {
-	uchar *q;
+	uint8_t *q;
 	int n;
 
 	q = p->payload + p->rlength - 1;
@@ -132,7 +132,7 @@ add_mp(Packet *p, mpint *x)
 }
 
 mpint *
-get_mp(uchar *q)
+get_mp(uint8_t *q)
 {
 	return betomp(q + 4, nhgetl(q), nil);
 }
@@ -141,7 +141,7 @@ int
 finish_packet(Packet *p)
 {
 	Conn *c;
-	uchar *q, *buf;
+	uint8_t *q, *buf;
 	int blklen, i, n2, n1, maclen;
 
 	c = p->c;
@@ -190,9 +190,9 @@ int
 undo_packet(Packet *p)
 {
 	Conn *c;
-	long nlength;
+	int32_t nlength;
 	int nb;
-	uchar rmac[SHA1dlen], *buf;
+	uint8_t rmac[SHA1dlen], *buf;
 
 	c = p->c;
 	nb = 4;

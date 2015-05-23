@@ -12,10 +12,10 @@
 
 #define	MASK	0x7fffffffL
 
-long
-lnrand(long n)
+int32_t
+lnrand(int32_t n)
 {
-	long slop, v;
+	int32_t slop, v;
 
 	if(n < 0)
 		return n;

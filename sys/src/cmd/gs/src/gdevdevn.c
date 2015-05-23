@@ -692,8 +692,8 @@ fixed_colorant_name DeviceCMYKComponents[] = {
 #define spotcmyk_device_body(procs, dname, ncomp, pol, depth, mg, mc, cn)\
     std_device_full_body_type_extended(spotcmyk_device, &procs, dname,\
 	  &st_spotcmyk_device,\
-	  (int)((long)(DEFAULT_WIDTH_10THS) * (X_DPI) / 10),\
-	  (int)((long)(DEFAULT_HEIGHT_10THS) * (Y_DPI) / 10),\
+	  (int)((int32_t)(DEFAULT_WIDTH_10THS) * (X_DPI) / 10),\
+	  (int)((int32_t)(DEFAULT_HEIGHT_10THS) * (Y_DPI) / 10),\
 	  X_DPI, Y_DPI,\
     	  GX_DEVICE_COLOR_MAX_COMPONENTS,	/* MaxComponents */\
 	  ncomp,		/* NumComp */\
@@ -1118,17 +1118,17 @@ typedef struct pcx_header_s {
 #define version_3_0 /* with palette */	5
     byte encoding;		/* 1=RLE */
     byte bpp;			/* bits per pixel per plane */
-    ushort x1;			/* X of upper left corner */
-    ushort y1;			/* Y of upper left corner */
-    ushort x2;			/* x1 + width - 1 */
-    ushort y2;			/* y1 + height - 1 */
-    ushort hres;		/* horz. resolution (dots per inch) */
-    ushort vres;		/* vert. resolution (dots per inch) */
+    uint16_t x1;			/* X of upper left corner */
+    uint16_t y1;			/* Y of upper left corner */
+    uint16_t x2;			/* x1 + width - 1 */
+    uint16_t y2;			/* y1 + height - 1 */
+    uint16_t hres;		/* horz. resolution (dots per inch) */
+    uint16_t vres;		/* vert. resolution (dots per inch) */
     byte palette[16 * 3];	/* color palette */
     byte reserved;
     byte nplanes;		/* number of color planes */
-    ushort bpl;			/* number of bytes per line (uncompressed) */
-    ushort palinfo;
+    uint16_t bpl;			/* number of bytes per line (uncompressed) */
+    uint16_t palinfo;
 #define palinfo_color	1
 #define palinfo_gray	2
     byte xtra[58];		/* fill out header to 128 bytes */

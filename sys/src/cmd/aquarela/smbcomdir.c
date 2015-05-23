@@ -10,11 +10,11 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomcheckdirectory(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
+smbcomcheckdirectory(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 {
 	char *path;
 	Dir *d;
-	uchar fmt;
+	uint8_t fmt;
 	SmbProcessResult pr;
 	SmbTree *t;
 	char *fullpath = nil;

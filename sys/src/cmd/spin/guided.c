@@ -28,7 +28,7 @@ extern Element	*Al_El;
 extern Symbol	*Fname, *oFname;
 extern int	verbose, lineno, xspin, jumpsteps, depth, merger, cutoff;
 extern int	nproc, nstop, Tval, ntrail, columns;
-extern short	Have_claim, Skip_claim;
+extern int16_t	Have_claim, Skip_claim;
 extern void ana_src(int, int);
 extern char	**trailfilename;
 

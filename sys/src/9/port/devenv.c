@@ -25,7 +25,7 @@ static int	envwriteable(Chan *c);
 static Egrp	confegrp;	/* global environment group containing the kernel configuration */
 
 static Evalue*
-envlookup(Egrp *eg, char *name, ulong qidpath)
+envlookup(Egrp *eg, char *name, uint32_t qidpath)
 {
 	Evalue *e;
 	int i;
@@ -39,8 +39,9 @@ envlookup(Egrp *eg, char *name, ulong qidpath)
 }
 
 static int
-envgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+envgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Egrp *eg;
 	Evalue *e;
 
@@ -63,8 +64,8 @@ envgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 	}
 
 	/* make sure name string continues to exist after we release lock */
-	kstrcpy(up->genbuf, e->name, sizeof up->genbuf);
-	devdir(c, e->qid, up->genbuf, e->len, eve, 0666, dp);
+	kstrcpy(m->externup->genbuf, e->name, sizeof m->externup->genbuf);
+	devdir(c, e->qid, m->externup->genbuf, e->len, eve, 0666, dp);
 	runlock(eg);
 	return 1;
 }
@@ -93,8 +94,8 @@ envwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, 0, 0, envgen);
 }
 
-static int
-envstat(Chan *c, uchar *db, int n)
+static int32_t
+envstat(Chan *c, uint8_t *db, int32_t n)
 {
 	if(c->qid.type & QTDIR)
 		c->qid.vers = envgrp(c)->vers;
@@ -147,16 +148,15 @@ envopen(Chan *c, int omode)
 }
 
 static void
-envcreate(Chan *c, char *name, int omode, ulong)
+envcreate(Chan *c, char *name, int omode, int i)
 {
+	Mach *m = machp();
 	Egrp *eg;
 	Evalue *e;
 	Evalue **ent;
 
 	if(c->qid.type != QTDIR)
 		error(Eperm);
-	if(strlen(name) >= sizeof up->genbuf)
-		error("name too long");			/* protect envgen */
 
 	omode = openmode(omode);
 	eg = envgrp(c);
@@ -239,12 +239,12 @@ envclose(Chan *c)
 		envremove(c);
 }
 
-static long
-envread(Chan *c, void *a, long n, vlong off)
+static int32_t
+envread(Chan *c, void *a, int32_t n, int64_t off)
 {
 	Egrp *eg;
 	Evalue *e;
-	ulong offset = off;
+	int32_t offset;
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, envgen);
@@ -257,7 +257,8 @@ envread(Chan *c, void *a, long n, vlong off)
 		error(Enonexist);
 	}
 
-	if(offset > e->len)	/* protects against overflow converting vlong to ulong */
+	offset = off;
+	if(offset > e->len)	/* protects against overflow converting int64_t to long */
 		n = 0;
 	else if(offset + n > e->len)
 		n = e->len - offset;
@@ -269,17 +270,17 @@ envread(Chan *c, void *a, long n, vlong off)
 	return n;
 }
 
-static long
-envwrite(Chan *c, void *a, long n, vlong off)
+static int32_t
+envwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
 	char *s;
-	ulong len;
 	Egrp *eg;
 	Evalue *e;
-	ulong offset = off;
+	int32_t len, offset;
 
 	if(n <= 0)
 		return 0;
+	offset = off;
 	if(offset > Maxenvsize || n > (Maxenvsize - offset))
 		error(Etoobig);
 
@@ -377,8 +378,9 @@ closeegrp(Egrp *eg)
 static Egrp*
 envgrp(Chan *c)
 {
+	Mach *m = machp();
 	if(c->aux == nil)
-		return up->egrp;
+		return m->externup->egrp;
 	return c->aux;
 }
 
@@ -396,10 +398,10 @@ ksetenv(char *ename, char *eval, int conf)
 {
 	Chan *c;
 	char buf[2*KNAMELEN];
-	
+
 	snprint(buf, sizeof(buf), "#e%s/%s", conf?"c":"", ename);
 	c = namec(buf, Acreate, OWRITE, 0600);
-	devtab[c->type]->write(c, eval, strlen(eval), 0);
+	c->dev->write(c, eval, strlen(eval), 0);
 	cclose(c);
 }
 
@@ -411,6 +413,7 @@ ksetenv(char *ename, char *eval, int conf)
 char *
 getconfenv(void)
 {
+	Mach *m = machp();
 	Egrp *eg = &confegrp;
 	Evalue *e;
 	char *p, *q;
@@ -421,7 +424,7 @@ getconfenv(void)
 		runlock(eg);
 		nexterror();
 	}
-	
+
 	/* determine size */
 	n = 0;
 	for(i=0; i<eg->nent; i++){
@@ -442,7 +445,7 @@ getconfenv(void)
 		q += strlen(q) + 1;
 	}
 	*q = 0;
-	
+
 	poperror();
 	runlock(eg);
 	return p;

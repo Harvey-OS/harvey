@@ -64,7 +64,7 @@ dev_proc_map_rgb_color(gdev_pcl_3bit_map_rgb_color);
 dev_proc_map_color_rgb(gdev_pcl_3bit_map_color_rgb);
 
 /* Row compression routines */
-typedef ulong word;
+typedef uint32_t word;
 int
     gdev_pcl_mode2compress(const word * row, const word * end_row, byte * compressed),
     gdev_pcl_mode2compress_padded(const word * row, const word * end_row, byte * compressed, bool pad),

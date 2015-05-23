@@ -162,7 +162,7 @@ void	flush(void);
 void	trailer(void);
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -173,7 +173,7 @@ emalloc(ulong n)
 }
 
 void*
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 
 	p = realloc(p, n);
@@ -569,7 +569,8 @@ xcmd(Biobuf *b)
 						"<a href=\"/magic/man2html/%c/%s\">",
 						fld[5][1], fld[4]);
 					nanchors++;
-					anchors = erealloc(anchors, nanchors*sizeof(char*));
+					anchors = erealloc(anchors,
+						           nanchors*sizeof(char*));
 					anchors[nanchors-1] = estrdup(buf);
 				}else if(strcmp(fld[3], "end") == 0)
 					attr &= ~(1<<Anchor);

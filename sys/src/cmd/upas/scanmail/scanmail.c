@@ -55,7 +55,7 @@ regerror(char *s)
 }
 
 void *
-Malloc(long n)
+Malloc(int32_t n)
 {
 	void *p;
 
@@ -66,7 +66,7 @@ Malloc(long n)
 }
 
 void*
-Realloc(void *p, ulong n)
+Realloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == 0)
@@ -407,7 +407,7 @@ Biobuf*
 opendump(char *sender)
 {
 	int i;
-	ulong h;
+	uint32_t h;
 	char buf[512];
 	Biobuf *b;
 	char *cp;
@@ -445,7 +445,7 @@ Biobuf*
 opencopy(char *sender)
 {
 	int i;
-	ulong h;
+	uint32_t h;
 	char buf[512];
 	Biobuf *b;
 

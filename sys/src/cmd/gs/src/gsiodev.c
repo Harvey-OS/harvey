@@ -124,7 +124,8 @@ iodev_no_init(gx_io_device * iodev, gs_memory_t * mem)
 }
 
 int
-iodev_no_open_device(gx_io_device * iodev, const char *access, stream ** ps,
+iodev_no_open_device(gx_io_device * iodev, const char *access,
+                     stream ** ps,
 		     gs_memory_t * mem)
 {
     return_error(gs_error_invalidfileaccess);
@@ -138,7 +139,8 @@ iodev_no_open_file(gx_io_device * iodev, const char *fname, uint namelen,
 }
 
 int
-iodev_no_fopen(gx_io_device * iodev, const char *fname, const char *access,
+iodev_no_fopen(gx_io_device * iodev, const char *fname,
+               const char *access,
 	       FILE ** pfile, char *rfname, uint rnamelen)
 {
     return_error(gs_error_invalidfileaccess);
@@ -157,19 +159,22 @@ iodev_no_delete_file(gx_io_device * iodev, const char *fname)
 }
 
 int
-iodev_no_rename_file(gx_io_device * iodev, const char *from, const char *to)
+iodev_no_rename_file(gx_io_device * iodev, const char *from,
+                     const char *to)
 {
     return_error(gs_error_invalidfileaccess);
 }
 
 int
-iodev_no_file_status(gx_io_device * iodev, const char *fname, struct stat *pstat)
+iodev_no_file_status(gx_io_device * iodev, const char *fname,
+                     struct stat *pstat)
 {
     return_error(gs_error_undefinedfilename);
 }
 
 file_enum *
-iodev_no_enumerate_files(gx_io_device * iodev, const char *pat, uint patlen,
+iodev_no_enumerate_files(gx_io_device * iodev, const char *pat,
+                         uint patlen,
 			 gs_memory_t * memory)
 {
     return NULL;
@@ -191,7 +196,8 @@ iodev_no_put_params(gx_io_device * iodev, gs_param_list * plist)
 
 /* The fopen routine is exported for %null. */
 int
-iodev_os_fopen(gx_io_device * iodev, const char *fname, const char *access,
+iodev_os_fopen(gx_io_device * iodev, const char *fname,
+               const char *access,
 	       FILE ** pfile, char *rfname, uint rnamelen)
 {
     errno = 0;

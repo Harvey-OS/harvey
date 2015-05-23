@@ -90,7 +90,7 @@ static Addr
 addr(Biobuf *bp)
 {
 	Addr a;
-	vlong off;
+	int64_t off;
 
 	a.type = Bgetc(bp);	/* a.type */
 	skip(bp,1);		/* reg */
@@ -104,14 +104,14 @@ addr(Biobuf *bp)
 	case D_OREG:
 	case D_CONST:
 	case D_BRANCH:
-		off = (uvlong)Bgetc(bp);
-		off |= (uvlong)Bgetc(bp) << 8;
-		off |= (uvlong)Bgetc(bp) << 16;
-		off |= (uvlong)Bgetc(bp) << 24;
-		off |= (uvlong)Bgetc(bp) << 32;
-		off |= (uvlong)Bgetc(bp) << 40;
-		off |= (uvlong)Bgetc(bp) << 48;
-		off |= (uvlong)Bgetc(bp) << 56;
+		off = (uint64_t)Bgetc(bp);
+		off |= (uint64_t)Bgetc(bp) << 8;
+		off |= (uint64_t)Bgetc(bp) << 16;
+		off |= (uint64_t)Bgetc(bp) << 24;
+		off |= (uint64_t)Bgetc(bp) << 32;
+		off |= (uint64_t)Bgetc(bp) << 40;
+		off |= (uint64_t)Bgetc(bp) << 48;
+		off |= (uint64_t)Bgetc(bp) << 56;
 		if(off < 0)
 			off = -off;
 		if(a.sym && (a.name==D_PARAM || a.name==D_AUTO))

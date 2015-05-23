@@ -90,7 +90,7 @@ extern struct hostent	*gethostbyname(const char *),
 			*gethostbyaddr(const void *, int, int),
 			*gethostent(void);
 extern struct netent	*getnetbyname(const char *),
-			*getnetbyaddr(long, int),
+			*getnetbyaddr(int32_t, int),
 			*getnetent(void);
 extern struct servent	*getservbyname(const char *, const char *),
 			*getservbyport(int, const char *),

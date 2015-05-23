@@ -61,11 +61,11 @@ scsiinit(void)
 	}
 }
 
-static uchar lastcmd[16];
+static uint8_t lastcmd[16];
 static int lastcmdsz;
 
 static int
-sense2stcode(uchar *sense)
+sense2stcode(uint8_t *sense)
 {
 	switch(sense[2] & 0x0F){
 	case 6:						/* unit attention */
@@ -106,10 +106,11 @@ sense2stcode(uchar *sense)
  * issue the SCSI command via scsi(2).  lun must already be in cmd[1].
  */
 static int
-doscsi(Target* tp, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
+doscsi(Target* tp, int rw, uint8_t* cmd, int cbytes, void* data,
+       int* dbytes)
 {
 	int lun, db = 0;
-	uchar reqcmd[6], reqdata[Nsense], dummy[1];
+	uint8_t reqcmd[6], reqdata[Nsense], dummy[1];
 	Scsi *sc;
 
 	sc = tp->sc;
@@ -141,7 +142,8 @@ doscsi(Target* tp, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
 }
 
 static int
-scsiexec(Target* tp, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
+scsiexec(Target* tp, int rw, uint8_t* cmd, int cbytes, void* data,
+	 int* dbytes)
 {
 	int s;
 
@@ -175,7 +177,7 @@ scsiexec(Target* tp, int rw, uchar* cmd, int cbytes, void* data, int* dbytes)
 static int
 scsitest(Target* tp, char lun)
 {
-	uchar cmd[6];
+	uint8_t cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = CMDtest;
@@ -187,7 +189,7 @@ scsitest(Target* tp, char lun)
 static int
 scsistart(Target* tp, char lun, int start)
 {
-	uchar cmd[6];
+	uint8_t cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = CMDstart;
@@ -200,7 +202,7 @@ scsistart(Target* tp, char lun, int start)
 static int
 scsiinquiry(Target* tp, char lun, int* nbytes)
 {
-	uchar cmd[6];
+	uint8_t cmd[6];
 
 	memset(cmd, 0, sizeof cmd);
 	cmd[0] = CMDinquiry;
@@ -235,7 +237,7 @@ scsireqsense(Target* tp, char lun, int* nbytes, int quiet)
 {
 	char *s;
 	int n, status, try;
-	uchar cmd[6], *sense;
+	uint8_t cmd[6], *sense;
 
 	sense = tp->sense;
 	for(try = 0; try < 20; try++) {
@@ -320,7 +322,7 @@ scsiprobe(Device* d)
 {
 	Target *tp;
 	int nbytes, s;
-	uchar *sense;
+	uint8_t *sense;
 	int acount;
 
 	if((tp = scsitarget(d)) == 0)
@@ -385,7 +387,7 @@ again:
 }
 
 int
-scsiio(Device* d, int rw, uchar* cmd, int cbytes, void* data, int dbytes)
+scsiio(Device* d, int rw, uint8_t* cmd, int cbytes, void* data, int dbytes)
 {
 	Target *tp;
 	int e, nbytes, s;

@@ -1,0 +1,19 @@
+#!/bin/rc
+
+rfork ne
+
+# import rc functions popular among scripts, e.g. fail
+#
+. ../tools
+
+# we might have a main.c file here and do something like:
+# bind main.c ../../k10/main.c
+# to override the source used for this test
+
+# we might change the std source like this:
+# sed 's/initialTCs = [0-9]+/initialTCs = 16/' <  ../../k10/main.c >main.c
+# bind main.c ../../k10/main.c
+
+cd /sys/src/nix/k10
+mk clean
+mk install

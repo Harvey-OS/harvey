@@ -13,20 +13,20 @@
 #include "fns.h"
 
 void *
-emalloc(long n)
+emalloc(int32_t n)
 {
 	void *p = Malloc(n);
 
 	if(p==0)
 		panic("Can't malloc %d bytes", n);
-/*	if(err){ pfmt(err, "malloc %d->%p\n", n, p); flush(err); } /**/
+/*	if(err){ pfmt(err, "malloc %d->%p\n", n, p); flush(err); } */
 	return p;
 }
 
 void
 efree(void *p)
 {
-/*	pfmt(err, "free %p\n", p); flush(err); /**/
+/*	pfmt(err, "free %p\n", p); flush(err); */
 	if(p)
 		free(p);
 	else pfmt(err, "free 0\n");
@@ -68,7 +68,7 @@ iacvt(int n)
 }
 
 void
-inttoascii(char *s, long n)
+inttoascii(char *s, int32_t n)
 {
 	bp = s;
 	iacvt(n);

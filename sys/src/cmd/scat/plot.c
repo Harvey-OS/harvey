@@ -19,8 +19,8 @@
 #include "sky.h"
 
 	/* convert to milliarcsec */
-static long	c = MILLIARCSEC;	/* 1 degree */
-static long	m5 = 1250*60*60;	/* 5 minutes of ra */
+static int32_t	c = MILLIARCSEC;	/* 1 degree */
+static int32_t	m5 = 1250*60*60;	/* 5 minutes of ra */
 
 DAngle	ramin;
 DAngle	ramax;
@@ -49,8 +49,8 @@ Image	*cometcolor;
 
 Planetrec	*planet;
 
-long	mapx0, mapy0;
-long	mapra, mapdec;
+int32_t	mapx0, mapy0;
+int32_t	mapra, mapdec;
 double	mylat, mylon, mysid;
 double	mapscale;
 double	maps;
@@ -245,7 +245,7 @@ heavens(double zlatdeg, double zlondeg, double clatdeg, double clondeg))(Loc*, d
 }
 
 int
-maptoxy(long ra, long dec, double *x, double *y)
+maptoxy(int32_t ra, int32_t dec, double *x, double *y)
 {
 	double lat, lon;
 	struct place pl;
@@ -265,7 +265,8 @@ maptoxy(long ra, long dec, double *x, double *y)
 /* end of 'heavens' section */
 
 int
-setmap(long ramin, long ramax, long decmin, long decmax, Rectangle r, int zenithup)
+setmap(int32_t ramin, int32_t ramax, int32_t decmin, int32_t decmax,
+       Rectangle r, int zenithup)
 {
 	int c;
 	double minx, maxx, miny, maxy;
@@ -308,7 +309,7 @@ setmap(long ramin, long ramax, long decmin, long decmax, Rectangle r, int zenith
 }
 
 Point
-map(long ra, long dec)
+map(int32_t ra, int32_t dec)
 {
 	double x, y;
 	Point p;
@@ -364,7 +365,8 @@ npixels(DAngle diam)
 }
 
 void
-drawdisc(Image *scr, DAngle semidiam, int ring, Image *color, Point pt, char *s)
+drawdisc(Image *scr, DAngle semidiam, int ring, Image *color, Point pt,
+	 char *s)
 {
 	int d;
 
@@ -466,7 +468,7 @@ tolast(char *name)
 }
 
 int
-bbox(long extrara, long extradec, int quantize)
+bbox(int32_t extrara, int32_t extradec, int quantize)
 {
 	int i;
 	Record *r;
@@ -576,7 +578,7 @@ inbbox(DAngle ra, DAngle dec)
 }
 
 int
-gridra(long mapdec)
+gridra(int32_t mapdec)
 {
 	mapdec = abs(mapdec)+c/2;
 	mapdec /= c;
@@ -596,7 +598,7 @@ plot(char *flags)
 {
 	int i, j, k;
 	char *t;
-	long x, y;
+	int32_t x, y;
 	int ra, dec;
 	int m;
 	Point p, pts[10];

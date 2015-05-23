@@ -9,11 +9,11 @@
 
 #include "sys9.h"
 
-long
-_READN(int f, void *av, long n)
+int32_t
+_READN(int f, void *av, int32_t n)
 {
 	char *a;
-	long m, t;
+	int32_t m, t;
 
 	a = av;
 	t = 0;

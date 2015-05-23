@@ -98,7 +98,7 @@ vUsage(void)
  * returns: the pointer to the temporary file or NULL
  */
 static FILE *
-pStdin2TmpFile(long *lFilesize)
+pStdin2TmpFile(int32_t *lFilesize)
 {
 	FILE	*pTmpFile;
 	size_t	tSize;
@@ -133,7 +133,7 @@ pStdin2TmpFile(long *lFilesize)
 			bFailure = TRUE;
 			break;
 		}
-		*lFilesize += (long)tSize;
+		*lFilesize += (int32_t)tSize;
 	}
 
 #if defined(__dos)
@@ -161,7 +161,7 @@ bProcessFile(const char *szFilename)
 {
 	FILE		*pFile;
 	diagram_type	*pDiag;
-	long		lFilesize;
+	int32_t		lFilesize;
 	int		iWordVersion;
 	BOOL		bResult;
 

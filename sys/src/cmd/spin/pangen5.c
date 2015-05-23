@@ -767,7 +767,8 @@ markit:			fprintf(f2, "\tIs_Recv[%d] = 1;\n", e->Seqno);
 			s = e->n->sl->this;
 			switch (s->frst->n->ntyp) {
 			case DO:
-				fatal("unexpected: do at start of d_step", (char *) 0);
+				fatal("unexpected: do at start of d_step",
+				      (char *) 0);
 			case IF: /* conservative: fall through */
 			case 'r': goto markit;
 			}

@@ -9,27 +9,27 @@
 
 #include "headers.h"
 
-ushort
-smbnhgets(uchar *p)
+uint16_t
+smbnhgets(uint8_t *p)
 {
 	return p[0] | (p[1] << 8);
 }
 
-ulong
-smbnhgetl(uchar *p)
+uint32_t
+smbnhgetl(uint8_t *p)
 {
 	return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
 }
 
 void
-smbhnputs(uchar *p, ushort v)
+smbhnputs(uint8_t *p, uint16_t v)
 {
 	p[0] = v;
 	p[1] = v >> 8;
 }
 
 void
-smbhnputl(uchar *p, ulong v)
+smbhnputl(uint8_t *p, uint32_t v)
 {
 	p[0] = v;
 	p[1] = v >> 8;
@@ -38,14 +38,14 @@ smbhnputl(uchar *p, ulong v)
 }
 
 void
-smbhnputv(uchar *p, vlong v)
+smbhnputv(uint8_t *p, int64_t v)
 {
 	smbhnputl(p, v);
 	smbhnputl(p + 4, (v >> 32) & 0xffffffff);
 }
 
-vlong
-smbnhgetv(uchar *p)
+int64_t
+smbnhgetv(uint8_t *p)
 {
-	return (vlong)smbnhgetl(p) | ((vlong)smbnhgetl(p + 4) << 32);
+	return (int64_t)smbnhgetl(p) | ((int64_t)smbnhgetl(p + 4) << 32);
 }

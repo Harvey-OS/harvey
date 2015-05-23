@@ -90,8 +90,8 @@ scramble(String *x)
 static int
 pcinfo(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 	String vers, cm;
 	int i;
 
@@ -101,7 +101,7 @@ pcinfo(int n, Rpccall *cmd, Rpccall *reply)
 		return garbage(reply, "count too small");
 	argptr += string2S(argptr, &vers);
 	argptr += string2S(argptr, &cm);
-	if(argptr != &((uchar *)cmd->args)[n])
+	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	chat("\"%.*s\",\"%.*s\"\n", utfnlen(vers.s, vers.n), vers.s, utfnlen(cm.s, cm.n), cm.s);
 	PLONG(sizeof(pc_vers)-1);
@@ -111,14 +111,14 @@ pcinfo(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(nelem(pcfacilities));
 	for(i=0; i<nelem(pcfacilities); i++)
 		PLONG(pcfacilities[i]);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
 pc1auth(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 	String id, pw;
 	Unixidmap *m;
 	int uid;
@@ -129,7 +129,7 @@ pc1auth(int n, Rpccall *cmd, Rpccall *reply)
 		return garbage(reply, "count too small");
 	argptr += string2S(argptr, &id);
 	argptr += string2S(argptr, &pw);
-	if(argptr != &((uchar*)cmd->args)[n])
+	if(argptr != &((uint8_t*)cmd->args)[n])
 		return garbage(reply, "bad count");
 	scramble(&id);
 	scramble(&pw);
@@ -143,14 +143,14 @@ pc1auth(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(0);	/* status */
 	PLONG(uid);	/* uid */
 	PLONG(uid);	/* gid */
-	return dataptr - (uchar*)reply->results;
+	return dataptr - (uint8_t*)reply->results;
 }
 
 static int
 pcauth(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 	String sys, id, pw, cm;
 	Unixidmap *m;
 	int uid;
@@ -163,7 +163,7 @@ pcauth(int n, Rpccall *cmd, Rpccall *reply)
 	argptr += string2S(argptr, &id);
 	argptr += string2S(argptr, &pw);
 	argptr += string2S(argptr, &cm);
-	if(argptr != &((uchar *)cmd->args)[n])
+	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	scramble(&id);
 	scramble(&pw);
@@ -185,5 +185,5 @@ pcauth(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(0);	/* umask */
 	PLONG(sizeof(no_comment)-1);
 	PPTR(no_comment, sizeof(no_comment)-1);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }

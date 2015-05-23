@@ -1,0 +1,193 @@
+rm -f *.[5678qv] *.root.[cs] *.out *.m *.acid errstr.h init.h amd64^l.h
+for(i in k8cpu)
+	mk $i.clean
+@{cd ../root; mk clean}
+if(test -d ./root) @{cd ./root; mk clean}; status=''	
+rm -f k8cpu.c [9bz]k8cpu [9bz]k8cpu.gz bootk8cpu.*
+rm -f *.[5678qv] *.a[5678qv] y.tab.? lex.yy.c y.debug y.output [5678qv].??* big bigloop blow cpu suck $CLEANFILES
+rm -f *.[5678qv] *.a[5678qv] y.tab.? lex.yy.c y.debug y.output [5678qv].??* cpu $CLEANFILES
+awk -f ../mk/parse -- -mkdevc k8cpu > k8cpu.c
+rc ../mk/mkenum amd64.h > amd64l.h
+6a $AFLAGS l64cpuid.s
+6a $AFLAGS l64fpu.s
+6c -FTVw -I. -D'_DBGC_=''c''' ./acore.c
+6c -FTVw -I. -D'_DBGC_=''V''' ./arch.c
+6c -FTVw archk10.c
+6c -FTVw -I. -D'_DBGC_=''m''' ./asm.c
+6c -FTVw cga.c
+6c -FTVw crap.c
+6c -FTVw fpu.c
+6c -FTVw i8254.c
+6c -FTVw i8259.c
+6c -FTVw -I. ../386/kbd.c
+6c -FTVw init9.c
+6c -FTVw -I. ../port/initcode.c
+6c -FTVw map.c
+6c -FTVw -I. -D'_DBGC_=''m''' ./memory.c
+6c -FTVw -I. -D'_DBGC_=''v''' ./mmu.c
+6c -FTVw multiboot.c
+6c -FTVw qmalloc.c
+6c -FTVw -I. ../386/random.c
+6c -FTVw syscall.c
+6c -FTVw -I. -D'_DBGC_=''c''' ./tcore.c
+6c -FTVw trap.c
+6c -FTVw vsvm.c
+6c -FTVw -I. -D'_DBGC_=''m''' ./physalloc.c
+6c -FTVw -I. ../port/print.c
+6c -I../boot -FTVw ../boot/bootauth.c
+6c -I../boot -FTVw ../boot/aux.c
+6c -I../boot -FTVw ../boot/boot.c
+6c -I../boot -FTVw ../boot/bootcache.c
+6c -I../boot -FTVw ../boot/bootip.c
+6c -I../boot -FTVw ../boot/local.c
+6c -I../boot -FTVw ../boot/embed.c
+6c -I../boot -FTVw ../boot/settime.c
+6c -I../boot -FTVw ../boot/sac.c
+6c -I../boot -FTVw ../boot/paq.c
+6c -I../boot -FTVw ../boot/printstub.c
+6c -FTVw -I. ../386/ether8169.c
+6c -FTVw -I. ../386/devrtc.c
+6c -FTVw -I. ../port/netif.c
+6c -FTVw -I. ../port/devssl.c
+6c -FTVw -I. ../ip/ip.c
+6c -FTVw -I. ../ip/ipv6.c
+6c -FTVw -I. ../386/pci.c
+6c -FTVw ether82563.c
+6c -FTVw -I. ../ip/devip.c
+6c -FTVw -I. ../port/devuart.c
+6c -FTVw -I. ../port/ethermii.c
+6c -FTVw -I. ../386/etherigbe.c
+6c -FTVw -I. ../port/devproc.c
+6c -FTVw -I. ../port/devkprof.c
+6c -FTVw -I. ../ip/netlog.c
+6c -FTVw -I. ../ip/nullmedium.c
+6c -FTVw -I. ../386/ether82557.c
+6c -FTVw -I. ../ip/tcp.c
+6c -FTVw -I. -D'_DBGC_=''I''' ./ioapic.c
+6c -FTVw -I. ../port/devsrv.c
+6c -FTVw -I. ../ip/ipaux.c
+6c -FTVw -I. ../port/devenv.c
+6c -FTVw -I. ../port/devdup.c
+6c -FTVw -I. ../port/devpipe.c
+6c -FTVw -I. ../ip/arp.c
+6c -FTVw -I. ../386/uartpci.c
+6c -FTVw -I. -D'_DBGC_=''M''' ./mp.c
+6c -FTVw -I. -D'_DBGC_=''T''' ../port/devtube.c
+6c -FTVw pmcio.c
+6c -FTVw -I. -D'_DBGC_=''z''' ../port/devsegment.c
+6c -FTVw -I. ../ip/icmp.c
+6c -FTVw -I. ../ip/icmp6.c
+6c -FTVw -I. ../ip/ptclbsum.c
+6c -FTVw -I. ../ip/ethermedium.c
+6c -FTVw -I. ../ip/ipifc.c
+6c -FTVw -I. ../386/devether.c
+6c -FTVw -I. ../386/uarti8250.c
+6c -FTVw -I. ../ip/iproute.c
+6c -FTVw devarch.c
+6c -FTVw -I. ../ip/inferno.c
+6c -FTVw -I. ../port/devmnt.c
+6c -FTVw -I. -D'_DBGC_=''C''' ./devacpi.c
+6c -FTVw -I. ../ip/chandial.c
+6c -FTVw -I. ../ip/netdevmedium.c
+6c -FTVw -I. -D'_DBGC_=''A''' ./apic.c
+warning: ../port/devtube.c:135 empty if body
+warning: ../port/devtube.c:137 empty if body
+6c -FTVw -I. ../port/devcap.c
+6c -FTVw -I. ../port/devws.c
+6c -FTVw -I. ../ip/loopbackmedium.c
+6c -FTVw -I. ../port/devcons.c
+6c -FTVw -I. ../ip/pktmedium.c
+6c -FTVw -I. ../ip/udp.c
+6c -FTVw -I. -D'_DBGC_=''z''' ../port/devzp.c
+6c -FTVw -I. ../port/devroot.c
+6c -FTVw -I. ../port/devpmc.c
+6c -FTVw -I. ../port/tod.c
+6c -FTVw -I. ../port/sysauth.c
+6c -FTVw -I. -D'_DBGC_=''p''' ../port/pager.c
+6c -FTVw -I. ../port/edf.c
+6c -FTVw -I. ../port/latin1.c
+6c -FTVw -I. -D'_DBGC_=''z''' ../port/syszio.c
+6c -FTVw -I. ../port/segment.c
+6c -FTVw -I. ../port/allocb.c
+6c -FTVw -I. -D'_DBGC_=''n''' ../port/nixcall.c
+6c -FTVw -I. ../port/systab.c
+6c -FTVw -I. ../port/qio.c
+awk -f ../mk/parse -- -mkerrstr > errstr.h
+6c -FTVw -I. ../port/ps.c
+6c -FTVw -I. ../port/fault.c
+6c -FTVw -I. -D'_DBGC_=''p''' ../port/image.c
+6c -FTVw -I. -D'_DBGC_=''p''' ../port/page.c
+6c -FTVw -I. -D'_DBGC_=''p''' ../port/sysseg.c
+6c -FTVw -I. ../port/parse.c
+6c -FTVw -I. ../port/devtab.c
+6c -FTVw -I. -D'_DBGC_=''S''' ../port/syssem.c
+6c -FTVw -I. ../port/dev.c
+6c -FTVw -I. ../port/rebootcmd.c
+6c -FTVw -I. -D'_DBGC_=''E''' ../port/sysproc.c
+6c -FTVw -I. ../port/portclock.c
+6c -FTVw -I. ../port/chan.c
+6c -FTVw -I. ../port/syscallfmt.c
+6c -FTVw -I. ../port/pgrp.c
+6c -FTVw -I. ../port/qlock.c
+6c -FTVw -I. ../port/alarm.c
+6c -FTVw -I. ../port/sysfile.c
+6c -FTVw -I. ../port/taslock.c
+6a $AFLAGS l32p.s
+6a $AFLAGS l64v.s
+6a $AFLAGS l64idt.s
+6a $AFLAGS l64acidt.s
+6a $AFLAGS l64syscall.s
+6a $AFLAGS l64acsyscall.s
+6a $AFLAGS l64sipi.s
+6l -l -R1 -s -o init.out init9.6 initcode.6 -lc
+6c -FTVw -I. ../port/proc.c
+6l -o l64sipi.out -T0xfffffffff0003000 -R4 -l -s l64sipi.6
+{echo 'uchar sipihandler[]={'
+ xd -1x l64sipi.out |
+ sed -e 's/^[0-9a-f]+ //'				\
+     -e '1,2d' -e '3s/^ .. .. .. .. .. .. .. ..//'	\
+     -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+ echo '};'} > sipi.h
+{echo 'uchar initcode[]={'
+ xd -1x init.out | sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+ echo '};'} > init.h
+names=`{membername $newprereq}
+ar rv ../boot/libboot.a6 $names
+rm $names
+6c -FTVw sipi.c
+6c -FTVw -I. -D'_DBGC_=''x''' ./main.c
+r - bootauth.6
+r - aux.6
+r - boot.6
+r - bootcache.6
+r - bootip.6
+r - local.6
+r - embed.6
+r - settime.6
+r - sac.6
+r - paq.6
+r - printstub.6
+awk -f ../mk/parse -- -mkbootconf k8cpu > bootk8cpu.c
+6c -FTVw bootk8cpu.c
+6c -FTVw ../boot/printstub.c
+6l -o bootk8cpu.out bootk8cpu.6 ../boot/libboot.a6 printstub.6
+../mk/mkrootall\
+	boot bootk8cpu_out bootk8cpu.out\
+	factotum _amd64_bin_auth_factotum /amd64/bin/auth/factotum\
+	ipconfig _amd64_bin_ip_ipconfig /amd64/bin/ip/ipconfig\
+	nvram ___root_nvram ../root/nvram\
+>k8cpu.root.s
+6a $AFLAGS k8cpu.root.s
+6c -FTVw '-DKERNDATE='`{date -n} k8cpu.c
+6l -o 9k8cpu -T0xfffffffff0110000 -R4096 -l l32p.6 l64v.6 l64idt.6 l64acidt.6 l64cpuid.6 l64syscall.6 l64acsyscall.6 l64fpu.6 acore.6 arch.6 archk10.6 asm.6 cga.6 crap.6 fpu.6 i8254.6 i8259.6 kbd.6 main.6 map.6 memory.6 mmu.6 multiboot.6 qmalloc.6 random.6 syscall.6 tcore.6 trap.6 vsvm.6 physalloc.6 k8cpu.root.6 ether8169.6 devrtc.6 netif.6 devssl.6 ip.6 ipv6.6 pci.6 ether82563.6 devip.6 devuart.6 ethermii.6 etherigbe.6 devproc.6 devkprof.6 netlog.6 nullmedium.6 ether82557.6 tcp.6 ioapic.6 devsrv.6 ipaux.6 devenv.6 devdup.6 devpipe.6 arp.6 uartpci.6 mp.6 devtube.6 pmcio.6 devsegment.6 icmp.6 sipi.6 icmp6.6 ptclbsum.6 ethermedium.6 ipifc.6 devether.6 uarti8250.6 iproute.6 devarch.6 inferno.6 devmnt.6 devacpi.6 chandial.6 netdevmedium.6 apic.6 devcap.6 devws.6 loopbackmedium.6 devcons.6 pktmedium.6 udp.6 devzp.6 devroot.6 devpmc.6 tod.6 sysauth.6 pager.6 edf.6 latin1.6 syszio.6 segment.6 allocb.6 nixcall.6 systab.6 qio.6 proc.6 ps.6 fault.6 image.6 page.6 sysseg.6 parse.6 devtab.6 syssem.6 dev.6 rebootcmd.6 sysproc.6 portclock.6 chan.6 syscallfmt.6 pgrp.6 qlock.6 alarm.6 print.6 sysfile.6 taslock.6 k8cpu.6 /amd64/lib/libip.a /amd64/lib/libc.a /amd64/lib/libsec.a
+6l -o 9k8cpu.elf -H5 -8 -T0xfffffffff0110000 -l l32p.6 l64v.6 l64idt.6 l64acidt.6 l64cpuid.6 l64syscall.6 l64acsyscall.6 l64fpu.6 acore.6 arch.6 archk10.6 asm.6 cga.6 crap.6 fpu.6 i8254.6 i8259.6 kbd.6 main.6 map.6 memory.6 mmu.6 multiboot.6 qmalloc.6 random.6 syscall.6 tcore.6 trap.6 vsvm.6 physalloc.6 k8cpu.root.6 ether8169.6 devrtc.6 netif.6 devssl.6 ip.6 ipv6.6 pci.6 ether82563.6 devip.6 devuart.6 ethermii.6 etherigbe.6 devproc.6 devkprof.6 netlog.6 nullmedium.6 ether82557.6 tcp.6 ioapic.6 devsrv.6 ipaux.6 devenv.6 devdup.6 devpipe.6 arp.6 uartpci.6 mp.6 devtube.6 pmcio.6 devsegment.6 icmp.6 sipi.6 icmp6.6 ptclbsum.6 ethermedium.6 ipifc.6 devether.6 uarti8250.6 iproute.6 devarch.6 inferno.6 devmnt.6 devacpi.6 chandial.6 netdevmedium.6 apic.6 devcap.6 devws.6 loopbackmedium.6 devcons.6 pktmedium.6 udp.6 devzp.6 devroot.6 devpmc.6 tod.6 sysauth.6 pager.6 edf.6 latin1.6 syszio.6 segment.6 allocb.6 nixcall.6 systab.6 qio.6 proc.6 ps.6 fault.6 image.6 page.6 sysseg.6 parse.6 devtab.6 syssem.6 dev.6 rebootcmd.6 sysproc.6 portclock.6 chan.6 syscallfmt.6 pgrp.6 qlock.6 alarm.6 print.6 sysfile.6 taslock.6 k8cpu.6 /amd64/lib/libip.a /amd64/lib/libc.a /amd64/lib/libsec.a
+size 9k8cpu
+560858t + 560160d + 192416b = 1313434	9k8cpu
+strip -o /fd/1 9k8cpu | gzip -9 > 9k8cpu.gz
+--r-xrwxr-x M 9 nemo sys 1410811 Jan 18 11:26 /amd64/9k8cpu
+--r--rw-r-- M 9 nemo sys  461939 Jan 18 11:26 /amd64/9k8cpu.gz
+--rwxrwxr-x M 13 nemo sys 1410811 Jan 18 11:26 /n/9/amd64/9k8cpu
+--rw-rw-r-- M 13 nemo sys  461939 Jan 18 11:26 /n/9/amd64/9k8cpu.gz
+--r-xrwxr-x M 15 esoriano sys 1410811 Jan 18 11:26 /n/planb/amd64/9k8cpu
+--r--rw-r-- M 15 rminnich sys  461939 Jan 18 11:26 /n/planb/amd64/9k8cpu.gz
+done

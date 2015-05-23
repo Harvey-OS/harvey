@@ -129,8 +129,8 @@ static int oMH = 600;	/* page height - not scaled */
 static FILE	*pfd;
 static char	**I;		/* initial procs */
 static int	*D,*R;		/* maps between depth and ldepth */
-static short	*M;		/* x location of each box at index y */
-static short	*T;		/* y index of match for each box at index y */
+static int16_t	*M;		/* x location of each box at index y */
+static int16_t	*T;		/* y index of match for each box at index y */
 static char	**L;		/* text labels */
 static char	*ProcLine;	/* active processes */
 static int	pspno = 0;	/* postscript page */
@@ -214,8 +214,8 @@ putprelude(void)
 	TotSteps += 10;
 	R = (int   *) emalloc(TotSteps * sizeof(int));
 	D = (int   *) emalloc(TotSteps * sizeof(int));
-	M = (short *) emalloc(TotSteps * sizeof(short));
-	T = (short *) emalloc(TotSteps * sizeof(short));
+	M = (int16_t *) emalloc(TotSteps * sizeof(int16_t));
+	T = (int16_t *) emalloc(TotSteps * sizeof(int16_t));
 	L = (char **) emalloc(TotSteps * sizeof(char *));
 	I = (char **) emalloc(TotSteps * sizeof(char *));
 	ProcLine = (char *) emalloc(1024 * sizeof(char));

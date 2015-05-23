@@ -33,11 +33,11 @@ enum {
 };
 
 typedef struct {
-	ushort	advfunc;
-	ushort	clocksel;
-	ushort	misc;
-	ushort	membndry;
-	ushort	memcfg;
+	uint16_t	advfunc;
+	uint16_t	clocksel;
+	uint16_t	misc;
+	uint16_t	membndry;
+	uint16_t	memcfg;
 } Mach32;
 
 /*
@@ -47,11 +47,11 @@ typedef struct {
  * all.
  */
 typedef struct {
-	ulong	frequency;
-	uchar	b8;			/* <6> - divide by 2 */
-	uchar	b9;			/* <1> - bit <3> of frequency index */
-	uchar	be;			/* <4> - bit <2> of frequency index */
-	uchar	misc;			/* <3:2> - bits <1:0> of frequency index */
+	uint32_t	frequency;
+	uint8_t	b8;			/* <6> - divide by 2 */
+	uint8_t	b9;			/* <1> - bit <3> of frequency index */
+	uint8_t	be;			/* <4> - bit <2> of frequency index */
+	uint8_t	misc;			/* <3:2> - bits <1:0> of frequency index */
 } Clock;
 
 static Clock clocks[] = {
@@ -64,17 +64,17 @@ static Clock clocks[] = {
 	{	  0, },
 };
 	
-static ulong atix;
+static uint32_t atix;
 
-static uchar
-atixi(uchar index)
+static uint8_t
+atixi(uint8_t index)
 {
 	outportb(atix, index);
 	return inportb(atix+1);
 }
 
 static void
-atixo(uchar index, uchar data)
+atixo(uint8_t index, uint8_t data)
 {
 	outportw(atix, (data<<8)|index);
 }
@@ -82,7 +82,7 @@ atixo(uchar index, uchar data)
 static void
 atixinit(Vga* vga, Ctlr*)
 {
-	uchar b;
+	uint8_t b;
 	Mach32 *mach32;
 
 	/*
@@ -232,7 +232,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	ushort x;
+	uint16_t x;
 
 	/*
 	 * Make sure we are in VGA mode,

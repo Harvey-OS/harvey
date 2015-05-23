@@ -33,12 +33,12 @@
  * All multi-byte quantities are stored LSB-first!
  */
 
-typedef ushort word;
+typedef uint16_t word;
 #if arch_sizeof_int == 4
 typedef uint dword;
 #else
 #  if arch_sizeof_long == 4
-typedef ulong dword;
+typedef uint32_t dword;
 #  endif
 #endif
 #if arch_is_big_endian
@@ -108,7 +108,7 @@ write_bmp_depth_header(gx_device_printer *pdev, FILE *file, int depth,
 		       int raster)
 {
     /* BMP scan lines are padded to 32 bits. */
-    ulong bmp_raster = raster + (-raster & 3);
+    uint32_t bmp_raster = raster + (-raster & 3);
     int height = pdev->height;
     int quads = (depth <= 8 ? sizeof(bmp_quad) << depth : 0);
 
@@ -231,7 +231,7 @@ bmp_map_16m_rgb_color(gx_device * dev, const gx_color_value cv[])
     r = cv[0]; g = cv[1]; b = cv[2];
     return gx_color_value_to_byte(r) +
 	((uint) gx_color_value_to_byte(g) << 8) +
-	((ulong) gx_color_value_to_byte(b) << 16);
+	((uint32_t) gx_color_value_to_byte(b) << 16);
 }
 
 /* Map a color index to a r-g-b color. */

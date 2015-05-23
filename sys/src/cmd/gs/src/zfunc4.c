@@ -142,7 +142,7 @@ psc_fixup(byte *p, byte *to)
 private int
 check_psc_function(i_ctx_t *i_ctx_p, const ref *pref, int depth, byte *ops, int *psize)
 {
-    long i;
+    int32_t i;
     uint size = r_size(pref);
 
     for (i = 0; i < size; ++i) {

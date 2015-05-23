@@ -156,7 +156,7 @@ difftm (a, b)
 void
 adjzone (t, seconds)
      register struct tm *t;
-     long seconds;
+     int32_t seconds;
 {
   /*
      * This code can be off by a second if SECONDS is not a multiple of 60,
@@ -166,7 +166,7 @@ adjzone (t, seconds)
      * switched to UTC in May 1972; the first leap second was in June 1972.
    */
   int leap_second = t->tm_sec == 60;
-  long sec = seconds + (t->tm_sec - leap_second);
+  int32_t sec = seconds + (t->tm_sec - leap_second);
   if (sec < 0)
     {
       if ((t->tm_min -= (59 - sec) / 60) < 0)
@@ -369,7 +369,7 @@ time_t
 str2time (source, default_time, default_zone)
      char const *source;
      time_t default_time;
-     long default_zone;
+     int32_t default_zone;
 {
   struct partime pt;
 
@@ -388,7 +388,7 @@ main (argc, argv)
      char **argv;
 {
   time_t default_time = time ((time_t *) 0);
-  long default_zone = argv[1] ? atol (argv[1]) : 0;
+  int32_t default_zone = argv[1] ? atol (argv[1]) : 0;
   char buf[1000];
   while (fgets (buf, sizeof (buf), stdin))
     {

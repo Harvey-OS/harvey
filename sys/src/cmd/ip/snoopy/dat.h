@@ -39,7 +39,7 @@ extern Proto *protos[];
 struct Mux
 {
 	char*	name;
-	ulong	val;
+	uint32_t	val;
 	Proto*	pr;
 };
 
@@ -91,9 +91,9 @@ struct Filter {
 
 	/* protocol specific */
 	int	subop;
-	ulong	param;
+	uint32_t	param;
 	union {
-		ulong	ulv;
+		uint32_t	ulv;
 		vlong	vlv;
 		uchar	a[32];
 	};
@@ -103,7 +103,7 @@ extern void	yyinit(char*);
 extern int	yyparse(void);
 extern Filter*	newfilter(void);
 extern void	compile_cmp(char*, Filter*, Field*);
-extern void	demux(Mux*, ulong, ulong, Msg*, Proto*);
+extern void	demux(Mux*, uint32_t, uint32_t, Msg*, Proto*);
 extern int	defaultframer(int, uchar*, int);
 
 extern int Mflag;

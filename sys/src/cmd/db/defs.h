@@ -19,7 +19,7 @@
 
 #include <mach.h>
 
-typedef ulong WORD;
+typedef uint32_t WORD;
 typedef uvlong ADDR;
 
 #define	HUGEINT	0x7fffffff	/* enormous WORD */

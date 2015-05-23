@@ -178,7 +178,7 @@ gx_default_get_params(gx_device * dev, gs_param_list * plist)
 
     if (colors > 1) {
 	int RGBValues = dev->color_info.max_color + 1;
-	long ColorValues = (depth >= (8 * arch_sizeof_color_index) ? -1
+	int32_t ColorValues = (depth >= (8 * arch_sizeof_color_index) ? -1
 							: 1L << depth);
 
 	if ((code = param_write_int(plist, "RedValues", &RGBValues)) < 0 ||
@@ -445,7 +445,7 @@ gx_default_put_params(gx_device * dev, gs_param_list * plist)
     int depth = dev->color_info.depth;
     int GrayValues = dev->color_info.max_gray + 1;
     int RGBValues = dev->color_info.max_color + 1;
-    long ColorValues = (depth >= 32 ? -1 : 1L << depth);
+    int32_t ColorValues = (depth >= 32 ? -1 : 1L << depth);
     int tab = dev->color_info.anti_alias.text_bits;
     int gab = dev->color_info.anti_alias.graphics_bits;
     gs_param_string cms;

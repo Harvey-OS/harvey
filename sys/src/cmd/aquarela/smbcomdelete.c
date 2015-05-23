@@ -29,11 +29,11 @@ smbremovefile(SmbTree *t, char *dir, char *name)
 }
 
 SmbProcessResult
-smbcomdelete(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomdelete(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	SmbProcessResult pr;
-	ushort sattr;
-	uchar fmt;
+	uint16_t sattr;
+	uint8_t fmt;
 	char *pattern = nil;
 	char *dir = nil;
 	char *name = nil;

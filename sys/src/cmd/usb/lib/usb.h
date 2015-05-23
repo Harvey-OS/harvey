@@ -190,7 +190,7 @@ struct Dev
  */
 struct Usbdev
 {
-	ulong	csp;		/* USB class/subclass/proto */
+	uint32_t	csp;		/* USB class/subclass/proto */
 	int	vid;		/* vendor id */
 	int	did;		/* product (device) id */
 	int	dno;		/* device release number */
@@ -230,7 +230,7 @@ struct Altc
 struct Iface
 {
 	int 	id;		/* interface number */
-	ulong	csp;		/* USB class/subclass/proto */
+	uint32_t	csp;		/* USB class/subclass/proto */
 	Altc*	altc[Naltc];
 	Ep*	ep[Nep];
 	void*	aux;		/* for the driver program */
@@ -346,7 +346,7 @@ char*	classname(int c);
 void	closedev(Dev *d);
 int	configdev(Dev *d);
 int	devctl(Dev *dev, char *fmt, ...);
-void*	emallocz(ulong size, int zero);
+void*	emallocz(uint32_t size, int zero);
 char*	estrdup(char *s);
 int	matchdevcsp(char *info, void *a);
 int	finddevs(int (*matchf)(char*,void*), void *farg, char** dirs, int ndirs);

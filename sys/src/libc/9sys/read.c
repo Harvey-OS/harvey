@@ -10,8 +10,8 @@
 #include	<u.h>
 #include	<libc.h>
 
-long
-read(int fd, void *buf, long n)
+int32_t
+read(int fd, void *buf, int32_t n)
 {
 	return pread(fd, buf, n, -1LL);
 }

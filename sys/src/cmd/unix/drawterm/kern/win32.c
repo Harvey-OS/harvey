@@ -147,23 +147,23 @@ procwakeup(Proc *p)
 }
 
 void
-random20(uchar *p)
+random20(uint8_t *p)
 {
 	LARGE_INTEGER ti;
 	int i, j;
 	FILETIME ft;
 	DigestState ds;
-	vlong tsc;
+	int64_t tsc;
 	
 	GetSystemTimeAsFileTime(&ft);
 	memset(&ds, 0, sizeof ds);
-	sha1((uchar*)&ft, sizeof(ft), 0, &ds);
+	sha1((uint8_t*)&ft, sizeof(ft), 0, &ds);
 	for(i=0; i<50; i++) {
 		for(j=0; j<10; j++) {
 			QueryPerformanceCounter(&ti);
-			sha1((uchar*)&ti, sizeof(ti), 0, &ds);
+			sha1((uint8_t*)&ti, sizeof(ti), 0, &ds);
 			tsc = GetTickCount();
-			sha1((uchar*)&tsc, sizeof(tsc), 0, &ds);
+			sha1((uint8_t*)&tsc, sizeof(tsc), 0, &ds);
 		}
 		Sleep(10);
 	}
@@ -175,11 +175,11 @@ randominit(void)
 {
 }
 
-ulong
-randomread(void *v, ulong n)
+uint32_t
+randomread(void *v, uint32_t n)
 {
 	int i;
-	uchar p[20];
+	uint8_t p[20];
 	
 	for(i=0; i<n; i+=20){
 		random20(p);
@@ -191,13 +191,13 @@ randomread(void *v, ulong n)
 	return n;
 }
 
-long
+int32_t
 seconds(void)
 {
 	return time(0);
 }
 
-ulong
+uint32_t
 ticks(void)
 {
 	return GetTickCount();
@@ -454,7 +454,7 @@ oserrstr(void)
 	osrerrstr(up->errstr, ERRMAX);
 }
 
-long
+int32_t
 showfilewrite(char *a, int n)
 {
 	Rune *action, *arg, *cmd, *p;

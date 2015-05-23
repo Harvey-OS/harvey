@@ -57,7 +57,7 @@ gx_pat_cache_default_tiles(void)
 	    max_cached_patterns_LARGE);
 #endif
 }
-ulong
+uint32_t
 gx_pat_cache_default_bits(void)
 {
 #if arch_small_memory
@@ -386,7 +386,7 @@ pattern_cache_free_all(gx_pattern_cache * pcache)
 
 /* Allocate a Pattern cache. */
 gx_pattern_cache *
-gx_pattern_alloc_cache(gs_memory_t * mem, uint num_tiles, ulong max_bits)
+gx_pattern_alloc_cache(gs_memory_t * mem, uint num_tiles, uint32_t max_bits)
 {
     gx_pattern_cache *pcache =
     gs_alloc_struct(mem, gx_pattern_cache, &st_pattern_cache,
@@ -500,7 +500,7 @@ gx_pattern_cache_add_entry(gs_imager_state * pis,
     gx_device_memory *mmask = padev->mask;
     const gs_pattern1_instance_t *pinst = padev->instance;
     gx_pattern_cache *pcache;
-    ulong used = 0;
+    uint32_t used = 0;
     gx_bitmap_id id = pinst->id;
     gx_color_tile *ctile;
     int code = ensure_pattern_cache(pis);

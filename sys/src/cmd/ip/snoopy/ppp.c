@@ -42,18 +42,18 @@ enum {
 typedef struct Lcppkt	Lcppkt;
 struct Lcppkt
 {
-	uchar	code;
-	uchar	id;
-	uchar	len[2];
-	uchar	data[1];
+	uint8_t	code;
+	uint8_t	id;
+	uint8_t	len[2];
+	uint8_t	data[1];
 };
 
 typedef struct Lcpopt	Lcpopt;
 struct Lcpopt
 {
-	uchar	type;
-	uchar	len;
-	uchar	data[1];
+	uint8_t	type;
+	uint8_t	len;
+	uint8_t	data[1];
 };
 
 enum
@@ -263,7 +263,7 @@ seprintlcpopt(char *p, char *e, void *a, int len)
 {
 	Lcpopt *o;
 	int proto, x, period;
-	uchar *cp, *ecp;
+	uint8_t *cp, *ecp;
 
 	cp = a;
 	ecp = cp+len;
@@ -377,7 +377,7 @@ static char*
 seprintipcpopt(char *p, char *e, void *a, int len)
 {
 	Lcpopt *o;
-	uchar *cp, *ecp;
+	uint8_t *cp, *ecp;
 
 	cp = a;
 	ecp = cp+len;
@@ -465,7 +465,7 @@ static char*
 seprintccpopt(char *p, char *e, void *a, int len)
 {
 	Lcpopt *o;
-	uchar *cp, *ecp;
+	uint8_t *cp, *ecp;
 
 	cp = a;
 	ecp = cp+len;
@@ -545,7 +545,7 @@ static int
 p_seprintcomp(Msg *m)
 {
 	char compflag[5];
-	ushort x;
+	uint16_t x;
 	int i;
 	int len;
 

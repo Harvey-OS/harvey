@@ -157,7 +157,9 @@ mountwiki(HConnect *c, char *service)
 }
 
 char*
-dowiki(HConnect *c, char *title, char *author, char *comment, char *base, ulong version, char *text)
+dowiki(HConnect *c, char *title, char *author, char *comment,
+       char *base,
+       uint32_t version, char *text)
 {
 	int fd, l, n, err;
 	char *p, tmp[256];
@@ -207,7 +209,7 @@ main(int argc, char **argv)
 	char *s, *t, *p, *f[10];
 	char *text, *title, *service, *base, *author, *comment, *url;
 	int i, nf;
-	ulong version;
+	uint32_t version;
 
 	hc = init(argc, argv);
 	hp = hc->private;
@@ -284,7 +286,8 @@ main(int argc, char **argv)
 	}
 
 	syslog(0, LOG, "%s post s %s t '%s' v %ld a %s c %s b %s t 0x%p",
-		hp->remotesys, service, title, (long)version, author, comment, base, text);
+		hp->remotesys, service, title, (int32_t)version, author,
+	       comment, base, text);
 
 	title = unhttp(title);
 	comment = unhttp(comment);
@@ -302,7 +305,8 @@ main(int argc, char **argv)
 	}
 
 	syslog(0, LOG, "%s post s %s t '%s' v %ld a %s c %s",
-		hp->remotesys, service, title, (long)version, author, comment);
+		hp->remotesys, service, title, (int32_t)version, author,
+	       comment);
 
 	if(strlen(text) > MaxLog)
 		text[MaxLog] = '\0';

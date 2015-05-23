@@ -54,7 +54,8 @@ saveas(int iFileType, char *szOutfile, size_t tEstSize,
 } /* end of saveas */
 
 static BOOL
-bWrite2File(void *pvBytes, size_t tSize, FILE *pFile, const char *szFilename)
+bWrite2File(void *pvBytes, size_t tSize, FILE *pFile,
+	    const char *szFilename)
 {
 	if (fwrite(pvBytes, sizeof(char), tSize, pFile) != tSize) {
 		werr(0, "I can't write to '%s'", szFilename);

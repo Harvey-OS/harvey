@@ -97,7 +97,7 @@ uint            len;		/* amount of memory to get */
 #endif
 {
     char           *mem;
-    static short    outofmem = 0;
+    static int16_t    outofmem = 0;
 
     if ((mem = (char *)malloc(len)) == (char *)NULL && !outofmem) {
 	outofmem++;

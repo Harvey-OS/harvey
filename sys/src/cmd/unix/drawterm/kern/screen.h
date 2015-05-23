@@ -18,7 +18,7 @@ typedef struct Screeninfo Screeninfo;
 struct Mousestate {
 	int	buttons;
 	Point	xy;
-	ulong	msec;
+	uint32_t	msec;
 };
 
 struct Mouseinfo {
@@ -54,8 +54,8 @@ extern	Screeninfo screen;
 void	screeninit(void);
 void	screenload(Rectangle, int, uchar *, Point, int);
 
-void	getcolor(ulong, ulong*, ulong*, ulong*);
-void	setcolor(ulong, ulong, ulong, ulong);
+void	getcolor(uint32_t, uint32_t*, uint32_t*, uint32_t*);
+void	setcolor(uint32_t, uint32_t, uint32_t, uint32_t);
 
 void	refreshrect(Rectangle);
 
@@ -64,7 +64,7 @@ void	setcursor(void);
 void	mouseset(Point);
 void	drawflushr(Rectangle);
 void	flushmemscreen(Rectangle);
-uchar *attachscreen(Rectangle*, ulong*, int*, int*, int*, void**);
+uchar *attachscreen(Rectangle*, uint32_t*, int*, int*, int*, void**);
 
 void	drawqlock(void);
 void	drawqunlock(void);

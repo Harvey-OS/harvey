@@ -55,7 +55,7 @@ pdfbbox(GSInfo *gs)
 }
 
 Document*
-initpdf(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
+initpdf(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	Document *d;
 	PDFInfo *pdf;

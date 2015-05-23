@@ -14,7 +14,7 @@ char*
 getenv(char *name)
 {
 	int r, f;
-	long s;
+	int32_t s;
 	char *ans;
 	char *p, *ep, ename[100];
 

@@ -40,8 +40,8 @@ enum
 	Nhash=		64,		/* Fid hash buckets */
 };
 
-#define TYPE(x)		(((ulong)x.path) & 0xf)
-#define CONS(x)		((((ulong)x.path) >> 4)&0xfff)
+#define TYPE(x)		(((uint32_t)x.path) & 0xf)
+#define CONS(x)		((((uint32_t)x.path) >> 4)&0xfff)
 #define QID(c, x)	(((c)<<4) | (x))
 
 struct Request
@@ -50,7 +50,7 @@ struct Request
 	Fid	*fid;
 	Fs	*fs;
 	Fcall	f;
-	uchar	buf[1];
+	uint8_t	buf[1];
 };
 
 struct Reqlist
@@ -123,7 +123,7 @@ extern	void	fsreader(void*);
 extern	void	fsrun(void*);
 extern	Fid*	fsgetfid(Fs*, int);
 extern	void	fsputfid(Fs*, Fid*);
-extern	int	fsdirgen(Fs*, Qid, int, Dir*, uchar*, int);
+extern	int	fsdirgen(Fs*, Qid, int, Dir*, uint8_t*, int);
 extern	void	fsreply(Fs*, Request*, char*);
 extern	void	fskick(Fs*, Fid*);
 extern	int	fsreopen(Fs*, Console*);
@@ -282,7 +282,7 @@ parentqid(Qid q)
 }
 
 int
-fsdirgen(Fs *fs, Qid parent, int i, Dir *d, uchar *buf, int nbuf)
+fsdirgen(Fs *fs, Qid parent, int i, Dir *d, uint8_t *buf, int nbuf)
 {
 	static char name[64];
 	char *p;
@@ -455,7 +455,8 @@ change(Fs *fs, Console *c, int doreopen, int speed, int cronly, int ondemand)
  *  create a console interface
  */
 void
-console(Fs* fs, char *name, char *dev, int speed, int cronly, int ondemand)
+console(Fs* fs, char *name, char *dev, int speed, int cronly,
+	int ondemand)
 {
 	Console *c;
 	char *x;
@@ -1025,9 +1026,9 @@ fscreate(Fs *fs, Request *r, Fid*)
 void
 fsread(Fs *fs, Request *r, Fid *f)
 {
-	uchar *p, *e;
+	uint8_t *p, *e;
 	int i, m, off;
-	vlong offset;
+	int64_t offset;
 	Dir d;
 	char sbuf[ERRMAX];
 
@@ -1215,7 +1216,7 @@ void
 fsreply(Fs *fs, Request *r, char *err)
 {
 	int n;
-	uchar buf[8192+IOHDRSZ];
+	uint8_t buf[8192+IOHDRSZ];
 
 	if(err){
 		r->f.type = Rerror;

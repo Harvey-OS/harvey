@@ -156,7 +156,7 @@ typedef
 struct Qid
 {
 	uvlong	path;
-	ulong	vers;
+	uint32_t	vers;
 	uchar	type;
 } Qid;
 
@@ -167,9 +167,9 @@ struct Dir {
 	uint	dev;	/* server subtype */
 	/* file data */
 	Qid	qid;	/* unique id from server */
-	ulong	mode;	/* permissions */
-	ulong	atime;	/* last read time */
-	ulong	mtime;	/* last write time */
+	uint32_t	mode;	/* permissions */
+	uint32_t	atime;	/* last read time */
+	uint32_t	mtime;	/* last write time */
 	vlong	length;	/* file length */
 	char	*name;	/* last element of path */
 	char	*uid;	/* owner name */
@@ -181,7 +181,7 @@ typedef
 struct Waitmsg
 {
 	int pid;	/* of loved one */
-	ulong time[3];	/* of loved one & descendants */
+	uint32_t time[3];	/* of loved one & descendants */
 	char	*msg;
 } Waitmsg;
 
@@ -201,7 +201,7 @@ struct Fmt{
 	int	r;			/* % format Rune */
 	int	width;
 	int	prec;
-	ulong	flags;
+	uint32_t	flags;
 };
 
 enum{
@@ -258,7 +258,7 @@ extern	int	encodefmt(Fmt*);
 extern	int	fmtstrcpy(Fmt*, char*);
 extern	int	fmtprint(Fmt*, char*, ...);
 extern	int	fmtvprint(Fmt*, char*, va_list);
-extern	void*	mallocz(ulong, int);
+extern	void*	mallocz(uint32_t, int);
 
 extern	uintptr	getcallerpc(void*);
 extern	char*	cleanname(char*);

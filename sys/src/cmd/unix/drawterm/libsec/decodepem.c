@@ -14,10 +14,10 @@
 
 #define STRLEN(s)	(sizeof(s)-1)
 
-uchar*
+uint8_t*
 decodepem(char *s, char *type, int *len)
 {
-	uchar *d;
+	uint8_t *d;
 	char *t, *e, *tt;
 	int n;
 

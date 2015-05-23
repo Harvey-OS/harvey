@@ -145,7 +145,7 @@ Bflush(bioout);
 }
 
 void
-undef(ulong inst)
+undef(uint32_t inst)
 {
 
 /*
@@ -162,13 +162,13 @@ undef(ulong inst)
 }
 
 void
-Iaddi(ulong inst)
+Iaddi(uint32_t inst)
 {
 	int rs, rt;
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = (short)(inst&0xffff);
+	imm = (int16_t)(inst&0xffff);
 
 	if(trace)
 		itrace("addi\tr%d,r%d,#0x%x", rt, rs, imm);
@@ -177,7 +177,7 @@ Iaddi(ulong inst)
 }
 
 void
-Iandi(ulong inst)
+Iandi(uint32_t inst)
 {
 	int rs, rt;
 	int imm;
@@ -192,14 +192,14 @@ Iandi(ulong inst)
 }
 
 void
-Isw(ulong inst)
+Isw(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ulong v;
+	uint32_t v;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	v = reg.r[rt];
 	if(trace)
@@ -210,14 +210,14 @@ Isw(ulong inst)
 }
 
 void
-Isb(ulong inst)
+Isb(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	uchar value;
+	uint8_t value;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	value = reg.r[rt];
 	if(trace)
@@ -227,14 +227,14 @@ Isb(ulong inst)
 }
 
 void
-Ish(ulong inst)
+Ish(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ushort value;
+	uint16_t value;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	value = reg.r[rt];
 	if(trace)
@@ -245,7 +245,7 @@ Ish(ulong inst)
 }
 
 void
-Ilui(ulong inst)
+Ilui(uint32_t inst)
 {
 	int rs, rt;
 	int imm;
@@ -261,7 +261,7 @@ Ilui(ulong inst)
 }
 
 void
-Iori(ulong inst)
+Iori(uint32_t inst)
 {
 	int rs, rt;
 	int imm;
@@ -276,7 +276,7 @@ Iori(ulong inst)
 }
 
 void
-Ixori(ulong inst)
+Ixori(uint32_t inst)
 {
 	int rs, rt;
 	int imm;
@@ -291,14 +291,14 @@ Ixori(ulong inst)
 }
 
 void
-Ilw(ulong inst)
+Ilw(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ulong v, va;
+	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	va = reg.r[rb]+off;
 
@@ -313,14 +313,14 @@ Ilw(ulong inst)
 }
 
 void
-Ilwl(ulong inst)
+Ilwl(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ulong v, va;
+	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	va = reg.r[rb]+off;
 
@@ -349,14 +349,14 @@ Ilwl(ulong inst)
 }
 
 void
-Ilwr(ulong inst)
+Ilwr(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ulong v, va;
+	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	va = reg.r[rb]+off;
 
@@ -384,36 +384,36 @@ Ilwr(ulong inst)
 }
 
 void
-Ilh(ulong inst)
+Ilh(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ulong v, va;
+	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	va = reg.r[rb]+off;
 
 	if(trace) {
 		v = 0;
 		if(!badvaddr(va, 2))
-			v = (short)getmem_h(va);
+			v = (int16_t)getmem_h(va);
 		itrace("lw\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb, va, v);
 	}
 
-	reg.r[rt] = (short)getmem_h(va);
+	reg.r[rt] = (int16_t)getmem_h(va);
 }
 
 void
-Ilhu(ulong inst)
+Ilhu(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ulong v, va;
+	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	va = reg.r[rb]+off;
 
@@ -428,14 +428,14 @@ Ilhu(ulong inst)
 }
 
 void
-Ilb(ulong inst)
+Ilb(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ulong v, va;
+	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	va = reg.r[rb]+off;
 
@@ -450,14 +450,14 @@ Ilb(ulong inst)
 }
 
 void
-Ilbu(ulong inst)
+Ilbu(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ulong v, va;
+	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	va = reg.r[rb]+off;
 
@@ -472,9 +472,9 @@ Ilbu(ulong inst)
 }
 
 void
-Ijal(ulong inst)
+Ijal(uint32_t inst)
 {
-	ulong npc;
+	uint32_t npc;
 	Symbol s;
 
 	npc = (reg.pc&0xF0000000)|((inst&0x3FFFFFF)<<2);
@@ -500,9 +500,9 @@ Ijal(ulong inst)
 }
 
 void
-Ij(ulong inst)
+Ij(uint32_t inst)
 {
-	ulong npc;
+	uint32_t npc;
 
 	npc = (reg.pc&0xF0000000)|((inst&0x3FFFFFF)<<2);
 	if(trace)
@@ -516,14 +516,14 @@ Ij(ulong inst)
 }
 
 void
-Ibeq(ulong inst)
+Ibeq(uint32_t inst)
 {
 	int rt, rs;
 	int off;
-	ulong npc;
+	uint32_t npc;
 
 	Getrsrt(rs, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	npc = reg.pc + (off<<2) + 4;
 	if(trace)
@@ -539,14 +539,14 @@ Ibeq(ulong inst)
 }
 
 void
-Ibeql(ulong inst)
+Ibeql(uint32_t inst)
 {
 	int rt, rs;
 	int off;
-	ulong npc;
+	uint32_t npc;
 
 	Getrsrt(rs, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	npc = reg.pc + (off<<2) + 4;
 	if(trace)
@@ -563,14 +563,14 @@ Ibeql(ulong inst)
 }
 
 void
-Ibgtz(ulong inst)
+Ibgtz(uint32_t inst)
 {
 	int rs;
 	int off;
-	ulong npc, r;
+	uint32_t npc, r;
 
 	rs = (inst>>21)&0x1f;
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	npc = reg.pc + (off<<2) + 4;
 	if(trace)
@@ -586,14 +586,14 @@ Ibgtz(ulong inst)
 }
 
 void
-Ibgtzl(ulong inst)
+Ibgtzl(uint32_t inst)
 {
 	int rs;
 	int off;
-	ulong npc, r;
+	uint32_t npc, r;
 
 	rs = (inst>>21)&0x1f;
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	npc = reg.pc + (off<<2) + 4;
 	if(trace)
@@ -610,14 +610,14 @@ Ibgtzl(ulong inst)
 }
 
 void
-Iblez(ulong inst)
+Iblez(uint32_t inst)
 {
 	int rs;
 	int off;
-	ulong npc, r;
+	uint32_t npc, r;
 
 	rs = (inst>>21)&0x1f;
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	npc = reg.pc + (off<<2) + 4;
 	if(trace)
@@ -634,14 +634,14 @@ Iblez(ulong inst)
 }
 
 void
-Iblezl(ulong inst)
+Iblezl(uint32_t inst)
 {
 	int rs;
 	int off;
-	ulong npc, r;
+	uint32_t npc, r;
 
 	rs = (inst>>21)&0x1f;
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	npc = reg.pc + (off<<2) + 4;
 	if(trace)
@@ -659,14 +659,14 @@ Iblezl(ulong inst)
 }
 
 void
-Ibne(ulong inst)
+Ibne(uint32_t inst)
 {
 	int rt, rs;
 	int off;
-	ulong npc;
+	uint32_t npc;
 
 	Getrsrt(rs, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	npc = reg.pc + (off<<2) + 4;
 	if(trace)
@@ -682,14 +682,14 @@ Ibne(ulong inst)
 }
 
 void
-Ibnel(ulong inst)
+Ibnel(uint32_t inst)
 {
 	int rt, rs;
 	int off;
-	ulong npc;
+	uint32_t npc;
 
 	Getrsrt(rs, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	npc = reg.pc + (off<<2) + 4;
 	if(trace)
@@ -706,13 +706,13 @@ Ibnel(ulong inst)
 }
 
 void
-Iaddiu(ulong inst)
+Iaddiu(uint32_t inst)
 {
 	int rs, rt;
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = (short)(inst&0xffff);
+	imm = (int16_t)(inst&0xffff);
 
 	if(trace)
 		itrace("addiu\tr%d,r%d,#0x%x", rt, rs, imm);
@@ -721,13 +721,13 @@ Iaddiu(ulong inst)
 }
 
 void
-Islti(ulong inst)
+Islti(uint32_t inst)
 {
 	int rs, rt;
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = (short)(inst&0xffff);
+	imm = (int16_t)(inst&0xffff);
 
 	if(trace)
 		itrace("slti\tr%d,r%d,#0x%x", rt, rs, imm);
@@ -736,31 +736,31 @@ Islti(ulong inst)
 }
 
 void
-Isltiu(ulong inst)
+Isltiu(uint32_t inst)
 {
 	int rs, rt;
 	int imm;
 
 	Getrsrt(rs, rt, inst);
-	imm = (short)(inst&0xffff);
+	imm = (int16_t)(inst&0xffff);
 
 	if(trace)
 		itrace("sltiu\tr%d,r%d,#0x%x", rt, rs, imm);
 
-	reg.r[rt] = (ulong)reg.r[rs] < (ulong)imm ? 1 : 0;
+	reg.r[rt] = (uint32_t)reg.r[rs] < (uint32_t)imm ? 1 : 0;
 }
 
 /* ll and sc are implemented as lw and sw, since we simulate a uniprocessor */
 
 void
-Ill(ulong inst)
+Ill(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ulong v, va;
+	uint32_t v, va;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	va = reg.r[rb]+off;
 
@@ -775,14 +775,14 @@ Ill(ulong inst)
 }
 
 void
-Isc(ulong inst)
+Isc(uint32_t inst)
 {
 	int rt, rb;
 	int off;
-	ulong v;
+	uint32_t v;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	v = reg.r[rt];
 	if(trace)
@@ -817,15 +817,15 @@ static char *sbcond[] =
 };
 
 void
-Ibcond(ulong inst)
+Ibcond(uint32_t inst)
 {
 	int rs, bran;
 	int off, doit, likely;
-	ulong npc;
+	uint32_t npc;
 
 	rs = (inst>>21)&0x1f;
 	bran = (inst>>16)&0x1f;
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 	doit = 0;
 	likely = 0;
 

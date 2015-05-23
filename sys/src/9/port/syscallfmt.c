@@ -7,18 +7,17 @@
  * in the LICENSE file.
  */
 
-/*
- * Print functions for system call tracing.
- */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
 
-#include "/sys/src/libc/9syscall/sys.h"
+#include "../../libc/9syscall/sys.h"
 
-// WE ARE OVERRUNNING SOMEHOW
+/*
+ * Print functions for system call tracing.
+ */
 static void
 fmtrwdata(Fmt* f, char* a, int n, char* suffix)
 {
@@ -29,13 +28,14 @@ fmtrwdata(Fmt* f, char* a, int n, char* suffix)
 		fmtprint(f, "0x0%s", suffix);
 		return;
 	}
-	validaddr((ulong)a, n, 0);
+	a = validaddr(a, n, 0);
 	t = smalloc(n+1);
-	for(i = 0; i < n; i++)
-		if(a[i] > 0x20 && a[i] < 0x7f)	/* printable ascii? */
+	for(i = 0; i < n; i++){
+		if(a[i] > 0x20 && a[i] < 0x7f)
 			t[i] = a[i];
 		else
 			t[i] = '.';
+	}
 
 	fmtprint(f, " %#p/\"%s\"%s", a, t, suffix);
 	free(t);
@@ -51,42 +51,47 @@ fmtuserstring(Fmt* f, char* a, char* suffix)
 		fmtprint(f, "0/\"\"%s", suffix);
 		return;
 	}
-	validaddr((ulong)a, 1, 0);
+	a = validaddr(a, 1, 0);
 	n = ((char*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
-	t = smalloc(n+1);
+	t = smalloc(n);
 	memmove(t, a, n);
 	t[n] = 0;
 	fmtprint(f, "%#p/\"%s\"%s", a, t, suffix);
 	free(t);
 }
 
+/*
+ */
 void
-syscallfmt(int syscallno, ulong pc, va_list list)
+syscallfmt(int syscallno, ...)
 {
-	long l;
+	Mach *m = machp();
+	va_list list;
+	int32_t l;
+	uint32_t ul;
 	Fmt fmt;
 	void *v;
-	vlong vl;
-	uintptr p;
-	int i[2], len;
+	int64_t vl;
+	uintptr_t p;
+	int i[2], len, **ip;
 	char *a, **argv;
-
+	va_start(list, syscallno);
+iprint("%d: %d nsyscall %d\n", m->externup->pid, syscallno, nsyscall);
 	fmtstrinit(&fmt);
-	fmtprint(&fmt, "%uld %s ", up->pid, up->text);
+	fmtprint(&fmt, "%d %s ", m->externup->pid, m->externup->text);
 
 	if(syscallno > nsyscall)
 		fmtprint(&fmt, " %d ", syscallno);
 	else
-		fmtprint(&fmt, "%s ", sysctab[syscallno]?
-			sysctab[syscallno]: "huh?");
+		fmtprint(&fmt, "%s ", systab[syscallno].n);
 
-	fmtprint(&fmt, "%ulx ", pc);
-	if(up->syscalltrace != nil)
-		free(up->syscalltrace);
+	if(m->externup->syscalltrace != nil)
+		free(m->externup->syscalltrace);
+	m->externup->syscalltrace = nil;
 
 	switch(syscallno){
 	case SYSR1:
-		p = va_arg(list, uintptr);
+		p = va_arg(list, uintptr_t);
 		fmtprint(&fmt, "%#p", p);
 		break;
 	case _ERRSTR:					/* deprecated */
@@ -118,14 +123,29 @@ syscallfmt(int syscallno, ulong pc, va_list list)
 		l = va_arg(list, unsigned long);
 		fmtprint(&fmt, "%#lud ", l);
 		break;
+	case EXECAC:
+		i[0] = va_arg(list, int);
+		fmtprint(&fmt, "%d", i[0]);
+		a = va_arg(list, char*);
+		fmtuserstring(&fmt, a, " ");
+		argv = va_arg(list, char**);
+		evenaddr(PTR2UINT(argv));
+		for(;;){
+			a = *(char**)validaddr(argv, sizeof(char**), 0);
+			if(a == nil)
+				break;
+			fmtprint(&fmt, " ");
+			fmtuserstring(&fmt, a, "");
+			argv++;
+		}
+		break;
 	case EXEC:
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
 		argv = va_arg(list, char**);
-		validalign(PTR2UINT(argv), sizeof(char*));
+		evenaddr(PTR2UINT(argv));
 		for(;;){
-			validaddr((ulong)argv, sizeof(char**), 0);
-			a = *(char **)argv;
+			a = *(char**)validaddr(argv, sizeof(char**), 0);
 			if(a == nil)
 				break;
 			fmtprint(&fmt, " ");
@@ -171,12 +191,12 @@ syscallfmt(int syscallno, ulong pc, va_list list)
 		break;
 	case OSEEK:					/* deprecated */
 		i[0] = va_arg(list, int);
-		l = va_arg(list, long);
+		l = va_arg(list, int32_t);
 		i[1] = va_arg(list, int);
 		fmtprint(&fmt, "%d %ld %d", i[0], l, i[1]);
 		break;
 	case SLEEP:
-		l = va_arg(list, long);
+		l = va_arg(list, int32_t);
 		fmtprint(&fmt, "%ld", l);
 		break;
 	case _STAT:					/* obsolete */
@@ -241,14 +261,25 @@ syscallfmt(int syscallno, ulong pc, va_list list)
 		fmtprint(&fmt, "%#p %d", v, i[0]);
 		break;
 	case TSEMACQUIRE:
-		v = va_arg(list, long*);
-		l = va_arg(list, ulong);
+		v = va_arg(list, int*);
+		l = va_arg(list, uint32_t);
 		fmtprint(&fmt, "%#p %ld", v, l);
 		break;
-	case SEEK:
-		v = va_arg(list, vlong*);
+	case SEMSLEEP:
+	case SEMWAKEUP:
+		v = va_arg(list, int*);
+		fmtprint(&fmt, "%#p", v);
+		break;
+	case SEMALT:
+		ip = va_arg(list, int**);
 		i[0] = va_arg(list, int);
-		vl = va_arg(list, vlong);
+		validaddr(ip, sizeof(int*)*i[0], 0);
+		fmtprint(&fmt, "%#p %d", ip, i[0]);
+		break;
+	case SEEK:
+		v = va_arg(list, int64_t*);
+		i[0] = va_arg(list, int);
+		vl = va_arg(list, int64_t);
 		i[1] = va_arg(list, int);
 		fmtprint(&fmt, "%#p %d %#llux %d", v, i[0], vl, i[1]);
 		break;
@@ -287,10 +318,10 @@ syscallfmt(int syscallno, ulong pc, va_list list)
 	case PREAD:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void*);
-		l = va_arg(list, long);
+		l = va_arg(list, int32_t);
 		fmtprint(&fmt, "%d %#p %ld", i[0], v, l);
 		if(syscallno == PREAD){
-			vl = va_arg(list, vlong);
+			vl = va_arg(list, int64_t);
 			fmtprint(&fmt, " %lld", vl);
 		}
 		break;
@@ -298,68 +329,93 @@ syscallfmt(int syscallno, ulong pc, va_list list)
 	case PWRITE:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void*);
-		l = va_arg(list, long);
+		l = va_arg(list, int32_t);
 		fmtprint(&fmt, "%d ", i[0]);
 		len = MIN(l, 64);
 		fmtrwdata(&fmt, v, len, " ");
 		fmtprint(&fmt, "%ld", l);
 		if(syscallno == PWRITE){
-			vl = va_arg(list, vlong);
+			vl = va_arg(list, int64_t);
 			fmtprint(&fmt, " %lld", vl);
 		}
 		break;
-	case NSEC:
-		v = va_arg(list, vlong*);
-		fmtprint(&fmt, "%#p", v);
+	case ZIOPREAD:
+		i[0] = va_arg(list, int);
+		v = va_arg(list, void*);
+		i[1] = va_arg(list, int);
+		ul = va_arg(list, usize);
+		vl = va_arg(list, int64_t);
+		fmtprint(&fmt, "%d %#p %d %ld %ulld", i[0], v, i[1], ul, vl);
+		break;
+	case ZIOPWRITE:
+		i[0] = va_arg(list, int);
+		v = va_arg(list, void*);
+		i[1] = va_arg(list, int);
+		vl = va_arg(list, int64_t);
+		fmtprint(&fmt, "%d %#p %d %ulld", i[0], v, i[1], vl);
+		break;
+	case ZIOFREE:
+		v = va_arg(list, void*);
+		i[1] = va_arg(list, int);
+		fmtprint(&fmt, "%#p %d", v, i[1]);
+	case NIXSYSCALL:
 		break;
 	}
-
-	up->syscalltrace = fmtstrflush(&fmt);
+	m->externup->syscalltrace = fmtstrflush(&fmt);
 }
 
 void
-sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
+sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
+	  uint64_t stop, ...)
 {
-	long l;
+	Mach *m = machp();
+	va_list list;
+	int32_t l;
 	void* v;
 	Fmt fmt;
-	vlong vl;
+	int64_t vl;
 	int i, len;
 	char *a, *errstr;
 
 	fmtstrinit(&fmt);
-
-	if(up->syscalltrace)
-		free(up->syscalltrace);
+	va_start(list, stop);
+	if(m->externup->syscalltrace)
+		free(m->externup->syscalltrace);
+	m->externup->syscalltrace = nil;
 
 	errstr = "\"\"";
 	switch(syscallno){
 	default:
+		if(ar0->i == -1)
+			errstr = m->externup->errstr;
+		fmtprint(&fmt, " = %d", ar0->i);
+		break;
 	case ALARM:
 	case _WRITE:
 	case PWRITE:
-		if(ret == -1)
-			errstr = up->syserrstr;
-		fmtprint(&fmt, " = %ld", ret);
+		if(ar0->l == -1)
+			errstr = m->externup->errstr;
+		fmtprint(&fmt, " = %ld", ar0->l);
 		break;
 	case EXEC:
+	case EXECAC:
 	case SEGBRK:
 	case SEGATTACH:
 	case RENDEZVOUS:
-		if((void *)ret == (void*)-1)
-			errstr = up->syserrstr;
-		fmtprint(&fmt, " = %#p", (void *)ret);
+		if(ar0->v == (void*)-1)
+			errstr = m->externup->errstr;
+		fmtprint(&fmt, " = %#p", ar0->v);
 		break;
 	case AWAIT:
 		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
-		if(ret > 0){
+		if(ar0->i > 0){
 			fmtuserstring(&fmt, a, " ");
-			fmtprint(&fmt, "%lud = %ld", l, ret);
+			fmtprint(&fmt, "%lud = %d", l, ar0->i);
 		}
 		else{
-			fmtprint(&fmt, "%#p/\"\" %lud = %ld", a, l, ret);
-			errstr = up->syserrstr;
+			fmtprint(&fmt, "%#p/\"\" %lud = %d", a, l, ar0->i);
+			errstr = m->externup->errstr;
 		}
 		break;
 	case _ERRSTR:
@@ -369,13 +425,13 @@ sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
 			l = 64;
 		else
 			l = va_arg(list, unsigned long);
-		if(ret > 0){
+		if(ar0->i > 0){
 			fmtuserstring(&fmt, a, " ");
-			fmtprint(&fmt, "%lud = %ld", l, ret);
+			fmtprint(&fmt, "%lud = %d", l, ar0->i);
 		}
 		else{
-			fmtprint(&fmt, "\"\" %lud = %ld", l, ret);
-			errstr = up->syserrstr;
+			fmtprint(&fmt, "\"\" %lud = %d", l, ar0->i);
+			errstr = m->externup->errstr;
 		}
 		break;
 	case FD2PATH:
@@ -383,13 +439,13 @@ sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
 		USED(i);
 		a = va_arg(list, char*);
 		l = va_arg(list, unsigned long);
-		if(ret > 0){
+		if(ar0->i > 0){
 			fmtuserstring(&fmt, a, " ");
-			fmtprint(&fmt, "%lud = %ld", l, ret);
+			fmtprint(&fmt, "%lud = %d", l, ar0->i);
 		}
 		else{
-			fmtprint(&fmt, "\"\" %lud = %ld", l, ret);
-			errstr = up->syserrstr;
+			fmtprint(&fmt, "\"\" %lud = %d", l, ar0->i);
+			errstr = m->externup->errstr;
 		}
 		break;
 	case _READ:
@@ -397,26 +453,24 @@ sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
 		i = va_arg(list, int);
 		USED(i);
 		v = va_arg(list, void*);
-		l = va_arg(list, long);
-		if(ret > 0){
-			len = MIN(ret, 64);
+		l = va_arg(list, int32_t);
+		if(ar0->l > 0){
+			len = MIN(ar0->l, 64);
 			fmtrwdata(&fmt, v, len, "");
 		}
 		else{
 			fmtprint(&fmt, "/\"\"");
-			errstr = up->syserrstr;
+			errstr = m->externup->errstr;
 		}
 		fmtprint(&fmt, " %ld", l);
 		if(syscallno == PREAD){
-			vl = va_arg(list, vlong);
+			vl = va_arg(list, int64_t);
 			fmtprint(&fmt, " %lld", vl);
 		}
-		fmtprint(&fmt, " = %ld", ret);
-		break;
-	case NSEC:
-		fmtprint(&fmt, " = %ld", ret);		/* FoV */
+		fmtprint(&fmt, " = %d", ar0->i);
 		break;
 	}
 	fmtprint(&fmt, " %s %#llud %#llud\n", errstr, start, stop);
-	up->syscalltrace = fmtstrflush(&fmt);
+
+	m->externup->syscalltrace = fmtstrflush(&fmt);
 }

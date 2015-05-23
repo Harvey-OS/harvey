@@ -34,7 +34,7 @@ struct Ndb
 	char *file;
 	Msgdb *db;
 	double p;
-	long nmsg;
+	int32_t nmsg;
 };
 
 typedef struct Word Word;
@@ -241,7 +241,7 @@ process(Biobuf *b, char*)
 {
 	char *s;
 	char *p;
-	long n;
+	int32_t n;
 
 	while((s = Brdline(b, '\n')) != nil){
 		s[Blinelen(b)-1] = 0;

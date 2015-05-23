@@ -24,7 +24,7 @@ int	debug;
 int	becomeuser(char*);
 void	createuser(void);
 void	*emalloc(ulong);
-void	*erealloc(void*, ulong);
+void	*erealloc(void*, uint32_t);
 void	initcap(void);
 int	mkcmd(char*, char*, int);
 int	myauth(int, char*);
@@ -75,7 +75,7 @@ runas(char *user, char *cmd)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -86,7 +86,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	if(p = realloc(p, n))
 		return p;
@@ -104,9 +104,9 @@ usage(void)
 void
 memrandom(void *p, int n)
 {
-	uchar *cp;
+	uint8_t *cp;
 
-	for(cp = (uchar*)p; n > 0; n--)
+	for(cp = (uint8_t*)p; n > 0; n--)
 		*cp++ = fastrand();
 }
 
@@ -129,11 +129,11 @@ initcap(void)
 char*
 mkcap(char *from, char *to)
 {
-	uchar rand[20];
+	uint8_t rand[20];
 	char *cap;
 	char *key;
 	int nfrom, nto, ncap;
-	uchar hash[SHA1dlen];
+	uint8_t hash[SHA1dlen];
 
 	if(caphashfd < 0)
 		return nil;
@@ -149,7 +149,8 @@ mkcap(char *from, char *to)
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uchar*)cap, strlen(cap), (uchar*)key, strlen(key), hash, nil);
+	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
+		  hash, nil);
 
 	/* give the kernel the hash */
 	key[-1] = '@';

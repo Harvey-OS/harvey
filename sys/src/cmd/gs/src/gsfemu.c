@@ -78,16 +78,16 @@
 #  define lsw 0
 #endif
 /* Double arguments/results */
-#define la ((const long *)&a)
-#define ula ((const ulong *)&a)
-#define lb ((const long *)&b)
-#define ulb ((const ulong *)&b)
+#define la ((const int32_t *)&a)
+#define ula ((const uint32_t *)&a)
+#define lb ((const int32_t *)&b)
+#define ulb ((const uint32_t *)&b)
 #define dc (*(const double *)lc)
 /* Float arguments/results */
-#define ia (*(const long *)&a)
-#define ua (*(const ulong *)&a)
-#define ib (*(const long *)&b)
-#define ub (*(const ulong *)&b)
+#define ia (*(const int32_t *)&a)
+#define ua (*(const uint32_t *)&a)
+#define ib (*(const int32_t *)&b)
+#define ub (*(const uint32_t *)&b)
 #define fc (*(const float *)&lc)
 
 /* Round a double-length fraction by adding 1 in the lowest bit and */
@@ -110,7 +110,7 @@
 double
 __negdf2(double a)
 {
-    long lc[2];
+    int32_t lc[2];
 
     lc[msw] = la[msw] ^ 0x80000000;
     lc[lsw] = la[lsw];
@@ -119,7 +119,7 @@ __negdf2(double a)
 float
 __negsf2(float a)
 {
-    long lc = ia ^ 0x80000000;
+    int32_t lc = ia ^ 0x80000000;
 
     return fc;
 }
@@ -127,12 +127,12 @@ __negsf2(float a)
 double
 __adddf3(double a, double b)
 {
-    long lc[2];
+    int32_t lc[2];
     int expt = dx(la);
     int shift = expt - dx(lb);
-    long sign;
-    ulong msa, lsa;
-    ulong msb, lsb;
+    int32_t sign;
+    uint32_t msa, lsa;
+    uint32_t msb, lsb;
 
     if (shift < 0) {		/* Swap a and b so that expt(a) >= expt(b). */
 	double temp = a;
@@ -156,7 +156,7 @@ __adddf3(double a, double b)
 	    msb >>= shift;
 	    roundr1(msb, lsb);
 	}
-	if (lsb > (ulong) 0xffffffff - lsa)
+	if (lsb > (uint32_t) 0xffffffff - lsa)
 	    msa++;
 	lsa += lsb;
 	msa += msb;
@@ -205,14 +205,14 @@ __adddf3(double a, double b)
 	    return dc;
 	}
     }
-    lc[msw] = sign + ((ulong) expt << 20) + (msa & 0xfffff);
+    lc[msw] = sign + ((uint32_t) expt << 20) + (msa & 0xfffff);
     lc[lsw] = lsa;
     return dc;
 }
 double
 __subdf3(double a, double b)
 {
-    long nb[2];
+    int32_t nb[2];
 
     nb[msw] = lb[msw] ^ 0x80000000;
     nb[lsw] = lb[lsw];
@@ -222,17 +222,17 @@ __subdf3(double a, double b)
 float
 __addsf3(float a, float b)
 {
-    long lc;
+    int32_t lc;
     int expt = fx(ia);
     int shift = expt - fx(ib);
-    long sign;
-    ulong ma, mb;
+    int32_t sign;
+    uint32_t ma, mb;
 
     if (shift < 0) {		/* Swap a and b so that expt(a) >= expt(b). */
-	long temp = ia;
+	int32_t temp = ia;
 
-	*(long *)&a = ib;
-	*(long *)&b = temp;
+	*(int32_t *)&a = ib;
+	*(int32_t *)&b = temp;
 	expt += (shift = -shift);
     }
     if (shift >= 25)		/* also picks up most cases where b == 0 */
@@ -283,14 +283,14 @@ __addsf3(float a, float b)
 	    return fc;
 	}
     }
-    lc = sign + ((ulong)expt << 23) + (ma & 0x7fffff);
+    lc = sign + ((uint32_t)expt << 23) + (ma & 0x7fffff);
     return fc;
 }
 
 float
 __subsf3(float a, float b)
 {
-    long lc = ib ^ 0x80000000;
+    int32_t lc = ib ^ 0x80000000;
 
     return a + fc;
 }
@@ -300,11 +300,11 @@ __subsf3(float a, float b)
 double
 __muldf3(double a, double b)
 {
-    long lc[2];
-    ulong sign;
+    int32_t lc[2];
+    uint32_t sign;
     uint H, I, h, i;
-    ulong p0, p1, p2;
-    ulong expt;
+    uint32_t p0, p1, p2;
+    uint32_t expt;
 
     if (!(la[msw] & 0x7fffffff) || !(lb[msw] & 0x7fffffff))
 	return 0;
@@ -337,10 +337,10 @@ __muldf3(double a, double b)
 	chop_ls(ula, J, K);
 	chop_ls(ulb, j, k);
 	{
-	    ulong p6 = prod(K, k);
-	    ulong p5 = prod(J, k) + prod(K, j) + (p6 >> 14);
-	    ulong p4 = prod(I, k) + prod(J, j) + prod(K, i) + (p5 >> 14);
-	    ulong p3 = prod(H, k) + prod(I, j) + prod(J, i) + prod(K, h) +
+	    uint32_t p6 = prod(K, k);
+	    uint32_t p5 = prod(J, k) + prod(K, j) + (p6 >> 14);
+	    uint32_t p4 = prod(I, k) + prod(J, j) + prod(K, i) + (p5 >> 14);
+	    uint32_t p3 = prod(H, k) + prod(I, j) + prod(J, i) + prod(K, h) +
 	    (p4 >> 14);
 
 	    p2 = prod(H, j) + prod(I, i) + prod(J, h) + (p3 >> 14);
@@ -371,15 +371,15 @@ __muldf3(double a, double b)
     if (!((p2 += 4) & 0x3ffc) && !(++p1 & 0x3fff) && ++p0 >= 0x10000000) {
 	p0 >>= 1, p1 = 0x2000;
 	/* Check for exponent overflow, just in case. */
-	if ((ulong) expt < 0xc0000000)
+	if ((uint32_t) expt < 0xc0000000)
 	    expt += 0x100000;
     }
     sign = (la[msw] ^ lb[msw]) & 0x80000000;
     if (expt == 0) {		/* Underflow.  Return 0 rather than a denorm. */
 	lc[msw] = sign;
 	lc[lsw] = 0;
-    } else if ((ulong) expt >= 0x7ff00000) {	/* Overflow or underflow. */
-	if ((ulong) expt <= 0xc0000000) {	/* Overflow. */
+    } else if ((uint32_t) expt >= 0x7ff00000) {	/* Overflow or underflow. */
+	if ((uint32_t) expt <= 0xc0000000) {	/* Overflow. */
 	    raise(SIGFPE);
 	    lc[msw] = sign + 0x7ff00000;
 	    lc[lsw] = 0;
@@ -398,7 +398,7 @@ float
 __mulsf3(float a, float b)
 {
     uint au, al, bu, bl, cu, cl, sign;
-    long lc;
+    int32_t lc;
     uint expt;
 
     if (!(ia & 0x7fffffff) || !(ib & 0x7fffffff))
@@ -445,19 +445,19 @@ __mulsf3(float a, float b)
 double
 __divdf3(double a, double b)
 {
-    long lc[2];
+    int32_t lc[2];
 
     /*
      * Multi-precision division is really, really awful.
      * We generate the result more or less brute force,
      * 11 bits at a time.
      */
-    ulong sign = (la[msw] ^ lb[msw]) & 0x80000000;
-    ulong msa = (la[msw] & 0xfffff) | 0x100000, lsa = la[lsw];
-    ulong msb = (lb[msw] & 0xfffff) | 0x100000, lsb = lb[lsw];
+    uint32_t sign = (la[msw] ^ lb[msw]) & 0x80000000;
+    uint32_t msa = (la[msw] & 0xfffff) | 0x100000, lsa = la[lsw];
+    uint32_t msb = (lb[msw] & 0xfffff) | 0x100000, lsb = lb[lsw];
     uint qn[5];
     int i;
-    ulong msq, lsq;
+    uint32_t msq, lsq;
     int expt = dx(la) - dx(lb) + dx_bias;
 
     if (!(lb[msw] & 0x7fffffff)) {	/* Division by zero. */
@@ -473,7 +473,7 @@ __divdf3(double a, double b)
 	return 0;
     for (i = 0; i < 5; ++i) {
 	uint q;
-	ulong msp, lsp;
+	uint32_t msp, lsp;
 
 	msa = (msa << 11) + (lsa >> 21);
 	lsa <<= 11;
@@ -484,7 +484,7 @@ __divdf3(double a, double b)
 	msp = q * msb;
 	lsp = q * (lsb & 0x1fffff);
 	{
-	    ulong midp = q * (lsb >> 21);
+	    uint32_t midp = q * (lsb >> 21);
 
 	    msp += (midp + (lsp >> 21)) >> 11;
 	    lsp += midp << 21;
@@ -534,7 +534,7 @@ __divsf3(float a, float b)
 /* ---------------- Comparisons ---------------- */
 
 static int
-compared2(const long *pa, const long *pb)
+compared2(const int32_t *pa, const int32_t *pb)
 {
 #define upa ((const ulong *)pa)
 #define upb ((const ulong *)pb)
@@ -598,7 +598,7 @@ __ledf2(double a, double b)
 }
 
 static int
-comparef2(long va, long vb)
+comparef2(int32_t va, int32_t vb)
 {				/* We have to treat -0 and +0 specially. */
     if (va == vb)
 	return 0;
@@ -644,10 +644,10 @@ __lesf2(float a, float b)
 
 /* ---------------- Conversion ---------------- */
 
-long
+int32_t
 __fixdfsi(double a)
 {				/* This routine does check for overflow. */
-    long i = (la[msw] & 0xfffff) + 0x100000;
+    int32_t i = (la[msw] & 0xfffff) + 0x100000;
     int expt = dx(la) - dx_bias;
 
     if (expt < 0)
@@ -665,10 +665,10 @@ __fixdfsi(double a)
     return (la[msw] < 0 ? -i : i);
 }
 
-long
+int32_t
 __fixsfsi(float a)
 {				/* This routine does check for overflow. */
-    long i = (ia & 0x7fffff) + 0x800000;
+    int32_t i = (ia & 0x7fffff) + 0x800000;
     int expt = fx(ia) - fx_bias;
 
     if (expt < 0)
@@ -684,11 +684,11 @@ __fixsfsi(float a)
 }
 
 double
-__floatsidf(long i)
+__floatsidf(int32_t i)
 {
-    long msc;
-    ulong v;
-    long lc[2];
+    int32_t msc;
+    uint32_t v;
+    int32_t lc[2];
 
     if (i > 0)
 	msc = 0x41e00000 - 0x100000, v = i;
@@ -708,14 +708,14 @@ __floatsidf(long i)
 }
 
 float
-__floatsisf(long i)
+__floatsisf(int32_t i)
 {
-    long lc;
+    int32_t lc;
 
     if (i == 0)
 	lc = 0;
     else {
-	ulong v;
+	uint32_t v;
 
 	if (i < 0)
 	    lc = 0xcf000000, v = -i;
@@ -737,7 +737,7 @@ float
 __truncdfsf2(double a)
 {				/* This routine does check for overflow, but it converts */
     /* underflows to zero rather than to a denormalized number. */
-    long lc;
+    int32_t lc;
 
     if ((la[msw] & 0x7ff00000) < 0x38100000)
 	lc = la[msw] & 0x80000000;
@@ -760,7 +760,7 @@ __truncdfsf2(double a)
 double
 __extendsfdf2(float a)
 {
-    long lc[2];
+    int32_t lc[2];
 
     if (!(ia & 0x7fffffff))
 	lc[msw] = ia, lc[lsw] = 0;

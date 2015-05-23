@@ -25,7 +25,7 @@ notejmp(void *vr, jmp_buf j, int ret)
 	if(ret == 0)
 		r->r4 = 1;
 	r->r5 = j[JMPBUFPC] - JMPBUFDPC;
-	r->pc = (ulong)__noterestore;
+	r->pc = (uint32_t)__noterestore;
 	r->sp = j[JMPBUFSP];
 	noted(NCONT);
 }

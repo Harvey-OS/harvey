@@ -50,7 +50,7 @@ dump(Vga* vga)
 }
 
 void
-resyncinit(Vga* vga, Ctlr* ctlr, ulong on, ulong off)
+resyncinit(Vga* vga, Ctlr* ctlr, uint32_t on, uint32_t off)
 {
 	Ctlr *link;
 
@@ -74,7 +74,7 @@ resyncinit(Vga* vga, Ctlr* ctlr, ulong on, ulong off)
 void
 sequencer(Vga* vga, int on)
 {
-	static uchar seq01;
+	static uint8_t seq01;
 	static int state = 1;
 	char *s;
 

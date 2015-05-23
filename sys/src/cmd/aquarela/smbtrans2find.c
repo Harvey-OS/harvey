@@ -33,7 +33,7 @@ smbsearchclose(SmbSession *s, SmbSearch *search)
 }
 
 void
-smbsearchclosebyid(SmbSession *s, ushort sid)
+smbsearchclosebyid(SmbSession *s, uint16_t sid)
 {
 	smbsearchclose(s,  smbidmapfind(s->sidmap, sid));
 }
@@ -54,11 +54,11 @@ smbsearchnew(SmbSession *s, SmbDirCache *dc, Reprog *r, SmbTree *t)
 }
 
 static int
-standardflatten(SmbSession *s, SmbBuffer *b, Dir *d, ulong *nameoffsetp)
+standardflatten(SmbSession *s, SmbBuffer *b, Dir *d, uint32_t *nameoffsetp)
 {
-	ushort mdate, mtime;
-	ushort adate, atime;
-	ushort fnlfixupoffset;
+	uint16_t mdate, mtime;
+	uint16_t adate, atime;
+	uint16_t fnlfixupoffset;
 
 	smbplan9time2datetime(d->mtime, s->tzoff, &mdate, &mtime);
 	smbplan9time2datetime(d->atime, s->tzoff, &adate, &atime);
@@ -82,10 +82,11 @@ standardflatten(SmbSession *s, SmbBuffer *b, Dir *d, ulong *nameoffsetp)
 }
 
 static int
-findbothflatten(SmbBuffer *b, SmbPeerInfo *p, Dir *d, ulong resumekey, ulong *nameoffsetp)
+findbothflatten(SmbBuffer *b, SmbPeerInfo *p, Dir *d, uint32_t resumekey,
+		uint32_t *nameoffsetp)
 {
-	vlong mtime, atime;
-	ulong fixup;
+	int64_t mtime, atime;
+	uint32_t fixup;
 
 	fixup = smbbufferwriteoffset(b);
 	mtime = smbplan9time2time(d->mtime);
@@ -115,15 +116,16 @@ poolcheck(mainmem);
 }
 
 static void
-populate(SmbSession *s, SmbDirCache *dc, Reprog *r, ushort informationlevel, ushort flags, ushort scount,
-	ushort *ep, ulong *nameoffsetp)
+populate(SmbSession *s, SmbDirCache *dc, Reprog *r, uint16_t informationlevel,
+	 uint16_t flags, uint16_t scount,
+	uint16_t *ep, uint32_t *nameoffsetp)
 {
-	ushort e;
-	ulong nameoffset;
+	uint16_t e;
+	uint32_t nameoffset;
 	e = 0;
 	nameoffset = 0;
 	while (dc->i < dc->n && e < scount) {
-		ulong backup;
+		uint32_t backup;
 		int rv;
 		
 		if (!smbmatch(dc->buf[dc->i].name, r)) {
@@ -164,12 +166,12 @@ smbtrans2findfirst2(SmbSession *s, SmbHeader *h)
 	char *pattern = nil;
 	char *dir = nil;
 	char *name = nil;
-	ushort searchattributes, searchcount, flags, informationlevel;
-	ulong searchstoragetype;
+	uint16_t searchattributes, searchcount, flags, informationlevel;
+	uint32_t searchstoragetype;
 	SmbDirCache *dc = nil;
-	ushort e;
-	ulong nameoffset;
-	ushort eos;
+	uint16_t e;
+	uint32_t nameoffset;
+	uint16_t eos;
 	SmbSearch *search;
 	SmbProcessResult pr;
 	Reprog *r = nil;
@@ -256,14 +258,14 @@ smbtrans2findnext2(SmbSession *s, SmbHeader *h)
 {
 	SmbBuffer *b;
 	int debug;
-	ushort sid, scount, infolevel;
-	ulong resumekey;
-	ushort flags;
+	uint16_t sid, scount, infolevel;
+	uint32_t resumekey;
+	uint16_t flags;
 	char *filename = nil;
 	SmbProcessResult pr;
-	ushort e;
-	ulong nameoffset;
-	ushort eos;
+	uint16_t e;
+	uint32_t nameoffset;
+	uint16_t eos;
 	SmbTree *t;
 	SmbSearch *search;
 
@@ -312,7 +314,7 @@ smbtrans2findnext2(SmbSession *s, SmbHeader *h)
 	}
 
 	if ((flags & (1 << 3)) == 0) {
-		long i;
+		int32_t i;
 		if (filename == nil) {
 			smbseterror(s, ERRDOS, ERRnofiles);
 			pr = SmbProcessResultError;

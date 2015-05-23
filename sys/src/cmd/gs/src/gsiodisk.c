@@ -295,7 +295,8 @@ diskn_status(gx_io_device * iodev, const char *fname, struct stat *pstat)
 }
 
 private file_enum *
-diskn_enumerate_files_init(gx_io_device * iodev, const char *pat, uint patlen,
+diskn_enumerate_files_init(gx_io_device * iodev, const char *pat,
+                           uint patlen,
 	     gs_memory_t * mem)
 {
     char patstr[gp_file_name_sizeof];
@@ -303,7 +304,8 @@ diskn_enumerate_files_init(gx_io_device * iodev, const char *pat, uint patlen,
 
     memcpy(patstr, pat, patlen);	/* Copy string to buffer */
     patstr[patlen]=0;			/* Terminate string */
-    return (file_enum *)map_file_enum_init(mem, (char *)pstate->root, patstr);
+    return (file_enum *)map_file_enum_init(mem, (char *)pstate->root,
+                                           patstr);
 }
 
 private void
@@ -420,7 +422,8 @@ diskn_put_params(gx_io_device *iodev, gs_param_list *plist)
  * Returns - NULL if error, file structure pointer if no error
  */
 private FILE *
-MapFileOpen(const char * rootpath, const char * filename, const char * attributes)
+MapFileOpen(const char * rootpath, const char * filename,
+            const char * attributes)
 {
     char fullname[BUFFER_LENGTH];
 
@@ -715,7 +718,8 @@ map_file_enum_close(void * enum_mem)
  * osname          char*   resulting os specific path to the file
  */
 private bool
-map_file_name_get(const char * root_name, const char * Fname, char * osname)
+map_file_name_get(const char * root_name, const char * Fname,
+                  char * osname)
 {
     int d = MapToFile(root_name, Fname);
 

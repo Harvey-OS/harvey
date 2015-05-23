@@ -17,7 +17,7 @@
 
 char*	file = "5.out";
 int	datasize;
-ulong	textbase;
+uint32_t	textbase;
 Biobuf	bp, bi;
 Fhdr	fhdr;
 
@@ -55,7 +55,7 @@ main(int argc, char **argv)
 void
 initmap()
 {
-	ulong t, d, b, bssend;
+	uint32_t t, d, b, bssend;
 	Segment *s;
 
 	t = (fhdr.txtaddr+fhdr.txtsz+(BY2PG-1)) & ~(BY2PG-1);
@@ -69,9 +69,9 @@ initmap()
 	s->end = t;
 	s->fileoff = fhdr.txtoff - fhdr.hdrsz;
 	s->fileend = s->fileoff + fhdr.txtsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
 
-	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(long));
+	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(int32_t));
 	textbase = s->base;
 
 	s = &memory.seg[Data];
@@ -81,19 +81,19 @@ initmap()
 	s->fileoff = fhdr.datoff;
 	s->fileend = s->fileoff + fhdr.datsz;
 	datasize = fhdr.datsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
 
 	s = &memory.seg[Bss];
 	s->type = Bss;
 	s->base = d;
 	s->end = d+(b-d);
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
 
 	s = &memory.seg[Stack];
 	s->type = Stack;
 	s->base = STACKTOP-STACKSIZE;
 	s->end = STACKTOP;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
 
 	reg.r[REGPC] = fhdr.entry;
 }
@@ -132,7 +132,7 @@ reset(void)
 
 	for(i = 0; i > Nseg; i++) {
 		s = &memory.seg[i];
-		l = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
+		l = ((s->end-s->base)/BY2PG)*sizeof(uint8_t*);
 		for(m = 0; m < l; m++)
 			if(s->table[m])
 				free(s->table[m]);
@@ -148,8 +148,8 @@ reset(void)
 void
 initstk(int argc, char *argv[])
 {
-	ulong size;
-	ulong sp, ap, tos;
+	uint32_t size;
+	uint32_t sp, ap, tos;
 	int i;
 	char *p;
 
@@ -164,7 +164,7 @@ initstk(int argc, char *argv[])
 	 * we know arm is a 32-bit cpu, so we'll assume knowledge of the Tos
 	 * struct for now, and use our pid.
 	 */
-	putmem_w(tos + 4*4 + 2*sizeof(ulong) + 3*sizeof(uvlong), getpid());
+	putmem_w(tos + 4*4 + 2*sizeof(uint32_t) + 3*sizeof(uvlong), getpid());
 
 	/* Build exec stack */
 	size = strlen(file)+1+BY2WD+BY2WD+BY2WD;	
@@ -260,7 +260,7 @@ dumpdreg(void)
 }
 
 void *
-emalloc(ulong size)
+emalloc(uint32_t size)
 {
 	void *a;
 
@@ -273,7 +273,7 @@ emalloc(ulong size)
 }
 
 void *
-erealloc(void *a, ulong oldsize, ulong size)
+erealloc(void *a, uint32_t oldsize, uint32_t size)
 {
 	void *n;
 

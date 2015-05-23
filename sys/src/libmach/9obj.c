@@ -99,8 +99,8 @@ static Addr
 addr(Biobuf *bp)
 {
 	Addr a;
-	vlong off;
-	long l;
+	int64_t off;
+	int32_t l;
 
 	a.type = Bgetc(bp);				/* a.type */
 	skip(bp,1);					/* reg */
@@ -127,7 +127,7 @@ addr(Biobuf *bp)
 			l |= Bgetc(bp) << 8;
 			l |= Bgetc(bp) << 16;
 			l |= Bgetc(bp) << 24;
-			off = ((vlong)l << 32) | (off & 0xFFFFFFFF);
+			off = ((int64_t)l << 32) | (off & 0xFFFFFFFF);
 			a.type = D_CONST;		/* perhaps */
 		}
 		if(off < 0)

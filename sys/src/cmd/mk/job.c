@@ -10,7 +10,8 @@
 #include	"mk.h"
 
 Job *
-newjob(Rule *r, Node *nlist, char *stem, char **match, Word *pre, Word *npre, Word *tar, Word *atar)
+newjob(Rule *r, Node *nlist, char *stem, char **match, Word *pre,
+       Word *npre, Word *tar, Word *atar)
 {
 	register Job *j;
 

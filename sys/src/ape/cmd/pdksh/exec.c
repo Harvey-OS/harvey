@@ -138,9 +138,9 @@ execute(t, flags)
 	flags &= ~XTIME;
 
 	if (t->ioact != NULL || t->type == TPIPE || t->type == TCOPROC) {
-		e->savefd = (short *) alloc(sizeofN(short, NUFILE), ATEMP);
+		e->savefd = (int16_t *) alloc(sizeofN(int16_t, NUFILE), ATEMP);
 		/* initialize to not redirected */
-		memset(e->savefd, 0, sizeofN(short, NUFILE));
+		memset(e->savefd, 0, sizeofN(int16_t, NUFILE));
 	}
 
 	/* do redirection, to be restored in quitenv() */
@@ -1357,7 +1357,8 @@ iosetup(iop, tp)
 				&emsg)) < 0)
 		{
 			warningf(TRUE, "%s: %s",
-				snptreef((char *) 0, 32, "%R", &iotmp), emsg);
+				snptreef((char *) 0, 32, "%R", &iotmp),
+				 emsg);
 			return -1;
 		}
 		break;

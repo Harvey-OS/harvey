@@ -46,7 +46,7 @@ char	topsdir[64];		/* name of listed directory for TOPS */
 String	*remrootpath;	/* path on remote side to remote root */
 char	*user;
 int	nopassive;
-long	lastsend;
+int32_t	lastsend;
 extern int usetls;
 
 static void	sendrequest(char*, char*);
@@ -383,7 +383,7 @@ image(void)
 char *monthchars = "janfebmaraprmayjunjulaugsepoctnovdec";
 static Tm now;
 
-static ulong
+static uint32_t
 cracktime(char *month, char *day, char *yr, char *hms)
 {
 	Tm tm;
@@ -441,11 +441,11 @@ cracktime(char *month, char *day, char *yr, char *hms)
 /*
  *  decode a Unix or Plan 9 file mode
  */
-static ulong
+static uint32_t
 crackmode(char *p)
 {
-	ulong flags;
-	ulong mode;
+	uint32_t flags;
+	uint32_t mode;
 	int i;
 
 	flags = 0;
@@ -756,7 +756,7 @@ readdir(Node *node)
 	char *line;
 	Node *np;
 	Dir *d;
-	long n;
+	int32_t n;
 	int tries, x, files;
 	static int uselist;
 	int usenlist;
@@ -930,7 +930,7 @@ readfile1(Node *node)
 {
 	Biobuf *bp;
 	char buf[4*1024];
-	long off;
+	int32_t off;
 	int n;
 	int tries;
 
@@ -1007,7 +1007,7 @@ createfile1(Node *node)
 {
 	Biobuf *bp;
 	char buf[4*1024];
-	long off;
+	int32_t off;
 	int n;
 
 	if(changedir(node->parent) < 0)
@@ -1178,7 +1178,7 @@ port(void)
 	char buf[256];
 	int n, fd;
 	char *ptr;
-	uchar ipaddr[IPaddrlen];
+	uint8_t ipaddr[IPaddrlen];
 	int port;
 
 	/* get a channel to listen on, let kernel pick the port number */

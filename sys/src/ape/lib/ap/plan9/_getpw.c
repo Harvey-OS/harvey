@@ -48,7 +48,7 @@ _getpw(int *pnum, char **pname, char **plist)
 	char *eline, *f1, *f2, *f3, *f4;
 	Memo *mem;
 	static char *au = NULL;
-	vlong length;
+	int64_t length;
 
 	if(!pname)
 		return 0;

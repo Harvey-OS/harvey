@@ -31,7 +31,7 @@ typedef struct Sendreq Sendreq;
 struct Dirtab
 {
 	char		*name;
-	uchar	type;
+	uint8_t	type;
 	uint		qid;
 	uint		perm;
 	int		nopen;		/* #fids open on this port */
@@ -49,7 +49,7 @@ struct Fid
 	int		mode;
 	Qid		qid;
 	Dirtab	*dir;
-	long		offset;		/* zeroed at beginning of each message, read or write */
+	int32_t		offset;		/* zeroed at beginning of each message, read or write */
 	char		*writebuf;		/* partial message written so far; offset tells how much */
 	Fid		*next;
 	Fid		*nextopen;
@@ -59,7 +59,7 @@ struct Readreq
 {
 	Fid		*fid;
 	Fcall		*fcall;
-	uchar	*buf;
+	uint8_t	*buf;
 	Readreq	*next;
 };
 
@@ -118,24 +118,24 @@ static char	srvfile[128];
 static int		messagesize = 8192+IOHDRSZ;	/* good start */
 
 static void	fsysproc(void*);
-static void fsysrespond(Fcall*, uchar*, char*);
+static void fsysrespond(Fcall*, uint8_t*, char*);
 static Fid*	newfid(int);
 
-static Fcall* fsysflush(Fcall*, uchar*, Fid*);
-static Fcall* fsysversion(Fcall*, uchar*, Fid*);
-static Fcall* fsysauth(Fcall*, uchar*, Fid*);
-static Fcall* fsysattach(Fcall*, uchar*, Fid*);
-static Fcall* fsyswalk(Fcall*, uchar*, Fid*);
-static Fcall* fsysopen(Fcall*, uchar*, Fid*);
-static Fcall* fsyscreate(Fcall*, uchar*, Fid*);
-static Fcall* fsysread(Fcall*, uchar*, Fid*);
-static Fcall* fsyswrite(Fcall*, uchar*, Fid*);
-static Fcall* fsysclunk(Fcall*, uchar*, Fid*);
-static Fcall* fsysremove(Fcall*, uchar*, Fid*);
-static Fcall* fsysstat(Fcall*, uchar*, Fid*);
-static Fcall* fsyswstat(Fcall*, uchar*, Fid*);
+static Fcall* fsysflush(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysversion(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysauth(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysattach(Fcall*, uint8_t*, Fid*);
+static Fcall* fsyswalk(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysopen(Fcall*, uint8_t*, Fid*);
+static Fcall* fsyscreate(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysread(Fcall*, uint8_t*, Fid*);
+static Fcall* fsyswrite(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysclunk(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysremove(Fcall*, uint8_t*, Fid*);
+static Fcall* fsysstat(Fcall*, uint8_t*, Fid*);
+static Fcall* fsyswstat(Fcall*, uint8_t*, Fid*);
 
-Fcall* 	(*fcall[Tmax])(Fcall*, uchar*, Fid*) =
+Fcall* 	(*fcall[Tmax])(Fcall*, uint8_t*, Fid*) =
 {
 	[Tflush]	= fsysflush,
 	[Tversion]	= fsysversion,
@@ -189,7 +189,7 @@ addport(char *port)
 	ports[nports-1] = dir[i].name;
 }
 
-static ulong
+static uint32_t
 getclock(void)
 {
 	char buf[32];
@@ -236,7 +236,7 @@ fsysproc(void*)
 	int n;
 	Fcall *t;
 	Fid *f;
-	uchar *buf;
+	uint8_t *buf;
 
 	close(srvclosefd);
 	srvclosefd = -1;
@@ -274,7 +274,7 @@ fsysproc(void*)
 }
 
 static void
-fsysrespond(Fcall *t, uchar *buf, char *err)
+fsysrespond(Fcall *t, uint8_t *buf, char *err)
 {
 	int n;
 
@@ -324,7 +324,7 @@ newfid(int fid)
 }
 
 static uint
-dostat(Dirtab *dir, uchar *buf, uint nbuf, uint clock)
+dostat(Dirtab *dir, uint8_t *buf, uint nbuf, uint clock)
 {
 	Dir d;
 
@@ -370,7 +370,7 @@ queuesend(Dirtab *d, Plumbmsg *m)
 }
 
 static void
-queueread(Dirtab *d, Fcall *t, uchar *buf, Fid *f)
+queueread(Dirtab *d, Fcall *t, uint8_t *buf, Fid *f)
 {
 	Readreq *r;
 
@@ -530,7 +530,7 @@ queueheld(Dirtab *d)
 }
 
 static void
-dispose(Fcall *t, uchar *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
+dispose(Fcall *t, uint8_t *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
 {
 	int i;
 	char *err;
@@ -564,7 +564,7 @@ dispose(Fcall *t, uchar *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
 }
 
 static Fcall*
-fsysversion(Fcall *t, uchar *buf, Fid*)
+fsysversion(Fcall *t, uint8_t *buf, Fid*)
 {
 	if(t->msize < 256){
 		fsysrespond(t, buf, "version: message size too small");
@@ -583,14 +583,14 @@ fsysversion(Fcall *t, uchar *buf, Fid*)
 }
 
 static Fcall*
-fsysauth(Fcall *t, uchar *buf, Fid*)
+fsysauth(Fcall *t, uint8_t *buf, Fid*)
 {
 	fsysrespond(t, buf, "plumber: authentication not required");
 	return t;
 }
 
 static Fcall*
-fsysattach(Fcall *t, uchar *buf, Fid *f)
+fsysattach(Fcall *t, uint8_t *buf, Fid *f)
 {
 	Fcall out;
 
@@ -614,7 +614,7 @@ fsysattach(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsysflush(Fcall *t, uchar *buf, Fid*)
+fsysflush(Fcall *t, uint8_t *buf, Fid*)
 {
 	int i;
 
@@ -627,15 +627,15 @@ fsysflush(Fcall *t, uchar *buf, Fid*)
 }
 
 static Fcall*
-fsyswalk(Fcall *t, uchar *buf, Fid *f)
+fsyswalk(Fcall *t, uint8_t *buf, Fid *f)
 {
 	Fcall out;
 	Fid *nf;
-	ulong path;
+	uint32_t path;
 	Dirtab *d, *dir;
 	Qid q;
 	int i;
-	uchar type;
+	uint8_t type;
 	char *err;
 
 	if(f->open){
@@ -707,7 +707,7 @@ fsyswalk(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsysopen(Fcall *t, uchar *buf, Fid *f)
+fsysopen(Fcall *t, uint8_t *buf, Fid *f)
 {
 	int m, clearrules, mode;
 
@@ -770,14 +770,14 @@ fsysopen(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsyscreate(Fcall *t, uchar *buf, Fid*)
+fsyscreate(Fcall *t, uint8_t *buf, Fid*)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
 }
 
 static Fcall*
-fsysreadrules(Fcall *t, uchar *buf)
+fsysreadrules(Fcall *t, uint8_t *buf)
 {
 	char *p;
 	int n;
@@ -798,9 +798,9 @@ fsysreadrules(Fcall *t, uchar *buf)
 }
 
 static Fcall*
-fsysread(Fcall *t, uchar *buf, Fid *f)
+fsysread(Fcall *t, uint8_t *buf, Fid *f)
 {
-	uchar *b;
+	uint8_t *b;
 	int i, n, o, e;
 	uint len;
 	Dirtab *d;
@@ -847,11 +847,11 @@ fsysread(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsyswrite(Fcall *t, uchar *buf, Fid *f)
+fsyswrite(Fcall *t, uint8_t *buf, Fid *f)
 {
 	Plumbmsg *m;
 	int i, n;
-	long count;
+	int32_t count;
 	char *data;
 	Exec *e;
 
@@ -914,7 +914,7 @@ fsyswrite(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsysstat(Fcall *t, uchar *buf, Fid *f)
+fsysstat(Fcall *t, uint8_t *buf, Fid *f)
 {
 	t->stat = emalloc(messagesize-IOHDRSZ);
 	t->nstat = dostat(f->dir, t->stat, messagesize-IOHDRSZ, clock);
@@ -925,21 +925,21 @@ fsysstat(Fcall *t, uchar *buf, Fid *f)
 }
 
 static Fcall*
-fsyswstat(Fcall *t, uchar *buf, Fid*)
+fsyswstat(Fcall *t, uint8_t *buf, Fid*)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
 }
 
 static Fcall*
-fsysremove(Fcall *t, uchar *buf, Fid*)
+fsysremove(Fcall *t, uint8_t *buf, Fid*)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
 }
 
 static Fcall*
-fsysclunk(Fcall *t, uchar *buf, Fid *f)
+fsysclunk(Fcall *t, uint8_t *buf, Fid *f)
 {
 	Fid *prev, *p;
 	Dirtab *d;

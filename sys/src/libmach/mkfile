@@ -48,7 +48,7 @@ CFILES=${FILES:%=%.c}
 OFILES=${FILES:%=%.$O}
 
 UPDATE=mkfile\
-	/386/lib/libmach.a\
+	/$objtype/lib/libmach.a\
 	$HFILES\
 	$CFILES\
 

@@ -86,7 +86,7 @@ cname(int bo, int bi)
 }
 
 static int
-condok(ulong ir, int ctr)
+condok(uint32_t ir, int ctr)
 {
 	int bo, bi, xx;
 
@@ -106,10 +106,10 @@ condok(ulong ir, int ctr)
 }
 
 static void
-dobranch(ulong ir, ulong *r, int ctr)
+dobranch(uint32_t ir, uint32_t *r, int ctr)
 {
 	int bo, bi, xx;
-	ulong nia;
+	uint32_t nia;
 
 	getbobi(ir);
 	USED(xx);
@@ -131,23 +131,23 @@ dobranch(ulong ir, ulong *r, int ctr)
 }
 
 void
-bcctr(ulong ir)
+bcctr(uint32_t ir)
 {
 	dobranch(ir, &reg.ctr, 1);
 }
 
 void
-bclr(ulong ir)
+bclr(uint32_t ir)
 {
 	dobranch(ir, &reg.lr, 0);
 }
 
 void
-bcx(ulong ir)
+bcx(uint32_t ir)
 {
 	int bo, bi, xx;
-	ulong ea;
-	long imm;
+	uint32_t ea;
+	int32_t imm;
 	static char *opc[] = {"bc", "bcl", "bca", "bcla"};
 
 	getbobi(ir);
@@ -177,7 +177,7 @@ bcx(ulong ir)
 }
 
 void
-crop(ulong ir)
+crop(uint32_t ir)
 {
 	int rd, ra, rb, d;
 
@@ -203,7 +203,7 @@ crop(ulong ir)
 }
 
 void
-mcrf(ulong ir)
+mcrf(uint32_t ir)
 {
 	int rd, ra, rb;
 
@@ -218,7 +218,7 @@ mcrf(ulong ir)
 }
 
 void
-call(ulong npc)
+call(uint32_t npc)
 {
 	Symbol s;
 
@@ -233,7 +233,7 @@ call(ulong npc)
 }
 
 void
-ret(ulong npc)
+ret(uint32_t npc)
 {
 	Symbol s;
 
@@ -245,10 +245,10 @@ ret(ulong npc)
 }
 
 void
-bx(ulong ir)
+bx(uint32_t ir)
 {
-	ulong ea;
-	long imm;
+	uint32_t ea;
+	int32_t imm;
 	static char *opc[] = {"b", "bl", "ba", "bla"};
 
 	imm = ir & 0x03FFFFFC;
@@ -273,7 +273,7 @@ bx(ulong ir)
 }
 
 void
-isync(ulong ir)
+isync(uint32_t ir)
 {
 	USED(ir);
 	if(trace)

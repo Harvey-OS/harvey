@@ -29,9 +29,9 @@ struct Strings
 };
 struct System {
 	char	*rsys;
-	ulong	reqs;
-	ulong	first;
-	ulong	last;
+	uint32_t	reqs;
+	uint32_t	first;
+	uint32_t	last;
 	System	*next;			/* next in chain */
 };
 
@@ -52,7 +52,7 @@ static	char*		stripprefix(char*, char*);
 static	char*		sysdom(void);
 static	int		notfound(HConnect *c, char *url);
 
-uchar *certificate;
+uint8_t *certificate;
 int certlen;
 PEMChain *certchain;	
 
@@ -190,7 +190,7 @@ static uint
 hashstr(char* key)
 {
 	/* asu works better than pjw for urls */
-	uchar *k = (unsigned char*)key;
+	uint8_t *k = (unsigned char*)key;
 	uint h = 0;
 
 	while(*k!=0)
@@ -233,7 +233,7 @@ hashsys(char *rsys)
 static int
 isswamped(char *rsys)
 {
-	ulong period;
+	uint32_t period;
 	System *sys = hashsys(rsys);
 
 	if(sys == nil)

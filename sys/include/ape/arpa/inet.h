@@ -81,28 +81,28 @@ struct in_addr {
  * On subnets, the decomposition of addresses to host and net parts
  * is done according to subnet mask, not the masks here.
  */
-#define	IN_CLASSA(i)		(((long)(i) & 0x80000000) == 0)
+#define	IN_CLASSA(i)		(((int32_t)(i) & 0x80000000) == 0)
 #define	IN_CLASSA_NET		0xff000000
 #define	IN_CLASSA_NSHIFT	24
 #define	IN_CLASSA_HOST		0x00ffffff
 #define	IN_CLASSA_MAX		128
 
-#define	IN_CLASSB(i)		(((long)(i) & 0xc0000000) == 0x80000000)
+#define	IN_CLASSB(i)		(((int32_t)(i) & 0xc0000000) == 0x80000000)
 #define	IN_CLASSB_NET		0xffff0000
 #define	IN_CLASSB_NSHIFT	16
 #define	IN_CLASSB_HOST		0x0000ffff
 #define	IN_CLASSB_MAX		65536
 
-#define	IN_CLASSC(i)		(((long)(i) & 0xe0000000) == 0xc0000000)
+#define	IN_CLASSC(i)		(((int32_t)(i) & 0xe0000000) == 0xc0000000)
 #define	IN_CLASSC_NET		0xffffff00
 #define	IN_CLASSC_NSHIFT	8
 #define	IN_CLASSC_HOST		0x000000ff
 
-#define	IN_CLASSD(i)		(((long)(i) & 0xf0000000) == 0xe0000000)
+#define	IN_CLASSD(i)		(((int32_t)(i) & 0xf0000000) == 0xe0000000)
 #define	IN_MULTICAST(i)		IN_CLASSD(i)
 
-#define	IN_EXPERIMENTAL(i)	(((long)(i) & 0xe0000000) == 0xe0000000)
-#define	IN_BADCLASS(i)		(((long)(i) & 0xf0000000) == 0xf0000000)
+#define	IN_EXPERIMENTAL(i)	(((int32_t)(i) & 0xe0000000) == 0xe0000000)
+#define	IN_BADCLASS(i)		(((int32_t)(i) & 0xf0000000) == 0xf0000000)
 
 #define	INADDR_ANY		(unsigned long)0x00000000
 #define	INADDR_BROADCAST	(unsigned long)0xffffffff	/* must be masked */
@@ -113,7 +113,7 @@ struct in_addr {
  * Socket address, internet style.
  */
 struct sockaddr_in {
-	short	sin_family;
+	int16_t	sin_family;
 	unsigned short	sin_port;
 	struct	in_addr sin_addr;
 	char	sin_zero[8];

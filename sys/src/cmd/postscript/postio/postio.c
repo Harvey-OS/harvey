@@ -120,7 +120,7 @@ int	debug = OFF;			/* debug flag */
 int	ignore = OFF;			/* what's done for FATAL errors */
 
 char	*line = NULL;			/* printer is on this tty line */
-short	baudrate = BAUDRATE;		/* and running at this baud rate */
+int16_t	baudrate = BAUDRATE;		/* and running at this baud rate */
 Baud	baudtable[] = BAUDTABLE;	/* converts strings to termio values */
 
 int	stopbits = 1;			/* number of stop bits */

@@ -11,8 +11,8 @@
 #include "dat.h"
 #include "fns.h"
 
-static int	writeclumphead(Arena *arena, u64int aa, Clump *cl);
-static int	writeclumpmagic(Arena *arena, u64int aa, u32int magic);
+static int	writeclumphead(Arena *arena, uint64_t aa, Clump *cl);
+static int	writeclumpmagic(Arena *arena, uint64_t aa, uint32_t magic);
 
 int
 clumpinfocmp(ClumpInfo *c, ClumpInfo *d)
@@ -34,15 +34,15 @@ clumpinfocmp(ClumpInfo *c, ClumpInfo *d)
  * returns 0 if ok, flags if error occurred
  */
 int
-syncarena(Arena *arena, u32int n, int zok, int fix)
+syncarena(Arena *arena, uint32_t n, int zok, int fix)
 {
 	ZBlock *lump;
 	Clump cl;
 	ClumpInfo ci;
 	static ClumpInfo zci = { .type = -1 };
-	u8int score[VtScoreSize];
-	u64int uncsize, used, aa;
-	u32int clump, clumps, cclumps, magic;
+	uint8_t score[VtScoreSize];
+	uint64_t uncsize, used, aa;
+	uint32_t clump, clumps, cclumps, magic;
 	int err, flush, broken;
 
 	used = arena->memstats.used;
@@ -159,7 +159,7 @@ syncarena(Arena *arena, u32int n, int zok, int fix)
 }
 
 static int
-writeclumphead(Arena *arena, u64int aa, Clump *cl)
+writeclumphead(Arena *arena, uint64_t aa, Clump *cl)
 {
 	ZBlock *zb;
 	int bad;
@@ -174,9 +174,9 @@ writeclumphead(Arena *arena, u64int aa, Clump *cl)
 }
 
 static int
-writeclumpmagic(Arena *arena, u64int aa, u32int magic)
+writeclumpmagic(Arena *arena, uint64_t aa, uint32_t magic)
 {
-	u8int buf[U32Size];
+	uint8_t buf[U32Size];
 
 	packmagic(magic, buf);
 	return writearena(arena, aa, buf, U32Size) == U32Size;

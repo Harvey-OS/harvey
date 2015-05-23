@@ -24,8 +24,7 @@ enum {
 	Nself		= Maxmedia*5,
 	NHASH		= 1<<6,
 	NCACHE		= 256,
-	QMAX		= 192*1024-1,
-	Maxv6repr	= (128/(4*4))*(4+1), /* limit of xxxx:xxxx:⋯ notation */
+	QMAX		= 64*1024-1,
 };
 
 Medium *media[Maxmedia] = { 0 };
@@ -35,11 +34,11 @@ Medium *media[Maxmedia] = { 0 };
  */
 struct Ipself
 {
-	uchar	a[IPaddrlen];
+	uint8_t	a[IPaddrlen];
 	Ipself	*hnext;		/* next address in the hash table */
 	Iplink	*link;		/* binding twixt Ipself and Ipifc */
-	ulong	expire;
-	uchar	type;		/* type of address */
+	uint32_t	expire;
+	uint8_t	type;		/* type of address */
 	int	ref;
 	Ipself	*next;		/* free list */
 };
@@ -60,8 +59,8 @@ typedef struct Ipmcast Ipmcast;
 struct Ipmcast
 {
 	Ipmcast	*next;
-	uchar	ma[IPaddrlen];	/* multicast address */
-	uchar	ia[IPaddrlen];	/* interface address */
+	uint8_t	ma[IPaddrlen];	/* multicast address */
+	uint8_t	ia[IPaddrlen];	/* interface address */
 };
 
 /* quick hash for ip addresses */
@@ -69,11 +68,12 @@ struct Ipmcast
 
 static char tifc[] = "ifc ";
 
-static void	addselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uchar *a, int type);
-static void	remselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uchar *a);
+static void	addselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uint8_t *a,
+				int type);
+static void	remselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uint8_t *a);
 static char*	ipifcjoinmulti(Ipifc *ifc, char **argv, int argc);
 static char*	ipifcleavemulti(Ipifc *ifc, char **argv, int argc);
-static void	ipifcregisterproxy(Fs*, Ipifc*, uchar*);
+static void	ipifcregisterproxy(Fs*, Ipifc*, uint8_t*);
 static char*	ipifcremlifc(Ipifc*, Iplifc*);
 
 /*
@@ -112,8 +112,9 @@ ipfindmedium(char *name)
 static char*
 ipifcbind(Conv *c, char **argv, int argc)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
-	Medium *m;
+	Medium *medium;
 
 	if(argc < 2)
 		return Ebadarg;
@@ -121,12 +122,12 @@ ipifcbind(Conv *c, char **argv, int argc)
 	ifc = (Ipifc*)c->ptcl;
 
 	/* bind the device to the interface */
-	m = ipfindmedium(argv[1]);
-	if(m == nil)
+	medium = ipfindmedium(argv[1]);
+	if(medium == nil)
 		return "unknown interface type";
 
 	wlock(ifc);
-	if(ifc->m != nil){
+	if(ifc->medium != nil){
 		wunlock(ifc);
 		return "interface already bound";
 	}
@@ -136,20 +137,20 @@ ipifcbind(Conv *c, char **argv, int argc)
 	}
 
 	/* do medium specific binding */
-	(*m->bind)(ifc, argc, argv);
+	(*medium->bind)(ifc, argc, argv);
 
 	/* set the bound device name */
 	if(argc > 2)
 		strncpy(ifc->dev, argv[2], sizeof(ifc->dev));
 	else
-		snprint(ifc->dev, sizeof ifc->dev, "%s%d", m->name, c->x);
+		snprint(ifc->dev, sizeof ifc->dev, "%s%d", medium->name, c->x);
 	ifc->dev[sizeof(ifc->dev)-1] = 0;
 
 	/* set up parameters */
-	ifc->m = m;
-	ifc->mintu = ifc->m->mintu;
-	ifc->maxtu = ifc->m->maxtu;
-	if(ifc->m->unbindonclose == 0)
+	ifc->medium = medium;
+	ifc->mintu = ifc->medium->mintu;
+	ifc->maxtu = ifc->medium->maxtu;
+	if(ifc->medium->unbindonclose == 0)
 		ifc->conv->inuse++;
 	ifc->rp.mflag = 0;		/* default not managed */
 	ifc->rp.oflag = 0;
@@ -182,6 +183,7 @@ ipifcbind(Conv *c, char **argv, int argc)
 static char*
 ipifcunbind(Ipifc *ifc)
 {
+	Mach *m = machp();
 	char *err;
 
 	if(waserror()){
@@ -191,7 +193,7 @@ ipifcunbind(Ipifc *ifc)
 	wlock(ifc);
 
 	/* dissociate routes */
-	if(ifc->m != nil && ifc->m->unbindonclose == 0)
+	if(ifc->medium != nil && ifc->medium->unbindonclose == 0)
 		ifc->conv->inuse--;
 	ifc->ifcid++;
 
@@ -207,8 +209,8 @@ ipifcunbind(Ipifc *ifc)
 	}
 
 	/* disassociate device */
-	if(ifc->m && ifc->m->unbind)
-		(*ifc->m->unbind)(ifc);
+	if(ifc->medium && ifc->medium->unbind)
+		(*ifc->medium->unbind)(ifc);
 	memset(ifc->dev, 0, sizeof(ifc->dev));
 	ifc->arg = nil;
 	ifc->reassemble = 0;
@@ -218,7 +220,7 @@ ipifcunbind(Ipifc *ifc)
 	qclose(ifc->conv->wq);
 	qclose(ifc->conv->sq);
 
-	ifc->m = nil;
+	ifc->medium = nil;
 	wunlock(ifc);
 	poperror();
 	return nil;
@@ -283,7 +285,7 @@ ipifcinuse(Conv *c)
 	Ipifc *ifc;
 
 	ifc = (Ipifc*)c->ptcl;
-	return ifc->m != nil;
+	return ifc->medium != nil;
 }
 
 /*
@@ -292,6 +294,7 @@ ipifcinuse(Conv *c)
 static void
 ipifckick(void *x)
 {
+	Mach *m = machp();
 	Conv *c = x;
 	Block *bp;
 	Ipifc *ifc;
@@ -309,10 +312,10 @@ ipifckick(void *x)
 		runlock(ifc);
 		nexterror();
 	}
-	if(ifc->m == nil || ifc->m->pktin == nil)
+	if(ifc->medium == nil || ifc->medium->pktin == nil)
 		freeb(bp);
 	else
-		(*ifc->m->pktin)(c->p->f, ifc, bp);
+		(*ifc->medium->pktin)(c->p->f, ifc, bp);
 	runlock(ifc);
 	poperror();
 }
@@ -326,12 +329,12 @@ ipifccreate(Conv *c)
 	Ipifc *ifc;
 
 	c->rq = qopen(QMAX, 0, 0, 0);
-	c->sq = qopen(QMAX, 0, 0, 0);
+	c->sq = qopen(2*QMAX, 0, 0, 0);
 	c->wq = qopen(QMAX, Qkick, ipifckick, c);
 	ifc = (Ipifc*)c->ptcl;
 	ifc->conv = c;
 	ifc->unbinding = 0;
-	ifc->m = nil;
+	ifc->medium = nil;
 	ifc->reassemble = 0;
 }
 
@@ -343,11 +346,11 @@ static void
 ipifcclose(Conv *c)
 {
 	Ipifc *ifc;
-	Medium *m;
+	Medium *medium;
 
 	ifc = (Ipifc*)c->ptcl;
-	m = ifc->m;
-	if(m && m->unbindonclose)
+	medium = ifc->medium;
+	if(medium != nil && medium->unbindonclose)
 		ipifcunbind(ifc);
 }
 
@@ -359,10 +362,10 @@ ipifcsetmtu(Ipifc *ifc, char **argv, int argc)
 {
 	int mtu;
 
-	if(argc < 2 || ifc->m == nil)
+	if(argc < 2 || ifc->medium == nil)
 		return Ebadarg;
 	mtu = strtoul(argv[1], 0, 0);
-	if(mtu < ifc->m->mintu || mtu > ifc->m->maxtu)
+	if(mtu < ifc->medium->mintu || mtu > ifc->medium->maxtu)
 		return Ebadarg;
 	ifc->maxtu = mtu;
 	return nil;
@@ -375,12 +378,12 @@ char*
 ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 {
 	int i, type, mtu, sendnbrdisc = 0;
-	uchar ip[IPaddrlen], mask[IPaddrlen], rem[IPaddrlen];
-	uchar bcast[IPaddrlen], net[IPaddrlen];
+	uint8_t ip[IPaddrlen], mask[IPaddrlen], rem[IPaddrlen];
+	uint8_t bcast[IPaddrlen], net[IPaddrlen];
 	Iplifc *lifc, **l;
 	Fs *f;
 
-	if(ifc->m == nil)
+	if(ifc->medium == nil)
 		return "ipifc not yet bound to device";
 
 	f = ifc->conv->p->f;
@@ -396,25 +399,23 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 		/* fall through */
 	case 5:
 		mtu = strtoul(argv[4], 0, 0);
-		if(mtu >= ifc->m->mintu && mtu <= ifc->m->maxtu)
+		if(mtu >= ifc->medium->mintu && mtu <= ifc->medium->maxtu)
 			ifc->maxtu = mtu;
 		/* fall through */
 	case 4:
-		if (parseip(ip, argv[1]) == -1 || parseip(rem, argv[3]) == -1)
-			return Ebadip;
+		parseip(ip, argv[1]);
 		parseipmask(mask, argv[2]);
+		parseip(rem, argv[3]);
 		maskip(rem, mask, net);
 		break;
 	case 3:
-		if (parseip(ip, argv[1]) == -1)
-			return Ebadip;
+		parseip(ip, argv[1]);
 		parseipmask(mask, argv[2]);
 		maskip(ip, mask, rem);
 		maskip(rem, mask, net);
 		break;
 	case 2:
-		if (parseip(ip, argv[1]) == -1)
-			return Ebadip;
+		parseip(ip, argv[1]);
 		memmove(mask, defmask(ip), IPaddrlen);
 		maskip(ip, mask, rem);
 		maskip(rem, mask, net);
@@ -534,8 +535,8 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 	}
 
 	/* register the address on this network for address resolution */
-	if(isv4(ip) && ifc->m->areg != nil)
-		(*ifc->m->areg)(ifc, ip);
+	if(isv4(ip) && ifc->medium->areg != nil)
+		(*ifc->medium->areg)(ifc, ip);
 
 out:
 	wunlock(ifc);
@@ -596,20 +597,18 @@ char*
 ipifcrem(Ipifc *ifc, char **argv, int argc)
 {
 	char *rv;
-	uchar ip[IPaddrlen], mask[IPaddrlen], rem[IPaddrlen];
+	uint8_t ip[IPaddrlen], mask[IPaddrlen], rem[IPaddrlen];
 	Iplifc *lifc;
 
 	if(argc < 3)
 		return Ebadarg;
 
-	if (parseip(ip, argv[1]) == -1)
-		return Ebadip;
+	parseip(ip, argv[1]);
 	parseipmask(mask, argv[2]);
 	if(argc < 4)
 		maskip(ip, mask, rem);
 	else
-		if (parseip(rem, argv[3]) == -1)
-			return Ebadip;
+		parseip(rem, argv[3]);
 
 	wlock(ifc);
 
@@ -635,9 +634,10 @@ ipifcrem(Ipifc *ifc, char **argv, int argc)
  * TRIP linecards
  */
 void
-ipifcaddroute(Fs *f, int vers, uchar *addr, uchar *mask, uchar *gate, int type)
+ipifcaddroute(Fs *f, int vers, uint8_t *addr, uint8_t *mask, uint8_t *gate,
+	      int type)
 {
-	Medium *m;
+	Medium *medium;
 	Conv **cp, **e;
 	Ipifc *ifc;
 
@@ -645,17 +645,17 @@ ipifcaddroute(Fs *f, int vers, uchar *addr, uchar *mask, uchar *gate, int type)
 	for(cp = f->ipifc->conv; cp < e; cp++){
 		if(*cp != nil) {
 			ifc = (Ipifc*)(*cp)->ptcl;
-			m = ifc->m;
-			if(m && m->addroute)
-				m->addroute(ifc, vers, addr, mask, gate, type);
+			medium = ifc->medium;
+			if(medium != nil && medium->addroute != nil)
+				medium->addroute(ifc, vers, addr, mask, gate, type);
 		}
 	}
 }
 
 void
-ipifcremroute(Fs *f, int vers, uchar *addr, uchar *mask)
+ipifcremroute(Fs *f, int vers, uint8_t *addr, uint8_t *mask)
 {
-	Medium *m;
+	Medium *medium;
 	Conv **cp, **e;
 	Ipifc *ifc;
 
@@ -663,9 +663,9 @@ ipifcremroute(Fs *f, int vers, uchar *addr, uchar *mask)
 	for(cp = f->ipifc->conv; cp < e; cp++){
 		if(*cp != nil) {
 			ifc = (Ipifc*)(*cp)->ptcl;
-			m = ifc->m;
-			if(m && m->remroute)
-				m->remroute(ifc, vers, addr, mask);
+			medium = ifc->medium;
+			if(medium != nil && medium->remroute != nil)
+				medium->remroute(ifc, vers, addr, mask);
 		}
 	}
 }
@@ -678,12 +678,13 @@ ipifcremroute(Fs *f, int vers, uchar *addr, uchar *mask)
 static char*
 ipifcconnect(Conv* c, char **argv, int argc)
 {
+	Mach *m = machp();
 	char *err;
 	Ipifc *ifc;
 
 	ifc = (Ipifc*)c->ptcl;
 
-	if(ifc->m == nil)
+	if(ifc->medium == nil)
 		 return "ipifc not yet bound to device";
 
 	if(waserror()){
@@ -840,7 +841,7 @@ ipifcinit(Fs *f)
  *	called with c->car locked
  */
 static void
-addselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uchar *a, int type)
+addselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uint8_t *a, int type)
 {
 	Ipself *p;
 	Iplink *lp;
@@ -890,8 +891,8 @@ addselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uchar *a, int type)
 		else
 			v6addroute(f, tifc, a, IPallbits, a, type);
 
-		if((type & Rmulti) && ifc->m->addmulti != nil)
-			(*ifc->m->addmulti)(ifc, a, lifc->local);
+		if((type & Rmulti) && ifc->medium->addmulti != nil)
+			(*ifc->medium->addmulti)(ifc, a, lifc->local);
 	} else
 		lp->ref++;
 
@@ -911,7 +912,7 @@ static void
 iplinkfree(Iplink *p)
 {
 	Iplink **l, *np;
-	ulong now = NOW;
+	uint32_t now = NOW;
 
 	l = &freeiplink;
 	for(np = *l; np; np = *l){
@@ -931,7 +932,7 @@ static void
 ipselffree(Ipself *p)
 {
 	Ipself **l, *np;
-	ulong now = NOW;
+	uint32_t now = NOW;
 
 	l = &freeipself;
 	for(np = *l; np; np = *l){
@@ -953,7 +954,7 @@ ipselffree(Ipself *p)
  *	called with c->car locked
  */
 static void
-remselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uchar *a)
+remselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uint8_t *a)
 {
 	Ipself *p, **l;
 	Iplink *link, **l_self, **l_lifc;
@@ -1002,8 +1003,8 @@ remselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uchar *a)
 	if(--(link->ref) != 0)
 		goto out;
 
-	if((p->type & Rmulti) && ifc->m->remmulti != nil)
-		(*ifc->m->remmulti)(ifc, a, lifc->local);
+	if((p->type & Rmulti) && ifc->medium->remmulti != nil)
+		(*ifc->medium->remmulti)(ifc, a, lifc->local);
 
 	/* ref == 0, remove from both chains and free the link */
 	*l_lifc = link->lifclink;
@@ -1037,8 +1038,8 @@ enum
 	Nstformat= 41,
 };
 
-long
-ipselftabread(Fs *f, char *cp, ulong offset, int n)
+int32_t
+ipselftabread(Fs *f, char *cp, uint32_t offset, int n)
 {
 	int i, m, nifc, off;
 	Ipself *p;
@@ -1066,7 +1067,7 @@ ipselftabread(Fs *f, char *cp, ulong offset, int n)
 }
 
 int
-iptentative(Fs *f, uchar *addr)
+iptentative(Fs *f, uint8_t *addr)
 {
  	Ipself *p;
 
@@ -1086,7 +1087,7 @@ iptentative(Fs *f, uchar *addr)
  *	Rmcast
  */
 int
-ipforme(Fs *f, uchar *addr)
+ipforme(Fs *f, uint8_t *addr)
 {
 	Ipself *p;
 
@@ -1107,12 +1108,12 @@ ipforme(Fs *f, uchar *addr)
  *  return nil.
  */
 Ipifc*
-findipifc(Fs *f, uchar *remote, int type)
+findipifc(Fs *f, uint8_t *remote, int type)
 {
 	Ipifc *ifc, *x;
 	Iplifc *lifc;
 	Conv **cp, **e;
-	uchar gnet[IPaddrlen], xmask[IPaddrlen];
+	uint8_t gnet[IPaddrlen], xmask[IPaddrlen];
 
 	x = nil;
 	memset(xmask, 0, IPaddrlen);
@@ -1158,11 +1159,9 @@ enum {
 };
 
 int
-v6addrtype(uchar *addr)
+v6addrtype(uint8_t *addr)
 {
-	if(isv4(addr) || ipcmp(addr, IPnoaddr) == 0)
-		return unknownv6;
-	else if(islinklocal(addr) ||
+	if(islinklocal(addr) ||
 	    isv6mcast(addr) && (addr[1] & 0xF) <= Link_local_scop)
 		return linklocalv6;
 	else
@@ -1173,7 +1172,7 @@ v6addrtype(uchar *addr)
 			(lifc)->origint + (lifc)->preflt >= NOW/1000)
 
 static void
-findprimaryipv6(Fs *f, uchar *local)
+findprimaryipv6(Fs *f, uint8_t *local)
 {
 	int atype, atypel;
 	Conv **cp, **e;
@@ -1208,7 +1207,7 @@ findprimaryipv6(Fs *f, uchar *local)
  *  returns first ip address configured
  */
 static void
-findprimaryipv4(Fs *f, uchar *local)
+findprimaryipv4(Fs *f, uint8_t *local)
 {
 	Conv **cp, **e;
 	Ipifc *ifc;
@@ -1232,11 +1231,11 @@ findprimaryipv4(Fs *f, uchar *local)
  *  local and return the ifc for that address
  */
 void
-findlocalip(Fs *f, uchar *local, uchar *remote)
+findlocalip(Fs *f, uint8_t *local, uint8_t *remote)
 {
 	int version, atype = unspecifiedv6, atypel = unknownv6;
 	int atyper, deprecated;
-	uchar gate[IPaddrlen], gnet[IPaddrlen];
+	uint8_t gate[IPaddrlen], gnet[IPaddrlen];
 	Ipifc *ifc;
 	Iplifc *lifc;
 	Route *r;
@@ -1317,7 +1316,7 @@ out:
  *  return first v4 address associated with an interface
  */
 int
-ipv4local(Ipifc *ifc, uchar *addr)
+ipv4local(Ipifc *ifc, uint8_t *addr)
 {
 	Iplifc *lifc;
 
@@ -1334,7 +1333,7 @@ ipv4local(Ipifc *ifc, uchar *addr)
  *  return first v6 address associated with an interface
  */
 int
-ipv6local(Ipifc *ifc, uchar *addr)
+ipv6local(Ipifc *ifc, uint8_t *addr)
 {
 	Iplifc *lifc;
 
@@ -1348,7 +1347,7 @@ ipv6local(Ipifc *ifc, uchar *addr)
 }
 
 int
-ipv6anylocal(Ipifc *ifc, uchar *addr)
+ipv6anylocal(Ipifc *ifc, uint8_t *addr)
 {
 	Iplifc *lifc;
 
@@ -1365,7 +1364,7 @@ ipv6anylocal(Ipifc *ifc, uchar *addr)
  *  see if this address is bound to the interface
  */
 Iplifc*
-iplocalonifc(Ipifc *ifc, uchar *ip)
+iplocalonifc(Ipifc *ifc, uint8_t *ip)
 {
 	Iplifc *lifc;
 
@@ -1380,10 +1379,10 @@ iplocalonifc(Ipifc *ifc, uchar *ip)
  *  See if we're proxying for this address on this interface
  */
 int
-ipproxyifc(Fs *f, Ipifc *ifc, uchar *ip)
+ipproxyifc(Fs *f, Ipifc *ifc, uint8_t *ip)
 {
 	Route *r;
-	uchar net[IPaddrlen];
+	uint8_t net[IPaddrlen];
 	Iplifc *lifc;
 
 	/* see if this is a direct connected pt to pt address */
@@ -1404,7 +1403,7 @@ ipproxyifc(Fs *f, Ipifc *ifc, uchar *ip)
  *  return multicast version if any
  */
 int
-ipismulticast(uchar *ip)
+ipismulticast(uint8_t *ip)
 {
 	if(isv4(ip)){
 		if(ip[IPv4off] >= 0xe0 && ip[IPv4off] < 0xf0)
@@ -1415,7 +1414,7 @@ ipismulticast(uchar *ip)
 	return 0;
 }
 int
-ipisbm(uchar *ip)
+ipisbm(uint8_t *ip)
 {
 	if(isv4(ip)){
 		if(ip[IPv4off] >= 0xe0 && ip[IPv4off] < 0xf0)
@@ -1433,8 +1432,9 @@ ipisbm(uchar *ip)
  *  add a multicast address to an interface, called with c->car locked
  */
 void
-ipifcaddmulti(Conv *c, uchar *ma, uchar *ia)
+ipifcaddmulti(Conv *c, uint8_t *ma, uint8_t *ia)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
 	Iplifc *lifc;
 	Conv **p;
@@ -1474,8 +1474,9 @@ ipifcaddmulti(Conv *c, uchar *ma, uchar *ia)
  *  remove a multicast address from an interface, called with c->car locked
  */
 void
-ipifcremmulti(Conv *c, uchar *ma, uchar *ia)
+ipifcremmulti(Conv *c, uint8_t *ma, uint8_t *ia)
 {
+	Mach *m = machp();
 	Ipmulti *multi, **l;
 	Iplifc *lifc;
 	Conv **p;
@@ -1520,25 +1521,25 @@ ipifcremmulti(Conv *c, uchar *ma, uchar *ia)
 static char*
 ipifcjoinmulti(Ipifc *ifc, char **argv, int argc)
 {
-	USED(ifc, argv, argc);
+	USED(ifc); USED(argv); USED(argc);
 	return nil;
 }
 
 static char*
 ipifcleavemulti(Ipifc *ifc, char **argv, int argc)
 {
-	USED(ifc, argv, argc);
+	USED(ifc); USED(argv); USED(argc);
 	return nil;
 }
 
 static void
-ipifcregisterproxy(Fs *f, Ipifc *ifc, uchar *ip)
+ipifcregisterproxy(Fs *f, Ipifc *ifc, uint8_t *ip)
 {
 	Conv **cp, **e;
 	Ipifc *nifc;
 	Iplifc *lifc;
-	Medium *m;
-	uchar net[IPaddrlen];
+	Medium *medium;
+	uint8_t net[IPaddrlen];
 
 	/* register the address on any network that will proxy for us */
 	e = &f->ipifc->conv[f->ipifc->nc];
@@ -1548,8 +1549,8 @@ ipifcregisterproxy(Fs *f, Ipifc *ifc, uchar *ip)
 			if(*cp == nil || (nifc = (Ipifc*)(*cp)->ptcl) == ifc)
 				continue;
 			rlock(nifc);
-			m = nifc->m;
-			if(m == nil || m->addmulti == nil) {
+			medium = nifc->medium;
+			if(medium == nil || medium->addmulti == nil) {
 				runlock(nifc);
 				continue;
 			}
@@ -1560,7 +1561,7 @@ ipifcregisterproxy(Fs *f, Ipifc *ifc, uchar *ip)
 					ipv62smcast(net, ip);
 					addselfcache(f, nifc, lifc, net, Rmulti);
 					arpenter(f, V6, ip, nifc->mac, 6, 0);
-					// (*m->addmulti)(nifc, net, ip);
+					// (*medium->addmulti)(nifc, net, ip);
 					break;
 				}
 			}
@@ -1572,15 +1573,15 @@ ipifcregisterproxy(Fs *f, Ipifc *ifc, uchar *ip)
 			if(*cp == nil || (nifc = (Ipifc*)(*cp)->ptcl) == ifc)
 				continue;
 			rlock(nifc);
-			m = nifc->m;
-			if(m == nil || m->areg == nil){
+			medium = nifc->medium;
+			if(medium == nil || medium->areg == nil){
 				runlock(nifc);
 				continue;
 			}
 			for(lifc = nifc->lifc; lifc; lifc = lifc->next){
 				maskip(ip, lifc->mask, net);
 				if(ipcmp(net, lifc->remote) == 0){
-					(*m->areg)(nifc, ip);
+					(*medium->areg)(nifc, ip);
 					break;
 				}
 			}
@@ -1590,9 +1591,10 @@ ipifcregisterproxy(Fs *f, Ipifc *ifc, uchar *ip)
 }
 
 
+#if 0
 /* added for new v6 mesg types */
 static void
-adddefroute6(Fs *f, uchar *gate, int force)
+adddefroute6(Fs *f, uint8_t *gate, int force)
 {
 	Route *r;
 
@@ -1607,7 +1609,7 @@ adddefroute6(Fs *f, uchar *gate, int force)
 	v6delroute(f, v6Unspecified, v6Unspecified, 1);
 	v6addroute(f, "ra", v6Unspecified, v6Unspecified, gate, 0);
 }
-
+#endif
 enum {
 	Ngates = 3,
 };
@@ -1616,11 +1618,11 @@ char*
 ipifcadd6(Ipifc *ifc, char**argv, int argc)
 {
 	int plen = 64;
-	long origint = NOW / 1000, preflt = ~0L, validlt = ~0L;
-	char addr[Maxv6repr], preflen[6];
+	int32_t origint = NOW / 1000, preflt = ~0L, validlt = ~0L;
+	char addr[40], preflen[6];
 	char *params[3];
-	uchar autoflag = 1, onlink = 1;
-	uchar prefix[IPaddrlen];
+	uint8_t autoflag = 1, onlink = 1;
+	uint8_t prefix[IPaddrlen];
 	Iplifc *lifc;
 
 	switch(argc) {
@@ -1645,17 +1647,9 @@ ipifcadd6(Ipifc *ifc, char**argv, int argc)
 		return Ebadarg;
 	}
 
-	if (parseip(prefix, argv[1]) != 6)
-		return "bad ipv6 address";
-	if (validlt < preflt)
-		return "valid ipv6 lifetime less than preferred lifetime";
-	if (plen < 0)
-		return "negative ipv6 prefix length";
-	/* i think that this length limit is bogus - geoff */
-//	if (plen > 64)
-//		return "ipv6 prefix length greater than 64;
-	if (islinklocal(prefix))
-		return "ipv6 prefix is link-local";
+	if (parseip(prefix, argv[1]) != 6 || validlt < preflt || plen < 0 ||
+	    plen > 64 || islinklocal(prefix))
+		return Ebadarg;
 
 	lifc = smalloc(sizeof(Iplifc));
 	lifc->onlink = (onlink != 0);
@@ -1665,11 +1659,11 @@ ipifcadd6(Ipifc *ifc, char**argv, int argc)
 	lifc->origint = origint;
 
 	/* issue "add" ctl msg for v6 link-local addr and prefix len */
-	if(!ifc->m->pref2addr)
-		return "no pref2addr on interface";
-	ifc->m->pref2addr(prefix, ifc->mac);	/* mac → v6 link-local addr */
-	snprint(addr, sizeof addr, "%I", prefix);
-	snprint(preflen, sizeof preflen, "/%d", plen);
+	if(!ifc->medium->pref2addr)
+		return Ebadarg;
+	ifc->medium->pref2addr(prefix, ifc->mac);	/* mac → v6 link-local addr */
+	sprint(addr, "%I", prefix);
+	sprint(preflen, "/%d", plen);
 	params[0] = "add";
 	params[1] = addr;
 	params[2] = preflen;

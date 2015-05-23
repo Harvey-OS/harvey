@@ -95,13 +95,13 @@ cmd_print_bits(const byte * data, int width, int height, int raster)
     else { const byte *_cbp; var = cmd_get_w(p, &_cbp); p = _cbp; }\
   END
 
-private long
+private int32_t
 cmd_get_w(const byte * p, const byte ** rp)
 {
-    long val = *p++ & 0x7f;
+    int32_t val = *p++ & 0x7f;
     int shift = 7;
 
-    for (; val += (long)(*p & 0x7f) << shift, *p++ > 0x7f; shift += 7);
+    for (; val += (int32_t)(*p & 0x7f) << shift, *p++ > 0x7f; shift += 7);
     *rp = p;
     return val;
 }
@@ -245,7 +245,7 @@ clist_playback_band(clist_playback_action playback_action,
 		    gx_device *target, int x0, int y0, gs_memory_t * mem)
 {
     /* cbuf must be maximally aligned, but still be a byte *. */
-    typedef union { void *p; double d; long l; } aligner_t;
+    typedef union { void *p; double d; int32_t l; } aligner_t;
     aligner_t cbuf_storage[cbuf_size / sizeof(aligner_t) + 1];
     command_buf_t cbuf;
     /* data_bits is for short copy_* bits and copy_* compressed, */
@@ -1608,7 +1608,7 @@ read_set_bits(command_buf_t *pcb, tile_slot *bits, int compress,
     uint rep_width = bits->width / bits->x_reps;
     uint rep_height = bits->height / bits->y_reps;
     uint index;
-    ulong offset;
+    uint32_t offset;
     uint width_bits = rep_width * bits->cb_depth;
     uint width_bytes;
     uint raster;
@@ -2207,7 +2207,7 @@ cmd_select_map(cmd_map_index map_index, cmd_map_contents cont,
 {
     gx_transfer_map *map;
     gx_transfer_map **pmap;
-    const char *cname;
+    const int8_t *cname;
 
     *pcomp_num = NULL;		/* Only used for color transfer maps */
     switch (map_index) {

@@ -25,7 +25,7 @@ int normproj(double, double, double *, double *);
 int posproj(double, double, double *, double *);
 int picut(struct place *, struct place *, double *);
 double reduce(double);
-short getshort(FILE *);
+int16_t getshort(FILE *);
 char *mapindex(char *);
 proj projection;
 
@@ -155,7 +155,7 @@ main(int argc, char *argv[])
 	double lat, lon;
 	double *wlim;
 	double dd;
-	if(sizeof(short)!=2)
+	if(sizeof(int16_t)!=2)
 		abort();	/* getshort() won't work */
 	s = getenv("MAP");
 	if(s)
@@ -586,7 +586,7 @@ inlimits(struct place *g)
 }
 
 
-long patch[18][36];
+int32_t patch[18][36];
 
 void
 getdata(char *mapfile)
@@ -594,8 +594,8 @@ getdata(char *mapfile)
 	char *indexfile;
 	int kx,ky,c;
 	int k;
-	long b;
-	long *p;
+	int32_t b;
+	int32_t *p;
 	int ip, jp;
 	int n;
 	struct place g;
@@ -1096,7 +1096,7 @@ windlim(void)
 }
 
 
-short
+int16_t
 getshort(FILE *f)
 {
 	int c, r;

@@ -814,7 +814,7 @@ cdisposition(Message *m, Header *h, char *p)
 
 }
 
-ulong msgallocd, msgfreed;
+uint32_t msgallocd, msgfreed;
 
 Message*
 newmessage(Message *parent)
@@ -1073,7 +1073,7 @@ decode(Message *m)
 		len = m->bend - m->body;
 		i = (len*3)/4+1;	// room for max chars + null
 		x = emalloc(i);
-		len = dec64((uchar*)x, i, m->body, len);
+		len = dec64((uint8_t*)x, i, m->body, len);
 		if(m->ballocd)
 			free(m->body);
 		m->body = x;
@@ -1237,7 +1237,7 @@ latin1toutf(char **out, char *in, char *e)
 		return 0;
 
 	for(; in < e; in++){
-		r = (uchar)*in;
+		r = (uint8_t)*in;
 		p += runetochar(p, &r);
 	}
 	*p = 0;
@@ -1337,7 +1337,7 @@ error:
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -1351,7 +1351,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	if(n == 0)
 		n = 1;

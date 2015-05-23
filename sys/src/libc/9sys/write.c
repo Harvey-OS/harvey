@@ -10,8 +10,8 @@
 #include	<u.h>
 #include	<libc.h>
 
-long
-write(int fd, void *buf, long n)
+int32_t
+write(int fd, void *buf, int32_t n)
 {
 	return pwrite(fd, buf, n, -1LL);
 }

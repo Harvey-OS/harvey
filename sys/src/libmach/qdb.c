@@ -19,10 +19,10 @@
  */
 
 static	char	*powerexcep(Map*, Rgetter);
-static	int	powerfoll(Map*, uvlong, Rgetter, uvlong*);
-static	int	powerinst(Map*, uvlong, char, char*, int);
-static	int	powerinstlen(Map*, uvlong);
-static	int	powerdas(Map*, uvlong, char*, int);
+static	int	powerfoll(Map*, uint64_t, Rgetter, uint64_t*);
+static	int	powerinst(Map*, uint64_t, char, char*, int);
+static	int	powerinstlen(Map*, uint64_t);
+static	int	powerdas(Map*, uint64_t, char*, int);
 
 /*
  *	Machine description
@@ -87,7 +87,7 @@ static char *excname[] =
 static char*
 powerexcep(Map *map, Rgetter rget)
 {
-	long c;
+	int32_t c;
 	static char buf[32];
 
 	c = (*rget)(map, "CAUSE") >> 8;
@@ -113,61 +113,61 @@ static Map *mymap;
  *	from table 10-1
  */
 typedef struct {
-	uchar	aa;		/* bit 30 */
-	uchar	crba;		/* bits 11-15 */
-	uchar	crbb;		/* bits 16-20 */
-	long	bd;		/* bits 16-29 */
-	uchar	crfd;		/* bits 6-8 */
-	uchar	crfs;		/* bits 11-13 */
-	uchar	bi;		/* bits 11-15 */
-	uchar	bo;		/* bits 6-10 */
-	uchar	crbd;		/* bits 6-10 */
+	uint8_t	aa;		/* bit 30 */
+	uint8_t	crba;		/* bits 11-15 */
+	uint8_t	crbb;		/* bits 16-20 */
+	int32_t	bd;		/* bits 16-29 */
+	uint8_t	crfd;		/* bits 6-8 */
+	uint8_t	crfs;		/* bits 11-13 */
+	uint8_t	bi;		/* bits 11-15 */
+	uint8_t	bo;		/* bits 6-10 */
+	uint8_t	crbd;		/* bits 6-10 */
 	union {
-		short	d;	/* bits 16-31 */
-		short	simm;
-		ushort	uimm;
+		int16_t	d;	/* bits 16-31 */
+		int16_t	simm;
+		uint16_t	uimm;
 	};
-	uchar	fm;		/* bits 7-14 */
-	uchar	fra;		/* bits 11-15 */
-	uchar	frb;		/* bits 16-20 */
-	uchar	frc;		/* bits 21-25 */
-	uchar	frs;		/* bits 6-10 */
-	uchar	frd;		/* bits 6-10 */
-	uchar	crm;		/* bits 12-19 */
-	long	li;		/* bits 6-29 || b'00' */
-	uchar	lk;		/* bit 31 */
-	uchar	mb;		/* bits 21-25 */
-	uchar	me;		/* bits 26-30 */
-	uchar	xmbe;		/* bits 26,21-25: mb[5] || mb[0:4], also xme */
-	uchar	xsh;		/* bits 30,16-20: sh[5] || sh[0:4] */
-	uchar	nb;		/* bits 16-20 */
-	uchar	op;		/* bits 0-5 */
-	uchar	oe;		/* bit 21 */
-	uchar	ra;		/* bits 11-15 */
-	uchar	rb;		/* bits 16-20 */
-	uchar	rc;		/* bit 31 */
+	uint8_t	fm;		/* bits 7-14 */
+	uint8_t	fra;		/* bits 11-15 */
+	uint8_t	frb;		/* bits 16-20 */
+	uint8_t	frc;		/* bits 21-25 */
+	uint8_t	frs;		/* bits 6-10 */
+	uint8_t	frd;		/* bits 6-10 */
+	uint8_t	crm;		/* bits 12-19 */
+	int32_t	li;		/* bits 6-29 || b'00' */
+	uint8_t	lk;		/* bit 31 */
+	uint8_t	mb;		/* bits 21-25 */
+	uint8_t	me;		/* bits 26-30 */
+	uint8_t	xmbe;		/* bits 26,21-25: mb[5] || mb[0:4], also xme */
+	uint8_t	xsh;		/* bits 30,16-20: sh[5] || sh[0:4] */
+	uint8_t	nb;		/* bits 16-20 */
+	uint8_t	op;		/* bits 0-5 */
+	uint8_t	oe;		/* bit 21 */
+	uint8_t	ra;		/* bits 11-15 */
+	uint8_t	rb;		/* bits 16-20 */
+	uint8_t	rc;		/* bit 31 */
 	union {
-		uchar	rs;	/* bits 6-10 */
-		uchar	rd;
+		uint8_t	rs;	/* bits 6-10 */
+		uint8_t	rd;
 	};
-	uchar	sh;		/* bits 16-20 */
-	ushort	spr;		/* bits 11-20 */
-	uchar	to;		/* bits 6-10 */
-	uchar	imm;		/* bits 16-19 */
-	ushort	xo;		/* bits 21-30, 22-30, 26-30, or 30 (beware) */
-	uvlong	imm64;
-	long w0;
-	long w1;
-	uvlong	addr;		/* pc of instruction */
-	short	target;
-	short	m64;		/* 64-bit mode */
+	uint8_t	sh;		/* bits 16-20 */
+	uint16_t	spr;		/* bits 11-20 */
+	uint8_t	to;		/* bits 6-10 */
+	uint8_t	imm;		/* bits 16-19 */
+	uint16_t	xo;		/* bits 21-30, 22-30, 26-30, or 30 (beware) */
+	uint64_t	imm64;
+	int32_t w0;
+	int32_t w1;
+	uint64_t	addr;		/* pc of instruction */
+	int16_t	target;
+	int16_t	m64;		/* 64-bit mode */
 	char	*curr;		/* current fill level in output buffer */
 	char	*end;		/* end of buffer */
 	int 	size;		/* number of longs in instr */
 	char	*err;		/* errmsg */
 } Instr;
 
-#define	IBF(v,a,b) (((ulong)(v)>>(32-(b)-1)) & ~(~0L<<(((b)-(a)+1))))
+#define	IBF(v,a,b) (((unsigned long)(v)>>(32-(b)-1)) & ~(~0L<<(((b)-(a)+1))))
 #define	IB(v,b) IBF((v),(b),(b))
 
 #pragma	varargck	argpos	bprint		2
@@ -183,9 +183,9 @@ bprint(Instr *i, char *fmt, ...)
 }
 
 static int
-decode(uvlong pc, Instr *i)
+decode(uint64_t pc, Instr *i)
 {
-	ulong w;
+	uint32_t w;
 
 	if (get4(mymap, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -239,7 +239,7 @@ decode(uvlong pc, Instr *i)
 	if(i->op == 15)
 		i->imm64 <<= 16;
 	else if(i->op == 25 || i->op == 27 || i->op == 29)
-		i->imm64 = (uvlong)(i->uimm<<16);
+		i->imm64 = (uint64_t)(i->uimm<<16);
 	i->w0 = w;
 	i->target = -1;
 	i->addr = pc;
@@ -248,7 +248,7 @@ decode(uvlong pc, Instr *i)
 }
 
 static int
-mkinstr(uvlong pc, Instr *i)
+mkinstr(uint64_t pc, Instr *i)
 {
 	Instr x;
 
@@ -277,7 +277,7 @@ mkinstr(uvlong pc, Instr *i)
 static int
 plocal(Instr *i)
 {
-	long offset;
+	int32_t offset;
 	Symbol s;
 
 	if (!findsym(i->addr, CTEXT, &s) || !findlocal(&s, FRAMENAME, &s))
@@ -298,10 +298,10 @@ plocal(Instr *i)
 }
 
 static int
-pglobal(Instr *i, uvlong off, int anyoff, char *reg)
+pglobal(Instr *i, uint64_t off, int anyoff, char *reg)
 {
 	Symbol s, s2;
-	uvlong off1;
+	uint64_t off1;
 
 	if(findsym(off, CANY, &s) &&
 	   off-s.value < 4096 &&
@@ -345,9 +345,9 @@ static	char	*fcrbits[] = {"GE", "LE", "NE", "VC"};
 typedef struct Opcode Opcode;
 
 struct Opcode {
-	uchar	op;
-	ushort	xo;
-	ushort	xomask;
+	uint8_t	op;
+	uint16_t	xo;
+	uint16_t	xomask;
 	char	*mnemonic;
 	void	(*f)(Opcode *, Instr *);
 	char	*ken;
@@ -406,7 +406,7 @@ addi(Opcode *o, Instr *i)
 static void
 addis(Opcode *o, Instr *i)
 {
-	long v;
+	int32_t v;
 
 	v = i->imm64;
 	if (i->op==15 && i->ra == 0)
@@ -661,7 +661,7 @@ static void
 shifted(Opcode *o, Instr *i)
 {
 	format(o->mnemonic, i, nil);
-	bprint(i, "\t$%lux,", (ulong)i->uimm<<16);
+	bprint(i, "\t$%lux,", (uint32_t)i->uimm<<16);
 	if (i->rs == i->ra)
 		bprint(i, "R%d", i->ra);
 	else
@@ -1047,16 +1047,16 @@ static	Spr	sprname[] = {
 };
 
 static int
-shmask(uvlong *m)
+shmask(uint64_t *m)
 {
 	int i;
 
 	for(i=0; i<63; i++)
-		if(*m & ((uvlong)1<<i))
+		if(*m & ((uint64_t)1<<i))
 			break;
 	if(i > 63)
 		return 0;
-	if(*m & ~((uvlong)1<<i)){	/* more than one bit: do multiples of bytes */
+	if(*m & ~((uint64_t)1<<i)){	/* more than one bit: do multiples of bytes */
 		i = (i/8)*8;
 		if(i == 0)
 			return 0;
@@ -1069,8 +1069,8 @@ static void
 format(char *mnemonic, Instr *i, char *f)
 {
 	int n, s;
-	ulong mask;
-	uvlong vmask;
+	uint32_t mask;
+	uint64_t vmask;
 
 	if (mnemonic)
 		format(0, i, mnemonic);
@@ -1133,7 +1133,7 @@ format(char *mnemonic, Instr *i, char *f)
 			case 6: case 7:
 					i->mb = i->xmbe; i->me = 63-i->xsh; break;	/* rldimi */
 			}
-			vmask = (~(uvlong)0>>i->mb) & (~(uvlong)0<<(63-i->me));
+			vmask = (~(uint64_t)0>>i->mb) & (~(uint64_t)0<<(63-i->me));
 			s = shmask(&vmask);
 			if(s)
 				bprint(i, "(%llux<<%d)", vmask, s);
@@ -1249,9 +1249,9 @@ format(char *mnemonic, Instr *i, char *f)
 
 		case 'z':
 			if(i->mb <= i->me)
-				mask = ((ulong)~0L>>i->mb) & (~0L<<(31-i->me));
+				mask = ((uint32_t)~0L>>i->mb) & (~0L<<(31-i->me));
 			else
-				mask = ~(((ulong)~0L>>(i->me+1)) & (~0L<<(31-(i->mb-1))));
+				mask = ~(((uint32_t)~0L>>(i->me+1)) & (~0L<<(31-(i->mb-1))));
 			bprint(i, "%lux", mask);
 			break;
 
@@ -1267,7 +1267,7 @@ format(char *mnemonic, Instr *i, char *f)
 }
 
 static int
-printins(Map *map, uvlong pc, char *buf, int n)
+printins(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 	Opcode *o;
@@ -1291,14 +1291,14 @@ printins(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-powerinst(Map *map, uvlong pc, char modifier, char *buf, int n)
+powerinst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	USED(modifier);
 	return printins(map, pc, buf, n);
 }
 
 static int
-powerdas(Map *map, uvlong pc, char *buf, int n)
+powerdas(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr instr;
 
@@ -1319,7 +1319,7 @@ powerdas(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-powerinstlen(Map *map, uvlong pc)
+powerinstlen(Map *map, uint64_t pc)
 {
 	Instr i;
 
@@ -1330,7 +1330,7 @@ powerinstlen(Map *map, uvlong pc)
 }
 
 static int
-powerfoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
+powerfoll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
 	char *reg;
 	Instr i;

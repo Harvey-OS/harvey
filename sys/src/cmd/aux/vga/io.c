@@ -20,7 +20,7 @@ static int iobfd = -1;
 static int iowfd = -1;
 static int iolfd = -1;
 static int biosfd = -1;
-static ulong biosoffset = 0;
+static uint32_t biosoffset = 0;
 
 enum {
 	Nctlchar	= 256,
@@ -46,10 +46,10 @@ devopen(char* device, int mode)
 	return fd;
 }
 
-uchar
-inportb(long port)
+uint8_t
+inportb(int32_t port)
 {
-	uchar data;
+	uint8_t data;
 
 	if(iobfd == -1)
 		iobfd = devopen("#P/iob", ORDWR);
@@ -60,7 +60,7 @@ inportb(long port)
 }
 
 void
-outportb(long port, uchar data)
+outportb(int32_t port, uint8_t data)
 {
 	if(iobfd == -1)
 		iobfd = devopen("#P/iob", ORDWR);
@@ -69,10 +69,10 @@ outportb(long port, uchar data)
 		error("outportb(0x%4.4lx, 0x%2.2uX): %r\n", port, data);
 }
 
-ushort
-inportw(long port)
+uint16_t
+inportw(int32_t port)
 {
-	ushort data;
+	uint16_t data;
 
 	if(iowfd == -1)
 		iowfd = devopen("#P/iow", ORDWR);
@@ -83,7 +83,7 @@ inportw(long port)
 }
 
 void
-outportw(long port, ushort data)
+outportw(int32_t port, uint16_t data)
 {
 	if(iowfd == -1)
 		iowfd = devopen("#P/iow", ORDWR);
@@ -92,10 +92,10 @@ outportw(long port, ushort data)
 		error("outportw(0x%4.4lx, 0x%2.2uX): %r\n", port, data);
 }
 
-ulong
-inportl(long port)
+uint32_t
+inportl(int32_t port)
 {
-	ulong data;
+	uint32_t data;
 
 	if(iolfd == -1)
 		iolfd = devopen("#P/iol", ORDWR);
@@ -106,7 +106,7 @@ inportl(long port)
 }
 
 void
-outportl(long port, ulong data)
+outportl(int32_t port, uint32_t data)
 {
 	if(iolfd == -1)
 		iolfd = devopen("#P/iol", ORDWR);
@@ -207,8 +207,8 @@ setpalette(int p, int r, int g, int b)
 	vgao(Pdata, b);
 }
 
-static long
-doreadbios(char* buf, long len, long offset)
+static int32_t
+doreadbios(char* buf, int32_t len, int32_t offset)
 {
 	char file[64];
 
@@ -228,11 +228,11 @@ doreadbios(char* buf, long len, long offset)
 }
 
 char*
-readbios(long len, long offset)
+readbios(int32_t len, int32_t offset)
 {
 	static char bios[0x10000];
-	static long biosoffset;
-	static long bioslen;
+	static int32_t biosoffset;
+	static int32_t bioslen;
 	int n;
 
 	if(biosoffset <= offset && offset+len <= biosoffset+bioslen)
@@ -251,10 +251,10 @@ readbios(long len, long offset)
 }
 
 void
-dumpbios(long size)
+dumpbios(int32_t size)
 {
-	uchar *buf;
-	long offset;
+	uint8_t *buf;
+	int32_t offset;
 	int i, n;
 	char c;
 
@@ -290,7 +290,7 @@ dumpbios(long size)
 }
 
 void*
-alloc(ulong nbytes)
+alloc(uint32_t nbytes)
 {
 	void *v;
 
@@ -317,7 +317,7 @@ printitem(char* ctlr, char* item)
 }
 
 void
-printreg(ulong data)
+printreg(uint32_t data)
 {
 	int width;
 
@@ -358,7 +358,7 @@ static char *flagname[32] = {
 };
 
 void
-printflag(ulong flag)
+printflag(uint32_t flag)
 {
 	int i;
 	char first;

@@ -28,7 +28,7 @@ Biobuf bout;
 Rule *patrule;
 void badusage(void);
 #ifdef	PROF
-short buf[10000];
+int16_t buf[10000];
 #endif
 
 void

@@ -17,32 +17,32 @@ typedef struct	GZHead	GZHead;
 
 struct GZHead
 {
-	ulong	mtime;
+	uint32_t	mtime;
 	char	*file;
 };
 
 static	int	crcwrite(void *bout, void *buf, int n);
 static	int	get1(Biobuf *b);
-static	ulong	get4(Biobuf *b);
+static	uint32_t	get4(Biobuf *b);
 static	int	gunzipf(char *file, int stdout);
 static	int	gunzip(int ofd, char *ofile, Biobuf *bin);
 static	void	header(Biobuf *bin, GZHead *h);
-static	void	trailer(Biobuf *bin, long wlen);
+static	void	trailer(Biobuf *bin, int32_t wlen);
 static	void	error(char*, ...);
 #pragma	varargck	argpos	error	1
 
 static	Biobuf	bin;
-static	ulong	crc;
-static	ulong	*crctab;
+static	uint32_t	crc;
+static	uint32_t	*crctab;
 static	int	debug;
 static	char	*delfile;
-static	vlong	gzok;
+static	int64_t	gzok;
 static	char	*infile;
 static	int	settimes;
 static	int	table;
 static	int	verbose;
 static	int	wbad;
-static	ulong	wlen;
+static	uint32_t	wlen;
 static	jmp_buf	zjmp;
 
 void
@@ -283,10 +283,10 @@ header(Biobuf *bin, GZHead *h)
 }
 
 static void
-trailer(Biobuf *bin, long wlen)
+trailer(Biobuf *bin, int32_t wlen)
 {
-	ulong tcrc;
-	long len;
+	uint32_t tcrc;
+	int32_t len;
 
 	tcrc = get4(bin);
 	if(tcrc != crc)
@@ -298,10 +298,10 @@ trailer(Biobuf *bin, long wlen)
 		error("bad output length: expected %lud got %lud", wlen, len);
 }
 
-static ulong
+static uint32_t
 get4(Biobuf *b)
 {
-	ulong v;
+	uint32_t v;
 	int i, c;
 
 	v = 0;

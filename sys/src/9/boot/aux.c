@@ -49,6 +49,7 @@ plumb(char *dir, char *dest, int *efd, char *here)
 	}
 	return efd[1];
 }
+ */
 
 int
 sendmsg(int fd, char *msg)
@@ -60,7 +61,6 @@ sendmsg(int fd, char *msg)
 		return -1;
 	return 0;
 }
- */
 
 void
 warning(char *s)
@@ -75,14 +75,12 @@ warning(char *s)
 void
 fatal(char *s)
 {
-	char *msg;
 	char buf[ERRMAX];
 
 	buf[0] = '\0';
 	errstr(buf, sizeof buf);
-	msg = smprint("%s: %s", s, buf);
-	fprint(2, "boot: %s\n", msg);
-	exits(msg);			/* this will trigger a panic */
+	fprint(2, "boot: %s: %s\n", s, buf);
+	exits(0);
 }
 
 int
@@ -183,8 +181,10 @@ outin(char *prompt, char *def, int len)
 		notify(0);
 	}
 
-	if(n < 0)
+	if(n < 0){
+		print("\n");
 		return 1;
+	}
 	if(n > 1){
 		buf[n-1] = 0;
 		strcpy(def, buf);

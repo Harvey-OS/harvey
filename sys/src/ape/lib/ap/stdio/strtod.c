@@ -51,7 +51,7 @@ extern double rnd_prod(double, double), rnd_quot(double, double);
  static double
 ulp(double xarg)
 {
-	register long L;
+	register int32_t L;
 	Dul a;
 	Dul x;
 
@@ -84,11 +84,11 @@ ulp(double xarg)
 	}
 
  static Bigint *
-s2b(CONST char *s, int nd0, int nd, unsigned long y9)
+s2b(CONST int8_t *s, int nd0, int nd, unsigned long y9)
 {
 	Bigint *b;
 	int i, k;
-	long x, y;
+	int32_t x, y;
 
 	x = (nd + 8) / 9;
 	for(k = 0, y = 1; x > y; y <<= 1, k++) ;
@@ -218,14 +218,14 @@ ratio(Bigint *a, Bigint *b)
 	}
 
  double
-strtod(CONST char *s00, char **se)
+strtod(CONST int8_t *s00, int8_t **se)
 {
 	int bb2, bb5, bbe, bd2, bd5, bbbits, bs2, c, dsign,
 		 e, e1, esign, i, j, k, nd, nd0, nf, nz, nz0, sign;
-	CONST char *s, *s0, *s1;
+	CONST int8_t *s, *s0, *s1;
 	double aadj, aadj1, adj;
 	Dul rv, rv0;
-	long L;
+	int32_t L;
 	unsigned long y, z;
 	Bigint *bb, *bb1, *bd, *bd0, *bs, *delta;
 	sign = nz0 = nz = 0;
@@ -735,6 +735,6 @@ strtod(CONST char *s00, char **se)
 	Bfree(delta);
  ret:
 	if (se)
-		*se = (char *)s;
+		*se = (int8_t *)s;
 	return sign ? -rv.d : rv.d;
 	}

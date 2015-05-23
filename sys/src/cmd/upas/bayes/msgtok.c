@@ -210,7 +210,7 @@ trim(char *s)
 	/* strip suffix of punctuation */
 	p = s+strlen(s);
 	op = p;
-	while(p > s && (uchar)p[-1]<0x80 && !isalpha(p[-1]))
+	while(p > s && (uint8_t)p[-1]<0x80 && !isalpha(p[-1]))
 		p--;
 
 	/* chop punctuation */

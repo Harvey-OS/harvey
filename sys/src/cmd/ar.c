@@ -31,7 +31,7 @@ typedef struct	Arsymref
 	char	*name;
 	int	type;
 	int	len;
-	vlong	offset;
+	int64_t	offset;
 	struct	Arsymref *next;
 } Arsymref;
 
@@ -39,8 +39,8 @@ typedef struct	Armember	/* Temp file entry - one per archive member */
 {
 	struct Armember	*next;
 	struct ar_hdr	hdr;
-	long		size;
-	long		date;
+	int32_t		size;
+	int32_t		date;
 	void		*member;
 } Armember;
 
@@ -49,7 +49,7 @@ typedef	struct Arfile		/* Temp file control block - one per tempfile */
 	int	paged;		/* set when some data paged to disk */
 	char	*fname;		/* paging file name */
 	int	fd;		/* paging file descriptor */
-	vlong	size;
+	int64_t	size;
 	Armember *head;		/* head of member chain */
 	Armember *tail;		/* tail of member chain */
 	Arsymref *sym;		/* head of defined symbol chain */
@@ -125,17 +125,17 @@ Armember *newmember(void);
 void	objsym(Sym*, void*);
 int	openar(char*, int, int);
 int	page(Arfile*);
-void	pmode(long);
+void	pmode(int32_t);
 void	rl(int);
-void	scanobj(Biobuf*, Arfile*, long);
-void	select(int*, long);
+void	scanobj(Biobuf*, Arfile*, int32_t);
+void	select(int*, int32_t);
 void	setcom(void(*)(char*, int, char**));
-void	skip(Biobuf*, vlong);
+void	skip(Biobuf*, int64_t);
 int	symcomp(void*, void*);
 void	trim(char*, char*, int);
 void	usage(void);
 void	wrerr(void);
-void	wrsym(Biobuf*, long, Arsymref*);
+void	wrsym(Biobuf*, int32_t, Arsymref*);
 
 void	rcmd(char*, int, char**);		/* command processing */
 void	dcmd(char*, int, char**);
@@ -525,10 +525,10 @@ qcmd(char *arname, int count, char **files)
  *	extract the symbol references from an object file
  */
 void
-scanobj(Biobuf *b, Arfile *ap, long size)
+scanobj(Biobuf *b, Arfile *ap, int32_t size)
 {
 	int obj;
-	vlong offset;
+	int64_t offset;
 	Dir *d;
 	static int lastobj = -1;
 
@@ -763,7 +763,7 @@ armove(Biobuf *b, Arfile *ap, Armember *bp)
 void
 arcopy(Biobuf *b, Arfile *ap, Armember *bp)
 {
-	long n;
+	int32_t n;
 
 	n = bp->size;
 	if (n & 01)
@@ -779,7 +779,7 @@ arcopy(Biobuf *b, Arfile *ap, Armember *bp)
  *	Skip an archive member
  */
 void
-skip(Biobuf *bp, vlong len)
+skip(Biobuf *bp, int64_t len)
 {
 	if (len & 01)
 		len++;
@@ -790,7 +790,8 @@ skip(Biobuf *bp, vlong len)
  *	Stream the three temp files to an archive
  */
 void
-install(char *arname, Arfile *astart, Arfile *amiddle, Arfile *aend, int createflag)
+install(char *arname, Arfile *astart, Arfile *amiddle, Arfile *aend,
+	int createflag)
 {
 	int fd;
 
@@ -830,7 +831,7 @@ rl(int fd)
 	Biobuf b;
 	char *cp;
 	struct ar_hdr a;
-	long len;
+	int32_t len;
 
 	Binit(&b, fd, OWRITE);
 	Bseek(&b,seek(fd,0,1), 0);
@@ -872,7 +873,7 @@ rl(int fd)
  *	Write the defined symbols to the symdef file
  */
 void
-wrsym(Biobuf *bp, long offset, Arsymref *as)
+wrsym(Biobuf *bp, int32_t offset, Arsymref *as)
 {
 	int off;
 
@@ -1015,7 +1016,7 @@ int	m9[] = { 2, STXT, 't', XOTH, 'x', '-' };
 int	*m[] = { m1, m2, m3, m4, m5, m6, m7, m8, m9};
 
 void
-pmode(long mode)
+pmode(int32_t mode)
 {
 	int **mp;
 
@@ -1024,7 +1025,7 @@ pmode(long mode)
 }
 
 void
-select(int *ap, long mode)
+select(int *ap, int32_t mode)
 {
 	int n;
 

@@ -33,10 +33,10 @@ static uint
 hash(char *s)
 {
 	uint h;
-	uchar *p;
+	uint8_t *p;
 
 	h = 0;
-	for(p=(uchar*)s; *p; p++)
+	for(p=(uint8_t*)s; *p; p++)
 		h = h*37 + *p;
 	return h;
 }
@@ -176,8 +176,8 @@ vtlogremove(char *name)
 static int
 timefmt(Fmt *fmt)
 {
-	static uvlong t0;
-	uvlong t;
+	static uint64_t t0;
+	uint64_t t;
 
 	if(t0 == 0)
 		t0 = nsec();
@@ -186,12 +186,13 @@ timefmt(Fmt *fmt)
 }
 
 void
-vtlogvprint(VtLog *l, char *fmt, va_list arg)
+vtlogvprint(VtLog *l, char *fmt, ...)
 {
 	int n;
 	char *p;
 	VtLogChunk *c;
 	static int first = 1;
+	va_list arg;
 
 	if(l == nil)
 		return;
@@ -212,7 +213,9 @@ vtlogvprint(VtLog *l, char *fmt, va_list arg)
 		c->wp = c->p;
 		l->w = c;
 	}
+	va_start(arg, fmt);
 	p = vseprint(c->wp, c->ep, fmt, arg);
+	va_end(arg);
 	if(p)
 		c->wp = p;
 	qunlock(&l->lk);

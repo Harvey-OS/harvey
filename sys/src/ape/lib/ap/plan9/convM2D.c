@@ -16,9 +16,9 @@
 static char nullstring[] = "";
 
 uint
-_convM2D(uchar *buf, uint nbuf, Dir *d, char *strs)
+_convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 {
-	uchar *p, *ebuf;
+	uint8_t *p, *ebuf;
 	char *sv[4];
 	int i, ns, nsv[4];
 

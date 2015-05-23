@@ -38,7 +38,7 @@ static struct {
 	int	nproc;
 	int	nprocstarve;
 
-	u32int	msize;			/* immutable */
+	uint32_t	msize;			/* immutable */
 } mbox;
 
 static struct {
@@ -54,7 +54,7 @@ static struct {
 	int	ncon;
 	int	nconstarve;
 
-	u32int	msize;
+	uint32_t	msize;
 } cbox;
 
 static void

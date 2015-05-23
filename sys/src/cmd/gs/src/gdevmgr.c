@@ -253,7 +253,8 @@ mgrN_print_page(gx_device_printer *pdev, FILE *pstream)
 		}  
 	   }
 	if (bdev->mgr_depth != 8)
-	    gs_free(bdev->memory, (char *)data, mgr_line_size, 1, "mgrN_print_page(done)");
+	    gs_free(bdev->memory, (char *)data, mgr_line_size, 1,
+		    "mgrN_print_page(done)");
 
 	if (bdev->mgr_depth == 2) {
             for (i = 0; i < 4; i++) {
@@ -288,7 +289,7 @@ cmgrN_print_page(gx_device_printer *pdev, FILE *pstream)
 	int i = 0, j, mgr_wide, r, g, b, colors8 = 0;
 	uint mgr_line_size;
 	byte *bp, *data, *dp;
-	ushort prgb[3];
+	uint16_t prgb[3];
 	unsigned char table[256], backtable[256];
         
 	int code = mgr_begin_page(bdev, pstream, &cur);
@@ -336,7 +337,8 @@ cmgrN_print_page(gx_device_printer *pdev, FILE *pstream)
 				break;
 		}  
 	   }
-       	gs_free(bdev->memory, (char *)data, mgr_line_size, 1, "cmgrN_print_page(done)");
+       	gs_free(bdev->memory, (char *)data, mgr_line_size, 1,
+		       "cmgrN_print_page(done)");
        	
 	if (bdev->mgr_depth == 4) {
             for (i = 0; i < 16; i++) {

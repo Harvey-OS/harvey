@@ -14,7 +14,7 @@
 int
 vtputstring(Packet *p, char *s)
 {
-	uchar buf[2];
+	uint8_t buf[2];
 	int n;
 
 	if(s == nil){
@@ -29,14 +29,14 @@ vtputstring(Packet *p, char *s)
 	buf[0] = n>>8;
 	buf[1] = n;
 	packetappend(p, buf, 2);
-	packetappend(p, (uchar*)s, n);
+	packetappend(p, (uint8_t*)s, n);
 	return 0;
 }
 
 int
 vtgetstring(Packet *p, char **ps)
 {
-	uchar buf[2];
+	uint8_t buf[2];
 	int n;
 	char *s;
 
@@ -48,7 +48,7 @@ vtgetstring(Packet *p, char **ps)
 		return -1;
 	}
 	s = vtmalloc(n+1);
-	if(packetconsume(p, (uchar*)s, n) < 0){
+	if(packetconsume(p, (uint8_t*)s, n) < 0){
 		vtfree(s);
 		return -1;
 	}

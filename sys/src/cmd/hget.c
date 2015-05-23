@@ -27,14 +27,14 @@ struct URL
 	char	*postbody;
 	char	*cred;
 	char *rhead;
-	long	mtime;
+	int32_t	mtime;
 };
 
 typedef struct Range Range;
 struct Range
 {
-	long	start;	/* only 2 gig supported, tdb */
-	long	end;
+	int32_t	start;	/* only 2 gig supported, tdb */
+	int32_t	end;
 };
 
 typedef struct Out Out;
@@ -67,8 +67,8 @@ int debug;
 char *ofile;
 
 
-int	doftp(URL*, URL*, Range*, Out*, long);
-int	dohttp(URL*, URL*,  Range*, Out*, long);
+int	doftp(URL*, URL*, Range*, Out*, int32_t);
+int	dohttp(URL*, URL*,  Range*, Out*, int32_t);
 int	crackurl(URL*, char*);
 Range*	crackrange(char*);
 int	getheader(int, char*, int);
@@ -312,7 +312,7 @@ char *month[] = {
 struct
 {
 	int	fd;
-	long	mtime;
+	int32_t	mtime;
 } note;
 
 void
@@ -328,12 +328,12 @@ catch(void*, char*)
 }
 
 int
-dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
+dohttp(URL *u, URL *px, Range *r, Out *out, int32_t mtime)
 {
 	int fd, cfd;
 	int redirect, auth, loop;
 	int n, rv, code;
-	long tot, vtime;
+	int32_t tot, vtime;
 	Tm *tm;
 	char buf[1024];
 	char err[ERRMAX];
@@ -768,7 +768,7 @@ void
 hhcrange(char *p, URL*, Range *r)
 {
 	char *x;
-	vlong l;
+	int64_t l;
 
 	l = 0;
 	x = strchr(p, '/');
@@ -818,7 +818,7 @@ hhauth(char *p, URL *u, Range*)
 			sysfatal("cannot authenticate");
 
 	s = smprint("%s:%s", up->user, up->passwd);
-	if(enc64(cred, sizeof(cred), (uchar *)s, strlen(s)) == -1)
+	if(enc64(cred, sizeof(cred), (uint8_t *)s, strlen(s)) == -1)
 		sysfatal("enc64");
   		free(s);
 
@@ -847,11 +847,11 @@ int passive(int, URL*);
 int active(int, URL*);
 int ftpxfer(int, Out*, Range*);
 int terminateftp(int, int);
-int getaddrport(char*, uchar*, uchar*);
-int ftprestart(int, Out*, URL*, Range*, long);
+int getaddrport(char*, uint8_t*, uint8_t*);
+int ftprestart(int, Out*, URL*, Range*, int32_t);
 
 int
-doftp(URL *u, URL *px, Range *r, Out *out, long mtime)
+doftp(URL *u, URL *px, Range *r, Out *out, int32_t mtime)
 {
 	int pid, ctl, data, rv;
 	Waitmsg *w;
@@ -1017,11 +1017,11 @@ getdec(char *p, int n)
 }
 
 int
-ftprestart(int ctl, Out *out, URL *u, Range *r, long mtime)
+ftprestart(int ctl, Out *out, URL *u, Range *r, int32_t mtime)
 {
 	Tm tm;
 	char msg[1024];
-	long x, rmtime;
+	int32_t x, rmtime;
 
 	ftpcmd(ctl, "MDTM %s", u->page);
 	if(ftprcode(ctl, msg, sizeof(msg)) != Success){
@@ -1162,8 +1162,8 @@ active(int ctl, URL *u)
 {
 	char msg[1024];
 	char dir[40], ldir[40];
-	uchar ipaddr[4];
-	uchar port[2];
+	uint8_t ipaddr[4];
+	uint8_t port[2];
 	int lcfd, dfd, afd;
 
 	/* announce a port for the call back */
@@ -1217,7 +1217,7 @@ int
 ftpxfer(int in, Out *out, Range *r)
 {
 	char buf[1024];
-	long vtime;
+	int32_t vtime;
 	int i, n;
 
 	vtime = 0;
@@ -1378,7 +1378,7 @@ dfprint(int fd, char *fmt, ...)
 }
 
 int
-getaddrport(char *dir, uchar *ipaddr, uchar *port)
+getaddrport(char *dir, uint8_t *ipaddr, uint8_t *port)
 {
 	char buf[256];
 	int fd, i;
@@ -1406,7 +1406,7 @@ getaddrport(char *dir, uchar *ipaddr, uchar *port)
 void
 md5free(DigestState *state)
 {
-	uchar x[MD5dlen];
+	uint8_t x[MD5dlen];
 	md5(nil, 0, x, state);
 }
 
@@ -1451,7 +1451,7 @@ int
 output(Out *out, char *buf, int nb)
 {
 	int n, d;
-	uchar m0[MD5dlen], m1[MD5dlen];
+	uint8_t m0[MD5dlen], m1[MD5dlen];
 
 	n = nb;
 	d = out->written - out->offset;
@@ -1459,12 +1459,12 @@ output(Out *out, char *buf, int nb)
 	if(d > 0){
 		if(n < d){
 			if(out->curr != nil)
-				md5((uchar*)buf, n, nil, out->curr);
+				md5((uint8_t*)buf, n, nil, out->curr);
 			out->offset += n;
 			return n;
 		}
 		if(out->curr != nil){
-			md5((uchar*)buf, d, m0, out->curr);
+			md5((uint8_t*)buf, d, m0, out->curr);
 			out->curr = nil;
 			md5(nil, 0, m1, md5dup(out->hiwat));
 			if(memcmp(m0, m1, MD5dlen) != 0){
@@ -1477,7 +1477,7 @@ output(Out *out, char *buf, int nb)
 		out->offset += d;
 	}
 	if(n > 0){
-		out->hiwat = md5((uchar*)buf, n, nil, out->hiwat);
+		out->hiwat = md5((uint8_t*)buf, n, nil, out->hiwat);
 		n = write(out->fd, buf, n);
 		if(n > 0){
 			out->offset += n;

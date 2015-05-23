@@ -145,14 +145,16 @@ char	netndb[Maxpath];
 Ndbtuple*	iplookup(Network*, char*, char*, int);
 char*		iptrans(Ndbtuple*, Network*, char*, char*, int);
 Ndbtuple*	telcolookup(Network*, char*, char*, int);
-char*		telcotrans(Ndbtuple*, Network*, char*, char*, int);
+char*		telcotrans(Ndbtuple*, Network*, char*, char*,
+				  int);
 Ndbtuple*	dnsiplookup(char*, Ndbs*);
 
 struct Network
 {
 	char		*net;
 	Ndbtuple	*(*lookup)(Network*, char*, char*, int);
-	char		*(*trans)(Ndbtuple*, Network*, char*, char*, int);
+	char		*(*trans)(Ndbtuple*, Network*, char*,
+					char*, int);
 	int		considered;		/* flag: ignored for "net!"? */
 	int		fasttimeouthack;	/* flag. was for IL */
 	Network		*next;
@@ -182,7 +184,7 @@ Ipifc *ipifcs;
 
 char	eaddr[16];		/* ascii ethernet address */
 char	ipaddr[64];		/* ascii internet address */
-uchar	ipa[IPaddrlen];		/* binary internet address */
+uint8_t	ipa[IPaddrlen];		/* binary internet address */
 char	*mysysname;
 
 Network *netlist;		/* networks ordered by preference */
@@ -424,10 +426,10 @@ flushjob(int tag)
 void
 io(void)
 {
-	long n;
+	int32_t n;
 	Mfile *mf;
 	int slaveflag;
-	uchar mdata[IOHDRSZ + Maxfdata];
+	uint8_t mdata[IOHDRSZ + Maxfdata];
 	Job *job;
 
 	/*
@@ -665,9 +667,9 @@ void
 rread(Job *job, Mfile *mf)
 {
 	int i, n, cnt;
-	long off, toff, clock;
+	int32_t off, toff, clock;
 	Dir dir;
-	uchar buf[Maxfdata];
+	uint8_t buf[Maxfdata];
 	char *err;
 
 	n = 0;
@@ -891,7 +893,7 @@ void
 rstat(Job *job, Mfile *mf)
 {
 	Dir dir;
-	uchar buf[IOHDRSZ+Maxfdata];
+	uint8_t buf[IOHDRSZ+Maxfdata];
 
 	memset(&dir, 0, sizeof dir);
 	if(mf->qid.type & QTDIR){
@@ -923,7 +925,7 @@ void
 sendmsg(Job *job, char *err)
 {
 	int n;
-	uchar mdata[IOHDRSZ + Maxfdata];
+	uint8_t mdata[IOHDRSZ + Maxfdata];
 	char ename[ERRMAX];
 
 	if(err){
@@ -956,18 +958,18 @@ error(char *s)
 }
 
 static int
-isvalidip(uchar *ip)
+isvalidip(uint8_t *ip)
 {
 	return ipcmp(ip, IPnoaddr) != 0 && ipcmp(ip, v4prefix) != 0;
 }
 
-static uchar loopbacknet[IPaddrlen] = {
+static uint8_t loopbacknet[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0xff, 0xff,
 	127, 0, 0, 0
 };
-static uchar loopbackmask[IPaddrlen] = {
+static uint8_t loopbackmask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
@@ -990,7 +992,7 @@ readipinterfaces(void)
 void
 ipid(void)
 {
-	uchar addr[6];
+	uint8_t addr[6];
 	Ndbtuple *t, *tt;
 	char *p, *attr;
 	Ndbs s;
@@ -1362,9 +1364,9 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	Ndbs s;
 	char ts[Maxservice];
 	char dollar[Maxhost];
-	uchar ip[IPaddrlen];
-	uchar net[IPaddrlen];
-	uchar tnet[IPaddrlen];
+	uint8_t ip[IPaddrlen];
+	uint8_t net[IPaddrlen];
+	uint8_t tnet[IPaddrlen];
 	Ipifc *ifc;
 	Iplifc *lifc;
 

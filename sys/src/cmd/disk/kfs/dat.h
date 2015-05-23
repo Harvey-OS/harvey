@@ -70,14 +70,14 @@ struct	Cons
 
 struct	Conf
 {
-	ulong	niobuf;		/* number of iobufs to allocate */
-	ulong	nuid;		/* distinct uids */
-	ulong	uidspace;	/* space for uid names -- derrived from nuid */
-	ulong	gidspace;	/* space for gid names -- derrived from nuid */
-	ulong	nserve;		/* server processes */
-	ulong	nfile;		/* number of fid -- system wide */
-	ulong	nwpath;		/* number of active paths, derrived from nfile */
-	ulong	bootsize;	/* number of bytes reserved for booting */
+	uint32_t	niobuf;		/* number of iobufs to allocate */
+	uint32_t	nuid;		/* distinct uids */
+	uint32_t	uidspace;	/* space for uid names -- derrived from nuid */
+	uint32_t	gidspace;	/* space for gid names -- derrived from nuid */
+	uint32_t	nserve;		/* server processes */
+	uint32_t	nfile;		/* number of fid -- system wide */
+	uint32_t	nwpath;		/* number of active paths, derrived from nfile */
+	uint32_t	bootsize;	/* number of bytes reserved for booting */
 };
 
 struct	Command

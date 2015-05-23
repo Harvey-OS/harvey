@@ -282,7 +282,7 @@ void init2(void)
 
 void cvtime(void)
 {
-	long tt;
+	int32_t tt;
 	struct tm *ltime;
 
 	time(&tt);
@@ -1128,7 +1128,7 @@ void setrpt(void)
 	i = getch0();
 	copyf--;
 	raw--;
-	if ((long) i < 0 || cbits(j = getch0()) == RPT)
+	if ((int32_t) i < 0 || cbits(j = getch0()) == RPT)
 		return;
 	while (i > 0 && pbp < &pbbuf[NC-3]) {
 		i--;

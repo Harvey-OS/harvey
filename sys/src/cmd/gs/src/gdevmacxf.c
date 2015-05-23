@@ -177,7 +177,7 @@ mac_lookup_font(gx_device *dev, const byte *fname, uint len,
 		return NULL;
 
 	FMGetFontFamilyName(macxf->fontID, macxf->fontName);
-	macxf->fontSize = (short)(pmat->xx * 1000.0);
+	macxf->fontSize = (int16_t)(pmat->xx * 1000.0);
 	macxf->fontEncoding = mac_get_font_encoding(macxf);
 	
 	/* we can handle only fonts with these encodings for now (all original Mac fonts have MacRoman encoding!) */

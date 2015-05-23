@@ -99,7 +99,8 @@ private int argproc(gs_main_instance *, const char *);
 private int run_buffered(gs_main_instance *, const char *);
 private int esc_strlen(const char *);
 private void esc_strcat(char *, const char *);
-private int runarg(gs_main_instance *, const char *, const char *, const char *, int);
+private int runarg(gs_main_instance *, const char *, const char *,
+		   const char *, int);
 private int run_string(gs_main_instance *, const char *, int);
 private int run_finish(gs_main_instance *, int, int, ref *);
 private int try_stdout_redirect(gs_main_instance * minst, 

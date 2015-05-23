@@ -19,12 +19,12 @@
  */
 typedef struct {
 	Pcidev*	pci;
-	ulong	io;
-	uchar*	mmio;
+	uint32_t	io;
+	uint8_t*	mmio;
 
-	ulong	ioreg[13];
-	ulong	g[25];
-	ulong	w[25];
+	uint32_t	ioreg[13];
+	uint32_t	g[25];
+	uint32_t	w[25];
 } T2r4;
 
 enum {					/* memory mapped global registers */
@@ -72,12 +72,12 @@ enum {
 	IndexCtl	= 7,
 };
 
-static uchar
+static uint8_t
 _rgb524xi(Vga* vga, int index)
 {
-	ulong *mmio;
+	uint32_t *mmio;
 
-	mmio = (ulong*)((T2r4*)vga->private)->mmio;
+	mmio = (uint32_t*)((T2r4*)vga->private)->mmio;
 	mmio[IndexLo] = index & 0xFF;
 	mmio[IndexHi] = (index>>8) & 0xFF;
 
@@ -85,11 +85,11 @@ _rgb524xi(Vga* vga, int index)
 }
 
 static void
-_rgb524xo(Vga* vga, int index, uchar data)
+_rgb524xo(Vga* vga, int index, uint8_t data)
 {
-	ulong *mmio;
+	uint32_t *mmio;
 
-	mmio = (ulong*)((T2r4*)vga->private)->mmio;
+	mmio = (uint32_t*)((T2r4*)vga->private)->mmio;
 	mmio[IndexLo] = index & 0xFF;
 	mmio[IndexHi] = (index>>8) & 0xFF;
 
@@ -99,11 +99,11 @@ _rgb524xo(Vga* vga, int index, uchar data)
 static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
-	ulong *mmio;
+	uint32_t *mmio;
 	int f, i, x;
 	Pcidev *p;
 	T2r4 *t2r4;
-	ulong *rp;
+	uint32_t *rp;
 
 	if(vga->private == nil){
 		vga->private = alloc(sizeof(T2r4));
@@ -129,7 +129,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		t2r4 = vga->private;
 		t2r4->pci = p;
 		t2r4->io = p->mem[5].bar & ~0x0F;
-		t2r4->mmio = (uchar*)mmio;
+		t2r4->mmio = (uint8_t*)mmio;
 	}
 	t2r4 = vga->private;
 	for(i = 0; i < nelem(t2r4->ioreg); i++)
@@ -144,10 +144,10 @@ snarf(Vga* vga, Ctlr* ctlr)
 	x = inportl(t2r4->io+0x30) & 0xFF;		/* vgactl */
 	outportl(t2r4->io+0x30, x|0x82);
 
-	rp = (ulong*)t2r4->mmio;
+	rp = (uint32_t*)t2r4->mmio;
 	for(i = 0; i < nelem(t2r4->g); i++)
 		t2r4->g[i] = *rp++;
-	rp = (ulong*)(t2r4->mmio+8192);
+	rp = (uint32_t*)(t2r4->mmio+8192);
 	for(i = 0; i < nelem(t2r4->w); i++)
 		t2r4->w[i] = *rp++;
 
@@ -242,11 +242,11 @@ static void
 load(Vga* vga, Ctlr* ctlr)
 {
 	T2r4 *t2r4;
-	ulong *g, *w;
+	uint32_t *g, *w;
 
 	t2r4 = vga->private;
 
-	g = (ulong*)t2r4->mmio;
+	g = (uint32_t*)t2r4->mmio;
 	g[DbAdr] = t2r4->g[DbAdr];
 	g[DbPtch] = t2r4->g[DbPtch];
 	g[CrtHac] = t2r4->g[CrtHac];
@@ -261,7 +261,7 @@ load(Vga* vga, Ctlr* ctlr)
 	g[Crt2con] = t2r4->g[Crt2con];
 	g[CrtZoom] = t2r4->g[CrtZoom];
 
-	w = (ulong*)(t2r4->mmio+8192);
+	w = (uint32_t*)(t2r4->mmio+8192);
 	w[Mw0Ctrl] = t2r4->w[Mw0Ctrl];
 	w[Mw0Sz] = t2r4->w[Mw0Sz];
 	w[Mw0Org] = t2r4->w[Mw0Org];

@@ -24,7 +24,7 @@ enum
 
 static char version[VerLen+1] = "RFB 003.003\n";
 
-static uchar tab[256];
+static uint8_t tab[256];
 
 /* VNC reverses the bits of each byte before using as a des key */
 static void
@@ -48,10 +48,10 @@ mktab(void)
 }
 
 static void
-vncencrypt(uchar *buf, int n, char *pw)
+vncencrypt(uint8_t *buf, int n, char *pw)
 {
-	uchar *p;
-	uchar key[9];
+	uint8_t *p;
+	uint8_t key[9];
 	DESstate s;
 
 	mktab();
@@ -155,8 +155,8 @@ int
 vncauth(Vnc *v, char *keypattern)
 {
 	char pw[128], *reason;
-	uchar chal[VncChalLen];
-	ulong auth;
+	uint8_t chal[VncChalLen];
+	uint32_t auth;
 	char *p, *server;
 
 	if(keypattern == nil)

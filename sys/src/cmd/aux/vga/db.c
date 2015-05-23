@@ -92,7 +92,7 @@ dbbios(Vga *vga, Ndbtuple *tuple)
 {
 	char *bios, *p, *string;
 	int len;
-	long offset, offset1;
+	int32_t offset, offset1;
 	Ndbtuple *t;
 
 	for(t = tuple->entry; t; t = t->entry){
@@ -345,7 +345,7 @@ dbmode(char* name, char* type, char* size)
 	Ndbtuple *t, *tuple;
 	Mode *mode;
 	char attr[Namelen+1];
-	ulong videobw;
+	uint32_t videobw;
 
 	db = dbopen(name);
 	mode = alloc(sizeof(Mode));

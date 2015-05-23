@@ -12,10 +12,10 @@
 #include <draw.h>
 #include <bio.h>
 
-static ulong
+static uint32_t
 getval(char **p)
 {
-	ulong v;
+	uint32_t v;
 	char *q;
 
 	v = strtoul(*p, &q, 0);

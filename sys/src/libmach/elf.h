@@ -10,86 +10,88 @@
 /*
  *	Definitions needed for accessing ELF headers
  */
+#ifdef HARVEY32
 typedef struct {
-	uchar	ident[16];	/* ident bytes */
-	ushort	type;		/* file type */
-	ushort	machine;	/* target machine */
+	unsigned char	ident[16];	/* ident bytes */
+	unsigned short	type;	/* file type */
+	unsigned short	machine;	/* target machine */
 	int	version;	/* file version */
-	ulong	elfentry;	/* start address */
-	ulong	phoff;		/* phdr file offset */
-	ulong	shoff;		/* shdr file offset */
+	uint32_t	elfentry;	/* start address */
+	uint32_t	phoff;		/* phdr file offset */
+	uint32_t	shoff;		/* shdr file offset */
 	int	flags;		/* file flags */
-	ushort	ehsize;		/* sizeof ehdr */
-	ushort	phentsize;	/* sizeof phdr */
-	ushort	phnum;		/* number phdrs */
-	ushort	shentsize;	/* sizeof shdr */
-	ushort	shnum;		/* number shdrs */
-	ushort	shstrndx;	/* shdr string index */
+	unsigned short	ehsize;		/* sizeof ehdr */
+	unsigned short	phentsize;	/* sizeof phdr */
+	unsigned short	phnum;		/* number phdrs */
+	unsigned short	shentsize;	/* sizeof shdr */
+	unsigned short	shnum;		/* number shdrs */
+	unsigned short	shstrndx;	/* shdr string index */
 } Ehdr;
+#endif
 
 typedef struct {
-	u8int	ident[16];	/* ident bytes */
-	u16int	type;		/* file type */
-	u16int	machine;	/* target machine */
-	u32int	version;	/* file version */
-	u64int	elfentry;	/* start address */
-	u64int	phoff;		/* phdr file offset */
-	u64int	shoff;		/* shdr file offset */
-	u32int	flags;		/* file flags */
-	u16int	ehsize;		/* sizeof ehdr */
-	u16int	phentsize;	/* sizeof phdr */
-	u16int	phnum;		/* number phdrs */
-	u16int	shentsize;	/* sizeof shdr */
-	u16int	shnum;		/* number shdrs */
-	u16int	shstrndx;	/* shdr string index */
+	uint8_t		ident[16];	/* ident bytes */
+	uint16_t	type;		/* file type */
+	uint16_t	machine;	/* target machine */
+	uint32_t	version;	/* file version */
+	uint64_t	elfentry;	/* start address */
+	uint64_t	phoff;		/* phdr file offset */
+	uint64_t	shoff;		/* shdr file offset */
+	uint32_t	flags;		/* file flags */
+	uint16_t	ehsize;		/* sizeof ehdr */
+	uint16_t	phentsize;	/* sizeof phdr */
+	uint16_t	phnum;		/* number phdrs */
+	uint16_t	shentsize;	/* sizeof shdr */
+	uint16_t	shnum;		/* number shdrs */
+	uint16_t	shstrndx;	/* shdr string index */
 } E64hdr;
 
 typedef struct {
 	int	type;		/* entry type */
-	ulong	offset;		/* file offset */
-	ulong	vaddr;		/* virtual address */
-	ulong	paddr;		/* physical address */
+	uint32_t	offset;		/* file offset */
+	uint32_t	vaddr;		/* virtual address */
+	uint32_t	paddr;		/* physical address */
 	int	filesz;		/* file size */
-	ulong	memsz;		/* memory size */
+	uint32_t	memsz;		/* memory size */
 	int	flags;		/* entry flags */
 	int	align;		/* memory/file alignment */
 } Phdr;
 
 typedef struct {
-	u32int	type;		/* entry type */
-	u32int	flags;		/* entry flags */
-	u64int	offset;		/* file offset */
-	u64int	vaddr;		/* virtual address */
-	u64int	paddr;		/* physical address */
-	u64int	filesz;		/* file size */
-	u64int	memsz;		/* memory size */
-	u64int	align;		/* memory/file alignment */
+	uint32_t	type;		/* entry type */
+	uint32_t	flags;		/* entry flags */
+	uint64_t	offset;		/* file offset */
+	uint64_t	vaddr;		/* virtual address */
+	uint64_t	paddr;		/* physical address */
+	uint64_t	filesz;		/* file size */
+	uint64_t	memsz;		/* memory size */
+	uint64_t	align;		/* memory/file alignment */
 } P64hdr;
 
 typedef struct {
-	ulong	name;		/* section name */
-	ulong	type;		/* SHT_... */
-	ulong	flags;		/* SHF_... */
-	ulong	addr;		/* virtual address */
-	ulong	offset;		/* file offset */
-	ulong	size;		/* section size */
-	ulong	link;		/* misc info */
-	ulong	info;		/* misc info */
-	ulong	addralign;	/* memory alignment */
-	ulong	entsize;	/* entry size if table */
+	uint32_t	name;		/* section name */
+	uint32_t	type;		/* SHT_... */
+	uint32_t	flags;		/* SHF_... */
+	uint32_t	addr;		/* virtual address */
+	uint32_t	offset;		/* file offset */
+	uint32_t	size;		/* section size */
+	uint32_t	link;		/* misc info */
+	uint32_t	info;		/* misc info */
+	uint32_t	addralign;	/* memory alignment */
+	uint32_t	entsize;	/* entry size if table */
 } Shdr;
 
 typedef struct {
-	u32int	name;		/* section name */
-	u32int	type;		/* SHT_... */
-	u64int	flags;		/* SHF_... */
-	u64int	addr;		/* virtual address */
-	u64int	offset;		/* file offset */
-	u64int	size;		/* section size */
-	u32int	link;		/* misc info */
-	u32int	info;		/* misc info */
-	u64int	addralign;	/* memory alignment */
-	u64int	entsize;	/* entry size if table */
+	uint32_t	name;		/* section name */
+	uint32_t	type;		/* SHT_... */
+	uint64_t	flags;		/* SHF_... */
+	uint64_t	addr;		/* virtual address */
+	uint64_t	offset;		/* file offset */
+	uint64_t	size;		/* section size */
+	uint32_t	link;		/* misc info */
+	uint32_t	info;		/* misc info */
+	uint64_t	addralign;	/* memory alignment */
+	uint64_t	entsize;	/* entry size if table */
 } S64hdr;
 
 enum {

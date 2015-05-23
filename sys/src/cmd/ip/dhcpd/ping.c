@@ -29,10 +29,10 @@ catch(void *a, char *msg)
  *  TODO: ipv6 ping
  */
 int
-icmpecho(uchar *a)
+icmpecho(uint8_t *a)
 {
 	int fd, i, n, len, rv;
-	ushort sseq, x;
+	uint16_t sseq, x;
 	char buf[512];
 	Icmphdr *ip;
 

@@ -22,10 +22,16 @@ fmtvprint(Fmt *f, char *fmt, va_list args)
 	va_list va;
 	int n;
 
-	va = f->args;
-	f->args = args;
+	//va = f->args;
+	//f->args = args;
+	va_copy(va,f->args);
+        va_end(f->args);
+        va_copy(f->args,args);
 	n = dofmt(f, fmt);
-	f->args = va;
+	va_end(f->args);
+        va_copy(f->args,va);
+        va_end(va);
+	//f->args = va;
 	if(n >= 0)
 		return 0;
 	return n;

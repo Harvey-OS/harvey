@@ -35,7 +35,7 @@ static int
 getdir(SConn *conn, char *id)
 {
 	char *ls, *s;
-	uchar *msg;
+	uint8_t *msg;
 	int n, len;
 
 	s = emalloc(Maxmsg);
@@ -48,11 +48,11 @@ getdir(SConn *conn, char *id)
 
 	/* send file size */
 	snprint(s, Maxmsg, "%d", len);
-	conn->write(conn, (uchar*)s, strlen(s));
+	conn->write(conn, (uint8_t*)s, strlen(s));
 
 	/* send directory listing in Maxmsg chunks */
 	n = Maxmsg;
-	msg = (uchar*)ls;
+	msg = (uint8_t*)ls;
 	while(len > 0){
 		if(len < Maxmsg)
 			n = len;
@@ -69,7 +69,7 @@ static int
 getfile(SConn *conn, char *id, char *gf)
 {
 	int n, gd, len;
-	ulong mode;
+	uint32_t mode;
 	char *s;
 	Dir *st;
 
@@ -83,14 +83,14 @@ getfile(SConn *conn, char *id, char *gf)
 	if(gd < 0){
 		syslog(0, LOG, "can't open %s: %r", s);
 		free(s);
-		conn->write(conn, (uchar*)"-1", 2);
+		conn->write(conn, (uint8_t*)"-1", 2);
 		return -1;
 	}
 	st = dirfstat(gd);
 	if(st == nil){
 		syslog(0, LOG, "can't stat %s: %r", s);
 		free(s);
-		conn->write(conn, (uchar*)"-1", 2);
+		conn->write(conn, (uint8_t*)"-1", 2);
 		return -1;
 	}
 	mode = st->mode;
@@ -99,17 +99,17 @@ getfile(SConn *conn, char *id, char *gf)
 	if(mode & DMDIR) {
 		syslog(0, LOG, "%s should be a plain file, not a directory", s);
 		free(s);
-		conn->write(conn, (uchar*)"-1", 2);
+		conn->write(conn, (uint8_t*)"-1", 2);
 		return -1;
 	}
 	if(len < 0 || len > MAXFILESIZE){
 		syslog(0, LOG, "implausible filesize %d for %s", len, gf);
 		free(s);
-		conn->write(conn, (uchar*)"-3", 2);
+		conn->write(conn, (uint8_t*)"-3", 2);
 		return -1;
 	}
 	snprint(s, Maxmsg, "%d", len);
-	conn->write(conn, (uchar*)s, strlen(s));
+	conn->write(conn, (uint8_t*)s, strlen(s));
 
 	/* send file in Maxmsg chunks */
 	while(len > 0){
@@ -119,7 +119,7 @@ getfile(SConn *conn, char *id, char *gf)
 			free(s);
 			return -1;
 		}
-		conn->write(conn, (uchar*)s, n);
+		conn->write(conn, (uint8_t*)s, n);
 		len -= n;
 	}
 	close(gd);
@@ -131,7 +131,7 @@ static int
 putfile(SConn *conn, char *id, char *pf)
 {
 	int n, nw, pd;
-	long len;
+	int32_t len;
 	char s[Maxmsg+1];
 
 	/* get file size */
@@ -156,7 +156,7 @@ putfile(SConn *conn, char *id, char *pf)
 		return -1;
 	}
 	while(len > 0){
-		n = conn->read(conn, (uchar*)s, Maxmsg);
+		n = conn->read(conn, (uint8_t*)s, Maxmsg);
 		if(n <= 0){
 			syslog(0, LOG, "empty file chunk");
 			return -1;
@@ -252,7 +252,7 @@ dologin(int fd, char *S, int forceSTA)
 		goto Out;
 	}
 	if((forceSTA || pw->status&STA) != 0){
-		conn->write(conn, (uchar*)"STA", 3);
+		conn->write(conn, (uint8_t*)"STA", 3);
 		if(readstr(conn, msg) < 10 || strncmp(msg, "STA", 3) != 0){
 			syslog(0, LOG, "no STA from %s", pw->id);
 			goto Out;
@@ -263,7 +263,7 @@ dologin(int fd, char *S, int forceSTA)
 			goto Out;
 		}
 	}
-	conn->write(conn, (uchar*)"OK", 2);
+	conn->write(conn, (uint8_t*)"OK", 2);
 	syslog(0, LOG, "AUTH %s", pw->id);
 
 	/* perform operations as asked */

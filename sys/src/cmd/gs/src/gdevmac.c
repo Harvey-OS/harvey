@@ -111,7 +111,7 @@ mac_open(register gx_device *dev)
 {
 	gx_device_macos				* mdev = (gx_device_macos *)dev;
 	
-	static short picHeader[42] = {	0x0000,									// picture size
+	static int16_t picHeader[42] = {	0x0000,									// picture size
 									0x0000, 0x0000, 0x0318, 0x0264,			// bounding rect at 72dpi
 									0x0011, 0x02ff, 0x0c00, 0xfffe, 0x0000,	// version/header opcodes
 									0x0048, 0x0000,							// best x resolution
@@ -143,21 +143,21 @@ mac_open(register gx_device *dev)
 	
 	HLockHi((Handle) mdev->pic);	// move handle high and lock it
 	
-	mdev->currPicPos	= (short*) *mdev->pic;
+	mdev->currPicPos	= (int16_t*) *mdev->pic;
 	memcpy(mdev->currPicPos, picHeader, 42*2);
 	mdev->currPicPos += 42;
 	
 	// enter correct dimensions and resolutions
-	((short*)(*mdev->pic))[ 3]	= mdev->MediaSize[1];
-	((short*)(*mdev->pic))[ 4]	= mdev->MediaSize[0];
+	((int16_t*)(*mdev->pic))[ 3]	= mdev->MediaSize[1];
+	((int16_t*)(*mdev->pic))[ 4]	= mdev->MediaSize[0];
 	
-	((short*)(*mdev->pic))[16] = ((short*)(*mdev->pic))[35]	= ((short*)(*mdev->pic))[40] = mdev->height;
-	((short*)(*mdev->pic))[17] = ((short*)(*mdev->pic))[36] = ((short*)(*mdev->pic))[41] = mdev->width;
+	((int16_t*)(*mdev->pic))[16] = ((int16_t*)(*mdev->pic))[35]	= ((int16_t*)(*mdev->pic))[40] = mdev->height;
+	((int16_t*)(*mdev->pic))[17] = ((int16_t*)(*mdev->pic))[36] = ((int16_t*)(*mdev->pic))[41] = mdev->width;
 	
-	((short*)(*mdev->pic))[10]	= (((long) X2Fix( mdev->x_pixels_per_inch )) & 0xFFFF0000) >> 16;
-	((short*)(*mdev->pic))[11]	=  ((long) X2Fix( mdev->x_pixels_per_inch )) & 0x0000FFFF;
-	((short*)(*mdev->pic))[12]	= (((long) X2Fix( mdev->y_pixels_per_inch )) & 0xFFFF0000) >> 16;
-	((short*)(*mdev->pic))[13]	=  ((long) X2Fix( mdev->y_pixels_per_inch )) & 0x0000FFFF;
+	((int16_t*)(*mdev->pic))[10]	= (((int32_t) X2Fix( mdev->x_pixels_per_inch )) & 0xFFFF0000) >> 16;
+	((int16_t*)(*mdev->pic))[11]	=  ((int32_t) X2Fix( mdev->x_pixels_per_inch )) & 0x0000FFFF;
+	((int16_t*)(*mdev->pic))[12]	= (((int32_t) X2Fix( mdev->y_pixels_per_inch )) & 0xFFFF0000) >> 16;
+	((int16_t*)(*mdev->pic))[13]	=  ((int32_t) X2Fix( mdev->y_pixels_per_inch )) & 0x0000FFFF;
 	
 	// finish picture, but dont increment pointer, we want to go on drawing
 	*mdev->currPicPos = 0x00ff;
@@ -238,7 +238,9 @@ mac_save_pict(gx_device * dev)
 	}
 	
 	for (i=0; i<512; i++) fputc(0, mdev->outputFile);
-	fwrite(*(mdev->pic), sizeof(char), ((long) mdev->currPicPos - (long) *mdev->pic + 2), mdev->outputFile);
+	fwrite(*(mdev->pic), sizeof(char),
+	       ((int32_t) mdev->currPicPos - (int32_t) *mdev->pic + 2),
+	       mdev->outputFile);
 	
 	gx_device_close_output_file(dev, mdev->outputFileName, mdev->outputFile);
 	mdev->outputFile = NULL;
@@ -253,7 +255,7 @@ mac_close(register gx_device *dev)
 {
 	gx_device_macos	* mdev = (gx_device_macos *)dev;
 	
-	long	len;
+	int32_t	len;
 	
 	HUnlock((Handle) mdev->pic);	// no more changes in the pict -> unlock handle
 	if (strcmp(mdev->outputFileName, "")) {
@@ -261,7 +263,7 @@ mac_close(register gx_device *dev)
 		gx_device_close_output_file(dev, mdev->outputFileName, mdev->outputFile);
 		mdev->outputFile = 0;
 	} else {
-		len = (long)mdev->currPicPos - (long)*mdev->pic;
+		len = (int32_t)mdev->currPicPos - (int32_t)*mdev->pic;
 		SetHandleSize((Handle) mdev->pic, len + 10);  // +10 just for the case
 	}
 	
@@ -334,7 +336,7 @@ mac_copy_mono (register gx_device *dev,
 	gx_device_macos		* mdev = (gx_device_macos *)dev;
 	
 	int				byteCount = raster * h;
-	short			copyMode;
+	int16_t			copyMode;
 	
 	// this case doesn't change the picture -> return without wasting time
 	if (color_0 == gx_no_color_index && color_1 == gx_no_color_index)
@@ -383,7 +385,7 @@ mac_copy_alpha(gx_device *dev, const unsigned char *base, int data_x,
 	gx_device_macos		* mdev = (gx_device_macos *)dev;
 	
 	ColorSpec			*colorTable;
-	short				copyMode, shade, maxShade = (1 << depth) - 1, byteCount = raster * h;
+	int16_t				copyMode, shade, maxShade = (1 << depth) - 1, byteCount = raster * h;
 	gx_color_value		rgb[3];
 	colorHSV			colHSV;
 	colorRGB			colRGB;

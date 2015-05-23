@@ -46,10 +46,10 @@ Image		*sea;
 Image		*white;
 Image		*yellow;
 
-static ulong
-rgba(ulong rgba)
+static uint32_t
+rgba(uint32_t rgba)
 {
-	uchar r, g, b, a;
+	uint8_t r, g, b, a;
 
 	a = rgba & 0xff;
 	b = (rgba >>= 8) & 0xff;

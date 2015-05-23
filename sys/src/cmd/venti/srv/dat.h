@@ -579,7 +579,7 @@ struct IFile
 struct Statdesc
 {
 	char *name;
-	ulong max;
+	uint32_t max;
 };
 
 /* keep in sync with stats.c:/statdesc and httpd.c:/graphname*/
@@ -675,8 +675,8 @@ extern Statdesc statdesc[NStat];
  */
 struct Stats
 {
-	ulong		now;
-	ulong		n[NStat];
+	uint32_t		now;
+	uint32_t		n[NStat];
 };
 
 struct Statbin
@@ -726,8 +726,8 @@ struct Bloom
 	RWLock lk;		/* protects nhash, nbits, tab, mb */
 	QLock mod;		/* one marker at a time, protects nb */
 	int nhash;
-	ulong size;		/* bytes in tab */
-	ulong bitmask;		/* to produce bit index */
+	uint32_t size;		/* bytes in tab */
+	uint32_t bitmask;		/* to produce bit index */
 	u8int *data;
 	Part *part;
 	Channel *writechan;
@@ -758,7 +758,7 @@ extern	int		debugarena; /* print in arena error msgs; -1==unknown */
 
 extern	Stats	*stathist;
 extern	int	nstathist;
-extern	ulong	stattime;
+extern	uint32_t	stattime;
 
 #ifndef PLAN9PORT
 #pragma varargck type "V" uchar*

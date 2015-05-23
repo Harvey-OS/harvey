@@ -20,10 +20,10 @@
 void
 simpleprintentry(Entry e, int cmd)
 {
-	uchar *p, *pe;
+	uint8_t *p, *pe;
 
-	p = (uchar *)e.start;
-	pe = (uchar *)e.end;
+	p = (uint8_t *)e.start;
+	pe = (uint8_t *)e.end;
 	while(p < pe){
 		if(*p == '\t'){
 			if(cmd == 'h')
@@ -38,8 +38,8 @@ simpleprintentry(Entry e, int cmd)
 	outnl(0);
 }
 
-long
-simplenextoff(long fromoff)
+int32_t
+simplenextoff(int32_t fromoff)
 {
 	if(Bseek(bdict, fromoff, 0) < 0)
 		return -1;

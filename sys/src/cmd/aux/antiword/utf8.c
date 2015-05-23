@@ -209,11 +209,11 @@ utf8_to_ucs(const char *p, int iStrLen, int *piUtfLen)
  *
  * Returns the string width in columns
  */
-long
+int32_t
 utf8_strwidth(const char *pcString, size_t tNumchars)
 {
 	ULONG	ulUcs;
-	long	lTotal;
+	int32_t	lTotal;
 	int	iToGo, iWidth, iUtflen;
 
 	fail(pcString == NULL || tNumchars > (size_t)INT_MAX);

@@ -109,7 +109,7 @@ outportb(uint port, byte data)
     pio.args[1].port = 0;
     pio.args[2].port = 0;
     pio.args[3].port = 0;
-    i = ioctl(console_fd, CONSIO, (long)(&pio));
+    i = ioctl(console_fd, CONSIO, (int32_t)(&pio));
     if (i == -1) {
 	ega_close((gx_device *) NULL);
 	eprintf("error setting device register\n");
@@ -135,7 +135,7 @@ outport2(uint port, byte index, byte data)
     pio.args[1].data = data;
     pio.args[2].port = 0;
     pio.args[3].port = 0;
-    i = ioctl(console_fd, CONSIO, (long)(&pio));
+    i = ioctl(console_fd, CONSIO, (int32_t)(&pio));
     if (i == -1) {
 	ega_close((gx_device *) NULL);
 	eprintf("error setting device register\n");

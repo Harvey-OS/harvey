@@ -23,8 +23,8 @@ int	x_stat = 0;			/* program exit status */
 int	debug = OFF;			/* debug flag */
 int	ignore = OFF;			/* what we do with FATAL errors */
 
-long	lineno = 0;			/* line number */
-long	position = 0;			/* byte position */
+int32_t	lineno = 0;			/* line number */
+int32_t	position = 0;			/* byte position */
 char	*prog_name = "";		/* and program name - for errors */
 char	*temp_file = NULL;		/* temporary file - for some programs */
 char	*fontencoding = NULL;		/* text font encoding scheme */

@@ -59,7 +59,9 @@ print_s(char *s, String *a)
 }
 
 int
-statfile(char *name, ulong *dev, uvlong *id, long *time, long *length, long *appendonly)
+statfile(char *name, uint32_t *dev, uint64_t *id, int32_t *time,
+	 int32_t *length,
+	 int32_t *appendonly)
 {
 	Dir *dirb;
 
@@ -81,7 +83,8 @@ statfile(char *name, ulong *dev, uvlong *id, long *time, long *length, long *app
 }
 
 int
-statfd(int fd, ulong *dev, uvlong *id, long *time, long *length, long *appendonly)
+statfd(int fd, uint32_t *dev, uint64_t *id, int32_t *time, int32_t *length,
+       int32_t *appendonly)
 {
 	Dir *dirb;
 
@@ -141,7 +144,7 @@ samerr(char *buf)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -153,7 +156,7 @@ emalloc(ulong n)
 }
 
 void*
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == 0)

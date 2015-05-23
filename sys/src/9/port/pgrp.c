@@ -14,17 +14,15 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-enum {
-	Whinesecs = 10,		/* frequency of out-of-resources printing */
-};
-
 static Ref pgrpid;
 static Ref mountid;
 
 void
-pgrpnote(ulong noteid, char *a, long n, int flag)
+pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 {
-	Proc *p, *ep;
+	Mach *m = machp();
+	int i;
+	Proc *p;
 	char buf[ERRMAX];
 
 	if(n >= ERRMAX-1)
@@ -32,23 +30,23 @@ pgrpnote(ulong noteid, char *a, long n, int flag)
 
 	memmove(buf, a, n);
 	buf[n] = 0;
-	p = proctab(0);
-	ep = p+conf.nproc;
-	for(; p < ep; p++) {
-		if(p->state == Dead)
+	for(i = 0; (p = psincref(i)) != nil; i++){
+		if(p == m->externup || p->state == Dead || p->noteid != noteid || p->kp){
+			psdecref(p);
 			continue;
-		if(up != p && p->noteid == noteid && p->kp == 0) {
-			qlock(&p->debug);
-			if(p->pid == 0 || p->noteid != noteid){
-				qunlock(&p->debug);
-				continue;
-			}
-			if(!waserror()) {
-				postnote(p, 0, buf, flag);
-				poperror();
-			}
-			qunlock(&p->debug);
 		}
+		qlock(&p->debug);
+		if(p->pid == 0 || p->noteid != noteid){
+			qunlock(&p->debug);
+			psdecref(p);
+			continue;
+		}
+		if(!waserror()) {
+			postnote(p, 0, buf, flag);
+			poperror();
+		}
+		qunlock(&p->debug);
+		psdecref(p);
 	}
 }
 
@@ -110,24 +108,24 @@ closepgrp(Pgrp *p)
 }
 
 void
-pgrpinsert(Mount **order, Mount *m)
+pgrpinsert(Mount **order, Mount *mount)
 {
 	Mount *f;
 
-	m->order = 0;
+	mount->order = 0;
 	if(*order == 0) {
-		*order = m;
+		*order = mount;
 		return;
 	}
 	for(f = *order; f; f = f->order) {
-		if(m->mountid < f->mountid) {
-			m->order = f;
-			*order = m;
+		if(mount->mountid < f->mountid) {
+			mount->order = f;
+			*order = mount;
 			return;
 		}
 		order = &f->order;
 	}
-	*order = m;
+	*order = mount;
 }
 
 /*
@@ -137,7 +135,7 @@ void
 pgrpcpy(Pgrp *to, Pgrp *from)
 {
 	int i;
-	Mount *n, *m, **link, *order;
+	Mount *n, *mount, **link, *order;
 	Mhead *f, **tom, **l, *mh;
 
 	wlock(&from->ns);
@@ -151,10 +149,10 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 			*l = mh;
 			l = &mh->hash;
 			link = &mh->mount;
-			for(m = f->mount; m; m = m->next) {
-				n = newmount(mh, m->to, m->mflag, m->spec);
-				m->copy = n;
-				pgrpinsert(&order, m);
+			for(mount = f->mount; mount != nil; mount = mount->next) {
+				n = newmount(mh, mount->to, mount->mflag, mount->spec);
+				mount->copy = n;
+				pgrpinsert(&order, mount);
 				*link = n;
 				link = &n->next;
 			}
@@ -165,8 +163,8 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 	 * Allocate mount ids in the same sequence as the parent group
 	 */
 	lock(&mountid);
-	for(m = order; m; m = m->order)
-		m->copy->mountid = mountid.ref++;
+	for(mount = order; mount != nil; mount = mount->order)
+		mount->copy->mountid = mountid.ref++;
 	unlock(&mountid);
 	wunlock(&from->ns);
 }
@@ -215,6 +213,7 @@ dupfgrp(Fgrp *f)
 void
 closefgrp(Fgrp *f)
 {
+	Mach *m = machp();
 	int i;
 	Chan *c;
 
@@ -228,13 +227,14 @@ closefgrp(Fgrp *f)
 	 * If we get into trouble, forceclosefgrp
 	 * will bail us out.
 	 */
-	up->closingfgrp = f;
-	for(i = 0; i <= f->maxfd; i++)
+	m->externup->closingfgrp = f;
+	for(i = 0; i <= f->maxfd; i++){
 		if(c = f->fd[i]){
 			f->fd[i] = nil;
 			cclose(c);
 		}
-	up->closingfgrp = nil;
+	}
+	m->externup->closingfgrp = nil;
 
 	free(f->fd);
 	free(f);
@@ -247,83 +247,78 @@ closefgrp(Fgrp *f)
  * of some kind of deadly embrace with mntclose
  * trying to talk to itself.  To break free, hand the
  * unclosed channels to the close queue.  Once they
- * are finished, the blocked cclose that we've 
+ * are finished, the blocked cclose that we've
  * interrupted will finish by itself.
  */
 void
 forceclosefgrp(void)
 {
+	Mach *m = machp();
 	int i;
 	Chan *c;
 	Fgrp *f;
 
-	if(up->procctl != Proc_exitme || up->closingfgrp == nil){
+	if(m->externup->procctl != Proc_exitme || m->externup->closingfgrp == nil){
 		print("bad forceclosefgrp call");
 		return;
 	}
 
-	f = up->closingfgrp;
-	for(i = 0; i <= f->maxfd; i++)
+	f = m->externup->closingfgrp;
+	for(i = 0; i <= f->maxfd; i++){
 		if(c = f->fd[i]){
 			f->fd[i] = nil;
 			ccloseq(c);
 		}
+	}
 }
-
 
 Mount*
 newmount(Mhead *mh, Chan *to, int flag, char *spec)
 {
-	Mount *m;
+	Mount *mount;
 
-	m = smalloc(sizeof(Mount));
-	m->to = to;
-	m->head = mh;
+	mount = smalloc(sizeof(Mount));
+	mount->to = to;
+	mount->head = mh;
 	incref(to);
-	m->mountid = incref(&mountid);
-	m->mflag = flag;
+	mount->mountid = incref(&mountid);
+	mount->mflag = flag;
 	if(spec != 0)
-		kstrdup(&m->spec, spec);
+		kstrdup(&mount->spec, spec);
 
-	return m;
+	return mount;
 }
 
 void
-mountfree(Mount *m)
+mountfree(Mount *mount)
 {
 	Mount *f;
 
-	while(m) {
-		f = m->next;
-		cclose(m->to);
-		m->mountid = 0;
-		free(m->spec);
-		free(m);
-		m = f;
+	while(mount != nil) {
+		f = mount->next;
+		cclose(mount->to);
+		mount->mountid = 0;
+		free(mount->spec);
+		free(mount);
+		mount = f;
 	}
 }
 
 void
 resrcwait(char *reason)
 {
-	ulong now;
+	Mach *m = machp();
 	char *p;
-	static ulong lastwhine;
 
-	if(up == 0)
+	if(m->externup == nil)
 		panic("resrcwait");
 
-	p = up->psstate;
+	p = m->externup->psstate;
 	if(reason) {
-		up->psstate = reason;
-		now = seconds();
-		/* don't tie up the console with complaints */
-		if(now - lastwhine > Whinesecs) {
-			lastwhine = now;
-			print("%s\n", reason);
-		}
+		m->externup->psstate = reason;
+		print("%s\n", reason);
 	}
 
-	tsleep(&up->sleep, return0, 0, 300);
-	up->psstate = p;
+	tsleep(&m->externup->sleep, return0, 0, 300);
+	m->externup->psstate = p;
 }

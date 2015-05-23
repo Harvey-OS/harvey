@@ -20,7 +20,7 @@ enum {
 
 static struct {
 	Rune kbdc;
-	ulong keysym;
+	uint32_t keysym;
 } ktab[] = {
 	{'\b',		0xff08},
 	{'\t',		0xff09},
@@ -71,7 +71,7 @@ static char shiftkey[128] = {
 	0, 0, 0, 1, 1, 1, 1, 0, /* x y z { | } ~ del  */
 };
 
-ulong
+uint32_t
 runetoksym(Rune r)
 {
 	int i;
@@ -83,7 +83,7 @@ runetoksym(Rune r)
 }
 
 static void
-keyevent(Vnc *v, ulong ksym, int down)
+keyevent(Vnc *v, uint32_t ksym, int down)
 {
 	vnclock(v);
 	vncwrchar(v, MKey);
@@ -98,7 +98,7 @@ void
 readkbd(Vnc *v)
 {
 	char buf[256], k[10];
-	ulong ks;
+	uint32_t ks;
 	int ctlfd, fd, kr, kn, w, shift, ctl, alt;
 	Rune r;
 

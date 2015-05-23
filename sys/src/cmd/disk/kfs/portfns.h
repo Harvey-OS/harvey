@@ -45,7 +45,7 @@ void	dtrunc(Iobuf*, Dentry*);
 void	exit(void);
 Float	famd(Float, int, int, int);
 int	fchar(void);
-ulong	fdf(Float, int);
+uint32_t	fdf(Float, int);
 void	fileinit(Chan*);
 void	sublockinit(void);
 File*	filep(Chan*, int, int);

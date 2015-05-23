@@ -65,7 +65,7 @@ gp_strerror(int errnum)
 /* Read the current time (in seconds since Jan. 1, 1970) */
 /* and fraction (in nanoseconds). */
 void
-gp_get_realtime(long *pdt)
+gp_get_realtime(int32_t *pdt)
 {
     struct timeval tp;
     struct timezone tzp;
@@ -87,7 +87,7 @@ gp_get_realtime(long *pdt)
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(long *pdt)
+gp_get_usertime(int32_t *pdt)
 {
     gp_get_realtime(pdt);	/* Use an approximation for now.  */
 }
@@ -149,7 +149,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, char **fontname,
+                            char **path)
 {
     return 0;
 }

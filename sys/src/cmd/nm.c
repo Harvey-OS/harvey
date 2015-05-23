@@ -41,7 +41,7 @@ int	cmp(void*, void*);
 void	error(char*, ...);
 void	execsyms(int);
 void	psym(Sym*, void*);
-void	printsyms(Sym**, long);
+void	printsyms(Sym**, int32_t);
 void	doar(Biobuf*);
 void	dofile(Biobuf*);
 void	zenter(Sym*);
@@ -196,7 +196,7 @@ execsyms(int fd)
 {
 	Fhdr f;
 	Sym *s;
-	long n;
+	int32_t n;
 
 	seek(fd, 0, 0);
 	if (crackhdr(fd, &f) == 0) {
@@ -268,7 +268,7 @@ psym(Sym *s, void* p)
 }
 
 void
-printsyms(Sym **symptr, long nsym)
+printsyms(Sym **symptr, int32_t nsym)
 {
 	int i, wid;
 	Sym *s;
@@ -291,7 +291,7 @@ printsyms(Sym **symptr, long nsym)
 		if (multifile && !hflag)
 			Bprint(&bout, "%s:", filename);
 		if (s->type == 'z') {
-			fileelem(fnames, (uchar *) s->name, path, 512);
+			fileelem(fnames, (uint8_t *) s->name, path, 512);
 			cp = path;
 		} else
 			cp = s->name;

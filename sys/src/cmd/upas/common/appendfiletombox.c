@@ -23,7 +23,7 @@ struct Inbuf
 	int in;
 	int out;
 	int last;
-	ulong bytes;
+	uint32_t bytes;
 };
 
 static Inbuf*

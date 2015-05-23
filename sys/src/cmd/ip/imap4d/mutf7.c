@@ -27,7 +27,7 @@
  *	'日本語'		'&ZeVnLIqe-'
  */
 
-static uchar mt64d[256];
+static uint8_t mt64d[256];
 static char mt64e[64];
 
 static void
@@ -60,7 +60,7 @@ int
 encmutf7(char *out, int lim, char *in)
 {
 	Rune rr;
-	ulong r, b;
+	uint32_t r, b;
 	char *start = out;
 	char *e = out + lim;
 	int nb;
@@ -68,7 +68,7 @@ encmutf7(char *out, int lim, char *in)
 	if(mt64e[0] == 0)
 		initm64();
 	for(;;){
-		r = *(uchar*)in;
+		r = *(uint8_t*)in;
 
 		if(r < ' ' || r >= Runeself){
 			if(r == '\0')

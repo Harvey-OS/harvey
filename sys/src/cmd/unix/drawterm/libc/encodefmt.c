@@ -19,14 +19,14 @@ encodefmt(Fmt *f)
 	int len;
 	int ilen;
 	int rv;
-	uchar *b;
+	uint8_t *b;
 	char *p;
 	char obuf[64];	// rsc optimization
 
 	if(!(f->flags&FmtPrec) || f->prec < 1)
 		goto error;
 
-	b = va_arg(f->args, uchar*);
+	b = va_arg(f->args, uint8_t*);
 	if(b == 0)
 		return fmtstrcpy(f, "<nil>");
 

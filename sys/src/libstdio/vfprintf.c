@@ -272,9 +272,9 @@ ocvt_n(FILE *f, va_list *args, int flags, int width, int precision)
 #pragma ref width
 #pragma ref precision
 	if(flags&SHORT)
-		*va_arg(*args, short *) = nprint;
+		*va_arg(*args, int16_t *) = nprint;
 	else if(flags&LONG)
-		*va_arg(*args, long *) = nprint;
+		*va_arg(*args, int32_t *) = nprint;
 	else
 		*va_arg(*args, int *) = nprint;
 	return 0;
@@ -297,14 +297,14 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 	char digits[128];	/* no reasonable machine will ever overflow this */
 	char *sign;
 	char *dp;
-	long snum;
+	int32_t snum;
 	unsigned long num;
 	int nout, npad, nlzero;
 
 	if(sgned){
-		if(flags&PTR) snum = (long)va_arg(*args, void *);
-		else if(flags&SHORT) snum = va_arg(*args, short);
-		else if(flags&LONG) snum = va_arg(*args, long);
+		if(flags&PTR) snum = (int32_t)va_arg(*args, void *);
+		else if(flags&SHORT) snum = va_arg(*args, int16_t);
+		else if(flags&LONG) snum = va_arg(*args, int32_t);
 		else snum = va_arg(*args, int);
 		if(snum < 0){
 			sign = "-";
@@ -317,7 +317,7 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 		}
 	} else {
 		sign = "";
-		if(flags&PTR) num = (long)va_arg(*args, void *);
+		if(flags&PTR) num = (int32_t)va_arg(*args, void *);
 		else if(flags&SHORT) num = va_arg(*args, unsigned short);
 		else if(flags&LONG) num = va_arg(*args, unsigned long);
 		else num = va_arg(*args, unsigned int);
@@ -448,7 +448,8 @@ ocvt_g(FILE *f, va_list *args, int flags, int width, int precision)
 }
 
 static int
-ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
+ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision,
+	 char afmt)
 {
 	int echr;
 	char *digits, *edigits;

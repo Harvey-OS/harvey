@@ -12,11 +12,11 @@
 #include "fns.h"
 
 static int
-syncarenaindex(Arena *arena, u64int a0)
+syncarenaindex(Arena *arena, uint64_t a0)
 {
 	int ok;
-	u32int clump;
-	u64int a;
+	uint32_t clump;
+	uint64_t a;
 	ClumpInfo ci;
 	IAddr ia;
 	AState as;

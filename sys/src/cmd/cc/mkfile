@@ -32,7 +32,7 @@ install:V:	$LIB
 	date
 
 $LIB:	$LIBOBJ
-	ar vu $LIB $OFILES
+	ar rv $LIB $OFILES
 
 mac.$O:	macbody
 

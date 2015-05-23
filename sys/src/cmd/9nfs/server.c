@@ -15,13 +15,14 @@ static int	alarmflag;
 static int	Iconv(Fmt*);
 static void	openudp(int);
 static void	cachereply(Rpccall*, void*, int);
-static int	replycache(int, Rpccall*, long (*)(int, void*, long));
+static int	replycache(int, Rpccall*, int32_t (*)(int, void*, int32_t));
 static void	udpserver(int, Progmap*);
 static void	tcpserver(int, Progmap*);
 static void	getendpoints(Udphdr*, char*);
-static long	readtcp(int, void*, long);
-static long	writetcp(int, void*, long);
-static int	servemsg(int, long (*)(int, void*, long), long (*)(int, void*, long),
+static int32_t	readtcp(int, void*, int32_t);
+static int32_t	writetcp(int, void*, int32_t);
+static int	servemsg(int, int32_t (*)(int, void*, int32_t),
+			   int32_t (*)(int, void*, int32_t),
 		int, Progmap*);
 void	(*rpcalarm)(void);
 int	rpcdebug;
@@ -30,9 +31,9 @@ int	p9debug;
 
 int	nocache;
 
-uchar	buf[9000];
-uchar	rbuf[9000];
-uchar	resultbuf[9000];
+uint8_t	buf[9000];
+uint8_t	rbuf[9000];
+uint8_t	resultbuf[9000];
 
 static int tcp;
 
@@ -192,7 +193,8 @@ tcpserver(int myport, Progmap *progmap)
 }
 
 static int
-servemsg(int fd, long (*readmsg)(int, void*, long), long (*writemsg)(int, void*, long),
+servemsg(int fd, int32_t (*readmsg)(int, void*, int32_t),
+	 int32_t (*writemsg)(int, void*, int32_t),
 		int myport, Progmap * progmap)
 {
 	int i, n, nreply;
@@ -255,7 +257,7 @@ servemsg(int fd, long (*readmsg)(int, void*, long), long (*writemsg)(int, void*,
 		rreply.authstat = AUTH_TOOWEAK;
 		goto send_reply;
 	}
-	i = n - (((uchar *)rcall.args) - buf);
+	i = n - (((uint8_t *)rcall.args) - buf);
 	if(rpcdebug > 1)
 		fprint(2, "arg size = %d\n", i);
 	rreply.stat = MSG_ACCEPTED;
@@ -305,7 +307,7 @@ send_reply:
 }
 
 static void
-getendpoint(char *dir, char *file, uchar *addr, uchar *port)
+getendpoint(char *dir, char *file, uint8_t *addr, uint8_t *port)
 {
 	int fd, n;
 	char buf[128];
@@ -345,12 +347,12 @@ getendpoints(Udphdr *ep, char *dir)
 	getendpoint(dir, "remote", ep->raddr, ep->rport);
 }
 
-static long
-readtcp(int fd, void *vbuf, long blen)
+static int32_t
+readtcp(int fd, void *vbuf, int32_t blen)
 {
-	uchar mk[4];
+	uint8_t mk[4];
 	int n, m, sofar;
-	ulong done;
+	uint32_t done;
 	char *buf;
 
 	buf = vbuf;
@@ -374,8 +376,8 @@ readtcp(int fd, void *vbuf, long blen)
 	return sofar + Udphdrsize;
 }
 
-static long
-writetcp(int fd, void *vbuf, long len)
+static int32_t
+writetcp(int fd, void *vbuf, int32_t len)
 {
 	char *buf;
 
@@ -412,8 +414,8 @@ writetcp(int fd, void *vbuf, long len)
  *	return n;
  *}
  */
-long
-niwrite(int fd, void *buf, long n)
+int32_t
+niwrite(int fd, void *buf, int32_t n)
 {
 //	int savalarm;
 
@@ -427,7 +429,7 @@ niwrite(int fd, void *buf, long n)
 typedef struct Namecache	Namecache;
 struct Namecache {
 	char dom[256];
-	ulong ipaddr;
+	uint32_t ipaddr;
 	Namecache *next;
 };
 
@@ -459,7 +461,7 @@ domlookup(void *name)
 }
 
 static Namecache*
-iplookup(ulong ip)
+iplookup(uint32_t ip)
 {
 	Namecache *n, **ln;
 
@@ -475,7 +477,7 @@ iplookup(ulong ip)
 }
 
 static Namecache*
-addcacheentry(void *name, int len, ulong ip)
+addcacheentry(void *name, int len, uint32_t ip)
 {
 	Namecache *n;
 
@@ -494,7 +496,7 @@ addcacheentry(void *name, int len, ulong ip)
 }
 
 int
-getdnsdom(ulong ip, char *name, int len)
+getdnsdom(uint32_t ip, char *name, int len)
 {
 	char buf[128];
 	Namecache *nc;
@@ -518,7 +520,7 @@ getdnsdom(ulong ip, char *name, int len)
 }
 
 int
-getdom(ulong ip, char *dom, int len)
+getdom(uint32_t ip, char *dom, int len)
 {
 	int i;
 	static char *prefix[] = { "", "gate-", "fddi-", "u-", 0 };
@@ -584,7 +586,7 @@ cachereply(Rpccall *rp, void *buf, int len)
 }
 
 static int
-replycache(int fd, Rpccall *rp, long (*writemsg)(int, void*, long))
+replycache(int fd, Rpccall *rp, int32_t (*writemsg)(int, void*, int32_t))
 {
 	Rpccache *cp;
 
@@ -617,9 +619,9 @@ static int
 Iconv(Fmt *f)
 {
 	char buf[16];
-	ulong h;
+	uint32_t h;
 
-	h = va_arg(f->args, ulong);
+	h = va_arg(f->args, uint32_t);
 	snprint(buf, sizeof buf, "%ld.%ld.%ld.%ld",
 		(h>>24)&0xff, (h>>16)&0xff,
 		(h>>8)&0xff, h&0xff);

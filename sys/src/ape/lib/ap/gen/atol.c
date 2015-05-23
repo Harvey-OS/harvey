@@ -9,7 +9,7 @@
 
 #include	<stdlib.h>
 
-long
+int32_t
 atol(const char *s)
 {
 	return(strtol(s, (char **)0, 10));

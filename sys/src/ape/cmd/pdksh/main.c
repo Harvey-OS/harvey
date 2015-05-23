@@ -245,9 +245,10 @@ main(argc, argv)
 			setstr(pwd_v, current_wd, KSH_RETURN_ERROR);
 	}
 	ppid = getppid();
-	setint(global("PPID"), (long) ppid);
+	setint(global("PPID"), (int32_t) ppid);
 #ifdef KSH
-	setint(global("RANDOM"), (long) (time((time_t *)0) * kshpid * ppid));
+	setint(global("RANDOM"),
+	       (int32_t) (time((time_t *)0) * kshpid * ppid));
 #endif /* KSH */
 	/* setstr can't fail here */
 	setstr(global(version_param), ksh_version, KSH_RETURN_ERROR);
@@ -372,7 +373,8 @@ main(argc, argv)
 			      "/profile.ksh"))
 			include(profile, 0, (char **) 0, 1);
 		else if (include("/etc/profile.ksh", 0, (char **) 0, 1) < 0)
-			include("c:/usr/etc/profile.ksh", 0, (char **) 0, 1);
+			include("c:/usr/etc/profile.ksh", 0, (char **) 0,
+				1);
 		if (!Flag(FPRIVILEGED))
 			include(substitute("$HOME/profile.ksh", 0), 0,
 				(char **) 0, 1);
@@ -756,7 +758,7 @@ cleanup_parents_env()
 				if (ep->savefd[fd] > 0)
 					close(ep->savefd[fd]);
 			afree(ep->savefd, &ep->area);
-			ep->savefd = (short *) 0;
+			ep->savefd = (int16_t *) 0;
 		}
 	}
 	e->oenv = (struct env *) 0;

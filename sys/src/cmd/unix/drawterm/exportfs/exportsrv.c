@@ -29,7 +29,7 @@ int iounit(int x)
 }
 
 void*
-emallocz(ulong n)
+emallocz(uint32_t n)
 {
 	void *v;
 
@@ -260,7 +260,7 @@ Xstat(Fsrpc *t)
 	Fid *f;
 	Dir *d;
 	int s;
-	uchar *statbuf;
+	uint8_t *statbuf;
 
 	f = getfid(t->work.fid);
 	if(f == 0) {

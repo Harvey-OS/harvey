@@ -17,19 +17,16 @@ static Alarms	alarms;
 static Rendez	alarmr;
 
 void
-alarmkproc(void*)
+alarmkproc(void* v)
 {
+	Mach *m = machp();
 	Proc *rp;
-	ulong now;
+	uint32_t now;
 
 	for(;;){
-		now = MACHP(0)->ticks;
+		now = sys->ticks;
 		qlock(&alarms);
-		/*
-		 * the odd test of now vs. rp->alarm is to cope with
-		 * now wrapping around.
-		 */
-		while((rp = alarms.head) && (long)(now - rp->alarm) >= 0){
+		while((rp = alarms._head) && rp->alarm <= now){
 			if(rp->alarm != 0L){
 				if(canqlock(&rp->debug)){
 					if(!waserror()){
@@ -41,7 +38,7 @@ alarmkproc(void*)
 				}else
 					break;
 			}
-			alarms.head = rp->palarm;
+			alarms._head = rp->palarm;
 		}
 		qunlock(&alarms);
 
@@ -56,60 +53,59 @@ void
 checkalarms(void)
 {
 	Proc *p;
-	ulong now;
+	uint32_t now;
 
-	p = alarms.head;
-	now = MACHP(0)->ticks;
+	p = alarms._head;
+	now = sys->ticks;
 
-	if(p && (long)(now - p->alarm) >= 0)
+	if(p && p->alarm <= now)
 		wakeup(&alarmr);
 }
 
-ulong
-procalarm(ulong time)
+uint32_t
+procalarm(uint32_t time)
 {
+	Mach *m = machp();
 	Proc **l, *f;
-	ulong when, old;
+	uint32_t when, old;
 
-	if(up->alarm)
-		old = tk2ms(up->alarm - MACHP(0)->ticks);
+	if(m->externup->alarm)
+		old = tk2ms(m->externup->alarm - sys->ticks);
 	else
 		old = 0;
 	if(time == 0) {
-		up->alarm = 0;
+		m->externup->alarm = 0;
 		return old;
 	}
-	when = ms2tk(time)+MACHP(0)->ticks;
-	if(when == 0)		/* ticks have wrapped to 0? */
-		when = 1;	/* distinguish a wrapped alarm from no alarm */
+	when = ms2tk(time)+sys->ticks;
 
 	qlock(&alarms);
-	l = &alarms.head;
+	l = &alarms._head;
 	for(f = *l; f; f = f->palarm) {
-		if(up == f){
+		if(m->externup == f){
 			*l = f->palarm;
 			break;
 		}
 		l = &f->palarm;
 	}
 
-	up->palarm = 0;
-	if(alarms.head) {
-		l = &alarms.head;
+	m->externup->palarm = 0;
+	if(alarms._head) {
+		l = &alarms._head;
 		for(f = *l; f; f = f->palarm) {
-			if((long)(f->alarm - when) >= 0) {
-				up->palarm = f;
-				*l = up;
+			if(f->alarm > when) {
+				m->externup->palarm = f;
+				*l = m->externup;
 				goto done;
 			}
 			l = &f->palarm;
 		}
-		*l = up;
+		*l = m->externup;
 	}
 	else
-		alarms.head = up;
+		alarms._head = m->externup;
 done:
-	up->alarm = when;
+	m->externup->alarm = when;
 	qunlock(&alarms);
 
 	return old;

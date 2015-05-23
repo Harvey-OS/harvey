@@ -17,7 +17,7 @@ typedef struct String {
 	char	*end;	/* end of allocated space+1 */
 	char	*ptr;	/* ptr into String */
 	short	ref;
-	uchar	fixed;
+	unsigned char	fixed;
 } String;
 
 #define s_clone(s) s_copy((s)->base)

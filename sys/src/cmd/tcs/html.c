@@ -388,7 +388,7 @@ findbyrune(Rune r)
 }
 
 void
-html_in(int fd, long *x, struct convert *out)
+html_in(int fd, int32_t *x, struct convert *out)
 {
 	char buf[100], *p;
 	Biobuf b;
@@ -457,7 +457,7 @@ html_in(int fd, long *x, struct convert *out)
  * use biobuf because can use more than UTFmax bytes per rune
  */
 void
-html_out(Rune *r, int n, long *x)
+html_out(Rune *r, int n, int32_t *x)
 {
 	char *s;
 	Biobuf b;

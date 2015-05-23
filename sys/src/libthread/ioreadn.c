@@ -12,21 +12,21 @@
 #include <thread.h>
 #include "threadimpl.h"
 
-static long
+static int32_t
 _ioreadn(va_list *arg)
 {
 	int fd;
 	void *a;
-	long n;
+	int32_t n;
 
 	fd = va_arg(*arg, int);
 	a = va_arg(*arg, void*);
-	n = va_arg(*arg, long);
+	n = va_arg(*arg, int32_t);
 	return readn(fd, a, n);
 }
 
-long
-ioreadn(Ioproc *io, int fd, void *a, long n)
+int32_t
+ioreadn(Ioproc *io, int fd, void *a, int32_t n)
 {
 	return iocall(io, _ioreadn, fd, a, n);
 }

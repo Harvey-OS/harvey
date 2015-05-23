@@ -40,17 +40,17 @@ enum
 Filter *filter;
 Proto *root;
 Biobuf out;
-vlong starttime, pkttime;
+int64_t starttime, pkttime;
 int pcap;
 
-int	filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr, int);
-void	printpkt(char *p, char *e, uchar *ps, uchar *pe);
+int	filterpkt(Filter *f, uint8_t *ps, uint8_t *pe, Proto *pr, int);
+void	printpkt(char *p, char *e, uint8_t *ps, uint8_t *pe);
 void	mkprotograph(void);
 Proto*	findproto(char *name);
 Filter*	compile(Filter *f);
 void	printfilter(Filter *f, char *tag);
 void	printhelp(char*);
-void	tracepkt(uchar*, int);
+void	tracepkt(uint8_t*, int);
 void	pcaphdr(void);
 
 void
@@ -263,7 +263,7 @@ _filterpkt(Filter *f, Msg *m)
 	return 0;
 }
 int
-filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr, int needroot)
+filterpkt(Filter *f, uint8_t *ps, uint8_t *pe, Proto *pr, int needroot)
 {
 	Msg m;
 
@@ -285,19 +285,19 @@ filterpkt(Filter *f, uchar *ps, uchar *pe, Proto *pr, int needroot)
 #define TCPDUMP_MAGIC 0xa1b2c3d4
 
 struct pcap_file_header {
-	ulong		magic;
-	ushort		version_major;
-	ushort		version_minor;
-	long		thiszone;    /* gmt to local correction */
-	ulong		sigfigs;    /* accuracy of timestamps */
-	ulong		snaplen;    /* max length saved portion of each pkt */
-	ulong		linktype;   /* data link type (DLT_*) */
+	uint32_t		magic;
+	uint16_t		version_major;
+	uint16_t		version_minor;
+	int32_t		thiszone;    /* gmt to local correction */
+	uint32_t		sigfigs;    /* accuracy of timestamps */
+	uint32_t		snaplen;    /* max length saved portion of each pkt */
+	uint32_t		linktype;   /* data link type (DLT_*) */
 };
 
 struct pcap_pkthdr {
-        uvlong	ts;	/* time stamp */
-        ulong	caplen;	/* length of portion present */
-        ulong	len;	/* length this packet (off wire) */
+        uint64_t	ts;	/* time stamp */
+        uint32_t	caplen;	/* length of portion present */
+        uint32_t	len;	/* length this packet (off wire) */
 };
 
 /*
@@ -324,7 +324,7 @@ pcaphdr(void)
  *  write out a packet trace
  */
 void
-tracepkt(uchar *ps, int len)
+tracepkt(uint8_t *ps, int len)
 {
 	struct pcap_pkthdr *goo;
 
@@ -348,10 +348,10 @@ tracepkt(uchar *ps, int len)
  *  format and print a packet
  */
 void
-printpkt(char *p, char *e, uchar *ps, uchar *pe)
+printpkt(char *p, char *e, uint8_t *ps, uint8_t *pe)
 {
 	Msg m;
-	ulong dt;
+	uint32_t dt;
 
 	dt = (pkttime-starttime)/1000000LL;
 	m.p = seprint(p, e, "%6.6uld ms ", dt);
@@ -721,7 +721,7 @@ compile(Filter *f)
  *  parse a byte array
  */
 int
-parseba(uchar *to, char *from)
+parseba(uint8_t *to, char *from)
 {
 	char nip[4];
 	char *p;
@@ -747,7 +747,7 @@ parseba(uchar *to, char *from)
 void
 compile_cmp(char *proto, Filter *f, Field *fld)
 {
-	uchar x[IPaddrlen];
+	uint8_t x[IPaddrlen];
 	char *v;
 
 	if(f->op != '=')
@@ -951,7 +951,7 @@ printhelp(char *name)
  *  demultiplex to next prototol header
  */
 void
-demux(Mux *mx, ulong val1, ulong val2, Msg *m, Proto *def)
+demux(Mux *mx, uint32_t val1, uint32_t val2, Msg *m, Proto *def)
 {
 	m->pr = def;
 	for(mx = mx; mx->name != nil; mx++){
@@ -967,7 +967,7 @@ demux(Mux *mx, ulong val1, ulong val2, Msg *m, Proto *def)
  *  a single read
  */
 int
-defaultframer(int fd, uchar *pkt, int pktlen)
+defaultframer(int fd, uint8_t *pkt, int pktlen)
 {
 	return read(fd, pkt, pktlen);
 }

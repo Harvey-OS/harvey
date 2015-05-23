@@ -25,7 +25,7 @@
 /* The character set */
 static encoding_type	eEncoding = encoding_neutral;
 /* Current vertical position information */
-static long		lYtopCurr = 0;
+static int32_t		lYtopCurr = 0;
 /* Local representation of the non-breaking space */
 static UCHAR		ucNbsp = 0;
 
@@ -158,7 +158,7 @@ vMoveTo(diagram_type *pDiag)
  */
 void
 vSubstringFMT(diagram_type *pDiag,
-	const char *szString, size_t tStringLength, long lStringWidth,
+	const char *szString, size_t tStringLength, int32_t lStringWidth,
 	USHORT usFontstyle)
 {
 	fail(pDiag == NULL || szString == NULL);

@@ -35,7 +35,7 @@
  * and floating point arithmetic is slow.
  */
 typedef long fixed;
-typedef ulong ufixed;		/* only used in a very few places */
+typedef uint32_t ufixed;		/* only used in a very few places */
 #define ARCH_SIZEOF_FIXED ARCH_SIZEOF_LONG
 
 #define max_fixed max_long
@@ -202,13 +202,15 @@ int set_fmul2fixed_(fixed *, long, long);
   set_fmul2fixed_(&vr, *(const long *)&vfa, *(const long *)&vfb)
 #define FINISH_FMUL2FIXED_VARS(vr, dtemp)\
   DO_NOTHING
-int set_dfmul2fixed_(fixed *, ulong, long, long);
+int set_dfmul2fixed_(fixed *, uint32_t, long, long);
 #  if arch_is_big_endian
 #  define CHECK_DFMUL2FIXED_VARS(vr, vda, vfb, dtemp)\
-     set_dfmul2fixed_(&vr, ((const ulong *)&vda)[1], *(const long *)&vfb, *(const long *)&vda)
+     set_dfmul2fixed_(&vr, ((const uint32_t *)&vda)[1], *(const long *)&vfb,
+		      *(const long *)&vda)
 #  else
 #  define CHECK_DFMUL2FIXED_VARS(vr, vda, vfb, dtemp)\
-     set_dfmul2fixed_(&vr, *(const ulong *)&vda, *(const long *)&vfb, ((const long *)&vda)[1])
+     set_dfmul2fixed_(&vr, *(const uint32_t *)&vda, *(const long *)&vfb,
+		      ((const long *)&vda)[1])
 #  endif
 #define FINISH_DFMUL2FIXED_VARS(vr, dtemp)\
   DO_NOTHING
@@ -240,12 +242,12 @@ int set_dfmul2fixed_(fixed *, ulong, long, long);
  */
 #if USE_FPU_FIXED
 int set_float2fixed_(fixed *, long, int);
-int set_double2fixed_(fixed *, ulong, long, int);
+int set_double2fixed_(fixed *, uint32_t, long, int);
 
 # define set_float2fixed_vars(vr,vf)\
     (sizeof(vf) == sizeof(float) ?\
      set_float2fixed_(&vr, *(const long *)&vf, fixed_fraction_bits) :\
-     set_double2fixed_(&vr, ((const ulong *)&vf)[arch_is_big_endian],\
+     set_double2fixed_(&vr, ((const uint32_t *)&vf)[arch_is_big_endian],\
 		       ((const long *)&vf)[1 - arch_is_big_endian],\
 		       fixed_fraction_bits))
 long fixed2float_(fixed, int);

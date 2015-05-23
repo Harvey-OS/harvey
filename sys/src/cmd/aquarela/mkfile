@@ -107,7 +107,7 @@ CFLAGS=$INC $CFLAGS $XCFLAGS
 $SLIB(%.$O):N: %.$O
 $SLIB:	${LIBOFILES:%=$SLIB(%)}
 	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$SLIB'\(([^)]+)\)/\1/gp'}
-	ar vu $SLIB $names
+	ar rv $SLIB $names
 #	rm $names
 
 clean:V:

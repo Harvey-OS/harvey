@@ -56,7 +56,7 @@ enum state {
 
 struct	fsm {
 	int	state;		/* if in this state */
-	uchar	ch[4];		/* and see one of these characters */
+	uint8_t	ch[4];		/* and see one of these characters */
 	int	nextstate;	/* enter this state if +ve */
 };
 
@@ -244,7 +244,7 @@ struct	fsm {
 
 /* first index is char, second is state */
 /* increase #states to power of 2 to encourage use of shift */
-short	bigfsm[256][MAXSTATE];
+int16_t	bigfsm[256][MAXSTATE];
 
 void
 expandlex(void)
@@ -311,7 +311,7 @@ int
 gettokens(Tokenrow *trp, int reset)
 {
 	register int c, state, oldstate;
-	register uchar *ip;
+	register uint8_t *ip;
 	register Token *tp, *maxp;
 	int runelen;
 	Source *s = cursource;
@@ -596,7 +596,7 @@ setsource(char *name, int fd, char *str)
 	} else {
 		Dir *d;
 		int junk;
-		ulong length = 0;
+		uint32_t length = 0;
 		d = dirfstat(fd);
 		if (d != nil) {
 			length = d->length;

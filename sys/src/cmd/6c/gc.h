@@ -314,9 +314,9 @@ Bits	mkvar(Reg*, Adr*);
 void	prop(Reg*, Bits, Bits);
 void	loopit(Reg*, long);
 void	synch(Reg*, Bits);
-ulong	allreg(ulong, Rgn*);
+uint32_t	allreg(uint32_t, Rgn*);
 void	paint1(Reg*, int);
-ulong	paint2(Reg*, int);
+uint32_t	paint2(Reg*, int);
 void	paint3(Reg*, int, long, int);
 void	addreg(Adr*, int);
 

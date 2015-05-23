@@ -26,7 +26,7 @@
 #include "utfdef.h"
 
 int
-runestrncmp(Rune *s1, Rune *s2, long n)
+runestrncmp(Rune *s1, Rune *s2, int32_t n)
 {
 	Rune c1, c2;
 

@@ -20,7 +20,7 @@ int		eflag = 0;
 int		nineflag = 0;
 int		threeflag = 0;
 int		output = 0;
-ulong	outchan = CMAP8;
+uint32_t	outchan = CMAP8;
 Image	**allims;
 Image	**allmasks;
 Rawimage	**allimages;
@@ -148,7 +148,7 @@ transparency(Rawimage *r, char *name)
 {
 	Image *i;
 	int j, index;
-	uchar *pic, *mpic, *mask;
+	uint8_t *pic, *mpic, *mask;
 
 	if((r->gifflags&TRANSP) == 0)
 		return nil;
@@ -182,11 +182,11 @@ transparency(Rawimage *r, char *name)
 }
 
 /* interleave alpha values of 0xFF in data stream. alpha value comes first, then b g r */
-uchar*
-expand(uchar *u, int chanlen, int nchan)
+uint8_t*
+expand(uint8_t *u, int chanlen, int nchan)
 {
 	int j, k;
-	uchar *v, *up, *vp;
+	uint8_t *v, *up, *vp;
 
 	v = malloc(chanlen*(nchan+1));
 	if(v == nil){
@@ -247,7 +247,7 @@ void
 blackout(Rawimage *r, Rawimage *c)
 {
 	int i, trindex;
-	uchar *rp, *cp;
+	uint8_t *rp, *cp;
 
 	rp = r->chans[0];
 	cp = c->chans[0];

@@ -13,7 +13,7 @@
 #include <memdraw.h>
 
 int
-hwdraw(Memdrawparam*)
+hwdraw(Memdrawparam* p)
 {
 	return 0;	/* could not satisfy request */
 }

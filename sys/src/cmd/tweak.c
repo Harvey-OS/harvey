@@ -25,7 +25,7 @@ struct Thing
 	Rectangle r;		/* drawing region */
 	Rectangle tr;		/* text region */
 	Rectangle er;		/* entire region */
-	long		c;		/* character number in subfont */
+	int32_t		c;		/* character number in subfont */
 	int		mod;	/* modified */
 	int		mag;		/* magnification */
 	Rune		off;		/* offset for subfont indices */
@@ -168,7 +168,7 @@ int		but2val = 255;
 int		invert = 0;
 Image		*values[256];
 Image		*greyvalues[256];
-uchar		data[8192];
+uint8_t		data[8192];
 
 Thing*	tget(char*);
 void	mesg(char*, ...);
@@ -396,7 +396,7 @@ int
 value(Image *b, int x)
 {
 	int v, l, w;
-	uchar mask;
+	uint8_t mask;
 
 	w = b->depth;
 	if(w > 8){
@@ -563,7 +563,7 @@ tget(char *file)
 	Thing *t;
 	Dir *d;
 	jmp_buf oerr;
-	uchar buf[256];
+	uint8_t buf[256];
 	char *data;
 
 	buf[0] = '\0';
@@ -850,7 +850,7 @@ textedit(Thing *t, char *tag)
 	Subfont *f;
 	Fontchar *fc, *nfc;
 	Rectangle r;
-	ulong chan;
+	uint32_t chan;
 	int i, ld, d, w, c, doredraw, fdx, x;
 	Thing *nt;
 
@@ -1180,7 +1180,7 @@ void
 cntledit(char *tag)
 {
 	char buf[256];
-	long l;
+	int32_t l;
 
 	buttons(Up);
 	if(type(buf, tag) == 0)
@@ -1806,7 +1806,7 @@ tchar(Thing *t)
 {
 	char buf[256], *p;
 	Rune r;
-	ulong c, d;
+	uint32_t c, d;
 
 	if(t->s == 0){
 		t = t->parent;
@@ -1871,7 +1871,7 @@ int
 complement(Image *t)
 {
 	int i, n;
-	uchar *buf;
+	uint8_t *buf;
 
 	n = Dy(t->r)*bytesperline(t->r, t->depth);
 	buf = malloc(n);

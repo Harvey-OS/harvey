@@ -26,7 +26,7 @@ copen(Chan *c)
 }
 
 int
-cread(Chan *c, uchar *buf, int len, vlong off)
+cread(Chan *c, uint8_t *buf, int len, int64_t off)
 {
 	USED(c);
 	USED(buf);
@@ -37,7 +37,7 @@ cread(Chan *c, uchar *buf, int len, vlong off)
 }
 
 void
-cupdate(Chan *c, uchar *buf, int len, vlong off)
+cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
 {
 	USED(c);
 	USED(buf);
@@ -46,7 +46,7 @@ cupdate(Chan *c, uchar *buf, int len, vlong off)
 }
 
 void
-cwrite(Chan* c, uchar *buf, int len, vlong off)
+cwrite(Chan* c, uint8_t *buf, int len, int64_t off)
 {
 	USED(c);
 	USED(buf);

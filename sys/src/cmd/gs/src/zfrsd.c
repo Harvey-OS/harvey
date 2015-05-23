@@ -87,7 +87,7 @@ zrsdparams(i_ctx_t *i_ctx_p)
     for (i = 0; i < r_size(pFilter); ++i) {
 	ref f, fname, dp;
 
-	array_get(imemory, pFilter, (long)i, &f);
+	array_get(imemory, pFilter, (int32_t)i, &f);
 	if (!r_has_type(&f, t_name))
 	    return_error(e_typecheck);
 	name_string_ref(imemory, &f, &fname);
@@ -96,7 +96,7 @@ zrsdparams(i_ctx_t *i_ctx_p)
 	    )
 	    return_error(e_rangecheck);
 	if (pDecodeParms) {
-	    array_get(imemory, pDecodeParms, (long)i, &dp);
+	    array_get(imemory, pDecodeParms, (int32_t)i, &dp);
 	    if (!(r_has_type(&dp, t_dictionary) || r_has_type(&dp, t_null)))
 		return_error(e_typecheck);
 	}
@@ -126,16 +126,16 @@ zrsdparams(i_ctx_t *i_ctx_p)
  * ordinary file or string streams.
  */
 private int make_rss(i_ctx_t *i_ctx_p, os_ptr op, const byte * data,
-		     uint size, int space, long offset, long length,
+		     uint size, int space, int32_t offset, int32_t length,
 		     bool is_bytestring);
 private int make_rfs(i_ctx_t *i_ctx_p, os_ptr op, stream *fs,
-		     long offset, long length);
+		     int32_t offset, int32_t length);
 private int
 zreusablestream(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
     os_ptr source_op = op - 1;
-    long length = max_long;
+    int32_t length = max_long;
     bool close_source;
     int code;
 
@@ -157,7 +157,7 @@ zreusablestream(i_ctx_t *i_ctx_p)
 			(const byte *)source_op->value.pstruct, size,
 			r_space(source_op), 0L, size, true);
     } else {
-	long offset = 0;
+	int32_t offset = 0;
 	stream *source;
 	stream *s;
 
@@ -165,8 +165,8 @@ zreusablestream(i_ctx_t *i_ctx_p)
 	s = source;
 rs:
 	if (s->cbuf_string.data != 0) {	/* string stream */
-	    long pos = stell(s);
-	    long avail = sbufavailable(s) + pos;
+	    int32_t pos = stell(s);
+	    int32_t avail = sbufavailable(s) + pos;
 
 	    offset += pos;
 	    code = make_rss(i_ctx_p, source_op, s->cbuf_string.data,
@@ -186,7 +186,7 @@ rs:
 		return_error(e_rangecheck);
 	    offset += sfd_state->skip_count - sbufavailable(s);
 	    if (sfd_state->count != 0) {
-		long left = max(sfd_state->count, 0) + sbufavailable(s);
+		int32_t left = max(sfd_state->count, 0) + sbufavailable(s);
 
 		if (left < length)
 		    length = left;
@@ -211,10 +211,11 @@ rs:
 /* Make a reusable string stream. */
 private int
 make_rss(i_ctx_t *i_ctx_p, os_ptr op, const byte * data, uint size,
-	 int string_space, long offset, long length, bool is_bytestring)
+	 int string_space, int32_t offset, int32_t length,
+         bool is_bytestring)
 {
     stream *s;
-    long left = min(length, size - offset);
+    int32_t left = min(length, size - offset);
 
     if (icurrent_space < string_space)
 	return_error(e_invalidaccess);
@@ -230,7 +231,8 @@ make_rss(i_ctx_t *i_ctx_p, os_ptr op, const byte * data, uint size,
 
 /* Make a reusable file stream. */
 private int
-make_rfs(i_ctx_t *i_ctx_p, os_ptr op, stream *fs, long offset, long length)
+make_rfs(i_ctx_t *i_ctx_p, os_ptr op, stream *fs, int32_t offset,
+         int32_t length)
 {
     gs_const_string fname;
     gs_parsed_file_name_t pname;

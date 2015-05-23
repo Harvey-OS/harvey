@@ -170,8 +170,8 @@ struct Track
 	/* initialized while obtaining the toc (gettoc) */
 	vlong	size;		/* total size in bytes */
 	long	bs;		/* block size in bytes */
-	ulong	beg;		/* beginning block number */
-	ulong	end;		/* ending block number */
+	uint32_t	beg;		/* beginning block number */
+	uint32_t	end;		/* ending block number */
 	int	type;
 	Msf	mbeg;
 	Msf	mend;
@@ -179,7 +179,7 @@ struct Track
 	/* initialized by fs */
 	char	name[32];
 	int	mode;
-	ulong	mtime;
+	uint32_t	mtime;
 };
 
 struct DTrack			/* not used */
@@ -265,7 +265,7 @@ struct Buf
 	long	ndata;		/* no. valid bytes in data */
 	int	nblock;		/* total buffer size in blocks */
 	int	omode;		/* OREAD, OWRITE */
-	long	(*fn)(Buf*, void*, long, ulong); /* read, write */
+	long	(*fn)(Buf*, void*, long, uint32_t); /* read, write */
 
 	/* used only by client */
 	Otrack	*otrack;

@@ -1,4 +1,4 @@
-/*
+/* 
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -12,7 +12,6 @@
  */
 typedef struct SDev SDev;
 typedef struct SDifc SDifc;
-typedef struct SDio SDio;
 typedef struct SDpart SDpart;
 typedef struct SDperm SDperm;
 typedef struct SDreq SDreq;
@@ -21,34 +20,34 @@ typedef struct SDunit SDunit;
 struct SDperm {
 	char*	name;
 	char*	user;
-	ulong	perm;
+	uint32_t	perm;
 };
 
 struct SDpart {
-	uvlong	start;
-	uvlong	end;
+	uint64_t	start;
+	uint64_t	end;
 	SDperm;
 	int	valid;
-	ulong	vers;
+	uint32_t	vers;
 };
 
 struct SDunit {
 	SDev*	dev;
 	int	subno;
-	uchar	inquiry[255];		/* format follows SCSI spec */
-	uchar	sense[18];		/* format follows SCSI spec */
+	unsigned char	inquiry[255];		/* format follows SCSI spec */
+	unsigned char	sense[18];		/* format follows SCSI spec */
 	SDperm;
 
 	QLock	ctl;
-	uvlong	sectors;
-	ulong	secsize;
+	uint64_t	sectors;
+	uint32_t	secsize;
 	SDpart*	part;			/* nil or array of size npart */
 	int	npart;
-	ulong	vers;
+	uint32_t	vers;
 	SDperm	ctlperm;
 
 	QLock	raw;			/* raw read or write in progress */
-	ulong	rawinuse;		/* really just a test-and-set */
+	uint32_t	rawinuse;		/* really just a test-and-set */
 	int	state;
 	SDreq*	req;
 	SDperm	rawperm;
@@ -87,7 +86,7 @@ struct SDifc {
 	int	(*rctl)(SDunit*, char*, int);
 	int	(*wctl)(SDunit*, Cmdbuf*);
 
-	long	(*bio)(SDunit*, int, int, void*, long, uvlong);
+	int32_t	(*bio)(SDunit*, int, int, void*, int32_t, int64_t);
 	SDev*	(*probe)(DevConf*);
 	void	(*clear)(SDev*);
 	char*	(*rtopctl)(SDev*, char*, char*);
@@ -98,7 +97,7 @@ struct SDreq {
 	SDunit*	unit;
 	int	lun;
 	int	write;
-	uchar	cmd[16];
+	unsigned char	cmd[16];
 	int	clen;
 	void*	data;
 	int	dlen;
@@ -106,26 +105,13 @@ struct SDreq {
 	int	flags;
 
 	int	status;
-	long	rlen;
-	uchar	sense[256];
+	int32_t	rlen;
+	unsigned char	sense[256];
 };
 
 enum {
 	SDnosense	= 0x00000001,
 	SDvalidsense	= 0x00010000,
-
-	SDinq0periphqual= 0xe0,
-	SDinq0periphtype= 0x1f,
-	SDinq1removable	= 0x80,
-
-	/* periphtype values */
-	SDperdisk	= 0,	/* Direct access (disk) */
-	SDpertape	= 1,	/* Sequential eg, tape */
-	SDperpr		= 2,	/* Printer */
-	SDperworm	= 4,	/* Worm */
-	SDpercd		= 5,	/* CD-ROM */
-	SDpermo		= 7,	/* rewriteable MO */
-	SDperjuke	= 8,	/* medium-changer */
 };
 
 enum {
@@ -144,44 +130,33 @@ enum {
 	SDnpart		= 16,
 };
 
-/*
- * Allow the default #defines for sdmalloc & sdfree to be overridden by
- * system-specific versions.  This can be used to avoid extra copying
- * by making sure sd buffers are cache-aligned (some ARM systems) or
- * page-aligned (xen) for DMA.
- */
-#ifndef sdmalloc
 #define sdmalloc(n)	malloc(n)
 #define sdfree(p)	free(p)
-#endif
-
-/*
- * mmc/sd/sdio host controller interface
- */
-
-struct SDio {
-	char	*name;
-	int	(*init)(void);
-	void	(*enable)(void);
-	int	(*inquiry)(char*, int);
-	int	(*cmd)(u32int, u32int, u32int*);
-	void	(*iosetup)(int, void*, int, int);
-	void	(*io)(int, uchar*, int);
-};
-
-extern SDio sdio;
 
 /* devsd.c */
 extern void sdadddevs(SDev*);
-extern void sdaddconf(SDunit*);
-extern void sdaddallconfs(void (*f)(SDunit*));
-extern void sdaddpart(SDunit*, char*, uvlong, uvlong);
 extern int sdsetsense(SDreq*, int, int, int, int);
-extern int sdmodesense(SDreq*, uchar*, void*, int);
+extern int sdmodesense(SDreq*, unsigned char*, void*, int);
 extern int sdfakescsi(SDreq*, void*, int);
 
 /* sdscsi.c */
 extern int scsiverify(SDunit*);
 extern int scsionline(SDunit*);
-extern long scsibio(SDunit*, int, int, void*, long, uvlong);
+extern int32_t scsibio(SDunit*, int, int, void*, int32_t, int64_t);
 extern SDev* scsiid(SDev*, SDifc*);
+
+/*
+ *  hardware info about a device
+ */
+typedef struct {
+	uint32_t	port;	
+	int	size;
+} Devport;
+
+struct DevConf
+{
+	uint32_t	intnum;			/* interrupt number */
+	char	*type;			/* card type, malloced */
+	int	nports;			/* Number of ports */
+	Devport	*ports;			/* The ports themselves */
+};

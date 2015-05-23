@@ -59,6 +59,7 @@ int font_gdir_get_outline(const gs_memory_t *mem, const ref *, long, gs_glyph_da
  * Return code : 0 - success, <0 - error, 
  *               >0 - number of accessible bytes (client must cycle).
  */
-int string_array_access_proc(const gs_memory_t *mem, const ref *, int, ulong, uint, const byte **);
+int string_array_access_proc(const gs_memory_t *mem, const ref *, int,
+			     uint32_t, uint, const byte **);
 
 #endif /* ifont42_INCLUDED */

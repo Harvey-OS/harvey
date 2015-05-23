@@ -587,7 +587,7 @@ bool64(Node *n)
  * this is common for ieee machines.
  */
 double
-convvtof(vlong v)
+convvtof(int64_t v)
 {
 	double d;
 
@@ -595,10 +595,10 @@ convvtof(vlong v)
 	return d;
 }
 
-vlong
+int64_t
 convftov(double d)
 {
-	vlong v;
+	int64_t v;
 
 
 	v = d;		/* BOTCH */
@@ -614,8 +614,8 @@ convftox(double d, int et)
 	return d;
 }
 
-vlong
-convvtox(vlong c, int et)
+int64_t
+convvtox(int64_t c, int et)
 {
 	int n;
 

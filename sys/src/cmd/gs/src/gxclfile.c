@@ -75,8 +75,8 @@ clist_unlink(const char *fname)
 
 /* ------ Writing ------ */
 
-long
-clist_space_available(long requested)
+int32_t
+clist_space_available(int32_t requested)
 {
     return requested;
 }
@@ -135,7 +135,7 @@ clist_ferror_code(clist_file_ptr cf)
     return (ferror((FILE *) cf) ? gs_error_ioerror : 0);
 }
 
-long
+int32_t
 clist_ftell(clist_file_ptr cf)
 {
     return ftell((FILE *) cf);
@@ -166,7 +166,8 @@ clist_rewind(clist_file_ptr cf, bool discard_data, const char *fname)
 }
 
 int
-clist_fseek(clist_file_ptr cf, long offset, int mode, const char *ignore_fname)
+clist_fseek(clist_file_ptr cf, int32_t offset, int mode,
+            const char *ignore_fname)
 {
     return fseek((FILE *) cf, offset, mode);
 }

@@ -14,9 +14,9 @@
 #include <libc.h>
 #include <String.h>
 
-extern	vlong	du(char*, Dir*);
+extern	int64_t	du(char*, Dir*);
 extern	void	err(char*);
-extern	vlong	blkmultiple(vlong);
+extern	int64_t	blkmultiple(int64_t);
 extern	int	seen(Dir*);
 extern	int	warn(char*);
 
@@ -40,8 +40,8 @@ int	uflag;
 
 char	*fmt = "%llud\t%q\n";
 char	*readbuf;
-vlong	blocksize = Vkilo;	/* actually more likely to be 4K or 8K */
-vlong	unit;			/* scale factor for output */
+int64_t	blocksize = Vkilo;	/* actually more likely to be 4K or 8K */
+int64_t	unit;			/* scale factor for output */
 
 static char *pfxes[] = {	/* SI prefixes for units > 1 */
 	"",
@@ -59,7 +59,7 @@ usage(void)
 }
 
 void
-printamt(vlong amt, char *name)
+printamt(int64_t amt, char *name)
 {
 	if (readflg)
 		return;
@@ -172,8 +172,8 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
-vlong
-dirval(Dir *d, vlong size)
+int64_t
+dirval(Dir *d, int64_t size)
 {
 	if(qflag)
 		return d->qid.path;
@@ -201,10 +201,10 @@ readfile(char *name)
 	close(fd);
 }
 
-vlong
+int64_t
 dufile(char *name, Dir *d)
 {
-	vlong t = blkmultiple(d->length);
+	int64_t t = blkmultiple(d->length);
 
 	if(aflag || readflg) {
 		String *file = s_copy(name);
@@ -220,13 +220,13 @@ dufile(char *name, Dir *d)
 	return t;
 }
 
-vlong
+int64_t
 du(char *name, Dir *dir)
 {
 	int fd, i, n;
 	Dir *buf, *d;
 	String *file;
-	vlong nk, t;
+	int64_t nk, t;
 
 	if(dir == nil)
 		return warn(name);
@@ -324,8 +324,8 @@ warn(char *s)
 }
 
 /* round up n to nearest block */
-vlong
-blkmultiple(vlong n)
+int64_t
+blkmultiple(int64_t n)
 {
 	if(blocksize == 1)		/* no quantization */
 		return n;

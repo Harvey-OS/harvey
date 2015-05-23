@@ -451,7 +451,8 @@ chanconnect(int conn, char *buf, int size)
 }
 
 static void
-remotecmd(int argc, char *argv[], int conn, int chan, char *buf, int size)
+remotecmd(int argc, char *argv[], int conn, int chan, char *buf,
+	  int size)
 {
 	int i;
 	char *path, *q, *ep;

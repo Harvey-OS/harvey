@@ -156,7 +156,7 @@ copytyp(Type *t)
 }
 
 Type*
-garbt(Type *t, long b)
+garbt(Type *t, int32_t b)
 {
 	Type *t1;
 
@@ -169,7 +169,7 @@ garbt(Type *t, long b)
 }
 
 int
-simpleg(long b)
+simpleg(int32_t b)
 {
 
 	b &= BGARB;
@@ -185,7 +185,7 @@ simpleg(long b)
 }
 
 int
-simplec(long b)
+simplec(int32_t b)
 {
 
 	b &= BCLASS;
@@ -212,7 +212,7 @@ simplec(long b)
 }
 
 Type*
-simplet(long b)
+simplet(int32_t b)
 {
 
 	b &= ~BCLASS & ~BGARB;
@@ -281,10 +281,10 @@ simplet(long b)
 }
 
 int
-stcompat(Node *n, Type *t1, Type *t2, long ttab[])
+stcompat(Node *n, Type *t1, Type *t2, int32_t ttab[])
 {
 	int i;
-	ulong b;
+	uint32_t b;
 
 	i = 0;
 	if(t2 != T)
@@ -308,7 +308,7 @@ stcompat(Node *n, Type *t1, Type *t2, long ttab[])
 }
 
 int
-tcompat(Node *n, Type *t1, Type *t2, long ttab[])
+tcompat(Node *n, Type *t1, Type *t2, int32_t ttab[])
 {
 
 	if(stcompat(n, t1, t2, ttab)) {
@@ -324,7 +324,7 @@ tcompat(Node *n, Type *t1, Type *t2, long ttab[])
 }
 
 void
-makedot(Node *n, Type *t, long o)
+makedot(Node *n, Type *t, int32_t o)
 {
 	Node *n1, *n2;
 
@@ -371,7 +371,7 @@ makedot(Node *n, Type *t, long o)
 }
 
 Type*
-dotsearch(Sym *s, Type *t, Node *n, long *off)
+dotsearch(Sym *s, Type *t, Node *n, int32_t *off)
 {
 	Type *t1, *xt, *rt;
 
@@ -423,12 +423,12 @@ ambig:
 	return xt;
 }
 
-long
+int32_t
 dotoffset(Type *st, Type *lt, Node *n)
 {
 	Type *t;
 	Sym *g;
-	long o, o1;
+	int32_t o, o1;
 
 	o = -1;
 	/*
@@ -556,7 +556,7 @@ typeext(Type *st, Node *l)
 {
 	Type *lt;
 	Node *n1, *n2;
-	long o;
+	int32_t o;
 
 	lt = l->type;
 	if(lt == T)
@@ -671,7 +671,7 @@ arith(Node *n, int f)
 	Type *t1, *t2;
 	int i, j, k;
 	Node *n1;
-	long w;
+	int32_t w;
 
 	t1 = n->left->type;
 	if(n->right == Z)
@@ -781,7 +781,7 @@ bad:
 void
 simplifyshift(Node *n)
 {
-	ulong c3;
+	uint32_t c3;
 	int o, s1, s2, c1, c2;
 
 	if(!typechlp[n->type->etype])
@@ -1026,13 +1026,13 @@ no:
  * return log(n) if n is a power of 2 constant
  */
 int
-log2(uvlong v)
+log2(uint64_t v)
 {
 	int s, i;
-	uvlong m;
+	uint64_t m;
 
 	s = 0;
-	m = MASK(8*sizeof(uvlong));
+	m = MASK(8*sizeof(uint64_t));
 	for(i=32; i; i>>=1) {
 		m >>= i;
 		if(!(v & m)) {
@@ -1060,7 +1060,7 @@ bad:
 }
 
 int
-topbit(ulong v)
+topbit(uint32_t v)
 {
 	int i;
 
@@ -1078,7 +1078,7 @@ topbit(ulong v)
 void
 relcon(Node *l, Node *r)
 {
-	vlong v;
+	int64_t v;
 
 	if(l->op != OCONST)
 		return;
@@ -1142,7 +1142,7 @@ invert(Node *n)
 }
 
 int
-bitno(long b)
+bitno(int32_t b)
 {
 	int i;
 
@@ -1153,10 +1153,10 @@ bitno(long b)
 	return 0;
 }
 
-long
-typebitor(long a, long b)
+int32_t
+typebitor(int32_t a, int32_t b)
 {
-	long c;
+	int32_t c;
 
 	c = a | b;
 	if(a & b)
@@ -1262,10 +1262,10 @@ fatal(Node *n, char *fmt, ...)
 	errorexit();
 }
 
-ulong	thash1	= 0x2edab8c9;
-ulong	thash2	= 0x1dc74fb8;
-ulong	thash3	= 0x1f241331;
-ulong	thash[NALLTYPES];
+uint32_t	thash1	= 0x2edab8c9;
+uint32_t	thash2	= 0x1dc74fb8;
+uint32_t	thash3	= 0x1f241331;
+uint32_t	thash[NALLTYPES];
 Init	thashinit[] =
 {
 	TXXX,		0x17527bbd,	0,
@@ -1604,7 +1604,7 @@ int	typesuinit[] =
 	TSTRUCT, TUNION, -1,
 };
 
-long	tasign[NTYPE];
+int32_t	tasign[NTYPE];
 Init	tasigninit[] =
 {
 	TCHAR,		BNUMBER,	0,
@@ -1625,7 +1625,7 @@ Init	tasigninit[] =
 	-1,		0,		0,
 };
 
-long	tasadd[NTYPE];
+int32_t	tasadd[NTYPE];
 Init	tasaddinit[] =
 {
 	TCHAR,		BNUMBER,	0,
@@ -1644,7 +1644,7 @@ Init	tasaddinit[] =
 	-1,		0,		0,
 };
 
-long	tcast[NTYPE];
+int32_t	tcast[NTYPE];
 Init	tcastinit[] =
 {
 	TCHAR,		BNUMBER|BIND|BVOID,	0,
@@ -1666,7 +1666,7 @@ Init	tcastinit[] =
 	-1,		0,			0,
 };
 
-long	tadd[NTYPE];
+int32_t	tadd[NTYPE];
 Init	taddinit[] =
 {
 	TCHAR,		BNUMBER|BIND,	0,
@@ -1685,7 +1685,7 @@ Init	taddinit[] =
 	-1,		0,		0,
 };
 
-long	tsub[NTYPE];
+int32_t	tsub[NTYPE];
 Init	tsubinit[] =
 {
 	TCHAR,		BNUMBER,	0,
@@ -1704,7 +1704,7 @@ Init	tsubinit[] =
 	-1,		0,		0,
 };
 
-long	tmul[NTYPE];
+int32_t	tmul[NTYPE];
 Init	tmulinit[] =
 {
 	TCHAR,		BNUMBER,	0,
@@ -1722,7 +1722,7 @@ Init	tmulinit[] =
 	-1,		0,		0,
 };
 
-long	tand[NTYPE];
+int32_t	tand[NTYPE];
 Init	tandinit[] =
 {
 	TCHAR,		BINTEGER,	0,
@@ -1738,7 +1738,7 @@ Init	tandinit[] =
 	-1,		0,		0,
 };
 
-long	trel[NTYPE];
+int32_t	trel[NTYPE];
 Init	trelinit[] =
 {
 	TCHAR,		BNUMBER,	0,
@@ -1757,27 +1757,27 @@ Init	trelinit[] =
 	-1,		0,		0,
 };
 
-long	tfunct[1] =
+int32_t	tfunct[1] =
 {
 	BFUNC,
 };
 
-long	tindir[1] =
+int32_t	tindir[1] =
 {
 	BIND,
 };
 
-long	tdot[1] =
+int32_t	tdot[1] =
 {
 	BSTRUCT|BUNION,
 };
 
-long	tnot[1] =
+int32_t	tnot[1] =
 {
 	BNUMBER|BIND,
 };
 
-long	targ[1] =
+int32_t	targ[1] =
 {
 	BNUMBER|BIND|BSTRUCT|BUNION,
 };

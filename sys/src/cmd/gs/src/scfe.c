@@ -39,8 +39,8 @@
 #ifdef DEBUG
 
 typedef struct stats_runs_s {
-    ulong termination[64];
-    ulong make_up[41];
+    uint32_t termination[64];
+    uint32_t make_up[41];
 } stats_runs_t;
 private stats_runs_t stats_white_runs, stats_black_runs;
 

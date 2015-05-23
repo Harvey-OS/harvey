@@ -572,19 +572,22 @@ vSet2SummaryInfo(FILE *pFile, int iWordVersion, const UCHAR *aucHeader)
 			case 3:
 				szTitle = xmalloc(tLen + 1);
 				strncpy(szTitle,
-					(char *)aucBuffer + tStart + 1, tLen);
+					(char *)aucBuffer + tStart + 1,
+					tLen);
 				szTitle[tLen] = '\0';
 				break;
 			case 4:
 				szSubject = xmalloc(tLen + 1);
 				strncpy(szSubject,
-					(char *)aucBuffer + tStart + 1, tLen);
+					(char *)aucBuffer + tStart + 1,
+					tLen);
 				szSubject[tLen] = '\0';
 				break;
 			case 7:
 				szAuthor = xmalloc(tLen + 1);
 				strncpy(szAuthor,
-					(char *)aucBuffer + tStart + 1, tLen);
+					(char *)aucBuffer + tStart + 1,
+					tLen);
 				szAuthor[tLen] = '\0';
 				break;
 			default:

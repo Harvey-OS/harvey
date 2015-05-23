@@ -14,7 +14,7 @@
 
 #define BIGN (BUFSIZ/2)
 
-long fwrite(const void *p, long recl, long nrec, FILE *f){
+int32_t fwrite(const void *p, int32_t recl, int32_t nrec, FILE *f){
 	char *s;
 	int n, d;
 

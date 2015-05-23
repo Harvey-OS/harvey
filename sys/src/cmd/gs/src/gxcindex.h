@@ -58,7 +58,7 @@
 #ifdef TEST_CINDEX_STRUCT
 
 /* Define the type for device color index (pixel value) data. */
-typedef struct { ulong value[2]; } gx_color_index_data;
+typedef struct { uint32_t value[2]; } gx_color_index_data;
 
 #else  /* !TEST_CINDEX_STRUCT */
 
@@ -66,7 +66,7 @@ typedef struct { ulong value[2]; } gx_color_index_data;
 #ifdef GX_COLOR_INDEX_TYPE
 typedef GX_COLOR_INDEX_TYPE gx_color_index_data;
 #else
-typedef ulong gx_color_index_data;
+typedef uint32_t gx_color_index_data;
 #endif
 
 #endif /* (!)TEST_CINDEX_STRUCT */

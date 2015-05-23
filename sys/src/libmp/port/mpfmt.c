@@ -15,7 +15,7 @@
 static int
 to64(mpint *b, char *buf, int len)
 {
-	uchar *p;
+	uint8_t *p;
 	int n, rv;
 
 	p = nil;
@@ -30,7 +30,7 @@ to64(mpint *b, char *buf, int len)
 static int
 to32(mpint *b, char *buf, int len)
 {
-	uchar *p;
+	uint8_t *p;
 	int n, rv;
 
 	// leave room for a multiple of 5 buffer size
@@ -84,9 +84,9 @@ to16(mpint *b, char *buf, int len)
 }
 
 static char*
-modbillion(int rem, ulong r, char *out, char *buf)
+modbillion(int rem, uint32_t r, char *out, char *buf)
 {
-	ulong rr;
+	uint32_t rr;
 	int i;
 
 	for(i = 0; i < 9; i++){

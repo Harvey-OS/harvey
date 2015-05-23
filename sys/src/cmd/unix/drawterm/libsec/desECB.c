@@ -17,10 +17,10 @@
 // since its encrypting plain text with the key. -- presotto
 
 void
-desECBencrypt(uchar *p, int len, DESstate *s)
+desECBencrypt(uint8_t *p, int len, DESstate *s)
 {
 	int i;
-	uchar tmp[8];
+	uint8_t tmp[8];
 
 	for(; len >= 8; len -= 8){
 		block_cipher(s->expanded, p, 0);
@@ -37,10 +37,10 @@ desECBencrypt(uchar *p, int len, DESstate *s)
 }
 
 void
-desECBdecrypt(uchar *p, int len, DESstate *s)
+desECBdecrypt(uint8_t *p, int len, DESstate *s)
 {
 	int i;
-	uchar tmp[8];
+	uint8_t tmp[8];
 
 	for(; len >= 8; len -= 8){
 		block_cipher(s->expanded, p, 1);

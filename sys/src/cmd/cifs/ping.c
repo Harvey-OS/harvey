@@ -19,28 +19,28 @@ extern char *Debug;
 typedef struct Pingcache Pingcache;
 struct Pingcache {
 	Pingcache*next;
-	long	rtt;
+	int32_t	rtt;
 	char	*host;
-	long	expire;
+	int32_t	expire;
 };
 
 typedef struct {
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	ipcksum[2];	/* Header checksum */
-	uchar	src[4];		/* Ip source */
-	uchar	dst[4];		/* Ip destination */
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-	uchar	data[1];
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* Identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	ttl;		/* Time to live */
+	uint8_t	proto;		/* Protocol */
+	uint8_t	ipcksum[2];	/* Header checksum */
+	uint8_t	src[4];		/* Ip source */
+	uint8_t	dst[4];		/* Ip destination */
+	uint8_t	type;
+	uint8_t	code;
+	uint8_t	cksum[2];
+	uint8_t	icmpid[2];
+	uint8_t	seq[2];
+	uint8_t	data[1];
 } Icmp;
 
 enum {			/* Packet Types */
@@ -73,9 +73,9 @@ int
 ping(char *host, int timeout)
 {
 	int rtt, fd, i, seq;
-	long now;
-	vlong then;
-	uchar buf[128];
+	int32_t now;
+	int64_t then;
+	uint8_t buf[128];
 	Icmp *ip;
 	Pingcache *c;
 
@@ -111,7 +111,7 @@ ping(char *host, int timeout)
 		    ip->seq[0] != seq || ip->seq[1] != seq)
 			goto fail;
 		for(i = Payload; i < sizeof buf; i++)
-			if((uchar)buf[i] != (uchar)(i + seq))
+			if((uint8_t)buf[i] != (uint8_t)(i + seq))
 				goto fail;
 		rtt = (rtt + nsec() - then) / 2;
 	}

@@ -143,14 +143,14 @@ private void
 print_active_line(const char *label, const active_line * alp)
 {
     dlprintf5("[f]%s 0x%lx(%d): x_current=%f x_next=%f\n",
-	      label, (ulong) alp, alp->direction,
+	      label, (uint32_t) alp, alp->direction,
 	      fixed2float(alp->x_current), fixed2float(alp->x_next));
     dlprintf5("    start=(%f,%f) pt_end=0x%lx(%f,%f)\n",
 	      fixed2float(alp->start.x), fixed2float(alp->start.y),
-	      (ulong) alp->pseg,
+	      (uint32_t) alp->pseg,
 	      fixed2float(alp->end.x), fixed2float(alp->end.y));
     dlprintf2("    prev=0x%lx next=0x%lx\n",
-	      (ulong) alp->prev, (ulong) alp->next);
+	      (uint32_t) alp->prev, (uint32_t) alp->next);
 }
 private void
 print_line_list(const active_line * flp)
@@ -161,7 +161,7 @@ print_line_list(const active_line * flp)
 	fixed xc = lp->x_current, xn = lp->x_next;
 
 	dlprintf3("[f]0x%lx(%d): x_current/next=%g",
-		  (ulong) lp, lp->direction,
+		  (uint32_t) lp, lp->direction,
 		  fixed2float(xc));
 	if (xn != xc)
 	    dprintf1("/%g", fixed2float(xn));

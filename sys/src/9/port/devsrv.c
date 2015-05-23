@@ -20,10 +20,10 @@ struct Srv
 {
 	char	*name;
 	char	*owner;
-	ulong	perm;
+	uint32_t	perm;
 	Chan	*chan;
 	Srv	*link;
-	ulong	path;
+	uint32_t	path;
 };
 
 static QLock	srvlk;
@@ -31,8 +31,9 @@ static Srv	*srv;
 static int	qidpath;
 
 static int
-srvgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Srv *sp;
 	Qid q;
 
@@ -52,8 +53,8 @@ srvgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 
 	mkqid(&q, sp->path, 0, QTFILE);
 	/* make sure name string continues to exist after we release lock */
-	kstrcpy(up->genbuf, sp->name, sizeof up->genbuf);
-	devdir(c, q, up->genbuf, 0, sp->owner, sp->perm, dp);
+	kstrcpy(m->externup->genbuf, sp->name, sizeof m->externup->genbuf);
+	devdir(c, q, m->externup->genbuf, 0, sp->owner, sp->perm, dp);
 	qunlock(&srvlk);
 	return 1;
 }
@@ -77,7 +78,7 @@ srvwalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static Srv*
-srvlookup(char *name, ulong qidpath)
+srvlookup(char *name, uint32_t qidpath)
 {
 	Srv *sp;
 	for(sp = srv; sp; sp = sp->link)
@@ -86,8 +87,8 @@ srvlookup(char *name, ulong qidpath)
 	return nil;
 }
 
-static int
-srvstat(Chan *c, uchar *db, int n)
+static int32_t
+srvstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, 0, 0, srvgen);
 }
@@ -95,15 +96,13 @@ srvstat(Chan *c, uchar *db, int n)
 char*
 srvname(Chan *c)
 {
-	int size;
 	Srv *sp;
 	char *s;
 
 	for(sp = srv; sp; sp = sp->link)
 		if(sp->chan == c){
-			size = 3+strlen(sp->name)+1;
-			s = smalloc(size);
-			snprint(s, size, "#s/%s", sp->name);
+			s = smalloc(3+strlen(sp->name)+1);
+			sprint(s, "#s/%s", sp->name);
 			return s;
 		}
 	return nil;
@@ -112,6 +111,7 @@ srvname(Chan *c)
 static Chan*
 srvopen(Chan *c, int omode)
 {
+	Mach *m = machp();
 	Srv *sp;
 
 	if(c->qid.type == QTDIR){
@@ -148,10 +148,11 @@ srvopen(Chan *c, int omode)
 }
 
 static void
-srvcreate(Chan *c, char *name, int omode, ulong perm)
+srvcreate(Chan *c, char *name, int omode, int perm)
 {
-	char *sname;
+	Mach *m = machp();
 	Srv *sp;
+	char *sname;
 
 	if(openmode(omode) != OWRITE)
 		error(Eperm);
@@ -164,8 +165,8 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 
 	qlock(&srvlk);
 	if(waserror()){
-		free(sp);
 		free(sname);
+		free(sp);
 		qunlock(&srvlk);
 		nexterror();
 	}
@@ -184,7 +185,7 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 	qunlock(&srvlk);
 	poperror();
 
-	kstrdup(&sp->owner, up->user);
+	kstrdup(&sp->owner, m->externup->user);
 	sp->perm = perm&0777;
 
 	c->flag |= COPEN;
@@ -194,6 +195,7 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 static void
 srvremove(Chan *c)
 {
+	Mach *m = machp();
 	Srv *sp, **l;
 
 	if(c->qid.type == QTDIR)
@@ -226,7 +228,7 @@ srvremove(Chan *c)
 	/*
 	 * No removing personal services.
 	 */
-	if((sp->perm&7) != 7 && strcmp(sp->owner, up->user) && !iseve())
+	if((sp->perm&7) != 7 && strcmp(sp->owner, m->externup->user) && !iseve())
 		error(Eperm);
 
 	*l = sp->link;
@@ -240,12 +242,13 @@ srvremove(Chan *c)
 	free(sp);
 }
 
-static int
-srvwstat(Chan *c, uchar *dp, int n)
+static int32_t
+srvwstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	char *strs;
+	Mach *m = machp();
 	Dir d;
 	Srv *sp;
+	char *strs;
 
 	if(c->qid.type & QTDIR)
 		error(Eperm);
@@ -262,7 +265,7 @@ srvwstat(Chan *c, uchar *dp, int n)
 	if(sp == 0)
 		error(Enonexist);
 
-	if(strcmp(sp->owner, up->user) != 0 && !iseve())
+	if(strcmp(sp->owner, m->externup->user) != 0 && !iseve())
 		error(Eperm);
 
 	strs = smalloc(n);
@@ -278,6 +281,7 @@ srvwstat(Chan *c, uchar *dp, int n)
 			error(Ebadchar);
 		kstrdup(&sp->name, d.name);
 	}
+
 	qunlock(&srvlk);
 	free(strs);
 	poperror();
@@ -287,6 +291,7 @@ srvwstat(Chan *c, uchar *dp, int n)
 static void
 srvclose(Chan *c)
 {
+	Mach *m = machp();
 	/*
 	 * in theory we need to override any changes in removability
 	 * since open, but since all that's checked is the owner,
@@ -300,16 +305,17 @@ srvclose(Chan *c)
 	}
 }
 
-static long
-srvread(Chan *c, void *va, long n, vlong)
+static int32_t
+srvread(Chan *c, void *va, int32_t n, int64_t m)
 {
 	isdir(c);
 	return devdirread(c, va, n, 0, 0, srvgen);
 }
 
-static long
-srvwrite(Chan *c, void *va, long n, vlong)
+static int32_t
+srvwrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
+	Mach *m = machp();
 	Srv *sp;
 	Chan *c1;
 	int fd;
@@ -351,7 +357,7 @@ Dev srvdevtab = {
 	"srv",
 
 	devreset,
-	srvinit,	
+	srvinit,
 	devshutdown,
 	srvattach,
 	srvwalk,

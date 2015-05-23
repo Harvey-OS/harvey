@@ -24,7 +24,7 @@ static CipherState*
 init3des(Conn *c, int dir)
 {
 	CipherState *cs;
-	uchar key[3][8];
+	uint8_t key[3][8];
 
 	cs = emalloc9p(sizeof(CipherState));
 	if(dir){
@@ -38,13 +38,13 @@ init3des(Conn *c, int dir)
 }
 
 static void
-encrypt3des(CipherState *cs, uchar *buf, int nbuf)
+encrypt3des(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	des3CBCencrypt(buf, nbuf, &cs->state);
 }
 
 static void
-decrypt3des(CipherState *cs, uchar *buf, int nbuf)
+decrypt3des(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	des3CBCdecrypt(buf, nbuf, &cs->state);
 }

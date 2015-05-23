@@ -125,7 +125,7 @@ rTwstat(Msg* m)
 {
 	Dir dir;
 	Fid *fid;
-	ulong mode, oldmode;
+	uint32_t mode, oldmode;
 	DirEntry de;
 	char *gid, *strs, *uid;
 	int gl, op, retval, tsync, wstatallow;
@@ -198,7 +198,7 @@ rTwstat(Msg* m)
 	/*
 	 * Check .qid.type and .mode agree if neither is defaulted.
 	 */
-	if(dir.qid.type != (uchar)~0 && dir.mode != ~0){
+	if(dir.qid.type != (uint8_t)~0 && dir.mode != ~0){
 		if(dir.qid.type != ((dir.mode>>24) & 0xFF)){
 			vtSetError("wstat -- qid.type/mode mismatch");
 			goto error;
@@ -208,7 +208,7 @@ rTwstat(Msg* m)
 	op = 0;
 
 	oldmode = de.mode;
-	if(dir.qid.type != (uchar)~0 || dir.mode != ~0){
+	if(dir.qid.type != (uint8_t)~0 || dir.mode != ~0){
 		/*
 		 * .qid.type or .mode isn't defaulted, check for unknown bits.
 		 */
@@ -530,7 +530,7 @@ static int
 rTread(Msg* m)
 {
 	Fid *fid;
-	uchar *data;
+	uint8_t *data;
 	int count, n;
 
 	if((fid = fidGet(m->con, m->t.fid, 0)) == nil)
@@ -582,7 +582,7 @@ rTcreate(Msg* m)
 {
 	Fid *fid;
 	File *file;
-	ulong mode;
+	uint32_t mode;
 	int omode, open, perm;
 
 	if((fid = fidGet(m->con, m->t.fid, FidFWlock)) == nil)

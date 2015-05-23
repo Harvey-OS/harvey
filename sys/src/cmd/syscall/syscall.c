@@ -48,7 +48,7 @@ uintptr parse(char *);
 void catch(void*, char*);
 
 char*
-xctime(ulong t)
+xctime(uint32_t t)
 {
 	char *buf, *s;
 
@@ -63,11 +63,11 @@ xctime(ulong t)
 
 
 char*
-lstime(long l)
+lstime(int32_t l)
 {
 	static char buf[32];
 	char *t;
-	long clk;
+	int32_t clk;
 
 	clk = time(0);
 	t = ctime(l);

@@ -36,8 +36,8 @@ static char *srv;
 int	dodial(char*, char*, char*);
 void	fromkbd(int);
 void	fromnet(int);
-long	iread(int, void*, int);
-long	iwrite(int, void*, int);
+int32_t	iread(int, void*, int);
+int32_t	iwrite(int, void*, int);
 int	menu(int);
 void	notifyf(void*, char*);
 void	pass(int, int, int);
@@ -317,7 +317,7 @@ int
 menu(int net)
 {
 	char buf[MAXMSG];
-	long n;
+	int32_t n;
 	int done;
 	int wasraw = raw;
 
@@ -443,7 +443,7 @@ stdcon(int net)
 void
 fromkbd(int net)
 {
-	long n;
+	int32_t n;
 	char buf[MAXMSG];
 	char *p, *ep;
 	int eofs;
@@ -499,7 +499,7 @@ fromkbd(int net)
 void
 fromnet(int net)
 {
-	long n;
+	int32_t n;
 	char buf[MAXMSG];
 	char *cp, *ep;
 
@@ -667,10 +667,10 @@ seterr(char *addr)
 }
 
 
-long
+int32_t
 iread(int f, void *a, int n)
 {
-	long m;
+	int32_t m;
 
 	for(;;){
 		m = read(f, a, n);
@@ -680,10 +680,10 @@ iread(int f, void *a, int n)
 	return m;
 }
 
-long
+int32_t
 iwrite(int f, void *a, int n)
 {
-	long m;
+	int32_t m;
 
 	m = write(f, a, n);
 	if(m < 0 && wasintr())

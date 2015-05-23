@@ -33,7 +33,7 @@ c_shift(wp)
 {
 	register struct block *l = e->loc;
 	register int n;
-	long val;
+	int32_t val;
 	char *arg;
 
 	if (ksh_getopt(wp, &builtin_opt, null) == '?')
@@ -649,7 +649,8 @@ c_set(wp)
 		while (*++wp != NULL)
 			*wp = str_save(*wp, &l->area);
 		l->argc = wp - owp - 1;
-		l->argv = (char **) alloc(sizeofN(char *, l->argc+2), &l->area);
+		l->argv = (char **) alloc(sizeofN(char *, l->argc+2),
+					    &l->area);
 		for (wp = l->argv; (*wp++ = *owp++) != NULL; )
 			;
 	}

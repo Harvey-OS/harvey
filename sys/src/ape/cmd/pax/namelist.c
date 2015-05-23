@@ -78,7 +78,7 @@ static char *copyright = "Copyright (c) 1989 Mark H. Colburn.\nAll rights reserv
  */
 struct nm_list {
     struct nm_list *next;
-    short           length;	/* cached strlen(name) */
+    int16_t           length;	/* cached strlen(name) */
     char            found;	/* A matching file has been found */
     char            firstch;	/* First char is literally matched */
     char            re;		/* regexp pattern for item */

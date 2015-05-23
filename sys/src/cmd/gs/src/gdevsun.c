@@ -620,7 +620,7 @@ sun_copy_mono(register gx_device *dev,
 	xdev->pr.pr_depth = 1;
 	xdev->pr.pr_data = (caddr_t)&(xdev->mpr);
 	xdev->mpr.md_linebytes = raster;
-	xdev->mpr.md_image = (short *)((ulong)base & ~1);
+	xdev->mpr.md_image = (int16_t *)((uint32_t)base & ~1);
 #if !arch_is_big_endian
 	/* Reverse the bit order in each byte. */
 	for ( i = 0; i < nbytes; i++ )
@@ -674,7 +674,7 @@ sun_copy_color(register gx_device *dev,
 	xdev->pr.pr_depth = 8;
 	xdev->pr.pr_data = (caddr_t)&(xdev->mpr);
 	xdev->mpr.md_linebytes = raster;
-	xdev->mpr.md_image = (short *)((ulong)base & ~1);
+	xdev->mpr.md_image = (int16_t *)((uint32_t)base & ~1);
 	pw_write(xdev->pw, x, y, w, h,
 		 PIX_SRC, &(xdev->pr),
 		 (((int)base & 1) ? sourcex + 8 : sourcex), 0);

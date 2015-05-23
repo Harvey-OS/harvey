@@ -11,14 +11,14 @@
 #include <libc.h>
 #include <flate.h>
 
-ulong*
-mkcrctab(ulong poly)
+uint32_t*
+mkcrctab(uint32_t poly)
 {
-	ulong *crctab;
-	ulong crc;
+	uint32_t *crctab;
+	uint32_t crc;
 	int i, j;
 
-	crctab = malloc(256 * sizeof(ulong));
+	crctab = malloc(256 * sizeof(uint32_t));
 	if(crctab == nil)
 		return nil;
 
@@ -35,10 +35,10 @@ mkcrctab(ulong poly)
 	return crctab;
 }
 
-ulong
-blockcrc(ulong *crctab, ulong crc, void *vbuf, int n)
+uint32_t
+blockcrc(uint32_t *crctab, uint32_t crc, void *vbuf, int n)
 {
-	uchar *buf, *ebuf;
+	uint8_t *buf, *ebuf;
 
 	crc ^= 0xffffffff;
 	buf = vbuf;

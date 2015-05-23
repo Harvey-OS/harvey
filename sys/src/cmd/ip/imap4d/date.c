@@ -78,12 +78,12 @@ imap4Date(Tm *tm, char *date)
 /*
  * parse imap4 dates
  */
-ulong
+uint32_t
 imap4DateTime(char *date)
 {
 	Tm tm;
 	char *flds[4], *sflds[4];
-	ulong t;
+	uint32_t t;
 
 	if(getfields(date, flds, 4, 0, " ") != 3)
 		return ~0;

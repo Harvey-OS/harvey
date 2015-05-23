@@ -89,7 +89,7 @@ mcheck()
 
 void
 mcset(interval)
-	long interval;
+	int32_t interval;
 {
 	mailcheck_interval = interval;
 }

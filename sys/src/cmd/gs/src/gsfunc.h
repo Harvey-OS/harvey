@@ -76,7 +76,7 @@ typedef struct gs_function_s gs_function_t;
 #endif
 typedef struct gs_function_info_s {
     const gs_data_source_t *DataSource;
-    ulong data_size;
+    uint32_t data_size;
     const gs_function_t *const *Functions;
     int num_Functions;
 } gs_function_info_t;

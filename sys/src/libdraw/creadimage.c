@@ -17,9 +17,9 @@ creadimage(Display *d, int fd, int dolock)
 	char hdr[5*12+1];
 	Rectangle r;
 	int m, nb, miny, maxy, new, ldepth, ncblock;
-	uchar *buf, *a;
+	uint8_t *buf, *a;
 	Image *i;
-	ulong chan;
+	uint32_t chan;
 
 	if(readn(fd, hdr, 5*12) != 5*12)
 		return nil;

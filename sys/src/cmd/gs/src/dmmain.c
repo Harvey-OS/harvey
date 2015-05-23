@@ -388,7 +388,7 @@ static size_t stdin_bufsize = 0;
 static size_t get_input(void *ptr, size_t size)
 {
     EventRecord eventStructure;
-    long charswaiting, old_charswaiting = 0;
+    int32_t charswaiting, old_charswaiting = 0;
     char *text;
 
 #if SIOUX_USE_WASTE
@@ -772,7 +772,7 @@ void doMouseDown(EventRecord *eventStrucPtr)
     BitMap         screenBits;
     Rect           constraintRect, mainScreenRect;
     Point          standardStateHeightAndWidth;
-    long           newSize;
+    int32_t           newSize;
 
     partCode = FindWindow(eventStrucPtr->where,&windowRef);
 

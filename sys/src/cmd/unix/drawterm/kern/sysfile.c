@@ -181,7 +181,7 @@ fdtochan(int fd, int mode, int chkmnt, int iref)
 }
 
 int
-openmode(ulong o)
+openmode(uint32_t o)
 {
 	o &= ~(OTRUNC|OCEXEC|ORCLOSE);
 	if(o > OEXEC)
@@ -191,7 +191,7 @@ openmode(ulong o)
 	return o;
 }
 
-long
+int32_t
 _sysfd2path(int fd, char *buf, uint nbuf)
 {
 	Chan *c;
@@ -206,7 +206,7 @@ _sysfd2path(int fd, char *buf, uint nbuf)
 	return 0;
 }
 
-long
+int32_t
 _syspipe(int fd[2])
 {
 	Chan *c[2];
@@ -239,7 +239,7 @@ _syspipe(int fd[2])
 	return 0;
 }
 
-long
+int32_t
 _sysdup(int fd0, int fd1)
 {
 	int fd;
@@ -280,7 +280,7 @@ _sysdup(int fd0, int fd1)
 	return fd;
 }
 
-long
+int32_t
 _sysopen(char *name, int mode)
 {
 	int fd;
@@ -329,7 +329,7 @@ fdclose(int fd, int flag)
 	cclose(c);
 }
 
-long
+int32_t
 _sysclose(int fd)
 {
 	fdtochan(fd, -1, 0, 0);
@@ -338,11 +338,11 @@ _sysclose(int fd)
 	return 0;
 }
 
-long
-unionread(Chan *c, void *va, long n)
+int32_t
+unionread(Chan *c, void *va, int32_t n)
 {
 	int i;
-	long nr;
+	int32_t nr;
 	Mhead *m;
 	Mount *mount;
 
@@ -383,12 +383,12 @@ unionread(Chan *c, void *va, long n)
 	return nr;
 }
 
-static long
-kread(int fd, void *buf, long n, vlong *offp)
+static int32_t
+kread(int fd, void *buf, int32_t n, int64_t *offp)
 {
 	int dir;
 	Chan *c;
-	vlong off;
+	int64_t off;
 
 	c = fdtochan(fd, OREAD, 1, 1);
 
@@ -436,20 +436,20 @@ _sys_read(int fd, void *buf, long n)
 }
 */
 
-long
-_syspread(int fd, void *buf, long n, vlong off)
+int32_t
+_syspread(int fd, void *buf, int32_t n, int64_t off)
 {
-	if(off == ((uvlong) ~0))
+	if(off == ((uint64_t) ~0))
 		return kread(fd, buf, n, nil);
 	return kread(fd, buf, n, &off);
 }
 
-static long
-kwrite(int fd, void *buf, long nn, vlong *offp)
+static int32_t
+kwrite(int fd, void *buf, int32_t nn, int64_t *offp)
 {
 	Chan *c;
-	long m, n;
-	vlong off;
+	int32_t m, n;
+	int64_t off;
 
 	n = 0;
 	c = fdtochan(fd, OWRITE, 1, 1);
@@ -493,25 +493,25 @@ kwrite(int fd, void *buf, long nn, vlong *offp)
 	return m;
 }
 
-long
-sys_write(int fd, void *buf, long n)
+int32_t
+sys_write(int fd, void *buf, int32_t n)
 {
 	return kwrite(fd, buf, n, nil);
 }
 
-long
-_syspwrite(int fd, void *buf, long n, vlong off)
+int32_t
+_syspwrite(int fd, void *buf, int32_t n, int64_t off)
 {
-	if(off == ((uvlong) ~0))
+	if(off == ((uint64_t) ~0))
 		return kwrite(fd, buf, n, nil);
 	return kwrite(fd, buf, n, &off);
 }
 
-static vlong
-_sysseek(int fd, vlong off, int whence)
+static int64_t
+_sysseek(int fd, int64_t off, int whence)
 {
 	Chan *c;
-	uchar buf[sizeof(Dir)+100];
+	uint8_t buf[sizeof(Dir)+100];
 	Dir dir;
 	int n;
 
@@ -566,7 +566,7 @@ _sysseek(int fd, vlong off, int whence)
 }
 
 void
-validstat(uchar *s, int n)
+validstat(uint8_t *s, int n)
 {
 	int m;
 	char buf[64];
@@ -592,8 +592,8 @@ validstat(uchar *s, int n)
 		validname(buf, 0);
 }
 
-long
-_sysfstat(int fd, void *buf, long n)
+int32_t
+_sysfstat(int fd, void *buf, int32_t n)
 {
 	Chan *c;
 	uint l;
@@ -611,8 +611,8 @@ _sysfstat(int fd, void *buf, long n)
 	return l;
 }
 
-long
-_sysstat(char *name, void *buf, long n)
+int32_t
+_sysstat(char *name, void *buf, int32_t n)
 {
 	Chan *c;
 	uint l;
@@ -631,7 +631,7 @@ _sysstat(char *name, void *buf, long n)
 	return l;
 }
 
-long
+int32_t
 _syschdir(char *name)
 {
 	Chan *c;
@@ -644,8 +644,10 @@ _syschdir(char *name)
 	return 0;
 }
 
-long
-bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char* spec)
+int32_t
+bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
+	  uint32_t flag,
+	  char* spec)
 {
 	int ret;
 	Chan *c0, *c1, *ac, *bc;
@@ -680,7 +682,7 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 		bogus.chan = bc;
 		bogus.authchan = ac;
 
-		validaddr((ulong)spec, 1, 0);
+		validaddr((uint32_t)spec, 1, 0);
 		bogus.spec = spec;
 		if(waserror())
 			error(Ebadspec);
@@ -696,7 +698,7 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 		cclose(bc);
 	}else{
 		bogus.spec = 0;
-		validaddr((ulong)arg0, 1, 0);
+		validaddr((uint32_t)arg0, 1, 0);
 		c0 = namec(arg0, Abind, 0, 0);
 	}
 
@@ -705,7 +707,7 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 		nexterror();
 	}
 
-	validaddr((ulong)arg1, 1, 0);
+	validaddr((uint32_t)arg1, 1, 0);
 	c1 = namec(arg1, Amount, 0, 0);
 	if(waserror()){
 		cclose(c1);
@@ -724,19 +726,19 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 	return ret;
 }
 
-long
+int32_t
 _sysbind(char *old, char *new, int flag)
 {
 	return bindmount(0, -1, -1, old, new, flag, nil);
 }
 
-long
+int32_t
 _sysmount(int fd, int afd, char *new, int flag, char *spec)
 {
 	return bindmount(1, fd, afd, nil, new, flag, spec);
 }
 
-long
+int32_t
 _sysunmount(char *old, char *new)
 {
 	Chan *cmount, *cmounted;
@@ -776,8 +778,8 @@ _sysunmount(char *old, char *new)
 	return 0;
 }
 
-long
-_syscreate(char *name, int mode, ulong perm)
+int32_t
+_syscreate(char *name, int mode, uint32_t perm)
 {
 	int fd;
 	Chan *c = 0;
@@ -797,7 +799,7 @@ _syscreate(char *name, int mode, ulong perm)
 	return fd;
 }
 
-long
+int32_t
 _sysremove(char *name)
 {
 	Chan *c;
@@ -819,8 +821,8 @@ _sysremove(char *name)
 	return 0;
 }
 
-long
-_syswstat(char *name, void *buf, long n)
+int32_t
+_syswstat(char *name, void *buf, int32_t n)
 {
 	Chan *c;
 	uint l;
@@ -839,8 +841,8 @@ _syswstat(char *name, void *buf, long n)
 	return l;
 }
 
-long
-_sysfwstat(int fd, void *buf, long n)
+int32_t
+_sysfwstat(int fd, void *buf, int32_t n)
 {
 	Chan *c;
 	uint l;
@@ -929,7 +931,7 @@ sysclose(int fd)
 }
 
 int
-syscreate(char *name, int mode, ulong perm)
+syscreate(char *name, int mode, uint32_t perm)
 {
 	int n;
 
@@ -959,7 +961,7 @@ sysdup(int fd0, int fd1)
 }
 
 int
-sysfstat(int fd, uchar *buf, int n)
+sysfstat(int fd, uint8_t *buf, int n)
 {
 	starterror();
 	if(waserror()){
@@ -972,7 +974,7 @@ sysfstat(int fd, uchar *buf, int n)
 }
 
 int
-sysfwstat(int fd, uchar *buf, int n)
+sysfwstat(int fd, uint8_t *buf, int n)
 {
 	starterror();
 	if(waserror()){
@@ -1044,8 +1046,8 @@ syspipe(int *fd)
 	return n;
 }
 
-long
-syspread(int fd, void *buf, long n, vlong off)
+int32_t
+syspread(int fd, void *buf, int32_t n, int64_t off)
 {
 	starterror();
 	if(waserror()){
@@ -1057,8 +1059,8 @@ syspread(int fd, void *buf, long n, vlong off)
 	return n;
 }
 
-long
-syspwrite(int fd, void *buf, long n, vlong off)
+int32_t
+syspwrite(int fd, void *buf, int32_t n, int64_t off)
 {
 	starterror();
 	if(waserror()){
@@ -1070,15 +1072,15 @@ syspwrite(int fd, void *buf, long n, vlong off)
 	return n;
 }
 
-long
-sysread(int fd, void *buf, long n)
+int32_t
+sysread(int fd, void *buf, int32_t n)
 {
 	starterror();
 	if(waserror()){
 		_syserror();
 		return -1;
 	}
-	n = _syspread(fd, buf, n, (uvlong) ~0);
+	n = _syspread(fd, buf, n, (uint64_t) ~0);
 	enderror();
 	return n;
 }
@@ -1098,8 +1100,8 @@ sysremove(char *path)
 	return n;
 }
 
-vlong
-sysseek(int fd, vlong off, int whence)
+int64_t
+sysseek(int fd, int64_t off, int whence)
 {
 	starterror();
 	if(waserror()){
@@ -1112,7 +1114,7 @@ sysseek(int fd, vlong off, int whence)
 }
 
 int
-sysstat(char *name, uchar *buf, int n)
+sysstat(char *name, uint8_t *buf, int n)
 {
 	starterror();
 	if(waserror()){
@@ -1124,21 +1126,21 @@ sysstat(char *name, uchar *buf, int n)
 	return n;
 }
 
-long
-syswrite(int fd, void *buf, long n)
+int32_t
+syswrite(int fd, void *buf, int32_t n)
 {
 	starterror();
 	if(waserror()){
 		_syserror();
 		return -1;
 	}
-	n = _syspwrite(fd, buf, n, (uvlong) ~0);
+	n = _syspwrite(fd, buf, n, (uint64_t) ~0);
 	enderror();
 	return n;
 }
 
 int
-syswstat(char *name, uchar *buf, int n)
+syswstat(char *name, uint8_t *buf, int n)
 {
 	starterror();
 	if(waserror()){

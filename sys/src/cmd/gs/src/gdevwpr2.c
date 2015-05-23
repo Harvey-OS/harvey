@@ -635,7 +635,7 @@ win_pr2_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 	case 24:
 	    return gx_color_value_to_byte(r) +
 		((uint) gx_color_value_to_byte(g) << 8) +
-		((ulong) gx_color_value_to_byte(b) << 16);
+		((uint32_t) gx_color_value_to_byte(b) << 16);
     }
     return 0;			/* error */
 }

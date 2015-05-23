@@ -12,13 +12,8 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "io.h"
-#include "ureg.h"
-#include "../port/error.h"
 
-enum {
-	Maxtimerloops = 20*1000,
-};
+#include "ureg.h"
 
 struct Timers
 {
@@ -26,15 +21,15 @@ struct Timers
 	Timer	*head;
 };
 
-static Timers timers[MAXMACH];
-static int timersinited;
+static Timers timers[MACHMAX];
 
-ulong intrcount[MAXMACH];
-ulong fcallcount[MAXMACH];
+uint32_t intrcount[MACHMAX];
+uint32_t fcallcount[MACHMAX];
 
-static vlong
+static int64_t
 tadd(Timers *tt, Timer *nt)
 {
+	int64_t when;
 	Timer *t, **last;
 
 	/* Called with tt locked */
@@ -49,19 +44,34 @@ tadd(Timers *tt, Timer *nt)
 		nt->twhen = fastticks(nil) + ns2fastticks(nt->tns);
 		break;
 	case Tperiodic:
-		assert(nt->tns >= 100000);	/* At least 100 µs period */
+		/*
+		 * Periodic timers must have a period of at least 100µs.
+		 */
+		assert(nt->tns >= 100000);
 		if(nt->twhen == 0){
-			/* look for another timer at same frequency for combining */
+			/*
+			 * Look for another timer at the
+			 * same frequency for combining.
+			 */
 			for(t = tt->head; t; t = t->tnext){
 				if(t->tmode == Tperiodic && t->tns == nt->tns)
 					break;
 			}
-			if (t)
+			if(t)
 				nt->twhen = t->twhen;
 			else
 				nt->twhen = fastticks(nil);
 		}
-		nt->twhen += ns2fastticks(nt->tns);
+
+		/*
+		 * The new time must be in the future.
+		 * ns2fastticks() can return 0 if the tod clock
+		 * has been adjusted by, e.g. timesync.
+		 */
+		when = ns2fastticks(nt->tns);
+		if(when == 0)
+			when = 1;
+		nt->twhen += when;
 		break;
 	}
 
@@ -77,15 +87,14 @@ tadd(Timers *tt, Timer *nt)
 	return 0;
 }
 
-static uvlong
+static int64_t
 tdel(Timer *dt)
 {
-
 	Timer *t, **last;
 	Timers *tt;
 
 	tt = dt->tt;
-	if (tt == nil)
+	if(tt == nil)
 		return 0;
 	for(last = &tt->head; t = *last; last = &t->tnext){
 		if(t == dt){
@@ -104,8 +113,9 @@ tdel(Timer *dt)
 void
 timeradd(Timer *nt)
 {
+	Mach *m = machp();
 	Timers *tt;
-	vlong when;
+	int64_t when;
 
 	/* Must lock Timer struct before Timers struct */
 	ilock(nt);
@@ -127,8 +137,9 @@ timeradd(Timer *nt)
 void
 timerdel(Timer *dt)
 {
+	Mach *m = machp();
 	Timers *tt;
-	uvlong when;
+	int64_t when;
 
 	ilock(dt);
 	if(tt = dt->tt){
@@ -144,53 +155,58 @@ timerdel(Timer *dt)
 void
 hzclock(Ureg *ur)
 {
-	m->ticks++;
-	if(m->proc)
-		m->proc->pc = ur->pc;
+	Mach *m = machp();
+	uintptr_t pc;
 
-	if(m->flushmmu){
-		if(up)
-			flushmmu();
-		m->flushmmu = 0;
+	m->ticks++;
+	if(m->machno == 0)
+		sys->ticks = m->ticks;
+
+	pc = userpc(ur);
+	if(m->proc)
+		m->proc->pc = pc;
+
+	if(m->mmuflush){
+		if(m->externup)
+			mmuflush();
+		m->mmuflush = 0;
 	}
 
 	accounttime();
 	kmapinval();
 
 	if(kproftimer != nil)
-		kproftimer(ur->pc);
+		kproftimer(pc);
 
-	if((active.machs&(1<<m->machno)) == 0)
+	if(m->online == 0)
 		return;
 
 	if(active.exiting) {
-		print("someone's exiting\n");
+		iprint("someone's exiting\n");
 		exit(0);
 	}
 
 	checkalarms();
 
-	if(up && up->state == Running)
+	if(m->externup && m->externup->state == Running)
 		hzsched();	/* in proc.c */
 }
 
 void
-timerintr(Ureg *u, Tval)
+timerintr(Ureg *u, int64_t j)
 {
+	Mach *m = machp();
 	Timer *t;
 	Timers *tt;
-	uvlong when, now;
-	int count, callhzclock;
+	int64_t when, now;
+	int callhzclock;
 
 	intrcount[m->machno]++;
 	callhzclock = 0;
 	tt = &timers[m->machno];
 	now = fastticks(nil);
-	if(now == 0)
-		panic("timerintr: zero fastticks()");
 	ilock(tt);
-	count = Maxtimerloops;
-	while((t = tt->head) != nil){
+	while(t = tt->head){
 		/*
 		 * No need to ilock t here: any manipulation of t
 		 * requires tdel(t) and this must be done with a
@@ -217,12 +233,6 @@ timerintr(Ureg *u, Tval)
 		ilock(tt);
 		if(t->tmode == Tperiodic)
 			tadd(tt, t);
-		if (--count <= 0) {
-			count = Maxtimerloops;
-			iprint("timerintr: probably stuck in while loop; "
-				"scrutinise clock.c or use faster cycle "
-				"counter\n");
-		}
 	}
 	iunlock(tt);
 }
@@ -235,11 +245,8 @@ timersinit(void)
 	/*
 	 * T->tf == nil means the HZ clock for this processor.
 	 */
-	timersinited = 1;
 	todinit();
 	t = malloc(sizeof(*t));
-	if(t == nil)
-		error(Enomem);
 	t->tmode = Tperiodic;
 	t->tt = nil;
 	t->tns = 1000000000/HZ;
@@ -251,17 +258,13 @@ Timer*
 addclock0link(void (*f)(void), int ms)
 {
 	Timer *nt;
-	uvlong when;
+	int64_t when;
 
-	if(!timersinited)
-		panic("addclock0link: timersinit not called yet");
 	/* Synchronize to hztimer if ms is 0 */
 	nt = malloc(sizeof(Timer));
-	if(nt == nil)
-		error(Enomem);
 	if(ms == 0)
-		ms = 1000/HZ;
-	nt->tns = (vlong)ms*1000000LL;
+		ms = 10000; // 10 seconds. 1000/HZ;
+	nt->tns = (int64_t)ms*1000000LL;
 	nt->tmode = Tperiodic;
 	nt->tt = nil;
 	nt->tf = (void (*)(Ureg*, Timer*))f;
@@ -279,10 +282,10 @@ addclock0link(void (*f)(void), int ms)
  *  It is a LOT slower so shouldn't be used if you're just converting
  *  a delta.
  */
-ulong
-tk2ms(ulong ticks)
+uint32_t
+tk2ms(uint32_t ticks)
 {
-	uvlong t, hz;
+	uint64_t t, hz;
 
 	t = ticks;
 	hz = HZ;
@@ -292,8 +295,8 @@ tk2ms(ulong ticks)
 	return ticks;
 }
 
-ulong
-ms2tk(ulong ms)
+uint32_t
+ms2tk(uint32_t ms)
 {
 	/* avoid overflows at the cost of precision */
 	if(ms >= 1000000000/HZ)

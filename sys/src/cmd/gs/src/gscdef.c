@@ -39,7 +39,7 @@
 #  define GS_BUILDTIME\
 	0			/* should be set in the makefile */
 #endif
-CONFIG_CONST long gs_buildtime = GS_BUILDTIME;
+CONFIG_CONST int32_t gs_buildtime = GS_BUILDTIME;
 
 #ifndef GS_COPYRIGHT
 #  define GS_COPYRIGHT\
@@ -66,22 +66,22 @@ gs_program_name(void)
 }
 
 /* GS_REVISION must be defined in the makefile. */
-CONFIG_CONST long gs_revision = GS_REVISION;
+CONFIG_CONST int32_t gs_revision = GS_REVISION;
 
-long
+int32_t
 gs_revision_number(void)
 {
     return gs_revision;
 }
 
 /* GS_REVISIONDATE must be defined in the makefile. */
-CONFIG_CONST long gs_revisiondate = GS_REVISIONDATE;
+CONFIG_CONST int32_t gs_revisiondate = GS_REVISIONDATE;
 
 #ifndef GS_SERIALNUMBER
 #  define GS_SERIALNUMBER\
 	42			/* a famous number */
 #endif
-CONFIG_CONST long gs_serialnumber = GS_SERIALNUMBER;
+CONFIG_CONST int32_t gs_serialnumber = GS_SERIALNUMBER;
 
 /* ---------------- Installation directories and files ---------------- */
 

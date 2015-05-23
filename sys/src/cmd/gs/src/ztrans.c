@@ -91,7 +91,7 @@ enum_param(const gs_memory_t *mem, const ref *pnref,
 
 /* ------ Graphics state operators ------ */
 
-private const char *const blend_mode_names[] = {
+private const int8_t *const blend_mode_names[] = {
     GS_BLEND_MODE_NAMES, 0
 };
 

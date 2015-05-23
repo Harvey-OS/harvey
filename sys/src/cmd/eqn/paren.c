@@ -81,7 +81,8 @@ void paren(int leftc, int p1, int rightc)
 		brack(m, "|", "|", "|");
 		break;
 	default:
-		brack(m, (char *) &leftc, (char *) &leftc, (char *) &leftc);
+		brack(m, (char *) &leftc, (char *) &leftc,
+		      (char *) &leftc);
 		break;
 	}
 	if (bv)
@@ -123,7 +124,8 @@ void paren(int leftc, int p1, int rightc)
 			brack(m, "|", "|", "|");
 			break;
 		default:
-			brack(m, (char *) &rightc, (char *) &rightc, (char *) &rightc);
+			brack(m, (char *) &rightc, (char *) &rightc,
+			      (char *) &rightc);
 			break;
 		}
 		if (bv)

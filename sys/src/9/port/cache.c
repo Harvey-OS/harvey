@@ -12,7 +12,6 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
 
 enum
 {
@@ -26,7 +25,7 @@ typedef struct Extent Extent;
 struct Extent
 {
 	int	bid;
-	ulong	start;
+	uint32_t	start;
 	int	len;
 	Page	*cache;
 	Extent	*next;
@@ -36,8 +35,8 @@ typedef struct Mntcache Mntcache;
 struct Mntcache
 {
 	Qid	qid;
-	int	dev;
-	int	type;
+	uint	devno;
+	Dev*	dev;
 	QLock;
 	Extent	 *list;
 	Mntcache *hash;
@@ -48,7 +47,7 @@ struct Mntcache
 typedef struct Cache Cache;
 struct Cache
 {
-	QLock;
+	Lock;
 	int		pgno;
 	Mntcache	*head;
 	Mntcache	*tail;
@@ -87,7 +86,7 @@ extentalloc(void)
 
 	lock(&ecache);
 	if(ecache.head == nil){
-		e = xalloc(NEXTENT*sizeof(Extent));
+		e = malloc(NEXTENT*sizeof(Extent));
 		if(e == nil){
 			unlock(&ecache);
 			return nil;
@@ -114,57 +113,29 @@ void
 cinit(void)
 {
 	int i;
-	Mntcache *m;
+	Mntcache *mc;
 
-	cache.head = xalloc(sizeof(Mntcache)*NFILE);
-	m = cache.head;
-	if (m == nil)
+	if((cache.head = malloc(sizeof(Mntcache)*NFILE)) == nil)
 		panic("cinit: no memory");
+	mc = cache.head;
 
 	/* a better algorithm would be nice */
-	if(conf.npage*BY2PG > 400*MB)
-		maxcache = 20*MAXCACHE;
-	else if(conf.npage*BY2PG > 200*MB)
-		maxcache = 10*MAXCACHE;
+//	if(conf.npage*PGSZ > 200*MB)
+//		maxcache = 10*MAXCACHE;
+//	if(conf.npage*PGSZ > 400*MB)
+//		maxcache = 50*MAXCACHE;
 
 	for(i = 0; i < NFILE-1; i++) {
-		m->next = m+1;
-		m->prev = m-1;
-		m++;
+		mc->next = mc+1;
+		mc->prev = mc-1;
+		mc++;
 	}
 
-	cache.tail = m;
+	cache.tail = mc;
 	cache.tail->next = 0;
 	cache.head->prev = 0;
 
 	fscache.notext = 1;
-}
-
-void
-cprint(Chan *c, Mntcache *m, char *s)
-{
-	ulong o;
-	int nb, ct;
-	Extent *e;
-
-	nb = 0;
-	ct = 1;
-	o = 0;
-	if(m->list)
-		o = m->list->start;
-	for(e = m->list; e; e = e->next) {
-		nb += e->len;
-		if(o != e->start)
-			ct = 0;
-		o = e->start+e->len;
-	}
-	pprint("%s: %#llux.%#lux %d %d %s (%d %c)\n",
-	s, m->qid.path, m->qid.vers, m->type, m->dev, c->path->s, nb, ct ? 'C' : 'N');
-
-	for(e = m->list; e; e = e->next) {
-		pprint("\t%4d %5lud %4d %#p\n",
-			e->bid, e->start, e->len, e->cache);
-	}
 }
 
 Page*
@@ -178,7 +149,7 @@ cpage(Extent *e)
 }
 
 void
-cnodata(Mntcache *m)
+cnodata(Mntcache *mc)
 {
 	Extent *e, *n;
 
@@ -186,37 +157,37 @@ cnodata(Mntcache *m)
 	 * Invalidate all extent data
 	 * Image lru will waste the pages
 	 */
-	for(e = m->list; e; e = n) {
+	for(e = mc->list; e; e = n) {
 		n = e->next;
 		extentfree(e);
 	}
-	m->list = 0;
+	mc->list = 0;
 }
 
 void
-ctail(Mntcache *m)
+ctail(Mntcache *mc)
 {
 	/* Unlink and send to the tail */
-	if(m->prev)
-		m->prev->next = m->next;
+	if(mc->prev)
+		mc->prev->next = mc->next;
 	else
-		cache.head = m->next;
-	if(m->next)
-		m->next->prev = m->prev;
+		cache.head = mc->next;
+	if(mc->next)
+		mc->next->prev = mc->prev;
 	else
-		cache.tail = m->prev;
+		cache.tail = mc->prev;
 
 	if(cache.tail) {
-		m->prev = cache.tail;
-		cache.tail->next = m;
-		m->next = 0;
-		cache.tail = m;
+		mc->prev = cache.tail;
+		cache.tail->next = mc;
+		mc->next = 0;
+		cache.tail = mc;
 	}
 	else {
-		cache.head = m;
-		cache.tail = m;
-		m->prev = 0;
-		m->next = 0;
+		cache.head = mc;
+		cache.tail = mc;
+		mc->prev = 0;
+		mc->next = 0;
 	}
 }
 
@@ -225,108 +196,109 @@ copen(Chan *c)
 {
 	int h;
 	Extent *e, *next;
-	Mntcache *m, *f, **l;
+	Mntcache *mc, *f, **l;
 
 	/* directories aren't cacheable and append-only files confuse us */
 	if(c->qid.type&(QTDIR|QTAPPEND))
 		return;
 
 	h = c->qid.path%NHASH;
-	qlock(&cache);
-	for(m = cache.hash[h]; m; m = m->hash) {
-		if(m->qid.path == c->qid.path)
-		if(m->qid.type == c->qid.type)
-		if(m->dev == c->dev && m->type == c->type) {
-			c->mcp = m;
-			ctail(m);
-			qunlock(&cache);
+	lock(&cache);
+	for(mc = cache.hash[h]; mc != nil; mc = mc->hash) {
+		if(mc->qid.path == c->qid.path)
+		if(mc->qid.type == c->qid.type)
+		if(mc->devno == c->devno && mc->dev == c->dev) {
+			c->mc = mc;
+			ctail(mc);
+			unlock(&cache);
 
 			/* File was updated, invalidate cache */
-			if(m->qid.vers != c->qid.vers) {
-				m->qid.vers = c->qid.vers;
-				qlock(m);
-				cnodata(m);
-				qunlock(m);
+			if(mc->qid.vers != c->qid.vers) {
+				mc->qid.vers = c->qid.vers;
+				qlock(mc);
+				cnodata(mc);
+				qunlock(mc);
 			}
 			return;
 		}
 	}
 
 	/* LRU the cache headers */
-	m = cache.head;
-	l = &cache.hash[m->qid.path%NHASH];
+	mc = cache.head;
+	l = &cache.hash[mc->qid.path%NHASH];
 	for(f = *l; f; f = f->hash) {
-		if(f == m) {
-			*l = m->hash;
+		if(f == mc) {
+			*l = mc->hash;
 			break;
 		}
 		l = &f->hash;
 	}
 
-	m->qid = c->qid;
-	m->dev = c->dev;
-	m->type = c->type;
+	mc->qid = c->qid;
+	mc->devno = c->devno;
+	mc->dev = c->dev;
 
 	l = &cache.hash[h];
-	m->hash = *l;
-	*l = m;
-	ctail(m);
+	mc->hash = *l;
+	*l = mc;
+	ctail(mc);
 
-	qlock(m);
-	c->mcp = m;
-	e = m->list;
-	m->list = 0;
-	qunlock(&cache);
+	qlock(mc);
+	c->mc = mc;
+	e = mc->list;
+	mc->list = 0;
+	unlock(&cache);
 
 	while(e) {
 		next = e->next;
 		extentfree(e);
 		e = next;
 	}
-	qunlock(m);
+	qunlock(mc);
 }
 
 static int
-cdev(Mntcache *m, Chan *c)
+cdev(Mntcache *mc, Chan *c)
 {
-	if(m->qid.path != c->qid.path)
+	if(mc->qid.path != c->qid.path)
 		return 0;
-	if(m->qid.type != c->qid.type)
+	if(mc->qid.type != c->qid.type)
 		return 0;
-	if(m->dev != c->dev)
+	if(mc->devno != c->devno)
 		return 0;
-	if(m->type != c->type)
+	if(mc->dev != c->dev)
 		return 0;
-	if(m->qid.vers != c->qid.vers)
+	if(mc->qid.vers != c->qid.vers)
 		return 0;
 	return 1;
 }
 
 int
-cread(Chan *c, uchar *buf, int len, vlong off)
+cread(Chan *c, uint8_t *buf, int len, int64_t off)
 {
+	Mach *m = machp();
 	KMap *k;
 	Page *p;
-	Mntcache *m;
+	Mntcache *mc;
 	Extent *e, **t;
 	int o, l, total;
-	ulong offset;
+	uint32_t offset;
 
 	if(off+len > maxcache)
 		return 0;
 
-	m = c->mcp;
-	if(m == 0)
+	mc = c->mc;
+	if(mc == nil)
 		return 0;
 
-	qlock(m);
-	if(cdev(m, c) == 0) {
-		qunlock(m);
+	qlock(mc);
+	if(cdev(mc, c) == 0) {
+		qunlock(mc);
 		return 0;
 	}
 
 	offset = off;
-	t = &m->list;
+	t = &mc->list;
 	for(e = *t; e; e = e->next) {
 		if(offset >= e->start && offset < e->start+e->len)
 			break;
@@ -334,7 +306,7 @@ cread(Chan *c, uchar *buf, int len, vlong off)
 	}
 
 	if(e == 0) {
-		qunlock(m);
+		qunlock(mc);
 		return 0;
 	}
 
@@ -344,7 +316,7 @@ cread(Chan *c, uchar *buf, int len, vlong off)
 		if(p == 0) {
 			*t = e->next;
 			extentfree(e);
-			qunlock(m);
+			qunlock(mc);
 			return total;
 		}
 
@@ -357,11 +329,11 @@ cread(Chan *c, uchar *buf, int len, vlong off)
 		if(waserror()) {
 			kunmap(k);
 			putpage(p);
-			qunlock(m);
+			qunlock(mc);
 			nexterror();
 		}
 
-		memmove(buf, (uchar*)VA(k) + o, l);
+		memmove(buf, (uint8_t*)VA(k) + o, l);
 
 		poperror();
 		kunmap(k);
@@ -378,13 +350,14 @@ cread(Chan *c, uchar *buf, int len, vlong off)
 			break;
 	}
 
-	qunlock(m);
+	qunlock(mc);
 	return total;
 }
 
 Extent*
-cchain(uchar *buf, ulong offset, int len, Extent **tail)
+cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
 {
+	Mach *m = machp();
 	int l;
 	Page *p;
 	KMap *k;
@@ -398,31 +371,31 @@ cchain(uchar *buf, ulong offset, int len, Extent **tail)
 		if(e == 0)
 			break;
 
-		p = auxpage();
+		p = auxpage(BIGPGSZ);
 		if(p == 0) {
 			extentfree(e);
 			break;
 		}
 		l = len;
-		if(l > BY2PG)
-			l = BY2PG;
+		if(l > BIGPGSZ)
+			l = BIGPGSZ;
 
 		e->cache = p;
 		e->start = offset;
 		e->len = l;
 
-		qlock(&cache);
+		lock(&cache);
 		e->bid = cache.pgno;
-		cache.pgno += BY2PG;
+		cache.pgno += BIGPGSZ;
 		/* wrap the counter; low bits are unused by pghash but checked by lookpage */
-		if((cache.pgno & ~(BY2PG-1)) == 0){
-			if(cache.pgno == BY2PG-1){
+		if((cache.pgno & ~(BIGPGSZ-1)) == 0){
+			if(cache.pgno == BIGPGSZ-1){
 				print("cache wrapped\n");
 				cache.pgno = 0;
 			}else
 				cache.pgno++;
 		}
-		qunlock(&cache);
+		unlock(&cache);
 
 		p->daddr = e->bid;
 		k = kmap(p);
@@ -450,8 +423,9 @@ cchain(uchar *buf, ulong offset, int len, Extent **tail)
 }
 
 int
-cpgmove(Extent *e, uchar *buf, int boff, int len)
+cpgmove(Extent *e, uint8_t *buf, int boff, int len)
 {
+	Mach *m = machp();
 	Page *p;
 	KMap *k;
 
@@ -465,7 +439,7 @@ cpgmove(Extent *e, uchar *buf, int boff, int len)
 		nexterror();
 	}
 
-	memmove((uchar*)VA(k)+boff, buf, len);
+	memmove((uint8_t*)VA(k)+boff, buf, len);
 
 	poperror();
 	kunmap(k);
@@ -475,23 +449,23 @@ cpgmove(Extent *e, uchar *buf, int boff, int len)
 }
 
 void
-cupdate(Chan *c, uchar *buf, int len, vlong off)
+cupdate(Chan *c, uint8_t *buf, int len, int64_t off)
 {
-	Mntcache *m;
+	Mntcache *mc;
 	Extent *tail;
 	Extent *e, *f, *p;
 	int o, ee, eblock;
-	ulong offset;
+	uint32_t offset;
 
 	if(off > maxcache || len == 0)
 		return;
 
-	m = c->mcp;
-	if(m == 0)
+	mc = c->mc;
+	if(mc == nil)
 		return;
-	qlock(m);
-	if(cdev(m, c) == 0) {
-		qunlock(m);
+	qlock(mc);
+	if(cdev(mc, c) == 0) {
+		qunlock(mc);
 		return;
 	}
 
@@ -500,7 +474,7 @@ cupdate(Chan *c, uchar *buf, int len, vlong off)
 	 */
 	offset = off;
 	p = 0;
-	for(f = m->list; f; f = f->next) {
+	for(f = mc->list; f; f = f->next) {
 		if(f->start > offset)
 			break;
 		p = f;
@@ -511,7 +485,7 @@ cupdate(Chan *c, uchar *buf, int len, vlong off)
 	if(f != 0 && eblock > f->start) {
 		len -= (eblock - f->start);
 		if(len <= 0) {
-			qunlock(m);
+			qunlock(mc);
 			return;
 		}
 	}
@@ -519,10 +493,10 @@ cupdate(Chan *c, uchar *buf, int len, vlong off)
 	if(p == 0) {		/* at the head */
 		e = cchain(buf, offset, len, &tail);
 		if(e != 0) {
-			m->list = e;
+			mc->list = e;
 			tail->next = f;
 		}
-		qunlock(m);
+		qunlock(mc);
 		return;
 	}
 
@@ -532,7 +506,7 @@ cupdate(Chan *c, uchar *buf, int len, vlong off)
 		o = ee - offset;
 		len -= o;
 		if(len <= 0) {
-			qunlock(m);
+			qunlock(mc);
 			return;
 		}
 		buf += o;
@@ -540,10 +514,10 @@ cupdate(Chan *c, uchar *buf, int len, vlong off)
 	}
 
 	/* try and pack data into the predecessor */
-	if(offset == ee && p->len < BY2PG) {
+	if(offset == ee && p->len < BIGPGSZ) {
 		o = len;
-		if(o > BY2PG - p->len)
-			o = BY2PG - p->len;
+		if(o > BIGPGSZ - p->len)
+			o = BIGPGSZ - p->len;
 		if(cpgmove(p, buf, p->len, o)) {
 			p->len += o;
 			buf += o;
@@ -551,7 +525,7 @@ cupdate(Chan *c, uchar *buf, int len, vlong off)
 			offset += o;
 			if(len <= 0) {
 if(f && p->start + p->len > f->start) print("CACHE: p->start=%uld p->len=%d f->start=%uld\n", p->start, p->len, f->start);
-				qunlock(m);
+				qunlock(mc);
 				return;
 			}
 		}
@@ -562,37 +536,37 @@ if(f && p->start + p->len > f->start) print("CACHE: p->start=%uld p->len=%d f->s
 		p->next = e;
 		tail->next = f;
 	}
-	qunlock(m);
+	qunlock(mc);
 }
 
 void
-cwrite(Chan* c, uchar *buf, int len, vlong off)
+cwrite(Chan* c, uint8_t *buf, int len, int64_t off)
 {
 	int o, eo;
-	Mntcache *m;
-	ulong eblock, ee;
+	Mntcache *mc;
+	uint32_t eblock, ee;
 	Extent *p, *f, *e, *tail;
-	ulong offset;
+	uint32_t offset;
 
 	if(off > maxcache || len == 0)
 		return;
 
-	m = c->mcp;
-	if(m == 0)
+	mc = c->mc;
+	if(mc == nil)
 		return;
 
-	qlock(m);
-	if(cdev(m, c) == 0) {
-		qunlock(m);
+	qlock(mc);
+	if(cdev(mc, c) == 0) {
+		qunlock(mc);
 		return;
 	}
 
 	offset = off;
-	m->qid.vers++;
+	mc->qid.vers++;
 	c->qid.vers++;
 
 	p = 0;
-	for(f = m->list; f; f = f->next) {
+	for(f = mc->list; f; f = f->next) {
 		if(f->start >= offset)
 			break;
 		p = f;
@@ -602,10 +576,10 @@ cwrite(Chan* c, uchar *buf, int len, vlong off)
 		ee = p->start+p->len;
 		eo = offset - p->start;
 		/* pack in predecessor if there is space */
-		if(offset <= ee && eo < BY2PG) {
+		if(offset <= ee && eo < BIGPGSZ) {
 			o = len;
-			if(o > BY2PG - eo)
-				o = BY2PG - eo;
+			if(o > BIGPGSZ - eo)
+				o = BIGPGSZ - eo;
 			if(cpgmove(p, buf, eo, o)) {
 				if(eo+o > p->len)
 					p->len = eo+o;
@@ -632,8 +606,8 @@ cwrite(Chan* c, uchar *buf, int len, vlong off)
 	}
 
 	if(p == 0)
-		m->list = f;
+		mc->list = f;
 	else
 		p->next = f;
-	qunlock(m);
+	qunlock(mc);
 }

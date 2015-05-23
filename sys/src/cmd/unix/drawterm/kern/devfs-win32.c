@@ -52,7 +52,7 @@ struct Ufsinfo
 	int	uid;
 	int	gid;
 	DIR*	dir;
-	ulong	offset;
+	uint32_t	offset;
 	QLock	oq;
 	char nextname[NAME_MAX];
 };
@@ -67,7 +67,7 @@ char	*base = "c:/.";
 static	Qid	fsqid(char*, struct stat *);
 static	void	fspath(Chan*, char*, char*);
 // static	void	fsperm(Chan*, int);
-static	ulong	fsdirread(Chan*, uchar*, int, ulong);
+static	uint32_t	fsdirread(Chan*, uint8_t*, int, uint32_t);
 static	int	fsomode(int);
 static  int	chown(char *path, int uid, int);
 
@@ -196,7 +196,7 @@ fswalk(Chan *c, Chan *nc, char **name, int nname)
 }
 	
 static int
-fsstat(Chan *c, uchar *buf, int n)
+fsstat(Chan *c, uint8_t *buf, int n)
 {
 	Dir d;
 	struct stat stbuf;
@@ -280,7 +280,7 @@ fsopen(Chan *c, int mode)
 }
 
 static void
-fscreate(Chan *c, char *name, int mode, ulong perm)
+fscreate(Chan *c, char *name, int mode, uint32_t perm)
 {
 	int fd, m;
 	char path[MAXPATH];
@@ -351,8 +351,8 @@ fsclose(Chan *c)
 	free(uif);
 }
 
-static long
-fsread(Chan *c, void *va, long n, vlong offset)
+static int32_t
+fsread(Chan *c, void *va, int32_t n, int64_t offset)
 {
 	int fd, r;
 	Ufsinfo *uif;
@@ -386,8 +386,8 @@ fsread(Chan *c, void *va, long n, vlong offset)
 	return n;
 }
 
-static long
-fswrite(Chan *c, void *va, long n, vlong offset)
+static int32_t
+fswrite(Chan *c, void *va, int32_t n, int64_t offset)
 {
 	int fd, r;
 	Ufsinfo *uif;
@@ -434,7 +434,7 @@ fsremove(Chan *c)
 }
 
 static int
-fswstat(Chan *c, uchar *buf, int n)
+fswstat(Chan *c, uint8_t *buf, int n)
 {
 	Dir d;
 	struct stat stbuf;
@@ -490,9 +490,9 @@ fsqid(char *p, struct stat *st)
 {
 	Qid q;
 	int dev;
-	ulong h;
+	uint32_t h;
 	static int nqdev;
-	static uchar *qdev;
+	static uint8_t *qdev;
 
 	if(qdev == 0)
 		qdev = mallocz(65536U, 1);
@@ -509,7 +509,7 @@ fsqid(char *p, struct stat *st)
 	while(*p != '\0')
 		h += *p++ * 13;
 	
-	q.path = (vlong)qdev[dev]<<32;
+	q.path = (int64_t)qdev[dev]<<32;
 	q.path |= h;
 	q.vers = st->st_mtime;
 
@@ -555,12 +555,12 @@ p9readdir(char *name, Ufsinfo *uif)
 	return readdir(name, uif->dir);
 }
 
-static ulong
-fsdirread(Chan *c, uchar *va, int count, ulong offset)
+static uint32_t
+fsdirread(Chan *c, uint8_t *va, int count, uint32_t offset)
 {
 	int i;
 	Dir d;
-	long n;
+	int32_t n;
 	char de[NAME_MAX];
 	struct stat stbuf;
 	char path[MAXPATH], dirpath[MAXPATH];
@@ -607,7 +607,7 @@ fsdirread(Chan *c, uchar *va, int count, ulong offset)
 		d.length = stbuf.st_size;
 		d.type = 'U';
 		d.dev = c->dev;
-		n = convD2M(&d, (uchar*)va+i, count-i);
+		n = convD2M(&d, (uint8_t*)va+i, count-i);
 		if(n == BIT16SZ){
 			strcpy(uif->nextname, de);
 			break;

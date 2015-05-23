@@ -37,7 +37,7 @@ struct alloc_save_s {
     vm_spaces spaces;
     bool restore_names;
     bool is_current;
-    ulong id;
+    uint32_t id;
     void *client_data;
 };
 

@@ -32,7 +32,7 @@ static Memimage *lofill[6];
 static Memimage *hifill[6];
 static Memimage *grid;
 
-static ulong fill[] = {
+static uint32_t fill[] = {
 	0xFFAAAAFF,	0xBB5D5DFF,	/* peach */
 	DPalegreygreen, DPurpleblue,	/* aqua */
 	DDarkyellow, DYellowgreen,	/* yellow */
@@ -42,7 +42,7 @@ static ulong fill[] = {
 };
 
 Memimage*
-allocrepl(ulong color)
+allocrepl(uint32_t color)
 {
 	Memimage *m;
 	

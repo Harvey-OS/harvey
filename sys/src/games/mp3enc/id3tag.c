@@ -498,7 +498,8 @@ id3tag_write_v2(lame_global_flags *gfp)
 }
 
 static unsigned char *
-set_text_field(unsigned char *field, const char *text, size_t size, int pad)
+set_text_field(unsigned char *field, const char *text, size_t size,
+               int pad)
 {
     while (size--) {
         if (text && *text) {

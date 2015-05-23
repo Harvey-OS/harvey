@@ -61,10 +61,10 @@ dumpbuf(char *buf, int nbytes, char *s)
 	print("\n");
 }
 
-static long
+static int32_t
 timedwrite(int fd, void *p, int n)
 {
-	long rv;
+	int32_t rv;
 
 	alarm(TIMEOUT);
 	rv = write(fd, p, n);
@@ -79,7 +79,7 @@ timedwrite(int fd, void *p, int n)
 static int
 readbyte(int fd)
 {
-	uchar c;
+	uint8_t c;
 	char buf[ERRMAX];
 
 	alarm(200);

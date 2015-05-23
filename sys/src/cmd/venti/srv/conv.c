@@ -17,7 +17,7 @@
 #define	U8GET(p)	((p)[0])
 #define	U16GET(p)	(((p)[0]<<8)|(p)[1])
 #define	U32GET(p)	((u32int)(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3]))
-#define	U64GET(p)	(((u64int)U32GET(p)<<32)|(u64int)U32GET((p)+4))
+#define	U64GET(p)	(((uint64_t)U32GET(p)<<32)|(uint64_t)U32GET((p)+4))
 
 #define	U8PUT(p,v)	(p)[0]=(v)&0xFF
 #define	U16PUT(p,v)	(p)[0]=((v)>>8)&0xFF;(p)[1]=(v)&0xFF
@@ -27,7 +27,7 @@
 int debugarena = -1;		/* hack to improve error reporting */
 
 static struct {
-	u32int m;
+	uint32_t m;
 	char *s;
 } magics[] = {
 	ArenaPartMagic, "ArenaPartMagic",
@@ -38,7 +38,7 @@ static struct {
 };
 
 static char*
-fmtmagic(char *s, u32int m)
+fmtmagic(char *s, uint32_t m)
 {
 	int i;
 
@@ -49,23 +49,23 @@ fmtmagic(char *s, u32int m)
 	return s;
 }
 
-u32int
-unpackmagic(u8int *buf)
+uint32_t
+unpackmagic(uint8_t *buf)
 {
 	return U32GET(buf);
 }
 
 void
-packmagic(u32int magic, u8int *buf)
+packmagic(uint32_t magic, uint8_t *buf)
 {
 	U32PUT(buf, magic);
 }
 
 int
-unpackarenapart(ArenaPart *ap, u8int *buf)
+unpackarenapart(ArenaPart *ap, uint8_t *buf)
 {
-	u8int *p;
-	u32int m;
+	uint8_t *p;
+	uint32_t m;
 	char fbuf[20];
 
 	p = buf;
@@ -90,9 +90,9 @@ unpackarenapart(ArenaPart *ap, u8int *buf)
 }
 
 int
-packarenapart(ArenaPart *ap, u8int *buf)
+packarenapart(ArenaPart *ap, uint8_t *buf)
 {
-	u8int *p;
+	uint8_t *p;
 
 	p = buf;
 
@@ -112,11 +112,11 @@ packarenapart(ArenaPart *ap, u8int *buf)
 }
 
 int
-unpackarena(Arena *arena, u8int *buf)
+unpackarena(Arena *arena, uint8_t *buf)
 {
 	int sz;
-	u8int *p;
-	u32int m;
+	uint8_t *p;
+	uint32_t m;
 	char fbuf[20];
 
 	p = buf;
@@ -220,24 +220,25 @@ unpackarena(Arena *arena, u8int *buf)
 }
 
 int
-packarena(Arena *arena, u8int *buf)
+packarena(Arena *arena, uint8_t *buf)
 {
 	return _packarena(arena, buf, 0);
 }
 
 int
-_packarena(Arena *arena, u8int *buf, int forceext)
+_packarena(Arena *arena, uint8_t *buf, int forceext)
 {
 	int sz;
-	u8int *p;
-	u32int t32;
+	uint8_t *p;
+	uint32_t t32;
 
 	switch(arena->version){
 	case ArenaVersion4:
 		sz = ArenaSize4;
 		if(arena->clumpmagic != _ClumpMagic)
 			fprint(2, "warning: writing old arena tail loses clump magic 0x%lux != 0x%lux\n",
-				(ulong)arena->clumpmagic, (ulong)_ClumpMagic);
+				(uint32_t)arena->clumpmagic,
+			       (uint32_t)_ClumpMagic);
 		break;
 	case ArenaVersion5:
 		sz = ArenaSize5;
@@ -310,10 +311,10 @@ _packarena(Arena *arena, u8int *buf, int forceext)
 }
 
 int
-unpackarenahead(ArenaHead *head, u8int *buf)
+unpackarenahead(ArenaHead *head, uint8_t *buf)
 {
-	u8int *p;
-	u32int m;
+	uint8_t *p;
+	uint32_t m;
 	int sz;
 	char fbuf[20];
 
@@ -361,18 +362,19 @@ unpackarenahead(ArenaHead *head, u8int *buf)
 }
 
 int
-packarenahead(ArenaHead *head, u8int *buf)
+packarenahead(ArenaHead *head, uint8_t *buf)
 {
-	u8int *p;
+	uint8_t *p;
 	int sz;
-	u32int t32;
+	uint32_t t32;
 
 	switch(head->version){
 	case ArenaVersion4:
 		sz = ArenaHeadSize4;
 		if(head->clumpmagic != _ClumpMagic)
 			fprint(2, "warning: writing old arena header loses clump magic 0x%lux != 0x%lux\n",
-				(ulong)head->clumpmagic, (ulong)_ClumpMagic);
+				(uint32_t)head->clumpmagic,
+			       (uint32_t)_ClumpMagic);
 		break;
 	case ArenaVersion5:
 		sz = ArenaHeadSize5;
@@ -426,10 +428,10 @@ checkclump(Clump *w)
 }
 
 int
-unpackclump(Clump *c, u8int *buf, u32int cmagic)
+unpackclump(Clump *c, uint8_t *buf, uint32_t cmagic)
 {
-	u8int *p;
-	u32int magic;
+	uint8_t *p;
+	uint32_t magic;
 
 	p = buf;
 	magic = U32GET(p);
@@ -462,9 +464,9 @@ unpackclump(Clump *c, u8int *buf, u32int cmagic)
 }
 
 int
-packclump(Clump *c, u8int *buf, u32int magic)
+packclump(Clump *c, uint8_t *buf, uint32_t magic)
 {
-	u8int *p;
+	uint8_t *p;
 
 	p = buf;
 	U32PUT(p, magic);
@@ -493,9 +495,9 @@ packclump(Clump *c, u8int *buf, u32int magic)
 }
 
 void
-unpackclumpinfo(ClumpInfo *ci, u8int *buf)
+unpackclumpinfo(ClumpInfo *ci, uint8_t *buf)
 {
-	u8int *p;
+	uint8_t *p;
 
 	p = buf;
 	ci->type = vtfromdisktype(U8GET(p));
@@ -512,9 +514,9 @@ unpackclumpinfo(ClumpInfo *ci, u8int *buf)
 }
 
 void
-packclumpinfo(ClumpInfo *ci, u8int *buf)
+packclumpinfo(ClumpInfo *ci, uint8_t *buf)
 {
-	u8int *p;
+	uint8_t *p;
 
 	p = buf;
 	U8PUT(p, vttodisktype(ci->type));
@@ -531,10 +533,10 @@ packclumpinfo(ClumpInfo *ci, u8int *buf)
 }
 
 int
-unpackisect(ISect *is, u8int *buf)
+unpackisect(ISect *is, uint8_t *buf)
 {
-	u8int *p;
-	u32int m;
+	uint8_t *p;
+	uint32_t m;
 	char fbuf[20];
 
 	p = buf;
@@ -577,9 +579,9 @@ unpackisect(ISect *is, u8int *buf)
 }
 
 int
-packisect(ISect *is, u8int *buf)
+packisect(ISect *is, uint8_t *buf)
 {
-	u8int *p;
+	uint8_t *p;
 
 	p = buf;
 
@@ -614,9 +616,9 @@ packisect(ISect *is, u8int *buf)
 }
 
 void
-unpackientry(IEntry *ie, u8int *buf)
+unpackientry(IEntry *ie, uint8_t *buf)
 {
-	u8int *p;
+	uint8_t *p;
 
 	p = buf;
 
@@ -645,10 +647,10 @@ if(ie->ia.addr>>56) print("%.8H => %llux\n", p, ie->ia.addr);
 }
 
 void
-packientry(IEntry *ie, u8int *buf)
+packientry(IEntry *ie, uint8_t *buf)
 {
-	u32int t32;
-	u8int *p;
+	uint32_t t32;
+	uint8_t *p;
 
 	p = buf;
 
@@ -672,7 +674,7 @@ packientry(IEntry *ie, u8int *buf)
 }
 
 void
-unpackibucket(IBucket *b, u8int *buf, u32int magic)
+unpackibucket(IBucket *b, uint8_t *buf, uint32_t magic)
 {
 	b->n = U16GET(buf);
 	b->data = buf + IBucketSize;
@@ -681,16 +683,16 @@ unpackibucket(IBucket *b, u8int *buf, u32int magic)
 }		
 
 void
-packibucket(IBucket *b, u8int *buf, u32int magic)
+packibucket(IBucket *b, uint8_t *buf, uint32_t magic)
 {
 	U16PUT(buf, b->n);
 	U32PUT(buf+U16Size, magic);
 }
 
 void
-packbloomhead(Bloom *b, u8int *buf)
+packbloomhead(Bloom *b, uint8_t *buf)
 {
-	u8int *p;
+	uint8_t *p;
 
 	p = buf;
 	U32PUT(p, BloomMagic);
@@ -700,17 +702,18 @@ packbloomhead(Bloom *b, u8int *buf)
 }
 
 int
-unpackbloomhead(Bloom *b, u8int *buf)
+unpackbloomhead(Bloom *b, uint8_t *buf)
 {
-	u8int *p;
-	u32int m;
+	uint8_t *p;
+	uint32_t m;
 	char fbuf[20];
 
 	p = buf;
 
 	m = U32GET(p);
 	if(m != BloomMagic){
-		seterr(ECorrupt, "bloom filter has wrong magic number: %s expected BloomMagic (%#lux)", fmtmagic(fbuf, m), (ulong)BloomMagic);
+		seterr(ECorrupt, "bloom filter has wrong magic number: %s expected BloomMagic (%#lux)", fmtmagic(fbuf, m),
+		       (uint32_t)BloomMagic);
 		return -1;
 	}
 	p += U32Size;

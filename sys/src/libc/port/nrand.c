@@ -15,7 +15,7 @@
 int
 nrand(int n)
 {
-	long slop, v;
+	int32_t slop, v;
 
 	if(n < 0)
 		return n;

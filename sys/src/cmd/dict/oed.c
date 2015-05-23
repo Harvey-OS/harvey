@@ -1020,7 +1020,7 @@ oedprintentry(Entry e, int cmd)
 {
 	char *p, *pe;
 	int t, a, i;
-	long r, rprev, rlig;
+	int32_t r, rprev, rlig;
 	Rune *transtab;
 
 	p = e.start;
@@ -1210,10 +1210,10 @@ oedprintentry(Entry e, int cmd)
  * Return offset into bdict where next oed entry after fromoff starts.
  * Oed entries start with <e>, <ve>, <e st=...>, or <ve st=...>
  */
-long
-oednextoff(long fromoff)
+int32_t
+oednextoff(int32_t fromoff)
 {
-	long a, n;
+	int32_t a, n;
 	int c;
 
 	a = Bseek(bdict, fromoff, 0);

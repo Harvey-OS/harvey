@@ -325,7 +325,7 @@ chgtime(char *name)
 
 	if(access(name, AEXIST) >= 0) {
 		nulldir(&sbuf);
-		sbuf.mtime = time((long *)0);
+		sbuf.mtime = time((int32_t *)0);
 		return dirwstat(name, &sbuf);
 	}
 	return close(create(name, OWRITE, 0666));
@@ -355,7 +355,7 @@ void
 dirtime(char *dir, char *path)
 {
 	int i, fd, n;
-	ulong mtime;
+	uint32_t mtime;
 	Dir *d;
 	char buf[4096];
 
@@ -404,12 +404,12 @@ bulkmtime(char *dir)
 	dirtime(s, buf);
 }
 
-ulong
+uint32_t
 mkmtime(char *name, int force)
 {
 	Dir *d;
 	char *s, *ss, carry;
-	ulong t;
+	uint32_t t;
 	Symtab *sym;
 	char buf[4096];
 

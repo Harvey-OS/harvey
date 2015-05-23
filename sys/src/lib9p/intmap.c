@@ -21,7 +21,7 @@ enum {
 typedef struct Intlist	Intlist;
 struct Intlist
 {
-	ulong	id;
+	uint32_t	id;
 	void*	aux;
 	Intlist*	link;
 };
@@ -33,14 +33,14 @@ struct Intmap
 	void (*inc)(void*);
 };
 
-static ulong
-hashid(ulong id)
+static uint32_t
+hashid(uint32_t id)
 {
 	return id%NHASH;
 }
 
 static void
-nop(void*)
+nop(void* v)
 {
 }
 
@@ -76,7 +76,7 @@ freemap(Intmap *map, void (*destroy)(void*))
 }
 
 static Intlist**
-llookup(Intmap *map, ulong id)
+llookup(Intmap *map, uint32_t id)
 {
 	Intlist **lf;
 
@@ -93,7 +93,7 @@ llookup(Intmap *map, ulong id)
  * Inc() is expected to have its own locking.
  */
 void*
-lookupkey(Intmap *map, ulong id)
+lookupkey(Intmap *map, uint32_t id)
 {
 	Intlist *f;
 	void *v;
@@ -109,11 +109,11 @@ lookupkey(Intmap *map, ulong id)
 }
 
 void*
-insertkey(Intmap *map, ulong id, void *v)
+insertkey(Intmap *map, uint32_t id, void *v)
 {
 	Intlist *f;
 	void *ov;
-	ulong h;
+	uint32_t h;
 
 	wlock(map);
 	if(f = *llookup(map, id)){
@@ -134,11 +134,11 @@ insertkey(Intmap *map, ulong id, void *v)
 }
 
 int
-caninsertkey(Intmap *map, ulong id, void *v)
+caninsertkey(Intmap *map, uint32_t id, void *v)
 {
 	Intlist *f;
 	int rv;
-	ulong h;
+	uint32_t h;
 
 	wlock(map);
 	if(*llookup(map, id))
@@ -157,7 +157,7 @@ caninsertkey(Intmap *map, ulong id, void *v)
 }
 
 void*
-deletekey(Intmap *map, ulong id)
+deletekey(Intmap *map, uint32_t id)
 {
 	Intlist **lf, *f;
 	void *ov;

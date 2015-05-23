@@ -10,16 +10,16 @@
 #include <u.h>
 #include <libc.h>
 
-static uvlong order = (uvlong) 0x0001020304050607ULL;
+static uint64_t order = (uint64_t) 0x0001020304050607ULL;
 
 static void
-be2vlong(vlong *to, uchar *f)
+be2vlong(int64_t *to, uint8_t *f)
 {
-	uchar *t, *o;
+	uint8_t *t, *o;
 	int i;
 
-	t = (uchar*)to;
-	o = (uchar*)&order;
+	t = (uint8_t*)to;
+	o = (uint8_t*)&order;
 	for(i = 0; i < 8; i++)
 		t[o[i]] = f[i];
 }
@@ -33,14 +33,14 @@ be2vlong(vlong *to, uchar *f)
  *  Since the bintime version doesn't need a seek, it doesn't
  *  have the loop.
  */
-vlong
+int64_t
 nsec(void)
 {
 	char b[12+1];
 	static int f = -1;
 	static int usebintime;
 	int retries;
-	vlong t;
+	int64_t t;
 
 	if(f < 0){
 		usebintime = 1;
@@ -54,9 +54,9 @@ nsec(void)
 	}
 
 	if(usebintime){
-		if(read(f, b, sizeof(uvlong)) < 0)
+		if(read(f, b, sizeof(uint64_t)) < 0)
 			goto error;
-		be2vlong(&t, (uchar*)b);
+		be2vlong(&t, (uint8_t*)b);
 		return t;
 	} else {
 		for(retries = 0; retries < 100; retries++){

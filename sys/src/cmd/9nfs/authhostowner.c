@@ -13,8 +13,8 @@ enum {
 	ARgiveup = 100,
 };
 
-static uchar*
-gstring(uchar *p, uchar *ep, char **s)
+static uint8_t*
+gstring(uint8_t *p, uint8_t *ep, char **s)
 {
 	uint n;
 
@@ -33,8 +33,8 @@ gstring(uchar *p, uchar *ep, char **s)
 	return p;
 }
 
-static uchar*
-gcarray(uchar *p, uchar *ep, uchar **s, int *np)
+static uint8_t*
+gcarray(uint8_t *p, uint8_t *ep, uint8_t **s, int *np)
 {
 	uint n;
 
@@ -55,10 +55,10 @@ gcarray(uchar *p, uchar *ep, uchar **s, int *np)
 	return p;
 }
 
-static uchar*
-convM2AI(uchar *p, int n, AuthInfo **aip)
+static uint8_t*
+convM2AI(uint8_t *p, int n, AuthInfo **aip)
 {
-	uchar *e = p+n;
+	uint8_t *e = p+n;
 	AuthInfo *ai;
 
 	ai = mallocz(sizeof(*ai), 1);
@@ -120,7 +120,8 @@ dowrite(Session *s, Fid *f, void *buf, int n)
  *  this just proxies what the factotum tells it to.
  */
 AuthInfo*
-authproto(Session *s, Fid *f, AuthRpc *rpc, AuthGetkey *getkey, char *params)
+authproto(Session *s, Fid *f, AuthRpc *rpc, AuthGetkey *getkey,
+	  char *params)
 {
 	char *buf;
 	int m, n, ret;

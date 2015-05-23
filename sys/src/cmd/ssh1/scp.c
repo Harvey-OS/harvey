@@ -46,7 +46,8 @@ void	mustbedir(char*);
 void	receive(char*);
 char	*fileaftercolon(char*);
 void	destislocal(char *cmd, int argc, char *argv[], char *dest);
-void	destisremote(char *cmd, int argc, char *argv[], char *host, char *dest);
+void	destisremote(char *cmd, int argc, char *argv[],
+			 char *host, char *dest);
 int	remotessh(char *host, char *cmd);
 void	send(char*);
 void	senddir(char*, int, Dir*);
@@ -288,7 +289,8 @@ destislocal(char *cmd, int argc, char *argv[], char *dst)
 }
 
 void
-destisremote(char *cmd, int argc, char *argv[], char *host, char *dest)
+destisremote(char *cmd, int argc, char *argv[], char *host,
+	     char *dest)
 {
 	int i;
 	char *src;
@@ -342,7 +344,8 @@ readhdr(char *p, int n)
 }
 
 Dir *
-receivedir(char *dir, int exists, Dir *d, int settimes, ulong atime, ulong mtime, ulong mode)
+receivedir(char *dir, int exists, Dir *d, int settimes, uint32_t atime,
+	   uint32_t mtime, uint32_t mode)
 {
 	Dir nd;
 	int setmodes;
@@ -397,7 +400,7 @@ receive(char *dest)
 	int isdir, settimes, mode;
 	int exists, n, i, fd, m;
 	int errors;
-	ulong atime, mtime, size;
+	uint32_t atime, mtime, size;
 	char buf[8192], *p;
 	char name[1024];
 	Dir *d;
@@ -564,7 +567,7 @@ void
 send(char *file)
 {
 	Dir *d;
-	ulong i;
+	uint32_t i;
 	int m, n, fd;
 	char buf[8192];
 
@@ -631,7 +634,7 @@ send(char *file)
 int
 getresponse(void)
 {
-	uchar first, byte, buf[256];
+	uint8_t first, byte, buf[256];
 	int i;
 
 	if (read(remotefd0, &first, 1) != 1)

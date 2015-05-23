@@ -18,7 +18,7 @@ static int	screenid;
 Screen*
 allocscreen(Image *image, Image *fill, int public)
 {
-	uchar *a;
+	uint8_t *a;
 	Screen *s;
 	int id, try;
 	Display *d;
@@ -58,9 +58,9 @@ allocscreen(Image *image, Image *fill, int public)
 }
 
 Screen*
-publicscreen(Display *d, int id, ulong chan)
+publicscreen(Display *d, int id, uint32_t chan)
 {
-	uchar *a;
+	uint8_t *a;
 	Screen *s;
 
 	s = malloc(sizeof(Screen));
@@ -88,7 +88,7 @@ publicscreen(Display *d, int id, ulong chan)
 int
 freescreen(Screen *s)
 {
-	uchar *a;
+	uint8_t *a;
 	Display *d;
 
 	if(s == 0)
@@ -110,13 +110,13 @@ freescreen(Screen *s)
 }
 
 Image*
-allocwindow(Screen *s, Rectangle r, int ref, ulong val)
+allocwindow(Screen *s, Rectangle r, int ref, uint32_t val)
 {
 	return _allocwindow(nil, s, r, ref, val);
 }
 
 Image*
-_allocwindow(Image *i, Screen *s, Rectangle r, int ref, ulong val)
+_allocwindow(Image *i, Screen *s, Rectangle r, int ref, uint32_t val)
 {
 	Display *d;
 
@@ -135,7 +135,7 @@ void
 topbottom(Image **w, int n, int top)
 {
 	int i;
-	uchar *b;
+	uint8_t *b;
 	Display *d;
 
 	if(n < 0){
@@ -201,7 +201,7 @@ topnwindows(Image **w, int n)
 int
 originwindow(Image *w, Point log, Point scr)
 {
-	uchar *b;
+	uint8_t *b;
 	Point delta;
 
 	flushimage(w->display, 0);

@@ -77,7 +77,7 @@ int
 bnum(Bits a)
 {
 	int i;
-	long b;
+	int32_t b;
 
 	for(i=0; i<BITS; i++)
 		if(b = a.b[i])

@@ -13,7 +13,7 @@
 #include <fcall.h>
 #include "../boot/boot.h"
 
-static long lusertime(char*);
+static int32_t lusertime(char*);
 
 char *timeserver = "#s/boot";
 
@@ -21,13 +21,12 @@ void
 settime(int islocal, int afd, char *rp)
 {
 	int n, f;
+	int timeset;
 	Dir dir[2];
 	char timebuf[64];
-	static int timeset;
 
-	if(timeset)
-		return;
 	print("time...");
+	timeset = 0;
 	if(islocal){
 		/*
 		 *  set the time from the real time clock
@@ -113,11 +112,11 @@ yrsize(int y)
 /*
  *  compute seconds since Jan 1 1970
  */
-static long
+static int32_t
 lusertime(char *argbuf)
 {
 	char *buf;
-	ulong secs;
+	uint32_t secs;
 	int i, y, m;
 	int *d2m;
 

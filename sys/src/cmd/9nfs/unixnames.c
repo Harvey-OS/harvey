@@ -26,7 +26,7 @@ Unixscmap *scmap;
  * We keep a cache of host names in getdom.
  */
 Unixidmap *
-pair2idmap(char *server, ulong clientip)
+pair2idmap(char *server, uint32_t clientip)
 {
 	Resub match;
 	Unixscmap *m, *mp;

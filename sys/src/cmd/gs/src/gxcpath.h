@@ -129,7 +129,7 @@ void gx_make_clip_translate_device(gx_device_clip * dev,
 void gx_make_clip_path_device(gx_device_clip *, const gx_clip_path *);
 
 #define clip_rect_print(ch, str, ar)\
-  if_debug7(ch, "[%c]%s 0x%lx: (%d,%d),(%d,%d)\n", ch, str, (ulong)ar,\
+  if_debug7(ch, "[%c]%s 0x%lx: (%d,%d),(%d,%d)\n", ch, str, (uint32_t)ar,\
 	    (ar)->xmin, (ar)->ymin, (ar)->xmax, (ar)->ymax)
 
 /* Exported by gxcpath.c for gxacpath.c */

@@ -30,7 +30,7 @@ Procmap mntproc[] = {
 	0, 0
 };
 
-long		starttime;
+int32_t		starttime;
 static int	noauth;
 char *		config;
 Session *	head;
@@ -38,7 +38,7 @@ Session *	tail;
 int staletime = 10*60;
 
 void
-mnttimer(long now)
+mnttimer(int32_t now)
 {
 	Session *s;
 
@@ -208,8 +208,8 @@ mntmnt(int n, Rpccall *cmd, Rpccall *reply)
 {
 	int i;
 	char dom[64];
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 	Authunix au;
 	Xfile *xp;
 	String root;
@@ -218,7 +218,7 @@ mntmnt(int n, Rpccall *cmd, Rpccall *reply)
 	if(n < 8)
 		return garbage(reply, "n too small");
 	argptr += string2S(argptr, &root);
-	if(argptr != &((uchar *)cmd->args)[n])
+	if(argptr != &((uint8_t *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	clog("host=%I, port=%ld, root=\"%.*s\"...",
 		cmd->host, cmd->port, utfnlen(root.s, root.n), root.s);
@@ -226,7 +226,7 @@ mntmnt(int n, Rpccall *cmd, Rpccall *reply)
 		chat("auth flavor=%ld, count=%ld\n",
 			cmd->cred.flavor, cmd->cred.count);
 		for(i=0; i<cmd->cred.count; i++)
-			chat(" %.2ux", ((uchar *)cmd->cred.data)[i]);
+			chat(" %.2ux", ((uint8_t *)cmd->cred.data)[i]);
 		chat("\n");
 		clog("auth: bad credentials");
 		return error(reply, 1);
@@ -251,7 +251,7 @@ mntmnt(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(0);
 	dataptr += xp2fhandle(xp, dataptr);
 	chat("OK\n");
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
@@ -287,7 +287,7 @@ mntumntall(int n, Rpccall *cmd, Rpccall *reply)
 static int
 mntexport(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *dataptr = reply->results;
+	uint8_t *dataptr = reply->results;
 	Authunix au;
 	int i;
 
@@ -298,7 +298,7 @@ mntexport(int n, Rpccall *cmd, Rpccall *reply)
 		chat("auth flavor=%ld, count=%ld\n",
 			cmd->cred.flavor, cmd->cred.count);
 		for(i=0; i<cmd->cred.count; i++)
-			chat(" %.2ux", ((uchar *)cmd->cred.data)[i]);
+			chat(" %.2ux", ((uint8_t *)cmd->cred.data)[i]);
 		chat("...");
 		au.mach.n = 0;
 	}else
@@ -314,7 +314,7 @@ mntexport(int n, Rpccall *cmd, Rpccall *reply)
 	PLONG(FALSE);
 	PLONG(FALSE);
 	chat("OK\n");
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 Xfile *

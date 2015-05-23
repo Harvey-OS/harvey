@@ -81,7 +81,7 @@ private int
 z11_CIDMap_proc(gs_font_cid2 *pfont, gs_glyph glyph)
 {
     const ref *pcidmap = &pfont_data(pfont)->u.type42.CIDMap;
-    ulong cid = glyph - gs_min_cid_glyph;
+    uint32_t cid = glyph - gs_min_cid_glyph;
     int gdbytes = pfont->cidata.common.GDBytes;
     int gnum = 0;
     const byte *data;

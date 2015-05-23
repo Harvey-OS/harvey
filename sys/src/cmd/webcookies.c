@@ -877,7 +877,8 @@ skipvalue(char *s, int isns)
  *	path=/; domain=.nytimes.com
  */
 char*
-parsecookie(Cookie *c, char *p, char **e, int isns, char *dom, char *path)
+parsecookie(Cookie *c, char *p, char **e, int isns, char *dom,
+	    char *path)
 {
 	int i, done;
 	char *t, *u, *attr, *val;

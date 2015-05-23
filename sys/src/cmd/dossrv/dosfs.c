@@ -314,7 +314,9 @@ mk8dot3name(Xfile *f, Dosptr *ndp, char *name, char *sname)
  * fill in a directory entry for a new file
  */
 static int
-mkdentry(Xfs *xf, Dosptr *ndp, char *name, char *sname, int longtype, int nattr, long start, long length)
+mkdentry(Xfs *xf, Dosptr *ndp, char *name, char *sname, int longtype,
+	 int nattr,
+	 int32_t start, int32_t length)
 {
 	Dosdir *nd;
 
@@ -358,7 +360,7 @@ rcreate(void)
 	Iosect *xp;
 	Dosdir *pd, *xd;
 	char sname[13];
-	long start;
+	int32_t start;
 	int longtype, attr, omode, nattr;
 
 	f = xfile(req->fid, Asis);
@@ -717,8 +719,8 @@ rwstat(void)
 	Iosect *parp;
 	Dosdir *pard, *d, od;
 	char sname[13];
-	ulong oaddr, ooffset;
-	long start, length;
+	uint32_t oaddr, ooffset;
+	int32_t start, length;
 	int i, longtype, changes, attr;
 
 	f = xfile(req->fid, Asis);

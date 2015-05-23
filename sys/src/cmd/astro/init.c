@@ -112,7 +112,7 @@ setobj(Obj1 *op)
 	p->mag = mag;
 }
 
-long	starsao = 0;
+int32_t	starsao = 0;
 
 void
 fstar(void)

@@ -31,7 +31,7 @@ extern Lextok	*Mtype;
 extern int	verbose, TstOnly, s_trail, analyze, columns;
 extern int	lineno, depth, xspin, m_loss, jumpsteps;
 extern int	nproc, nstop;
-extern short	Have_claim;
+extern int16_t	Have_claim;
 
 Queue	*qtab = (Queue *) 0;	/* linked list of queues */
 Queue	*ltab[MAXQ];		/* linear list of queues */

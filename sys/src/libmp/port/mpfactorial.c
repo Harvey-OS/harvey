@@ -13,10 +13,10 @@
 #include "dat.h"
 
 mpint*
-mpfactorial(ulong n)
+mpfactorial(uint32_t n)
 {
 	int i;
-	ulong k;
+	uint32_t k;
 	unsigned cnt;
 	int max, mmax;
 	mpdigit p, pp[2];

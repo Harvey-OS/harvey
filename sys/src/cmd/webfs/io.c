@@ -20,7 +20,7 @@
 #include "dat.h"
 #include "fns.h"
 
-static long
+static int32_t
 _iovfprint(va_list *arg)
 {
 	int fd;
@@ -51,7 +51,7 @@ ioprint(Ioproc *io, int fd, char *fmt, ...)
 	return n;
 }
 
-static long
+static int32_t
 _iotlsdial(va_list *arg)
 {
 	char *addr, *local, *dir;
@@ -87,7 +87,8 @@ _iotlsdial(va_list *arg)
 }
 
 int
-iotlsdial(Ioproc *io, char *addr, char *local, char *dir, int *cfdp, int usetls)
+iotlsdial(Ioproc *io, char *addr, char *local, char *dir, int *cfdp,
+	  int usetls)
 {
 	return iocall(io, _iotlsdial, addr, local, dir, cfdp, usetls);
 }

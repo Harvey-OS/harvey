@@ -23,7 +23,7 @@ char *deftileset= MJDIR "tilesets/default.tileset";
 char *defbackgr = MJDIR "backgrounds/default.bit";
 char *deflayout = MJDIR "layouts/default.layout";
 
-ulong defchan;
+uint32_t defchan;
 int trace;
 
 char *buttons[] =

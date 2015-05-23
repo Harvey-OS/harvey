@@ -33,7 +33,7 @@ enum {
 };
 
 typedef struct{
-	uchar	ea[Eaddrlen];
+	uint8_t	ea[Eaddrlen];
 	int	major;
 	char	name[28];
 } Shelf;
@@ -57,11 +57,11 @@ char	pflag;
 int	ntab;
 int	shelf = -1;
 
-uchar	bcast[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-uchar	contag;
-uchar 	esc = '';
-uchar	ea[Eaddrlen];
-uchar	unsetea[Eaddrlen];
+uint8_t	bcast[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+uint8_t	contag;
+uint8_t 	esc = '';
+uint8_t	ea[Eaddrlen];
+uint8_t	unsetea[Eaddrlen];
 
 extern 	int fd;		/* set in netopen */
 
@@ -123,7 +123,7 @@ catch(void*, char *note)
 }
 
 int
-nilea(uchar *ea)
+nilea(uint8_t *ea)
 {
 	return memcmp(ea, unsetea, Eaddrlen) == 0;
 }
@@ -215,26 +215,26 @@ didtimeout(void)
 	return 0;
 }
 
-ushort
-htons(ushort h)
+uint16_t
+htons(uint16_t h)
 {
-	ushort n;
-	uchar *p;
+	uint16_t n;
+	uint8_t *p;
 
-	p = (uchar*)&n;
+	p = (uint8_t*)&n;
 	p[0] = h >> 8;
 	p[1] = h;
 	return n;
 }
 
-ushort
+uint16_t
 ntohs(int h)
 {
-	ushort n;
-	uchar *p;
+	uint16_t n;
+	uint8_t *p;
 
 	n = h;
-	p = (uchar*)&n;
+	p = (uint8_t*)&n;
 	return p[0] << 8 | p[1];
 }
 
@@ -426,10 +426,10 @@ escape(void)
 /*
  * this is a bit too aggressive.  it really needs to replace only \n\r with \n.
  */
-static uchar crbuf[256];
+static uint8_t crbuf[256];
 
 void
-nocrwrite(int fd, uchar *buf, int n)
+nocrwrite(int fd, uint8_t *buf, int n)
 {
 	int i, j, c;
 
@@ -444,8 +444,8 @@ int
 doloop(void)
 {
 	int unacked, retries, set[2];
-	uchar c, tseq, rseq;
-	uchar ea[Eaddrlen];
+	uint8_t c, tseq, rseq;
+	uint8_t ea[Eaddrlen];
 	Pkt tpk, spk;
 	Mux *m;
 

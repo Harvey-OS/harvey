@@ -143,7 +143,8 @@ search_separator(const char **ip, const char *ipe, const char *item, int directi
  *		"\\server\share/a/y.z/v.v"
  */
 gp_file_name_combine_result
-gp_file_name_combine_generic(const char *prefix, uint plen, const char *fname, uint flen, 
+gp_file_name_combine_generic(const char *prefix, uint plen,
+                             const char *fname, uint flen, 
 		    bool no_sibling, char *buffer, uint *blen)
 {
     /*
@@ -320,7 +321,8 @@ gp_file_name_combine_generic(const char *prefix, uint plen, const char *fname, u
  *
  */
 gp_file_name_combine_result
-gp_file_name_reduce(const char *fname, uint flen, char *buffer, uint *blen)
+gp_file_name_reduce(const char *fname, uint flen, char *buffer,
+                    uint *blen)
 {
     return gp_file_name_combine(fname, flen, fname + flen, 0, false, buffer, blen);
 }

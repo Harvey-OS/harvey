@@ -31,18 +31,21 @@ int	deflate(void *wr, int (*w)(void*, void*, int), void *rr, int (*r)(void*, voi
 int	inflateinit(void);
 int	inflate(void *wr, int (*w)(void*, void*, int), void *getr, int (*get)(void*));
 
-int	inflateblock(uchar *dst, int dsize, uchar *src, int ssize);
-int	deflateblock(uchar *dst, int dsize, uchar *src, int ssize, int level, int debug);
+int	inflateblock(uint8_t *dst, int dsize, uint8_t *src, int ssize);
+int	deflateblock(uint8_t *dst, int dsize, uint8_t *src, int ssize,
+			int level, int debug);
 
 int	deflatezlib(void *wr, int (*w)(void*, void*, int), void *rr, int (*r)(void*, void*, int), int level, int debug);
 int	inflatezlib(void *wr, int (*w)(void*, void*, int), void *getr, int (*get)(void*));
 
-int	inflatezlibblock(uchar *dst, int dsize, uchar *src, int ssize);
-int	deflatezlibblock(uchar *dst, int dsize, uchar *src, int ssize, int level, int debug);
+int	inflatezlibblock(uint8_t *dst, int dsize, uint8_t *src,
+			    int ssize);
+int	deflatezlibblock(uint8_t *dst, int dsize, uint8_t *src,
+			    int ssize, int level, int debug);
 
 char	*flateerr(int err);
 
-ulong	*mkcrctab(ulong);
-ulong	blockcrc(ulong *tab, ulong crc, void *buf, int n);
+uint32_t	*mkcrctab(uint32_t);
+uint32_t	blockcrc(uint32_t *tab, uint32_t crc, void *buf, int n);
 
-ulong	adler32(ulong adler, void *buf, int n);
+uint32_t	adler32(uint32_t adler, void *buf, int n);

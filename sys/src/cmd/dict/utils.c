@@ -247,11 +247,11 @@ static int	ntt;
  * Look for key in tab, and return corresponding val
  * or -1 if not there
  */
-long
+int32_t
 lookassoc(Assoc *tab, int n, char *key)
 {
 	Assoc *q;
-	long i, low, high;
+	int32_t i, low, high;
 	int r;
 
 	for(low = -1, high = n; high > low+1; ){
@@ -267,11 +267,11 @@ lookassoc(Assoc *tab, int n, char *key)
 	return -1;
 }
 
-long
-looknassoc(Nassoc *tab, int n, long key)
+int32_t
+looknassoc(Nassoc *tab, int n, int32_t key)
 {
 	Nassoc *q;
-	long i, low, high;
+	int32_t i, low, high;
 
 	for(low = -1, high = n; high > low+1; ){
 		i = (high+low)/2;
@@ -303,7 +303,7 @@ err(char *fmt, ...)
  * and breaking the lines (at blanks) when they get too long
  */
 void
-outrune(long r)
+outrune(int32_t r)
 {
 	if(outinhibit)
 		return;
@@ -489,11 +489,11 @@ runescpy(Rune *to, Rune *from)
 /*
  * Conversion of unsigned number to long, no overflow detection
  */
-long
+int32_t
 runetol(Rune *r)
 {
 	int c;
-	long n;
+	int32_t n;
 
 	n = 0;
 	for(;; r++){

@@ -168,7 +168,7 @@ combinerect(Rectangle *r1, Rectangle r2)
 		r1->max.y = r2.max.y;
 }
 
-ulong
+uint32_t
 drawld2chan[] = {
 	GREY1,
 	GREY2,
@@ -178,8 +178,8 @@ drawld2chan[] = {
 
 int log2[] = { -1, 0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4, -1, -1, -1, -1, -1, -1, -1, 4 /* BUG */, -1, -1, -1, -1, -1, -1, -1, 5 };
 
-ulong
-setalpha(ulong color, uchar alpha)
+uint32_t
+setalpha(uint32_t color, uint8_t alpha)
 {
 	int red, green, blue;
 

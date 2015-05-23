@@ -80,7 +80,7 @@ ireclaim(gs_dual_memory_t * dmem, int space)
 	mem = dmem->spaces_indexed[space >> r_space_shift];
     }
     if_debug3('0', "[0]GC called, space=%d, requestor=%d, requested=%ld\n",
-	      space, mem->space, (long)mem->gc_status.requested);
+	      space, mem->space, (int32_t)mem->gc_status.requested);
     global = mem->space != avm_local;
     /* Since dmem may move, reset the request now. */
     ialloc_reset_requested(dmem);
@@ -88,7 +88,7 @@ ireclaim(gs_dual_memory_t * dmem, int space)
     ialloc_set_limit(mem);
     if (space < 0) {
 	gs_memory_status_t stats;
-	ulong allocated;
+	uint32_t allocated;
 
 	/* If the ammount still allocated after the GC is complete */
 	/* exceeds the max_vm setting, then return a VMerror       */

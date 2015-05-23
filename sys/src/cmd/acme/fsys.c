@@ -110,7 +110,7 @@ struct Mnt
 Mnt	mnt;
 
 Xfid*	respond(Xfid*, Fcall*, char*);
-int		dostat(int, Dirtab*, uchar*, int, uint);
+int		dostat(int, Dirtab*, uint8_t*, int, uint);
 uint	getclock(void);
 
 char	*user = "Wile E. Coyote";
@@ -152,7 +152,7 @@ fsysproc(void *)
 	Xfid *x;
 	Fid *f;
 	Fcall t;
-	uchar *buf;
+	uint8_t *buf;
 
 	threadsetname("fsysproc");
 
@@ -401,8 +401,8 @@ fsyswalk(Xfid *x, Fid *f)
 	Fcall t;
 	int c, i, j, id;
 	Qid q;
-	uchar type;
-	ulong path;
+	uint8_t type;
+	uint32_t path;
 	Fid *nf;
 	Dirtab *d, *dir;
 	Window *w;
@@ -597,7 +597,7 @@ Xfid*
 fsysread(Xfid *x, Fid *f)
 {
 	Fcall t;
-	uchar *b;
+	uint8_t *b;
 	int i, id, n, o, e, j, k, *ids, nids;
 	Dirtab *d, dt;
 	Column *c;
@@ -752,7 +752,7 @@ getclock()
 }
 
 int
-dostat(int id, Dirtab *dir, uchar *buf, int nbuf, uint clock)
+dostat(int id, Dirtab *dir, uint8_t *buf, int nbuf, uint clock)
 {
 	Dir d;
 

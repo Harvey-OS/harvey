@@ -82,12 +82,12 @@ skip(char *p)
 	return p;
 }
 
-static long
-_times(long *t)
+static int32_t
+_times(int32_t *t)
 {
 	char b[200], *p;
 	int f;
-	ulong r;
+	uint32_t r;
 
 	memset(b, 0, sizeof(b));
 	f = open("/dev/cputime", OREAD|OCEXEC);

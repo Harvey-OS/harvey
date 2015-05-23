@@ -147,9 +147,9 @@ int	debug;
 NetConnInfo	*nci;
 int	createperm = 0660;
 int	isnoworld;
-vlong	offset;			/* from restart command */
+int64_t	offset;			/* from restart command */
 
-ulong id;
+uint32_t id;
 
 typedef struct Passive Passive;
 struct Passive
@@ -158,7 +158,7 @@ struct Passive
 	char	adir[40];
 	int	afd;
 	int	port;
-	uchar	ipaddr[IPaddrlen];
+	uint8_t	ipaddr[IPaddrlen];
 } passive;
 
 #define FTPLOG "ftp"
@@ -525,7 +525,7 @@ loginuser(char *user, char *nsfile, int gotoslash)
 static void
 slowdown(void)
 {
-	static ulong pause;
+	static uint32_t pause;
 
 	if (pause) {
 		sleep(pause);			/* deter guessers */
@@ -893,7 +893,7 @@ listfile(Biobufhdr *b, char *name, int lflag, char *dname)
 {
 	char ts[32];
 	int n, links, pad;
-	long now;
+	int32_t now;
 	char *x;
 	Dir *d;
 
@@ -962,12 +962,13 @@ dircomp(void *va, void *vb)
 	return (rflag?-1:1)*rv;
 }
 void
-listdir(char *name, Biobufhdr *b, int lflag, int *printname, Globlist *gl)
+listdir(char *name, Biobufhdr *b, int lflag, int *printname,
+	Globlist *gl)
 {
 	Dir *p;
 	int fd, n, i, l;
 	char *dname;
-	uvlong total;
+	uint64_t total;
 
 	col = 0;
 

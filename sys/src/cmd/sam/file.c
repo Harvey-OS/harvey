@@ -24,8 +24,8 @@ typedef struct Merge Merge;
 
 struct Undo
 {
-	short	type;		/* Delete, Insert, Filename, Dot, Mark */
-	short	mod;		/* modify bit */
+	int16_t	type;		/* Delete, Insert, Filename, Dot, Mark */
+	int16_t	mod;		/* modify bit */
 	uint	seq;		/* sequence number */
 	uint	p0;		/* location of change (unused in f) */
 	uint	n;		/* # runes in string or file name */
@@ -438,7 +438,7 @@ fileupdate(File *f, int notrans, int toterm)
 	return TRUE;
 }
 
-long
+int32_t
 prevseq(Buffer *b)
 {
 	Undo u;
@@ -452,7 +452,7 @@ prevseq(Buffer *b)
 	return u.seq;
 }
 
-long
+int32_t
 undoseq(File *f, int isundo)
 {
 	if(isundo)

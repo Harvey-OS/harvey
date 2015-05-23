@@ -77,7 +77,7 @@ const int jpeg_natural_order[DCTSIZE2+16] = {
  * Arithmetic utilities
  */
 
-GLOBAL(long)
+GLOBAL(int32_t)
 jdiv_round_up (long a, long b)
 /* Compute a/b rounded up to next integer, ie, ceil(a/b) */
 /* Assumes a >= 0, b > 0 */
@@ -86,7 +86,7 @@ jdiv_round_up (long a, long b)
 }
 
 
-GLOBAL(long)
+GLOBAL(int32_t)
 jround_up (long a, long b)
 /* Compute a rounded up to next multiple of b, ie, ceil(a/b)*b */
 /* Assumes a >= 0, b > 0 */

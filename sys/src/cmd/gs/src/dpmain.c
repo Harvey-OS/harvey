@@ -223,7 +223,8 @@ gs_load_dll(void)
 	}
 
 	if (rv.revision != GS_REVISION) {
-	    sprintf(buf, "Wrong version of DLL found.\n  Found version %ld\n  Need version  %ld\n", rv.revision, (long)GS_REVISION);
+	    sprintf(buf, "Wrong version of DLL found.\n  Found version %ld\n  Need version  %ld\n", rv.revision,
+                    (int32_t)GS_REVISION);
 	    gs_addmess(buf);
 	    gs_load_dll_cleanup();
 	    return FALSE;

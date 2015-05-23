@@ -523,7 +523,7 @@ iReadOptions(int argc, char **argv)
 		}
 		/* The paragraph break depends on the width of the paper */
 		tOptionsCurr.iParagraphBreak = iMilliPoints2Char(
-			(long)tOptionsCurr.iPageWidth * 1000 -
+			(int32_t)tOptionsCurr.iPageWidth * 1000 -
 			lDrawUnits2MilliPoints(
 				PS_LEFT_MARGIN + PS_RIGHT_MARGIN));
 		DBG_DEC(tOptionsCurr.iParagraphBreak);

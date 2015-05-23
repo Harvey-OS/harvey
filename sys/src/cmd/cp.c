@@ -155,7 +155,7 @@ int
 copy1(int fdf, int fdt, char *from, char *to)
 {
 	char *buf;
-	long n, n1, rcount;
+	int32_t n, n1, rcount;
 	int rv;
 	char err[ERRMAX];
 

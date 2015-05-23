@@ -44,7 +44,7 @@ struct Quick
 	char	*pat;
 	char	*up;		/* match string for upper case of pat */
 	int	len;		/* of pat (and up) -1; used for fast search */
-	uchar 	jump[256];	/* jump index table */
+	uint8_t 	jump[256];	/* jump index table */
 	int	miss;		/* amount to jump if we falsely match the last char */
 };
 extern void	quickmk(Quick*, char*, int);
@@ -90,10 +90,12 @@ struct Fid
 	int	n;		/* number of bytes left in found item */
 };
 
-int			dostat(int, uchar*, int);
+int			dostat(int, uint8_t*, int);
 void*			emalloc(uint);
 void			fatal(char*, ...);
-Match*			mkmatch(Match*, int(*)(Match*, char*, char*), char*);
+Match*			mkmatch(Match*,
+				      int(*)(Match*, char*, char*),
+				      char*);
 Match*			mkstrmatch(Match*, char*);
 char*		nextsearch(char*, char*, char**, char**);
 int			strlook(Match*, char*, char*);
@@ -476,7 +478,7 @@ void
 quickmk(Quick *q, char *spat, int ignorecase)
 {
 	char *pat, *up;
-	uchar *j;	
+	uint8_t *j;	
 	int ep, ea, cp, ca, i, c, n;
 
 	/*
@@ -516,8 +518,8 @@ quickmk(Quick *q, char *spat, int ignorecase)
 	n--;
 	q->len = n;
 	for(i = 0; i <= n; i++){
-		j[(uchar)pat[i]] = n - i;
-		j[(uchar)up[i]] = n - i;
+		j[(uint8_t)pat[i]] = n - i;
+		j[(uint8_t)up[i]] = n - i;
 	}
 	
 	/*
@@ -547,7 +549,7 @@ char *
 quicksearch(Quick *q, char *s, char *e)
 {
 	char *pat, *up, *m, *ee;
-	uchar *j;
+	uint8_t *j;
 	int len, n, c, mc;
 
 	len = q->len;
@@ -562,15 +564,15 @@ quicksearch(Quick *q, char *s, char *e)
 		/*
 		 * look for a match on the last char
 		 */
-		while(s < ee && (n = j[(uchar)*s])){
+		while(s < ee && (n = j[(uint8_t)*s])){
 			s += n;
-			s += j[(uchar)*s];
-			s += j[(uchar)*s];
-			s += j[(uchar)*s];
+			s += j[(uint8_t)*s];
+			s += j[(uint8_t)*s];
+			s += j[(uint8_t)*s];
 		}
 		if(s >= e)
 			return nil;
-		while(n = j[(uchar)*s]){
+		while(n = j[(uint8_t)*s]){
 			s += n;
 			if(s >= e)
 				return nil;
@@ -597,7 +599,7 @@ fsrun(Fs *fs, int fd)
 {
 	Fcall rpc;
 	char *err;
-	uchar *buf;
+	uint8_t *buf;
 	int n;
 
 	buf = emalloc(messagesize);
@@ -745,7 +747,7 @@ fswalk(Fs *fs, Fcall *rpc)
 	Fid *f, *nf;
 	int nqid, nwname, type;
 	char *err, *name;
-	ulong path;
+	uint32_t path;
 
 	f = getfid(fs, rpc->fid);
 	if(f == nil)
@@ -855,7 +857,8 @@ fsread(Fs *fs, Fcall *rpc)
 		if(off > 0)
 			rpc->count = 0;
 		else
-			rpc->count = dostat(Qsearch, (uchar*)rpc->data, count);
+			rpc->count = dostat(Qsearch, (uint8_t*)rpc->data,
+					    count);
 		putfid(fs, f);
 		if(off == 0 && rpc->count <= BIT16SZ)
 			return "directory read count too small";
@@ -952,7 +955,7 @@ fswstat(Fs *, Fcall *)
 }
 
 int
-dostat(int path, uchar *buf, int nbuf)
+dostat(int path, uint8_t *buf, int nbuf)
 {
 	Dir d;
 

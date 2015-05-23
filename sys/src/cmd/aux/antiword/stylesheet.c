@@ -132,10 +132,10 @@ vGetBuildinStyle(UCHAR ucStc, style_block_type *pStyle)
 		break;
 	default:
 		if (ucStc >= 233 && ucStc <= 239) {
-			pStyle->sLeftIndent = (239 - (short)ucStc) * 360;
+			pStyle->sLeftIndent = (239 - (int16_t)ucStc) * 360;
 		}
 		if (ucStc >= 225 && ucStc <= 232) {
-			pStyle->sLeftIndent = (232 - (short)ucStc) * 720;
+			pStyle->sLeftIndent = (232 - (int16_t)ucStc) * 720;
 			pStyle->sRightIndent = 720;
 		}
 		break;

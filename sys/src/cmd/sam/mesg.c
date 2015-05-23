@@ -10,11 +10,11 @@
 #include "sam.h"
 
 Header	h;
-uchar	indata[DATASIZE];
-uchar	outdata[2*DATASIZE+3];	/* room for overflow message */
-uchar	*inp;
-uchar	*outp;
-uchar	*outmsg = outdata;
+uint8_t	indata[DATASIZE];
+uint8_t	outdata[2*DATASIZE+3];	/* room for overflow message */
+uint8_t	*inp;
+uint8_t	*outp;
+uint8_t	*outmsg = outdata;
 Posn	cmdpt;
 Posn	cmdptadv;
 Buffer	snarfbuf;
@@ -23,13 +23,13 @@ int	outbuffered;
 int	tversion;
 
 int	inshort(void);
-long	inlong(void);
-vlong	invlong(void);
+int32_t	inlong(void);
+int64_t	invlong(void);
 int	inmesg(Tmesg);
 
 void	outshort(int);
-void	outlong(long);
-void	outvlong(vlong);
+void	outlong(int32_t);
+void	outvlong(int64_t);
 void	outcopy(int, void*);
 void	outsend(void);
 void	outstart(Hmesg);
@@ -103,7 +103,7 @@ journal(int out, char *s)
 }
 
 void
-journaln(int out, long n)
+journaln(int out, int32_t n)
 {
 	char buf[32];
 
@@ -112,7 +112,7 @@ journaln(int out, long n)
 }
 
 void
-journalv(int out, vlong v)
+journalv(int out, int64_t v)
 {
 	char buf[32];
 
@@ -127,7 +127,7 @@ journalv(int out, vlong v)
 
 int
 rcvchar(void){
-	static uchar buf[64];
+	static uint8_t buf[64];
 	static i, nleft = 0;
 
 	if(nleft <= 0){
@@ -201,9 +201,9 @@ inmesg(Tmesg type)
 	Rune buf[1025];
 	char cbuf[64];
 	int i, m;
-	short s;
-	long l, l1;
-	vlong v;
+	int16_t s;
+	int32_t l, l1;
+	int64_t v;
 	File *f;
 	Posn p0, p1, p;
 	Range r;
@@ -604,27 +604,27 @@ snarf(File *f, Posn p1, Posn p2, Buffer *buf, int emptyok)
 int
 inshort(void)
 {
-	ushort n;
+	uint16_t n;
 
 	n = inp[0] | (inp[1]<<8);
 	inp += 2;
 	return n;
 }
 
-long
+int32_t
 inlong(void)
 {
-	ulong n;
+	uint32_t n;
 
 	n = inp[0] | (inp[1]<<8) | (inp[2]<<16) | (inp[3]<<24);
 	inp += 4;
 	return n;
 }
 
-vlong
+int64_t
 invlong(void)
 {
-	vlong v;
+	int64_t v;
 	
 	v = (inp[7]<<24) | (inp[6]<<16) | (inp[5]<<8) | inp[4];
 	v = (v<<16) | (inp[3]<<8) | inp[2];
@@ -663,7 +663,7 @@ outT0(Hmesg type)
 }
 
 void
-outTl(Hmesg type, long l)
+outTl(Hmesg type, int32_t l)
 {
 	outstart(type);
 	outlong(l);
@@ -760,7 +760,7 @@ outTsl(Hmesg type, int s, Posn l)
 }
 
 void
-outTsv(Hmesg type, int s, vlong v)
+outTsv(Hmesg type, int s, int64_t v)
 {
 	outstart(type);
 	outshort(s);
@@ -792,7 +792,7 @@ outshort(int s)
 }
 
 void
-outlong(long l)
+outlong(int32_t l)
 {
 	*outp++ = l;
 	*outp++ = l>>8;
@@ -801,7 +801,7 @@ outlong(long l)
 }
 
 void
-outvlong(vlong v)
+outvlong(int64_t v)
 {
 	int i;
 

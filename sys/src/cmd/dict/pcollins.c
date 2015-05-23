@@ -95,7 +95,7 @@ void
 pcollprintentry(Entry e, int cmd)
 {
 	char *p, *pe;
-	long r, rprev, t, rlig;
+	int32_t r, rprev, t, rlig;
 	int saveoi;
 	Rune *transtab;
 
@@ -183,10 +183,10 @@ pcollprintentry(Entry e, int cmd)
 	outnl(0);
 }
 
-long
-pcollnextoff(long fromoff)
+int32_t
+pcollnextoff(int32_t fromoff)
 {
-	long a;
+	int32_t a;
 	char *p;
 
 	a = Bseek(bdict, fromoff, 0);

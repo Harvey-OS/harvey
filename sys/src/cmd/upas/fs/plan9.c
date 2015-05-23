@@ -21,14 +21,14 @@ typedef struct Inbuf Inbuf;
 struct Inbuf
 {
 	int	fd;
-	uchar	*lim;
-	uchar	*rptr;
-	uchar	*wptr;
-	uchar	data[Buffersize+7];
+	uint8_t	*lim;
+	uint8_t	*rptr;
+	uint8_t	*wptr;
+	uint8_t	data[Buffersize+7];
 };
 
 static void
-addtomessage(Message *m, uchar *p, int n, int done)
+addtomessage(Message *m, uint8_t *p, int n, int done)
 {
 	int i, len;
 
@@ -66,7 +66,7 @@ static int
 readmessage(Message *m, Inbuf *inb)
 {
 	int i, n, done;
-	uchar *p, *np;
+	uint8_t *p, *np;
 	char sdigest[SHA1dlen*2+1];
 	char tmp[64];
 
@@ -138,7 +138,7 @@ readmessage(Message *m, Inbuf *inb)
 	m->bend = m->rbend = m->end;
 
 	// digest message
-	sha1((uchar*)m->start, m->end - m->start, m->digest, nil);
+	sha1((uint8_t*)m->start, m->end - m->start, m->digest, nil);
 	for(i = 0; i < SHA1dlen; i++)
 		sprint(sdigest+2*i, "%2.2ux", m->digest[i]);
 	m->sdigest = s_copy(sdigest);

@@ -38,10 +38,10 @@ enum {						/* index registers */
 	MiscControl2	= 0x71,
 };
 
-static uchar
+static uint8_t
 setrs2(void)
 {
-	uchar rs2;
+	uint8_t rs2;
 
 	rs2 = vgaxi(Crtx, 0x55);
 	vgaxo(Crtx, 0x55, (rs2 & 0xFC)|0x01);
@@ -49,7 +49,7 @@ setrs2(void)
 	return rs2;
 }
 
-static uchar
+static uint8_t
 rgb524xi(int index)
 {
 	outportb(dacxreg[IndexLo], index & 0xFF);
@@ -59,7 +59,7 @@ rgb524xi(int index)
 }
 
 static void
-rgb524xo(int index, uchar data)
+rgb524xo(int index, uint8_t data)
 {
 	outportb(dacxreg[IndexLo], index & 0xFF);
 	outportb(dacxreg[IndexHi], (index>>8) & 0xFF);
@@ -68,7 +68,7 @@ rgb524xo(int index, uchar data)
 }
 
 static void
-restorers2(uchar rs2)
+restorers2(uint8_t rs2)
 {
 	vgaxo(Crtx, 0x55, rs2);
 }
@@ -100,7 +100,7 @@ clock(Vga* vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong pclk;
+	uint32_t pclk;
 	char *p;
 
 	/*
@@ -154,7 +154,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uchar mc2, rs2, x;
+	uint8_t mc2, rs2, x;
 	char *val;
 	int f;
 
@@ -212,7 +212,7 @@ load(Vga* vga, Ctlr* ctlr)
 static void
 dump(Vga*, Ctlr* ctlr)
 {
-	uchar rs2, r, x[256];
+	uint8_t rs2, r, x[256];
 	char buf[32];
 	int df, i, maxf, vcodc, vf;
 

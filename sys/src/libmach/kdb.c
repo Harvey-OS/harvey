@@ -17,10 +17,10 @@
  */
 
 static	char	*sparcexcep(Map*, Rgetter);
-static	int	sparcfoll(Map*, uvlong, Rgetter, uvlong*);
-static	int	sparcinst(Map*, uvlong, char, char*, int);
-static	int	sparcdas(Map*, uvlong, char*, int);
-static	int	sparcinstlen(Map*, uvlong);
+static	int	sparcfoll(Map*, uint64_t, Rgetter, uint64_t*);
+static	int	sparcinst(Map*, uint64_t, char, char*, int);
+static	int	sparcdas(Map*, uint64_t, char*, int);
+static	int	sparcinstlen(Map*, uint64_t);
 
 Machdata sparcmach =
 {
@@ -58,7 +58,7 @@ static char *trapname[] =
 };
 
 static char*
-excname(ulong tbr)
+excname(uint32_t tbr)
 {
 	static char buf[32];
 
@@ -86,7 +86,7 @@ excname(ulong tbr)
 static char*
 sparcexcep(Map *map, Rgetter rget)
 {
-	long tbr;
+	int32_t tbr;
 
 	tbr = (*rget)(map, "TBR");
 	tbr = (tbr&0xFFF)>>4;
@@ -106,26 +106,26 @@ static	char FRAMENAME[] = ".frame";
 typedef struct instr Instr;
 
 struct instr {
-	uchar	op;		/* bits 31-30 */
-	uchar	rd;		/* bits 29-25 */
-	uchar	op2;		/* bits 24-22 */
-	uchar	a;		/* bit  29    */
-	uchar	cond;		/* bits 28-25 */
-	uchar	op3;		/* bits 24-19 */
-	uchar	rs1;		/* bits 18-14 */
-	uchar	i;		/* bit  13    */
-	uchar	asi;		/* bits 12-05 */
-	uchar	rs2;		/* bits 04-00 */
-	short	simm13;		/* bits 12-00, signed */
-	ushort	opf;		/* bits 13-05 */
-	ulong	immdisp22;	/* bits 21-00 */
-	ulong	simmdisp22;	/* bits 21-00, signed */
-	ulong	disp30;		/* bits 30-00 */
-	ulong	imm32;		/* SETHI+ADD constant */
+	uint8_t	op;		/* bits 31-30 */
+	uint8_t	rd;		/* bits 29-25 */
+	uint8_t	op2;		/* bits 24-22 */
+	uint8_t	a;		/* bit  29    */
+	uint8_t	cond;		/* bits 28-25 */
+	uint8_t	op3;		/* bits 24-19 */
+	uint8_t	rs1;		/* bits 18-14 */
+	uint8_t	i;		/* bit  13    */
+	uint8_t	asi;		/* bits 12-05 */
+	uint8_t	rs2;		/* bits 04-00 */
+	int16_t	simm13;		/* bits 12-00, signed */
+	uint16_t	opf;		/* bits 13-05 */
+	uint32_t	immdisp22;	/* bits 21-00 */
+	uint32_t	simmdisp22;	/* bits 21-00, signed */
+	uint32_t	disp30;		/* bits 30-00 */
+	uint32_t	imm32;		/* SETHI+ADD constant */
 	int	target;		/* SETHI+ADD dest reg */
-	long	w0;
-	long	w1;
-	uvlong	addr;		/* pc of instruction */
+	int32_t	w0;
+	int32_t	w1;
+	uint64_t	addr;		/* pc of instruction */
 	char	*curr;		/* current fill level in output buffer */
 	char	*end;		/* end of buffer */
 	int 	size;		/* number of longs in instr */
@@ -135,7 +135,7 @@ struct instr {
 static	Map	*mymap;		/* disassembler context */
 static	int	dascase;
 
-static int	mkinstr(uvlong, Instr*);
+static int	mkinstr(uint64_t, Instr*);
 static void	bra1(Instr*, char*, char*[]);
 static void	bra(Instr*, char*);
 static void	fbra(Instr*, char*);
@@ -317,9 +317,9 @@ bprint(Instr *i, char *fmt, ...)
 }
 
 static int
-decode(uvlong pc, Instr *i)
+decode(uint64_t pc, Instr *i)
 {
-	ulong w;
+	uint32_t w;
 
 	if (get4(mymap, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -352,7 +352,7 @@ decode(uvlong pc, Instr *i)
 }
 
 static int
-mkinstr(uvlong pc, Instr *i)
+mkinstr(uint64_t pc, Instr *i)
 {
 	Instr xi;
 
@@ -383,7 +383,7 @@ mkinstr(uvlong pc, Instr *i)
 }
 
 static int
-printins(Map *map, uvlong pc, char *buf, int n)
+printins(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr instr;
 	void (*f)(Instr*, char*);
@@ -436,7 +436,7 @@ printins(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-sparcinst(Map *map, uvlong pc, char modifier, char *buf, int n)
+sparcinst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	static int fmtinstalled = 0;
 
@@ -454,7 +454,7 @@ sparcinst(Map *map, uvlong pc, char modifier, char *buf, int n)
 }
 
 static int
-sparcdas(Map *map, uvlong pc, char *buf, int n)
+sparcdas(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr instr;
 
@@ -475,7 +475,7 @@ sparcdas(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-sparcinstlen(Map *map, uvlong pc)
+sparcinstlen(Map *map, uint64_t pc)
 {
 	Instr i;
 
@@ -512,7 +512,7 @@ static void
 address(Instr *i)
 {
 	Symbol s, s2;
-	uvlong off, off1;
+	uint64_t off, off1;
 
 	if (i->rs1 == 1 && plocal(i) >= 0)
 		return;
@@ -603,7 +603,7 @@ static char	*cbratab[16] = {	/* page 91 */
 static void
 bra1(Instr *i, char *m, char *tab[])
 {
-	long imm;
+	int32_t imm;
 
 	imm = i->simmdisp22;
 	if(i->a)
@@ -645,7 +645,7 @@ trap(Instr *i, char *m)			/* page 101 */
 static void
 sethi(Instr *i, char *m)		/* page 89 */
 {
-	ulong imm;
+	uint32_t imm;
 
 	imm = i->immdisp22<<10;
 	if(dascase){
@@ -1019,9 +1019,9 @@ fpop(Instr *i, char *m)	/* page 108-116 */
 }
 
 static int
-sparcfoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
+sparcfoll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
-	ulong w, r1, r2;
+	uint32_t w, r1, r2;
 	char buf[8];
 	Instr i;
 

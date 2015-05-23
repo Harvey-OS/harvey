@@ -109,13 +109,13 @@ String *cppopt;
 Root *roots;
 
 static struct stats {
-	long	highestseen;	/* aseen high water mark */
-	long	highestname;	/* namelist high water mark */
-	long	highestact;	/* activelist high water mark */
-	long	highgetfree;	/* getfrees high water mark */
+	int32_t	highestseen;	/* aseen high water mark */
+	int32_t	highestname;	/* namelist high water mark */
+	int32_t	highestact;	/* activelist high water mark */
+	int32_t	highgetfree;	/* getfrees high water mark */
 } stats;
 
-static long getfrees = 0;
+static int32_t getfrees = 0;
 
 int bracket = 0;			/* curly brace count in input */
 int linect = 0;				/* line number in output */

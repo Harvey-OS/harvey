@@ -461,7 +461,7 @@ private pdf_font_cache_elem_t **
 pdf_locate_font_cache_elem(gx_device_pdf *pdev, gs_font *font)
 {
     pdf_font_cache_elem_t **e = &pdev->font_cache;
-    long id = pdf_font_cache_elem_id(font);
+    int32_t id = pdf_font_cache_elem_id(font);
 
     for (; *e != 0; e = &(*e)->next)
 	if ((*e)->font_id == id) {

@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-parseether(uchar *to, char *from)
+parseether(uint8_t *to, char *from)
 {
 	char nip[4];
 	char *p;

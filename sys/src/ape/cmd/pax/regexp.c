@@ -189,7 +189,7 @@ static char    *regparse;	/* Input-scan pointer. */
 static int      regnpar;	/* () count. */
 static char     regdummy;
 static char    *regcode;	/* Code-emit pointer; &regdummy = don't. */
-static long     regsize;	/* Code size. */
+static int32_t     regsize;	/* Code size. */
 
 /*
  * Forward declarations for regcomp()'s friends.

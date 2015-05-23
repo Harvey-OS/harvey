@@ -61,9 +61,9 @@ main(int argc, char **argv)
 void
 stringit(char *str)
 {
-	long posn, start;
+	int32_t posn, start;
 	int cnt = 0;
-	long c;
+	int32_t c;
 
 	Rune buf[BUFSIZE];
 

@@ -15,16 +15,17 @@
 #include	"../port/error.h"
 
 
-#define	LRES	3		/* log of PC resolution */
-#define	SZ	4		/* sizeof of count cell; well known as 4 */
+#define LRES	3		/* log of PC resolution */
+#define SZ	4		/* sizeof of count cell; well known as 4 */
 
 struct
 {
-	int	minpc;
-	int	maxpc;
+	uintptr	minpc;
+	uintptr	maxpc;
 	int	nbuf;
 	int	time;
-	ulong	*buf;
+	uint32_t	*buf;
+	Lock;
 }kprof;
 
 enum{
@@ -33,25 +34,50 @@ enum{
 	Kprofctlqid,
 };
 Dirtab kproftab[]={
-	".",	{Kprofdirqid, 0, QTDIR},		0,	DMDIR|0550,
+	".",		{Kprofdirqid, 0, QTDIR},0,	DMDIR|0550,
 	"kpdata",	{Kprofdataqid},		0,	0600,
 	"kpctl",	{Kprofctlqid},		0,	0600,
 };
 
-static void
-_kproftimer(ulong pc)
+static Chan*
+kprofattach(char *spec)
 {
-	extern void spldone(void);
+	uint32_t n;
 
+	/* allocate when first used */
+	kprof.minpc = KTZERO;
+	kprof.maxpc = PTR2UINT(etext);
+	kprof.nbuf = (kprof.maxpc-kprof.minpc) >> LRES;
+	n = kprof.nbuf*SZ;
+	if(kprof.buf == 0) {
+		kprof.buf = malloc(n);
+		if(kprof.buf == 0)
+			error(Enomem);
+	}
+	kproftab[1].length = n;
+	return devattach('K', spec);
+}
+
+static void
+_kproftimer(uintptr_t pc)
+{
+	Mach *m = machp();
 	if(kprof.time == 0)
+		return;
+
+	/*
+	 * if the pc corresponds to the idle loop, don't consider it.
+	 */
+	if(m->inidle)
 		return;
 	/*
 	 *  if the pc is coming out of spllo or splx,
 	 *  use the pc saved when we went splhi.
 	 */
-	if(pc>=(ulong)spllo && pc<=(ulong)spldone)
+	if(pc>=PTR2UINT(spllo) && pc<=PTR2UINT(spldone))
 		pc = m->splpc;
 
+//	ilock(&kprof);
 	kprof.buf[0] += TK2MS(1);
 	if(kprof.minpc<=pc && pc<kprof.maxpc){
 		pc -= kprof.minpc;
@@ -59,6 +85,7 @@ _kproftimer(ulong pc)
 		kprof.buf[pc] += TK2MS(1);
 	}else
 		kprof.buf[1] += TK2MS(1);
+//	iunlock(&kprof);
 }
 
 static void
@@ -69,33 +96,14 @@ kprofinit(void)
 	kproftimer = _kproftimer;
 }
 
-static Chan*
-kprofattach(char *spec)
-{
-	ulong n;
-
-	/* allocate when first used */
-	kprof.minpc = KTZERO;
-	kprof.maxpc = (ulong)etext;
-	kprof.nbuf = (kprof.maxpc-kprof.minpc) >> LRES;
-	n = kprof.nbuf*SZ;
-	if(kprof.buf == 0) {
-		kprof.buf = xalloc(n);
-		if(kprof.buf == 0)
-			error(Enomem);
-	}
-	kproftab[1].length = n;
-	return devattach('K', spec);
-}
-
 static Walkqid*
 kprofwalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	return devwalk(c, nc, name, nname, kproftab, nelem(kproftab), devgen);
 }
 
-static int
-kprofstat(Chan *c, uchar *db, int n)
+static int32_t
+kprofstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, kproftab, nelem(kproftab), devgen);
 }
@@ -103,7 +111,7 @@ kprofstat(Chan *c, uchar *db, int n)
 static Chan*
 kprofopen(Chan *c, int omode)
 {
-	if(c->qid.type == QTDIR){
+	if(c->qid.type & QTDIR){
 		if(omode != OREAD)
 			error(Eperm);
 	}
@@ -114,17 +122,17 @@ kprofopen(Chan *c, int omode)
 }
 
 static void
-kprofclose(Chan*)
+kprofclose(Chan* c)
 {
 }
 
-static long
-kprofread(Chan *c, void *va, long n, vlong off)
+static int32_t
+kprofread(Chan *c, void *va, int32_t n, int64_t off)
 {
-	ulong end;
-	ulong w, *bp;
-	uchar *a, *ea;
-	ulong offset = off;
+	uint32_t end;
+	uint32_t w, *bp;
+	uint8_t *a, *ea;
+	uint32_t offset = off;
 
 	switch((int)c->qid.path){
 	case Kprofdirqid:
@@ -160,8 +168,8 @@ kprofread(Chan *c, void *va, long n, vlong off)
 	return n;
 }
 
-static long
-kprofwrite(Chan *c, void *a, long n, vlong)
+static int32_t
+kprofwrite(Chan *c, void *a, int32_t n, int64_t m)
 {
 	switch((int)(c->qid.path)){
 	case Kprofctlqid:

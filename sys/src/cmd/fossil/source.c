@@ -13,20 +13,21 @@
 #include "error.h"
 #include "9.h"
 
-static int	sizeToDepth(uvlong s, int psize, int dsize);
-static u32int 	tagGen(void);
+static int	sizeToDepth(uint64_t s, int psize, int dsize);
+static uint32_t 	tagGen(void);
 static Block 	*sourceLoad(Source *r, Entry *e);
 static int	sourceShrinkDepth(Source*, Block*, Entry*, int);
-static int	sourceShrinkSize(Source*, Entry*, uvlong);
+static int	sourceShrinkSize(Source*, Entry*, uint64_t);
 static int	sourceGrowDepth(Source*, Block*, Entry*, int);
 
 #define sourceIsLocked(r)	((r)->b != nil)
 
 static Source *
-sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode, int issnapshot)
+sourceAlloc(Fs *fs, Block *b, Source *p, uint32_t offset, int mode,
+	    int issnapshot)
 {
 	int epb;
-	u32int epoch;
+	uint32_t epoch;
 	char *pname = nil;
 	Source *r;
 	Entry e;
@@ -140,7 +141,7 @@ Bad:
 }
 
 Source *
-sourceRoot(Fs *fs, u32int addr, int mode)
+sourceRoot(Fs *fs, uint32_t addr, int mode)
 {
 	Source *r;
 	Block *b;
@@ -163,9 +164,9 @@ sourceRoot(Fs *fs, u32int addr, int mode)
 }
 
 Source *
-sourceOpen(Source *r, ulong offset, int mode, int issnapshot)
+sourceOpen(Source *r, uint32_t offset, int mode, int issnapshot)
 {
-	ulong bn;
+	uint32_t bn;
 	Block *b;
 
 	assert(sourceIsLocked(r));
@@ -187,10 +188,10 @@ sourceOpen(Source *r, ulong offset, int mode, int issnapshot)
 }
 
 Source *
-sourceCreate(Source *r, int dsize, int dir, u32int offset)
+sourceCreate(Source *r, int dsize, int dir, uint32_t offset)
 {
 	int i, epb, psize;
-	u32int bn, size;
+	uint32_t bn, size;
 	Block *b;
 	Entry e;
 	Source *rr;
@@ -269,8 +270,8 @@ sourceKill(Source *r, int doremove)
 {
 	Entry e;
 	Block *b;
-	u32int addr;
-	u32int tag;
+	uint32_t addr;
+	uint32_t tag;
 	int type;
 
 	assert(sourceIsLocked(r));
@@ -330,7 +331,7 @@ sourceTruncate(Source *r)
 	return sourceKill(r, 0);
 }
 
-uvlong
+uint64_t
 sourceGetSize(Source *r)
 {
 	Entry e;
@@ -346,12 +347,12 @@ sourceGetSize(Source *r)
 }
 
 static int
-sourceShrinkSize(Source *r, Entry *e, uvlong size)
+sourceShrinkSize(Source *r, Entry *e, uint64_t size)
 {
 	int i, type, ppb;
-	uvlong ptrsz;
-	u32int addr;
-	uchar score[VtScoreSize];
+	uint64_t ptrsz;
+	uint32_t addr;
+	uint8_t score[VtScoreSize];
 	Block *b;
 
 	type = entryType(e);
@@ -418,7 +419,7 @@ sourceShrinkSize(Source *r, Entry *e, uvlong size)
 }
 
 int
-sourceSetSize(Source *r, uvlong size)
+sourceSetSize(Source *r, uint64_t size)
 {
 	int depth;
 	Entry e;
@@ -428,7 +429,7 @@ sourceSetSize(Source *r, uvlong size)
 	if(size == 0)
 		return sourceTruncate(r);
 
-	if(size > VtMaxFileSize || size > ((uvlong)MaxBlock)*r->dsize){
+	if(size > VtMaxFileSize || size > ((uint64_t)MaxBlock)*r->dsize){
 		vtSetError(ETooBig);
 		return 0;
 	}
@@ -469,24 +470,24 @@ sourceSetSize(Source *r, uvlong size)
 }
 
 int
-sourceSetDirSize(Source *r, ulong ds)
+sourceSetDirSize(Source *r, uint32_t ds)
 {
-	uvlong size;
+	uint64_t size;
 	int epb;
 
 	assert(sourceIsLocked(r));
 	epb = r->dsize/VtEntrySize;
 
-	size = (uvlong)r->dsize*(ds/epb);
+	size = (uint64_t)r->dsize*(ds/epb);
 	size += VtEntrySize*(ds%epb);
 	return sourceSetSize(r, size);
 }
 
-ulong
+uint32_t
 sourceGetDirSize(Source *r)
 {
-	ulong ds;
-	uvlong size;
+	uint32_t ds;
+	uint64_t size;
 	int epb;
 
 	assert(sourceIsLocked(r));
@@ -538,9 +539,9 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 {
 	Block *b;
 	Cache *c;
-	u32int addr;
+	uint32_t addr;
 	int type;
-	uchar oscore[VtScoreSize], score[VtScoreSize];
+	uint8_t oscore[VtScoreSize], score[VtScoreSize];
 	Entry oe;
 
 	c = fs->cache;
@@ -613,7 +614,7 @@ static int
 sourceGrowDepth(Source *r, Block *p, Entry *e, int depth)
 {
 	Block *b, *bb;
-	u32int tag;
+	uint32_t tag;
 	int type;
 	Entry oe;
 
@@ -664,7 +665,7 @@ static int
 sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 {
 	Block *b, *nb, *ob, *rb;
-	u32int tag;
+	uint32_t tag;
 	int type, d;
 	Entry oe;
 
@@ -749,7 +750,7 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
  * to 1 gives us the block that contains the pointer to bn.
  */
 Block *
-_sourceBlock(Source *r, ulong bn, int mode, int early, ulong tag)
+_sourceBlock(Source *r, uint32_t bn, int mode, int early, uint32_t tag)
 {
 	Block *b, *bb;
 	int index[VtPointerDepth+1];
@@ -821,7 +822,7 @@ Err:
 }
 
 Block*
-sourceBlock(Source *r, ulong bn, int mode)
+sourceBlock(Source *r, uint32_t bn, int mode)
 {
 	Block *b;
 
@@ -865,7 +866,7 @@ sourceClose(Source *r)
 static Block*
 sourceLoadBlock(Source *r, int mode)
 {
-	u32int addr;
+	uint32_t addr;
 	Block *b;
 
 	switch(r->mode){
@@ -1044,7 +1045,7 @@ sourceLoad(Source *r, Entry *e)
 }
 
 static int
-sizeToDepth(uvlong s, int psize, int dsize)
+sizeToDepth(uint64_t s, int psize, int dsize)
 {
 	int np;
 	int d;
@@ -1057,10 +1058,10 @@ sizeToDepth(uvlong s, int psize, int dsize)
 	return d;
 }
 
-static u32int
+static uint32_t
 tagGen(void)
 {
-	u32int tag;
+	uint32_t tag;
 
 	for(;;){
 		tag = lrand();

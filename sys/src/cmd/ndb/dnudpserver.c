@@ -17,7 +17,7 @@ enum {
 };
 
 static int	udpannounce(char*);
-static void	reply(int, uchar*, DNSmsg*, Request*);
+static void	reply(int, uint8_t*, DNSmsg*, Request*);
 
 typedef struct Inprogress Inprogress;
 struct Inprogress
@@ -25,7 +25,7 @@ struct Inprogress
 	int	inuse;
 	Udphdr	uh;
 	DN	*owner;
-	ushort	type;
+	uint16_t	type;
 	int	id;
 };
 Inprogress inprog[Maxactive+2];
@@ -33,9 +33,9 @@ Inprogress inprog[Maxactive+2];
 typedef struct Forwtarg Forwtarg;
 struct Forwtarg {
 	char	*host;
-	uchar	addr[IPaddrlen];
+	uint8_t	addr[IPaddrlen];
 	int	fd;
-	ulong	lastdial;
+	uint32_t	lastdial;
 };
 Forwtarg forwtarg[10];
 int currtarg;
@@ -47,7 +47,7 @@ static char *hmsg = "headers";
  *  we're still single thread at this point.
  */
 static Inprogress*
-clientrxmit(DNSmsg *req, uchar *buf)
+clientrxmit(DNSmsg *req, uint8_t *buf)
 {
 	Inprogress *p, *empty;
 	Udphdr *uh;
@@ -111,11 +111,11 @@ addforwtarg(char *host)
  * intended primarily for debugging.
  */
 static void
-redistrib(uchar *buf, int len)
+redistrib(uint8_t *buf, int len)
 {
 	Forwtarg *tp;
 	Udphdr *uh;
-	static uchar outpkt[1500];
+	static uint8_t outpkt[1500];
 
 	assert(len <= sizeof outpkt);
 	memmove(outpkt, buf, len);
@@ -143,7 +143,7 @@ dnudpserver(char *mntpt)
 	volatile int fd, len, op, rcode;
 	char *volatile err;
 	volatile char tname[32];
-	volatile uchar buf[Udphdrsize + Maxpayload];
+	volatile uint8_t buf[Udphdrsize + Maxpayload];
 	volatile DNSmsg reqmsg, repmsg;
 	Inprogress *volatile p;
 	volatile Request req;
@@ -317,7 +317,7 @@ udpannounce(char *mntpt)
 }
 
 static void
-reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
+reply(int fd, uint8_t *buf, DNSmsg *rep, Request *reqp)
 {
 	int len;
 	char tname[32];

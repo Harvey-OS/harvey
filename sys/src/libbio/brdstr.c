@@ -12,7 +12,8 @@
 #include	<bio.h>
 
 static char*
-badd(char *p, int *np, char *data, int ndata, int delim, int nulldelim)
+badd(char *p, int *np, char *data, int ndata, int delim,
+     int nulldelim)
 {
 	int n;
 
@@ -101,7 +102,7 @@ Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 				ip = (char*)bp->ebuf - i;
 				if(i < bp->bsize){
 					memmove(ip, bp->bbuf, i);
-					bp->gbuf = (uchar*)ip;
+					bp->gbuf = (uint8_t*)ip;
 				}
 				j = (ep - (char*)bp->bbuf) + 1;
 				bp->icount = j - i;
@@ -113,7 +114,8 @@ Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 		/*
 		 * full buffer without finding; add to user string and continue
 		 */
-		p = badd(p, &bp->rdline, (char*)bp->bbuf, bp->bsize, 0, 0);
+		p = badd(p, &bp->rdline, (char*)bp->bbuf, bp->bsize, 0,
+			 0);
 		i = 0;
 		bp->icount = 0;
 		bp->gbuf = bp->ebuf;

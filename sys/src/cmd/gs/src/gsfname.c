@@ -38,7 +38,8 @@
 /* According to the Adobe documentation, %device and %device% */
 /* are equivalent; both return name==NULL. */
 int
-gs_parse_file_name(gs_parsed_file_name_t * pfn, const char *pname, uint len)
+gs_parse_file_name(gs_parsed_file_name_t * pfn, const char *pname,
+                   uint len)
 {
     uint dlen;
     const char *pdelim;

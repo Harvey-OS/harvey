@@ -434,9 +434,9 @@ gs_image_next_planes(gs_image_enum * penum,
 
 	for (pi = 0; pi < num_planes; ++pi)
 	    dprintf6("[b]plane %d source=0x%lx,%u pos=%u data=0x%lx,%u\n",
-		     pi, (ulong)penum->planes[pi].source.data,
+		     pi, (uint32_t)penum->planes[pi].source.data,
 		     penum->planes[pi].source.size, penum->planes[pi].pos,
-		     (ulong)plane_data[pi].data, plane_data[pi].size);
+		     (uint32_t)plane_data[pi].data, plane_data[pi].size);
     }
 #endif
     for (i = 0; i < num_planes; ++i) {
@@ -478,8 +478,8 @@ gs_image_next_planes(gs_image_enum * penum,
 					      "gs_image_next(row)"));
 
 			if_debug5('b', "[b]plane %d row (0x%lx,%u) => (0x%lx,%u)\n",
-				  i, (ulong)old_data, old_size,
-				  (ulong)row, raster);
+				  i, (uint32_t)old_data, old_size,
+				  (uint32_t)row, raster);
 			if (row == 0) {
 			    code = gs_note_error(gs_error_VMerror);
 			    free_row_buffers(penum, i, "gs_image_next(row)");

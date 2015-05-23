@@ -382,7 +382,7 @@ zop_init(i_ctx_t *i_ctx_p)
 	    code = def->proc(i_ctx_p);
 	    if (code < 0) {
 		lprintf2("op_init proc 0x%lx returned error %d!\n",
-			 (ulong)def->proc, code);
+			 (uint32_t)def->proc, code);
 		return code;
 	    }
 	}

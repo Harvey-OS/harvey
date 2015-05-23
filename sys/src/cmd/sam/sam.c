@@ -36,7 +36,7 @@ char	*samterm = SAMTERM;
 char	*rsamname = RSAM;
 File	*lastfile;
 Disk	*disk;
-long	seq;
+int32_t	seq;
 
 Rune	baddir[] = { '<', 'b', 'a', 'd', 'd', 'i', 'r', '>', '\n'};
 
@@ -549,7 +549,7 @@ loadflist(String *s)
 		;
 	if((c==' ' || c=='\t') && s->s[i]!='\n'){
 		if(s->s[i]=='<'){
-			Strdelete(s, 0L, (long)i+1);
+			Strdelete(s, 0L, (int32_t)i+1);
 			readcmd(s);
 		}else{
 			Strzero(&genstr);

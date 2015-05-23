@@ -23,17 +23,17 @@ static int urlnext[URLmax];		/* index urltab of next url in chain */
 static int urlhash[URLmax];		/* initially 0, meaning empty buckets */
 
 typedef struct Hint {
-	ushort url;
-	uchar prob;
+	uint16_t url;
+	uint8_t prob;
 } Hint;
 Hint *hints[URLmax];
-uchar nhint[URLmax];
+uint8_t nhint[URLmax];
 
-vlong
+int64_t
 Bfilelen(void *vb)
 {
 	Biobuf *b;
-	vlong n;
+	int64_t n;
 
 	b = vb;
 	n = Bseek(b, 0L, 2);
@@ -45,7 +45,7 @@ static uint
 hashstr(char* key)
 {
 	/* asu works better than pjw for urls */
-	uchar *k = (unsigned char*)key;
+	uint8_t *k = (unsigned char*)key;
 	uint h = 0;
 	while(*k!=0)
 		h = 65599*h + *k++;
@@ -73,7 +73,7 @@ int
 Bage(Biobuf *b)
 {
 	Dir *dir;
-	long mtime;
+	int32_t mtime;
 
 	dir = dirfstat(Bfildes(b));
 	if(dir != nil)
@@ -88,8 +88,8 @@ void
 urlinit(void)
 {
 	static Biobuf *b = nil;
-	static vlong filelen = 0;
-	vlong newlen;
+	static int64_t filelen = 0;
+	int64_t newlen;
 	char *s, *arena;
 	int i, j, n;
 	uint url;
@@ -164,10 +164,10 @@ void
 statsinit(void)
 {
 	static Biobuf *b = nil;
-	static vlong filelen = 0;
-	vlong newlen;
+	static int64_t filelen = 0;
+	int64_t newlen;
 	int iq, n, i, nstats = 0;
-	uchar *s, buf[3+HINTmax*3];  /* iq, n, (url,prob)... */
+	uint8_t *s, buf[3+HINTmax*3];  /* iq, n, (url,prob)... */
 	Hint *arena, *h;
 	char *file;
 	static void *oldarena = nil;

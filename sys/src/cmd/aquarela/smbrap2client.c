@@ -17,7 +17,8 @@ static SmbTransactionMethod smbtransactionmethodrap = {
 };
 
 int
-smbclientrap(SmbClient *c, SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata, char **errmsgp)
+smbclientrap(SmbClient *c, SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *outdata,
+	     char **errmsgp)
 {
 	SmbTransaction transaction;
 	SmbHeader h;
@@ -36,10 +37,12 @@ smbclientrap(SmbClient *c, SmbBuffer *inparam, SmbBuffer *outparam, SmbBuffer *o
 }
 
 int
-smbnetserverenum2(SmbClient *c, ulong stype, char *domain, int *entriesp, SmbRapServerInfo1 **sip, char **errmsgp)
+smbnetserverenum2(SmbClient *c, uint32_t stype, char *domain,
+		  int *entriesp,
+		  SmbRapServerInfo1 **sip, char **errmsgp)
 {
 	int rv;
-	ushort ec, entries, total, converter;
+	uint16_t ec, entries, total, converter;
 	SmbRapServerInfo1 *si = nil;
 	SmbBuffer *ipb = smbbuffernew(512);
 	SmbBuffer *odb = smbbuffernew(65535);
@@ -79,7 +82,7 @@ smbnetserverenum2(SmbClient *c, ulong stype, char *domain, int *entriesp, SmbRap
 		remark = (char *)&si[entries];
 		eremark = remark + remarkspace;
 		for (i = 0; i < entries; i++) {
-			ulong offset;
+			uint32_t offset;
 			int remarklen;
 			assert(smbbuffergetbytes(odb, si[i].name, 16));
 			assert(smbbuffergetb(odb, &si[i].vmaj));

@@ -90,7 +90,7 @@ bcastmsg(Channel *q, Wmsg *m)
 }
 
 void
-readbuf(Req *r, void *s, long n)
+readbuf(Req *r, void *s, int32_t n)
 {
 	r->ofcall.count = r->ifcall.count;
 	if(r->ifcall.offset >= n){

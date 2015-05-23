@@ -97,7 +97,7 @@ enum {
 };
 
 struct HidInterface {
-	ulong	v[MaxVals];	/* one ulong per val should be enough */
+	uint32_t	v[MaxVals];	/* one ulong per val should be enough */
 	uchar	kind[MaxVals];
 	int	nbits;
 	int	count;

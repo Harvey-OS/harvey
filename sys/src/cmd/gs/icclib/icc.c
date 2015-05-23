@@ -263,8 +263,7 @@ FILE *fp
 }
 
 /* Create icmFile given a file name */
-icmFile *new_icmFileStd_name(
-char *name,
+icmFile *new_icmFileStd_name(char *name,
 char *mode
 ) {
 	FILE *fp;

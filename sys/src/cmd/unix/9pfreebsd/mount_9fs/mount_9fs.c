@@ -172,9 +172,9 @@ struct u9fs_args u9fsdefargs = {
 
 struct nfhret {
 	u_long		stat;
-	long		vers;
-	long		auth;
-	long		fhsize;
+	int32_t		vers;
+	int32_t		auth;
+	int32_t		fhsize;
 	u_char		nfh[NFSX_V3FHMAX];
 };
 #define	DEF_RETRY	10000
@@ -1005,7 +1005,7 @@ xdr_fh(xdrsp, np)
 	register struct nfhret *np;
 {
 	register int i;
-	long auth, authcnt, authfnd = 0;
+	int32_t auth, authcnt, authfnd = 0;
 
 	if (!xdr_u_long(xdrsp, &np->stat))
 		return (0);

@@ -30,10 +30,10 @@ enum
 
 static AHash	*ahash[AHashSize];
 
-static u32int
+static uint32_t
 hashstr(char *s)
 {
-	u32int h;
+	uint32_t h;
 	int c;
 
 	h = 0;
@@ -50,7 +50,7 @@ int
 addarena(Arena *arena)
 {
 	AHash *a;
-	u32int h;
+	uint32_t h;
 
 	h = hashstr(arena->name) & (AHashSize - 1);
 	a = MK(AHash);
@@ -66,7 +66,7 @@ Arena*
 findarena(char *name)
 {
 	AHash *a;
-	u32int h;
+	uint32_t h;
 
 	h = hashstr(name) & (AHashSize - 1);
 	for(a = ahash[h]; a != nil; a = a->next)
@@ -79,7 +79,7 @@ int
 delarena(Arena *arena)
 {
 	AHash *a, *last;
-	u32int h;
+	uint32_t h;
 
 	h = hashstr(arena->name) & (AHashSize - 1);
 	last = nil;
@@ -103,7 +103,7 @@ initarenapart(Part *part)
 	AMapN amn;
 	ArenaPart *ap;
 	ZBlock *b;
-	u32int i;
+	uint32_t i;
 	int ok;
 
 	b = alloczblock(HeadSize, 0, 0);
@@ -198,7 +198,7 @@ initarenapart(Part *part)
 }
 
 ArenaPart*
-newarenapart(Part *part, u32int blocksize, u32int tabsize)
+newarenapart(Part *part, uint32_t blocksize, uint32_t tabsize)
 {
 	ArenaPart *ap;
 
@@ -277,10 +277,10 @@ freearenapart(ArenaPart *ap, int freearenas)
 }
 
 int
-okamap(AMap *am, int n, u64int start, u64int stop, char *what)
+okamap(AMap *am, int n, uint64_t start, uint64_t stop, char *what)
 {
-	u64int last;
-	u32int i;
+	uint64_t last;
+	uint32_t i;
 
 	last = start;
 	for(i = 0; i < n; i++){
@@ -307,7 +307,7 @@ okamap(AMap *am, int n, u64int start, u64int stop, char *what)
 int
 maparenas(AMap *am, Arena **arenas, int n, char *what)
 {
-	u32int i;
+	uint32_t i;
 
 	for(i = 0; i < n; i++){
 		arenas[i] = findarena(am[i].name);
@@ -320,10 +320,10 @@ maparenas(AMap *am, Arena **arenas, int n, char *what)
 }
 
 int
-readarenamap(AMapN *amn, Part *part, u64int base, u32int size)
+readarenamap(AMapN *amn, Part *part, uint64_t base, uint32_t size)
 {
 	IFile f;
-	u32int ok;
+	uint32_t ok;
 
 	if(partifile(&f, part, base, size) < 0)
 		return -1;
@@ -333,7 +333,7 @@ readarenamap(AMapN *amn, Part *part, u64int base, u32int size)
 }
 
 int
-wbarenamap(AMap *am, int n, Part *part, u64int base, u64int size)
+wbarenamap(AMap *am, int n, Part *part, uint64_t base, uint64_t size)
 {
 	Fmt f;
 	ZBlock *b;
@@ -368,8 +368,8 @@ int
 parseamap(IFile *f, AMapN *amn)
 {
 	AMap *am;
-	u64int v64;
-	u32int v;
+	uint64_t v64;
+	uint32_t v;
 	char *s, *t, *flds[4];
 	int i, n;
 

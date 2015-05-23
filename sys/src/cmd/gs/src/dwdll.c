@@ -49,7 +49,7 @@ int load_dll(GSDLL *gsdll, char *last_error, int len)
 {
 char fullname[1024];
 char *p;
-long version;
+int32_t version;
 int length;
 gsapi_revision_t rv;
 

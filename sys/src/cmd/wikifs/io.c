@@ -164,7 +164,8 @@ readwhist(char *file, char *lock, Qid *qid)
 }
 
 static void
-gencurrent(Wcache *w, Qid *q, char *file, char *lock, ulong *t, Whist **wp, int n)
+gencurrent(Wcache *w, Qid *q, char *file, char *lock, uint32_t *t,
+	   Whist **wp, int n)
 {
 	Dir *d;
 	Whist *wh;
@@ -242,7 +243,7 @@ static Whist*
 getcache(int n, int hist)
 {
 	int i, isw;
-	ulong t;
+	uint32_t t;
 	Wcache *c, **cp, **evict;
 	Whist *wh;
 
@@ -598,7 +599,7 @@ getcurrentbyname(char *s)
 static String*
 Brdstring(Biobuf *b)
 {
-	long len;
+	int32_t len;
 	String *s;
 	Dir *d;
 
@@ -623,7 +624,7 @@ Brdstring(Biobuf *b)
  * the history file, but mark it as a failed write.
  */
 int
-writepage(int num, ulong t, String *s, char *title)
+writepage(int num, uint32_t t, String *s, char *title)
 {
 	char tmp[40], tmplock[40], err[ERRMAX], hist[40], *p;
 	int conflict, lfd, fd;

@@ -32,7 +32,7 @@ usage(void)
 }
 
 void
-ea2eui64(uchar *lla, uchar *ea)
+ea2eui64(uint8_t *lla, uint8_t *ea)
 {
 	*lla++ = *ea++ | V60globaladm;	/* oui (company id) */
 	*lla++ = *ea++;			/* " */
@@ -45,7 +45,7 @@ ea2eui64(uchar *lla, uchar *ea)
 }
 
 void
-eaip26to4(uchar *lla, uchar *ea, uchar *ipv4)
+eaip26to4(uint8_t *lla, uint8_t *ea, uint8_t *ipv4)
 {
 	*lla++ = 0x20;			/* 6to4 address */
 	*lla++ = 0x02;			/* " */
@@ -56,7 +56,7 @@ eaip26to4(uchar *lla, uchar *ea, uchar *ipv4)
 }
 
 void
-ea2lla(uchar *lla, uchar *ea)
+ea2lla(uint8_t *lla, uint8_t *ea)
 {
 	*lla++ = 0xFE;			/* link-local v6 */
 	*lla++ = 0x80;			/* " */
@@ -67,7 +67,7 @@ ea2lla(uchar *lla, uchar *ea)
 static void
 process(char *ether)
 {
-	uchar ethaddr[6], ipaddr[IPaddrlen], ipv4[IPv4addrlen];
+	uint8_t ethaddr[6], ipaddr[IPaddrlen], ipv4[IPv4addrlen];
 
 	if (parseether(ethaddr, ether) < 0)
 		sysfatal("%s: not an ether address", ether);

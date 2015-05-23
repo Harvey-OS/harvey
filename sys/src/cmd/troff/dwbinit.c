@@ -289,7 +289,7 @@ void DWBinit(char *prog, dwbinit *paths)
 
 /*****************************************************************************/
 
-void DWBprefix( char *prog, char *path, int length)
+void DWBprefix(char *prog, char *path, int length)
 {
 
     char	*home;

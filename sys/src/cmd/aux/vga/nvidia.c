@@ -63,46 +63,46 @@ struct Nvidia {
 	int	arch;
 	int	crystalfreq;
 
-	ulong*	mmio;
-	ulong*	pfb;			/* mmio pointers */
-	ulong*	pramdac;
-	ulong*	pextdev;
-	ulong*	pmc;
-	ulong*	ptimer;
-	ulong*	pfifo;
-	ulong*	pramin;
-	ulong*	pgraph;
-	ulong*	fifo;
-	ulong*	pcrtc;
+	uint32_t*	mmio;
+	uint32_t*	pfb;			/* mmio pointers */
+	uint32_t*	pramdac;
+	uint32_t*	pextdev;
+	uint32_t*	pmc;
+	uint32_t*	ptimer;
+	uint32_t*	pfifo;
+	uint32_t*	pramin;
+	uint32_t*	pgraph;
+	uint32_t*	fifo;
+	uint32_t*	pcrtc;
 
-	ushort	repaint0;
-	ushort	repaint1;
-	ushort	screen;
-	ushort	pixel;
-	ushort	horiz;
-	ushort	cursor0;
-	ushort	cursor1;
-	ushort	cursor2;
-	ushort	interlace;
-	ushort	extra;
-	ushort	crtcowner;
-	ushort	timingH;
-	ushort	timingV;
+	uint16_t	repaint0;
+	uint16_t	repaint1;
+	uint16_t	screen;
+	uint16_t	pixel;
+	uint16_t	horiz;
+	uint16_t	cursor0;
+	uint16_t	cursor1;
+	uint16_t	cursor2;
+	uint16_t	interlace;
+	uint16_t	extra;
+	uint16_t	crtcowner;
+	uint16_t	timingH;
+	uint16_t	timingV;
 
-	ulong	vpll;
-	ulong	vpllB;
-	ulong	vpll2;
-	ulong	vpll2B;
-	ulong	pllsel;
-	ulong	general;
-	ulong	scale;
-	ulong	config;
-	ulong	head;
-	ulong	head2;
-	ulong	cursorconfig;
-	ulong	dither;
-	ulong	crtcsync;
-	ulong	displayV;
+	uint32_t	vpll;
+	uint32_t	vpllB;
+	uint32_t	vpll2;
+	uint32_t	vpll2B;
+	uint32_t	pllsel;
+	uint32_t	general;
+	uint32_t	scale;
+	uint32_t	config;
+	uint32_t	head;
+	uint32_t	head2;
+	uint32_t	cursorconfig;
+	uint32_t	dither;
+	uint32_t	crtcsync;
+	uint32_t	displayV;
 
 	int	islcd;
 	int	fpwidth;
@@ -115,8 +115,8 @@ struct Nvidia {
 static void
 getpcixdid(Nvidia* nv)
 {
-	ulong	pcicmd, pciid;
-	ushort	vid, did;
+	uint32_t	pcicmd, pciid;
+	uint16_t	vid, did;
 
 	pcicmd = pcicfgr32(nv->pci, PciPCR);
 	pcicfgw32(nv->pci, PciPCR, pcicmd | 0x02);
@@ -138,7 +138,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 {
 	Nvidia *nv;
 	Pcidev *p;
-	ulong *mmio, tmp;
+	uint32_t *mmio, tmp;
 	int implementation;
 
 	if(vga->private == nil){
@@ -476,7 +476,7 @@ init(Vga* vga, Ctlr* ctlr)
 	Nvidia *nv;
 	char *p, *val;
 	int tmp, pixeldepth;
-	ulong cursorstart;
+	uint32_t cursorstart;
 
 	mode = vga->mode;
 	if(mode->z == 24)
@@ -660,7 +660,7 @@ load(Vga* vga, Ctlr* ctlr)
 {
 	Nvidia *nv;
 	int i, regions;
-	ulong tmp;
+	uint32_t tmp;
 
 	nv = vga->private;
 

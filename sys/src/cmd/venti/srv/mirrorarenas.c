@@ -21,9 +21,9 @@ Channel *writechan;
 typedef struct Write Write;
 struct Write
 {
-	uchar *p;
+	uint8_t *p;
 	int n;
-	uvlong o;
+	uint64_t o;
 	int error;
 };
 
@@ -33,7 +33,7 @@ int force;
 int verbose;
 int dosha1 = 1;
 char *status;
-uvlong astart, aend;
+uint64_t astart, aend;
 
 void
 usage(void)
@@ -78,7 +78,7 @@ chat(char *fmt, ...)
 
 
 int
-ereadpart(Part *p, u64int offset, u8int *buf, u32int count)
+ereadpart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 {
 	if(readpart(p, offset, buf, count) != count){
 		chat("%T readpart %s at %#llux+%ud: %r\n", p->name, offset, count);
@@ -88,7 +88,7 @@ ereadpart(Part *p, u64int offset, u8int *buf, u32int count)
 }
 		
 int
-ewritepart(Part *p, u64int offset, u8int *buf, u32int count)
+ewritepart(Part *p, uint64_t offset, uint8_t *buf, uint32_t count)
 {
 	if(writepart(p, offset, buf, count) != count || flushpart(p) < 0){
 		chat("%T writepart %s at %#llux+%ud: %r\n", p->name, offset, count);
@@ -118,11 +118,11 @@ writeproc(void *v)
 }
 
 int
-copy(uvlong start, uvlong end, char *what, DigestState *ds)
+copy(uint64_t start, uint64_t end, char *what, DigestState *ds)
 {
 	int i, n;
-	uvlong o;
-	static uchar tmp[2][1024*1024];
+	uint64_t o;
+	static uint8_t tmp[2][1024*1024];
 	Write w[2];
 	
 	assert(start <= end);
@@ -177,11 +177,11 @@ error:
 
 /* single-threaded, for reference */
 int
-copy1(uvlong start, uvlong end, char *what, DigestState *ds)
+copy1(uint64_t start, uint64_t end, char *what, DigestState *ds)
 {
 	int n;
-	uvlong o;
-	static uchar tmp[1024*1024];
+	uint64_t o;
+	static uint8_t tmp[1024*1024];
 	
 	assert(start <= end);
 	assert(astart <= start && start < aend);
@@ -205,11 +205,11 @@ copy1(uvlong start, uvlong end, char *what, DigestState *ds)
 }
 
 int
-asha1(Part *p, uvlong start, uvlong end, DigestState *ds)
+asha1(Part *p, uint64_t start, uint64_t end, DigestState *ds)
 {
 	int n;
-	uvlong o;
-	static uchar tmp[1024*1024];
+	uint64_t o;
+	static uint8_t tmp[1024*1024];
 
 	if(start == end)
 		return 0;
@@ -229,14 +229,14 @@ asha1(Part *p, uvlong start, uvlong end, DigestState *ds)
 	return 0;
 }
 
-uvlong
-rdown(uvlong a, int b)
+uint64_t
+rdown(uint64_t a, int b)
 {
 	return a-a%b;
 }
 
-uvlong
-rup(uvlong a, int b)
+uint64_t
+rup(uint64_t a, int b)
 {
 	if(a%b == 0)
 		return a;
@@ -246,12 +246,12 @@ rup(uvlong a, int b)
 void
 mirror(Arena *sa, Arena *da)
 {
-	vlong v, si, di, end;
+	int64_t v, si, di, end;
 	int clumpmax, blocksize, sealed;
-	static uchar buf[MaxIoSize];
+	static uint8_t buf[MaxIoSize];
 	ArenaHead h;
 	DigestState xds, *ds;
-	vlong shaoff, base;
+	int64_t shaoff, base;
 	
 	base = sa->base;
 	blocksize = sa->blocksize;

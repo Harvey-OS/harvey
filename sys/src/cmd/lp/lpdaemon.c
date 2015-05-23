@@ -79,7 +79,7 @@ void
 error(char *s1, ...)
 {
 	FILE *fp;
-	long thetime;
+	int32_t thetime;
 	char *chartime;
 	va_list ap;
 	char *args[8];
@@ -307,14 +307,16 @@ getjobinfo(int fd)
 			if (ap[1] == '\0')
 				strncpy(info.host, "unknown", NAMELEN);
 			else
-				strncpy(info.host, (const char *)&ap[1], NAMELEN);
+				strncpy(info.host, (const char *)&ap[1],
+					NAMELEN);
 			info.host[NAMELEN] = '\0';
 			break;
 		case 'P':
 			if (ap[1] == '\0')
 				strncpy(info.user, "unknown", NAMELEN);
 			else
-				strncpy(info.user, (const char *)&ap[1], NAMELEN);
+				strncpy(info.user, (const char *)&ap[1],
+					NAMELEN);
 			info.user[NAMELEN] = '\0';
 			break;
 		}

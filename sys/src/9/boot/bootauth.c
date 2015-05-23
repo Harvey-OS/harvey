@@ -19,7 +19,6 @@ static void glenda(void);
 void
 authentication(int cpuflag)
 {
-	char *s;
 	char *argv[16], **av;
 	int ac;
 
@@ -34,9 +33,6 @@ authentication(int cpuflag)
 	av[ac++] = "factotum";
 	if(getenv("debugfactotum"))
 		av[ac++] = "-p";
-	s = getenv("factotumopts");
-	if(s != nil && *s != '\0')
-		av[ac++] = s;
 //	av[ac++] = "-d";		/* debug traces */
 //	av[ac++] = "-D";		/* 9p messages */
 	if(cpuflag)
@@ -55,11 +51,16 @@ authentication(int cpuflag)
 	case 0:
 		exec("/boot/factotum", av);
 		fatal("execing /boot/factotum");
+	default:
+		break;
 	}
 
 	/* wait for agent to really be there */
 	while(access("/mnt/factotum", 0) < 0)
 		sleep(250);
+
+	if(cpuflag)
+		return;
 }
 
 static void

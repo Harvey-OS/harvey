@@ -11,7 +11,7 @@
 #include "dat.h"
 #include "fns.h"
 
-uchar buf[65536];
+uint8_t buf[65536];
 
 void
 usage(void)

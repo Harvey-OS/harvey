@@ -98,7 +98,7 @@ audiowalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-audiostat(Chan *c, uchar *db, int n)
+audiostat(Chan *c, uint8_t *db, int n)
 {
 	return devstat(c, db, n, audiodir, nelem(audiodir), devgen);
 }
@@ -108,7 +108,7 @@ audioopen(Chan *c, int omode)
 {
 	int amode;
 
-	switch((ulong)c->qid.path) {
+	switch((uint32_t)c->qid.path) {
 	default:
 		error(Eperm);
 		break;
@@ -145,7 +145,7 @@ audioopen(Chan *c, int omode)
 static void
 audioclose(Chan *c)
 {
-	switch((ulong)c->qid.path) {
+	switch((uint32_t)c->qid.path) {
 	default:
 		error(Eperm);
 		break;
@@ -165,18 +165,18 @@ audioclose(Chan *c)
 	}
 }
 
-static long
-audioread(Chan *c, void *v, long n, vlong off)
+static int32_t
+audioread(Chan *c, void *v, int32_t n, int64_t off)
 {
 	int liv, riv, lov, rov;
-	long m;
+	int32_t m;
 	char buf[300];
 	int j;
-	ulong offset = off;
+	uint32_t offset = off;
 	char *a;
 
 	a = v;
-	switch((ulong)c->qid.path) {
+	switch((uint32_t)c->qid.path) {
 	default:
 		error(Eperm);
 		break;
@@ -240,17 +240,17 @@ audioread(Chan *c, void *v, long n, vlong off)
 	return n;
 }
 
-static long
-audiowrite(Chan *c, void *vp, long n, vlong off)
+static int32_t
+audiowrite(Chan *c, void *vp, int32_t n, int64_t off)
 {
-	long m;
+	int32_t m;
 	int i, v, left, right, in, out;
 	Cmdbuf *cb;
 	char *a;
 
 	USED(off);
 	a = vp;
-	switch((ulong)c->qid.path) {
+	switch((uint32_t)c->qid.path) {
 	default:
 		error(Eperm);
 		break;
@@ -344,11 +344,11 @@ audiowrite(Chan *c, void *vp, long n, vlong off)
 }
 
 void
-audioswab(uchar *a, uint n)
+audioswab(uint8_t *a, uint n)
 {
-	ulong *p, *ep, b;
+	uint32_t *p, *ep, b;
 
-	p = (ulong*)a;
+	p = (uint32_t*)a;
 	ep = p + (n>>2);
 	while(p < ep) {
 		b = *p;

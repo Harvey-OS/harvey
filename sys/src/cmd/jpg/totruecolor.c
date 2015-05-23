@@ -26,7 +26,7 @@ totruecolor(Rawimage *i, int chandesc)
 	int j, k;
 	Rawimage *im;
 	char err[ERRMAX];
-	uchar *rp, *gp, *bp, *cmap, *inp, *outp, cmap1[3*256];
+	uint8_t *rp, *gp, *bp, *cmap, *inp, *outp, cmap1[3*256];
 	int r, g, b, Y, Cr, Cb;
 
 	if(chandesc!=CY && chandesc!=CRGB24)

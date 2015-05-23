@@ -26,7 +26,7 @@ doswit(Node *n)
 {
 	Case *c;
 	C1 *q, *iq, *iqh, *iql;
-	long def, nc, i, j, isv, nh;
+	int32_t def, nc, i, j, isv, nh;
 	Prog *hsb;
 	Node *vr[2];
 	int dup;
@@ -62,17 +62,18 @@ doswit(Node *n)
 		if(isv)
 			q->val = c->val;
 		else
-			q->val = (long)c->val;	/* cast ensures correct value for 32-bit switch on 64-bit architecture */
+			q->val = (int32_t)c->val;	/* cast ensures correct value for 32-bit switch on 64-bit architecture */
 		q++;
 	}
 	qsort(iq, nc, sizeof(C1), swcmp);
 	if(debug['K'])
 	for(i=0; i<nc; i++)
-		print("case %2ld: = %.8llux\n", i, (vlong)iq[i].val);
+		print("case %2ld: = %.8llux\n", i, (int64_t)iq[i].val);
 	dup = 0;
 	for(i=0; i<nc-1; i++)
 		if(iq[i].val == iq[i+1].val) {
-			diag(n, "duplicate cases in switch %lld", (vlong)iq[i].val);
+			diag(n, "duplicate cases in switch %lld",
+			     (int64_t)iq[i].val);
 			dup = 1;
 		}
 	if(dup)
@@ -114,19 +115,22 @@ doswit(Node *n)
 		for(j = i; j < nc; j++){
 			if((iq[j].val>>32) != iqh[nh].val)
 				break;
-			q->val = (long)iq[j].val;
+			q->val = (int32_t)iq[j].val;
 			q->label = iq[j].label;
 			q++;
 		}
 		qsort(iql,  q-iql, sizeof(C1), swcmp);
-if(0){for(int k=0; k<(q-iql); k++)print("nh=%ld k=%d h=%#llux l=%#llux lab=%ld\n", nh, k, (vlong)iqh[nh].val,  (vlong)iql[k].val, iql[k].label);}
+if(0){for(int k=0; k<(q-iql); k++)print("nh=%ld k=%d h=%#llux l=%#llux lab=%ld\n", nh, k,
+					(int64_t)iqh[nh].val,  (int64_t)iql[k].val,
+					iql[k].label);}
 		iqh[nh].label = pc;
 		nh++;
 		swit1(iql, q-iql, def, vr[0]);
 		i = j;
 	}
 	patch(hsb, pc);
-if(0){for(int k=0; k<nh; k++)print("k*=%d h=%#llux lab=%ld\n", k, (vlong)iqh[k].val,  iqh[k].label);}
+if(0){for(int k=0; k<nh; k++)print("k*=%d h=%#llux lab=%ld\n", k,
+				   (int64_t)iqh[k].val,  iqh[k].label);}
 	swit1(iqh, nh, def, vr[1]);
 }
 
@@ -140,13 +144,13 @@ casf(void)
 	cases = c;
 }
 
-long
-outlstring(TRune *s, long n)
+int32_t
+outlstring(TRune *s, int32_t n)
 {
 	char buf[sizeof(TRune)];
 	uint c;
 	int i;
-	long r;
+	int32_t r;
 
 	if(suppress)
 		return nstring;
@@ -204,5 +208,5 @@ ieeedtod(Ieee *ieee, double native)
 	fr = modf(fr*f, &ho);
 	ieee->l = ho;
 	ieee->l <<= 16;
-	ieee->l |= (long)(fr*f);
+	ieee->l |= (int32_t)(fr*f);
 }

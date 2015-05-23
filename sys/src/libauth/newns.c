@@ -154,7 +154,7 @@ static int
 nsop(char *fn, int argc, char *argv[], AuthRpc *rpc)
 {
 	char *argv0;
-	ulong flags;
+	unsigned long flags;
 	int fd, i;
 	Biobuf *b;
 	int cdroot;
@@ -375,7 +375,7 @@ setenv(char *name, char *val)
 {
 	int f;
 	char ename[ANAMELEN+6];
-	long s;
+	int32_t s;
 
 	sprint(ename, "#e/%s", name);
 	f = create(ename, OWRITE, 0664);

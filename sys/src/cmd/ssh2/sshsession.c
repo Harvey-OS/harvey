@@ -454,7 +454,8 @@ confine(char *q, char *s)
 }
 
 void
-runcmd(int reqfd, int datafd, char *svc, char *cmd, char *arg1, char *arg2)
+runcmd(int reqfd, int datafd, char *svc, char *cmd, char *arg1,
+       char *arg2)
 {
 	char *p;
 	int fd, cmdpid, child;

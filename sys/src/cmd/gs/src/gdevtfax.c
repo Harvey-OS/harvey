@@ -190,7 +190,7 @@ gdev_stream_print_page(gx_device_printer * pdev, FILE * prn_stream,
 /* Print a fax page.  Other fax drivers use this. */
 int
 gdev_fax_print_page_stripped(gx_device_printer * pdev, FILE * prn_stream,
-		    stream_CFE_state * ss, long rows)
+		    stream_CFE_state * ss, int32_t rows)
 {
     return gdev_stream_print_page_strips(pdev, prn_stream, &s_CFE_template,
 					 (stream_state *)ss, ss->Columns,

@@ -17,7 +17,7 @@
 
 static	char*	file;
 static	int	fd;
-static	uchar	*ones;
+static	uint8_t	*ones;
 
 static	int	isdev;
 
@@ -92,10 +92,10 @@ clearsect(int sect)
 }
 
 void
-readdata(int sect, void *buff, ulong count, ulong off)
+readdata(int sect, void *buff, uint32_t count, uint32_t off)
 {
-	long n;
-	ulong m;
+	int32_t n;
+	uint32_t m;
 
 	m = sect * sectsize + off;
 	n = pread(flash.dfd, buff, count, m);
@@ -106,10 +106,10 @@ readdata(int sect, void *buff, ulong count, ulong off)
 }
 
 int
-writedata(int err, int sect, void *buff, ulong count, ulong off)
+writedata(int err, int sect, void *buff, uint32_t count, uint32_t off)
 {
-	long n;
-	ulong m;
+	int32_t n;
+	uint32_t m;
 
 	m = sect*sectsize + off;
 	n = pwrite(flash.dfd, buff, count, m);

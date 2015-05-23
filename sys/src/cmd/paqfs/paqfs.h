@@ -42,36 +42,36 @@ enum {
 
 struct PaqHeader
 {
-	ulong	magic;
+	uint32_t	magic;
 	ushort	version;
-	ulong	blocksize;
-	ulong	time;
+	uint32_t	blocksize;
+	uint32_t	time;
 	char	label[32];
 };
 
 struct PaqBlock
 {
-	ulong	magic;
-	ulong	size;		/* data size - always <= blocksize */
+	uint32_t	magic;
+	uint32_t	size;		/* data size - always <= blocksize */
 	uchar	type;
 	uchar	encoding;
-	ulong	adler32;	/* applied to unencoded data */
+	uint32_t	adler32;	/* applied to unencoded data */
 };
 
 struct PaqTrailer
 {
-	ulong	magic;
-	ulong	root;
+	uint32_t	magic;
+	uint32_t	root;
 	uchar	sha1[20];
 };
 
 struct PaqDir
 {
-	ulong	qid;
-	ulong	mode;
-	ulong	mtime;
-	ulong	length;
-	ulong	offset;		/* to pointer block */
+	uint32_t	qid;
+	uint32_t	mode;
+	uint32_t	mtime;
+	uint32_t	length;
+	uint32_t	offset;		/* to pointer block */
 	char 	*name;
 	char	*uid;
 	char	*gid;

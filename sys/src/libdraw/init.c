@@ -37,7 +37,8 @@ drawshutdown(void)
 }
 
 int
-geninitdraw(char *devdir, void(*error)(Display*, char*), char *fontname, char *label, char *windir, int ref)
+geninitdraw(char *devdir, void(*error)(Display*, char*),
+	    char *fontname, char *label, char *windir, int ref)
 {
 	int fd, n;
 	Subfont *df;
@@ -135,7 +136,8 @@ initdraw(void(*error)(Display*, char*), char *fontname , char *label)
  * If reattaching, maintain value of screen pointer.
  */
 int
-gengetwindow(Display *d, char *winname, Image **winp, Screen **scrp, int ref)
+gengetwindow(Display *d, char *winname, Image **winp, Screen **scrp,
+	     int ref)
 {
 	int n, fd;
 	char buf[64+1];
@@ -458,10 +460,10 @@ flushimage(Display *d, int visible)
 	return doflush(d);
 }
 
-uchar*
+uint8_t*
 bufimage(Display *d, int n)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(n<0 || n>d->bufsize){
 		werrstr("bad count in bufimage");

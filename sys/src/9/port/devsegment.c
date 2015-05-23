@@ -20,6 +20,7 @@ enum
 	Qsegdir,
 	Qctl,
 	Qdata,
+	Qfree,
 
 	/* commands to kproc */
 	Cnone=0,
@@ -34,6 +35,13 @@ enum
 #define PATH(s, t) 	( ((s)<<3) | (t) )
 
 typedef struct Globalseg Globalseg;
+typedef struct Freemsg Freemsg;
+
+struct Freemsg
+{
+	Freemsg *next;
+};
+
 struct Globalseg
 {
 	Ref;
@@ -41,8 +49,10 @@ struct Globalseg
 
 	char	*name;
 	char	*uid;
-	vlong	length;
+	int64_t	length;
 	long	perm;
+
+	Freemsg	*free;
 
 	/* kproc to do reading and writing */
 	QLock	l;		/* sync kproc access */
@@ -58,13 +68,13 @@ struct Globalseg
 
 static Globalseg *globalseg[100];
 static Lock globalseglock;
-
+Segment *heapseg;
 
 	Segment* (*_globalsegattach)(Proc*, char*);
-static	Segment* globalsegattach(Proc *p, char *name);
+static	Segment* globalsegattach(Proc*, char*);
 static	int	cmddone(void*);
 static	void	segmentkproc(void*);
-static	void	docmd(Globalseg *g, int cmd);
+static	void	docmd(Globalseg*, int);
 
 /*
  *  returns with globalseg incref'd
@@ -93,6 +103,8 @@ putgseg(Globalseg *g)
 {
 	if(decref(g) > 0)
 		return;
+	if(g->s == heapseg)
+		heapseg = nil;
 	if(g->s != nil)
 		putseg(g->s);
 	if(g->kproc)
@@ -103,11 +115,12 @@ putgseg(Globalseg *g)
 }
 
 static int
-segmentgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+segmentgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Qid q;
 	Globalseg *g;
-	ulong size;
+	uint32_t size;
 
 	switch(TYPE(c)) {
 	case Qtopdir:
@@ -146,30 +159,39 @@ segmentgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 		/* fall through */
 	case Qctl:
 	case Qdata:
+	case Qfree:
+		g = getgseg(c);
+		if(waserror()){
+			putgseg(g);
+			nexterror();
+		}
+		q.vers = 0;
+		q.type = QTFILE;
 		switch(s){
 		case 0:
-			g = getgseg(c);
-			q.vers = 0;
 			q.path = PATH(SEG(c), Qctl);
-			q.type = QTFILE;
 			devdir(c, q, "ctl", 0, g->uid, g->perm, dp);
-			putgseg(g);
 			break;
 		case 1:
-			g = getgseg(c);
-			q.vers = 0;
 			q.path = PATH(SEG(c), Qdata);
-			q.type = QTFILE;
 			if(g->s != nil)
 				size = g->s->top - g->s->base;
 			else
 				size = 0;
 			devdir(c, q, "data", size, g->uid, g->perm, dp);
-			putgseg(g);
 			break;
+		case 2:
+			q.path = PATH(SEG(c), Qfree);
+			devdir(c, q, "free", 0, g->uid, g->perm&0444, dp);
+			break;
+
 		default:
+			poperror();
+			putgseg(g);
 			return -1;
 		}
+		poperror();
+		putgseg(g);
 		break;
 	}
 	return 1;
@@ -193,8 +215,8 @@ segmentwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, 0, 0, segmentgen);
 }
 
-static int
-segmentstat(Chan *c, uchar *db, int n)
+static int32_t
+segmentstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, 0, 0, segmentgen);
 }
@@ -210,6 +232,7 @@ cmddone(void *arg)
 static Chan*
 segmentopen(Chan *c, int omode)
 {
+	Mach *m = machp();
 	Globalseg *g;
 
 	switch(TYPE(c)){
@@ -219,6 +242,7 @@ segmentopen(Chan *c, int omode)
 			error(Eisdir);
 		break;
 	case Qctl:
+	case Qfree:
 		g = getgseg(c);
 		if(waserror()){
 			putgseg(g);
@@ -249,8 +273,8 @@ segmentopen(Chan *c, int omode)
 				kproc(g->name, segmentkproc, g);
 				docmd(g, Cstart);
 			}
-			qunlock(&g->l);
 			poperror();
+			qunlock(&g->l);
 		}
 		c->aux = g;
 		poperror();
@@ -274,10 +298,12 @@ segmentclose(Chan *c)
 }
 
 static void
-segmentcreate(Chan *c, char *name, int omode, ulong perm)
+segmentcreate(Chan *c, char *name, int omode, int perm)
 {
+	Mach *m = machp();
 	int x, xfree;
 	Globalseg *g;
+	char *ep;
 
 	if(TYPE(c) != Qtopdir)
 		error(Eperm);
@@ -286,79 +312,159 @@ segmentcreate(Chan *c, char *name, int omode, ulong perm)
 		error(Eexist);
 
 	if((perm & DMDIR) == 0)
-		error(Ebadarg);
+		error("must create directory");
 
 	if(waserror()){
 		unlock(&globalseglock);
 		nexterror();
 	}
-	lock(&globalseglock);
 	xfree = -1;
-	for(x = 0; x < nelem(globalseg); x++){
-		g = globalseg[x];
-		if(g == nil){
-			if(xfree < 0)
-				xfree = x;
-		} else {
-			if(strcmp(g->name, name) == 0)
-				error(Eexist);
-		}
+	if(name[0] == '#' && name[1] >= '0' && name[1] <= '9'){
+		/* hack for cnk: if #n, treat it as index n */
+		xfree = strtoul(name+1, &ep, 0);
+		if(*ep)
+			xfree = -1;
+		else if(xfree < 0 || xfree >= nelem(globalseg))
+			error("invalid global segment index");
 	}
-	if(xfree < 0)
-		error("too many global segments");
+	lock(&globalseglock);
+	if(xfree < 0){
+		for(x = 0; x < nelem(globalseg); x++){
+			g = globalseg[x];
+			if(g == nil){
+				if(xfree < 0)
+					xfree = x;
+			} else {
+				if(strcmp(g->name, name) == 0)
+					error(Eexist);
+			}
+		}
+		if(xfree < 0)
+			error("too many global segments");
+	}else{
+		g = globalseg[xfree];
+		if(g != nil)
+			error(Eexist);
+	}
 	g = smalloc(sizeof(Globalseg));
 	g->ref = 1;
 	kstrdup(&g->name, name);
-	kstrdup(&g->uid, up->user);
+	kstrdup(&g->uid, m->externup->user);
 	g->perm = 0660; 
 	globalseg[xfree] = g;
 	unlock(&globalseglock);
 	poperror();
 
-	c->qid.path = PATH(x, Qsegdir);
+	c->qid.path = PATH(xfree, Qsegdir);
 	c->qid.type = QTDIR;
 	c->qid.vers = 0;
 	c->mode = openmode(omode);
 	c->mode = OWRITE;
+
+	DBG("segmentcreate(%s, %#o %#ux)\n", name, omode, perm);
 }
 
-static long
-segmentread(Chan *c, void *a, long n, vlong voff)
+enum{PTRSIZE = 19};	/* "0x1234567812345678 " */
+static int
+readptr(char *buf, int32_t n, uintptr_t val)
 {
+	if(n < PTRSIZE)
+		return 0;
+	snprint(buf, sizeof buf, "%*#ullx", PTRSIZE-1, val);
+	buf[PTRSIZE-1] = ' ';
+	return PTRSIZE;
+}
+
+static int
+znotempty(void *x)
+{
+	Zseg *zs;
+
+	zs = x;
+	return zs->end != 0;
+}
+
+static int32_t
+segmentread(Chan *c, void *a, int32_t n, int64_t voff)
+{
+	Mach *m = machp();
 	Globalseg *g;
-	char buf[32];
+	Zseg *zs;
+	uintptr_t va;
+	char *p, *s;
+	int32_t tot;
+	char buf[64];
 
 	if(c->qid.type == QTDIR)
 		return devdirread(c, a, n, (Dirtab *)0, 0L, segmentgen);
 
+	g = c->aux;
 	switch(TYPE(c)){
-	case Qctl:
-		g = c->aux;
+	case Qfree:
 		if(g->s == nil)
 			error("segment not yet allocated");
-		snprint(buf, sizeof buf, "va %#lux %#lux\n", g->s->base,
-			g->s->top-g->s->base);
+		if(n < PTRSIZE)
+			error("read buffer too small");
+		zs = &g->s->zseg;
+		qlock(&g->s->lk);
+		if(waserror()){
+			qunlock(&g->s->lk);
+			nexterror();
+		}
+		while((va = zgetaddr(g->s)) == 0ULL){
+			qunlock(&g->s->lk);
+			sleep(&zs->rr, znotempty, zs);
+			qlock(&g->s->lk);
+		}
+		p = a;
+		for(tot = 0; n-tot > PTRSIZE; tot += PTRSIZE){
+			p += readptr(p, n, va);
+			if((va = zgetaddr(g->s)) == 0ULL)
+				break;
+		}
+		poperror();
+		qunlock(&g->s->lk);
+		return tot;
+	case Qctl:
+		if(g->s == nil)
+			error("segment not yet allocated");
+		if(g->s->type&SG_KZIO)
+			s = "kmsg";
+		else if(g->s->type&SG_ZIO)
+			s = "umsg";
+		else
+			s = "addr";
+		snprint(buf, sizeof(buf), "%s %#p %#p\n",
+			s, g->s->base, (uintptr_t)(g->s->top-g->s->base));
 		return readstr(voff, a, n, buf);
 	case Qdata:
-		g = c->aux;
-		if(voff > g->s->top - g->s->base)
-			error(Ebadarg);
-		if(voff + n > g->s->top - g->s->base)
-			n = g->s->top - g->s->base - voff;
+		if(voff < 0)
+			error(Enegoff);
+		if(voff + n > g->s->top - g->s->base){
+			n = g->s->top - voff;
+			if(n <= 0)
+				break;
+		}
 		qlock(&g->l);
+		if(waserror()){
+			qunlock(&g->l);
+			nexterror();
+		}
+
 		g->off = voff + g->s->base;
 		g->data = smalloc(n);
 		if(waserror()){
 			free(g->data);
-			qunlock(&g->l);
 			nexterror();
 		}
 		g->dlen = n;
 		docmd(g, Cread);
 		memmove(a, g->data, g->dlen);
-		free(g->data);
-		qunlock(&g->l);
 		poperror();
+		free(g->data);
+
+		poperror();
+		qunlock(&g->l);
 		return g->dlen;
 	default:
 		panic("segmentread");
@@ -366,64 +472,134 @@ segmentread(Chan *c, void *a, long n, vlong voff)
 	return 0;	/* not reached */
 }
 
-static long
-segmentwrite(Chan *c, void *a, long n, vlong voff)
+/*
+ * BUG: we allocate virtual addresses but never give them
+ * back when the segment is destroyed.
+ * BUG: what if we overlap other segments attached by the user?
+ */
+static uintptr_t
+placeseg(uintptr_t len)
 {
+	static Lock lck;
+	static uintptr_t va = HEAPTOP;
+	uintptr_t v;
+
+	len += BIGPGSZ;	/* so we fault upon overflows */
+	lock(&lck);
+	len = BIGPGROUND(len);
+	va -= len;
+	v = va;
+	unlock(&lck);
+
+	return v;
+}
+
+static int32_t
+segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
+{
+	Mach *m = machp();
 	Cmdbuf *cb;
 	Globalseg *g;
-	ulong va, len, top;
+	uintptr_t va, len, top;
+	int i;
+	struct{
+		char *name;
+		int type;
+	}segs[] = {
+		{"kmsg", SG_SHARED|SG_ZIO|SG_KZIO},
+		{"umsg", SG_SHARED|SG_ZIO},
+		{"addr", SG_SHARED},
+	};
 
 	if(c->qid.type == QTDIR)
 		error(Eperm);
 
 	switch(TYPE(c)){
+	case Qfree:
+		error(Eperm);
+		break;
 	case Qctl:
 		g = c->aux;
 		cb = parsecmd(a, n);
-		if(strcmp(cb->f[0], "va") == 0){
+		for(i = 0; i < nelem(segs); i++)
+			if(strcmp(cb->f[0], segs[i].name) == 0)
+				break;
+		if(i < nelem(segs)){
 			if(g->s != nil)
 				error("already has a virtual address");
 			if(cb->nf < 3)
-				error(Ebadarg);
+				cmderror(cb, Ebadarg);
 			va = strtoul(cb->f[1], 0, 0);
 			len = strtoul(cb->f[2], 0, 0);
-			top = PGROUND(va + len);
-			va = va&~(BY2PG-1);
-			len = (top - va) / BY2PG;
+			if(va == 0)
+				va = placeseg(len);
+			top = BIGPGROUND(va + len);
+			va = va&~(BIGPGSZ-1);
+			len = (top - va) / BIGPGSZ;
 			if(len == 0)
-				error(Ebadarg);
-			g->s = newseg(SG_SHARED, va, len);
-		} else
+				cmderror(cb, "empty segment");
+
+			g->s = newseg(segs[i].type, va, len);
+			if(i == 0)
+				newzmap(g->s);
+			else if(i == 1)
+				zgrow(g->s);
+			DBG("newseg %s base %#ullx len %#ullx\n",
+				cb->f[0], va, len*BIGPGSZ);
+			if(i == 0 || i == 1)
+				dumpzseg(g->s);
+		}else if(strcmp(cb->f[0], "heap") == 0){
+			if(g == nil)
+				error("no globalseg");
+			if(g->s == nil)
+				error("no segment");
+			if(heapseg)
+				error("heap already set");
+			else
+				heapseg = g->s;
+		}else
 			error(Ebadctl);
 		break;
 	case Qdata:
 		g = c->aux;
-		if(voff + n > g->s->top - g->s->base)
-			error(Ebadarg);
+		if(voff < 0)
+			error(Enegoff);
+		if(voff + n > g->s->top - g->s->base){
+			n = g->s->top - voff;
+			if(n <= 0)
+				break;
+		}
 		qlock(&g->l);
+		if(waserror()){
+			qunlock(&g->l);
+			nexterror();
+		}
+
 		g->off = voff + g->s->base;
 		g->data = smalloc(n);
 		if(waserror()){
 			free(g->data);
-			qunlock(&g->l);
 			nexterror();
 		}
 		g->dlen = n;
 		memmove(g->data, a, g->dlen);
 		docmd(g, Cwrite);
-		free(g->data);
-		qunlock(&g->l);
 		poperror();
-		return g->dlen;
+		free(g->data);
+
+		poperror();
+		qunlock(&g->l);
+		break;
 	default:
 		panic("segmentwrite");
 	}
-	return 0;	/* not reached */
+	return n;
 }
 
-static int
-segmentwstat(Chan *c, uchar *dp, int n)
+static int32_t
+segmentwstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Mach *m = machp();
 	Globalseg *g;
 	Dir *d;
 
@@ -436,16 +612,24 @@ segmentwstat(Chan *c, uchar *dp, int n)
 		nexterror();
 	}
 
-	if(strcmp(g->uid, up->user) && !iseve())
+	if(strcmp(g->uid, m->externup->user)!=0 && !iseve())
 		error(Eperm);
 	d = smalloc(sizeof(Dir)+n);
+	if(waserror()){
+		free(d);
+		nexterror();
+	}
 	n = convM2D(dp, n, &d[0], (char*)&d[1]);
-	g->perm = d->mode & 0777;
-
-	putgseg(g);
+	if(!emptystr(d->uid) && strcmp(d->uid, g->uid) != 0)
+		kstrdup(&g->uid, d->uid);
+	if(d->mode != ~0UL)
+		g->perm = d->mode & 0777;
 	poperror();
-
 	free(d);
+
+	poperror();
+	putgseg(g);
+
 	return n;
 }
 
@@ -472,6 +656,7 @@ segmentremove(Chan *c)
 static Segment*
 globalsegattach(Proc *p, char *name)
 {
+	Mach *m = machp();
 	int x;
 	Globalseg *g;
 	Segment *s;
@@ -507,10 +692,14 @@ globalsegattach(Proc *p, char *name)
 static void
 docmd(Globalseg *g, int cmd)
 {
+	Mach *m = machp();
 	g->err[0] = 0;
 	g->cmd = cmd;
 	wakeup(&g->cmdwait);
+	while(waserror())
+		{}	/* no interrupts */
 	sleep(&g->replywait, cmddone, g);
+	poperror();
 	if(g->err[0])
 		error(g->err);
 }
@@ -523,27 +712,33 @@ cmdready(void *arg)
 	return g->cmd != Cnone;
 }
 
+/*
+ * TO DO: better approach is to send segment with command,
+ * temporarily add it to segment array at SEG1, do the operation, then putseg.
+ * otherwise there are as many kprocs as segments.
+ */
 static void
 segmentkproc(void *arg)
 {
+	Mach *m = machp();
 	Globalseg *g = arg;
 	int done;
 	int sno;
 
 	for(sno = 0; sno < NSEG; sno++)
-		if(up->seg[sno] == nil && sno != ESEG)
+		if(m->externup->seg[sno] == nil && sno != ESEG)
 			break;
 	if(sno == NSEG)
 		panic("segmentkproc");
-	g->kproc = up;
+	g->kproc = m->externup;
 
 	incref(g->s);
-	up->seg[sno] = g->s;
+	m->externup->seg[sno] = g->s;
 
 	for(done = 0; !done;){
 		sleep(&g->cmdwait, cmdready, g);
 		if(waserror()){
-			strncpy(g->err, up->errstr, sizeof(g->err));
+			strncpy(g->err, m->externup->errstr, sizeof(g->err));
 		} else {
 			switch(g->cmd){
 			case Cstart:

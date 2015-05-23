@@ -34,29 +34,32 @@ enum
 typedef struct AESstate AESstate;
 struct AESstate
 {
-	ulong	setup;
+	uint32_t	setup;
 	int	rounds;
 	int	keybytes;
 	uint	ctrsz;
-	uchar	key[AESmaxkey];			/* unexpanded key */
-	ulong	ekey[4*(AESmaxrounds + 1)];	/* encryption key */
-	ulong	dkey[4*(AESmaxrounds + 1)];	/* decryption key */
-	uchar	ivec[AESbsize];			/* initialization vector */
-	uchar	mackey[3 * AESbsize];		/* 3 XCBC mac 96 keys */
+	uint8_t	key[AESmaxkey];			/* unexpanded key */
+	uint32_t	ekey[4*(AESmaxrounds + 1)];	/* encryption key */
+	uint32_t	dkey[4*(AESmaxrounds + 1)];	/* decryption key */
+	uint8_t	ivec[AESbsize];			/* initialization vector */
+	uint8_t	mackey[3 * AESbsize];		/* 3 XCBC mac 96 keys */
 };
 
 /* block ciphers */
-void	aes_encrypt(ulong rk[], int Nr, uchar pt[16], uchar ct[16]);
-void	aes_decrypt(ulong rk[], int Nr, uchar ct[16], uchar pt[16]);
+void	aes_encrypt(uint32_t rk[], int Nr, uint8_t pt[16],
+			uint8_t ct[16]);
+void	aes_decrypt(uint32_t rk[], int Nr, uint8_t ct[16],
+			uint8_t pt[16]);
 
-void	setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec);
-void	aesCBCencrypt(uchar *p, int len, AESstate *s);
-void	aesCBCdecrypt(uchar *p, int len, AESstate *s);
-void	aesCTRdecrypt(uchar *p, int len, AESstate *s);
-void	aesCTRencrypt(uchar *p, int len, AESstate *s);
+void	setupAESstate(AESstate *s, uint8_t key[], int keybytes,
+			  uint8_t *ivec);
+void	aesCBCencrypt(uint8_t *p, int len, AESstate *s);
+void	aesCBCdecrypt(uint8_t *p, int len, AESstate *s);
+void	aesCTRdecrypt(uint8_t *p, int len, AESstate *s);
+void	aesCTRencrypt(uint8_t *p, int len, AESstate *s);
 
 void	setupAESXCBCstate(AESstate *s);
-uchar*	aesXCBCmac(uchar *p, int len, AESstate *s);
+uint8_t*	aesXCBCmac(uint8_t *p, int len, AESstate *s);
 
 /*
  * Blowfish Definitions
@@ -72,20 +75,21 @@ enum
 typedef struct BFstate BFstate;
 struct BFstate
 {
-	ulong	setup;
+	uint32_t	setup;
 
-	uchar	key[56];
-	uchar	ivec[8];
+	uint8_t	key[56];
+	uint8_t	ivec[8];
 
-	u32int 	pbox[BFrounds+2];
-	u32int	sbox[1024];
+	uint32_t 	pbox[BFrounds+2];
+	uint32_t	sbox[1024];
 };
 
-void	setupBFstate(BFstate *s, uchar key[], int keybytes, uchar *ivec);
-void	bfCBCencrypt(uchar*, int, BFstate*);
-void	bfCBCdecrypt(uchar*, int, BFstate*);
-void	bfECBencrypt(uchar*, int, BFstate*);
-void	bfECBdecrypt(uchar*, int, BFstate*);
+void	setupBFstate(BFstate *s, uint8_t key[], int keybytes,
+			 uint8_t *ivec);
+void	bfCBCencrypt(uint8_t*, int, BFstate*);
+void	bfCBCdecrypt(uint8_t*, int, BFstate*);
+void	bfECBencrypt(uint8_t*, int, BFstate*);
+void	bfECBdecrypt(uint8_t*, int, BFstate*);
 
 /*
  * DES definitions
@@ -100,24 +104,24 @@ enum
 typedef struct DESstate DESstate;
 struct DESstate
 {
-	ulong	setup;
-	uchar	key[8];		/* unexpanded key */
-	ulong	expanded[32];	/* expanded key */
-	uchar	ivec[8];	/* initialization vector */
+	uint32_t	setup;
+	uint8_t	key[8];		/* unexpanded key */
+	uint32_t	expanded[32];	/* expanded key */
+	uint8_t	ivec[8];	/* initialization vector */
 };
 
-void	setupDESstate(DESstate *s, uchar key[8], uchar *ivec);
-void	des_key_setup(uchar[8], ulong[32]);
-void	block_cipher(ulong*, uchar*, int);
-void	desCBCencrypt(uchar*, int, DESstate*);
-void	desCBCdecrypt(uchar*, int, DESstate*);
-void	desECBencrypt(uchar*, int, DESstate*);
-void	desECBdecrypt(uchar*, int, DESstate*);
+void	setupDESstate(DESstate *s, uint8_t key[8], uint8_t *ivec);
+void	des_key_setup(uint8_t[8], uint32_t[32]);
+void	block_cipher(uint32_t*, uint8_t*, int);
+void	desCBCencrypt(uint8_t*, int, DESstate*);
+void	desCBCdecrypt(uint8_t*, int, DESstate*);
+void	desECBencrypt(uint8_t*, int, DESstate*);
+void	desECBdecrypt(uint8_t*, int, DESstate*);
 
 /* for backward compatibility with 7-byte DES key format */
-void	des56to64(uchar *k56, uchar *k64);
-void	des64to56(uchar *k64, uchar *k56);
-void	key_setup(uchar[7], ulong[32]);
+void	des56to64(uint8_t *k56, uint8_t *k64);
+void	des64to56(uint8_t *k64, uint8_t *k56);
+void	key_setup(uint8_t[7], uint32_t[32]);
 
 /* triple des encrypt/decrypt orderings */
 enum {
@@ -132,18 +136,18 @@ enum {
 typedef struct DES3state DES3state;
 struct DES3state
 {
-	ulong	setup;
-	uchar	key[3][8];		/* unexpanded key */
-	ulong	expanded[3][32];	/* expanded key */
-	uchar	ivec[8];		/* initialization vector */
+	uint32_t	setup;
+	uint8_t	key[3][8];		/* unexpanded key */
+	uint32_t	expanded[3][32];	/* expanded key */
+	uint8_t	ivec[8];		/* initialization vector */
 };
 
-void	setupDES3state(DES3state *s, uchar key[3][8], uchar *ivec);
-void	triple_block_cipher(ulong keys[3][32], uchar*, int);
-void	des3CBCencrypt(uchar*, int, DES3state*);
-void	des3CBCdecrypt(uchar*, int, DES3state*);
-void	des3ECBencrypt(uchar*, int, DES3state*);
-void	des3ECBdecrypt(uchar*, int, DES3state*);
+void	setupDES3state(DES3state *s, uint8_t key[3][8], uint8_t *ivec);
+void	triple_block_cipher(uint32_t keys[3][32], uint8_t*, int);
+void	des3CBCencrypt(uint8_t*, int, DES3state*);
+void	des3CBCdecrypt(uint8_t*, int, DES3state*);
+void	des3ECBencrypt(uint8_t*, int, DES3state*);
+void	des3ECBdecrypt(uint8_t*, int, DES3state*);
 
 /*
  * digests
@@ -166,12 +170,12 @@ enum
 typedef struct DigestState DigestState;
 struct DigestState
 {
-	uvlong	len;
+	uint64_t	len;
 	union {
-		u32int	state[8];
-		u64int	bstate[8];
+		uint32_t	state[8];
+		uint64_t	bstate[8];
 	};
-	uchar	buf[256];
+	uint8_t	buf[256];
 	int	blen;
 	char	malloced;
 	char	seeded;
@@ -186,25 +190,36 @@ typedef struct DigestState MD5state;
 typedef struct DigestState MD4state;
 typedef struct DigestState AEShstate;
 
-DigestState*	md4(uchar*, ulong, uchar*, DigestState*);
-DigestState*	md5(uchar*, ulong, uchar*, DigestState*);
-DigestState*	sha1(uchar*, ulong, uchar*, DigestState*);
-DigestState*	sha2_224(uchar*, ulong, uchar*, DigestState*);
-DigestState*	sha2_256(uchar*, ulong, uchar*, DigestState*);
-DigestState*	sha2_384(uchar*, ulong, uchar*, DigestState*);
-DigestState*	sha2_512(uchar*, ulong, uchar*, DigestState*);
-DigestState*	aes(uchar*, ulong, uchar*, DigestState*);
-DigestState*	hmac_x(uchar *p, ulong len, uchar *key, ulong klen,
-			uchar *digest, DigestState *s,
-			DigestState*(*x)(uchar*, ulong, uchar*, DigestState*),
+DigestState*	md4(uint8_t*, uint32_t, uint8_t*, DigestState*);
+DigestState*	md5(uint8_t*, uint32_t, uint8_t*, DigestState*);
+DigestState*	sha1(uint8_t*, uint32_t, uint8_t*, DigestState*);
+DigestState*	sha2_224(uint8_t*, uint32_t, uint8_t*, DigestState*);
+DigestState*	sha2_256(uint8_t*, uint32_t, uint8_t*, DigestState*);
+DigestState*	sha2_384(uint8_t*, uint32_t, uint8_t*, DigestState*);
+DigestState*	sha2_512(uint8_t*, uint32_t, uint8_t*, DigestState*);
+DigestState*	aes(uint8_t*, uint32_t, uint8_t*, DigestState*);
+DigestState*	hmac_x(uint8_t *p, uint32_t len, uint8_t *key,
+			   uint32_t klen,
+			uint8_t *digest, DigestState *s,
+			DigestState*(*x)(uint8_t*, uint32_t, uint8_t*, DigestState*),
 			int xlen);
-DigestState*	hmac_md5(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
-DigestState*	hmac_sha1(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
-DigestState*	hmac_sha2_224(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
-DigestState*	hmac_sha2_256(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
-DigestState*	hmac_sha2_384(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
-DigestState*	hmac_sha2_512(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
-DigestState*	hmac_aes(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
+DigestState*	hmac_md5(uint8_t*, uint32_t, uint8_t*, uint32_t,
+			     uint8_t*,
+			     DigestState*);
+DigestState*	hmac_sha1(uint8_t*, uint32_t, uint8_t*, uint32_t,
+			      uint8_t*,
+			      DigestState*);
+DigestState*	hmac_sha2_224(uint8_t*, uint32_t, uint8_t*, uint32_t,
+				  uint8_t*, DigestState*);
+DigestState*	hmac_sha2_256(uint8_t*, uint32_t, uint8_t*, uint32_t,
+				  uint8_t*, DigestState*);
+DigestState*	hmac_sha2_384(uint8_t*, uint32_t, uint8_t*, uint32_t,
+				  uint8_t*, DigestState*);
+DigestState*	hmac_sha2_512(uint8_t*, uint32_t, uint8_t*, uint32_t,
+				  uint8_t*, DigestState*);
+DigestState*	hmac_aes(uint8_t*, uint32_t, uint8_t*, uint32_t,
+			     uint8_t*,
+			     DigestState*);
 char*		md5pickle(MD5state*);
 MD5state*	md5unpickle(char*);
 char*		sha1pickle(SHA1state*);
@@ -213,10 +228,10 @@ SHA1state*	sha1unpickle(char*);
 /*
  * random number generation
  */
-void	genrandom(uchar *buf, int nbytes);
-void	prng(uchar *buf, int nbytes);
-ulong	fastrand(void);
-ulong	nfastrand(ulong);
+void	genrandom(uint8_t *buf, int nbytes);
+void	prng(uint8_t *buf, int nbytes);
+uint32_t	fastrand(void);
+uint32_t	nfastrand(uint32_t);
 
 /*
  * primes
@@ -224,7 +239,7 @@ ulong	nfastrand(ulong);
 void	genprime(mpint *p, int n, int accuracy); /* generate n-bit probable prime */
 void	gensafeprime(mpint *p, mpint *alpha, int n, int accuracy); /* prime & generator */
 void	genstrongprime(mpint *p, int n, int accuracy); /* generate n-bit strong prime */
-void	DSAprimes(mpint *q, mpint *p, uchar seed[SHA1dlen]);
+void	DSAprimes(mpint *q, mpint *p, uint8_t seed[SHA1dlen]);
 int	probably_prime(mpint *n, int nrep);	/* miller-rabin test */
 int	smallprimetest(mpint *p);  /* returns -1 if not prime, 0 otherwise */
 
@@ -234,13 +249,13 @@ int	smallprimetest(mpint *p);  /* returns -1 if not prime, 0 otherwise */
 typedef struct RC4state RC4state;
 struct RC4state
 {
-	 uchar	state[256];
-	 uchar	x;
-	 uchar	y;
+	 uint8_t	state[256];
+	 uint8_t	x;
+	 uint8_t	y;
 };
 
-void	setupRC4state(RC4state*, uchar*, int);
-void	rc4(RC4state*, uchar*, int);
+void	setupRC4state(RC4state*, uint8_t*, int);
+void	rc4(RC4state*, uint8_t*, int);
 void	rc4skip(RC4state*, int);
 void	rc4back(RC4state*, int);
 
@@ -275,7 +290,7 @@ struct RSApriv
 
 struct PEMChain{
 	PEMChain*next;
-	uchar	*pem;
+	uint8_t	*pem;
 	int	pemlen;
 };
 
@@ -288,15 +303,18 @@ void		rsapubfree(RSApub*);
 RSApriv*	rsaprivalloc(void);
 void		rsaprivfree(RSApriv*);
 RSApub*		rsaprivtopub(RSApriv*);
-RSApub*		X509toRSApub(uchar*, int, char*, int);
-RSApriv*	asn1toRSApriv(uchar*, int);
-void		asn1dump(uchar *der, int len);
-uchar*		decodePEM(char *s, char *type, int *len, char **new_s);
+RSApub*		X509toRSApub(uint8_t*, int, char*, int);
+RSApriv*	asn1toRSApriv(uint8_t*, int);
+void		asn1dump(uint8_t *der, int len);
+uint8_t*		decodePEM(char *s, char *type, int *len,
+				  char **new_s);
 PEMChain*	decodepemchain(char *s, char *type);
-uchar*		X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen);
-uchar*		X509req(RSApriv *priv, char *subj, int *certlen);
-char*		X509verify(uchar *cert, int ncert, RSApub *pk);
-void		X509dump(uchar *cert, int ncert);
+uint8_t*		X509gen(RSApriv *priv, char *subj,
+				uint32_t valid[2],
+			      int *certlen);
+uint8_t*		X509req(RSApriv *priv, char *subj, int *certlen);
+char*		X509verify(uint8_t *cert, int ncert, RSApub *pk);
+void		X509dump(uint8_t *cert, int ncert);
 
 /*
  * elgamal
@@ -378,26 +396,26 @@ void		dsaprivfree(DSApriv*);
 DSAsig*		dsasigalloc(void);
 void		dsasigfree(DSAsig*);
 DSApub*		dsaprivtopub(DSApriv*);
-DSApriv*	asn1toDSApriv(uchar*, int);
+DSApriv*	asn1toDSApriv(uint8_t*, int);
 
 /*
  * TLS
  */
 typedef struct Thumbprint{
 	struct Thumbprint *next;
-	uchar	sha1[SHA1dlen];
+	uint8_t	sha1[SHA1dlen];
 } Thumbprint;
 
 typedef struct TLSconn{
 	char	dir[40];	/* connection directory */
-	uchar	*cert;	/* certificate (local on input, remote on output) */
-	uchar	*sessionID;
+	uint8_t	*cert;	/* certificate (local on input, remote on output) */
+	uint8_t	*sessionID;
 	int	certlen;
 	int	sessionIDlen;
 	int	(*trace)(char*fmt, ...);
 	PEMChain*chain;	/* optional extra certificate evidence for servers to present */
 	char	*sessionType;
-	uchar	*sessionKey;
+	uint8_t	*sessionKey;
 	int	sessionKeylen;
 	char	*sessionConst;
 } TLSconn;
@@ -409,10 +427,10 @@ int tlsServer(int fd, TLSconn *c);
 /* thumb.c */
 Thumbprint* initThumbprints(char *ok, char *crl);
 void	freeThumbprints(Thumbprint *ok);
-int	okThumbprint(uchar *sha1, Thumbprint *ok);
+int	okThumbprint(uint8_t *sha1, Thumbprint *ok);
 
 /* readcert.c */
-uchar	*readcert(char *filename, int *pcertlen);
+uint8_t	*readcert(char *filename, int *pcertlen);
 PEMChain*readcertchain(char *filename);
 
 #endif

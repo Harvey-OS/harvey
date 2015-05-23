@@ -12,11 +12,11 @@
 
 #define UVLONG_MAX	(1LL<<63)
 
-uvlong
+uint64_t
 strtoull(char *nptr, char **endptr, int base)
 {
 	char *p;
-	uvlong n, nn, m;
+	uint64_t n, nn, m;
 	int c, ovfl, v, neg, ndig;
 
 	p = nptr;

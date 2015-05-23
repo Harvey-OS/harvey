@@ -16,7 +16,7 @@
 
 /* Current input file */
 char *name;
-vlong offset;
+int64_t offset;
 int rate = 44100;
 
 char *outfile;
@@ -26,7 +26,7 @@ static enum mad_flow
 input(void *data, struct mad_stream *stream)
 {
 	int fd, n, m;
-	static uchar buf[32768];
+	static uint8_t buf[32768];
 
 	fd = (int)data;
 	n = stream->bufend - stream->next_frame;
@@ -113,7 +113,7 @@ output(void *data, struct mad_header const* header, struct mad_pcm *pcm)
 	int i, n, v;
 	mad_fixed_t const *left, *right;
 	static Dither d;
-	static uchar buf[16384], *p;
+	static uint8_t buf[16384], *p;
 
 	if(pcm->samplerate != rate){
 		rate = pcm->samplerate;

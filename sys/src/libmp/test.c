@@ -14,15 +14,15 @@
 
 int loops = 1;
 
-long randomreg;
+int32_t randomreg;
 
 void
-srand(long seed)
+srand(int32_t seed)
 {
 	randomreg = seed;
 }
 
-long
+int32_t
 lrand(void)
 {
 	randomreg = randomreg*104381 + 81761;
@@ -30,7 +30,7 @@ lrand(void)
 }
 
 void
-prng(uchar *p, int n)
+prng(uint8_t *p, int n)
 {
 	while(n-- > 0)
 		*p++ = lrand();
@@ -116,7 +116,7 @@ testvecdigmuladd(char *str, mpdigit d)
 {
 	mpint *b, *b2;
 	int i;
-	vlong now;
+	int64_t now;
 
 	b = strtomp(str, nil, 16, nil);
 	b2 = mpnew(0);
@@ -141,7 +141,7 @@ testvecdigmulsub(char *str, mpdigit d)
 {
 	mpint *b, *b2;
 	int i;
-	vlong now;
+	int64_t now;
 
 	b = strtomp(str, nil, 16, nil);
 	b2 = mpnew(0);
@@ -165,7 +165,7 @@ void
 testmul(char *str)
 {
 	mpint *b, *b1, *b2;
-	vlong now;
+	int64_t now;
 	int i;
 
 	b = strtomp(str, nil, 16, nil);
@@ -189,7 +189,7 @@ void
 testmul2(mpint *b, mpint *b1)
 {
 	mpint *b2;
-	vlong now;
+	int64_t now;
 	int i;
 
 	b2 = mpnew(0);
@@ -212,7 +212,7 @@ testdigdiv(char *str, mpdigit d)
 	mpint *b;
 	mpdigit q;
 	int i;
-	vlong now;
+	int64_t now;
 
 	b = strtomp(str, nil, 16, nil);
 	now = nsec();
@@ -228,7 +228,7 @@ void
 testdiv(mpint *x, mpint *y)
 {
 	mpint *b2, *b3;
-	vlong now;
+	int64_t now;
 	int i;
 
 	b2 = mpnew(0);
@@ -248,7 +248,7 @@ void
 testmod(mpint *x, mpint *y)
 {
 	mpint *r;
-	vlong now;
+	int64_t now;
 	int i;
 
 	r = mpnew(0);
@@ -266,7 +266,7 @@ void
 testinvert(mpint *x, mpint *y)
 {
 	mpint *r, *d1, *d2;
-	vlong now;
+	int64_t now;
 	int i;
 
 	r = mpnew(0);
@@ -319,7 +319,7 @@ testexp(char *base, char *exp, char *mod)
 {
 	mpint *b, *e, *m, *res;
 	int i;
-	uvlong now;
+	uint64_t now;
 
 	b = strtomp(base, nil, 16, nil);
 	e = strtomp(exp, nil, 16, nil);
@@ -350,8 +350,8 @@ testgcd(void)
 {
 	mpint *a, *b, *d, *x, *y, *t1, *t2;
 	int i;
-	uvlong now, then;
-	uvlong etime;
+	uint64_t now, then;
+	uint64_t etime;
 
 	d = mpnew(0);
 	x = mpnew(0);

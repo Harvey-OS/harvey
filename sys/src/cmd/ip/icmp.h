@@ -53,18 +53,18 @@ enum
 typedef struct Ip4hdr Ip4hdr;
 struct Ip4hdr
 {
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	ipcksum[2];	/* Header checksum */
-	uchar	src[4];		/* Ipv4 source */
-	uchar	dst[4];		/* Ipv4 destination */
+	unsigned char	vihl;		/* Version and header length */
+	unsigned char	tos;		/* Type of service */
+	unsigned char	length[2];	/* packet length */
+	unsigned char	id[2];		/* Identification */
+	unsigned char	frag[2];	/* Fragment information */
+	unsigned char	ttl;		/* Time to live */
+	unsigned char	proto;		/* Protocol */
+	unsigned char	ipcksum[2];	/* Header checksum */
+	unsigned char	src[4];		/* Ipv4 source */
+	unsigned char	dst[4];		/* Ipv4 destination */
 
-	uchar	data[];
+	unsigned char	data[];
 };
 
 // #define IP4HDRSZ offsetof(Ip4hdr, data[0])
@@ -72,12 +72,12 @@ struct Ip4hdr
 /* the icmp payload has the same format in v4 and v6 */
 typedef struct Icmphdr Icmphdr;
 struct Icmphdr {
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-	uchar	data[];
+	unsigned char	type;
+	unsigned char	code;
+	unsigned char	cksum[2];
+	unsigned char	icmpid[2];
+	unsigned char	seq[2];
+	unsigned char	data[];
 };
 
 // #define ICMPHDRSZ offsetof(Icmphdr, data[0])

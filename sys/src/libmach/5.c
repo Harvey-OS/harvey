@@ -6,7 +6,7 @@
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
  */
-
+#ifdef HARVEYARM
 /*
  * arm definition
  */
@@ -71,3 +71,4 @@ Mach marm =
 	4,		/* szfloat */
 	8,		/* szdouble */
 };
+#endif

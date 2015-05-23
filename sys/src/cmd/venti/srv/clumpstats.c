@@ -23,7 +23,7 @@ static int
 readarenainfo(Arena *arena)
 {
 	ClumpInfo *ci, *cis;
-	u32int clump;
+	uint32_t clump;
 	int i, n, ok;
 
 	if(arena->memstats.clumps)
@@ -62,7 +62,7 @@ static void
 clumpstats(Index *ix)
 {
 	int ok;
-	ulong clumps, n;
+	uint32_t clumps, n;
 	int i, j, t;
 
 	ok = 0;

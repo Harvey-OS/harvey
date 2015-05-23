@@ -80,7 +80,7 @@
 #  define local
 #endif
 
-char *prog;
+int8_t *prog;
 
 void error            OF((const char *msg));
 void gz_compress      OF((FILE   *in, gzFile out));

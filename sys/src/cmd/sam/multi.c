@@ -10,7 +10,7 @@
 #include "sam.h"
 
 List	file = { 'p' };
-ushort	tag;
+uint16_t	tag;
 
 File *
 newfile(void)

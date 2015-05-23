@@ -128,7 +128,7 @@ void
 tdump(char **argv)
 {
 	int i;
-	uchar *p;
+	uint8_t *p;
 	PortTDump tx;
 	PortRDump rx;
 	PortMap *m;

@@ -28,7 +28,14 @@ _fmtunlock(void)
 }
 
 int
-_efgfmt(Fmt*)
+_efgfmt(Fmt* fmt)
 {
 	return -1;
+}
+
+void
+fmtinit(void)
+{
+	quotefmtinstall();
+	archfmtinstall();
 }

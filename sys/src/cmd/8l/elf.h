@@ -91,16 +91,21 @@ enum {
 typedef void (*Putl)(long);
 
 void	elf32(int mach, int bo, int addpsects, void (*putpsects)(Putl));
-void	elf32phdr(void (*putl)(long), ulong type, ulong off, ulong vaddr,
-	ulong paddr, ulong filesz, ulong memsz, ulong prots, ulong align);
-void	elf32shdr(void (*putl)(long), ulong name, ulong type, ulong flags,
-	ulong vaddr, ulong off, ulong sectsz, ulong link, ulong addnl,
-	ulong align, ulong entsz);
+void	elf32phdr(void (*putl)(long), uint32_t type, uint32_t off,
+		      uint32_t vaddr,
+	uint32_t paddr, uint32_t filesz, uint32_t memsz, uint32_t prots,
+		      uint32_t align);
+void	elf32shdr(void (*putl)(long), uint32_t name, uint32_t type,
+		      uint32_t flags,
+	uint32_t vaddr, uint32_t off, uint32_t sectsz, uint32_t link,
+		      uint32_t addnl,
+	uint32_t align, uint32_t entsz);
 
 void	elf64(int mach, int bo, int addpsects, void (*putpsects)(Putl));
-void	elf64phdr(void (*putl)(long), void (*putll)(vlong), ulong type,
+void	elf64phdr(void (*putl)(long), void (*putll)(vlong), uint32_t type,
 	uvlong off, uvlong vaddr, uvlong paddr, uvlong filesz, uvlong memsz,
-	ulong prots, uvlong align);
-void	elf64shdr(void (*putl)(long), void (*putll)(vlong), ulong name,
-	ulong type, uvlong flags, uvlong vaddr, uvlong off, uvlong sectsz,
-	ulong link, ulong addnl, uvlong align, uvlong entsz);
+	uint32_t prots, uvlong align);
+void	elf64shdr(void (*putl)(long), void (*putll)(vlong), uint32_t name,
+	uint32_t type, uvlong flags, uvlong vaddr, uvlong off,
+		      uvlong sectsz,
+	uint32_t link, uint32_t addnl, uvlong align, uvlong entsz);

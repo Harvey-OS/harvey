@@ -207,7 +207,7 @@ char *pschar(char *s, char *hex, int *wid, int *ht)
 {
 	Point chpt, spt;
 	Image *b;
-	uchar rowdata[100];
+	uint8_t rowdata[100];
 	char *hp = hex;
 	int y, i;
 

@@ -111,7 +111,7 @@ sysclose(int fd)
 }
 
 int
-syscreate(char *path, int mode, ulong perm)
+syscreate(char *path, int mode, uint32_t perm)
 {
 	int fd;
 	Chan *c = 0;
@@ -204,7 +204,7 @@ syschdir(char *dir)
 	return 0;
 }
 
-long
+int32_t
 bindmount(Chan *c0, char *old, int flag, char *spec)
 {
 	int ret;
@@ -229,7 +229,7 @@ bindmount(Chan *c0, char *old, int flag, char *spec)
 int
 sysbind(char *new, char *old, int flags)
 {
-	long r;
+	int32_t r;
 	Chan *c0 = 0;
 
 	if(waserror()) {
@@ -246,7 +246,7 @@ sysbind(char *new, char *old, int flags)
 int
 sysmount(int fd, char *old, int flags, char *spec)
 {
-	long r;
+	int32_t r;
 	Chan *c0 = 0, *bc = 0;
 	struct {
 		Chan*	chan;
@@ -311,10 +311,10 @@ sysopen(char *path, int mode)
 	return fd;
 }
 
-long
-unionread(Chan *c, void *va, long n)
+int32_t
+unionread(Chan *c, void *va, int32_t n)
 {
-	long nr;
+	int32_t nr;
 	Chan *nc = 0;
 	Pgrp *pg = 0;
 
@@ -365,8 +365,8 @@ unionread(Chan *c, void *va, long n)
 	return 0;
 }
 
-long
-sysread(int fd, void *va, long n)
+int32_t
+sysread(int fd, void *va, int32_t n)
 {
 	int dir;
 	Lock *cl;
@@ -424,8 +424,8 @@ sysremove(char *path)
 	return 0;
 }
 
-long
-sysseek(int fd, long off, int whence)
+int32_t
+sysseek(int fd, int32_t off, int whence)
 {
 	Dir dir;
 	Chan *c;
@@ -477,8 +477,8 @@ sysstat(char *path, char *buf)
 	return 0;
 }
 
-long
-syswrite(int fd, void *va, long n)
+int32_t
+syswrite(int fd, void *va, int32_t n)
 {
 	Lock *cl;
 	Chan *c = 0;
@@ -563,8 +563,8 @@ sysdirfwstat(int fd, Dir *dir)
 	return sysfwstat(fd, buf);
 }
 
-long
-sysdirread(int fd, Dir *dbuf, long count)
+int32_t
+sysdirread(int fd, Dir *dbuf, int32_t count)
 {
 	int c, n, i, r;
 	char buf[DIRLEN*50];
@@ -720,7 +720,7 @@ identtrans(char *addr, char *naddr, int na, char *file, int nf)
 static int
 nettrans(char *addr, char *naddr, int na, char *file, int nf)
 {
-	long n;
+	int32_t n;
 	int fd;
 	char *cp;
 	char reply[4*NAMELEN];

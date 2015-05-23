@@ -311,10 +311,10 @@ rcreate(Worker*)
 }
 
 int
-readtopdir(Fid*, uchar *buf, long off, int cnt, int blen)
+readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 {
 	int i, m, n;
-	long pos;
+	int32_t pos;
 
 	n = 0;
 	pos = 0;
@@ -336,7 +336,7 @@ rread(Worker *w)
 {
 	Fid *f;
 	Req *r;
-	long off, cnt;
+	int32_t off, cnt;
 	int n, i;
 	Wmsg m;
 	char *p;
@@ -437,7 +437,7 @@ rread(Worker *w)
 char*
 rwrite(Worker *w)
 {
-	long cnt, i, nf, cmd;
+	int32_t cnt, i, nf, cmd;
 	Pmsg newstate;
 	char *fields[3], *p, *q;
 	Wmsg m;

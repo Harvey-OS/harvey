@@ -72,7 +72,7 @@ gs_image_class_1_simple(gx_image_enum * penum)
     switch (penum->posture) {
 	case image_portrait:
 	    {			/* Use fast portrait algorithm. */
-		long dev_width =
+		int32_t dev_width =
 		    fixed2long_pixround(ox + penum->x_extent.x) -
 		    fixed2long_pixround(ox);
 
@@ -81,7 +81,7 @@ gs_image_class_1_simple(gx_image_enum * penum)
 		     * Add an extra align_bitmap_mod of padding so that
 		     * we can align scaled rows with the device.
 		     */
-		    long line_size =
+		    int32_t line_size =
 			bitmap_raster(any_abs(dev_width)) + align_bitmap_mod;
 
 		    if (penum->adjust != 0 || line_size > max_uint)
@@ -105,10 +105,10 @@ gs_image_class_1_simple(gx_image_enum * penum)
 	    }
 	case image_landscape:
 	    {			/* Use fast landscape algorithm. */
-		long dev_width =
+		int32_t dev_width =
 		    fixed2long_pixround(oy + penum->x_extent.y) -
 		    fixed2long_pixround(oy);
-		long line_size =
+		int32_t line_size =
 		    (dev_width = any_abs(dev_width),
 		     bitmap_raster(dev_width) * 8 +
 		     ROUND_UP(dev_width, 8) * align_bitmap_mod);
@@ -207,7 +207,7 @@ image_render_skip(gx_image_enum * penum, const byte * buffer, int data_x,
  */
 #ifdef STATS
 struct stats_image_fast_s {
-    long
+    int32_t
          calls, all0s, all1s, runs, lbit0, byte00, byte01, byte02, byte03,
          byte04, rbit0, lbit1, byte1, rbit1, thin, thin2, nwide, bwide,
          nfill, bfill;

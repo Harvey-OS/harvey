@@ -18,7 +18,7 @@ inittwiddle(Conn *c, int)
 }
 
 static void
-twiddle(CipherState*, uchar *buf, int n)
+twiddle(CipherState*, uint8_t *buf, int n)
 {
 	int i;
 

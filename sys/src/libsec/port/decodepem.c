@@ -14,10 +14,10 @@
 
 #define STRLEN(s)	(sizeof(s)-1)
 
-uchar*
+uint8_t*
 decodePEM(char *s, char *type, int *len, char **new_s)
 {
-	uchar *d;
+	uint8_t *d;
 	char *t, *e, *tt;
 	int n;
 
@@ -75,7 +75,7 @@ PEMChain*
 decodepemchain(char *s, char *type)
 {
 	PEMChain *first = nil, *last = nil, *chp;
-	uchar *d;
+	uint8_t *d;
 	char *e;
 	int n;
 

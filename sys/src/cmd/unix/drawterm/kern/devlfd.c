@@ -63,7 +63,7 @@ lfdwalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-lfdstat(Chan *c, uchar *dp, int n)
+lfdstat(Chan *c, uint8_t *dp, int n)
 {
 	USED(c);
 	USED(dp);
@@ -88,8 +88,8 @@ lfdclose(Chan *c)
 	close((int)(uintptr)c->aux);
 }
 
-static long
-lfdread(Chan *c, void *buf, long n, vlong off)
+static int32_t
+lfdread(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	USED(off);	/* can't pread on pipes */
 	n = read((int)(uintptr)c->aux, buf, n);
@@ -100,8 +100,8 @@ lfdread(Chan *c, void *buf, long n, vlong off)
 	return n;
 }
 
-static long
-lfdwrite(Chan *c, void *buf, long n, vlong off)
+static int32_t
+lfdwrite(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	USED(off);	/* can't pread on pipes */
 

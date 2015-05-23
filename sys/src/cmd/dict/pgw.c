@@ -872,7 +872,7 @@ pgwprintentry(Entry e, int cmd)
 {
 	char *p, *pe;
 	int t;
-	long r, rprev, rlig;
+	int32_t r, rprev, rlig;
 	Rune *transtab;
 
 	p = e.start;
@@ -981,10 +981,10 @@ pgwprintentry(Entry e, int cmd)
  * Return offset into bdict where next webster entry after fromoff starts.
  * Webster entries start with <p><hw>
  */
-long
-pgwnextoff(long fromoff)
+int32_t
+pgwnextoff(int32_t fromoff)
 {
-	long a, n;
+	int32_t a, n;
 	int c;
 
 	a = Bseek(bdict, fromoff, 0);

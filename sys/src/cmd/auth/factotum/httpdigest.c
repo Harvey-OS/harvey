@@ -70,7 +70,7 @@ digest(char *user, char *realm, char *passwd,
 	char *nonce, char *method, char *uri,
 	char *dig)
 {
-	uchar b[MD5dlen];
+	uint8_t b[MD5dlen];
 	char ha1[MD5dlen*2+1];
 	char ha2[MD5dlen*2+1];
 	DigestState *s;
@@ -78,31 +78,31 @@ digest(char *user, char *realm, char *passwd,
 	/*
 	 *  H(A1) = MD5(uid + ":" + realm ":" + passwd)
 	 */
-	s = md5((uchar*)user, strlen(user), nil, nil);
-	md5((uchar*)":", 1, nil, s);
-	md5((uchar*)realm, strlen(realm), nil, s);
-	md5((uchar*)":", 1, nil, s);
-	md5((uchar*)passwd, strlen(passwd), b, s);
+	s = md5((uint8_t*)user, strlen(user), nil, nil);
+	md5((uint8_t*)":", 1, nil, s);
+	md5((uint8_t*)realm, strlen(realm), nil, s);
+	md5((uint8_t*)":", 1, nil, s);
+	md5((uint8_t*)passwd, strlen(passwd), b, s);
 	enc16(ha1, sizeof(ha1), b, MD5dlen);
 	strtolower(ha1);
 
 	/*
 	 *  H(A2) = MD5(method + ":" + uri)
 	 */
-	s = md5((uchar*)method, strlen(method), nil, nil);
-	md5((uchar*)":", 1, nil, s);
-	md5((uchar*)uri, strlen(uri), b, s);
+	s = md5((uint8_t*)method, strlen(method), nil, nil);
+	md5((uint8_t*)":", 1, nil, s);
+	md5((uint8_t*)uri, strlen(uri), b, s);
 	enc16(ha2, sizeof(ha2), b, MD5dlen);
 	strtolower(ha2);
 
 	/*
 	 *  digest = MD5(H(A1) + ":" + nonce + ":" + H(A2))
 	 */
-	s = md5((uchar*)ha1, MD5dlen*2, nil, nil);
-	md5((uchar*)":", 1, nil, s);
-	md5((uchar*)nonce, strlen(nonce), nil, s);
-	md5((uchar*)":", 1, nil, s);
-	md5((uchar*)ha2, MD5dlen*2, b, s);
+	s = md5((uint8_t*)ha1, MD5dlen*2, nil, nil);
+	md5((uint8_t*)":", 1, nil, s);
+	md5((uint8_t*)nonce, strlen(nonce), nil, s);
+	md5((uint8_t*)":", 1, nil, s);
+	md5((uint8_t*)ha2, MD5dlen*2, b, s);
 	enc16(dig, MD5dlen*2+1, b, MD5dlen);
 	strtolower(dig);
 }

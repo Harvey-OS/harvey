@@ -1019,9 +1019,9 @@ parsename(char *name, Elemlist *e)
 }
 
 void*
-mymemrchr(void *va, int c, long n)
+mymemrchr(void *va, int c, int32_t n)
 {
-	uchar *a, *e;
+	uint8_t *a, *e;
 
 	a = va;
 	for(e=a+n-1; e>a; e--)
@@ -1047,7 +1047,7 @@ mymemrchr(void *va, int c, long n)
  * do not use the Cname*, this avoids an unnecessary clone.
  */
 Chan*
-namec(char *aname, int amode, int omode, ulong perm)
+namec(char *aname, int amode, int omode, uint32_t perm)
 {
 	int n, prefix, len, t, nomount, npath;
 	Chan *c, *cnew;
@@ -1452,7 +1452,7 @@ validname(char *aname, int slashok)
 
 	while(*name){
 		/* all characters above '~' are ok */
-		c = *(uchar*)name;
+		c = *(uint8_t*)name;
 		if(c >= Runeself)
 			name += chartorune(&r, name);
 		else{

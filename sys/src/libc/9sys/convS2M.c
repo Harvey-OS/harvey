@@ -12,8 +12,8 @@
 #include	<fcall.h>
 
 static
-uchar*
-pstring(uchar *p, char *s)
+uint8_t*
+pstring(uint8_t *p, char *s)
 {
 	uint n;
 
@@ -35,8 +35,8 @@ pstring(uchar *p, char *s)
 }
 
 static
-uchar*
-pqid(uchar *p, Qid *q)
+uint8_t*
+pqid(uint8_t *p, Qid *q)
 {
 	PBIT8(p, q->type);
 	p += BIT8SZ;
@@ -203,9 +203,9 @@ sizeS2M(Fcall *f)
 }
 
 uint
-convS2M(Fcall *f, uchar *ap, uint nap)
+convS2M(Fcall *f, uint8_t *ap, uint nap)
 {
-	uchar *p;
+	uint8_t *p;
 	uint i, size;
 
 	size = sizeS2M(f);
@@ -214,7 +214,7 @@ convS2M(Fcall *f, uchar *ap, uint nap)
 	if(size > nap)
 		return 0;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 
 	PBIT32(p, size);
 	p += BIT32SZ;

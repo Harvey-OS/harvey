@@ -54,8 +54,8 @@ bhc_setup(os_ptr op, stream_BHC_state * pbhcs)
     uint dsize;
     int i;
     uint num_values, accum;
-    ushort *counts;
-    ushort *values;
+    uint16_t *counts;
+    uint16_t *values;
 
     check_type(*op, t_dictionary);
     check_dict_read(*op);
@@ -99,10 +99,10 @@ bhc_setup(os_ptr op, stream_BHC_state * pbhcs)
 	    return_error(e_rangecheck);
     }
     pbhcs->definition.counts = counts =
-	(ushort *) ialloc_byte_array(num_counts + 1, sizeof(ushort),
+	(uint16_t *) ialloc_byte_array(num_counts + 1, sizeof(uint16_t),
 				     "bhc_setup(counts)");
     pbhcs->definition.values = values =
-	(ushort *) ialloc_byte_array(num_values, sizeof(ushort),
+	(uint16_t *) ialloc_byte_array(num_values, sizeof(uint16_t),
 				     "bhc_setup(values)");
     if (counts == 0 || values == 0) {
 	ifree_object(values, "bhc_setup(values)");
@@ -158,8 +158,8 @@ zcomputecodes(i_ctx_t *i_ctx_p)
     os_ptr op1 = op - 1;
     uint asize;
     hc_definition def;
-    ushort *data;
-    long *freqs;
+    uint16_t *data;
+    int32_t *freqs;
     int code = 0;
 
     check_type(*op, t_integer);
@@ -171,10 +171,10 @@ zcomputecodes(i_ctx_t *i_ctx_p)
     if (asize < def.num_counts + 2)
 	return_error(e_rangecheck);
     def.num_values = asize - (def.num_counts + 1);
-    data = (ushort *) gs_alloc_byte_array(imemory, asize, sizeof(ushort),
+    data = (uint16_t *) gs_alloc_byte_array(imemory, asize, sizeof(uint16_t),
 					  "zcomputecodes");
-    freqs = (long *)gs_alloc_byte_array(imemory, def.num_values,
-					sizeof(long),
+    freqs = (int32_t *)gs_alloc_byte_array(imemory, def.num_values,
+					sizeof(int32_t),
 					"zcomputecodes(freqs)");
 
     if (data == 0 || freqs == 0)

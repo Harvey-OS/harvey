@@ -78,7 +78,7 @@ jpeg_free_large (j_common_ptr cinfo, void FAR * object, size_t sizeofobject)
  * Here we always say, "we got all you want bud!"
  */
 
-GLOBAL(long)
+GLOBAL(int32_t)
 jpeg_mem_available (j_common_ptr cinfo, long min_bytes_needed,
 		    long max_bytes_needed, long already_allocated)
 {
@@ -105,7 +105,7 @@ jpeg_open_backing_store (j_common_ptr cinfo, backing_store_ptr info,
  * cleanup required.  Here, there isn't any.
  */
 
-GLOBAL(long)
+GLOBAL(int32_t)
 jpeg_mem_init (j_common_ptr cinfo)
 {
   return 0;			/* just set max_memory_to_use to 0 */

@@ -22,7 +22,7 @@ cgenrel(Node *n, Node *nn, int inrel)
 	Prog *p1;
 	Node nod, nod1, nod2, nod3, nod4;
 	int o, t;
-	long v, curs;
+	int32_t v, curs;
 
 	if(debug['g']) {
 		prtree(nn, "cgen lhs");
@@ -460,7 +460,7 @@ cgenrel(Node *n, Node *nn, int inrel)
 				diag(n, "DOT and no offset");
 				break;
 			}
-			nod.xoffset += (long)r->vconst;
+			nod.xoffset += (int32_t)r->vconst;
 			nod.type = n->type;
 			cgen(&nod, nn);
 		}
@@ -577,7 +577,7 @@ void
 reglcgen(Node *t, Node *n, Node *nn)
 {
 	Node *r;
-	long v;
+	int32_t v;
 
 	regialloc(t, n, nn);
 	if(n->op == OIND) {
@@ -692,7 +692,7 @@ boolgen(Node *n, int true, Node *nn)
 	int o;
 	Prog *p1, *p2;
 	Node *l, *r, nod, nod1;
-	long curs;
+	int32_t curs;
 
 	if(debug['g']) {
 		prtree(nn, "boolgen lhs");
@@ -851,12 +851,12 @@ boolgen(Node *n, int true, Node *nn)
 }
 
 void
-sugen(Node *n, Node *nn, long w)
+sugen(Node *n, Node *nn, int32_t w)
 {
 	Prog *p1;
 	Node nod0, nod1, nod2, nod3, nod4, *l, *r;
 	Type *t;
-	long pc1;
+	int32_t pc1;
 	int i, m, c;
 
 	if(n == Z || n->type == T)
@@ -916,7 +916,7 @@ sugen(Node *n, Node *nn, long w)
 				diag(n, "DOT and no offset");
 				break;
 			}
-			nod1.xoffset += (long)r->vconst;
+			nod1.xoffset += (int32_t)r->vconst;
 			nod1.type = n->type;
 			sugen(&nod1, nn, w);
 		}

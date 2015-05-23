@@ -15,7 +15,7 @@ static
 void
 doellipse(int cmd, Image *dst, Point *c, int xr, int yr, int thick, Image *src, Point *sp, int alpha, int phi, Drawop op)
 {
-	uchar *a;
+	uint8_t *a;
 
 	_setdrawop(dst->display, op);
 

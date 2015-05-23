@@ -24,14 +24,14 @@ struct Iphdr
 	uchar	ttl;		/* Time to live */
 	uchar	proto;		/* Protocol */
 	uchar	cksum[2];	/* Header checksum */
-	ulong	src;		/* Ip source (uchar ordering unimportant) */
-	ulong	dst;		/* Ip destination (uchar ordering unimportant) */
+	uint32_t	src;		/* Ip source (uchar ordering unimportant) */
+	uint32_t	dst;		/* Ip destination (uchar ordering unimportant) */
 };
 
 typedef struct Tcphdr Tcphdr;
 struct Tcphdr
 {
-	ulong	ports;		/* defined as a ulong to make comparisons easier */
+	uint32_t	ports;		/* defined as a ulong to make comparisons easier */
 	uchar	seq[4];
 	uchar	ack[4];
 	uchar	flag[2];
@@ -109,7 +109,7 @@ enum
 #define SPECIALS_MASK (NEW_S|NEW_A|NEW_W|NEW_U)
 
 int
-encode(void *p, ulong n)
+encode(void *p, uint32_t n)
 {
 	uchar	*cp;
 
@@ -129,7 +129,7 @@ encode(void *p, ulong n)
 		hnputl(f, nhgetl(f) + ((cp[1] << 8) | cp[2])); \
 		cp += 3; \
 	} else { \
-		hnputl(f, nhgetl(f) + (ulong)*cp++); \
+		hnputl(f, nhgetl(f) + (uint32_t)*cp++); \
 	} \
 }
 #define DECODES(f) { \
@@ -137,7 +137,7 @@ encode(void *p, ulong n)
 		hnputs(f, nhgets(f) + ((cp[1] << 8) | cp[2])); \
 		cp += 3; \
 	} else { \
-		hnputs(f, nhgets(f) + (ulong)*cp++); \
+		hnputs(f, nhgets(f) + (uint32_t)*cp++); \
 	} \
 }
 
@@ -146,9 +146,9 @@ tcpcompress(Tcpc *comp, Block *b, int *protop)
 {
 	Iphdr	*ip;		/* current packet */
 	Tcphdr	*tcp;		/* current pkt */
-	ulong 	iplen, tcplen, hlen;	/* header length in uchars */
-	ulong 	deltaS, deltaA;	/* general purpose temporaries */
-	ulong 	changes;	/* change mask */
+	uint32_t 	iplen, tcplen, hlen;	/* header length in uchars */
+	uint32_t 	deltaS, deltaA;	/* general purpose temporaries */
+	uint32_t 	changes;	/* change mask */
 	uchar 	new_seq[16];	/* changes from last to current */
 	uchar 	*cp;
 	Hdr	*h;		/* last packet */

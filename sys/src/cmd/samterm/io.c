@@ -24,11 +24,11 @@ int	got;
 int	block;
 int	kbdc;
 int	resized;
-uchar	*hostp;
-uchar	*hoststop;
-uchar	*plumbbase;
-uchar	*plumbp;
-uchar	*plumbstop;
+uint8_t	*hostp;
+uint8_t	*hoststop;
+uint8_t	*plumbbase;
+uint8_t	*plumbp;
+uint8_t	*plumbstop;
 Channel	*plumbc;
 Channel	*hostc;
 Mousectl	*mousectl;
@@ -100,7 +100,7 @@ waitforio(void)
 	Alt alts[NRes+1];
 	Rune r;
 	int i;
-	ulong type;
+	uint32_t type;
 
 again:
 

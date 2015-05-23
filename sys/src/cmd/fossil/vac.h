@@ -56,26 +56,26 @@ enum {
 
 struct DirEntry {
 	char *elem;		/* path element */
-	ulong entry;		/* entry in directory for data */
-	ulong gen;		/* generation of data entry */
-	ulong mentry;		/* entry in directory for meta */
-	ulong mgen;		/* generation of meta entry */
+	uint32_t entry;		/* entry in directory for data */
+	uint32_t gen;		/* generation of data entry */
+	uint32_t mentry;		/* entry in directory for meta */
+	uint32_t mgen;		/* generation of meta entry */
 	uvlong size;		/* size of file */
 	uvlong qid;		/* unique file id */
 
 	char *uid;		/* owner id */
 	char *gid;		/* group id */
 	char *mid;		/* last modified by */
-	ulong mtime;		/* last modified time */
-	ulong mcount;		/* number of modifications: can wrap! */
-	ulong ctime;		/* directory entry last changed */
-	ulong atime;		/* last time accessed */
-	ulong mode;		/* various mode bits */
+	uint32_t mtime;		/* last modified time */
+	uint32_t mcount;		/* number of modifications: can wrap! */
+	uint32_t ctime;		/* directory entry last changed */
+	uint32_t atime;		/* last time accessed */
+	uint32_t mode;		/* various mode bits */
 
 	/* plan 9 */
 	int plan9;
 	uvlong p9path;
-	ulong p9version;
+	uint32_t p9version;
 
 	/* sub space of qid */
 	int qidSpace;

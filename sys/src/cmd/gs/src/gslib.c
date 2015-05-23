@@ -314,8 +314,8 @@ gs_copysign(floatp x, floatp y)
 /* Draw a colored kaleidoscope. */
 
 /* Random number generator */
-private long rand_state = 1;
-private long
+private int32_t rand_state = 1;
+private int32_t
 rand(void)
 {
 #define A 16807
@@ -436,7 +436,7 @@ test3(gs_state * pgs, gs_memory_t * mem)
     gx_color_index black2[2];
     gx_color_index black_white[2];
     gx_color_index white_black[2];
-    long pattern[max(align_bitmap_mod / sizeof(long), 1) * 4];
+    int32_t pattern[max(align_bitmap_mod / sizeof(int32_t), 1) * 4];
 
 #define pbytes ((byte *)pattern)
     gx_tile_bitmap tile;
@@ -962,7 +962,7 @@ test8(gs_state * pgs, gs_memory_t * mem)
 /* ---------------- Test program 10 ---------------- */
 /* Replay captured data for printer output. */
 
-private const char outfile[] = "t.pbm";
+private const int8_t outfile[] = "t.pbm";
 private const float ypage_wid = 11.0;
 private const float xpage_len = 17.0;
 private const int rotate_value = 0;
@@ -981,7 +981,7 @@ test10(gs_state * pgs, gs_memory_t * mem)
     gs_param_int_array HWSa;
     int HWSize[2];
     float HWResolution[2], PageSize[2];
-    long MaxBitmap;
+    int32_t MaxBitmap;
     int code;
     gx_device *dev = gs_currentdevice(pgs);
     float xlate_x, xlate_y;

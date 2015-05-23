@@ -8,12 +8,13 @@
  */
 
 /* EDF scheduling */
-#include	<u.h>
+#include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
+
 #include	"../port/edf.h"
 #include	<trace.h>
 
@@ -24,16 +25,12 @@ enum {
 
 #define DPRINT	if(Dontprint){}else print
 
-static long	now;	/* Low order 32 bits of time in µs */
-extern ulong	delayedscheds;
-extern Schedq	runq[Nrq];
-extern int	nrdy;
-extern ulong	runvec;
+static int32_t	now;	/* Low order 32 bits of time in µs */
 
 /* Statistics stuff */
-ulong		nilcount;
-ulong		scheds;
-ulong		edfnrun;
+uint32_t		nilcount;
+uint32_t		scheds;
+uint32_t		edfnrun;
 int		misseddeadlines;
 
 /* Edfschedlock protects modification of admission params */
@@ -60,15 +57,15 @@ static int
 timeconv(Fmt *f)
 {
 	char buf[128], *sign;
-	vlong t;
+	int64_t t;
 
 	buf[0] = 0;
 	switch(f->r) {
 	case 'U':
-		t = va_arg(f->args, uvlong);
+		t = va_arg(f->args, uint64_t);
 		break;
-	case 't':			/* vlong in nanoseconds */
-		t = va_arg(f->args, long);
+	case 't':			/* int64_t in nanoseconds */
+		t = va_arg(f->args, int32_t);
 		break;
 	default:
 		return fmtstrcpy(f, "(timeconv)");
@@ -81,18 +78,17 @@ timeconv(Fmt *f)
 		sign = "";
 	if (t > Onesecond){
 		t += OneRound;
-		snprint(buf, sizeof buf, "%s%d.%.3ds", sign,
-			(int)(t / Onesecond),
+		sprint(buf, "%s%d.%.3ds", sign, (int)(t / Onesecond),
 			(int)(t % Onesecond)/Onemillisecond);
 	}else if (t > Onemillisecond)
-		snprint(buf, sizeof buf, "%s%d.%.3dms", sign,
-			(int)(t / Onemillisecond), (int)(t % Onemillisecond));
+		sprint(buf, "%s%d.%.3dms", sign, (int)(t / Onemillisecond),
+			(int)(t % Onemillisecond));
 	else
-		snprint(buf, sizeof buf, "%s%dµs", sign, (int)t);
+		sprint(buf, "%s%dµs", sign, (int)t);
 	return fmtstrcpy(f, buf);
 }
 
-long edfcycles;
+int32_t edfcycles;
 
 Edf*
 edflock(Proc *p)
@@ -103,11 +99,11 @@ edflock(Proc *p)
 		return nil;
 	ilock(&thelock);
 	if((e = p->edf) && (e->flags & Admitted)){
-		thelock.pc = getcallerpc(&p);
+		thelock._pc = getcallerpc(&p);
 #ifdef EDFCYCLES
 		edfcycles -= lcycles();
 #endif
-		now = µs();
+		now = ms();
 		return e;
 	}
 	iunlock(&thelock);
@@ -132,8 +128,8 @@ edfinit(Proc*p)
 		fmtinstall('t', timeconv);
 		edfinited++;
 	}
-	now = µs();
-	DPRINT("%lud edfinit %lud[%s]\n", now, p->pid, statename[p->state]);
+	now = ms();
+	DPRINT("%lud edfinit %d[%s]\n", now, p->pid, statename[p->state]);
 	p->edf = malloc(sizeof(Edf));
 	if(p->edf == nil)
 		error(Enomem);
@@ -141,19 +137,20 @@ edfinit(Proc*p)
 }
 
 static void
-deadlineintr(Ureg*, Timer *t)
+deadlineintr(Ureg* ureg, Timer *t)
 {
+	Mach *m = machp();
 	/* Proc reached deadline */
 	extern int panicking;
+	Sched *sch;
 	Proc *p;
-	void (*pt)(Proc*, int, vlong);
 
 	if(panicking || active.exiting)
 		return;
 
 	p = t->ta;
-	now = µs();
-	DPRINT("%lud deadlineintr %lud[%s]\n", now, p->pid, statename[p->state]);
+	now = ms();
+	DPRINT("%lud deadlineintr %d[%s]\n", now, p->pid, statename[p->state]);
 	/* If we're interrupting something other than the proc pointed to by t->a,
 	 * we've already achieved recheduling, so we need not do anything
 	 * Otherwise, we must cause a reschedule, but if we call sched()
@@ -161,11 +158,12 @@ deadlineintr(Ureg*, Timer *t)
 	 * Instead, we cause the resched to happen when the interrupted proc
 	 * returns to user space
 	 */
-	if(p == up){
-		if(up->trace && (pt = proctrace))
-			pt(up, SInts, 0);
-		up->delaysched++;
- 		delayedscheds++;
+	if(p == m->externup){
+		if(m->externup->trace)
+			proctrace(m->externup, SInts, 0);
+		m->externup->delaysched++;
+		sch = procsched(m->externup);
+ 		sch->delayedscheds++;
 	}
 }
 
@@ -174,9 +172,8 @@ release(Proc *p)
 {
 	/* Called with edflock held */
 	Edf *e;
-	void (*pt)(Proc*, int, vlong);
-	long n;
-	vlong nowns;
+	int32_t n;
+	int64_t nowns;
 
 	e = p->edf;
 	e->flags &= ~Yield;
@@ -203,24 +200,26 @@ release(Proc *p)
 		}
 		e->d = e->r + e->D;
 		e->S = e->C;
-		DPRINT("%lud release %lud[%s], r=%lud, d=%lud, t=%lud, S=%lud\n",
+		DPRINT("%lud release %d[%s], r=%lud, d=%lud, t=%lud, S=%lud\n",
 			now, p->pid, statename[p->state], e->r, e->d, e->t, e->S);
-		if(pt = proctrace){
+		if(p->trace){
 			nowns = todget(nil);
-			pt(p, SRelease, nowns);
-			pt(p, SDeadline, nowns + 1000LL*e->D);
+			proctrace(p, SRelease, nowns);
+			proctrace(p, SDeadline, nowns + 1000LL*e->D);
 		}
 	}else{
-		DPRINT("%lud release %lud[%s], too late t=%lud, called from %#p\n",
+		DPRINT("%lud release %d[%s], too late t=%lud, called from %#p\n",
 			now, p->pid, statename[p->state], e->t, getcallerpc(&p));
 	}
 }
 
 static void
-releaseintr(Ureg*, Timer *t)
+releaseintr(Ureg* ureg, Timer *t)
 {
+	Mach *m = machp();
 	Proc *p;
 	extern int panicking;
+	Sched *sch;
 	Schedq *rq;
 
 	if(panicking || active.exiting)
@@ -229,15 +228,16 @@ releaseintr(Ureg*, Timer *t)
 	p = t->ta;
 	if((edflock(p)) == nil)
 		return;
-	DPRINT("%lud releaseintr %lud[%s]\n", now, p->pid, statename[p->state]);
+	sch = procsched(p);
+	DPRINT("%lud releaseintr %d[%s]\n", now, p->pid, statename[p->state]);
 	switch(p->state){
 	default:
 		edfunlock();
 		return;
 	case Ready:
 		/* remove proc from current runq */
-		rq = &runq[p->priority];
-		if(dequeueproc(rq, p) != p){
+		rq = &sch->runq[p->priority];
+		if(dequeueproc(sch, rq, p) != p){
 			DPRINT("releaseintr: can't find proc or lock race\n");
 			release(p);	/* It'll start best effort */
 			edfunlock();
@@ -252,9 +252,9 @@ releaseintr(Ureg*, Timer *t)
 			iprint("releaseintr: wakeme\n");
 		}
 		ready(p);
-		if(up){
-			up->delaysched++;
-			delayedscheds++;
+		if(m->externup){
+			m->externup->delaysched++;
+			sch->delayedscheds++;
 		}
 		return;
 	case Running:
@@ -267,9 +267,9 @@ releaseintr(Ureg*, Timer *t)
 		if(p->trend)
 			wakeup(p->trend);
 		p->trend = nil;
-		if(up){
-			up->delaysched++;
-			delayedscheds++;
+		if(m->externup){
+			m->externup->delaysched++;
+			sch->delayedscheds++;
 		}
 		return;
 	}
@@ -279,9 +279,8 @@ releaseintr(Ureg*, Timer *t)
 void
 edfrecord(Proc *p)
 {
-	long used;
+	int32_t used;
 	Edf *e;
-	void (*pt)(Proc*, int, vlong);
 
 	if((e = edflock(p)) == nil)
 		return;
@@ -292,8 +291,8 @@ edfrecord(Proc *p)
 		e->extraused += used;
 	if(e->S > 0){
 		if(e->S <= used){
-			if(pt = proctrace)
-				pt(p, SSlice, 0);
+			if(p->trace)
+				proctrace(p, SSlice, 0);
 			DPRINT("%lud edfrecord slice used up\n", now);
 			e->d = now;
 			e->S = 0;
@@ -308,10 +307,11 @@ void
 edfrun(Proc *p, int edfpri)
 {
 	Edf *e;
-	void (*pt)(Proc*, int, vlong);
-	long tns;
+	int32_t tns;
+	Sched *sch;
 
 	e = p->edf;
+	sch = procsched(p);
 	/* Called with edflock held */
 	if(edfpri){
 		tns = e->d - now;
@@ -320,7 +320,7 @@ edfrun(Proc *p, int edfpri)
 			 * deschedule forthwith
 			 */
 			p->delaysched++;
- 			delayedscheds++;
+			sch->delayedscheds++;
 			e->s = now;
 			return;
 		}
@@ -334,8 +334,8 @@ edfrun(Proc *p, int edfpri)
 		}else{
 			DPRINT("v");
 		}
-		if(p->trace && (pt = proctrace))
-			pt(p, SInte, todget(nil) + e->tns);
+		if(p->trace)
+			proctrace(p, SInte, todget(nil) + e->tns);
 		e->tmode = Trelative;
 		e->tf = deadlineintr;
 		e->ta = p;
@@ -349,12 +349,12 @@ edfrun(Proc *p, int edfpri)
 char *
 edfadmit(Proc *p)
 {
+	Mach *m = machp();
 	char *err;
 	Edf *e;
 	int i;
 	Proc *r;
-	void (*pt)(Proc*, int, vlong);
-	long tns;
+	int32_t tns;
 
 	e = p->edf;
 	if (e->flags & Admitted)
@@ -381,33 +381,35 @@ edfadmit(Proc *p)
 
 	edflock(p);
 
-	if(p->trace && (pt = proctrace))
-		pt(p, SAdmit, 0);
+	if(p->trace)
+		proctrace(p, SAdmit, 0);
 
 	/* Look for another proc with the same period to synchronize to */
-	SET(r);
-	for(i=0; i<conf.nproc; i++) {
-		r = proctab(i);
-		if(r->state == Dead || r == p)
+	for(i=0; (r = psincref(i)) != nil; i++) {
+		if(r->state == Dead || r == p){
+			psdecref(r);
 			continue;
-		if (r->edf == nil || (r->edf->flags & Admitted) == 0)
+		}
+		if (r->edf == nil || (r->edf->flags & Admitted) == 0){
+			psdecref(r);
 			continue;
+		}
 		if (r->edf->T == e->T)
-				break;
+			break;
 	}
-	if (i == conf.nproc){
+	if (r == nil){
 		/* Can't synchronize to another proc, release now */
 		e->t = now;
 		e->d = 0;
 		release(p);
-		if (p == up){
-			DPRINT("%lud edfadmit self %lud[%s], release now: r=%lud d=%lud t=%lud\n",
+		if (p == m->externup){
+			DPRINT("%lud edfadmit self %d[%s], release now: r=%lud d=%lud t=%lud\n",
 				now, p->pid, statename[p->state], e->r, e->d, e->t);
 			/* We're already running */
 			edfrun(p, 1);
 		}else{
 			/* We're releasing another proc */
-			DPRINT("%lud edfadmit other %lud[%s], release now: r=%lud d=%lud t=%lud\n",
+			DPRINT("%lud edfadmit other %d[%s], release now: r=%lud d=%lud t=%lud\n",
 				now, p->pid, statename[p->state], e->r, e->d, e->t);
 			p->ta = p;
 			edfunlock();
@@ -418,14 +420,12 @@ edfadmit(Proc *p)
 	}else{
 		/* Release in synch to something else */
 		e->t = r->edf->t;
-		if (p == up){
-			DPRINT("%lud edfadmit self %lud[%s], release at %lud\n",
+		psdecref(r);
+		if (p == m->externup){
+			DPRINT("%lud edfadmit self %d[%s], release at %lud\n",
 				now, p->pid, statename[p->state], e->t);
-			edfunlock();
-			qunlock(&edfschedlock);
-			return nil;
 		}else{
-			DPRINT("%lud edfadmit other %lud[%s], release at %lud\n",
+			DPRINT("%lud edfadmit other %d[%s], release at %lud\n",
 				now, p->pid, statename[p->state], e->t);
 			if(e->tt == nil){
 				e->tf = releaseintr;
@@ -448,12 +448,11 @@ void
 edfstop(Proc *p)
 {
 	Edf *e;
-	void (*pt)(Proc*, int, vlong);
 
 	if(e = edflock(p)){
-		DPRINT("%lud edfstop %lud[%s]\n", now, p->pid, statename[p->state]);
-		if(p->trace && (pt = proctrace))
-			pt(p, SExpel, 0);
+		DPRINT("%lud edfstop %d[%s]\n", now, p->pid, statename[p->state]);
+		if(p->trace)
+			proctrace(p, SExpel, 0);
 		e->flags &= ~Admitted;
 		if(e->tt)
 			timerdel(e);
@@ -462,24 +461,25 @@ edfstop(Proc *p)
 }
 
 static int
-yfn(void *)
+yfn(void *v)
 {
-	now = µs();
-	return up->trend == nil || now - up->edf->r >= 0;
+	Mach *m = machp();
+	now = ms();
+	return m->externup->trend == nil || now - m->externup->edf->r >= 0;
 }
 
 void
 edfyield(void)
 {
+	Mach *m = machp();
 	/* sleep until next release */
 	Edf *e;
-	void (*pt)(Proc*, int, vlong);
-	long n;
+	int32_t n;
 
-	if((e = edflock(up)) == nil)
+	if((e = edflock(m->externup)) == nil)
 		return;
-	if(up->trace && (pt = proctrace))
-		pt(up, SYield, 0);
+	if(m->externup->trace)
+		proctrace(m->externup, SYield, 0);
 	if((n = now - e->t) > 0){
 		if(n < e->T)
 			e->t += e->T;
@@ -489,30 +489,31 @@ edfyield(void)
 	e->r = e->t;
 	e->flags |= Yield;
 	e->d = now;
-	if (up->tt == nil){
+	if (m->externup->tt == nil){
 		n = e->t - now;
 		if(n < 20)
 			n = 20;
-		up->tns = 1000LL * n;
-		up->tf = releaseintr;
-		up->tmode = Trelative;
-		up->ta = up;
-		up->trend = &up->sleep;
-		timeradd(up);
-	}else if(up->tf != releaseintr)
-		print("edfyield: surprise! %#p\n", up->tf);
+		m->externup->tns = 1000LL * n;
+		m->externup->tf = releaseintr;
+		m->externup->tmode = Trelative;
+		m->externup->ta = m->externup;
+		m->externup->trend = &m->externup->sleep;
+		timeradd(m->externup);
+	}else if(m->externup->tf != releaseintr)
+		print("edfyield: surprise! %#p\n", m->externup->tf);
 	edfunlock();
-	sleep(&up->sleep, yfn, nil);
+	sleep(&m->externup->sleep, yfn, nil);
 }
 
 int
 edfready(Proc *p)
 {
+	Mach *m = machp();
 	Edf *e;
+	Sched *sch;
 	Schedq *rq;
 	Proc *l, *pp;
-	void (*pt)(Proc*, int, vlong);
-	long n;
+	int32_t n;
 
 	if((e = edflock(p)) == nil)
 		return 0;
@@ -545,7 +546,7 @@ edfready(Proc *p)
 				e->tf = releaseintr;
 				e->ta = p;
 				timeradd(e);
-				DPRINT("%lud edfready %lud[%s], release=%lud\n",
+				DPRINT("%lud edfready %d[%s], release=%lud\n",
 					now, p->pid, statename[p->state], e->t);
 			}
 			if(p->state == Running && (e->flags & (Yield|Yieldonblock)) == 0 && (e->flags & Extratime)){
@@ -560,21 +561,22 @@ edfready(Proc *p)
 				edfunlock();
 				return 0;	/* Stick on runq[PriExtra] */
 			}
-			DPRINT("%lud edfready %lud[%s] wait release at %lud\n",
+			DPRINT("%lud edfready %d[%s] wait release at %lud\n",
 				now, p->pid, statename[p->state], e->t);
 			p->state = Waitrelease;
 			edfunlock();
 			return 1;	/* Make runnable later */
 		}
-		DPRINT("%lud edfready %lud %s release now\n", now, p->pid, statename[p->state]);
+		DPRINT("%lud edfready %d %s release now\n", now, p->pid, statename[p->state]);
 		/* release now */
 		release(p);
 	}
 	edfunlock();
 	DPRINT("^");
-	rq = &runq[PriEdf];
+	sch = procsched(p);
+	rq = &sch->runq[PriEdf];
 	/* insert in queue in earliest deadline order */
-	lock(runq);
+	lock(sch);
 	l = nil;
 	for(pp = rq->head; pp; pp = pp->rnext){
 		if(pp->edf->d > e->d)
@@ -589,14 +591,14 @@ edfready(Proc *p)
 	if(pp == nil)
 		rq->tail = p;
 	rq->n++;
-	nrdy++;
-	runvec |= 1 << PriEdf;
+	sch->nrdy++;
+	sch->runvec |= 1 << PriEdf;
 	p->priority = PriEdf;
 	p->readytime = m->ticks;
 	p->state = Ready;
-	unlock(runq);
-	if(p->trace && (pt = proctrace))
-		pt(p, SReady, 0);
+	unlock(sch);
+	if(p->trace)
+		proctrace(p, SReady, 0);
 	return 1;
 }
 
@@ -631,22 +633,26 @@ static char *
 testschedulability(Proc *theproc)
 {
 	Proc *p;
-	long H, G, Cb, ticks;
+	int32_t H, G, Cb, ticks;
 	int steps, i;
 
 	/* initialize */
-	DPRINT("schedulability test %lud\n", theproc->pid);
+	DPRINT("schedulability test %d\n", theproc->pid);
 	qschedulability = nil;
-	for(i=0; i<conf.nproc; i++) {
-		p = proctab(i);
-		if(p->state == Dead)
+	for(i=0; (p = psincref(i)) != nil; i++) {
+		if(p->state == Dead){
+			psdecref(p);
 			continue;
-		if ((p->edf == nil || (p->edf->flags & Admitted) == 0) && p != theproc)
+		}
+		if ((p->edf == nil || (p->edf->flags & Admitted) == 0) && p != theproc){
+			psdecref(p);
 			continue;
+		}
 		p->edf->testtype = Rl;
 		p->edf->testtime = 0;
-		DPRINT("\tInit: edfenqueue %lud\n", p->pid);
+		DPRINT("\tInit: edfenqueue %d\n", p->pid);
 		testenq(p);
+		psdecref(p);
 	}
 	H=0;
 	G=0;
@@ -658,7 +664,7 @@ testschedulability(Proc *theproc)
 		case Dl:
 			H += p->edf->C;
 			Cb = 0;
-			DPRINT("\tStep %3d, Ticks %lud, pid %lud, deadline, H += %lud → %lud, Cb = %lud\n",
+			DPRINT("\tStep %3d, Ticks %lud, pid %d, deadline, H += %lud → %lud, Cb = %lud\n",
 				steps, ticks, p->pid, p->edf->C, H, Cb);
 			if (H+Cb>ticks){
 				DPRINT("not schedulable\n");
@@ -669,7 +675,7 @@ testschedulability(Proc *theproc)
 			testenq(p);
 			break;
 		case Rl:
-			DPRINT("\tStep %3d, Ticks %lud, pid %lud, release, G  %lud, C%lud\n",
+			DPRINT("\tStep %3d, Ticks %lud, pid %d, release, G  %lud, C%lud\n",
 				steps, ticks, p->pid, p->edf->C, G);
 			if(ticks && G <= ticks){
 				DPRINT("schedulable\n");

@@ -42,8 +42,8 @@
 #define FD_CLOEXEC	1
 
 struct flock {
-	short	l_type;
-	short	l_whence;
+	int16_t	l_type;
+	int16_t	l_whence;
 	off_t	l_start;
 	off_t	l_len;
 	pid_t	l_pid;

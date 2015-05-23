@@ -98,26 +98,26 @@ int             ttyf;			/* For interactive queries */
 int             uid;			/* User ID */
 int		names_from_stdin;	/* names for files are from stdin */
 OFFSET          total;			/* Total number of bytes transferred */
-short           f_access_time;		/* Reset access times of input files */
-short           areof;			/* End of input volume reached */
-short           f_dir_create;		/* Create missing directories */
-short           f_append;		/* Add named files to end of archive */
-short           f_create;		/* create a new archive */
-short           f_extract;		/* Extract named files from archive */
-short           f_follow_links;		/* follow symbolic links */
-short           f_interactive;		/* Interactivly extract files */
-short           f_linksleft;		/* Report on unresolved links */
-short           f_list;			/* List files on the archive */
-short           f_modified;		/* Don't restore modification times */
-short           f_verbose;		/* Turn on verbose mode */
-short		f_link;			/* link files where possible */
-short		f_owner;		/* extract files as the user */
-short		f_pass;			/* pass files between directories */
-short           f_newer;		/* append files to archive if newer */
-short		f_disposition;		/* ask for file disposition */
-short           f_reverse_match;	/* Reverse sense of pattern match */
-short           f_mtime;		/* Retain file modification time */
-short           f_unconditional;	/* Copy unconditionally */
+int16_t           f_access_time;		/* Reset access times of input files */
+int16_t           areof;			/* End of input volume reached */
+int16_t           f_dir_create;		/* Create missing directories */
+int16_t           f_append;		/* Add named files to end of archive */
+int16_t           f_create;		/* create a new archive */
+int16_t           f_extract;		/* Extract named files from archive */
+int16_t           f_follow_links;		/* follow symbolic links */
+int16_t           f_interactive;		/* Interactivly extract files */
+int16_t           f_linksleft;		/* Report on unresolved links */
+int16_t           f_list;			/* List files on the archive */
+int16_t           f_modified;		/* Don't restore modification times */
+int16_t           f_verbose;		/* Turn on verbose mode */
+int16_t		f_link;			/* link files where possible */
+int16_t		f_owner;		/* extract files as the user */
+int16_t		f_pass;			/* pass files between directories */
+int16_t           f_newer;		/* append files to archive if newer */
+int16_t		f_disposition;		/* ask for file disposition */
+int16_t           f_reverse_match;	/* Reverse sense of pattern match */
+int16_t           f_mtime;		/* Retain file modification time */
+int16_t           f_unconditional;	/* Copy unconditionally */
 time_t          now = 0;		/* Current time */
 uint            arvolume;		/* Volume number */
 uint            blocksize = BLOCKSIZE;	/* Archive block size */

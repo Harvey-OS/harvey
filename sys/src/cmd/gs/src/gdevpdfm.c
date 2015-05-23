@@ -97,7 +97,8 @@ pdfmark_scan_int(const gs_param_string * pstr, int *pvalue)
 
 /* Find a key in a dictionary. */
 private bool
-pdfmark_find_key(const char *key, const gs_param_string * pairs, uint count,
+pdfmark_find_key(const char *key, const gs_param_string * pairs,
+                 uint count,
 		 gs_param_string * pstr)
 {
     uint i;
@@ -387,7 +388,7 @@ setup_pdfmark_stream_compression(gx_device_psdf *pdev0,
 typedef struct ao_params_s {
     gx_device_pdf *pdev;	/* for pdfmark_make_dest */
     const char *subtype;	/* default Subtype in top-level dictionary */
-    long src_pg;		/* set to SrcPg - 1 if any */
+    int32_t src_pg;		/* set to SrcPg - 1 if any */
 } ao_params_t;
 private int
 pdfmark_put_ao_pairs(gx_device_pdf * pdev, cos_dict_t *pcd,

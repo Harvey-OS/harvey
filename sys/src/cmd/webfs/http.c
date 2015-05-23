@@ -157,7 +157,7 @@ wwwauthenticate(HttpState *hs, char *line)
 	if((s = smprint("%s:%s", user, pass)) == nil)
 		goto error;
 	free(up);
-	enc64(cred, sizeof(cred), (uchar*)s, strlen(s));
+	enc64(cred, sizeof(cred), (uint8_t*)s, strlen(s));
 	memset(s, 0, strlen(s));
 	free(s);
 	hs->credentials = smprint("Basic %s", cred);
@@ -517,7 +517,7 @@ int
 httpread(Client *c, Req *r)
 {
 	HttpState *hs;
-	long n;
+	int32_t n;
 
 	hs = c->aux;
 	n = readibuf(&hs->b, r->ofcall.data, r->ifcall.count);

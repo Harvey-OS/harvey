@@ -63,7 +63,7 @@ UPDATE=\
 
 </sys/src/cmd/mksyslib
 # this code really can't handle any flow-analysis warnings
-CFLAGS= -FTV
+#CFLAGS= -FTV
 
 test:V:	$OFILES
-	ar vu libstdio.a $OFILES
+	ar rv libstdio.a $OFILES

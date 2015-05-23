@@ -221,7 +221,8 @@ void init_tbl(void)	/* initialize tables */
 	extern int init_tune(void);
 
 	for (i = 0; keyword[i].key != NULL; i++)
-		install(keytbl, keyword[i].key, (char *) 0, keyword[i].keyval);
+		install(keytbl, keyword[i].key, (char *) 0,
+			keyword[i].keyval);
 	for (i = 0; resword[i].res != NULL; i++)
 		install(restbl, resword[i].res, resword[i].resval, 0);
 	init_tune();	/* tuning table done in tuning.c */

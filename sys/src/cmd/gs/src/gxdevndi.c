@@ -172,7 +172,7 @@ gx_render_device_DeviceN(frac * pcolor,
 		(unsigned) pdht->components[i].corder.num_levels
 	    	: 1;
 	unsigned long nshades = hsize * max_value[i] + 1;
-	long shade = pcolor[i] * nshades / (frac_1_long + 1);
+	int32_t shade = pcolor[i] * nshades / (frac_1_long + 1);
 	int_color[i] = shade / hsize;
 	l_color[i] = shade % hsize;
 	if (max_value[i] < MIN_CONTONE_LEVELS)

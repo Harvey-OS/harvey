@@ -40,9 +40,9 @@
 #include "idebug.h"
 #define MAX_STATS_DEPTH 6
 struct stats_dstack_s {
-    long lookups;		/* total lookups */
-    long probes[2];		/* successful lookups on 1 or 2 probes */
-    long depth[MAX_STATS_DEPTH + 1]; /* stack depth of lookups requiring search */
+    int32_t lookups;		/* total lookups */
+    int32_t probes[2];		/* successful lookups on 1 or 2 probes */
+    int32_t depth[MAX_STATS_DEPTH + 1]; /* stack depth of lookups requiring search */
 } stats_dstack;
 # define INCR(v) (++stats_dstack.v)
 #else
@@ -128,7 +128,7 @@ dstack_find_name_by_index(dict_stack_t * pds, uint nidx)
 	    dlputs("[D]lookup ");
 	    debug_print_name(mem, &dnref);
 	    dprintf3(" in 0x%lx(%u/%u)\n",
-		     (ulong) pdict, dict_length(pdref),
+		     (uint32_t) pdict, dict_length(pdref),
 		     dict_maxlength(pdref));
 	}
 #endif
@@ -209,7 +209,7 @@ dstack_set_top(dict_stack_t * pds)
     dict *pdict = dsp->value.pdict;
 
     if_debug3('d', "[d]dsp = 0x%lx -> 0x%lx, key array type = %d\n",
-	      (ulong) dsp, (ulong) pdict, r_type(&pdict->keys));
+	      (uint32_t) dsp, (uint32_t) pdict, r_type(&pdict->keys));
     if (dict_is_packed(pdict) &&
 	r_has_attr(dict_access_ref(dsp), a_read)
 	) {
@@ -245,7 +245,7 @@ dstack_gc_cleanup(dict_stack_t * pds)
 	    ref key;
 	    ref *old_pvalue;
 
-	    array_get(dict_mem(pdict), &pdict->keys, (long)i, &key);
+	    array_get(dict_mem(pdict), &pdict->keys, (int32_t)i, &key);
 	    if (r_has_type(&key, t_name) &&
 		pv_valid(old_pvalue = key.value.pname->pvalue)
 		) {		/*

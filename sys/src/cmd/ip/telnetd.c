@@ -47,9 +47,9 @@ int	conssim(void);
 int	fromchild(char*, int);
 int	fromnet(char*, int);
 int	termchange(Biobuf*, int);
-int	termsub(Biobuf*, uchar*, int);
+int	termsub(Biobuf*, uint8_t*, int);
 int	xlocchange(Biobuf*, int);
-int	xlocsub(Biobuf*, uchar*, int);
+int	xlocsub(Biobuf*, uint8_t*, int);
 int	challuser(char*);
 int	noworldlogin(char*);
 void*	share(ulong);
@@ -501,7 +501,7 @@ termchange(Biobuf *bp, int cmd)
 }
 
 int
-termsub(Biobuf *bp, uchar *sub, int n)
+termsub(Biobuf *bp, uint8_t *sub, int n)
 {
 	char term[Maxvar];
 
@@ -535,7 +535,7 @@ xlocchange(Biobuf *bp, int cmd)
 }
 
 int
-xlocsub(Biobuf *bp, uchar *sub, int n)
+xlocsub(Biobuf *bp, uint8_t *sub, int n)
 {
 	char xloc[Maxvar];
 
@@ -554,9 +554,9 @@ xlocsub(Biobuf *bp, uchar *sub, int n)
  *  end of process memory.
  */
 void*
-share(ulong len)
+share(uint32_t len)
 {
-	uchar *vastart;
+	uint8_t *vastart;
 
 	vastart = sbrk(0);
 	if(vastart == (void*)-1)

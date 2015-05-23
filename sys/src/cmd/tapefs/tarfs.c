@@ -115,8 +115,8 @@ tarname(Hdr *hp)
 void
 populate(char *name)
 {
-	long chksum, linkflg;
-	vlong blkno;
+	int32_t chksum, linkflg;
+	int64_t blkno;
 	char *fname;
 	Fileinf f;
 	Hdr *hp;
@@ -139,7 +139,7 @@ populate(char *name)
 		f.mode = strtoul(hp->mode, 0, 8);
 		f.uid  = strtoul(hp->uid, 0, 8);
 		f.gid  = strtoul(hp->gid, 0, 8);
-		if((uchar)hp->size[0] == 0x80)
+		if((uint8_t)hp->size[0] == 0x80)
 			f.size = b8byte(hp->size+3);
 		else
 			f.size = strtoull(hp->size, 0, 8);
@@ -196,7 +196,7 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, vlong off, long cnt)
+doread(Ram *r, int64_t off, int32_t cnt)
 {
 	int n;
 
@@ -216,7 +216,7 @@ popdir(Ram *r)
 }
 
 void
-dowrite(Ram *r, char *buf, long off, long cnt)
+dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }
@@ -232,10 +232,10 @@ int
 checksum(void)
 {
 	int i, n;
-	uchar *cp;
+	uint8_t *cp;
 
 	memset(dblock.chksum, ' ', sizeof dblock.chksum);
-	cp = (uchar *)dblock.dummy;
+	cp = (uint8_t *)dblock.dummy;
 	i = 0;
 	for (n = Tblock; n-- > 0; )
 		i += *cp++;

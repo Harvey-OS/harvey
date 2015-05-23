@@ -10,7 +10,7 @@
 #include "gc.h"
 
 void
-swit1(C1 *q, int nc, long def, Node *n)
+swit1(C1 *q, int nc, int32_t def, Node *n)
 {
 	Node tn;
 	
@@ -20,7 +20,7 @@ swit1(C1 *q, int nc, long def, Node *n)
 }
 
 void
-swit2(C1 *q, int nc, long def, Node *n, Node *tn)
+swit2(C1 *q, int nc, int32_t def, Node *n, Node *tn)
 {
 	C1 *r;
 	int i;
@@ -60,7 +60,7 @@ void
 bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 {
 	int sh;
-	long v;
+	int32_t v;
 	Node *l;
 
 	/*
@@ -98,7 +98,7 @@ bitload(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 void
 bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 {
-	long v;
+	int32_t v;
 	Node nod, *l;
 	int sh;
 
@@ -128,10 +128,10 @@ bitstore(Node *b, Node *n1, Node *n2, Node *n3, Node *nn)
 	regfree(n3);
 }
 
-long
-outstring(char *s, long n)
+int32_t
+outstring(char *s, int32_t n)
 {
-	long r;
+	int32_t r;
 
 	r = nstring;
 	while(n) {
@@ -156,7 +156,7 @@ mulcon(Node *n, Node *nn)
 {
 	Node *l, *r, nod1, nod2;
 	Multab *m;
-	long v;
+	int32_t v;
 	int o;
 	char code[sizeof(m->code)+2], *p;
 
@@ -243,7 +243,7 @@ loop:
 }
 
 void
-gextern(Sym *s, Node *a, long o, long w)
+gextern(Sym *s, Node *a, int32_t o, int32_t w)
 {
 
 	if(a->op == OCONST && typev[a->type->etype]) {
@@ -292,7 +292,7 @@ zwrite(Biobuf *b, Prog *p, int sf, int st)
 void
 outcode(void)
 {
-	struct { Sym *sym; short type; } h[NSYM];
+	struct { Sym *sym; int16_t type; } h[NSYM];
 	Prog *p;
 	Sym *s;
 	int sf, st, t, sym;
@@ -434,7 +434,7 @@ void
 zname(Biobuf *b, Sym *s, int t)
 {
 	char *n, bf[7];
-	ulong sig;
+	uint32_t sig;
 
 	n = s->name;
 	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
@@ -461,7 +461,7 @@ zname(Biobuf *b, Sym *s, int t)
 char*
 zaddr(char *bp, Adr *a, int s)
 {
-	long l;
+	int32_t l;
 	Ieee e;
 
 	bp[0] = a->type;
@@ -517,10 +517,10 @@ zaddr(char *bp, Adr *a, int s)
 	return bp;
 }
 
-long
-align(long i, Type *t, int op)
+int32_t
+align(int32_t i, Type *t, int op)
 {
-	long o;
+	int32_t o;
 	Type *v;
 	int w;
 
@@ -585,8 +585,8 @@ align(long i, Type *t, int op)
 	return o;
 }
 
-long
-maxround(long max, long v)
+int32_t
+maxround(int32_t max, int32_t v)
 {
 	v = round(v, SZ_LONG);
 	if(v > max)

@@ -31,7 +31,7 @@ static void
 vString2Diagram(diagram_type *pDiag, output_type *pAnchor)
 {
 	output_type	*pOutput;
-	long		lWidth;
+	int32_t		lWidth;
 	USHORT		usMaxFontSize;
 
 	TRACE_MSG("vString2Diagram");
@@ -68,9 +68,9 @@ vString2Diagram(diagram_type *pDiag, output_type *pAnchor)
  * vSetLeftIndentation - set the left indentation of the specified diagram
  */
 void
-vSetLeftIndentation(diagram_type *pDiag, long lLeftIndentation)
+vSetLeftIndentation(diagram_type *pDiag, int32_t lLeftIndentation)
 {
-	long	lX;
+	int32_t	lX;
 
 	TRACE_MSG("vSetLeftIndentation");
 
@@ -88,11 +88,11 @@ vSetLeftIndentation(diagram_type *pDiag, long lLeftIndentation)
 /*
  * lComputeNetWidth - compute the net string width
  */
-static long
+static int32_t
 lComputeNetWidth(output_type *pAnchor)
 {
 	output_type	*pTmp;
-	long		lNetWidth;
+	int32_t		lNetWidth;
 
 	TRACE_MSG("lComputeNetWidth");
 
@@ -164,9 +164,9 @@ iComputeHoles(output_type *pAnchor)
  */
 void
 vAlign2Window(diagram_type *pDiag, output_type *pAnchor,
-	long lScreenWidth, UCHAR ucAlignment)
+	int32_t lScreenWidth, UCHAR ucAlignment)
 {
-	long	lNetWidth, lLeftIndentation;
+	int32_t	lNetWidth, lLeftIndentation;
 
 	TRACE_MSG("vAlign2Window");
 
@@ -215,11 +215,11 @@ vAlign2Window(diagram_type *pDiag, output_type *pAnchor,
  */
 void
 vJustify2Window(diagram_type *pDiag, output_type *pAnchor,
-	long lScreenWidth, long lRightIndentation, UCHAR ucAlignment)
+	int32_t lScreenWidth, int32_t lRightIndentation, UCHAR ucAlignment)
 {
 	output_type	*pTmp;
 	char	*pcNew, *pcOld, *szStorage;
-	long	lNetWidth, lSpaceWidth, lToAdd;
+	int32_t	lNetWidth, lSpaceWidth, lToAdd;
 	int	iFillerLen, iHoles;
 
 	TRACE_MSG("vJustify2Window");
@@ -298,7 +298,7 @@ vJustify2Window(diagram_type *pDiag, output_type *pAnchor,
 		pTmp->szStorage = szStorage;
 		pTmp->tStorageSize = pTmp->tNextFree + (size_t)lToAdd + 1;
 		pTmp->lStringWidth +=
-			(pcNew - szStorage - (long)pTmp->tNextFree) *
+			(pcNew - szStorage - (int32_t)pTmp->tNextFree) *
 			lSpaceWidth;
 		fail(pcNew < szStorage);
 		pTmp->tNextFree = (size_t)(pcNew - szStorage);
@@ -326,7 +326,8 @@ vResetStyles(void)
  * Returns the length of the resulting string
  */
 size_t
-tStyle2Window(char *szLine, size_t tLineSize, const style_block_type *pStyle,
+tStyle2Window(char *szLine, size_t tLineSize,
+	      const style_block_type *pStyle,
 	const section_block_type *pSection)
 {
 	char	*pcTxt;
@@ -549,7 +550,7 @@ tGetBreakingPoint(const char *szString,
  * tComputeColumnWidthMax - compute the maximum column width
  */
 static size_t
-tComputeColumnWidthMax(short sWidth, long lCharWidth, double dFactor)
+tComputeColumnWidthMax(int16_t sWidth, int32_t lCharWidth, double dFactor)
 {
 	size_t	tColumnWidthMax;
 
@@ -586,7 +587,7 @@ vTableRow2Window(diagram_type *pDiag, output_type *pOutput,
 	char	*aszColTxt[TABLE_COLUMN_MAX];
 	char	*szLine, *pcTxt;
 	double	dMagnify;
-	long	lCharWidthLarge, lCharWidthSmall;
+	int32_t	lCharWidthLarge, lCharWidthSmall;
 	size_t	tColumnWidthTotal, atColumnWidthMax[TABLE_COLUMN_MAX];
 	size_t	tSize, tColumnWidthMax, tWidth, tLen;
 	int	iIndex, iNbrOfColumns, iTmp;

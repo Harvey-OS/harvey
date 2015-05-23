@@ -15,7 +15,7 @@ double
 pow(double x, double y) /* return x ^ y (exponentiation) */
 {
 	double xy, y1, ye;
-	long i;
+	int32_t i;
 	int ex, ey, flip;
 
 	if(y == 0.0)

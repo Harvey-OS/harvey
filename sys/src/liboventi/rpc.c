@@ -68,7 +68,7 @@ void
 vtDisconnect(VtSession *z, int error)
 {
 	Packet *p;
-	uchar *b;
+	uint8_t *b;
 
 vtDebug(z, "vtDisconnect\n");
 	vtLock(z->lk);
@@ -242,10 +242,10 @@ vtVersionRead(VtSession *z, char *prefix, int *ret)
 			vtSetError(EBadVersion);
 			return 0;
 		}
-		if(!vtFdReadFully(z->fd, (uchar*)&c, 1))
+		if(!vtFdReadFully(z->fd, (uint8_t*)&c, 1))
 			return 0;
 		if(z->inHash)
-			vtSha1Update(z->inHash, (uchar*)&c, 1);
+			vtSha1Update(z->inHash, (uint8_t*)&c, 1);
 		if(c == '\n') {
 			*p = 0;
 			break;
@@ -283,7 +283,7 @@ vtVersionRead(VtSession *z, char *prefix, int *ret)
 Packet*
 vtRecvPacket(VtSession *z)
 {
-	uchar buf[10], *b;
+	uint8_t buf[10], *b;
 	int n;
 	Packet *p;
 	int size, len;
@@ -334,7 +334,7 @@ vtSendPacket(VtSession *z, Packet *p)
 {
 	IOchunk ioc;
 	int n;
-	uchar buf[2];
+	uint8_t buf[2];
 	
 	/* add framing */
 	n = packetSize(p);
@@ -365,7 +365,7 @@ vtSendPacket(VtSession *z, Packet *p)
 int
 vtGetString(Packet *p, char **ret)
 {
-	uchar buf[2];
+	uint8_t buf[2];
 	int n;
 	char *s;
 
@@ -378,7 +378,7 @@ vtGetString(Packet *p, char **ret)
 	}
 	s = vtMemAlloc(n+1);
 	setmalloctag(s, getcallerpc(&p));
-	if(!packetConsume(p, (uchar*)s, n)) {
+	if(!packetConsume(p, (uint8_t*)s, n)) {
 		vtMemFree(s);
 		return 0;
 	}
@@ -390,7 +390,7 @@ vtGetString(Packet *p, char **ret)
 int
 vtAddString(Packet *p, char *s)
 {
-	uchar buf[2];
+	uint8_t buf[2];
 	int n;
 
 	if(s == nil) {
@@ -405,7 +405,7 @@ vtAddString(Packet *p, char *s)
 	buf[0] = n>>8;
 	buf[1] = n;
 	packetAppend(p, buf, 2);
-	packetAppend(p, (uchar*)s, n);
+	packetAppend(p, (uint8_t*)s, n);
 	return 1;
 }
 
@@ -445,8 +445,8 @@ vtConnect(VtSession *z, char *password)
 	p = seprint(p, ep, "-libventi\n");
 	assert(p-buf < sizeof(buf));
 	if(z->outHash)
-		vtSha1Update(z->outHash, (uchar*)buf, p-buf);
-	if(!vtFdWrite(z->fd, (uchar*)buf, p-buf))
+		vtSha1Update(z->outHash, (uint8_t*)buf, p-buf);
+	if(!vtFdWrite(z->fd, (uint8_t*)buf, p-buf))
 		goto Err;
 	
 	vtDebug(z, "version string out: %s", buf);

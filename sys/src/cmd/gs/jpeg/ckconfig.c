@@ -267,14 +267,14 @@ int is_char_signed (arg)
 
 
 #ifdef HAVE_PROTOTYPES
-int is_shifting_signed (long arg)
+int is_shifting_signed (int32_t arg)
 #else
 int is_shifting_signed (arg)
      long arg;
 #endif
 /* See whether right-shift on a long is signed or not. */
 {
-  long res = arg >> 4;
+  int32_t res = arg >> 4;
 
   if (res == -0x7F7E80CL) {	/* expected result for signed shift */
     return 1;			/* right shift is signed */

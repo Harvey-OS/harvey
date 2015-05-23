@@ -162,9 +162,9 @@ compar(Dir *a, Dir *b)
  * fields?
  */
 static void
-maxwidths(Dir *dp, long n)
+maxwidths(Dir *dp, int32_t n)
 {
-	long	i;
+	int32_t	i;
 	char	scratch[64];
 
 	for (i = 0; i < n; i++) {
@@ -184,9 +184,9 @@ maxwidths(Dir *dp, long n)
  * asciitime is lifted directly out of ls.
  */
 char *
-asciitime(long l)
+asciitime(int32_t l)
 {
-	ulong clk;
+	uint32_t clk;
 	static char buf[32];
 	char *t;
 
@@ -207,7 +207,7 @@ dols(char *dir)
 {
 	Dir	*d;
 	char	*f, *p,*nm;
-	long	i, n;
+	int32_t	i, n;
 	int	fd;
 
 	cleanname(dir); //  expands "" to "."; ``dir+1'' access below depends on that

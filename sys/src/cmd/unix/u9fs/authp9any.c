@@ -88,7 +88,7 @@ struct Authenticator
 {
 	char	num;			/* replay protection */
 	char	chal[CHALLEN];
-	ulong	id;			/* authenticator id, ++'d with each auth */
+	uint32_t	id;			/* authenticator id, ++'d with each auth */
 };
 #define	AUTHENTLEN	(CHALLEN+4+1)
 
@@ -166,16 +166,16 @@ static int
 convTR2M(Ticketreq *f, char *ap)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(type);
 	STRING(authid, NAMELEN);
 	STRING(authdom, DOMLEN);
 	STRING(chal, CHALLEN);
 	STRING(hostid, NAMELEN);
 	STRING(uid, NAMELEN);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	return n;
 }
 
@@ -183,15 +183,15 @@ static int
 convT2M(Ticket *f, char *ap, char *key)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	STRING(cuid, NAMELEN);
 	STRING(suid, NAMELEN);
 	STRING(key, DESKEYLEN);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	if(key)
 		encrypt9p(key, ap, n);
 	return n;
@@ -201,13 +201,13 @@ int
 convA2M(Authenticator *f, char *ap, char *key)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	LONG(id);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	if(key)
 		encrypt9p(key, ap, n);
 	return n;
@@ -228,11 +228,11 @@ convA2M(Authenticator *f, char *ap, char *key)
 void
 convM2A(char *ap, Authenticator *f, char *key)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(key)
 		decrypt9p(key, ap, AUTHENTLEN);
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	LONG(id);
@@ -242,11 +242,11 @@ convM2A(char *ap, Authenticator *f, char *key)
 void
 convM2T(char *ap, Ticket *f, char *key)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(key)
 		decrypt9p(key, ap, TICKETLEN);
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	STRING(cuid, NAMELEN);
@@ -266,7 +266,7 @@ convM2T(char *ap, Ticket *f, char *key)
 static int
 passtokey(char *key, char *p)
 {
-	uchar buf[NAMELEN], *t;
+	uint8_t buf[NAMELEN], *t;
 	int i, n;
 
 	n = strlen(p);
@@ -467,7 +467,7 @@ p9anywrite(Fcall *rx, Fcall *tx)
 		sp->tr.type = AuthTreq;
 		safecpy(sp->tr.authid, authid, sizeof(sp->tr.authid));
 		safecpy(sp->tr.authdom, authdom, sizeof(sp->tr.authdom));
-		randombytes((uchar *)sp->tr.chal, CHALLEN);
+		randombytes((uint8_t *)sp->tr.chal, CHALLEN);
 		safecpy(sp->tr.hostid, "", sizeof(sp->tr.hostid));
 		safecpy(sp->tr.uid, "", sizeof(sp->tr.uid));
 		tx->count = rx->count;

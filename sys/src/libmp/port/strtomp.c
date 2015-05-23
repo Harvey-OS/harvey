@@ -15,10 +15,10 @@
 static struct {
 	int	inited;
 
-	uchar	t64[256];
-	uchar	t32[256];
-	uchar	t16[256];
-	uchar	t10[256];
+	uint8_t	t64[256];
+	uint8_t	t32[256];
+	uint8_t	t16[256];
+	uint8_t	t10[256];
 } tab;
 
 enum {
@@ -61,7 +61,7 @@ from16(char *a, mpint *b)
 
 	b->top = 0;
 	for(p = a; *p; p++)
-		if(tab.t16[*(uchar*)p] == INVAL)
+		if(tab.t16[*(uint8_t*)p] == INVAL)
 			break;
 	mpbits(b, (p-a)*4);
 	b->top = 0;
@@ -71,21 +71,21 @@ from16(char *a, mpint *b)
 		for(i = 0; i < Dbits; i += 4){
 			if(p <= a)
 				break;
-			x |= tab.t16[*(uchar*)--p]<<i;
+			x |= tab.t16[*(uint8_t*)--p]<<i;
 		}
 		b->p[b->top++] = x;
 	}
 	return next;
 }
 
-static ulong mppow10[] = {
+static uint32_t mppow10[] = {
 	1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000
 };
 
 static char*
 from10(char *a, mpint *b)
 {
-	ulong x, y;
+	uint32_t x, y;
 	mpint *pow, *r;
 	int i;
 
@@ -97,7 +97,7 @@ from10(char *a, mpint *b)
 		// do a billion at a time in native arithmetic
 		x = 0;
 		for(i = 0; i < 9; i++){
-			y = tab.t10[*(uchar*)a];
+			y = tab.t10[*(uint8_t*)a];
 			if(y == INVAL)
 				break;
 			a++;
@@ -124,10 +124,10 @@ static char*
 from64(char *a, mpint *b)
 {
 	char *buf = a;
-	uchar *p;
+	uint8_t *p;
 	int n, m;
 
-	for(; tab.t64[*(uchar*)a] != INVAL; a++)
+	for(; tab.t64[*(uint8_t*)a] != INVAL; a++)
 		;
 	n = a-buf;
 	mpbits(b, n*6);
@@ -144,10 +144,10 @@ static char*
 from32(char *a, mpint *b)
 {
 	char *buf = a;
-	uchar *p;
+	uint8_t *p;
 	int n, m;
 
-	for(; tab.t64[*(uchar*)a] != INVAL; a++)
+	for(; tab.t64[*(uint8_t*)a] != INVAL; a++)
 		;
 	n = a-buf;
 	mpbits(b, n*5);

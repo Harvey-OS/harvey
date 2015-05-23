@@ -324,7 +324,7 @@ Tlock*
 tlocked(Iobuf *p, Dentry *d)
 {
 	Tlock *t, *t1;
-	long qpath, tim;
+	int32_t qpath, tim;
 	Device dev;
 
 	tim = time(0);
@@ -397,10 +397,10 @@ checkname(char *n)
 }
 
 void
-bfree(Device dev, long addr, int d)
+bfree(Device dev, int32_t addr, int d)
 {
 	Iobuf *p;
-	long a;
+	int32_t a;
 	int i;
 
 	if(!addr)
@@ -410,7 +410,7 @@ bfree(Device dev, long addr, int d)
 		p = getbuf(dev, addr, Bread);
 		if(p) {
 			for(i=INDPERBUF-1; i>=0; i--) {
-				a = ((long*)p->iobuf)[i];
+				a = ((int32_t*)p->iobuf)[i];
 				bfree(dev, a, d);
 			}
 			putbuf(p);
@@ -437,12 +437,12 @@ bfree(Device dev, long addr, int d)
 	putbuf(p);
 }
 
-long
-balloc(Device dev, int tag, long qid)
+int32_t
+balloc(Device dev, int tag, int32_t qid)
 {
 	Iobuf *bp, *p;
 	Superb *sb;
-	long a;
+	int32_t a;
 	int n;
 
 	p = getbuf(dev, superaddr(dev), Bread|Bmod);
@@ -472,7 +472,7 @@ loop:
 			putbuf(p);
 			return 0;
 		}
-		memmove(&sb->fbuf, bp->iobuf, (FEPERBUF+1)*sizeof(long));
+		memmove(&sb->fbuf, bp->iobuf, (FEPERBUF+1)*sizeof(int32_t));
 		putbuf(bp);
 	}
 	bp = getbuf(dev, a, Bmod);
@@ -486,7 +486,7 @@ loop:
 }
 
 void
-addfree(Device dev, long addr, Superb *sb)
+addfree(Device dev, int32_t addr, Superb *sb)
 {
 	int n;
 	Iobuf *p;
@@ -502,7 +502,7 @@ addfree(Device dev, long addr, Superb *sb)
 		p = getbuf(dev, addr, Bmod);
 		if(p == 0)
 			panic("addfree: getbuf");
-		memmove(p->iobuf, &sb->fbuf, (FEPERBUF+1)*sizeof(long));
+		memmove(p->iobuf, &sb->fbuf, (FEPERBUF+1)*sizeof(int32_t));
 		settag(p, Tfree, QPNONE);
 		putbuf(p);
 		n = 0;
@@ -580,7 +580,7 @@ devcmp(Device d1, Device d2)
 }
 
 void
-rootream(Device dev, long addr)
+rootream(Device dev, int32_t addr)
 {
 	Iobuf *p;
 	Dentry *d;
@@ -603,7 +603,7 @@ rootream(Device dev, long addr)
 }
 
 int
-superok(Device dev, long addr, int set)
+superok(Device dev, int32_t addr, int set)
 {
 	Iobuf *p;
 	Superb *s;
@@ -618,11 +618,11 @@ superok(Device dev, long addr, int set)
 }
 
 void
-superream(Device dev, long addr)
+superream(Device dev, int32_t addr)
 {
 	Iobuf *p;
 	Superb *s;
-	long i;
+	int32_t i;
 
 	p = getbuf(dev, addr, Bmod|Bimm);
 	memset(p->iobuf, 0, RBUFSIZE);
@@ -645,9 +645,9 @@ superream(Device dev, long addr)
  * there is no need to be clever
  */
 int
-prime(long n)
+prime(int32_t n)
 {
-	long i;
+	int32_t i;
 
 	if((n%2) == 0)
 		return 0;
@@ -663,7 +663,7 @@ void
 hexdump(void *a, int n)
 {
 	char s1[30], s2[4];
-	uchar *p;
+	uint8_t *p;
 	int i;
 
 	p = a;
@@ -680,12 +680,12 @@ hexdump(void *a, int n)
 		print("%s\n", s1);
 }
 
-long
+int32_t
 qidpathgen(Device *dev)
 {
 	Iobuf *p;
 	Superb *sb;
-	long path;
+	int32_t path;
 
 	p = getbuf(*dev, superaddr((*dev)), Bread|Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER))

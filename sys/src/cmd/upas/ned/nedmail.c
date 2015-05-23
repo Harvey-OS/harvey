@@ -171,7 +171,8 @@ void		cracktime(char*, char*, int);
 int		cistrncmp(char*, char*, int);
 int		cistrcmp(char*, char*);
 Reprog*		parsesearch(char**);
-char*		parseaddr(char**, Message*, Message*, Message*, Message**);
+char*		parseaddr(char**, Message*, Message*, Message*,
+				 Message**);
 char*		parsecmd(char*, Cmd*, Message*, Message*);
 char*		readline(char*, char*, int);
 void		messagecount(Message*);
@@ -655,7 +656,7 @@ cracktime(char *d, char *out, int len)
 	char *f[6];
 	int n;
 	Tm tm;
-	long now, then;
+	int32_t now, then;
 	char *dtime;
 
 	*out = 0;
@@ -920,7 +921,8 @@ num2msg(Message **mp, int sign, int n, Message *first, Message *cur)
 }
 
 char*
-parseaddr(char **pp, Message *first, Message *cur, Message *unspec, Message **mp)
+parseaddr(char **pp, Message *first, Message *cur, Message *unspec,
+	  Message **mp)
 {
 	int n;
 	Message *m;

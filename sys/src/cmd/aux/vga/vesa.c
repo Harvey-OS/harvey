@@ -32,10 +32,10 @@ struct Vbe
 {
 	int	rmfd;	/* /dev/realmode */
 	int	memfd;	/* /dev/realmem */
-	uchar	*mem;	/* copy of memory; 1MB */
-	uchar	*isvalid;	/* 1byte per 4kB in mem */
-	uchar	*buf;
-	uchar	*modebuf;
+	uint8_t	*mem;	/* copy of memory; 1MB */
+	uint8_t	*isvalid;	/* 1byte per 4kB in mem */
+	uint8_t	*buf;
+	uint8_t	*modebuf;
 };
 
 struct Vmode
@@ -51,27 +51,27 @@ struct Vmode
 	int	r, g, b, x;
 	int	ro, go, bo, xo;
 	int	directcolor;	/* flags */
-	ulong	paddr;
+	uint32_t	paddr;
 };
 
 struct Edid {
 	char		mfr[4];		/* manufacturer */
 	char		serialstr[16];	/* serial number as string (in extended data) */
 	char		name[16];		/* monitor name as string (in extended data) */
-	ushort	product;		/* product code, 0 = unused */
-	ulong	serial;		/* serial number, 0 = unused */
-	uchar	version;		/* major version number */
-	uchar	revision;		/* minor version number */
-	uchar	mfrweek;		/* week of manufacture, 0 = unused */
+	uint16_t	product;		/* product code, 0 = unused */
+	uint32_t	serial;		/* serial number, 0 = unused */
+	uint8_t	version;		/* major version number */
+	uint8_t	revision;		/* minor version number */
+	uint8_t	mfrweek;		/* week of manufacture, 0 = unused */
 	int		mfryear;		/* year of manufacture, 0 = unused */
-	uchar 	dxcm;		/* horizontal image size in cm. */
-	uchar	dycm;		/* vertical image size in cm. */
+	uint8_t 	dxcm;		/* horizontal image size in cm. */
+	uint8_t	dycm;		/* vertical image size in cm. */
 	int		gamma;		/* gamma*100 */
 	int		rrmin;		/* minimum vertical refresh rate */
 	int		rrmax;		/* maximum vertical refresh rate */
 	int		hrmin;		/* minimum horizontal refresh rate */
 	int		hrmax;		/* maximum horizontal refresh rate */
-	ulong	pclkmax;		/* maximum pixel clock */
+	uint32_t	pclkmax;		/* maximum pixel clock */
 	int		flags;
 
 	Modelist	*modelist;		/* list of supported modes */
@@ -102,7 +102,7 @@ static Edid edid;
 
 Vbe *mkvbe(void);
 int vbecheck(Vbe*);
-uchar *vbemodes(Vbe*);
+uint8_t *vbemodes(Vbe*);
 int vbemodeinfo(Vbe*, int, Vmode*);
 int vbegetmode(Vbe*);
 int vbesetmode(Vbe*, int);
@@ -141,7 +141,7 @@ Mode*
 dbvesamode(char *mode)
 {
 	int i;
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 	Vmode vm;
 	Mode *m;
 	
@@ -222,7 +222,7 @@ dump(Vga*, Ctlr*)
 {
 	int i;
 	char did[0x200];
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 
 	if(!vbe){
 		Bprint(&stdout, "no vesa bios\n");
@@ -354,7 +354,7 @@ loadpage(Vbe *vbe, int p)
 }
 
 static void*
-unfarptr(Vbe *vbe, uchar *p)
+unfarptr(Vbe *vbe, uint8_t *p)
 {
 	int seg, off;
 
@@ -370,7 +370,7 @@ unfarptr(Vbe *vbe, uchar *p)
 	return vbe->mem+off;
 }
 
-uchar*
+uint8_t*
 vbesetup(Vbe *vbe, Ureg *u, int ax)
 {
 	memset(vbe->buf, 0, PageSize);
@@ -404,7 +404,7 @@ vbecall(Vbe *vbe, Ureg *u)
 int
 vbecheck(Vbe *vbe)
 {
-	uchar *p;
+	uint8_t *p;
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F00);
@@ -421,7 +421,7 @@ vbecheck(Vbe *vbe)
 int
 vbesnarf(Vbe *vbe, Vga *vga)
 {
-	uchar *p;
+	uint8_t *p;
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F00);
@@ -437,7 +437,7 @@ vbesnarf(Vbe *vbe, Vga *vga)
 void
 vbeprintinfo(Vbe *vbe)
 {
-	uchar *p;
+	uint8_t *p;
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F00);
@@ -466,10 +466,10 @@ vbeprintinfo(Vbe *vbe)
 	Bprint(&stdout, "%lud\n", WORD(p+18)*0x10000UL);
 }
 
-uchar*
+uint8_t*
 vbemodes(Vbe *vbe)
 {
-	uchar *p;
+	uint8_t *p;
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F00);
@@ -484,8 +484,8 @@ int
 vbemodeinfo(Vbe *vbe, int id, Vmode *m)
 {
 	int o;
-	ulong d, c, x;
-	uchar *p;
+	uint32_t d, c, x;
+	uint8_t *p;
 	char tmp[sizeof m->chan];
 	Ureg u;
 
@@ -581,7 +581,7 @@ vbegetmode(Vbe *vbe)
 int
 vbesetmode(Vbe *vbe, int id)
 {
-	uchar *p;
+	uint8_t *p;
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F02);
@@ -640,7 +640,7 @@ int parseedid128(Edid *e, void *v);
 int
 vbeddcedid(Vbe *vbe, Edid *e)
 {
-	uchar *p;
+	uint8_t *p;
 	Ureg u;
 	
 	p = vbesetup(vbe, &u, 0x4F15);
@@ -766,7 +766,7 @@ static char *estabtime[] = {
  * Decode the EDID detailed timing block.  See pp. 20-21 of the standard.
  */
 static int
-decodedtb(Mode *m, uchar *p)
+decodedtb(Mode *m, uint8_t *p)
 {
 	int ha, hb, hso, hspw, rr, va, vb, vso, vspw;
 	/* int dxmm, dymm, hbord, vbord; */
@@ -858,7 +858,7 @@ vesalookup(Mode *m, char *name)
 }
 
 static int
-decodesti(Mode *m, uchar *p)
+decodesti(Mode *m, uint8_t *p)
 {
 	int x, y, rr;
 	char str[20];
@@ -888,14 +888,14 @@ decodesti(Mode *m, uchar *p)
 int
 parseedid128(Edid *e, void *v)
 {
-	static uchar magic[8] = { 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00 };
-	uchar *p, *q, sum;
+	static uint8_t magic[8] = { 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00 };
+	uint8_t *p, *q, sum;
 	int dpms, estab, i, m, vid;
 	Mode mode;
 
 	memset(e, 0, sizeof *e);
 
-	p = (uchar*)v;
+	p = (uint8_t*)v;
 	if(memcmp(p, magic, 8) != 0) {
 		werrstr("bad edid header");
 		return -1;
@@ -910,7 +910,7 @@ parseedid128(Edid *e, void *v)
 	}
 	p += 8;
 
-	assert(p == (uchar*)v+8);	/* assertion offsets from pp. 12-13 of the standard */
+	assert(p == (uint8_t*)v+8);	/* assertion offsets from pp. 12-13 of the standard */
 	/*
 	 * Manufacturer name is three 5-bit ascii letters, packed
 	 * into a big endian [sic] short in big endian order.  The high bit is unused.
@@ -939,14 +939,14 @@ parseedid128(Edid *e, void *v)
 	e->mfrweek = *p++;
 	e->mfryear = 1990 + *p++;
 
-	assert(p == (uchar*)v+8+10);
+	assert(p == (uint8_t*)v+8+10);
 	/*
 	 * Structure version is next two bytes: major.minor.
 	 */
 	e->version = *p++;
 	e->revision = *p++;
 
-	assert(p == (uchar*)v+8+10+2);
+	assert(p == (uint8_t*)v+8+10+2);
 	/*
 	 * Basic display parameters / features.
 	 */
@@ -974,13 +974,13 @@ parseedid128(Edid *e, void *v)
 	if(dpms & 0x01)
 		e->flags |= Fgtf;
 
-	assert(p == (uchar*)v+8+10+2+5);
+	assert(p == (uint8_t*)v+8+10+2+5);
 	/*
 	 * Color characteristics currently ignored.
 	 */
 	p += 10;
 
-	assert(p == (uchar*)v+8+10+2+5+10);
+	assert(p == (uint8_t*)v+8+10+2+5+10);
 	/*
 	 * Established timings: a bitmask of 19 preset timings.
 	 */
@@ -992,7 +992,7 @@ parseedid128(Edid *e, void *v)
 			if(vesalookup(&mode, estabtime[i]) == 0)
 				e->modelist = addmode(e->modelist,  mode);
 
-	assert(p == (uchar*)v+8+10+2+5+10+3);
+	assert(p == (uint8_t*)v+8+10+2+5+10+3);
 	/*
 	 * Standard Timing Identifications: eight 2-byte selectors
 	 * of more standard timings.
@@ -1001,7 +1001,7 @@ parseedid128(Edid *e, void *v)
 		if(decodesti(&mode, p+2*i) == 0)
 			e->modelist = addmode(e->modelist, mode);
 
-	assert(p == (uchar*)v+8+10+2+5+10+3+16);
+	assert(p == (uint8_t*)v+8+10+2+5+10+3+16);
 	/*
 	 * Detailed Timings
 	 */
@@ -1047,6 +1047,6 @@ fprint(2, "%.8H\n", p);
 		}
 	}
 
-	assert(p == (uchar*)v+8+10+2+5+10+3+16+72);
+	assert(p == (uint8_t*)v+8+10+2+5+10+3+16+72);
 	return 0;
 }

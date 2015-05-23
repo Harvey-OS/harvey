@@ -1,0 +1,5 @@
+#!/bin/rc
+sed 's/[sur]//g' $* |
+	awk 'BEGIN{u=0.0; s=0.0; t=0.0}
+	{u += $1; s += $2; t += $3}
+	END{printf("times %g %g %g\n", u/NR, s/NR, t/NR);}'

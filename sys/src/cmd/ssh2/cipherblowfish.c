@@ -52,13 +52,13 @@ initblowfish(Conn *c, int dir)
 }
 
 static void
-encryptblowfish(CipherState *cs, uchar *buf, int nbuf)
+encryptblowfish(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	bfCBCencrypt(buf, nbuf, &cs->state);
 }
 
 static void
-decryptblowfish(CipherState *cs, uchar *buf, int nbuf)
+decryptblowfish(CipherState *cs, uint8_t *buf, int nbuf)
 {
 fprint(2, "cs: %p, nb:%d\n", cs, nbuf);
 fprint(2, "before decrypt: %02ux %02ux %02ux %02ux\n", buf[0], buf[1], buf[2], buf[3]);

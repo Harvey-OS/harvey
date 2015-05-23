@@ -52,7 +52,7 @@ enum {
 };
 
 void*
-emalloc(ulong sz)
+emalloc(uint32_t sz)
 {
 	void *v;
 
@@ -65,13 +65,13 @@ emalloc(ulong sz)
 
 Face *face[8];
 int nface;
-uchar grey2cmap[256];
+uint8_t grey2cmap[256];
 Image *bkgd;
 Image *orig;
 Image *ramp, *small, *osmall, *tmp8, *red, *green, *blue;
 State state, ostate;
-uchar val2cmap[256];
-uchar clamp[3*256];
+uint8_t val2cmap[256];
+uint8_t clamp[3*256];
 Rectangle rbig, rramp, rface[nelem(face)], rsmall;
 double *rdata;
 int sdy, sdx;
@@ -211,7 +211,7 @@ void
 initramp(void)
 {
 	int k, x, y;
-	uchar dat[256*256];
+	uint8_t dat[256*256];
 	double g;
 
 	k = 0;
@@ -258,7 +258,7 @@ process(double *data, Rectangle datar, Rectangle r, Image *small)
 	double black, center, delta, *k, shrink, sum, *tmp[48], *tt, w, white, x;
 	int datadx, dp, dx, dy, error, i, ii, j, jj;
 	int ksize, ksizeby2, sdata[48*48], sd, sh, sm, sv, u, uu, uuu, v, vv;
-	uchar bdata[48*48];
+	uint8_t bdata[48*48];
 
 	datadx = Dx(datar);
 	dx = Dx(r);
@@ -533,7 +533,7 @@ int
 writeface(char *outfile, Image *image)
 {
 	int i, fd, rv, y;
-	uchar data[48*48/2];
+	uint8_t data[48*48/2];
 
 	if(outfile == nil)
 		fd = 1;

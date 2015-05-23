@@ -41,8 +41,8 @@ enum
 
 struct Huff
 {
-	short	bits;				/* length of the code */
-	ulong	encode;				/* the code */
+	int16_t	bits;				/* length of the code */
+	uint32_t	encode;				/* the code */
 };
 
 static	Huff	lentab[MaxFastLen] =
@@ -96,7 +96,7 @@ thwackcleanup(Thwack *tw)
  * acknowledgement for block seq & nearby preds
  */
 void
-thwackack(Thwack *tw, ulong seq, ulong mask)
+thwackack(Thwack *tw, uint32_t seq, uint32_t mask)
 {
 	int slot, b;
 
@@ -128,10 +128,11 @@ thwackack(Thwack *tw, ulong seq, ulong mask)
  * find a string in the dictionary
  */
 static int
-thwmatch(ThwBlock *b, ThwBlock *eblocks, uchar **ss, uchar *esrc, ulong h)
+thwmatch(ThwBlock *b, ThwBlock *eblocks, uint8_t **ss, uint8_t *esrc,
+	 uint32_t h)
 {
 	int then, toff, w, ok;
-	uchar *s, *t;
+	uint8_t *s, *t;
 
 	s = *ss;
 	if(esrc < s + MinMatch)
@@ -141,7 +142,7 @@ thwmatch(ThwBlock *b, ThwBlock *eblocks, uchar **ss, uchar *esrc, ulong h)
 	for(; b < eblocks; b++){
 		then = b->hash[(h ^ b->seq) & HashMask];
 		toff += b->maxoff;
-		w = (ushort)(then - b->begin);
+		w = (uint16_t)(then - b->begin);
 
 		if(w >= b->maxoff)
 			continue;
@@ -183,17 +184,18 @@ thwmatch(ThwBlock *b, ThwBlock *eblocks, uchar **ss, uchar *esrc, ulong h)
 /*
 #define hashit(c)	(((ulong)(c) * 0x6b43a9) >> (24 - HashLog))
 */
-#define hashit(c)	((((ulong)(c) & 0xffffff) * 0x6b43a9b5) >> (32 - HashLog))
+#define hashit(c)	((((uint32_t)(c) & 0xffffff) * 0x6b43a9b5) >> (32 - HashLog))
 
 /*
  * lz77 compression with single lookup in a hash table for each block
  */
 int
-thwack(Thwack *tw, int mustadd, uchar *dst, int ndst, Block *bsrc, ulong seq, ulong stats[ThwStats])
+thwack(Thwack *tw, int mustadd, uint8_t *dst, int ndst, Block *bsrc,
+       uint32_t seq, uint32_t stats[ThwStats])
 {
 	ThwBlock *eblocks, *b, blocks[CompBlocks];
-	uchar *s, *ss, *sss, *esrc, *half, *twdst, *twdmax;
-	ulong cont, cseq, bseq, cmask, code, twbits;
+	uint8_t *s, *ss, *sss, *esrc, *half, *twdst, *twdmax;
+	uint32_t cont, cseq, bseq, cmask, code, twbits;
 	int n, now, toff, lithist, h, len, slot, bits, use, twnbits, lits, matches, offbits, lenbits, nhist;
 
 	n = BLEN(bsrc);

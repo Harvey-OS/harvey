@@ -12,7 +12,6 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"../port/error.h"
 
 /*
  * Compute nanosecond epoch time from the fastest ticking clock
@@ -45,19 +44,19 @@
 
 struct {
 	int	init;		/* true if initialized */
-	ulong	cnt;
+	uint32_t	cnt;
 	Lock;
-	uvlong	multiplier;	/* ns = off + (multiplier*ticks)>>31 */
-	uvlong	divider;	/* ticks = (divider*(ns-off))>>31 */
-	uvlong	umultiplier;	/* µs = (µmultiplier*ticks)>>31 */
-	uvlong	udivider;	/* ticks = (µdivider*µs)>>31 */
-	vlong	hz;		/* frequency of fast clock */
-	vlong	last;		/* last reading of fast clock */
-	vlong	off;		/* offset from epoch to last */
-	vlong	lasttime;	/* last return value from todget */
-	vlong	delta;	/* add 'delta' each slow clock tick from sstart to send */
-	ulong	sstart;		/* ... */
-	ulong	send;		/* ... */
+	uint64_t	multiplier;	/* ns = off + (multiplier*ticks)>>31 */
+	uint64_t	divider;	/* ticks = (divider*(ns-off))>>31 */
+	uint64_t	umultiplier;	/* µs = (µmultiplier*ticks)>>31 */
+	uint64_t	udivider;	/* ticks = (µdivider*µs)>>31 */
+	int64_t	hz;		/* frequency of fast clock */
+	int64_t	last;		/* last reading of fast clock */
+	int64_t	off;		/* offset from epoch to last */
+	int64_t	lasttime;	/* last return value from todget */
+	int64_t	delta;	/* add 'delta' each slow clock tick from sstart to send */
+	uint32_t	sstart;		/* ... */
+	uint32_t	send;		/* ... */
 } tod;
 
 static void todfix(void);
@@ -68,10 +67,10 @@ todinit(void)
 	if(tod.init)
 		return;
 	ilock(&tod);
-	tod.init = 1;			/* prevent reentry via fastticks */
-	tod.last = fastticks((uvlong *)&tod.hz);
+	tod.last = fastticks((uint64_t *)&tod.hz);
 	iunlock(&tod);
 	todsetfreq(tod.hz);
+	tod.init = 1;
 	addclock0link(todfix, 100);
 }
 
@@ -79,10 +78,8 @@ todinit(void)
  *  calculate multiplier
  */
 void
-todsetfreq(vlong f)
+todsetfreq(int64_t f)
 {
-	if (f <= 0)
-		panic("todsetfreq: freq %lld <= 0", f);
 	ilock(&tod);
 	tod.hz = f;
 
@@ -98,7 +95,7 @@ todsetfreq(vlong f)
  *  Set the time of day struct
  */
 void
-todset(vlong t, vlong delta, int n)
+todset(int64_t t, int64_t delta, int n)
 {
 	if(!tod.init)
 		todinit();
@@ -118,12 +115,8 @@ todset(vlong t, vlong delta, int n)
 			n = -delta;
 		if(delta > 0 && n > delta)
 			n = delta;
-		if (n == 0) {
-			iprint("todset: n == 0, delta == %lld\n", delta);
-			delta = 0;
-		} else
-			delta /= n;
-		tod.sstart = MACHP(0)->ticks;
+		delta = delta/n;
+		tod.sstart = sys->ticks;
 		tod.send = tod.sstart + n;
 		tod.delta = delta;
 	}
@@ -133,19 +126,19 @@ todset(vlong t, vlong delta, int n)
 /*
  *  get time of day
  */
-vlong
-todget(vlong *ticksp)
+int64_t
+todget(int64_t *ticksp)
 {
-	uvlong x;
-	vlong ticks, diff;
-	ulong t;
+	uint64_t x;
+	int64_t ticks, diff;
+	uint32_t t;
 
 	if(!tod.init)
 		todinit();
 
 	/*
 	 * we don't want time to pass twixt the measuring of fastticks
-	 * and grabbing tod.last.  Also none of the vlongs are atomic so
+	 * and grabbing tod.last.  Also none of the int64_ts are atomic so
 	 * we have to look at them inside the lock.
 	 */
 	ilock(&tod);
@@ -154,7 +147,7 @@ todget(vlong *ticksp)
 
 	/* add in correction */
 	if(tod.sstart != tod.send){
-		t = MACHP(0)->ticks;
+		t = sys->ticks;
 		if(t >= tod.send)
 			t = tod.send;
 		tod.off = tod.off + tod.delta*(t - tod.sstart);
@@ -185,10 +178,10 @@ todget(vlong *ticksp)
 /*
  *  convert time of day to ticks
  */
-uvlong
-tod2fastticks(vlong ns)
+uint64_t
+tod2fastticks(int64_t ns)
 {
-	uvlong x;
+	uint64_t x;
 
 	ilock(&tod);
 	mul64fract(&x, ns-tod.off, tod.divider);
@@ -203,8 +196,8 @@ tod2fastticks(vlong ns)
 static void
 todfix(void)
 {
-	vlong ticks, diff;
-	uvlong x;
+	int64_t ticks, diff;
+	uint64_t x;
 
 	ticks = fastticks(nil);
 
@@ -214,7 +207,7 @@ todfix(void)
 
 		/* convert to epoch */
 		mul64fract(&x, diff, tod.multiplier);
-if(x > 30000000000ULL) iprint("todfix %llud\n", x);
+if(x > 30000000000ULL) print("todfix %llud\n", x);
 		x += tod.off;
 
 		/* protect against overflows */
@@ -225,16 +218,22 @@ if(x > 30000000000ULL) iprint("todfix %llud\n", x);
 	}
 }
 
-long
+int32_t
 seconds(void)
 {
-	return (vlong)todget(nil) / TODFREQ;
+	int64_t x;
+	int i;
+
+	x = todget(nil);
+	x = x/TODFREQ;
+	i = x;
+	return i;
 }
 
-uvlong
-fastticks2us(uvlong ticks)
+uint64_t
+fastticks2us(uint64_t ticks)
 {
-	uvlong res;
+	uint64_t res;
 
 	if(!tod.init)
 		todinit();
@@ -242,10 +241,10 @@ fastticks2us(uvlong ticks)
 	return res;
 }
 
-uvlong
-us2fastticks(uvlong us)
+uint64_t
+us2fastticks(uint64_t us)
 {
-	uvlong res;
+	uint64_t res;
 
 	if(!tod.init)
 		todinit();
@@ -256,8 +255,8 @@ us2fastticks(uvlong us)
 /*
  *  convert milliseconds to fast ticks
  */
-uvlong
-ms2fastticks(ulong ms)
+uint64_t
+ms2fastticks(uint32_t ms)
 {
 	if(!tod.init)
 		todinit();
@@ -267,10 +266,10 @@ ms2fastticks(ulong ms)
 /*
  *  convert nanoseconds to fast ticks
  */
-uvlong
-ns2fastticks(uvlong ns)
+uint64_t
+ns2fastticks(uint64_t ns)
 {
-	uvlong res;
+	uint64_t res;
 
 	if(!tod.init)
 		todinit();
@@ -281,10 +280,10 @@ ns2fastticks(uvlong ns)
 /*
  *  convert fast ticks to ns
  */
-uvlong
-fastticks2ns(uvlong ticks)
+uint64_t
+fastticks2ns(uint64_t ticks)
 {
-	uvlong res;
+	uint64_t res;
 
 	if(!tod.init)
 		todinit();
@@ -299,8 +298,8 @@ fastticks2ns(uvlong ticks)
  *
  *	multiplier = (to<<32)/from
  */
-uvlong
-mk64fract(uvlong to, uvlong from)
+uint64_t
+mk64fract(uint64_t to, uint64_t from)
 {
 /*
 	int shift;

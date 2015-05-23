@@ -207,7 +207,7 @@ lookup(Token *tp, int install)
 {
 	unsigned int h;
 	Nlist *np;
-	uchar *cp, *cpe;
+	uint8_t *cp, *cpe;
 
 	h = 0;
 	for (cp=tp->t, cpe=cp+tp->len; cp<cpe; )

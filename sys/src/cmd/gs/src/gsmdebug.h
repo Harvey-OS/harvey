@@ -43,7 +43,7 @@ extern const byte
 #define gs_alloc_debug gs_debug['@']
 
 /* Conditionally fill unoccupied blocks with a pattern. */
-extern void gs_alloc_memset(void *, int /*byte */ , ulong);
+extern void gs_alloc_memset(void *, int /*byte */ , uint32_t);
 
 #ifdef DEBUG
 #  define gs_alloc_fill(ptr, fill, len)\

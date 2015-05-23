@@ -184,7 +184,7 @@ askuser(char *params)
 		sysfatal("sending key to factotum: %r");
 }
 
-ulong conftaggen;
+uint32_t conftaggen;
 int
 canusekey(Fsstate *fss, Key *k)
 {
@@ -224,8 +224,8 @@ closekey(Key *k)
 	free(k);
 }
 
-static uchar*
-pstring(uchar *p, uchar *e, char *s)
+static uint8_t*
+pstring(uint8_t *p, uint8_t *e, char *s)
 {
 	uint n;
 
@@ -243,15 +243,15 @@ pstring(uchar *p, uchar *e, char *s)
 	return p;
 }
 
-static uchar*
-pcarray(uchar *p, uchar *e, uchar *s, uint n)
+static uint8_t*
+pcarray(uint8_t *p, uint8_t *e, uint8_t *s, uint n)
 {
 	if(p == nil)
 		return nil;
 	if(s == nil){
 		if(n > 0)
 			sysfatal("pcarray");
-		s = (uchar*)"";
+		s = (uint8_t*)"";
 	}
 	if(p+n+BIT16SZ >= e)
 		return nil;
@@ -262,10 +262,10 @@ pcarray(uchar *p, uchar *e, uchar *s, uint n)
 	return p;
 }
 
-uchar*
-convAI2M(AuthInfo *ai, uchar *p, int n)
+uint8_t*
+convAI2M(AuthInfo *ai, uint8_t *p, int n)
 {
-	uchar *e = p+n;
+	uint8_t *e = p+n;
 
 	p = pstring(p, e, ai->cuid);
 	p = pstring(p, e, ai->suid);
@@ -575,9 +575,9 @@ matchattr(Attr *pat, Attr *a0, Attr *a1)
 void
 memrandom(void *p, int n)
 {
-	uchar *cp;
+	uint8_t *cp;
 
-	for(cp = (uchar*)p; n > 0; n--)
+	for(cp = (uint8_t*)p; n > 0; n--)
 		*cp++ = fastrand();
 }
 
@@ -600,11 +600,11 @@ initcap(void)
 char*
 mkcap(char *from, char *to)
 {
-	uchar rand[20];
+	uint8_t rand[20];
 	char *cap;
 	char *key;
 	int nfrom, nto, ncap;
-	uchar hash[SHA1dlen];
+	uint8_t hash[SHA1dlen];
 
 	if(caphashfd < 0)
 		return nil;
@@ -620,7 +620,8 @@ mkcap(char *from, char *to)
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uchar*)cap, strlen(cap), (uchar*)key, strlen(key), hash, nil);
+	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
+		  hash, nil);
 
 	/* give the kernel the hash */
 	key[-1] = '@';

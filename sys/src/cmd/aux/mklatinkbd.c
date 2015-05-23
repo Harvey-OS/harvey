@@ -49,7 +49,7 @@ Trie *root;
 Trie*
 mktrie(char *seq)
 {
-	uchar *q;
+	uint8_t *q;
 	Trie **tp;
 
 	if(root == nil) {
@@ -60,14 +60,14 @@ mktrie(char *seq)
 	assert(seq[0] != '\0');
 
 	tp = &root;
-	for(q=(uchar*)seq; *(q+1) != '\0'; q++) {
+	for(q=(uint8_t*)seq; *(q+1) != '\0'; q++) {
 		tp = &(*tp)->link[*q];
 		if(*tp == nil) {
 			*tp = malloc(sizeof(**tp));
 			assert(*tp != nil);
 			memset(*tp, 0, sizeof(**tp));
 			strcpy((*tp)->seq, seq);
-			(*tp)->seq[q+1-(uchar*)seq] = '\0';
+			(*tp)->seq[q+1-(uint8_t*)seq] = '\0';
 		}
 	}
 
@@ -79,12 +79,12 @@ mktrie(char *seq)
 void
 insert(char *s, Rune r)
 {
-	uchar lastc;
+	uint8_t lastc;
 	int len;
 	Trie *t;
 
 	len = strlen(s);
-	lastc = (uchar)s[len-1];
+	lastc = (uint8_t)s[len-1];
 
 	t = mktrie(s);
 	if(t->r[lastc]) {
@@ -189,7 +189,7 @@ readfile(char *fname)
 
 		p = line+6;
 /*	00AE  Or rO       ®	registered trade mark sign	*/
-		for(inseq=1, seq=p; (uchar)*p < Runeself; p++) {
+		for(inseq=1, seq=p; (uint8_t)*p < Runeself; p++) {
 			if(*p == '\0' || isspace(*p)) {
 				if(inseq && p-seq >= 2) {
 					*p = '\0';

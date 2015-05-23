@@ -48,7 +48,7 @@ Brdwhist(Biobuf *b)
 {
 	int i, current, conflict, c, n;
 	char *author, *comment, *p, *title;
-	ulong t;
+	uint32_t t;
 	Wdoc *w;
 	Whist *h;
 

@@ -18,7 +18,7 @@ sunAuthUnixSize(SunAuthUnix *x)
 	return 4 + sunStringSize(x->sysname) + 4 + 4 + 4 + 4*x->ng;
 }
 int
-sunAuthUnixUnpack(uchar *a, uchar *ea, uchar **pa, SunAuthUnix *x)
+sunAuthUnixUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, SunAuthUnix *x)
 {
 	int i;
 
@@ -38,7 +38,7 @@ Err:
 	return -1;
 }
 int
-sunAuthUnixPack(uchar *a, uchar *ea, uchar **pa, SunAuthUnix *x)
+sunAuthUnixPack(uint8_t *a, uint8_t *ea, uint8_t **pa, SunAuthUnix *x)
 {
 	int i;
 
@@ -61,9 +61,9 @@ void
 sunAuthUnixPrint(Fmt *fmt, SunAuthUnix *x)
 {
 	int i;
-	fmtprint(fmt, "unix %.8lux %s %lud %lud (", (ulong)x->stamp,
-		x->sysname, (ulong)x->uid, (ulong)x->gid);
+	fmtprint(fmt, "unix %.8lux %s %lud %lud (", (uint32_t)x->stamp,
+		x->sysname, (uint32_t)x->uid, (uint32_t)x->gid);
 	for(i=0; i<x->ng; i++)
-		fmtprint(fmt, "%s%lud", i ? " ":"", (ulong)x->g[i]);
+		fmtprint(fmt, "%s%lud", i ? " ":"", (uint32_t)x->g[i]);
 	fmtprint(fmt, ")");
 }

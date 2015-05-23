@@ -16,8 +16,8 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uchar	flags;
-	uchar	ln[4];	/* optional, present if L flag set*/
+	uint8_t	flags;
+	uint8_t	ln[4];	/* optional, present if L flag set*/
 };
 
 enum

@@ -165,8 +165,8 @@ assemble(char *file)
 struct
 {
 	char	*name;
-	ushort	type;
-	ushort	value;
+	uint16_t	type;
+	uint16_t	value;
 } itab[] =
 {
 	"SP",		LSP,	D_AUTO,
@@ -741,7 +741,7 @@ zname(char *n, int t, int s)
 void
 zaddr(Gen *a, int s)
 {
-	long l;
+	int32_t l;
 	int i, t;
 	char *n;
 	Ieee e;

@@ -1140,7 +1140,8 @@ unhide(int h)
 }
 
 Window*
-new(Image *i, int hideit, int scrollit, int pid, char *dir, char *cmd, char **argv)
+new(Image *i, int hideit, int scrollit, int pid, char *dir, char *cmd,
+    char **argv)
 {
 	Window *w;
 	Mousectl *mc;

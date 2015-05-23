@@ -318,7 +318,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
 		pms->prev = end;
 		pms->on_heap = false;
 		if_debug2('6', "[6]adding free 0x%lx(%u) to mark stack\n",
-			  (ulong) pms, pms->count);
+			  (uint32_t) pms, pms->count);
 	    }
 	    cp->rescan_bot = cp->cend;
 	    cp->rescan_top = cp->cbase;
@@ -441,7 +441,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
 
     for_roots(max_trace, mem, rp) {
 	if_debug3('6', "[6]relocating root 0x%lx: 0x%lx -> 0x%lx\n",
-		  (ulong) rp, (ulong) rp->p, (ulong) * rp->p);
+		  (uint32_t) rp, (uint32_t) rp->p, (ulong) * rp->p);
 	if (rp->ptype == ptr_ref_type) {
 	    ref *pref = (ref *) * rp->p;
 
@@ -451,7 +451,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
 	} else
 	    *rp->p = (*rp->ptype->reloc) (*rp->p, &state);
 	if_debug3('6', "[6]relocated root 0x%lx: 0x%lx -> 0x%lx\n",
-		  (ulong) rp, (ulong) rp->p, (ulong) * rp->p);
+		  (uint32_t) rp, (uint32_t) rp->p, (ulong) * rp->p);
     }
 
     end_phase("relocate roots");
@@ -517,7 +517,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
 	    mem->previous_status = total;
 	    if_debug3('6',
 		      "[6]0x%lx previous allocated=%lu, used=%lu\n",
-		      (ulong) mem, total.allocated, total.used);
+		      (uint32_t) mem, total.allocated, total.used);
 	    gs_memory_status((gs_memory_t *) mem, &total);
 	    mem->gc_allocated = mem->allocated + total.allocated;
 	    mem->inherited = -(int)mem->allocated;
@@ -526,7 +526,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
 	mem->previous_status = total;
 	mem->gc_allocated = mem->allocated + total.allocated;
 	if_debug3('6', "[6]0x%lx previous allocated=%lu, used=%lu\n",
-		  (ulong) mem, total.allocated, total.used);
+		  (uint32_t) mem, total.allocated, total.used);
     }
 
     end_phase("update stats");
@@ -1231,7 +1231,7 @@ const void *
 print_reloc_proc(const void *obj, const char *cname, const void *robj)
 {
     if_debug3('9', "  [9]relocate %s * 0x%lx to 0x%lx\n",
-	      cname, (ulong)obj, (ulong)robj);
+	      cname, (uint32_t)obj, (uint32_t)robj);
     return robj;
 }
 

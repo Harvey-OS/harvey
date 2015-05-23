@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+CC=gcc
+CFLAGS="-mcmodel=small -O0 -fplan9-extensions -ffreestanding -fno-builtin -Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized -I/amd64/include -I/sys/include -c -g "
+LIB_DIR="/amd64/lib"
+LDFLAGS=-L${LIB_DIR}
+LD=ld
+
+rm -f *.o *.tab.*
+yacc -d syn.y
+cp y.tab.h x.tab.h
+$CC $CFLAGS -c \
+code.c \
+exec.c \
+getflags.c \
+glob.c \
+havefork.c \
+here.c \
+io.c \
+lex.c \
+pcmd.c \
+pfnc.c \
+plan9.c \
+simple.c \
+subr.c \
+trap.c \
+tree.c \
+var.c \
+y.tab.c \
+
+echo "linking.."
+echo
+$LD -static -o rc.elf.out *.o $LDFLAGS -lString -lc -emain -Ttext=0x200000
+
+rm *.o

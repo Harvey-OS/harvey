@@ -37,7 +37,7 @@ Started by Graham Asher, 9th August 2002.
 #define EEXEC_FACTOR 52845
 #define EEXEC_OFFSET 22719
 
-void WRF_init(WRF_output* a_output,unsigned char* a_buffer,long a_buffer_size)
+void WRF_init(WRF_output* a_output,unsigned char* a_buffer,int32_t a_buffer_size)
 	{
 	a_output->m_pos = a_buffer;
 	a_output->m_limit = a_buffer_size;
@@ -60,7 +60,7 @@ void WRF_wbyte(WRF_output* a_output,unsigned char a_byte)
 	a_output->m_count++;
 	}
 
-void WRF_wtext(WRF_output* a_output,const unsigned char* a_string,long a_length)
+void WRF_wtext(WRF_output* a_output,const unsigned char* a_string,int32_t a_length)
 	{
 	while (a_length > 0)
 		{
@@ -82,7 +82,7 @@ void WRF_wfloat(WRF_output* a_output,double a_float)
 	WRF_wstring(a_output,buffer);
 	}
 
-void WRF_wint(WRF_output* a_output,long a_int)
+void WRF_wint(WRF_output* a_output,int32_t a_int)
 	{
 	char buffer[32];
 	sprintf(buffer,"%ld",a_int);

@@ -24,7 +24,7 @@
 extern Symbol	*Fname, *owner;
 extern int	lineno, depth, verbose, NamesNotAdded, deadvar;
 extern int	has_hidden, m_loss, old_scope_rules;
-extern short	has_xu;
+extern int16_t	has_xu;
 extern char	CurScope[MAXSCOPESZ];
 
 Symbol	*context = ZS;
@@ -240,7 +240,7 @@ setptype(Lextok *n, int t, Lextok *vis)	/* predefined types */
 			fatal("redeclaration of '%s'", n->sym->name);
 			lineno = oln;
 		}
-		n->sym->type = (short) t;
+		n->sym->type = (int16_t) t;
 
 		if (Expand_Ok)
 		{	n->sym->hidden |= (4|8|16); /* formal par */
@@ -567,7 +567,7 @@ chanaccess(void)
 {	Ordered *walk;
 	char buf[128];
 	extern int Caccess, separate;
-	extern short has_code;
+	extern int16_t has_code;
 
 	for (walk = all_names; walk; walk = walk->next)
 	{	if (!walk->entry->owner)

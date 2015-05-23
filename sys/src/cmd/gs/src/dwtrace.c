@@ -292,7 +292,8 @@ private void dw_gt_setlinewidth(vd_trace_interface *I, unsigned int width)
     }
 }
 
-private void dw_gt_text(vd_trace_interface *I, double x, double y, char *ASCIIZ)
+private void dw_gt_text(vd_trace_interface *I, double x, double y,
+                        char *ASCIIZ)
 {   get_window(); 
     if (host.tw == NULL) 
         return;

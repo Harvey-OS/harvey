@@ -220,13 +220,13 @@ szGetFontname(drawfile_fontref tFontRef)
  *
  * Returns the string width in millipoints
  */
-long
+int32_t
 lComputeStringWidth(const char *szString, size_t tStringLength,
 	drawfile_fontref tFontRef, USHORT usFontSize)
 {
 	USHORT	*ausCharWidths;
 	UCHAR	*pucChar;
-	long	lRelWidth;
+	int32_t	lRelWidth;
 	size_t	tIndex;
 	int	iFontRef;
 
@@ -251,7 +251,7 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 
 	if (eEncoding == encoding_cyrillic) {
 		/* FIXME: until the character tables are available */
-		return (tStringLength * 600L * (long)usFontSize + 1) / 2;
+		return (tStringLength * 600L * (int32_t)usFontSize + 1) / 2;
 	}
 
 	DBG_DEC_C(eEncoding != encoding_latin_1 &&
@@ -270,11 +270,11 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 	for (tIndex = 0, pucChar = (UCHAR *)szString;
 	     tIndex < tStringLength;
 	     tIndex++, pucChar++) {
-		lRelWidth += (long)ausCharWidths[(int)*pucChar];
+		lRelWidth += (int32_t)ausCharWidths[(int)*pucChar];
 	}
 
 	/* Compute the absolute string width */
-	return (lRelWidth * (long)usFontSize + 1) / 2;
+	return (lRelWidth * (int32_t)usFontSize + 1) / 2;
 } /* end of lComputeStringWidth */
 
 /*

@@ -1,0 +1,391 @@
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+
+#include <tos.h>
+#include <pool.h>
+#include "amd64.h"
+#include "ureg.h"
+#include "io.h"
+
+/*
+ * BUG:
+ * The AC must not accept interrupts while in the kernel,
+ * or we must be prepared for nesting them, which we are not.
+ * This is important for note handling, because postnote()
+ * assumes that it's ok to send an IPI to an AC, no matter its
+ * state.
+ * 
+ */
+
+void
+intrac(Proc *p)
+{
+	Mach *ac;
+
+	ac = p->ac;
+	if(ac == nil){
+		DBG("intrac: Proc.ac is nil. no ipi sent.\n");
+		return;
+	}
+	/*
+	 * It's ok if the AC gets idle in the mean time.
+	 */
+	DBG("intrac: ipi to cpu%d\n", ac->machno);
+	apicipi(ac->apicno);
+}
+
+/*
+ * Functions starting with ac... are run in the application core.
+ * All other functions are run by the time-sharing cores.
+ */
+
+typedef void (*APfunc)(void);
+extern int notify(Ureg*);
+extern void _acsysret(void);
+extern void _actrapret(void);
+
+static char *acnames[] = { "Ok", "Trap", "Syscall"};
+
+void
+acmmuswitch(void)
+{
+	cr3put(m->pml4->pa);
+}
+void xactouser(u64int);
+void
+actouser(void)
+{
+	uintptr sp;
+	Ureg *u;
+
+	memmove(&sp, m->icc->data, sizeof(sp));
+	u = m->proc->dbgreg;
+	DBG("cpu%d: touser usp = %#p entry %#p\n", m->machno, sp, u->ip);
+
+
+	/*
+	 * This code for updating tos is wrong. It shouldn't go here.
+	 * It's the fact that we assing a process to a core what makes
+	 * it run in that core, not the fact that we call actouser(),
+	 * In the future, we might not even call actouser here. -Nemo.
+	 */
+
+	/* BUG: add a function, called here and kexit */
+	m->load = 100;
+	xactouser(sp);
+	panic("actouser");
+}
+
+void
+actrapret(void)
+{
+	/* done by actrap() */
+}
+
+/*
+ * Entered in AP core context, upon traps and system calls.
+ * using up->dbgreg means cores MUST be homogeneous.
+ */
+void
+actrap(Ureg *u)
+{
+	/* print instead of DBG, so we see any trap by now */
+	switch(u->type){
+	case IdtIPI:
+		m->intr++;
+		print("actrap: cpu%d: IPI\n", m->machno);
+		/*
+		 * Beware: BUG: we can get now IPIs while in kernel mode,
+		 * after declaring the end of the interrupt.
+		 * The code is not prepared for that.
+		 */
+		apiceoi(IdtIPI);
+		break;
+	case IdtPF:
+		m->pfault++;
+		print("actrap: cpu%d: PF\n", m->machno);
+		break;
+	default:
+		print("actrap: cpu%d: %ulld\n", m->machno, u->type);
+	}
+	m->icc->rc = ICCTRAP;
+	m->cr2 = cr2get();
+	memmove(m->proc->dbgreg, u, sizeof *u);
+	m->icc->fn = nil;
+	mfence();
+	ready(m->proc);
+	m->load = 0;
+	while(*m->icc->fn == nil)
+		;
+	m->load = 100;
+	if(m->icc->flushtlb)
+		acmmuswitch();
+	DBG("actrap: ret\n");
+	if(m->icc->fn != actrapret)
+		acsched();
+	memmove(u, m->proc->dbgreg, sizeof *u);
+}
+
+void
+acsyscall(void)
+{
+	/*
+	 * If we saved the Ureg into m->proc->dbgregs,
+	 * There's nothing else we have to do.
+	 * Otherwise, we should m->proc->dbgregs = u;
+	 */
+	DBG("acsyscall: cpu%d\n", m->machno);
+	m->syscall++;	/* would also count it in the TS core */
+	m->icc->rc = ICCSYSCALL;
+	m->cr2 = cr2get();
+	m->icc->fn = nil;
+	ready(m->proc);
+	m->load = 0;
+	/*
+	 * The next call is probably going to make us jmp
+	 * into user code, forgetting all our state in this
+	 * stack, upon the next syscall.
+	 * We don't nest calls in the current stack for too long.
+	 */
+	acsched();
+}
+
+/*
+ * Called in AP core context, to return from system call.
+ */
+void
+acsysret(void)
+{
+	DBG("acsysret\n");
+	_acsysret();
+}
+
+void
+dumpreg(void *u)
+{
+	print("reg is %p\n", u);
+	ndnr();
+}
+
+
+/*
+ * run an arbitrary function with arbitrary args on an ap core
+ * first argument is always pml4 for process
+ * make a field and a struct for the args cache line.
+ *
+ * Returns the return-code for the ICC or -1 if the process was
+ * interrupted while issuing the ICC.
+ */
+int
+runac(int core, APfunc func, int flushtlb, void *a, long n)
+{
+	Mach *mp;
+	uchar *dpg, *spg;
+
+	if (n > sizeof(mp->icc->data))
+		panic("runac: args too long");
+
+	if((mp = sys->machptr[core]) == nil || mp->online == 0)
+		panic("Bad core");
+	if(mp->proc != nil && mp->proc != up)
+		panic("runapfunc: mach is busy with another proc?");
+
+	memmove(mp->icc->data, a, n);
+	if(flushtlb){
+		dpg = UINT2PTR(mp->pml4->va);
+		spg = UINT2PTR(m->pml4->va);
+		/* We should copy only user space mappings:
+		 *	memmove(dgp, spg, m->pml4->daddr * sizeof(PTE));
+		 */
+		memmove(dpg, spg, PTPGSZ);
+	}
+	mp->icc->flushtlb = flushtlb;
+	mp->icc->rc = ICCOK;
+
+	DBG("runac: exotic proc on cpu%d\n", mp->machno);
+	if(waserror()){
+		qunlock(&up->debug);
+		nexterror();
+	}
+	qlock(&up->debug);
+	up->ac = mp;
+	up->nicc++;
+	up->state = Exotic;
+	up->psstate = 0;
+	qunlock(&up->debug);
+	poperror();
+	mfence();
+	mp->icc->fn = func;
+	sched();
+	return mp->icc->rc;
+}
+
+/*
+ * Cleanup done by runacore to pretend we are going back to user space.
+ * We won't return and won't do what syscall() would normally do.
+ * Do it here instead.
+ */
+static void
+fakeretfromsyscall(Ureg *ureg)
+{
+	int s;
+
+	poperror();	/* as syscall() would do if we would return */
+	if(up->procctl == Proc_tracesyscall){	/* Would this work? */
+		up->procctl = Proc_stopme;
+		s = splhi();
+		procctl(up);
+		splx(s);
+	}
+
+	up->insyscall = 0;
+	/* if we delayed sched because we held a lock, sched now */
+	if(up->delaysched){
+		sched();
+		splhi();
+	}
+	kexit(ureg);
+}
+
+static void
+testproc(void *a)
+{
+	Proc *p;
+
+	p = a;
+	if(p == nil){
+		print("no proc to intr\n");
+		return;
+	}
+	tsleep(&up->sleep, return0, 0, 10000);
+	print("testproc: sending ipi to proc\n");
+	intrac(p);
+	print("sent\n");
+}
+
+/*
+ * Move the current process to an application core.
+ * This is performed at the end of execac(), and
+ * we pretend to be returning to user-space, but instead we
+ * dispatch the process to another core.
+ * 1. We do the final bookkeeping that syscall() would do after
+ *    a return from sysexec(), because we are not returning.
+ * 2. We dispatch the process to an AC using an ICC.
+ *
+ * This function won't return unless the process is reclaimed back
+ * to the time-sharing core, and is the handler for the process
+ * to deal with traps and system calls until the process dies.
+ *
+ * Remember that this function is the "line" between user and kernel
+ * space, it's not expected to raise|handle any error.
+ *
+ * We install a safety error label, just in case we raise errors,
+ * which we shouldn't. (noerrorsleft knows that for exotic processes
+ * there is an error label pushed by us).
+ */
+void
+runacore(int core, u64int ar0p)
+{
+	Ureg *ureg;
+	void (*fn)(void);
+	int rc, flush, becometimesharing;
+
+	if(waserror())
+		panic("runacore: error: %s\n", up->errstr);
+	ureg = up->dbgreg;
+	ureg->ax = ar0p;		/* see xactouser */
+	fakeretfromsyscall(ureg);
+
+/* IPI testing */
+if(0)
+kproc("testproc", testproc, up);
+
+	rc = runac(core, actouser, 1, &ureg->sp, sizeof ureg->sp);
+	becometimesharing = 0;
+	for(;;){
+		flush = 0;
+		fn = nil;
+		switch(rc){
+		case ICCTRAP:
+			m->cr2 = up->ac->cr2;
+			DBG("runacore: trap %ulld cr2 %#ullx ureg %#p\n",
+				ureg->type, m->cr2, ureg);
+			if(ureg->type == IdtIPI){
+				if(up->procctl || up->nnote)
+					notify(up->dbgreg);
+				kexit(up->dbgreg);
+			}else
+				trap(ureg);
+			flush = 1;
+			fn = actrapret;
+			break;
+		case ICCSYSCALL:
+			DBG("runacore: syscall ax %#ullx ureg %#p\n",
+				ureg->ax, ureg);
+			syscall(ureg->ax, ureg);
+			flush = 1;
+			fn = acsysret;
+			break;
+		default:
+			panic("runacore: unexpected rc = %d", rc);
+		}
+		if(becometimesharing)
+			break;
+		rc = runac(core, fn, flush, &ureg, sizeof ureg);
+	}
+
+	fakeretfromsyscall(up->dbgreg);
+	/*
+	 * dettach from the AC.
+	 */
+	up->ac->proc = nil;
+	up->ac = nil;
+	/* And we return to syscall, which would do nothing but
+	 * returning, and we'd be back to the TS core.
+	 */
+}
+
+void
+acmodeset(int mode)
+{
+	switch(mode){
+	case NIXAC:
+	case NIXKC:
+	case NIXTC:
+		break;
+	default:
+		panic("apmodeset: bad mode %d", mode);
+	}
+	m->nixtype = mode;
+}
+
+void
+stopac(Proc *p)
+{
+	Mach *mp;
+
+	mp = p->ac;
+	if(mp == nil)
+		return;
+	if(mp->proc != p)
+		return;
+	DBG("stopac: cpu%d\n", mp->machno);
+	p->ac = nil;
+	mp->proc = nil;
+//	send sipi to p->ac, it would rerun squidboy(), and
+//	wait for us to give it a function to run.
+}
+
+void
+acinit(void)
+{
+	/*
+	 * Lower the priority of the apic to 0,
+	 * to accept interrupts.
+	 * Raise it later if needed to disable them.
+	 */
+	apicpri(0);
+}

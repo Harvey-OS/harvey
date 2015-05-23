@@ -11,9 +11,9 @@
 #include <libc.h>
 #include <fcall.h>
 
-static uint dumpsome(char*, char*, char*, long);
+static uint dumpsome(char*, char*, char*, int32_t);
 static void fdirconv(char*, char*, Dir*);
-static char *qidtype(char*, uchar);
+static char *qidtype(char*, uint8_t);
 
 #define	QIDFMT	"(%.16llux %lud %s)"
 
@@ -87,7 +87,8 @@ fcallfmt(Fmt *fmt)
 			f->qid.path, f->qid.vers, qidtype(tmp, f->qid.type), f->iounit);
 		break;
 	case Tcreate:	/* 114 */
-		seprint(buf, e, "Tcreate tag %ud fid %ud name %s perm %M mode %d", tag, fid, f->name, (ulong)f->perm, f->mode);
+		seprint(buf, e, "Tcreate tag %ud fid %ud name %s perm %M mode %d", tag, fid, f->name,
+			(uint32_t)f->perm, f->mode);
 		break;
 	case Rcreate:
 		seprint(buf, e, "Rcreate tag %ud qid " QIDFMT " iounit %ud ", tag,
@@ -156,7 +157,7 @@ fcallfmt(Fmt *fmt)
 }
 
 static char*
-qidtype(char *s, uchar t)
+qidtype(char *s, uint8_t t)
 {
 	char *p;
 
@@ -205,7 +206,7 @@ fdirconv(char *buf, char *e, Dir *d)
 #define DUMPL 64
 
 static uint
-dumpsome(char *ans, char *e, char *buf, long count)
+dumpsome(char *ans, char *e, char *buf, int32_t count)
 {
 	int i, printable;
 	char *p;
@@ -218,7 +219,7 @@ dumpsome(char *ans, char *e, char *buf, long count)
 	if(count > DUMPL)
 		count = DUMPL;
 	for(i=0; i<count && printable; i++)
-		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uchar)buf[i]>127)
+		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uint8_t)buf[i]>127)
 			printable = 0;
 	p = ans;
 	*p++ = '\'';

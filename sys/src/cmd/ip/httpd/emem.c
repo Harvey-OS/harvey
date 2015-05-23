@@ -12,7 +12,7 @@
 #include "httpd.h"
 
 void*
-ezalloc(ulong n)
+ezalloc(uint32_t n)
 {
 	void *p;
 

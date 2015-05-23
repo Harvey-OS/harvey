@@ -16,7 +16,7 @@ static void
 mconfinit(void)
 {
 	int nf, pgsize = 0;
-	ulong size, userpgs = 0, userused = 0;
+	uint32_t size, userpgs = 0, userused = 0;
 	char *ln, *sl;
 	char *fields[2];
 	Biobuf *bp;
@@ -53,7 +53,7 @@ mconfinit(void)
 	mconf.nbank = mbp - mconf.bank;
 }
 
-ulong
+uint32_t
 meminit(void)
 {
 	conf.nmach = 1;

@@ -53,7 +53,7 @@ zsetscreenphase(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
     int code;
-    long x, y;
+    int32_t x, y;
 
     check_type(op[-2], t_integer);
     check_type(op[-1], t_integer);

@@ -31,7 +31,7 @@ bAddDataBlocks(ULONG ulDataPosFirst, ULONG ulTotalLength,
 {
 	data_block_type	tDataBlock;
 	ULONG	ulDataPos, ulOffset, ulIndex;
-	long	lToGo;
+	int32_t	lToGo;
 	BOOL	bSuccess;
 
 	fail(ulTotalLength > (ULONG)LONG_MAX);
@@ -41,7 +41,7 @@ bAddDataBlocks(ULONG ulDataPosFirst, ULONG ulTotalLength,
 	NO_DBG_HEX(ulDataPosFirst);
 	NO_DBG_DEC(ulTotalLength);
 
-	lToGo = (long)ulTotalLength;
+	lToGo = (int32_t)ulTotalLength;
 
 	ulDataPos = ulDataPosFirst;
 	ulOffset = ulDataPosFirst;
@@ -71,7 +71,7 @@ bAddDataBlocks(ULONG ulDataPosFirst, ULONG ulTotalLength,
 			return FALSE;
 		}
 		ulDataPos += tDataBlock.ulLength;
-		lToGo -= (long)tDataBlock.ulLength;
+		lToGo -= (int32_t)tDataBlock.ulLength;
 	}
 	bSuccess = lToGo == 0 ||
 		(ulTotalLength == (ULONG)LONG_MAX && ulIndex == END_OF_CHAIN);

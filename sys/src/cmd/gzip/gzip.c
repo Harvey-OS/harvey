@@ -14,17 +14,17 @@
 #include "gzip.h"
 
 static	int	gzipf(char*, int);
-static	int	gzip(char*, long, int, Biobuf*);
+static	int	gzip(char*, int32_t, int, Biobuf*);
 static	int	crcread(void *fd, void *buf, int n);
 static	int	gzwrite(void *bout, void *buf, int n);
 
 static	Biobuf	bout;
-static	ulong	crc;
-static	ulong	*crctab;
+static	uint32_t	crc;
+static	uint32_t	*crctab;
 static	int	debug;
 static	int	eof;
 static	int	level;
-static	ulong	totr;
+static	uint32_t	totr;
 static	int	verbose;
 
 void
@@ -143,7 +143,7 @@ gzipf(char *file, int stdout)
 }
 
 static int
-gzip(char *file, long mtime, int ifd, Biobuf *bout)
+gzip(char *file, int32_t mtime, int ifd, Biobuf *bout)
 {
 	int flags, err;
 

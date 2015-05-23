@@ -27,7 +27,7 @@
 #define	R	3399
 #endif
 
-static long seed = 1;
+static int32_t seed = 1;
 
 void
 srand(unsigned int newseed)
@@ -35,10 +35,10 @@ srand(unsigned int newseed)
 	seed = newseed;
 }
 
-long
+int32_t
 lrand(void)
 {
-	long lo, hi, test;
+	int32_t lo, hi, test;
 
 	hi = seed/Q;
 	lo = seed%Q;

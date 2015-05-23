@@ -20,11 +20,11 @@
 void
 convM2T(char *ap, Ticket *f, char *key)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(key)
 		decrypt(key, ap, TICKETLEN);
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	STRING(cuid, ANAMELEN);

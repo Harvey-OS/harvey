@@ -370,7 +370,7 @@ zdcvi(i_ctx_t *i_ctx_p)
 
     if (num < min_int_real || num > max_int_real)
 	return_error(e_rangecheck);
-    make_int(op, (long)num);	/* truncates toward 0 */
+    make_int(op, (int32_t)num);	/* truncates toward 0 */
     return 0;
 }
 

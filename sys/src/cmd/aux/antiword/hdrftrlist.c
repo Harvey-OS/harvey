@@ -256,11 +256,11 @@ pGetHdrFtrInfo(int iSectionIndex,
  *
  * Returns the height in DrawUnits
  */
-static long
+static int32_t
 lComputeHdrFtrHeight(const output_type *pAnchor)
 {
 	const output_type *pCurr;
-	long	lTotal;
+	int32_t	lTotal;
 	USHORT	usFontSizeMax;
 
 	lTotal = 0;
@@ -271,7 +271,7 @@ lComputeHdrFtrHeight(const output_type *pAnchor)
 				/* End of a paragraph */
 				lTotal += lComputeLeading(usFontSizeMax);
 				lTotal += lMilliPoints2DrawUnits(
-						(long)pCurr->usFontSize * 200);
+						(int32_t)pCurr->usFontSize * 200);
 				usFontSizeMax = 0;
 				continue;
 			}

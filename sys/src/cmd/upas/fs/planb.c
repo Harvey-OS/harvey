@@ -84,7 +84,7 @@ readmessage(Message *m, char *msg)
 		m->end--;
 	*m->end = 0;
 	m->bend = m->rbend = m->end;
-	sha1((uchar*)m->start, m->end - m->start, m->digest, nil);
+	sha1((uint8_t*)m->start, m->end - m->start, m->digest, nil);
 	for(i = 0; i < SHA1dlen; i++)
 		sprint(sdigest+2*i, "%2.2ux", m->digest[i]);
 	m->sdigest = s_copy(sdigest);
@@ -274,7 +274,7 @@ static void
 readpbvmbox(Mailbox *mb, int doplumb)
 {
 	int fd, nr;
-	long sz;
+	int32_t sz;
 	char *data, *ln, *p, *nln, *msg;
 	Dir *d;
 

@@ -89,7 +89,7 @@ struct Authenticator
 {
 	char	num;			/* replay protection */
 	char	chal[CHALLEN];
-	ulong	id;			/* authenticator id, ++'d with each auth */
+	uint32_t	id;			/* authenticator id, ++'d with each auth */
 };
 #define	AUTHENTLEN	(CHALLEN+4+1)
 
@@ -105,7 +105,7 @@ struct Passwordreq
 
 struct	OChapreply
 {
-	uchar	id;
+	uint8_t	id;
 	char	uid[ANAMELEN];
 	char	resp[OMD5LEN];
 };
@@ -150,22 +150,22 @@ enum {
 struct Nvrsafe
 {
 	char	machkey[DESKEYLEN];	/* was file server's authid's des key */
-	uchar	machsum;
+	uint8_t	machsum;
 	char	authkey[DESKEYLEN];	/* authid's des key from password */
-	uchar	authsum;
+	uint8_t	authsum;
 	/*
 	 * file server config string of device holding full configuration;
 	 * secstore key on non-file-servers.
 	 */
 	char	config[CONFIGLEN];
-	uchar	configsum;
+	uint8_t	configsum;
 	char	authid[ANAMELEN];	/* auth userid, e.g., bootes */
-	uchar	authidsum;
+	uint8_t	authidsum;
 	char	authdom[DOMLEN]; /* auth domain, e.g., cs.bell-labs.com */
-	uchar	authdomsum;
+	uint8_t	authdomsum;
 };
 
-extern	uchar	nvcsum(void*, int);
+extern	uint8_t	nvcsum(void*, int);
 extern int	readnvram(Nvrsafe*, int);
 
 /*

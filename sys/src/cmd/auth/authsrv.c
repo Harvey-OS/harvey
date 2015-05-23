@@ -40,11 +40,12 @@ int	speaksfor(char*, char*);
 void	replyerror(char*, ...);
 void	getraddr(char*);
 void	mkkey(char*);
-void	randombytes(uchar*, int);
-void	nthash(uchar hash[MShashlen], char *passwd);
-void	lmhash(uchar hash[MShashlen], char *passwd);
-void	mschalresp(uchar resp[MSresplen], uchar hash[MShashlen], uchar chal[MSchallen]);
-void	desencrypt(uchar data[8], uchar key[7]);
+void	randombytes(uint8_t*, int);
+void	nthash(uint8_t hash[MShashlen], char *passwd);
+void	lmhash(uint8_t hash[MShashlen], char *passwd);
+void	mschalresp(uint8_t resp[MSresplen], uint8_t hash[MShashlen],
+		       uint8_t chal[MSchallen]);
+void	desencrypt(uint8_t data[8], uint8_t key[7]);
 int	tickauthreply(Ticketreq*, char*);
 void	safecpy(char*, char*, int);
 
@@ -169,7 +170,7 @@ ticketrequest(Ticketreq *tr)
 void
 challengebox(Ticketreq *tr)
 {
-	long chal;
+	int32_t chal;
 	char *key, *netkey;
 	char kbuf[DESKEYLEN], nkbuf[DESKEYLEN], hkey[DESKEYLEN];
 	char buf[NETCHLEN+1];
@@ -326,7 +327,7 @@ http(Ticketreq *tr)
 	}
 	Bterm(b);
 	if(p == nil) {
-		randombytes((uchar*)key, DESKEYLEN);
+		randombytes((uint8_t*)key, DESKEYLEN);
 	} else {
 		while(*p == ' ' || *p == '\t')
 			p++;
@@ -334,7 +335,7 @@ http(Ticketreq *tr)
 	}
 
 	/* send back a ticket encrypted with the key */
-	randombytes((uchar*)t.chal, CHALLEN);
+	randombytes((uint8_t*)t.chal, CHALLEN);
 	mkkey(t.key);
 	tbuf[0] = AuthOK;
 	t.num = AuthHr;
@@ -392,8 +393,8 @@ apop(Ticketreq *tr, int type)
 	char sbuf[SECRETLEN], hbuf[DESKEYLEN];
 	char tbuf[TICKREQLEN];
 	char buf[MD5dlen*2];
-	uchar digest[MD5dlen], resp[MD5dlen];
-	ulong rb[4];
+	uint8_t digest[MD5dlen], resp[MD5dlen];
+	uint32_t rb[4];
 	char chal[256];
 
 	USED(tr);
@@ -401,7 +402,7 @@ apop(Ticketreq *tr, int type)
 	/*
 	 *  Create a challenge and send it.
 	 */
-	randombytes((uchar*)rb, sizeof(rb));
+	randombytes((uint8_t*)rb, sizeof(rb));
 	p = chal;
 	p += snprint(p, sizeof(chal), "<%lux%lux.%lux%lux@%s>",
 		rb[0], rb[1], rb[2], rb[3], domainname());
@@ -445,12 +446,12 @@ apop(Ticketreq *tr, int type)
 		 *  check for match
 		 */
 		if(type == AuthCram){
-			hmac_md5((uchar*)chal, challen,
-				(uchar*)secret, strlen(secret),
+			hmac_md5((uint8_t*)chal, challen,
+				(uint8_t*)secret, strlen(secret),
 				digest, nil);
 		} else {
-			s = md5((uchar*)chal, challen, 0, 0);
-			md5((uchar*)secret, strlen(secret), digest, s);
+			s = md5((uint8_t*)chal, challen, 0, 0);
+			md5((uint8_t*)secret, strlen(secret), digest, s);
 		}
 		if(memcmp(digest, resp, MD5dlen) != 0){
 			replyerror("apop-fail bad response %s", raddr);
@@ -483,7 +484,7 @@ enum {
 };
 
 /* VNC reverses the bits of each byte before using as a des key */
-uchar swizzletab[256] = {
+uint8_t swizzletab[256] = {
  0x0, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0, 0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
  0x8, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8, 0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
  0x4, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4, 0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
@@ -505,8 +506,8 @@ uchar swizzletab[256] = {
 void
 vnc(Ticketreq *tr)
 {
-	uchar chal[VNCchallen+6];
-	uchar reply[VNCchallen];
+	uint8_t chal[VNCchallen+6];
+	uint8_t reply[VNCchallen];
 	char *secret, *hkey;
 	char sbuf[SECRETLEN], hbuf[DESKEYLEN];
 	DESstate s;
@@ -527,15 +528,15 @@ vnc(Ticketreq *tr)
 	memset(sbuf, 0, sizeof(sbuf));
 	secret = findsecret(KEYDB, tr->uid, sbuf);
 	if(secret == 0){
-		randombytes((uchar*)sbuf, sizeof(sbuf));
+		randombytes((uint8_t*)sbuf, sizeof(sbuf));
 		secret = sbuf;
 	}
 	for(i = 0; i < 8; i++)
-		secret[i] = swizzletab[(uchar)secret[i]];
+		secret[i] = swizzletab[(uint8_t)secret[i]];
 
 	hkey = findkey(KEYDB, tr->hostid, hbuf);
 	if(hkey == 0){
-		randombytes((uchar*)hbuf, sizeof(hbuf));
+		randombytes((uint8_t*)hbuf, sizeof(hbuf));
 		hkey = hbuf;
 	}
 
@@ -548,7 +549,7 @@ vnc(Ticketreq *tr)
 	/*
 	 *  decrypt response and compare
 	 */
-	setupDESstate(&s, (uchar*)secret, nil);
+	setupDESstate(&s, (uint8_t*)secret, nil);
 	desECBdecrypt(reply, sizeof(reply), &s);
 	if(memcmp(reply, chal+6, VNCchallen) != 0){
 		replyerror("vnc-fail bad response %s", raddr);
@@ -573,14 +574,14 @@ chap(Ticketreq *tr)
 	char *secret, *hkey;
 	DigestState *s;
 	char sbuf[SECRETLEN], hbuf[DESKEYLEN];
-	uchar digest[MD5dlen];
+	uint8_t digest[MD5dlen];
 	char chal[CHALLEN];
 	OChapreply reply;
 
 	/*
 	 *  Create a challenge and send it.
 	 */
-	randombytes((uchar*)chal, sizeof(chal));
+	randombytes((uint8_t*)chal, sizeof(chal));
 	write(1, chal, sizeof(chal));
 
 	/*
@@ -605,8 +606,8 @@ chap(Ticketreq *tr)
 	 *  check for match
 	 */
 	s = md5(&reply.id, 1, 0, 0);
-	md5((uchar*)secret, strlen(secret), 0, s);
-	md5((uchar*)chal, sizeof(chal), digest, s);
+	md5((uint8_t*)secret, strlen(secret), 0, s);
+	md5((uint8_t*)chal, sizeof(chal), digest, s);
 
 	if(memcmp(digest, reply.resp, MD5dlen) != 0){
 		replyerror("chap-fail bad response %s", raddr);
@@ -627,7 +628,7 @@ chap(Ticketreq *tr)
 }
 
 void
-printresp(uchar resp[MSresplen])
+printresp(uint8_t resp[MSresplen])
 {
 	char buf[200], *p;
 	int i;
@@ -645,19 +646,19 @@ mschap(Ticketreq *tr)
 
 	char *secret, *hkey;
 	char sbuf[SECRETLEN], hbuf[DESKEYLEN];
-	uchar chal[CHALLEN];
-	uchar hash[MShashlen];
-	uchar hash2[MShashlen];
-	uchar resp[MSresplen];
+	uint8_t chal[CHALLEN];
+	uint8_t hash[MShashlen];
+	uint8_t hash2[MShashlen];
+	uint8_t resp[MSresplen];
 	OMSchapreply reply;
 	int dupe, lmok, ntok;
 	DigestState *s;
-	uchar digest[SHA1dlen];
+	uint8_t digest[SHA1dlen];
 
 	/*
 	 *  Create a challenge and send it.
 	 */
-	randombytes((uchar*)chal, sizeof(chal));
+	randombytes((uint8_t*)chal, sizeof(chal));
 	write(1, chal, sizeof(chal));
 
 	/*
@@ -730,9 +731,9 @@ mschap(Ticketreq *tr)
 }
 
 void
-nthash(uchar hash[MShashlen], char *passwd)
+nthash(uint8_t hash[MShashlen], char *passwd)
 {
-	uchar buf[512];
+	uint8_t buf[512];
 	int i;
 
 	for (i = 0; *passwd && i + 1 < sizeof(buf);) {
@@ -748,9 +749,9 @@ nthash(uchar hash[MShashlen], char *passwd)
 }
 
 void
-lmhash(uchar hash[MShashlen], char *passwd)
+lmhash(uint8_t hash[MShashlen], char *passwd)
 {
-	uchar buf[14];
+	uint8_t buf[14];
 	char *stdtext = "KGS!@#$%";
 	int i;
 
@@ -768,10 +769,11 @@ lmhash(uchar hash[MShashlen], char *passwd)
 }
 
 void
-mschalresp(uchar resp[MSresplen], uchar hash[MShashlen], uchar chal[MSchallen])
+mschalresp(uint8_t resp[MSresplen], uint8_t hash[MShashlen],
+	   uint8_t chal[MSchallen])
 {
 	int i;
-	uchar buf[21];
+	uint8_t buf[21];
 
 	memset(buf, 0, sizeof(buf));
 	memcpy(buf, hash, MShashlen);
@@ -783,9 +785,9 @@ mschalresp(uchar resp[MSresplen], uchar hash[MShashlen], uchar chal[MSchallen])
 }
 
 void
-desencrypt(uchar data[8], uchar key[7])
+desencrypt(uint8_t data[8], uint8_t key[7])
 {
-	ulong ekey[32];
+	uint32_t ekey[32];
 
 	key_setup(key, ekey);
 	block_cipher(ekey, data, 0);
@@ -873,11 +875,11 @@ getraddr(char *dir)
 void
 mkkey(char *k)
 {
-	randombytes((uchar*)k, DESKEYLEN);
+	randombytes((uint8_t*)k, DESKEYLEN);
 }
 
 void
-randombytes(uchar *buf, int len)
+randombytes(uint8_t *buf, int len)
 {
 	int i;
 

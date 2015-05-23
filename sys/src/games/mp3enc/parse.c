@@ -82,7 +82,8 @@ lame_version_print(FILE*const fp)
 
 /* print version & license */
 int
-print_license(const lame_global_flags*gfp, FILE*const fp, const char*ProgramName)
+print_license(const lame_global_flags*gfp, FILE*const fp,
+	      const char*ProgramName)
 {
 	lame_version_print(fp);
 	fprintf(fp, "Can I use LAME in my commercial program?\n\n"
@@ -145,7 +146,8 @@ usage(const lame_global_flags*gfp, FILE*const fp, const char*ProgramName)
 */
 /* print short syntax help */
 int
-short_help(const lame_global_flags*gfp, FILE*const fp, const char*ProgramName)
+short_help(const lame_global_flags*gfp, FILE*const fp,
+	   const char*ProgramName)
 {
 	lame_version_print(fp);
 	fprintf(fp, "usage: %s [options] <infile> [outfile]\n\n"
@@ -189,7 +191,8 @@ wait_for (FILE*const fp, int lessmode)
 
 /* print long syntax help */
 int
-long_help(const lame_global_flags*gfp, FILE*const fp, const char*ProgramName, int lessmode)
+long_help(const lame_global_flags*gfp, FILE*const fp,
+	  const char*ProgramName, int lessmode)
 {
 	lame_version_print(fp);
 	fprintf(fp, "usage: %s [options] <infile> [outfile]\n\n"
@@ -319,7 +322,8 @@ long_help(const lame_global_flags*gfp, FILE*const fp, const char*ProgramName, in
 }
 
 static void
-display_bitrate(FILE*const fp, const char*const version, const int div, const int index)
+display_bitrate(FILE*const fp, const char*const version, const int div,
+		const int index)
 {
 	int	i;
 
@@ -344,17 +348,17 @@ display_bitrates(FILE*const fp)
 
 typedef struct {
 	const char*name;	/* name of preset */
-	long	resample;	/* resample frequency in Hz, or -1 for no resampling */
-	short	highpass_freq;	/* highpass frequency in Hz, or -1 for no highpass filtering */
-	short	lowpass_freq;	/* lowpass frequency in Hz, or -1 for no lowpass filtering */
-	short	lowpass_width;	/* lowpass width in Hz */
+	int32_t	resample;	/* resample frequency in Hz, or -1 for no resampling */
+	int16_t	highpass_freq;	/* highpass frequency in Hz, or -1 for no highpass filtering */
+	int16_t	lowpass_freq;	/* lowpass frequency in Hz, or -1 for no lowpass filtering */
+	int16_t	lowpass_width;	/* lowpass width in Hz */
 	signed char no_short_blocks;	/* use of short blocks, 1: no, 0: yes */
 	signed char quality;	/* quality, the same as -f or -h */
 	MPEG_mode mode;		/* channel mode (mono, stereo, joint) */
-	short	cbr;		/* CBR data rate in kbps (8...320) */
+	int16_t	cbr;		/* CBR data rate in kbps (8...320) */
 	signed char xvbr_mode;	/* VBR mode (0...9) */
-	short	vbr_min;	/* minimum VBR rate in kbps(8...256) */
-	short	vbr_max;	/* maximum VBR rate in kbps (16...320) */
+	int16_t	vbr_min;	/* minimum VBR rate in kbps(8...256) */
+	int16_t	vbr_max;	/* maximum VBR rate in kbps (16...320) */
 } preset_t;
 
 const preset_t Presets [] = {
@@ -380,7 +384,8 @@ const preset_t Presets [] = {
 
 /* print possible combination */
 static int
-presets_info(const lame_global_flags*gfp, FILE*const fp, const char*ProgramName)
+presets_info(const lame_global_flags*gfp, FILE*const fp,
+	     const char*ProgramName)
 {
 	int	i;
 
@@ -508,7 +513,8 @@ presets_info(const lame_global_flags*gfp, FILE*const fp, const char*ProgramName)
 
 
 static int
-presets_setup(lame_global_flags*gfp, const char*preset_name, const char*ProgramName)
+presets_setup(lame_global_flags*gfp, const char*preset_name,
+	      const char*ProgramName)
 {
 	int	i;
 

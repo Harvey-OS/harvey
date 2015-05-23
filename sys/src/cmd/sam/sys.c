@@ -62,7 +62,7 @@ Write(int f, void *a, int n)
 }
 
 void
-Seek(int f, long n, int w)
+Seek(int f, int32_t n, int w)
 {
 	if(seek(f, n, w)==-1)
 		syserror("seek");

@@ -10,10 +10,10 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomqueryinformation(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
+smbcomqueryinformation(SmbSession *s, SmbHeader *h, uint8_t *, SmbBuffer *b)
 {
 	SmbTree *t;
-	uchar fmt;
+	uint8_t fmt;
 	char *path;
 	Dir *d;
 	char *fullpath;
@@ -54,13 +54,14 @@ smbcomqueryinformation(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
 }
 
 SmbProcessResult
-smbcomqueryinformation2(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *)
+smbcomqueryinformation2(SmbSession *s, SmbHeader *h, uint8_t *pdata,
+			SmbBuffer *)
 {
 	SmbTree *t;
 	Dir *d;
-	ushort fid;
-	ushort mtime, mdate;
-	ushort atime, adate;
+	uint16_t fid;
+	uint16_t mtime, mdate;
+	uint16_t atime, adate;
 	SmbFile *f;
 
 	if (!smbcheckwordcount("comqueryinformation2", h, 1))

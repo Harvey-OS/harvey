@@ -20,8 +20,8 @@
 #define	WTR	1
 
 struct a_fork {
-	short	done;
-	short	fd;
+	int16_t	done;
+	int16_t	fd;
 	int	pid;
 	int	status;
 };

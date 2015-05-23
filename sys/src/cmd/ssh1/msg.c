@@ -9,7 +9,7 @@
 
 #include "ssh.h"
 
-static ulong sum32(ulong, void*, int);
+static uint32_t sum32(uint32_t, void*, int);
 
 char *msgnames[] =
 {
@@ -91,7 +91,7 @@ badmsg(Msg *m, int want)
 Msg*
 allocmsg(Conn *c, int type, int len)
 {
-	uchar *p;
+	uint8_t *p;
 	Msg *m;
 
 	if(len > 256*1024)
@@ -99,7 +99,7 @@ allocmsg(Conn *c, int type, int len)
 
 	m = (Msg*)emalloc(sizeof(Msg)+4+8+1+len+4);
 	setmalloctag(m, getcallerpc(&c));
-	p = (uchar*)&m[1];
+	p = (uint8_t*)&m[1];
 	m->c = c;
 	m->bp = p;
 	m->ep = p+len;
@@ -120,8 +120,8 @@ static Msg*
 recvmsg0(Conn *c)
 {
 	int pad;
-	uchar *p, buf[4];
-	ulong crc, crc0, len;
+	uint8_t *p, buf[4];
+	uint32_t crc, crc0, len;
 	Msg *m;
 
 	if(c->unget){
@@ -146,7 +146,7 @@ recvmsg0(Conn *c)
 	m = (Msg*)emalloc(sizeof(Msg)+pad+len);
 	setmalloctag(m, getcallerpc(&c));
 	m->c = c;
-	m->bp = (uchar*)&m[1];
+	m->bp = (uint8_t*)&m[1];
 	m->ep = m->bp + pad+len-4;	/* -4: don't include crc */
 	m->rp = m->bp;
 
@@ -206,8 +206,8 @@ int
 sendmsg(Msg *m)
 {
 	int i, pad;
-	uchar *p;
-	ulong datalen, len, crc;
+	uint8_t *p;
+	uint32_t datalen, len, crc;
 	Conn *c;
 
 	datalen = m->wp - m->bp;
@@ -254,7 +254,7 @@ sendmsg(Msg *m)
 	return 0;
 }
 
-uchar
+uint8_t
 getbyte(Msg *m)
 {
 	if(m->rp >= m->ep)
@@ -262,10 +262,10 @@ getbyte(Msg *m)
 	return *m->rp++;
 }
 
-ushort
+uint16_t
 getshort(Msg *m)
 {
-	ushort x;
+	uint16_t x;
 
 	if(m->rp+2 > m->ep)
 		error(Edecode);
@@ -275,10 +275,10 @@ getshort(Msg *m)
 	return x;
 }
 
-ulong
+uint32_t
 getlong(Msg *m)
 {
-	ulong x;
+	uint32_t x;
 
 	if(m->rp+4 > m->ep)
 		error(Edecode);
@@ -292,7 +292,7 @@ char*
 getstring(Msg *m)
 {
 	char *p;
-	ulong len;
+	uint32_t len;
 
 	/* overwrites length to make room for NUL */
 	len = getlong(m);
@@ -307,7 +307,7 @@ getstring(Msg *m)
 void*
 getbytes(Msg *m, int n)
 {
-	uchar *p;
+	uint8_t *p;
 
 	if(m->rp+n > m->ep)
 		error(Edecode);
@@ -341,7 +341,7 @@ getRSApub(Msg *m)
 }
 
 void
-putbyte(Msg *m, uchar x)
+putbyte(Msg *m, uint8_t x)
 {
 	if(m->wp >= m->ep)
 		error(Eencode);
@@ -349,7 +349,7 @@ putbyte(Msg *m, uchar x)
 }
 
 void
-putshort(Msg *m, ushort x)
+putshort(Msg *m, uint16_t x)
 {
 	if(m->wp+2 > m->ep)
 		error(Eencode);
@@ -358,7 +358,7 @@ putshort(Msg *m, ushort x)
 }
 
 void
-putlong(Msg *m, ulong x)
+putlong(Msg *m, uint32_t x)
 {
 	if(m->wp+4 > m->ep)
 		error(Eencode);
@@ -377,7 +377,7 @@ putstring(Msg *m, char *s)
 }
 
 void
-putbytes(Msg *m, void *a, long n)
+putbytes(Msg *m, void *a, int32_t n)
 {
 	if(m->wp+n > m->ep)
 		error(Eencode);
@@ -407,12 +407,12 @@ putRSApub(Msg *m, RSApub *key)
 	putmpint(m, key->n);
 }
 
-static ulong crctab[256];
+static uint32_t crctab[256];
 
 static void
 initsum32(void)
 {
-	ulong crc, poly;
+	uint32_t crc, poly;
 	int i, j;
 
 	poly = 0xEDB88320;
@@ -428,12 +428,12 @@ initsum32(void)
 	}
 }
 
-static ulong
-sum32(ulong lcrc, void *buf, int n)
+static uint32_t
+sum32(uint32_t lcrc, void *buf, int n)
 {
 	static int first=1;
-	uchar *s = buf;
-	ulong crc = lcrc;
+	uint8_t *s = buf;
+	uint32_t crc = lcrc;
 
 	if(first){
 		first=0;
@@ -448,7 +448,7 @@ mpint*
 rsapad(mpint *b, int n)
 {
 	int i, pad, nbuf;
-	uchar buf[2560];
+	uint8_t buf[2560];
 	mpint *c;
 
 	if(n > sizeof buf)
@@ -474,7 +474,7 @@ mpint*
 rsaunpad(mpint *b)
 {
 	int i, n;
-	uchar buf[2560];
+	uint8_t buf[2560];
 
 	n = (mpsignif(b)+7)/8;
 	if(n > sizeof buf)
@@ -491,7 +491,7 @@ rsaunpad(mpint *b)
 }
 
 void
-mptoberjust(mpint *b, uchar *buf, int len)
+mptoberjust(mpint *b, uint8_t *buf, int len)
 {
 	int n;
 
@@ -505,7 +505,7 @@ mptoberjust(mpint *b, uchar *buf, int len)
 }
 
 mpint*
-rsaencryptbuf(RSApub *key, uchar *buf, int nbuf)
+rsaencryptbuf(RSApub *key, uint8_t *buf, int nbuf)
 {
 	int n;
 	mpint *a, *b, *c;

@@ -19,7 +19,7 @@
  * in order to be loaded.
  */
 static void
-setcrt42(Vga* vga, Ctlr* ctlr, uchar index)
+setcrt42(Vga* vga, Ctlr* ctlr, uint8_t index)
 {
 	trace("%s->clock->setcrt42\n", ctlr->name);
 
@@ -34,9 +34,9 @@ setcrt42(Vga* vga, Ctlr* ctlr, uchar index)
 static void
 icd2061aload(Vga* vga, Ctlr* ctlr)
 {
-	ulong sdata;
+	uint32_t sdata;
 	int i;
-	uchar crt42;
+	uint8_t crt42;
 
 	trace("%s->clock->icd2061aload\n", ctlr->name);
 	/*
@@ -125,7 +125,7 @@ ch9294load(Vga* vga, Ctlr* ctlr)
 static void
 tvp3025load(Vga* vga, Ctlr* ctlr)
 {
-	uchar crt5c, x;
+	uint8_t crt5c, x;
 
 	trace("%s->clock->tvp3025load\n", ctlr->name);
 

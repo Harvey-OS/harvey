@@ -28,7 +28,7 @@ typedef
 struct Qid
 {
 	uvlong	path;
-	ulong	vers;
+	uint32_t	vers;
 	uchar	type;
 } Qid;
 
@@ -39,9 +39,9 @@ struct Dir {
 	uint	dev;	/* server subtype */
 	/* file data */
 	Qid	qid;	/* unique id from server */
-	ulong	mode;	/* permissions */
-	ulong	atime;	/* last read time */
-	ulong	mtime;	/* last write time */
+	uint32_t	mode;	/* permissions */
+	uint32_t	atime;	/* last read time */
+	uint32_t	mtime;	/* last write time */
 	vlong	length;	/* file length: see <u.h> */
 	char	*name;	/* last element of path */
 	char	*uid;	/* owner name */
@@ -143,5 +143,5 @@ extern	int	_IOUNIT(int);
 
 #define ERRMAX 128
 
-extern	void	setmalloctag(void*, ulong);
-extern	ulong	getcallerpc(void*);
+extern	void	setmalloctag(void*, uint32_t);
+extern	uint32_t	getcallerpc(void*);

@@ -264,7 +264,7 @@ sysunlock(Mlock *l)
  *	A	- append only (doesn't exist in Bio)
  */
 extern Biobuf *
-sysopen(char *path, char *mode, ulong perm)
+sysopen(char *path, char *mode, uint32_t perm)
 {
 	int sysperm;
 	int sysmode;
@@ -384,7 +384,7 @@ sysclose(Biobuf *bp)
  *  create a file
  */
 int
-syscreate(char *file, int mode, ulong perm)
+syscreate(char *file, int mode, uint32_t perm)
 {
 	return create(file, mode, perm);
 }
@@ -393,7 +393,7 @@ syscreate(char *file, int mode, ulong perm)
  *  make a directory
  */
 int
-sysmkdir(char *file, ulong perm)
+sysmkdir(char *file, uint32_t perm)
 {
 	int fd;
 
@@ -537,11 +537,11 @@ e_locked(void)
 /*
  *  return the length of a file
  */
-extern long
+extern int32_t
 sysfilelen(Biobuf *fp)
 {
 	Dir *d;
-	long rv;
+	int32_t rv;
 
 	d = dirfstat(Bfildes(fp));
 	if(d == nil)

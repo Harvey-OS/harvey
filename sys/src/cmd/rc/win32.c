@@ -78,7 +78,7 @@ Vinit(void)
 				snprint(envname, sizeof envname, "/env/%s", ent[i].name);
 				if((f = open(envname, 0))>=0){
 					buf = emalloc((int)len+1);
-					read(f, buf, (long)len);
+					read(f, buf, (int32_t)len);
 					val = 0;
 					/* Charitably add a 0 at the end if need be */
 					if(buf[len-1])
@@ -455,20 +455,20 @@ Unlink(char *name)
 	remove(name);
 }
 
-long
-Write(int fd, void *buf, long cnt)
+int32_t
+Write(int fd, void *buf, int32_t cnt)
 {
-	return write(fd, buf, (long)cnt);
+	return write(fd, buf, (int32_t)cnt);
 }
 
-long
-Read(int fd, void *buf, long cnt)
+int32_t
+Read(int fd, void *buf, int32_t cnt)
 {
 	return read(fd, buf, cnt);
 }
 
-long
-Seek(int fd, long cnt, long whence)
+int32_t
+Seek(int fd, int32_t cnt, int32_t whence)
 {
 	return seek(fd, cnt, whence);
 }
@@ -558,13 +558,13 @@ Abort(void)
 }
 
 void
-Memcpy(void *a, void *b, long n)
+Memcpy(void *a, void *b, int32_t n)
 {
 	memmove(a, b, n);
 }
 
 void*
-Malloc(ulong n)
+Malloc(uint32_t n)
 {
 	return malloc(n);
 }

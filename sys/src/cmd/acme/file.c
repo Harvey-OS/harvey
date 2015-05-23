@@ -33,8 +33,8 @@
 typedef struct Undo Undo;
 struct Undo
 {
-	short	type;		/* Delete, Insert, Filename */
-	short	mod;	/* modify bit */
+	int16_t	type;		/* Delete, Insert, Filename */
+	int16_t	mod;	/* modify bit */
 	uint		seq;		/* sequence number */
 	uint		p0;		/* location of change (unused in f) */
 	uint		n;		/* # runes in string or file name */

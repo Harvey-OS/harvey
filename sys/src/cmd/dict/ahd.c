@@ -36,7 +36,7 @@ void
 ahdprintentry(Entry e, int cmd)
 {
 	static int inited;
-	long addr;
+	int32_t addr;
 	char *p, *t = tag;
 	int obreaklen;
 	int c, state = Run;
@@ -113,13 +113,13 @@ out:
 	breaklen = obreaklen;
 }
 
-long
-ahdnextoff(long fromoff)
+int32_t
+ahdnextoff(int32_t fromoff)
 {
 	static char *patterns[] = { "%@NL@%", "%@2@%", 0 };
 	int c, k = 0, state = 0;
 	char *pat = patterns[0];
-	long defoff = -1;
+	int32_t defoff = -1;
 
 	if(Bseek(bdict, fromoff, 0) < 0)
 		return -1;

@@ -16,7 +16,7 @@ typedef struct ZRead	ZRead;
 
 struct ZRead
 {
-	ulong	adler;
+	uint32_t	adler;
 	void	*rr;
 	int	(*r)(void*, void*, int);
 };
@@ -38,7 +38,7 @@ int
 deflatezlib(void *wr, int (*w)(void*, void*, int), void *rr, int (*r)(void*, void*, int), int level, int debug)
 {
 	ZRead zr;
-	uchar buf[4];
+	uint8_t buf[4];
 	int ok;
 
 	buf[0] = ZlibDeflate | ZlibWin32k;

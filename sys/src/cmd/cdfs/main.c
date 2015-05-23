@@ -24,7 +24,7 @@ struct Aux {
 	Otrack	*o;
 };
 
-ulong	getnwa(Drive *);
+uint32_t	getnwa(Drive *);
 
 static void checktoc(Drive*);
 
@@ -51,7 +51,7 @@ geterrstr(void)
 }
 
 void*
-emalloc(ulong sz)
+emalloc(uint32_t sz)
 {
 	void *v;
 
@@ -98,7 +98,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 	int i;
 
 	checktoc(drive);
-	switch((ulong)fid->qid.path) {
+	switch((uint32_t)fid->qid.path) {
 	case Qdir:
 		if(strcmp(name, "..") == 0) {
 			*qid = (Qid){Qdir, drive->nchange, QTDIR};
@@ -153,7 +153,7 @@ fscreate(Req *r)
 		return;
 	}
 
-	switch((ulong)fid->qid.path) {
+	switch((uint32_t)fid->qid.path) {
 	case Qdir:
 	default:
 		respond(r, "permission denied");
@@ -196,7 +196,7 @@ fscreate(Req *r)
 static void
 fsremove(Req *r)
 {
-	switch((ulong)r->fid->qid.path){
+	switch((uint32_t)r->fid->qid.path){
 	case Qwa:
 	case Qwd:
 		if(drive->fixate(drive) < 0)
@@ -250,7 +250,7 @@ disctype(Drive *drive)
 }
 
 int
-fillstat(ulong qid, Dir *d)
+fillstat(uint32_t qid, Dir *d)
 {
 	char *ty;
 	Track *t;
@@ -313,7 +313,7 @@ fillstat(ulong qid, Dir *d)
 	return 1;
 }
 
-static ulong 
+static uint32_t 
 cddb_sum(int n)
 {
 	int ret;
@@ -325,11 +325,11 @@ cddb_sum(int n)
 	return ret;
 }
 
-static ulong
+static uint32_t
 diskid(Drive *d)
 {
 	int i, n;
-	ulong tmp;
+	uint32_t tmp;
 	Msf *ms, *me;
 
 	n = 0;
@@ -351,7 +351,7 @@ static void
 readctl(Req *r)
 {
 	int i, isaudio;
-	ulong nwa;
+	uint32_t nwa;
 	char *p, *e, *ty;
 	char s[1024];
 	Msf *m;
@@ -404,13 +404,13 @@ static void
 fsread(Req *r)
 {
 	int j, n, m;
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 	Dir d;
 	Fid *fid;
 	Otrack *o;
-	vlong offset;
+	int64_t offset;
 	void *buf;
-	long count;
+	int32_t count;
 	Aux *a;
 
 	fid = r->fid;
@@ -418,7 +418,7 @@ fsread(Req *r)
 	buf = r->ofcall.data;
 	count = r->ifcall.count;
 
-	switch((ulong)fid->qid.path) {
+	switch((uint32_t)fid->qid.path) {
 	case Qdir:
 		checktoc(drive);
 		p = buf;
@@ -437,7 +437,7 @@ fsread(Req *r)
 		}
 		a->doff = j;
 
-		r->ofcall.count = p - (uchar*)buf;
+		r->ofcall.count = p - (uint8_t*)buf;
 		break;
 	case Qwa:
 	case Qwd:
@@ -462,7 +462,7 @@ fsread(Req *r)
 static char Ebadmsg[] = "bad cdfs control message";
 
 static char*
-writectl(void *v, long count)
+writectl(void *v, int32_t count)
 {
 	char buf[256];
 	char *f[10], *p;
@@ -551,7 +551,7 @@ fswrite(Req *r)
 static void
 fsstat(Req *r)
 {
-	fillstat((ulong)r->fid->qid.path, &r->d);
+	fillstat((uint32_t)r->fid->qid.path, &r->d);
 	r->d.name = estrdup9p(r->d.name);
 	r->d.uid = estrdup9p(r->d.uid);
 	r->d.gid = estrdup9p(r->d.gid);
@@ -571,7 +571,7 @@ fsopen(Req *r)
 	checktoc(drive);
 	r->ofcall.qid = (Qid){fid->qid.path, drive->nchange, fid->qid.vers};
 
-	switch((ulong)fid->qid.path){
+	switch((uint32_t)fid->qid.path){
 	case Qdir:
 	case Qwa:
 	case Qwd:
@@ -666,14 +666,14 @@ checktoc(Drive *drive)
 	drive->nameok = 1;
 }
 
-long
-bufread(Otrack *t, void *v, long n, vlong off)
+int32_t
+bufread(Otrack *t, void *v, int32_t n, int64_t off)
 {
 	return bread(t->buf, v, n, off);
 }
 
-long
-bufwrite(Otrack *t, void *v, long n)
+int32_t
+bufwrite(Otrack *t, void *v, int32_t n)
 {
 	return bwrite(t->buf, v, n);
 }

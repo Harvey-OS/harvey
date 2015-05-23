@@ -13,10 +13,10 @@
 
 #define Maxrand	((1UL<<31)-1)
 
-ulong
-nfastrand(ulong n)
+uint32_t
+nfastrand(uint32_t n)
 {
-	ulong m, r;
+	uint32_t m, r;
 	
 	/*
 	 * set m to the maximum multiple of n <= 2^31-1

@@ -23,7 +23,7 @@
 
 extern Symbol	*Fname;
 extern int	nr_errs, lineno, verbose, in_for;
-extern short	has_unless, has_badelse, has_xu;
+extern int16_t	has_unless, has_badelse, has_xu;
 extern char CurScope[MAXSCOPESZ];
 
 Element *Al_El = ZE;
@@ -227,7 +227,8 @@ close_seq(int nottop)
 	s->maxel = Elcnt;
 	s->extent = s->last;
 	if (!s->last)
-		fatal("sequence must have at least one statement", (char *) 0);
+		fatal("sequence must have at least one statement",
+		      (char *) 0);
 	return s;
 }
 
@@ -353,7 +354,8 @@ loose_ends(void)	/* properly tie-up ends of sub-sequences */
 			else
 			{	if (e->n->sl->this->last->nxt->n->ntyp != GOTO)
 				{	if (!f || e->n->sl->this->last->nxt->seqno != f->seqno)
-					non_fatal("unexpected: loose ends", (char *)0);
+					non_fatal("unexpected: loose ends",
+						  (char *)0);
 				} else
 					e->n->sl->this->last = e->n->sl->this->last->nxt;
 				/*

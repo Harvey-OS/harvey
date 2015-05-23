@@ -20,8 +20,9 @@ int diffbflag;
 int diffwflag;
 
 void copy(Biobuf*, char*, Biobuf*, char*);
-void idiff(Biobuf*, char*, Biobuf*, char*, Biobuf*, char*, Biobuf*, char*);
-int opentemp(char*, int, long);
+void idiff(Biobuf*, char*, Biobuf*, char*, Biobuf*, char*, Biobuf*,
+	   char*);
+int opentemp(char*, int, int32_t);
 void rundiff(char*, char*, int);
 
 void
@@ -88,7 +89,7 @@ main(int argc, char **argv)
 }
 
 int
-opentemp(char *template, int mode, long perm)
+opentemp(char *template, int mode, int32_t perm)
 {
 	int fd, i;
 	char *p;	
@@ -181,7 +182,8 @@ runcmd(char *cmd)
 }
 
 void
-parse(char *s, int *pfrom1, int *pto1, int *pcmd, int *pfrom2, int *pto2)
+parse(char *s, int *pfrom1, int *pto1, int *pcmd, int *pfrom2,
+      int *pto2)
 {
 	*pfrom1 = *pto1 = *pfrom2 = *pto2 = 0;
 
@@ -261,7 +263,8 @@ copy(Biobuf *bin, char *nin, Biobuf *bout, char *nout)
 }
 
 void
-idiff(Biobuf *b1, char *name1, Biobuf *b2, char *name2, Biobuf *bdiff, char *namediff, Biobuf *bout, char *nameout)
+idiff(Biobuf *b1, char *name1, Biobuf *b2, char *name2, Biobuf *bdiff,
+      char *namediff, Biobuf *bout, char *nameout)
 {
 	char buf[256], *p;
 	int interactive, defaultanswer, cmd, diffoffset;

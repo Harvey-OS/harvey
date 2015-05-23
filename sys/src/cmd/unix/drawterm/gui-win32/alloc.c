@@ -13,7 +13,7 @@
 #include <memdraw.h>
 
 Memimage*
-allocmemimage(Rectangle r, ulong chan)
+allocmemimage(Rectangle r, uint32_t chan)
 {
 	return _allocmemimage(r, chan);
 }
@@ -25,7 +25,7 @@ freememimage(Memimage *i)
 }
 
 void
-memfillcolor(Memimage *i, ulong val)
+memfillcolor(Memimage *i, uint32_t val)
 {
 	_memfillcolor(i, val);
 }

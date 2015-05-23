@@ -29,7 +29,7 @@ extern int	Rvous, lineno, Tval, interactive, MadeChoice;
 extern int	TstOnly, verbose, s_trail, xspin, jumpsteps, depth;
 extern int	analyze, nproc, nstop, no_print, like_java;
 
-static long	Seed = 1;
+static int32_t	Seed = 1;
 static int	E_Check = 0, Escape_Check = 0;
 
 static int	eval_sync(Element *);
@@ -41,7 +41,7 @@ Srand(unsigned int s)
 {	Seed = s;
 }
 
-long
+int32_t
 Rand(void)
 {	/* CACM 31(10), Oct 1988 */
 	Seed = 16807*(Seed%127773) - 2836*(Seed/127773);

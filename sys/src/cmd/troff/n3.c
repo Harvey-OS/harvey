@@ -466,7 +466,8 @@ Offset alloc(void)	/* return free Offset in nextb */
 		if (blist[i].nextoff == 0)
 			break;
 	if (i == nblist) {
-		blist = (Blockp *) realloc((char *) blist, 2 * nblist * sizeof(Blockp));
+		blist = (Blockp *) realloc((char *) blist,
+					   2 * nblist * sizeof(Blockp));
 		if (blist == NULL) {
 			ERROR "can't grow blist for string/macro defns" WARN;
 			done2(2);

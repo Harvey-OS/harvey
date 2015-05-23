@@ -25,7 +25,8 @@
  * nin may be <0 initially, to avoid checking input by count.
  */
 void
-_quotesetup(char *s, Rune *r, int nin, int nout, Quoteinfo *q, int sharp, int runesout)
+_quotesetup(char *s, Rune *r, int nin, int nout, Quoteinfo *q,
+	    int sharp, int runesout)
 {
 	int w;
 	Rune c;
@@ -106,7 +107,7 @@ qstrfmt(char *sin, Rune *rin, Quoteinfo *q, Fmt *f)
 	Rune r, *rm, *rme;
 	char *t, *s, *m, *me;
 	Rune *rt, *rs;
-	ulong fl;
+	uint32_t fl;
 	int nc, w;
 
 	m = sin;
@@ -133,7 +134,7 @@ qstrfmt(char *sin, Rune *rin, Quoteinfo *q, Fmt *f)
 		FMTRUNE(f, t, s, '\'');
 	for(nc = q->nrunesin; nc > 0; nc--){
 		if(sin){
-			r = *(uchar*)m;
+			r = *(uint8_t*)m;
 			if(r < Runeself)
 				m++;
 			else if((me - m) >= UTFmax || fullrune(m, me-m))
@@ -143,7 +144,7 @@ qstrfmt(char *sin, Rune *rin, Quoteinfo *q, Fmt *f)
 		}else{
 			if(rm >= rme)
 				break;
-			r = *(uchar*)rm++;
+			r = *(uint8_t*)rm++;
 		}
 		if(f->runes){
 			FMTRCHAR(f, rt, rs, r);

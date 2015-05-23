@@ -715,7 +715,7 @@ readline()
  */
 int
 strspn(string, charset)
-char	*string;
+int8_t	*string;
 register char	*charset;
 {
 	register char *p, *q;
@@ -768,7 +768,7 @@ extern char *strpbrk();
 
 char *
 strtok(string, sepset)
-char	*string, *sepset;
+int8_t	*string, *sepset;
 {
 	register char	*p, *q, *r;
 	static char	*savept;
@@ -799,7 +799,7 @@ char	*string, *sepset;
 #ifdef DKHOST
 
 #ifndef DKSTREAMS
-short	dkrmode[3] = {DKR_TIME, 0, 0};
+int16_t	dkrmode[3] = {DKR_TIME, 0, 0};
 #endif
 
 dkhost_connect()

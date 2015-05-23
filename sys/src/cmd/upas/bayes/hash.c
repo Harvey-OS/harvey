@@ -71,9 +71,9 @@ static uint
 hash(char *s, int n)
 {
 	uint h;
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 	h = 0;
-	for(p=(uchar*)s, ep=p+n; p<ep; p++)
+	for(p=(uint8_t*)s, ep=p+n; p<ep; p++)
 		h = h*37 + *p;
 	return h;
 }

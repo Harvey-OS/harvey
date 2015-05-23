@@ -304,7 +304,7 @@ shade_init_fill_state(shading_fill_state_t * pfs, const gs_shading_t * psh,
      * the device can implement, i.e., the number of representable
      * colors times the number of halftone levels.
      */
-    long num_colors =
+    int32_t num_colors =
 	max(dev->color_info.max_gray, dev->color_info.max_color) + 1;
     const gs_range *ranges = 0;
     int ci;

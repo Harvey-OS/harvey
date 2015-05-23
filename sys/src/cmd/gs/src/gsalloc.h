@@ -68,7 +68,7 @@ gs_ref_memory_t *ialloc_alloc_state(gs_memory_t *, uint);
  * allocate all objects as immovable, are not garbage-collected, and
  * don't attempt to acquire additional memory (or free chunks) on their own.
  */
-int ialloc_add_chunk(gs_ref_memory_t *, ulong, client_name_t);
+int ialloc_add_chunk(gs_ref_memory_t *, uint32_t, client_name_t);
 
 /* ------ Internal routines ------ */
 

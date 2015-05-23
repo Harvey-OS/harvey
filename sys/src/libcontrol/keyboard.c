@@ -40,7 +40,7 @@ struct Keyboard
 	int		border;
 	int		lastbut;
 	int		state;
-	char		*key;
+	char		*_key; // Declared in struct Control
 };
 
 enum{
@@ -81,7 +81,7 @@ enum
 	Nrow = 5
 };
 
-static uchar wid [Nrow][16] = {
+static uint8_t wid [Nrow][16] = {
 	{16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 30, },
 	{24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 24, },
 	{32, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, },
@@ -197,7 +197,7 @@ keyboardy(Keyboard *k, int row)
 static char*
 whichkey(Keyboard *k, Point p, int *rowp, int *colp, Rectangle *rp)
 {
-	uchar *wp;
+	uint8_t *wp;
 	char *kp;
 	int row, col, dx, dy, x, n, maxx;
 	Rectangle r;
@@ -235,7 +235,7 @@ whichkey(Keyboard *k, Point p, int *rowp, int *colp, Rectangle *rp)
 static Rectangle
 keyrect(Keyboard *k, int row, int col)
 {
-	uchar *wp;
+	uint8_t *wp;
 	char *kp;
 	int i, x, n, dx;
 	Rectangle r;
@@ -267,7 +267,7 @@ keydraw(Keyboard *k, int state)
 {
 	Point p, q;
 	int row, col, x, dx, dy, nexty, n;
-	uchar *wp;
+	uint8_t *wp;
 	char *kp;
 	Rectangle r;
 	Font *f, *f1, *f2;
@@ -372,13 +372,13 @@ keydown(Keyboard *k, Point p)
 	char *s;
 
 	s = whichkey(k, p, &row, &col, &r);
-	if(s == k->key)
+	if(s == k->_key)
 		return;
 	keyboardshow(k);
 	if(s != nil)
 		draw(k->screen, r, k->light->image, k->mask->image, ZP);
 	flushimage(display, 1);
-	k->key = s;
+	k->_key = s;
 }
 
 static int

@@ -11,9 +11,9 @@
 #include <libc.h>
 
 char*
-utfrune(char *s, long c)
+utfrune(char *s, int32_t c)
 {
-	long c1;
+	int32_t c1;
 	Rune r;
 	int n;
 
@@ -21,7 +21,7 @@ utfrune(char *s, long c)
 		return strchr(s, c);
 
 	for(;;) {
-		c1 = *(uchar*)s;
+		c1 = *(uint8_t*)s;
 		if(c1 < Runeself) {	/* one byte rune */
 			if(c1 == 0)
 				return 0;

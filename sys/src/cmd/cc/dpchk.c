@@ -39,7 +39,7 @@ struct	Tname
 };
 
 static	Type*	indchar;
-static	uchar	flagbits[512];
+static	uint8_t	flagbits[512];
 static	char	fmtbuf[100];
 static	int	lastadj;
 static	int	lastverb;

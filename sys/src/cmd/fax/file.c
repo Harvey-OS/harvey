@@ -13,12 +13,12 @@
 
 #include "modem.h"
 
-static long wd[5] = {
+static int32_t wd[5] = {
 	1728, 2048, 2432, 1216, 864
 };
 
 void
-setpageid(char *pageid, char *spool, long time, int pid, int pageno)
+setpageid(char *pageid, char *spool, int32_t time, int pid, int pageno)
 {
 	sprint(pageid, "%s/%lud.%d.%3.3d", spool, time, pid, pageno);
 }

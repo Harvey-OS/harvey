@@ -54,7 +54,7 @@ typedef struct config_s {
     bool debug;
     const char *name_prefix;
     const char *file_prefix;
-    ulong file_id;		/* for uniq_last detection */
+    uint32_t file_id;		/* for uniq_last detection */
     /* Updated dynamically */
 #define ITEM_ID_BITS 5
     uint item_id;
@@ -279,7 +279,8 @@ write_scan_item(config * pconf, const char *str, const char *category,
     }
 }
 void
-add_entry(config * pconf, const char *category, const char *item, bool scan)
+add_entry(config * pconf, const char *category, const char *item,
+	  bool scan)
 {
     char str[80];
     uniq_mode mode = uniq_first;

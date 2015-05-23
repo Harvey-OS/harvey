@@ -33,7 +33,7 @@ vtDebugMesg(VtSession *z, Packet *p, char *s)
 	int op;
 	int tid;
 	int n;
-	uchar buf[100], *b;
+	uint8_t buf[100], *b;
 
 
 	if(!z->debug)
@@ -58,7 +58,7 @@ vtDumpSome(Packet *pkt)
 	int printable;
 	int i, n;
 	char buf[200], *q, *eq;
-	uchar data[32], *p;
+	uint8_t data[32], *p;
 
 	n = packetSize(pkt);
 	printable = 1;

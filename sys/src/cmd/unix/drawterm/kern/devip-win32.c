@@ -245,12 +245,12 @@ char*
 hostlookup(char *host)
 {
 	char buf[100];
-	uchar *p;
+	uint8_t *p;
 	struct hostent *he;
 
 	he = gethostbyname(host);
 	if(he != 0 && he->h_addr_list[0]) {
-		p = (uchar*)he->h_addr_list[0];
+		p = (uint8_t*)he->h_addr_list[0];
 		sprint(buf, "%ud.%ud.%ud.%ud", p[0], p[1], p[2], p[3]);
 	} else
 		strcpy(buf, host);

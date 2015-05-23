@@ -14,7 +14,8 @@ static rcmp(Rule *r, char *target, Word *tail);
 static int nrules = 0;
 
 void
-addrule(char *head, Word *tail, char *body, Word *ahead, int attr, int hline, char *prog)
+addrule(char *head, Word *tail, char *body, Word *ahead, int attr,
+	int hline, char *prog)
 {
 	Rule *r;
 	Rule *rr;

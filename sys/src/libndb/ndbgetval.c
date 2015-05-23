@@ -19,7 +19,8 @@
  *  return 0 if not found.
  */
 char*
-ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr, Ndbtuple **pp)
+ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr,
+	    Ndbtuple **pp)
 {
 	Ndbtuple *t, *nt;
 	char *rv;
@@ -64,7 +65,8 @@ ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr, Ndbtuple **pp)
 }
 
 Ndbtuple*
-ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr, char *buf)
+ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr,
+	  char *buf)
 {
 	Ndbtuple *t;
 	char *p;

@@ -34,101 +34,101 @@ typedef struct Radeon Radeon;
 struct Radeon {
 	uintptr	mmio;
 	Pcidev	*pci;
-	uchar	*bios;
+	uint8_t	*bios;
 
-	ulong	fbsize;
+	uint32_t	fbsize;
 	int	display_type;
 
-	ulong	ovr_clr;
-	ulong	ovr_wid_top_bottom;
-	ulong	ovr_wid_left_right;
-	ulong	ov0_scale_cntl;
-	ulong	subpic_cntl;
-	ulong	viph_control;
-	ulong	i2c_cntl_1;
-	ulong	rbbm_soft_reset;
-	ulong	cap0_trig_cntl;
-	ulong	cap1_trig_cntl;
-	ulong	gen_int_cntl;
-	ulong	bus_cntl;
+	uint32_t	ovr_clr;
+	uint32_t	ovr_wid_top_bottom;
+	uint32_t	ovr_wid_left_right;
+	uint32_t	ov0_scale_cntl;
+	uint32_t	subpic_cntl;
+	uint32_t	viph_control;
+	uint32_t	i2c_cntl_1;
+	uint32_t	rbbm_soft_reset;
+	uint32_t	cap0_trig_cntl;
+	uint32_t	cap1_trig_cntl;
+	uint32_t	gen_int_cntl;
+	uint32_t	bus_cntl;
 
-	ulong	crtc_gen_cntl;
-	ulong	crtc_ext_cntl;
-	ulong	dac_cntl;
+	uint32_t	crtc_gen_cntl;
+	uint32_t	crtc_ext_cntl;
+	uint32_t	dac_cntl;
 
-	ulong	crtc_h_total_disp;
-	ulong	crtc_h_sync_strt_wid;
-	ulong	crtc_v_total_disp;
-	ulong	crtc_v_sync_strt_wid;
+	uint32_t	crtc_h_total_disp;
+	uint32_t	crtc_h_sync_strt_wid;
+	uint32_t	crtc_v_total_disp;
+	uint32_t	crtc_v_sync_strt_wid;
 
-	ulong	crtc_pitch;
+	uint32_t	crtc_pitch;
 
-	ulong	crtc_offset;
-	ulong	crtc_offset_cntl;
+	uint32_t	crtc_offset;
+	uint32_t	crtc_offset_cntl;
 
-	ulong	htotal_cntl;
+	uint32_t	htotal_cntl;
 
-	ulong	surface_cntl;
+	uint32_t	surface_cntl;
 
 	int	r300_workaround;
 
 	/* inited from rom */
-	ushort	reference_freq;
-	ushort	reference_div;
-	ushort	xclk;
-	ulong	max_pll_freq;
-	ulong	min_pll_freq;
+	uint16_t	reference_freq;
+	uint16_t	reference_div;
+	uint16_t	xclk;
+	uint32_t	max_pll_freq;
+	uint32_t	min_pll_freq;
 
-	ulong	pll_output_freq;
-	ulong	feedback_div;
-	ulong	dot_clock_freq;
+	uint32_t	pll_output_freq;
+	uint32_t	feedback_div;
+	uint32_t	dot_clock_freq;
 
-	ulong	post_div;
-	ulong	ppll_ref_div;
-	ulong	ppll_div_3;
+	uint32_t	post_div;
+	uint32_t	ppll_ref_div;
+	uint32_t	ppll_div_3;
 };
 
 /* from io.c */
-extern char *readbios(long len, long offset);
+extern char *readbios(int32_t len, int32_t offset);
 
 static void radeon300_workaround(Radeon*radeon);
 
 static void
-OUTREG8(Radeon*radeon, ulong offset, uchar val)
+OUTREG8(Radeon*radeon, uint32_t offset, uint8_t val)
 {
-	((uchar *)(radeon->mmio + offset))[0] = val;
+	((uint8_t *)(radeon->mmio + offset))[0] = val;
 }
 
 static void
-OUTREG(Radeon*radeon, ulong offset, ulong val)
+OUTREG(Radeon*radeon, uint32_t offset, uint32_t val)
 {
-	((ulong *)(radeon->mmio + offset))[0] = val;
+	((uint32_t *)(radeon->mmio + offset))[0] = val;
 }
 
-static ulong
-INREG(Radeon*radeon, ulong offset)
+static uint32_t
+INREG(Radeon*radeon, uint32_t offset)
 {
-	return ((ulong *)(radeon->mmio + offset))[0];
+	return ((uint32_t *)(radeon->mmio + offset))[0];
 }
 
 static void
-OUTREGP(Radeon*radeon, ulong offset, ulong val, ulong mask)
+OUTREGP(Radeon*radeon, uint32_t offset, uint32_t val, uint32_t mask)
 {
 	OUTREG(radeon, offset, (INREG(radeon, offset) & mask) | val);
 }
 
 static void
-OUTPLL(Radeon*radeon, ulong offset, ulong val)
+OUTPLL(Radeon*radeon, uint32_t offset, uint32_t val)
 {
 	OUTREG8(radeon, CLOCK_CNTL_INDEX,
 		(offset & 0x3f) | PLL_WR_EN);
 	OUTREG(radeon, CLOCK_CNTL_DATA, val);
 }
 
-static ulong
-INPLL(Radeon*radeon, ulong offset)
+static uint32_t
+INPLL(Radeon*radeon, uint32_t offset)
 {
-	ulong data;
+	uint32_t data;
 
 	OUTREG8(radeon, CLOCK_CNTL_INDEX, offset & 0x3f);
 	data = INREG(radeon, CLOCK_CNTL_DATA);
@@ -138,7 +138,7 @@ INPLL(Radeon*radeon, ulong offset)
 }
 
 static void
-OUTPLLP(Radeon*radeon, ulong offset, ulong val, ulong mask)
+OUTPLLP(Radeon*radeon, uint32_t offset, uint32_t val, uint32_t mask)
 {
 	OUTPLL(radeon, offset, (INPLL(radeon, offset) & mask) | val);
 }
@@ -146,7 +146,7 @@ OUTPLLP(Radeon*radeon, ulong offset, ulong val, ulong mask)
 static void
 radeon300_workaround(Radeon*radeon)
 {
-	ulong save, tmp;
+	uint32_t save, tmp;
 
 	save = INREG(radeon, CLOCK_CNTL_INDEX);
 	tmp = save & ~(0x3f | PLL_WR_EN);
@@ -159,16 +159,16 @@ radeon300_workaround(Radeon*radeon)
 static void
 radeon_getbiosparams(Radeon*radeon)
 {
-	ulong addr;
-	ushort offset, pib;
-	uchar *bios;
+	uint32_t addr;
+	uint16_t offset, pib;
+	uint8_t *bios;
 
 	radeon->bios = nil;
 	addr = 0xC0000;
-	bios = (uchar *)readbios(0x10000, addr);
+	bios = (uint8_t *)readbios(0x10000, addr);
 	if (bios[0] != 0x55 || bios[1] != 0xAA) {
 		addr = 0xE0000;
-		bios = (uchar *)readbios(0x10000, addr);
+		bios = (uint8_t *)readbios(0x10000, addr);
 		if (bios[0] != 0x55 || bios[1] != 0xAA) {
 			print("radeon: bios not found\n");
 			return;
@@ -230,7 +230,7 @@ static void
 snarf(Vga *vga, Ctlr *ctlr)
 {
 	int isr300;
-	ulong tmp;
+	uint32_t tmp;
 	uintptr mmio;
 	Pcidev *p;
 	Radeon *radeon;
@@ -405,7 +405,7 @@ struct divider {
 };
 
 static void
-radeon_init_pll_registers(Radeon*radeon, ulong freq)
+radeon_init_pll_registers(Radeon*radeon, uint32_t freq)
 {
 	struct divider *post_div;
 	static struct divider post_divs[] = {

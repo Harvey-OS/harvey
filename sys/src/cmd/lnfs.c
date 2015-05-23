@@ -26,7 +26,7 @@ enum
 typedef struct Fid Fid;
 struct Fid
 {
-	short	busy;
+	int16_t	busy;
 	int	fid;
 	Fid	*next;
 	char	*user;
@@ -36,7 +36,7 @@ struct Fid
 	Qid	qid;		/* set on open or create */
 	int	attach;		/* this is an attach fd */
 
-	ulong	diroff;		/* directory offset */
+	uint32_t	diroff;		/* directory offset */
 	Dir	*dir;		/* directory entries */
 	int	ndir;		/* number of directory entries */
 };
@@ -44,9 +44,9 @@ struct Fid
 Fid	*fids;
 int	mfd[2];
 char	*user;
-uchar	mdata[IOHDRSZ+Maxfdata];
-uchar	rdata[Maxfdata];	/* buffer for data in reply */
-uchar	statbuf[STATMAX];
+uint8_t	mdata[IOHDRSZ+Maxfdata];
+uint8_t	rdata[Maxfdata];	/* buffer for data in reply */
+uint8_t	statbuf[STATMAX];
 Fcall	thdr;
 Fcall	rhdr;
 int	messagesize = sizeof mdata;
@@ -56,8 +56,8 @@ int	debug;
 
 Fid *	newfid(int);
 void	io(void);
-void	*erealloc(void*, ulong);
-void	*emalloc(ulong);
+void	*erealloc(void*, uint32_t);
+void	*emalloc(uint32_t);
 char	*estrdup(char*);
 void	usage(void);
 void	fidqid(Fid*, Qid*);
@@ -406,7 +406,7 @@ rreaddir(Fid *f)
 char*
 rread(Fid *f)
 {
-	long n;
+	int32_t n;
 
 	if(f->fd < 0)
 		return Enotexist;
@@ -425,7 +425,7 @@ rread(Fid *f)
 char*
 rwrite(Fid *f)
 {
-	long n;
+	int32_t n;
 
 	if(readonly || (f->qid.type & QTDIR))
 		return Eperm;
@@ -578,7 +578,7 @@ io(void)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -590,7 +590,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(!p)
@@ -652,7 +652,7 @@ newname(char *longname, int writeflag)
 {
 	Name *np;
 	int n;
-	uchar digest[MD5dlen];
+	uint8_t digest[MD5dlen];
 	int fd;
 
 	/* chain in new name */
@@ -660,7 +660,7 @@ newname(char *longname, int writeflag)
 	np = emalloc(sizeof(*np)+n+1);
 	np->longname = (char*)&np[1];
 	strcpy(np->longname, longname);
-	md5((uchar*)longname, n, digest, nil);
+	md5((uint8_t*)longname, n, digest, nil);
 	enc32(np->shortname, sizeof(np->shortname), digest, MD5dlen);
 	np->next = names;
 	names = np;
@@ -701,7 +701,7 @@ readnames(void)
 {
 	Dir *d;
 	int fd;
-	vlong offset;
+	int64_t offset;
 	Biobuf *b;
 	char *p;
 

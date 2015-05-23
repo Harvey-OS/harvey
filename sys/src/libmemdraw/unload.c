@@ -13,10 +13,10 @@
 #include <memdraw.h>
 
 int
-unloadmemimage(Memimage *i, Rectangle r, uchar *data, int ndata)
+unloadmemimage(Memimage *i, Rectangle r, uint8_t *data, int ndata)
 {
 	int y, l;
-	uchar *q;
+	uint8_t *q;
 
 	if(!rectinrect(r, i->r))
 		return -1;
@@ -27,7 +27,7 @@ unloadmemimage(Memimage *i, Rectangle r, uchar *data, int ndata)
 	q = byteaddr(i, r.min);
 	for(y=r.min.y; y<r.max.y; y++){
 		memmove(data, q, l);
-		q += i->width*sizeof(ulong);
+		q += i->width*sizeof(uint32_t);
 		data += l;
 	}
 	return ndata;

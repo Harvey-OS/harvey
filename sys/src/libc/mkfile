@@ -1,3 +1,4 @@
+MKSHELL=$PLAN9/bin/rc
 </$objtype/mkfile
 
 PORTDIRS=9sys 9syscall fmt port

@@ -14,9 +14,9 @@
 #include "protos.h"
 
 typedef struct {
-	uchar	res;
-	uchar	cmd;
-	uchar	ea[6];
+	uint8_t	res;
+	uint8_t	cmd;
+	uint8_t	ea[6];
 } Hdr;
 
 enum {
@@ -45,7 +45,7 @@ p_compile(Filter *f)
 static int
 p_filter(Filter *f, Msg *m)
 {
-	uchar buf[6];
+	uint8_t buf[6];
 	int i;
 	Hdr *h;
 

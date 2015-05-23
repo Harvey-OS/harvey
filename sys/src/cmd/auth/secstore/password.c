@@ -32,10 +32,10 @@ openPW(char *id, int mode)
 	return b;
 }
 
-static ulong
+static uint32_t
 mtimePW(char *id)
 {
-	ulong mt;
+	uint32_t mt;
 	char *fn;
 	Dir *d;
 
@@ -50,7 +50,7 @@ mtimePW(char *id)
 PW *
 getPW(char *id, int dead_or_alive)
 {
-	ulong now = time(0);
+	uint32_t now = time(0);
 	char *f1, *f2, *oid;		/* fields 1, 2 = attribute, value */
 	Biobuf *bin;
 	PW *pw;

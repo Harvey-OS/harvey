@@ -53,9 +53,9 @@ enum
 
 	Nfs=		128,
 };
-#define TYPE(x) 	( ((ulong)(x).path) & Masktype )
-#define CONV(x) 	( (((ulong)(x).path) >> Shiftconv) & Maskconv )
-#define PROTO(x) 	( (((ulong)(x).path) >> Shiftproto) & Maskproto )
+#define TYPE(x) 	( ((uint32_t)(x).path) & Masktype )
+#define CONV(x) 	( (((uint32_t)(x).path) >> Shiftconv) & Maskconv )
+#define PROTO(x) 	( (((uint32_t)(x).path) >> Shiftproto) & Maskproto )
 #define QID(p, c, y) 	( ((p)<<(Shiftproto)) | ((c)<<Shiftconv) | (y) )
 
 static char network[] = "network";
@@ -66,7 +66,7 @@ Queue	*qlog;
 
 extern	void nullmediumlink(void);
 extern	void pktmediumlink(void);
-	long ndbwrite(Fs *f, char *a, ulong off, int n);
+	int32_t ndbwrite(Fs *f, char *a, uint32_t off, int n);
 
 static int
 ip3gen(Chan *c, int i, Dir *dp)
@@ -75,7 +75,7 @@ ip3gen(Chan *c, int i, Dir *dp)
 	Conv *cv;
 	char *p;
 
-	cv = ipfs[c->dev]->p[PROTO(c->qid)]->conv[CONV(c->qid)];
+	cv = ipfs[c->devno]->p[PROTO(c->qid)]->conv[CONV(c->qid)];
 	if(cv->owner == nil)
 		kstrdup(&cv->owner, eve);
 	mkqid(&q, QID(PROTO(c->qid), CONV(c->qid), i), 0, QTFILE);
@@ -140,9 +140,9 @@ ip1gen(Chan *c, int i, Dir *dp)
 	int prot;
 	int len = 0;
 	Fs *f;
-	extern ulong	kerndate;
+	extern uint32_t	kerndate;
 
-	f = ipfs[c->dev];
+	f = ipfs[c->devno];
 
 	prot = 0666;
 	mkqid(&q, QID(0, 0, i), 0, QTFILE);
@@ -180,20 +180,21 @@ ip1gen(Chan *c, int i, Dir *dp)
 }
 
 static int
-ipgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+ipgen(Chan *c, char* j, Dirtab* dir, int mm, int s, Dir *dp)
 {
+	Mach *m = machp();
 	Qid q;
 	Conv *cv;
 	Fs *f;
 
-	f = ipfs[c->dev];
+	f = ipfs[c->devno];
 
 	switch(TYPE(c->qid)) {
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, Qtopdir), 0, QTDIR);
-			snprint(up->genbuf, sizeof up->genbuf, "#I%lud", c->dev);
-			devdir(c, q, up->genbuf, 0, network, 0555, dp);
+			sprint(m->externup->genbuf, "#I%ud", c->devno);
+			devdir(c, q, m->externup->genbuf, 0, network, 0555, dp);
 			return 1;
 		}
 		if(s < f->np) {
@@ -215,15 +216,15 @@ ipgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	case Qprotodir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, Qtopdir), 0, QTDIR);
-			snprint(up->genbuf, sizeof up->genbuf, "#I%lud", c->dev);
-			devdir(c, q, up->genbuf, 0, network, 0555, dp);
+			sprint(m->externup->genbuf, "#I%ud", c->devno);
+			devdir(c, q, m->externup->genbuf, 0, network, 0555, dp);
 			return 1;
 		}
 		if(s < f->p[PROTO(c->qid)]->ac) {
 			cv = f->p[PROTO(c->qid)]->conv[s];
-			snprint(up->genbuf, sizeof up->genbuf, "%d", s);
+			sprint(m->externup->genbuf, "%d", s);
 			mkqid(&q, QID(PROTO(c->qid), s, Qconvdir), 0, QTDIR);
-			devdir(c, q, up->genbuf, 0, cv->owner, 0555, dp);
+			devdir(c, q, m->externup->genbuf, 0, cv->owner, 0555, dp);
 			return 1;
 		}
 		s -= f->p[PROTO(c->qid)]->ac;
@@ -313,16 +314,16 @@ static Chan*
 ipattach(char* spec)
 {
 	Chan *c;
-	int dev;
+	int devno;
 
-	dev = atoi(spec);
-	if(dev >= Nfs)
+	devno = atoi(spec);
+	if(devno >= Nfs)
 		error("bad specification");
 
-	ipgetfs(dev);
+	ipgetfs(devno);
 	c = devattach('I', spec);
 	mkqid(&c->qid, QID(0, 0, Qtopdir), 0, QTDIR);
-	c->dev = dev;
+	c->devno = devno;
 
 	c->aux = newipaux(commonuser(), "none");
 
@@ -341,9 +342,8 @@ ipwalk(Chan* c, Chan *nc, char **name, int nname)
 	return w;
 }
 
-
-static int
-ipstat(Chan* c, uchar* db, int n)
+static int32_t
+ipstat(Chan* c, uint8_t* db, int32_t n)
 {
 	return devstat(c, db, n, nil, 0, ipgen);
 }
@@ -366,6 +366,7 @@ static int m2p[] = {
 static Chan*
 ipopen(Chan* c, int omode)
 {
+	Mach *m = machp();
 	Conv *cv, *nc;
 	Proto *p;
 	int perm;
@@ -373,7 +374,7 @@ ipopen(Chan* c, int omode)
 
 	perm = m2p[omode&3];
 
-	f = ipfs[c->dev];
+	f = ipfs[c->devno];
 
 	switch(TYPE(c->qid)) {
 	default:
@@ -516,26 +517,26 @@ ipopen(Chan* c, int omode)
 }
 
 static void
-ipcreate(Chan*, char*, int, ulong)
+ipcreate(Chan* c, char* n, int i, int m)
 {
 	error(Eperm);
 }
 
 static void
-ipremove(Chan*)
+ipremove(Chan* c)
 {
 	error(Eperm);
 }
 
-static int
-ipwstat(Chan *c, uchar *dp, int n)
+static int32_t
+ipwstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	Dir d;
 	Conv *cv;
 	Fs *f;
 	Proto *p;
 
-	f = ipfs[c->dev];
+	f = ipfs[c->devno];
 	switch(TYPE(c->qid)) {
 	default:
 		error(Eperm);
@@ -596,7 +597,7 @@ ipclose(Chan* c)
 {
 	Fs *f;
 
-	f = ipfs[c->dev];
+	f = ipfs[c->devno];
 	switch(TYPE(c->qid)) {
 	default:
 		break;
@@ -624,19 +625,19 @@ enum
 	Statelen=	32*1024,
 };
 
-static long
-ipread(Chan *ch, void *a, long n, vlong off)
+static int32_t
+ipread(Chan *ch, void *a, int32_t n, int64_t off)
 {
 	Conv *c;
 	Proto *x;
 	char *buf, *p;
-	long rv;
+	int32_t offset, rv;
 	Fs *f;
-	ulong offset = off;
 
-	f = ipfs[ch->dev];
+	f = ipfs[ch->devno];
 
 	p = a;
+	offset = off;
 	switch(TYPE(ch->qid)) {
 	default:
 		error(Eperm);
@@ -658,7 +659,7 @@ ipread(Chan *ch, void *a, long n, vlong off)
 		return netlogread(f, a, offset, n);
 	case Qctl:
 		buf = smalloc(16);
-		snprint(buf, 16, "%lud", CONV(ch->qid));
+		sprint(buf, "%lud", CONV(ch->qid));
 		rv = readstr(offset, p, n, buf);
 		free(buf);
 		return rv;
@@ -667,7 +668,7 @@ ipread(Chan *ch, void *a, long n, vlong off)
 		x = f->p[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
 		if(x->remote == nil) {
-			snprint(buf, Statelen, "%I!%d\n", c->raddr, c->rport);
+			sprint(buf, "%I!%d\n", c->raddr, c->rport);
 		} else {
 			(*x->remote)(c, buf, Statelen-2);
 		}
@@ -679,7 +680,7 @@ ipread(Chan *ch, void *a, long n, vlong off)
 		x = f->p[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
 		if(x->local == nil) {
-			snprint(buf, Statelen, "%I!%d\n", c->laddr, c->lport);
+			sprint(buf, "%I!%d\n", c->laddr, c->lport);
 		} else {
 			(*x->local)(c, buf, Statelen-2);
 		}
@@ -716,7 +717,7 @@ ipread(Chan *ch, void *a, long n, vlong off)
 }
 
 static Block*
-ipbread(Chan* ch, long n, ulong offset)
+ipbread(Chan* ch, int32_t n, int64_t offset)
 {
 	Conv *c;
 	Proto *x;
@@ -724,7 +725,7 @@ ipbread(Chan* ch, long n, ulong offset)
 
 	switch(TYPE(ch->qid)){
 	case Qdata:
-		f = ipfs[ch->dev];
+		f = ipfs[ch->devno];
 		x = f->p[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
 		return qbread(c->rq, n);
@@ -775,70 +776,53 @@ setluniqueport(Conv* c, int lport)
 	return nil;
 }
 
-/*
- * is lport in use by anyone?
- */
-static int
-lportinuse(Proto *p, ushort lport)
-{
-	int x;
-
-	for(x = 0; x < p->nc && p->conv[x]; x++)
-		if(p->conv[x]->lport == lport)
-			return 1;
-	return 0;
-}
 
 /*
  *  pick a local port and set it
  */
-char *
+void
 setlport(Conv* c)
 {
 	Proto *p;
-	int i, port;
+	uint16_t *pp;
+	int x, found;
 
 	p = c->p;
+	if(c->restricted)
+		pp = &p->nextrport;
+	else
+		pp = &p->nextport;
 	qlock(p);
-	if(c->restricted){
-		/* Restricted ports cycle between 600 and 1024. */
-		for(i=0; i<1024-600; i++){
-			if(p->nextrport >= 1024 || p->nextrport < 600)
-				p->nextrport = 600;
-			port = p->nextrport++;
-			if(!lportinuse(p, port))
-				goto chosen;
-		}
-	}else{
+	for(;;(*pp)++){
 		/*
-		 * Unrestricted ports are chosen randomly
-		 * between 2^15 and 2^16.  There are at most
-		 * 4*Nchan = 4096 ports in use at any given time,
-		 * so even in the worst case, a random probe has a
-		 * 1 - 4096/2^15 = 87% chance of success.
-		 * If 64 successive probes fail, there is a bug somewhere
-		 * (or a once in 10^58 event has happened, but that's
-		 * less likely than a venti collision).
+		 * Fsproto initialises p->nextport to 0 and the restricted
+		 * ports (p->nextrport) to 600.
+		 * Restricted ports must lie between 600 and 1024.
+		 * For the initial condition or if the unrestricted port number
+		 * has wrapped round, select a random port between 5000 and 1<<15
+		 * to start at.
 		 */
-		for(i=0; i<64; i++){
-			port = (1<<15) + nrand(1<<15);
-			if(!lportinuse(p, port))
-				goto chosen;
+		if(c->restricted){
+			if(*pp >= 1024)
+				*pp = 600;
 		}
-	}
-	qunlock(p);
-	/*
-	 * debugging: let's see if we ever get this.
-	 * if we do (and we're a cpu server), we might as well restart
-	 * since we're now unable to service new connections.
-	 */
-	panic("setlport: out of ports");
-	return "no ports available";
+		else while(*pp < 5000)
+			*pp = nrand(1<<15);
 
-chosen:
-	c->lport = port;
+		found = 0;
+		for(x = 0; x < p->nc; x++){
+			if(p->conv[x] == nil)
+				break;
+			if(p->conv[x]->lport == *pp){
+				found = 1;
+				break;
+			}
+		}
+		if(!found)
+			break;
+	}
+	c->lport = (*pp)++;
 	qunlock(p);
-	return nil;
 }
 
 /*
@@ -850,8 +834,10 @@ setladdrport(Conv* c, char* str, int announcing)
 {
 	char *p;
 	char *rv;
-	ushort lport;
-	uchar addr[IPaddrlen];
+	uint16_t lport;
+	uint8_t addr[IPaddrlen];
+
+	rv = nil;
 
 	/*
 	 *  ignore restricted part if it exists.  it's
@@ -875,8 +861,7 @@ setladdrport(Conv* c, char* str, int announcing)
 		if(strcmp(str, "*") == 0)
 			ipmove(c->laddr, IPnoaddr);
 		else {
-			if(parseip(addr, str) == -1)
-				return Ebadip;
+			parseip(addr, str);
 			if(ipforme(c->p->f, addr))
 				ipmove(c->laddr, addr);
 			else
@@ -893,7 +878,7 @@ setladdrport(Conv* c, char* str, int announcing)
 
 	lport = atoi(p);
 	if(lport <= 0)
-		rv = setlport(c);
+		setlport(c);
 	else
 		rv = setluniqueport(c, lport);
 	return rv;
@@ -908,8 +893,7 @@ setraddrport(Conv* c, char* str)
 	if(p == nil)
 		return "malformed address";
 	*p++ = 0;
-	if (parseip(c->raddr, str) == -1)
-		return Ebadip;
+	parseip(c->raddr, str);
 	c->rport = atoi(p);
 	p = strchr(p, '!');
 	if(p){
@@ -935,9 +919,7 @@ Fsstdconnect(Conv *c, char *argv[], int argc)
 		if(p != nil)
 			return p;
 		setladdr(c);
-		p = setlport(c);
-		if (p != nil)
-			return p;
+		setlport(c);
 		break;
 	case 3:
 		p = setraddrport(c, argv[1]);
@@ -968,6 +950,7 @@ connected(void* a)
 static void
 connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
+	Mach *m = machp();
 	char *p;
 
 	if(c->state != 0)
@@ -1021,6 +1004,7 @@ announced(void* a)
 static void
 announcectlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
+	Mach *m = machp();
 	char *p;
 
 	if(c->state != 0)
@@ -1092,20 +1076,21 @@ ttlctlmsg(Conv *c, Cmdbuf *cb)
 		c->ttl = atoi(cb->f[1]);
 }
 
-static long
-ipwrite(Chan* ch, void *v, long n, vlong off)
+static int32_t
+ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 {
+	Mach *m = machp();
 	Conv *c;
 	Proto *x;
 	char *p;
 	Cmdbuf *cb;
-	uchar ia[IPaddrlen], ma[IPaddrlen];
+	uint8_t ia[IPaddrlen], ma[IPaddrlen];
 	Fs *f;
 	char *a;
-	ulong offset = off;
+	uint32_t offset = off;
 
 	a = v;
-	f = ipfs[ch->dev];
+	f = ipfs[ch->devno];
 
 	switch(TYPE(ch->qid)){
 	default:
@@ -1160,15 +1145,13 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 			if(cb->nf == 2){
 				if(!ipismulticast(c->raddr))
 					error("addmulti for a non multicast address");
-				if (parseip(ia, cb->f[1]) == -1)
-					error(Ebadip);
+				parseip(ia, cb->f[1]);
 				ipifcaddmulti(c, c->raddr, ia);
 			} else {
-				if (parseip(ia, cb->f[1]) == -1 ||
-				    parseip(ma, cb->f[2]) == -1)
-					error(Ebadip);
+				parseip(ma, cb->f[2]);
 				if(!ipismulticast(ma))
 					error("addmulti for a non multicast address");
+				parseip(ia, cb->f[1]);
 				ipifcaddmulti(c, ma, ia);
 			}
 		} else if(strcmp(cb->f[0], "remmulti") == 0){
@@ -1176,15 +1159,8 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 				error("remmulti needs interface address");
 			if(!ipismulticast(c->raddr))
 				error("remmulti for a non multicast address");
-			if (parseip(ia, cb->f[1]) == -1)
-				error(Ebadip);
+			parseip(ia, cb->f[1]);
 			ipifcremmulti(c, c->raddr, ia);
-		} else if(strcmp(cb->f[0], "maxfragsize") == 0){
-			if(cb->nf < 2)
-				error("maxfragsize needs size");
-
-			c->maxfragsize = (int)strtol(cb->f[1], nil, 0);
-
 		} else if(x->ctl != nil) {
 			p = x->ctl(c, cb->f, cb->nf);
 			if(p != nil)
@@ -1198,8 +1174,8 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 	return n;
 }
 
-static long
-ipbwrite(Chan* ch, Block* bp, ulong offset)
+static int32_t
+ipbwrite(Chan* ch, Block* bp, int64_t offset)
 {
 	Conv *c;
 	Proto *x;
@@ -1208,7 +1184,7 @@ ipbwrite(Chan* ch, Block* bp, ulong offset)
 
 	switch(TYPE(ch->qid)){
 	case Qdata:
-		f = ipfs[ch->dev];
+		f = ipfs[ch->devno];
 		x = f->p[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
 
@@ -1267,6 +1243,7 @@ Fsproto(Fs *f, Proto *p)
 		panic("Fsproto");
 
 	p->x = f->np;
+	p->nextport = 0;
 	p->nextrport = 600;
 	f->p[f->np++] = p;
 
@@ -1278,7 +1255,7 @@ Fsproto(Fs *f, Proto *p)
  *  built in
  */
 int
-Fsbuiltinproto(Fs* f, uchar proto)
+Fsbuiltinproto(Fs* f, uint8_t proto)
 {
 	return f->t2p[proto] != nil;
 }
@@ -1328,13 +1305,8 @@ retry:
 		}
 	}
 	if(pp >= ep) {
-		if(p->gc)
-			print("Fsprotoclone: garbage collecting Convs\n");
 		if(p->gc != nil && (*p->gc)(p))
 			goto retry;
-		/* debugging: do we ever get here? */
-		if (cpuserver)
-			panic("Fsprotoclone: all conversations in use");
 		return nil;
 	}
 
@@ -1349,7 +1321,6 @@ retry:
 	c->lport = 0;
 	c->rport = 0;
 	c->restricted = 0;
-	c->maxfragsize = 0;
 	c->ttl = MAXTTL;
 	qreopen(c->rq);
 	qreopen(c->wq);
@@ -1381,7 +1352,7 @@ Fsconnected(Conv* c, char* msg)
 }
 
 Proto*
-Fsrcvpcol(Fs* f, uchar proto)
+Fsrcvpcol(Fs* f, uint8_t proto)
 {
 	if(f->ipmux)
 		return f->ipmux;
@@ -1390,7 +1361,7 @@ Fsrcvpcol(Fs* f, uchar proto)
 }
 
 Proto*
-Fsrcvpcolx(Fs *f, uchar proto)
+Fsrcvpcolx(Fs *f, uint8_t proto)
 {
 	return f->t2p[proto];
 }
@@ -1399,7 +1370,8 @@ Fsrcvpcolx(Fs *f, uchar proto)
  *  called with protocol locked
  */
 Conv*
-Fsnewcall(Conv *c, uchar *raddr, ushort rport, uchar *laddr, ushort lport, uchar version)
+Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr,
+	  uint16_t lport, uint8_t version)
 {
 	Conv *nc;
 	Conv **l;
@@ -1410,14 +1382,7 @@ Fsnewcall(Conv *c, uchar *raddr, ushort rport, uchar *laddr, ushort lport, uchar
 	for(l = &c->incall; *l; l = &(*l)->next)
 		i++;
 	if(i >= Maxincall) {
-		static int beenhere;
-
 		qunlock(c);
-		if (!beenhere) {
-			beenhere = 1;
-			print("Fsnewcall: incall queue full (%d) on port %d\n",
-				i, c->lport);
-		}
 		return nil;
 	}
 
@@ -1443,8 +1408,8 @@ Fsnewcall(Conv *c, uchar *raddr, ushort rport, uchar *laddr, ushort lport, uchar
 	return nc;
 }
 
-long
-ndbwrite(Fs *f, char *a, ulong off, int n)
+int32_t
+ndbwrite(Fs *f, char *a, uint32_t off, int n)
 {
 	if(off > strlen(f->ndb))
 		error(Eio);
@@ -1457,10 +1422,10 @@ ndbwrite(Fs *f, char *a, ulong off, int n)
 	return n;
 }
 
-ulong
+uint32_t
 scalednconv(void)
 {
-	if(cpuserver && conf.npage*BY2PG >= 128*MB)
+	if(cpuserver && conf.npage*PGSZ >= 128*MB)
 		return Nchans*4;
 	return Nchans;
 }

@@ -43,26 +43,26 @@ char *v6hdrtypes[Maxhdrtype] =
 /*
  *  well known IPv6 addresses
  */
-uchar v6Unspecified[IPaddrlen] = {
+uint8_t v6Unspecified[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-uchar v6loopback[IPaddrlen] = {
+uint8_t v6loopback[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01
 };
 
-uchar v6linklocal[IPaddrlen] = {
+uint8_t v6linklocal[IPaddrlen] = {
 	0xfe, 0x80, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-uchar v6linklocalmask[IPaddrlen] = {
+uint8_t v6linklocalmask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0, 0, 0, 0,
@@ -70,13 +70,13 @@ uchar v6linklocalmask[IPaddrlen] = {
 };
 int v6llpreflen = 8;	/* link-local prefix length in bytes */
 
-uchar v6multicast[IPaddrlen] = {
+uint8_t v6multicast[IPaddrlen] = {
 	0xff, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-uchar v6multicastmask[IPaddrlen] = {
+uint8_t v6multicastmask[IPaddrlen] = {
 	0xff, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
@@ -84,19 +84,19 @@ uchar v6multicastmask[IPaddrlen] = {
 };
 int v6mcpreflen = 1;	/* multicast prefix length */
 
-uchar v6allnodesN[IPaddrlen] = {
+uint8_t v6allnodesN[IPaddrlen] = {
 	0xff, 0x01, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01
 };
-uchar v6allroutersN[IPaddrlen] = {
+uint8_t v6allroutersN[IPaddrlen] = {
 	0xff, 0x01, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x02
 };
-uchar v6allnodesNmask[IPaddrlen] = {
+uint8_t v6allnodesNmask[IPaddrlen] = {
 	0xff, 0xff, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
@@ -104,19 +104,19 @@ uchar v6allnodesNmask[IPaddrlen] = {
 };
 int v6aNpreflen = 2;	/* all nodes (N) prefix */
 
-uchar v6allnodesL[IPaddrlen] = {
+uint8_t v6allnodesL[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01
 };
-uchar v6allroutersL[IPaddrlen] = {
+uint8_t v6allroutersL[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x02
 };
-uchar v6allnodesLmask[IPaddrlen] = {
+uint8_t v6allnodesLmask[IPaddrlen] = {
 	0xff, 0xff, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
@@ -124,13 +124,13 @@ uchar v6allnodesLmask[IPaddrlen] = {
 };
 int v6aLpreflen = 2;	/* all nodes (L) prefix */
 
-uchar v6solicitednode[IPaddrlen] = {
+uint8_t v6solicitednode[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0x01,
 	0xff, 0, 0, 0
 };
-uchar v6solicitednodemask[IPaddrlen] = {
+uint8_t v6solicitednodemask[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
@@ -138,12 +138,12 @@ uchar v6solicitednodemask[IPaddrlen] = {
 };
 int v6snpreflen = 13;
 
-ushort
+uint16_t
 ptclcsum(Block *bp, int offset, int len)
 {
-	uchar *addr;
-	ulong losum, hisum;
-	ushort csum;
+	uint8_t *addr;
+	uint32_t losum, hisum;
+	uint16_t csum;
 	int odd, blocklen, x;
 
 	/* Correct to front of data area */
@@ -200,10 +200,10 @@ enum
 	Isprefix= 16,
 };
 
-#define CLASS(p) ((*(uchar*)(p))>>6)
+#define CLASS(p) ((*(uint8_t*)(p))>>6)
 
 void
-ipv62smcast(uchar *smcast, uchar *a)
+ipv62smcast(uint8_t *smcast, uint8_t *a)
 {
 	assert(IPaddrlen == 16);
 	memmove(smcast, v6solicitednode, IPaddrlen);
@@ -217,7 +217,7 @@ ipv62smcast(uchar *smcast, uchar *a)
  *  parse a hex mac address
  */
 int
-parsemac(uchar *to, char *from, int len)
+parsemac(uint8_t *to, char *from, int len)
 {
 	char nip[4];
 	char *p;
@@ -244,8 +244,8 @@ parsemac(uchar *to, char *from, int len)
 /*
  *  hashing tcp, udp, ... connections
  */
-ulong
-iphash(uchar *sa, ushort sp, uchar *da, ushort dp)
+uint32_t
+iphash(uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 {
 	return ((sa[IPaddrlen-1]<<24) ^ (sp << 16) ^ (da[IPaddrlen-1]<<8) ^ dp ) % Nhash;
 }
@@ -253,7 +253,7 @@ iphash(uchar *sa, ushort sp, uchar *da, ushort dp)
 void
 iphtadd(Ipht *ht, Conv *c)
 {
-	ulong hv;
+	uint32_t hv;
 	Iphash *h;
 
 	hv = iphash(c->raddr, c->rport, c->laddr, c->lport);
@@ -284,7 +284,7 @@ iphtadd(Ipht *ht, Conv *c)
 void
 iphtrem(Ipht *ht, Conv *c)
 {
-	ulong hv;
+	uint32_t hv;
 	Iphash **l, *h;
 
 	hv = iphash(c->raddr, c->rport, c->laddr, c->lport);
@@ -307,9 +307,9 @@ iphtrem(Ipht *ht, Conv *c)
  *	announced && *,*
  */
 Conv*
-iphtlook(Ipht *ht, uchar *sa, ushort sp, uchar *da, ushort dp)
+iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 {
-	ulong hv;
+	uint32_t hv;
 	Iphash *h;
 	Conv *c;
 

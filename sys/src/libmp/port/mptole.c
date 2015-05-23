@@ -16,11 +16,11 @@
 //   return number of bytes converted
 //   if p == nil, allocate and result array
 int
-mptole(mpint *b, uchar *p, uint n, uchar **pp)
+mptole(mpint *b, uint8_t *p, uint n, uint8_t **pp)
 {
 	int i, j;
 	mpdigit x;
-	uchar *e, *s;
+	uint8_t *e, *s;
 
 	if(p == nil){
 		n = (b->top+1)*Dbytes;

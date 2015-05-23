@@ -19,7 +19,7 @@ int verbose;
 static void userinput(char *, int);
 
 static void
-ensure_exists(char *f, ulong perm)
+ensure_exists(char *f, uint32_t perm)
 {
 	int fd;
 

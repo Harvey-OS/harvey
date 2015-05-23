@@ -73,7 +73,7 @@ s_pngp_init(stream_state * st, bool need_prev)
 {
     stream_PNGP_state *const ss = (stream_PNGP_state *) st;
     int bits_per_pixel = ss->Colors * ss->BitsPerComponent;
-    long bits_per_row = (long)bits_per_pixel * ss->Columns;
+    int32_t bits_per_row = (int32_t)bits_per_pixel * ss->Columns;
     byte *prev_row = 0;
 
 #if arch_sizeof_long > arch_sizeof_int

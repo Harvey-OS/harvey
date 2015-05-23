@@ -79,7 +79,7 @@ const gx_device_printer far_data gs_tek4696_device =
 */
 
 static gx_color_index rgb_to_index[8]={1,6,12,4,10,2,8,0};
-static ushort index_to_rgb[16][3]={
+static uint16_t index_to_rgb[16][3]={
     {65535,65535,65535}, /* White */
     {0,0,0}, /* Black */
     {65535,0,65535}, /* Magenta */

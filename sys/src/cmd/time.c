@@ -20,7 +20,7 @@ main(int argc, char *argv[])
 {
 	int i;
 	Waitmsg *w;
-	long l;
+	int32_t l;
 	char *p;
 	char err[ERRMAX];
 

@@ -12,16 +12,16 @@
 
 #define	N	256
 
-long
+int32_t
 strspn(char *s, char *b)
 {
 	char map[N], *os;
 
 	memset(map, 0, N);
 	while(*b)
-		map[*(uchar *)b++] = 1;
+		map[*(uint8_t *)b++] = 1;
 	os = s;
-	while(map[*(uchar *)s++])
+	while(map[*(uint8_t *)s++])
 		;
 	return s - os - 1;
 }

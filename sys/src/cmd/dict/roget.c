@@ -15,7 +15,7 @@
 
 /* Roget's Thesaurus from project Gutenberg */
 
-static long Last = 0;
+static int32_t Last = 0;
 
 void
 rogetprintentry(Entry e, int cmd)
@@ -129,11 +129,11 @@ rogetprintentry(Entry e, int cmd)
 	outnl(0);
 }
 
-long
-rogetnextoff(long fromoff)
+int32_t
+rogetnextoff(int32_t fromoff)
 {
 	int i;
-	vlong l;
+	int64_t l;
 	char *p;
 
 	Bseek(bdict, fromoff, 0);

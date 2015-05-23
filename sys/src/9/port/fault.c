@@ -14,80 +14,102 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+/*
+ * Fault calls fixfault which ends up calling newpage, which
+ * might fail to allocate a page for the right color. So, we
+ * might enter a loop and retry forever.
+ * We first try with the desired color, and then with any
+ * other one, if we failed for some time.
+ */
 int
-fault(ulong addr, int read)
+fault(uintptr_t addr, int read)
 {
+	Mach *m = machp();
 	Segment *s;
 	char *sps;
+	int i, color;
 
-	if(up == nil)
-		panic("fault: nil up");
-	if(up->nlocks.ref)
-		print("fault: addr %#p: nlocks %ld\n", addr, up->nlocks.ref);
+if(m->externup->nlocks) print("fault nlocks %d\n", m->externup->nlocks);
 
-	sps = up->psstate;
-	up->psstate = "Fault";
+	sps = m->externup->psstate;
+	m->externup->psstate = "Fault";
 	spllo();
 
 	m->pfault++;
-	for(;;) {
-		s = seg(up, addr, 1);		/* leaves s->lk qlocked if seg != nil */
+	for(i = 0;; i++) {
+		s = seg(m->externup, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
+		//iprint("seg for %p is %p base %p top %p\n", addr, s, s->base, s->top);
 		if(s == 0) {
-			up->psstate = sps;
+			//iprint("fault: no seg for %p\n", addr);
+			m->externup->psstate = sps;
 			return -1;
 		}
 
 		if(!read && (s->type&SG_RONLY)) {
 			qunlock(&s->lk);
-			up->psstate = sps;
+			m->externup->psstate = sps;
 			return -1;
 		}
 
-		if(fixfault(s, addr, read, 1) == 0)	/* qunlocks s->lk */
+		color = s->color;
+		if(i > 3)
+			color = -1;
+		if(fixfault(s, addr, read, 1, color) == 0)
 			break;
+
+		/*
+		 * See the comment in newpage that describes
+		 * how to get here.
+		 */
+
+		if(i > 0 && (i%1000) == 0)
+			print("fault: tried %d times\n", i);
 	}
 
-	up->psstate = sps;
+	m->externup->psstate = sps;
 	return 0;
 }
 
 static void
 faulterror(char *s, Chan *c, int freemem)
 {
+	Mach *m = machp();
 	char buf[ERRMAX];
 
 	if(c && c->path){
-		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, up->errstr);
+		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, m->externup->errstr);
 		s = buf;
 	}
-	if(up->nerrlab) {
-		postnote(up, 1, s, NDebug);
+	if(m->externup->nerrlab) {
+		postnote(m->externup, 1, s, NDebug);
 		error(s);
 	}
 	pexit(s, freemem);
 }
 
-void	(*checkaddr)(ulong, Segment *, Page *);
-ulong	addr2check;
 
 int
-fixfault(Segment *s, ulong addr, int read, int doputmmu)
+fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 {
+	Mach *m = machp();
 	int type;
 	int ref;
 	Pte **p, *etp;
-	ulong mmuphys=0, soff;
+	uintptr_t soff;
+	uintmem pgsz;
+	uint mmuattr;
 	Page **pg, *lkp, *new;
-	Page *(*fn)(Segment*, ulong);
+	Page *(*fn)(Segment*, uintptr_t);
 
-	addr &= ~(BY2PG-1);
+	pgsz = m->pgsz[s->pgszi];
+	addr &= ~(pgsz-1);
 	soff = addr-s->base;
 	p = &s->map[soff/PTEMAPMEM];
 	if(*p == 0)
-		*p = ptealloc();
+		*p = ptealloc(s);
 
 	etp = *p;
-	pg = &etp->pages[(soff&(PTEMAPMEM-1))/BY2PG];
+	pg = &etp->pages[(soff&(PTEMAPMEM-1))/pgsz];
 	type = s->type&SG_TYPE;
 
 	if(pg < etp->first)
@@ -95,6 +117,7 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 	if(pg > etp->last)
 		etp->last = pg;
 
+	mmuattr = 0;
 	switch(type) {
 	default:
 		panic("fault");
@@ -102,9 +125,9 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 
 	case SG_TEXT: 			/* Demand load */
 		if(pagedout(*pg))
-			pio(s, addr, soff, pg);
+			pio(s, addr, soff, pg, color);
 
-		mmuphys = PPN((*pg)->pa) | PTERONLY|PTEVALID;
+		mmuattr = PTERONLY|PTEVALID;
 		(*pg)->modref = PG_REF;
 		break;
 
@@ -112,7 +135,7 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 	case SG_SHARED:			/* Zero fill on demand */
 	case SG_STACK:
 		if(*pg == 0) {
-			new = newpage(1, &s, addr);
+			new = newpage(1, &s, addr, pgsz, color);
 			if(s == 0)
 				return -1;
 
@@ -123,14 +146,14 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 	case SG_DATA:
 	common:			/* Demand load/pagein/copy on write */
 		if(pagedout(*pg))
-			pio(s, addr, soff, pg);
+			pio(s, addr, soff, pg, color);
 
 		/*
 		 *  It's only possible to copy on write if
 		 *  we're the only user of the segment.
 		 */
 		if(read && conf.copymode == 0 && s->ref == 1) {
-			mmuphys = PPN((*pg)->pa)|PTERONLY|PTEVALID;
+			mmuattr = PTERONLY|PTEVALID;
 			(*pg)->modref |= PG_REF;
 			break;
 		}
@@ -138,25 +161,27 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 		lkp = *pg;
 		lock(lkp);
 
-		if(lkp->image == &swapimage)
-			ref = lkp->ref + swapcount(lkp->daddr);
-		else
-			ref = lkp->ref;
-		if(ref == 1 && lkp->image){
-			/* save a copy of the original for the image cache */
-			duppage(lkp);
-			ref = lkp->ref;
-		}
-		unlock(lkp);
-		if(ref > 1){
-			new = newpage(0, &s, addr);
+		ref = lkp->ref;
+		if(ref > 1) {
+			unlock(lkp);
+
+			// No need to zero here as it is copied
+			// over.
+			new = newpage(0, &s, addr, pgsz, color);
 			if(s == 0)
 				return -1;
 			*pg = new;
 			copypage(lkp, *pg);
 			putpage(lkp);
 		}
-		mmuphys = PPN((*pg)->pa) | PTEWRITE | PTEVALID;
+		else {
+			/* save a copy of the original for the image cache */
+			if(lkp->image != nil)
+				duppage(lkp);
+
+			unlock(lkp);
+		}
+		mmuattr = PTEWRITE|PTEVALID;
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
 
@@ -170,39 +195,47 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 				new->va = addr;
 				new->pa = s->pseg->pa+(addr-s->base);
 				new->ref = 1;
+				new->pgszi = s->pseg->pgszi;
 				*pg = new;
 			}
 		}
 
-		if (checkaddr && addr == addr2check)
-			(*checkaddr)(addr, s, *pg);
-		mmuphys = PPN((*pg)->pa) |PTEWRITE|PTEUNCACHED|PTEVALID;
+		mmuattr = PTEVALID;
+		if((s->pseg->attr & SG_RONLY) == 0)
+			mmuattr |= PTEWRITE;
+		if((s->pseg->attr & SG_CACHED) == 0)
+			mmuattr |= PTEUNCACHED;
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
 	}
 	qunlock(&s->lk);
 
-	if(doputmmu)
-		putmmu(addr, mmuphys, *pg);
-
+	if(dommuput){
+		assert(segppn(s, (*pg)->pa) == (*pg)->pa);
+		mmuput(addr, *pg, mmuattr);
+	}
 	return 0;
 }
 
 void
-pio(Segment *s, ulong addr, ulong soff, Page **p)
+pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 {
+	Mach *m = machp();
 	Page *new;
 	KMap *k;
 	Chan *c;
 	int n, ask;
+	uintmem pgsz;
 	char *kaddr;
-	ulong daddr;
+	uint32_t daddr;
 	Page *loadrec;
 
-retry:
 	loadrec = *p;
-	if(loadrec == 0) {	/* from a text/data image */
-		daddr = s->fstart+soff;
+	daddr = ask = 0;
+	c = nil;
+	pgsz = m->pgsz[s->pgszi];
+	if(loadrec == nil) {	/* from a text/data image */
+		daddr = s->ph.offset+soff;
 		new = lookpage(s->image, daddr);
 		if(new != nil) {
 			*p = new;
@@ -210,51 +243,57 @@ retry:
 		}
 
 		c = s->image->c;
-		ask = s->flen-soff;
-		if(ask > BY2PG)
-			ask = BY2PG;
+		ask = s->ph.filesz-soff;
+		if(ask > pgsz)
+			ask = pgsz;
 	}
-	else {			/* from a swap image */
-		daddr = swapaddr(loadrec);
-		new = lookpage(&swapimage, daddr);
-		if(new != nil) {
-			putswap(loadrec);
-			*p = new;
-			return;
-		}
+	else
+		panic("no swap");
 
-		c = swapimage.c;
-		ask = BY2PG;
-	}
 	qunlock(&s->lk);
 
-	new = newpage(0, 0, addr);
+	// For plan 9 a.out format the amount of data
+	// we read covered the page; the first parameter
+	// of newpage here was 0 -- "don't zero".
+	// It is now 1 -- "do zero" because ELF only covers
+	// part of the page.
+	new = newpage(1, 0, addr, pgsz, color);
 	k = kmap(new);
 	kaddr = (char*)VA(k);
 
 	while(waserror()) {
-		if(strcmp(up->errstr, Eintr) == 0)
+		if(strcmp(m->externup->errstr, Eintr) == 0)
 			continue;
 		kunmap(k);
 		putpage(new);
 		faulterror(Eioload, c, 0);
 	}
 
-	n = devtab[c->type]->read(c, kaddr, ask, daddr);
+	// kaddr needs to be offset by the start of the memory address.
+	int off = s->ph.vaddr & 0x1fffff;
+	//iprint("pio chan %c kaddr %p kaddr+off %p ask 0x%x daddr 0x%lx\n",
+	       //c, kaddr, kaddr+off, ask, daddr);
+	n = c->dev->read(c, kaddr+off, ask, daddr);
+	//hexdump(kaddr+off, n);
 	if(n != ask)
 		faulterror(Eioload, c, 0);
-	if(ask < BY2PG)
-		memset(kaddr+ask, 0, BY2PG-ask);
+	// There's no need to do this; we did a request to
+	// clear the page, above. Save this code for now;
+	// at some future time we might want to revive it for
+	// performance measurement.
+	if(0 && ask < pgsz)
+		memset(kaddr+ask, 0, pgsz-ask);
 
 	poperror();
 	kunmap(k);
+
 	qlock(&s->lk);
-	if(loadrec == 0) {	/* This is demand load */
+	if(loadrec == nil) {	/* This is demand load */
 		/*
 		 *  race, another proc may have gotten here first while
 		 *  s->lk was unlocked
 		 */
-		if(*p == 0) { 
+		if(*p == nil) {
 			new->daddr = daddr;
 			cachepage(new, s->image);
 			*p = new;
@@ -262,31 +301,9 @@ retry:
 		else
 			putpage(new);
 	}
-	else {			/* This is paged out */
-		/*
-		 *  race, another proc may have gotten here first
-		 *  (and the pager may have run on that page) while
-		 *  s->lk was unlocked
-		 */
-		if(*p != loadrec){
-			if(!pagedout(*p)){
-				/* another process did it for me */
-				putpage(new);
-				goto done;
-			} else {
-				/* another process and the pager got in */
-				putpage(new);
-				goto retry;
-			}
-		}
+	else
+		panic("no swap");
 
-		new->daddr = daddr;
-		cachepage(new, &swapimage);
-		*p = new;
-		putswap(loadrec);
-	}
-
-done:
 	if(s->flushme)
 		memset((*p)->cachectl, PG_TXTFLUSH, sizeof((*p)->cachectl));
 }
@@ -295,13 +312,14 @@ done:
  * Called only in a system call
  */
 int
-okaddr(ulong addr, ulong len, int write)
+okaddr(uintptr_t addr, int32_t len, int write)
 {
+	Mach *m = machp();
 	Segment *s;
 
-	if((long)len >= 0) {
+	if(len >= 0) {
 		for(;;) {
-			s = seg(up, addr, 0);
+			s = seg(m->externup, addr, 0);
 			if(s == 0 || (write && (s->type&SG_RONLY)))
 				break;
 
@@ -313,48 +331,65 @@ okaddr(ulong addr, ulong len, int write)
 			return 1;
 		}
 	}
-	pprint("suicide: invalid address %#lux/%lud in sys call pc=%#lux\n", addr, len, userpc());
 	return 0;
 }
 
-void
-validaddr(ulong addr, ulong len, int write)
+void*
+validaddr(void* addr, int32_t len, int write)
 {
-	if(!okaddr(addr, len, write)){
-		postnote(up, 1, "sys: bad address in syscall", NDebug);
-		error(Ebadarg);
+	if(!okaddr(PTR2UINT(addr), len, write)){
+		pprint("suicide: invalid address %#p/%ld in sys call pc=%#p\n",
+			addr, len, userpc(nil));
+		pexit("Suicide", 0);
 	}
+
+	return UINT2PTR(addr);
 }
 
 /*
  * &s[0] is known to be a valid address.
+ * Assume 2M pages, so it works for both 2M and 1G pages.
+ * Note this won't work for 4*KiB pages!
  */
 void*
 vmemchr(void *s, int c, int n)
 {
 	int m;
-	ulong a;
-	void *t;
+	uintptr_t a;
+	char *t;
 
-	a = (ulong)s;
-	while(PGROUND(a) != PGROUND(a+n-1)){
+	a = PTR2UINT(s);
+	while(ROUNDUP(a, BIGPGSZ) != ROUNDUP(a+n-1, BIGPGSZ)){
 		/* spans pages; handle this page */
-		m = BY2PG - (a & (BY2PG-1));
-		t = memchr((void*)a, c, m);
-		if(t)
+		m = BIGPGSZ - (a & (BIGPGSZ-1));
+//		t = memchr(UINT2PTR(a), c, m);
+		for(t = UINT2PTR(a); m > 0; m--, t++)
+			if (*t == c)
+				break;
+		if(*t == c)
 			return t;
 		a += m;
 		n -= m;
-		if(a < KZERO)
-			validaddr(a, 1, 0);
+		/* N.B. You're either going to find the character
+		 * or validaddr will error() and bounce you way back
+		 * up the call chain. That's why there's no worry about
+		 * returning NULL.
+		 */
+		if((a & KZERO) != KZERO)
+			validaddr(UINT2PTR(a), 1, 0);
 	}
 
 	/* fits in one page */
-	return memchr((void*)a, c, n);
+	for(t = UINT2PTR(a); n > 0; n--, t++)
+		if (*t == c)
+			break;
+	if(*t != c)
+		error("Bogus string");
+	return t;
 }
 
 Segment*
-seg(Proc *p, ulong addr, int dolock)
+seg(Proc *p, uintptr_t addr, int dolock)
 {
 	Segment **s, **et, *n;
 
@@ -375,39 +410,4 @@ seg(Proc *p, ulong addr, int dolock)
 	}
 
 	return 0;
-}
-
-extern void checkmmu(ulong, ulong);
-void
-checkpages(void)
-{
-	int checked;
-	ulong addr, off;
-	Pte *p;
-	Page *pg;
-	Segment **sp, **ep, *s;
-	
-	if(up == nil)
-		return;
-
-	checked = 0;
-	for(sp=up->seg, ep=&up->seg[NSEG]; sp<ep; sp++){
-		s = *sp;
-		if(s == nil)
-			continue;
-		qlock(&s->lk);
-		for(addr=s->base; addr<s->top; addr+=BY2PG){
-			off = addr - s->base;
-			p = s->map[off/PTEMAPMEM];
-			if(p == 0)
-				continue;
-			pg = p->pages[(off&(PTEMAPMEM-1))/BY2PG];
-			if(pg == 0 || pagedout(pg))
-				continue;
-			checkmmu(addr, pg->pa);
-			checked++;
-		}
-		qunlock(&s->lk);
-	}
-	print("%ld %s: checked %d page table entries\n", up->pid, up->text, checked);
 }

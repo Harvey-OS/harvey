@@ -8,26 +8,26 @@
  */
 
 #define nil		((void*)0)
-typedef	unsigned short	ushort;
-typedef	unsigned char	uchar;
-typedef unsigned long	ulong;
+typedef	unsigned char	uint8_t;
+typedef signed char	int8_t;
+typedef	unsigned short	uint16_t;
+typedef	signed short	int16_t;
+typedef unsigned int	uint32_t;
 typedef unsigned int	uint;
-typedef   signed char	schar;
-typedef	long long	vlong;
-typedef	unsigned long long uvlong;
-typedef unsigned long long uintptr;
-typedef unsigned long	usize;
-typedef	uint		Rune;
+typedef signed int	int32_t;
+typedef	unsigned long long uint64_t;
+typedef	long long	int64_t;
+typedef uint64_t uintptr;
+typedef uint64_t uintptr_t;
+typedef uint32_t	usize;
+typedef int64_t size_t;
+typedef	uint32_t		Rune;
 typedef union FPdbleword FPdbleword;
 typedef uintptr		jmp_buf[2];
 #define	JMPBUFSP	0
 #define	JMPBUFPC	1
 #define	JMPBUFDPC	0
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
-typedef unsigned char	u8int;
-typedef unsigned short	u16int;
-typedef unsigned int	u32int;
-typedef unsigned long long u64int;
 
 /* MXCSR */
 /* fcr */
@@ -64,10 +64,12 @@ union FPdbleword
 	};
 };
 
+/*
+#if 0
 typedef	char*	va_list;
 #define va_start(list, start) list =\
 	(sizeof(start) < 8?\
-		(char*)((vlong*)&(start)+1):\
+		(char*)((int64_t*)&(start)+1):\
 		(char*)(&(start)+1))
 #define va_end(list)\
 	USED(list)
@@ -79,3 +81,13 @@ typedef	char*	va_list;
 	(sizeof(mode) == 4)?\
 		((list += 8), (mode*)list)[-2]:\
 		((list += sizeof(mode)), (mode*)list)[-1])
+#endif
+*/
+
+typedef __builtin_va_list va_list;
+
+#define va_start(v,l)	__builtin_va_start(v,l)
+#define va_end(v)	__builtin_va_end(v)
+#define va_arg(v,l)	__builtin_va_arg(v,l)
+#define va_copy(v,l)	__builtin_va_copy(v,l)
+

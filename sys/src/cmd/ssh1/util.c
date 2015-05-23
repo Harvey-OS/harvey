@@ -47,7 +47,7 @@ debug(int level, char *fmt, ...)
 }
 
 void*
-emalloc(long n)
+emalloc(int32_t n)
 {
 	void *a;
 
@@ -59,7 +59,7 @@ emalloc(long n)
 }
 
 void*
-erealloc(void *v, long n)
+erealloc(void *v, int32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -118,7 +118,7 @@ void
 calcsessid(Conn *c)
 {
 	int n;
-	uchar buf[1024];
+	uint8_t buf[1024];
 
 	n = mptobe(c->hostkey->n, buf, sizeof buf, nil);
 	n += mptobe(c->serverkey->n, buf+n, sizeof buf-n, nil);

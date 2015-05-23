@@ -34,13 +34,13 @@ struct Mntrpc
 	Fcall 	reply;		/* Incoming reply */
 	Mnt*	m;		/* Mount device during rpc */
 	Rendez	r;		/* Place to hang out */
-	uchar*	rpc;		/* I/O Data buffer */
+	uint8_t*	rpc;		/* I/O Data buffer */
 	uint		rpclen;	/* len of buffer */
 	Block	*b;		/* reply blocks */
 	char	done;		/* Rpc completed */
-	uvlong	stime;		/* start time for mnt statistics */
-	ulong	reqlen;		/* request length for mnt statistics */
-	ulong	replen;		/* reply length for mnt statistics */
+	uint64_t	stime;		/* start time for mnt statistics */
+	uint32_t	reqlen;		/* request length for mnt statistics */
+	uint32_t	replen;		/* reply length for mnt statistics */
 	Mntrpc*	flushed;	/* message this one flushes */
 };
 
@@ -59,21 +59,21 @@ struct Mntalloc
 	Mntrpc*	rpcfree;
 	int	nrpcfree;
 	int	nrpcused;
-	ulong	id;
-	ulong	tagmask[NMASK];
+	uint32_t	id;
+	uint32_t	tagmask[NMASK];
 }mntalloc;
 
 void	mattach(Mnt*, Chan*, char*);
 Mnt*	mntchk(Chan*);
-void	mntdirfix(uchar*, Chan*);
-Mntrpc*	mntflushalloc(Mntrpc*, ulong);
+void	mntdirfix(uint8_t*, Chan*);
+Mntrpc*	mntflushalloc(Mntrpc*, uint32_t);
 void	mntflushfree(Mnt*, Mntrpc*);
 void	mntfree(Mntrpc*);
 void	mntgate(Mnt*);
 void	mntpntfree(Mnt*);
 void	mntqrm(Mnt*, Mntrpc*);
-Mntrpc*	mntralloc(Chan*, ulong);
-long	mntrdwr(int, Chan*, void*, long, vlong);
+Mntrpc*	mntralloc(Chan*, uint32_t);
+int32_t	mntrdwr(int, Chan*, void*, int32_t, int64_t);
 int	mntrpcread(Mnt*, Mntrpc*);
 void	mountio(Mnt*, Mntrpc*);
 void	mountmux(Mnt*, Mntrpc*);
@@ -85,7 +85,7 @@ char	Esbadstat[] = "invalid directory entry received from server";
 char Enoversion[] = "version not established for mount channel";
 
 
-void (*mntstats)(int, Chan*, uvlong, ulong);
+void (*mntstats)(int, Chan*, uint64_t, uint32_t);
 
 static void
 mntreset(void)
@@ -103,15 +103,15 @@ mntreset(void)
 /*
  * Version is not multiplexed: message sent only once per connection.
  */
-long
+int32_t
 mntversion(Chan *c, char *version, int msize, int returnlen)
 {
 	Fcall f;
-	uchar *msg;
+	uint8_t *msg;
 	Mnt *m;
 	char *v;
-	long k, l;
-	uvlong oo;
+	int32_t k, l;
+	uint64_t oo;
 	char buf[128];
 
 	qlock(&c->umqlock);	/* make sure no one else does this until we've established ourselves */
@@ -469,7 +469,7 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-mntstat(Chan *c, uchar *dp, int n)
+mntstat(Chan *c, uint8_t *dp, int n)
 {
 	Mnt *m;
 	Mntrpc *r;
@@ -506,7 +506,7 @@ mntstat(Chan *c, uchar *dp, int n)
 		 * (via convD2M).
 		 */
 		/* doesn't fit; just patch the count and return */
-		PBIT16((uchar*)dp, r->reply.nstat);
+		PBIT16((uint8_t*)dp, r->reply.nstat);
 		n = BIT16SZ;
 	}else{
 		n = r->reply.nstat;
@@ -520,7 +520,7 @@ mntstat(Chan *c, uchar *dp, int n)
 }
 
 static Chan*
-mntopencreate(int type, Chan *c, char *name, int omode, ulong perm)
+mntopencreate(int type, Chan *c, char *name, int omode, uint32_t perm)
 {
 	Mnt *m;
 	Mntrpc *r;
@@ -563,7 +563,7 @@ mntopen(Chan *c, int omode)
 }
 
 static void
-mntcreate(Chan *c, char *name, int omode, ulong perm)
+mntcreate(Chan *c, char *name, int omode, uint32_t perm)
 {
 	mntopencreate(Tcreate, c, name, omode, perm);
 }
@@ -639,7 +639,7 @@ mntremove(Chan *c)
 }
 
 static int
-mntwstat(Chan *c, uchar *dp, int n)
+mntwstat(Chan *c, uint8_t *dp, int n)
 {
 	Mnt *m;
 	Mntrpc *r;
@@ -660,10 +660,10 @@ mntwstat(Chan *c, uchar *dp, int n)
 	return n;
 }
 
-static long
-mntread(Chan *c, void *buf, long n, vlong off)
+static int32_t
+mntread(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	uchar *p, *e;
+	uint8_t *p, *e;
 	int nc, cache, isdir, dirlen;
 
 	isdir = 0;
@@ -703,20 +703,20 @@ mntread(Chan *c, void *buf, long n, vlong off)
 	return n;
 }
 
-static long
-mntwrite(Chan *c, void *buf, long n, vlong off)
+static int32_t
+mntwrite(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	return mntrdwr(Twrite, c, buf, n, off);
 }
 
-long
-mntrdwr(int type, Chan *c, void *buf, long n, vlong off)
+int32_t
+mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 {
 	Mnt *m;
  	Mntrpc *r;
 	char *uba;
 	int cache;
-	ulong cnt, nr, nreq;
+	uint32_t cnt, nr, nreq;
 
 	m = mntchk(c);
 	uba = buf;
@@ -745,9 +745,9 @@ mntrdwr(int type, Chan *c, void *buf, long n, vlong off)
 			nr = nreq;
 
 		if(type == Tread)
-			r->b = bl2mem((uchar*)uba, r->b, nr);
+			r->b = bl2mem((uint8_t*)uba, r->b, nr);
 		else if(cache)
-			cwrite(c, (uchar*)uba, nr, off);
+			cwrite(c, (uint8_t*)uba, nr, off);
 
 		poperror();
 		mntfree(r);
@@ -998,7 +998,7 @@ mountmux(Mnt *m, Mntrpc *r)
  * requests from it
  */
 Mntrpc*
-mntflushalloc(Mntrpc *r, ulong iounit)
+mntflushalloc(Mntrpc *r, uint32_t iounit)
 {
 	Mntrpc *fr;
 
@@ -1042,7 +1042,7 @@ int
 alloctag(void)
 {
 	int i, j;
-	ulong v;
+	uint32_t v;
 
 	for(i = 0; i < NMASK; i++){
 		v = mntalloc.tagmask[i];
@@ -1065,7 +1065,7 @@ freetag(int t)
 }
 
 Mntrpc*
-mntralloc(Chan *c, ulong msize)
+mntralloc(Chan *c, uint32_t msize)
 {
 	Mntrpc *new;
 
@@ -1183,7 +1183,7 @@ mntchk(Chan *c)
  * the first two in the Dir encoding after the count.
  */
 void
-mntdirfix(uchar *dirbuf, Chan *c)
+mntdirfix(uint8_t *dirbuf, Chan *c)
 {
 	uint r;
 

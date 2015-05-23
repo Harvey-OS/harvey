@@ -90,7 +90,7 @@ typedef struct gx_ht_cell_params_s {
     short M, N, R;
     short M1, N1, R1;
     /* Derived values. */
-    ulong C;
+    uint32_t C;
     short D, D1;
     uint W, W1;
     int S;
@@ -221,7 +221,7 @@ extern const gx_ht_order_procs_t ht_order_procs_table[2];
 /* For screen/spot halftones, we must record additional parameters. */
 typedef struct gx_ht_order_screen_params_s {
     gs_matrix matrix;		/* CTM when the function was sampled */
-    ulong max_size;		/* max bitmap size */
+    uint32_t max_size;		/* max bitmap size */
 } gx_ht_order_screen_params_t;
 struct gx_ht_order_s {
     gx_ht_cell_params_t params;	/* parameters defining the cells */

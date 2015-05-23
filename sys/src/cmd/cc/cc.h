@@ -45,10 +45,10 @@ typedef	Rune	TRune;	/* target system type */
 #define	MASK(n)		(SIGN(n)|(SIGN(n)-1))
 
 #define	BITS	5
-#define	NVAR	(BITS*sizeof(ulong)*8)
+#define	NVAR	(BITS*sizeof(uint32_t)*8)
 struct	Bits
 {
-	ulong	b[BITS];
+	uint32_t	b[BITS];
 };
 
 struct	Node
@@ -146,7 +146,7 @@ struct	Type
 struct	Init			/* general purpose initialization */
 {
 	int	code;
-	ulong	value;
+	uint32_t	value;
 	char*	s;
 };
 
@@ -528,10 +528,10 @@ EXTERN	char*	typeswitch;
 EXTERN	char*	typeword;
 EXTERN	char*	typecmplx;
 
-extern	ulong	thash1;
-extern	ulong	thash2;
-extern	ulong	thash3;
-extern	ulong	thash[];
+extern	uint32_t	thash1;
+extern	uint32_t	thash2;
+extern	uint32_t	thash3;
+extern	uint32_t	thash[];
 
 /*
  *	compat.c/unix.c/windows.c
@@ -546,7 +546,7 @@ int	myexec(char*, char*[]);
 int	mydup(int, int);
 int	myfork(void);
 int	mypipe(int*);
-void*	mysbrk(ulong);
+void*	mysbrk(uint32_t);
 
 /*
  *	parser
@@ -630,8 +630,8 @@ Node*	revertdcl(void);
 long	round(long, int);
 int	rsametype(Type*, Type*, int, int);
 int	sametype(Type*, Type*);
-ulong	sign(Sym*);
-ulong	signature(Type*);
+uint32_t	sign(Sym*);
+uint32_t	signature(Type*);
 void	sualign(Type*);
 void	tmerge(Type*, Sym*);
 void	walkparam(Node*, int);
@@ -705,7 +705,7 @@ int	side(Node*);
 int	vconst(Node*);
 int	log2(uvlong);
 int	vlog(Node*);
-int	topbit(ulong);
+int	topbit(uint32_t);
 void	simplifyshift(Node*);
 long	typebitor(long, long);
 void	diag(Node*, char*, ...);

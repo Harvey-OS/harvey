@@ -179,8 +179,8 @@ struct Xfile{
 
 	uint inbr;		/* inode nbr */
 	uint pinbr;	/* parrent inode */
-	ulong bufaddr;	/* addr of inode block */
-	ulong bufoffset;
+	uint32_t bufaddr;	/* addr of inode block */
+	uint32_t bufoffset;
 	int root;		/* true on attach for ref count */
 	int dirindex;	/* next dir entry to read */
 };

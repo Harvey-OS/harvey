@@ -38,7 +38,7 @@
 extern	int	bind(char*, char*, int);
 extern	int	chdir(char*);
 extern	int	close(int);
-extern	int	create(char*, int, ulong);
+extern	int	create(char*, int, uint32_t);
 extern	int	dup(int, int);
 extern  int	export(int);
 extern	int	fstat(int, uchar*, int);
@@ -78,7 +78,7 @@ extern	int	reject(int, char*, char*);
 
 extern 	char*	argv0;
 
-extern	ulong	truerand(void);
+extern	uint32_t	truerand(void);
 extern	int	pushssl(int, char*, char*, char*, int*);
 extern	int	iounit(int);
 extern	long	pread(int, void*, long, vlong);

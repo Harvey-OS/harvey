@@ -74,7 +74,7 @@ static void cpio_entry(char *, Stat *);
 static void tar_entry(char *, Stat *);
 static void pax_entry(char *, Stat *);
 static void print_mode(ushort);
-static long from_oct(int digs, char *where);
+static int32_t from_oct(int digs, char *where);
 
 #else /* !__STDC__ */
 
@@ -129,8 +129,8 @@ Stat           *asb;
 #endif
 {
     int             i;
-    long            sum;
-    long	    recsum;
+    int32_t            sum;
+    int32_t	    recsum;
     Link           *link;
     char           *p;
     char            hdrbuf[BLOCKSIZE];
@@ -565,7 +565,7 @@ Stat	       *asb;
 
 #ifdef __STDC__
 
-static void print_mode(ushort mode)
+static void print_mode(uint16_t mode)
 
 #else
     
@@ -648,7 +648,7 @@ ushort	mode;
 
 #ifdef __STDC__
 
-static long from_oct(int digs, char *where)
+static int32_t from_oct(int digs, char *where)
 
 #else
 
@@ -658,7 +658,7 @@ char           *where;		/* character representation of octal number */
 
 #endif
 {
-    long            value;
+    int32_t            value;
 
     while (isspace(*where)) {	/* Skip spaces */
 	where++;

@@ -43,13 +43,13 @@
 #ifdef DEBUG
 const char *const cmd_op_names[16] =
 {cmd_op_name_strings};
-private const char *const cmd_misc_op_names[16] =
+private const int8_t *const cmd_misc_op_names[16] =
 {cmd_misc_op_name_strings};
-private const char *const cmd_misc2_op_names[16] =
+private const int8_t *const cmd_misc2_op_names[16] =
 {cmd_misc2_op_name_strings};
-private const char *const cmd_segment_op_names[16] =
+private const int8_t *const cmd_segment_op_names[16] =
 {cmd_segment_op_name_strings};
-private const char *const cmd_path_op_names[16] =
+private const int8_t *const cmd_path_op_names[16] =
 {cmd_path_op_name_strings};
 const char *const *const cmd_sub_op_names[16] =
 {cmd_misc_op_names, 0, 0, 0, 0, 0, 0, 0,
@@ -57,12 +57,12 @@ const char *const *const cmd_sub_op_names[16] =
  0, cmd_misc2_op_names, cmd_segment_op_names, cmd_path_op_names
 };
 struct stats_cmd_s {
-    ulong op_counts[256];
-    ulong op_sizes[256];
-    ulong tile_reset, tile_found, tile_added;
-    ulong same_band, other_band;
+    uint32_t op_counts[256];
+    uint32_t op_sizes[256];
+    uint32_t tile_reset, tile_found, tile_added;
+    uint32_t same_band, other_band;
 } stats_cmd;
-extern ulong stats_cmd_diffs[5];	/* in gxclpath.c */
+extern uint32_t stats_cmd_diffs[5];	/* in gxclpath.c */
 int
 cmd_count_op(int op, uint size)
 {
@@ -115,7 +115,7 @@ cmd_print_stats(void)
 			 sub[cj - ci + 1],
 		   stats_cmd.op_counts[cj + 1], stats_cmd.op_sizes[cj + 1]);
 	} else {
-	    ulong tcounts = 0, tsizes = 0;
+	    uint32_t tcounts = 0, tsizes = 0;
 
 	    for (cj = ci; cj < ci + 0x10; cj++)
 		tcounts += stats_cmd.op_counts[cj],
@@ -167,7 +167,7 @@ cmd_write_band(gx_device_clist_writer * cldev, int band_min, int band_max,
 		    (const byte *)cp >= cldev->cend ||
 		    cp->size > cldev->cend - (const byte *)cp
 		    ) {
-		    lprintf1("cmd_write_band error at 0x%lx\n", (ulong) cp);
+		    lprintf1("cmd_write_band error at 0x%lx\n", (uint32_t) cp);
 		    return_error(gs_error_Fatal);
 		}
 #endif
@@ -249,7 +249,7 @@ cmd_put_list_op(gx_device_clist_writer * cldev, cmd_list * pcl, uint size)
 	cmd_count_add1(stats_cmd.same_band);
 #ifdef DEBUG
 	if (pcl->tail->size > dp - (byte *) (pcl->tail + 1)) {
-	    lprintf1("cmd_put_list_op error at 0x%lx\n", (ulong) pcl->tail);
+	    lprintf1("cmd_put_list_op error at 0x%lx\n", (uint32_t) pcl->tail);
 	}
 #endif
 	pcl->tail->size += size;
@@ -267,7 +267,7 @@ cmd_put_list_op(gx_device_clist_writer * cldev, cmd_list * pcl, uint size)
 		pcl->tail->size > dp - (byte *) (pcl->tail + 1)
 		) {
 		lprintf1("cmd_put_list_op error at 0x%lx\n",
-			 (ulong) pcl->tail);
+			 (uint32_t) pcl->tail);
 	    }
 #endif
 	    pcl->tail->next = cp;

@@ -348,7 +348,7 @@ rcreate(Fcall *f)
 static void
 rread(Fcall *f)
 {
-	long cnt;
+	int32_t cnt;
 	Fid *fidp;
 
 	cnt = f->count;
@@ -504,7 +504,7 @@ rstat(Fcall *f)
 	fidp = newfid(f->fid);
 	if (fidp->node->d.type == Dummynode)
 		dummy.d.name = fidp->name;
-	f->stat = (uchar*)rbuf+4+1+2+2;	/* knows about stat(5) */
+	f->stat = (uint8_t*)rbuf+4+1+2+2;	/* knows about stat(5) */
 	f->nstat = convD2M(&fidp->node->d, f->stat, MAXRPC);
 	if(f->nstat <= BIT16SZ)
 		reply(f, "ratfs: convD2M");

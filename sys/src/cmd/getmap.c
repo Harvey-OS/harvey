@@ -98,11 +98,11 @@ getcmap(int id, char *f, unsigned char *buf)
 }
 
 /* replicate (from top) value in v (n bits) until it fills a ulong */
-ulong
-rep(ulong v, int n)
+uint32_t
+rep(uint32_t v, int n)
 {
 	int o;
-	ulong rv;
+	uint32_t rv;
 
 	rv = 0;
 	for(o=32-n; o>=0; o-=n)
@@ -113,7 +113,7 @@ rep(ulong v, int n)
 }
 
 void
-putcmap(int id, uchar cmap[256*3])
+putcmap(int id, uint8_t cmap[256*3])
 {
 	char *s, *t;
 	int i, fd;
@@ -135,7 +135,7 @@ putcmap(int id, uchar cmap[256*3])
 void
 main(int argc, char *argv[])
 {
-	uchar cmapbuf[256*3];
+	uint8_t cmapbuf[256*3];
 	char *map, buf[12*12+1];
 	int fd, id;
 

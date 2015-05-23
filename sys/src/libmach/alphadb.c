@@ -16,10 +16,10 @@
  */
 
 static 	char	*alphaexcep(Map*, Rgetter);
-static	int	alphafoll(Map*, uvlong, Rgetter, uvlong*);
-static	int	alphainst(Map*, uvlong, char, char*, int);
-static	int	alphadas(Map*, uvlong, char*, int);
-static	int	alphainstlen(Map*, uvlong);
+static	int	alphafoll(Map*, uint64_t, Rgetter, uint64_t*);
+static	int	alphainst(Map*, uint64_t, char, char*, int);
+static	int	alphadas(Map*, uint64_t, char*, int);
+static	int	alphainstlen(Map*, uint64_t);
 /*
  *	Debugger interface
  */
@@ -54,7 +54,7 @@ static char *illegaltype[] = {
 static char *
 alphaexcep(Map *map, Rgetter rget)
 {
-	ulong type, a0, a1;
+	uint32_t type, a0, a1;
 	static char buf[256];
 
 	type = (*rget)(map, "TYPE");
@@ -95,20 +95,20 @@ alphaexcep(Map *map, Rgetter rget)
 static	char FRAMENAME[] = ".frame";
 
 typedef struct {
-	uvlong addr;
-	uchar op;			/* bits 31-26 */
-	uchar ra;			/* bits 25-21 */
-	uchar rb;			/* bits 20-16 */
-	uchar rc;			/* bits 4-0 */
-	long mem;			/* bits 15-0 */
-	long branch;			/* bits 20-0 */
-	uchar function;			/* bits 11-5 */
-	uchar literal;			/* bits 20-13 */
-	uchar islit;			/* bit 12 */
-	uchar fpfn;			/* bits 10-5 */
-	uchar fpmode;			/* bits 15-11 */
-	long w0;
-	long w1;
+	uint64_t addr;
+	uint8_t op;			/* bits 31-26 */
+	uint8_t ra;			/* bits 25-21 */
+	uint8_t rb;			/* bits 20-16 */
+	uint8_t rc;			/* bits 4-0 */
+	int32_t mem;			/* bits 15-0 */
+	int32_t branch;			/* bits 20-0 */
+	uint8_t function;			/* bits 11-5 */
+	uint8_t literal;			/* bits 20-13 */
+	uint8_t islit;			/* bit 12 */
+	uint8_t fpfn;			/* bits 10-5 */
+	uint8_t fpmode;			/* bits 15-11 */
+	int32_t w0;
+	int32_t w1;
 	int size;			/* instruction size */
 	char *curr;			/* fill point in buffer */
 	char *end;			/* end of buffer */
@@ -118,9 +118,9 @@ typedef struct {
 static Map *mymap;
 
 static int
-decode(uvlong pc, Instr *i)
+decode(uint64_t pc, Instr *i)
 {
-	ulong w;
+	uint32_t w;
 
 	if (get4(mymap, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -149,7 +149,7 @@ decode(uvlong pc, Instr *i)
 }
 
 static int
-mkinstr(uvlong pc, Instr *i)
+mkinstr(uint64_t pc, Instr *i)
 {
 /*	Instr x; */
 
@@ -604,7 +604,7 @@ static Opcode ieeeopcodes[64] = {
 	"???",		0,	alphaxxx,
 };
 
-static uchar	amap[128] = {
+static unsigned char	amap[128] = {
 	[0x00]	1,
 	[0x40]	2,
 	[0x20]	3,
@@ -655,7 +655,7 @@ static Opcode arithopcodes[64] = {
 	"S8SUBQ",	0,	alphaint,
 };
 
-static uchar	lmap[128] = {
+static unsigned char	lmap[128] = {
 	[0x00]	1,
 	[0x20]	2,
 	[0x40]	3,
@@ -690,7 +690,7 @@ static Opcode logicalopcodes[64] = {
 	"CMOVLBC",	0,	alphaint,
 };
 
-static uchar	smap[128] = {
+static unsigned char	smap[128] = {
 	[0x39]	1,
 	[0x3C]	2,
 	[0x34]	3,
@@ -815,11 +815,11 @@ format(char *mnemonic, Instr *i, char *f)
 }
 
 static int
-printins(Map *map, uvlong pc, char *buf, int n)
+printins(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 	Opcode *o;
-	uchar op;
+	uint8_t op;
 
 	i.curr = buf;
 	i.end = buf+n-1;
@@ -866,14 +866,14 @@ printins(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-alphainst(Map *map, uvlong pc, char modifier, char *buf, int n)
+alphainst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	USED(modifier);
 	return printins(map, pc, buf, n);
 }
 
 static int
-alphadas(Map *map, uvlong pc, char *buf, int n)
+alphadas(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 
@@ -893,7 +893,7 @@ alphadas(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-alphainstlen(Map *map, uvlong pc)
+alphainstlen(Map *map, uint64_t pc)
 {
 	Instr i;
 
@@ -904,7 +904,7 @@ alphainstlen(Map *map, uvlong pc)
 }
 
 static int
-alphafoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
+alphafoll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
 	char buf[8];
 	Instr i;

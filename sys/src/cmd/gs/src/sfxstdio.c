@@ -34,13 +34,13 @@
 
 /* Forward references for file stream procedures */
 private int
-    s_file_available(stream *, long *),
-    s_file_read_seek(stream *, long),
+    s_file_available(stream *, int32_t *),
+    s_file_read_seek(stream *, int32_t),
     s_file_read_close(stream *),
     s_file_read_process(stream_state *, stream_cursor_read *,
 			stream_cursor_write *, bool);
 private int
-    s_file_write_seek(stream *, long),
+    s_file_write_seek(stream *, int32_t),
     s_file_write_flush(stream *),
     s_file_write_close(stream *),
     s_file_write_process(stream_state *, stream_cursor_read *,
@@ -65,14 +65,14 @@ sread_file(register stream * s, FILE * file, byte * buf, uint len)
      * the stream, we have to clear it again to avoid trouble later.
      */
     int had_error = ferror(file);
-    long curpos = ftell(file);
+    int32_t curpos = ftell(file);
     bool seekable = (curpos != -1L && fseek(file, curpos, SEEK_SET) == 0);
 
     if (!had_error)
 	clearerr(file);
     s_std_init(s, buf, len, &p,
 	       (seekable ? s_mode_read + s_mode_seek : s_mode_read));
-    if_debug1('s', "[s]read file=0x%lx\n", (ulong) file);
+    if_debug1('s', "[s]read file=0x%lx\n", (uint32_t) file);
     s->file = file;
     s->file_modes = s->modes;
     s->file_offset = 0;
@@ -81,7 +81,7 @@ sread_file(register stream * s, FILE * file, byte * buf, uint len)
 
 /* Confine reading to a subfile.  This is primarily for reusable streams. */
 int
-sread_subfile(stream *s, long start, long length)
+sread_subfile(stream *s, int32_t start, int32_t length)
 {
     if (s->file == 0 || s->modes != s_mode_read + s_mode_seek ||
 	s->file_offset != 0 || s->file_limit != max_long ||
@@ -97,14 +97,14 @@ sread_subfile(stream *s, long start, long length)
 
 /* Procedures for reading from a file */
 private int
-s_file_available(register stream * s, long *pl)
+s_file_available(register stream * s, int32_t *pl)
 {
-    long max_avail = s->file_limit - stell(s);
-    long buf_avail = sbufavailable(s);
+    int32_t max_avail = s->file_limit - stell(s);
+    int32_t buf_avail = sbufavailable(s);
 
     *pl = min(max_avail, buf_avail);
     if (sseekable(s)) {
-	long pos, end;
+	int32_t pos, end;
 
 	pos = ftell(s->file);
 	if (fseek(s->file, 0L, SEEK_END))
@@ -123,10 +123,10 @@ s_file_available(register stream * s, long *pl)
     return 0;
 }
 private int
-s_file_read_seek(register stream * s, long pos)
+s_file_read_seek(register stream * s, int32_t pos)
 {
     uint end = s->srlimit - s->cbuf + 1;
-    long offset = pos - s->position;
+    int32_t offset = pos - s->position;
 
     if (offset >= 0 && offset <= end) {  /* Staying within the same buffer */
 	s->srptr = s->cbuf + offset - 1;
@@ -168,7 +168,7 @@ s_file_read_process(stream_state * st, stream_cursor_read * ignore_pr,
     int count;
 
     if (s->file_limit < max_long) {
-	long limit_count = s->file_offset + s->file_limit - ftell(file);
+	int32_t limit_count = s->file_offset + s->file_limit - ftell(file);
 
 	if (max_count > limit_count)
 	    max_count = limit_count, status = EOFC;
@@ -195,7 +195,7 @@ swrite_file(register stream * s, FILE * file, byte * buf, uint len)
 
     s_std_init(s, buf, len, &p,
 	       (file == stdout ? s_mode_write : s_mode_write + s_mode_seek));
-    if_debug1('s', "[s]write file=0x%lx\n", (ulong) file);
+    if_debug1('s', "[s]write file=0x%lx\n", (uint32_t) file);
     s->file = file;
     s->file_modes = s->modes;
     s->file_offset = 0;		/* in case we switch to reading later */
@@ -213,7 +213,7 @@ sappend_file(register stream * s, FILE * file, byte * buf, uint len)
 }
 /* Procedures for writing on a file */
 private int
-s_file_write_seek(stream * s, long pos)
+s_file_write_seek(stream * s, int32_t pos)
 {
     /* We must flush the buffer to reposition. */
     int code = sflush(s);
@@ -277,14 +277,14 @@ s_file_switch(stream * s, bool writing)
 {
     uint modes = s->file_modes;
     FILE *file = s->file;
-    long pos;
+    int32_t pos;
 
     if (writing) {
 	if (!(s->file_modes & s_mode_write))
 	    return ERRC;
 	pos = stell(s);
 	if_debug2('s', "[s]switch 0x%lx to write at %ld\n",
-		  (ulong) s, pos);
+		  (uint32_t) s, pos);
 	fseek(file, pos, SEEK_SET);
 	if (modes & s_mode_append) {
 	    sappend_file(s, file, s->cbuf, s->cbsize);	/* sets position */
@@ -298,7 +298,7 @@ s_file_switch(stream * s, bool writing)
 	    return ERRC;
 	pos = stell(s);
 	if_debug2('s', "[s]switch 0x%lx to read at %ld\n",
-		  (ulong) s, pos);
+		  (uint32_t) s, pos);
 	if (sflush(s) < 0)
 	    return ERRC;
 	fseek(file, 0L, SEEK_CUR);	/* pacify C library */

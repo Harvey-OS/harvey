@@ -12,9 +12,9 @@
 #include	<fcall.h>
 
 int
-statcheck(uchar *buf, uint nbuf)
+statcheck(uint8_t *buf, uint nbuf)
 {
-	uchar *ebuf;
+	uint8_t *ebuf;
 	int i;
 
 	ebuf = buf + nbuf;
@@ -39,9 +39,9 @@ statcheck(uchar *buf, uint nbuf)
 static char nullstring[] = "";
 
 uint
-convM2D(uchar *buf, uint nbuf, Dir *d, char *strs)
+convM2D(uint8_t *buf, uint nbuf, Dir *d, char *strs)
 {
-	uchar *p, *ebuf;
+	uint8_t *p, *ebuf;
 	char *sv[4];
 	int i, ns;
 

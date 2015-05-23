@@ -31,7 +31,7 @@ int	logged;
 int	rejectcount;
 int	hardreject;
 
-ulong	starttime;
+uint32_t	starttime;
 
 Biobuf	bin;
 
@@ -46,7 +46,7 @@ int	authenticated;
 int	passwordinclear;
 char	*tlscert;
 
-uchar	rsysip[IPaddrlen];
+uint8_t	rsysip[IPaddrlen];
 
 List	senders;
 List	rcvers;
@@ -262,7 +262,7 @@ stamp(void)
 int
 reply(char *fmt, ...)
 {
-	long n;
+	int32_t n;
 	char buf[SIZE], *out;
 	va_list arg;
 
@@ -621,7 +621,7 @@ static int
 senderok(char *rcpt)
 {
 	int mentioned = 0, matched = 0;
-	uchar dnsip[IPaddrlen];
+	uint8_t dnsip[IPaddrlen];
 	Sender *snd;
 	Ndbtuple *nt, *next, *first;
 
@@ -1559,7 +1559,7 @@ s_dec64(String *sin)
 	if (*(s_to_c(sin)+lin-1) == '\n')
 		lin--;
 	sout = s_newalloc(lin+1);
-	lout = dec64((uchar *)s_to_c(sout), lin, s_to_c(sin), lin);
+	lout = dec64((uint8_t *)s_to_c(sout), lin, s_to_c(sin), lin);
 	if (lout < 0) {
 		s_free(sout);
 		return nil;
@@ -1573,7 +1573,7 @@ void
 starttls(void)
 {
 	int certlen, fd;
-	uchar *cert;
+	uint8_t *cert;
 	TLSconn *conn;
 
 	if (tlscert == nil) {
@@ -1710,7 +1710,7 @@ windup:
 			goto bomb_out;
 		}
 		scratch = malloc(chs->nchal * 2 + 1);
-		chal64n = enc64(scratch, chs->nchal * 2, (uchar *)chs->chal,
+		chal64n = enc64(scratch, chs->nchal * 2, (uint8_t *)chs->chal,
 			chs->nchal);
 		scratch[chal64n] = 0;
 		reply("334 %s\r\n", scratch);

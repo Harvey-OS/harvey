@@ -18,10 +18,10 @@
 
 static	char	*m68020excep(Map*, Rgetter);
 
-static	int	m68020foll(Map*, uvlong, Rgetter, uvlong*);
-static	int	m68020inst(Map*, uvlong, char, char*, int);
-static	int	m68020das(Map*, uvlong, char*, int);
-static	int	m68020instlen(Map*, uvlong);
+static	int	m68020foll(Map*, uint64_t, Rgetter, uint64_t*);
+static	int	m68020inst(Map*, uint64_t, char, char*, int);
+static	int	m68020das(Map*, uint64_t, char*, int);
+static	int	m68020instlen(Map*, uint64_t);
 
 Machdata m68020mach =
 {
@@ -83,8 +83,8 @@ static char * excep[] = {
 static int m68020vec;
 static
 struct ftype{
-	short	fmt;
-	short	len;
+	int16_t	fmt;
+	int16_t	len;
 	char	*name;
 } ftype[] = {		/* section 6.5.7 page 6-24 */
 	{  0,  4*2, "Short Format" },
@@ -104,11 +104,11 @@ m68020ufix(Map *map)
 {
 	struct ftype *ft;
 	int i, size, vec;
-	ulong efl[2];
-	uchar *ef=(uchar*)efl;
-	ulong l;
-	uvlong stktop;
-	short fvo;
+	uint32_t efl[2];
+	uint8_t *ef=(uint8_t*)efl;
+	uint32_t l;
+	uint64_t stktop;
+	int16_t fvo;
 
 		/* The kernel proc pointer on a 68020 is always
 		 * at #8xxxxxxx; on the 68040 NeXT, the address
@@ -127,13 +127,13 @@ m68020ufix(Map *map)
 
 	stktop = mach->kbase+mach->pgsize;
 	for(i=3; i<100; i++){
-		if (get1(map, stktop-i*4, (uchar*)&l, 4)< 0)
+		if (get1(map, stktop-i*4, (uint8_t*)&l, 4)< 0)
 			return -1;
 
 		if(machdata->swal(l) == 0xBADC0C0A){
-			if (get1(map, stktop-(i-1)*4, (uchar *)&efl[0], 4) < 0)
+			if (get1(map, stktop-(i-1)*4, (uint8_t *)&efl[0], 4) < 0)
 				return -1;
-			if (get1(map, stktop-(i-2)*4, (uchar *)&efl[1], 4) < 0)
+			if (get1(map, stktop-(i-2)*4, (uint8_t *)&efl[1], 4) < 0)
 				return -1;
 			fvo = (ef[6]<<8)|ef[7];
 			vec = fvo & 0xfff;
@@ -156,8 +156,8 @@ m68020ufix(Map *map)
 static char *
 m68020excep(Map *map, Rgetter rget)
 {
-	uvlong pc;
-	uchar buf[4];
+	uint64_t pc;
+	uint8_t buf[4];
 
 	if (m68020ufix(map) < 0)
 		return "bad exception frame";
@@ -316,7 +316,7 @@ enum {
 };
 	/* EA validation table indexed by operand class number */
 
-static	short	validea[] =
+static	int16_t	validea[] =
 {
 	0,						/* none */
 	Pdec,						/* EAPI */
@@ -367,10 +367,10 @@ typedef	struct inst	Inst;
 
 struct optable
 {
-	ushort	opcode;
-	ushort	mask0;
-	ushort	op2;
-	ushort	mask1;
+	uint16_t	opcode;
+	uint16_t	mask0;
+	uint16_t	op2;
+	uint16_t	mask1;
 	char	opdata[2];
 	char	*format;
 };
@@ -378,12 +378,12 @@ struct optable
 struct	operand
 {
 	int	eatype;
-	short	ext;
+	int16_t	ext;
 	union {
-		long	immediate;	/* sign-extended integer byte/word/long */
+		int32_t	immediate;	/* sign-extended integer byte/word/long */
 		struct	{		/* index mode displacements */
-			long	disp;
-			long	outer;
+			int32_t	disp;
+			int32_t	outer;
 		};
 		char	floater[24];	/* floating point immediates */
 	};
@@ -392,8 +392,8 @@ struct	operand
 struct	inst
 {
 	int	n;		/* # bytes in instruction */
-	uvlong	addr;		/* addr of start of instruction */
-	ushort	raw[4+12];	/* longest instruction: 24 byte packed immediate */
+	uint64_t	addr;		/* addr of start of instruction */
+	uint16_t	raw[4+12];	/* longest instruction: 24 byte packed immediate */
 	Operand	and[2];
 	char	*end;		/* end of print buffer */
 	char	*curr;		/* current fill point in buffer */
@@ -917,7 +917,7 @@ dumpinst(Inst *ip, char *buf, int n)
 }
 
 static int
-getword(Inst *ip, uvlong offset)
+getword(Inst *ip, uint64_t offset)
 {
 	if (ip->n < nelem(ip->raw)) {
 		if (get2(mymap, offset, &ip->raw[ip->n++]) > 0)
@@ -932,7 +932,7 @@ static int
 getshorts(Inst *ip, void *where, int n)
 {
 	if (ip->n+n < nelem(ip->raw)) {
-		if (get1(mymap, ip->addr+ip->n*2, (uchar*)&ip->raw[ip->n], n*2) < 0) {
+		if (get1(mymap, ip->addr+ip->n*2, (uint8_t*)&ip->raw[ip->n], n*2) < 0) {
 			werrstr("can't read instruction: %r");
 			return 0;
 		}
@@ -945,7 +945,7 @@ getshorts(Inst *ip, void *where, int n)
 }
 
 static int
-i8(Inst *ip, long *l)
+i8(Inst *ip, int32_t *l)
 {
 	if (getword(ip, ip->addr+ip->n*2) < 0)
 		return -1;
@@ -956,7 +956,7 @@ i8(Inst *ip, long *l)
 }
 
 static int
-i16(Inst *ip, long *l)
+i16(Inst *ip, int32_t *l)
 {
 	if (getword(ip, ip->addr+ip->n*2) < 0)
 		return -1;
@@ -966,7 +966,7 @@ i16(Inst *ip, long *l)
 	return 1;
 }
 static int
-i32(Inst *ip, long *l)
+i32(Inst *ip, int32_t *l)
 {
 	if (getword(ip, ip->addr+ip->n*2) < 0)
 		return -1;
@@ -1038,7 +1038,7 @@ getimm(Inst *ip, Operand *ap, int mode)
 static int
 getdisp(Inst *ip, Operand *ap)
 {
-	short ext;
+	int16_t ext;
 
 	if (getword(ip, ip->addr+ip->n*2) < 0)
 		return -1;
@@ -1178,7 +1178,7 @@ decode(Inst *ip, Optable *op)
 {
 	int i, t, mode;
 	Operand *ap;
-	short opcode;
+	int16_t opcode;
 
 	opcode = ip->raw[0];
 	for (i = 0; i < nelem(op->opdata) && op->opdata[i]; i++) {
@@ -1280,7 +1280,7 @@ decode(Inst *ip, Optable *op)
 static Optable *
 instruction(Inst *ip)
 {
-	ushort opcode, op2;
+	uint16_t opcode, op2;
 	Optable *op;
 	int class;
 
@@ -1326,8 +1326,8 @@ static void
 plocal(Inst *ip, Operand *ap)
 {
 	int ret;
-	long offset;
-	uvlong moved;
+	int32_t offset;
+	uint64_t moved;
 	Symbol s;
 
 	offset = ap->disp;
@@ -1401,7 +1401,7 @@ pidx(Inst *ip, int ext, int reg, char *bfmt, char *ifmt, char *nobase)
 static void
 prindex(Inst *ip, int reg, Operand *ap)
 {
-	short ext;
+	int16_t ext;
 	int left;
 	int disp;
 
@@ -1616,7 +1616,7 @@ static	char sztab[] =		{'?', 'B', 'W', 'L', '?' };
 static	void
 formatins(char *fmt, Inst *ip)
 {
-	short op, w1;
+	int16_t op, w1;
 	int r1, r2;
 	int currand;
 
@@ -1793,7 +1793,7 @@ formatins(char *fmt, Inst *ip)
 static int
 dispsize(Inst *ip)
 {
-	ushort ext;
+	uint16_t ext;
 	static int dsize[] = {0, 0, 1, 2};	/* in words */
 
 	if (get2(mymap, ip->addr+ip->n*2, &ext) < 0)
@@ -1865,7 +1865,7 @@ static int
 instrsize(Inst *ip, Optable *op)
 {
 	int i, t, mode;
-	short opcode;
+	int16_t opcode;
 
 	opcode = ip->raw[0];
 	for (i = 0; i < nelem(op->opdata) && op->opdata[i]; i++) {
@@ -1991,7 +1991,7 @@ eaval(Inst *ip, Operand *ap, Rgetter rget)
 }
 
 static int
-m68020instlen(Map *map, uvlong pc)
+m68020instlen(Map *map, uint64_t pc)
 {
 	Inst i;
 	Optable *op;
@@ -2006,11 +2006,11 @@ m68020instlen(Map *map, uvlong pc)
 }
 
 static int
-m68020foll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
+m68020foll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
 	int j;
 	Inst i;
-	ulong l;
+	uint32_t l;
 	Optable *op;
 
 	mymap = map;
@@ -2045,7 +2045,7 @@ m68020foll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
 }
 
 static int
-m68020inst(Map *map, uvlong pc, char modifier, char *buf, int n)
+m68020inst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	Inst i;
 	Optable *op;
@@ -2071,7 +2071,7 @@ m68020inst(Map *map, uvlong pc, char modifier, char *buf, int n)
 }
 
 static int
-m68020das(Map *map, uvlong pc, char *buf, int n)
+m68020das(Map *map, uint64_t pc, char *buf, int n)
 {
 	Inst i;
 	Optable *op;

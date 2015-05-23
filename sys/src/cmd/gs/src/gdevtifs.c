@@ -118,7 +118,8 @@ int
 gdev_tiff_begin_page(gx_device_printer * pdev, gdev_tiff_state * tifs,
 		     FILE * fp,
 		     const TIFF_dir_entry * entries, int entry_count,
-		     const byte * values, int value_size, long max_strip_size)
+		     const byte * values, int value_size,
+                     int32_t max_strip_size)
 {
     gs_memory_t *mem = pdev->memory;
     TIFF_std_directory_entries std_entries;
@@ -314,7 +315,7 @@ int
 gdev_tiff_end_page(gdev_tiff_state * tifs, FILE * fp)
 {
     gs_memory_t *mem = tifs->mem;
-    long dir_off = tifs->dir_off;
+    int32_t dir_off = tifs->dir_off;
     int tags_size = tifs->ntags * sizeof(TIFF_dir_entry);
 
     tifs->prev_dir =

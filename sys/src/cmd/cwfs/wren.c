@@ -19,9 +19,9 @@ enum { Sectorsz = 512, };		/* usual disk sector size */
 typedef	struct	Wren	Wren;
 struct	Wren
 {
-	long	block;			/* size of a block -- from config */
+	int32_t	block;			/* size of a block -- from config */
 	Devsize	nblock;			/* number of blocks -- from config */
-	long	mult;			/* multiplier to get physical blocks */
+	int32_t	mult;			/* multiplier to get physical blocks */
 	Devsize	max;			/* number of logical blocks */
 
 //	char	*sddir;			/* /dev/sdXX name */
@@ -100,7 +100,7 @@ wrenread(Device *d, Off b, void *c)
 	if(b >= dr->max) {
 		print("wrenread: block out of range %Z(%lld)\n", d, (Wideoff)b);
 		r = 0x040;
-	} else if (pread(d->wren.fd, c, RBUFSIZE, (vlong)b*RBUFSIZE) != RBUFSIZE) {
+	} else if (pread(d->wren.fd, c, RBUFSIZE, (int64_t)b*RBUFSIZE) != RBUFSIZE) {
 		print("wrenread: error on %Z(%lld): %r\n", d, (Wideoff)b);
 		cons.nwrenre++;
 		r = 1;
@@ -120,7 +120,7 @@ wrenwrite(Device *d, Off b, void *c)
 		print("wrenwrite: block out of range %Z(%lld)\n",
 			d, (Wideoff)b);
 		r = 0x040;
-	} else if (pwrite(d->wren.fd, c, RBUFSIZE, (vlong)b*RBUFSIZE) != RBUFSIZE) {
+	} else if (pwrite(d->wren.fd, c, RBUFSIZE, (int64_t)b*RBUFSIZE) != RBUFSIZE) {
 		print("wrenwrite: error on %Z(%lld): %r\n", d, (Wideoff)b);
 		cons.nwrenwe++;
 		r = 1;

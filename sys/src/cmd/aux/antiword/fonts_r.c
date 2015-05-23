@@ -195,7 +195,7 @@ tOpenTableFont(USHORT usWordFontSize)
  *
  * Returns the string width in millipoints
  */
-long
+int32_t
 lComputeStringWidth(const char *szString, size_t tStringLength,
 	drawfile_fontref tFontRef, USHORT usFontSize)
 {
@@ -224,7 +224,7 @@ lComputeStringWidth(const char *szString, size_t tStringLength,
 	tStr.term = tStringLength;
 	e = Font_StringWidth(&tStr);
 	if (e == NULL) {
-		return (long)tStr.x;
+		return (int32_t)tStr.x;
 	}
 	DBG_DEC(e->errnum);
 	DBG_MSG(e->errmess);

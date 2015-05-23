@@ -20,11 +20,11 @@
 
 #ifndef _CLOCK_T
 #define _CLOCK_T
-typedef long clock_t;
+typedef int32_t clock_t;
 #endif
 #ifndef _TIME_T
 #define _TIME_T
-typedef long time_t;
+typedef int32_t time_t;
 #endif
 
 struct tm {

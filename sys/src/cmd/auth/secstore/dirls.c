@@ -13,11 +13,11 @@
 #include <libsec.h>
 #include "SConn.h"
 
-static long
+static int32_t
 ls(char *p, Dir **dirbuf)
 {
 	int fd;
-	long n;
+	int32_t n;
 	Dir *db;
 
 	if((db = dirstat(p)) == nil ||
@@ -30,13 +30,13 @@ ls(char *p, Dir **dirbuf)
 	return n;
 }
 
-static uchar*
+static uint8_t*
 sha1file(char *pfx, char *nm)
 {
 	int n, fd, len;
 	char *tmp;
-	uchar buf[8192];
-	static uchar digest[SHA1dlen];
+	uint8_t buf[8192];
+	static uint8_t digest[SHA1dlen];
 	DigestState *s;
 
 	len = strlen(pfx)+1+strlen(nm)+1;
@@ -67,7 +67,7 @@ dirls(char *path)
 {
 	char *list, *date, dig[30], buf[128];
 	int m, nmwid, lenwid;
-	long i, n, ndir, len;
+	int32_t i, n, ndir, len;
 	Dir *dirbuf;
 
 	if(path==nil || (ndir = ls(path, &dirbuf)) < 0)

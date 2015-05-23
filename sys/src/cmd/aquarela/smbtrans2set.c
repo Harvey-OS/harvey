@@ -13,15 +13,15 @@ SmbProcessResult
 smbtrans2setfileinformation(SmbSession *s, SmbHeader *h)
 {
 	SmbTree *t;
-	ushort infolevel;
+	uint16_t infolevel;
 	SmbBuffer *b;
 	SmbProcessResult pr;
-	ushort fid;
+	uint16_t fid;
 	SmbFile *f;
-	vlong newsize;
-	uvlong atime, mtime;
-	ulong attr;
-	ulong mode;
+	int64_t newsize;
+	uint64_t atime, mtime;
+	uint32_t attr;
+	uint32_t mode;
 
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {
@@ -115,13 +115,13 @@ smbtrans2setpathinformation(SmbSession *s, SmbHeader *h)
 {
 	char *fullpath, *path;
 	SmbTree *t;
-	ushort infolevel;
+	uint16_t infolevel;
 	SmbBuffer *b;
 	SmbProcessResult pr;
-	ushort atime, adate, mtime, mdate;
-	ulong attr;
-	ulong mode;
-	ulong size;
+	uint16_t atime, adate, mtime, mdate;
+	uint32_t attr;
+	uint32_t mode;
+	uint32_t size;
 //	uvlong length;
 
 	t = smbidmapfind(s->tidmap, h->tid);

@@ -61,7 +61,8 @@ struct State
 	int sigresp;
 };
 
-static mpint* mkdigest(RSApub *key, char *hashalg, uchar *hash, uint dlen);
+static mpint* mkdigest(RSApub *key, char *hashalg, uint8_t *hash,
+		       uint dlen);
 
 static RSApriv*
 readrsapriv(Key *k)
@@ -97,7 +98,7 @@ Error:
 }
 
 static int
-rsainit(Proto*, Fsstate *fss)
+rsainit(Proto* p, Fsstate *fss)
 {
 	Keyinfo ki;
 	State *s;
@@ -170,9 +171,9 @@ rsaread(Fsstate *fss, void *va, uint *n)
 		if(len > *n)
 			return failure(fss, "signature buffer too short");
 		m = rsadecrypt(priv, s->digest, nil);
-		r = mptobe(m, (uchar*)va, len, nil);
+		r = mptobe(m, (uint8_t*)va, len, nil);
 		if(r < len){
-			memmove((uchar*)va+len-r, va, r);
+			memmove((uint8_t*)va+len-r, va, r);
 			memset(va, 0, len-r);
 		}
 		*n = len;
@@ -234,7 +235,7 @@ rsawrite(Fsstate *fss, void *va, uint n)
 			return failure(fss, "hash length %d should be %d",
 				n, dlen);
 		priv = s->key->priv;
-		s->digest = mkdigest(&priv->pub, hash, (uchar *)va, n);
+		s->digest = mkdigest(&priv->pub, hash, (uint8_t *)va, n);
 		if(s->digest == nil)
 			return failure(fss, nil);
 		if(fss->phase == VNeedHash)
@@ -244,7 +245,7 @@ rsawrite(Fsstate *fss, void *va, uint n)
 		return RpcOk;
 	case VNeedSig:
 		priv = s->key->priv;
-		m = betomp((uchar*)va, n, nil);
+		m = betomp((uint8_t*)va, n, nil);
 		mm = rsaencrypt(&priv->pub, m, nil);
 		s->sigresp = mpcmp(s->digest, mm);
 		mpfree(m);
@@ -317,9 +318,9 @@ Proto rsa = {
 	(((x)>>14)&0x7F)|0x80, \
 	(((x)>> 7)&0x7F)|0x80, \
 	((x)&0x7F)
-uchar oidsha1[] = { O0(1, 3), 14, 3, 2, 26 };
-uchar oidmd2[] = { O0(1, 2), O2(840), O3(113549), 2, 2 };
-uchar oidmd5[] = { O0(1, 2), O2(840), O3(113549), 2, 5 };
+uint8_t oidsha1[] = { O0(1, 3), 14, 3, 2, 26 };
+uint8_t oidmd2[] = { O0(1, 2), O2(840), O3(113549), 2, 2 };
+uint8_t oidmd5[] = { O0(1, 2), O2(840), O3(113549), 2, 5 };
 
 /*
  *	DigestInfo ::= SEQUENCE {
@@ -337,9 +338,9 @@ uchar oidmd5[] = { O0(1, 2), O2(840), O3(113549), 2, 5 };
  * instead.  Sigh.
  */
 static int
-mkasn1(uchar *asn1, char *alg, uchar *d, uint dlen)
+mkasn1(uint8_t *asn1, char *alg, uint8_t *d, uint dlen)
 {
-	uchar *obj, *p;
+	uint8_t *obj, *p;
 	uint olen;
 
 	if(strcmp(alg, "sha1") == 0){
@@ -380,10 +381,10 @@ mkasn1(uchar *asn1, char *alg, uchar *d, uint dlen)
 }
 
 static mpint*
-mkdigest(RSApub *key, char *hashalg, uchar *hash, uint dlen)
+mkdigest(RSApub *key, char *hashalg, uint8_t *hash, uint dlen)
 {
 	mpint *m;
-	uchar asn1[512], *buf;
+	uint8_t asn1[512], *buf;
 	int len, n, pad;
 
 	/*

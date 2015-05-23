@@ -33,7 +33,8 @@ dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
 }
 
 int
-auth_respond(void *chal, uint nchal, char *user, uint nuser, void *resp, uint nresp, AuthGetkey *getkey, char *fmt, ...)
+auth_respond(void *chal, uint nchal, char *user, uint nuser, void *resp,
+	     uint nresp, AuthGetkey *getkey, char *fmt, ...)
 {
 	char *p, *s;
 	va_list arg;

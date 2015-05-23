@@ -152,7 +152,7 @@ static struct tbl *intvar   ARGS((Expr_state *es, struct tbl *vp));
 int
 evaluate(expr, rval, error_ok)
 	const char *expr;
-	long *rval;
+	int32_t *rval;
 	int error_ok;
 {
 	struct tbl v;

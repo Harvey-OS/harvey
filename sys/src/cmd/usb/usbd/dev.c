@@ -28,7 +28,7 @@ extern Devtab devtab[];
 static char* cputype;
 
 int
-getdevnb(uvlong *maskp)
+getdevnb(uint64_t *maskp)
 {
 	int i;
 
@@ -44,7 +44,7 @@ getdevnb(uvlong *maskp)
 }
 
 void
-putdevnb(uvlong *maskp, int id)
+putdevnb(uint64_t *maskp, int id)
 {
 	lock(&masklck);
 	if(id >= 0)

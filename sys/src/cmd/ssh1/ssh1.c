@@ -257,7 +257,7 @@ fromnet(Conn *c)
 {
 	int fd, len;
 	char *s, *es, *r, *w;
-	ulong ex;
+	uint32_t ex;
 	char buf[64];
 	Msg *m;
 
@@ -374,7 +374,7 @@ static int
 menu(Conn *c)
 {
 	char buf[1024];
-	long n;
+	int32_t n;
 	int done;
 	int wasraw;
 

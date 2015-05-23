@@ -31,7 +31,8 @@ print_header(Biobuf *fp, char *sender, char *date)
 
 /* output a unix style remote header */
 int
-print_remote_header(Biobuf *fp, char *sender, char *date, char *system)
+print_remote_header(Biobuf *fp, char *sender, char *date,
+		    char *system)
 {
 	return Bprint(fp, "From %s %s remote from %s\n", sender, date, system);
 }

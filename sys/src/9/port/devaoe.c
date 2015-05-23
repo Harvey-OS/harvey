@@ -8,8 +8,8 @@
  */
 
 /*
- *	© 2005-2010 coraid
- *	ATA-over-Ethernet (AoE) storage initiator
+ *	© 2005-7 coraid
+ *	aoe storage initiator
  */
 
 #include "u.h"
@@ -17,18 +17,18 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "io.h"
-#include "ureg.h"
 #include "../port/error.h"
+
 #include "../port/netif.h"
-#include "etherif.h"
 #include "../ip/ip.h"
-#include "../port/aoe.h"
+
+#include "etherif.h"
+#include "aoe.h"
 
 #pragma	varargck argpos	eventlog	1
 
 #define dprint(...)	if(debug) eventlog(__VA_ARGS__); else USED(debug);
-#define uprint(...)	snprint(up->genbuf, sizeof up->genbuf, __VA_ARGS__);
+#define uprint(...)	snprint(m->externup->genbuf, sizeof m->externup->genbuf, __VA_ARGS__);
 
 enum {
 	Maxunits	= 0xff,
@@ -36,21 +36,20 @@ enum {
 	Ndevlink	= 6,
 	Nea		= 6,
 	Nnetlink	= 6,
+
+//	ETHERMINTU	= 60,		/* minimum transmit size */
+//	ETHERMAXTU	= 1514,		/* maximum transmit size */
 };
 
-#define TYPE(q)		((ulong)(q).path & 0xf)
-#define UNIT(q)		(((ulong)(q).path>>4) & 0xff)
-#define L(q)		(((ulong)(q).path>>12) & 0xf)
+#define TYPE(q)		((uint32_t)(q).path & 0xf)
+#define UNIT(q)		(((uint32_t)(q).path>>4) & 0xff)
+#define L(q)		(((uint32_t)(q).path>>12) & 0xf)
 #define QID(u, t) 	((u)<<4 | (t))
 #define Q3(l, u, t)	((l)<<8 | QID(u, t))
 #define UP(d)		((d)->flag & Dup)
-/*
- * would like this to depend on the chan (srb).
- * not possible in the current structure.
- */
-#define Nofail(d, s)	((d)->flag & Dnofail)
 
-#define	MS2TK(t)	((t)/MS2HZ)
+#define	Ms2tk(t)	(((t)*HZ)/1000)
+#define	Tk2ms(t)	(((t)*1000)/HZ)
 
 enum {
 	Qzero,
@@ -76,22 +75,17 @@ enum {
 	Qdevlinkfiles	= Qdevlinkend-Qdevlinkbase,
 
 	Eventlen 	= 256,
-	Nevents 	= 64,			/* must be power of 2 */
+	Nevents 	= 64,
 
 	Fread		= 0,
 	Fwrite,
 	Tfree		= -1,
 	Tmgmt,
 
-	/*
-	 * round trip bounds, timeouts, in ticks.
-	 * timeouts should be long enough that rebooting
-	 * the coraid (which usually takes under two minutes)
-	 * doesn't trigger a timeout.
-	 */
-	Rtmax		= MS2TK(320),
-	Rtmin		= MS2TK(20),
-	Maxreqticks	= 4*60*HZ,		/* was 45*HZ */
+	/* round trip bounds, timeouts, in ticks */
+	Rtmax		= Ms2tk(320),
+	Rtmin		= Ms2tk(20),
+	Srbtimeout	= 4*60*HZ,
 
 	Dbcnt		= 1024,
 
@@ -124,7 +118,6 @@ enum {
 	/* aoe specific */
 	Dup	= 1<<6,
 	Djumbo	= 1<<7,
-	Dnofail	= 1<<8,
 };
 
 static char *flagname[] = {
@@ -137,42 +130,40 @@ static char *flagname[] = {
 
 	"up",
 	"jumbo",
-	"nofail",
 };
 
 typedef struct {
-	ushort	flag;
-	uint	lostjumbo;
+	uint8_t	flag;
+	uint8_t	lostjumbo;
 	int	datamtu;
 
 	Chan	*cc;
 	Chan	*dc;
 	Chan	*mtu;		/* open early to prevent bind issues. */
 	char	path[Maxpath];
-	uchar	ea[Eaddrlen];
+	uint8_t	ea[Eaddrlen];
 } Netlink;
 
 typedef struct {
 	Netlink	*nl;
 	int	nea;
-	ulong	eaidx;
-	uchar	eatab[Nea][Eaddrlen];
-	ulong	npkt;
-	ulong	resent;
-	ushort	flag;
+	uint32_t	eaidx;
+	uint8_t	eatab[Nea][Eaddrlen];
+	uint32_t	npkt;
+	uint32_t	resent;
+	uint8_t	flag;
 
-	ulong	rttavg;
-	ulong	mintimer;
+	uint32_t	rttavg;
+	uint32_t	mintimer;
 } Devlink;
 
 typedef struct Srb Srb;
 struct Srb {
 	Rendez;
 	Srb	*next;
-	int	shared;	/* Srb shared with kproc (don't free) */
-	ulong	ticksent;
-	ulong	len;
-	vlong	sector;
+	uint32_t	ticksent;
+	uint32_t	len;
+	int64_t	sector;
 	short	write;
 	short	nout;
 	char	*error;
@@ -182,12 +173,12 @@ struct Srb {
 
 typedef struct {
 	int	tag;
-	ulong	bcnt;
-	ulong	dlen;
-	vlong	lba;
-	ulong	ticksent;
+	uint32_t	bcnt;
+	uint32_t	dlen;
+	int64_t	lba;
+	uint32_t	ticksent;
 	int	nhdr;
-	uchar	hdr[ETHERMINTU];
+	uint8_t	hdr[ETHERMINTU];
 	void	*dp;
 	Devlink	*dl;
 	Netlink	*nl;
@@ -200,15 +191,15 @@ struct Aoedev {
 	QLock;
 	Aoedev	*next;
 
-	ulong	vers;
+	uint32_t	vers;
 
 	int	ndl;
-	ulong	dlidx;
+	uint32_t	dlidx;
 	Devlink	*dl;
 	Devlink	dltab[Ndevlink];
 
-	ushort	fwver;
-	ushort	flag;
+	uint16_t	fwver;
+	unsigned char	flag;
 	int	nopen;
 	int	major;
 	int	minor;
@@ -216,15 +207,16 @@ struct Aoedev {
 	int	lasttag;
 	int	nframes;
 	Frame	*frames;
-	vlong	bsize;
-	vlong	realbsize;
+	int64_t	bsize;
+	int64_t	realbsize;
 
 	uint	maxbcnt;
-	ushort	nout;
-	ushort	maxout;
-	ulong	lastwadj;
-	Srb	*head;
-	Srb	*tail;
+	uint32_t	lostjumbo;
+	uint16_t	nout;
+	uint16_t	maxout;
+	uint32_t	lastwadj;
+	Srb	*_head;
+	Srb	*_tail;
 	Srb	*inprocess;
 
 	/* magic numbers 'R' us */
@@ -232,8 +224,8 @@ struct Aoedev {
 	char	firmware[8+1];
 	char	model[40+1];
 	int	nconfig;
-	uchar	config[1024];
-	uchar	ident[512];
+	unsigned char	config[1024];
+	unsigned char	ident[512];
 };
 
 #pragma	varargck type	"æ"	Aoedev*
@@ -241,7 +233,7 @@ struct Aoedev {
 static struct {
 	Lock;
 	QLock;
-	Rendez;
+	Rendez	_rendez;
 	char	buf[Eventlen*Nevents];
 	char	*rp;
 	char	*wp;
@@ -267,48 +259,39 @@ static int	debug;
 static int	autodiscover	= 1;
 static int	rediscover;
 
+char 	Enotup[] 	= "aoe device is down";
+char	Echange[]	= "media or partition has changed";
+
 static Srb*
-srballoc(ulong sz)
+srballoc(uint32_t sz)
 {
 	Srb *srb;
 
 	srb = malloc(sizeof *srb+sz);
-	if(srb == nil)
-		error(Enomem);
 	srb->dp = srb->data = srb+1;
-	srb->ticksent = MACHP(0)->ticks;
-	srb->shared = 0;
+	srb->ticksent = sys->ticks;
 	return srb;
 }
 
 static Srb*
-srbkalloc(void *db, ulong)
+srbkalloc(void *db, uint32_t n)
 {
 	Srb *srb;
 
 	srb = malloc(sizeof *srb);
-	if(srb == nil)
-		error(Enomem);
 	srb->dp = srb->data = db;
-	srb->ticksent = MACHP(0)->ticks;
-	srb->shared = 0;
+	srb->ticksent = sys->ticks;
 	return srb;
 }
 
-static void
-srbfree(Srb *srb)
-{
-	while(srb->shared)
-		sched();
-	free(srb);
-}
+#define srbfree(srb) free(srb)
 
 static void
 srberror(Srb *srb, char *s)
 {
 	srb->error = s;
 	srb->nout--;
-	if(srb->nout == 0)
+	if (srb->nout == 0)
 		wakeup(srb);
 }
 
@@ -329,19 +312,23 @@ frameerror(Aoedev *d, Frame *f, char *s)
 static char*
 unitname(Aoedev *d)
 {
+	Mach *m = machp();
 	uprint("%d.%d", d->major, d->minor);
-	return up->genbuf;
+	return m->externup->genbuf;
 }
 
+#if 0
 static int
-eventlogready(void*)
+eventlogready(void* v)
 {
 	return *events.rp;
 }
+#endif
 
-static long
-eventlogread(void *a, long n)
+static int32_t
+eventlogread(void *a, int32_t n)
 {
+	Mach *m = machp();
 	int len;
 	char *p, *buf;
 
@@ -397,7 +384,7 @@ eventlog(char *fmt, ...)
 	if(dragrp)
 		events.rp = p;
 	unlock(&events);
-	wakeup(&events);
+	wakeup(&events._rendez);
 	return n;
 }
 
@@ -409,8 +396,10 @@ eventcount(void)
 	lock(&events);
 	if(*events.rp == 0)
 		n = 0;
+	else if(events.wp < events.rp)
+		n = Nevents - (events.rp - events.wp);
 	else
-		n = (events.wp - events.rp) & (Nevents - 1);
+		n = events.wp - events.rp;
 	unlock(&events);
 	return n/Eventlen;
 }
@@ -420,7 +409,7 @@ tsince(int tag)
 {
 	int n;
 
-	n = MACHP(0)->ticks & 0xffff;
+	n = sys->ticks & 0xffff;
 	n -= tag & 0xffff;
 	if(n < 0)
 		n += 1<<16;
@@ -434,7 +423,7 @@ newtag(Aoedev *d)
 
 	do {
 		t = ++d->lasttag << 16;
-		t |= MACHP(0)->ticks & 0xffff;
+		t |= sys->ticks & 0xffff;
 	} while (t == Tfree || t == Tmgmt);
 	return t;
 }
@@ -448,7 +437,7 @@ downdev(Aoedev *d, char *err)
 	f = d->frames;
 	e = f + d->nframes;
 	for(; f < e; f->tag = Tfree, f->srb = nil, f++)
-		frameerror(d, f, Eaoedown);
+		frameerror(d, f, Enotup);
 	d->inprocess = nil;
 	eventlog("%æ: removed; %s\n", d, err);
 }
@@ -471,9 +460,9 @@ allocfb(Frame *f)
 }
 
 static void
-putlba(Aoeata *a, vlong lba)
+putlba(Aoeata *a, int64_t lba)
 {
-	uchar *c;
+	uint8_t *c;
 
 	c = a->lba;
 	c[0] = lba;
@@ -487,7 +476,7 @@ putlba(Aoeata *a, vlong lba)
 static Devlink*
 pickdevlink(Aoedev *d)
 {
-	ulong i, n;
+	uint32_t i, n;
 	Devlink *l;
 
 	for(i = 0; i < d->ndl; i++){
@@ -515,19 +504,15 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 	int i;
 	Devlink *l;
 
-	if(f->srb && MACHP(0)->ticks - f->srb->ticksent > Maxreqticks){
-		eventlog("%æ: srb timeout\n", d);
-		if(cmd == ACata && f->srb && Nofail(d, s))
-			f->srb->ticksent = MACHP(0)->ticks;
-		else
-			frameerror(d, f, Etimedout);
-		return -1;
-	}
 	l = pickdevlink(d);
 	i = pickea(l);
 	if(i == -1){
-		if(cmd != ACata || f->srb == nil || !Nofail(d, s))
-			downdev(d, "resend fails; no netlink/ea");
+		downdev(d, "resend fails; no netlink/ea");
+		return -1;
+	}
+	if(f->srb && sys->ticks - f->srb->ticksent > Srbtimeout){
+		eventlog("%æ: srb timeout\n", d);
+		frameerror(d, f, Etimedout);
 		return -1;
 	}
 	memmove(h->dst, l->eatab[i], Eaddrlen);
@@ -543,7 +528,7 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 	f->dl = l;
 	f->nl = l->nl;
 	f->eaidx = i;
-	f->ticksent = MACHP(0)->ticks;
+	f->ticksent = sys->ticks;
 
 	return f->tag;
 }
@@ -551,7 +536,8 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 static int
 resend(Aoedev *d, Frame *f)
 {
-	ulong n;
+	Mach *m = machp();
+	uint32_t n;
 	Aoeata *a;
 
 	a = (Aoeata*)f->hdr;
@@ -568,7 +554,7 @@ resend(Aoedev *d, Frame *f)
 	f->dl->npkt++;
 	if(waserror())
 		return -1;
-	devtab[f->nl->dc->type]->bwrite(f->nl->dc, allocfb(f), 0);
+	f->nl->dc->dev->bwrite(f->nl->dc, allocfb(f), 0);
 	poperror();
 	return 0;
 }
@@ -576,6 +562,7 @@ resend(Aoedev *d, Frame *f)
 static void
 discover(int major, int minor)
 {
+	Mach *m = machp();
 	Aoehdr *h;
 	Block *b;
 	Netlink *nl, *e;
@@ -602,7 +589,7 @@ discover(int major, int minor)
 		h->cmd = ACconfig;
 		poperror();
 		/* send b down the queue */
-		devtab[nl->dc->type]->bwrite(nl->dc, b, 0);
+		nl->dc->dev->bwrite(nl->dc, b, 0);
 	}
 }
 
@@ -611,12 +598,13 @@ discover(int major, int minor)
  * outstanding for 200% of the device round trip time average.
  */
 static void
-aoesweepproc(void*)
+aoesweepproc(void* v)
 {
-	ulong i, tx, timeout, nbc;
-	vlong starttick;
-	enum { Nms = 100, Nbcms = 30*1000, };		/* magic */
-	uchar *ea;
+	Mach *m = machp();
+	uint32_t i, tx, timeout, nbc;
+	int64_t starttick;
+	enum { Nms = 100, Nbcms = 30*1000, };
+	uint8_t *ea;
 	Aoeata *a;
 	Aoedev *d;
 	Devlink *l;
@@ -631,7 +619,7 @@ loop:
 		}
 		nbc = Nbcms/Nms;
 	}
-	starttick = MACHP(0)->ticks;
+	starttick = sys->ticks;
 	rlock(&devs);
 	for(d = devs.d; d; d = d->next){
 		if(!canqlock(d))
@@ -654,7 +642,7 @@ loop:
 			if(d->nout == d->maxout){
 				if(d->maxout > 1)
 					d->maxout--;
-				d->lastwadj = MACHP(0)->ticks;
+				d->lastwadj = sys->ticks;
 			}
 			a = (Aoeata*)f->hdr;
 			if(a->scnt > Dbcnt / Aoesectsz &&
@@ -669,27 +657,27 @@ loop:
 			if(tx++ == 0){
 				if((l->rttavg <<= 1) > Rtmax)
 					l->rttavg = Rtmax;
-				eventlog("%æ: rtt %ldms\n", d, TK2MS(l->rttavg));
+				eventlog("%æ: rtt %ldms\n", d, Tk2ms(l->rttavg));
 			}
 		}
 		if(d->nout == d->maxout && d->maxout < d->nframes &&
-		   TK2MS(MACHP(0)->ticks - d->lastwadj) > 10*1000){ /* more magic */
+		   TK2MS(sys->ticks - d->lastwadj) > 10*1000){
 			d->maxout++;
-			d->lastwadj = MACHP(0)->ticks;
+			d->lastwadj = sys->ticks;
 		}
 		qunlock(d);
 	}
 	runlock(&devs);
-	i = Nms - TK2MS(MACHP(0)->ticks - starttick);
+	i = Nms - TK2MS(sys->ticks - starttick);
 	if(i > 0)
-		tsleep(&up->sleep, return0, 0, i);
+		tsleep(&m->externup->sleep, return0, 0, i);
 	goto loop;
 }
 
 static int
-fmtæ(Fmt *f)
+fmta(Fmt *f)
 {
-	char buf[16];
+	char buf[8];
 	Aoedev *d;
 
 	d = va_arg(f->args, Aoedev*);
@@ -702,11 +690,12 @@ static void netbind(char *path);
 static void
 aoecfg(void)
 {
+	Mach *m = machp();
 	int n, i;
 	char *p, *f[32], buf[24];
 
-	if((p = getconf("aoeif")) == nil || (n = tokenize(p, f, nelem(f))) < 1)
-		return;
+	// if((p = getconf("aoeif")) == nil || (n = tokenize(p, f, nelem(f))) < 1)
+	return;
 	/* goo! */
 	for(i = 0; i < n; i++){
 		p = f[i];
@@ -732,7 +721,7 @@ aoeinit(void)
 	if(!canqlock(&l))
 		return;
 	if(init == 0){
-		fmtinstall(L'æ', fmtæ);
+		fmtinstall(L'a', fmta);
 		events.rp = events.wp = events.buf;
 		kproc("aoesweep", aoesweepproc, nil);
 		aoecfg();
@@ -755,8 +744,9 @@ aoeattach(char *spec)
 }
 
 static Aoedev*
-unit2dev(ulong unit)
+unit2dev(uint32_t unit)
 {
+	Mach *m = machp();
 	int i;
 	Aoedev *d;
 
@@ -768,17 +758,17 @@ unit2dev(ulong unit)
 			return d;
 		}
 	runlock(&devs);
-	uprint("unit lookup failure: %lux pc %#p", unit, getcallerpc(&unit));
-	error(up->genbuf);
+	uprint("unit lookup failure: %lux pc %p", unit, getcallerpc(&unit));
+	error(m->externup->genbuf);
 	return nil;
 }
 
 static int
-unitgen(Chan *c, ulong type, Dir *dp)
+unitgen(Chan *c, uint32_t type, Dir *dp)
 {
 	int perm, t;
-	ulong vers;
-	vlong size;
+	uint32_t vers;
+	int64_t size;
 	char *p;
 	Aoedev *d;
 	Qid q;
@@ -823,10 +813,10 @@ unitgen(Chan *c, ulong type, Dir *dp)
 }
 
 static int
-topgen(Chan *c, ulong type, Dir *d)
+topgen(Chan *c, uint32_t type, Dir *d)
 {
 	int perm;
-	vlong size;
+	int64_t size;
 	char *p;
 	Qid q;
 
@@ -850,8 +840,9 @@ topgen(Chan *c, ulong type, Dir *d)
 }
 
 static int
-aoegen(Chan *c, char *, Dirtab *, int, int s, Dir *dp)
+aoegen(Chan *c, char *e, Dirtab *dir, int j, int s, Dir *dp)
 {
+	Mach *m = machp();
 	int i;
 	Aoedev *d;
 	Qid q;
@@ -890,7 +881,6 @@ aoegen(Chan *c, char *, Dirtab *, int, int s, Dir *dp)
 			return -1;
 		mkqid(&q, QID(s, Qunitdir), 0, QTDIR);
 		d = unit2dev(s);
-		assert(d != nil);
 		devdir(c, q, unitname(d), 0, eve, 0555, dp);
 		return 1;
 	case Qtopctl:
@@ -900,7 +890,7 @@ aoegen(Chan *c, char *, Dirtab *, int, int s, Dir *dp)
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, Qtopdir), 0, QTDIR);
 			uprint("%uld", UNIT(c->qid));
-			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
+			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
 		return unitgen(c, Qunitbase+s, dp);
@@ -923,12 +913,12 @@ aoegen(Chan *c, char *, Dirtab *, int, int s, Dir *dp)
 			return -1;
 		uprint("%d", s);
 		mkqid(&q, Q3(s, i, Qdevlink), 0, QTFILE);
-		devdir(c, q, up->genbuf, 0, eve, 0755, dp);
+		devdir(c, q, m->externup->genbuf, 0, eve, 0755, dp);
 		return 1;
 	case Qdevlink:
 		uprint("%d", s);
 		mkqid(&q, Q3(s, UNIT(c->qid), Qdevlink), 0, QTFILE);
-		devdir(c, q, up->genbuf, 0, eve, 0755, dp);
+		devdir(c, q, m->externup->genbuf, 0, eve, 0755, dp);
 		return 1;
 	}
 }
@@ -939,8 +929,8 @@ aoewalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, nil, 0, aoegen);
 }
 
-static int
-aoestat(Chan *c, uchar *db, int n)
+static int32_t
+aoestat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, nil, 0, aoegen);
 }
@@ -948,6 +938,7 @@ aoestat(Chan *c, uchar *db, int n)
 static Chan*
 aoeopen(Chan *c, int omode)
 {
+	Mach *m = machp();
 	Aoedev *d;
 
 	if(TYPE(c->qid) != Qdata)
@@ -960,7 +951,7 @@ aoeopen(Chan *c, int omode)
 		nexterror();
 	}
 	if(!UP(d))
-		error(Eaoedown);
+		error(Enotup);
 	c = devopen(c, omode, 0, 0, aoegen);
 	d->nopen++;
 	poperror();
@@ -971,6 +962,7 @@ aoeopen(Chan *c, int omode)
 static void
 aoeclose(Chan *c)
 {
+	Mach *m = machp();
 	Aoedev *d;
 
 	if(TYPE(c->qid) != Qdata || (c->flag&COPEN) == 0)
@@ -988,7 +980,8 @@ aoeclose(Chan *c)
 static void
 atarw(Aoedev *d, Frame *f)
 {
-	ulong bcnt;
+	Mach *m = machp();
+	uint32_t bcnt;
 	char extbit, writebit;
 	Aoeata *ah;
 	Srb *srb;
@@ -1003,10 +996,8 @@ atarw(Aoedev *d, Frame *f)
 	f->nhdr = AOEATASZ;
 	memset(f->hdr, 0, f->nhdr);
 	ah = (Aoeata*)f->hdr;
-	if(hset(d, f, ah, ACata) == -1) {
-		d->inprocess = nil;
+	if(hset(d, f, ah, ACata) == -1)
 		return;
-	}
 	f->dp = srb->dp;
 	f->bcnt = bcnt;
 	f->lba = srb->sector;
@@ -1032,7 +1023,7 @@ atarw(Aoedev *d, Frame *f)
 
 	/* mark tracking fields and load out */
 	srb->nout++;
-	srb->dp = (uchar*)srb->dp + bcnt;
+	srb->dp = (uint8_t*)srb->dp + bcnt;
 	srb->len -= bcnt;
 	srb->sector += bcnt / Aoesectsz;
 	if(srb->len == 0)
@@ -1044,7 +1035,7 @@ atarw(Aoedev *d, Frame *f)
 		d->inprocess = nil;
 		nexterror();
 	}
-	devtab[f->nl->dc->type]->bwrite(f->nl->dc, allocfb(f), 0);
+	f->nl->dc->dev->bwrite(f->nl->dc, allocfb(f), 0);
 	poperror();
 }
 
@@ -1059,7 +1050,6 @@ aoeerror(Aoehdr *h)
 		"aoe protocol error: device unavailable",
 		"aoe protocol error: config string present",
 		"aoe protocol error: unsupported version",
-		"aoe protocol error: target is reserved",
 	};
 
 	if((h->verflag & AFerr) == 0)
@@ -1099,7 +1089,7 @@ srbready(void *v)
 	Srb *s;
 
 	s = v;
-	return s->error || (s->nout == 0 && s->len == 0);
+	return s->error || (!s->nout && !s->len);
 }
 
 static Frame*
@@ -1132,8 +1122,8 @@ work(Aoedev *d)
 		if(d->inprocess == nil){
 			if(d->head == nil)
 				return;
-			d->inprocess = d->head;
-			d->head = d->head->next;
+			d->inprocess = d->_head;
+			d->_head = d->_head->next;
 			if(d->head == nil)
 				d->tail = nil;
 		}
@@ -1144,6 +1134,7 @@ work(Aoedev *d)
 static void
 strategy(Aoedev *d, Srb *srb)
 {
+	Mach *m = machp();
 	qlock(d);
 	if(waserror()){
 		qunlock(d);
@@ -1151,11 +1142,10 @@ strategy(Aoedev *d, Srb *srb)
 	}
 	srb->next = nil;
 	if(d->tail)
-		d->tail->next = srb;
-	d->tail = srb;
-	if(d->head == nil)
-		d->head = srb;
-	srb->shared = 1;
+		d->_tail->next = srb;
+	d->_tail = srb;
+	if(d->_head == nil)
+		d->_head = srb;
 	work(d);
 	poperror();
 	qunlock(d);
@@ -1168,11 +1158,12 @@ strategy(Aoedev *d, Srb *srb)
 
 #define iskaddr(a)	((uintptr)(a) > KZERO)
 
-static long
-rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
+static int32_t
+rw(Aoedev *d, int write, uint8_t *db, int32_t len, uint64_t off)
 {
-	long n, nlen, copy;
-	enum { Srbsz = 1<<19, };	/* magic allocation */
+	Mach *m = machp();
+	int32_t n, nlen, copy;
+	enum { Srbsz = 1<<18, };
 	Srb *srb;
 
 	if((off|len) & (Aoesectsz-1))
@@ -1218,25 +1209,27 @@ rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 	return len;
 }
 
-static long
-readmem(ulong off, void *dst, long n, void *src, long size)
+static int32_t
+readmem(uint32_t off, void *dst, int32_t n, void *src, int32_t size)
 {
 	if(off >= size)
 		return 0;
 	if(off + n > size)
 		n = size - off;
-	memmove(dst, (uchar*)src + off, n);
+	memmove(dst, (uint8_t*)src + off, n);
 	return n;
 }
 
 static char *
-pflag(char *s, char *e, uchar f)
+pflag(char *s, char *e, uint8_t f)
 {
-	uchar i;
+	uint8_t i, m;
 
-	for(i = 0; i < 8; i++)
-		if(f & (1 << i))
+	for(i = 0; i < 8; i++){
+		m = 1 << i;
+		if(f & m)
 			s = seprint(s, e, "%s ", flagname[i]? flagname[i]: "oops");
+	}
 	return seprint(s, e, "\n");
 }
 
@@ -1247,8 +1240,6 @@ pstat(Aoedev *d, char *db, int len, int off)
 	char *state, *s, *p, *e;
 
 	s = p = malloc(READSTR);
-	if(s == nil)
-		error(Enomem);
 	e = p + READSTR;
 
 	state = "down";
@@ -1274,8 +1265,8 @@ pstat(Aoedev *d, char *db, int len, int off)
 	return i;
 }
 
-static long
-unitread(Chan *c, void *db, long len, vlong off)
+static int32_t
+unitread(Chan *c, void *db, int32_t len, int64_t off)
 {
 	Aoedev *d;
 
@@ -1291,11 +1282,11 @@ unitread(Chan *c, void *db, long len, vlong off)
 		return rw(d, Read, db, len, off);
 	case Qconfig:
 		if (!UP(d))
-			error(Eaoedown);
+			error(Enotup);
 		return readmem(off, db, len, d->config, d->nconfig);
 	case Qident:
 		if (!UP(d))
-			error(Eaoedown);
+			error(Enotup);
 		return readmem(off, db, len, d->ident, sizeof d->ident);
 	}
 }
@@ -1315,8 +1306,6 @@ devlinkread(Chan *c, void *db, int len, int off)
 	l = d->dl + i;
 
 	s = p = malloc(READSTR);
-	if(s == nil)
-		error(Enomem);
 	e = s + READSTR;
 
 	p = seprint(p, e, "addr: ");
@@ -1326,8 +1315,8 @@ devlinkread(Chan *c, void *db, int len, int off)
 	p = seprint(p, e, "npkt: %uld\n", l->npkt);
 	p = seprint(p, e, "resent: %uld\n", l->resent);
 	p = seprint(p, e, "flag: "); p = pflag(p, e, l->flag);
-	p = seprint(p, e, "rttavg: %uld\n", TK2MS(l->rttavg));
-	p = seprint(p, e, "mintimer: %uld\n", TK2MS(l->mintimer));
+	p = seprint(p, e, "rttavg: %uld\n", Tk2ms(l->rttavg));
+	p = seprint(p, e, "mintimer: %uld\n", Tk2ms(l->mintimer));
 
 	p = seprint(p, e, "nl path: %s\n", l->nl->path);
 	p = seprint(p, e, "nl ea: %E\n", l->nl->ea);
@@ -1342,16 +1331,14 @@ devlinkread(Chan *c, void *db, int len, int off)
 	return i;
 }
 
-static long
-topctlread(Chan *, void *db, int len, int off)
+static int32_t
+topctlread(Chan *c, void *db, int len, int off)
 {
 	int i;
 	char *s, *p, *e;
 	Netlink *n;
 
 	s = p = malloc(READSTR);
-	if(s == nil)
-		error(Enomem);
 	e = s + READSTR;
 
 	p = seprint(p, e, "debug: %d\n", debug);
@@ -1376,8 +1363,8 @@ topctlread(Chan *, void *db, int len, int off)
 	return i;
 }
 
-static long
-aoeread(Chan *c, void *db, long n, vlong off)
+static int32_t
+aoeread(Chan *c, void *db, int32_t n, int64_t off)
 {
 	switch(TYPE(c->qid)){
 	default:
@@ -1401,24 +1388,22 @@ aoeread(Chan *c, void *db, long n, vlong off)
 	}
 }
 
-static long
-configwrite(Aoedev *d, void *db, long len)
+static int32_t
+configwrite(Aoedev *d, void *db, int32_t len)
 {
+	Mach *m = machp();
 	char *s;
 	Aoeqc *ch;
 	Frame *f;
 	Srb *srb;
 
 	if(!UP(d))
-		error(Eaoedown);
+		error(Enotup);
 	if(len > ETHERMAXTU - AOEQCSZ)
 		error(Etoobig);
 	srb = srballoc(len);
 	s = malloc(len);
-	if(s == nil)
-		error(Enomem);
 	memmove(s, db, len);
-
 	if(waserror()){
 		srbfree(srb);
 		free(s);
@@ -1435,25 +1420,16 @@ configwrite(Aoedev *d, void *db, long len)
 			break;
 		poperror();
 		qunlock(d);
-
 		if(waserror())
 			nexterror();
-		tsleep(&up->sleep, return0, 0, 100);
+		tsleep(&m->externup->sleep, return0, 0, 100);
 		poperror();
 	}
 	f->nhdr = AOEQCSZ;
 	memset(f->hdr, 0, f->nhdr);
 	ch = (Aoeqc*)f->hdr;
-	if(hset(d, f, ch, ACconfig) == -1) {
-		/*
-		 * these refer to qlock & waserror in the above for loop.
-		 * there's still the first waserror outstanding.
-		 */
-		poperror();
-		qunlock(d);
+	if(hset(d, f, ch, ACconfig) == -1)
 		return 0;
-	}
-	srb->shared = 1;
 	f->srb = srb;
 	f->dp = s;
 	ch->verccmd = AQCfset;
@@ -1462,11 +1438,14 @@ configwrite(Aoedev *d, void *db, long len)
 	srb->nout++;
 	f->dl->npkt++;
 	f->dlen = len;
-	/* these too */
+	/*
+	 * these refer to qlock & waserror in the above for loop.
+	 * there's still the first waserror outstanding.
+	 */
 	poperror();
 	qunlock(d);
 
-	devtab[f->nl->dc->type]->bwrite(f->nl->dc, allocfb(f), 0);
+	f->nl->dc->dev->bwrite(f->nl->dc, allocfb(f), 0);
 	sleep(srb, srbready, srb);
 	if(srb->error)
 		error(srb->error);
@@ -1492,9 +1471,9 @@ configwrite(Aoedev *d, void *db, long len)
 static int getmtu(Chan*);
 
 static int
-devmaxdata(Aoedev *d)		/* return aoe mtu (excluding headers) */
+devmaxdata(Aoedev *d)
 {
-	int i, nmtu, mtu;
+	int i, mm, mtu;
 	Devlink *l;
 	Netlink *n;
 
@@ -1504,45 +1483,38 @@ devmaxdata(Aoedev *d)		/* return aoe mtu (excluding headers) */
 		n = l->nl;
 		if((l->flag & Dup) == 0 || (n->flag & Dup) == 0)
 			continue;
-		nmtu = getmtu(n->mtu);
-		if(mtu > nmtu)
-			mtu = nmtu;
+		mm = getmtu(n->mtu);
+		if(mm < mtu)
+			mtu = mm;
 	}
 	if(mtu == 100000)
-		mtu = ETHERMAXTU;		/* normal ethernet mtu */
+		mtu = 0;
 	mtu -= AOEATASZ;
-	mtu -= (uint)mtu % Aoesectsz;
-	if(mtu < 2*Aoesectsz)			/* sanity */
-		mtu = 2*Aoesectsz;
 	return mtu;
 }
 
 static int
-toggle(char *s, int f, int bit)
+toggle(char *s, int init)
 {
 	if(s == nil)
-		f ^= bit;
-	else if(strcmp(s, "on") == 0)
-		f |= bit;
-	else
-		f &= ~bit;
-	return f;
+		return init ^ 1;
+	return strcmp(s, "on") == 0;
 }
 
 static void ataident(Aoedev*);
 
-static long
-unitctlwrite(Aoedev *d, void *db, long n)
+static int32_t
+unitctlwrite(Aoedev *d, void *db, int32_t n)
 {
-	uint maxbcnt, mtu;
-	uvlong bsize;
+	Mach *m = machp();
+	uint maxbcnt, mm;
+	uint64_t bsize;
 	enum {
 		Failio,
 		Ident,
 		Jumbo,
 		Maxbno,
 		Mtu,
-		Nofailf,
 		Setsize,
 	};
 	Cmdbuf *cb;
@@ -1553,7 +1525,6 @@ unitctlwrite(Aoedev *d, void *db, long n)
 		{Jumbo, 	"jumbo", 	0 },
 		{Maxbno,	"maxbno",	0 },
 		{Mtu,		"mtu",		0 },
-		{Nofailf,	"nofail",	0 },
 		{Setsize, 	"setsize", 	0 },
 	};
 
@@ -1573,7 +1544,14 @@ unitctlwrite(Aoedev *d, void *db, long n)
 		ataident(d);
 		break;
 	case Jumbo:
-		d->flag = toggle(cb->f[1], d->flag, Djumbo);
+		mm = 0;
+		if(d->flag & Djumbo)
+			mm = 1;
+		toggle(cb->f[1], mm);
+		if(mm)
+			d->flag |= Djumbo;
+		else
+			d->flag &= ~Djumbo;
 		break;
 	case Maxbno:
 	case Mtu:
@@ -1581,21 +1559,18 @@ unitctlwrite(Aoedev *d, void *db, long n)
 		if(cb->nf > 2)
 			error(Ecmdargs);
 		if(cb->nf == 2){
-			mtu = strtoul(cb->f[1], 0, 0);
+			mm = strtoul(cb->f[1], 0, 0);
 			if(ct->index == Maxbno)
-				mtu *= Aoesectsz;
+				mm *= Aoesectsz;
 			else{
-				mtu -= AOEATASZ;
-				mtu &= ~(Aoesectsz-1);
+				mm -= AOEATASZ;
+				mm &= ~(Aoesectsz-1);
 			}
-			if(mtu == 0 || mtu > maxbcnt)
-				cmderror(cb, "mtu out of legal range");
-			maxbcnt = mtu;
+			if(mm > maxbcnt)
+				cmderror(cb, "maxb greater than media mtu");
+			maxbcnt = mm;
 		}
 		d->maxbcnt = maxbcnt;
-		break;
-	case Nofailf:
-		d->flag = toggle(cb->f[1], d->flag, Dnofail);
 		break;
 	case Setsize:
 		bsize = d->realbsize;
@@ -1617,10 +1592,10 @@ unitctlwrite(Aoedev *d, void *db, long n)
 	return n;
 }
 
-static long
-unitwrite(Chan *c, void *db, long n, vlong off)
+static int32_t
+unitwrite(Chan *c, void *db, int32_t n, int64_t off)
 {
-	long rv;
+	int32_t rv;
 	char *buf;
 	Aoedev *d;
 
@@ -1638,24 +1613,18 @@ unitwrite(Chan *c, void *db, long n, vlong off)
 		if(off + n > sizeof d->config)
 			error(Etoobig);
 		buf = malloc(sizeof d->config);
-		if(buf == nil)
-			error(Enomem);
-		if(waserror()){
-			free(buf);
-			nexterror();
-		}
 		memmove(buf, d->config, d->nconfig);
 		memmove(buf + off, db, n);
 		rv = configwrite(d, buf, n + off);
-		poperror();
 		free(buf);
 		return rv;
 	}
 }
 
 static Netlink*
-addnet(char *path, Chan *cc, Chan *dc, Chan *mtu, uchar *ea)
+addnet(char *path, Chan *cc, Chan *dc, Chan *mtu, uint8_t *ea)
 {
+	Mach *m = machp();
 	Netlink *nl, *e;
 
 	lock(&netlinks);
@@ -1705,17 +1674,14 @@ dropunit(void)
 	return x;
 }
 
-/*
- * always allocate max frames.  maxout may change.
- */
 static Aoedev*
-newdev(long major, long minor, int n)
+newdev(int32_t major, int32_t minor, int n)
 {
 	Aoedev *d;
 	Frame *f, *e;
 
 	d = mallocz(sizeof *d, 1);
-	f = mallocz(sizeof *f * Maxframes, 1);
+	f = mallocz(sizeof *f * n, 1);
 	if (!d || !f) {
 		free(d);
 		free(f);
@@ -1732,8 +1698,8 @@ newdev(long major, long minor, int n)
 	d->flag = Djumbo;
 	d->unit = newunit();		/* bzzt.  inaccurate if units removed */
 	if(d->unit == -1){
-		free(d->frames);
 		free(d);
+		free(d->frames);
 		error("too many units");
 	}
 	d->dl = d->dltab;
@@ -1758,12 +1724,11 @@ mm2dev(int major, int minor)
 
 /* Find the device in our list.  If not known, add it */
 static Aoedev*
-getdev(long major, long minor, int n)
+getdev(int32_t major, int32_t minor, int n)
 {
+	Mach *m = machp();
 	Aoedev *d;
 
-	if(major == 0xffff || minor == 0xff)
-		return 0;
 	wlock(&devs);
 	if(waserror()){
 		wunlock(&devs);
@@ -1782,20 +1747,20 @@ getdev(long major, long minor, int n)
 	return d;
 }
 
-static ushort
+static uint16_t
 gbit16(void *a)
 {
-	uchar *i;
+	uint8_t *i;
 
 	i = a;
 	return i[1] << 8 | i[0];
 }
 
-static ulong
+static uint32_t
 gbit32(void *a)
 {
-	ulong j;
-	uchar *i;
+	uint32_t j;
+	uint8_t *i;
 
 	i = a;
 	j  = i[3] << 24;
@@ -1805,13 +1770,13 @@ gbit32(void *a)
 	return j;
 }
 
-static uvlong
+static uint64_t
 gbit64(void *a)
 {
-	uchar *i;
+	uint8_t *i;
 
 	i = a;
-	return (uvlong)gbit32(i+4) << 32 | gbit32(a);
+	return (uint64_t)gbit32(i+4) << 32 | gbit32(a);
 }
 
 static void
@@ -1837,19 +1802,20 @@ ataident(Aoedev *d)
 	f->bcnt = 512;
 	f->dlen = 0;
 	b = allocfb(f);
-	devtab[f->nl->dc->type]->bwrite(f->nl->dc, b, 0);
+	f->nl->dc->dev->bwrite(f->nl->dc, b, 0);
 }
 
 static int
-getmtu(Chan *mtuch)
+getmtu(Chan *mm)
 {
+	Mach *m = machp();
 	int n, mtu;
 	char buf[36];
 
-	mtu = ETHERMAXTU;
-	if(mtuch == nil || waserror())
+	mtu = 1514;
+	if(mm == nil || waserror())
 		return mtu;
-	n = devtab[mtuch->type]->read(mtuch, buf, sizeof buf - 1, 0);
+	n = mm->dev->read(mm, buf, sizeof buf - 1, 0);
 	if(n > 12){
 		buf[n] = 0;
 		mtu = strtoul(buf + 12, 0, 0);
@@ -1859,10 +1825,10 @@ getmtu(Chan *mtuch)
 }
 
 static int
-newdlea(Devlink *l, uchar *ea)
+newdlea(Devlink *l, uint8_t *ea)
 {
 	int i;
-	uchar *t;
+	uint8_t *t;
 
 	for(i = 0; i < Nea; i++){
 		t = l->eatab[i];
@@ -1893,11 +1859,8 @@ newdevlink(Aoedev *d, Netlink *n, Aoeqc *c)
 			l->rttavg = Rtmax;
 			return l;
 		}
-		if(l->nl == n) {
-			newdlea(l, c->src);
-			l->flag |= Dup;
+		if(l->nl == n)
 			return l;
-		}
 	}
 	eventlog("%æ: out of links: %s:%E to %E\n", d, n->path, n->ea, c->src);
 	return 0;
@@ -1925,6 +1888,7 @@ errrsp(Block *b, char *s)
 static void
 qcfgrsp(Block *b, Netlink *nl)
 {
+	Mach *m = machp();
 	int major, cmd, cslen, blen;
 	unsigned n;
 	Aoedev *d;
@@ -1948,7 +1912,7 @@ qcfgrsp(Block *b, Netlink *nl)
 		}
 		cslen = nhgets(ch->cslen);
 		blen = BLEN(b) - AOEQCSZ;
-		if(cslen < blen && BLEN(b) > 60)
+		if(cslen < blen)
 			eventlog("%æ: cfgrsp: tag %.8ux oversized %d %d\n",
 				d, n, cslen, blen);
 		if(cslen > blen){
@@ -1959,7 +1923,6 @@ qcfgrsp(Block *b, Netlink *nl)
 		memmove(f->dp, ch + 1, cslen);
 		f->srb->nout--;
 		wakeup(f->srb);
-		f->srb->shared = 0;
 		d->nout--;
 		f->srb = nil;
 		f->tag = Tfree;
@@ -1977,19 +1940,16 @@ qcfgrsp(Block *b, Netlink *nl)
 		n = Maxframes;
 
 	if(waserror()){
-		eventlog("getdev: %d.%d ignored: %s\n", major, ch->minor, up->errstr);
+		eventlog("getdev: %d.%d ignored: %s\n", major, ch->minor, m->externup->errstr);
 		return;
 	}
 	d = getdev(major, ch->minor, n);
 	poperror();
-	if(d == 0)
-		return;
 
 	qlock(d);
-	*up->errstr = 0;
 	if(waserror()){
 		qunlock(d);
-		eventlog("%æ: %s\n", d, up->errstr);
+		eventlog("%æ: %s\n", d, m->externup->errstr);
 		nexterror();
 	}
 
@@ -2020,15 +1980,15 @@ qcfgrsp(Block *b, Netlink *nl)
 }
 
 void
-aoeidmove(char *p, ushort *u, unsigned n)
+aoeidmove(char *p, uint16_t *u, unsigned n)
 {
 	int i;
 	char *op, *e, *s;
 
 	op = p;
 	/*
-	 * the ushort `*u' is sometimes not aligned on a short boundary,
-	 * so dereferencing u[i] causes an alignment exception on
+	 * the ushort `a' is sometimes not aligned on a short boundary,
+	 * so dereferencing a[i] would cause an alignment exception on
 	 * some machines.
 	 */
 	s = (char *)u;
@@ -2046,11 +2006,11 @@ aoeidmove(char *p, ushort *u, unsigned n)
 	memmove(op, p, n - (e - p));
 }
 
-static vlong
-aoeidentify(Aoedev *d, ushort *id)
+static int64_t
+aoeidentify(Aoedev *d, uint16_t *id)
 {
 	int i;
-	vlong s;
+	int64_t s;
 
 	d->flag &= ~(Dllba|Dpower|Dsmart|Dnop|Dup);
 
@@ -2086,10 +2046,10 @@ newvers(Aoedev *d)
 }
 
 static int
-identify(Aoedev *d, ushort *id)
+identify(Aoedev *d, uint16_t *id)
 {
-	vlong osectors, s;
-	uchar oserial[21];
+	int64_t osectors, s;
+	uint8_t oserial[21];
 
 	s = aoeidentify(d, id);
 	if(s == -1)
@@ -2115,8 +2075,9 @@ identify(Aoedev *d, ushort *id)
 static void
 atarsp(Block *b)
 {
+	Mach *m = machp();
 	unsigned n;
-	short major;
+	int16_t major;
 	Aoeata *ahin, *ahout;
 	Aoedev *d;
 	Frame *f;
@@ -2157,14 +2118,14 @@ atarsp(Block *b)
 					d, BLEN(b), n);
 				goto bail;
 			}
-			memmove(f->dp, (uchar *)ahin + AOEATASZ, n);
+			memmove(f->dp, (uint8_t *)ahin + AOEATASZ, n);
 		case Cwr:
 		case Cwrext:
 			if(n > Dbcnt)
 				f->nl->lostjumbo = 0;
 			if(f->bcnt -= n){
 				f->lba += n / Aoesectsz;
-				f->dp = (uchar*)f->dp + n;
+				f->dp = (uint8_t*)f->dp + n;
 				resend(d, f);
 				goto bail;
 			}
@@ -2175,7 +2136,7 @@ atarsp(Block *b)
 					d, BLEN(b), n);
 				goto bail;
 			}
-			identify(d, (ushort*)((uchar *)ahin + AOEATASZ));
+			identify(d, (uint16_t*)((uint8_t *)ahin + AOEATASZ));
 			break;
 		default:
 			eventlog("%æ: unknown ata command %.2ux \n",
@@ -2183,10 +2144,8 @@ atarsp(Block *b)
 		}
 	}
 
-	if(srb && --srb->nout == 0 && srb->len == 0){
+	if(srb && --srb->nout == 0 && srb->len == 0)
 		wakeup(srb);
-		srb->shared = 0;
-	}
 	f->srb = nil;
 	f->tag = Tfree;
 	d->nout--;
@@ -2200,6 +2159,7 @@ bail:
 static void
 netrdaoeproc(void *v)
 {
+	Mach *m = machp();
 	int idx;
 	char name[Maxpath+1], *s;
 	Aoehdr *h;
@@ -2212,29 +2172,29 @@ netrdaoeproc(void *v)
 	kstrcpy(name, nl->path, Maxpath);
 
 	if(waserror()){
-		eventlog("netrdaoe exiting: %s\n", up->errstr);
+		eventlog("netrdaoe exiting: %s\n", m->externup->errstr);
 		netlinks.reader[idx] = 0;
 		wakeup(netlinks.rendez + idx);
-		pexit(up->errstr, 1);
+		pexit(m->externup->errstr, 1);
 	}
 	if(autodiscover)
 		discover(0xffff, 0xff);
 	for (;;) {
 		if(!(nl->flag & Dup)) {
 			uprint("%s: netlink is down", name);
-			error(up->genbuf);
+			error(m->externup->genbuf);
 		}
 		if (nl->dc == nil)
 			panic("netrdaoe: nl->dc == nil");
-		b = devtab[nl->dc->type]->bread(nl->dc, 1<<16, 0);
+		b = nl->dc->dev->bread(nl->dc, 1<<16, 0);
 		if(b == nil) {
 			uprint("%s: nil read from network", name);
-			error(up->genbuf);
+			error(m->externup->genbuf);
 		}
 		h = (Aoehdr*)b->rp;
 		if(h->verflag & AFrsp)
 			if(s = aoeerror(h)){
-				eventlog("%s: %s\n", nl->path, up->errstr);
+				eventlog("%s: %s\n", nl->path, m->externup->errstr);
 				errrsp(b, s);
 			}else
 				switch(h->cmd){
@@ -2245,33 +2205,32 @@ netrdaoeproc(void *v)
 					qcfgrsp(b, nl);
 					break;
 				default:
-					if((h->cmd & 0xf0) == 0){
-						eventlog("%s: unknown cmd %d\n",
-							nl->path, h->cmd);
-						errrsp(b, "unknown command");
-					}
-					break;
+					eventlog("%s: unknown cmd %d\n",
+						nl->path, h->cmd);
+					errrsp(b, "unknown command");
 				}
 		freeb(b);
 	}
 }
 
 static void
-getaddr(char *path, uchar *ea)
+getaddr(char *path, uint8_t *ea)
 {
+	Mach *m = machp();
 	int n;
 	char buf[2*Eaddrlen+1];
 	Chan *c;
+	extern int parseether(uint8_t*, char*);
 
 	uprint("%s/addr", path);
-	c = namec(up->genbuf, Aopen, OREAD, 0);
+	c = namec(m->externup->genbuf, Aopen, OREAD, 0);
 	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
 	if (c == nil)
 		panic("æ: getaddr: c == nil");
-	n = devtab[c->type]->read(c, buf, sizeof buf-1, 0);
+	n = c->dev->read(c, buf, sizeof buf-1, 0);
 	poperror();
 	cclose(c);
 	buf[n] = 0;
@@ -2282,12 +2241,13 @@ getaddr(char *path, uchar *ea)
 static void
 netbind(char *path)
 {
+	Mach *m = machp();
 	char addr[Maxpath];
-	uchar ea[2*Eaddrlen+1];
+	uint8_t ea[2*Eaddrlen+1];
 	Chan *dc, *cc, *mtu;
 	Netlink *nl;
 
-	snprint(addr, sizeof addr, "%s!%#x", path, Aoetype);
+	snprint(addr, sizeof addr, "%s!0x%x", path, Aoetype);
 	dc = chandial(addr, nil, nil, &cc);
 	snprint(addr, sizeof addr, "%s/mtu", path);
 	if(waserror())
@@ -2322,6 +2282,7 @@ unbound(void *v)
 static void
 netunbind(char *path)
 {
+	Mach *m = machp();
 	int i, idx;
 	Aoedev *d, *p, *next;
 	Chan *dc, *cc;
@@ -2404,21 +2365,14 @@ netunbind(char *path)
 
 	/* squeeze orphan devices */
 	wlock(&devs);
-	for(p = d = devs.d; d; d = next){
+	for(p = d = devs.d; d; p = d, d = next){
 		next = d->next;
-		if(d->ndl > 0) {
-			p = d;
+		if(d->ndl > 0)
 			continue;
-		}
-		qlock(d);
-		downdev(d, "orphan");
-		qunlock(d);
 		if(p != devs.d)
 			p->next = next;
-		else{
+		else
 			devs.d = next;
-			p = devs.d;
-		}
 		free(d->frames);
 		free(d);
 		dropunit();
@@ -2427,37 +2381,26 @@ netunbind(char *path)
 }
 
 static void
-removeaoedev(Aoedev *d)
+removedev(char *name)
 {
 	int i;
-	Aoedev *p;
+	Aoedev *d, *p;
 
 	wlock(&devs);
-	p = 0;
-	if(d != devs.d)
-		for(p = devs.d; p; p = p->next)
-			if(p->next == d)
-				break;
-	qlock(d);
+	for(p = d = devs.d; d; p = d, d = d->next)
+		if(strcmp(name, unitname(d)) == 0)
+			goto found;
+	wunlock(&devs);
+	error("device not bound");
+found:
 	d->flag &= ~Dup;
-
-	/*
-	 * Changing the version number is, strictly speaking, correct,
- 	 * but doing so means that deleting a LUN that is not in use
-	 * invalidates all other LUNs too.  If your file server has
-	 * venti arenas or fossil file systems on 1.0, and you delete 1.1,
-	 * since you no longer need it, 1.0 will become inaccessible to your
-	 * file server, which will eventually panic.  Note that newdev()
-	 * does not change the version number.
-	 */
-	// newvers(d);
-
+	newvers(d);
 	d->ndl = 0;
-	qunlock(d);
-	for(i = 0; i < d->nframes; i++)
-		frameerror(d, d->frames+i, Eaoedown);
 
-	if(p)
+	for(i = 0; i < d->nframes; i++)
+		frameerror(d, d->frames+i, Enotup);
+
+	if(p != devs.d)
 		p->next = d->next;
 	else
 		devs.d = d->next;
@@ -2468,26 +2411,10 @@ removeaoedev(Aoedev *d)
 }
 
 static void
-removedev(char *name)
-{
-	Aoedev *d, *p;
-
-	wlock(&devs);
-	for(p = d = devs.d; d; p = d, d = d->next)
-		if(strcmp(name, unitname(d)) == 0) {
-			wunlock(&devs);
-			removeaoedev(p);
-			return;
-		}
-	wunlock(&devs);
-	error("device not bound");
-}
-
-static void
 discoverstr(char *f)
 {
-	ushort shelf, slot;
-	ulong sh;
+	uint16_t shelf, slot;
+	uint32_t sh;
 	char *s;
 
 	if(f == 0){
@@ -2509,26 +2436,16 @@ discoverstr(char *f)
 }
 
 
-static void
-aoeremove(Chan *c)
+static int32_t
+topctlwrite(void *db, int32_t n)
 {
-	switch(TYPE(c->qid)){
-	default:
-		error(Eperm);
-	case Qunitdir:
-		removeaoedev(unit2dev(UNIT(c->qid)));
-		break;
-	}
-}
-
-static long
-topctlwrite(void *db, long n)
-{
+	Mach *m = machp();
 	enum {
 		Autodiscover,
 		Bind,
 		Debug,
 		Discover,
+		Closewait,
 		Rediscover,
 		Remove,
 		Unbind,
@@ -2555,19 +2472,19 @@ topctlwrite(void *db, long n)
 	f = cb->f[1];
 	switch(ct->index){
 	case Autodiscover:
-		autodiscover = toggle(f, autodiscover, 1);
+		autodiscover = toggle(f, autodiscover);
 		break;
 	case Bind:
 		netbind(f);
 		break;
 	case Debug:
-		debug = toggle(f, debug, 1);
+		debug = toggle(f, debug);
 		break;
 	case Discover:
 		discoverstr(f);
 		break;
 	case Rediscover:
-		rediscover = toggle(f, rediscover, 1);
+		rediscover = toggle(f, rediscover);
 		break;
 	case Remove:
 		removedev(f);
@@ -2583,8 +2500,8 @@ topctlwrite(void *db, long n)
 	return n;
 }
 
-static long
-aoewrite(Chan *c, void *db, long n, vlong off)
+static int32_t
+aoewrite(Chan *c, void *db, int32_t n, int64_t off)
 {
 	switch(TYPE(c->qid)){
 	default:
@@ -2620,7 +2537,7 @@ Dev aoedevtab = {
 	devbread,
 	aoewrite,
 	devbwrite,
-	aoeremove,
+	devremove,
 	devwstat,
 	devpower,
 	devconfig,

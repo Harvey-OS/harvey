@@ -13,7 +13,7 @@ char*
 strncat(char *s1, const char *s2, size_t n)
 {
 	char *os1;
-	long nn;
+	int32_t nn;
 
 	os1 = s1;
 	nn = n;

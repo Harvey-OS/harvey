@@ -12,19 +12,19 @@
 
 #define	N	256
 
-long
+int32_t
 strcspn(char *s, char *b)
 {
 	char map[N], *os;
 
 	memset(map, 0, N);
 	for(;;) {
-		map[*(uchar*)b] = 1;
+		map[*(uint8_t*)b] = 1;
 		if(*b++ == 0)
 			break;
 	}
 	os = s;
-	while(map[*(uchar*)s++] == 0)
+	while(map[*(uint8_t*)s++] == 0)
 		;
 	return s - os - 1;
 }

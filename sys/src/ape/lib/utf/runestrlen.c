@@ -25,7 +25,7 @@
 #include "utf.h"
 #include "utfdef.h"
 
-long
+int32_t
 runestrlen(Rune *s)
 {
 

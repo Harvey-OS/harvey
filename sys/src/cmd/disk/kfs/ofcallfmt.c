@@ -10,7 +10,7 @@
 #include "all.h"
 #include "9p1.h"
 
-static void dumpsome(char*, char*, long);
+static void dumpsome(char*, char*, int32_t);
 static void fdirconv(char*, Dentry*);
 
 int
@@ -161,7 +161,7 @@ fdirconv(char *buf, Dentry *d)
 #define DUMPL 24
 
 static void
-dumpsome(char *ans, char *buf, long count)
+dumpsome(char *ans, char *buf, int32_t count)
 {
 	int i, printable;
 	char *p;
@@ -170,7 +170,7 @@ dumpsome(char *ans, char *buf, long count)
 	if(count > DUMPL)
 		count = DUMPL;
 	for(i=0; i<count && printable; i++)
-		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uchar)buf[i]>127)
+		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uint8_t)buf[i]>127)
 			printable = 0;
 	p = ans;
 	*p++ = '\'';

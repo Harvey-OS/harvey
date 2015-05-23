@@ -35,7 +35,7 @@ int*	addr2;
 int	anymarks;
 Biobuf	bcons;
 int	col;
-long	count;
+int32_t	count;
 int*	dol;
 int*	dot;
 int	fchange;
@@ -81,7 +81,7 @@ char	WRERR[]	= "WRITE ERROR";
 int	bpagesize = 20;
 char	hex[]	= "0123456789abcdef";
 char*	linp	= line;
-ulong	nlall = 128;
+uint32_t	nlall = 128;
 int	tfile	= -1;
 int	vflag	= 1;
 
@@ -794,7 +794,7 @@ putfile(void)
 {
 	int *a1;
 	Rune *lp;
-	long c;
+	int32_t c;
 
 	a1 = addr1;
 	do {
@@ -1040,7 +1040,7 @@ putline(void)
 }
 
 void
-blkio(int b, uchar *buf, long (*iofcn)(int, void *, long))
+blkio(int b, uint8_t *buf, int32_t (*iofcn)(int, void *, int32_t))
 {
 	seek(tfile, b*BLKSIZE, 0);
 	if((*iofcn)(tfile, buf, BLKSIZE) != BLKSIZE) {
@@ -1053,8 +1053,8 @@ getblock(int atl, int iof)
 {
 	int bno, off;
 	
-	static uchar ibuff[BLKSIZE];
-	static uchar obuff[BLKSIZE];
+	static uint8_t ibuff[BLKSIZE];
+	static uint8_t obuff[BLKSIZE];
 
 	bno = atl / (BLKSIZE/sizeof(Rune));
 	/* &~3 so the ptr is aligned to 4 (?) */

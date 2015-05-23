@@ -118,7 +118,7 @@ rb:
 	} {
 	    int bmin = ss->b_this.band_min;
 	    int bmax = ss->b_this.band_max;
-	    long pos = ss->b_this.pos;
+	    int32_t pos = ss->b_this.pos;
 
 	    clist_fread_chars(&ss->b_this, sizeof(ss->b_this), bfile);
 	    if (!(ss->band_last >= bmin && ss->band_first <= bmax))

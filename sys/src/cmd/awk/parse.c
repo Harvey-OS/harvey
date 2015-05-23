@@ -271,10 +271,10 @@ int isarg(char *s)		/* is s in argument list for current function? */
 
 int ptoi(void *p)	/* convert pointer to integer */
 {
-	return (int) (long) p;	/* swearing that p fits, of course */
+	return (int) (int32_t) p;	/* swearing that p fits, of course */
 }
 
 Node *itonp(int i)	/* and vice versa */
 {
-	return (Node *) (long) i;
+	return (Node *) (int32_t) i;
 }

@@ -13,7 +13,7 @@
 #include <bio.h>
 #include <ndb.h>
 
-static uchar noether[6];
+static uint8_t noether[6];
 
 /*
  *  Look for a pair with the given attribute.  look first on the same line,
@@ -46,12 +46,12 @@ lookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
 /*
  *  lookup an ip address
  */
-static uchar*
-lookupip(Ndb *db, char *name, uchar *to, Ipinfo *iip)
+static uint8_t*
+lookupip(Ndb *db, char *name, uint8_t *to, Ipinfo *iip)
 {
 	Ndbtuple *t, *nt;
 	char buf[Ndbvlen];
-	uchar subnet[IPaddrlen];
+	uint8_t subnet[IPaddrlen];
 	Ndbs s;
 	char *attr;
 
@@ -85,11 +85,12 @@ lookupip(Ndb *db, char *name, uchar *to, Ipinfo *iip)
  *  lookup a subnet and fill in anything we can
  */
 static void
-recursesubnet(Ndb *db, uchar *mask, Ipinfo *iip, char *fs, char *gw, char *au)
+recursesubnet(Ndb *db, uint8_t *mask, Ipinfo *iip, char *fs, char *gw,
+	      char *au)
 {
 	Ndbs s;
 	Ndbtuple *t;
-	uchar submask[IPaddrlen];
+	uint8_t submask[IPaddrlen];
 	char ip[Ndbvlen];
 
 	memmove(iip->ipmask, mask, 4);

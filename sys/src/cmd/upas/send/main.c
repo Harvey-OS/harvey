@@ -37,7 +37,8 @@ static void	save_mail(message *);
 static int	complain_mail(dest *, message *);
 static int	pipe_mail(dest *, message *);
 static void	appaddr(String *, dest *);
-static void	mkerrstring(String *, message *, dest *, dest *, char *, int);
+static void	mkerrstring(String *, message *, dest *, dest *, char *,
+			       int);
 static int	replymsg(String *, message *, dest *);
 static int	catchint(void*, char*);
 
@@ -470,7 +471,8 @@ refuse(dest *list, message *mp, char *cp, int status, int outofresources)
 
 /* make the error message */
 static void
-mkerrstring(String *errstring, message *mp, dest *dp, dest *list, char *cp, int status)
+mkerrstring(String *errstring, message *mp, dest *dp, dest *list, char *cp,
+	    int status)
 {
 	dest *next;
 	char smsg[64];

@@ -83,7 +83,7 @@ szGetAntiwordDirectory(void)
  * Get the size of the specified file.
  * Returns -1 if the file does not exist or is not a proper file.
  */
-long
+int32_t
 lGetFilesize(const char *szFilename)
 {
 #if defined(__riscos)
@@ -102,7 +102,7 @@ lGetFilesize(const char *szFilename)
 		/* It's not a proper file or the file does not exist */
 		return -1;
 	}
-	return (long)iSize;
+	return (int32_t)iSize;
 #else
 	struct stat	tBuffer;
 
@@ -115,7 +115,7 @@ lGetFilesize(const char *szFilename)
 		/* It's not a regular file */
 		return -1;
 	}
-	return (long)tBuffer.st_size;
+	return (int32_t)tBuffer.st_size;
 #endif /* __riscos */
 } /* end of lGetFilesize */
 
@@ -145,7 +145,8 @@ vPrintBlock(const char	*szFile, int iLine,
 } /* end of vPrintBlock */
 
 void
-vPrintUnicode(const char *szFile, int iLine, const UCHAR *aucUni, size_t tLen)
+vPrintUnicode(const char *szFile, int iLine, const UCHAR *aucUni,
+	      size_t tLen)
 {
 	char	*szASCII;
 
@@ -196,7 +197,7 @@ bReadBytes(UCHAR *aucBytes, size_t tMemb, ULONG ulOffset, FILE *pFile)
 	if (ulOffset > (ULONG)LONG_MAX) {
 		return FALSE;
 	}
-	if (fseek(pFile, (long)ulOffset, SEEK_SET) != 0) {
+	if (fseek(pFile, (int32_t)ulOffset, SEEK_SET) != 0) {
 		return FALSE;
 	}
 	if (fread(aucBytes, sizeof(UCHAR), tMemb, pFile) != tMemb) {
@@ -550,12 +551,12 @@ szBasename(const char *szFilename)
  *
  * Returns the leading in drawunits
  */
-long
+int32_t
 lComputeLeading(USHORT usFontSize)
 {
-	long	lLeading;
+	int32_t	lLeading;
 
-	lLeading = (long)usFontSize * 500L;
+	lLeading = (int32_t)usFontSize * 500L;
 	if (usFontSize < 18) {		/* Small text: 112% */
 		lLeading *= 112;
 	} else if (usFontSize < 28) {	/* Normal text: 124% */
@@ -663,7 +664,8 @@ bAllZero(const UCHAR *aucBytes, size_t tLength)
  * Returns TRUE when sucessful, otherwise FALSE
  */
 static BOOL
-bGetCodesetFromLocale(char *szCodeset, size_t tMaxCodesetLength, BOOL *pbEuro)
+bGetCodesetFromLocale(char *szCodeset, size_t tMaxCodesetLength,
+		      BOOL *pbEuro)
 {
 #if !defined(__dos)
 	const char	*szLocale;
@@ -751,7 +753,8 @@ bGetCodesetFromLocale(char *szCodeset, size_t tMaxCodesetLength, BOOL *pbEuro)
  * Returns TRUE when sucessful, otherwise FALSE
  */
 BOOL
-bGetNormalizedCodeset(char *szCodeset, size_t tMaxCodesetLength, BOOL *pbEuro)
+bGetNormalizedCodeset(char *szCodeset, size_t tMaxCodesetLength,
+		      BOOL *pbEuro)
 {
 	BOOL	bOnlyDigits;
 	const char	*pcSrc;

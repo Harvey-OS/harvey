@@ -20,7 +20,8 @@
  *  return 0 if not found.
  */
 char*
-csgetvalue(char *netroot, char *attr, char *val, char *rattr, Ndbtuple **pp)
+csgetvalue(char *netroot, char *attr, char *val, char *rattr,
+	   Ndbtuple **pp)
 {
 	Ndbtuple *t, *first, *last;
 	int n, linefound;
@@ -96,7 +97,8 @@ csgetvalue(char *netroot, char *attr, char *val, char *rattr, Ndbtuple **pp)
 }
 
 Ndbtuple*
-csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
+csgetval(char *netroot, char *attr, char *val, char *rattr,
+	 char *buf)
 {
 	Ndbtuple *t;
 	char *p;

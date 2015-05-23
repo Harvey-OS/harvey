@@ -221,10 +221,10 @@ ungetch(void)
 		error("ungetch");
 }
 
-long
+int32_t
 getnum(int signok)
 {
-	long n;
+	int32_t n;
 	int c, sign;
 
 	n = 0;

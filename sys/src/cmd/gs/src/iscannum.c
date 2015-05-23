@@ -64,7 +64,7 @@ scan_number(const byte * str, const byte * end, int sign,
     };
 
     int ival;
-    long lval;
+    int32_t lval;
     double dval;
     int exp10;
     int code = 0;
@@ -133,7 +133,7 @@ scan_number(const byte * str, const byte * end, int sign,
 	case '#':
 	    {
 		const uint radix = (uint)ival;
-		ulong uval = 0, lmax;
+		uint32_t uval = 0, lmax;
 
 		if (sign || radix < min_radix || radix > max_radix)
 		    return_error(e_syntaxerror);

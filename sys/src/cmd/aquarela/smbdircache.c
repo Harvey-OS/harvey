@@ -12,7 +12,7 @@
 SmbDirCache *
 smbmkdircache(SmbTree *t, char *path)
 {
-	long n;
+	int32_t n;
 	SmbDirCache *c;
 	Dir *buf;
 	int fd;

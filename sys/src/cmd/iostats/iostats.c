@@ -270,7 +270,7 @@ main(int argc, char **argv)
 void
 reply(Fcall *r, Fcall *t, char *err)
 {
-	uchar data[IOHDRSZ+Maxfdata];
+	uint8_t data[IOHDRSZ+Maxfdata];
 	int n;
 
 	t->tag = r->tag;

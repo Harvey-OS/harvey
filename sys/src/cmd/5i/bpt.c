@@ -96,7 +96,7 @@ void
 delbpt(char *addr)
 {
 	Breakpoint *b, **l;
-	ulong baddr;
+	uint32_t baddr;
 
 	baddr = expr(addr);
 	l = &bplist;
@@ -115,7 +115,7 @@ delbpt(char *addr)
 }
 
 void
-brkchk(ulong addr, int type)
+brkchk(uint32_t addr, int type)
 {
 	Breakpoint *b;
 

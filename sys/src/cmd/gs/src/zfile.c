@@ -900,7 +900,8 @@ make_stream_file(ref * pfile, stream * s, const char *access)
 }
 
 private gp_file_name_combine_result 
-gp_file_name_combine_patch(const char *prefix, uint plen, const char *fname, uint flen, 
+gp_file_name_combine_patch(const char *prefix, uint plen,
+                           const char *fname, uint flen, 
 			    bool no_sibling, char *buffer, uint *blen)
 {
     return gp_file_name_combine(prefix, plen, fname, flen, no_sibling, buffer, blen);
@@ -1031,7 +1032,8 @@ lib_fopen_with_libpath(gs_file_path_ptr  lib_path,
 
 /* The startup code calls this to open @-files. */
 FILE *
-lib_fopen(const gs_file_path_ptr pfpath, const gs_memory_t *mem, const char *fname)
+lib_fopen(const gs_file_path_ptr pfpath, const gs_memory_t *mem,
+          const char *fname)
 {
     /* We need a buffer to hold the expanded file name. */
     char buffer[gp_file_name_sizeof];
@@ -1052,7 +1054,8 @@ lib_fopen(const gs_file_path_ptr pfpath, const gs_memory_t *mem, const char *fna
 /* The startup code calls this to open the initialization file gs_init.ps. */
 int
 lib_file_open(const gs_file_path_ptr pfpath, 
-	      i_ctx_t *i_ctx_p, const char *fname, uint len, byte * cname, uint max_clen,
+	      i_ctx_t *i_ctx_p, const char *fname, uint len, byte * cname,
+              uint max_clen,
 	      uint * pclen, ref * pfile, gs_memory_t *mem)
 {   /* i_ctx_p is NULL running init files. */
     stream *s;

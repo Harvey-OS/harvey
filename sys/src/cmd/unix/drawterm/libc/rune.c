@@ -46,7 +46,7 @@ chartorune(Rune *rune, char *str)
 	 *	10000-10FFFF => T4 Tx Tx Tx
 	 */
 
-	c[0] = *(uchar*)(str);
+	c[0] = *(uint8_t*)(str);
 	if(c[0] < Tx){
 		*rune = c[0];
 		return 1;
@@ -54,7 +54,7 @@ chartorune(Rune *rune, char *str)
 	l = c[0];
 
 	for(i = 1; i < UTFmax; i++) {
-		c[i] = *(uchar*)(str+i);
+		c[i] = *(uint8_t*)(str+i);
 		c[i] ^= Tx;
 		if(c[i] & Testx)
 			goto bad;
@@ -126,7 +126,7 @@ runetochar(char *str, Rune *rune)
 }
 
 int
-runelen(long c)
+runelen(int32_t c)
 {
 	Rune rune;
 	char str[10];
@@ -165,7 +165,7 @@ fullrune(char *str, int n)
 
 	if(n <= 0)
 		return 0;
-	c = *(uchar*)str;
+	c = *(uint8_t*)str;
 	if(c < Tx)
 		return 1;
 	for(i = 3; i < UTFmax + 1; i++)

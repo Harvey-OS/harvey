@@ -434,12 +434,12 @@ private void  t1_hinter__paint_raster_grid(t1_hinter * this)
     double j; /* 'long' can overflow */
     unsigned long c0 = RGB(192, 192, 192), c1 = RGB(64, 64, 64);
     t1_hinter_space_coord min_ox, max_ox, min_oy, max_oy;
-    long div_x = this->g2o_fraction, div_xx = div_x << this->log2_pixels_x; 
-    long div_y = this->g2o_fraction, div_yy = div_y << this->log2_pixels_y; 
-    long ext_x = div_x * 5;
-    long ext_y = div_y * 5;
-    long sx = this->orig_ox % div_xx;
-    long sy = this->orig_oy % div_yy;
+    int32_t div_x = this->g2o_fraction, div_xx = div_x << this->log2_pixels_x; 
+    int32_t div_y = this->g2o_fraction, div_yy = div_y << this->log2_pixels_y; 
+    int32_t ext_x = div_x * 5;
+    int32_t ext_y = div_y * 5;
+    int32_t sx = this->orig_ox % div_xx;
+    int32_t sy = this->orig_oy % div_yy;
 
     if (!vd_enabled)
 	return;
@@ -736,7 +736,8 @@ private void t1_hinter__make_zone(t1_hinter * this, t1_zone *zone, float * blues
     t1_hinter__adjust_matrix_precision(this, zone->y_min, zone->y_max);
 }
 
-private bool t1_hinter__realloc_array(gs_memory_t *mem, void **a, void *a0, int *max_count, int elem_size, int enhancement, const char *cname)
+private bool t1_hinter__realloc_array(gs_memory_t *mem, void **a, void *a0, int *max_count, int elem_size, int enhancement,
+                                      const char *cname)
 {
     void *aa = gs_alloc_bytes(mem, (*max_count + enhancement * 2) * elem_size, cname);
 

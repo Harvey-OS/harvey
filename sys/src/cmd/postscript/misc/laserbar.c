@@ -119,7 +119,7 @@ static int right = 0;
 void
 laserbar(fp, str, rotate, xoffset, yoffset, xscale, yscale, flags)
 FILE *fp;
-char *str;
+int8_t *str;
 double rotate, xoffset, yoffset, xscale, yscale;
 int flags;
 {

@@ -21,7 +21,7 @@ static int
 finished(int hand, int isclient)
 {
 	int i, n;
-	uchar buf[500], buf2[500];
+	uint8_t buf[500], buf2[500];
 
 	buf[0] = HFinished;
 	buf[1] = TLSFinishedLen>>16;
@@ -48,7 +48,8 @@ finished(int hand, int isclient)
 
 // given a plain fd and secrets established beforehand, return encrypted connection
 int
-pushtls(int fd, char *hashalg, char *encalg, int isclient, char *secret, char *dir)
+pushtls(int fd, char *hashalg, char *encalg, int isclient,
+	char *secret, char *dir)
 {
 	char buf[8];
 	char dname[64];

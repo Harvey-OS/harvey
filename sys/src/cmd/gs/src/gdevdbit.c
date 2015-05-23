@@ -445,7 +445,7 @@ gx_default_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 		int ex = x + w;
 		int fex = ex - width;
 		int cx = x + icw;
-		ulong id = (h == height ? tile_id : gs_no_bitmap_id);
+		uint32_t id = (h == height ? tile_id : gs_no_bitmap_id);
 
 		copy_tile(irx, x, y, icw, h, gs_no_bitmap_id);
 		while (cx <= fex) {
@@ -461,7 +461,7 @@ gx_default_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 	    int ey = y + h;
 	    int fey = ey - height;
 	    int cy = y + ch;
-	    ulong id = (w == width ? tile_id : gs_no_bitmap_id);
+	    uint32_t id = (w == width ? tile_id : gs_no_bitmap_id);
 
 	    copy_tile(irx, x, y, w, ch, (ch == height ? id : gs_no_bitmap_id));
 	    row = tiles->data;
@@ -481,7 +481,7 @@ gx_default_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 	    int cx, cy;
 
 	    for (cy = y;;) {
-		ulong id = (ch == height ? tile_id : gs_no_bitmap_id);
+		uint32_t id = (ch == height ? tile_id : gs_no_bitmap_id);
 
 		if (icw >= w) {
 		    copy_tile(irx, x, cy, w, ch,

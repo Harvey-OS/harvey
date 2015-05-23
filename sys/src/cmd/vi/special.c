@@ -108,7 +108,7 @@ Inst ispec[] =
 };
 
 void
-Ispecial(ulong inst)
+Ispecial(uint32_t inst)
 {
 	Inst *i;
 
@@ -119,7 +119,7 @@ Ispecial(ulong inst)
 }
 
 void
-Snor(ulong inst)
+Snor(uint32_t inst)
 {
 	int rs, rt, rd;
 
@@ -134,7 +134,7 @@ Snor(ulong inst)
 }
 
 void
-Ssll(ulong inst)
+Ssll(uint32_t inst)
 {
 	int rd, rt, shamt;
 
@@ -147,7 +147,7 @@ Ssll(ulong inst)
 }
 
 void
-Ssllv(ulong inst)
+Ssllv(uint32_t inst)
 {
 	int rd, rt, rs;
 
@@ -159,7 +159,7 @@ Ssllv(ulong inst)
 }
 
 void
-Ssrlv(ulong inst)
+Ssrlv(uint32_t inst)
 {
 	int rd, rt, rs;
 
@@ -167,11 +167,11 @@ Ssrlv(ulong inst)
 	if(trace)
 		itrace("srlv\tr%d,r%d,r%d", rd, rt, rs);
 
-	reg.r[rd] = (ulong)reg.r[rt] >> (reg.r[rs]&0x1f);
+	reg.r[rd] = (uint32_t)reg.r[rt] >> (reg.r[rs]&0x1f);
 }
 
 void
-Ssrav(ulong inst)
+Ssrav(uint32_t inst)
 {
 	int rd, rt, rs, shamt;
 
@@ -187,7 +187,7 @@ Ssrav(ulong inst)
 }
 
 void
-Ssrl(ulong inst)
+Ssrl(uint32_t inst)
 {
 	int rd, rt, shamt;
 
@@ -196,11 +196,11 @@ Ssrl(ulong inst)
 	if(trace)
 		itrace("srl\tr%d,r%d,%d", rd, rt, shamt);
 
-	reg.r[rd] = (ulong)reg.r[rt] >> shamt;
+	reg.r[rd] = (uint32_t)reg.r[rt] >> shamt;
 }
 
 void
-Ssra(ulong inst)
+Ssra(uint32_t inst)
 {
 	int rd, rt, shamt;
 
@@ -216,7 +216,7 @@ Ssra(ulong inst)
 }
 
 void
-Sslt(ulong inst)
+Sslt(uint32_t inst)
 {
 	int rs, rt, rd;
 
@@ -228,7 +228,7 @@ Sslt(ulong inst)
 }
 
 void
-Ssltu(ulong inst)
+Ssltu(uint32_t inst)
 {
 	int rs, rt, rd;
 
@@ -240,7 +240,7 @@ Ssltu(ulong inst)
 }
 
 void
-Sand(ulong inst)
+Sand(uint32_t inst)
 {
 	int rs, rt, rd;
 
@@ -252,7 +252,7 @@ Sand(ulong inst)
 }
 
 void
-Saddu(ulong inst)
+Saddu(uint32_t inst)
 {
 	int rs, rt, rd;
 
@@ -264,7 +264,7 @@ Saddu(ulong inst)
 }
 
 void
-Sadd(ulong inst)
+Sadd(uint32_t inst)
 {
 	int rs, rt, rd;
 
@@ -276,7 +276,7 @@ Sadd(ulong inst)
 }
 
 void
-Ssubu(ulong inst)
+Ssubu(uint32_t inst)
 {
 	int rs, rt, rd;
 
@@ -288,7 +288,7 @@ Ssubu(ulong inst)
 }
 
 void
-Sor(ulong inst)
+Sor(uint32_t inst)
 {
 	int rs, rt, rd;
 
@@ -300,7 +300,7 @@ Sor(ulong inst)
 }
 
 void
-Sxor(ulong inst)
+Sxor(uint32_t inst)
 {
 	int rs, rt, rd;
 
@@ -312,9 +312,9 @@ Sxor(ulong inst)
 }
 
 void
-Sjr(ulong inst)
+Sjr(uint32_t inst)
 {
-	ulong npc;
+	uint32_t npc;
 	int rs;
 	Symbol s;
 
@@ -339,9 +339,9 @@ Sjr(ulong inst)
 }
 
 void
-Sjalr(ulong inst)
+Sjalr(uint32_t inst)
 {
-	ulong npc;
+	uint32_t npc;
 	int rs, rd;
 	Symbol s;
 
@@ -373,7 +373,7 @@ Sjalr(ulong inst)
 }
 
 void
-Sdivu(ulong inst)
+Sdivu(uint32_t inst)
 {
 	int rs, rt;
 
@@ -381,12 +381,12 @@ Sdivu(ulong inst)
 	if(trace)
 		itrace("divu\tr%d,r%d", rs, rt);
 
-	reg.mlo = (ulong)reg.r[rs]/(ulong)reg.r[rt];
-	reg.mhi = (ulong)reg.r[rs]%(ulong)reg.r[rt];
+	reg.mlo = (uint32_t)reg.r[rs]/(uint32_t)reg.r[rt];
+	reg.mhi = (uint32_t)reg.r[rs]%(uint32_t)reg.r[rt];
 }
 
 void
-Sdiv(ulong inst)
+Sdiv(uint32_t inst)
 {
 	int rs, rt;
 
@@ -399,7 +399,7 @@ Sdiv(ulong inst)
 }
 
 void
-Smfhi(ulong inst)
+Smfhi(uint32_t inst)
 {
 	int rd;
 
@@ -411,7 +411,7 @@ Smfhi(ulong inst)
 }
 
 void
-Smflo(ulong inst)
+Smflo(uint32_t inst)
 {
 	int rd;
 
@@ -423,7 +423,7 @@ Smflo(ulong inst)
 }
 
 void
-Smult(ulong inst)
+Smult(uint32_t inst)
 {
 	int rs, rt;
 	Mul m;
@@ -438,7 +438,7 @@ Smult(ulong inst)
 }
 
 void
-Smultu(ulong inst)
+Smultu(uint32_t inst)
 {
 	int rs, rt;
 	Mulu m;

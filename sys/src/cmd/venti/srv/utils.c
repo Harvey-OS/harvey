@@ -40,10 +40,10 @@ nameok(char *name)
 }
 
 int
-stru32int(char *s, u32int *r)
+stru32int(char *s, uint32_t *r)
 {
 	char *t;
-	u32int n, nn, m;
+	uint32_t n, nn, m;
 	int c;
 
 	m = TWID32 / 10;
@@ -64,10 +64,10 @@ stru32int(char *s, u32int *r)
 }
 
 int
-stru64int(char *s, u64int *r)
+stru64int(char *s, uint64_t *r)
 {
 	char *t;
-	u64int n, nn, m;
+	uint64_t n, nn, m;
 	int c;
 
 	m = TWID64 / 10;
@@ -139,7 +139,7 @@ logerr(int severity, char *fmt, ...)
 	free(s);
 }
 
-u32int
+uint32_t
 now(void)
 {
 	return time(nil);
@@ -148,7 +148,7 @@ now(void)
 int abortonmem = 1;
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -165,7 +165,7 @@ if(0)print("emalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&n));
 }
 
 void *
-ezmalloc(ulong n)
+ezmalloc(uint32_t n)
 {
 	void *p;
 
@@ -182,7 +182,7 @@ if(0)print("ezmalloc %p-%p by %#p\n", p, (char*)p+n, getcallerpc(&n));
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil){
@@ -213,7 +213,7 @@ if(0)print("estrdup %p-%p by %#p\n", t, (char*)t+n, getcallerpc(&s));
  * return floor(log2(v))
  */
 int
-u64log2(u64int v)
+u64log2(uint64_t v)
 {
 	int i;
 

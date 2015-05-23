@@ -83,8 +83,8 @@ top:
 		goto out;
 	    ss->record_type = c;
 	    ss->record_left = p[3] + ((uint) p[4] << 8) +
-		((ulong) p[5] << 16) +
-		((ulong) p[6] << 24);
+		((uint32_t) p[5] << 16) +
+		((uint32_t) p[6] << 24);
 	    p += 6;
 	    goto top;
 	case 1:		/* text data */

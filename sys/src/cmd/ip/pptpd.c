@@ -89,9 +89,9 @@ struct Call {
 	uint	rack;		/* highest ack sent */
 
 	Event	eack;		/* recved ack - for send */
-	ulong	tick;
+	uint32_t	tick;
 
-	uchar	remoteip[IPaddrlen];	/* remote ip address */
+	uint8_t	remoteip[IPaddrlen];	/* remote ip address */
 	int	dhcpfd[2];	/* pipe to dhcpclient */
 
 	/* error stats */
@@ -123,10 +123,10 @@ struct {
 	int	start;
 	int	grefd;
 	int	grecfd;
-	uchar	local[IPaddrlen];
-	uchar	remote[IPaddrlen];
+	uint8_t	local[IPaddrlen];
+	uint8_t	remote[IPaddrlen];
 	char	*tcpdir;
-	uchar	ipaddr[IPaddrlen];		/* starting ip addresss to allocate */
+	uint8_t	ipaddr[IPaddrlen];		/* starting ip addresss to allocate */
 
 	int	recvwindow;
 
@@ -170,16 +170,16 @@ void	myfatal(char *fmt, ...);
 
 void	serve(void);
 
-int	sstart(uchar*, int);
-int	sstop(uchar*, int);
-int	secho(uchar*, int);
-int	scallout(uchar*, int);
-int	scallreq(uchar*, int);
-int	scallcon(uchar*, int);
-int	scallclear(uchar*, int);
-int	scalldis(uchar*, int);
-int	swaninfo(uchar*, int);
-int	slinkinfo(uchar*, int);
+int	sstart(uint8_t*, int);
+int	sstop(uint8_t*, int);
+int	secho(uint8_t*, int);
+int	scallout(uint8_t*, int);
+int	scallreq(uint8_t*, int);
+int	scallcon(uint8_t*, int);
+int	scallclear(uint8_t*, int);
+int	scalldis(uint8_t*, int);
+int	swaninfo(uint8_t*, int);
+int	slinkinfo(uint8_t*, int);
 
 Call	*callalloc(int id);
 void	callclose(Call*);
@@ -205,7 +205,7 @@ void	esignal(Event *e);
 void	ewait(Event *e);
 int	proc(char **argv, int fd0, int fd1, int fd2);
 double	realtime(void);
-ulong	thread(void(*f)(void*), void *a);
+uint32_t	thread(void(*f)(void*), void *a);
 
 void
 main(int argc, char *argv[])
@@ -259,7 +259,7 @@ usage(void)
 void
 serve(void)
 {
-	uchar buf[2000], *p;
+	uint8_t buf[2000], *p;
 	int n, n2, len;
 	int magic;
 	int op, type;
@@ -505,7 +505,7 @@ scallout(uchar *p, int n)
 }
 
 int
-scallreq(uchar *p, int n)
+scallreq(uint8_t *p, int n)
 {
 	USED(p);
 	USED(n);
@@ -515,7 +515,7 @@ scallreq(uchar *p, int n)
 }
 
 int
-scallcon(uchar *p, int n)
+scallcon(uint8_t *p, int n)
 {
 	USED(p);
 	USED(n);
@@ -1147,7 +1147,7 @@ void
 dhcpclientwatch(void *a)
 {
 	Call *c = a;
-	uchar buf[1];
+	uint8_t buf[1];
 
 	for(;;) {
 		if(read(c->dhcpfd[0], buf, sizeof(buf)) <= 0)
@@ -1239,7 +1239,7 @@ ewait(Event *e)
 	qunlock(&e->waitlk);
 }
 
-ulong
+uint32_t
 thread(void(*f)(void*), void *a)
 {
 	int pid;
@@ -1255,7 +1255,7 @@ thread(void(*f)(void*), void *a)
 double
 realtime(void)
 {
-	long times(long*);
+	int32_t times(int32_t*);
 
 	return times(0) / 1000.0;
 }

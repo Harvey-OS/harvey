@@ -16,8 +16,8 @@ void
 span(void)
 {
 	Prog *p, *q;
-	long v;
-	vlong c, idat;
+	int32_t v;
+	int64_t c, idat;
 	int m, n, again;
 
 	xdefine("etext", STEXT, 0L);
@@ -115,7 +115,7 @@ loop:
 }
 
 void
-xdefine(char *p, int t, vlong v)
+xdefine(char *p, int t, int64_t v)
 {
 	Sym *s;
 
@@ -129,7 +129,7 @@ xdefine(char *p, int t, vlong v)
 }
 
 void
-putsymb(char *s, int t, vlong v, int ver)
+putsymb(char *s, int t, int64_t v, int ver)
 {
 	int i, f, l;
 
@@ -252,9 +252,9 @@ asmsym(void)
 void
 asmlc(void)
 {
-	vlong oldpc;
+	int64_t oldpc;
 	Prog *p;
-	long oldlc, v, s;
+	int32_t oldlc, v, s;
 
 	oldpc = INITTEXT;
 	oldlc = 0;
@@ -332,8 +332,8 @@ asmlc(void)
 int
 oclass(Adr *a)
 {
-	vlong v;
-	long l;
+	int64_t v;
+	int32_t l;
 
 	if(a->type >= D_INDIR || a->index != D_NONE) {
 		if(a->index != D_NONE && a->scale == 0) {
@@ -511,7 +511,7 @@ oclass(Adr *a)
 			if(v >= -128 && v <= 127)
 				return Yi8;
 			l = v;
-			if((vlong)l == v)
+			if((int64_t)l == v)
 				return Ys32;	/* can sign extend */
 			if((v>>32) == 0)
 				return Yi32;	/* unsigned */
@@ -610,7 +610,7 @@ bad:
 }
 
 static void
-put4(long v)
+put4(int32_t v)
 {
 	if(dlm && curp != P && reloca != nil){
 		dynreloc(reloca->sym, curp->pc + andptr - &and[0], 1);
@@ -624,7 +624,7 @@ put4(long v)
 }
 
 static void
-put8(vlong v)
+put8(int64_t v)
 {
 	if(dlm && curp != P && reloca != nil){
 		dynreloc(reloca->sym, curp->pc + andptr - &and[0], 1);	/* TO DO */
@@ -641,11 +641,11 @@ put8(vlong v)
 	andptr += 8;
 }
 
-vlong
+int64_t
 vaddr(Adr *a)
 {
 	int t;
-	vlong v;
+	int64_t v;
 	Sym *s;
 
 	t = a->type;
@@ -664,7 +664,7 @@ vaddr(Adr *a)
 				ckoff(s, v);
 			case STEXT:
 			case SCONST:
-				if((uvlong)s->value < (uvlong)INITTEXT)
+				if((uint64_t)s->value < (uint64_t)INITTEXT)
 					v += INITTEXT;	/* TO DO */
 				v += s->value;
 				break;
@@ -679,7 +679,7 @@ vaddr(Adr *a)
 static void
 asmandsz(Adr *a, int r, int rex, int m64)
 {
-	long v;
+	int32_t v;
 	int t;
 	Adr aa;
 
@@ -1030,10 +1030,10 @@ doasm(Prog *p)
 {
 	Optab *o;
 	Prog *q, pp;
-	uchar *t;
+	uint8_t *t;
 	Movtab *mo;
 	int z, op, ft, tt, xo, l;
-	vlong v;
+	int64_t v;
 
 	o = opindex[p->as];
 	if(o == nil) {
@@ -1261,7 +1261,7 @@ found:
 			rexflag |= regrex[p->to.type] & Rxb;
 			*andptr++ = 0xb8 + reg[p->to.type];
 			put4(v);
-		}else if(l == -1 && (v&((uvlong)1<<31))!=0){	/* sign extend */
+		}else if(l == -1 && (v&((uint64_t)1<<31))!=0){	/* sign extend */
 			//p->mark |= 0100;
 			//print("sign: %llux %P\n", v, p);
 			*andptr ++ = 0xc7;
@@ -1624,8 +1624,8 @@ struct Reloc
 {
 	int n;
 	int t;
-	uchar *m;
-	ulong *a;
+	uint8_t *m;
+	uint32_t *a;
 };
 
 Reloc rels;
@@ -1634,27 +1634,27 @@ static void
 grow(Reloc *r)
 {
 	int t;
-	uchar *m, *nm;
-	ulong *a, *na;
+	uint8_t *m, *nm;
+	uint32_t *a, *na;
 
 	t = r->t;
 	r->t += 64;
 	m = r->m;
 	a = r->a;
-	r->m = nm = malloc(r->t*sizeof(uchar));
-	r->a = na = malloc(r->t*sizeof(ulong));
-	memmove(nm, m, t*sizeof(uchar));
-	memmove(na, a, t*sizeof(ulong));
+	r->m = nm = malloc(r->t*sizeof(uint8_t));
+	r->a = na = malloc(r->t*sizeof(uint32_t));
+	memmove(nm, m, t*sizeof(uint8_t));
+	memmove(na, a, t*sizeof(uint32_t));
 	free(m);
 	free(a);
 }
 
 void
-dynreloc(Sym *s, ulong v, int abs)
+dynreloc(Sym *s, uint32_t v, int abs)
 {
 	int i, k, n;
-	uchar *m;
-	ulong *a;
+	uint8_t *m;
+	uint32_t *a;
 	Reloc *r;
 
 	if(s->type == SUNDEF)
@@ -1699,9 +1699,9 @@ asmdyn()
 {
 	int i, n, t, c;
 	Sym *s;
-	ulong la, ra, *a;
-	vlong off;
-	uchar *m;
+	uint32_t la, ra, *a;
+	int64_t off;
+	uint8_t *m;
 	Reloc *r;
 
 	cflush();

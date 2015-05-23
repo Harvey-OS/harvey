@@ -49,7 +49,7 @@ static void	msgAddDate(Msg *m);
 static void	msgAddHead(Msg *m, char *head, char *body);
 static int	msgBodySize(Msg *m);
 static int	msgHeader(Msg *m, Header *h, char *file);
-static long	msgReadFile(Msg *m, char *file, char **ss);
+static int32_t	msgReadFile(Msg *m, char *file, char **ss);
 static int	msgUnix(Msg *m, int top);
 static void	stripQuotes(char *q);
 static MAddr	*unixFrom(char *s);
@@ -80,18 +80,19 @@ static char bogusMimeBinary[] =
 static char	*headFieldStop = ":";
 static char	*mimeTokenStop = "()<>@,;:\\\"/[]?=";
 static char	*headAtomStop = "()<>@,;:\\\".[]";
-static uchar	*headStr;
-static uchar	*lastWhite;
+static uint8_t	*headStr;
+static uint8_t	*lastWhite;
 
-long
-selectFields(char *dst, long n, char *hdr, SList *fields, int matches)
+int32_t
+selectFields(char *dst, int32_t n, char *hdr, SList *fields,
+	     int matches)
 {
 	SList *f;
-	uchar *start;
+	uint8_t *start;
 	char *s;
-	long m, nf;
+	int32_t m, nf;
 
-	headStr = (uchar*)hdr;
+	headStr = (uint8_t*)hdr;
 	m = 0;
 	for(;;){
 		start = headStr;
@@ -146,7 +147,7 @@ freeMsg(Msg *m)
 	free(m);
 }
 
-ulong
+uint32_t
 msgSize(Msg *m)
 {
 	return m->head.size + m->size;
@@ -191,7 +192,7 @@ msgFile(Msg *m, char *f)
 	Dir d;
 	Tm tm;
 	char buf[64], nbuf[2];
-	uchar dbuf[64];
+	uint8_t dbuf[64];
 	int i, n, fd, fd1, fd2;
 
 	if(!m->bogus
@@ -409,7 +410,7 @@ msgStruct(Msg *m, int top)
 	Msg *k, head, *last;
 	Dir *d;
 	char *s;
-	ulong max, id;
+	uint32_t max, id;
 	int i, nd, fd, ns;
 
 	if(m->kids != nil)
@@ -506,13 +507,13 @@ msgStruct(Msg *m, int top)
 	return 1;
 }
 
-static long
+static int32_t
 msgReadFile(Msg *m, char *file, char **ss)
 {
 	Dir *d;
 	char *s, buf[BufSize];
-	vlong length;
-	long n, nn;
+	int64_t length;
+	int32_t n, nn;
 	int fd;
 
 	fd = msgFile(m, file);
@@ -601,7 +602,7 @@ msgBogus(Msg *m, int flags)
  *  but not necessary.
  */
 static int
-enc64x18(char *out, int lim, uchar *in, int n)
+enc64x18(char *out, int lim, uint8_t *in, int n)
 {
 	int m, mm, nn;
 
@@ -623,7 +624,7 @@ enc64x18(char *out, int lim, uchar *in, int n)
 static void
 body64(int in, int out)
 {
-	uchar buf[3*18*54];
+	uint8_t buf[3*18*54];
 	char obuf[3*18*54*2];
 	int m, n;
 
@@ -645,7 +646,7 @@ body64(int in, int out)
 static void
 bodystrip(int in, int out)
 {
-	uchar buf[3*18*54];
+	uint8_t buf[3*18*54];
 	int m, n, i, c;
 
 	for(;;){
@@ -675,8 +676,8 @@ msgBodySize(Msg *m)
 {
 	Dir *d;
 	char buf[BufSize + 2], *s, *se;
-	vlong length;
-	ulong size, lines, bad;
+	int64_t length;
+	uint32_t size, lines, bad;
 	int n, fd, c;
 
 	if(m->lines != ~0UL)
@@ -778,7 +779,7 @@ unixFrom(char *s)
 
 	if(s == nil)
 		return nil;
-	headStr = (uchar*)s;
+	headStr = (uint8_t*)s;
 	t = emalloc(strlen(s) + 2);
 	e = headAddrSpec(t, nil);
 	if(e == nil)
@@ -805,8 +806,8 @@ static int
 msgHeader(Msg *m, Header *h, char *file)
 {
 	char *s, *ss, *t, *te;
-	ulong lines, n, nn;
-	long ns;
+	uint32_t lines, n, nn;
+	int32_t ns;
 	int dated, c;
 
 	if(h->buf != nil)
@@ -873,7 +874,7 @@ msgHeader(Msg *m, Header *h, char *file)
 	/*
 	 * and parse some mime headers
 	 */
-	headStr = (uchar*)h->buf;
+	headStr = (uint8_t*)h->buf;
 	dated = 0;
 	while(s = headAtom(headFieldStop)){
 		if(cistrcmp(s, "content-type") == 0)
@@ -937,7 +938,7 @@ static void
 msgAddHead(Msg *m, char *head, char *body)
 {
 	char *s;
-	long size, n;
+	int32_t size, n;
 
 	n = strlen(head) + strlen(body) + 4;
 	size = m->head.size + n;
@@ -1144,7 +1145,7 @@ static MAddr*
 headAddress(void)
 {
 	MAddr *addr;
-	uchar *hs;
+	uint8_t *hs;
 	char *s, *e, *w, *personal;
 	int c;
 
@@ -1656,7 +1657,7 @@ headQuoted(int start, int stop)
 static char *
 headText(void)
 {
-	uchar *v;
+	uint8_t *v;
 	char *s;
 
 	v = headStr;
@@ -1754,7 +1755,7 @@ headChar(int eat)
 static void
 headToEnd(void)
 {
-	uchar *s;
+	uint8_t *s;
 	int c;
 
 	for(;;){

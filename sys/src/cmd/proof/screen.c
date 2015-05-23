@@ -62,8 +62,8 @@ getcmdstr(void)
 {
 	Event ev;
 	int e;
-	static ulong timekey = 0;
-	ulong tracktm = 0;
+	static uint32_t timekey = 0;
+	uint32_t tracktm = 0;
 	Dir *dir;
 
 	if(track){

@@ -52,7 +52,7 @@ private int next_dc_index;
 
 #define dc_hash_size 293	/* prime, >num_dc */
 typedef struct {
-    ushort rgb, index;
+    uint16_t rgb, index;
 } dc_entry;
 private dc_entry dynamic_colors[dc_hash_size + 1];
 
@@ -160,7 +160,7 @@ lvga256_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
 		      gx_color_value b)
 {
 #define cv_bits(v,n) (v >> (gx_color_value_bits - n))
-    ushort r5 = cv_bits(r, 5), g5 = cv_bits(g, 5), b5 = cv_bits(b, 5);
+    uint16_t r5 = cv_bits(r, 5), g5 = cv_bits(g, 5), b5 = cv_bits(b, 5);
     static const byte cube_bits[32] =
     {0, 128, 128, 128, 128, 128, 128, 128, 128, 128,
      8, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
@@ -169,7 +169,7 @@ lvga256_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
     };
     uint cx = ((uint) cube_bits[r5] << 2) + ((uint) cube_bits[g5] << 1) +
     (uint) cube_bits[b5];
-    ushort rgb;
+    uint16_t rgb;
     register dc_entry *pdc;
 
     /* Check for a color on the cube. */

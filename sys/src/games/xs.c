@@ -52,7 +52,7 @@ Point		pos;
 Image	*bb, *bbmask, *bb2, *bb2mask;
 Image	*whitemask;
 Rectangle	br, br2;
-long		points;
+int32_t		points;
 int		dt;
 int		DY;
 int		DMOUSE;
@@ -75,7 +75,7 @@ Piece *piece;
 
 #define	NCOL	10
 
-uchar txbits[NCOL][32]={
+uint8_t txbits[NCOL][32]={
 	{0xDD,0xDD,0xFF,0xFF,0x77,0x77,0xFF,0xFF,
 	 0xDD,0xDD,0xFF,0xFF,0x77,0x77,0xFF,0xFF,
 	 0xDD,0xDD,0xFF,0xFF,0x77,0x77,0xFF,0xFF,
@@ -769,7 +769,7 @@ void
 redraw(int new)
 {
 	Rectangle r;
-	long dx, dy;
+	int32_t dx, dy;
 
 	if(new && getwindow(display, Refmesg) < 0)
 		sysfatal("can't reattach to window");

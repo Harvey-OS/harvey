@@ -91,7 +91,7 @@ passread(Fsstate *fss, void *va, uint *n)
 }
 
 static int
-passwrite(Fsstate *fss, void*, uint)
+passwrite(Fsstate *fss, void* v, uint u)
 {
 	return phaseerror(fss, "write");
 }

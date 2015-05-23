@@ -37,14 +37,14 @@ getdate(char *d)
 	return date;
 }
 
-long
+int32_t
 getexpiration(char *db, char *u)
 {
 	char buf[Maxpath];
 	char prompt[128];
 	char cdate[32];
 	Tm date;
-	ulong secs, now;
+	uint32_t secs, now;
 	int n, fd;
 
 	/* read current expiration (if any) */

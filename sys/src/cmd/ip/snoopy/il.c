@@ -16,14 +16,14 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uchar	sum[2];		/* Checksum including header */
-	uchar	len[2];		/* Packet length */
-	uchar	type;		/* Packet type */
-	uchar	spec;		/* Special */
-	uchar	sport[2];	/* Src port */
-	uchar	dport[2];	/* Dst port */
-	uchar	id[4];		/* Sequence id */
-	uchar	ack[4];		/* Acked sequence */
+	uint8_t	sum[2];		/* Checksum including header */
+	uint8_t	len[2];		/* Packet length */
+	uint8_t	type;		/* Packet type */
+	uint8_t	spec;		/* Special */
+	uint8_t	sport[2];	/* Src port */
+	uint8_t	dport[2];	/* Dst port */
+	uint8_t	id[4];		/* Sequence id */
+	uint8_t	ack[4];		/* Acked sequence */
 };
 
 enum
@@ -137,7 +137,7 @@ p_seprint(Msg *m)
 
 	m->p = seprint(m->p, m->e, "s=%d d=%d t=%s id=%lud ack=%lud spec=%d ck=%4.4ux ln=%d",
 			sport, dport, pkttype(h->type),
-			(ulong)NetL(h->id), (ulong)NetL(h->ack),
+			(uint32_t)NetL(h->id), (uint32_t)NetL(h->ack),
 			h->spec,
 			NetS(h->sum), NetS(h->len));
 	return 0;

@@ -16,10 +16,10 @@
  */
 
 static	char	*mipsexcep(Map*, Rgetter);
-static	int	mipsfoll(Map*, uvlong, Rgetter, uvlong*);
-static	int	mipsinst(Map*, uvlong, char, char*, int);
-static	int	mipsdas(Map*, uvlong, char*, int);
-static	int	mipsinstlen(Map*, uvlong);
+static	int	mipsfoll(Map*, uint64_t, Rgetter, uint64_t*);
+static	int	mipsinst(Map*, uint64_t, char, char*, int);
+static	int	mipsdas(Map*, uint64_t, char*, int);
+static	int	mipsinstlen(Map*, uint64_t);
 
 /*
  *	Debugger interface
@@ -142,7 +142,7 @@ static char*
 mipsexcep(Map *map, Rgetter rget)
 {
 	int e;
-	long c;
+	int32_t c;
 
 	c = (*rget)(map, "CAUSE");
 	/* i don't think this applies to any current machines */
@@ -158,18 +158,18 @@ mipsexcep(Map *map, Rgetter rget)
 static	char FRAMENAME[] = ".frame";
 
 typedef struct {
-	uvlong addr;
-	uchar op;			/* bits 31-26 */
-	uchar rs;			/* bits 25-21 */
-	uchar rt;			/* bits 20-16 */
-	uchar rd;			/* bits 15-11 */
-	uchar sa;			/* bits 10-6 */
-	uchar function;			/* bits 5-0 */
-	long immediate;			/* bits 15-0 */
-	ulong cofun;			/* bits 24-0 */
-	ulong target;			/* bits 25-0 */
-	long w0;
-	long w1;
+	uint64_t addr;
+	uint8_t op;			/* bits 31-26 */
+	uint8_t rs;			/* bits 25-21 */
+	uint8_t rt;			/* bits 20-16 */
+	uint8_t rd;			/* bits 15-11 */
+	uint8_t sa;			/* bits 10-6 */
+	uint8_t function;			/* bits 5-0 */
+	int32_t immediate;			/* bits 15-0 */
+	uint32_t cofun;			/* bits 24-0 */
+	uint32_t target;			/* bits 25-0 */
+	int32_t w0;
+	int32_t w1;
 	int size;			/* instruction size */
 	char *curr;			/* fill point in buffer */
 	char *end;			/* end of buffer */
@@ -179,9 +179,9 @@ typedef struct {
 static Map *mymap;
 
 static int
-decode(uvlong pc, Instr *i)
+decode(uint64_t pc, Instr *i)
 {
-	ulong w;
+	uint32_t w;
 
 	if (get4(mymap, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -206,7 +206,7 @@ decode(uvlong pc, Instr *i)
 }
 
 static int
-mkinstr(uvlong pc, Instr *i)
+mkinstr(uint64_t pc, Instr *i)
 {
 	Instr x;
 
@@ -1035,11 +1035,11 @@ cop1(Instr *i)
 }
 
 static int
-printins(Map *map, uvlong pc, char *buf, int n)
+printins(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 	Opcode *o;
-	uchar op;
+	uint8_t op;
 
 	i.curr = buf;
 	i.end = buf+n-1;
@@ -1088,11 +1088,11 @@ printins(Map *map, uvlong pc, char *buf, int n)
 	return i.size*4;
 }
 
-extern	int	_mipscoinst(Map *, uvlong, char*, int);
+extern	int	_mipscoinst(Map *, uint64_t, char*, int);
 
 	/* modifier 'I' toggles the default disassembler type */
 static int
-mipsinst(Map *map, uvlong pc, char modifier, char *buf, int n)
+mipsinst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	if ((asstype == AMIPSCO && modifier == 'i')
 		|| (asstype == AMIPS && modifier == 'I'))
@@ -1102,7 +1102,7 @@ mipsinst(Map *map, uvlong pc, char modifier, char *buf, int n)
 }
 
 static int
-mipsdas(Map *map, uvlong pc, char *buf, int n)
+mipsdas(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 
@@ -1122,7 +1122,7 @@ mipsdas(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-mipsinstlen(Map *map, uvlong pc)
+mipsinstlen(Map *map, uint64_t pc)
 {
 	Instr i;
 
@@ -1133,9 +1133,9 @@ mipsinstlen(Map *map, uvlong pc)
 }
 
 static int
-mipsfoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
+mipsfoll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
-	ulong w, l;
+	uint32_t w, l;
 	char buf[8];
 	Instr i;
 

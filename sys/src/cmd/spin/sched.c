@@ -28,7 +28,7 @@ extern Ordered	*all_names;
 extern Symbol	*Fname, *context;
 extern int	lineno, nr_errs, dumptab, xspin, jumpsteps, columns;
 extern int	u_sync, Elcnt, interactive, TstOnly, cutoff;
-extern short	has_enabled;
+extern int16_t	has_enabled;
 extern int	limited_vis, old_scope_rules, product, nclaims;
 
 RunList		*X   = (RunList  *) 0;
@@ -38,7 +38,7 @@ ProcList	*rdy = (ProcList *) 0;
 Element		*LastStep = ZE;
 int		nproc=0, nstop=0, Tval=0;
 int		Rvous=0, depth=0, nrRdy=0, MadeChoice;
-short		Have_claim=0, Skip_claim=0;
+int16_t		Have_claim=0, Skip_claim=0;
 
 static int	Priority_Sum = 0;
 static void	setlocals(RunList *);
@@ -93,7 +93,7 @@ ready(Symbol *n, Lextok *p, Sequence *s, int det, Lextok *prov, enum btypes b)
 	if (det != 0 && det != 1)
 	{	fprintf(stderr, "spin: bad value for det (cannot happen)\n");
 	}
-	r->det = (short) det;
+	r->det = (int16_t) det;
 	r->nxt = rdy;
 	rdy = r;
 
@@ -357,7 +357,7 @@ silent_moves(Element *e)
 static RunList *
 pickproc(RunList *Y)
 {	SeqList *z; Element *has_else;
-	short Choices[256];
+	int16_t Choices[256];
 	int j, k, nr_else = 0;
 
 	if (nproc <= nstop+1)
@@ -385,7 +385,7 @@ try_again:	printf("Select a statement\n");
 try_more:	for (X = run, k = 1; X; X = X->nxt)
 		{	if (X->pid > 255) break;
 
-			Choices[X->pid] = (short) k;
+			Choices[X->pid] = (int16_t) k;
 
 			if (!X->pc
 			||  (X->prov && !eval(X->prov)))
@@ -638,7 +638,8 @@ sched(void)
 		} else
 		{	depth--;
 			if (oX->pc && (oX->pc->status & D_ATOM))
-			{	non_fatal("stmnt in d_step blocks", (char *)0);
+			{	non_fatal("stmnt in d_step blocks",
+					   (char *)0);
 			}
 			if (X->pc
 			&&  X->pc->n

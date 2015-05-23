@@ -20,7 +20,7 @@ Dir*
 dirstat(char *name)
 {
 	Dir *d;
-	uchar *buf;
+	uint8_t *buf;
 	int n, nd, i;
 
 	nd = DIRSIZE;
@@ -28,13 +28,13 @@ dirstat(char *name)
 		d = malloc(sizeof(Dir) + BIT16SZ + nd);
 		if(d == nil)
 			return nil;
-		buf = (uchar*)&d[1];
+		buf = (uint8_t*)&d[1];
 		n = stat(name, buf, BIT16SZ+nd);
 		if(n < BIT16SZ){
 			free(d);
 			return nil;
 		}
-		nd = GBIT16((uchar*)buf);	/* upper bound on size of Dir + strings */
+		nd = GBIT16((uint8_t*)buf);	/* upper bound on size of Dir + strings */
 		if(nd <= n){
 			convM2D(buf, n, d, (char*)&d[1]);
 			return d;

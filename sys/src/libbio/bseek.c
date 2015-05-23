@@ -11,10 +11,10 @@
 #include	<libc.h>
 #include	<bio.h>
 
-vlong
-Bseek(Biobufhdr *bp, vlong offset, int base)
+int64_t
+Bseek(Biobufhdr *bp, int64_t offset, int base)
 {
-	vlong n, d;
+	int64_t n, d;
 
 	switch(bp->state) {
 	default:

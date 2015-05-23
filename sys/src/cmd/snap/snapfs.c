@@ -55,7 +55,7 @@ usage(void)
 }
 
 char*
-memread(Proc *p, File *f, void *buf, long *count, vlong offset)
+memread(Proc *p, File *f, void *buf, int32_t *count, int64_t offset)
 {
 	Page *pg;
 	int po;
@@ -72,7 +72,7 @@ memread(Proc *p, File *f, void *buf, long *count, vlong offset)
 }
 
 char*
-dataread(Data *d, void *buf, long *count, vlong offset)
+dataread(Data *d, void *buf, int32_t *count, int64_t offset)
 {
 	assert(d != nil);
 
@@ -95,8 +95,8 @@ fsread(Req *r)
 	PD *pd;
 	Fid *fid;
 	void *data;
-	vlong offset;
-	long count;
+	int64_t offset;
+	int32_t count;
 
 	fid = r->fid;
 	data = r->ofcall.data;
@@ -119,7 +119,7 @@ Srv fs = {
 };
 
 File*
-ecreatefile(File *a, char *b, char *c, ulong d, void *e)
+ecreatefile(File *a, char *b, char *c, uint32_t d, void *e)
 {
 	File *f;
 

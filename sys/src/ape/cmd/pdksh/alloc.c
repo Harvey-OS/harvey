@@ -545,7 +545,7 @@ aprint(ap, ptr, size)
 			shellf("aprint: block %2d (p=%p,%p,n=%p): 0x%p .. 0x%p (%ld)\n", i,
 				bp->prev, bp, bp->next,
 				bp->cell, bp->last,
-				(long) ((char *) bp->last - (char *) bp->cell));
+				(int32_t) ((char *) bp->last - (char *) bp->cell));
 			fp = bp->freelist;
 			if (bp->last <= bp->cell + NOBJECT_FIELDS)
 				shellf(
@@ -564,7 +564,7 @@ aprint(ap, ptr, size)
 					(dp-NOBJECT_FIELDS),
 					(dp-NOBJECT_FIELDS) + (dp-1)->size
 						+ NOBJECT_FIELDS,
-					(long) ((dp-1)->size + NOBJECT_FIELDS)
+					(int32_t) ((dp-1)->size + NOBJECT_FIELDS)
 						* sizeof(Cell),
 					dp == fp ? "free" : "allocated");
 				if ((dp-2)->block != bp)

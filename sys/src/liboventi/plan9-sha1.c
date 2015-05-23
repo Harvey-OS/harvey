@@ -12,8 +12,8 @@
 #include <oventi.h>
 #include <libsec.h>
 
-static void encode(uchar*, u32int*, ulong);
-extern void vtSha1Block(u32int *s, uchar *p, ulong len);
+static void encode(uint8_t*, uint32_t*, uint32_t);
+extern void vtSha1Block(uint32_t *s, uint8_t *p, uint32_t len);
 
 struct VtSha1
 {
@@ -47,20 +47,20 @@ vtSha1Init(VtSha1 *s)
 }
 
 void
-vtSha1Update(VtSha1 *s, uchar *p, int len)
+vtSha1Update(VtSha1 *s, uint8_t *p, int len)
 {
 	s->s = sha1(p, len, nil, s->s);
 }
 
 void
-vtSha1Final(VtSha1 *s, uchar *digest)
+vtSha1Final(VtSha1 *s, uint8_t *digest)
 {
 	sha1(nil, 0, digest, s->s);
 	s->s = nil;
 }
 
 void
-vtSha1(uchar sha1[VtScoreSize], uchar *p, int n)
+vtSha1(uint8_t sha1[VtScoreSize], uint8_t *p, int n)
 {
 	VtSha1 s;
 
@@ -70,10 +70,10 @@ vtSha1(uchar sha1[VtScoreSize], uchar *p, int n)
 }
 
 int
-vtSha1Check(uchar score[VtScoreSize], uchar *p, int n)
+vtSha1Check(uint8_t score[VtScoreSize], uint8_t *p, int n)
 {
 	VtSha1 s;
-	uchar score2[VtScoreSize];
+	uint8_t score2[VtScoreSize];
 
 	vtSha1Init(&s);
 	vtSha1Update(&s, p, n);

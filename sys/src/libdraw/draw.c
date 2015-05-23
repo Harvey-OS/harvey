@@ -14,7 +14,7 @@
 void
 _setdrawop(Display *d, Drawop op)
 {
-	uchar *a;
+	uint8_t *a;
 
 	if(op != SoverD){
 		a = bufimage(d, 1+1);
@@ -28,7 +28,7 @@ _setdrawop(Display *d, Drawop op)
 static void
 draw1(Image *dst, Rectangle *r, Image *src, Point *p0, Image *mask, Point *p1, Drawop op)
 {
-	uchar *a;
+	uint8_t *a;
 
 	_setdrawop(dst->display, op);
 

@@ -23,7 +23,7 @@
  *	char otime[10];
  */
 Binding *bcache;
-uchar bfirst[IPaddrlen];
+uint8_t bfirst[IPaddrlen];
 char *binddir = "/lib/ndb/dhcp";
 
 /*
@@ -37,7 +37,7 @@ hex(int x)
 	return x - 10 + 'a';
 }
 extern char*
-tohex(char *hdr, uchar *p, int len)
+tohex(char *hdr, uint8_t *p, int len)
 {
 	char *s, *sp;
 	int hlen;
@@ -61,7 +61,7 @@ tohex(char *hdr, uchar *p, int len)
  *  ascii, leave it be.  Otherwise, convert it to hex.
  */
 extern char*
-toid(uchar *p, int n)
+toid(uint8_t *p, int n)
 {
 	int i;
 	char *s;
@@ -79,7 +79,7 @@ toid(uchar *p, int n)
  *  increment an ip address
  */
 static void
-incip(uchar *ip)
+incip(uint8_t *ip)
 {
 	int i, x;
 
@@ -124,7 +124,7 @@ lockopen(char *file)
 }
 
 void
-setbinding(Binding *b, char *id, long t)
+setbinding(Binding *b, char *id, int32_t t)
 {
 	if(b->boundto)
 		free(b->boundto);
@@ -136,7 +136,7 @@ setbinding(Binding *b, char *id, long t)
 static void
 parsebinding(Binding *b, char *buf)
 {
-	long t;
+	int32_t t;
 	char *id, *p;
 
 	/* parse */
@@ -214,9 +214,9 @@ syncbinding(Binding *b, int returnfd)
 }
 
 extern int
-samenet(uchar *ip, Info *iip)
+samenet(uint8_t *ip, Info *iip)
 {
-	uchar x[IPaddrlen];
+	uint8_t x[IPaddrlen];
 
 	maskip(iip->ipmask, ip, x);
 	return ipcmp(x, iip->ipnet) == 0;
@@ -226,7 +226,7 @@ samenet(uchar *ip, Info *iip)
  *  create a record for each binding
  */
 extern void
-initbinding(uchar *first, int n)
+initbinding(uint8_t *first, int n)
 {
 	while(n-- > 0){
 		iptobinding(first, 1);
@@ -238,7 +238,7 @@ initbinding(uchar *first, int n)
  *  find a binding for a specific ip address
  */
 extern Binding*
-iptobinding(uchar *ip, int mk)
+iptobinding(uint8_t *ip, int mk)
 {
 	Binding *b;
 
@@ -351,7 +351,7 @@ idtobinding(char *id, Info *iip, int ping)
  *  create an offer
  */
 extern void
-mkoffer(Binding *b, char *id, long leasetime)
+mkoffer(Binding *b, char *id, int32_t leasetime)
 {
 	if(leasetime <= 0){
 		if(b->lease > now + minlease)
@@ -394,7 +394,7 @@ extern int
 commitbinding(Binding *b)
 {
 	int fd;
-	long now;
+	int32_t now;
 
 	now = time(0);
 
@@ -425,7 +425,7 @@ extern int
 releasebinding(Binding *b, char *id)
 {
 	int fd;
-	long now;
+	int32_t now;
 
 	now = time(0);
 

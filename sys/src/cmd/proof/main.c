@@ -158,11 +158,11 @@ nbuf(void)	/* return number of buffered characters */
 	return ini-outi;
 }
 
-ulong
-seekc(ulong o)
+uint32_t
+seekc(uint32_t o)
 {
-	ulong avail;
-	long delta;
+	uint32_t avail;
+	int32_t delta;
 
 	delta = off-o;
 	if(delta < 0)
@@ -193,7 +193,7 @@ ungetc(void)
 	--off;
 }
 
-ulong
+uint32_t
 offsetc(void)
 {
 	return off;

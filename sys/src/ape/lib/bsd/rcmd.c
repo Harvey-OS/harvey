@@ -33,7 +33,8 @@ ding(int)
 }
 
 int
-rcmd(char **dst, int port, char *luser, char *ruser, char *cmd, int *fd2p)
+rcmd(char **dst, int port, char *luser, char *ruser, char *cmd,
+     int *fd2p)
 {
 	char c;
 	int i, fd, lfd, fd2, port2;

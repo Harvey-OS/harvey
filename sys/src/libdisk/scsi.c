@@ -129,11 +129,12 @@ scsierror(int asc, int ascq)
 
 
 static int
-_scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io, int dolock)
+_scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount,
+	 int io, int dolock)
 {
-	uchar resp[16];
+	uint8_t resp[16];
 	int n;
-	long status;
+	int32_t status;
 
 	if(dolock)
 		qlock(s);
@@ -185,7 +186,7 @@ _scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io, int do
 }
 
 int
-scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io)
+scsicmd(Scsi *s, uint8_t *cmd, int ccount, void *data, int dcount, int io)
 {
 	return _scsicmd(s, cmd, ccount, data, dcount, io, 1);
 }
@@ -194,7 +195,7 @@ static int
 _scsiready(Scsi *s, int dolock)
 {
 	char err[ERRMAX];
-	uchar cmd[6], resp[16];
+	uint8_t cmd[6], resp[16];
 	int status, i;
 
 	if(dolock)
@@ -240,14 +241,14 @@ scsiready(Scsi *s)
 }
 
 int
-scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
+scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 {
-	uchar req[6], sense[255], *data;
+	uint8_t req[6], sense[255], *data;
 	int tries, code, key, n;
 	char *p;
 
 	data = v;
-	SET(key, code);
+	SET(key); SET(code);
 	qlock(s);
 	for(tries=0; tries<2; tries++) {
 		n = _scsicmd(s, cmd, ccount, data, dcount, io, 0);

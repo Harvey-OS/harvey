@@ -14,7 +14,7 @@
 void
 drawsetdebug(int v)
 {
-	uchar *a;
+	uint8_t *a;
 	a = bufimage(display, 1+1);
 	if(a == 0){
 		fprint(2, "drawsetdebug: %r\n");

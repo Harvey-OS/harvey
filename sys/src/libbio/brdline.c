@@ -77,7 +77,7 @@ Brdline(Biobufhdr *bp, int delim)
 			ip = (char*)bp->ebuf - i;
 			if(i < bp->bsize){
 				memmove(ip, bp->bbuf, i);
-				bp->gbuf = (uchar*)ip;
+				bp->gbuf = (uint8_t*)ip;
 			}
 			j = (ep - (char*)bp->bbuf) + 1;
 			bp->rdline = j;

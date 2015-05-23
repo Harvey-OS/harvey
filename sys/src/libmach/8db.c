@@ -19,12 +19,14 @@
 
 static	char	*i386excep(Map*, Rgetter);
 
-static	int	i386trace(Map*, uvlong, uvlong, uvlong, Tracer);
-static	uvlong	i386frame(Map*, uvlong, uvlong, uvlong, uvlong);
-static	int	i386foll(Map*, uvlong, Rgetter, uvlong*);
-static	int	i386inst(Map*, uvlong, char, char*, int);
-static	int	i386das(Map*, uvlong, char*, int);
-static	int	i386instlen(Map*, uvlong);
+static	int	i386trace(Map*, uint64_t, uint64_t, uint64_t,
+				   Tracer);
+static	uint64_t	i386frame(Map*, uint64_t, uint64_t, uint64_t,
+					uint64_t);
+static	int	i386foll(Map*, uint64_t, Rgetter, uint64_t*);
+static	int	i386inst(Map*, uint64_t, char, char*, int);
+static	int	i386das(Map*, uint64_t, char*, int);
+static	int	i386instlen(Map*, uint64_t);
 
 static	char	STARTSYM[] =	"_main";
 static	char	PROFSYM[] =	"_mainp";
@@ -82,15 +84,15 @@ Machdata i386mach =
 static char*
 i386excep(Map *map, Rgetter rget)
 {
-	ulong c;
-	uvlong pc;
+	uint32_t c;
+	uint64_t pc;
 	static char buf[16];
 
 	c = (*rget)(map, "TRAP");
 	if(c > 64 || excname[c] == 0) {
 		if (c == 3) {
 			pc = (*rget)(map, "PC");
-			if (get1(map, pc, (uchar*)buf, machdata->bpsize) > 0)
+			if (get1(map, pc, (uint8_t*)buf, machdata->bpsize) > 0)
 			if (memcmp(buf, machdata->bpinst, machdata->bpsize) == 0)
 				return "breakpoint";
 		}
@@ -101,10 +103,10 @@ i386excep(Map *map, Rgetter rget)
 }
 
 static int
-i386trace(Map *map, uvlong pc, uvlong sp, uvlong link, Tracer trace)
+i386trace(Map *map, uint64_t pc, uint64_t sp, uint64_t link, Tracer trace)
 {
 	int i;
-	uvlong osp;
+	uint64_t osp;
 	Symbol s, f;
 
 	USED(link);
@@ -139,8 +141,8 @@ i386trace(Map *map, uvlong pc, uvlong sp, uvlong link, Tracer trace)
 	return i;
 }
 
-static uvlong
-i386frame(Map *map, uvlong addr, uvlong pc, uvlong sp, uvlong link)
+static uint64_t
+i386frame(Map *map, uint64_t addr, uint64_t pc, uint64_t sp, uint64_t link)
 {
 	Symbol s, f;
 
@@ -173,28 +175,28 @@ i386frame(Map *map, uvlong addr, uvlong pc, uvlong sp, uvlong link)
 typedef struct Instr Instr;
 struct	Instr
 {
-	uchar	mem[1+1+1+1+2+1+1+4+4];		/* raw instruction */
-	uvlong	addr;		/* address of start of instruction */
+	uint8_t	mem[1+1+1+1+2+1+1+4+4];		/* raw instruction */
+	uint64_t	addr;		/* address of start of instruction */
 	int	n;		/* number of bytes in instruction */
 	char	*prefix;	/* instr prefix */
 	char	*segment;	/* segment override */
-	uchar	jumptype;	/* set to the operand type for jump/ret/call */
-	uchar	amd64;
-	uchar	rex;		/* REX prefix (or zero) */
+	uint8_t	jumptype;	/* set to the operand type for jump/ret/call */
+	uint8_t	amd64;
+	uint8_t	rex;		/* REX prefix (or zero) */
 	char	osize;		/* 'W' or 'L' (or 'Q' on amd64) */
 	char	asize;		/* address size 'W' or 'L' (or 'Q' or amd64) */
-	uchar	mod;		/* bits 6-7 of mod r/m field */
-	uchar	reg;		/* bits 3-5 of mod r/m field */
+	uint8_t	mod;		/* bits 6-7 of mod r/m field */
+	uint8_t	reg;		/* bits 3-5 of mod r/m field */
 	char	ss;		/* bits 6-7 of SIB */
 	char	index;		/* bits 3-5 of SIB */
 	char	base;		/* bits 0-2 of SIB */
 	char	rip;		/* RIP-relative in amd64 mode */
-	uchar	opre;		/* f2/f3 could introduce media */
-	short	seg;		/* segment of far address */
-	ulong	disp;		/* displacement */
-	ulong 	imm;		/* immediate */
-	ulong 	imm2;		/* second immediate operand */
-	uvlong	imm64;		/* big immediate */
+	uint8_t	opre;		/* f2/f3 could introduce media */
+	int16_t	seg;		/* segment of far address */
+	uint32_t	disp;		/* displacement */
+	uint32_t 	imm;		/* immediate */
+	uint32_t 	imm2;		/* second immediate operand */
+	uint64_t	imm64;		/* big immediate */
 	char	*curr;		/* fill level in output buffer */
 	char	*end;		/* end of output buffer */
 	char	*err;		/* error message */
@@ -1238,7 +1240,7 @@ static Optable optable[256+1] =
  *  get a byte of the instruction
  */
 static int
-igetc(Map *map, Instr *ip, uchar *c)
+igetc(Map *map, Instr *ip, uint8_t *c)
 {
 	if(ip->n+1 > sizeof(ip->mem)){
 		werrstr("instruction too long");
@@ -1256,10 +1258,10 @@ igetc(Map *map, Instr *ip, uchar *c)
  *  get two bytes of the instruction
  */
 static int
-igets(Map *map, Instr *ip, ushort *sp)
+igets(Map *map, Instr *ip, uint16_t *sp)
 {
-	uchar c;
-	ushort s;
+	uint8_t c;
+	uint16_t s;
 
 	if (igetc(map, ip, &c) < 0)
 		return -1;
@@ -1275,10 +1277,10 @@ igets(Map *map, Instr *ip, ushort *sp)
  *  get 4 bytes of the instruction
  */
 static int
-igetl(Map *map, Instr *ip, ulong *lp)
+igetl(Map *map, Instr *ip, uint32_t *lp)
 {
-	ushort s;
-	long	l;
+	uint16_t s;
+	int32_t	l;
 
 	if (igets(map, ip, &s) < 0)
 		return -1;
@@ -1294,17 +1296,17 @@ igetl(Map *map, Instr *ip, ulong *lp)
  *  get 8 bytes of the instruction
  */
 static int
-igetq(Map *map, Instr *ip, vlong *qp)
+igetq(Map *map, Instr *ip, int64_t *qp)
 {
-	ulong	l;
-	uvlong q;
+	uint32_t	l;
+	uint64_t q;
 
 	if (igetl(map, ip, &l) < 0)
 		return -1;
 	q = l;
 	if (igetl(map, ip, &l) < 0)
 		return -1;
-	q |= ((uvlong)l<<32);
+	q |= ((uint64_t)l<<32);
 	*qp = q;
 	return 1;
 }
@@ -1312,8 +1314,8 @@ igetq(Map *map, Instr *ip, vlong *qp)
 static int
 getdisp(Map *map, Instr *ip, int mod, int rm, int code, int pcrel)
 {
-	uchar c;
-	ushort s;
+	uint8_t c;
+	uint16_t s;
 
 	if (mod > 2)
 		return 1;
@@ -1345,9 +1347,9 @@ getdisp(Map *map, Instr *ip, int mod, int rm, int code, int pcrel)
 }
 
 static int
-modrm(Map *map, Instr *ip, uchar c)
+modrm(Map *map, Instr *ip, uint8_t c)
 {
-	uchar rm, mod;
+	uint8_t rm, mod;
 
 	mod = (c>>6)&3;
 	rm = c&7;
@@ -1402,11 +1404,11 @@ modrm(Map *map, Instr *ip, uchar c)
 }
 
 static Optable *
-mkinstr(Map *map, Instr *ip, uvlong pc)
+mkinstr(Map *map, Instr *ip, uint64_t pc)
 {
 	int i, n, norex;
-	uchar c;
-	ushort s;
+	uint8_t c;
+	uint16_t s;
 	Optable *op, *obase;
 	char buf[128];
 
@@ -1464,7 +1466,7 @@ badop:
 				ip->imm = c|0xffffff00;
 			else
 				ip->imm = c&0xff;
-			ip->imm64 = (long)ip->imm;
+			ip->imm64 = (int32_t)ip->imm;
 			ip->jumptype = Jbs;
 			break;
 		case Ibs:	/* 8-bit immediate (sign extended) */
@@ -1477,7 +1479,7 @@ badop:
 					ip->imm = c|0xff00;
 			else
 				ip->imm = c&0xff;
-			ip->imm64 = (long)ip->imm;
+			ip->imm64 = (int32_t)ip->imm;
 			break;
 		case Iw:	/* 16-bit immediate -> imm */
 			if (igets(map, ip, &s) < 0)
@@ -1497,7 +1499,7 @@ badop:
 					return 0;
 				ip->imm64 = ip->imm;
 				if(ip->rex&REXW && (ip->imm & (1<<31)) != 0)
-					ip->imm64 |= (vlong)~0 << 32;
+					ip->imm64 |= (int64_t)~0 << 32;
 			} else {
 				if (igets(map, ip, &s)< 0)
 					return 0;
@@ -1511,10 +1513,10 @@ badop:
 					return 0;
 				ip->imm64 = ip->imm;
 				if (ip->rex & REXW) {
-					ulong l;
+					uint32_t l;
 					if (igetl(map, ip, &l) < 0)
 						return 0;
-					ip->imm64 |= (uvlong)l << 32;
+					ip->imm64 |= (uint64_t)l << 32;
 				}
 			} else {
 				if (igets(map, ip, &s)< 0)
@@ -1644,7 +1646,7 @@ badop:
 					return 0;
 				ip->disp = s&0xffff;
 			}
-			if (igets(map, ip, (ushort*)&ip->seg) < 0)
+			if (igets(map, ip, (uint16_t*)&ip->seg) < 0)
 				return 0;
 			ip->jumptype = PTR;
 			break;
@@ -1762,7 +1764,7 @@ static void
 plocal(Instr *ip)
 {
 	int ret;
-	long offset;
+	int32_t offset;
 	Symbol s;
 	char *reg;
 
@@ -1807,10 +1809,10 @@ isjmp(Instr *ip)
  * are changed on sources.
  */
 static int
-issymref(Instr *ip, Symbol *s, long w, long val)
+issymref(Instr *ip, Symbol *s, int32_t w, int32_t val)
 {
 	Symbol next, tmp;
-	long isstring, size;
+	int32_t isstring, size;
 
 	if (isjmp(ip))
 		return 1;
@@ -1847,10 +1849,10 @@ issymref(Instr *ip, Symbol *s, long w, long val)
 }
 
 static void
-immediate(Instr *ip, vlong val)
+immediate(Instr *ip, int64_t val)
 {
 	Symbol s;
-	long w;
+	int32_t w;
 
 	if (findsym(val, CANY, &s)) {		/* TO DO */
 		w = val - s.value;
@@ -1876,7 +1878,7 @@ immediate(Instr *ip, vlong val)
 */
 	}
 	if((ip->rex & REXW) == 0)
-		bprint(ip, "%lux", (long)val);
+		bprint(ip, "%lux", (int32_t)val);
 	else
 		bprint(ip, "%llux", val);
 }
@@ -1914,7 +1916,7 @@ pea(Instr *ip)
 static void
 prinstr(Instr *ip, char *fmt)
 {
-	vlong v;
+	int64_t v;
 
 	if (ip->prefix)
 		bprint(ip, "%s ", ip->prefix);
@@ -2019,7 +2021,7 @@ prinstr(Instr *ip, char *fmt)
 			/*
 			 * signed immediate in the ulong ip->imm.
 			 */
-			v = (long)ip->imm;
+			v = (int32_t)ip->imm;
 			immediate(ip, v+ip->addr+ip->n);
 			break;
 		case 'r':
@@ -2061,7 +2063,7 @@ prinstr(Instr *ip, char *fmt)
 }
 
 static int
-i386inst(Map *map, uvlong pc, char modifier, char *buf, int n)
+i386inst(Map *map, uint64_t pc, char modifier, char *buf, int n)
 {
 	Instr instr;
 	Optable *op;
@@ -2079,7 +2081,7 @@ i386inst(Map *map, uvlong pc, char modifier, char *buf, int n)
 }
 
 static int
-i386das(Map *map, uvlong pc, char *buf, int n)
+i386das(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr instr;
 	int i;
@@ -2098,7 +2100,7 @@ i386das(Map *map, uvlong pc, char *buf, int n)
 }
 
 static int
-i386instlen(Map *map, uvlong pc)
+i386instlen(Map *map, uint64_t pc)
 {
 	Instr i;
 
@@ -2108,13 +2110,13 @@ i386instlen(Map *map, uvlong pc)
 }
 
 static int
-i386foll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
+i386foll(Map *map, uint64_t pc, Rgetter rget, uint64_t *foll)
 {
 	Instr i;
 	Optable *op;
-	ushort s;
-	uvlong l, addr;
-	vlong v;
+	uint16_t s;
+	uint64_t l, addr;
+	int64_t v;
 	int n;
 
 	op = mkinstr(map, &i, pc);
@@ -2135,7 +2137,7 @@ i386foll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
 		return 1;
 	case Iwds:		/* pc relative JUMP or CALL*/
 	case Jbs:		/* pc relative JUMP or CALL */
-		v = (long)i.imm;
+		v = (int32_t)i.imm;
 		foll[0] = pc+v+i.n;
 		n = 1;
 		break;

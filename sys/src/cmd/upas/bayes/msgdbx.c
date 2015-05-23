@@ -38,12 +38,12 @@ mdopen(char *file, int create)
 	return mdb;
 }
 
-long
+int32_t
 mdget(Msgdb *mdb, char *tok)
 {
 	DB *db = mdb->db;
 	DBT key, val;
-	uchar *p;
+	uint8_t *p;
 
 	key.data = tok;
 	key.size = strlen(tok)+1;
@@ -61,9 +61,9 @@ mdget(Msgdb *mdb, char *tok)
 }
 
 void
-mdput(Msgdb *mdb, char *tok, long n)
+mdput(Msgdb *mdb, char *tok, int32_t n)
 {
-	uchar p[4];
+	uint8_t p[4];
 	DB *db = mdb->db;
 	DBT key, val;
 
@@ -91,10 +91,10 @@ mdenum(Msgdb *mdb)
 }
 
 int
-mdnext(Msgdb *mdb, char **sp, long *vp)
+mdnext(Msgdb *mdb, char **sp, int32_t *vp)
 {
 	DBT key, val;
-	uchar *p;
+	uint8_t *p;
 	DB *db = mdb->db;
 	int i;
 

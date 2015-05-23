@@ -7,13 +7,13 @@
  * in the LICENSE file.
  */
 
-#include <u.h>
+#include "u.h"
 
-/* mul64fract(uvlong*r, uvlong a, uvlong b)
+/* mul64fract(uint64_t*r, uint64_t a, uint64_t b)
  *
  * Multiply two 64 numbers and return the middle 64 bits of the 128 bit result.
  *
- * The assumption is that one of the numbers is a 
+ * The assumption is that one of the numbers is a
  * fixed point number with the integer portion in the
  * high word and the fraction in the low word.
  *
@@ -28,11 +28,11 @@
  */
 
 void
-mul64fract(uvlong *r, uvlong a, uvlong b)
+mul64fract(uint64_t *r, uint64_t a, uint64_t b)
 {
-	uvlong bh, bl;
-	uvlong ah, al;
-	uvlong res;
+	uint64_t bh, bl;
+	uint64_t ah, al;
+	uint64_t res;
 
 	bl = b & 0xffffffffULL;
 	bh = b >> 32;

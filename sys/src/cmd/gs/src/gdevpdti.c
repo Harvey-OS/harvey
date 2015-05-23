@@ -65,14 +65,14 @@ gs_public_st_suffix_add2_string1(st_pdf_char_proc, pdf_char_proc_t,
 struct pdf_bitmap_fonts_s {
     pdf_font_resource_t *open_font;  /* current Type 3 synthesized font */
     bool use_open_font;		/* if false, start new open_font */
-    long bitmap_encoding_id;
+    int32_t bitmap_encoding_id;
     int max_embedded_code;	/* max Type 3 code used */
 };
 gs_private_st_ptrs1(st_pdf_bitmap_fonts, pdf_bitmap_fonts_t,
   "pdf_bitmap_fonts_t", pdf_bitmap_fonts_enum_ptrs,
   pdf_bitmap_fonts_reloc_ptrs, open_font);
 
-inline private long
+inline private int32_t
 pdf_char_proc_id(const pdf_char_proc_t *pcp)
 {
     return pdf_resource_id((const pdf_resource_t *)pcp);
@@ -92,7 +92,7 @@ assign_char_code(gx_device_pdf * pdev, int width)
 	!pbfs->use_open_font
 	) {
 	/* Start a new synthesized font. */
-	char *pc;
+	int8_t *pc;
 
 	code = pdf_font_type3_alloc(pdev, &pdfont, pdf_write_contents_bitmap);
 	if (code < 0)
@@ -143,7 +143,7 @@ pdf_write_contents_bitmap(gx_device_pdf *pdev, pdf_font_resource_t *pdfont)
 {
     stream *s = pdev->strm;
     const pdf_char_proc_t *pcp;
-    long diff_id = 0;
+    int32_t diff_id = 0;
     int code;
 
     if (pdfont->u.simple.s.type3.bitmap_font)
@@ -161,7 +161,7 @@ pdf_write_contents_bitmap(gx_device_pdf *pdev, pdf_font_resource_t *pdfont)
 	 pcp = pcp->char_next
 	 ) {
 	if (pdfont->u.simple.s.type3.bitmap_font)
-	    pprintld2(s, "/a%ld %ld 0 R\n", (long)pcp->char_code,
+	    pprintld2(s, "/a%ld %ld 0 R\n", (int32_t)pcp->char_code,
 		      pdf_char_proc_id(pcp));
 	else {
 	    pdf_put_name(pdev, pcp->char_name.data, pcp->char_name.size);
@@ -317,7 +317,7 @@ int
 pdf_end_char_proc(gx_device_pdf * pdev, pdf_stream_position_t * ppos)
 {
     stream *s;
-    long start_pos, end_pos, length;
+    int32_t start_pos, end_pos, length;
 
     pdf_end_encrypt(pdev);
     s = pdev->strm;
@@ -839,13 +839,14 @@ pdf_add_procsets(cos_dict_t *pcd, pdf_procset_t procsets)
 
 /* Add a resource to substream Resources. */
 int
-pdf_add_resource(gx_device_pdf *pdev, cos_dict_t *pcd, const char *key, pdf_resource_t *pres)
+pdf_add_resource(gx_device_pdf *pdev, cos_dict_t *pcd, const char *key,
+                 pdf_resource_t *pres)
 {
     if (pcd != 0) {
 	const cos_value_t *v = cos_dict_find(pcd, (const byte *)key, strlen(key));
 	cos_dict_t *list;
 	int code;
-	char buf[10 + (sizeof(long) * 8 / 3 + 1)], buf1[sizeof(pres->rname) + 1];
+	char buf[10 + (sizeof(int32_t) * 8 / 3 + 1)], buf1[sizeof(pres->rname) + 1];
 
 	if (pdev->ForOPDFRead && !pres->global && pdev->accumulating_a_global_object) {
 	    pres->global = true;

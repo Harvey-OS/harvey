@@ -64,7 +64,7 @@ struct cos_element_s {
  */
 struct cos_stream_piece_s {
     cos_element_common(cos_stream_piece_t);
-    long position;		/* in streams file */
+    int32_t position;		/* in streams file */
     uint size;
 };
 #define private_st_cos_stream_piece()	/* in gdevpdfo.c */\
@@ -78,7 +78,7 @@ struct cos_stream_piece_s {
      /* array */
 struct cos_array_element_s {
     cos_element_common(cos_array_element_t);
-    long index;
+    int32_t index;
     cos_value_t value;
 };
 #define private_st_cos_array_element()	/* in gdevpdfo.c */\
@@ -566,7 +566,7 @@ cos_array_equal(const cos_object_t *pco0, const cos_object_t *pco1, gx_device_pd
 
 /* Put/add an element in/to an array. */
 int
-cos_array_put(cos_array_t *pca, long index, const cos_value_t *pvalue)
+cos_array_put(cos_array_t *pca, int32_t index, const cos_value_t *pvalue)
 {
     gs_memory_t *mem = COS_OBJECT_MEMORY(pca);
     cos_value_t value;
@@ -580,7 +580,8 @@ cos_array_put(cos_array_t *pca, long index, const cos_value_t *pvalue)
     return code;
 }
 int
-cos_array_put_no_copy(cos_array_t *pca, long index, const cos_value_t *pvalue)
+cos_array_put_no_copy(cos_array_t *pca, int32_t index,
+                      const cos_value_t *pvalue)
 {
     gs_memory_t *mem = COS_OBJECT_MEMORY(pca);
     cos_array_element_t **ppcae = &pca->elements;
@@ -685,7 +686,7 @@ cos_array_element_first(const cos_array_t *pca)
     return pca->elements;
 }
 const cos_array_element_t *
-cos_array_element_next(const cos_array_element_t *pca, long *pindex,
+cos_array_element_next(const cos_array_element_t *pca, int32_t *pindex,
 		       const cos_value_t **ppvalue)
 {
     *pindex = pca->index;
@@ -912,7 +913,8 @@ cos_dict_put_no_copy(cos_dict_t *pcd, const byte *key_data, uint key_size,
 			     DICT_COPY_KEY | DICT_FREE_KEY);
 }
 int
-cos_dict_put_c_key(cos_dict_t *pcd, const char *key, const cos_value_t *pvalue)
+cos_dict_put_c_key(cos_dict_t *pcd, const char *key,
+                   const cos_value_t *pvalue)
 {
     return cos_dict_put_copy(pcd, (const byte *)key, strlen(key), pvalue,
 			     DICT_COPY_VALUE);
@@ -952,7 +954,8 @@ cos_dict_put_c_key_real(cos_dict_t *pcd, const char *key, floatp value)
     return cos_dict_put_c_key_string(pcd, key, str, stell(&s));
 }
 int
-cos_dict_put_c_key_floats(cos_dict_t *pcd, const char *key, const float *pf,
+cos_dict_put_c_key_floats(cos_dict_t *pcd, const char *key,
+                          const float *pf,
 			  uint size)
 {
     cos_array_t *pca = cos_array_from_floats(pcd->pdev, pf, size,
@@ -967,7 +970,8 @@ cos_dict_put_c_key_floats(cos_dict_t *pcd, const char *key, const float *pf,
     return code;
 }
 int
-cos_dict_put_c_key_object(cos_dict_t *pcd, const char *key, cos_object_t *pco)
+cos_dict_put_c_key_object(cos_dict_t *pcd, const char *key,
+                          cos_object_t *pco)
 {
     cos_value_t value;
 
@@ -983,12 +987,14 @@ cos_dict_put_string(cos_dict_t *pcd, const byte *key_data, uint key_size,
 			cos_string_value(&cvalue, value_data, value_size));
 }
 int
-cos_dict_put_string_copy(cos_dict_t *pcd, const char *key, const char *value)
+cos_dict_put_string_copy(cos_dict_t *pcd, const char *key,
+                         const char *value)
 {
     return cos_dict_put_c_key_string(pcd, key, (byte *)value, strlen(value));
 }
 int
-cos_dict_put_c_strings(cos_dict_t *pcd, const char *key, const char *value)
+cos_dict_put_c_strings(cos_dict_t *pcd, const char *key,
+                       const char *value)
 {
     cos_value_t cvalue;
 
@@ -1258,7 +1264,7 @@ notequal:
 }
 
 /* Find the total length of a stream. */
-long
+int32_t
 cos_stream_length(const cos_stream_t *pcs)
 {
     return pcs->length;
@@ -1281,7 +1287,7 @@ cos_stream_contents_write(const cos_stream_t *pcs, gx_device_pdf *pdev)
     cos_stream_piece_t *last;
     cos_stream_piece_t *next;
     FILE *sfile = pdev->streams.file;
-    long end_pos;
+    int32_t end_pos;
     bool same_file = (pdev->sbstack_depth > 0);
     int code;
     stream_arcfour_state sarc4, *ss = NULL;
@@ -1354,7 +1360,7 @@ cos_stream_add(cos_stream_t *pcs, uint size)
 {
     gx_device_pdf *pdev = pcs->pdev;
     stream *s = pdev->streams.strm;
-    long position = stell(s);
+    int32_t position = stell(s);
     cos_stream_piece_t *prev = pcs->pieces;
 
     /* Check for consecutive writing -- just an optimization. */
@@ -1415,7 +1421,7 @@ cos_stream_release_pieces(cos_stream_t *pcs)
 {
     gx_device_pdf *pdev = pcs->pdev;
     stream *s = pdev->streams.strm;
-    long position = stell(s), position0 = position;
+    int32_t position = stell(s), position0 = position;
     gs_memory_t *mem = cos_object_memory((cos_object_t *)pcs);
 
     while (pcs->pieces != NULL &&

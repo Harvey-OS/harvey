@@ -239,7 +239,7 @@ picopen(char *path) {
 void
 inlinepic(Biobufhdr *Bfp, char *buf) {
 	char	name[100];		/* picture file pathname */
-	long	total;			/* and size - both from *buf */
+	int32_t	total;			/* and size - both from *buf */
 
 	if (Bfp_pic == NULL ) {
 		tmpnam(pictmpname);
@@ -267,8 +267,8 @@ inlinepic(Biobufhdr *Bfp, char *buf) {
 /*	*fp_out;	and output file pointers */
 /*	total;		number of bytes to be copied */
 void
-piccopy(Biobufhdr *Bfp_in, Biobufhdr *Bfp_out, long total) {
-	long i;
+piccopy(Biobufhdr *Bfp_in, Biobufhdr *Bfp_out, int32_t total) {
+	int32_t i;
 
 	for (i = 0; i < total; i++)
 		if (Bputc(Bfp_out, Bgetc(Bfp_in)) < 0)

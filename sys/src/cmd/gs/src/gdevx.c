@@ -180,7 +180,7 @@ const gx_device_X this_device = { \
 	0			/* count */ \
     }, \
     (Pixmap) 0,			/* dest */ \
-    0L, (ulong)~0L,		/* colors_or, colors_and */ \
+    0L, (uint32_t)~0L,		/* colors_or, colors_and */ \
     {				/* cp */ \
 	(Pixmap) 0,		/* pixmap */ \
 	NULL,			/* gc */ \
@@ -1089,11 +1089,11 @@ void
 x_update_add(gx_device_X * xdev, int xo, int yo, int w, int h)
 {
     int xe = xo + w, ye = yo + h;
-    long added = (long)w * h;
-    long old_area = xdev->update.area;
+    int32_t added = (int32_t)w * h;
+    int32_t old_area = xdev->update.area;
     gs_int_rect u;
     int nw, nh;
-    long new_up_area;
+    int32_t new_up_area;
 
     u.p.x = min(xo, xdev->update.box.p.x);
     u.p.y = min(yo, xdev->update.box.p.y);
@@ -1101,7 +1101,7 @@ x_update_add(gx_device_X * xdev, int xo, int yo, int w, int h)
     u.q.y = max(ye, xdev->update.box.q.y);
     nw = u.q.x - u.p.x;
     nh = u.q.y - u.p.y;
-    new_up_area = (long)nw * nh;
+    new_up_area = (int32_t)nw * nh;
     xdev->update.count++;
     xdev->update.area = new_up_area;
     xdev->update.total += added;

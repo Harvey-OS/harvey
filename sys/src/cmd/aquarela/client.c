@@ -66,14 +66,14 @@ void
 listen137(void *)
 {	
 	for (;;) {
-		uchar msg[Udphdrsize + 576];
+		uint8_t msg[Udphdrsize + 576];
 		int len = read(fd137, msg, sizeof(msg));
 		if (len < 0)
 			break;
 		if (len >= Udphdrsize) {
 			NbnsMessage *s;
 			Udphdr *uh;
-			uchar *p;
+			uint8_t *p;
 
 			uh = (Udphdr*)msg;
 			p = msg + Udphdrsize;

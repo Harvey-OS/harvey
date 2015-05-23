@@ -17,7 +17,7 @@
  * the simple command tail -c, legal in v10, is illegal
  */
 
-long	count;
+int32_t	count;
 int	anycount;
 int	follow;
 int	file	= 0;
@@ -47,10 +47,10 @@ extern	void	keep(void);
 extern	void	reverse(void);
 extern	void	skip(void);
 extern	void	suffix(char*);
-extern	long	tread(char*, long);
+extern	int32_t	tread(char*, int32_t);
 extern	void	trunc(Dir*, Dir**);
-extern	vlong	tseek(vlong, int);
-extern	void	twrite(char*, long);
+extern	int64_t	tseek(int64_t, int);
+extern	void	twrite(char*, int32_t);
 extern	void	usage(void);
 static	int	isseekable(int fd);
 
@@ -135,7 +135,7 @@ void
 trunc(Dir *old, Dir **new)
 {
 	Dir *d;
-	vlong olength;
+	int64_t olength;
 
 	d = dirfstat(file);
 	if(d == nil)
@@ -183,7 +183,7 @@ void
 skip(void)
 {
 	int i;
-	long n;
+	int32_t n;
 	char buf[Bsize];
 	if(units == CHARS) {
 		for( ; count>0; count -=n) {
@@ -208,7 +208,7 @@ skip(void)
 void
 copy(void)
 {
-	long n;
+	int32_t n;
 	char buf[Bsize];
 	while((n=tread(buf, Bsize)) > 0) {
 		twrite(buf, n);
@@ -225,7 +225,7 @@ void
 keep(void)
 {
 	int len = 0;
-	long bufsiz = 0;
+	int32_t bufsiz = 0;
 	char *buf = 0;
 	int j, k, n;
 
@@ -273,14 +273,14 @@ void
 reverse(void)
 {
 	int first;
-	long len = 0;
-	long n = 0;
-	long bufsiz = 0;
+	int32_t len = 0;
+	int32_t n = 0;
+	int32_t bufsiz = 0;
 	char *buf = 0;
-	vlong pos = tseek(0LL, 2);
+	int64_t pos = tseek(0LL, 2);
 
 	for(first=1; pos>0 && count>0; first=0) {
-		n = pos>Bsize? Bsize: (long)pos;
+		n = pos>Bsize? Bsize: (int32_t)pos;
 		pos -= n;
 		if(len+n > bufsiz) {
 			bufsiz += 2*Bsize;
@@ -313,8 +313,8 @@ reverse(void)
 		twrite(buf, len);
 }
 
-vlong
-tseek(vlong o, int p)
+int64_t
+tseek(int64_t o, int p)
 {
 	o = seek(file, o, p);
 	if(o == -1)
@@ -322,8 +322,8 @@ tseek(vlong o, int p)
 	return o;
 }
 
-long
-tread(char *buf, long n)
+int32_t
+tread(char *buf, int32_t n)
 {
 	int r = read(file, buf, n);
 	if(r == -1)
@@ -332,7 +332,7 @@ tread(char *buf, long n)
 }
 
 void
-twrite(char *s, long n)
+twrite(char *s, int32_t n)
 {
 	if(Bwrite(&bout, s, n) != n)
 		fatal("");
@@ -381,7 +381,7 @@ usage(void)
 static int
 isseekable(int fd)
 {	
-	vlong m;
+	int64_t m;
 
 	m = seek(fd, 0, 1);
 	if(m < 0)

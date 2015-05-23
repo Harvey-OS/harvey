@@ -19,7 +19,7 @@ int
 closest(int cr, int cg, int cb)
 {
 	int i, r, g, b, sq;
-	ulong rgb;
+	uint32_t rgb;
 	int best, bestsq;
 
 	best = 0;
@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 {
 	int i, rgb;
 	int r, g, b;
-	uchar close[16*16*16];
+	uint8_t close[16*16*16];
 
 	/* rgbmap */
 	print("uint rgbmap[256] = {\n");

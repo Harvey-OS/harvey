@@ -25,9 +25,9 @@ typedef unsigned char uchar;
 int
 convS2M(Fcall *f, char *ap)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(type);
 	SHORT(tag);
 	switch(f->type)
@@ -215,7 +215,7 @@ convS2M(Fcall *f, char *ap)
 		SHORT(fid);
 		break;
 	}
-	return p - (uchar*)ap;
+	return p - (uint8_t*)ap;
 }
 
 #undef	CHAR
@@ -235,9 +235,9 @@ convS2M(Fcall *f, char *ap)
 int
 convM2S(char *ap, Fcall *f, int n)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(type);
 	SHORT(tag);
 	switch(f->type)
@@ -425,7 +425,7 @@ convM2S(char *ap, Fcall *f, int n)
 		SHORT(fid);
 		break;
 	}
-	if((uchar*)ap+n == p)
+	if((uint8_t*)ap+n == p)
 		return n;
 	return 0;
 }

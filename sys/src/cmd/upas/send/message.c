@@ -362,7 +362,7 @@ m_read(Biobuf *fp, int rmail, int interactive)
 
 /* return a piece of message starting at `offset' */
 extern int
-m_get(message *mp, long offset, char **pp)
+m_get(message *mp, int32_t offset, char **pp)
 {
 	static char buf[4*1024];
 
@@ -396,7 +396,7 @@ m_get(message *mp, long offset, char **pp)
 static int
 m_noescape(message *mp, Biobuf *fp)
 {
-	long offset;
+	int32_t offset;
 	int n;
 	char *p;
 
@@ -422,7 +422,7 @@ m_escape(message *mp, Biobuf *fp)
 {
 	char *p, *np;
 	char *end;
-	long offset;
+	int32_t offset;
 	int m, n;
 	char *start;
 

@@ -26,25 +26,25 @@ enum
 
 typedef struct Tab
 {
-	ushort	run;
-	ushort	bits;
+	uint16_t	run;
+	uint16_t	bits;
 	int		code;
 } Tab;
 
 Tab	wtab[8192];
 Tab	btab[8192];
-uchar	bitrev[256];
-uchar	bitnonrev[256];
+uint8_t	bitrev[256];
+uint8_t	bitnonrev[256];
 
-int	readrow(uchar *rev, int*);
+int	readrow(uint8_t *rev, int*);
 void	initwbtab(void);
-void	sync(uchar*);
+void	sync(uint8_t*);
 int	readfile(int, char*, char*);
 
 int		nbytes;
-uchar	*bytes;
-uchar	*pixels;
-uchar	*buf;
+uint8_t	*bytes;
+uint8_t	*pixels;
+uint8_t	*buf;
 int		y;
 uint		bitoffset;
 uint		word24;
@@ -168,7 +168,7 @@ int	defhdr[8] = {
 };
 
 int
-crackhdr(uchar *ap, int *hdr)
+crackhdr(uint8_t *ap, int *hdr)
 {
 	char *p, *q;
 	int i;
@@ -188,7 +188,7 @@ int
 readfile(int f, char *file, char *err)
 {
 	int i, r, lines;
-	uchar *rev;
+	uint8_t *rev;
 	int hdr[8];
 
 	err[0] = 0;
@@ -271,13 +271,13 @@ readfile(int f, char *file, char *err)
 }
 
 int
-readrow(uchar *rev, int *hdr)
+readrow(uint8_t *rev, int *hdr)
 {
 	int bo, state;
 	Tab *tab, *t;
 	int x, oldx, x2, oldx2, dx, xx;
 	uint w24;
-	uchar *p, *q;
+	uint8_t *p, *q;
 
 	state = White;
 	oldx = 0;
@@ -355,7 +355,7 @@ loop:
 
 
 void
-sync(uchar *rev)
+sync(uint8_t *rev)
 {
 	Tab *t;
 	int c;

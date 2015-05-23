@@ -132,7 +132,7 @@ static int ptrbootpvals(KDev *kd, Chain *ch, int *px, int *py, int *pb);
 static int ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb);
 
 static int
-setbootproto(KDev* f, int eid, uchar *, int)
+setbootproto(KDev* f, int eid, uint8_t *, int)
 {
 	int nr, r, id;
 
@@ -147,10 +147,10 @@ setbootproto(KDev* f, int eid, uchar *, int)
 	return nr;
 }
 
-static uchar ignoredesc[128];
+static uint8_t ignoredesc[128];
 
 static int
-setfirstconfig(KDev* f, int eid, uchar *desc, int descsz)
+setfirstconfig(KDev* f, int eid, uint8_t *desc, int descsz)
 {
 	int nr, r, id, i;
 
@@ -405,9 +405,9 @@ stoprepeat(KDev *f)
 }
 
 static void
-startrepeat(KDev *f, uchar esc1, uchar sc)
+startrepeat(KDev *f, uint8_t esc1, uint8_t sc)
 {
-	ulong c;
+	uint32_t c;
 
 	if(esc1)
 		c = SCesc1 << 8 | (sc & 0xff);
@@ -417,10 +417,10 @@ startrepeat(KDev *f, uchar esc1, uchar sc)
 }
 
 static void
-putscan(KDev *f, uchar esc, uchar sc)
+putscan(KDev *f, uint8_t esc, uint8_t sc)
 {
 	int kbinfd;
-	uchar s[2] = {SCesc1, 0};
+	uint8_t s[2] = {SCesc1, 0};
 
 	kbinfd = f->in->fd;
 	if(sc == 0x41){
@@ -445,8 +445,8 @@ repeatproc(void* a)
 {
 	KDev *f;
 	Channel *repeatc;
-	ulong l, t, i;
-	uchar esc1, sc;
+	uint32_t l, t, i;
+	uint8_t esc1, sc;
 
 	threadsetname("kbd repeat");
 	/*
@@ -485,7 +485,8 @@ Abort:
 #define hasesc1(sc)	((sc) >= 0x47 || (sc) == 0x38)
 
 static void
-putmod(KDev *f, uchar mods, uchar omods, uchar mask, uchar esc, uchar sc)
+putmod(KDev *f, uint8_t mods, uint8_t omods, uint8_t mask, uint8_t esc,
+       uint8_t sc)
 {
 	/* BUG: Should be a single write */
 	if((mods&mask) && !(omods&mask))
@@ -502,11 +503,11 @@ putmod(KDev *f, uchar mods, uchar omods, uchar mask, uchar esc, uchar sc)
  * The aim is to allow future addition of other keycode pages
  * for other keyboards.
  */
-static uchar
-putkeys(KDev *f, uchar buf[], uchar obuf[], int n, uchar dk)
+static uint8_t
+putkeys(KDev *f, uint8_t buf[], uint8_t obuf[], int n, uint8_t dk)
 {
 	int i, j;
-	uchar uk;
+	uint8_t uk;
 
 	putmod(f, buf[0], obuf[0], Mctrl, 0, SCctrl);
 	putmod(f, buf[0], obuf[0], (1<<Mlshift), 0, SClshift);
@@ -545,7 +546,7 @@ putkeys(KDev *f, uchar buf[], uchar obuf[], int n, uchar dk)
 }
 
 static int
-kbdbusy(uchar* buf, int n)
+kbdbusy(uint8_t* buf, int n)
 {
 	int i;
 
@@ -559,7 +560,7 @@ static void
 kbdwork(void *a)
 {
 	int c, i, kbdfd, nerrs;
-	uchar dk, buf[64], lbuf[64];
+	uint8_t dk, buf[64], lbuf[64];
 	char err[128];
 	KDev *f = a;
 
@@ -569,7 +570,7 @@ kbdwork(void *a)
 	if(f->ep->maxpkt < 3 || f->ep->maxpkt > sizeof buf)
 		kbfatal(f, "weird maxpkt");
 
-	f->repeatc = chancreate(sizeof(ulong), 0);
+	f->repeatc = chancreate(sizeof(uint32_t), 0);
 	if(f->repeatc == nil)
 		kbfatal(f, "chancreate failed");
 
@@ -628,7 +629,7 @@ freekdev(void *a)
 static void
 kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), KDev *kd)
 {
-	uchar desc[512];
+	uint8_t desc[512];
 	int n, res;
 
 	qlock(&inlck);

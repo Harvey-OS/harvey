@@ -66,7 +66,7 @@ pdf_make_soft_mask_dict(gx_device_pdf * pdev, const gs_pdf14trans_params_t * ppa
 	    return code;
     }
     if (pparams->transfer_function != NULL) {
-	long id;
+	int32_t id;
 	char buf[20];
 	
 	code = pdf_write_function(pdev, pparams->transfer_function, &id);

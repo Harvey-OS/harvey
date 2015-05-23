@@ -20,7 +20,7 @@
  * Maximum error is 0.0020.  Without linear interpolation, it's 0.010.
  */
 static
-short sinus[] = {
+int16_t sinus[] = {
 	0,	/* 0.00 */
 	10,	/* 0.01 */
 	20,	/* 0.02 */
@@ -126,7 +126,7 @@ short sinus[] = {
 };
 
 static
-short cosinus[] = {
+int16_t cosinus[] = {
 	1024,	/* 0.00 */
 	1024,	/* 0.01 */
 	1024,	/* 0.02 */
@@ -235,7 +235,7 @@ void
 icossin2(int x, int y, int *cosp, int *sinp)
 {
 	int sinsign, cossign, tan, tan10, rem;
-	short *stp, *ctp;
+	int16_t *stp, *ctp;
 
 	if(x == 0){
 		if(y >= 0)

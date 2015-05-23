@@ -102,7 +102,7 @@ typedef ushort bits16;
 typedef uint bits32;
 #else
 # if arch_sizeof_long == 4
-typedef ulong bits32;
+typedef uint32_t bits32;
 # endif
 #endif
 
@@ -135,7 +135,7 @@ typedef ulong bits32;
 #  define min_ptr min_long
 #  define max_ptr max_long
 #else
-#  define min_ptr ((ulong)0)
+#  define min_ptr ((uint32_t)0)
 #  define max_ptr max_ulong
 #endif
 

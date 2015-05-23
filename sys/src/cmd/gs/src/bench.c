@@ -206,7 +206,7 @@ main(int argc, const char *argv[])
 
     capture_stdio();
     for (i = 0;; ++i) {
-	long t0[2], t1[2];
+	int32_t t0[2], t1[2];
 	char *msg;
 	int n;
 

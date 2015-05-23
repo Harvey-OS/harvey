@@ -67,7 +67,7 @@ zeqproc(i_ctx_t *i_ctx_p)
     make_array(&stack[0].proc1, 0, 1, op - 1);
     make_array(&stack[0].proc2, 0, 1, op);
     for (;;) {
-	long i;
+	int32_t i;
 
 	if (r_size(&top->proc1) == 0) {
 	    /* Finished these arrays, go up to next level. */

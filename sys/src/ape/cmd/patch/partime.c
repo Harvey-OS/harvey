@@ -386,12 +386,12 @@ parse_decimal (s, digits, lo, hi, resolution, res, fres)
 char *
 parzone (s, zone)
      char const *s;
-     long *zone;
+     int32_t *zone;
 {
   char sign;
   int hh, mm, ss;
   int minutesEastOfUTC;
-  long offset, z;
+  int32_t offset, z;
 
   /* The formats are LT, n, n DST, nDST, no, o
      where n is a time zone name

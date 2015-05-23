@@ -90,7 +90,7 @@ static Addr
 addr(Biobuf *bp)
 {
 	Addr a;
-	long off;
+	int32_t off;
 
 	a.type = Bgetc(bp);	/* a.type */
 	skip(bp,1);		/* reg */

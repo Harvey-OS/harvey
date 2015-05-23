@@ -89,7 +89,7 @@ rsdelete(Rasp *r, Section *s)
 }
 
 void
-splitsect(Rasp *r, Section *s, long n0)
+splitsect(Rasp *r, Section *s, int32_t n0)
 {
 	if(s == 0)
 		panic("splitsect");
@@ -106,7 +106,7 @@ splitsect(Rasp *r, Section *s, long n0)
 }
 
 Section *
-findsect(Rasp *r, Section *s, long p, long q)	/* find sect containing q and put q on a sect boundary */
+findsect(Rasp *r, Section *s, int32_t p, int32_t q)	/* find sect containing q and put q on a sect boundary */
 {
 	if(s==0 && p!=q)
 		panic("findsect");
@@ -120,7 +120,7 @@ findsect(Rasp *r, Section *s, long p, long q)	/* find sect containing q and put 
 }
 
 void
-rresize(Rasp *r, long a, long old, long new)
+rresize(Rasp *r, int32_t a, int32_t old, int32_t new)
 {
 	Section *s, *t, *ns;
 
@@ -140,7 +140,7 @@ rresize(Rasp *r, long a, long old, long new)
 }
 
 void
-rdata(Rasp *r, long p0, long p1, Rune *cp)
+rdata(Rasp *r, int32_t p0, int32_t p1, Rune *cp)
 {
 	Section *s, *t, *ns;
 
@@ -184,10 +184,10 @@ Strcpy(Rune *to, Rune *from)
 }
 
 Rune*
-rload(Rasp *r, ulong p0, ulong p1, ulong *nrp)
+rload(Rasp *r, uint32_t p0, uint32_t p1, uint32_t *nrp)
 {
 	Section *s;
-	long p;
+	int32_t p;
 	int n, nb;
 
 	nb = 0;
@@ -220,10 +220,10 @@ rload(Rasp *r, ulong p0, ulong p1, ulong *nrp)
 }
 
 int
-rmissing(Rasp *r, ulong p0, ulong p1)
+rmissing(Rasp *r, uint32_t p0, uint32_t p1)
 {
 	Section *s;
-	long p;
+	int32_t p;
 	int n, nm=0;
 
 	for(p=0,s=r->sect; s && p+s->nrunes<=p0; s=s->next)
@@ -243,10 +243,10 @@ rmissing(Rasp *r, ulong p0, ulong p1)
 }
 
 int
-rcontig(Rasp *r, ulong p0, ulong p1, int text)
+rcontig(Rasp *r, uint32_t p0, uint32_t p1, int text)
 {
 	Section *s;
-	long p, n;
+	int32_t p, n;
 	int np=0;
 
 	for(p=0,s=r->sect; s && p+s->nrunes<=p0; s=s->next)
@@ -264,7 +264,7 @@ rcontig(Rasp *r, ulong p0, ulong p1, int text)
 }
 
 void
-Strgrow(Rune **s, long *n, int want)	/* can always toss the old data when called */
+Strgrow(Rune **s, int32_t *n, int want)	/* can always toss the old data when called */
 {
 	if(*n >= want)
 		return;

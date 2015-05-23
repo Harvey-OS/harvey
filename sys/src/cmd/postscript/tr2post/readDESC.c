@@ -94,7 +94,9 @@ readDESC(void)
 					return FALSE;
 				}
 				fontmnt = atoi(token) + 1;
-				fontmtab = galloc(fontmtab, fontmnt*sizeof(char *), "readdesc:");
+				fontmtab = galloc(fontmtab,
+						  fontmnt*sizeof(char *),
+						  "readdesc:");
 				
 				for (i=0; i<fontmnt; i++)
 					fontmtab[i] = 0;

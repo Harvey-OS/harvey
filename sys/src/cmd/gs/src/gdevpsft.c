@@ -97,13 +97,13 @@ put_ushort(stream *s, uint v)
     stream_putc(s, (byte)v);
 }
 private void
-put_ulong(stream *s, ulong v)
+put_ulong(stream *s, uint32_t v)
 {
     put_ushort(s, (uint)(v >> 16));
     put_ushort(s, (uint)v);
 }
 private void
-put_loca(stream *s, ulong offset, int indexToLocFormat)
+put_loca(stream *s, uint32_t offset, int indexToLocFormat)
 {
     if (indexToLocFormat)
 	put_ulong(s, offset);
@@ -124,19 +124,20 @@ put_u16(byte *p, uint v)
     p[1] = (byte)v;
 }
 private void
-put_u32(byte *p, ulong v)
+put_u32(byte *p, uint32_t v)
 {
     put_u16(p, (ushort)(v >> 16));
-    put_u16(p + 2, (ushort)v);
+    put_u16(p + 2, (uint16_t)v);
 }
 private ulong
-put_table(byte tab[16], const char *tname, ulong checksum, ulong offset,
+put_table(byte tab[16], const char *tname, uint32_t checksum,
+          uint32_t offset,
 	  uint length)
 {
     memcpy(tab, (const byte *)tname, 4);
     put_u32(tab + 4, checksum);
     put_u32(tab + 8, offset + 0x40000000);
-    put_u32(tab + 12, (ulong)length);
+    put_u32(tab + 12, (uint32_t)length);
     return offset + round_up(length, 4);
 }
 
@@ -408,7 +409,7 @@ size_cmap(gs_font *font, uint first_code, int num_glyphs, gs_glyph max_glyph,
  * root cause of the out-of-range results, but they keep gs on the rails.
  */
 
-ushort
+uint16_t
 limdbl2ushort(double d)
 {
 	if (d < 0)
@@ -419,7 +420,7 @@ limdbl2ushort(double d)
 		return d;
 }
 
-long
+int32_t
 limdbl2long(double d)
 {
 	if (d > 2e9)
@@ -560,7 +561,7 @@ write_OS_2(stream *s, gs_font *font, uint first_glyph, int num_glyphs)
 typedef struct post_glyph_s {
     byte char_index;
     byte size;
-    ushort glyph_index;
+    uint16_t glyph_index;
 } post_glyph_t;
 private int
 compare_post_glyphs(const void *pg1, const void *pg2)

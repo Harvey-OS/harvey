@@ -90,11 +90,12 @@ smblogprintif(int v, char *fmt, ...)
 }
 
 void
-smblogdata(int cmd, int (*print)(int cmd, char *fmt, ...), void *ap, long n, long limit)
+smblogdata(int cmd, int (*print)(int cmd, char *fmt, ...), void *ap,
+           int32_t n, int32_t limit)
 {
-	uchar *p = ap;
-	long i;
-	long saven;
+	uint8_t *p = ap;
+	int32_t i;
+	int32_t saven;
 	i = 0;
 	saven = n;
 	if (saven > limit)

@@ -12,13 +12,13 @@
 #include "dat.h"
 #include "fns.h"
 
-u32int	maxblocksize;
+uint32_t	maxblocksize;
 int	readonly;
 
 static int
-strtoullsuf(char *p, char **pp, int rad, u64int *u)
+strtoullsuf(char *p, char **pp, int rad, uint64_t *u)
 {
-	u64int v;
+	uint64_t v;
 
 	if(!isdigit((uchar)*p))
 		return -1;
@@ -52,7 +52,7 @@ strtoullsuf(char *p, char **pp, int rad, u64int *u)
 }
 	
 static int
-parsepart(char *name, char **file, u64int *lo, u64int *hi)
+parsepart(char *name, char **file, uint64_t *lo, uint64_t *hi)
 {
 	char *p;
 
@@ -90,7 +90,7 @@ initpart(char *name, int mode)
 	Part *part;
 	Dir *dir;
 	char *file;
-	u64int lo, hi;
+	uint64_t lo, hi;
 
 	if(parsepart(name, &file, &lo, &hi) < 0)
 		return nil;
@@ -164,7 +164,7 @@ freepart(Part *part)
 }
 
 void
-partblocksize(Part *part, u32int blocksize)
+partblocksize(Part *part, uint32_t blocksize)
 {
 	if(part->blocksize)
 		sysfatal("resetting partition=%s's block size", part->name);
@@ -180,12 +180,13 @@ enum {
 static int reopen(Part*);
 
 int
-rwpart(Part *part, int isread, u64int offset0, u8int *buf0, u32int count0)
+rwpart(Part *part, int isread, uint64_t offset0, uint8_t *buf0,
+       uint32_t count0)
 {
-	u32int count, opsize;
+	uint32_t count, opsize;
 	int n;
-	u8int *buf;
-	u64int offset;
+	uint8_t *buf;
+	uint64_t offset;
 
 	trace(TraceDisk, "%s %s %ud at 0x%llx", 
 		isread ? "read" : "write", part->name, count0, offset0);
@@ -221,13 +222,13 @@ rwpart(Part *part, int isread, u64int offset0, u8int *buf0, u32int count0)
 }
 
 int
-readpart(Part *part, u64int offset, u8int *buf, u32int count)
+readpart(Part *part, uint64_t offset, uint8_t *buf, uint32_t count)
 {
 	return rwpart(part, 1, offset, buf, count);
 }
 
 int
-writepart(Part *part, u64int offset, u8int *buf, u32int count)
+writepart(Part *part, uint64_t offset, uint8_t *buf, uint32_t count)
 {
 	return rwpart(part, 0, offset, buf, count);
 }

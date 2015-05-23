@@ -744,7 +744,7 @@ text_paste_from_clipboard(TW *tw)
 {
     HGLOBAL hClipMemory;
     BYTE *p;
-    long count;
+    int32_t count;
     OpenClipboard(tw->hwnd);
     if (IsClipboardFormatAvailable(CF_TEXT)) {
 	hClipMemory = GetClipboardData(CF_TEXT);
@@ -945,7 +945,7 @@ WndTextProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    break;
 	case WM_CHAR:
 	    { /* store key in circular buffer */
-		long count = tw->KeyBufIn - tw->KeyBufOut;
+		int32_t count = tw->KeyBufIn - tw->KeyBufOut;
 		if (count < 0) count += tw->KeyBufSize;
 		if (count < tw->KeyBufSize-1) {
 		    *tw->KeyBufIn++ = wParam;

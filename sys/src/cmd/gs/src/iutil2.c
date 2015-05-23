@@ -42,10 +42,11 @@
 /* Read a password from a parameter list. */
 /* Return 0 if present, 1 if absent, or an error code. */
 int
-param_read_password(gs_param_list * plist, const char *kstr, password * ppass)
+param_read_password(gs_param_list * plist, const char *kstr,
+                    password * ppass)
 {
     gs_param_string ps;
-    long ipass;
+    int32_t ipass;
     int code;
 
     ps.data = (const byte *)ppass->data, ps.size = ppass->size,

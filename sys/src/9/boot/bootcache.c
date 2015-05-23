@@ -11,7 +11,7 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
-uchar statbuf[Statsz];
+uint8_t statbuf[Statsz];
 
 int
 cache(int fd)

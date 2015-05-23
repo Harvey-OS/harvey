@@ -233,9 +233,9 @@ cidrparse(Cidraddr *cidr, char *cp)
 
 	char *p, *slash;
 	int c;
-	ulong a, m;
-	uchar addr[IPv4addrlen];
-	uchar mask[IPv4addrlen];
+	uint32_t a, m;
+	uint8_t addr[IPv4addrlen];
+	uint8_t mask[IPv4addrlen];
 	char buf[64];
 
 	/*
@@ -372,7 +372,7 @@ ipinsert(Node *np, char *cp)
 int
 ipcomp(void *a, void *b)
 {
-	ulong aip, bip;
+	uint32_t aip, bip;
 
 	aip = ((Address*)a)->ip.ipaddr;
 	bip = ((Address*)b)->ip.ipaddr;

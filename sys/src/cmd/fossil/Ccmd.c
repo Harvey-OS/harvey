@@ -16,10 +16,10 @@ static struct {
 
 	Con*	con;
 	int	confd[2];
-	ushort	tag;
+	uint16_t	tag;
 } cbox;
 
-static ulong
+static uint32_t
 cmd9pStrtoul(char* s)
 {
 	if(strcmp(s, "~0") == 0)
@@ -27,7 +27,7 @@ cmd9pStrtoul(char* s)
 	return strtoul(s, 0, 0);
 }
 
-static uvlong
+static uint64_t
 cmd9pStrtoull(char* s)
 {
 	if(strcmp(s, "~0") == 0)
@@ -47,7 +47,7 @@ static int
 cmd9pTwstat(Fcall* f, int, char **argv)
 {
 	Dir d;
-	static uchar buf[DIRMAX];
+	static uint8_t buf[DIRMAX];
 
 	memset(&d, 0, sizeof d);
 	nulldir(&d);

@@ -34,7 +34,7 @@
 /* Define debugging statistics. */
 #ifdef DEBUG
 struct stats_mem64_s {
-    long
+    int32_t
 	fill, fwide, fgray[101], fsetc, fcolor[101], fnarrow[5],
 	fprevc[257];
     double ftotal;

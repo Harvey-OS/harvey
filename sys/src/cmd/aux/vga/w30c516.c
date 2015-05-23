@@ -55,7 +55,7 @@ options(Vga*, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong grade, pclk;
+	uint32_t grade, pclk;
 	char *p;
 
 	/*
@@ -103,7 +103,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uchar mode, x;
+	uint8_t mode, x;
 
 	/*
 	 * Put the chip to sleep.

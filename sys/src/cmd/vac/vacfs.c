@@ -26,8 +26,8 @@ enum
 
 struct Fid
 {
-	short busy;
-	short open;
+	int16_t busy;
+	int16_t open;
 	int fid;
 	char *user;
 	Qid qid;
@@ -47,11 +47,11 @@ enum
 };
 
 Fid	*fids;
-uchar	*data;
+uint8_t	*data;
 int	mfd[2];
 int	srvfd = -1;
 char	*user;
-uchar	mdata[8192+IOHDRSZ];
+uint8_t	mdata[8192+IOHDRSZ];
 int messagesize = sizeof mdata;
 Fcall	rhdr;
 Fcall	thdr;
@@ -68,10 +68,10 @@ void	vacshutdown(void);
 void	usage(void);
 int	perm(Fid*, int);
 int	permf(VacFile*, char*, int);
-ulong	getl(void *p);
-void	init(char*, char*, long, int);
-int	vacdirread(Fid *f, char *p, long off, long cnt);
-int	vacstat(VacFile *parent, VacDir *vd, uchar *p, int np);
+uint32_t	getl(void *p);
+void	init(char*, char*, int32_t, int);
+int	vacdirread(Fid *f, char *p, int32_t off, int32_t cnt);
+int	vacstat(VacFile *parent, VacDir *vd, uint8_t *p, int np);
 void 	srv(void* a);
 
 
@@ -442,7 +442,7 @@ char*
 rcreate(Fid* fid)
 {
 	VacFile *vf;
-	ulong mode;
+	uint32_t mode;
 
 	if(fid->open)
 		return vtstrdup(Eisopen);
@@ -500,7 +500,7 @@ char*
 rread(Fid *f)
 {
 	char *buf;
-	vlong off;
+	int64_t off;
 	int cnt;
 	VacFile *vf;
 	char err[80];
@@ -585,7 +585,7 @@ char *
 rstat(Fid *f)
 {
 	VacDir dir;
-	static uchar statbuf[1024];
+	static uint8_t statbuf[1024];
 	VacFile *parent;
 	
 	if(!f->busy)
@@ -608,7 +608,7 @@ rwstat(Fid *f)
 }
 
 int
-vacstat(VacFile *parent, VacDir *vd, uchar *p, int np)
+vacstat(VacFile *parent, VacDir *vd, uint8_t *p, int np)
 {
 	int ret;
 	Dir dir;
@@ -648,7 +648,7 @@ vacstat(VacFile *parent, VacDir *vd, uchar *p, int np)
 }
 
 int
-vacdirread(Fid *f, char *p, long off, long cnt)
+vacdirread(Fid *f, char *p, int32_t off, int32_t cnt)
 {
 	int i, n, nb;
 	VacDir vd;
@@ -674,7 +674,7 @@ vacdirread(Fid *f, char *p, long off, long cnt)
 			return -1;
 		if(i == 0)
 			break;
-		n = vacstat(f->file, &vd, (uchar*)p, cnt-nb);
+		n = vacstat(f->file, &vd, (uint8_t*)p, cnt-nb);
 		if(n <= BIT16SZ) {
 			vdeunread(f->vde);
 			break;
@@ -753,7 +753,7 @@ int
 permf(VacFile *vf, char *user, int p)
 {
 	VacDir dir;
-	ulong perm;
+	uint32_t perm;
 
 	if(vacfilegetdir(vf, &dir))
 		return 0;

@@ -14,7 +14,7 @@
 #include <bio.h>
 #include "authcmdlib.h"
 
-void	install(char*, char*, char*, long, int);
+void	install(char*, char*, char*, int32_t, int);
 int	exists (char*, char*);
 
 void
@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 }
 
 void
-install(char *db, char *u, char *key, long t, int newkey)
+install(char *db, char *u, char *key, int32_t t, int newkey)
 {
 	char buf[KEYDBBUF+ANAMELEN+20];
 	int fd;

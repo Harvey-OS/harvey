@@ -24,10 +24,10 @@ usage(void)
 	exits("usage");
 }
 
-static ulong
+static uint32_t
 argval(char *arg)
 {
-	long v;
+	int32_t v;
 	char *extra;
 
 	if(arg == nil)

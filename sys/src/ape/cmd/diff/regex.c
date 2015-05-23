@@ -92,8 +92,8 @@
 #if defined (STDC_HEADERS) || defined (_LIBC)
 #include <stdlib.h>
 #else
-char *malloc ();
-char *realloc ();
+int8_t *malloc ();
+int8_t *realloc ();
 #endif
 
 /* When used in Emacs's lib-src, we need to get bzero and bcopy somehow.
@@ -4578,7 +4578,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      do
 		{
 		  PREFETCH ();
-		  if (*d++ != (char) *p++) goto fail;
+		  if (*d++ != (int8_t) *p++) goto fail;
 		}
 	      while (--mcnt);
 	    }

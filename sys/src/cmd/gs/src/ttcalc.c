@@ -51,7 +51,7 @@
 /* support for 1-complement arithmetic has been totally dropped in this */
 /* release. You can still write your own code if you need it..          */
 
-  static const long  Roots[63] =
+  static const int32_t  Roots[63] =
   {
        1,    1,    2,     3,     4,     5,     8,    11,
       16,   22,   32,    45,    64,    90,   128,   181,

@@ -35,7 +35,7 @@ void
 boxVerify(Box *box)
 {
 	Msg *m;
-	ulong seq, uid, recent;
+	uint32_t seq, uid, recent;
 
 	if(box == nil)
 		return;

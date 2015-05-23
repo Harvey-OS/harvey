@@ -835,7 +835,7 @@ int
 tcomd(Node *n)
 {
 	Type *t;
-	long o;
+	int32_t o;
 
 	o = 0;
 	t = dotsearch(n->sym, n->left->type->link, n, &o);
@@ -1301,8 +1301,8 @@ static char *cmps[12] =
 typedef struct Big Big;
 struct Big
 {
-	vlong a;
-	uvlong b;
+	int64_t a;
+	uint64_t b;
 };
 static int
 cmp(Big x, Big y)
@@ -1322,7 +1322,7 @@ cmp(Big x, Big y)
 static Big
 add(Big x, int y)
 {
-	uvlong ob;
+	uint64_t ob;
 	
 	ob = x.b;
 	x.b += y;
@@ -1334,7 +1334,7 @@ add(Big x, int y)
 } 
 
 Big
-big(vlong a, uvlong b)
+big(int64_t a, uint64_t b)
 {
 	Big x;
 

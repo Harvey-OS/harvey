@@ -22,9 +22,9 @@ static	Dir	dirproto;
 static	char	user[]	= "flash";
 
 	Entry	*root;
-	ulong	used;
-	ulong	limit;
-	ulong	maxwrite;
+	uint32_t	used;
+	uint32_t	limit;
+	uint32_t	maxwrite;
 
 enum
 {
@@ -161,7 +161,7 @@ edump(void)
 }
 
 Entry *
-elookup(ulong key)
+elookup(uint32_t key)
 {
 	if(key == 0)
 		return root;
@@ -170,7 +170,7 @@ elookup(ulong key)
 }
 
 Extent *
-esum(Entry *e, int sect, ulong addr, int *more)
+esum(Entry *e, int sect, uint32_t addr, int *more)
 {
 	Exts *x;
 	Extent *t, *u;
@@ -209,7 +209,8 @@ edestroy(Entry *e)
 }
 
 Entry *
-ecreate(Entry *d, char *name, ulong n, ulong mode, ulong mtime, char **err)
+ecreate(Entry *d, char *name, uint32_t n, uint32_t mode, uint32_t mtime,
+	char **err)
 {
 	int h;
 	Entry *e, *f;
@@ -262,7 +263,7 @@ ecreate(Entry *d, char *name, ulong n, ulong mode, ulong mtime, char **err)
 }
 
 void
-etrunc(Entry *e, ulong n, ulong mtime)
+etrunc(Entry *e, uint32_t n, uint32_t mtime)
 {
 	extfree(e);
 	deletekey(map, e->fnum);
@@ -353,10 +354,10 @@ ewalk(Entry *d, char *name, char **err)
 }
 
 static void
-eread0(Extent *e, Extent *x, uchar *a, ulong n, ulong off)
+eread0(Extent *e, Extent *x, uint8_t *a, uint32_t n, uint32_t off)
 {
-	uchar *a0, *a1;
-	ulong n0, n1, o0, o1, d, z;
+	uint8_t *a0, *a1;
+	uint32_t n0, n1, o0, o1, d, z;
 
 	for(;;) {
 		while(e != nil) {
@@ -420,8 +421,8 @@ eread0(Extent *e, Extent *x, uchar *a, ulong n, ulong off)
 	memset(a, 0, n);
 }
 
-ulong
-eread(Entry *e, int parity, void *a, ulong n, ulong off)
+uint32_t
+eread(Entry *e, int parity, void *a, uint32_t n, uint32_t off)
 {
 	if(n + off >= e->size)
 		n = e->size - off;
@@ -432,9 +433,9 @@ eread(Entry *e, int parity, void *a, ulong n, ulong off)
 }
 
 void
-ewrite(Entry *e, Extent *x, int parity, ulong mtime)
+ewrite(Entry *e, Extent *x, int parity, uint32_t mtime)
 {
-	ulong z;
+	uint32_t z;
 	Extent *t;
 
 	t = e->gen[parity].head;
@@ -453,8 +454,8 @@ ewrite(Entry *e, Extent *x, int parity, ulong mtime)
 		e->size = z;
 }
 
-ulong
-echmod(Entry *e, ulong mode, ulong mnum)
+uint32_t
+echmod(Entry *e, uint32_t mode, uint32_t mnum)
 {
 	if(mnum != 0)
 		e->mnum = mnum;
@@ -521,7 +522,7 @@ ediropen(Entry *e)
 }
 
 int
-edirread(Dirr *r, char *a, long n)
+edirread(Dirr *r, char *a, int32_t n)
 {
 	Dir d;
 	Entry *e;
@@ -530,7 +531,7 @@ edirread(Dirr *r, char *a, long n)
 	m = 0;
 	for(e = r->cur; e != nil; e = e->fnext) {
 		estat(e, &d, 0);
-		x = convD2M(&d, (uchar *)a, n);
+		x = convD2M(&d, (uint8_t *)a, n);
 		if(x <= BIT16SZ)
 			break;
 		a += x;

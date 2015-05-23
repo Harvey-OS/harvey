@@ -122,7 +122,7 @@ xfer(int from, int to)
 void
 xfer9p(int from, int to)
 {
-	uchar *buf;
+	uint8_t *buf;
 	uint nbuf;
 	int n;
 

@@ -26,7 +26,7 @@ enum
 };
 
 static int
-wepinit(Proto*, Fsstate *fss)
+wepinit(Proto* p, Fsstate *fss)
 {
 	int ret;
 	Key *k;
@@ -64,7 +64,7 @@ wepclose(Fsstate *fss)
 }
 
 static int
-wepread(Fsstate *fss, void*, uint*)
+wepread(Fsstate *fss, void* v, uint* u)
 {
 	return phaseerror(fss, "read");
 }

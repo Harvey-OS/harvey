@@ -701,7 +701,7 @@ deactivate(Control *a)
 static struct
 {
 	char	*name;
-	ulong	color;
+	uint32_t	color;
 }coltab[] = {
 	"red",			DRed,
 	"green",			DGreen,

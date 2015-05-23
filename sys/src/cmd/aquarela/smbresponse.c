@@ -16,7 +16,7 @@ smbresponsereset(SmbSession *s)
 }
 
 void
-smbresponseinit(SmbSession *s, ushort maxlen)
+smbresponseinit(SmbSession *s, uint16_t maxlen)
 {
 	smbbufferfree(&s->response);
 	s->response = smbbuffernew(maxlen);
@@ -29,7 +29,8 @@ smbresponsealignl2(SmbSession *s, int l2a)
 }
 
 int
-smbresponseputheader(SmbSession *s, SmbHeader *h, uchar errclass, ushort error)
+smbresponseputheader(SmbSession *s, SmbHeader *h, uint8_t errclass,
+		     uint16_t error)
 {
 	h->errclass = errclass;
 	h->error = error;
@@ -37,43 +38,43 @@ smbresponseputheader(SmbSession *s, SmbHeader *h, uchar errclass, ushort error)
 }
 
 int
-smbresponseputb(SmbSession *s, uchar b)
+smbresponseputb(SmbSession *s, uint8_t b)
 {
 	return smbbufferputb(s->response, b);
 }
 
-ushort
+uint16_t
 smbresponsespace(SmbSession *sess)
 {
 	return smbbufferwritespace(sess->response);
 }
 
 int
-smbresponseskip(SmbSession *sess, ushort amount)
+smbresponseskip(SmbSession *sess, uint16_t amount)
 {
 	return smbbufferputbytes(sess->response, nil, amount);
 }
 
 int
-smbresponseoffsetputs(SmbSession *sess, ushort offset, ushort s)
+smbresponseoffsetputs(SmbSession *sess, uint16_t offset, uint16_t s)
 {
 	return smbbufferoffsetputs(sess->response, offset, s);
 }
 
 int
-smbresponseputs(SmbSession *sess, ushort s)
+smbresponseputs(SmbSession *sess, uint16_t s)
 {
 	return smbbufferputs(sess->response, s);
 }
 
 int
-smbresponseputl(SmbSession *s, ulong l)
+smbresponseputl(SmbSession *s, uint32_t l)
 {
 	return smbbufferputl(s->response, l);
 }
 
 int
-smbresponsecpy(SmbSession *s, uchar *data, ushort datalen)
+smbresponsecpy(SmbSession *s, uint8_t *data, uint16_t datalen)
 {
 	return smbbufferputbytes(s->response, data, datalen);
 }
@@ -90,7 +91,7 @@ smbresponseputstr(SmbSession *s, char *string)
 	return smbbufferputstring(s->response, nil, SMB_STRING_ASCII, string);
 }
 
-ushort
+uint16_t
 smbresponseoffset(SmbSession *s)
 {
 	return smbbufferwriteoffset(s->response);
@@ -99,7 +100,7 @@ smbresponseoffset(SmbSession *s)
 SmbProcessResult
 smbresponsesend(SmbSession *s)
 {
-	uchar cmd;
+	uint8_t cmd;
 	SmbProcessResult pr;
 
 	assert(smbbufferoffsetgetb(s->response, 4, &cmd));
@@ -116,8 +117,8 @@ smblogunlock();
 		pr = SmbProcessResultOk;
 	}
 	else if (s->cifss) {
-		ulong l = smbbufferreadspace(s->response);
-		uchar nl[4];
+		uint32_t l = smbbufferreadspace(s->response);
+		uint8_t nl[4];
 		hnputl(nl, l);
 		write(s->cifss->fd, nl, 4);
 		write(s->cifss->fd, smbbufferreadpointer(s->response), l);
@@ -130,13 +131,15 @@ smblogunlock();
 }
 
 int
-smbresponseputandxheader(SmbSession *s, SmbHeader *h, ushort andxcommand, ulong *andxoffsetfixupp)
+smbresponseputandxheader(SmbSession *s, SmbHeader *h, uint16_t andxcommand,
+			 uint32_t *andxoffsetfixupp)
 {
 	return smbbufferputandxheader(s->response, h, &s->peerinfo, andxcommand, andxoffsetfixupp);
 }
 
 int
-smbresponseputerror(SmbSession *s, SmbHeader *h, uchar errclass, ushort error)
+smbresponseputerror(SmbSession *s, SmbHeader *h, uint8_t errclass,
+		    uint16_t error)
 {
 	h->wordcount = 0;
 	return smbresponseputheader(s, h, errclass, error)

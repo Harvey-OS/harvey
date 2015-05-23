@@ -18,7 +18,7 @@ char	TMMES[]	= "sed: Too much text: %s\n";
 char	LTL[]	= "sed: Label too long: %s\n";
 char	AD0MES[]	= "sed: No addresses allowed: %s\n";
 char	AD1MES[]	= "sed: Only one address allowed: %s\n";
-uchar	bittab[]  = {
+uint8_t	bittab[]  = {
 		1,
 		2,
 		4,
@@ -34,7 +34,7 @@ main(int argc, char **argv)
 {
 
 	eargc = argc;
-	eargv = (uchar**)argv;
+	eargv = (uint8_t**)argv;
 
 	badp = &bad;
 	aptr = abuf;
@@ -118,7 +118,7 @@ main(int argc, char **argv)
 /*	abort();	/*DEBUG*/
 
 	if(eargc <= 0)
-		execute((uchar *)NULL);
+		execute((uint8_t *)NULL);
 	else while(--eargc >= 0) {
 		execute(*eargv++);
 	}
@@ -129,8 +129,8 @@ void
 fcomp(void)
 {
 
-	uchar	*p, *op, *tp;
-    uchar *address(uchar*);
+	uint8_t	*p, *op, *tp;
+    uint8_t *address(uint8_t*);
 	union reptr	*pt, *pt1;
 	int	i;
 	struct label	*lpt;
@@ -515,9 +515,9 @@ jtcommon:
 						exit(2);
 					}
 
-					text((uchar*)fname[nfiles]);
+					text((uint8_t*)fname[nfiles]);
 					for(i = nfiles - 1; i >= 0; i--)
-						if(cmp((uchar*)fname[nfiles],(uchar*)fname[i]) == 0) {
+						if(cmp((uint8_t*)fname[nfiles],(uint8_t*)fname[i]) == 0) {
 							rep->r1.fcode = fcode[i];
 							goto done;
 						}
@@ -541,9 +541,9 @@ jtcommon:
 					exit(2);
 				}
 
-				text((uchar*)fname[nfiles]);
+				text((uint8_t*)fname[nfiles]);
 				for(i = nfiles - 1; i >= 0; i--)
-					if(cmp((uchar*)fname[nfiles], (uchar*)fname[i]) == 0) {
+					if(cmp((uint8_t*)fname[nfiles], (uint8_t*)fname[i]) == 0) {
 						rep->r1.fcode = fcode[i];
 						goto done;
 					}
@@ -593,10 +593,10 @@ done:
 	}
 }
 
-uchar	*
-compsub(uchar *rhsbuf)
+uint8_t	*
+compsub(uint8_t *rhsbuf)
 {
-	uchar	*p, *q, *r;
+	uint8_t	*p, *q, *r;
 	p = rhsbuf;
 	q = cp;
 	for(;;) {
@@ -618,16 +618,16 @@ compsub(uchar *rhsbuf)
 	}
 }
 
-uchar *
-compile(uchar *expbuf)
+uint8_t *
+compile(uint8_t *expbuf)
 {
 	int c;
-	uchar *ep, *sp;
-	uchar	neg;
-	uchar *lastep, *cstart;
+	uint8_t *ep, *sp;
+	uint8_t	neg;
+	uint8_t *lastep, *cstart;
 	int cclcnt;
 	int	closed;
-	uchar	bracket[NBRA], *bracketp;
+	uint8_t	bracket[NBRA], *bracketp;
 
 	if(*cp == seof) {
 		cp++;
@@ -779,11 +779,11 @@ compile(uchar *expbuf)
 	}
 }
 int
-rline(uchar *lbuf)
+rline(uint8_t *lbuf)
 {
-	uchar	*p, *q;
+	uint8_t	*p, *q;
 	int	t;
-	static uchar	*saveq;
+	static uint8_t	*saveq;
 
 	p = lbuf - 1;
 
@@ -845,11 +845,11 @@ rline(uchar *lbuf)
 	return(-1);
 }
 
-uchar *
-address(uchar *expbuf)
+uint8_t *
+address(uint8_t *expbuf)
 {
-	uchar	*rcp;
-	long	lno;
+	uint8_t	*rcp;
+	int32_t	lno;
 
 	if(*cp == '$') {
 		cp++;
@@ -887,9 +887,9 @@ address(uchar *expbuf)
 	return(0);
 }
 int
-cmp(uchar *a, uchar *b)
+cmp(uint8_t *a, uint8_t *b)
 {
-	uchar	*ra, *rb;
+	uint8_t	*ra, *rb;
 
 	ra = a - 1;
 	rb = b - 1;
@@ -899,10 +899,10 @@ cmp(uchar *a, uchar *b)
 	return(1);
 }
 
-uchar *
-text(uchar *textbuf)
+uint8_t *
+text(uint8_t *textbuf)
 {
-	uchar	*p, *q;
+	uint8_t	*p, *q;
 
 	p = textbuf;
 	q = cp;
@@ -962,12 +962,12 @@ dechain(void)
 	}
 }
 
-uchar *
-ycomp(uchar *expbuf)
+uint8_t *
+ycomp(uint8_t *expbuf)
 {
-	uchar *ep, *tsp;
+	uint8_t *ep, *tsp;
 	int c;
-	uchar	*sp;
+	uint8_t	*sp;
 
 	ep = expbuf;
 	sp = cp;

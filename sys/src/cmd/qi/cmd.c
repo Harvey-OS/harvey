@@ -20,9 +20,9 @@ char	fmt = 'X';
 int	width = 60;
 int	inc;
 
-ulong	expr(char*);
-ulong	expr1(char*);
-char*	term(char*, ulong*);
+uint32_t	expr(char*);
+uint32_t	expr1(char*);
+char*	term(char*, uint32_t*);
 
 char *
 nextc(char *p)
@@ -37,7 +37,7 @@ nextc(char *p)
 }
 
 char *
-numsym(char *addr, ulong *val)
+numsym(char *addr, uint32_t *val)
 {
 	char tsym[128], *t;
 	static char *delim = "`'<>/\\@*|-~+-/=?\n";
@@ -69,10 +69,10 @@ numsym(char *addr, ulong *val)
 	return addr;
 }
 
-ulong
+uint32_t
 expr(char *addr)
 {
-	ulong t, t2;
+	uint32_t t, t2;
 	char op;
 
 	if(*addr == '\0')
@@ -288,7 +288,7 @@ dollar(char *cp)
 }
 
 int
-pfmt(char fmt, int mem, ulong val)
+pfmt(char fmt, int mem, uint32_t val)
 {
 	int c, i;
 	Symbol s;
@@ -300,7 +300,8 @@ pfmt(char fmt, int mem, ulong val)
 		Bprint(bioout, "bad modifier\n");
 		return 0;
 	case 'o':
-		c = Bprint(bioout, "%-4lo ", mem ? (ushort)getmem_2(dot) : val);
+		c = Bprint(bioout, "%-4lo ",
+			   mem ? (uint16_t)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
@@ -310,43 +311,51 @@ pfmt(char fmt, int mem, ulong val)
 		break;
 
 	case 'q':
-		c = Bprint(bioout, "%-4lo ", mem ? (short)getmem_2(dot) : val);
+		c = Bprint(bioout, "%-4lo ",
+			   mem ? (int16_t)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
 	case 'Q':
-		c = Bprint(bioout, "%-8lo ", mem ? (long)getmem_4(dot) : val);
+		c = Bprint(bioout, "%-8lo ",
+			   mem ? (int32_t)getmem_4(dot) : val);
 		inc = 4;
 		break;
 
 	case 'd':
-		c = Bprint(bioout, "%-5ld ", mem ? (short)getmem_2(dot) : val);
+		c = Bprint(bioout, "%-5ld ",
+			   mem ? (int16_t)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
 
 	case 'D':
-		c = Bprint(bioout, "%-8ld ", mem ? (long)getmem_4(dot) : val);
+		c = Bprint(bioout, "%-8ld ",
+			   mem ? (int32_t)getmem_4(dot) : val);
 		inc = 4;
 		break;
 
 	case 'x':
-		c = Bprint(bioout, "#%-4lux ", mem ? (long)getmem_2(dot) : val);
+		c = Bprint(bioout, "#%-4lux ",
+			   mem ? (int32_t)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
 	case 'X':
-		c = Bprint(bioout, "#%-8lux ", mem ? (long)getmem_4(dot) : val);
+		c = Bprint(bioout, "#%-8lux ",
+			   mem ? (int32_t)getmem_4(dot) : val);
 		inc = 4;
 		break;
 
 	case 'u':
-		c = Bprint(bioout, "%-5ld ", mem ? (ushort)getmem_2(dot) : val);
+		c = Bprint(bioout, "%-5ld ",
+			   mem ? (uint16_t)getmem_2(dot) : val);
 		inc = 2;
 		break;
 
 	case 'U':
-		c = Bprint(bioout, "%-8ld ", mem ? (ulong)getmem_4(dot) : val);
+		c = Bprint(bioout, "%-8ld ",
+			   mem ? (uint32_t)getmem_4(dot) : val);
 		inc = 4;
 		break;
 
@@ -456,7 +465,7 @@ pfmt(char fmt, int mem, ulong val)
 void
 eval(char *addr, char *p)
 {
-	ulong val;
+	uint32_t val;
 
 	val = expr(addr);
 	p = nextc(p);

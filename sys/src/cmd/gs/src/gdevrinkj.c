@@ -835,7 +835,8 @@ struct rinkj_lutchain_s {
 };
 
 static int
-rinkj_add_lut(rinkj_device *rdev, rinkj_lutset *lutset, char plane, FILE *f)
+rinkj_add_lut(rinkj_device *rdev, rinkj_lutset *lutset, char plane,
+              FILE *f)
 {
     char linebuf[256];
     rinkj_lutchain *chain;

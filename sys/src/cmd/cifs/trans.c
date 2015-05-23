@@ -42,7 +42,7 @@ thdr(Session *s, Share *sp)
 static void
 ptparam(Pkt *p)
 {
-	uchar *pos;
+	uint8_t *pos;
 
 	if(((p->pos - p->tbase) % 2) != 0)
 		p8(p, 0);			/* pad to word boundry */
@@ -55,7 +55,7 @@ ptparam(Pkt *p)
 static void
 ptdata(Pkt *p)
 {
-	uchar *pos = p->pos;
+	uint8_t *pos = p->pos;
 
 	assert(p->tparam != 0);
 	if(((p->pos - p->tbase) % 2) != 0)
@@ -77,7 +77,7 @@ static int
 trpc(Pkt *p)
 {
 	int got;
-	uchar *pos = p->pos;
+	uint8_t *pos = p->pos;
 
 	assert(p->tbase != 0);
 	assert(p->tdata != 0);
@@ -585,7 +585,8 @@ RAPuserinfo(Session *s, Share *sp, char *user, Userinfo *uip)
  * against XP with the undocumented error 71/0x47
  */
 int
-RAPServerenum2(Session *s, Share *sp, char *workgroup, int type, int *more,
+RAPServerenum2(Session *s, Share *sp, char *workgroup, int type,
+	       int *more,
 	Serverinfo **si)
 {
 	int ngot = 0, conv, err, nret, navail;
@@ -720,7 +721,8 @@ more:
 
 /* Only the Administrator has permission to do this */
 int
-RAPFileenum2(Session *s, Share *sp, char *user, char *path, Fileinfo **fip)
+RAPFileenum2(Session *s, Share *sp, char *user, char *path,
+	     Fileinfo **fip)
 {
 	int conv, err, ngot, resume, nret, navail;
 	char tmp[1024];

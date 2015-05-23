@@ -638,7 +638,7 @@ s_Subsample_process(stream_state * st, stream_cursor_read * pr,
     int status = 0;
 
     if_debug4('w', "[w]subsample: x=%d, y=%d, rcount=%ld, wcount=%ld\n",
-	      x, y, (long)(rlimit - p), (long)(wlimit - q));
+	      x, y, (int32_t)(rlimit - p), (int32_t)(wlimit - q));
     for (; rlimit - p >= spp; p += spp) {
 	if (((y % yf == yf2 && y < ylimit) || y == ylast) &&
 	    ((x % xf == xf2 && x < xlimit) || x == xlast)
@@ -655,7 +655,7 @@ s_Subsample_process(stream_state * st, stream_cursor_read * pr,
     }
     if_debug5('w',
 	      "[w]subsample: x'=%d, y'=%d, read %ld, wrote %ld, status = %d\n",
-	      x, y, (long)(p - pr->ptr), (long)(q - pw->ptr), status);
+	      x, y, (int32_t)(p - pr->ptr), (int32_t)(q - pw->ptr), status);
     pr->ptr = p;
     pw->ptr = q;
     ss->x = x, ss->y = y;
@@ -834,8 +834,8 @@ s_compr_chooser__estimate_row(stream_compr_chooser_state *const ss, byte *p)
     const int max_gradient_constant = 10; /* pixels */
     int i, j0 = 0, j1 = 0;
     int w0 = p[0], w1 = p[0], v;
-    ulong plateau_count = 0, lower_plateaus = 0;
-    ulong upper_plateaus = 0, gradients = 0;
+    uint32_t plateau_count = 0, lower_plateaus = 0;
+    uint32_t upper_plateaus = 0, gradients = 0;
     bool lower = false, upper = false;
 
     for (i = 1; i < ss->width; i++) {
@@ -949,7 +949,7 @@ s_compr_chooser__unpack_and_recognize(stream_compr_chooser_state *const ss,
 	}
 	while (ss->bits_left >= ss->bits_per_sample) {
 	    uint k = ss->bits_left - ss->bits_per_sample;
-	    ulong v = ss->packed_data >> k;
+	    uint32_t v = ss->packed_data >> k;
 
 	    ss->packed_data -= (v << k);
 	    ss->bits_left -= ss->bits_per_sample;
@@ -996,7 +996,7 @@ const stream_template s_compr_chooser_template = {
 uint 
 s_compr_chooser__get_choice(stream_compr_chooser_state *ss, bool force)
 {
-    ulong plateaus = min(ss->lower_plateaus, ss->upper_plateaus);
+    uint32_t plateaus = min(ss->lower_plateaus, ss->upper_plateaus);
 
     if (ss->choice)
 	return ss->choice;

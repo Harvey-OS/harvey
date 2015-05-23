@@ -71,8 +71,8 @@ RELOC_PTRS_END
 
 /* Forward references */
 private gx_xfont * lookup_xfont_by_name(gx_device *, const gx_xfont_procs *, gs_font_name *, int, const cached_fm_pair *, const gs_matrix *);
-private cached_char *alloc_char(gs_font_dir *, ulong);
-private cached_char *alloc_char_in_chunk(gs_font_dir *, ulong);
+private cached_char *alloc_char(gs_font_dir *, uint32_t);
+private cached_char *alloc_char_in_chunk(gs_font_dir *, uint32_t);
 private void hash_remove_cached_char(gs_font_dir *, uint);
 private void shorten_cached_char(gs_font_dir *, cached_char *, uint);
 
@@ -205,7 +205,7 @@ gx_add_fm_pair(register gs_font_dir * dir, gs_font * font, const gs_uid * puid,
     pair->FontType = font->FontType;
     /* The OSF/1 compiler doesn't like casting a pointer to */
     /* a shorter int.... */
-    pair->hash = (uint) (ulong) pair % 549;	/* scramble bits */
+    pair->hash = (uint) (uint32_t) pair % 549;	/* scramble bits */
     pair->mxx = mxx, pair->mxy = mxy;
     pair->myx = myx, pair->myy = myy;
     pair->num_chars = 0;
@@ -243,9 +243,9 @@ gx_add_fm_pair(register gs_font_dir * dir, gs_font * font, const gs_uid * puid,
 	}
     pair->memory = 0;
     if_debug8('k', "[k]adding pair 0x%lx: font=0x%lx [%g %g %g %g] UID %ld, 0x%lx\n",
-	      (ulong) pair, (ulong) font,
+	      (uint32_t) pair, (uint32_t) font,
 	      pair->mxx, pair->mxy, pair->myx, pair->myy,
-	      (long)pair->UID.id, (ulong) pair->UID.xvalues);
+	      (int32_t)pair->UID.id, (uint32_t) pair->UID.xvalues);
     *ppair = pair;
     return 0;
 }
@@ -334,7 +334,7 @@ void
 gs_purge_fm_pair(gs_font_dir * dir, cached_fm_pair * pair, int xfont_only)
 {
     if_debug2('k', "[k]purging pair 0x%lx%s\n",
-	      (ulong) pair, (xfont_only ? " (xfont only)" : ""));
+	      (uint32_t) pair, (xfont_only ? " (xfont only)" : ""));
     if (pair->xfont != 0) {
 	(*pair->xfont->common.procs->release) (pair->xfont,
 					       pair->memory);
@@ -379,7 +379,7 @@ lookup_xfont_by_name(gx_device * fdev, const gx_xfont_procs * procs,
 				&pfstr->chars[0], pfstr->size,
 				encoding_index, &pair->UID,
 				pmat, pair->memory);
-    if_debug1('k', "[k]... xfont=0x%lx\n", (ulong) xf);
+    if_debug1('k', "[k]... xfont=0x%lx\n", (uint32_t) xf);
     return xf;
 }
 
@@ -402,14 +402,15 @@ lookup_xfont_by_name(gx_device * fdev, const gx_xfont_procs * procs,
  */
 cached_char *
 gx_alloc_char_bits(gs_font_dir * dir, gx_device_memory * dev,
-		   gx_device_memory * dev2, ushort iwidth, ushort iheight,
+		   gx_device_memory * dev2, uint16_t iwidth,
+                   uint16_t iheight,
 		   const gs_log2_scale_point * pscale, int depth)
 {
     int log2_xscale = pscale->x;
     int log2_yscale = pscale->y;
     int log2_depth = ilog2(depth);
     uint nwidth_bits = (iwidth >> log2_xscale) << log2_depth;
-    ulong isize, icdsize;
+    uint32_t isize, icdsize;
     uint iraster;
     cached_char *cc;
     gx_device_memory mdev;
@@ -478,7 +479,7 @@ gx_alloc_char_bits(gs_font_dir * dir, gx_device_memory * dev,
     if (cc == 0)
 	return 0;
     if_debug4('k', "[k]adding char 0x%lx:%u(%u,%u)\n",
-	      (ulong) cc, (uint) icdsize, iwidth, iheight);
+	      (uint32_t) cc, (uint) icdsize, iwidth, iheight);
 
     /* Fill in the entry. */
 
@@ -538,7 +539,7 @@ gx_free_cached_char(gs_font_dir * dir, cached_char * cc)
     if (cc->linked)
 	cc_pair(cc)->num_chars--;
     if_debug2('k', "[k]freeing char 0x%lx, pair=0x%lx\n",
-	      (ulong) cc, (ulong) cc_pair(cc));
+	      (uint32_t) cc, (uint32_t) cc_pair(cc));
     gx_bits_cache_free((gx_bits_cache *) & dir->ccache, &cc->head, cck);
 }
 
@@ -548,7 +549,7 @@ gx_add_cached_char(gs_font_dir * dir, gx_device_memory * dev,
 cached_char * cc, cached_fm_pair * pair, const gs_log2_scale_point * pscale)
 {
     if_debug5('k', "[k]chaining char 0x%lx: pair=0x%lx, glyph=0x%lx, wmode=%d, depth=%d\n",
-	      (ulong) cc, (ulong) pair, (ulong) cc->code,
+	      (uint32_t) cc, (uint32_t) pair, (uint32_t) cc->code,
 	      cc->wmode, cc_depth(cc));
     if (dev != NULL) {
 	static const gs_log2_scale_point no_scale =
@@ -701,7 +702,7 @@ gx_add_char_bits(gs_font_dir * dir, cached_char * cc,
 	if (diff >= sizeof(cached_char_head)) {
 	    shorten_cached_char(dir, cc, diff);
 	    if_debug2('K', "[K]shortening char 0x%lx by %u (adding)\n",
-		      (ulong) cc, diff);
+		      (uint32_t) cc, diff);
 	}
     }
 
@@ -718,7 +719,7 @@ gs_purge_font_from_char_caches(gs_font_dir * dir, const gs_font * font)
     int count = dir->fmcache.mmax;
 
     if_debug1('k', "[k]purging font 0x%lx\n",
-	      (ulong) font);
+	      (uint32_t) font);
     while (count--) {
 	if (pair->font == font) {
 	    if (uid_is_valid(&pair->UID)) {	/* Keep the entry. */
@@ -734,7 +735,7 @@ gs_purge_font_from_char_caches(gs_font_dir * dir, const gs_font * font)
 
 /* Allocate data space for a cached character, adding a new chunk if needed. */
 private cached_char *
-alloc_char(gs_font_dir * dir, ulong icdsize)
+alloc_char(gs_font_dir * dir, uint32_t icdsize)
 {				/* Try allocating at the current position first. */
     cached_char *cc = alloc_char_in_chunk(dir, icdsize);
 
@@ -792,7 +793,7 @@ alloc_char(gs_font_dir * dir, ulong icdsize)
 
 /* Allocate a character in the current chunk. */
 private cached_char *
-alloc_char_in_chunk(gs_font_dir * dir, ulong icdsize)
+alloc_char_in_chunk(gs_font_dir * dir, uint32_t icdsize)
 {
     char_cache_chunk *cck = dir->ccache.chunks;
     cached_char_head *cch;

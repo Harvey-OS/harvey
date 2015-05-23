@@ -68,7 +68,7 @@ Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
 	int dig;
 	int negate = 0;
 	int sindex = 0, i, j, n = 0;
-	long r;
+	int32_t r;
 	Rune R;
 	unsigned u = 0;
 	BOOLEAN bailout = FALSE;

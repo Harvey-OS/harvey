@@ -594,7 +594,7 @@ emalloc(size_t n)
 void
 trapwonly(Lextok *n /* , char *unused */)
 {	extern int realread;
-	short i = (n->sym)?n->sym->type:0;
+	int16_t i = (n->sym)?n->sym->type:0;
 
 	if (i != MTYPE
 	&&  i != BIT
@@ -634,7 +634,7 @@ nn(Lextok *s, int t, Lextok *ll, Lextok *rl)
 	static int warn_nn = 0;
 
 	n->uiid = is_inline();	/* record origin of the statement */
-	n->ntyp = (short) t;
+	n->ntyp = (int16_t) t;
 	if (s && s->fn)
 	{	n->ln = s->ln;
 		n->fn = s->fn;
@@ -705,7 +705,8 @@ nn(Lextok *s, int t, Lextok *ll, Lextok *rl)
 			(t == ENABLED)?"enabled()":"pc_value()");
 		warn_nn |= t;
 	} else if (t == NONPROGRESS)
-	{	fatal("spin: Error, using np_ outside never claim\n", (char *)0);
+	{	fatal("spin: Error, using np_ outside never claim\n",
+		       (char *)0);
 	}
 	return n;
 }

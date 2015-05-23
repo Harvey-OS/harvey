@@ -176,7 +176,7 @@ process_composite_text(gs_text_enum_t *pte, void *vbuf, uint bsize)
 /*
  * Process a text string in a composite font with FMapType == 9 (CMap).
  */
-private const char *const standard_cmap_names[] = {
+private const int8_t *const standard_cmap_names[] = {
     /* The following were added in PDF 1.4. */
     "GBKp-EUC-H", "GBKp-EUC-V",
     "GBK2K-H", "GBK2K-V",
@@ -629,7 +629,7 @@ process_cid_text(gs_text_enum_t *pte, void *vbuf, uint bsize)
 	byte *pchars = vbuf;
 
 	for (i = 0; i < size; ++i) {
-	    ulong gnum = glyphs[i] - GS_MIN_CID_GLYPH;
+	    uint32_t gnum = glyphs[i] - GS_MIN_CID_GLYPH;
 
 	    if (gnum & ~0xffffL)
 		return_error(gs_error_rangecheck);

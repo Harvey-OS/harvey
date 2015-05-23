@@ -16,7 +16,7 @@
 char *host;
 Biobuf b;
 VtConn *z;
-uchar *buf;
+uint8_t *buf;
 void run(Biobuf*);
 int nn;
 
@@ -28,7 +28,7 @@ usage(void)
 }
 
 int
-parsescore(uchar *score, char *buf, int n)
+parsescore(uint8_t *score, char *buf, int n)
 {
 	int i, c;
 
@@ -100,7 +100,7 @@ run(Biobuf *b)
 {
 	char *p, *f[10];
 	int nf;
-	uchar score[20];
+	uint8_t score[20];
 	int type, n;
 
 	while((p = Brdline(b, '\n')) != nil){

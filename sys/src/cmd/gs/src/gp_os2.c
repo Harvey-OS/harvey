@@ -111,7 +111,7 @@ gp_strerror(int errnum)
 /* Read the current time (in seconds since Jan. 1, 1970) */
 /* and fraction (in nanoseconds since midnight). */
 void
-gp_get_realtime(long *pdt)
+gp_get_realtime(int32_t *pdt)
 {
     struct timeval tp;
     struct timezone tzp;
@@ -133,7 +133,7 @@ gp_get_realtime(long *pdt)
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(long *pdt)
+gp_get_usertime(int32_t *pdt)
 {
     gp_get_realtime(pdt);	/* Use an approximation for now.  */
 }
@@ -799,7 +799,8 @@ uint gp_file_name_root(const char *fname, uint len)
     return i;
 }
 
-uint gs_file_name_check_separator(const char *fname, int len, const char *item)
+uint gs_file_name_check_separator(const char *fname, int len,
+                                  const char *item)
 {   if (len > 0) {
 	if (fname[0] == '/' || fname[0] == '\\')
 	    return 1;
@@ -843,7 +844,8 @@ bool gp_file_name_is_empty_item_meanful(void)
 }
 
 gp_file_name_combine_result
-gp_file_name_combine(const char *prefix, uint plen, const char *fname, uint flen, 
+gp_file_name_combine(const char *prefix, uint plen, const char *fname,
+                     uint flen, 
 		    bool no_sibling, char *buffer, uint *blen)
 {
     return gp_file_name_combine_generic(prefix, plen, 
@@ -862,7 +864,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, char **fontname,
+                            char **path)
 {
     return 0;
 }

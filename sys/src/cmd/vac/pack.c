@@ -16,12 +16,12 @@
 typedef struct MetaChunk MetaChunk;
 
 struct MetaChunk {
-	ushort offset;
-	ushort size;
-	ushort index;
+	uint16_t offset;
+	uint16_t size;
+	uint16_t index;
 };
 
-static int	stringunpack(char **s, uchar **p, int *n);
+static int	stringunpack(char **s, uint8_t **p, int *n);
 
 /*
  * integer conversion routines
@@ -29,8 +29,8 @@ static int	stringunpack(char **s, uchar **p, int *n);
 #define	U8GET(p)	((p)[0])
 #define	U16GET(p)	(((p)[0]<<8)|(p)[1])
 #define	U32GET(p)	(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|(p)[3])
-#define	U48GET(p)	(((uvlong)U16GET(p)<<32)|(uvlong)U32GET((p)+2))
-#define	U64GET(p)	(((uvlong)U32GET(p)<<32)|(uvlong)U32GET((p)+4))
+#define	U48GET(p)	(((uint64_t)U16GET(p)<<32)|(uint64_t)U32GET((p)+2))
+#define	U64GET(p)	(((uint64_t)U32GET(p)<<32)|(uint64_t)U32GET((p)+4))
 
 #define	U8PUT(p,v)	(p)[0]=(v)&0xFF
 #define	U16PUT(p,v)	(p)[0]=((v)>>8)&0xFF;(p)[1]=(v)&0xFF
@@ -39,7 +39,7 @@ static int	stringunpack(char **s, uchar **p, int *n);
 #define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
 
 static int
-stringunpack(char **s, uchar **p, int *n)
+stringunpack(char **s, uint8_t **p, int *n)
 {
 	int nn;
 
@@ -60,7 +60,7 @@ stringunpack(char **s, uchar **p, int *n)
 }
 
 static int
-stringpack(char *s, uchar *p)
+stringpack(char *s, uint8_t *p)
 {
 	int n;
 
@@ -72,9 +72,9 @@ stringpack(char *s, uchar *p)
 
 
 int
-mbunpack(MetaBlock *mb, uchar *p, int n)
+mbunpack(MetaBlock *mb, uint8_t *p, int n)
 {
-	u32int magic;
+	uint32_t magic;
 
 	mb->maxsize = n;
 	mb->buf = p;
@@ -113,7 +113,7 @@ mbunpack(MetaBlock *mb, uchar *p, int n)
 void
 mbpack(MetaBlock *mb)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = mb->buf;
 
@@ -128,7 +128,7 @@ mbpack(MetaBlock *mb)
 void
 mbdelete(MetaBlock *mb, int i, MetaEntry *me)
 {
-	uchar *p;
+	uint8_t *p;
 	int n;
 
 	assert(i < mb->nindex);
@@ -148,7 +148,7 @@ mbdelete(MetaBlock *mb, int i, MetaEntry *me)
 void
 mbinsert(MetaBlock *mb, int i, MetaEntry *me)
 {
-	uchar *p;
+	uint8_t *p;
 	int o, n;
 
 	assert(mb->nindex < mb->maxindex);
@@ -172,7 +172,7 @@ mbinsert(MetaBlock *mb, int i, MetaEntry *me)
 int
 meunpack(MetaEntry *me, MetaBlock *mb, int i)
 {
-	uchar *p;
+	uint8_t *p;
 	int eo, en;
 
 	if(i < 0 || i >= mb->nindex) {
@@ -214,7 +214,7 @@ int
 mecmp(MetaEntry *me, char *s)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
 	p = me->p;
 
@@ -227,9 +227,9 @@ mecmp(MetaEntry *me, char *s)
 	while(n > 0) {
 		if(*s == 0)
 			return -1;
-		if(*p < (uchar)*s)
+		if(*p < (uint8_t)*s)
 			return -1;
-		if(*p > (uchar)*s)
+		if(*p > (uint8_t)*s)
 			return 1;
 		p++;
 		s++;
@@ -242,7 +242,7 @@ int
 mecmpnew(MetaEntry *me, char *s)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
 	p = me->p;
 
@@ -255,9 +255,9 @@ mecmpnew(MetaEntry *me, char *s)
 	while(n > 0) {
 		if(*s == 0)
 			return 1;
-		if(*p < (uchar)*s)
+		if(*p < (uint8_t)*s)
 			return -1;
-		if(*p > (uchar)*s)
+		if(*p > (uint8_t)*s)
 			return 1;
 		p++;
 		s++;
@@ -285,7 +285,7 @@ metachunks(MetaBlock *mb)
 {
 	MetaChunk *mc;
 	int oo, o, n, i;
-	uchar *p;
+	uint8_t *p;
 
 	mc = vtmalloc(mb->nindex*sizeof(MetaChunk));
 	p = mb->buf + MetaHeaderSize;
@@ -341,7 +341,7 @@ mbcompact(MetaBlock *mb, MetaChunk *mc)
 	mb->free = 0;
 }
 
-uchar *
+uint8_t *
 mballoc(MetaBlock *mb, int n)
 {
 	int i, o;
@@ -435,8 +435,8 @@ vdsize(VacDir *dir, int version)
 void
 vdpack(VacDir *dir, MetaEntry *me, int version)
 {
-	uchar *p;
-	ulong t32;
+	uint8_t *p;
+	uint32_t t32;
 
 	if(version < 8 || version > 9)
 		sysfatal("bad version %d in vdpack", version);
@@ -506,7 +506,7 @@ int
 vdunpack(VacDir *dir, MetaEntry *me)
 {
 	int t, nn, n, version;
-	uchar *p;
+	uint8_t *p;
 	
 	p = me->p;
 	n = me->size;
@@ -703,7 +703,7 @@ mbsearch(MetaBlock *mb, char *elem, int *ri, MetaEntry *me)
 }
 
 void
-mbinit(MetaBlock *mb, uchar *p, int n, int entries)
+mbinit(MetaBlock *mb, uint8_t *p, int n, int entries)
 {
 	memset(mb, 0, sizeof(MetaBlock));
 	mb->maxsize = n;
@@ -715,7 +715,7 @@ mbinit(MetaBlock *mb, uchar *p, int n, int entries)
 int
 mbresize(MetaBlock *mb, MetaEntry *me, int n)
 {
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 
 	/* easy case */
 	if(n <= me->size){

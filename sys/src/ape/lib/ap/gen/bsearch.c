@@ -13,7 +13,7 @@ void*
 bsearch(const void* key, const void* base, size_t nmemb, size_t size,
 		int (*compar)(const void*, const void*))
 {
-	long i, bot, top, new;
+	int32_t i, bot, top, new;
 	void *p;
 
 	bot = 0;

@@ -23,8 +23,8 @@ struct Input
 {
 	char		*file;		/* name of file */
 	Biobuf	*fd;		/* input buffer, if from real file */
-	uchar	*s;		/* input string, if from /mnt/plumb/rules */
-	uchar	*end;	/* end of input string */
+	uint8_t	*s;		/* input string, if from /mnt/plumb/rules */
+	uint8_t	*end;	/* end of input string */
 	int		lineno;
 	Input	*next;	/* file to read after EOF on this one */
 };
@@ -95,7 +95,7 @@ printinputstack(void)
 }
 
 static void
-pushinput(char *name, int fd, uchar *str)
+pushinput(char *name, int fd, uint8_t *str)
 {
 	Input *in;
 	int depth;
@@ -726,12 +726,12 @@ stringof(char *s, int n)
 	return t;
 }
 
-uchar*
-morerules(uchar *text, int done)
+uint8_t*
+morerules(uint8_t *text, int done)
 {
 	int n;
 	Ruleset *rs;
-	uchar *otext, *s, *endofrule;
+	uint8_t *otext, *s, *endofrule;
 
 	pushinput("<rules input>", -1, text);
 	if(done)
@@ -758,9 +758,9 @@ morerules(uchar *text, int done)
 	}
 	otext =text;
 	if(input == nil)
-		text = (uchar*)estrdup("");
+		text = (uint8_t*)estrdup("");
 	else
-		text = (uchar*)estrdup((char*)input->end);
+		text = (uint8_t*)estrdup((char*)input->end);
 	popinput();
 	free(otext);
 	return text;
@@ -769,7 +769,7 @@ morerules(uchar *text, int done)
 char*
 writerules(char *s, int n)
 {
-	static uchar *text;
+	static uint8_t *text;
 	char *tmp;
 
 	free(lasterror);
@@ -777,7 +777,7 @@ writerules(char *s, int n)
 	parsing = 1;
 	if(setjmp(parsejmp) == 0){
 		tmp = stringof(s, n);
-		text = (uchar*)concat((char*)text, tmp);
+		text = (uint8_t*)concat((char*)text, tmp);
 		free(tmp);
 		text = morerules(text, s==nil);
 	}

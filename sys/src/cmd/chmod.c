@@ -17,14 +17,14 @@
 
 #define DMRWE (DMREAD|DMWRITE|DMEXEC)
 
-int parsemode(char *, ulong *, ulong *);
+int parsemode(char *, uint32_t *, uint32_t *);
 
 void
 main(int argc, char *argv[])
 {
 	int i;
 	Dir *dir, ndir;
-	ulong mode, mask;
+	uint32_t mode, mask;
 	char *p;
 
 	if(argc < 3){
@@ -56,9 +56,9 @@ main(int argc, char *argv[])
 }
 
 int
-parsemode(char *spec, ulong *pmask, ulong *pmode)
+parsemode(char *spec, uint32_t *pmask, uint32_t *pmode)
 {
-	ulong mode, mask;
+	uint32_t mode, mask;
 	int done, op;
 	char *s;
 

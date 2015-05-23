@@ -12,8 +12,6 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "io.h"
-#include "ureg.h"
 #include "../port/error.h"
 
 #include "../port/sd.h"
@@ -39,7 +37,7 @@ scsiverify(SDunit* unit)
 {
 	SDreq *r;
 	int i, status;
-	uchar *inquiry;
+	uint8_t *inquiry;
 
 	if((r = malloc(sizeof(SDreq))) == nil)
 		return 0;
@@ -102,7 +100,7 @@ scsiverify(SDunit* unit)
 		 * Try to ensure a direct-access device is spinning.
 		 * Don't wait for completion, ignore the result.
 		 */
-		if((unit->inquiry[0] & SDinq0periphtype) == SDperdisk){
+		if((unit->inquiry[0] & 0x1F) == 0){
 			memset(r->cmd, 0, sizeof(r->cmd));
 			r->write = 0;
 			r->cmd[0] = 0x1B;
@@ -127,6 +125,7 @@ scsiverify(SDunit* unit)
 static int
 scsirio(SDreq* r)
 {
+	Mach *m = machp();
 	/*
 	 * Perform an I/O request, returning
 	 *	-1	failure
@@ -170,7 +169,7 @@ scsirio(SDreq* r)
 
 			while(waserror())
 				;
-			tsleep(&up->sleep, return0, 0, 500);
+			tsleep(&m->externup->sleep, return0, 0, 500);
 			poperror();
 			scsitest(r);
 			return 2;
@@ -188,7 +187,7 @@ int
 scsionline(SDunit* unit)
 {
 	SDreq *r;
-	uchar *p;
+	uint8_t *p;
 	int ok, retries;
 
 	if((r = malloc(sizeof(SDreq))) == nil)
@@ -263,7 +262,8 @@ scsionline(SDunit* unit)
 }
 
 int
-scsiexec(SDunit* unit, int write, uchar* cmd, int clen, void* data, int* dlen)
+scsiexec(SDunit* unit, int write, uint8_t* cmd, int clen, void* data,
+	 int* dlen)
 {
 	SDreq *r;
 	int status;
@@ -313,9 +313,9 @@ scsiexec(SDunit* unit, int write, uchar* cmd, int clen, void* data, int* dlen)
 }
 
 static void
-scsifmt10(SDreq *r, int write, int lun, ulong nb, uvlong bno)
+scsifmt10(SDreq *r, int write, int lun, int32_t nb, int64_t bno)
 {
-	uchar *c;
+	uint8_t *c;
 
 	c = r->cmd;
 	if(write == 0)
@@ -336,9 +336,9 @@ scsifmt10(SDreq *r, int write, int lun, ulong nb, uvlong bno)
 }
 
 static void
-scsifmt16(SDreq *r, int write, int lun, ulong nb, uvlong bno)
+scsifmt16(SDreq *r, int write, int lun, int32_t nb, int64_t bno)
 {
-	uchar *c;
+	uint8_t *c;
 
 	c = r->cmd;
 	if(write == 0)
@@ -364,11 +364,12 @@ scsifmt16(SDreq *r, int write, int lun, ulong nb, uvlong bno)
 	r->clen = 16;
 }
 
-long
-scsibio(SDunit* unit, int lun, int write, void* data, long nb, uvlong bno)
+int32_t
+scsibio(SDunit* unit, int lun, int write, void* data, int32_t nb,
+	int64_t bno)
 {
 	SDreq *r;
-	long rlen;
+	int32_t rlen;
 
 	if((r = malloc(sizeof(SDreq))) == nil)
 		error(Enomem);
@@ -412,7 +413,7 @@ again:
 			 */
 			if(r->sense[12] != 0x28 || r->sense[13] != 0)
 				break;
-			if(unit->inquiry[1] & SDinq1removable)
+			if(unit->inquiry[1] & 0x80)
 				unit->sectors = 0;
 			break;
 		case 0x02:		/* not ready */

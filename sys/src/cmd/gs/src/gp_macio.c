@@ -382,13 +382,14 @@ gp_setmode_binary(FILE *pfile, bool binary)
 /* Write the actual file name at fname. */
 
 FILE *
-gp_open_scratch_file (const char *prefix, char fname[gp_file_name_sizeof], const char *mode)
+gp_open_scratch_file (const char *prefix, char fname[gp_file_name_sizeof],
+                      const char *mode)
 {
     char thefname[256];
     Str255 thepfname;
     OSErr myErr;
-    short foundVRefNum;
-    long foundDirID;
+    int16_t foundVRefNum;
+    int32_t foundDirID;
     FSSpec fSpec;
     FILE *f;
     int prefix_length = strlen(prefix);
@@ -436,7 +437,8 @@ gp_open_scratch_file (const char *prefix, char fname[gp_file_name_sizeof], const
 /* allocate the appropriate sized buffer, and then call us a second */
 /* time to actually transfer the data.                              */
 int
-gp_read_macresource(byte *buf, const char *fname, const uint type, const ushort id)
+gp_read_macresource(byte *buf, const char *fname, const uint type,
+                    const uint16_t id)
 {
     Handle resource = NULL;
     SInt32 size = 0;
@@ -535,7 +537,8 @@ gp_enumerate_files_close (file_enum *pfen)
 
 {	
 	gs_free_object(pfen->memory, pfen->pattern, "gp_enumerate_files_close(pattern)");
-	gs_free_object(pfen->memory, (char *)pfen, "gp_enumerate_files_close");
+	gs_free_object(pfen->memory, (char *)pfen,
+		       "gp_enumerate_files_close");
 }
 
 FILE * 
@@ -632,7 +635,8 @@ uint gp_file_name_root(const char *fname, uint len)
 #endif /* __CARBON__ */
 
 
-uint gs_file_name_check_separator(const char *fname, int len, const char *item)
+uint gs_file_name_check_separator(const char *fname, int len,
+                                  const char *item)
 {   if (len > 0) {
 	if (fname[0] == ':') {
 	    if (fname == item + 1 && item[0] == ':')
@@ -681,7 +685,8 @@ bool gp_file_name_is_empty_item_meanful(void)
 }
 
 gp_file_name_combine_result
-gp_file_name_combine(const char *prefix, uint plen, const char *fname, uint flen, 
+gp_file_name_combine(const char *prefix, uint plen, const char *fname,
+                     uint flen, 
 		    bool no_sibling, char *buffer, uint *blen)
 {
     return gp_file_name_combine_generic(prefix, plen, 
@@ -934,7 +939,8 @@ void gp_enumerate_fonts_free(void *enum_state)
     
 }
                                    
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, char **fontname,
+			    char **path)
 {
     fontenum_t *state = (fontenum_t *)enum_state;
 	FMFontIterator *Iterator = &state->Iterator;

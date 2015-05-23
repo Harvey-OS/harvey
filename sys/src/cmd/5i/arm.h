@@ -36,7 +36,7 @@ enum
 struct Breakpoint
 {
 	int		type;		/* Instruction/Read/Access/Write/Equal */
-	ulong		addr;		/* Place at address */
+	uint32_t		addr;		/* Place at address */
 	int		count;		/* To execute count times or value */
 	int		done;		/* How many times passed through */
 	Breakpoint*	next;		/* Link to next one */
@@ -64,7 +64,7 @@ struct Tlb
 {
 	int	on;			/* Being updated */
 	int	tlbsize;		/* Number of entries */
-	ulong	tlbent[Nmaxtlb];	/* Virtual address tags */
+	uint32_t	tlbent[Nmaxtlb];	/* Virtual address tags */
 	int	hit;			/* Number of successful tag matches */
 	int	miss;			/* Number of failed tag matches */
 };		
@@ -75,13 +75,13 @@ struct Icache
 	int	linesize;		/* Line size in bytes */
 	int	stall;			/* Cache stalls */
 	int*	lines;			/* Tag array */
-	int*	(*hash)(ulong);		/* Hash function */
+	int*	(*hash)(uint32_t);		/* Hash function */
 	char*	hashtext;		/* What the function looks like */
 };
 
 struct Inst
 {
-	void 	(*func)(ulong);
+	void 	(*func)(uint32_t);
 	char*	name;
 	int	type;
 	int	count;
@@ -91,8 +91,8 @@ struct Inst
 
 struct Registers
 {
-	ulong	ar;
-	ulong	ir;
+	uint32_t	ar;
+	uint32_t	ir;
 	Inst*	ip;
 	long	r[16];
 	long	cc1;
@@ -137,10 +137,10 @@ enum
 struct Segment
 {
 	short	type;
-	ulong	base;
-	ulong	end;
-	ulong	fileoff;
-	ulong	fileend;
+	uint32_t	base;
+	uint32_t	end;
+	uint32_t	fileoff;
+	uint32_t	fileend;
 	int	rss;
 	int	refs;
 	uchar**	table;
@@ -151,27 +151,27 @@ struct Memory
 	Segment	seg[Nseg];
 };
 
-void		Ssyscall(ulong);
+void		Ssyscall(uint32_t);
 int		armclass(long);
 void		breakpoint(char*, char*);
-void		brkchk(ulong, int);
+void		brkchk(uint32_t, int);
 void		cmd(void);
 void		delbpt(char*);
 void		dobplist(void);
 void		dumpdreg(void);
 void		dumpfreg(void);
 void		dumpreg(void);
-void*		emalloc(ulong);
-void*		erealloc(void*, ulong, ulong);
-ulong		expr(char*);
+void*		emalloc(uint32_t);
+void*		erealloc(void*, uint32_t, uint32_t);
+uint32_t		expr(char*);
 void		fatal(int, char*, ...);
-ulong		getmem_2(ulong);
-ulong		getmem_4(ulong);
-uchar		getmem_b(ulong);
-ushort		getmem_h(ulong);
-uvlong		getmem_v(ulong);
-ulong		getmem_w(ulong);
-ulong		ifetch(ulong);
+uint32_t		getmem_2(uint32_t);
+uint32_t		getmem_4(uint32_t);
+uchar		getmem_b(uint32_t);
+ushort		getmem_h(uint32_t);
+uvlong		getmem_v(uint32_t);
+uint32_t		getmem_w(uint32_t);
+uint32_t		ifetch(uint32_t);
 void		inithdr(int);
 void		initicache(void);
 void		initmap(void);
@@ -180,27 +180,27 @@ void		iprofile(void);
 void		isum(void);
 void		itrace(char*, ...);
 long		lnrand(long);
-char*		memio(char*, ulong, int, int);
-int		_mipscoinst(Map*, ulong, char*, int);
+char*		memio(char*, uint32_t, int, int);
+int		_mipscoinst(Map*, uint32_t, char*, int);
 Mul		mul(long, long);
-Mulu		mulu(ulong, ulong);
+Mulu		mulu(uint32_t, uint32_t);
 char*		nextc(char*);
-void		printlocals(Symbol*, ulong);
-void		printparams(Symbol*, ulong);
+void		printlocals(Symbol*, uint32_t);
+void		printparams(Symbol*, uint32_t);
 void		printsource(long);
 void		procinit(int);
-void		putmem_b(ulong, uchar);
-void		putmem_h(ulong, ushort);
-void		putmem_v(ulong, uvlong);
-void		putmem_w(ulong, ulong);
+void		putmem_b(uint32_t, uchar);
+void		putmem_h(uint32_t, ushort);
+void		putmem_v(uint32_t, uvlong);
+void		putmem_w(uint32_t, uint32_t);
 void		reset(void);
 void		run(void);
 void		segsum(void);
 void		stktrace(int);
 void		tlbsum(void);
-void		undef(ulong);
-void		updateicache(ulong addr);
-void*		vaddr(ulong);
+void		undef(uint32_t);
+void		updateicache(uint32_t addr);
+void*		vaddr(uint32_t);
 
 /* Globals */
 EXTERN	Registers	reg;
@@ -220,11 +220,11 @@ EXTERN	int		atbpt;
 EXTERN	int		membpt;
 EXTERN	int		cmdcount;
 EXTERN	int		nopcount;
-EXTERN	ulong		dot;
+EXTERN	uint32_t		dot;
 EXTERN	char*		file;
 EXTERN	Biobuf*		bioout;
 EXTERN	Biobuf*		bin;
-EXTERN	ulong*		iprof;
+EXTERN	uint32_t*		iprof;
 EXTERN	int		datasize;
 EXTERN	Map*		symmap;	
 

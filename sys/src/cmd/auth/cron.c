@@ -27,11 +27,11 @@ typedef struct Time	Time;
 typedef struct User	User;
 
 struct Time{			/* bit masks for each valid time */
-	uvlong	min;
-	ulong	hour;
-	ulong	mday;
-	ulong	wday;
-	ulong	mon;
+	uint64_t	min;
+	uint32_t	hour;
+	uint32_t	mday;
+	uint32_t	wday;
+	uint32_t	mon;
 };
 
 struct Job{
@@ -54,21 +54,21 @@ char	*savec;
 char	*savetok;
 int	tok;
 int	debug;
-ulong	lexval;
+uint32_t	lexval;
 
 void	rexec(User*, Job*);
 void	readalljobs(void);
 Job	*readjobs(char*, User*);
 int	getname(char**);
-uvlong	gettime(int, int);
+uint64_t	gettime(int, int);
 int	gettok(int, int);
 void	initcap(void);
 void	pushtok(void);
 void	usage(void);
 void	freejobs(Job*);
 User	*newuser(char*);
-void	*emalloc(ulong);
-void	*erealloc(void*, ulong);
+void	*emalloc(uint32_t);
+void	*erealloc(void*, uint32_t);
 int	myauth(int, char*);
 void	createuser(void);
 int	mkcmd(char*, char*, int);
@@ -76,16 +76,16 @@ void	printjobs(void);
 int	qidcmp(Qid, Qid);
 int	becomeuser(char*);
 
-ulong
-minute(ulong tm)
+uint32_t
+minute(uint32_t tm)
 {
 	return tm - tm%Minute;		/* round down to the minute */
 }
 
 int
-sleepuntil(ulong tm)
+sleepuntil(uint32_t tm)
 {
-	ulong now = time(0);
+	uint32_t now = time(0);
 	
 	if (now < tm)
 		return sleep((tm - now)*1000);
@@ -450,10 +450,10 @@ getname(char **namep)
  *	| range ',' range
  * a return of zero means a syntax error was discovered
  */
-uvlong
+uint64_t
 gettime(int min, int max)
 {
-	uvlong n, m, e;
+	uint64_t n, m, e;
 
 	if(gettok(min, max) == '*')
 		return ~0ULL;
@@ -631,7 +631,7 @@ rexec(User *user, Job *j)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -642,7 +642,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	if(p = realloc(p, n))
 		return p;
@@ -667,9 +667,9 @@ qidcmp(Qid a, Qid b)
 void
 memrandom(void *p, int n)
 {
-	uchar *cp;
+	uint8_t *cp;
 
-	for(cp = (uchar*)p; n > 0; n--)
+	for(cp = (uint8_t*)p; n > 0; n--)
 		*cp++ = fastrand();
 }
 
@@ -692,11 +692,11 @@ initcap(void)
 char*
 mkcap(char *from, char *to)
 {
-	uchar rand[20];
+	uint8_t rand[20];
 	char *cap;
 	char *key;
 	int nfrom, nto, ncap;
-	uchar hash[SHA1dlen];
+	uint8_t hash[SHA1dlen];
 
 	if(caphashfd < 0)
 		return nil;
@@ -712,7 +712,8 @@ mkcap(char *from, char *to)
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uchar*)cap, strlen(cap), (uchar*)key, strlen(key), hash, nil);
+	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
+		  hash, nil);
 
 	/* give the kernel the hash */
 	key[-1] = '@';

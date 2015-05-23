@@ -14,36 +14,36 @@
 /*
  *  well known IP addresses
  */
-uchar IPv4bcast[IPaddrlen] = {
+uint8_t IPv4bcast[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff
 };
-uchar IPv4allsys[IPaddrlen] = {
+uint8_t IPv4allsys[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0xff, 0xff,
 	0xe0, 0, 0, 0x01
 };
-uchar IPv4allrouter[IPaddrlen] = {
+uint8_t IPv4allrouter[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0xff, 0xff,
 	0xe0, 0, 0, 0x02
 };
-uchar IPallbits[IPaddrlen] = {
+uint8_t IPallbits[IPaddrlen] = {
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff
 };
-uchar IPnoaddr[IPaddrlen];
+uint8_t IPnoaddr[IPaddrlen];
 
 /*
  *  prefix of all v4 addresses
  */
-uchar v4prefix[IPaddrlen] = {
+uint8_t v4prefix[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0xff, 0xff,
@@ -51,7 +51,7 @@ uchar v4prefix[IPaddrlen] = {
 };
 
 int
-isv4(uchar *ip)
+isv4(uint8_t *ip)
 {
 	return memcmp(ip, v4prefix, IPv4off) == 0;
 }
@@ -61,7 +61,7 @@ isv4(uchar *ip)
  *  up the usual case
  */
 void
-v4tov6(uchar *v6, uchar *v4)
+v4tov6(uint8_t *v6, uint8_t *v4)
 {
 	v6[0] = 0;
 	v6[1] = 0;
@@ -82,7 +82,7 @@ v4tov6(uchar *v6, uchar *v4)
 }
 
 int
-v6tov4(uchar *v4, uchar *v6)
+v6tov4(uint8_t *v4, uint8_t *v6)
 {
 	if(v6[0] == 0
 	&& v6[1] == 0

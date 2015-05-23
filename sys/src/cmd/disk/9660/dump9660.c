@@ -14,12 +14,12 @@
 #include <libsec.h>
 #include "iso9660.h"
 
-ulong now;
+uint32_t now;
 int chatty;
 int doabort;
 int docolon;
 int mk9660;
-vlong dataoffset;
+int64_t dataoffset;
 int blocksize;
 Conform *map;
 

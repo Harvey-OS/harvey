@@ -35,7 +35,7 @@ newmap(Map *map, int n)
 }
 
 int
-setmap(Map *map, int fd, uvlong b, uvlong e, vlong f, char *name)
+setmap(Map *map, int fd, uint64_t b, uint64_t e, int64_t f, char *name)
 {
 	int i;
 
@@ -55,7 +55,7 @@ setmap(Map *map, int fd, uvlong b, uvlong e, vlong f, char *name)
 	return 1;
 }
 
-static uvlong
+static uint64_t
 stacktop(int pid)
 {
 	char buf[64];
@@ -92,7 +92,7 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 	char buf[64], *regs;
 	int fd;
 	Map *map;
-	uvlong n;
+	uint64_t n;
 
 	map = newmap(0, 4);
 	if (!map)

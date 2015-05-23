@@ -41,7 +41,7 @@ Dev *epdev[2];
 static void
 audio_endpoint(Dev *, Desc *dd)
 {
-	byte *b = (uchar*)&dd->data;
+	byte *b = (uint8_t*)&dd->data;
 	int n = dd->data.bLength;
 	char *hd;
 
@@ -105,7 +105,7 @@ controlproc(void *)
 	int i, nf;
 	char *req, *args[8];
 	Audiocontrol *c;
-	long value[8];
+	int32_t value[8];
 	Channel *replchan;
 
 	while(req = recvp(controlchan)){

@@ -24,7 +24,8 @@ _frdrawtext(Frame *f, Point pt, Image *text, Image *back)
 	for(nb=0,b=f->box; nb<f->nbox; nb++, b++){
 		_frcklinewrap(f, &pt, b);
 		if(b->nrune >= 0){
-			stringbg(f->b, pt, text, ZP, f->font, (char*)b->ptr, back, ZP);
+			stringbg(f->b, pt, text, ZP, f->font, (char*)b->ptr,
+				 back, ZP);
 		}
 		pt.x += b->wid;
 	}
@@ -43,7 +44,7 @@ nbytes(char *s0, int nr)
 }
 
 void
-frdrawsel(Frame *f, Point pt, ulong p0, ulong p1, int issel)
+frdrawsel(Frame *f, Point pt, uint32_t p0, uint32_t p1, int issel)
 {
 	Image *back, *text;
 
@@ -67,7 +68,8 @@ frdrawsel(Frame *f, Point pt, ulong p0, ulong p1, int issel)
 }
 
 Point
-frdrawsel0(Frame *f, Point pt, ulong p0, ulong p1, Image *back, Image *text)
+frdrawsel0(Frame *f, Point pt, uint32_t p0, uint32_t p1, Image *back,
+	   Image *text)
 {
 	Frbox *b;
 	int nb, nr, w, x, trim;

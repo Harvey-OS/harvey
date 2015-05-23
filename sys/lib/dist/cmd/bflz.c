@@ -36,7 +36,7 @@
 
 int minrun = 16;
 int win = 16;
-ulong outn;
+uint32_t outn;
 int verbose;
 int mindist;
 
@@ -44,9 +44,9 @@ enum { Prime = 16777213 };	/* smallest prime < 2^24 (so p*256+256 < 2^32) */
 enum { NOFF = 3 };
 
 Biobuf bout;
-ulong length;
+uint32_t length;
 uchar *data;
-ulong sum32(ulong, void*, long);
+uint32_t sum32(uint32_t, void*, long);
 uchar *odat;
 int nodat;
 int nraw;
@@ -60,8 +60,8 @@ int nnew;
 typedef struct Node Node;
 struct Node {
 	Node *link;
-	ulong key;
-	ulong offset[NOFF];
+	uint32_t key;
+	uint32_t offset[NOFF];
 };
 
 Node *nodepool;
@@ -113,7 +113,7 @@ freenode(Node *n)
 }
 
 Node**
-llookup(ulong key)
+llookup(uint32_t key)
 {
 	uint c;
 	Node **l, **top, *n;
@@ -146,13 +146,13 @@ llookup(ulong key)
 }
 
 Node*
-lookup(ulong key)
+lookup(uint32_t key)
 {
 	return *llookup(key);
 }
 
 void
-insertnode(ulong key, ulong offset)
+insertnode(uint32_t key, uint32_t offset)
 {
 	int i;
 	Node *n, **l;
@@ -253,7 +253,7 @@ void
 compress(void)
 {
 	int best, i, j, o, rle, run, maxrun, maxoff;
-	ulong sum;
+	uint32_t sum;
 	Node *n;
 
 	sum = 0;

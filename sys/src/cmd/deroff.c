@@ -88,8 +88,8 @@ char	chars[MAX_ASCII];	/* SPECIAL, PUNCT, APOS, DIGIT, or LETTER */
 Rune	line[30000];
 Rune*	lp;
 
-long	c;
-long	pc;
+int32_t	c;
+int32_t	pc;
 int	ldelim	= NOCHAR;
 int	rdelim	= NOCHAR;
 
@@ -104,7 +104,7 @@ char*	devnull	= "/dev/null";
 Biobuf	*infile;
 Biobuf	bout;
 
-long	skeqn(void);
+int32_t	skeqn(void);
 Biobuf*	opn(char *p);
 int	eof(void);
 int	charclass(int);
@@ -212,7 +212,7 @@ main(int argc, char *av[])
 	work();
 }
 
-long
+int32_t
 skeqn(void)
 {
 	while(C1 != rdelim)
@@ -455,7 +455,7 @@ putwords(void)
 void
 comline(void)
 {
-	long c1, c2;
+	int32_t c1, c2;
 
 	while(C==' ' || c=='\t')
 		;
@@ -711,7 +711,7 @@ stbl(void)
 void
 eqn(void)
 {
-	long c1, c2;
+	int32_t c1, c2;
 	int dflg;
 	char last;
 

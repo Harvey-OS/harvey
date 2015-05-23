@@ -20,10 +20,10 @@
 
 typedef struct Allocs Allocs;
 struct Allocs {
-	u32int	mem;
-	u32int	bcmem;
-	u32int	icmem;
-	u32int	stfree;				/* free memory at start */
+	uint32_t	mem;
+	uint32_t	bcmem;
+	uint32_t	icmem;
+	uint32_t	stfree;				/* free memory at start */
 	uint	mempcnt;
 };
 
@@ -34,11 +34,11 @@ VtSrv *ventisrv;
 
 static void	ventiserver(void*);
 
-static ulong
+static uint32_t
 freemem(void)
 {
 	int nf, pgsize = 0;
-	uvlong size, userpgs = 0, userused = 0;
+	uint64_t size, userpgs = 0, userused = 0;
 	char *ln, *sl;
 	char *fields[2];
 	Biobuf *bp;
@@ -84,12 +84,12 @@ allocminima(Allocs *all)			/* enforce minima for sanity */
 
 /* automatic memory allocations sizing per venti(8) guidelines */
 static Allocs
-allocbypcnt(u32int mempcnt, u32int stfree)
+allocbypcnt(uint32_t mempcnt, uint32_t stfree)
 {
-	u32int avail;
-	vlong blmsize;
+	uint32_t avail;
+	int64_t blmsize;
 	Allocs all;
-	static u32int free;
+	static uint32_t free;
 
 	all.mem = Unspecified;
 	all.bcmem = all.icmem = 0;
@@ -101,7 +101,7 @@ allocbypcnt(u32int mempcnt, u32int stfree)
 	blmsize = stfree - free;
 	if (blmsize <= 0)
 		blmsize = 0;
-	avail = ((vlong)stfree * mempcnt) / 100;
+	avail = ((int64_t)stfree * mempcnt) / 100;
 	if (blmsize >= avail || (avail -= blmsize) <= (1 + 2 + 6) * 1024 * 1024)
 		fprint(2, "%s: bloom filter bigger than mem pcnt; "
 			"resorting to minimum values (9MB total)\n", argv0);

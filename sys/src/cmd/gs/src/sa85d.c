@@ -44,7 +44,7 @@ s_A85D_init(stream_state * st)
 }
 
 /* Process a buffer */
-private int a85d_finish(int, ulong, stream_cursor_write *);
+private int a85d_finish(int, uint32_t, stream_cursor_write *);
 private int
 s_A85D_process(stream_state * st, stream_cursor_read * pr,
 	       stream_cursor_write * pw, bool last)
@@ -55,7 +55,7 @@ s_A85D_process(stream_state * st, stream_cursor_read * pr,
     const byte *rlimit = pr->limit;
     byte *wlimit = pw->limit;
     int ccount = ss->odd;
-    ulong word = ss->word;
+    uint32_t word = ss->word;
     int status = 0;
 
     while (p < rlimit) {
@@ -157,7 +157,7 @@ s_A85D_process(stream_state * st, stream_cursor_read * pr,
 }
 /* Handle the end of input data. */
 private int
-a85d_finish(int ccount, ulong word, stream_cursor_write * pw)
+a85d_finish(int ccount, uint32_t word, stream_cursor_write * pw)
 {
     /* Assume there is enough room in the output buffer! */
     byte *q = pw->ptr;

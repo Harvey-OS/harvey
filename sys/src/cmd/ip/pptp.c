@@ -25,7 +25,7 @@ int	ctlfd;
 int	ctlrcvtime;
 int	debug;
 int	grefd;
-uchar localip[IPaddrlen];
+uint8_t localip[IPaddrlen];
 int	localwin;
 char	*keyspec;
 int	now;
@@ -38,7 +38,7 @@ int	rack;
 Channel	*rdchan;
 int	rdexpect;
 int	remid;
-uchar remoteip[IPaddrlen];
+uint8_t remoteip[IPaddrlen];
 int	remwin;
 int	rseq;
 int	seq;
@@ -48,16 +48,16 @@ int	topppfd;
 
 int	aread(int, int, void*, int);
 int	catchalarm(void*, char*);
-void	dumpctlpkt(uchar*);
+void	dumpctlpkt(uint8_t*);
 void	getaddrs(void);
-void	*emalloc(long);
+void	*emalloc(int32_t);
 void	ewrite(int, void*, int);
 void	myfatal(char*, ...);
 #pragma varargck argpos myfatal 1
 int	pptp(char*);
 void	pushppp(int);
 void	recordack(int);
-int	schedack(int, uchar*, int);
+int	schedack(int, uint8_t*, int);
 void	waitacks(void);
 
 void
@@ -162,9 +162,9 @@ enum {
 };
 
 void
-recho(uchar *in)
+recho(uint8_t *in)
 {
-	uchar out[20];
+	uint8_t out[20];
 
 	if(nhgets(in) < 16)
 		return;
@@ -183,7 +183,7 @@ recho(uchar *in)
 void
 sendecho(void)
 {
-	uchar out[16];
+	uint8_t out[16];
 
 	ctlechotime = now;	
 	memset(out, 0, sizeof out);
@@ -198,7 +198,7 @@ sendecho(void)
 void
 pptpctlproc(void*)
 {
-	uchar pkt[1600], *p;
+	uint8_t pkt[1600], *p;
 	int len;
 
 	for(;;){
@@ -259,8 +259,8 @@ void
 grereadproc(void*)
 {
 	int datoff, flags, len, n, pass;
-	uchar pkt[1600];
-	uchar src[IPaddrlen], dst[IPaddrlen];
+	uint8_t pkt[1600];
+	uint8_t src[IPaddrlen], dst[IPaddrlen];
 
 	rfork(RFFDG);
 	close(pppfd);
@@ -316,7 +316,7 @@ void
 pppreadproc(void*)
 {
 	int n, myrseq;
-	uchar pkt[1600];
+	uint8_t pkt[1600];
 	enum {
 		Hdr = 8+16,
 	};
@@ -352,7 +352,7 @@ void
 sendack(void)
 {
 	int myrseq;
-	uchar pkt[20];
+	uint8_t pkt[20];
 
 	v6tov4(pkt+0, localip);
 	v6tov4(pkt+4, remoteip);
@@ -369,9 +369,9 @@ sendack(void)
 }
 
 int
-schedack(int n, uchar *dat, int len)
+schedack(int n, uint8_t *dat, int len)
 {
-	static uchar sdat[1600];
+	static uint8_t sdat[1600];
 	static int srseq, slen;
 
 	if(n-rseq <= 0){
@@ -444,7 +444,7 @@ void
 tstart(void)
 {
 	char *name;
-	uchar pkt[200], *rpkt;
+	uint8_t pkt[200], *rpkt;
 
 	memset(pkt, 0, sizeof pkt);
 
@@ -481,7 +481,7 @@ tstart(void)
 void
 tcallout(void)
 {
-	uchar pkt[200], *rpkt;
+	uint8_t pkt[200], *rpkt;
 
 	pid = getpid();
 
@@ -689,7 +689,7 @@ ewrite(int fd, void *buf, int nbuf)
 }
 
 void*
-emalloc(long n)
+emalloc(int32_t n)
 {
 	void *v;
 
@@ -714,7 +714,7 @@ thread(void(*f)(void*), void *a)
 }
 
 void
-dumpctlpkt(uchar *pkt)
+dumpctlpkt(uint8_t *pkt)
 {
 	fprint(2, "pkt len %d mtype %d cookie 0x%.8ux type %d\n",
 		nhgets(pkt), nhgets(pkt+2),
@@ -864,7 +864,7 @@ myfatal(char *fmt, ...)
 {
 	char sbuf[512];
 	va_list arg;
-	uchar buf[16];
+	uint8_t buf[16];
 
 	memset(buf, 0, sizeof(buf));
 	hnputs(buf+0, sizeof(buf));	/* length */

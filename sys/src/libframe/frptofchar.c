@@ -15,9 +15,9 @@
 #include <frame.h>
 
 Point
-_frptofcharptb(Frame *f, ulong p, Point pt, int bn)
+_frptofcharptb(Frame *f, uint32_t p, Point pt, int bn)
 {
-	uchar *s;
+	uint8_t *s;
 	Frbox *b;
 	int w, l;
 	Rune r;
@@ -31,7 +31,8 @@ _frptofcharptb(Frame *f, ulong p, Point pt, int bn)
 						w = 1;
 					else
 						w = chartorune(&r, (char*)s);
-					pt.x += stringnwidth(f->font, (char*)s, 1);
+					pt.x += stringnwidth(f->font,
+							     (char*)s, 1);
 					if(r==0 || pt.x>f->r.max.x)
 						drawerror(f->display, "frptofchar");
 				}
@@ -44,13 +45,13 @@ _frptofcharptb(Frame *f, ulong p, Point pt, int bn)
 }
 
 Point
-frptofchar(Frame *f, ulong p)
+frptofchar(Frame *f, uint32_t p)
 {
 	return _frptofcharptb(f, p, f->r.min, 0);
 }
 
 Point
-_frptofcharnb(Frame *f, ulong p, int nb)	/* doesn't do final _fradvance to next line */
+_frptofcharnb(Frame *f, uint32_t p, int nb)	/* doesn't do final _fradvance to next line */
 {
 	Point pt;
 	int nbox;
@@ -74,14 +75,14 @@ _frgrid(Frame *f, Point p)
 	return p;
 }
 
-ulong
+uint32_t
 frcharofpt(Frame *f, Point pt)
 {
 	Point qt;
 	int w, bn;
-	uchar *s;
+	uint8_t *s;
 	Frbox *b;
-	ulong p;
+	uint32_t p;
 	Rune r;
 
 	pt = _frgrid(f, pt);
@@ -109,7 +110,8 @@ frcharofpt(Frame *f, Point pt)
 						w = chartorune(&r, (char*)s);
 					if(r == 0)
 						drawerror(f->display, "end of string in frcharofpt");
-					qt.x += stringnwidth(f->font, (char*)s, 1);
+					qt.x += stringnwidth(f->font,
+							     (char*)s, 1);
 					s += w;
 					if(qt.x > pt.x)
 						break;

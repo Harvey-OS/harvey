@@ -27,7 +27,7 @@ char Enomem[] = "No memory";
 char Eversion[] = "Bad 9P2000 version";
 char Ereadonly[] = "File system read only";
 
-ulong messagesize;
+uint32_t messagesize;
 int readonly;
 
 void
@@ -250,7 +250,7 @@ Xstat(Fsrpc *t)
 	Fid *f;
 	Dir *d;
 	int s;
-	uchar *statbuf;
+	uint8_t *statbuf;
 
 	f = getfid(t->work.fid);
 	if(f == 0) {
@@ -698,7 +698,7 @@ slaveread(Fsrpc *p)
 
 	/* can't just call pread, since directories must update the offset */
 	if(patternfile != nil && (f->f->qid.type&QTDIR))
-		r = preaddir(f, (uchar*)data, n, work->offset);
+		r = preaddir(f, (uint8_t*)data, n, work->offset);
 	else
 		r = pread(f->fid, data, n, work->offset);
 	p->canint = 0;

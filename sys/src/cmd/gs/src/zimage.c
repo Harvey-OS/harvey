@@ -99,7 +99,7 @@ data_image_params(const gs_memory_t *mem,
 	return 1;		/* no data source */
     }
     if (pip->MultipleDataSources) {
-	long i, n = num_components + (has_alpha ? 1 : 0);
+	int32_t i, n = num_components + (has_alpha ? 1 : 0);
         if (!r_is_array(pds))
             return_error(e_typecheck);
 	if (r_size(pds) != n)

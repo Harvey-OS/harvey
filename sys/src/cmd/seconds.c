@@ -15,7 +15,7 @@
 #include <libc.h>
 #include <ctype.h>
 
-typedef ulong Time;
+typedef uint32_t Time;
 
 enum {
 	AM, PM, HR24,
@@ -110,7 +110,7 @@ int
 tryabsdate(char **fields, int nf, Tm *now, Tm *tm)
 {
 	int i, mer = HR24, bigval = -1;
-	long flg = 0, ty;
+	int32_t flg = 0, ty;
 	char *p;
 	Datetok *tp;
 

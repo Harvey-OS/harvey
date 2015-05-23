@@ -116,7 +116,8 @@ CFILES=\
 ALLOFILES=${CFILES:%.c=%.$O}
 
 # cull things in the per-machine directories from this list
-OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
+# OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
+OFILES=${CFILES:%.c=%.$O}
 
 HFILES=/sys/include/libc.h
 

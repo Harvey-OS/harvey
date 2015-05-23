@@ -86,7 +86,8 @@ doinclude(Tokenrow *trp)
 	if (fd >= 0) {
 		if (++incdepth > 20)
 			error(FATAL, "#include too deeply nested");
-		setsource((char*)newstring((uchar*)iname, strlen(iname), 0), fd, NULL);
+		setsource((char*)newstring((uint8_t*)iname, strlen(iname), 0),
+			  fd, NULL);
 		genline();
 	} else {
 		trp->tp = trp->bp+2;
@@ -106,15 +107,15 @@ genline(void)
 {
 	static Token ta = { UNCLASS, NULL, 0, 0 };
 	static Tokenrow tr = { &ta, &ta, &ta+1, 1 };
-	uchar *p;
+	uint8_t *p;
 
 	if(nolineinfo)
 		return;
 
-	ta.t = p = (uchar*)outp;
+	ta.t = p = (uint8_t*)outp;
 	strcpy((char*)p, "#line ");
 	p += sizeof("#line ")-1;
-	p = (uchar*)outnum((char*)p, cursource->line);
+	p = (uint8_t*)outnum((char*)p, cursource->line);
 	*p++ = ' '; *p++ = '"';
 	if (cursource->filename[0]!='/' && wd[0]) {
 		strcpy((char*)p, wd);

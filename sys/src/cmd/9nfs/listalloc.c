@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-void*	listalloc(long, long);
+void*	listalloc(int32_t, int32_t);
 
 void *
-listalloc(long n, long size)
+listalloc(int32_t n, int32_t size)
 {
 	char *p, *base;
 

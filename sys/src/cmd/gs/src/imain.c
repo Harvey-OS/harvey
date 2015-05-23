@@ -191,7 +191,8 @@ gs_main_init1(gs_main_instance * minst)
 
 /* Initialization to be done before running any files. */
 private void
-init2_make_string_array(i_ctx_t *i_ctx_p, const ref * srefs, const char *aname)
+init2_make_string_array(i_ctx_t *i_ctx_p, const ref * srefs,
+                        const char *aname)
 {
     const ref *ifp = srefs;
     ref ifa;
@@ -475,7 +476,8 @@ gs_main_set_lib_paths(gs_main_instance * minst)
 
 /* Open a file, using the search paths. */
 int
-gs_main_lib_open(gs_main_instance * minst, const char *file_name, ref * pfile)
+gs_main_lib_open(gs_main_instance * minst, const char *file_name,
+                 ref * pfile)
 {
     /* This is a separate procedure only to avoid tying up */
     /* extra stack space while running the file. */
@@ -493,7 +495,8 @@ gs_main_lib_open(gs_main_instance * minst, const char *file_name, ref * pfile)
 
 /* Open and execute a file. */
 int
-gs_main_run_file(gs_main_instance * minst, const char *file_name, int user_errors, int *pexit_code, ref * perror_object)
+gs_main_run_file(gs_main_instance * minst, const char *file_name,
+                 int user_errors, int *pexit_code, ref * perror_object)
 {
     ref initial_file;
     int code = gs_main_run_file_open(minst, file_name, &initial_file);
@@ -504,7 +507,8 @@ gs_main_run_file(gs_main_instance * minst, const char *file_name, int user_error
 			pexit_code, perror_object);
 }
 int
-gs_main_run_file_open(gs_main_instance * minst, const char *file_name, ref * pfref)
+gs_main_run_file_open(gs_main_instance * minst, const char *file_name,
+                      ref * pfref)
 {
     gs_main_set_lib_paths(minst);
     if (gs_main_lib_open(minst, file_name, pfref) < 0) {
@@ -554,7 +558,8 @@ gs_run_init_file(gs_main_instance * minst, int *pexit_code, ref * perror_object)
 
 /* Run a string. */
 int
-gs_main_run_string(gs_main_instance * minst, const char *str, int user_errors,
+gs_main_run_string(gs_main_instance * minst, const char *str,
+                   int user_errors,
 		   int *pexit_code, ref * perror_object)
 {
     return gs_main_run_string_with_length(minst, str, (uint) strlen(str),
@@ -647,7 +652,7 @@ gs_push_boolean(gs_main_instance * minst, bool value)
 }
 
 int
-gs_push_integer(gs_main_instance * minst, long value)
+gs_push_integer(gs_main_instance * minst, int32_t value)
 {
     ref vref;
 
@@ -700,7 +705,7 @@ gs_pop_boolean(gs_main_instance * minst, bool * result)
 }
 
 int
-gs_pop_integer(gs_main_instance * minst, long *result)
+gs_pop_integer(gs_main_instance * minst, int32_t *result)
 {
     i_ctx_t *i_ctx_p = minst->i_ctx_p;
     ref vref;
@@ -772,7 +777,7 @@ gs_pop_string(gs_main_instance * minst, gs_string * result)
  * the interpreter finishes, and then delete the files 
  * after the interpreter has closed all files.
  */
-private char *gs_main_tempnames(gs_main_instance *minst)
+private int8_t *gs_main_tempnames(gs_main_instance *minst)
 {
     i_ctx_t *i_ctx_p = minst->i_ctx_p;
     ref *SAFETY;
@@ -924,10 +929,10 @@ gs_abort(const gs_memory_t *mem)
 /* Print resource usage statistics. */
 private void
 print_resource_usage(const gs_main_instance * minst, gs_dual_memory_t * dmem,
-		     const char *msg)
+		     const int8_t *msg)
 {
-    ulong allocated = 0, used = 0;
-    long utime[2];
+    uint32_t allocated = 0, used = 0;
+    int32_t utime[2];
 
     gp_get_usertime(utime);
     {

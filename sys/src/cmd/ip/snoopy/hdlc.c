@@ -27,7 +27,7 @@ enum {
 /*
  * Calculate FCS - rfc 1331
  */
-ushort fcstab[256] =
+uint16_t fcstab[256] =
 {
       0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
       0x8c48, 0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7,
@@ -63,7 +63,7 @@ ushort fcstab[256] =
       0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
 };
 
-static uchar inbuf[16*1024];
+static uint8_t inbuf[16*1024];
 static int inlen;
 
 static Mux p_mux[] =
@@ -95,7 +95,7 @@ p_compile(Filter *f)
 static int
 p_filter(Filter *f, Msg *m)
 {
-	ulong t;
+	uint32_t t;
 
 	if(m->pe-m->ps < 2)
 		return 0;
@@ -113,7 +113,7 @@ p_filter(Filter *f, Msg *m)
 static int
 p_seprint(Msg *m)
 {
-	ulong t;
+	uint32_t t;
 
 	if(m->pe-m->ps < 2)
 		return -1;
@@ -126,12 +126,12 @@ p_seprint(Msg *m)
 }
 
 static int
-p_framer(int fd, uchar *pkt, int pktlen)
+p_framer(int fd, uint8_t *pkt, int pktlen)
 {
-	ushort fcs;
-	uchar *from, *efrom, *to, *eto;
+	uint16_t fcs;
+	uint8_t *from, *efrom, *to, *eto;
 	int n;
-	ulong c;
+	uint32_t c;
 
 	eto = pkt+pktlen;
 	for(;;){

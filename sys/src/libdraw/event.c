@@ -21,14 +21,14 @@ struct Slave
 	int	pid;
 	Ebuf	*head;		/* queue of messages for this descriptor */
 	Ebuf	*tail;
-	int	(*fn)(int, Event*, uchar*, int);
+	int	(*fn)(int, Event*, uint8_t*, int);
 };
 
 struct Ebuf
 {
 	Ebuf	*next;
 	int	n;		/* number of bytes in buf */
-	uchar	buf[EMAXMSG];
+	uint8_t	buf[EMAXMSG];
 };
 
 static	Slave	eslave[MAXSLAVE];
@@ -55,7 +55,7 @@ ebread(Slave *s)
 {
 	Ebuf *eb;
 	Dir *d;
-	ulong l;
+	uint32_t l;
 
 	for(;;){
 		d = dirfstat(epipe[0]);
@@ -74,14 +74,14 @@ ebread(Slave *s)
 	return eb;
 }
 
-ulong
+uint32_t
 event(Event *e)
 {
 	return eread(~0UL, e);
 }
 
-ulong
-eread(ulong keys, Event *e)
+uint32_t
+eread(uint32_t keys, Event *e)
 {
 	Ebuf *eb;
 	int i, id;
@@ -130,11 +130,11 @@ ecankbd(void)
 }
 
 int
-ecanread(ulong keys)
+ecanread(uint32_t keys)
 {
 	Dir *d;
 	int i;
-	ulong l;
+	uint32_t l;
 
 	for(;;){
 		for(i=0; i<nslave; i++)
@@ -151,8 +151,8 @@ ecanread(ulong keys)
 	}
 }
 
-ulong
-estartfn(ulong key, int fd, int n, int (*fn)(int, Event*, uchar*, int))
+uint32_t
+estartfn(uint32_t key, int fd, int n, int (*fn)(int, Event*, uint8_t*, int))
 {
 	char buf[EMAXMSG+1];
 	int i, r;
@@ -176,14 +176,14 @@ estartfn(ulong key, int fd, int n, int (*fn)(int, Event*, uchar*, int))
 	return 0;
 }
 
-ulong
-estart(ulong key, int fd, int n)
+uint32_t
+estart(uint32_t key, int fd, int n)
 {
 	return estartfn(key, fd, n, nil);
 }
 
-ulong
-etimer(ulong key, int n)
+uint32_t
+etimer(uint32_t key, int n)
 {
 	char t[2];
 
@@ -237,7 +237,7 @@ breakout:;
 }
 
 void
-einit(ulong keys)
+einit(uint32_t keys)
 {
 	int ctl, fd;
 	char buf[256];
@@ -282,7 +282,7 @@ extract(void)
 	Slave *s;
 	Ebuf *eb;
 	int i, n;
-	uchar ebuf[EMAXMSG+1];
+	uint8_t ebuf[EMAXMSG+1];
 
 	/* avoid generating a message if there's nothing to show. */
 	/* this test isn't perfect, though; could do flushimage(display, 0) then call extract */
@@ -338,7 +338,7 @@ loop:
 }
 
 static int
-eforkslave(ulong key)
+eforkslave(uint32_t key)
 {
 	int i, pid;
 
@@ -371,7 +371,7 @@ enote(void *v, char *s)
 	char t[1];
 	int i, pid;
 
-	USED(v, s);
+	USED(v);USED(s);
 	pid = getpid();
 	if(pid != parentpid){
 		for(i=0; i<nslave; i++){
@@ -450,7 +450,7 @@ emoveto(Point pt)
 void
 esetcursor(Cursor *c)
 {
-	uchar curs[2*4+2*2*16];
+	uint8_t curs[2*4+2*2*16];
 
 	if(c == 0)
 		write(cursorfd, curs, 0);

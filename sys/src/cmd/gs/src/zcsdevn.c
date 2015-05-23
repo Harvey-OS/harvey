@@ -98,7 +98,7 @@ zsetdevicenspace(i_ctx_t *i_ctx_p)
 	ref sname;
 
 	for (i = 0; i < num_components; ++i) {
-	    array_get(imemory, pcsa, (long)i, &sname);
+	    array_get(imemory, pcsa, (int32_t)i, &sname);
 	    switch (r_type(&sname)) {
 		case t_string:
 		    code = name_from_string(imemory, &sname, &sname);

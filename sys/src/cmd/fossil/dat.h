@@ -169,10 +169,10 @@ struct Source {
 struct Header {
 	ushort version;
 	ushort blockSize;
-	ulong super;	/* super blocks */
-	ulong label;	/* start of labels */
-	ulong data;	/* end of labels - start of data blocks */
-	ulong end;	/* end of data blocks */
+	uint32_t super;	/* super blocks */
+	uint32_t label;	/* start of labels */
+	uint32_t data;	/* end of labels - start of data blocks */
+	uint32_t end;	/* end of data blocks */
 };
 
 /*

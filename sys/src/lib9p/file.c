@@ -126,7 +126,7 @@ closefile(File *f)
 }
 
 static void
-nop(File*)
+nop(File* f)
 {
 }
 
@@ -188,7 +188,7 @@ removefile(File *f)
 }
 
 File*
-createfile(File *fp, char *name, char *uid, ulong perm, void *aux)
+createfile(File *fp, char *name, char *uid, uint32_t perm, void *aux)
 {
 	File *f;
 	Filelist **l, *fl;
@@ -305,7 +305,7 @@ walkfile(File *f, char *path)
 }
 			
 Tree*
-alloctree(char *uid, char *gid, ulong mode, void (*destroy)(File*))
+alloctree(char *uid, char *gid, uint32_t mode, void (*destroy)(File*))
 {
 	char *muid;
 	Tree *t;
@@ -396,10 +396,10 @@ opendirfile(File *dir)
 	return r;
 }
 
-long
-readdirfile(Readdir *r, uchar *buf, long n)
+int32_t
+readdirfile(Readdir *r, uint8_t *buf, int32_t n)
 {
-	long x, m;
+	int32_t x, m;
 	Filelist *fl;
 
 	for(fl=r->fl, m=0; fl && m+2<=n; fl=fl->link, m+=x){

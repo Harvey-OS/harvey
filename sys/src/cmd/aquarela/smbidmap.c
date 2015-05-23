@@ -13,13 +13,13 @@
 
 typedef struct Entry {
 	void *p;
-	long freechain;
+	int32_t freechain;
 } Entry;
 
 struct SmbIdMap {
 	Entry *array;
-	ulong entries;
-	long freeindex;
+	uint32_t entries;
+	int32_t freeindex;
 };
 
 SmbIdMap *
@@ -32,7 +32,7 @@ smbidmapnew(void)
 }
 
 void
-smbidmapremovebyid(SmbIdMap *m, long id)
+smbidmapremovebyid(SmbIdMap *m, int32_t id)
 {
 	if (m == nil)
 		return;
@@ -47,10 +47,10 @@ smbidmapremovebyid(SmbIdMap *m, long id)
 void
 smbidmapremove(SmbIdMap *m, void *thing)
 {
-	long id;
+	int32_t id;
 	if (m == nil)
 		return;
-	id = *(long *)thing;
+	id = *(int32_t *)thing;
 	smbidmapremovebyid(m, id);
 }
 
@@ -68,8 +68,8 @@ smbidmapremoveif(SmbIdMap *m, int (*f)(void *p, void *arg), void *arg)
 static void
 grow(SmbIdMap *m)
 {
-	long x;
-	long oldentries = m->entries;
+	int32_t x;
+	int32_t oldentries = m->entries;
 	if (m->entries == 0)
 		m->entries = INITIALCHUNKSIZE;
 	else
@@ -81,22 +81,22 @@ grow(SmbIdMap *m)
 	}
 }
 
-long
+int32_t
 smbidmapadd(SmbIdMap *m, void *p)
 {
-	long i;
+	int32_t i;
 	if (m->freeindex < 0)
 		grow(m);
 	i = m->freeindex;
 	m->freeindex = m->array[i].freechain;
 	m->array[i].freechain = -2;
 	m->array[i].p = p;
-	*(long *)p = i + 1;
+	*(int32_t *)p = i + 1;
 	return i + 1;
 }
 
 void *
-smbidmapfind(SmbIdMap *m, long id)
+smbidmapfind(SmbIdMap *m, int32_t id)
 {
 	if (m == nil)
 		return nil;
@@ -113,7 +113,7 @@ smbidmapfree(SmbIdMap **mp, SMBIDMAPAPPLYFN *freefn, void *magic)
 {
 	SmbIdMap *m = *mp;
 	if (m) {
-		long i;
+		int32_t i;
 		if (freefn) {
 			for (i = 0; i < m->entries; i++)
 				if (m->array[i].freechain == -2)
@@ -129,7 +129,7 @@ void
 smbidmapapply(SmbIdMap *m, SMBIDMAPAPPLYFN *applyfn, void *magic)
 {
 	if (m) {
-		long i;
+		int32_t i;
 		for (i = 0; i < m->entries; i++)
 			if (m->array[i].freechain == -2)
 				(*applyfn)(magic, m->array[i].p);

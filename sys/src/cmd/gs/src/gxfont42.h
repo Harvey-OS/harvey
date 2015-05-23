@@ -50,12 +50,12 @@ typedef struct gs_font_type42_s gs_font_type42;
 #endif
 typedef struct gs_type42_mtx_s {
     uint numMetrics;		/* num*Metrics from [hv]hea */
-    ulong offset;		/* offset to [hv]mtx table */
+    uint32_t offset;		/* offset to [hv]mtx table */
     uint length;		/* length of [hv]mtx table */
 } gs_type42_mtx_t;
 struct gs_type42_data_s {
     /* The following are set by the client. */
-    int (*string_proc) (gs_font_type42 *, ulong, uint, const byte **);
+    int (*string_proc) (gs_font_type42 *, uint32_t, uint, const byte **);
     void *proc_data;		/* data for procedures */
     /*
      * The following are initialized by ...font_init, but may be reset by
@@ -67,13 +67,13 @@ struct gs_type42_data_s {
     int (*get_metrics)(gs_font_type42 *pfont, uint glyph_index, int wmode,
 		       float sbw[4]);
     /* The following are cached values. */
-    ulong cmap;			/* offset to cmap table (not used by */
+    uint32_t cmap;			/* offset to cmap table (not used by */
 				/* renderer, only here for clients) */
-    ulong glyf;			/* offset to glyf table */
+    uint32_t glyf;			/* offset to glyf table */
     uint unitsPerEm;		/* from head */
     uint indexToLocFormat;	/* from head */
     gs_type42_mtx_t metrics[2];	/* hhea/hmtx, vhea/vmtx (indexed by WMode) */
-    ulong loca;			/* offset to loca table */
+    uint32_t loca;			/* offset to loca table */
     /*
      * TrueType fonts specify the number of glyphs in two different ways:
      * the size of the loca table, and an explicit value in maxp.  Currently

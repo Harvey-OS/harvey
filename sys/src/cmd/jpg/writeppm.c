@@ -29,9 +29,9 @@ char*
 writedata(Biobuf *fd, Image *image, Memimage *memimage)
 {
 	char *err;
-	uchar *data;
+	uint8_t *data;
 	int i, x, y, ndata, depth, col, pix, xmask, pmask;
-	ulong chan;
+	uint32_t chan;
 	Rectangle r;
 
 	if(memimage != nil){
@@ -117,7 +117,8 @@ writedata(Biobuf *fd, Image *image, Memimage *memimage)
 
 static
 char*
-writeppm0(Biobuf *fd, Image *image, Memimage *memimage, Rectangle r, int chan, char *comment)
+writeppm0(Biobuf *fd, Image *image, Memimage *memimage, Rectangle r, int chan,
+	  char *comment)
 {
 	char *err;
 

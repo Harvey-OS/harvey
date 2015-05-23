@@ -122,7 +122,7 @@ Node *
 tl_nn(int t, Node *ll, Node *rl)
 {	Node *n = (Node *) tl_emalloc(sizeof(Node));
 
-	n->ntyp = (short) t;
+	n->ntyp = (int16_t) t;
 	n->lft  = ll;
 	n->rgt  = rl;
 

@@ -145,7 +145,7 @@ int get_1click(int but, Mouse* m, Cursor* curs)
 int get_click_or_kbd(int but, Mouse* m, const char* expected)
 {
 	Event ev;
-	ulong expbits[4], ty;
+	uint32_t expbits[4], ty;
 	expbits[0] = expbits[1] = expbits[2] = expbits[3];
 	for (; *expected!=0; expected++)
 		expbits[((*expected)>>5)&3] |= 1 << (*expected&31);
@@ -201,7 +201,7 @@ typedef struct thick_color {
 
 
 typedef struct color_ref {
-	ulong c;			/* RGBA pixel color */
+	uint32_t c;			/* RGBA pixel color */
 	char* nam;			/* ASCII name (matched to input, used in output)*/
 	int nam1;			/* single-letter version of color name */
 	Image* im;			/* replicated solid-color image */
@@ -227,7 +227,7 @@ color_ref clrtab[] = {
 	DNofill,	0,		0,   0	/* DNofill means "end of data" */
 };
 
-short nam1_idx[128];			/* the clrtab[] index for each nam1, else -1 */
+int16_t nam1_idx[128];			/* the clrtab[] index for each nam1, else -1 */
 
 
 void  init_clrtab(void)
@@ -283,7 +283,8 @@ thick_color* tc_default(thick_color *buf)
    of default color and thickness; e.g., "Multi(xxbadxx)" in a label prevents gview
    from recognizing anything that follows.
 */
-thick_color* parse_color_chars(const char* c0, const char* fin, thick_color *buf)
+thick_color* parse_color_chars(const char* c0, const char* fin,
+			       thick_color *buf)
 {
 	thick_color* tc;		/* Pending return value */
 	int i, j, n=fin-c0;		/* n is an upper bound on how many data members */
@@ -352,7 +353,8 @@ thick_color* nam2thclr(const char* nam, thick_color *r1, int *idxdest)
    to the user, i.e., we try removing a suitably isolated color name before inserting
    a new one.
 */
-char* nam_with_thclr(char* nam, const thick_color *tc, char* buf, int bufn)
+char* nam_with_thclr(char* nam, const thick_color *tc, char* buf,
+		       int bufn)
 {
 	thick_color c0;
 	int clr0i;
@@ -2052,9 +2054,9 @@ void do_mmenu(int but, Mouse* m)
 
 void doevent(void)
 {
-	ulong etype;
+	uint32_t etype;
 	int mobile;
-	ulong mvtime;
+	uint32_t mvtime;
 	Event	ev;
 
 	etype = eread(Emouse|Ekeyboard, &ev);

@@ -20,10 +20,11 @@
  * otherwise, that's an error
  */
 int
-forMsgs(Box *box, MsgSet *ms, ulong max, int uids, int (*f)(Box*, Msg*, int, void*), void *rock)
+forMsgs(Box *box, MsgSet *ms, uint32_t max, int uids,
+	int (*f)(Box*, Msg*, int, void*), void *rock)
 {
 	Msg *m;
-	ulong id;
+	uint32_t id;
 	int ok, rok;
 
 	ok = 1;
@@ -97,7 +98,7 @@ revFetch(Fetch *f)
 }
 
 NList*
-mkNList(ulong n, NList *next)
+mkNList(uint32_t n, NList *next)
 {
 	NList *nl;
 

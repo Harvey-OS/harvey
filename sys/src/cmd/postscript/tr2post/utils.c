@@ -283,7 +283,7 @@ graphfunc(Biobufhdr *bp) {
 	USED(bp);
 }
 
-long
+int32_t
 nametorune(char *name) {
 	USED(name);
 	return(0);

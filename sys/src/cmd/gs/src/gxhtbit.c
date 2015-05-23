@@ -63,7 +63,7 @@ construct_ht_order_short(gx_ht_order *porder, const byte *thresholds)
 {
     uint size = porder->num_bits;
     uint i;
-    ushort *bits = (ushort *)porder->bit_data;
+    uint16_t *bits = (uint16_t *)porder->bit_data;
     uint *levels = porder->levels;
     uint num_levels = porder->num_levels;
 
@@ -101,7 +101,7 @@ construct_ht_order_short(gx_ht_order *porder, const byte *thresholds)
 	    while ((phtr = *pphtr++) != 0) {
 		if (phtr->Width == porder->width &&
 		    phtr->Height == porder->height &&
-		    phtr->elt_size == sizeof(ushort) &&
+		    phtr->elt_size == sizeof(uint16_t) &&
 		    !memcmp(phtr->levels, levels, num_levels * sizeof(*levels)) &&
 		    !memcmp(phtr->bit_data, porder->bit_data,
 			    size * phtr->elt_size)
@@ -147,7 +147,7 @@ ht_bit_index_default(const gx_ht_order *porder, uint index, gs_int_point *ppt)
 private int
 ht_bit_index_short(const gx_ht_order *porder, uint index, gs_int_point *ppt)
 {
-    uint bit_index = ((const ushort *)porder->bit_data)[index];
+    uint bit_index = ((const uint16_t *)porder->bit_data)[index];
     uint bit_raster = porder->raster * 8;
 
     ppt->x = bit_index % bit_raster;
@@ -222,7 +222,7 @@ private int
 render_ht_short(gx_ht_tile *pbt, int level, const gx_ht_order *porder)
 {
     int old_level = pbt->level;
-    register const ushort *p = (const ushort *)porder->bit_data + old_level;
+    register const uint16_t *p = (const uint16_t *)porder->bit_data + old_level;
     register byte *data = pbt->tiles.data;
 
     /* Invert bits between the two levels. */
@@ -278,6 +278,6 @@ render_ht_short(gx_ht_tile *pbt, int level, const gx_ht_order *porder)
 const gx_ht_order_procs_t ht_order_procs_table[2] = {
     { sizeof(gx_ht_bit), construct_ht_order_default, ht_bit_index_default,
       render_ht_default },
-    { sizeof(ushort), construct_ht_order_short, ht_bit_index_short,
+    { sizeof(uint16_t), construct_ht_order_short, ht_bit_index_short,
       render_ht_short }
 };

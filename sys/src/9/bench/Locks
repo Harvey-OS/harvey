@@ -1,0 +1,29 @@
+#!/bin/rc
+rfork e
+cmd=$1
+echo '#' $1
+echo measuring $1... >'#c/cons'
+rm -f /tmp/bench.time
+rc -c $cmd >'#c/cons'	# warm cache and be able to see the output of the cmd...
+#
+# collect stats. A single run this time.
+#
+echo >/dev/sysstat
+bind -a '#W' /dev
+echo start >/dev/wsctl
+time rc -c $cmd >/dev/null >>[2]/tmp/bench.time
+echo stop >/dev/wsctl
+cp /dev/wsdata /tmp/wsdata
+cp /dev/sysstat /tmp/sysstat
+tail -1 /tmp/bench.time
+tail -1 /tmp/bench.time >'#c/cons'
+sed 's/[sur]//g' </tmp/bench.time |
+	awk 'BEGIN{u=0.0; s=0.0; t=0.0}
+	{u += $1; s += $2; t += $3}
+	END{printf("times %g %g %g\n", u/NR, s/NR, t/NR);}'
+awk '{printf("%s\t", $0); system("src -n -s " $2 " /amd64/9k8cpu")}' </tmp/wsdata
+rm -f /tmp/bench.time /tmp/wsdata
+cat /dev/debug
+echo #/dev/sysstat for 10 runs
+cat /tmp/sysstat
+exit ''

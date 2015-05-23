@@ -22,7 +22,7 @@ enum
 struct
 {
 	Lock	lk;
-	ulong	bytes;
+	uint32_t	bytes;
 } ialloc;
 
 static Block*
@@ -42,13 +42,13 @@ _allocb(int size)
 	/* align start of data portion by rounding up */
 	addr = (uintptr)b;
 	addr = ROUND(addr + sizeof(Block), BLOCKALIGN);
-	b->base = (uchar*)addr;
+	b->base = (uint8_t*)addr;
 
 	/* align end of data portion by rounding down */
-	b->lim = ((uchar*)b) + sizeof(Block)+size+Hdrspc;
+	b->lim = ((uint8_t*)b) + sizeof(Block)+size+Hdrspc;
 	addr = (uintptr)(b->lim);
 	addr = addr & ~(BLOCKALIGN-1);
-	b->lim = (uchar*)addr;
+	b->lim = (uint8_t*)addr;
 
 	/* leave sluff at beginning for added headers */
 	b->rp = b->lim - ROUND(size, BLOCKALIGN);

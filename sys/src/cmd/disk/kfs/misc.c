@@ -14,7 +14,7 @@ extern int cmdfd;
 Float
 famd(Float a, int b, int c, int d)
 {
-	ulong x, m;
+	uint32_t x, m;
 
 	x = (a + b) * c;
 	m = x % d;
@@ -24,10 +24,10 @@ famd(Float a, int b, int c, int d)
 	return x;
 }
 
-ulong
+uint32_t
 fdf(Float a, int d)
 {
-	ulong x, m;
+	uint32_t x, m;
 
 	m = a % d;
 	x = a / d;
@@ -36,12 +36,12 @@ fdf(Float a, int d)
 	return x;
 }
 
-long
+int32_t
 belong(char *s)
 {
-	uchar *x;
+	uint8_t *x;
 
-	x = (uchar *)s;
+	x = (uint8_t *)s;
 	return (x[0] << 24) + (x[1] << 16) + (x[2] << 8) + x[3]; 
 }
 
@@ -74,7 +74,7 @@ cprint(char *fmt, ...)
 	va_start(arg, fmt);
 	out = vseprint(buf, buf+SIZE, fmt, arg);
 	va_end(arg);
-	write(cmdfd, buf, (long)(out-buf));
+	write(cmdfd, buf, (int32_t)(out-buf));
 }
 
 /*

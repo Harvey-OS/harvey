@@ -583,7 +583,7 @@ private inline bool much_bigger__DL(long l1, long l2)
 private void
 pdf_choose_compression_cos(pdf_image_writer *piw, cos_stream_t *s[2], bool force)
 {   /*	Assume s[0] is Flate, s[1] is DCT, s[2] is chooser. */
-    long l0, l1;
+    int32_t l0, l1;
     int k0, k1;
 
     l0 = cos_stream_length(s[0]);

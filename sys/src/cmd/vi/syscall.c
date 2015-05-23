@@ -21,7 +21,7 @@
 #define	OERRLEN	64	/* compatibility; used in _stat etc. */
 
 char 	errbuf[ERRMAX];
-ulong	nofunc;
+uint32_t	nofunc;
 
 #include "/sys/src/libc/9syscall/sys.h"
 
@@ -81,7 +81,7 @@ void sys1(void) { Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGRET]]);
 void
 sys_errstr(void)
 {
-	ulong str;
+	uint32_t str;
 
 	str = getmem_w(reg.r[REGSP]+4);
 	if(sysdbg)
@@ -96,7 +96,7 @@ sys_errstr(void)
 void
 syserrstr(void)
 {
-	ulong str;
+	uint32_t str;
 	uint n;
 
 	str = getmem_w(reg.r[REGSP]+4);
@@ -117,7 +117,7 @@ sysfd2path(void)
 {
 	int n;
 	uint fd;
-	ulong str;
+	uint32_t str;
 	char buf[1024];
 
 	fd = getmem_w(reg.r[REGSP]+4);
@@ -142,7 +142,7 @@ sysfd2path(void)
 void
 sysbind(void)
 {
-	ulong pname, pold, flags;
+	uint32_t pname, pold, flags;
 	char name[1024], old[1024];
 	int n;
 
@@ -166,7 +166,7 @@ syschdir(void)
 { 
 	char file[1024];
 	int n;
-	ulong name;
+	uint32_t name;
 
 	name = getmem_w(reg.r[REGSP]+4);
 	memio(file, name, sizeof(file), MemReadstring);
@@ -184,7 +184,7 @@ void
 sysclose(void)
 {
 	int n;
-	ulong fd;
+	uint32_t fd;
 
 	fd = getmem_w(reg.r[REGSP]+4);
 	if(sysdbg)
@@ -217,7 +217,7 @@ void
 sysexits(void)
 {
 	char buf[OERRLEN];
-	ulong str;
+	uint32_t str;
 
 	str = getmem_w(reg.r[REGSP]+4);
 	if(sysdbg)
@@ -237,7 +237,7 @@ sysopen(void)
 {
 	char file[1024];
 	int n;
-	ulong mode, name;
+	uint32_t mode, name;
 
 	name = getmem_w(reg.r[REGSP]+4);
 	mode = getmem_w(reg.r[REGSP]+8);
@@ -253,10 +253,10 @@ sysopen(void)
 };
 
 void
-sysread(vlong offset)
+sysread(int64_t offset)
 {
 	int fd;
-	ulong size, a;
+	uint32_t size, a;
 	char *buf, *p;
 	int n, cnt, c;
 
@@ -306,8 +306,8 @@ void
 syspread(void)
 {
 	union {
-		vlong v;
-		ulong u[2];
+		int64_t v;
+		uint32_t u[2];
 	} o;
 
 	o.u[0] = getmem_w(reg.r[REGSP]+16);
@@ -319,11 +319,11 @@ void
 sysseek(void)
 {
 	int fd;
-	ulong mode;
-	ulong retp;
+	uint32_t mode;
+	uint32_t retp;
 	union {
-		vlong v;
-		ulong u[2];
+		int64_t v;
+		uint32_t u[2];
 	} o;
 
 	retp = getmem_w(reg.r[REGSP]+4);
@@ -338,14 +338,14 @@ sysseek(void)
 	if(o.v < 0)
 		errstr(errbuf, sizeof errbuf);	
 
-	memio((char*)o.u, retp, sizeof(vlong), MemWrite);
+	memio((char*)o.u, retp, sizeof(int64_t), MemWrite);
 }
 
 void
 sysoseek(void)
 {
 	int fd, n;
-	ulong off, mode;
+	uint32_t off, mode;
 
 	fd = getmem_w(reg.r[REGSP]+4);
 	off = getmem_w(reg.r[REGSP]+8);
@@ -378,7 +378,7 @@ sysrfork(void)
 void
 syssleep(void)
 {
-	ulong len;
+	uint32_t len;
 	int n;
 
 	len = getmem_w(reg.r[REGSP]+4);
@@ -397,7 +397,7 @@ sys_stat(void)
 {
 	char nambuf[1024];
 	char buf[ODIRLEN];
-	ulong edir, name;
+	uint32_t edir, name;
 	extern int _stat(char*, char*);	/* old system call */
 	int n;
 
@@ -420,8 +420,8 @@ void
 sysstat(void)
 {
 	char nambuf[1024];
-	uchar buf[STATMAX];
-	ulong edir, name;
+	uint8_t buf[STATMAX];
+	uint32_t edir, name;
 	int n;
 
 	name = getmem_w(reg.r[REGSP]+4);
@@ -446,7 +446,7 @@ void
 sys_fstat(void)
 {
 	char buf[ODIRLEN];
-	ulong edir;
+	uint32_t edir;
 	extern int _fstat(int, char*);	/* old system call */
 	int n, fd;
 
@@ -467,8 +467,8 @@ sys_fstat(void)
 void
 sysfstat(void)
 {
-	uchar buf[STATMAX];
-	ulong edir;
+	uint8_t buf[STATMAX];
+	uint32_t edir;
 	int n, fd;
 
 	fd = getmem_w(reg.r[REGSP]+4);
@@ -491,10 +491,10 @@ sysfstat(void)
 }
 
 void
-syswrite(vlong offset)
+syswrite(int64_t offset)
 {
 	int fd;
-	ulong size, a;
+	uint32_t size, a;
 	char *buf;
 	int n;
 
@@ -524,8 +524,8 @@ void
 syspwrite(void)
 {
 	union {
-		vlong v;
-		ulong u[2];
+		int64_t v;
+		uint32_t u[2];
 	} o;
 
 	o.u[0] = getmem_w(reg.r[REGSP]+16);
@@ -537,7 +537,7 @@ void
 syspipe(void)
 {
 	int n, p[2];
-	ulong fd;
+	uint32_t fd;
 
 	fd = getmem_w(reg.r[REGSP]+4);
 	if(sysdbg)
@@ -558,7 +558,7 @@ syscreate(void)
 {
 	char file[1024];
 	int n;
-	ulong mode, name, perm;
+	uint32_t mode, name, perm;
 
 	name = getmem_w(reg.r[REGSP]+4);
 	mode = getmem_w(reg.r[REGSP]+8);
@@ -577,7 +577,7 @@ syscreate(void)
 void
 sysbrk_(void)
 {
-	ulong addr, osize, nsize;
+	uint32_t addr, osize, nsize;
 	Segment *s;
 
 	addr = getmem_w(reg.r[REGSP]+4);
@@ -595,10 +595,10 @@ sysbrk_(void)
 	}
 	s = &memory.seg[Bss];
 	if(addr > s->end) {
-		osize = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
+		osize = ((s->end-s->base)/BY2PG)*sizeof(uint8_t*);
 		addr = ((addr)+(BY2PG-1))&~(BY2PG-1);
 		s->end = addr;
-		nsize = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
+		nsize = ((s->end-s->base)/BY2PG)*sizeof(uint8_t*);
 		s->table = erealloc(s->table, osize, nsize);
 	}	
 
@@ -609,7 +609,7 @@ void
 sysremove(void)
 {
 	char nambuf[1024];
-	ulong name;
+	uint32_t name;
 	int n;
 
 	name = getmem_w(reg.r[REGSP]+4);
@@ -637,7 +637,7 @@ void
 syssegflush(void)
 {
 	int n;
-	ulong va;
+	uint32_t va;
 
 	va = getmem_w(reg.r[REGSP]+4);
 	n = getmem_w(reg.r[REGSP]+8);
@@ -722,7 +722,7 @@ void (*systab[])(void)	={
 };
 
 void
-Ssyscall(ulong inst)
+Ssyscall(uint32_t inst)
 {
 	int call;
 

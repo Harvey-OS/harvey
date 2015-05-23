@@ -14,9 +14,12 @@
 #include <libsec.h>
 #include "imap4d.h"
 
-static int	saveMsg(char *dst, char *digest, int flags, char *head, int nhead, Biobuf *b, long n);
-static int	saveb(int fd, DigestState *dstate, char *buf, int nr, int nw);
-static long	appSpool(Biobuf *bout, Biobuf *bin, long n);
+static int	saveMsg(char *dst, char *digest, int flags,
+			  char *head, int nhead, Biobuf *b,
+			  int32_t n);
+static int	saveb(int fd, DigestState *dstate, char *buf, int nr,
+			int nw);
+static int32_t	appSpool(Biobuf *bout, Biobuf *bin, int32_t n);
 
 /*
  * check if the message exists
@@ -46,7 +49,7 @@ copySave(Box *box, Msg *m, int uids, void *vs)
 {
 	Dir *d;
 	Biobuf b;
-	vlong length;
+	int64_t length;
 	char *head;
 	int ok, hfd, bfd, nhead;
 
@@ -103,7 +106,7 @@ copySave(Box *box, Msg *m, int uids, void *vs)
  * then save to real box.
  */
 int
-appendSave(char *mbox, int flags, char *head, Biobuf *b, long n)
+appendSave(char *mbox, int flags, char *head, Biobuf *b, int32_t n)
 {
 	Biobuf btmp;
 	int fd, ok;
@@ -138,8 +141,8 @@ appendSave(char *mbox, int flags, char *head, Biobuf *b, long n)
  * exactly n bytes must be read from the input,
  * unless an input error occurs.
  */
-static long
-appSpool(Biobuf *bout, Biobuf *bin, long n)
+static int32_t
+appSpool(Biobuf *bout, Biobuf *bin, int32_t n)
 {
 	int i, c;
 
@@ -180,11 +183,13 @@ appSpool(Biobuf *bout, Biobuf *bin, long n)
 }
 
 static int
-saveMsg(char *dst, char *digest, int flags, char *head, int nhead, Biobuf *b, long n)
+saveMsg(char *dst, char *digest, int flags, char *head, int nhead,
+	Biobuf *b,
+	int32_t n)
 {
 	DigestState *dstate;
 	MbLock *ml;
-	uchar shadig[SHA1dlen];
+	uint8_t shadig[SHA1dlen];
 	char buf[BufSize + 1], digbuf[NDigest + 1];
 	int i, fd, nr, nw, ok;
 
@@ -261,7 +266,7 @@ static int
 saveb(int fd, DigestState *dstate, char *buf, int nr, int nw)
 {
 	if(dstate != nil)
-		sha1((uchar*)buf, nr, nil, dstate);
+		sha1((uint8_t*)buf, nr, nil, dstate);
 	if(write(fd, buf, nw) != nw)
 		return 0;
 	return 1;

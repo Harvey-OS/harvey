@@ -221,7 +221,7 @@ execfinit(void)
 }
 
 int
-Waitfor(int pid, int)
+Waitfor(int pid, int n)
 {
 	thread *p;
 	Waitmsg *w;
@@ -493,7 +493,7 @@ Closedir(int f)
 }
 int interrupted = 0;
 void
-notifyf(void*, char *s)
+notifyf(void* v, char *s)
 {
 	int i;
 	for(i = 0;syssigname[i];i++) if(strncmp(s, syssigname[i], strlen(syssigname[i]))==0){
@@ -527,20 +527,20 @@ Unlink(char *name)
 	remove(name);
 }
 
-long
-Write(int fd, void *buf, long cnt)
+int32_t
+Write(int fd, void *buf, int32_t cnt)
 {
 	return write(fd, buf, cnt);
 }
 
-long
-Read(int fd, void *buf, long cnt)
+int32_t
+Read(int fd, void *buf, int32_t cnt)
 {
 	return read(fd, buf, cnt);
 }
 
-long
-Seek(int fd, long cnt, long whence)
+int32_t
+Seek(int fd, int32_t cnt, int32_t whence)
 {
 	return seek(fd, cnt, whence);
 }
@@ -572,7 +572,7 @@ Dup(int a, int b)
 }
 
 int
-Dup1(int)
+Dup1(int i)
 {
 	return -1;
 }
@@ -622,13 +622,13 @@ Abort(void)
 }
 
 void
-Memcpy(void *a, void *b, long n)
+Memcpy(void *a, void *b, int32_t n)
 {
 	memmove(a, b, n);
 }
 
 void*
-Malloc(ulong n)
+Malloc(uint32_t n)
 {
 	return mallocz(n, 1);
 }
@@ -675,7 +675,7 @@ havewaitpid(int pid)
 
 /* avoid loading any floating-point library code */
 int
-_efgfmt(Fmt *)
+_efgfmt(Fmt *f)
 {
 	return -1;
 }

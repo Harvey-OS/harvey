@@ -17,7 +17,7 @@
 extern int curpostfontid;
 extern int curfontsize;
 
-typedef struct {long start, end;} Section;
+typedef struct {int32_t start, end;} Section;
 static char *buf;
 
 static void

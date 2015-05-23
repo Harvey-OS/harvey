@@ -560,7 +560,7 @@ x_set_buffer(gx_device_X * xdev)
 	}
 	if (mdev->width != xdev->width || mdev->height != xdev->height) {
 	    byte *buffer;
-	    ulong space;
+	    uint32_t space;
 
 	    space = gdev_mem_data_size(mdev, xdev->width, xdev->height);
 	    if (space > xdev->MaxBitmap) {
@@ -696,10 +696,10 @@ gdev_x_clear_window(gx_device_X * xdev)
 /* ------ Initialize font mapping ------ */
 
 /* Extract the PostScript font name from the font map resource. */
-private const char *
-get_ps_name(const char **cpp, int *len)
+private const int8_t *
+get_ps_name(const int8_t **cpp, int *len)
 {
-    const char *ret;
+    const int8_t *ret;
 
     *len = 0;
     /* skip over whitespace and newlines */
@@ -721,10 +721,10 @@ get_ps_name(const char **cpp, int *len)
 }
 
 /* Extract the X11 font name from the font map resource. */
-private const char *
-get_x11_name(const char **cpp, int *len)
+private const int8_t *
+get_x11_name(const int8_t **cpp, int *len)
 {
-    const char *ret;
+    const int8_t *ret;
     int dashes = 0;
 
     *len = 0;
@@ -755,7 +755,8 @@ get_x11_name(const char **cpp, int *len)
 
 /* Scan one resource and build font map records. */
 private void
-scan_font_resource(const char *resource, x11fontmap **pmaps, gs_memory_t *mem)
+scan_font_resource(const char *resource, x11fontmap **pmaps,
+                   gs_memory_t *mem)
 {
     const char *ps_name;
     const char *x11_name;
@@ -858,7 +859,7 @@ gdev_x_get_params(gx_device * dev, gs_param_list * plist)
 {
     gx_device_X *xdev = (gx_device_X *) dev;
     int code = gx_default_get_params(dev, plist);
-    long id = (long)xdev->pwin;
+    int32_t id = (int32_t)xdev->pwin;
 
     if (code < 0 ||
 	(code = param_write_long(plist, "WindowID", &id)) < 0 ||
@@ -887,7 +888,7 @@ gdev_x_put_params(gx_device * dev, gs_param_list * plist)
      */
     gx_device_X values;
 
-    long pwin = (long)xdev->pwin;
+    int32_t pwin = (int32_t)xdev->pwin;
     bool save_is_page = xdev->IsPageDevice;
     int ecode = 0, code;
     bool clear_window = false;
@@ -910,7 +911,7 @@ gdev_x_put_params(gx_device * dev, gs_param_list * plist)
 
     /* Unless we specified a new window ID, */
     /* prevent gx_default_put_params from closing the device. */
-    if (pwin == (long)xdev->pwin)
+    if (pwin == (int32_t)xdev->pwin)
 	dev->is_open = false;
     xdev->IsPageDevice = values.IsPageDevice;
     code = gx_default_put_params(dev, plist);
@@ -919,7 +920,7 @@ gdev_x_put_params(gx_device * dev, gs_param_list * plist)
 	xdev->IsPageDevice = save_is_page;
 	return code;
     }
-    if (pwin != (long)xdev->pwin) {
+    if (pwin != (int32_t)xdev->pwin) {
 	if (xdev->is_open)
 	    gs_closedevice(dev);
 	xdev->pwin = (Window) pwin;

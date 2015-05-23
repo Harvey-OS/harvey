@@ -13,15 +13,16 @@
 #include <bio.h>
 #include <ndb.h>
 
-static uchar noether[6];
+static uint8_t noether[6];
 	Ndb *db;
 
 static void
-recursesubnet(Ndb *db, uchar *addr, uchar *mask, char *attr, char *name, char *name1)
+recursesubnet(Ndb *db, uint8_t *addr, uint8_t *mask, char *attr,
+	      char *name, char *name1)
 {
 	Ndbs s;
 	Ndbtuple *t, *nt;
-	uchar submask[IPaddrlen], net[IPaddrlen];
+	uint8_t submask[IPaddrlen], net[IPaddrlen];
 	char ip[Ndbvlen];
 	int found;
 
@@ -63,11 +64,11 @@ recursesubnet(Ndb *db, uchar *addr, uchar *mask, char *attr, char *name, char *n
  *  lookup an ip address
  */
 static int
-getipaddr(Ndb *db, char *name, uchar *to, Ipinfo *iip)
+getipaddr(Ndb *db, char *name, uint8_t *to, Ipinfo *iip)
 {
 	Ndbtuple *t, *nt;
 	char buf[Ndbvlen];
-	uchar subnet[IPaddrlen];
+	uint8_t subnet[IPaddrlen];
 	Ndbs s;
 	char *attr;
 
@@ -101,7 +102,7 @@ getipaddr(Ndb *db, char *name, uchar *to, Ipinfo *iip)
  *  return the ip addresses for a type of server for system ip
  */
 int
-lookupserver(char *attr, uchar ipaddrs[2][IPaddrlen], Ipinfo *iip)
+lookupserver(char *attr, uint8_t ipaddrs[2][IPaddrlen], Ipinfo *iip)
 {
 	Ndbtuple *t, *nt;
 	Ndbs s;
@@ -147,7 +148,7 @@ void
 main(int argc, char **argv)
 {
 	Ipinfo ii;
-	uchar addrs[2][IPaddrlen];
+	uint8_t addrs[2][IPaddrlen];
 	int i, j;
 
 	db = ndbopen(0);

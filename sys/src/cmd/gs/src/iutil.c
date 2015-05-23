@@ -479,7 +479,7 @@ other:
 	    break;
 	}
 	/* Internal operator, no name. */
-	sprintf(buf, "@0x%lx", (ulong) op->value.opproc);
+	sprintf(buf, "@0x%lx", (uint32_t) op->value.opproc);
 	break;
     }
     case t_real:
@@ -543,7 +543,7 @@ obj_cvs(const gs_memory_t *mem, const ref * op, byte * str, uint len, uint * prl
 }
 
 /* Find the index of an operator that doesn't have one stored in it. */
-ushort
+uint16_t
 op_find_index(const ref * pref /* t_operator */ )
 {
     op_proc_t proc = real_opproc(pref);
@@ -585,9 +585,10 @@ op_index_ref(uint index, ref * pref)
 /* This is also used to index into Encoding vectors, */
 /* the error name vector, etc. */
 int
-array_get(const gs_memory_t *mem, const ref * aref, long index_long, ref * pref)
+array_get(const gs_memory_t *mem, const ref * aref, int32_t index_long,
+          ref * pref)
 {
-    if ((ulong)index_long >= r_size(aref))
+    if ((uint32_t)index_long >= r_size(aref))
 	return_error(e_rangecheck);
     switch (r_type(aref)) {
 	case t_array:
@@ -768,7 +769,7 @@ process_float_array(const gs_memory_t *mem, const ref * parray, int count, float
 
         subcount = (count > countof(ref_buff) ? countof(ref_buff) : count);
         for (i = 0; i < subcount && code >= 0; i++)
-            code = array_get(mem, parray, (long)(i + indx0), &ref_buff[i]);
+            code = array_get(mem, parray, (int32_t)(i + indx0), &ref_buff[i]);
         if (code >= 0)
             code = float_params(ref_buff + subcount - 1, subcount, pval);
         count -= subcount;
@@ -872,7 +873,7 @@ read_matrix(const gs_memory_t *mem, const ref * op, gs_matrix * pmat)
 	int i;
 
 	for (i = 0; i < 6; ++i) {
-	    code = array_get(mem, op, (long)i, &values[i]);
+	    code = array_get(mem, op, (int32_t)i, &values[i]);
 	    if (code < 0)
 		return code;
 	}

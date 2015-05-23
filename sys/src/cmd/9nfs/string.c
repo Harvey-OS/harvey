@@ -13,7 +13,7 @@
 
 static Strnode *	stab[STRHASH];
 
-static long	hashfun(void*);
+static int32_t	hashfun(void*);
 static Strnode*	nalloc(int);
 
 char *
@@ -69,11 +69,11 @@ strprint(int fd)
 			fprint(fd, "%ld %s\n", bin-stab, x->str);
 }
 
-static long
+static int32_t
 hashfun(void *v)
 {
-	ulong a = 0, b;
-	uchar *s = v;
+	uint32_t a = 0, b;
+	uint8_t *s = v;
 
 	while(*s){
 		a = (a << 4) + *s++;

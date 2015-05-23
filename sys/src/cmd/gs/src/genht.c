@@ -72,7 +72,7 @@
  */
 
 /* Read a source file into memory. */
-private char *
+private int8_t *
 read_file(FILE *in, char *cname)
 {
     int len, nread;

@@ -34,9 +34,9 @@ writef(File *f)
 	Posn n;
 	char *name;
 	int i, samename, newfile;
-	ulong dev;
-	uvlong qid;
-	long mtime, appendonly, length;
+	uint32_t dev;
+	uint64_t qid;
+	int32_t mtime, appendonly, length;
 
 	newfile = 0;
 	samename = Strcmp(&genstr, &f->name) == 0;
@@ -88,9 +88,9 @@ readio(File *f, int *nulls, int setdate, int toterm)
 	Rune *r;
 	Posn nt;
 	Posn p = addr.r.p2;
-	ulong dev;
-	uvlong qid;
-	long mtime;
+	uint32_t dev;
+	uint64_t qid;
+	int32_t mtime;
 	char buf[BLOCKSIZE+1], *s;
 
 	*nulls = FALSE;
@@ -106,7 +106,7 @@ readio(File *f, int *nulls, int setdate, int toterm)
 			r = genbuf;
 			s = buf;
 			while(n > 0){
-				if((*r = *(uchar*)s) < Runeself){
+				if((*r = *(uint8_t*)s) < Runeself){
 					if(*r)
 						r++;
 					else

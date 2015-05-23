@@ -32,7 +32,7 @@ struct LB
 static void loopbackread(void *a);
 
 static void
-loopbackbind(Ipifc *ifc, int, char**)
+loopbackbind(Ipifc *ifc, int i, char** c)
 {
 	LB *lb;
 
@@ -40,7 +40,7 @@ loopbackbind(Ipifc *ifc, int, char**)
 	lb->f = ifc->conv->p->f;
 	lb->q = qopen(1024*1024, Qmsg, nil, nil);
 	ifc->arg = lb;
-	ifc->mbps = 1000;
+	ifc->mbps = 10001;
 
 	kproc("loopbackread", loopbackread, ifc);
 
@@ -49,14 +49,15 @@ loopbackbind(Ipifc *ifc, int, char**)
 static void
 loopbackunbind(Ipifc *ifc)
 {
+	Mach *m = machp();
 	LB *lb = ifc->arg;
 
 	if(lb->readp)
-		postnote(lb->readp, 1, "unbind", 0);
+		postnote(lb->readp, 1, "unbind", NUser);
 
 	/* wait for reader to die */
 	while(lb->readp != 0)
-		tsleep(&up->sleep, return0, 0, 300);
+		tsleep(&m->externup->sleep, return0, 0, 300);
 
 	/* clean up */
 	qfree(lb->q);
@@ -64,7 +65,7 @@ loopbackunbind(Ipifc *ifc)
 }
 
 static void
-loopbackbwrite(Ipifc *ifc, Block *bp, int, uchar*)
+loopbackbwrite(Ipifc *ifc, Block *bp, int i, uint8_t* m)
 {
 	LB *lb;
 
@@ -77,13 +78,14 @@ loopbackbwrite(Ipifc *ifc, Block *bp, int, uchar*)
 static void
 loopbackread(void *a)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
 	Block *bp;
 	LB *lb;
 
 	ifc = a;
 	lb = ifc->arg;
-	lb->readp = up;	/* hide identity under a rock for unbind */
+	lb->readp = m->externup;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		lb->readp = 0;
 		pexit("hangup", 1);

@@ -56,7 +56,7 @@ struct AuthInfo
 	char	*suid;		/* server id */
 	char	*cap;		/* capability (only valid on server side) */
 	int	nsecret;	/* length of secret */
-	uchar	*secret;	/* secret */
+	uint8_t	*secret;	/* secret */
 };
 
 struct Chalstate
@@ -76,7 +76,7 @@ struct Chalstate
 
 struct	Chapreply		/* for protocol "chap" */
 {
-	uchar	id;
+	uint8_t	id;
 	char	resp[MD5LEN];
 };
 
@@ -128,23 +128,29 @@ Attr	*_parseattr(char*);
 char	*_strfindattr(Attr*, char*);
 #pragma varargck type "A" Attr*
 
-extern AuthInfo*	fauth_proxy(int, AuthRpc *rpc, AuthGetkey *getkey, char *params);
-extern AuthInfo*	auth_proxy(int fd, AuthGetkey *getkey, char *fmt, ...);
+extern AuthInfo*	fauth_proxy(int, AuthRpc *rpc, AuthGetkey *getkey,
+				    char *params);
+extern AuthInfo*	auth_proxy(int fd, AuthGetkey *getkey, char *fmt,
+				   ...);
 extern int		auth_getkey(char*);
 extern int		(*amount_getkey)(char*);
 extern void		auth_freeAI(AuthInfo *ai);
 extern int		auth_chuid(AuthInfo *ai, char *ns);
 extern Chalstate	*auth_challenge(char*, ...);
 extern AuthInfo*	auth_response(Chalstate*);
-extern int		auth_respond(void*, uint, char*, uint, void*, uint, AuthGetkey *getkey, char*, ...);
+extern int		auth_respond(void*, uint, char*, uint, void*,
+				       uint, AuthGetkey *getkey, char*,
+				       ...);
 extern void		auth_freechal(Chalstate*);
 extern AuthInfo*	auth_userpasswd(char *user, char *passwd);
-extern UserPasswd*	auth_getuserpasswd(AuthGetkey *getkey, char*, ...);
+extern UserPasswd*	auth_getuserpasswd(AuthGetkey *getkey, char*,
+					     ...);
 extern AuthInfo*	auth_getinfo(AuthRpc *rpc);
 extern AuthRpc*		auth_allocrpc(int afd);
 extern Attr*		auth_attr(AuthRpc *rpc);
 extern void		auth_freerpc(AuthRpc *rpc);
-extern uint		auth_rpc(AuthRpc *rpc, char *verb, void *a, int n);
+extern uint		auth_rpc(AuthRpc *rpc, char *verb, void *a,
+				    int n);
 extern int		auth_wep(char*, char*, ...);
 #pragma varargck argpos auth_proxy 3
 #pragma varargck argpos auth_challenge 1

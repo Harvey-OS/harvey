@@ -34,7 +34,7 @@ hgethead(HConnect *c, int many)
 			}
 			pp = p + 1;
 		}
-		hin->pos = (uchar*)pp;
+		hin->pos = (uint8_t*)pp;
 		n = pp - s;
 		if(c->hstop + n > &c->header[HBufSize])
 			return -1;

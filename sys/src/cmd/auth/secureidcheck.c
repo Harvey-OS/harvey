@@ -44,26 +44,26 @@ enum{
 };
 
 typedef struct Secret{
-	uchar	*s;
+	uint8_t	*s;
 	int	len;
 } Secret;
 
 typedef struct Attribute{
 	struct Attribute *next;
-	uchar	type;
-	uchar	len;		/* number of bytes in value */
-	uchar	val[256];
+	uint8_t	type;
+	uint8_t	len;		/* number of bytes in value */
+	uint8_t	val[256];
 } Attribute;
 
 typedef struct Packet{
-	uchar	code, ID;
-	uchar	authenticator[16];
+	uint8_t	code, ID;
+	uint8_t	authenticator[16];
 	Attribute first;
 } Packet;
 
 /* assumes pass is at most 16 chars */
 void
-hide(Secret *shared, uchar *auth, Secret *pass, uchar *x)
+hide(Secret *shared, uint8_t *auth, Secret *pass, uint8_t *x)
 {
 	DigestState *M;
 	int i, n = pass->len;
@@ -77,10 +77,10 @@ hide(Secret *shared, uchar *auth, Secret *pass, uchar *x)
 }
 
 int
-authcmp(Secret *shared, uchar *buf, int m, uchar *auth)
+authcmp(Secret *shared, uint8_t *buf, int m, uint8_t *auth)
 {
 	DigestState *M;
-	uchar x[16];
+	uint8_t x[16];
 
 	M = md5(buf, 4, nil, nil);	/* Code+ID+Length */
 	M = md5(auth, 16, nil, M);	/* RequestAuth */
@@ -90,9 +90,9 @@ authcmp(Secret *shared, uchar *buf, int m, uchar *auth)
 }
 
 Packet*
-newRequest(uchar *auth)
+newRequest(uint8_t *auth)
 {
-	static uchar ID = 0;
+	static uint8_t ID = 0;
 	Packet *p;
 
 	p = (Packet*)malloc(sizeof(*p));
@@ -134,7 +134,7 @@ ding(void*, char *msg)
 Packet *
 rpc(char *dest, Secret *shared, Packet *req)
 {
-	uchar buf[4096], buf2[4096], *b, *e;
+	uint8_t buf[4096], buf2[4096], *b, *e;
 	Packet *resp;
 	Attribute *a;
 	int m, n, fd, try;
@@ -242,7 +242,7 @@ rpc(char *dest, Secret *shared, Packet *req)
 }
 
 int
-setAttribute(Packet *p, uchar type, uchar *s, int n)
+setAttribute(Packet *p, uint8_t type, uint8_t *s, int n)
 {
 	Attribute *a;
 
@@ -289,7 +289,7 @@ logPacket(Packet *p)
 	int i;
 	char *np, *e;
 	char buf[255], pbuf[4*1024];
-	uchar *au = p->authenticator;
+	uint8_t *au = p->authenticator;
 	Attribute *a;
 
 	e = pbuf + sizeof(pbuf);
@@ -335,7 +335,7 @@ logPacket(Packet *p)
 	syslog(0, AUTHLOG, "%s", pbuf);
 }
 
-static uchar*
+static uint8_t*
 getipv4addr(void)
 {
 	Ipifc *nifc;
@@ -360,9 +360,9 @@ secureidcheck(char *user, char *response)
 	char *radiussecret = nil;
 	char *rv = "authentication failed";
 	char dest[3*IPaddrlen+20], ruser[64];
-	uchar *ip;
-	uchar x[16];
-	ulong u[4];
+	uint8_t *ip;
+	uint8_t x[16];
+	uint32_t u[4];
 	Ndbs s;
 	Ndbtuple *t = nil, *nt, *tt;
 	Packet *req = nil, *resp = nil;
@@ -399,10 +399,10 @@ secureidcheck(char *user, char *response)
 	u[1] = fastrand();
 	u[2] = fastrand();
 	u[3] = fastrand();
-	req = newRequest((uchar*)u);
+	req = newRequest((uint8_t*)u);
 	if(req == nil)
 		goto out;
-	shared.s = (uchar*)radiussecret;
+	shared.s = (uint8_t*)radiussecret;
 	shared.len = strlen(radiussecret);
 	ip = getipv4addr();
 	if(ip == nil){
@@ -412,9 +412,9 @@ secureidcheck(char *user, char *response)
 	if(setAttribute(req, R_NASIPAddress, ip + IPv4off, 4) < 0)
 		goto out;
 
-	if(setAttribute(req, R_UserName, (uchar*)ruser, strlen(ruser)) < 0)
+	if(setAttribute(req, R_UserName, (uint8_t*)ruser, strlen(ruser)) < 0)
 		goto out;
-	pass.s = (uchar*)response;
+	pass.s = (uint8_t*)response;
 	pass.len = strlen(response);
 	hide(&shared, req->authenticator, &pass, x);
 	if(setAttribute(req, R_UserPassword, x, 16) < 0)

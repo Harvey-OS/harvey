@@ -24,7 +24,7 @@ print(char *fmt, ...)
 	out = doprint(buf, buf+SIZE, fmt, &temp);
 	va_end(temp);
 	va_end(arg);
-	n = write(1, buf, (long)(out-buf));
+	n = write(1, buf, (int32_t)(out-buf));
 	return n;
 }
 
@@ -40,7 +40,7 @@ fprint(int f, char *fmt, ...)
 	out = doprint(buf, buf+SIZE, fmt, &temp);
 	va_end(temp);
 	va_end(arg);
-	n = write(f, buf, (long)(out-buf));
+	n = write(f, buf, (int32_t)(out-buf));
 	return n;
 }
 

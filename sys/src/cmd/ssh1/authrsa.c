@@ -12,7 +12,7 @@
 static int
 authrsafn(Conn *c)
 {
-	uchar chalbuf[32+SESSIDLEN], response[MD5dlen];
+	uint8_t chalbuf[32+SESSIDLEN], response[MD5dlen];
 	char *s, *p;
 	int afd, ret;
 	AuthRpc *rpc;
@@ -50,7 +50,8 @@ authrsafn(Conn *c)
 		m = recvmsg(c, -1);
 		switch(m->type){
 		case SSH_SMSG_FAILURE:
-			debug(DBG_AUTH, "\tnot accepted %s\n", (char*)rpc->arg);
+			debug(DBG_AUTH, "\tnot accepted %s\n",
+			      (char*)rpc->arg);
 			free(m);
 			continue;
 		default:

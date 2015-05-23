@@ -26,7 +26,7 @@ enum
 typedef struct AESstate AESstate;
 struct AESstate
 {
-	ulong	setup;
+	uint32_t	setup;
 	int	rounds;
 	int	keybytes;
 	uchar	key[AESmaxkey];		/* unexpanded key */
@@ -53,7 +53,7 @@ enum
 typedef struct BFstate BFstate;
 struct BFstate
 {
-	ulong	setup;
+	uint32_t	setup;
 
 	uchar	key[56];
 	uchar	ivec[8];
@@ -81,15 +81,15 @@ enum
 typedef struct DESstate DESstate;
 struct DESstate
 {
-	ulong	setup;
+	uint32_t	setup;
 	uchar	key[8];		/* unexpanded key */
-	ulong	expanded[32];	/* expanded key */
+	uint32_t	expanded[32];	/* expanded key */
 	uchar	ivec[8];	/* initialization vector */
 };
 
 void	setupDESstate(DESstate *s, uchar key[8], uchar *ivec);
-void	des_key_setup(uchar[8], ulong[32]);
-void	block_cipher(ulong*, uchar*, int);
+void	des_key_setup(uchar[8], uint32_t[32]);
+void	block_cipher(uint32_t*, uchar*, int);
 void	desCBCencrypt(uchar*, int, DESstate*);
 void	desCBCdecrypt(uchar*, int, DESstate*);
 void	desECBencrypt(uchar*, int, DESstate*);
@@ -98,7 +98,7 @@ void	desECBdecrypt(uchar*, int, DESstate*);
 // for backward compatibility with 7 byte DES key format
 void	des56to64(uchar *k56, uchar *k64);
 void	des64to56(uchar *k64, uchar *k56);
-void	key_setup(uchar[7], ulong[32]);
+void	key_setup(uchar[7], uint32_t[32]);
 
 // triple des encrypt/decrypt orderings
 enum {
@@ -113,14 +113,14 @@ enum {
 typedef struct DES3state DES3state;
 struct DES3state
 {
-	ulong	setup;
+	uint32_t	setup;
 	uchar	key[3][8];		/* unexpanded key */
-	ulong	expanded[3][32];	/* expanded key */
+	uint32_t	expanded[3][32];	/* expanded key */
 	uchar	ivec[8];		/* initialization vector */
 };
 
 void	setupDES3state(DES3state *s, uchar key[3][8], uchar *ivec);
-void	triple_block_cipher(ulong keys[3][32], uchar*, int);
+void	triple_block_cipher(uint32_t keys[3][32], uchar*, int);
 void	des3CBCencrypt(uchar*, int, DES3state*);
 void	des3CBCdecrypt(uchar*, int, DES3state*);
 void	des3ECBencrypt(uchar*, int, DES3state*);
@@ -140,7 +140,7 @@ enum
 typedef struct DigestState DigestState;
 struct DigestState
 {
-	ulong len;
+	uint32_t len;
 	u32int state[5];
 	uchar buf[128];
 	int blen;
@@ -152,11 +152,13 @@ typedef struct DigestState SHA1state;
 typedef struct DigestState MD5state;
 typedef struct DigestState MD4state;
 
-DigestState* md4(uchar*, ulong, uchar*, DigestState*);
-DigestState* md5(uchar*, ulong, uchar*, DigestState*);
-DigestState* sha1(uchar*, ulong, uchar*, DigestState*);
-DigestState* hmac_md5(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
-DigestState* hmac_sha1(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
+DigestState* md4(uchar*, uint32_t, uchar*, DigestState*);
+DigestState* md5(uchar*, uint32_t, uchar*, DigestState*);
+DigestState* sha1(uchar*, uint32_t, uchar*, DigestState*);
+DigestState* hmac_md5(uchar*, uint32_t, uchar*, uint32_t, uchar*,
+		      DigestState*);
+DigestState* hmac_sha1(uchar*, uint32_t, uchar*, uint32_t, uchar*,
+		       DigestState*);
 char* sha1pickle(SHA1state*);
 SHA1state* sha1unpickle(char*);
 
@@ -165,8 +167,8 @@ SHA1state* sha1unpickle(char*);
 /////////////////////////////////////////////////////////
 void	genrandom(uchar *buf, int nbytes);
 void	prng(uchar *buf, int nbytes);
-ulong	fastrand(void);
-ulong	nfastrand(ulong);
+uint32_t	fastrand(void);
+uint32_t	nfastrand(uint32_t);
 
 /////////////////////////////////////////////////////////
 // primes
@@ -235,7 +237,8 @@ RSApub*		X509toRSApub(uchar*, int, char*, int);
 RSApriv*	asn1toRSApriv(uchar*, int);
 void		asn1dump(uchar *der, int len);
 uchar*		decodepem(char *s, char *type, int *len);
-uchar*		X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen);
+uchar*		X509gen(RSApriv *priv, char *subj, uint32_t valid[2],
+			      int *certlen);
 uchar*		X509req(RSApriv *priv, char *subj, int *certlen);
 char*		X509verify(uchar *cert, int ncert, RSApub *pk);
 void		X509dump(uchar *cert, int ncert);

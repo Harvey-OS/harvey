@@ -15,17 +15,17 @@
 	/* mips native disassembler */
 
 typedef struct {
-	uvlong addr;			/* pc of instr */
-	uchar op;			/* bits 31-26 */
-	uchar rs;			/* bits 25-21 */
-	uchar rt;			/* bits 20-16 */
-	uchar rd;			/* bits 15-11 */
-	uchar sa;			/* bits 10-6 */
-	uchar function;			/* bits 5-0 */
-	long immediate;			/* bits 15-0 */
-	ulong cofun;			/* bits 24-0 */
-	ulong target;			/* bits 25-0 */
-	long w0;
+	uint64_t addr;			/* pc of instr */
+	uint8_t op;			/* bits 31-26 */
+	uint8_t rs;			/* bits 25-21 */
+	uint8_t rt;			/* bits 20-16 */
+	uint8_t rd;			/* bits 15-11 */
+	uint8_t sa;			/* bits 10-6 */
+	uint8_t function;			/* bits 5-0 */
+	int32_t immediate;			/* bits 15-0 */
+	uint32_t cofun;			/* bits 24-0 */
+	uint32_t target;			/* bits 25-0 */
+	int32_t w0;
 	char *curr;			/* current fill point */
 	char *end;			/* end of buffer */
 	char *err;
@@ -291,9 +291,9 @@ static char fsub[16] = {
 
 
 static int
-mkinstr(Instr *i, Map *map, uvlong pc)
+mkinstr(Instr *i, Map *map, uint64_t pc)
 {
-	ulong w;
+	uint32_t w;
 
 	if (get4(map, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -521,11 +521,11 @@ cop0(Instr *i)
 }
 
 int
-_mipscoinst(Map *map, uvlong pc, char *buf, int n)
+_mipscoinst(Map *map, uint64_t pc, char *buf, int n)
 {
 	Instr i;
 	Opcode *o;
-	uchar op;
+	uint8_t op;
 
 	i.curr = buf;
 	i.end = buf+n-1;

@@ -36,7 +36,7 @@
 /* Define an optional array of strings for testing. */
 /*#define RUN_STRINGS */
 #ifdef RUN_STRINGS
-private const char *run_strings[] =
+private const int8_t *run_strings[] =
 {
     "2 vmreclaim /SAVE save def 2 vmreclaim",
     "(saved\n) print flush",

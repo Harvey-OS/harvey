@@ -47,7 +47,7 @@ struct P9fs
 	int	fd[2];
 	Fcall	rhdr;
 	Fcall	thdr;
-	long	len;
+	int32_t	len;
 	char	*name;
 };
 
@@ -62,8 +62,8 @@ int	statlen;
 
 int		messagesize = MAXFDATA+IOHDRSZ;
 
-uchar	datasnd[MAXFDATA + IOHDRSZ];
-uchar	datarcv[MAXFDATA + IOHDRSZ];
+uint8_t	datasnd[MAXFDATA + IOHDRSZ];
+uint8_t	datarcv[MAXFDATA + IOHDRSZ];
 
 Qid	rootqid;
 Qid	ctlqid = {0x5555555555555555LL, 0, 0};
@@ -499,8 +499,8 @@ void
 rread(Mfile *mf)
 {
 	int cnt, done;
-	long n;
-	vlong off, first;
+	int32_t n;
+	int64_t off, first;
 	char *cp;
 	char data[MAXFDATA];
 	Ibuf *b;
@@ -669,7 +669,7 @@ rstat(Mfile *mf)
 		d.atime = time(nil);
 		d.mtime = d.atime;
 		c.rhdr.nstat = convD2M(&d, c.rhdr.stat,
-			sizeof c.rhdr - (c.rhdr.stat - (uchar*)&c.rhdr));
+			sizeof c.rhdr - (c.rhdr.stat - (uint8_t*)&c.rhdr));
 		sendreply(0);
 		return;
 	}
@@ -801,7 +801,7 @@ sendmsg(P9fs *p, Fcall *f)
 }
 
 void
-dump(uchar *p, int len)
+dump(uint8_t *p, int len)
 {
 	fprint(2, "%d bytes", len);
 	while(len-- > 0)
@@ -829,8 +829,8 @@ rcvmsg(P9fs *p, Fcall *f)
 	if(f->fid >= Nfid){
 		fprint(2, "<-%s: %d %s on %d\n", p->name, f->type,
 			mname[f->type]? mname[f->type]: "mystery", f->fid);
-		dump((uchar*)datasnd, olen);
-		dump((uchar*)datarcv, p->len);
+		dump((uint8_t*)datasnd, olen);
+		dump((uint8_t*)datarcv, p->len);
 		error("rcvmsg fid out of range");
 	}
 	DPRINT(2, "<-%s: %F\n", p->name, f);

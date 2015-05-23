@@ -370,7 +370,7 @@ test_eval(te, op, opnd1, opnd2, do_eval)
 	  case TO_INTLE: /* -le */
 	  case TO_INTLT: /* -lt */
 		{
-			long v1, v2;
+			int32_t v1, v2;
 
 			if (!evaluate(opnd1, &v1, KSH_RETURN_ERROR)
 			    || !evaluate(opnd2, &v2, KSH_RETURN_ERROR))
@@ -572,7 +572,8 @@ test_primary(te, do_eval)
 			return 0;
 		}
 
-		return (*te->eval)(te, op, opnd1, (const char *) 0, do_eval);
+		return (*te->eval)(te, op, opnd1, (const char *) 0,
+				   do_eval);
 	}
 	opnd1 = (*te->getopnd)(te, TO_NONOP, do_eval);
 	if (!opnd1) {

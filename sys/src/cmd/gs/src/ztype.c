@@ -78,7 +78,7 @@ ztype(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
     ref tnref;
-    int code = array_get(imemory, op, (long)r_btype(op - 1), &tnref);
+    int code = array_get(imemory, op, (int32_t)r_btype(op - 1), &tnref);
 
     if (code < 0)
 	return code;
@@ -282,7 +282,7 @@ zcvi(i_ctx_t *i_ctx_p)
     }
     if (!REAL_CAN_BE_INT(fval))
 	return_error(e_rangecheck);
-    make_int(op, (long)fval);	/* truncates towards 0 */
+    make_int(op, (int32_t)fval);	/* truncates towards 0 */
     return 0;
 }
 
@@ -363,14 +363,14 @@ zcvrs(i_ctx_t *i_ctx_p)
 		return_op_typecheck(op - 2);
 	}
     } else {
-	ulong ival;
-	byte digits[sizeof(ulong) * 8];
+	uint32_t ival;
+	byte digits[sizeof(uint32_t) * 8];
 	byte *endp = &digits[countof(digits)];
 	byte *dp = endp;
 
 	switch (r_type(op - 2)) {
 	    case t_integer:
-		ival = (ulong) op[-2].value.intval;
+		ival = (uint32_t) op[-2].value.intval;
 		break;
 	    case t_real:
 		{
@@ -378,7 +378,7 @@ zcvrs(i_ctx_t *i_ctx_p)
 
 		    if (!REAL_CAN_BE_INT(fval))
 			return_error(e_rangecheck);
-		    ival = (ulong) (long)fval;
+		    ival = (uint32_t) (int32_t)fval;
 		} break;
 	    default:
 		return_op_typecheck(op - 2);

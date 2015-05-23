@@ -272,7 +272,7 @@ typedef struct {
   /* The volume (actually 2-norm) of the box */
   INT32 volume;
   /* The number of nonzero histogram cells within this box */
-  long colorcount;
+  int32_t colorcount;
 } box;
 
 typedef box * boxptr;

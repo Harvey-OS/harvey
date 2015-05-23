@@ -15,7 +15,8 @@
 #include "page.h"
 
 Document*
-initfilt(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf, char *type, char *cmd, int docopy)
+initfilt(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf,
+	 char *type, char *cmd, int docopy)
 {
 	int ofd;
 	int p[2];
@@ -77,7 +78,7 @@ initfilt(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf, char *type, cha
 }
 
 Document*
-initdvi(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
+initdvi(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	int fd;
 	char *name;
@@ -104,14 +105,14 @@ initdvi(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 }
 
 Document*
-inittroff(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
+inittroff(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	/* Added -H to eliminate header page [sape] */
 	return initfilt(b, argc, argv, buf, nbuf, "troff", "lp -H -dstdout", 1);
 }
 
 Document*
-initmsdoc(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
+initmsdoc(Biobuf *b, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	return initfilt(b, argc, argv, buf, nbuf, "microsoft office", "doc2ps", 1);
 }

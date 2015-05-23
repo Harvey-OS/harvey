@@ -24,8 +24,8 @@ enum
 
 	Debug=		0,
 
-	Opsize=		sizeof(short),
-	Blksize=	sizeof(short),
+	Opsize=		sizeof(int16_t),
+	Blksize=	sizeof(int16_t),
 	Hdrsize=	Opsize + Blksize,
 
 	Ackerr=		-1,
@@ -92,7 +92,7 @@ static Opt option[] = {
 void	sendfile(int, char*, char*, int);
 void	recvfile(int, char*, char*);
 void	nak(int, int, char*);
-void	ack(int, ushort);
+void	ack(int, uint16_t);
 void	clrcon(void);
 void	setuser(void);
 char*	sunkernel(char*);
@@ -237,10 +237,10 @@ handleopt(int fd, char *name, char *val)
 	return nil;
 }
 
-static vlong
+static int64_t
 filesize(char *file)
 {
-	vlong size;
+	int64_t size;
 	Dir *dp;
 
 	dp = dirstat(file);
@@ -266,7 +266,7 @@ emits(char *word, char *bp, char *ep)
 
 /* format number into bp iff it fits before ep. */
 static int
-emitn(vlong n, char *bp, char *ep)
+emitn(int64_t n, char *bp, char *ep)
 {
 	char numb[32];
 
@@ -285,10 +285,12 @@ emitn(vlong n, char *bp, char *ep)
  * there's an exception for the cavium's u-boot.
  */
 static int
-options(int fd, char *buf, int bufsz, char *file, ushort oper, char *p, int dlen)
+options(int fd, char *buf, int bufsz, char *file, uint16_t oper,
+	char *p,
+	int dlen)
 {
 	int nmlen, vallen, olen, nopts;
-	vlong size;
+	int64_t size;
 	char *val, *bp, *ep;
 	Opt *op;
 
@@ -437,7 +439,7 @@ doserve(int fd)
 {
 	int dlen, opts;
 	char *mode, *p, *file;
-	short op;
+	int16_t op;
 
 	dlen = read(fd, bigbuf, sizeof(bigbuf)-1);
 	if(dlen < 0)
@@ -521,8 +523,8 @@ static int
 awaitack(int net, int block)
 {
 	int ackblock, al, rxl;
-	ushort op;
-	uchar ack[1024];
+	uint16_t op;
+	uint8_t ack[1024];
 
 	for(rxl = 0; rxl < 10; rxl++) {
 		memset(ack, 0, Hdrsize);
@@ -569,7 +571,7 @@ void
 sendfile(int net, char *name, char *mode, int opts)
 {
 	int file, block, ret, rexmit, n, txtry, failed;
-	uchar buf[Maxsegsize+Hdrsize];
+	uint8_t buf[Maxsegsize+Hdrsize];
 	char errbuf[Maxerr];
 
 	file = -1;
@@ -655,8 +657,8 @@ error:
 void
 recvfile(int net, char *name, char *mode)
 {
-	ushort op, block, inblock;
-	uchar buf[Maxsegsize+8];
+	uint16_t op, block, inblock;
+	uint8_t buf[Maxsegsize+8];
 	char errbuf[Maxerr];
 	int n, ret, file;
 
@@ -723,9 +725,9 @@ error:
 }
 
 void
-ack(int fd, ushort block)
+ack(int fd, uint16_t block)
 {
-	uchar ack[4];
+	uint8_t ack[4];
 	int n;
 
 	ack[0] = 0;
@@ -800,9 +802,9 @@ lookup(char *sattr, char *sval, char *tattr, char *tval, int len)
 char*
 sunkernel(char *name)
 {
-	ulong addr;
-	uchar v4[IPv4addrlen];
-	uchar v6[IPaddrlen];
+	uint32_t addr;
+	uint8_t v4[IPv4addrlen];
+	uint8_t v6[IPaddrlen];
 	char buf[256];
 	char ipbuf[128];
 	char *suffix;

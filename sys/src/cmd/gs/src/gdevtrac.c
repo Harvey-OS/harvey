@@ -60,19 +60,19 @@ trace_drawing_color(const char *prefix, const gx_drawing_color *pdcolor)
     else if (pdcolor->type == gx_dc_type_null)
 	dputs("null");
     else if (pdcolor->type == gx_dc_type_pure)
-	dprintf1("0x%lx", (ulong)pdcolor->colors.pure);
+	dprintf1("0x%lx", (uint32_t)pdcolor->colors.pure);
     else if (pdcolor->type == gx_dc_type_ht_binary) {
 	int ci = pdcolor->colors.binary.b_index;
 
 	dprintf5("binary(0x%lx, 0x%lx, %d/%d, index=%d)",
-		 (ulong)pdcolor->colors.binary.color[0],
-		 (ulong)pdcolor->colors.binary.color[1],
+		 (uint32_t)pdcolor->colors.binary.color[0],
+		 (uint32_t)pdcolor->colors.binary.color[1],
 		 pdcolor->colors.binary.b_level,
 		 (ci < 0 ? pdcolor->colors.binary.b_ht->order.num_bits :
 		  pdcolor->colors.binary.b_ht->components[ci].corder.num_bits),
 		 ci);
     } else if (pdcolor->type == gx_dc_type_ht_colored) {
-	ulong plane_mask = pdcolor->colors.colored.plane_mask;
+	uint32_t plane_mask = pdcolor->colors.colored.plane_mask;
 	int ci;
 
 	dprintf1("colored(mask=%lu", plane_mask);
@@ -153,7 +153,7 @@ trace_fill_rectangle(gx_device * dev, int x, int y, int w, int h,
 		     gx_color_index color)
 {
     dprintf5("fill_rectangle(%d, %d, %d, %d, 0x%lx)\n",
-	     x, y, w, h, (ulong)color);
+	     x, y, w, h, (uint32_t)color);
     return 0;
 }
 
@@ -164,8 +164,8 @@ trace_copy_mono(gx_device * dev, const byte * data,
 		gx_color_index zero, gx_color_index one)
 {
     dprintf7("copy_mono(x=%d, y=%d, w=%d, h=%d, dx=%d, raster=%d, id=0x%lx,\n",
-	     x, y, w, h, dx, raster, (ulong)id);
-    dprintf2("    colors=(0x%lx,0x%lx))\n", (ulong)zero, (ulong)one);
+	     x, y, w, h, dx, raster, (uint32_t)id);
+    dprintf2("    colors=(0x%lx,0x%lx))\n", (uint32_t)zero, (uint32_t)one);
     return 0;
 }
 
@@ -175,7 +175,7 @@ trace_copy_color(gx_device * dev, const byte * data,
 		 int x, int y, int w, int h)
 {
     dprintf7("copy_color(x=%d, y=%d, w=%d, h=%d, dx=%d, raster=%d, id=0x%lx)\n",
-	     x, y, w, h, dx, raster, (ulong)id);
+	     x, y, w, h, dx, raster, (uint32_t)id);
     return 0;
 }
 
@@ -185,8 +185,8 @@ trace_copy_alpha(gx_device * dev, const byte * data, int dx, int raster,
 		 gx_color_index color, int depth)
 {
     dprintf7("copy_alpha(x=%d, y=%d, w=%d, h=%d, dx=%d, raster=%d, id=0x%lx,\n",
-	     x, y, w, h, dx, raster, (ulong)id);
-    dprintf2("    color=0x%lx, depth=%d)\n", (ulong)color, depth);
+	     x, y, w, h, dx, raster, (uint32_t)id);
+    dprintf2("    color=0x%lx, depth=%d)\n", (uint32_t)color, depth);
     return 0;
 }
 
@@ -198,7 +198,7 @@ trace_fill_mask(gx_device * dev,
 		gs_logical_operation_t lop, const gx_clip_path * pcpath)
 {
     dprintf7("fill_mask(x=%d, y=%d, w=%d, h=%d, dx=%d, raster=%d, id=0x%lx,\n",
-	     x, y, w, h, dx, raster, (ulong)id);
+	     x, y, w, h, dx, raster, (uint32_t)id);
     trace_drawing_color("    ", pdcolor);
     dprintf1(", depth=%d", depth);
     trace_lop(lop);
@@ -271,7 +271,7 @@ trace_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 			   int px, int py)
 {
     dprintf6("strip_tile_rectangle(x=%d, y=%d, w=%d, h=%d, colors=(0x%lx,0x%lx),\n",
-	     x, y, w, h, (ulong)color0, (ulong)color1);
+	     x, y, w, h, (uint32_t)color0, (uint32_t)color1);
     dprintf8("    size=(%d,%d) shift %u, rep=(%u,%u) shift %u, phase=(%d,%d))\n",
 	     tiles->size.x, tiles->size.y, tiles->shift,
 	     tiles->rep_width, tiles->rep_height, tiles->rep_shift, px, py);
@@ -467,9 +467,9 @@ trace_text_begin(gx_device * dev, gs_imager_state * pis,
 	}
     dprintf1("font=%s\n           text=(", font->font_name.chars);
     if (text->operation & TEXT_FROM_SINGLE_CHAR)
-	dprintf1("0x%lx", (ulong)text->data.d_char);
+	dprintf1("0x%lx", (uint32_t)text->data.d_char);
     else if (text->operation & TEXT_FROM_SINGLE_GLYPH)
-	dprintf1("0x%lx", (ulong)text->data.d_glyph);
+	dprintf1("0x%lx", (uint32_t)text->data.d_glyph);
     else
 	for (i = 0; i < text->size; ++i) {
 	    if (text->operation & TEXT_FROM_STRING)
@@ -477,8 +477,8 @@ trace_text_begin(gx_device * dev, gs_imager_state * pis,
 	    else
 		dprintf1("0x%lx ",
 			 (text->operation & TEXT_FROM_GLYPHS ?
-			  (ulong)text->data.glyphs[i] :
-			  (ulong)text->data.chars[i]));
+			  (uint32_t)text->data.glyphs[i] :
+			  (uint32_t)text->data.chars[i]));
     }
     dprintf1(")\n           size=%u", text->size);
     if (text->operation & TEXT_ADD_TO_ALL_WIDTHS)
@@ -486,7 +486,7 @@ trace_text_begin(gx_device * dev, gs_imager_state * pis,
     if (text->operation & TEXT_ADD_TO_SPACE_WIDTH) {
 	dprintf3(", space=0x%lx, delta_space=(%g,%g)",
 		 (text->operation & TEXT_FROM_GLYPHS ?
-		  (ulong)text->space.s_glyph : (ulong)text->space.s_char),
+		  (uint32_t)text->space.s_glyph : (uint32_t)text->space.s_char),
 		 text->delta_space.x, text->delta_space.y);
     }
     if (text->operation & TEXT_REPLACE_WIDTHS) {

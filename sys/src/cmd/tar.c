@@ -809,7 +809,7 @@ addtoar(int ar, char *file, char *shortf)
 {
 	int n, fd, isdir;
 	long bytes, blksread;
-	ulong blksleft;
+	uint32_t blksleft;
 	Hdr *hbp;
 	Dir *dir;
 	String *name = nil;
@@ -878,7 +878,7 @@ addtoar(int ar, char *file, char *shortf)
 static void
 skip(int ar, Hdr *hp, char *msg)
 {
-	ulong blksleft, blksread;
+	uint32_t blksleft, blksread;
 	Off bytes;
 
 	bytes = arsize(hp);
@@ -1107,10 +1107,10 @@ openfname(Hdr *hp, char *fname, int dir, int mode)
 
 /* copy from archive to file system (or nowhere for table-of-contents) */
 static void
-copyfromar(int ar, int fd, char *fname, ulong blksleft, Off bytes)
+copyfromar(int ar, int fd, char *fname, uint32_t blksleft, Off bytes)
 {
 	int wrbytes;
-	ulong blksread;
+	uint32_t blksread;
 	Hdr *hbp;
 
 	if (blksleft == 0 || bytes < 0)
@@ -1170,9 +1170,9 @@ extract1(int ar, Hdr *hp, char *fname)
 {
 	int fd = -1, dir = 0;
 	long mtime = strtol(hp->mtime, nil, 8);
-	ulong mode = strtoul(hp->mode, nil, 8) & 0777;
+	uint32_t mode = strtoul(hp->mode, nil, 8) & 0777;
 	Off bytes = hdrsize(hp);		/* for printing */
-	ulong blksleft = BYTES2TBLKS(arsize(hp));
+	uint32_t blksleft = BYTES2TBLKS(arsize(hp));
 
 	/* fiddle name, figure out mode and blocks */
 	if (isdir(hp)) {

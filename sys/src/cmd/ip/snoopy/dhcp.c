@@ -123,7 +123,7 @@ hex(int x)
 	return x - 10 + 'a';
 }
 static char*
-phex(char *p, char *e, char *tag, uchar *o, int n)
+phex(char *p, char *e, char *tag, uint8_t *o, int n)
 {
 	p = seprint(p, e, "%s=", tag);
 
@@ -136,7 +136,7 @@ phex(char *p, char *e, char *tag, uchar *o, int n)
 }
 
 static char*
-pstring(char *p, char *e, char *tag, uchar *o, int n)
+pstring(char *p, char *e, char *tag, uint8_t *o, int n)
 {
 	char msg[256];
 
@@ -148,7 +148,7 @@ pstring(char *p, char *e, char *tag, uchar *o, int n)
 }
 
 static char*
-pint(char *p, char *e, char *tag, uchar *o, int n)
+pint(char *p, char *e, char *tag, uint8_t *o, int n)
 {
 	int x;
 
@@ -159,7 +159,7 @@ pint(char *p, char *e, char *tag, uchar *o, int n)
 }
 
 static char*
-puint(char *p, char *e, char *tag, uchar *o, int n)
+puint(char *p, char *e, char *tag, uint8_t *o, int n)
 {
 	uint x;
 
@@ -170,7 +170,7 @@ puint(char *p, char *e, char *tag, uchar *o, int n)
 }
 
 static char*
-pserver(char *p, char *e, char *tag, uchar *o, int n)
+pserver(char *p, char *e, char *tag, uint8_t *o, int n)
 {
 	p = seprint(p, e, "%s=(", tag);
 	while(n >= 4){
@@ -196,7 +196,7 @@ static char *dhcptype[256] =
 
 
 static char*
-ptype(char *p, char *e, uchar val)
+ptype(char *p, char *e, uint8_t val)
 {
 	char *x;
 
@@ -211,7 +211,7 @@ static int
 p_seprint(Msg *m)
 {
 	int i, n, code;
-	uchar *o, *ps;
+	uint8_t *o, *ps;
 	char *p, *e;
 	char msg[64];
 

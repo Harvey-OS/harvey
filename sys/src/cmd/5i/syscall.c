@@ -18,7 +18,7 @@
 #define	OERRLEN	64	/* compatibility; used in _stat etc. */
 
 char 	errbuf[ERRMAX];
-ulong	nofunc;
+uint32_t	nofunc;
 
 #include "/sys/src/libc/9syscall/sys.h"
 
@@ -84,7 +84,7 @@ sys1(void)
 void
 sys_errstr(void)
 {
-	ulong str;
+	uint32_t str;
 
 	str = getmem_w(reg.r[13]+4);
 	if(sysdbg)
@@ -99,7 +99,7 @@ sys_errstr(void)
 void
 syserrstr(void)
 {
-	ulong str;
+	uint32_t str;
 	int n;
 
 	str = getmem_w(reg.r[13]+4);
@@ -117,7 +117,7 @@ syserrstr(void)
 void
 sysbind(void)
 { 
-	ulong pname, pold, flags;
+	uint32_t pname, pold, flags;
 	char name[1024], old[1024];
 	int n;
 
@@ -141,7 +141,7 @@ sysfd2path(void)
 {
 	int n;
 	uint fd;
-	ulong str;
+	uint32_t str;
 	char buf[1024];
 
 	fd = getmem_w(reg.r[13]+4);
@@ -168,7 +168,7 @@ syschdir(void)
 { 
 	char file[1024];
 	int n;
-	ulong name;
+	uint32_t name;
 
 	name = getmem_w(reg.r[13]+4);
 	memio(file, name, sizeof(file), MemReadstring);
@@ -186,7 +186,7 @@ void
 sysclose(void)
 {
 	int n;
-	ulong fd;
+	uint32_t fd;
 
 	fd = getmem_w(reg.r[13]+4);
 	if(sysdbg)
@@ -219,7 +219,7 @@ void
 sysexits(void)
 {
 	char buf[OERRLEN];
-	ulong str;
+	uint32_t str;
 
 	str = getmem_w(reg.r[13]+4);
 	if(sysdbg)
@@ -239,7 +239,7 @@ sysopen(void)
 {
 	char file[1024];
 	int n;
-	ulong mode, name;
+	uint32_t mode, name;
 
 	name = getmem_w(reg.r[13]+4);
 	mode = getmem_w(reg.r[13]+8);
@@ -257,10 +257,10 @@ sysopen(void)
 
 
 void
-sysread(vlong offset)
+sysread(int64_t offset)
 {
 	int fd;
-	ulong size, a;
+	uint32_t size, a;
 	char *buf, *p;
 	int n, cnt, c;
 
@@ -316,9 +316,9 @@ void
 sysseek(void)
 {
 	int fd;
-	ulong mode;
-	ulong retp;
-	vlong v;
+	uint32_t mode;
+	uint32_t retp;
+	int64_t v;
 
 	retp = getmem_w(reg.r[13]+4);
 	fd = getmem_w(reg.r[13]+8);
@@ -338,7 +338,7 @@ void
 sysoseek(void)
 {
 	int fd, n;
-	ulong off, mode;
+	uint32_t off, mode;
 
 	fd = getmem_w(reg.r[13]+4);
 	off = getmem_w(reg.r[13]+8);
@@ -356,7 +356,7 @@ sysoseek(void)
 void
 syssleep(void)
 {
-	ulong len;
+	uint32_t len;
 	int n;
 
 	len = getmem_w(reg.r[13]+4);
@@ -375,7 +375,7 @@ sys_stat(void)
 {
 	char nambuf[1024];
 	char buf[ODIRLEN];
-	ulong edir, name;
+	uint32_t edir, name;
 	extern int _stat(char*, char*);	/* old system call */
 	int n;
 
@@ -398,8 +398,8 @@ void
 sysstat(void)
 {
 	char nambuf[1024];
-	uchar buf[STATMAX];
-	ulong edir, name;
+	uint8_t buf[STATMAX];
+	uint32_t edir, name;
 	int n;
 
 	name = getmem_w(reg.r[13]+4);
@@ -425,7 +425,7 @@ sys_fstat(void)
 {
 	char buf[ODIRLEN];
 	extern int _fstat(int, char*);	/* old system call */
-	ulong edir;
+	uint32_t edir;
 	int n, fd;
 
 	fd = getmem_w(reg.r[13]+4);
@@ -445,8 +445,8 @@ sys_fstat(void)
 void
 sysfstat(void)
 {
-	uchar buf[STATMAX];
-	ulong edir;
+	uint8_t buf[STATMAX];
+	uint32_t edir;
 	int n, fd;
 
 	fd = getmem_w(reg.r[13]+4);
@@ -469,10 +469,10 @@ sysfstat(void)
 }
 
 void
-syswrite(vlong offset)
+syswrite(int64_t offset)
 {
 	int fd;
-	ulong size, a;
+	uint32_t size, a;
 	char *buf;
 	int n;
 
@@ -510,7 +510,7 @@ void
 syspipe(void)
 {
 	int n, p[2];
-	ulong fd;
+	uint32_t fd;
 
 	fd = getmem_w(reg.r[13]+4);
 	if(sysdbg)
@@ -531,7 +531,7 @@ syscreate(void)
 {
 	char file[1024];
 	int n;
-	ulong mode, name, perm;
+	uint32_t mode, name, perm;
 
 	name = getmem_w(reg.r[13]+4);
 	mode = getmem_w(reg.r[13]+8);
@@ -550,7 +550,7 @@ syscreate(void)
 void
 sysbrk_(void)
 {
-	ulong addr, osize, nsize;
+	uint32_t addr, osize, nsize;
 	Segment *s;
 
 	addr = getmem_w(reg.r[13]+4);
@@ -568,10 +568,10 @@ sysbrk_(void)
 	}
 	s = &memory.seg[Bss];
 	if(addr > s->end) {
-		osize = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
+		osize = ((s->end-s->base)/BY2PG)*sizeof(uint8_t*);
 		addr = ((addr)+(BY2PG-1))&~(BY2PG-1);
 		s->end = addr;
-		nsize = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
+		nsize = ((s->end-s->base)/BY2PG)*sizeof(uint8_t*);
 		s->table = erealloc(s->table, osize, nsize);
 	}	
 
@@ -582,7 +582,7 @@ void
 sysremove(void)
 {
 	char nambuf[1024];
-	ulong name;
+	uint32_t name;
 	int n;
 
 	name = getmem_w(reg.r[13]+4);
@@ -797,7 +797,7 @@ void	(*systab[])(void) =
 };
 
 void
-Ssyscall(ulong)
+Ssyscall(uint32_t)
 {
 	int call;
 

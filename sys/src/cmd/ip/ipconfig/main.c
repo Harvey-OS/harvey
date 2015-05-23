@@ -139,11 +139,11 @@ Option option[256] =
 [ODbootfile]		{ "bootfile",		Tstr },
 };
 
-uchar defrequested[] = {
+uint8_t defrequested[] = {
 	OBmask, OBrouter, OBdnserver, OBhostname, OBdomainname, OBntpserver,
 };
 
-uchar	requested[256];
+uint8_t	requested[256];
 int	nrequested;
 
 int	Oflag;
@@ -183,7 +183,7 @@ char *verbs[] = {
 [Vpkt]		"pkt",
 };
 
-void	adddefroute(char*, uchar*);
+void	adddefroute(char*, uint8_t*);
 int	addoption(char*);
 void	binddevice(void);
 void	bootprequest(void);
@@ -197,7 +197,7 @@ void	doadd(int);
 void	doremove(void);
 void	dounbind(void);
 int	getndb(void);
-void	getoptions(uchar*);
+void	getoptions(uint8_t*);
 int	ip4cfg(void);
 int	ip6cfg(int a);
 void	lookforip(char*);
@@ -205,29 +205,29 @@ void	mkclientid(void);
 void	ndbconfig(void);
 int	nipifcs(char*);
 int	openlisten(void);
-uchar*	optaddaddr(uchar*, int, uchar*);
-uchar*	optaddbyte(uchar*, int, int);
-uchar*	optaddstr(uchar*, int, char*);
-uchar*	optadd(uchar*, int, void*, int);
-uchar*	optaddulong(uchar*, int, ulong);
-uchar*	optaddvec(uchar*, int, uchar*, int);
-int	optgetaddrs(uchar*, int, uchar*, int);
-int	optgetp9addrs(uchar*, int, uchar*, int);
-int	optgetaddr(uchar*, int, uchar*);
-int	optgetbyte(uchar*, int);
-int	optgetstr(uchar*, int, char*, int);
-uchar*	optget(uchar*, int, int*);
-ulong	optgetulong(uchar*, int);
-int	optgetvec(uchar*, int, uchar*, int);
-char*	optgetx(uchar*, uchar);
-Bootp*	parsebootp(uchar*, int);
-int	parseoptions(uchar *p, int n);
+uint8_t*	optaddaddr(uint8_t*, int, uint8_t*);
+uint8_t*	optaddbyte(uint8_t*, int, int);
+uint8_t*	optaddstr(uint8_t*, int, char*);
+uint8_t*	optadd(uint8_t*, int, void*, int);
+uint8_t*	optaddulong(uint8_t*, int, uint32_t);
+uint8_t*	optaddvec(uint8_t*, int, uint8_t*, int);
+int	optgetaddrs(uint8_t*, int, uint8_t*, int);
+int	optgetp9addrs(uint8_t*, int, uint8_t*, int);
+int	optgetaddr(uint8_t*, int, uint8_t*);
+int	optgetbyte(uint8_t*, int);
+int	optgetstr(uint8_t*, int, char*, int);
+uint8_t*	optget(uint8_t*, int, int*);
+uint32_t	optgetulong(uint8_t*, int);
+int	optgetvec(uint8_t*, int, uint8_t*, int);
+char*	optgetx(uint8_t*, uint8_t);
+Bootp*	parsebootp(uint8_t*, int);
+int	parseoptions(uint8_t *p, int n);
 int	parseverb(char*);
 void	pppbinddev(void);
 void	putndb(void);
 void	tweakservers(void);
 void	usage(void);
-int	validip(uchar*);
+int	validip(uint8_t*);
 void	writendb(char*, int, int);
 
 void
@@ -722,7 +722,7 @@ dounbind(void)
 
 /* set the default route */
 void
-adddefroute(char *mpoint, uchar *gaddr)
+adddefroute(char *mpoint, uint8_t *gaddr)
 {
 	char buf[256];
 	int cfd;
@@ -886,7 +886,7 @@ ipunconfig(void)
 }
 
 void
-ding(void*, char *msg)
+ding(void* v, char *msg)
 {
 	if(strstr(msg, "alarm"))
 		noted(NCONT);
@@ -950,7 +950,7 @@ void
 dhcpwatch(int needconfig)
 {
 	int secs, s;
-	ulong t;
+	uint32_t t;
 
 	if(nodhcpwatch)
 		return;
@@ -1018,7 +1018,7 @@ dhcpwatch(int needconfig)
 int
 dhcptimer(void)
 {
-	ulong now;
+	uint32_t now;
 
 	now = time(0);
 	if(now < conf.timeout)
@@ -1056,9 +1056,9 @@ void
 dhcpsend(int type)
 {
 	Bootp bp;
-	uchar *p;
+	uint8_t *p;
 	int n;
-	uchar vendor[64];
+	uint8_t vendor[64];
 	Udphdr *up = (Udphdr*)bp.udphdr;
 
 	memset(&bp, 0, sizeof bp);
@@ -1129,7 +1129,7 @@ dhcpsend(int type)
 
 	*p++ = OBend;
 
-	n = p - (uchar*)&bp;
+	n = p - (uint8_t*)&bp;
 	USED(n);
 
 	/*
@@ -1147,9 +1147,9 @@ void
 dhcprecv(void)
 {
 	int i, n, type;
-	ulong lease;
+	uint32_t lease;
 	char err[ERRMAX];
-	uchar buf[8000], vopts[256], taddr[IPaddrlen];
+	uint8_t buf[8000], vopts[256], taddr[IPaddrlen];
 	Bootp *bp;
 
 	memset(buf, 0, sizeof buf);
@@ -1324,15 +1324,15 @@ dhcprecv(void)
 }
 
 /* return pseudo-random integer in range low...(hi-1) */
-ulong
-randint(ulong low, ulong hi)
+uint32_t
+randint(uint32_t low, uint32_t hi)
 {
 	if (hi < low)
 		return low;
 	return low + nrand(hi - low);
 }
 
-long
+int32_t
 jitter(void)		/* compute small pseudo-random delay in ms */
 {
 	return randint(0, 10*1000);
@@ -1371,8 +1371,8 @@ openlisten(void)
 	return fd;
 }
 
-uchar*
-optadd(uchar *p, int op, void *d, int n)
+uint8_t*
+optadd(uint8_t *p, int op, void *d, int n)
 {
 	p[0] = op;
 	p[1] = n;
@@ -1380,8 +1380,8 @@ optadd(uchar *p, int op, void *d, int n)
 	return p+n+2;
 }
 
-uchar*
-optaddbyte(uchar *p, int op, int b)
+uint8_t*
+optaddbyte(uint8_t *p, int op, int b)
 {
 	p[0] = op;
 	p[1] = 1;
@@ -1389,8 +1389,8 @@ optaddbyte(uchar *p, int op, int b)
 	return p+3;
 }
 
-uchar*
-optaddulong(uchar *p, int op, ulong x)
+uint8_t*
+optaddulong(uint8_t *p, int op, uint32_t x)
 {
 	p[0] = op;
 	p[1] = 4;
@@ -1398,8 +1398,8 @@ optaddulong(uchar *p, int op, ulong x)
 	return p+6;
 }
 
-uchar *
-optaddaddr(uchar *p, int op, uchar *ip)
+uint8_t *
+optaddaddr(uint8_t *p, int op, uint8_t *ip)
 {
 	p[0] = op;
 	p[1] = 4;
@@ -1408,8 +1408,8 @@ optaddaddr(uchar *p, int op, uchar *ip)
 }
 
 /* add dhcp option op with value v of length n to dhcp option array p */
-uchar *
-optaddvec(uchar *p, int op, uchar *v, int n)
+uint8_t *
+optaddvec(uint8_t *p, int op, uint8_t *v, int n)
 {
 	p[0] = op;
 	p[1] = n;
@@ -1417,8 +1417,8 @@ optaddvec(uchar *p, int op, uchar *v, int n)
 	return p+2+n;
 }
 
-uchar *
-optaddstr(uchar *p, int op, char *v)
+uint8_t *
+optaddstr(uint8_t *p, int op, char *v)
 {
 	int n;
 
@@ -1434,8 +1434,8 @@ optaddstr(uchar *p, int op, char *v)
  * return nil if option is too small, else ptr to opt, and
  * store actual length via np if non-nil.
  */
-uchar*
-optget(uchar *p, int op, int *np)
+uint8_t*
+optget(uint8_t *p, int op, int *np)
 {
 	int len, code;
 
@@ -1459,7 +1459,7 @@ optget(uchar *p, int op, int *np)
 }
 
 int
-optgetbyte(uchar *p, int op)
+optgetbyte(uint8_t *p, int op)
 {
 	int len;
 
@@ -1470,8 +1470,8 @@ optgetbyte(uchar *p, int op)
 	return *p;
 }
 
-ulong
-optgetulong(uchar *p, int op)
+uint32_t
+optgetulong(uint8_t *p, int op)
 {
 	int len;
 
@@ -1483,7 +1483,7 @@ optgetulong(uchar *p, int op)
 }
 
 int
-optgetaddr(uchar *p, int op, uchar *ip)
+optgetaddr(uint8_t *p, int op, uint8_t *ip)
 {
 	int len;
 
@@ -1497,7 +1497,7 @@ optgetaddr(uchar *p, int op, uchar *ip)
 
 /* expect at most n addresses; ip[] only has room for that many */
 int
-optgetaddrs(uchar *p, int op, uchar *ip, int n)
+optgetaddrs(uint8_t *p, int op, uint8_t *ip, int n)
 {
 	int len, i;
 
@@ -1515,7 +1515,7 @@ optgetaddrs(uchar *p, int op, uchar *ip, int n)
 
 /* expect at most n addresses; ip[] only has room for that many */
 int
-optgetp9addrs(uchar *ap, int op, uchar *ip, int n)
+optgetp9addrs(uint8_t *ap, int op, uint8_t *ip, int n)
 {
 	int len, i, slen, addrs;
 	char *p;
@@ -1538,7 +1538,7 @@ optgetp9addrs(uchar *ap, int op, uchar *ip, int n)
 }
 
 int
-optgetvec(uchar *p, int op, uchar *v, int n)
+optgetvec(uint8_t *p, int op, uint8_t *v, int n)
 {
 	int len;
 
@@ -1553,7 +1553,7 @@ optgetvec(uchar *p, int op, uchar *v, int n)
 }
 
 int
-optgetstr(uchar *p, int op, char *s, int n)
+optgetstr(uint8_t *p, int op, char *s, int n)
 {
 	int len;
 
@@ -1574,7 +1574,7 @@ optgetstr(uchar *p, int op, char *s, int n)
  * 	- options end with an OBend
  */
 int
-parseoptions(uchar *p, int n)
+parseoptions(uint8_t *p, int n)
 {
 	int code, len, nin = n;
 
@@ -1615,7 +1615,7 @@ parseoptions(uchar *p, int n)
  * 	- options don't overflow packet
  */
 Bootp *
-parsebootp(uchar *p, int n)
+parsebootp(uint8_t *p, int n)
 {
 	Bootp *bp;
 
@@ -1673,7 +1673,7 @@ writendb(char *s, int n, int append)
 
 /* put server addresses into the ndb entry */
 char*
-putaddrs(char *p, char *e, char *attr, uchar *a, int len)
+putaddrs(char *p, char *e, char *attr, uint8_t *a, int len)
 {
 	int i;
 
@@ -1798,7 +1798,7 @@ nipifcs(char *net)
 
 /* return true if this is a valid v4 address */
 int
-validip(uchar *addr)
+validip(uint8_t *addr)
 {
 	return ipcmp(addr, IPnoaddr) != 0 && ipcmp(addr, v4prefix) != 0;
 }
@@ -1888,13 +1888,13 @@ addoption(char *opt)
 }
 
 char*
-optgetx(uchar *p, uchar opt)
+optgetx(uint8_t *p, uint8_t opt)
 {
 	int i, n;
-	ulong x;
+	uint32_t x;
 	char *s, *ns;
 	char str[256];
-	uchar ip[IPaddrlen], ips[16*IPaddrlen], vec[256];
+	uint8_t ip[IPaddrlen], ips[16*IPaddrlen], vec[256];
 	Option *o;
 
 	o = &option[opt];
@@ -1942,7 +1942,7 @@ optgetx(uchar *p, uchar opt)
 }
 
 void
-getoptions(uchar *p)
+getoptions(uint8_t *p)
 {
 	int i;
 	char *s, *t;

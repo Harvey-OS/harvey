@@ -32,10 +32,10 @@ struct Mem
 {
 	Lock lk;
 	int ref;
-	uchar *bp;
-	uchar *ep;
-	uchar *rp;
-	uchar *wp;
+	uint8_t *bp;
+	uint8_t *ep;
+	uint8_t *rp;
+	uint8_t *wp;
 	Mem *next;
 };
 
@@ -49,8 +49,8 @@ struct Frag
 {
 	int state;
 	Mem *mem;
-	uchar *rp;
-	uchar *wp;
+	uint8_t *rp;
+	uint8_t *wp;
 	Frag *next;
 	void (*free)(void*);
 	void *a;
@@ -61,7 +61,7 @@ struct Packet
 {
 	int size;
 	int asize;  /* allocated memory - greater than size unless foreign frags */
-	ulong pc;
+	uint32_t pc;
 
 	Packet *next;
 	
@@ -77,8 +77,8 @@ static void fragfree(Frag*);
 
 static Mem *memalloc(int, int);
 static void memfree(Mem*);
-static int memhead(Mem *m, uchar *rp, int n);
-static int memtail(Mem *m, uchar *wp, int n);
+static int memhead(Mem *m, uint8_t *rp, int n);
+static int memtail(Mem *m, uint8_t *wp, int n);
 
 static char EPacketSize[] = "bad packet size";
 static char EPacketOffset[] = "bad packet offset";
@@ -267,7 +267,7 @@ packetsplit(Packet *p, int n)
 }
 
 int
-packetconsume(Packet *p, uchar *buf, int n)
+packetconsume(Packet *p, uint8_t *buf, int n)
 {
 	NOTFREE(p);
 	if(buf && packetcopy(p, buf, 0, n) < 0)
@@ -337,7 +337,7 @@ packettrim(Packet *p, int offset, int n)
 	return 0;
 }
 
-uchar *
+uint8_t *
 packetheader(Packet *p, int n)
 {
 	Frag *f;
@@ -373,7 +373,7 @@ packetheader(Packet *p, int n)
 	return f->rp;
 }
 
-uchar *
+uint8_t *
 packettrailer(Packet *p, int n)
 {
 	Mem *m;
@@ -412,7 +412,7 @@ packettrailer(Packet *p, int n)
 }
 
 void
-packetprefix(Packet *p, uchar *buf, int n)
+packetprefix(Packet *p, uint8_t *buf, int n)
 {
 	Frag *f;
 	int nn;
@@ -454,7 +454,7 @@ packetprefix(Packet *p, uchar *buf, int n)
 }
 
 void
-packetappend(Packet *p, uchar *buf, int n)
+packetappend(Packet *p, uint8_t *buf, int n)
 {
 	Frag *f;
 	int nn;
@@ -526,12 +526,12 @@ packetconcat(Packet *p, Packet *pp)
 	NOTFREE(pp);
 }
 
-uchar *
-packetpeek(Packet *p, uchar *buf, int offset, int n)
+uint8_t *
+packetpeek(Packet *p, uint8_t *buf, int offset, int n)
 {
 	Frag *f;
 	int nn;
-	uchar *b;
+	uint8_t *b;
 
 	NOTFREE(p);
 	if(n == 0)
@@ -572,9 +572,9 @@ packetpeek(Packet *p, uchar *buf, int offset, int n)
 }
 
 int
-packetcopy(Packet *p, uchar *buf, int offset, int n)
+packetcopy(Packet *p, uint8_t *buf, int offset, int n)
 {
-	uchar *b;
+	uint8_t *b;
 
 	NOTFREE(p);
 	b = packetpeek(p, buf, offset, n);
@@ -688,7 +688,7 @@ packetasize(Packet *p)
 }
 
 void
-packetsha1(Packet *p, uchar digest[VtScoreSize])
+packetsha1(Packet *p, uint8_t digest[VtScoreSize])
 {
 	DigestState ds;
 	Frag *f;
@@ -807,7 +807,7 @@ Found:
 }
 
 Packet*
-packetforeign(uchar *buf, int n, void (*free)(void *a), void *a)
+packetforeign(uint8_t *buf, int n, void (*free)(void *a), void *a)
 {
 	Packet *p;
 	Frag *f;
@@ -981,7 +981,7 @@ memfree(Mem *m)
 }
 
 static int
-memhead(Mem *m, uchar *rp, int n)
+memhead(Mem *m, uint8_t *rp, int n)
 {
 	fprint(2, "memhead called\n");
 	abort();
@@ -996,7 +996,7 @@ memhead(Mem *m, uchar *rp, int n)
 }
 
 static int
-memtail(Mem *m, uchar *wp, int n)
+memtail(Mem *m, uint8_t *wp, int n)
 {
 	fprint(2, "memtail called\n");
 	abort();

@@ -59,7 +59,7 @@ alarmhandler(int sig)
 #define WARNPC	5
 
 int
-copyfile(int in, int out, long tosend)
+copyfile(int in, int out, int32_t tosend)
 {
 	int n;
 	int sent = 0;
@@ -194,7 +194,7 @@ sendctrl(int printerfd)
 
 /* send data file */
 void
-senddata(int inputfd, int printerfd, long size)
+senddata(int inputfd, int printerfd, int32_t size)
 {
 	int strlength;
 

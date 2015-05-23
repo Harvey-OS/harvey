@@ -43,7 +43,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
-	ulong x;
+	uint32_t x;
 	int sid, dbl, bpp, divide;
 	char *val;
 
@@ -145,7 +145,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	ushort advfunc;
+	uint16_t advfunc;
 
 	s3generic.load(vga, ctlr);
 	vgaxo(Crtx, 0x65, vga->crt[0x65]);

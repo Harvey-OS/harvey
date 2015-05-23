@@ -46,7 +46,7 @@ dirBufFree(DirBuf* db)
 }
 
 int
-dirDe2M(DirEntry* de, uchar* p, int np)
+dirDe2M(DirEntry* de, uint8_t* p, int np)
 {
 	int n;
 	Dir dir;
@@ -99,7 +99,7 @@ dirDe2M(DirEntry* de, uchar* p, int np)
 }
 
 int
-dirRead(Fid* fid, uchar* p, int count, vlong offset)
+dirRead(Fid* fid, uint8_t* p, int count, int64_t offset)
 {
 	int n, nb;
 	DirBuf *db;

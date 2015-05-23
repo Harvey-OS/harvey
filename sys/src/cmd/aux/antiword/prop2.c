@@ -414,15 +414,15 @@ eGet2RowInfo(int iFodo,
 				werr(1, "The number of columns is corrupt");
 			}
 			pRow->ucNumberOfColumns = (UCHAR)iCol;
-			iPosPrev = (int)(short)usGetWord(
+			iPosPrev = (int)(int16_t)usGetWord(
 					iFodo + iFodoOff + 4,
 					aucGrpprl);
 			for (iIndex = 0; iIndex < iCol; iIndex++) {
-				iPosCurr = (int)(short)usGetWord(
+				iPosCurr = (int)(int16_t)usGetWord(
 					iFodo + iFodoOff + 6 + iIndex * 2,
 					aucGrpprl);
 				pRow->asColumnWidth[iIndex] =
-						(short)(iPosCurr - iPosPrev);
+						(int16_t)(iPosCurr - iPosPrev);
 				iPosPrev = iPosCurr;
 			}
 			bFound154 = TRUE;
@@ -462,7 +462,7 @@ vGet2StyleInfo(int iFodo,
 {
 	int	iFodoOff, iInfoLen;
 	int	iTmp, iDel, iAdd;
-	short	sTmp;
+	int16_t	sTmp;
 	UCHAR	ucTmp;
 
 	fail(iFodo < 0 || aucGrpprl == NULL || pStyle == NULL);
@@ -474,7 +474,7 @@ vGet2StyleInfo(int iFodo,
 		iInfoLen = 0;
 		switch (ucGetByte(iFodo + iFodoOff, aucGrpprl)) {
 		case   2:	/* istd */
-			sTmp = (short)ucGetByte(
+			sTmp = (int16_t)ucGetByte(
 					iFodo + iFodoOff + 1, aucGrpprl);
 			NO_DBG_DEC(sTmp);
 			break;
@@ -515,17 +515,17 @@ vGet2StyleInfo(int iFodo,
 			NO_DBG_DEC(iAdd);
 			break;
 		case  16:	/* dxaRight */
-			pStyle->sRightIndent = (short)usGetWord(
+			pStyle->sRightIndent = (int16_t)usGetWord(
 					iFodo + iFodoOff + 1, aucGrpprl);
 			NO_DBG_DEC(pStyle->sRightIndent);
 			break;
 		case  17:	/* dxaLeft */
-			pStyle->sLeftIndent = (short)usGetWord(
+			pStyle->sLeftIndent = (int16_t)usGetWord(
 					iFodo + iFodoOff + 1, aucGrpprl);
 			NO_DBG_DEC(pStyle->sLeftIndent);
 			break;
 		case  18:	/* Nest dxaLeft */
-			sTmp = (short)usGetWord(
+			sTmp = (int16_t)usGetWord(
 					iFodo + iFodoOff + 1, aucGrpprl);
 			pStyle->sLeftIndent += sTmp;
 			if (pStyle->sLeftIndent < 0) {
@@ -535,7 +535,7 @@ vGet2StyleInfo(int iFodo,
 			NO_DBG_DEC(pStyle->sLeftIndent);
 			break;
 		case  19:	/* dxaLeft1 */
-			pStyle->sLeftIndent1 = (short)usGetWord(
+			pStyle->sLeftIndent1 = (int16_t)usGetWord(
 					iFodo + iFodoOff + 1, aucGrpprl);
 			NO_DBG_DEC(pStyle->sLeftIndent1);
 			break;

@@ -13,7 +13,7 @@
 
 // convert a little endian byte array (least significant byte first) to an mpint
 mpint*
-letomp(uchar *s, uint n, mpint *b)
+letomp(uint8_t *s, uint n, mpint *b)
 {
 	int i=0, m = 0;
 	mpdigit x=0;

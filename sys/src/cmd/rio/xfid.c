@@ -577,7 +577,7 @@ readwindow(Image *i, char *t, Rectangle r, int offset, int n)
 		r.max.y = y;
 	if(r.max.y <= r.min.y)
 		return 0;
-	return unloadimage(i, r, (uchar*)t, n);
+	return unloadimage(i, r, (uint8_t*)t, n);
 }
 
 void

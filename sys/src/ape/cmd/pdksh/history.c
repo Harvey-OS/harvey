@@ -545,7 +545,8 @@ sethistsize(n)
 			cursize = n;
 		}
 
-		history = (char **)aresize(history, n*sizeof(char *), APERM);
+		history = (char **)aresize(history, n*sizeof(char *),
+					     APERM);
 
 		histsize = n;
 		histptr = history + cursize;

@@ -138,7 +138,7 @@ typedef struct {
   jvirt_barray_ptr virt_barray_list;
 
   /* This counts total space obtained from jpeg_get_small/large */
-  long total_space_allocated;
+  int32_t total_space_allocated;
 
   /* alloc_sarray and alloc_barray set this value for use by virtual
    * array routines.

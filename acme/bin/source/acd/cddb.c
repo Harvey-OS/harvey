@@ -11,7 +11,7 @@
 #include <ctype.h>
 
 /* see CDDBPROTO */
-static ulong 
+static uint32_t 
 cddb_sum(int n)
 {
 	int ret;
@@ -23,7 +23,7 @@ cddb_sum(int n)
 	return ret;
 }
 
-static ulong
+static uint32_t
 diskid(Toc *t)
 {
 	int i, n, tmp;

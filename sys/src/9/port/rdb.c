@@ -12,7 +12,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-#include "io.h"
+
 #include "ureg.h"
 
 #define DBG	if(0)scrprint
@@ -23,7 +23,7 @@ static void
 scrprint(char *fmt, ...)
 {
 	char buf[128];
-	va_list va;
+	...;
 	int n;
 
 	va_start(va, fmt);
@@ -54,22 +54,21 @@ getline(void)
 static void*
 addr(char *s, Ureg *ureg, char **p)
 {
-	ulong a;
+	uint32_t a;
 
 	a = strtoul(s, p, 16);
 	if(a < sizeof(Ureg))
-		return ((uchar*)ureg)+a;
+		return ((uint8_t*)ureg)+a;
 	return (void*)a;
 }
 
 static void
 talkrdb(Ureg *ureg)
 {
-	uchar *a;
+	uint8_t *a;
 	char *p, *req;
 
-	serialoq = nil;		/* turn off serial console */
-	kprintoq = nil;		/* turn off /dev/kprint if active */
+	delconsdevs();		/* turn off serial console and kprint */
 //	scrprint("Plan 9 debugger\n");
 	iprint("Edebugger reset\n");
 	for(;;){
@@ -77,14 +76,14 @@ talkrdb(Ureg *ureg)
 		switch(*req){
 		case 'r':
 			a = addr(req+1, ureg, nil);
-			DBG("read %p\n", a);
+			DBG("read %#p\n", a);
 			iprint("R%.8lux %.2ux %.2ux %.2ux %.2ux\n",
 				strtoul(req+1, 0, 16), a[0], a[1], a[2], a[3]);
 			break;
 
 		case 'w':
 			a = addr(req+1, ureg, &p);
-			*(ulong*)a = strtoul(p, nil, 16);
+			*(uint32_t*)a = strtoul(p, nil, 16);
 			iprint("W\n");
 			break;
 /*

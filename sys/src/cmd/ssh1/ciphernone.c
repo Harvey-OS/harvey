@@ -17,12 +17,12 @@ initnone(Conn*, int)
 }
 
 static void
-encryptnone(CipherState*, uchar*, int)
+encryptnone(CipherState*, uint8_t*, int)
 {
 }
 
 static void
-decryptnone(CipherState*, uchar*, int)
+decryptnone(CipherState*, uint8_t*, int)
 {
 }
 

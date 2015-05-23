@@ -41,8 +41,8 @@ static int		w;
 
 static Rectangle	cursorr;
 static Point		offscreen;
-static uchar		cursset[CURSORDIM*CURSORDIM/8];
-static uchar		cursclr[CURSORDIM*CURSORDIM/8];
+static uint8_t		cursset[CURSORDIM*CURSORDIM/8];
+static uint8_t		cursclr[CURSORDIM*CURSORDIM/8];
 static int		cursdrawvers = -1;
 static Memimage		*cursorset;
 static Memimage		*cursorclear;
@@ -154,8 +154,9 @@ screeninit(int x, int y, char *chanstr)
 	setcursor(&arrow);
 }
 
-uchar*
-attachscreen(Rectangle* r, ulong* chan, int* d, int* width, int *softscreen)
+uint8_t*
+attachscreen(Rectangle* r, uint32_t* chan, int* d, int* width,
+	     int *softscreen)
 {
 	*r = gscreen->r;
 	*d = gscreen->depth;
@@ -167,7 +168,7 @@ attachscreen(Rectangle* r, ulong* chan, int* d, int* width, int *softscreen)
 }
 
 void
-getcolor(ulong , ulong* pr, ulong* pg, ulong* pb)
+getcolor(uint32_t , uint32_t* pr, uint32_t* pg, uint32_t* pb)
 {
 	*pr = 0;
 	*pg = 0;
@@ -175,7 +176,7 @@ getcolor(ulong , ulong* pr, ulong* pg, ulong* pb)
 }
 
 int
-setcolor(ulong , ulong , ulong , ulong )
+setcolor(uint32_t , uint32_t , uint32_t , uint32_t )
 {
 	return 0;
 }
@@ -186,7 +187,7 @@ setcolor(ulong , ulong , ulong , ulong )
 void
 cursordraw(Memimage *dst, Rectangle r)
 {
-	static uchar set[CURSORDIM*CURSORDIM], clr[CURSORDIM*CURSORDIM/8];
+	static uint8_t set[CURSORDIM*CURSORDIM], clr[CURSORDIM*CURSORDIM/8];
 	static int ver = -1;
 	int i, j, n;
 

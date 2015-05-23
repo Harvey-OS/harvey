@@ -12,7 +12,7 @@
 #include <draw.h>
 
 Image*
-allocimagemix(Display *d, ulong color1, ulong color3)
+allocimagemix(Display *d, uint32_t color1, uint32_t color3)
 {
 	Image *t, *b;
 	static Image *qmask;

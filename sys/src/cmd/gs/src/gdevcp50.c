@@ -218,7 +218,7 @@ cp50_rgb_color(gx_device *dev, const gx_color_value cv[])
     gx_color_value red, green, blue;
 
     red = cv[0]; green = cv[1]; blue = cv[2];
-    return ((ulong)gx_color_value_to_byte(red) << 16)+
+    return ((uint32_t)gx_color_value_to_byte(red) << 16)+
            ((uint)gx_color_value_to_byte(green) << 8) +
            gx_color_value_to_byte(blue);
 }

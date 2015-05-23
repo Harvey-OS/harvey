@@ -23,11 +23,11 @@ enum {
  *  generate a hash value for an ascii string (val) given
  *  a hash table length (hlen)
  */
-ulong
+uint32_t
 ndbhash(char *vp, int hlen)
 {
-	ulong hash;
-	uchar *val = (uchar*)vp;
+	uint32_t hash;
+	uint8_t *val = (uint8_t*)vp;
 
 	for(hash = 0; *val; val++)
 		hash = (hash*13) + *val-'a';
@@ -37,8 +37,8 @@ ndbhash(char *vp, int hlen)
 /*
  *  read a hash file with buffering
  */
-static uchar*
-hfread(Ndbhf *hf, long off, int len)
+static uint8_t*
+hfread(Ndbhf *hf, int32_t off, int len)
 {
 	if(off < hf->off || off + len > hf->off + hf->len){
 		if(seek(hf->fd, off, 0) < 0
@@ -61,7 +61,7 @@ hfopen(Ndb *db, char *attr)
 {
 	Ndbhf *hf;
 	char buf[sizeof(hf->attr)+sizeof(db->file)+2];
-	uchar *p;
+	uint8_t *p;
 	Dir *d;
 
 	/* try opening the data base if it's closed */
@@ -123,7 +123,7 @@ hfopen(Ndb *db, char *attr)
 Ndbtuple*
 ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 {
-	uchar *p;
+	uint8_t *p;
 	Ndbtuple *t;
 	Ndbhf *hf;
 
@@ -197,7 +197,7 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 {
 	Ndbtuple *t;
 	Ndb *db;
-	uchar *p;
+	uint8_t *p;
 
 	db = s->db;
 	if(s->ptr == NDBNAP)

@@ -667,7 +667,7 @@ void plot(void){
 
 int
 conv(float xv, struct xy *p, int *ip){
-	long ix;
+	int32_t ix;
 	ix = p->xa*(*p->xf)(xv*p->xmult) + p->xb;
 	if(ix<p->xbot || ix>p->xtop)
 		return(0);

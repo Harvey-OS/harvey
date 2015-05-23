@@ -573,7 +573,7 @@ op_show_continue_dispatch(i_ctx_t *i_ctx_p, int npop, int code)
 		if (chr != gs_no_char &&
 		    !r_has_type(&pfdata->BuildChar, t_null) &&
 		    (glyph == gs_no_glyph ||
-		     (array_get(imemory, &pfdata->Encoding, (long)(chr & 0xff), &eref) >= 0 &&
+		     (array_get(imemory, &pfdata->Encoding, (int32_t)(chr & 0xff), &eref) >= 0 &&
 		      (glyph_ref(imemory, glyph, &gref), obj_eq(imemory, &gref, &eref))))
 		    ) {
 		    make_int(op, chr & 0xff);
@@ -635,7 +635,7 @@ map_glyph_to_char(const gs_memory_t *mem, const ref * pgref, const ref * pencodi
     ref eref;
 
     for (ch = 0; ch < esize; ch++) {
-        array_get(mem, pencoding, (long)ch, &eref);
+        array_get(mem, pencoding, (int32_t)ch, &eref);
 	if (obj_eq(mem, pgref, &eref)) {
 	    make_int(pch, ch);
 	    return true;

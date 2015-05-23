@@ -20,9 +20,9 @@
  * this was copied from inet's guard.
  */
 static void
-netresp(char *key, long chal, char *answer)
+netresp(char *key, int32_t chal, char *answer)
 {
-	uchar buf[8];
+	uint8_t buf[8];
 
 	memset(buf, 0, sizeof buf);
 	snprint((char *)buf, sizeof buf, "%lud", chal);

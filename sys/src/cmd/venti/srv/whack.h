@@ -43,7 +43,8 @@ struct Unwhack
 
 void	whackinit(Whack*, int level);
 void	unwhackinit(Unwhack*);
-int	whack(Whack*, uchar *dst, uchar *src, int nsrc, ulong stats[WhackStats]);
+int	whack(Whack*, uchar *dst, uchar *src, int nsrc,
+		 uint32_t stats[WhackStats]);
 int	unwhack(Unwhack*, uchar *dst, int ndst, uchar *src, int nsrc);
 
 int	whackblock(uchar *dst, uchar *src, int ssize);

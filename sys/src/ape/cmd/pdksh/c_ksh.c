@@ -1077,7 +1077,7 @@ c_let(wp)
 	char **wp;
 {
 	int rv = 1;
-	long val;
+	int32_t val;
 
 	if (wp[1] == (char *) 0) /* at&t ksh does this */
 		bi_errorf("no arguments");

@@ -19,14 +19,14 @@
 typedef unsigned long long uvlong;
 typedef unsigned long ulong;
 
-static uvlong uvnan    = 0x7FF0000000000001LL;
-static uvlong uvinf    = 0x7FF0000000000000LL;
-static uvlong uvneginf = 0xFFF0000000000000LL;
+static uint64_t uvnan    = 0x7FF0000000000001LL;
+static uint64_t uvinf    = 0x7FF0000000000000LL;
+static uint64_t uvneginf = 0xFFF0000000000000LL;
 
 double
 __NaN(void)
 {
-	uvlong *p;
+	uint64_t *p;
 
 	/* gcc complains about "return *(double*)&uvnan;" */
 	p = &uvnan;
@@ -36,18 +36,18 @@ __NaN(void)
 int
 __isNaN(double d)
 {
-	uvlong x;
+	uint64_t x;
 	double *p;
 
 	p = &d;
-	x = *(uvlong*)p;
-	return (ulong)(x>>32)==0x7FF00000 && !__isInf(d, 0);
+	x = *(uint64_t*)p;
+	return (uint32_t)(x>>32)==0x7FF00000 && !__isInf(d, 0);
 }
 
 double
 __Inf(int sign)
 {
-	uvlong *p;
+	uint64_t *p;
 
 	if(sign < 0)
 		p = &uvinf;
@@ -59,11 +59,11 @@ __Inf(int sign)
 int
 __isInf(double d, int sign)
 {
-	uvlong x;
+	uint64_t x;
 	double *p;
 
 	p = &d;
-	x = *(uvlong*)p;
+	x = *(uint64_t*)p;
 	if(sign == 0)
 		return x==uvinf || x==uvneginf;
 	else if(sign > 0)

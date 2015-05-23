@@ -42,33 +42,33 @@ enum{
 
 typedef struct Voldesc Voldesc;
 struct Voldesc {
-	uchar	magic[8];	/* 0x01, "CD001", 0x01, 0x00 */
-	uchar	systemid[32];	/* system identifier */
-	uchar	volumeid[32];	/* volume identifier */
-	uchar	unused[8];	/* character set in secondary desc */
-	uchar	volsize[8];	/* volume size */
-	uchar	charset[32];
-	uchar	volsetsize[4];	/* volume set size = 1 */
-	uchar	volseqnum[4];	/* volume sequence number = 1 */
-	uchar	blocksize[4];	/* logical block size */
-	uchar	pathsize[8];	/* path table size */
-	uchar	lpathloc[4];	/* Lpath */
-	uchar	olpathloc[4];	/* optional Lpath */
-	uchar	mpathloc[4];	/* Mpath */
-	uchar	ompathloc[4];	/* optional Mpath */
-	uchar	rootdir[34];	/* root directory */
-	uchar	volsetid[128];	/* volume set identifier */
-	uchar	publisher[128];
-	uchar	prepid[128];	/* data preparer identifier */
-	uchar	applid[128];	/* application identifier */
-	uchar	notice[37];	/* copyright notice file */
-	uchar	abstract[37];	/* abstract file */
-	uchar	biblio[37];	/* bibliographic file */
-	uchar	cdate[17];	/* creation date */
-	uchar	mdate[17];	/* modification date */
-	uchar	xdate[17];	/* expiration date */
-	uchar	edate[17];	/* effective date */
-	uchar	fsvers;		/* file system version = 1 */
+	uint8_t	magic[8];	/* 0x01, "CD001", 0x01, 0x00 */
+	uint8_t	systemid[32];	/* system identifier */
+	uint8_t	volumeid[32];	/* volume identifier */
+	uint8_t	unused[8];	/* character set in secondary desc */
+	uint8_t	volsize[8];	/* volume size */
+	uint8_t	charset[32];
+	uint8_t	volsetsize[4];	/* volume set size = 1 */
+	uint8_t	volseqnum[4];	/* volume sequence number = 1 */
+	uint8_t	blocksize[4];	/* logical block size */
+	uint8_t	pathsize[8];	/* path table size */
+	uint8_t	lpathloc[4];	/* Lpath */
+	uint8_t	olpathloc[4];	/* optional Lpath */
+	uint8_t	mpathloc[4];	/* Mpath */
+	uint8_t	ompathloc[4];	/* optional Mpath */
+	uint8_t	rootdir[34];	/* root directory */
+	uint8_t	volsetid[128];	/* volume set identifier */
+	uint8_t	publisher[128];
+	uint8_t	prepid[128];	/* data preparer identifier */
+	uint8_t	applid[128];	/* application identifier */
+	uint8_t	notice[37];	/* copyright notice file */
+	uint8_t	abstract[37];	/* abstract file */
+	uint8_t	biblio[37];	/* bibliographic file */
+	uint8_t	cdate[17];	/* creation date */
+	uint8_t	mdate[17];	/* modification date */
+	uint8_t	xdate[17];	/* expiration date */
+	uint8_t	edate[17];	/* effective date */
+	uint8_t	fsvers;		/* file system version = 1 */
 };
 
 static void
@@ -113,17 +113,17 @@ dumpbootvol(void *a)
 
 typedef struct Cdir Cdir;
 struct Cdir {
-	uchar	len;
-	uchar	xlen;
-	uchar	dloc[8];
-	uchar	dlen[8];
-	uchar	date[7];
-	uchar	flags;
-	uchar	unitsize;
-	uchar	gapsize;
-	uchar	volseqnum[4];
-	uchar	namelen;
-	uchar	name[1];	/* chumminess */
+	uint8_t	len;
+	uint8_t	xlen;
+	uint8_t	dloc[8];
+	uint8_t	dlen[8];
+	uint8_t	date[7];
+	uint8_t	flags;
+	uint8_t	unitsize;
+	uint8_t	gapsize;
+	uint8_t	volseqnum[4];
+	uint8_t	namelen;
+	uint8_t	name[1];	/* chumminess */
 };
 #pragma varargck type "D" Cdir*
 
@@ -158,11 +158,11 @@ littleend(void)
 	longc = 'L';
 }
 
-static ulong
+static uint32_t
 big(void *a, int n)
 {
-	uchar *p;
-	ulong v;
+	uint8_t *p;
+	uint32_t v;
 	int i;
 
 	p = a;
@@ -172,11 +172,11 @@ big(void *a, int n)
 	return v;
 }
 
-static ulong
+static uint32_t
 little(void *a, int n)
 {
-	uchar *p;
-	ulong v;
+	uint8_t *p;
+	uint32_t v;
 	int i;
 
 	p = a;
@@ -190,11 +190,11 @@ little(void *a, int n)
 static int
 BLfmt(Fmt *fmt)
 {
-	ulong v;
-	uchar *p;
+	uint32_t v;
+	uint8_t *p;
 	char buf[20];
 
-	p = va_arg(fmt->args, uchar*);
+	p = va_arg(fmt->args, uint8_t*);
 
 	if(!(fmt->flags&FmtPrec)) {
 		fmtstrcpy(fmt, "*BL*");
@@ -217,9 +217,9 @@ static int
 Nfmt(Fmt *fmt)
 {
 	char buf[100];
-	uchar *p;
+	uint8_t *p;
 
-	p = va_arg(fmt->args, uchar*);
+	p = va_arg(fmt->args, uint8_t*);
 
 	sprint(buf, "%.*L %.*B", fmt->prec, p, fmt->prec, p+fmt->prec);
 	fmt->flags &= ~FmtPrec;
@@ -256,9 +256,9 @@ runeTfmt(Fmt *fmt)
 {
 	Rune buf[256], *r;
 	int i;
-	uchar *p;
+	uint8_t *p;
 
-	p = va_arg(fmt->args, uchar*);
+	p = va_arg(fmt->args, uint8_t*);
 	for(i=0; i*2+2<=fmt->prec; i++, p+=2)
 		buf[i] = (p[0]<<8)|p[1];
 	buf[i] = L'\0';
@@ -270,7 +270,7 @@ runeTfmt(Fmt *fmt)
 }
 
 static void
-getsect(uchar *buf, int n)
+getsect(uint8_t *buf, int n)
 {
 	if(Bseek(b, n*2048, 0) != n*2048 || Bread(b, buf, 2048) != 2048)
 {
@@ -283,19 +283,19 @@ static Header *h;
 static int fd;
 static char *file9660;
 static int off9660;
-static ulong startoff;
-static ulong endoff;
-static ulong fsoff;
-static uchar root[2048];
+static uint32_t startoff;
+static uint32_t endoff;
+static uint32_t fsoff;
+static uint8_t root[2048];
 static Voldesc *v;
-static ulong iso9660start(Cdir*);
+static uint32_t iso9660start(Cdir*);
 static void iso9660copydir(Fs*, File*, Cdir*);
 static void iso9660copyfile(Fs*, File*, Cdir*);
 
 void
 iso9660init(int xfd, Header *xh, char *xfile9660, int xoff9660)
 {
-	uchar sect[2048], sect2[2048];
+	uint8_t sect[2048], sect2[2048];
 
 	fmtinstall('L', BLfmt);
 	fmtinstall('B', BLfmt);
@@ -323,7 +323,7 @@ iso9660init(int xfd, Header *xh, char *xfile9660, int xoff9660)
 	fsoff = off9660 + h->data*h->blockSize;
 	if(fsoff > startoff)
 		vtFatal("fossil data starts after cd data");
-	if(off9660 + (vlong)h->end*h->blockSize < endoff)
+	if(off9660 + (int64_t)h->end*h->blockSize < endoff)
 		vtFatal("fossil data ends before cd data");
 	if(fsoff%h->blockSize)
 		vtFatal("cd offset not a multiple of fossil block size");
@@ -336,16 +336,17 @@ fprint(2, "look for %lud at %lud\n", startoff, startoff-off9660);
 	if(readn(fd, sect2, Blocksize) != Blocksize)
 		vtFatal("cannot read first data sector on cd via fossil");
 	if(memcmp(sect, sect2, Blocksize) != 0)
-		vtFatal("iso9660 offset is a lie %08ux %08ux", *(long*)sect, *(long*)sect2);
+		vtFatal("iso9660 offset is a lie %08ux %08ux",
+		        *(int32_t*)sect, *(int32_t*)sect2);
 }
 
 void
-iso9660labels(Disk *disk, uchar *buf, void (*write)(int, u32int))
+iso9660labels(Disk *disk, uint8_t *buf, void (*write)(int, uint32_t))
 {
-	ulong sb, eb, bn, lb, llb;
+	uint32_t sb, eb, bn, lb, llb;
 	Label l;
 	int lpb;
-	uchar sect[Blocksize];
+	uint8_t sect[Blocksize];
 
 	if(!diskReadRaw(disk, PartData, (startoff-fsoff)/h->blockSize, buf))
 		vtFatal("disk read failed: %r");
@@ -364,7 +365,7 @@ iso9660labels(Disk *disk, uchar *buf, void (*write)(int, u32int))
 	l.state = BsAlloc;
 	l.tag = Tag;
 	l.epoch = 1;
-	l.epochClose = ~(u32int)0;
+	l.epochClose = ~(uint32_t)0;
 	for(bn=sb; bn<eb; bn++){
 		lb = bn/lpb;
 		if(lb != llb){
@@ -397,16 +398,16 @@ iso9660copy(Fs *fs)
  * The first block used is the first data block of the leftmost file in the tree.
  * (Just an artifact of how mk9660 works.)
  */
-static ulong
+static uint32_t
 iso9660start(Cdir *c)
 {
-	uchar sect[Blocksize];
+	uint8_t sect[Blocksize];
 
 	while(c->flags&2){
 		getsect(sect, little(c->dloc, 4));
 		c = (Cdir*)sect;
-		c = (Cdir*)((uchar*)c+c->len);	/* skip dot */
-		c = (Cdir*)((uchar*)c+c->len);	/* skip dotdot */
+		c = (Cdir*)((uint8_t*)c+c->len);	/* skip dot */
+		c = (Cdir*)((uint8_t*)c+c->len);	/* skip dotdot */
 		/* oops: might happen if leftmost directory is empty or leftmost file is zero length! */
 		if(little(c->dloc, 4) == 0)
 			vtFatal("error parsing cd image or unfortunate cd image");	
@@ -417,8 +418,8 @@ iso9660start(Cdir *c)
 static void
 iso9660copydir(Fs *fs, File *dir, Cdir *cd)
 {
-	ulong off, end, len;
-	uchar sect[Blocksize], *esect, *p;
+	uint32_t off, end, len;
+	uint8_t sect[Blocksize], *esect, *p;
 	Cdir *c;
 
 	len = little(cd->dlen, 4);
@@ -441,9 +442,9 @@ iso9660copydir(Fs *fs, File *dir, Cdir *cd)
 }
 
 static char*
-getname(uchar **pp)
+getname(uint8_t **pp)
 {
-	uchar *p;
+	uint8_t *p;
 	int l;
 
 	p = *pp;
@@ -459,7 +460,7 @@ getname(uchar **pp)
 static char*
 getcname(Cdir *c)
 {
-	uchar *up;
+	uint8_t *up;
 	char *p, *q;
 
 	up = &c->namelen;
@@ -475,8 +476,8 @@ dmsize[12] =
 	31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
 };
 
-static ulong
-getcdate(uchar *p)	/* yMdhmsz */
+static uint32_t
+getcdate(uint8_t *p)	/* yMdhmsz */
 {
 	Tm tm;
 	int y, M, d, h, m, s, tz;
@@ -516,9 +517,9 @@ iso9660copyfile(Fs *fs, File *dir, Cdir *c)
 	Dir d;
 	DirEntry de;
 	int sysl;
-	uchar score[VtScoreSize];
-	ulong off, foff, len, mode;
-	uchar *p;
+	uint8_t score[VtScoreSize];
+	uint32_t off, foff, len, mode;
+	uint8_t *p;
 	File *f;
 
 	ind++;
@@ -526,7 +527,7 @@ iso9660copyfile(Fs *fs, File *dir, Cdir *c)
 	p = c->name + c->namelen;
 	if(((uintptr)p) & 1)
 		p++;
-	sysl = (uchar*)c + c->len - p;
+	sysl = (uint8_t*)c + c->len - p;
 	if(sysl <= 0)
 		vtFatal("missing plan9 directory entry on %d/%d/%.*s", c->namelen, c->name[0], c->namelen, c->name);
 	d.name = getname(&p);

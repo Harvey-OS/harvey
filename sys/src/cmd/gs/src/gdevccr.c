@@ -121,9 +121,9 @@ gx_device_ccr far_data gs_ccr_device =
 /* ------ Color mapping routines ------ */
 /* map an rgb color to a ccr cmy bitmap */
 private gx_color_index
-ccr_map_rgb_color(gx_device *pdev, const ushort cv[])
+ccr_map_rgb_color(gx_device *pdev, const uint16_t cv[])
 {
-  ushort r, g, b;
+  uint16_t r, g, b;
   register int shift = gx_color_value_bits - 1;
 
   r = cv[0]; g = cv[1]; b = cv[2];

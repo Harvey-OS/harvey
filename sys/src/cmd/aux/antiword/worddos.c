@@ -24,7 +24,7 @@
  * Return TRUE when succesful, otherwise FALSE
  */
 static BOOL
-bGetDocumentText(FILE *pFile, long lFilesize, const UCHAR *aucHeader)
+bGetDocumentText(FILE *pFile, int32_t lFilesize, const UCHAR *aucHeader)
 {
 	text_block_type	tTextBlock;
 	ULONG	ulTextLen;
@@ -77,7 +77,7 @@ bGetDocumentText(FILE *pFile, long lFilesize, const UCHAR *aucHeader)
  * Returns the version of Word that made the document or -1
  */
 int
-iInitDocumentDOS(FILE *pFile, long lFilesize)
+iInitDocumentDOS(FILE *pFile, int32_t lFilesize)
 {
 	int	iWordVersion;
 	BOOL	bSuccess;

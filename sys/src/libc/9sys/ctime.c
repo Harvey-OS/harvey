@@ -59,28 +59,28 @@ static	void	ct_numb(char*, int);
 #define	TZSIZE	150
 static	void	readtimezone(void);
 static	int	rd_name(char**, char*);
-static	int	rd_long(char**, long*);
+static	int	rd_long(char**, int32_t*);
 static
 struct
 {
 	char	stname[4];
 	char	dlname[4];
-	long	stdiff;
-	long	dldiff;
-	long	dlpairs[TZSIZE];
+	int32_t	stdiff;
+	int32_t	dldiff;
+	int32_t	dlpairs[TZSIZE];
 } timezone;
 
 char*
-ctime(long t)
+ctime(int32_t t)
 {
 	return asctime(localtime(t));
 }
 
 Tm*
-localtime(long tim)
+localtime(int32_t tim)
 {
 	Tm *ct;
-	long t, *p;
+	int32_t t, *p;
 	int dlflag;
 
 	if(timezone.stname[0] == 0)
@@ -106,17 +106,17 @@ localtime(long tim)
 }
 
 Tm*
-gmtime(long tim)
+gmtime(int32_t tim)
 {
 	int d0, d1;
-	long hms, day;
+	int32_t hms, day;
 	static Tm xtime;
 
 	/*
 	 * break initial number into days
 	 */
-	hms = (ulong)tim % 86400L;
-	day = (ulong)tim / 86400L;
+	hms = (uint32_t)tim % 86400L;
+	day = (uint32_t)tim / 86400L;
 	if(hms < 0) {
 		hms += 86400L;
 		day -= 1;
@@ -198,6 +198,7 @@ asctime(Tm *t)
 }
 
 static
+int
 dysize(int y)
 {
 
@@ -256,6 +257,7 @@ error:
 }
 
 static
+int
 rd_name(char **f, char *p)
 {
 	int c, i;
@@ -278,10 +280,11 @@ rd_name(char **f, char *p)
 }
 
 static
-rd_long(char **f, long *p)
+int
+rd_long(char **f, int32_t *p)
 {
 	int c, s;
-	long l;
+	int32_t l;
 
 	s = 0;
 	for(;;) {

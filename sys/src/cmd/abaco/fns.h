@@ -60,7 +60,7 @@ int dimwidth(Dimen , int);
 void frdims(Dimen *, int, int, int **);
 Image* getbg(Page *);
 Rune* getbase(Page *);
-Image* eallocimage(Display *, Rectangle, ulong, int, int);
+Image* eallocimage(Display *, Rectangle, uint32_t, int, int);
 Image* getcolor(int);
 void freecolors(void);
 Font* getfont(int);

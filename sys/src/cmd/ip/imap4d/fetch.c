@@ -210,7 +210,7 @@ fetchBody(Msg *m, Fetch *f)
 {
 	Pair p;
 	char *s, *t, *e, buf[BufSize + 2];
-	ulong n, start, stop, pos;
+	uint32_t n, start, stop, pos;
 	int fd, nn;
 
 	if(m == nil){
@@ -331,10 +331,10 @@ fetchBody(Msg *m, Fetch *f)
  * and print out the bounds & size of string returned
  */
 Pair
-fetchBodyPart(Fetch *f, ulong size)
+fetchBodyPart(Fetch *f, uint32_t size)
 {
 	Pair p;
-	ulong start, stop;
+	uint32_t start, stop;
 
 	start = 0;
 	stop = size;
@@ -358,7 +358,7 @@ fetchBodyPart(Fetch *f, ulong size)
  * produce fill bytes for what we've committed to produce
  */
 void
-fetchBodyFill(ulong n)
+fetchBodyFill(uint32_t n)
 {
 	while(n-- > 0)
 		if(Bputc(&bout, ' ') < 0)
@@ -369,7 +369,7 @@ fetchBodyFill(ulong n)
  * return a simple string
  */
 void
-fetchBodyStr(Fetch *f, char *buf, ulong size)
+fetchBodyStr(Fetch *f, char *buf, uint32_t size)
 {
 	Pair p;
 
@@ -398,7 +398,7 @@ printnlist(NList *sect)
 Msg*
 findMsgSect(Msg *m, NList *sect)
 {
-	ulong id;
+	uint32_t id;
 
 	for(; sect != nil; sect = sect->next){
 		id = sect->n;
@@ -454,7 +454,7 @@ void
 fetchBodyStruct(Msg *m, Header *h, int extensions)
 {
 	Msg *k;
-	ulong len;
+	uint32_t len;
 
 	if(msgIsMulti(h)){
 		Bputc(&bout, '(');

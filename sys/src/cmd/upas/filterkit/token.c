@@ -21,16 +21,17 @@ usage(void)
 }
 
 static String*
-mktoken(char *key, long thetime)
+mktoken(char *key, int32_t thetime)
 {
 	char *now;
-	uchar digest[SHA1dlen];
+	uint8_t digest[SHA1dlen];
 	char token[64];
 	String *s;
 	
 	now = ctime(thetime);
 	memset(now+11, ':', 8);
-	hmac_sha1((uchar*)now, strlen(now), (uchar*)key, strlen(key), digest, nil);
+	hmac_sha1((uint8_t*)now, strlen(now), (uint8_t*)key, strlen(key),
+		  digest, nil);
 	enc64(token, sizeof token, digest, sizeof digest);
 	s = s_new();
 	s_nappend(s, token, 5);
@@ -41,7 +42,7 @@ static char*
 check_token(char *key, char *file)
 {
 	String *s;
-	long now;
+	int32_t now;
 	int i;
 	char buf[1024];
 	int fd;

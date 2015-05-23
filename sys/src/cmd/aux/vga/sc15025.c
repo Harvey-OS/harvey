@@ -33,10 +33,10 @@ commandrw(void)
 		inportb(Pixmask);
 }
 
-static uchar
+static uint8_t
 commandr(void)
 {
-	uchar command;
+	uint8_t command;
 
 	commandrw();
 	command = inportb(Pixmask);
@@ -46,7 +46,7 @@ commandr(void)
 }
 
 static void
-commandw(uchar command)
+commandw(uint8_t command)
 {
 	commandrw();
 	outportb(Pixmask, command);
@@ -62,7 +62,7 @@ options(Vga*, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong pclk;
+	uint32_t pclk;
 	char *p;
 
 	/*
@@ -88,7 +88,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga*, Ctlr*)
 {
-	uchar aux, command;
+	uint8_t aux, command;
 
 	aux = 0x00;
 	/*
@@ -107,7 +107,7 @@ static void
 dump(Vga*, Ctlr* ctlr)
 {
 	int i;
-	uchar command;
+	uint8_t command;
 
 	printitem(ctlr->name, "command");
 	command = commandr();

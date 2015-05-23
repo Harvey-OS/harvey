@@ -313,7 +313,7 @@ waitgs(GSInfo *gs)
 	 */
 	char *p;
 	Biobuf *b = &gs->gsrd;
-	uchar buf[1024];
+	uint8_t buf[1024];
 	int n;
 
 //	gscmd(gs, "(\\n**bstack\\n) print flush\n");

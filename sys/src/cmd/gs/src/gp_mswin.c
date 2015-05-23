@@ -667,7 +667,7 @@ FILE *mswin_popen(const char *cmd, const char *mode)
 	else {
 	    CloseHandle(piProcInfo.hProcess);
 	    CloseHandle(piProcInfo.hThread);
-	    handle = _open_osfhandle((long)hChildStdinWr, 0);
+	    handle = _open_osfhandle((int32_t)hChildStdinWr, 0);
 	}
 
     if (hChildStdinRd != INVALID_HANDLE_VALUE)
@@ -759,7 +759,7 @@ gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
     }
     if (hfile != INVALID_HANDLE_VALUE) {
 	/* Associate a C file handle with an OS file handle. */
-	fd = _open_osfhandle((long)hfile, 0);
+	fd = _open_osfhandle((int32_t)hfile, 0);
 	if (fd == -1)
 	    CloseHandle(hfile);
 	else {
@@ -802,7 +802,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, char **fontname,
+                            char **path)
 {
     return 0;
 }

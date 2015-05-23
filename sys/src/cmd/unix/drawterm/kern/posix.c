@@ -186,14 +186,14 @@ randominit(void)
 }
 
 #undef read
-ulong
-randomread(void *v, ulong n)
+uint32_t
+randomread(void *v, uint32_t n)
 {
 #ifdef USE_RANDOM
 	int i;
 
 	for(i=0; i<n; i++)
-		((uchar*)v)[i] = random();
+		((uint8_t*)v)[i] = random();
 	return n;
 #else
 	int m;
@@ -205,16 +205,16 @@ randomread(void *v, ulong n)
 }
 
 #undef time
-long
+int32_t
 seconds(void)
 {
 	return time(0);
 }
 
-ulong
+uint32_t
 ticks(void)
 {
-	static long sec0 = 0, usec0;
+	static int32_t sec0 = 0, usec0;
 	struct timeval t;
 
 	if(gettimeofday(&t, nil) < 0)
@@ -226,7 +226,7 @@ ticks(void)
 	return (t.tv_sec-sec0)*1000+(t.tv_usec-usec0+500)/1000;
 }
 
-long
+int32_t
 showfilewrite(char *a, int n)
 {
 	error("not implemented");

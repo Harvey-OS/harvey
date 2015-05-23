@@ -77,8 +77,8 @@ struct Dfscache {
 	char	*host;
 	char	*share;
 	char	*path;
-	long	expiry;		/* expiry time in sec */
-	long	rtt;		/* round trip time, nsec */
+	int32_t	expiry;		/* expiry time in sec */
+	int32_t	rtt;		/* round trip time, nsec */
 	int	prox;		/* proximity, lower = closer */
 };
 
@@ -87,7 +87,7 @@ Dfscache *Cache;
 int
 dfscacheinfo(Fmt *f)
 {
-	long ex;
+	int32_t ex;
 	Dfscache *cp;
 
 	for(cp = Cache; cp; cp = cp->next){
@@ -231,7 +231,7 @@ static int
 remap(Dfscache *cp, Refer *re)
 {
 	int n;
-	long rtt;
+	int32_t rtt;
 	char *p, *a[4];
 	enum {
 		Hostname = 1,

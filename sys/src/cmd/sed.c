@@ -39,7 +39,7 @@ typedef struct {
 		A_LAST,
 	}type;
 	union {
-		long	line;		/* Line # */
+		int32_t	line;		/* Line # */
 		Reprog	*rp;		/* Compiled R.E. */
 	};
 } Addr;
@@ -151,7 +151,7 @@ int	sflag;				/* Set when substitution done */
 int	jflag;				/* Set when jump required */
 int	delflag;			/* Delete current line when set */
 
-long	lnum = 0;			/* Input line count */
+int32_t	lnum = 0;			/* Input line count */
 
 char	fname[MAXFILES][40];		/* File name cache */
 Biobuf	*fcode[MAXFILES];		/* File ID cache */
@@ -192,7 +192,7 @@ void	errexit(void);
 int	executable(SedCom *);
 void	execute(void);
 void	fcomp(void);
-long	getrune(void);
+int32_t	getrune(void);
 Rune	*gline(Rune *);
 int	match(Reprog *, Rune *);
 void	newfile(enum PTYPE, char *);
@@ -703,7 +703,7 @@ newfile(enum PTYPE type, char *name)
 int
 rline(Rune *buf, Rune *end)
 {
-	long c;
+	int32_t c;
 	Rune r;
 
 	while ((c = getrune()) >= 0) {
@@ -725,10 +725,10 @@ rline(Rune *buf, Rune *end)
 	return -1;
 }
 
-long
+int32_t
 getrune(void)
 {
-	long c;
+	int32_t c;
 	Rune r;
 	char *p;
 
@@ -752,7 +752,7 @@ void
 address(Addr *ap)
 {
 	int c;
-	long lno;
+	int32_t lno;
 
 	if((c = *cp++) == '$')
 		ap->type = A_DOL;
@@ -1391,9 +1391,9 @@ quit(char *fmt, ...)
 Rune *
 gline(Rune *addr)
 {
-	long c;
+	int32_t c;
 	Rune *p;
-	static long peekc = 0;
+	static int32_t peekc = 0;
 
 	if (f == 0 && opendata() < 0)
 		return 0;

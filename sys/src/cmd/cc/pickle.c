@@ -104,7 +104,7 @@ pickleinit(void)
 }
 
 void
-picklemember(Type *t, long off)
+picklemember(Type *t, int32_t off)
 {
 	Sym *s, *s1;
 	static int picklecharinit = 0;

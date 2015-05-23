@@ -18,7 +18,7 @@ typedef struct Namelist Namelist;
 
 struct Namelist
 {
-	short	index;
+	int16_t	index;
 	char		*name;
 };
 
@@ -35,7 +35,7 @@ Namelist terminal_types[] = {
 units[2][8];	/* rec and play units */
 nunits[2];		/* number in use */
 
-char *
+int8_t *
 namefor(Namelist *list, int item)
 {
 	while(list->name){
@@ -60,7 +60,7 @@ findunit(int nr)
 void
 audio_interface(Dev *, Desc *dd)
 {
-	byte *b = (uchar*)&dd->data;
+	byte *b = (uint8_t*)&dd->data;
 	byte *bb = b;
 	int nb = dd->data.bLength;
 	int ctl, ch, u, x;

@@ -619,7 +619,7 @@ printnewpage(int pagenum, int end, Biobuf *ioutb)
 */
 
 void
-cmap2ascii85(uchar *b, uchar *c) {
+cmap2ascii85(uint8_t *b, uint8_t *c) {
 	int i;
 	unsigned long i1;
 
@@ -639,8 +639,8 @@ cmap2ascii85(uchar *b, uchar *c) {
 	c[6] = '\0';
 }
 
-static uchar *arr = nil;
-ulong	onesbits = ~0;
+static uint8_t *arr = nil;
+uint32_t	onesbits = ~0;
 void
 imagebits(Biobuf *ioutb, Memimage *im)
 {
@@ -648,7 +648,7 @@ imagebits(Biobuf *ioutb, Memimage *im)
 	int bitoff;
 	int j, n, n4, i, bpl, nrest;
 	int lsf;
-	uchar c85[6], *data, *src, *dst;
+	uint8_t c85[6], *data, *src, *dst;
 	Memimage *tmp;
 	Rectangle r;
 
@@ -705,7 +705,7 @@ imagebits(Biobuf *ioutb, Memimage *im)
 	}
 	nrest = n - n4;
 	if (nrest != 0) {
-		uchar foo[4];
+		uint8_t foo[4];
 
 		for (i=0; i<nrest; i++)
 			foo[i] = data[n4+i];

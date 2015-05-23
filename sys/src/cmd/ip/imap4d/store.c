@@ -129,7 +129,7 @@ msgSeen(Box *box, Msg *m)
 	return 1;
 }
 
-ulong
+uint32_t
 mapFlag(char *name)
 {
 	return mapInt(flagMap, name);

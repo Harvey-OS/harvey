@@ -141,7 +141,7 @@ gs_type1_interpret(gs_type1_state * pcis, const gs_glyph_data_t *pgd,
 	    } else if (c < cx_num4) {	/* 2-byte number */
 		decode_push_num2(csp, cstack, c, cip, state, encrypted);
 	    } else if (c == cx_num4) {	/* 4-byte number */
-		long lw;
+		int32_t lw;
 
 		decode_num4(lw, cip, state, encrypted);
 		CS_CHECK_PUSH(csp, cstack);
@@ -151,7 +151,7 @@ gs_type1_interpret(gs_type1_state * pcis, const gs_glyph_data_t *pgd,
 		     * We handle the only case we've ever seen that
 		     * actually uses such large numbers specially.
 		     */
-		    long denom;
+		    int32_t denom;
 
 		    c0 = *cip++;
 		    charstring_next(c0, state, c, encrypted);

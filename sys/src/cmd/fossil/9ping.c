@@ -10,16 +10,16 @@
 #include <u.h>
 #include <libc.h>
 
-typedef uvlong u64int;
+typedef uint64_t u64int;
 
-#define TWID64	((u64int)~(u64int)0)
+#define TWID64	((uint64_t)~(uint64_t)0)
 
 
-u64int
+uint64_t
 unittoull(char *s)
 {
 	char *es;
-	u64int n;
+	uint64_t n;
 
 	if(s == nil)
 		return TWID64;

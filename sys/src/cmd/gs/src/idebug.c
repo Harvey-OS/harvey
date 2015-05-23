@@ -76,7 +76,7 @@ debug_print_full_ref(const gs_memory_t *mem, const ref * pref)
     dprintf1("(%x)", r_type_attrs(pref));
     switch (r_type(pref)) {
 	case t_array:
-	    dprintf2("array(%u)0x%lx", size, (ulong) pref->value.refs);
+	    dprintf2("array(%u)0x%lx", size, (uint32_t) pref->value.refs);
 	    break;
 	case t_astruct:
 	    goto strct;
@@ -84,15 +84,15 @@ debug_print_full_ref(const gs_memory_t *mem, const ref * pref)
 	    dprintf1("boolean %x", pref->value.boolval);
 	    break;
 	case t_device:
-	    dprintf1("device 0x%lx", (ulong) pref->value.pdevice);
+	    dprintf1("device 0x%lx", (uint32_t) pref->value.pdevice);
 	    break;
 	case t_dictionary:
 	    dprintf3("dict(%u/%u)0x%lx",
 		     dict_length(pref), dict_maxlength(pref),
-		     (ulong) pref->value.pdict);
+		     (uint32_t) pref->value.pdict);
 	    break;
 	case t_file:
-	    dprintf1("file 0x%lx", (ulong) pref->value.pfile);
+	    dprintf1("file 0x%lx", (uint32_t) pref->value.pfile);
 	    break;
 	case t_fontID:
 	    goto strct;
@@ -104,10 +104,10 @@ debug_print_full_ref(const gs_memory_t *mem, const ref * pref)
 	    break;
 	case t_mixedarray:
 	    dprintf2("mixed packedarray(%u)0x%lx", size,
-		     (ulong) pref->value.packed);
+		     (uint32_t) pref->value.packed);
 	    break;
 	case t_name:
-	    dprintf2("name(0x%lx#%u)", (ulong) pref->value.pname,
+	    dprintf2("name(0x%lx#%u)", (uint32_t) pref->value.pname,
 		     name_index(mem, pref));
 	    debug_print_name(mem, pref);
 	    break;
@@ -115,7 +115,8 @@ debug_print_full_ref(const gs_memory_t *mem, const ref * pref)
 	    dprintf("null");
 	    break;
 	case t_oparray:
-	    dprintf2("op_array(%u)0x%lx:", size, (ulong) pref->value.const_refs);
+	    dprintf2("op_array(%u)0x%lx:", size,
+                     (uint32_t) pref->value.const_refs);
 	    {
 		const op_array_table *opt = op_index_op_array_table(size);
 
@@ -126,8 +127,9 @@ debug_print_full_ref(const gs_memory_t *mem, const ref * pref)
 	case t_operator:
 	    dprintf1("op(%u", size);
 	    if (size > 0 && size < op_def_count)	/* just in case */
-		dprintf1(":%s", (const char *)(op_index_def(size)->oname + 1));
-	    dprintf1(")0x%lx", (ulong) pref->value.opproc);
+		dprintf1(":%s",
+                         (const char *)(op_index_def(size)->oname + 1));
+	    dprintf1(")0x%lx", (uint32_t) pref->value.opproc);
 	    break;
 	case t_real:
 	    dprintf1("real %f", pref->value.realval);
@@ -137,10 +139,10 @@ debug_print_full_ref(const gs_memory_t *mem, const ref * pref)
 	    break;
 	case t_shortarray:
 	    dprintf2("short packedarray(%u)0x%lx", size,
-		     (ulong) pref->value.packed);
+		     (uint32_t) pref->value.packed);
 	    break;
 	case t_string:
-	    dprintf2("string(%u)0x%lx", size, (ulong) pref->value.bytes);
+	    dprintf2("string(%u)0x%lx", size, (uint32_t) pref->value.bytes);
 	    break;
 	case t_struct:
 	  strct:{
@@ -152,7 +154,7 @@ debug_print_full_ref(const gs_memory_t *mem, const ref * pref)
 		dprintf2("struct %s 0x%lx",
 			 (r_is_foreign(pref) ? "-foreign-" :
 			  gs_struct_type_name_string(otype)),
-			 (ulong) obj);
+			 (uint32_t) obj);
 	    }
 	    break;
 	default:
@@ -162,7 +164,7 @@ debug_print_full_ref(const gs_memory_t *mem, const ref * pref)
 private void
 debug_print_packed_ref(const gs_memory_t *mem, const ref_packed *pref)
 {
-    ushort elt = *pref & packed_value_mask;
+    uint16_t elt = *pref & packed_value_mask;
     ref nref;
 
     switch (*pref >> r_packed_type_shift) {
@@ -180,7 +182,7 @@ debug_print_packed_ref(const gs_memory_t *mem, const ref_packed *pref)
 	case pt_executable_name:
 	    dprintf("<exec_name>");
     ptn:    name_index_ref(mem, elt, &nref);
-	    dprintf2("(0x%lx#%u)", (ulong) nref.value.pname, elt);
+	    dprintf2("(0x%lx#%u)", (uint32_t) nref.value.pname, elt);
 	    debug_print_name(mem, &nref);
 	    break;
 	default:
@@ -224,7 +226,7 @@ debug_dump_one_ref(const gs_memory_t *mem, const ref * p)
     for (; ap->mask; ++ap)
 	if ((attrs & ap->mask) == ap->value)
 	    dputc(ap->print);
-    dprintf2(" 0x%04x 0x%08lx", r_size(p), *(const ulong *)&p->value);
+    dprintf2(" 0x%04x 0x%08lx", r_size(p), *(const uint32_t *)&p->value);
     print_ref_data(mem, p);
     dflush();
 }
@@ -253,9 +255,9 @@ debug_dump_refs(const gs_memory_t *mem, const ref * from,
     uint count = size;
 
     if (size && msg)
-	dprintf2("%s at 0x%lx:\n", msg, (ulong) from);
+	dprintf2("%s at 0x%lx:\n", msg, (uint32_t) from);
     while (count--) {
-	dprintf2("0x%lx: 0x%04x ", (ulong)p, r_type_attrs(p));
+	dprintf2("0x%lx: 0x%04x ", (uint32_t)p, r_type_attrs(p));
 	debug_dump_one_ref(mem, p);
 	dputc('\n');
 	p++;
@@ -274,10 +276,10 @@ debug_dump_stack(const gs_memory_t *mem,
 	const ref *p = ref_stack_index(pstack, --i);
 
 	if (m) {
-	    dprintf2("%s at 0x%lx:\n", m, (ulong) pstack);
+	    dprintf2("%s at 0x%lx:\n", m, (uint32_t) pstack);
 	    m = NULL;
 	}
-	dprintf2("0x%lx: 0x%02x ", (ulong)p, r_type(p));
+	dprintf2("0x%lx: 0x%02x ", (uint32_t)p, r_type(p));
 	debug_dump_one_ref(mem, p);
 	dputc('\n');
     }
@@ -296,7 +298,7 @@ debug_dump_array(const gs_memory_t *mem, const ref * array)
 	    dprintf2("%s at 0x%lx isn't an array.\n",
 		     (type < countof(type_strings) ?
 		      type_strings[type] : "????"),
-		     (ulong) array);
+		     (uint32_t) array);
 	    return;
 	case t_oparray:
 	    /* This isn't really an array, but we'd like to see */
@@ -317,10 +319,10 @@ debug_dump_array(const gs_memory_t *mem, const ref * array)
 
 	packed_get(mem, pp, &temp);
 	if (r_is_packed(pp)) {
-	    dprintf2("0x%lx* 0x%04x ", (ulong)pp, (uint)*pp);
+	    dprintf2("0x%lx* 0x%04x ", (uint32_t)pp, (uint)*pp);
 	    print_ref_data(mem, &temp);
 	} else {
-	    dprintf2("0x%lx: 0x%02x ", (ulong)pp, r_type(&temp));
+	    dprintf2("0x%lx: 0x%02x ", (uint32_t)pp, r_type(&temp));
 	    debug_dump_one_ref(mem, &temp);
 	}
 	dputc('\n');

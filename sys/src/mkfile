@@ -1,3 +1,6 @@
+MKSHELL=$PLAN9/bin/rc
+objtype=amd64
+
 </$objtype/mkfile
 
 LIBS=\
@@ -25,21 +28,23 @@ LIBS=\
 	libmemlayer\
 	libmp\
 	libndb\
-	liboventi\
 	libplumb\
 	libregexp\
-	libscribble\
 	libsec\
 	libstdio\
 	libsunrpc\
 	libthread\
 	libventi\
 
+MORENOLIBS=\
+	libscribble\
+	liboventi\
 
-CMDS=cmd\
+NOCMDS=\
+	cmd\
 	games\
 
-SUBSYS=ape\
+NOSUBSYS=ape\
 	/acme\
 
 none:VQ:

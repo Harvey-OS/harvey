@@ -21,13 +21,13 @@ int
 convA2M(Authenticator *f, char *ap, char *key)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	LONG(id);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	if(key)
 		encrypt(key, ap, n);
 	return n;

@@ -78,7 +78,7 @@ pdf_find_named(gx_device_pdf * pdev, const gs_param_string * pname,
  */
 int
 pdf_create_named(gx_device_pdf *pdev, const gs_param_string *pname,
-		 cos_type_t cotype, cos_object_t **ppco, long id)
+		 cos_type_t cotype, cos_object_t **ppco, int32_t id)
 {
     cos_object_t *pco;
     cos_value_t value;
@@ -102,7 +102,7 @@ pdf_create_named(gx_device_pdf *pdev, const gs_param_string *pname,
 }
 int
 pdf_create_named_dict(gx_device_pdf *pdev, const gs_param_string *pname,
-		      cos_dict_t **ppcd, long id)
+		      cos_dict_t **ppcd, int32_t id)
 {
     cos_object_t *pco;
     int code = pdf_create_named(pdev, pname, cos_type_dict, &pco, id);

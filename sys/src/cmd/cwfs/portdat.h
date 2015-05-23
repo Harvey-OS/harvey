@@ -100,7 +100,7 @@ struct	Tag
 struct	Qid9p1
 {
 	Off	path;			/* was long */
-	ulong	version;		/* should be Off */
+	uint32_t	version;		/* should be Off */
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -264,7 +264,7 @@ struct	Chan
 	char	whochan[50];
 	char	whoname[NAMELEN];
 	void	(*whoprint)(Chan*);
-	ulong	flags;
+	uint32_t	flags;
 	int	chan;			/* overall channel #, mostly for printing */
 	int	nmsgs;			/* outstanding messages, set under flock -- for flush */
 
@@ -317,7 +317,7 @@ struct	Tlock
 
 struct	Cons
 {
-	ulong	flags;		/* overall flags for all channels */
+	uint32_t	flags;		/* overall flags for all channels */
 	QLock;			/* generic qlock for mutex */
 	int	uid;		/* botch -- used to get uid on cons_create */
 	int	gid;		/* botch -- used to get gid on cons_create */
@@ -330,9 +330,9 @@ struct	Cons
 
 	int	profile;	/* are we profiling? */
 	long*	profbuf;
-	ulong	minpc;
-	ulong	maxpc;
-	ulong	nprofbuf;
+	uint32_t	minpc;
+	uint32_t	maxpc;
+	uint32_t	nprofbuf;
 
 	long	nlarge;		/* number of large message buffers */
 	long	nsmall;		/* ... small ... */
@@ -365,7 +365,7 @@ struct	File
 	Off	addr;
 	long	slot;		/* ordinal # of Dentry with a directory block */
 	Off	lastra;		/* read ahead address */
-	ulong	fid;
+	uint32_t	fid;
 	Userid	uid;
 	Auth	*auth;
 	char	open;
@@ -374,7 +374,7 @@ struct	File
 		#define	FREMOV	4
 
 	Off	doffset;	/* directory reading */
-	ulong	dvers;
+	uint32_t	dvers;
 	long	dslot;
 };
 
@@ -423,27 +423,27 @@ struct	Superb
 
 struct	Conf
 {
-	ulong	nmach;		/* processors */
-	ulong	mem;		/* total physical bytes of memory */
-	ulong	nuid;		/* distinct uids */
-	ulong	nserve;		/* server processes */
-	ulong	nfile;		/* number of fid -- system wide */
-	ulong	nwpath;		/* number of active paths, derived from nfile */
-	ulong	gidspace;	/* space for gid names -- derived from nuid */
+	uint32_t	nmach;		/* processors */
+	uint32_t	mem;		/* total physical bytes of memory */
+	uint32_t	nuid;		/* distinct uids */
+	uint32_t	nserve;		/* server processes */
+	uint32_t	nfile;		/* number of fid -- system wide */
+	uint32_t	nwpath;		/* number of active paths, derived from nfile */
+	uint32_t	gidspace;	/* space for gid names -- derived from nuid */
 
-	ulong	nlgmsg;		/* number of large message buffers */
-	ulong	nsmmsg;		/* number of small message buffers */
+	uint32_t	nlgmsg;		/* number of large message buffers */
+	uint32_t	nsmmsg;		/* number of small message buffers */
 
 	Off	recovcw;	/* recover addresses */
 	Off	recovro;
 	Off	firstsb;
 	Off	recovsb;
 
-	ulong	configfirst;	/* configure before starting normal operation */
+	uint32_t	configfirst;	/* configure before starting normal operation */
 	char	*confdev;
 	char	*devmap;	/* name of config->file device mapping file */
 
-	ulong	nauth;		/* number of Auth structs */
+	uint32_t	nauth;		/* number of Auth structs */
 	uchar	nodump;		/* no periodic dumps */
 	uchar	dumpreread;	/* read and compare in dump copy */
 };
@@ -458,7 +458,7 @@ enum {
  */
 struct	Msgbuf
 {
-	ulong	magic;
+	uint32_t	magic;
 	short	count;
 	short	flags;
 		#define	LARGE	(1<<0)
@@ -508,7 +508,7 @@ struct	Flag
 {
 	char*	arg0;
 	char*	help;
-	ulong	flag;
+	uint32_t	flag;
 };
 
 struct	Rtc

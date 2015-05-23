@@ -737,8 +737,8 @@ it may come later.
 	}
 
 #define	BUILD_CMYK( c, m, y, k ) \
-	((((long)(c)&255)<<24)|(((long)(m)&255)<<16)|\
-	(((long)(y)&255)<<8)|((long)(k)&255))
+	((((int32_t)(c)&255)<<24)|(((int32_t)(m)&255)<<16)|\
+	(((int32_t)(y)&255)<<8)|((int32_t)(k)&255))
 
 /*
 *	This structure is for colour compensation
@@ -874,11 +874,11 @@ typedef	struct {
 	/* These are the error buffers for error diffusion. MAX_PIXELS*2
 	   is needed for 1440 dpi printing. */
 	
-	short	err[ MAX_ED_LINES ][ ICOLN ][ MAX_PIXELS*2 ];
+	int16_t	err[ MAX_ED_LINES ][ ICOLN ][ MAX_PIXELS*2 ];
 	
 	/* Error buffer pointers. I love C :-) */
 	
-	short	( *error[ MAX_ED_LINES ] )[ MAX_PIXELS*2 ];
+	int16_t	( *error[ MAX_ED_LINES ] )[ MAX_PIXELS*2 ];
 	
 	/* This stores the halftoning result for a line, 
 	   not yet in device format. (It's CMYK 1 byte/pixel/colour) */
@@ -910,7 +910,7 @@ typedef	struct	{
 	int 	step;					/* Steps on input data					*/
 	byte	*res;					/* Result								*/
 	byte	*block;					/* Blocking data						*/
-	short	**err;					/* Pointers to error buffers			*/
+	int16_t	**err;					/* Pointers to error buffers			*/
 	int		lim1; 					/* Halftoning lower limit				*/
 	int		lim2; 					/* Halftoning upper limit				*/
 	int		mval; 					/* Level represented by 'light' colour	*/
@@ -2009,7 +2009,7 @@ int		i;
 private	int		IsScanlineEmpty( RENDER *r, byte *line )
 {
 int		i;
-long	*p;
+int32_t	*p;
 	
 	p = (long *) line;
 	
@@ -2381,7 +2381,7 @@ private	void	PackLine( byte *input, int pixnum, int lev_on, int step,
 						  RAWLINE *line )
 {
 byte	bits;
-char	*result;
+int8_t	*result;
 int		i, j, k;
 
 	result = line->data;
@@ -2784,7 +2784,7 @@ void		(*htone)( HTONE *, int );
 EDEV		*dev;
 int			offs;
 HTONE		hdata;
-short		*errs[ MAX_ED_LINES ];
+int16_t		*errs[ MAX_ED_LINES ];
 int			i;
 
 	/* Get the rendering function */
@@ -3015,8 +3015,8 @@ byte	*res;						/* Result								*/
 byte	*data;						/* Input data							*/
 byte	*block;						/* Block pixel							*/
 int		lim1, lim2;					/* Limits								*/
-short	e0, e1;						/* Propagating errors in current line	*/
-short	*l0;						/* Error buffer pointer					*/
+int16_t	e0, e1;						/* Propagating errors in current line	*/
+int16_t	*l0;						/* Error buffer pointer					*/
 
 	length  = htone->render->width;
 
@@ -3285,8 +3285,8 @@ byte	*res;						/* Result								*/
 byte	*data;						/* Input data							*/
 byte	*block;						/* Block pixel							*/
 int		lim1, lim2;					/* Limits								*/
-short	e0, e1;						/* Propagating errors in current line	*/
-short	*l0, *l1;					/* Error buffer pointers				*/
+int16_t	e0, e1;						/* Propagating errors in current line	*/
+int16_t	*l0, *l1;					/* Error buffer pointers				*/
 
 	splash  = htone->render->dev->splash;
 	leakage = htone->render->dev->splash;

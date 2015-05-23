@@ -63,9 +63,9 @@ int
 hdatefmt(Fmt *f)
 {
 	Tm *tm;
-	ulong t;
+	uint32_t t;
 
-	t = va_arg(f->args, ulong);
+	t = va_arg(f->args, uint32_t);
 	tm = gmtime(t);
 	return fmtprint(f, "%s, %.2d %s %.4d %.2d:%.2d:%.2d GMT",
 		wdayname[tm->wday], tm->mday, monname[tm->mon], tm->year+1900,
@@ -116,7 +116,7 @@ datenum(char **d)
  * parse a date and return the seconds since the epoch
  * return 0 for a failure
  */
-ulong
+uint32_t
 hdate2sec(char *date)
 {
 	Tm tm;

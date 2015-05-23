@@ -145,7 +145,7 @@ accept(int ctl, char *dir)
 {
 	char buf[Maxpath];
 	char *num;
-	long n;
+	int32_t n;
 
 	num = strrchr(dir, '/');
 	if(num == nil)
@@ -168,7 +168,7 @@ reject(int ctl, char *dir, char *cause)
 {
 	char buf[Maxpath];
 	char *num;
-	long n;
+	int32_t n;
 
 	num = strrchr(dir, '/');
 	if(num == 0)
@@ -186,7 +186,8 @@ reject(int ctl, char *dir, char *cause)
  *  perform the identity translation (in case we can't reach cs)
  */
 static int
-identtrans(char *netdir, char *addr, char *naddr, int na, char *file, int nf)
+identtrans(char *netdir, char *addr, char *naddr, int na,
+	   char *file, int nf)
 {
 	char proto[Maxpath];
 	char *p;
@@ -217,7 +218,7 @@ nettrans(char *addr, char *naddr, int na, char *file, int nf)
 	char buf[Maxpath];
 	char netdir[Maxpath];
 	char *p, *p2;
-	long n;
+	int32_t n;
 
 	/*
 	 *  parse, get network directory

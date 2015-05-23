@@ -15,11 +15,11 @@ Point
 stringsubfont(Image *b, Point p, Image *color, Subfont *f, char *cs)
 {
 	int w, width;
-	uchar *s;
+	uint8_t *s;
 	Rune c;
 	Fontchar *i;
 
-	s = (uchar*)cs;
+	s = (uint8_t*)cs;
 	for(; c=*s; p.x+=width){
 		width = 0;
 		if(c < Runeself)
@@ -47,12 +47,12 @@ strsubfontwidth(Subfont *f, char *cs)
 {
 	Rune c;
 	Point p;
-	uchar *s;
+	uint8_t *s;
 	Fontchar *i;
 	int w, width;
 
 	p = Pt(0, f->height);
-	s = (uchar*)cs;
+	s = (uint8_t*)cs;
 	for(; c=*s; p.x+=width){
 		width = 0;
 		if(c < Runeself)

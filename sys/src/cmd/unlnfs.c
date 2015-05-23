@@ -93,8 +93,8 @@ rename(char *d, char *old, char *new)
 void
 long2short(char shortname[ENCLEN+1], char *longname)
 {
-	uchar digest[MD5dlen];
-	md5((uchar*)longname, strlen(longname), digest, nil);
+	uint8_t digest[MD5dlen];
+	md5((uint8_t*)longname, strlen(longname), digest, nil);
 	enc32(shortname, ENCLEN+1, digest, MD5dlen);
 }
 

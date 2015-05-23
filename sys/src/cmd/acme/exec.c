@@ -1431,7 +1431,8 @@ runwaittask(void *v)
 }
 
 void
-run(Window *win, char *s, Rune *rdir, int ndir, int newns, char *argaddr, char *xarg, int iseditcmd)
+run(Window *win, char *s, Rune *rdir, int ndir, int newns,
+    char *argaddr, char *xarg, int iseditcmd)
 {
 	void **arg;
 	Command *c;

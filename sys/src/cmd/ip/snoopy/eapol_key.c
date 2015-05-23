@@ -15,16 +15,16 @@
 
 typedef struct Hdr
 {
-	uchar	desc;
+	uint8_t	desc;
 } Hdr;
 
 typedef struct Rc4KeyDesc
 {
-	uchar	ln[2];
-	uchar	replay[8];
-	uchar	iv[16];
-	uchar	idx;
-	uchar	md[16];
+	uint8_t	ln[2];
+	uint8_t	replay[8];
+	uint8_t	iv[16];
+	uint8_t	idx;
+	uint8_t	md[16];
 } Rc4KeyDesc;
 
 enum

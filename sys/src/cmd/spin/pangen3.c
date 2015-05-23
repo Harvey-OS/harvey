@@ -431,7 +431,7 @@ comwork(FILE *fd, Lextok *now, int m)
 
 void
 comment(FILE *fd, Lextok *now, int m)
-{	extern short terse, nocast;
+{	extern int16_t terse, nocast;
 
 	terse=nocast=1;
 	comwork(fd, now, m);

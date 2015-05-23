@@ -47,7 +47,7 @@
 struct lzw_decode_s {
     byte datum;
     byte len;			/* length of code */
-    ushort prefix;		/* code to be prefixed */
+    uint16_t prefix;		/* code to be prefixed */
 };
 
 gs_private_st_simple(st_lzw_decode, lzw_decode, "lzw_decode");

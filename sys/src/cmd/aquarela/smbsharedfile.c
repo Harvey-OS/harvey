@@ -68,7 +68,9 @@ locklistfree(SmbLockList **llp)
 }
 
 int
-smbsharedfilelock(SmbSharedFile *sf, SmbSession *s, ushort pid, vlong base, vlong limit)
+smbsharedfilelock(SmbSharedFile *sf, SmbSession *s, uint16_t pid,
+		  int64_t base,
+		  int64_t limit)
 {
 	SmbLockListEntry smblock;
 	SmbLockListEntry *l, *nl, **lp;
@@ -103,7 +105,8 @@ smbsharedfilelock(SmbSharedFile *sf, SmbSession *s, ushort pid, vlong base, vlon
 }
 
 int
-smbsharedfileunlock(SmbSharedFile *sf, SmbSession *s, ushort pid, vlong base, vlong limit)
+smbsharedfileunlock(SmbSharedFile *sf, SmbSession *s, uint16_t pid,
+		    int64_t base, int64_t limit)
 {
 	SmbLockListEntry smblock;
 	SmbLockListEntry *l, **lp;
@@ -191,7 +194,7 @@ sharemake(int denyread, int denywrite)
 		return SMB_OPEN_MODE_SHARE_DENY_NONE;
 }
 
-static ushort
+static uint16_t
 sharesubtract(int share1, int share2)
 {
 	int dr1, dw1;

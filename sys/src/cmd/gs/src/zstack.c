@@ -77,7 +77,7 @@ zindex(i_ctx_t *i_ctx_p)
     register os_ptr opn;
 
     check_type(*op, t_integer);
-    if ((ulong)op->value.intval >= op - osbot) {
+    if ((uint32_t)op->value.intval >= op - osbot) {
 	/* Might be in an older stack block. */
 	ref *elt;
 
@@ -107,7 +107,7 @@ zroll(i_ctx_t *i_ctx_p)
 
     check_type(*op1, t_integer);
     check_type(*op, t_integer);
-    if ((ulong) op1->value.intval > op1 - osbot) {
+    if ((uint32_t) op1->value.intval > op1 - osbot) {
 	/*
 	 * The data might span multiple stack blocks.
 	 * There are efficient ways to handle this situation,

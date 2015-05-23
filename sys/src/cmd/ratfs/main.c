@@ -21,9 +21,9 @@ struct	Filetree
 {
 	int	level;
 	char	*name;
-	ushort	type;
+	uint16_t	type;
 	int	mode;
-	ulong	qid;
+	uint32_t	qid;
 };
 
 	/* names of first-level directories - must be in order of level*/
@@ -208,7 +208,7 @@ fatal(char *fmt, ...)
  *  create a new directory node
  */
 Node*
-newnode(Node *parent, char *name, ushort type, int mode, ulong qid)
+newnode(Node *parent, char *name, uint16_t type, int mode, uint32_t qid)
 {
 	Node *np;
 

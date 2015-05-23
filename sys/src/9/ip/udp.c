@@ -33,6 +33,7 @@ enum
 
 	IP_UDPPROTO	= 17,
 	UDP_USEAD7	= 52,
+	UDP_USEAD6	= 36,
 
 	Udprxms		= 200,
 	Udptickms	= 100,
@@ -43,48 +44,48 @@ typedef struct Udp4hdr Udp4hdr;
 struct Udp4hdr
 {
 	/* ip header */
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	Unused;
-	uchar	udpproto;	/* Protocol */
-	uchar	udpplen[2];	/* Header plus data length */
-	uchar	udpsrc[IPv4addrlen];	/* Ip source */
-	uchar	udpdst[IPv4addrlen];	/* Ip destination */
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* Identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	Unused;
+	uint8_t	udpproto;	/* Protocol */
+	uint8_t	udpplen[2];	/* Header plus data length */
+	uint8_t	udpsrc[IPv4addrlen];	/* Ip source */
+	uint8_t	udpdst[IPv4addrlen];	/* Ip destination */
 
 	/* udp header */
-	uchar	udpsport[2];	/* Source port */
-	uchar	udpdport[2];	/* Destination port */
-	uchar	udplen[2];	/* data length */
-	uchar	udpcksum[2];	/* Checksum */
+	uint8_t	udpsport[2];	/* Source port */
+	uint8_t	udpdport[2];	/* Destination port */
+	uint8_t	udplen[2];	/* data length */
+	uint8_t	udpcksum[2];	/* Checksum */
 };
 
 typedef struct Udp6hdr Udp6hdr;
 struct Udp6hdr {
-	uchar viclfl[4];
-	uchar len[2];
-	uchar nextheader;
-	uchar hoplimit;
-	uchar udpsrc[IPaddrlen];
-	uchar udpdst[IPaddrlen];
+	uint8_t viclfl[4];
+	uint8_t len[2];
+	uint8_t nextheader;
+	uint8_t hoplimit;
+	uint8_t udpsrc[IPaddrlen];
+	uint8_t udpdst[IPaddrlen];
 
 	/* udp header */
-	uchar	udpsport[2];	/* Source port */
-	uchar	udpdport[2];	/* Destination port */
-	uchar	udplen[2];	/* data length */
-	uchar	udpcksum[2];	/* Checksum */
+	uint8_t	udpsport[2];	/* Source port */
+	uint8_t	udpdport[2];	/* Destination port */
+	uint8_t	udplen[2];	/* data length */
+	uint8_t	udpcksum[2];	/* Checksum */
 };
 
 /* MIB II counters */
 typedef struct Udpstats Udpstats;
 struct Udpstats
 {
-	uvlong	udpInDatagrams;
-	ulong	udpNoPorts;
-	ulong	udpInErrors;
-	uvlong	udpOutDatagrams;
+	uint32_t	udpInDatagrams;
+	uint32_t	udpNoPorts;
+	uint32_t	udpInErrors;
+	uint32_t	udpOutDatagrams;
 };
 
 typedef struct Udppriv Udppriv;
@@ -96,8 +97,8 @@ struct Udppriv
 	Udpstats	ustats;
 
 	/* non-MIB stats */
-	ulong		csumerr;		/* checksum errors */
-	ulong		lenerr;			/* short packet */
+	uint32_t		csumerr;		/* checksum errors */
+	uint32_t		lenerr;			/* short packet */
 };
 
 void (*etherprofiler)(char *name, int qlen);
@@ -110,7 +111,7 @@ typedef struct Udpcb Udpcb;
 struct Udpcb
 {
 	QLock;
-	uchar	headers;
+	unsigned char	headers;
 };
 
 static char*
@@ -191,8 +192,8 @@ udpkick(void *x, Block *bp)
 	Conv *c = x;
 	Udp4hdr *uh4;
 	Udp6hdr *uh6;
-	ushort rport;
-	uchar laddr[IPaddrlen], raddr[IPaddrlen];
+	uint16_t rport;
+	uint8_t laddr[IPaddrlen], raddr[IPaddrlen];
 	Udpcb *ucb;
 	int dlen, ptcllen;
 	Udppriv *upriv;
@@ -203,7 +204,7 @@ udpkick(void *x, Block *bp)
 	upriv = c->p->priv;
 	f = c->p->f;
 
-//	netlog(c->p->f, Logudp, "udp: kick\n");	/* frequent and uninteresting */
+	netlog(c->p->f, Logudp, "udp: kick\n");
 	if(bp == nil)
 		return;
 
@@ -222,6 +223,21 @@ udpkick(void *x, Block *bp)
 		if(ipforme(f, laddr) != Runi)
 			findlocalip(f, laddr, raddr);
 		bp->rp += IPaddrlen;		/* Ignore ifc address */
+		rport = nhgets(bp->rp);
+		bp->rp += 2+2;			/* Ignore local port */
+		break;
+	case 6:					/* OBS */
+		/* get user specified addresses */
+		bp = pullupblock(bp, UDP_USEAD6);
+		if(bp == nil)
+			return;
+		ipmove(raddr, bp->rp);
+		bp->rp += IPaddrlen;
+		ipmove(laddr, bp->rp);
+		bp->rp += IPaddrlen;
+		/* pick interface closest to dest */
+		if(ipforme(f, laddr) != Runi)
+			findlocalip(f, laddr, raddr);
 		rport = nhgets(bp->rp);
 		bp->rp += 2+2;			/* Ignore local port */
 		break;
@@ -338,13 +354,13 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	Udp6hdr *uh6;
 	Conv *c;
 	Udpcb *ucb;
-	uchar raddr[IPaddrlen], laddr[IPaddrlen];
-	ushort rport, lport;
+	uint8_t raddr[IPaddrlen], laddr[IPaddrlen];
+	uint16_t rport, lport;
 	Udppriv *upriv;
 	Fs *f;
 	int version;
 	int ottl, oviclfl, olen;
-	uchar *p;
+	uint8_t *p;
 
 	upriv = udp->priv;
 	f = udp->f;
@@ -414,7 +430,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 
 	c = iphtlook(&upriv->ht, raddr, rport, laddr, lport);
 	if(c == nil){
-		/* no conversation found */
+		/* no converstation found */
 		upriv->ustats.udpNoPorts++;
 		qunlock(udp);
 		netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
@@ -425,7 +441,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 			icmpnoconv(f, bp);
 			break;
 		case V6:
-			icmphostunr(f, ifc, bp, Icmp6_port_unreach, 0);
+			icmphostunr(f, ifc, bp, icmp6_port_unreach, 0);
 			break;
 		default:
 			panic("udpiput2: version %d", version);
@@ -502,6 +518,15 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		hnputs(p, rport); p += 2;
 		hnputs(p, lport);
 		break;
+	case 6:					/* OBS */
+		/* pass the src address */
+		bp = padblock(bp, UDP_USEAD6);
+		p = bp->rp;
+		ipmove(p, raddr); p += IPaddrlen;
+		ipmove(p, ipforme(f, laddr)==Runi ? laddr : ifc->lifc->local); p += IPaddrlen;
+		hnputs(p, rport); p += 2;
+		hnputs(p, lport);
+		break;
 	}
 
 	if(bp->next)
@@ -523,11 +548,19 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 char*
 udpctl(Conv *c, char **f, int n)
 {
+	Mach *m = machp();
 	Udpcb *ucb;
 
 	ucb = (Udpcb*)c->ptcl;
 	if(n == 1){
-		if(strcmp(f[0], "headers") == 0){
+		if(strcmp(f[0], "oldheaders") == 0){	/* OBS */
+			ucb->headers = 6;
+			if (m->externup)
+				print("program %s wrote `oldheaders' to udp "
+					"ctl file; fix or recompile it\n",
+					m->externup->text);
+			return nil;
+		} else if(strcmp(f[0], "headers") == 0){
 			ucb->headers = 7;	/* new headers format */
 			return nil;
 		}
@@ -540,8 +573,8 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 {
 	Udp4hdr *h4;
 	Udp6hdr *h6;
-	uchar source[IPaddrlen], dest[IPaddrlen];
-	ushort psource, pdest;
+	uint8_t source[IPaddrlen], dest[IPaddrlen];
+	uint16_t psource, pdest;
 	Conv *s, **p;
 	int version;
 
@@ -596,8 +629,7 @@ udpstats(Proto *udp, char *buf, int len)
 	Udppriv *upriv;
 
 	upriv = udp->priv;
-	return snprint(buf, len, "InDatagrams: %llud\nNoPorts: %lud\n"
-		"InErrors: %lud\nOutDatagrams: %llud\n",
+	return snprint(buf, len, "InDatagrams: %lud\nNoPorts: %lud\nInErrors: %lud\nOutDatagrams: %lud\n",
 		upriv->ustats.udpInDatagrams,
 		upriv->ustats.udpNoPorts,
 		upriv->ustats.udpInErrors,

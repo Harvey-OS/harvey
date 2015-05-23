@@ -53,7 +53,7 @@ struct Task {
 	vlong	runmax;
 	vlong	runthis;
 	long	runs;
-	ulong	tevents[Nevent];
+	uint32_t	tevents[Nevent];
 };
 
 enum {
@@ -467,7 +467,7 @@ redraw(int scaleno)
 }
 
 Task*
-newtask(ulong pid)
+newtask(uint32_t pid)
 {
 	Task *t;
 	char buf[64], *p;
@@ -664,7 +664,8 @@ drawtrace(void)
 					tasks[i].runmax = 0;
 					tasks[i].runthis = 0;
 					tasks[i].runs = 0;
-					memset(tasks[i].tevents, 0, Nevent*sizeof(ulong));
+					memset(tasks[i].tevents, 0,
+					       Nevent*sizeof(uint32_t));
 					
 				}
 				break;

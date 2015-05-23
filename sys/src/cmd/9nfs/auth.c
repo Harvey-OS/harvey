@@ -17,16 +17,16 @@ xfauth(Xfile *, String *)
 	return 0;
 }
 
-long
-xfauthread(Xfid *xf, long, uchar *, long)
+int32_t
+xfauthread(Xfid *xf, int32_t, uint8_t *, int32_t)
 {
 
 	chat("xfauthread %s...", xf->uid);
 	return 0;
 }
 
-long
-xfauthwrite(Xfid *xf, long, uchar *, long)
+int32_t
+xfauthwrite(Xfid *xf, int32_t, uint8_t *, int32_t)
 {
 	chat("xfauthwrite %s...", xf->uid);
 	return 0;

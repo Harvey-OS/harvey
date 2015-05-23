@@ -42,14 +42,14 @@ static Assoc tagtab[] = {
 	{"xr",	XR},
 	{"xx",	XX},
 };
-static long	sget(char *, char *, char **, char **);
+static int32_t	sget(char *, char *, char **, char **);
 static void	soutpiece(char *, char *);
 
 void
 slangprintentry(Entry e, int cmd)
 {
 	char *p, *pe, *vs, *ve;
-	long t;
+	int32_t t;
 
 	p = e.start;
 	pe = e.end;
@@ -124,10 +124,10 @@ slangprintentry(Entry e, int cmd)
 	outnl(0);
 }
 
-long
-slangnextoff(long fromoff)
+int32_t
+slangnextoff(int32_t fromoff)
 {
-	long a;
+	int32_t a;
 	char *p;
 
 	a = Bseek(bdict, fromoff, 0);
@@ -156,12 +156,12 @@ slangprintkey(void)
  * Set pvb to beginning of value (after tag).
  * Set pve to point at newline that ends the value.
  */
-static long
+static int32_t
 sget(char *b, char *e, char **pvb, char **pve)
 {
 	char *p;
 	char buf[3];
-	long t, tans;
+	int32_t t, tans;
 
 	buf[2] = 0;
 	tans = -1;

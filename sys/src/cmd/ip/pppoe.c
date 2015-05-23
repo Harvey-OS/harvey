@@ -16,10 +16,10 @@
 #include <libc.h>
 #include <ip.h>
 
-void dumppkt(uchar*);
-uchar *findtag(uchar*, int, int*, int);
-void hexdump(uchar*, int);
-int malformed(uchar*, int, int);
+void dumppkt(uint8_t*);
+uint8_t *findtag(uint8_t*, int, int*, int);
+void hexdump(uint8_t*, int);
+int malformed(uint8_t*, int, int);
 int pppoe(char*);
 void execppp(int);
 
@@ -33,9 +33,9 @@ char *acname;
 char *pppname = "/bin/ip/ppp";
 char *srvname = "";
 char *wantac;
-uchar *cookie;
+uint8_t *cookie;
 int cookielen;
-uchar etherdst[6];
+uint8_t etherdst[6];
 int mtu = 1492;
 
 void
@@ -111,9 +111,9 @@ main(int argc, char **argv)
 
 typedef struct Etherhdr Etherhdr;
 struct Etherhdr {
-	uchar dst[6];
-	uchar src[6];
-	uchar type[2];
+	uint8_t dst[6];
+	uint8_t src[6];
+	uint8_t type[2];
 };
 
 enum {
@@ -124,10 +124,10 @@ enum {
 	EtherPppoeSession = 0x8864,
 };
 
-uchar etherbcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t etherbcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 int
-etherhdr(uchar *pkt, uchar *dst, int type)
+etherhdr(uint8_t *pkt, uint8_t *dst, int type)
 {
 	Etherhdr *eh;
 
@@ -139,10 +139,10 @@ etherhdr(uchar *pkt, uchar *dst, int type)
 
 typedef struct Pppoehdr Pppoehdr;
 struct Pppoehdr {
-	uchar verstype;
-	uchar code;
-	uchar sessid[2];
-	uchar length[2];	/* of payload */
+	uint8_t verstype;
+	uint8_t code;
+	uint8_t sessid[2];
+	uint8_t length[2];	/* of payload */
 };
 
 enum {
@@ -164,7 +164,7 @@ enum {
 };
 
 int
-pppoehdr(uchar *pkt, int code, int sessid)
+pppoehdr(uint8_t *pkt, int code, int sessid)
 {
 	Pppoehdr *ph;
 
@@ -177,8 +177,8 @@ pppoehdr(uchar *pkt, int code, int sessid)
 
 typedef struct Taghdr Taghdr;
 struct Taghdr {
-	uchar type[2];
-	uchar length[2];	/* of value */
+	uint8_t type[2];
+	uint8_t length[2];	/* of value */
 };
 
 enum {
@@ -194,7 +194,7 @@ enum {
 };
 
 int
-tag(uchar *pkt, int type, void *value, int nvalue)
+tag(uint8_t *pkt, int type, void *value, int nvalue)
 {
 	Taghdr *h;
 
@@ -207,10 +207,10 @@ tag(uchar *pkt, int type, void *value, int nvalue)
 
 /* PPPoE Active Discovery Initiation */
 int
-padi(uchar *pkt)
+padi(uint8_t *pkt)
 {
 	int sz, tagoff;
-	uchar *length;
+	uint8_t *length;
 
 	sz = 0;
 	sz += etherhdr(pkt+sz, etherbcast, EtherPppoeDiscovery);
@@ -224,10 +224,10 @@ padi(uchar *pkt)
 
 /* PPPoE Active Discovery Request */
 int
-padr(uchar *pkt)
+padr(uint8_t *pkt)
 {
 	int sz, tagoff;
-	uchar *length;
+	uint8_t *length;
 
 	sz = 0;
 	sz += etherhdr(pkt+sz, etherdst, EtherPppoeDiscovery);
@@ -256,7 +256,7 @@ ewrite(int fd, void *buf, int nbuf)
 }
 
 void*
-emalloc(long n)
+emalloc(int32_t n)
 {
 	void *v;
 
@@ -285,7 +285,7 @@ aread(int timeout, int fd, void *buf, int nbuf)
 }
 
 int
-pktread(int timeout, int fd, void *buf, int nbuf, int (*want)(uchar*))
+pktread(int timeout, int fd, void *buf, int nbuf, int (*want)(uint8_t*))
 {
 	int n, t2;
 	n = -1;
@@ -319,9 +319,9 @@ bad(char *reason)
 }
 
 void*
-copy(uchar *s, int len)
+copy(uint8_t *s, int len)
 {
-	uchar *v;
+	uint8_t *v;
 
 	v = emalloc(len+1);
 	memmove(v, s, len);
@@ -340,10 +340,10 @@ clearstate(void)
 }
 
 int
-wantoffer(uchar *pkt)
+wantoffer(uint8_t *pkt)
 {
 	int i, len;
-	uchar *s;
+	uint8_t *s;
 	Etherhdr *eh;
 	Pppoehdr *ph;
 
@@ -379,10 +379,10 @@ wantoffer(uchar *pkt)
 }
 
 int
-wantsession(uchar *pkt)
+wantsession(uint8_t *pkt)
 {
 	int len;
-	uchar *s;
+	uint8_t *s;
 	Pppoehdr *ph;
 
 	ph = (Pppoehdr*)(pkt+EtherHdrSz);
@@ -417,7 +417,7 @@ int
 pppoe(char *ether)
 {
 	char buf[64];
-	uchar pkt[1520];
+	uint8_t pkt[1520];
 	int dfd, p[2], n, sfd, sz, timeout;
 	Pppoehdr *ph;
 
@@ -550,11 +550,11 @@ execppp(int fd)
 	sysfatal("exec: %r");
 }
 
-uchar*
-findtag(uchar *pkt, int tagtype, int *plen, int skip)
+uint8_t*
+findtag(uint8_t *pkt, int tagtype, int *plen, int skip)
 {
 	int len, sz, totlen;
-	uchar *tagdat, *v;
+	uint8_t *tagdat, *v;
 	Etherhdr *eh;
 	Pppoehdr *ph;
 	Taghdr *t;
@@ -584,10 +584,10 @@ findtag(uchar *pkt, int tagtype, int *plen, int skip)
 }
 
 void
-dumptags(uchar *tagdat, int ntagdat)
+dumptags(uint8_t *tagdat, int ntagdat)
 {
 	int i,len, sz;
-	uchar *v;
+	uint8_t *v;
 	Taghdr *t;
 
 	sz = 0;
@@ -638,7 +638,7 @@ dumptags(uchar *tagdat, int ntagdat)
 }
 
 void
-dumppkt(uchar *pkt)
+dumppkt(uint8_t *pkt)
 {
 	int et;
 	Etherhdr *eh;
@@ -662,7 +662,7 @@ dumppkt(uchar *pkt)
 }
 
 int
-malformed(uchar *pkt, int n, int wantet)
+malformed(uint8_t *pkt, int n, int wantet)
 {
 	int et;
 	Etherhdr *eh;
@@ -686,7 +686,7 @@ malformed(uchar *pkt, int n, int wantet)
 }
 
 void
-hexdump(uchar *a, int na)
+hexdump(uint8_t *a, int na)
 {
 	int i;
 	char buf[80];

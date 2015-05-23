@@ -627,7 +627,7 @@ vGetDocumentData(FILE *pFile, const pps_info_type *pPPS,
  * Returns the version of Word that made the document or -1
  */
 int
-iInitDocumentOLE(FILE *pFile, long lFilesize)
+iInitDocumentOLE(FILE *pFile, int32_t lFilesize)
 {
 	pps_info_type	PPS_info;
 	ULONG	*aulBBD, *aulSBD;
@@ -635,7 +635,7 @@ iInitDocumentOLE(FILE *pFile, long lFilesize)
 	ULONG	ulBdbListStart, ulAdditionalBBDlist;
 	ULONG	ulRootStartblock, ulSbdStartblock, ulSBLstartblock;
 	ULONG	ulStart, ulTmp;
-	long	lMaxBlock;
+	int32_t	lMaxBlock;
 	size_t	tBBDLen, tSBDLen, tNumBbdBlocks, tRootListLen;
 	int	iWordVersion, iIndex, iToGo;
 	BOOL	bSuccess;

@@ -31,7 +31,7 @@ struct Caphash
 {
 	Caphash	*next;
 	char		hash[Hashlen];
-	ulong		ticks;
+	uint32_t		ticks;
 };
 
 struct
@@ -79,8 +79,8 @@ capremove(Chan *c)
 }
 
 
-static int
-capstat(Chan *c, uchar *db, int n)
+static int32_t
+capstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, capdir, ncapdir, devgen);
 }
@@ -100,7 +100,7 @@ capopen(Chan *c, int omode)
 		return c;
 	}
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qhash:
 		if(!iseve())
 			error(Eperm);
@@ -121,14 +121,14 @@ hashstr(uchar *hash)
 	int i;
 
 	for(i = 0; i < Hashlen; i++)
-		seprint(buf+2*i, &buf[sizeof buf], "%2.2ux", hash[i]);
+		sprint(buf+2*i, "%2.2ux", hash[i]);
 	buf[2*Hashlen] = 0;
 	return buf;
 }
  */
 
 static Caphash*
-remcap(uchar *hash)
+remcap(uint8_t *hash)
 {
 	Caphash *t, **l;
 
@@ -153,7 +153,7 @@ remcap(uchar *hash)
 
 /* add a capability, throwing out any old ones */
 static void
-addcap(uchar *hash)
+addcap(uint8_t *hash)
 {
 	Caphash *p, *t, **l;
 
@@ -184,14 +184,14 @@ addcap(uchar *hash)
 }
 
 static void
-capclose(Chan*)
+capclose(Chan* c)
 {
 }
 
-static long
-capread(Chan *c, void *va, long n, vlong)
+static int32_t
+capread(Chan *c, void *va, int32_t n, int64_t m)
 {
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qdir:
 		return devdirread(c, va, n, capdir, ncapdir, devgen);
 
@@ -202,16 +202,16 @@ capread(Chan *c, void *va, long n, vlong)
 	return n;
 }
 
-static long
-capwrite(Chan *c, void *va, long n, vlong)
+static int32_t
+capwrite(Chan *c, void *va, int32_t n, int64_t m)
 {
 	Caphash *p;
 	char *cp;
-	uchar hash[Hashlen];
+	uint8_t hash[Hashlen];
 	char *key, *from, *to;
 	char err[256];
 
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qhash:
 		if(!iseve())
 			error(Eperm);
@@ -238,7 +238,8 @@ capwrite(Chan *c, void *va, long n, vlong)
 			error(Eshort);
 		*key++ = 0;
 
-		hmac_sha1((uchar*)from, strlen(from), (uchar*)key, strlen(key), hash, nil);
+		hmac_sha1((uint8_t*)from, strlen(from), (uint8_t*)key,
+			  strlen(key), hash, nil);
 
 		p = remcap(hash);
 		if(p == nil){
@@ -252,13 +253,13 @@ capwrite(Chan *c, void *va, long n, vlong)
 			to = from;
 		} else {
 			*to++ = 0;
-			if(strcmp(from, up->user) != 0)
+			if(strcmp(from, m->externup->user) != 0)
 				error("capability must match user");
 		}
 
 		/* set user id */
-		kstrdup(&up->user, to);
-		up->basepri = PriNormal;
+		kstrdup(&m->externup->user, to);
+		m->externup->basepri = PriNormal;
 
 		free(p);
 		free(cp);

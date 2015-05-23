@@ -15,7 +15,7 @@
 #pragma lib "/$M/lib/ape/libl.a"
 
 extern int printable(int);
-extern void allprint(char);
+extern void allprint(int8_t);
 extern int yyracc(int);
 extern int yyreject(void);
 extern void yyless(int);

@@ -28,17 +28,17 @@ struct Dirlist
 {
 	uint base;
 	Dirtab *dir;
-	uchar **data;
+	uint8_t **data;
 	int ndir;
 	int mdir;
 };
 
 static Dirtab rootdir[Nrootfiles] = {
-	"#/",		{Qdir, 0, QTDIR},	0,		DMDIR|0555,
+	"#/",	{Qdir, 0, QTDIR},	0,		DMDIR|0555,
 	"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555,
 };
-static uchar *rootdata[Nrootfiles];
-static Dirlist rootlist = 
+static uint8_t *rootdata[Nrootfiles];
+static Dirlist rootlist =
 {
 	0,
 	rootdir,
@@ -50,7 +50,7 @@ static Dirlist rootlist =
 static Dirtab bootdir[Nbootfiles] = {
 	"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555,
 };
-static uchar *bootdata[Nbootfiles];
+static uint8_t *bootdata[Nbootfiles];
 static Dirlist bootlist =
 {
 	Qboot,
@@ -64,7 +64,8 @@ static Dirlist bootlist =
  *  add a file to the list
  */
 static void
-addlist(Dirlist *l, char *name, uchar *contents, ulong len, int perm)
+addlist(Dirlist *l, char *name, uint8_t *contents, uint32_t len,
+        int perm)
 {
 	Dirtab *d;
 
@@ -86,7 +87,7 @@ addlist(Dirlist *l, char *name, uchar *contents, ulong len, int perm)
  *  add a root file
  */
 void
-addbootfile(char *name, uchar *contents, ulong len)
+addbootfile(char *name, uint8_t *contents, uint32_t len)
 {
 	addlist(&bootlist, name, contents, len, 0555);
 }
@@ -122,7 +123,7 @@ rootattach(char *spec)
 }
 
 static int
-rootgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+rootgen(Chan *c, char *name, Dirtab* dir, int j, int s, Dir *dp)
 {
 	int t;
 	Dirtab *d;
@@ -161,7 +162,7 @@ rootgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 		if(t >= l->ndir)
 			return -1;
 if(t < 0){
-print("rootgen %llud %d %d\n", c->qid.path, s, t);
+print("rootgen %#llux %d %d\n", c->qid.path, s, t);
 panic("whoops");
 }
 		d = &l->dir[t];
@@ -176,8 +177,8 @@ rootwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c,  nc, name, nname, nil, 0, rootgen);
 }
 
-static int
-rootstat(Chan *c, uchar *dp, int n)
+static int32_t
+rootstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	return devstat(c, dp, n, nil, 0, rootgen);
 }
@@ -192,18 +193,18 @@ rootopen(Chan *c, int omode)
  * sysremove() knows this is a nop
  */
 static void
-rootclose(Chan*)
+rootclose(Chan* c)
 {
 }
 
-static long
-rootread(Chan *c, void *buf, long n, vlong off)
+static int32_t
+rootread(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	ulong t;
+	uint32_t t;
 	Dirtab *d;
 	Dirlist *l;
-	uchar *data;
-	ulong offset = off;
+	uint8_t *data;
+	uint32_t offset = off;
 
 	t = c->qid.path;
 	switch(t){
@@ -229,19 +230,12 @@ rootread(Chan *c, void *buf, long n, vlong off)
 		return 0;
 	if(offset+n > d->length)
 		n = d->length - offset;
-#ifdef asdf
-print("[%d] kaddr %.8ulx base %.8ulx offset %ld (%.8ulx), n %d %.8ulx %.8ulx %.8ulx\n", 
-		t, buf, data, offset, offset, n,
-		((ulong*)(data+offset))[0],
-		((ulong*)(data+offset))[1],
-		((ulong*)(data+offset))[2]);
-#endif asdf
 	memmove(buf, data+offset, n);
 	return n;
 }
 
-static long
-rootwrite(Chan*, void*, long, vlong)
+static int32_t
+rootwrite(Chan* c, void* v, int32_t n, int64_t m)
 {
 	error(Egreg);
 	return 0;

@@ -752,7 +752,8 @@ read_token(char *token, int max_len, const char **pin)
 
 /* Add an entry to a configuration.  Return its uniq_mode_t. */
 int
-add_entry(config_t * pconf, char *category, const char *item, int file_index)
+add_entry(config_t * pconf, char *category, const char *item,
+          int file_index)
 {
     if (item[0] == '-' && islower(item[1])) {	/* set category */
 	strcpy(category, item + 1);

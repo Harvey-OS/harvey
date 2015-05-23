@@ -1,6 +1,10 @@
 </sys/src/mkfile.proto
 
-CC=6c
-LD=6l
-O=6
-AS=6a
+#CC=6c
+#LD=6l
+#O=6
+#AS=6a
+CC=gcc
+LD=gcc
+O=o
+AS=as

@@ -220,7 +220,7 @@ fsysWstatAllow(Fsys* fsys)
 }
 
 static char modechars[] = "YUGalLdHSATs";
-static ulong modebits[] = {
+static uint32_t modebits[] = {
 	ModeSticky,
 	ModeSetUid,
 	ModeSetGid,
@@ -237,7 +237,7 @@ static ulong modebits[] = {
 };
 
 char*
-fsysModeString(ulong mode, char *buf)
+fsysModeString(uint32_t mode, char *buf)
 {
 	int i;
 	char *p;
@@ -251,9 +251,9 @@ fsysModeString(ulong mode, char *buf)
 }
 
 int
-fsysParseMode(char* s, ulong* mode)
+fsysParseMode(char* s, uint32_t* mode)
 {
-	ulong x, y;
+	uint32_t x, y;
 	char *p;
 
 	x = 0;
@@ -943,7 +943,7 @@ fsysClrp(Fsys* fsys, int argc, char* argv[])
 }
 
 static int
-fsysEsearch1(File* f, char* s, u32int elo)
+fsysEsearch1(File* f, char* s, uint32_t elo)
 {
 	int n, r;
 	DirEntry de;
@@ -998,7 +998,7 @@ fsysEsearch1(File* f, char* s, u32int elo)
 }
 
 static int
-fsysEsearch(Fs* fs, char* path, u32int elo)
+fsysEsearch(Fs* fs, char* path, uint32_t elo)
 {
 	int n;
 	File *f;
@@ -1321,7 +1321,7 @@ fsckClri(Fsck *fsck, char *name, MetaBlock *mb, int i, Block *b)
 }
 
 static void
-fsckClose(Fsck *fsck, Block *b, u32int epoch)
+fsckClose(Fsck *fsck, Block *b, uint32_t epoch)
 {
 	Label l;
 
@@ -1508,11 +1508,11 @@ out:
 	return r;
 }
 
-static ulong
+static uint32_t
 freemem(void)
 {
 	int nf, pgsize = 0;
-	uvlong size, userpgs = 0, userused = 0;
+	uint64_t size, userpgs = 0, userused = 0;
 	char *ln, *sl;
 	char *fields[2];
 	Biobuf *bp;

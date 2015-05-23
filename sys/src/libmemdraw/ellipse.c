@@ -50,17 +50,17 @@ struct Param {
 struct State {
 	int	a;
 	int	x;
-	vlong	a2;	/* a^2 */
-	vlong	b2;	/* b^2 */
-	vlong	b2x;	/* b^2 * x */
-	vlong	a2y;	/* a^2 * y */
-	vlong	c1;
-	vlong	c2;	/* test criteria */
-	vlong	ee;	/* ee = e(x+1/2,y-1/2) - (a^2+b^2)/4 */
-	vlong	dxe;
-	vlong	dye;
-	vlong	d2xe;
-	vlong	d2ye;
+	int64_t	a2;	/* a^2 */
+	int64_t	b2;	/* b^2 */
+	int64_t	b2x;	/* b^2 * x */
+	int64_t	a2y;	/* a^2 * y */
+	int64_t	c1;
+	int64_t	c2;	/* test criteria */
+	int64_t	ee;	/* ee = e(x+1/2,y-1/2) - (a^2+b^2)/4 */
+	int64_t	dxe;
+	int64_t	dye;
+	int64_t	d2xe;
+	int64_t	d2ye;
 };
 
 static
@@ -69,14 +69,14 @@ newstate(State *s, int a, int b)
 {
 	s->x = 0;
 	s->a = a;
-	s->a2 = (vlong)(a*a);
-	s->b2 = (vlong)(b*b);
-	s->b2x = (vlong)0;
-	s->a2y = s->a2*(vlong)b;
-	s->c1 = -((s->a2>>2) + (vlong)(a&1) + s->b2);
-	s->c2 = -((s->b2>>2) + (vlong)(b&1));
+	s->a2 = (int64_t)(a*a);
+	s->b2 = (int64_t)(b*b);
+	s->b2x = (int64_t)0;
+	s->a2y = s->a2*(int64_t)b;
+	s->c1 = -((s->a2>>2) + (int64_t)(a&1) + s->b2);
+	s->c2 = -((s->b2>>2) + (int64_t)(b&1));
 	s->ee = -s->a2y;
-	s->dxe = (vlong)0;
+	s->dxe = (int64_t)0;
 	s->dye = s->ee<<1;
 	s->d2xe = s->b2<<1;
 	s->d2ye = s->a2<<1;
@@ -218,7 +218,7 @@ erect(int x0, int y0, int x1, int y1, Param *p)
 {
 	Rectangle r;
 
-/*	print("R %d,%d %d,%d\n", x0, y0, x1, y1); /**/
+/*	print("R %d,%d %d,%d\n", x0, y0, x1, y1); */
 	r = Rect(p->c.x+x0, p->c.y+y0, p->c.x+x1+1, p->c.y+y1+1);
 	memdraw(p->dst, r, p->src, addpt(p->sp, r.min), memopaque, p00, p->op);
 }
@@ -233,7 +233,7 @@ epoint(int x, int y, Param *p)
 	Point p0;
 	Rectangle r;
 
-/*	print("P%d %d,%d\n", p->t, x, y);	/**/
+/*	print("P%d %d,%d\n", p->t, x, y);	*/
 	p0 = Pt(p->c.x+x, p->c.y+y);
 	r = Rpt(addpt(p0, p->disc->r.min), addpt(p0, p->disc->r.max));
 	memdraw(p->dst, r, p->src, addpt(p->sp, r.min), p->disc, p->disc->r.min, p->op);
@@ -246,7 +246,7 @@ static
 void
 eline(int x0, int y0, int x1, int y1, Param *p)
 {
-/*	print("L%d %d,%d %d,%d\n", p->t, x0, y0, x1, y1); /**/
+/*	print("L%d %d,%d %d,%d\n", p->t, x0, y0, x1, y1); */
 	if(x1 > x0+1)
 		erect(x0+1, y0-p->t, x1-1, y1+p->t, p);
 	else if(y1 > y0+1)

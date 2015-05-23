@@ -18,7 +18,7 @@ enum {
 static	int	accountmatch(char*, char**, int, char*);
 static	Node*	acctwalk(char*,  Node*);
 static	int	dommatch(char*, char*);
-static	Address* ipsearch(ulong, Address*, int);
+static	Address* ipsearch(uint32_t, Address*, int);
 static	Node*	ipwalk(char*,  Node*);
 static	Node*	trwalk(char*, Node*);
 static	int	usermatch(char*, char*);
@@ -88,8 +88,8 @@ static Node*
 trwalk(char *name, Node *np)
 {
 	Node *p;
-	ulong peerip;
-	uchar addr[IPv4addrlen];
+	uint32_t peerip;
+	uint8_t addr[IPv4addrlen];
 
 	v4parseip(addr, name);
 	peerip = nhgetl(addr);
@@ -107,8 +107,8 @@ static Node*
 ipwalk(char *name,  Node *np)
 {
 	Address *ap;
-	ulong peerip;
-	uchar addr[IPv4addrlen];
+	uint32_t peerip;
+	uint8_t addr[IPv4addrlen];
 
 	v4parseip(addr, name);
 	peerip = nhgetl(addr);
@@ -165,9 +165,9 @@ acctwalk(char *name, Node *np)
  */
 
 static Address*
-ipsearch(ulong addr, Address *base, int n)
+ipsearch(uint32_t addr, Address *base, int n)
 {
-	ulong top, bot, mid;
+	uint32_t top, bot, mid;
 	Address *ap;
 
 	bot = 0;
@@ -192,7 +192,7 @@ ipsearch(ulong addr, Address *base, int n)
 int
 dread(Fid *fidp, int cnt)
 {
-	uchar *q, *eq, *oq;
+	uint8_t *q, *eq, *oq;
 	int n, skip;
 	Node *np;
 
@@ -228,7 +228,7 @@ dread(Fid *fidp, int cnt)
 int
 hread(Fid *fidp, int cnt)
 {
-	uchar *q, *eq, *oq;
+	uint8_t *q, *eq, *oq;
 	int i, n, path;
 	Address *p;
 	Node *np;
@@ -277,7 +277,7 @@ void
 cleantrusted(void)
 {
 	Node *np, **l;
-	ulong t;
+	uint32_t t;
 
 	np = finddir(Trusted);
 	if (np == 0)
@@ -449,10 +449,10 @@ static uint
 hash(char *s)
 {
 	uint h;
-	uchar *p;
+	uint8_t *p;
 
 	h = 0;
-	for(p=(uchar*)s; *p; p++)
+	for(p=(uint8_t*)s; *p; p++)
 		h = h*37 + *p;
 	return h;
 }

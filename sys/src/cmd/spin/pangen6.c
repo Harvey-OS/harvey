@@ -568,7 +568,8 @@ AST_other(AST *a)	/* check chan params in asgns and recvs */
 				break;
 			default:
 				printf("type = %d\n", t->step->n->ntyp);
-				non_fatal("unexpected chan def type", (char *) 0);
+				non_fatal("unexpected chan def type",
+				          (char *) 0);
 				break;
 		}	}
 }
@@ -1895,7 +1896,7 @@ AST_hidden(void)			/* reveal all hidden assignments */
 	explicit = (FSM_trans *) 0;
 }
 
-#define BPW	(8*sizeof(ulong))			/* bits per word */
+#define BPW	(8*sizeof(uint32_t))			/* bits per word */
 
 static int
 bad_scratch(FSM_state *f, int upto)
@@ -1984,7 +1985,7 @@ static void
 subgraph(AST *a, FSM_state *f, int out)
 {	FSM_state *h;
 	int i, j;
-	ulong *g;
+	uint32_t *g;
 #if 0
 	reverse dominance suggests that this is a possible
 	entry and exit node for a proper subgraph
@@ -2175,8 +2176,8 @@ init_dom(AST *a)
 	for (f = a->fsm; f; f = f->nxt)
 	{	if (!f->seen) continue;
 
-		f->dom = (ulong *)
-			emalloc(a->nwords * sizeof(ulong));
+		f->dom = (uint32_t *)
+			emalloc(a->nwords * sizeof(uint32_t));
 
 		if (f->from == a->i_st)
 		{	i = a->i_st / BPW;
@@ -2184,7 +2185,7 @@ init_dom(AST *a)
 			f->dom[i] = (1<<j);			/* (1) */
 		} else						/* (2) */
 		{	for (i = 0; i < a->nwords; i++)
-				f->dom[i] = (ulong) ~0;			/* all 1's */
+				f->dom[i] = (uint32_t) ~0;			/* all 1's */
 
 			if (a->nstates % BPW)
 			for (i = (a->nstates % BPW); i < (int) BPW; i++)
@@ -2200,7 +2201,7 @@ init_dom(AST *a)
 
 static int
 dom_perculate(AST *a, FSM_state *f)
-{	static ulong *ndom = (ulong *) 0;
+{	static uint32_t *ndom = (uint32_t *) 0;
 	static int on = 0;
 	int i, j, cnt = 0;
 	FSM_state *g;
@@ -2208,12 +2209,12 @@ dom_perculate(AST *a, FSM_state *f)
 
 	if (on < a->nwords)
 	{	on = a->nwords;
-		ndom = (ulong *)
-			emalloc(on * sizeof(ulong));
+		ndom = (uint32_t *)
+			emalloc(on * sizeof(uint32_t));
 	}
 
 	for (i = 0; i < a->nwords; i++)
-		ndom[i] = (ulong) ~0;
+		ndom[i] = (uint32_t) ~0;
 
 	for (t = f->p; t; t = t->nxt)	/* all reachable predecessors */
 	{	g = fsm_tbl[t->to];
@@ -2306,7 +2307,7 @@ AST_dominant(void)
 			f->t = t;	/* invert edges */
 
 			f->mod = f->dom;
-			f->dom = (ulong *) 0;
+			f->dom = (uint32_t *) 0;
 		}
 		oi = a->i_st;
 		if (fsm_tbl[0]->seen)	/* end-state reachable - else leave it */

@@ -70,7 +70,7 @@ struct GPSfile {
 	char	*name;
 	char*	(*rread)(Req*);
 	int	mode;
-	vlong	offset;		/* for raw: rawout - read-offset */
+	int64_t	offset;		/* for raw: rawout - read-offset */
 };
 
 enum {
@@ -88,18 +88,18 @@ enum {
 struct Gpsmsg {
 	char *name;
 	int tokens;
-	ulong errors;
+	uint32_t errors;
 };
 
 char	raw[Rawbuf];
-vlong	rawin;
-vlong	rawout;
+int64_t	rawin;
+int64_t	rawout;
 
-ulong	badlat, goodlat, suspectlat;
-ulong	badlon, goodlon, suspectlon;
-ulong	suspecttime, goodtime;
+uint32_t	badlat, goodlat, suspectlat;
+uint32_t	badlon, goodlon, suspectlon;
+uint32_t	suspecttime, goodtime;
 
-ulong histo[32];
+uint32_t histo[32];
 
 char *serial = "/dev/eia0";
 
@@ -120,9 +120,9 @@ int ttyfd, ctlfd, debug;
 int setrtc;
 int baud = Baud;
 char *baudstr = "b%dd1r1pns1l8i9";
-ulong seconds;
-ulong starttime;
-ulong checksumerrors;
+uint32_t seconds;
+uint32_t starttime;
+uint32_t checksumerrors;
 int gpsplayback;	/* If set, return times and positions with `invalid' marker set */
 
 Place where = {-(74.0 + 23.9191/60.0), 40.0 + 41.1346/60.0};
@@ -132,8 +132,8 @@ Lock fixlock;
 
 int	type(char*);
 void	setline(void);
-int	getonechar(vlong*);
-void	getline(char*, int, vlong*);
+int	getonechar(int64_t*);
+void	getline(char*, int, int64_t*);
 void	putline(char*);
 int	gettime(Fix*);
 int	getzulu(char *, Fix*);
@@ -264,7 +264,7 @@ gpstrack(void *)
 	Fix fix;
 	static char buf[256], *t[32];
 	int n, i, k, tp;
-	vlong localtime;
+	int64_t localtime;
 	double d;
 
 	setline();
@@ -580,10 +580,10 @@ readraw(Req *r)
 }
 
 void
-rtcset(long t)
+rtcset(int32_t t)
 {
 	static int fd;
-	long r;
+	int32_t r;
 	int n;
 	char buf[32];
 
@@ -616,7 +616,7 @@ gettime(Fix *f){
 	Tm tm;
 	int zulu;
 	double d;
-	long t;
+	int32_t t;
 	static int count;
 
 	zulu = f->zulu;
@@ -895,7 +895,7 @@ setline(void){
 	free(serialctl);
 }
 
-int getonechar(vlong *t){
+int getonechar(int64_t *t){
 	static char buf[32], *p;
 	static int n;
 
@@ -922,8 +922,8 @@ int getonechar(vlong *t){
 }
 
 void
-getline(char *s, int size, vlong *t){
-	uchar c;
+getline(char *s, int size, int64_t *t){
+	uint8_t c;
 	char *p;
 	int n, cs;
 

@@ -53,7 +53,7 @@ horline1(Memimage *dst, Point p0, Point p1, int srcval, Rectangle clipr)
 {
 	int x, y, dy, deltay, deltax, maxx;
 	int dd, easy, e, bpp, m, m0;
-	uchar *d;
+	uint8_t *d;
 
 	deltax = p1.x - p0.x;
 	deltay = p1.y - p0.y;
@@ -96,7 +96,7 @@ verline1(Memimage *dst, Point p0, Point p1, int srcval, Rectangle clipr)
 {
 	int x, y, deltay, deltax, maxy;
 	int easy, e, bpp, m, m0, dd;
-	uchar *d;
+	uint8_t *d;
 
 	deltax = p1.x - p0.x;
 	deltay = p1.y - p0.y;
@@ -137,7 +137,7 @@ horliner(Memimage *dst, Point p0, Point p1, Memimage *src, Point dsrc, Rectangle
 {
 	int x, y, sx, sy, deltay, deltax, minx, maxx;
 	int bpp, m, m0;
-	uchar *d, *s;
+	uint8_t *d, *s;
 
 	deltax = p1.x - p0.x;
 	deltay = p1.y - p0.y;
@@ -169,7 +169,7 @@ verliner(Memimage *dst, Point p0, Point p1, Memimage *src, Point dsrc, Rectangle
 {
 	int x, y, sx, sy, deltay, deltax, miny, maxy;
 	int bpp, m, m0;
-	uchar *d, *s;
+	uint8_t *d, *s;
 
 	deltax = p1.x - p0.x;
 	deltay = p1.y - p0.y;
@@ -201,7 +201,7 @@ horline(Memimage *dst, Point p0, Point p1, Memimage *src, Point dsrc, Rectangle 
 {
 	int x, y, deltay, deltax, minx, maxx;
 	int bpp, m, m0;
-	uchar *d, *s;
+	uint8_t *d, *s;
 
 	deltax = p1.x - p0.x;
 	deltay = p1.y - p0.y;
@@ -229,7 +229,7 @@ verline(Memimage *dst, Point p0, Point p1, Memimage *src, Point dsrc, Rectangle 
 {
 	int x, y, deltay, deltax, miny, maxy;
 	int bpp, m, m0;
-	uchar *d, *s;
+	uint8_t *d, *s;
 
 	deltax = p1.x - p0.x;
 	deltay = p1.y - p0.y;

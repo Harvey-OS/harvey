@@ -75,7 +75,7 @@ netget(void *v, int len)
 	l = read(fd, v, len);
 	if(debug && l > 0){
 		fprint(2, "read %d bytes\n", l);
-		dump((uchar*)v, l);
+		dump((uint8_t*)v, l);
 	}
 	if (l <= 0)
 		return 0;
@@ -85,7 +85,7 @@ netget(void *v, int len)
 int
 netsend(void *v, int len)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = v;
 	if (debug) {

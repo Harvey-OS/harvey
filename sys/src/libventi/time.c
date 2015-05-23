@@ -14,7 +14,7 @@
 int
 vttimefmt(Fmt *fmt)
 {
-	vlong ns;
+	int64_t ns;
 	Tm tm;
 
 	if(fmt->flags&FmtLong){

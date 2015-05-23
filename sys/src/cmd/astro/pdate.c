@@ -223,8 +223,8 @@ tzone(double y, Tim *z)
 	/*
 	 * convert by both local and gmt
 	 */
-	t1 = *localtime((long)t);
-	t2 = *gmtime((long)t);
+	t1 = *localtime((int32_t)t);
+	t2 = *gmtime((int32_t)t);
 
 	/*
 	 * pick up year crossings

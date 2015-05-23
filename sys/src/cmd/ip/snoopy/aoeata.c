@@ -14,11 +14,11 @@
 #include "protos.h"
 
 typedef struct{
-	uchar	aflag;
-	uchar	feat;
-	uchar	sectors;
-	uchar	cmd;
-	uchar	lba[6];
+	uint8_t	aflag;
+	uint8_t	feat;
+	uint8_t	sectors;
+	uint8_t	cmd;
+	uint8_t	lba[6];
 }Hdr;
 
 enum{
@@ -58,17 +58,17 @@ p_compile(Filter *f)
 	sysfatal("unknown aoeata field: %s", f->s);
 }
 
-uvlong
-llba(uchar *c)
+uint64_t
+llba(uint8_t *c)
 {
-	uvlong l;
+	uint64_t l;
 
 	l = c[0];
 	l |= c[1]<<8;
 	l |= c[2]<<16;
 	l |= c[3]<<24;
-	l |= (uvlong)c[4]<<32;
-	l |= (uvlong)c[5]<<40;
+	l |= (uint64_t)c[4]<<32;
+	l |= (uint64_t)c[5]<<40;
 	return l;
 }
 

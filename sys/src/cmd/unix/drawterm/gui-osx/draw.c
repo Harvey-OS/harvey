@@ -18,7 +18,7 @@ memimagedraw(Memimage *dst, Rectangle r, Memimage *src, Point sp, Memimage *mask
 	_memimagedraw(_memimagedrawsetup(dst, r, src, sp, mask, mp, op));
 }
 
-ulong
+uint32_t
 pixelbits(Memimage *m, Point p)
 {
 	return _pixelbits(m, p);

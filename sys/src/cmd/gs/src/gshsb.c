@@ -78,7 +78,7 @@ color_rgb_to_hsb(floatp r, floatp g, floatp b, float hsb[3])
 	rbri = r;		/* pick any one */
     } else {			/* Convert rgb to hsb */
 	frac V, Temp, diff;
-	long H;
+	int32_t H;
 
 	V = (red > green ? red : green);
 	if (blue > V)
@@ -114,10 +114,10 @@ color_hsb_to_rgb(floatp hue, floatp saturation, floatp brightness, float rgb[3])
 	/* We rely on the fact that the product of two */
 	/* fracs fits into an unsigned long. */
 	floatp h6 = hue * 6;
-	ulong V = float2frac(brightness);	/* force arithmetic to long */
+	uint32_t V = float2frac(brightness);	/* force arithmetic to long */
 	frac S = float2frac(saturation);
 	int I = (int)h6;
-	ulong F = float2frac(h6 - I);	/* ditto */
+	uint32_t F = float2frac(h6 - I);	/* ditto */
 
 	/* M = V*(1-S), N = V*(1-S*F), K = V*(1-S*(1-F)) = M-N+V */
 	frac M = V * (frac_1_long - S) / frac_1_long;

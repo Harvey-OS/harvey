@@ -141,7 +141,7 @@ array_index_calc(const char *n, bool_t *arrayp, int *valp)
 	p = skip_varname(n, FALSE);
 	if (p != n && *p == '[' && (len = array_ref_len(p))) {
 		char *sub, *tmp;
-		long rval;
+		int32_t rval;
 
 		/* Calculate the value of the subscript */
 		*arrayp = TRUE;
@@ -304,7 +304,7 @@ str_val(vp)
 	else {				/* integer source */
 		/* worst case number length is when base=2, so use BITS(long) */
 			     /* minus base #     number    null */
-		static char strbuf[1 + 2 + 1 + BITS(long) + 1];
+		static char strbuf[1 + 2 + 1 + BITS(int32_t) + 1];
 		const char *digits = (vp->flag & UCASEV_AL) ?
 				  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 				: "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -338,11 +338,11 @@ str_val(vp)
 }
 
 /* get variable integer value, with error checking */
-long
+int32_t
 intval(vp)
 	register struct tbl *vp;
 {
-	long num;
+	int32_t num;
 	int base;
 
 	base = getint(vp, &num);
@@ -399,7 +399,7 @@ setstr(vq, s, error_ok)
 void
 setint(vq, n)
 	register struct tbl *vq;
-	long n;
+	int32_t n;
 {
 	if (!(vq->flag&INTEGER)) {
 		register struct tbl *vp = &vtemp;
@@ -419,13 +419,13 @@ setint(vq, n)
 int
 getint(vp, nump)
 	struct tbl *vp;
-	long *nump;
+	int32_t *nump;
 {
 	register char *s;
 	register int c;
 	int base, neg;
 	int have_base = 0;
-	long num;
+	int32_t num;
 	
 	if (vp->flag&SPECIAL)
 		getspec(vp);
@@ -480,7 +480,7 @@ setint_v(vq, vp)
 	register struct tbl *vq, *vp;
 {
 	int base;
-	long num;
+	int32_t num;
 	
 	if ((base = getint(vp, &num)) == -1)
 		return NULL;
@@ -937,30 +937,30 @@ getspec(vp)
 		 * (see initcoms[] in main.c).
 		 */
 		if (vp->flag & ISSET)
-			setint(vp, (long) (time((time_t *)0) - seconds));
+			setint(vp, (int32_t) (time((time_t *)0) - seconds));
 		vp->flag |= SPECIAL;
 		break;
 	  case V_RANDOM:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long) (rand() & 0x7fff));
+		setint(vp, (int32_t) (rand() & 0x7fff));
 		vp->flag |= SPECIAL;
 		break;
 #endif /* KSH */
 #ifdef HISTORY
 	  case V_HISTSIZE:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long) histsize);
+		setint(vp, (int32_t) histsize);
 		vp->flag |= SPECIAL;
 		break;
 #endif /* HISTORY */
 	  case V_OPTIND:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long) user_opt.uoptind);
+		setint(vp, (int32_t) user_opt.uoptind);
 		vp->flag |= SPECIAL;
 		break;
 	  case V_LINENO:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long) current_lineno + user_lineno);
+		setint(vp, (int32_t) current_lineno + user_lineno);
 		vp->flag |= SPECIAL;
 		break;
 	}

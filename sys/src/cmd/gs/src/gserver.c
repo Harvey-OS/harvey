@@ -243,7 +243,8 @@ gs_server_run_string(const char *str, int *exit_code_ptr,
 
 int
 gs_server_run_files(const char **file_names, int permanent,
-  int *exit_code_ptr, char *errstr, int errstr_max_len, int *errstr_len_ptr)
+  int *exit_code_ptr, char *errstr, int errstr_max_len,
+                    int *errstr_len_ptr)
 {
     int code = 0;
     ref error_object;

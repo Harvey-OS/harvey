@@ -9,7 +9,7 @@
 
 #include "all.h"
 
-extern uchar buf[];
+extern uint8_t buf[];
 
 Xfid *
 rpc2xfid(Rpccall *cmd, Dir *dp)
@@ -24,16 +24,17 @@ rpc2xfid(Rpccall *cmd, Dir *dp)
 	char client[256], *user;
 	Unixidmap *m;
 	int i;
-	uvlong x1, x2;
+	uint64_t x1, x2;
 
-	chat("rpc2xfid %.8lux %.8lux %p %p\n", *((ulong*)argptr), *((ulong*)argptr+1), buf, argptr);
+	chat("rpc2xfid %.8lux %.8lux %p %p\n", *((uint32_t*)argptr),
+	     *((uint32_t*)argptr+1), buf, argptr);
 	if(argptr[0] == 0 && argptr[1] == 0){	/* root */
 		chat("root...");
 		xp = xfroot(&argptr[2], 0);
 		s = xp ? xp->s : 0;
 	}else{
-		ulong ul;
-		chat("noroot %.8lux...", *((ulong*)argptr));
+		uint32_t ul;
+		chat("noroot %.8lux...", *((uint32_t*)argptr));
 		if((ul=GLONG()) != starttime){
 			chat("bad tag %lux %lux...", ul, starttime);
 			return 0;
@@ -54,7 +55,7 @@ rpc2xfid(Rpccall *cmd, Dir *dp)
 		chat("auth flavor=%ld, count=%ld\n",
 			cmd->cred.flavor, cmd->cred.count);
 		for(i=0; i<cmd->cred.count; i++)
-			chat(" %.2ux", ((uchar *)cmd->cred.data)[i]);
+			chat(" %.2ux", ((uint8_t *)cmd->cred.data)[i]);
 		chat("...");
 		return 0;
 	}else{
@@ -147,7 +148,7 @@ xfstat(Xfid *xf, Dir *dp)
 		dp->uid = xf->uid;
 		dp->gid = xf->uid;
 		dp->muid = xf->uid;
-		dp->qid.path = (uvlong)xf->uid;
+		dp->qid.path = (uint64_t)xf->uid;
 		dp->qid.type = QTFILE;
 		dp->qid.vers = 0;
 		dp->mode = 0666;
@@ -275,7 +276,7 @@ xfclear(Xfid *xf)
 }
 
 Xfid *
-xfwalkcr(int type, Xfid *xf, String *elem, long perm)
+xfwalkcr(int type, Xfid *xf, String *elem, int32_t perm)
 {
 	Session *s;
 	Xfile *xp, *newxp;
@@ -410,8 +411,8 @@ xp2fhandle(Xfile *xp, Fhandle fh)
 int
 dir2fattr(Unixidmap *up, Dir *dp, void *mp)
 {
-	uchar *dataptr = mp;
-	long length;
+	uint8_t *dataptr = mp;
+	int32_t length;
 	int r;
 
 	r = dp->mode & 0777;
@@ -460,13 +461,13 @@ dir2fattr(Unixidmap *up, Dir *dp, void *mp)
 	PLONG(0);
 	PLONG(dp->mtime);	/* ctime */
 	PLONG(0);
-	return dataptr - (uchar *)mp;
+	return dataptr - (uint8_t *)mp;
 }
 
 int
 convM2sattr(void *mp, Sattr *sp)
 {
-	uchar *argptr = mp;
+	uint8_t *argptr = mp;
 
 	sp->mode = GLONG();
 	sp->uid = GLONG();
@@ -476,5 +477,5 @@ convM2sattr(void *mp, Sattr *sp)
 	sp->ausec = GLONG();
 	sp->mtime = GLONG();
 	sp->musec = GLONG();
-	return argptr - (uchar *)mp;
+	return argptr - (uint8_t *)mp;
 }

@@ -139,7 +139,7 @@ readobj(Biobuf *bp, int objtype)
 }
 
 int
-readar(Biobuf *bp, int objtype, vlong end, int doautos)
+readar(Biobuf *bp, int objtype, int64_t end, int doautos)
 {
 	Prog p;
 
@@ -189,7 +189,7 @@ processprog(Prog *p, int doautos)
 static void
 objlookup(int id, char *name, int type, uint sig)
 {
-	long h;
+	int32_t h;
 	char *cp;
 	Sym *s;
 	Symtab *sp;
@@ -267,7 +267,7 @@ objtraverse(void (*fn)(Sym*, void*), void *pointer)
  * update the offset information for a 'a' or 'p' symbol in an intermediate file
  */
 void
-_offset(int id, vlong off)
+_offset(int id, int64_t off)
 {
 	Sym *s;
 
@@ -300,7 +300,7 @@ nextar(Biobuf *bp, int offset, char *buf)
 {
 	struct ar_hdr a;
 	int i, r;
-	long arsize;
+	int32_t arsize;
 
 	if (offset&01)
 		offset++;

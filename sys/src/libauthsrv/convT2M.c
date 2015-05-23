@@ -21,15 +21,15 @@ int
 convT2M(Ticket *f, char *ap, char *key)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(num);
 	STRING(chal, CHALLEN);
 	STRING(cuid, ANAMELEN);
 	STRING(suid, ANAMELEN);
 	STRING(key, DESKEYLEN);
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	if(key)
 		encrypt(key, ap, n);
 	return n;

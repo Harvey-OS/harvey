@@ -24,6 +24,7 @@
 #define fcntl(fd, op, arg)	/* unix compatibility */
 #define F_SETFD
 #define FD_CLOEXEC
+#define YYSIZE_T size_t		/* GNU Bison/yacc has hundred of types :( */
 #else
 #include "unix.h"
 #endif
@@ -115,8 +116,8 @@ var *gvar[NVAR];		/* hash for globals */
 
 #define	new(type)	((type *)emalloc(sizeof(type)))
 
-void *emalloc(long);
-void *Malloc(ulong);
+void *emalloc(int32_t);
+void *Malloc(uint32_t);
 void efree(void *);
 
 struct here{

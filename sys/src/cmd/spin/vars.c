@@ -27,7 +27,7 @@ extern Symbol	*Fname;
 extern char	Buf[];
 extern int	lineno, depth, verbose, xspin, limited_vis;
 extern int	analyze, jumpsteps, nproc, nstop, columns;
-extern short	no_arrays, Have_claim;
+extern int16_t	no_arrays, Have_claim;
 extern void	sr_mesg(FILE *, int, int);
 extern void	sr_buf(int, int);
 
@@ -141,10 +141,10 @@ getglobal(Lextok *sn)
 
 int
 cast_val(int t, int v, int w)
-{	int i=0; short s=0; unsigned int u=0;
+{	int i=0; int16_t s=0; unsigned int u=0;
 
 	if (t == PREDEF || t == INT || t == CHAN) i = v;	/* predef means _ */
-	else if (t == SHORT) s = (short) v;
+	else if (t == SHORT) s = (int16_t) v;
 	else if (t == BYTE || t == MTYPE)  u = (unsigned char)v;
 	else if (t == BIT)   u = (unsigned char)(v&1);
 	else if (t == UNSIGNED)
@@ -181,7 +181,7 @@ setglobal(Lextok *v, int m)
 void
 dumpclaims(FILE *fd, int pid, char *s)
 {	extern Lextok *Xu_List; extern int Pid;
-	extern short terse;
+	extern int16_t terse;
 	Lextok *m; int cnt = 0; int oPid = Pid;
 
 	for (m = Xu_List; m; m = m->rgt)

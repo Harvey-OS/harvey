@@ -9,26 +9,26 @@
 
 struct Ureg
 {
-	ulong	r0;
-	ulong	r1;
-	ulong	r2;
-	ulong	r3;
-	ulong	r4;
-	ulong	r5;
-	ulong	r6;
-	ulong	r7;
-	ulong	a0;
-	ulong	a1;
-	ulong	a2;
-	ulong	a3;
-	ulong	a4;
-	ulong	a5;
-	ulong	a6;
-	ulong	sp;
-	ulong	usp;
-	ulong	magic;		/* for db to find bottom of ureg */
+	uint32_t	r0;
+	uint32_t	r1;
+	uint32_t	r2;
+	uint32_t	r3;
+	uint32_t	r4;
+	uint32_t	r5;
+	uint32_t	r6;
+	uint32_t	r7;
+	uint32_t	a0;
+	uint32_t	a1;
+	uint32_t	a2;
+	uint32_t	a3;
+	uint32_t	a4;
+	uint32_t	a5;
+	uint32_t	a6;
+	uint32_t	sp;
+	uint32_t	usp;
+	uint32_t	magic;		/* for db to find bottom of ureg */
 	ushort	sr;
-	ulong	pc;
+	uint32_t	pc;
 	ushort	vo;
 #ifndef	UREGVARSZ
 #define	UREGVARSZ 23		/* for 68040; 15 is enough on 68020 */

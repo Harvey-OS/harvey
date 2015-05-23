@@ -60,12 +60,12 @@ typedef struct Fid Fid;
 
 struct Fid
 {
-	short	busy;
-	short	allocated;
+	int16_t	busy;
+	int16_t	allocated;
 	int	fid;
 	Qid	qid;
-	ulong	newoffset;
-	ulong	oldoffset;
+	uint32_t	newoffset;
+	uint32_t	oldoffset;
 	Fid	*next;
 };
 
@@ -108,7 +108,7 @@ void	connect(int, char*);
 void	post(int, char*);
 void	serve(void);
 void	demux(void);
-void*	emalloc(ulong);
+void*	emalloc(uint32_t);
 char*	transact9p1(Fcall9p1*, Fcall9p1*, char*);
 Fid*	newfid(int);
 
@@ -430,7 +430,7 @@ serve(void)
 	int n;
 	Fcall thdr;
 	Fcall	rhdr;
-	uchar mdata[IOHDRSZ+Maxfdata];
+	uint8_t mdata[IOHDRSZ+Maxfdata];
 	char mdata9p1[IOHDRSZ+Maxfdata];
 	Tag *tag;
 
@@ -628,12 +628,12 @@ rauth(Fcall *, Fcall *, char *)
 void
 memrandom(void *p, int n)
 {
-	ulong *lp;
-	uchar *cp;
+	uint32_t *lp;
+	uint8_t *cp;
 
-	for(lp = p; n >= sizeof(ulong); n -= sizeof(ulong))
+	for(lp = p; n >= sizeof(uint32_t); n -= sizeof(uint32_t))
 		*lp++ = fastrand();
-	for(cp = (uchar*)lp; n > 0; n--)
+	for(cp = (uint8_t*)lp; n > 0; n--)
 		*cp++ = fastrand();
 }
 
@@ -668,7 +668,7 @@ rsession(Fcall *t, Fcall *r, char *mdata9p1)
 		memmove(ai.chal, t9.chal, sizeof ai.chal);
 		r->authid = ai.authid;
 		r->authdom = ai.authdom;
-		r->chal = (uchar*)ai.rchal;
+		r->chal = (uint8_t*)ai.rchal;
 		r->nchal = CHALLEN;
 	} else {
 		r->authid = "";
@@ -863,7 +863,7 @@ dirrread(Fcall *t, Fcall *r, char *mdata9p1)
 	Fid *f;
 	int i, ndir, n, count;
 	Dir d;
-	uchar buf[Maxfdata];
+	uint8_t buf[Maxfdata];
 	char *old;
 
 	f = newfid(t->fid);
@@ -1000,7 +1000,7 @@ rstat(Fcall *t, Fcall *r, char *mdata9p1)
 	char *err;
 	Fid *f;
 	Dir d;
-	uchar buf[256];	/* big enough; there's no long names */
+	uint8_t buf[256];	/* big enough; there's no long names */
 
 	f = newfid(t->fid);
 	if(!f->busy)
@@ -1099,7 +1099,7 @@ rwstat(Fcall *t, Fcall *, char *mdata9p1)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 

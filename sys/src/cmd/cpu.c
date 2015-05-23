@@ -577,7 +577,7 @@ netkeysrvauth(int fd, char *user)
 }
 
 static void
-mksecret(char *t, uchar *f)
+mksecret(char *t, uint8_t *f)
 {
 	sprint(t, "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
@@ -589,8 +589,8 @@ mksecret(char *t, uchar *f)
 static int
 p9auth(int fd)
 {
-	uchar key[16];
-	uchar digest[SHA1dlen];
+	uint8_t key[16];
+	uint8_t digest[SHA1dlen];
 	char fromclientsecret[21];
 	char fromserversecret[21];
 	int i;
@@ -646,7 +646,7 @@ srvnoauth(int fd, char *user)
 }
 
 void
-loghex(uchar *p, int n)
+loghex(uint8_t *p, int n)
 {
 	char buf[100];
 	int i;
@@ -659,8 +659,8 @@ loghex(uchar *p, int n)
 static int
 srvp9auth(int fd, char *user)
 {
-	uchar key[16];
-	uchar digest[SHA1dlen];
+	uint8_t key[16];
+	uint8_t digest[SHA1dlen];
 	char fromclientsecret[21];
 	char fromserversecret[21];
 	int i;
@@ -828,7 +828,7 @@ struct {
 int
 fsreply(int fd, Fcall *f)
 {
-	uchar buf[IOHDRSZ+Maxfdata];
+	uint8_t buf[IOHDRSZ+Maxfdata];
 	int n;
 
 	if(dbg)
@@ -916,7 +916,7 @@ int
 fsstat(int fd, Fid *fid, Fcall *f)
 {
 	Dir d;
-	uchar statbuf[256];
+	uint8_t statbuf[256];
 
 	memset(&d, 0, sizeof(d));
 	d.name = fstab[fid->file].name;
@@ -935,7 +935,7 @@ int
 fsread(int fd, Fid *fid, Fcall *f)
 {
 	Dir d;
-	uchar buf[256];
+	uint8_t buf[256];
 	Request *rp;
 
 	switch(fid->file){
@@ -979,7 +979,7 @@ char Enotdir[] = "not a directory";
 void
 notefs(int fd)
 {
-	uchar buf[IOHDRSZ+Maxfdata];
+	uint8_t buf[IOHDRSZ+Maxfdata];
 	int i, n, ncpunote;
 	Fcall f;
 	Qid wqid[MAXWELEM];

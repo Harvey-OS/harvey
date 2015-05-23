@@ -69,7 +69,7 @@ addext (filename, ext, e)
 {
   char *s = base_name (filename);
   size_t slen = strlen (s), extlen = strlen (ext);
-  long slen_max = -1;
+  int32_t slen_max = -1;
 
 #if HAVE_PATHCONF && defined _PC_NAME_MAX
   if (slen + extlen <= _POSIX_NAME_MAX && ! HAVE_DOS_FILE_NAMES)

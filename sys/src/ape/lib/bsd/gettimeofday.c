@@ -17,16 +17,16 @@ typedef unsigned long long uvlong;
 typedef long long vlong;
 typedef unsigned char uchar;
 
-static uvlong order = 0x0001020304050607ULL;
+static uint64_t order = 0x0001020304050607ULL;
 
 static void
-be2vlong(vlong *to, uchar *f)
+be2vlong(int64_t *to, uint8_t *f)
 {
-	uchar *t, *o;
+	uint8_t *t, *o;
 	int i;
 
-	t = (uchar*)to;
-	o = (uchar*)&order;
+	t = (uint8_t*)to;
+	o = (uint8_t*)&order;
 	for(i = 0; i < 8; i++)
 		t[o[i]] = f[i];
 }
@@ -34,8 +34,8 @@ be2vlong(vlong *to, uchar *f)
 int
 gettimeofday(struct timeval *tp, struct timezone *tzp)
 {
-	uchar b[8];
-	vlong t;
+	uint8_t b[8];
+	int64_t t;
 	int opened;
 	static int fd = -1;
 

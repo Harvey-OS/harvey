@@ -39,7 +39,7 @@ struct Netbuf {
 	char *addr;
 	char *user;
 	char *pass;
-	ulong extended;	/* supported extensions */
+	uint32_t extended;	/* supported extensions */
 };
 
 struct Group {
@@ -51,8 +51,8 @@ struct Group {
 	int lo, hi;
 	int canpost;
 	int isgroup;	/* might just be piece of hierarchy */
-	ulong mtime;
-	ulong atime;
+	uint32_t mtime;
+	uint32_t atime;
 };
 
 /*
@@ -74,12 +74,12 @@ enum {
 
 Group *root;
 Netbuf *net;
-ulong now;
+uint32_t now;
 int netdebug;
 int readonly;
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -89,7 +89,7 @@ erealloc(void *v, ulong n)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *v;
 
@@ -204,7 +204,7 @@ int nntpcurrentgroup(Netbuf*, Group*);
 
 /* XXX: bug OVER/XOVER et al. */
 static struct {
-	ulong n;
+	uint32_t n;
 	char *s;
 } extensions [] = {
 	{ Nxover, "OVER" },
@@ -943,7 +943,7 @@ fsread(Req *r)
 	for(; p+2 < ep; p += n){
 		if(dirfillstat(&d, a, offset) < 0)
 			break;
-		n=convD2M(&d, (uchar*)p, ep-p);
+		n=convD2M(&d, (uint8_t*)p, ep-p);
 		free(d.name);
 		free(d.uid);
 		free(d.gid);
@@ -961,8 +961,8 @@ static void
 fswrite(Req *r)
 {
 	Aux *a;
-	long count;
-	vlong offset;
+	int32_t count;
+	int64_t offset;
 
 	a = r->fid->aux;
 

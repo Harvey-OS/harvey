@@ -24,7 +24,7 @@ enum {
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong pclk;
+	uint32_t pclk;
 	char *p;
 
 	/*
@@ -50,7 +50,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uchar mode, x;
+	uint8_t mode, x;
 
 	/*
 	 * Put the chip to sleep if possible.

@@ -159,7 +159,7 @@ cmap_put_code_map(const gs_memory_t *mem,
 	    }
 	    for (; i < ni; ++i) {
 		int j;
-		long value;
+		int32_t value;
 		int value_size;
 
 		DISCARD(gs_cmap_enum_next_entry(&lenum)); /* can't fail */
@@ -267,7 +267,7 @@ psf_write_cmap(const gs_memory_t *mem,
 	stream_puts(s, " def\n");
 	if (uid_is_XUID(&pcmap->uid)) {
 	    uint i, n = uid_XUID_size(&pcmap->uid);
-	    const long *values = uid_XUID_values(&pcmap->uid);
+	    const int32_t *values = uid_XUID_values(&pcmap->uid);
 
 	    stream_puts(s, "/XUID [");
 	    for (i = 0; i < n; ++i)

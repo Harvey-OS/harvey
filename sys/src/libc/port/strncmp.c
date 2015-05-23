@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-strncmp(char *s1, char *s2, long n)
+strncmp(char *s1, char *s2, int32_t n)
 {
 	unsigned c1, c2;
 

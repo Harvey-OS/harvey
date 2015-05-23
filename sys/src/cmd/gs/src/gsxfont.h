@@ -31,7 +31,7 @@
 
 /* Define a character glyph identifier.  This is opaque, probably an index */
 /* into the font.  Glyph identifiers are font-specific. */
-typedef ulong gx_xglyph;
+typedef uint32_t gx_xglyph;
 
 #define gx_no_xglyph ((gx_xglyph)~0L)
 

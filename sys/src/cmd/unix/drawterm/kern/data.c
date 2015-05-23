@@ -35,6 +35,6 @@ Conf conf =
 };
 
 char *eve = "eve";
-ulong kerndate;
+uint32_t kerndate;
 int cpuserver;
 char hostdomain[] = "drawterm.net";

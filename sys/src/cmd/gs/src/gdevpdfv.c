@@ -73,7 +73,8 @@ extern const gx_device_color_type_t gx_dc_pattern2;
 
 /* Write a matrix parameter. */
 private int
-cos_dict_put_matrix(cos_dict_t *pscd, const char *key, const gs_matrix *pmat)
+cos_dict_put_matrix(cos_dict_t *pscd, const char *key,
+                    const gs_matrix *pmat)
 {
     float matrix[6];
 

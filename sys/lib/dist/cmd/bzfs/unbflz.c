@@ -40,7 +40,7 @@ unbflz(int in)
 	char buf[5];
 	uchar *data;
 	int i, j, length, n, m, o, sum;
-	ulong *blk;
+	uint32_t *blk;
 	int nblk, mblk;
 
 	if(pipe(p) < 0)

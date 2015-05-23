@@ -45,9 +45,9 @@ static void	usage(void);
 Fcall *req;
 Fcall *rep;
 
-uchar mdata[Maxiosize];
+uint8_t mdata[Maxiosize];
 char fdata[Maxfdata];
-uchar statbuf[STATMAX];
+uint8_t statbuf[STATMAX];
 int errno;
 
 static char	srvfile[64];
@@ -248,7 +248,7 @@ nexterror(void)
 }
 
 void*
-ealloc(long n)
+ealloc(int32_t n)
 {
 	void *p;
 
@@ -464,7 +464,8 @@ rread(void)
 	if (!(f->flags&Oread))
 		error("file not opened for reading");
 	if(f->qid.type & QTDIR)
-		rep->count = (*f->xf->s->readdir)(f, (uchar*)fdata, req->offset, req->count);
+		rep->count = (*f->xf->s->readdir)(f, (uint8_t*)fdata,
+						  req->offset, req->count);
 	else
 		rep->count = (*f->xf->s->read)(f, fdata, req->offset, req->count);
 	rep->data = fdata;

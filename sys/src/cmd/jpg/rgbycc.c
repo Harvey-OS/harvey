@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 	int r, g, b;
 	double Y, Cr, Cb;
 	int y, cb, cr;
-	uchar close[16*16*16];
+	uint8_t close[16*16*16];
 
 //print("%d\n", closest(atoi(argv[1]), atoi(argv[2]), atoi(argv[3])));
 //exits("X");

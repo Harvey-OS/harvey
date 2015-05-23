@@ -13,11 +13,11 @@
 static void atimes(char *);
 static char *split(char*, char**);
 
-ulong
+uint32_t
 atimeof(int force, char *name)
 {
 	Symtab *sym;
-	ulong t;
+	uint32_t t;
 	char *archive, *member, buf[512];
 
 	archive = split(name, &member);
@@ -51,7 +51,7 @@ atouch(char *name)
 	char *archive, *member;
 	int fd, i;
 	struct ar_hdr h;
-	long t;
+	int32_t t;
 
 	archive = split(name, &member);
 	if(archive == 0)
@@ -91,7 +91,7 @@ static void
 atimes(char *ar)
 {
 	struct ar_hdr h;
-	ulong at, t;
+	uint32_t at, t;
 	int fd, i;
 	char buf[BIGBLOCK];
 	Dir *d;

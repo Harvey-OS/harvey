@@ -63,7 +63,7 @@ static char *phasenames[Maxphase] =
 };
 
 static int
-p9anyinit(Proto*, Fsstate *fss)
+p9anyinit(Proto* p, Fsstate *fss)
 {
 	int iscli;
 	State *s;

@@ -11,7 +11,7 @@
 #include <libc.h>
 
 void*
-mallocz(ulong n, int clr)
+mallocz(uint32_t n, int clr)
 {
 	void *v;
 

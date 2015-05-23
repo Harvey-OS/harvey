@@ -74,7 +74,7 @@ getint(char *s, int *percent)
 }
 
 void
-resamplex(uchar *in, int off, int d, int inx, uchar *out, int outx)
+resamplex(uint8_t *in, int off, int d, int inx, uint8_t *out, int outx)
 {
 	int i, x, k;
 	double X, xx, v, rat;
@@ -103,7 +103,7 @@ resamplex(uchar *in, int off, int d, int inx, uchar *out, int outx)
 }
 
 void
-resampley(uchar **in, int off, int iny, uchar **out, int outy)
+resampley(uint8_t **in, int off, int iny, uint8_t **out, int outy)
 {
 	int y, i, k;
 	double Y, yy, v, rat;
@@ -144,14 +144,14 @@ resample(int xsize, int ysize, Memimage *m)
 {
 	int i, j, bpl, nchan;
 	Memimage *new;
-	uchar **oscan, **nscan;
+	uint8_t **oscan, **nscan;
 
 	new = allocmemimage(Rect(0, 0, xsize, ysize), m->chan);
 	if(new == nil)
 		sysfatal("can't allocate new image: %r");
 
-	oscan = malloc(Dy(m->r)*sizeof(uchar*));
-	nscan = malloc(max(ysize, Dy(m->r))*sizeof(uchar*));
+	oscan = malloc(Dy(m->r)*sizeof(uint8_t*));
+	nscan = malloc(max(ysize, Dy(m->r))*sizeof(uint8_t*));
 	if(oscan == nil || nscan == nil)
 		sysfatal("can't allocate: %r");
 

@@ -64,7 +64,7 @@ typedef void (*rec_fn)();
  * recognizer in a particular result.
  */
 
-typedef uchar rec_confidence;
+typedef unsigned char rec_confidence;
 
 /**************** RECOGNIZER CONFIGURATION INFORMATION *******************/
 

@@ -25,7 +25,7 @@ extern FILE	*tc, *tb;
 extern Queue	*qtab;
 extern Symbol	*Fname;
 extern int	lineno, m_loss, Pid, eventmapnr, multi_oval;
-extern short	nocast, has_provided, has_sorted;
+extern int16_t	nocast, has_provided, has_sorted;
 extern char	*R13[], *R14[], *R15[];
 
 static void	check_proc(Lextok *, int);

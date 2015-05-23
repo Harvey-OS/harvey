@@ -33,7 +33,7 @@ hstrdup(HConnect *c, char *s)
 }
 
 void*
-halloc(HConnect *c, ulong n)
+halloc(HConnect *c, uint32_t n)
 {
 	void *p;
 

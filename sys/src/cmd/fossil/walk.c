@@ -51,7 +51,8 @@ initWalk(WalkPtr *w, Block *b, uint size)
 }
 
 int
-nextWalk(WalkPtr *w, uchar score[VtScoreSize], uchar *type, u32int *tag, Entry **e)
+nextWalk(WalkPtr *w, uint8_t score[VtScoreSize], uint8_t *type, uint32_t *tag,
+	 Entry **e)
 {
 	if(w->n >= w->m)
 		return 0;

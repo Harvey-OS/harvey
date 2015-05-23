@@ -24,31 +24,31 @@
 #define	hupdate(h, c)	((((h)<<HSHIFT)^(c))&HMASK)
 typedef struct Hlist Hlist;
 struct Hlist{
-	uchar *s;
+	uint8_t *s;
 	Hlist *next, *prev;
 };
 
 int
 writerawimage(int fd, Rawimage *i)
 {
-	uchar *outbuf, *outp, *eout;		/* encoded data, pointer, end */
-	uchar *loutp;				/* start of encoded line */
+	uint8_t *outbuf, *outp, *eout;		/* encoded data, pointer, end */
+	uint8_t *loutp;				/* start of encoded line */
 	Hlist *hash;				/* heads of hash chains of past strings */
 	Hlist *chain, *hp;			/* hash chain members, pointer */
 	Hlist *cp;				/* next Hlist to fall out of window */
 	int h;					/* hash value */
-	uchar *line, *eline;			/* input line, end pointer */
-	uchar *data, *edata;			/* input buffer, end pointer */
-	ulong n;				/* length of input buffer */
+	uint8_t *line, *eline;			/* input line, end pointer */
+	uint8_t *data, *edata;			/* input buffer, end pointer */
+	uint32_t n;				/* length of input buffer */
 	int bpl;				/* input line length */
 	int offs, runlen;			/* offset, length of consumed data */
-	uchar dumpbuf[NDUMP];			/* dump accumulator */
+	uint8_t dumpbuf[NDUMP];			/* dump accumulator */
 	int ndump;				/* length of dump accumulator */
 	int ncblock;				/* size of buffer */
 	Rectangle r;
-	uchar *p, *q, *s, *es, *t;
+	uint8_t *p, *q, *s, *es, *t;
 	char hdr[11+5*12+1], buf[16];
-	ulong desc;
+	uint32_t desc;
 
 	r = i->r;
 	switch(i->chandesc){

@@ -91,13 +91,13 @@ typedef struct gx_device_att3b1_s {
 #define XSIZE (8.5 * XDPI)	/* 8.5 x 11 inch page, by default */
 #define YSIZE (11 * YDPI)
 
-static const ushort masks[] = { 0,
+static const uint16_t masks[] = { 0,
     0x0001, 0x0003, 0x0007, 0x000f,
     0x001f, 0x003f, 0x007f, 0x00ff,
     0x01ff, 0x03ff, 0x07ff, 0x0fff,
     0x1fff, 0x3fff, 0x7fff, 0xffff,
 };
-static uchar reverse_bits[256] = {
+static uint8_t reverse_bits[256] = {
   0, 128, 64, 192, 32, 160, 96, 224, 16, 144, 80, 208, 48, 176, 112, 240,
   8, 136, 72, 200, 40, 168, 104, 232, 24, 152, 88, 216, 56, 184, 120, 248,
   4, 132, 68, 196, 36, 164, 100, 228, 20, 148, 84, 212, 52, 180, 116, 244,
@@ -189,7 +189,7 @@ att3b1_open(gx_device *dev)
     att3b1dev->screen_size = att3b1dev->line_size * att3b1dev->height;
 
     att3b1dev->screen =
-	(uchar *)gs_malloc(dev->memory, att3b1dev->screen_size, 1, "att3b1_open");
+	(uint8_t *)gs_malloc(dev->memory, att3b1dev->screen_size, 1, "att3b1_open");
     if (att3b1dev->screen == NULL) {
 	att3b1_close(dev);
 	return_error(gs_error_VMerror);
@@ -229,7 +229,7 @@ att3b1_fill_rectangle(gx_device *dev, int x, int y, int w, int h,
                       gx_color_index colour)
 {
     uint o, b, wl, wr, w2;
-    ushort *p, *q, maskl, maskr;
+    uint16_t *p, *q, maskl, maskr;
 
 #ifdef ATT3B1_PERF
     if (att3b1dev->no_fill) return 0;
@@ -239,7 +239,7 @@ att3b1_fill_rectangle(gx_device *dev, int x, int y, int w, int h,
 
     /* following fit_fill, we can assume x, y, w, h are unsigned. */
 
-    p = (ushort *)&att3b1dev->screen[(ushort)y*att3b1dev->line_size] +
+    p = (uint16_t *)&att3b1dev->screen[(uint16_t)y*att3b1dev->line_size] +
 	(uint)x/16;
     o = (uint)x % 16;
     b = 16 - o;
@@ -290,14 +290,14 @@ att3b1_fill_rectangle(gx_device *dev, int x, int y, int w, int h,
 #endif
 
 int
-att3b1_copy_mono(gx_device *dev, const uchar *data,
+att3b1_copy_mono(gx_device *dev, const uint8_t *data,
 		 int data_x, int raster, gx_bitmap_id id,
 		 int x, int y, int width, int height, 
 		 gx_color_index colour0, gx_color_index colour1)
 {
-    const ushort *src_p, *src_q;
-    ushort *dst_p, *dst_q;
-    ulong bits, mask, *p;
+    const uint16_t *src_p, *src_q;
+    uint16_t *dst_p, *dst_q;
+    uint32_t bits, mask, *p;
     uint src_o, src_b, dst_o, dst_b, op;
     uint w1, w2;
 
@@ -316,11 +316,11 @@ att3b1_copy_mono(gx_device *dev, const uchar *data,
      * In what follows, we're assuming that each row of the input bitmap
      * is short-aligned, that is, that both "data" and "raster" are even.
      */
-    src_p = ((const ushort *)data) + (uint)data_x/16;
+    src_p = ((const uint16_t *)data) + (uint)data_x/16;
     src_o = (uint)data_x % 16;
     src_b = 16 - src_o;
 
-    dst_p = (ushort *)&att3b1dev->screen[(ushort)y*att3b1dev->line_size] +
+    dst_p = (uint16_t *)&att3b1dev->screen[(uint16_t)y*att3b1dev->line_size] +
 	    (uint)x/16;
     dst_o = (uint)x % 16;
     dst_b = 16 - dst_o;
@@ -343,7 +343,7 @@ att3b1_copy_mono(gx_device *dev, const uchar *data,
 	    if (src_o == 0)
 		bits = *src_q++;
 	    else {
-		bits = *((ulong *)src_q) >> src_b;
+		bits = *((uint32_t *)src_q) >> src_b;
 		bits &= 0xffff;
 		src_q++;
 	    }
@@ -357,7 +357,7 @@ att3b1_copy_mono(gx_device *dev, const uchar *data,
 	     * separate out the aligned case.  Doing so would cost a test,
 	     * and only reduce the average shift by about 1.
 	     */
-	    p = (ulong *)dst_q;
+	    p = (uint32_t *)dst_q;
 	    switch(op) {
 	    case 1:	/* not src and dst */
 		bits = ~(bits & mask);

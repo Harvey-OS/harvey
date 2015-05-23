@@ -13,7 +13,7 @@
 void
 main(int argc, char *argv[])
 {
-	long n;
+	int32_t n;
 	char *p, *q;
 
 	if(argc>1){

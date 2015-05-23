@@ -44,7 +44,7 @@ struct Fid
 	Fid*	next;
 	Fid**	last;
 	Chan*	chan;
-	long	offset;
+	int32_t	offset;
 	int	fid;
 	int	ref;		/* fcalls using the fid; locked by Export.Lock */
 	int	attached;	/* fid attached or cloned but not clunked */
@@ -460,7 +460,7 @@ exslave(void *a)
 Fid*
 Exmkfid(Export *fs, int fid)
 {
-	ulong h;
+	uint32_t h;
 	Fid *f, *nf;
 
 	nf = mallocz(sizeof(Fid));
@@ -495,7 +495,7 @@ Fid*
 Exgetfid(Export *fs, int fid)
 {
 	Fid *f;
-	ulong h;
+	uint32_t h;
 
 	lock(&fs->fidlock);
 	h = fid % Nfidhash;
@@ -684,7 +684,7 @@ Exread(Export *fs, Fcall *rpc)
 {
 	Fid *f;
 	Chan *c;
-	long off;
+	int32_t off;
 	int dir, n, seek;
 
 	f = Exgetfid(fs, rpc->fid);

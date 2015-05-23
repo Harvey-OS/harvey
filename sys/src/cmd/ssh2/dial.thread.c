@@ -68,7 +68,7 @@ struct Dest {
 	int	windfd;
 	char	err[ERRMAX];
 
-	long	oalarm;
+	int32_t	oalarm;
 
 	int	naddrs;
 	char	*nextaddr;

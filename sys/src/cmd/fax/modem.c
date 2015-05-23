@@ -99,7 +99,7 @@ rawmchar(Modem *m, char *p)
 }
 
 int
-getmchar(Modem *m, char *buf, long timeout)
+getmchar(Modem *m, char *buf, int32_t timeout)
 {
 	int r, t;
 
@@ -135,7 +135,7 @@ putmchar(Modem *m, char *p)
  *  lines terminate with cr-lf
  */
 static int
-getmline(Modem *m, char *buf, int len, long timeout)
+getmline(Modem *m, char *buf, int len, int32_t timeout)
 {
 	int r, t;
 	char *e = buf+len-1;

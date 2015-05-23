@@ -13,15 +13,15 @@
 #include <auth.h>
 #include "ppp.h"
 
-static	ushort	endian	= 1;
-static	uchar*	aendian	= (uchar*)&endian;
+static	uint16_t	endian	= 1;
+static	uint8_t*	aendian	= (uint8_t*)&endian;
 #define	LITTLE	*aendian
 
-ushort
-ptclbsum(uchar *addr, int len)
+uint16_t
+ptclbsum(uint8_t *addr, int len)
 {
-	ulong losum, hisum, mdsum, x;
-	ulong t1, t2;
+	uint32_t losum, hisum, mdsum, x;
+	uint32_t t1, t2;
 
 	losum = 0;
 	hisum = 0;
@@ -37,20 +37,20 @@ ptclbsum(uchar *addr, int len)
 		x = 1;
 	}
 	while(len >= 16) {
-		t1 = *(ushort*)(addr+0);
-		t2 = *(ushort*)(addr+2);	mdsum += t1;
-		t1 = *(ushort*)(addr+4);	mdsum += t2;
-		t2 = *(ushort*)(addr+6);	mdsum += t1;
-		t1 = *(ushort*)(addr+8);	mdsum += t2;
-		t2 = *(ushort*)(addr+10);	mdsum += t1;
-		t1 = *(ushort*)(addr+12);	mdsum += t2;
-		t2 = *(ushort*)(addr+14);	mdsum += t1;
+		t1 = *(uint16_t*)(addr+0);
+		t2 = *(uint16_t*)(addr+2);	mdsum += t1;
+		t1 = *(uint16_t*)(addr+4);	mdsum += t2;
+		t2 = *(uint16_t*)(addr+6);	mdsum += t1;
+		t1 = *(uint16_t*)(addr+8);	mdsum += t2;
+		t2 = *(uint16_t*)(addr+10);	mdsum += t1;
+		t1 = *(uint16_t*)(addr+12);	mdsum += t2;
+		t2 = *(uint16_t*)(addr+14);	mdsum += t1;
 		mdsum += t2;
 		len -= 16;
 		addr += 16;
 	}
 	while(len >= 2) {
-		mdsum += *(ushort*)addr;
+		mdsum += *(uint16_t*)addr;
 		len -= 2;
 		addr += 2;
 	}
@@ -78,12 +78,12 @@ ptclbsum(uchar *addr, int len)
 	return losum & 0xffff;
 }
 
-ushort
+uint16_t
 ptclcsum(Block *bp, int offset, int len)
 {
-	uchar *addr;
-	ulong losum, hisum;
-	ushort csum;
+	uint8_t *addr;
+	uint32_t losum, hisum;
+	uint16_t csum;
 	int odd, blen, x;
 
 	/* Correct to front of data area */
@@ -135,11 +135,11 @@ ptclcsum(Block *bp, int offset, int len)
 	return ~losum & 0xffff;
 }
 
-ushort
-ipcsum(uchar *addr)
+uint16_t
+ipcsum(uint8_t *addr)
 {
 	int len;
-	ulong sum;
+	uint32_t sum;
 
 	sum = 0;
 	len = (addr[0]&0xf)<<2;

@@ -65,7 +65,7 @@ typedef enum {
     cs_active,
     cs_done
 } ctx_status_t;
-typedef long ctx_index_t;	/* >= 0 */
+typedef int32_t ctx_index_t;	/* >= 0 */
 typedef struct gs_context_s gs_context_t;
 typedef struct gs_scheduler_s gs_scheduler_t;
 
@@ -173,7 +173,7 @@ gs_private_st_ptrs1(st_lock, gs_lock_t, "locktype",
 /*typedef struct gs_scheduler_s gs_scheduler_t; *//* (above) */
 struct gs_scheduler_s {
     gs_context_t *current;
-    long usertime_initial;	/* usertime when current started running */
+    int32_t usertime_initial;	/* usertime when current started running */
     ctx_list_t active;
     vm_reclaim_proc((*save_vm_reclaim));
     ctx_index_t dead_index;
@@ -183,7 +183,7 @@ struct gs_scheduler_s {
 
 /* Convert a context index to a context pointer. */
 private gs_context_t *
-index_context(const gs_scheduler_t *psched, long index)
+index_context(const gs_scheduler_t *psched, int32_t index)
 {
     gs_context_t *pctx;
 

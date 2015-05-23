@@ -34,7 +34,7 @@
 # include <ulimit.h>
 #else /* HAVE_ULIMIT_H */
 # ifdef HAVE_ULIMIT
-extern	long ulimit();
+extern	int32_t ulimit();
 # endif /* HAVE_ULIMIT */
 #endif /* HAVE_ULIMIT_H */
 
@@ -176,7 +176,7 @@ c_ulimit(wp)
 		if (strcmp(wp[0], "unlimited") == 0)
 			val = KSH_RLIM_INFINITY;
 		else {
-			long rval;
+			int32_t rval;
 
 			if (!evaluate(wp[0], &rval, KSH_RETURN_ERROR))
 				return 1;
@@ -220,7 +220,7 @@ c_ulimit(wp)
 #endif /* RLIM_INFINITY */
 			{
 				val /= l->factor;
-				shprintf("%ld\n", (long) val);
+				shprintf("%ld\n", (int32_t) val);
 			}
 		}
 		return 0;
@@ -273,7 +273,7 @@ c_ulimit(wp)
 #endif /* RLIM_INFINITY */
 		{
 			val /= l->factor;
-			shprintf("%ld\n", (long) val);
+			shprintf("%ld\n", (int32_t) val);
 		}
 	}
 	return 0;

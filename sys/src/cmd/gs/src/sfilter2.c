@@ -65,8 +65,8 @@ s_A85E_process(stream_state * st, stream_cursor_read * pr,
     if_debug3('w', "[w85]initial ss->count = %d, rcount = %d, wcount = %d\n",
 	      ss->count, (int)(rlimit - p), (int)(wlimit - q));
     for (; (count = rlimit - p) >= 4; p += 4) {
-	ulong word =
-	    ((ulong) (((uint) p[1] << 8) + p[2]) << 16) +
+	uint32_t word =
+	    ((uint32_t) (((uint) p[1] << 8) + p[2]) << 16) +
 	    (((uint) p[3] << 8) + p[4]);
 
 	if (word == 0) {
@@ -87,8 +87,8 @@ s_A85E_process(stream_state * st, stream_cursor_read * pr,
 	    }
 	    *++q = prev = 'z';
 	} else {
-	    ulong v4 = word / 85;	/* max 85^4 */
-	    ulong v3 = v4 / 85;	/* max 85^3 */
+	    uint32_t v4 = word / 85;	/* max 85^4 */
+	    uint32_t v3 = v4 / 85;	/* max 85^3 */
 	    uint v2 = v3 / 85;	/* max 85^2 */
 	    uint v1 = v2 / 85;	/* max 85 */
 
@@ -196,19 +196,19 @@ put:	    if (q + 5 > qn) {
 	    goto end;
 	}
 	else {
-	    ulong word = 0;
-	    ulong divisor = 85L * 85 * 85 * 85;
+	    uint32_t word = 0;
+	    uint32_t divisor = 85L * 85 * 85 * 85;
 
 	    switch (count) {
 		case 3:
 		    word += (uint) p[3] << 8;
 		case 2:
-		    word += (ulong) p[2] << 16;
+		    word += (uint32_t) p[2] << 16;
 		case 1:
-		    word += (ulong) p[1] << 24;
+		    word += (uint32_t) p[1] << 24;
 		    p += count;
 		    while (count-- >= 0) {
-			ulong v = word / divisor;  /* actually only a byte */
+			uint32_t v = word / divisor;  /* actually only a byte */
 
 			*++q = (byte) v + '!';
 			word -= v * divisor;

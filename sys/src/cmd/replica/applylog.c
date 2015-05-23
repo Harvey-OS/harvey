@@ -18,11 +18,11 @@ void error(char*, ...);
 int isdir(char*);
 
 void worker(int fdf, int fdt, char *from, char *to);
-vlong	nextoff(void);
+int64_t	nextoff(void);
 void	failure(void *, char *note);
 
 QLock	lk;
-vlong	off;
+int64_t	off;
 
 int errors;
 int nconf;
@@ -41,7 +41,7 @@ char *mkname(char*, int, char*, char*);
 char localbuf[10240];
 char remotebuf[10240];
 int copyfile(char*, char*, char*, Dir*, int, int*);
-ulong maxnow;
+uint32_t maxnow;
 int maxn;
 char *timefile;
 int timefd;
@@ -735,7 +735,7 @@ mkname(char *buf, int nbuf, char *a, char *b)
 int
 isdir(char *s)
 {
-	ulong m;
+	uint32_t m;
 	Dir *d;
 
 	if((d = dirstat(s)) == nil)
@@ -869,8 +869,8 @@ void
 worker(int fdf, int fdt, char *from, char *to)
 {
 	char buf[DEFB], *bp;
-	long len, n;
-	vlong o;
+	int32_t len, n;
+	int64_t o;
 
 	len = sizeof(buf);
 	bp = buf;
@@ -897,10 +897,10 @@ worker(int fdf, int fdt, char *from, char *to)
 	_exits(nil);
 }
 
-vlong
+int64_t
 nextoff(void)
 {
-	vlong o;
+	int64_t o;
 
 	qlock(&lk);
 	o = off;

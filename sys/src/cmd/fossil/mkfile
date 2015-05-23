@@ -103,7 +103,7 @@ test:V: all
 $LIB(%.$O):N: %.$O
 $LIB:	${LIBOFILES:%=$LIB(%)}
 	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$LIB'\(([^)]+)\)/\1/gp'}
-	ar vu $LIB $names
+	ar rv $LIB $names
 #	rm $names
 
 $O.flfmt: flfmt9660.$O

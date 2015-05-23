@@ -34,12 +34,12 @@ extern Queue	*qtab;
 extern Symbol	*Fname;
 extern int	lineno, verbose, Pid, separate, old_scope_rules, nclaims;
 extern int	nrRdy, nqs, mst, Mpars, claimnr, eventmapnr;
-extern short	has_sorted, has_random, has_provided;
+extern int16_t	has_sorted, has_random, has_provided;
 extern Queue	*ltab[];
 
 int	Npars=0, u_sync=0, u_async=0, hastrack = 1;
-short	has_io = 0;
-short	has_state=0;	/* code contains c_state */
+int16_t	has_io = 0;
+int16_t	has_state=0;	/* code contains c_state */
 
 static Symbol	*LstSet=ZS;
 static int	acceptors=0, progressors=0, nBits=0;
@@ -53,7 +53,8 @@ static void	put_ptype(char *, int, int, int, enum btypes);
 static void	tc_predef_np(void);
 static void	put_pinit(ProcList *);
 static void	multi_init(void);
-       void	walk_struct(FILE *, int, char *, Symbol *, char *, char *, char *);
+       void	walk_struct(FILE *, int, char *, Symbol *, char *,
+			       char *, char *);
 
 static void
 reverse_names(ProcList *p)
@@ -549,7 +550,8 @@ checktype(Symbol *sp, char *s)
 }
 
 static int
-dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s, enum btypes b)
+dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s,
+	enum btypes b)
 {	int h, j, k=0; extern int nr_errs;
 	Ordered *walk;
 	Symbol *sp;
@@ -1213,7 +1215,7 @@ huntele(Element *f, int o, int stopat)
 
 void
 typ2c(Symbol *sp)
-{	int wsbits = sizeof(long)*8; /* wordsize in bits */
+{	int wsbits = sizeof(int32_t)*8; /* wordsize in bits */
 	switch (sp->type) {
 	case UNSIGNED:
 		if (sp->hidden&1)

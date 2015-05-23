@@ -24,7 +24,7 @@ int
 rresvport(int *p)
 {
 	int fd;
-	short i;
+	int16_t i;
 	struct	sockaddr_in in;
 	static int next;
 

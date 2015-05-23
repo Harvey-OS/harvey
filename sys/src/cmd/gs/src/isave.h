@@ -52,20 +52,20 @@ typedef struct alloc_save_s alloc_save_t;
 extern void alloc_save_init(gs_dual_memory_t *);
 
 /* Map a save ID to its save object.  Return 0 if the ID is invalid. */
-alloc_save_t *alloc_find_save(const gs_dual_memory_t *, ulong);
+alloc_save_t *alloc_find_save(const gs_dual_memory_t *, uint32_t);
 
 /*
  * Save the state.  Return 0 if we can't allocate the save object,
  * otherwise return the save ID.  The second argument is a client data
  * pointer, assumed to point to an object.
  */
-ulong alloc_save_state(gs_dual_memory_t *, void *);
+uint32_t alloc_save_state(gs_dual_memory_t *, void *);
 
 /* Get the client pointer passed to alloc_saved_state. */
 void *alloc_save_client_data(const alloc_save_t *);
 
 /* Return (the id of) the innermost externally visible save object. */
-ulong alloc_save_current_id(const gs_dual_memory_t *);
+uint32_t alloc_save_current_id(const gs_dual_memory_t *);
 alloc_save_t *alloc_save_current(const gs_dual_memory_t *);
 
 /* Check whether a pointer refers to an object allocated since a given save. */

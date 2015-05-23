@@ -31,7 +31,7 @@ int	limit;
 
 /* the current directory */
 Dir	*dirbuf;
-long	ndirbuf = 0;
+int32_t	ndirbuf = 0;
 int	nfiles;
 char	*curdir;
 
@@ -133,7 +133,7 @@ int
 emptydir(char *name)
 {
 	int fd;
-	long n;
+	int32_t n;
 	char buf[2048];
 
 	fd = open(name, OREAD);
@@ -185,7 +185,7 @@ doalldirs(void)
 {
 	Dir *db;
 	int fd;
-	long i, n;
+	int32_t i, n;
 
 
 	fd = open(".", OREAD);
@@ -244,7 +244,7 @@ void
 rundir(char *name)
 {
 	int fd;
-	long i;
+	int32_t i;
 
 	if(aflag && sflag)
 		fd = sysopenlocked(".", OREAD);
@@ -275,7 +275,7 @@ rundir(char *name)
 void
 remmatch(char *name)
 {
-	long i;
+	int32_t i;
 
 	syslog(0, runqlog, "removing %s/%s", curdir, name);
 
@@ -587,7 +587,7 @@ returnmail(char **av, char *name, char *msg)
 	char buf[256];
 	char attachment[256];
 	int i;
-	long n;
+	int32_t n;
 	String *s;
 	char *sender;
 

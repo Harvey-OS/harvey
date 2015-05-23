@@ -45,8 +45,8 @@ writelog(HConnect *c, char *fmt, ...)
 	HSPriv *p;
 	char buf[HBufSize+500], *bufp, *bufe;
 	char statuscode[4];
-	vlong objectsize;
-	ulong now, today;
+	int64_t objectsize;
+	uint32_t now, today;
 	int logfd;
 	va_list arg;
 	Tm *tm;
@@ -75,7 +75,8 @@ writelog(HConnect *c, char *fmt, ...)
 		va_end(arg);
 		if(c->req.uri != nil && c->req.uri[0] != 0)
 			bufp = seprint(bufp, bufe, "FinalURI: %s\n", c->req.uri);
-		bufp = seprint(bufp, bufe, "----------\n%s\n", (char*)c->header);
+		bufp = seprint(bufp, bufe, "----------\n%s\n",
+			       (char*)c->header);
 		write(logfd, buf, bufp-buf);   /* append-only file */
 	}
 
@@ -92,9 +93,9 @@ writelog(HConnect *c, char *fmt, ...)
 			strcmp(fmt+7, "206 partial content %lld %lld\n") == 0 ||
 			strcmp(fmt+7, "206 partial content, early termination %lld %lld\n") == 0){
 			va_start(arg, fmt);
-			objectsize = va_arg(arg, vlong); /* length in sendfd.c */
+			objectsize = va_arg(arg, int64_t); /* length in sendfd.c */
 			USED(objectsize);
-			objectsize = va_arg(arg, vlong); /* wrote in sendfd.c */
+			objectsize = va_arg(arg, int64_t); /* wrote in sendfd.c */
 			va_end(arg);
 		}
 		bufp = seprint(buf, bufe, "%s - -", p->remotesys);

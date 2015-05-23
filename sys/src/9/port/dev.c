@@ -14,40 +14,37 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-extern ulong	kerndate;
+extern uint32_t	kerndate;
 
 void
-mkqid(Qid *q, vlong path, ulong vers, int type)
+mkqid(Qid *q, int64_t path, uint32_t vers, int type)
 {
+	if (0) print_func_entry();
 	q->type = type;
 	q->vers = vers;
 	q->path = path;
-}
-
-int
-devno(int c, int user)
-{
-	int i;
-
-	for(i = 0; devtab[i] != nil; i++) {
-		if(devtab[i]->dc == c)
-			return i;
-	}
-	if(user == 0)
-		panic("devno %C %#ux", c, c);
-
-	return -1;
+	if (0) print_func_exit();
 }
 
 void
-devdir(Chan *c, Qid qid, char *n, vlong length, char *user, long perm, Dir *db)
+devdir(Chan *c, Qid qid, char *n, int64_t length, char *user,
+       int32_t perm,
+       Dir *db)
 {
+	if (0) print_func_entry();
 	db->name = n;
 	if(c->flag&CMSG)
 		qid.type |= QTMOUNT;
 	db->qid = qid;
-	db->type = devtab[c->type]->dc;
-	db->dev = c->dev;
+	/*
+	 * When called via devwalk c->dev is nil
+	 * until the walk succeeds.
+	 */
+	if(c->dev != nil)
+		db->type = c->dev->dc;
+	else
+		db->type = -1;
+	db->dev = c->devno;
 	db->mode = perm;
 	db->mode |= qid.type << 24;
 	db->atime = seconds();
@@ -56,35 +53,36 @@ devdir(Chan *c, Qid qid, char *n, vlong length, char *user, long perm, Dir *db)
 	db->uid = user;
 	db->gid = eve;
 	db->muid = user;
+	if (0) print_func_exit();
 }
 
 /*
  * (here, Devgen is the prototype; devgen is the function in dev.c.)
- * 
+ *
  * a Devgen is expected to return the directory entry for ".."
  * if you pass it s==DEVDOTDOT (-1).  otherwise...
- * 
+ *
  * there are two contradictory rules.
- * 
+ *
  * (i) if c is a directory, a Devgen is expected to list its children
  * as you iterate s.
- * 
+ *
  * (ii) whether or not c is a directory, a Devgen is expected to list
  * its siblings as you iterate s.
- * 
+ *
  * devgen always returns the list of children in the root
  * directory.  thus it follows (i) when c is the root and (ii) otherwise.
  * many other Devgens follow (i) when c is a directory and (ii) otherwise.
- * 
+ *
  * devwalk assumes (i).  it knows that devgen breaks (i)
  * for children that are themselves directories, and explicitly catches them.
- * 
+ *
  * devstat assumes (ii).  if the Devgen in question follows (i)
  * for this particular c, devstat will not find the necessary info.
  * with our particular Devgen functions, this happens only for
  * directories, so devstat makes something up, assuming
  * c->name, c->qid, eve, DMDIR|0555.
- * 
+ *
  * devdirread assumes (i).  the callers have to make sure
  * that the Devgen satisfies (i) for the chan being read.
  */
@@ -94,60 +92,80 @@ devdir(Chan *c, Qid qid, char *n, vlong length, char *user, long perm, Dir *db)
 int
 devgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
 {
-	if(tab == 0)
-		return -1;
+	if (0) print_func_entry();
+	if(tab == 0) {
+	if (0) print_func_exit();
+	return -1;
+	}
 	if(i == DEVDOTDOT){
 		/* nothing */
 	}else if(name){
 		for(i=1; i<ntab; i++)
 			if(strcmp(tab[i].name, name) == 0)
 				break;
-		if(i==ntab)
+		if(i==ntab) {
+			if (0) print_func_exit();
 			return -1;
+		}
 		tab += i;
 	}else{
 		/* skip over the first element, that for . itself */
 		i++;
-		if(i >= ntab)
-			return -1;
+		if(i >= ntab) {
+		if (0) print_func_exit();
+		return -1;
+		}
 		tab += i;
 	}
 	devdir(c, tab->qid, tab->name, tab->length, eve, tab->perm, dp);
+	if (0) print_func_exit();
 	return 1;
 }
 
 void
 devreset(void)
 {
+	if (0) print_func_entry();
+	if (0) print_func_exit();
 }
 
 void
 devinit(void)
 {
+	if (0) print_func_entry();
+	if (0) print_func_exit();
 }
 
 void
 devshutdown(void)
 {
+	if (0) print_func_entry();
+	if (0) print_func_exit();
 }
 
 Chan*
-devattach(int tc, char *spec)
+devattach(int dc, char *spec)
 {
-	int n;
+	if (0) print_func_entry();
 	Chan *c;
 	char *buf;
 
+	/*
+	 * There are no error checks here because
+	 * this can only be called from the driver of dc
+	 * which pretty much guarantees devtabget will
+	 * succeed.
+	 */
 	c = newchan();
 	mkqid(&c->qid, 0, 0, QTDIR);
-	c->type = devno(tc, 0);
+	c->dev = devtabget(dc, 0);
 	if(spec == nil)
 		spec = "";
-	n = 1+UTFmax+strlen(spec)+1;
-	buf = smalloc(n);
-	snprint(buf, n, "#%C%s", tc, spec);
+	buf = smalloc(1+UTFmax+strlen(spec)+1);
+	sprint(buf, "#%C%s", dc, spec);
 	c->path = newpath(buf);
 	free(buf);
+	if (0) print_func_exit();
 	return c;
 }
 
@@ -155,28 +173,38 @@ devattach(int tc, char *spec)
 Chan*
 devclone(Chan *c)
 {
+	if (0) print_func_entry();
 	Chan *nc;
 
-	if(c->flag & COPEN)
-		panic("clone of open file type %C\n", devtab[c->type]->dc);
+	if(c->flag & COPEN){
+		panic("devclone: file of type %C already open\n",
+			c->dev != nil? c->dev->dc: -1);
+	}
 
 	nc = newchan();
 
-	nc->type = c->type;
-	nc->dev = c->dev;
+	/*
+	 * The caller fills dev in if and when necessary.
+	nc->dev = nil;					//XDYNXX
+	 */
+	nc->devno = c->devno;
 	nc->mode = c->mode;
 	nc->qid = c->qid;
 	nc->offset = c->offset;
 	nc->umh = nil;
 	nc->aux = c->aux;
 	nc->mqid = c->mqid;
-	nc->mcp = c->mcp;
+	nc->mc = c->mc;
+	if (0) print_func_exit();
 	return nc;
 }
 
 Walkqid*
-devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen *gen)
+devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
+	Devgen *gen)
 {
+	Mach *m = machp();
+	if (0) print_func_entry();
 	int i, j, alloc;
 	Walkqid *wq;
 	char *n;
@@ -185,23 +213,28 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen
 	if(nname > 0)
 		isdir(c);
 
+	if (0)
+	{ int i; iprint("%d names:", nname); for(i = 0; i < nname; i++) iprint("%s ", name[i]); iprint("\n");}
 	alloc = 0;
 	wq = smalloc(sizeof(Walkqid)+(nname-1)*sizeof(Qid));
 	if(waserror()){
 		if(alloc && wq->clone!=nil)
 			cclose(wq->clone);
 		free(wq);
+		if (0) print_func_exit();
 		return nil;
 	}
 	if(nc == nil){
 		nc = devclone(c);
-		nc->type = 0;	/* device doesn't know about this channel yet */
+		/*
+		 * nc->dev remains nil for now.		//XDYNX
+		 */
 		alloc = 1;
 	}
 	wq->clone = nc;
 
 	for(j=0; j<nname; j++){
-		if(!(nc->qid.type&QTDIR)){
+		if(!(nc->qid.type & QTDIR)){
 			if(j==0)
 				error(Enotdir);
 			goto Done;
@@ -213,9 +246,13 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen
 			continue;
 		}
 		if(strcmp(n, "..") == 0){
+			/*
+			 * Use c->dev->name in the error because
+			 * nc->dev should be nil here.
+			 */
 			if((*gen)(nc, nil, tab, ntab, DEVDOTDOT, &dir) != 1){
-				print("devgen walk .. in dev%s %llux broken\n",
-					devtab[nc->type]->name, nc->qid.path);
+				print("devgen walk .. in dev%s %#llux broken\n",
+					c->dev->name, nc->qid.path);
 				error("broken devgen");
 			}
 			nc->qid = dir.qid;
@@ -237,7 +274,7 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen
 			Notfound:
 				if(j == 0)
 					error(Enonexist);
-				kstrcpy(up->errstr, Enonexist, ERRMAX);
+				kstrcpy(m->externup->errstr, Enonexist, ERRMAX);
 				goto Done;
 			case 0:
 				continue;
@@ -263,14 +300,22 @@ Done:
 		wq->clone = nil;
 	}else if(wq->clone){
 		/* attach cloned channel to same device */
-		wq->clone->type = c->type;
+//what goes here:					//XDYNX
+// ->dev must be nil because can't walk an open chan, right?
+// what about ref count on dev?
+		wq->clone->dev = c->dev;
+		//if(wq->clone->dev)			//XDYNX
+		//	devtabincr(wq->clone->dev);
 	}
+	if (0) print_func_exit();
 	return wq;
 }
 
-int
-devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
+int32_t
+devstat(Chan *c, uint8_t *db, int32_t n, Dirtab *tab, int ntab,
+	Devgen *gen)
 {
+	if (0) print_func_entry();
 	int i;
 	Dir dir;
 	char *p, *elem;
@@ -291,6 +336,7 @@ devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 				n = convD2M(&dir, db, n);
 				if(n == 0)
 					error(Ebadarg);
+				if (0) print_func_exit();
 				return n;
 			}
 
@@ -304,32 +350,38 @@ devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 				n = convD2M(&dir, db, n);
 				if(n == 0)
 					error(Ebadarg);
+				if (0) print_func_exit();
 				return n;
 			}
 			break;
 		}
 	}
+	if (0) print_func_exit();
 }
 
-long
-devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
+int32_t
+devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
+	   Devgen *gen)
 {
-	long m, dsz;
+	if (0) print_func_entry();
+	int32_t m, dsz;
 	Dir dir;
 
 	for(m=0; m<n; c->dri++) {
 		switch((*gen)(c, nil, tab, ntab, c->dri, &dir)){
 		case -1:
+			if (0) print_func_exit();
 			return m;
 
 		case 0:
 			break;
 
 		case 1:
-			dsz = convD2M(&dir, (uchar*)d, n-m);
+			dsz = convD2M(&dir, (uint8_t*)d, n-m);
 			if(dsz <= BIT16SZ){	/* <= not < because this isn't stat; read is stuck */
 				if(m == 0)
 					error(Eshort);
+				if (0) print_func_exit();
 				return m;
 			}
 			m += dsz;
@@ -338,22 +390,25 @@ devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
 		}
 	}
 
+	if (0) print_func_exit();
 	return m;
 }
 
 /*
- * error(Eperm) if open permission not granted for up->user.
+ * error(Eperm) if open permission not granted for m->externup->user.
  */
 void
-devpermcheck(char *fileuid, ulong perm, int omode)
+devpermcheck(char *fileuid, int perm, int omode)
 {
-	ulong t;
+	Mach *m = machp();
+	if (0) print_func_entry();
+	int t;
 	static int access[] = { 0400, 0200, 0600, 0100 };
 
-	if(strcmp(up->user, fileuid) == 0)
+	if(strcmp(m->externup->user, fileuid) == 0)
 		perm <<= 0;
 	else
-	if(strcmp(up->user, eve) == 0)
+	if(strcmp(m->externup->user, eve) == 0)
 		perm <<= 3;
 	else
 		perm <<= 6;
@@ -361,11 +416,13 @@ devpermcheck(char *fileuid, ulong perm, int omode)
 	t = access[omode&3];
 	if((t&perm) != t)
 		error(Eperm);
+	if (0) print_func_exit();
 }
 
 Chan*
 devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 {
+	if (0) print_func_entry();
 	int i;
 	Dir dir;
 
@@ -385,22 +442,27 @@ devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 	}
 Return:
 	c->offset = 0;
-	if((c->qid.type&QTDIR) && omode!=OREAD)
+	if((c->qid.type & QTDIR) && omode!=OREAD)
 		error(Eperm);
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
+	if (0) print_func_exit();
 	return c;
 }
 
 void
-devcreate(Chan*, char*, int, ulong)
+devcreate(Chan* c, char* d, int i, int n)
 {
+	if (0) print_func_entry();
 	error(Eperm);
+	if (0) print_func_exit();
 }
 
 Block*
-devbread(Chan *c, long n, ulong offset)
+devbread(Chan *c, int32_t n, int64_t offset)
 {
+	Mach *m = machp();
+	if (0) print_func_entry();
 	Block *bp;
 
 	bp = allocb(n);
@@ -410,49 +472,61 @@ devbread(Chan *c, long n, ulong offset)
 		freeb(bp);
 		nexterror();
 	}
-	bp->wp += devtab[c->type]->read(c, bp->wp, n, offset);
+	bp->wp += c->dev->read(c, bp->wp, n, offset);
 	poperror();
+	if (0) print_func_exit();
 	return bp;
 }
 
-long
-devbwrite(Chan *c, Block *bp, ulong offset)
+int32_t
+devbwrite(Chan *c, Block *bp, int64_t offset)
 {
-	long n;
+	Mach *m = machp();
+	if (0) print_func_entry();
+	int32_t n;
 
 	if(waserror()) {
 		freeb(bp);
 		nexterror();
 	}
-	n = devtab[c->type]->write(c, bp->rp, BLEN(bp), offset);
+	n = c->dev->write(c, bp->rp, BLEN(bp), offset);
 	poperror();
 	freeb(bp);
 
+	if (0) print_func_exit();
 	return n;
 }
 
 void
-devremove(Chan*)
+devremove(Chan* c)
 {
+	if (0) print_func_entry();
 	error(Eperm);
+	if (0) print_func_exit();
 }
 
-int
-devwstat(Chan*, uchar*, int)
+int32_t
+devwstat(Chan* c, uint8_t* i, int32_t n)
 {
+	if (0) print_func_entry();
 	error(Eperm);
+	if (0) print_func_exit();
 	return 0;
 }
 
 void
-devpower(int)
+devpower(int i)
 {
+	if (0) print_func_entry();
 	error(Eperm);
+	if (0) print_func_exit();
 }
 
 int
-devconfig(int, char *, DevConf *)
+devconfig(int i, char *c, DevConf *d)
 {
+	if (0) print_func_entry();
 	error(Eperm);
+	if (0) print_func_exit();
 	return 0;
 }

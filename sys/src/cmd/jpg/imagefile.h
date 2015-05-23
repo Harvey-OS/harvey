@@ -52,7 +52,7 @@ enum{	/* PNG flags */
 };
 
 typedef struct ImageInfo {
-	ulong	fields_set;
+	uint32_t	fields_set;
 	double	gamma;
 	char	*comment;
 } ImageInfo;

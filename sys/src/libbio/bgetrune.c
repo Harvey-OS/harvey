@@ -11,7 +11,7 @@
 #include	<libc.h>
 #include	<bio.h>
 
-long
+int32_t
 Bgetrune(Biobufhdr *bp)
 {
 	int c, i;

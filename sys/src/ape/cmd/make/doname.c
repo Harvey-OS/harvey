@@ -274,7 +274,7 @@ return errstat;
 
 docom(struct shblock *q, int nowait, int nproc1)
 {
-char *s;
+int8_t *s;
 int ign, nopr, doit;
 char string[OUTMAX];
 

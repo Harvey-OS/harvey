@@ -38,10 +38,10 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 	HContents conts;
 	Hio *hout;
 	char *boundary, etag[32];
-	long mtime;
-	ulong tr;
+	int32_t mtime;
+	uint32_t tr;
 	int n, nw, multir, ok;
-	vlong wrote, length;
+	int64_t wrote, length;
 
 	hout = &c->hout;
 	length = dir->length;
@@ -349,7 +349,8 @@ notaccept(HConnect *c, HContent *type, HContent *enc, char *which)
  * check time and entity tag conditions.
  */
 int
-checkreq(HConnect *c, HContent *type, HContent *enc, long mtime, char *etag)
+checkreq(HConnect *c, HContent *type, HContent *enc, int32_t mtime,
+	 char *etag)
 {
 	Hio *hout;
 	int m;
@@ -413,7 +414,7 @@ checkreq(HConnect *c, HContent *type, HContent *enc, long mtime, char *etag)
  * rewrite suffix requests
  */
 HRange*
-fixrange(HRange *h, long length)
+fixrange(HRange *h, int32_t length)
 {
 	HRange *r, *rr;
 

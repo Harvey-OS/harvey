@@ -23,7 +23,7 @@ enum
 {
 	Amagic= 	0xbebeefed,	/* allocation block magic */
 	Imagic=		0xbadc00ce,	/* inode block magic */
-	BtoUL=		8*sizeof(ulong),/* bits in a ulong */
+	BtoUL=		8*sizeof(uint32_t),/* bits in a ulong */
 	CACHENAMELEN=	128
 };
 #define	Indbno		0x80000000	/* indirect block */
@@ -36,15 +36,15 @@ enum
  */
 struct Dahdr
 {
-	ulong	magic;
-	ulong	bsize;		/* logical block size */
+	uint32_t	magic;
+	uint32_t	bsize;		/* logical block size */
 	char	name[CACHENAMELEN];
 	short	nab;		/* number of allocation blocks */
 };
 struct Dalloc
 {
 	Dahdr;
-	ulong	bits[1];
+	uint32_t	bits[1];
 };
 
 /*
@@ -52,8 +52,8 @@ struct Dalloc
  */
 struct Dptr
 {
-	ulong	fbno;		/* file block number */
-	ulong	bno;		/* disk block number */
+	uint32_t	fbno;		/* file block number */
+	uint32_t	bno;		/* disk block number */
 	ushort	start;		/* offset into block of valid data */
 	ushort	end;		/* offset into block after valid data */
 };
@@ -74,8 +74,8 @@ struct Inode
  */
 struct Dihdr
 {
-	ulong	magic;
-	ulong	nino;		/* number of inodes */
+	uint32_t	magic;
+	uint32_t	nino;		/* number of inodes */
 };
 struct Dinode
 {

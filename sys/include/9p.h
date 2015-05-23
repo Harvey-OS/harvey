@@ -19,10 +19,10 @@ typedef struct Intmap	Intmap;
 
 Intmap*	allocmap(void (*inc)(void*));
 void		freemap(Intmap*, void (*destroy)(void*));
-void*	lookupkey(Intmap*, ulong);
-void*	insertkey(Intmap*, ulong, void*);
-int		caninsertkey(Intmap*, ulong, void*);
-void*	deletekey(Intmap*, ulong);
+void*	lookupkey(Intmap*, uint32_t);
+void*	insertkey(Intmap*, uint32_t, void*);
+int		caninsertkey(Intmap*, uint32_t, void*);
+void*	deletekey(Intmap*, uint32_t);
 
 /*
  * Fid and Request structures.
@@ -42,7 +42,7 @@ typedef struct Srv Srv;
 
 struct Fid
 {
-	ulong	fid;
+	uint32_t	fid;
 	char		omode;	/* -1 = not open */
 	File*		file;
 	char*	uid;
@@ -53,13 +53,13 @@ struct Fid
 	Readdir*	rdir;
 	Ref		ref;
 	Fidpool*	pool;
-	vlong	diroffset;
-	long		dirindex;
+	int64_t	diroffset;
+	int32_t		dirindex;
 };
 
 struct Req
 {
-	ulong	tag;
+	uint32_t	tag;
 	void*	aux;
 	Fcall		ifcall;
 	Fcall		ofcall;
@@ -74,9 +74,9 @@ struct Req
 	QLock	lk;
 	Ref		ref;
 	Reqpool*	pool;
-	uchar*	buf;
-	uchar	type;
-	uchar	responded;
+	uint8_t*	buf;
+	uint8_t	type;
+	uint8_t	responded;
 	char*	error;
 	void*	rbuf;
 	Req**	flush;
@@ -101,17 +101,17 @@ struct Reqpool {
 
 Fidpool*	allocfidpool(void (*destroy)(Fid*));
 void		freefidpool(Fidpool*);
-Fid*		allocfid(Fidpool*, ulong);
-Fid*		lookupfid(Fidpool*, ulong);
+Fid*		allocfid(Fidpool*, uint32_t);
+Fid*		lookupfid(Fidpool*, uint32_t);
 void		closefid(Fid*);
-Fid*		removefid(Fidpool*, ulong);
+Fid*		removefid(Fidpool*, uint32_t);
 
 Reqpool*	allocreqpool(void (*destroy)(Req*));
 void		freereqpool(Reqpool*);
-Req*		allocreq(Reqpool*, ulong);
-Req*		lookupreq(Reqpool*, ulong);
+Req*		allocreq(Reqpool*, uint32_t);
+Req*		lookupreq(Reqpool*, uint32_t);
 void		closereq(Req*);
-Req*		removereq(Reqpool*, ulong);
+Req*		removereq(Reqpool*, uint32_t);
 
 typedef	int	Dirgen(int, Dir*, void*);
 void		dirread9p(Req*, Dirgen*, void*);
@@ -141,18 +141,18 @@ struct Tree {
 
 /* below is implementation-specific; don't use */
 	Lock genlock;
-	ulong qidgen;
-	ulong dirqidgen;
+	uint32_t qidgen;
+	uint32_t dirqidgen;
 };
 
-Tree*	alloctree(char*, char*, ulong, void(*destroy)(File*));
+Tree*	alloctree(char*, char*, uint32_t, void(*destroy)(File*));
 void		freetree(Tree*);
-File*		createfile(File*, char*, char*, ulong, void*);
+File*		createfile(File*, char*, char*, uint32_t, void*);
 int		removefile(File*);
 void		closefile(File*);
 File*		walkfile(File*, char*);
 Readdir*	opendirfile(File*);
-long		readdirfile(Readdir*, uchar*, long);
+int32_t		readdirfile(Readdir*, uint8_t*, int32_t);
 void		closedirfile(Readdir*);
 
 /*
@@ -214,9 +214,9 @@ struct Srv {
 	Reqpool*	rpool;
 	uint		msize;
 
-	uchar*	rbuf;
+	uint8_t*	rbuf;
 	QLock	rlock;
-	uchar*	wbuf;
+	uint8_t*	wbuf;
 	QLock	wlock;
 	
 	char*	addr;
@@ -239,8 +239,8 @@ void		threadlistensrv(Srv *s, char *addr);
  */
 int		hasperm(File*, char*, int);
 
-void*	emalloc9p(ulong);
-void*	erealloc9p(void*, ulong);
+void*	emalloc9p(uint32_t);
+void*	erealloc9p(void*, uint32_t);
 char*	estrdup9p(char*);
 
 enum {
@@ -248,7 +248,7 @@ enum {
 };
 
 void		readstr(Req*, char*);
-void		readbuf(Req*, void*, long);
+void		readbuf(Req*, void*, int32_t);
 void		walkandclone(Req*, char*(*walk1)(Fid*,char*,void*), 
 			char*(*clone)(Fid*,Fid*,void*), void*);
 

@@ -149,7 +149,7 @@ ref_stack_set_error_codes(ref_stack_t *pstack, int underflow_error,
 
 /* Set the maximum number of elements allowed on a stack. */
 int
-ref_stack_set_max_count(ref_stack_t *pstack, long nmax)
+ref_stack_set_max_count(ref_stack_t *pstack, int32_t nmax)
 {
     uint nmin = ref_stack_count_inline(pstack);
 
@@ -209,7 +209,7 @@ ref_stack_count(const ref_stack_t *pstack)
  * 0 as the top element.  If the index is out of range, return 0.
  */
 ref *
-ref_stack_index(const ref_stack_t *pstack, long idx)
+ref_stack_index(const ref_stack_t *pstack, int32_t idx)
 {
     ref_stack_block *pblock;
     uint used = pstack->p + 1 - pstack->bot;

@@ -549,7 +549,8 @@ top:
 
 /* font_info procedure */
 private bool
-zfont_info_has(const ref *pfidict, const char *key, gs_const_string *pmember)
+zfont_info_has(const ref *pfidict, const char *key,
+               gs_const_string *pmember)
 {
     ref *pvalue;
 

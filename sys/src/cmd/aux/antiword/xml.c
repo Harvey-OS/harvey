@@ -929,7 +929,7 @@ vMove2NextLineXML(diagram_type *pDiag)
  */
 void
 vSubstringXML(diagram_type *pDiag,
-	const char *szString, size_t tStringLength, long lStringWidth,
+	const char *szString, size_t tStringLength, int32_t lStringWidth,
 	USHORT usFontstyle)
 {
 	fail(pDiag == NULL || szString == NULL);
@@ -1360,12 +1360,12 @@ vStartOfTable(diagram_type *pDiag, UCHAR ucBorderInfo)
  */
 static void
 vStartOfTableGroup(diagram_type *pDiag,
-	int iNbrOfColumns, const short *asColumnWidth)
+	int iNbrOfColumns, const int16_t *asColumnWidth)
 {
 	double	dWidth;
 	int	iIndex;
 	char	szCols[6 + 3 * sizeof(int) + 1 + 1];
-	char	szColWidth[10 + 3 * sizeof(short) + 3 + 3 + 1];
+	char	szColWidth[10 + 3 * sizeof(int16_t) + 3 + 3 + 1];
 
 	fail(iNbrOfColumns < 1);
 	fail(asColumnWidth == NULL);
@@ -1405,7 +1405,7 @@ vEndOfTableXML(diagram_type *pDiag)
  */
 void
 vAddTableRowXML(diagram_type *pDiag, char **aszColTxt,
-	int iNbrOfColumns, const short *asColumnWidth, UCHAR ucBorderInfo)
+	int iNbrOfColumns, const int16_t *asColumnWidth, UCHAR ucBorderInfo)
 {
 	size_t	tCount, tStringLength;
 	int	iIndex;

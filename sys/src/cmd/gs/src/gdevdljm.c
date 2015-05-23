@@ -57,7 +57,8 @@
 /* Send a page to the printer. */
 int
 dljet_mono_print_page(gx_device_printer * pdev, FILE * prn_stream,
-		      int dots_per_inch, int features, const char *page_init)
+		      int dots_per_inch, int features,
+                      const char *page_init)
 {
     return dljet_mono_print_page_copies(pdev, prn_stream, 1, dots_per_inch,
 					features, page_init);
@@ -100,7 +101,7 @@ dljet_mono_print_page_copies(gx_device_printer * pdev, FILE * prn_stream,
     if (num_copies != 1 && !(features & PCL_CAN_PRINT_COPIES))
 	return gx_default_print_page_copies(pdev, prn_stream, num_copies);
     storage =
-	(ulong *)gs_alloc_byte_array(pdev->memory, storage_size_words, W,
+	(uint32_t *)gs_alloc_byte_array(pdev->memory, storage_size_words, W,
 				     "hpjet_print_page");
     if (storage == 0)		/* can't allocate working area */
 	return_error(gs_error_VMerror);

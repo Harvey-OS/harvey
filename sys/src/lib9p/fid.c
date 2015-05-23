@@ -43,7 +43,7 @@ freefidpool(Fidpool *p)
 }
 
 Fid*
-allocfid(Fidpool *pool, ulong fid)
+allocfid(Fidpool *pool, uint32_t fid)
 {
 	Fid *f;
 
@@ -64,7 +64,7 @@ allocfid(Fidpool *pool, ulong fid)
 }
 
 Fid*
-lookupfid(Fidpool *pool, ulong fid)
+lookupfid(Fidpool *pool, uint32_t fid)
 {
 	return lookupkey(pool->map, fid);
 }
@@ -85,7 +85,7 @@ closefid(Fid *f)
 }
 
 Fid*
-removefid(Fidpool *pool, ulong fid)
+removefid(Fidpool *pool, uint32_t fid)
 {
 	return deletekey(pool->map, fid);
 }

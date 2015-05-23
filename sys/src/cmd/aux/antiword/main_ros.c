@@ -256,7 +256,7 @@ vProcessFile(const char *szFilename, int iFiletype)
 	options_type	tOptions;
 	FILE		*pFile;
 	diagram_type	*pDiag;
-	long		lFilesize;
+	int32_t		lFilesize;
 	int		iWordVersion;
 
 	TRACE_MSG("vProcessFile");

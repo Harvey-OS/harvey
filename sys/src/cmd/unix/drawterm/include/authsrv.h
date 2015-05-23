@@ -91,7 +91,7 @@ struct Authenticator
 {
 	char	num;			/* replay protection */
 	char	chal[CHALLEN];
-	ulong	id;			/* authenticator id, ++'d with each auth */
+	uint32_t	id;			/* authenticator id, ++'d with each auth */
 };
 #define	AUTHENTLEN	(CHALLEN+4+1)
 

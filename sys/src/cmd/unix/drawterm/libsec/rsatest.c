@@ -20,9 +20,9 @@ main(void)
 	char *p;
 	int n;
 	mpint *clr, *enc, *clr2;
-	uchar buf[4096];
-	uchar *e;
-	vlong start;
+	uint8_t buf[4096];
+	uint8_t *e;
+	int64_t start;
 
 	fmtinstall('B', mpconv);
 
@@ -53,7 +53,7 @@ main(void)
 	print("> ");
 	while(p = Brdline(&b, '\n')){
 		n = Blinelen(&b);
-		letomp((uchar*)p, n, clr);
+		letomp((uint8_t*)p, n, clr);
 		print("clr %B\n", clr);
 		rsaencrypt(&rsa->pub, clr, enc);
 		print("enc %B\n", enc);

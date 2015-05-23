@@ -272,7 +272,7 @@ pageloadproc(void *v)
 {
 	Page *p;
 	char buf[BUFSIZE], *s;
-	long n, l;
+	int32_t n, l;
 	int fd, i, ctype;
 
 	threadsetname("pageloadproc");
@@ -325,7 +325,8 @@ pageloadproc(void *v)
 	n = l;
 	if(s){
 		s = convert(p->url->ctype, s, &n);
-		p->items = parsehtml((uchar *)s, n, p->url->act.r, ctype, UTF_8, &p->doc);
+		p->items = parsehtml((uint8_t *)s, n, p->url->act.r, ctype,
+				     UTF_8, &p->doc);
 		free(s);
 		fixtext(p);
 		if(ctype==TextHtml && p->aborting==FALSE){

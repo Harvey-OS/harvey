@@ -218,16 +218,16 @@ static void
 flwrite(Req *r)
 {
 	Jrec j;
-	uchar *a;
+	uint8_t *a;
 	Entry *e;
 	State *s;
 	Extent *x;
 	char *err;
-	ulong c, n, o, mtime;
+	uint32_t c, n, o, mtime;
 
 	c = r->ifcall.count;
 	o = r->ifcall.offset;
-	a = (uchar *)r->ifcall.data;
+	a = (uint8_t *)r->ifcall.data;
 
 	if(c == 0) {
 		respond(r, nil);

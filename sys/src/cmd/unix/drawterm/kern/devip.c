@@ -17,8 +17,8 @@
 #include "devip.h"
 
 void	csclose(Chan*);
-long	csread(Chan*, void*, long, vlong);
-long	cswrite(Chan*, void*, long, vlong);
+int32_t	csread(Chan*, void*, int32_t, int64_t);
+int32_t	cswrite(Chan*, void*, int32_t, int64_t);
 
 void osipinit(void);
 
@@ -54,10 +54,10 @@ struct Conv
 	int	perm;
 	char	owner[KNAMELEN];
 	char*	state;
-	uchar	laddr[IPaddrlen];
-	ushort	lport;
-	uchar	raddr[IPaddrlen];
-	ushort	rport;
+	uint8_t	laddr[IPaddrlen];
+	uint16_t	lport;
+	uint8_t	raddr[IPaddrlen];
+	uint16_t	rport;
 	int	restricted;
 	char	cerr[KNAMELEN];
 	Proto*	p;
@@ -218,7 +218,7 @@ ipwalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 int
-ipstat(Chan *c, uchar *dp, int n)
+ipstat(Chan *c, uint8_t *dp, int n)
 {
 	return devstat(c, dp, n, 0, 0, ipgen);
 }
@@ -227,8 +227,8 @@ Chan *
 ipopen(Chan *c, int omode)
 {
 	Proto *p;
-	uchar raddr[IPaddrlen];
-	ushort rport;
+	uint8_t raddr[IPaddrlen];
+	uint16_t rport;
 	int perm, sfd;
 	Conv *cv, *lcv;
 
@@ -338,13 +338,13 @@ ipclose(Chan *c)
 	}
 }
 
-long
-ipread(Chan *ch, void *a, long n, vlong offset)
+int32_t
+ipread(Chan *ch, void *a, int32_t n, int64_t offset)
 {
 	int r;
 	Conv *c;
 	Proto *x;
-	uchar ip[IPaddrlen];
+	uint8_t ip[IPaddrlen];
 	char buf[128], *p;
 
 /*print("ipread %s %lux\n", c2name(ch), (long)ch->qid.path);*/
@@ -410,7 +410,7 @@ static void
 setladdrport(Conv *c, char *str)
 {
 	char *p;
-	uchar addr[IPaddrlen];
+	uint8_t addr[IPaddrlen];
 
 	p = strchr(str, '!');
 	if(p == 0) {
@@ -434,7 +434,7 @@ static char*
 setraddrport(Conv *c, char *str)
 {
 	char *p;
-	uchar addr[IPaddrlen];
+	uint8_t addr[IPaddrlen];
 
 	p = strchr(str, '!');
 	if(p == 0)
@@ -451,8 +451,8 @@ setraddrport(Conv *c, char *str)
 	return 0;
 }
 
-long
-ipwrite(Chan *ch, void *a, long n, vlong offset)
+int32_t
+ipwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 {
 	Conv *c;
 	Proto *x;
@@ -595,8 +595,8 @@ csclose(Chan *c)
 	free(c->aux);
 }
 
-long
-csread(Chan *c, void *a, long n, vlong offset)
+int32_t
+csread(Chan *c, void *a, int32_t n, int64_t offset)
 {
 	if(c->aux == nil)
 		return 0;
@@ -728,7 +728,7 @@ lookupport(char *s)
 }
 
 static int
-lookuphost(char *s, uchar *to)
+lookuphost(char *s, uint8_t *to)
 {
 	ipzero(to);
 	if(parseip(to, s) != -1)
@@ -740,12 +740,12 @@ lookuphost(char *s, uchar *to)
 	return 0;
 }
 
-long
-cswrite(Chan *c, void *a, long n, vlong offset)
+int32_t
+cswrite(Chan *c, void *a, int32_t n, int64_t offset)
 {
 	char *f[4];
 	char *s, *ns;
-	uchar ip[IPaddrlen];
+	uint8_t ip[IPaddrlen];
 	int nf, port;
 
 	s = malloc(n+1);

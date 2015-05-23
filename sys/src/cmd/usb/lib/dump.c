@@ -45,7 +45,7 @@ hexstr(void *a, int n)
 {
 	int i;
 	char *dbuff, *s, *e;
-	uchar *b;
+	uint8_t *b;
 
 	b = a;
 	dbuff = s = emallocz(1024, 0);
@@ -115,7 +115,7 @@ seprintconf(char *s, char *e, Usbdev *d, int ci)
 		if(d->ddesc[i] == nil)
 			break;
 		else if(d->ddesc[i]->conf == c){
-			hd = hexstr((uchar*)&d->ddesc[i]->data,
+			hd = hexstr((uint8_t*)&d->ddesc[i]->data,
 				d->ddesc[i]->data.bLength);
 			s = seprint(s, e, "\t\tdev desc %x[%d]: %s\n",
 				d->ddesc[i]->data.bDescriptorType,
@@ -170,7 +170,7 @@ estrdup(char *s)
 }
 
 void*
-emallocz(ulong size, int zero)
+emallocz(uint32_t size, int zero)
 {
 	void *x;
 

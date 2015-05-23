@@ -1,4 +1,4 @@
-/*
+/* 
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -21,46 +21,37 @@ enum
 	Nbarg=	16,
 };
 
-#define dprint(...) if(debugboot) fprint(2, __VA_ARGS__); else USED(debugboot)
-
-extern char*	bootdisk;		/* defined in ../$arch/boot$CONF.c */
+extern void	authentication(int);
+extern char*	bootdisk;
 extern char*	rootdir;
 extern int	(*cfs)(int);
 extern int	cpuflag;
 extern char	cputype[];
-extern int	debugboot;
 extern int	fflag;
 extern int	kflag;
-extern Method	method[];		/* defined in ../$arch/boot$CONF.c */
+extern Method	method[];
 extern void	(*pword)(int, Method*);
 extern char	sys[];
-extern uchar	hostkey[];
-extern uchar	statbuf[Statsz];
+extern unsigned char	hostkey[];
+extern unsigned char	statbuf[Statsz];
 extern int	bargc;
 extern char	*bargv[Nbarg];
-extern int	pcload;
 
 /* libc equivalent */
-extern void	authentication(int);
 extern int	cache(int);
 extern char*	checkkey(Method*, char*, char*);
-extern int	chmod(char *file, int mode);
 extern void	fatal(char*);
 extern void	getpasswd(char*, int);
 extern void	key(int, Method*);
-extern int	mountusbparts(void);
 extern int	outin(char*, char*, int);
 extern int	plumb(char*, char*, int*, char*);
 extern int	readfile(char*, char*, int);
-extern int	readparts(void);
-extern long	readn(int, void*, long);
+extern int32_t	readn(int, void*, int32_t);
 extern void	run(char *file, ...);
-extern void	runv(char **argv);
 extern int	sendmsg(int, char*);
 extern void	setenv(char*, char*);
 extern void	settime(int, int, char*);
 extern void	srvcreate(char*, int);
-extern void	usbinit(int post);
 extern void	warning(char*);
 extern int	writefile(char*, char*, int);
 extern void	boot(int, char **);
@@ -74,6 +65,9 @@ extern int	connecttcp(void);
 
 extern void	configlocal(Method*);
 extern int	connectlocal(void);
+
+extern void	configsac(Method*);
+extern int	connectsac(void);
 
 extern void	configpaq(Method*);
 extern int	connectpaq(void);

@@ -66,13 +66,13 @@ void
 
 /* Forward references for file stream procedures */
 private int
-    s_fileno_available(stream *, long *),
-    s_fileno_read_seek(stream *, long),
+    s_fileno_available(stream *, int32_t *),
+    s_fileno_read_seek(stream *, int32_t),
     s_fileno_read_close(stream *),
     s_fileno_read_process(stream_state *, stream_cursor_read *,
 			  stream_cursor_write *, bool);
 private int
-    s_fileno_write_seek(stream *, long),
+    s_fileno_write_seek(stream *, int32_t),
     s_fileno_write_flush(stream *),
     s_fileno_write_close(stream *),
     s_fileno_write_process(stream_state *, stream_cursor_read *,
@@ -88,7 +88,7 @@ sfileno(const stream *s)
 }
 
 /* Get the current position of a file descriptor. */
-inline private long
+inline private int32_t
 ltell(int fd)
 {
     return lseek(fd, 0L, SEEK_CUR);
@@ -128,12 +128,12 @@ sread_fileno(register stream * s, FILE * file, byte * buf, uint len)
      * but this should work on most systems.
      */
     int fd = fileno(file);
-    long curpos = ltell(fd);
+    int32_t curpos = ltell(fd);
     bool seekable = (curpos != -1L && lseek(fd, curpos, SEEK_SET) != -1L);
 
     s_std_init(s, buf, len, &p,
 	       (seekable ? s_mode_read + s_mode_seek : s_mode_read));
-    if_debug2('s', "[s]read file=0x%lx, fd=%d\n", (ulong) file,
+    if_debug2('s', "[s]read file=0x%lx, fd=%d\n", (uint32_t) file,
 	      fileno(file));
     s->file = file;
     s->file_modes = s->modes;
@@ -148,7 +148,7 @@ sread_fileno(register stream * s, FILE * file, byte * buf, uint len)
  */
 #ifndef KEEP_FILENO_API
 int
-sread_subfile(stream *s, long start, long length)
+sread_subfile(stream *s, int32_t start, int32_t length)
 {
     if (s->file == 0 || s->modes != s_mode_read + s_mode_seek ||
 	s->file_offset != 0 || s->file_limit != max_long ||
@@ -274,7 +274,7 @@ swrite_fileno(register stream * s, FILE * file, byte * buf, uint len)
 
     s_std_init(s, buf, len, &p,
 	       (file == stdout ? s_mode_write : s_mode_write + s_mode_seek));
-    if_debug2('s', "[s]write file=0x%lx, fd=%d\n", (ulong) file,
+    if_debug2('s', "[s]write file=0x%lx, fd=%d\n", (uint32_t) file,
 	      fileno(file));
     s->file = file;
     s->file_modes = s->modes;

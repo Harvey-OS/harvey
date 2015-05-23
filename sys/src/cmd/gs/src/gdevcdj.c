@@ -2777,9 +2777,9 @@ gdev_cmyk_map_rgb_color(gx_device *pdev, const gx_color_value cv[])
             break;
 
         case 8:
-            return ((ulong) c * lum_red_weight * 10
-                    + (ulong) m * lum_green_weight * 10
-                    + (ulong) y * lum_blue_weight * 10)
+            return ((uint32_t) c * lum_red_weight * 10
+                    + (uint32_t) m * lum_green_weight * 10
+                    + (uint32_t) y * lum_blue_weight * 10)
                         >> (gx_color_value_bits + 2);
             /*NOTREACHED*/
             break;
@@ -2863,7 +2863,7 @@ gdev_pcl_map_rgb_color(gx_device *pdev, const gx_color_value cv[])
      * by some fraction (eg. 4/5) to correct the slightly greenish cast
      * resulting from an equal mix of the three inks */
     if (correction) {
-      ulong maxval, minval, range;
+      uint32_t maxval, minval, range;
       
       maxval = c >= m ? (c >= y ? c : y) : (m >= y ? m : y);
       if (maxval > 0) {
@@ -2890,9 +2890,9 @@ gdev_pcl_map_rgb_color(gx_device *pdev, const gx_color_value cv[])
 #define red_weight 306
 #define green_weight 601
 #define blue_weight 117
-	return ((((ulong)c * red_weight +
-		  (ulong)m * green_weight +
-		  (ulong)y * blue_weight)
+	return ((((uint32_t)c * red_weight +
+		  (uint32_t)m * green_weight +
+		  (uint32_t)y * blue_weight)
 		 >> (gx_color_value_bits + 2)));
     case 16:
 #define gx_color_value_to_5bits(cv) ((cv) >> (gx_color_value_bits - 5))
@@ -2903,12 +2903,12 @@ gdev_pcl_map_rgb_color(gx_device *pdev, const gx_color_value cv[])
     case 24:
       return (gx_color_value_to_byte(y) +
 	      (gx_color_value_to_byte(m) << 8) +
-	      ((ulong)gx_color_value_to_byte(c) << 16));
+	      ((uint32_t)gx_color_value_to_byte(c) << 16));
     case 32:
-      { return ((c == m && c == y) ? ((ulong)gx_color_value_to_byte(c) << 24)
+      { return ((c == m && c == y) ? ((uint32_t)gx_color_value_to_byte(c) << 24)
      : (gx_color_value_to_byte(y) +
         (gx_color_value_to_byte(m) << 8) +
-        ((ulong)gx_color_value_to_byte(c) << 16)));
+        ((uint32_t)gx_color_value_to_byte(c) << 16)));
       }
     }
   }
@@ -3335,7 +3335,7 @@ cdj_put_param_bpp(gx_device *pdev, gs_param_list *plist, int new_bpp,
 private uint
 gdev_prn_rasterwidth(const gx_device_printer *pdev, int pixelcount)
 {
-  ulong raster_width = (ulong)(pdev->width - 
+  uint32_t raster_width = (uint32_t)(pdev->width - 
     pdev->x_pixels_per_inch * (dev_l_margin(pdev) + dev_r_margin(pdev)));
   return (pixelcount ?
           (uint)raster_width :

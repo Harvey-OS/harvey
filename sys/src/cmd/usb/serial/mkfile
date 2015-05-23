@@ -33,5 +33,5 @@ $LIBU:
 	mk clean
 
 $LIBD:V: $LIBDOFILES
-	ar vu $LIBD $newprereq
+	ar rv $LIBD $newprereq
 	rm $newprereq

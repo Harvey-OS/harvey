@@ -441,7 +441,7 @@ char *buf;
 	return read(fd, buf, cnt);
 }
 Seek(fd, cnt, whence)
-long cnt;
+int32_t cnt;
 {
 	return lseek(fd, cnt, whence);
 }
@@ -527,7 +527,7 @@ execumask(void)		/* wrong -- should fork before writing */
 
 void
 Memcpy(a, b, n)
-char *a, *b;
+int8_t *a, *b;
 {
 	memmove(a, b, n);
 }

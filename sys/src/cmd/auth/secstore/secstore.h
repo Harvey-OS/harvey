@@ -22,7 +22,7 @@ enum {
 
 typedef struct PW {
 	char	*id;		/* user id */
-	ulong	expire;		/* expiration time (epoch seconds) */
+	uint32_t	expire;		/* expiration time (epoch seconds) */
 	ushort	status;		/* Enabled, STA, ... */
 	ushort	failed;		/* number of failed login attempts */
 	char	*other;		/* other information, e.g. sponsor */

@@ -248,7 +248,7 @@ int
 read9pmsg(int fd, void *abuf, uint n)
 {
 	int m, len;
-	uchar *buf;
+	uint8_t *buf;
 
 	if (io9p == nil)
 		io9p = ioproc();
@@ -334,13 +334,13 @@ void
 stopen(Req *r)
 {
 	int lev, xconn, fd;
-	uvlong qidpath;
+	uint64_t qidpath;
 	char *p;
 	char buf[32];
 	Conn *c;
 	SSHChan *sc;
 
-	qidpath = (uvlong)r->fid->file->aux;
+	qidpath = (uint64_t)r->fid->file->aux;
 	lev = qidpath >> Levshift;
 	switch ((ulong)(qidpath & Qtypemask)) {
 	default:
@@ -413,7 +413,7 @@ void
 stlisconn(void *a)
 {
 	int xconn, fd, n;
-	uvlong qidpath;
+	uint64_t qidpath;
 	char *msg;
 	char buf[Numbsz], path[NETPATHLEN];
 	Conn *c, *cl;
@@ -422,7 +422,7 @@ stlisconn(void *a)
 
 	threadsetname("stlisconn");
 	r = a;
-	qidpath = (uvlong)r->fid->file->aux;
+	qidpath = (uint64_t)r->fid->file->aux;
 	xconn = (qidpath >> Connshift) & Connmask;
 
 	cl = connections[xconn];
@@ -503,11 +503,11 @@ stlischan(void *a)
 	Conn *c;
 	SSHChan *sc;
 	int i, n, xconn;
-	uvlong qidpath;
+	uint64_t qidpath;
 
 	threadsetname("stlischan");
 	r = a;
-	qidpath = (uvlong)r->fid->file->aux;
+	qidpath = (uint64_t)r->fid->file->aux;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
 	if (c == nil) {
@@ -620,11 +620,11 @@ stread(Req *r)
 	Conn *c;
 	SSHChan *sc;
 	int n, lev, cnum, xconn;
-	uvlong qidpath;
+	uint64_t qidpath;
 	char buf[Arbbufsz], path[NETPATHLEN];
 
 	threadsetname("stread");
-	qidpath = (uvlong)r->fid->file->aux;
+	qidpath = (uint64_t)r->fid->file->aux;
 	lev = qidpath >> Levshift;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
@@ -751,12 +751,12 @@ readreqrem(void *a)
 	Conn *c;
 	SSHChan *sc;
 	int fd, n, lev, cnum, xconn;
-	uvlong qidpath;
+	uint64_t qidpath;
 	char buf[Arbbufsz], path[NETPATHLEN];
 
 	threadsetname("readreqrem");
 	r = a;
-	qidpath = (uvlong)r->fid->file->aux;
+	qidpath = (uint64_t)r->fid->file->aux;
 	lev = qidpath >> Levshift;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
@@ -897,11 +897,11 @@ readdata(void *a)
 	Conn *c;
 	SSHChan *sc;
 	int cnum, xconn;
-	uvlong qidpath;
+	uint64_t qidpath;
 
 	threadsetname("readdata");
 	r = a;
-	qidpath = (uvlong)r->fid->file->aux;
+	qidpath = (uint64_t)r->fid->file->aux;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
 	if (c == nil) {
@@ -947,10 +947,10 @@ stwrite(Req *r)
 	Conn *c;
 	SSHChan *ch;
 	int lev, xconn;
-	uvlong qidpath;
+	uint64_t qidpath;
 
 	threadsetname("stwrite");
-	qidpath = (uvlong)r->fid->file->aux;
+	qidpath = (uint64_t)r->fid->file->aux;
 	lev = qidpath >> Levshift;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
@@ -1088,12 +1088,12 @@ writectlproc(void *a)
 	SSHChan *ch;
 	char *tcpconn2, *buf, *toks[4];
 	int n, ntok, lev, xconn;
-	uvlong qidpath;
+	uint64_t qidpath;
 	char path[NETPATHLEN], tcpconn[Numbsz];
 
 	threadsetname("writectlproc");
 	r = a;
-	qidpath = (uvlong)r->fid->file->aux;
+	qidpath = (uint64_t)r->fid->file->aux;
 	lev = qidpath >> Levshift;
 	xconn = (qidpath >> Connshift) & Connmask;
 
@@ -1279,11 +1279,11 @@ writereqremproc(void *a)
 	SSHChan *ch;
 	char *cmd, *q, *buf, *toks[4];
 	int n, ntok, lev, xconn;
-	uvlong qidpath;
+	uint64_t qidpath;
 
 	threadsetname("writereqremproc");
 	r = a;
-	qidpath = (uvlong)r->fid->file->aux;
+	qidpath = (uint64_t)r->fid->file->aux;
 	lev = qidpath >> Levshift;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
@@ -1386,11 +1386,11 @@ writedataproc(void *a)
 	Conn *c;
 	SSHChan *ch;
 	int n, xconn;
-	uvlong qidpath;
+	uint64_t qidpath;
 
 	threadsetname("writedataproc");
 	r = a;
-	qidpath = (uvlong)r->fid->file->aux;
+	qidpath = (uint64_t)r->fid->file->aux;
 	xconn = (qidpath >> Connshift) & Connmask;
 	c = connections[xconn];
 	if (c == nil) {
@@ -1429,12 +1429,12 @@ stclunk(Fid *f)
 	Conn *c;
 	SSHChan *sc;
 	int n, lev, cnum, chnum;
-	uvlong qidpath;
+	uint64_t qidpath;
 
 	threadsetname("stclunk");
 	if (f == nil || f->file == nil)
 		return;
-	qidpath = (uvlong)f->file->aux;
+	qidpath = (uint64_t)f->file->aux;
 	lev = qidpath >> Levshift;
 	cnum = (qidpath >> Connshift) & Connmask;
 	chnum = qidpath & Chanmask;
@@ -1518,11 +1518,11 @@ void
 stflush(Req *r)
 {
 	Req *or;
-	uvlong qidpath;
+	uint64_t qidpath;
 
 	threadsetname("stflush");
 	or = r->oldreq;
-	qidpath = (uvlong)or->fid->file->aux;
+	qidpath = (uint64_t)or->fid->file->aux;
 	sshdebug(nil, "got flush on file %#llux %lld %lld %lld: %s %#p",
 		argv0, qidpath, qidpath >> Levshift,
 		(qidpath >> Connshift) & Connmask, qidpath & Chanmask,
@@ -2027,7 +2027,7 @@ send_kexinit(Conn *c)
 	c->skexinit = new_packet(c);
 
 	buf = emalloc9p(Bigbufsz);
-	buf[0] = (uchar)SSH_MSG_KEXINIT;
+	buf[0] = (uint8_t)SSH_MSG_KEXINIT;
 
 	add_packet(c->skexinit, buf, 1);
 	for (i = 0; i < 16; ++i)
@@ -2250,7 +2250,7 @@ static int
 established(Conn *c, Packet *p, Packet *p2, char *buf, int size)
 {
 	int i, n, cnum;
-	uchar *q;
+	uint8_t *q;
 	Plist *pl;
 	SSHChan *ch;
 
@@ -2603,7 +2603,7 @@ validatekex(Conn *c, Packet *p)
 int
 validatekexs(Packet *p)
 {
-	uchar *q;
+	uint8_t *q;
 	char *toks[Maxtoks];
 	int i, j, n;
 	char *buf;
@@ -2702,7 +2702,7 @@ foundm2:
 int
 validatekexc(Packet *p)
 {
-	uchar *q;
+	uint8_t *q;
 	char *toks[Maxtoks];
 	int i, j, n;
 	char *buf;
@@ -2785,9 +2785,9 @@ foundm2:
 int
 memrandom(void *p, int n)
 {
-	uchar *cp;
+	uint8_t *cp;
 
-	for (cp = (uchar*)p; n > 0; n--)
+	for (cp = (uint8_t*)p; n > 0; n--)
 		*cp++ = fastrand();
 	return 0;
 }
@@ -2800,7 +2800,7 @@ mkcap(char *from, char *to)
 {
 	int fd, fromtosz;
 	char *cap, *key;
-	uchar rand[SHA1dlen], hash[SHA1dlen];
+	uint8_t rand[SHA1dlen], hash[SHA1dlen];
 
 	fd = open("#¤/caphash", OWRITE);
 	if (fd < 0)
@@ -2815,7 +2815,8 @@ mkcap(char *from, char *to)
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));
 
 	/* hash the capability */
-	hmac_sha1((uchar*)cap, strlen(cap), (uchar*)key, strlen(key), hash, nil);
+	hmac_sha1((uint8_t*)cap, strlen(cap), (uint8_t*)key, strlen(key),
+		  hash, nil);
 
 	/* give the kernel the hash */
 	key[-1] = '@';
@@ -2864,7 +2865,7 @@ keyfsauth(char *me, char *user, char *pw, char *key1, char *key2)
 	ai->suid = estrdup9p(me);
 	ai->cap = mkcap(me, user);
 	ai->nsecret = 0;
-	ai->secret = (uchar *)estrdup9p("");
+	ai->secret = (uint8_t *)estrdup9p("");
 	return ai;
 }
 
@@ -2877,8 +2878,9 @@ userauthfailed(Packet *p2)
 }
 
 static int
-authreqpk(Packet *p, Packet *p2, Conn *c, char *user, uchar *q,
-	char *alg, char *blob, char *sig, char *service, char *me)
+authreqpk(Packet *p, Packet *p2, Conn *c, char *user, uint8_t *q,
+	char *alg, char *blob, char *sig, char *service,
+	  char *me)
 {
 	int n, thisway, nblob, nsig;
 	char method[32];
@@ -2945,7 +2947,7 @@ auth_req(Packet *p, Conn *c)
 	int n, ret;
 	char *alg, *blob, *sig, *service, *me, *user, *pw, *path;
 	char key1[DESKEYLEN], key2[DESKEYLEN], method[32];
-	uchar *q;
+	uint8_t *q;
 	AuthInfo *ai;
 	Packet *p2;
 

@@ -73,7 +73,7 @@ typedef struct cff_writer_s {
     gs_font_base *pfont;	/* type1 or cid0 */
     glyph_data_proc_t glyph_data;
     int offset_size;
-    long start_pos;
+    int32_t start_pos;
     cff_string_table_t std_strings;
     cff_string_table_t strings;
     gs_int_rect FontBBox;
@@ -1157,7 +1157,7 @@ psf_write_type2_font(stream *s, gs_font_type1 *pfont, int options,
     int j;
     psf_glyph_enum_t genum;
     gs_glyph glyph;
-    long start_pos;
+    int32_t start_pos;
     uint offset;
     int code;
 
@@ -1552,7 +1552,7 @@ psf_write_cid0_font(stream *s, gs_font_cid0 *pfont, int options,
     int j;
     psf_glyph_enum_t genum;
     gs_font_info_t info;
-    long start_pos;
+    int32_t start_pos;
     uint offset;
     int num_fonts = pfont->cidata.FDArray_size;
     int code;

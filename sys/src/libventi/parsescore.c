@@ -12,7 +12,7 @@
 #include <venti.h>
 
 int
-vtparsescore(char *s, char **prefix, uchar score[VtScoreSize])
+vtparsescore(char *s, char **prefix, uint8_t score[VtScoreSize])
 {
 	int i, c;
 	char *buf, *colon;

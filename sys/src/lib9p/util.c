@@ -15,7 +15,7 @@
 #include "9p.h"
 
 void
-readbuf(Req *r, void *s, long n)
+readbuf(Req *r, void *s, int32_t n)
 {
 	r->ofcall.count = r->ifcall.count;
 	if(r->ifcall.offset >= n){

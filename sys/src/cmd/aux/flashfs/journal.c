@@ -39,11 +39,11 @@ struct Gen
 struct Sect
 {
 	int	sect;
-	ulong	seq;
+	uint32_t	seq;
 	int	coff;
 	int	toff;
 	int	sum;
-	ulong	time;
+	uint32_t	time;
 	Sect*	next;
 };
 
@@ -52,18 +52,18 @@ static	Sect*	freehead;
 static	Sect*	freetail;
 static	int	nfree;
 static	int	nbad;
-static	ulong	ltime;
+static	uint32_t	ltime;
 static	int	cursect;
 
 /*
  *	If we have a delta then file times are in the future.
  *	But they drift back to reality.
  */
-ulong
+uint32_t
 now(void)
 {
-	ulong cur, drift;
-	static ulong last;
+	uint32_t cur, drift;
+	static uint32_t last;
 
 	cur = time(0);
 	if(cur < last)
@@ -111,7 +111,7 @@ static void
 newsect(Gen *g, Sect *s)
 {
 	int m, n, err;
-	uchar hdr[2*3];
+	uint8_t hdr[2*3];
 
 	if(debug)
 		fprint(2, "new %d %ld\n", g->gnum, s->seq);
@@ -138,7 +138,7 @@ newsect(Gen *g, Sect *s)
 }
 
 static Sect *
-newsum(Gen *g, ulong seq)
+newsum(Gen *g, uint32_t seq)
 {
 	Sect *t;
 
@@ -168,9 +168,9 @@ dupsect(Sect *s, int renum)
 {
 	Sect *t;
 	Renum r;
-	uchar *b;
+	uint8_t *b;
 	int err, n;
-	ulong doff, off;
+	uint32_t doff, off;
 
 	if(nfree == 0)
 		damaged("no free for copy");
@@ -233,10 +233,10 @@ checksweep(void)
 {
 	Gen *g;
 	Jrec j;
-	uchar *b;
+	uint8_t *b;
 	int n, op;
 	Sect *s, *t, *u;
-	long off, seq, soff;
+	int32_t off, seq, soff;
 
 	g = &gens[1];
 	if(g->dup != nil) {	// Window 5 damage
@@ -329,11 +329,11 @@ load1(Sect *s, int parity)
 {
 	int n;
 	Jrec j;
-	uchar *b;
+	uint8_t *b;
 	char *err;
 	Extent *x;
 	Entry *d, *e;
-	ulong ctime, off, mtime;
+	uint32_t ctime, off, mtime;
 
 	if(s->sect < 0 && readonly)	// readonly damaged
 		return;
@@ -462,9 +462,9 @@ loadfs(int ro)
 {
 	Gen *g;
 	Sect *s;
-	ulong u, v;
+	uint32_t u, v;
 	int i, j, n;
-	uchar hdr[MAXHDR];
+	uint8_t hdr[MAXHDR];
 
 	readonly = ro;
 	fmtinstall('J', Jconv);
@@ -631,9 +631,9 @@ loadfs(int ro)
 static int
 sputw(Sect *s, Jrec *j, int mtime, Extent *x, void *a)
 {
-	ulong t;
+	uint32_t t;
 	int err, n, r;
-	uchar buff[Nmax], type[1];
+	uint8_t buff[Nmax], type[1];
 
 	if(debug)
 		fprint(2, "put %J\n", j);
@@ -694,12 +694,12 @@ static void
 summarize(void)
 {
 	Gen *g;
-	uchar *b;
+	uint8_t *b;
 	Entry *e;
 	Extent *x;
 	Jrec j, sum;
 	Sect *s, *t;
-	ulong off, ctime;
+	uint32_t off, ctime;
 	int n, bytes, more, mtime, sumd;
 
 	g = &gens[eparity];

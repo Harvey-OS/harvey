@@ -22,7 +22,7 @@
 
 #pragma	varargck	type	"W"	char*
 
-char authkey[8];
+int8_t authkey[8];
 
 typedef struct Fid	Fid;
 typedef struct User	User;
@@ -52,7 +52,7 @@ enum {
 
 struct Fid {
 	int	fid;
-	ulong	qtype;
+	uint32_t	qtype;
 	User	*user;
 	int	busy;
 	Fid	*next;
@@ -62,14 +62,14 @@ struct User {
 	char	*name;
 	char	key[DESKEYLEN];
 	char	secret[SECRETLEN];
-	ulong	expire;			/* 0 == never */
-	uchar	status;
-	ulong	bad;		/* # of consecutive bad authentication attempts */
+	uint32_t	expire;			/* 0 == never */
+	uint8_t	status;
+	uint32_t	bad;		/* # of consecutive bad authentication attempts */
 	int	ref;
 	char	removed;
-	uchar	warnings;
-	long	purgatory;		/* time purgatory ends */
-	ulong	uniq;
+	uint8_t	warnings;
+	int32_t	purgatory;		/* time purgatory ends */
+	uint32_t	uniq;
 	User	*link;
 };
 
@@ -93,16 +93,16 @@ Fid	*fids;
 User	*users[Nuser];
 char	*userkeys;
 int	nuser;
-ulong	uniq = 1;
+uint32_t	uniq = 1;
 Fcall	rhdr,
 	thdr;
 int	usepass;
 char	*warnarg;
-uchar	mdata[8192 + IOHDRSZ];
+uint8_t	mdata[8192 + IOHDRSZ];
 int	messagesize = sizeof mdata;
 
 int	readusers(void);
-ulong	hash(char*);
+uint32_t	hash(char*);
 Fid	*findfid(int);
 User	*finduser(char*);
 User	*installuser(char*);
@@ -110,9 +110,9 @@ int	removeuser(User*);
 void	insertuser(User*);
 void	writeusers(void);
 void	io(int, int);
-void	*emalloc(ulong);
-Qid	mkqid(User*, ulong);
-int	dostat(User*, ulong, void*, int);
+void	*emalloc(uint32_t);
+Qid	mkqid(User*, uint32_t);
+int	dostat(User*, uint32_t, void*, int);
 int	newkeys(void);
 void	warning(void);
 int	weirdfmt(Fmt *f);
@@ -250,7 +250,7 @@ Walk(Fid *f)
 	char *name, *err;
 	int i, j, max;
 	Fid *nf;
-	ulong qtype;
+	uint32_t qtype;
 	User *user;
 
 	if(!f->busy)
@@ -366,7 +366,7 @@ char *
 Create(Fid *f)
 {
 	char *name;
-	long perm;
+	int32_t perm;
 
 	if(!f->busy)
 		return "create of unused fid";
@@ -398,7 +398,7 @@ Read(Fid *f)
 {
 	User *u;
 	char *data;
-	ulong off, n, m;
+	uint32_t off, n, m;
 	int i, j, max;
 
 	if(!f->busy)
@@ -518,7 +518,7 @@ char *
 Write(Fid *f)
 {
 	char *data, *p;
-	ulong n, expire;
+	uint32_t n, expire;
 	int i;
 
 	if(!f->busy)
@@ -614,7 +614,7 @@ Remove(Fid *f)
 char *
 Stat(Fid *f)
 {
-	static uchar statbuf[1024];
+	static uint8_t statbuf[1024];
 
 	if(!f->busy)
 		return "stat on unattached fid";
@@ -655,7 +655,7 @@ Wstat(Fid *f)
 }
 
 Qid
-mkqid(User *u, ulong qtype)
+mkqid(User *u, uint32_t qtype)
 {
 	Qid q;
 
@@ -671,7 +671,7 @@ mkqid(User *u, ulong qtype)
 }
 
 int
-dostat(User *user, ulong qtype, void *p, int n)
+dostat(User *user, uint32_t qtype, void *p, int n)
 {
 	Dir d;
 
@@ -703,7 +703,7 @@ passline(Biobuf *b, void *vbuf)
 }
 
 void
-randombytes(uchar *p, int len)
+randombytes(uint8_t *p, int len)
 {
 	int i, fd;
 
@@ -720,29 +720,29 @@ randombytes(uchar *p, int len)
 }
 
 void
-oldCBCencrypt(char *key7, uchar *p, int len)
+oldCBCencrypt(char *key7, uint8_t *p, int len)
 {
-	uchar ivec[8];
-	uchar key[8];
+	uint8_t ivec[8];
+	uint8_t key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uchar*)key7, key);
+	des56to64((uint8_t*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCencrypt((uchar*)p, len, &s);
+	desCBCencrypt((uint8_t*)p, len, &s);
 }
 
 void
-oldCBCdecrypt(char *key7, uchar *p, int len)
+oldCBCdecrypt(char *key7, uint8_t *p, int len)
 {
-	uchar ivec[8];
-	uchar key[8];
+	uint8_t ivec[8];
+	uint8_t key[8];
 	DESstate s;
 
 	memset(ivec, 0, 8);
-	des56to64((uchar*)key7, key);
+	des56to64((uint8_t*)key7, key);
 	setupDESstate(&s, key, ivec);
-	desCBCdecrypt((uchar*)p, len, &s);
+	desCBCdecrypt((uint8_t*)p, len, &s);
 
 }
 
@@ -751,8 +751,8 @@ writeusers(void)
 {
 	int fd, i, nu;
 	User *u;
-	uchar *p, *buf;
-	ulong expire;
+	uint8_t *p, *buf;
+	uint32_t expire;
 
 	/* count users */
 	nu = 0;
@@ -867,7 +867,7 @@ int
 readusers(void)
 {
 	int fd, i, n, nu;
-	uchar *p, *buf, *ep;
+	uint8_t *p, *buf, *ep;
 	User *u;
 	Dir *d;
 
@@ -990,10 +990,10 @@ insertuser(User *user)
 	users[h] = user;
 }
 
-ulong
+uint32_t
 hash(char *s)
 {
-	ulong h;
+	uint32_t h;
 
 	h = 0;
 	while(*s)
@@ -1030,7 +1030,7 @@ io(int in, int out)
 {
 	char *err;
 	int n;
-	long now, lastwarning;
+	int32_t now, lastwarning;
 
 	/* after restart, let the system settle for 5 mins before warning */
 	lastwarning = time(0) - 24*60*60 + 5*60;
@@ -1077,7 +1077,7 @@ int
 newkeys(void)
 {
 	Dir *d;
-	static long ftime;
+	static int32_t ftime;
 
 	d = dirstat(userkeys);
 	if(d == nil)
@@ -1092,7 +1092,7 @@ newkeys(void)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 

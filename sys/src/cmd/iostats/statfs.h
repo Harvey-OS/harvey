@@ -35,30 +35,30 @@ struct Frec
 {
 	Frec	*next;
 	char	*op;
-	ulong	nread;
-	ulong	nwrite;
-	ulong	bread;
-	ulong	bwrite;
-	ulong	opens;
+	uint32_t	nread;
+	uint32_t	nwrite;
+	uint32_t	bread;
+	uint32_t	bwrite;
+	uint32_t	opens;
 };
 
 struct Rpc
 {
 	char	*name;
-	ulong	count;
+	uint32_t	count;
 	vlong	time;
 	vlong	lo;
 	vlong	hi;
-	ulong	bin;
-	ulong	bout;
+	uint32_t	bin;
+	uint32_t	bout;
 };
 
 struct Stats
 {
-	ulong	totread;
-	ulong	totwrite;
-	ulong	nrpc;
-	ulong	nproto;
+	uint32_t	totread;
+	uint32_t	totwrite;
+	uint32_t	nrpc;
+	uint32_t	nproto;
 	Rpc	rpc[Maxrpc];
 };
 
@@ -79,10 +79,10 @@ struct Fid
 	int	mode;
 	int	nr;			/* fid number */
 	Fid	*next;			/* hash link */
-	ulong	nread;
-	ulong	nwrite;
-	ulong	bread;
-	ulong	bwrite;
+	uint32_t	nread;
+	uint32_t	nwrite;
+	uint32_t	bread;
+	uint32_t	bwrite;
 	vlong	offset;			/* for directories */
 };
 
@@ -147,5 +147,5 @@ void	reopen(Fid *f);
 void	noteproc(int, char*);
 void	flushaction(void*, char*);
 void	catcher(void*, char*);
-ulong	msec(void);
+uint32_t	msec(void);
 void	fidreport(Fid*);

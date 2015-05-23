@@ -223,13 +223,13 @@ gdev_mem_mono_set_inverted(gx_device_memory * dev, bool black_is_1)
  * must pad its scan lines, and then we must pad again for the pointer
  * tables (one table per plane).
  */
-ulong
+uint32_t
 gdev_mem_bits_size(const gx_device_memory * dev, int width, int height)
 {
     int num_planes = dev->num_planes;
     gx_render_plane_t plane1;
     const gx_render_plane_t *planes;
-    ulong size;
+    uint32_t size;
     int pi;
 
     if (num_planes)
@@ -240,12 +240,12 @@ gdev_mem_bits_size(const gx_device_memory * dev, int width, int height)
 	size += bitmap_raster(width * planes[pi].depth);
     return ROUND_UP(size * height, ARCH_ALIGN_PTR_MOD);
 }
-ulong
+uint32_t
 gdev_mem_line_ptrs_size(const gx_device_memory * dev, int width, int height)
 {
-    return (ulong)height * sizeof(byte *) * max(dev->num_planes, 1);
+    return (uint32_t)height * sizeof(byte *) * max(dev->num_planes, 1);
 }
-ulong
+uint32_t
 gdev_mem_data_size(const gx_device_memory * dev, int width, int height)
 {
     return gdev_mem_bits_size(dev, width, height) +
@@ -256,11 +256,11 @@ gdev_mem_data_size(const gx_device_memory * dev, int width, int height)
  * compute the maximum height.
  */
 int
-gdev_mem_max_height(const gx_device_memory * dev, int width, ulong size,
+gdev_mem_max_height(const gx_device_memory * dev, int width, uint32_t size,
 		bool page_uses_transparency)
 {
     int height;
-    ulong max_height;
+    uint32_t max_height;
 
     if (page_uses_transparency) {
         /*
@@ -311,7 +311,7 @@ gdev_mem_open_scan_lines(gx_device_memory *mdev, int setup_height)
 	return_error(gs_error_rangecheck);
     if (mdev->bitmap_memory != 0) {
 	/* Allocate the data now. */
-	ulong size = gdev_mem_bitmap_size(mdev);
+	uint32_t size = gdev_mem_bitmap_size(mdev);
 
 	if ((uint) size != size)
 	    return_error(gs_error_limitcheck);

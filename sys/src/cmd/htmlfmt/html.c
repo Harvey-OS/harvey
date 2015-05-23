@@ -332,8 +332,9 @@ rendertext(URLwin *u, Bytes *b)
 {
 	Rune *rurl;
 
-	rurl = toStr((uchar*)u->url, strlen(u->url), ISO_8859_1);
-	u->items = parsehtml(b->b, b->n, rurl, u->type, charset((char*)b->b), &u->docinfo);
+	rurl = toStr((uint8_t*)u->url, strlen(u->url), ISO_8859_1);
+	u->items = parsehtml(b->b, b->n, rurl, u->type,
+			     charset((char*)b->b), &u->docinfo);
 //	free(rurl);
 
 	rerender(u);

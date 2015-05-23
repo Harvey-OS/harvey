@@ -43,7 +43,7 @@ struct Deter
 	uint nhash;
 
 	Reiset *tmp;	/* temporaries for walk */
-	uchar *bits;
+	uint8_t *bits;
 
 	Rune *c;		/* ``interesting'' characters */
 	uint nc;
@@ -111,7 +111,7 @@ findreiset(Deter *d, Reiset *s)
 
 /* convert bits to a real reiset */
 static Reiset*
-bits2reiset(Deter *d, uchar *bits)
+bits2reiset(Deter *d, uint8_t *bits)
 {
 	int k;
 	Reiset *s;
@@ -126,7 +126,7 @@ bits2reiset(Deter *d, uchar *bits)
 
 /* add n to state set; if n < k, need to go around again */
 static int
-add(int n, uchar *bits, int k)
+add(int n, uint8_t *bits, int k)
 {
 	if(bits[n])
 		return 0;
@@ -136,7 +136,7 @@ add(int n, uchar *bits, int k)
 
 /* update bits to follow all the empty (non-character-related) transitions possible */
 static void
-followempty(Deter *d, uchar *bits, int bol, int eol)
+followempty(Deter *d, uint8_t *bits, int bol, int eol)
 {
 	int again, k;
 	Reinst *i;
@@ -195,7 +195,7 @@ static Reiset*
 transition(Deter *d, Reiset *s, Rune r, uint eol)
 {
 	int k;
-	uchar *bits;
+	uint8_t *bits;
 	Reinst *i, *inst0;
 	Rune *rp, *ep;
 
@@ -263,9 +263,9 @@ countinst(Reprog *pp)
 }
 
 static void
-set(Deter *d, u32int **tab, Rune r)
+set(Deter *d, uint32_t **tab, Rune r)
 {
-	u32int *u;
+	uint32_t *u;
 
 	if((u = tab[r/4096]) == nil){
 		u = binalloc(&d->bin, 4096/8, 1);
@@ -283,7 +283,7 @@ set(Deter *d, u32int **tab, Rune r)
 static void
 findchars(Deter *d, Reprog *p)
 {
-	u32int *tab[65536/4096], *u, x;
+	uint32_t *tab[65536/4096], *u, x;
 	Reinst *i;
 	Rune *rp, *ep;
 	int k, m, n, a;
@@ -402,7 +402,7 @@ buildprog(Deter *d, Reiset **id2set, int nid, Dreprog *dp, Drecase *c)
 Dreprog*
 dregcvt(Reprog *p)
 {
-	uchar *bits;
+	uint8_t *bits;
 	uint again, n, nid, id;
 	Deter d;
 	Reiset **id2set, *s, *t, *start[4];
@@ -532,7 +532,7 @@ int
 dregexec(Dreprog *p, char *s, int bol)
 {
 	Rune r;
-	ulong rr;
+	uint32_t rr;
 	Dreinst *i;
 	Drecase *c, *ec;
 	int best, n;

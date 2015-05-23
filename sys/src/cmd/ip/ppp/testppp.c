@@ -12,8 +12,8 @@
 #include <ctype.h>
 
 int	debug;
-long	errrate;
-long	droprate;
+int32_t	errrate;
+int32_t	droprate;
 int	framing;
 int	nocompress;
 int	noipcompress;
@@ -65,10 +65,10 @@ pppopen(int fd, char *net, char *local, char *remote)
 }
 
 void
-printbuf(uchar *p, int n)
+printbuf(uint8_t *p, int n)
 {
 	int i;
-	uchar *e;
+	uint8_t *e;
 	char buf[32*5];
 
 	if(n > 32)
@@ -87,7 +87,7 @@ printbuf(uchar *p, int n)
 void
 xfer(int from, int to)
 {
-	uchar buf[4096];
+	uint8_t buf[4096];
 	int i, n, modified, ok, total, errs, dropped;
 
 	if(fork() == 0)

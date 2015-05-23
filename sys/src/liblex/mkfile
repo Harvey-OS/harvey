@@ -12,6 +12,7 @@ UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:/$objtype/%=/amd64/%}\
 
+CFLAGS=$CFLAGS -I/sys/src/cmd/lex
 </sys/src/cmd/mksyslib

@@ -34,8 +34,8 @@ struct Pstate
 	int		curfg;		// current foreground color
 	Background	curbg;	// current background
 	int		curvoff;		// current baseline offset
-	uchar	curul;		// current underline/strike state
-	uchar	curjust;		// current justify state
+	uint8_t	curul;		// current underline/strike state
+	uint8_t	curjust;		// current justify state
 	int		curanchor;	// current (href) anchor id (if in one), or 0
 	int		curstate;		// current value of item state
 	int		literal;		// current literal state
@@ -167,7 +167,7 @@ enum {
 // If we want a line of space before the given element, SPBefore is OR'd in.
 // If we want a line of space after the given element, SPAfter is OR'd in.
 
-static uchar blockbrk[Numtags]= {
+static unsigned char blockbrk[Numtags]= {
 	[Taddress] BLBA, [Tblockquote] BLBA, [Tcenter] BL,
 	[Tdir] BLBA, [Tdiv] BL, [Tdd] BL, [Tdl] BLBA,
 	[Tdt] BL, [Tform] BLBA,
@@ -185,7 +185,7 @@ enum {
 
 // attrinfo is information about attributes.
 // The AGEN value means that the attribute is generic (applies to almost all elements)
-static uchar attrinfo[Numattrs]= {
+static unsigned char attrinfo[Numattrs]= {
 	[Aid] AGEN, [Aclass] AGEN, [Astyle] AGEN, [Atitle] AGEN,
 	[Aonblur] AGEN, [Aonchange] AGEN, [Aonclick] AGEN,
 	[Aondblclick] AGEN, [Aonfocus] AGEN, [Aonkeypress] AGEN,
@@ -195,7 +195,7 @@ static uchar attrinfo[Numattrs]= {
 	[Aonsubmit] AGEN, [Aonunload] AGEN
 };
 
-static uchar scriptev[Numattrs]= {
+static unsigned char scriptev[Numattrs]= {
 	[Aonblur] SEonblur, [Aonchange] SEonchange, [Aonclick] SEonclick,
 	[Aondblclick] SEondblclick, [Aonfocus] SEonfocus, [Aonkeypress] SEonkeypress,
 	[Aonkeyup] SEonkeyup, [Aonload] SEonload, [Aonmousedown] SEonmousedown,
@@ -274,7 +274,7 @@ static void			freetable(Table* t);
 static Map*		getmap(Docinfo* di, Rune* name);
 static Rune*		getpcdata(Token* toks, int tokslen, int* ptoki);
 static Pstate*		lastps(Pstate* psl);
-static Rune*		listmark(uchar ty, int n);
+static Rune*		listmark(uint8_t ty, int n);
 static int			listtyval(Token* tok, int dflt);
 static Align		makealign(int halign, int valign);
 static Background	makebackground(Rune* imgurl, int color);
@@ -374,7 +374,7 @@ newitemsource(Docinfo* di)
 	return is;
 }
 
-static Item *getitems(ItemSource* is, uchar* data, int datalen);
+static Item *getitems(ItemSource* is, uint8_t* data, int datalen);
 
 // Parse an html document and create a list of layout items.
 // Allocate and return document info in *pdi.
@@ -382,7 +382,8 @@ static Item *getitems(ItemSource* is, uchar* data, int datalen);
 // freeitems on the returned result, and then
 // freedocinfo(*pdi).
 Item*
-parsehtml(uchar* data, int datalen, Rune* pagesrc, int mtype, int chset, Docinfo** pdi)
+parsehtml(uint8_t* data, int datalen, Rune* pagesrc, int mtype, int chset,
+	  Docinfo** pdi)
 {
 	Item *it;
 	Docinfo*	di;
@@ -406,7 +407,7 @@ parsehtml(uchar* data, int datalen, Rune* pagesrc, int mtype, int chset, Docinfo
 // When caller is done with the items, it should call
 // freeitems on the returned result.
 static Item*
-getitems(ItemSource* is, uchar* data, int datalen)
+getitems(ItemSource* is, uint8_t* data, int datalen)
 {
 	int	i;
 	int	j;
@@ -433,12 +434,12 @@ getitems(ItemSource* is, uchar* data, int datalen)
 	int	tag;
 	int	brksp;
 	int	target;
-	uchar	brk;
-	uchar	flags;
-	uchar	align;
-	uchar	al;
-	uchar	ty;
-	uchar	ty2;
+	uint8_t	brk;
+	uint8_t	flags;
+	uint8_t	align;
+	uint8_t	al;
+	uint8_t	ty;
+	uint8_t	ty2;
 	Pstate*	ps;
 	Pstate*	nextps;
 	Pstate*	outerps;
@@ -2623,7 +2624,7 @@ trim_cell(Tablecell* c)
 
 // Caller must free answer (eventually).
 static Rune*
-listmark(uchar ty, int n)
+listmark(uint8_t ty, int n)
 {
 	Rune*	s;
 	Rune*	t;
@@ -3646,7 +3647,7 @@ printitems(Item* items, char* msg)
 }
 
 static Genattr*
-newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, SEvent* events)
+newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, Attr* events)
 {
 	Genattr* g;
 

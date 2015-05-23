@@ -14,11 +14,11 @@
 #include "protos.h"
 
 typedef struct{
-	uchar	bc[2];
-	uchar	fw[2];
-	uchar	sc;
-	uchar	ccmd;
-	uchar	len[2];
+	uint8_t	bc[2];
+	uint8_t	fw[2];
+	uint8_t	sc;
+	uint8_t	ccmd;
+	uint8_t	len[2];
 }Hdr;
 
 enum{

@@ -17,7 +17,7 @@ _stringnwidth(Font *f, char *s, Rune *r, int len)
 	int wid, twid, n, max, l;
 	char *name;
 	enum { Max = 64 };
-	ushort cbuf[Max];
+	uint16_t cbuf[Max];
 	Rune rune, **rptr;
 	char *subfontname, **sptr;
 	Font *def;

@@ -56,10 +56,10 @@ stream_puts(stream * s, const char *str)
 
 /* Print a format string up to the first variable substitution. */
 /* Return a pointer to the %, or to the terminating 0 if no % found. */
-private const char *
-pprintf_scan(stream * s, const char *format)
+private const int8_t *
+pprintf_scan(stream * s, const int8_t *format)
 {
-    const char *fp = format;
+    const int8_t *fp = format;
 
     for (; *fp != 0; ++fp) {
 	if (*fp == '%') {
@@ -158,7 +158,7 @@ pprintg6(stream * s, const char *format, floatp v1, floatp v2, floatp v3,
 
 /* Print a long value using a format. */
 const char *
-pprintld1(stream * s, const char *format, long v)
+pprintld1(stream * s, const char *format, int32_t v)
 {
     const char *fp = pprintf_scan(s, format);
     char str[25];
@@ -172,12 +172,13 @@ pprintld1(stream * s, const char *format, long v)
     return pprintf_scan(s, fp + 3);
 }
 const char *
-pprintld2(stream * s, const char *format, long v1, long v2)
+pprintld2(stream * s, const char *format, int32_t v1, int32_t v2)
 {
     return pprintld1(s, pprintld1(s, format, v1), v2);
 }
 const char *
-pprintld3(stream * s, const char *format, long v1, long v2, long v3)
+pprintld3(stream * s, const char *format, int32_t v1, int32_t v2,
+          int32_t v3)
 {
     return pprintld2(s, pprintld1(s, format, v1), v2, v3);
 }
@@ -196,12 +197,14 @@ pprints1(stream * s, const char *format, const char *str)
     return pprintf_scan(s, fp + 2);
 }
 const char *
-pprints2(stream * s, const char *format, const char *str1, const char *str2)
+pprints2(stream * s, const char *format, const char *str1,
+         const char *str2)
 {
     return pprints1(s, pprints1(s, format, str1), str2);
 }
 const char *
-pprints3(stream * s, const char *format, const char *str1, const char *str2,
+pprints3(stream * s, const char *format, const char *str1,
+         const char *str2,
 	 const char *str3)
 {
     return pprints2(s, pprints1(s, format, str1), str2, str3);

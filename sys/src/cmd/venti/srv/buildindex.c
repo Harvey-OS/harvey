@@ -27,16 +27,16 @@ int		nisect;
 int		bloom;
 int		zero;
 
-u32int	isectmem;
-u64int	totalbuckets;
-u64int	totalclumps;
+uint32_t	isectmem;
+uint64_t	totalbuckets;
+uint64_t	totalclumps;
 Channel	*arenadonechan;
 Channel	*isectdonechan;
 Index	*ix;
 
-u64int	arenaentries;
-u64int	skipentries;
-u64int	indexentries;
+uint64_t	arenaentries;
+uint64_t	skipentries;
+uint64_t	indexentries;
 
 static int shouldprocess(ISect*);
 static void	isectproc(void*);
@@ -197,7 +197,7 @@ shouldprocess(ISect *is)
 }
 
 static void
-add(u64int *a, u64int n)
+add(uint64_t *a, uint64_t n)
 {
 	static Lock l;
 	
@@ -219,8 +219,8 @@ static void
 arenapartproc(void *v)
 {
 	int i, j, n, nskip, x;
-	u32int clump;
-	u64int addr, tot;
+	uint32_t clump;
+	uint64_t addr, tot;
 	Arena *a;
 	ClumpInfo *ci, *cis;
 	IEntry ie;
@@ -288,10 +288,10 @@ arenapartproc(void *v)
  * Convert score into relative bucket number in isect.
  * Can pass a packed ientry instead of score - score is first.
  */
-static u32int
-score2bucket(ISect *is, uchar *score)
+static uint32_t
+score2bucket(ISect *is, uint8_t *score)
 {
-	u32int b;
+	uint32_t b;
 	
 	b = hashbits(score, 32)/ix->div;
 	if(b < is->start || b >= is->stop){
@@ -305,10 +305,10 @@ score2bucket(ISect *is, uchar *score)
 /*
  * Convert offset in index section to bucket number.
  */
-static u32int
-offset2bucket(ISect *is, u64int offset)
+static uint32_t
+offset2bucket(ISect *is, uint64_t offset)
 {
-	u32int b;
+	uint32_t b;
 	
 	assert(is->blockbase <= offset);
 	offset -= is->blockbase;
@@ -320,11 +320,11 @@ offset2bucket(ISect *is, u64int offset)
 /*
  * Convert bucket number to offset.
  */
-static u64int
-bucket2offset(ISect *is, u32int b)
+static uint64_t
+bucket2offset(ISect *is, uint32_t b)
 {
 	assert(b <= is->stop-is->start);
-	return is->blockbase + (u64int)b*is->blocksize;
+	return is->blockbase + (uint64_t)b*is->blocksize;
 }
 
 /* 
@@ -334,19 +334,19 @@ typedef struct Buf Buf;
 struct Buf
 {
 	Part *part;			/* partition being written */
-	uchar *bp;		/* current block */
-	uchar *ep;		/* end of block */
-	uchar *wp;		/* write position in block */
-	u64int boffset;		/* start offset */
-	u64int woffset;		/* next write offset */
-	u64int eoffset;		/* end offset */
-	u32int nentry;		/* number of entries written */
+	uint8_t *bp;		/* current block */
+	uint8_t *ep;		/* end of block */
+	uint8_t *wp;		/* write position in block */
+	uint64_t boffset;		/* start offset */
+	uint64_t woffset;		/* next write offset */
+	uint64_t eoffset;		/* end offset */
+	uint32_t nentry;		/* number of entries written */
 };
 
 static void
 bflush(Buf *buf)
 {
-	u32int bufsize;
+	uint32_t bufsize;
 	
 	if(buf->woffset >= buf->eoffset)
 		sysfatal("buf index chunk overflow - need bigger index");
@@ -380,12 +380,12 @@ bwrite(Buf *buf, IEntry *ie)
 typedef struct Minibuf Minibuf;
 struct Minibuf
 {
-	u64int boffset;		/* start offset */
-	u64int roffset;		/* read offset */
-	u64int woffset;		/* write offset */
-	u64int eoffset;		/* end offset */
-	u32int nentry;		/* # entries left to read */
-	u32int nwentry;	/* # entries written */
+	uint64_t boffset;		/* start offset */
+	uint64_t roffset;		/* read offset */
+	uint64_t woffset;		/* write offset */
+	uint64_t eoffset;		/* end offset */
+	uint32_t nentry;		/* # entries left to read */
+	uint32_t nwentry;	/* # entries written */
 };
 
 /*
@@ -401,27 +401,27 @@ typedef struct IPool IPool;
 
 struct IEntryLink
 {
-	uchar ie[IEntrySize];		/* raw IEntry */
+	uint8_t ie[IEntrySize];		/* raw IEntry */
 	IEntryLink *next;		/* next in chain */
 };
 
 struct IPool
 {
 	ISect *isect;
-	u32int buck0;			/* first bucket in pool */
-	u32int mbufbuckets;	/* buckets per minibuf */
+	uint32_t buck0;			/* first bucket in pool */
+	uint32_t mbufbuckets;	/* buckets per minibuf */
 	IEntryLink *entry;		/* all IEntryLinks */
-	u32int nentry;			/* # of IEntryLinks */
+	uint32_t nentry;			/* # of IEntryLinks */
 	IEntryLink *free;		/* free list */
-	u32int nfree;			/* # on free list */
+	uint32_t nfree;			/* # on free list */
 	Minibuf *mbuf;			/* all minibufs */
-	u32int nmbuf;			/* # of minibufs */
+	uint32_t nmbuf;			/* # of minibufs */
 	IEntryLink **mlist;		/* lists for each minibuf */
-	u32int *mcount;		/* # on each mlist[i] */
-	u32int bufsize;			/* block buffer size */
-	uchar *rbuf;			/* read buffer */
-	uchar *wbuf;			/* write buffer */
-	u32int epbuf;			/* entries per block buffer */
+	uint32_t *mcount;		/* # on each mlist[i] */
+	uint32_t bufsize;			/* block buffer size */
+	uint8_t *rbuf;			/* read buffer */
+	uint8_t *wbuf;			/* write buffer */
+	uint32_t epbuf;			/* entries per block buffer */
 };
 
 /*
@@ -446,11 +446,11 @@ countsokay(IPool *p)
 */
 
 static IPool*
-mkipool(ISect *isect, Minibuf *mbuf, u32int nmbuf, 
-	u32int mbufbuckets, u32int bufsize)
+mkipool(ISect *isect, Minibuf *mbuf, uint32_t nmbuf, 
+	uint32_t mbufbuckets, uint32_t bufsize)
 {
-	u32int i, nentry;
-	uchar *data;
+	uint32_t i, nentry;
+	uint8_t *data;
 	IPool *p;
 	IEntryLink *l;
 	
@@ -458,7 +458,7 @@ mkipool(ISect *isect, Minibuf *mbuf, u32int nmbuf,
 	p = ezmalloc(sizeof(IPool)
 		+nentry*sizeof(IEntry)
 		+nmbuf*sizeof(IEntryLink*)
-		+nmbuf*sizeof(u32int)
+		+nmbuf*sizeof(uint32_t)
 		+3*bufsize);
 	
 	p->isect = isect;
@@ -467,10 +467,10 @@ mkipool(ISect *isect, Minibuf *mbuf, u32int nmbuf,
 	p->entry = (IEntryLink*)(p+1);
 	p->nentry = nentry;
 	p->mlist = (IEntryLink**)(p->entry+nentry);
-	p->mcount = (u32int*)(p->mlist+nmbuf);
+	p->mcount = (uint32_t*)(p->mlist+nmbuf);
 	p->nmbuf = nmbuf;
 	p->mbuf = mbuf;
-	data = (uchar*)(p->mcount+nmbuf);
+	data = (uint8_t*)(p->mcount+nmbuf);
 	data += bufsize - (uintptr)data%bufsize;
 	p->rbuf = data;
 	p->wbuf = data+bufsize;
@@ -490,9 +490,9 @@ mkipool(ISect *isect, Minibuf *mbuf, u32int nmbuf,
  * Caller must know there is room.
  */
 static void
-ipoolinsert(IPool *p, uchar *ie)
+ipoolinsert(IPool *p, uint8_t *ie)
 {
-	u32int buck, x;
+	uint32_t buck, x;
 	IEntryLink *l;
 
 	assert(p->free != nil);
@@ -518,12 +518,12 @@ ipoolinsert(IPool *p, uchar *ie)
  * Pull out a block containing as many
  * entries as possible for minibuffer x.
  */
-static u32int
-ipoolgetbuf(IPool *p, u32int x)
+static uint32_t
+ipoolgetbuf(IPool *p, uint32_t x)
 {
-	uchar *bp, *ep, *wp;
+	uint8_t *bp, *ep, *wp;
 	IEntryLink *l;
-	u32int n;
+	uint32_t n;
 	
 	bp = p->wbuf;
 	ep = p->wbuf + p->bufsize;
@@ -550,7 +550,7 @@ ipoolgetbuf(IPool *p, u32int x)
 static void
 ipoolloadblock(IPool *p, Minibuf *mb)
 {
-	u32int i, n;
+	uint32_t i, n;
 	
 	assert(mb->nentry > 0);
 	assert(mb->roffset >= mb->woffset);
@@ -574,9 +574,9 @@ ipoolloadblock(IPool *p, Minibuf *mb)
  * If necessary, pick up the data there before overwriting it.
  */
 static void
-ipoolflush0(IPool *pool, u32int x)
+ipoolflush0(IPool *pool, uint32_t x)
 {
-	u32int bufsize;
+	uint32_t bufsize;
 	Minibuf *mb;
 	
 	mb = pool->mbuf+x;
@@ -602,7 +602,7 @@ ipoolflush0(IPool *pool, u32int x)
 static void
 ipoolflush1(IPool *pool)
 {
-	u32int i;
+	uint32_t i;
 
 	assert(pool->nfree <= pool->epbuf);
 
@@ -623,7 +623,7 @@ ipoolflush1(IPool *pool)
 static void
 ipoolflush(IPool *pool)
 {
-	u32int i;
+	uint32_t i;
 	
 	for(i=0; i<pool->nmbuf; i++)
 		while(pool->mlist[i])
@@ -646,10 +646,10 @@ static int
 ientrycmpaddr(const void *va, const void *vb)
 {
 	int i;
-	uchar *a, *b;
+	uint8_t *a, *b;
 	
-	a = (uchar*)va;
-	b = (uchar*)vb;
+	a = (uint8_t*)va;
+	b = (uint8_t*)vb;
 	i = ientrycmp(a, b);
 	if(i)
 		return i;
@@ -657,10 +657,10 @@ ientrycmpaddr(const void *va, const void *vb)
 }
 
 static void
-zerorange(Part *p, u64int o, u64int e)
+zerorange(Part *p, uint64_t o, uint64_t e)
 {
-	static uchar zero[MaxIoSize];
-	u32int n;
+	static uint8_t zero[MaxIoSize];
+	uint32_t n;
 	
 	for(; o<e; o+=n){
 		n = sizeof zero;
@@ -676,11 +676,12 @@ zerorange(Part *p, u64int o, u64int e)
  * corresponding buckets.
  */
 static void
-sortminibuffer(ISect *is, Minibuf *mb, uchar *buf, u32int nbuf, u32int bufsize)
+sortminibuffer(ISect *is, Minibuf *mb, uint8_t *buf, uint32_t nbuf,
+	       uint32_t bufsize)
 {
-	uchar *buckdata, *p, *q, *ep;
-	u32int b, lastb, memsize, n;
-	u64int o;
+	uint8_t *buckdata, *p, *q, *ep;
+	uint32_t b, lastb, memsize, n;
+	uint64_t o;
 	IBucket ib;
 	Part *part;
 	
@@ -753,11 +754,11 @@ sortminibuffer(ISect *is, Minibuf *mb, uchar *buf, u32int nbuf, u32int bufsize)
 static void
 isectproc(void *v)
 {
-	u32int buck, bufbuckets, bufsize, epbuf, i, j;
-	u32int mbufbuckets, n, nbucket, nn, space;
-	u32int nbuf, nminibuf, xminiclump, prod;
-	u64int blocksize, offset, xclump;
-	uchar *data, *p;
+	uint32_t buck, bufbuckets, bufsize, epbuf, i, j;
+	uint32_t mbufbuckets, n, nbucket, nn, space;
+	uint32_t nbuf, nminibuf, xminiclump, prod;
+	uint64_t blocksize, offset, xclump;
+	uint8_t *data, *p;
 	Buf *buf;
 	IEntry ie;
 	IPool *ipool;

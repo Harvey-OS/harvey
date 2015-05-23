@@ -430,7 +430,7 @@ int PutVbrTag(lame_global_flags *gfp,FILE *fpStream,int nVbrScale)
 {
         lame_internal_flags * gfc = gfp->internal_flags;
 
-	long lFileSize;
+	int32_t lFileSize;
 	int nStreamIndex;
 	char abyte,bbyte;
 	u_char		btToc[NUMTOCENTRIES];

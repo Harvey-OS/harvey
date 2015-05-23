@@ -52,10 +52,10 @@ gp_strerror(int errnum)
 /* Read the current time (in seconds since Jan. 1, 1980) */
 /* and fraction (in nanoseconds). */
 void
-gp_get_realtime(long *pdt)
+gp_get_realtime(int32_t *pdt)
 {
     SYSTEMTIME st;
-    long idate;
+    int32_t idate;
     static const int mstart[12] = {
 	0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
     };
@@ -79,7 +79,7 @@ gp_get_realtime(long *pdt)
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(long *pdt)
+gp_get_usertime(int32_t *pdt)
 {
     gp_get_realtime(pdt);	/* Use an approximation for now.  */
 }

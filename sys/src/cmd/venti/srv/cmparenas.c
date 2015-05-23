@@ -14,8 +14,8 @@
 static int	verbose;
 static int	fd;
 static int	fd1;
-static uchar	*data;
-static uchar	*data1;
+static uint8_t	*data;
+static uint8_t	*data1;
 static int	blocksize;
 static int	sleepms;
 
@@ -27,7 +27,7 @@ usage(void)
 }
 
 static int
-preadblock(int fd, uchar *buf, int n, vlong off)
+preadblock(int fd, uint8_t *buf, int n, int64_t off)
 {
 	int nr, m;
 
@@ -44,7 +44,7 @@ preadblock(int fd, uchar *buf, int n, vlong off)
 }
 
 static int
-readblock(int fd, uchar *buf, int n)
+readblock(int fd, uint8_t *buf, int n)
 {
 	int nr, m;
 
@@ -64,7 +64,7 @@ static int
 printheader(char *name, ArenaHead *head, int fd)
 {
 	Arena arena;
-	vlong baseoff, lo, hi, off;
+	int64_t baseoff, lo, hi, off;
 	int clumpmax;
 	
 	off = seek(fd, 0, 1);
@@ -88,14 +88,14 @@ printheader(char *name, ArenaHead *head, int fd)
 	fprint(2, "%s: base=%llx size=%llx blocksize=%x\n", name, off, head->size, head->blocksize);
 
 	baseoff = head->blocksize;
-	fprint(2, "\t%llx-%llx: head\n", (vlong)0, baseoff);
+	fprint(2, "\t%llx-%llx: head\n", (int64_t)0, baseoff);
 	lo = baseoff;
 	hi = baseoff + arena.diskstats.used;
 	fprint(2, "\t%llx-%llx: data (%llx)\n", lo, hi, hi - lo);
 	hi = head->size - head->blocksize;
 	clumpmax = head->blocksize / ClumpInfoSize;
 	if(clumpmax > 0)
-		lo = hi - (u64int)arena.diskstats.clumps/clumpmax * head->blocksize;
+		lo = hi - (uint64_t)arena.diskstats.clumps/clumpmax * head->blocksize;
 	else
 		lo = hi;
 	fprint(2, "\t%llx-%llx: clumps (%llx)\n", lo, hi, hi - lo);
@@ -107,12 +107,12 @@ printheader(char *name, ArenaHead *head, int fd)
 }
 
 static void
-cmparena(char *name, vlong len)
+cmparena(char *name, int64_t len)
 {
 	ArenaHead head;
 	DigestState s;
-	u64int n, e;
-	u32int bs;
+	uint64_t n, e;
+	uint32_t bs;
 	int i, j;
 	char buf[20];
 
@@ -232,7 +232,7 @@ readap(int fd, ArenaPart *ap)
 	ap->tabbase = (PartBlank+HeadSize+ap->blocksize-1)&~(ap->blocksize-1);
 	ap->tabsize = ap->arenabase - ap->tabbase;
 	table = malloc(ap->tabsize+1);
-	if(preadblock(fd, (uchar*)table, ap->tabsize, ap->tabbase) < 0)
+	if(preadblock(fd, (uint8_t*)table, ap->tabsize, ap->tabbase) < 0)
 		sysfatal("reading arena part directory: %r");
 	table[ap->tabsize] = 0;
 	return table;

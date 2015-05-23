@@ -14,16 +14,13 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-#include	"netif.h"
-
 typedef struct Pipe	Pipe;
 struct Pipe
 {
 	QLock;
 	Pipe	*next;
 	int	ref;
-	ulong	path;
-	long	perm;
+	uint32_t	path;
 	Queue	*q[2];
 	int	qref[2];
 };
@@ -31,7 +28,7 @@ struct Pipe
 struct
 {
 	Lock;
-	ulong	path;
+	uint32_t	path;
 } pipealloc;
 
 enum
@@ -49,15 +46,20 @@ Dirtab pipedir[] =
 };
 #define NPIPEDIR 3
 
+#define PIPETYPE(x)	(((unsigned)x)&0x1f)
+#define PIPEID(x)	((((unsigned)x))>>5)
+#define PIPEQID(i, t)	((((unsigned)i)<<5)|(t))
+
+
+enum
+{
+	/* Plan 9 default for nmach > 1 */
+	Pipeqsize = 256*1024
+};
+
 static void
 pipeinit(void)
 {
-	if(conf.pipeqsize == 0){
-		if(conf.nmach > 1)
-			conf.pipeqsize = 256*1024;
-		else
-			conf.pipeqsize = 32*1024;
-	}
 }
 
 /*
@@ -75,12 +77,12 @@ pipeattach(char *spec)
 		exhausted("memory");
 	p->ref = 1;
 
-	p->q[0] = qopen(conf.pipeqsize, 0, 0, 0);
+	p->q[0] = qopen(Pipeqsize, 0, 0, 0);
 	if(p->q[0] == 0){
 		free(p);
 		exhausted("memory");
 	}
-	p->q[1] = qopen(conf.pipeqsize, 0, 0, 0);
+	p->q[1] = qopen(Pipeqsize, 0, 0, 0);
 	if(p->q[1] == 0){
 		free(p->q[0]);
 		free(p);
@@ -90,16 +92,15 @@ pipeattach(char *spec)
 	lock(&pipealloc);
 	p->path = ++pipealloc.path;
 	unlock(&pipealloc);
-	p->perm = pipedir[Qdata0].perm;
 
-	mkqid(&c->qid, NETQID(2*p->path, Qdir), 0, QTDIR);
+	mkqid(&c->qid, PIPEQID(2*p->path, Qdir), 0, QTDIR);
 	c->aux = p;
-	c->dev = 0;
+	c->devno = 0;
 	return c;
 }
 
 static int
-pipegen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
+pipegen(Chan *c, char* d, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid q;
 	int len;
@@ -115,7 +116,7 @@ pipegen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 
 	tab += i;
 	p = c->aux;
-	switch((ulong)tab->qid.path){
+	switch((uint32_t)tab->qid.path){
 	case Qdata0:
 		len = qlen(p->q[0]);
 		break;
@@ -126,8 +127,8 @@ pipegen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 		len = tab->length;
 		break;
 	}
-	mkqid(&q, NETQID(NETID(c->qid.path), tab->qid.path), 0, QTFILE);
-	devdir(c, q, tab->name, len, eve, p->perm, dp);
+	mkqid(&q, PIPEQID(PIPEID(c->qid.path), tab->qid.path), 0, QTFILE);
+	devdir(c, q, tab->name, len, eve, tab->perm, dp);
 	return 1;
 }
 
@@ -145,7 +146,7 @@ pipewalk(Chan *c, Chan *nc, char **name, int nname)
 		p->ref++;
 		if(c->flag & COPEN){
 			print("channel open in pipewalk\n");
-			switch(NETTYPE(c->qid.path)){
+			switch(PIPETYPE(c->qid.path)){
 			case Qdata0:
 				p->qref[0]++;
 				break;
@@ -159,23 +160,23 @@ pipewalk(Chan *c, Chan *nc, char **name, int nname)
 	return wq;
 }
 
-static int
-pipestat(Chan *c, uchar *db, int n)
+static int32_t
+pipestat(Chan *c, uint8_t *db, int32_t n)
 {
 	Pipe *p;
 	Dir dir;
 
 	p = c->aux;
 
-	switch(NETTYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)){
 	case Qdir:
 		devdir(c, c->qid, ".", 0, eve, DMDIR|0555, &dir);
 		break;
 	case Qdata0:
-		devdir(c, c->qid, "data", qlen(p->q[0]), eve, p->perm, &dir);
+		devdir(c, c->qid, "data", qlen(p->q[0]), eve, 0600, &dir);
 		break;
 	case Qdata1:
-		devdir(c, c->qid, "data1", qlen(p->q[1]), eve, p->perm, &dir);
+		devdir(c, c->qid, "data1", qlen(p->q[1]), eve, 0600, &dir);
 		break;
 	default:
 		panic("pipestat");
@@ -184,36 +185,6 @@ pipestat(Chan *c, uchar *db, int n)
 	if(n < BIT16SZ)
 		error(Eshortstat);
 	return n;
-}
-
-static int
-pipewstat(Chan* c, uchar* db, int n)
-{
-	int m;
-	Dir *dir;
-	Pipe *p;
-
-	p = c->aux;
-	if(strcmp(up->user, eve) != 0)
-		error(Eperm);
-	if(NETTYPE(c->qid.path) == Qdir)
-		error(Eisdir);
-
-	dir = smalloc(sizeof(Dir)+n);
-	if(waserror()){
-		free(dir);
-		nexterror();
-	}
-	m = convM2D(db, n, &dir[0], (char*)&dir[1]);
-	if(m == 0)
-		error(Eshortstat);
-	if(!emptystr(dir[0].uid))
-		error("can't change owner");
-	if(dir[0].mode != ~0UL)
-		p->perm = dir[0].mode;
-	poperror();
-	free(dir);
-	return m;
 }
 
 /*
@@ -235,7 +206,7 @@ pipeopen(Chan *c, int omode)
 
 	p = c->aux;
 	qlock(p);
-	switch(NETTYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)){
 	case Qdata0:
 		p->qref[0]++;
 		break;
@@ -264,7 +235,7 @@ pipeclose(Chan *c)
 		/*
 		 *  closing either side hangs up the stream
 		 */
-		switch(NETTYPE(c->qid.path)){
+		switch(PIPETYPE(c->qid.path)){
 		case Qdata0:
 			p->qref[0]--;
 			if(p->qref[0] == 0){
@@ -304,14 +275,14 @@ pipeclose(Chan *c)
 		qunlock(p);
 }
 
-static long
-piperead(Chan *c, void *va, long n, vlong)
+static int32_t
+piperead(Chan *c, void *va, int32_t n, int64_t m)
 {
 	Pipe *p;
 
 	p = c->aux;
 
-	switch(NETTYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)){
 	case Qdir:
 		return devdirread(c, va, n, pipedir, NPIPEDIR, pipegen);
 	case Qdata0:
@@ -325,13 +296,13 @@ piperead(Chan *c, void *va, long n, vlong)
 }
 
 static Block*
-pipebread(Chan *c, long n, ulong offset)
+pipebread(Chan *c, int32_t n, int64_t offset)
 {
 	Pipe *p;
 
 	p = c->aux;
 
-	switch(NETTYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)){
 	case Qdata0:
 		return qbread(p->q[0], n);
 	case Qdata1:
@@ -345,9 +316,10 @@ pipebread(Chan *c, long n, ulong offset)
  *  a write to a closed pipe causes a note to be sent to
  *  the process.
  */
-static long
-pipewrite(Chan *c, void *va, long n, vlong)
+static int32_t
+pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
+	Mach *m = machp();
 	Pipe *p;
 
 	if(!islo())
@@ -355,13 +327,13 @@ pipewrite(Chan *c, void *va, long n, vlong)
 	if(waserror()) {
 		/* avoid notes when pipe is a mounted queue */
 		if((c->flag & CMSG) == 0)
-			postnote(up, 1, "sys: write on closed pipe", NUser);
+			postnote(m->externup, 1, "sys: write on closed pipe", NUser);
 		nexterror();
 	}
 
 	p = c->aux;
 
-	switch(NETTYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)){
 	case Qdata0:
 		n = qwrite(p->q[1], va, n);
 		break;
@@ -378,21 +350,22 @@ pipewrite(Chan *c, void *va, long n, vlong)
 	return n;
 }
 
-static long
-pipebwrite(Chan *c, Block *bp, ulong)
+static int32_t
+pipebwrite(Chan *c, Block *bp, int64_t mm)
 {
-	long n;
+	Mach *m = machp();
+	int32_t n;
 	Pipe *p;
 
 	if(waserror()) {
 		/* avoid notes when pipe is a mounted queue */
 		if((c->flag & CMSG) == 0)
-			postnote(up, 1, "sys: write on closed pipe", NUser);
+			postnote(m->externup, 1, "sys: write on closed pipe", NUser);
 		nexterror();
 	}
 
 	p = c->aux;
-	switch(NETTYPE(c->qid.path)){
+	switch(PIPETYPE(c->qid.path)){
 	case Qdata0:
 		n = qbwrite(p->q[1], bp);
 		break;
@@ -428,5 +401,5 @@ Dev pipedevtab = {
 	pipewrite,
 	pipebwrite,
 	devremove,
-	pipewstat,
+	devwstat,
 };

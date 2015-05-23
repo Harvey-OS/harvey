@@ -1,0 +1,22 @@
+#!/bin/rc
+
+rfork ne
+
+# import rc functions popular among scripts, e.g. fail
+#
+. ../tools
+
+# we might have a source file here and do something like:
+# to override the source used for this benchmark
+bind proc.c ../../port/proc.c
+
+cp /cfg/pxe/003048ff2106 pxeorig
+cp 003048ff2106 /cfg/pxe
+
+# we might change the std source like this:
+# sed 's/initialTCs = [0-9]+/initialTCs = 16/' <  ../../k10/main.c >main.c
+# bind main.c ../../k10/main.c
+
+cd /sys/src/nix/k10
+mk clean
+mk install

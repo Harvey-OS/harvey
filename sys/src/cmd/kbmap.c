@@ -33,7 +33,7 @@ enum {
 char *dir = "/sys/lib/kbmap";
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -42,7 +42,7 @@ erealloc(void *v, ulong n)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *v;
 

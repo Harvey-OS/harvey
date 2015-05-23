@@ -75,7 +75,8 @@ okfile(char *cp, Biobuf *fp)
  *	  -1 if neither file exists
  */
 extern int
-lookup(char *cp, char *local, Biobuf **lfpp, char *global, Biobuf **gfpp)
+lookup(char *cp, char *local, Biobuf **lfpp, char *global,
+       Biobuf **gfpp)
 {
 	static String *file = 0;
 

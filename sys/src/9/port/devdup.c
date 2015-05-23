@@ -17,9 +17,10 @@
 /* Qid is (2*fd + (file is ctl))+1 */
 
 static int
-dupgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
+dupgen(Chan *c, char *d, Dirtab* dir, int mm, int s, Dir *dp)
 {
-	Fgrp *fgrp = up->fgrp;
+	Mach *m = machp();
+	Fgrp *fgrp = m->externup->fgrp;
 	Chan *f;
 	static int perm[] = { 0400, 0200, 0600, 0 };
 	int p;
@@ -38,13 +39,13 @@ dupgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 		return 0;
 	if(s & 1){
 		p = 0400;
-		snprint(up->genbuf, sizeof up->genbuf, "%dctl", s/2);
+		sprint(m->externup->genbuf, "%dctl", s/2);
 	}else{
 		p = perm[f->mode&3];
-		snprint(up->genbuf, sizeof up->genbuf, "%d", s/2);
+		sprint(m->externup->genbuf, "%d", s/2);
 	}
 	mkqid(&q, s+1, 0, QTFILE);
-	devdir(c, q, up->genbuf, 0, eve, p, dp);
+	devdir(c, q, m->externup->genbuf, 0, eve, p, dp);
 	return 1;
 }
 
@@ -60,8 +61,8 @@ dupwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, (Dirtab *)0, 0, dupgen);
 }
 
-static int
-dupstat(Chan *c, uchar *db, int n)
+static int32_t
+dupstat(Chan *c, uint8_t *db, int32_t n)
 {
 	return devstat(c, db, n, (Dirtab *)0, 0L, dupgen);
 }
@@ -101,33 +102,32 @@ dupopen(Chan *c, int omode)
 }
 
 static void
-dupclose(Chan*)
+dupclose(Chan* c)
 {
 }
 
-static long
-dupread(Chan *c, void *va, long n, vlong offset)
+static int32_t
+dupread(Chan *c, void *va, int32_t n, int64_t off)
 {
-	char *a = va;
 	char buf[256];
 	int fd, twicefd;
 
-	if(c->qid.type == QTDIR)
-		return devdirread(c, a, n, (Dirtab *)0, 0L, dupgen);
+	if(c->qid.type & QTDIR)
+		return devdirread(c, va, n, (Dirtab *)0, 0L, dupgen);
 	twicefd = c->qid.path - 1;
 	fd = twicefd/2;
 	if(twicefd & 1){
 		c = fdtochan(fd, -1, 0, 1);
 		procfdprint(c, fd, 0, buf, sizeof buf);
 		cclose(c);
-		return readstr((ulong)offset, va, n, buf);
+		return readstr(off, va, n, buf);
 	}
 	panic("dupread");
 	return 0;
 }
 
-static long
-dupwrite(Chan*, void*, long, vlong)
+static int32_t
+dupwrite(Chan* c, void* v, int32_t i, int64_t n)
 {
 	error(Eperm);
 	return 0;		/* not reached */

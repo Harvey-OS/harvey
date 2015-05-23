@@ -38,7 +38,7 @@ static void
 sunUdpRead(void *v)
 {
 	int n;
-	uchar *buf;
+	uint8_t *buf;
 	Arg arg = *(Arg*)v;
 	SunMsgUdp *msg;
 
@@ -64,7 +64,7 @@ sunUdpRead(void *v)
 static void
 sunUdpWrite(void *v)
 {
-	uchar *buf;
+	uint8_t *buf;
 	Arg arg = *(Arg*)v;
 	SunMsgUdp *msg;
 

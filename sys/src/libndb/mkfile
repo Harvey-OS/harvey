@@ -32,6 +32,7 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
+CFLAGS=$CFLAGS -I/sys/src/libndb
 </sys/src/cmd/mksyslib
 
 $O.out: testipinfo.$O

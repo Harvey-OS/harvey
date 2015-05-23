@@ -117,7 +117,7 @@ typedef struct gx_placed_page_s {
  * other rendering algorithms such as error diffusion in the second phase.
  */
 typedef struct {
-    ulong offset;		/* writing: offset from cdev->data, */
+    uint32_t offset;		/* writing: offset from cdev->data, */
     /*   0 means unused */
     /* reading: offset from cdev->chunk.data */
 } tile_hash;

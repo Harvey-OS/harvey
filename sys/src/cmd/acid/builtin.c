@@ -358,7 +358,7 @@ follow(Node *r, Node *args)
 {
 	int n, i;
 	Node res;
-	uvlong f[10];
+	uint64_t f[10];
 	List **tail, *l;
 
 	if(args == 0)
@@ -385,7 +385,7 @@ funcbound(Node *r, Node *args)
 {
 	int n;
 	Node res;
-	uvlong bounds[2];
+	uint64_t bounds[2];
 	List *l;
 
 	if(args == 0)
@@ -744,7 +744,7 @@ cvtitoa(Node *r, Node *args)
 {
 	Node res;
 	Node *av[Maxarg];
-	vlong ival;
+	int64_t ival;
 	char buf[128], fmt[32];
 
 	if(args == 0)
@@ -893,7 +893,7 @@ void
 strace(Node *r, Node *args)
 {
 	Node *av[Maxarg], *n, res;
-	uvlong pc, sp;
+	uint64_t pc, sp;
 
 	na = 0;
 	flatten(av, args);
@@ -1009,22 +1009,22 @@ patom(char type, Store *res)
 		Bprint(bout, "%.2x", (int)res->ival&0xff);
 		break;
 	case 'X':
-		Bprint(bout, "%.8lux", (ulong)res->ival);
+		Bprint(bout, "%.8lux", (uint32_t)res->ival);
 		break;
 	case 'x':
-		Bprint(bout, "%.4lux", (ulong)res->ival&0xffff);
+		Bprint(bout, "%.4lux", (uint32_t)res->ival&0xffff);
 		break;
 	case 'D':
 		Bprint(bout, "%d", (int)res->ival);
 		break;
 	case 'd':
-		Bprint(bout, "%d", (ushort)res->ival);
+		Bprint(bout, "%d", (uint16_t)res->ival);
 		break;
 	case 'u':
 		Bprint(bout, "%d", (int)res->ival&0xffff);
 		break;
 	case 'U':
-		Bprint(bout, "%lud", (ulong)res->ival);
+		Bprint(bout, "%lud", (uint32_t)res->ival);
 		break;
 	case 'Z':
 		Bprint(bout, "%llud", res->ival);
@@ -1045,7 +1045,7 @@ patom(char type, Store *res)
 		Bprint(bout, "0%.6uo", (int)res->ival);
 		break;
 	case 'q':
-		Bprint(bout, "0%.11o", (short)(res->ival&0xffff));
+		Bprint(bout, "0%.11o", (int16_t)(res->ival&0xffff));
 		break;
 	case 'Q':
 		Bprint(bout, "0%.6o", (int)res->ival);

@@ -53,7 +53,7 @@ static Keyword actions[] = {
 static	int	hisaction;
 static	List	ourdoms;
 static	List 	badguys;
-static	ulong	v4peerip;
+static	uint32_t	v4peerip;
 
 static	char*	getline(Biobuf*);
 static	int	cidrcheck(char*);
@@ -119,7 +119,7 @@ getconf(void)
 	char *cp, *p;
 	String *s;
 	char buf[512];
-	uchar addr[4];
+	uint8_t addr[4];
 
 	v4parseip(addr, nci->rsys);
 	v4peerip = nhgetl(addr);
@@ -415,9 +415,9 @@ static int
 cidrcheck(char *cp)
 {
 	char *p;
-	ulong a, m;
-	uchar addr[IPv4addrlen];
-	uchar mask[IPv4addrlen];
+	uint32_t a, m;
+	uint8_t addr[IPv4addrlen];
+	uint8_t mask[IPv4addrlen];
 
 	if(v4peerip == 0)
 		return 0;
@@ -471,7 +471,7 @@ char*
 dumpfile(char *sender)
 {
 	int i, fd;
-	ulong h;
+	uint32_t h;
 	static char buf[512];
 	char *cp;
 

@@ -1,0 +1,26 @@
+#!/bin/rc
+
+#
+# kernel as of /n/nixdump/2012/0119/sys/src/nix/bench
+# Single sched, 32 TCs.
+# Time to make a kernel
+#
+
+rfork ne
+
+# restore the pxe file we saved
+cp pxeorig /cfg/pxe/003048ff2106
+
+# import rc functions popular among scripts, e.g. fail
+#
+. ../tools
+
+# How much time does it take to make a kernel
+../Time 'cd /sys/src/nix/k10 ; mk clean ; mk'
+
+
+# What's the value for measures taken from the kernel?
+# echo '#cat /dev/debug' 
+# cat /dev/debug
+# NB: this is an example. /dev/debug is reported already by Time
+

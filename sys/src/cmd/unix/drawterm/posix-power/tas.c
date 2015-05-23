@@ -15,7 +15,7 @@
  * r3 contains return value upon return.
  */
 int
-tas(long *x)
+tas(int32_t *x)
 {
 	int     v;
 	/*

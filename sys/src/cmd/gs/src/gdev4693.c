@@ -49,8 +49,8 @@ const gx_device_printer gs_t4693d8_device = t4693d_prn_device("t4693d8",24, 255)
 private gx_color_index
 gdev_t4693d_map_rgb_color(gx_device *dev, const gx_color_value cv[])
 {
-	ushort bitspercolor = prn_dev->color_info.depth / 3;
-	ulong max_value = (1 << bitspercolor) - 1;
+	uint16_t bitspercolor = prn_dev->color_info.depth / 3;
+	uint32_t max_value = (1 << bitspercolor) - 1;
 
         gx_color_value r, g, b;
         r = cv[0]; g = cv[1]; b = cv[2];

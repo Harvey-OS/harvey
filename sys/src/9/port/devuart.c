@@ -15,7 +15,16 @@
 #include	"io.h"
 #include	"../port/error.h"
 
-#include	"../port/netif.h"
+enum {
+	Qdir		= 0,
+	Qdata,
+	Qctl,
+	Qstat,
+};
+
+#define UARTTYPE(x)	(((unsigned)x)&0x1f)
+#define UARTID(x)	((((unsigned)x))>>5)
+#define UARTQID(i, t)	((((unsigned)i)<<5)|(t))
 
 enum
 {
@@ -45,13 +54,11 @@ static void	uartflow(void*);
 /*
  *  enable/disable uart and add/remove to list of enabled uarts
  */
-Uart*
+static Uart*
 uartenable(Uart *p)
 {
 	Uart **l;
 
-	if(p->enabled)
-		return p;
 	if(p->iq == nil){
 		if((p->iq = qopen(8*1024, 0, uartflow, p)) == nil)
 			return nil;
@@ -91,11 +98,7 @@ uartenable(Uart *p)
 		uartctl(p, "b9600");
 	(*p->phys->enable)(p, 1);
 
-	/*
-	 * use ilock because uartclock can otherwise interrupt here
-	 * and would hang on an attempt to lock uartalloc.
-	 */
-	ilock(&uartalloc);
+	lock(&uartalloc);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p)
 			break;
@@ -105,7 +108,7 @@ uartenable(Uart *p)
 		uartalloc.elist = p;
 	}
 	p->enabled = 1;
-	iunlock(&uartalloc);
+	unlock(&uartalloc);
 
 	return p;
 }
@@ -115,11 +118,9 @@ uartdisable(Uart *p)
 {
 	Uart **l;
 
-	if(!p->enabled)
-		return;
 	(*p->phys->disable)(p);
 
-	ilock(&uartalloc);
+	lock(&uartalloc);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p){
 			*l = p->elist;
@@ -127,38 +128,40 @@ uartdisable(Uart *p)
 		}
 	}
 	p->enabled = 0;
-	iunlock(&uartalloc);
+	unlock(&uartalloc);
 }
 
-void
-uartmouse(Uart* p, int (*putc)(Queue*, int), int setb1200)
+Uart*
+uartconsole(int i, char *cmd)
 {
-	qlock(p);
-	if(p->opens++ == 0 && uartenable(p) == nil){
-		qunlock(p);
-		error(Enodev);
-	}
-	if(setb1200)
-		uartctl(p, "b1200");
-	p->putc = putc;
-	p->special = 1;
-	qunlock(p);
-}
+	Uart *p;
 
-void
-uartsetmouseputc(Uart* p, int (*putc)(Queue*, int))
-{
+	if(i >= uartnuart || (p = uart[i]) == nil)
+		return nil;
+
 	qlock(p);
-	if(p->opens == 0 || p->special == 0){
-		qunlock(p);
-		error(Enodev);
+	if(!p->console){
+		if(p->opens == 0 && uartenable(p) == nil){
+			qunlock(p);
+			return nil;
+		}
+		p->opens++;
+
+		addkbdq(p->iq, -1);
+		addconsdev(p->oq, uartputs, 2, 0);
+		p->putc = kbdcr2nl;
+		if(cmd != nil && *cmd != '\0')
+			uartctl(p, cmd);
+
+		p->console = 1;
 	}
-	p->putc = putc;
 	qunlock(p);
+
+	return p;
 }
 
 static void
-setlength(int i)
+uartsetlength(int i)
 {
 	Uart *p;
 
@@ -198,15 +201,12 @@ uartreset(void)
 		uartnuart++;
 	}
 
-	if(uartnuart) {
-		uart = xalloc(uartnuart*sizeof(Uart*));
-		if (uart == nil)
-			panic("uartreset: no memory");
-	}
+	if(uartnuart)
+		uart = malloc(uartnuart*sizeof(Uart*));
 
 	uartndir = 1 + 3*uartnuart;
-	uartdir = xalloc(uartndir * sizeof(Dirtab));
-	if (uartdir == nil)
+	uartdir = malloc(uartndir * sizeof(Dirtab));
+	if(uartnuart > 0 && uart == nil || uartdir == nil)
 		panic("uartreset: no memory");
 	dp = uartdir;
 	strcpy(dp->name, ".");
@@ -217,26 +217,29 @@ uartreset(void)
 	p = uartlist;
 	for(i = 0; i < uartnuart; i++){
 		/* 3 directory entries per port */
-		snprint(dp->name, sizeof dp->name, "eia%d", i);
-		dp->qid.path = NETQID(i, Ndataqid);
+		sprint(dp->name, "eia%d", i);
+		dp->qid.path = UARTQID(i, Qdata);
 		dp->perm = 0660;
 		dp++;
-		snprint(dp->name, sizeof dp->name, "eia%dctl", i);
-		dp->qid.path = NETQID(i, Nctlqid);
+		sprint(dp->name, "eia%dctl", i);
+		dp->qid.path = UARTQID(i, Qctl);
 		dp->perm = 0660;
 		dp++;
-		snprint(dp->name, sizeof dp->name, "eia%dstatus", i);
-		dp->qid.path = NETQID(i, Nstatqid);
+		sprint(dp->name, "eia%dstatus", i);
+		dp->qid.path = UARTQID(i, Qstat);
 		dp->perm = 0444;
 		dp++;
 
 		uart[i] = p;
 		p->dev = i;
 		if(p->console || p->special){
+			/*
+			 * No qlock here, only called at boot time.
+			 */
 			if(uartenable(p) != nil){
 				if(p->console){
-					kbdq = p->iq;
-					serialoq = p->oq;
+					addkbdq(p->iq, -1);
+					addconsdev(p->oq, uartputs, 2, 0);
 					p->putc = kbdcr2nl;
 				}
 				p->opens++;
@@ -267,11 +270,11 @@ uartwalk(Chan *c, Chan *nc, char **name, int nname)
 	return devwalk(c, nc, name, nname, uartdir, uartndir, devgen);
 }
 
-static int
-uartstat(Chan *c, uchar *dp, int n)
+static int32_t
+uartstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	if(NETTYPE(c->qid.path) == Ndataqid)
-		setlength(NETID(c->qid.path));
+	if(UARTTYPE(c->qid.path) == Qdata)
+		uartsetlength(UARTID(c->qid.path));
 	return devstat(c, dp, n, uartdir, uartndir, devgen);
 }
 
@@ -282,16 +285,17 @@ uartopen(Chan *c, int omode)
 
 	c = devopen(c, omode, uartdir, uartndir, devgen);
 
-	switch(NETTYPE(c->qid.path)){
-	case Nctlqid:
-	case Ndataqid:
-		p = uart[NETID(c->qid.path)];
+	switch(UARTTYPE(c->qid.path)){
+	case Qctl:
+	case Qdata:
+		p = uart[UARTID(c->qid.path)];
 		qlock(p);
-		if(p->opens++ == 0 && uartenable(p) == nil){
+		if(p->opens == 0 && uartenable(p) == nil){
 			qunlock(p);
 			c->flag &= ~COPEN;
 			error(Enodev);
 		}
+		p->opens++;
 		qunlock(p);
 		break;
 	}
@@ -312,6 +316,7 @@ uartdrained(void* arg)
 static void
 uartdrainoutput(Uart *p)
 {
+	Mach *m = machp();
 	if(!p->enabled)
 		return;
 
@@ -327,16 +332,17 @@ uartdrainoutput(Uart *p)
 static void
 uartclose(Chan *c)
 {
+	Mach *m = machp();
 	Uart *p;
 
 	if(c->qid.type & QTDIR)
 		return;
 	if((c->flag & COPEN) == 0)
 		return;
-	switch(NETTYPE(c->qid.path)){
-	case Ndataqid:
-	case Nctlqid:
-		p = uart[NETID(c->qid.path)];
+	switch(UARTTYPE(c->qid.path)){
+	case Qdata:
+	case Qctl:
+		p = uart[UARTID(c->qid.path)];
 		qlock(p);
 		if(--(p->opens) == 0){
 			qclose(p->iq);
@@ -360,24 +366,24 @@ uartclose(Chan *c)
 	}
 }
 
-static long
-uartread(Chan *c, void *buf, long n, vlong off)
+static int32_t
+uartread(Chan *c, void *buf, int32_t n, int64_t off)
 {
 	Uart *p;
-	ulong offset = off;
+	uint32_t offset = off;
 
 	if(c->qid.type & QTDIR){
-		setlength(-1);
+		uartsetlength(-1);
 		return devdirread(c, buf, n, uartdir, uartndir, devgen);
 	}
 
-	p = uart[NETID(c->qid.path)];
-	switch(NETTYPE(c->qid.path)){
-	case Ndataqid:
+	p = uart[UARTID(c->qid.path)];
+	switch(UARTTYPE(c->qid.path)){
+	case Qdata:
 		return qread(p->iq, buf, n);
-	case Nctlqid:
-		return readnum(offset, buf, n, NETID(c->qid.path), NUMSIZE);
-	case Nstatqid:
+	case Qctl:
+		return readnum(offset, buf, n, UARTID(c->qid.path), NUMSIZE);
+	case Qstat:
 		return (*p->phys->status)(p, buf, n, offset);
 	}
 
@@ -418,8 +424,8 @@ uartctl(Uart *p, char *cmd)
 		case 'e':
 			p->hup_dsr = n;
 			break;
-		case 'f':
 		case 'F':
+		case 'f':
 			if(p->oq != nil)
 				qflush(p->oq);
 			break;
@@ -430,8 +436,8 @@ uartctl(Uart *p, char *cmd)
 			if(p->oq != nil)
 				qhangup(p->oq, 0);
 			break;
-		case 'i':
 		case 'I':
+		case 'i':
 			uartdrainoutput(p);
 			(*p->phys->fifo)(p, n);
 			break;
@@ -446,13 +452,13 @@ uartctl(Uart *p, char *cmd)
 			if((*p->phys->bits)(p, n) < 0)
 				return -1;
 			break;
-		case 'm':
 		case 'M':
+		case 'm':
 			uartdrainoutput(p);
 			(*p->phys->modemctl)(p, n);
 			break;
-		case 'n':
 		case 'N':
+		case 'n':
 			if(p->oq != nil)
 				qnoblock(p->oq, n);
 			break;
@@ -484,7 +490,7 @@ uartctl(Uart *p, char *cmd)
 		case 'w':
 			if(uarttimer == nil || n < 1)
 				return -1;
-			uarttimer->tns = (vlong)n * 100000LL;
+			uarttimer->tns = (int64_t)n * 100000LL;
 			break;
 		case 'X':
 		case 'x':
@@ -499,19 +505,20 @@ uartctl(Uart *p, char *cmd)
 	return 0;
 }
 
-static long
-uartwrite(Chan *c, void *buf, long n, vlong)
+static int32_t
+uartwrite(Chan *c, void *buf, int32_t n, int64_t mm)
 {
+	Mach *m = machp();
 	Uart *p;
 	char *cmd;
 
 	if(c->qid.type & QTDIR)
 		error(Eperm);
 
-	p = uart[NETID(c->qid.path)];
+	p = uart[UARTID(c->qid.path)];
 
-	switch(NETTYPE(c->qid.path)){
-	case Ndataqid:
+	switch(UARTTYPE(c->qid.path)){
+	case Qdata:
 		qlock(p);
 		if(waserror()){
 			qunlock(p);
@@ -523,10 +530,8 @@ uartwrite(Chan *c, void *buf, long n, vlong)
 		qunlock(p);
 		poperror();
 		break;
-	case Nctlqid:
+	case Qctl:
 		cmd = malloc(n+1);
-		if(cmd == nil)
-			error(Enomem);
 		memmove(cmd, buf, n);
 		cmd[n] = 0;
 		qlock(p);
@@ -549,8 +554,8 @@ uartwrite(Chan *c, void *buf, long n, vlong)
 	return n;
 }
 
-static int
-uartwstat(Chan *c, uchar *dp, int n)
+static int32_t
+uartwstat(Chan *c, uint8_t *dp, int32_t n)
 {
 	Dir d;
 	Dirtab *dt;
@@ -559,10 +564,10 @@ uartwstat(Chan *c, uchar *dp, int n)
 		error(Eperm);
 	if(QTDIR & c->qid.type)
 		error(Eperm);
-	if(NETTYPE(c->qid.path) == Nstatqid)
+	if(UARTTYPE(c->qid.path) == Qstat)
 		error(Eperm);
 
-	dt = &uartdir[1 + 3 * NETID(c->qid.path)];
+	dt = &uartdir[1 + 3 * UARTID(c->qid.path)];
 	n = convM2D(dp, n, &d, nil);
 	if(n == 0)
 		error(Eshortstat);
@@ -663,7 +668,7 @@ static void
 uartstageinput(Uart *p)
 {
 	int n;
-	uchar *ir, *iw;
+	uint8_t *ir, *iw;
 
 	while(p->ir != p->iw){
 		ir = p->ir;
@@ -690,7 +695,7 @@ uartstageinput(Uart *p)
 void
 uartrecv(Uart *p,  char ch)
 {
-	uchar *next;
+	uint8_t *next;
 
 	/* software flow control */
 	if(p->xonoff){
@@ -705,7 +710,7 @@ uartrecv(Uart *p,  char ch)
 	/* receive the character */
 	if(p->putc)
 		p->putc(p->iq, ch);
-	else if (p->iw) {		/* maybe the line isn't enabled yet */
+	else{
 		ilock(&p->rlock);
 		next = p->iw + 1;
 		if(next == p->ie)
@@ -729,8 +734,11 @@ uartclock(void)
 {
 	Uart *p;
 
-	ilock(&uartalloc);
+	lock(&uartalloc);
 	for(p = uartalloc.elist; p; p = p->elist){
+
+		if(p->phys->poll != nil)
+			(*p->phys->poll)(p);
 
 		/* this hopefully amortizes cost of qproduce to many chars */
 		if(p->iw != p->ir){
@@ -756,7 +764,7 @@ uartclock(void)
 			iunlock(&p->tlock);
 		}
 	}
-	iunlock(&uartalloc);
+	unlock(&uartalloc);
 }
 
 /*
@@ -776,14 +784,8 @@ uartgetc(void)
 void
 uartputc(int c)
 {
-	char c2;
-
-	if(consuart == nil || consuart->phys->putc == nil) {
-		c2 = c;
-		if (lprint)
-			(*lprint)(&c2, 1);
+	if(consuart == nil || consuart->phys->putc == nil)
 		return;
-	}
 	consuart->phys->putc(consuart, c);
 }
 
@@ -792,11 +794,9 @@ uartputs(char *s, int n)
 {
 	char *e;
 
-	if(consuart == nil || consuart->phys->putc == nil) {
-		if (lprint)
-			(*lprint)(s, n);
+	if(consuart == nil || consuart->phys->putc == nil)
 		return;
-	}
+
 	e = s+n;
 	for(; s<e; s++){
 		if(*s == '\n')

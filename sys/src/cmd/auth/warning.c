@@ -15,18 +15,18 @@
 
 /* working directory */
 Dir	*dirbuf;
-long	ndirbuf = 0;
+int32_t	ndirbuf = 0;
 
 int debug;
 
-long	readdirect(int);
+int32_t	readdirect(int);
 void	douser(Fs*, char*);
 void	dodir(Fs*);
-int	mail(Fs*, char*, char*, long);
-int	mailin(Fs*, char*, long, char*, char*);
+int	mail(Fs*, char*, char*, int32_t);
+int	mailin(Fs*, char*, int32_t, char*, char*);
 void	complain(char*, ...);
-long	readnumfile(char*);
-void	writenumfile(char*, long);
+int32_t	readnumfile(char*);
+void	writenumfile(char*, int32_t);
 
 void
 usage(void)
@@ -93,7 +93,7 @@ douser(Fs *f, char *user)
 {
 	int n, nwarn;
 	char buf[128];
-	long rcvrs, et, now;
+	int32_t rcvrs, et, now;
 	char *l;
 
 	snprint(buf, sizeof buf, "%s/expire", user);
@@ -162,7 +162,7 @@ douser(Fs *f, char *user)
  *  anything in <>'s is an address
  */
 int
-mailin(Fs *f, char *user, long et, char *l, char *e)
+mailin(Fs *f, char *user, int32_t et, char *l, char *e)
 {
 	int n;
 	int rcvrs;
@@ -197,7 +197,7 @@ mailin(Fs *f, char *user, long et, char *l, char *e)
  *  send mail
  */
 int
-mail(Fs *f, char *rcvr, char *user, long et)
+mail(Fs *f, char *rcvr, char *user, int32_t et)
 {
 	int pid, i, fd;
 	int pfd[2];
@@ -295,7 +295,7 @@ complain(char *fmt, ...)
 	write(2, buf, s - buf);
 }
 
-long
+int32_t
 readnumfile(char *file)
 {
 	int fd, n;
@@ -317,7 +317,7 @@ readnumfile(char *file)
 }
 
 void
-writenumfile(char *file, long num)
+writenumfile(char *file, int32_t num)
 {
 	int fd;
 

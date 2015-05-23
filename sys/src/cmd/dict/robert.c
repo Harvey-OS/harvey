@@ -101,8 +101,8 @@ static void	robertprintentry(Entry*, Entry*, int);
 void
 robertindexentry(Entry e, int cmd)
 {
-	uchar *p = (uchar *)e.start;
-	long ea, el, da, dl, fa;
+	uint8_t *p = (uint8_t *)e.start;
+	int32_t ea, el, da, dl, fa;
 	Entry def, etym;
 
 	ea = GLONG(&p[0]);
@@ -140,14 +140,14 @@ robertindexentry(Entry e, int cmd)
 static void
 robertprintentry(Entry *def, Entry *etym, int cmd)
 {
-	uchar *p, *pe;
+	uint8_t *p, *pe;
 	Rune r; int c, n;
 	int baseline = 0;
 	int lineno = 0;
 	int cit = 0;
 
-	p = (uchar *)def->start;
-	pe = (uchar *)def->end;
+	p = (uint8_t *)def->start;
+	pe = (uint8_t *)def->end;
 	while(p < pe){
 		if(cmd == 'r'){
 			outchar(*p++);
@@ -237,8 +237,8 @@ citation(int addr, int cmd)
 	robertprintentry(&cit, 0, cmd);
 }
 
-long
-robertnextoff(long fromoff)
+int32_t
+robertnextoff(int32_t fromoff)
 {
 	return (fromoff & ~15) + 16;
 }
@@ -258,12 +258,12 @@ robertprintkey(void)
 void
 robertflexentry(Entry e, int cmd)
 {
-	uchar *p, *pe;
+	uint8_t *p, *pe;
 	Rune r; int c;
 	int lineno = 1;
 
-	p = (uchar *)e.start;
-	pe = (uchar *)e.end;
+	p = (uint8_t *)e.start;
+	pe = (uint8_t *)e.end;
 	while(p < pe){
 		if(cmd == 'r'){
 			Bputc(bout, *p++);
@@ -293,8 +293,8 @@ robertflexentry(Entry e, int cmd)
 	outnl(0);
 }
 
-long
-robertnextflex(long fromoff)
+int32_t
+robertnextflex(int32_t fromoff)
 {
 	int c;
 

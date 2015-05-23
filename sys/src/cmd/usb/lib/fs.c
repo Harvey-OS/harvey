@@ -70,8 +70,8 @@ char Eisopen[] = "it is already open";
 char Ebadctl[] = "unknown control request";
 
 static char *user;
-static ulong epoch;
-static ulong msgsize = Msgsize;
+static uint32_t epoch;
+static uint32_t msgsize = Msgsize;
 static int fsfd = -1;
 static Channel *outc;	/* of Rpc* */
 
@@ -339,7 +339,7 @@ fswalk(Rpc *r)
 static void
 fsioproc(void* a)
 {
-	long rc;
+	int32_t rc;
 	Channel *p = a;
 	Rpc *rpc;
 	Fcall *t, *r;
@@ -409,7 +409,9 @@ fsopen(Rpc *r)
 }
 
 int
-usbdirread(Usbfs*f, Qid q, char *data, long cnt, vlong off, Dirgen gen, void *arg)
+usbdirread(Usbfs*f, Qid q, char *data, int32_t cnt, int64_t off,
+	   Dirgen gen,
+	   void *arg)
 {
 	int i, n, nd;
 	char name[Namesz];
@@ -424,7 +426,7 @@ usbdirread(Usbfs*f, Qid q, char *data, long cnt, vlong off, Dirgen gen, void *ar
 	for(i = n = 0; gen(f, q, i, &d, arg) >= 0; i++){
 		if(usbfsdebug > 1)
 			fprint(2, "%s: dir %d q %#llux: %D\n", argv0, i, q.path, &d);
-		nd = convD2M(&d, (uchar*)data+n, cnt-n);
+		nd = convD2M(&d, (uint8_t*)data+n, cnt-n);
 		if(nd <= BIT16SZ)
 			break;
 		if(off > 0)
@@ -440,8 +442,8 @@ usbdirread(Usbfs*f, Qid q, char *data, long cnt, vlong off, Dirgen gen, void *ar
 	return n;
 }
 
-long
-usbreadbuf(void *data, long count, vlong offset, void *buf, long n)
+int32_t
+usbreadbuf(void *data, int32_t count, int64_t offset, void *buf, int32_t n)
 {
 	if(offset >= n)
 		return 0;
@@ -502,8 +504,8 @@ fsstat(Rpc *r)
 	d.length = 0;
 	if(fsops->stat(fsops, r->fid->qid, &d) < 0)
 		return fserror(r, "%r");
-	r->r.stat = (uchar*)r->data;
-	r->r.nstat = convD2M(&d, (uchar*)r->data, msgsize);
+	r->r.stat = (uint8_t*)r->data;
+	r->r.nstat = convD2M(&d, (uint8_t*)r->data, msgsize);
 	return r;
 }
 
@@ -545,7 +547,7 @@ Rpc* (*fscalls[])(Rpc*) = {
 static void
 outproc(void*)
 {
-	static uchar buf[Bufsize];
+	static uint8_t buf[Bufsize];
 	Rpc *rpc;
 	int nw;
 	static int once = 0;
@@ -614,7 +616,7 @@ usbfs(void*)
 			sendp(outc, rpc);
 			break;
 		}
-		if(convM2S((uchar*)rpc->data, nr, &rpc->t) <=0){
+		if(convM2S((uint8_t*)rpc->data, nr, &rpc->t) <=0){
 			dprint(2, "%s: convM2S failed\n", argv0);
 			freerpc(rpc);
 			continue;

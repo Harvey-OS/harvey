@@ -72,9 +72,12 @@ static gs_main_instance *pgs_minst = NULL;
 
 
 /* local functions */
-private int GSDLLCALL gsdll_old_stdin(void *caller_handle, char *buf, int len);
-private int GSDLLCALL gsdll_old_stdout(void *caller_handle, const char *str, int len);
-private int GSDLLCALL gsdll_old_stderr(void *caller_handle, const char *str, int len);
+private int GSDLLCALL gsdll_old_stdin(void *caller_handle, char *buf,
+				      int len);
+private int GSDLLCALL gsdll_old_stdout(void *caller_handle, const char *str,
+				       int len);
+private int GSDLLCALL gsdll_old_stderr(void *caller_handle, const char *str,
+				       int len);
 private int GSDLLCALL gsdll_old_poll(void *caller_handle);
 
 
@@ -162,7 +165,7 @@ gsdll_exit(void)
 /* This may be called before any other function. */
 int GSDLLEXPORT GSDLLAPI
 gsdll_revision(const char ** product, const char ** copyright,
-	       long * revision, long * revisiondate)
+	       int32_t * revision, int32_t * revisiondate)
 {
     if (product)
 	*product = gs_product;

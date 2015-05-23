@@ -89,7 +89,7 @@ dict_proc_array_param(const gs_memory_t *mem,
 	for (i = 0; i < count; i++) {
 	    ref proc;
 
-	    array_get(mem, pvalue, (long)i, &proc);
+	    array_get(mem, pvalue, (int32_t)i, &proc);
 	    check_proc_only(proc);
 	}
 	*pparray = *pvalue;
@@ -136,7 +136,8 @@ dict_matrix3_param(const gs_memory_t *mem,
 
 /* Get 3 procedures from a dictionary. */
 int
-dict_proc3_param(const gs_memory_t *mem, const ref *pdref, const char *kstr, ref proc3[3])
+dict_proc3_param(const gs_memory_t *mem, const ref *pdref, const char *kstr,
+                 ref proc3[3])
 {
     return dict_proc_array_param(mem, pdref, kstr, 3, proc3);
 }
@@ -618,7 +619,7 @@ cie_cache_finish_store(i_ctx_t *i_ctx_p, bool replicate)
 
     pcache->params.is_identity = false;	/* cache_set_linear computes this */
     if_debug3('c', "[c]cache 0x%lx base=%g, factor=%g:\n",
-	      (ulong) pcache, pcache->params.base, pcache->params.factor);
+	      (uint32_t) pcache, pcache->params.base, pcache->params.factor);
     if (replicate ||
 	(code = float_params(op, gx_cie_cache_size, &pcache->values[0])) < 0
 	) {

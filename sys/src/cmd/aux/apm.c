@@ -547,7 +547,7 @@ powerprint(void)
 }
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)
@@ -557,7 +557,7 @@ erealloc(void *v, ulong n)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *v;
 
@@ -617,7 +617,7 @@ typedef struct Dfile Dfile;
 struct Dfile {
 	Qid qid;
 	char *name;
-	ulong mode;
+	uint32_t mode;
 	void (*read)(Req*);
 	void (*write)(Req*);
 };
@@ -630,7 +630,7 @@ Dfile dfile[] = {
 };
 
 static int
-fillstat(uvlong path, Dir *d, int doalloc)
+fillstat(uint64_t path, Dir *d, int doalloc)
 {
 	int i;
 
@@ -675,7 +675,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 static void
 fsopen(Req *r)
 {
-	switch((ulong)r->fid->qid.path){
+	switch((uint32_t)r->fid->qid.path){
 	case Qroot:
 		r->fid->aux = (void*)0;
 		respond(r, nil);
@@ -723,14 +723,14 @@ static void
 rootread(Req *r)
 {
 	int n;
-	uvlong offset;
+	uint64_t offset;
 	char *p, *ep;
 	Dir d;
 
 	if(r->ifcall.offset == 0)
 		offset = 0;
 	else
-		offset = (uvlong)r->fid->aux;
+		offset = (uint64_t)r->fid->aux;
 
 	p = r->ofcall.data;
 	ep = r->ofcall.data+r->ifcall.count;
@@ -740,7 +740,7 @@ rootread(Req *r)
 	for(; p+2 < ep; p+=n){
 		if(fillstat(offset, &d, 0) < 0)
 			break;
-		n = convD2M(&d, (uchar*)p, ep-p);
+		n = convD2M(&d, (uint8_t*)p, ep-p);
 		if(n <= BIT16SZ)
 			break;
 		offset++;
@@ -810,7 +810,7 @@ ctlwrite(Req *r)
 {
 	char buf[80], *p, *q;
 	int dev;
-	long count;
+	int32_t count;
 
 	count = r->ifcall.count;
 	if(count > sizeof(buf)-1)
@@ -1028,7 +1028,7 @@ eventproc(void*)
 	threadsetname("eventproc");
 
 	creq = chancreate(sizeof(Req*), 0);
-	cevent = chancreate(sizeof(ulong), 0);
+	cevent = chancreate(sizeof(uint32_t), 0);
 	cflush = chancreate(sizeof(Req*), 0);
 
 	tailp = &rlist;

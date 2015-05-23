@@ -26,16 +26,16 @@ typedef	struct	Dep	Dep;
 
 struct	Dep
 {
-	ulong	ireg;
-	ulong	freg;
-	ulong	cc;
+	uint32_t	ireg;
+	uint32_t	freg;
+	uint32_t	cc;
 };
 struct	Sch
 {
 	Prog	p;
 	Dep	set;
 	Dep	used;
-	long	soffset;
+	int32_t	soffset;
 	char	size;
 	char	nop;
 	char	comp;
@@ -103,7 +103,7 @@ sched(Prog *p0, Prog *pe)
 					goto no11;
 			u = s+1;
 			stmp = *t;
-			memmove(s+2, u, (uchar*)t - (uchar*)u);
+			memmove(s+2, u, (uint8_t*)t - (uint8_t*)u);
 			*u = stmp;
 			break;
 		}
@@ -119,7 +119,7 @@ sched(Prog *p0, Prog *pe)
 				if(depend(t, u))
 					goto no1;
 			stmp = *t;
-			memmove(s+1, s, (uchar*)t - (uchar*)s);
+			memmove(s+1, s, (uint8_t*)t - (uint8_t*)s);
 			*s = stmp;
 			if(!(s->p.mark & LOAD))
 				break;
@@ -176,7 +176,7 @@ sched(Prog *p0, Prog *pe)
 			Bprint(&bso, "%P\n", &s->p);
 		}
 		stmp = *t;
-		memmove(t, t+1, (uchar*)s - (uchar*)t);
+		memmove(t, t+1, (uint8_t*)s - (uint8_t*)t);
 		*s = stmp;
 		s--;
 
@@ -222,7 +222,7 @@ void
 regsused(Sch *s, Prog *realp)
 {
 	int c, ar, ad, ld, sz;
-	ulong m;
+	uint32_t m;
 	Prog *p;
 
 	p = &s->p;
@@ -578,7 +578,7 @@ regsused(Sch *s, Prog *realp)
 int
 depend(Sch *sa, Sch *sb)
 {
-	ulong x;
+	uint32_t x;
 
 	if(sa->set.ireg & (sb->set.ireg|sb->used.ireg))
 		return 1;

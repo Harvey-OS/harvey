@@ -72,10 +72,10 @@ void
 worldprintentry(Entry e, int cmd)
 {
 	int nh, state[3];
-	uchar *p, *pe;
+	uint8_t *p, *pe;
 
-	p = (uchar *)e.start;
-	pe = (uchar *)e.end;
+	p = (uint8_t *)e.start;
+	pe = (uint8_t *)e.end;
 	nh = GSHORT(p);
 	p += 6;
 	if(cmd == 'h')
@@ -92,11 +92,11 @@ worldprintentry(Entry e, int cmd)
 	outnl(0);
 }
 
-long
-worldnextoff(long fromoff)
+int32_t
+worldnextoff(int32_t fromoff)
 {
 	int nh, np, nd;
-	uchar buf[6];
+	uint8_t buf[6];
 
 	if(Bseek(bdict, fromoff-1, 0) < 0)
 		return -1;

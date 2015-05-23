@@ -241,8 +241,8 @@ Stat           *asb;
     sprintf(&hdr[100], "%06o \0", asb->sb_mode & ~S_IFMT);
     sprintf(&hdr[108], "%06o \0", asb->sb_uid);
     sprintf(&hdr[116], "%06o \0", asb->sb_gid);
-    sprintf(&hdr[124], "%011lo ", (long) asb->sb_size);
-    sprintf(&hdr[136], "%011lo ", (long) asb->sb_mtime);
+    sprintf(&hdr[124], "%011lo ", (int32_t) asb->sb_size);
+    sprintf(&hdr[136], "%011lo ", (int32_t) asb->sb_mtime);
     strncpy(&hdr[148], "        ", 8);
     hdr[156] = tartype(asb->sb_mode);
     if (asb->sb_nlink > 1 && (from = linkfrom(name, asb)) != (Link *)NULL) {

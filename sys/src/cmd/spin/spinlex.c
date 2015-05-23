@@ -50,10 +50,10 @@ extern ProcList	*rdy;
 extern Symbol	*Fname, *oFname;
 extern Symbol	*context, *owner;
 extern YYSTYPE	yylval;
-extern short	has_last, has_code;
+extern int16_t	has_last, has_code;
 extern int	verbose, IArgs, hastrack, separate, ltl_mode;
 
-short	has_stack = 0;
+int16_t	has_stack = 0;
 int	lineno  = 1;
 int	scope_seq[128], scope_level = 0;
 char	CurScope[MAXSCOPESZ];

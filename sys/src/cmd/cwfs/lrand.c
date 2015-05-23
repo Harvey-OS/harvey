@@ -25,15 +25,15 @@ enum {
 
 #define	NORM	(1.0/(1.0+MASK))
 
-static	ulong	rng_vec[LEN];
-static	ulong*	rng_tap = rng_vec;
-static	ulong*	rng_feed = 0;
+static	uint32_t	rng_vec[LEN];
+static	uint32_t*	rng_tap = rng_vec;
+static	uint32_t*	rng_feed = 0;
 static	Lock	lk;
 
 static void
-isrand(long seed)
+isrand(int32_t seed)
 {
-	long lo, hi, x;
+	int32_t lo, hi, x;
 	int i;
 
 	rng_tap = rng_vec;
@@ -59,17 +59,17 @@ isrand(long seed)
 }
 
 void
-srand(long seed)
+srand(int32_t seed)
 {
 	lock(&lk);
 	isrand(seed);
 	unlock(&lk);
 }
 
-long
+int32_t
 lrand(void)
 {
-	ulong x;
+	uint32_t x;
 
 	lock(&lk);
 

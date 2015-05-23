@@ -75,8 +75,8 @@ typedef struct {
   c_derived_tbl * ac_derived_tbls[NUM_HUFF_TBLS];
 
 #ifdef ENTROPY_OPT_SUPPORTED	/* Statistics tables for optimization */
-  long * dc_count_ptrs[NUM_HUFF_TBLS];
-  long * ac_count_ptrs[NUM_HUFF_TBLS];
+  int32_t * dc_count_ptrs[NUM_HUFF_TBLS];
+  int32_t * ac_count_ptrs[NUM_HUFF_TBLS];
 #endif
 } huff_entropy_encoder;
 

@@ -11,22 +11,22 @@
 #include <u.h>
 #include <libc.h>
 
-uchar*	buf;
+uint8_t*	buf;
 
 Lock	arithlock;	/* protect 64-bit accesses: unlikely to be atomic */
-uvlong	nin;
-uvlong	nout;
+uint64_t	nin;
+uint64_t	nout;
 
-ulong	kilo;
-ulong	max;
-long	ssize;
-vlong	tsize;
+uint32_t	kilo;
+uint32_t	max;
+int32_t	ssize;
+int64_t	tsize;
 int	dsize;
 int	done;
 int	ibsize;
 int	obsize;
 int	verb;
-vlong	off;
+int64_t	off;
 
 void	doinput(int);
 void	dooutput(int);
@@ -130,7 +130,7 @@ main(int argc, char *argv[])
 
 /* call with arithlock held */
 static int
-sleepunlocked(long ms)
+sleepunlocked(int32_t ms)
 {
 	int r;
 
@@ -143,7 +143,7 @@ sleepunlocked(long ms)
 void
 dooutput(int f)
 {
-	long n, l, c;
+	int32_t n, l, c;
 
 	seek(f, off, 0);
 	lock(&arithlock);
@@ -186,7 +186,7 @@ dooutput(int f)
 void
 doinput(int f)
 {
-	long n, l, c, xnin;
+	int32_t n, l, c, xnin;
 
 	seek(f, off, 0);
 	lock(&arithlock);

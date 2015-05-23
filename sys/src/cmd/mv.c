@@ -177,7 +177,7 @@ int
 copy1(int fdf, int fdt, char *from, char *to)
 {
 	char buf[8192];
-	long n, n1;
+	int32_t n, n1;
 
 	while ((n = read(fdf, buf, sizeof buf)) > 0) {
 		n1 = write(fdt, buf, n);

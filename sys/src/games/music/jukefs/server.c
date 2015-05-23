@@ -64,10 +64,10 @@ robusthandler(void*, char *s)
 	return (s && (strstr(s, "interrupted") || strstr(s, "hangup")));
 }
 
-long
-robustread(int fd, void *buf, long sz)
+int32_t
+robustread(int fd, void *buf, int32_t sz)
 {
-	long r;
+	int32_t r;
 	char err[32];
 
 	do {

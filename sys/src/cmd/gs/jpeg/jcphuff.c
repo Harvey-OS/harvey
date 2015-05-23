@@ -65,7 +65,7 @@ typedef struct {
   c_derived_tbl * derived_tbls[NUM_HUFF_TBLS];
 
   /* Statistics tables for optimization; again, one set is enough */
-  long * count_ptrs[NUM_HUFF_TBLS];
+  int32_t * count_ptrs[NUM_HUFF_TBLS];
 } phuff_entropy_encoder;
 
 typedef phuff_entropy_encoder * phuff_entropy_ptr;

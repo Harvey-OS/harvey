@@ -64,7 +64,7 @@ main(int argc, char **argv)
 	char *addr, *p, *q, to[4];
 	char buf[2048];
 	int port, fd, nfd, one, len, n, tot;
-	ulong ip;
+	uint32_t ip;
 	struct sockaddr_in sin;
 	WSADATA wasdat;
 

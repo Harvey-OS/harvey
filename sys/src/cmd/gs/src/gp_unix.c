@@ -83,7 +83,7 @@ gp_strerror(int errnum)
 /* for Apple's HFS(+) filesystem */
 int
 gp_read_macresource(byte *buf, const char *filename, 
-                    const uint type, const ushort id)
+                    const uint type, const uint16_t id)
 {
     return 0;
 }
@@ -93,7 +93,7 @@ gp_read_macresource(byte *buf, const char *filename,
 /* Read the current time (in seconds since Jan. 1, 1970) */
 /* and fraction (in nanoseconds). */
 void
-gp_get_realtime(long *pdt)
+gp_get_realtime(int32_t *pdt)
 {
     struct timeval tp;
 
@@ -131,12 +131,12 @@ gp_get_realtime(long *pdt)
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(long *pdt)
+gp_get_usertime(int32_t *pdt)
 {
 #if use_times_for_usertime
     struct tms tms;
-    long ticks;
-    const long ticks_per_sec = CLK_TCK;
+    int32_t ticks;
+    const int32_t ticks_per_sec = CLK_TCK;
 
     times(&tms);
     ticks = tms.tms_utime + tms.tms_stime + tms.tms_cutime + tms.tms_cstime;
@@ -189,7 +189,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, char **fontname,
+                            char **path)
 {
     return 0;
 }

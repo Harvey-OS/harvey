@@ -149,11 +149,11 @@ char *opname[] =
 [Oupdate]	"update",
 };
 
-ulong target = Deftarget;
-ulong start;
+uint32_t target = Deftarget;
+uint32_t start;
 Lock	dnlock;
 
-static ulong agefreq = Defagefreq;
+static uint32_t agefreq = Defagefreq;
 
 static int rrequiv(RR *r1, RR *r2);
 static int sencodefmt(Fmt*);
@@ -188,11 +188,11 @@ dninit(void)
 /*
  *  hash for a domain name
  */
-static ulong
+static uint32_t
 dnhash(char *name)
 {
-	ulong hash;
-	uchar *val = (uchar*)name;
+	uint32_t hash;
+	uint8_t *val = (uint8_t*)name;
 
 	for(hash = 0; *val; val++)
 		hash = hash*13 + tolower(*val)-'a';
@@ -381,7 +381,7 @@ dnage(DN *dp)
 {
 	RR **l;
 	RR *rp, *next;
-	ulong diff;
+	uint32_t diff;
 
 	if (canlock(&dnlock))
 		abort();	/* dnage called with dnlock not held */
@@ -501,7 +501,7 @@ dnageall(int doit)
 	DN *dp, **l;
 	int i;
 	RR *rp;
-	static ulong nextage;
+	static uint32_t nextage;
 
 	if(dnvars.names < target || (now < nextage && !doit)){
 		dnvars.oldest = maxage;
@@ -636,7 +636,7 @@ void
 dnauthdb(void)
 {
 	int i;
-	ulong minttl;
+	uint32_t minttl;
 	Area *area;
 	DN *dp;
 	RR *rp;
@@ -698,7 +698,7 @@ getactivity(Request *req, int recursive)
 void
 putactivity(int recursive)
 {
-	static ulong lastclean;
+	static uint32_t lastclean;
 
 	if(traceactivity)
 		dnslog("put: %d active by pid %d",
@@ -1667,7 +1667,7 @@ RR*
 randomize(RR *rp)
 {
 	RR *first, *last, *x, *base;
-	ulong n;
+	uint32_t n;
 
 	if(rp == nil || rp->next == nil)
 		return rp;
@@ -1721,13 +1721,13 @@ sencodefmt(Fmt *f)
 {
 	int i, len, ilen, rv;
 	char *out, *buf;
-	uchar *b;
+	uint8_t *b;
 	char obuf[64];		/* rsc optimization */
 
 	if(!(f->flags&FmtPrec) || f->prec < 1)
 		goto error;
 
-	b = va_arg(f->args, uchar*);
+	b = va_arg(f->args, uint8_t*);
 	if(b == nil)
 		goto error;
 
@@ -1828,7 +1828,7 @@ estrdup(char *s)
  *  create a pointer record
  */
 static RR*
-mkptr(DN *dp, char *ptr, ulong ttl)
+mkptr(DN *dp, char *ptr, uint32_t ttl)
 {
 	DN *ipdp;
 	RR *rp;
@@ -1844,21 +1844,22 @@ mkptr(DN *dp, char *ptr, ulong ttl)
 	return rp;
 }
 
-void	bytes2nibbles(uchar *nibbles, uchar *bytes, int nbytes);
+void	bytes2nibbles(uint8_t *nibbles, uint8_t *bytes, int nbytes);
 
 /*
  *  look for all ip addresses in this network and make
  *  pointer records for them.
  */
 void
-dnptr(uchar *net, uchar *mask, char *dom, int forwtype, int subdoms, int ttl)
+dnptr(uint8_t *net, uint8_t *mask, char *dom, int forwtype, int subdoms,
+      int ttl)
 {
 	int i, j, len;
 	char *p, *e;
 	char ptr[Domlen];
-	uchar *ipp;
-	uchar ip[IPaddrlen], nnet[IPaddrlen];
-	uchar nibip[IPaddrlen*2];
+	uint8_t *ipp;
+	uint8_t ip[IPaddrlen], nnet[IPaddrlen];
+	uint8_t nibip[IPaddrlen*2];
 	DN *dp;
 	RR *rp, *nrp, *first, **l;
 

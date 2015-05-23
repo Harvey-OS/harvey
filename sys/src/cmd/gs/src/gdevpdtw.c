@@ -41,7 +41,7 @@
 #include "gdevpdtv.h"
 #include "sarc4.h"
 
-private const char *const encoding_names[] = {
+private const int8_t *const encoding_names[] = {
     KNOWN_REAL_ENCODING_NAMES
 };
 
@@ -144,7 +144,8 @@ pdf_simple_font_needs_ToUnicode(const pdf_font_resource_t *pdfont)
 
 /* Write Encoding differencrs. */
 int 
-pdf_write_encoding(gx_device_pdf *pdev, const pdf_font_resource_t *pdfont, long id, int ch)
+pdf_write_encoding(gx_device_pdf *pdev, const pdf_font_resource_t *pdfont,
+                   int32_t id, int ch)
 {
     /* Note : this truncates extended glyph names to original names. */
     stream *s;
@@ -198,7 +199,7 @@ pdf_write_encoding(gx_device_pdf *pdev, const pdf_font_resource_t *pdfont, long 
 /* Write Encoding reference. */
 int
 pdf_write_encoding_ref(gx_device_pdf *pdev,
-	  const pdf_font_resource_t *pdfont, long id)
+	  const pdf_font_resource_t *pdfont, int32_t id)
 {
     stream *s = pdev->strm;
 
@@ -248,7 +249,7 @@ pdf_compute_CIDFont_default_widths(const pdf_font_resource_t *pdfont, int wmode,
 {
     psf_glyph_enum_t genum;
     gs_glyph glyph;
-    ushort counts[1500]; /* Some CID fonts use vertical widths 1026 .*/
+    uint16_t counts[1500]; /* Some CID fonts use vertical widths 1026 .*/
     int dw_count = 0, i, dwi = 0, neg_count = 0, pos_count = 0;
     double *w = (wmode ? pdfont->u.cidfont.Widths2 : pdfont->Widths);
 
@@ -488,7 +489,7 @@ int
 pdf_write_contents_cid2(gx_device_pdf *pdev, pdf_font_resource_t *pdfont)
 {
     int count = pdfont->count;
-    long map_id = 0;
+    int32_t map_id = 0;
     psf_glyph_enum_t genum;
     gs_glyph glyph;
     int code;

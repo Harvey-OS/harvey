@@ -2,12 +2,26 @@
 # common mkfile parameters shared by all architectures
 #
 
-OS=58qv
-CPUS=arm 386 power mips
-CFLAGS=-FTVw
+# Provisional for cross compiling
+objtype=amd64
+
+
+INC_DIR=/sys/include
+INCX86_64_DIR=/$objtype/include
+LIB_DIR=/$objtype/lib
+WARNFLAGS=-Wall' '-Wno-missing-braces' '-Wno-parentheses' '-Wno-unknown-pragmas' '-Wuninitialized' '-Wmaybe-uninitialized
+LDFLAGS=-L$LIB_DIR
+
+#OS=568qv
+OS=o
+#CPUS=arm amd64 386 power mips
+CPUS=amd64
+#CFLAGS=-FTVw
+CFLAGS=-O0 -g -static -fplan9-extensions -ffreestanding -fno-builtin -Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized -I$INCX86_64_DIR -I$INC_DIR
 LEX=lex
 YACC=yacc
-MK=/bin/mk
+
+#MK=/bin/mk
 
 # recursive mk will have these set from the parent
 # this is never what we want.  clear them
@@ -16,3 +30,14 @@ TARG=
 OFILES=
 HFILES=
 YFILES=
+
+APELIB=/rc/bin/ape              # where helper programs go
+FAMILY=plan9
+AR=ar                            # manipulating libraries
+RANLIB=ranlib                    # for updating libraries
+
+INSTALL=/$APELIB/install          # install script
+INSOWNER=()                     # default installation parameter
+INSGROUP=bin                    # default installation parameter
+INSMODE=775                     # default installation parameter
+

@@ -25,7 +25,8 @@ static char *strval(char *, char *, char **, int, int);
 static char *dval(char *, char *, int, int);
 
 size_t
-strftime(char *s, size_t maxsize, const char *format, const struct tm *t)
+strftime(char *s, size_t maxsize, const char *format,
+	 const struct tm *t)
 {
 	char *sp, *se, *fp;
 	int i;

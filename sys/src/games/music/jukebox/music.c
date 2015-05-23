@@ -171,8 +171,8 @@ Control		*browsebotscr;
 
 Playstate	playstate;
 
-ulong		playingbuts = 1<<Pausebutton | 1<<Stopbutton | 1<<Prevbutton | 1<<Nextbutton;
-ulong		activebuts;
+uint32_t		playingbuts = 1<<Pausebutton | 1<<Stopbutton | 1<<Prevbutton | 1<<Nextbutton;
+uint32_t		activebuts;
 
 int		tabht;
 Image		*vol1img;
@@ -237,9 +237,9 @@ readbuts(void)
 }
 
 void
-activatebuttons(ulong mask)
+activatebuttons(uint32_t mask)
 {	// mask bit i corresponds to buts[i];
-	ulong bit;
+	uint32_t bit;
 	But *b;
 	static char str[40];
 	int i;
@@ -259,9 +259,9 @@ activatebuttons(ulong mask)
 }
 
 void
-deactivatebuttons(ulong mask)
+deactivatebuttons(uint32_t mask)
 {	// mask bit i corresponds with buts[i];
-	ulong bit;
+	uint32_t bit;
 	But *b;
 	static char str[40];
 	int i;

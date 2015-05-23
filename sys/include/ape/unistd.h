@@ -112,7 +112,7 @@ extern char *getlogin(void);
 extern char *cuserid(char *);
 extern char *ttyname(int);
 extern int isatty(int);
-extern long sysconf(int);
+extern int32_t sysconf(int);
 #ifdef __TYPES_H
 extern pid_t getpid(void);
 extern pid_t getppid(void);
@@ -136,8 +136,8 @@ extern int unlink(const char *);
 extern int rmdir(const char *);
 extern int rename(const char *, const char *);
 extern int access(const char *, int);
-extern long pathconf(const char *, int);
-extern long fpathconf(int, int);
+extern int32_t pathconf(const char *, int);
+extern int32_t fpathconf(int, int);
 #ifdef __TYPES_H
 extern int chown(const char *, uid_t, gid_t);
 #endif

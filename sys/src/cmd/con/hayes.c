@@ -159,7 +159,7 @@ godial(int data, int ctl, char *number)
 int
 readmsg(int f, int secs)
 {
-	ulong start;
+	uint32_t start;
 	char *p;
 	int len;
 	Dir *d;

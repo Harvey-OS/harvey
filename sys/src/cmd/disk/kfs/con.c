@@ -144,7 +144,7 @@ void
 cmd_create(void)
 {
 	int uid, gid, err;
-	long perm;
+	int32_t perm;
 	char oelem[NAMELEN];
 	char name[NAMELEN];
 
@@ -214,7 +214,7 @@ cmd_clri(void)
 void
 cmd_rename(void)
 {
-	ulong perm;
+	uint32_t perm;
 	Dentry d;
 	char stat[DIRREC];
 	char oelem[NAMELEN], noelem[NAMELEN], nxelem[NAMELEN];
@@ -348,17 +348,17 @@ cmd_cfs(void)
  * we call this because convM2D is different
  * for the file system than in the os
  */
-static uvlong
+static uint64_t
 statlen(char *ap)
 {
-	uchar *p;
-	ulong ll, hl;
+	uint8_t *p;
+	uint32_t ll, hl;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	p += 3*28+5*4;
 	ll = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
 	hl = p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24);
-	return ll | ((uvlong) hl << 32);
+	return ll | ((uint64_t) hl << 32);
 }
 
 int
@@ -503,7 +503,7 @@ cmd_newuser(void)
 void
 cmd_checkuser(void)
 {
-	uchar buf[DIRREC], *p;
+	uint8_t buf[DIRREC], *p;
 	static char utime[4];
 
 	if(con_clone(FID1, FID2)
@@ -671,11 +671,11 @@ nextelem(void)
 	return 1;
 }
 
-long
+int32_t
 number(int d, int base)
 {
 	int c, sign, any;
-	long n;
+	int32_t n;
 
 	sign = 0;
 	any = 0;

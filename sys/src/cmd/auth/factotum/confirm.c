@@ -55,7 +55,7 @@ confirmwrite(char *s)
 {
 	char *t, *ans;
 	int allow, tagoff;
-	ulong tag;
+	uint32_t tag;
 	Attr *a;
 	Fsstate *fss;
 	Req *r, **l;
@@ -163,7 +163,7 @@ int
 needkeywrite(char *s)
 {
 	char *t;
-	ulong tag;
+	uint32_t tag;
 	Attr *a;
 	Req *r, **l;
 

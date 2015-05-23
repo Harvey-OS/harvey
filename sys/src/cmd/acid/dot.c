@@ -37,7 +37,7 @@ odot(Node *n, Node *r)
 	char *s;
 	Type *t;
 	Node res;
-	uvlong addr;
+	uint64_t addr;
 
 	s = n->sym->name;
 	if(s == 0)

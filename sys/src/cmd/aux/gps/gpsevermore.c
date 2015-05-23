@@ -67,7 +67,7 @@ putshort(char *s, int v)
 }
 
 char*
-putlong(char *s, long v)
+putlong(char *s, int32_t v)
 {
 	s = putbyte(s, v);
 	s = putbyte(s, v >> 8);
@@ -104,7 +104,7 @@ void
 evermore80(Place pl, int baud)
 {
 	char buf[32], *s;
-	long now, seconds, week;
+	int32_t now, seconds, week;
 
 	fprint(2, "Evermore80");
 

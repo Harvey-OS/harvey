@@ -1541,7 +1541,7 @@ upd_close(gx_device *pdev)
 #define UPD_EXIT_GET(Err,Dev,List)                                      \
    if(0 > Err) {                                                        \
       errprintf("RETURN-%d: %d upd_get_params(0x%05lx,0x%05lx)\n", \
-         __LINE__,Err,(long) Dev,(long) List);                          \
+         __LINE__,Err,(int32_t) Dev,(int32_t) List);                          \
       return_error(Err);                                                \
    }
 #else

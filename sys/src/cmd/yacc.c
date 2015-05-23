@@ -312,7 +312,7 @@ int	g2debug = 0;
 struct
 {
 	char*	name;
-	long	value;
+	int32_t	value;
 } resrv[] =
 {
 	"binary",	BINARY,
@@ -355,7 +355,7 @@ void	finact(void);
 int	defin(int, char*);
 void	defout(int);
 char*	cstash(char*);
-long	gettok(void);
+int32_t	gettok(void);
 int	fdtype(int);
 int	chfind(int, char*);
 void	cpyunion(void);
@@ -1657,10 +1657,10 @@ cstash(char *s)
 	return temp;
 }
 
-long
+int32_t
 gettok(void)
 {
-	long c;
+	int32_t c;
 	Rune rune;
 	int i, base, match, reserve;
 	static int peekline;
@@ -1845,7 +1845,7 @@ chfind(int t, char *s)
 void
 cpyunion(void)
 {
-	long c;
+	int32_t c;
 	int level;
 
 	Bprint(ftable, "\n#line\t%d\t\"%s\"\n", lineno, infile);
@@ -1888,7 +1888,7 @@ void
 cpycode(void)
 {
 
-	long c;
+	int32_t c;
 
 	c = Bgetrune(finput);
 	if(c == '\n') {
@@ -1922,7 +1922,7 @@ cpycode(void)
 int
 skipcom(void)
 {
-	long c;
+	int32_t c;
 	int i;
 
 	/* i is the number of lines skipped */
@@ -1953,7 +1953,7 @@ skipcom(void)
 void
 cpyact(int offset)
 {
-	long c;
+	int32_t c;
 	int brac, match, j, s, fnd, tok;
 
 	Bprint(faction, "\n#line\t%d\t\"%s\"\n", lineno, infile);

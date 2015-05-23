@@ -537,7 +537,7 @@ gx_set_device_only(gs_state * pgs, gx_device * dev)
 uint
 gx_device_raster(const gx_device * dev, bool pad)
 {
-    ulong bits = (ulong) dev->width * dev->color_info.depth;
+    uint32_t bits = (uint32_t) dev->width * dev->color_info.depth;
 
     return (pad ? bitmap_raster(bits) : (uint) ((bits + 7) >> 3));
 }
@@ -745,7 +745,7 @@ gx_parse_output_format(gs_parsed_file_name_t *pfn, const char **pfmt)
 		return_error(gs_error_undefinedfilename);
 	    switch (pfn->fname[i]) {
 		case 'l':
-		    int_width = sizeof(long) * 3;
+		    int_width = sizeof(int32_t) * 3;
 		case ' ': case '#': case '+': case '-':
 		    goto sw;
 		case '.':
@@ -849,7 +849,7 @@ gx_device_open_output_file(const gx_device * dev, char *fname,
 	return gp_setmode_binary(*pfile, true);
     }
     if (fmt) {
-	long count1 = dev->PageCount + 1;
+	int32_t count1 = dev->PageCount + 1;
 
 	while (*fmt != 'l' && *fmt != '%')
 	    --fmt;

@@ -360,7 +360,7 @@ freealldn(void)
 }
 
 int debug;				/* for ndb/dns.h */
-ulong now = 0;
+uint32_t now = 0;
 
 void
 dnslog(char *fmt, ...)			/* don't log */

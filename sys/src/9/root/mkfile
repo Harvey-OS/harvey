@@ -1,0 +1,11 @@
+MKSHELL=$PLAN9/bin/rc
+</$objtype/mkfile
+
+TARG=`{ls *.[cy] | sed '/\.tab\.c$/d;s/..$//'}
+HFILES=/$objtype/include/u.h /sys/include/libc.h
+BIN=$home/bin/$objtype
+PROGS=${TARG:%=$O.%}
+LDFLAGS=
+YFLAGS=-d
+
+</sys/src/cmd/mkmany

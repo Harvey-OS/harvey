@@ -1489,7 +1489,7 @@ draw(IMAGE *img, HDC hdc, int dx, int dy, int wx, int wy,
     int i;
     UINT which_colors;
     unsigned char *line = NULL;
-    long ny;
+    int32_t ny;
     unsigned char *bits;
     BOOL directcopy = FALSE;
 

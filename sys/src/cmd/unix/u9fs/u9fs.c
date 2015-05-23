@@ -113,7 +113,7 @@ void	freefid(Fid*);
 int	userchange(User*, char**);
 int	userwalk(User*, char**, char*, Qid*, char**);
 int	useropen(Fid*, int, char**);
-int	usercreate(Fid*, char*, int, long, char**);
+int	usercreate(Fid*, char*, int, int32_t, char**);
 int	userremove(Fid*, char**);
 int	userperm(User*, char*, int, int);
 int	useringroup(User*, User*);
@@ -142,9 +142,9 @@ char	Eunknowngroup[] = "unknown group";
 char	Eunknownuser[] = "unknown user";
 char	Ewstatbuffer[] = "bogus wstat buffer";
 
-ulong	msize = IOHDRSZ+8192;
-uchar*	rxbuf;
-uchar*	txbuf;
+uint32_t	msize = IOHDRSZ+8192;
+uint8_t*	rxbuf;
+uint8_t*	txbuf;
 void*	databuf;
 int	connected;
 int	devallowed;
@@ -584,10 +584,10 @@ rcreate(Fcall *rx, Fcall *tx)
 	tx->qid = stat2qid(&fid->st);
 }
 
-uchar
+uint8_t
 modebyte(struct stat *st)
 {
-	uchar b;
+	uint8_t b;
 
 	b = 0;
 
@@ -602,10 +602,10 @@ modebyte(struct stat *st)
 	return b;
 }
 
-ulong
+uint32_t
 plan9mode(struct stat *st)
 {
-	return ((ulong)modebyte(st)<<24) | (st->st_mode & 0777);
+	return ((uint32_t)modebyte(st)<<24) | (st->st_mode & 0777);
 }
 
 /* 
@@ -620,14 +620,14 @@ unixmode(Dir *d)
 Qid
 stat2qid(struct stat *st)
 {
-	uchar *p, *ep, *q;
+	uint8_t *p, *ep, *q;
 	Qid qid;
 
 	/*
 	 * For now, ignore the device number.
 	 */
 	qid.path = 0;
-	p = (uchar*)&qid.path;
+	p = (uint8_t*)&qid.path;
 	ep = p+sizeof(qid.path);
 	q = p+sizeof(ino_t);
 	if(q > ep){
@@ -657,10 +657,10 @@ char *
 enfrog(char *src)
 {
 	char *d, *dst;
-	uchar *s;
+	uint8_t *s;
 
 	d = dst = emalloc(strlen(src)*3 + 1);
-	for (s = (uchar *)src; *s; s++)
+	for (s = (uint8_t *)src; *s; s++)
 		if(isfrog[*s] || *s == '\\')
 			d += sprintf(d, "\\%02x", *s);
 		else
@@ -714,7 +714,7 @@ void
 rread(Fcall *rx, Fcall *tx)
 {
 	char *e, *path;
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 	int n;
 	Fid *fid;
 	Dir d;
@@ -758,8 +758,8 @@ rread(Fcall *rx, Fcall *tx)
 			return;
 		}
 
-		p = (uchar*)tx->data;
-		ep = (uchar*)tx->data+rx->count;
+		p = (uint8_t*)tx->data;
+		ep = (uint8_t*)tx->data+rx->count;
 		for(;;){
 			if(p+BIT16SZ >= ep)
 				break;
@@ -788,7 +788,7 @@ rread(Fcall *rx, Fcall *tx)
 			p += n;
 			fid->dirent = nil;
 		}
-		tx->count = p - (uchar*)tx->data;
+		tx->count = p - (uint8_t*)tx->data;
 		fid->diroffset += tx->count;
 	}else{
 		if((n = pread(fid->fd, tx->data, rx->count, rx->offset)) < 0){
@@ -953,7 +953,7 @@ rwstat(Fcall *rx, Fcall *tx)
 		}		
 	}
 
-	if((u32int)d.mode != (u32int)~0 && (((d.mode&DMDIR)!=0) ^ (S_ISDIR(fid->st.st_mode)!=0))){
+	if((uint32_t)d.mode != (uint32_t)~0 && (((d.mode&DMDIR)!=0) ^ (S_ISDIR(fid->st.st_mode)!=0))){
 		seterror(tx, Edirchange);
 		return;
 	}
@@ -970,14 +970,14 @@ rwstat(Fcall *rx, Fcall *tx)
 	 * leave truncate until last.
 	 * (see above comment about atomicity).
 	 */
-	if((u32int)d.mode != (u32int)~0 && chmod(fid->path, unixmode(&d)) < 0){
+	if((uint32_t)d.mode != (uint32_t)~0 && chmod(fid->path, unixmode(&d)) < 0){
 		if(chatty9p)
 			fprint(2, "chmod(%s, 0%luo) failed\n", fid->path, unixmode(&d));
 		seterror(tx, strerror(errno));
 		return;
 	}
 
-	if((u32int)d.mtime != (u32int)~0){
+	if((uint32_t)d.mtime != (uint32_t)~0){
 		struct utimbuf t;
 
 		t.actime = 0;
@@ -1022,7 +1022,7 @@ rwstat(Fcall *rx, Fcall *tx)
 		free(dir);
 	}
 
-	if((u64int)d.length != (u64int)~0 && truncate(fid->path, d.length) < 0){
+	if((uint64_t)d.length != (uint64_t)~0 && truncate(fid->path, d.length) < 0){
 		fprint(2, "truncate(%s, %lld) failed\n", fid->path, d.length);
 		seterror(tx, strerror(errno));
 		return;
@@ -1181,7 +1181,7 @@ emalloc(size_t n)
 		n = 1;
 	p = malloc(n);
 	if(p == 0)
-		sysfatal("malloc(%ld) fails", (long)n);
+		sysfatal("malloc(%ld) fails", (int32_t)n);
 	memset(p, 0, n);
 	return p;
 }
@@ -1194,7 +1194,7 @@ erealloc(void *p, size_t n)
 	else
 		p = realloc(p, n);
 	if(p == 0)
-		sysfatal("realloc(..., %ld) fails", (long)n);
+		sysfatal("realloc(..., %ld) fails", (int32_t)n);
 	return p;
 }
 
@@ -1580,7 +1580,7 @@ useropen(Fid *fid, int omode, char **ep)
 }
 
 int
-usercreate(Fid *fid, char *elem, int omode, long perm, char **ep)
+usercreate(Fid *fid, char *elem, int omode, int32_t perm, char **ep)
 {
 	int o, m;
 	char *opath, *npath;

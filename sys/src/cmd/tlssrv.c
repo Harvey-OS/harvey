@@ -34,7 +34,7 @@ death(void *, char *)
 }
 
 static void
-dump(int fd, uchar *buf, int n, char *label)
+dump(int fd, uint8_t *buf, int n, char *label)
 {
 	Biobuf bout;
 	int i;
@@ -52,7 +52,7 @@ dump(int fd, uchar *buf, int n, char *label)
 static void
 xfer(int from, int to, int cfd, char *label)
 {
-	uchar buf[BufSize];
+	uint8_t buf[BufSize];
 	int n;
 
 	if(fork() == 0)

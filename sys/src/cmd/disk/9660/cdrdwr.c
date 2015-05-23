@@ -160,11 +160,11 @@ opencd(char *file, Cdinfo info)
 	return cd;
 }
 
-ulong
+uint32_t
 big(void *a, int n)
 {
-	uchar *p;
-	ulong v;
+	uint8_t *p;
+	uint32_t v;
 	int i;
 
 	p = a;
@@ -174,11 +174,11 @@ big(void *a, int n)
 	return v;
 }
 
-ulong
+uint32_t
 little(void *a, int n)
 {
-	uchar *p;
-	ulong v;
+	uint8_t *p;
+	uint32_t v;
 	int i;
 
 	p = a;
@@ -189,13 +189,13 @@ little(void *a, int n)
 }
 
 void
-Creadblock(Cdimg *cd, void *buf, ulong block, ulong len)
+Creadblock(Cdimg *cd, void *buf, uint32_t block, uint32_t len)
 {
 	assert(block != 0);	/* nothing useful there */
 
 	Bflush(&cd->bwr);
-	if(Bseek(&cd->brd, (vlong)block * Blocksize, 0) !=
-	    (vlong)block * Blocksize)
+	if(Bseek(&cd->brd, (int64_t)block * Blocksize, 0) !=
+	    (int64_t)block * Blocksize)
 		sysfatal("error seeking to block %lud", block);
 	if(Bread(&cd->brd, buf, len) != len)
 		sysfatal("error reading %lud bytes at block %lud: %r %lld",
@@ -203,11 +203,12 @@ Creadblock(Cdimg *cd, void *buf, ulong block, ulong len)
 }
 
 int
-parsedir(Cdimg *cd, Direc *d, uchar *buf, int len, char *(*cvtname)(uchar*, int))
+parsedir(Cdimg *cd, Direc *d, uint8_t *buf, int len,
+	 char *(*cvtname)(uint8_t*, int))
 {
 	enum { NAMELEN = 28 };
 	char name[NAMELEN];
-	uchar *p;
+	uint8_t *p;
 	Cdir *c;
 
 	memset(d, 0, sizeof *d);
@@ -268,18 +269,18 @@ parsedir(Cdimg *cd, Direc *d, uchar *buf, int len, char *(*cvtname)(uchar*, int)
 }
 
 void
-setroot(Cdimg *cd, ulong block, ulong dloc, ulong dlen)
+setroot(Cdimg *cd, uint32_t block, uint32_t dloc, uint32_t dlen)
 {
 	assert(block != 0);
 
-	Cwseek(cd, (vlong)block * Blocksize + offsetof(Cvoldesc, rootdir[0]) +
+	Cwseek(cd, (int64_t)block * Blocksize + offsetof(Cvoldesc, rootdir[0]) +
 		offsetof(Cdir, dloc[0]));
 	Cputn(cd, dloc, 4);
 	Cputn(cd, dlen, 4);
 }
 
 void
-setvolsize(Cdimg *cd, uvlong block, ulong size)
+setvolsize(Cdimg *cd, uint64_t block, uint32_t size)
 {
 	assert(block != 0);
 
@@ -288,23 +289,25 @@ setvolsize(Cdimg *cd, uvlong block, ulong size)
 }
 
 void
-setpathtable(Cdimg *cd, ulong block, ulong sz, ulong lloc, ulong bloc)
+setpathtable(Cdimg *cd, uint32_t block, uint32_t sz, uint32_t lloc,
+	     uint32_t bloc)
 {
 	assert(block != 0);
 
-	Cwseek(cd, (vlong)block * Blocksize + offsetof(Cvoldesc, pathsize[0]));
+	Cwseek(cd,
+	       (int64_t)block * Blocksize + offsetof(Cvoldesc, pathsize[0]));
 	Cputn(cd, sz, 4);
 	Cputnl(cd, lloc, 4);
 	Cputnl(cd, 0, 4);
 	Cputnm(cd, bloc, 4);
 	Cputnm(cd, 0, 4);
-	assert(Cwoffset(cd) == (vlong)block * Blocksize +
+	assert(Cwoffset(cd) == (int64_t)block * Blocksize +
 		offsetof(Cvoldesc, rootdir[0]));
 }
 
 
 static void
-parsedesc(Voldesc *v, Cvoldesc *cv, char *(*string)(uchar*, int))
+parsedesc(Voldesc *v, Cvoldesc *cv, char *(*string)(uint8_t*, int))
 {
 	v->systemid = string(cv->systemid, sizeof cv->systemid);
 
@@ -325,7 +328,7 @@ parsedesc(Voldesc *v, Cvoldesc *cv, char *(*string)(uchar*, int))
 static int
 readisodesc(Cdimg *cd, Voldesc *v)
 {
-	static uchar magic[] = { 0x01, 'C', 'D', '0', '0', '1', 0x01, 0x00 };
+	static uint8_t magic[] = { 0x01, 'C', 'D', '0', '0', '1', 0x01, 0x00 };
 	Cvoldesc cv;
 
 	memset(v, 0, sizeof *v);
@@ -351,7 +354,7 @@ static int
 readjolietdesc(Cdimg *cd, Voldesc *v)
 {
 	int i;
-	static uchar magic[] = { 0x02, 'C', 'D', '0', '0', '1', 0x01, 0x00 };
+	static uint8_t magic[] = { 0x02, 'C', 'D', '0', '0', '1', 0x01, 0x00 };
 	Cvoldesc cv;
 
 	memset(v, 0, sizeof *v);
@@ -398,7 +401,7 @@ if(c >= 256) abort();
 }
 
 void
-Cputnl(Cdimg *cd, uvlong val, int size)
+Cputnl(Cdimg *cd, uint64_t val, int size)
 {
 	switch(size) {
 	default:
@@ -433,7 +436,7 @@ Cputnl(Cdimg *cd, uvlong val, int size)
 }
 
 void
-Cputnm(Cdimg *cd, uvlong val, int size)
+Cputnm(Cdimg *cd, uint64_t val, int size)
 {
 	switch(size) {
 	default:
@@ -468,7 +471,7 @@ Cputnm(Cdimg *cd, uvlong val, int size)
 }
 
 void
-Cputn(Cdimg *cd, uvlong val, int size)
+Cputn(Cdimg *cd, uint64_t val, int size)
 {
 	Cputnl(cd, val, size);
 	Cputnm(cd, val, size);
@@ -557,7 +560,7 @@ void
 Cpadblock(Cdimg *cd)
 {
 	int n;
-	ulong nb;
+	uint32_t nb;
 
 	n = Blocksize - (Boffset(&cd->bwr) % Blocksize);
 	if(n != Blocksize)
@@ -570,7 +573,7 @@ Cpadblock(Cdimg *cd)
 }
 
 void
-Cputdate(Cdimg *cd, ulong ust)
+Cputdate(Cdimg *cd, uint32_t ust)
 {
 	Tm *tm;
 
@@ -589,7 +592,7 @@ Cputdate(Cdimg *cd, ulong ust)
 }
 
 void
-Cputdate1(Cdimg *cd, ulong ust)
+Cputdate1(Cdimg *cd, uint32_t ust)
 {
 	Tm *tm;
 	char str[20];
@@ -612,12 +615,12 @@ Cputdate1(Cdimg *cd, ulong ust)
 }
 
 void
-Cwseek(Cdimg *cd, vlong offset)
+Cwseek(Cdimg *cd, int64_t offset)
 {
 	Bseek(&cd->bwr, offset, 0);
 }
 
-uvlong
+uint64_t
 Cwoffset(Cdimg *cd)
 {
 	return Boffset(&cd->bwr);
@@ -629,14 +632,14 @@ Cwflush(Cdimg *cd)
 	Bflush(&cd->bwr);
 }
 
-uvlong
+uint64_t
 Croffset(Cdimg *cd)
 {
 	return Boffset(&cd->brd);
 }
 
 void
-Crseek(Cdimg *cd, vlong offset)
+Crseek(Cdimg *cd, int64_t offset)
 {
 	Bseek(&cd->brd, offset, 0);
 }

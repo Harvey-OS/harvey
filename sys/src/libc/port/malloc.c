@@ -12,7 +12,7 @@
 #include <pool.h>
 #include <tos.h>
 
-static void*	sbrkalloc(ulong);
+static void*	sbrkalloc(uint32_t);
 static int		sbrkmerge(void*, void*);
 static void		plock(Pool*);
 static void		punlock(Pool*);
@@ -51,11 +51,11 @@ Pool *imagmem = &sbrkmem;
  * whether two blocks are adjacent and thus mergeable.
  */
 static void*
-sbrkalloc(ulong n)
+sbrkalloc(uint32_t n)
 {
-	ulong *x;
+	uint32_t *x;
 
-	n += 2*sizeof(ulong);	/* two longs for us */
+	n += 2*sizeof(uint32_t);	/* two longs for us */
 	x = sbrk(n);
 	if(x == (void*)-1)
 		return nil;
@@ -67,13 +67,13 @@ sbrkalloc(ulong n)
 static int
 sbrkmerge(void *x, void *y)
 {
-	ulong *lx, *ly;
+	uint32_t *lx, *ly;
 
 	lx = x;
 	if(lx[-1] != 0xDeadBeef)
 		abort();
 
-	if((uchar*)lx+lx[-2] == (uchar*)y) {
+	if((uint8_t*)lx+lx[-2] == (uint8_t*)y) {
 		ly = y;
 		lx[-2] += ly[-2];
 		return 1;
@@ -209,13 +209,13 @@ enum {
 };
 
 void*
-malloc(ulong size)
+malloc(size_t size)
 {
 	void *v;
 
-	v = poolalloc(mainmem, size+Npadlong*sizeof(ulong));
+	v = poolalloc(mainmem, size+Npadlong*sizeof(uint32_t));
 	if(Npadlong && v != nil) {
-		v = (ulong*)v+Npadlong;
+		v = (uint32_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -223,13 +223,13 @@ malloc(ulong size)
 }
 
 void*
-mallocz(ulong size, int clr)
+mallocz(uint32_t size, int clr)
 {
 	void *v;
 
-	v = poolalloc(mainmem, size+Npadlong*sizeof(ulong));
+	v = poolalloc(mainmem, size+Npadlong*sizeof(uint32_t));
 	if(Npadlong && v != nil){
-		v = (ulong*)v+Npadlong;
+		v = (uint32_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -239,13 +239,14 @@ mallocz(ulong size, int clr)
 }
 
 void*
-mallocalign(ulong size, ulong align, long offset, ulong span)
+mallocalign(uint32_t size, uint32_t align, int32_t offset, uint32_t span)
 {
 	void *v;
 
-	v = poolallocalign(mainmem, size+Npadlong*sizeof(ulong), align, offset-Npadlong*sizeof(ulong), span);
+	v = poolallocalign(mainmem, size+Npadlong*sizeof(uint32_t), align,
+			   offset-Npadlong*sizeof(uint32_t), span);
 	if(Npadlong && v != nil){
-		v = (ulong*)v+Npadlong;
+		v = (uint32_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -256,11 +257,11 @@ void
 free(void *v)
 {
 	if(v != nil)
-		poolfree(mainmem, (ulong*)v-Npadlong);
+		poolfree(mainmem, (uint32_t*)v-Npadlong);
 }
 
 void*
-realloc(void *v, ulong size)
+realloc(void *v, size_t size)
 {
 	void *nv;
 
@@ -270,11 +271,11 @@ realloc(void *v, ulong size)
 	}
 
 	if(v)
-		v = (ulong*)v-Npadlong;
-	size += Npadlong*sizeof(ulong);
+		v = (uint32_t*)v-Npadlong;
+	size += Npadlong*sizeof(uint32_t);
 
-	if(nv = poolrealloc(mainmem, v, size)){
-		nv = (ulong*)nv+Npadlong;
+	if((nv = poolrealloc(mainmem, v, size))){
+		nv = (uint32_t*)nv+Npadlong;
 		setrealloctag(nv, getcallerpc(&v));
 		if(v == nil)
 			setmalloctag(nv, getcallerpc(&v));
@@ -282,26 +283,26 @@ realloc(void *v, ulong size)
 	return nv;
 }
 
-ulong
+uint32_t
 msize(void *v)
 {
-	return poolmsize(mainmem, (ulong*)v-Npadlong)-Npadlong*sizeof(ulong);
+	return poolmsize(mainmem, (uint32_t*)v-Npadlong)-Npadlong*sizeof(uint32_t);
 }
 
 void*
-calloc(ulong n, ulong szelem)
+calloc(uint32_t n, size_t szelem)
 {
 	void *v;
-	if(v = mallocz(n*szelem, 1))
+	if((v = mallocz(n*szelem, 1)))
 		setmalloctag(v, getcallerpc(&n));
 	return v;
 }
 
 void
-setmalloctag(void *v, ulong pc)
+setmalloctag(void *v, uint32_t pc)
 {
-	ulong *u;
-	USED(v, pc);
+	uint32_t *u;
+	//USED(v, pc);
 	if(Npadlong <= MallocOffset || v == nil)
 		return;
 	u = v;
@@ -309,31 +310,31 @@ setmalloctag(void *v, ulong pc)
 }
 
 void
-setrealloctag(void *v, ulong pc)
+setrealloctag(void *v, uint32_t pc)
 {
-	ulong *u;
-	USED(v, pc);
+	uint32_t *u;
+	//USED(v, pc);
 	if(Npadlong <= ReallocOffset || v == nil)
 		return;
 	u = v;
 	u[-Npadlong+ReallocOffset] = pc;
 }
 
-ulong
+uint32_t
 getmalloctag(void *v)
 {
 	USED(v);
 	if(Npadlong <= MallocOffset)
 		return ~0;
-	return ((ulong*)v)[-Npadlong+MallocOffset];
+	return ((uint32_t*)v)[-Npadlong+MallocOffset];
 }
 
-ulong
+uint32_t
 getrealloctag(void *v)
 {
 	USED(v);
 	if(Npadlong <= ReallocOffset)
-		return ((ulong*)v)[-Npadlong+ReallocOffset];
+		return ((uint32_t*)v)[-Npadlong+ReallocOffset];
 	return ~0;
 }
 
@@ -343,5 +344,5 @@ malloctopoolblock(void *v)
 	if(v == nil)
 		return nil;
 
-	return &((ulong*)v)[-Npadlong];
+	return &((uint32_t*)v)[-Npadlong];
 }

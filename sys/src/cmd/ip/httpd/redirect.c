@@ -65,11 +65,11 @@ undecorated(char *repl)
 static int
 hashasu(char *key, int n)
 {
-        ulong h;
+        uint32_t h;
 
 	h = 0;
         while(*key != 0)
-                h = 65599*h + *(uchar*)key++;
+                h = 65599*h + *(uint8_t*)key++;
         return h % n;
 }
 
@@ -78,7 +78,7 @@ insert(Redir **tab, char *pat, char *repl)
 {
 	Redir **l;
 	Redir *srch;
-	ulong hash;
+	uint32_t hash;
 
 	hash = hashasu(pat, HASHSIZE);
 	for(l = &tab[hash]; *l; l = &(*l)->next)
@@ -155,7 +155,7 @@ static Redir*
 lookup(Redir **tab, char *pat, int count)
 {
 	Redir *srch;
-	ulong hash;
+	uint32_t hash;
 
 	hash = hashasu(pat,HASHSIZE);
 	for(srch = tab[hash]; srch != nil; srch = srch->next)

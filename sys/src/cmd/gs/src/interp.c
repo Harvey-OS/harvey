@@ -124,14 +124,14 @@ call_operator(op_proc_t op_proc, i_ctx_t *i_ctx_p)
 /* Define debugging statistics. */
 #ifdef DEBUG
 struct stats_interp_s {
-    long top;
-    long lit, lit_array, exec_array, exec_operator, exec_name;
-    long x_add, x_def, x_dup, x_exch, x_if, x_ifelse,
+    int32_t top;
+    int32_t lit, lit_array, exec_array, exec_operator, exec_name;
+    int32_t x_add, x_def, x_dup, x_exch, x_if, x_ifelse,
 	x_index, x_pop, x_roll, x_sub;
-    long find_name, name_lit, name_proc, name_oparray, name_operator;
-    long p_full, p_exec_operator, p_exec_oparray, p_exec_non_x_operator,
+    int32_t find_name, name_lit, name_proc, name_oparray, name_operator;
+    int32_t p_full, p_exec_operator, p_exec_oparray, p_exec_non_x_operator,
 	p_integer, p_lit_name, p_exec_name;
-    long p_find_name, p_name_lit, p_name_proc;
+    int32_t p_find_name, p_name_lit, p_name_proc;
 } stats_interp;
 # define INCR(v) (++(stats_interp.v))
 #else
@@ -706,7 +706,7 @@ gs_errorname(i_ctx_t *i_ctx_p, int code, ref * perror_name)
 	dict_find_string(systemdict, "ErrorNames", &pErrorNames) <= 0
 	)
 	return_error(e_undefined);	/* errordict or ErrorNames not found?! */
-    return array_get(imemory, pErrorNames, (long)(-code - 1), perror_name);
+    return array_get(imemory, pErrorNames, (int32_t)(-code - 1), perror_name);
 }
 
 /* Store an error string in $error.errorinfo. */
@@ -886,7 +886,7 @@ interp(i_ctx_t **pi_ctx_p /* context for execution, updated if resched */,
 	esp = iesp;
 	dlprintf5("d%u,e%u<%u>0x%lx(%d): ",
 		  ref_stack_count(&d_stack), ref_stack_count(&e_stack),
-		  ref_stack_count(&o_stack), (ulong)IREF, icount);
+		  ref_stack_count(&o_stack), (uint32_t)IREF, icount);
 	debug_print_ref(imemory, IREF);
 	if (iosp >= osbot) {
 	    dputs(" // ");
@@ -1740,7 +1740,7 @@ oparray_no_cleanup(i_ctx_t *i_ctx_p)
 private ref *
 oparray_find(i_ctx_t *i_ctx_p)
 {
-    long i;
+    int32_t i;
     ref *ep;
 
     for (i = 0; (ep = ref_stack_index(&e_stack, i)) != 0; ++i) {

@@ -17,12 +17,12 @@ readmemimage(int fd)
 {
 	char hdr[5*12+1];
 	int dy;
-	ulong chan;
+	uint32_t chan;
 	uint l, n;
 	int m, j;
 	int new, miny, maxy;
 	Rectangle r;
-	uchar *tmp;
+	uint8_t *tmp;
 	int ldepth, chunk;
 	Memimage *i;
 

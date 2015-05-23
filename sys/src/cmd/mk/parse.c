@@ -117,7 +117,8 @@ cp = wtos(tail, ' '); print("assign %s to %s\n", head->s, cp); free(cp);
 }
 
 void
-addrules(Word *head, Word *tail, char *body, int attr, int hline, char *prog)
+addrules(Word *head, Word *tail, char *body, int attr, int hline,
+         char *prog)
 {
 	Word *w;
 

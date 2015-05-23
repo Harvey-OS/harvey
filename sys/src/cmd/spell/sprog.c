@@ -24,8 +24,8 @@
 #define DLEV		2
 #define DSIZ		40
 
-typedef	long	Bits;
-#define	Set(h, f)	((long)(h) & (f))
+typedef	int32_t	Bits;
+#define	Set(h, f)	((int32_t)(h) & (f))
 
 Bits 	nop(char*, char*, char*, int, int);
 Bits 	strip(char*, char*, char*, int, int);
@@ -930,20 +930,20 @@ VCe(char* ep, char* d, char* a, int lev, int flag)
 }
 
 Ptab*
-lookuppref(uchar** wp, char* ep)
+lookuppref(uint8_t** wp, char* ep)
 {
 	Ptab *sp;
-	uchar *bp,*cp;
+	uint8_t *bp,*cp;
 	unsigned int initchar = Tolower(**wp);
 
 	if(!ISALPHA(initchar))
 		return 0;
 	for(sp=preftab[initchar-'a'];sp->s;sp++) {
 		bp = *wp;
-		for(cp= (uchar*)sp->s;*cp; )
+		for(cp= (uint8_t*)sp->s;*cp; )
 			if(*bp++!=*cp++)
 				goto next;
-		for(cp=bp;cp<(uchar*)ep;cp++)
+		for(cp=bp;cp<(uint8_t*)ep;cp++)
 			if(ISVOWEL(*cp)) {
 				*wp = bp;
 				return sp;
@@ -980,7 +980,7 @@ trypref(char* ep, char* a, int lev, int flag)
 		deriv[lev+1].mesg = pp;
 		deriv[lev+1].type = 0;
 	}
-	while(tp=lookuppref((uchar**)&bp,ep)) {
+	while(tp=lookuppref((uint8_t**)&bp,ep)) {
 		*pp++ = '+';
 		cp = tp->s;
 		while(pp<space+sizeof(space) && (*pp = *cp++))
@@ -1301,7 +1301,7 @@ readdict(char *file)
 	char *s, *is, *lasts, *ls;
 	int c, i, sp, p;
 	int f;
-	long l;
+	int32_t l;
 
 	lasts = 0;
 	f = open(file, 0);
@@ -1316,7 +1316,7 @@ readdict(char *file)
 		goto bad;
 	s = space;
 	for(i=0; i<nencode; i++) {
-		l = (long)(s[0] & 0xff) << 24;
+		l = (int32_t)(s[0] & 0xff) << 24;
 		l |= (s[1] & 0xff) << 16;
 		l |= (s[2] & 0xff) << 8;
 		l |= s[3] & 0xff;

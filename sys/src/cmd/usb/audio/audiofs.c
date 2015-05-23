@@ -32,8 +32,8 @@ typedef struct Worker Worker;
 
 struct Audioctldata
 {
-	long	offoff;			/* offset of the offset for audioctl */
-	long	values[2][Ncontrol][8];	/* last values transmitted */
+	int32_t	offoff;			/* offset of the offset for audioctl */
+	int32_t	values[2][Ncontrol][8];	/* last values transmitted */
 	char	*s;
 	int	ns;
 };
@@ -58,7 +58,7 @@ struct Fid
 struct Worker
 {
 	Fid	*fid;
-	ushort	tag;
+	uint16_t	tag;
 	Fcall	*rhdr;
 	Dir	*dir;
 	Channel	*eventc;
@@ -88,8 +88,8 @@ Dir dirs[] = {
 };
 
 int	messagesize = 4*1024+IOHDRSZ;
-uchar	mdata[8*1024+IOHDRSZ];
-uchar	mbuf[8*1024+IOHDRSZ];
+uint8_t	mdata[8*1024+IOHDRSZ];
+uint8_t	mbuf[8*1024+IOHDRSZ];
 
 Fcall	thdr;
 Fcall	rhdr;
@@ -182,7 +182,7 @@ void
 serve(void *)
 {
 	int i;
-	ulong t;
+	uint32_t t;
 
 	if(pipe(p) < 0)
 		sysfatal("pipe failed");
@@ -404,10 +404,10 @@ rcreate(Fid*)
 }
 
 int
-readtopdir(Fid*, uchar *buf, long off, int cnt, int blen)
+readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 {
 	int i, m, n;
-	long pos;
+	int32_t pos;
 
 	n = 0;
 	pos = 0;
@@ -430,7 +430,7 @@ int
 makeaudioctldata(Fid *f)
 {
 	int rec, ctl, i, diff;
-	long *actls;		/* 8 of them */
+	int32_t *actls;		/* 8 of them */
 	char *p, *e;
 	Audiocontrol *c;
 	Audioctldata *a;
@@ -476,9 +476,9 @@ void
 readproc(void *x)
 {
 	int n, cnt;
-	ulong event;
-	vlong off;
-	uchar *mdata;
+	uint32_t event;
+	int64_t off;
+	uint8_t *mdata;
 	Audioctldata *a;
 	Fcall *rhdr;
 	Fid *f;
@@ -548,7 +548,7 @@ char*
 rread(Fid *f)
 {
 	int i, n, cnt, rec, div;
-	vlong off;
+	int64_t off;
 	char *p;
 	Audiocontrol *c;
 	Audioctldata *a;
@@ -658,7 +658,7 @@ rread(Fid *f)
 		w = nbrecvp(procchan);
 		if(w == nil){
 			w = emallocz(sizeof(Worker), 1);
-			w->eventc = chancreate(sizeof(ulong), 1);
+			w->eventc = chancreate(sizeof(uint32_t), 1);
 			w->next = workers;
 			workers = w;
 			proccreate(readproc, w, 4096);
@@ -683,7 +683,7 @@ rread(Fid *f)
 char*
 rwrite(Fid *f)
 {
-	long cnt, value;
+	int32_t cnt, value;
 	char *lines[2*Ncontrol], *fields[4], *subfields[9], *err, *p;
 	int nlines, i, nf, nnf, rec, ctl;
 	Audiocontrol *c;

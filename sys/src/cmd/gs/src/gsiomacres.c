@@ -158,7 +158,7 @@ private unsigned int res_string2type(const char *type_string)
     return (type);
 }
 /* convert a 4-character typecode from unsigned int to C string representation */
-private char * res_type2string(const unsigned int type, char *type_string)
+private int8_t * res_type2string(const unsigned int type, char *type_string)
 {
 	if (type_string == NULL) return NULL;
 	

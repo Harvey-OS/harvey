@@ -23,7 +23,7 @@ int	linec	= 0;
 char	mode;
 int	uniq;
 char	*b1, *b2;
-long	bsize;
+int32_t	bsize;
 Biobuf	fin;
 Biobuf	fout;
 

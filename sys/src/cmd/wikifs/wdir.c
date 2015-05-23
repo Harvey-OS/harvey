@@ -41,7 +41,7 @@ wopen(char *fn, int mode)
 }
 
 int
-wcreate(char *fn, int mode, long perm)
+wcreate(char *fn, int mode, int32_t perm)
 {
 	int rv;
 

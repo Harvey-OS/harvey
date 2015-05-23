@@ -46,8 +46,8 @@ struct Ram
 	Qid	qid;
 	long	perm;
 	char	*name;
-	ulong	atime;
-	ulong	mtime;
+	uint32_t	atime;
+	uint32_t	mtime;
 	char	*user;
 	char	*group;
 	vlong addr;
@@ -81,7 +81,7 @@ typedef struct fileinf {
 	long	mdate;
 } Fileinf;
 
-extern	ulong	path;		/* incremented for each new file */
+extern	uint32_t	path;		/* incremented for each new file */
 extern	Ram	*ram;
 extern	char	*user;
 extern	Idmap	*uidmap;
@@ -89,8 +89,8 @@ extern	Idmap	*gidmap;
 extern	int	replete;
 extern	int	blocksize;
 void	error(char*);
-void	*erealloc(void*, ulong);
-void	*emalloc(ulong);
+void	*erealloc(void*, uint32_t);
+void	*emalloc(uint32_t);
 char	*estrdup(char*);
 void	populate(char *);
 void	dotrunc(Ram*);

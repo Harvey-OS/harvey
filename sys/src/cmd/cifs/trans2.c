@@ -46,7 +46,7 @@ t2hdr(Session *s, Share *sp, int cmd)
 static void
 pt2param(Pkt *p)
 {
-	uchar *pos = p->pos;
+	uint8_t *pos = p->pos;
 
 	assert(p->tbase != 0);
 	p->pos = p->tbase + 20;
@@ -58,7 +58,7 @@ pt2param(Pkt *p)
 static void
 pt2data(Pkt *p)
 {
-	uchar *pos = p->pos;
+	uint8_t *pos = p->pos;
 
 	assert(p->tbase != 0);
 	assert(p->tparam != 0);
@@ -79,7 +79,7 @@ static int
 t2rpc(Pkt *p)
 {
 	int got;
-	uchar *pos;
+	uint8_t *pos;
 
 	assert(p->tbase != 0);
 	assert(p->tdata != 0);
@@ -126,10 +126,10 @@ gt2data(Pkt *p)
 
 int
 T2findfirst(Session *s, Share *sp, int slots, char *path, int *got,
-	long *resume, FInfo *fip)
+	int32_t *resume, FInfo *fip)
 {
 	int pktlen, i, n, sh;
-	uchar *next;
+	uint8_t *next;
 	Pkt *p;
 
 	p = t2hdr(s, sp, TRANS2_FIND_FIRST2);
@@ -194,11 +194,11 @@ T2findfirst(Session *s, Share *sp, int slots, char *path, int *got,
 
 int
 T2findnext(Session *s, Share *sp, int slots, char *path, int *got,
-	long *resume, FInfo *fip, int sh)
+	int32_t *resume, FInfo *fip, int sh)
 {
 	Pkt *p;
 	int i, n;
-	uchar *next;
+	uint8_t *next;
 
 	/*
 	 * So I believe from comp.protocols.smb if you send
@@ -390,11 +390,11 @@ T2setfilelength(Session *s, Share *sp, int fh, FInfo *fip) /* FIXME: maybe broke
 
 
 int
-T2fsvolumeinfo(Session *s, Share *sp, long *created, long *serialno,
+T2fsvolumeinfo(Session *s, Share *sp, int32_t *created, int32_t *serialno,
 	char *label, int labellen)
 {
 	Pkt *p;
-	long ct, sn, n;
+	int32_t ct, sn, n;
 
 	p = t2hdr(s, sp, TRANS2_QUERY_FS_INFORMATION);
 	pt2param(p);
@@ -427,10 +427,10 @@ T2fsvolumeinfo(Session *s, Share *sp, long *created, long *serialno,
 }
 
 int
-T2fssizeinfo(Session *s, Share *sp, uvlong *total, uvlong *unused)
+T2fssizeinfo(Session *s, Share *sp, uint64_t *total, uint64_t *unused)
 {
 	Pkt *p;
-	uvlong t, f, n, b;
+	uint64_t t, f, n, b;
 
 	p = t2hdr(s, sp, TRANS2_QUERY_FS_INFORMATION);
 	pt2param(p);
@@ -459,12 +459,13 @@ T2fssizeinfo(Session *s, Share *sp, uvlong *total, uvlong *unused)
 }
 
 int
-T2getdfsreferral(Session *s, Share *sp, char *path, int *gflags, int *used,
+T2getdfsreferral(Session *s, Share *sp, char *path, int *gflags,
+		 int *used,
 	Refer *re, int nent)
 {
 	int i, vers, nret, len;
 	char tmp[1024];
-	uchar *base;
+	uint8_t *base;
 	Pkt *p;
 
 	p = t2hdr(s, sp, TRANS2_GET_DFS_REFERRAL);

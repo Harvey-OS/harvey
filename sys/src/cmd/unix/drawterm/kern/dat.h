@@ -75,21 +75,21 @@ enum
 
 struct Conf
 {
-	ulong	nmach;		/* processors */
-	ulong	nproc;		/* processes */
-	ulong	monitor;	/* has monitor? */
-	ulong	npage0;		/* total physical pages of memory */
-	ulong	npage1;		/* total physical pages of memory */
-	ulong	npage;		/* total physical pages of memory */
-	ulong	upages;		/* user page pool */
-	ulong	nimage;		/* number of page cache image headers */
-	ulong	nswap;		/* number of swap pages */
+	uint32_t	nmach;		/* processors */
+	uint32_t	nproc;		/* processes */
+	uint32_t	monitor;	/* has monitor? */
+	uint32_t	npage0;		/* total physical pages of memory */
+	uint32_t	npage1;		/* total physical pages of memory */
+	uint32_t	npage;		/* total physical pages of memory */
+	uint32_t	upages;		/* user page pool */
+	uint32_t	nimage;		/* number of page cache image headers */
+	uint32_t	nswap;		/* number of swap pages */
 	int	nswppo;		/* max # of pageouts per segment pass */
-	ulong	base0;		/* base of bank 0 */
-	ulong	base1;		/* base of bank 1 */
-	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
-	ulong	ialloc;		/* max interrupt time allocation in bytes */
-	ulong	pipeqsize;	/* size in bytes of pipe queues */
+	uint32_t	base0;		/* base of bank 0 */
+	uint32_t	base1;		/* base of bank 1 */
+	uint32_t	copymode;	/* 0 is copy on write, 1 is copy on reference */
+	uint32_t	ialloc;		/* max interrupt time allocation in bytes */
+	uint32_t	pipeqsize;	/* size in bytes of pipe queues */
 	int	nuart;		/* number of uart devices */
 };
 
@@ -185,23 +185,23 @@ struct Chan
 	Chan*	link;
 	vlong	offset;			/* in file */
 	ushort	type;
-	ulong	dev;
+	uint32_t	dev;
 	ushort	mode;			/* read/write */
 	ushort	flag;
 	Qid	qid;
 	int	fid;			/* for devmnt */
-	ulong	iounit;	/* chunk size for i/o; 0==default */
+	uint32_t	iounit;	/* chunk size for i/o; 0==default */
 	Mhead*	umh;			/* mount point that derived Chan; used in unionread */
 	Chan*	umc;			/* channel in union; held for union read */
 	QLock	umqlock;		/* serialize unionreads */
 	int	uri;			/* union read index */
 	int	dri;			/* devdirread index */
-	ulong	mountid;
+	uint32_t	mountid;
 	Mntcache *mcp;			/* Mount cache pointer */
 	Mnt		*mux;		/* Mnt for clients using me for messages */
 	void*	aux;
 	Qid	pgrpid;		/* for #p/notepg */
-	ulong	mid;		/* for ns in devproc */
+	uint32_t	mid;		/* for ns in devproc */
 	Chan*	mchan;			/* channel to mounted server */
 	Qid	mqid;			/* qid of root of mount point */
 	Session*session;
@@ -228,12 +228,12 @@ struct Dev
 	Walkqid*	(*walk)(Chan*, Chan*, char**, int);
 	int	(*stat)(Chan*, uchar*, int);
 	Chan*	(*open)(Chan*, int);
-	void	(*create)(Chan*, char*, int, ulong);
+	void	(*create)(Chan*, char*, int, uint32_t);
 	void	(*close)(Chan*);
 	long	(*read)(Chan*, void*, long, vlong);
-	Block*	(*bread)(Chan*, long, ulong);
+	Block*	(*bread)(Chan*, long, uint32_t);
 	long	(*write)(Chan*, void*, long, vlong);
-	long	(*bwrite)(Chan*, Block*, ulong);
+	long	(*bwrite)(Chan*, Block*, uint32_t);
 	void	(*remove)(Chan*);
 	int	(*wstat)(Chan*, uchar*, int);
 	void	(*power)(int);	/* power mgt: power(1) => on, power (0) => off */
@@ -245,7 +245,7 @@ struct Dirtab
 	char	name[KNAMELEN];
 	Qid	qid;
 	vlong length;
-	ulong	perm;
+	uint32_t	perm;
 };
 
 struct Walkqid
@@ -265,14 +265,14 @@ enum
 struct Mntwalk				/* state for /proc/#/ns */
 {
 	int		cddone;
-	ulong	id;
+	uint32_t	id;
 	Mhead*	mh;
 	Mount*	cm;
 };
 
 struct Mount
 {
-	ulong	mountid;
+	uint32_t	mountid;
 	Mount*	next;
 	Mhead*	head;
 	Mount*	copy;
@@ -298,7 +298,7 @@ struct Mnt
 	Chan	*c;		/* Channel to file service */
 	Proc	*rip;		/* Reader in progress */
 	Mntrpc	*queue;		/* Queue of pending requests on this channel */
-	ulong	id;		/* Multiplexer id for channel check */
+	uint32_t	id;		/* Multiplexer id for channel check */
 	Mnt	*list;		/* Free list */
 	int	flags;		/* cache */
 	int	msize;		/* data + IOHDRSZ */
@@ -336,7 +336,7 @@ struct Pgrp
 {
 	Ref ref;				/* also used as a lock when mounting */
 	int	noattach;
-	ulong	pgrpid;
+	uint32_t	pgrpid;
 	QLock	debug;			/* single access via devproc.c */
 	RWlock	ns;			/* Namespace n read/one write lock */
 	Mhead	*mnthash[MNTHASH];
@@ -355,8 +355,8 @@ struct Egrp
 	Evalue	**ent;
 	int nent;
 	int ment;
-	ulong	path;	/* qid.path of next Evalue to be allocated */
-	ulong	vers;	/* of Egrp */
+	uint32_t	path;	/* qid.path of next Evalue to be allocated */
+	uint32_t	vers;	/* of Egrp */
 };
 
 struct Evalue
@@ -397,8 +397,8 @@ struct Proc
 	uint		state;
 	uint		mach;
 
-	ulong	pid;
-	ulong	parentpid;
+	uint32_t	pid;
+	uint32_t	parentpid;
 
 	Pgrp	*pgrp;		/* Process group for namespace */
 	Fgrp	*fgrp;		/* File descriptor group */

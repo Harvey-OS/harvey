@@ -24,7 +24,7 @@ initfaxmodem(Modem *m)
 }
 
 static int
-parameters(long a[], char *s)
+parameters(int32_t a[], char *s)
 {
 	char *p;
 	int i;

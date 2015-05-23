@@ -33,7 +33,7 @@ $LIBU:
 	mk clean
 
 $LIBD:V: $LIBDOFILES
-	ar vu $LIBD $newprereq
+	ar rv $LIBD $newprereq
 	rm $newprereq
 
 scsierrs.c: /sys/lib/scsicodes mkscsierrs

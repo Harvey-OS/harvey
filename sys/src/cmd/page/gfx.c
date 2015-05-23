@@ -35,7 +35,7 @@ struct GfxInfo {
 struct Graphic {
 	int type;
 	char *name;
-	uchar *buf;	/* if stdin */
+	uint8_t *buf;	/* if stdin */
 	int nbuf;
 };
 
@@ -79,12 +79,12 @@ Convert cvt[] = {
 static Image*	convert(Graphic*);
 static Image*	gfxdrawpage(Document *d, int page);
 static char*	gfxpagename(Document*, int);
-static int	spawnrc(char*, uchar*, int);
+static int	spawnrc(char*, uint8_t*, int);
 static void	waitrc(void);
 static int	spawnpost(int);
 static int	addpage(Document*, char*);
 static int	rmpage(Document*, int);
-static int	genaddpage(Document*, char*, uchar*, int);
+static int	genaddpage(Document*, char*, uint8_t*, int);
 
 static char*
 gfxpagename(Document *doc, int page)
@@ -102,7 +102,7 @@ gfxdrawpage(Document *doc, int page)
 }
 
 Document*
-initgfx(Biobuf*, int argc, char **argv, uchar *buf, int nbuf)
+initgfx(Biobuf*, int argc, char **argv, uint8_t *buf, int nbuf)
 {
 	GfxInfo *gfx;
 	Document *doc;
@@ -133,12 +133,12 @@ initgfx(Biobuf*, int argc, char **argv, uchar *buf, int nbuf)
 }
 
 static int
-genaddpage(Document *doc, char *name, uchar *buf, int nbuf)
+genaddpage(Document *doc, char *name, uint8_t *buf, int nbuf)
 {
 	Graphic *g;
 	GfxInfo *gfx;
 	Biobuf *b;
-	uchar xbuf[32];
+	uint8_t xbuf[32];
 	int i, l;
 
 	l = 0;
@@ -313,7 +313,7 @@ convert(Graphic *g)
 }
 
 static int
-spawnrc(char *cmd, uchar *stdinbuf, int nstdinbuf)
+spawnrc(char *cmd, uint8_t *stdinbuf, int nstdinbuf)
 {
 	int pfd[2];
 	int pid;

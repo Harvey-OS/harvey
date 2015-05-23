@@ -1404,8 +1404,8 @@ lame_encode_buffer_float(lame_global_flags * gfp,
 
 int
 lame_encode_buffer_long(lame_global_flags * gfp,
-                   const long buffer_l[],
-                   const long buffer_r[],
+                   const int32_t buffer_l[],
+                   const int32_t buffer_r[],
                    int nsamples, unsigned char *mp3buf, const int mp3buf_size)
 {
     lame_internal_flags *gfc = gfp->internal_flags;

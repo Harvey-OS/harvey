@@ -18,7 +18,7 @@ enum
 	DBigLenBase	= 1		/* starting items to encode for big lens */
 };
 
-static uchar lenval[1 << (DBigLenBits - 1)] =
+static uint8_t lenval[1 << (DBigLenBits - 1)] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	3, 3, 3, 3, 3, 3, 3, 3,
@@ -29,18 +29,18 @@ static uchar lenval[1 << (DBigLenBits - 1)] =
 	255
 };
 
-static uchar lenbits[] =
+static uint8_t lenbits[] =
 {
 	0, 0, 0,
 	2, 3, 5, 5,
 };
 
-static uchar offbits[16] =
+static uint8_t offbits[16] =
 {
 	5, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 12, 13
 };
 
-static ushort offbase[16] =
+static uint16_t offbase[16] =
 {
 	0, 0x20,
 	0x40, 0x60,
@@ -60,10 +60,10 @@ unwhackinit(Unwhack *uw)
 }
 
 int
-unwhack(Unwhack *uw, uchar *dst, int ndst, uchar *src, int nsrc)
+unwhack(Unwhack *uw, uint8_t *dst, int ndst, uint8_t *src, int nsrc)
 {
-	uchar *s, *d, *dmax, *smax, lit;
-	ulong uwbits, lithist;
+	uint8_t *s, *d, *dmax, *smax, lit;
+	uint32_t uwbits, lithist;
 	int i, off, len, bits, use, code, uwnbits, overbits;
 
 	d = dst;

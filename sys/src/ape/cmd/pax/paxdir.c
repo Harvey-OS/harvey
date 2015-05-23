@@ -90,8 +90,8 @@ struct direct {			/* data from read()/_getdirentries() */
 */
 
 #define	DIRSIZ( dp )	((sizeof(struct direct) - (MAXNAMELEN+1) \
-			+ sizeof(long) + (dp)->d_namlen) \
-			/ sizeof(long) * sizeof(long))
+			+ sizeof(int32_t) + (dp)->d_namlen) \
+			/ sizeof(int32_t) * sizeof(int32_t))
 
 #else
 #include	<sys/dir.h>
@@ -128,7 +128,7 @@ struct direct {			/* data from read()/_getdirentries() */
 #define	getdirentries	_getdirentries	/* package hides this system call */
 #endif
 extern int      getdirentries();
-static long     dummy;		/* getdirentries() needs basep */
+static int32_t     dummy;		/* getdirentries() needs basep */
 #define	GetBlock( fd, buf, n )	getdirentries( fd, buf, (unsigned)n, &dummy )
 #else				/* UFS || BFS */
 #ifdef BSD_SYSV
@@ -604,7 +604,7 @@ unsigned        nbyte;		/* size of buf[] */
 
     if (buf == (char *)NULL
 #ifdef ATT_SPEC
-	|| (unsigned long) buf % sizeof(long) != 0	/* ugh */
+	|| (unsigned long) buf % sizeof(int32_t) != 0	/* ugh */
 #endif
 	) {
 	errno = EFAULT;		/* invalid pointer */

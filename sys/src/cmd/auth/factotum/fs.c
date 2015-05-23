@@ -226,7 +226,7 @@ private(void)
 }
 
 static void
-notifyf(void*, char *s)
+notifyf(void* v, char *s)
 {
 	if(strncmp(s, "interrupt", 9) == 0)
 		noted(NCONT);
@@ -268,7 +268,7 @@ fsattach(Req *r)
 static struct {
 	char *name;
 	int qidpath;
-	ulong perm;
+	uint32_t perm;
 } dirtab[] = {
 	"confirm",	Qconfirm,	0600|DMEXCL,		/* we know this is slot #0 below */
 	"needkey", Qneedkey,	0600|DMEXCL,		/* we know this is slot #1 below */
@@ -282,7 +282,7 @@ int *confirminuse = &inuse[0];
 int *needkeyinuse = &inuse[1];
 
 static void
-fillstat(Dir *dir, char *name, int type, int path, ulong perm)
+fillstat(Dir *dir, char *name, int type, int path, uint32_t perm)
 {
 	dir->name = estrdup(name);
 	dir->uid = estrdup(owner);
@@ -296,7 +296,7 @@ fillstat(Dir *dir, char *name, int type, int path, ulong perm)
 }
 
 static int
-rootdirgen(int n, Dir *dir, void*)
+rootdirgen(int n, Dir *dir, void* v)
 {
 	if(n > 0)
 		return -1;
@@ -305,7 +305,7 @@ rootdirgen(int n, Dir *dir, void*)
 }
 
 static int
-fsdirgen(int n, Dir *dir, void*)
+fsdirgen(int n, Dir *dir, void* v)
 {
 	if(n >= nelem(dirtab))
 		return -1;
@@ -318,7 +318,7 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i;
 
-	switch((ulong)fid->qid.path){
+	switch((uint32_t)fid->qid.path){
 	default:
 		return "cannot happen";
 	case Qroot:
@@ -352,7 +352,7 @@ static void
 fsstat(Req *r)
 {
 	int i;
-	ulong path;
+	uint32_t path;
 
 	path = r->fid->qid.path;
 	if(path == Qroot){
@@ -440,7 +440,8 @@ fsdestroyfid(Fid *fid)
 }
 
 static int
-readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r, Fsstate *fss)
+readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r,
+	 Fsstate *fss)
 {
 	char *a, *ea;
 	int n;
@@ -509,7 +510,7 @@ fsread(Req *r)
 	Fsstate *s;
 
 	s = r->fid->aux;
-	switch((ulong)r->fid->qid.path){
+	switch((uint32_t)r->fid->qid.path){
 	default:
 		respond(r, "bug in fsread");
 		break;
@@ -550,7 +551,7 @@ fswrite(Req *r)
 	int ret;
 	char err[ERRMAX], *s;
 
-	switch((ulong)r->fid->qid.path){
+	switch((uint32_t)r->fid->qid.path){
 	default:
 		respond(r, "bug in fswrite");
 		break;
@@ -563,7 +564,7 @@ fswrite(Req *r)
 		s = emalloc(r->ifcall.count+1);
 		memmove(s, r->ifcall.data, r->ifcall.count);
 		s[r->ifcall.count] = '\0';
-		switch((ulong)r->fid->qid.path){
+		switch((uint32_t)r->fid->qid.path){
 		default:
 			abort();
 		case Qneedkey:

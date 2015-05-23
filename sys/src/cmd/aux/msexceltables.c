@@ -219,7 +219,7 @@ bifftime(double t)
 		t -= 25569;		// epoch = 31/12/1899
 	t *= 60*60*24;
 
-	return localtime((long)t);
+	return localtime((int32_t)t);
 }
 
 void
@@ -391,8 +391,8 @@ gmem(Biff *b, void *p, int n)
 void
 xd(Biff *b)
 {
-	uvlong off;
-	uchar buf[16];
+	uint64_t off;
+	uint8_t buf[16];
 	int addr, got, n, i, j;
 
 	addr = 0;
@@ -441,11 +441,11 @@ getrec(Biff *b)
 	return 0;
 }
 
-static uvlong
+static uint64_t
 gint(Biff *b, int n)
 {
 	int i, c;
-	uvlong vl, rc;
+	uint64_t vl, rc;
 
 	if(b->len < n)
 		return -1;
@@ -464,7 +464,7 @@ double
 grk(Biff *b)
 {
 	int f;
-	uvlong n;
+	uint64_t n;
 	double d;
 
 	n = gint(b, 4);
@@ -487,7 +487,7 @@ double
 gdoub(Biff *b)
 {
 	double d;
-	uvlong n = gint(b, 8);
+	uint64_t n = gint(b, 8);
 	memcpy(&d, &n, sizeof(n));
 	return d;
 }

@@ -41,9 +41,9 @@ strip(char* file, char* out)
 	int fd, i;
 	Fhdr fhdr;
 	Exec *exec;
-	ulong mode;
+	uint32_t mode;
 	void *data;
-	vlong length;
+	int64_t length;
 
 	if((fd = open(file, OREAD)) < 0){
 		error("%s: open: %r", file);

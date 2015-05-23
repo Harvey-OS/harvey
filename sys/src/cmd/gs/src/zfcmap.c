@@ -135,7 +135,7 @@ acquire_code_map(gx_code_map_t *pcmap, const ref *pref, gs_cmap_adobe1_t *root,
 {
     uint num_lookup = 0;
     gx_cmap_lookup_range_t *pclr;
-    long i;
+    int32_t i;
     ref elem;
     uint elem_sz;
 
@@ -218,7 +218,7 @@ acquire_code_map(gx_code_map_t *pcmap, const ref *pref, gs_cmap_adobe1_t *root,
 		pclr->values.size = r_size(&rvalues);
 	} else {
 	    uint values_size = pclr->num_entries * pclr->value_size;
-	    long k;
+	    int32_t k;
 	    byte *pvalue;
 
 	    if (pclr->value_type != CODE_VALUE_GLYPH ||
@@ -291,7 +291,7 @@ private int
 get_cid_system_info(const gs_memory_t *mem, gs_cid_system_info_t *pcidsi, const ref *psia, uint index)
 {
     ref rcidsi;
-    int code = array_get(mem, psia, (long)index, &rcidsi);
+    int code = array_get(mem, psia, (int32_t)index, &rcidsi);
 
     if (code < 0 || r_has_type(&rcidsi, t_null)) {
 	cid_system_info_set_null(pcidsi);
@@ -351,7 +351,7 @@ ztype0_get_cmap(const gs_cmap_t **ppcmap, const ref *pfdepvector,
     for (i = 0; i < num_fonts; ++i) {
 	ref rfdep, rfsi;
 
-	array_get(imem, pfdepvector, (long)i, &rfdep);
+	array_get(imem, pfdepvector, (int32_t)i, &rfdep);
 	code = acquire_cid_system_info(&rfsi, &rfdep);
 	if (code < 0)
 	    return code;

@@ -17,9 +17,9 @@
 typedef struct Cstate Cstate;
 struct Cstate
 {
-	ulong		seq;
+	uint32_t		seq;
 	Thwack		th;
-	ulong		stats[ThwStats];
+	uint32_t		stats[ThwStats];
 };
 
 typedef struct Uncstate Uncstate;
@@ -28,7 +28,7 @@ struct Uncstate
 	QLock		ackl;			/* lock for acks sent back to compressor */
 	int		doack;			/* send an ack? */
 	int		badpacks;		/* bad packets seen in a row */
-	ulong		ackseq;			/* packets to ack */
+	uint32_t		ackseq;			/* packets to ack */
 	int		ackmask;
 
 	int		active;			/* 0 => waiting for resetack */
@@ -48,7 +48,7 @@ enum
 };
 
 static	void		*compinit(PPP*);
-static	Block*		comp(PPP*, ushort, Block*, int*);
+static	Block*		comp(PPP*, uint16_t, Block*, int*);
 static	Block		*compresetreq(void*, Block*);
 static	void		compcompack(void*, Block*);
 static	void		compfini(void*);
@@ -117,12 +117,12 @@ compresetreq(void *as, Block *b)
 }
 
 static Block*
-comp(PPP *ppp, ushort proto, Block *b, int *protop)
+comp(PPP *ppp, uint16_t proto, Block *b, int *protop)
 {
 	Uncstate *uncs;
 	Cstate *cs;
 	Block *bb;
-	ulong seq, acked;
+	uint32_t seq, acked;
 	int n, nn, mustadd;
 
 	cs = ppp->cstate;
@@ -239,7 +239,7 @@ uncresetack(void *as, Block *b)
 	 * which the compressor will use in the future.
 	 */
 	netlog("unthwack resetack id=%d resetid=%d active=%d\n", m->id, s->resetid, s->active);
-	if(m->id == (uchar)s->resetid && !s->active){
+	if(m->id == (uint8_t)s->resetid && !s->active){
 		s->active = 1;
 		unthwackinit(&s->ut);
 	}
@@ -252,9 +252,9 @@ uncomp(PPP *ppp, Block *bb, int *protop, Block **reply)
 	Cstate *cs;
 	Uncstate *uncs;
 	Block *b, *r;
-	ulong seq, mseq;
-	ushort proto;
-	uchar mask;
+	uint32_t seq, mseq;
+	uint16_t proto;
+	uint8_t mask;
 	int n;
 
 	*reply = nil;

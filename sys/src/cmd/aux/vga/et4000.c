@@ -99,7 +99,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	Mode *mode;
-	ulong x;
+	uint32_t x;
 
 	if(vga->mode->z > 8)
 		error("depth %d not supported\n", vga->mode->z);
@@ -223,7 +223,7 @@ dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 	char *name;
-	ushort shb, vrs, x;
+	uint16_t shb, vrs, x;
 
 	name = ctlr->name;
 

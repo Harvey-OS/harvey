@@ -436,7 +436,8 @@ walk2_struct(char *s, Symbol *z)
 }
 
 void
-walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c)
+walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a,
+	    char *b, char *c)
 {	Lextok *fp, *tl;
 	char eprefix[128];
 	int ix;
@@ -546,7 +547,7 @@ retrieve(Lextok **targ, int i, int want, Lextok *n, int Ntyp)
 					(*targ)->lft = nn(ZN, CONST, ZN, ZN);
 					(*targ)->lft->val = k;
 					if (Ntyp)
-					(*targ)->ntyp = (short) Ntyp;
+					(*targ)->ntyp = (int16_t) Ntyp;
 					return -1;
 				}
 	}	}	}

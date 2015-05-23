@@ -425,15 +425,15 @@ dowstat(Xfile *f, Dir *stat)
 
 	return 1;
 }
-long
-readfile(Xfile *f, void *vbuf, vlong offset, long count)
+int32_t
+readfile(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 {
 	Xfs *xf = f->xf;
 	Inode *inode;
 	Iobuf *buffer, *ibuf;
-	long rcount;
+	int32_t rcount;
 	int len, o, cur_block, baddr;
-	uchar *buf;
+	uint8_t *buf;
 
 	buf = vbuf;
 	
@@ -486,11 +486,11 @@ readfile(Xfile *f, void *vbuf, vlong offset, long count)
 	putbuf(ibuf);
 	return rcount;
 }
-long
-readdir(Xfile *f, void *vbuf, vlong offset, long count)
+int32_t
+readdir(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 {
 	int off, i, len;
-	long rcount;
+	int32_t rcount;
 	Xfs *xf = f->xf;
 	Inode *inode, *tinode;
 	int nblock;
@@ -498,7 +498,7 @@ readdir(Xfile *f, void *vbuf, vlong offset, long count)
 	Iobuf *buffer, *ibuf, *tbuf;
 	Dir pdir;
 	Xfile ft;
-	uchar *buf;
+	uint8_t *buf;
 	char name[EXT2_NAME_LEN+1];
 	unsigned int dirlen;
 	int index;
@@ -679,13 +679,13 @@ error:
 	putbuf(ibuf);
 	return 0;
 }
-long
-writefile(Xfile *f, void *vbuf, vlong offset, long count)
+int32_t
+writefile(Xfile *f, void *vbuf, int64_t offset, int32_t count)
 {
 	Xfs *xf = f->xf;
 	Inode *inode;
 	Iobuf *buffer, *ibuf;
-	long w;
+	int32_t w;
 	int len, o, cur_block, baddr;
 	char *buf;
 
@@ -734,7 +734,7 @@ new_block( Xfile *f, int goal )
 {
 	Xfs *xf= f->xf;
 	int group, block, baddr, k, redo;
-	ulong lmap;
+	uint32_t lmap;
 	char *p, *r;
 	Iobuf *buf;
 	Ext2 ed, es, eb;
@@ -766,10 +766,10 @@ repeat:
 			 * block within the next 32 blocks
 			*/
 			
-			lmap = (((ulong *)eb.u.bmp)[block>>5]) >>
+			lmap = (((uint32_t *)eb.u.bmp)[block>>5]) >>
 					((block & 31) + 1);
 			if( block < xf->blocks_per_group - 32 )
-				lmap |= (((ulong *)eb.u.bmp)[(block>>5)+1]) <<
+				lmap |= (((uint32_t *)eb.u.bmp)[(block>>5)+1]) <<
 					( 31-(block & 31) );
 			else
 				lmap |= 0xffffffff << ( 31-(block & 31) );
@@ -835,7 +835,7 @@ full:
 	if( block < xf->blocks_per_group )
 		goto search_back;
 	else
-		block = find_first_zero_bit((ulong *)eb.u.bmp,
+		block = find_first_zero_bit((uint32_t *)eb.u.bmp,
 								xf->blocks_per_group>>3);
 	if( block >= xf->blocks_per_group ){
 		chat("Free block count courupted for block group %d...", group);
@@ -1226,7 +1226,7 @@ void
 free_inode( Xfs *xf, int inr)
 {
 	Inode *inode;
-	ulong b, bg;
+	uint32_t b, bg;
 	Iobuf *buf;
 	Ext2 ed, es, eb;
 
@@ -1589,7 +1589,7 @@ free_block_inode(Xfile *file)
 {
 	Xfs *xf = file->xf;
 	int i, j, k;
-	ulong b, *y, *z;
+	uint32_t b, *y, *z;
 	uint *x;
 	int naddr;
 	Inode *inode;
@@ -1632,7 +1632,7 @@ free_block_inode(Xfile *file)
 			buf1 = getbuf(xf, *x);
 			if( !buf1 ){ putbuf(buf); putbuf(ibuf); return -1; }
 			for(j=0 ; j < naddr ; j++){
-				y = ((ulong *)buf1->iobuf) + j;
+				y = ((uint32_t *)buf1->iobuf) + j;
 				if( *y == 0 ) break;
 				free_block(xf, *y);
 			}
@@ -1654,12 +1654,12 @@ free_block_inode(Xfile *file)
 			buf1 = getbuf(xf, *x);
 			if( !buf1 ){ putbuf(buf); putbuf(ibuf); return -1; }
 			for(j=0 ; j < naddr ; j++){
-				y = ((ulong *)buf1->iobuf) + j;
+				y = ((uint32_t *)buf1->iobuf) + j;
 				if( *y == 0 ) break;
 				buf2 = getbuf(xf, *y);
 				if( !buf2 ){ putbuf(buf); putbuf(buf1); putbuf(ibuf); return -1; }
 				for(k=0 ; k < naddr ; k++){
-					z = ((ulong *)buf2->iobuf) + k;
+					z = ((uint32_t *)buf2->iobuf) + k;
 					if( *z == 0 ) break;
 					free_block(xf, *z);
 				}
@@ -1676,9 +1676,9 @@ free_block_inode(Xfile *file)
 	putbuf(ibuf);
 	return 0;
 }
-void free_block( Xfs *xf, ulong block )
+void free_block( Xfs *xf, uint32_t block )
 {
-	ulong bg;
+	uint32_t bg;
 	Ext2 ed, es, eb;
 
 	es = getext2(xf, EXT2_SUPER, 0);
@@ -1755,17 +1755,17 @@ truncfile(Xfile *f)
 	inode->i_atime = inode->i_mtime = time(0);
 	inode->i_blocks = 0;
 	inode->i_size = 0;
-	memset(inode->i_block, 0, EXT2_N_BLOCKS*sizeof(ulong));
+	memset(inode->i_block, 0, EXT2_N_BLOCKS*sizeof(uint32_t));
 	dirtybuf(ibuf);
 	putbuf(ibuf);
 	chat("trunc ok...");
 	return 0;
 }
-long
+int32_t
 getmode(Xfile *f)
 {
 	Iobuf *ibuf;
-	long mode;
+	int32_t mode;
 
 	ibuf = getbuf(f->xf, f->bufaddr);
 	if( !ibuf )

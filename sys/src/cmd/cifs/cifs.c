@@ -83,7 +83,7 @@ cifshdr(Session *s, Share *sp, int cmd)
 	p = emalloc9p(sizeof(Pkt) + MTU);
 	memset(p, 0, sizeof(Pkt) +MTU);
 
-	p->buf = (uchar *)p + sizeof(Pkt);
+	p->buf = (uint8_t *)p + sizeof(Pkt);
 	p->s = s;
 
 	qlock(&s->seqlock);
@@ -130,7 +130,7 @@ pbytes(Pkt *p)
 }
 
 static void
-dmp(int seq, uchar *buf)
+dmp(int seq, uint8_t *buf)
 {
 	int i;
 
@@ -148,7 +148,7 @@ cifsrpc(Pkt *p)
 {
 	int flags2, got, err;
 	uint tid, uid, seq;
-	uchar *pos;
+	uint8_t *pos;
 	char m[nelem(magic)];
 
 	pos = p->pos;
@@ -236,7 +236,8 @@ print("MAC signature bad\n");
  * more modern ones, so we don't give them the choice.
  */
 int
-CIFSnegotiate(Session *s, long *svrtime, char *domain, int domlen, char *cname,
+CIFSnegotiate(Session *s, int32_t *svrtime, char *domain, int domlen,
+	      char *cname,
 	int cnamlen)
 {
 	int d, i;
@@ -286,7 +287,7 @@ CIFSnegotiate(Session *s, long *svrtime, char *domain, int domlen, char *cname,
 	gl32(p);				/* Session key */
 	s->caps = gl32(p);			/* Server capabilities */
 	*svrtime = gvtime(p);			/* fileserver time */
-	s->tz = (short)gl16(p) * 60; /* TZ in mins, is signed (SNIA doc is wrong) */
+	s->tz = (int16_t)gl16(p) * 60; /* TZ in mins, is signed (SNIA doc is wrong) */
 	s->challen = g8(p);			/* Encryption key length */
 	gl16(p);
 	gmem(p, s->chal, s->challen);		/* Get the challenge */
@@ -539,7 +540,8 @@ CIFSrename(Session *s, Share *sp, char *old, char *new)
 
 /* for NT4/Win2k/XP */
 int
-CIFS_NT_opencreate(Session *s, Share *sp, char *name, int flags, int options,
+CIFS_NT_opencreate(Session *s, Share *sp, char *name, int flags,
+		   int options,
 	int attrs, int access, int share, int action, int *result, FInfo *fi)
 {
 	Pkt *p;
@@ -632,11 +634,11 @@ CIFS_SMB_opencreate(Session *s, Share *sp, char *name, int access,
 	return fh;
 }
 
-vlong
-CIFSwrite(Session *s, Share *sp, int fh, uvlong off, void *buf, vlong n)
+int64_t
+CIFSwrite(Session *s, Share *sp, int fh, uint64_t off, void *buf, int64_t n)
 {
 	Pkt *p;
-	vlong got;
+	int64_t got;
 
 	/* FIXME: Payload should be padded to long boundary */
 	assert((n   & 0xffffffff00000000LL) == 0 || s->caps & CAP_LARGE_FILES);
@@ -677,12 +679,12 @@ CIFSwrite(Session *s, Share *sp, int fh, uvlong off, void *buf, vlong n)
 	return got;
 }
 
-vlong
-CIFSread(Session *s, Share *sp, int fh, uvlong off, void *buf, vlong n,
-	vlong minlen)
+int64_t
+CIFSread(Session *s, Share *sp, int fh, uint64_t off, void *buf, int64_t n,
+	int64_t minlen)
 {
 	int doff;
-	vlong got;
+	int64_t got;
 	Pkt *p;
 
 	assert((n   & 0xffffffff00000000LL) == 0 || s->caps & CAP_LARGE_FILES);

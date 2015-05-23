@@ -16,7 +16,7 @@
 
 extern	char *binddir;
 
-long now;
+int32_t now;
 char *blog = "ipboot";
 int minlease = MinLease;
 

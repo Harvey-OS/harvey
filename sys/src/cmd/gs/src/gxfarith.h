@@ -49,7 +49,7 @@ typedef uint _f_uint_t;
 
 #  else				/* arch_sizeof_float == arch_sizeof_long */
 typedef long _f_int_t;
-typedef ulong _f_uint_t;
+typedef uint32_t _f_uint_t;
 
 #  endif
 #  define _f_as_int(f) *(const _f_int_t *)(&(f))

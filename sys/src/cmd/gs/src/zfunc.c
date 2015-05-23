@@ -298,7 +298,8 @@ fn_build_float_array(const ref * op, const char *kstr, bool required,
  * - number of elements is not checked for even/odd
  */
 int
-fn_build_float_array_forced(const ref * op, const char *kstr, bool required,
+fn_build_float_array_forced(const ref * op, const char *kstr,
+                            bool required,
 		     const float **pparray, gs_memory_t *mem)
 {
     ref *par;

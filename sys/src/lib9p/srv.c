@@ -62,8 +62,8 @@ changemsize(Srv *srv, int msize)
 static Req*
 getreq(Srv *s)
 {
-	long n;
-	uchar *buf;
+	int32_t n;
+	uint8_t *buf;
 	Fcall f;
 	Req *r;
 
@@ -139,7 +139,8 @@ filewalk(Req *r)
 }
 
 void
-walkandclone(Req *r, char *(*walk1)(Fid*, char*, void*), char *(*clone)(Fid*, Fid*, void*), void *arg)
+walkandclone(Req *r, char *(*walk1)(Fid*, char*, void*),
+             char *(*clone)(Fid*, Fid*, void*), void *arg)
 {
 	int i;
 	char *e;
@@ -172,7 +173,7 @@ walkandclone(Req *r, char *(*walk1)(Fid*, char*, void*), char *(*clone)(Fid*, Fi
 }
 
 static void
-sversion(Srv*, Req *r)
+sversion(Srv* s, Req *r)
 {
 	if(strncmp(r->ifcall.version, "9P", 2) != 0){
 		r->ofcall.version = "unknown";
@@ -559,7 +560,7 @@ sclunk(Srv *srv, Req *r)
 		respond(r, nil);
 }
 static void
-rclunk(Req*, char*)
+rclunk(Req* r, char* c)
 {
 }
 
@@ -625,8 +626,8 @@ static void
 rstat(Req *r, char *error)
 {
 	int n;
-	uchar *statbuf;
-	uchar tmp[BIT16SZ];
+	uint8_t *statbuf;
+	uint8_t tmp[BIT16SZ];
 
 	if(error)
 		return;
@@ -664,7 +665,7 @@ swstat(Srv *srv, Req *r)
 		respond(r, Ebaddir);
 		return;
 	}
-	if((ushort)~r->d.type){
+	if((uint16_t)~r->d.type){
 		respond(r, "wstat -- attempt to change type");
 		return;
 	}
@@ -672,7 +673,7 @@ swstat(Srv *srv, Req *r)
 		respond(r, "wstat -- attempt to change dev");
 		return;
 	}
-	if((uchar)~r->d.qid.type || (ulong)~r->d.qid.vers || (uvlong)~r->d.qid.path){
+	if((uint8_t)~r->d.qid.type || (uint32_t)~r->d.qid.vers || (uint64_t)~r->d.qid.path){
 		respond(r, "wstat -- attempt to change qid");
 		return;
 	}
@@ -680,14 +681,14 @@ swstat(Srv *srv, Req *r)
 		respond(r, "wstat -- attempt to change muid");
 		return;
 	}
-	if((ulong)~r->d.mode && ((r->d.mode&DMDIR)>>24) != (r->fid->qid.type&QTDIR)){
+	if((uint32_t)~r->d.mode && ((r->d.mode&DMDIR)>>24) != (r->fid->qid.type&QTDIR)){
 		respond(r, "wstat -- attempt to change DMDIR bit");
 		return;
 	}
 	srv->wstat(r);
 }
 static void
-rwstat(Req*, char*)
+rwstat(Req* r, char* c)
 {
 }
 

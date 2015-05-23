@@ -12,7 +12,7 @@
 #define INMEMORYTRUNCTHRESH (256 * 1024)
 
 static int
-dirfwstatlength(int fd, vlong offset)
+dirfwstatlength(int fd, int64_t offset)
 {
 	Dir d;
 	memset(&d, 0xff, sizeof(d));
@@ -22,12 +22,12 @@ dirfwstatlength(int fd, vlong offset)
 }
 
 SmbProcessResult
-smbtruncatefile(SmbSession *s, SmbFile *f, vlong offset)
+smbtruncatefile(SmbSession *s, SmbFile *f, int64_t offset)
 {
 	Dir *d;
-	ulong o;
-	uchar *db = nil;
-	vlong length;
+	uint32_t o;
+	uint8_t *db = nil;
+	int64_t length;
 	int rv;
 	SmbProcessResult pr;
 
@@ -79,7 +79,7 @@ smbtruncatefile(SmbSession *s, SmbFile *f, vlong offset)
 		memset(db, 0, 16384);
 		o = length;
 		while (o < offset) {
-			long tt = 16384;
+			int32_t tt = 16384;
 			if (tt > offset - o)
 				tt = offset - o;
 			if (pwrite(f->fd, db, tt, o) != tt) {
@@ -97,16 +97,16 @@ done:
 }
 
 SmbProcessResult
-smbcomwrite(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomwrite(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
 	SmbTree *t;
 	SmbFile *f;
-	ushort fid;
-	ushort count;
-	ulong offset;
-	long nb;
-	ushort yacount;
-	uchar fmt;
+	uint16_t fid;
+	uint16_t count;
+	uint32_t offset;
+	int32_t nb;
+	uint16_t yacount;
+	uint8_t fmt;
 
 	if (h->wordcount != 5)
 		return SmbProcessResultFormat;
@@ -164,16 +164,16 @@ smbcomwrite(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 }
 
 SmbProcessResult
-smbcomwriteandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+smbcomwriteandx(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *b)
 {
-	uchar andxcommand;
-	ushort andxoffset;
-	ulong andxoffsetfixup;
+	uint8_t andxcommand;
+	uint16_t andxoffset;
+	uint32_t andxoffsetfixup;
 	SmbTree *t;
 	SmbFile *f;
-	ushort dataoff, fid, count;
-	vlong offset;
-	long nb;
+	uint16_t dataoff, fid, count;
+	int64_t offset;
+	int32_t nb;
 
 	if (h->wordcount != 12 && h->wordcount != 14)
 		return SmbProcessResultFormat;
@@ -192,7 +192,7 @@ smbcomwriteandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 	if (dataoff + count > smbbufferwriteoffset(b))
 		return SmbProcessResultFormat;
 	if(h->wordcount == 14)
-		offset |= (vlong)smbnhgetl(pdata)<<32;
+		offset |= (int64_t)smbnhgetl(pdata)<<32;
 
 	smblogprint(SMB_COM_WRITE_ANDX, "smbcomwriteandx: fid 0x%.4ux count 0x%.4ux offset 0x%.llux\n",
 		fid, count, offset);

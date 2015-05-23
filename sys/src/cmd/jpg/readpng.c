@@ -37,14 +37,14 @@ typedef struct ZlibW ZlibW;
 
 struct ZlibW
 {
-	uchar *data;		/* Rawimage data */
+	uint8_t *data;		/* Rawimage data */
 	int ndata;
 	int noutchan;
 	int chandesc;
 	int nchan;
 
-	uchar *scan;		/* new scanline */
-	uchar *lastscan;	/* previous scan line */
+	uint8_t *scan;		/* new scanline */
+	uint8_t *lastscan;	/* previous scan line */
 	int scanlen;		/* scan line length */
 	int scanpos;		/* scan position */
 
@@ -53,24 +53,24 @@ struct ZlibW
 	int bpc;			/* bits per channel (per pixel) */
 	int y;				/* current scan line */
 	int pass;			/* adam7 pass#; 0 means no adam7 */
-	uchar palette[3*256];	/* color palette */
+	uint8_t palette[3*256];	/* color palette */
 	int palsize;		/* number of palette entries */
 };
 
 struct ZlibR
 {
 	Biobuf *io;		/* input buffer */
-	uchar *buf;		/* malloc'ed staging buffer */
-	uchar *p;			/* next byte to decompress */
-	uchar *e;			/* end of buffer */
+	uint8_t *buf;		/* malloc'ed staging buffer */
+	uint8_t *p;			/* next byte to decompress */
+	uint8_t *e;			/* end of buffer */
 	ZlibW *w;
 };
 
-static ulong *crctab;
-static uchar PNGmagic[] = { 137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
+static uint32_t *crctab;
+static uint8_t PNGmagic[] = { 137, 'P', 'N', 'G', '\r', '\n', 26, '\n'};
 
-static ulong
-get4(uchar *a)
+static uint32_t
+get4(uint8_t *a)
 {
 	return (a[0]<<24) | (a[1]<<16) | (a[2]<<8) | a[3];
 }
@@ -92,7 +92,7 @@ pnginit(void)
 
 static
 void*
-pngmalloc(ulong n, int clear)
+pngmalloc(uint32_t n, int clear)
 {
 	void *p;
 
@@ -103,10 +103,10 @@ pngmalloc(ulong n, int clear)
 }
 
 static int
-getchunk(Biobuf *b, char *type, uchar *d, int m)
+getchunk(Biobuf *b, char *type, uint8_t *d, int m)
 {
-	uchar buf[8];
-	ulong crc = 0, crc2;
+	uint8_t buf[8];
+	uint32_t crc = 0, crc2;
 	int n, nr;
 
 	if(Bread(b, buf, 8) != 8)
@@ -161,8 +161,8 @@ zread(void *va)
 	return *z->p++;
 }
 
-static uchar 
-paeth(uchar a, uchar b, uchar c)
+static uint8_t 
+paeth(uint8_t a, uint8_t b, uint8_t c)
 {
 	int p, pa, pb, pc;
 
@@ -179,7 +179,7 @@ paeth(uchar a, uchar b, uchar c)
 }
 
 static void
-unfilter(int alg, uchar *buf, uchar *up, int len, int bypp)
+unfilter(int alg, uint8_t *buf, uint8_t *up, int len, int bypp)
 {
 	int i;
 
@@ -236,7 +236,7 @@ static void
 scan(int len, ZlibW *z)
 {
 	int chan, i, j, nbit, off, val;
-	uchar pixel[4], *p, *w;
+	uint8_t pixel[4], *p, *w;
 
 	unfilter(z->scan[0], z->scan+1, z->lastscan+1, len-1, (z->nchan*z->bpc+7)/8);
 
@@ -348,7 +348,7 @@ static int
 zwrite(void *vz, void *vbuf, int n)
 {
 	int oldn, m, len;
-	uchar *buf, *t;
+	uint8_t *buf, *t;
 	ZlibW *z;
 
 	z = vz;
@@ -392,7 +392,7 @@ readslave(Biobuf *b)
 {
 	char type[5];
 	int bpc, colorfmt, dx, dy, err, n, nchan, nout, useadam7;
-	uchar *buf, *h;
+	uint8_t *buf, *h;
 	Rawimage *image;
 	ZlibR zr;
 	ZlibW zw;

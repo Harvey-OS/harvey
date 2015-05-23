@@ -1,4 +1,4 @@
-/*
+/* 
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -43,21 +43,25 @@ struct Edf {
 	long		testtime;
 	Proc		*testnext;
 	/* other */
-	ushort		flags;
+	uint16_t		flags;
 	Timer;
 	/* Stats */
 	long		edfused;
 	long		extraused;
 	long		aged;
-	ulong		periods;
-	ulong		missed;
+	uint32_t		periods;
+	uint32_t		missed;
 };
 
 extern Lock	edftestlock;	/* for atomic admitting/expelling */
 
 #pragma	varargck	type	"t"		long
-#pragma	varargck	type	"U"		uvlong
+#pragma	varargck	type	"U"		uint64_t
 
 /* Interface: */
 Edf*		edflock(Proc*);
 void		edfunlock(void);
+
+
+/* sched interface, used only by edf */
+Sched*		procsched(Proc*);

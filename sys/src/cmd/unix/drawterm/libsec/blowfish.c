@@ -16,17 +16,17 @@
 // 	Fast Software Encryption
 // 	Cambridge Security Workshop, Cambridge, England (1993)
 
-static u32int sbox[1024];
-static u32int pbox[BFrounds+2];
+static uint32_t sbox[1024];
+static uint32_t pbox[BFrounds+2];
 
-static void bfencrypt(u32int *, BFstate *);
-static void bfdecrypt(u32int *, BFstate *);
+static void bfencrypt(uint32_t *, BFstate *);
+static void bfdecrypt(uint32_t *, BFstate *);
 
 void
-setupBFstate(BFstate *s, uchar key[], int keybytes, uchar *ivec)
+setupBFstate(BFstate *s, uint8_t key[], int keybytes, uint8_t *ivec)
 {
 	int i, j;
-	u32int n, buf[2];
+	uint32_t n, buf[2];
 
 	memset(s, 0, sizeof(*s));
 	memset(buf, 0, sizeof buf);
@@ -82,20 +82,20 @@ setupBFstate(BFstate *s, uchar key[], int keybytes, uchar *ivec)
 }
 
 void
-bfCBCencrypt(uchar *buf, int n, BFstate *s)
+bfCBCencrypt(uint8_t *buf, int n, BFstate *s)
 {
 	int i;
-	uchar *p;
-	u32int bo[2], bi[2], b;
+	uint8_t *p;
+	uint32_t bo[2], bi[2], b;
 
 	assert((n & 7) == 0);
 
-	bo[0] =  s->ivec[0] | ((u32int) s->ivec[1]<<8) | ((u32int)s->ivec[2]<<16) | ((u32int)s->ivec[3]<<24);
-	bo[1] =  s->ivec[4] | ((u32int) s->ivec[5]<<8) | ((u32int)s->ivec[6]<<16) | ((u32int)s->ivec[7]<<24);
+	bo[0] =  s->ivec[0] | ((uint32_t) s->ivec[1]<<8) | ((uint32_t)s->ivec[2]<<16) | ((uint32_t)s->ivec[3]<<24);
+	bo[1] =  s->ivec[4] | ((uint32_t) s->ivec[5]<<8) | ((uint32_t)s->ivec[6]<<16) | ((uint32_t)s->ivec[7]<<24);
 
 	for(i=0; i < n; i += 8, buf += 8) {
-		bi[0] =  buf[0] | ((u32int) buf[1]<<8) | ((u32int)buf[2]<<16) | ((u32int)buf[3]<<24);
-		bi[1] =  buf[4] | ((u32int) buf[5]<<8) | ((u32int)buf[6]<<16) | ((u32int)buf[7]<<24);
+		bi[0] =  buf[0] | ((uint32_t) buf[1]<<8) | ((uint32_t)buf[2]<<16) | ((uint32_t)buf[3]<<24);
+		bi[1] =  buf[4] | ((uint32_t) buf[5]<<8) | ((uint32_t)buf[6]<<16) | ((uint32_t)buf[7]<<24);
 
 		bi[0] ^= bo[0];
 		bi[1] ^= bo[1];
@@ -139,20 +139,20 @@ bfCBCencrypt(uchar *buf, int n, BFstate *s)
 }
 
 void
-bfCBCdecrypt(uchar *buf, int n, BFstate *s)
+bfCBCdecrypt(uint8_t *buf, int n, BFstate *s)
 {
 	int i;
-	uchar *p;
-	u32int b, bo[2], bi[2], xr[2];
+	uint8_t *p;
+	uint32_t b, bo[2], bi[2], xr[2];
 
 	assert((n & 7) == 0);
 
-	bo[0] =  s->ivec[0] | ((u32int) s->ivec[1]<<8) | ((u32int)s->ivec[2]<<16) | ((u32int)s->ivec[3]<<24);
-	bo[1] =  s->ivec[4] | ((u32int) s->ivec[5]<<8) | ((u32int)s->ivec[6]<<16) | ((u32int)s->ivec[7]<<24);
+	bo[0] =  s->ivec[0] | ((uint32_t) s->ivec[1]<<8) | ((uint32_t)s->ivec[2]<<16) | ((uint32_t)s->ivec[3]<<24);
+	bo[1] =  s->ivec[4] | ((uint32_t) s->ivec[5]<<8) | ((uint32_t)s->ivec[6]<<16) | ((uint32_t)s->ivec[7]<<24);
 
 	for(i=0; i < n; i += 8, buf += 8) {
-		bi[0] =  buf[0] | ((u32int) buf[1]<<8) | ((u32int)buf[2]<<16) | ((u32int)buf[3]<<24);
-		bi[1] =  buf[4] | ((u32int) buf[5]<<8) | ((u32int)buf[6]<<16) | ((u32int)buf[7]<<24);
+		bi[0] =  buf[0] | ((uint32_t) buf[1]<<8) | ((uint32_t)buf[2]<<16) | ((uint32_t)buf[3]<<24);
+		bi[1] =  buf[4] | ((uint32_t) buf[5]<<8) | ((uint32_t)buf[6]<<16) | ((uint32_t)buf[7]<<24);
 
 		xr[0] = bi[0];
 		xr[1] = bi[1];
@@ -199,14 +199,14 @@ bfCBCdecrypt(uchar *buf, int n, BFstate *s)
 }
 
 void
-bfECBencrypt(uchar *buf, int n, BFstate *s)
+bfECBencrypt(uint8_t *buf, int n, BFstate *s)
 {
 	int i;
-	u32int b[2];
+	uint32_t b[2];
 
 	for(i=0; i < n; i += 8, buf += 8) {
-		b[0] =  buf[0] | ((u32int) buf[1]<<8) | ((u32int)buf[2]<<16) | ((u32int)buf[3]<<24);
-		b[1] =  buf[4] | ((u32int) buf[5]<<8) | ((u32int)buf[6]<<16) | ((u32int)buf[7]<<24);
+		b[0] =  buf[0] | ((uint32_t) buf[1]<<8) | ((uint32_t)buf[2]<<16) | ((uint32_t)buf[3]<<24);
+		b[1] =  buf[4] | ((uint32_t) buf[5]<<8) | ((uint32_t)buf[6]<<16) | ((uint32_t)buf[7]<<24);
 
 		bfencrypt(b, s);
 
@@ -225,14 +225,14 @@ bfECBencrypt(uchar *buf, int n, BFstate *s)
 }
 
 void
-bfECBdecrypt(uchar *buf, int n, BFstate *s)
+bfECBdecrypt(uint8_t *buf, int n, BFstate *s)
 {
 	int i;
-	u32int b[2];
+	uint32_t b[2];
 
 	for(i=0; i < n; i += 8, buf += 8) {
-		b[0] =  buf[0] | ((u32int) buf[1]<<8) | ((u32int)buf[2]<<16) | ((u32int)buf[3]<<24);
-		b[1] =  buf[4] | ((u32int) buf[5]<<8) | ((u32int)buf[6]<<16) | ((u32int)buf[7]<<24);
+		b[0] =  buf[0] | ((uint32_t) buf[1]<<8) | ((uint32_t)buf[2]<<16) | ((uint32_t)buf[3]<<24);
+		b[1] =  buf[4] | ((uint32_t) buf[5]<<8) | ((uint32_t)buf[6]<<16) | ((uint32_t)buf[7]<<24);
 
 		bfdecrypt(b, s);
 
@@ -251,11 +251,11 @@ bfECBdecrypt(uchar *buf, int n, BFstate *s)
 }
 
 static void
-bfencrypt(u32int *b, BFstate *s)
+bfencrypt(uint32_t *b, BFstate *s)
 {
 	int i;
-	u32int l, r;
-	u32int *pb, *sb;
+	uint32_t l, r;
+	uint32_t *pb, *sb;
 
 	l = b[0];
 	r = b[1];
@@ -267,12 +267,12 @@ bfencrypt(u32int *b, BFstate *s)
 
 	for(i=1; i<16; i += 2) {
 		r ^= pb[i];
-		r ^= ( (sb[ (uchar) (l>>24)] + sb[256 + ((uchar) (l>>16))]) ^  
-			sb[512 + ((uchar) (l>>8))]) + sb[768 +((uchar) l)];
+		r ^= ( (sb[ (uint8_t) (l>>24)] + sb[256 + ((uint8_t) (l>>16))]) ^  
+			sb[512 + ((uint8_t) (l>>8))]) + sb[768 +((uint8_t) l)];
 
 		l ^= pb[i+1];
-		l ^= ( (sb[ (uchar) (r>>24)] + sb[256 + ((uchar) (r>>16))]) ^  
-			sb[512 + ((uchar) (r>>8))]) + sb[768 +((uchar) r)];
+		l ^= ( (sb[ (uint8_t) (r>>24)] + sb[256 + ((uint8_t) (r>>16))]) ^  
+			sb[512 + ((uint8_t) (r>>8))]) + sb[768 +((uint8_t) r)];
 	}
 
 	r ^= pb[BFrounds+1];
@@ -285,11 +285,11 @@ bfencrypt(u32int *b, BFstate *s)
 }
 
 static void
-bfdecrypt(u32int *b, BFstate *s)
+bfdecrypt(uint32_t *b, BFstate *s)
 {
 	int i;
-	u32int l, r;
-	u32int *pb, *sb;
+	uint32_t l, r;
+	uint32_t *pb, *sb;
 
 	l = b[0];
 	r = b[1];
@@ -301,12 +301,12 @@ bfdecrypt(u32int *b, BFstate *s)
 
 	for(i=16; i > 0; i -= 2) {
 		r ^= pb[i];
-		r ^= ( (sb[ (uchar) (l>>24)] + sb[256 + ((uchar) (l>>16))]) ^  
-			sb[512 + ((uchar) (l>>8))]) + sb[768 +((uchar) l)];
+		r ^= ( (sb[ (uint8_t) (l>>24)] + sb[256 + ((uint8_t) (l>>16))]) ^  
+			sb[512 + ((uint8_t) (l>>8))]) + sb[768 +((uint8_t) l)];
 
 		l ^= pb[i-1];
-		l ^= ( (sb[ (uchar) (r>>24)] + sb[256 + ((uchar) (r>>16))]) ^  
-			sb[512 + ((uchar) (r>>8))]) + sb[768 +((uchar) r)];
+		l ^= ( (sb[ (uint8_t) (r>>24)] + sb[256 + ((uint8_t) (r>>16))]) ^  
+			sb[512 + ((uint8_t) (r>>8))]) + sb[768 +((uint8_t) r)];
 	}
 
 	r ^= pb[0];
@@ -318,7 +318,7 @@ bfdecrypt(u32int *b, BFstate *s)
 	return;
 }
 
-static u32int pbox[BFrounds+2] = {
+static uint32_t pbox[BFrounds+2] = {
 	0x243f6a88, 0x85a308d3, 0x13198a2e, 0x03707344, 
 	0xa4093822, 0x299f31d0, 0x082efa98, 0xec4e6c89, 
 	0x452821e6, 0x38d01377, 0xbe5466cf, 0x34e90c6c, 
@@ -326,7 +326,7 @@ static u32int pbox[BFrounds+2] = {
 	0x9216d5d9, 0x8979fb1b
 };
 
-static u32int sbox[1024] = {
+static uint32_t sbox[1024] = {
 	0xd1310ba6L, 0x98dfb5acL, 0x2ffd72dbL, 0xd01adfb7L, 
 	0xb8e1afedL, 0x6a267e96L, 0xba7c9045L, 0xf12c7f99L, 
 	0x24a19947L, 0xb3916cf7L, 0x0801f2e2L, 0x858efc16L, 

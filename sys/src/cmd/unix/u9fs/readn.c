@@ -9,11 +9,11 @@
 
 #include <plan9.h>
 
-long
-readn(int f, void *av, long n)
+int32_t
+readn(int f, void *av, int32_t n)
 {
 	char *a;
-	long m, t;
+	int32_t m, t;
 
 	a = av;
 	t = 0;

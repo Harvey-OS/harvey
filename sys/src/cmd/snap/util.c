@@ -13,7 +13,7 @@
 #include "snap.h"
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *v;
 	v = malloc(n);
@@ -26,7 +26,7 @@ emalloc(ulong n)
 }
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil) {

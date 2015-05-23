@@ -23,64 +23,81 @@ typedef struct {
 	union{
 		struct {
 			Exec;		/* a.out.h */
-			uvlong hdr[1];
+			uint64_t hdr[1];
 		};
+#ifdef HARVEY32
 		Ehdr;			/* elf.h */
+#endif
 		E64hdr;
 		struct mipsexec;	/* bootexec.h */
 		struct mips4kexec;	/* bootexec.h */
 		struct sparcexec;	/* bootexec.h */
 		struct nextexec;	/* bootexec.h */
 	} e;
-	long dummy;			/* padding to ensure extra long */
+	int32_t dummy;			/* padding to ensure extra long */
 } ExecHdr;
 
+#ifdef HARVEYNEXT
 static	int	nextboot(int, Fhdr*, ExecHdr*);
+#elif HARVEYSPARC
 static	int	sparcboot(int, Fhdr*, ExecHdr*);
+#elif HARVEYMIPS
 static	int	mipsboot(int, Fhdr*, ExecHdr*);
 static	int	mips4kboot(int, Fhdr*, ExecHdr*);
+#endif
 static	int	common(int, Fhdr*, ExecHdr*);
 static	int	commonllp64(int, Fhdr*, ExecHdr*);
 static	int	adotout(int, Fhdr*, ExecHdr*);
 static	int	elfdotout(int, Fhdr*, ExecHdr*);
 static	int	armdotout(int, Fhdr*, ExecHdr*);
-static	void	setsym(Fhdr*, long, long, long, vlong);
-static	void	setdata(Fhdr*, uvlong, long, vlong, long);
-static	void	settext(Fhdr*, uvlong, uvlong, long, vlong);
-static	void	hswal(void*, int, ulong(*)(ulong));
-static	uvlong	_round(uvlong, ulong);
+static	void	setsym(Fhdr*, int32_t, int32_t, int32_t, int64_t);
+static	void	setdata(Fhdr*, uint64_t, int32_t, int64_t,
+				  int32_t);
+static	void	settext(Fhdr*, uint64_t, uint64_t, int32_t,
+				  int64_t);
+static	void	hswal(void*, int, uint32_t(*)(uint32_t));
+static	uint64_t	_round(uint64_t, uint32_t);
 
 /*
  *	definition of per-executable file type structures
  */
 
 typedef struct Exectable{
-	long	magic;			/* big-endian magic number of file */
+	int32_t	magic;			/* big-endian magic number of file */
 	char	*name;			/* executable identifier */
 	char	*dlmname;		/* dynamically loadable module identifier */
-	uchar	type;			/* Internal code */
-	uchar	_magic;			/* _MAGIC() magic */
+	uint8_t	type;			/* Internal code */
+	uint8_t	_magic;			/* _MAGIC() magic */
 	Mach	*mach;			/* Per-machine data */
-	long	hsize;			/* header size */
-	ulong	(*swal)(ulong);		/* beswal or leswal */
+	int32_t	hsize;			/* header size */
+	uint32_t	(*swal)(uint32_t);		/* beswal or leswal */
 	int	(*hparse)(int, Fhdr*, ExecHdr*);
 } ExecTable;
 
+#ifdef HARVEYMIPS
 extern	Mach	mmips;
 extern	Mach	mmips2le;
 extern	Mach	mmips2be;
+#elif HARVEYSPARC
 extern	Mach	msparc;
 extern	Mach	msparc64;
 extern	Mach	m68020;
+#elif HARVEY32
 extern	Mach	mi386;
+#endif
 extern	Mach	mamd64;
+#ifdef HARVEYARM
 extern	Mach	marm;
+#elif HARVEYPPC
 extern	Mach	mpower;
 extern	Mach	mpower64;
+#elif HARVEYALPHA
 extern	Mach	malpha;
+#endif
 
 ExecTable exectab[] =
 {
+#ifdef HARVEYMIPS
 	{ V_MAGIC,			/* Mips v.out */
 		"mips plan 9 executable BE",
 		"mips plan 9 dlm BE",
@@ -135,6 +152,7 @@ ExecTable exectab[] =
 		sizeof(struct mips4kexec),
 		beswal,
 		mips4kboot },
+#elif HARVEYSPARC
 	{ K_MAGIC,			/* Sparc k.out */
 		"sparc plan 9 executable",
 		"sparc plan 9 dlm",
@@ -171,6 +189,7 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
+#elif HARVEYNEXT
 	{ 0xFEEDFACE,			/* Next boot image */
 		"next plan 9 boot image",
 		nil,
@@ -180,6 +199,7 @@ ExecTable exectab[] =
 		sizeof(struct nextexec),
 		beswal,
 		nextboot },
+#elif HARVEY32
 	{ I_MAGIC,			/* I386 8.out & boot image */
 		"386 plan 9 executable",
 		"386 plan 9 dlm",
@@ -189,6 +209,7 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
+#endif
 	{ S_MAGIC,			/* amd64 6.out & boot image */
 		"amd64 plan 9 executable",
 		"amd64 plan 9 dlm",
@@ -198,6 +219,7 @@ ExecTable exectab[] =
 		sizeof(Exec)+8,
 		nil,
 		commonllp64 },
+#ifdef HARVEYPPC
 	{ Q_MAGIC,			/* PowerPC q.out & boot image */
 		"power plan 9 executable",
 		"power plan 9 dlm",
@@ -216,15 +238,19 @@ ExecTable exectab[] =
 		sizeof(Exec)+8,
 		nil,
 		commonllp64 },
+#endif
 	{ ELF_MAG,			/* any ELF */
 		"elf executable",
 		nil,
 		FNONE,
 		0,
-		&mi386,
-		sizeof(Ehdr),
+/*		&mi386,
+		sizeof(Ehdr), */
+		&mamd64,
+		sizeof(E64hdr),
 		nil,
 		elfdotout },
+#ifdef HARVEYARM
 	{ E_MAGIC,			/* Arm 5.out and boot image */
 		"arm plan 9 executable",
 		"arm plan 9 dlm",
@@ -243,6 +269,7 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		leswal,
 		armdotout },
+#elif HARVEYALPHA
 	{ L_MAGIC,			/* alpha 7.out */
 		"alpha plan 9 executable",
 		"alpha plan 9 dlm",
@@ -261,24 +288,29 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
+#endif
 	{ 0 },
 };
 
+#ifdef HARVEY32
 Mach	*mach = &mi386;			/* Global current machine table */
+#endif
+Mach	*mach = &mamd64;
 
 static ExecTable*
 couldbe4k(ExecTable *mp)
 {
-	Dir *d;
+//	Dir *d;
 	ExecTable *f;
 
+/* undefined for use with kernel
 	if((d=dirstat("/proc/1/regs")) == nil)
 		return mp;
-	if(d->length < 32*8){		/* R3000 */
+	if(d->length < 32*8){		/ * R3000 * /
 		free(d);
 		return mp;
 	}
-	free(d);
+	free(d); */
 	for (f = exectab; f->magic; f++)
 		if(f->magic == M_MAGIC) {
 			f->name = "mips plan 9 executable on mips2 kernel";
@@ -293,7 +325,7 @@ crackhdr(int fd, Fhdr *fp)
 	ExecTable *mp;
 	ExecHdr d;
 	int nb, ret;
-	ulong magic;
+	uint32_t magic;
 
 	fp->type = FNONE;
 	nb = read(fd, (char *)&d.e, sizeof(d.e));
@@ -340,7 +372,7 @@ crackhdr(int fd, Fhdr *fp)
 
 		mach = mp->mach;
 		if(mp->swal != nil)
-			hswal(&d, sizeof(d.e)/sizeof(ulong), mp->swal);
+			hswal(&d, sizeof(d.e)/sizeof(uint32_t), mp->swal);
 		ret = mp->hparse(fd, fp, &d);
 		seek(fd, mp->hsize, 0);		/* seek to end of header */
 		break;
@@ -354,9 +386,9 @@ crackhdr(int fd, Fhdr *fp)
  * Convert header to canonical form
  */
 static void
-hswal(void *v, int n, ulong (*swap)(ulong))
+hswal(void *v, int n, uint32_t (*swap)(uint32_t))
 {
-	ulong *ulp;
+	uint32_t *ulp;
 
 	for(ulp = v; n--; ulp++)
 		*ulp = (*swap)(*ulp);
@@ -368,7 +400,7 @@ hswal(void *v, int n, ulong (*swap)(ulong))
 static int
 adotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	long pgsize;
+	int32_t pgsize;
 
 	USED(fd);
 	pgsize = mach->pgsize;
@@ -393,25 +425,25 @@ commonboot(Fhdr *fp)
 		break;
 	case FI386:
 		fp->type = FI386B;
-		fp->txtaddr = (u32int)fp->entry;
+		fp->txtaddr = (uint32_t)fp->entry;
 		fp->name = "386 plan 9 boot image";
 		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
 		break;
 	case FARM:
 		fp->type = FARMB;
-		fp->txtaddr = (u32int)fp->entry;
+		fp->txtaddr = (uint32_t)fp->entry;
 		fp->name = "ARM plan 9 boot image";
 		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
 		return;
 	case FALPHA:
 		fp->type = FALPHAB;
-		fp->txtaddr = (u32int)fp->entry;
+		fp->txtaddr = (uint32_t)fp->entry;
 		fp->name = "alpha plan 9 boot image";
 		fp->dataddr = fp->txtaddr+fp->txtsz;
 		break;
 	case FPOWER:
 		fp->type = FPOWERB;
-		fp->txtaddr = (u32int)fp->entry;
+		fp->txtaddr = (uint32_t)fp->entry;
 		fp->name = "power plan 9 boot image";
 		fp->dataddr = fp->txtaddr+fp->txtsz;
 		break;
@@ -452,12 +484,12 @@ common(int fd, Fhdr *fp, ExecHdr *hp)
 }
 
 static int
-commonllp64(int, Fhdr *fp, ExecHdr *hp)
+commonllp64(int i, Fhdr *fp, ExecHdr *hp)
 {
-	long pgsize;
-	uvlong entry;
+	int32_t pgsize;
+	uint64_t entry;
 
-	hswal(&hp->e, sizeof(Exec)/sizeof(long), beswal);
+	hswal(&hp->e, sizeof(Exec)/sizeof(int32_t), beswal);
 	if(!(hp->e.magic & HDR_MAGIC))
 		return 0;
 
@@ -486,6 +518,7 @@ commonllp64(int, Fhdr *fp, ExecHdr *hp)
 	return 1;
 }
 
+#ifdef HARVEYMIPS
 /*
  *	mips bootable image.
  */
@@ -497,15 +530,17 @@ mipsboot(int fd, Fhdr *fp, ExecHdr *hp)
 	switch(hp->e.amagic) {
 	default:
 	case 0407:	/* some kind of mips */
-		settext(fp, (u32int)hp->e.mentry, (u32int)hp->e.text_start,
+		settext(fp, (uint32_t)hp->e.mentry,
+			(uint32_t)hp->e.text_start,
 			hp->e.tsize, sizeof(struct mipsexec)+4);
-		setdata(fp, (u32int)hp->e.data_start, hp->e.dsize,
+		setdata(fp, (uint32_t)hp->e.data_start, hp->e.dsize,
 			fp->txtoff+hp->e.tsize, hp->e.bsize);
 		break;
 	case 0413:	/* some kind of mips */
-		settext(fp, (u32int)hp->e.mentry, (u32int)hp->e.text_start,
+		settext(fp, (uint32_t)hp->e.mentry,
+			(uint32_t)hp->e.text_start,
 			hp->e.tsize, 0);
-		setdata(fp, (u32int)hp->e.data_start, hp->e.dsize,
+		setdata(fp, (uint32_t)hp->e.data_start, hp->e.dsize,
 			hp->e.tsize, hp->e.bsize);
 		break;
 	}
@@ -525,15 +560,17 @@ mips4kboot(int fd, Fhdr *fp, ExecHdr *hp)
 	switch(hp->e.h.amagic) {
 	default:
 	case 0407:	/* some kind of mips */
-		settext(fp, (u32int)hp->e.h.mentry, (u32int)hp->e.h.text_start,
+		settext(fp, (uint32_t)hp->e.h.mentry,
+			(uint32_t)hp->e.h.text_start,
 			hp->e.h.tsize, sizeof(struct mips4kexec));
-		setdata(fp, (u32int)hp->e.h.data_start, hp->e.h.dsize,
+		setdata(fp, (uint32_t)hp->e.h.data_start, hp->e.h.dsize,
 			fp->txtoff+hp->e.h.tsize, hp->e.h.bsize);
 		break;
 	case 0413:	/* some kind of mips */
-		settext(fp, (u32int)hp->e.h.mentry, (u32int)hp->e.h.text_start,
+		settext(fp, (uint32_t)hp->e.h.mentry,
+			(uint32_t)hp->e.h.text_start,
 			hp->e.h.tsize, 0);
-		setdata(fp, (u32int)hp->e.h.data_start, hp->e.h.dsize,
+		setdata(fp, (uint32_t)hp->e.h.data_start, hp->e.h.dsize,
 			hp->e.h.tsize, hp->e.h.bsize);
 		break;
 	}
@@ -541,7 +578,8 @@ mips4kboot(int fd, Fhdr *fp, ExecHdr *hp)
 	fp->hdrsz = 0;			/* header stripped */
 	return 1;
 }
-
+#endif
+#ifdef HARVEYSPARC
 /*
  *	sparc bootable image
  */
@@ -558,7 +596,8 @@ sparcboot(int fd, Fhdr *fp, ExecHdr *hp)
 	fp->hdrsz = 0;			/* header stripped */
 	return 1;
 }
-
+#endif
+#ifdef HARVEYNEXT
 /*
  *	next bootable image
  */
@@ -576,6 +615,7 @@ nextboot(int fd, Fhdr *fp, ExecHdr *hp)
 	fp->hdrsz = 0;			/* header stripped */
 	return 1;
 }
+#endif
 
 /*
  * ELF64 binaries.
@@ -585,11 +625,11 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
 	E64hdr *ep;
 	P64hdr *ph;
-	ushort (*swab)(ushort);
-	ulong (*swal)(ulong);
-	uvlong (*swav)(uvlong);
+	uint16_t (*swab)(uint16_t);
+	uint32_t (*swal)(uint32_t);
+	uint64_t (*swav)(uint64_t);
 	int i, it, id, is, phsz;
-	uvlong uvl;
+	uint64_t uvl;
 
 	ep = &hp->e;
 	if(ep->ident[DATA] == ELFDATA2LSB) {
@@ -632,7 +672,9 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 		fp->name = "amd64 ELF64 executable";
 		break;
 	case POWER64:
+#ifdef HARVEYPPC
 		mach = &mpower64;
+#endif
 		fp->type = FPOWER64;
 		fp->name = "power64 ELF64 executable";
 		break;
@@ -690,14 +732,15 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 	return 1;
 }
 
+#ifdef HARVEY32
 /*
  * ELF32 binaries.
  */
 static int
 elf32dotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	ulong (*swal)(ulong);
-	ushort (*swab)(ushort);
+	uint32_t (*swal)(uint32_t);
+	uint16_t (*swab)(uint16_t);
 	Ehdr *ep;
 	Phdr *ph;
 	int i, it, id, is, phsz;
@@ -787,7 +830,7 @@ elf32dotout(int fd, Fhdr *fp, ExecHdr *hp)
 		free(ph);
 		return 0;
 	}
-	hswal(ph, phsz/sizeof(ulong), swal);
+	hswal(ph, phsz/sizeof(uint32_t), swal);
 
 	/* find text, data and symbols and install them */
 	it = id = is = -1;
@@ -812,7 +855,7 @@ elf32dotout(int fd, Fhdr *fp, ExecHdr *hp)
 		 * ph[1] : symsz, lcsz, 0, 0, symoff
 		 */
 		if(ep->machine == SPARC64 && ep->phnum == 2) {
-			ulong txtaddr, txtsz, dataddr, bsssz;
+			uint32_t txtaddr, txtsz, dataddr, bsssz;
 
 			txtaddr = ph[0].vaddr | 0x80000000;
 			txtsz = ph[0].filesz - ph[0].paddr;
@@ -838,22 +881,26 @@ elf32dotout(int fd, Fhdr *fp, ExecHdr *hp)
 	return 1;
 }
 
+#endif
 /*
  * Elf binaries.
  */
 static int
 elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	Ehdr *ep;
+//	Ehdr *ep;
+	E64hdr *ep;
 
 	/* bitswap the header according to the DATA format */
 	ep = &hp->e;
-	if(ep->ident[CLASS] == ELFCLASS32)
-		return elf32dotout(fd, fp, hp);
-	else if(ep->ident[CLASS] == ELFCLASS64)
+//	if(ep->ident[CLASS] == ELFCLASS32)
+//		return elf32dotout(fd, fp, hp);
+//	else if(ep->ident[CLASS] == ELFCLASS64)
+	if(ep->ident[CLASS] == ELFCLASS64)
 		return elf64dotout(fd, fp, hp);
 
-	werrstr("bad ELF class - not 32- nor 64-bit");
+//	werrstr("bad ELF class - not 32- nor 64-bit");
+	werrstr("bad ELF class - not 64-bit");
 	return 0;
 }
 
@@ -863,7 +910,7 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 static int
 armdotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	uvlong kbase;
+	uint64_t kbase;
 
 	USED(fd);
 	settext(fp, hp->e.entry, sizeof(Exec), hp->e.text, sizeof(Exec));
@@ -881,7 +928,7 @@ armdotout(int fd, Fhdr *fp, ExecHdr *hp)
 }
 
 static void
-settext(Fhdr *fp, uvlong e, uvlong a, long s, vlong off)
+settext(Fhdr *fp, uint64_t e, uint64_t a, int32_t s, int64_t off)
 {
 	fp->txtaddr = a;
 	fp->entry = e;
@@ -890,7 +937,7 @@ settext(Fhdr *fp, uvlong e, uvlong a, long s, vlong off)
 }
 
 static void
-setdata(Fhdr *fp, uvlong a, long s, vlong off, long bss)
+setdata(Fhdr *fp, uint64_t a, int32_t s, int64_t off, int32_t bss)
 {
 	fp->dataddr = a;
 	fp->datsz = s;
@@ -899,7 +946,8 @@ setdata(Fhdr *fp, uvlong a, long s, vlong off, long bss)
 }
 
 static void
-setsym(Fhdr *fp, long symsz, long sppcsz, long lnpcsz, vlong symoff)
+setsym(Fhdr *fp, int32_t symsz, int32_t sppcsz, int32_t lnpcsz,
+       int64_t symoff)
 {
 	fp->symsz = symsz;
 	fp->symoff = symoff;
@@ -910,10 +958,10 @@ setsym(Fhdr *fp, long symsz, long sppcsz, long lnpcsz, vlong symoff)
 }
 
 
-static uvlong
-_round(uvlong a, ulong b)
+static uint64_t
+_round(uint64_t a, uint32_t b)
 {
-	uvlong w;
+	uint64_t w;
 
 	w = (a/b)*b;
 	if (a!=w)

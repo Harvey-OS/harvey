@@ -27,8 +27,8 @@ void
 fsread(Req *r)
 {
 	Ramfile *rf;
-	vlong offset;
-	long count;
+	int64_t offset;
+	int32_t count;
 
 	rf = r->fid->file->aux;
 	offset = r->ifcall.offset;
@@ -54,8 +54,8 @@ fswrite(Req *r)
 {
 	void *v;
 	Ramfile *rf;
-	vlong offset;
-	long count;
+	int64_t offset;
+	int32_t count;
 
 	rf = r->fid->file->aux;
 	offset = r->ifcall.offset;

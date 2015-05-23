@@ -15,7 +15,7 @@
 #include "dat.h"
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -27,7 +27,7 @@ emalloc(ulong n)
 }
 
 void*
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -48,7 +48,7 @@ estrdup(char *s)
 char*
 estrstrdup(char *s, char *t)
 {
-	long ns, nt;
+	int32_t ns, nt;
 	char *u;
 
 	ns = strlen(s);
@@ -66,7 +66,7 @@ estrstrdup(char *s, char *t)
 char*
 eappend(char *s, char *sep, char *t)
 {
-	long ns, nsep, nt;
+	int32_t ns, nsep, nt;
 	char *u;
 
 	if(t == nil)
@@ -114,7 +114,7 @@ error(char *fmt, ...)
 }
 
 void
-growbytes(Bytes *b, char *s, long ns)
+growbytes(Bytes *b, char *s, int32_t ns)
 {
 	if(b->nalloc < b->n + ns + 1){
 		b->nalloc = b->n + ns + 8000;

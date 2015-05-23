@@ -18,7 +18,7 @@ static Ref mountid;
 
 #ifdef NOTDEF
 void
-pgrpnote(ulong noteid, char *a, long n, int flag)
+pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 {
 	Proc *p, *ep;
 	char buf[ERRMAX];

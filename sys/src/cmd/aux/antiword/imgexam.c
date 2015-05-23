@@ -903,7 +903,7 @@ tFind8Image(FILE *pFile, size_t tPosition, size_t tLength,
 image_info_enum
 eExamineImage(FILE *pFile, ULONG ulFileOffsetImage, imagedata_type *pImg)
 {
-	long	lTmp;
+	int32_t	lTmp;
 	size_t	tWordHeaderLen, tLength, tPos;
 	int	iType, iHorSize, iVerSize;
 	USHORT	usHorScalingFactor, usVerScalingFactor;
@@ -957,13 +957,13 @@ eExamineImage(FILE *pFile, ULONG ulFileOffsetImage, imagedata_type *pImg)
 	DBG_DEC(usVerScalingFactor);
 
 	/* Sanity checks */
-	lTmp = (long)iHorSize * (long)usHorScalingFactor;
+	lTmp = (int32_t)iHorSize * (int32_t)usHorScalingFactor;
 	if (lTmp < 2835) {
 		/* This image would be less than 1 millimeter wide */
 		DBG_DEC(lTmp);
 		return image_no_information;
 	}
-	lTmp = (long)iVerSize * (long)usVerScalingFactor;
+	lTmp = (int32_t)iVerSize * (int32_t)usVerScalingFactor;
 	if (lTmp < 2835) {
 		/* This image would be less than 1 millimeter high */
 		DBG_DEC(lTmp);
@@ -1013,9 +1013,9 @@ eExamineImage(FILE *pFile, ULONG ulFileOffsetImage, imagedata_type *pImg)
 	pImg->tLength = tLength;
 	pImg->tPosition = tPos;
 	pImg->iHorSizeScaled =
-		(int)(((long)iHorSize * (long)usHorScalingFactor + 500) / 1000);
+		(int)(((int32_t)iHorSize * (int32_t)usHorScalingFactor + 500) / 1000);
 	pImg->iVerSizeScaled =
-		(int)(((long)iVerSize * (long)usVerScalingFactor + 500) / 1000);
+		(int)(((int32_t)iVerSize * (int32_t)usVerScalingFactor + 500) / 1000);
 #if !defined(__riscos)
 	vImage2Papersize(pImg);
 #endif /* !__riscos */

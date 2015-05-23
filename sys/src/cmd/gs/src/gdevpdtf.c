@@ -543,7 +543,7 @@ pdf_resize_resource_arrays(gx_device_pdf *pdev, pdf_font_resource_t *pfres, int 
 }
 
 /* Get the object ID of a font resource. */
-long
+int32_t
 pdf_font_id(const pdf_font_resource_t *pdfont)
 {
     return pdf_resource_id((const pdf_resource_t *)pdfont);
@@ -874,7 +874,7 @@ pdf_font_cidfont_alloc(gx_device_pdf *pdev, pdf_font_resource_t **ppfres,
     int code;
     pdf_font_write_contents_proc_t write_contents;
     const gs_cid_system_info_t *pcidsi;
-    ushort *map = 0;
+    uint16_t *map = 0;
     pdf_font_resource_t *pdfont;
 
     switch (FontType) {
@@ -921,7 +921,7 @@ pdf_font_cidfont_alloc(gx_device_pdf *pdev, pdf_font_resource_t **ppfres,
      * the font may no longer be available.
      */
     {
-	long cidsi_id = pdf_begin_separate(pdev);
+	int32_t cidsi_id = pdf_begin_separate(pdev);
 
 	code = pdf_write_cid_system_info(pdev, pcidsi, cidsi_id);
 	if (code < 0)

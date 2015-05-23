@@ -45,7 +45,7 @@ gs_id gs_next_ids(const gs_memory_t *mem, uint count);
 void memflip8x8(const byte * inp, int line_size, byte * outp, int dist);
 
 /* Get an unsigned, big-endian 32-bit value. */
-ulong get_u32_msb(const byte *p);
+uint32_t get_u32_msb(const byte *p);
 
 /* ------ String utilities ------ */
 

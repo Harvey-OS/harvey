@@ -119,7 +119,7 @@ int
 gdev_pcl_3bit_map_color_rgb(gx_device * dev, gx_color_index color,
 			    gx_color_value prgb[3])
 {
-    ushort cc = (ushort) color ^ 7;
+    uint16_t cc = (uint16_t) color ^ 7;
 
     prgb[0] = -(cc & 1);
     prgb[1] = -((cc >> 1) & 1);

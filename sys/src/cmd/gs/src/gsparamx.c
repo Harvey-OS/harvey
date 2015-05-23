@@ -109,7 +109,7 @@ param_put_int(gs_param_list * plist, gs_param_name param_name,
 /* Put a long value. */
 int
 param_put_long(gs_param_list * plist, gs_param_name param_name,
-	       long *pval, int ecode)
+	       int32_t *pval, int ecode)
 {
     int code;
 

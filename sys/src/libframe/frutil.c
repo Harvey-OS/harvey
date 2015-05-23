@@ -18,7 +18,7 @@ int
 _frcanfit(Frame *f, Point pt, Frbox *b)
 {
 	int left, w, nr;
-	uchar *p;
+	uint8_t *p;
 	Rune r;
 
 	left = f->r.max.x-pt.x;

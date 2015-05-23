@@ -51,7 +51,7 @@
 
 typedef struct {
     fixed v0, v1;		/* coordinates */
-    ushort index;		/* sequential index of hint */
+    uint16_t index;		/* sequential index of hint */
 } cv_stem_hint;
 typedef struct {
     int count;
@@ -192,7 +192,7 @@ type1_next(gs_type1_state *pcis)
 	    } else if (c < cx_num4) {	/* 2-byte number */
 		decode_push_num2(csp, pcis->ostack, c, cip, state, encrypted);
 	    } else if (c == cx_num4) {	/* 4-byte number */
-		long lw;
+		int32_t lw;
 
 		decode_num4(lw, cip, state, encrypted);
 		CS_CHECK_PUSH(csp, pcis->ostack);

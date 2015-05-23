@@ -101,10 +101,10 @@ static uint
 hash(char *s)
 {
 	uint h;
-	uchar *p;
+	uint8_t *p;
 
 	h = 0;
-	for(p=(uchar*)s; *p; p++)
+	for(p=(uint8_t*)s; *p; p++)
 		h = h*37 + *p;
 	return h;
 }

@@ -127,7 +127,7 @@ s_alloc(gs_memory_t * mem, client_name_t cname)
     stream *s = gs_alloc_struct(mem, stream, &st_stream, cname);
 
     if_debug2('s', "[s]alloc(%s) = 0x%lx\n",
-	      client_name_string(cname), (ulong) s);
+	      client_name_string(cname), (uint32_t) s);
     if (s == 0)
 	return 0;
     s_init(s, mem);
@@ -153,7 +153,7 @@ s_alloc_state(gs_memory_t * mem, gs_memory_type_ptr_t stype,
     if_debug3('s', "[s]alloc_state %s(%s) = 0x%lx\n",
 	      client_name_string(cname),
 	      client_name_string(stype->sname),
-	      (ulong) st);
+	      (uint32_t) st);
     if (st)
 	s_init_state(st, NULL, mem);
     return st;
@@ -182,7 +182,7 @@ s_std_init(register stream * s, byte * ptr, uint len, const stream_procs * pp,
     s->file_name.data = 0;	/* in case stream is on stack */
     s->file_name.size = 0;
     if_debug4('s', "[s]init 0x%lx, buf=0x%lx, len=%u, modes=%d\n",
-	      (ulong) s, (ulong) ptr, len, modes);
+	      (uint32_t) s, (uint32_t) ptr, len, modes);
 }
 
 
@@ -265,7 +265,7 @@ s_std_write_flush(stream * s)
 
 /* Indicate that the number of available input bytes is unknown. */
 int
-s_std_noavailable(stream * s, long *pl)
+s_std_noavailable(stream * s, int32_t *pl)
 {
     *pl = -1;
     return 0;
@@ -273,7 +273,7 @@ s_std_noavailable(stream * s, long *pl)
 
 /* Indicate an error when asked to seek. */
 int
-s_std_noseek(stream * s, long pos)
+s_std_noseek(stream * s, int32_t pos)
 {
     return ERRC;
 }
@@ -319,7 +319,7 @@ s_disable(register stream * s)
 	s->file_name.size = 0;
     }
     /****** SHOULD DO MORE THAN THIS ******/
-    if_debug1('s', "[s]disable 0x%lx\n", (ulong) s);
+    if_debug1('s', "[s]disable 0x%lx\n", (uint32_t) s);
 }
 
 /* Implement flushing for encoding filters. */
@@ -382,13 +382,13 @@ const stream_procs s_filter_write_procs = {
 
 /* Store the amount of available data in a(n input) stream. */
 int
-savailable(stream * s, long *pl)
+savailable(stream * s, int32_t *pl)
 {
     return (*(s)->procs.available) (s, pl);
 }
 
 /* Return the current position of a stream. */
-long
+int32_t
 stell(stream * s)
 {
     /*
@@ -402,10 +402,10 @@ stell(stream * s)
 
 /* Set the position of a stream. */
 int
-spseek(stream * s, long pos)
+spseek(stream * s, int32_t pos)
 {
     if_debug3('s', "[s]seek 0x%lx to %ld, position was %ld\n",
-	      (ulong) s, pos, stell(s));
+	      (uint32_t) s, pos, stell(s));
     return (*(s)->procs.seek) (s, pos);
 }
 
@@ -597,9 +597,9 @@ sputs(register stream * s, const byte * str, uint wlen, uint * pn)
 /* Return 0 or an exception status. */
 /* Store the number of bytes skipped in *pskipped. */
 int
-spskip(register stream * s, long nskip, long *pskipped)
+spskip(register stream * s, int32_t nskip, int32_t *pskipped)
 {
-    long n = nskip;
+    int32_t n = nskip;
     int min_left;
 
     if (nskip < 0 || !s_is_reading(s)) {
@@ -607,7 +607,7 @@ spskip(register stream * s, long nskip, long *pskipped)
 	return ERRC;
     }
     if (s_can_seek(s)) {
-	long pos = stell(s);
+	int32_t pos = stell(s);
 	int status = sseek(s, pos + n);
 
 	*pskipped = stell(s) - pos;
@@ -811,13 +811,13 @@ sreadbuf(stream * s, stream_cursor_write * pbuf)
 	    }
 	    pw = (prev == 0 ? pbuf : &curr->cursor.w);
 	    if_debug4('s', "[s]read process 0x%lx, nr=%u, nw=%u, eof=%d\n",
-		      (ulong) curr, (uint) (pr->limit - pr->ptr),
+		      (uint32_t) curr, (uint) (pr->limit - pr->ptr),
 		      (uint) (pw->limit - pw->ptr), eof);
 	    oldpos = pw->ptr;
 	    status = (*curr->procs.process) (curr->state, pr, pw, eof);
 	    pr->limit += left;
 	    if_debug5('s', "[s]after read 0x%lx, nr=%u, nw=%u, status=%d, position=%d\n",
-		      (ulong) curr, (uint) (pr->limit - pr->ptr),
+		      (uint32_t) curr, (uint) (pr->limit - pr->ptr),
 		      (uint) (pw->limit - pw->ptr), status, s->position);
 	    if (strm == 0 || status != 0)
 		break;
@@ -892,7 +892,7 @@ swritebuf(stream * s, stream_cursor_read * pbuf, bool last)
 		pr = &curr->cursor.r;
 	    if_debug5('s',
 		      "[s]write process 0x%lx(%s), nr=%u, nw=%u, end=%d\n",
-		      (ulong)curr,
+		      (uint32_t)curr,
 		      gs_struct_type_name(curr->state->template->stype),
 		      (uint)(pr->limit - pr->ptr),
 		      (uint)(pw->limit - pw->ptr), end);
@@ -901,7 +901,7 @@ swritebuf(stream * s, stream_cursor_read * pbuf, bool last)
 		status = (*curr->procs.process)(curr->state, pr, pw, end);
 		if_debug5('s',
 			  "[s]after write 0x%lx, nr=%u, nw=%u, end=%d, status=%d\n",
-			  (ulong) curr, (uint) (pr->limit - pr->ptr),
+			  (uint32_t) curr, (uint) (pr->limit - pr->ptr),
 			  (uint) (pw->limit - pw->ptr), end, status);
 		if (status == 0 && end)
 		    status = EOFC;
@@ -993,9 +993,9 @@ stream_compact(stream * s, bool always)
 
 /* String stream procedures */
 private int
-    s_string_available(stream *, long *),
-    s_string_read_seek(stream *, long),
-    s_string_write_seek(stream *, long),
+    s_string_available(stream *, int32_t *),
+    s_string_read_seek(stream *, int32_t),
+    s_string_write_seek(stream *, int32_t),
     s_string_read_process(stream_state *, stream_cursor_read *,
 			  stream_cursor_write *, bool),
     s_string_write_process(stream_state *, stream_cursor_read *,
@@ -1044,7 +1044,7 @@ sread_string_reusable(stream *s, const byte *ptr, uint len)
 
 /* Return the number of available bytes when reading from a string. */
 private int
-s_string_available(stream *s, long *pl)
+s_string_available(stream *s, int32_t *pl)
 {
     *pl = sbufavailable(s);
     if (*pl == 0 && s->close_at_eod)	/* EOF */
@@ -1054,7 +1054,7 @@ s_string_available(stream *s, long *pl)
 
 /* Seek in a string being read.  Return 0 if OK, ERRC if not. */
 private int
-s_string_read_seek(register stream * s, long pos)
+s_string_read_seek(register stream * s, int32_t pos)
 {
     if (pos < 0 || pos > s->bsize)
 	return ERRC;
@@ -1089,7 +1089,7 @@ swrite_string(register stream * s, byte * ptr, uint len)
 
 /* Seek in a string being written.  Return 0 if OK, ERRC if not. */
 private int
-s_string_write_seek(register stream * s, long pos)
+s_string_write_seek(register stream * s, int32_t pos)
 {
     if (pos < 0 || pos > s->bsize)
 	return ERRC;

@@ -219,7 +219,7 @@ dataread(Req *r, Client *c)
 static void
 readthread(void *a)
 {
-	uchar *buf;
+	uint8_t *buf;
 	int n;
 	Client *c;
 	Ioproc *io;
@@ -234,7 +234,7 @@ readthread(void *a)
 	io = c->readerproc;
 	while((n = ioread(io, c->fd[0], buf, 8192)) >= 0){
 		m = emalloc(sizeof(Msg)+n);
-		m->rp = (uchar*)&m[1];
+		m->rp = (uint8_t*)&m[1];
 		m->ep = m->rp + n;
 		if(n)
 			memmove(m->rp, buf, n);
@@ -282,7 +282,7 @@ static void
 writethread(void *a)
 {
 	char e[ERRMAX];
-	uchar *buf;
+	uint8_t *buf;
 	int n;
 	Ioproc *io;
 	Req *r;

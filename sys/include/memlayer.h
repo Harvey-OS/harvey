@@ -37,14 +37,14 @@ struct Memlayer
 /*
  * These functions accept local coordinates
  */
-int			memload(Memimage*, Rectangle, uchar*, int, int);
-int			memunload(Memimage*, Rectangle, uchar*, int);
+int			memload(Memimage*, Rectangle, uint8_t*, int, int);
+int			memunload(Memimage*, Rectangle, uint8_t*, int);
 
 /*
  * All these functions accept screen coordinates, not local ones.
  */
 void			_memlayerop(void (*fn)(Memimage*, Rectangle, Rectangle, void*, int), Memimage*, Rectangle, Rectangle, void*);
-Memimage*	memlalloc(Memscreen*, Rectangle, Refreshfn, void*, ulong);
+Memimage*	memlalloc(Memscreen*, Rectangle, Refreshfn, void*, uint32_t);
 void			memldelete(Memimage*);
 void			memlfree(Memimage*);
 void			memltofront(Memimage*);

@@ -809,7 +809,7 @@ stc_print_page(gx_device_printer * pdev, FILE * prn_stream)
 private bool 
 stc_iswhite(stcolor_device *sd, int prt_pixels,byte *ext_data)
 {
-   long  b2do = (prt_pixels*sd->color_info.depth+7)>>3;
+   int32_t  b2do = (prt_pixels*sd->color_info.depth+7)>>3;
    int   bcmp = 4 * countof(sd->stc.white_run);
    byte *wht  = (byte *) sd->stc.white_run;
 
@@ -902,10 +902,10 @@ private byte *
 stc_rgb24_long(stcolor_device *sd,byte *ext_data,int prt_pixels,byte *alg_line)
 { /* convert 3 bytes into appropriate long-Values */
   register int   p;
-  register long *out   = (long *) alg_line;
-  register long *rvals = (long *) (sd->stc.vals[0]);
-  register long *gvals = (long *) (sd->stc.vals[1]);
-  register long *bvals = (long *) (sd->stc.vals[2]);
+  register int32_t *out   = (int32_t *) alg_line;
+  register int32_t *rvals = (int32_t *) (sd->stc.vals[0]);
+  register int32_t *gvals = (int32_t *) (sd->stc.vals[1]);
+  register int32_t *bvals = (int32_t *) (sd->stc.vals[2]);
 
   for(p = prt_pixels; p; --p) {
      *out++ = rvals[*ext_data++];
@@ -923,11 +923,11 @@ private byte *
 stc_cmyk32_long(stcolor_device *sd,byte *ext_data,int prt_pixels,byte *alg_line)
 { /* convert 4 bytes into appropriate long-Values */
   register int   p;
-  register long *out   = (long *) alg_line;
-  register long *cvals = (long *) (sd->stc.vals[0]);
-  register long *mvals = (long *) (sd->stc.vals[1]);
-  register long *yvals = (long *) (sd->stc.vals[2]);
-  register long *kvals = (long *) (sd->stc.vals[3]);
+  register int32_t *out   = (int32_t *) alg_line;
+  register int32_t *cvals = (int32_t *) (sd->stc.vals[0]);
+  register int32_t *mvals = (int32_t *) (sd->stc.vals[1]);
+  register int32_t *yvals = (int32_t *) (sd->stc.vals[2]);
+  register int32_t *kvals = (int32_t *) (sd->stc.vals[3]);
 
   for(p = prt_pixels; p; --p) {
      *out++ = cvals[*ext_data++];
@@ -1939,7 +1939,7 @@ stc_truncate(stcolor_device *sd,int i,gx_color_value v)
 /*
  * Perform binary search in the code-array
  */
-         long  s;
+         int32_t  s;
          gx_color_value *p;
 
          s = sd->stc.bits > 1 ? 1L<<(sd->stc.bits-2) : 0L;
@@ -2351,10 +2351,10 @@ stc_map_cmyk10_color(gx_device *pdev, const gx_color_value cv[])
    } else if(((sd->stc.dither->flags & STC_TYPE) == STC_LONG) &&
              ( sd->stc.dither->minmax[0]         ==     0.0 ) &&
              ( sd->stc.dither->minmax[1]         <=  1023.0 )) {
-      c = ((long *)(sd->stc.vals[0]))[c];
-      m = ((long *)(sd->stc.vals[1]))[m];
-      y = ((long *)(sd->stc.vals[2]))[y];
-      k = ((long *)(sd->stc.vals[3]))[k];
+      c = ((int32_t *)(sd->stc.vals[0]))[c];
+      m = ((int32_t *)(sd->stc.vals[1]))[m];
+      y = ((int32_t *)(sd->stc.vals[2]))[y];
+      k = ((int32_t *)(sd->stc.vals[3]))[k];
    }                                                       /* direct */
 /*
  * compute the long-representation of gx_color_index

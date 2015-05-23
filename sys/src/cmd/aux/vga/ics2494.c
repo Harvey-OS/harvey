@@ -20,7 +20,7 @@
 
 typedef struct {
 	char*	name[2];
-	ulong	frequency[16];
+	uint32_t	frequency[16];
 } Pattern;
 
 static Pattern patterns[] = {

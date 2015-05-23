@@ -60,6 +60,7 @@ chandial(char *dest, char *local, char *dir, Chan **ctlp)
 static Chan*
 call(char *clone, char *dest, DS *ds)
 {
+	Mach *m = machp();
 	int n;
 	Chan *dchan, *cchan;
 	char name[Maxpath], data[Maxpath], *p;
@@ -71,11 +72,11 @@ call(char *clone, char *dest, DS *ds)
 		cclose(cchan);
 		nexterror();
 	}
-	n = devtab[cchan->type]->read(cchan, name, sizeof(name)-1, 0);
+	n = cchan->dev->read(cchan, name, sizeof(name)-1, 0);
 	name[n] = 0;
 	for(p = name; *p == ' '; p++)
 		;
-	snprint(name, sizeof name, "%lud", strtoul(p, 0, 0));
+	sprint(name, "%lud", strtoul(p, 0, 0));
 	p = strrchr(clone, '/');
 	*p = 0;
 	if(ds->dir)
@@ -87,7 +88,7 @@ call(char *clone, char *dest, DS *ds)
 		snprint(name, sizeof(name), "connect %s %s", dest, ds->local);
 	else
 		snprint(name, sizeof(name), "connect %s", dest);
-	devtab[cchan->type]->write(cchan, name, strlen(name), 0);
+	cchan->dev->write(cchan, name, strlen(name), 0);
 
 	/* open data connection */
 	dchan = namec(data, Aopen, ORDWR, 0);

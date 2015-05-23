@@ -44,7 +44,7 @@ typedef struct gx_device_pe_s {
 #define pedev ((gx_device_pe *)dev)
 
 typedef struct {
-	ushort reg, val;
+	uint16_t reg, val;
 } regval;
 
 #define XSIZE 720

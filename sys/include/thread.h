@@ -38,7 +38,7 @@ struct Channel {
 	volatile Alt **qentry;	/* Receivers/senders waiting (malloc) */
 	volatile int nentry;	/* # of entries malloc-ed */
 	volatile int closed;	/* channel is closed */
-	uchar	v[1];		/* Array of s values in the channel */
+	uint8_t	v[1];		/* Array of s values in the channel */
 };
 
 
@@ -65,7 +65,7 @@ struct Alt {
 };
 
 struct Ref {
-	long	ref;
+	int32_t	ref;
 };
 
 int	alt(Alt alts[]);
@@ -75,14 +75,14 @@ Channel*chancreate(int elemsize, int bufsize);
 int	chaninit(Channel *c, int elemsize, int elemcnt);
 void	chanfree(Channel *c);
 int	chanprint(Channel *, char *, ...);
-long	decref(Ref *r);			/* returns 0 iff value is now zero */
+int32_t	decref(Ref *r);			/* returns 0 iff value is now zero */
 void	incref(Ref *r);
 int	nbrecv(Channel *c, void *v);
 void*	nbrecvp(Channel *c);
-ulong	nbrecvul(Channel *c);
+uint32_t	nbrecvul(Channel *c);
 int	nbsend(Channel *c, void *v);
 int	nbsendp(Channel *c, void *v);
-int	nbsendul(Channel *c, ulong v);
+int	nbsendul(Channel *c, uint32_t v);
 void	needstack(int);
 int	proccreate(void (*f)(void *arg), void *arg, uint stacksize);
 int	procrfork(void (*f)(void *arg), void *arg, uint stacksize, int flag);
@@ -91,10 +91,10 @@ void	procexec(Channel *, char *, char *[]);
 void	procexecl(Channel *, char *, ...);
 int	recv(Channel *c, void *v);
 void*	recvp(Channel *c);
-ulong	recvul(Channel *c);
+uint32_t	recvul(Channel *c);
 int	send(Channel *c, void *v);
 int	sendp(Channel *c, void *v);
-int	sendul(Channel *c, ulong v);
+int	sendul(Channel *c, uint32_t v);
 int	threadcreate(void (*f)(void *arg), void *arg, uint stacksize);
 void**	threaddata(void);
 void	threadexits(char *);
@@ -133,10 +133,10 @@ void	iointerrupt(Ioproc*);
 int	ioclose(Ioproc*, int);
 int	iodial(Ioproc*, char*, char*, char*, int*);
 int	ioopen(Ioproc*, char*, int);
-long	ioread(Ioproc*, int, void*, long);
-long	ioreadn(Ioproc*, int, void*, long);
-long	iowrite(Ioproc*, int, void*, long);
-int	iosleep(Ioproc*, long);
+int32_t	ioread(Ioproc*, int, void*, int32_t);
+int32_t	ioreadn(Ioproc*, int, void*, int32_t);
+int32_t	iowrite(Ioproc*, int, void*, int32_t);
+int	iosleep(Ioproc*, int32_t);
 
-long	iocall(Ioproc*, long (*)(va_list*), ...);
+int32_t	iocall(Ioproc*, int32_t (*)(va_list*), ...);
 void	ioret(Ioproc*, int);

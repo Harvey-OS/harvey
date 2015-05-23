@@ -154,7 +154,8 @@ void makeattr(int type, int sub, YYSTYPE val)	/* add attribute type and val */
 		return;
 	}
 	if (nattr >= nattrlist)
-		attr = (Attr *) grow((char *)attr, "attr", nattrlist += 100, sizeof(Attr));
+		attr = (Attr *) grow((char *)attr, "attr",
+				     nattrlist += 100, sizeof(Attr));
 	dprintf("attr %d:  %d %d %d\n", nattr, type, sub, val.i);
 	attr[nattr].a_type = type;
 	attr[nattr].a_sub = sub;

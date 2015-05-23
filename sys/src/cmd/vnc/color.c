@@ -16,12 +16,12 @@ enum {
 	BGR8 = CHAN3(CBlue, 2, CGreen, 3, CRed, 3),
 };
 
-void (*cvtpixels)(uchar*, uchar*, int);
+void (*cvtpixels)(uint8_t*, uint8_t*, int);
 
 static void
-chan2fmt(Pixfmt *fmt, ulong chan)
+chan2fmt(Pixfmt *fmt, uint32_t chan)
 {
-	ulong c, rc, shift;
+	uint32_t c, rc, shift;
 
 	shift = 0;
 	for(rc = chan; rc; rc >>=8){
@@ -47,7 +47,7 @@ chan2fmt(Pixfmt *fmt, ulong chan)
  * because we keep the server in little endian mode.
  */
 static void
-cvt32to24(uchar *dst, uchar *src, int npixel)
+cvt32to24(uint8_t *dst, uint8_t *src, int npixel)
 {
 	int i;
 
@@ -62,7 +62,7 @@ cvt32to24(uchar *dst, uchar *src, int npixel)
 /*
  * convert RGB12 (x4r4g4b4) into CMAP8
  */
-static uchar rgb12[16*16*16];
+static uint8_t rgb12[16*16*16];
 static void
 mkrgbtab(void)
 {
@@ -75,7 +75,7 @@ mkrgbtab(void)
 }
 
 static void
-cvtrgb12tocmap8(uchar *dst, uchar *src, int npixel)
+cvtrgb12tocmap8(uint8_t *dst, uint8_t *src, int npixel)
 {
 	int i, s;
 
@@ -90,7 +90,7 @@ cvtrgb12tocmap8(uchar *dst, uchar *src, int npixel)
  * convert BGR8 (b2g3r3, default VNC format) to CMAP8 
  * some bits are lost.
  */
-static uchar bgr8[256];
+static uint8_t bgr8[256];
 static void
 mkbgrtab(void)
 {
@@ -108,9 +108,9 @@ mkbgrtab(void)
 }
 
 static void
-cvtbgr332tocmap8(uchar *dst, uchar *src, int npixel)
+cvtbgr332tocmap8(uint8_t *dst, uint8_t *src, int npixel)
 {
-	uchar *ed;
+	uint8_t *ed;
 
 	ed = dst+npixel;
 	while(dst < ed)
@@ -121,7 +121,7 @@ void
 choosecolor(Vnc *v)
 {
 	int bpp, depth;
-	ulong chan;
+	uint32_t chan;
 
 	bpp = screen->depth;
 	if((bpp / 8) * 8 != bpp)

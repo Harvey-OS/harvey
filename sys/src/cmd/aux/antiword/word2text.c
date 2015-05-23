@@ -130,11 +130,11 @@ bOutputContainsText(const output_type *pAnchor)
 /*
  * lTotalStringWidth - compute the total width of the output string
  */
-static long
+static int32_t
 lTotalStringWidth(const output_type *pAnchor)
 {
 	const output_type	*pCurr;
-	long		lTotal;
+	int32_t		lTotal;
 
 	lTotal = 0;
 	for (pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
@@ -212,7 +212,8 @@ vStoreCharacter(ULONG ulChar, output_type *pOutput)
  * vStoreString - store a string
  */
 static void
-vStoreString(const char *szString, size_t tStringLength, output_type *pOutput)
+vStoreString(const char *szString, size_t tStringLength,
+	     output_type *pOutput)
 {
 	size_t	tIndex;
 
@@ -285,9 +286,9 @@ static void
 vPutIndentation(diagram_type *pDiag, output_type *pOutput,
 	BOOL bNoMarks, BOOL bFirstLine,
 	UINT uiListNumber, UCHAR ucNFC, const char *szListChar,
-	long lLeftIndentation, long lLeftIndentation1)
+	int32_t lLeftIndentation, int32_t lLeftIndentation1)
 {
-	long	lWidth;
+	int32_t	lWidth;
 	size_t	tIndex, tNextFree;
 	char	szLine[30];
 
@@ -396,7 +397,7 @@ vPutIndentation(diagram_type *pDiag, output_type *pOutput,
 static void
 vPutSeparatorLine(output_type *pOutput)
 {
-	long	lCharWidth;
+	int32_t	lCharWidth;
 	int	iCounter, iChars;
 	char	szOne[2];
 
@@ -621,7 +622,7 @@ ulGetChar(FILE *pFile, list_id_enum eListID)
  *
  * Returns the maximum line width in millipoints
  */
-static long
+static int32_t
 lGetWidthMax(int iParagraphBreak)
 {
 	fail(iParagraphBreak < 0);
@@ -644,7 +645,7 @@ lGetWidthMax(int iParagraphBreak)
  * returns TRUE when succesful, otherwise FALSE
  */
 BOOL
-bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
+bWordDecryptor(FILE *pFile, int32_t lFilesize, diagram_type *pDiag)
 {
 	imagedata_type	tImage;
 	const style_block_type	*pStyleTmp;
@@ -652,9 +653,9 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 	const char	*szListChar;
 	output_type	*pAnchor, *pOutput, *pLeftOver;
 	ULONG	ulChar;
-	long	lBeforeIndentation, lAfterIndentation;
-	long	lLeftIndentation, lLeftIndentation1, lRightIndentation;
-	long	lWidthCurr, lWidthMax, lDefaultTabWidth, lHalfSpaceWidth, lTmp;
+	int32_t	lBeforeIndentation, lAfterIndentation;
+	int32_t	lLeftIndentation, lLeftIndentation1, lRightIndentation;
+	int32_t	lWidthCurr, lWidthMax, lDefaultTabWidth, lHalfSpaceWidth, lTmp;
 	list_id_enum 	eListID;
 	image_info_enum	eRes;
 	UINT	uiFootnoteNumber, uiEndnoteNumber, uiTmp;
@@ -875,7 +876,7 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 			vEndOfParagraph(pDiag,
 					pOutput->tFontRef,
 					pOutput->usFontSize,
-					(long)pOutput->usFontSize * 600);
+					(int32_t)pOutput->usFontSize * 600);
 		}
 
 		switch (ulChar) {
@@ -1244,7 +1245,7 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 /*
  * lLastStringWidth - compute the width of the last part of the output string
  */
-static long
+static int32_t
 lLastStringWidth(const output_type *pAnchor)
 {
 	const output_type	*pCurr, *pStart;
@@ -1273,8 +1274,8 @@ pHdrFtrDecryptor(FILE *pFile, ULONG ulCharPosStart, ULONG ulCharPosNext)
 {
 	output_type	*pAnchor, *pOutput, *pLeftOver;
 	ULONG	ulChar, ulFileOffset, ulCharPos;
-	long	lWidthCurr, lWidthMax;
-	long	lRightIndentation;
+	int32_t	lWidthCurr, lWidthMax;
+	int32_t	lRightIndentation;
 	USHORT	usChar;
 	UCHAR	ucAlignment;
 	BOOL	bSkip;

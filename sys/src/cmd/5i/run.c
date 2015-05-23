@@ -41,12 +41,12 @@ void	Imull(ulong);
 void	Iswap(ulong);
 void	Imem1(ulong);
 void	Imem2(ulong);
-void	Ilsm(ulong inst);
+void	Ilsm(uint32_t inst);
 
-void	Ib(ulong);
-void	Ibl(ulong);
+void	Ib(uint32_t);
+void	Ibl(uint32_t);
 
-void	Ssyscall(ulong);
+void	Ssyscall(uint32_t);
 
 Inst itab[] =
 {
@@ -163,12 +163,12 @@ runcmp(void)
 	switch(reg.cond) {
 	case 0x0:	/* eq */	return (reg.cc1 == reg.cc2);
 	case 0x1:	/* ne */	return (reg.cc1 != reg.cc2);
-	case 0x2:	/* hs */	return ((ulong)reg.cc1 >= (ulong)reg.cc2);
-	case 0x3:	/* lo */	return ((ulong)reg.cc1 < (ulong)reg.cc2);
+	case 0x2:	/* hs */	return ((uint32_t)reg.cc1 >= (uint32_t)reg.cc2);
+	case 0x3:	/* lo */	return ((uint32_t)reg.cc1 < (uint32_t)reg.cc2);
 	case 0x4:	/* mi */	return (reg.cc1 - reg.cc2 < 0);
 	case 0x5:	/* pl */	return (reg.cc1 - reg.cc2 >= 0);
-	case 0x8:	/* hi */	return ((ulong)reg.cc1 > (ulong)reg.cc2);
-	case 0x9:	/* ls */	return ((ulong)reg.cc1 <= (ulong)reg.cc2);
+	case 0x8:	/* hi */	return ((uint32_t)reg.cc1 > (uint32_t)reg.cc2);
+	case 0x9:	/* ls */	return ((uint32_t)reg.cc1 <= (uint32_t)reg.cc2);
 	case 0xa:	/* ge */	return (reg.cc1 >= reg.cc2);
 	case 0xb:	/* lt */	return (reg.cc1 < reg.cc2);
 	case 0xc:	/* gt */	return (reg.cc1 > reg.cc2);
@@ -186,7 +186,7 @@ runcmp(void)
 int
 runteq(void)
 {
-	long res = reg.cc1 ^ reg.cc2;
+	int32_t res = reg.cc1 ^ reg.cc2;
 	switch(reg.cond) {
 	case 0x0:	/* eq */	return res == 0;
 	case 0x1:	/* ne */	return res != 0;
@@ -205,7 +205,7 @@ runteq(void)
 int
 runtst(void)
 {
-	long res = reg.cc1 & reg.cc2;
+	int32_t res = reg.cc1 & reg.cc2;
 	switch(reg.cond) {
 	case 0x0:	/* eq */	return res == 0;
 	case 0x1:	/* ne */	return res != 0;
@@ -265,15 +265,15 @@ run(void)
 }
 
 void
-undef(ulong inst)
+undef(uint32_t inst)
 {
 	Bprint(bioout, "undefined instruction trap pc #%lux inst %.8lux class %d\n",
 		reg.r[REGPC], inst, reg.class);
 	longjmp(errjmp, 0);
 }
 
-long
-shift(long v, int st, int sc, int isreg)
+int32_t
+shift(int32_t v, int st, int sc, int isreg)
 {
 	if(sc == 0) {
 		switch(st) {
@@ -292,7 +292,7 @@ shift(long v, int st, int sc, int isreg)
 			}
 			else {
 				reg.cout = v & 1;
-				v = ((ulong)v >> 1) | (reg.cbit << 31);
+				v = ((uint32_t)v >> 1) | (reg.cbit << 31);
 			}
 		}
 	}
@@ -304,7 +304,7 @@ shift(long v, int st, int sc, int isreg)
 			break;
 		case 1:	/* logical right */
 			reg.cout = (v >> (sc - 1)) & 1;
-			v = (ulong)v >> sc;
+			v = (uint32_t)v >> sc;
 			break;
 		case 2:	/* arith right */
 			if(sc >= 32) {
@@ -316,12 +316,12 @@ shift(long v, int st, int sc, int isreg)
 			}
 			else {
 				reg.cout = (v >> (sc - 1)) & 1;
-				v = (long)v >> sc;
+				v = (int32_t)v >> sc;
 			}
 			break;
 		case 3:	/* rotate right */
 			reg.cout = (v >> (sc - 1)) & 1;
-			v = (v << (32-sc)) | ((ulong)v >> sc);
+			v = (v << (32-sc)) | ((uint32_t)v >> sc);
 			break;
 		}
 	}
@@ -434,10 +434,10 @@ dpex(long inst, long o1, long o2, int rd)
  * data processing instruction R,R,R
  */
 void
-Idp0(ulong inst)
+Idp0(uint32_t inst)
 {
 	int rn, rd, rm;
-	long o1, o2;
+	int32_t o1, o2;
 
 	rn = (inst>>16) & 0xf;
 	rd = (inst>>12) & 0xf;
@@ -463,10 +463,10 @@ Idp0(ulong inst)
  * data processing instruction (R<>#),R,R
  */
 void
-Idp1(ulong inst)
+Idp1(uint32_t inst)
 {
 	int rn, rd, rm, st, sc;
-	long o1, o2;
+	int32_t o1, o2;
 
 	rn = (inst>>16) & 0xf;
 	rd = (inst>>12) & 0xf;
@@ -493,10 +493,10 @@ Idp1(ulong inst)
  * data processing instruction (R<>R),R,R
  */
 void
-Idp2(ulong inst)
+Idp2(uint32_t inst)
 {
 	int rn, rd, rm, rs, st;
-	long o1, o2, o3;
+	int32_t o1, o2, o3;
 
 	rn = (inst>>16) & 0xf;
 	rd = (inst>>12) & 0xf;
@@ -526,10 +526,10 @@ Idp2(ulong inst)
  * data processing instruction #<>#,R,R
  */
 void
-Idp3(ulong inst)
+Idp3(uint32_t inst)
 {
 	int rn, rd, sc;
-	long o1, o2;
+	int32_t o1, o2;
 
 	rn = (inst>>16) & 0xf;
 	rd = (inst>>12) & 0xf;
@@ -550,7 +550,7 @@ Idp3(ulong inst)
 }
 
 void
-Imul(ulong inst)
+Imul(uint32_t inst)
 {
 	int rs, rd, rm;
 
@@ -570,9 +570,9 @@ Imul(ulong inst)
 }
 
 void
-Imull(ulong inst)
+Imull(uint32_t inst)
 {
-	vlong v;
+	int64_t v;
 	int rs, rd, rm, rn;
 
 	rd = (inst>>16) & 0xf;
@@ -585,13 +585,13 @@ Imull(ulong inst)
 		undef(inst);
 
 	if(inst & (1<<22)){
-		v = (vlong)reg.r[rm] * (vlong)reg.r[rs];
+		v = (int64_t)reg.r[rm] * (int64_t)reg.r[rs];
 		if(inst & (1 << 21))
 			v += reg.r[rn];
 	}else{
-		v = (uvlong)(ulong)reg.r[rm] * (uvlong)(ulong)reg.r[rs];
+		v = (uint64_t)(uint32_t)reg.r[rm] * (uint64_t)(uint32_t)reg.r[rs];
 		if(inst & (1 << 21))
-			v += (ulong)reg.r[rn];
+			v += (uint32_t)reg.r[rn];
 	}
 	reg.r[rd] = v >> 32;
 	reg.r[rn] = v;
@@ -603,7 +603,7 @@ Imull(ulong inst)
 }
 
 void
-Imula(ulong inst)
+Imula(uint32_t inst)
 {
 	int rs, rd, rm, rn;
 
@@ -624,10 +624,10 @@ Imula(ulong inst)
 }
 
 void
-Iswap(ulong inst)
+Iswap(uint32_t inst)
 {
 	int rn, rd, rm;
-	ulong address, value, bbit;
+	uint32_t address, value, bbit;
 
 	bbit = inst & (1<<22);
 	rn = (inst>>16) & 0xf;
@@ -663,10 +663,10 @@ Iswap(ulong inst)
  * load/store word/byte
  */
 void
-Imem1(ulong inst)
+Imem1(uint32_t inst)
 {
 	int rn, rd, off, rm, sc, st;
-	ulong address, value, pbit, ubit, bbit, wbit, lbit, bit25;
+	uint32_t address, value, pbit, ubit, bbit, wbit, lbit, bit25;
 
 	bit25 = inst & (1<<25);
 	pbit = inst & (1<<24);
@@ -761,10 +761,10 @@ Imem1(ulong inst)
  * load/store unsigned byte/half word
  */
 void
-Imem2(ulong inst)
+Imem2(uint32_t inst)
 {
 	int rn, rd, off, rm;
-	ulong address, value, pbit, ubit, hbit, sbit, wbit, lbit, bit22;
+	uint32_t address, value, pbit, ubit, hbit, sbit, wbit, lbit, bit22;
 
 	pbit = inst & (1<<24);
 	ubit = inst & (1<<23);
@@ -858,11 +858,11 @@ Imem2(ulong inst)
 }
 
 void
-Ilsm(ulong inst)
+Ilsm(uint32_t inst)
 {
 	char pbit, ubit, sbit, wbit, lbit;
 	int i, rn, reglist;
-	ulong address, predelta, postdelta;
+	uint32_t address, predelta, postdelta;
 
 	pbit = (inst>>24) & 0x1;
 	ubit = (inst>>23) & 0x1;
@@ -921,9 +921,9 @@ Ilsm(ulong inst)
 }
 
 void
-Ib(ulong inst)
+Ib(uint32_t inst)
 {
-	long v;
+	int32_t v;
 
 	v = inst & 0xffffff;
 	v = reg.r[REGPC] + 8 + ((v << 8) >> 6);
@@ -933,9 +933,9 @@ Ib(ulong inst)
 }
 
 void
-Ibl(ulong inst)
+Ibl(uint32_t inst)
 {
-	long v;
+	int32_t v;
 	Symbol s;
 
 	v = inst & 0xffffff;

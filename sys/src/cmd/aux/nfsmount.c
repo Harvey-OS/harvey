@@ -62,7 +62,7 @@ getport(SunClient *client, uint prog, uint vers, uint prot, uint *port)
 	return 0;
 }
 
-uchar unixauth[] = {
+uint8_t unixauth[] = {
 	0x12, 0x23, 0x34, 0x45,	/* stamp */
 	0x00, 0x00, 0x00, 0x04,	/* gnot */
 	0x67, 0x6e, 0x6f, 0x74,
@@ -135,7 +135,7 @@ tmnt(char **argv)
 void
 tdump(char **argv)
 {
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 	NfsMount3TDump tx;
 	NfsMount3RDump rx;
 	NfsMount3Entry e;
@@ -200,7 +200,7 @@ tumntall(char **argv)
 void
 texport(char **argv)
 {
-	uchar *p, *ep, *tofree;
+	uint8_t *p, *ep, *tofree;
 	char **g, **gg;
 	int ng, i, n;
 	NfsMount3TDump tx;

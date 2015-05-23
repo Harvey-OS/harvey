@@ -65,7 +65,7 @@ private void gp_cache_clear_entry(gp_cache_entry *item)
 }
 
 /* get the cache directory's path */
-private char *gp_cache_prefix(void)
+private int8_t *gp_cache_prefix(void)
 {
     char *prefix = NULL;
     int plen = 0;
@@ -122,7 +122,7 @@ private char *gp_cache_prefix(void)
 }
 
 /* compute the cache index file's path */
-private char *
+private int8_t *
 gp_cache_indexfilename(const char *prefix)
 {
     const char *fn = "gs_cache";
@@ -160,10 +160,10 @@ private void gp_cache_hash(gp_cache_entry *entry)
 }
 
 /* compute and set cache item's filename */
-private void gp_cache_filename(const char *prefix, gp_cache_entry *item)
+private void gp_cache_filename(const int8_t *prefix, gp_cache_entry *item)
 {
-    const char hexmap[16] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
-    char *fn = malloc(gp_file_name_sizeof), *fni;
+    const int8_t hexmap[16] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    int8_t *fn = malloc(gp_file_name_sizeof), *fni;
     int i;
        
     fni = fn;
@@ -181,7 +181,7 @@ private void gp_cache_filename(const char *prefix, gp_cache_entry *item)
 }
 
 /* generate an access path for a cache item */
-private char *gp_cache_itempath(const char *prefix, gp_cache_entry *item)
+private int8_t *gp_cache_itempath(const char *prefix, gp_cache_entry *item)
 {
     const char *fn = item->filename;
     gp_file_name_combine_result result;
@@ -270,9 +270,9 @@ private int gp_cache_loaditem(FILE *file, gp_cache_entry *item, gp_cache_alloc a
 }
 
 /* convert a two-character hex string to an integer */
-private int readhexbyte(const char *s)
+private int readhexbyte(const int8_t *s)
 {
-    const char hexmap[16] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    const int8_t hexmap[16] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
     int i,r;
     
     for (i = 0; i < 16; i++)
@@ -290,8 +290,8 @@ private int readhexbyte(const char *s)
 private int
 gp_cache_read_entry(FILE *file, gp_cache_entry *item)
 {
-    char line[256];
-    char fn[32];
+    int8_t line[256];
+    int8_t fn[32];
     int i;
     
     if (!fgets(line, 256, file)) return -1;

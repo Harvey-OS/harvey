@@ -32,7 +32,7 @@ static	void	mboxGone(Box *box);
 static	MbLock	*openImp(Box *box, int new);
 static	int	parseImp(Biobuf *b, Box *box);
 static	int	readBox(Box *box);
-static	ulong	uidRenumber(Msg *m, ulong uid, int force);
+static	uint32_t	uidRenumber(Msg *m, uint32_t uid, int force);
 static	int	impFlags(Box *box, Msg *m, char *flags);
 
 /*
@@ -215,7 +215,7 @@ readBox(Box *box)
 	Msg *msgs, *m, *last;
 	Dir *d;
 	char *s;
-	long max, id;
+	int32_t max, id;
 	int i, nd, fd, new;
 
 	fd = cdOpen(box->fsDir, ".", OREAD);
@@ -429,7 +429,7 @@ int
 emptyImp(char *mbox)
 {
 	Dir *d;
-	long mode;
+	int32_t mode;
 	int fd;
 
 	fd = cdCreate(mboxDir, impName(mbox), OWRITE, 0664);
@@ -456,7 +456,7 @@ static int
 createImp(Box *box, Qid *qid)
 {
 	Dir *d;
-	long mode;
+	int32_t mode;
 	int fd;
 
 	fd = cdCreate(mboxDir, box->imp, OREAD, 0664);
@@ -500,7 +500,7 @@ parseImp(Biobuf *b, Box *box)
 {
 	Msg *m, *mm;
 	char *s, *t, *toks[3];
-	ulong uid, u;
+	uint32_t uid, u;
 	int match, n;
 
 	m = box->msgs;
@@ -669,8 +669,8 @@ boxFlags(Box *box)
 	}
 }
 
-static ulong
-uidRenumber(Msg *m, ulong uid, int force)
+static uint32_t
+uidRenumber(Msg *m, uint32_t uid, int force)
 {
 	for(; m != nil; m = m->next){
 		if(!force && m->uid != 0)
@@ -752,7 +752,7 @@ int
 expungeMsgs(Box *box, int send)
 {
 	Msg *m, *next, *last;
-	ulong n;
+	uint32_t n;
 
 	n = 0;
 	last = nil;

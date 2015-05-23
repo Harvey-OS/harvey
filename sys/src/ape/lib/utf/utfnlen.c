@@ -26,16 +26,16 @@
 #include "utfdef.h"
 
 int
-utfnlen(char *s, long m)
+utfnlen(char *s, int32_t m)
 {
 	int c;
-	long n;
+	int32_t n;
 	Rune rune;
 	char *es;
 
 	es = s + m;
 	for(n = 0; s < es; n++) {
-		c = *(uchar*)s;
+		c = *(uint8_t*)s;
 		if(c < Runeself){
 			if(c == '\0')
 				break;

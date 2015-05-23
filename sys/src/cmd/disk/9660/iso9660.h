@@ -35,13 +35,13 @@ struct XDir {
 	char	*uid;
 	char	*gid;
 	char	*symlink;
-	ulong   uidno;   /* Numeric uid */
-	ulong   gidno;   /* Numeric gid */
+	uint32_t   uidno;   /* Numeric uid */
+	uint32_t   gidno;   /* Numeric gid */
 
-	ulong	mode;
-	ulong	atime;
-	ulong	mtime;
-	ulong   ctime;
+	uint32_t	mode;
+	uint32_t	atime;
+	uint32_t	mtime;
+	uint32_t   ctime;
 
         vlong   length;
 };
@@ -55,20 +55,20 @@ struct Direc {
 	char *confname;	/* conformant name */
 	char *srcfile;	/* file to copy onto the image */
 
-	ulong block;
-	ulong length;
+	uint32_t block;
+	uint32_t length;
 	int flags;
 
 	char *uid;
 	char *gid;
 	char *symlink;
-	ulong mode;
+	uint32_t mode;
 	long atime;
 	long ctime;
 	long mtime;
 
-	ulong uidno;
-	ulong gidno;
+	uint32_t uidno;
+	uint32_t gidno;
 
 	Direc *child;
 	int nchild;
@@ -93,9 +93,9 @@ struct Voldesc {
 	char *notice;
 
 	/* path table */
-	ulong pathsize;
-	ulong lpathloc;
-	ulong mpathloc;
+	uint32_t pathsize;
+	uint32_t lpathloc;
+	uint32_t mpathloc;
 
 	/* root of file tree */
 	Direc root;	
@@ -112,16 +112,16 @@ struct Voldesc {
 struct Cdimg {
 	char *file;
 	int fd;
-	ulong dumpblock;
-	ulong nextblock;
-	ulong iso9660pvd;
-	ulong jolietsvd;
-	ulong pathblock;
+	uint32_t dumpblock;
+	uint32_t nextblock;
+	uint32_t iso9660pvd;
+	uint32_t jolietsvd;
+	uint32_t pathblock;
 	uvlong rrcontin;	/* rock ridge continuation offset */
-	ulong nulldump;		/* next dump block */
-	ulong nconform;		/* number of conform entries written already */
+	uint32_t nulldump;		/* next dump block */
+	uint32_t nconform;		/* number of conform entries written already */
 	uvlong bootcatptr;
-	ulong bootcatblock;
+	uint32_t bootcatblock;
 	uvlong bootimageptr;
 	Direc *loaderdirec;
 	Direc *bootdirec;
@@ -189,8 +189,8 @@ struct Dump {
 struct Dumpdir {
 	char *name;
 	uchar md5[MD5dlen];
-	ulong block;
-	ulong length;
+	uint32_t block;
+	uint32_t length;
 	Dumpdir *md5left;
 	Dumpdir *md5right;
 	Dumpdir *blockleft;
@@ -310,13 +310,13 @@ void findloader(Cdimg*, Direc*);
 /* cdrdwr.c */
 Cdimg *createcd(char*, Cdinfo);
 Cdimg *opencd(char*, Cdinfo);
-void Creadblock(Cdimg*, void*, ulong, ulong);
-ulong big(void*, int);
-ulong little(void*, int);
+void Creadblock(Cdimg*, void*, uint32_t, uint32_t);
+uint32_t big(void*, int);
+uint32_t little(void*, int);
 int parsedir(Cdimg*, Direc*, uchar*, int, char *(*)(uchar*, int));
-void setroot(Cdimg*, ulong, ulong, ulong);
-void setvolsize(Cdimg*, uvlong, ulong);
-void setpathtable(Cdimg*, ulong, ulong, ulong, ulong);
+void setroot(Cdimg*, uint32_t, uint32_t, uint32_t);
+void setvolsize(Cdimg*, uvlong, uint32_t);
+void setpathtable(Cdimg*, uint32_t, uint32_t, uint32_t, uint32_t);
 void Cputc(Cdimg*, int);
 void Cputnl(Cdimg*, uvlong, int);
 void Cputnm(Cdimg*, uvlong, int);
@@ -329,8 +329,8 @@ void Crepeatr(Cdimg*, Rune, int);
 void Cputrs(Cdimg*, Rune*, int);
 void Cputrscvt(Cdimg*, char*, int);
 void Cpadblock(Cdimg*);
-void Cputdate(Cdimg*, ulong);
-void Cputdate1(Cdimg*, ulong);
+void Cputdate(Cdimg*, uint32_t);
+void Cputdate1(Cdimg*, uint32_t);
 void Cread(Cdimg*, void*, int);
 void Cwflush(Cdimg*);
 void Cwseek(Cdimg*, vlong);
@@ -344,7 +344,7 @@ int Clinelen(Cdimg*);
 /* conform.c */
 void rdconform(Cdimg*);
 char *conform(char*, int);
-void wrconform(Cdimg*, int, ulong*, uvlong*);
+void wrconform(Cdimg*, int, uint32_t*, uvlong*);
 
 /* direc.c */
 void mkdirec(Direc*, XDir*);
@@ -357,14 +357,14 @@ void dsort(Direc*, int (*)(const void*, const void*));
 void setparents(Direc*);
 
 /* dump.c */
-ulong Cputdumpblock(Cdimg*);
+uint32_t Cputdumpblock(Cdimg*);
 int hasdump(Cdimg*);
 Dump *dumpcd(Cdimg*, Direc*);
 Dumpdir *lookupmd5(Dump*, uchar*);
-void insertmd5(Dump*, char*, uchar*, ulong, ulong);
+void insertmd5(Dump*, char*, uchar*, uint32_t, uint32_t);
 
 Direc readdumpdirs(Cdimg*, XDir*, char*(*)(uchar*,int));
-char *adddumpdir(Direc*, ulong, XDir*);
+char *adddumpdir(Direc*, uint32_t, XDir*);
 void copybutname(Direc*, Direc*);
 
 void readkids(Cdimg*, Direc*, char*(*)(uchar*,int));
@@ -390,15 +390,15 @@ void Cputjolietsvd(Cdimg*, Cdinfo);
 void writepathtables(Cdimg*);
 
 /* util.c */
-void *emalloc(ulong);
-void *erealloc(void*, ulong);
+void *emalloc(uint32_t);
+void *erealloc(void*, uint32_t);
 char *atom(char*);
 char *struprcpy(char*, char*);
 int chat(char*, ...);
 
 /* unix.c, plan9.c */
 void dirtoxdir(XDir*, Dir*);
-void fdtruncate(int, ulong);
+void fdtruncate(int, uint32_t);
 long uidno(char*);
 long gidno(char*);
 
@@ -429,7 +429,7 @@ enum {
 	DTrootdot,
 };
 
-extern ulong now;
+extern uint32_t now;
 extern Conform *map;
 extern int chatty;
 extern int docolon;

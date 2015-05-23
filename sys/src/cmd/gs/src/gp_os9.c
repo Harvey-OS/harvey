@@ -85,10 +85,10 @@ signalhandler(int sig)
 #define PS_MONTH_0 1
 #define PS_DAY_0 1
 void
-gp_get_realtime(long *pdt)
+gp_get_realtime(int32_t *pdt)
 {
-    long date, time, pstime, psdate, tick;
-    short day;
+    int32_t date, time, pstime, psdate, tick;
+    int16_t day;
 
     _sysdate(0, &time, &date, &day, &tick);
     _julian(&time, &date);
@@ -108,7 +108,7 @@ gp_get_realtime(long *pdt)
 /* Read the current user CPU time (in seconds) */
 /* and fraction (in nanoseconds).  */
 void
-gp_get_usertime(long *pdt)
+gp_get_usertime(int32_t *pdt)
 {
     return gp_get_realtime(pdt);	/* not yet implemented */
 }
@@ -190,7 +190,8 @@ void *gp_enumerate_fonts_init(gs_memory_t *mem)
     return NULL;
 }
          
-int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+int gp_enumerate_fonts_next(void *enum_state, char **fontname,
+                            char **path)
 {
     return 0;
 }

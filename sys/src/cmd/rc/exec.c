@@ -130,6 +130,7 @@ newvar(char *name, var *next)
 	v->next = next;
 	return v;
 }
+
 /*
  * get command line flags, initialize keywords & traps.
  * get values from environment.

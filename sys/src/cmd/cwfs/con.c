@@ -229,7 +229,7 @@ flagcmp(void *va, void *vb)
 	return strcmp(a->arg0, b->arg0);
 }
 
-ulong
+uint32_t
 flag_install(char *arg, char *help)
 {
 	int i;
@@ -408,7 +408,7 @@ void
 cmd_create(int argc, char *argv[])
 {
 	int uid, gid;
-	long perm;
+	int32_t perm;
 	char elem[NAMELEN], *p;
 
 	if(argc < 5) {
@@ -634,7 +634,7 @@ static void
 cmd_prof(int argc, char *argv[])
 {
 	int n;
-	long m, o;
+	int32_t m, o;
 	char *p;
 
 	if(cons.profbuf == 0) {
@@ -718,7 +718,7 @@ cmd_noattach(int, char *[])
 void
 cmd_files(int, char *[])
 {
-	long i, n;
+	int32_t i, n;
 	Chan *cp;
 
 	for(cp = chans; cp; cp = cp->next)
@@ -813,11 +813,11 @@ walkto(char *name)
 }
 
 /* needs to parse and return vlongs to cope with new larger block numbers */
-vlong
+int64_t
 number(char *arg, int def, int base)
 {
 	int c, sign, any;
-	vlong n;
+	int64_t n;
 
 	if(arg == nil)
 		return def;

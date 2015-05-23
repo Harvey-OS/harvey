@@ -12,7 +12,7 @@
 #include <mp.h>
 #include <libsec.h>
 
-typedef DigestState*(*DigestFun)(uchar*,ulong,uchar*,DigestState*);
+typedef DigestState*(*DigestFun)(uint8_t*,uint32_t,uint8_t*,DigestState*);
 
 /* ANSI offsetof, backwards. */
 #define	OFFSETOF(a, b)	offsetof(b, a)
@@ -67,7 +67,7 @@ typedef struct Elist Elist;
 
 struct Bytes {
 	int	len;
-	uchar	data[1];
+	uint8_t	data[1];
 };
 
 struct Ints {
@@ -78,7 +78,7 @@ struct Ints {
 struct Bits {
 	int	len;		/* number of bytes */
 	int	unusedbits;	/* unused bits in last byte */
-	uchar	data[1];	/* most-significant bit first */
+	uint8_t	data[1];	/* most-significant bit first */
 };
 
 struct Tag {
@@ -122,14 +122,14 @@ enum { ASN_OK, ASN_ESHORT, ASN_ETOOBIG, ASN_EVALLEN,
 
 /* here are the functions to consider making extern someday */
 static Bytes*	newbytes(int len);
-static Bytes*	makebytes(uchar* buf, int len);
+static Bytes*	makebytes(uint8_t* buf, int len);
 static void	freebytes(Bytes* b);
 static Bytes*	catbytes(Bytes* b1, Bytes* b2);
 static Ints*	newints(int len);
 static Ints*	makeints(int* buf, int len);
 static void	freeints(Ints* b);
 static Bits*	newbits(int len);
-static Bits*	makebits(uchar* buf, int len, int unusedbits);
+static Bits*	makebits(uint8_t* buf, int len, int unusedbits);
 static void	freebits(Bits* b);
 static Elist*	mkel(Elem e, Elist* tail);
 static void	freeelist(Elist* el);
@@ -143,9 +143,10 @@ static int	is_octetstring(Elem* pe, Bytes** poctets);
 static int	is_oid(Elem* pe, Ints** poid);
 static int	is_string(Elem* pe, char** pstring);
 static int	is_time(Elem* pe, char** ptime);
-static int	decode(uchar* a, int alen, Elem* pelem);
-static int	decode_seq(uchar* a, int alen, Elist** pelist);
-static int	decode_value(uchar* a, int alen, int kind, int isconstr, Value* pval);
+static int	decode(uint8_t* a, int alen, Elem* pelem);
+static int	decode_seq(uint8_t* a, int alen, Elist** pelist);
+static int	decode_value(uint8_t* a, int alen, int kind, int isconstr,
+			       Value* pval);
 static int	encode(Elem e, Bytes** pbytes);
 static int	oid_lookup(Ints* o, Ints** tab);
 static void	freevalfields(Value* v);
@@ -158,18 +159,23 @@ static mpint	*asn1mpint(Elem *e);
 #define CLASS_MASK 0xC0
 #define MAXOBJIDLEN 20
 
-static int ber_decode(uchar** pp, uchar* pend, Elem* pelem);
-static int tag_decode(uchar** pp, uchar* pend, Tag* ptag, int* pisconstr);
-static int length_decode(uchar** pp, uchar* pend, int* plength);
-static int value_decode(uchar** pp, uchar* pend, int length, int kind, int isconstr, Value* pval);
-static int int_decode(uchar** pp, uchar* pend, int count, int unsgned, int* pint);
-static int uint7_decode(uchar** pp, uchar* pend, int* pint);
-static int octet_decode(uchar** pp, uchar* pend, int length, int isconstr, Bytes** pbytes);
-static int seq_decode(uchar** pp, uchar* pend, int length, int isconstr, Elist** pelist);
-static int enc(uchar** pp, Elem e, int lenonly);
-static int val_enc(uchar** pp, Elem e, int *pconstr, int lenonly);
-static void uint7_enc(uchar** pp, int num, int lenonly);
-static void int_enc(uchar** pp, int num, int unsgned, int lenonly);
+static int ber_decode(uint8_t** pp, uint8_t* pend, Elem* pelem);
+static int tag_decode(uint8_t** pp, uint8_t* pend, Tag* ptag,
+		      int* pisconstr);
+static int length_decode(uint8_t** pp, uint8_t* pend, int* plength);
+static int value_decode(uint8_t** pp, uint8_t* pend, int length, int kind,
+			int isconstr, Value* pval);
+static int int_decode(uint8_t** pp, uint8_t* pend, int count, int unsgned,
+		      int* pint);
+static int uint7_decode(uint8_t** pp, uint8_t* pend, int* pint);
+static int octet_decode(uint8_t** pp, uint8_t* pend, int length,
+			int isconstr, Bytes** pbytes);
+static int seq_decode(uint8_t** pp, uint8_t* pend, int length, int isconstr,
+		      Elist** pelist);
+static int enc(uint8_t** pp, Elem e, int lenonly);
+static int val_enc(uint8_t** pp, Elem e, int *pconstr, int lenonly);
+static void uint7_enc(uint8_t** pp, int num, int lenonly);
+static void int_enc(uint8_t** pp, int num, int unsgned, int lenonly);
 
 static void *
 emalloc(int n)
@@ -207,9 +213,9 @@ estrdup(char *s)
  * be nil.
  */
 static int
-decode(uchar* a, int alen, Elem* pelem)
+decode(uint8_t* a, int alen, Elem* pelem)
 {
-	uchar* p = a;
+	uint8_t* p = a;
 
 	return  ber_decode(&p, &a[alen], pelem);
 }
@@ -219,9 +225,9 @@ decode(uchar* a, int alen, Elem* pelem)
  * of array ends.
  */
 static int
-decode_seq(uchar* a, int alen, Elist** pelist)
+decode_seq(uint8_t* a, int alen, Elist** pelist)
 {
-	uchar* p = a;
+	uint8_t* p = a;
 
 	return seq_decode(&p, &a[alen], -1, 1, pelist);
 }
@@ -236,9 +242,9 @@ decode_seq(uchar* a, int alen, Elist** pelist)
  * be nil.
  */
 static int
-decode_value(uchar* a, int alen, int kind, int isconstr, Value* pval)
+decode_value(uint8_t* a, int alen, int kind, int isconstr, Value* pval)
 {
-	uchar* p = a;
+	uint8_t* p = a;
 
 	return value_decode(&p, &a[alen], alen, kind, isconstr, pval);
 }
@@ -258,7 +264,7 @@ decode_value(uchar* a, int alen, int kind, int isconstr, Value* pval)
 
 /* Decode an ASN1 'Elem' (tag, length, value) */
 static int
-ber_decode(uchar** pp, uchar* pend, Elem* pelem)
+ber_decode(uint8_t** pp, uint8_t* pend, Elem* pelem)
 {
 	int err;
 	int isconstr;
@@ -287,11 +293,11 @@ ber_decode(uchar** pp, uchar* pend, Elem* pelem)
 
 /* Decode a tag field */
 static int
-tag_decode(uchar** pp, uchar* pend, Tag* ptag, int* pisconstr)
+tag_decode(uint8_t** pp, uint8_t* pend, Tag* ptag, int* pisconstr)
 {
 	int err;
 	int v;
-	uchar* p;
+	uint8_t* p;
 
 	err = ASN_OK;
 	p = *pp;
@@ -315,12 +321,12 @@ tag_decode(uchar** pp, uchar* pend, Tag* ptag, int* pisconstr)
 
 /* Decode a length field */
 static int
-length_decode(uchar** pp, uchar* pend, int* plength)
+length_decode(uint8_t** pp, uint8_t* pend, int* plength)
 {
 	int err;
 	int num;
 	int v;
-	uchar* p;
+	uint8_t* p;
 
 	err = ASN_OK;
 	num = 0;
@@ -341,7 +347,8 @@ length_decode(uchar** pp, uchar* pend, int* plength)
 
 /* Decode a value field  */
 static int
-value_decode(uchar** pp, uchar* pend, int length, int kind, int isconstr, Value* pval)
+value_decode(uint8_t** pp, uint8_t* pend, int length, int kind,
+	     int isconstr, Value* pval)
 {
 	int err;
 	Bytes* va;
@@ -350,8 +357,8 @@ value_decode(uchar** pp, uchar* pend, int length, int kind, int isconstr, Value*
 	int subids[MAXOBJIDLEN];
 	int isubid;
 	Elist*	vl;
-	uchar* p;
-	uchar* pe;
+	uint8_t* p;
+	uint8_t* pe;
 
 	err = ASN_OK;
 	p = *pp;
@@ -572,11 +579,11 @@ value_decode(uchar** pp, uchar* pend, int length, int kind, int isconstr, Value*
  * If unsgned is not set, make sure to propagate sign bit.
  */
 static int
-int_decode(uchar** pp, uchar* pend, int count, int unsgned, int* pint)
+int_decode(uint8_t** pp, uint8_t* pend, int count, int unsgned, int* pint)
 {
 	int err;
 	int num;
-	uchar* p;
+	uint8_t* p;
 
 	p = *pp;
 	err = ASN_OK;
@@ -606,13 +613,13 @@ int_decode(uchar** pp, uchar* pend, int count, int unsgned, int* pint)
  * an error if the result doesn't fit in a 32 bit int.
  */
 static int
-uint7_decode(uchar** pp, uchar* pend, int* pint)
+uint7_decode(uint8_t** pp, uint8_t* pend, int* pint)
 {
 	int err;
 	int num;
 	int more;
 	int v;
-	uchar* p;
+	uint8_t* p;
 
 	p = *pp;
 	err = ASN_OK;
@@ -641,14 +648,15 @@ uint7_decode(uchar** pp, uchar* pend, int* pint)
  * and otherwise that specified length fits within (*pp..pend)
  */
 static int
-octet_decode(uchar** pp, uchar* pend, int length, int isconstr, Bytes** pbytes)
+octet_decode(uint8_t** pp, uint8_t* pend, int length, int isconstr,
+	     Bytes** pbytes)
 {
 	int err;
-	uchar* p;
+	uint8_t* p;
 	Bytes* ans;
 	Bytes* newans;
-	uchar* pstart;
-	uchar* pold;
+	uint8_t* pstart;
+	uint8_t* pold;
 	Elem	elem;
 
 	err = ASN_OK;
@@ -705,12 +713,13 @@ cloop_done:
  * and otherwise that specified length fits within (*p..pend)
  */
 static int
-seq_decode(uchar** pp, uchar* pend, int length, int isconstr, Elist** pelist)
+seq_decode(uint8_t** pp, uint8_t* pend, int length, int isconstr,
+	   Elist** pelist)
 {
 	int err;
-	uchar* p;
-	uchar* pstart;
-	uchar* pold;
+	uint8_t* p;
+	uint8_t* pstart;
+	uint8_t* pold;
 	Elist* ans;
 	Elem elem;
 	Elist* lve;
@@ -770,10 +779,10 @@ seq_decode(uchar** pp, uchar* pend, int length, int isconstr, Elist** pelist)
 static int
 encode(Elem e, Bytes** pbytes)
 {
-	uchar* p;
+	uint8_t* p;
 	Bytes* ans;
 	int err;
-	uchar uc;
+	uint8_t uc;
 
 	p = &uc;
 	err = enc(&p, e, 1);
@@ -797,7 +806,7 @@ encode(Elem e, Bytes** pbytes)
  */
 
 static int
-enc(uchar** pp, Elem e, int lenonly)
+enc(uint8_t** pp, Elem e, int lenonly)
 {
 	int err;
 	int vlen;
@@ -805,8 +814,8 @@ enc(uchar** pp, Elem e, int lenonly)
 	Tag tag;
 	int v;
 	int ilen;
-	uchar* p;
-	uchar* psave;
+	uint8_t* p;
+	uint8_t* psave;
 
 	p = *pp;
 	err = val_enc(&p, e, &constr, 1);
@@ -855,10 +864,10 @@ enc(uchar** pp, Elem e, int lenonly)
 }
 
 static int
-val_enc(uchar** pp, Elem e, int *pconstr, int lenonly)
+val_enc(uint8_t** pp, Elem e, int *pconstr, int lenonly)
 {
 	int err;
-	uchar* p;
+	uint8_t* p;
 	int kind;
 	int cl;
 	int v;
@@ -1066,12 +1075,12 @@ val_enc(uchar** pp, Elem e, int *pconstr, int lenonly)
  * except last, only putting in bytes if !lenonly.
  */
 static void
-uint7_enc(uchar** pp, int num, int lenonly)
+uint7_enc(uint8_t** pp, int num, int lenonly)
 {
 	int n;
 	int v;
 	int k;
-	uchar* p;
+	uint8_t* p;
 
 	p = *pp;
 	n = 1;
@@ -1096,13 +1105,13 @@ uint7_enc(uchar** pp, int num, int lenonly)
  * Encoding is length followed by bytes to concatenate.
  */
 static void
-int_enc(uchar** pp, int num, int unsgned, int lenonly)
+int_enc(uint8_t** pp, int num, int unsgned, int lenonly)
 {
 	int v;
 	int n;
 	int prevv;
 	int k;
-	uchar* p;
+	uint8_t* p;
 
 	p = *pp;
 	v = num;
@@ -1310,7 +1319,7 @@ newbytes(int len)
  * newbytes(len), with data initialized from buf
  */
 static Bytes*
-makebytes(uchar* buf, int len)
+makebytes(uint8_t* buf, int len)
 {
 	Bytes* ans;
 
@@ -1397,7 +1406,7 @@ newbits(int len)
 }
 
 static Bits*
-makebits(uchar* buf, int len, int unusedbits)
+makebits(uint8_t* buf, int len, int unusedbits)
 {
 	Bits* ans;
 
@@ -2045,11 +2054,11 @@ pkcs1pad(Bytes *b, mpint *modulus)
 {
 	int n = (mpsignif(modulus)+7)/8;
 	int pm1, i;
-	uchar *p;
+	uint8_t *p;
 	mpint *mp;
 
 	pm1 = n - 1 - b->len;
-	p = (uchar*)emalloc(n);
+	p = (uint8_t*)emalloc(n);
 	p[0] = 0;
 	p[1] = 1;
 	for(i = 2; i < pm1; i++)
@@ -2062,7 +2071,7 @@ pkcs1pad(Bytes *b, mpint *modulus)
 }
 
 RSApriv*
-asn1toRSApriv(uchar *kd, int kn)
+asn1toRSApriv(uint8_t *kd, int kn)
 {
 	Bytes *b;
 	RSApriv *key;
@@ -2074,7 +2083,7 @@ asn1toRSApriv(uchar *kd, int kn)
 }
 
 DSApriv*
-asn1toDSApriv(uchar *kd, int kn)
+asn1toDSApriv(uint8_t *kd, int kn)
 {
 	Bytes *b;
 	DSApriv *key;
@@ -2091,10 +2100,10 @@ asn1toDSApriv(uchar *kd, int kn)
  * data array, so we need to do a little hand decoding.
  */
 static void
-digest_certinfo(Bytes *cert, DigestFun digestfun, uchar *digest)
+digest_certinfo(Bytes *cert, DigestFun digestfun, uint8_t *digest)
 {
-	uchar *info, *p, *pend;
-	ulong infolen;
+	uint8_t *info, *p, *pend;
+	uint32_t infolen;
 	int isconstr, length;
 	Tag tag;
 	Elem elem;
@@ -2118,12 +2127,13 @@ digest_certinfo(Bytes *cert, DigestFun digestfun, uchar *digest)
 }
 
 static char*
-verify_signature(Bytes* signature, RSApub *pk, uchar *edigest, Elem **psigalg)
+verify_signature(Bytes* signature, RSApub *pk, uint8_t *edigest,
+		 Elem **psigalg)
 {
 	Elem e;
 	Elist *el;
 	Bytes *digest;
-	uchar *pkcs1buf, *buf;
+	uint8_t *pkcs1buf, *buf;
 	int buflen;
 	mpint *pkcs1;
 	int nlen;
@@ -2172,7 +2182,7 @@ end:
 }
 
 RSApub*
-X509toRSApub(uchar *cert, int ncert, char *name, int nname)
+X509toRSApub(uint8_t *cert, int ncert, char *name, int nname)
 {
 	char *e;
 	Bytes *b;
@@ -2218,7 +2228,7 @@ getalgo(Elem *e)
 static void edump(Elem e);
 
 RSApub*
-asn1toRSApub(uchar *der, int nder)
+asn1toRSApub(uint8_t *der, int nder)
 {
 	Elem e;
 	Elist *el, *l;
@@ -2287,12 +2297,12 @@ errret:
 }
 
 char*
-X509verify(uchar *cert, int ncert, RSApub *pk)
+X509verify(uint8_t *cert, int ncert, RSApub *pk)
 {
 	char *e;
 	Bytes *b;
 	CertX509 *c;
-	uchar digest[SHA1dlen];
+	uint8_t digest[SHA1dlen];
 	Elem *sigalg;
 
 	b = makebytes(cert, ncert);
@@ -2335,7 +2345,7 @@ static Elem
 mkbigint(mpint *p)
 {
 	Elem e;
-	uchar *buf;
+	uint8_t *buf;
 	int buflen;
 
 	e.tag.class = Universal;
@@ -2360,7 +2370,7 @@ mkstring(char *s)
 }
 
 static Elem
-mkoctet(uchar *buf, int buflen)
+mkoctet(uint8_t *buf, int buflen)
 {
 	Elem e;
 
@@ -2372,7 +2382,7 @@ mkoctet(uchar *buf, int buflen)
 }
 
 static Elem
-mkbits(uchar *buf, int buflen)
+mkbits(uint8_t *buf, int buflen)
 {
 	Elem e;
 
@@ -2384,7 +2394,7 @@ mkbits(uchar *buf, int buflen)
 }
 
 static Elem
-mkutc(long t)
+mkutc(int32_t t)
 {
 	Elem e;
 	char utc[50];
@@ -2483,12 +2493,12 @@ mkDN(char *dn)
 	return mkseq(el);
 }
 
-uchar*
+uint8_t*
 RSApubtoasn1(RSApub *pub, int *keylen)
 {
 	Elem pubkey;
 	Bytes *pkbytes;
-	uchar *key;
+	uint8_t *key;
 
 	key = nil;
 	pubkey = mkseq(mkel(mkbigint(pub->n),mkel(mkint(mptoi(pub->ek)),nil)));
@@ -2512,15 +2522,15 @@ errret:
 	return key;
 }
 
-uchar*
-X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen)
+uint8_t*
+X509gen(RSApriv *priv, char *subj, uint32_t valid[2], int *certlen)
 {
 	int serial = 0;
-	uchar *cert = nil;
+	uint8_t *cert = nil;
 	RSApub *pk = rsaprivtopub(priv);
 	Bytes *certbytes, *pkbytes, *certinfobytes, *sigbytes;
 	Elem e, certinfo, issuer, subject, pubkey, validity, sig;
-	uchar digest[MD5dlen], *buf;
+	uint8_t digest[MD5dlen], *buf;
 	int buflen;
 	mpint *pkcs1;
 
@@ -2579,16 +2589,16 @@ errret:
 	return cert;
 }
 
-uchar*
+uint8_t*
 X509req(RSApriv *priv, char *subj, int *certlen)
 {
 	/* RFC 2314, PKCS #10 Certification Request Syntax */
 	int version = 0;
-	uchar *cert = nil;
+	uint8_t *cert = nil;
 	RSApub *pk = rsaprivtopub(priv);
 	Bytes *certbytes, *pkbytes, *certinfobytes, *sigbytes;
 	Elem e, certinfo, subject, pubkey, sig;
-	uchar digest[MD5dlen], *buf;
+	uint8_t digest[MD5dlen], *buf;
 	int buflen;
 	mpint *pkcs1;
 
@@ -2716,7 +2726,7 @@ edump(Elem e)
 }
 
 void
-asn1dump(uchar *der, int len)
+asn1dump(uint8_t *der, int len)
 {
 	Elem e;
 
@@ -2728,13 +2738,13 @@ asn1dump(uchar *der, int len)
 }
 
 void
-X509dump(uchar *cert, int ncert)
+X509dump(uint8_t *cert, int ncert)
 {
 	char *e;
 	Bytes *b;
 	CertX509 *c;
 	RSApub *pk;
-	uchar digest[SHA1dlen];
+	uint8_t digest[SHA1dlen];
 	Elem *sigalg;
 
 	print("begin X509dump\n");

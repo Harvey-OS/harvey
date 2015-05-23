@@ -125,7 +125,7 @@ struct Request
 	Request	*next;
 	Fid	*fid;
 	Fcall	f;
-	uchar	buf[1];
+	uint8_t	buf[1];
 };
 
 enum
@@ -222,7 +222,7 @@ void	releasedf(Dfile*);
 Symbol*	dfsearch(Dfile*, char*);
 void	dfresolve(Dfile*, int);
 char*	mkpath(char*, char*);
-int	mktar(Dfile*, Symbol*, uchar*, uint, int);
+int	mktar(Dfile*, Symbol*, uint8_t*, uint, int);
 void	closetar(Dfile*, Symbol*);
 
 void*
@@ -459,7 +459,7 @@ void
 fsreply(Fs *fs, Request *r, char *err)
 {
 	int n;
-	uchar buf[MAXSIZE];
+	uint8_t buf[MAXSIZE];
 
 	if(err){
 		r->f.type = Rerror;
@@ -634,7 +634,7 @@ fswalk(Fs *fs, Request *r, Fid *f)
 				err = Eexist;
 				break;
 			}
-			qid[nqid].path = (uvlong)dp;
+			qid[nqid].path = (uint64_t)dp;
 			qid[nqid].vers = 0;
 		}
 		if(nqid == 0 && err == nil)
@@ -874,7 +874,7 @@ fsread(Fs *fs, Request *r, Fid *f)
 					d.gid = "none";
 					d.muid = "none";
 					d.qid.type = QTFILE;
-					d.qid.path = (uvlong)dp;
+					d.qid.path = (uint64_t)dp;
 					d.qid.vers = 0;
 					d.length = f->df->file[dp->fno].tarlen;
 					d.mode = 0444;
@@ -939,7 +939,7 @@ fsstat(Fs *fs, Request *r, Fid *f)
 	Dir d;
 	Symbol *dp;
 	int n;
-	uchar statbuf[Nstat];
+	uint8_t statbuf[Nstat];
 
 	if(f->qid.type & QTDIR)
 		n = stat(f->path, statbuf, sizeof statbuf);
@@ -950,7 +950,7 @@ fsstat(Fs *fs, Request *r, Fid *f)
 		d.gid = "none";
 		d.muid = "none";
 		d.qid.type = QTFILE;
-		d.qid.path = (uvlong)dp;
+		d.qid.path = (uint64_t)dp;
 		d.qid.vers = 0;
 		d.length = f->df->file[dp->fno].tarlen;
 		d.mode = 0444;
@@ -1296,7 +1296,7 @@ dfsearch(Dfile *df, char *name)
  */
 /* set a bit in the referenced file vector */
 int
-set(uchar *vec, int fno)
+set(uint8_t *vec, int fno)
 {
 	if(vec[fno/8] & (1<<(fno&7)))
 		return 1;
@@ -1305,14 +1305,14 @@ set(uchar *vec, int fno)
 }
 /* merge two referenced file vectors */
 void
-merge(uchar *vec, uchar *ovec, int nfile)
+merge(uint8_t *vec, uint8_t *ovec, int nfile)
 {
 	nfile = (nfile+7)/8;
 	while(nfile-- > 0)
 		*vec++ |= *ovec++;
 }
 uint
-res(Dfile *df, uchar *vec, int fno)
+res(Dfile *df, uint8_t *vec, int fno)
 {
 	File *f;
 	Symbol *rp, *dp;
@@ -1338,7 +1338,7 @@ res(Dfile *df, uchar *vec, int fno)
 void
 dfresolve(Dfile *df, int fno)
 {
-	uchar *vec;
+	uint8_t *vec;
 	File *f;
 
 	f = &df->file[fno];
@@ -1350,13 +1350,13 @@ dfresolve(Dfile *df, int fno)
 /*
  *  make the tar directory block for a file
  */
-uchar*
+uint8_t*
 mktardir(File *f)
 {
-	uchar *ep;
+	uint8_t *ep;
 	Tardir *tp;
 	uint sum;
-	uchar *p, *cp;
+	uint8_t *p, *cp;
 
 	p = emalloc(Tblocksize);
 	tp = (Tardir*)p;
@@ -1425,11 +1425,11 @@ closefile(File *f)
  *  return a block of a tar file
  */
 int
-mktar(Dfile *df, Symbol *dp, uchar *area, uint offset, int len)
+mktar(Dfile *df, Symbol *dp, uint8_t *area, uint offset, int len)
 {
 	int fd, i, j, n, off;
-	uchar *p, *buf;
-	uchar *vec;
+	uint8_t *p, *buf;
+	uint8_t *vec;
 	File *f;
 
 	f = &df->file[dp->fno];
@@ -1516,7 +1516,7 @@ void
 closetar(Dfile *df, Symbol *dp)
 {
 	int i;
-	uchar *vec;
+	uint8_t *vec;
 	File *f;
 
 	f = &df->file[dp->fno];

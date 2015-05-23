@@ -121,15 +121,15 @@ static int version_number __BACKUPFILE_P ((const char *, const char *, size_t));
    FILE must not end with a '/' unless it is the root directory.
    Do not call this function if backup_type == none. */
 
-char *
+int8_t *
 find_backup_file_name (file)
-     const char *file;
+     const int8_t *file;
 {
   size_t backup_suffix_size_max;
   size_t file_len = strlen (file);
   size_t numbered_suffix_size_max = INT_STRLEN_BOUND (int) + 4;
-  char *s;
-  const char *suffix = simple_backup_suffix;
+  int8_t *s;
+  const int8_t *suffix = simple_backup_suffix;
 
   /* Allow room for simple or `.~N~' backups.  */
   backup_suffix_size_max = strlen (simple_backup_suffix) + 1;
@@ -151,7 +151,7 @@ find_backup_file_name (file)
 	  highest_backup = max_backup_version (file + dir_len, s);
 	  if (! (backup_type == numbered_existing && highest_backup == 0))
 	    {
-	      char *numbered_suffix = s + (file_len + backup_suffix_size_max);
+	      int8_t *numbered_suffix = s + (file_len + backup_suffix_size_max);
 	      sprintf (numbered_suffix, ".~%d~", highest_backup + 1);
 	      suffix = numbered_suffix;
 	    }

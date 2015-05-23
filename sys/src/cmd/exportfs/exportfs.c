@@ -19,7 +19,7 @@
 #include "exportfs.h"
 
 #define QIDPATH	((1LL<<48)-1)
-vlong newqid = 0;
+int64_t newqid = 0;
 
 enum {
 	Encnone,
@@ -60,8 +60,8 @@ char	*aanfilter = "/bin/aan";
 int	encproto = Encnone;
 int	readonly;
 
-static void	mksecret(char *, uchar *);
-static int localread9pmsg(int, void *, uint, ulong *);
+static void	mksecret(char *, uint8_t *);
+static int localread9pmsg(int, void *, uint, uint32_t *);
 static char *anstring  = "tcp!*!0";
 
 char *netdir = "", *local = "", *remote = "";
@@ -416,15 +416,15 @@ main(int argc, char **argv)
  * cpu relies on this (which needs to be fixed!) -- pb.
  */
 static int
-localread9pmsg(int fd, void *abuf, uint n, ulong *initial)
+localread9pmsg(int fd, void *abuf, uint n, uint32_t *initial)
 {
 	int m, len;
-	uchar *buf;
+	uint8_t *buf;
 
 	buf = abuf;
 
 	/* read count */
-	assert(BIT32SZ == sizeof(ulong));
+	assert(BIT32SZ == sizeof(uint32_t));
 	if (*initial) {
 		memcpy(buf, initial, BIT32SZ);
 		*initial = 0;
@@ -452,7 +452,7 @@ localread9pmsg(int fd, void *abuf, uint n, ulong *initial)
 void
 reply(Fcall *r, Fcall *t, char *err)
 {
-	uchar *data;
+	uint8_t *data;
 	int n;
 
 	t->tag = r->tag;
@@ -738,7 +738,7 @@ makepath(File *p, char *name)
 }
 
 int
-qidhash(vlong path)
+qidhash(int64_t path)
 {
 	int h, n;
 
@@ -753,7 +753,7 @@ qidhash(vlong path)
 void
 freeqid(Qidtab *q)
 {
-	ulong h;
+	uint32_t h;
 	Qidtab *l;
 
 	q->ref--;
@@ -775,7 +775,7 @@ freeqid(Qidtab *q)
 Qidtab*
 qidlookup(Dir *d)
 {
-	ulong h;
+	uint32_t h;
 	Qidtab *q;
 
 	h = qidhash(d->qid.path);
@@ -786,7 +786,7 @@ qidlookup(Dir *d)
 }
 
 int
-qidexists(vlong path)
+qidexists(int64_t path)
 {
 	int h;
 	Qidtab *q;
@@ -801,8 +801,8 @@ qidexists(vlong path)
 Qidtab*
 uniqueqid(Dir *d)
 {
-	ulong h;
-	vlong path;
+	uint32_t h;
+	int64_t path;
 	Qidtab *q;
 
 	q = qidlookup(d);
@@ -944,7 +944,7 @@ filter(int fd, char *cmd)
 }
 
 static void
-mksecret(char *t, uchar *f)
+mksecret(char *t, uint8_t *f)
 {
 	sprint(t, "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);

@@ -821,7 +821,8 @@ isnetscape(char *hdr)
  * Parse HTTP response headers, adding cookies to jar.
  * Overwrites the headers.  May overwrite path.
  */
-static char* parsecookie(Cookie*, char*, char**, int, char*, char*);
+static char* parsecookie(Cookie*, char*, char**, int, char*,
+			   char*);
 static int
 parsehttp(Jar *jar, char *hdr, char *dom, char *path)
 {
@@ -926,7 +927,8 @@ skipvalue(char *s, int isns)
  *	path=/; domain=.nytimes.com
  */
 static char*
-parsecookie(Cookie *c, char *p, char **e, int isns, char *dom, char *path)
+parsecookie(Cookie *c, char *p, char **e, int isns, char *dom,
+	    char *path)
 {
 	int i, done;
 	char *t, *u, *attr, *val;

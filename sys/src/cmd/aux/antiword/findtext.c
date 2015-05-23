@@ -32,7 +32,7 @@ bAddTextBlocks(ULONG ulCharPosFirst, ULONG ulTotalLength,
 {
 	text_block_type	tTextBlock;
 	ULONG	ulCharPos, ulOffset, ulIndex;
-	long	lToGo;
+	int32_t	lToGo;
 
 	fail(ulTotalLength > (ULONG)LONG_MAX / 2);
 	fail(ulStartBlock > MAX_BLOCKNUMBER && ulStartBlock != END_OF_CHAIN);
@@ -44,11 +44,11 @@ bAddTextBlocks(ULONG ulCharPosFirst, ULONG ulTotalLength,
 	if (bUsesUnicode) {
 		/* One character equals two bytes */
 		NO_DBG_MSG("Uses Unicode");
-		lToGo = (long)ulTotalLength * 2;
+		lToGo = (int32_t)ulTotalLength * 2;
 	} else {
 		/* One character equals one byte */
 		NO_DBG_MSG("Uses ASCII");
-		lToGo = (long)ulTotalLength;
+		lToGo = (int32_t)ulTotalLength;
 	}
 
 	ulCharPos = ulCharPosFirst;
@@ -82,7 +82,7 @@ bAddTextBlocks(ULONG ulCharPosFirst, ULONG ulTotalLength,
 			return FALSE;
 		}
 		ulCharPos += tTextBlock.ulLength;
-		lToGo -= (long)tTextBlock.ulLength;
+		lToGo -= (int32_t)tTextBlock.ulLength;
 	}
 	DBG_DEC_C(lToGo != 0, lToGo);
 	return lToGo == 0;
@@ -192,7 +192,7 @@ bGet8DocumentText(FILE *pFile, const pps_info_type *pPPS,
 	UCHAR	*aucBuffer;
 	ULONG	ulTextOffset, ulBeginTextInfo;
 	ULONG	ulTotLength, ulLen;
-	long	lIndex, lPieces, lOff;
+	int32_t	lIndex, lPieces, lOff;
 	size_t	tTextInfoLen, tBlockDepotLen, tBlockSize;
 	int	iType, iLen;
 	BOOL	bUsesUnicode;
@@ -236,7 +236,7 @@ bGet8DocumentText(FILE *pFile, const pps_info_type *pPPS,
 	NO_DBG_PRINT_BLOCK(aucBuffer, tTextInfoLen);
 
 	lOff = 0;
-	while (lOff < (long)tTextInfoLen) {
+	while (lOff < (int32_t)tTextInfoLen) {
 		iType = (int)ucGetByte(lOff, aucBuffer);
 		lOff++;
 		if (iType == 0) {
@@ -247,7 +247,7 @@ bGet8DocumentText(FILE *pFile, const pps_info_type *pPPS,
 		if (iType == 1) {
 			iLen = (int)usGetWord(lOff, aucBuffer);
 			vAdd2PropModList(aucBuffer + lOff);
-			lOff += (long)iLen + 2;
+			lOff += (int32_t)iLen + 2;
 			continue;
 		}
 		if (iType != 2) {
@@ -262,7 +262,7 @@ bGet8DocumentText(FILE *pFile, const pps_info_type *pPPS,
 			return FALSE;
 		}
 		lOff += 4;
-		lPieces = (long)((ulLen - 4) / 12);
+		lPieces = (int32_t)((ulLen - 4) / 12);
 		DBG_DEC(lPieces);
 		for (lIndex = 0; lIndex < lPieces; lIndex++) {
 			ulTextOffset = ulGetLong(

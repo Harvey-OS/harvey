@@ -29,7 +29,7 @@ int	debug;
 
 Dict	*dict;	/* current dictionary */
 
-Entry	getentry(long);
+Entry	getentry(int32_t);
 
 void
 main(int argc, char **argv)
@@ -79,9 +79,9 @@ main(int argc, char **argv)
 }
 
 Entry
-getentry(long b)
+getentry(int32_t b)
 {
-	long e, n, dtop;
+	int32_t e, n, dtop;
 	static Entry ans;
 	static int anslen = 0;
 

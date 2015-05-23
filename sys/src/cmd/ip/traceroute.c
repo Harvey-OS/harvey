@@ -32,7 +32,8 @@ struct DS {
 char *argv0;
 int debug;
 
-void	histogram(long *t, int n, int buckets, long lo, long hi);
+void	histogram(int32_t *t, int n, int buckets, int32_t lo,
+		      int32_t hi);
 
 void
 usage(void)
@@ -251,12 +252,12 @@ catch(void *a, char *msg)
 }
 
 static int
-call(DS *ds, char *clone, char *dest, int ttl, long *interval)
+call(DS *ds, char *clone, char *dest, int ttl, int32_t *interval)
 {
 	int cfd, dfd, rv, n;
 	char msg[Maxstring];
 	char file[Maxstring];
-	vlong start;
+	int64_t start;
 
 	notify(catch);
 
@@ -457,10 +458,10 @@ main(int argc, char **argv)
 char *order = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 void
-histogram(long *t, int n, int buckets, long lo, long hi)
+histogram(int32_t *t, int n, int buckets, int32_t lo, int32_t hi)
 {
 	int i, j, empty;
-	long span;
+	int32_t span;
 	static char *bar;
 	char *p;
 	char x[64];

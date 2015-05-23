@@ -13,7 +13,7 @@
 #include <sunrpc.h>
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *v;
 
@@ -28,7 +28,7 @@ abort();
 }
 
 void*
-erealloc(void *v, ulong n)
+erealloc(void *v, uint32_t n)
 {
 	v = realloc(v, n);
 	if(v == nil)

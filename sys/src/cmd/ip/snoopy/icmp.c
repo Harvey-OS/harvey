@@ -15,10 +15,10 @@
 
 typedef struct Hdr	Hdr;
 struct Hdr
-{	uchar	type;
-	uchar	code;
-	uchar	cksum[2];	/* Checksum */
-	uchar	data[1];
+{	uint8_t	type;
+	uint8_t	code;
+	uint8_t	cksum[2];	/* Checksum */
+	uint8_t	data[1];
 };
 
 enum
@@ -130,7 +130,7 @@ p_seprint(Msg *m)
 	char *tn;
 	char *p = m->p;
 	char *e = m->e;
-	ushort cksum2, cksum;
+	uint16_t cksum2, cksum;
 
 	h = (Hdr*)m->ps;
 	m->ps += ICMPLEN;
@@ -142,15 +142,15 @@ p_seprint(Msg *m)
 	tn = icmpmsg[h->type];
 	if(tn == nil)
 		p = seprint(p, e, "t=%ud c=%d ck=%4.4ux", h->type,
-			h->code, (ushort)NetS(h->cksum));
+			h->code, (uint16_t)NetS(h->cksum));
 	else
 		p = seprint(p, e, "t=%s c=%d ck=%4.4ux", tn,
-			h->code, (ushort)NetS(h->cksum));
+			h->code, (uint16_t)NetS(h->cksum));
 	if(Cflag){
 		cksum = NetS(h->cksum);
 		h->cksum[0] = 0;
 		h->cksum[1] = 0;
-		cksum2 = ~ptclbsum((uchar*)h, m->pe - m->ps + ICMPLEN) & 0xffff;
+		cksum2 = ~ptclbsum((uint8_t*)h, m->pe - m->ps + ICMPLEN) & 0xffff;
 		if(cksum != cksum2)
 			p = seprint(p,e, " !ck=%4.4ux", cksum2);
 	}

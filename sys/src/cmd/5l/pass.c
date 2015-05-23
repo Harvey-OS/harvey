@@ -15,7 +15,7 @@ dodata(void)
 	int i, t;
 	Sym *s;
 	Prog *p;
-	long orig, v;
+	int32_t orig, v;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f dodata\n", cputime());
@@ -289,7 +289,7 @@ loop:
 void
 patch(void)
 {
-	long c, vexit;
+	int32_t c, vexit;
 	Prog *p, *q;
 	Sym *s;
 	int a;
@@ -363,7 +363,7 @@ void
 mkfwd(void)
 {
 	Prog *p;
-	long dwn[LOG], cnt[LOG], i;
+	int32_t dwn[LOG], cnt[LOG], i;
 	Prog *lst[LOG];
 
 	for(i=0; i<LOG; i++) {
@@ -411,10 +411,10 @@ brloop(Prog *p)
 	return P;
 }
 
-long
+int32_t
 atolwhex(char *s)
 {
-	long n;
+	int32_t n;
 	int f;
 
 	n = 0;
@@ -451,10 +451,10 @@ atolwhex(char *s)
 	return n;
 }
 
-long
-rnd(long v, long r)
+int32_t
+rnd(int32_t v, int32_t r)
 {
-	long c;
+	int32_t c;
 
 	if(r <= 0)
 		return v;
@@ -481,7 +481,7 @@ import(void)
 }
 
 void
-ckoff(Sym *s, long v)
+ckoff(Sym *s, int32_t v)
 {
 	if(v < 0 || v >= 1<<Roffset)
 		diag("relocation offset %ld for %s out of range", v, s->name);
@@ -549,13 +549,13 @@ export(void)
 		Bprint(&bso, "EXPORT: %s sig=%lux t=%d\n", s->name, s->sig, s->type);
 
 		/* signature */
-		p = newdata(et, off, sizeof(long), D_EXTERN);
-		off += sizeof(long);
+		p = newdata(et, off, sizeof(int32_t), D_EXTERN);
+		off += sizeof(int32_t);
 		p->to.offset = s->sig;
 
 		/* address */
-		p = newdata(et, off, sizeof(long), D_EXTERN);
-		off += sizeof(long);
+		p = newdata(et, off, sizeof(int32_t), D_EXTERN);
+		off += sizeof(int32_t);
 		p->to.name = D_EXTERN;
 		p->to.sym = s;
 
@@ -577,8 +577,8 @@ export(void)
 		}
 
 		/* name */
-		p = newdata(et, off, sizeof(long), D_EXTERN);
-		off += sizeof(long);
+		p = newdata(et, off, sizeof(int32_t), D_EXTERN);
+		off += sizeof(int32_t);
 		p->to.name = D_STATIC;
 		p->to.sym = str;
 		p->to.offset = sv-n;
@@ -592,8 +592,8 @@ export(void)
 	}
 
 	for(i = 0; i < 3; i++){
-		newdata(et, off, sizeof(long), D_EXTERN);
-		off += sizeof(long);
+		newdata(et, off, sizeof(int32_t), D_EXTERN);
+		off += sizeof(int32_t);
 	}
 	et->value = off;
 	if(sv == 0)

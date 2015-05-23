@@ -14,7 +14,7 @@
 
 #include	"errstr.h"
 
-ulong	kerndate;
+uint32_t	kerndate;
 Proc	**privup;
 char	*eve;
 extern void *mainmem;
@@ -80,7 +80,7 @@ initcompat(void)
 }
 
 int
-openmode(ulong o)
+openmode(uint32_t o)
 {
 	o &= ~(OTRUNC|OCEXEC|ORCLOSE);
 	if(o > OEXEC)
@@ -107,7 +107,7 @@ panic(char *fmt, ...)
 }
 
 void*
-smalloc(ulong n)
+smalloc(uint32_t n)
 {
 	void *p;
 
@@ -118,7 +118,7 @@ smalloc(ulong n)
 	return p;
 }
 
-long
+int32_t
 seconds(void)
 {
 	return time(nil);
@@ -138,7 +138,7 @@ nexterror(void)
 }
 
 int
-readstr(ulong off, char *buf, ulong n, char *str)
+readstr(uint32_t off, char *buf, uint32_t n, char *str)
 {
 	int size;
 

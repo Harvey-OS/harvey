@@ -66,12 +66,12 @@ struct Box
 	Qid	qid;		/* qid of fs mailbox */
 	Qid	impQid;		/* qid of .imp when last synched */
 	long	mtime;		/* file mtime when last read */
-	ulong	max;		/* maximum msgs->seq, same as number of messages */
-	ulong	toldMax;	/* last value sent to client */
-	ulong	recent;		/* number of recently received messaged */
-	ulong	toldRecent;	/* last value sent to client */
-	ulong	uidnext;	/* next uid value assigned to a message */
-	ulong	uidvalidity;	/* uid of mailbox */
+	uint32_t	max;		/* maximum msgs->seq, same as number of messages */
+	uint32_t	toldMax;	/* last value sent to client */
+	uint32_t	recent;		/* number of recently received messaged */
+	uint32_t	toldRecent;	/* last value sent to client */
+	uint32_t	uidnext;	/* next uid value assigned to a message */
+	uint32_t	uidvalidity;	/* uid of mailbox */
 	Msg	*msgs;
 };
 
@@ -106,8 +106,8 @@ enum
 struct Header
 {
 	char	*buf;		/* header, including terminating \r\n */
-	ulong	size;		/* strlen(buf) */
-	ulong	lines;		/* number of \n characters in buf */
+	uint32_t	size;		/* strlen(buf) */
+	uint32_t	lines;		/* number of \n characters in buf */
 
 	/*
 	 * pre-parsed mime headers
@@ -135,14 +135,14 @@ struct Msg
 	uchar	expunged;	/* message actually expunged, but not yet reported to client */
 	uchar	matched;	/* search succeeded? */
 	uchar	bogus;		/* implies the message is invalid, ie contains nulls; see flags above */
-	ulong	uid;		/* imap unique identifier */
-	ulong	seq;		/* position in box; 1 is oldest */
-	ulong	id;		/* number of message directory in upas/fs */
+	uint32_t	uid;		/* imap unique identifier */
+	uint32_t	seq;		/* position in box; 1 is oldest */
+	uint32_t	id;		/* number of message directory in upas/fs */
 	char	*fs;		/* name of message directory */
 	char	*efs;		/* pointer after / in fs; enough space for file name */
 
-	ulong	size;		/* size of fs/rawbody, in bytes, with \r added before \n */
-	ulong	lines;		/* number of lines in rawbody */
+	uint32_t	size;		/* size of fs/rawbody, in bytes, with \r added before \n */
+	uint32_t	lines;		/* number of lines in rawbody */
 
 	char	*iBuf;
 	char	*info[IMax];	/* all info about message */
@@ -337,7 +337,7 @@ struct Search
 	int	key;
 	char	*s;
 	char	*hdr;
-	ulong	num;
+	uint32_t	num;
 	int	year;
 	int	mon;
 	int	mday;
@@ -349,7 +349,7 @@ struct Search
 
 struct NList
 {
-	ulong	n;
+	uint32_t	n;
 	NList	*next;
 };
 
@@ -361,15 +361,15 @@ struct SList
 
 struct MsgSet
 {
-	ulong	from;
-	ulong	to;
+	uint32_t	from;
+	uint32_t	to;
 	MsgSet	*next;
 };
 
 struct Pair
 {
-	ulong	start;
-	ulong	stop;
+	uint32_t	start;
+	uint32_t	stop;
 };
 
 #include "bin.h"

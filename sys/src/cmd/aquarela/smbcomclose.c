@@ -10,11 +10,11 @@
 #include "headers.h"
 
 SmbProcessResult
-smbcomclose(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *)
+smbcomclose(SmbSession *s, SmbHeader *h, uint8_t *pdata, SmbBuffer *)
 {
 	SmbTree *t;
 	SmbFile *f;
-	ushort fid;
+	uint16_t fid;
 	if (!smbcheckwordcount("comclose", h, 3))
 		return SmbProcessResultFormat;
 	t = smbidmapfind(s->tidmap, h->tid);

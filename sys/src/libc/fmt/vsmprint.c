@@ -30,7 +30,7 @@ fmtStrFlush(Fmt *f)
 		free(s);
 		return 0;
 	}
-	f->farg = (void*)n;
+	f->farg = (void*)(uintptr_t)n;
 	f->to = (char*)f->start + ((char*)f->to - s);
 	f->stop = (char*)f->start + n - 1;
 	return 1;
@@ -44,6 +44,8 @@ fmtstrinit(Fmt *f)
 	memset(f, 0, sizeof *f);
 	f->runes = 0;
 	n = 32;
+	/* this should not be necessary */
+	n = 4096;
 	f->start = malloc(n);
 	if(f->start == nil)
 		return -1;
@@ -51,7 +53,7 @@ fmtstrinit(Fmt *f)
 	f->to = f->start;
 	f->stop = (char*)f->start + n - 1;
 	f->flush = fmtStrFlush;
-	f->farg = (void*)n;
+	f->farg = (void*)(uintptr_t)n;
 	f->nfmt = 0;
 	return 0;
 }
@@ -67,8 +69,10 @@ vsmprint(char *fmt, va_list args)
 
 	if(fmtstrinit(&f) < 0)
 		return nil;
-	f.args = args;
+	//f.args = args;
+	va_copy(f.args,args);
 	n = dofmt(&f, fmt);
+	va_end(f.args);
 	if(f.start == nil)		/* realloc failed? */
 		return nil;
 	if(n < 0){

@@ -69,7 +69,8 @@ _sock_newrock(int fd)
 }
 
 int
-_sock_data(int cfd, char *net, int domain, int stype, int protocol, Rock **rp)
+_sock_data(int cfd, char *net, int domain, int stype, int protocol,
+	   Rock **rp)
 {
 	int n, fd;
 	Rock *r;

@@ -59,7 +59,7 @@ static int copynotehandler(void *, char *);
 int
 _startbuf(int fd)
 {
-	long i, slot;
+	int32_t i, slot;
 	int pid;
 	Fdinfo *f;
 	Muxbuf *b;
@@ -67,7 +67,7 @@ _startbuf(int fd)
 	if(mux == 0){
 		_RFORK(RFREND);
 		mux = (Muxseg*)_SEGATTACH(0, "shared", MUXADDR, sizeof(Muxseg));
-		if((long)mux == -1){
+		if((int32_t)mux == -1){
 			_syserrno();
 			return -1;
 		}

@@ -159,7 +159,7 @@ size_t
 wcstombs(char *s, const wchar_t *pwcs, size_t n)
 {
 	int i, d;
-	long c;
+	int32_t c;
 	char *p, *pe;
 	char buf[MB_LEN_MAX];
 

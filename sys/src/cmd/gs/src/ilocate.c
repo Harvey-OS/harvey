@@ -254,7 +254,7 @@ ialloc_validate_memory(const gs_ref_memory_t * mem, gc_state_t * gcst)
 	int i;
 
 	if_debug3('6', "[6]validating memory 0x%lx, space %d, level %d\n",
-		  (ulong) mem, mem->space, level);
+		  (uint32_t) mem, mem->space, level);
 	/* Validate chunks. */
 	for (cp = smem->cfirst; cp != 0; cp = cp->cnext)
 	    ialloc_validate_chunk(cp, gcst);
@@ -270,14 +270,14 @@ ialloc_validate_memory(const gs_ref_memory_t * mem, gc_state_t * gcst)
 
 		if (pfree[-1].o_type != &st_free) {
 		    lprintf3("Non-free object 0x%lx(%u) on freelist %i!\n",
-			     (ulong) pfree, size, i);
+			     (uint32_t) pfree, size, i);
 		    break;
 		}
 		if ((i == LARGE_FREELIST_INDEX && size < max_freelist_size) ||
 		 (i != LARGE_FREELIST_INDEX && 
 		 (size < free_size - obj_align_mask || size > free_size))) {
 		    lprintf3("Object 0x%lx(%u) size wrong on freelist %i!\n",
-			     (ulong) pfree, size, i);
+			     (uint32_t) pfree, size, i);
 		    break;
 		}
 	    }
@@ -312,12 +312,13 @@ ialloc_validate_chunk(const chunk_t * cp, gc_state_t * gcst)
 	if (pre->o_type == &st_free) {
 	    if (!object_size_valid(pre, size, cp))
 		lprintf3("Bad free object 0x%lx(%lu), in chunk 0x%lx!\n",
-			 (ulong) (pre + 1), (ulong) size, (ulong) cp);
+			 (uint32_t) (pre + 1), (uint32_t) size,
+                         (uint32_t) cp);
 	} else
 	    ialloc_validate_object(pre + 1, cp, gcst);
     if_debug3('7', " [7]validating %s(%lu) 0x%lx\n",
 	      struct_type_name_string(pre->o_type),
-	      (ulong) size, (ulong) pre);
+	      (uint32_t) size, (uint32_t) pre);
     if (pre->o_type == &st_refs) {
 	const ref_packed *rp = (const ref_packed *)(pre + 1);
 	const char *end = (const char *)rp + size;
@@ -519,8 +520,8 @@ ialloc_validate_pointer_stability(const obj_header_t * ptr_fr,
 
 	lprintf6("Reference to a less stable object 0x%lx<%s> "
 	         "in the space \'%s\' from 0x%lx<%s> in the space \'%s\' !\n",
-		 (ulong) ptr_to, ptr_to->d.o.t.type->sname, sn_to, 
-		 (ulong) ptr_fr, ptr_fr->d.o.t.type->sname, sn_fr);
+		 (uint32_t) ptr_to, ptr_to->d.o.t.type->sname, sn_to, 
+		 (uint32_t) ptr_fr, ptr_fr->d.o.t.type->sname, sn_fr);
     }
 }
 #endif
@@ -531,7 +532,7 @@ ialloc_validate_object(const obj_header_t * ptr, const chunk_t * cp,
 		       gc_state_t * gcst)
 {
     const obj_header_t *pre = ptr - 1;
-    ulong size = pre_obj_contents_size(pre);
+    uint32_t size = pre_obj_contents_size(pre);
     gs_memory_type_ptr_t otype = pre->o_type;
     const char *oname;
 
@@ -543,13 +544,13 @@ ialloc_validate_object(const obj_header_t * ptr, const chunk_t * cp,
 	st = *gcst;		/* no side effects! */
 	if (!(cp = gc_locate(pre, &st))) {
 	    lprintf1("Object 0x%lx not in any chunk!\n",
-		     (ulong) ptr);
+		     (uint32_t) ptr);
 	    return;		/*gs_abort(); */
 	}
     }
     if (otype == &st_free) {
 	lprintf3("Reference to free object 0x%lx(%lu), in chunk 0x%lx!\n",
-		 (ulong) ptr, (ulong) size, (ulong) cp);
+		 (uint32_t) ptr, (uint32_t) size, (uint32_t) cp);
 	gs_abort(gcst->heap);
     }
     if ((cp != 0 && !object_size_valid(pre, size, cp)) ||
@@ -559,9 +560,9 @@ ialloc_validate_object(const obj_header_t * ptr, const chunk_t * cp,
 	 *oname < 33 || *oname > 126)
 	) {
 	lprintf2("Bad object 0x%lx(%lu),\n",
-		 (ulong) ptr, (ulong) size);
+		 (uint32_t) ptr, (uint32_t) size);
 	dprintf2(" ssize = %u, in chunk 0x%lx!\n",
-		 otype->ssize, (ulong) cp);
+		 otype->ssize, (uint32_t) cp);
 	gs_abort(gcst->heap);
     }
 }

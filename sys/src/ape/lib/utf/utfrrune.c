@@ -26,9 +26,9 @@
 #include "utfdef.h"
 
 char*
-utfrrune(char *s, long c)
+utfrrune(char *s, int32_t c)
 {
-	long c1;
+	int32_t c1;
 	Rune r;
 	char *s1;
 
@@ -37,7 +37,7 @@ utfrrune(char *s, long c)
 
 	s1 = 0;
 	for(;;) {
-		c1 = *(uchar*)s;
+		c1 = *(uint8_t*)s;
 		if(c1 < Runeself) {	/* one byte rune */
 			if(c1 == 0)
 				return s1;

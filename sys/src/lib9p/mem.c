@@ -15,7 +15,7 @@
 #include "9p.h"
 
 void*
-emalloc9p(ulong sz)
+emalloc9p(uint32_t sz)
 {
 	void *v;
 
@@ -29,7 +29,7 @@ emalloc9p(ulong sz)
 }
 
 void*
-erealloc9p(void *v, ulong sz)
+erealloc9p(void *v, uint32_t sz)
 {
 	void *nv;
 

@@ -83,7 +83,7 @@ sf_alloc_string(gs_memory_t * mem, uint nbytes, client_name_t cname)
 	    else
 		put_uu32(prev + NB, next);
 	    if_debug4('A', "[a%d:+>F]%s(%u) = 0x%lx\n", imem->space,
-		      client_name_string(cname), nbytes, (ulong) ptr);
+		      client_name_string(cname), nbytes, (uint32_t) ptr);
 	    gs_alloc_fill(ptr, gs_alloc_fill_alloc, nbytes);
 	    imem->lost.strings -= nbytes;
 	    return ptr;

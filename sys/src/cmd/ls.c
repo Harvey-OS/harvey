@@ -38,15 +38,15 @@ int	ndir;
 NDir*	dirbuf;
 int	ls(char*, int);
 int	compar(NDir*, NDir*);
-char*	asciitime(long);
-char*	darwx(long);
-void	rwx(long, char*);
-void	growto(long);
+char*	asciitime(int32_t);
+char*	darwx(int32_t);
+void	rwx(int32_t, char*);
+void	growto(int32_t);
 void	dowidths(Dir*);
 void	format(Dir*, char*);
 void	output(void);
 char*	xcleanname(char*);
-ulong	clk;
+uint32_t	clk;
 int	swidth;			/* max width of -s size */
 int	qwidth;			/* max width of -q version */
 int	vwidth;			/* max width of dev */
@@ -98,7 +98,7 @@ int
 ls(char *s, int multi)
 {
 	int fd;
-	long i, n;
+	int32_t i, n;
 	char *p;
 	Dir *db;
 
@@ -247,7 +247,7 @@ format(Dir *db, char *name)
 }
 
 void
-growto(long n)
+growto(int32_t n)
 {
 	if(n <= ndirbuf)
 		return;
@@ -262,7 +262,7 @@ growto(long n)
 int
 compar(NDir *a, NDir *b)
 {
-	long i;
+	int32_t i;
 	Dir *ad, *bd;
 
 	ad = a->d;
@@ -297,7 +297,7 @@ compar(NDir *a, NDir *b)
 }
 
 char*
-asciitime(long l)
+asciitime(int32_t l)
 {
 	static char buf[32];
 	char *t;

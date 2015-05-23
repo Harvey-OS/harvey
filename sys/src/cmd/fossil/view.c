@@ -53,12 +53,12 @@ Atree *atreeinit(char*);
 Tnode *initxheader(void);
 Tnode *initxcache(char *name);
 Tnode *initxsuper(void);
-Tnode *initxlocalroot(char *name, u32int addr);
+Tnode *initxlocalroot(char *name, uint32_t addr);
 Tnode *initxentry(Entry);
 Tnode *initxsource(Entry, int);
 Tnode *initxentryblock(Block*, Entry*);
 Tnode *initxdatablock(Block*, uint);
-Tnode *initxroot(char *name, uchar[VtScoreSize]);
+Tnode *initxroot(char *name, uint8_t[VtScoreSize]);
 
 int fd;
 Header h;
@@ -134,7 +134,7 @@ blockPut(Block *b)
 	free(b);
 }
 
-static u32int
+static uint32_t
 partStart(int part)
 {
 	switch(part){
@@ -150,7 +150,7 @@ partStart(int part)
 }
 
 
-static u32int
+static uint32_t
 partEnd(int part)
 {
 	switch(part){
@@ -166,13 +166,13 @@ partEnd(int part)
 }
 
 Block*
-readBlock(int part, u32int addr)
+readBlock(int part, uint32_t addr)
 {
-	u32int start, end;
-	u64int offset;
+	uint32_t start, end;
+	uint64_t offset;
 	int n, nn;
 	Block *b;
-	uchar *buf;
+	uint8_t *buf;
 
 	start = partStart(part);
 	end = partEnd(part);
@@ -184,7 +184,7 @@ readBlock(int part, u32int addr)
 	b = allocBlock();
 	b->addr = addr;
 	buf = b->data;
-	offset = ((u64int)(addr+start))*h.blockSize;
+	offset = ((uint64_t)(addr+start))*h.blockSize;
 	n = h.blockSize;
 	while(n > 0){
 		nn = pread(fd, buf, n, offset);
@@ -224,7 +224,7 @@ int vtType[BtMax] = {
 };
 
 Block*
-ventiBlock(uchar score[VtScoreSize], uint type)
+ventiBlock(uint8_t score[VtScoreSize], uint type)
 {
 	int n;
 	Block *b;
@@ -248,12 +248,12 @@ ventiBlock(uchar score[VtScoreSize], uint type)
 }
 
 Block*
-dataBlock(uchar score[VtScoreSize], uint type, uint tag)
+dataBlock(uint8_t score[VtScoreSize], uint type, uint tag)
 {
 	Block *b, *bl;
 	int lpb;
 	Label l;
-	u32int addr;
+	uint32_t addr;
 
 	addr = globalToLocal(score);
 	if(addr == NilBlock)
@@ -366,7 +366,7 @@ xheaderexpand(Tnode *t)
 Tnode*
 initxheader(void)
 {
-	u8int buf[HeaderSize];
+	uint8_t buf[HeaderSize];
 	Tnode *t;
 
 	if(pread(fd, buf, HeaderSize, HeaderOffset) < HeaderSize)
@@ -443,10 +443,10 @@ xvacrootexpand(Tnode *t)
 }
 
 Tnode*
-initxvacroot(uchar score[VtScoreSize])
+initxvacroot(uint8_t score[VtScoreSize])
 {
 	Tnode *t;
-	uchar buf[VtRootSize];
+	uint8_t buf[VtRootSize];
 	int n;
 
 	if((n = vtRead(z, score, VtRootType, buf, VtRootSize)) < 0)
@@ -520,7 +520,8 @@ nilgen(void*, Block*, int, Tnode**)
 }
 
 Tnode*
-initxblock(Block *b, char *s, int (*gen)(void*, Block*, int, Tnode**), void *arg)
+initxblock(Block *b, char *s, int (*gen)(void*, Block*, int, Tnode**),
+	   void *arg)
 {
 	Xblock *t;
 
@@ -680,9 +681,9 @@ xlocalrootgen(void*, Block *b, int o, Tnode **tp)
 }
 
 Tnode*
-initxlocalroot(char *name, u32int addr)
+initxlocalroot(char *name, uint32_t addr)
 {
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 	Block *b;
 
 	localToGlobal(addr, score);
@@ -705,7 +706,7 @@ xvacrootgen(void*, Block *b, int o, Tnode **tp)
 }
 
 Tnode*
-initxroot(char *name, uchar score[VtScoreSize])
+initxroot(char *name, uint8_t score[VtScoreSize])
 {
 	Block *b;
 
@@ -801,7 +802,7 @@ initxdatablock(Block *b, uint n)
 }
 
 int
-parseScore(uchar *score, char *buf, int n)
+parseScore(uint8_t *score, char *buf, int n)
 {
 	int i, c;
 
@@ -831,11 +832,11 @@ parseScore(uchar *score, char *buf, int n)
 int
 scoreFmt(Fmt *f)
 {
-	uchar *v;
+	uint8_t *v;
 	int i;
-	u32int addr;
+	uint32_t addr;
 
-	v = va_arg(f->args, uchar*);
+	v = va_arg(f->args, uint8_t*);
 	if(v == nil){
 		fmtprint(f, "*");
 	}else if((addr = globalToLocal(v)) != NilBlock)
@@ -852,7 +853,7 @@ Atree*
 atreeinit(char *arg)
 {
 	Atree *a;
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 
 	vtAttach();
 

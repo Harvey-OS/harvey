@@ -570,7 +570,7 @@ void
 modeq(void)
 {
 	Datum d1, d2;
-	long x;
+	int32_t x;
 	d1 = pop();
 	d2 = pop();
 	if (d1.sym->type != VAR && d1.sym->type != UNDEF)
@@ -578,7 +578,7 @@ modeq(void)
 			d1.sym->name);
 	/* d2.val = d1.sym->u.val %= d2.val; */
 	x = d1.sym->u.val;
-	x %= (long) d2.val;
+	x %= (int32_t) d2.val;
 	d2.val = d1.sym->u.val = x;
 	d1.sym->type = VAR;
 	push(d2);

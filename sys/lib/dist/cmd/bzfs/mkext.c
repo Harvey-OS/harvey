@@ -41,9 +41,9 @@ enum{
 };
 
 void	mkdirs(char*, char*);
-void	mkdir(char*, ulong, ulong, char*, char*);
-void	extract(char*, ulong, ulong, char*, char*, ulong);
-void	seekpast(ulong);
+void	mkdir(char*, uint32_t, uint32_t, char*, char*);
+void	extract(char*, uint32_t, uint32_t, char*, char*, uint32_t);
+void	seekpast(uint32_t);
 void	error(char*, ...);
 void	warn(char*, ...);
 void	usage(void);
@@ -212,7 +212,8 @@ if(chatty) fprint(2, "%s\n", p);
 char buf[8192];
 
 int
-ffcreate(char *name, ulong mode, char *uid, char *gid, ulong mtime, int length)
+ffcreate(char *name, uint32_t mode, char *uid, char *gid, uint32_t mtime,
+	 int length)
 {
 	int fd, om;
 	Dir nd;
@@ -238,13 +239,14 @@ ffcreate(char *name, ulong mode, char *uid, char *gid, ulong mtime, int length)
 }
 
 void
-mkdir(char *name, ulong mode, ulong mtime, char *uid, char *gid)
+mkdir(char *name, uint32_t mode, uint32_t mtime, char *uid, char *gid)
 {
 	close(ffcreate(name, mode, uid, gid, mtime, 0));
 }
 
 void
-extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, ulong bytes)
+extract(char *name, uint32_t mode, uint32_t mtime, char *uid, char *gid,
+	uint32_t bytes)
 {
 	int fd, tot, n;
 

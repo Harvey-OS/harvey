@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char *e;
-ulong mode = 0777L;
+uint32_t mode = 0777L;
 
 void
 usage(void)

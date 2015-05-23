@@ -85,7 +85,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 	int bbits, b2, b5, be, dig, i, ieps, ilim, ilim0, ilim1,
 		j, j1, k, k0, k_check, leftright, m2, m5, s2, s5,
 		spec_case, try_quick;
-	long L;
+	int32_t L;
 #ifndef Sudden_Underflow
 	int denorm;
 	unsigned long x;
@@ -655,11 +655,11 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 quorem(Bigint *b, Bigint *S)
 {
 	int n;
-	long borrow, y;
+	int32_t borrow, y;
 	unsigned long carry, q, ys;
 	unsigned long *bx, *bxe, *sx, *sxe;
 #ifdef Pack_32
-	long z;
+	int32_t z;
 	unsigned long si, zs;
 #endif
 

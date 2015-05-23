@@ -17,7 +17,7 @@
 
 char	*file = "v.out";
 int	datasize;
-ulong	textbase;
+uint32_t	textbase;
 Biobuf	bp, bi;
 Fhdr	fhdr;
 
@@ -70,7 +70,7 @@ main(int argc, char **argv)
 void
 initmap()
 {
-	ulong t, d, b, bssend;
+	uint32_t t, d, b, bssend;
 	Segment *s;
 
 	t = (fhdr.txtaddr+fhdr.txtsz+(BY2PG-1)) & ~(BY2PG-1);
@@ -84,9 +84,9 @@ initmap()
 	s->end = t;
 	s->fileoff = fhdr.txtoff - fhdr.hdrsz;
 	s->fileend = s->fileoff + fhdr.txtsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
 
-	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(long));
+	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(int32_t));
 	textbase = s->base;
 
 	s = &memory.seg[Data];
@@ -96,19 +96,19 @@ initmap()
 	s->fileoff = fhdr.datoff;
 	s->fileend = s->fileoff + fhdr.datsz;
 	datasize = fhdr.datsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
 
 	s = &memory.seg[Bss];
 	s->type = Bss;
 	s->base = d;
 	s->end = d+(b-d);
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
 
 	s = &memory.seg[Stack];
 	s->type = Stack;
 	s->base = STACKTOP-STACKSIZE;
 	s->end = STACKTOP;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
 
 	reg.pc = fhdr.entry;
 }
@@ -136,12 +136,12 @@ inithdr(int fd)
 	machdata = &mipsmach;
 }
 
-ulong
-greg(int f, ulong off)
+uint32_t
+greg(int f, uint32_t off)
 {
 	int n;
-	ulong l;
-	uchar wd[BY2WD];
+	uint32_t l;
+	uint8_t wd[BY2WD];
 	
 	seek(f, off, 0);
 	n = read(f, wd, BY2WD);
@@ -155,7 +155,7 @@ greg(int f, ulong off)
 	return l;
 }
 
-ulong
+uint32_t
 roff[] = {
 	REGOFF(r1),	REGOFF(r2),	REGOFF(r3),
 	REGOFF(r4),	REGOFF(r5),	REGOFF(r6),
@@ -170,7 +170,7 @@ roff[] = {
 };
 
 void
-seginit(int fd, Segment *s, int idx, ulong vastart, ulong vaend)
+seginit(int fd, Segment *s, int idx, uint32_t vastart, uint32_t vaend)
 {
 	int n;
 
@@ -191,7 +191,7 @@ procinit(int pid)
 	char *p;
 	Segment *s;
 	int n, m, sg, i;
-	ulong vastart, vaend;
+	uint32_t vastart, vaend;
 	char mfile[128], tfile[128], sfile[1024];
 
 	sprint(mfile, "/proc/%d/mem", pid);
@@ -228,7 +228,7 @@ procinit(int pid)
 		s->base = vastart;
 		s->end = vaend;
 		free(s->table);
-		s->table = malloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
+		s->table = malloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
 	}
 	seginit(m, s, 0, vastart, vaend);
 	
@@ -243,7 +243,7 @@ procinit(int pid)
 		s->base = vastart;
 		s->end = vaend;
 		free(s->table);
-		s->table = malloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
+		s->table = malloc(((s->end-s->base)/BY2PG)*sizeof(uint8_t*));
 	}
 	seginit(m, s, 0, vastart, vaend);
 
@@ -284,7 +284,7 @@ reset(void)
 
 	for(i = 0; i > Nseg; i++) {
 		s = &memory.seg[i];
-		l = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
+		l = ((s->end-s->base)/BY2PG)*sizeof(uint8_t*);
 		for(m = 0; m < l; m++)
 			if(s->table[m])
 				free(s->table[m]);
@@ -300,8 +300,8 @@ reset(void)
 void
 initstk(int argc, char *argv[])
 {
-	ulong size;
-	ulong sp, ap, tos;
+	uint32_t size;
+	uint32_t sp, ap, tos;
 	int i;
 	char *p;
 
@@ -316,7 +316,7 @@ initstk(int argc, char *argv[])
 	 * we know mips is a 32-bit cpu, so we'll assume knowledge of the Tos
 	 * struct for now, and use our pid.
 	 */
-	putmem_w(tos + 4*4 + 2*sizeof(ulong) + 3*sizeof(uvlong), getpid());
+	putmem_w(tos + 4*4 + 2*sizeof(uint32_t) + 3*sizeof(uvlong), getpid());
 
 	/* Build exec stack */
 	size = strlen(file)+1+BY2WD+BY2WD+BY2WD;	
@@ -443,7 +443,7 @@ dumpdreg(void)
 }
 
 void *
-emalloc(ulong size)
+emalloc(uint32_t size)
 {
 	void *a;
 
@@ -456,7 +456,7 @@ emalloc(ulong size)
 }
 
 void *
-erealloc(void *a, ulong oldsize, ulong size)
+erealloc(void *a, uint32_t oldsize, uint32_t size)
 {
 	void *n;
 
@@ -471,9 +471,9 @@ erealloc(void *a, ulong oldsize, ulong size)
 }
 
 Mulu
-mulu(ulong u1, ulong u2)
+mulu(uint32_t u1, uint32_t u2)
 {
-	ulong lo1, lo2, hi1, hi2, lo, hi, t1, t2, t;
+	uint32_t lo1, lo2, hi1, hi2, lo, hi, t1, t2, t;
 
 	lo1 = u1 & 0xffff;
 	lo2 = u2 & 0xffff;
@@ -497,10 +497,10 @@ mulu(ulong u1, ulong u2)
 }
 
 Mul
-mul(long l1, long l2)
+mul(int32_t l1, int32_t l2)
 {
 	Mulu m;
-	ulong t, lo, hi;
+	uint32_t t, lo, hi;
 	int sign;
 
 	sign = 0;

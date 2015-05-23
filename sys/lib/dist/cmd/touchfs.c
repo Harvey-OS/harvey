@@ -38,7 +38,7 @@ main(int argc, char **argv)
 	char *p, *f[10];
 	Biobuf bin, bout;
 	int nf;
-	ulong d, size;
+	uint32_t d, size;
 
 	if(argc != 2) {
 		fprint(2, "usage: cat mkfs-archive | touchfs date (in seconds)\n");

@@ -84,33 +84,33 @@ pmapnull(int n, Rpccall *cmd, Rpccall *reply)
 static int
 pmapset(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *dataptr = reply->results;
+	uint8_t *dataptr = reply->results;
 
 	if(n != 16)
 		return garbage(reply, "bad count");
 	USED(cmd);
 	PLONG(FALSE);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
 pmapunset(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *dataptr = reply->results;
+	uint8_t *dataptr = reply->results;
 
 	if(n != 16)
 		return garbage(reply, "bad count");
 	USED(cmd);
 	PLONG(TRUE);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
 pmapgetport(int n, Rpccall *cmd, Rpccall *reply)
 {
 	int prog, vers, prot;
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 	Portmap *mp;
 
 	clog("get port\n");
@@ -128,13 +128,13 @@ pmapgetport(int n, Rpccall *cmd, Rpccall *reply)
 			break;
 	chat("%d\n", mp->port);
 	PLONG(mp->port);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
 pmapdump(int n, Rpccall *cmd, Rpccall *reply)
 {
-	uchar *dataptr = reply->results;
+	uint8_t *dataptr = reply->results;
 	Portmap *mp;
 
 	if(n != 0)
@@ -148,15 +148,15 @@ pmapdump(int n, Rpccall *cmd, Rpccall *reply)
 		PLONG(mp->port);
 	}
 	PLONG(0);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }
 
 static int
 pmapcallit(int n, Rpccall *cmd, Rpccall *reply)
 {
 	int prog, vers, proc;
-	uchar *argptr = cmd->args;
-	uchar *dataptr = reply->results;
+	uint8_t *argptr = cmd->args;
+	uint8_t *dataptr = reply->results;
 	Portmap *mp;
 
 	if(n < 12)
@@ -177,5 +177,5 @@ pmapcallit(int n, Rpccall *cmd, Rpccall *reply)
 	chat("%d\n", mp->port);
 	PLONG(mp->port);
 	PLONG(0);
-	return dataptr - (uchar *)reply->results;
+	return dataptr - (uint8_t *)reply->results;
 }

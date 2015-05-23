@@ -42,28 +42,28 @@ extern int	m_loss, has_remote, has_remvar, merger, rvopt, separate;
 extern int	Ntimeouts, Etimeouts, deadvar, old_scope_rules;
 extern int	u_sync, u_async, nrRdy, Unique;
 extern int	GenCode, IsGuard, Level, TestOnly;
-extern short	has_stack;
+extern int16_t	has_stack;
 extern char	*NextLab[];
 
 FILE	*tc, *th, *tt, *tb;
 static FILE	*tm;
 
 int	OkBreak = -1, has_hidden = 0; /* has_hidden set in sym.c and structs.c */
-short	nocast=0;	/* to turn off casts in lvalues */
-short	terse=0;	/* terse printing of varnames */
-short	no_arrays=0;
-short	has_last=0;	/* spec refers to _last */
-short	has_badelse=0;	/* spec contains else combined with chan refs */
-short	has_enabled=0;	/* spec contains enabled() */
-short	has_pcvalue=0;	/* spec contains pc_value() */
-short	has_np=0;	/* spec contains np_ */
-short	has_sorted=0;	/* spec contains `!!' (sorted-send) operator */
-short	has_random=0;	/* spec contains `??' (random-recv) operator */
-short	has_xu=0;	/* spec contains xr or xs assertions */
-short	has_unless=0;	/* spec contains unless statements */
-short	has_provided=0;	/* spec contains PROVIDED clauses on procs */
-short	has_code=0;	/* spec contains c_code, c_expr, c_state */
-short	evalindex=0;	/* evaluate index of var names */
+int16_t	nocast=0;	/* to turn off casts in lvalues */
+int16_t	terse=0;	/* terse printing of varnames */
+int16_t	no_arrays=0;
+int16_t	has_last=0;	/* spec refers to _last */
+int16_t	has_badelse=0;	/* spec contains else combined with chan refs */
+int16_t	has_enabled=0;	/* spec contains enabled() */
+int16_t	has_pcvalue=0;	/* spec contains pc_value() */
+int16_t	has_np=0;	/* spec contains np_ */
+int16_t	has_sorted=0;	/* spec contains `!!' (sorted-send) operator */
+int16_t	has_random=0;	/* spec contains `??' (random-recv) operator */
+int16_t	has_xu=0;	/* spec contains xr or xs assertions */
+int16_t	has_unless=0;	/* spec contains unless statements */
+int16_t	has_provided=0;	/* spec contains PROVIDED clauses on procs */
+int16_t	has_code=0;	/* spec contains c_code, c_expr, c_state */
+int16_t	evalindex=0;	/* evaluate index of var names */
 int	mst=0;		/* max nr of state/process */
 int	claimnr = -1;	/* claim process, if any */
 int	eventmapnr = -1; /* event trace, if any */
@@ -72,7 +72,7 @@ int	multi_oval;	/* set in merges, used also in pangen4.c */
 
 #define MAXMERGE	256	/* max nr of bups per merge sequence */
 
-static short	CnT[MAXMERGE];
+static int16_t	CnT[MAXMERGE];
 static Lextok	XZ, YZ[MAXMERGE];
 static int	didcase, YZmax, YZcnt;
 
@@ -82,9 +82,9 @@ static int	T_sum, T_mus, t_cyc;
 static int	TPE[2], EPT[2];
 static int	uniq=1;
 static int	multi_needed, multi_undo;
-static short	AllGlobal=0;	/* set if process has provided clause */
-static short	withprocname=0;	/* prefix local varnames with procname */
-static short	_isok=0;	/* checks usage of predefined variable _ */
+static int16_t	AllGlobal=0;	/* set if process has provided clause */
+static int16_t	withprocname=0;	/* prefix local varnames with procname */
+static int16_t	_isok=0;	/* checks usage of predefined variable _ */
 
 int	has_global(Lextok *);
 void	Fatal(char *, char *);
@@ -215,7 +215,7 @@ gensrc(void)
 	}
 	fprintf(th, "\"\n\n");
 
-	fprintf(th, "#define G_long	%d\n", (int) sizeof(long));
+	fprintf(th, "#define G_long	%d\n", (int) sizeof(int32_t));
 	fprintf(th, "#define G_int	%d\n", (int) sizeof(int));
 
 	fprintf(th, "#ifdef WIN64\n");
@@ -3093,7 +3093,8 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 	{	if (n->lft	/* effectively a scalar, but with an index */
 		&& (n->lft->ntyp != CONST
 		||  n->lft->val != 0))
-		{	fatal("ref to scalar '%s' using array index", (char *) ptr);
+		{	fatal("ref to scalar '%s' using array index",
+			       (char *) ptr);
 	}	}
 
 	if (s->type == STRUCT && n->rgt && n->rgt->lft)

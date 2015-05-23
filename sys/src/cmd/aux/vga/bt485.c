@@ -48,10 +48,10 @@ enum {
 	Cmd4		= 0x2A,		/* Command register 4 */
 };
 
-static uchar
-bt485io(uchar reg)
+static uint8_t
+bt485io(uint8_t reg)
 {
-	uchar crt55, cr0;
+	uint8_t crt55, cr0;
 
 	if(reg >= Nreg && (reg & 0x0F) != Status)
 		error("%s: bad reg - 0x%X\n", bt485.name, reg);
@@ -83,10 +83,10 @@ bt485io(uchar reg)
 	return crt55;
 }
 
-uchar
-bt485i(uchar reg)
+uint8_t
+bt485i(uint8_t reg)
 {
-	uchar crt55, r;
+	uint8_t crt55, r;
 
 	crt55 = bt485io(reg);
 	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
@@ -97,9 +97,9 @@ bt485i(uchar reg)
 }
 
 void
-bt485o(uchar reg, uchar data)
+bt485o(uint8_t reg, uint8_t data)
 {
-	uchar crt55;
+	uint8_t crt55;
 
 	crt55 = bt485io(reg);
 	vgaxo(Crtx, 0x55, crt55|((reg>>2) & 0x03));
@@ -116,7 +116,7 @@ options(Vga*, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong grade;
+	uint32_t grade;
 	char *p;
 
 	/*
@@ -151,7 +151,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga*, Ctlr* ctlr)
 {
-	uchar x;
+	uint8_t x;
 
 	/*
 	 * Put the chip to sleep before (possibly) changing the clock-source

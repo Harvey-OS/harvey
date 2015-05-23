@@ -199,7 +199,9 @@ riostrtol(char *s, char **t)
 
 
 int
-parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, int *hiddenp, int *scrollingp, char **cdp, char *s, char *err)
+parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp,
+	  int *hiddenp, int *scrollingp, char **cdp, char *s,
+	  char *err)
 {
 	int cmd, param, xy, sign;
 	char *t;
@@ -317,7 +319,8 @@ parsewctl(char **argp, Rectangle r, Rectangle *rp, int *pidp, int *idp, int *hid
 }
 
 int
-wctlnew(Rectangle rect, char *arg, int pid, int hideit, int scrollit, char *dir, char *err)
+wctlnew(Rectangle rect, char *arg, int pid, int hideit, int scrollit,
+	char *dir, char *err)
 {
 	char **argv;
 	Image *i;

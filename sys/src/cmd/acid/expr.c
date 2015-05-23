@@ -146,7 +146,7 @@ oframe(Node *n, Node *res)
 {
 	char *p;
 	Node *lp;
-	uvlong ival;
+	uint64_t ival;
 	Frtype *f;
 
 	p = n->sym->name;
@@ -577,7 +577,7 @@ orsh(Node *n, Node *res)
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
 		error("bad expr type >>");
-	res->ival = (uvlong)l.ival>>r.ival;
+	res->ival = (uint64_t)l.ival>>r.ival;
 }
 
 void

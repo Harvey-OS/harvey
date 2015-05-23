@@ -36,10 +36,10 @@ static image_level_enum	eImageLevel = level_default;
 /* The output must use landscape orientation */
 static BOOL		bUseLandscape = FALSE;
 /* The height and width of a PostScript page (in DrawUnits) */
-static long		lPageHeight = LONG_MAX;
-static long		lPageWidth = LONG_MAX;
+static int32_t		lPageHeight = LONG_MAX;
+static int32_t		lPageWidth = LONG_MAX;
 /* The height of the footer on the current page (in DrawUnits) */
-static long		lFooterHeight = 0;
+static int32_t		lFooterHeight = 0;
 /* Inside a footer (to prevent an infinite loop when the footer is too big) */
 static BOOL		bInFtrSpace = FALSE;
 /* Current time for a PS header */
@@ -51,7 +51,7 @@ static drawfile_fontref	tFontRefCurr = (drawfile_fontref)-1;
 static USHORT		usFontSizeCurr = 0;
 static int		iFontColorCurr = -1;
 /* Current vertical position information */
-static long		lYtopCurr = -1;
+static int32_t		lYtopCurr = -1;
 /* PostScript page counter */
 static int		iPageCount = 0;
 /* Image counter */
@@ -61,7 +61,7 @@ static int		iSectionIndex = 0;
 /* Are we on the first page of the section? */
 static BOOL		bFirstInSection = TRUE;
 
-static void		vMoveTo(diagram_type *, long);
+static void		vMoveTo(diagram_type *, int32_t);
 
 static const char *iso_8859_1_data[] = {
 "/newcodes	% ISO-8859-1 character encodings",
@@ -293,7 +293,7 @@ vAddHdrFtr(diagram_type *pDiag, const hdrftr_block_type *pHdrFtrInfo)
 		}
 		if (pNext->szStorage[0] == PAR_END) {
 			vEndOfParagraphPS(pDiag, pNext->usFontSize,
-					(long)pNext->usFontSize * 200);
+					(int32_t)pNext->usFontSize * 200);
 		}
 		pStart = pNext->pNext;
 	}
@@ -440,7 +440,7 @@ vMove2NextPage(diagram_type *pDiag, BOOL bNewSection)
  * start on a new page if needed
  */
 static void
-vMoveTo(diagram_type *pDiag, long lLastVerticalMovement)
+vMoveTo(diagram_type *pDiag, int32_t lLastVerticalMovement)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -1099,7 +1099,7 @@ vMove2NextLinePS(diagram_type *pDiag, USHORT usFontSize)
  */
 void
 vSubstringPS(diagram_type *pDiag,
-	char *szString, size_t tStringLength, long lStringWidth,
+	char *szString, size_t tStringLength, int32_t lStringWidth,
 	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
 	USHORT usFontSize, USHORT usMaxFontSize)
 {
@@ -1140,7 +1140,7 @@ vSubstringPS(diagram_type *pDiag,
  * Create an start of paragraph by moving the y-top mark
  */
 void
-vStartOfParagraphPS(diagram_type *pDiag, long lBeforeIndentation)
+vStartOfParagraphPS(diagram_type *pDiag, int32_t lBeforeIndentation)
 {
 	fail(pDiag == NULL);
 	fail(lBeforeIndentation < 0);
@@ -1154,7 +1154,7 @@ vStartOfParagraphPS(diagram_type *pDiag, long lBeforeIndentation)
  */
 void
 vEndOfParagraphPS(diagram_type *pDiag,
-	USHORT usFontSize, long lAfterIndentation)
+	USHORT usFontSize, int32_t lAfterIndentation)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);

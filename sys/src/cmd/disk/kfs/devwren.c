@@ -104,7 +104,7 @@ wrenream(Device dev)
 }
 
 int
-wrentag(char *p, int tag, long qpath)
+wrentag(char *p, int tag, int32_t qpath)
 {
 	Tag *t;
 
@@ -130,20 +130,20 @@ wrencheck(Device dev)
 	return 1;
 }
 
-long
+int32_t
 wrensize(Device dev)
 {
 	return wren(dev)->size / RBUFSIZE;
 }
 
-long
+int32_t
 wrensuper(Device dev)
 {
 	USED(dev);
 	return 1;
 }
 
-long
+int32_t
 wrenroot(Device dev)
 {
 	USED(dev);
@@ -151,7 +151,7 @@ wrenroot(Device dev)
 }
 
 int
-wrenread(Device dev, long addr, void *b)
+wrenread(Device dev, int32_t addr, void *b)
 {
 	Wren *w;
 	int fd, i;
@@ -159,7 +159,7 @@ wrenread(Device dev, long addr, void *b)
 	w = wren(dev);
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (vlong)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || read(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	if(i)
 		print("wrenread failed: %r\n");
@@ -167,7 +167,7 @@ wrenread(Device dev, long addr, void *b)
 }
 
 int
-wrenwrite(Device dev, long addr, void *b)
+wrenwrite(Device dev, int32_t addr, void *b)
 {
 	Wren *w;
 	int fd, i;
@@ -175,7 +175,7 @@ wrenwrite(Device dev, long addr, void *b)
 	w = wren(dev);
 	fd = w->fd;
 	qlock(w);
-	i = seek(fd, (vlong)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
+	i = seek(fd, (int64_t)addr*RBUFSIZE, 0) == -1 || write(fd, b, RBUFSIZE) != RBUFSIZE;
 	qunlock(w);
 	if(i)
 		print("wrenwrite failed: %r\n");

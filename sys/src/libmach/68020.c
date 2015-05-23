@@ -6,7 +6,7 @@
  * modified, propagated, or distributed except according to the terms contained
  * in the LICENSE file.
  */
-
+#ifdef HARVEYNEXT
 /*
  * 68020 definition
  */
@@ -94,3 +94,4 @@ Mach m68020 =
 	4,		/* szfloat */
 	8,		/* szdouble */
 };
+#endif

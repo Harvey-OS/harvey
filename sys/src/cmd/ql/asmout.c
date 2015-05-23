@@ -54,10 +54,10 @@
 
 #define	oclass(v)	((v).class-1)
 
-long	oprrr(int), opirr(int), opload(int), opstore(int), oploadx(int), opstorex(int);
+int32_t	oprrr(int), opirr(int), opload(int), opstore(int), oploadx(int), opstorex(int);
 
 int
-getmask(uchar *m, ulong v)
+getmask(uint8_t *m, uint32_t v)
 {
 	int i;
 
@@ -84,14 +84,14 @@ getmask(uchar *m, ulong v)
 }
 
 void
-maskgen(Prog *p, uchar *m, ulong v)
+maskgen(Prog *p, uint8_t *m, uint32_t v)
 {
 	if(!getmask(m, v))
 		diag("cannot generate mask #%lux\n%P", v, p);
 }
 
 static void
-reloc(Adr *a, long pc, int sext)
+reloc(Adr *a, int32_t pc, int sext)
 {
 	if(a->name == D_EXTERN || a->name == D_STATIC)
 		dynreloc(a->sym, pc, 1, 1, sext);
@@ -100,10 +100,10 @@ reloc(Adr *a, long pc, int sext)
 int
 asmout(Prog *p, Optab *o, int aflag)
 {
-	long o1, o2, o3, o4, o5, v, t;
+	int32_t o1, o2, o3, o4, o5, v, t;
 	Prog *ct;
 	int r, a;
-	uchar mask[2];
+	uint8_t mask[2];
 
 	o1 = 0;
 	o2 = 0;
@@ -249,7 +249,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(p->cond == UP){
 			if(p->to.sym->type != SUNDEF)
 				diag("bad branch sym type");
-			v = (ulong)p->to.sym->value >> (Roffset-2);
+			v = (uint32_t)p->to.sym->value >> (Roffset-2);
 			dynreloc(p->to.sym, p->pc, 0, 0, 0);
 		}
 		else if(p->cond)
@@ -837,7 +837,7 @@ asmout(Prog *p, Optab *o, int aflag)
 	return 0;
 }
 
-long
+int32_t
 oprrr(int a)
 {
 	switch(a) {
@@ -1194,7 +1194,7 @@ oprrr(int a)
 	return 0;
 }
 
-long
+int32_t
 opirr(int a)
 {
 	switch(a) {
@@ -1254,7 +1254,7 @@ opirr(int a)
 /*
  * load o(a),d
  */
-long
+int32_t
 opload(int a)
 {
 	switch(a) {
@@ -1281,7 +1281,7 @@ opload(int a)
 /*
  * indexed load a(b),d
  */
-long
+int32_t
 oploadx(int a)
 {
 	switch(a) {
@@ -1324,7 +1324,7 @@ oploadx(int a)
 /*
  * store s,o(d)
  */
-long
+int32_t
 opstore(int a)
 {
 	switch(a) {
@@ -1352,7 +1352,7 @@ opstore(int a)
 /*
  * indexed store s,a(b)
  */
-long
+int32_t
 opstorex(int a)
 {
 	switch(a) {

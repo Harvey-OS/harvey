@@ -89,8 +89,8 @@ spoolfile(char *portname, char *filename)
     FILE *f;
     char *buffer;
     char pcdone[64];
-    long ldone;
-    long lsize;
+    int32_t ldone;
+    int32_t lsize;
     int count;
     MSG msg;
 

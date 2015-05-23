@@ -193,7 +193,7 @@ jpeg_free_large (j_common_ptr cinfo, void FAR * object, size_t sizeofobject)
 #define DEFAULT_MAX_MEM		1000000L /* default: one megabyte */
 #endif
 
-GLOBAL(long)
+GLOBAL(int32_t)
 jpeg_mem_available (j_common_ptr cinfo, long min_bytes_needed,
 		    long max_bytes_needed, long already_allocated)
 {
@@ -271,7 +271,7 @@ jpeg_open_backing_store (j_common_ptr cinfo, backing_store_ptr info,
  * cleanup required.
  */
 
-GLOBAL(long)
+GLOBAL(int32_t)
 jpeg_mem_init (j_common_ptr cinfo)
 {
   next_file_num = 0;		/* initialize temp file name generator */

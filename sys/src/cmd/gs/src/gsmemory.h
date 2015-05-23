@@ -92,12 +92,12 @@ typedef struct gs_memory_status_s {
      * the parent of the memory manager.  It includes space used for
      * allocated data, space available for allocation, and overhead.
      */
-    ulong allocated;
+    uint32_t allocated;
     /*
      * "Used" space is the amount of space used by allocated data
      * plus overhead.
      */
-    ulong used;
+    uint32_t used;
 } gs_memory_status_t;
 
 		/*

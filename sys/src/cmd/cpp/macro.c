@@ -402,7 +402,8 @@ doconcat(Tokenrow *trp)
 			}
 			len = ltp->len + ntp->len;
 			strncpy((char*)tt, (char*)ltp->t, ltp->len);
-			strncpy((char*)tt+ltp->len, (char*)ntp->t, ntp->len);
+			strncpy((char*)tt+ltp->len, (char*)ntp->t,
+				ntp->len);
 			tt[len] = '\0';
 			setsource("<##>", -1, tt);
 			maketokenrow(3, &ntr);
@@ -451,8 +452,8 @@ stringify(Tokenrow *vp)
 	static Token t = { STRING };
 	static Tokenrow tr = { &t, &t, &t+1, 1 };
 	Token *tp;
-	uchar s[STRLEN];
-	uchar *sp = s, *cp;
+	uint8_t s[STRLEN];
+	uint8_t *sp = s, *cp;
 	int i, instring;
 
 	*sp++ = '"';
@@ -533,7 +534,7 @@ builtin(Tokenrow *trp, int biname)
 	}
 	if (tp->type==STRING)
 		*op++ = '"';
-	tp->t = (uchar*)outp;
+	tp->t = (uint8_t*)outp;
 	tp->len = op - outp;
 	outp = op;
 }

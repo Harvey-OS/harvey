@@ -14,7 +14,7 @@
 Packet*
 vtfcallpack(VtFcall *f)
 {
-	uchar buf[4];
+	uint8_t buf[4];
 	Packet *p;
 
 	p = packetalloc();
@@ -110,7 +110,7 @@ Err:
 int
 vtfcallunpack(VtFcall *f, Packet *p)
 {
-	uchar buf[4];
+	uint8_t buf[4];
 
 	memset(f, 0, sizeof *f);
 

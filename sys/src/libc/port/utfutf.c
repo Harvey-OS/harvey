@@ -19,7 +19,7 @@ char*
 utfutf(char *s1, char *s2)
 {
 	char *p;
-	long f, n1, n2;
+	int32_t f, n1, n2;
 	Rune r;
 
 	n1 = chartorune(&r, s2);

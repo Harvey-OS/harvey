@@ -179,8 +179,8 @@ int             ispass;
 {
     int             exists;
     int             fd;
-    ushort          perm;
-    ushort          operm = 0;
+    uint16_t          perm;
+    uint16_t          operm = 0;
     Stat            osb;
 #ifdef	S_IFLNK
     int             ssize;

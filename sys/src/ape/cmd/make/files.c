@@ -359,8 +359,8 @@ if( mout = fopen(file,"a") )
 	a(b)	is file member   b   in archive a
 */
 
-static long arflen;
-static long arfdate;
+static int32_t arflen;
+static int32_t arfdate;
 static char arfname[16];
 FILE *arfd;
 long int arpos, arlen;

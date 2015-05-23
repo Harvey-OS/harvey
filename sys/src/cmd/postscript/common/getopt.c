@@ -28,7 +28,7 @@ char    *optarg;
 
 int
 getopt (argc, argv, opts)
-char **argv, *opts;
+int8_t **argv, *opts;
 {
 	static int sp = 1;
 	register c;

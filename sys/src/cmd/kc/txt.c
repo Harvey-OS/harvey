@@ -150,7 +150,7 @@ nextpc(void)
 void
 gargs(Node *n, Node *tn1, Node *tn2)
 {
-	long regs;
+	int32_t regs;
 	Node fnxargs[20], *fnxp;
 
 	regs = cursafe;
@@ -225,14 +225,14 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 }
 
 Node*
-nod32const(vlong v)
+nod32const(int64_t v)
 {
 	constnode.vconst = v & MASK(32);
 	return &constnode;
 }
 
 Node*
-nodconst(long v)
+nodconst(int32_t v)
 {
 	constnode.vconst = v;
 	return &constnode;
@@ -433,7 +433,7 @@ raddr(Node *n, Prog *p)
 void
 naddr(Node *n, Adr *a)
 {
-	long v;
+	int32_t v;
 
 	a->type = D_NONE;
 	if(n == Z)
@@ -1158,7 +1158,7 @@ gbranch(int o)
 }
 
 void
-patch(Prog *op, long pc)
+patch(Prog *op, int32_t pc)
 {
 
 	op->to.offset = pc;
@@ -1184,7 +1184,7 @@ gpseudo(int a, Sym *s, Node *n)
 }
 
 int
-sval(long v)
+sval(int32_t v)
 {
 
 	if(v >= -(1<<12) && v < (1<<12))
@@ -1195,22 +1195,22 @@ sval(long v)
 int
 sconst(Node *n)
 {
-	vlong vv;
+	int64_t vv;
 
 	if(n->op == OCONST) {
 		if(!typefd[n->type->etype]) {
 			vv = n->vconst;
-			if(vv >= -(vlong)(1<<12) && vv < (vlong)(1<<12))
+			if(vv >= -(int64_t)(1<<12) && vv < (int64_t)(1<<12))
 				return 1;
 		}
 	}
 	return 0;
 }
 
-long
+int32_t
 exreg(Type *t)
 {
-	long o;
+	int32_t o;
 
 	if(typechlp[t->etype]) {
 		if(exregoffset <= 3)
@@ -1253,7 +1253,7 @@ schar	ewidth[NTYPE] =
 	SZ_INT,		/* [TENUM] */
 };
 
-long	ncast[NTYPE] =
+int32_t	ncast[NTYPE] =
 {
 	0,				/* [TXXX] */
 	BCHAR|BUCHAR,			/* [TCHAR] */

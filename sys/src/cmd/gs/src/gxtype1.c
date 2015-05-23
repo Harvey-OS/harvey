@@ -97,7 +97,7 @@ private RELOC_PTRS_WITH(gs_type1_state_reloc_ptrs, gs_type1_state *pcis)
    The string is used to resolve glyph name conflict while
    converting PDF Widths into Metrics.
  */
-const char gx_extendeg_glyph_name_separator[] = "~GS~";
+const int8_t gx_extendeg_glyph_name_separator[] = "~GS~";
 
 
 /* ------ Interpreter services ------ */
@@ -405,7 +405,7 @@ gs_type1_piece_codes(/*const*/ gs_font_type1 *pfont,
 	    } else if (c < cx_num4) {	/* 2-byte number */
 		decode_push_num2(csp, cstack, c, cip, state, encrypted);
 	    } else if (c == cx_num4) {	/* 4-byte number */
-		long lw;
+		int32_t lw;
 
 		decode_num4(lw, cip, state, encrypted);
 		CS_CHECK_PUSH(csp, cstack);

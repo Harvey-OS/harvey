@@ -265,7 +265,7 @@ readtext(char *s)
 	Dir *d;
 	Lsym *l;
 	Value *v;
-	uvlong length;
+	uint64_t length;
 	Symbol sym;
 	extern Machdata mipsmach;
 
@@ -356,7 +356,7 @@ al(int t)
 }
 
 Node*
-con(vlong v)
+con(int64_t v)
 {
 	Node *n;
 
@@ -495,7 +495,7 @@ gc(void)
 }
 
 void*
-gmalloc(long l)
+gmalloc(int32_t l)
 {
 	void *p;
 

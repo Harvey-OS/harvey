@@ -203,7 +203,7 @@ void fft_short(lame_internal_flags *gfc,
 
     for (b = 0; b < 3; b++) {
 	FLOAT *x = &x_real[b][BLKSIZE_s / 2];
-	short k = (576 / 3) * (b + 1);
+	int16_t k = (576 / 3) * (b + 1);
 	j = BLKSIZE_s / 8 - 1;
 	do {
 	  FLOAT f0,f1,f2,f3, w;

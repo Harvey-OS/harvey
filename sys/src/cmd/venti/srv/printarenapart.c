@@ -11,7 +11,7 @@
 #include "dat.h"
 #include "fns.h"
 
-uchar buf[64*1024];
+uint8_t buf[64*1024];
 
 void
 usage(void)
@@ -21,19 +21,19 @@ usage(void)
 }
 
 static void
-rdarena(Arena *arena, u64int offset)
+rdarena(Arena *arena, uint64_t offset)
 {
-	u64int a, aa, e;
-	u32int magic;
+	uint64_t a, aa, e;
+	uint32_t magic;
 	Clump cl;
-	uchar score[VtScoreSize];
+	uint8_t score[VtScoreSize];
 	ZBlock *lump;
 
 	printarena(2, arena);
 
 	a = arena->base;
 	e = arena->base + arena->size;
-	if(offset != ~(u64int)0) {
+	if(offset != ~(uint64_t)0) {
 		if(offset >= e-a)
 			sysfatal("bad offset %llud >= %llud",
 				offset, e-a);

@@ -120,10 +120,10 @@ static int icvt_n(FILE *f, va_list *args, int store, int width, int type){
 	if(store){
 		--ncvt;	/* this assignment doesn't count! */
 		switch(type){
-		case 'h': *va_arg(*args, short *)=nread; break;
+		case 'h': *va_arg(*args, int16_t *)=nread; break;
 		case 'n': *va_arg(*args, int *)=nread; break;
 		case 'l':
-		case 'L': *va_arg(*args, long *)=nread; break;
+		case 'L': *va_arg(*args, int32_t *)=nread; break;
 		}
 	}
 	return 1;
@@ -200,10 +200,10 @@ Done:
 		switch(unsgned){
 		case SIGNED:
 			switch(type){
-			case 'h': *va_arg(*args,  short *)=num*sign; break;
+			case 'h': *va_arg(*args,  int16_t *)=num*sign; break;
 			case 'n': *va_arg(*args,  int *)=num*sign; break;
 			case 'l':
-			case 'L': *va_arg(*args,  long *)=num*sign; break;
+			case 'L': *va_arg(*args,  int32_t *)=num*sign; break;
 			}
 			break;
 		case UNSIGNED:

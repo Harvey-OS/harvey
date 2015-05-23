@@ -386,7 +386,8 @@ becomenone(void)
 }
 
 void
-dolisten(char *proto, char *dir, int ctl, char *srvdir, char *dialstr)
+dolisten(char *proto, char *dir, int ctl, char *srvdir,
+	 char *dialstr)
 {
 	Service s;
 	char ndir[40];
@@ -468,7 +469,7 @@ int
 getserv(char *proto, char *dir, Service *s)
 {
 	char addr[128], *serv, *p;
-	long n;
+	int32_t n;
 
 	readstr(dir, "remote", s->remote, sizeof(s->remote)-1);
 	if(p = utfrune(s->remote, L'\n'))

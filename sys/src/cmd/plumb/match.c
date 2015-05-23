@@ -138,7 +138,7 @@ verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 }
 
 int
-isfile(char *file, ulong maskon, ulong maskoff)
+isfile(char *file, uint32_t maskon, uint32_t maskoff)
 {
 	Dir *d;
 	int mode;
@@ -168,7 +168,8 @@ absolute(char *dir, char *file)
 }
 
 int
-verbisfile(int obj, Plumbmsg *m, Rule *r, Exec *e, ulong maskon, ulong maskoff, char **var)
+verbisfile(int obj, Plumbmsg *m, Rule *r, Exec *e, uint32_t maskon,
+	   uint32_t maskoff, char **var)
 {
 	char *file;
 

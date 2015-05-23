@@ -40,8 +40,8 @@ void	rawon(void);
 void	telnet(int);
 char*	system(int, char*);
 int	echochange(Biobuf*, int);
-int	termsub(Biobuf*, uchar*, int);
-int	xlocsub(Biobuf*, uchar*, int);
+int	termsub(Biobuf*, uint8_t*, int);
+int	xlocsub(Biobuf*, uint8_t*, int);
 void*	share(ulong);
 
 static int islikeatty(int);
@@ -497,7 +497,7 @@ echochange(Biobuf *bp, int cmd)
  *  send terminal type to the other side
  */
 int
-termsub(Biobuf *bp, uchar *sub, int n)
+termsub(Biobuf *bp, uint8_t *sub, int n)
 {
 	char buf[64];
 	char *term;
@@ -527,7 +527,7 @@ termsub(Biobuf *bp, uchar *sub, int n)
  *  send an x display location to the other side
  */
 int
-xlocsub(Biobuf *bp, uchar *sub, int n)
+xlocsub(Biobuf *bp, uint8_t *sub, int n)
 {
 	char buf[64];
 	char *term;
@@ -569,9 +569,9 @@ islikeatty(int fd)
  *  end of process memory.
  */
 void*
-share(ulong len)
+share(uint32_t len)
 {
-	uchar *vastart;
+	uint8_t *vastart;
 
 	vastart = sbrk(0);
 	if(vastart == (void*)-1)

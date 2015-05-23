@@ -41,10 +41,10 @@ const gx_device_printer far_data gs_sgirgb_device =
   sgi_prn_device(sgi_procs, "sgirgb", 3, 24, 255, 255, sgi_print_page);
 
 private gx_color_index
-sgi_map_rgb_color(gx_device * dev, const ushort cv[])
-{      ushort bitspercolor = dev->color_info.depth / 3;
-       ulong max_value = (1 << bitspercolor) - 1;
-       ushort red, green, blue;
+sgi_map_rgb_color(gx_device * dev, const uint16_t cv[])
+{      uint16_t bitspercolor = dev->color_info.depth / 3;
+       uint32_t max_value = (1 << bitspercolor) - 1;
+       uint16_t red, green, blue;
        red = cv[0]; green = cv[1]; blue = cv[2];
 
        return ((red*max_value / gx_max_color_value) << (bitspercolor * 2)) +

@@ -61,7 +61,7 @@ char *buttons[] =
 	0
 };
 
-ulong
+uint32_t
 grey(int i)
 {
 	if(i < 0)

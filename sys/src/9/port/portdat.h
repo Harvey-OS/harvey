@@ -1,4 +1,4 @@
-/*
+/* 
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -14,50 +14,58 @@ typedef struct Cmdbuf	Cmdbuf;
 typedef struct Cmdtab	Cmdtab;
 typedef struct Confmem	Confmem;
 typedef struct Dev	Dev;
+typedef struct DevConf	DevConf;
 typedef struct Dirtab	Dirtab;
 typedef struct Edf	Edf;
 typedef struct Egrp	Egrp;
 typedef struct Evalue	Evalue;
-typedef struct Execvals	Execvals;
+typedef struct Fastcall Fastcall;
 typedef struct Fgrp	Fgrp;
-typedef struct DevConf	DevConf;
 typedef struct Image	Image;
+typedef struct Kzio 	Kzio;
 typedef struct Log	Log;
 typedef struct Logflag	Logflag;
+typedef struct Lockstats Lockstats;
+typedef struct Mhead	Mhead;
+typedef struct Mnt	Mnt;
 typedef struct Mntcache Mntcache;
-typedef struct Mount	Mount;
 typedef struct Mntrpc	Mntrpc;
 typedef struct Mntwalk	Mntwalk;
-typedef struct Mnt	Mnt;
-typedef struct Mhead	Mhead;
+typedef struct Mount	Mount;
 typedef struct Note	Note;
 typedef struct Page	Page;
-typedef struct Path	Path;
-typedef struct Palloc	Palloc;
 typedef struct Pallocmem	Pallocmem;
+typedef struct Path	Path;
 typedef struct Perf	Perf;
-typedef struct PhysUart	PhysUart;
+typedef struct Pgalloc Pgalloc;
 typedef struct Pgrp	Pgrp;
+typedef struct Pgsza	Pgsza;
 typedef struct Physseg	Physseg;
+typedef struct PhysUart	PhysUart;
 typedef struct Proc	Proc;
+typedef struct Procalloc	Procalloc;
 typedef struct Pte	Pte;
 typedef struct QLock	QLock;
+typedef struct QLockstats QLockstats;
 typedef struct Queue	Queue;
 typedef struct Ref	Ref;
 typedef struct Rendez	Rendez;
 typedef struct Rgrp	Rgrp;
 typedef struct RWlock	RWlock;
-typedef struct Sargs	Sargs;
+typedef struct Sched	Sched;
 typedef struct Schedq	Schedq;
 typedef struct Segment	Segment;
+typedef struct Sem	Sem;
 typedef struct Sema	Sema;
+typedef struct Sems	Sems;
 typedef struct Timer	Timer;
 typedef struct Timers	Timers;
 typedef struct Uart	Uart;
 typedef struct Waitq	Waitq;
+typedef struct Waitstats Waitstats;
 typedef struct Walkqid	Walkqid;
 typedef struct Watchdog	Watchdog;
-typedef struct Watermark	Watermark;
+typedef struct Zseg	Zseg;
 typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 #pragma incomplete DevConf
@@ -69,52 +77,59 @@ typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 #include <fcall.h>
 
-#define HOWMANY(x, y)	(((x)+((y)-1))/(y))
-#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))	/* ceiling */
-#define ROUNDDN(x, y)	(((x)/(y))*(y))		/* floor */
-#define	ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
-#define	PGROUND(s)	ROUNDUP(s, BY2PG)
-#define MIN(a, b)	((a) < (b)? (a): (b))
-#define MAX(a, b)	((a) > (b)? (a): (b))
-
-/*
- * For multi-bit fields use FIELD(v, o, w) where 'v' is the value
- * of the bit-field of width 'w' with LSb at bit offset 'o'.
- */
-#define FIELD(v, o, w)	(((v) & ((1<<(w))-1))<<(o))
-
-#define FCLR(d, o, w)	((d) & ~(((1<<(w))-1)<<(o)))
-#define FEXT(d, o, w)	(((d)>>(o)) & ((1<<(w))-1))
-#define FINS(d, o, w, v) (FCLR((d), (o), (w))|FIELD((v), (o), (w)))
-#define FSET(d, o, w)	((d)|(((1<<(w))-1)<<(o)))
-
-#define FMASK(o, w)	(((1<<(w))-1)<<(o))
-
-/* let each port override any of these */
-#ifndef KMESGSIZE
-#define KMESGSIZE (16*1024)
-#endif
-#ifndef PCICONSSIZE
-#define PCICONSSIZE (16*1024)
-#endif
-#ifndef STAGESIZE
-#define STAGESIZE 64
-#endif
-#ifndef MAXBY2PG
-#define MAXBY2PG BY2PG		/* rounding for UTZERO in executables */
-#endif
-
 struct Ref
 {
 	Lock;
-	long	ref;
+	int	ref;
 };
 
 struct Rendez
 {
 	Lock;
-	Proc	*p;
+	Proc	*_p; // There is already a Proc *p into Lock
 };
+
+enum{
+	NWstats = 500,
+	WSlock = 0,
+	WSqlock,
+	WSslock,
+};
+
+/*
+ * different arrays with stat info, so we can memset any of them
+ * to 0 to clear stats.
+ */
+struct Waitstats
+{
+	int	on;
+	int	npcs;
+	int*	type;
+	uintptr_t*	pcs;
+	int*	ns;
+	uint64_t*	wait;
+	uint64_t* total;
+};
+extern Waitstats waitstats;
+
+struct Lockstats
+{
+	uint32_t	locks;
+	uint32_t	glare;
+	uint32_t	inglare;
+};
+extern Lockstats lockstats;
+
+struct QLockstats
+{
+	uint32_t rlock;
+	uint32_t rlockq;
+	uint32_t wlock;
+	uint32_t wlockq;
+	uint32_t qlock;
+	uint32_t qlockq;
+};
+extern QLockstats qlockstats;
 
 struct QLock
 {
@@ -122,7 +137,7 @@ struct QLock
 	Proc	*head;		/* next process waiting for object */
 	Proc	*tail;		/* last process waiting for object */
 	int	locked;		/* flag */
-	uintptr	qpc;		/* pc of the holder */
+	uintptr_t	pc;
 };
 
 struct RWlock
@@ -130,7 +145,7 @@ struct RWlock
 	Lock	use;
 	Proc	*head;		/* list of waiting processes */
 	Proc	*tail;
-	ulong	wpc;		/* pc of writer */
+	uintptr_t	wpc;		/* pc of writer */
 	Proc	*wproc;		/* writing proc */
 	int	readers;	/* number of readers */
 	int	writer;		/* number of writers */
@@ -139,12 +154,7 @@ struct RWlock
 struct Alarms
 {
 	QLock;
-	Proc	*head;
-};
-
-struct Sargs
-{
-	ulong	args[MAXSYSARG];
+	Proc	*_head;
 };
 
 /*
@@ -162,7 +172,7 @@ enum
 
 	COPEN	= 0x0001,		/* for i/o */
 	CMSG	= 0x0002,		/* the message channel for a mount */
-/*rsc	CCREATE	= 0x0004,		/* permits creation if c->mnt */
+/*rsc	CCREATE	= 0x0004,*/		/* permits creation if c->mnt */
 	CCEXEC	= 0x0008,		/* close on exec */
 	CFREE	= 0x0010,		/* not in use */
 	CRCLOSE	= 0x0020,		/* remove on close */
@@ -173,7 +183,7 @@ enum
 enum
 {
 	BINTR	=	(1<<0),
-	BFREE	=	(1<<1),
+
 	Bipck	=	(1<<2),		/* ip checksum */
 	Budpck	=	(1<<3),		/* udp checksum */
 	Btcpck	=	(1<<4),		/* tcp checksum */
@@ -182,19 +192,16 @@ enum
 
 struct Block
 {
-	long	ref;
 	Block*	next;
 	Block*	list;
-	uchar*	rp;			/* first unconsumed byte */
-	uchar*	wp;			/* first empty byte */
-	uchar*	lim;			/* 1 past the end of the buffer */
-	uchar*	base;			/* start of the buffer */
+	unsigned char*	rp;			/* first unconsumed byte */
+	unsigned char*	wp;			/* first empty byte */
+	unsigned char*	lim;			/* 1 past the end of the buffer */
+	unsigned char*	base;			/* start of the buffer */
 	void	(*free)(Block*);
-	ushort	flag;
-	ushort	checksum;		/* IP checksum of complete packet (minus media header) */
-	ulong	magic;
+	uint16_t	flag;
+	uint16_t	checksum;		/* IP checksum of complete packet (minus media header) */
 };
-
 #define BLEN(s)	((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)
 
@@ -203,31 +210,31 @@ struct Chan
 	Ref;				/* the Lock in this Ref is also Chan's lock */
 	Chan*	next;			/* allocation */
 	Chan*	link;
-	vlong	offset;			/* in fd */
-	vlong	devoffset;		/* in underlying device; see read */
-	ushort	type;
-	ulong	dev;
-	ushort	mode;			/* read/write */
-	ushort	flag;
+	int64_t	offset;			/* in fd */
+	int64_t	devoffset;		/* in underlying device; see read */
+	Dev*	dev;
+	uint	devno;
+	uint16_t	mode;			/* read/write */
+	uint16_t	flag;
 	Qid	qid;
 	int	fid;			/* for devmnt */
-	ulong	iounit;			/* chunk size for i/o; 0==default */
+	uint32_t	iounit;			/* chunk size for i/o; 0==default */
 	Mhead*	umh;			/* mount point that derived Chan; used in unionread */
 	Chan*	umc;			/* channel in union; held for union read */
 	QLock	umqlock;		/* serialize unionreads */
 	int	uri;			/* union read index */
 	int	dri;			/* devdirread index */
-	uchar*	dirrock;		/* directory entry rock for translations */
+	unsigned char*	dirrock;		/* directory entry rock for translations */
 	int	nrock;
 	int	mrock;
 	QLock	rockqlock;
 	int	ismtpt;
-	Mntcache*mcp;			/* Mount cache pointer */
+	Mntcache*mc;			/* Mount cache pointer */
 	Mnt*	mux;			/* Mnt for clients using me for messages */
 	union {
 		void*	aux;
 		Qid	pgrpid;		/* for #p/notepg */
-		ulong	mid;		/* for ns in devproc */
+		uint32_t	mid;		/* for ns in devproc */
 	};
 	Chan*	mchan;			/* channel to mounted server */
 	Qid	mqid;			/* qid of root of mount point */
@@ -237,8 +244,8 @@ struct Chan
 struct Path
 {
 	Ref;
-	char	*s;
-	Chan	**mtpt;			/* mtpt history */
+	char*	s;
+	Chan**	mtpt;			/* mtpt history */
 	int	len;			/* strlen(s) */
 	int	alen;			/* allocated length of s */
 	int	mlen;			/* number of path elements */
@@ -255,29 +262,28 @@ struct Dev
 	void	(*shutdown)(void);
 	Chan*	(*attach)(char*);
 	Walkqid*(*walk)(Chan*, Chan*, char**, int);
-	int	(*stat)(Chan*, uchar*, int);
+	int32_t	(*stat)(Chan*, unsigned char*, int32_t);
 	Chan*	(*open)(Chan*, int);
-	void	(*create)(Chan*, char*, int, ulong);
+	void	(*create)(Chan*, char*, int, int);
 	void	(*close)(Chan*);
-	long	(*read)(Chan*, void*, long, vlong);
-	Block*	(*bread)(Chan*, long, ulong);
-	long	(*write)(Chan*, void*, long, vlong);
-	long	(*bwrite)(Chan*, Block*, ulong);
+	int32_t	(*read)(Chan*, void*, int32_t, int64_t);
+	Block*	(*bread)(Chan*, int32_t, int64_t);
+	int32_t	(*write)(Chan*, void*, int32_t, int64_t);
+	int32_t	(*bwrite)(Chan*, Block*, int64_t);
 	void	(*remove)(Chan*);
-	int	(*wstat)(Chan*, uchar*, int);
+	int32_t	(*wstat)(Chan*, unsigned char*, int32_t);
 	void	(*power)(int);	/* power mgt: power(1) => on, power (0) => off */
-	int	(*config)(int, char*, DevConf*);	/* returns nil on error */
-
-	/* not initialised */
-	int	attached;				/* debugging */
+	int	(*config)(int, char*, DevConf*);	/* returns 0 on error */
+	int	(*zread)(Chan*, Kzio*, int, usize, int64_t);
+	int	(*zwrite)(Chan*, Kzio*, int, int64_t);
 };
 
 struct Dirtab
 {
 	char	name[KNAMELEN];
 	Qid	qid;
-	vlong	length;
-	long	perm;
+	int64_t	length;
+	int32_t	perm;
 };
 
 struct Walkqid
@@ -303,7 +309,7 @@ struct Mntwalk				/* state for /proc/#/ns */
 
 struct Mount
 {
-	ulong	mountid;
+	int	mountid;
 	Mount*	next;
 	Mhead*	head;
 	Mount*	copy;
@@ -329,7 +335,7 @@ struct Mnt
 	Chan	*c;		/* Channel to file service */
 	Proc	*rip;		/* Reader in progress */
 	Mntrpc	*queue;		/* Queue of pending requests on this channel */
-	ulong	id;		/* Multiplexer id for channel check */
+	uint	id;		/* Multiplexer id for channel check */
 	Mnt	*list;		/* Free list */
 	int	flags;		/* cache */
 	int	msize;		/* data + IOHDRSZ */
@@ -364,52 +370,58 @@ enum
 struct Page
 {
 	Lock;
-	ulong	pa;			/* Physical address in memory */
-	ulong	va;			/* Virtual address for user */
-	ulong	daddr;			/* Disc address on swap */
-	ulong	gen;			/* Generation counter for swap */
-	ushort	ref;			/* Reference count */
-	char	modref;			/* Simulated modify/reference bits */
-	char	color;			/* Cache coloring */
-	char	cachectl[MAXMACH];	/* Cache flushing control for putmmu */
+	uintmem	pa;			/* Physical address in memory */
+	uintptr_t	va;			/* Virtual address for user */
+	uint32_t	daddr;			/* Disc address on swap */
+	int	ref;			/* Reference count */
+	unsigned char	modref;			/* Simulated modify/reference bits */
+	int	color;			/* Cache coloring */
+	char	cachectl[MACHMAX];	/* Cache flushing control for mmuput */
 	Image	*image;			/* Associated text or swap image */
 	Page	*next;			/* Lru free list */
 	Page	*prev;
 	Page	*hash;			/* Image hash chains */
+	int	pgszi;			/* size index in m->pgsz[] */
 };
-
-struct Swapalloc
-{
-	Lock;				/* Free map lock */
-	int	free;			/* currently free swap pages */
-	uchar*	swmap;			/* Base of swap map in memory */
-	uchar*	alloc;			/* Round robin allocator */
-	uchar*	last;			/* Speed swap allocation */
-	uchar*	top;			/* Top of swap map */
-	Rendez	r;			/* Pager kproc idle sleep */
-	ulong	highwater;		/* Pager start threshold */
-	ulong	headroom;		/* Space pager frees under highwater */
-}swapalloc;
 
 struct Image
 {
 	Ref;
-	Chan	*c;			/* channel to text file */
+	Chan *c;
 	Qid 	qid;			/* Qid for page cache coherence */
 	Qid	mqid;
 	Chan	*mchan;
-	ushort	type;			/* Device type of owning channel */
+	int	dc;			/* Device type of owning channel */
+//subtype
 	Segment *s;			/* TEXT segment for image if running */
 	Image	*hash;			/* Qid hash chains */
-	Image	*next;			/* Free list */
+	Image	*next;			/* Free list or lru list */
+	Image	*prev;			/* lru list */
 	int	notext;			/* no file associated */
+	int	color;
 };
+
+/*
+ *  virtual MMU
+ */
+#define PTEMAPMEM	(1ULL*GiB)
+#define SEGMAPSIZE	1984
+#define SSEGMAPSIZE	16		/* XXX: shouldn't be 32 at least? */
+
+/*
+ * Interface between fixfault and mmuput.
+ */
+#define PTEVALID		(1<<0)
+#define PTEWRITE		(1<<1)
+#define PTERONLY		(0<<1)
+#define PTEUSER		(1<<2)
+#define PTEUNCACHED	(1<<4)
 
 struct Pte
 {
-	Page	*pages[PTEPERTAB];	/* Page map for this chunk of pte */
 	Page	**first;		/* First used entry */
-	Page	**last;			/* Last used entry */
+	Page	**last;		/* Last used entry */
+	Page	*pages[];	/* Page map for this chunk of pte */
 };
 
 /* Segment types */
@@ -423,57 +435,104 @@ enum
 	SG_SHARED	= 04,
 	SG_PHYSICAL	= 05,
 
+	SG_CACHED	= 0020,		/* Physseg can be cached */
 	SG_RONLY	= 0040,		/* Segment is read only */
 	SG_CEXEC	= 0100,		/* Detach at exec */
+	SG_ZIO		= 0200,		/* used for zero copy */
+	SG_KZIO		= 0400,  	/* kernel zero copy segment */
 };
 
 #define PG_ONSWAP	1
-#define onswap(s)	(((ulong)s)&PG_ONSWAP)
-#define pagedout(s)	(((ulong)s)==0 || onswap(s))
-#define swapaddr(s)	(((ulong)s)&~PG_ONSWAP)
+#define onswap(s)	(PTR2UINT(s) & PG_ONSWAP)
+#define pagedout(s)	(PTR2UINT(s) == 0 || onswap(s))
+#define swapaddr(s)	(PTR2UINT(s) & ~PG_ONSWAP)
 
-#define SEGMAXSIZE	(SEGMAPSIZE*PTEMAPMEM)
+#define SEGMAXPG	(SEGMAPSIZE)
 
 struct Physseg
 {
-	ulong	attr;			/* Segment attributes */
+	uint32_t	attr;			/* Segment attributes */
 	char	*name;			/* Attach name */
-	ulong	pa;			/* Physical address */
-	ulong	size;			/* Maximum segment size in pages */
-	Page	*(*pgalloc)(Segment*, ulong);	/* Allocation if we need it */
+	uintmem	pa;			/* Physical address */
+	usize	size;			/* Maximum segment size in pages */
+	int	pgszi;			/* Page size index in Mach  */
+	Page	*(*pgalloc)(Segment*, uintptr_t);	/* Allocation if we need it */
 	void	(*pgfree)(Page*);
+	uintptr_t	gva;			/* optional global virtual address */
 };
 
 struct Sema
 {
 	Rendez;
-	long	*addr;
+	int*	addr;
 	int	waiting;
-	Sema	*next;
-	Sema	*prev;
+	Sema*	next;
+	Sema*	prev;
 };
+
+/* NIX semaphores */
+struct Sem
+{
+	Lock;
+	int*	np;		/* user-level semaphore */
+	Proc**	q;
+	int	nq;
+	Sem*	next;		/* in list of semaphores for this Segment */
+};
+
+/* NIX semaphores */
+struct Sems
+{
+	Sem**	s;
+	int	ns;
+};
+
+/* Zero copy per-segment information (locked using Segment.lk) */
+struct Zseg
+{
+	void*	map;	/* memory map for buffers within this segment */
+	uintptr_t	*addr;	/* array of addresses released */
+	int	naddr;	/* size allocated for the array */
+	int	end;	/* 1+ last used index in addr */
+	Rendez	rr;	/* process waiting to read free addresses */
+};
+
+#define NOCOLOR -1
 
 struct Segment
 {
 	Ref;
 	QLock	lk;
-	ushort	steal;		/* Page stealer lock */
-	ushort	type;		/* segment type */
-	ulong	base;		/* virtual base */
-	ulong	top;		/* virtual top */
-	ulong	size;		/* size in pages */
-	ulong	fstart;		/* start address in file for demand load */
-	ulong	flen;		/* length of segment in file */
+	uint16_t	steal;		/* Page stealer lock */
+	uint16_t	type;		/* segment type */
+	int	pgszi;		/* page size index in Mach MMMU */
+	uint	ptepertab;
+	int	color;
+	uintptr_t	base;		/* virtual base */
+	uintptr_t	top;		/* virtual top */
+	usize	size;		/* size in pages */
+	/* We will be using the ELF ProgHdr for getting file contents into the segment. */
+	ProgHdr ph;
 	int	flushme;	/* maintain icache for this segment */
 	Image	*image;		/* text in file attached to this segment */
 	Physseg *pseg;
-	ulong*	profile;	/* Tick profile area */
+	uint32_t*	profile;	/* Tick profile area */
 	Pte	**map;
 	int	mapsize;
 	Pte	*ssegmap[SSEGMAPSIZE];
 	Lock	semalock;
 	Sema	sema;
-	ulong	mark;		/* portcountrefs */
+	Sems	sems;
+	Zseg	zseg;
+};
+
+/*
+ * NIX zero-copy IO structure.
+ */
+struct Kzio
+{
+	Zio;
+	Segment* seg;
 };
 
 enum
@@ -493,7 +552,7 @@ struct Pgrp
 {
 	Ref;				/* also used as a lock when mounting */
 	int	noattach;
-	ulong	pgrpid;
+	uint32_t	pgrpid;
 	QLock	debug;			/* single access via devproc.c */
 	RWlock	ns;			/* Namespace n read/one write lock */
 	Mhead	*mnthash[MNTHASH];
@@ -512,8 +571,8 @@ struct Egrp
 	Evalue	**ent;
 	int	nent;
 	int	ment;
-	ulong	path;	/* qid.path of next Evalue to be allocated */
-	ulong	vers;	/* of Egrp */
+	uint32_t	path;	/* qid.path of next Evalue to be allocated */
+	uint32_t	vers;	/* of Egrp */
 };
 
 struct Evalue
@@ -541,23 +600,27 @@ enum
 
 struct Pallocmem
 {
-	ulong base;
-	ulong npage;
+	uintmem	base;
+	uint32_t	npage;
 };
 
-struct Palloc
+struct Pgsza
+{
+	uint32_t	freecount;	/* how many pages in the free list? */
+	Ref	npages;		/* how many pages of this size? */
+	Page	*head;		/* MRU */
+	Page	*tail;		/* LRU */
+};
+
+struct Pgalloc
 {
 	Lock;
-	Pallocmem	mem[4];
-	Page	*head;			/* most recently used */
-	Page	*tail;			/* least recently used */
-	ulong	freecount;		/* how many pages on free list now */
-	Page	*pages;			/* array of all pages */
-	ulong	user;			/* how many user pages */
-	Page	*hash[PGHSIZE];
+	int	userinit;	/* working in user init mode */
+	Pgsza	pgsza[NPGSZ];	/* allocs for m->npgsz page sizes */
+	Page*	hash[PGHSIZE];	/* only used for user pages */
 	Lock	hashlock;
-	Rendez	r;			/* Sleep for free mem */
-	QLock	pwait;			/* Queue of procs waiting for memory */
+	Rendez	r;		/* sleep for free mem */
+	QLock	pwait;		/* queue of procs waiting for this pgsz */
 };
 
 struct Waitq
@@ -579,14 +642,13 @@ struct Timer
 {
 	/* Public interface */
 	int	tmode;		/* See above */
-	vlong	tns;		/* meaning defined by mode */
+	int64_t	tns;		/* meaning defined by mode */
 	void	(*tf)(Ureg*, Timer*);
 	void	*ta;
 	/* Internal */
 	Lock;
 	Timers	*tt;		/* Timers queue this timer runs on */
-	Tval	tticks;		/* tns converted to ticks */
-	Tval	twhen;		/* ns represented in fastticks */
+	int64_t	twhen;		/* ns represented in fastticks */
 	Timer	*tnext;
 };
 
@@ -604,14 +666,28 @@ enum
 	RFCFDG		= (1<<12),
 	RFREND		= (1<<13),
 	RFNOMNT		= (1<<14),
+	RFPREPAGE	= (1<<15),
+	RFCPREPAGE	= (1<<16),
+	RFCORE		= (1<<17),
+	RFCCORE		= (1<<18),
 };
+
+/* execac */
+enum
+{
+	EXTC = 0,	/* exec on time-sharing */
+	EXAC,		/* want an AC for the exec'd image */
+	EXXC,		/* want an XC for the exec'd image */
+};
+
 
 /*
  *  process memory segments - NSEG always last !
+ *  HSEG is a potentially huge bss segment.
  */
 enum
 {
-	SSEG, TSEG, DSEG, BSEG, ESEG, LSEG, SEG1, SEG2, SEG3, SEG4, NSEG
+	SSEG, TSEG, DSEG, BSEG, HSEG, ESEG, LSEG, SEG1, SEG2, SEG3, SEG4, NSEG
 };
 
 enum
@@ -629,12 +705,16 @@ enum
 	Stopped,
 	Rendezvous,
 	Waitrelease,
+	Exotic,			/* NIX */
+	Semdown,
 
 	Proc_stopme = 1, 	/* devproc requests */
 	Proc_exitme,
 	Proc_traceme,
 	Proc_exitbig,
 	Proc_tracesyscall,
+	Proc_toac,
+	Proc_totc,
 
 	TUser = 0, 		/* Proc.time */
 	TSys,
@@ -658,16 +738,44 @@ enum
 
 struct Schedq
 {
-	Lock;
 	Proc*	head;
 	Proc*	tail;
 	int	n;
 };
 
+struct Sched
+{
+	Lock;			/* runq */
+	int	nrdy;
+	uint32_t delayedscheds;	/* statistics */
+	int32_t skipscheds;
+	int32_t preempts;
+	int schedgain;
+	uint32_t balancetime;
+	Schedq	runq[Nrq];
+	uint32_t	runvec;
+	int	nmach;		/* # of cores with this color */
+	uint32_t	nrun;		/* to compute load */
+};
+
+typedef union Ar0 Ar0;
+union Ar0 {
+	int	i;
+	int32_t	l;
+	uintptr_t	p;
+	usize	u;
+	void*	v;
+	int64_t	vl;
+};
+
+typedef struct Nixpctl Nixpctl;
+#pragma incomplete Nixpctl
+
 struct Proc
 {
 	Label	sched;		/* known to l.s */
 	char	*kstack;	/* known to l.s */
+	void	*dbgreg;	/* known to l.s User registers for devproc */
 	Mach	*mach;		/* machine running this proc */
 	char	*text;
 	char	*user;
@@ -680,8 +788,10 @@ struct Proc
 	char	*psstate;	/* What /proc/#/status reports */
 	Segment	*seg[NSEG];
 	QLock	seglock;	/* locked whenever seg[] changes */
-	ulong	pid;
-	ulong	noteid;		/* Equivalent of note group */
+	int	pid;
+	int	index;		/* index (slot) in proc array */
+	int	ref;		/* indirect reference */
+	int	noteid;		/* Equivalent of note group */
 	Proc	*pidhash;	/* next proc in pid hash */
 
 	Lock	exl;		/* Lock count and waitq */
@@ -699,10 +809,10 @@ struct Proc
 
 	Fgrp	*closingfgrp;	/* used during teardown */
 
-	ulong	parentpid;
-	ulong	time[6];	/* User, Sys, Real; child U, S, R */
+	int	parentpid;
+	uint32_t	time[6];	/* User, Sys, Real; child U, S, R */
 
-	uvlong	kentry;		/* Kernel entry time stamp (for profiling) */
+	uint64_t	kentry;		/* Kernel entry time stamp (for profiling) */
 	/*
 	 * pcycles: cycles spent in this process (updated on procsave/restore)
 	 * when this is the current proc and we're in the kernel
@@ -711,18 +821,17 @@ struct Proc
 	 * when this is not the current process or we're in user mode
 	 * (procrestores and procsaves balance), it is pcycles.
 	 */
-	vlong	pcycles;
+	int64_t	pcycles;
 
 	int	insyscall;
-	int	fpstate;
 
 	QLock	debug;		/* to access debugging elements of User */
 	Proc	*pdbg;		/* the debugging process */
-	ulong	procmode;	/* proc device default file mode */
-	ulong	privatemem;	/* proc does not let anyone read mem */
+	uint32_t	procmode;	/* proc device file mode */
+	uint32_t	privatemem;	/* proc does not let anyone read mem */
 	int	hang;		/* hang at next exec for debug */
 	int	procctl;	/* Control for /proc debugging */
-	ulong	pc;		/* DEBUG only */
+	uintptr	pc;		/* DEBUG only */
 
 	Lock	rlock;		/* sync sleep/wakeup with postnote */
 	Rendez	*r;		/* rendezvous point slept on */
@@ -730,7 +839,7 @@ struct Proc
 	int	notepending;	/* note issued but not acted on */
 	int	kp;		/* true if a kernel process */
 	Proc	*palarm;	/* Next alarm time */
-	ulong	alarm;		/* Time of call */
+	uint32_t	alarm;		/* Time of call */
 	int	newtlb;		/* Pager has changed my pte's, I must flush */
 	int	noswap;		/* process is not swappable */
 
@@ -744,9 +853,8 @@ struct Proc
 	void	(*kpfun)(void*);
 	void	*kparg;
 
-	FPsave	fpsave;		/* address of this is known by db */
-	int	scallnr;	/* sys call number - known by db */
-	Sargs	s;		/* address of this is known by db */
+	int	scallnr;	/* system call number */
+	unsigned char	arg[MAXSYSARG*sizeof(void*)];	/* system call arguments */
 	int	nerrlab;
 	Label	errlab[NERR];
 	char	*syserrstr;	/* last error from a system call, errbuf0 or 1 */
@@ -761,7 +869,7 @@ struct Proc
 	short	nnote;
 	short	notified;	/* sysnoted is due */
 	Note	lastnote;
-	int	(*notify)(void*, char*);
+	void	(*notify)(void*, char*);
 
 	Lock	*lockwait;
 	Lock	*lastlock;	/* debugging */
@@ -769,35 +877,67 @@ struct Proc
 
 	Mach	*wired;
 	Mach	*mp;		/* machine this process last ran on */
-	Ref	nlocks;		/* number of locks held by proc */
-	ulong	delaysched;
-	ulong	priority;	/* priority level */
-	ulong	basepri;	/* base priority level */
-	uchar	fixedpri;	/* priority level deson't change */
-	ulong	cpu;		/* cpu average */
-	ulong	lastupdate;
-	uchar	yield;		/* non-zero if the process just did a sleep(0) */
-	ulong	readytime;	/* time process came ready */
-	ulong	movetime;	/* last time process switched processors */
+	int	nlocks;		/* number of locks held by proc */
+	uint32_t	delaysched;
+	uint32_t	priority;	/* priority level */
+	uint32_t	basepri;	/* base priority level */
+	int	fixedpri;	/* priority level does not change */
+	uint32_t	cpu;		/* cpu average */
+	uint32_t	lastupdate;
+	uint32_t	readytime;	/* time process came ready */
+	uint32_t	movetime;	/* last time process switched processors */
 	int	preempted;	/* true if this process hasn't finished the interrupt
 				 *  that last preempted it
 				 */
 	Edf	*edf;		/* if non-null, real-time proc, edf contains scheduling params */
 	int	trace;		/* process being traced? */
 
-	ulong	qpc;		/* pc calling last blocking qlock */
+	uintptr	qpc;		/* pc calling last blocking qlock */
 
 	int	setargs;
 
 	void	*ureg;		/* User registers for notes */
-	void	*dbgreg;	/* User registers for devproc */
-	Notsave;
+	int	color;
+
+	Fastcall* fc;
+	int	fcount;
+	char*	syscalltrace;
+
+	/* NIX */
+	Mach	*ac;
+	Page	*acpml4;
+	Sem	*waitsem;
+	int	prepagemem;
+	Nixpctl *nixpctl;	/* NIX queue based system calls */
+
+	uint	ntrap;		/* # of traps while in this process */
+	uint	nintr;		/* # of intrs while in this process */
+	uint	nsyscall;	/* # of syscalls made by the process */
+	uint	nactrap;	/* # of traps in the AC for this process */
+	uint	nacsyscall;	/* # of syscalls in the AC for this process */
+	uint	nicc;		/* # of ICCs for the process */
+	uint64_t	actime1;		/* ticks as of last call in AC */
+	uint64_t	actime;		/* ∑time from call in AC to ret to AC, and... */
+	uint64_t	tctime;		/* ∑time from call received to call handled */
+	int	nqtrap;		/* # of traps in last quantum */
+	int	nqsyscall;	/* # of syscalls in the last quantum */
+	int	nfullq;
 
 	/*
-	 *  machine specific MMU
+	 *  machine specific fpu, mmu and notify
 	 */
+	PFPU;
 	PMMU;
-	char	*syscalltrace;	/* syscall trace */
+	PNOTIFY;
+};
+
+struct Procalloc
+{
+	Lock;
+	int	nproc;
+	Proc*	ht[128];
+	Proc*	arena;
+	Proc*	free;
 };
 
 enum
@@ -808,37 +948,31 @@ enum
 	MB =		(1024*1024),
 	/* READSTR was 1000, which is way too small for usb's ctl file */
 	READSTR =	4000,		/* temporary buffer size for device reads */
-};
-
-struct Execvals {
-	uvlong	entry;
-	ulong	textsize;
-	ulong	datasize;
+	WRITESTR =	256,		/* ctl file write max */
 };
 
 extern	Conf	conf;
 extern	char*	conffile;
 extern	int	cpuserver;
-extern	Dev*	devtab[];
-extern	char*	eve;
+extern  char*	eve;
 extern	char	hostdomain[];
-extern	uchar	initcode[];
+extern	uint8_t	initcode[];
 extern	int	kbdbuttons;
-extern	Queue*	kbdq;
-extern	Queue*	kprintoq;
-extern 	Ref	noteidalloc;
+extern  Ref	noteidalloc;
+extern	int	nphysseg;
 extern	int	nsyscall;
-extern	Palloc	palloc;
-	int	(*parseboothdr)(Chan *, ulong, Execvals *);
-extern	Queue*	serialoq;
-extern	char*	statename[];
-extern	Image	swapimage;
-extern	char*	sysname;
+extern	Pgalloc pga;
+extern	Physseg	physseg[];
+extern	Procalloc	procalloc;
 extern	uint	qiomaxatomic;
-extern	char*	sysctab[];
-
-	Watchdog*watchdog;
-	int	watchdogon;
+extern	char*	statename[];
+extern	char*	sysname;
+typedef	struct {
+	char*	n;
+	void (*f)(Ar0*, ...);
+	Ar0	r;
+} systab_t[];
+extern systab_t systab;
 
 enum
 {
@@ -906,15 +1040,16 @@ struct PhysUart
 	void	(*modemctl)(Uart*, int);
 	void	(*rts)(Uart*, int);
 	void	(*dtr)(Uart*, int);
-	long	(*status)(Uart*, void*, long, long);
+	int32_t	(*status)(Uart*, void*, int32_t, int32_t);
 	void	(*fifo)(Uart*, int);
 	void	(*power)(Uart*, int);
-	int	(*getc)(Uart*);	/* polling versions, for iprint, rdb */
-	void	(*putc)(Uart*, int);
+	int	(*getc)(Uart*);			/* polling version for rdb */
+	void	(*putc)(Uart*, int);		/* polling version for iprint */
+	void	(*poll)(Uart*);			/* polled interrupt routine */
 };
 
 enum {
-	Stagesize=	STAGESIZE
+	Stagesize=	2048
 };
 
 /*
@@ -925,7 +1060,7 @@ struct Uart
 	void*	regs;			/* hardware stuff */
 	void*	saveregs;		/* place to put registers on power down */
 	char*	name;			/* internal name */
-	ulong	freq;			/* clock frequency */
+	uint32_t	freq;			/* clock frequency */
 	int	bits;			/* bits per character */
 	int	stop;			/* stop bits */
 	int	parity;			/* even, odd or no parity */
@@ -955,21 +1090,21 @@ struct Uart
 	Queue	*oq;
 
 	Lock	rlock;
-	uchar	istage[Stagesize];
-	uchar	*iw;
-	uchar	*ir;
-	uchar	*ie;
+	unsigned char	istage[Stagesize];
+	unsigned char	*iw;
+	unsigned char	*ir;
+	unsigned char	*ie;
 
 	Lock	tlock;			/* transmit */
-	uchar	ostage[Stagesize];
-	uchar	*op;
-	uchar	*oe;
+	unsigned char	ostage[Stagesize];
+	unsigned char	*op;
+	unsigned char	*oe;
 	int	drain;
 
 	int	modem;			/* hardware flow control on */
 	int	xonoff;			/* software flow control on */
 	int	blocked;
-	int	cts, dsr, dcd;	/* keep track of modem status */ 
+	int	cts, dsr, dcd;		/* keep track of modem status */
 	int	ctsbackoff;
 	int	hup_dsr, hup_dcd;	/* send hangup upstream? */
 	int	dohup;
@@ -979,20 +1114,18 @@ struct Uart
 
 extern	Uart*	consuart;
 
-void (*lprint)(char *, int);
-
 /*
  *  performance timers, all units in perfticks
  */
 struct Perf
 {
-	ulong	intrts;		/* time of last interrupt */
-	ulong	inintr;		/* time since last clock tick in interrupt handlers */
-	ulong	avg_inintr;	/* avg time per clock tick in interrupt handlers */
-	ulong	inidle;		/* time since last clock tick in idle loop */
-	ulong	avg_inidle;	/* avg time per clock tick in idle loop */
-	ulong	last;		/* value of perfticks() at last clock tick */
-	ulong	period;		/* perfticks() per clock tick */
+	uint32_t	intrts;		/* time of last interrupt */
+	uint32_t	inintr;		/* time since last clock tick in interrupt handlers */
+	uint32_t	avg_inintr;	/* avg time per clock tick in interrupt handlers */
+	uint32_t	inidle;		/* time since last clock tick in idle loop */
+	uint32_t	avg_inidle;	/* avg time per clock tick in idle loop */
+	uint32_t	last;		/* value of perfticks() at last clock tick */
+	uint32_t	period;		/* perfticks() per clock tick */
 };
 
 struct Watchdog
@@ -1003,16 +1136,6 @@ struct Watchdog
 	void	(*stat)(char*, char*);	/* watchdog statistics */
 };
 
-struct Watermark
-{
-	int	highwater;
-	int	curr;
-	int	max;
-	int	hitmax;		/* count: how many times hit max? */
-	char	*name;
-};
-
-
 /* queue state bits,  Qmsg, Qcoalesce, and Qkick can be set in qopen */
 enum
 {
@@ -1021,13 +1144,27 @@ enum
 	Qmsg		= (1<<1),	/* message stream */
 	Qclosed		= (1<<2),	/* queue has been closed/hungup */
 	Qflow		= (1<<3),	/* producer flow controlled */
-	Qcoalesce	= (1<<4),	/* coalesce packets on read */
+	Qcoalesce	= (1<<4),	/* coallesce packets on read */
 	Qkick		= (1<<5),	/* always call the kick routine after qwrite */
 };
 
+/* Fast system call struct  -- these are dynamically allocted in Proc struct */
+struct Fastcall {
+	int	scnum;
+	Chan*	c;
+	void	(*fun)(Ar0*, Fastcall*);
+	void*	buf;
+	int	n;
+	int64_t	offset;
+};
+
+
+
 #define DEVDOTDOT -1
 
-#pragma	varargck	type	"I"	uchar*
-#pragma	varargck	type	"V"	uchar*
-#pragma	varargck	type	"E"	uchar*
-#pragma	varargck	type	"M"	uchar*
+#pragma	varargck	type	"I"	unsigned char*
+#pragma	varargck	type	"V"	unsigned char*
+#pragma	varargck	type	"E"	unsigned char*
+#pragma	varargck	type	"M"	unsigned char*
+#pragma	varargck	type	"W"	uint64_t
+#pragma	varargck	type	"Z"	Kzio*

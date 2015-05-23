@@ -32,7 +32,7 @@ enum
 	LOGNPTR = LOGBLKSZ-2,	/* assume sizeof(void*) == 4 */
 	NPTR = 1<<LOGNPTR,
 };
-static uchar zero[BLKSZ];
+static uint8_t zero[BLKSZ];
 
 struct Trip
 {
@@ -46,7 +46,7 @@ struct Dbl
 
 struct Ind
 {
-	uchar *blk[NPTR];
+	uint8_t *blk[NPTR];
 };
 
 Trip trip;
@@ -55,10 +55,10 @@ struct Part
 {
 	int inuse;
 	int vers;
-	ulong mode;
+	uint32_t mode;
 	char *name;
-	vlong offset;	/* in sectors */
-	vlong length;	/* in sectors */
+	int64_t offset;	/* in sectors */
+	int64_t length;	/* in sectors */
 };
 
 enum
@@ -72,10 +72,10 @@ enum
 Part tab[64];
 int fd = -1;
 char *sdname = "sdXX";
-ulong ctlmode = 0666;
+uint32_t ctlmode = 0666;
 char *inquiry = "aux/disksim hard drive";
-vlong nsect, sectsize, c, h, s;
-ulong time0;
+int64_t nsect, sectsize, c, h, s;
+uint32_t time0;
 int rdonly;
 
 char*
@@ -94,7 +94,7 @@ ctlstring(void)
 }
 
 int
-addpart(char *name, vlong start, vlong end)
+addpart(char *name, int64_t start, int64_t end)
 {
 	int i;
 
@@ -146,7 +146,7 @@ ctlwrite(Req *r)
 {
 	int i;
 	Cmdbuf *cb;
-	vlong start, end;
+	int64_t start, end;
 
 	r->ofcall.count = r->ifcall.count;
 	cb = parsecmd(r->ifcall.data, r->ifcall.count);
@@ -225,11 +225,11 @@ ctlwrite(Req *r)
 }
 	
 void*
-allocblk(vlong addr)
+allocblk(int64_t addr)
 {
-	uchar *op;
-	static uchar *p;
-	static ulong n;
+	uint8_t *op;
+	static uint8_t *p;
+	static uint32_t n;
 
 	if(n == 0){
 		p = malloc(4*1024*1024);
@@ -246,14 +246,14 @@ allocblk(vlong addr)
 	return op;
 }
 
-uchar*
-getblock(vlong addr, int alloc)
+uint8_t*
+getblock(int64_t addr, int alloc)
 {
  	Dbl *p2;
 	Ind *p1;
-	uchar *p0;
+	uint8_t *p0;
 	uint i0, i1, i2;
-	vlong oaddr;
+	int64_t oaddr;
 
 	if(fd >= 0)
 		alloc = 1;
@@ -289,13 +289,13 @@ getblock(vlong addr, int alloc)
 }
 
 void
-dirty(vlong addr, uchar *buf)
+dirty(int64_t addr, uint8_t *buf)
 {
-	vlong oaddr;
+	int64_t oaddr;
 
 	if(fd == -1 || rdonly)
 		return;
-	oaddr = addr&~((vlong)BLKSZ-1);
+	oaddr = addr&~((int64_t)BLKSZ-1);
 	if(pwrite(fd, buf, BLKSZ, oaddr) != BLKSZ)
 		sysfatal("write: %r");
 }
@@ -359,15 +359,15 @@ Have:
 }
 
 void*
-evommem(void *a, void *b, ulong n)
+evommem(void *a, void *b, uint32_t n)
 {
 	return memmove(b, a, n);
 }
 
 int
-isnonzero(void *v, ulong n)
+isnonzero(void *v, uint32_t n)
 {
-	uchar *a, *ea;
+	uint8_t *a, *ea;
 	
 	a = v;
 	ea = a+n;
@@ -382,10 +382,10 @@ rdwrpart(Req *r)
 {
 	int q, nonzero;
 	Part *p;
-	vlong offset;
-	long count, tot, n, o;
-	uchar *blk, *dat;
-	void *(*move)(void*, void*, ulong);
+	int64_t offset;
+	int32_t count, tot, n, o;
+	uint8_t *blk, *dat;
+	void *(*move)(void*, void*, uint32_t);
 
 	q = r->fid->qid.path-Qpart;
 	if(q < 0 || q > nelem(tab) || !tab[q].inuse || tab[q].vers != r->fid->qid.vers){
@@ -420,9 +420,9 @@ rdwrpart(Req *r)
 	tot = 0;
 	nonzero = 1;
 	if(r->ifcall.type == Tread)
-		dat = (uchar*)r->ofcall.data;
+		dat = (uint8_t*)r->ofcall.data;
 	else{
-		dat = (uchar*)r->ifcall.data;
+		dat = (uint8_t*)r->ifcall.data;
 		nonzero = isnonzero(dat, r->ifcall.count);
 	}
 	o = offset & (BLKSZ-1);

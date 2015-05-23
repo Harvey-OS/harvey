@@ -13,7 +13,7 @@
 #include "bzlib.h"
 
 static	int	bzipf(char*, int);
-static	int	bzip(char*, long, int, Biobuf*);
+static	int	bzip(char*, int32_t, int, Biobuf*);
 
 static	Biobuf	bout;
 static	int	level;
@@ -133,7 +133,7 @@ bzipf(char *file, int stdout)
 }
 
 static int
-bzip(char *file, long mtime, int ifd, Biobuf *bout)
+bzip(char *file, int32_t mtime, int ifd, Biobuf *bout)
 {
 	int e, n, done, onemore;
 	char buf[8192];

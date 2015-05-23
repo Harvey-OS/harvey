@@ -22,12 +22,12 @@ launcher386(void (*f)(void *arg), void *arg)
 void
 _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 {
-	ulong *tos;
+	uint32_t *tos;
 
-	tos = (ulong*)&t->stk[t->stksize&~7];
-	*--tos = (ulong)arg;
-	*--tos = (ulong)f;
-	t->sched[JMPBUFPC] = (ulong)launcher386+JMPBUFDPC;
-	t->sched[JMPBUFSP] = (ulong)tos - 8;		/* old PC and new PC */
+	tos = (uint32_t*)&t->stk[t->stksize&~7];
+	*--tos = (uint32_t)arg;
+	*--tos = (uint32_t)f;
+	t->sched[JMPBUFPC] = (uint32_t)launcher386+JMPBUFDPC;
+	t->sched[JMPBUFSP] = (uint32_t)tos - 8;		/* old PC and new PC */
 }
 

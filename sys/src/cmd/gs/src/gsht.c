@@ -570,12 +570,13 @@ gx_ht_construct_bits(gx_ht_order * porder)
 	gx_ht_construct_bit(phb, porder->width, phb->offset);
 #ifdef DEBUG
     if (gs_debug_c('H')) {
-	dlprintf1("[H]Halftone order bits 0x%lx:\n", (ulong)porder->bit_data);
+	dlprintf1("[H]Halftone order bits 0x%lx:\n",
+                  (uint32_t)porder->bit_data);
 	for (i = 0, phb = (gx_ht_bit *)porder->bit_data;
 	     i < porder->num_bits;
 	     i++, phb++)
 	    dlprintf3("%4d: %u:0x%lx\n", i, phb->offset,
-		      (ulong) phb->mask);
+		      (uint32_t) phb->mask);
     }
 #endif
 }

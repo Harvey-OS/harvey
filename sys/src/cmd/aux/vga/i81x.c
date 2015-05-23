@@ -25,18 +25,18 @@
 
 typedef struct {
 	Pcidev*	pci;
-	uchar*	mmio;
-	ulong	clk[6];
-	ulong	lcd[9];
-	ulong	pixconf;
+	uint8_t*	mmio;
+	uint32_t	clk[6];
+	uint32_t	lcd[9];
+	uint32_t	pixconf;
 } I81x;
 
 static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
 	int f, i;
-	uchar *mmio;
-	ulong *rp;
+	uint8_t *mmio;
+	uint32_t *rp;
 	Pcidev *p;
 	I81x *i81x;
 
@@ -92,15 +92,15 @@ snarf(Vga* vga, Ctlr* ctlr)
 	for(i=0x30; i <= 0x82; i++)		/* set CRT Controller Register (CR) */
 		vga->crt[i] = vgaxi(Crtx, i);
 	/* 0x06000: Clock Control Register base address (3 VCO frequency control) */
-	rp = (ulong*)(i81x->mmio+0x06000);
+	rp = (uint32_t*)(i81x->mmio+0x06000);
 	for(i = 0; i < nelem(i81x->clk); i++)
 		i81x->clk[i] = *rp++;
 
 	/* i830 CRTC registers (A) */
-	rp = (ulong*)(i81x->mmio+0x60000);
+	rp = (uint32_t*)(i81x->mmio+0x60000);
 	for(i = 0; i < nelem(i81x->lcd); i++)
 		i81x->lcd[i] = *rp++;
-	rp = (ulong*)(i81x->mmio+0x70008);	/* Pixel Pipeline Control register A */
+	rp = (uint32_t*)(i81x->mmio+0x70008);	/* Pixel Pipeline Control register A */
 	i81x->pixconf = *rp;
 
 	ctlr->flag |= Fsnarf;
@@ -145,7 +145,7 @@ init(Vga* vga, Ctlr* ctlr)
 {
 	I81x *i81x;
 	int vt, vde, vrs, vre;
-	ulong *rp;
+	uint32_t *rp;
 
 	i81x = vga->private;
 
@@ -158,7 +158,7 @@ init(Vga* vga, Ctlr* ctlr)
 	*/
 	i81x->clk[0] = 0x00030013;
 	i81x->clk[1] = 0x00100053;
-	rp = (ulong*)i81x->mmio+0x6010;
+	rp = (uint32_t*)i81x->mmio+0x6010;
 	i81x->clk[4] = *rp;
 	i81x->clk[4] |= 0x4040;
 	vga->misc = vgai(MiscR);
@@ -325,7 +325,7 @@ static void
 load(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	ulong *rp;
+	uint32_t *rp;
 	I81x *i81x;
 	char *p;
 
@@ -343,14 +343,14 @@ load(Vga* vga, Ctlr* ctlr)
 	vga->crt[0x40] |= 0x80;			/* set CR40, then set the MSB bit of it */
 	vgaxo(Crtx, 0x40, vga->crt[0x40]);
 	/* 0x06000 = offset of Vertical Clock Devisor VGA0 */
-	rp = (ulong*)(i81x->mmio+0x06000);
+	rp = (uint32_t*)(i81x->mmio+0x06000);
 	for(i=0; i < nelem(i81x->clk); i++)
 		*rp++ = i81x->clk[i];
-	rp = (ulong*)(i81x->mmio+0x60000);
+	rp = (uint32_t*)(i81x->mmio+0x60000);
 	for(i = 0; i < nelem(i81x->lcd); i++)
 		*rp++ = i81x->lcd[i];
 	/* set cursor, graphic mode */
-	rp = (ulong*)(i81x->mmio+0x70008);
+	rp = (uint32_t*)(i81x->mmio+0x70008);
 	*rp = i81x->pixconf | (1<<8);
 
 	p = (char*)(i81x->mmio+Pixmask);	/* DACMASK */

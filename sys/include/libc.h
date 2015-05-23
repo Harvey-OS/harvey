@@ -11,18 +11,18 @@
 #pragma	src	"/sys/src/libc"
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
-#define	offsetof(s, m)	(ulong)(&(((s*)0)->m))
+#define	offsetof(s, m)	(uintptr_t)(&(((s*)0)->m))
 #define	assert(x)	if(x){}else _assert("x")
 
 /*
  * mem routines
  */
-extern	void*	memccpy(void*, void*, int, ulong);
-extern	void*	memset(void*, int, ulong);
-extern	int	memcmp(void*, void*, ulong);
-extern	void*	memcpy(void*, void*, ulong);
-extern	void*	memmove(void*, void*, ulong);
-extern	void*	memchr(void*, int, ulong);
+extern	void*	memccpy(void*, void*, int, uint32_t);
+extern	void*	memset(void*, int, uint32_t);
+extern	int	memcmp(void*, void*, uint32_t);
+extern	void*	memcpy(void*, void*, size_t);
+extern	void*	memmove(void*, void*, size_t);
+extern	void*	memchr(void*, int, uint32_t);
 
 /*
  * string routines
@@ -33,15 +33,15 @@ extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
 extern	char*	strecpy(char*, char*, char*);
 extern	char*	strdup(char*);
-extern	char*	strncat(char*, char*, long);
-extern	char*	strncpy(char*, char*, long);
-extern	int	strncmp(char*, char*, long);
+extern	char*	strncat(char*, char*, int32_t);
+extern	char*	strncpy(char*, char*, uint32_t);
+extern	int	strncmp(char*, char*, int32_t);
 extern	char*	strpbrk(char*, char*);
 extern	char*	strrchr(char*, int);
 extern	char*	strtok(char*, char*);
-extern	long	strlen(char*);
-extern	long	strspn(char*, char*);
-extern	long	strcspn(char*, char*);
+extern	int32_t	strlen(char*);
+extern	int32_t	strspn(char*, char*);
+extern	int32_t	strcspn(char*, char*);
 extern	char*	strstr(char*, char*);
 extern	int	cistrncmp(char*, char*, int);
 extern	int	cistrcmp(char*, char*);
@@ -63,13 +63,13 @@ enum
  */
 extern	int	runetochar(char*, Rune*);
 extern	int	chartorune(Rune*, char*);
-extern	int	runelen(long);
+extern	int	runelen(int32_t);
 extern	int	runenlen(Rune*, int);
 extern	int	fullrune(char*, int);
 extern	int	utflen(char*);
-extern	int	utfnlen(char*, long);
-extern	char*	utfrune(char*, long);
-extern	char*	utfrrune(char*, long);
+extern	int	utfnlen(char*, int32_t);
+extern	char*	utfrune(char*, int32_t);
+extern	char*	utfrrune(char*, int32_t);
 extern	char*	utfutf(char*, char*);
 extern	char*	utfecpy(char*, char*, char*);
 
@@ -77,13 +77,13 @@ extern	Rune*	runestrcat(Rune*, Rune*);
 extern	Rune*	runestrchr(Rune*, Rune);
 extern	int	runestrcmp(Rune*, Rune*);
 extern	Rune*	runestrcpy(Rune*, Rune*);
-extern	Rune*	runestrncpy(Rune*, Rune*, long);
+extern	Rune*	runestrncpy(Rune*, Rune*, int32_t);
 extern	Rune*	runestrecpy(Rune*, Rune*, Rune*);
 extern	Rune*	runestrdup(Rune*);
-extern	Rune*	runestrncat(Rune*, Rune*, long);
-extern	int	runestrncmp(Rune*, Rune*, long);
+extern	Rune*	runestrncat(Rune*, Rune*, int32_t);
+extern	int	runestrncmp(Rune*, Rune*, int32_t);
 extern	Rune*	runestrrchr(Rune*, Rune);
-extern	long	runestrlen(Rune*);
+extern	int32_t	runestrlen(Rune*);
 extern	Rune*	runestrstr(Rune*, Rune*);
 
 extern	Rune	tolowerrune(Rune);
@@ -101,25 +101,25 @@ extern	int	isupperrune(Rune);
 /*
  * malloc
  */
-extern	void*	malloc(ulong);
-extern	void*	mallocz(ulong, int);
+extern	void*	malloc(size_t);
+extern	void*	mallocz(uint32_t, int);
 extern	void	free(void*);
-extern	ulong	msize(void*);
-extern	void*	mallocalign(ulong, ulong, long, ulong);
-extern	void*	calloc(ulong, ulong);
-extern	void*	realloc(void*, ulong);
-extern	void	setmalloctag(void*, ulong);
-extern	void	setrealloctag(void*, ulong);
-extern	ulong	getmalloctag(void*);
-extern	ulong	getrealloctag(void*);
-extern	void*	malloctopoolblock(void*);
+extern	uint32_t	msize(void*);
+extern	void*	mallocalign(uint32_t, uint32_t, int32_t, uint32_t);
+extern	void*	calloc(uint32_t, size_t);
+extern	void*	realloc(void*, size_t);
+void	setmalloctag(void*, uint32_t);
+void	setrealloctag(void*, uint32_t);
+uint32_t	getmalloctag(void*);
+uint32_t	getrealloctag(void*);
+void*	malloctopoolblock(void*);
 
 /*
  * print routines
  */
 typedef struct Fmt	Fmt;
 struct Fmt{
-	uchar	runes;			/* output buffer is runes or chars? */
+	uint8_t	runes;			/* output buffer is runes or chars? */
 	void	*start;			/* of buffer */
 	void	*to;			/* current place in the buffer */
 	void	*stop;			/* end of the buffer; overwritten if flush fails */
@@ -130,7 +130,7 @@ struct Fmt{
 	int	r;			/* % format Rune */
 	int	width;
 	int	prec;
-	ulong	flags;
+	uint32_t	flags;
 };
 
 enum{
@@ -266,28 +266,28 @@ extern	int	needsrcquote(int);
 /*
  * random number
  */
-extern	void	srand(long);
+extern	void	srand(int32_t);
 extern	int	rand(void);
 extern	int	nrand(int);
-extern	long	lrand(void);
-extern	long	lnrand(long);
+extern	int32_t	lrand(void);
+extern	int32_t	lnrand(int32_t);
 extern	double	frand(void);
-extern	ulong	truerand(void);			/* uses /dev/random */
-extern	ulong	ntruerand(ulong);		/* uses /dev/random */
+extern	uint32_t	truerand(void);			/* uses /dev/random */
+extern	uint32_t	ntruerand(uint32_t);		/* uses /dev/random */
 
 /*
  * math
  */
-extern	ulong	getfcr(void);
-extern	void	setfsr(ulong);
-extern	ulong	getfsr(void);
-extern	void	setfcr(ulong);
+extern	uint32_t	getfcr(void);
+extern	void	setfsr(uint32_t);
+extern	uint32_t	getfsr(void);
+extern	void	setfcr(uint32_t);
 extern	double	NaN(void);
 extern	double	Inf(int);
 extern	int	isNaN(double);
 extern	int	isInf(double, int);
-extern	ulong	umuldiv(ulong, ulong, ulong);
-extern	long	muldiv(long, long, long);
+extern	uint32_t	umuldiv(uint32_t, uint32_t, uint32_t);
+extern	int32_t	muldiv(int32_t, int32_t, int32_t);
 
 extern	double	pow(double, double);
 extern	double	atan2(double, double);
@@ -333,16 +333,16 @@ struct Tm
 	int	tzoff;
 } Tm;
 
-extern	Tm*	gmtime(long);
-extern	Tm*	localtime(long);
+extern	Tm*	gmtime(int32_t);
+extern	Tm*	localtime(int32_t);
 extern	char*	asctime(Tm*);
-extern	char*	ctime(long);
+extern	char*	ctime(int32_t);
 extern	double	cputime(void);
-extern	long	times(long*);
-extern	long	tm2sec(Tm*);
-extern	vlong	nsec(void);
+extern	int32_t	times(int32_t*);
+extern	int32_t	tm2sec(Tm*);
+extern	int64_t	nsec(void);
 
-extern	void	cycles(uvlong*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
+extern	void	cycles(uint64_t*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
 
 /*
  * one-of-a-kind
@@ -360,18 +360,18 @@ extern	void	atexitdont(void(*)(void));
 extern	int	atnotify(int(*)(void*, char*), int);
 extern	double	atof(char*);
 extern	int	atoi(char*);
-extern	long	atol(char*);
-extern	vlong	atoll(char*);
+extern	int32_t	atol(char*);
+extern	int64_t	atoll(char*);
 extern	double	charstod(int(*)(void*), void*);
 extern	char*	cleanname(char*);
 extern	int	decrypt(void*, void*, int);
 extern	int	encrypt(void*, void*, int);
-extern	int	dec64(uchar*, int, char*, int);
-extern	int	enc64(char*, int, uchar*, int);
-extern	int	dec32(uchar*, int, char*, int);
-extern	int	enc32(char*, int, uchar*, int);
-extern	int	dec16(uchar*, int, char*, int);
-extern	int	enc16(char*, int, uchar*, int);
+extern	int	dec64(uint8_t*, int, char*, int);
+extern	int	enc64(char*, int, uint8_t*, int);
+extern	int	dec32(uint8_t*, int, char*, int);
+extern	int	enc32(char*, int, uint8_t*, int);
+extern	int	dec16(uint8_t*, int, char*, int);
+extern	int	enc16(char*, int, uint8_t*, int);
 extern	int	encodefmt(Fmt*);
 extern	void	exits(char*);
 extern	double	frexp(double, int*);
@@ -382,29 +382,30 @@ extern	int	gettokens(char *, char **, int, char *);
 extern	char*	getuser(void);
 extern	char*	getwd(char*, int);
 extern	int	iounit(int);
-extern	long	labs(long);
+extern	int32_t	labs(int32_t);
 extern	double	ldexp(double, int);
 extern	void	longjmp(jmp_buf, int);
 extern	char*	mktemp(char*);
 extern	double	modf(double, double*);
 extern	int	netcrypt(void*, void*);
 extern	void	notejmp(void*, jmp_buf, int);
-extern	void	perror(char*);
+extern	void	perror(const char*);
 extern	int	postnote(int, int, char *);
 extern	double	pow10(int);
 extern	int	putenv(char*, char*);
-extern	void	qsort(void*, long, long, int (*)(void*, void*));
+extern	void	qsort(void*, int32_t, int32_t,
+				int (*)(void*, void*));
 extern	int	setjmp(jmp_buf);
 extern	double	strtod(char*, char**);
-extern	long	strtol(char*, char**, int);
-extern	ulong	strtoul(char*, char**, int);
-extern	vlong	strtoll(char*, char**, int);
-extern	uvlong	strtoull(char*, char**, int);
+extern	int32_t	strtol(char*, char**, int);
+extern	uint32_t	strtoul(char*, char**, int);
+extern	int64_t	strtoll(char*, char**, int);
+extern	uint64_t	strtoull(char*, char**, int);
 extern	void	sysfatal(char*, ...);
 #pragma	varargck	argpos	sysfatal	1
 extern	void	syslog(int, char*, char*, ...);
 #pragma	varargck	argpos	syslog	3
-extern	long	time(long*);
+extern	int32_t	time(int32_t*);
 extern	int	tolower(int);
 extern	int	toupper(int);
 
@@ -423,19 +424,19 @@ extern	void	prof(void (*fn)(void*), void *arg, int entries, int what);
 /*
  * atomic
  */
-long	ainc(long*);
-long	adec(long*);
-int	cas32(u32int*, u32int, u32int);
+int32_t	ainc(int32_t*);
+int32_t	adec(int32_t*);
+int	cas32(uint32_t*, uint32_t, uint32_t);
 int	casp(void**, void*, void*);
-int	casl(ulong*, ulong, ulong);
+int	casl(uint32_t*, uint32_t, uint32_t);
 
 /*
  *  synchronization
  */
 typedef
 struct Lock {
-	long	key;
-	long	sem;
+	int32_t	key;
+	int32_t	sem;
 } Lock;
 
 extern int	_tas(int*);
@@ -470,7 +471,7 @@ typedef
 struct RWLock
 {
 	Lock	lock;
-	int	readers;	/* number of readers */
+	int	_readers;	/* number of readers */
 	int	writer;		/* number of writers */
 	QLp	*head;		/* list of waiting processes */
 	QLp	*tail;
@@ -514,7 +515,8 @@ extern	int	reject(int, char*, char*);
  *  encryption
  */
 extern	int	pushssl(int, char*, char*, char*, int*);
-extern	int	pushtls(int, char*, char*, int, char*, char*);
+extern	int	pushtls(int, char*, char*, int, char*,
+				 char*);
 
 /*
  *  network services
@@ -615,22 +617,22 @@ enum
 typedef
 struct Qid
 {
-	uvlong	path;
-	ulong	vers;
-	uchar	type;
+	uint64_t	path;
+	uint32_t	vers;
+	uint8_t	type;
 } Qid;
 
 typedef
 struct Dir {
 	/* system-modified data */
-	ushort	type;	/* server type */
+	uint16_t	type;	/* server type */
 	uint	dev;	/* server subtype */
 	/* file data */
 	Qid	qid;	/* unique id from server */
-	ulong	mode;	/* permissions */
-	ulong	atime;	/* last read time */
-	ulong	mtime;	/* last write time */
-	vlong	length;	/* file length */
+	uint32_t	mode;	/* permissions */
+	uint32_t	atime;	/* last read time */
+	uint32_t	mtime;	/* last write time */
+	int64_t	length;	/* file length */
 	char	*name;	/* last element of path */
 	char	*uid;	/* owner name */
 	char	*gid;	/* group name */
@@ -642,7 +644,7 @@ typedef
 struct Waitmsg
 {
 	int	pid;		/* of loved one */
-	ulong	time[3];	/* of loved one & descendants */
+	uint32_t	time[3];	/* of loved one & descendants */
 	char	*msg;
 } Waitmsg;
 
@@ -650,20 +652,20 @@ typedef
 struct IOchunk
 {
 	void	*addr;
-	ulong	len;
+	uint32_t	len;
 } IOchunk;
 
 extern	void	_exits(char*);
 
 extern	void	abort(void);
 extern	int	access(char*, int);
-extern	long	alarm(ulong);
+extern	int32_t	alarm(uint32_t);
 extern	int	await(char*, int);
 extern	int	bind(char*, char*, int);
 extern	int	brk(void*);
 extern	int	chdir(char*);
 extern	int	close(int);
-extern	int	create(char*, int, ulong);
+extern	int	create(char*, int, uint32_t);
 extern	int	dup(int, int);
 extern	int	errstr(char*, uint);
 extern	int	exec(char*, char*[]);
@@ -671,8 +673,8 @@ extern	int	execl(char*, ...);
 extern	int	fork(void);
 extern	int	rfork(int);
 extern	int	fauth(int, char*);
-extern	int	fstat(int, uchar*, int);
-extern	int	fwstat(int, uchar*, int);
+extern	int	fstat(int, uint8_t*, int);
+extern	int	fwstat(int, uint8_t*, int);
 extern	int	fversion(int, int, char*, int);
 extern	int	mount(int, int, char*, int, char*);
 extern	int	unmount(char*, char*);
@@ -682,41 +684,41 @@ extern	int	open(char*, int);
 extern	int	fd2path(int, char*, int);
 // extern	int	fdflush(int);
 extern	int	pipe(int*);
-extern	long	pread(int, void*, long, vlong);
-extern	long	preadv(int, IOchunk*, int, vlong);
-extern	long	pwrite(int, void*, long, vlong);
-extern	long	pwritev(int, IOchunk*, int, vlong);
-extern	long	read(int, void*, long);
-extern	long	readn(int, void*, long);
-extern	long	readv(int, IOchunk*, int);
+extern	int32_t	pread(int, void*, int32_t, int64_t);
+extern	int32_t	preadv(int, IOchunk*, int, int64_t);
+extern	int32_t	pwrite(int, void*, int32_t, int64_t);
+extern	int32_t	pwritev(int, IOchunk*, int, int64_t);
+extern	int32_t	read(int, void*, int32_t);
+extern	int32_t	readn(int, void*, int32_t);
+extern	int32_t	readv(int, IOchunk*, int);
 extern	int	remove(char*);
-extern	void*	sbrk(ulong);
-extern	long	oseek(int, long, int);
-extern	vlong	seek(int, vlong, int);
-extern	void*	segattach(int, char*, void*, ulong);
+extern	void*	sbrk(uint32_t);
+extern	int32_t	oseek(int, int32_t, int);
+extern	int64_t	seek(int, int64_t, int);
+extern	void*	segattach(int, char*, void*, uint32_t);
 extern	void*	segbrk(void*, void*);
 extern	int	segdetach(void*);
-extern	int	segflush(void*, ulong);
-extern	int	segfree(void*, ulong);
-extern	int	semacquire(long*, int);
-extern	long	semrelease(long*, long);
-extern	int	sleep(long);
-extern	int	stat(char*, uchar*, int);
-extern	int	tsemacquire(long*, ulong);
+extern	int	segflush(void*, uint32_t);
+extern	int	segfree(void*, uint32_t);
+extern	int	semacquire(int32_t*, int);
+extern	int32_t	semrelease(int32_t*, int32_t);
+extern	int	sleep(int32_t);
+extern	int	stat(char*, uint8_t*, int);
+extern	int	tsemacquire(int32_t*, uint32_t);
 extern	Waitmsg*	wait(void);
 extern	int	waitpid(void);
-extern	long	write(int, void*, long);
-extern	long	writev(int, IOchunk*, int);
-extern	int	wstat(char*, uchar*, int);
+extern	int32_t	write(int, void*, int32_t);
+extern	int32_t	writev(int, IOchunk*, int);
+extern	int	wstat(char*, uint8_t*, int);
 extern	void*	rendezvous(void*, void*);
 
 extern	Dir*	dirstat(char*);
 extern	Dir*	dirfstat(int);
 extern	int	dirwstat(char*, Dir*);
 extern	int	dirfwstat(int, Dir*);
-extern	long	dirread(int, Dir**);
+extern	int32_t	dirread(int, Dir**);
 extern	void	nulldir(Dir*);
-extern	long	dirreadall(int, Dir**);
+extern	int32_t	dirreadall(int, Dir**);
 extern	int	getpid(void);
 extern	int	getppid(void);
 extern	void	rerrstr(char*, uint);
@@ -724,8 +726,19 @@ extern	char*	sysname(void);
 extern	void	werrstr(char*, ...);
 #pragma	varargck	argpos	werrstr	1
 
+/* compiler directives on plan 9 */
+#define SET(x)  ((x)=0)
+#define USED(x) if(x){}else{}
+#ifdef __GNUC__
+#       if __GNUC__ >= 3
+#               undef USED
+#               define USED(x) ((void)(x))
+#       endif
+#endif
+
 extern char *argv0;
-#define	ARGBEGIN	for((argv0||(argv0=*argv)),argv++,argc--;\
+/* #define	ARGBEGIN	for((argv0||(argv0=*argv)),argv++,argc--;\ */
+#define ARGBEGIN        for((argv0?0:(argv0=*argv)),argv++,argc--;\
 			    argv[0] && argv[0][0]=='-' && argv[0][1];\
 			    argc--, argv++) {\
 				char *_args, *_argt;\
@@ -737,7 +750,8 @@ extern char *argv0;
 				_argc = 0;\
 				while(*_args && (_args += chartorune(&_argc, _args)))\
 				switch(_argc)
-#define	ARGEND		SET(_argt);USED(_argt,_argc,_args);}USED(argv, argc);
+/* #define	ARGEND		SET(_argt);USED(_argt,_argc,_args);}USED(argv, argc); */
+#define ARGEND          SET(_argt);USED(_argt);USED(_argc);USED(_args);}USED(argv);USED(argc);
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
 #define	EARGF(x)	(_argt=_args, _args="",\
@@ -747,3 +761,4 @@ extern char *argv0;
 
 /* this is used by sbrk and brk,  it's a really bad idea to redefine it */
 extern	char	end[];
+

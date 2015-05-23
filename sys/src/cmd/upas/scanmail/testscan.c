@@ -27,7 +27,7 @@ usage(void)
 }
 
 void *
-Malloc(long n)
+Malloc(int32_t n)
 {
 	void *p;
 
@@ -40,7 +40,7 @@ Malloc(long n)
 }
 
 void*
-Realloc(void *p, ulong n)
+Realloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == 0){

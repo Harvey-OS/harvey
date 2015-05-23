@@ -34,13 +34,13 @@ static int	docache;
 static int	donvram;
 
 static void	autoxpart(Edit*);
-static Part	*mkpart(char*, vlong, vlong, int);
+static Part	*mkpart(char*, int64_t, int64_t, int);
 static void	rdpart(Edit*);
 static void	wrpart(Edit*);
 static void	checkfat(Disk*);
 
-static void 	cmdsum(Edit*, Part*, vlong, vlong);
-static char 	*cmdadd(Edit*, char*, vlong, vlong);
+static void 	cmdsum(Edit*, Part*, int64_t, int64_t);
+static char 	*cmdadd(Edit*, char*, int64_t, int64_t);
 static char 	*cmddel(Edit*, Part*);
 static char 	*cmdokname(Edit*, char*);
 static char 	*cmdwrite(Edit*);
@@ -60,11 +60,11 @@ typedef struct Auto Auto;
 struct Auto
 {
 	char	*name;
-	uvlong	min;
-	uvlong	max;
+	uint64_t	min;
+	uint64_t	max;
 	uint	weight;
-	uchar	alloc;
-	uvlong	size;
+	uint8_t	alloc;
+	uint64_t	size;
 };
 
 #define TB (1024LL*GB)
@@ -205,9 +205,9 @@ main(int argc, char **argv)
 }
 
 static void
-cmdsum(Edit *edit, Part *p, vlong a, vlong b)
+cmdsum(Edit *edit, Part *p, int64_t a, int64_t b)
 {
-	vlong sz, div;
+	int64_t sz, div;
 	char *suf, *name;
 	char c;
 
@@ -244,7 +244,7 @@ cmdsum(Edit *edit, Part *p, vlong a, vlong b)
 }
 
 static char*
-cmdadd(Edit *edit, char *name, vlong start, vlong end)
+cmdadd(Edit *edit, char *name, int64_t start, int64_t end)
 {
 	if(start < 2 && strcmp(name, "9fat") != 0)
 		return "overlaps with the pbs and/or the partition table";
@@ -279,13 +279,13 @@ static char*
 cmdokname(Edit*, char *elem)
 {
 	for(; *elem; elem++)
-		if(isfrog[*(uchar*)elem])
+		if(isfrog[*(uint8_t*)elem])
 			return "bad character in name";
 	return nil;
 }
 
 static Part*
-mkpart(char *name, vlong start, vlong end, int changed)
+mkpart(char *name, int64_t start, int64_t end, int changed)
 {
 	Part *p;
 
@@ -303,7 +303,7 @@ static void
 rdpart(Edit *edit)
 {
 	int i, nline, nf, waserr;
-	vlong a, b;
+	int64_t a, b;
 	char *line[128];
 	char *f[5];
 	char *err;
@@ -348,8 +348,8 @@ rdpart(Edit *edit)
 	}
 }
 
-static vlong
-min(vlong a, vlong b)
+static int64_t
+min(int64_t a, int64_t b)
 {
 	if(a < b)
 		return a;
@@ -360,7 +360,7 @@ static void
 autoxpart(Edit *edit)
 {
 	int i, totw, futz;
-	vlong secs, secsize, s;
+	int64_t secs, secsize, s;
 	char *err;
 
 	if(edit->npart > 0) {
@@ -450,7 +450,7 @@ static void
 restore(Edit *edit, int ctlfd)
 {
 	int i;
-	vlong offset;
+	int64_t offset;
 
 	offset = edit->disk->offset;
 	fprint(2, "attempting to restore partitions to previous state\n");
@@ -513,7 +513,7 @@ wrpart(Edit *edit)
 static void
 checkfat(Disk *disk)
 {
-	uchar buf[32];
+	uint8_t buf[32];
 
 	if(seek(disk->fd, disk->secsize, 0) < 0
 	|| read(disk->fd, buf, sizeof(buf)) < sizeof(buf))

@@ -17,16 +17,21 @@
 
 static int	matches(char *ref, char *pat, char *name);
 static int	mayMatch(char *pat, char *name, int star);
-static int	checkMatch(char *cmd, char *ref, char *pat, char *mbox, long mtime, int isdir);
-static int	listAll(char *cmd, char *ref, char *pat, char *mbox, long mtime);
-static int	listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm);
+static int	checkMatch(char *cmd, char *ref, char *pat,
+			     char *mbox,
+			     int32_t mtime, int isdir);
+static int	listAll(char *cmd, char *ref, char *pat,
+			  char *mbox,
+			  int32_t mtime);
+static int	listMatch(char *cmd, char *ref, char *pat,
+			    char *mbox, char *mm);
 static int	mkSubscribed(void);
 
-static long
+static int32_t
 listMtime(char *file)
 {
 	Dir *d;
-	long mtime;
+	int32_t mtime;
 
 	d = cdDirstat(mboxDir, file);
 	if(d == nil)
@@ -48,7 +53,7 @@ lsubBoxes(char *cmd, char *ref, char *pat)
 	Dir *d;
 	Biobuf bin;
 	char *s;
-	long mtime;
+	int32_t mtime;
 	int fd, ok, isdir;
 
 	mb = mbLock();
@@ -180,7 +185,7 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 {
 	Dir *dir, *dirs;
 	char *mdir, *m, *mb, *wc;
-	long mode;
+	int32_t mode;
 	int c, i, nmb, nmdir, nd, ok, fd;
 
 	mdir = nil;
@@ -279,7 +284,7 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
  * and list checkMatch figure it out
  */
 static int
-listAll(char *cmd, char *ref, char *pat, char *mbox, long mtime)
+listAll(char *cmd, char *ref, char *pat, char *mbox, int32_t mtime)
 {
 	Dir *dirs;
 	char *mb;
@@ -315,7 +320,7 @@ mayMatch(char *pat, char *name, int star)
 	int i, n;
 
 	for(; *pat && *pat != '/'; pat += n){
-		r = *(uchar*)pat;
+		r = *(uint8_t*)pat;
 		if(r < Runeself)
 			n = 1;
 		else
@@ -348,7 +353,9 @@ mayMatch(char *pat, char *name, int star)
  * generates response
  */
 static int
-checkMatch(char *cmd, char *ref, char *pat, char *mbox, long mtime, int isdir)
+checkMatch(char *cmd, char *ref, char *pat, char *mbox,
+	   int32_t mtime,
+	   int isdir)
 {
 	char *s, *flags;
 
@@ -383,7 +390,7 @@ matches(char *ref, char *pat, char *name)
 		if(*name++ != *ref++)
 			return 0;
 	for(; *pat; pat += n){
-		r = *(uchar*)pat;
+		r = *(uint8_t*)pat;
 		if(r < Runeself)
 			n = 1;
 		else

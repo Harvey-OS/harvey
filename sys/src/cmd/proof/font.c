@@ -19,7 +19,7 @@ char lastload[NFONT][20];	/* last file name prefix loaded for this font */
 Font	*fonttab[NFONT][NSIZE];	/* pointers to fonts */
 int	fmap[NFONT];		/* what map to use with this font */
 
-static void	bufchar(Point, Subfont *, uchar *);
+static void	bufchar(Point, Subfont *, uint8_t *);
 static void	loadfont(int, int);
 static void	fontlookup(int, char *);
 static void	buildxheight(Biobuf*);
@@ -40,7 +40,7 @@ int	curmap	= -1;	/* what map are we working on */
 typedef struct Link Link;
 struct Link	/* link names together */
 {
-	uchar	*name;
+	uint8_t	*name;
 	int	val;
 	Link	*next;
 };
@@ -256,7 +256,7 @@ buildxheight(Biobuf *fp)	/* map goes from char name to value to print via *strin
 static void
 buildmap(Biobuf *fp)	/* map goes from char name to value to print via *string() */
 {
-	uchar *p, *line, ch[100];
+	uint8_t *p, *line, ch[100];
 	int val;
 	Rune r;
 
@@ -275,7 +275,8 @@ buildmap(Biobuf *fp)	/* map goes from char name to value to print via *string() 
 			continue;
 		}
 		val = strtol((char *) p, 0, 10);
-dprint(2, "buildmap %s (%x %x) %s %d\n", (char*)ch, ch[0], ch[1], (char*)p, val);
+dprint(2, "buildmap %s (%x %x) %s %d\n", (char*)ch, ch[0], ch[1],
+       (char*)p, val);
 		chartorune(&r, (char*)ch);
 		if(utflen((char*)ch)==1 && r<QUICK)
 			charmap[curmap].quick[r] = val;
@@ -292,7 +293,7 @@ addmap(int n, char *s, int val)	/* stick a new link on */
 
 	if(p == 0)
 		exits("out of memory in addmap");
-	p->name = (uchar *) s;
+	p->name = (uint8_t *) s;
 	p->val = val;
 	p->next = prev;
 	charmap[n].slow = p;
@@ -383,9 +384,9 @@ map(Rune rp[], int font)	/* figure out mapping for char in this font */
 static void
 scanstr(char *s, char *ans, char **ep)
 {
-	for (; isspace((uchar) *s); s++)
+	for (; isspace((uint8_t) *s); s++)
 		;
-	for (; *s!=0 && !isspace((uchar) *s); )
+	for (; *s!=0 && !isspace((uint8_t) *s); )
 		*ans++ = *s++;
 	*ans = 0;
 	if (ep)

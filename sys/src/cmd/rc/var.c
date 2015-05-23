@@ -16,9 +16,9 @@ hash(char *as, int n)
 {
 	int i = 1;
 	unsigned h = 0;
-	uchar *s;
+	uint8_t *s;
 
-	s = (uchar *)as;
+	s = (uint8_t *)as;
 	while (*s)
 		h += *s++ * i++;
 	return h % n;

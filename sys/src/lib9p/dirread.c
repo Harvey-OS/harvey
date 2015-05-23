@@ -18,7 +18,7 @@ void
 dirread9p(Req *r, Dirgen *gen, void *aux)
 {
 	int start;
-	uchar *p, *ep;
+	uint8_t *p, *ep;
 	uint rv;
 	Dir d;
 
@@ -27,7 +27,7 @@ dirread9p(Req *r, Dirgen *gen, void *aux)
 	else
 		start = r->fid->dirindex;
 
-	p = (uchar*)r->ofcall.data;
+	p = (uint8_t*)r->ofcall.data;
 	ep = p+r->ifcall.count;
 
 	while(p < ep){
@@ -45,5 +45,5 @@ dirread9p(Req *r, Dirgen *gen, void *aux)
 		start++;
 	}
 	r->fid->dirindex = start;
-	r->ofcall.count = p - (uchar*)r->ofcall.data;
+	r->ofcall.count = p - (uint8_t*)r->ofcall.data;
 }

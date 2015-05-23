@@ -17,11 +17,11 @@ Fid	*fids;
 Ram	*ram;
 int	mfd[2];
 char	*user;
-uchar	mdata[Maxbuf+IOHDRSZ];
+uint8_t	mdata[Maxbuf+IOHDRSZ];
 int	messagesize = Maxbuf+IOHDRSZ;
 Fcall	rhdr;
 Fcall	thdr;
-ulong	path;
+uint32_t	path;
 Idmap	*uidmap;
 Idmap	*gidmap;
 int	replete;
@@ -31,7 +31,7 @@ int	newtap;		/* tap with time in sec */
 int	blocksize;
 
 Fid *	newfid(int);
-int	ramstat(Ram*, uchar*, int);
+int	ramstat(Ram*, uint8_t*, int);
 void	io(void);
 void	usage(void);
 int	perm(int);
@@ -354,7 +354,7 @@ rread(Fid *f)
 	int i, len;
 	Ram *r;
 	char *buf;
-	uvlong off, end;
+	uint64_t off, end;
 	int n, cnt;
 
 	if(f->ram->busy == 0)
@@ -373,7 +373,7 @@ rread(Fid *f)
 		for(i=0,r=f->ram->child; r!=nil && i<end; r=r->next){
 			if(!r->busy)
 				continue;
-			len = ramstat(r, (uchar*)buf+n, cnt-n);
+			len = ramstat(r, (uint8_t*)buf+n, cnt-n);
 			if(len <= BIT16SZ)
 				break;
 			if(i >= off)
@@ -399,7 +399,7 @@ char*
 rwrite(Fid *f)
 {
 	Ram *r;
-	ulong off;
+	uint32_t off;
 	int cnt;
 
 	r = f->ram;
@@ -458,7 +458,7 @@ rwstat(Fid *f)
 }
 
 int
-ramstat(Ram *r, uchar *buf, int nbuf)
+ramstat(Ram *r, uint8_t *buf, int nbuf)
 {
 	Dir dir;
 
@@ -588,7 +588,7 @@ estrdup(char *s)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 	p = mallocz(n, 1);
@@ -598,7 +598,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(!p)

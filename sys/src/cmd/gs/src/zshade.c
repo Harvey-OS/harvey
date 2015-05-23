@@ -258,7 +258,7 @@ build_shading_function(i_ctx_t *i_ctx_p, const ref * op, gs_function_t ** ppfn,
 	for (i = 0; i < size; ++i) {
 	    ref rsubfn;
 
-	    array_get(imemory, pFunction, (long)i, &rsubfn);
+	    array_get(imemory, pFunction, (int32_t)i, &rsubfn);
 	    code = fn_build_function(i_ctx_p, &rsubfn, &Functions[i], mem);
 	    if (code < 0)
 		break;

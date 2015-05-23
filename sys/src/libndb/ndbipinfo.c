@@ -24,8 +24,9 @@ static Ndbtuple*	filter(Ndb *db, Ndbtuple *t, Ndbtuple *f);
 static Ndbtuple*	mkfilter(int argc, char **argv);
 static int		filtercomplete(Ndbtuple *f);
 static Ndbtuple*	toipaddr(Ndb *db, Ndbtuple *t);
-static int		prefixlen(uchar *ip);
-static Ndbtuple*	subnet(Ndb *db, uchar *net, Ndbtuple *f, int prefix);
+static int		prefixlen(uint8_t *ip);
+static Ndbtuple*	subnet(Ndb *db, uint8_t *net, Ndbtuple *f,
+			       int prefix);
 
 /* make a filter to be used in filter */
 static Ndbtuple*
@@ -112,7 +113,7 @@ filter(Ndb *db, Ndbtuple *t, Ndbtuple *f)
 }
 
 static int
-prefixlen(uchar *ip)
+prefixlen(uint8_t *ip)
 {
 	int y, i;
 
@@ -127,12 +128,12 @@ prefixlen(uchar *ip)
  *  look through a containing subset
  */
 static Ndbtuple*
-subnet(Ndb *db, uchar *net, Ndbtuple *f, int prefix)
+subnet(Ndb *db, uint8_t *net, Ndbtuple *f, int prefix)
 {
 	Ndbs s;
 	Ndbtuple *t, *nt, *xt;
 	char netstr[128];
-	uchar mask[IPaddrlen];
+	uint8_t mask[IPaddrlen];
 	int masklen;
 
 	t = nil;
@@ -171,9 +172,9 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	Ndbtuple *t, *nt, *f;
 	Ndbs s;
 	char *ipstr;
-	uchar net[IPaddrlen], ip[IPaddrlen];
+	uint8_t net[IPaddrlen], ip[IPaddrlen];
 	int prefix, smallestprefix, force;
-	vlong r;
+	int64_t r;
 
 	/* just in case */
 	fmtinstall('I', eipfmt);

@@ -61,7 +61,7 @@ static	int	dysize(int);
 static	void	ct_numb(char*, int);
 static	void	readtimezone(void);
 static	int	rd_name(char**, char*);
-static	int	rd_long(char**, long*);
+static	int	rd_long(char**, int32_t*);
 
 #define	TZSIZE	150
 
@@ -70,9 +70,9 @@ struct
 {
 	char	stname[4];
 	char	dlname[4];
-	long	stdiff;
-	long	dldiff;
-	long	dlpairs[TZSIZE];
+	int32_t	stdiff;
+	int32_t	dldiff;
+	int32_t	dlpairs[TZSIZE];
 } timezone;
 
 char*
@@ -85,7 +85,7 @@ struct tm*
 gmtime_r(const time_t *timp, struct tm *result)
 {
 	int d0, d1;
-	long hms, day;
+	int32_t hms, day;
 	time_t tim;
 
 	tim = *timp;
@@ -156,7 +156,7 @@ localtime_r(const time_t *timp, struct tm *result)
 {
 	struct tm *ct;
 	time_t t, tim;
-	long *p;
+	int32_t *p;
 	int dlflag;
 
 	tim = *timp;
@@ -295,10 +295,10 @@ rd_name(char **f, char *p)
 }
 
 static
-rd_long(char **f, long *p)
+rd_long(char **f, int32_t *p)
 {
 	int c, s;
-	long l;
+	int32_t l;
 
 	s = 0;
 	for(;;) {

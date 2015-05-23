@@ -42,13 +42,13 @@ struct Bcache
 };
 
 int	bcinit(Bcache*, int, int);
-Bbuf*	bcalloc(Bcache*, ulong);
-Bbuf*	bcread(Bcache*, ulong);
+Bbuf*	bcalloc(Bcache*, uint32_t);
+Bbuf*	bcread(Bcache*, uint32_t);
 void	bcmark(Bcache*, Bbuf*);
 int	bcwrite(Bcache*, Bbuf*);
 int	bcsync(Bcache*);
-int	bread(Bcache*, ulong, void*);
-int	bwrite(Bcache*, ulong, void*);
+int	bread(Bcache*, uint32_t, void*);
+int	bwrite(Bcache*, uint32_t, void*);
 int	bref(Bcache*, Bbuf*);
 void	error(char*, ...);
 void	warning(char*);

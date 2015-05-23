@@ -125,7 +125,8 @@ gp_getenv_registry(HKEY hkeyroot, const char *key, const char *name,
 	if (bptr == (char *)NULL)
 	    bptr = &b;	/* Registry API won't return ERROR_MORE_DATA */
 			/* if ptr is NULL */
-	rc = RegQueryValueEx(hkey, (char *)name, 0, &keytype, bptr, &cbData);
+	rc = RegQueryValueEx(hkey, (char *)name, 0, &keytype, bptr,
+                             &cbData);
 	RegCloseKey(hkey);
 	if (rc == ERROR_SUCCESS) {
 	    *plen = cbData;

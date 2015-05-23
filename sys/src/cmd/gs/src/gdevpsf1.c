@@ -69,7 +69,8 @@ psf_get_type1_glyphs(psf_outline_glyphs_t *pglyphs, gs_font_type1 *pfont,
 
 /* Write a (named) array of floats. */
 private int
-write_float_array(gs_param_list *plist, const char *key, const float *values,
+write_float_array(gs_param_list *plist, const char *key,
+                  const float *values,
 		  int count)
 {
     if (count != 0) {

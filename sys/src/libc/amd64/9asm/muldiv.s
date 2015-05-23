@@ -1,0 +1,12 @@
+TEXT	umuldiv(SB), $0
+	MOVL	RARG, AX
+	MULL	b+8(FP)
+	DIVL	c+16(FP)
+	RET
+
+TEXT	muldiv(SB), $0
+	MOVL	RARG, AX
+	IMULL	b+8(FP)
+	IDIVL	c+16(FP)
+	RET
+	END

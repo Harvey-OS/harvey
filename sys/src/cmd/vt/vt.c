@@ -850,8 +850,8 @@ print("unknown command '%c' (0x%x)\n", dch, dch);
 
 		default:		/* ordinary char */
 Default:
-			if(isgraphics && gmap[(uchar) buf[0]])
-				buf[0] = gmap[(uchar) buf[0]];
+			if(isgraphics && gmap[(uint8_t) buf[0]])
+				buf[0] = gmap[(uint8_t) buf[0]];
 
 			/* line wrap */
 			if (x > xmax){

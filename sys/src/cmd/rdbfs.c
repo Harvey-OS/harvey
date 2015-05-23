@@ -33,10 +33,10 @@ Lock pglock;
 typedef struct	Page	Page;
 struct Page {	/* cached memory contents */
 	Page *link;
-	ulong len;
-	ulong addr;
+	uint32_t len;
+	uint32_t addr;
 	int count;
-	uchar val[Readlen];
+	uint8_t val[Readlen];
 };
 
 Page *pgtab[NHASH];
@@ -68,13 +68,13 @@ newpg(void)
 
 #define PHIINV 0.61803398874989484820
 uint
-ahash(ulong addr)
+ahash(uint32_t addr)
 {
 	return (uint)floor(NHASH*fmod(addr*PHIINV, 1.0));
 }
 
 int
-lookup(ulong addr, uchar *val, ulong count)
+lookup(uint32_t addr, uint8_t *val, uint32_t count)
 {
 	Page *p;
 
@@ -91,7 +91,7 @@ lookup(ulong addr, uchar *val, ulong count)
 }
 
 void
-insert(ulong addr, uchar *val, int count)
+insert(uint32_t addr, uint8_t *val, int count)
 {
 	Page *p;
 	uint h;
@@ -172,7 +172,7 @@ eiaread(void*)
 {
 	Req *r;
 	char *p;
-	uchar *data;
+	uint8_t *data;
 	char err[ERRMAX];
 	char buf[1000];
 	int i, tries;
@@ -183,17 +183,20 @@ eiaread(void*)
 		if(r->ifcall.count > Readlen)
 			r->ifcall.count = Readlen;
 		r->ofcall.count = r->ifcall.count;
-		if(r->type == Tread && lookup(r->ifcall.offset, (uchar*)r->ofcall.data, r->ofcall.count)){
+		if(r->type == Tread && lookup(r->ifcall.offset, (uint8_t*)r->ofcall.data, r->ofcall.count)){
 			respond(r, nil);
 			continue;
 		}
 		for(tries=0; tries<5; tries++){
 			if(r->type == Twrite){
 				DBG(2, "w%.8lux %.8lux...", (ulong)r->ifcall.offset, *(ulong*)r->ifcall.data);
-				fprint(rfd, "w%.8lux %.8lux\n", (ulong)r->ifcall.offset, *(ulong*)r->ifcall.data);
+				fprint(rfd, "w%.8lux %.8lux\n",
+				       (uint32_t)r->ifcall.offset,
+				       *(uint32_t*)r->ifcall.data);
 			}else if(r->type == Tread){
 				DBG(2, "r%.8lux...", (ulong)r->ifcall.offset);
-				fprint(rfd, "r%.8lux\n", (ulong)r->ifcall.offset);
+				fprint(rfd, "r%.8lux\n",
+				       (uint32_t)r->ifcall.offset);
 			}else{
 				respond(r, "oops");
 				break;
@@ -218,9 +221,9 @@ eiaread(void*)
 					p++;
 				DBG(2, "serial %s\n", p);
 				if(p[0] == 'R'){
-					if(strtoul(p+1, 0, 16) == (ulong)r->ifcall.offset){
+					if(strtoul(p+1, 0, 16) == (uint32_t)r->ifcall.offset){
 						/* we know that data can handle Readlen bytes */
-						data = (uchar*)r->ofcall.data;
+						data = (uint8_t*)r->ofcall.data;
 						for(i=0; i<r->ifcall.count; i++)
 							data[i] = strtol(p+1+8+1+3*i, 0, 16);
 						insert(r->ifcall.offset, data, r->ifcall.count);

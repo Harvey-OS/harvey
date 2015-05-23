@@ -15,7 +15,7 @@
 int _threaddebuglevel;
 
 void
-_threaddebug(ulong flag, char *fmt, ...)
+_threaddebug(uint32_t flag, char *fmt, ...)
 {
 	char buf[128];
 	va_list arg;

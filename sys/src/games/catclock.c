@@ -72,7 +72,7 @@ Image *eballoc(Rectangle r, int chan){
 }
 
 void
-eloadimage(Image *i, Rectangle r, uchar *d, int nd)
+eloadimage(Image *i, Rectangle r, uint8_t *d, int nd)
 {
 	int n;
 	n = loadimage(i, r, d, nd);

@@ -27,7 +27,7 @@ evconst(Node *n)
 {
 	Node *l, *r;
 	int et, isf;
-	vlong v;
+	int64_t v;
 	double d;
 
 	if(n == Z || n->type == T)
@@ -101,7 +101,7 @@ evconst(Node *n)
 		break;
 
 	case OLMUL:
-		v = (uvlong)l->vconst * (uvlong)r->vconst;
+		v = (uint64_t)l->vconst * (uint64_t)r->vconst;
 		break;
 
 
@@ -121,7 +121,7 @@ evconst(Node *n)
 			warn(n, "divide by zero");
 			return;
 		}
-		v = (uvlong)l->vconst / (uvlong)r->vconst;
+		v = (uint64_t)l->vconst / (uint64_t)r->vconst;
 		break;
 
 	case OMOD:
@@ -137,7 +137,7 @@ evconst(Node *n)
 			warn(n, "modulo by zero");
 			return;
 		}
-		v = (uvlong)l->vconst % (uvlong)r->vconst;
+		v = (uint64_t)l->vconst % (uint64_t)r->vconst;
 		break;
 
 	case OAND:
@@ -153,7 +153,7 @@ evconst(Node *n)
 		break;
 
 	case OLSHR:
-		v = (uvlong)l->vconst >> r->vconst;
+		v = (uint64_t)l->vconst >> r->vconst;
 		break;
 
 	case OASHR:
@@ -165,7 +165,7 @@ evconst(Node *n)
 		break;
 
 	case OLO:
-		v = (uvlong)l->vconst < (uvlong)r->vconst;
+		v = (uint64_t)l->vconst < (uint64_t)r->vconst;
 		break;
 
 	case OLT:
@@ -176,7 +176,7 @@ evconst(Node *n)
 		break;
 
 	case OHI:
-		v = (uvlong)l->vconst > (uvlong)r->vconst;
+		v = (uint64_t)l->vconst > (uint64_t)r->vconst;
 		break;
 
 	case OGT:
@@ -187,7 +187,7 @@ evconst(Node *n)
 		break;
 
 	case OLS:
-		v = (uvlong)l->vconst <= (uvlong)r->vconst;
+		v = (uint64_t)l->vconst <= (uint64_t)r->vconst;
 		break;
 
 	case OLE:
@@ -198,7 +198,7 @@ evconst(Node *n)
 		break;
 
 	case OHS:
-		v = (uvlong)l->vconst >= (uvlong)r->vconst;
+		v = (uint64_t)l->vconst >= (uint64_t)r->vconst;
 		break;
 
 	case OGE:
@@ -320,7 +320,7 @@ acom(Node *n)
 int
 acomcmp1(const void *a1, const void *a2)
 {
-	vlong c1, c2;
+	int64_t c1, c2;
 	Term *t1, *t2;
 
 	t1 = (Term*)a1;
@@ -351,7 +351,7 @@ acomcmp1(const void *a1, const void *a2)
 int
 acomcmp2(const void *a1, const void *a2)
 {
-	vlong c1, c2;
+	int64_t c1, c2;
 	Term *t1, *t2;
 
 	t1 = (Term*)a1;
@@ -373,7 +373,7 @@ acom2(Node *n, Type *t)
 	Node *l, *r;
 	Term trm[NTERM];
 	int et, nt, i, j;
-	vlong c1, c2;
+	int64_t c1, c2;
 
 	/*
 	 * copy into automatic
@@ -529,7 +529,7 @@ acom2(Node *n, Type *t)
 }
 
 void
-acom1(vlong v, Node *n)
+acom1(int64_t v, Node *n)
 {
 	Node *l, *r;
 

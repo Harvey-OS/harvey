@@ -170,7 +170,8 @@ gs_font_finalize(void *vptr)
     gs_font *prev = pfont->prev;
 
     if_debug4('u', "[u]unlinking font 0x%lx, base=0x%lx, prev=0x%lx, next=0x%lx\n",
-	    (ulong) pfont, (ulong) pfont->base, (ulong) prev, (ulong) next);
+	    (uint32_t) pfont, (uint32_t) pfont->base, (uint32_t) prev,
+              (uint32_t) next);
     /* Notify clients that the font is being freed. */
     gs_notify_all(&pfont->notify_list, NULL);
     if (pfont->dir == 0)
@@ -411,7 +412,7 @@ gs_definefont(gs_font_dir * pdir, gs_font * pfont)
     }
     font_link_first(&pdir->orig_fonts, pfont);
     if_debug2('m', "[m]defining font 0x%lx, next=0x%lx\n",
-	      (ulong) pfont, (ulong) pfont->next);
+	      (uint32_t) pfont, (uint32_t) pfont->next);
     return 0;
 }
 
@@ -500,7 +501,7 @@ gs_makefont(gs_font_dir * pdir, const gs_font * pfont,
 		pf_out->FontMatrix.ty == newmat.ty
 		) {
 		*ppfont = pf_out;
-		if_debug1('m', "[m]found font=0x%lx\n", (ulong) pf_out);
+		if_debug1('m', "[m]found font=0x%lx\n", (uint32_t) pf_out);
 		return 0;
 	    }
 	can_cache = true;
@@ -529,7 +530,7 @@ gs_makefont(gs_font_dir * pdir, const gs_font * pfont,
 	     * other references to it.)
 	     */
 	    if_debug1('m', "[m]discarding font 0x%lx\n",
-		      (ulong) prev);
+		      (uint32_t) prev);
 	    if (prev->prev != 0)
 		prev->prev->next = 0;
 	    else
@@ -538,7 +539,7 @@ gs_makefont(gs_font_dir * pdir, const gs_font * pfont,
 	    prev->prev = 0;
 	    if (prev->FontType != ft_composite) {
 		if_debug1('m', "[m]discarding UID 0x%lx\n",
-			  (ulong) ((gs_font_base *) prev)->
+			  (uint32_t) ((gs_font_base *) prev)->
 			  UID.xvalues);
 		uid_free(&((gs_font_base *) prev)->UID,
 			 prev->memory,
@@ -552,7 +553,7 @@ gs_makefont(gs_font_dir * pdir, const gs_font * pfont,
 	pf_out->next = pf_out->prev = 0;
     }
     if_debug2('m', "[m]new font=0x%lx can_cache=%s\n",
-	      (ulong) * ppfont, (can_cache ? "true" : "false"));
+	      (uint32_t) * ppfont, (can_cache ? "true" : "false"));
     return 1;
 }
 
@@ -681,7 +682,7 @@ gs_purge_font(gs_font * pfont)
     else if (pdir->scaled_fonts == pfont)
 	pdir->scaled_fonts = next;
     else {			/* Shouldn't happen! */
-	lprintf1("purged font 0x%lx not found\n", (ulong) pfont);
+	lprintf1("purged font 0x%lx not found\n", (uint32_t) pfont);
     }
 
     /* Purge the font from the scaled font cache. */

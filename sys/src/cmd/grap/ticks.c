@@ -390,7 +390,8 @@ void print_ticks(int type, int explicit, Obj *p, char *lenstr, char *descstr)
 	ntick = 0;
 }
 
-void maketick(int type, char *name, int side, int inflag, double val, char *lab, char *lenstr, char *descstr)
+void maketick(int type, char *name, int side, int inflag, double val,
+	      char *lab, char *lenstr, char *descstr)
 {
 	char *sidestr, *td;
 

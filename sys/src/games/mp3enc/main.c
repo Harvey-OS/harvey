@@ -99,7 +99,7 @@ int
 main(int argc, char **argv)
 {
 	int i, iread, imp3, ret;
-	short Buffer[2][1152];
+	int16_t Buffer[2][1152];
 	unsigned char mp3buffer[LAME_MAXMP3BUFFER];
 	FILE *outf;
 	lame_global_flags *gf;

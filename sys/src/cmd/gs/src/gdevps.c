@@ -84,7 +84,7 @@ typedef struct psw_path_state_s {
 
 typedef struct psw_image_params_s {
     gx_bitmap_id id;
-    ushort width, height;
+    uint16_t width, height;
 } psw_image_params_t;
 
 typedef struct gx_device_pswrite_s {

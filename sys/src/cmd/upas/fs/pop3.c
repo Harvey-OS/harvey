@@ -126,7 +126,7 @@ static char*
 pop3pushtls(Pop *pop)
 {
 	int fd;
-	uchar digest[SHA1dlen];
+	uint8_t digest[SHA1dlen];
 	TLSconn conn;
 
 	memset(&conn, 0, sizeof conn);
@@ -380,7 +380,7 @@ pop3download(Pop *pop, Message *m)
 	m->header = m->start;
 
 	// digest message
-	sha1((uchar*)m->start, m->end - m->start, m->digest, nil);
+	sha1((uint8_t*)m->start, m->end - m->start, m->digest, nil);
 	for(i = 0; i < SHA1dlen; i++)
 		sprint(sdigest+2*i, "%2.2ux", m->digest[i]);
 	m->sdigest = s_copy(sdigest);

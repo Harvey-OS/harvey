@@ -101,8 +101,8 @@ char	*temp_dir = TEMPDIR;		/* temp directory for copying stdin */
 
 Pages	pages[1000];			/* byte offsets for all pages */
 int	next_page = 0;			/* next page goes here */
-long	start;				/* starting offset for next page */
-long	endoff = -1;			/* offset where TRAILER was found */
+int32_t	start;				/* starting offset for next page */
+int32_t	endoff = -1;			/* offset where TRAILER was found */
 int	noreverse = FALSE;		/* don't reverse pages if TRUE */
 char	*endprolog = ENDPROLOG;		/* occasionally changed to ENDSETUP */
 

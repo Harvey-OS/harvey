@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-strncat(char *s1, char *s2, long n)
+strncat(char *s1, char *s2, int32_t n)
 {
 	char *os1;
 

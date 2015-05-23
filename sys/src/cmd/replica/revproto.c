@@ -26,7 +26,7 @@ struct File{
 	char	*old;
 	char	*uid;
 	char	*gid;
-	ulong	mode;
+	uint32_t	mode;
 };
 
 typedef void Mkfserr(char*, void*);
@@ -61,7 +61,7 @@ static void domkfs(Mkaux *mkaux, File *me, int level);
 static int	copyfile(Mkaux*, File*, Dir*, int);
 static void	freefile(File*);
 static File*	getfile(Mkaux*, File*);
-static char*	getmode(Mkaux*, char*, ulong*);
+static char*	getmode(Mkaux*, char*, uint32_t*);
 static char*	getname(Mkaux*, char*, char**);
 static char*	getpath(Mkaux*, char*);
 static int	mkfile(Mkaux*, File*);
@@ -78,7 +78,8 @@ static void	warn(Mkaux*, char *, ...);
 //}
 
 int
-revrdproto(char *proto, char *root, char *xroot, Mkfsenum *mkenum, Mkfserr *mkerr, void *a)
+revrdproto(char *proto, char *root, char *xroot, Mkfsenum *mkenum,
+	   Mkfserr *mkerr, void *a)
 {
 	Mkaux mx, *m;
 	File file;
@@ -117,7 +118,7 @@ revrdproto(char *proto, char *root, char *xroot, Mkfsenum *mkenum, Mkfserr *mker
 }
 
 static void*
-emalloc(Mkaux *mkaux, ulong n)
+emalloc(Mkaux *mkaux, uint32_t n)
 {
 	void *v;
 
@@ -236,7 +237,7 @@ static int
 copyfile(Mkaux *mkaux, File *f, Dir *d, int permonly)
 {
 	Dir *nd;
-	ulong xmode;
+	uint32_t xmode;
 	char *p;
 
 	/*
@@ -465,10 +466,10 @@ getname(Mkaux *mkaux, char *p, char **buf)
 }
 
 static char*
-getmode(Mkaux *mkaux, char *p, ulong *xmode)
+getmode(Mkaux *mkaux, char *p, uint32_t *xmode)
 {
 	char *buf, *s;
-	ulong m;
+	uint32_t m;
 
 	*xmode = ~0;
 	p = getname(mkaux, p, &buf);

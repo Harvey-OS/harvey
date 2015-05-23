@@ -14,11 +14,11 @@
 #include "pci.h"
 #include "vga.h"
 
-static ulong
-xnto32(uchar x, int n)
+static uint32_t
+xnto32(uint8_t x, int n)
 {
 	int s;
-	ulong y;
+	uint32_t y;
 
 	x &= (1<<n)-1;
 	y = 0;
@@ -30,7 +30,7 @@ xnto32(uchar x, int n)
 }
 
 static void
-setcolour(uchar p[3], ulong r, ulong g, ulong b)
+setcolour(uint8_t p[3], uint32_t r, uint32_t g, uint32_t b)
 {
 	p[Red] = r>>(32-6);
 	p[Green] = g>>(32-6);
@@ -61,8 +61,8 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	uchar *p;
-	ulong x;
+	uint8_t *p;
+	uint32_t x;
 
 	memset(vga->palette, 0, sizeof(vga->palette));
 	vga->pixmask = 0xFF;

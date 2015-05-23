@@ -144,7 +144,7 @@ void test_gzio(fname, uncompr, uncomprLen)
     pos = gzseek(file, -8L, SEEK_CUR);
     if (pos != 6 || gztell(file) != pos) {
         fprintf(stderr, "gzseek error, pos=%ld, gztell=%ld\n",
-                (long)pos, (long)gztell(file));
+                (int32_t)pos, (int32_t)gztell(file));
         exit(1);
     }
 

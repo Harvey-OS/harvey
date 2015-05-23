@@ -11,7 +11,7 @@
 
 #define	Dbufslop	100
 
-long
+int32_t
 entryvalue(void)
 {
 	char *a;
@@ -37,21 +37,21 @@ entryvalue(void)
 
 /* these need to take long arguments to be compatible with elf.c */
 void
-wputl(long w)
+wputl(int32_t w)
 {
 	cput(w);
 	cput(w>>8);
 }
 
 void
-wput(long w)
+wput(int32_t w)
 {
 	cput(w>>8);
 	cput(w);
 }
 
 void
-lput(long l)
+lput(int32_t l)
 {
 	cput(l>>24);
 	cput(l>>16);
@@ -60,7 +60,7 @@ lput(long l)
 }
 
 void
-lputl(long l)
+lputl(int32_t l)
 {
 	cput(l);
 	cput(l>>8);
@@ -69,14 +69,14 @@ lputl(long l)
 }
 
 void
-llput(vlong v)
+llput(int64_t v)
 {
 	lput(v>>32);
 	lput(v);
 }
 
 void
-llputl(vlong v)
+llputl(int64_t v)
 {
 	lputl(v);
 	lputl(v>>32);
@@ -99,9 +99,9 @@ void
 asmb(void)
 {
 	Prog *p;
-	long v, magic;
+	int32_t v, magic;
 	int a;
-	uchar *op1;
+	uint8_t *op1;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f asmb\n", cputime());
@@ -376,11 +376,11 @@ cflush(void)
 }
 
 void
-datblk(long s, long n)
+datblk(int32_t s, int32_t n)
 {
 	Prog *p;
 	char *cast;
-	long l, fl, j;
+	int32_t l, fl, j;
 	int i, c;
 
 	memset(buf.dbuf, 0, n+Dbufslop);
@@ -516,10 +516,10 @@ datblk(long s, long n)
 	write(cout, buf.dbuf, n);
 }
 
-long
-rnd(long v, long r)
+int32_t
+rnd(int32_t v, int32_t r)
 {
-	long c;
+	int32_t c;
 
 	if(r <= 0)
 		return v;

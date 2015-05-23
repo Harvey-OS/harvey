@@ -21,10 +21,10 @@
 #include <libsec.h>
 #include "iso9660.h"
 
-static long mode(Direc*, int);
-static long nlink(Direc*);
-static ulong suspdirflags(Direc*, int);
-static ulong CputsuspCE(Cdimg *cd, vlong offset);
+static int32_t mode(Direc*, int);
+static int32_t nlink(Direc*);
+static uint32_t suspdirflags(Direc*, int);
+static uint32_t CputsuspCE(Cdimg *cd, int64_t offset);
 static int CputsuspER(Cdimg*, int);
 static int CputsuspRR(Cdimg*, int, int);
 static int CputsuspSP(Cdimg*, int);
@@ -38,9 +38,9 @@ static int CputrripTF(Cdimg*, Direc*, int, int);
  * Patch the length field in a CE record.
  */
 static void
-setcelen(Cdimg *cd, vlong woffset, ulong len)
+setcelen(Cdimg *cd, int64_t woffset, uint32_t len)
 {
-	vlong o;
+	int64_t o;
 
 	o = Cwoffset(cd);
 	Cwseek(cd, woffset);
@@ -74,7 +74,7 @@ setcelen(Cdimg *cd, vlong woffset, ulong len)
 typedef struct Cbuf Cbuf;
 struct Cbuf {
 	int	len;		/* written so far, of 254-28 */
-	uvlong	ceoffset;
+	uint64_t	ceoffset;
 };
 
 static int
@@ -86,7 +86,7 @@ freespace(Cbuf *cp)
 static Cbuf*
 ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
 {
-	uvlong end;
+	uint64_t end;
 
 	if(co->len+n <= 254-28) {
 		co->len += n;
@@ -129,7 +129,7 @@ ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
 	 */
 	if(cd->rrcontin%Blocksize == 0
 	|| cd->rrcontin/Blocksize != (cd->rrcontin+256)/Blocksize) {
-		cd->rrcontin = (vlong)cd->nextblock * Blocksize;
+		cd->rrcontin = (int64_t)cd->nextblock * Blocksize;
 		cd->nextblock++;
 	}
 
@@ -153,7 +153,8 @@ ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
  * since they're already there.
  */
 Cbuf*
-Cputstring(Cdimg *cd, Cbuf *cp, Cbuf *cn, char *nm, char *p, int flags, int dowrite)
+Cputstring(Cdimg *cd, Cbuf *cp, Cbuf *cn, char *nm, char *p, int flags,
+	   int dowrite)
 {
 	char buf[256], *q;
 	int free;
@@ -183,7 +184,7 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 {
 	char buf[256], buf0[256], *nextpath, *p, *path, *q;
 	int flags, free, m, what;
-	uvlong o;
+	uint64_t o;
 	Cbuf cn, co, *cp;
 
 	assert(cd != nil);
@@ -330,10 +331,10 @@ static char SUSPrrip[10] = "RRIP_1991A";
 static char SUSPdesc[84] = "RRIP <more garbage here>";
 static char SUSPsrc[135] = "RRIP <more garbage here>";
 
-static ulong
-CputsuspCE(Cdimg *cd, vlong offset)
+static uint32_t
+CputsuspCE(Cdimg *cd, int64_t offset)
 {
-	vlong o, x;
+	int64_t o, x;
 
 	chat("writing SUSP CE record pointing to %ld, %ld\n",
 		offset/Blocksize, offset%Blocksize);
@@ -423,10 +424,10 @@ CputsuspST(Cdimg *cd, int dowrite)
 }
 #endif
 
-static ulong
+static uint32_t
 suspdirflags(Direc *d, int dot)
 {
-	uchar flags;
+	uint8_t flags;
 
 	USED(d);
 	flags = 0;
@@ -573,10 +574,10 @@ CputrripTF(Cdimg *cd, Direc *d, int type, int dowrite)
 #endif
 
 
-static long
+static int32_t
 mode(Direc *d, int dot)
 {
-	long mode;
+	int32_t mode;
 	
 	if (!d)
 		return 0;
@@ -602,11 +603,11 @@ chat("writing PX record mode field %ulo with dot %d and name \"%s\"\n", mode, do
 	return mode;		
 }
 
-static long
+static int32_t
 nlink(Direc *d)   /* Trump up the nlink field for POSIX compliance */
 {
 	int i;
-	long n;
+	int32_t n;
 
 	if (!d)
 		return 0;

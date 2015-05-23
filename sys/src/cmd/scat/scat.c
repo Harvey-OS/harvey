@@ -35,9 +35,9 @@ char		ngctype[NNGCrec];
 Mindexrec	mindex[NMrec];
 Namerec		name[NName];
 Bayerec		bayer[NBayer];
-long		con[MAXcon];
-ushort		conindex[Ncon+1];
-long		patchaddr[Npatch+1];
+int32_t		con[MAXcon];
+uint16_t		conindex[Ncon+1];
+int32_t		patchaddr[Npatch+1];
 
 Record	*rec;
 Record	*orec;
@@ -55,10 +55,10 @@ int	condb;
 int	conindexdb;
 int	patchdb;
 char	parsed[3];
-long	nrec;
-long	nreca;
-long	norec;
-long	noreca;
+int32_t	nrec;
+int32_t	nreca;
+int32_t	norec;
+int32_t	noreca;
 
 Biobuf	bin;
 Biobuf	bout;
@@ -139,7 +139,7 @@ eopen(char *s)
 
 
 void
-Eread(int f, char *name, void *addr, long n)
+Eread(int f, char *name, void *addr, int32_t n)
 {
 	if(read(f, addr, n) != n){	/* BUG! */
 		fprint(2, "scat: read error on %s\n", name);
@@ -164,22 +164,22 @@ skipstr(char *s, char *t)
 }
 
 /* produce little-endian long at address l */
-long
-Long(long *l)
+int32_t
+Long(int32_t *l)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)l;
-	return (long)p[0]|((long)p[1]<<8)|((long)p[2]<<16)|((long)p[3]<<24);
+	p = (uint8_t*)l;
+	return (int32_t)p[0]|((int32_t)p[1]<<8)|((int32_t)p[2]<<16)|((int32_t)p[3]<<24);
 }
 
 /* produce little-endian long at address l */
 int
-Short(short *s)
+Short(int16_t *s)
 {
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)s;
+	p = (uint8_t*)s;
 	return p[0]|(p[1]<<8);
 }
 
@@ -261,7 +261,7 @@ void
 patchopen(void)
 {
 	Biobuf *b;
-	long l, m;
+	int32_t l, m;
 	char buf[100];
 
 	if(patchdb == 0){
@@ -303,7 +303,7 @@ constelopen(void)
 		Eread(conindexdb, "conindex", conindex, sizeof conindex);
 		close(conindexdb);
 		for(i=0; i<Ncon+1; i++)
-			conindex[i] = Short((short*)&conindex[i]);
+			conindex[i] = Short((int16_t*)&conindex[i]);
 	}
 }
 
@@ -316,10 +316,10 @@ lowercase(char *s)
 }
 
 int
-loadngc(long index)
+loadngc(int32_t index)
 {
 	static int failed;
-	long j;
+	int32_t j;
 
 	ngcopen();
 	j = (index-1)*sizeof(NGCrec);
@@ -350,9 +350,9 @@ loadngc(long index)
 }
 
 int
-loadabell(long index)
+loadabell(int32_t index)
 {
-	long j;
+	int32_t j;
 
 	abellopen();
 	j = index-1;
@@ -415,7 +415,7 @@ loadplanet(int index, Record *r)
 }
 
 int
-loadpatch(long index)
+loadpatch(int32_t index)
 {
 	int i;
 
@@ -453,7 +453,7 @@ flatten(void)
 {
 	int i, j, notflat;
 	Record *or;
-	long key;
+	int32_t key;
 
     loop:
 	copy();
@@ -766,7 +766,7 @@ coords(int deg)
 	int i;
 	int x, y;
 	Record *or;
-	long dec, ra, ndec, nra;
+	int32_t dec, ra, ndec, nra;
 	int rdeg;
 
 	flatten();
@@ -814,7 +814,7 @@ coords(int deg)
 	int i;
 	int x, y, xx;
 	Record *or;
-	long min, circle;
+	int32_t min, circle;
 	double factor;
 
 	flatten();
@@ -860,11 +860,11 @@ void
 pplate(char *flags)
 {
 	int i;
-	long c;
+	int32_t c;
 	int na, rah, ram, d1, d2;
 	double r0;
 	int ra, dec;
-	long ramin, ramax, decmin, decmax;	/* all in degrees */
+	int32_t ramin, ramax, decmin, decmax;	/* all in degrees */
 	Record *r;
 	int folded;
 	Angle racenter, deccenter, rasize, decsize, a[4];
@@ -1012,7 +1012,7 @@ lookup(char *s, int doreset)
 	int rah, ram, deg;
 	char *starts, *inputline=s, *t, *u;
 	Record *r;
-	long n;
+	int32_t n;
 	double x;
 	Angle ra;
 
@@ -1297,7 +1297,7 @@ lookup(char *s, int doreset)
 		if(t == s)
 			goto BadCoords;
 		/* degree sign etc. is optional */
-		if((uchar)*t == L'°')
+		if((uint8_t)*t == L'°')
 			deg = DEG(getra(s));
 		if(doreset)
 			reset();
@@ -1354,7 +1354,7 @@ ngcstring(int d)
 	return ngctypes[d];
 }
 
-short	descindex[NINDEX];
+int16_t	descindex[NINDEX];
 
 void
 printnames(Record *r)
@@ -1531,7 +1531,7 @@ prrec(Record *r)
 	Abellrec *a;
 	Planetrec *p;
 	int i, rah, ram, dec, nn;
-	long key;
+	int32_t key;
 
 	if(r) switch(r->type){
 	default:

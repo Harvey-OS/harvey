@@ -76,7 +76,7 @@ static int 			plan9tox11[256]; /* Values for mapping between */
 static int 			x11toplan9[256]; /* X11 and Plan 9 */
 static	GC		xgcfill, xgccopy, xgcsimplesrc, xgczero, xgcreplsrc;
 static	GC		xgcfill0, xgccopy0, xgcsimplesrc0, xgczero0, xgcreplsrc0;
-static	ulong	xscreenchan;
+static	uint32_t	xscreenchan;
 static	Drawable	xscreenid;
 static	Visual		*xvis;
 
@@ -118,7 +118,7 @@ addrect(Rectangle *rp, Rectangle r)
 static XImage*
 getXdata(Memimage *m, Rectangle r)
 {
-	uchar *p;
+	uint8_t *p;
 	int x, y;
 	Xmem *xm;
 	Point xdelta, delta;
@@ -163,7 +163,7 @@ putXdata(Memimage *m, Rectangle r)
 	Point xdelta, delta;
 	Point tp;
 	int x, y;
-	uchar *p;
+	uint8_t *p;
 
 	xm = m->X;
 	if(xm == nil)
@@ -205,7 +205,7 @@ dirtyXdata(Memimage *m, Rectangle r)
 }
 
 Memimage*
-xallocmemimage(Rectangle r, ulong chan, int pmid)
+xallocmemimage(Rectangle r, uint32_t chan, int pmid)
 {
 	Memimage *m;
 	Xmem *xm;
@@ -235,7 +235,8 @@ xallocmemimage(Rectangle r, ulong chan, int pmid)
 	assert(wordsperline(r, m->depth) <= m->width);
 
 	xi = XCreateImage(xdisplay, xvis, m->depth==32?24:m->depth, ZPixmap, 0,
-		(char*)m->data->bdata, Dx(r), Dy(r), 32, m->width*sizeof(ulong));
+		(char*)m->data->bdata, Dx(r), Dy(r), 32,
+			  m->width*sizeof(uint32_t));
 	
 	if(xi == nil){
 		_freememimage(m);
@@ -265,7 +266,7 @@ xallocmemimage(Rectangle r, ulong chan, int pmid)
 }
 
 void
-xfillcolor(Memimage *m, Rectangle r, ulong v)
+xfillcolor(Memimage *m, Rectangle r, uint32_t v)
 {
 	GC gc;
 	Xmem *dxm;
@@ -298,7 +299,7 @@ xfillcolor(Memimage *m, Rectangle r, ulong v)
  * (They've been underscored.)
  */
 Memimage*
-allocmemimage(Rectangle r, ulong chan)
+allocmemimage(Rectangle r, uint32_t chan)
 {
 	return xallocmemimage(r, chan, PMundef);
 }
@@ -326,7 +327,7 @@ freememimage(Memimage *m)
 }
 
 void
-memfillcolor(Memimage *m, ulong val)
+memfillcolor(Memimage *m, uint32_t val)
 {
 	_memfillcolor(m, val);
 	if(m->X){
@@ -338,7 +339,7 @@ memfillcolor(Memimage *m, ulong val)
 }
 
 int
-loadmemimage(Memimage *i, Rectangle r, uchar *data, int ndata)
+loadmemimage(Memimage *i, Rectangle r, uint8_t *data, int ndata)
 {
 	int n;
 
@@ -349,7 +350,7 @@ loadmemimage(Memimage *i, Rectangle r, uchar *data, int ndata)
 }
 
 int
-cloadmemimage(Memimage *i, Rectangle r, uchar *data, int ndata)
+cloadmemimage(Memimage *i, Rectangle r, uint8_t *data, int ndata)
 {
 	int n;
 
@@ -359,7 +360,7 @@ cloadmemimage(Memimage *i, Rectangle r, uchar *data, int ndata)
 	return n;
 }
 
-ulong
+uint32_t
 pixelbits(Memimage *m, Point p)
 {
 	if(m->X)
@@ -403,7 +404,7 @@ xdraw(Memdrawparam *par)
 	Xmem *dxm, *sxm, *mxm;
 	GC gc;
 	Rectangle r, sr, mr;
-	ulong sdval;
+	uint32_t sdval;
 
 	dx = Dx(par->r);
 	dy = Dy(par->r);
@@ -509,7 +510,7 @@ xdraw(Memdrawparam *par)
 
 static XColor			map[256];	/* Plan 9 colormap array */
 static XColor			map7[128];	/* Plan 9 colormap array */
-static uchar			map7to8[128][2];
+static uint8_t			map7to8[128][2];
 static Colormap		xcmap;		/* Default shared colormap  */
 
 extern int mousequeue;
@@ -536,8 +537,8 @@ static	void		graphicscmap(XColor*);
 static	int		xscreendepth;
 static	XDisplay*	xkmcon;	/* used only in xproc */
 static	XDisplay*	xsnarfcon;	/* used holding clip.lk */
-static	ulong		xblack;
-static	ulong		xwhite;
+static	uint32_t		xblack;
+static	uint32_t		xwhite;
 
 static	int	putsnarf, assertsnarf;
 
@@ -569,8 +570,8 @@ screeninit(void)
 	drawqunlock();
 }
 
-uchar*
-attachscreen(Rectangle *r, ulong *chan, int *depth,
+uint8_t*
+attachscreen(Rectangle *r, uint32_t *chan, int *depth,
 	int *width, int *softscreen, void **X)
 {
 	*r = gscreen->r;
@@ -618,7 +619,7 @@ setcursor(void)
 	XColor fg, bg;
 	Pixmap xsrc, xmask;
 	int i;
-	uchar src[2*16], mask[2*16];
+	uint8_t src[2*16], mask[2*16];
 
 	for(i=0; i<2*16; i++){
 		src[i] = revbyte(cursor.set[i]);
@@ -628,8 +629,10 @@ setcursor(void)
 	drawqlock();
 	fg = map[0];
 	bg = map[255];
-	xsrc = XCreateBitmapFromData(xdisplay, xdrawable, (char*)src, 16, 16);
-	xmask = XCreateBitmapFromData(xdisplay, xdrawable, (char*)mask, 16, 16);
+	xsrc = XCreateBitmapFromData(xdisplay, xdrawable, (char*)src, 16,
+				     16);
+	xmask = XCreateBitmapFromData(xdisplay, xdrawable, (char*)mask, 16,
+				      16);
 	xc = XCreatePixmapCursor(xdisplay, xsrc, xmask, &fg, &bg, -cursor.offset.x, -cursor.offset.y);
 	if(xc != 0) {
 		XDefineCursor(xdisplay, xdrawable, xc);
@@ -659,7 +662,7 @@ cursorarrow(void)
 static void
 xproc(void *arg)
 {
-	ulong mask;
+	uint32_t mask;
 	XEvent event;
 
 	mask = 	KeyPressMask|
@@ -835,7 +838,7 @@ xinitscreen(void)
 	/*
 	 * set up property as required by ICCCM
 	 */
-	name.value = (uchar*)"drawterm";
+	name.value = (uint8_t*)"drawterm";
 	name.encoding = XA_STRING;
 	name.format = 8;
 	name.nitems = strlen((char*)name.value);
@@ -992,7 +995,7 @@ initmap(Window w)
 {
 	XColor c;
 	int i;
-	ulong p, pp;
+	uint32_t p, pp;
 	char buf[30];
 
 	if(xscreendepth <= 1)
@@ -1378,9 +1381,9 @@ xmouse(XEvent *e)
 }
 
 void
-getcolor(ulong i, ulong *r, ulong *g, ulong *b)
+getcolor(uint32_t i, uint32_t *r, uint32_t *g, uint32_t *b)
 {
-	ulong v;
+	uint32_t v;
 	
 	v = cmap2rgb(i);
 	*r = (v>>16)&0xFF;
@@ -1389,7 +1392,7 @@ getcolor(ulong i, ulong *r, ulong *g, ulong *b)
 }
 
 void
-setcolor(ulong i, ulong r, ulong g, ulong b)
+setcolor(uint32_t i, uint32_t r, uint32_t g, uint32_t b)
 {
 	/* no-op */
 }
@@ -1446,7 +1449,7 @@ Clip clip;
 static char*
 _xgetsnarf(XDisplay *xd)
 {
-	uchar *data, *xdata;
+	uint8_t *data, *xdata;
 	Atom clipboard, type, prop;
 	unsigned long lastlen;
 	unsigned long dummy, len;
@@ -1467,7 +1470,7 @@ _xgetsnarf(XDisplay *xd)
 	w = XGetSelectionOwner(xd, XA_PRIMARY);
 	if(w == xdrawable){
 	mine:
-		data = (uchar*)strdup(clip.buf);
+		data = (uint8_t*)strdup(clip.buf);
 		goto out;
 	}
 
@@ -1499,7 +1502,8 @@ _xgetsnarf(XDisplay *xd)
 	 * but that would add to the polling.
 	 */
 	prop = 1;
-	XChangeProperty(xd, xdrawable, prop, XA_STRING, 8, PropModeReplace, (uchar*)"", 0);
+	XChangeProperty(xd, xdrawable, prop, XA_STRING, 8, PropModeReplace,
+			(uint8_t*)"", 0);
 	XConvertSelection(xd, clipboard, XA_STRING, prop, xdrawable, CurrentTime);
 	XFlush(xd);
 	lastlen = 0;
@@ -1525,7 +1529,7 @@ _xgetsnarf(XDisplay *xd)
 		data = nil;
 	}else{
 		if(xdata){
-			data = (uchar*)strdup((char*)xdata);
+			data = (uint8_t*)strdup((char*)xdata);
 			XFree(xdata);
 		}else
 			data = nil;
@@ -1582,13 +1586,14 @@ if(0) iprint("xselect target=%d requestor=%d property=%d selection=%d\n",
 		a[3] = compoundtext;
 
 		XChangeProperty(xd, xe->requestor, xe->property, XA_ATOM,
-			32, PropModeReplace, (uchar*)a, sizeof a);
+			32, PropModeReplace, (uint8_t*)a, sizeof a);
 	}else if(xe->target == XA_STRING || xe->target == utf8string || xe->target == text || xe->target == compoundtext){
 	text:
 		/* if the target is STRING we're supposed to reply with Latin1 XXX */
 		qlock(&clip.lk);
 		XChangeProperty(xd, xe->requestor, xe->property, xe->target,
-			8, PropModeReplace, (uchar*)clip.buf, strlen(clip.buf));
+			8, PropModeReplace, (uint8_t*)clip.buf,
+				strlen(clip.buf));
 		qunlock(&clip.lk);
 	}else{
 		name = XGetAtomName(xd, xe->target);

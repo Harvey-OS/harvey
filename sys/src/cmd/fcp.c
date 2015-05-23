@@ -19,11 +19,11 @@ int	xflag;
 void	copy(char *from, char *to, int todir);
 int	copy1(int fdf, int fdt, char *from, char *to);
 void	worker(int fdf, int fdt, char *from, char *to);
-vlong	nextoff(void);
+int64_t	nextoff(void);
 void	failure(void *, char *note);
 
 QLock	lk;
-vlong	off;
+int64_t	off;
 
 void
 main(int argc, char *argv[])
@@ -201,8 +201,8 @@ void
 worker(int fdf, int fdt, char *from, char *to)
 {
 	char buf[DEFB], *bp;
-	long len, n;
-	vlong o;
+	int32_t len, n;
+	int64_t o;
 
 	len = sizeof(buf);
 	bp = buf;
@@ -229,10 +229,10 @@ worker(int fdf, int fdt, char *from, char *to)
 	_exits(nil);
 }
 
-vlong
+int64_t
 nextoff(void)
 {
-	vlong o;
+	int64_t o;
 
 	qlock(&lk);
 	o = off;

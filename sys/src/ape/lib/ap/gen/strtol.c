@@ -11,11 +11,11 @@
 #include <limits.h>
 #include <errno.h>
 
-long
+int32_t
 strtol(const char *nptr, char **endptr, int base)
 {
 	const char *p;
-	long n, nn;
+	int32_t n, nn;
 	int c, ovfl, v, neg, ndig;
 
 	p = nptr;

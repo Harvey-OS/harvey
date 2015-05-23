@@ -13,8 +13,8 @@
 
 enum
 {
-	StructAlign = sizeof(union {vlong vl; double d; ulong p; void *v;
-				struct{vlong v;}vs; struct{double d;}ds; struct{ulong p;}ss; struct{void *v;}xs;})
+	StructAlign = sizeof(union {int64_t vl; double d; uint32_t p; void *v;
+				struct{int64_t v;}vs; struct{double d;}ds; struct{uint32_t p;}ss; struct{void *v;}xs;})
 };
 
 enum
@@ -25,18 +25,18 @@ enum
 struct Bin
 {
 	Bin	*next;
-	ulong	total;			/* total bytes allocated in can->next */
+	uint32_t	total;			/* total bytes allocated in can->next */
 	uintptr	pos;
 	uintptr	end;
 	uintptr	v;			/* last value allocated */
-	uchar	body[BinSize];
+	uint8_t	body[BinSize];
 };
 
 /*
  * allocator which allows an entire set to be freed at one time
  */
 static Bin*
-mkbin(Bin *bin, ulong size)
+mkbin(Bin *bin, uint32_t size)
 {
 	Bin *b;
 
@@ -54,7 +54,7 @@ mkbin(Bin *bin, ulong size)
 }
 
 void*
-binalloc(Bin **bin, ulong size, int zero)
+binalloc(Bin **bin, uint32_t size, int zero)
 {
 	Bin *b;
 	uintptr p;
@@ -85,7 +85,7 @@ binalloc(Bin **bin, ulong size, int zero)
 }
 
 void*
-bingrow(Bin **bin, void *op, ulong osize, ulong size, int zero)
+bingrow(Bin **bin, void *op, uint32_t osize, uint32_t size, int zero)
 {
 	Bin *b;
 	void *np;

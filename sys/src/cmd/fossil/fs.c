@@ -17,10 +17,10 @@ static Snap *snapInit(Fs*);
 static void snapClose(Snap*);
 
 Fs *
-fsOpen(char *file, VtSession *z, long ncache, int mode)
+fsOpen(char *file, VtSession *z, int32_t ncache, int mode)
 {
 	int fd, m;
-	uchar oscore[VtScoreSize];
+	uint8_t oscore[VtScoreSize];
 	Block *b, *bs;
 	Disk *disk;
 	Fs *fs;
@@ -357,7 +357,7 @@ fsNeedArch(Fs *fs, uint archMinute)
 	File *f;
 	char buf[100];
 	Tm now;
-	ulong then;
+	uint32_t then;
 
 	then = time(0);
 	now = *localtime(then);
@@ -381,7 +381,7 @@ fsNeedArch(Fs *fs, uint archMinute)
 }
 
 int
-fsEpochLow(Fs *fs, u32int low)
+fsEpochLow(Fs *fs, uint32_t low)
 {
 	Block *bs;
 	Super super;
@@ -410,8 +410,8 @@ fsEpochLow(Fs *fs, u32int low)
 static int
 bumpEpoch(Fs *fs, int doarchive)
 {
-	uchar oscore[VtScoreSize];
-	u32int oldaddr;
+	uint8_t oscore[VtScoreSize];
+	uint32_t oldaddr;
 	Block *b, *bs;
 	Entry e;
 	Source *r;
@@ -493,7 +493,7 @@ saveQid(Fs *fs)
 {
 	Block *b;
 	Super super;
-	u64int qidMax;
+	uint64_t qidMax;
 
 	if((b = superGet(fs->cache, &super)) == nil)
 		return 0;
@@ -627,7 +627,7 @@ Err:
 }
 
 int
-fsVac(Fs *fs, char *name, uchar score[VtScoreSize])
+fsVac(Fs *fs, char *name, uint8_t score[VtScoreSize])
 {
 	int r;
 	DirEntry de;
@@ -654,7 +654,8 @@ fsVac(Fs *fs, char *name, uchar score[VtScoreSize])
 }
 
 static int
-vtWriteBlock(VtSession *z, uchar *buf, uint n, uint type, uchar score[VtScoreSize])
+vtWriteBlock(VtSession *z, uint8_t *buf, uint n, uint type,
+	     uint8_t score[VtScoreSize])
 {
 	if(!vtWrite(z, score, type, buf, n))
 		return 0;
@@ -664,11 +665,12 @@ vtWriteBlock(VtSession *z, uchar *buf, uint n, uint type, uchar score[VtScoreSiz
 }
 
 int
-mkVac(VtSession *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde, uchar score[VtScoreSize])
+mkVac(VtSession *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde,
+      uint8_t score[VtScoreSize])
 {
-	uchar buf[8192];
+	uint8_t buf[8192];
 	int i;
-	uchar *p;
+	uint8_t *p;
 	uint n;
 	DirEntry de;
 	Entry e, ee, eee;
@@ -772,7 +774,7 @@ fsUnhalt(Fs *fs)
 }
 
 int
-fsNextQid(Fs *fs, u64int *qid)
+fsNextQid(Fs *fs, uint64_t *qid)
 {
 	Block *b;
 	Super super;
@@ -806,7 +808,7 @@ fsMetaFlush(void *a)
 }
 
 static int
-fsEsearch1(File *f, char *path, u32int savetime, u32int *plo)
+fsEsearch1(File *f, char *path, uint32_t savetime, uint32_t *plo)
 {
 	int n, r;
 	DirEntry de;
@@ -851,7 +853,7 @@ fsEsearch1(File *f, char *path, u32int savetime, u32int *plo)
 }
 
 static int
-fsEsearch(Fs *fs, char *path, u32int savetime, u32int *plo)
+fsEsearch(Fs *fs, char *path, uint32_t savetime, uint32_t *plo)
 {
 	int n;
 	File *f;
@@ -876,9 +878,9 @@ fsEsearch(Fs *fs, char *path, u32int savetime, u32int *plo)
 }
 
 void
-fsSnapshotCleanup(Fs *fs, u32int age)
+fsSnapshotCleanup(Fs *fs, uint32_t age)
 {
-	u32int lo;
+	uint32_t lo;
 
 	/*
 	 * Find the best low epoch we can use,
@@ -983,9 +985,9 @@ struct Snap
 	uint	snapMinutes;
 	uint	archMinute;
 	uint	snapLife;
-	u32int	lastSnap;
-	u32int	lastArch;
-	u32int	lastCleanup;
+	uint32_t	lastSnap;
+	uint32_t	lastArch;
+	uint32_t	lastCleanup;
 	uint	ignore;
 };
 
@@ -993,10 +995,10 @@ static void
 snapEvent(void *v)
 {
 	Snap *s;
-	u32int now, min;
+	uint32_t now, min;
 	Tm tm;
 	int need;
-	u32int snaplife;
+	uint32_t snaplife;
 
 	s = v;
 
@@ -1067,7 +1069,7 @@ snapInit(Fs *fs)
 }
 
 void
-snapGetTimes(Snap *s, u32int *arch, u32int *snap, u32int *snaplen)
+snapGetTimes(Snap *s, uint32_t *arch, uint32_t *snap, uint32_t *snaplen)
 {
 	if(s == nil){
 		*snap = -1;
@@ -1084,7 +1086,7 @@ snapGetTimes(Snap *s, u32int *arch, u32int *snap, u32int *snaplen)
 }
 
 void
-snapSetTimes(Snap *s, u32int arch, u32int snap, u32int snaplen)
+snapSetTimes(Snap *s, uint32_t arch, uint32_t snap, uint32_t snaplen)
 {
 	if(s == nil)
 		return;

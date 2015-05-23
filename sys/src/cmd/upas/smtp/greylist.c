@@ -39,7 +39,7 @@ typedef struct {
 	int	existed;	/* these two are distinct to cope with errors */
 	int	created;
 	int	noperm;
-	long	mtime;		/* mod time, iff it already existed */
+	int32_t	mtime;		/* mod time, iff it already existed */
 } Greysts;
 
 static char whitelist[] = "/mail/grey/whitelist";
@@ -54,10 +54,10 @@ onwhitelist(void)
 	int lnlen;
 	char *line, *parse, *p;
 	char input[128];
-	uchar *mask;
-	uchar mask4[IPaddrlen], addr4[IPaddrlen];
-	uchar rmask[IPaddrlen], addr[IPaddrlen];
-	uchar ipmasked[IPaddrlen], addrmasked[IPaddrlen];
+	uint8_t *mask;
+	uint8_t mask4[IPaddrlen], addr4[IPaddrlen];
+	uint8_t rmask[IPaddrlen], addr[IPaddrlen];
+	uint8_t ipmasked[IPaddrlen], addrmasked[IPaddrlen];
 	Biobuf *wl;
 
 	wl = Bopen(whitelist, OREAD);
@@ -153,11 +153,11 @@ mkdirs(char *path)
 	return 0;
 }
 
-static long
+static int32_t
 getmtime(char *file)
 {
 	int fd;
-	long mtime = -1;
+	int32_t mtime = -1;
 	Dir *ds;
 
 	fd = open(file, ORDWR);
@@ -227,7 +227,7 @@ addgreylist(char *file, Greysts *gsp)
 static int
 recentcall(Greysts *gsp)
 {
-	long delay = time(0) - gsp->mtime;
+	int32_t delay = time(0) - gsp->mtime;
 
 	if (!gsp->existed)
 		return 0;

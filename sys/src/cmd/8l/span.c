@@ -13,7 +13,7 @@ void
 span(void)
 {
 	Prog *p, *q;
-	long v, c, idat;
+	int32_t v, c, idat;
 	int m, n, again;
 
 	xdefine("etext", STEXT, 0L);
@@ -111,7 +111,7 @@ loop:
 }
 
 void
-xdefine(char *p, int t, long v)
+xdefine(char *p, int t, int32_t v)
 {
 	Sym *s;
 
@@ -125,7 +125,7 @@ xdefine(char *p, int t, long v)
 }
 
 void
-putsymb(char *s, int t, long v, int ver)
+putsymb(char *s, int t, int32_t v, int ver)
 {
 	int i, f;
 
@@ -235,9 +235,9 @@ asmsym(void)
 void
 asmlc(void)
 {
-	long oldpc, oldlc;
+	int32_t oldpc, oldlc;
 	Prog *p;
-	long v, s;
+	int32_t v, s;
 
 	oldpc = INITTEXT;
 	oldlc = 0;
@@ -333,7 +333,7 @@ prefixof(Adr *a)
 int
 oclass(Adr *a)
 {
-	long v;
+	int32_t v;
 
 	if(a->type >= D_INDIR || a->index != D_NONE) {
 		if(a->index != D_NONE && a->scale == 0) {
@@ -529,7 +529,7 @@ bad:
 }
 
 static void
-put4(long v)
+put4(int32_t v)
 {
 	if(dlm && curp != P && reloca != nil){
 		dynreloc(reloca->sym, curp->pc + andptr - &and[0], 1);
@@ -542,11 +542,11 @@ put4(long v)
 	andptr += 4;
 }
 
-long
+int32_t
 vaddr(Adr *a)
 {
 	int t;
-	long v;
+	int32_t v;
 	Sym *s;
 
 	t = a->type;
@@ -578,7 +578,7 @@ vaddr(Adr *a)
 void
 asmand(Adr *a, int r)
 {
-	long v;
+	int32_t v;
 	int t;
 	Adr aa;
 
@@ -697,7 +697,7 @@ bad:
 }
 
 #define	E	0xff
-uchar	ymovtab[] =
+uint8_t	ymovtab[] =
 {
 /* push */
 	APUSHL,	Ycs,	Ynone,	0,	0x0e,E,0,0,
@@ -849,9 +849,9 @@ doasm(Prog *p)
 {
 	Optab *o;
 	Prog *q, pp;
-	uchar *t;
+	uint8_t *t;
 	int z, op, ft, tt;
-	long v, pre;
+	int32_t v, pre;
 
 	pre = prefixof(&p->from);
 	if(pre)
@@ -1285,8 +1285,8 @@ struct Reloc
 {
 	int n;
 	int t;
-	uchar *m;
-	ulong *a;
+	uint8_t *m;
+	uint32_t *a;
 };
 
 Reloc rels;
@@ -1295,27 +1295,27 @@ static void
 grow(Reloc *r)
 {
 	int t;
-	uchar *m, *nm;
-	ulong *a, *na;
+	uint8_t *m, *nm;
+	uint32_t *a, *na;
 
 	t = r->t;
 	r->t += 64;
 	m = r->m;
 	a = r->a;
-	r->m = nm = malloc(r->t*sizeof(uchar));
-	r->a = na = malloc(r->t*sizeof(ulong));
-	memmove(nm, m, t*sizeof(uchar));
-	memmove(na, a, t*sizeof(ulong));
+	r->m = nm = malloc(r->t*sizeof(uint8_t));
+	r->a = na = malloc(r->t*sizeof(uint32_t));
+	memmove(nm, m, t*sizeof(uint8_t));
+	memmove(na, a, t*sizeof(uint32_t));
 	free(m);
 	free(a);
 }
 
 void
-dynreloc(Sym *s, ulong v, int abs)
+dynreloc(Sym *s, uint32_t v, int abs)
 {
 	int i, k, n;
-	uchar *m;
-	ulong *a;
+	uint8_t *m;
+	uint32_t *a;
 	Reloc *r;
 
 	if(s->type == SUNDEF)
@@ -1360,9 +1360,9 @@ asmdyn()
 {
 	int i, n, t, c;
 	Sym *s;
-	ulong la, ra, *a;
-	vlong off;
-	uchar *m;
+	uint32_t la, ra, *a;
+	int64_t off;
+	uint8_t *m;
 	Reloc *r;
 
 	cflush();

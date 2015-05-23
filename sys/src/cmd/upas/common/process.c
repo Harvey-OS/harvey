@@ -67,7 +67,8 @@ stream_free(stream *sp)
 
 /* start a new process */
 extern process *
-noshell_proc_start(char **av, stream *inp, stream *outp, stream *errp, int newpg, char *who)
+noshell_proc_start(char **av, stream *inp, stream *outp, stream *errp,
+		   int newpg, char *who)
 {
 	process *pp;
 	int i, n;
@@ -119,7 +120,8 @@ noshell_proc_start(char **av, stream *inp, stream *outp, stream *errp, int newpg
 
 /* start a new process under a shell */
 extern process *
-proc_start(char *cmd, stream *inp, stream *outp, stream *errp, int newpg, char *who)
+proc_start(char *cmd, stream *inp, stream *outp, stream *errp, int newpg,
+	   char *who)
 {
 	char *av[4];
 

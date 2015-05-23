@@ -209,10 +209,10 @@ movieprintentry(Entry ent, int cmd)
 	outnl(0);
 }
 
-long
-movienextoff(long fromoff)
+int32_t
+movienextoff(int32_t fromoff)
 {
-	long a;
+	int32_t a;
 	char *p;
 
 	a = Bseek(bdict, fromoff, 0);

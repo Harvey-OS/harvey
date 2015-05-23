@@ -374,7 +374,7 @@ clist_find_bits(gx_device_clist_writer * cldev, gx_bitmap_id id, tile_loc * ploc
     uint index = tile_id_hash(id);
     const tile_hash *table = cldev->tile_table;
     uint mask = cldev->tile_hash_mask;
-    ulong offset;
+    uint32_t offset;
 
     for (; (offset = table[index &= mask].offset) != 0;
 	 index = tile_hash_next(index)
@@ -626,7 +626,7 @@ clist_change_tile(gx_device_clist_writer * cldev, gx_clist_state * pcls,
 				 * compatible with those stored in the device
 				 * (cldev->tile_params).
 				 */
-		ulong offset = (byte *) loc.tile - cldev->chunk.data;
+		uint32_t offset = (byte *) loc.tile - cldev->chunk.data;
 		uint rsize =
 		    extra + 1 + cmd_size_w(loc.index) + cmd_size_w(offset);
 		byte *dp;
@@ -708,7 +708,7 @@ clist_change_bits(gx_device_clist_writer * cldev, gx_clist_state * pcls,
 	} else {		/* Not known yet.  Output the bits. */
 	    /* Note that the offset we write is the one used by */
 	    /* the reading phase, not the writing phase. */
-	    ulong offset = (byte *) loc.tile - cldev->chunk.data;
+	    uint32_t offset = (byte *) loc.tile - cldev->chunk.data;
 	    uint rsize = 2 + cmd_size_w(loc.tile->width) +
 	    cmd_size_w(loc.tile->height) + cmd_size_w(loc.index) +
 	    cmd_size_w(offset);

@@ -15,12 +15,12 @@
 #include <frame.h>
 
 int
-frdelete(Frame *f, ulong p0, ulong p1)
+frdelete(Frame *f, uint32_t p0, uint32_t p1)
 {
 	Point pt0, pt1, ppt0;
 	Frbox *b;
 	int n0, n1, n;
-	ulong cn1;
+	uint32_t cn1;
 	Rectangle r;
 	int nn0;
 	Image *col;

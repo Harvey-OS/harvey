@@ -44,7 +44,7 @@ freeThumbprints(Thumbprint *table)
 }
 
 int
-okThumbprint(uchar *sum, Thumbprint *table)
+okThumbprint(uint8_t *sum, Thumbprint *table)
 {
 	Thumbprint *p;
 	int i = ((sum[0]<<8) + sum[1]) & (ThumbTab-1);
@@ -61,7 +61,7 @@ loadThumbprints(char *file, Thumbprint *table, Thumbprint *crltab)
 	Thumbprint *entry;
 	Biobuf *bin;
 	char *line, *field[50];
-	uchar sum[SHA1dlen];
+	uint8_t sum[SHA1dlen];
 	int i;
 
 	bin = Bopen(file, OREAD);

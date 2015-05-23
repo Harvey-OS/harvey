@@ -443,7 +443,7 @@ win_dib_make_dib(gx_device_win * dev, int orgx, int orgy, int wx, int wy)
     RGBQUAD FAR *pColors;
     BYTE FAR *pBits;
     BYTE FAR *pLine;
-    ulong bitmapsize;
+    uint32_t bitmapsize;
     int palcount;
     int i;
     UINT lwidth;		/* line width in bytes rounded up to multiple of 4 bytes */
@@ -460,7 +460,7 @@ win_dib_make_dib(gx_device_win * dev, int orgx, int orgy, int wx, int wy)
 
     loffset = orgx * wdev->color_info.depth / 8;
     lwidth = ((wx * wdev->color_info.depth + 31) & ~31) >> 3;
-    bitmapsize = (long)lwidth *wy;
+    bitmapsize = (int32_t)lwidth *wy;
 
     if (wdev->color_info.depth > 16)
 	palcount = 0;

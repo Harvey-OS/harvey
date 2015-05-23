@@ -15,7 +15,7 @@
 
 void
 conv(Biobufhdr *Bp) {
-	long n;
+	int32_t n;
 	int r;
 	char special[10];
 	int save;

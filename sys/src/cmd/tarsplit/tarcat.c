@@ -27,7 +27,7 @@ static int debug;
 static void
 catenate(int in, char *inname)
 {
-	vlong len;
+	int64_t len;
 	static Hblock hdr;
 	Hblock *hp = &hdr;
 

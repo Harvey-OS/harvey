@@ -663,7 +663,7 @@ int
 wormread(Device *d, Off b, void *c)
 {
 	int r = 0;
-	long max;
+	int32_t max;
 	char name[128];
 	Side *v = wormunit(d);
 	Juke *w = d->private;
@@ -678,7 +678,7 @@ wormread(Device *d, Off b, void *c)
 	if(b >= max) {
 		print("wormread: block out of range %Z(%lld)\n", d, (Wideoff)b);
 		r = 0x071;
-	} else if (pread(dr->wren.fd, c, RBUFSIZE, (vlong)b*RBUFSIZE) != RBUFSIZE) {
+	} else if (pread(dr->wren.fd, c, RBUFSIZE, (int64_t)b*RBUFSIZE) != RBUFSIZE) {
 		fd2path(dr->wren.fd, name, sizeof name);
 		print("wormread: error on %Z(%lld) on %s in %s: %r\n",
 			d, (Wideoff)b, name, dr->wren.sddir);
@@ -693,7 +693,7 @@ int
 wormwrite(Device *d, Off b, void *c)
 {
 	int r = 0;
-	long max;
+	int32_t max;
 	char name[128];
 	Side *v = wormunit(d);
 	Juke *w = d->private;
@@ -709,7 +709,7 @@ wormwrite(Device *d, Off b, void *c)
 		print("wormwrite: block out of range %Z(%lld)\n",
 			d, (Wideoff)b);
 		r = 0x071;
-	} else if (pwrite(dr->wren.fd, c, RBUFSIZE, (vlong)b*RBUFSIZE) != RBUFSIZE) {
+	} else if (pwrite(dr->wren.fd, c, RBUFSIZE, (int64_t)b*RBUFSIZE) != RBUFSIZE) {
 		fd2path(dr->wren.fd, name, sizeof name);
 		print("wormwrwite: error on %Z(%lld) on %s in %s: %r\n",
 			d, (Wideoff)b, name, dr->wren.sddir);
@@ -724,7 +724,7 @@ static int
 mmove(Juke *w, int trans, int from, int to, int rot)
 {
 	int s;
-	uchar cmd[12], buf[4];
+	uint8_t cmd[12], buf[4];
 	static int recur = 0;
 
 	memset(cmd, 0, sizeof cmd);
@@ -762,7 +762,7 @@ static void
 geometry(Juke *w)
 {
 	int s;
-	uchar cmd[6], buf[4+20];
+	uint8_t cmd[6], buf[4+20];
 
 	memset(cmd, 0, sizeof cmd);
 	memset(buf, 0, sizeof buf);
@@ -810,7 +810,7 @@ geometry(Juke *w)
 static void
 element(Juke *w, int e)
 {
-	uchar cmd[12], buf[8+8+88];
+	uint8_t cmd[12], buf[8+8+88];
 	int s, t;
 
 	memset(cmd, 0, sizeof cmd);

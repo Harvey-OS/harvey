@@ -43,8 +43,8 @@ int	isspace(int);
 extern	int	getc(void);
 extern	int	getrune(void);
 extern	void	ungetc(void);
-extern	ulong	offsetc(void);
-extern	ulong	seekc(ulong);
+extern	uint32_t	offsetc(void);
+extern	uint32_t	seekc(uint32_t);
 extern	char*	rdlinec(void);
 
 

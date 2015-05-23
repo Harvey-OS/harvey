@@ -18,9 +18,9 @@
  */
 #define	LENDIAN(p)	((p)[0] | ((p)[1]<<8) | ((p)[2]<<16) | ((p)[3]<<24))
 
-uchar	buf[6001];
-short	cfreq[140];
-short	wfreq[50];
+uint8_t	buf[6001];
+int16_t	cfreq[140];
+int16_t	wfreq[50];
 int	nbuf;
 Dir*	mbuf;
 int	fd;
@@ -149,7 +149,7 @@ enum
 void	bump_utf_count(Rune);
 int	cistrncmp(char*, char*, int);
 void	filetype(int);
-int	getfontnum(uchar*, uchar**);
+int	getfontnum(uint8_t*, uint8_t**);
 int	isas(void);
 int	isc(void);
 int	iscint(void);
@@ -173,8 +173,8 @@ int	longoff(void);
 int	istar(void);
 int	isface(void);
 int	isexec(void);
-int	p9bitnum(uchar*);
-int	p9subfont(uchar*);
+int	p9bitnum(uint8_t*);
+int	p9subfont(uint8_t*);
 void	print_utf(void);
 void	type(char*, int);
 int	utf_count(void);
@@ -492,7 +492,7 @@ void
 wordfreq(void)
 {
 	int low, high, mid, r;
-	uchar *p, *p2, c;
+	uint8_t *p, *p2, c;
 
 	p = buf;
 	for(;;) {
@@ -524,8 +524,8 @@ wordfreq(void)
 
 typedef struct Filemagic Filemagic;
 struct Filemagic {
-	ulong x;
-	ulong mask;
+	uint32_t x;
+	uint32_t mask;
 	char *desc;
 	char *mime;
 };
@@ -571,7 +571,7 @@ Filemagic long0tab[] = {
 };
 
 int
-filemagic(Filemagic *tab, int ntab, ulong x)
+filemagic(Filemagic *tab, int ntab, uint32_t x)
 {
 	int i;
 
@@ -591,7 +591,7 @@ long0(void)
 
 typedef struct Fileoffmag Fileoffmag;
 struct Fileoffmag {
-	ulong	off;
+	uint32_t	off;
 	Filemagic;
 };
 
@@ -614,9 +614,9 @@ int
 fileoffmagic(Fileoffmag *tab, int ntab)
 {
 	int i;
-	ulong x;
+	uint32_t x;
 	Fileoffmag *tp;
-	uchar buf[sizeof(long)];
+	uint8_t buf[sizeof(int32_t)];
 
 	for(i=0; i<ntab; i++) {
 		tp = tab + i;
@@ -815,7 +815,8 @@ istring(void)
 		if(mime)
 			print(OCTET);
 		else
-			print("%.*s picture\n", utfnlen((char*)buf+5, i-5), (char*)buf+5);
+			print("%.*s picture\n", utfnlen((char*)buf+5, i-5),
+			      (char*)buf+5);
 		return 1;
 	}
 	return 0;
@@ -823,7 +824,7 @@ istring(void)
 
 struct offstr
 {
-	ulong	off;
+	uint32_t	off;
 	struct FILE_STRING;
 } offstrs[] = {
 	32*1024, "\001CD001\001",	"ISO9660 CD image",	7,	OCTET,
@@ -899,7 +900,7 @@ char*	html_string[] =
 int
 ishtml(void)
 {
-	uchar *p, *q;
+	uint8_t *p, *q;
 	int i, count;
 
 		/* compare strings between '<' and '>' to html table */
@@ -1182,7 +1183,7 @@ isenglish(void)
  */
 #define	P9BITLEN	12
 int
-p9bitnum(uchar *bp)
+p9bitnum(uint8_t *bp)
 {
 	int n, c, len;
 
@@ -1238,10 +1239,10 @@ int
 isp9bit(void)
 {
 	int dep, lox, loy, hix, hiy, px, new, cmpr;
-	ulong t;
-	long len;
+	uint32_t t;
+	int32_t len;
 	char *newlabel;
-	uchar *cp;
+	uint8_t *cp;
 
 	cp = buf;
 	cmpr = 0;
@@ -1305,7 +1306,7 @@ isp9bit(void)
 }
 
 int
-p9subfont(uchar *p)
+p9subfont(uint8_t *p)
 {
 	int n, h, a;
 
@@ -1330,7 +1331,7 @@ p9subfont(uchar *p)
 int
 isp9font(void)
 {
-	uchar *cp, *p;
+	uint8_t *cp, *p;
 	int i, n;
 	char pathname[1024];
 
@@ -1339,7 +1340,7 @@ isp9font(void)
 		return 0;
 	if (!getfontnum(cp, &cp))	/* ascent */
 		return 0;
-	for (i = 0; cp=(uchar*)strchr((char*)cp, '\n'); i++) {
+	for (i = 0; cp=(uint8_t*)strchr((char*)cp, '\n'); i++) {
 		if (!getfontnum(cp, &cp))	/* min */
 			break;
 		if (!getfontnum(cp, &cp))	/* max */
@@ -1376,7 +1377,7 @@ isp9font(void)
 }
 
 int
-getfontnum(uchar *cp, uchar **rp)
+getfontnum(uint8_t *cp, uint8_t **rp)
 {
 	while (WHITESPACE(*cp))		/* extract ulong delimited by whitespace */
 		cp++;

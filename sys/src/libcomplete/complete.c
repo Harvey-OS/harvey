@@ -50,11 +50,11 @@ strpcmp(const void *va, const void *vb)
 Completion*
 complete(char *dir, char *s)
 {
-	long i, l, n, nfile, len, nbytes;
+	int32_t i, l, n, nfile, len, nbytes;
 	int fd, minlen;
 	Dir *dirp;
 	char **name, *p;
-	ulong* mode;
+	uint32_t* mode;
 	Completion *c;
 
 	if(strchr(s, '/') != nil){
@@ -81,7 +81,7 @@ complete(char *dir, char *s)
 	}
 
 	name = malloc(n*sizeof(char*));
-	mode = malloc(n*sizeof(ulong));
+	mode = malloc(n*sizeof(uint32_t));
 	c = malloc(sizeof(Completion) + len);
 	if(name == nil || mode == nil || c == nil)
 		goto Return;

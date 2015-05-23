@@ -28,7 +28,7 @@ static	Lock		eqlock;
 
 static
 int
-partial(int id, Event *e, uchar *b, int n)
+partial(int id, Event *e, uint8_t *b, int n)
 {
 	EQueue *eq, *p;
 	int nmore;
@@ -90,7 +90,7 @@ addpartial(int id, char *b, int n)
 
 static
 int
-plumbevent(int id, Event *e, uchar *b, int n)
+plumbevent(int id, Event *e, uint8_t *b, int n)
 {
 	int nmore;
 

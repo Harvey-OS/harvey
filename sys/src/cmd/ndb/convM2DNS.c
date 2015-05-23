@@ -15,9 +15,9 @@
 typedef struct Scan	Scan;
 struct Scan
 {
-	uchar	*base;		/* input buffer */
-	uchar	*p;		/* current position */
-	uchar	*ep;		/* byte after the end */
+	uint8_t	*base;		/* input buffer */
+	uint8_t	*p;		/* current position */
+	uint8_t	*ep;		/* byte after the end */
 
 	char	*err;
 	char	errbuf[256];	/* hold a formatted error sometimes */
@@ -69,10 +69,10 @@ errtoolong(RR *rp, Scan *sp, int remain, int need, char *where)
 /*
  *  get a ushort/ulong
  */
-static ushort
+static uint16_t
 gchar(RR *rp, Scan *sp)
 {
-	ushort x;
+	uint16_t x;
 
 	if(sp->err)
 		return 0;
@@ -82,10 +82,10 @@ gchar(RR *rp, Scan *sp)
 	sp->p += 1;
 	return x;
 }
-static ushort
+static uint16_t
 gshort(RR *rp, Scan *sp)
 {
-	ushort x;
+	uint16_t x;
 
 	if(sp->err)
 		return 0;
@@ -95,10 +95,10 @@ gshort(RR *rp, Scan *sp)
 	sp->p += 2;
 	return x;
 }
-static ulong
+static uint32_t
 glong(RR *rp, Scan *sp)
 {
-	ulong x;
+	uint32_t x;
 
 	if(sp->err)
 		return 0;
@@ -210,7 +210,7 @@ gstr(RR *rp, Scan *sp)
  *  get a sequence of bytes
  */
 static int
-gbytes(RR *rp, Scan *sp, uchar **p, int n)
+gbytes(RR *rp, Scan *sp, uint8_t **p, int n)
 {
 	*p = nil;			/* i think this is a good idea */
 	if(sp->err)
@@ -234,7 +234,7 @@ gname(char *to, RR *rp, Scan *sp)
 {
 	int len, off, pointer, n;
 	char *tostart, *toend;
-	uchar *p;
+	uint8_t *p;
 
 	tostart = to;
 	if(sp->err || sp->stop)
@@ -312,10 +312,10 @@ err:
  * ms windows 2000 seems to get the bytes backward in the type field
  * of ptr records, so return a format error as feedback.
  */
-static ushort
-mstypehack(Scan *sp, ushort type, char *where)
+static uint16_t
+mstypehack(Scan *sp, uint16_t type, char *where)
 {
-	if ((uchar)type == 0 && (type>>8) != 0) {
+	if ((uint8_t)type == 0 && (type>>8) != 0) {
 		USED(where);
 //		dnslog("%s: byte-swapped type field in ptr rr from win2k",
 //			where);
@@ -345,7 +345,7 @@ convM2RR(Scan *sp, char *what)
 	int type, class, len, left;
 	char *dn;
 	char dname[Domlen+1];
-	uchar *data;
+	uint8_t *data;
 	RR *rp;
 	Txt *t, **l;
 
@@ -580,7 +580,7 @@ rrloop(Scan *sp, char *what, int count, int quest)
  *  ideally would note if len == Maxpayload && query was via UDP, for errtoolong.
  */
 char*
-convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
+convM2DNS(uint8_t *buf, int len, DNSmsg *m, int *codep)
 {
 	char *err = nil;
 	RR *rp = nil;

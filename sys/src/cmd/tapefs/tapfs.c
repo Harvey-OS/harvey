@@ -28,7 +28,7 @@ struct tap {
 
 int	tapefile;
 char	buffer[8192];
-long	cvtime(unsigned char *);
+int32_t	cvtime(unsigned char *);
 extern	int verbose;
 extern	int newtap;
 
@@ -71,7 +71,7 @@ populate(char *name)
 	}
 }
 
-long
+int32_t
 cvtime(unsigned char *tp)
 {
 	unsigned long t = (tp[1]<<24)+(tp[0]<<16)+(tp[3]<<8)+(tp[2]<<0);
@@ -101,7 +101,7 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, vlong off, long cnt)
+doread(Ram *r, int64_t off, int32_t cnt)
 {
 	if (cnt>sizeof(buffer))
 		print("count too big\n");
@@ -111,7 +111,7 @@ doread(Ram *r, vlong off, long cnt)
 }
 
 void
-dowrite(Ram *r, char *buf, long off, long cnt)
+dowrite(Ram *r, char *buf, int32_t off, int32_t cnt)
 {
 	USED(r); USED(buf); USED(off); USED(cnt);
 }

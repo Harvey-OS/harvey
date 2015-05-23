@@ -46,10 +46,10 @@ static char *NBerr[] = {
 };
 
 
-static ulong
-GL32(uchar **p)
+static uint32_t
+GL32(uint8_t **p)
 {
-	ulong n;
+	uint32_t n;
 
 	n  = *(*p)++;
 	n |= *(*p)++ << 8;
@@ -58,10 +58,10 @@ GL32(uchar **p)
 	return n;
 }
 
-static ushort
-GL16(uchar **p)
+static uint16_t
+GL16(uint8_t **p)
 {
-	ushort n;
+	uint16_t n;
 
 	n  = *(*p)++;
 	n |= *(*p)++ << 8;
@@ -69,19 +69,19 @@ GL16(uchar **p)
 }
 
 void
-Gmem(uchar **p, void *v, int n)
+Gmem(uint8_t **p, void *v, int n)
 {
-	uchar *str = v;
+	uint8_t *str = v;
 
 	while(n--)
 		*str++ = *(*p)++;
 }
 
 
-static ulong
-GB32(uchar **p)
+static uint32_t
+GB32(uint8_t **p)
 {
-	ulong n;
+	uint32_t n;
 
 	n  = *(*p)++ << 24;
 	n |= *(*p)++ << 16;
@@ -90,38 +90,38 @@ GB32(uchar **p)
 	return n;
 }
 
-static ushort
-GB16(uchar **p)
+static uint16_t
+GB16(uint8_t **p)
 {
-	ushort n;
+	uint16_t n;
 
 	n  = *(*p)++ << 8;
 	n |= *(*p)++;
 	return n;
 }
 
-static uchar
-G8(uchar **p)
+static uint8_t
+G8(uint8_t **p)
 {
 	return *(*p)++;
 }
 
 static void
-PB16(uchar **p, uint n)
+PB16(uint8_t **p, uint n)
 {
 	*(*p)++ = n >> 8;
 	*(*p)++ = n;
 }
 
 static void
-P8(uchar **p, uint n)
+P8(uint8_t **p, uint n)
 {
 	*(*p)++ = n;
 }
 
 
 static void
-nbname(uchar **p, char *name, char pad)
+nbname(uint8_t **p, char *name, char pad)
 {
 	char c;
 	int i;
@@ -134,7 +134,7 @@ nbname(uchar **p, char *name, char pad)
 			done = 1;
 		if(!done)
 			c = toupper(name[i]);
-		*(*p)++ = ((uchar)c >> 4) + 'A';
+		*(*p)++ = ((uint8_t)c >> 4) + 'A';
 		*(*p)++ = (c & 0xf) + 'A';
 	}
 	*(*p)++ = 0;
@@ -144,7 +144,7 @@ int
 calledname(char *host, char *name)
 {
 	char *addr;
-	uchar buf[1024], *p;
+	uint8_t buf[1024], *p;
 	static char tmp[20];
 	int num, flg, svs, j, i, fd, trn;
 
@@ -207,7 +207,7 @@ int
 nbtdial(char *addr, char *called, char *sysname)
 {
 	char redir[20];
-	uchar *p, *lenp, buf[1024];
+	uint8_t *p, *lenp, buf[1024];
 	int type, len, err, fd, nkeepalive, nretarg;
 
 	nretarg = 0;
@@ -373,14 +373,14 @@ xd(char *str, void *buf, int n)
 {
 	int fd, flg, flags2, cmd;
 	uint sum;
-	long err;
-	uchar *p, *end;
+	int32_t err;
+	uint8_t *p, *end;
 
 	if(n == 0)
 		return;
 
 	p = buf;
-	end = (uchar *)buf +n;
+	end = (uint8_t *)buf +n;
 
 	if(Debug && strstr(Debug, "log") != nil){
 		if((fd = open("pkt.log", ORDWR)) == -1)
@@ -397,12 +397,12 @@ xd(char *str, void *buf, int n)
 	if(!str)
 		goto Raw;
 
-	p = (uchar *)buf + 4;
+	p = (uint8_t *)buf + 4;
 	if(GL32(&p) == 0x424d53ff){
-		buf = (uchar *)buf + 4;
+		buf = (uint8_t *)buf + 4;
 		n -= 4;
 	}
-	end = (uchar *)buf + n;
+	end = (uint8_t *)buf + n;
 
 	sum = 0;
 	p = buf;
@@ -473,8 +473,8 @@ xd(char *str, void *buf, int n)
 Raw:
 	fprint(2, "\n");
 	for(; p < end; p++){
-		if((p - (uchar *)buf) % 16 == 0)
-			fprint(2, "\n%06lx\t", p - (uchar *)buf);
+		if((p - (uint8_t *)buf) % 16 == 0)
+			fprint(2, "\n%06lx\t", p - (uint8_t *)buf);
 		if(isprint((char)*p))
 			fprint(2, "%c  ", (char )*p);
 		else

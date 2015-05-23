@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-long
+int32_t
 runestrlen(Rune *s)
 {
 

@@ -96,7 +96,7 @@ Inst cop1[] = {
 };
 
 void
-unimp(ulong inst)
+unimp(uint32_t inst)
 {
 	print("op %ld\n", inst&0x3f);
 	Bprint(bioout, "Unimplemented floating point Trap IR %.8lux\n", inst);
@@ -104,7 +104,7 @@ unimp(ulong inst)
 }
 
 void
-inval(ulong inst)
+inval(uint32_t inst)
 {
 	Bprint(bioout, "Invalid Operation Exception IR %.8lux\n", inst);
 	longjmp(errjmp, 0);
@@ -130,7 +130,7 @@ floatop(int dst, int s1, int s2)
 void
 doubop(int dst, int s1, int s2)
 {
-	ulong l;
+	uint32_t l;
 
 	if(reg.ft[s1] != FPd) {
 		if(reg.ft[s1] == FPs && s1 != 24)
@@ -152,14 +152,14 @@ doubop(int dst, int s1, int s2)
 }
 
 void
-Iswc1(ulong inst)
+Iswc1(uint32_t inst)
 {
 	int off;
-	ulong l;
+	uint32_t l;
 	int rt, rb, ert;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	if(trace)
 		itrace("swc1\tf%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb]+off);
@@ -175,7 +175,7 @@ Iswc1(ulong inst)
 }
 
 void
-Ifsub(ulong ir)
+Ifsub(uint32_t ir)
 {
 	char fmt;
 	int fs, ft, fd;
@@ -205,7 +205,7 @@ Ifsub(ulong ir)
 }
 
 void
-Ifmov(ulong ir)
+Ifmov(uint32_t ir)
 {
 	char fmt;
 	int fs, fd;
@@ -236,7 +236,7 @@ Ifmov(ulong ir)
 }
 
 void
-Ifabs(ulong ir)
+Ifabs(uint32_t ir)
 {
 	char fmt;
 	int fs, fd;
@@ -264,7 +264,7 @@ Ifabs(ulong ir)
 		break;	
 	case 4:
 		fmt = 'w';
-		if((long)reg.di[fs] < 0)
+		if((int32_t)reg.di[fs] < 0)
 			reg.di[fd] = -reg.di[fs];
 		else
 			reg.di[fd] = reg.di[fs];
@@ -275,7 +275,7 @@ Ifabs(ulong ir)
 }
 
 void
-Ifneg(ulong ir)
+Ifneg(uint32_t ir)
 {
 	char fmt;
 	int fs, fd;
@@ -305,7 +305,7 @@ Ifneg(ulong ir)
 }
 
 void
-Icvtd(ulong ir)
+Icvtd(uint32_t ir)
 {
 	char fmt;
 	int fs, fd;
@@ -328,7 +328,7 @@ Icvtd(ulong ir)
 		break;	
 	case 4:
 		fmt = 'w';
-		reg.fd[fd>>1] = (long)reg.di[fs];
+		reg.fd[fd>>1] = (int32_t)reg.di[fs];
 		reg.ft[fd] = FPd;
 		break;
 	}
@@ -337,7 +337,7 @@ Icvtd(ulong ir)
 }
 
 void
-Icvts(ulong ir)
+Icvts(uint32_t ir)
 {
 	char fmt;
 	int fs, fd;
@@ -360,7 +360,7 @@ Icvts(ulong ir)
 		break;	
 	case 4:
 		fmt = 'w';
-		reg.fl[fd] = (long)reg.di[fs];
+		reg.fl[fd] = (int32_t)reg.di[fs];
 		reg.ft[fd] = FPs;
 		break;
 	}
@@ -369,9 +369,9 @@ Icvts(ulong ir)
 }
 
 void
-Icvtw(ulong ir)
+Icvtw(uint32_t ir)
 {
-	long v;
+	int32_t v;
 	char fmt;
 	int fs, fd;
 
@@ -402,7 +402,7 @@ Icvtw(ulong ir)
 }
 
 void
-Ifadd(ulong ir)
+Ifadd(uint32_t ir)
 {
 	char fmt;
 	int fs, ft, fd;
@@ -432,7 +432,7 @@ Ifadd(ulong ir)
 }
 
 void
-Ifmul(ulong ir)
+Ifmul(uint32_t ir)
 {
 	char fmt;
 	int fs, ft, fd;
@@ -462,7 +462,7 @@ Ifmul(ulong ir)
 }
 
 void
-Ifdiv(ulong ir)
+Ifdiv(uint32_t ir)
 {
 	char fmt;
 	int fs, ft, fd;
@@ -492,13 +492,13 @@ Ifdiv(ulong ir)
 }
 
 void
-Ilwc1(ulong inst)
+Ilwc1(uint32_t inst)
 {
 	int rt, rb;
 	int off;
 
 	Getrbrt(rb, rt, inst);
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	if(trace)
 		itrace("lwc1\tf%d,0x%x(r%d) ea=%lux", rt, off, rb, reg.r[rb]+off);
@@ -508,13 +508,13 @@ Ilwc1(ulong inst)
 }
 
 void
-Ibcfbct(ulong inst)
+Ibcfbct(uint32_t inst)
 {
 	int takeit;
 	int off;
-	ulong npc;
+	uint32_t npc;
 
-	off = (short)(inst&0xffff);
+	off = (int16_t)(inst&0xffff);
 
 	takeit = 0;
 	npc = reg.pc + (off<<2) + 4;
@@ -543,7 +543,7 @@ Ibcfbct(ulong inst)
 }
 
 void
-Imtct(ulong ir)
+Imtct(uint32_t ir)
 {
 	int rt, fs;
 
@@ -562,7 +562,7 @@ Imtct(ulong ir)
 }
 
 void
-Imfcf(ulong ir)
+Imfcf(uint32_t ir)
 {
 	int rt, fs;
 
@@ -580,7 +580,7 @@ Imfcf(ulong ir)
 }
 
 void
-Icop1(ulong ir)
+Icop1(uint32_t ir)
 {
 	Inst *i;
 
@@ -606,7 +606,7 @@ Icop1(ulong ir)
 }
 
 void
-Ifcmp(ulong ir)
+Ifcmp(uint32_t ir)
 {
 	char fmt;
 	int fc;

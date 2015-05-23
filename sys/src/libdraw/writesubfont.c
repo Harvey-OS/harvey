@@ -13,7 +13,7 @@
 
 static
 void
-packinfo(Fontchar *fc, uchar *p, int n)
+packinfo(Fontchar *fc, uint8_t *p, int n)
 {
 	int j;
 
@@ -33,7 +33,7 @@ int
 writesubfont(int fd, Subfont *f)
 {
 	char hdr[3*12+1];
-	uchar *data;
+	uint8_t *data;
 	int nb;
 
 	sprint(hdr, "%11d %11d %11d ", f->n, f->height, f->ascent);

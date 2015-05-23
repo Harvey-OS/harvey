@@ -153,7 +153,7 @@ nextpc(void)
 void
 gargs(Node *n, Node *tn1, Node *tn2)
 {
-	long regs;
+	int32_t regs;
 	Node fnxargs[20], *fnxp;
 
 	regs = cursafe;
@@ -228,14 +228,14 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 }
 
 Node*
-nod32const(vlong v)
+nod32const(int64_t v)
 {
 	constnode.vconst = v & MASK(32);
 	return &constnode;
 }
 
 Node*
-nodconst(long v)
+nodconst(int32_t v)
 {
 	constnode.vconst = v;
 	return &constnode;
@@ -466,7 +466,7 @@ raddr(Node *n, Prog *p)
 void
 naddr(Node *n, Adr *a)
 {
-	long v;
+	int32_t v;
 
 	a->type = D_NONE;
 	if(n == Z)
@@ -571,7 +571,7 @@ gloadhi(Node *f, Node *t, int c)
 	Type *ot;
 
 	if(f->op == OCONST){
-		f = nodconst((long)(f->vconst>>32));
+		f = nodconst((int32_t)(f->vconst>>32));
 		if(c==1 && sconst(f) || c==2 && uconst(f)){
 			if(t->op == OREGISTER)
 				regfree(t);
@@ -595,7 +595,7 @@ gloadlo(Node *f, Node *t, int c)
 	Type *ot;
 
 	if(f->op == OCONST){
-		f = nodconst((long)f->vconst);
+		f = nodconst((int32_t)f->vconst);
 		if(c && uconst(f)){
 			if(t->op == OREGISTER)
 				regfree(t);
@@ -1303,7 +1303,7 @@ gopcode64(int o, Node *f1, Node *f2, Node *t)
 {
 	int a1, a2;
 	Node nod, nod1, nod2, sh;
-	ulong m;
+	uint32_t m;
 	Prog *p1;
 
 	if(t->op != OREGPAIR || f2 != Z && f2->op != OREGPAIR) {
@@ -1567,7 +1567,7 @@ samaddr(Node *f, Node *t)
 static void
 gori64(int a, Node *f1, Node *f2, Node *t)
 {
-	ulong lo, hi;
+	uint32_t lo, hi;
 
 	if(f2 == Z)
 		f2 = t;
@@ -1586,7 +1586,7 @@ gori64(int a, Node *f1, Node *f2, Node *t)
 static void
 gandi64(int a, Node *f1, Node *f2, Node *t)
 {
-	ulong lo, hi;
+	uint32_t lo, hi;
 
 	if(f2 == Z)
 		f2 = t;
@@ -1625,7 +1625,7 @@ gbranch(int o)
 }
 
 void
-patch(Prog *op, long pc)
+patch(Prog *op, int32_t pc)
 {
 
 	op->to.offset = pc;
@@ -1651,7 +1651,7 @@ gpseudo(int a, Sym *s, Node *n)
 }
 
 int
-sval(long v)
+sval(int32_t v)
 {
 
 	if(v >= -(1<<15) && v < (1<<15))
@@ -1662,12 +1662,12 @@ sval(long v)
 int
 sconst(Node *n)
 {
-	vlong vv;
+	int64_t vv;
 
 	if(n->op == OCONST) {
 		if(!typefd[n->type->etype]) {
 			vv = n->vconst;
-			if(vv >= -(((vlong)1)<<15) && vv < (((vlong)1)<<15))
+			if(vv >= -(((int64_t)1)<<15) && vv < (((int64_t)1)<<15))
 				return 1;
 		}
 	}
@@ -1677,22 +1677,22 @@ sconst(Node *n)
 int
 uconst(Node *n)
 {
-	vlong vv;
+	int64_t vv;
 
 	if(n->op == OCONST) {
 		if(!typefd[n->type->etype]) {
 			vv = n->vconst;
-			if(vv >= 0 && vv < (((vlong)1)<<16))
+			if(vv >= 0 && vv < (((int64_t)1)<<16))
 				return 1;
 		}
 	}
 	return 0;
 }
 
-long
+int32_t
 exreg(Type *t)
 {
-	long o;
+	int32_t o;
 
 	if(typechlp[t->etype]) {
 		if(exregoffset <= 3)
@@ -1734,7 +1734,7 @@ schar	ewidth[NTYPE] =
 	-1,		/* [TUNION] */
 	SZ_INT,		/* [TENUM] */
 };
-long	ncast[NTYPE] =
+int32_t	ncast[NTYPE] =
 {
 	0,				/* [TXXX] */
 	BCHAR|BUCHAR,			/* [TCHAR] */

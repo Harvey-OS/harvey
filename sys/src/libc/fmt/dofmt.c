@@ -25,7 +25,7 @@ dofmt(Fmt *f, char *fmt)
 		if(f->runes){
 			rt = f->to;
 			rs = f->stop;
-			while((r = *(uchar*)fmt) && r != '%'){
+			while((r = *(uint8_t*)fmt) && r != '%'){
 				if(r < Runeself)
 					fmt++;
 				else{
@@ -43,7 +43,7 @@ dofmt(Fmt *f, char *fmt)
 		}else{
 			t = f->to;
 			s = f->stop;
-			while((r = *(uchar*)fmt) && r != '%'){
+			while((r = *(uint8_t*)fmt) && r != '%'){
 				if(r < Runeself){
 					FMTCHAR(f, t, s, r);
 					fmt++;
@@ -128,7 +128,7 @@ _fmtcpy(Fmt *f, void *vm, int n, int sz)
 {
 	Rune *rt, *rs, r;
 	char *t, *s, *m, *me;
-	ulong fl;
+	uint32_t fl;
 	int nc, w;
 
 	m = vm;
@@ -143,7 +143,7 @@ _fmtcpy(Fmt *f, void *vm, int n, int sz)
 		rt = f->to;
 		rs = f->stop;
 		for(nc = n; nc > 0; nc--){
-			r = *(uchar*)m;
+			r = *(uint8_t*)m;
 			if(r < Runeself)
 				m++;
 			else if((me - m) >= UTFmax || fullrune(m, me-m))
@@ -162,7 +162,7 @@ _fmtcpy(Fmt *f, void *vm, int n, int sz)
 		t = f->to;
 		s = f->stop;
 		for(nc = n; nc > 0; nc--){
-			r = *(uchar*)m;
+			r = *(uint8_t*)m;
 			if(r < Runeself)
 				m++;
 			else if((me - m) >= UTFmax || fullrune(m, me-m))
@@ -184,7 +184,7 @@ _fmtrcpy(Fmt *f, void *vm, int n)
 {
 	Rune r, *m, *me, *rt, *rs;
 	char *t, *s;
-	ulong fl;
+	uint32_t fl;
 	int w;
 
 	m = vm;
@@ -324,8 +324,8 @@ int
 _ifmt(Fmt *f)
 {
 	char buf[Maxintwidth + 1], *p, *conv;
-	uvlong vu;
-	ulong u;
+	uint64_t vu;
+	uint32_t u;
 	uintptr pu;
 	int neg, base, i, n, fl, w, isv;
 
@@ -336,7 +336,7 @@ _ifmt(Fmt *f)
 	u = 0;
 	if(f->r == 'p'){
 		pu = va_arg(f->args, uintptr);
-		if(sizeof(uintptr) == sizeof(uvlong)){
+		if(sizeof(uintptr) == sizeof(uint64_t)){
 			vu = pu;
 			isv = 1;
 		}else
@@ -346,24 +346,24 @@ _ifmt(Fmt *f)
 	}else if(fl & FmtVLong){
 		isv = 1;
 		if(fl & FmtUnsigned)
-			vu = va_arg(f->args, uvlong);
+			vu = va_arg(f->args, uint64_t);
 		else
-			vu = va_arg(f->args, vlong);
+			vu = va_arg(f->args, int64_t);
 	}else if(fl & FmtLong){
 		if(fl & FmtUnsigned)
-			u = va_arg(f->args, ulong);
+			u = va_arg(f->args, uint32_t);
 		else
-			u = va_arg(f->args, long);
+			u = va_arg(f->args, int32_t);
 	}else if(fl & FmtByte){
 		if(fl & FmtUnsigned)
-			u = (uchar)va_arg(f->args, int);
+			u = (uint8_t)va_arg(f->args, int);
 		else
 			u = (char)va_arg(f->args, int);
 	}else if(fl & FmtShort){
 		if(fl & FmtUnsigned)
-			u = (ushort)va_arg(f->args, int);
+			u = (uint16_t)va_arg(f->args, int);
 		else
-			u = (short)va_arg(f->args, int);
+			u = (int16_t)va_arg(f->args, int);
 	}else{
 		if(fl & FmtUnsigned)
 			u = va_arg(f->args, uint);
@@ -392,11 +392,11 @@ _ifmt(Fmt *f)
 		return -1;
 	}
 	if(!(fl & FmtUnsigned)){
-		if(isv && (vlong)vu < 0){
-			vu = -(vlong)vu;
+		if(isv && (int64_t)vu < 0){
+			vu = -(int64_t)vu;
 			neg = 1;
-		}else if(!isv && (long)u < 0){
-			u = -(long)u;
+		}else if(!isv && (int32_t)u < 0){
+			u = -(int32_t)u;
 			neg = 1;
 		}
 	}
@@ -468,18 +468,18 @@ int
 _countfmt(Fmt *f)
 {
 	void *p;
-	ulong fl;
+	uint32_t fl;
 
 	fl = f->flags;
 	p = va_arg(f->args, void*);
 	if(fl & FmtVLong){
-		*(vlong*)p = f->nfmt;
+		*(int64_t*)p = f->nfmt;
 	}else if(fl & FmtLong){
-		*(long*)p = f->nfmt;
+		*(int32_t*)p = f->nfmt;
 	}else if(fl & FmtByte){
 		*(char*)p = f->nfmt;
 	}else if(fl & FmtShort){
-		*(short*)p = f->nfmt;
+		*(int16_t*)p = f->nfmt;
 	}else{
 		*(int*)p = f->nfmt;
 	}

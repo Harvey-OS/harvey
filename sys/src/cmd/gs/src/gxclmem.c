@@ -143,7 +143,7 @@ LIMITATIONS.
    least as large as the fixed overhead of the compressor plus the
    decompressor, plus the expected compressed size of a block that size.
  */
-private const long COMPRESSION_THRESHOLD = 300000;
+private const int32_t COMPRESSION_THRESHOLD = 300000;
 
 #define NEED_TO_COMPRESS(f)\
   ((f)->ok_to_compress && (f)->total_space > COMPRESSION_THRESHOLD)
@@ -170,11 +170,11 @@ private int memfile_init_empty(MEMFILE * f);
 /************************************************/
 
 #ifdef DEBUG
-long tot_compressed;
-long tot_raw;
-long tot_cache_miss;
-long tot_cache_hits;
-long tot_swap_out;
+int32_t tot_compressed;
+int32_t tot_raw;
+int32_t tot_cache_miss;
+int32_t tot_cache_hits;
+int32_t tot_swap_out;
 
 /*
    The following pointers are here only for helping with a dumb debugger
@@ -451,7 +451,7 @@ compress_log_blk(MEMFILE * f, LOG_MEMFILE_BLK * bp)
     int status;
     int ecode = 0;		/* accumulate low-memory warnings */
     int code;
-    long compressed_size;
+    int32_t compressed_size;
     byte *start_ptr;
     PHYS_MEMFILE_BLK *newphys;
 
@@ -875,14 +875,15 @@ memfile_ferror_code(clist_file_ptr cf)
     return (((MEMFILE *) cf)->error_code);	/* errors stored here */
 }
 
-long
+int32_t
 memfile_ftell(clist_file_ptr cf)
 {
     return (((MEMFILE *) cf)->log_curr_pos);
 }
 
 void
-memfile_rewind(clist_file_ptr cf, bool discard_data, const char *ignore_fname)
+memfile_rewind(clist_file_ptr cf, bool discard_data,
+               const char *ignore_fname)
 {
     MEMFILE *f = (MEMFILE *) cf;
 
@@ -898,10 +899,11 @@ memfile_rewind(clist_file_ptr cf, bool discard_data, const char *ignore_fname)
 }
 
 int
-memfile_fseek(clist_file_ptr cf, long offset, int mode, const char *ignore_fname)
+memfile_fseek(clist_file_ptr cf, int32_t offset, int mode,
+              const char *ignore_fname)
 {
     MEMFILE *f = (MEMFILE *) cf;
-    long i, block_num, new_pos;
+    int32_t i, block_num, new_pos;
 
     switch (mode) {
 	case SEEK_SET:		/* offset from the beginning of the file */

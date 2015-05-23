@@ -27,13 +27,13 @@ initdes(Conn *c, int)
 }
 
 static void
-encryptdes(CipherState *cs, uchar *buf, int nbuf)
+encryptdes(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	desCBCencrypt(buf, nbuf, &cs->enc);
 }
 
 static void
-decryptdes(CipherState *cs, uchar *buf, int nbuf)
+decryptdes(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	desCBCdecrypt(buf, nbuf, &cs->dec);
 }

@@ -652,7 +652,7 @@ calc_put(stream *s, const gs_function_PtCr_t *pfn)
 
 /* Access the symbolic definition as a DataSource. */
 private int
-calc_access(const gs_data_source_t *psrc, ulong start, uint length,
+calc_access(const gs_data_source_t *psrc, uint32_t start, uint length,
 	    byte *buf, const byte **ptr)
 {
     const gs_function_PtCr_t *const pfn =

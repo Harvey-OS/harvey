@@ -29,7 +29,7 @@ send_ssh_cmsg_session_key(Conn *c)
 {
 	int i, n, buflen, serverkeylen, hostkeylen;
 	mpint *b;
-	uchar *buf;
+	uint8_t *buf;
 	Msg *m;
 	RSApub *ksmall, *kbig;
 
@@ -301,7 +301,7 @@ sendwindowsize(Conn *c, int nrow, int ncol, int width, int height)
  * and the second is either a boolean bit or actually an
  * ASCII code.
  */
-static uchar ptyopt[] =
+static uint8_t ptyopt[] =
 {
 	0x01, 0x7F,	/* interrupt = DEL */
 	0x02, 0x11,	/* quit = ^Q */
@@ -314,7 +314,7 @@ static uchar ptyopt[] =
 	0x00,		/* end options */
 };
 
-static uchar rawptyopt[] = 
+static uint8_t rawptyopt[] = 
 {
 	30,	0,		/* ignpar */
 	31,	0,		/* parmrk */

@@ -29,8 +29,8 @@ void	verifyone(void);
 void	verifyline(void);
 void	verifyrect(void);
 void	verifyrectrepl(int, int);
-void putpixel(Memimage *img, Point pt, ulong nv);
-ulong rgbatopix(uchar, uchar, uchar, uchar);
+void putpixel(Memimage *img, Point pt, uint32_t nv);
+uint32_t rgbatopix(uint8_t, uint8_t, uint8_t, uint8_t);
 
 char *dchan, *schan, *mchan;
 int dbpp, sbpp, mbpp;
@@ -53,10 +53,10 @@ Memimage	*mask;
 Memimage	*stmp;
 Memimage	*mtmp;
 Memimage	*ones;
-uchar	*dstbits;
-uchar	*srcbits;
-uchar	*maskbits;
-ulong	*savedstbits;
+uint8_t	*dstbits;
+uint8_t	*srcbits;
+uint8_t	*maskbits;
+uint32_t	*savedstbits;
 
 void
 rdb(void)
@@ -170,7 +170,7 @@ main(int argc, char *argv[])
  * a list of characters to put at various points in the picture.
  */
 static void
-Bprintr5g6b5(Biobuf *bio, char*, ulong v)
+Bprintr5g6b5(Biobuf *bio, char*, uint32_t v)
 {
 	int r,g,b;
 	r = (v>>11)&31;
@@ -180,7 +180,7 @@ Bprintr5g6b5(Biobuf *bio, char*, ulong v)
 }
 
 static void
-Bprintr5g5b5a1(Biobuf *bio, char*, ulong v)
+Bprintr5g5b5a1(Biobuf *bio, char*, uint32_t v)
 {
 	int r,g,b,a;
 	r = (v>>11)&31;
@@ -194,12 +194,12 @@ void
 dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 {
 	Biobuf b;
-	uchar *data;
-	uchar *p;
+	uint8_t *data;
+	uint8_t *p;
 	char *arg;
-	void (*fmt)(Biobuf*, char*, ulong);
+	void (*fmt)(Biobuf*, char*, uint32_t);
 	int npr, x, y, nb, bpp;
-	ulong v, mask;
+	uint32_t v, mask;
 	Rectangle r;
 
 	fmt = nil;
@@ -208,11 +208,11 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 	case 1:
 	case 2:
 	case 4:
-		fmt = (void(*)(Biobuf*,char*,ulong))Bprint;
+		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
 		arg = "%.1ux";
 		break;
 	case 8:
-		fmt = (void(*)(Biobuf*,char*,ulong))Bprint;
+		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
 		arg = "%.2ux";
 		break;
 	case 16:
@@ -220,16 +220,16 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 		if(img->chan == RGB16)
 			fmt = Bprintr5g6b5;
 		else{
-			fmt = (void(*)(Biobuf*,char*,ulong))Bprint;
+			fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
 			arg = "%.4ux";
 		}
 		break;
 	case 24:
-		fmt = (void(*)(Biobuf*,char*,ulong))Bprint;
+		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
 		arg = "%.6lux";
 		break;
 	case 32:
-		fmt = (void(*)(Biobuf*,char*,ulong))Bprint;
+		fmt = (void(*)(Biobuf*,char*,uint32_t))Bprint;
 		arg = "%.8lux";
 		break;
 	}
@@ -248,7 +248,7 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 	for(y=0; y<Yrange; y++){
 		nb = 0;
 		v = 0;
-		p = data+(byteaddr(img, Pt(0,y))-(uchar*)img->data->bdata);
+		p = data+(byteaddr(img, Pt(0,y))-(uint8_t*)img->data->bdata);
 		Bprint(&b, "%-4d\t", y);
 //		for(x=r.min.x; x<r.max.x; x++){
 		for(x=0; x<Xrange; x++){
@@ -268,7 +268,7 @@ dumpimage(char *name, Memimage *img, void *vdata, Point labelpt)
 
 			while(nb < bpp){
 				v &= (1<<nb)-1;
-				v |= (ulong)(*p++) << nb;
+				v |= (uint32_t)(*p++) << nb;
 				nb += 8;
 			}
 			nb -= bpp;
@@ -289,11 +289,11 @@ void
 checkone(Point p, Point sp, Point mp)
 {
 	int delta;
-	uchar *dp, *sdp;
+	uint8_t *dp, *sdp;
 
-	delta = (uchar*)byteaddr(dst, p)-(uchar*)dst->data->bdata;
-	dp = (uchar*)dst->data->bdata+delta;
-	sdp = (uchar*)savedstbits+delta;
+	delta = (uint8_t*)byteaddr(dst, p)-(uint8_t*)dst->data->bdata;
+	dp = (uint8_t*)dst->data->bdata+delta;
+	sdp = (uint8_t*)savedstbits+delta;
 
 	if(memcmp(dp, sdp, (dst->depth+7)/8) != 0) {
 		fprint(2, "dtest: one bad pixel drawing at dst %P from source %P mask %P\n", p, sp, mp);
@@ -316,9 +316,9 @@ checkone(Point p, Point sp, Point mp)
 void
 checkline(Rectangle r, Point sp, Point mp, int y, Memimage *stmp, Memimage *mtmp)
 {
-	ulong *dp;
+	uint32_t *dp;
 	int nb;
-	ulong *saved;
+	uint32_t *saved;
 
 	dp = wordaddr(dst, Pt(0, y));
 	saved = savedstbits + y*dst->width;
@@ -346,19 +346,19 @@ checkline(Rectangle r, Point sp, Point mp, int y, Memimage *stmp, Memimage *mtmp
  * the data is well formatted: only ucbits is written.
  */
 void
-fill(Memimage *img, uchar *ucbits)
+fill(Memimage *img, uint8_t *ucbits)
 {
 	int i, x, y;
-	ushort *up;
-	uchar alpha, r, g, b;
+	uint16_t *up;
+	uint8_t alpha, r, g, b;
 	void *data;
 
 	if((img->flags&Falpha) == 0){
-		up = (ushort*)ucbits;
+		up = (uint16_t*)ucbits;
 		for(i=0; i<nbytes/2; i++)
 			*up++ = lrand() >> 7;
 		if(i+i != nbytes)
-			*(uchar*)up = lrand() >> 7;
+			*(uint8_t*)up = lrand() >> 7;
 	}else{
 		data = img->data->bdata;
 		img->data->bdata = ucbits;
@@ -386,9 +386,10 @@ verifyonemask(void)
 
 	fill(dst, dstbits);
 	fill(src, srcbits);
-	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
-	memmove(src->data->bdata, srcbits, src->width*sizeof(ulong)*Yrange);
-	memmove(mask->data->bdata, maskbits, mask->width*sizeof(ulong)*Yrange);
+	memmove(dst->data->bdata, dstbits, dst->width*sizeof(uint32_t)*Yrange);
+	memmove(src->data->bdata, srcbits, src->width*sizeof(uint32_t)*Yrange);
+	memmove(mask->data->bdata, maskbits,
+		mask->width*sizeof(uint32_t)*Yrange);
 
 	dp.x = nrand(Xrange);
 	dp.y = nrand(Yrange);
@@ -400,12 +401,15 @@ verifyonemask(void)
 	mp.y = nrand(Yrange);
 
 	drawonepixel(dst, dp, src, sp, mask, mp);
-	memmove(mask->data->bdata, maskbits, mask->width*sizeof(ulong)*Yrange);
-	memmove(savedstbits, dst->data->bdata, dst->width*sizeof(ulong)*Yrange);
+	memmove(mask->data->bdata, maskbits,
+		mask->width*sizeof(uint32_t)*Yrange);
+	memmove(savedstbits, dst->data->bdata,
+		dst->width*sizeof(uint32_t)*Yrange);
 	
-	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
+	memmove(dst->data->bdata, dstbits, dst->width*sizeof(uint32_t)*Yrange);
 	memimagedraw(dst, Rect(dp.x, dp.y, dp.x+1, dp.y+1), src, sp, mask, mp, SoverD);
-	memmove(mask->data->bdata, maskbits, mask->width*sizeof(ulong)*Yrange);
+	memmove(mask->data->bdata, maskbits,
+		mask->width*sizeof(uint32_t)*Yrange);
 
 	checkone(dp, sp, mp);
 }
@@ -444,9 +448,10 @@ verifylinemask(void)
 
 	fill(dst, dstbits);
 	fill(src, srcbits);
-	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
-	memmove(src->data->bdata, srcbits, src->width*sizeof(ulong)*Yrange);
-	memmove(mask->data->bdata, maskbits, mask->width*sizeof(ulong)*Yrange);
+	memmove(dst->data->bdata, dstbits, dst->width*sizeof(uint32_t)*Yrange);
+	memmove(src->data->bdata, srcbits, src->width*sizeof(uint32_t)*Yrange);
+	memmove(mask->data->bdata, maskbits,
+		mask->width*sizeof(uint32_t)*Yrange);
 
 	dr.min.x = nrand(Xrange-1);
 	dr.min.y = nrand(Yrange-1);
@@ -463,9 +468,10 @@ verifylinemask(void)
 	up = mp;
 	for(x=dr.min.x; x<dr.max.x && tp.x<Xrange && up.x<Xrange; x++,tp.x++,up.x++)
 		memimagedraw(dst, Rect(x, dr.min.y, x+1, dr.min.y+1), src, tp, mask, up, SoverD);
-	memmove(savedstbits, dst->data->bdata, dst->width*sizeof(ulong)*Yrange);
+	memmove(savedstbits, dst->data->bdata,
+		dst->width*sizeof(uint32_t)*Yrange);
 
-	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
+	memmove(dst->data->bdata, dstbits, dst->width*sizeof(uint32_t)*Yrange);
 
 	memimagedraw(dst, dr, src, sp, mask, mp, SoverD);
 	checkline(dr, drawrepl(src->r, sp), drawrepl(mask->r, mp), dr.min.y, nil, nil);
@@ -505,9 +511,10 @@ verifyrectmask(void)
 
 	fill(dst, dstbits);
 	fill(src, srcbits);
-	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
-	memmove(src->data->bdata, srcbits, src->width*sizeof(ulong)*Yrange);
-	memmove(mask->data->bdata, maskbits, mask->width*sizeof(ulong)*Yrange);
+	memmove(dst->data->bdata, dstbits, dst->width*sizeof(uint32_t)*Yrange);
+	memmove(src->data->bdata, srcbits, src->width*sizeof(uint32_t)*Yrange);
+	memmove(mask->data->bdata, maskbits,
+		mask->width*sizeof(uint32_t)*Yrange);
 
 	dr.min.x = nrand(Xrange-1);
 	dr.min.y = nrand(Yrange-1);
@@ -528,9 +535,10 @@ verifyrectmask(void)
 		tp.x = sp.x;
 		up.x = mp.x;
 	}
-	memmove(savedstbits, dst->data->bdata, dst->width*sizeof(ulong)*Yrange);
+	memmove(savedstbits, dst->data->bdata,
+		dst->width*sizeof(uint32_t)*Yrange);
 
-	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
+	memmove(dst->data->bdata, dstbits, dst->width*sizeof(uint32_t)*Yrange);
 
 	memimagedraw(dst, dr, src, sp, mask, mp, SoverD);
 	for(y=0; y<Yrange; y++)
@@ -622,7 +630,7 @@ replicate(Memimage *i, Memimage *tmp)
 	assert(r.min.y >= 0);
 	assert(r.max.y <= Yrange);
 	/* copy from i to tmp so we have just the replicated bits */
-	nb = tmp->width*sizeof(ulong)*Yrange;
+	nb = tmp->width*sizeof(uint32_t)*Yrange;
 	memset(tmp->data->bdata, 0, nb);
 	memimagedraw(tmp, r, i, r.min, ones, r.min, SoverD);
 	memmove(i->data->bdata, tmp->data->bdata, nb);
@@ -677,9 +685,10 @@ verifyrectmaskrepl(int srcrepl, int maskrepl)
 	fill(dst, dstbits);
 	fill(src, srcbits);
 
-	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
-	memmove(src->data->bdata, srcbits, src->width*sizeof(ulong)*Yrange);
-	memmove(mask->data->bdata, maskbits, mask->width*sizeof(ulong)*Yrange);
+	memmove(dst->data->bdata, dstbits, dst->width*sizeof(uint32_t)*Yrange);
+	memmove(src->data->bdata, srcbits, src->width*sizeof(uint32_t)*Yrange);
+	memmove(mask->data->bdata, maskbits,
+		mask->width*sizeof(uint32_t)*Yrange);
 
 	if(srcrepl){
 		replicate(src, stmp);
@@ -704,9 +713,10 @@ DBG	print("smalldraws\n");
 	for(tp.y=sp.y,up.y=mp.y,y=dr.min.y; y<dr.max.y && tp.y<Yrange && up.y<Yrange; y++,tp.y++,up.y++)
 		for(tp.x=sp.x,up.x=mp.x,x=dr.min.x; x<dr.max.x && tp.x<Xrange && up.x<Xrange; x++,tp.x++,up.x++)
 			memimagedraw(dst, Rect(x, y, x+1, y+1), s, tp, m, up, SoverD);
-	memmove(savedstbits, dst->data->bdata, dst->width*sizeof(ulong)*Yrange);
+	memmove(savedstbits, dst->data->bdata,
+		dst->width*sizeof(uint32_t)*Yrange);
 
-	memmove(dst->data->bdata, dstbits, dst->width*sizeof(ulong)*Yrange);
+	memmove(dst->data->bdata, dstbits, dst->width*sizeof(uint32_t)*Yrange);
 
 DBG	print("bigdraw\n");
 	memimagedraw(dst, dr, src, sp, mask, mp, SoverD);
@@ -745,8 +755,8 @@ verifyrectrepl(int srcrepl, int maskrepl)
  * Convert v, which is nhave bits wide, into its nwant bits wide equivalent.
  * Replicates to widen the value, truncates to narrow it.
  */
-ulong
-replbits(ulong v, int nhave, int nwant)
+uint32_t
+replbits(uint32_t v, int nhave, int nwant)
 {
 	v &= (1<<nhave)-1;
 	for(; nhave<nwant; nhave*=2)
@@ -759,7 +769,7 @@ replbits(ulong v, int nhave, int nwant)
  * Decode a pixel into the uchar* values.
  */
 void
-pixtorgba(ulong v, uchar *r, uchar *g, uchar *b, uchar *a)
+pixtorgba(uint32_t v, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a)
 {
 	*a = v>>24;
 	*r = v>>16;
@@ -770,8 +780,8 @@ pixtorgba(ulong v, uchar *r, uchar *g, uchar *b, uchar *a)
 /*
  * Convert uchar channels into ulong pixel.
  */
-ulong
-rgbatopix(uchar r, uchar g, uchar b, uchar a)
+uint32_t
+rgbatopix(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
 	return (a<<24)|(r<<16)|(g<<8)|b;
 }
@@ -779,12 +789,12 @@ rgbatopix(uchar r, uchar g, uchar b, uchar a)
 /*
  * Retrieve the pixel value at pt in the image.
  */
-ulong
+uint32_t
 getpixel(Memimage *img, Point pt)
 {
-	uchar r, g, b, a, *p;
+	uint8_t r, g, b, a, *p;
 	int nbits, npack, bpp;
-	ulong v, c, rbits, bits;
+	uint32_t v, c, rbits, bits;
 
 	r = g = b = 0;
 	a = ~0;	/* default alpha is full */
@@ -856,10 +866,10 @@ getpixel(Memimage *img, Point pt)
 /*
  * Return the greyscale equivalent of a pixel.
  */
-uchar
+uint8_t
 getgrey(Memimage *img, Point pt)
 {
-	uchar r, g, b, a;
+	uint8_t r, g, b, a;
 	pixtorgba(getpixel(img, pt), &r, &g, &b, &a);
 	return RGB2K(r, g, b);
 }
@@ -869,7 +879,7 @@ getgrey(Memimage *img, Point pt)
  * as a mask.  This means the alpha channel if present, else
  * the greyscale or its computed equivalent.
  */
-uchar
+uint8_t
 getmask(Memimage *img, Point pt)
 {
 	if(img->flags&Falpha)
@@ -891,10 +901,10 @@ getmask(Memimage *img, Point pt)
  * less than 32 bits.
  */
 void
-putpixel(Memimage *img, Point pt, ulong nv)
+putpixel(Memimage *img, Point pt, uint32_t nv)
 {
-	uchar r, g, b, a, *p, *q;
-	ulong c, mask, bits, v;
+	uint8_t r, g, b, a, *p, *q;
+	uint32_t c, mask, bits, v;
 	int bpp, sh, npack, nbits;
 
 	pixtorgba(nv, &r, &g, &b, &a);
@@ -978,7 +988,7 @@ DBG print("v %.8lux\n", v);
 void
 drawonepixel(Memimage *dst, Point dp, Memimage *src, Point sp, Memimage *mask, Point mp)
 {
-	uchar m, M, sr, sg, sb, sa, sk, dr, dg, db, da, dk;
+	uint8_t m, M, sr, sg, sb, sa, sk, dr, dg, db, da, dk;
 
 	pixtorgba(getpixel(dst, dp), &dr, &dg, &db, &da);
 	pixtorgba(getpixel(src, sp), &sr, &sg, &sb, &sa);

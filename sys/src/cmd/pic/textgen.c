@@ -116,7 +116,8 @@ obj *troffgen(char *s)	/* save away a string of troff commands */
 void savetext(int t, char *s)	/* record text elements for current object */
 {
 	if (ntext >= ntextlist)
-		text = (Text *) grow((char *) text, "text", ntextlist += 200, sizeof(Text));
+		text = (Text *) grow((char *) text, "text",
+				     ntextlist += 200, sizeof(Text));
 	text[ntext].t_type = t;
 	text[ntext].t_val = s;
 	dprintf("saving %d text %s at %d\n", t, s, ntext);

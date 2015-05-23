@@ -369,7 +369,7 @@ void
 loadlib(void)
 {
 	int i;
-	long h;
+	int32_t h;
 	Sym *s;
 
 loop:
@@ -401,7 +401,7 @@ errorexit(void)
 void
 objfile(char *file)
 {
-	long off, esym, cnt, l;
+	int32_t off, esym, cnt, l;
 	int f, work;
 	Sym *s;
 	char magbuf[SARMAG];
@@ -510,7 +510,7 @@ out:
 }
 
 int
-zaddr(uchar *p, Adr *a, Sym *h[])
+zaddr(uint8_t *p, Adr *a, Sym *h[])
 {
 	int i, c;
 	int l;
@@ -698,7 +698,7 @@ addlib(char *obj)
 }
 
 void
-addhist(long line, int type)
+addhist(int32_t line, int type)
 {
 	Auto *u;
 	Sym *s;
@@ -781,8 +781,8 @@ nopout(Prog *p)
 	p->to.type = D_NONE;
 }
 
-uchar*
-readsome(int f, uchar *buf, uchar *good, uchar *stop, int max)
+uint8_t*
+readsome(int f, uint8_t *buf, uint8_t *good, uint8_t *stop, int max)
 {
 	int n;
 
@@ -799,14 +799,14 @@ readsome(int f, uchar *buf, uchar *good, uchar *stop, int max)
 }
 
 void
-ldobj(int f, long c, char *pn)
+ldobj(int f, int32_t c, char *pn)
 {
-	long ipc;
+	int32_t ipc;
 	Prog *p, *t;
-	uchar *bloc, *bsize, *stop;
+	uint8_t *bloc, *bsize, *stop;
 	Sym *h[NSYM], *s, *di;
 	int v, o, r, skip;
-	ulong sig;
+	uint32_t sig;
 	static int files;
 	static char **filen;
 	char **nfilen;
@@ -1175,7 +1175,7 @@ lookup(char *symb, int v)
 {
 	Sym *s;
 	char *p;
-	long h;
+	int32_t h;
 	int c, l;
 
 	h = v;
@@ -1226,7 +1226,7 @@ void
 gethunk(void)
 {
 	char *h;
-	long nh;
+	int32_t nh;
 
 	nh = NHUNK;
 	if(thunk >= 5L*NHUNK) {
@@ -1248,7 +1248,7 @@ void
 doprof1(void)
 {
 	Sym *s;
-	long n;
+	int32_t n;
 	Prog *p, *q;
 
 	if(debug['v'])
@@ -1537,11 +1537,11 @@ find1(long l, int c)
 	return 0;
 }
 
-long
+int32_t
 ieeedtof(Ieee *ieeep)
 {
 	int exp;
-	long v;
+	int32_t v;
 
 	if(ieeep->h == 0)
 		return 0;

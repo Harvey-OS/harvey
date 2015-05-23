@@ -31,7 +31,7 @@ enum {
 
 typedef struct Toc Toc;
 struct Toc {
-	ulong diskid;
+	uint32_t diskid;
 	int ntrack;
 	char *title;
 	Track track[MTRACK];

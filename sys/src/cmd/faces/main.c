@@ -44,7 +44,7 @@ char *procnames[] = {
 
 Rectangle leftright = {0, 0, 20, 15};
 
-uchar leftdata[] = {
+uint8_t leftdata[] = {
 	0x00, 0x80, 0x00, 0x01, 0x80, 0x00, 0x03, 0x80,
 	0x00, 0x07, 0x80, 0x00, 0x0f, 0x00, 0x00, 0x1f,
 	0xff, 0xf0, 0x3f, 0xff, 0xf0, 0xff, 0xff, 0xf0,
@@ -53,7 +53,7 @@ uchar leftdata[] = {
 	0x80, 0x00, 0x00, 0x80, 0x00
 };
 
-uchar rightdata[] = {
+uint8_t rightdata[] = {
 	0x00, 0x10, 0x00, 0x00, 0x18, 0x00, 0x00, 0x1c,
 	0x00, 0x00, 0x1e, 0x00, 0x00, 0x0f, 0x00, 0xff,
 	0xff, 0x80, 0xff, 0xff, 0xc0, 0xff, 0xff, 0xf0,
@@ -78,7 +78,7 @@ int	ndown;
 char	date[64];
 Face	**faces;
 char	*maildir = "/mail/fs/mbox";
-ulong	now;
+uint32_t	now;
 
 Point	datep = { 8, 6 };
 Point	facep = { 8, 6+0+4 };	/* 0 updated to datefont->height in init() */
@@ -242,7 +242,7 @@ facetime(Face *f, int *recent)
 {
 	static char buf[30];
 
-	if((long)(now - f->time) > HhmmTime){
+	if((int32_t)(now - f->time) > HhmmTime){
 		*recent = 0;
 		sprint(buf, "%.3s %2d", mon+3*f->tm.mon, f->tm.mday);
 		return buf;
@@ -291,7 +291,7 @@ updatetimes(void)
 		f = faces[i];
 		if(f == nil)
 			continue;
-		if(((long)(now - f->time) <= HhmmTime) != f->recent)
+		if(((int32_t)(now - f->time) <= HhmmTime) != f->recent)
 			drawface(f, i);
 	}	
 }

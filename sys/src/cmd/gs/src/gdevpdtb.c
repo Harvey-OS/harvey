@@ -115,7 +115,7 @@ pdf_has_subset_prefix(const byte *str, uint size)
 }
 
 private ulong
-hash(ulong v, int index, ushort w)
+hash(uint32_t v, int index, uint16_t w)
 {
     return v * 3141592653u + w;
 }
@@ -131,19 +131,19 @@ pdf_add_subset_prefix(const gx_device_pdf *pdev, gs_string *pstr, byte *used, in
 				  size + SUBSET_PREFIX_SIZE,
 				  "pdf_add_subset_prefix");
     int len = (count + 7) / 8;
-    ulong v = 0;
-    ushort t = 0;
+    uint32_t v = 0;
+    uint16_t t = 0;
     int i;
 
     if (data == 0)
 	return_error(gs_error_VMerror);
     /* Hash the 'used' array. */
-    for (i = 0; i < len; i += sizeof(ushort))
-	v = hash(v, i, *(ushort *)(used + i));
+    for (i = 0; i < len; i += sizeof(uint16_t))
+	v = hash(v, i, *(uint16_t *)(used + i));
     if (i < len) {
-	i -= sizeof(ushort);
+	i -= sizeof(uint16_t);
 	memmove(&t, used + i, len - i);
-	v = hash(v, i, *(ushort *)(used + i));
+	v = hash(v, i, *(uint16_t *)(used + i));
     }
     memmove(data + SUBSET_PREFIX_SIZE, data, size);
     for (i = 0; i < SUBSET_PREFIX_SIZE - 1; ++i, v /= 26)
@@ -184,7 +184,7 @@ pdf_base_font_alloc(gx_device_pdf *pdev, pdf_base_font_t **ppbfont,
 			&st_pdf_base_font, "pdf_base_font_alloc");
     const gs_font_name *pfname = pdf_choose_font_name((gs_font *)font, orig_name);
     gs_const_string font_name;
-    char fnbuf[3 + sizeof(long) / 3 + 1]; /* .F#######\0 */
+    char fnbuf[3 + sizeof(int32_t) / 3 + 1]; /* .F#######\0 */
     int code;
 
     if (pbfont == 0)
@@ -275,7 +275,7 @@ pdf_base_font_alloc(gx_device_pdf *pdev, pdf_base_font_t **ppbfont,
 	    font_name.size -= SUBSET_PREFIX_SIZE;
 	}
     } else {
-	sprintf(fnbuf, ".F%lx", (ulong)copied);
+	sprintf(fnbuf, ".F%lx", (uint32_t)copied);
 	font_name.data = (byte *)fnbuf;
 	font_name.size = strlen(fnbuf);
     }
@@ -677,7 +677,7 @@ pdf_write_CharSet(gx_device_pdf *pdev, pdf_base_font_t *pbfont)
  */
 int
 pdf_write_CIDSet(gx_device_pdf *pdev, pdf_base_font_t *pbfont,
-		 long *pcidset_id)
+		 int32_t *pcidset_id)
 {
     pdf_data_writer_t writer;
     int code;

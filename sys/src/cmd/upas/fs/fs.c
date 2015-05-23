@@ -24,8 +24,8 @@ typedef struct Fid Fid;
 struct Fid
 {
 	Qid	qid;
-	short	busy;
-	short	open;
+	int16_t	busy;
+	int16_t	open;
 	int	fid;
 	Fid	*next;
 	Mailbox	*mb;
@@ -33,18 +33,18 @@ struct Fid
 	Message *mtop;		// top level message
 
 	//finger pointers to speed up reads of large directories
-	long	foff;	// offset/DIRLEN of finger
+	int32_t	foff;	// offset/DIRLEN of finger
 	Message	*fptr;	// pointer to message at off
 	int	fvers;	// mailbox version when finger was saved
 };
 
-ulong	path;		// incremented for each new file
+uint32_t	path;		// incremented for each new file
 Fid	*fids;
 int	mfd[2];
 char	user[Elemlen];
 int	messagesize = 4*1024+IOHDRSZ;
-uchar	mdata[8*1024+IOHDRSZ];
-uchar	mbuf[8*1024+IOHDRSZ];
+uint8_t	mdata[8*1024+IOHDRSZ];
+uint8_t	mbuf[8*1024+IOHDRSZ];
 Fcall	thdr;
 Fcall	rhdr;
 int	fflg;
@@ -58,8 +58,8 @@ Mailbox	*mbl;
 Fid		*newfid(int);
 void		error(char*);
 void		io(void);
-void		*erealloc(void*, ulong);
-void		*emalloc(ulong);
+void		*erealloc(void*, uint32_t);
+void		*emalloc(uint32_t);
 void		usage(void);
 void		reader(void);
 int		readheader(Message*, char*, int, int);
@@ -455,7 +455,7 @@ int infofields[] = {
 };
 
 static int
-readinfo(Message *m, char *buf, long off, int count)
+readinfo(Message *m, char *buf, int32_t off, int count)
 {
 	char *p;
 	int len, i, n;
@@ -805,11 +805,11 @@ rcreate(Fid*)
 }
 
 int
-readtopdir(Fid*, uchar *buf, long off, int cnt, int blen)
+readtopdir(Fid*, uint8_t *buf, int32_t off, int cnt, int blen)
 {
 	Dir d;
 	int m, n;
-	long pos;
+	int32_t pos;
 	Mailbox *mb;
 
 	n = 0;
@@ -839,11 +839,11 @@ readtopdir(Fid*, uchar *buf, long off, int cnt, int blen)
 }
 
 int
-readmboxdir(Fid *f, uchar *buf, long off, int cnt, int blen)
+readmboxdir(Fid *f, uint8_t *buf, int32_t off, int cnt, int blen)
 {
 	Dir d;
 	int n, m;
-	long pos;
+	int32_t pos;
 	Message *msg;
 
 	n = 0;
@@ -895,11 +895,11 @@ readmboxdir(Fid *f, uchar *buf, long off, int cnt, int blen)
 }
 
 int
-readmsgdir(Fid *f, uchar *buf, long off, int cnt, int blen)
+readmsgdir(Fid *f, uint8_t *buf, int32_t off, int cnt, int blen)
 {
 	Dir d;
 	int i, n, m;
-	long pos;
+	int32_t pos;
 	Message *msg;
 
 	n = 0;
@@ -933,7 +933,7 @@ readmsgdir(Fid *f, uchar *buf, long off, int cnt, int blen)
 char*
 rread(Fid *f)
 {
-	long off;
+	int32_t off;
 	int t, i, n, cnt;
 	char *p;
 
@@ -1220,7 +1220,7 @@ io(void)
 void
 reader(void)
 {
-	ulong t;
+	uint32_t t;
 	Dir *d;
 	Mailbox *mb;
 
@@ -1389,7 +1389,8 @@ rfc2047convert(String *s, char *token, int len)
 	// bail if we don't understand the encoding
 	if(cistrncmp(token, "b?", 2) == 0){
 		token += 2;
-		len = dec64((uchar*)decoded, sizeof(decoded), token, e-token);
+		len = dec64((uint8_t*)decoded, sizeof(decoded), token,
+			    e-token);
 		decoded[len] = 0;
 	} else if(cistrncmp(token, "q?", 2) == 0){
 		token += 2;
@@ -1529,13 +1530,13 @@ headerlen(Message *m)
 QLock hashlock;
 
 uint
-hash(ulong ppath, char *name)
+hash(uint32_t ppath, char *name)
 {
-	uchar *p;
+	uint8_t *p;
 	uint h;
 
 	h = 0;
-	for(p = (uchar*)name; *p; p++)
+	for(p = (uint8_t*)name; *p; p++)
 		h = h*7 + *p;
 	h += ppath;
 
@@ -1543,7 +1544,7 @@ hash(ulong ppath, char *name)
 }
 
 Hash*
-hlook(ulong ppath, char *name)
+hlook(uint32_t ppath, char *name)
 {
 	int h;
 	Hash *hp;
@@ -1560,7 +1561,7 @@ hlook(ulong ppath, char *name)
 }
 
 void
-henter(ulong ppath, char *name, Qid qid, Message *m, Mailbox *mb)
+henter(uint32_t ppath, char *name, Qid qid, Message *m, Mailbox *mb)
 {
 	int h;
 	Hash *hp, **l;
@@ -1588,7 +1589,7 @@ henter(ulong ppath, char *name, Qid qid, Message *m, Mailbox *mb)
 }
 
 void
-hfree(ulong ppath, char *name)
+hfree(uint32_t ppath, char *name)
 {
 	int h;
 	Hash *hp, **l;

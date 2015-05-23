@@ -21,16 +21,16 @@ int
 convTR2M(Ticketreq *f, char *ap)
 {
 	int n;
-	uchar *p;
+	uint8_t *p;
 
-	p = (uchar*)ap;
+	p = (uint8_t*)ap;
 	CHAR(type);
 	STRING(authid, 28);	/* BUG */
 	STRING(authdom, DOMLEN);
 	STRING(chal, CHALLEN);
 	STRING(hostid, 28);	/* BUG */
 	STRING(uid, 28);	/* BUG */
-	n = p - (uchar*)ap;
+	n = p - (uint8_t*)ap;
 	return n;
 }
 

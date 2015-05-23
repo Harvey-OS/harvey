@@ -83,7 +83,7 @@ zcopy_integer(i_ctx_t *i_ctx_p)
     int count, i;
     int code;
 
-    if ((ulong) op->value.intval > op - osbot) {
+    if ((uint32_t) op->value.intval > op - osbot) {
 	/* There might be enough elements in other blocks. */
 	check_int_ltu(*op, ref_stack_count(&o_stack));
 	count = op->value.intval;

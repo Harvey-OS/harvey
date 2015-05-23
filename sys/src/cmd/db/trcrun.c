@@ -214,10 +214,10 @@ startpcs(void)
 }
 
 void
-runstep(uvlong loc, int keepnote)
+runstep(uint64_t loc, int keepnote)
 {
 	int nfoll;
-	uvlong foll[3];
+	uint64_t foll[3];
 	BKPT bkpt[3];
 	int i;
 

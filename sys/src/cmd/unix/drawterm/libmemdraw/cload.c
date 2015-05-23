@@ -13,10 +13,10 @@
 #include <memdraw.h>
 
 int
-_cloadmemimage(Memimage *i, Rectangle r, uchar *data, int ndata)
+_cloadmemimage(Memimage *i, Rectangle r, uint8_t *data, int ndata)
 {
 	int y, bpl, c, cnt, offs;
-	uchar mem[NMEM], *memp, *omemp, *emem, *linep, *elinep, *u, *eu;
+	uint8_t mem[NMEM], *memp, *omemp, *emem, *linep, *elinep, *u, *eu;
 
 	if(!rectinrect(r, i->r))
 		return -1;

@@ -11,9 +11,9 @@
 
 Uid*	uid;
 char*	uidspace;
-short*	gidspace;
+int16_t*	gidspace;
 RWLock	mainlock;
-long	boottime;
+int32_t	boottime;
 Tlock	*tlocks;
 Conf	conf;
 Cons	cons;

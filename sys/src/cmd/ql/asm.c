@@ -34,7 +34,7 @@
 
 void	strnput(char*, int);
 
-long
+int32_t
 entryvalue(void)
 {
 	char *a;
@@ -65,9 +65,9 @@ void
 asmb(void)
 {
 	Prog *p;
-	long t;
+	int32_t t;
 	Optab *o;
-	long prevpc;
+	int32_t prevpc;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f asm\n", cputime());
@@ -360,13 +360,13 @@ strnput(char *s, int n)
 }
 
 void
-cput(long l)
+cput(int32_t l)
 {
 	CPUT(l);
 }
 
 void
-wput(long l)
+wput(int32_t l)
 {
 	cbp[0] = l>>8;
 	cbp[1] = l;
@@ -377,7 +377,7 @@ wput(long l)
 }
 
 void
-wputl(long l)
+wputl(int32_t l)
 {
 	cbp[0] = l;
 	cbp[1] = l>>8;
@@ -388,13 +388,13 @@ wputl(long l)
 }
 
 void
-lput(long l)
+lput(int32_t l)
 {
 	LPUT(l);
 }
 
 void
-lputl(long c)
+lputl(int32_t c)
 {
 	cbp[0] = (c);
 	cbp[1] = (c)>>8;
@@ -407,14 +407,14 @@ lputl(long c)
 }
 
 void
-llput(vlong v)
+llput(int64_t v)
 {
 	lput(v>>32);
 	lput(v);
 }
 
 void
-llputl(vlong v)
+llputl(int64_t v)
 {
 	lputl(v);
 	lputl(v>>32);
@@ -497,7 +497,7 @@ asmsym(void)
 }
 
 void
-putsymb(char *s, int t, long v, int ver)
+putsymb(char *s, int t, int32_t v, int ver)
 {
 	int i, f;
 
@@ -546,9 +546,9 @@ putsymb(char *s, int t, long v, int ver)
 void
 asmlc(void)
 {
-	long oldpc, oldlc;
+	int32_t oldpc, oldlc;
 	Prog *p;
-	long v, s;
+	int32_t v, s;
 
 	oldpc = INITTEXT;
 	oldlc = 0;
@@ -624,11 +624,11 @@ asmlc(void)
 }
 
 void
-datblk(long s, long n)
+datblk(int32_t s, int32_t n)
 {
 	Prog *p;
 	char *cast;
-	long l, fl, j, d;
+	int32_t l, fl, j, d;
 	int i, c;
 
 	memset(buf.dbuf, 0, n+100);

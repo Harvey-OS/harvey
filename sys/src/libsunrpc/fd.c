@@ -38,7 +38,7 @@ sunFdRead(void *v)
 {
 	uint n, tot;
 	int done;
-	uchar buf[4], *p;
+	uint8_t buf[4], *p;
 	Arg arg = *(Arg*)v;
 	SunMsgFd *msg;
 
@@ -73,8 +73,8 @@ if(arg.srv->chatty) fprint(2, "%.8ux...", n);
 static void
 sunFdWrite(void *v)
 {
-	uchar buf[4];
-	u32int n;
+	uint8_t buf[4];
+	uint32_t n;
 	Arg arg = *(Arg*)v;
 	SunMsgFd *msg;
 

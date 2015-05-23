@@ -239,7 +239,7 @@ searchfor(char *search)
 		return;
 	}
 	b = ezalloc(sizeof *b);
-	Binits(b, fd, OREAD, (uchar*)p, 32*1024);
+	Binits(b, fd, OREAD, (uint8_t*)p, 32*1024);
 	for(;;){
 		p = Brdline(b, '\n');
 		if(p == nil)

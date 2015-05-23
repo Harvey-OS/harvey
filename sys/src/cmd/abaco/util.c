@@ -45,7 +45,7 @@ max(int a, int b)
 void
 cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 {
-	uchar *q;
+	uint8_t *q;
 	Rune *s;
 	int j, w;
 
@@ -56,7 +56,7 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 	 * knows this.  If n is a firm limit, the caller should
 	 * set p[n] = 0.
 	 */
-	q = (uchar*)p;
+	q = (uint8_t*)p;
 	s = r;
 	for(j=0; j<n; j+=w){
 		if(*q < Runeself){
@@ -98,7 +98,7 @@ error(char *s)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -111,7 +111,7 @@ emalloc(ulong n)
 }
 
 void*
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil)
@@ -382,7 +382,7 @@ getbase(Page *p)
 }
 
 Image *
-eallocimage(Display *d, Rectangle r, ulong chan, int repl, int col)
+eallocimage(Display *d, Rectangle r, uint32_t chan, int repl, int col)
 {
 	Image *i;
 
@@ -702,7 +702,7 @@ writeproc(void *v)
 	Channel *sync;
 	void **a;
 	char *s;
-	long np;
+	int32_t np;
 	int fd, i, n;
 
 	threadsetname("writeproc");
@@ -752,14 +752,14 @@ static int winchars[] = {
 };
 
 char *
-tcs(char *cs, char *s, long *np)
+tcs(char *cs, char *s, int32_t *np)
 {
 	Channel *sync;
 	Exec *e;
 	Rune r;
-	long i, n;
+	int32_t i, n;
 	void **a;
-	uchar *us;
+	uint8_t *us;
 	char buf[BUFSIZE], cmd[50];
 	char *t, *u;
 	int p[2], q[2];
@@ -789,11 +789,11 @@ tcs(char *cs, char *s, long *np)
 	if(cistrcmp(tcstab[i].tcs, "8859-1")==0 || cistrcmp(tcstab[i].tcs, "ascii")==0){
 latin1:
 		n = 0;
-		for(us=(uchar*)s; *us; us++)
+		for(us=(uint8_t*)s; *us; us++)
 			n += runelen(*us);
 		n++;
 		t = emalloc(n);
-		for(us=(uchar*)s, u=t; *us; us++){
+		for(us=(uint8_t*)s, u=t; *us; us++){
 			if(*us>=Winstart && *us<=Winend)
 				*u++ = winchars[*us-Winstart];
 			else{
@@ -809,7 +809,7 @@ latin1:
 	if(pipe(p)<0 || pipe(q)<0)
 		error("can't create pipe");
 
-	sync = chancreate(sizeof(ulong), 0);
+	sync = chancreate(sizeof(uint32_t), 0);
 	if(sync == nil)
 		error("can't create channel");
 
@@ -829,7 +829,7 @@ latin1:
 
 	/* in case tcs fails */
 	t = s;
-	sync = chancreate(sizeof(ulong), 0);
+	sync = chancreate(sizeof(uint32_t), 0);
 	if(sync == nil)
 		error("can't create channel");
 
@@ -947,7 +947,7 @@ findxmltype(char *b, int l, char *s)
  * so we use the charset based on the priority.
  */
 char *
-convert(Runestr ctype, char *s, long *np)
+convert(Runestr ctype, char *s, int32_t *np)
 {
 	char t[25], buf[256];
 
@@ -967,7 +967,7 @@ convert(Runestr ctype, char *s, long *np)
 }
 
 int
-xtofchar(Rune *s, Font *f, long p)
+xtofchar(Rune *s, Font *f, int32_t p)
 {
 	Rune *r;
 	int q;
@@ -1025,7 +1025,7 @@ getimage(Cimage *ci, Rune *altr)
 	Memimage *mi;
 	Image *i, *i2;
 	char buf[128];
-	uchar *bits;
+	uint8_t *bits;
 	int nbits;
 
 	mi = ci->mi;

@@ -154,7 +154,7 @@ insertrow(Tokenrow *dtr, int ntok, Tokenrow *str)
 void
 makespace(Tokenrow *trp)
 {
-	uchar *tt;
+	uint8_t *tt;
 	Token *tp = trp->tp;
 
 	if (tp >= trp->lp)
@@ -299,7 +299,7 @@ puttokens(Tokenrow *trp)
 {
 	Token *tp;
 	int len;
-	uchar *p;
+	uint8_t *p;
 
 	if (verbose)
 		peektokens(trp, "");
@@ -370,11 +370,11 @@ outnum(char *p, int n)
  * allocate and initialize a new string from s, of length l, at offset o
  * Null terminated.
  */
-uchar *
-newstring(uchar *s, int l, int o)
+uint8_t *
+newstring(uint8_t *s, int l, int o)
 {
-	uchar *ns = (uchar *)domalloc(l+o+1);
+	uint8_t *ns = (uint8_t *)domalloc(l+o+1);
 
 	ns[l+o] = '\0';
-	return (uchar*)strncpy((char*)ns+o, (char*)s, l) - o;
+	return (uint8_t*)strncpy((char*)ns+o, (char*)s, l) - o;
 }

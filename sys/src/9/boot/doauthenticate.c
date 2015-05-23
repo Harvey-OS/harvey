@@ -15,8 +15,8 @@
 static char *pbmsg = "AS protocol botch";
 static char *ccmsg = "can't connect to AS";
 
-long
-readn(int fd, void *buf, long len)
+int32_t
+readn(int fd, void *buf, int32_t len)
 {
 	int m, n;
 	char *p;

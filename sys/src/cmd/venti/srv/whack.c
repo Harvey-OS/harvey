@@ -41,8 +41,8 @@ enum
 
 struct Huff
 {
-	short	bits;				/* length of the code */
-	ulong	encode;				/* the code */
+	int16_t	bits;				/* length of the code */
+	uint32_t	encode;				/* the code */
 };
 
 static	Huff	lentab[MaxFastLen] =
@@ -77,11 +77,11 @@ whackinit(Whack *tw, int level)
  * find a string in the dictionary
  */
 static int
-whackmatch(Whack *b, uchar **ss, uchar *esrc, ulong h, ulong now)
+whackmatch(Whack *b, uint8_t **ss, uint8_t *esrc, uint32_t h, uint32_t now)
 {
-	ushort then, off, last;
+	uint16_t then, off, last;
 	int bestoff, bestlen, check;
-	uchar *s, *t;
+	uint8_t *s, *t;
 
 	s = *ss;
 	if(esrc < s + MinMatch)
@@ -138,17 +138,18 @@ whackmatch(Whack *b, uchar **ss, uchar *esrc, ulong h, ulong now)
 /*
 #define hashit(c)	((((ulong)(c) * 0x6b43a9) >> (24 - HashLog)) & HashMask)
 */
-#define hashit(c)	(((((ulong)(c) & 0xffffff) * 0x6b43a9b5) >> (32 - HashLog)) & HashMask)
+#define hashit(c)	(((((uint32_t)(c) & 0xffffff) * 0x6b43a9b5) >> (32 - HashLog)) & HashMask)
 
 /*
  * lz77 compression with single lookup in a hash table for each block
  */
 int
-whack(Whack *w, uchar *dst, uchar *src, int n, ulong stats[WhackStats])
+whack(Whack *w, uint8_t *dst, uint8_t *src, int n,
+      uint32_t stats[WhackStats])
 {
-	uchar *s, *ss, *sss, *esrc, *half, *wdst, *wdmax;
-	ulong cont, code, wbits;
-	ushort now;
+	uint8_t *s, *ss, *sss, *esrc, *half, *wdst, *wdmax;
+	uint32_t cont, code, wbits;
+	uint16_t now;
 	int toff, lithist, h, len, bits, use, wnbits, lits, matches, offbits, lenbits;
 
 	if(!compressblocks || n < MinMatch)
@@ -328,10 +329,10 @@ whack(Whack *w, uchar *dst, uchar *src, int n, ulong stats[WhackStats])
 }
 
 int
-whackblock(uchar *dst, uchar *src, int ssize)
+whackblock(uint8_t *dst, uint8_t *src, int ssize)
 {
 	Whack w;
-	ulong stats[MaxStat];
+	uint32_t stats[MaxStat];
 	int r;
 
 	whackinit(&w, 6);

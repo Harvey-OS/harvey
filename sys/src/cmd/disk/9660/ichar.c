@@ -24,7 +24,7 @@
  * at most 8 letters and at most one suffix of at most 3 letters.
  */
 char*
-isostring(uchar *buf, int len)
+isostring(uint8_t *buf, int len)
 {
 	char *p, *q;
 

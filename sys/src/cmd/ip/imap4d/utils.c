@@ -61,7 +61,7 @@ char*
 readFile(int fd)
 {
 	Dir *d;
-	long length;
+	int32_t length;
 	char *s;
 
 	d = dirfstat(fd);
@@ -134,7 +134,7 @@ fqid(int fd, Qid *qid)
 	return 0;
 }
 
-ulong
+uint32_t
 mapInt(NamedInt *map, char *name)
 {
 	int i;
@@ -156,7 +156,7 @@ estrdup(char *s)
 }
 
 void*
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -168,7 +168,7 @@ emalloc(ulong n)
 }
 
 void*
-ezmalloc(ulong n)
+ezmalloc(uint32_t n)
 {
 	void *p;
 
@@ -181,7 +181,7 @@ ezmalloc(ulong n)
 }
 
 void*
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(p == nil)

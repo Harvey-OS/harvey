@@ -824,7 +824,7 @@ gs_makebitmappattern_xform(
 			      const gx_tile_bitmap * ptile,
 			      bool mask,
 			      const gs_matrix * pmat,
-			      long id,
+			      int32_t id,
 			      gs_state * pgs,
 			      gs_memory_t * mem
 )

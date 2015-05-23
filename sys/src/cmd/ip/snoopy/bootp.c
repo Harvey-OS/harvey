@@ -39,22 +39,22 @@ enum
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uchar	op;			/* opcode */
-	uchar	htype;			/* hardware type */
-	uchar	hlen;			/* hardware address len */
-	uchar	hops;			/* hops */
-	uchar	xid[4];			/* a random number */
-	uchar	secs[2];		/* elapsed since client started booting */
-	uchar	flags[2];
-	uchar	ciaddr[IPv4addrlen];	/* client IP address (client tells server) */
-	uchar	yiaddr[IPv4addrlen];	/* client IP address (server tells client) */
-	uchar	siaddr[IPv4addrlen];	/* server IP address */
-	uchar	giaddr[IPv4addrlen];	/* gateway IP address */
-	uchar	chaddr[Maxhwlen];	/* client hardware address */
+	uint8_t	op;			/* opcode */
+	uint8_t	htype;			/* hardware type */
+	uint8_t	hlen;			/* hardware address len */
+	uint8_t	hops;			/* hops */
+	uint8_t	xid[4];			/* a random number */
+	uint8_t	secs[2];		/* elapsed since client started booting */
+	uint8_t	flags[2];
+	uint8_t	ciaddr[IPv4addrlen];	/* client IP address (client tells server) */
+	uint8_t	yiaddr[IPv4addrlen];	/* client IP address (server tells client) */
+	uint8_t	siaddr[IPv4addrlen];	/* server IP address */
+	uint8_t	giaddr[IPv4addrlen];	/* gateway IP address */
+	uint8_t	chaddr[Maxhwlen];	/* client hardware address */
 	char	sname[64];		/* server host name (optional) */
 	char	file[Maxfilelen];	/* boot file name */
-	uchar	optmagic[4];
-	uchar	optdata[Maxoptlen];
+	uint8_t	optmagic[4];
+	uint8_t	optdata[Maxoptlen];
 };
 
 enum
@@ -108,7 +108,7 @@ p_filter(Filter *f, Msg *m)
 
 	h = (Hdr*)m->ps;
 
-	if(m->pe < (uchar*)h->sname)
+	if(m->pe < (uint8_t*)h->sname)
 		return 0;
 	m->ps = h->optdata;
 
@@ -144,11 +144,11 @@ static int
 p_seprint(Msg *m)
 {
 	Hdr *h;
-	ulong x;
+	uint32_t x;
 
 	h = (Hdr*)m->ps;
 
-	if(m->pe < (uchar*)h->sname)
+	if(m->pe < (uint8_t*)h->sname)
 		return -1;
 
 	/* point past data */
@@ -156,7 +156,7 @@ p_seprint(Msg *m)
 
 	/* next protocol */
 	m->pr = nil;
-	if(m->pe >= (uchar*)h->optdata){
+	if(m->pe >= (uint8_t*)h->optdata){
 		x = NetL(h->optmagic);
 		demux(p_mux, x, x, m, &dump);
 	}
@@ -165,10 +165,10 @@ p_seprint(Msg *m)
 		op(h->op), h->htype, h->hlen, h->hops,
 		NetL(h->xid), NetS(h->secs), NetS(h->flags),
 		h->ciaddr, h->yiaddr, h->siaddr, h->giaddr, h->chaddr,
-		(ulong)NetL(h->optmagic));
-	if(m->pe > (uchar*)h->sname && *h->sname)
+		(uint32_t)NetL(h->optmagic));
+	if(m->pe > (uint8_t*)h->sname && *h->sname)
 		m->p = seprint(m->p, m->e, " snam=%s", h->sname);
-	if(m->pe > (uchar*)h->file && *h->file)
+	if(m->pe > (uint8_t*)h->file && *h->file)
 		m->p = seprint(m->p, m->e, " file=%s", h->file);
 	return 0;
 }

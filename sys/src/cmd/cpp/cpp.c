@@ -17,7 +17,7 @@ char	outbuf[OUTS];
 char	*outp = outbuf;
 Source	*cursource;
 int	nerrs;
-struct	token nltoken = { NL, 0, 0, 0, 1, (uchar*)"\n" };
+struct	token nltoken = { NL, 0, 0, 0, 1, (uint8_t*)"\n" };
 char	*curtime;
 int	incdepth;
 int	ifdepth;
@@ -28,7 +28,7 @@ int
 main(int argc, char **argv)
 {
 	Tokenrow tr;
-	long t;
+	int32_t t;
 	char ebuf[BUFSIZ];
 
 	setbuf(stderr, ebuf);

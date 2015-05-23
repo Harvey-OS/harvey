@@ -21,7 +21,7 @@ getpasswd(char *p, int len)
 	if(fd < 0)
 		fatal("can't open consctl; please reboot");
 	write(fd, "rawon", 5);
- Prompt:		
+ Prompt:
 	print("password: ");
 	n = 0;
 	for(;;){

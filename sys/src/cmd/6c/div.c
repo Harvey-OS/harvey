@@ -15,15 +15,15 @@
  * SIGPLAN Notices, Vol. 29, June 1994, page 61.
  */
 
-#define	TN(n)	((uvlong)1 << (n))
+#define	TN(n)	((uint64_t)1 << (n))
 #define	T31	TN(31)
 #define	T32	TN(32)
 
 int
-multiplier(ulong d, int p, uvlong *mp)
+multiplier(uint32_t d, int p, uint64_t *mp)
 {
 	int l;
-	uvlong mlo, mhi, tlo, thi;
+	uint64_t mlo, mhi, tlo, thi;
 
 	l = topbit(d - 1) + 1;
 	mlo = (((TN(l) - d) << 32) / d) + T32;
@@ -46,10 +46,10 @@ multiplier(ulong d, int p, uvlong *mp)
 }
 
 int
-sdiv(ulong d, ulong *mp, int *sp)
+sdiv(uint32_t d, uint32_t *mp, int *sp)
 {
 	int s;
-	uvlong m;
+	uint64_t m;
 
 	s = multiplier(d, 32 - 1, &m);
 	*mp = m;
@@ -61,10 +61,10 @@ sdiv(ulong d, ulong *mp, int *sp)
 }
 
 int
-udiv(ulong d, ulong *mp, int *sp, int *pp)
+udiv(uint32_t d, uint32_t *mp, int *sp, int *pp)
 {
 	int p, s;
-	uvlong m;
+	uint64_t m;
 
 	s = multiplier(d, 32, &m);
 	p = 0;
@@ -92,8 +92,8 @@ void
 sdivgen(Node *l, Node *r, Node *ax, Node *dx)
 {
 	int a, s;
-	ulong m;
-	vlong c;
+	uint32_t m;
+	int64_t c;
 
 	c = r->vconst;
 	if(c < 0)
@@ -116,7 +116,7 @@ void
 udivgen(Node *l, Node *r, Node *ax, Node *dx)
 {
 	int a, s, t;
-	ulong m;
+	uint32_t m;
 	Node nod;
 
 	a = udiv(r->vconst, &m, &s, &t);
@@ -163,7 +163,7 @@ sext(Node *d, Node *s, Node *l)
 }
 
 void
-sdiv2(long c, int v, Node *l, Node *n)
+sdiv2(int32_t c, int v, Node *l, Node *n)
 {
 	Node nod;
 
@@ -185,7 +185,7 @@ sdiv2(long c, int v, Node *l, Node *n)
 }
 
 void
-smod2(long c, int v, Node *l, Node *n)
+smod2(int32_t c, int v, Node *l, Node *n)
 {
 	Node nod;
 

@@ -70,7 +70,7 @@ out:
 	return sln - ln;
 }
 
-long
+int32_t
 printchildren(char *lp, int ln, Object *o) {
 	int i, r;
 	char *sp;
@@ -88,7 +88,7 @@ printchildren(char *lp, int ln, Object *o) {
 	return lp - sp;
 }
 
-long
+int32_t
 printminiparentage(char *lp, int ln, Object *o) {
 	char *p, c;
 	int r, sln;
@@ -124,7 +124,7 @@ printminiparentage(char *lp, int ln, Object *o) {
 	return sln - ln;
 }
 
-long
+int32_t
 printparentage(char *lp, int ln, Object *o) {
 	int i;
 	int r, k, sln;
@@ -215,27 +215,27 @@ printparentage(char *lp, int ln, Object *o) {
 	return sln - ln;
 }
 
-long
+int32_t
 printparent(char *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%d", o->parent->tabno);
 }
 
-long
+int32_t
 printkey(char *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%s", o->key?o->key:o->value);
 }
 
-long
+int32_t
 printtype(char *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%s", tokenlist[o->type].name);
 }
 
-long
+int32_t
 printtext(char *lp, int ln, Object *o) {
 	return snprint(lp, ln, "%s", o->value?o->value:o->key);
 }
 
-long
+int32_t
 printfulltext(char *lp, int ln, Object *o) {
 	char *sp, *p, *q;
 	int i, j, k, c, depth;
@@ -365,7 +365,7 @@ printfulltext(char *lp, int ln, Object *o) {
 	return lp - sp;
 }
 
-long
+int32_t
 printfiles(char *lp, int ln, Object *o) {
 	int i, r;
 	char *sp;
@@ -383,7 +383,7 @@ printfiles(char *lp, int ln, Object *o) {
 	return lp - sp;
 }
 
-long
+int32_t
 printdigest(char *lp, int ln, Object *o) {
 	char *p;
 	int j, c, k;

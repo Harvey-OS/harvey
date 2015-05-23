@@ -101,17 +101,17 @@ static	int	flags(void);
 static	int	getc(void);
 static	char	*listmbox(void);
 static	char	*literal(void);
-static	ulong	litlen(void);
+static	uint32_t	litlen(void);
 static	MsgSet	*msgSet(int);
 static	void	mustBe(int c);
-static	ulong	number(int nonzero);
+static	uint32_t	number(int nonzero);
 static	int	peekc(void);
 static	char	*quoted(void);
 static	void	sectText(Fetch *f, int mimeOk);
-static	ulong	seqNo(void);
+static	uint32_t	seqNo(void);
 static	Store	*storeWhat(void);
 static	char	*tag(void);
-static	ulong	uidNo(void);
+static	uint32_t	uidNo(void);
 static	void	ungetc(void);
 
 static	ParseCmd	SNonAuthed[] =
@@ -493,7 +493,7 @@ static void
 appendCmd(char *tg, char *cmd)
 {
 	char *mbox, head[128];
-	ulong t, n, now;
+	uint32_t t, n, now;
 	int flags, ok;
 
 	mustBe(' ');
@@ -594,7 +594,7 @@ copyUCmd(char *tg, char *cmd, int uids)
 {
 	MsgSet *ms;
 	char *uid, *mbox;
-	ulong max;
+	uint32_t max;
 	int ok;
 
 	mustBe(' ');
@@ -721,7 +721,7 @@ fetchUCmd(char *tg, char *cmd, int uids)
 	MsgSet *ms;
 	MbLock *ml;
 	char *uid;
-	ulong max;
+	uint32_t max;
 	int ok;
 
 	mustBe(' ');
@@ -1073,7 +1073,7 @@ searchUCmd(char *tg, char *cmd, int uids)
 	Search rock;
 	Msg *m;
 	char *uid;
-	ulong id;
+	uint32_t id;
 
 	mustBe(' ');
 	rock.next = nil;
@@ -1177,7 +1177,7 @@ statusCmd(char *tg, char *cmd)
 	Box *box;
 	Msg *m;
 	char *s, *mbox;
-	ulong v;
+	uint32_t v;
 	int si, i;
 
 	mustBe(' ');
@@ -1265,7 +1265,7 @@ storeUCmd(char *tg, char *cmd, int uids)
 	MsgSet *ms;
 	MbLock *ml;
 	char *uid;
-	ulong max;
+	uint32_t max;
 	int ok;
 
 	mustBe(' ');
@@ -1848,7 +1848,7 @@ static MsgSet*
 msgSet(int uids)
 {
 	MsgSet head, *last, *ms;
-	ulong from, to;
+	uint32_t from, to;
 
 	last = &head;
 	head.next = nil;
@@ -1874,7 +1874,7 @@ msgSet(int uids)
 	return head.next;
 }
 
-static ulong
+static uint32_t
 seqNo(void)
 {
 	if(peekc() == '*'){
@@ -1884,7 +1884,7 @@ seqNo(void)
 	return number(1);
 }
 
-static ulong
+static uint32_t
 uidNo(void)
 {
 	if(peekc() == '*'){
@@ -2022,10 +2022,10 @@ quoted(void)
 /*
  * litlen: {number}\r\n
  */
-static ulong
+static uint32_t
 litlen(void)
 {
-	ulong v;
+	uint32_t v;
 
 	mustBe('{');
 	v = number(0);
@@ -2041,7 +2041,7 @@ static char *
 literal(void)
 {
 	char *s;
-	ulong v;
+	uint32_t v;
 
 	v = litlen();
 	s = binalloc(&parseBin, v+1, 0);
@@ -2059,10 +2059,10 @@ literal(void)
 /*
  * digits; number is 32 bits
  */
-static ulong
+static uint32_t
 number(int nonzero)
 {
-	ulong v;
+	uint32_t v;
 	int c, first;
 
 	v = 0;

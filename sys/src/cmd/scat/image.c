@@ -18,7 +18,7 @@ Picture*
 image(Angle ra, Angle dec, Angle wid, Angle hig)
 {
 	Pix *p;
-	uchar *b, *up;
+	uint8_t *b, *up;
 	int i, j, sx, sy, x, y;
 	char file[50];
 	Picture *pic;

@@ -96,10 +96,10 @@ int
 main(int argc, char *argv[])
 {
     char *fname = argv[1];
-    long one = 1;
+    int32_t one = 1;
     struct {
 	char c;
-	short s;
+	int16_t s;
     } ss;
     struct {
 	char c;
@@ -107,7 +107,7 @@ main(int argc, char *argv[])
     } si;
     struct {
 	char c;
-	long l;
+	int32_t l;
     } sl;
     struct {
 	char c;
@@ -126,21 +126,21 @@ main(int argc, char *argv[])
 	char c;
 	jmp_buf j;
     } sj;
-    long lm1 = -1;
-    long lr1 = lm1 >> 1, lr2 = lm1 >> 2;
+    int32_t lm1 = -1;
+    int32_t lr1 = lm1 >> 1, lr2 = lm1 >> 2;
     unsigned long um1 = ~(unsigned long)0;
     int im1 = -1;
     int ir1 = im1 >> 1, ir2 = im1 >> 2;
     union {
-	long l;
+	int32_t l;
 	char *p;
     } pl0, pl1;
     int ars;
-    int lwidth = size_of(long) * 8;
+    int lwidth = size_of(int32_t) * 8;
     union {
 	float f;
 	int i;
-	long l;
+	int32_t l;
     } f0, f1, fm1;
     int floats_are_IEEE;
     FILE *f = fopen(fname, "w");
@@ -175,9 +175,9 @@ main(int argc, char *argv[])
     section(f, "Scalar sizes");
 
     define_int(f, "ARCH_LOG2_SIZEOF_CHAR", ilog2(size_of(char)));
-    define_int(f, "ARCH_LOG2_SIZEOF_SHORT", ilog2(size_of(short)));
+    define_int(f, "ARCH_LOG2_SIZEOF_SHORT", ilog2(size_of(int16_t)));
     define_int(f, "ARCH_LOG2_SIZEOF_INT", ilog2(size_of(int)));
-    define_int(f, "ARCH_LOG2_SIZEOF_LONG", ilog2(size_of(long)));
+    define_int(f, "ARCH_LOG2_SIZEOF_LONG", ilog2(size_of(int32_t)));
 #ifdef HAVE_LONG_LONG
     define_int(f, "ARCH_LOG2_SIZEOF_LONG_LONG", ilog2(size_of(long long)));
 #endif

@@ -10,10 +10,10 @@
 #include <u.h>
 #include <libc.h>
 
-long
+int32_t
 atol(char *s)
 {
-	long n;
+	int32_t n;
 	int f, c;
 
 	n = 0;

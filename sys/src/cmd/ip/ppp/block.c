@@ -52,9 +52,9 @@ struct  Aref
 };
 Aref arefblock;
 
-static ulong	callerpc(void*);
-static void	aref(Aref*, ulong);
-static void	aunref(Aref*, ulong);
+static uint32_t	callerpc(void*);
+static void	aref(Aref*, uint32_t);
+static void	aunref(Aref*, uint32_t);
 
 Block*
 allocb(int len)
@@ -75,7 +75,7 @@ allocb(int len)
 			bp->next = nil;
 			bp->list = nil;
 			bp->flist = nil;
-			bp->base = (uchar*)bp+sizeof(Block);
+			bp->base = (uint8_t*)bp+sizeof(Block);
 			bp->rptr = bp->base+PAD;
 			bp->wptr = bp->rptr;
 			bp->lim  = bp->base+bp->bsz;
@@ -95,7 +95,7 @@ allocb(int len)
 	bp = mallocz(sizeof(Block)+len, 1);
 
 	bp->bsz  = len;
-	bp->base = (uchar*)bp+sizeof(Block);
+	bp->base = (uint8_t*)bp+sizeof(Block);
 	bp->rptr = bp->base+PAD;
 	bp->wptr = bp->rptr;
 	bp->lim  = bp->base+len;
@@ -123,8 +123,8 @@ freeb(Block *bp)
 		next = bp->next;
 
 		/* to catch use after free */
-		bp->rptr = (uchar*)0xdeadbabe;
-		bp->wptr = (uchar*)0xdeadbabe;
+		bp->rptr = (uint8_t*)0xdeadbabe;
+		bp->wptr = (uint8_t*)0xdeadbabe;
 		bp->next = (Block*)0xdeadbabe;
 		bp->list = (Block*)0xdeadbabe;
 
@@ -242,7 +242,7 @@ padb(Block *bp, int n)
 Block *
 btrim(Block *bp, int offset, int len)
 {
-	ulong l;
+	uint32_t l;
 	Block *nb, *startb;
 
 	if(blen(bp) < offset+len) {
@@ -341,13 +341,13 @@ pullb(Block **bph, int count)
 /*
  *  handy routines for keeping track of allocations
  */
-static ulong
+static uint32_t
 callerpc(void *a)
 {
-	return ((ulong*)a)[-1];
+	return ((uint32_t*)a)[-1];
 }
 static void
-aref(Aref *ap, ulong pc)
+aref(Aref *ap, uint32_t pc)
 {
 	Arefent *a, *e;
 
@@ -361,7 +361,7 @@ aref(Aref *ap, ulong pc)
 	qunlock(ap);
 }
 static void
-aunref(Aref *ap, ulong pc)
+aunref(Aref *ap, uint32_t pc)
 {
 	Arefent *a, *e;
 

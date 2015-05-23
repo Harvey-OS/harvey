@@ -13,7 +13,8 @@
 #include <memdraw.h>
 
 Memsubfont*
-allocmemsubfont(char *name, int n, int height, int ascent, Fontchar *info, Memimage *i)
+allocmemsubfont(char *name, int n, int height, int ascent,
+		Fontchar *info, Memimage *i)
 {
 	Memsubfont *f;
 

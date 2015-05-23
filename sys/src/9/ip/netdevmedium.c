@@ -18,7 +18,8 @@
 
 static void	netdevbind(Ipifc *ifc, int argc, char **argv);
 static void	netdevunbind(Ipifc *ifc);
-static void	netdevbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip);
+static void	netdevbwrite(Ipifc *ifc, Block *bp, int version,
+				uint8_t *ip);
 static void	netdevread(void *a);
 
 typedef struct	Netdevrock Netdevrock;
@@ -72,14 +73,15 @@ netdevbind(Ipifc *ifc, int argc, char **argv)
 static void
 netdevunbind(Ipifc *ifc)
 {
+	Mach *m = machp();
 	Netdevrock *er = ifc->arg;
 
 	if(er->readp != nil)
-		postnote(er->readp, 1, "unbind", 0);
+		postnote(er->readp, 1, "unbind", NUser);
 
 	/* wait for readers to die */
 	while(er->readp != nil)
-		tsleep(&up->sleep, return0, 0, 300);
+		tsleep(&m->externup->sleep, return0, 0, 300);
 
 	if(er->mchan != nil)
 		cclose(er->mchan);
@@ -91,7 +93,7 @@ netdevunbind(Ipifc *ifc)
  *  called by ipoput with a single block to write
  */
 static void
-netdevbwrite(Ipifc *ifc, Block *bp, int, uchar*)
+netdevbwrite(Ipifc *ifc, Block *bp, int i, uint8_t* n)
 {
 	Netdevrock *er = ifc->arg;
 
@@ -100,7 +102,7 @@ netdevbwrite(Ipifc *ifc, Block *bp, int, uchar*)
 	if(BLEN(bp) < ifc->mintu)
 		bp = adjustblock(bp, ifc->mintu);
 
-	devtab[er->mchan->type]->bwrite(er->mchan, bp, 0);
+	er->mchan->dev->bwrite(er->mchan, bp, 0);
 	ifc->out++;
 }
 
@@ -110,6 +112,7 @@ netdevbwrite(Ipifc *ifc, Block *bp, int, uchar*)
 static void
 netdevread(void *a)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
 	Block *bp;
 	Netdevrock *er;
@@ -117,13 +120,13 @@ netdevread(void *a)
 
 	ifc = a;
 	er = ifc->arg;
-	er->readp = up;	/* hide identity under a rock for unbind */
+	er->readp = m->externup;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		er->readp = nil;
 		pexit("hangup", 1);
 	}
 	for(;;){
-		bp = devtab[er->mchan->type]->bread(er->mchan, ifc->maxtu, 0);
+		bp = er->mchan->dev->bread(er->mchan, ifc->maxtu, 0);
 		if(bp == nil){
 			/*
 			 * get here if mchan is a pipe and other side hangs up

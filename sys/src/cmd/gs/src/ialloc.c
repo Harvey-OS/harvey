@@ -183,7 +183,7 @@ gs_alloc_ref_array(gs_ref_memory_t * mem, ref * parr, uint attrs,
 	obj = (ref *) mem->cc.rtop - 1;		/* back up over last ref */
 	if_debug4('A', "[a%d:+$ ]%s(%u) = 0x%lx\n",
 		  ialloc_trace_space(mem), client_name_string(cname),
-		  num_refs, (ulong) obj);
+		  num_refs, (uint32_t) obj);
 	mem->cc.rcur[-1].o_size += num_refs * sizeof(ref);
 	end = (ref *) (mem->cc.rtop = mem->cc.cbot +=
 		       num_refs * sizeof(ref));
@@ -250,14 +250,14 @@ gs_resize_ref_array(gs_ref_memory_t * mem, ref * parr,
 
 	if_debug4('A', "[a%d:<$ ]%s(%u) 0x%lx\n",
 		  ialloc_trace_space(mem), client_name_string(cname), diff,
-		  (ulong) obj);
+		  (uint32_t) obj);
 	mem->cc.rcur[-1].o_size -= diff * sizeof(ref);
 	make_mark(end - 1);
     } else {
 	/* Punt. */
 	if_debug4('A', "[a%d:<$#]%s(%u) 0x%lx\n",
 		  ialloc_trace_space(mem), client_name_string(cname), diff,
-		  (ulong) obj);
+		  (uint32_t) obj);
 	mem->lost.refs += diff * sizeof(ref);
     }
     r_set_size(parr, new_num_refs);
@@ -292,7 +292,7 @@ gs_free_ref_array(gs_ref_memory_t * mem, ref * parr, client_name_t cname)
 	    /* Deallocate it at the end of the refs object. */
 	    if_debug4('A', "[a%d:-$ ]%s(%u) 0x%lx\n",
 		      ialloc_trace_space(mem), client_name_string(cname),
-		      num_refs, (ulong) obj);
+		      num_refs, (uint32_t) obj);
 	    mem->cc.rcur[-1].o_size -= num_refs * sizeof(ref);
 	    mem->cc.rtop = mem->cc.cbot = (byte *) (obj + 1);
 	    make_mark(obj);
@@ -313,7 +313,7 @@ gs_free_ref_array(gs_ref_memory_t * mem, ref * parr, client_name_t cname)
 	    /* Free the chunk. */
 	    if_debug4('a', "[a%d:-$L]%s(%u) 0x%lx\n",
 		      ialloc_trace_space(mem), client_name_string(cname),
-		      num_refs, (ulong) obj);
+		      num_refs, (uint32_t) obj);
 	    alloc_free_chunk(cl.cp, mem);
 	    return;
 	}
@@ -322,7 +322,7 @@ gs_free_ref_array(gs_ref_memory_t * mem, ref * parr, client_name_t cname)
     /* dangling references to confuse the garbage collector. */
     if_debug4('A', "[a%d:-$#]%s(%u) 0x%lx\n",
 	      ialloc_trace_space(mem), client_name_string(cname), num_refs,
-	      (ulong) obj);
+	      (uint32_t) obj);
     {
 	uint size;
 
@@ -345,7 +345,7 @@ gs_free_ref_array(gs_ref_memory_t * mem, ref * parr, client_name_t cname)
 		break;
 	    default:
 		lprintf3("Unknown type 0x%x in free_ref_array(%u,0x%lx)!",
-			 r_type(parr), num_refs, (ulong) obj);
+			 r_type(parr), num_refs, (uint32_t) obj);
 		return;
 	}
 	/*

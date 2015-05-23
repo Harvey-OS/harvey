@@ -140,15 +140,15 @@ struct sfnts_reader_s {
     ref *sfnts;
     const gs_memory_t *memory;
     const byte *p;
-    long index;
+    int32_t index;
     uint offset;
     uint length;
     bool error;
     byte (*rbyte)(sfnts_reader *r);
-    ushort (*rword)(sfnts_reader *r);
-    ulong (*rlong)(sfnts_reader *r);
+    uint16_t (*rword)(sfnts_reader *r);
+    uint32_t (*rlong)(sfnts_reader *r);
     void (*rstring)(sfnts_reader *r, byte *v, int length);
-    void (*seek)(sfnts_reader *r, ulong pos);
+    void (*seek)(sfnts_reader *r, uint32_t pos);
 };
 
 private void sfnts_next_elem(sfnts_reader *r)
@@ -232,8 +232,8 @@ struct sfnts_writer_s {
     byte *buf, *p;
     int buf_size;
     void (*wbyte)(sfnts_writer *w, byte v);
-    void (*wword)(sfnts_writer *w, ushort v);
-    void (*wlong)(sfnts_writer *w, ulong v);
+    void (*wword)(sfnts_writer *w, uint16_t v);
+    void (*wlong)(sfnts_writer *w, uint32_t v);
     void (*wstring)(sfnts_writer *w, byte *v, int length);
 };
 
@@ -303,14 +303,14 @@ private ulong sfnts_copy_except_glyf(sfnts_reader *r, sfnts_writer *w)
     /* This skips glyf, loca and cmap from copying. */
     struct {
         byte tag[4];
-        ulong checkSum, offset, offset_new, length;
+        uint32_t checkSum, offset, offset_new, length;
     } tables[30];
-    const ushort alignment = 4; /* Not sure, maybe 2 */
-    ulong version = r->rlong(r);
-    ushort num_tables = r->rword(r);
-    ushort i, num_tables_new = 0;
-    ushort searchRange, entrySelector = 0, rangeShift, v;
-    ulong size_new = 12;
+    const uint16_t alignment = 4; /* Not sure, maybe 2 */
+    uint32_t version = r->rlong(r);
+    uint16_t num_tables = r->rword(r);
+    uint16_t i, num_tables_new = 0;
+    uint16_t searchRange, entrySelector = 0, rangeShift, v;
+    uint32_t size_new = 12;
 
     r->rword(r); /* searchRange */
     r->rword(r); /* entrySelector */
@@ -405,10 +405,10 @@ private ushort FAPI_FF_get_word(FAPI_font *ff, fapi_font_feature var_id, int ind
         case FAPI_FONT_FEATURE_FontType: return (pfont->FontType == 2 ? 2 : 1);
         case FAPI_FONT_FEATURE_FontBBox: 
             switch (index) {
-                case 0 : return (ushort)pfont->FontBBox.p.x;
-                case 1 : return (ushort)pfont->FontBBox.p.y;
-                case 2 : return (ushort)pfont->FontBBox.q.x;
-                case 3 : return (ushort)pfont->FontBBox.q.y;
+                case 0 : return (uint16_t)pfont->FontBBox.p.x;
+                case 1 : return (uint16_t)pfont->FontBBox.p.y;
+                case 2 : return (uint16_t)pfont->FontBBox.q.x;
+                case 3 : return (uint16_t)pfont->FontBBox.q.y;
             }
             return 0;
         case FAPI_FONT_FEATURE_BlueValues_count: return pfont->data.BlueValues.count;
@@ -455,12 +455,12 @@ private ulong FAPI_FF_get_long(FAPI_font *ff, fapi_font_feature var_id, int inde
 
     switch((int)var_id) {
         case FAPI_FONT_FEATURE_UniqueID: return pfont->UID.id;
-        case FAPI_FONT_FEATURE_BlueScale: return (ulong)(pfont->data.BlueScale * 65536); 
+        case FAPI_FONT_FEATURE_BlueScale: return (uint32_t)(pfont->data.BlueScale * 65536); 
         case FAPI_FONT_FEATURE_Subrs_total_size :
             {   ref *Private, *Subrs, v;
                 int lenIV = max(pfont->data.lenIV, 0), k;
-                ulong size = 0;
-                long i;
+                uint32_t size = 0;
+                int32_t i;
                 const char *name[2] = {"Subrs", "GlobalSubrs"};
                 if (dict_find_string(pdr, "Private", &Private) <= 0)
                     return 0;
@@ -514,7 +514,7 @@ private inline void decode_bytes(byte *p, const byte *s, int l, int lenIV)
 }
 
 private ushort get_type1_data(FAPI_font *ff, const ref *type1string,
-			      byte *buf, ushort buf_length)
+			      byte *buf, uint16_t buf_length)
 {   gs_font_type1 *pfont = (gs_font_type1 *)ff->client_font_data;
     int lenIV = max(pfont->data.lenIV, 0);
     int length = r_size(type1string) - (ff->need_decrypt ? lenIV : 0);
@@ -529,7 +529,8 @@ private ushort get_type1_data(FAPI_font *ff, const ref *type1string,
     return length;
 }
 
-private ushort FAPI_FF_get_subr(FAPI_font *ff, int index, byte *buf, ushort buf_length)
+private ushort FAPI_FF_get_subr(FAPI_font *ff, int index, byte *buf,
+                                uint16_t buf_length)
 {   ref *pdr = (ref *)ff->client_font_data2;
     ref *Private, *Subrs, *GlobalSubrs, subr;
     int n1, n2, n;
@@ -557,7 +558,8 @@ private ushort FAPI_FF_get_subr(FAPI_font *ff, int index, byte *buf, ushort buf_
     return get_type1_data(ff, &subr, buf, buf_length);
 }
 
-private bool sfnt_get_glyph_offset(ref *pdr, gs_font_type42 *pfont42, int index, ulong *offset0, ulong *offset1)
+private bool sfnt_get_glyph_offset(ref *pdr, gs_font_type42 *pfont42, int index,
+                                   uint32_t *offset0, uint32_t *offset1)
 {   /* Note : TTC is not supported and probably is unuseful for Type 42. */
     sfnts_reader r;
     int glyf_elem_size = (2 << pfont42->data.indexToLocFormat);
@@ -597,7 +599,8 @@ private bool get_MetricsCount(FAPI_font *ff)
 
 
 
-private ushort FAPI_FF_get_glyph(FAPI_font *ff, int char_code, byte *buf, ushort buf_length)
+private ushort FAPI_FF_get_glyph(FAPI_font *ff, int char_code, byte *buf,
+                                 uint16_t buf_length)
 {   /* 
      * We assume that renderer requests glyph data with multiple consequtive
      * calls to this function. 
@@ -615,7 +618,7 @@ private ushort FAPI_FF_get_glyph(FAPI_font *ff, int char_code, byte *buf, ushort
      * or discontinues the rendering on an exception).
      */
     ref *pdr = (ref *)ff->client_font_data2;
-    ushort glyph_length;
+    uint16_t glyph_length;
 
     if (ff->is_type1) {
         if (ff->is_cid) {
@@ -663,12 +666,12 @@ private ushort FAPI_FF_get_glyph(FAPI_font *ff, int char_code, byte *buf, ushort
 	if (l >= 0) {
 	    int MetricsCount = get_MetricsCount(ff), mc = MetricsCount << 1;
 
-            glyph_length = max((ushort)(l - mc), 0); /* safety */
+            glyph_length = max((uint16_t)(l - mc), 0); /* safety */
             if (buf != 0 && glyph_length > 0)
                 memcpy(buf, data_ptr + mc, min(glyph_length, buf_length)/* safety */);
         } else {
             gs_font_type42 *pfont42 = (gs_font_type42 *)ff->client_font_data;
-            ulong offset0, offset1;
+            uint32_t offset0, offset1;
             bool error = sfnt_get_glyph_offset(pdr, pfont42, char_code, &offset0, &offset1);
 
             glyph_length = (error ? -1 : offset1 - offset0);
@@ -1048,7 +1051,7 @@ private int zFAPIrebuildfont(i_ctx_t *i_ctx_p)
 }
 
 private ulong array_find(const gs_memory_t *mem, ref *Encoding, ref *char_name) {
-    ulong n = r_size(Encoding), i;
+    uint32_t n = r_size(Encoding), i;
     ref v;
     for (i = 0; i < n; i++)
         if (array_get(mem, Encoding, i, &v) < 0)

@@ -86,7 +86,7 @@ static Msg *msg;
 static int nmsg;
 static int loggedin;
 static int debug;
-static uchar *tlscert;
+static uint8_t *tlscert;
 static int ntlscert;
 static char *peeraddr;
 static char tmpaddr[64];
@@ -748,7 +748,7 @@ dologin(char *response)
 {
 	AuthInfo *ai;
 	static int tries;
-	static ulong delaysecs = 5;
+	static uint32_t delaysecs = 5;
 
 	chs->user = user;
 	chs->resp = response;
@@ -792,7 +792,7 @@ static int
 passcmd(char *arg)
 {
 	DigestState *s;
-	uchar digest[MD5dlen];
+	uint8_t digest[MD5dlen];
 	char response[2*MD5dlen+1];
 
 	if(passwordinclear==0 && didtls==0)
@@ -803,8 +803,8 @@ passcmd(char *arg)
 		return senderr("couldn't get apop challenge");
 
 	/* hash challenge with secret and convert to ascii */
-	s = md5((uchar*)chs->chal, chs->nchal, 0, 0);
-	md5((uchar*)arg, strlen(arg), digest, s);
+	s = md5((uint8_t*)chs->chal, chs->nchal, 0, 0);
+	md5((uint8_t*)arg, strlen(arg), digest, s);
 	snprint(response, sizeof response, "%.*H", MD5dlen, digest);
 	return dologin(response);
 }

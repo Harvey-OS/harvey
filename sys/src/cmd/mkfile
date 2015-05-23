@@ -1,3 +1,5 @@
+MKSHELL=$PLAN9/bin/rc
+objtype=amd64
 </$objtype/mkfile
 
 TARG=`{ls *.[cy] | sed '/\.tab\.c$/d;s/..$//'}
@@ -10,13 +12,13 @@ YFLAGS=-d
 NOTSYS=sml|dup|.+\..+
 BUGGERED=unix
 OUTOFDATE=old
+APEDIRS=awk bzip2 compress cvs eqn grap gs lp pic postscript spin \
+	tex troff
 
-NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
+NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE|$APEDIRS
 
 cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 DIRS=`{ls -l | sed '/^d/!d; s/.* //; /^('$NOMK')$/d'}
-APEDIRS=awk bzip2 compress cvs eqn grap gs lp pic postscript spin \
-	tex troff
 
 none:VQ:
 	echo usage: mk cmds, dirs, all, install, installall, '$O'.cmd, cmd.install, or cmd.installall

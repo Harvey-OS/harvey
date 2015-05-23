@@ -3,18 +3,22 @@ AFLAGS=
 all:V:	$LIB
 
 $LIB:V:	$OFILES			# force archive even when not needed
-	ar vu $LIB $newprereq
+#	ar rv $LIB $newprereq
+	ar rv $LIB $newprereq
 
 &:n:	&.$O
-	ar vu $LIB $stem.$O
+#	ar rv $LIB $stem.$O
+	ar rv $LIB $stem.$O
 
 %.$O:	$HFILES			# don't combine with following %.$O rules
 
 %.$O:	%.c
-	$CC $CFLAGS $stem.c
+	$CC $CFLAGS -c $stem.c
 
 %.$O:	%.s
-	$AS $AFLAGS $stem.s
+	$AS $AFLAGS -o $target -c $stem.s
+%.$O:   %.S
+        $CC $CFLAGS -o $target -c $stem.S
 
 install:V: $LIB
 

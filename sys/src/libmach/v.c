@@ -7,6 +7,7 @@
  * in the LICENSE file.
  */
 
+#ifdef HARVEYMIPS
 /*
  * mips definition
  */
@@ -125,3 +126,4 @@ Mach mmips =
 	4,		/* szfloat */
 	8,		/* szdouble */
 };
+#endif

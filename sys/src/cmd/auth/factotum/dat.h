@@ -78,7 +78,7 @@ struct Fsstate
 	struct {		/* pending or finished key confirmations */
 		Key *key;
 		int canuse;
-		ulong tag;
+		uint32_t tag;
 	} *conf;
 	int nconf;
 };
@@ -91,7 +91,7 @@ struct Key
 	Proto *proto;
 
 	void *priv;	/* protocol-specific; a parsed key, perhaps */
-	ulong successes;
+	uint32_t successes;
 };
 
 struct Keyinfo	/* for findkey */
@@ -204,7 +204,7 @@ void		askuser(char*);
 int		attrnamefmt(Fmt *fmt);
 int		canusekey(Fsstate*, Key*);
 void		closekey(Key*);
-uchar	*convAI2M(AuthInfo*, uchar*, int);
+unsigned char	*convAI2M(AuthInfo*, unsigned char*, int);
 void		disablekey(Key*);
 char		*estrappend(char*, char*, ...);
 #pragma varargck argpos estrappend 2
@@ -243,5 +243,5 @@ extern Proto p9cr, vnc;			/* p9cr.c */
 extern Proto pass;			/* pass.c */
 extern Proto rsa;			/* rsa.c */
 extern Proto wep;			/* wep.c */
-/* extern Proto srs;			/* srs.c */
+/* extern Proto srs;*/			/* srs.c */
 extern Proto httpdigest;		/* httpdigest.c */

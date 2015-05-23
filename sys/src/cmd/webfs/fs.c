@@ -83,7 +83,7 @@ typedef struct Tab Tab;
 struct Tab
 {
 	char *name;
-	ulong mode;
+	uint32_t mode;
 	int offset;
 };
 
@@ -113,10 +113,10 @@ Tab tab[] =
 	"ftptype",		0444,			offsetof(Url, ftp.type),
 };
 
-ulong time0;
+uint32_t time0;
 
 static void
-fillstat(Dir *d, uvlong path, ulong length, char *ext)
+fillstat(Dir *d, uint64_t path, uint32_t length, char *ext)
 {
 	Tab *t;
 	int type;
@@ -206,7 +206,7 @@ fsread(Req *r)
 	char *s;
 	char e[ERRMAX];
 	Client *c;
-	ulong path;
+	uint32_t path;
 
 	path = r->fid->qid.path;
 	switch(TYPE(path)){
@@ -293,7 +293,7 @@ static void
 fswrite(Req *r)
 {
 	int m;
-	ulong path;
+	uint32_t path;
 	char e[ERRMAX], *buf, *cmd, *arg;
 	Client *c;
 
@@ -314,7 +314,8 @@ fswrite(Req *r)
 			respond(r, "ctl message too long");
 			return;
 		}
-		buf = estredup(r->ifcall.data, (char*)r->ifcall.data+r->ifcall.count);
+		buf = estredup(r->ifcall.data,
+			       (char*)r->ifcall.data+r->ifcall.count);
 		cmd = buf;
 		arg = strpbrk(cmd, "\t ");
 		if(arg){
@@ -363,7 +364,7 @@ static void
 fsopen(Req *r)
 {
 	static int need[4] = { 4, 2, 6, 1 };
-	ulong path;
+	uint32_t path;
 	int n;
 	Client *c;
 	Tab *t;
@@ -446,7 +447,7 @@ static char*
 fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	int i, n;
-	ulong path;
+	uint32_t path;
 	char buf[32], *ext;
 
 	path = fid->qid.path;
@@ -507,7 +508,7 @@ fsflush(Req *r)
 	Req *or;
 	int t;
 	Client *c;
-	ulong path;
+	uint32_t path;
 
 	or=r;
 	while(or->ifcall.type==Tflush)
@@ -529,7 +530,7 @@ fsflush(Req *r)
 static void
 fsthread(void*)
 {
-	ulong path;
+	uint32_t path;
 	Alt a[3];
 	Fid *fid;
 	Req *r;

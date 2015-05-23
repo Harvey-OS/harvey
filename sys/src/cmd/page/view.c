@@ -950,7 +950,7 @@ resize(int dx, int dy)
  * getwindow, and allocimage will fail.  So we flushimage before every alloc.
  */
 Image*
-xallocimage(Display *d, Rectangle r, ulong chan, int repl, ulong val)
+xallocimage(Display *d, Rectangle r, uint32_t chan, int repl, uint32_t val)
 {
 	flushimage(display, 0);
 	return allocimage(d, r, chan, repl, val);

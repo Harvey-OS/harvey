@@ -69,7 +69,7 @@ dict_int_null_param(const ref * pdict, const char *kstr, int minval,
 {
     ref *pdval;
     int code;
-    long ival;
+    int32_t ival;
 
     if (pdict == 0 || dict_find_string(pdict, kstr, &pdval) <= 0) {
 	ival = defaultval;
@@ -86,7 +86,7 @@ dict_int_null_param(const ref * pdict, const char *kstr, int minval,
 		/* needs this. */
 		if (pdval->value.realval < minval || pdval->value.realval > maxval)
 		    return_error(e_rangecheck);
-		ival = (long)pdval->value.realval;
+		ival = (int32_t)pdval->value.realval;
 		if (ival != pdval->value.realval)
 		    return_error(e_rangecheck);
 		break;
@@ -105,7 +105,8 @@ dict_int_null_param(const ref * pdict, const char *kstr, int minval,
 /* Get an integer parameter from a dictionary. */
 /* Return like dict_int_null_param, but return e_typecheck for null. */
 int
-dict_int_param(const ref * pdict, const char *kstr, int minval, int maxval,
+dict_int_param(const ref * pdict, const char *kstr, int minval,
+               int maxval,
 	       int defaultval, int *pvalue)
 {
     int code = dict_int_null_param(pdict, kstr, minval, maxval,
@@ -299,7 +300,8 @@ dict_proc_param(const ref * pdict, const char *kstr, ref * pproc,
 
 /* Get a matrix from a dictionary. */
 int
-dict_matrix_param(const gs_memory_t *mem, const ref * pdict, const char *kstr, gs_matrix * pmat)
+dict_matrix_param(const gs_memory_t *mem, const ref * pdict,
+                  const char *kstr, gs_matrix * pmat)
 {
     ref *pdval;
 
@@ -325,7 +327,7 @@ dict_uid_param(const ref * pdict, gs_uid * puid, int defaultval,
     if (level2_enabled &&
 	dict_find_string(pdict, "XUID", &puniqueid) > 0
 	) {
-	long *xvalues;
+	int32_t *xvalues;
 	uint size, i;
 
 	if (!r_has_type(puniqueid, t_array))
@@ -333,7 +335,7 @@ dict_uid_param(const ref * pdict, gs_uid * puid, int defaultval,
 	size = r_size(puniqueid);
 	if (size == 0)
 	    return_error(e_rangecheck);
-	xvalues = (long *)gs_alloc_byte_array(mem, size, sizeof(long),
+	xvalues = (int32_t *)gs_alloc_byte_array(mem, size, sizeof(int32_t),
 					      "get XUID");
 
 	if (xvalues == 0)

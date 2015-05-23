@@ -30,8 +30,8 @@ struct
 {
 	int nfile;
 	int ndir;
-	vlong data;
-	vlong skipdata;
+	int64_t data;
+	int64_t skipdata;
 	int skipfiles;
 } stats;
 
@@ -49,7 +49,7 @@ void vac(VacFile*, VacFile*, char*, Dir*);
 void vacstdin(VacFile*, char*);
 VacFile *recentarchive(VacFs*, char*);
 
-static u64int unittoull(char*);
+static uint64_t unittoull(char*);
 static void warn(char *fmt, ...);
 static void removevacfile(void);
 
@@ -425,7 +425,7 @@ vac(VacFile *fp, VacFile *diffp, char *name, Dir *d)
 	char *elem, *s;
 	static char buf[65536];
 	int fd, i, n, bsize;
-	vlong off;
+	int64_t off;
 	Dir *dk;	// kids
 	VacDir vd, vddiff;
 	VacFile *f, *fdiff;
@@ -534,7 +534,7 @@ vac(VacFile *fp, VacFile *diffp, char *name, Dir *d)
 		if(qdiff && verbose)
 			fprint(2, "+%s\n", name);
 		while((n = readn(fd, buf, bsize)) > 0){
-			if(fdiff && sha1matches(f, off/bsize, (uchar*)buf, n)){
+			if(fdiff && sha1matches(f, off/bsize, (uint8_t*)buf, n)){
 				off += n;
 				stats.skipdata += n;
 				continue;
@@ -565,7 +565,7 @@ Out:
 void
 vacstdin(VacFile *fp, char *name)
 {
-	vlong off;
+	int64_t off;
 	VacFile *f;
 	static char buf[8192];
 	int n;
@@ -598,7 +598,7 @@ vacstdin(VacFile *fp, char *name)
  */
 int
 vacmergefile(VacFile *fp, VacFile *mp, VacDir *d, char *vacfile,
-	vlong offset, vlong max)
+	int64_t offset, int64_t max)
 {
 	VtEntry ed, em;
 	VacFile *mf;
@@ -649,7 +649,7 @@ vacmerge(VacFile *fp, char *name)
 	VacDir vd;
 	VacDirEnum *de;
 	VacFile *mp;
-	uvlong maxqid, offset;
+	uint64_t maxqid, offset;
 
 	if(strlen(name) < 4 || strcmp(name+strlen(name)-4, ".vac") != 0)
 		return -1;
@@ -684,13 +684,13 @@ vacmerge(VacFile *fp, char *name)
 	return 0;
 }
 
-#define TWID64	((u64int)~(u64int)0)
+#define TWID64	((uint64_t)~(uint64_t)0)
 
-static u64int
+static uint64_t
 unittoull(char *s)
 {
 	char *es;
-	u64int n;
+	uint64_t n;
 
 	if(s == nil)
 		return TWID64;

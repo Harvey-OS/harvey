@@ -69,10 +69,10 @@ thesprintentry(Entry e, int cmd)
 	outnl(0);
 }
 
-long
-thesnextoff(long fromoff)
+int32_t
+thesnextoff(int32_t fromoff)
 {
-	long a;
+	int32_t a;
 	char *p;
 
 	a = Bseek(bdict, fromoff, 0);

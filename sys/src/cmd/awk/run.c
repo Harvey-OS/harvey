@@ -99,7 +99,8 @@ static Cell	tempcell	={ OCELL, CTEMP, 0, "", 0.0, NUM|STR|DONTFREE };
 Node	*curnode = NULL;	/* the node being executed, for debugging */
 
 /* buffer memory management */
-int adjbuf(char **pbuf, int *psiz, int minlen, int quantum, char **pbptr,
+int adjbuf(char **pbuf, int *psiz, int minlen, int quantum,
+	   char **pbptr,
 	char *whatrtn)
 /* pbuf:    address of pointer to buffer being managed
  * psiz:    address of buffer size variable
@@ -276,7 +277,8 @@ Cell *call(Node **a, int n)	/* function call.  very kludgy and fragile */
 	if (fp >= frame + nframe) {
 		int dfp = fp - frame;	/* old index */
 		frame = (struct Frame *)
-			realloc((char *) frame, (nframe += 100) * sizeof(struct Frame));
+			realloc((char *) frame,
+				(nframe += 100) * sizeof(struct Frame));
 		if (frame == NULL)
 			FATAL("out of space for stack frames in %s", s);
 		fp = frame + dfp;
@@ -898,7 +900,7 @@ int format(char **pbuf, int *pbufsize, char *s, Node *a)	/* printf-like conversi
 			sprintf(p, "%s", t);
 			break;
 		case 1:	sprintf(p, fmt, getfval(x)); break;
-		case 2:	sprintf(p, fmt, (long) getfval(x)); break;
+		case 2:	sprintf(p, fmt, (int32_t) getfval(x)); break;
 		case 3:	sprintf(p, fmt, (int) getfval(x)); break;
 		case 4:
 			t = getsval(x);

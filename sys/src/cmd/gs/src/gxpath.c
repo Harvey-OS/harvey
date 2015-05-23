@@ -139,7 +139,7 @@ gx_path_init_contained_shared(gx_path * ppath, const gx_path * shared,
     if (shared) {
 	if (shared->segments == &shared->local_segments) {
 	    lprintf1("Attempt to share (local) segments of path 0x%lx!\n",
-		     (ulong) shared);
+		     (uint32_t) shared);
 	    return_error(gs_error_Fatal);
 	}
 	*ppath = *shared;
@@ -174,7 +174,7 @@ gx_path_alloc_shared(const gx_path * shared, gs_memory_t * mem,
     if (shared) {
 	if (shared->segments == &shared->local_segments) {
 	    lprintf1("Attempt to share (local) segments of path 0x%lx!\n",
-		     (ulong) shared);
+		     (uint32_t) shared);
 	    gs_free_object(mem, ppath, cname);
 	    return 0;
 	}
@@ -205,7 +205,7 @@ gx_path_init_local_shared(gx_path * ppath, const gx_path * shared,
     if (shared) {
 	if (shared->segments == &shared->local_segments) {
 	    lprintf1("Attempt to share (local) segments of path 0x%lx!\n",
-		     (ulong) shared);
+		     (uint32_t) shared);
 	    return_error(gs_error_Fatal);
 	}
 	*ppath = *shared;
@@ -947,7 +947,7 @@ path_alloc_copy(gx_path * ppath)
 void
 gx_dump_path(const gx_path * ppath, const char *tag)
 {
-    dlprintf2("[P]Path 0x%lx %s:\n", (ulong) ppath, tag);
+    dlprintf2("[P]Path 0x%lx %s:\n", (uint32_t) ppath, tag);
     gx_path_print(ppath);
 }
 
@@ -964,11 +964,12 @@ gx_path_print(const gx_path * ppath)
     dlprintf5("   box=(%f,%f),(%f,%f) last=0x%lx\n",
 	      fixed2float(ppath->bbox.p.x), fixed2float(ppath->bbox.p.y),
 	      fixed2float(ppath->bbox.q.x), fixed2float(ppath->bbox.q.y),
-	      (ulong) ppath->box_last);
+	      (uint32_t) ppath->box_last);
     dlprintf4("   segments=0x%lx (refct=%ld, first=0x%lx, current=0x%lx)\n",
-	      (ulong) ppath->segments, (long)ppath->segments->rc.ref_count,
-	      (ulong) ppath->segments->contents.subpath_first,
-	      (ulong) ppath->segments->contents.subpath_current);
+	      (uint32_t) ppath->segments,
+              (int32_t)ppath->segments->rc.ref_count,
+	      (uint32_t) ppath->segments->contents.subpath_first,
+	      (uint32_t) ppath->segments->contents.subpath_current);
     while (pseg) {
 	dlputs("");
 	gx_print_segment(pseg);

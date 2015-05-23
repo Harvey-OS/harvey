@@ -333,7 +333,7 @@ ckthumbs(TLSconn *c)
 {
 	Thumbprint *goodcerts;
 	char *h, *err;
-	uchar hash[SHA1dlen];
+	uint8_t hash[SHA1dlen];
 
 	err = nil;
 	goodcerts = initThumbprints(smtpthumbs, smtpexclthumbs);
@@ -435,7 +435,7 @@ doauth(char *methods)
 		base64 = malloc(2*n);
 		if (base64 == nil)
 			return Retry;	/* Out of memory */
-		enc64(base64, 2*n, (uchar *)p->user, n);
+		enc64(base64, 2*n, (uint8_t *)p->user, n);
 		dBprint("%s\r\n", base64);
 		if (getreply() != 3)
 			return Retry;
@@ -444,7 +444,7 @@ doauth(char *methods)
 		base64 = malloc(2*n);
 		if (base64 == nil)
 			return Retry;	/* Out of memory */
-		enc64(base64, 2*n, (uchar *)p->passwd, n);
+		enc64(base64, 2*n, (uint8_t *)p->passwd, n);
 		dBprint("%s\r\n", base64);
 		if (getreply() != 2)
 			return Retry;
@@ -461,7 +461,7 @@ doauth(char *methods)
 			return Retry;	/* Out of memory */
 		}
 		snprint(buf, n, "%c%s%c%s", 0, p->user, 0, p->passwd);
-		enc64(base64, 2 * n, (uchar *)buf, n - 1);
+		enc64(base64, 2 * n, (uint8_t *)buf, n - 1);
 		free(buf);
 		dBprint("AUTH PLAIN %s\r\n", base64);
 		free(base64);
@@ -1128,10 +1128,10 @@ dBprint(char *fmt, ...)
 	out = vseprint(buf, buf+SIZE, fmt, arg);
 	va_end(arg);
 	if(debug){
-		Bwrite(&berr, buf, (long)(out-buf));
+		Bwrite(&berr, buf, (int32_t)(out-buf));
 		Bflush(&berr);
 	}
-	n = Bwrite(&bout, buf, (long)(out-buf));
+	n = Bwrite(&bout, buf, (int32_t)(out-buf));
 	Bflush(&bout);
 	return n;
 }

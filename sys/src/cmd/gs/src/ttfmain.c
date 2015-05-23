@@ -47,7 +47,7 @@ struct ttfSubGlyphUsage_s {
     FixMatrix m;
     int index;
     int flags;
-    short arg1, arg2;
+    int16_t arg1, arg2;
 };
 
 /*------------------------------------------------------------------- */
@@ -56,7 +56,7 @@ private Fixed AVE(F26Dot6 a, F26Dot6 b)
 {   return (a + b) / 2;
 }
 
-private F26Dot6 shortToF26Dot6(short a)
+private F26Dot6 shortToF26Dot6(int16_t a)
 {   return (F26Dot6)a << 6;
 }
 
@@ -485,10 +485,10 @@ private FontError ttfOutliner__BuildGlyphOutlineAux(ttfOutliner *this, int glyph
 {   ttfFont *pFont = this->pFont;
     ttfReader *r = this->r;
     ttfInterpreter *tti = pFont->tti;
-    short sideBearing;
+    int16_t sideBearing;
     FontError error = fNoError;
-    short arg1, arg2;
-    short count;
+    int16_t arg1, arg2;
+    int16_t count;
     unsigned int nMtxPos, nMtxGlyph = glyphIndex, nLongMetrics, i;
     unsigned short nAdvance;
     unsigned int nNextGlyphPtr = 0;
@@ -733,7 +733,7 @@ private FontError ttfOutliner__BuildGlyphOutlineAux(ttfOutliner *this, int glyph
 	int nPoints;
 	bool bInsOK;
 	byte *onCurve, *stop, flag;
-	short *endPoints;
+	int16_t *endPoints;
 	unsigned int nPos;
 	unsigned int n_ins;
 
@@ -769,7 +769,7 @@ private FontError ttfOutliner__BuildGlyphOutlineAux(ttfOutliner *this, int glyph
             }
         }
 	/*  Lets do X */
-	{   short coord = (this->bVertical ? 0 : sideBearing - subglyph.bbox.xMin);
+	{   int16_t coord = (this->bVertical ? 0 : sideBearing - subglyph.bbox.xMin);
 	    F26Dot6* x = pts->org_x;
 	    onCurve = pts->touch;
 	    while (onCurve < stop) {
@@ -784,7 +784,7 @@ private FontError ttfOutliner__BuildGlyphOutlineAux(ttfOutliner *this, int glyph
 	    }
 	}
 	/*  Lets do Y */
-	{   short coord = 0;
+	{   int16_t coord = 0;
 	    F26Dot6* y = pts->org_y;
 	    onCurve = pts->touch;
 	    while (onCurve < stop) {
@@ -878,18 +878,18 @@ void ttfOutliner__DrawGlyphOutline(ttfOutliner *this)
     ttfExport *exp = this->exp;
     TExecution_Context *exec = pFont->exec;
     TGlyph_Zone *pts = &exec->pts;
-    short* endP = pts->contours;
+    int16_t* endP = pts->contours;
     byte* onCurve = pts->touch;
     F26Dot6* x = pts->org_x;
     F26Dot6* y = pts->org_y;
     F26Dot6 px, py;
-    short sp, ctr;
+    int16_t sp, ctr;
     FloatPoint p0, p1, p2, p3;
 
 #   if AVECTOR_BUG
-	short xMinB = out->xMinB >> 6, xMaxB=out->xMaxB >> 6;
-	short yMinB = out->yMinB >> 6, yMaxB=out->yMaxB >> 6;
-	short expand=pFont->nUnitsPerEm*2;
+	int16_t xMinB = out->xMinB >> 6, xMaxB=out->xMaxB >> 6;
+	int16_t yMinB = out->yMinB >> 6, yMaxB=out->yMaxB >> 6;
+	int16_t expand=pFont->nUnitsPerEm*2;
 	F26Dot6 xMin, xMax, yMin, yMax;
 
 	xMinB -= expand;
@@ -908,8 +908,8 @@ void ttfOutliner__DrawGlyphOutline(ttfOutliner *this)
     exp->SetWidth(exp, &p1);
     sp = -1;
     for (ctr = out->contourCount; ctr != 0; --ctr) {
-	short pt, pts = *endP - sp;
-	short ep = pts - 1;
+	int16_t pt, pts = *endP - sp;
+	int16_t ep = pts - 1;
 
 	if (pts < 3) {
 	    x += pts;
@@ -924,8 +924,8 @@ void ttfOutliner__DrawGlyphOutline(ttfOutliner *this)
 		px = x[pt], py = y[pt];
 #		if AVECTOR_BUG
 		    if (x[pt] < xMin || xMax < x[pt] || y[pt] < yMin || yMax < y[pt]) {
-			short prevIndex = pt == 0 ? ep : pt - 1;
-			short nextIndex = pt == ep ? 0 : pt + 1;
+			int16_t prevIndex = pt == 0 ? ep : pt - 1;
+			int16_t nextIndex = pt == ep ? 0 : pt + 1;
 			if (nextIndex > ep)
 			    nextIndex = 0;
 			px=AVE(x[prevIndex], x[nextIndex]);
@@ -955,8 +955,8 @@ void ttfOutliner__DrawGlyphOutline(ttfOutliner *this)
 	    exp->MoveTo(exp, &p0);
 
 	    for (; pt <= ep; pt++) {
-		short prevIndex = pt == 0 ? ep : pt - 1;
-		short nextIndex = pt == ep ? 0 : pt + 1;
+		int16_t prevIndex = pt == 0 ? ep : pt - 1;
+		int16_t nextIndex = pt == ep ? 0 : pt + 1;
 		if (onCurve[pt] & 1) {
 		    if (onCurve[prevIndex] & 1) {
 			px = x[pt];

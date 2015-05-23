@@ -10,7 +10,7 @@
 #include "headers.h"
 
 Rune
-smbruneconvert(Rune r, ulong flags)
+smbruneconvert(Rune r, uint32_t flags)
 {
 	if (r >= 'a' && r <= 'z' && (flags & SMB_STRING_UPCASE))
 		r = toupper(r);
@@ -46,10 +46,10 @@ smbstringlen(SmbPeerInfo *i, char *string)
 }
 
 char *
-smbstrinline(uchar **bdatap, uchar *edata)
+smbstrinline(uint8_t **bdatap, uint8_t *edata)
 {
 	char *p;
-	uchar *np;
+	uint8_t *np;
 	np = memchr(*bdatap, 0, edata - *bdatap);
 	if (np == nil)
 		return nil;
@@ -59,10 +59,10 @@ smbstrinline(uchar **bdatap, uchar *edata)
 }
 
 char *
-smbstrdup(uchar **bdatap, uchar *edata)
+smbstrdup(uint8_t **bdatap, uint8_t *edata)
 {
 	char *p;
-	uchar *np;
+	uint8_t *np;
 	np = memchr(*bdatap, 0, edata - *bdatap);
 	if (np == nil)
 		return nil;
@@ -72,12 +72,12 @@ smbstrdup(uchar **bdatap, uchar *edata)
 }
 
 char *
-smbstringdup(SmbHeader *h, uchar *base, uchar **bdatap, uchar *edata)
+smbstringdup(SmbHeader *h, uint8_t *base, uint8_t **bdatap, uint8_t *edata)
 {
 	char *p;
 	if (h && h->flags2 & SMB_FLAGS2_UNICODE) {
-		uchar *bdata = *bdatap;
-		uchar *savebdata;
+		uint8_t *bdata = *bdatap;
+		uint8_t *savebdata;
 		Rune r;
 		int l;
 		char *q;
@@ -106,9 +106,10 @@ smbstringdup(SmbHeader *h, uchar *base, uchar **bdatap, uchar *edata)
 }
 
 int
-smbstrnput(uchar *buf, ushort n, ushort maxlen, char *string, ushort size, int upcase)
+smbstrnput(uint8_t *buf, uint16_t n, uint16_t maxlen, char *string,
+	   uint16_t size, int upcase)
 {
-	uchar *p = buf + n;
+	uint8_t *p = buf + n;
 	int l;
 	l = strlen(string);
 	if (l + 1 > size)
@@ -130,16 +131,17 @@ smbstrnput(uchar *buf, ushort n, ushort maxlen, char *string, ushort size, int u
 }
 
 int
-smbstrput(ulong flags, uchar *buf, ushort n, ushort maxlen, char *string)
+smbstrput(uint32_t flags, uint8_t *buf, uint16_t n, uint16_t maxlen,
+	  char *string)
 {
-	uchar *p = buf + n;
+	uint8_t *p = buf + n;
 	int l;
 	l = string ? strlen(string) : 0;
 	if (n + l + ((flags & SMB_STRING_UNTERMINATED) == 0 ? 1 : 0) > maxlen)
 		return 0;
 	memcpy(p, string, l);
 	if (flags & (SMB_STRING_UPCASE | SMB_STRING_PATH | SMB_STRING_REVPATH)) {
-		uchar *q;
+		uint8_t *q;
 		for (q = p; q < p + l; q++)
 			if (*q >= 'a' && *q <= 'z' && (flags & SMB_STRING_UPCASE))
 				*q = toupper(*q);
@@ -155,9 +157,10 @@ smbstrput(ulong flags, uchar *buf, ushort n, ushort maxlen, char *string)
 }
 
 int
-smbucs2put(ulong flags, uchar *buf, ushort n, ushort maxlen, char *string)
+smbucs2put(uint32_t flags, uint8_t *buf, uint16_t n, uint16_t maxlen,
+	   char *string)
 {
-	uchar *p = buf + n;
+	uint8_t *p = buf + n;
 	int l;
 	int align;
 	align = (flags & SMB_STRING_UNALIGNED) == 0 && (n & 1) != 0;
@@ -185,7 +188,8 @@ smbucs2put(ulong flags, uchar *buf, ushort n, ushort maxlen, char *string)
 }
 
 int
-smbstringput(SmbPeerInfo *p, ulong flags, uchar *buf, ushort n, ushort maxlen, char *string)
+smbstringput(SmbPeerInfo *p, uint32_t flags, uint8_t *buf, uint16_t n,
+	     uint16_t maxlen, char *string)
 {
 	if (flags & SMB_STRING_UNICODE)
 		return smbucs2put(flags, buf, n, maxlen, string);

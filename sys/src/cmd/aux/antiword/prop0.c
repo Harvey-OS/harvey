@@ -299,19 +299,19 @@ vGet0StyleInfo(int iFodo, const UCHAR *aucGrpprl, style_block_type *pStyle)
 		return;
 	}
 	/* dxaRight */
-	pStyle->sRightIndent = (short)usGetWord(iFodo + 5, aucGrpprl);
+	pStyle->sRightIndent = (int16_t)usGetWord(iFodo + 5, aucGrpprl);
 	NO_DBG_DEC(pStyle->sRightIndent);
 	if (iBytes < 8) {
 		return;
 	}
 	/* dxaLeft */
-	pStyle->sLeftIndent = (short)usGetWord(iFodo + 7, aucGrpprl);
+	pStyle->sLeftIndent = (int16_t)usGetWord(iFodo + 7, aucGrpprl);
 	NO_DBG_DEC(pStyle->sLeftIndent);
 	if (iBytes < 10) {
 		return;
 	}
 	/* dxaLeft1 */
-	pStyle->sLeftIndent1 = (short)usGetWord(iFodo + 9, aucGrpprl);
+	pStyle->sLeftIndent1 = (int16_t)usGetWord(iFodo + 9, aucGrpprl);
 	NO_DBG_DEC(pStyle->sLeftIndent1);
 	if (iBytes < 14) {
 		return;

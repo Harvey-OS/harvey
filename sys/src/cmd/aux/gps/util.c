@@ -152,10 +152,10 @@ strtopos(char *p, char **ep)
 }
 
 static void
-rtcset(long t)		/* We may use this some day */
+rtcset(int32_t t)		/* We may use this some day */
 {
 	static int fd;
-	long r;
+	int32_t r;
 	int n;
 	char buf[32];
 

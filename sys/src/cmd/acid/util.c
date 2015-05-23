@@ -56,9 +56,9 @@ varsym(void)
 {
 	int i;
 	Sym *s;
-	long n;
+	int32_t n;
 	Lsym *l;
-	uvlong v;
+	uint64_t v;
 	char buf[1024];
 	List *list, **tail, *l2, *tl;
 
@@ -187,12 +187,12 @@ loadvars(void)
 	l->v->type = TLIST;
 }
 
-uvlong
+uint64_t
 rget(Map *map, char *reg)
 {
 	Lsym *s;
-	ulong x;
-	uvlong v;
+	uint32_t x;
+	uint64_t v;
 	int ret;
 
 	s = look(reg);

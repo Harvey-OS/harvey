@@ -32,7 +32,7 @@ brk(void *p)
 }
 
 void*
-sbrk(ulong n)
+sbrk(uint32_t n)
 {
 	uintptr bl;
 

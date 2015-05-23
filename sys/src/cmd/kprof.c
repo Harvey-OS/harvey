@@ -17,7 +17,7 @@
 struct COUNTER
 {
 	char 	*name;		/* function name */
-	long	time;		/* ticks spent there */
+	int32_t	time;		/* ticks spent there */
 };
 
 void
@@ -49,12 +49,12 @@ void
 main(int argc, char *argv[])
 {
 	int fd;
-	long i, j, k, n;
+	int32_t i, j, k, n;
 	char *name;
-	ulong *data;
-	vlong tbase;
-	ulong sum;
-	long delta;
+	uint32_t *data;
+	int64_t tbase;
+	uint32_t sum;
+	int32_t delta;
 	Symbol s;
 	Biobuf outbuf;
 	Fhdr f;

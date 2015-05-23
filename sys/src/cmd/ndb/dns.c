@@ -34,7 +34,7 @@ typedef struct Mfile	Mfile;
 typedef struct Job	Job;
 typedef struct Network	Network;
 
-extern	ulong	start;
+extern	uint32_t	start;
 
 int vers;		/* incremented each clone/attach */
 
@@ -52,8 +52,8 @@ struct Mfile
 
 	int		type;		/* reply type */
 	char		reply[Maxreply];
-	ushort		rr[Maxrrr];	/* offset of rr's */
-	ushort		nrr;		/* number of rr's */
+	uint16_t		rr[Maxrrr];	/* offset of rr's */
+	uint16_t		nrr;		/* number of rr's */
 };
 
 /*
@@ -76,12 +76,12 @@ struct {
 
 Cfg	cfg;
 int	debug;
-uchar	ipaddr[IPaddrlen];	/* my ip address */
+uint8_t	ipaddr[IPaddrlen];	/* my ip address */
 int	maxage = Defmaxage;
 int	mfd[2];
 int	needrefresh;
-ulong	now;
-vlong	nowns;
+uint32_t	now;
+int64_t	nowns;
 int	sendnotifies;
 int	testing;
 char	*trace;
@@ -114,8 +114,10 @@ void	rwstat(Job*, Mfile*);
 void	sendmsg(Job*, char*);
 void	setext(char*, int, char*);
 
-static char *lookupqueryold(Job*, Mfile*, Request*, char*, char*, int, int);
-static char *lookupquerynew(Job*, Mfile*, Request*, char*, char*, int, int);
+static char *lookupqueryold(Job*, Mfile*, Request*, char*, char*, int,
+			      int);
+static char *lookupquerynew(Job*, Mfile*, Request*, char*, char*, int,
+			      int);
 static char *respond(Job*, Mfile*, RR*, char*, int, int);
 
 void
@@ -452,8 +454,8 @@ flushjob(int tag)
 void
 io(void)
 {
-	volatile long n;
-	volatile uchar mdata[IOHDRSZ + Maxfdata];
+	volatile int32_t n;
+	volatile uint8_t mdata[IOHDRSZ + Maxfdata];
 	Job *volatile job;
 	Mfile *volatile mf;
 	volatile Request req;
@@ -687,11 +689,11 @@ void
 rread(Job *job, Mfile *mf)
 {
 	int i, n;
-	long clock;
-	ulong cnt;
-	vlong off;
+	int32_t clock;
+	uint32_t cnt;
+	int64_t off;
 	char *err;
-	uchar buf[Maxfdata];
+	uint8_t buf[Maxfdata];
 	Dir dir;
 
 	n = 0;
@@ -738,7 +740,7 @@ void
 rwrite(Job *job, Mfile *mf, Request *req)
 {
 	int rooted, wantsav, send;
-	ulong cnt;
+	uint32_t cnt;
 	char *err, *p, *atype;
 	char errbuf[ERRMAX];
 
@@ -885,9 +887,10 @@ lookupqueryold(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
 }
 
 static char *
-respond(Job *job, Mfile *mf, RR *rp, char *errbuf, int status, int wantsav)
+respond(Job *job, Mfile *mf, RR *rp, char *errbuf, int status,
+	int wantsav)
 {
-	long n;
+	int32_t n;
 	RR *tp;
 
 	if(rp == nil)
@@ -930,7 +933,7 @@ lookupquerynew(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
 	int wantsav, int)
 {
 	char *err;
-	uchar buf[Udphdrsize + Maxpayload];
+	uint8_t buf[Udphdrsize + Maxpayload];
 	DNSmsg *mp;
 	DNSmsg repmsg;
 	RR *rp;
@@ -940,7 +943,7 @@ lookupquerynew(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
 	memset(&repmsg, 0, sizeof repmsg);
 	rp = rralloc(mf->type);
 	rp->owner = dnlookup(p, Cin, 1);
-	mp = newdnsmsg(rp, Frecurse|Oquery, (ushort)rand());
+	mp = newdnsmsg(rp, Frecurse|Oquery, (uint16_t)rand());
 
 	/* BUG: buf is srcip, yet it's uninitialised */
 	dnserver(mp, &repmsg, req, buf, Rok);
@@ -971,7 +974,7 @@ void
 rstat(Job *job, Mfile *mf)
 {
 	Dir dir;
-	uchar buf[IOHDRSZ+Maxfdata];
+	uint8_t buf[IOHDRSZ+Maxfdata];
 
 	memset(&dir, 0, sizeof dir);
 	if(mf->qid.type & QTDIR){
@@ -1001,7 +1004,7 @@ void
 sendmsg(Job *job, char *err)
 {
 	int n;
-	uchar mdata[IOHDRSZ + Maxfdata];
+	uint8_t mdata[IOHDRSZ + Maxfdata];
 	char ename[ERRMAX];
 
 	if(err){
@@ -1029,7 +1032,7 @@ sendmsg(Job *job, char *err)
  *  the following varies between dnsdebug and dns
  */
 void
-logreply(int id, uchar *addr, DNSmsg *mp)
+logreply(int id, uint8_t *addr, DNSmsg *mp)
 {
 	RR *rp;
 
@@ -1050,7 +1053,8 @@ logreply(int id, uchar *addr, DNSmsg *mp)
 }
 
 void
-logsend(int id, int subid, uchar *addr, char *sname, char *rname, int type)
+logsend(int id, int subid, uint8_t *addr, char *sname, char *rname,
+	int type)
 {
 	char buf[12];
 

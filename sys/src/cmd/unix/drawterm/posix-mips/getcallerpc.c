@@ -10,8 +10,8 @@
 #include "u.h"
 #include "libc.h"
 
-ulong
+uint32_t
 getcallerpc(void *a)
 {
-	return ((ulong*)a)[-1];
+	return ((uint32_t*)a)[-1];
 }

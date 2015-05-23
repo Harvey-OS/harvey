@@ -24,7 +24,7 @@
 #include "tl.h"
 
 #if 1
-#define log(e, u, d)	event[e][(int) u] += (long) d;
+#define log(e, u, d)	event[e][(int) u] += (int32_t) d;
 #else
 #define log(e, u, d)
 #endif
@@ -42,21 +42,21 @@ extern	unsigned long All_Mem;
 extern	int tl_verbose;
 
 union M {
-	long size;
+	int32_t size;
 	union M *link;
 };
 
 static union M *freelist[A_LARGE];
-static long	req[A_LARGE];
-static long	event[NREVENT][A_LARGE];
+static int32_t	req[A_LARGE];
+static int32_t	event[NREVENT][A_LARGE];
 
 void *
 tl_emalloc(int U)
 {	union M *m;
-  	long r, u;
+  	int32_t r, u;
 	void *rp;
 
-	u = (long) ((U-1)/sizeof(union M) + 2);
+	u = (int32_t) ((U-1)/sizeof(union M) + 2);
 
 	if (u >= A_LARGE)
 	{	log(ALLOC, 0, 1);
@@ -94,7 +94,7 @@ tl_emalloc(int U)
 void
 tfree(void *v)
 {	union M *m = (union M *) v;
-	long u;
+	int32_t u;
 
 	--m;
 	if ((m->size&0xFF000000) != A_USER)
@@ -113,7 +113,7 @@ tfree(void *v)
 
 void
 a_stats(void)
-{	long	p, a, f;
+{	int32_t	p, a, f;
 	int	i;
 
 	printf(" size\t  pool\tallocs\t frees\n");

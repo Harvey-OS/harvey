@@ -127,7 +127,7 @@ char *grow(char *ptr, char *name, int num, int size)	/* make array bigger */
 static struct {
 	char *name;
 	double val;
-	short scalable;		/* 1 => adjust when "scale" changes */
+	int16_t scalable;		/* 1 => adjust when "scale" changes */
 } defaults[] ={
 	"scale", SCALE, 1,
 	"lineht", HT, 1,

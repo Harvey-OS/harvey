@@ -84,8 +84,8 @@ struct Bigint {
 };
 
 struct Ulongs {
-	ulong	hi;
-	ulong	lo;
+	uint32_t	hi;
+	uint32_t	lo;
 };
 
 static Bigint *freelist[Kmax+1];
@@ -520,7 +520,7 @@ diff(Bigint *a, Bigint *b)
 static double	
 ulp(double x)
 {
-	ulong L;
+	uint32_t L;
 	Ulongs uls;
 
 	uls = double2ulongs(x);
@@ -533,7 +533,7 @@ b2d(Bigint *a, int *e)
 {
 	unsigned *xa, *xa0, w, y, z;
 	int	k;
-	ulong d0, d1;
+	uint32_t d0, d1;
 
 	xa0 = a->x;
 	xa = xa0 + a->wds;

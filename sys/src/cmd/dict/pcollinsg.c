@@ -115,7 +115,7 @@ static Nassoc overtab[] = {
 	{L'~',	LTIL},
 };
 
-static uchar *reach(uchar*, int);
+static uint8_t *reach(uint8_t*, int);
 
 static Entry	curentry;
 static char	tag[Taglen];
@@ -123,12 +123,12 @@ static char	tag[Taglen];
 void
 pcollgprintentry(Entry e, int cmd)
 {
-	uchar *p, *pe;
+	uint8_t *p, *pe;
 	int r, rprev = NONE, rx, over = 0, font;
 	char buf[16];
 
-	p = (uchar *)e.start;
-	pe = (uchar *)e.end;
+	p = (uint8_t *)e.start;
+	pe = (uint8_t *)e.end;
 	curentry = e;
 	if(cmd == 'h')
 		outinhibit = 1;
@@ -201,8 +201,8 @@ pcollgprintentry(Entry e, int cmd)
 	outnl(0);
 }
 
-long
-pcollgnextoff(long fromoff)
+int32_t
+pcollgnextoff(int32_t fromoff)
 {
 	int c, state = 0, defoff = -1;
 
@@ -239,12 +239,12 @@ pcollgprintkey(void)
 	Bprint(bout, "No pronunciation key yet\n");
 }
 
-static uchar *
-reach(uchar *p, int tagchar)
+static uint8_t *
+reach(uint8_t *p, int tagchar)
 {
 	int c; char *q=tag;
 
-	while(p < (uchar *)curentry.end){
+	while(p < (uint8_t *)curentry.end){
 		c = *p++;
 		if(c == tagchar)
 			break;

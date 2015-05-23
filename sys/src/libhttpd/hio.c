@@ -43,7 +43,7 @@ hiserror(Hio *h)
 int
 hgetc(Hio *h)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = h->pos;
 	if(p < h->stop){
@@ -84,7 +84,7 @@ void *
 hreadbuf(Hio *h, void *vsave)
 {
 	Hio *hh;
-	uchar *save;
+	uint8_t *save;
 	int c, in, cpy, dpos;
 
 	save = vsave;
@@ -189,7 +189,7 @@ hreadbuf(Hio *h, void *vsave)
 int
 hbuflen(Hio *h, void *p)
 {
-	return h->stop - (uchar*)p;
+	return h->stop - (uint8_t*)p;
 }
 
 /*
@@ -199,7 +199,7 @@ hbuflen(Hio *h, void *p)
  * returns < 0 if setup failed
  */
 Hio*
-hbodypush(Hio *hh, ulong len, HFields *te)
+hbodypush(Hio *hh, uint32_t len, HFields *te)
 {
 	Hio *h;
 	int xe;
@@ -241,7 +241,7 @@ hbodypush(Hio *hh, ulong len, HFields *te)
 char *
 hunload(Hio *h)
 {
-	uchar *p, *t, *stop, *buf;
+	uint8_t *p, *t, *stop, *buf;
 	int ne, n, c;
 
 	stop = h->stop;
@@ -282,7 +282,7 @@ hunload(Hio *h)
 int
 hload(Hio *h, char *buf)
 {
-	uchar *p, *t, *stop;
+	uint8_t *p, *t, *stop;
 	char *s;
 	int c;
 
@@ -298,7 +298,7 @@ hload(Hio *h, char *buf)
 
 	t = h->start;
 	stop = t + Hsize;
-	for(p = (uchar*)&buf[2]; c = *p; p++){
+	for(p = (uint8_t*)&buf[2]; c = *p; p++){
 		if(c == 0x80){
 			if(p[1] != 0x80)
 				c = 0;
@@ -345,7 +345,7 @@ hxferenc(Hio *h, int on)
 int
 hputc(Hio *h, int c)
 {
-	uchar *p;
+	uint8_t *p;
 
 	p = h->pos;
 	if(p < h->stop){
@@ -406,7 +406,7 @@ hprint(Hio *h, char *fmt, ...)
 static int
 _hflush(Hio *h, int force, int dolength)
 {
-	uchar *s;
+	uint8_t *s;
 	int w;
 
 	if(h == nil)
@@ -458,7 +458,7 @@ hlflush(Hio* h)
 int
 hwrite(Hio *h, void *vbuf, int len)
 {
-	uchar *buf;
+	uint8_t *buf;
 	int n, m;
 
 	buf = vbuf;

@@ -34,14 +34,14 @@ struct Imap {
 	int refreshtime;
 	int debug;
 
-	ulong tag;
-	ulong validity;
+	uint32_t tag;
+	uint32_t validity;
 	int nmsg;
 	int size;
 	char *base;
 	char *data;
 
-	vlong *uid;
+	int64_t *uid;
 	int nuid;
 	int muid;
 
@@ -317,7 +317,7 @@ imap4resp(Imap *imap)
 				// * 2 FETCH (UID 6)
 				if(q = strstr(p, "UID")){
 					if(imap->nuid < imap->muid)
-						imap->uid[imap->nuid++] = ((vlong)imap->validity<<32)|strtoul(q+3, nil, 10);
+						imap->uid[imap->nuid++] = ((int64_t)imap->validity<<32)|strtoul(q+3, nil, 10);
 					break;
 				}
 			}
@@ -406,7 +406,7 @@ static int
 starttls(Imap *imap, TLSconn *connp)
 {
 	int sfd;
-	uchar digest[SHA1dlen];
+	uint8_t digest[SHA1dlen];
 
 	fmtinstall('H', encodefmt);
 	memset(connp, 0, sizeof *connp);
@@ -537,7 +537,7 @@ imap4fetch(Mailbox *mb, Message *m)
 	parse(m, 0, mb, 1);
 
 	// digest headers
-	sha1((uchar*)m->start, m->end - m->start, m->digest, nil);
+	sha1((uint8_t*)m->start, m->end - m->start, m->digest, nil);
 	for(i = 0; i < SHA1dlen; i++)
 		sprint(sdigest+2*i, "%2.2ux", m->digest[i]);
 	m->sdigest = s_copy(sdigest);
@@ -624,9 +624,9 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 				continue;
 			if(imap->debug)
 				fprint(2, "9X%d UID FETCH %lud (UID RFC822.SIZE BODY[])\r\n",
-					t, (ulong)m->imapuid);
+					t, (uint32_t)m->imapuid);
 			Bprint(&imap->bout, "9X%d UID FETCH %lud (UID RFC822.SIZE BODY[])\r\n",
-				t++, (ulong)m->imapuid);
+				t++, (uint32_t)m->imapuid);
 		}
 		Bflush(&imap->bout);
 		_exits(nil);
@@ -640,13 +640,14 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 
 		if(!pipeline){
 			Bprint(&imap->bout, "9X%lud UID FETCH %lud (UID RFC822.SIZE BODY[])\r\n",
-				(ulong)imap->tag, (ulong)m->imapuid);
+				(uint32_t)imap->tag, (uint32_t)m->imapuid);
 			Bflush(&imap->bout);
 		}
 
 		if(s = imap4fetch(mb, m)){
 			// message disappeared?  unchain
-			fprint(2, "download %lud: %s\n", (ulong)m->imapuid, s);
+			fprint(2, "download %lud: %s\n", (uint32_t)m->imapuid,
+			       s);
 			delmessage(mb, m);
 			mb->root->subname--;
 			continue;
@@ -679,8 +680,9 @@ imap4purge(Imap *imap, Mailbox *mb)
 	for(m=mb->root->part; m!=nil; m=next){
 		next = m->next;
 		if(m->deleted && m->refs==0){
-			if(m->inmbox && (ulong)(m->imapuid>>32)==imap->validity){
-				imap4cmd(imap, "UID STORE %lud +FLAGS (\\Deleted)", (ulong)m->imapuid);
+			if(m->inmbox && (uint32_t)(m->imapuid>>32)==imap->validity){
+				imap4cmd(imap, "UID STORE %lud +FLAGS (\\Deleted)",
+					 (uint32_t)m->imapuid);
 				if(isokay(imap4resp(imap))){
 					ndel++;
 					delmessage(mb, m);

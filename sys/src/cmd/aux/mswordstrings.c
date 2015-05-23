@@ -14,43 +14,43 @@
 /* automatically generated; do not edit. */
 typedef struct Fibhdr Fibhdr;
 struct Fibhdr {
-	ushort wIdent;
-	ushort nFib;
-	ushort nProduct;
-	ushort lid;
-	short pnNext;
-	uchar fDot;
-	uchar fGlsy;
-	uchar fComplex;
-	uchar fHasPic;
-	uchar cQuickSaves;
-	uchar fEncrypted;
-	uchar fWhichTblStm;
-	uchar fReadOnlyRecommended;
-	uchar fWriteReservation;
-	uchar fExtChar;
-	uchar fLoadOverride;
-	uchar fFarEast;
-	uchar fCrypto;
-	ushort nFibBack;
-	ulong lKey;
-	uchar envr;
-	uchar fMac;
-	uchar fEmptySpecial;
-	uchar fLoadOverridePage;
-	uchar fFutureSavedUndo;
-	uchar fWord97Saved;
-	ushort chs;
-	ushort chsTables;
-	long fcMin;
-	long fcMac;
-	ushort csw;
+	uint16_t wIdent;
+	uint16_t nFib;
+	uint16_t nProduct;
+	uint16_t lid;
+	int16_t pnNext;
+	uint8_t fDot;
+	uint8_t fGlsy;
+	uint8_t fComplex;
+	uint8_t fHasPic;
+	uint8_t cQuickSaves;
+	uint8_t fEncrypted;
+	uint8_t fWhichTblStm;
+	uint8_t fReadOnlyRecommended;
+	uint8_t fWriteReservation;
+	uint8_t fExtChar;
+	uint8_t fLoadOverride;
+	uint8_t fFarEast;
+	uint8_t fCrypto;
+	uint16_t nFibBack;
+	uint32_t lKey;
+	uint8_t envr;
+	uint8_t fMac;
+	uint8_t fEmptySpecial;
+	uint8_t fLoadOverridePage;
+	uint8_t fFutureSavedUndo;
+	uint8_t fWord97Saved;
+	uint16_t chs;
+	uint16_t chsTables;
+	int32_t fcMin;
+	int32_t fcMac;
+	uint16_t csw;
 };
 enum { bcFibhdr = 0x22 };
 
 /* automatically generated; do not edit. */
 void
-readFibhdr(Fibhdr *s, uchar *v, int nv)
+readFibhdr(Fibhdr *s, uint8_t *v, int nv)
 {
 	if(nv < bcFibhdr) sysfatal("not enough data for Fibhdr");
 	s->wIdent = v[0x0] | (v[0x0+1] << 8);

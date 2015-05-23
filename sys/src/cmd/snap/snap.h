@@ -28,7 +28,7 @@ enum {
 };
 
 struct Data {
-	ulong len;
+	uint32_t len;
 	char data[1];
 };
 
@@ -42,13 +42,13 @@ struct Seg {
 
 struct Page {
 	Page*	link;
-	ulong	len;
+	uint32_t	len;
 	char*	data;
 
 	/* when page is written, these hold the ptr to it */
 	int	written;
 	int	type;
-	ulong	pid;
+	uint32_t	pid;
 	uvlong	offset;
 };
 
@@ -64,8 +64,8 @@ struct Proc {
 extern char *pfile[Npfile];
 
 Proc*	snap(long pid, int usetext);
-void*	emalloc(ulong);
-void*	erealloc(void*, ulong);
+void*	emalloc(uint32_t);
+void*	erealloc(void*, uint32_t);
 char*	estrdup(char*);
 void	writesnap(Biobuf*, Proc*);
 Page*	datapage(char *p, long len);

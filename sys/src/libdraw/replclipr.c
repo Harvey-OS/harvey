@@ -14,7 +14,7 @@
 void
 replclipr(Image *i, int repl, Rectangle clipr)
 {
-	uchar *b;
+	uint8_t *b;
 
 	b = bufimage(i->display, 22);
 	b[0] = 'c';

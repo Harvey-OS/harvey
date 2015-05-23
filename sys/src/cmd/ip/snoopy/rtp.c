@@ -15,11 +15,11 @@
 
 typedef struct Hdr Hdr;
 struct Hdr {
-	uchar	hdr;		/* RTP header */
-	uchar	marker;		/* Payload and marker */
-	uchar	seq[2];		/* Sequence number */
-	uchar	ts[4];		/* Time stamp */
-	uchar	ssrc[4];	/* Synchronization source identifier */
+	uint8_t	hdr;		/* RTP header */
+	uint8_t	marker;		/* Payload and marker */
+	uint8_t	seq[2];		/* Sequence number */
+	uint8_t	ts[4];		/* Time stamp */
+	uint8_t	ssrc[4];	/* Synchronization source identifier */
 };
 
 enum{
@@ -30,8 +30,8 @@ static int
 p_seprint(Msg *m)
 {
 	int cc, i;
-	ushort seq;
-	ulong ssrc, ts;
+	uint16_t seq;
+	uint32_t ssrc, ts;
 	Hdr*h;
 
 	if(m->pe - m->ps < RTPLEN)

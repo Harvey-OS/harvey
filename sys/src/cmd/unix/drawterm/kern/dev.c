@@ -13,10 +13,10 @@
 #include	"fns.h"
 #include	"error.h"
 
-extern ulong	kerndate;
+extern uint32_t	kerndate;
 
 void
-mkqid(Qid *q, vlong path, ulong vers, int type)
+mkqid(Qid *q, int64_t path, uint32_t vers, int type)
 {
 	q->type = type;
 	q->vers = vers;
@@ -39,7 +39,9 @@ devno(int c, int user)
 }
 
 void
-devdir(Chan *c, Qid qid, char *n, vlong length, char *user, long perm, Dir *db)
+devdir(Chan *c, Qid qid, char *n, int64_t length, char *user,
+       int32_t perm,
+       Dir *db)
 {
 	db->name = n;
 	if(c->flag&CMSG)
@@ -175,7 +177,8 @@ devclone(Chan *c)
 }
 
 Walkqid*
-devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen *gen)
+devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
+	Devgen *gen)
 {
 	int i, j, alloc;
 	Walkqid *wq;
@@ -269,7 +272,7 @@ Done:
 }
 
 int
-devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
+devstat(Chan *c, uint8_t *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 {
 	int i;
 	Dir dir;
@@ -313,10 +316,11 @@ devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 	return -1;
 }
 
-long
-devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
+int32_t
+devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
+	   Devgen *gen)
 {
-	long m, dsz;
+	int32_t m, dsz;
 	struct{
 		Dir d;
 		char slop[100];
@@ -331,7 +335,7 @@ devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
 			break;
 
 		case 1:
-			dsz = convD2M(&dir.d, (uchar*)d, n-m);
+			dsz = convD2M(&dir.d, (uint8_t*)d, n-m);
 			if(dsz <= BIT16SZ){	/* <= not < because this isn't stat; read is stuck */
 				if(m == 0)
 					error(Eshort);
@@ -350,9 +354,9 @@ devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
  * error(Eperm) if open permission not granted for up->user.
  */
 void
-devpermcheck(char *fileuid, ulong perm, int omode)
+devpermcheck(char *fileuid, uint32_t perm, int omode)
 {
-	ulong t;
+	uint32_t t;
 	static int access[] = { 0400, 0200, 0600, 0100 };
 
 	if(strcmp(up->user, fileuid) == 0)
@@ -398,7 +402,7 @@ Return:
 }
 
 void
-devcreate(Chan *c, char *name, int mode, ulong perm)
+devcreate(Chan *c, char *name, int mode, uint32_t perm)
 {
 	USED(c);
 	USED(name);
@@ -409,7 +413,7 @@ devcreate(Chan *c, char *name, int mode, ulong perm)
 }
 
 Block*
-devbread(Chan *c, long n, ulong offset)
+devbread(Chan *c, int32_t n, uint32_t offset)
 {
 	Block *bp;
 
@@ -425,10 +429,10 @@ devbread(Chan *c, long n, ulong offset)
 	return bp;
 }
 
-long
-devbwrite(Chan *c, Block *bp, ulong offset)
+int32_t
+devbwrite(Chan *c, Block *bp, uint32_t offset)
 {
-	long n;
+	int32_t n;
 
 	if(waserror()) {
 		freeb(bp);
@@ -449,7 +453,7 @@ devremove(Chan *c)
 }
 
 int
-devwstat(Chan *c, uchar *a, int n)
+devwstat(Chan *c, uint8_t *a, int n)
 {
 	USED(c);
 	USED(a);

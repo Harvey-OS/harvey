@@ -29,9 +29,13 @@ char env[] = "/env";
 void
 startboot(char *argv0, char **argv)
 {
-	char buf[200];	/* keep this fairly large to capture error details */
+	char buf[200];
 
-	/* in case boot is a shell script */
+	USED(argv0);
+	/*
+	 * open the console here so that /boot/boot,
+	 * which could be a shell script, can inherit the open fds.
+	 */
 	open(cons, OREAD);
 	open(cons, OWRITE);
 	open(cons, OWRITE);
@@ -39,8 +43,6 @@ startboot(char *argv0, char **argv)
 	bind(ec, env, MAFTER);
 	bind(e, env, MCREATE|MAFTER);
 	bind(s, srv, MREPL|MCREATE);
-
-	USED(argv0);
 	exec(boot, argv);
 
 	rerrstr(buf, sizeof buf);

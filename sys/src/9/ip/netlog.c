@@ -16,14 +16,14 @@
 #include	"../ip/ip.h"
 
 enum {
-	Nlog		= 16*1024,
+	Nlog		= 4*1024,
 };
 
 /*
  *  action log
  */
 struct Netlog {
-	Lock;
+	Lock	_lock;
 	int	opens;
 	char*	buf;
 	char	*end;
@@ -31,7 +31,7 @@ struct Netlog {
 	int	len;
 
 	int	logmask;			/* mask of things to debug */
-	uchar	iponly[IPaddrlen];		/* ip address to print debugging for */
+	unsigned char	iponly[IPaddrlen];		/* ip address to print debugging for */
 	int	iponlyset;
 
 	QLock;
@@ -49,9 +49,11 @@ static Netlogflag flags[] =
 	{ "ip",		Logip, },
 	{ "fs",		Logfs, },
 	{ "tcp",	Logtcp, },
+	{ "il",		Logil, },
 	{ "icmp",	Logicmp, },
 	{ "udp",	Logudp, },
 	{ "compress",	Logcompress, },
+	{ "ilmsg",	Logil|Logilmsg, },
 	{ "gre",	Loggre, },
 	{ "tcpwin",	Logtcp|Logtcpwin, },
 	{ "tcprxmt",	Logtcp|Logtcprxmt, },
@@ -86,6 +88,7 @@ netloginit(Fs *f)
 void
 netlogopen(Fs *f)
 {
+	Mach *m = machp();
 	lock(f->alog);
 	if(waserror()){
 		unlock(f->alog);
@@ -94,8 +97,6 @@ netlogopen(Fs *f)
 	if(f->alog->opens == 0){
 		if(f->alog->buf == nil)
 			f->alog->buf = malloc(Nlog);
-		if(f->alog->buf == nil)
-			error(Enomem);
 		f->alog->rptr = f->alog->buf;
 		f->alog->end = f->alog->buf + Nlog;
 	}
@@ -107,6 +108,7 @@ netlogopen(Fs *f)
 void
 netlogclose(Fs *f)
 {
+	Mach *m = machp();
 	lock(f->alog);
 	if(waserror()){
 		unlock(f->alog);
@@ -129,9 +131,10 @@ netlogready(void *a)
 	return f->alog->len;
 }
 
-long
-netlogread(Fs *f, void *a, ulong, long n)
+int32_t
+netlogread(Fs *f, void *a, uint32_t mm, int32_t n)
 {
+	Mach *m = machp();
 	int i, d;
 	char *p, *rptr;
 
@@ -177,6 +180,7 @@ netlogread(Fs *f, void *a, ulong, long n)
 void
 netlogctl(Fs *f, char* s, int n)
 {
+	Mach *m = machp();
 	int i, set;
 	Netlogflag *fp;
 	Cmdbuf *cb;
@@ -211,11 +215,10 @@ netlogctl(Fs *f, char* s, int n)
 		else
 			f->alog->iponlyset = 1;
 		free(cb);
-		poperror();
 		return;
 
 	default:
-		cmderror(cb, "unknown netlog control message");
+		cmderror(cb, "unknown ip control message");
 	}
 
 	for(i = 1; i < cb->nf; i++){
@@ -237,7 +240,7 @@ netlogctl(Fs *f, char* s, int n)
 void
 netlog(Fs *f, int mask, char *fmt, ...)
 {
-	char buf[256], *t, *fp;
+	char buf[128], *t, *fp;
 	int i, n;
 	va_list arg;
 

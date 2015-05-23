@@ -97,8 +97,8 @@ userwrite(char *a, int n)
 	return 0;
 }
 
-vlong
-todget(vlong *p)
+int64_t
+todget(int64_t *p)
 {
 	if(p)
 		*p = 0;
@@ -106,7 +106,7 @@ todget(vlong *p)
 }
 
 void
-todset(vlong a, vlong b, int c)
+todset(int64_t a, int64_t b, int c)
 {
 	USED(a);
 	USED(b);
@@ -114,12 +114,12 @@ todset(vlong a, vlong b, int c)
 }
 
 void
-todsetfreq(vlong a)
+todsetfreq(int64_t a)
 {
 	USED(a);
 }
 
-long
+int32_t
 hostdomainwrite(char *a, int n)
 {
 	USED(a);
@@ -128,7 +128,7 @@ hostdomainwrite(char *a, int n)
 	return 0;
 }
 
-long
+int32_t
 hostownerwrite(char *a, int n)
 {
 	USED(a);
@@ -170,8 +170,8 @@ exhausted(char *s)
 	panic("out of %s", s);
 }
 
-uvlong
-fastticks(uvlong *v)
+uint64_t
+fastticks(uint64_t *v)
 {
 	if(v)
 		*v = 1;

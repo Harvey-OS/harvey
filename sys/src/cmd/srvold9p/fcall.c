@@ -66,9 +66,9 @@ enum
 };
 
 int
-mntrpclen(uchar *d, int n)
+mntrpclen(uint8_t *d, int n)
 {
-	uchar t;
+	uint8_t t;
 	int len, off;
 
 	if(n < 1)
@@ -106,7 +106,7 @@ int
 fcall(int fd)
 {
 	int i, r, n, l;
-	uchar *p, *buf;
+	uint8_t *p, *buf;
 	int pipefd[2];
 
 	if(pipe(pipefd) < 0)

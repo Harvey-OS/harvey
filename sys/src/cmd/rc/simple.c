@@ -433,18 +433,18 @@ execflag(void)
 	char *letter, *val;
 	switch(count(runq->argv->words)){
 	case 2:
-		setstatus(flag[(uchar)runq->argv->words->next->word[0]]?"":"flag not set");
+		setstatus(flag[(uint8_t)runq->argv->words->next->word[0]]?"":"flag not set");
 		break;
 	case 3:
 		letter = runq->argv->words->next->word;
 		val = runq->argv->words->next->next->word;
 		if(strlen(letter)==1){
 			if(strcmp(val, "+")==0){
-				flag[(uchar)letter[0]] = flagset;
+				flag[(uint8_t)letter[0]] = flagset;
 				break;
 			}
 			if(strcmp(val, "-")==0){
-				flag[(uchar)letter[0]] = 0;
+				flag[(uint8_t)letter[0]] = 0;
 				break;
 			}
 		}

@@ -32,13 +32,13 @@ initrc4(Conn *c, int isserver)
 }
 
 static void
-encryptrc4(CipherState *cs, uchar *buf, int nbuf)
+encryptrc4(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	rc4(&cs->enc, buf, nbuf);
 }
 
 static void
-decryptrc4(CipherState *cs, uchar *buf, int nbuf)
+decryptrc4(CipherState *cs, uint8_t *buf, int nbuf)
 {
 	rc4(&cs->dec, buf, nbuf);
 }

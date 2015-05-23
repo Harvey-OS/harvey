@@ -1328,7 +1328,7 @@ enum mad_error III_stereo(mad_fixed_t xr[2][576],
 			  struct mad_header *header,
 			  unsigned char const *sfbwidth)
 {
-  short modes[39];
+  int16_t modes[39];
   unsigned int sfbi, l, n, i;
 
   if (granule->ch[0].block_type !=

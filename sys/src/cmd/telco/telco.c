@@ -37,8 +37,8 @@ typedef struct Type Type;
 struct Fid
 {
 	Qid	qid;
-	short	busy;
-	short	open;
+	int16_t	busy;
+	int16_t	open;
 	int	fid;
 	Fid	*next;
 	char	*user;
@@ -49,7 +49,7 @@ struct Request
 	Request	*next;
 
 	Fid	*fid;
-	ulong	tag;
+	uint32_t	tag;
 	int	count;
 	int	flushed;
 };
@@ -113,8 +113,8 @@ char *names[] =
 [Qctl]		"ctl",
 };
 
-#define DEV(q) ((((ulong)(q).path)&Devmask)>>8)
-#define TYPE(q) (((ulong)(q).path)&((1<<8)-1))
+#define DEV(q) ((((uint32_t)(q).path)&Devmask)>>8)
+#define TYPE(q) (((uint32_t)(q).path)&((1<<8)-1))
 #define MKQID(t, i) ((((i)<<8)&Devmask) | (t))
 
 enum
@@ -252,12 +252,12 @@ Dev	*dev;
 int	ndev;
 int	mfd[2];
 char	*user;
-uchar	mdata[8192+IOHDRSZ];
+uint8_t	mdata[8192+IOHDRSZ];
 int	messagesize = sizeof mdata;
 Fcall	thdr;
 Fcall	rhdr;
 char	errbuf[ERRMAX];
-uchar	statbuf[STATMAX];
+uint8_t	statbuf[STATMAX];
 int	pulsed;
 int	verbose;
 int	maxspeed = 56000;
@@ -265,12 +265,12 @@ char	*srcid = "plan9";
 int	answer = 1;
 
 Fid	*newfid(int);
-int	devstat(Dir*, uchar*, int);
-int	devgen(Qid, int, Dir*, uchar*, int);
+int	devstat(Dir*, uint8_t*, int);
+int	devgen(Qid, int, Dir*, uint8_t*, int);
 void	error(char*);
 void	io(void);
-void	*erealloc(void*, ulong);
-void	*emalloc(ulong);
+void	*erealloc(void*, uint32_t);
+void	*emalloc(uint32_t);
 void	usage(void);
 int	perm(Fid*, Dev*, int);
 void	setspeed(Dev*, int);
@@ -413,7 +413,7 @@ main(int argc, char *argv[])
  *  generate a stat structure for a qid
  */
 int
-devstat(Dir *dir, uchar *buf, int nbuf)
+devstat(Dir *dir, uint8_t *buf, int nbuf)
 {
 	Dev *d;
 	int t;
@@ -459,9 +459,9 @@ devstat(Dir *dir, uchar *buf, int nbuf)
  *  enumerate file's we can walk to from q
  */
 int
-devgen(Qid q, int i, Dir *d, uchar *buf, int nbuf)
+devgen(Qid q, int i, Dir *d, uint8_t *buf, int nbuf)
 {
-	static ulong v;
+	static uint32_t v;
 
 	d->qid.vers = v++;
 	switch(TYPE(q)){
@@ -714,7 +714,7 @@ char*
 rread(Fid *f)
 {
 	char *buf;
-	long off, start;
+	int32_t off, start;
 	int i, m, n, cnt, t;
 	Dir dir;
 	char num[32];
@@ -731,7 +731,7 @@ rread(Fid *f)
 	default:
 		start = 0;
 		for(i = 0; n < cnt; i++){
-			m = devgen(f->qid, i, &dir, (uchar*)buf+n, cnt-n);
+			m = devgen(f->qid, i, &dir, (uint8_t*)buf+n, cnt-n);
 			if(m <= BIT16SZ)
 				break;
 			if(start >= off)
@@ -777,7 +777,7 @@ char*
 rwrite(Fid *f)
 {
 	Dev *d;
-	ulong off;
+	uint32_t off;
 	int cnt;
 	char *cp;
 	char buf[64];
@@ -985,7 +985,7 @@ error(char *s)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -996,7 +996,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(!p)
@@ -1297,7 +1297,7 @@ serve(Dev *d)
 	Request *r;
 	int n;
 	Fcall rhdr;
-	uchar *mdata;
+	uint8_t *mdata;
 	char *buf;
 
 	mdata = malloc(messagesize);
@@ -1492,7 +1492,7 @@ onhook(Dev *d)
 int
 readmsg(Dev *d, int secs, char *substr)
 {
-	ulong start;
+	uint32_t start;
 	char *p;
 	int i, len;
 	Msg *pp;

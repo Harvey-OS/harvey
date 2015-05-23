@@ -15,9 +15,9 @@
 #include "sparc.h"
 
 void
-ldf(ulong ir)
+ldf(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -37,9 +37,9 @@ ldf(ulong ir)
 }
 
 void
-lddf(ulong ir)
+lddf(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -68,9 +68,9 @@ lddf(ulong ir)
 }
 
 void
-stf(ulong ir)
+stf(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -92,9 +92,9 @@ stf(ulong ir)
 }
 
 void
-stdf(ulong ir)
+stdf(uint32_t ir)
 {
-	ulong ea;
+	uint32_t ea;
 	int rd, rs1, rs2;
 
 	getrop23(ir);
@@ -124,7 +124,7 @@ stdf(ulong ir)
 }
 
 void
-fcmp(ulong ir)
+fcmp(uint32_t ir)
 {
 	int fc, rd, rs1, rs2;
 
@@ -228,10 +228,10 @@ fcmp(ulong ir)
 }
 
 void
-fbcc(ulong ir)
+fbcc(uint32_t ir)
 {
 	char *op;
-	ulong npc;
+	uint32_t npc;
 	int takeit, fc, ba, anul;
 
 	fc = (reg.fpsr>>10)&3;
@@ -341,10 +341,10 @@ fbcc(ulong ir)
 }
 
 void
-farith(ulong ir)
+farith(uint32_t ir)
 {
 	char *op;
-	long v;
+	int32_t v;
 	int rd, rs1, rs2, fmt;
 
 	fmt = 0;
@@ -393,12 +393,12 @@ farith(ulong ir)
 		op = "fmuld";
 		break;
 	case 0xc4:
-		reg.fl[rd] = (long)reg.di[rs2];
+		reg.fl[rd] = (int32_t)reg.di[rs2];
 		fmt = 1;
 		op = "fitos";
 		break;
 	case 0xc8:
-		reg.fd[rd>>1] = (long)reg.di[rs2];
+		reg.fd[rd>>1] = (int32_t)reg.di[rs2];
 		fmt = 1;
 		op = "fitod";
 		break;

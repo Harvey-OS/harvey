@@ -27,7 +27,7 @@ enum {
  * is >= index[x] && <= index[x+1]. The higher index is
  * prefered if VCO is on a boundary.
  */
-static ulong index[NIndex] = {
+static uint32_t index[NIndex] = {
 	 50000000,
 	 51000000,
 	 53200000,
@@ -48,7 +48,7 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	int f;
-	ulong d, dmax, fmin, n;
+	uint32_t d, dmax, fmin, n;
 
 	if(ctlr->flag & Finit)
 		return;

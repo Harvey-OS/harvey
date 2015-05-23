@@ -375,7 +375,7 @@ passbody(Part *p, int dobound)
 /*
  *  save the message somewhere
  */
-static vlong bodyoff;	/* clumsy hack */
+static int64_t bodyoff;	/* clumsy hack */
 
 static int
 save(Part *p, char *file)
@@ -994,7 +994,8 @@ tokenconvert(String *t)
 	/* bail if we don't understand the encoding */
 	if(cistrncmp(token, "b?", 2) == 0){
 		token += 2;
-		len = dec64((uchar*)decoded, sizeof(decoded), token, e-token);
+		len = dec64((uint8_t*)decoded, sizeof(decoded), token,
+			    e-token);
 		decoded[len] = 0;
 	} else if(cistrncmp(token, "q?", 2) == 0){
 		token += 2;
@@ -1030,7 +1031,7 @@ enum
 	Self=	1,
 	Hex=	2,
 };
-uchar	tableqp[256];
+uint8_t	tableqp[256];
 
 static void
 initquoted(void)

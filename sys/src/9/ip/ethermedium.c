@@ -14,41 +14,41 @@
 #include "fns.h"
 #include "../port/error.h"
 
-#include "../port/netif.h"
 #include "ip.h"
 #include "ipv6.h"
 
 typedef struct Etherhdr Etherhdr;
 struct Etherhdr
 {
-	uchar	d[6];
-	uchar	s[6];
-	uchar	t[2];
+	uint8_t	d[6];
+	uint8_t	s[6];
+	uint8_t	t[2];
 };
 
-static uchar ipbroadcast[IPaddrlen] = {
+static uint8_t ipbroadcast[IPaddrlen] = {
 	0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff,
 };
 
-static uchar etherbroadcast[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+static uint8_t etherbroadcast[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 static void	etherread4(void *a);
 static void	etherread6(void *a);
 static void	etherbind(Ipifc *ifc, int argc, char **argv);
 static void	etherunbind(Ipifc *ifc);
-static void	etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip);
-static void	etheraddmulti(Ipifc *ifc, uchar *a, uchar *ia);
-static void	etherremmulti(Ipifc *ifc, uchar *a, uchar *ia);
-static Block*	multicastarp(Fs *f, Arpent *a, Medium*, uchar *mac);
+static void	etherbwrite(Ipifc *ifc, Block *bp, int version,
+			       uint8_t *ip);
+static void	etheraddmulti(Ipifc *ifc, uint8_t *a, uint8_t *ia);
+static void	etherremmulti(Ipifc *ifc, uint8_t *a, uint8_t *ia);
+static Block*	multicastarp(Fs *f, Arpent *a, Medium*, uint8_t *mac);
 static void	sendarp(Ipifc *ifc, Arpent *a);
-static void	sendgarp(Ipifc *ifc, uchar*);
-static int	multicastea(uchar *ea, uchar *ip);
+static void	sendgarp(Ipifc *ifc, uint8_t*);
+static int	multicastea(uint8_t *ea, uint8_t *ip);
 static void	recvarpproc(void*);
 static void	resolveaddr6(Ipifc *ifc, Arpent *a);
-static void	etherpref2addr(uchar *pref, uchar *ea);
+static void	etherpref2addr(uint8_t *pref, uint8_t *ea);
 
 Medium ethermedium =
 {
@@ -56,6 +56,23 @@ Medium ethermedium =
 .hsize=		14,
 .mintu=		60,
 .maxtu=		1514,
+.maclen=	6,
+.bind=		etherbind,
+.unbind=	etherunbind,
+.bwrite=	etherbwrite,
+.addmulti=	etheraddmulti,
+.remmulti=	etherremmulti,
+.ares=		arpenter,
+.areg=		sendgarp,
+.pref2addr=	etherpref2addr,
+};
+
+Medium fbemedium =
+{
+.name=		"fbe",
+.hsize=		14,
+.mintu=		60,
+.maxtu=		4000,
 .maclen=	6,
 .bind=		etherbind,
 .unbind=	etherunbind,
@@ -103,6 +120,9 @@ struct Etherrock
  */
 enum
 {
+	ETARP		= 0x0806,
+	ETIP4		= 0x0800,
+	ETIP6		= 0x86DD,
 	ARPREQUEST	= 1,
 	ARPREPLY	= 2,
 };
@@ -110,18 +130,18 @@ enum
 typedef struct Etherarp Etherarp;
 struct Etherarp
 {
-	uchar	d[6];
-	uchar	s[6];
-	uchar	type[2];
-	uchar	hrd[2];
-	uchar	pro[2];
-	uchar	hln;
-	uchar	pln;
-	uchar	op[2];
-	uchar	sha[6];
-	uchar	spa[4];
-	uchar	tha[6];
-	uchar	tpa[4];
+	uint8_t	d[6];
+	uint8_t	s[6];
+	uint8_t	type[2];
+	uint8_t	hrd[2];
+	uint8_t	pro[2];
+	uint8_t	hln;
+	uint8_t	pln;
+	uint8_t	op[2];
+	uint8_t	sha[6];
+	uint8_t	spa[4];
+	uint8_t	tha[6];
+	uint8_t	tpa[4];
 };
 
 static char *nbmsg = "nonblocking";
@@ -133,6 +153,7 @@ static char *nbmsg = "nonblocking";
 static void
 etherbind(Ipifc *ifc, int argc, char **argv)
 {
+	Mach *m = machp();
 	Chan *mchan4, *cchan4, *achan, *mchan6, *cchan6, *schan;
 	char addr[Maxpath];	//char addr[2*KNAMELEN];
 	char dir[Maxpath];	//char dir[2*KNAMELEN];
@@ -163,18 +184,18 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	}
 
 	/*
-	 *  open ipv4 conversation
+	 *  open ipv4 converstation
 	 *
 	 *  the dial will fail if the type is already open on
 	 *  this device.
 	 */
-	snprint(addr, sizeof(addr), "%s!0x800", argv[2]);	/* ETIP4 */
+	snprint(addr, sizeof(addr), "%s!0x800", argv[2]);
 	mchan4 = chandial(addr, nil, dir, &cchan4);
 
 	/*
 	 *  make it non-blocking
 	 */
-	devtab[cchan4->type]->write(cchan4, nbmsg, strlen(nbmsg), 0);
+	cchan4->dev->write(cchan4, nbmsg, strlen(nbmsg), 0);
 
 	/*
 	 *  get mac address and speed
@@ -186,7 +207,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 		cclose(schan);
 		nexterror();
 	}
-	n = devtab[schan->type]->read(schan, buf, 511, 0);
+	n = schan->dev->read(schan, buf, 511, 0);
 	cclose(schan);
 	poperror();
 	buf[n] = 0;
@@ -207,7 +228,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	/*
  	 *  open arp conversation
 	 */
-	snprint(addr, sizeof(addr), "%s!0x806", argv[2]);	/* ETARP */
+	snprint(addr, sizeof(addr), "%s!0x806", argv[2]);
 	achan = chandial(addr, nil, nil, nil);
 
 	/*
@@ -216,13 +237,13 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	 *  the dial will fail if the type is already open on
 	 *  this device.
 	 */
-	snprint(addr, sizeof(addr), "%s!0x86DD", argv[2]);	/* ETIP6 */
+	snprint(addr, sizeof(addr), "%s!0x86DD", argv[2]);
 	mchan6 = chandial(addr, nil, dir, &cchan6);
 
 	/*
 	 *  make it non-blocking
 	 */
-	devtab[cchan6->type]->write(cchan6, nbmsg, strlen(nbmsg), 0);
+	cchan6->dev->write(cchan6, nbmsg, strlen(nbmsg), 0);
 
 	er = smalloc(sizeof(*er));
 	er->mchan4 = mchan4;
@@ -247,18 +268,19 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 static void
 etherunbind(Ipifc *ifc)
 {
+	Mach *m = machp();
 	Etherrock *er = ifc->arg;
 
 	if(er->read4p)
-		postnote(er->read4p, 1, "unbind", 0);
+		postnote(er->read4p, 1, "unbind", NUser);
 	if(er->read6p)
-		postnote(er->read6p, 1, "unbind", 0);
+		postnote(er->read6p, 1, "unbind", NUser);
 	if(er->arpp)
-		postnote(er->arpp, 1, "unbind", 0);
+		postnote(er->arpp, 1, "unbind", NUser);
 
 	/* wait for readers to die */
 	while(er->arpp != 0 || er->read4p != 0 || er->read6p != 0)
-		tsleep(&up->sleep, return0, 0, 300);
+		tsleep(&m->externup->sleep, return0, 0, 300);
 
 	if(er->mchan4 != nil)
 		cclose(er->mchan4);
@@ -278,18 +300,18 @@ etherunbind(Ipifc *ifc)
  *  called by ipoput with a single block to write with ifc rlock'd
  */
 static void
-etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
+etherbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip)
 {
 	Etherhdr *eh;
 	Arpent *a;
-	uchar mac[6];
+	uint8_t mac[6];
 	Etherrock *er = ifc->arg;
 
 	/* get mac address of destination */
 	a = arpget(er->f->arp, bp, version, ifc, ip, mac);
 	if(a){
 		/* check for broadcast or multicast */
-		bp = multicastarp(er->f, a, ifc->m, mac);
+		bp = multicastarp(er->f, a, ifc->medium, mac);
 		if(bp==nil){
 			switch(version){
 			case V4:
@@ -306,7 +328,7 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 	}
 
 	/* make it a single block with space for the ether header */
-	bp = padblock(bp, ifc->m->hsize);
+	bp = padblock(bp, ifc->medium->hsize);
 	if(bp->next)
 		bp = concatblock(bp);
 	if(BLEN(bp) < ifc->mintu)
@@ -321,12 +343,12 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 	case V4:
 		eh->t[0] = 0x08;
 		eh->t[1] = 0x00;
-		devtab[er->mchan4->type]->bwrite(er->mchan4, bp, 0);
+		er->mchan4->dev->bwrite(er->mchan4, bp, 0);
 		break;
 	case V6:
 		eh->t[0] = 0x86;
 		eh->t[1] = 0xDD;
-		devtab[er->mchan6->type]->bwrite(er->mchan6, bp, 0);
+		er->mchan6->dev->bwrite(er->mchan6, bp, 0);
 		break;
 	default:
 		panic("etherbwrite2: version %d", version);
@@ -341,19 +363,20 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 static void
 etherread4(void *a)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
 	Block *bp;
 	Etherrock *er;
 
 	ifc = a;
 	er = ifc->arg;
-	er->read4p = up;	/* hide identity under a rock for unbind */
+	er->read4p = m->externup;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		er->read4p = 0;
 		pexit("hangup", 1);
 	}
 	for(;;){
-		bp = devtab[er->mchan4->type]->bread(er->mchan4, ifc->maxtu, 0);
+		bp = er->mchan4->dev->bread(er->mchan4, ifc->maxtu, 0);
 		if(!canrlock(ifc)){
 			freeb(bp);
 			continue;
@@ -363,7 +386,7 @@ etherread4(void *a)
 			nexterror();
 		}
 		ifc->in++;
-		bp->rp += ifc->m->hsize;
+		bp->rp += ifc->medium->hsize;
 		if(ifc->lifc == nil)
 			freeb(bp);
 		else
@@ -380,19 +403,20 @@ etherread4(void *a)
 static void
 etherread6(void *a)
 {
+	Mach *m = machp();
 	Ipifc *ifc;
 	Block *bp;
 	Etherrock *er;
 
 	ifc = a;
 	er = ifc->arg;
-	er->read6p = up;	/* hide identity under a rock for unbind */
+	er->read6p = m->externup;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		er->read6p = 0;
 		pexit("hangup", 1);
 	}
 	for(;;){
-		bp = devtab[er->mchan6->type]->bread(er->mchan6, ifc->maxtu, 0);
+		bp = er->mchan6->dev->bread(er->mchan6, ifc->maxtu, 0);
 		if(!canrlock(ifc)){
 			freeb(bp);
 			continue;
@@ -402,7 +426,7 @@ etherread6(void *a)
 			nexterror();
 		}
 		ifc->in++;
-		bp->rp += ifc->m->hsize;
+		bp->rp += ifc->medium->hsize;
 		if(ifc->lifc == nil)
 			freeb(bp);
 		else
@@ -413,21 +437,21 @@ etherread6(void *a)
 }
 
 static void
-etheraddmulti(Ipifc *ifc, uchar *a, uchar *)
+etheraddmulti(Ipifc *ifc, uint8_t *a, uint8_t *b)
 {
-	uchar mac[6];
+	uint8_t mac[6];
 	char buf[64];
 	Etherrock *er = ifc->arg;
 	int version;
 
 	version = multicastea(mac, a);
-	snprint(buf, sizeof buf, "addmulti %E", mac);
+	sprint(buf, "addmulti %E", mac);
 	switch(version){
 	case V4:
-		devtab[er->cchan4->type]->write(er->cchan4, buf, strlen(buf), 0);
+		er->cchan4->dev->write(er->cchan4, buf, strlen(buf), 0);
 		break;
 	case V6:
-		devtab[er->cchan6->type]->write(er->cchan6, buf, strlen(buf), 0);
+		er->cchan6->dev->write(er->cchan6, buf, strlen(buf), 0);
 		break;
 	default:
 		panic("etheraddmulti: version %d", version);
@@ -435,21 +459,21 @@ etheraddmulti(Ipifc *ifc, uchar *a, uchar *)
 }
 
 static void
-etherremmulti(Ipifc *ifc, uchar *a, uchar *)
+etherremmulti(Ipifc *ifc, uint8_t *a, uint8_t *b)
 {
-	uchar mac[6];
+	uint8_t mac[6];
 	char buf[64];
 	Etherrock *er = ifc->arg;
 	int version;
 
 	version = multicastea(mac, a);
-	snprint(buf, sizeof buf, "remmulti %E", mac);
+	sprint(buf, "remmulti %E", mac);
 	switch(version){
 	case V4:
-		devtab[er->cchan4->type]->write(er->cchan4, buf, strlen(buf), 0);
+		er->cchan4->dev->write(er->cchan4, buf, strlen(buf), 0);
 		break;
 	case V6:
-		devtab[er->cchan6->type]->write(er->cchan6, buf, strlen(buf), 0);
+		er->cchan6->dev->write(er->cchan6, buf, strlen(buf), 0);
 		break;
 	default:
 		panic("etherremmulti: version %d", version);
@@ -506,7 +530,7 @@ sendarp(Ipifc *ifc, Arpent *a)
 	hnputs(e->op, ARPREQUEST);
 	bp->wp += n;
 
-	devtab[er->achan->type]->bwrite(er->achan, bp, 0);
+	er->achan->dev->bwrite(er->achan, bp, 0);
 }
 
 static void
@@ -515,7 +539,7 @@ resolveaddr6(Ipifc *ifc, Arpent *a)
 	int sflag;
 	Block *bp;
 	Etherrock *er = ifc->arg;
-	uchar ipsrc[IPaddrlen];
+	uint8_t ipsrc[IPaddrlen];
 
 	/* don't do anything if it's been less than a second since the last */
 	if(NOW - a->ctime < ReTransTimer){
@@ -550,7 +574,7 @@ resolveaddr6(Ipifc *ifc, Arpent *a)
  *  send a gratuitous arp to refresh arp caches
  */
 static void
-sendgarp(Ipifc *ifc, uchar *ip)
+sendgarp(Ipifc *ifc, uint8_t *ip)
 {
 	int n;
 	Block *bp;
@@ -562,8 +586,8 @@ sendgarp(Ipifc *ifc, uchar *ip)
 		return;
 
 	n = sizeof(Etherarp);
-	if(n < ifc->m->mintu)
-		n = ifc->m->mintu;
+	if(n < ifc->medium->mintu)
+		n = ifc->medium->mintu;
 	bp = allocb(n);
 	memset(bp->rp, 0, n);
 	e = (Etherarp*)bp->rp;
@@ -581,7 +605,7 @@ sendgarp(Ipifc *ifc, uchar *ip)
 	hnputs(e->op, ARPREQUEST);
 	bp->wp += n;
 
-	devtab[er->achan->type]->bwrite(er->achan, bp, 0);
+	er->achan->dev->bwrite(er->achan, bp, 0);
 }
 
 static void
@@ -590,11 +614,11 @@ recvarp(Ipifc *ifc)
 	int n;
 	Block *ebp, *rbp;
 	Etherarp *e, *r;
-	uchar ip[IPaddrlen];
-	static uchar eprinted[4];
+	uint8_t ip[IPaddrlen];
+	static uint8_t eprinted[4];
 	Etherrock *er = ifc->arg;
 
-	ebp = devtab[er->achan->type]->bread(er->achan, ifc->maxtu, 0);
+	ebp = er->achan->dev->bread(er->achan, ifc->maxtu, 0);
 	if(ebp == nil)
 		return;
 
@@ -676,7 +700,7 @@ recvarp(Ipifc *ifc)
 		memmove(r->s, ifc->mac, sizeof(r->s));
 		rbp->wp += n;
 
-		devtab[er->achan->type]->bwrite(er->achan, rbp, 0);
+		er->achan->dev->bwrite(er->achan, rbp, 0);
 	}
 	freeb(ebp);
 }
@@ -684,10 +708,11 @@ recvarp(Ipifc *ifc)
 static void
 recvarpproc(void *v)
 {
+	Mach *m = machp();
 	Ipifc *ifc = v;
 	Etherrock *er = ifc->arg;
 
-	er->arpp = up;
+	er->arpp = m->externup;
 	if(waserror()){
 		er->arpp = 0;
 		pexit("hangup", 1);
@@ -697,7 +722,7 @@ recvarpproc(void *v)
 }
 
 static int
-multicastea(uchar *ea, uchar *ip)
+multicastea(uint8_t *ea, uint8_t *ip)
 {
 	int x;
 
@@ -728,7 +753,7 @@ multicastea(uchar *ea, uchar *ip)
  *  IP address.
  */
 static Block*
-multicastarp(Fs *f, Arpent *a, Medium *medium, uchar *mac)
+multicastarp(Fs *f, Arpent *a, Medium *medium, uint8_t *mac)
 {
 	/* is it broadcast? */
 	switch(ipforme(f, a->ip)){
@@ -756,12 +781,13 @@ void
 ethermediumlink(void)
 {
 	addipmedium(&ethermedium);
+	addipmedium(&fbemedium);
 	addipmedium(&gbemedium);
 }
 
 
 static void
-etherpref2addr(uchar *pref, uchar *ea)
+etherpref2addr(uint8_t *pref, uint8_t *ea)
 {
 	pref[8] = ea[0] | 0x2;
 	pref[9] = ea[1];

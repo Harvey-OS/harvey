@@ -1,12 +1,3 @@
-/*
- * This file is part of the UCB release of Plan 9. It is subject to the license
- * terms in the LICENSE file found in the top-level directory of this
- * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
- * part of the UCB release of Plan 9, including this file, may be copied,
- * modified, propagated, or distributed except according to the terms contained
- * in the LICENSE file.
- */
-
 extern char Enoerror[];		/* no error */
 extern char Emount[];		/* inconsistent mount */
 extern char Eunmount[];		/* not mounted */
@@ -48,9 +39,8 @@ extern char Eintr[];		/* interrupted */
 extern char Enomem[];		/* kernel allocate failed */
 extern char Enoswap[];		/* swap space full */
 extern char Esoverlap[];	/* segments overlap */
-extern char Emouseset[];	/* mouse type already set */
 extern char Eshort[];		/* i/o count too small */
-extern char Egreg[];		/* jmk added reentrancy for threads */
+extern char Egreg[];		/* ken has left the building */
 extern char Ebadspec[];		/* bad attach specifier */
 extern char Enoreg[];		/* process has no saved registers */
 extern char Enoattach[];	/* mount/attach disallowed */
@@ -60,8 +50,3 @@ extern char Enegoff[];		/* negative i/o offset */
 extern char Ecmdargs[];		/* wrong #args in control message */
 extern char Ebadip[];		/* bad ip address syntax */
 extern char Edirseek[];		/* seek in directory */
-extern char Echange[];		/* media or partition has changed */
-extern char Estalled[];		/* endpoint stalled */
-extern char Edetach[];		/* device is detached */
-extern char Enotconf[];		/* endpoint not configured */
-extern char Eaoedown[];		/* aoe device is down */

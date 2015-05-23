@@ -33,9 +33,9 @@ typedef struct Ram Ram;
 
 struct Fid
 {
-	short	busy;
-	short	open;
-	short	rclose;
+	int16_t	busy;
+	int16_t	open;
+	int16_t	rclose;
 	int	fid;
 	Fid	*next;
 	char	*user;
@@ -44,19 +44,19 @@ struct Fid
 
 struct Ram
 {
-	short	busy;
-	short	open;
-	long	parent;		/* index in Ram array */
+	int16_t	busy;
+	int16_t	open;
+	int32_t	parent;		/* index in Ram array */
 	Qid	qid;
-	long	perm;
+	int32_t	perm;
 	char	*name;
-	ulong	atime;
-	ulong	mtime;
+	uint32_t	atime;
+	uint32_t	mtime;
 	char	*user;
 	char	*group;
 	char	*muid;
 	char	*data;
-	long	ndata;
+	int32_t	ndata;
 };
 
 enum
@@ -69,25 +69,25 @@ enum
 	Powner =	64,
 };
 
-ulong	path;		/* incremented for each new file */
+uint32_t	path;		/* incremented for each new file */
 Fid	*fids;
 Ram	ram[Nram];
 int	nram;
 int	mfd[2];
 char	*user;
-uchar	mdata[IOHDRSZ+Maxfdata];
-uchar	rdata[Maxfdata];	/* buffer for data in reply */
-uchar statbuf[STATMAX];
+uint8_t	mdata[IOHDRSZ+Maxfdata];
+uint8_t	rdata[Maxfdata];	/* buffer for data in reply */
+uint8_t statbuf[STATMAX];
 Fcall thdr;
 Fcall	rhdr;
 int	messagesize = sizeof mdata;
 
 Fid *	newfid(int);
-uint	ramstat(Ram*, uchar*, uint);
+uint	ramstat(Ram*, uint8_t*, uint);
 void	error(char*);
 void	io(void);
-void	*erealloc(void*, ulong);
-void	*emalloc(ulong);
+void	*erealloc(void*, uint32_t);
+void	*emalloc(uint32_t);
 char	*estrdup(char*);
 void	usage(void);
 int	perm(Fid*, Ram*, int);
@@ -327,7 +327,7 @@ rwalk(Fid *f)
 	Ram *parent;
 	Fid *nf;
 	char *err;
-	ulong t;
+	uint32_t t;
 	int i;
 
 	err = nil;
@@ -447,7 +447,7 @@ rcreate(Fid *f)
 {
 	Ram *r;
 	char *name;
-	long parent, prm;
+	int32_t parent, prm;
 
 	if(f->open)
 		return Eisopen;
@@ -506,8 +506,8 @@ char*
 rread(Fid *f)
 {
 	Ram *r;
-	uchar *buf;
-	vlong off;
+	uint8_t *buf;
+	int64_t off;
 	int n, m, cnt;
 
 	if(f->ram->busy == 0)
@@ -559,7 +559,7 @@ char*
 rwrite(Fid *f)
 {
 	Ram *r;
-	vlong off;
+	int64_t off;
 	int cnt;
 
 	r = f->ram;
@@ -594,7 +594,7 @@ rwrite(Fid *f)
 static int
 emptydir(Ram *dr)
 {
-	long didx = dr - ram;
+	int32_t didx = dr - ram;
 	Ram *r;
 
 	for(r=ram; r<&ram[nram]; r++)
@@ -743,7 +743,7 @@ rwstat(Fid *f)
 }
 
 uint
-ramstat(Ram *r, uchar *buf, uint nbuf)
+ramstat(Ram *r, uint8_t *buf, uint nbuf)
 {
 	int n;
 	Dir dir;
@@ -874,7 +874,7 @@ error(char *s)
 }
 
 void *
-emalloc(ulong n)
+emalloc(uint32_t n)
 {
 	void *p;
 
@@ -886,7 +886,7 @@ emalloc(ulong n)
 }
 
 void *
-erealloc(void *p, ulong n)
+erealloc(void *p, uint32_t n)
 {
 	p = realloc(p, n);
 	if(!p)

@@ -125,7 +125,7 @@ readmouse(Vnc *v)
 {
 	int cursorfd, len, n;
 	char buf[10*EventSize], *start, *end;
-	uchar curs[2*4+2*2*16];
+	uint8_t curs[2*4+2*2*16];
 	Cursor *cs;
 	Mouse m;
 
@@ -179,13 +179,13 @@ readmouse(Vnc *v)
 }
 
 static int snarffd = -1;
-static ulong snarfvers;
+static uint32_t snarfvers;
 
 void 
-writesnarf(Vnc *v, long n)
+writesnarf(Vnc *v, int32_t n)
 {
-	uchar buf[8192];
-	long m;
+	uint8_t buf[8192];
+	int32_t m;
 	Biobuf *b;
 
 	if((b = Bopen("/dev/snarf", OWRITE)) == nil){

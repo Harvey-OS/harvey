@@ -37,7 +37,7 @@
 inline private ulong
 bytes2int(const byte *p, int n)
 {
-    ulong v = 0;
+    uint32_t v = 0;
     int i;
 
     for (i = 0; i < n; ++i)

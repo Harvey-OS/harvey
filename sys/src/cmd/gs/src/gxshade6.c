@@ -653,7 +653,7 @@ init_wedge_vertex_list(wedge_vertex_list_t *l, int n)
 }
 
 private void
-draw_patch(const tensor_patch *p, bool interior, ulong rgbcolor)
+draw_patch(const tensor_patch *p, bool interior, uint32_t rgbcolor)
 {
 #ifdef DEBUG
 #if 0 /* Disabled for a better view with a specific purpose. 

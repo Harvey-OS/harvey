@@ -317,7 +317,7 @@ conv64(char *msg, char *end, char *buf, int bufsize)
 	len = end - msg;
 	i = (len*3)/4+1;	// room for max chars + null
 	cp = Malloc(i);
-	len = dec64((uchar*)cp, i, msg, len);
+	len = dec64((uint8_t*)cp, i, msg, len);
 	convert(cp, cp+len, buf, bufsize, 1);
 	free(cp);
 }
@@ -640,7 +640,7 @@ enum {
 	INVAL=	255
 };
 
-static uchar t64d[256] = {
+static uint8_t t64d[256] = {
 /*00 */	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
 	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
 /*10*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,

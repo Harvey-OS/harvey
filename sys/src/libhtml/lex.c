@@ -18,7 +18,7 @@ typedef struct TokenSource TokenSource;
 struct TokenSource
 {
 	int			i;		// index of next byte to use
-	uchar*		data;		// all the data
+	uint8_t*		data;		// all the data
 	int			edata;	// data[0:edata] is valid
 	int			chset;	// one of US_Ascii, etc.
 	int			mtype;	// TextHtml or TextPlain
@@ -577,7 +577,7 @@ lexinit(void)
 }
 
 static TokenSource*
-newtokensource(uchar* data, int edata, int chset, int mtype)
+newtokensource(uint8_t* data, int edata, int chset, int mtype)
 {
 	TokenSource*	ans;
 
@@ -599,7 +599,7 @@ enum {
 // Call this to get the tokens.
 //  The number of returned tokens is returned in *plen.
 Token*
-_gettoks(uchar* data, int datalen, int chset, int mtype, int* plen)
+_gettoks(uint8_t* data, int datalen, int chset, int mtype, int* plen)
 {
 	TokenSource*	ts;
 	Token*		a;
@@ -1294,7 +1294,7 @@ ampersand(TokenSource* ts)
 static int
 getchar(TokenSource* ts)
 {
-	uchar*	buf;
+	uint8_t*	buf;
 	int	c;
 	int	n;
 	int	ok;

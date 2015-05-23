@@ -19,7 +19,7 @@
 #define	UNSMARK	0x1000
 
 struct value {
-	long	val;
+	int32_t	val;
 	int	type;
 };
 
@@ -107,7 +107,7 @@ enum toktype ops[NSTAK + 1], *op;
 /*
  * Evaluate an #if #elif #ifdef #ifndef line.  trp->tp points to the keyword.
  */
-long
+int32_t
 eval(Tokenrow *trp, int kw)
 {
 	Token *tp;
@@ -227,7 +227,7 @@ int
 evalop(struct pri pri)
 {
 	struct value v1, v2;
-	long rv1, rv2;
+	int32_t rv1, rv2;
 	int rtype, oper;
 
 	rv2=0;
@@ -398,7 +398,7 @@ tokval(Token *tp)
 	int i, base, c, longcc;
 	unsigned long n;
 	Rune r;
-	uchar *p;
+	uint8_t *p;
 
 	v.type = SGN;
 	v.val = 0;

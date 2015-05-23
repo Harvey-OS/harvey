@@ -1,0 +1,7 @@
+
+</sys/src/mkfile.clang.proto
+
+CC=clang
+LD=clang
+O=o
+AS=clang

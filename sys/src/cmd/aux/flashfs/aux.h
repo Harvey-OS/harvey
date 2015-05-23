@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-void*	emalloc9p(ulong sz);
-void*	erealloc9p(void *v, ulong sz);
+void*	emalloc9p(uint32_t sz);
+void*	erealloc9p(void *v, uint32_t sz);
 char*	estrdup9p(char *s);
 
 #define DMDIR CHDIR

@@ -67,5 +67,5 @@ extern	void*	Malloc(long n);
 extern	int	matchpat(Pattern*, char*, Resub*);
 extern	char*	readmsg(Biobuf*, int*, int*);
 extern	void	parsepats(Biobuf*);
-extern	void*	Realloc(void*, ulong);
+extern	void*	Realloc(void*, uint32_t);
 extern	void	xprint(int, char*, Resub*);

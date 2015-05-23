@@ -60,7 +60,7 @@ static void
 periodicThread(void *a)
 {
 	Periodic *p = a;
-	vlong t, ct, ts;		/* times in ms. */
+	int64_t t, ct, ts;		/* times in ms. */
 
 	vtThreadSetName("periodic");
 

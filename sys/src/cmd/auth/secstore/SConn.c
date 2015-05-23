@@ -16,8 +16,8 @@
 extern int verbose;
 
 typedef struct ConnState {
-	uchar secret[SHA1dlen];
-	ulong seqno;
+	uint8_t secret[SHA1dlen];
+	uint32_t seqno;
 	RC4state rc4;
 } ConnState;
 
@@ -28,17 +28,21 @@ typedef struct SS{
 } SS;
 
 static int
-SC_secret(SConn *conn, uchar *sigma, int direction)
+SC_secret(SConn *conn, uint8_t *sigma, int direction)
 {
 	SS *ss = (SS*)(conn->chan);
 	int nsigma = conn->secretlen;
 
 	if(direction != 0){
-		hmac_sha1(sigma, nsigma, (uchar*)"one", 3, ss->out.secret, nil);
-		hmac_sha1(sigma, nsigma, (uchar*)"two", 3, ss->in.secret, nil);
+		hmac_sha1(sigma, nsigma, (uint8_t*)"one", 3, ss->out.secret,
+			  nil);
+		hmac_sha1(sigma, nsigma, (uint8_t*)"two", 3, ss->in.secret,
+			  nil);
 	}else{
-		hmac_sha1(sigma, nsigma, (uchar*)"two", 3, ss->out.secret, nil);
-		hmac_sha1(sigma, nsigma, (uchar*)"one", 3, ss->in.secret, nil);
+		hmac_sha1(sigma, nsigma, (uint8_t*)"two", 3, ss->out.secret,
+			  nil);
+		hmac_sha1(sigma, nsigma, (uint8_t*)"one", 3, ss->in.secret,
+			  nil);
 	}
 	setupRC4state(&ss->in.rc4, ss->in.secret, 16); // restrict to 128 bits
 	setupRC4state(&ss->out.rc4, ss->out.secret, 16);
@@ -47,10 +51,11 @@ SC_secret(SConn *conn, uchar *sigma, int direction)
 }
 
 static void
-hash(uchar secret[SHA1dlen], uchar *data, int len, int seqno, uchar d[SHA1dlen])
+hash(uint8_t secret[SHA1dlen], uint8_t *data, int len, int seqno,
+     uint8_t d[SHA1dlen])
 {
 	DigestState sha;
-	uchar seq[4];
+	uint8_t seq[4];
 
 	seq[0] = seqno>>24;
 	seq[1] = seqno>>16;
@@ -63,11 +68,12 @@ hash(uchar secret[SHA1dlen], uchar *data, int len, int seqno, uchar d[SHA1dlen])
 }
 
 static int
-verify(uchar secret[SHA1dlen], uchar *data, int len, int seqno, uchar d[SHA1dlen])
+verify(uint8_t secret[SHA1dlen], uint8_t *data, int len, int seqno,
+       uint8_t d[SHA1dlen])
 {
 	DigestState sha;
-	uchar seq[4];
-	uchar digest[SHA1dlen];
+	uint8_t seq[4];
+	uint8_t digest[SHA1dlen];
 
 	seq[0] = seqno>>24;
 	seq[1] = seqno>>16;
@@ -81,10 +87,10 @@ verify(uchar secret[SHA1dlen], uchar *data, int len, int seqno, uchar d[SHA1dlen
 }
 
 static int
-SC_read(SConn *conn, uchar *buf, int n)
+SC_read(SConn *conn, uint8_t *buf, int n)
 {
 	SS *ss = (SS*)(conn->chan);
-	uchar count[2], digest[SHA1dlen];
+	uint8_t count[2], digest[SHA1dlen];
 	int len, nr;
 
 	if(read(ss->fd, count, 2) != 2 || (count[0]&0x80) == 0){
@@ -114,7 +120,8 @@ SC_read(SConn *conn, uchar *buf, int n)
 			return -1;
 		}
 		if( (nr = readn(ss->fd, buf, len)) != len){
-			snprint((char*)buf,n,"!SC_read expected %d bytes, but got %d", len, nr);
+			snprint((char*)buf,n,"!SC_read expected %d bytes, but got %d",
+				len, nr);
 			return -1;
 		}
 	}
@@ -123,10 +130,10 @@ SC_read(SConn *conn, uchar *buf, int n)
 }
 
 static int
-SC_write(SConn *conn, uchar *buf, int n)
+SC_write(SConn *conn, uint8_t *buf, int n)
 {
 	SS *ss = (SS*)(conn->chan);
-	uchar count[2], digest[SHA1dlen], enc[Maxmsg+1];
+	uint8_t count[2], digest[SHA1dlen], enc[Maxmsg+1];
 	int len;
 
 	if(n <= 0 || n > Maxmsg+1){
@@ -199,7 +206,7 @@ writerr(SConn *conn, char *s)
 	char buf[Maxmsg];
 
 	snprint(buf, Maxmsg, "!%s", s);
-	conn->write(conn, (uchar*)buf, strlen(buf));
+	conn->write(conn, (uint8_t*)buf, strlen(buf));
 }
 
 int
@@ -207,7 +214,7 @@ readstr(SConn *conn, char *s)
 {
 	int n;
 
-	n = conn->read(conn, (uchar*)s, Maxmsg);
+	n = conn->read(conn, (uint8_t*)s, Maxmsg);
 	if(n >= 0){
 		s[n] = 0;
 		if(s[0] == '!'){

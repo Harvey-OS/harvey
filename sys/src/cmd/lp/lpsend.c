@@ -66,7 +66,7 @@ void
 error(int level, char *s1, ...)
 {
 	va_list ap;
-	long thetime;
+	int32_t thetime;
 	char *chartime;
 	char *args[8];
 	int argno = 0;

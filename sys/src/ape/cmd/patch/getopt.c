@@ -395,7 +395,8 @@ exchange (argv)
 /* Initialize the internal data when the first call is made.  */
 
 #if defined (__STDC__) && __STDC__
-static const char *_getopt_initialize (int, char *const *, const char *);
+static const char *_getopt_initialize (int, char *const *,
+					 const char *);
 #endif
 static const char *
 _getopt_initialize (argc, argv, optstring)

@@ -128,7 +128,7 @@ static char*
 editdot(Edit *edit, int argc, char **argv)
 {
 	char *err;
-	vlong ndot;
+	int64_t ndot;
 
 	if(argc == 1) {
 		print("\t. %lld\n", edit->dot);
@@ -150,7 +150,7 @@ editadd(Edit *edit, int argc, char **argv)
 {
 	char *name, *err, *q;
 	static char msg[100];
-	vlong start, end, maxend;
+	int64_t start, end, maxend;
 	int i;
 
 	if(argc < 2)
@@ -245,7 +245,7 @@ edithelp(Edit *edit, int, char**)
 static char*
 editprint(Edit *edit, int argc, char**)
 {
-	vlong lastend;
+	int64_t lastend;
 	int i;
 	Part **part;
 
@@ -377,7 +377,7 @@ runcmd(Edit *edit, char *cmd)
 }
 
 static Part*
-ctlmkpart(char *name, vlong start, vlong end, int changed)
+ctlmkpart(char *name, int64_t start, int64_t end, int changed)
 {
 	Part *p;
 
@@ -396,7 +396,7 @@ rdctlpart(Edit *edit)
 	int i, nline, nf;
 	char *line[128];
 	char buf[4096];
-	vlong a, b;
+	int64_t a, b;
 	char *f[5];
 	Disk *disk;
 
@@ -441,7 +441,7 @@ rdctlpart(Edit *edit)
 	}
 }
 
-static vlong
+static int64_t
 ctlstart(Part *p)
 {
 	if(p->ctlstart)
@@ -449,7 +449,7 @@ ctlstart(Part *p)
 	return p->start;
 }
 
-static vlong
+static int64_t
 ctlend(Part *p)
 {
 	if(p->ctlend)
@@ -487,7 +487,7 @@ ctldiff(Edit *edit, int ctlfd)
 {
 	int i, j, waserr;
 	Part *p;
-	vlong offset;
+	int64_t offset;
 
 	rdctlpart(edit);
 
@@ -538,7 +538,7 @@ ctldiff(Edit *edit, int ctlfd)
 }
 
 void*
-emalloc(ulong sz)
+emalloc(uint32_t sz)
 {
 	void *v;
 

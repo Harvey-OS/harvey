@@ -16,11 +16,11 @@
 typedef struct Hdr	Hdr;
 struct Hdr
 {
-	uchar	code;
-	uchar	id;
-	uchar	len[2];	/* length including this header */
+	uint8_t	code;
+	uint8_t	id;
+	uint8_t	len[2];	/* length including this header */
 
-	uchar	tp;	/* optional, only for Request/Response */
+	uint8_t	tp;	/* optional, only for Request/Response */
 };
 
 enum
@@ -148,7 +148,7 @@ op(int i)
 }
 
 static char*
-subop(uchar val)
+subop(uint8_t val)
 {
 	static char x[20], *p;
 

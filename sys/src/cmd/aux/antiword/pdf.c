@@ -36,10 +36,10 @@ static encoding_type	eEncoding = encoding_neutral;
 /* Current creator for a PDF header */
 static const char	*szProducer = NULL;
 /* The height and width of a PDF page (in DrawUnits) */
-static long		lPageHeight = LONG_MAX;
-static long		lPageWidth = LONG_MAX;
+static int32_t		lPageHeight = LONG_MAX;
+static int32_t		lPageWidth = LONG_MAX;
 /* The height of the footer on the current page (in DrawUnits) */
-static long		lFooterHeight = 0;
+static int32_t		lFooterHeight = 0;
 /* Inside a footer (to prevent an infinite loop when the footer is too big) */
 static BOOL		bInFtrSpace = FALSE;
 /* Current font information */
@@ -47,7 +47,7 @@ static drawfile_fontref	tFontRefCurr = (drawfile_fontref)-1;
 static USHORT		usFontSizeCurr = 0;
 static int		iFontColorCurr = -1;
 /* Current vertical position information */
-static long		lYtopCurr = -1;
+static int32_t		lYtopCurr = -1;
 /* Image counter */
 static int		iImageCount = 0;
 /* Section index */
@@ -55,12 +55,12 @@ static int		iSectionIndex = 0;
 /* Are we on the first page of the section? */
 static BOOL		bFirstInSection = TRUE;
 /* File positions */
-static long		lFilePosition = 0;
-static long		*alLocation = NULL;
+static int32_t		lFilePosition = 0;
+static int32_t		*alLocation = NULL;
 static size_t		tLocations = 0;
 static int		iMaxLocationNumber = 0;
 /* File position at the start of a page */
-static long		lStreamStart = -1;
+static int32_t		lStreamStart = -1;
 /* Page objects */
 static int		*aiPageObject = NULL;
 static int		iPageCount = 0;
@@ -69,7 +69,7 @@ static size_t		tMaxPageObjects = 0;
 /* 1 = root; 2 = info; 3 = pages; 4 = encoding; 5-16 = fonts; 17 = resources */
 static int		iObjectNumberCurr = 17;
 
-static void		vMoveTo(diagram_type *, long);
+static void		vMoveTo(diagram_type *, int32_t);
 
 static const struct {
 	const char	*szPDFname;
@@ -177,10 +177,11 @@ vSetLocation(int iLocationNumber)
 	if ((size_t)iLocationNumber >= tLocations) {
 		/* Extend and set to zero */
 		tLocations += EXTENSION_ARRAY_SIZE;
-		alLocation = xrealloc(alLocation, tLocations * sizeof(long));
+		alLocation = xrealloc(alLocation,
+				      tLocations * sizeof(int32_t));
 		memset(alLocation + tLocations - EXTENSION_ARRAY_SIZE,
 			0,
-			EXTENSION_ARRAY_SIZE * sizeof(long));
+			EXTENSION_ARRAY_SIZE * sizeof(int32_t));
 		DBG_DEC(tLocations);
 	}
 	if (iLocationNumber > iMaxLocationNumber) {
@@ -342,7 +343,7 @@ vAddHdrFtr(diagram_type *pDiag, const hdrftr_block_type *pHdrFtrInfo)
 		}
 		if (pNext->szStorage[0] == PAR_END) {
 			vEndOfParagraphPDF(pDiag, pNext->usFontSize,
-					(long)pNext->usFontSize * 200);
+					(int32_t)pNext->usFontSize * 200);
 		}
 		pStart = pNext->pNext;
 	}
@@ -450,7 +451,7 @@ vAddFooter(diagram_type *pDiag)
 static void
 vEndPageObject(FILE *pOutFile)
 {
-	long	lStreamEnd;
+	int32_t	lStreamEnd;
 
 	if (lStreamStart < 0) {
 		/* There is no current page object */
@@ -530,7 +531,7 @@ vMove2NextPage(diagram_type *pDiag, BOOL bNewSection)
  * start on a new page if needed
  */
 static void
-vMoveTo(diagram_type *pDiag, long lLastVerticalMovement)
+vMoveTo(diagram_type *pDiag, int32_t lLastVerticalMovement)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -572,7 +573,7 @@ vProloguePDF(diagram_type *pDiag,
 
 	/* Create an empty location array */
 	tLocations = INITIAL_LOCATION_SIZE;
-	alLocation = xcalloc(tLocations, sizeof(long));
+	alLocation = xcalloc(tLocations, sizeof(int32_t));
 
 	/* Create an empty pageobject array */
 	tMaxPageObjects = INITIAL_PAGEOBJECT_SIZE;
@@ -630,7 +631,7 @@ void
 vEpiloguePDF(diagram_type *pDiag)
 {
 	FILE	*pOutFile;
-	long	lXref;
+	int32_t	lXref;
 	int	iIndex;
 
 	fail(pDiag == NULL);
@@ -1079,7 +1080,7 @@ vMove2NextLinePDF(diagram_type *pDiag, USHORT usFontSize)
  */
 void
 vSubstringPDF(diagram_type *pDiag,
-	char *szString, size_t tStringLength, long lStringWidth,
+	char *szString, size_t tStringLength, int32_t lStringWidth,
 	UCHAR ucFontColor, USHORT usFontstyle, drawfile_fontref tFontRef,
 	USHORT usFontSize, USHORT usMaxFontSize)
 {
@@ -1117,7 +1118,7 @@ vSubstringPDF(diagram_type *pDiag,
  * Create an start of paragraph by moving the y-top mark
  */
 void
-vStartOfParagraphPDF(diagram_type *pDiag, long lBeforeIndentation)
+vStartOfParagraphPDF(diagram_type *pDiag, int32_t lBeforeIndentation)
 {
 	fail(pDiag == NULL);
 	fail(lBeforeIndentation < 0);
@@ -1131,7 +1132,7 @@ vStartOfParagraphPDF(diagram_type *pDiag, long lBeforeIndentation)
  */
 void
 vEndOfParagraphPDF(diagram_type *pDiag,
-	USHORT usFontSize, long lAfterIndentation)
+	USHORT usFontSize, int32_t lAfterIndentation)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);

@@ -15,7 +15,7 @@ char*
 strpbrk(char *cs, char *cb)
 {
 	char map[N];
-	uchar *s=(uchar*)cs, *b=(uchar*)cb;
+	uint8_t *s=(uint8_t*)cs, *b=(uint8_t*)cb;
 
 	memset(map, 0, N);
 	for(;;) {

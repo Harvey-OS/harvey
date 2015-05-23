@@ -144,7 +144,7 @@ setspeed(int rec, int speed)
 	Audioalt *a;
 	Altc *da;
 	Ep *ep;
-	uchar buf[3];
+	uint8_t buf[3];
 
 	if(rec == Record && !setrec)
 		return Undef;
@@ -251,14 +251,14 @@ setspeed(int rec, int speed)
 	return speed;
 }
 
-long
+int32_t
 getspeed(int rec, int which)
 {
 	int i, n;
 	Audioalt *a;
 	Altc *da;
 	Ep *ep;
-	uchar buf[3];
+	uint8_t buf[3];
 	int r;
 
 	if(curalt[rec] < 0){
@@ -328,7 +328,7 @@ getspeed(int rec, int which)
 }
 
 int
-setcontrol(int rec, char *name, long *value)
+setcontrol(int rec, char *name, int32_t *value)
 {
 	int i, ctl, m;
 	byte buf[3];
@@ -463,12 +463,12 @@ setcontrol(int rec, char *name, long *value)
 }
 
 int
-getspecialcontrol(int rec, int ctl, int req, long *value)
+getspecialcontrol(int rec, int ctl, int req, int32_t *value)
 {
 	byte buf[3];
 	int m, n, i;
 	int type, control, index, count, signedbyte;
-	short svalue;
+	int16_t svalue;
 
 	count = 1;
 	signedbyte = 0;
@@ -573,7 +573,7 @@ getspecialcontrol(int rec, int ctl, int req, long *value)
 }
 
 int
-getcontrol(int rec, char *name, long *value)
+getcontrol(int rec, char *name, int32_t *value)
 {
 	int i;
 
@@ -596,7 +596,7 @@ getcontrols(void)
 {
 	int rec, ctl, i;
 	Audiocontrol *c;
-	long v[8];
+	int32_t v[8];
 
 	for(rec = 0; rec < 2; rec++){
 		if(rec == Record && !setrec)
@@ -642,12 +642,12 @@ getcontrols(void)
 }
 
 int
-ctlparse(char *s, Audiocontrol *c, long *v)
+ctlparse(char *s, Audiocontrol *c, int32_t *v)
 {
 	int i, j, nf, m;
 	char *vals[9];
 	char *p;
-	long val;
+	int32_t val;
 
 	nf = tokenize(s, vals, nelem(vals));
 	if(nf <= 0)

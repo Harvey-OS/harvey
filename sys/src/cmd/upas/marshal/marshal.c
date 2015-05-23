@@ -109,7 +109,7 @@ int	cistrcmp(char*, char*);
 int	cistrncmp(char*, char*, int);
 int	doublequote(Fmt*);
 void*	emalloc(int);
-int	enc64(char*, int, uchar*, int);
+int	enc64(char*, int, uint8_t*, int);
 void*	erealloc(void*, int);
 char*	estrdup(char*);
 Addr*	expand(int, char**);
@@ -639,7 +639,7 @@ void
 body64(Biobuf *in, Biobuf *out)
 {
 	int m, n;
-	uchar buf[3*18*54];
+	uint8_t buf[3*18*54];
 	char obuf[3*18*54*2];
 
 	Bprint(out, "\n");
@@ -1215,7 +1215,7 @@ cistrcmp(char *a, char *b)
 	return 0;
 }
 
-static uchar t64d[256];
+static uint8_t t64d[256];
 static char t64e[64];
 
 static void
@@ -1245,10 +1245,10 @@ init64(void)
 }
 
 int
-enc64(char *out, int lim, uchar *in, int n)
+enc64(char *out, int lim, uint8_t *in, int n)
 {
 	int i;
-	ulong b24;
+	uint32_t b24;
 	char *start = out;
 	char *e = out + lim;
 
@@ -1882,7 +1882,7 @@ rfc2047fmt(Fmt *fmt)
 	if(s == nil)
 		return fmtstrcpy(fmt, "");
 	for(p=s; *p; p++)
-		if((uchar)*p >= 0x80)
+		if((uint8_t)*p >= 0x80)
 			goto hard;
 	return fmtstrcpy(fmt, s);
 
@@ -1892,10 +1892,10 @@ hard:
 		if(*p == ' ')
 			fmtrune(fmt, '_');
 		else if(*p == '_' || *p == '\t' || *p == '=' || *p == '?' ||
-		    (uchar)*p >= 0x80)
-			fmtprint(fmt, "=%.2uX", (uchar)*p);
+		    (uint8_t)*p >= 0x80)
+			fmtprint(fmt, "=%.2uX", (uint8_t)*p);
 		else
-			fmtrune(fmt, (uchar)*p);
+			fmtrune(fmt, (uint8_t)*p);
 	}
 	fmtprint(fmt, "?=");
 	return 0;
@@ -1911,7 +1911,7 @@ mksubject(char *line)
 	while(*p == ' ')
 		p++;
 	for(q = p; *q; q++)
-		if((uchar)*q >= 0x80)
+		if((uint8_t)*q >= 0x80)
 			goto hard;
 	return line;
 

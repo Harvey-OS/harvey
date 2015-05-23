@@ -43,7 +43,7 @@ myChdir(char *dir)
 }
 
 int
-cdCreate(char *dir, char *file, int mode, ulong perm)
+cdCreate(char *dir, char *file, int mode, uint32_t perm)
 {
 	if(myChdir(dir) < 0)
 		return -1;

@@ -579,7 +579,7 @@ os2prn_map_rgb_color(gx_device * dev, const gx_color_value cv[])
     gx_color_value b = cv[2];
     return gx_color_value_to_byte(r) +
 		((uint) gx_color_value_to_byte(g) << 8) +
-		((ulong) gx_color_value_to_byte(b) << 16);
+		((uint32_t) gx_color_value_to_byte(b) << 16);
 }
 
 /* Decode a color index to a r-g-b color. */

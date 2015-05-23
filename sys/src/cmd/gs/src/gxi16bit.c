@@ -80,7 +80,7 @@ typedef union {
     frac v[GS_IMAGE_MAX_COLOR_COMPONENTS];
 #define LONGS_PER_COLOR_FRACS\
   ((GS_IMAGE_MAX_COLOR_COMPONENTS + FRACS_PER_LONG - 1) / FRACS_PER_LONG)
-    long all[LONGS_PER_COLOR_FRACS];	/* for fast comparison */
+    int32_t all[LONGS_PER_COLOR_FRACS];	/* for fast comparison */
 } color_fracs;
 
 #define LONGS_PER_4_FRACS ((FRACS_PER_LONG + 3) / 4)

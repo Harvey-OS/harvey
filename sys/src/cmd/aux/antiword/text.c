@@ -22,7 +22,7 @@
 /* The character set */
 static encoding_type	eEncoding = encoding_neutral;
 /* Current vertical position information */
-static long		lYtopCurr = 0;
+static int32_t		lYtopCurr = 0;
 /* Local representation of the non-breaking space */
 static UCHAR		ucNbsp = 0;
 
@@ -129,7 +129,7 @@ vMove2NextLineTXT(diagram_type *pDiag)
  */
 void
 vSubstringTXT(diagram_type *pDiag,
-	const char *szString, size_t tStringLength, long lStringWidth)
+	const char *szString, size_t tStringLength, int32_t lStringWidth)
 {
 	fail(pDiag == NULL || szString == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -149,7 +149,7 @@ vSubstringTXT(diagram_type *pDiag,
  * Create an start of paragraph by moving the y-top mark
  */
 void
-vStartOfParagraphTXT(diagram_type *pDiag, long lBeforeIndentation)
+vStartOfParagraphTXT(diagram_type *pDiag, int32_t lBeforeIndentation)
 {
 	fail(pDiag == NULL);
 	fail(lBeforeIndentation < 0);
@@ -164,7 +164,7 @@ vStartOfParagraphTXT(diagram_type *pDiag, long lBeforeIndentation)
  * Create an end of paragraph by moving the y-top mark
  */
 void
-vEndOfParagraphTXT(diagram_type *pDiag, long lAfterIndentation)
+vEndOfParagraphTXT(diagram_type *pDiag, int32_t lAfterIndentation)
 {
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
@@ -185,7 +185,7 @@ vEndOfParagraphTXT(diagram_type *pDiag, long lAfterIndentation)
  * Create an end of page
  */
 void
-vEndOfPageTXT(diagram_type *pDiag, long lAfterIndentation)
+vEndOfPageTXT(diagram_type *pDiag, int32_t lAfterIndentation)
 {
 	vEndOfParagraphTXT(pDiag, lAfterIndentation);
 } /* end of vEndOfPageTXT */

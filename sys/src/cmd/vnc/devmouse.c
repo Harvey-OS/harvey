@@ -25,8 +25,8 @@ struct Mousestate
 {
 	Point	xy;			/* mouse.xy */
 	int	buttons;		/* mouse.buttons */
-	ulong	counter;	/* increments every update */
-	ulong	msec;	/* time of last event */
+	uint32_t	counter;	/* increments every update */
+	uint32_t	msec;	/* time of last event */
 };
 
 struct Mouseinfo
@@ -70,7 +70,7 @@ static Dirtab mousedir[]={
 	"mouse",	{Qmouse},	0,			0666,
 };
 
-static uchar buttonmap[8] = {
+static uint8_t buttonmap[8] = {
 	0, 1, 2, 3, 4, 5, 6, 7,
 };
 static int mouseswap;
@@ -109,7 +109,7 @@ mousewalk(Chan *c, Chan *nc, char **name, int nname)
 }
 
 static int
-mousestat(Chan *c, uchar *db, int n)
+mousestat(Chan *c, uint8_t *db, int n)
 {
 	return devstat(c, db, n, mousedir, nelem(mousedir), devgen);
 }
@@ -117,7 +117,7 @@ mousestat(Chan *c, uchar *db, int n)
 static Chan*
 mouseopen(Chan *c, int omode)
 {
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qdir:
 		if(omode != OREAD)
 			error(Eperm);
@@ -142,7 +142,7 @@ mouseopen(Chan *c, int omode)
 }
 
 static void
-mousecreate(Chan*, char*, int, ulong)
+mousecreate(Chan*, char*, int, uint32_t)
 {
 	error(Eperm);
 }
@@ -165,18 +165,18 @@ mouseclose(Chan *c)
 }
 
 
-static long
-mouseread(Chan *c, void *va, long n, vlong off)
+static int32_t
+mouseread(Chan *c, void *va, int32_t n, int64_t off)
 {
 	char buf[4*12+1];
-	uchar *p;
+	uint8_t *p;
 	static int map[8] = {0, 4, 2, 6, 1, 5, 3, 7 };
-	ulong offset = off;
+	uint32_t offset = off;
 	Mousestate m;
 	int b;
 
 	p = va;
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qdir:
 		return devdirread(c, va, n, mousedir, nelem(mousedir), devgen);
 
@@ -278,15 +278,15 @@ setbuttonmap(char* map)
 	}
 }
 
-static long
-mousewrite(Chan *c, void *va, long n, vlong)
+static int32_t
+mousewrite(Chan *c, void *va, int32_t n, int64_t)
 {
 	char *p;
 	Point pt;
 	char buf[64];
 
 	p = va;
-	switch((ulong)c->qid.path){
+	switch((uint32_t)c->qid.path){
 	case Qdir:
 		error(Eisdir);
 

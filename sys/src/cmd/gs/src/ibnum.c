@@ -88,7 +88,7 @@ int
 num_array_get(const gs_memory_t *mem, const ref * op, int format, uint index, ref * np)
 {
     if (format == num_array) {
-	int code = array_get(mem, op, (long)index, np);
+	int code = array_get(mem, op, (int32_t)index, np);
 
 	if (code < 0)
 	    return t_null;
@@ -178,13 +178,13 @@ sdecodeshort(const byte * p, int format)
 }
 
 /* Decode a (32-bit, signed) long. */
-long
+int32_t
 sdecodelong(const byte * p, int format)
 {
     int a = p[0], b = p[1], c = p[2], d = p[3];
-    long v = (num_is_lsb(format) ?
-	      ((long)d << 24) + ((long)c << 16) + (b << 8) + a :
-	      ((long)a << 24) + ((long)b << 16) + (c << 8) + d);
+    int32_t v = (num_is_lsb(format) ?
+	      ((int32_t)d << 24) + ((int32_t)c << 16) + (b << 8) + a :
+	      ((int32_t)a << 24) + ((int32_t)b << 16) + (c << 8) + d);
 
 #if arch_sizeof_long > 4
     /* Propagate bit 31 as the sign. */
@@ -215,7 +215,7 @@ sdecodefloat(const byte * p, int format)
 	    /* Convert IEEE float to native float. */
 	    int sign_expt = lnum >> 23;
 	    int expt = sign_expt & 0xff;
-	    long mant = lnum & 0x7fffff;
+	    int32_t mant = lnum & 0x7fffff;
 
 	    if (expt == 0 && mant == 0)
 		fnum = 0;

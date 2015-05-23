@@ -17,7 +17,7 @@ int changesonly;
 char *uid;
 Db *db;
 Biobuf blog;
-ulong now;
+uint32_t now;
 int n;
 char **x;
 int nx;

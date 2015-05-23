@@ -43,7 +43,7 @@ vtreadversion(VtConn *z, char *q, char *v, int nv)
 			*v = 0;
 			break;
 		}
-		if((uchar)*v < ' ' || (uchar)*v > 0x7f || (*q && *v != *q)){
+		if((unsigned char)*v < ' ' || (unsigned char)*v > 0x7f || (*q && *v != *q)){
 			werrstr(EBadVersion);
 			return -1;
 		}

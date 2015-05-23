@@ -12,7 +12,7 @@
 #define	PTR	sizeof(char*)
 #define	SHORT	sizeof(int)
 #define	INT	sizeof(int)
-#define	LONG	sizeof(long)
+#define	LONG	sizeof(int32_t)
 #define	IDIGIT	30
 #define	MAXCON	30
 
@@ -130,18 +130,18 @@ numbconv(Op *op, int base)
 {
 	char b[IDIGIT];
 	int i, f, n, r;
-	long v;
-	short h;
+	int32_t v;
+	int16_t h;
 
 	f = 0;
 	switch(op->f3 & (FLONG|FSHORT|FUNSIGN)) {
 	case FLONG:
-		v = *(long*)op->argp;
+		v = *(int32_t*)op->argp;
 		r = LONG;
 		break;
 
 	case FUNSIGN|FLONG:
-		v = *(ulong*)op->argp;
+		v = *(uint32_t*)op->argp;
 		r = LONG;
 		break;
 
@@ -153,7 +153,7 @@ numbconv(Op *op, int base)
 
 	case FUNSIGN|FSHORT:
 		h = *(int*)op->argp;
-		v = (ushort)h;
+		v = (uint16_t)h;
 		r = SHORT;
 		break;
 
@@ -173,14 +173,14 @@ numbconv(Op *op, int base)
 	}
 	b[IDIGIT-1] = 0;
 	for(i = IDIGIT-2;; i--) {
-		n = (ulong)v % base;
+		n = (uint32_t)v % base;
 		n += '0';
 		if(n > '9')
 			n += 'a' - ('9'+1);
 		b[i] = n;
 		if(i < 2)
 			break;
-		v = (ulong)v / base;
+		v = (uint32_t)v / base;
 		if(op->f2 >= 0 && i >= IDIGIT-op->f2)
 			continue;
 		if(v <= 0)

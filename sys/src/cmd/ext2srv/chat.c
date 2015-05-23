@@ -32,7 +32,7 @@ chat(char *fmt, ...)
 	va_start(arg, fmt);
 	out = vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
-	write(2, buf, (long)(out-buf));
+	write(2, buf, (int32_t)(out-buf));
 }
 
 void
@@ -44,7 +44,7 @@ mchat(char *fmt, ...)
 	va_start(arg, fmt);
 	out = vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
-	write(2, buf, (long)(out-buf));
+	write(2, buf, (int32_t)(out-buf));
 }
 void
 panic(char *fmt, ...)

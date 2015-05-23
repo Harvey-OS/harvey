@@ -18,13 +18,13 @@
  *  compete at moving the offset around.  Hence the unusual loop
  *  in the middle of this routine.
  */
-static long
-oldtime(long *tp)
+static int32_t
+oldtime(int32_t *tp)
 {
 	char b[20];
 	static int f = -1;
 	int i, retries;
-	long t;
+	int32_t t;
 
 	memset(b, 0, sizeof(b));
 	for(retries = 0; retries < 100; retries++){
@@ -46,12 +46,12 @@ oldtime(long *tp)
 	return t;
 }
 
-long
-time(long *tp)
+int32_t
+time(int32_t *tp)
 {
-	vlong t;
+	int64_t t;
 
-	t = nsec()/((vlong)1000000000);
+	t = nsec()/((int64_t)1000000000);
 	if(t == 0)
 		t = oldtime(0);
 	if(tp != nil)

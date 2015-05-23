@@ -25,7 +25,7 @@ buildfont(Display *d, char *buf, char *name)
 	Font *fnt;
 	Cachefont *c;
 	char *s, *t;
-	ulong min, max;
+	uint32_t min, max;
 	int offset;
 	char badform[] = "bad font format: number expected (char position %d)";
 

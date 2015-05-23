@@ -19,9 +19,9 @@
 //    as 20-byte, little-endian uchar array
 
 static void
-Hrand(uchar *s)
+Hrand(uint8_t *s)
 {
-	ulong *u = (ulong*)s;
+	uint32_t *u = (uint32_t*)s;
 	*u++ = fastrand();
 	*u++ = fastrand();
 	*u++ = fastrand();
@@ -30,7 +30,7 @@ Hrand(uchar *s)
 }
 
 static void
-Hincr(uchar *s)
+Hincr(uint8_t *s)
 {
 	int i;
 	for(i=0; i<20; i++)
@@ -40,10 +40,10 @@ Hincr(uchar *s)
 
 // this can run for quite a while;  be patient
 void
-DSAprimes(mpint *q, mpint *p, uchar seed[SHA1dlen])
+DSAprimes(mpint *q, mpint *p, uint8_t seed[SHA1dlen])
 {
 	int i, j, k, n = 6, b = 63;
-	uchar s[SHA1dlen], Hs[SHA1dlen], Hs1[SHA1dlen], sj[SHA1dlen], sjk[SHA1dlen];
+	uint8_t s[SHA1dlen], Hs[SHA1dlen], Hs1[SHA1dlen], sj[SHA1dlen], sjk[SHA1dlen];
 	mpint *two1023, *mb, *Vk, *W, *X, *q2;
 
 	two1023 = mpnew(1024);

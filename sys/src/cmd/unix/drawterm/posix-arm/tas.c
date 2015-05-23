@@ -11,7 +11,7 @@
 #include "libc.h"
 
 int
-tas(long *x)
+tas(int32_t *x)
 {
 	int     v, t, i = 1;
 

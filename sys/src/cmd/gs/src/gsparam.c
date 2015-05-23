@@ -310,7 +310,7 @@ param_read_int(gs_param_list * plist, gs_param_name pkey, int *pvalue)
     RETURN_READ_TYPED(i, gs_param_type_int);
 }
 int
-param_read_long(gs_param_list * plist, gs_param_name pkey, long *pvalue)
+param_read_long(gs_param_list * plist, gs_param_name pkey, int32_t *pvalue)
 {
     RETURN_READ_TYPED(l, gs_param_type_long);
 }
@@ -386,7 +386,8 @@ param_write_int(gs_param_list * plist, gs_param_name pkey, const int *pvalue)
     RETURN_WRITE_TYPED(i, gs_param_type_int);
 }
 int
-param_write_long(gs_param_list * plist, gs_param_name pkey, const long *pvalue)
+param_write_long(gs_param_list * plist, gs_param_name pkey,
+                 const int32_t *pvalue)
 {
     RETURN_WRITE_TYPED(l, gs_param_type_long);
 }

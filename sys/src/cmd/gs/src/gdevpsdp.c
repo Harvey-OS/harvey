@@ -170,28 +170,28 @@ private const psdf_image_param_names_t Mono_names = {
     )
 };
 #undef pi
-private const char *const AutoRotatePages_names[] = {
+private const int8_t *const AutoRotatePages_names[] = {
     psdf_arp_names, 0
 };
-private const char *const ColorConversionStrategy_names[] = {
+private const int8_t *const ColorConversionStrategy_names[] = {
     psdf_ccs_names, 0
 };
-private const char *const DownsampleType_names[] = {
+private const int8_t *const DownsampleType_names[] = {
     psdf_ds_names, 0
 };
-private const char *const Binding_names[] = {
+private const int8_t *const Binding_names[] = {
     psdf_binding_names, 0
 };
-private const char *const DefaultRenderingIntent_names[] = {
+private const int8_t *const DefaultRenderingIntent_names[] = {
     psdf_ri_names, 0
 };
-private const char *const TransferFunctionInfo_names[] = {
+private const int8_t *const TransferFunctionInfo_names[] = {
     psdf_tfi_names, 0
 };
-private const char *const UCRandBGInfo_names[] = {
+private const int8_t *const UCRandBGInfo_names[] = {
     psdf_ucrbg_names, 0
 };
-private const char *const CannotEmbedFontPolicy_names[] = {
+private const int8_t *const CannotEmbedFontPolicy_names[] = {
     psdf_cefp_names, 0
 };
 

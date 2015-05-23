@@ -32,7 +32,7 @@ nfsMount3TNullSize(NfsMount3TNull *x)
 	return a;
 }
 int
-nfsMount3TNullPack(uchar *a, uchar *ea, uchar **pa, NfsMount3TNull *x)
+nfsMount3TNullPack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3TNull *x)
 {
 	USED(ea);
 	USED(x);
@@ -40,7 +40,8 @@ nfsMount3TNullPack(uchar *a, uchar *ea, uchar **pa, NfsMount3TNull *x)
 	return 0;
 }
 int
-nfsMount3TNullUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3TNull *x)
+nfsMount3TNullUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     NfsMount3TNull *x)
 {
 	USED(ea);
 	USED(x);
@@ -62,7 +63,7 @@ nfsMount3RNullSize(NfsMount3RNull *x)
 	return a;
 }
 int
-nfsMount3RNullPack(uchar *a, uchar *ea, uchar **pa, NfsMount3RNull *x)
+nfsMount3RNullPack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3RNull *x)
 {
 	USED(ea);
 	USED(x);
@@ -70,7 +71,8 @@ nfsMount3RNullPack(uchar *a, uchar *ea, uchar **pa, NfsMount3RNull *x)
 	return 0;
 }
 int
-nfsMount3RNullUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3RNull *x)
+nfsMount3RNullUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     NfsMount3RNull *x)
 {
 	USED(ea);
 	USED(x);
@@ -94,7 +96,7 @@ nfsMount3TMntSize(NfsMount3TMnt *x)
 	return a;
 }
 int
-nfsMount3TMntPack(uchar *a, uchar *ea, uchar **pa, NfsMount3TMnt *x)
+nfsMount3TMntPack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3TMnt *x)
 {
 	if(sunStringPack(a, ea, &a, &x->path, 1024) < 0) goto Err;
 	*pa = a;
@@ -104,7 +106,7 @@ Err:
 	return -1;
 }
 int
-nfsMount3TMntUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3TMnt *x)
+nfsMount3TMntUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3TMnt *x)
 {
 	if(sunStringUnpack(a, ea, &a, &x->path, 1024) < 0) goto Err;
 	*pa = a;
@@ -158,7 +160,7 @@ nfsMount1RMntSize(NfsMount3RMnt *x)
 }
 
 int
-nfsMount3RMntPack(uchar *a, uchar *ea, uchar **pa, NfsMount3RMnt *x)
+nfsMount3RMntPack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3RMnt *x)
 {
 	int i;
 	if(sunUint32Pack(a, ea, &a, &x->status) < 0) goto Err;
@@ -177,7 +179,7 @@ Err:
 	return -1;
 }
 int
-nfsMount1RMntPack(uchar *a, uchar *ea, uchar **pa, NfsMount3RMnt *x)
+nfsMount1RMntPack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3RMnt *x)
 {
 	if(sunUint32Pack(a, ea, &a, &x->status) < 0) goto Err;
 	switch(x->status){
@@ -196,7 +198,7 @@ Err:
 	return -1;
 }
 int
-nfsMount1RMntUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3RMnt *x)
+nfsMount1RMntUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3RMnt *x)
 {
 	if(sunUint32Unpack(a, ea, &a, &x->status) < 0) goto Err;
 	switch(x->status){
@@ -217,7 +219,7 @@ Err:
 }
 
 int
-nfsMount3RMntUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3RMnt *x)
+nfsMount3RMntUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3RMnt *x)
 {
 	int i;
 
@@ -226,7 +228,7 @@ nfsMount3RMntUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3RMnt *x)
 	case 0:
 		if(sunVarOpaqueUnpack(a, ea, &a, &x->handle, &x->len, NfsMount3MaxHandleSize) < 0) goto Err;
 		if(sunUint32Unpack(a, ea, &a, &x->nauth) < 0) goto Err;
-		x->auth = (u32int*)a;
+		x->auth = (uint32_t*)a;
 		for(i=0; i<x->nauth; i++)
 			if(sunUint32Unpack(a, ea, &a, &x->auth[i]) < 0) goto Err;
 		break;
@@ -252,7 +254,7 @@ nfsMount3TDumpSize(NfsMount3TDump *x)
 	return a;
 }
 int
-nfsMount3TDumpPack(uchar *a, uchar *ea, uchar **pa, NfsMount3TDump *x)
+nfsMount3TDumpPack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3TDump *x)
 {
 	USED(ea);
 	USED(x);
@@ -260,7 +262,8 @@ nfsMount3TDumpPack(uchar *a, uchar *ea, uchar **pa, NfsMount3TDump *x)
 	return 0;
 }
 int
-nfsMount3TDumpUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3TDump *x)
+nfsMount3TDumpUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     NfsMount3TDump *x)
 {
 	USED(ea);
 	USED(x);
@@ -287,7 +290,7 @@ nfsMount3EntrySize(NfsMount3Entry *x)
 	return a;
 }
 int
-nfsMount3EntryPack(uchar *a, uchar *ea, uchar **pa, NfsMount3Entry *x)
+nfsMount3EntryPack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3Entry *x)
 {
 	u1int one;
 
@@ -302,7 +305,8 @@ Err:
 	return -1;
 }
 int
-nfsMount3EntryUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3Entry *x)
+nfsMount3EntryUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     NfsMount3Entry *x)
 {
 	u1int one;
 
@@ -332,7 +336,7 @@ nfsMount3RDumpSize(NfsMount3RDump *x)
 	return a;
 }
 int
-nfsMount3RDumpPack(uchar *a, uchar *ea, uchar **pa, NfsMount3RDump *x)
+nfsMount3RDumpPack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3RDump *x)
 {
 	u1int zero;
 
@@ -349,12 +353,13 @@ Err:
 	return -1;
 }
 int
-nfsMount3RDumpUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3RDump *x)
+nfsMount3RDumpUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     NfsMount3RDump *x)
 {
 	int i;
-	uchar *oa;
+	uint8_t *oa;
 	u1int u1;
-	u32int u32;
+	uint32_t u32;
 
 	oa = a;
 	for(i=0;; i++){
@@ -395,7 +400,7 @@ nfsMount3TUmntSize(NfsMount3TUmnt *x)
 	return a;
 }
 int
-nfsMount3TUmntPack(uchar *a, uchar *ea, uchar **pa, NfsMount3TUmnt *x)
+nfsMount3TUmntPack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3TUmnt *x)
 {
 	if(sunStringPack(a, ea, &a, &x->path, 1024) < 0) goto Err;
 	*pa = a;
@@ -405,7 +410,8 @@ Err:
 	return -1;
 }
 int
-nfsMount3TUmntUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3TUmnt *x)
+nfsMount3TUmntUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     NfsMount3TUmnt *x)
 {
 	if(sunStringUnpack(a, ea, &a, &x->path, 1024) < 0) goto Err;
 	*pa = a;
@@ -429,7 +435,7 @@ nfsMount3RUmntSize(NfsMount3RUmnt *x)
 	return a;
 }
 int
-nfsMount3RUmntPack(uchar *a, uchar *ea, uchar **pa, NfsMount3RUmnt *x)
+nfsMount3RUmntPack(uint8_t *a, uint8_t *ea, uint8_t **pa, NfsMount3RUmnt *x)
 {
 	USED(ea);
 	USED(x);
@@ -437,7 +443,8 @@ nfsMount3RUmntPack(uchar *a, uchar *ea, uchar **pa, NfsMount3RUmnt *x)
 	return 0;
 }
 int
-nfsMount3RUmntUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3RUmnt *x)
+nfsMount3RUmntUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     NfsMount3RUmnt *x)
 {
 	USED(ea);
 	USED(x);
@@ -459,7 +466,8 @@ nfsMount3TUmntallSize(NfsMount3TUmntall *x)
 	return a;
 }
 int
-nfsMount3TUmntallPack(uchar *a, uchar *ea, uchar **pa, NfsMount3TUmntall *x)
+nfsMount3TUmntallPack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		      NfsMount3TUmntall *x)
 {
 	USED(ea);
 	USED(x);
@@ -467,7 +475,8 @@ nfsMount3TUmntallPack(uchar *a, uchar *ea, uchar **pa, NfsMount3TUmntall *x)
 	return 0;
 }
 int
-nfsMount3TUmntallUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3TUmntall *x)
+nfsMount3TUmntallUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+			NfsMount3TUmntall *x)
 {
 	USED(ea);
 	USED(x);
@@ -489,7 +498,8 @@ nfsMount3RUmntallSize(NfsMount3RUmntall *x)
 	return a;
 }
 int
-nfsMount3RUmntallPack(uchar *a, uchar *ea, uchar **pa, NfsMount3RUmntall *x)
+nfsMount3RUmntallPack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		      NfsMount3RUmntall *x)
 {
 	USED(ea);
 	USED(x);
@@ -497,7 +507,8 @@ nfsMount3RUmntallPack(uchar *a, uchar *ea, uchar **pa, NfsMount3RUmntall *x)
 	return 0;
 }
 int
-nfsMount3RUmntallUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3RUmntall *x)
+nfsMount3RUmntallUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+			NfsMount3RUmntall *x)
 {
 	USED(ea);
 	USED(x);
@@ -519,7 +530,8 @@ nfsMount3TExportSize(NfsMount3TExport *x)
 	return a;
 }
 int
-nfsMount3TExportPack(uchar *a, uchar *ea, uchar **pa, NfsMount3TExport *x)
+nfsMount3TExportPack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     NfsMount3TExport *x)
 {
 	USED(ea);
 	USED(x);
@@ -527,7 +539,8 @@ nfsMount3TExportPack(uchar *a, uchar *ea, uchar **pa, NfsMount3TExport *x)
 	return 0;
 }
 int
-nfsMount3TExportUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3TExport *x)
+nfsMount3TExportUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		       NfsMount3TExport *x)
 {
 	USED(ea);
 	USED(x);
@@ -552,7 +565,8 @@ nfsMount3RExportSize(NfsMount3RExport *x)
 	return a;
 }
 int
-nfsMount3RExportPack(uchar *a, uchar *ea, uchar **pa, NfsMount3RExport *x)
+nfsMount3RExportPack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		     NfsMount3RExport *x)
 {
 	u1int zero;
 
@@ -569,12 +583,13 @@ Err:
 	return -1;
 }
 int
-nfsMount3RExportUnpack(uchar *a, uchar *ea, uchar **pa, NfsMount3RExport *x)
+nfsMount3RExportUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		       NfsMount3RExport *x)
 {
 	int ng, ne;
-	uchar *oa;
+	uint8_t *oa;
 	u1int u1;
-	u32int u32;
+	uint32_t u32;
 
 	oa = a;
 	ng = 0;
@@ -605,11 +620,11 @@ Err:
 	return -1;
 }
 uint
-nfsMount3ExportGroupSize(uchar *a)
+nfsMount3ExportGroupSize(uint8_t *a)
 {
 	int ng;
 	u1int have;
-	u32int n;
+	uint32_t n;
 
 	a += 4;
 	sunUint32Unpack(a, a+4, &a, &n);
@@ -626,7 +641,8 @@ nfsMount3ExportGroupSize(uchar *a)
 	return ng;
 }
 int
-nfsMount3ExportUnpack(uchar *a, uchar *ea, uchar **pa, char **gp, char ***pgp, NfsMount3Export *x)
+nfsMount3ExportUnpack(uint8_t *a, uint8_t *ea, uint8_t **pa, char **gp,
+		      char ***pgp, NfsMount3Export *x)
 {
 	int ng;
 	u1int u1;
@@ -663,7 +679,8 @@ nfsMount3ExportSize(NfsMount3Export *x)
 	return a;
 }
 int
-nfsMount3ExportPack(uchar *a, uchar *ea, uchar **pa, NfsMount3Export *x)
+nfsMount3ExportPack(uint8_t *a, uint8_t *ea, uint8_t **pa,
+		    NfsMount3Export *x)
 {
 	int i;
 	u1int u1;
@@ -685,7 +702,7 @@ Err:
 	return -1;
 }
 
-typedef int (*P)(uchar*, uchar*, uchar**, SunCall*);
+typedef int (*P)(uint8_t*, uint8_t*, uint8_t**, SunCall*);
 typedef void (*F)(Fmt*, SunCall*);
 typedef uint (*S)(SunCall*);
 

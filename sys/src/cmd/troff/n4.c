@@ -411,11 +411,11 @@ int abc0(int i, int (*f)(Tchar))
 	return(k + (*f)((i % 26 + nform) | nrbits));
 }
 
-long atoi0(void)
+int32_t atoi0(void)
 {
 	int c, k, cnt;
 	Tchar ii;
-	long i, acc;
+	int32_t i, acc;
 
 	acc = 0;
 	nonumb = 0;
@@ -537,10 +537,10 @@ a0:
 }
 
 
-long ckph(void)
+int32_t ckph(void)
 {
 	Tchar i;
-	long j;
+	int32_t j;
 
 	if (cbits(i = getch()) == '(')
 		j = atoi0();
@@ -573,7 +573,7 @@ void prnumerr(void)
 }
 
 
-long atoi1(Tchar ii)
+int32_t atoi1(Tchar ii)
 {
 	int i, j, digits;
 	double acc;	/* this is the only double in troff! */

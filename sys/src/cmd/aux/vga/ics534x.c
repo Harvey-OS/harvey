@@ -20,10 +20,10 @@
  * (Hercules Dynamite Power, the Hercules generates RS2 using CLK3)
  * or an ARK2000pv (Diamond Stealth64 Graphics 2001).
  */
-static uchar
+static uint8_t
 setrs2(Vga* vga, Ctlr* ctlr)
 {
-	uchar rs2;
+	uint8_t rs2;
 
 	rs2 = 0;
 	if(strncmp(vga->ctlr->name, "et4000-w32", 10) == 0){
@@ -41,7 +41,7 @@ setrs2(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-restorers2(Vga* vga, uchar rs2)
+restorers2(Vga* vga, uint8_t rs2)
 {
 	if(strncmp(vga->ctlr->name, "et4000-w32", 10) == 0)
 		vgaxo(Crtx, 0x31, rs2);
@@ -58,7 +58,7 @@ options(Vga*, Ctlr* ctlr)
 static void
 clock(Vga* vga, Ctlr* ctlr)
 {
-	ulong f, m, n, r;
+	uint32_t f, m, n, r;
 	double fmin, fmax, t, tok;
 
 	/*
@@ -133,7 +133,7 @@ clock(Vga* vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
-	ulong pclk;
+	uint32_t pclk;
 	char *p;
 
 	/*
@@ -192,7 +192,7 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
-	uchar rs2, mode, pll;
+	uint8_t rs2, mode, pll;
 
 	rs2 = setrs2(vga, ctlr);
 
@@ -231,9 +231,9 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	uchar rs2, m, n;
+	uint8_t rs2, m, n;
 	char buf[32];
-	ulong f;
+	uint32_t f;
 
 	rs2 = setrs2(vga, ctlr);
 

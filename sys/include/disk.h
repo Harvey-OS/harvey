@@ -17,7 +17,7 @@ struct Scsi {
 	char*	inquire;
 	int	rawfd;
 	int	nchange;
-	ulong	changetime;
+	unsigned long	changetime;
 };
 
 enum {
@@ -27,8 +27,8 @@ enum {
 };
 
 char*	scsierror(int, int);
-int		scsicmd(Scsi*, uchar*, int, void*, int, int);
-int		scsi(Scsi*, uchar*, int, void*, int, int);
+int		scsicmd(Scsi*, uint8_t*, int, void*, int, int);
+int		scsi(Scsi*, uint8_t*, int, void*, int, int);
 Scsi*		openscsi(char*);
 void		closescsi(Scsi*);
 int		scsiready(Scsi*);
@@ -46,10 +46,10 @@ struct Disk {
 	int rdonly;
 	int type;
 
-	vlong secs;
-	vlong secsize;
-	vlong size;
-	vlong offset;	/* within larger disk, perhaps */
+	int64_t secs;
+	int64_t secsize;
+	int64_t size;
+	int64_t offset;	/* within larger disk, perhaps */
 	int width;	/* of disk size in bytes as decimal string */
 	int c;
 	int h;

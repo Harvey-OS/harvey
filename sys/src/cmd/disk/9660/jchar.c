@@ -15,7 +15,7 @@
 #include "iso9660.h"
 
 char*
-jolietstring(uchar *buf, int len)
+jolietstring(uint8_t *buf, int len)
 {
 	char *p, *q;
 	int i;
