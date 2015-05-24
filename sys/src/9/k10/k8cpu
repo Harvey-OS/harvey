@@ -83,6 +83,7 @@ rootdir
 	/amd64/bin/mount
 	/amd64/bin/echo
 	/amd64/bin/cat
+	/amd64/bin/ls
 #	../root/nvram nvram
 
 conf

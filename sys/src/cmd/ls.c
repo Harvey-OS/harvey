@@ -319,6 +319,7 @@ asciitime(int32_t l)
 char*
 xcleanname(char *name)
 {
+	/*
 	char *r, *w;
 
 	for(r=w=name; *r; r++){
@@ -331,5 +332,6 @@ xcleanname(char *name)
 	*w = 0;
 	while(w-1>name && *(w-1)=='/')
 		*--w = 0;
+	*/
 	return name;
 }
