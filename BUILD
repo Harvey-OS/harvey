@@ -220,18 +220,20 @@ compile_kernel()
 
 	## Rest of programs into ramfs ##
 
-	RAMFS_LIST="bind mount echo cat cp ls"
+	RAMFS_LIST="bind mount echo cat cp ls ip/ipconfig/ipconfig"
 
 	for elem in $RAMFS_LIST
 	do
-		echo "cp ${CMD_DIR}/$elem.elf.out $elem.elf.out"
-		cp ${CMD_DIR}/$elem.elf.out $elem.elf.out
+		elf_out=`basename $elem.elf.out`
+		bname=`basename $elem`
+		echo "cp ${CMD_DIR}/$elem.elf.out $elf_out"
+		cp ${CMD_DIR}/$elem.elf.out $elf_out
 		check_error $? "copying $elem"
-		echo "strip $elem.elf.out"
-		strip $elem.elf.out
+		echo "strip $elf_out"
+		strip $elf_out
 		check_error $? "to strip $elem"
-		echo "${UTIL_DIR}/data2c _amd64_bin_$elem $elem.elf.out >> k8cpu.root.c"
-		${UTIL_DIR}/data2c _amd64_bin_$elem $elem.elf.out>> k8cpu.root.c
+		echo "${UTIL_DIR}/data2c _amd64_bin_$bname $elf_out>> k8cpu.root.c"
+		${UTIL_DIR}/data2c _amd64_bin_$bname $elf_out>> k8cpu.root.c
 		check_error $? "executing data2c"
 	done
 	
@@ -624,7 +626,13 @@ build_a_cmd()
 	DO_NOTHING=0
 	LDFLAGS_EXTRA=
 	CFLAGS_EXTRA=
+	BUILD_DIR=
 	cmd_${1} 1
+	if [ -n "$BUILD_DIR" ]
+	then
+		cd -
+		cd "$BUILD_DIR"
+	fi
 	if [ $DO_NOTHING -eq 0 ]
 	then
 		echo "$CC $CFLAGS_CMD $CFLAGS_EXTRA $BUILD_DEBUG -c $BUILD_IN"
@@ -637,6 +645,11 @@ build_a_cmd()
 		fi
 	# If it's a stand alone source don't get all object files
 		if [ -d "${CMD_DIR}/$1" ]
+		then
+			LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
+			echo $LD $LDFLAGS $LDFLAGS_EXTRA $LD_LIBS -o $BUILD_OUT *.o
+			$LD $LDFLAGS_EXTRA $LDFLAGS -o $BUILD_OUT *.o $LD_LIBS
+		elif [ -n ""$BUILD_DIR"" ]
 		then
 			LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
 			echo $LD $LDFLAGS $LDFLAGS_EXTRA $LD_LIBS -o $BUILD_OUT *.o
