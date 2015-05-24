@@ -86,6 +86,7 @@ rootdir
 	/amd64/bin/cat
 	/amd64/bin/ls
 	/amd64/bin/cp
+	/amd64/bin/ps
 #	../root/nvram nvram
 
 conf
