@@ -112,7 +112,7 @@ char *kbdargv[] = { "rc", "-c", nil, nil };
 int errorshouldabort = 0;
 
 void
-derror(Display*, char *errorstr)
+derror(Display* d, char *errorstr)
 {
 	error(errorstr);
 }
@@ -312,7 +312,7 @@ char *oknotes[] =
 };
 
 int
-shutdown(void *, char *msg)
+shutdown(void * vacio, char *msg)
 {
 	int i;
 	static Lock shutdownlk;
@@ -339,7 +339,7 @@ killprocs(void)
 }
 
 void
-keyboardthread(void*)
+keyboardthread(void* v)
 {
 	Rune buf[2][20], *rp;
 	int n, i;
@@ -409,7 +409,7 @@ cornercursor(Window *w, Point p, int force)
 
 /* thread to allow fsysproc to synchronize window closing with main proc */
 void
-winclosethread(void*)
+winclosethread(void* v)
 {
 	Window *w;
 
@@ -422,7 +422,7 @@ winclosethread(void*)
 
 /* thread to make Deleted windows that the client still holds disappear offscreen after an interval */
 void
-deletethread(void*)
+deletethread(void* v)
 {
 	char *s;
 	Image *i;
@@ -467,7 +467,7 @@ keyboardhide(void)
 }
 
 void
-mousethread(void*)
+mousethread(void* v)
 {
 	int sending, inside, scrolling, moving, band;
 	Window *oin, *w, *winput;
@@ -735,11 +735,17 @@ button2menu(Window *w)
 		if(w->rawing){
 			waddraw(w, snarf, nsnarf);
 			if(snarf[nsnarf-1]!='\n' && snarf[nsnarf-1]!='\004')
-				waddraw(w, L"\n", 1);
+			{
+				Rune newline[] = { '\n' };
+				waddraw(w, newline, 1);
+			}
 		}else{
 			winsert(w, snarf, nsnarf, w->nr);
 			if(snarf[nsnarf-1]!='\n' && snarf[nsnarf-1]!='\004')
-				winsert(w, L"\n", 1, w->nr);
+			{
+				Rune newline[] = { '\n' };
+				winsert(w, newline, 1, w->nr);
+			}
 		}
 		wsetselect(w, w->nr, w->nr);
 		wshow(w, w->nr);

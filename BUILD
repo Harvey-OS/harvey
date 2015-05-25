@@ -220,7 +220,7 @@ compile_kernel()
 
 	## Rest of programs into ramfs ##
 
-	RAMFS_LIST="bind mount echo cat cp ls ip/ipconfig/ipconfig ps mkdir pwd chmod"
+	RAMFS_LIST="bind mount echo cat cp ls ip/ipconfig/ipconfig ps mkdir pwd chmod rio/rio"
 
 	for elem in $RAMFS_LIST
 	do

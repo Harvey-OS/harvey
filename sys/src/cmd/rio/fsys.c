@@ -289,9 +289,9 @@ filsyscancel(Xfid *x)
 	}
 }
 
-static
+static 
 Xfid*
-filsysversion(Filsys *fs, Xfid *x, Fid*)
+filsysversion(Filsys *fs, Xfid *x, Fid* f)
 {
 	Fcall t;
 
@@ -309,7 +309,7 @@ filsysversion(Filsys *fs, Xfid *x, Fid*)
 
 static
 Xfid*
-filsysauth(Filsys *fs, Xfid *x, Fid*)
+filsysauth(Filsys *fs, Xfid *x, Fid* f)
 {
 	Fcall t;
 
@@ -318,7 +318,7 @@ filsysauth(Filsys *fs, Xfid *x, Fid*)
 
 static
 Xfid*
-filsysflush(Filsys*, Xfid *x, Fid*)
+filsysflush(Filsys* fs, Xfid *x, Fid* f)
 {
 	sendp(x->c, xfidflush);
 	return nil;
@@ -326,7 +326,7 @@ filsysflush(Filsys*, Xfid *x, Fid*)
 
 static
 Xfid*
-filsysattach(Filsys *, Xfid *x, Fid *f)
+filsysattach(Filsys * fs, Xfid *x, Fid *f)
 {
 	Fcall t;
 
@@ -511,7 +511,7 @@ filsysopen(Filsys *fs, Xfid *x, Fid *f)
 
 static
 Xfid*
-filsyscreate(Filsys *fs, Xfid *x, Fid*)
+filsyscreate(Filsys *fs, Xfid *x, Fid*f)
 {
 	Fcall t;
 
@@ -594,7 +594,7 @@ filsysread(Filsys *fs, Xfid *x, Fid *f)
 
 static
 Xfid*
-filsyswrite(Filsys*, Xfid *x, Fid*)
+filsyswrite(Filsys* fs, Xfid *x, Fid*f)
 {
 	sendp(x->c, xfidwrite);
 	return nil;
@@ -621,7 +621,7 @@ filsysclunk(Filsys *fs, Xfid *x, Fid *f)
 
 static
 Xfid*
-filsysremove(Filsys *fs, Xfid *x, Fid*)
+filsysremove(Filsys *fs, Xfid *x, Fid*f)
 {
 	Fcall t;
 
@@ -643,7 +643,7 @@ filsysstat(Filsys *fs, Xfid *x, Fid *f)
 
 static
 Xfid*
-filsyswstat(Filsys *fs, Xfid *x, Fid*)
+filsyswstat(Filsys *fs, Xfid *x, Fid*f)
 {
 	Fcall t;
 

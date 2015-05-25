@@ -153,7 +153,7 @@ wresize(Window *w, Image *i, int move)
 }
 
 void
-wrefresh(Window *w, Rectangle)
+wrefresh(Window *w, Rectangle rec)
 {
 	/* BUG: rectangle is ignored */
 	if(w == input)
@@ -268,7 +268,7 @@ winctl(void *arg)
 		else{
 			alts[WCread].op = CHANNOP;
 			for(i=w->qh; i<w->nr; i++){
-				c = w->r[i];
+				c = w->run[i];
 				if(c=='\n' || c=='\004'){
 					alts[WCread].op = CHANSND;
 					break;
@@ -294,7 +294,7 @@ winctl(void *arg)
 						w->mouse.wi = 0;
 					if(w->mouse.wi == w->mouse.ri)
 						w->mouse.qfull = TRUE;
-					mp->Mouse = w->mc;
+					mp->Mouse = w->mc.Mouse;
 					mp->counter = w->mouse.counter;
 					lastb = w->mc.buttons;
 				}
@@ -383,7 +383,7 @@ winctl(void *arg)
 					w->nraw--;
 					runemove(w->raw, w->raw+1, w->nraw);
 				}else
-					wid = runetochar(t+i, &w->r[w->qh++]);
+					wid = runetochar(t+i, &w->run[w->qh++]);
 				c = t[i];	/* knows break characters fit in a byte */
 				i += wid;
 				if(!w->rawing && (c == '\n' || c=='\004')){
@@ -392,7 +392,7 @@ winctl(void *arg)
 					break;
 				}
 			}
-			if(i==nb && w->qh<w->nr && w->r[w->qh]=='\004')
+			if(i==nb && w->qh<w->nr && w->run[w->qh]=='\004')
 				w->qh++;
 			if(i > nb){
 				npart = i-nb;
@@ -459,7 +459,7 @@ windfilewidth(Window *w, uint q0, int oneelement)
 
 	q = q0;
 	while(q > 0){
-		r = w->r[q-1];
+		r = w->run[q-1];
 		if(r<=' ')
 			break;
 		if(oneelement && r=='/')
@@ -496,7 +496,7 @@ showcandidates(Window *w, Completion *c)
 	}
 	/* place text at beginning of line before host point */
 	qline = w->qh;
-	while(qline>0 && w->r[qline-1] != '\n')
+	while(qline>0 && w->run[qline-1] != '\n')
 		qline--;
 
 	rp = runefmtstrflush(&f);
@@ -517,14 +517,14 @@ namecomplete(Window *w)
 	char *s, *dir, *root;
 
 	/* control-f: filename completion; works back to white space or / */
-	if(w->q0<w->nr && w->r[w->q0]>' ')	/* must be at end of word */
+	if(w->q0<w->nr && w->run[w->q0]>' ')	/* must be at end of word */
 		return nil;
 	nstr = windfilewidth(w, w->q0, TRUE);
 	str = runemalloc(nstr);
-	runemove(str, w->r+(w->q0-nstr), nstr);
+	runemove(str, w->run+(w->q0-nstr), nstr);
 	npath = windfilewidth(w, w->q0-nstr, FALSE);
 	path = runemalloc(npath);
-	runemove(path, w->r+(w->q0-nstr-npath), npath);
+	runemove(path, w->run+(w->q0-nstr-npath), npath);
 	rp = nil;
 
 	/* is path rooted? if not, we need to make it relative to window path */
@@ -625,7 +625,7 @@ wkeyctl(Window *w, Rune r)
 			wshow(w, w->nr);
 			return;
 		case 0x01:	/* ^A: beginning of line */
-			if(w->q0==0 || w->q0==w->qh || w->r[w->q0-1]=='\n')
+			if(w->q0==0 || w->q0==w->qh || w->run[w->q0-1]=='\n')
 				return;
 			nb = wbswidth(w, 0x15 /* ^U */);
 			wsetselect(w, w->q0-nb, w->q0-nb);
@@ -633,7 +633,7 @@ wkeyctl(Window *w, Rune r)
 			return;
 		case 0x05:	/* ^E: end of line */
 			q0 = w->q0;
-			while(q0 < w->nr && w->r[q0]!='\n')
+			while(q0 < w->nr && w->run[q0]!='\n')
 				q0++;
 			wsetselect(w, q0, q0);
 			wshow(w, w->q0);
@@ -743,7 +743,7 @@ wbswidth(Window *w, Rune c)
 		stop = w->qh;
 	skipping = TRUE;
 	while(q > stop){
-		r = w->r[q-1];
+		r = w->run[q-1];
 		if(r == '\n'){		/* eat at most one more character */
 			if(q == w->q0)	/* eat the newline */
 				--q;
@@ -769,7 +769,7 @@ wsnarf(Window *w)
 	nsnarf = w->q1-w->q0;
 	snarf = runerealloc(snarf, nsnarf);
 	snarfversion++;	/* maybe modified by parent */
-	runemove(snarf, w->r+w->q0, nsnarf);
+	runemove(snarf, w->run+w->q0, nsnarf);
 	putsnarf();
 }
 
@@ -823,9 +823,9 @@ wplumb(Window *w)
 	if(w->q1 > w->q0)
 		m->attr = nil;
 	else{
-		while(p0>0 && w->r[p0-1]!=' ' && w->r[p0-1]!='\t' && w->r[p0-1]!='\n')
+		while(p0>0 && w->run[p0-1]!=' ' && w->run[p0-1]!='\t' && w->run[p0-1]!='\n')
 			p0--;
-		while(p1<w->nr && w->r[p1]!=' ' && w->r[p1]!='\t' && w->r[p1]!='\n')
+		while(p1<w->nr && w->run[p1]!=' ' && w->run[p1]!='\t' && w->run[p1]!='\n')
 			p1++;
 		sprint(buf, "click=%d", w->q0-p0);
 		m->attr = plumbunpackattr(buf);
@@ -834,7 +834,7 @@ wplumb(Window *w)
 		plumbfree(m);
 		return;	/* too large for 9P */
 	}
-	m->data = runetobyte(w->r+p0, p1-p0, &m->ndata);
+	m->data = runetobyte(w->run+p0, p1-p0, &m->ndata);
 	if(plumbsend(fd, m) < 0){
 		c = lastcursor;
 		riosetcursor(&query, 1);
@@ -892,7 +892,7 @@ wdelete(Window *w, uint q0, uint q1)
 	n = q1-q0;
 	if(n == 0)
 		return;
-	runemove(w->r+q0, w->r+q1, w->nr-q1);
+	runemove(w->run+q0, w->run+q1, w->nr-q1);
 	w->nr -= n;
 	if(q0 < w->q0)
 		w->q0 -= min(n, w->q0-q0);
@@ -1132,7 +1132,7 @@ wctlmesg(Window *w, int m, Rectangle r, Image *i)
 		chanfree(w->mouseread);
 		chanfree(w->wctlread);
 		free(w->raw);
-		free(w->r);
+		free(w->run);
 		free(w->dir);
 		free(w->label);
 		free(w);
@@ -1422,7 +1422,7 @@ wdoubleclick(Window *w, uint *q0, uint *q1)
 		if(q == 0)
 			c = '\n';
 		else
-			c = w->r[q-1];
+			c = w->run[q-1];
 		p = strrune(l, c);
 		if(p != nil){
 			if(wclickmatch(w, c, r[p-l], 1, &q))
@@ -1433,23 +1433,23 @@ wdoubleclick(Window *w, uint *q0, uint *q1)
 		if(q == w->nr)
 			c = '\n';
 		else
-			c = w->r[q];
+			c = w->run[q];
 		p = strrune(r, c);
 		if(p != nil){
 			if(wclickmatch(w, c, l[p-r], -1, &q)){
 				*q1 = *q0+(*q0<w->nr && c=='\n');
 				*q0 = q;
-				if(c!='\n' || q!=0 || w->r[0]=='\n')
+				if(c!='\n' || q!=0 || w->run[0]=='\n')
 					(*q0)++;
 			}
 			return;
 		}
 	}
 	/* try filling out word to right */
-	while(*q1<w->nr && isalnum(w->r[*q1]))
+	while(*q1<w->nr && isalnum(w->run[*q1]))
 		(*q1)++;
 	/* try filling out word to left */
-	while(*q0>0 && isalnum(w->r[*q0-1]))
+	while(*q0>0 && isalnum(w->run[*q0-1]))
 		(*q0)--;
 }
 
@@ -1464,13 +1464,13 @@ wclickmatch(Window *w, int cl, int cr, int dir, uint *q)
 		if(dir > 0){
 			if(*q == w->nr)
 				break;
-			c = w->r[*q];
+			c = w->run[*q];
 			(*q)++;
 		}else{
 			if(*q == 0)
 				break;
 			(*q)--;
-			c = w->r[*q];
+			c = w->run[*q];
 		}
 		if(c == cr){
 			if(--nest==0)
@@ -1488,7 +1488,7 @@ wbacknl(Window *w, uint p, uint n)
 	int i, j;
 
 	/* look for start of this line if n==0 */
-	if(n==0 && p>0 && w->r[p-1]!='\n')
+	if(n==0 && p>0 && w->run[p-1]!='\n')
 		n = 1;
 	i = n;
 	while(i-->0 && p>0){
@@ -1497,7 +1497,7 @@ wbacknl(Window *w, uint p, uint n)
 			break;
 		/* at 128 chars, call it a line anyway */
 		for(j=128; --j>0 && p>0; p--)
-			if(w->r[p-1]=='\n')
+			if(w->run[p-1]=='\n')
 				break;
 	}
 	return p;
@@ -1535,7 +1535,7 @@ wsetorigin(Window *w, uint org, int exact)
 		/* org is an estimate of the char posn; find a newline */
 		/* don't try harder than 256 chars */
 		for(i=0; i<256 && org<w->nr; i++){
-			if(w->r[org] == '\n'){
+			if(w->run[org] == '\n'){
 				org++;
 				break;
 			}
@@ -1550,7 +1550,7 @@ wsetorigin(Window *w, uint org, int exact)
 	}else if(a<0 && -a<w->nchars){
 		n = w->org - org;
 		r = runemalloc(n);
-		runemove(r, w->r+org, n);
+		runemove(r, w->run+org, n);
 		frinsert(w, r, r+n, 0);
 		free(r);
 	}else
@@ -1632,7 +1632,7 @@ winsert(Window *w, Rune *r, int n, uint q0)
 		else
 			w->q1 = 0;
 		w->nr -= m;
-		runemove(w->r, w->r+m, w->nr);
+		runemove(w->run, w->run+m, w->nr);
 		q0 -= m;
 	}
 	if(w->nr+n > w->maxr){
@@ -1646,12 +1646,12 @@ winsert(Window *w, Rune *r, int n, uint q0)
 		if(m > HiWater)
 			m = max(HiWater+MinWater, w->nr+n);
 		if(m > w->maxr){
-			w->r = runerealloc(w->r, m);
+			w->run = runerealloc(w->run, m);
 			w->maxr = m;
 		}
 	}
-	runemove(w->r+q0+n, w->r+q0, w->nr-q0);
-	runemove(w->r+q0, r, n);
+	runemove(w->run+q0+n, w->run+q0, w->nr-q0);
+	runemove(w->run+q0, r, n);
 	w->nr += n;
 	/* if output touches, advance selection, not qh; works best for keyboard and output */
 	if(q0 <= w->q1)
@@ -1682,7 +1682,7 @@ wfill(Window *w)
 			break;
 		if(n > 2000)	/* educated guess at reasonable amount */
 			n = 2000;
-		runemove(rp, w->r+(w->org+w->nchars), n);
+		runemove(rp, w->run+(w->org+w->nchars), n);
 		/*
 		 * it's expensive to frinsert more than we need, so
 		 * count newlines.
@@ -1704,5 +1704,5 @@ wfill(Window *w)
 char*
 wcontents(Window *w, int *ip)
 {
-	return runetobyte(w->r, w->nr, ip);
+	return runetobyte(w->run, w->nr, ip);
 }

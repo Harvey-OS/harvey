@@ -47,7 +47,7 @@ static	char	*tsnarf;
 static	int	ntsnarf;
 
 void
-xfidallocthread(void*)
+xfidallocthread(void* vacio)
 {
 	Xfid *x;
 	enum { Alloc, Free, N };
