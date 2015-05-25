@@ -120,6 +120,10 @@ void
 idlehands(void)
 {
 Mach *m = machp();
+if(sys->nmach <= 1)
+{
+	halt();
+}
 if(0)
 	if(m->machno != 0)
 		halt();
