@@ -66,8 +66,8 @@ enum
 };
 
 #define	QID(w,q)	((w<<8)|(q))
-#define	WIN(q)	((((ulong)(q).path)>>8) & 0xFFFFFF)
-#define	FILE(q)	(((ulong)(q).path) & 0xFF)
+#define	WIN(q)	((((uint32_t)(q).path)>>8) & 0xFFFFFF)
+#define	FILE(q)	(((uint32_t)(q).path) & 0xFF)
 
 enum	/* control messages */
 {
@@ -116,7 +116,7 @@ struct Stringpair	/* rune and nrune or byte and nbyte */
 struct Mousestate
 {
 	Mouse;
-	ulong	counter;	/* serial no. of mouse event */
+	uint32_t	counter;	/* serial no. of mouse event */
 };
 
 struct Mouseinfo
@@ -127,7 +127,7 @@ struct Mouseinfo
 	uint32_t	counter;	/* serial no. of last mouse event we received */
 	uint32_t	lastcounter;	/* serial no. of last mouse event sent to client */
 	int	lastb;	/* last button state we received */
-	uchar	qfull;	/* filled the queue; no more recording until client comes back */	
+	unsigned char	qfull;	/* filled the queue; no more recording until client comes back */	
 };	
 
 struct Window
@@ -146,7 +146,7 @@ struct Window
 	Channel		*wctlread;		/* chan(Consreadmesg) */
 	uint			nr;			/* number of runes in window */
 	uint			maxr;		/* number of runes allocated in r */
-	Rune			*r;
+	Rune			*run;
 	uint			nraw;
 	Rune			*raw;
 	uint			org;
@@ -167,15 +167,15 @@ struct Window
 	Rectangle		lastsr;
 	int			topped;
 	int			notefd;
-	uchar		scrolling;
+	unsigned char		scrolling;
 	Cursor		cursor;
 	Cursor		*cursorp;
-	uchar		holding;
-	uchar		rawing;
-	uchar		ctlopen;
-	uchar		wctlopen;
-	uchar		deleted;
-	uchar		mouseopen;
+	unsigned char		holding;
+	unsigned char		rawing;
+	unsigned char		ctlopen;
+	unsigned char		wctlopen;
+	unsigned char		deleted;
+	unsigned char		mouseopen;
 	char			*label;
 	int			pid;
 	char			*dir;
@@ -232,7 +232,7 @@ void		wsetcols(Window*);
 struct Dirtab
 {
 	char		*name;
-	uchar	type;
+	unsigned char	type;
 	uint		qid;
 	uint		perm;
 };
@@ -248,7 +248,7 @@ struct Fid
 	Dirtab	*dir;
 	Fid		*next;
 	int		nrpart;
-	uchar	rpart[UTFmax];
+	unsigned char	rpart[UTFmax];
 };
 
 struct Xfid
@@ -259,7 +259,7 @@ struct Xfid
 		Fcall;
 		Channel	*c;	/* chan(void(*)(Xfid*)) */
 		Fid		*f;
-		uchar	*buf;
+		unsigned char	*buf;
 		Filsys	*fs;
 		QLock	active;
 		int		flushing;	/* another Xfid is trying to flush us */
