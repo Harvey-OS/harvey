@@ -91,6 +91,8 @@ rootdir
 	/amd64/bin/pwd
 	/amd64/bin/chmod
 	/amd64/bin/rio
+	/amd64/bin/date
+	/amd64/bin/dd
 #	../root/nvram nvram
 
 conf
