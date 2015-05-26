@@ -850,10 +850,11 @@ found:
  *  In the case of other cores we wait until a process is given
  *  by core 0.
  */
-#if 0
+#ifndef URUNPROC
 Proc*
 runproc(void)
 {
+	Mach *m = machp();
 	Schedq *rq;
 	Proc *p;
 	uint32_t start, now;
@@ -890,7 +891,7 @@ runproc(void)
 	mach0sched();
 	return nil;	/* not reached */
 }
-#endif
+#else
 
 Proc*
 runproc(void)
@@ -977,6 +978,7 @@ found:
 	
 	return p;
 }
+#endif
 
 int
 canpage(Proc *p)

@@ -66,7 +66,7 @@ static Sd gdt64[Ngdt] = {
 //static int ngdt64 = 10;
 
 static Gd idt64[Nidt];
-//static Gd acidt64[Nidt];	/* NIX application core IDT */
+static Gd acidt64[Nidt];	/* NIX application core IDT */
 
 static Sd
 mksd(uint64_t base, uint64_t limit, uint64_t bits, uint64_t* upper)
@@ -160,14 +160,13 @@ void acsyscallentry(void)
 }
 
 void
-vsvminit(int size, int nixtype)
+vsvminit(int size, int nixtype, Mach *m)
 {
-	Mach *m = machp();
 	Sd *sd;
 	uint64_t r;
 	if(m->machno == 0){
 		idtinit(idt64, PTR2UINT(idthandlers));
-		//idtinit(acidt64, PTR2UINT(acidthandlers));
+		idtinit(acidt64, PTR2UINT(acidthandlers));
 	}
 	m->gdt = m->vsvm;
 	memmove(m->gdt, gdt64, sizeof(gdt64));

@@ -18,6 +18,9 @@
 #include "io.h"
 #include "amd64.h"
 
+#undef DBG
+#define DBG iprint
+
 Conf conf;			/* XXX - must go - gag */
 
 extern void crapoptions(void);	/* XXX - must go */
@@ -93,12 +96,9 @@ options(int argc, char* argv[])
 }
 
 void
-squidboy(int apicno)
+squidboy(int apicno, Mach *m)
 {
-	/* no idea if this will work here. */
-	Mach *m = machp();
 	int64_t hz;
-
 	sys->machptr[m->machno] = m;
 	/*
 	 * Need something for initial delays
@@ -109,10 +109,15 @@ squidboy(int apicno)
 	m->perf.period = 1;
 
 	m->nixtype = NIXAC;
+	// no NIXAC for now.
+	m->nixtype = NIXTC;
+
+	// NOTE: you can't do ANYTHING here before vsvminit.
+	// PRINT WILL PANIC. So wait.
+	vsvminit(MACHSTKSZ, m->nixtype, m);
 
 	DBG("Hello Squidboy %d %d\n", apicno, m->machno);
 
-	vsvminit(MACHSTKSZ, m->nixtype);
 
 	/*
 	 * Beware the Curse of The Non-Interruptable Were-Temporary.
@@ -158,7 +163,7 @@ squidboy(int apicno)
 		 * At boot time the boot processor might set our role after
 		 * we have decided to become an AC.
 		 */
-		vsvminit(MACHSTKSZ, NIXTC);
+		vsvminit(MACHSTKSZ, NIXTC, m);
 
 		/*
 		 * Enable the timer interrupt.
@@ -263,6 +268,8 @@ void wave(int c)
 
 void hi(char *s) 
 {
+	if (! s)
+		s = "<NULL>";
 	while (*s)
 		wave(*s++);
 }
@@ -350,12 +357,50 @@ void errstr(char *s, int i) {
 
 static int x = 0x123456;
 
+/* tear down the identity map we created in assembly. ONLY do this after all the
+ * APs have started up (and you know they've done so. But you must do it BEFORE
+ * you create address spaces for procs, i.e. userinit()
+ */
+static void
+teardownidmap(Mach *m)
+{
+	int i;
+	uintptr_t va = 0;
+	PTE *p;
+	/* loop on the level 2 because we should not assume we know
+	 * how many there are But stop after 1G no matter what, and
+	 * report if there were that many, as that is odd.
+	 */
+	for(i = 0; i < 512; i++, va += BIGPGSZ) {
+		if (mmuwalk(UINT2PTR(m->pml4->va), va, 1, &p, nil) != 1)
+			break;
+		if (! *p)
+			break;
+		iprint("teardown: va %p, pte %p\n", (void *)va, p);
+		*p = 0;
+	}
+	iprint("Teardown: zapped %d PML1 entries\n", i);
+
+	for(i = 2; i < 4; i++) {
+		if (mmuwalk(UINT2PTR(m->pml4->va), 0, i, &p, nil) != i) {
+			iprint("weird; 0 not mapped at %d\n", i);
+			continue;
+		}
+		iprint("teardown: zap %p at level %d\n", p, i);
+		if (p)
+			*p = 0;
+	}
+}
+
+
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
 	Mach *m = entrym;
 	/* when we get here, entrym is set to core0 mach. */
 	sys->machptr[m->machno] = m;
+	// Very special case for BSP only. Too many things
+	// assume this is set.
 	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
 	if (machp() != m)
 		panic("m and machp() are different!!\n");
@@ -413,7 +458,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	consputs = cgaconsputs;
 
 	/* It all ends here. */
-	vsvminit(MACHSTKSZ, NIXTC);
+	vsvminit(MACHSTKSZ, NIXTC, m);
 	if (machp() != m)
 		panic("After vsvminit, m and machp() are different");
 	fmtinit();
@@ -480,7 +525,8 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	procinit0();
 	mpsinit(maxcores);
 	apiconline();
-if (0) sipi(); 
+	sipi();
+	teardownidmap(m);
 
 	timersinit();
 	kbdenable();
@@ -492,10 +538,9 @@ if (0) sipi();
 	pageinit();
 	swapinit();
 	userinit();
-	if (0) { /* NO NIX YET */
-			nixsquids();
-			testiccs();
-	}
+	nixsquids();
+	testiccs();
+
 	print("schedinit...\n");
 	schedinit();
 }

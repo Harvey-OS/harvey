@@ -313,22 +313,24 @@ _start64v:
 	addq	$(MACHSTKSZ), %rax		/* PML4 and top of stack */
 	movq	%rax, %rsp				/* set stack */
 
+// Don't undo this until all APs are started. Then we don't need to bother
+// having the APs remap it. Save work.
 	// OK, this part is called "we climbed up the tree on a ladder, now pull
 	// the ladder up after us.". We remove the identity mapping. 
 _zap0pml4:
 	cmpq	$PML4O(KZERO), %rdx		/* KZER0 & 0x0000ff8000000000 */
 	JE	_zap0pdp
-	movq	%rdx, PML4O(0)(%rax) 		/* zap identity map PML4E */
+	//movq	%rdx, PML4O(0)(%rax) 		/* zap identity map PML4E */
 _zap0pdp:
 	addq	$PTSZ, %rax			/* PDP at PML4 + PTSZ */
 	cmpq	$PDPO(KZERO), %rdx 		/* KZER0 & 0x0000007fc0000000 */
 	JE	_zap0pd
-	movq	%rdx, PDPO(0)(%rax)			/* zap identity map PDPE */
+	//movq	%rdx, PDPO(0)(%rax)			/* zap identity map PDPE */
 _zap0pd:
 	addq	$PTSZ, %rax			/* PD at PML4 + 2*PTSZ */
 	cmpq	$PDO(KZERO), %rdx			/* KZER0 & 0x000000003fe00000 */
 	JE	_zap0done
-	movq	%rdx, PDO(0)(%rax)			/* zap identity map PDE */
+	//movq	%rdx, PDO(0)(%rax)			/* zap identity map PDE */
 _zap0done:
 	// now for the scary part. In some sense, all page table zapping to date
 	// has been theoretical. This is going to flush it. If we survive this ...
@@ -347,8 +349,6 @@ _zap0done:
 	movq	%rbx, %rsi
 	movq	%rax, %rax
 	movq	%rax, %rdi				/* multiboot magic */
-	// we get here!!!
-	// Now it's time to work on C code!
 	CALL	main
 
 .globl ndnr
@@ -358,4 +358,236 @@ _dnr:
 	sti
 	hlt
 	JMP	_dnr				/* do not resuscitate */
+
+	// SIPI startup handler. The first bits of this code, which are 16-bit, are copied
+	// to 0x3000. That code jumps to the 32-bit entry point right after the lgdt, which is in
+	// the normal place, no need to copy it. If this works, it's a lot more compact
+	// than what Plan 9 used to do.
+	/*
+ * Start-up request IPI handler.
+ *
+ * This code is executed on an application processor in response to receiving
+ * a Start-up IPI (SIPI) from another processor.
+ * This must be placed on a 4KiB boundary
+ * somewhere in the 1st MiB of conventional memory. However,
+ * due to some shortcuts below it's restricted further to within the 1st 64KiB.
+ * The AP starts in real-mode, with
+ *   CS selector set to the startup memory address/16;
+ *   CS base set to startup memory address;
+ *   CS limit set to 64KiB;
+ *   CPL and IP set to 0.
+ */
+
+/*
+ * Real mode. Welcome to 1978.
+ * Load a basic GDT, turn on protected mode and make
+ * inter-segment jump to the protected mode code.
+ */
+	.align 4096
+.code16
+.globl b1978
+b1978:
+_sipistartofheader:
+	NOP; NOP; NOP
+	.quad	0xa5a5a5a5a5a5a5a5
+// real mode gdt located in low 64k
+// GOT TO THIS LOOP
+//1: jmp 1b
+	cli
+	xorl	%eax, %eax
+	movl	%eax, %cr3 // invalidate tlb
+	movw	%ax, %ds
+	movw	%cs, %ax
+	//movw	%ax, %ds
+	//jshlw	$4, %ax
+	// this needs to be relative to the data segment, ... which is 0x3000
+	movw	$0x3080, %bx
+	data32 lgdt (%ebx)
+
+	movl	%cr0, %eax
+	andl	$0x7FFAFFD1, %eax /* PG,AM,WP,NE,TS,EM,MP = 0 */
+	orl	$0x60000001, %eax /* CD, NW, PE = 1 */
+	movl	%eax, %cr0
+
+	ljmpl $8, $0x3040
+.align 32
+
+.code32
+	movw	$0x10, %ax
+	MOVW	%AX, %DS
+	MOVW	%AX, %ES
+	MOVW	%AX, %FS
+	MOVW	%AX, %GS
+	MOVW	%AX, %SS
+	/* Now that we are in protected mode jump to a 32 bit code segment. */
+	ljmpl	$8, $_approtected
+.align	64
+gdt78:
+gdtptr78:
+	.word	4*8-1
+	.long 0x3080 // $gdt78-$b1978
+	.word 0 // unused
+	/* selgdt 0x08, flat code segment */
+	.word	0xffff, 0x0000
+	.byte	0x00, 0x9b, 0xcf, 0x00 /* G=1 and 0x0f, So we get 4Gbytes for limit */
+
+	/* selgdt 0x10,flat data segment */
+	.word	0xffff, 0x0000
+	.byte	0x00, 0x93, 0xcf, 0x00
+	.quad	0x0020980000000000		/* Long mode CS */
+gdt78_end:
+.global e1978
+e1978:	
+
+/*
+ * Protected mode. Welcome to 1982.
+ * Get the local APIC ID from the memory mapped APIC;
+#ifdef UseOwnPageTables
+ * load the PDB with the page table address, which is located
+ * in the word immediately preceeding _real<>-KZERO(SB);
+ * this is also the (physical) address of the top of stack;
+#else
+ * load the PML4 with the shared page table address;
+#endif
+ * make an identity map for the inter-segment jump below,
+ * using the stack space to hold a temporary PDP and PD;
+ * enable and activate long mode;
+ * make an inter-segment jump to the long mode code.
+ */
+.section .boottext, "awx"
+.code32
+
+/*
+ * Macros for accessing page table entries; must turn
+ * the C-style array-index macros into a page table byte
+ * offset.
+ */
+#define PML4O(v)	((PTLX((v), 3))<<3)
+#define PDPO(v)		((PTLX((v), 2))<<3)
+#define PDO(v)		((PTLX((v), 1))<<3)
+#define PTO(v)		((PTLX((v), 0))<<3)
+
+_approtected:	
+	MOVL	$0xfee00000, %ebp	/* apicbase */
+	MOVL	0x20(%eBP), %eBP	/* Id */
+	SHRL	$24, %eBP		/* becomes RARG later */
+
+#ifdef UseOwnPageTables
+	MOVL	$_real<>-KZERO(SB), AX
+	MOVL	-4(AX), %eSI			/* page table PML4 */
+#else
+	MOVL	$(0x00100000+MACHSTKSZ), %eSI	/* page table PML4 */
+#endif
+	// endif before
+	MOVL	%eSI, %eAX
+	MOVL	%eAX, %CR3			/* load the mmu */
+#if 0
+	MOVL	%eAX, %eDX
+	SUBL	$MACHSTKSZ, %eDX		/* PDP for identity map */
+	ADDL	$(PteRW|PteP), %eDX
+	MOVL	%eDX, PML4O(0)(%eAX)		/* PML4E for identity map */
+
+	SUBL	$MACHSTKSZ, %eAX		/* PDP for identity map */
+	ADDL	$PTSZ, %eDX
+	MOVL	%eDX, PDPO(0)(%eAX)		/* PDPE for identity map */
+	MOVL	$(PtePS|PteRW|PteP), %edX
+	ADDL	$PTSZ, %eAX			/* PD for identity map */
+	MOVL	%eDX, PDO(0)(%eAX)		/* PDE for identity 0-[24]MiB */
+#endif
+
+/*
+ * Enable and activate Long Mode. From the manual:
+ * 	make sure Page Size Extentions are off, and Page Global
+ *	Extensions and Physical Address Extensions are on in CR4;
+ *	set Long Mode Enable in the Extended Feature Enable MSR;
+ *	set Paging Enable in CR0;
+ *	make an inter-segment jump to the Long Mode code.
+ * It's all in 32-bit mode until the jump is made.
+ */
+aplme:	
+	MOVL	%CR4, %eAX
+	ANDL	$~Pse, %eAX			/* Page Size */
+	ORL	$(Pge|Pae), %eAX			/* Page Global, Phys. Address */
+	MOVL	%eAX, %CR4
+
+	MOVL	$Efer, %eCX			/* Extended Feature Enable */
+	RDMSR
+	ORL	$Lme, %eAX			/* Long Mode Enable */
+	WRMSR
+
+	MOVL	%CR0, %eDX
+	ANDL	$~(Cd|Nw|Ts|Mp), %eDX
+	ORL	$(Pg|Wp), %eDX			/* Paging Enable */
+	MOVL	%eDX, %CR0
+
+	ljmp $0x18, $_apidentity
+
+/*
+ * Long mode. Welcome to 2003.
+ * Jump out of the identity map space;
+ * load a proper long mode GDT;
+ * zap the identity map;
+ * initialise the stack and call the
+ * C startup code in m->splpc.
+ */
+.code64
+
+_apidentity:	
+	MOVQ	$_apstart64v, %rAX
+	JMP	*%rAX
+
+.section .text
+_apstart64v:	
+	MOVQ	$_gdtptr64v, %rAX
+
+	lgdt	(%rax)
+	XORQ	%rDX, %rDX
+	MOVW	%DX, %DS				/* not used in long mode */
+	MOVW	%DX, %ES				/* not used in long mode */
+	MOVW	%DX, %FS
+	MOVW	%DX, %GS
+	MOVW	%DX, %SS				/* not used in long mode */
+
+	movq	%rsi, %rsi			/* PML4-KZERO */
+	MOVQ	%rsI, %rAX
+	ADDQ	$KZERO, %rAX			/* PML4 and top of stack */
+
+	MOVQ	%rAX, %rSP			/* set stack */
+
+	// DON'T ZAP. 
+	// DO IT LATER.
+	//MOVQ	%rDX, PML4O(0)(%rAX)		/* zap identity map */
+
+	MOVQ	%rSI, %CR3			/* flush TLB */
+#ifndef UseOwnPageTables
+	/*
+	 * SI still points to the base of the bootstrap
+	 * processor page tables.
+	 * Want to use that for clearing the identity map,
+	 * but want to use the passed-in address for
+	 * setting up the stack and Mach.
+	 */
+	// oh, barf.
+//	MOVQ	$_real, %rAX
+	MOVQ	$0x3000, %rAX
+	MOVL	-4(%rAX), %eSI			/* PML4 */
+	MOVq	%rSI, %rSI			/* PML4-KZERO */
+#endif
+	MOVQ	%rSI, %rAX
+	ADDQ	$KZERO, %rAX			/* PML4 and top of stack */
+
+	MOVQ	%rAX, %rSP			/* set stack */
+
+	PUSHQ	%rDX				/* clear flags */
+	POPFQ
+
+	// put this in %rdx so it can be the third argument. We need to write it into
+	// %gs
+	ADDQ	/*$4*PTSZ+$4*KiB*/$0x5000, %raX		/* PML4+PDP+PD+PT+vsvm */
+	MOVq	%rbp, %rdi			/* APIC ID */
+	movq	%rax, %rsi			/* Mach * */
+
+	MOVQ	8(%rsi), %rAX			/* m->splpc */
+	CALL	*%raX				/* CALL squidboy(SB) */
+
 

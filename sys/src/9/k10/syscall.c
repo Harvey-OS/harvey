@@ -271,7 +271,7 @@ syscall(int badscallnr, Ureg *ureg)
 	if (printallsyscalls) {
 		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
-			iprint("E %s\n", m->externup->syscalltrace);
+			if(0) iprint("E %s\n", m->externup->syscalltrace);
 			free(m->externup->syscalltrace);
 			m->externup->syscalltrace = nil;
 		}

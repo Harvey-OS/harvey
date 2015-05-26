@@ -12,7 +12,8 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-
+#undef DBG
+#define DBG iprint
 static int
 cpuidinit(void)
 {
@@ -131,7 +132,9 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 				msr = 0;
 				r = rdmsr(0x2a) & 0x1f;
 			}
+iprint("r %d\n", r);
 			f = rdmsr(0xcd) & 0x07;
+iprint("f %d\n", f);
 			switch(f){
 			default:
 				return 0;
@@ -157,7 +160,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 				hz = 400000000000ll;
 				break;
 			}
-
+iprint("hz %d r %d\n", hz, r);
 			/*
 			 * Hz is *1000 at this point.
 			 * Do the scaling then round it.
@@ -228,13 +231,21 @@ archhz(void)
 	int64_t hz;
 	uint32_t info0[4], info1[4];
 
-	if(!cpuidinfo(0, 0, info0) || !cpuidinfo(1, 0, info1))
+	if(!cpuidinfo(0, 0, info0)) {
+		iprint("archhz: cpuidinfo(0, 0) failed\n");
 		return 0;
+	}
+
+	if(!cpuidinfo(1, 0, info1)) {
+		iprint("archhz: cpuidinfo(1, 0) failed\n");
+		return 0;
+	}
 
 	hz = cpuidhz(info0, info1);
 	if(hz != 0 || m->machno != 0)
 		return hz;
 
+	iprint("arch hz, cpuidhz failed, going to i8254hz\n");
 	return i8254hz(info0, info1);
 }
 

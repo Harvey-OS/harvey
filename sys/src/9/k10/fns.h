@@ -163,7 +163,7 @@ uintptr_t	upamalloc(uintptr_t, usize, usize);
 void	upareserve(uintptr_t, usize);
 int	userureg(Ureg*);
 void*	vmap(uintptr_t, usize);
-void	vsvminit(int, int);
+void	vsvminit(int, int, Mach *);
 void	vunmap(void*, usize);
 
 extern uint64_t cr0get(void);

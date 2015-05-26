@@ -14,14 +14,15 @@
 #include "fns.h"
 
 #include "apic.h"
-//#include "sipi.h"
 
+#undef DBG
+#define DBG print
 #define SIPIHANDLER	(KZERO+0x3000)
 
 void
 sipi(void)
 {
-	Mach *m = machp();
+	extern int b1978;
 	Apic *apic;
 	Mach *mach;
 	int apicno, i;
@@ -38,8 +39,7 @@ sipi(void)
 	if((sipipa & (4*KiB - 1)) || sipipa > (1*MiB - 2*4*KiB))
 		return;
 	sipiptr = UINT2PTR(SIPIHANDLER);
-	panic("no sipi handler");
-	//memmove(sipiptr, sipihandler, sizeof(sipihandler));
+	memmove(sipiptr, &b1978, 4096);
 	DBG("sipiptr %#p sipipa %#llux\n", sipiptr, sipipa);
 
 	/*
@@ -92,6 +92,7 @@ sipi(void)
 		*p = 0;
 
 		nvramwrite(0x0f, 0x0a);
+		print("APICSIPI: %d, %p\n", apicno, (void *)sipipa);
 		apicsipi(apicno, sipipa);
 
 		for(i = 0; i < 1000; i++){
