@@ -19,7 +19,10 @@ struct Rb
 	Rendez	producer;
 	Rendez	consumer;
 	uint32_t	randomcount;
-	unsigned char	buf[1024];
+	//unsigned char	buf[1024];
+	/** WORKAROUND **/
+	unsigned char	buf[10];
+	/** END WORKAROUND **/
 	unsigned char	*ep;
 	unsigned char	*rp;
 	unsigned char	*wp;
@@ -105,6 +108,7 @@ randominit(void)
 uint32_t
 randomread(void *xp, uint32_t n)
 {
+
 	Mach *m = machp();
 	uint8_t *e, *p;
 	uint32_t x;
@@ -117,6 +121,16 @@ randomread(void *xp, uint32_t n)
 	}
 
 	qlock(&rb);
+	
+	/** WORKAROUND **/
+	for(e = p + n; p < e; ){
+		x = (2 * rb.randn +1)%1103515245;
+		*p++ = rb.randn = x;
+	}
+	qunlock(&rb);
+	poperror();
+	return n;
+	/** END WORKAROUND **/
 	for(e = p + n; p < e; ){
 		if(rb.wp == rb.rp){
 			rb.wakeme = 1;

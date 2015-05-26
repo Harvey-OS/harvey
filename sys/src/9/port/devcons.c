@@ -749,10 +749,8 @@ static void
 consinit(void)
 {
 	todinit();
-	if(sys->nmach > 1)
-	{
-		randominit();
-	}
+	
+	randominit();
 	/*
 	 * at 115200 baud, the 1024 char buffer takes 56 ms to process,
 	 * processing it every 22 ms should be fine
