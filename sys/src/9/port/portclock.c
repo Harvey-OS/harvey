@@ -182,7 +182,7 @@ hzclock(Ureg *ur)
 		return;
 
 	if(active.exiting) {
-		iprint("someone's exiting\n");
+		print("someone's exiting\n");
 		exit(0);
 	}
 
