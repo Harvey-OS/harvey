@@ -1161,11 +1161,9 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	lock(r);
 	lock(&m->externup->rlock);
 	if(r->_p){
-		iprint("r %p p %p up %p\n", r, r->_p, m->externup);
-		iprint("double sleep called from %#p, %d %d\n",
+		print("double sleep called from %#p, %d %d\n",
 			getcallerpc(&r), r->_p->pid, m->externup->pid);
 		dumpstack();
-		panic("double sleep");
 	}
 
 	/*
