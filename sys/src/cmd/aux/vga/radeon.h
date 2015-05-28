@@ -55,9 +55,9 @@
  * ON THE RADEON.  A FULL AUDIT OF THIS CODE IS NEEDED!
  */
 
-#define BIOS8(r, o)  ((uchar) (r->bios[o]))
-#define BIOS16(r, o) ((ushort)(r->bios[o] | (r->bios[(o) + 1] << 8)))
-#define BIOS32(r, o) ((ulong) (r->bios[o] | (r->bios[(o) + 1] << 8) | \
+#define BIOS8(r, o)  ((uint8_t) (r->bios[o]))
+#define BIOS16(r, o) ((uint16_t)(r->bios[o] | (r->bios[(o) + 1] << 8)))
+#define BIOS32(r, o) ((uint32_t) (r->bios[o] | (r->bios[(o) + 1] << 8) | \
 	(r->bios[(o) + 2] << 16) | (r->bios[(o) + 3] << 24)))
 
 enum {
@@ -2005,7 +2005,7 @@ enum {
 #define ATI_PCIVID		0x1002
 
 struct pciids {
-	ushort	did;
+	uint16_t	did;
 	int	type;
 	char*	name;
 };

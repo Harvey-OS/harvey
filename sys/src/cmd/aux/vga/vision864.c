@@ -26,7 +26,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Hlinear|Hpclk2x8|Henhanced|Foptions;
 }

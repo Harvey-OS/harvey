@@ -93,6 +93,7 @@ rootdir
 	/amd64/bin/rio
 	/amd64/bin/date
 	/amd64/bin/dd
+	/amd64/bin/vga
 #	../root/nvram nvram
 
 conf

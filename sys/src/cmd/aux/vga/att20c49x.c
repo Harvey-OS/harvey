@@ -71,7 +71,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	printitem(ctlr->name, "Cr0");
 	printreg(attdaci(Cr0));

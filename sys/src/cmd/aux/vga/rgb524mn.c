@@ -43,7 +43,7 @@ enum {						/* index registers */
 };
 
 static void
-clock(Vga* vga, Ctlr*, uint32_t fref, uint32_t maxpclk)
+clock(Vga* vga, Ctlr* ctlr, uint32_t fref, uint32_t maxpclk)
 {
 	int d, mind;
 	uint32_t df, f, m, n, vrf;
@@ -223,7 +223,7 @@ sleep(50);
 }
 
 static void
-dumpclock(Vga*, Ctlr* ctlr, uint32_t fref, uint32_t m, uint32_t n,
+dumpclock(Vga* vga, Ctlr* ctlr, uint32_t fref, uint32_t m, uint32_t n,
 	  char* name)
 {
 	uint32_t df, f;

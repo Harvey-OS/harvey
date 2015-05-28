@@ -54,7 +54,7 @@ commandw(uint8_t command)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Foptions;
 }
@@ -86,7 +86,7 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga*, Ctlr*)
+load(Vga* vga, Ctlr* ctlr)
 {
 	uint8_t aux, command;
 
@@ -104,7 +104,7 @@ load(Vga*, Ctlr*)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 	uint8_t command;

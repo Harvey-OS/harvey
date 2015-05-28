@@ -50,7 +50,7 @@ restorers2(Vga* vga, uint8_t rs2)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Hpclk2x8|Foptions;
 }

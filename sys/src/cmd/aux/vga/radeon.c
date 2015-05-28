@@ -89,7 +89,7 @@ struct Radeon {
 };
 
 /* from io.c */
-extern char *readbios(int32_t len, int32_t offset);
+//extern char* readbios(int32_t len, int32_t offset);
 
 static void radeon300_workaround(Radeon*radeon);
 
@@ -285,7 +285,7 @@ snarf(Vga *vga, Ctlr *ctlr)
 }
 
 static void
-options(Vga*, Ctlr*ctlr)
+options(Vga* vga, Ctlr*ctlr)
 {
 	ctlr->flag |= Hlinear | Foptions;
 }

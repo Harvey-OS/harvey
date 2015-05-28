@@ -210,7 +210,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	uint8_t rs2, r, x[256];
 	char buf[32];

@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include </386/include/ureg.h>
+#include <ureg.h>
 typedef struct Ureg Ureg;
 
 #include "pci.h"
@@ -218,7 +218,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga*, Ctlr*)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 	char did[0x200];
@@ -376,7 +376,7 @@ vbesetup(Vbe *vbe, Ureg *u, int ax)
 	memset(vbe->buf, 0, PageSize);
 	memset(u, 0, sizeof *u);
 	u->ax = ax;
-	u->es = (RealModeBuf>>4)&0xF000;
+	//u->es = (RealModeBuf>>4)&0xF000;
 	u->di = RealModeBuf&0xFFFF;
 	return vbe->buf;
 }
@@ -384,7 +384,7 @@ vbesetup(Vbe *vbe, Ureg *u, int ax)
 int
 vbecall(Vbe *vbe, Ureg *u)
 {
-	u->trap = 0x10;
+	//u->trap = 0x10;
 	if(pwrite(vbe->memfd, vbe->buf, PageSize, RealModeBuf) != PageSize)
 		error("write /dev/realmodemem: %r\n");
 	if(pwrite(vbe->rmfd, u, sizeof *u, 0) != sizeof *u)

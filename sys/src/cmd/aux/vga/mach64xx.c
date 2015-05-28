@@ -158,7 +158,7 @@ static char* lcdname[Nlcd] = {
 enum {
 	IOREG = 0x10000,
 };
-static ushort ioregs[Nreg] = {
+static uint16_t ioregs[Nreg] = {
  [HTotalDisp]		IOREG|0x0000,
  [HSyncStrtWid]	IOREG|0x0100,
  [VTotalDisp]		IOREG|0x0200,
@@ -193,7 +193,7 @@ static ushort ioregs[Nreg] = {
 /* [HTotalDisp]			IOREG|0x1F00, 	duplicate, says XFree86 */
 };
 
-static ushort pciregs[Nreg] = {
+static uint16_t pciregs[Nreg] = {
   [HTotalDisp]		0x00,
   [HSyncStrtWid]	0x01,
   [VTotalDisp]		0x02,
@@ -483,7 +483,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Hlinear|Foptions;
 }
@@ -679,7 +679,7 @@ static int memtype[] = {
  * at, which is not necessarily in the VCLKs.
  */
 static void
-setdsp(Vga* vga, Ctlr*)
+setdsp(Vga* vga, Ctlr* ctlr)
 {
 	Mach64xx *mp;
 	Meminfo *mem;

@@ -595,7 +595,7 @@ options(Vga* vga, Ctlr* ctlr)
 /* ************************************************************ */
 
 static void 
-G450ApplyPFactor(Mga*, uint8_t ucP, uint32_t *pulFIn)
+G450ApplyPFactor(Mga* mgs, uint8_t ucP, uint32_t *pulFIn)
 {
 	if(!(ucP & 0x40))
 	{
@@ -605,7 +605,7 @@ G450ApplyPFactor(Mga*, uint8_t ucP, uint32_t *pulFIn)
 
 
 static void 
-G450RemovePFactor(Mga*, uint8_t ucP, uint32_t *pulFIn)
+G450RemovePFactor(Mga* mga, uint8_t ucP, uint32_t *pulFIn)
 {
 	if(!(ucP & 0x40))
 	{
@@ -614,7 +614,7 @@ G450RemovePFactor(Mga*, uint8_t ucP, uint32_t *pulFIn)
 }
 
 static void 
-G450CalculVCO(Mga*, uint32_t ulMNP, uint32_t *pulF)
+G450CalculVCO(Mga* mga, uint32_t ulMNP, uint32_t *pulF)
 {
 	uint8_t ucM, ucN;
 
@@ -627,7 +627,7 @@ G450CalculVCO(Mga*, uint32_t ulMNP, uint32_t *pulF)
 
 
 static void 
-G450CalculDeltaFreq(Mga*, uint32_t ulF1, uint32_t ulF2, uint32_t *pulDelta)
+G450CalculDeltaFreq(Mga* mga, uint32_t ulF1, uint32_t ulF2, uint32_t *pulDelta)
 {
 	if(ulF2 < ulF1)
 	{
@@ -647,7 +647,7 @@ G450FindNextPLLParam(Mga* mga, uint32_t ulFout, uint32_t *pulPLLMNP)
 	uint32_t ulVCO, ulVCOMin;
 
 	ucM = (uint8_t)((*pulPLLMNP >> 16) & 0xff);
-	/* ucN = (uchar)((*pulPLLMNP >>  8) & 0xff); */
+	/* ucN = (uint8_t)((*pulPLLMNP >>  8) & 0xff); */
 	ucP = (uint8_t)(*pulPLLMNP &  0x43);
 
 	ulVCOMin = 256000;

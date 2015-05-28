@@ -108,7 +108,7 @@ bt485o(uint8_t reg, uint8_t data)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Hsid32|Hclk2|Hextsid|Henhanced|Foptions;
 }
@@ -149,7 +149,7 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga*, Ctlr* ctlr)
+load(Vga* vga, Ctlr* ctlr)
 {
 	uint8_t x;
 
@@ -218,7 +218,7 @@ load(Vga*, Ctlr* ctlr)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 
