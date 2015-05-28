@@ -12,8 +12,10 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+
 #undef DBG
 #define DBG iprint
+
 static int
 cpuidinit(void)
 {
@@ -132,9 +134,9 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 				msr = 0;
 				r = rdmsr(0x2a) & 0x1f;
 			}
-iprint("r %d\n", r);
+//iprint("r %d\n", r);
 			f = rdmsr(0xcd) & 0x07;
-iprint("f %d\n", f);
+//iprint("f %d\n", f);
 			switch(f){
 			default:
 				return 0;
@@ -160,7 +162,7 @@ iprint("f %d\n", f);
 				hz = 400000000000ll;
 				break;
 			}
-iprint("hz %d r %d\n", hz, r);
+//iprint("hz %d r %d\n", hz, r);
 			/*
 			 * Hz is *1000 at this point.
 			 * Do the scaling then round it.

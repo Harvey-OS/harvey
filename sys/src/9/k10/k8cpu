@@ -27,6 +27,7 @@ dev +dev
 	pci
 
 	uart
+	usb
 
 uart +dev
 	uarti8250
@@ -47,6 +48,9 @@ link +dev
 ##	etherbcm	pci ethermii
 #	ethermedium
 	loopbackmedium
+	usbuhci
+	usbohci
+	usbehci         usbehcipc
 	netdevmedium
 
 #	ht
@@ -78,6 +82,7 @@ rootdir
 #	/amd64/bin/auth/factotum factotum
 #	/amd64/bin/ip/ipconfig ipconfig
 	/amd64/bin/ipconfig
+#	/amd64/bin/usb/usbd
 	/amd64/bin/rc
 	/rc/lib/rcmain
 	/amd64/bin/bind
