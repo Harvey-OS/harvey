@@ -21,8 +21,12 @@ dev +dev
 # add to get cec in the kernel
 	cec
 
-	ether		netif
+	ether	netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+
+#	draw	screen vga vgax
+#	mouse	mouse
+#	vgax
 
 	pci
 
@@ -39,6 +43,10 @@ ip +dev
 	ipifc
 	icmp
 	icmp6
+	gre
+#	ipmux
+#	esp
+#	rudp
 
 link +dev
 	ether8169	pci ethermii
@@ -51,7 +59,7 @@ link +dev
 	loopbackmedium
 #	usbuhci
 #	usbohci
-#	usbehci         usbehcipc
+#	usbehci	 usbehcipc
 	netdevmedium
 
 #	ht
@@ -59,6 +67,28 @@ link +dev
 misc +dev
 #	cache
 	mp		apic ioapic msi pci sipi
+	vga3dfx	+cur
+	vgaark2000pv	+cur
+	vgabt485	=cur
+	vgaclgd542x	+cur
+	vgaclgd546x	+cur
+	vgact65545	+cur
+	vgacyber938x	+cur
+	vgaet4000	+cur
+	vgahiqvideo	+cur
+	vgai81x	+cur
+	vgamach64xx	+cur
+	vgamga2164w	+cur
+	vgamga4xx	+cur
+	vganeomagic	+cur
+	vganvidia	+cur
+	vgargb524	=cur
+	vgas3	+cur vgasavage
+	vgat2r4	+cur
+	vgatvp3020	=cur
+	vgatvp3026	=cur
+	vgavesa
+	vgavmware	+cur
 
 #
 #boot cpu
@@ -74,8 +104,8 @@ misc +dev
 #boot boot $3
 #	char* bootdisk = "$3";
 #
-#boot cpu
-#	tcp
+boot cpu
+	tcp
 
 rootdir
 	boot.fs	boot
