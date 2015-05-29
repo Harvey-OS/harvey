@@ -649,7 +649,7 @@ build_a_cmd()
 			LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
 			echo $LD $LDFLAGS $LDFLAGS_EXTRA $LD_LIBS -o $BUILD_OUT *.o
 			$LD $LDFLAGS_EXTRA $LDFLAGS -o $BUILD_OUT *.o $LD_LIBS
-		elif [ -n "$BUILD_DIR" ] && [ -d "$BUILD_DIR/$1" ]
+		elif [ -n "$BUILD_DIR" ] && [ -d `dirname $BUILD_DIR`"/$1" ]
 		then
 			LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
 			echo $LD $LDFLAGS $LDFLAGS_EXTRA $LD_LIBS -o $BUILD_OUT *.o

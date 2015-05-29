@@ -9,5 +9,6 @@ bind -a '#I' /net
 bind -a '#l0' /net
 bind -a '#p' /proc
 bind -a '#d' /fd
+bind -a '#s' /srv
 exec /boot/rc -m/boot/rcmain -i
 
