@@ -80,7 +80,7 @@ atixo(uint8_t index, uint8_t data)
 }
 
 static void
-atixinit(Vga* vga, Ctlr*)
+atixinit(Vga* vga, Ctlr* ctlr)
 {
 	uint8_t b;
 	Mach32 *mach32;
@@ -155,7 +155,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Foptions;
 }

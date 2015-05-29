@@ -329,7 +329,7 @@ main(int argc, char** argv)
 			 * boost clock as much as possible subject
 			 * to video and memory bandwidth constraints
 			 */
-			ulong bytes, freq, membw;
+			uint32_t bytes, freq, membw;
 			double rr;
 
 			freq = vga->mode->videobw;

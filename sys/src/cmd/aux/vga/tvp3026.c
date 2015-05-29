@@ -87,7 +87,7 @@ tvp3026xo(uint8_t index, uint8_t data)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Hclk2|Hextsid|Henhanced|Foptions;
 }
@@ -149,7 +149,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 	uint32_t clock[4], f;

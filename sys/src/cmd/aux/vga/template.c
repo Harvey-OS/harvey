@@ -48,7 +48,7 @@ load(Vga* vga, Ctlr* ctlr)
 static void
 dump(Vga* vga, Ctlr* ctlr)
 {
-	USED(vga, ctlr);
+	USED(vga);
 }
 
 Ctlr xxx = {

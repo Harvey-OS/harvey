@@ -195,14 +195,14 @@ snarf(Vga* vga, Ctlr* ctlr)
 
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Hlinear|Henhanced|Foptions;
 }
 
 
 static void
-clock(Vga*, Ctlr*)
+clock(Vga* vga, Ctlr* ctlr)
 {
 	/* BEST CLOCK ROUTINE EVER! */
 }

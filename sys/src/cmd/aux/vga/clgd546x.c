@@ -300,7 +300,7 @@ init(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-load(Vga* vga, Ctlr*)
+load(Vga* vga, Ctlr* ctrl)
 {
 	Laguna *laguna;
 

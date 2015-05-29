@@ -70,7 +70,7 @@ ctxo(uint8_t index, uint8_t data)
  * ct65540.
  */
 static void
-snarf(Vga*, Ctlr* ctlr)
+snarf(Vga* vga, Ctlr* ctlr)
 {
 	Group *g;
 	int *xp;
@@ -83,7 +83,7 @@ snarf(Vga*, Ctlr* ctlr)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Hlinear|Foptions;
 }
@@ -231,7 +231,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	Group *g;
 	int *xp;

@@ -126,13 +126,13 @@ snarf(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Hlinear|Hclk2|Foptions;
 }
 
 static void
-tdfxclock(Vga* vga, Ctlr*)
+tdfxclock(Vga* vga, Ctlr* ctlr)
 {
 	int d, dmin;
 	uint f, m, n, p;

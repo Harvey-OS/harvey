@@ -141,7 +141,7 @@ atixo(uint8_t index, uint8_t data)
 }
 
 static void
-atixinit(Vga* vga, Ctlr*)
+atixinit(Vga* vga, Ctlr* ctrl)
 {
 	uint8_t b;
 

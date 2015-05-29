@@ -53,7 +53,7 @@ enum {					/* Multifunc Index */
 };
 
 static void
-load(Vga* vga, Ctlr*)
+load(Vga* vga, Ctlr* ctlr)
 {
 	outportw(Pixmask, 0x00);
 	outportw(Subsys, 0x8000|0x1000);
@@ -73,7 +73,7 @@ load(Vga* vga, Ctlr*)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	printitem(ctlr->name, "Advfunc");
 	Bprint(&stdout, "%9.4uX\n", inportw(Advfunc));

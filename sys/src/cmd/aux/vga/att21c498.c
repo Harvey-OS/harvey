@@ -66,7 +66,7 @@ attdaco(uint8_t reg, uint8_t data)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Hpclk2x8|Foptions;
 }
@@ -151,7 +151,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
 

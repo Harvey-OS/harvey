@@ -156,7 +156,7 @@ tvp3020xo(uint8_t index, uint8_t data)
 }
 
 static void
-options(Vga*, Ctlr* ctlr)
+options(Vga* vga, Ctlr* ctlr)
 {
 	ctlr->flag |= Hclk2|Hextsid|Hpvram|Henhanced|Foptions;
 }
@@ -281,7 +281,7 @@ load(Vga* vga, Ctlr* ctlr)
 }
 
 static void
-dump(Vga*, Ctlr* ctlr)
+dump(Vga* vga, Ctlr* ctlr)
 {
 	uint8_t access;
 	int i;
