@@ -60,7 +60,7 @@ struct Opt
 	int	code;
 	char	noway;	
 	int	(*change)(Biobuf*, int);	/* routine for status change */
-	int	(*sub)(Biobuf*, uchar*, int n);	/* routine for subnegotiation */
+	int	(*sub)(Biobuf*, uint8_t*, int n);	/* routine for subnegotiation */
 	char	remote;				/* remote value */
 	char	local;				/* local value */
 };
@@ -257,8 +257,8 @@ dont(Biobuf *bp)
 int
 sub(Biobuf *bp)
 {
-	uchar subneg[128];
-	uchar *p;
+	uint8_t subneg[128];
+	uint8_t *p;
 	Opt *o;
 	int c;
 
@@ -312,7 +312,7 @@ sendd(int c0, int c1)
 int
 send2(int f, int c0, int c1)
 {
-	uchar buf[2];
+	uint8_t buf[2];
 
 	buf[0] = c0;
 	buf[1] = c1;
@@ -322,7 +322,7 @@ send2(int f, int c0, int c1)
 int
 send3(int f, int c0, int c1, int c2)
 {
-	uchar buf[3];
+	uint8_t buf[3];
 
 	buf[0] = c0;
 	buf[1] = c1;

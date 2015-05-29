@@ -7,5 +7,7 @@ echo 'Hello, I am Harvey :-)'
 echo
 bind -a '#I' /net
 bind -a '#l0' /net
+bind -a '#p' /proc
+bind -a '#d' /fd
 exec /boot/rc -m/boot/rcmain -i
 

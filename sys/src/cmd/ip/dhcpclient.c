@@ -130,7 +130,7 @@ usage(void)
 }
 
 void
-timerthread(void*)
+timerthread(void* v)
 {
 	for(;;) {
 		sleep(1000);
@@ -183,7 +183,7 @@ timerthread(void*)
 }
 
 void
-stdinthread(void*)
+stdinthread(void* v)
 {
 	uint8_t buf[100];
 	int n;

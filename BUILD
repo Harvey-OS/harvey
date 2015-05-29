@@ -220,7 +220,7 @@ compile_kernel()
 
 	## Rest of programs into ramfs ##
 
-	RAMFS_LIST="bind mount echo cat cp ls ip/ipconfig/ipconfig ps mkdir pwd chmod rio/rio date dd aux/vga/vga"
+	RAMFS_LIST="bind mount echo cat cp ls ip/ipconfig/ipconfig ip/ping ip/telnet ip/dhcpclient ps mkdir pwd chmod rio/rio date dd aux/vga/vga"
 
 	for elem in $RAMFS_LIST
 	do
@@ -649,7 +649,7 @@ build_a_cmd()
 			LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
 			echo $LD $LDFLAGS $LDFLAGS_EXTRA $LD_LIBS -o $BUILD_OUT *.o
 			$LD $LDFLAGS_EXTRA $LDFLAGS -o $BUILD_OUT *.o $LD_LIBS
-		elif [ -n ""$BUILD_DIR"" ]
+		elif [ -n "$BUILD_DIR" ] && [ -d "$BUILD_DIR/$1" ]
 		then
 			LD_LIBS=`process_libs_to_link "$LIBS_TO_LINK"`
 			echo $LD $LDFLAGS $LDFLAGS_EXTRA $LD_LIBS -o $BUILD_OUT *.o
