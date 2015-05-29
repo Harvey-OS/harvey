@@ -1917,15 +1917,13 @@ igbepci(void)
 		cls = pcicfgr8(p, PciCLS);
 		switch(cls){
 			default:
-				print("igbe: unexpected CLS - %d\n", cls*4);
-				break;
-			case 0x00:
-			case 0xFF:
-				print("igbe: unusable CLS\n");
-				continue;
+			print("igbe: p->cls %#ux, setting to 0x10\n", p->cls);
+			p->cls = 0x10;
+			pcicfgw8(p, PciCLS, p->cls);
+			break;
 			case 0x08:
 			case 0x10:
-				break;
+			break;
 		}
 		ctlr = malloc(sizeof(Ctlr));
 		ctlr->port = p->mem[0].bar & ~0x0F;
