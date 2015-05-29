@@ -5,5 +5,7 @@ prompt=('harvey@cpu% ' '	')
 echo
 echo 'Hello, I am Harvey :-)'
 echo
+bind -a '#I' /net
+bind -a '#l0' /net
 exec /boot/rc -m/boot/rcmain -i
 

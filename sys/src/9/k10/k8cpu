@@ -27,7 +27,7 @@ dev +dev
 	pci
 
 	uart
-	usb
+#	usb
 
 uart +dev
 	uarti8250
@@ -49,9 +49,9 @@ link +dev
 	ether8139	pci ethermii
 	ethermedium
 	loopbackmedium
-	usbuhci
-	usbohci
-	usbehci         usbehcipc
+#	usbuhci
+#	usbohci
+#	usbehci         usbehcipc
 	netdevmedium
 
 #	ht
