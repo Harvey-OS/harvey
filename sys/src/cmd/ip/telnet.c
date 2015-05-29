@@ -42,7 +42,7 @@ char*	system(int, char*);
 int	echochange(Biobuf*, int);
 int	termsub(Biobuf*, uint8_t*, int);
 int	xlocsub(Biobuf*, uint8_t*, int);
-void*	share(ulong);
+void*	share(uint32_t);
 
 static int islikeatty(int);
 
