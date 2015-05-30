@@ -275,7 +275,7 @@ link_kernel()
 	#entry.o MUST be first.
 	GLOBIGNORE=entry.o
 	LIST_OBJ=`ls *.o`
-	REMAINING_ARGS="entry.o $LIST_OBJ ${LIB_DIR}/klibc.a ${LIB_DIR}/klibip.a"
+	REMAINING_ARGS="entry.o $LIST_OBJ ${LIB_DIR}/klibc.a ${LIB_DIR}/klibip.a ${LIB_DIR}/klibdraw.a"
 	
 
 	# Generates the first version of $KERNEL_OBJECT
