@@ -160,3 +160,35 @@ randomread(void *xp, uint32_t n)
 
 	return n;
 }
+
+/**
+ * Fast random generator
+ **/
+uint32_t
+urandomread(void *xp, uint32_t n)
+{
+	Mach *m = machp();
+	uint64_t seed[16];
+	uint8_t *e, *p;
+	uint32_t x=0;
+	uint64_t s0;
+	uint64_t s1;
+	
+	if(waserror()){
+		nexterror();
+	}
+	//The initial seed is from a good random pool.
+	randomread(seed, sizeof(seed));
+	
+	p = xp;
+	for(e = p + n; p < e; ){
+		s0 = seed[ x ];
+		s1 = seed[ x = (x+1) & 15 ];
+		s1 ^= s1 << 31;
+		s1 ^= s1 >> 11;
+		s0 ^= s0 >> 30;
+		*p++=( seed[x] = s0 ^ s1 ) * 1181783497276652981LL;
+	}
+	poperror();
+	return n;
+}

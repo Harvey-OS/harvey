@@ -674,6 +674,7 @@ enum{
 	Qpid,
 	Qppid,
 	Qrandom,
+	Qurandom,
 	Qreboot,
 	Qswap,
 	Qsysname,
@@ -706,6 +707,7 @@ static Dirtab consdir[]={
 	"pid",		{Qpid},		NUMSIZE,	0444,
 	"ppid",		{Qppid},	NUMSIZE,	0444,
 	"random",	{Qrandom},	0,		0444,
+	"urandom",  {Qurandom}, 0,      0444,
 	"reboot",	{Qreboot},	0,		0664,
 	"swap",		{Qswap},	0,		0664,
 	"sysname",	{Qsysname},	0,		0664,
@@ -1026,6 +1028,9 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 
 	case Qrandom:
 		return randomread(buf, n);
+	
+	case Qurandom:
+		return urandomread(buf, n);
 
 	case Qdrivers:
 		return devtabread(c, buf, n, off);

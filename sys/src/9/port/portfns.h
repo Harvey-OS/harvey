@@ -321,6 +321,7 @@ int		qwrite(Queue*, void*, int);
 int		rand(void);
 void		randominit(void);
 uint32_t		randomread(void*, uint32_t);
+uint32_t		urandomread(void*, uint32_t);
 void		rdb(void);
 int		readnum(uint32_t, char*, uint32_t, uint32_t, int);
 int32_t		readstr(int32_t, char*, int32_t, char*);
