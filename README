@@ -1,0 +1,8 @@
+This is Plan 9 for amd64 built with gcc (and soon, I hope, clang).
+
+
+<a href="https://scan.coverity.com/projects/5328">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/5328/badge.svg"/>
+</a>
+
