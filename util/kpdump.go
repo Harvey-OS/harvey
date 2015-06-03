@@ -2,8 +2,10 @@ package main
 
 import (
 	"debug/elf"
+	"encoding/binary"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"math"
 )
@@ -13,9 +15,15 @@ var kernel = flag.String("k", "9k", "kernel name")
 func main() {
 	flag.Parse()
 
+	n := flag.Args()[0]
+	d, err := os.Open(n)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
 	f, err := elf.Open(*kernel)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -56,4 +64,45 @@ func main() {
 		}
 	}
 	fmt.Fprintf(os.Stderr, "code s %x e %x\n", codestart, codeend)
+	s, err := f.Symbols()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+	symname := make([]string, codeend - codestart)
+	for _, v := range s {
+		vstart := v.Value
+		vend := v.Value + v.Size
+		if v.Value > codeend {
+			continue
+		}
+		if v.Value + v.Size < codestart {
+			continue
+		}
+		if vstart < codestart {
+			v.Value = codestart
+		}
+		if vend > codeend {
+			vend = codeend
+		} 
+		for i := vstart; i < vend; i++ {
+			symname[i-codestart] = v.Name
+		}
+	}
+	symname[0] = "Total ms"
+	// now dump the info ...
+	count := uint32(0)
+	pc := codestart
+	for {
+		if err := binary.Read(d, binary.LittleEndian, &count); err != nil {
+			if err != io.EOF {
+				fmt.Fprintf(os.Stderr, "%v\n", err)
+			}
+			break
+		}
+		if count > 0 {
+			fmt.Printf("%s %d\n", symname[pc-codestart], count)
+		}
+		pc++
+	}
 }
