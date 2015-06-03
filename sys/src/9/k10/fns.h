@@ -274,3 +274,6 @@ Mach *machp(void);
 /* temporary. */
 void die(char *);
 void dumpgpr(Ureg* ureg);
+
+/* debug support. */
+int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots);

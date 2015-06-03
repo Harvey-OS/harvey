@@ -205,6 +205,11 @@ cr4put:
 	MOVQ	%rax, %CR4
 	RET
 
+.global read_bp
+read_bp:
+	movq	%rbp, %rax
+	ret
+
 .global rdtsc
 rdtsc:
 	RDTSC
