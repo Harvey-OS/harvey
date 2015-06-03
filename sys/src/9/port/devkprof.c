@@ -25,7 +25,7 @@ struct
 	int	nbuf;
 	int	time;
 	uint32_t	*buf;
-	Lock;
+	Lock l;
 }kprof;
 
 enum{
@@ -55,6 +55,8 @@ kprofattach(char *spec)
 			error(Enomem);
 	}
 	kproftab[1].length = n;
+	print("Kprof attached. Buf is %p, %d bytes, minpc %p maxpc %p\n", 
+			kprof.buf, n, (void *)kprof.minpc, (void *)kprof.maxpc);
 	return devattach('K', spec);
 }
 
@@ -67,9 +69,9 @@ _kproftimer(uintptr_t pc)
 
 	/*
 	 * if the pc corresponds to the idle loop, don't consider it.
-	 */
 	if(m->inidle)
 		return;
+	 */
 	/*
 	 *  if the pc is coming out of spllo or splx,
 	 *  use the pc saved when we went splhi.
@@ -77,7 +79,7 @@ _kproftimer(uintptr_t pc)
 	if(pc>=PTR2UINT(spllo) && pc<=PTR2UINT(spldone))
 		pc = m->splpc;
 
-//	ilock(&kprof);
+	ilock(&kprof.l);
 	kprof.buf[0] += TK2MS(1);
 	if(kprof.minpc<=pc && pc<kprof.maxpc){
 		pc -= kprof.minpc;
@@ -85,7 +87,7 @@ _kproftimer(uintptr_t pc)
 		kprof.buf[pc] += TK2MS(1);
 	}else
 		kprof.buf[1] += TK2MS(1);
-//	iunlock(&kprof);
+	iunlock(&kprof.l);
 }
 
 static void
@@ -178,8 +180,10 @@ kprofwrite(Chan *c, void *a, int32_t n, int64_t m)
 			kprof.time = 1;
 		}else if(strncmp(a, "start", 5) == 0)
 			kprof.time = 1;
-		else if(strncmp(a, "stop", 4) == 0)
+		else if(strncmp(a, "stop", 4) == 0) {
+			print("kprof stopped. %d ms\n", kprof.buf[0]);
 			kprof.time = 0;
+		}
 		break;
 	default:
 		error(Ebadusefd);

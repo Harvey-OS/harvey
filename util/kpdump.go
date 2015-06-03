@@ -10,6 +10,8 @@ import (
 	"math"
 )
 
+const LRES = 3
+
 var kernel = flag.String("k", "9k", "kernel name")
 
 func main() {
@@ -69,7 +71,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
+	// maybe we should stop doing LRES ...
 	symname := make([]string, codeend - codestart)
+	for i := range symname {
+		symname[i] = fmt.Sprintf("[0x%x]", codestart + uint64(i))
+	}
 	for _, v := range s {
 		vstart := v.Value
 		vend := v.Value + v.Size
@@ -90,11 +96,12 @@ func main() {
 		}
 	}
 	symname[0] = "Total ms"
+	symname[1<<LRES] = "Unknown"
 	// now dump the info ...
 	count := uint32(0)
 	pc := codestart
 	for {
-		if err := binary.Read(d, binary.LittleEndian, &count); err != nil {
+		if err := binary.Read(d, binary.BigEndian, &count); err != nil {
 			if err != io.EOF {
 				fmt.Fprintf(os.Stderr, "%v\n", err)
 			}
@@ -103,6 +110,6 @@ func main() {
 		if count > 0 {
 			fmt.Printf("%s %d\n", symname[pc-codestart], count)
 		}
-		pc++
+		pc += (1 << LRES)
 	}
 }
