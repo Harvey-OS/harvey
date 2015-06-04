@@ -290,6 +290,7 @@ int		pwait(Waitmsg*);
 void		qaddlist(Queue*, Block*);
 Block*		qbread(Queue*, int);
 int32_t		qbwrite(Queue*, Block*);
+int32_t		qibwrite(Queue*, Block*);
 Queue*		qbypass(void (*)(void*, Block*), void*);
 int		qcanread(Queue*);
 void		qclose(Queue*);

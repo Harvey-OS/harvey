@@ -1279,6 +1279,40 @@ qbwrite(Queue *q, Block *b)
 	return n;
 }
 
+int32_t qibwrite(Queue *q, Block *b)
+{
+	int n, dowakeup;
+
+	dowakeup = 0;
+
+	n = BLEN(b);
+
+	ilock(q);
+
+	if (q->bfirst)
+		q->blast->next = b;
+	else
+		q->bfirst = b;
+	q->blast = b;
+	q->len += BALLOC(b);
+	q->dlen += n;
+
+	if (q->state & Qstarve) {
+		q->state &= ~Qstarve;
+		dowakeup = 1;
+	}
+
+	iunlock(q);
+
+	if (dowakeup) {
+		if (q->kick)
+			q->kick(q->arg);
+		wakeup(&q->rr);
+	}
+
+	return n;
+}
+
 /*
  *  write to a queue.  only Maxatomic bytes at a time is atomic.
  */

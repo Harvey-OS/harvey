@@ -227,7 +227,7 @@ static Block *op_cpu_buffer_write_reserve(struct oprofile_cpu_buffer *cpu_buf,
 	/* we might have run out. */
 	if ((! b) || (b->lim - b->wp) < size) {
 		if (b){
-			qbwrite(opq, b);
+			qibwrite(opq, b);
 		}
 		/* For now. Later, we will grab a block off the
 		 * emptyblock queue.
@@ -405,7 +405,7 @@ void oprofile_cpubuf_flushone(int core, int newbuf)
 	lock(&cpu_buf->lock);
 	if (cpu_buf->block) {
 		print("Core %d has data\n", core);
-		qbwrite(opq, cpu_buf->block);
+		qibwrite(opq, cpu_buf->block);
 		print("After qibwrite in %s, opq len %d\n", __func__, qlen(opq));
 	}
 	if (newbuf)
