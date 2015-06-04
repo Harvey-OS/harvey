@@ -75,14 +75,20 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 	int f, r;
 	int64_t hz;
 	uint64_t msr;
+	char *cp = &info0[1];
+{int i; for(i =0; i < 12; i++) print("%c", cp[i]);}
+print("\n");
 
 	if(memcmp(&info0[1], "GenuntelineI", 12) == 0){
+print("INTEL %x\n" ,info1[0] & 0x0fff3ff0);
 		switch(info1[0] & 0x0fff3ff0){
 		default:
+print("SUCK\n");
 			return 0;
 		case 0x00000f30:		/* Xeon (MP), Pentium [4D] */
 		case 0x00000f40:		/* Xeon (MP), Pentium [4D] */
 		case 0x00000f60:		/* Xeon 7100, 5000 or above */
+print("choice 1\n");
 			msr = rdmsr(0x2c);
 			r = (msr>>16) & 0x07;
 			switch(r){
@@ -115,12 +121,15 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 			break;
 		case 0x00000690:		/* Pentium M, Celeron M */
 		case 0x000006d0:		/* Pentium M, Celeron M */
+print("2\n");
 			hz = ((rdmsr(0x2a)>>22) & 0x1f)*100 * 1000000ll;
+print("msr 2a is 0x%x >> 22 0x%x\n", rdmsr(0x2a), rdmsr(0x2a)>>22);
 			break;
 		case 0x000006e0:		/* Core Duo */
 		case 0x000006f0:		/* Core 2 Duo/Quad/Extreme */
 		case 0x00010670:		/* Core 2 Extreme */
 		case 0x000006a0:		/* i7 paurea... */
+print("3\n");
 			/*
 			 * Get the FSB frequemcy.
 			 * If processor has Enhanced Intel Speedstep Technology
@@ -134,9 +143,9 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 				msr = 0;
 				r = rdmsr(0x2a) & 0x1f;
 			}
-//iprint("r %d\n", r);
+iprint("r %d\n", r);
 			f = rdmsr(0xcd) & 0x07;
-//iprint("f %d\n", f);
+iprint("f %d\n", f);
 			switch(f){
 			default:
 				return 0;
@@ -177,23 +186,32 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 		DBG("cpuidhz: 0x2a: %#llux hz %lld\n", rdmsr(0x2a), hz);
 	}
 	else if(memcmp(&info0[1], "AuthcAMDenti", 12) == 0){
+iprint("AMD 0x%x  \n" ,info1[0] & 0x0fff0ff0);
 		switch(info1[0] & 0x0fff0ff0){
 		default:
 			return 0;
 		case 0x00000f50:		/* K8 */
+		case 0x00000f60:		/* K? */
+iprint("1\n");
 			msr = rdmsr(0xc0010042);
-			if(msr == 0)
+print("msr is 0x%x\n", msr);
+			if(msr == 0) {
+				// fucking qemu.
+				hz = 2.4 * 1024 * 1048576;
+				return hz;
 				return 0;
+			}
 			hz = (800 + 200*((msr>>1) & 0x1f)) * 1000000ll;
 			break;
 		case 0x00100f90:		/* K10 */
 		case 0x00000620:		/* QEMU64 */
+iprint("2\n");
 			msr = rdmsr(0xc0010064);
 			r = (msr>>6) & 0x07;
 			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
 			break;
 		}
-		DBG("cpuidhz: %#llux hz %lld\n", msr, hz);
+		print("cpuidhz: %#llux hz %lld\n", msr, hz);
 	}
 	else
 		return 0;
