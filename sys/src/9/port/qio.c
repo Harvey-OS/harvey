@@ -1287,7 +1287,7 @@ int32_t qibwrite(Queue *q, Block *b)
 
 	n = BLEN(b);
 
-	ilock(q);
+	lock(q);
 
 	if (q->bfirst)
 		q->blast->next = b;
@@ -1302,7 +1302,7 @@ int32_t qibwrite(Queue *q, Block *b)
 		dowakeup = 1;
 	}
 
-	iunlock(q);
+	unlock(q);
 
 	if (dowakeup) {
 		if (q->kick)

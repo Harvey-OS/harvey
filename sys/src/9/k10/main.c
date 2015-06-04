@@ -476,7 +476,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 		m->cyclefreq = hz;
 		m->cpumhz = hz/1000000ll;
 	}
-	iprint("archhz returns 0x%lx\n", hz);
+	//iprint("archhz returns 0x%lx\n", hz);
 
 	/*
 	 * Mmuinit before meminit because it
