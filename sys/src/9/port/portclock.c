@@ -177,6 +177,7 @@ hzclock(Ureg *ur)
 
 	if(kproftimer != nil)
 		kproftimer(pc);
+	oprof_alarm_handler(ur);
 
 	if(m->online == 0)
 		return;

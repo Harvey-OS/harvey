@@ -424,3 +424,11 @@ uint32_t		ms(void);
 #pragma		varargck	argpos	iprint		1
 #pragma		varargck	argpos	panic		1
 #pragma		varargck	argpos	pprint		1
+
+/* profiling. */
+void oprofile_control_trace(int onoff);
+int oprofread(void *va, int n);
+void oprof_alarm_handler(Ureg *u);
+void oprofile_add_backtrace(uintptr_t pc, uintptr_t fp);
+void oprofile_add_userpc(uintptr_t pc);
+int alloc_cpu_buffers(void);

@@ -13,6 +13,8 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
+#include        "ureg.h"
+#include        "../port/portfns.h"
 
 
 #define LRES	3		/* log of PC resolution */
@@ -32,12 +34,24 @@ enum{
 	Kprofdirqid,
 	Kprofdataqid,
 	Kprofctlqid,
+	Kprofoprofileqid,
 };
+
 Dirtab kproftab[]={
 	".",		{Kprofdirqid, 0, QTDIR},0,	DMDIR|0550,
 	"kpdata",	{Kprofdataqid},		0,	0600,
 	"kpctl",	{Kprofctlqid},		0,	0600,
+	"kpoprofile",	{Kprofoprofileqid},	0,	0600,
 };
+
+void oprof_alarm_handler(Ureg *u)
+{
+	//int coreid = machp()->machno;
+	if (u->ip > KTZERO)
+		oprofile_add_backtrace(u->ip, u->bp);
+	else 
+		oprofile_add_userpc(u->ip);
+}
 
 static Chan*
 kprofattach(char *spec)
@@ -55,6 +69,7 @@ kprofattach(char *spec)
 			error(Enomem);
 	}
 	kproftab[1].length = n;
+	alloc_cpu_buffers();
 	print("Kprof attached. Buf is %p, %d bytes, minpc %p maxpc %p\n", 
 			kprof.buf, n, (void *)kprof.minpc, (void *)kprof.maxpc);
 	return devattach('K', spec);
@@ -163,6 +178,10 @@ kprofread(Chan *c, void *va, int32_t n, int64_t off)
 		}
 		break;
 
+	case Kprofoprofileqid:
+		n = oprofread(va,n);
+		break;
+
 	default:
 		n = 0;
 		break;
@@ -183,6 +202,12 @@ kprofwrite(Chan *c, void *a, int32_t n, int64_t m)
 		else if(strncmp(a, "stop", 4) == 0) {
 			print("kprof stopped. %d ms\n", kprof.buf[0]);
 			kprof.time = 0;
+		} else if (!strcmp(a, "opstart")) {
+			oprofile_control_trace(1);
+		} else if (!strcmp(a, "opstop")) {
+			oprofile_control_trace(0);
+		} else {
+			error("startclr|start|stop|opstart|opstop");
 		}
 		break;
 	default:

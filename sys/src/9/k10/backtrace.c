@@ -14,7 +14,7 @@ int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots)
 	while (fp && nr_pcs < nr_slots) {
 		/* could put some sanity checks in here... */
 		pcs[nr_pcs++] = pc;
-		iprint("PC %p FP %p\n", pc, fp);
+		//iprint("PC %p FP %p\n", pc, fp);
 		if (fp < KTZERO)
 			break;
 		/* PC becomes the retaddr - 1.  the -1 is to put our PC back inside the
