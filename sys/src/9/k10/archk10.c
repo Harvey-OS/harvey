@@ -78,6 +78,9 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 /*	char *cp = info0[1];
 {int i; for(i =0; i < 12; i++) print("%c", cp[i]);}
 print("\n");*/
+	print("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
+	print("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
+	return 0;
 
 	if(memcmp(&info0[1], "GenuntelineI", 12) == 0){
 		switch(info1[0] & 0x0fff3ff0){
