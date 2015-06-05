@@ -135,6 +135,7 @@ rootdir
 	/amd64/bin/date
 	/amd64/bin/dd
 	/amd64/bin/vga
+	/amd64/bin/testalarm
 #	../root/nvram nvram
 
 conf
