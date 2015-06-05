@@ -28,6 +28,11 @@ extern void confsetenv(void);	/* XXX - must go */
 
 static uintptr_t sp;		/* XXX - must go - user stack of init proc */
 
+/* Next time you see a system with cores/sockets running at different clock rates, on x86,
+ * let me know. AFAIK, it no longer happens. So the BSP hz is good for the AP hz.
+ */
+int64_t hz;
+
 uintptr_t kseg0 = KZERO;
 Sys* sys = nil;
 usize sizeofSys = sizeof(Sys);
@@ -98,6 +103,7 @@ options(int argc, char* argv[])
 void
 squidboy(int apicno, Mach *m)
 {
+	// FIX QEMU. extern int64_t hz;
 	int64_t hz;
 	sys->machptr[m->machno] = m;
 	/*
@@ -122,6 +128,8 @@ squidboy(int apicno, Mach *m)
 	/*
 	 * Beware the Curse of The Non-Interruptable Were-Temporary.
 	 */
+	// see comment in main.c. This is a 1990s thing. hz = archhz();
+	// except qemu won't work unless we do this. Sigh.
 	hz = archhz();
 	if(hz == 0)
 		ndnr();
@@ -405,7 +413,6 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	if (machp() != m)
 		panic("m and machp() are different!!\n");
 	assert(sizeof(Mach) <= PGSZ);
-	int64_t hz;
 
 	/*
 	 * Check that our data is on the right boundaries.
