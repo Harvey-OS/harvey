@@ -194,6 +194,9 @@ notify(Ureg* ureg)
 	memmove(nf->msg, note.msg, ERRMAX);
 	nf->arg1 = nf->msg;
 	nf->arg0 = &nf->ureg;
+	ureg->di = (uintptr)nf->arg0;
+	ureg->si = (uintptr)nf->arg1;
+	//print("Setting di to %p and si to %p\n", ureg->di, ureg->si);
 	ureg->bp = PTR2UINT(nf->arg0);
 	nf->ip = 0;
 
