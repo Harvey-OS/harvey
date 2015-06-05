@@ -392,7 +392,7 @@ syscall(int badscallnr, Ureg *ureg)
 	m->externup->psstate = 0;
 
 	if(scallnr == NOTED)
-		noted(ureg, *(uintptr_t*)(sp+BY2SE));
+		noted(ureg, a0);
 
 	if (0) hi("now to splihi\n");
 	splhi();
