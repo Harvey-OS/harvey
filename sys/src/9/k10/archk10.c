@@ -189,8 +189,7 @@ print("\n");*/
 		/* This checks ensures that msr won't be 0*/
 			msr = rdmsr(0xc0010042);
 			if(msr == 0) {
-				hz = 2.4 * 1024 * 1048576;
-				break;
+				return 0;
 			}
 			hz = (800 + 200*((msr>>1) & 0x1f)) * 1000000ll;
 			break;

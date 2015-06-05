@@ -92,7 +92,7 @@ i8254hz(uint32_t *info0, uint32_t *info1)
 {
 	uint32_t ax;
 	uint64_t a, b;
-	int aamcycles, incr, loops, x, y;
+	int64_t aamcycles, incr, loops, x, y;
 
 	/*
 	 * Use the cpuid family info to get the
