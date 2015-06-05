@@ -14,6 +14,7 @@ static int
 catch(void *p, char *s)
 {
 	print("catch %p %s\n", p, s);
+	noted(NCONT);
 }
 
 void
