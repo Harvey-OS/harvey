@@ -14,6 +14,7 @@ static int
 catch(void *p, char *s)
 {
 	print("catch %p %s\n", p, s);
+	alarm(5000);
 	noted(NCONT);
 }
 
@@ -22,7 +23,7 @@ main(int argc, char *argv[])
 {
 	notify(catch);
 
-	alarm(5);
+	alarm(5000);
 	while (1)
 		;
 	exits(0);
