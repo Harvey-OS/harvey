@@ -43,6 +43,7 @@ func process(f string, b *build) {
 	if b.jsons[f] {
 		return
 	}
+	log.Printf("Processing %v", f)
 	d, err := ioutil.ReadFile(f)
 	fail(err)
 	var build build

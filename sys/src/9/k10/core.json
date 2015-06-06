@@ -1,11 +1,54 @@
 {
     "Name": "core",
     "SourceFiles":[
-	"entry.S"
+	"entry.S",
+	"vsvm.c",
+	"l64v.S",
+	"l64fpu.S",
+	"cpuidamd64.S",
+	"l64acidt.S",
+	"l64idt.S",
+	"l64vsyscall.S"
     ],
     "Pre": [
 	"rm -f *.o *.root.c *.out errstr.h init.h amd64l.h libboot.a ../boot/*.o boot*.c",
 	"awk -v objtype=amd64 -f ../mk/parse -- -mkdevc $CONF > $CONF.c",
 	"awk -f ../mk/mkenumb amd64.h > amd64l.h"
+    ],
+    "Cflags": [
+	"-mcmodel=kernel",
+	"-O0",
+	"-static",
+	"-fplan9-extensions",
+	"-ffreestanding",
+	"-fno-builtin",
+	"-DKERNDATE=1433623937",
+	"-g",
+	"-fvar-tracking",
+	"-fvar-tracking-assignments",
+	"-Wall",
+	"-Wno-missing-braces",
+	"-Wno-parentheses",
+	"-Wno-unknown-pragmas",
+	"-Wuninitialized",
+	"-Wmaybe-uninitialized",
+	"-I/home/rminnich/projects/harvey/sys/include",
+	"-I/home/rminnich/projects/harvey/amd64/include",
+	"-I."
+    ],
+    "ObjectFiles": [
+	"../../../../amd64/lib/klibc.a",
+	"../../../../amd64/lib/klibip.a",
+	"../../../../amd64/lib/klibdraw.a"
+    ],
+    "Oflags": [
+	"-z",
+	"max-page-size=0x1000",
+	"-nostdlib",
+	"-g",
+	"-T",
+	"kernel.ld",
+	"-o",
+	"9k"
     ]
 }
