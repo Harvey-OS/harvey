@@ -677,7 +677,7 @@ hi("addr "); put64(addr); hi("\n");
 	if(fault(addr, read) < 0){
 iprint("could not fault %p\n", addr);
 	if (! user)
-		die("fault went bad in kernel\n");
+		panic("fault went bad in kernel\n");
 	else
 
 		/*

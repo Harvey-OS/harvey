@@ -440,7 +440,7 @@ panic(char *fmt, ...)
 	prflush();
 	buf[n] = '\n';
 	putstrn(buf, n+1);
-	//dumpstack();
+	dumpstack();
 	delay(1000);	/* give time to consoles */
 
 	exit(1);
