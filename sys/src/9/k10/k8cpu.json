@@ -1,15 +1,13 @@
 {
 	"Name":"k8cpu", 
-	"Include":[], 
+	"Include":["core.json"], 
 	"SourceFiles":[
-		"entry.S",
 		"acore.c",
 		"apic.c",
 		"arch.c",
 		"archk10.c",
 		"asm.c",
 		"backtrace.c",
-		"bootk8cpu.c",
 		"cga.c",
 		"ctype.c",
 		"devacpi.c",
@@ -20,7 +18,6 @@
 		"fpu.c",
 		"i8254.c",
 		"i8259.c",
-		"init9.c",
 		"ioapic.c",
 		"k8cpu.c",
 		"k8cpu.root.c",
@@ -47,7 +44,6 @@
 		"../386/devrtc.c",
 		"../386/ether8169.c",
 		"../386/ether82557.c",
-		"../386/ether82563.c",
 		"../386/etherigbe.c",
 		"../386/etherm10g.c",
 		"../386/kbd.c",
@@ -107,7 +103,6 @@
 		"../port/fault.c",
 		"../port/hexdump.c",
 		"../port/image.c",
-		"../port/initcode.c",
 		"../port/kdebug.c",
 		"../port/kexec.c",
 		"../port/latin1.c",
@@ -166,6 +161,11 @@
 		"-I/home/rminnich/projects/harvey/amd64/include",
 		"-I."
 	],
+    "ObjectFiles": [
+	"../../../../amd64/lib/klibc.a",
+	"../../../../amd64/lib/klibip.a",
+	"../../../../amd64/lib/klibdraw.a"
+    ],
     "Oflags": [
 	"-z",
 	"max-page-size=0x1000",

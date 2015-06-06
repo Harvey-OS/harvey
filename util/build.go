@@ -20,6 +20,7 @@ type build struct {
 	Oflags []string
 	Include []string
 	SourceFiles []string
+	ObjectFiles []string
 }
 
 var (
@@ -59,6 +60,7 @@ func process(f string) {
 		o := f[:len(f)-1] + "o"
 		config.objectfiles = append(config.objectfiles, o)
 	}
+	config.objectfiles = append(config.objectfiles, build.ObjectFiles...)
 	for _, v := range build.Include {
 		f := path.Join(config.cwd, v)
 		process(f)
@@ -85,7 +87,7 @@ func link() {
 	args := []string{}
 	args = append(args, config.oflags...)
 	args = append(args, config.objectfiles...)
-	cmd := exec.Command("gcc", args...)
+	cmd := exec.Command("ld", args...)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
