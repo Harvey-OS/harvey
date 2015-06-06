@@ -1,5 +1,6 @@
 {
     "Name": "core",
+    "Projects": ["inith.json"],
     "SourceFiles":[
 	"entry.S",
 	"vsvm.c",
@@ -13,7 +14,9 @@
     "Pre": [
 	"rm -f *.o *.root.c *.out errstr.h init.h amd64l.h libboot.a ../boot/*.o boot*.c",
 	"awk -v objtype=amd64 -f ../mk/parse -- -mkdevc $CONF > $CONF.c",
-	"awk -f ../mk/mkenumb amd64.h > amd64l.h"
+	"awk -f ../mk/mkenumb amd64.h > amd64l.h",
+	"data2c boot_fs boot.fs > $CONF.root.c",
+	"awk -f ../mk/parse -- -mkerrstr $CONF > errstr.h"
     ],
     "Cflags": [
 	"-mcmodel=kernel",

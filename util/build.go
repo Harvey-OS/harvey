@@ -75,7 +75,7 @@ func compile(b *build) {
 	args = append(args, b.Cflags...)
 	args = append(args, b.SourceFiles...)
 	cmd := exec.Command("gcc", args...)
-	cmd.Env = append(cmd.Env, b.Env...)
+	cmd.Env = append(os.Environ(), b.Env...)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -83,7 +83,7 @@ func compile(b *build) {
 	log.Printf("Run %v", cmd)
 	err := cmd.Run()
 	if err != nil {
-		log.Printf("%v\n", err)
+		log.Fatalf("%v\n", err)
 	}
 }
 
@@ -92,7 +92,7 @@ func link(b *build) {
 	args = append(args, b.Oflags...)
 	args = append(args, b.ObjectFiles...)
 	cmd := exec.Command("ld", args...)
-	cmd.Env = append(cmd.Env, b.Env...)
+	cmd.Env = append(os.Environ(), b.Env...)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -100,20 +100,20 @@ func link(b *build) {
 	log.Printf("Run %v", cmd)
 	err := cmd.Run()
 	if err != nil {
-		log.Printf("%v\n", err)
+		log.Fatalf("%v\n", err)
 	}
 }
 
 func run(b *build, cmd []string) {
 	for _, v := range cmd {
 		cmd := exec.Command("bash", "-c", v)
-		cmd.Env = append(cmd.Env, b.Env...)
+		cmd.Env = append(os.Environ(), b.Env...)
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
 		log.Printf("Run %v", cmd)
 		err := cmd.Run()
 		if err != nil {
-			log.Printf("%v\n", err)
+			log.Fatalf("%v\n", err)
 		}
 	}
 }
@@ -127,8 +127,8 @@ func project(root string) {
 	b := &build{}
 	b.jsons = map[string]bool{}
 	process(root, b)
-	projects(b)
 	run(b, b.Pre)
+	projects(b)
 	compile(b)
 	link(b)
 	run(b, b.Post)

@@ -256,7 +256,7 @@ syscall(int badscallnr, Ureg *ureg)
 	static Ar0 zar0;
 
 	/* Do you want to print syscalls for debugging? */
-	int printallsyscalls = 0;
+	int printallsyscalls = 1;
 
 	if(!userureg(ureg))
 		panic("syscall: cs %#llux\n", ureg->cs);
@@ -275,7 +275,7 @@ syscall(int badscallnr, Ureg *ureg)
 	if (printallsyscalls) {
 		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
-			if(0) iprint("E %s\n", m->externup->syscalltrace);
+			if(1) iprint("E %s\n", m->externup->syscalltrace);
 			free(m->externup->syscalltrace);
 			m->externup->syscalltrace = nil;
 		}
@@ -368,7 +368,7 @@ syscall(int badscallnr, Ureg *ureg)
 		stopns = todget(nil);
 		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
-			if (0) iprint("X %s\n", m->externup->syscalltrace);
+			if (1) iprint("X %s\n", m->externup->syscalltrace);
 			free(m->externup->syscalltrace);
 			m->externup->syscalltrace = nil;
 		}

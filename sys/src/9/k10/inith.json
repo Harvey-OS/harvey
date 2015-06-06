@@ -1,0 +1,24 @@
+{
+    "Name": "inith",
+    "SourceFiles": [
+	"init9.c",
+	"../port/initcode.c"
+    ],
+    "Cflags": [
+	"-O0", "-static", "-fplan9-extensions", "-ffreestanding", "-fno-builtin", "-I", ".",
+	"-I", "../../../../amd64/include",
+	"-I", "../../../../sys/include",
+	"-mcmodel=small"
+    ],
+    "Oflags": [
+	"-lc","-e_main","-Ttext=0x200020", "-o", "init", "-static"
+    ],
+    "Post": [
+	"elf2c init > init.h"
+    ],
+    "ObjectFiles": [
+	"../../../../amd64/lib/libc.a"
+    ]
+
+}
+	

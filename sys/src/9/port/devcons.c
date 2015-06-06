@@ -442,7 +442,7 @@ panic(char *fmt, ...)
 	putstrn(buf, n+1);
 	dumpstack();
 	delay(1000);	/* give time to consoles */
-
+	die("wait forever");
 	exit(1);
 }
 #pragma profile 1
