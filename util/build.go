@@ -15,25 +15,23 @@ import (
 )
 
 type build struct {
+	// jsons is unexported so can not be set in a .json file
+	jsons map[string]bool
 	Name string
+	// Projects name a whole subproject which is built independently of
+	// this one. We'll need to be able to use environment variables at some point.
+	Projects []string
+	Pre  []string
+	Post []string
 	Cflags []string
 	Oflags []string
 	Include []string
 	SourceFiles []string
 	ObjectFiles []string
+	Env []string
 }
 
-var (
-	config struct {
-		jsons map[string]bool
-		sourcefiles []string
-		cflags []string
-		cwd string
-		objectfiles[] string
-		oflags[] string
-	}
-)
-
+var cwd string
 
 func fail(err error) {
 	if err != nil {
@@ -41,37 +39,42 @@ func fail(err error) {
 	}
 }
 
-func process(f string) {
-	if config.jsons[f] {
+func process(f string, b *build) {
+	if b.jsons[f] {
 		return
 	}
-	b, err := ioutil.ReadFile(f)
+	d, err := ioutil.ReadFile(f)
 	fail(err)
 	var build build
-	err = json.Unmarshal(b, &build)
+	err = json.Unmarshal(d, &build)
 	fail(err)
-	config.jsons[f] = true
-	config.sourcefiles = append(config.sourcefiles, build.SourceFiles...)
-	config.cflags = append(config.cflags, build.Cflags...)
+	b.jsons[f] = true
+	b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
+	b.Cflags = append(b.Cflags, build.Cflags...)
+	b.Pre = append(b.Pre, build.Pre...)
+	b.Post = append(b.Post, build.Post...)
+	b.Projects = append(b.Projects, build.Projects...)
+	b.Env = append(b.Env, build.Env...)
 	// For each source file, assume we create an object file with the last char replaced
 	// with 'o'. We can get smarter later.
 	for _, v := range build.SourceFiles {
 		f := path.Base(v)
 		o := f[:len(f)-1] + "o"
-		config.objectfiles = append(config.objectfiles, o)
+		b.ObjectFiles = append(b.ObjectFiles, o)
 	}
-	config.objectfiles = append(config.objectfiles, build.ObjectFiles...)
+	b.ObjectFiles = append(b.ObjectFiles, build.ObjectFiles...)
 	for _, v := range build.Include {
-		f := path.Join(config.cwd, v)
-		process(f)
+		f := path.Join(cwd, v)
+		process(f, b)
 	}
 }
 
-func compile() {
+func compile(b *build) {
 	args := []string{"-c"}
-	args = append(args, config.cflags...)
-	args = append(args, config.sourcefiles...)
+	args = append(args, b.Cflags...)
+	args = append(args, b.SourceFiles...)
 	cmd := exec.Command("gcc", args...)
+	cmd.Env = append(cmd.Env, b.Env...)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -83,11 +86,12 @@ func compile() {
 	}
 }
 
-func link() {
+func link(b *build) {
 	args := []string{}
-	args = append(args, config.oflags...)
-	args = append(args, config.objectfiles...)
+	args = append(args, b.Oflags...)
+	args = append(args, b.ObjectFiles...)
 	cmd := exec.Command("ld", args...)
+	cmd.Env = append(cmd.Env, b.Env...)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -98,13 +102,41 @@ func link() {
 		log.Printf("%v\n", err)
 	}
 }
+
+func run(b *build, cmd []string) {
+	for _, v := range cmd {
+		cmd := exec.Command("bash", "-c", v)
+		cmd.Env = append(cmd.Env, b.Env...)
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		log.Printf("Run %v", cmd)
+		err := cmd.Run()
+		if err != nil {
+			log.Printf("%v\n", err)
+		}
+	}
+}
+
+func projects(b *build) {
+	for _, v := range b.Projects {
+		project(path.Join(cwd,v))
+	}
+}
+func project(root string) {
+	b := &build{}
+	b.jsons = map[string]bool{}
+	process(root, b)
+	projects(b)
+	run(b, b.Pre)
+	compile(b)
+	link(b)
+	run(b, b.Post)
+}
+
 func main() {
 	var err error
-	config.cwd, err = os.Getwd()
-	config.jsons = map[string]bool{}
+	cwd, err = os.Getwd()
 	fail(err)
-	f := path.Join(config.cwd, os.Args[1])
-	process(f)
-	compile()
-	link()
+	f := path.Join(cwd, os.Args[1])
+	project(f)
 }

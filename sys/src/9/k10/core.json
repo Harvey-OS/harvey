@@ -2,5 +2,10 @@
     "Name": "core",
     "SourceFiles":[
 	"entry.S"
+    ],
+    "Pre": [
+	"rm -f *.o *.root.c *.out errstr.h init.h amd64l.h libboot.a ../boot/*.o boot*.c",
+	"awk -v objtype=amd64 -f ../mk/parse -- -mkdevc $CONF > $CONF.c",
+	"awk -f ../mk/mkenumb amd64.h > amd64l.h"
     ]
 }
