@@ -16,7 +16,7 @@
     "Post": [
 	"elf2c init > init.h"
     ],
-    "ObjectFiles": [
+    "Libs": [
 	"../../../../amd64/lib/libc.a"
     ]
 

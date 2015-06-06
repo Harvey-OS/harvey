@@ -1,6 +1,6 @@
 {
     "Name": "core",
-    "Projects": ["inith.json"],
+    "Projects": ["clean.json", "inith.json"],
     "SourceFiles":[
 	"entry.S",
 	"vsvm.c",
@@ -12,10 +12,9 @@
 	"l64vsyscall.S"
     ],
     "Pre": [
-	"rm -f *.o *.root.c *.out errstr.h init.h amd64l.h libboot.a ../boot/*.o boot*.c",
 	"awk -v objtype=amd64 -f ../mk/parse -- -mkdevc $CONF > $CONF.c",
 	"awk -f ../mk/mkenumb amd64.h > amd64l.h",
-	"data2c boot_fs boot.fs > $CONF.root.c",
+	"data2c boot_fs boot.fs >> $CONF.root.c",
 	"awk -f ../mk/parse -- -mkerrstr $CONF > errstr.h"
     ],
     "Cflags": [
@@ -39,7 +38,7 @@
 	"-I/home/rminnich/projects/harvey/amd64/include",
 	"-I."
     ],
-    "ObjectFiles": [
+    "Libs": [
 	"../../../../amd64/lib/klibc.a",
 	"../../../../amd64/lib/klibip.a",
 	"../../../../amd64/lib/klibdraw.a"
@@ -53,5 +52,9 @@
 	"kernel.ld",
 	"-o",
 	"9k"
+    ],
+    "Post": [
+	"objcopy -I elf64-x86-64 -O elf32-i386 9k 9k.32bit",
+	"objdump -S 9k > 9k.asm"
     ]
 }

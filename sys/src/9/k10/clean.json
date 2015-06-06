@@ -1,0 +1,6 @@
+{
+    "Name": "clean",
+    "Pre": [
+	"rm -f *.o *.root.c *.out errstr.h init.h amd64l.h libboot.a ../boot/*.o boot*.c"
+    ]
+}

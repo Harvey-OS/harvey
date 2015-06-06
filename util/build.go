@@ -28,6 +28,7 @@ type build struct {
 	Include []string
 	SourceFiles []string
 	ObjectFiles []string
+	Libs	[]string
 	Env []string
 }
 
@@ -54,6 +55,7 @@ func process(f string, b *build) {
 	b.Cflags = append(b.Cflags, build.Cflags...)
 	b.Pre = append(b.Pre, build.Pre...)
 	b.Post = append(b.Post, build.Post...)
+	b.Libs = append(b.Libs, build.Libs...)
 	b.Projects = append(b.Projects, build.Projects...)
 	b.Env = append(b.Env, build.Env...)
 	// For each source file, assume we create an object file with the last char replaced
@@ -80,7 +82,7 @@ func compile(b *build) {
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
-	log.Printf("Run %v", cmd)
+		log.Printf("Run %v %v", cmd.Path, cmd.Args)
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalf("%v\n", err)
@@ -91,13 +93,14 @@ func link(b *build) {
 	args := []string{}
 	args = append(args, b.Oflags...)
 	args = append(args, b.ObjectFiles...)
+	args = append(args, b.Libs...)
 	cmd := exec.Command("ld", args...)
 	cmd.Env = append(os.Environ(), b.Env...)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
-	log.Printf("Run %v", cmd)
+		log.Printf("Run %v %v", cmd.Path, cmd.Args)
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalf("%v\n", err)
@@ -110,7 +113,7 @@ func run(b *build, cmd []string) {
 		cmd.Env = append(os.Environ(), b.Env...)
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
-		log.Printf("Run %v", cmd)
+		log.Printf("Run %v %v", cmd.Path, cmd.Args)
 		err := cmd.Run()
 		if err != nil {
 			log.Fatalf("%v\n", err)
@@ -127,10 +130,12 @@ func project(root string) {
 	b := &build{}
 	b.jsons = map[string]bool{}
 	process(root, b)
-	run(b, b.Pre)
 	projects(b)
-	compile(b)
-	link(b)
+	run(b, b.Pre)
+	if len(b.SourceFiles) > 0 {
+		compile(b)
+		link(b)
+	}
 	run(b, b.Post)
 }
 
