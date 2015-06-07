@@ -3,8 +3,6 @@
     "Include":["core.json", "../386/386.json", "../ip/ip.json", "../port/port.json"], 
 	"comment": "wow, this sucks.",
 	"Projects": [
-	"../../cmd/rc/kernel.json",
-	"../../cmd/bind/kernel.json"
 	],
     "Pre": [
 	"cp /home/rminnich/projects/harvey/rc/lib/rcmain rcmain",
@@ -53,7 +51,7 @@
 	"data2c _amd64_bin_chmod chmod.elf.out>> k8cpu.root.c",
 	"cp ../../cmd/date.elf.out date.elf.out",
 	"strip date.elf.out",
-	"data2c _amd64_bin_date date.elf.out>> k8cpu.root.c",
+	"data2c _amd64_bin_date date.elf.out>> k8cpu.root.c"
     ],
     "SourceFiles":[
 	"acore.c",
