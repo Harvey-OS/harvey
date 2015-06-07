@@ -5,7 +5,7 @@
 package main
 
 import (
-//	"fmt"	
+	//	"fmt"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -17,23 +17,23 @@ import (
 type build struct {
 	// jsons is unexported so can not be set in a .json file
 	jsons map[string]bool
-	Name string
+	Name  string
 	// Projects name a whole subproject which is built independently of
 	// this one. We'll need to be able to use environment variables at some point.
-	Projects []string
-	Pre  []string
-	Post []string
-	Cflags []string
-	Oflags []string
-	Include []string
+	Projects    []string
+	Pre         []string
+	Post        []string
+	Cflags      []string
+	Oflags      []string
+	Include     []string
 	SourceFiles []string
 	ObjectFiles []string
-	Libs	[]string
-	Env []string
+	Libs        []string
+	Env         []string
 }
 
 var (
-	cwd string
+	cwd    string
 	harvey string
 )
 
@@ -87,7 +87,11 @@ func process(f string, b *build) {
 }
 
 func compile(b *build) {
+	// N.B. Plan 9 has a very well defined include structure, just three things:
+	// /amd64/include, /sys/include, .
+	// TODO: replace amd64 with an arch variable. Later.
 	args := []string{"-c"}
+	args = append(args, adjust([]string{"-I", "/amd64/include", "-I", "/sys/include", "-I", "."})...)
 	args = append(args, b.Cflags...)
 	args = append(args, b.SourceFiles...)
 	cmd := exec.Command("gcc", args...)
@@ -96,7 +100,7 @@ func compile(b *build) {
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
-		log.Printf("Run %v %v", cmd.Path, cmd.Args)
+	log.Printf("Run %v %v", cmd.Path, cmd.Args)
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalf("%v\n", err)
@@ -107,20 +111,14 @@ func link(b *build) {
 	args := []string{}
 	args = append(args, b.Oflags...)
 	args = append(args, b.ObjectFiles...)
-	// experiment: anything that is absolute gets harvey prepended to it.
-	for _, v := range b.Libs {
-		if path.IsAbs(v) {
-			v = path.Join(harvey, v)
-		}
-		args = append(args, v)
-	}
+	args = append(args, b.Libs...)
 	cmd := exec.Command("ld", args...)
 	cmd.Env = append(os.Environ(), b.Env...)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
-		log.Printf("Run %v %v", cmd.Path, cmd.Args)
+	log.Printf("Run %v %v", cmd.Path, cmd.Args)
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalf("%v\n", err)

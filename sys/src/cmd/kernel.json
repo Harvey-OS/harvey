@@ -15,19 +15,17 @@
 	"-Wno-unknown-pragmas",
 	"-Wuninitialized",
 	"-Wmaybe-uninitialized",
-	"-I", "../../../../amd64/include",
-	"-I", "../../../../sys/include",
 	"-g"
     ],
     "Oflags": [
 	"-static",
-	"-emain"
+	"-e_main"
     ],
     "Post": [
 	"rm *.o"
     ],
-	"Libs": [
+    "Libs": [
 	"/amd64/lib/libString.a",
 	"/amd64/lib/libc.a"
-	]
+    ]
 }
