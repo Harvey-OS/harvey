@@ -1,7 +1,6 @@
 {
     "Name":"k8cpu", 
     "Include":["core.json", "../386/386.json", "../ip/ip.json", "../port/port.json"], 
-	"comment": "wow, this sucks.",
 	"Projects": [
 	],
     "Pre": [

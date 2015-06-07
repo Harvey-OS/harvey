@@ -43,6 +43,15 @@ func fail(err error) {
 	}
 }
 
+func adjust(s []string) (r []string) {
+	for _, v := range s {
+		if path.IsAbs(v) {
+			v = path.Join(harvey, v)
+		}
+		r = append(r, v)
+	}
+	return
+}
 func process(f string, b *build) {
 	if b.jsons[f] {
 		return
@@ -59,8 +68,8 @@ func process(f string, b *build) {
 	b.Oflags = append(b.Oflags, build.Oflags...)
 	b.Pre = append(b.Pre, build.Pre...)
 	b.Post = append(b.Post, build.Post...)
-	b.Libs = append(b.Libs, build.Libs...)
-	b.Projects = append(b.Projects, build.Projects...)
+	b.Libs = append(b.Libs, adjust(build.Libs)...)
+	b.Projects = append(b.Projects, adjust(build.Projects)...)
 	b.Env = append(b.Env, build.Env...)
 	// For each source file, assume we create an object file with the last char replaced
 	// with 'o'. We can get smarter later.
@@ -69,7 +78,7 @@ func process(f string, b *build) {
 		o := f[:len(f)-1] + "o"
 		b.ObjectFiles = append(b.ObjectFiles, o)
 	}
-	b.ObjectFiles = append(b.ObjectFiles, build.ObjectFiles...)
+	b.ObjectFiles = append(b.ObjectFiles, adjust(build.ObjectFiles)...)
 	for _, v := range build.Include {
 		wd := path.Dir(f)
 		f := path.Join(wd, v)
@@ -133,16 +142,18 @@ func run(b *build, cmd []string) {
 }
 
 func projects(b *build) {
-	// For a project, we really need to go to that wd.
-	// TODO: truly stack it. This is not right yet.
 	for _, v := range b.Projects {
-		wd := path.Dir(path.Join(cwd, v))
+		wd := path.Dir(v)
 		f := path.Base(v)
+		cwd, err := os.Getwd()
+		fail(err)
 		os.Chdir(wd)
 		project(f)
 		os.Chdir(cwd)
 	}
 }
+
+// assumes we are in the wd of the project.
 func project(root string) {
 	b := &build{}
 	b.jsons = map[string]bool{}

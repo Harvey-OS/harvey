@@ -20,17 +20,14 @@
 	"-g"
     ],
     "Oflags": [
-	"-L", "../../../../amd64/lib",
 	"-static",
-	"-lString",
-	"-lc",
 	"-emain"
     ],
     "Post": [
 	"rm *.o"
     ],
 	"Libs": [
-	"../../../../amd64/lib/libString.a",
-	"../../../../amd64/lib/libc.a"
+	"/amd64/lib/libString.a",
+	"/amd64/lib/libc.a"
 	]
 }
