@@ -84,6 +84,15 @@ clean_kernel()
 	cd - > /dev/null
 }
 
+compile_kernel_go()
+{
+	export HARVEY="$_BUILD_DIR"
+	cd "$KRL_DIR"
+	$HARVEY/util/build k8cpu.json
+	cd "$PATH_ORI" > /dev/null
+
+}
+
 compile_kernel()
 {
 	CONF=$KERNEL_CONF
@@ -310,9 +319,10 @@ link_kernel()
 
 build_kernel()
 {
-	clean_kernel
-	compile_kernel
-	link_kernel
+#	clean_kernel
+#	compile_kernel
+#	link_kernel
+	compile_kernel_go
 	echo "KERNEL COMPILED OK"
 }
 
