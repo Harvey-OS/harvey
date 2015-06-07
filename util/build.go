@@ -53,6 +53,7 @@ func process(f string, b *build) {
 	b.jsons[f] = true
 	b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
 	b.Cflags = append(b.Cflags, build.Cflags...)
+	b.Oflags = append(b.Oflags, build.Oflags...)
 	b.Pre = append(b.Pre, build.Pre...)
 	b.Post = append(b.Post, build.Post...)
 	b.Libs = append(b.Libs, build.Libs...)
@@ -67,7 +68,8 @@ func process(f string, b *build) {
 	}
 	b.ObjectFiles = append(b.ObjectFiles, build.ObjectFiles...)
 	for _, v := range build.Include {
-		f := path.Join(cwd, v)
+		wd := path.Dir(f)
+		f := path.Join(wd, v)
 		process(f, b)
 	}
 }
@@ -122,8 +124,14 @@ func run(b *build, cmd []string) {
 }
 
 func projects(b *build) {
+	// For a project, we really need to go to that wd.
+	// TODO: truly stack it. This is not right yet.
 	for _, v := range b.Projects {
-		project(path.Join(cwd,v))
+		wd := path.Dir(path.Join(cwd, v))
+		f := path.Base(v)
+		os.Chdir(wd)
+		project(f)
+		os.Chdir(cwd)
 	}
 }
 func project(root string) {

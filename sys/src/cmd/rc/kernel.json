@@ -1,0 +1,30 @@
+{
+    "Name": "Kernelrc",
+	"Include": ["../kernel.json"],
+    "Pre": [
+	"yacc -d syn.y",
+	"cp y.tab.h x.tab.h"
+	],
+    "SourceFiles": [
+	"code.c",
+	"exec.c",
+	"getflags.c",
+	"glob.c",
+	"havefork.c",
+	"here.c",
+	"io.c",
+	"lex.c",
+	"pcmd.c",
+	"pfnc.c",
+	"plan9.c",
+	"simple.c",
+	"subr.c",
+	"trap.c",
+	"tree.c",
+	"var.c",
+	"y.tab.c"
+	],
+    "Oflags": [
+	"-o", "rc.elf.out"
+    ]
+}
