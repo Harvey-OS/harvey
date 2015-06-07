@@ -32,7 +32,10 @@ type build struct {
 	Env []string
 }
 
-var cwd string
+var (
+	cwd string
+	harvey string
+)
 
 func fail(err error) {
 	if err != nil {
@@ -95,7 +98,13 @@ func link(b *build) {
 	args := []string{}
 	args = append(args, b.Oflags...)
 	args = append(args, b.ObjectFiles...)
-	args = append(args, b.Libs...)
+	// experiment: anything that is absolute gets harvey prepended to it.
+	for _, v := range b.Libs {
+		if path.IsAbs(v) {
+			v = path.Join(harvey, v)
+		}
+		args = append(args, v)
+	}
 	cmd := exec.Command("ld", args...)
 	cmd.Env = append(os.Environ(), b.Env...)
 
@@ -151,6 +160,10 @@ func main() {
 	var err error
 	cwd, err = os.Getwd()
 	fail(err)
+	harvey = os.Getenv("HARVEY")
+	if harvey == "" {
+		log.Fatalf("You need to set the HARVEY environment variable")
+	}
 	f := path.Join(cwd, os.Args[1])
 	project(f)
 }
