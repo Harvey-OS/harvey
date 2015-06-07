@@ -3,7 +3,8 @@
     "Include":["core.json", "../386/386.json", "../ip/ip.json", "../port/port.json"], 
 	"comment": "wow, this sucks.",
 	"Projects": [
-	"../../cmd/rc/kernel.json"
+	"../../cmd/rc/kernel.json",
+	"../../cmd/bind/kernel.json"
 	],
     "Pre": [
 	"cp /home/rminnich/projects/harvey/rc/lib/rcmain rcmain",
@@ -35,12 +36,6 @@
 	"cp ../../cmd/ip/ping.elf.out ping.elf.out",
 	"strip ping.elf.out",
 	"data2c _amd64_bin_ping ping.elf.out>> k8cpu.root.c",
-	"cp ../../cmd/ip/telnet.elf.out telnet.elf.out",
-	"strip telnet.elf.out",
-	"data2c _amd64_bin_telnet telnet.elf.out>> k8cpu.root.c",
-	"cp ../../cmd/ip/dhcpclient.elf.out dhcpclient.elf.out",
-	"strip dhcpclient.elf.out",
-	"data2c _amd64_bin_dhcpclient dhcpclient.elf.out>> k8cpu.root.c",
 	"cp ../../cmd/srv.elf.out srv.elf.out",
 	"strip srv.elf.out",
 	"data2c _amd64_bin_srv srv.elf.out>> k8cpu.root.c",
@@ -56,21 +51,9 @@
 	"cp ../../cmd/chmod.elf.out chmod.elf.out",
 	"strip chmod.elf.out",
 	"data2c _amd64_bin_chmod chmod.elf.out>> k8cpu.root.c",
-	"cp ../../cmd/rio/rio.elf.out rio.elf.out",
-	"strip rio.elf.out",
-	"data2c _amd64_bin_rio rio.elf.out>> k8cpu.root.c",
 	"cp ../../cmd/date.elf.out date.elf.out",
 	"strip date.elf.out",
 	"data2c _amd64_bin_date date.elf.out>> k8cpu.root.c",
-	"cp ../../cmd/dd.elf.out dd.elf.out",
-	"strip dd.elf.out",
-	"data2c _amd64_bin_dd dd.elf.out>> k8cpu.root.c",
-	"cp ../../cmd/aux/vga/vga.elf.out vga.elf.out",
-	"strip vga.elf.out",
-	"data2c _amd64_bin_vga vga.elf.out>> k8cpu.root.c",
-	"cp ../../cmd/testalarm.elf.out testalarm.elf.out",
-	"strip testalarm.elf.out",
-	"data2c _amd64_bin_testalarm testalarm.elf.out>> k8cpu.root.c"
     ],
     "SourceFiles":[
 	"acore.c",

@@ -115,8 +115,6 @@ rootdir
 #	/amd64/bin/ip/ipconfig ipconfig
 	/amd64/bin/ipconfig
 	/amd64/bin/ping
-	/amd64/bin/telnet
-	/amd64/bin/dhcpclient
 	/amd64/bin/srv
 #	/amd64/bin/usb/usbd
 	/amd64/bin/rc
@@ -130,12 +128,7 @@ rootdir
 	/amd64/bin/ps
 	/amd64/bin/mkdir
 	/amd64/bin/pwd
-	/amd64/bin/chmod
-	/amd64/bin/rio
 	/amd64/bin/date
-	/amd64/bin/dd
-	/amd64/bin/vga
-	/amd64/bin/testalarm
 #	../root/nvram nvram
 
 conf
