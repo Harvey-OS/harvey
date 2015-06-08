@@ -1,6 +1,5 @@
 {
     "Name": "core",
-    "Program": "9k",
     "Projects": ["clean.json", "inith.json"],
     "SourceFiles":[
 	"entry.S",
@@ -77,7 +76,7 @@
 	"kernel.ld"
     ],
     "Post": [
-	"objcopy -I elf64-x86-64 -O elf32-i386 9k 9k.32bit",
-	"objdump -S 9k > 9k.asm"
+	"objcopy -I elf64-x86-64 -O elf32-i386 9$CONF 9$CONF.32bit",
+	"objdump -S 9$CONF > 9$CONF.asm"
     ]
 }
