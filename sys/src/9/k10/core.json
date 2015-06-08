@@ -42,6 +42,7 @@
 	"awk -v objtype=amd64 -f ../mk/parse -- -mkdevc $CONF > $CONF.c",
 	"awk -f ../mk/mkenumb amd64.h > amd64l.h",
 	"data2c boot_fs boot.fs >> $CONF.root.c",
+	"awk -f ../mk/parse -- -mksystab /home/rminnich/projects/harvey/sys/src/libc/9syscall/sys.h $CONF > systab.c",
 	"awk -f ../mk/parse -- -mkerrstr $CONF > errstr.h"
     ],
     "Cflags": [
