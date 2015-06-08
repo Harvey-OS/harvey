@@ -3,7 +3,8 @@
     "Program": "9k8cpu",
     "Include":["core.json", "../386/386.json", "../ip/ip.json", "../port/port.json"], 
 	"Projects": [
-	"/sys/src/cmd/rc/kernel.json"
+	"/sys/src/cmd/rc/kernel.json",
+	"/sys/src/cmd/ip/ipconfig/kernel.json"
 	],
     "Pre": [
 	"cp ../../../../rc/lib/rcmain rcmain",

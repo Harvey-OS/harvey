@@ -783,7 +783,7 @@ recvrs(uint8_t *buf, int pktlen, uint8_t *sol)
 		return -1;
 	}
 
-	llao = (Lladdropt *)buf[n];
+	llao = (Lladdropt *)(uint64_t)buf[n];
 	n = snprint(abuf, sizeof abuf, "add ether %I %E", rs->src, llao->lladdr);
 	if (write(arpfd, abuf, n) < n) {
 		ralog("recvrs: can't write to %s/arp: %r", conf.mpoint);
