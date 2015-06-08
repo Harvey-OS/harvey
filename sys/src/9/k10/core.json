@@ -1,5 +1,6 @@
 {
     "Name": "core",
+    "Program": "9k",
     "Projects": ["clean.json", "inith.json"],
     "SourceFiles":[
 	"entry.S",
@@ -73,9 +74,7 @@
 	"-nostdlib",
 	"-g",
 	"-T",
-	"kernel.ld",
-	"-o",
-	"9k"
+	"kernel.ld"
     ],
     "Post": [
 	"objcopy -I elf64-x86-64 -O elf32-i386 9k 9k.32bit",

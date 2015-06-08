@@ -30,6 +30,9 @@ type build struct {
 	ObjectFiles []string
 	Libs        []string
 	Env         []string
+	// Targets.
+	Program string
+	Library string
 }
 
 var (
@@ -71,6 +74,12 @@ func process(f string, b *build) {
 	b.Libs = append(b.Libs, adjust(build.Libs)...)
 	b.Projects = append(b.Projects, adjust(build.Projects)...)
 	b.Env = append(b.Env, build.Env...)
+	if build.Program != "" {
+		b.Program = build.Program
+	}
+	if build.Library != "" {
+		b.Library = build.Library
+	}
 	// For each source file, assume we create an object file with the last char replaced
 	// with 'o'. We can get smarter later.
 	for _, v := range build.SourceFiles {
@@ -108,7 +117,7 @@ func compile(b *build) {
 }
 
 func link(b *build) {
-	args := []string{}
+	args := []string{"-o", b.Program}
 	args = append(args, b.Oflags...)
 	args = append(args, b.ObjectFiles...)
 	args = append(args, b.Libs...)
@@ -160,7 +169,13 @@ func project(root string) {
 	run(b, b.Pre)
 	if len(b.SourceFiles) > 0 {
 		compile(b)
+	}
+	log.Printf("root %v program %v\n", root, b.Program)
+	if b.Program != "" {
 		link(b)
+	}
+	if b.Library != "" {
+		//library(b)
 	}
 	run(b, b.Post)
 }

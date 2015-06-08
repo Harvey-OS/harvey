@@ -65,9 +65,9 @@
 	"usbohci.c",
 	"usbuhci.c"
     ],
-	"Env": [
-		"CONF=k8cpu"
-	]
+    "Env": [
+	"CONF=k8cpu"
+    ]
 
 }
 
