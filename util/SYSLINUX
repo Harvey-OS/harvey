@@ -1,0 +1,68 @@
+qemu-img create -f qcow2 harvey.qcow2 3G
+sudo modprobe nbd max_part=63
+sudo qemu-nbd -c /dev/nbd0 harvey.qcow2
+sudo fdisk /dev/nbd0
+[Create an ext2 partition]
+sudo extlinux -i /dev/nbd0p1
+sudo mount /dev/nbd0p1 disk/
+sudo cp ../sys/src/9/k10/9k.32bit disk/harvey
+
+cd disk/
+
+$ ls -l
+total 5964
+-rwxr-xr-x 1 root root 5884264 jun  8 02:16 harvey
+-r--r--r-- 1 root root  116624 jun  7 02:12 ldlinux.c32
+-r--r--r-- 1 root root   61440 jun  7 02:12 ldlinux.sys
+drwx------ 2 root root   16384 jun  7 02:10 lost+found
+drwxr-xr-x 2 root root    4096 jun  8 02:25 syslinux
+$ ls -l syslinux/
+total 280
+-rw-r--r-- 1 root root 182552 jun  7 02:34 libcom32.c32
+-rw-r--r-- 1 root root  23480 jun  7 02:34 libutil.c32
+-rw-r--r-- 1 root root  10172 jun  8 01:29 mboot.c32
+-rw-r--r-- 1 root root  25668 jun  7 02:34 menu.c32
+-rw-r--r-- 1 root root    727 jun  8 02:05 syslinux.cfg
+-rw-r--r-- 1 root root  26188 jun  7 02:25 vesamenu.c32
+
+[modules are into /usr/lib/syslinux/modules/bios/ so copy it from there]
+
+$ cat syslinux/syslinux.cfg 
+# syslinux.cfg
+#TIMEOUT = Time to wait to autoboot in 1/10 secs. zero (0) disables the timeout 
+#PROMPT = one (1) displays the prompt only, zero (0) will not display the prompt
+#ONTIMEOUT = The default menu label to automatically boot at timeout (selected after timeout)
+#DISPLAY = Optional menu text if not using LABEL Entries
+
+TIMEOUT 1000
+DEFAULT vesamenu.c32
+#MENU BACKGROUND /backgroundimages/your_image_here.png
+MENU TITLE Harvey OS
+PROMPT 0
+ONTIMEOUT 1
+#DISPLAY Menu.txt
+
+#Display help text when F1 pressed on Syslinux Menu
+F1 help.txt
+
+LABEL 0
+MENU LABEL Reboot
+TEXT HELP
+Restart the computer
+ENDTEXT
+COM32 reboot.c32
+
+LABEL 1
+TEXT HELP
+Boot Harvey kernel
+ENDTEXT
+MENU LABEL Harvey OS
+KERNEL mboot.c32
+APPEND ../harvey
+
+sudo umount disk/
+
+[Run qemu]
+
+qemu-system-x86_64 --enable-kvm -s -cpu core2duo -smp 2 -m 2048 -monitor stdio -serial /dev/pts/4 --machine pc -net nic,model=rtl8139 -net user,hostfwd=tcp::5555-:23 -drive file=/media/backup1/source/plan9/harvey/util/harvey.qcow2,media=disk,index=0,cache=writeback
+
