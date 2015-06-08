@@ -1,6 +1,7 @@
 {
     "Name": "Kernelrc",
-	"Include": ["../kernel.json"],
+    "Program": "rc.elf.out",
+    "Include": ["../kernel.json"],
     "Pre": [
 	"yacc -d syn.y",
 	"cp y.tab.h x.tab.h"
@@ -23,8 +24,5 @@
 	"tree.c",
 	"var.c",
 	"y.tab.c"
-	],
-    "Oflags": [
-	"-o", "rc.elf.out"
-    ]
+	]
 }
