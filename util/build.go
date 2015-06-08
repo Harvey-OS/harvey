@@ -74,12 +74,8 @@ func process(f string, b *build) {
 	b.Libs = append(b.Libs, adjust(build.Libs)...)
 	b.Projects = append(b.Projects, adjust(build.Projects)...)
 	b.Env = append(b.Env, build.Env...)
-	if build.Program != "" {
-		b.Program = build.Program
-	}
-	if build.Library != "" {
-		b.Library = build.Library
-	}
+	b.Program += build.Program
+	b.Library += build.Library
 	// For each source file, assume we create an object file with the last char replaced
 	// with 'o'. We can get smarter later.
 	for _, v := range build.SourceFiles {
