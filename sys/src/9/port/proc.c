@@ -18,8 +18,7 @@
 #include	"errstr.h"
 #include	<trace.h>
 
-/* WRONG! it may passed at boot time!*/
-static int nosmp = 0;
+extern int nosmp;
 
 enum
 {

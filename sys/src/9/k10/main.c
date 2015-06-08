@@ -52,8 +52,7 @@ static int numtcs = 32;		/* initial # of TCs */
 char dbgflg[256];
 static int vflag = 1;
 
-/* WRONG! it may passed at boot time!*/
-static int nosmp = 0;
+int nosmp = 0;
 
 void
 optionsinit(char* s)
@@ -98,6 +97,8 @@ options(int argc, char* argv[])
 		//argc--;
 		//argv++;
 	}
+	// hack.
+	nosmp = dbgflg['n'];
 }
 
 void
@@ -470,7 +471,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	sys->nmach = 1;			
 
 	if(1){
-		multiboot(mbmagic, mbaddress, vflag);
+		multiboot(mbmagic, mbaddress, 1);
 	}
 
 	m->perf.period = 1;

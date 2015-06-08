@@ -22,8 +22,7 @@
 #include "amd64.h"
 #include "ureg.h"
 
-/* WRONG! it may passed at boot time!*/
-static int nosmp = 0;
+extern int nosmp;
 
 typedef struct {
 	uintptr_t	ip;
