@@ -55,6 +55,9 @@ static int numtcs = 32;		/* initial # of TCs */
 char dbgflg[256];
 static int vflag = 1;
 
+/* WRONG! it may passed at boot time!*/
+static int nosmp = 0;
+
 void
 optionsinit(char* s)
 {
@@ -533,9 +536,11 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	procinit0();
 	mpsinit(maxcores);
 	apiconline();
-	sipi();
-	teardownidmap(m);
-
+	/* Forcing to single core if desired */
+	if(!nosmp) {
+		sipi();
+		teardownidmap(m);
+	}
 	timersinit();
 	kbdenable();
 	fpuinit();
@@ -546,8 +551,11 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	pageinit();
 	swapinit();
 	userinit();
-	nixsquids();
-	testiccs();
+	/* Forcing to single core if desired */
+	if(!nosmp) {
+		nixsquids();
+		testiccs();
+	}
 
 	print("schedinit...\n");
 	schedinit();

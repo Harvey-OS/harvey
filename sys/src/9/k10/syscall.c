@@ -22,6 +22,9 @@
 #include "amd64.h"
 #include "ureg.h"
 
+/* WRONG! it may passed at boot time!*/
+static int nosmp = 0;
+
 typedef struct {
 	uintptr_t	ip;
 	Ureg*	arg0;
@@ -250,13 +253,16 @@ syscall(int badscallnr, Ureg *ureg)
 	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4);
 	char *e;
 	uintptr_t	sp;
-	int s;
+	int s, printallsyscalls;
 	int64_t startns, stopns;
 	Ar0 ar0;
 	static Ar0 zar0;
 
 	/* Do you want to print syscalls for debugging? */
-	int printallsyscalls = 1;
+	if(nosmp)
+		printallsyscalls = 1;
+	else
+		printallsyscalls = 0;
 
 	if(!userureg(ureg))
 		panic("syscall: cs %#llux\n", ureg->cs);

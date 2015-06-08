@@ -18,6 +18,9 @@
 #include	"errstr.h"
 #include	<trace.h>
 
+/* WRONG! it may passed at boot time!*/
+static int nosmp = 0;
+
 enum
 {
 	Scaling=2,
@@ -842,59 +845,12 @@ found:
 }
 
 /*
- *  pick a process to run.
- *  most of this is used in AMP sched.
- *  (on a quad core or less, we use SMP).
- *  In the case of core 0 we always return nil, but
- *  schedule the picked process at any other available TC.
- *  In the case of other cores we wait until a process is given
- *  by core 0.
+ * It's possible to force to single core even
+ * in a multiprocessor machine
  */
-#ifndef URUNPROC
-Proc*
-runproc(void)
-{
-	Mach *m = machp();
-	Schedq *rq;
-	Proc *p;
-	uint32_t start, now;
 
-	if(sys->nmach <= AMPmincores)
-		return smprunproc();
-
-	start = perfticks();
-	run.preempts++;
-	rq = nil;
-	if(m->machno != 0){
-		do{
-			spllo();
-			while(m->proc == nil)
-				idlehands();
-			now = perfticks();
-			m->perf.inidle += now-start;
-			start = now;
-			splhi();
-			p = m->proc;
-		}while(p == nil);
-		p->state = Scheding;
-		p->mp = sys->machptr[m->machno];
-	
-		if(edflock(p)){
-			edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
-			edfunlock();
-		}
-		if(p->trace)
-			proctrace(p, SRun, 0);
-		return p;
-	}
-
-	mach0sched();
-	return nil;	/* not reached */
-}
-#else
-
-Proc*
-runproc(void)
+static Proc*
+singlerunproc(void)
 {
 	Mach *m = machp();
 	Schedq *rq;
@@ -978,7 +934,60 @@ found:
 	
 	return p;
 }
-#endif
+
+/*
+ *  pick a process to run.
+ *  most of this is used in AMP sched.
+ *  (on a quad core or less, we use SMP).
+ *  In the case of core 0 we always return nil, but
+ *  schedule the picked process at any other available TC.
+ *  In the case of other cores we wait until a process is given
+ *  by core 0.
+ */
+
+Proc*
+runproc(void)
+{
+	Mach *m = machp();
+	Schedq *rq;
+	Proc *p;
+	uint32_t start, now;
+
+	if(nosmp)
+		return singlerunproc();
+
+	if(sys->nmach <= AMPmincores)
+		return smprunproc();
+
+	start = perfticks();
+	run.preempts++;
+	rq = nil;
+	if(m->machno != 0){
+		do{
+			spllo();
+			while(m->proc == nil)
+				idlehands();
+			now = perfticks();
+			m->perf.inidle += now-start;
+			start = now;
+			splhi();
+			p = m->proc;
+		}while(p == nil);
+		p->state = Scheding;
+		p->mp = sys->machptr[m->machno];
+	
+		if(edflock(p)){
+			edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
+			edfunlock();
+		}
+		if(p->trace)
+			proctrace(p, SRun, 0);
+		return p;
+	}
+
+	mach0sched();
+	return nil;	/* not reached */
+}
 
 int
 canpage(Proc *p)
