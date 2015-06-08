@@ -23,9 +23,6 @@
 
 Conf conf;			/* XXX - must go - gag */
 
-extern void crapoptions(void);	/* XXX - must go */
-extern void confsetenv(void);	/* XXX - must go */
-
 static uintptr_t sp;		/* XXX - must go - user stack of init proc */
 
 /* Next time you see a system with cores/sockets running at different clock rates, on x86,
@@ -450,10 +447,6 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	asminit();
 	multiboot(mbmagic, mbaddress, 0);
 	options(oargc, oargv);
-	/*
-	 * later.
-	 * crapoptions();
-	 */
 
 	/*
 	 * Need something for initial delays
