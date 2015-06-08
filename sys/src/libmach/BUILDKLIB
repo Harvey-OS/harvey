@@ -1,6 +1,0 @@
-export CC=gcc
-export CFLAGS="-mcmodel=kernel -O0 -fplan9-extensions -ffreestanding -fno-builtin -Wall -Wno-missing-braces -Wno-parentheses -Wno-unknown-pragmas -Wuninitialized -Wmaybe-uninitialized -I/amd64/include -I/sys/include -c -g "
-rm -f *.o
-$CC $CFLAGS -c 6.c 6obj.c access.c executable.c machdata.c map.c obj.c setmach.c swap.c sym.c
-ar rv /amd64/lib/klibmach.a *.o
-rm *.o
