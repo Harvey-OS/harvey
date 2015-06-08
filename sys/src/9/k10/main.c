@@ -539,8 +539,8 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	/* Forcing to single core if desired */
 	if(!nosmp) {
 		sipi();
-		teardownidmap(m);
 	}
+	teardownidmap(m);
 	timersinit();
 	kbdenable();
 	fpuinit();
