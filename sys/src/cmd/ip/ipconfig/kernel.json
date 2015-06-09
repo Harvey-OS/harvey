@@ -1,0 +1,12 @@
+{
+    "Name": "Kernelipconfig",
+    "Program": "ipconfig.elf.out",
+    "Include": ["../../kernel.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"ipv6.c",
+	"main.c",
+	"ppp.c"
+	]
+}
