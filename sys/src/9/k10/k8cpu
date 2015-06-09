@@ -114,7 +114,7 @@ rootdir
 #	/amd64/bin/auth/factotum factotum
 #	/amd64/bin/ip/ipconfig ipconfig
 	/amd64/bin/ipconfig
-	/amd64/bin/ping
+#	/amd64/bin/ping
 	/amd64/bin/srv
 #	/amd64/bin/usb/usbd
 	/amd64/bin/rc
@@ -122,12 +122,12 @@ rootdir
 	/amd64/bin/bind
 	/amd64/bin/mount
 	/amd64/bin/echo
-	/amd64/bin/cat
+#	/amd64/bin/cat
 	/amd64/bin/ls
-	/amd64/bin/cp
-	/amd64/bin/ps
-	/amd64/bin/mkdir
-	/amd64/bin/pwd
+#	/amd64/bin/cp
+#	/amd64/bin/ps
+#	/amd64/bin/mkdir
+#	/amd64/bin/pwd
 	/amd64/bin/date
 #	../root/nvram nvram
 
