@@ -1,0 +1,10 @@
+{
+    "Name": "Kernelipconfig",
+    "Program": "mount.elf.out",
+    "Include": ["kernel.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"mount.c"
+	]
+}

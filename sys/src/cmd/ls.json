@@ -1,0 +1,10 @@
+{
+    "Name": "Kernelipconfig",
+    "Program": "ls.elf.out",
+    "Include": ["kernel.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"ls.c"
+	]
+}

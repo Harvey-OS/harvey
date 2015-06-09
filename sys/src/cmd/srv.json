@@ -1,0 +1,10 @@
+{
+    "Name": "Kernelipconfig",
+    "Program": "srv.elf.out",
+    "Include": ["kernel.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"srv.c"
+	]
+}

@@ -1,0 +1,10 @@
+{
+    "Name": "Kernelipconfig",
+    "Program": "bind.elf.out",
+    "Include": ["kernel.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"bind.c"
+	]
+}
