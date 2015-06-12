@@ -700,7 +700,7 @@ clean_a_cmd()
 		then
 			cd ${CMD_DIR}/ip/$1
 		else
-		cd ${CMD_DIR}
+			cd ${CMD_DIR}
 		fi
 	fi
 	DO_NOTHING=0

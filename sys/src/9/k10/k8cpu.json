@@ -11,7 +11,6 @@
 	"/sys/src/cmd/srv.json",
 	"/sys/src/cmd/echo.json",
 	"/sys/src/cmd/ls.json"
-	"/sys/src/cmd/ip/ipconfig/kernel.json"
 	],
     "Pre": [
 	"cp ../../../../rc/lib/rcmain rcmain",
@@ -36,7 +35,7 @@
 	"data2c _amd64_bin_srv srv.elf.out>> k8cpu.root.c",
 	"cp ../../cmd/date.elf.out date.elf.out",
 	"strip date.elf.out",
-	"data2c _amd64_bin_date date.elf.out>> k8cpu.root.c"
+	"data2c _amd64_bin_date date.elf.out>> k8cpu.root.c",
 	"cp ../../cmd/ls.elf.out ls.elf.out",
 	"strip ls.elf.out",
 	"data2c _amd64_bin_ls ls.elf.out>> k8cpu.root.c"
@@ -52,6 +51,9 @@
 	"usbehcipc.c",
 	"usbohci.c",
 	"usbuhci.c"
+    ],
+    "Post": [
+	"rm *.elf.out"
     ],
     "Env": [
 	"CONF=k8cpu"
