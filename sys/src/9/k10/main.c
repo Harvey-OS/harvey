@@ -50,7 +50,7 @@ static int maxcores = 1024;	/* max # of cores given as an argument */
 static int numtcs = 32;		/* initial # of TCs */
 
 char dbgflg[256];
-static int vflag = 1;
+static int vflag = 0;
 
 int nosmp = 0;
 
@@ -471,7 +471,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	sys->nmach = 1;			
 
 	if(1){
-		multiboot(mbmagic, mbaddress, 1);
+		multiboot(mbmagic, mbaddress, vflag);
 	}
 
 	m->perf.period = 1;
