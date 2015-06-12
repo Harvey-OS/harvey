@@ -5,6 +5,7 @@
 	"Projects": [
 	"/sys/src/cmd/rc/kernel.json",
 	"/sys/src/cmd/ip/ipconfig/kernel.json",
+	"/sys/src/cmd/ip/kernel.json",
 	"/sys/src/cmd/bind.json",
 	"/sys/src/cmd/mount.json",
 	"/sys/src/cmd/date.json",
@@ -30,6 +31,9 @@
 	"mv ../../cmd/ip/ipconfig/ipconfig.elf.out ipconfig.elf.out",
 	"strip ipconfig.elf.out",
 	"data2c _amd64_bin_ipconfig ipconfig.elf.out>> k8cpu.root.c",
+	"mv ../../cmd/ip/dhcpclient.elf.out dhcpclient.elf.out",
+	"strip dhcpclient.elf.out",
+	"data2c _amd64_bin_dhcpclient dhcpclient.elf.out>> k8cpu.root.c",
 	"mv ../../cmd/srv.elf.out srv.elf.out",
 	"strip srv.elf.out",
 	"data2c _amd64_bin_srv srv.elf.out>> k8cpu.root.c",
