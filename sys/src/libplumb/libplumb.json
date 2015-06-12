@@ -1,0 +1,15 @@
+{
+	"Name": "libplumb",
+	"Library": "libplumb.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"event.c",
+	"mesg.c",
+	"plumbsendtext.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libplumb.a *.o"
+	]
+}

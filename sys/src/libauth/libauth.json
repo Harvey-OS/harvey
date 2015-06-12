@@ -1,0 +1,28 @@
+{
+	"Name": "libauth",
+	"Library": "libauth.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"amount.c",
+	"amount_getkey.c",
+	"attr.c",
+	"auth_attr.c",
+	"auth_challenge.c",
+	"auth_chuid.c",
+	"auth_getkey.c",
+	"auth_getuserpasswd.c",
+	"auth_proxy.c",
+	"auth_respond.c",
+	"auth_rpc.c",
+	"auth_userpasswd.c",
+	"auth_wep.c",
+	"login.c",
+	"newns.c",
+	"noworld.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libauth.a *.o"
+	]
+}

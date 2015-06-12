@@ -1,0 +1,32 @@
+{
+	"Name": "libmemdraw",
+	"Library": "libmemdraw.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"alloc.c",
+	"arc.c",
+	"cload.c",
+	"cmap.c",
+	"cread.c",
+	"defont.c",
+	"draw.c",
+	"ellipse.c",
+	"fillpoly.c",
+	"hwdraw.c",
+	"iprint.c",
+	"line.c",
+	"load.c",
+	"openmemsubfont.c",
+	"poly.c",
+	"read.c",
+	"string.c",
+	"subfont.c",
+	"unload.c",
+	"write.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libmemdraw.a *.o"
+	]
+}

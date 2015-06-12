@@ -1,0 +1,18 @@
+{
+	"Name": "libgeometry",
+	"Library": "libgeometry.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"arith3.c",
+	"matrix.c",
+	"qball.c",
+	"quaternion.c",
+	"transform.c",
+	"tstack.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libgeometry.a *.o"
+	]
+}

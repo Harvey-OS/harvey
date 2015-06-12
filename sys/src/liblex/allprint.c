@@ -7,8 +7,8 @@
  * in the LICENSE file.
  */
 
-//#include	"/sys/src/cmd/lex/ldefs.h"
-#include	<ldefs.h>
+#include	"../cmd/lex/ldefs.h"
+//#include	<ldefs.h>
 #include	<stdio.h>
 
 extern	FILE*	yyout;

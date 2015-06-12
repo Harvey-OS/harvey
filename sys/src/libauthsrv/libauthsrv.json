@@ -1,0 +1,27 @@
+{
+	"Name": "libauthsrv",
+	"Library": "libauthsrv.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"_asgetticket.c",
+	"_asrdresp.c",
+	"authdial.c",
+	"convA2M.c",
+	"convM2A.c",
+	"convM2PR.c",
+	"convM2T.c",
+	"convM2TR.c",
+	"convPR2M.c",
+	"convT2M.c",
+	"convTR2M.c",
+	"nvcsum.c",
+	"opasstokey.c",
+	"passtokey.c",
+	"readnvram.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libauthsrv.a *.o"
+	]
+}

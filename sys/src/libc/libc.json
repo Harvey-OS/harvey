@@ -266,9 +266,9 @@
 	"amd64/sqrt.s",
 	"amd64/tas.s",
 	"amd64/atom.S",
-	"amd64/main9.S",
+	"amd64/main9.S"
 	],
 	"Post": [
-	"ar rv /amd64/lib/libc.a *.o"
+	"ar rv ../../../amd64/lib/libc.a *.o"
 	]
 }

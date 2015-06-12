@@ -1,0 +1,13 @@
+{
+	"Name": "libavl",
+	"Library": "libavl.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"avl.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libavl.a *.o"
+	]
+}

@@ -1,0 +1,27 @@
+{
+	"Name": "lib9p",
+	"Library": "lib9p.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"auth.c",
+	"dirread.c",
+	"fid.c",
+	"file.c",
+	"intmap.c",
+	"listen.c",
+	"mem.c",
+	"req.c",
+	"parse.c",
+	"post.c",
+	"rfork.c",
+	"srv.c",
+	"thread.c",
+	"uid.c",
+	"util.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/lib9p.a *.o"
+	]
+}

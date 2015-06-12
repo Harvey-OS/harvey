@@ -1,0 +1,29 @@
+{
+	"Name": "libString",
+	"Library": "libString.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"s_alloc.c",
+	"s_append.c",
+	"s_array.c",
+	"s_copy.c",
+	"s_getline.c",
+	"s_grow.c",
+	"s_memappend.c",
+	"s_nappend.c",
+	"s_parse.c",
+	"s_putc.c",
+	"s_rdinstack.c",
+	"s_read.c",
+	"s_read_line.c",
+	"s_reset.c",
+	"s_terminate.c",
+	"s_tolower.c",
+	"s_unique.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libString.a *.o"
+	]
+}

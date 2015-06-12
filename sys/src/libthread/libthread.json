@@ -1,0 +1,37 @@
+{
+	"Name": "libthread",
+	"Library": "libthread.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"amd64.c",
+	"channel.c",
+	"chanprint.c",
+	"create.c",
+	"debug.c",
+	"dial.c",
+	"exec.c",
+	"exit.c",
+	"id.c",
+	"iocall.c",
+	"ioclose.c",
+	"iodial.c",
+	"ioopen.c",
+	"ioproc.c",
+	"ioread.c",
+	"ioreadn.c",
+	"iosleep.c",
+	"iowrite.c",
+	"kill.c",
+	"lib.c",
+	"main.c",
+	"note.c",
+	"ref.c",
+	"rendez.c",
+	"sched.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libthread.a *.o"
+	]
+}

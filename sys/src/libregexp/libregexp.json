@@ -1,0 +1,19 @@
+{
+	"Name": "libregexp",
+	"Library": "libregexp.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"regcomp.c",
+	"regerror.c",
+	"regexec.c",
+	"regsub.c",
+	"regaux.c",
+	"rregexec.c",
+	"rregsub.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libregexp.a *.o"
+	]
+}

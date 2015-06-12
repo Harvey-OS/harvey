@@ -1,0 +1,27 @@
+{
+	"Name": "libsunrpc",
+	"Library": "libsunrpc.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"mount3.c",
+	"nfs3.c",
+	"portmap.c",
+	"authunix.c",
+	"client.c",
+	"emalloc.c",
+	"error.c",
+	"fd.c",
+	"fmt.c",
+	"net.c",
+	"prog.c",
+	"rpc.c",
+	"server.c",
+	"suncall.c",
+	"udp.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libsunrpc.a *.o"
+	]
+}

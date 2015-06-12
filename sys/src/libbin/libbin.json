@@ -1,0 +1,13 @@
+{
+	"Name": "libbin",
+	"Library": "libbin.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"bin.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libbin.a *.o"
+	]
+}

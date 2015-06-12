@@ -63,7 +63,6 @@
 	"writesubfont.c"
 	],
 	"Post": [
-	"rm 9syscall/*.s",
 	"ar rv ../../../amd64/lib/libdraw.a *.o"
 	]
 }

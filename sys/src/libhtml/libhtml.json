@@ -1,0 +1,16 @@
+{
+	"Name": "libhtml",
+	"Library": "libhtml.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"build.c",
+	"lex.c",
+	"strinttab.c",
+	"utils.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libhtml.a *.o"
+	]
+}

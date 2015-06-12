@@ -1,0 +1,28 @@
+{
+	"Name": "libcontrol",
+	"Library": "libcontrol.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"box.c",
+	"button.c",
+	"cache.c",
+	"control.c",
+	"entry.c",
+	"group.c",
+	"keyboard.c",
+	"label.c",
+	"menu.c",
+	"radiobutton.c",
+	"scribble.c",
+	"slider.c",
+	"tabs.c",
+	"text.c",
+	"textbutton.c",
+	"textbutton3.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libcontrol.a *.o"
+	]
+}

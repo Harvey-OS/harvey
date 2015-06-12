@@ -1,0 +1,17 @@
+{
+	"Name": "liblex",
+	"Library": "liblex.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"allprint.c",
+	"main.c",
+	"reject.c",
+	"yyless.c",
+	"yywrap.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/liblex.a *.o"
+	]
+}

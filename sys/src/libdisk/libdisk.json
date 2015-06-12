@@ -1,0 +1,15 @@
+{
+	"Name": "libdisk",
+	"Library": "libdisk.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"disk.c",
+	"proto.c",
+	"scsi.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libdisk.a *.o"
+	]
+}

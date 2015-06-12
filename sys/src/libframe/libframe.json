@@ -1,0 +1,21 @@
+{
+	"Name": "libframe",
+	"Library": "libframe.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"frbox.c",
+	"frdraw.c",
+	"frdelete.c",
+	"frinit.c",
+	"frinsert.c",
+	"frptofchar.c",
+	"frselect.c",
+	"frstr.c",
+	"frutil.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libframe.a *.o"
+	]
+}

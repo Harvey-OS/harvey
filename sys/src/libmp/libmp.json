@@ -1,0 +1,42 @@
+{
+	"Name": "libmp",
+	"Library": "libmp.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"port/mpaux.c",
+	"port/mpfmt.c",
+	"port/strtomp.c",
+	"port/mptobe.c",
+	"port/mptole.c",
+	"port/betomp.c",
+	"port/letomp.c",
+	"port/mpadd.c",
+	"port/mpsub.c",
+	"port/mpcmp.c",
+	"port/mpfactorial.c",
+	"port/mpmul.c",
+	"port/mpleft.c",
+	"port/mpright.c",
+	"port/mpvecadd.c",
+	"port/mpvecsub.c",
+	"port/mpvecdigmuladd.c",
+	"port/mpveccmp.c",
+	"port/mpdigdiv.c",
+	"port/mpdiv.c",
+	"port/mpexp.c",
+	"port/mpmod.c",
+	"port/mpextendedgcd.c",
+	"port/mpinvert.c",
+	"port/mprand.c",
+	"port/crt.c",
+	"port/mptoi.c",
+	"port/mptoui.c",
+	"port/mptov.c",
+	"port/mptouv.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libmp.a *.o"
+	]
+}

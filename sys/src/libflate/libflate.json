@@ -1,0 +1,23 @@
+{
+	"Name": "libflate",
+	"Library": "libflate.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"deflate.c",
+	"deflatezlib.c",
+	"deflateblock.c",
+	"deflatezlibblock.c",
+	"inflate.c",
+	"inflatezlib.c",
+	"inflateblock.c",
+	"inflatezlibblock.c",
+	"flateerr.c",
+	"crc.c",
+	"adler.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libflate.a *.o"
+	]
+}

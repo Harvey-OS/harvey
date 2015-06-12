@@ -1,0 +1,29 @@
+{
+	"Name": "libbio",
+	"Library": "libbio.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"bbuffered.c",
+	"bfildes.c",
+	"bflush.c",
+	"bgetrune.c",
+	"bgetc.c",
+	"bgetd.c",
+	"binit.c",
+	"boffset.c",
+	"bprint.c",
+	"bputrune.c",
+	"bputc.c",
+	"brdline.c",
+	"brdstr.c",
+	"bread.c",
+	"bseek.c",
+	"bwrite.c",
+	"bvprint.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libbio.a *.o"
+	]
+}

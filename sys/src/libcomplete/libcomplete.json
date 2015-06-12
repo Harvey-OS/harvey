@@ -1,0 +1,13 @@
+{
+	"Name": "libcomplete",
+	"Library": "libcomplete.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"complete.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/libcomplete.a *.o"
+	]
+}
