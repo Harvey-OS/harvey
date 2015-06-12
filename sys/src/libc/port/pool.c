@@ -475,8 +475,8 @@ blockmerge(Pool *pool, Bhdr *a, Bhdr *b)
 
 	t = B2T(a);
 	t->size = (uint32_t)Poison;
-	t->magic0 = NOT_MAGIC;
-	t->magic1 = NOT_MAGIC;
+	t->magic0 = (uint8_t)NOT_MAGIC;
+	t->magic1 = (uint8_t)NOT_MAGIC;
 	PSHORT(t->datasize, NOT_MAGIC);
 
 	a->size += b->size;

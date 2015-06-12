@@ -172,6 +172,7 @@ func project(root string) {
 	}
 	if b.Library != "" {
 		//library(b)
+		log.Printf("\n\n*** Building %v ***\n\n", b.Library)
 	}
 	run(b, b.Post)
 }

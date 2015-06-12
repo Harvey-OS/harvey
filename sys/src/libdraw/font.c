@@ -16,6 +16,8 @@ static int	freeup(Font*);
 
 #define	PJW	0	/* use NUL==pjw for invisible characters */
 
+static Rune empty[] = { 0 };
+
 int
 cachechars(Font *f, char **ss, Rune **rr, uint16_t *cp, int max,
 	   int *wp,
@@ -29,7 +31,7 @@ cachechars(Font *f, char **ss, Rune **rr, uint16_t *cp, int max,
 
 	if(ss){
 		sp = *ss;
-		rp = L"";
+		rp = empty;
 	}else{
 		sp = "";
 		rp = *rr;

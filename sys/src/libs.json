@@ -1,0 +1,9 @@
+{
+	"Name":"libs",
+	"Include":[], 
+	"Projects": [
+	"/sys/src/libc/libc.json",
+	"/sys/src/libip/libip.json",
+	"/sys/src/libdraw/libdraw.json"
+	]
+}

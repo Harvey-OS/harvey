@@ -41,7 +41,7 @@ static	int	nslave;
 static	int	parentpid;
 static	int	epipe[2];
 
-static	int	eforkslave(ulong);
+static	int	eforkslave(uint32_t);
 static	void	extract(void);
 static	void	ekill(void);
 static	int	enote(void *, char *);
@@ -77,7 +77,7 @@ ebread(Slave *s)
 uint32_t
 event(Event *e)
 {
-	return eread(~0UL, e);
+	return eread((uint32_t)~0UL, e);
 }
 
 uint32_t
@@ -406,7 +406,7 @@ emouse(void)
 {
 	Mouse m;
 	Ebuf *eb;
-	static but[2];
+	//static but[2];
 	int b;
 
 	if(Smouse < 0)

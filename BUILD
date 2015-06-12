@@ -592,6 +592,15 @@ build_klibs()
 	fi
 }
 
+build_klibs_go()
+{
+	export HARVEY="$_BUILD_DIR"
+	cd "$SRC_DIR"
+	$HARVEY/util/build klibs.json
+	cd "$PATH_ORI" > /dev/null
+
+}
+
 #ARGS:
 #   $1 -> LIB name
 do_link_lib()
@@ -683,17 +692,7 @@ build_a_cmd()
 #   $1 -> cmd name
 clean_a_cmd()
 {
-	if [ -d "${CMD_DIR}/$1" ]
-	then
-		cd ${CMD_DIR}/$1
-	else
-		if [ $1 = ipconfig ]
-		then
-			cd ${CMD_DIR}/ip/$1
-		else
-		cd ${CMD_DIR}
-		fi
-	fi
+	cd ${CMD_DIR}/$1
 	DO_NOTHING=0
 	cmd_${1} 2
 	if [ $DO_NOTHING -eq 0 ]
@@ -819,7 +818,7 @@ else
 					check_lib_dir
 					if [ -z "$2" ]
 					then
-						build_klibs 1
+						build_klibs_go 1
 					else
 						build_a_lib "$2" 1
 						shift

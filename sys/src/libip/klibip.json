@@ -1,0 +1,23 @@
+{
+	"Name": "KernelLibip",
+	"Library": "klibip.a",
+	"Include": ["../klib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"eipfmt.c",
+	"equivip.c",
+	"parseip.c",
+	"parseether.c",
+	"myetheraddr.c",
+	"myipaddr.c",
+	"classmask.c",
+	"bo.c",
+	"readipifc.c",
+	"ipaux.c",
+	"ptclbsum.c"
+	],
+	"Post": [
+	"ar rv ../../../amd64/lib/klibip.a *.o"
+	]
+}

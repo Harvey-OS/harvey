@@ -1,0 +1,9 @@
+{
+	"Name": "KernelLibc",
+	"Library": "klibc.a",
+	"Include": [],
+	"Pre": [
+	"../../../../util/mksys amd64"
+	]
+
+}

@@ -1,0 +1,24 @@
+{
+	"Name": "Libip",
+	"Library": "libip.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"eipfmt.c",
+	"equivip.c",
+	"parseip.c",
+	"parseether.c",
+	"myetheraddr.c",
+	"myipaddr.c",
+	"classmask.c",
+	"bo.c",
+	"readipifc.c",
+	"ipaux.c",
+	"ptclbsum.c"
+	],
+	"Post": [
+	"rm 9syscall/*.s",
+	"ar rv ../../../amd64/lib/libip.a *.o"
+	]
+}
