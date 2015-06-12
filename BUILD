@@ -692,7 +692,17 @@ build_a_cmd()
 #   $1 -> cmd name
 clean_a_cmd()
 {
-	cd ${CMD_DIR}/$1
+	if [ -d "${CMD_DIR}/$1" ]
+	then
+		cd ${CMD_DIR}/$1
+	else
+		if [ $1 = ipconfig ]
+		then
+			cd ${CMD_DIR}/ip/$1
+		else
+		cd ${CMD_DIR}
+		fi
+	fi
 	DO_NOTHING=0
 	cmd_${1} 2
 	if [ $DO_NOTHING -eq 0 ]
