@@ -1,5 +1,5 @@
 {
-    "Name": "Kernelipconfig",
+    "Name": "Kerneldate",
     "Program": "date.elf.out",
     "Include": ["kernel.json"],
     "Pre": [

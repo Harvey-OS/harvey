@@ -1,5 +1,5 @@
 {
-    "Name": "Kernelipconfig",
+    "Name": "Kernelmount",
     "Program": "mount.elf.out",
     "Include": ["kernel.json"],
     "Pre": [

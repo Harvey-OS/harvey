@@ -1,5 +1,5 @@
 {
-    "Name": "Kernelipconfig",
+    "Name": "Kernelbind",
     "Program": "bind.elf.out",
     "Include": ["kernel.json"],
     "Pre": [

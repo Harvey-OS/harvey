@@ -1,5 +1,5 @@
 {
-    "Name": "Kernelipconfig",
+    "Name": "Kernelecho",
     "Program": "echo.elf.out",
     "Include": ["kernel.json"],
     "Pre": [
