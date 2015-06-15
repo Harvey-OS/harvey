@@ -1,6 +1,6 @@
 {
     "Name": "core",
-    "Projects": ["clean.json", "inith.json"],
+    "Projects": ["clean.json", "inith.json", "../boot/bootconf.json"],
     "SourceFiles":[
 	"entry.S",
 	"vsvm.c",
