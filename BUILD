@@ -291,6 +291,13 @@ build_cmds()
 	fi
 }
 
+build_cmds_go()
+{
+	export HARVEY="$_BUILD_DIR"
+	cd "$CMD_DIR"
+	$HARVEY/util/build cmds.json
+	cd "$PATH_ORI" > /dev/null
+}
 #############################
 
 show_help()
@@ -389,14 +396,13 @@ else
 			"cmd")
 					if [ -z "$2" ]
 					then
-						build_cmds 1
+						build_cmds_go
 					else
-						build_a_cmd "$2"
-						shift
+						printf "\n\nALL COMPONENTS ARE CLEANED AT BUILD TIME\n\n"
 					fi
 					;;
 			"cleancmd")
-					build_cmds 2
+					printf "\n\nALL COMPONENTS ARE CLEANED AT BUILD TIME\n\n"
 					;;
 			"kernel")
 					build_kernel

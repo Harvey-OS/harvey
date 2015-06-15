@@ -30,6 +30,9 @@ type build struct {
 	ObjectFiles []string
 	Libs        []string
 	Env         []string
+	// cmd's
+	Programs	[]string
+	SourceFilesCmd []string
 	// Targets.
 	Program string
 	Library string
@@ -74,6 +77,8 @@ func process(f string, b *build) {
 	b.Libs = append(b.Libs, adjust(build.Libs)...)
 	b.Projects = append(b.Projects, adjust(build.Projects)...)
 	b.Env = append(b.Env, build.Env...)
+	b.Programs = append(b.Programs, adjust(build.Programs)...)
+	b.SourceFilesCmd = append(b.SourceFilesCmd, build.SourceFilesCmd...)
 	b.Program += build.Program
 	b.Library += build.Library
 	// For each source file, assume we create an object file with the last char replaced
@@ -98,7 +103,14 @@ func compile(b *build) {
 	args := []string{"-c"}
 	args = append(args, adjust([]string{"-I", "/amd64/include", "-I", "/sys/include", "-I", "."})...)
 	args = append(args, b.Cflags...)
-	args = append(args, b.SourceFiles...)
+	if len(b.SourceFilesCmd) > 0 {
+		for _, i := range b.SourceFilesCmd {
+			log.Printf("compiling program %v\n", i)
+			args = append(args, b.SourceFilesCmd...)
+		}
+	} else {
+		args = append(args, b.SourceFiles...)
+	}
 	cmd := exec.Command("gcc", args...)
 	cmd.Env = append(os.Environ(), b.Env...)
 
@@ -166,6 +178,12 @@ func project(root string) {
 	if len(b.SourceFiles) > 0 {
 		compile(b)
 	}
+	if len(b.SourceFilesCmd) > 0 {
+		for _, p := range b.Programs {
+			log.Printf("making project %v\n", p)
+			compile(b)
+		}
+	}
 	log.Printf("root %v program %v\n", root, b.Program)
 	if b.Program != "" {
 		link(b)
@@ -173,6 +191,12 @@ func project(root string) {
 	if b.Library != "" {
 		//library(b)
 		log.Printf("\n\n*** Building %v ***\n\n", b.Library)
+	}
+	if len(b.Programs ) > 0 {
+		for _, l := range b.Programs {
+			log.Printf("linking program %v\n", l)
+			link(b)
+		}
 	}
 	run(b, b.Post)
 }
