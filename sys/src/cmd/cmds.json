@@ -1,0 +1,28 @@
+{
+	"Name": "Cmds",
+	"Programs": [
+	"cat",
+	"cp",
+	"ls",
+	"ps",
+	"mkdir",
+	"pwd",
+	"chmod",
+	"date",
+	"dd"
+	],
+	"Include": ["cmd.json"],
+	"Pre": [
+	],
+	"SourceFilesCmd": [
+	"cat.c",
+	"cp.c",
+	"ls.c",
+	"ps.c",
+	"mkdir.c",
+	"pwd.c",
+	"chmod.c",
+	"date.c",
+	"dd.c"
+	]
+}
