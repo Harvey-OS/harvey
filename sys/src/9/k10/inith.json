@@ -1,5 +1,6 @@
 {
     "Name": "inith",
+    "Program": "init",
     "SourceFiles": [
 	"init9.c",
 	"../port/initcode.c"
@@ -19,7 +20,7 @@
 	"-mcmodel=small"
     ],
     "Oflags": [
-	"-e_main", "-o", "init", "-static", "-Ttext=0x200020"
+	"-e_main", "-static", "-Ttext=0x200020"
     ],
     "Post": [
 	"elf2c init > init.h"
