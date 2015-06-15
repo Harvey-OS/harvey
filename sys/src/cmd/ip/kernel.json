@@ -1,0 +1,10 @@
+{
+    "Name": "Kernelipconfig",
+    "Program": "dhcpclient.elf.out",
+    "Include": ["../kernel.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"dhcpclient.c"
+	]
+}

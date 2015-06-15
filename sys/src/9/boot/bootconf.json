@@ -1,0 +1,43 @@
+{
+    "Name": "bootk8cpu",
+    "Program": "bootk8cpu.elf.out",
+    "Projects": ["boot.json"],
+	"Pre": [
+	"awk -f ../mk/parse -- -mkbootconf ../k10/k8cpu > bootk8cpu.c"
+	],
+    "SourceFiles": [
+	"printstub.c",
+	"bootk8cpu.c"
+    ],
+    "Cflags": [
+	"-g","-Wall",
+	"-Wno-missing-braces",
+	"-Wno-parentheses",
+	"-Wno-unknown-pragmas",
+	"-Wuninitialized",
+	"-Wmaybe-uninitialized",
+	"-O0",
+	"-static",
+	"-fplan9-extensions",
+	"-ffreestanding",
+	"-fno-builtin",
+	"-mcmodel=small"
+	],
+	"Oflags": [
+	"-e_main",
+	"-static"
+	],
+	"Post": [
+	"strip bootk8cpu.elf.out",
+	"data2c bootk8cpu_out bootk8cpu.elf.out >> ../k10/k8cpu.root.c",
+	"rm *.o *.a *.elf.out"
+	],
+	"Libs": [
+	"libboot.a",
+	"/amd64/lib/libip.a",
+	"/amd64/lib/libauth.a",
+	"/amd64/lib/libc.a"
+	]
+
+}
+	
