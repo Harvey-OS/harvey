@@ -3,6 +3,7 @@
     "Program": "9k8cpu",
     "Include":["core.json", "../386/386.json", "../ip/ip.json", "../port/port.json"], 
 	"Projects": [
+	"../boot/bootconf.json",
 	"/sys/src/cmd/kcmds.json"
 	],
     "Pre": [
