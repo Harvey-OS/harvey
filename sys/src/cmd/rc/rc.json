@@ -1,6 +1,6 @@
 {
-    "Name": "Kernelrc",
-    "Program": "rc.elf.out",
+    "Name": "rc",
+    "Program": "rc",
     "Include": ["../kernel.json"],
     "Pre": [
 	"yacc -d syn.y",
@@ -24,5 +24,8 @@
 	"tree.c",
 	"var.c",
 	"y.tab.c"
+	],
+	"Post":[
+	"mv rc ../../../../amd64/bin/"
 	]
 }

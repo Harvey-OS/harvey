@@ -1,0 +1,13 @@
+{
+    "Name": "dhcpclient",
+    "Program": "dhcpclient",
+    "Include": ["../kernel.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"dhcpclient.c"
+	],
+	"Post": [
+	"mv dhcpclient ../../../../amd64/bin/ip/"
+	]
+}

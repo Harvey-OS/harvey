@@ -1,0 +1,16 @@
+{
+    "Name": "ipconfig",
+    "Program": "ipconfig",
+    "Include": ["../../kernel.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"ipv6.c",
+	"main.c",
+	"ppp.c"
+	],
+	"Post": [
+	"[ -d ../../../../../amd64/bin/ip ] || mkdir ../../../../../amd64/bin/ip",
+	"mv ipconfig ../../../../../amd64/bin/ip/ipconfig"
+	]
+}

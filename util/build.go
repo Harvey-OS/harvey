@@ -83,12 +83,15 @@ func process(f string, b *build) {
 	b.Library += build.Library
 	// For each source file, assume we create an object file with the last char replaced
 	// with 'o'. We can get smarter later.
+
 	for _, v := range build.SourceFiles {
 		f := path.Base(v)
 		o := f[:len(f)-1] + "o"
 		b.ObjectFiles = append(b.ObjectFiles, o)
 	}
+
 	b.ObjectFiles = append(b.ObjectFiles, adjust(build.ObjectFiles)...)
+
 	for _, v := range build.Include {
 		wd := path.Dir(f)
 		f := path.Join(wd, v)
@@ -106,39 +109,72 @@ func compile(b *build) {
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
 			log.Printf("compiling program %v\n", i)
-			args = append(args, b.SourceFilesCmd...)
+			argscmd := append(args, []string{i}...)
+			cmd := exec.Command("gcc", argscmd...)
+			cmd.Env = append(os.Environ(), b.Env...)
+			cmd.Stdin = os.Stdin
+			cmd.Stderr = os.Stderr
+			cmd.Stdout = os.Stdout
+			log.Printf("Run %v %v", cmd.Path, cmd.Args)
+			err := cmd.Run()
+			if err != nil {
+				log.Fatalf("%v\n", err)
+			}
+			argscmd = args
 		}
 	} else {
 		args = append(args, b.SourceFiles...)
-	}
-	cmd := exec.Command("gcc", args...)
-	cmd.Env = append(os.Environ(), b.Env...)
+		cmd := exec.Command("gcc", args...)
+		cmd.Env = append(os.Environ(), b.Env...)
 
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	log.Printf("Run %v %v", cmd.Path, cmd.Args)
-	err := cmd.Run()
-	if err != nil {
-		log.Fatalf("%v\n", err)
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		log.Printf("Run %v %v", cmd.Path, cmd.Args)
+		err := cmd.Run()
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
 	}
 }
 
 func link(b *build) {
-	args := []string{"-o", b.Program}
-	args = append(args, b.Oflags...)
-	args = append(args, b.ObjectFiles...)
-	args = append(args, b.Libs...)
-	cmd := exec.Command("ld", args...)
-	cmd.Env = append(os.Environ(), b.Env...)
+	if len(b.Programs) > 0 {
+		for _, n := range b.Programs {
+			args := []string{"-o", n}
+			args = append(args, b.Oflags...)
+			f := path.Base(n)
+			o := f[:len(f)] + ".o"
+			args = append(args, []string{o}...)
+			args = append(args, b.Libs...)
+			cmd := exec.Command("ld", args...)
+			cmd.Env = append(os.Environ(), b.Env...)
 
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	log.Printf("Run %v %v", cmd.Path, cmd.Args)
-	err := cmd.Run()
-	if err != nil {
-		log.Fatalf("%v\n", err)
+			cmd.Stdin = os.Stdin
+			cmd.Stderr = os.Stderr
+			cmd.Stdout = os.Stdout
+			log.Printf("Run %v %v", cmd.Path, cmd.Args)
+			err := cmd.Run()
+			if err != nil {
+				log.Fatalf("%v\n", err)
+			}
+		}
+	} else {
+		args := []string{"-o", b.Program}
+		args = append(args, b.Oflags...)
+		args = append(args, b.ObjectFiles...)
+		args = append(args, b.Libs...)
+		cmd := exec.Command("ld", args...)
+		cmd.Env = append(os.Environ(), b.Env...)
+
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		log.Printf("Run %v %v", cmd.Path, cmd.Args)
+		err := cmd.Run()
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
 	}
 }
 
@@ -179,10 +215,7 @@ func project(root string) {
 		compile(b)
 	}
 	if len(b.SourceFilesCmd) > 0 {
-		for _, p := range b.Programs {
-			log.Printf("making project %v\n", p)
-			compile(b)
-		}
+		compile(b)
 	}
 	log.Printf("root %v program %v\n", root, b.Program)
 	if b.Program != "" {
@@ -193,10 +226,7 @@ func project(root string) {
 		log.Printf("\n\n*** Building %v ***\n\n", b.Library)
 	}
 	if len(b.Programs ) > 0 {
-		for _, l := range b.Programs {
-			log.Printf("linking program %v\n", l)
-			link(b)
-		}
+		link(b)
 	}
 	run(b, b.Post)
 }

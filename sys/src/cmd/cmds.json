@@ -24,5 +24,16 @@
 	"chmod.c",
 	"date.c",
 	"dd.c"
+	],
+	"Post": [
+	"mv cat ../../../amd64/bin/",
+	"mv cp ../../../amd64/bin/",
+	"mv ls ../../../amd64/bin/",
+	"mv ps ../../../amd64/bin/",
+	"mv mkdir ../../../amd64/bin/",
+	"mv pwd ../../../amd64/bin/",
+	"mv chmod ../../../amd64/bin/",
+	"mv date ../../../amd64/bin/",
+	"mv dd ../../../amd64/bin/"
 	]
 }

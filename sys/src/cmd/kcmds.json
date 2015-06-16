@@ -1,0 +1,35 @@
+{
+	"Name": "Kcmds",
+	"Programs": [
+	"bind",
+	"mount",
+	"date",
+	"srv",
+	"echo",
+	"ls"
+	],
+	"Projects": [
+	"/sys/src/cmd/rc/rc.json",
+	"/sys/src/cmd/ip/ipconfig/ipconfig.json",
+	"/sys/src/cmd/ip/dhcpclient.json"
+	],
+	"Include": ["kernel.json"],
+	"Pre": [
+	],
+	"SourceFilesCmd": [
+	"bind.c",
+	"mount.c",
+	"date.c",
+	"srv.c",
+	"echo.c",
+	"ls.c"
+	],
+	"Post": [
+	"mv bind ../../../amd64/bin/",
+	"mv mount ../../../amd64/bin/",
+	"mv date ../../../amd64/bin/",
+	"mv srv ../../../amd64/bin/",
+	"mv echo ../../../amd64/bin/",
+	"mv ls ../../../amd64/bin/"
+	]
+}
