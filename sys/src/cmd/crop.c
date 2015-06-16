@@ -100,8 +100,8 @@ main(int argc, char *argv[])
 	Point t;
 	Memimage *m, *new;
 	char *file;
-	ulong bg, cropval;
-	long dw;
+	uint32_t bg, cropval;
+	int32_t dw;
 
 	memimageinit();
 	mode = None;

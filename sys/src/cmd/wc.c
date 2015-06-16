@@ -8,7 +8,7 @@
  */
 
 /*
- * Count bytes within runes, if it fits in a uvlong, and other things.
+ * Count bytes within runes, if it fits in a uint64_t, and other things.
  */
 #include <u.h>
 #include <libc.h>

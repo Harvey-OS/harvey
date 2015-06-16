@@ -91,7 +91,7 @@ int	headerprint;
 
 struct {
 	char	*name;
-	int	(*f)(URL*, URL*, Range*, Out*, long);
+	int	(*f)(URL*, URL*, Range*, Out*, int32_t);
 } method[] = {
 	[Http]	{ "http",	dohttp },
 	[Https]	{ "https",	dohttp },
@@ -112,7 +112,7 @@ main(int argc, char **argv)
 	URL u;
 	Range r;
 	int errs, n;
-	ulong mtime;
+	uint32_t mtime;
 	Dir *d;
 	char postbody[4096], *p, *e, *t, *hpx;
 	URL px; // Proxy
@@ -162,7 +162,7 @@ main(int argc, char **argv)
 
 	if(net != nil){
 		if(strlen(net) > sizeof(tcpdir)-5)
-			sysfatal("network mount point too long");
+			sysfatal("network mount point too int32_t");
 		snprint(tcpdir, sizeof(tcpdir), "%s/tcp", net);
 	} else
 		snprint(tcpdir, sizeof(tcpdir), "tcp");
@@ -316,7 +316,7 @@ struct
 } note;
 
 void
-catch(void*, char*)
+catch(void *v, char *c)
 {
 	Dir d;
 
@@ -680,7 +680,7 @@ getheader(int fd, char *buf, int n)
 }
 
 void
-hhetag(char *p, URL *u, Range*)
+hhetag(char *p, URL *u, Range *r)
 {
 	if(u->etag != nil){
 		if(strcmp(u->etag, p) != 0)
@@ -692,7 +692,7 @@ hhetag(char *p, URL *u, Range*)
 char*	monthchars = "janfebmaraprmayjunjulaugsepoctnovdec";
 
 void
-hhmtime(char *p, URL *u, Range*)
+hhmtime(char *p, URL *u, Range *r)
 {
 	char *month, *day, *yr, *hms;
 	char *fields[6];
@@ -759,13 +759,13 @@ hhmtime(char *p, URL *u, Range*)
 }
 
 void
-hhclen(char *p, URL*, Range *r)
+hhclen(char *p, URL *u, Range *r)
 {
 	r->end = atoi(p);
 }
 
 void
-hhcrange(char *p, URL*, Range *r)
+hhcrange(char *p, URL *u, Range *r)
 {
 	char *x;
 	int64_t l;
@@ -784,7 +784,7 @@ hhcrange(char *p, URL*, Range *r)
 }
 
 void
-hhuri(char *p, URL *u, Range*)
+hhuri(char *p, URL *u, Range *r)
 {
 	if(*p != '<')
 		return;
@@ -795,13 +795,13 @@ hhuri(char *p, URL *u, Range*)
 }
 
 void
-hhlocation(char *p, URL *u, Range*)
+hhlocation(char *p, URL *u, Range *r)
 {
 	u->redirect = strdup(p);
 }
 
 void
-hhauth(char *p, URL *u, Range*)
+hhauth(char *p, URL *u, Range *r)
 {
 	char *f[4];
 	UserPasswd *up;

@@ -19,7 +19,7 @@ char *remotesys, *logfile;
 int debug, p[2];
 
 void
-death(void *, char *)
+death(void *v, char *c)
 {
 	int pid;
 
@@ -123,7 +123,7 @@ void
 main(int argc, char *argv[])
 {
 	TLSconn *conn;
-	uchar buf[BufSize];
+	unsigned char buf[BufSize];
 	char *cert;
 	int n, fd, clearfd;
 

@@ -66,7 +66,7 @@ fsopen(Req *r)
 }
 
 static int
-dirgen(int i, Dir *d, void*)
+dirgen(int i, Dir *d, void *v)
 {
 	if(i >= ntab)
 		return -1;
@@ -117,7 +117,7 @@ fsstat(Req *r)
 }
 
 static char*
-fswalk1(Fid *fid, char *name, void*)
+fswalk1(Fid *fid, char *name, void *v)
 {
 	int i;
 	Tab *t;
@@ -165,7 +165,7 @@ fswalk1(Fid *fid, char *name, void*)
 }
 
 static char*
-fsclone(Fid *fid, Fid*, void*)
+fsclone(Fid *fid, Fid *f, void *v)
 {
 	Tab *t;
 

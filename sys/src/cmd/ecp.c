@@ -594,7 +594,7 @@ void
 main(int argc, char **argv)
 {
 	int errflg = 0, plsconfirm = No, plsverify = No;
-	long lval;
+	int32_t lval;
 	File src, dest;
 	Sdaddr sect;
 

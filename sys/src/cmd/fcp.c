@@ -243,7 +243,7 @@ nextoff(void)
 }
 
 void
-failure(void*, char *note)
+failure(void *v, char *note)
 {
 	if(strcmp(note, "failure") == 0)
 		_exits(nil);

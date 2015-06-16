@@ -93,7 +93,7 @@ main(int argc, char *argv[])
 	char buf[100];
 	char *fmt;
 	Image *dark;
-	ulong rgb;
+	uint32_t rgb;
 
 	ramp = 0;
 

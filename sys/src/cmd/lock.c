@@ -19,7 +19,7 @@ static int debug;
 static int lockwait;
 
 void	error(char*);
-void	notifyf(void*, char*);
+void	notifyf(void *c, char*);
 
 static void
 usage(void)

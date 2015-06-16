@@ -30,7 +30,7 @@ typedef struct Auth Auth;
 struct Auth
 {
 	int ref;
-	uchar *data;
+	unsigned char *data;
 	int ndata;
 };
 
@@ -39,7 +39,7 @@ struct FidAux
 {
 	Nfs3Handle handle;
 
-	u64int cookie;	/* for continuing directory reads */
+	uint64_t cookie;	/* for continuing directory reads */
 	char *name;	/* botch: for remove and rename */
 	Nfs3Handle parent;	/* botch: for remove and rename */
 	char err[ERRMAX];	/* for walk1 */
@@ -114,7 +114,7 @@ mountNull(uint32_t tag)
 int
 mountMnt(Auth *a, uint32_t tag, char *path, Nfs3Handle *h)
 {
-	uchar *freeme;
+	unsigned char *freeme;
 	NfsMount3TMnt tx;
 	NfsMount3RMnt rx;
 
@@ -305,10 +305,10 @@ nfsCreate(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
 }
 
 int
-nfsRead(Auth *a, uint32_t tag, Nfs3Handle *h, u32int count, u64int offset,
-	uchar **pp, u32int *pcount, uchar **pfreeme)
+nfsRead(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count, uint64_t offset,
+	unsigned char **pp, uint32_t *pcount, unsigned char **pfreeme)
 {
-	uchar *freeme;
+	unsigned char *freeme;
 	Nfs3TRead tx;
 	Nfs3RRead rx;
 
@@ -339,8 +339,8 @@ nfsRead(Auth *a, uint32_t tag, Nfs3Handle *h, u32int count, u64int offset,
 }
 
 int
-nfsWrite(Auth *a, uint32_t tag, Nfs3Handle *h, uchar *data, u32int count,
-	 u64int offset, u32int *pcount)
+nfsWrite(Auth *a, uint32_t tag, Nfs3Handle *h, unsigned char *data, uint32_t count,
+	 uint64_t offset, uint32_t *pcount)
 {
 	Nfs3TWrite tx;
 	Nfs3RWrite rx;
@@ -515,9 +515,9 @@ nfsLookup(Auth *a, uint32_t tag, Nfs3Handle *h, char *name, Nfs3Handle *nh,
 }
 
 int
-nfsReadDirPlus(Auth *a, uint32_t tag, Nfs3Handle *h, u32int count,
-	       u64int cookie, uchar **pp,
-	u32int *pcount, int (**unpack)(uchar*, uchar*, uchar**, Nfs3Entry*), uchar **pfreeme)
+nfsReadDirPlus(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count,
+	       uint64_t cookie, unsigned char **pp,
+	uint32_t *pcount, int (**unpack)(unsigned char*, unsigned char*, unsigned char**, Nfs3Entry*), unsigned char **pfreeme)
 {
 	Nfs3TReadDirPlus tx;
 	Nfs3RReadDirPlus rx;
@@ -548,9 +548,9 @@ nfsReadDirPlus(Auth *a, uint32_t tag, Nfs3Handle *h, u32int count,
 }
 
 int
-nfsReadDir(Auth *a, uint32_t tag, Nfs3Handle *h, u32int count,
-	   u64int cookie, uchar **pp,
-	u32int *pcount, int (**unpack)(uchar*, uchar*, uchar**, Nfs3Entry*), uchar **pfreeme)
+nfsReadDir(Auth *a, uint32_t tag, Nfs3Handle *h, uint32_t count,
+	   uint64_t cookie, unsigned char **pp,
+	uint32_t *pcount, int (**unpack)(unsigned char*, unsigned char*, unsigned char**, Nfs3Entry*), unsigned char **pfreeme)
 {
 	/* BUG: try readdirplus */
 	char e[ERRMAX];
@@ -617,7 +617,7 @@ struct User
 	uint gid;
 	uint g[16];
 	uint ng;
-	uchar *auth;
+	unsigned char *auth;
 	int nauth;
 };
 
@@ -660,9 +660,9 @@ finduser(User **u, int nu, char *s)
 }
 
 int
-strtoid(User **u, int nu, char *s, u32int *id)
+strtoid(User **u, int nu, char *s, uint32_t *id)
 {
-	u32int x;
+	uint32_t x;
 	char *p;
 	User *uu;
 
@@ -680,7 +680,7 @@ strtoid(User **u, int nu, char *s, u32int *id)
 }
 
 char*
-idtostr(User **u, int nu, u32int id)
+idtostr(User **u, int nu, uint32_t id)
 {
 	char buf[32];
 	int lo, hi, mid;
@@ -700,25 +700,25 @@ idtostr(User **u, int nu, u32int id)
 	return estrdup9p(buf);
 }		
 char*
-uidtostr(u32int uid)
+uidtostr(uint32_t uid)
 {
 	return idtostr(map->ubyid, map->nuser, uid);
 }
 
 char*
-gidtostr(u32int gid)
+gidtostr(uint32_t gid)
 {
 	return idtostr((User**)map->gbyid, map->ngroup, gid);
 }
 
 int
-strtouid(char *s, u32int *id)
+strtouid(char *s, uint32_t *id)
 {
 	return strtoid(map->ubyname, map->nuser, s, id);
 }
 
 int
-strtogid(char *s, u32int *id)
+strtogid(char *s, uint32_t *id)
 {
 	return strtoid((User**)map->gbyid, map->ngroup, s, id);
 }
@@ -768,7 +768,7 @@ Map*
 readmap(char *passwd, char *group)
 {
 	char *s, *f[10], *p, *nextp, *name;
-	uchar *q, *eq;
+	unsigned char *q, *eq;
 	int i, n, nf, line, uid, gid;
 	Biobuf *b;
 	Map *m;
@@ -900,7 +900,7 @@ Auth*
 mkauth(char *user)
 {
 	Auth *a;
-	uchar *p;
+	unsigned char *p;
 	int n;
 	SunAuthUnix au;
 	User *u;
@@ -915,7 +915,7 @@ mkauth(char *user)
 		au.sysname = sys;
 		n = sunAuthUnixSize(&au);
 		a = emalloc(sizeof(Auth)+n);
-		a->data = (uchar*)&a[1];
+		a->data = (unsigned char*)&a[1];
 		a->ndata = n;
 		if(sunAuthUnixPack(a->data, a->data+a->ndata, &p, &au) < 0
 		|| p != a->data+a->ndata){
@@ -928,7 +928,7 @@ if(verbose)print("creds for %s: %.*H\n", user, a->ndata, a->data);
 	}
 
 	a = emalloc(sizeof(Auth)+u->nauth);
-	a->data = (uchar*)&a[1];
+	a->data = (unsigned char*)&a[1];
 	a->ndata = u->nauth;
 	memmove(a->data, u->auth, a->ndata);
 	a->ref = 1;
@@ -1132,12 +1132,12 @@ void
 fsreaddir(Req *r)
 {
 	FidAux *aux;
-	uchar *p, *freeme, *ep, *p9, *ep9;
+	unsigned char *p, *freeme, *ep, *p9, *ep9;
 	char *s;
 	uint count;
-	int n, (*unpack)(uchar*, uchar*, uchar**, Nfs3Entry*);
+	int n, (*unpack)(unsigned char*, unsigned char*, unsigned char**, Nfs3Entry*);
 	Nfs3Entry e;
-	u64int cookie;
+	uint64_t cookie;
 	Dir d;
 
 	aux = r->fid->aux;
@@ -1156,7 +1156,7 @@ fsreaddir(Req *r)
 	}
 	ep = p+count;
 
-	p9 = (uchar*)r->ofcall.data;
+	p9 = (unsigned char*)r->ofcall.data;
 	ep9 = p9+r->ifcall.count;
 
 	/*
@@ -1168,7 +1168,7 @@ fsreaddir(Req *r)
 		aux->cookie = e.cookie;
 		if(strcmp(e.name, ".") == 0 || strcmp(e.name, "..") == 0)
 			continue;
-		for(s=e.name; (uchar)*s >= ' '; s++)
+		for(s=e.name; (unsigned char)*s >= ' '; s++)
 			;
 		if(*s != 0)	/* bad character in name */
 			continue;
@@ -1186,14 +1186,14 @@ fsreaddir(Req *r)
 		p9 += n;
 	}
 	free(freeme);
-	r->ofcall.count = p9 - (uchar*)r->ofcall.data;
+	r->ofcall.count = p9 - (unsigned char*)r->ofcall.data;
 	respond(r, nil);
 }
 	
 void
 fsread(Req *r)
 {
-	uchar *p, *freeme;
+	unsigned char *p, *freeme;
 	uint count;
 	FidAux *aux;
 
@@ -1220,7 +1220,7 @@ fswrite(Req *r)
 	FidAux *aux;
 
 	aux = r->fid->aux;
-	if(nfsWrite(aux->auth, r->tag, &aux->handle, (uchar*)r->ifcall.data, r->ifcall.count, r->ifcall.offset, &count) < 0){
+	if(nfsWrite(aux->auth, r->tag, &aux->handle, (unsigned char*)r->ifcall.data, r->ifcall.count, r->ifcall.offset, &count) < 0){
 		responderrstr(r);
 		return;
 	}
@@ -1394,7 +1394,7 @@ fswalk1(Fid *fid, char *name, void *v)
 }
 
 char*
-fsclone(Fid *fid, Fid *newfid, void*)
+fsclone(Fid *fid, Fid *newfid, void *v)
 {
 	FidAux *a, *na;
 
@@ -1455,7 +1455,7 @@ fsdispatch(void *v)
 }
 
 void
-fsthread(void*)
+fsthread(void *v)
 {
 	Req *r;
 
@@ -1470,7 +1470,7 @@ fssend(Req *r)
 }
 
 void
-fsdie(Srv*)
+fsdie(Srv *s)
 {
 	threadexitsall(nil);
 }
@@ -1527,7 +1527,7 @@ threadmain(int argc, char **argv)
 	SunClient *cli;
 	int proto;
 	uint mport, nport;
-	ulong perm;
+	uint32_t perm;
 	Dir d;
 
 	perm = 0600;
@@ -1626,7 +1626,7 @@ threadmain(int argc, char **argv)
 }
 
 void
-dialproc(void*)
+dialproc(void *v)
 {
 	rfork(RFNAMEG);
 	rfork(RFNOTEG);

@@ -25,7 +25,7 @@ int verbose;
 
 typedef struct Ahdr Ahdr;
 struct Ahdr {
-	char *name;
+	char *_name;
 	Dir;
 };
 
@@ -86,7 +86,7 @@ gethdr(Biobuf *b)
 	}
 
 	a = emalloc(sizeof(*a));
-	a->name = estrdup(f[0]);
+	a->_name = estrdup(f[0]);
 	a->mode = strtoul(f[1], 0, 8);
 	a->uid = estrdup(f[2]);
 	a->gid = estrdup(f[3]);
@@ -199,7 +199,7 @@ void
 main(int argc, char **argv)
 {
 	Ahdr *a;
-	ulong flag;
+	uint32_t flag;
 	char *mtpt;
 	char err[ERRMAX];
 
@@ -237,7 +237,7 @@ main(int argc, char **argv)
 
 	archtree = fs.tree = alloctree("sys", "sys", DMDIR|0775, nil);
 	while(a = gethdr(b)) {
-		archcreatefile(a->name, newarch(Boffset(b), a->length), a);
+		archcreatefile(a->_name, newarch(Boffset(b), a->length), a);
 		Bseek(b, a->length, 1);
 	}
 

@@ -19,10 +19,10 @@
 #include <keyboard.h>
 #include "trace.h"
 
-#pragma	varargck	type	"t"		vlong
-#pragma	varargck	type	"U"		uvlong
+#pragma	varargck	type	"t"		int64_t
+#pragma	varargck	type	"U"		uint64_t
 
-#define NS(x)	((vlong)x)
+#define NS(x)	((int64_t)x)
 #define US(x)	(NS(x) * 1000ULL)
 #define MS(x)	(US(x) * 1000ULL)
 #define S(x)	(MS(x) * 1000ULL)
@@ -39,7 +39,7 @@ typedef struct Event	Event;
 typedef struct Task	Task;
 struct Event {
 	Traceevent;
-	vlong	etime;	/* length of block to draw */
+	int64_t	etime;	/* length of block to draw */
 };
 
 struct Task {
@@ -47,12 +47,12 @@ struct Task {
 	char	*name;
 	int	nevents;	
 	Event	*events;
-	vlong	tstart;
-	vlong	total;
-	vlong	runtime;
-	vlong	runmax;
-	vlong	runthis;
-	long	runs;
+	int64_t	tstart;
+	int64_t	total;
+	int64_t	runtime;
+	int64_t	runmax;
+	int64_t	runthis;
+	int32_t	runs;
 	uint32_t	tevents[Nevent];
 };
 
@@ -62,7 +62,7 @@ enum {
 	K = 1024,
 };
 
-vlong	now, prevts;
+int64_t	now, prevts;
 
 int	newwin;
 int	Width = 1000;		
@@ -97,9 +97,9 @@ char *schedstatename[] = {
 };
 
 struct {
-	vlong	scale;
-	vlong	bigtics;
-	vlong	littletics;
+	int64_t	scale;
+	int64_t	bigtics;
+	int64_t	littletics;
 	int	sleep;
 } scales[] = {
 	{	US(500),	US(100),	US(50),		  0},
@@ -234,7 +234,7 @@ redraw(int scaleno)
 	Point p, q;
 	Rectangle r, rtime;
 	Task *t;
-	vlong ts, oldestts, newestts, period, ppp, scale, s, ss;
+	int64_t ts, oldestts, newestts, period, ppp, scale, s, ss;
 
 #	define time2x(t)	((int)(((t) - oldestts) / ppp))
 
@@ -272,8 +272,8 @@ redraw(int scaleno)
 		s = now - t->tstart;
 		if(t->tevents[SRelease])
 			snprint(buf, sizeof(buf), " per %t — avg: %t max: %t",
-				(vlong)(s/t->tevents[SRelease]),
-				(vlong)(t->runtime/t->tevents[SRelease]),
+				(int64_t)(s/t->tevents[SRelease]),
+				(int64_t)(t->runtime/t->tevents[SRelease]),
 				t->runmax);
 		else if((s /=1000000000LL) != 0)
 			snprint(buf, sizeof(buf), " per 1s — avg: %t total: %t",
@@ -510,7 +510,7 @@ doevent(Task *t, Traceevent *ep)
 {
 	int i, n;
 	Event *event;
-	vlong runt;
+	int64_t runt;
 
 	t->tevents[ep->etype & 0xffff]++;
 	n = t->nevents++;
@@ -737,15 +737,15 @@ int
 timeconv(Fmt *f)
 {
 	char buf[128], *sign;
-	vlong t;
+	int64_t t;
 
 	buf[0] = 0;
 	switch(f->r) {
 	case 'U':
-		t = va_arg(f->args, vlong);
+		t = va_arg(f->args, int64_t);
 		break;
-	case 't':		// vlong in nanoseconds
-		t = va_arg(f->args, vlong);
+	case 't':		// int64_t in nanoseconds
+		t = va_arg(f->args, int64_t);
 		break;
 	default:
 		return fmtstrcpy(f, "(timeconv)");

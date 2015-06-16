@@ -68,7 +68,7 @@ printfile(int f)
 			s = Brdline(b, '\n');
 			if(s == 0){
 				n = Blinelen(b);
-				if(n > 0)	/* line too long for Brdline */
+				if(n > 0)	/* line too int32_t for Brdline */
 					for(j=0; j<n; j++)
 						Bputc(&bout, Bgetc(b));
 				else{		/* true EOF */

@@ -97,7 +97,7 @@ getcmap(int id, char *f, unsigned char *buf)
 	return 1;
 }
 
-/* replicate (from top) value in v (n bits) until it fills a ulong */
+/* replicate (from top) value in v (n bits) until it fills a uint32_t */
 uint32_t
 rep(uint32_t v, int n)
 {

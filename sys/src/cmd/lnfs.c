@@ -56,13 +56,13 @@ int	debug;
 
 Fid *	newfid(int);
 void	io(void);
-void	*erealloc(void*, uint32_t);
+void	*erealloc(void *c, uint32_t);
 void	*emalloc(uint32_t);
 char	*estrdup(char*);
 void	usage(void);
 void	fidqid(Fid*, Qid*);
-char*	short2long(char*);
-char*	long2short(char*, int);
+char*	short2int32_t(char*);
+char*	int32_t2short(char*, int);
 void	readnames(void);
 void	post(char*, int);
 
@@ -192,7 +192,7 @@ post(char *srvname, int pfd)
 		sysfatal("writing %s: %r", srvname);
 }
 char*
-rversion(Fid*)
+rversion(Fid *fi)
 {
 	Fid *f;
 
@@ -211,7 +211,7 @@ rversion(Fid*)
 }
 
 char*
-rauth(Fid*)
+rauth(Fid *f)
 {
 	return Enoauth;
 }
@@ -283,7 +283,7 @@ rwalk(Fid *f)
 	npath = s_clone(f->path);
 	if(thdr.nwname > 0){
 		for(i=0; i<thdr.nwname && i<MAXWELEM; i++){
-			name = long2short(thdr.wname[i], 0);
+			name = int32_t2short(thdr.wname[i], 0);
 			if(strcmp(name, ".") == 0){
 				;
 			} else if(strcmp(name, "..") == 0){
@@ -355,7 +355,7 @@ rcreate(Fid *f)
 	if(readonly)
 		return Eperm;
 	readnames();
-	name = long2short(thdr.name, 1);
+	name = int32_t2short(thdr.name, 1);
 	if(f->fd >= 0)
 		return Eisopen;
 	s_append(f->path, "/");
@@ -388,7 +388,7 @@ rreaddir(Fid *f)
 			return passerror();
 		readnames();
 		for(i = 0; i < f->ndir; i++)
-			f->dir[i].name = short2long(f->dir[i].name);
+			f->dir[i].name = short2int32_t(f->dir[i].name);
 	}
 
 	/* copy in as many directory entries as possible */
@@ -477,7 +477,7 @@ rstat(Fid *f)
 	d = dirstat(s_to_c(f->path));
 	if(d == nil)
 		return passerror();
-	d->name = short2long(d->name);
+	d->name = short2int32_t(d->name);
 	n = convD2M(d, statbuf, sizeof statbuf);
 	free(d);
 	if(n <= BIT16SZ)
@@ -496,7 +496,7 @@ rwstat(Fid *f)
 	if(readonly)
 		return Eperm;
 	convM2D(thdr.stat, thdr.nstat, &d, (char*)rdata);
-	d.name = long2short(d.name, 1);
+	d.name = int32_t2short(d.name, 1);
 	n = dirwstat(s_to_c(f->path), &d);
 	if(n < 0)
 		return passerror();
@@ -753,12 +753,12 @@ readnames(void)
 }
 
 /*
- *  look up a long name,  if it doesn't exist in the
+ *  look up a int32_t name,  if it doesn't exist in the
  *  file, add an entry to the file if the writeflag is
  *  non-zero.  Return a pointer to the short name.
  */
 char*
-long2short(char *longname, int writeflag)
+int32_t2short(char *longname, int writeflag)
 {
 	Name *np;
 
@@ -779,7 +779,7 @@ long2short(char *longname, int writeflag)
  *  longname.
  */
 char*
-short2long(char *shortname)
+short2int32_t(char *shortname)
 {
 	Name *np;
 

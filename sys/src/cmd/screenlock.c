@@ -155,7 +155,7 @@ checkpassword(void)
 }
 
 void
-blanker(void *)
+blanker(void *v)
 {
 	int tics;
 
@@ -172,7 +172,7 @@ blanker(void *)
 }
 
 void
-grabmouse(void*)
+grabmouse(void *v)
 {
 	int fd, x, y;
 	char ibuf[256], obuf[256];

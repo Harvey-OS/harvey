@@ -138,7 +138,7 @@ char *dashes;				/* separators for deep nestings */
  */
 char *sysword[] = {
 	"auto", "case", "char", "do", "double", "else", "enum",
-	"extern", "float", "for", "if", "int", "long", "register",
+	"extern", "float", "for", "if", "int", "int32_t", "register",
 	"return", "short", "sizeof", "static", "struct", "switch",
 	"typedef", "union", "unsigned", "void", "while",
 };
@@ -640,7 +640,7 @@ getfunc(Biobuf *in, char *atom)
 			} while(ap < ep && ISIDENT(c));
 			*ap = '\0';
 			if (ap >= ep) {	/* uncommon case: id won't fit */
-				/* consume remainder of too-long id */
+				/* consume remainder of too-int32_t id */
 				while (ISIDENT(c))
 					c = nextc(in);
 			}
@@ -932,7 +932,7 @@ main(int argc, char **argv)
 
 	if (Printstats) {
 		fprint(2, "%ld/%d aseen entries\n", stats.highestseen, Maxseen);
-		fprint(2, "%ld longest namelist hash chain\n", stats.highestname);
+		fprint(2, "%ld int32_test namelist hash chain\n", stats.highestname);
 		fprint(2, "%ld/%d activelist high water mark\n",
 			stats.highestact, Maxdepth);
 		fprint(2, "%ld dlist high water mark\n", stats.highgetfree);

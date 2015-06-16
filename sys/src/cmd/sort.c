@@ -16,6 +16,19 @@ bugs:
 	00/ff for end of file can conflict with 00/ff characters
 */
 
+static Rune ljan[] = {'J','A','N'};
+static Rune lfeb[] = {'F','E','B'};
+static Rune lmar[] = {'M','A','R'};
+static Rune lapr[] = {'A','P','R'};
+static Rune lmay[] = {'M','A','Y'};
+static Rune ljun[] = {'J','U','N'};
+static Rune ljul[] = {'J','U','L'};
+static Rune laug[] = {'A','U','G'};
+static Rune lsep[] = {'S','E','P'};
+static Rune loct[] = {'O','C','T'};
+static Rune lnov[] = {'N','O','V'};
+static Rune ldec[] = {'D','E','C'};
+
 enum
 {
 	Nline	= 100000,		/* default max number of lines saved in memory */
@@ -124,12 +137,12 @@ void	mergeout(Biobuf*);
 void	newfield(void);
 Line*	newline(Biobuf*);
 void	nomem(void);
-void	notifyf(void*, char*);
+void	notifyf(void *c, char*);
 void	printargs(void);
 void	printout(Biobuf*);
 void	setfield(int, int);
 uint8_t*	skip(uint8_t*, int, int, int, int);
-void	sort4(void*, uint32_t);
+void	sort4(void *c, uint32_t);
 char*	tempfile(int);
 void	tempout(void);
 void	lineout(Biobuf*, Line*);
@@ -240,7 +253,7 @@ dofile(Biobuf *b)
 }
 
 void
-notifyf(void*, char *s)
+notifyf(void *c, char *s)
 {
 
 	if(strcmp(s, "interrupt") == 0)
@@ -368,7 +381,7 @@ tempfile(int n)
 	if(args.tname)
 		dir = args.tname;
 	if(strlen(dir) >= nelem(file)-20) {
-		fprint(2, "temp file directory name is too long: %s\n", dir);
+		fprint(2, "temp file directory name is too int32_t: %s\n", dir);
 		done("tdir");
 	}
 
@@ -1348,7 +1361,7 @@ dokey_dfi(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 }
 
 void
-dokey_r(Key *k, uint8_t *lp, uint8_t *lpe, Field*)
+dokey_r(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 {
 	int cl, n;
 	uint8_t *kp;
@@ -1377,7 +1390,7 @@ dokey_r(Key *k, uint8_t *lp, uint8_t *lpe, Field*)
 }
 
 void
-dokey_(Key *k, uint8_t *lp, uint8_t *lpe, Field*)
+dokey_(Key *k, uint8_t *lp, uint8_t *lpe, Field *f)
 {
 	int n, cl;
 	uint8_t *kp;
@@ -1523,18 +1536,18 @@ makemapd(Field *f)
 
 Rune*	month[12] =
 {
-	L"JAN",
-	L"FEB",
-	L"MAR",
-	L"APR",
-	L"MAY",
-	L"JUN",
-	L"JUL",
-	L"AUG",
-	L"SEP",
-	L"OCT",
-	L"NOV",
-	L"DEC",
+	ljan,
+	lfeb,
+	lmar,
+	lapr,
+	lmay,
+	ljun,
+	ljul,
+	laug,
+	lsep,
+	loct,
+	lnov,
+	ldec,
 };
 
 /************** radix sort ***********/

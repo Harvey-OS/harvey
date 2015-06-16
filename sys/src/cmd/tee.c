@@ -20,7 +20,7 @@ int	*openf;
 
 char in[8192];
 
-int	intignore(void*, char*);
+int	intignore(void *c, char*);
 
 void
 main(int argc, char **argv)

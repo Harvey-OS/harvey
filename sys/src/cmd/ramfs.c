@@ -25,7 +25,7 @@ enum
 	Nram	= 4096,
 	Maxsize	= 768*1024*1024,
 	Maxfdata	= 8192,
-	Maxulong= (1ULL << 32) - 1,
+	Maxuint32_t= (1ULL << 32) - 1,
 };
 
 typedef struct Fid Fid;
@@ -86,7 +86,7 @@ Fid *	newfid(int);
 uint	ramstat(Ram*, uint8_t*, uint);
 void	error(char*);
 void	io(void);
-void	*erealloc(void*, uint32_t);
+void	*erealloc(void *c, uint32_t);
 void	*emalloc(uint32_t);
 char	*estrdup(char*);
 void	usage(void);
@@ -255,7 +255,7 @@ main(int argc, char *argv[])
 }
 
 char*
-rversion(Fid*)
+rversion(Fid *fi)
 {
 	Fid *f;
 
@@ -274,7 +274,7 @@ rversion(Fid*)
 }
 
 char*
-rauth(Fid*)
+rauth(Fid *f)
 {
 	return "ramfs: no authentication required";
 }

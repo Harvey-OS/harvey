@@ -832,14 +832,14 @@ readmach(Machine *m, int init)
 }
 
 void
-memval(Machine *m, uint64_t *v, uint64_t *vmax, int)
+memval(Machine *m, uint64_t *v, uint64_t *vmax, int i)
 {
 	*v = m->devswap[Mem];
 	*vmax = m->devswap[Maxmem];
 }
 
 void
-swapval(Machine *m, uint64_t *v, uint64_t *vmax, int)
+swapval(Machine *m, uint64_t *v, uint64_t *vmax, int i)
 {
 	*v = m->devswap[Swap];
 	*vmax = m->devswap[Maxswap];
@@ -914,14 +914,14 @@ loadval(Machine *m, uint64_t *v, uint64_t *vmax, int init)
 }
 
 void
-idleval(Machine *m, uint64_t *v, uint64_t *vmax, int)
+idleval(Machine *m, uint64_t *v, uint64_t *vmax, int i)
 {
 	*v = m->devsysstat[Idle]/m->nproc;
 	*vmax = 100;
 }
 
 void
-inintrval(Machine *m, uint64_t *v, uint64_t *vmax, int)
+inintrval(Machine *m, uint64_t *v, uint64_t *vmax, int i)
 {
 	*v = m->devsysstat[InIntr]/m->nproc;
 	*vmax = 100;
@@ -968,7 +968,7 @@ ethererrval(Machine *m, uint64_t *v, uint64_t *vmax, int init)
 }
 
 void
-batteryval(Machine *m, uint64_t *v, uint64_t *vmax, int)
+batteryval(Machine *m, uint64_t *v, uint64_t *vmax, int i)
 {
 	*v = m->batterystats[0];
 	if(m->bitsybatfd >= 0)
@@ -978,7 +978,7 @@ batteryval(Machine *m, uint64_t *v, uint64_t *vmax, int)
 }
 
 void
-signalval(Machine *m, uint64_t *v, uint64_t *vmax, int)
+signalval(Machine *m, uint64_t *v, uint64_t *vmax, int i)
 {
 	uint32_t l;
 
@@ -995,7 +995,7 @@ signalval(Machine *m, uint64_t *v, uint64_t *vmax, int)
 }
 
 void
-tempval(Machine *m, uint64_t *v, uint64_t *vmax, int)
+tempval(Machine *m, uint64_t *v, uint64_t *vmax, int i)
 {
 	uint32_t l;
 
@@ -1306,7 +1306,7 @@ main(int argc, char *argv[])
 {
 	int i, j;
 	double secs;
-	uvlong v, vmax, nargs;
+	uint64_t v, vmax, nargs;
 	char args[100];
 
 	nmach = 1;

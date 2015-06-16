@@ -157,7 +157,7 @@ usage(void)
 }
 
 void
-noalarm(void*, char *msg)
+noalarm(void *v, char *msg)
 {
 	if(strstr(msg, "alarm"))
 		noted(NCONT);
@@ -168,7 +168,7 @@ noalarm(void*, char *msg)
  * 	send and receive responses on the serial line
  */
 void
-eiaread(void*)
+eiaread(void *v)
 {
 	Req *r;
 	char *p;
@@ -189,12 +189,12 @@ eiaread(void*)
 		}
 		for(tries=0; tries<5; tries++){
 			if(r->type == Twrite){
-				DBG(2, "w%.8lux %.8lux...", (ulong)r->ifcall.offset, *(ulong*)r->ifcall.data);
+				DBG(2, "w%.8lux %.8lux...", (uint32_t)r->ifcall.offset, *(uint32_t*)r->ifcall.data);
 				fprint(rfd, "w%.8lux %.8lux\n",
 				       (uint32_t)r->ifcall.offset,
 				       *(uint32_t*)r->ifcall.data);
 			}else if(r->type == Tread){
-				DBG(2, "r%.8lux...", (ulong)r->ifcall.offset);
+				DBG(2, "r%.8lux...", (uint32_t)r->ifcall.offset);
 				fprint(rfd, "r%.8lux\n",
 				       (uint32_t)r->ifcall.offset);
 			}else{
@@ -230,7 +230,7 @@ eiaread(void*)
 						respond(r, nil);
 						goto Break2;
 					}else
-						DBG(2, "%.8lux ≠ %.8lux\n", strtoul(p+1, 0, 16), (ulong)r->ifcall.offset);
+						DBG(2, "%.8lux ≠ %.8lux\n", strtoul(p+1, 0, 16), (uint32_t)r->ifcall.offset);
 				}else if(p[0] == 'W'){
 					respond(r, nil);
 					goto Break2;
@@ -381,7 +381,7 @@ struct {
 };
 
 void
-killall(Srv*)
+killall(Srv *s)
 {
 	postnote(PNGROUP, getpid(), "kill");
 }

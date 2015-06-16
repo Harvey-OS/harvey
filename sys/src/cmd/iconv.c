@@ -50,7 +50,7 @@ main(int argc, char *argv[])
 {
 	char *tostr, *file;
 	int fd, uncompressed;
-	ulong tochan;
+	uint32_t tochan;
 	Memimage *m, *n;
 
 	tostr = nil;

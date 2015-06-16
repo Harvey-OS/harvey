@@ -72,7 +72,7 @@ eresized(int new)
 }
 
 void
-main(int, char**)
+main(int i, char **c)
 {
 	Event e;
 	Mouse m;

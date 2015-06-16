@@ -173,7 +173,7 @@ Rune	*badp = &bad;
 
 char	CGMES[]	 = 	"%S command garbled: %S";
 char	TMMES[]	 = 	"Too much text: %S";
-char	LTL[]	 = 	"Label too long: %S";
+char	LTL[]	 = 	"Label too int32_t: %S";
 char	AD0MES[] =	"No addresses allowed: %S";
 char	AD1MES[] =	"Only one address allowed: %S";
 
@@ -1072,13 +1072,13 @@ dosub(Rune *rhsbuf)
 		}
 		*sp++ = c;
 		if (sp >= &genbuf[LBSIZE])
-			fprint(2, "sed: Output line too long.\n");
+			fprint(2, "sed: Output line too int32_t.\n");
 	}
 	lp = loc2;
 	loc2 = sp - genbuf + linebuf;
 	while (*sp++ = *lp++)
 		if (sp >= &genbuf[LBSIZE])
-			fprint(2, "sed: Output line too long.\n");
+			fprint(2, "sed: Output line too int32_t.\n");
 	lp = linebuf;
 	sp = genbuf;
 	while (*lp++ = *sp++)
@@ -1092,7 +1092,7 @@ place(Rune *sp, Rune *l1, Rune *l2)
 	while (l1 < l2) {
 		*sp++ = *l1++;
 		if (sp >= &genbuf[LBSIZE])
-			fprint(2, "sed: Output line too long.\n");
+			fprint(2, "sed: Output line too int32_t.\n");
 	}
 	return sp;
 }

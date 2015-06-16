@@ -38,7 +38,7 @@ int		timedout;
 int	connect(char*, char*, int);
 int	passive(void);
 int	old9p(int);
-void	catcher(void*, char*);
+void	catcher(void *c, char*);
 void	sysfatal(char*, ...);
 void	usage(void);
 int	filter(int, char *, char *);
@@ -204,8 +204,8 @@ main(int argc, char **argv)
 			encprotos[encproto]);
 
 	if (encproto != Encnone && ealgs && ai) {
-		uchar key[16];
-		uchar digest[SHA1dlen];
+		unsigned char key[16];
+		unsigned char digest[SHA1dlen];
 		char fromclientsecret[21];
 		char fromserversecret[21];
 		int i;
@@ -256,7 +256,7 @@ main(int argc, char **argv)
 }
 
 void
-catcher(void*, char *msg)
+catcher(void *v, char *msg)
 {
 	timedout = 1;
 	if(strcmp(msg, "alarm") == 0)

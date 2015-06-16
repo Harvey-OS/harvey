@@ -46,7 +46,7 @@ enum {
 typedef struct {
 	char	token[Maxtok];
 	char	type;
-	schar	value;
+	uint8_t	value;
 } Datetok;
 
 int dtok_numparsed;
@@ -135,7 +135,7 @@ tryabsdate(char **fields, int nf, Tm *now, Tm *tm)
 		case Year:
 			tm->year = bigval;
 			if (tm->year < 1970 || tm->year > 2106)
-				return -1;	/* can't represent in ulong */
+				return -1;	/* can't represent in uint32_t */
 			/* convert 4-digit year to 1900 origin */
 			if (tm->year >= 1900)
 				tm->year -= 1900;

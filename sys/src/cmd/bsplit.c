@@ -173,7 +173,7 @@ void
 main(int argc, char **argv)
 {
 	int i, errflg = 0;
-	uchar block[Bufsiz];
+	unsigned char block[Bufsiz];
 
 	cp.prefix = "bs.";
 	ARGBEGIN {

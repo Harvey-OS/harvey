@@ -10,7 +10,7 @@
 #include	<u.h>
 #include	<libc.h>
 
-#define	MINUTE(x)	((long)(x)*60L)
+#define	MINUTE(x)	((int32_t)(x)*60L)
 #define	HOUR(x)		(MINUTE(x)*60L)
 #define	YEAR(x)		(HOUR(x)*24L*360L)
 
@@ -26,9 +26,9 @@ int	ndargv = 1;
 
 void	usage(void);
 void	ysearch(char*, char*);
-long	starttime(char*);
-void	lastbefore(ulong, char*, char*, char*);
-char*	prtime(ulong);
+int32_t	starttime(char*);
+void	lastbefore(uint32_t, char*, char*, char*);
+char*	prtime(uint32_t);
 void	darg(char*);
 
 void
@@ -112,7 +112,7 @@ ysearch(char *file, char *ndump)
 	Tm *tm;
 	Waitmsg *w;
 	Dir *dir, *d;
-	ulong otime, dt;
+	uint32_t otime, dt;
 	int toggle, started, missing;
 
 	fil[0] = 0;
@@ -127,7 +127,7 @@ ysearch(char *file, char *ndump)
 			p = fil+strlen(fil);
 		if(ndump == nil){
 			if(p-fil >= sizeof nbuf-10){
-				fprint(2, "%s: dump name too long", fil);
+				fprint(2, "%s: dump name too int32_t", fil);
 				return;
 			}
 			memmove(nbuf, fil+3, p-(fil+3));
@@ -229,12 +229,12 @@ ysearch(char *file, char *ndump)
 }
 
 void
-lastbefore(ulong t, char *f, char *b, char *ndump)
+lastbefore(uint32_t t, char *f, char *b, char *ndump)
 {
 	Tm *tm;
 	Dir *dir;
 	int vers, try;
-	ulong t0, mtime;
+	uint32_t t0, mtime;
 	int i, n, fd;
 
 	t0 = t;
@@ -297,7 +297,7 @@ lastbefore(ulong t, char *f, char *b, char *ndump)
 }
 
 char*
-prtime(ulong t)
+prtime(uint32_t t)
 {
 	static char buf[100];
 	char *b;
@@ -313,11 +313,11 @@ prtime(ulong t)
 	return buf;
 }
 
-long
+int32_t
 starttime(char *s)
 {
 	Tm *tm;
-	long t, dt;
+	int32_t t, dt;
 	int i, yr, mo, da;
 
 	t = time(0);

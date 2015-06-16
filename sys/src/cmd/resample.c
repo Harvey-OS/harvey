@@ -45,11 +45,11 @@ i0(double x)
 }
 
 double
-kaiser(double x, double τ, double α)
+kaiser(double x, double tau, double alpha)
 {
-	if(fabs(x) > τ)
+	if(fabs(x) > tau)
 		return 0.;
-	return i0(α*sqrt(1-(x*x/(τ*τ))))/i0(α);
+	return i0(alpha*sqrt(1-(x*x/(tau*tau))))/i0(alpha);
 }
 
 void
@@ -211,7 +211,7 @@ main(int argc, char *argv[])
 	Rectangle rparam;
 	Memimage *m, *new, *t1, *t2;
 	char *file;
-	ulong tchan;
+	uint32_t tchan;
 	char tmp[100];
 	double v;
 

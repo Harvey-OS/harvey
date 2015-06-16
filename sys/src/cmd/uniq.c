@@ -103,7 +103,7 @@ gline(char *buf)
 		return 1;
 	len = Blinelen(&fin);
 	if(len >= bsize-1)
-		sysfatal("line too long");
+		sysfatal("line too int32_t");
 	memmove(buf, p, len);
 	buf[len-1] = 0;
 	return 0;

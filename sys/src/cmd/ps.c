@@ -13,7 +13,7 @@
 
 void	ps(char*);
 void	error(char*);
-int	cmp(void*, void*);
+int	cmp(void *c, void*);
 
 Biobuf	bout;
 int	pflag;

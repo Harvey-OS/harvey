@@ -125,7 +125,7 @@ pass(int fd)
 static int gotnote;
 
 void
-pinhead(void*, char *msg)
+pinhead(void *c, char *msg)
 {
 	gotnote = 1;
 	fprint(2, "init got note '%s'\n", msg);

@@ -257,7 +257,7 @@ morechars(void)
 jmp_buf	drawjmp;
 
 void
-terror(Display*, char*)
+terror(Display *d, char *c)
 {
 	longjmp(drawjmp, 1);
 }

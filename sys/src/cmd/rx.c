@@ -34,7 +34,7 @@ usage(void)
 }
 
 static int
-catch(void *, char *s)
+catch(void *v, char *s)
 {
 	return strstr(s, "alarm") != nil;
 }

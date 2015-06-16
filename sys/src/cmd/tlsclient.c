@@ -34,7 +34,7 @@ void
 main(int argc, char **argv)
 {
 	int fd, netfd;
-	uchar digest[20];
+	unsigned char digest[20];
 	TLSconn conn;
 	char *addr, *file, *filex;
 	Thumbprint *thumb;

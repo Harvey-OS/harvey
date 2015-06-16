@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-typedef uint32_t	Sumfn(uint32_t, void*, uint64_t);
+typedef uint32_t	Sumfn(uint32_t, void *c, uint64_t);
 extern Sumfn	sumr, sum5, sum32;
 char		*sumfile(char*, Sumfn*);
 

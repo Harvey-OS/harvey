@@ -112,7 +112,7 @@ void	join(void);
 void	move(int);
 void	newline(void);
 void	nonzero(void);
-void	notifyf(void*, char*);
+void	notifyf(void *c, char*);
 Rune*	place(Rune*, Rune*, Rune*);
 void	printcom(void);
 void	putchr(int);
@@ -129,6 +129,9 @@ void	setnoaddr(void);
 void	setwide(void);
 void	squeeze(int);
 void	substitute(int);
+
+static Rune la[] = {'a'};
+static Rune lr[] = {'r'};
 
 void
 main(int argc, char *argv[])
@@ -154,7 +157,7 @@ main(int argc, char *argv[])
 		p2 = savedfile;
 		while(*p2++ = *p1++)
 			;
-		globp = L"a";
+		globp = la;
 	} else
 	if(*argv) {
 		p1 = *argv;
@@ -162,7 +165,7 @@ main(int argc, char *argv[])
 		while(*p2++ = *p1++)
 			if(p2 >= &savedfile[sizeof(savedfile)])
 				p2--;
-		globp = L"r";
+		globp = lr;
 	}
 	zero = malloc((nlall+5)*sizeof(int*));
 	tfname = mktemp("/tmp/eXXXXX");

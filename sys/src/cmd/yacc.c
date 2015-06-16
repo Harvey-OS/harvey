@@ -465,7 +465,7 @@ others(void)
 	warray("yytok2", temp1, c+1);
 
 	/* table 3 has everything else */
-	Bprint(ftable, "long	yytok3[] =\n{\n");
+	Bprint(ftable, "int32_t	yytok3[] =\n{\n");
 	c = 0;
 	TLOOP(i) {
 		j = tokset[i].value;
@@ -917,7 +917,7 @@ more:
 	/* set pempty to WHOKNOWS */
 	aryfil( pempty, nnonter+1, WHOKNOWS);
 
-	/* loop as long as we keep finding empty nonterminals */
+	/* loop as int32_t as we keep finding empty nonterminals */
 
 again:
 	PLOOP(1, i) {
@@ -1182,7 +1182,7 @@ usage(void)
 void
 setup(int argc, char *argv[])
 {
-	long c, t;
+	int32_t c, t;
 	int i, j, lev, ty, ytab, *p;
 	int vflag, dflag, stem;
 	char actnm[8], *stemc, *s, dirbuf[128];
@@ -2680,7 +2680,7 @@ callopt(void)
 		/* nontrivial situation */
 		if(k <= j) {
 			/* j is now the range */
-/*			j -= k;			/* call scj */
+/*			j -= k;			*//* call scj */
 			if(k > maxoff)
 				maxoff = k;
 		}

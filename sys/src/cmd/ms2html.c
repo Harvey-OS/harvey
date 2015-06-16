@@ -58,10 +58,10 @@ typedef struct Goobieif Goobieif;
 struct Goobie
 {
 	char *name;
-	void (*f)(int, char**);
+	void (*f)(int i, char **c);
 };
 
-typedef void F(int, char**);
+typedef void F(int i, char **c);
 typedef void Fif(char*, char*);
 
 struct Goobieif
@@ -1408,13 +1408,13 @@ main(int argc, char **argv)
 }
 
 void
-g_notyet(int, char **argv)
+g_notyet(int i, char **argv)
 {
 	fprint(2, "ms2html: .%s not yet supported\n", argv[0]);
 }
 
 void
-g_ignore(int, char **argv)
+g_ignore(int i, char **argv)
 {
 	if(quiet)
 		return;
@@ -1422,7 +1422,7 @@ g_ignore(int, char **argv)
 }
 
 void
-g_PP(int, char**)
+g_PP(int i, char **c)
 {
 	dohanginghead();
 	closel();
@@ -1432,7 +1432,7 @@ g_PP(int, char**)
 }
 
 void
-g_LP(int, char**)
+g_LP(int i, char **c)
 {
 	dohanginghead();
 	closel();
@@ -1576,7 +1576,7 @@ g_in(int argc, char **argv)
 }
 
 void
-g_HP(int, char**)
+g_HP(int i, char **c)
 {
 	switch(list){
 	default:
@@ -1595,7 +1595,7 @@ g_HP(int, char**)
 }
 
 void
-g_SH(int, char**)
+g_SH(int i, char **c)
 {
 	dohanginghead();
 	dohangingcenter();
@@ -1637,7 +1637,7 @@ g_NH(int argc, char **argv)
 }
 
 void
-g_TL(int, char**)
+g_TL(int i, char **c)
 {
 	char *p, *np;
 	char name[128];
@@ -1684,7 +1684,7 @@ dohangingcenter(void)
 }
 
 void
-g_AU(int, char**)
+g_AU(int i, char **c)
 {
 	closel();
 	dohanginghead();
@@ -1802,7 +1802,7 @@ g_I(int argc, char **argv)
 }
 
 void
-g_br(int, char**)
+g_br(int i, char **c)
 {
 	if(hangingdt){
 		Bprint(&bout, "<dd>");
@@ -1812,7 +1812,7 @@ g_br(int, char**)
 }
 
 void
-g_P1(int, char**)
+g_P1(int i, char **c)
 {
 	if(example == 0){
 		example = 1;
@@ -1821,7 +1821,7 @@ g_P1(int, char**)
 }
 
 void
-g_P2(int, char**)
+g_P2(int i, char **c)
 {
 	if(example){
 		example = 0;
@@ -1830,7 +1830,7 @@ g_P2(int, char**)
 }
 
 void
-g_SM(int, char **argv)
+g_SM(int i, char **argv)
 {
 	Bprint(&bout, "%s", argv[1]);
 }
@@ -1926,7 +1926,7 @@ g_rm(int argc, char **argv)
 	}
 
 void
-g_AB(int, char**)
+g_AB(int i, char **c)
 {
 	closel();
 	dohangingcenter();
@@ -1934,13 +1934,13 @@ g_AB(int, char**)
 }
 
 void
-g_AE(int, char**)
+g_AE(int i, char **c)
 {
 	Bprint(&bout, "</DL>\n");
 }
 
 void
-g_FS(int, char **)
+g_FS(int i, char **c)
 {
 	char *argv[3];
 
@@ -1952,7 +1952,7 @@ g_FS(int, char **)
 }
 
 void
-g_FE(int, char **)
+g_FE(int i, char **c)
 {
 	Bprint(&bout, "</I><DT>&#32;<DD>");
 	closel();
@@ -2025,7 +2025,7 @@ g_de(int argc, char **argv)
 }
 
 void
-g_hrule(int, char**)
+g_hrule(int i, char **c)
 {
 	Bprint(&bout, "<HR>\n");
 }
@@ -2039,49 +2039,49 @@ g_BX(int argc, char **argv)
 }
 
 void
-g_IH(int, char**)
+g_IH(int i, char **c)
 {
 	Bprint(&bout, "Bell Laboratories, Naperville, Illinois, 60540\n");
 }
 
 void
-g_MH(int, char**)
+g_MH(int i, char **c)
 {
 	Bprint(&bout, "Bell Laboratories, Murray Hill, NJ, 07974\n");
 }
 
 void
-g_PY(int, char**)
+g_PY(int i, char **c)
 {
 	Bprint(&bout, "Bell Laboratories, Piscataway, NJ, 08854\n");
 }
 
 void
-g_HO(int, char**)
+g_HO(int i, char **c)
 {
 	Bprint(&bout, "Bell Laboratories, Holmdel, NJ, 07733\n");
 }
 
 void
-g_QS(int, char**)
+g_QS(int i, char **c)
 {
 	Bprint(&bout, "<BLOCKQUOTE>\n");
 }
 
 void
-g_QE(int, char**)
+g_QE(int i, char **c)
 {
 	Bprint(&bout, "</BLOCKQUOTE>\n");
 }
 
 void
-g_RS(int, char**)
+g_RS(int i, char **c)
 {
 	Bprint(&bout, "<DL><DD>\n");
 }
 
 void
-g_RE(int, char**)
+g_RE(int i, char **c)
 {
 	Bprint(&bout, "</DL>\n");
 }
@@ -2089,7 +2089,7 @@ g_RE(int, char**)
 int gif;
 
 void
-g_startgif(int, char **argv)
+g_startgif(int i, char **argv)
 {
 	int fd;
 	int pfd[2];
@@ -2622,7 +2622,7 @@ g_BS(int argc, char **argv)
 }
 
 void
-g_BE(int, char**)
+g_BE(int i, char **c)
 {
 	if (weBref) {
 		Bprint(&bout, "</a>");
@@ -2641,7 +2641,7 @@ g_LB(int argc, char **argv)
 }
 
 void
-g_RT(int, char**)
+g_RT(int i, char **c)
 {
 	g_BE(0,nil);
 	dohanginghead();

@@ -13,7 +13,7 @@
 char	output[4096];
 void	add(char*, ...);
 void	error(char*);
-void	notifyf(void*, char*);
+void	notifyf(void *c, char*);
 
 void
 main(int argc, char *argv[])

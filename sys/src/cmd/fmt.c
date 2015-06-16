@@ -151,7 +151,7 @@ parseline(char *line, Word **words, int *nwordp)
 				return addword(words, nwordp, "", 0, -1, bol);
 			break;
 		}
-		/* how long is this word? */
+		/* how int32_t is this word? */
 		for(l=0; line[l]; l++)
 			if(line[l]==' ' || line[l]=='\t')
 				break;

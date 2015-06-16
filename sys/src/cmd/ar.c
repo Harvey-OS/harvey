@@ -117,7 +117,7 @@ int	duplicate(char*);
 Armember *getdir(Biobuf*);
 int	getspace(void);
 void	install(char*, Arfile*, Arfile*, Arfile*, int);
-void	longt(Armember*);
+void	int32_tt(Armember*);
 int	match(int, char**);
 void	mesg(int, char*);
 Arfile	*newtempfile(char*);
@@ -131,7 +131,7 @@ void	scanobj(Biobuf*, Arfile*, int32_t);
 void	select(int*, int32_t);
 void	setcom(void(*)(char*, int, char**));
 void	skip(Biobuf*, int64_t);
-int	symcomp(void*, void*);
+int	symcomp(void *c, void*);
 void	trim(char*, char*, int);
 void	usage(void);
 void	wrerr(void);
@@ -469,7 +469,7 @@ tcmd(char *arname, int count, char **files)
 	while(bp = getdir(&bar)) {
 		if(count == 0 || match(count, files)) {
 			if(vflag)
-				longt(bp);
+				int32_tt(bp);
 			trim(file, name, ARNAMESIZE);
 			Bprint(&bout, "%s\n", name);
 		}
@@ -976,7 +976,7 @@ trim(char *s, char *buf, int n)
 }
 
 /*
- *	utilities for printing long form of 't' command
+ *	utilities for printing int32_t form of 't' command
  */
 #define	SUID	04000
 #define	SGID	02000
@@ -992,7 +992,7 @@ trim(char *s, char *buf, int n)
 #define	STXT	01000
 
 void
-longt(Armember *bp)
+int32_tt(Armember *bp)
 {
 	char *cp;
 

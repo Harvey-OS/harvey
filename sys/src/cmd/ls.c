@@ -149,7 +149,7 @@ output(void)
 	char *s;
 
 	if(!nflag)
-		qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(void*, void*))compar);
+		qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(void *c, void*))compar);
 	for(i=0; i<ndir; i++)
 		dowidths(dirbuf[i].d);
 	for(i=0; i<ndir; i++) {
@@ -281,11 +281,11 @@ compar(NDir *a, NDir *b)
 		}else if(a->prefix){
 			i = strcmp(a->prefix, bd->name);
 			if(i == 0)
-				i = 1;	/* a is longer than b */
+				i = 1;	/* a is int32_ter than b */
 		}else if(b->prefix){
 			i = strcmp(ad->name, b->prefix);
 			if(i == 0)
-				i = -1;	/* b is longer than a */
+				i = -1;	/* b is int32_ter than a */
 		}else
 			i = strcmp(ad->name, bd->name);
 	}

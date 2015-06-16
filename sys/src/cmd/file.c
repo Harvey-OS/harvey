@@ -75,7 +75,7 @@ struct
 	"integer",	Fword,
 	"iota",		Lword,
 	"libc",		I2,
-	"long",		Cword,
+	"int32_t",		Cword,
 	"module",	Lword,
 	"real",		Fword,
 	"ref",		Lword,
@@ -1379,7 +1379,7 @@ isp9font(void)
 int
 getfontnum(uint8_t *cp, uint8_t **rp)
 {
-	while (WHITESPACE(*cp))		/* extract ulong delimited by whitespace */
+	while (WHITESPACE(*cp))		/* extract uint32_t delimited by whitespace */
 		cp++;
 	if (*cp < '0' || *cp > '9')
 		return 0;

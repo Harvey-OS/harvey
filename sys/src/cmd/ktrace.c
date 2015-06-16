@@ -13,10 +13,10 @@
 #include <mach.h>
 #include <ctype.h>
 
-static	int	rtrace(uvlong, uvlong, uvlong);
-static	int	ctrace(uvlong, uvlong, uvlong);
-static	int	i386trace(uvlong, uvlong, uvlong);
-static	int	amd64trace(uvlong, uvlong, uvlong);
+static	int	rtrace(uint64_t, uint64_t, uint64_t);
+static	int	ctrace(uint64_t, uint64_t, uint64_t);
+static	int	i386trace(uint64_t, uint64_t, uint64_t);
+static	int	amd64trace(uint64_t, uint64_t, uint64_t);
 static	uint64_t	getval(uint64_t);
 static	void	inithdr(int);
 static	void	fatal(char*, ...);
@@ -69,8 +69,8 @@ static void (*fmt)(char*, uint64_t) = printaddr;
 void
 main(int argc, char *argv[])
 {
-	int (*t)(uvlong, uvlong, uvlong);
-	uvlong pc, sp, link;
+	int (*t)(uint64_t, uint64_t, uint64_t);
+	uint64_t pc, sp, link;
 	int fd;
 
 	ARGBEGIN{

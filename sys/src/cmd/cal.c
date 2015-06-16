@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 			y = curyr();
 			goto xshort;
 		}
-		goto xlong;
+		goto xint32_t;
 	}
 
 /*
@@ -103,7 +103,7 @@ xshort:
 /*
  *	print out complete year
  */
-xlong:
+xint32_t:
 	y = number(argv[1]);
 	if(y<1 || y>9999)
 		goto badarg;

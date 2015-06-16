@@ -37,7 +37,7 @@ Sym	**symptr;
 int	nsym;
 Biobuf	bout;
 
-int	cmp(void*, void*);
+int	cmp(void *c, void*);
 void	error(char*, ...);
 void	execsyms(int);
 void	psym(Sym*, void*);

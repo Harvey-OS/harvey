@@ -75,7 +75,7 @@ main(int argc, char *argv[])
 	uint32_t chan;
 	int d;
 
-	USED(argc, argv);
+	USED(argc); USED(argv);
 	if(initdraw(nil, nil, "lens") < 0){
 		fprint(2, "lens: initdraw failed: %r\n");
 		exits("initdraw");

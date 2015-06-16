@@ -1196,7 +1196,7 @@ fsdestroyfid(Fid *fid)
 }
 
 void
-fsend(Srv*)
+fsend(Srv *s)
 {
 	closejar(jar);
 }

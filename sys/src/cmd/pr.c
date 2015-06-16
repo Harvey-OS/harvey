@@ -107,7 +107,7 @@ extern	void	errprint(void);
 extern	char*	ffiler(char*);
 extern	int	findopt(int, char**);
 extern	int	get(int);
-extern	void*	getspace(ulong);
+extern	void*	getspace(uint32_t);
 extern	int	intopt(char**, int*);
 extern	void	main(int, char**);
 extern	Biobuf*	mustopen(char*, Fils*);
@@ -656,7 +656,7 @@ onintr(void)
 	errprint();
 	exits("error");
 }
-/**/
+*/
 
 /*
  * print accumulated error reports

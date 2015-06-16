@@ -326,7 +326,7 @@ void
 fmt1(char *f)
 {
 	int i;
-	for(i=0; i<ndata; i+=sizeof(ushort))
+	for(i=0; i<ndata; i+=sizeof(uint16_t))
 		xprint(f, (data[i]<<8)|data[i+1]);
 }
 

@@ -12,7 +12,7 @@
 #include <auth.h>
 
 void	usage(void);
-void	catch(void*, char*);
+void	catch(void *c, char*);
 
 char *keyspec = "";
 

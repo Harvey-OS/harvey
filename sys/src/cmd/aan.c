@@ -93,7 +93,7 @@ usage(void)
 }
 
 static int
-catch(void *, char *s)
+catch(void *v, char *s)
 {
 	if (strstr(s, "alarm") != nil) {
 		syslog(0, Logname, "Timed out waiting for client on %s, exiting...",
@@ -107,9 +107,9 @@ void
 threadmain(int argc, char **argv)
 {
 	int i, fd, failed, delta;
-	vlong synctime, now;
+	int64_t synctime, now;
 	char *p;
-	uchar buf[Hdrsz];
+	unsigned char buf[Hdrsz];
 	Buf *b, *eb;
 	Channel *timer;
 	Hdr hdr;
@@ -150,7 +150,7 @@ threadmain(int argc, char **argv)
 	unsent = chancreate(sizeof(Buf *), Nbuf);
 	unacked= chancreate(sizeof(Buf *), Nbuf);
 	empty  = chancreate(sizeof(Buf *), Nbuf);
-	timer  = chancreate(sizeof(uchar *), 1);
+	timer  = chancreate(sizeof(unsigned char *), 1);
 
 	for (i = 0; i != Nbuf; i++) {
 		eb = malloc(sizeof(Buf));
@@ -232,7 +232,7 @@ threadmain(int argc, char **argv)
 }
 
 static void
-fromclient(void*)
+fromclient(void *v)
 {
 	Buf *b;
 	static int outmsg;
@@ -254,7 +254,7 @@ fromclient(void*)
 }
 
 static void
-fromnet(void*)
+fromnet(void *v)
 {
 	int len, acked, i;
 	uint8_t buf[Hdrsz];
@@ -501,7 +501,7 @@ freeendpoints(Endpoints *ep)
 	free(ep);
 }
 
-/* p must be a uchar* */
+/* p must be a unsigned char* */
 #define	U32GET(p)	(p[0] | p[1]<<8 | p[2]<<16 | p[3]<<24)
 #define	U32PUT(p,v)	(p)[0] = (v); (p)[1] = (v)>>8; \
 			(p)[2] = (v)>>16; (p)[3] = (v)>>24

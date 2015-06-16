@@ -377,7 +377,7 @@ printsol(char *fmt, ...)
 void
 g_ignore(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 }
 
 void
@@ -430,14 +430,14 @@ g_list(Goobie *g, char *arg)
 void
 g_br(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	printsol(".br\n");
 }
 
 void
 g_li(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	if(lsp <= 0 || lsp > SSIZE){
 		printsol(".IP \\(bu\n");
 		return;
@@ -455,7 +455,7 @@ g_li(Goobie *g, char *arg)
 void
 g_listend(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	if(--lsp < 0)
 		lsp = 0;
 	printsol(".LP\n");
@@ -464,14 +464,14 @@ g_listend(Goobie *g, char *arg)
 void
 g_display(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	printsol(".DS\n");
 }
 
 void
 g_pre(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	printsol(".DS L\n");
 	inpre = 1;
 }
@@ -479,7 +479,7 @@ g_pre(Goobie *g, char *arg)
 void
 g_displayend(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	printsol(".DE\n");
 	inpre = 0;
 }
@@ -509,7 +509,7 @@ g_fpush(Goobie *g, char *arg)
 void
 g_fpop(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	fsp--;
 	if(fsp < SSIZE)
 		font = fontstack[fsp];
@@ -522,21 +522,21 @@ g_fpop(Goobie *g, char *arg)
 void
 g_indent(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	printsol(".RS\n");
 }
 
 void
 g_exdent(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	printsol(".RE\n");
 }
 
 void
 g_dt(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	printsol(".IP \"");
 	quoting = 1;
 }
@@ -544,7 +544,7 @@ g_dt(Goobie *g, char *arg)
 void
 g_hr(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	printsol(".br\n");
 	printsol("\\l'5i'\n");
 }
@@ -590,25 +590,25 @@ g_hr(Goobie *g, char *arg)
 void
 g_table(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	printsol(".TS\ncenter ;\n");
 }
 
 void
 g_tableend(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 	printsol(".TE\n");
 }
 
 void
 g_caption(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 }
 
 void
 g_captionend(Goobie *g, char *arg)
 {
-	USED(g, arg);
+	USED(g); USED(arg);
 }

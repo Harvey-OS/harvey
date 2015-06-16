@@ -15,7 +15,7 @@
 #include	<cursor.h>
 #include	<stdio.h>
 
-#define Never	0xffffffff	/* Maximum ulong */
+#define Never	0xffffffff	/* Maximum uint32_t */
 #define LOG2  0.301029995664
 #define Button_bit(b)	(1 << ((b)-1))
 

@@ -350,6 +350,6 @@ getword(Biobuf *f, Rune *rp, int n)
 		}
 		*rp++ = c;
 	}
-	fprint(2, "Look: word too long.  Bailing out.\n");
+	fprint(2, "Look: word too int32_t.  Bailing out.\n");
 	return 0;
 }

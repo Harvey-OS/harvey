@@ -38,7 +38,7 @@ int	olistf[NIN*NFLD]; /* from these files */
 int	no;		/* number of entries in olist */
 char *sepstr	= " ";
 int	discard;	/* count of truncated lines */
-Rune	null[Bsize]	= L"";
+Rune	null[Bsize]	= { 0 };
 Biobuf binbuf, boutbuf;
 Biobuf *bin, *bout;
 

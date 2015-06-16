@@ -1029,7 +1029,7 @@ void
 main(int argc, char **argv)
 {
 	int ccursor, i, fd, k, n, y;
-	uchar *data;
+	unsigned char *data;
 	double gammatab[256];
 	Event e;
 	Mouse m;

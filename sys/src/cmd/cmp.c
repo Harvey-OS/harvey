@@ -41,12 +41,12 @@ void
 main(int argc, char *argv[])
 {
 	int n, i;
-	uchar *p, *q;
-	uchar buf1[BUF], buf2[BUF];
+	unsigned char *p, *q;
+	unsigned char buf1[BUF], buf2[BUF];
 	int f1, f2;
-	vlong nc = 1, l = 1;
+	int64_t nc = 1, l = 1;
 	char *name1, *name2;
-	uchar *b1s, *b1e, *b2s, *b2e;
+	unsigned char *b1s, *b1e, *b2s, *b2e;
 
 	ARGBEGIN{
 	case 's':	sflag = 1; break;

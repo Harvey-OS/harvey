@@ -227,7 +227,7 @@ main(int argc, char *argv[])
 }
 
 void
-error(Display*, char *s)
+error(Display *d, char *s)
 {
 	if(file)
 		mesg("can't read %s: %s: %r", file, s);

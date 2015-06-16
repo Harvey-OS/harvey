@@ -28,7 +28,7 @@ void	remoteside(int);
 void	fatal(int, char*, ...);
 void	lclnoteproc(int);
 void	rmtnoteproc(void);
-void	catcher(void*, char*);
+void	catcher(void *c, char*);
 void	usage(void);
 void	writestr(int, char*, char*, int);
 int	readstr(int, char*, int);
@@ -236,7 +236,7 @@ main(int argc, char **argv)
 	else
 		writestr(data, dat, "dir", 0);
 
-	/* start up a process to pass along notes */
+	/* start up a process to pass aint32_t notes */
 	lclnoteproc(data);
 
 	/* 
@@ -789,7 +789,7 @@ enum
 struct {
 	char	*name;
 	Qid	qid;
-	ulong	perm;
+	uint32_t	perm;
 } fstab[] =
 {
 	[Qdir]		{ ".",		{Qdir, 0, QTDIR},	DMDIR|0555	},
@@ -1128,7 +1128,7 @@ err:
 char 	notebuf[ERRMAX];
 
 void
-catcher(void*, char *text)
+catcher(void *v, char *text)
 {
 	int n;
 

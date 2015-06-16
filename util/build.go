@@ -142,10 +142,10 @@ func link(b *build) {
 	if len(b.Programs) > 0 {
 		for _, n := range b.Programs {
 			args := []string{"-o", n}
-			args = append(args, b.Oflags...)
 			f := path.Base(n)
 			o := f[:len(f)] + ".o"
 			args = append(args, []string{o}...)
+			args = append(args, b.Oflags...)
 			args = append(args, b.Libs...)
 			cmd := exec.Command("ld", args...)
 			cmd.Env = append(os.Environ(), b.Env...)
