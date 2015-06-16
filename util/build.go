@@ -108,14 +108,13 @@ func compile(b *build) {
 	args = append(args, b.Cflags...)
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
-			log.Printf("compiling program %v\n", i)
 			argscmd := append(args, []string{i}...)
 			cmd := exec.Command("gcc", argscmd...)
 			cmd.Env = append(os.Environ(), b.Env...)
 			cmd.Stdin = os.Stdin
 			cmd.Stderr = os.Stderr
 			cmd.Stdout = os.Stdout
-			log.Printf("Run %v %v", cmd.Path, cmd.Args)
+			log.Printf("%v", cmd.Args)
 			err := cmd.Run()
 			if err != nil {
 				log.Fatalf("%v\n", err)
@@ -130,7 +129,7 @@ func compile(b *build) {
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
-		log.Printf("Run %v %v", cmd.Path, cmd.Args)
+		log.Printf("%v", cmd.Args)
 		err := cmd.Run()
 		if err != nil {
 			log.Fatalf("%v\n", err)
@@ -153,7 +152,7 @@ func link(b *build) {
 			cmd.Stdin = os.Stdin
 			cmd.Stderr = os.Stderr
 			cmd.Stdout = os.Stdout
-			log.Printf("Run %v %v", cmd.Path, cmd.Args)
+			log.Printf("%v", cmd.Args)
 			err := cmd.Run()
 			if err != nil {
 				log.Fatalf("%v\n", err)
@@ -170,7 +169,7 @@ func link(b *build) {
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
-		log.Printf("Run %v %v", cmd.Path, cmd.Args)
+		log.Printf("%v", cmd.Args)
 		err := cmd.Run()
 		if err != nil {
 			log.Fatalf("%v\n", err)
@@ -184,7 +183,7 @@ func run(b *build, cmd []string) {
 		cmd.Env = append(os.Environ(), b.Env...)
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
-		log.Printf("Run %v %v", cmd.Path, cmd.Args)
+		log.Printf("%v", cmd.Args)
 		err := cmd.Run()
 		if err != nil {
 			log.Fatalf("%v\n", err)

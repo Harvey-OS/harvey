@@ -1,6 +1,6 @@
 #!/boot/rc -m /boot/rcmain
 # boot script for file servers, including standalone ones
-path=(/boot /amd64/bin /rc/bin .)
+path=(/boot /bin /amd64/bin /rc/bin .)
 prompt=('harvey@cpu% ' '	')
 echo 'Hello, I am Harvey :-)'
 bind -a /boot /bin
