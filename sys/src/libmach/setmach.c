@@ -37,6 +37,7 @@ extern	Machdata	mipsmach, mipsmachle, sparcmach, m68020mach, i386mach,
  */
 Machtab	machines[] =
 {
+#ifdef FOO
 	{	"68020",			/*68020*/
 		F68020,
 		F68020B,
@@ -103,12 +104,14 @@ Machtab	machines[] =
 		AI8086,
 		&mi386,
 		&i386mach,	},
+#endif
 	{	"amd64",			/*amd64*/
 		FAMD64,
 		FAMD64B,
 		AAMD64,
 		&mamd64,
 		&i386mach,	},
+#ifdef FOO
 	{	"arm",				/*ARM*/
 		FARM,
 		FARMB,
@@ -139,6 +142,7 @@ Machtab	machines[] =
 		ASPARC64,
 		&msparc64,
 		&sparc64mach,	},
+#endif
 	{	0		},		/*the terminator*/
 };
 
@@ -165,13 +169,14 @@ int
 machbyname(char *name)
 {
 	Machtab *mp;
-
+#ifdef FOO
 	if (!name) {
 		asstype = AMIPS;
 		machdata = &mipsmach;
 		mach = &mmips;
 		return 1;
 	}
+#endif
 	for (mp = machines; mp->name; mp++){
 		if (strcmp(mp->name, name) == 0) {
 			asstype = mp->asstype;
