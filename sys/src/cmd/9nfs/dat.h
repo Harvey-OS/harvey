@@ -16,7 +16,7 @@ typedef struct Accept	Accept;
 typedef struct Auth	Auth;
 typedef struct Authunix	Authunix;
 typedef struct Chalstuff Chalstuff;
-typedef uchar		Fhandle[FHSIZE];
+typedef unsigned char		Fhandle[FHSIZE];
 typedef struct Fid	Fid;
 typedef struct Procmap	Procmap;
 typedef struct Progmap	Progmap;
@@ -99,9 +99,9 @@ struct Reject
 struct Rpccall
 {
 	/* corresponds to Udphdr */
-	uchar	prefix0[12];
+	unsigned char	prefix0[12];
 	uint32_t	host;		/* ipv4 subset: prefixed to RPC message */
-	uchar	prefix1[12];
+	unsigned char	prefix1[12];
 	uint32_t	lhost;		/* ipv4 subset: prefixed to RPC message */
 	/* ignore ifcaddr */
 	uint32_t	port;		/* prefixed to RPC message */
@@ -139,7 +139,7 @@ struct Rpccache
 	uint32_t	port;
 	uint32_t	xid;
 	int	n;
-	uchar	data[4];
+	unsigned char	data[4];
 };
 
 struct Sattr
@@ -171,7 +171,7 @@ struct Unixmap
 {
 	char *	file;
 	int	style;
-	long	timestamp;
+	int32_t	timestamp;
 	Unixid *ids;
 };
 
@@ -231,7 +231,7 @@ struct Fid
 	Fid **	owner;		/* null for root fids */
 	Fid *	prev;
 	Fid *	next;
-	long	tstale;		/* auto-clunk */
+	int32_t	tstale;		/* auto-clunk */
 };
 
 enum
@@ -252,10 +252,10 @@ struct Session
 	char	authdom[DOMLEN];	/* server encryption domain */
 	char *	spec;			/* for attach */
 	Xfile *	root;			/* to answer mount rpc */
-	ushort	tag;
+	uint16_t	tag;
 	Fcall	f;
-	uchar	data[IOHDRSZ+Maxfdata];
-	uchar	statbuf[Maxstatdata];
+	unsigned char	data[IOHDRSZ+Maxfdata];
+	unsigned char	statbuf[Maxstatdata];
 	Fid *	free;			/* available */
 	Fid	list;			/* active, most-recently-used order */
 	Fid	fids[1000];
@@ -266,7 +266,7 @@ struct Chalstuff
 {
 	Chalstuff *next;
 	Xfid *	xf;
-	long	tstale;
+	int32_t	tstale;
 	Chalstate;
 };
 
@@ -274,8 +274,8 @@ extern int	rpcdebug;
 extern int	p9debug;
 extern int	chatty;
 extern void	(*rpcalarm)(void);
-extern long	starttime;
-extern long	nfstime;
+extern int32_t	starttime;
+extern int32_t	nfstime;
 extern char *	config;
 extern int	staletime;
 extern int	messagesize;

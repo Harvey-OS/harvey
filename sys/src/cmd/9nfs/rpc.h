@@ -84,10 +84,10 @@ enum
 
 #define	ROUNDUP(n)	((n) + ((-(n))&3))	
 
-#define	PLONG(x)	(dataptr[3] = ((ulong)(x)), dataptr[2] = ((ulong)(x))>>8, dataptr[1] = ((ulong)(x))>>16, dataptr[0] = ((ulong)(x))>>24, dataptr += 4)
+#define	PLONG(x)	(dataptr[3] = ((uint32_t)(x)), dataptr[2] = ((uint32_t)(x))>>8, dataptr[1] = ((uint32_t)(x))>>16, dataptr[0] = ((uint32_t)(x))>>24, dataptr += 4)
 #define	PPTR(x, n)	(memmove(dataptr, (x), n), dataptr += ROUNDUP(n))
 #define	PBYTE(x)	(*dataptr++ = (x))
 
-#define	GLONG()		(argptr += 4, (((uchar*)argptr)[-1] | (((uchar*)argptr)[-2]<<8) | (((uchar*)argptr)[-3]<<16) | (((uchar*)argptr)[-4]<<24)))
+#define	GLONG()		(argptr += 4, (((unsigned char*)argptr)[-1] | (((unsigned char*)argptr)[-2]<<8) | (((unsigned char*)argptr)[-3]<<16) | (((unsigned char*)argptr)[-4]<<24)))
 #define	GPTR(n)		(void *)(argptr); argptr += ROUNDUP(n)
-#define	GBYTE()	(argptr++, ((uchar*)argptr)[-1])
+#define	GBYTE()	(argptr++, ((unsigned char*)argptr)[-1])

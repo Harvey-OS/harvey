@@ -17,7 +17,7 @@ listalloc(int32_t n, int32_t size)
 {
 	char *p, *base;
 
-	size = (size+sizeof(ulong)-1)/sizeof(ulong)*sizeof(ulong);
+	size = (size+sizeof(uint32_t)-1)/sizeof(uint32_t)*sizeof(uint32_t);
 	p = base = malloc(n*size);
 	while(--n > 0){
 		*(char**)p = p+size;

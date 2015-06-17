@@ -115,7 +115,7 @@ double*	cafp;
 char*	cacp;
 
 double	rah, ram, ras, dday, dmin, dsec;
-long	sao;
+int32_t	sao;
 double	da, dd, px, epoch;
 char	line[100];
 Obj2	osun;
@@ -216,4 +216,4 @@ extern	int	vis(double, double, double, double);
 extern	void	comet(void);
 extern	int	Rconv(Fmt*);
 extern	int	Dconv(Fmt*);
-extern	double	etdate(long, int, double);
+extern	double	etdate(int32_t, int, double);

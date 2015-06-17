@@ -26,20 +26,20 @@ enum
 struct Iobuf
 {
 	Ioclust* clust;
-	long	addr;
-	uchar*	iobuf;
+	int32_t	addr;
+	unsigned char*	iobuf;
 };
 
 struct Ioclust
 {
-	long	addr;			/* in sectors; good to 8TB */
+	int32_t	addr;			/* in sectors; good to 8TB */
 	Xdata*	dev;
 	Ioclust* next;
 	Ioclust* prev;
 	int	busy;
 	int	nbuf;
 	Iobuf*	buf;
-	uchar*	iobuf;
+	unsigned char*	iobuf;
 };
 
 struct Xdata
@@ -47,8 +47,8 @@ struct Xdata
 	Xdata*	next;
 	char*	name;		/* of underlying file */
 	Qid	qid;
-	short	type;
-	short	fdev;
+	uint16_t	type;
+	uint16_t	fdev;
 	int	ref;		/* attach count */
 	int	dev;		/* for read/write */
 };
@@ -61,10 +61,10 @@ struct Xfsub
 	void	(*walkup)(Xfile*);
 	void	(*walk)(Xfile*, char*);
 	void	(*open)(Xfile*, int);
-	void	(*create)(Xfile*, char*, long, int);
-	long	(*readdir)(Xfile*, uchar*, long, long);
-	long	(*read)(Xfile*, char*, vlong, long);
-	long	(*write)(Xfile*, char*, vlong, long);
+	void	(*create)(Xfile*, char*, int32_t, int);
+	int32_t	(*readdir)(Xfile*, unsigned char*, int32_t, int32_t);
+	int32_t	(*read)(Xfile*, char*, int64_t, int32_t);
+	int32_t	(*write)(Xfile*, char*, int64_t, int32_t);
 	void	(*clunk)(Xfile*);
 	void	(*remove)(Xfile*);
 	void	(*stat)(Xfile*, Dir*);
@@ -77,7 +77,7 @@ struct Xfs
 	Xfsub*	s;		/* how to use them */
 	int	ref;
 	int	issusp;	/* follows system use sharing protocol */
-	long	suspoff;	/* if so, offset at which SUSP area begins */
+	int32_t	suspoff;	/* if so, offset at which SUSP area begins */
 	int	isrock;	/* Rock Ridge format */
 	int	isplan9;	/* has Plan 9-specific directory info */
 	Qid	rootqid;
@@ -88,7 +88,7 @@ struct Xfile
 {
 	Xfile*	next;		/* in fid hash bucket */
 	Xfs*	xf;
-	long	fid;
+	int32_t	fid;
 	uint32_t	flags;
 	Qid	qid;
 	int	len;		/* of private data */

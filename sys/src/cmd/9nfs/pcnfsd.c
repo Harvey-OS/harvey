@@ -74,7 +74,7 @@ pcinit(int argc, char **argv)
 static int
 pcnull(int n, Rpccall *cmd, Rpccall *reply)
 {
-	USED(n, cmd, reply);
+	USED(n); USED(cmd); USED(reply);
 	return 0;
 }
 

@@ -13,7 +13,7 @@ Occ	 o1, o2;
 Obj2	 xo1, xo2;
 
 void
-occult(Obj2 *p1, Obj2 *p2, double)
+occult(Obj2 *p1, Obj2 *p2, double d)
 {
 	int i, i1, N;
 	double d1, d2, d3, d4;

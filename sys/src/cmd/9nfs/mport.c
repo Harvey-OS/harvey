@@ -34,7 +34,7 @@ main(int argc, char **argv)
 {
 	char addr[64], dir[64], name[128];
 	char buf[33], *p;
-	uchar *dataptr, *argptr;
+	unsigned char *dataptr, *argptr;
 	int i, fd, n, remport;
 
 	ARGBEGIN{
@@ -100,7 +100,7 @@ main(int argc, char **argv)
 	PLONG(IPPROTO_UDP);
 	PLONG(0);
 
-	i = rpccall(&r, dataptr-(uchar*)r.cmd.args);
+	i = rpccall(&r, dataptr-(unsigned char*)r.cmd.args);
 	if(i != 4)
 		exits("trouble");
 	argptr = r.reply.results;
@@ -113,7 +113,7 @@ main(int argc, char **argv)
 	r.cmd.proc = 0;		/* null */
 	dataptr = r.cmd.args;
 
-	i = rpccall(&r, dataptr-(uchar*)r.cmd.args);
+	i = rpccall(&r, dataptr-(unsigned char*)r.cmd.args);
 	if(i != 0)
 		exits("trouble");
 	fprint(2, "OK ping mount\n");
@@ -123,7 +123,7 @@ main(int argc, char **argv)
 	r.cmd.proc = 5;		/* export */
 	dataptr = r.cmd.args;
 
-	i = rpccall(&r, dataptr-(uchar*)r.cmd.args);
+	i = rpccall(&r, dataptr-(unsigned char*)r.cmd.args);
 	fprint(2, "export: %d bytes returned\n", i);
 	argptr = r.reply.results;
 	while (GLONG() != 0) {

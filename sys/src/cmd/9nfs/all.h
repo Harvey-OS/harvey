@@ -19,7 +19,7 @@
 #include "fns.h"
 #include "rpc.h"
 #include "nfs.h"
-#pragma	varargck	type	"I"	ulong
+#pragma	varargck	type	"I"	uint32_t
 #pragma	varargck	argpos	chat	1
 #pragma	varargck	argpos	clog	1
 #pragma	varargck	argpos	panic	1

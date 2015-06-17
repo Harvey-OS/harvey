@@ -215,7 +215,7 @@ chat("%d %d\n", haveplan9, nojoliet);
 static void
 iclone(Xfile *of, Xfile *nf)
 {
-	USED(of, nf);
+	USED(of); USED(nf);
 }
 
 static void
@@ -319,7 +319,7 @@ iopen(Xfile *f, int mode)
 static void
 icreate(Xfile *f, char *name, int32_t perm, int mode)
 {
-	USED(f, name, perm, mode);
+	USED(f); USED(name); USED(perm); USED(mode);
 	error(Eperm);
 }
 
@@ -397,7 +397,7 @@ iread(Xfile *f, char *buf, int64_t offset, int32_t count)
 static int32_t
 iwrite(Xfile *f, char *buf, int64_t offset, int32_t count)
 {
-	USED(f, buf, offset, count);
+	USED(f); USED(buf); USED(offset); USED(count);
 	error(Eperm);
 	return 0;
 }
@@ -431,7 +431,7 @@ istat(Xfile *f, Dir *d)
 static void
 iwstat(Xfile *f, Dir *d)
 {
-	USED(f, d);
+	USED(f); USED(d);
 	error(Eperm);
 }
 

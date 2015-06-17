@@ -37,7 +37,7 @@ void	rwrite(void);
 void	rwstat(void);
 
 static int	openflags(int);
-static void	rmservice(void);
+//static void	rmservice(void);
 static void	usage(void);
 
 #define Reqsize (sizeof(Fcall)+Maxfdata)

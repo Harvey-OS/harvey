@@ -39,9 +39,9 @@ Procmap nfsproc[] = {
 	3, nfsroot,	/* void */
 	4, nfslookup,	/* Fhandle, String */
 	5, nfsreadlink,	/* Fhandle */
-	6, nfsread,	/* Fhandle, long, long, long */
+	6, nfsread,	/* Fhandle, int32_t, int32_t, int32_t */
 	7, nfswritecache,/* void */
-	8, nfswrite,	/* Fhandle, long, long, long, String */
+	8, nfswrite,	/* Fhandle, int32_t, int32_t, int32_t, String */
 	9, nfscreate,	/* Fhandle, String, Sattr */
 	10, nfsremove,	/* Fhandle, String */
 	11, nfsrename,	/* Fhandle, String, Fhandle, String */
@@ -49,7 +49,7 @@ Procmap nfsproc[] = {
 	13, nfssymlink,	/* Fhandle, String, String, Sattr */
 	14, nfsmkdir,	/* Fhandle, String, Sattr */
 	15, nfsrmdir,	/* Fhandle, String */
-	16, nfsreaddir,	/* Fhandle, long, long */
+	16, nfsreaddir,	/* Fhandle, int32_t, int32_t */
 	17, nfsstatfs,	/* Fhandle */
 	0, 0
 };
@@ -644,8 +644,8 @@ nfsstatfs(int n, Rpccall *cmd, Rpccall *reply)
 	uint8_t *dataptr = reply->results;
 	enum {
 		Xfersize = 2048,
-		Maxlong = (int32_t)((1ULL<<31) - 1),
-		Maxfreeblks = Maxlong / Xfersize,
+		Maxint32_t = (int32_t)((1ULL<<31) - 1),
+		Maxfreeblks = Maxint32_t / Xfersize,
 	};
 
 	chat("statfs...");

@@ -1,0 +1,19 @@
+{
+	"Name": "9nfs",
+	"Programs": [
+	"portmapper",
+	"pcnfsd"
+	],
+	"Include": ["../cmd.json"],
+	"Pre": [
+	],
+	"SourceFilesCmd": [
+	"portmapper.c",
+	"pcnfsd.c"
+	],
+	"Post": [
+	"[ -d ../../../../amd64/bin/aux ] || mkdir ../../../../amd64/bin/aux",
+	"mv portmapper ../../../../amd64/bin/aux/",
+	"mv pcnfsd ../../../../amd64/bin/aux/"
+	]
+}

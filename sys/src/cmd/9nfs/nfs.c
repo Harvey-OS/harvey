@@ -69,7 +69,7 @@ rpc2xfid(Rpccall *cmd, Dir *dp)
 		chat("%ld@%.*s...", au.uid, utfnlen(au.mach.s, (p ? p-au.mach.s : au.mach.n)), au.mach.s);
 	}
 	if(au.mach.n >= sizeof client){
-		chat("client name too long...");
+		chat("client name too int32_t...");
 		return 0;
 	}
 	memcpy(client, au.mach.s, au.mach.n);
@@ -382,8 +382,8 @@ xpclear(Xfile *xp)
 int
 xp2fhandle(Xfile *xp, Fhandle fh)
 {
-	uchar *dataptr = fh;
-	ulong x;
+	unsigned char *dataptr = fh;
+	uint32_t x;
 	int n;
 
 	memset(fh, 0, FHSIZE);

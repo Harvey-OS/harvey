@@ -23,7 +23,7 @@ xfile(Qid *qid, void *s, int new)
 	int k;
 	Xfile **hp, *f, *pf;
 
-	k = ((ulong)qid->path ^ (((u32int)(uintptr)s)<<24))%FIDMOD;
+	k = ((uint32_t)qid->path ^ (((u32int)(uintptr)s)<<24))%FIDMOD;
 	hp = &xfiles[k];
 
 	lock(&xlocks[k]);

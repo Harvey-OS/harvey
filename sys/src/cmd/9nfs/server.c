@@ -394,11 +394,11 @@ writetcp(int fd, void *vbuf, int32_t len)
 	return write(fd, buf, len);
 }
 /*
- *long
- *niwrite(int fd, void *buf, long count)
+ *int32_t
+ *niwrite(int fd, void *buf, int32_t count)
  *{
  *	char errbuf[ERRLEN];
- *	long n;
+ *	int32_t n;
  *
  *	for(;;){
  *		n = write(fd, buf, count);

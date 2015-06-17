@@ -122,6 +122,11 @@
 	"xd",
 	"yacc"
 	],
+	"Projects": [
+	"9660srv/9660srv.json",
+	"9nfs/9nfs.json",
+	"astro/astro.json"
+	],
 	"Include": ["cmd.json"],
 	"Pre": [
 	],

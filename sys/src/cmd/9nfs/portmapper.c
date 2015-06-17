@@ -77,7 +77,7 @@ pmapinit(int argc, char **argv)
 static int
 pmapnull(int n, Rpccall *cmd, Rpccall *reply)
 {
-	USED(n, cmd, reply);
+	USED(n); USED(cmd); USED(reply);
 	return 0;
 }
 

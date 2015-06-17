@@ -36,7 +36,7 @@ comet(void)
 		11.41096,
 		198.77059,
 		69.27130,
-	};	/* p/schwassmann-wachmann 3, 1989d */
+	};	*//* p/schwassmann-wachmann 3, 1989d */
 /*	elem = (struct elem)
 	{
 		etdate(1990, 4, 9.9761),
@@ -45,7 +45,7 @@ comet(void)
 		58.9596,
 		61.5546,
 		75.2132,
-	};	/* austin 3, 1989c */
+	};	*//* austin 3, 1989c */
 /*	elem = (struct elem)
 	{
 		etdate(1990, 10, 24.36),
@@ -54,7 +54,7 @@ comet(void)
 		131.62,
 		242.58,
 		138.57,
-	};	/* levy 6 , 1990c */
+	};	*//* levy 6 , 1990c */
 /*	elem=(struct elem)
 	{
 		etdate(1996, 5, 1.3965),
@@ -63,7 +63,7 @@ comet(void)
 		124.9098,
 		130.2102,
 		188.0430,
-	};	/* C/1996 B2 (Hyakutake) */
+	};	*//* C/1996 B2 (Hyakutake) */
 /*	elem=(struct elem)
 	{
 		etdate(1997, 4, 1.13413),
@@ -72,7 +72,7 @@ comet(void)
 		89.42932,
 		130.59066,
 		282.47069,
-	};	/*C/1995 O1 (Hale-Bopp) */
+	};	*//*C/1995 O1 (Hale-Bopp) */
 /*	elem=(struct elem)
 	{
 		etdate(2000, 7, 26.1754),
@@ -81,7 +81,7 @@ comet(void)
 		149.3904,
 		151.0510,
 		83.1909,
-	};	/*C/1999 S4 (Linear) */
+	};	*//*C/1999 S4 (Linear) */
 	elem=(struct elem)
 	{
 		etdate(2002, 3, 18.9784),

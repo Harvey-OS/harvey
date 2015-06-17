@@ -1,0 +1,24 @@
+{
+	"Name": "awk",
+	"Program": "awk",
+	"Include": ["../cmd.json"],
+	"Pre": [
+	"yacc -d awkgram.y"
+	],
+    "SourceFiles": [
+	"awkgram.c",
+	"lex.c",
+	"lib.c",
+	"main.c",
+	"maketab.c",
+	"parse.c",
+	"proctab.c",
+	"re.c",
+	"run.c",
+	"tran.c",
+	"y.tab.c"
+	],
+	"Post": [
+	"mv awk ../../../../amd64/bin/"
+	]
+}

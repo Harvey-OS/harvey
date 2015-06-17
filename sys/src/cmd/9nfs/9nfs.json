@@ -1,0 +1,30 @@
+{
+	"Name": "nfsserver",
+	"Program": "nfsserver",
+	"Projects": [
+	"portmapper.json"
+	],
+	"Include": ["../cmd.json"],
+	"Pre": [
+	],
+	"SourceFiles": [
+	"9p.c",
+	"auth.c",
+	"authhostowner.c",
+	"nfs.c",
+	"nfsmount.c",
+	"xfile.c",
+	"chat.c",
+	"rpc.c",
+	"string.c",
+	"strparse.c",
+	"system.c",
+	"listalloc.c",
+	"server.c",
+	"unixnames.c"
+	],
+	"Post": [
+	"[ -d ../../../../amd64/bin/aux ] || mkdir ../../../../amd64/bin/aux",
+	"mv nfsserver ../../../../amd64/bin/aux/"
+	]
+}

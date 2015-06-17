@@ -92,7 +92,7 @@ readunixidmaps(char *file)
 	Unixidmap *m;
 	int i, arc; char *arv[16], buf[256];
 	char *l;
-// 	long savalarm;
+// 	int32_t savalarm;
 
 // 	savalarm = alarm(0);
 	in = Bopen(file, OREAD);
