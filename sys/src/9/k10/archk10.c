@@ -81,7 +81,7 @@ print("\n");*/
 //	print("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
 //	print("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
 //	See in main.c this message.
-//	return 0;
+	return 0;
 
 	if(memcmp(&info0[1], "GenuntelineI", 12) == 0){
 		switch(info1[0] & 0x0fff3ff0){
