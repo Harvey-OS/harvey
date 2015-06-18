@@ -78,9 +78,10 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 /*	char *cp = info0[1];
 {int i; for(i =0; i < 12; i++) print("%c", cp[i]);}
 print("\n");*/
-	print("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
-	print("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
-	return 0;
+//	print("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
+//	print("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
+//	See in main.c this message.
+//	return 0;
 
 	if(memcmp(&info0[1], "GenuntelineI", 12) == 0){
 		switch(info1[0] & 0x0fff3ff0){
@@ -187,14 +188,19 @@ print("\n");*/
 		switch(info1[0] & 0x0fff0ff0){
 		default:
 			return 0;
-		case 0x00000f50:		/* K8 */
+		case 0x00000f40:		/* K8 Athlon */
+		case 0x00000f50:		/* K8 Opteron */
 		case 0x00000f60:		/* K? */
-		/* This checks ensures that msr won't be 0*/
 			msr = rdmsr(0xc0010042);
 			if(msr == 0) {
 				return 0;
 			}
 			hz = (800 + 200*((msr>>1) & 0x1f)) * 1000000ll;
+			break;
+		case 0x00100f40:		/* Phenom II X4 */
+			msr = rdmsr(0xC0010064);
+			r = (msr>>6) & 0x07;
+			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
 			break;
 		case 0x00100f90:		/* K10 */
 		case 0x00000620:		/* QEMU64 */
@@ -203,7 +209,7 @@ print("\n");*/
 			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
 			break;
 		}
-		DBG("cpuidhz: %#llux hz %lld\n", msr, hz);
+		print("cpuidhz: %#llux hz %lld\n", msr, hz);
 	}
 	else
 		return 0;
@@ -257,7 +263,7 @@ archhz(void)
 	if(hz != 0 || m->machno != 0)
 		return hz;
 
-	iprint("arch hz, cpuidhz failed, going to i8254hz\n");
+	print("archhz, cpuidhz failed, going to i8254hz\n");
 	return i8254hz(info0, info1);
 }
 

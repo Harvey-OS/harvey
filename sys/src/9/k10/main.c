@@ -481,6 +481,8 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 		m->cpumhz = hz/1000000ll;
 	}
 	iprint("archhz returns 0x%lld\n", hz);
+	print("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
+	print("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
 
 	/*
 	 * Mmuinit before meminit because it

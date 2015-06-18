@@ -24,7 +24,7 @@ THIS SOFTWARE.
 
 %{
 #include <stdio.h>
-#include <String.h>
+#include <string.h>
 #include "awk.h"
 
 #define	makedfa(a,b)	compre(a)
