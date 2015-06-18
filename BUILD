@@ -25,25 +25,12 @@ _BUILD_DIR=`dirname $0`
 export _BUILD_DIR=$(cd "$_BUILD_DIR"; pwd)
 . ${_BUILD_DIR}/BUILD.conf
 
-#ARGS:
-#  $1 -> pass the $? return
-#  $2 -> component name 
-check_error()
-{
-	if [ $1 -ne 0 ]
-	then
-		echo "ERROR $2"
-		exit 1
-	fi
-}
-
 compile_kernel()
 {
 	export HARVEY="$_BUILD_DIR"
 	cd "$KRL_DIR"
 	$HARVEY/util/build $KERNEL_CONF.json
 	cd "$PATH_ORI" > /dev/null
-
 }
 
 build_kernel()
@@ -81,33 +68,6 @@ check_utils()
 		echo 1
 	fi
 }
-
-## Be sure amd64/lib is there!! ##
-
-check_lib_dir()
-{
-	if [ ! -d "$LIB_DIR" ]
-	then
-		mkdir "$LIB_DIR"
-		if [ $? -ne 0 ]
-		then
-			echo "ERROR creating <$LIB_DIR> directory"
-		fi
-	fi
-}
-
-check_bin_dir()
-{
-        if [ ! -d "$BIN_DIR" ]
-        then
-                mkdir "$BIN_DIR"
-                if [ $? -ne 0 ]
-                then
-                        echo "ERROR creating <$BIN_DIR> directory"
-                fi
-        fi
-}
-
 
 build_libs()
 {
@@ -195,8 +155,6 @@ else
 					fi
 					;;
 			"all")
-					check_bin_dir
-					check_lib_dir
 					build_go_utils
 					build_libs
 					build_klibs
