@@ -27,7 +27,7 @@ struct {
 } flash;
 
 void
-initdata(char *f, int)
+initdata(char *f, int i)
 {
 	char err[ERRMAX];
 	char buf[1024], *fld[8];

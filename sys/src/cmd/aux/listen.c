@@ -159,7 +159,7 @@ main(int argc, char *argv[])
 }
 
 static void
-dingdong(void*, char *msg)
+dingdong(void *v, char *msg)
 {
 	if(strstr(msg, "alarm") != nil)
 		noted(NCONT);

@@ -46,7 +46,7 @@ usage(void)
 static void
 catch(void *a, char *msg)
 {
-	USED(a, msg);
+	USED(a); USED(msg);
 	if(strstr(msg, "alarm"))
 		noted(NCONT);
 	noted(NDFLT);

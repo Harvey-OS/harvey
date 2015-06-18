@@ -72,7 +72,7 @@ readFibhdr(Fibhdr *s, uint8_t *v, int nv)
 	s->fFarEast = ((v[0xB]) & 0x64) >> 6;
 	s->fCrypto = ((v[0xB]) & 0x128) >> 7;
 	s->nFibBack = v[0xC] | (v[0xC+1] << 8);
-	s->lKey = v[0xE] | (v[0xE+1] << 8)| (v[0xE+2] << 16) | (v[0xE+3] << 24);
+	s->lKey = v[0xE] | (v[0xE + 1] << 8)| (v[0xE + 2] << 16) | (v[0xE + 3] << 24);
 	s->envr = v[0x12];
 	s->fMac = ((v[0x13]) & 0x1) >> 0;
 	s->fEmptySpecial = ((v[0x13]) & 0x2) >> 1;
@@ -98,7 +98,7 @@ main(int argc, char **argv)
 {
 	Biobuf *b;
 	Biobuf bout;
-	uchar buf[512];
+	unsigned char buf[512];
 	Fibhdr f;
 	int i, c, n;
 
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 		case 21:	Bprint(&bout, ">");		break;	/* field end */
 		case 30:	Bprint(&bout, "-");		break;	/* non-breaking hyphen */
 		case 31:				break;	/* non-required hyphen */
-	/*	case 45:	Bprint(&bout, "-");		break;	/* breaking hyphen */
+	/*	case 45:	Bprint(&bout, "-");		break;	*//* breaking hyphen */
 		case 160:	Bprint(&bout, " ");		break;	/* non-breaking space */
 
 		/*

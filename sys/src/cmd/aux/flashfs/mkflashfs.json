@@ -1,0 +1,15 @@
+{
+    "Name": "mkflashfs",
+    "Program": "mkflashfs",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "mkfs.c",
+    "devfs.c",
+    "utils.c"
+	],
+	"Post": [
+    "mv mkflashfs $HARVEY/amd64/bin/aux/"
+	]
+}

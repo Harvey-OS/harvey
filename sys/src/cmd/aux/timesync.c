@@ -106,7 +106,7 @@ enum
 };
 
 /* error bound of last sample */
-ulong	ε;
+uint32_t	etha;
 
 static void	addntpserver(char *name);
 static int	adjustperiod(int64_t diff, int64_t accuracy, int secs);
@@ -156,8 +156,8 @@ main(int argc, char **argv)
 	int i, t, fd, nservenet;
 	int secs;		/* sampling period */
 	int tsecs;		/* temporary sampling period */
-	uvlong hz, minhz, maxhz, period, nhz;
-	vlong diff, accuracy, taccuracy;
+	uint64_t hz, minhz, maxhz, period, nhz;
+	int64_t diff, accuracy, taccuracy;
 	char *servenet[4];
 	Sample *s, *x, *first, **l;
 	Tm tl, tg;
@@ -363,7 +363,7 @@ main(int argc, char **argv)
 		diff = 0;
 
 		/* get times for this sample */
-		ε = ~0;
+		etha = ~0;
 		switch(type){
 		case Fs:
 			s->stime = sample(fstime);
@@ -439,14 +439,14 @@ main(int argc, char **argv)
 			 * to the clock.  we only do 1/4 of the difference per
 			 * period to dampen any measurement noise.
 			 *
-			 * any difference greater than ε we work off during the
+			 * any difference greater than etha we work off during the
 			 * sampling period.
 			 */
-			if(abs(diff) > ε)
+			if(abs(diff) > etha)
 				if(diff > 0)
-					settime(-1, 0, diff-((3*ε)/4), secs);
+					settime(-1, 0, diff-((3*etha)/4), secs);
 				else
-					settime(-1, 0, diff+((3*ε)/4), secs);
+					settime(-1, 0, diff+((3*etha)/4), secs);
 			else
 				settime(-1, 0, diff, 4*secs);
 
@@ -639,7 +639,7 @@ inittime(void)
 static uint64_t uvorder = 0x0001020304050607ULL;
 
 static uint8_t*
-be2vlong(int64_t *to, uint8_t *f)
+be2int64_t(int64_t *to, uint8_t *f)
 {
 	uint8_t *t, *o;
 	int i;
@@ -652,7 +652,7 @@ be2vlong(int64_t *to, uint8_t *f)
 }
 
 static uint8_t*
-vlong2be(uint8_t *t, int64_t from)
+int64_t2be(uint8_t *t, int64_t from)
 {
 	uint8_t *f, *o;
 	int i;
@@ -714,13 +714,13 @@ gettime(int64_t *nsec, uint64_t *ticks, uint64_t *hz)
 			break;
 		p = ub;
 		if(nsec != nil)
-			be2vlong(nsec, ub);
+			be2int64_t(nsec, ub);
 		p += sizeof(int64_t);
 		if(ticks != nil)
-			be2vlong((int64_t*)ticks, p);
+			be2int64_t((int64_t*)ticks, p);
 		p += sizeof(int64_t);
 		if(hz != nil)
-			be2vlong((int64_t*)hz, p);
+			be2int64_t((int64_t*)hz, p);
 		return 0;
 	case Itiming:
 		n = sizeof(int64_t);
@@ -731,10 +731,10 @@ gettime(int64_t *nsec, uint64_t *ticks, uint64_t *hz)
 			break;
 		p = ub;
 		if(nsec != nil)
-			be2vlong(nsec, ub);
+			be2int64_t(nsec, ub);
 		p += sizeof(int64_t);
 		if(ticks != nil)
-			be2vlong((int64_t*)ticks, p);
+			be2int64_t((int64_t*)ticks, p);
 		if(hz != nil){
 			seek(fastclockfd, 0, 0);
 			n = read(fastclockfd, b, sizeof(b)-1);
@@ -789,14 +789,14 @@ settime(int64_t now, uint64_t hz, int64_t delta, int n)
 		if(now >= 0){
 			p = b;
 			*p++ = 'n';
-			p = vlong2be(p, now);
+			p = int64_t2be(p, now);
 			if(write(bintimefd, b, p-b) < 0)
 				sysfatal("writing /dev/bintime: %r");
 		}
 		if(delta != 0){
 			p = b;
 			*p++ = 'd';
-			p = vlong2be(p, delta);
+			p = int64_t2be(p, delta);
 			p = long2be(p, n);
 			if(write(bintimefd, b, p-b) < 0)
 				sysfatal("writing /dev/bintime: %r");
@@ -804,7 +804,7 @@ settime(int64_t now, uint64_t hz, int64_t delta, int n)
 		if(hz != 0){
 			p = b;
 			*p++ = 'f';
-			p = vlong2be(p, hz);
+			p = int64_t2be(p, hz);
 			if(write(bintimefd, b, p-b) < 0)
 				sysfatal("writing /dev/bintime: %r");
 		}
@@ -933,7 +933,7 @@ setrootid(char *d)
 }
 
 static void
-ding(void*, char *s)
+ding(void *v, char *s)
 {
 	if(strstr(s, "alarm") != nil)
 		noted(NCONT);
@@ -1051,11 +1051,11 @@ gpssample(void)
 	return d;
 }
 
-static vlong
+static int64_t
 ntpsample(void)
 {
 	NTPserver *tns, *ns;
-	vlong metric, x;
+	int64_t metric, x;
 
 	metric = 1000LL*SEC;
 	ns = nil;
@@ -1085,7 +1085,7 @@ ntpsample(void)
 	else
 		stratum = ns->stratum + 1;
 
-	ε = abs(ns->rtt/2);
+	etha = abs(ns->rtt/2);
 	return ns->dt;
 }
 

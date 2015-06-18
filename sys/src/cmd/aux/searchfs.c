@@ -110,7 +110,7 @@ struct Fs
 	Lock;			/* for fids */
 
 	Fid	*hash[Nfidhash];
-	uchar	statbuf[1024];	/* plenty big enough */
+	unsigned char	statbuf[1024];	/* plenty big enough */
 };
 extern	void	fsrun(Fs*, int);
 extern	Fid*	getfid(Fs*, uint);
@@ -691,7 +691,7 @@ getfid(Fs *fs, uint fid)
 }
 
 void
-putfid(Fs *, Fid *f)
+putfid(Fs *fs, Fid *f)
 {
 	f->ref--;
 	if(f->ref == 0 && f->attached == 0){
@@ -705,7 +705,7 @@ putfid(Fs *, Fid *f)
 }
 
 char*
-fsversion(Fs *, Fcall *rpc)
+fsversion(Fs *fs, Fcall *rpc)
 {
 	if(rpc->msize < 256)
 		return "version: message size too small";
@@ -719,7 +719,7 @@ fsversion(Fs *, Fcall *rpc)
 }
 
 char*
-fsauth(Fs *, Fcall *)
+fsauth(Fs *fs, Fcall *f)
 {
 	return "searchfs: authentication not required";
 }
@@ -832,7 +832,7 @@ fsopen(Fs *fs, Fcall *rpc)
 }
 
 char *
-fscreate(Fs *, Fcall *)
+fscreate(Fs *fs, Fcall *f)
 {
 	return Eperm;
 }
@@ -927,7 +927,7 @@ fsclunk(Fs *fs, Fcall *rpc)
 }
 
 char *
-fsremove(Fs *, Fcall *)
+fsremove(Fs *fs, Fcall *f)
 {
 	return Eperm;
 }
@@ -949,7 +949,7 @@ fsstat(Fs *fs, Fcall *rpc)
 }
 
 char *
-fswstat(Fs *, Fcall *)
+fswstat(Fs *fs, Fcall *f)
 {
 	return Eperm;
 }

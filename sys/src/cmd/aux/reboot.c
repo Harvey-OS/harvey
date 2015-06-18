@@ -46,7 +46,7 @@ readenv(char *name, char *buf, int n)
 int alarmed;
 
 void
-ding(void*, char*msg)
+ding(void *v, char*msg)
 {
 	if(strstr(msg, "alarm")){
 		alarmed = 1;

@@ -9,7 +9,7 @@
 
 #include <u.h>
 #include <libc.h>
-#include </386/include/ureg.h>
+#include <ureg.h>
 typedef struct Ureg Ureg;
 #include <auth.h>
 #include <fcall.h>
@@ -923,7 +923,7 @@ int nopoll;
 char eventq[32][80];
 
 static void
-flushthread(void*)
+flushthread(void *v)
 {
 	Req *r, *or, **rq;
 
@@ -982,7 +982,7 @@ answerany(void)
 }
 
 static void
-eventwatch(void*)
+eventwatch(void *v)
 {
 	int e, s;
 
@@ -1001,7 +1001,7 @@ eventwatch(void*)
 }
 
 static void
-eventthread(void*)
+eventthread(void *v)
 {
 	int e;
 
@@ -1021,7 +1021,7 @@ eventthread(void*)
 }
 
 static void
-eventproc(void*)
+eventproc(void *v)
 {
 	Req *r;
 

@@ -14,7 +14,7 @@
 
 void	record(uint8_t*, int32_t);
 void	usage(void);
-void	segment(vlong, vlong);
+void	segment(int64_t, int64_t);
 
 enum
 {
@@ -36,7 +36,7 @@ void
 main(int argc, char **argv)
 {
 	Dir *dir;
-	uvlong totsz;
+	uint64_t totsz;
 
 	ARGBEGIN{
 	case 'd':

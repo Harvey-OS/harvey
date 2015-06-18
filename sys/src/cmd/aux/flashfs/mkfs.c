@@ -39,10 +39,10 @@ argval(char *arg)
 void
 main(int argc, char **argv)
 {
-	ulong i;
+	uint32_t i;
 	int m, n;
 	char *file;
-	uchar hdr[MAXHDR];
+	unsigned char hdr[MAXHDR];
 
 	ARGBEGIN {
 	case 'n':

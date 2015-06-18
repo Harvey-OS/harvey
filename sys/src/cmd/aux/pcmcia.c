@@ -120,7 +120,7 @@ main(int argc, char *argv[])
 		next = tuple(next, 0);
 }
 
-ulong speedtab[16] =
+uint32_t speedtab[16] =
 {
 [1]	250,
 [2]	200,
@@ -128,7 +128,7 @@ ulong speedtab[16] =
 [4]	100,
 };
 
-ulong mantissa[16] =
+uint32_t mantissa[16] =
 {
 [1]	10,
 [2]	12,
@@ -147,7 +147,7 @@ ulong mantissa[16] =
 [0xf]	80,
 };
 
-ulong exponent[8] =
+uint32_t exponent[8] =
 {
 [0]	1,
 [1]	10,
@@ -250,7 +250,7 @@ tdevice(int ttype, int len)
 }
 
 void
-tlonglnkmfc(int, int)
+tlonglnkmfc(int p, int n)
 {
 	int i, opos;
 	uint8_t nfn, space, expect;
@@ -283,7 +283,7 @@ static char *funcids[] = {
 };
 
 void
-tfuncid(int, int)
+tfuncid(int p, int i)
 {
 	uint8_t func;
 
@@ -337,7 +337,7 @@ tcfig(int ttype, int len)
 	uint32_t cregs;
 	int i;
 
-	USED(ttype, len);
+	USED(ttype); USED(len);
 	if(readc(&size) != 1)
 		return;
 	rasize = (size&0x3) + 1;
@@ -578,7 +578,7 @@ tentry(int ttype, int len)
 	char *tname;
 	char buf[16];
 
-	USED(ttype, len);
+	USED(ttype); USED(len);
 	if(readc(&c) != 1)
 		return;
 	print("configuration %d%s\n", c&0x3f, (c&0x40)?" (default)":"");

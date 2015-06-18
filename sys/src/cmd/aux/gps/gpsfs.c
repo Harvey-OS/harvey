@@ -44,8 +44,8 @@ struct Fix {
 	 * The following are in Plan 9 time format:
 	 * seconds or nanoseconds since the epoch.
 	 */
-	vlong		localtime;	/* nsec() value when first byte was read */
-	vlong		gpstime;	/* nsec() value from GPS */
+	int64_t		localtime;	/* nsec() value when first byte was read */
+	int64_t		gpstime;	/* nsec() value from GPS */
 	long		time;		/* time() value from GPS */
 
 	double		zulu;

@@ -94,7 +94,7 @@ fsstat(Req *r)
 }
 
 int
-dirgen(int off, Dir *d, void*)
+dirgen(int off, Dir *d, void *v)
 {
 	if(off != 0)
 		return -1;

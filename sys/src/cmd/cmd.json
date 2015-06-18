@@ -1,7 +1,7 @@
 {
     "Name": "Cmd",
     "Pre": [
-	"rm -f *.o *.tag.*"
+	"rm -f *.tag.*"
     ],
     "Cflags": [
 	"-mcmodel=small",

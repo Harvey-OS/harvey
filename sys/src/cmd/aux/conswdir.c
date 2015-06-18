@@ -113,7 +113,7 @@ process(char *buf, int n, int *pn)
 		case Semi:
 			if(*p == '\007')
 				state++;
-			else if((uchar)*p < 040)
+			else if((unsigned char)*p < 040)
 				state = None;
 			break;
 		}
@@ -139,7 +139,7 @@ process(char *buf, int n, int *pn)
 }
 
 static void
-catchint(void*, char *msg)
+catchint(void *v, char *msg)
 {
 	if(strstr(msg, "interrupt"))
 		noted(NCONT);

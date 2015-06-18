@@ -585,7 +585,7 @@ bcastmembers(Fs *fs, Console *c, char *msg, Fid *f)
 }
 
 void
-handler(void*, char *msg)
+handler(void *v, char *msg)
 {
 	if(strstr(msg, "reopen") != nil ||
 	   strstr(msg, "write on closed pipe") != nil)
@@ -760,13 +760,13 @@ fsputfid(Fs *fs, Fid *f)
 }
 
 void
-fsauth(Fs *fs, Request *r, Fid*)
+fsauth(Fs *fs, Request *r, Fid *f)
 {
 	fsreply(fs, r, "consolefs: authentication not required");
 }
 
 void
-fsversion(Fs *fs, Request *r, Fid*)
+fsversion(Fs *fs, Request *r, Fid *f)
 {
 
 	if(r->f.msize < 256){
@@ -1018,7 +1018,7 @@ fsopen(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fscreate(Fs *fs, Request *r, Fid*)
+fscreate(Fs *fs, Request *r, Fid *f)
 {
 	fsreply(fs, r, Eperm);
 }
@@ -1179,7 +1179,7 @@ fsclunk(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fsremove(Fs *fs, Request *r, Fid*)
+fsremove(Fs *fs, Request *r, Fid *f)
 {
 	fsreply(fs, r, Eperm);
 }
@@ -1207,7 +1207,7 @@ fsstat(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fswstat(Fs *fs, Request *r, Fid*)
+fswstat(Fs *fs, Request *r, Fid *f)
 {
 	fsreply(fs, r, Eperm);
 }

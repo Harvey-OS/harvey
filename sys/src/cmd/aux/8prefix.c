@@ -54,7 +54,7 @@ Biobuf bout;
 char *prefix;
 int verbose;
 
-void *emalloc(ulong);
+void *emalloc(uint32_t);
 Sym *lookup(char*, int);
 Obj *openobj(char*);
 void walkobj(Obj*, void (*fn)(int, Sym*, uint8_t*, int));

@@ -138,7 +138,7 @@ markblock(uint32_t from, uint32_t fromval, Block *b)
 	uint32_t top;
 	Block *nb;
 
-USED(from, fromval);
+USED(from); USED(fromval);
 //print("trace 0x%.8lux from 0x%.8lux (%d)\n", b->addr, from, b->mark);
 	if(b->free){
 	//	fprint(2, "possible dangling pointer *0x%.8lux = 0x%.8lux\n", from, fromval);
@@ -185,7 +185,7 @@ main(int argc, char **argv)
 	Biobuf bio;
 	char *p, *f[10];
 	int bitmap, c, nf, resolution, n8, n16, hdr, nhdr, nlhdr, nleak, x, y, nb;
-	ulong allocstart, allocend, len, u;
+	uint32_t allocstart, allocend, len, u;
 	Data *d, *ed;
 	Block *b, *eb;
 

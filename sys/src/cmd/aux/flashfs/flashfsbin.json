@@ -1,0 +1,20 @@
+{
+    "Name": "flashfsbin",
+    "Program": "flashfs",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "flash.c",
+    "journal.c",
+    "entry.c",
+    "errors.c",
+    "request.c",
+    "devfs.c",
+    "conv.c",
+    "utils.c"
+	],
+	"Post": [
+    "mv flashfs $HARVEY/amd64/bin/aux/"
+	]
+}

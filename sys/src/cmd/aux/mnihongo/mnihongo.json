@@ -1,0 +1,13 @@
+{
+    "Name": "mnihongo",
+    "Program": "mnihongo",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"mnihongo.c"
+	],
+	"Post": [
+	"mv mnihongo $HARVEY/amd64/bin/aux/"
+	]
+}

@@ -147,16 +147,18 @@ struct Renum
 	int	new;
 };
 
+extern char *prog;
+
 extern	void	initdata(char*, int);
 extern	void	clearsect(int);
 extern	void	readdata(int, void*, uint32_t, uint32_t);
 extern	int	writedata(int, int, void*, uint32_t, uint32_t);
-extern	int	getc3(uchar*, uint32_t*);
-extern	int	putc3(uchar*, uint32_t);
-extern	uint32_t	get4(uchar*);
-extern	void	put4(uchar*, uint32_t);
-extern	int	convM2J(Jrec*, uchar*);
-extern	int	convJ2M(Jrec*, uchar*);
+extern	int	getc3(unsigned char*, uint32_t*);
+extern	int	putc3(unsigned char*, uint32_t);
+extern	uint32_t	get4(unsigned char*);
+extern	void	put4(unsigned char*, uint32_t);
+extern	int	convM2J(Jrec*, unsigned char*);
+extern	int	convJ2M(Jrec*, unsigned char*);
 extern	void	loadfs(int);
 extern	char*	need(int bytes);
 extern	void	put(Jrec*, int);
@@ -183,7 +185,7 @@ extern	void	ewrite(Entry*, Extent *, int, uint32_t);
 extern	Qid	eqid(Entry*);
 extern	void	estat(Entry*, Dir*, int);
 extern	Dirr*	ediropen(Entry*);
-extern	int	edirread(Dirr*, char*, long);
+extern	int	edirread(Dirr*, char*, int32_t);
 extern	void	edirclose(Dirr*);
 extern	void	erenum(Renum*);
 
@@ -197,12 +199,12 @@ extern	char	Erofs[];
 
 extern	uint32_t	sectsize;
 extern	uint32_t	nsects;
-extern	uchar*	sectbuff;
+extern	unsigned char*	sectbuff;
 extern	Entry	*root;
 extern	int	readonly;
 extern	uint32_t	delta;
 extern	int	eparity;
-extern	uchar	magic[];
+extern	unsigned char	magic[];
 extern	uint32_t	used;
 extern	uint32_t	limit;
 extern	uint32_t	maxwrite;

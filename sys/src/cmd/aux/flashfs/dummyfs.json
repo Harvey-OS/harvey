@@ -1,0 +1,18 @@
+{
+    "Name": "dummyfs",
+    "Program": "dummyfs",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "dummy.c",
+    "dreq.c",
+    "entry.c",
+    "errors.c",
+    "devfs.c",
+    "utils.c"
+	],
+	"Post": [
+    "mv dummyfs $HARVEY/amd64/bin/aux/"
+	]
+}

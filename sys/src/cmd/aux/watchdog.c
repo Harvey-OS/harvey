@@ -27,7 +27,7 @@ procctl(int pid)
 }
 
 void
-main(int, char **)
+main(int argc, char **argv)
 {
 	int ctl;
 

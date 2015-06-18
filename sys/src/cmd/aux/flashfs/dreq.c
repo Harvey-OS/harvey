@@ -52,7 +52,7 @@ destroy(Fid *f)
 }
 
 static void
-trace(Req *)
+trace(Req *r)
 {
 	edump();
 }

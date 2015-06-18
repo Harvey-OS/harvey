@@ -71,7 +71,7 @@ watch(int fd)
 }
 
 char*
-tversion(Fcall *f, int, char **argv)
+tversion(Fcall *f, int p, char **argv)
 {
 	f->msize = atoi(argv[0]);
 	if(f->msize > messagesize)
@@ -81,7 +81,7 @@ tversion(Fcall *f, int, char **argv)
 }
 
 char*
-tauth(Fcall *f, int, char **argv)
+tauth(Fcall *f, int p, char **argv)
 {
 	f->afid = atoi(argv[0]);
 	f->uname = argv[1];
@@ -90,14 +90,14 @@ tauth(Fcall *f, int, char **argv)
 }
 
 char*
-tflush(Fcall *f, int, char **argv)
+tflush(Fcall *f, int p, char **argv)
 {
 	f->oldtag = atoi(argv[0]);
 	return nil;
 }
 
 char*
-tattach(Fcall *f, int, char **argv)
+tattach(Fcall *f, int p, char **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->afid = atoi(argv[1]);
@@ -124,7 +124,7 @@ twalk(Fcall *f, int argc, char **argv)
 }
 
 char*
-topen(Fcall *f, int, char **argv)
+topen(Fcall *f, int p, char **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->mode = atoi(argv[1]);
@@ -132,7 +132,7 @@ topen(Fcall *f, int, char **argv)
 }
 
 char*
-tcreate(Fcall *f, int, char **argv)
+tcreate(Fcall *f, int p, char **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->name = argv[1];
@@ -142,7 +142,7 @@ tcreate(Fcall *f, int, char **argv)
 }
 
 char*
-tread(Fcall *f, int, char **argv)
+tread(Fcall *f, int p, char **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->offset = strtoll(argv[1], 0, 0);
@@ -151,7 +151,7 @@ tread(Fcall *f, int, char **argv)
 }
 
 char*
-twrite(Fcall *f, int, char **argv)
+twrite(Fcall *f, int p, char **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->offset = strtoll(argv[1], 0, 0);
@@ -161,21 +161,21 @@ twrite(Fcall *f, int, char **argv)
 }
 
 char*
-tclunk(Fcall *f, int, char **argv)
+tclunk(Fcall *f, int p, char **argv)
 {
 	f->fid = atoi(argv[0]);
 	return nil;
 }
 
 char*
-tremove(Fcall *f, int, char **argv)
+tremove(Fcall *f, int p, char **argv)
 {
 	f->fid = atoi(argv[0]);
 	return nil;
 }
 
 char*
-tstat(Fcall *f, int, char **argv)
+tstat(Fcall *f, int p, char **argv)
 {
 	f->fid = atoi(argv[0]);
 	return nil;
@@ -198,7 +198,7 @@ xstrtoull(char *s)
 }
 
 char*
-twstat(Fcall *f, int, char **argv)
+twstat(Fcall *f, int p, char **argv)
 {
 	static uint8_t buf[DIRMAX];
 	Dir d;
@@ -224,7 +224,7 @@ twstat(Fcall *f, int, char **argv)
 int taggen;
 
 char*
-settag(Fcall*, int, char **argv)
+settag(Fcall *f, int p, char **argv)
 {
 	static char buf[120];
 
@@ -239,7 +239,7 @@ struct Cmd {
 	int type;
 	int argc;
 	char *usage;
-	char *(*fn)(Fcall *f, int, char**);
+	char *(*fn)(Fcall *f, int p, char**);
 };
 
 Cmd msg9p[] = {

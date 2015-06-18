@@ -63,7 +63,7 @@ writemouse(M *m)
 }
 
 void
-notifyf(void*, char *s)
+notifyf(void *v, char *s)
 {
 	if(strcmp(s, "alarm") == 0)
 		interrupted = 1;

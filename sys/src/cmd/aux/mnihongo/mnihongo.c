@@ -217,7 +217,7 @@ char *pschar(char *s, char *hex, int *wid, int *ht)
 	/* postscript is backwards to video, so draw white (ones) on black (zeros) */
 	b = allocimage(display, Rpt(ZP, chpt), GREY1, 0, DBlack);	/* place to put it */
 	spt = string(b, Pt(0,0), display->white, ZP, font, s);	/* put it there */
-/* Bprint(&bout, "chpt %P, spt %P, wid,ht %d,%d\n", chpt, spt, *wid, *ht);
+/* Bprint(&bout, "chpt %P, spt %P, wid,ht %d,%d\n", chpt, spt, *wid, *ht); */
 /* Bflush(&bout); */
 	for (y = 0; y < chpt.y; y++) {	/* read bits a row at a time */
 		memset(rowdata, 0, sizeof rowdata);

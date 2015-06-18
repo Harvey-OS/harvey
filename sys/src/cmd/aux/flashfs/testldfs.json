@@ -1,0 +1,19 @@
+{
+    "Name": "testldfs",
+    "Program": "testldfs",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "testld.c",
+    "journal.c",
+    "entry.c",
+    "errors.c",
+    "devfs.c",
+    "conv.c",
+    "utils.c"
+	],
+	"Post": [
+    "mv testldfs $HARVEY/amd64/bin/aux/"
+	]
+}

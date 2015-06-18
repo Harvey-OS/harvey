@@ -73,7 +73,7 @@ struct File
 
 	char	*name;
 	Symbol	*ref;
-	uchar	*refvec;	/* files resolving the references */
+	unsigned char	*refvec;	/* files resolving the references */
 	uint	len;		/* length of file */
 	uint	tarlen;		/* length of tar file */
 	uint	mode;
@@ -476,7 +476,7 @@ fsreply(Fs *fs, Request *r, char *err)
 }
 
 void
-fsversion(Fs *fs, Request *r, Fid*)
+fsversion(Fs *fs, Request *r, Fid *fi)
 {
 	if(r->f.msize < 256){
 		fsreply(fs, r, "version: bad message size");
@@ -490,13 +490,13 @@ fsversion(Fs *fs, Request *r, Fid*)
 }
 
 void
-fsauth(Fs *fs, Request *r, Fid*)
+fsauth(Fs *fs, Request *r, Fid *fi)
 {
 	fsreply(fs, r, "depend: authentication not required");
 }
 
 void
-fsflush(Fs*, Request*, Fid*)
+fsflush(Fs *fs, Request *r, Fid *fi)
 {
 }
 
@@ -820,7 +820,7 @@ fsopen(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fscreate(Fs *fs, Request *r, Fid*)
+fscreate(Fs *fs, Request *r, Fid *f)
 {
 	fsreply(fs, r, Eperm);
 }
@@ -897,7 +897,7 @@ fsread(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fswrite(Fs *fs, Request *r, Fid*)
+fswrite(Fs *fs, Request *r, Fid *v)
 {
 	fsreply(fs, r, Eperm);
 }
@@ -927,7 +927,7 @@ fsclunk(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fsremove(Fs *fs, Request *r, Fid*)
+fsremove(Fs *fs, Request *r, Fid *v)
 {
 	fsreply(fs, r, Eperm);
 }
@@ -969,7 +969,7 @@ fsstat(Fs *fs, Request *r, Fid *f)
 }
 
 void
-fswstat(Fs *fs, Request *r, Fid*)
+fswstat(Fs *fs, Request *r, Fid *f)
 {
 	fsreply(fs, r, Eperm);
 }

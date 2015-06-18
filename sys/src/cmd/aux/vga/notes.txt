@@ -173,7 +173,7 @@ and decide whether it can use accelerated fill and scroll functions.
 If so, it fills in the scr->fill and scr->scroll function pointers
 with functions that implement the following:
 
-int fill(VGAscr *scr, Rectangle r, ulong val);
+int fill(VGAscr *scr, Rectangle r, uint32_t val);
 	Set every pixel in the given rectangle to val.
 	Val is a bit pattern already formatted for the screen's
 	pixel format (rather than being an RGBA quadruple).
