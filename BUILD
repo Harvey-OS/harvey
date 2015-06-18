@@ -96,6 +96,19 @@ check_lib_dir()
 	fi
 }
 
+check_bin_dir()
+{
+        if [ ! -d "$BIN_DIR" ]
+        then
+                mkdir "$BIN_DIR"
+                if [ $? -ne 0 ]
+                then
+                        echo "ERROR creating <$BIN_DIR> directory"
+                fi
+        fi
+}
+
+
 build_libs()
 {
 	export HARVEY="$_BUILD_DIR"
@@ -182,6 +195,7 @@ else
 					fi
 					;;
 			"all")
+					check_bin_dir
 					check_lib_dir
 					build_go_utils
 					build_libs
@@ -208,6 +222,7 @@ else
 					build_go_utils
 					;;
 			"cmd")
+					check_bin_dir
 					build_cmds
 					;;
 			"cleanall"|"cleancmd"|"cleankernel"|"cleanklibs"|"cleanlibs")
