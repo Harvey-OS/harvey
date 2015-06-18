@@ -209,7 +209,7 @@ print("\n");*/
 			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
 			break;
 		}
-		print("cpuidhz: %#llux hz %lld\n", msr, hz);
+		DBG("cpuidhz: %#llux hz %lld\n", msr, hz);
 	}
 	else
 		return 0;
