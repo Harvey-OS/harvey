@@ -269,6 +269,6 @@
 	],
 	"Post": [
 	"rm 9syscall/*.s",
-	"ar rv ../../../amd64/lib/klibc.a *.o"
+	"ar rv $HARVEY/amd64/lib/klibc.a *.o"
 	]
 }

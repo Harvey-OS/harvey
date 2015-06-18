@@ -10,7 +10,7 @@
 	"ppp.c"
 	],
 	"Post": [
-	"[ -d ../../../../../amd64/bin/ip ] || mkdir ../../../../../amd64/bin/ip",
-	"mv ipconfig ../../../../../amd64/bin/ip/ipconfig"
+	"[ -d $HARVEY/amd64/bin/ip ] || mkdir $HARVEY/amd64/bin/ip",
+	"mv ipconfig $HARVEY/amd64/bin/ip/ipconfig"
 	]
 }

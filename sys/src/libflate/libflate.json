@@ -18,6 +18,6 @@
 	"adler.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libflate.a *.o"
+	"ar rv $HARVEY/amd64/lib/libflate.a *.o"
 	]
 }

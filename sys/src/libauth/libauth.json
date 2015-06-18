@@ -23,6 +23,6 @@
 	"noworld.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libauth.a *.o"
+	"ar rv $HARVEY/amd64/lib/libauth.a *.o"
 	]
 }

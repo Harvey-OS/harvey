@@ -16,6 +16,6 @@
 	"frutil.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libframe.a *.o"
+	"ar rv $HARVEY/amd64/lib/libframe.a *.o"
 	]
 }

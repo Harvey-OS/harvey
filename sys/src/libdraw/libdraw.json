@@ -63,6 +63,6 @@
 	"writesubfont.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libdraw.a *.o"
+	"ar rv $HARVEY/amd64/lib/libdraw.a *.o"
 	]
 }

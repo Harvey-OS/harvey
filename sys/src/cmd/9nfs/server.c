@@ -13,7 +13,7 @@
 static int	alarmflag;
 
 static int	Iconv(Fmt*);
-static void	openudp(int);
+//static void	openudp(int);
 static void	cachereply(Rpccall*, void*, int);
 static int	replycache(int, Rpccall*, int32_t (*)(int, void*, int32_t));
 static void	udpserver(int, Progmap*);

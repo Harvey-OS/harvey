@@ -186,11 +186,12 @@ error:
 static int
 mntnull(int n, Rpccall *cmd, Rpccall *reply)
 {
-	USED(n, cmd, reply);
+	USED(n); USED(cmd); USED(reply);
 	chat("mntnull\n");
 	return 0;
 }
 
+/*
 static char*
 Str2str(String s, char *buf, int nbuf)
 {
@@ -202,7 +203,7 @@ Str2str(String s, char *buf, int nbuf)
 	buf[i] = 0;
 	return buf;
 }
-
+*/
 static int
 mntmnt(int n, Rpccall *cmd, Rpccall *reply)
 {

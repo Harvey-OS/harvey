@@ -24,6 +24,6 @@
 	"urlunesc.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libhttpd.a *.o"
+	"ar rv $HARVEY/amd64/lib/libhttpd.a *.o"
 	]
 }

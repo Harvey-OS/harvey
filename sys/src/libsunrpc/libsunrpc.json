@@ -22,6 +22,6 @@
 	"udp.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libsunrpc.a *.o"
+	"ar rv $HARVEY/amd64/lib/libsunrpc.a *.o"
 	]
 }

@@ -10,6 +10,6 @@
 	"plumbsendtext.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libplumb.a *.o"
+	"ar rv $HARVEY/amd64/lib/libplumb.a *.o"
 	]
 }

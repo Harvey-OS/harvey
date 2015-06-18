@@ -8,6 +8,6 @@
 	"complete.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libcomplete.a *.o"
+	"ar rv $HARVEY/amd64/lib/libcomplete.a *.o"
 	]
 }

@@ -91,7 +91,7 @@ nfsinit(int argc, char **argv)
 	/*
 	 * mntinit will have already parsed our options.
 	 */
-	USED(argc, argv);
+	USED(argc); USED(argv);
 	clog("nfs file server init\n");
 	rpcalarm = doalarm;
 	nfstime = time(0);
@@ -100,7 +100,7 @@ nfsinit(int argc, char **argv)
 static int
 nfsnull(int n, Rpccall *cmd, Rpccall *reply)
 {
-	USED(n, reply);
+	USED(n); USED(reply);
 	chat("nfsnull...");
 	showauth(&cmd->cred);
 	chat("OK\n");
@@ -185,7 +185,7 @@ nfssetattr(int n, Rpccall *cmd, Rpccall *reply)
 static int
 nfsroot(int n, Rpccall *cmd, Rpccall *reply)
 {
-	USED(n, reply);
+	USED(n); USED(reply);
 	chat("nfsroot...");
 	showauth(&cmd->cred);
 	chat("OK\n");
@@ -234,7 +234,7 @@ nfslookup(int n, Rpccall *cmd, Rpccall *reply)
 static int
 nfsreadlink(int n, Rpccall *cmd, Rpccall *reply)
 {
-	USED(n, reply);
+	USED(n); USED(reply);
 	chat("readlink...");
 	showauth(&cmd->cred);
 	return error(reply, NFSERR_NOENT);
@@ -291,7 +291,7 @@ nfsread(int n, Rpccall *cmd, Rpccall *reply)
 static int
 nfswritecache(int n, Rpccall *cmd, Rpccall *reply)
 {
-	USED(n, reply);
+	USED(n); USED(reply);
 	chat("writecache...");
 	showauth(&cmd->cred);
 	chat("OK\n");
@@ -514,7 +514,7 @@ nfsrename(int n, Rpccall *cmd, Rpccall *reply)
 static int
 nfslink(int n, Rpccall *cmd, Rpccall *reply)
 {
-	USED(n, reply);
+	USED(n); USED(reply);
 	chat("link...");
 	showauth(&cmd->cred);
 	return error(reply, NFSERR_NOENT);
@@ -523,7 +523,7 @@ nfslink(int n, Rpccall *cmd, Rpccall *reply)
 static int
 nfssymlink(int n, Rpccall *cmd, Rpccall *reply)
 {
-	USED(n, reply);
+	USED(n); USED(reply);
 	chat("symlink...");
 	showauth(&cmd->cred);
 	return error(reply, NFSERR_NOENT);

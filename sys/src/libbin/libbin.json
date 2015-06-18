@@ -8,6 +8,6 @@
 	"bin.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libbin.a *.o"
+	"ar rv $HARVEY/amd64/lib/libbin.a *.o"
 	]
 }

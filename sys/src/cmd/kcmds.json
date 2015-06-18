@@ -25,11 +25,11 @@
 	"ls.c"
 	],
 	"Post": [
-	"mv bind ../../../amd64/bin/",
-	"mv mount ../../../amd64/bin/",
-	"mv date ../../../amd64/bin/",
-	"mv srv ../../../amd64/bin/",
-	"mv echo ../../../amd64/bin/",
-	"mv ls ../../../amd64/bin/"
+	"mv bind $HARVEY/amd64/bin/",
+	"mv mount $HARVEY/amd64/bin/",
+	"mv date $HARVEY/amd64/bin/",
+	"mv srv $HARVEY/amd64/bin/",
+	"mv echo $HARVEY/amd64/bin/",
+	"mv ls $HARVEY/amd64/bin/"
 	]
 }

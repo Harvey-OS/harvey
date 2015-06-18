@@ -24,6 +24,6 @@
 	"s_unique.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libString.a *.o"
+	"ar rv $HARVEY/amd64/lib/libString.a *.o"
 	]
 }

@@ -17,7 +17,7 @@ strparse(char *p, int arsize, char **arv)
 {
 	int arc = 0;
 
-	/*print("parse: 0x%lux = \"%s\"\n", p, p);/**/
+	/*print("parse: 0x%lux = \"%s\"\n", p, p);*/
 	while(p){
 		while(*p == ' ' || *p == '\t')
 			p++;
@@ -36,6 +36,6 @@ strparse(char *p, int arsize, char **arv)
 	/*while(*arv){
 		print("\t0x%lux = \"%s\"\n", *arv, *arv);
 		++arv;
-	}/**/
+	}*/
 	return arc;
 }

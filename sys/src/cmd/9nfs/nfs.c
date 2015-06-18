@@ -39,7 +39,7 @@ rpc2xfid(Rpccall *cmd, Dir *dp)
 			chat("bad tag %lux %lux...", ul, starttime);
 			return 0;
 		}
-		s = (Session *)GLONG();
+		s = (Session *)(int64_t)GLONG();
 		x1 = GLONG();
 		x2 = GLONG();
 		qid.path = x1 | (x2<<32);
@@ -79,12 +79,12 @@ rpc2xfid(Rpccall *cmd, Dir *dp)
 	if(m == 0){
 		chat("no map for pair (%s,%s)...", service, client);
 		/*chat("getdom %d.%d.%d.%d", cmd->host&0xFF, (cmd->host>>8)&0xFF,
-			(cmd->host>>16)&0xFF, (cmd->host>>24)&0xFF);/**/
+			(cmd->host>>16)&0xFF, (cmd->host>>24)&0xFF);*/
 		/*if(getdom(cmd->host, client, sizeof(client))<0)
-			return 0;/**/
+			return 0;*/
 		return 0;
 	}
-	/*chat("map=(%s,%s)...", m->server, m->client);/**/
+	/*chat("map=(%s,%s)...", m->server, m->client);*/
 	cmd->user = user = id2name(&m->u.ids, au.uid);
 	if(user == 0){
 		chat("no user for id %ld...", au.uid);
@@ -397,7 +397,7 @@ xp2fhandle(Xfile *xp, Fhandle fh)
 		dataptr[2+n] = 0;
 	}else{
 		PLONG(starttime);
-		PLONG((u32int)(uintptr)xp->s);
+		PLONG((uint32_t)(uintptr)xp->s);
 		x = xp->qid.path;
 		PLONG(x);
 		x = xp->qid.path>>32;

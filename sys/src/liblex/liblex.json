@@ -12,6 +12,6 @@
 	"yywrap.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/liblex.a *.o"
+	"ar rv $HARVEY/amd64/lib/liblex.a *.o"
 	]
 }

@@ -32,6 +32,6 @@
 	"sched.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libthread.a *.o"
+	"ar rv $HARVEY/amd64/lib/libthread.a *.o"
 	]
 }

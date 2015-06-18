@@ -27,6 +27,6 @@
 	"write.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libmemdraw.a *.o"
+	"ar rv $HARVEY/amd64/lib/libmemdraw.a *.o"
 	]
 }

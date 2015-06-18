@@ -8,6 +8,6 @@
 	"dhcpclient.c"
 	],
 	"Post": [
-	"mv dhcpclient ../../../../amd64/bin/ip/"
+	"mv dhcpclient $HARVEY/amd64/bin/ip/"
 	]
 }

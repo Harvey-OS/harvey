@@ -21,7 +21,6 @@
     "Oflags": [
 	"-static",
 	"-e_main",
-	"-L../../../amd64/lib",
 	"-lavl",
 	"-lbin",
 	"-lcomplete",

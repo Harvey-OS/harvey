@@ -35,6 +35,6 @@
 	"zeroscore.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libventi.a *.o"
+	"ar rv $HARVEY/amd64/lib/libventi.a *.o"
 	]
 }

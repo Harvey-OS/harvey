@@ -62,6 +62,6 @@
 	"port/x509.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libsec.a *.o"
+	"ar rv $HARVEY/amd64/lib/libsec.a *.o"
 	]
 }

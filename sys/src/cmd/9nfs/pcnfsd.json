@@ -1,0 +1,22 @@
+{
+	"Name": "pcnfsd",
+	"Program": "pcnfsd",
+	"Include": ["../cmd.json"],
+	"Pre": [
+	],
+	"SourceFiles": [
+	"pcnfsd.c",
+	"unixnames.c",
+	"chat.c",
+	"rpc.c",
+	"server.c",
+	"string.c",
+	"listalloc.c",
+	"strparse.c",
+	"system.c"
+	],
+	"Post": [
+	"[ -d $HARVEY/amd64/bin/aux ] || mkdir $HARVEY/amd64/bin/aux",
+	"mv pcnfsd $HARVEY/amd64/bin/aux/"
+	]
+}

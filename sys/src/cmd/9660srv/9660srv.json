@@ -12,6 +12,6 @@
 	"xfile.c"
 	],
 	"Post": [
-	"mv 9660srv ../../../../amd64/bin/"
+	"mv 9660srv $HARVEY/amd64/bin/"
 	]
 }

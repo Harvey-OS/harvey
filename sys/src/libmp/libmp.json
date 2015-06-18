@@ -39,6 +39,6 @@
 	"port/strtomp.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libmp.a *.o"
+	"ar rv $HARVEY/amd64/lib/libmp.a *.o"
 	]
 }

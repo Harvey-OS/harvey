@@ -18,6 +18,6 @@
 	"ptclbsum.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libip.a *.o"
+	"ar rv $HARVEY/amd64/lib/libip.a *.o"
 	]
 }

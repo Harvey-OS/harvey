@@ -268,6 +268,6 @@
 	"amd64/main9.S"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libc.a *.o"
+	"ar rv $HARVEY/amd64/lib/libc.a *.o"
 	]
 }

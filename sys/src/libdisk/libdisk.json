@@ -10,6 +10,6 @@
 	"scsi.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libdisk.a *.o"
+	"ar rv $HARVEY/amd64/lib/libdisk.a *.o"
 	]
 }

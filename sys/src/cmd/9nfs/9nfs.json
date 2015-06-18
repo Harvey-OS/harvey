@@ -2,7 +2,8 @@
 	"Name": "nfsserver",
 	"Program": "nfsserver",
 	"Projects": [
-	"portmapper.json"
+	"portmapper.json",
+	"pcnfsd.json"
 	],
 	"Include": ["../cmd.json"],
 	"Pre": [
@@ -13,6 +14,7 @@
 	"authhostowner.c",
 	"nfs.c",
 	"nfsmount.c",
+	"nfsserver.c",
 	"xfile.c",
 	"chat.c",
 	"rpc.c",
@@ -24,7 +26,7 @@
 	"unixnames.c"
 	],
 	"Post": [
-	"[ -d ../../../../amd64/bin/aux ] || mkdir ../../../../amd64/bin/aux",
-	"mv nfsserver ../../../../amd64/bin/aux/"
+	"[ -d $HARVEY/amd64/bin/aux ] || mkdir $HARVEY/amd64/bin/aux",
+	"mv nfsserver $HARVEY/amd64/bin/aux/"
 	]
 }

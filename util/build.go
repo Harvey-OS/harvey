@@ -145,6 +145,7 @@ func link(b *build) {
 			o := f[:len(f)] + ".o"
 			args = append(args, []string{o}...)
 			args = append(args, b.Oflags...)
+			args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
 			args = append(args, b.Libs...)
 			cmd := exec.Command("ld", args...)
 			cmd.Env = append(os.Environ(), b.Env...)
@@ -160,8 +161,9 @@ func link(b *build) {
 		}
 	} else {
 		args := []string{"-o", b.Program}
-		args = append(args, b.Oflags...)
 		args = append(args, b.ObjectFiles...)
+		args = append(args, b.Oflags...)
+		args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
 		args = append(args, b.Libs...)
 		cmd := exec.Command("ld", args...)
 		cmd.Env = append(os.Environ(), b.Env...)

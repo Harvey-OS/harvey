@@ -22,6 +22,6 @@
 	"readnvram.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libauthsrv.a *.o"
+	"ar rv $HARVEY/amd64/lib/libauthsrv.a *.o"
 	]
 }

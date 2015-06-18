@@ -37,6 +37,6 @@
 	"venust.c"
 	],
 	"Post": [
-	"mv astro ../../../../amd64/bin/"
+	"mv astro $HARVEY/amd64/bin/"
 	]
 }

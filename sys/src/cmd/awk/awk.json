@@ -19,6 +19,6 @@
 	"y.tab.c"
 	],
 	"Post": [
-	"mv awk ../../../../amd64/bin/"
+	"mv awk $HARVEY/amd64/bin/"
 	]
 }

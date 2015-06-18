@@ -11,6 +11,6 @@
 	"utils.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libhtml.a *.o"
+	"ar rv $HARVEY/amd64/lib/libhtml.a *.o"
 	]
 }

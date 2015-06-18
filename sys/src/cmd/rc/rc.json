@@ -26,6 +26,6 @@
 	"y.tab.c"
 	],
 	"Post":[
-	"mv rc ../../../../amd64/bin/"
+	"mv rc $HARVEY/amd64/bin/"
 	]
 }

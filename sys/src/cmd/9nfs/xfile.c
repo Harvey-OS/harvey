@@ -23,13 +23,13 @@ xfile(Qid *qid, void *s, int new)
 	int k;
 	Xfile **hp, *f, *pf;
 
-	k = ((uint32_t)qid->path ^ (((u32int)(uintptr)s)<<24))%FIDMOD;
+	k = ((uint32_t)qid->path ^ (((uint32_t)(uintptr)s)<<24))%FIDMOD;
 	hp = &xfiles[k];
 
 	lock(&xlocks[k]);
 	for(f=*hp, pf=0; f; pf=f, f=f->next)
 		if(f->qid.path == qid->path 
-		&& (u32int)(uintptr)f->s == (u32int)(uintptr)s)
+		&& (uint32_t)(uintptr)f->s == (uint32_t)(uintptr)s)
 			break;
 	if(f && pf){
 		pf->next = f->next;

@@ -23,6 +23,6 @@
 	"textbutton3.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libcontrol.a *.o"
+	"ar rv $HARVEY/amd64/lib/libcontrol.a *.o"
 	]
 }

@@ -13,6 +13,6 @@
 	"tstack.c"
 	],
 	"Post": [
-	"ar rv ../../../amd64/lib/libgeometry.a *.o"
+	"ar rv $HARVEY/amd64/lib/libgeometry.a *.o"
 	]
 }

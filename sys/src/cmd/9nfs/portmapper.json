@@ -1,19 +1,18 @@
 {
-	"Name": "9nfs",
-	"Programs": [
-	"portmapper",
-	"pcnfsd"
-	],
+	"Name": "portmapper",
+	"Program": "portmapper",
 	"Include": ["../cmd.json"],
 	"Pre": [
 	],
-	"SourceFilesCmd": [
+	"SourceFiles": [
 	"portmapper.c",
-	"pcnfsd.c"
+	"rpc.c",
+	"chat.c",
+	"server.c",
+	"string.c"
 	],
 	"Post": [
-	"[ -d ../../../../amd64/bin/aux ] || mkdir ../../../../amd64/bin/aux",
-	"mv portmapper ../../../../amd64/bin/aux/",
-	"mv pcnfsd ../../../../amd64/bin/aux/"
+	"[ -d $HARVEY/amd64/bin/aux ] || mkdir $HARVEY/amd64/bin/aux",
+	"mv portmapper $HARVEY/amd64/bin/aux/"
 	]
 }

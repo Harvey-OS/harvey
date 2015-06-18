@@ -12,13 +12,13 @@
 /* this is all stubbed out; the NFS authentication stuff is now disabled - rob */
 
 Xfid *
-xfauth(Xfile *, String *)
+xfauth(Xfile *x, String *s)
 {
 	return 0;
 }
 
 int32_t
-xfauthread(Xfid *xf, int32_t, uint8_t *, int32_t)
+xfauthread(Xfid *xf, int32_t i, uint8_t *n, int32_t l)
 {
 
 	chat("xfauthread %s...", xf->uid);
@@ -26,14 +26,14 @@ xfauthread(Xfid *xf, int32_t, uint8_t *, int32_t)
 }
 
 int32_t
-xfauthwrite(Xfid *xf, int32_t, uint8_t *, int32_t)
+xfauthwrite(Xfid *xf, int32_t i, uint8_t *n, int32_t l)
 {
 	chat("xfauthwrite %s...", xf->uid);
 	return 0;
 }
 
 int
-xfauthremove(Xfid *, char *)
+xfauthremove(Xfid *x, char *c)
 {
 	chat("authremove...");
 	return -1;
