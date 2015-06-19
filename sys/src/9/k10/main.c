@@ -123,20 +123,23 @@ squidboy(int apicno, Mach *m)
 	// PRINT WILL PANIC. So wait.
 	vsvminit(MACHSTKSZ, m->nixtype, m);
 
-	DBG("Hello Squidboy %d %d\n", apicno, m->machno);
-
+	DBG("Hello squidboy %d %d\n", apicno, m->machno);
 
 	/*
 	 * Beware the Curse of The Non-Interruptable Were-Temporary.
 	 */
-	// see comment in main.c. This is a 1990s thing. hz = archhz();
+	// see comment in main(). This is a 1990s thing. hz = archhz();
 	// except qemu won't work unless we do this. Sigh.
 	hz = archhz();
 	if(hz == 0)
 		ndnr();
+	// Now most of Phenom and Opterons are right detected.
+	else
+		ndnr();
 	m->cpuhz = hz;
 	m->cyclefreq = hz;
 	m->cpumhz = hz/1000000ll;
+
 	mmuinit();
 	if(!apiconline())
 		ndnr();
@@ -149,7 +152,7 @@ squidboy(int apicno, Mach *m)
 	/*
 	 * CAUTION: no time sync done, etc.
 	 */
-	DBG("Wait for the thunderbirds!\n");
+	//DBG("Wait for the thunderbirds!\n");
 	while(!active.thunderbirdsarego)
 		;
 	wrmsr(0x10, sys->epoch);
@@ -480,9 +483,9 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 		m->cyclefreq = hz;
 		m->cpumhz = hz/1000000ll;
 	}
-	iprint("archhz returns 0x%lld\n", hz);
-	print("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
-	print("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
+	//iprint("archhz returns 0x%lld\n", hz);
+	iprint("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
+	iprint("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
 
 	/*
 	 * Mmuinit before meminit because it
@@ -552,6 +555,8 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 		nixsquids();
 		testiccs();
 	}
+
+	print("CPU Freq. %dMHz\n", m->cpumhz);
 
 	print("schedinit...\n");
 	schedinit();

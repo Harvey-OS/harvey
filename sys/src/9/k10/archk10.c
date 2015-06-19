@@ -81,7 +81,7 @@ print("\n");*/
 //	print("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
 //	print("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
 //	See in main.c this message.
-	return 0;
+//	return 0;
 
 	if(memcmp(&info0[1], "GenuntelineI", 12) == 0){
 		switch(info1[0] & 0x0fff3ff0){
@@ -182,32 +182,49 @@ print("\n");*/
 			hz = ((hz/100)+5)/10;
 			break;
 		}
-		DBG("cpuidhz: 0x2a: %#llux hz %lld\n", rdmsr(0x2a), hz);
+		//DBG("cpuidhz: 0x2a: %#llux hz %lld\n", rdmsr(0x2a), hz);
 	}
-	else if(memcmp(&info0[1], "AuthcAMDenti", 12) == 0){
-		switch(info1[0] & 0x0fff0ff0){
+	//else if(memcmp(&info0[1], "AuthcAMDenti", 12) == 0){
+	else if(strstr((char *)&info0[1], "AuthcAMDenti") != nil){
+		switch(info1[0]){ //& 0x0fff0ff0){
 		default:
 			return 0;
-		case 0x00000f40:		/* K8 Athlon */
-		case 0x00000f50:		/* K8 Opteron */
-		case 0x00000f60:		/* K? */
-			msr = rdmsr(0xc0010042);
-			if(msr == 0) {
-				return 0;
-			}
-			hz = (800 + 200*((msr>>1) & 0x1f)) * 1000000ll;
-			break;
-		case 0x00100f40:		/* Phenom II X4 */
-			msr = rdmsr(0xC0010064);
-			r = (msr>>6) & 0x07;
-			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
-			break;
-		case 0x00100f90:		/* K10 */
-		case 0x00000620:		/* QEMU64 */
+		case 0x00050ff2:		/* K8 Athlon Venice 64 / Qemu64 */
+		case 0x00020fc2:		/* K8 Athlon Lima 64 */
 			msr = rdmsr(0xc0010064);
 			r = (msr>>6) & 0x07;
 			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
 			break;
+		case 0x00000f50:		/* K8 Opteron ? */
+		case 0x00000f51:		/* K8 Opteron 24xx */
+		case 0x00000f5a:		/* K8 Opteron Generic */
+			msr = rdmsr(0xc0010042);
+			if(msr == 0) {
+				DBG("K8, Opteron 2xxx or old series returning 0\n");
+				return 0;
+			}
+		case 0x00100f63:		/* K8 Athlon II */
+		case 0x00100f43:		/* Phenom II X2 */
+		case 0x00100f23:		/* Phenom II X4 */
+		case 0x00100fa0:		/* Phenom II X6 */
+			msr = rdmsr(0xc0010042);
+			r = (msr>>6) & 0x07;
+			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
+			break;
+		case 0x00100f91:		/* K10 Opteron 61xx */
+		case 0x00600f01:		/* K10 Opteron 62xx */
+		case 0x00600f12:		/* K10 Opteron 6272 */
+		case 0x00600f20:		/* K10 Opteron 63xx */
+			msr = rdmsr(0xc0010064);
+			r = (msr>>6) & 0x07;
+			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
+			break;
+/*		case 0x00000620:		/ * QEMU64 / Athlon MP/XP * /
+			msr = rdmsr(0xc0010064);
+			r = (msr>>6) & 0x07;
+			hz = (((msr & 0x3f)+0x10)*100000000ll)/(1<<r);
+			break;
+*/
 		}
 		DBG("cpuidhz: %#llux hz %lld\n", msr, hz);
 	}
@@ -263,7 +280,7 @@ archhz(void)
 	if(hz != 0 || m->machno != 0)
 		return hz;
 
-	print("archhz, cpuidhz failed, going to i8254hz\n");
+	iprint("archhz, cpuidhz failed, going to i8254hz\n");
 	return i8254hz(info0, info1);
 }
 

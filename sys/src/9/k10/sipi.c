@@ -102,8 +102,8 @@ sipi(void)
 		}
 		nvramwrite(0x0f, 0x00);
 
-		DBG("mach %#p (%#p) apicid %d machno %2d %dMHz\n",
+		/*DBG("mach %#p (%#p) apicid %d machno %2d %dMHz\n",
 			mach, sys->machptr[mach->machno],
-			apicno, mach->machno, mach->cpumhz);
+			apicno, mach->machno, mach->cpumhz);*/
 	}
 }
