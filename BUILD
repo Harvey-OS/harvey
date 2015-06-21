@@ -163,24 +163,15 @@ else
 					printf "\n\nALL COMPONENTS COMPILED\n\n"
 					;;
 			"libs")
-					check_lib_dir
-					if [ -z "$2" ]
-					then
-						build_libs
-					fi
+					build_libs
 					;;
 			"klibs")
-					check_lib_dir
-					if [ -z "$2" ]
-					then
-						build_klibs
-					fi
+					build_klibs
 					;;
 			"utils")
 					build_go_utils
 					;;
 			"cmd")
-					check_bin_dir
 					build_cmds
 					;;
 			"cleanall"|"cleancmd"|"cleankernel"|"cleanklibs"|"cleanlibs")
