@@ -123,7 +123,7 @@ squidboy(int apicno, Mach *m)
 	// PRINT WILL PANIC. So wait.
 	vsvminit(MACHSTKSZ, m->nixtype, m);
 
-	DBG("Hello squidboy %d %d\n", apicno, m->machno);
+	//DBG("Hello squidboy %d %d\n", apicno, m->machno);
 
 	/*
 	 * Beware the Curse of The Non-Interruptable Were-Temporary.
@@ -131,7 +131,7 @@ squidboy(int apicno, Mach *m)
 	// see comment in main(). This is a 1990s thing. hz = archhz();
 	// except qemu won't work unless we do this. Sigh.
 	hz = archhz();
-	if(hz == 0)
+	if(hz >= 0)
 		ndnr();
 	m->cpuhz = hz;
 	m->cyclefreq = hz;
@@ -465,12 +465,13 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	vsvminit(MACHSTKSZ, NIXTC, m);
 	if (machp() != m)
 		panic("After vsvminit, m and machp() are different");
-	fmtinit();
-	
-	print("\nHarvey\n");
-	sys->nmach = 1;			
 
-	if(1){
+	sys->nmach = 1;	
+	
+	fmtinit();
+	print("\nHarvey\n");		
+
+	if(vflag){
 		multiboot(mbmagic, mbaddress, vflag);
 	}
 
@@ -481,14 +482,15 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 		m->cpumhz = hz/1000000ll;
 	}
 	//iprint("archhz returns 0x%lld\n", hz);
-	iprint("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
-	iprint("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
+	//iprint("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
+	//iprint("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
 
 	/*
 	 * Mmuinit before meminit because it
 	 * flushes the TLB via m->pml4->pa.
 	 */
 	mmuinit();
+
 	ioinit();
 	kbdinit();
 	meminit();
@@ -597,7 +599,7 @@ init0(void)
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
-	debugtouser((void *)UTZERO);
+	//debugtouser((void *)UTZERO);
 	touser(sp);
 }
 

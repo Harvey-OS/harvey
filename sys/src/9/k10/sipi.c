@@ -92,7 +92,7 @@ sipi(void)
 		*p = 0;
 
 		nvramwrite(0x0f, 0x0a);
-		print("APICSIPI: %d, %p\n", apicno, (void *)sipipa);
+		//print("APICSIPI: %d, %p\n", apicno, (void *)sipipa);
 		apicsipi(apicno, sipipa);
 
 		for(i = 0; i < 1000; i++){

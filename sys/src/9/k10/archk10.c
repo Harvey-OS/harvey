@@ -193,84 +193,24 @@ print("\n");*/
 		case 0x00020fc0:		/* K8 Athlon Lima 64 */
 		case 0x00000f50:		/* K8 Opteron 2xxx */
 			msr = rdmsr(0xc0010042);
-			if(msr == 0)
-				return 0;
-			hz = (800 + 200*((msr>>1) & 0x1f)) * 1000000ll;
+			r = (msr>>16) & 0x3f;
+			hz = 200000000ULL*(4 * 2 + r)/2;
 			break;
 		case 0x00100f60:		/* K8 Athlon II */
 		case 0x00100f40:		/* Phenom II X2 */
 		case 0x00100f20:		/* Phenom II X4 */
 		case 0x00100fa0:		/* Phenom II X6 */
 			msr = rdmsr(0xc0010042);
-			r = (msr>>6) & 0x07;
-			switch(r){
-			default:
-				return 0;
-			case 5:
-				hz = 100000000000ll;
-				break;
-			case 1:
-				hz = 133333333333ll;
-				break;
-			case 3:
-				hz = 166666666666ll;
-				break;
-			case 2:
-				hz = 200000000000ll;
-				break;
-			case 0:
-				hz = 266666666666ll;
-				break;
-			case 4:
-				hz = 333333333333ll;
-				break;
-			case 6:
-				hz = 400000000000ll;
-				break;
-			}
-			if(msr & 0x0000400000000000ll)
-				hz = hz*r + hz/2;
-			else
-				hz = hz*r;
-			hz = ((hz/100)+5)/10;
+			r = msr & 0x1f;
+			hz = ((r+0x10)*100000000ll)/(1<<(msr>>6 & 0x07));
 			break;
 		case 0x00100f90:		/* K10 Opteron 61xx */
 		case 0x00600f00:		/* K10 Opteron 62xx */
 		case 0x00600f10:		/* K10 Opteron 6272 */
 		case 0x00600f20:		/* K10 Opteron 63xx */
 			msr = rdmsr(0xc0010064);
-			r = (msr>>6) & 0x07;
-			print("rdmsr = %d\n", r);
-			switch(r){
-			default:
-				return 0;
-			case 5:
-				hz = 100000000000ll;
-				break;
-			case 1:
-				hz = 133333333333ll;
-				break;
-			case 3:
-				hz = 166666666666ll;
-				break;
-			case 2:
-				hz = 200000000000ll;
-				break;
-			case 0:
-				hz = 266666666666ll;
-				break;
-			case 4:
-				hz = 333333333333ll;
-				break;
-			case 6:
-				hz = 400000000000ll;
-				break;
-			}
-			if(msr & 0x0000400000000000ll)
-				hz = hz*r + hz/2;
-			else
-				hz = hz*r;
-			hz = ((hz/100)+5)/10;
+			r = msr & 0x1f;
+			hz = ((r+0x10)*100000000ll)/(1<<(msr>>6 & 0x07));
 			break;
 		case 0x00000620:		/* QEMU64 / Athlon MP/XP */
 			msr = rdmsr(0xc0010064);

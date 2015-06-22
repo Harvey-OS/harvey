@@ -1082,7 +1082,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	a = p = UINT2PTR(stack);
 	stack = sysexecstack(stack, argc);
 	if(stack-(argc+1)*sizeof(char**)-BIGPGSZ < TSTKTOP-USTKSIZE) {
-		iprint("stck too small?\n");
+		//iprint("stck too small?\n");
 		error(Ebadexec);
 	}
 
@@ -1257,7 +1257,7 @@ sysexecac(Ar0* ar0, ...)
 }
 
 static int
-	crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *d)
+crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *d)
 {
 	ExecTable *mp;
 	int nb, ret;
@@ -1312,7 +1312,7 @@ static int
 		break;
 	}
 	if(mp->magic == 0) {
-		error("Sysproc 1276: unknown header type");
+		error("Sysproc: unknown header type");
 	}
 	return ret;
 }
@@ -1446,11 +1446,11 @@ sys_wait(Ar0* ar0, ...)
 	 * Deprecated; backwards compatibility only.
 	 */
 	ow = va_arg(list, OWaitmsg*);
+	va_end(list);
 	if(ow == nil){
 		ar0->i = pwait(nil);
 		return;
 	}
-	va_end(list);
 
 	ow = validaddr(ow, sizeof(OWaitmsg), 1);
 	evenaddr(PTR2UINT(ow));
@@ -1485,6 +1485,7 @@ sysawait(Ar0* ar0, ...)
 	 */
 	p = va_arg(list, char*);
 	n = va_arg(list, int32_t);
+	va_end(list);
 	p = validaddr(p, n, 1);
 
 	pid = pwait(&w);
@@ -1497,7 +1498,6 @@ sysawait(Ar0* ar0, ...)
 		w.time[TUser], w.time[TSys], w.time[TReal],
 		w.msg);
 
-	va_end(list);
 	ar0->i = i;
 }
 
@@ -1551,8 +1551,8 @@ syserrstr(Ar0* ar0, ...)
 	 */
 	err = va_arg(list, char*);
 	nerr = va_arg(list, usize);
-	generrstr(err, nerr);
 	va_end(list);
+	generrstr(err, nerr);
 
 	ar0->i = 0;
 }
@@ -1570,8 +1570,8 @@ sys_errstr(Ar0* ar0, ...)
 	 * Deprecated; backwards compatibility only.
 	 */
 	p = va_arg(list, char*);
-	generrstr(p, 64);
 	va_end(list);
+	generrstr(p, 64);
 
 	ar0->i = 0;
 }
@@ -1588,11 +1588,11 @@ sysnotify(Ar0* ar0, ...)
 	 * int notify(void (*f)(void*, char*));
 	 */
 	f = (void (*)(void*, char*))va_arg(list, void*);
+	va_end(list);
 
 	if(f != nil)
 		validaddr(f, sizeof(void (*)(void*, char*)), 0);
 	m->externup->notify = f;
-	va_end(list);
 
 	ar0->i = 0;
 }
@@ -1655,6 +1655,7 @@ sysrendezvous(Ar0* ar0, ...)
 	/* Going to sleep here */
 	m->externup->rendtag = tag;
 	m->externup->rendval = PTR2UINT(va_arg(list, void*));
+	va_end(list);
 	m->externup->rendhash = *l;
 	*l = m->externup;
 	m->externup->state = Rendezvous;
@@ -1664,7 +1665,6 @@ sysrendezvous(Ar0* ar0, ...)
 
 	sched();
 
-	va_end(list);
 	ar0->v = UINT2PTR(m->externup->rendval);
 }
 

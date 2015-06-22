@@ -399,7 +399,7 @@ syscall(int badscallnr, Ureg *ureg)
 	if(scallnr == NOTED)
 		noted(ureg, a0);
 
-	if (0) hi("now to splihi\n");
+	if (0) hi("now to splhi\n");
 	splhi();
 	if(scallnr != RFORK && (m->externup->procctl || m->externup->nnote))
 		notify(ureg);

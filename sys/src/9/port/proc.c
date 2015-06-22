@@ -284,10 +284,11 @@ anyhigher(void)
 /*
  *  here once per clock tick to see if we should resched
  */
-#if 0
+
 void
 hzsched(void)
 {
+	Mach *m = machp();
 	/* once a second, rebalance will reprioritize ready procs */
 	if(m->machno == 0){
 		rebalance();
@@ -303,8 +304,8 @@ hzsched(void)
 	if(m->qexpired && anyready())
 		m->externup->delaysched++;
 }
-#endif
 
+#if 0
 void
 hzsched(void)
 {
@@ -320,15 +321,17 @@ hzsched(void)
 		m->externup->delaysched++;
 	}
 }
+#endif
 
 /*
  *  here at the end of non-clock interrupts to see if we should preempt the
  *  current process.  Returns 1 if preempted, 0 otherwise.
  */
-#if 0
+
 int
 preempted(void)
 {
+	Mach *m = machp();
 	if(m->externup && m->externup->state == Running)
 	if(m->externup->preempted == 0)
 	if(anyhigher())
@@ -348,8 +351,8 @@ preempted(void)
 	}
 	return 0;
 }
-#endif
 
+#if 0
 int
 preempted(void)
 {
@@ -367,6 +370,7 @@ preempted(void)
 	}
 	return 0;
 }
+#endif
 
 /*
  * Update the cpu time average for this particular process,
@@ -553,7 +557,6 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 static void
 schedready(Sched *sch, Proc *p, int locked)
 {
-	Mach *m = machp();
 	Mpl pl;
 	int pri;
 	Schedq *rq;
@@ -564,8 +567,8 @@ schedready(Sched *sch, Proc *p, int locked)
 		return;
 	}
 
-	if(m->externup != p)
-		m->readied = p;	/* group scheduling, will be removed */
+/*	if(m->externup != p)
+		m->readied = p;	*//* group scheduling, will be removed */
 
 	updatecpu(p);
 	pri = reprioritize(p);
@@ -667,8 +670,8 @@ preemptfor(Proc *p)
 	for(rr = 0; rr < 2; rr++)
 		for(i = 0; i < MACHMAX; i++){
 			j = pickcore(p->color, i);
-			//if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){
-			if((mp = sys->machptr[j]) != nil && mp->online){
+			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){
+			//if((mp = sys->machptr[j]) != nil && mp->online){
 				if(mp == m)
 					continue;
 				/*
@@ -706,7 +709,7 @@ mach0sched(void)
 	Proc *p;
 	Mach *mp;
 	uint32_t start, now;
-	int n, i, j;
+	int n, i; //, j;
 
 	assert(m->machno == 0);
 	acmodeset(NIXKC);		/* we don't time share any more */
@@ -732,8 +735,9 @@ loop:
 			 * find a ready process that did run at an available core
 			 * or one that has not moved for some time.
 			 */
-			if(p->mp == nil || p->mp->proc == nil || n>0)
+			if(p->mp == nil || p->mp->proc == nil || n>0){
 				goto found;
+			}
 		}
 	/* waste time or halt the CPU */
 	idlehands();
@@ -752,14 +756,17 @@ found:
 	 */
 	mp = p->wired;
 	if(mp != nil){
-		if(mp->proc != nil)
+		if(mp->proc != nil){
 			goto loop;
+		}
 	}else{
 		for(i = 0; i < MACHMAX; i++){
-			j = pickcore(p->color, i);
-			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC)
+			/*j = pickcore(p->color, i);
+			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){*/
+			if((mp = sys->machptr[i]) != nil){ // && mp->online && mp->nixtype == NIXTC){
 				if(mp != m && mp->proc == nil)
 					break;
+			}
 		}
 		if(i == MACHMAX){
 			preemptfor(p);
