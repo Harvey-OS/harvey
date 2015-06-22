@@ -128,10 +128,9 @@ squidboy(int apicno, Mach *m)
 	/*
 	 * Beware the Curse of The Non-Interruptable Were-Temporary.
 	 */
-	// see comment in main(). This is a 1990s thing. hz = archhz();
-	// except qemu won't work unless we do this. Sigh.
 	hz = archhz();
-	if(hz >= 0)
+	/* Intel cpu's in archk10 must be reviewed */
+	if(hz == 0)
 		ndnr();
 	m->cpuhz = hz;
 	m->cyclefreq = hz;
@@ -183,6 +182,9 @@ squidboy(int apicno, Mach *m)
 		timersinit();
 		adec(&active.nbooting);
 		ainc(&active.nonline);
+
+		/* Give thunderbirds a breath */
+		ndnr();
 
 		schedinit();
 		break;

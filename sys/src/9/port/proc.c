@@ -962,7 +962,9 @@ runproc(void)
 	if(nosmp)
 		return singlerunproc();
 
-	if(sys->nmach <= AMPmincores)
+	//NIX modeset cannot work without halt every cpu at boot
+	//if(sys->nmach <= AMPmincores)
+	else
 		return smprunproc();
 
 	start = perfticks();
