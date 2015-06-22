@@ -133,9 +133,6 @@ squidboy(int apicno, Mach *m)
 	hz = archhz();
 	if(hz == 0)
 		ndnr();
-	// Now most of Phenom and Opterons are right detected.
-	else
-		ndnr();
 	m->cpuhz = hz;
 	m->cyclefreq = hz;
 	m->cpumhz = hz/1000000ll;
