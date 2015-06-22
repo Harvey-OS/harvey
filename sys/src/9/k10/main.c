@@ -131,7 +131,7 @@ squidboy(int apicno, Mach *m)
 	hz = archhz();
 	/* Intel cpu's in archk10 must be reviewed */
 	if(hz == 0)
-		ndnr();
+		hz = 2000000000ll;
 	m->cpuhz = hz;
 	m->cyclefreq = hz;
 	m->cpumhz = hz/1000000ll;

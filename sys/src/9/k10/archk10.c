@@ -130,6 +130,9 @@ print("\n");*/
 		case 0x000006f0:		/* Core 2 Duo/Quad/Extreme */
 		case 0x00010670:		/* Core 2 Extreme */
 		case 0x000006a0:		/* i7 paurea... */
+		case 0x000106a0:		/* i7 9xx */
+		case 0x000206a0:		/* i7 2xxx */
+		case 0x000306a0:		/* i7 3xxx */
 			/*
 			 * Get the FSB frequemcy.
 			 * If processor has Enhanced Intel Speedstep Technology
