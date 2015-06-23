@@ -234,7 +234,7 @@ nixsquids(void)
 			mp->icc = mallocalign(sizeof *m->icc, ICCLNSZ, 0, 0);
 			mp->icc->fn = nil;
 			//if(i < numtcs){
-			if(i <= numtcs){
+			if(i < numtcs){
 				sys->nmach++;
 				mp->nixtype = NIXTC;
 				sys->nc[NIXTC]++;
