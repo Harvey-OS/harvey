@@ -147,8 +147,10 @@ squidboy(int apicno, Mach *m)
 
 	/*
 	 * CAUTION: no time sync done, etc.
+	 * Stupid print to avoid up = nil or
+	 * last cpu couldn't start in nixquids.
 	 */
-	//DBG("Wait for the thunderbirds!\n");
+	DBG("Wait for the thunderbirds!\n");
 	while(!active.thunderbirdsarego)
 		;
 	wrmsr(0x10, sys->epoch);
@@ -173,9 +175,6 @@ squidboy(int apicno, Mach *m)
 		 */
 		vsvminit(MACHSTKSZ, NIXTC, m);
 
-		/* Ready? steady? going to timer */
-		ndnr();
-
 		/*
 		 * Enable the timer interrupt.
 		 */
@@ -185,6 +184,9 @@ squidboy(int apicno, Mach *m)
 		timersinit();
 		adec(&active.nbooting);
 		ainc(&active.nonline);
+
+		/* Ready? steady? going to timer */
+		ndnr();
 
 		schedinit();
 		break;
@@ -221,7 +223,9 @@ nixsquids(void)
 	int i;
 	uint64_t now, start;
 
-	for(i = 1; i < MACHMAX; i++)
+	/* Not AC for now :-) */
+	for(i = 1; i <= MACHMAX; i++)
+	//for(i = 1; i < MACHMAX; i++)
 		if((mp = sys->machptr[i]) != nil && mp->online){
 			/*
 			 * Inter-core calls. A ensure *mp->iccall and mp->icargs
@@ -229,12 +233,13 @@ nixsquids(void)
 			 */
 			mp->icc = mallocalign(sizeof *m->icc, ICCLNSZ, 0, 0);
 			mp->icc->fn = nil;
-			if(i < numtcs){
+			//if(i < numtcs){
+			if(i <= numtcs){
 				sys->nmach++;
 				mp->nixtype = NIXTC;
 				sys->nc[NIXTC]++;
-			}else
-				sys->nc[NIXAC]++;
+			}//else
+				//sys->nc[NIXAC]++;
 			ainc(&active.nbooting);
 		}
 	sys->epoch = rdtsc();

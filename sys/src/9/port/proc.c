@@ -248,9 +248,11 @@ sched(void)
 		updatecpu(p);
 		p->priority = reprioritize(p);
 	}
-	if(p != m->readied)
-		m->schedticks = m->ticks + HZ/10;
+	if(nosmp){
+		if(p != m->readied)
+			m->schedticks = m->ticks + HZ/10;
 	m->readied = 0;
+	}
 	m->externup = p;
 	m->qstart = m->ticks;
 	m->externup->nqtrap = 0;
@@ -658,7 +660,7 @@ preemptfor(Proc *p)
 {
 	Mach *m = machp();
 	uint32_t delta;
-	uint i, j, rr;
+	uint i, /*j,*/ rr;
 	Proc *mup;
 	Mach *mp;
 
@@ -669,9 +671,9 @@ preemptfor(Proc *p)
 	 */
 	for(rr = 0; rr < 2; rr++)
 		for(i = 0; i < MACHMAX; i++){
-			j = pickcore(p->color, i);
-			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){
-			//if((mp = sys->machptr[j]) != nil && mp->online){
+			/*j = pickcore(p->color, i);
+			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){*/
+			if((mp = sys->machptr[i]) != nil && mp->online && mp->nixtype == NIXTC){
 				if(mp == m)
 					continue;
 				/*

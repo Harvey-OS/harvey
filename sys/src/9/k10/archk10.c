@@ -208,8 +208,8 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 			break;
 		case 0x00100f90:		/* K10 Opteron 61xx */
 		case 0x00600f00:		/* K10 Opteron 62xx */
-		case 0x00600f10:		/* K10 Opteron 6272 */
-		case 0x00600f20:		/* K10 Opteron 63xx */
+		case 0x00600f10:		/* K10 Opteron 6272, FX 6xxx/4xxx */
+		case 0x00600f20:		/* K10 Opteron 63xx, FX 3xxx/8xxx/9xxx */
 			msr = rdmsr(0xc0010064);
 			r = msr & 0x1f;
 			hz = ((r+0x10)*100000000ll)/(1<<(msr>>6 & 0x07));

@@ -280,8 +280,8 @@ struct Mach
 	void*	alarm;			/* alarms bound to this clock */
 	int	inclockintr;
 
-	Proc*	readied;		/* old runproc, this will be removed when AMP works */
-	uint32_t   schedticks;             /* next forced context switch, will be removed too */
+	Proc*	readied;		/* old runproc, only relevant if kernel booted with nosmp (-n append) */
+	uint32_t   schedticks;		/* next forced context switch, same as above */
 	uint32_t	qstart;			/* time when up started running */
 	int	qexpired;		/* quantum expired */
 
