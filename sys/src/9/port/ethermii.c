@@ -12,13 +12,15 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
-
+#include "io.h"
+#include "../port/error.h"
 #include "../port/netif.h"
 
+#include "etherif.h"
 #include "ethermii.h"
 
-static int
-miiprobe(Mii* mii, int mask)
+int
+mii(Mii* mii, int mask)
 {
 	MiiPhy *miiphy;
 	int bit, oui, phyno, r, rmask;
@@ -38,21 +40,21 @@ miiprobe(Mii* mii, int mask)
 			rmask |= bit;
 			continue;
 		}
-		if(mii->rw(mii, 0, phyno, Bmsr, 0) == -1)
+		if(mii->mir(mii, phyno, Bmsr) == -1)
 			continue;
-		r = mii->rw(mii, 0, phyno, Phyidr1, 0)<<16;
-		r |= mii->rw(mii, 0, phyno, Phyidr2, 0);
-		oui = (r>>10) & 0xffff;
-		if(oui == 0xffff || oui == 0)
+		r = mii->mir(mii, phyno, Phyidr1);
+		oui = (r & 0x3FFF)<<6;
+		r = mii->mir(mii, phyno, Phyidr2);
+		oui |= r>>10;
+		if(oui == 0xFFFFF || oui == 0)
 			continue;
 
 		if((miiphy = malloc(sizeof(MiiPhy))) == nil)
 			continue;
 
 		miiphy->mii = mii;
-		miiphy->phyno = phyno;
-		miiphy->phyid = r;
 		miiphy->oui = oui;
+		miiphy->phyno = phyno;
 
 		miiphy->anar = ~0;
 		miiphy->fc = ~0;
@@ -74,7 +76,7 @@ miimir(Mii* mii, int r)
 {
 	if(mii == nil || mii->ctlr == nil || mii->curphy == nil)
 		return -1;
-	return mii->rw(mii, 0, mii->curphy->phyno, r, 0);
+	return mii->mir(mii, mii->curphy->phyno, r);
 }
 
 int
@@ -82,28 +84,21 @@ miimiw(Mii* mii, int r, int data)
 {
 	if(mii == nil || mii->ctlr == nil || mii->curphy == nil)
 		return -1;
-	return mii->rw(mii, 1, mii->curphy->phyno, r, data);
+	return mii->miw(mii, mii->curphy->phyno, r, data);
 }
 
 int
 miireset(Mii* mii)
 {
-	int bmcr, timeo;
+	int bmcr;
 
 	if(mii == nil || mii->ctlr == nil || mii->curphy == nil)
 		return -1;
-	bmcr = mii->rw(mii, 0, mii->curphy->phyno, Bmcr, 0);
-	mii->rw(mii, 1, mii->curphy->phyno, Bmcr, BmcrR|bmcr);
-	for(timeo = 0; timeo < 1000; timeo++){
-		bmcr = mii->rw(mii, 0, mii->curphy->phyno, Bmcr, 0);
-		if(!(bmcr & BmcrR))
-			break;
-		microdelay(1);
-	}
-	if(bmcr & BmcrR)
-		return -1;
-	if(bmcr & BmcrI)
-		mii->rw(mii, 1, mii->curphy->phyno, Bmcr, bmcr & ~BmcrI);
+	bmcr = mii->mir(mii, mii->curphy->phyno, Bmcr);
+	bmcr |= BmcrR;
+	mii->miw(mii, mii->curphy->phyno, Bmcr, bmcr);
+	microdelay(1);
+
 	return 0;
 }
 
@@ -116,8 +111,7 @@ miiane(Mii* mii, int a, int p, int e)
 		return -1;
 	phyno = mii->curphy->phyno;
 
-	mii->rw(mii, 1, phyno, Bmsr, 0);
-	bmsr = mii->rw(mii, 0, phyno, Bmsr, 0);
+	bmsr = mii->mir(mii, phyno, Bmsr);
 	if(!(bmsr & BmsrAna))
 		return -1;
 
@@ -126,7 +120,7 @@ miiane(Mii* mii, int a, int p, int e)
 	else if(mii->curphy->anar != ~0)
 		anar = mii->curphy->anar;
 	else{
-		anar = mii->rw(mii, 0, phyno, Anar, 0);
+		anar = mii->mir(mii, phyno, Anar);
 		anar &= ~(AnaAP|AnaP|AnaT4|AnaTXFD|AnaTXHD|Ana10FD|Ana10HD);
 		if(bmsr & Bmsr10THD)
 			anar |= Ana10HD;
@@ -146,30 +140,28 @@ miiane(Mii* mii, int a, int p, int e)
 	mii->curphy->fc = (AnaAP|AnaP) & anar;
 
 	if(bmsr & BmsrEs){
-		mscr = mii->rw(mii, 0, phyno, Mscr, 0);
+		mscr = mii->mir(mii, phyno, Mscr);
 		mscr &= ~(Mscr1000TFD|Mscr1000THD);
 		if(e != ~0)
 			mscr |= (Mscr1000TFD|Mscr1000THD) & e;
 		else if(mii->curphy->mscr != ~0)
 			mscr = mii->curphy->mscr;
 		else{
-			r = mii->rw(mii, 0, phyno, Esr, 0);
+			r = mii->mir(mii, phyno, Esr);
 			if(r & Esr1000THD)
 				mscr |= Mscr1000THD;
 			if(r & Esr1000TFD)
 				mscr |= Mscr1000TFD;
 		}
 		mii->curphy->mscr = mscr;
-		mii->rw(mii, 1, phyno, Mscr, mscr);
+		mii->miw(mii, phyno, Mscr, mscr);
 	}
-	else
-		mii->curphy->mscr = 0;
-	mii->rw(mii, 1, phyno, Anar, anar);
+	mii->miw(mii, phyno, Anar, anar);
 
-	r = mii->rw(mii, 0, phyno, Bmcr, 0);
+	r = mii->mir(mii, phyno, Bmcr);
 	if(!(r & BmcrR)){
 		r |= BmcrAne|BmcrRan;
-		mii->rw(mii, 1, phyno, Bmcr, r);
+		mii->miw(mii, phyno, Bmcr, r);
 	}
 
 	return 0;
@@ -190,19 +182,22 @@ miistatus(Mii* mii)
 	 * Check Auto-Negotiation is complete and link is up.
 	 * (Read status twice as the Ls bit is sticky).
 	 */
-	bmsr = mii->rw(mii, 0, phyno, Bmsr, 0);
-	if(!(bmsr & (BmsrAnc|BmsrAna)))
+	bmsr = mii->mir(mii, phyno, Bmsr);
+	if(!(bmsr & (BmsrAnc|BmsrAna))) {
+		// print("miistatus: auto-neg incomplete\n");
 		return -1;
+	}
 
-	bmsr = mii->rw(mii, 0, phyno, Bmsr, 0);
+	bmsr = mii->mir(mii, phyno, Bmsr);
 	if(!(bmsr & BmsrLs)){
+		// print("miistatus: link down\n");
 		phy->link = 0;
 		return -1;
 	}
 
 	phy->speed = phy->fd = phy->rfc = phy->tfc = 0;
 	if(phy->mscr){
-		r = mii->rw(mii, 0, phyno, Mssr, 0);
+		r = mii->mir(mii, phyno, Mssr);
 		if((phy->mscr & Mscr1000TFD) && (r & Mssr1000TFD)){
 			phy->speed = 1000;
 			phy->fd = 1;
@@ -211,7 +206,7 @@ miistatus(Mii* mii)
 			phy->speed = 1000;
 	}
 
-	anlpar = mii->rw(mii, 0, phyno, Anlpar, 0);
+	anlpar = mii->mir(mii, phyno, Anlpar);
 	if(phy->speed == 0){
 		r = phy->anar & anlpar;
 		if(r & AnaTXFD){
@@ -227,8 +222,10 @@ miistatus(Mii* mii)
 		else if(r & Ana10HD)
 			phy->speed = 10;
 	}
-	if(phy->speed == 0)
+	if(phy->speed == 0) {
+		// print("miistatus: phy speed 0\n");
 		return -1;
+	}
 
 	if(phy->fd){
 		p = phy->fc;
@@ -244,56 +241,4 @@ miistatus(Mii* mii)
 	phy->link = 1;
 
 	return 0;
-}
-
-char*
-miidumpphy(Mii* mii, char* p, char* e)
-{
-	int i, r;
-
-	if(mii == nil || mii->curphy == nil)
-		return p;
-
-	p = seprint(p, e, "phy:   ");
-	for(i = 0; i < NMiiPhyr; i++){
-		if(i && ((i & 0x07) == 0))
-			p = seprint(p, e, "\n       ");
-		r = mii->rw(mii, 0, mii->curphy->phyno, i, 0);
-		p = seprint(p, e, " %4.4ux", r);
-	}
-	p = seprint(p, e, "\n");
-
-	return p;
-}
-
-void
-miidetach(Mii* mii)
-{
-	int i;
-
-	for(i = 0; i < NMiiPhy; i++){
-		if(mii->phy[i] == nil)
-			continue;
-		free(mii);
-		mii->phy[i] = nil;
-	}
-	free(mii);
-}
-
-Mii*
-miiattach(void* ctlr, int mask, int (*rw)(Mii*, int, int, int, int))
-{
-	Mii* mii;
-
-	if((mii = malloc(sizeof(Mii))) == nil)
-		return nil;
-	mii->ctlr = ctlr;
-	mii->rw = rw;
-
-	if(miiprobe(mii, mask) == 0){
-		free(mii);
-		mii = nil;
-	}
-
-	return mii;
 }

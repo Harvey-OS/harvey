@@ -99,7 +99,8 @@ typedef struct Mii {
 	MiiPhy*	curphy;
 
 	void*	ctlr;
-	int	(*rw)(Mii*, int, int, int, int);
+	int	(*mir)(Mii*, int, int);
+	int	(*miw)(Mii*, int, int, int);
 } Mii;
 
 typedef struct MiiPhy {
@@ -119,6 +120,7 @@ typedef struct MiiPhy {
 	int	tfc;
 } MiiPhy;
 
+extern int mii(Mii*, int);
 extern int miiane(Mii*, int, int, int);
 extern Mii* miiattach(void*, int, int (*)(Mii*, int, int, int, int));
 extern void miidetach(Mii* mii);

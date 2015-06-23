@@ -65,6 +65,7 @@ typedef struct Waitq	Waitq;
 typedef struct Waitstats Waitstats;
 typedef struct Walkqid	Walkqid;
 typedef struct Watchdog	Watchdog;
+typedef struct Watermark Watermark;
 typedef struct Zseg	Zseg;
 typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
@@ -76,6 +77,8 @@ typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 #pragma incomplete Timers
 
 #include <fcall.h>
+
+#define	ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
 
 struct Ref
 {
@@ -1134,6 +1137,15 @@ struct Watchdog
 	void	(*disable)(void);	/* watchdog disable */
 	void	(*restart)(void);	/* watchdog restart */
 	void	(*stat)(char*, char*);	/* watchdog statistics */
+};
+
+struct Watermark
+{
+	int	highwater;
+	int	curr;
+	int	max;
+	int	hitmax;		/* count: how many times hit max? */
+	char	*name;
 };
 
 /* queue state bits,  Qmsg, Qcoalesce, and Qkick can be set in qopen */

@@ -61,6 +61,7 @@
 	"../port/taslock.c",
 	"../port/tod.c",
 	"../port/usbehci.c",
+	"../port/watermarks.c",
 	"../port/xalloc.c"
     ]
 }
