@@ -756,9 +756,8 @@ found:
 	 */
 	mp = p->wired;
 	if(mp != nil){
-		if(mp->proc != nil){
+		if(mp->proc != nil)
 			goto loop;
-		}
 	}else{
 		for(i = 0; i < MACHMAX; i++){
 			/*j = pickcore(p->color, i);

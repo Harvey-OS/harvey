@@ -75,15 +75,9 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 	int f, r;
 	int64_t hz;
 	uint64_t msr;
-/*	char *cp = info0[1];
-{int i; for(i =0; i < 12; i++) print("%c", cp[i]);}
-print("\n");*/
-//	print("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
-//	print("So, until that's fixed, we bring up AP cores slowly. Sorry!\n");
-//	See in main.c this message.
-//	return 0;
 
-	print("%s\n", (char *)&info0[1]);
+	//print("CPUID Vendor: %s\n", (char *)&info0[1]);
+	//print("CPUID Signature: %d\n", info1[0]);
 	if(memcmp(&info0[1], "GenuntelineI", 12) == 0){
 		switch(info1[0] & 0x0fff3ff0){
 		default:
@@ -129,15 +123,19 @@ print("\n");*/
 		case 0x000006e0:		/* Core Duo */
 		case 0x000006f0:		/* Core 2 Duo/Quad/Extreme */
 		case 0x00010670:		/* Core 2 Extreme */
+		case 0x000106e0:		/* i5 7xx */
+		case 0x00020650:		/* i5 6xx, i3 5xx */
+		case 0x000306c0:		/* i5 4xxx */
 		case 0x000006a0:		/* i7 paurea... */
 		case 0x000106a0:		/* i7 9xx */
-		case 0x000206a0:		/* i7 2xxx */
-		case 0x000306a0:		/* i7 3xxx */
+		case 0x000206a0:		/* i7 2xxx, i3 2xxx */
+		case 0x000306a0:		/* i7 3xxx, i5 3xxx, i3 4xxx */
 			/*
 			 * Get the FSB frequemcy.
 			 * If processor has Enhanced Intel Speedstep Technology
 			 * then non-integer bus frequency ratios are possible.
 			 */
+			//print("CPUID EIST: %d\n", (info1[2] & 0x00000080));
 			if(info1[2] & 0x00000080){
 				msr = rdmsr(0x198);
 				r = (msr>>40) & 0x1f;
@@ -146,9 +144,10 @@ print("\n");*/
 				msr = 0;
 				r = rdmsr(0x2a) & 0x1f;
 			}
-//iprint("r %d\n", r);
 			f = rdmsr(0xcd) & 0x07;
-//iprint("f %d\n", f);
+//iprint("rdmsr Intel: %d\n", rdmsr(0x2a));	
+//iprint("Intel msr.lo %d\n", r);
+//iprint("Intel msr.hi %d\n", f);
 			switch(f){
 			default:
 				return 0;
@@ -180,9 +179,9 @@ print("\n");*/
 			 * Do the scaling then round it.
 			 */
 			if(msr & 0x0000400000000000ll)
-				hz = hz*r + hz/2;
+				hz = hz*(r+10) + hz/2;
 			else
-				hz = hz*r;
+				hz = hz*(r+10);
 			hz = ((hz/100)+5)/10;
 			break;
 		}

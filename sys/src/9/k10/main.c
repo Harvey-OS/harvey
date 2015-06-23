@@ -173,6 +173,9 @@ squidboy(int apicno, Mach *m)
 		 */
 		vsvminit(MACHSTKSZ, NIXTC, m);
 
+		/* Ready? steady? going to timer */
+		ndnr();
+
 		/*
 		 * Enable the timer interrupt.
 		 */
@@ -182,9 +185,6 @@ squidboy(int apicno, Mach *m)
 		timersinit();
 		adec(&active.nbooting);
 		ainc(&active.nonline);
-
-		/* Give thunderbirds a breath */
-		ndnr();
 
 		schedinit();
 		break;

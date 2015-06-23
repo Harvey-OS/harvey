@@ -163,6 +163,7 @@ else
 					printf "\n\nALL COMPONENTS COMPILED\n\n"
 					;;
 			"libs")
+					build_klibs
 					build_libs
 					;;
 			"klibs")

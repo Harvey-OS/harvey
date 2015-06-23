@@ -25,6 +25,7 @@
 	"ls.c"
 	],
 	"Post": [
+	"[ -d $HARVEY/amd64/bin ] || mkdir $HARVEY/amd64/bin",
 	"mv bind $HARVEY/amd64/bin/",
 	"mv mount $HARVEY/amd64/bin/",
 	"mv date $HARVEY/amd64/bin/",
