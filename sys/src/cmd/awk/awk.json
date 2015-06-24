@@ -3,7 +3,8 @@
 	"Program": "awk",
 	"Include": ["../cmd.json"],
 	"Pre": [
-	"yacc -d awkgram.y"
+	"yacc -d awkgram.y",
+	"mv $HARVEY/sys/src/cmd/awk/y.tab.c $HARVEY/sys/src/cmd/awk/awkgram.c"
 	],
     "SourceFiles": [
 	"awkgram.c",
@@ -15,10 +16,14 @@
 	"proctab.c",
 	"re.c",
 	"run.c",
-	"tran.c",
-	"y.tab.c"
+	"tran.c"
 	],
+	"Cflags": [
+	"-I/sys/include/ape",
+    "-DPLAN9"
+    ],
 	"Post": [
-	"mv awk $HARVEY/amd64/bin/"
+	"mv awk $HARVEY/amd64/bin/",
+	"rm awkgram.c"
 	]
 }

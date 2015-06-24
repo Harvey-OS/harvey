@@ -12,4 +12,4 @@
 #include <ctype.h>
 
 #define exit(x) exits((x) ? "whoops" : nil)
-#define size_t ulong
+//#define size_t ulong

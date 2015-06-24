@@ -16,4 +16,4 @@ enum
 extern Fcall	*req;
 extern Fcall	*rep;
 extern char	repdata[Maxfdata];
-extern uchar	statbuf[STATMAX];
+extern unsigned char	statbuf[STATMAX];

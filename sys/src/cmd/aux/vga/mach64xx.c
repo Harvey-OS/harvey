@@ -158,7 +158,7 @@ static char* lcdname[Nlcd] = {
 enum {
 	IOREG = 0x10000,
 };
-static uint16_t ioregs[Nreg] = {
+static uint64_t ioregs[Nreg] = {
  [HTotalDisp]		IOREG|0x0000,
  [HSyncStrtWid]	IOREG|0x0100,
  [VTotalDisp]		IOREG|0x0200,

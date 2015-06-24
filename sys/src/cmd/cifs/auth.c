@@ -55,7 +55,7 @@ auth_plain(char *windom, char *keyp, uint8_t *chal, int len)
 	UserPasswd *up;
 	static Auth *ap;
 
-	USED(chal, len);
+	USED(chal); USED(len);
 
 	up = auth_getuserpasswd(auth_getkey, "windom=%s proto=pass service=cifs %s",
 		windom, keyp);

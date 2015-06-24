@@ -104,7 +104,7 @@ main(int argc, char **argv)
 	int i;
 	char *p;
 	Disk *disk;
-	vlong secsize;
+	int64_t secsize;
 
 	secsize = 0;
 	ARGBEGIN{
@@ -276,7 +276,7 @@ static char isfrog[256]={
 };
 
 static char*
-cmdokname(Edit*, char *elem)
+cmdokname(Edit *e, char *elem)
 {
 	for(; *elem; elem++)
 		if(isfrog[*(uint8_t*)elem])

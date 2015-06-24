@@ -1,0 +1,24 @@
+{
+    "Name": "con",
+    "Programs": [
+    "con",
+    "xms",
+    "xmr",
+    "hayes"
+    ],
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "SourceFilesCmd": [
+    "con.c",
+    "xms.c",
+    "xmr.c",
+    "hayes.c"
+	],
+	"Post": [
+    "mv con $HARVEY/amd64/bin/",
+    "mv xms $HARVEY/amd64/bin/",
+    "mv xmr $HARVEY/amd64/bin/",
+    "mv hayes $HARVEY/amd64/bin/"
+	]
+}

@@ -1,0 +1,28 @@
+{
+    "Name": "bzip2",
+    "Programs": [
+    "bunzip2",
+    "bzip2"
+    ],
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "Projects": [
+    "lib/libbzip2.json"
+    ],
+    "SourceFilesCmd": [
+    "bunzip2.c",
+    "bzip2.c"
+	],
+    "Libs": [
+    "lib/libbzip2.a"
+    ],
+    "Cflags": [
+    "-DPLAN9"
+    ],
+	"Post": [
+    "mv bunzip2 $HARVEY/amd64/bin/",
+    "mv bzip2 $HARVEY/amd64/bin/",
+    "rm $HARVEY/sys/src/cmd/bzip2/lib/libbzip2.a"
+	]
+}

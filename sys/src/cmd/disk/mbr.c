@@ -128,9 +128,9 @@ main(int argc, char **argv)
 {
 	Disk *disk;
 	Tentry *tp;
-	uchar *mbr, *buf;
+	unsigned char *mbr, *buf;
 	char *mbrfile;
-	ulong secsize;
+	uint32_t secsize;
 	int flag9, sysfd, nmbr;
 
 	flag9 = 0;

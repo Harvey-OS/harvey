@@ -383,7 +383,7 @@ readctl(Req *r)
 	p = seprint(p, e, "maxspeed read %d write %d\n",
 		drive->maxreadspeed, drive->maxwritespeed);
 
-	if (drive->Scsi.changetime != 0 && drive->ntrack != 0) { /* have disc? */
+	if (drive->scsi.changetime != 0 && drive->ntrack != 0) { /* have disc? */
 		ty = disctype(drive);
 		p = seprint(p, e, "%s", ty);
 		free(ty);

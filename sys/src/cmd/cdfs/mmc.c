@@ -176,21 +176,21 @@ initcdb(uint8_t *cdb, int len, int cmd)
  *
  * The format of the mode parameter (10) header is:
  *	ushort	mode_data_length;		// of following bytes
- *	uchar	medium_type;
- *	uchar	device_specific;
- *	uchar	reserved[2];
+ *	unsigned char	medium_type;
+ *	unsigned char	device_specific;
+ *	unsigned char	reserved[2];
  *	ushort	block_descriptor_length;	// zero
  *
  * The format of the mode parameter (6) header is:
- *	uchar	mode_data_length;		// of following bytes
- *	uchar	medium_type;
- *	uchar	device_specific;
- *	uchar	block_descriptor_length;	// zero
+ *	unsigned char	mode_data_length;		// of following bytes
+ *	unsigned char	medium_type;
+ *	unsigned char	device_specific;
+ *	unsigned char	block_descriptor_length;	// zero
  *
  * The format of the mode pages is:
- *	uchar	page_code_and_PS;
- *	uchar	page_len;			// of following bytes
- *	uchar	parameter[page_len];
+ *	unsigned char	page_code_and_PS;
+ *	unsigned char	page_len;			// of following bytes
+ *	unsigned char	parameter[page_len];
  *
  * see SPC-3 §4.3.4.6 for allocation length and §7.4 for mode parameter lists.
  */
@@ -210,7 +210,7 @@ mmcgetpage10(Drive *drive, int page, void *v)
 	initcdb(cmd, sizeof cmd, ScmdMsense10);
 	cmd[2] = page;
 	cmd[8] = 255;			/* allocation length: buffer size */
-	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
+	n = scsi(&drive->scsi, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
 	if(n < Mode10parmhdrlen)
 		return -1;
 
@@ -236,7 +236,7 @@ mmcgetpage6(Drive *drive, int page, void *v)
 	cmd[2] = page;
 	cmd[4] = 255;			/* allocation length */
 
-	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
+	n = scsi(&drive->scsi, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
 	if(n < Mode6parmhdrlen)
 		return -1;
 
@@ -278,7 +278,7 @@ mmcsetpage10(Drive *drive, int page, void *v)
 //	print("page\n");
 //	hexdump(p + Mode10parmhdrlen, len - Mode10parmhdrlen);
 
-	n = scsi(drive, cmd, sizeof(cmd), p, len, Swrite);
+	n = scsi(&drive->scsi, cmd, sizeof(cmd), p, len, Swrite);
 
 //	print("set: got cmd\n");
 //	hexdump(cmd, 10);
@@ -307,7 +307,7 @@ mmcsetpage6(Drive *drive, int page, void *v)
 	cmd[1] = 0x10;			/* format not vendor-specific */
 	cmd[4] = len;
 
-	n = scsi(drive, cmd, sizeof(cmd), p, len, Swrite);
+	n = scsi(&drive->scsi, cmd, sizeof(cmd), p, len, Swrite);
 	free(p);
 	if(n < len)
 		return -1;
@@ -354,7 +354,7 @@ mmcstatus(Drive *drive)
 	uint8_t cmd[12];
 
 	initcdb(cmd, sizeof cmd, ScmdCDstatus);		/* mechanism status */
-	return scsi(drive, cmd, sizeof(cmd), nil, 0, Sread);
+	return scsi(&drive->scsi, cmd, sizeof(cmd), nil, 0, Sread);
 }
 
 void
@@ -393,7 +393,7 @@ getdevtype(Drive *drive)
 	initcdb(cmd, sizeof cmd, ScmdInq);
 	cmd[3] = sizeof resp >> 8;
 	cmd[4] = sizeof resp;
-	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof resp, Sread);
+	n = scsi(&drive->scsi, cmd, sizeof(cmd), resp, sizeof resp, Sread);
 	if (n < 8)
 		return -1;
 	return resp[0] & 037;
@@ -406,7 +406,7 @@ start(Drive *drive, int code)
 
 	initcdb(cmd, sizeof cmd, ScmdStart);
 	cmd[4] = code;
-	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
+	return scsi(&drive->scsi, cmd, sizeof(cmd), cmd, 0, Snone);
 }
 
 static int
@@ -449,7 +449,7 @@ mmcprobe(Scsi *scsi)
 		print("mmcprobe: inquiry: %s\n", scsi->inquire);
 
 	drive = emalloc(sizeof(Drive));
-	drive->Scsi = *scsi;
+	drive->scsi = *scsi;
 	drive->Dev = mmcdev;
 	drive->invistrack = -1;
 	getinvistrack(drive);
@@ -457,7 +457,7 @@ mmcprobe(Scsi *scsi)
 	aux = emalloc(sizeof(Mmcaux));
 	drive->aux = aux;
 
-	scsiready(drive);
+	scsiready(&drive->scsi);
 	drive->type = getdevtype(drive);
 	if (drive->type != TypeCD) {
 		werrstr("not an mmc device");
@@ -613,7 +613,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 	cmd[5] = t;
 	cmd[7] = sizeof(resp)>>8;
 	cmd[8] = sizeof(resp);
-	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
+	n = scsi(&drive->scsi, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
 	if(n < 28) {
 		if(vflag)
 			print("trackinfo %d fails n=%d: %r\n", t, n);
@@ -663,11 +663,11 @@ mmcreadtoc(Drive *drive, int type, int track, void *data, int nbytes)
 	cmd[8] = nbytes;
 
 	/*
-	 * printing iounit(drive->Scsi.rawfd) here yields
+	 * printing iounit(drive->scsi.rawfd) here yields
 	 *	iounit(3) = 0;		# for local access
 	 *	iounit(3) = 65512;	# for remote access via /mnt/term
 	 */
-	return scsi(drive, cmd, sizeof(cmd), data, nbytes, Sread);
+	return scsi(&drive->scsi, cmd, sizeof(cmd), data, nbytes, Sread);
 }
 
 static Msf
@@ -690,7 +690,7 @@ getdiscinfo(Drive *drive, uint8_t resp[], int resplen)
 	initcdb(cmd, sizeof cmd, ScmdRdiscinfo);
 	cmd[7] = resplen>>8;
 	cmd[8] = resplen;
-	n = scsi(drive, cmd, sizeof(cmd), resp, resplen, Sread);
+	n = scsi(&drive->scsi, cmd, sizeof(cmd), resp, resplen, Sread);
 	if(n < 24) {
 		if(n >= 0)
 			werrstr("rdiscinfo returns %d", n);
@@ -863,7 +863,7 @@ getconfcmd(Drive *drive, uint8_t *resp, int respsz)
 	cmd[3] = 0;			/* start with profile list feature */
 	cmd[7] = respsz >> 8;
 	cmd[8] = respsz;
-	n = scsi(drive, cmd, sizeof cmd, resp, respsz, Sread);
+	n = scsi(&drive->scsi, cmd, sizeof cmd, resp, respsz, Sread);
 	if (n < 0) {
 		if(vflag)
 			fprint(2, "get config cmd failed\n");
@@ -897,7 +897,7 @@ getconf(Drive *drive)
 	 * 0xffff whacko.
 	 *
 	 * this is followed by multiple feature descriptors:
-	 * ushort code, uchar bits, uchar addnl_len, addnl_len bytes.
+	 * ushort code, unsigned char bits, unsigned char addnl_len, addnl_len bytes.
 	 */
 	prof = resp[6]<<8 | resp[7];
 	if (prof2mmctype(drive, prof) < 0)
@@ -936,7 +936,7 @@ getdvdstruct(Drive *drive)
 	cmd[7] = 0;			/* format code: physical format */
 	cmd[8] = sizeof resp >> 8;	/* allocation length */
 	cmd[9] = sizeof resp;
-	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof resp, Sread);
+	n = scsi(&drive->scsi, cmd, sizeof(cmd), resp, sizeof resp, Sread);
 	if (n < 7) {
 		if(vflag)
 			fprint(2, "read disc structure (dvd) cmd failed\n");
@@ -972,7 +972,7 @@ static int
 bdguess(Drive *drive)
 {
 	if (drive->mmctype == Mmcnone) {
-		if (strstr(drive->Scsi.inquire, "BD") == nil)
+		if (strstr(drive->scsi.inquire, "BD") == nil)
 			return -1;
 		if (vflag)
 			fprint(2, "drive probably a BD (from inquiry string)\n");
@@ -984,7 +984,7 @@ bdguess(Drive *drive)
 		return -1;
 
 	drive->recordable = drive->writeok = No;
-	if (strstr(drive->Scsi.inquire, "RW") != nil) {
+	if (strstr(drive->scsi.inquire, "RW") != nil) {
 		if (vflag)
 			fprint(2, "drive probably a burner (from inquiry string)\n");
 		drive->recordable = drive->writeok = Yes;
@@ -1014,8 +1014,8 @@ getbdstruct(Drive *drive)
 	/* cmd[6] is layer #, 0 is first */
 	cmd[7] = 0;			/* format code: disc info */
 	cmd[8] = sizeof resp >> 8;	/* allocation length */
-	cmd[9] = sizeof resp;
-	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof resp, Sread);
+	cmd[9] = (int8_t)sizeof resp;
+	n = scsi(&drive->scsi, cmd, sizeof(cmd), resp, sizeof resp, Sread);
 	if(n < 0) {
 		if(vflag)
 			fprint(2, "read disc structure (bd) cmd failed\n");
@@ -1129,8 +1129,8 @@ initdrive(Drive *drive)
 
 	drive->ntrack = 0;
 	drive->nameok = 0;
-	drive->nchange = drive->Scsi.nchange;
-	drive->changetime = drive->Scsi.changetime;
+	drive->nchange = drive->scsi.nchange;
+	drive->changetime = drive->scsi.changetime;
 	drive->writeok = No;
 	drive->erasable = drive->recordable = Unset;
 	drive->laysfx = nil;
@@ -1242,11 +1242,11 @@ alltrackinfo(Drive *drive, int first, int last)
 		/* allow for lower apparent capacity due to reserved spares */
 		cap = (int64_t)track->end * track->bs;
 		osfx = drive->laysfx;
-		if (cap >= 101*GB)
+		if (cap >= (int64_t)101*GB)
 			drive->laysfx = "-ql";		/* 128GB nominal */
-		else if (cap >= 51*GB)
+		else if (cap >= (int64_t)51*GB)
 			drive->laysfx = "-tl";		/* 100GB nominal */
-		else if (cap >= 26*GB)
+		else if (cap >= (int64_t)26*GB)
 			drive->laysfx = "-dl";		/* 50GB nominal */
 		else
 			drive->laysfx = "";		/* 25GB nominal */
@@ -1357,7 +1357,7 @@ mmcgettoc(Drive *drive)
 	 * will set nchange and changetime in the scsi device.
 	 */
 	mmcreadtoc(drive, 0, 0, resp, sizeof(resp));
-	if(drive->Scsi.changetime == 0) {	/* no media present */
+	if(drive->scsi.changetime == 0) {	/* no media present */
 		drive->mmctype = Mmcnone;
 		drive->ntrack = 0;
 		return 0;
@@ -1366,7 +1366,7 @@ mmcgettoc(Drive *drive)
 	 * if the disc doesn't appear to be have been changed, and there
 	 * is a disc in this drive, there's nothing to do (the common case).
 	 */
-	if(drive->nchange == drive->Scsi.nchange && drive->changetime != 0 &&
+	if(drive->nchange == drive->scsi.nchange && drive->changetime != 0 &&
 	    !drive->relearn)
 		return 0;
 	drive->relearn = 0;
@@ -1376,7 +1376,7 @@ mmcgettoc(Drive *drive)
 	 * so rescan it and relearn all about it.
 	 */
 	if (vflag &&
-	    (drive->nchange != drive->Scsi.nchange || drive->changetime == 0))
+	    (drive->nchange != drive->scsi.nchange || drive->changetime == 0))
 		fprint(2, "\nnew disc in drive\n");
 	initdrive(drive);
 
@@ -1554,7 +1554,7 @@ mmcread(Buf *buf, void *v, int32_t nblock, uint32_t off)
 		return -1;
 
 	n = nblock*bs;
-	nn = scsi(drive, cmd, sizeof(cmd), v, n, Sread);
+	nn = scsi(&drive->scsi, cmd, sizeof(cmd), v, n, Sread);
 	if(nn != n) {
 		if(nn != -1)
 			werrstr("short read %ld/%ld", nn, n);
@@ -1653,7 +1653,7 @@ format(Drive *drive)
 	case Mmcdvdplus:
 		/* format type 0 is optional but equiv to format type 0x26 */
 		fmtdesc[4] = 0x26 << 2;
-		nblks = ~0ul;
+		nblks = (int64_t)~0ul;
 		blksize = 0;
 		break;
 	case Mmcbd:
@@ -1675,7 +1675,7 @@ format(Drive *drive)
 
 	if(vflag)
 		print("%lld ns: format\n", nsec());
-	return scsi(drive, cmd, sizeof(cmd), parms, sizeof parms, Swrite);
+	return scsi(&drive->scsi, cmd, sizeof(cmd), parms, sizeof parms, Swrite);
 }
 
 static int
@@ -1701,7 +1701,7 @@ mmcxwrite(Otrack *o, void *v, int32_t nblk)
 	bs = o->track->bs;
 	drive = o->drive;
 	aux = drive->aux;
-	if (aux->mmcnwa == -1 && scsiready(drive) < 0) {
+	if (aux->mmcnwa == -1 && scsiready(&drive->scsi) < 0) {
 		werrstr("device not ready to write");
 		return -1;
 	}
@@ -1740,7 +1740,7 @@ mmcxwrite(Otrack *o, void *v, int32_t nblk)
 	 * but explicit attempts to rewrite a given sector on write-once
 	 * media are guaranteed to fail.
 	 */
-	r = scsi(drive, cmd, sizeof(cmd), v, nblk * bs, Swrite);
+	r = scsi(&drive->scsi, cmd, sizeof(cmd), v, nblk * bs, Swrite);
 	if (r < 0)
 		fprint(2, "%s: write+verify error at blk offset %,ld = "
 			"offset %,lld / bs %ld: %r\n",
@@ -1751,7 +1751,7 @@ mmcxwrite(Otrack *o, void *v, int32_t nblk)
 }
 
 static int32_t
-mmcwrite(Buf *buf, void *v, int32_t nblk, uint32_t)
+mmcwrite(Buf *buf, void *v, int32_t nblk, uint32_t i)
 {
 	return mmcxwrite(buf->otrack, v, nblk);
 }
@@ -1786,7 +1786,7 @@ reserve(Drive *drive, int track)
 	PUTBELONG(cmd + 2 + 3, sz);
 	if (vflag)
 		fprint(2, "reserving %ld sectors\n", sz);
-	return scsi(drive, cmd, sizeof cmd, cmd, 0, Snone);
+	return scsi(&drive->scsi, cmd, sizeof cmd, cmd, 0, Snone);
 }
 
 static int
@@ -1800,7 +1800,7 @@ getinvistrack(Drive *drive)
 	PUTBELONG(cmd + 2, 1);		/* find first open track */
 	cmd[7] = sizeof(resp)>>8;
 	cmd[8] = sizeof(resp);
-	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
+	n = scsi(&drive->scsi, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
 	if(n < 4) {
 		if(vflag)
 			print("trackinfo for invis track fails n=%d: %r\n", n);
@@ -1910,7 +1910,7 @@ mmcxclose(Drive *drive, int clf, int trackno)
 	cmd[2] = clf;				/* close function */
 	if(clf == Closetrack)
 		cmd[5] = trackno;
-	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
+	return scsi(&drive->scsi, cmd, sizeof(cmd), cmd, 0, Snone);
 }
 
 /* flush drive cache, close current track */
@@ -1933,7 +1933,7 @@ mmcsynccache(Drive *drive)
 				"will be slow");
 		fprint(2, "\n");
 	}
-	scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
+	scsi(&drive->scsi, cmd, sizeof(cmd), cmd, 0, Snone);
 	if(vflag) {
 		aux = drive->aux;
 		print("mmcsynccache: bytes = %lld blocks = %ld, mmcnwa %#luX\n",
@@ -2044,7 +2044,7 @@ mmcblank(Drive *drive, int quick)
 	/* cmd[1] = 0 means blank the whole disc; = 1 just the header */
 	cmd[1] = quick ? 0x01 : 0x00;
 
-	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
+	return scsi(&drive->scsi, cmd, sizeof(cmd), cmd, 0, Snone);
 }
 
 static char*
@@ -2087,7 +2087,7 @@ mmcsetspeed(Drive *drive, int r, int w)
 	cmd[3] = r;
 	cmd[4] = w>>8;
 	cmd[5] = w;
-	rv = e(scsi(drive, cmd, sizeof(cmd), nil, 0, Snone));
+	rv = e(scsi(&drive->scsi, cmd, sizeof(cmd), nil, 0, Snone));
 	mmcgetspeed(drive);
 	return rv;
 }

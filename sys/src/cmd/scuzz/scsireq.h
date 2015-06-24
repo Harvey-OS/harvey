@@ -19,9 +19,9 @@ enum {					/* fundamental constants/defaults */
 };
 
 typedef struct {
-	uchar	*p;
-	long	count;
-	uchar	write;
+	unsigned char	*p;
+	int32_t	count;
+	unsigned char	write;
 } ScsiPtr;
 
 typedef struct {
@@ -35,8 +35,8 @@ typedef struct {
 	ScsiPtr	cmd;
 	ScsiPtr	data;
 	int	status;			/* returned status */
-	uchar	sense[MaxDirData];	/* returned sense data */
-	uchar	inquiry[MaxDirData];	/* returned inquiry data */
+	unsigned char	sense[MaxDirData];	/* returned sense data */
+	unsigned char	inquiry[MaxDirData];	/* returned inquiry data */
 	int	readblock;		/* flag: read a block since open */
 } ScsiReq;
 
@@ -98,63 +98,63 @@ enum {
 	Allmodepages = 0x3F,
 };
 
-/* p arguments should be of type uchar* */
+/* p arguments should be of type unsigned char* */
 #define GETBELONG(p) ((uint32_t)(p)[0]<<24 | (uint32_t)(p)[1]<<16 | (p)[2]<<8 | (p)[3])
 #define PUTBELONG(p, ul) ((p)[0] = (ul)>>24, (p)[1] = (ul)>>16, \
 			  (p)[2] = (ul)>>8,  (p)[3] = (ul))
 #define GETBE24(p)	((uint32_t)(p)[0]<<16 | (p)[1]<<8 | (p)[2])
 #define PUTBE24(p, ul)	((p)[0] = (ul)>>16, (p)[1] = (ul)>>8, (p)[2] = (ul))
 
-extern long maxiosize;
+extern int32_t maxiosize;
 
-long	SRready(ScsiReq*);
-long	SRrewind(ScsiReq*);
-long	SRreqsense(ScsiReq*);
-long	SRformat(ScsiReq*);
-long	SRrblimits(ScsiReq*, uchar*);
-long	SRread(ScsiReq*, void*, long);
-long	SRwrite(ScsiReq*, void*, long);
-long	SRseek(ScsiReq*, long, int);
-long	SRfilemark(ScsiReq*, uint32_t);
-long	SRspace(ScsiReq*, uchar, long);
-long	SRinquiry(ScsiReq*);
-long	SRmodeselect6(ScsiReq*, uchar*, long);
-long	SRmodeselect10(ScsiReq*, uchar*, long);
-long	SRmodesense6(ScsiReq*, uchar, uchar*, long);
-long	SRmodesense10(ScsiReq*, uchar, uchar*, long);
-long	SRstart(ScsiReq*, uchar);
-long	SRrcapacity(ScsiReq*, uchar*);
+int32_t	SRready(ScsiReq*);
+int32_t	SRrewind(ScsiReq*);
+int32_t	SRreqsense(ScsiReq*);
+int32_t	SRformat(ScsiReq*);
+int32_t	SRrblimits(ScsiReq*, unsigned char*);
+int32_t	SRread(ScsiReq*, void*, int32_t);
+int32_t	SRwrite(ScsiReq*, void*, int32_t);
+int32_t	SRseek(ScsiReq*, int32_t, int);
+int32_t	SRfilemark(ScsiReq*, uint32_t);
+int32_t	SRspace(ScsiReq*, unsigned char, int32_t);
+int32_t	SRinquiry(ScsiReq*);
+int32_t	SRmodeselect6(ScsiReq*, unsigned char*, int32_t);
+int32_t	SRmodeselect10(ScsiReq*, unsigned char*, int32_t);
+int32_t	SRmodesense6(ScsiReq*, unsigned char, unsigned char*, int32_t);
+int32_t	SRmodesense10(ScsiReq*, unsigned char, unsigned char*, int32_t);
+int32_t	SRstart(ScsiReq*, unsigned char);
+int32_t	SRrcapacity(ScsiReq*, unsigned char*);
 
-long	SRblank(ScsiReq*, uchar, uchar);	/* MMC CD-R/CD-RW commands */
-long	SRsynccache(ScsiReq*);
-long	SRTOC(ScsiReq*, void*, int, uchar, uchar);
-long	SRrdiscinfo(ScsiReq*, void*, int);
-long	SRrtrackinfo(ScsiReq*, void*, int, int);
+int32_t	SRblank(ScsiReq*, unsigned char, unsigned char);	/* MMC CD-R/CD-RW commands */
+int32_t	SRsynccache(ScsiReq*);
+int32_t	SRTOC(ScsiReq*, void*, int, unsigned char, unsigned char);
+int32_t	SRrdiscinfo(ScsiReq*, void*, int);
+int32_t	SRrtrackinfo(ScsiReq*, void*, int, int);
 
-long	SRcdpause(ScsiReq*, int);		/* MMC CD audio commands */
-long	SRcdstop(ScsiReq*);
-long	SRcdload(ScsiReq*, int, int);
-long	SRcdplay(ScsiReq*, int, long, long);
-long	SRcdstatus(ScsiReq*, uchar*, int);
-long	SRgetconf(ScsiReq*, uchar*, int);
+int32_t	SRcdpause(ScsiReq*, int);		/* MMC CD audio commands */
+int32_t	SRcdstop(ScsiReq*);
+int32_t	SRcdload(ScsiReq*, int, int);
+int32_t	SRcdplay(ScsiReq*, int, int32_t, int32_t);
+int32_t	SRcdstatus(ScsiReq*, unsigned char*, int);
+int32_t	SRgetconf(ScsiReq*, unsigned char*, int);
 
 /*	old CD-R/CD-RW commands */
-long	SRfwaddr(ScsiReq*, uchar, uchar, uchar, uchar*);
-long	SRtreserve(ScsiReq*, long);
-long	SRtinfo(ScsiReq*, uchar, uchar*);
-long	SRwtrack(ScsiReq*, void*, long, uchar, uchar);
-long	SRmload(ScsiReq*, uchar);
-long	SRfixation(ScsiReq*, uchar);
+int32_t	SRfwaddr(ScsiReq*, unsigned char, unsigned char, unsigned char, unsigned char*);
+int32_t	SRtreserve(ScsiReq*, int32_t);
+int32_t	SRtinfo(ScsiReq*, unsigned char, unsigned char*);
+int32_t	SRwtrack(ScsiReq*, void*, int32_t, unsigned char, unsigned char);
+int32_t	SRmload(ScsiReq*, unsigned char);
+int32_t	SRfixation(ScsiReq*, unsigned char);
 
-long	SReinitialise(ScsiReq*);		/* CHANGER commands */
-long	SRestatus(ScsiReq*, uchar, uchar*, int);
-long	SRmmove(ScsiReq*, int, int, int, int);
+int32_t	SReinitialise(ScsiReq*);		/* CHANGER commands */
+int32_t	SRestatus(ScsiReq*, unsigned char, unsigned char*, int);
+int32_t	SRmmove(ScsiReq*, int, int, int, int);
 
-long	SRrequest(ScsiReq*);
+int32_t	SRrequest(ScsiReq*);
 int	SRclose(ScsiReq*);
 int	SRopenraw(ScsiReq*, char*);
 int	SRopen(ScsiReq*, char*);
 
 void	makesense(ScsiReq*);
 
-long	umsrequest(struct Umsc*, ScsiPtr*, ScsiPtr*, int*);
+int32_t	umsrequest(struct Umsc*, ScsiPtr*, ScsiPtr*, int*);

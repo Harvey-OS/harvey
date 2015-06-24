@@ -784,10 +784,10 @@ decodedtb(Mode *m, uint8_t *p)
 	vso = ((p[11] & 0x0C)<<2) | ((p[10] & 0xF0)>>4);	/* vertical sync offset */
 	vspw = ((p[11] & 0x03)<<4) | (p[10] & 0x0F);		/* vertical sync pulse width */
 
-	/* dxmm = (p[14] & 0xF0)<<4) | p[12]; 	/* horizontal image size (mm) */
-	/* dymm = (p[14] & 0x0F)<<8) | p[13];	/* vertical image size (mm) */
-	/* hbord = p[15];		/* horizontal border (pixels) */
-	/* vbord = p[16];		/* vertical border (pixels) */
+	/* dxmm = (p[14] & 0xF0)<<4) | p[12]; 	*//* horizontal image size (mm) */
+	/* dymm = (p[14] & 0x0F)<<8) | p[13];	*//* vertical image size (mm) */
+	/* hbord = p[15];		*//* horizontal border (pixels) */
+	/* vbord = p[16];		*//* vertical border (pixels) */
 
 	m->x = ha;
 	m->y = va;

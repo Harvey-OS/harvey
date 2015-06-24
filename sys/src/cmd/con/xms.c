@@ -59,13 +59,13 @@ updcrc(int c, uint16_t crc)
 void
 main(int argc, char **argv)
 {
-	uchar c;
-	uchar buf[1024+5];
-	uchar seqno;
+	unsigned char c;
+	unsigned char buf[1024+5];
+	unsigned char seqno;
 	int fd, ctl;
-	long n;
+	int32_t n;
 	int sum;
-	uchar *p;
+	unsigned char *p;
 	int bytes;
 	int crcmode;
 

@@ -24,14 +24,14 @@ struct Iosect
 	short	flags;
 	MLock	lock;
 	Iotrack *t;
-	uchar *	iobuf;
+	unsigned char *	iobuf;
 };
 
 struct Iotrack
 {
 	short	flags;
 	Xfs *	xf;
-	long	addr;
+	int32_t	addr;
 	Iotrack	*next;		/* in lru list */
 	Iotrack	*prev;
 	Iotrack	*hnext;		/* in hash list */
@@ -50,22 +50,22 @@ enum{
 struct Track
 {
 	Iosect *p[Sect2trk];
-	uchar	buf[Sect2trk][Sectorsize];
+	unsigned char	buf[Sect2trk][Sectorsize];
 };
 
 #define	BMOD		(1<<0)
 #define	BIMM		(1<<1)
 #define	BSTALE		(1<<2)
 
-Iosect*	getiosect(Xfs*, long, int);
-Iosect*	getosect(Xfs*, long);
-Iosect*	getsect(Xfs*, long);
+Iosect*	getiosect(Xfs*, int32_t, int);
+Iosect*	getosect(Xfs*, int32_t);
+Iosect*	getsect(Xfs*, int32_t);
 Iosect*	newsect(void);
-Iotrack*	getiotrack(Xfs*, long);
+Iotrack*	getiotrack(Xfs*, int32_t);
 int	canmlock(MLock*);
 int	devcheck(Xfs*);
-int	devread(Xfs*, long, void*, long);
-int	devwrite(Xfs*, long, void*, long);
+int	devread(Xfs*, int32_t, void*, int32_t);
+int	devwrite(Xfs*, int32_t, void*, int32_t);
 int	tread(Iotrack*);
 int	twrite(Iotrack*);
 void	freesect(Iosect*);

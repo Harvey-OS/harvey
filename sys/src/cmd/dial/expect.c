@@ -18,7 +18,7 @@ usage(void)
 }
 
 void
-catch(void*, char *s)
+catch(void *v, char *s)
 {
 	exits(s);
 }

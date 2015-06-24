@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include "bzlib.h"
+#include "lib/bzlib.h"
 
 static	int	bzipf(char*, int);
 static	int	bzip(char*, int32_t, int, Biobuf*);

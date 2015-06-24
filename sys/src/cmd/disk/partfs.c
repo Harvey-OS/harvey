@@ -226,7 +226,7 @@ ctlwrite(Req *r)
 }
 
 int
-rootgen(int off, Dir *d, void*)
+rootgen(int off, Dir *d, void *v)
 {
 	memset(d, 0, sizeof *d);
 	d->atime = time0;
@@ -245,7 +245,7 @@ rootgen(int off, Dir *d, void*)
 }
 
 int
-dirgen(int off, Dir *d, void*)
+dirgen(int off, Dir *d, void *v)
 {
 	int n;
 	Part *p;

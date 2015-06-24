@@ -234,7 +234,7 @@ static char *helptext =
 	"q - quit\n";
 
 static char*
-edithelp(Edit *edit, int, char**)
+edithelp(Edit *edit, int i, char **c)
 {
 	print("%s", helptext);
 	if(edit->help)
@@ -243,7 +243,7 @@ edithelp(Edit *edit, int, char**)
 }
 
 static char*
-editprint(Edit *edit, int argc, char**)
+editprint(Edit *edit, int argc, char **c)
 {
 	int64_t lastend;
 	int i;
@@ -266,7 +266,7 @@ editprint(Edit *edit, int argc, char**)
 }
 
 char*
-editwrite(Edit *edit, int argc, char**)
+editwrite(Edit *edit, int argc, char **c)
 {
 	int i;
 	char *err;
@@ -287,7 +287,7 @@ editwrite(Edit *edit, int argc, char**)
 }
 
 static char*
-editquit(Edit *edit, int argc, char**)
+editquit(Edit *edit, int argc, char **c)
 {
 	static int warned;
 
@@ -306,7 +306,7 @@ editquit(Edit *edit, int argc, char**)
 }
 
 char*
-editctlprint(Edit *edit, int argc, char **)
+editctlprint(Edit *edit, int argc, char **c)
 {
 	if(argc != 1)
 		return "args";

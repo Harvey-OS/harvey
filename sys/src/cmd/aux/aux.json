@@ -40,6 +40,8 @@
 	"Projects": [
 	"mnihongo/mnihongo.json",
 	"flashfs/flashfs.json",
+	"gps/gps.json",
+	"vga/vga.json"
 	],
 	"Include": ["../cmd.json"],
 	"Pre": [

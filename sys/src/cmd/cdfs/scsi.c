@@ -248,7 +248,7 @@ scsi(Scsi *s, uint8_t *cmd, int ccount, void *v, int dcount, int io)
 	char *p;
 
 	data = v;
-	SET(key, code);
+	SET(key); SET(code);
 	qlock(s);
 	for(tries=0; tries<2; tries++) {
 		n = _scsicmd(s, cmd, ccount, data, dcount, io, 0);

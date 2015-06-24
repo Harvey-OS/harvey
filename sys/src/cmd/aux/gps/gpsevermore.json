@@ -1,0 +1,14 @@
+{
+    "Name": "gpsevermore",
+    "Include": ["../../cmd.json"],
+    "Program": "gpsevermore",
+    "Pre": [
+	],
+    "SourceFiles": [
+    "util.c",
+    "gpsevermore.c"
+	],
+	"Post": [
+    "mv gpsevermore $HARVEY/amd64/bin/aux/"
+	]
+}

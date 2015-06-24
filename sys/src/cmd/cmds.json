@@ -126,6 +126,16 @@
 	"9660srv/9660srv.json",
 	"9nfs/9nfs.json",
 	"astro/astro.json"
+	"aux/aux.json",
+	"bzip2/bzip2.json",
+	"cb/cb.json",
+	"cdfs/cdfs.json",
+	"cifs/cifs.json",
+	"con/con.json",
+	"dial/dial.json",
+	"diff/diff.json",
+	"disk/disk.json",
+	"dossrv/dossrv.json"
 	],
 	"Include": ["cmd.json"],
 	"Pre": [

@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include "bzlib.h"
+#include "lib/bzlib.h"
 
 static	Biobuf	bin;
 static	int	debug;

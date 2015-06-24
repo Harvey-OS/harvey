@@ -22,10 +22,10 @@ int	wflag;
 void
 main(int argc, char *argv[])
 {
-	long i, l, x, lobits, hibits, tot;
+	int32_t i, l, x, lobits, hibits, tot;
 	int f, j;
 	char *file;
-	ulong *b, a, lo, hi;
+	uint32_t *b, a, lo, hi;
 
 	ARGBEGIN {
 	default:
@@ -48,15 +48,15 @@ main(int argc, char *argv[])
 		print("cant open %s: %r\n", file);
 		exits("open");
 	}
-	l = seek(f, 0, 2) / sizeof(long);
+	l = seek(f, 0, 2) / sizeof(int32_t);
 
-	b = malloc(l*sizeof(long));
+	b = malloc(l*sizeof(int32_t));
 	if(b == 0) {
 		print("cant malloc %s: %r\n", file);
 		exits("malloc");
 	}
 	seek(f, 0, 0);
-	if(read(f, b, l*sizeof(long)) != l*sizeof(long)) {
+	if(read(f, b, l*sizeof(int32_t)) != l*sizeof(int32_t)) {
 		print("short read %s: %r\n", file);
 		exits("read");
 	}
@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 		swapem(b, l);
 	}
 
-	qsort(b, l, sizeof(ulong), ulcmp);
+	qsort(b, l, sizeof(uint32_t), ulcmp);
 
 	tot = 0;
 	for(j=0; j<100; j++) {
@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 		if(hibits > lobits)
 			swapem(b, l);
 		seek(f, 0, 0);
-		if(write(f, b, l*sizeof(long)) != l*sizeof(long)) {
+		if(write(f, b, l*sizeof(int32_t)) != l*sizeof(int32_t)) {
 			print("short write %s\n", file);
 			exits("write");
 		}

@@ -1,0 +1,27 @@
+{
+    "Name": "dump9660",
+    "Program": "dump9660",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"boot.c",
+	"cdrdwr.c",
+	"conform.c",
+	"direc.c",
+	"dump.c",
+	"dump9660.c",
+	"ichar.c",
+	"jchar.c",
+	"path.c",
+	"plan9.c",
+	"rune.c",
+	"sysuse.c",
+	"util.c",
+	"write.c"
+	],
+	"Post": [
+	"mv dump9660 $HARVEY/amd64/bin/",
+	"cp mk9660.rc $HARVEY/amd64/bin/mk9660"
+	]
+}

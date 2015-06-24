@@ -349,7 +349,7 @@ typedef struct {
 	char	*windom;	/* remote server's domain name */
 	char	*resp[2];	/* ASCII/Unicode or LM/NTLM keys */
 	int	len[2];		/* length of above */
-	uchar	*mackey[2];	/* Message Authentication key */
+	unsigned char	*mackey[2];	/* Message Authentication key */
 } Auth;
 
 typedef struct {
@@ -371,10 +371,10 @@ typedef struct {
 	int	isguest;	/* logged in as guest */
 	int	secmode;	/* security mode  */
 	int	macidx;		/* which MAC is in use, -1 is none */
-	uchar	chal[0xff +1];	/* server's challange for authentication  */
+	unsigned char	chal[0xff +1];	/* server's challange for authentication  */
 	int	challen;	/* length of challange */
-	long	slip;		/* time difference between the server and us */
-	uvlong	lastfind;	/* nsec when last find peformed */
+	int32_t	slip;		/* time difference between the server and us */
+	uint64_t	lastfind;	/* nsec when last find peformed */
 	QLock	seqlock;	/* sequence number increment */
 	QLock	rpclock;	/* actual remote procedure call */
 	char	*cname;		/* remote hosts called name (for info) */
@@ -388,17 +388,17 @@ typedef struct {
 	int tid;		/* tree ID received from server */
 	int seq;		/* sequence number expected in reply */
 
-	uchar *seqbase; 	/* cifs: pos of sequence number in packet */
-	uchar *wordbase; 	/* cifs: base of words section of data  */
-	uchar *bytebase; 	/* cifs: base of bytes section of data  */
-	uchar *tbase;		/* transactions: start of trans packet */
-	uchar *tsetup;		/* transactions: start of setup section */
-	uchar *tparam; 		/* transactions: start of params section */
-	uchar *tdata; 		/* transactions: start of data section */
+	unsigned char *seqbase; 	/* cifs: pos of sequence number in packet */
+	unsigned char *wordbase; 	/* cifs: base of words section of data  */
+	unsigned char *bytebase; 	/* cifs: base of bytes section of data  */
+	unsigned char *tbase;		/* transactions: start of trans packet */
+	unsigned char *tsetup;		/* transactions: start of setup section */
+	unsigned char *tparam; 		/* transactions: start of params section */
+	unsigned char *tdata; 		/* transactions: start of data section */
 
-	uchar *eop;		/* received end of packet */
-	uchar *pos;		/* current pos in packet  */
-	uchar *buf;		/* packet buffer, must be last entry in struct  */
+	unsigned char *eop;		/* received end of packet */
+	unsigned char *pos;		/* current pos in packet  */
+	unsigned char *buf;		/* packet buffer, must be last entry in struct  */
 } Pkt;
 
 typedef struct {
@@ -408,20 +408,20 @@ typedef struct {
 } Share;
 
 typedef struct {
-	long	created;	/* last access time */
-	long	accessed;	/* last access time */
-	long	written;	/* last written time */
-	long	changed;	/* change time */
-	uvlong	size;		/* file size */
-	long	attribs;	/* attributes */
+	int32_t	created;	/* last access time */
+	int32_t	accessed;	/* last access time */
+	int32_t	written;	/* last written time */
+	int32_t	changed;	/* change time */
+	uint64_t	size;		/* file size */
+	int32_t	attribs;	/* attributes */
 	char	name[CIFS_FNAME_MAX +1]; /* name */
 } FInfo;
 
 typedef struct {
 	char	*wrkstn;
 	char	*user;
-	long	sesstime;
-	long	idletime;
+	int32_t	sesstime;
+	int32_t	idletime;
 } Sessinfo;
 
 typedef struct {
@@ -493,10 +493,10 @@ extern Share Shares[MAX_SHARES];
 extern int Nshares;
 
 /* main.c */
-Qid	mkqid(char *, int, long, int, long);
+Qid	mkqid(char *, int, int32_t, int, int32_t);
 
 /* auth.c */
-Auth	*getauth(char *, char *, char *, int, uchar *, int);
+Auth	*getauth(char *, char *, char *, int, unsigned char *, int);
 void	autherr(void);
 int	macsign(Pkt *, int);
 
@@ -506,7 +506,7 @@ void	cifsclose(Session *);
 Pkt	*cifshdr(Session *, Share *, int);
 void	pbytes(Pkt *);
 int	cifsrpc(Pkt *);
-int	CIFSnegotiate(Session *, long *, char *, int, char *, int);
+int	CIFSnegotiate(Session *, int32_t *, char *, int, char *, int);
 int	CIFSsession(Session *);
 int	CIFStreeconnect(Session *, char *, char *, Share *);
 int	CIFSlogoff(Session *);
@@ -517,14 +517,14 @@ int	CIFScreatedirectory(Session *, Share *, char *);
 int	CIFSrename(Session *, Share *, char *, char *);
 int	CIFS_NT_opencreate(Session *, Share *, char *, int, int, int, int, int, int, int *, FInfo *);
 int	CIFS_SMB_opencreate(Session *, Share *, char *, int, int, int, int *);
-vlong	CIFSwrite(Session *, Share *, int, uvlong, void *, vlong);
-vlong	CIFSread(Session *, Share *, int, uvlong, void *, vlong, vlong);
+int64_t	CIFSwrite(Session *, Share *, int, uint64_t, void *, int64_t);
+int64_t	CIFSread(Session *, Share *, int, uint64_t, void *, int64_t, int64_t);
 int	CIFSflush(Session *, Share *, int);
 int	CIFSclose(Session *, Share *, int);
 int	CIFSfindclose2(Session *, Share *, int);
 int	CIFSecho(Session *);
 int	CIFSsetinfo(Session *, Share *, char *, FInfo *);
-void	goff(Pkt *, uchar *, char *, int);
+void	goff(Pkt *, unsigned char *, char *, int);
 
 /* dfs.c */
 char	*mapfile(char *);
@@ -567,7 +567,7 @@ char	*strupr(char *);
 char	*strlwr(char *);
 
 /* netbios.c */
-void	Gmem(uchar **, void *, int);
+void	Gmem(unsigned char **, void *, int);
 int	calledname(char *, char *);
 int	nbtdial(char *, char *, char *);
 void	nbthdr(Pkt *);
@@ -582,27 +582,27 @@ void	*pmem(Pkt *, void *, int);
 void	*ppath(Pkt *, char *);
 void	*pstr(Pkt *, char *);
 void	*pascii(Pkt *, char *);
-void	*pl64(Pkt *, uvlong);
+void	*pl64(Pkt *, uint64_t);
 void	*pb32(Pkt *, uint);
 void	*pl32(Pkt *, uint);
 void	*pb16(Pkt *, uint);
 void	*pl16(Pkt *, uint);
 void	*p8(Pkt *, uint);
 void	*pname(Pkt *, char *, char);
-void	*pvtime(Pkt *, uvlong);
-void	*pdatetime(Pkt *, long);
+void	*pvtime(Pkt *, uint64_t);
+void	*pdatetime(Pkt *, int32_t);
 void	gmem(Pkt *, void *, int);
 void	gstr(Pkt *, char *, int);
 void	gascii(Pkt *, char *, int);
-uvlong	gl64(Pkt *);
-uvlong	gb48(Pkt *);
+uint64_t	gl64(Pkt *);
+uint64_t	gb48(Pkt *);
 uint	gb32(Pkt *);
 uint	gl32(Pkt *);
 uint	gb16(Pkt *);
 uint	gl16(Pkt *);
 uint	g8(Pkt *);
-long	gdatetime(Pkt *);
-long	gvtime(Pkt *);
+int32_t	gdatetime(Pkt *);
+int32_t	gvtime(Pkt *);
 void	gconv(Pkt *, int, char *, int);
 
 /* raperrstr.c */
@@ -630,14 +630,14 @@ int	RAPServerenum3(Session *, Share *, char *, int, int, Serverinfo *);
 int	RAPFileenum2(Session *, Share *, char *, char *, Fileinfo **);
 
 /* trans2.c */
-int	T2findfirst(Session *, Share *, int, char *, int *, long *, FInfo *);
-int	T2findnext(Session *, Share *, int, char *, int *, long *, FInfo *, int);
+int	T2findfirst(Session *, Share *, int, char *, int *, int32_t *, FInfo *);
+int	T2findnext(Session *, Share *, int, char *, int *, int32_t *, FInfo *, int);
 int	T2queryall(Session *, Share *, char *, FInfo *);
 int	T2querystandard(Session *, Share *, char *, FInfo *);
 int	T2setpathinfo(Session *, Share *, char *, FInfo *);
 int	T2setfilelength(Session *, Share *, int, FInfo *);
-int	T2fsvolumeinfo(Session *, Share *, long *, long *, char *, int);
-int	T2fssizeinfo(Session *, Share *, uvlong *, uvlong *);
+int	T2fsvolumeinfo(Session *, Share *, int32_t *, int32_t *, char *, int);
+int	T2fssizeinfo(Session *, Share *, uint64_t *, uint64_t *);
 int	T2getdfsreferral(Session *, Share *, char *, int *, int *, Refer *, int);
 
 /* transnt.c */

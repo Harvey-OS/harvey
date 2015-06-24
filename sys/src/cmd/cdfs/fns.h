@@ -7,12 +7,12 @@
  * in the LICENSE file.
  */
 
-Buf*	bopen(long (*)(Buf*, void*, long, uint32_t), int, int, int);
-long	bread(Buf*, void*, long, vlong);
+Buf*	bopen(int32_t (*)(Buf*, void*, int32_t, uint32_t), int, int, int);
+int32_t	bread(Buf*, void*, int32_t, int64_t);
 void	bterm(Buf*);
-long	bufread(Otrack*, void*, long, vlong);
-long	bufwrite(Otrack*, void*, long);
-long	bwrite(Buf*, void*, long);
+int32_t	bufread(Otrack*, void*, int32_t, int64_t);
+int32_t	bufwrite(Otrack*, void*, int32_t);
+int32_t	bwrite(Buf*, void*, int32_t);
 char*	disctype(Drive *drive);
 void	*emalloc(uint32_t);
 char*	geterrstr(void);

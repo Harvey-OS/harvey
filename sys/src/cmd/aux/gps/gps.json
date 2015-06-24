@@ -1,0 +1,17 @@
+{
+    "Name": "gpsfs",
+    "Include": ["../../cmd.json"],
+    "Program": "gpsfs",
+    "Projects": [
+    "gpsevermore.json"
+    ],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "util.c",
+    "gpsfs.c"
+	],
+	"Post": [
+    "mv gpsfs $HARVEY/amd64/bin/aux/"
+	]
+}

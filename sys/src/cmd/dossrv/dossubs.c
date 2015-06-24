@@ -65,7 +65,7 @@ dosfs(Xfs *xf)
 			isdos[i] = 1;
 		isdos['$'] = 1;
 		isdos['%'] = 1;
-		isdos['''] = 1;
+		isdos['\''] = 1;
 		isdos['-'] = 1;
 		isdos['_'] = 1;
 		isdos['@'] = 1;

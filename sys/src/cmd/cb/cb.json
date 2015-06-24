@@ -1,0 +1,14 @@
+{
+    "Name": "cb",
+    "Program": "cb",
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"cb.c",
+	"cbtype.c"
+	],
+	"Post": [
+	"mv cb $HARVEY/amd64/bin/"
+	]
+}

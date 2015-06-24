@@ -29,8 +29,8 @@ void
 main(int argc, char **argv)
 {
 	int fd;
-	uchar seqno;
-	ulong bytes;
+	unsigned char seqno;
+	uint32_t bytes;
 
 	ARGBEGIN {
 	case 'd':

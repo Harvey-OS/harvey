@@ -11,7 +11,7 @@
 #include <libc.h>
 
 void
-ding(void*, char *s)
+ding(void *v, char *s)
 {
 	if(strstr(s, "alarm"))
 		noted(NCONT);

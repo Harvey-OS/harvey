@@ -1,0 +1,30 @@
+{
+	"Name": "libbzip2",
+	"Library": "libbzip2.a",
+	"Include": ["../../../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"blocksort.c",
+	"bzassert.c",
+	"bzcompress.c",
+	"bzdecompress.c",
+	"bzfeof.c",
+	"bzlib.c",
+	"bzread.c",
+	"bzversion.c",
+	"bzwrite.c",
+	"bzzlib.c",
+	"compress.c",
+	"crctable.c",
+	"decompress.c",
+	"huffman.c",
+	"randtable.c"
+	],
+	"Cflags": [
+    "-DPLAN9"
+    ],
+	"Post": [
+	"ar rv $HARVEY/sys/src/cmd/bzip2/lib/libbzip2.a *.o"
+	]
+}

@@ -1,0 +1,16 @@
+{
+    "Name": "diff",
+    "Program": "diff",
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"diffdir.c",
+	"diffio.c",
+	"diffreg.c",
+	"main.c"
+	],
+	"Post": [
+	"mv diff $HARVEY/amd64/bin/"
+	]
+}

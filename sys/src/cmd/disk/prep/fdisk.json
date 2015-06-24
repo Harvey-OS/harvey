@@ -1,0 +1,17 @@
+{
+    "Name": "fdisk",
+    "Program": "fdisk",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+    "yacc -d calc.y"
+    ],
+    "SourceFiles": [
+    "fdisk.c",
+    "edit.c",
+    "y.tab.c"
+	],
+	"Post": [
+    "mv fdisk $HARVEY/amd64/bin/",
+    "rm y.tab*"
+	]
+}

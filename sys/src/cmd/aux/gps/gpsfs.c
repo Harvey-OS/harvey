@@ -51,8 +51,8 @@ struct Fix {
 	double		zulu;
 	int		date;
 	char		valid;
-	uchar		quality;
-	ushort		satellites;
+	unsigned char		quality;
+	uint16_t		satellites;
 	double		pdop;
 	double		hdop;
 	double		vdop;
@@ -177,7 +177,7 @@ File *root;
 File *gpsdir;
 
 void
-rend(Srv *)
+rend(Srv *s)
 {
 	sysfatal("gpsfs demised");
 }
@@ -259,7 +259,7 @@ threadmain(int argc, char*argv[])
 }
 
 static void
-gpstrack(void *)
+gpstrack(void *v)
 {
 	Fix fix;
 	static char buf[256], *t[32];
@@ -763,7 +763,7 @@ getsea(char *s1, char *s2, Fix *f){
 int
 getlat(char *s1, char *s2, Fix *f){
 	double lat;
-	static count;
+	static int count;
 
 	if(*s1 == 0 || !isdigit(*s1) || strlen(s1) <= 5){
 		badlat++;
@@ -803,7 +803,7 @@ getlat(char *s1, char *s2, Fix *f){
 int
 getlon(char *s1, char *s2, Fix *f){
 	double lon;
-	static count;
+	static int count;
 
 	if(*s1 == 0 || ! isdigit(*s1) || strlen(s1) <= 5){
 		badlon++;

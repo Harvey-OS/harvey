@@ -1,0 +1,29 @@
+{
+    "Name": "cifs",
+    "Program": "cifs",
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+	"main.c",
+	"transnt.c",
+	"trans2.c",
+	"trans.c",
+	"cifs.c",
+	"netbios.c",
+	"pack.c",
+	"info.c",
+	"fs.c",
+	"sid2name.c",
+	"misc.c",
+	"nterrstr.c",
+	"doserrstr.c",
+	"raperrstr.c",
+	"auth.c",
+	"dfs.c",
+	"ping.c"
+	],
+	"Post": [
+	"mv cifs $HARVEY/amd64/bin/"
+	]
+}

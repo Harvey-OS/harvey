@@ -13,8 +13,8 @@
  * Routines and data structures to support reading and writing ISO 9660 CD images.
  * See the ISO 9660 or ECMA 119 standards.
  *
- * Also supports Rock Ridge extensions for long file names and Unix stuff.
- * Also supports Microsoft's Joliet extensions for Unicode and long file names.
+ * Also supports Rock Ridge extensions for int32_t file names and Unix stuff.
+ * Also supports Microsoft's Joliet extensions for Unicode and int32_t file names.
  * Also supports El Torito bootable CD spec.
  */
 
@@ -43,7 +43,7 @@ struct XDir {
 	uint32_t	mtime;
 	uint32_t   ctime;
 
-        vlong   length;
+        int64_t   length;
 };
 
 /*
@@ -63,9 +63,9 @@ struct Direc {
 	char *gid;
 	char *symlink;
 	uint32_t mode;
-	long atime;
-	long ctime;
-	long mtime;
+	int32_t atime;
+	int32_t ctime;
+	int32_t mtime;
 
 	uint32_t uidno;
 	uint32_t gidno;
@@ -117,12 +117,12 @@ struct Cdimg {
 	uint32_t iso9660pvd;
 	uint32_t jolietsvd;
 	uint32_t pathblock;
-	uvlong rrcontin;	/* rock ridge continuation offset */
+	uint64_t rrcontin;	/* rock ridge continuation offset */
 	uint32_t nulldump;		/* next dump block */
 	uint32_t nconform;		/* number of conform entries written already */
-	uvlong bootcatptr;
+	uint64_t bootcatptr;
 	uint32_t bootcatblock;
-	uvlong bootimageptr;
+	uint64_t bootimageptr;
 	Direc *loaderdirec;
 	Direc *bootdirec;
 	char *bootimage;
@@ -188,7 +188,7 @@ struct Dump {
 
 struct Dumpdir {
 	char *name;
-	uchar md5[MD5dlen];
+	unsigned char md5[MD5dlen];
 	uint32_t block;
 	uint32_t length;
 	Dumpdir *md5left;
@@ -214,57 +214,57 @@ typedef struct Cvoldesc Cvoldesc;
 
 /* a volume descriptor block */
 struct Cvoldesc {
-	uchar	magic[8];	/* 0x01, "CD001", 0x01, 0x00 */
-	uchar	systemid[32];	/* system identifier */
-	uchar	volumeid[32];	/* volume identifier */
-	uchar	unused[8];	/* character set in secondary desc */
-	uchar	volsize[8];	/* volume size */
-	uchar	charset[32];
-	uchar	volsetsize[4];	/* volume set size = 1 */
-	uchar	volseqnum[4];	/* volume sequence number = 1 */
-	uchar	blocksize[4];	/* logical block size */
-	uchar	pathsize[8];	/* path table size */
-	uchar	lpathloc[4];	/* Lpath */
-	uchar	olpathloc[4];	/* optional Lpath */
-	uchar	mpathloc[4];	/* Mpath */
-	uchar	ompathloc[4];	/* optional Mpath */
-	uchar	rootdir[34];	/* directory entry for root */
-	uchar	volumeset[128];	/* volume set identifier */
-	uchar	publisher[128];
-	uchar	preparer[128];	/* data preparer identifier */
-	uchar	application[128];	/* application identifier */
-	uchar	notice[37];	/* copyright notice file */
-	uchar	abstract[37];	/* abstract file */
-	uchar	biblio[37];	/* bibliographic file */
-	uchar	cdate[17];	/* creation date */
-	uchar	mdate[17];	/* modification date */
-	uchar	xdate[17];	/* expiration date */
-	uchar	edate[17];	/* effective date */
-	uchar	fsvers;		/* file system version = 1 */
+	unsigned char	magic[8];	/* 0x01, "CD001", 0x01, 0x00 */
+	unsigned char	systemid[32];	/* system identifier */
+	unsigned char	volumeid[32];	/* volume identifier */
+	unsigned char	unused[8];	/* character set in secondary desc */
+	unsigned char	volsize[8];	/* volume size */
+	unsigned char	charset[32];
+	unsigned char	volsetsize[4];	/* volume set size = 1 */
+	unsigned char	volseqnum[4];	/* volume sequence number = 1 */
+	unsigned char	blocksize[4];	/* logical block size */
+	unsigned char	pathsize[8];	/* path table size */
+	unsigned char	lpathloc[4];	/* Lpath */
+	unsigned char	olpathloc[4];	/* optional Lpath */
+	unsigned char	mpathloc[4];	/* Mpath */
+	unsigned char	ompathloc[4];	/* optional Mpath */
+	unsigned char	rootdir[34];	/* directory entry for root */
+	unsigned char	volumeset[128];	/* volume set identifier */
+	unsigned char	publisher[128];
+	unsigned char	preparer[128];	/* data preparer identifier */
+	unsigned char	application[128];	/* application identifier */
+	unsigned char	notice[37];	/* copyright notice file */
+	unsigned char	abstract[37];	/* abstract file */
+	unsigned char	biblio[37];	/* bibliographic file */
+	unsigned char	cdate[17];	/* creation date */
+	unsigned char	mdate[17];	/* modification date */
+	unsigned char	xdate[17];	/* expiration date */
+	unsigned char	edate[17];	/* effective date */
+	unsigned char	fsvers;		/* file system version = 1 */
 };
 
 /* a directory entry */
 struct Cdir {
-	uchar	len;
-	uchar	xlen;
-	uchar	dloc[8];
-	uchar	dlen[8];
-	uchar	date[7];
-	uchar	flags;
-	uchar	unitsize;
-	uchar	gapsize;
-	uchar	volseqnum[4];
-	uchar	namelen;
-	uchar	name[1];	/* chumminess */
+	unsigned char	len;
+	unsigned char	xlen;
+	unsigned char	dloc[8];
+	unsigned char	dlen[8];
+	unsigned char	date[7];
+	unsigned char	flags;
+	unsigned char	unitsize;
+	unsigned char	gapsize;
+	unsigned char	volseqnum[4];
+	unsigned char	namelen;
+	unsigned char	name[1];	/* chumminess */
 };
 
 /* a path table entry */
 struct Cpath {
-	uchar   namelen;
-	uchar   xlen;
-	uchar   dloc[4];
-	uchar   parent[2];
-	uchar   name[1];        /* chumminess */
+	unsigned char   namelen;
+	unsigned char   xlen;
+	unsigned char   dloc[4];
+	unsigned char   parent[2];
+	unsigned char   name[1];        /* chumminess */
 };
 
 enum { /* Rockridge flags */
@@ -313,14 +313,14 @@ Cdimg *opencd(char*, Cdinfo);
 void Creadblock(Cdimg*, void*, uint32_t, uint32_t);
 uint32_t big(void*, int);
 uint32_t little(void*, int);
-int parsedir(Cdimg*, Direc*, uchar*, int, char *(*)(uchar*, int));
+int parsedir(Cdimg*, Direc*, unsigned char*, int, char *(*)(unsigned char*, int));
 void setroot(Cdimg*, uint32_t, uint32_t, uint32_t);
-void setvolsize(Cdimg*, uvlong, uint32_t);
+void setvolsize(Cdimg*, uint64_t, uint32_t);
 void setpathtable(Cdimg*, uint32_t, uint32_t, uint32_t, uint32_t);
 void Cputc(Cdimg*, int);
-void Cputnl(Cdimg*, uvlong, int);
-void Cputnm(Cdimg*, uvlong, int);
-void Cputn(Cdimg*, uvlong, int);
+void Cputnl(Cdimg*, uint64_t, int);
+void Cputnm(Cdimg*, uint64_t, int);
+void Cputn(Cdimg*, uint64_t, int);
 void Crepeat(Cdimg*, int, int);
 void Cputs(Cdimg*, char*, int);
 void Cwrite(Cdimg*, void*, int);
@@ -333,18 +333,18 @@ void Cputdate(Cdimg*, uint32_t);
 void Cputdate1(Cdimg*, uint32_t);
 void Cread(Cdimg*, void*, int);
 void Cwflush(Cdimg*);
-void Cwseek(Cdimg*, vlong);
-uvlong Cwoffset(Cdimg*);
-uvlong Croffset(Cdimg*);
+void Cwseek(Cdimg*, int64_t);
+uint64_t Cwoffset(Cdimg*);
+uint64_t Croffset(Cdimg*);
 int Cgetc(Cdimg*);
-void Crseek(Cdimg*, vlong);
+void Crseek(Cdimg*, int64_t);
 char *Crdline(Cdimg*, int);
 int Clinelen(Cdimg*);
 
 /* conform.c */
 void rdconform(Cdimg*);
 char *conform(char*, int);
-void wrconform(Cdimg*, int, uint32_t*, uvlong*);
+void wrconform(Cdimg*, int, uint32_t*, uint64_t*);
 
 /* direc.c */
 void mkdirec(Direc*, XDir*);
@@ -360,27 +360,27 @@ void setparents(Direc*);
 uint32_t Cputdumpblock(Cdimg*);
 int hasdump(Cdimg*);
 Dump *dumpcd(Cdimg*, Direc*);
-Dumpdir *lookupmd5(Dump*, uchar*);
-void insertmd5(Dump*, char*, uchar*, uint32_t, uint32_t);
+Dumpdir *lookupmd5(Dump*, unsigned char*);
+void insertmd5(Dump*, char*, unsigned char*, uint32_t, uint32_t);
 
-Direc readdumpdirs(Cdimg*, XDir*, char*(*)(uchar*,int));
+Direc readdumpdirs(Cdimg*, XDir*, char*(*)(unsigned char*,int));
 char *adddumpdir(Direc*, uint32_t, XDir*);
 void copybutname(Direc*, Direc*);
 
-void readkids(Cdimg*, Direc*, char*(*)(uchar*,int));
+void readkids(Cdimg*, Direc*, char*(*)(unsigned char*,int));
 void freekids(Direc*);
 void readdumpconform(Cdimg*);
 void rmdumpdir(Direc*, char*);
 
 /* ichar.c */
-char *isostring(uchar*, int);
+char *isostring(unsigned char*, int);
 int isbadiso9660(char*);
 int isocmp(const void*, const void*);
 int isisofrog(char);
 void Cputisopvd(Cdimg*, Cdinfo);
 
 /* jchar.c */
-char *jolietstring(uchar*, int);
+char *jolietstring(unsigned char*, int);
 int isbadjoliet(char*);
 int jolietcmp(const void*, const void*);
 int isjolietfrog(Rune);
@@ -399,8 +399,8 @@ int chat(char*, ...);
 /* unix.c, plan9.c */
 void dirtoxdir(XDir*, Dir*);
 void fdtruncate(int, uint32_t);
-long uidno(char*);
-long gidno(char*);
+int32_t uidno(char*);
+int32_t gidno(char*);
 
 /* rune.c */
 Rune *strtorune(Rune*, char*);

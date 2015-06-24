@@ -106,7 +106,7 @@ usage(void)
 void
 main(int argc, char **argv)
 {
-	vlong secsize;
+	int64_t secsize;
 
 	secsize = 0;
 	ARGBEGIN{
@@ -749,7 +749,7 @@ cmdprintctl(Edit *edit, int ctlfd)
 }
 
 static char*
-cmdokname(Edit*, char *name)
+cmdokname(Edit *e, char *name)
 {
 	char *q;
 
@@ -851,7 +851,7 @@ static char *help =
 	"t name [type] - set partition type\n";
 
 static char*
-cmdhelp(Edit*)
+cmdhelp(Edit *e)
 {
 	print("%s\n", help);
 	return nil;

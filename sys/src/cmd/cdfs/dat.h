@@ -72,7 +72,7 @@ enum {
 	Wptrkmode,			/* track mode */
 	Wpdatblktype,
 	Wpsessfmt	= 8,
-	Wppktsz		= 10,		/* BE ulong: # user data blks/fixed pkt */
+	Wppktsz		= 10,		/* BE uint32_t: # user data blks/fixed pkt */
 
 	/* Pagwrparams bits */
 	Bufe	= 1<<6,	/* Wpwrtype: buffer under-run free recording enable */
@@ -157,7 +157,7 @@ typedef struct Drive Drive;
 typedef struct Msf Msf;		/* minute, second, frame */
 typedef struct Otrack Otrack;
 typedef struct Track Track;
-typedef schar Tristate;
+typedef uint8_t Tristate;
 
 struct Msf {
 	int	m;
@@ -168,8 +168,8 @@ struct Msf {
 struct Track
 {
 	/* initialized while obtaining the toc (gettoc) */
-	vlong	size;		/* total size in bytes */
-	long	bs;		/* block size in bytes */
+	int64_t	size;		/* total size in bytes */
+	int32_t	bs;		/* block size in bytes */
 	uint32_t	beg;		/* beginning block number */
 	uint32_t	end;		/* ending block number */
 	int	type;
@@ -184,11 +184,11 @@ struct Track
 
 struct DTrack			/* not used */
 {
-	uchar	name[32];
-	uchar	beg[4];		/* msf value; only used for audio */
-	uchar	end[4];		/* msf value; only used for audio */
-	uchar	size[8];
-	uchar	magic[4];
+	unsigned char	name[32];
+	unsigned char	beg[4];		/* msf value; only used for audio */
+	unsigned char	end[4];		/* msf value; only used for audio */
+	unsigned char	size[8];
+	unsigned char	magic[4];
 };
 
 struct Otrack
@@ -206,8 +206,8 @@ struct Dev
 {
 	Otrack*	(*openrd)(Drive *d, int trackno);
 	Otrack*	(*create)(Drive *d, int bs);
-	long	(*read)(Otrack *t, void *v, long n, vlong off);
-	long	(*write)(Otrack *t, void *v, long n);
+	int32_t	(*read)(Otrack *t, void *v, int32_t n, int64_t off);
+	int32_t	(*write)(Otrack *t, void *v, int32_t n);
 	void	(*close)(Otrack *t);
 	int	(*gettoc)(Drive*);
 	int	(*fixate)(Drive *d);
@@ -217,8 +217,8 @@ struct Dev
 
 struct Drive
 {
-	QLock;
-	Scsi;
+	QLock qlock;
+	Scsi scsi;
 
 	int	type;			/* scsi peripheral device type: Type?? */
 
@@ -230,7 +230,7 @@ struct Drive
 	int	invistrack;
 	int	ntrack;
 	int	nchange;		/* compare with the members in Scsi */
-	ulong	changetime;		/* " */
+	uint32_t	changetime;		/* " */
 	int	relearn;		/* need to re-learn the disc? */
 	int	nameok;
 	int	writeok;		/* writable disc? */
@@ -242,9 +242,9 @@ struct Drive
 	Tristate erasable;		/* writable after erasing? */
 
 	Track	track[Ntrack];
-	ulong	end;			/* # of blks on current disc */
-	ulong	cap;			/* drive capabilities */
-	uchar	blkbuf[BScdda];
+	uint32_t	end;			/* # of blks on current disc */
+	uint32_t	cap;			/* drive capabilities */
+	unsigned char	blkbuf[BScdda];
 
 	int	maxreadspeed;
 	int	maxwritespeed;
@@ -252,20 +252,20 @@ struct Drive
 	int	writespeed;
 	Dev;
 
-	uchar	features[Maxfeatures/8];
+	unsigned char	features[Maxfeatures/8];
 
 	void *aux;		/* kept by driver */
 };
 
 struct Buf
 {
-	uchar	*data;		/* buffer */
-	vlong	off;		/* data[0] at offset off in file */
+	unsigned char	*data;		/* buffer */
+	int64_t	off;		/* data[0] at offset off in file */
 	int	bs;		/* block size */
-	long	ndata;		/* no. valid bytes in data */
+	int32_t	ndata;		/* no. valid bytes in data */
 	int	nblock;		/* total buffer size in blocks */
 	int	omode;		/* OREAD, OWRITE */
-	long	(*fn)(Buf*, void*, long, uint32_t); /* read, write */
+	int32_t	(*fn)(Buf*, void*, int32_t, uint32_t); /* read, write */
 
 	/* used only by client */
 	Otrack	*otrack;

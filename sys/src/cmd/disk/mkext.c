@@ -29,7 +29,7 @@ void	usage(void);
 #pragma varargck argpos error 1
 
 Biobufhdr bin;
-uchar	binbuf[2*LEN];
+unsigned char	binbuf[2*LEN];
 int8_t	linebuf[LEN];
 int	uflag;
 int	hflag;
@@ -42,8 +42,8 @@ main(int argc, char **argv)
 	Biobuf bout;
 	char *fields[NFLDS], name[2*LEN], *p, *namep;
 	char *uid, *gid;
-	ulong mode, mtime;
-	uvlong bytes;
+	uint32_t mode, mtime;
+	uint64_t bytes;
 
 	quotefmtinstall();
 	namep = name;

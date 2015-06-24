@@ -1,0 +1,24 @@
+{
+    "Name": "dial",
+    "Programs": [
+    "at",
+    "drain",
+    "expect",
+    "pass"
+    ],
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "SourceFilesCmd": [
+    "at.c",
+    "drain.c",
+    "expect.c",
+    "pass.c"
+	],
+	"Post": [
+    "mv at $HARVEY/amd64/bin/",
+    "mv drain $HARVEY/amd64/bin/",
+    "mv expect $HARVEY/amd64/bin/",
+    "mv pass $HARVEY/amd64/bin/"
+	]
+}

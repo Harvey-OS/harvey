@@ -18,14 +18,14 @@ typedef struct Xfs		Xfs;
 typedef struct Xfile		Xfile;
 
 struct Dospart{
-	uchar	active;
-	uchar	hstart;
-	uchar	cylstart[2];
-	uchar	type;
-	uchar	hend;
-	uchar	cylend[2];
-	uchar	start[4];
-	uchar	length[4];
+	unsigned char	active;
+	unsigned char	hstart;
+	unsigned char	cylstart[2];
+	unsigned char	type;
+	unsigned char	hend;
+	unsigned char	cylend[2];
+	unsigned char	start[4];
+	unsigned char	length[4];
 };
 
 enum
@@ -48,26 +48,26 @@ enum
  * dos boot sector, the start of every dos partition
  */
 struct Dosboot{
-	uchar	magic[3];
-	uchar	version[8];
-	uchar	sectsize[2];
-	uchar	clustsize;
-	uchar	nresrv[2];
-	uchar	nfats;
-	uchar	rootsize[2];
-	uchar	volsize[2];
-	uchar	mediadesc;
-	uchar	fatsize[2];
-	uchar	trksize[2];
-	uchar	nheads[2];
-	uchar	nhidden[4];
-	uchar	bigvolsize[4];		/* same as Dosboot32 up to here */
-	uchar	driveno;
-	uchar	reserved0;
-	uchar	bootsig;
-	uchar	volid[4];
-	uchar	label[11];
-	uchar	reserved1[8];
+	unsigned char	magic[3];
+	unsigned char	version[8];
+	unsigned char	sectsize[2];
+	unsigned char	clustsize;
+	unsigned char	nresrv[2];
+	unsigned char	nfats;
+	unsigned char	rootsize[2];
+	unsigned char	volsize[2];
+	unsigned char	mediadesc;
+	unsigned char	fatsize[2];
+	unsigned char	trksize[2];
+	unsigned char	nheads[2];
+	unsigned char	nhidden[4];
+	unsigned char	bigvolsize[4];		/* same as Dosboot32 up to here */
+	unsigned char	driveno;
+	unsigned char	reserved0;
+	unsigned char	bootsig;
+	unsigned char	volid[4];
+	unsigned char	label[11];
+	unsigned char	reserved1[8];
 };
 
 /*
@@ -80,27 +80,27 @@ enum
 };
 
 struct Dosboot32{
-	uchar	magic[3];
-	uchar	version[8];
-	uchar	sectsize[2];
-	uchar	clustsize;
-	uchar	nresrv[2];
-	uchar	nfats;
-	uchar	rootsize[2];
-	uchar	volsize[2];
-	uchar	mediadesc;
-	uchar	fatsize[2];
-	uchar	trksize[2];
-	uchar	nheads[2];
-	uchar	nhidden[4];
-	uchar	bigvolsize[4];		/* same as Dosboot up to here */
-	uchar	fatsize32[4];		/* sectors per fat */
-	uchar	extflags[2];		/* active fat flags */
-	uchar	version1[2];		/* fat32 version; major & minor bytes */
-	uchar	rootstart[4];		/* starting cluster of root dir */
-	uchar	infospec[2];		/* fat allocation info sector */
-	uchar	backupboot[2];		/* backup boot sector */
-	uchar	reserved[12];
+	unsigned char	magic[3];
+	unsigned char	version[8];
+	unsigned char	sectsize[2];
+	unsigned char	clustsize;
+	unsigned char	nresrv[2];
+	unsigned char	nfats;
+	unsigned char	rootsize[2];
+	unsigned char	volsize[2];
+	unsigned char	mediadesc;
+	unsigned char	fatsize[2];
+	unsigned char	trksize[2];
+	unsigned char	nheads[2];
+	unsigned char	nhidden[4];
+	unsigned char	bigvolsize[4];		/* same as Dosboot up to here */
+	unsigned char	fatsize32[4];		/* sectors per fat */
+	unsigned char	extflags[2];		/* active fat flags */
+	unsigned char	version1[2];		/* fat32 version; major & minor bytes */
+	unsigned char	rootstart[4];		/* starting cluster of root dir */
+	unsigned char	infospec[2];		/* fat allocation info sector */
+	unsigned char	backupboot[2];		/* backup boot sector */
+	unsigned char	reserved[12];
 };
 
 /*
@@ -114,12 +114,12 @@ enum
 
 struct Fatinfo
 {
-	uchar	sig1[4];
-	uchar	pad[480];
-	uchar	sig[4];
-	uchar	freeclust[4];	/* num frre clusters; -1 is unknown */
-	uchar	nextfree[4];	/* most recently allocated cluster */
-	uchar	resrv[4*3];
+	unsigned char	sig1[4];
+	unsigned char	pad[480];
+	unsigned char	sig[4];
+	unsigned char	freeclust[4];	/* num frre clusters; -1 is unknown */
+	unsigned char	nextfree[4];	/* most recently allocated cluster */
+	unsigned char	resrv[4*3];
 };
 
 /*
@@ -132,17 +132,17 @@ struct Dosbpb{
 	int	nresrv;			/* sectors */
 	int	nfats;			/* usually 2; modified to 1 if fat mirroring disabled */
 	int	rootsize;		/* number of entries, for fat12 and fat16 */
-	long	volsize;		/* in sectors */
+	int32_t	volsize;		/* in sectors */
 	int	mediadesc;
-	long	fatsize;		/* in sectors */
+	int32_t	fatsize;		/* in sectors */
 	int	fatclusters;
 	int	fatbits;		/* 12, 16, or 32 */
-	long	fataddr;		/* sector number of first valid fat entry */
-	long	rootaddr;		/* for fat16 or fat12, sector of root dir */
-	long	rootstart;		/* for fat32, cluster of root dir */
-	long	dataaddr;		/* initial sector of data clusters */
-	long	freeptr;		/* next free cluster candidate */
-	long	freeclusters;		/* count of free clusters, for fat32 */
+	int32_t	fataddr;		/* sector number of first valid fat entry */
+	int32_t	rootaddr;		/* for fat16 or fat12, sector of root dir */
+	int32_t	rootstart;		/* for fat32, cluster of root dir */
+	int32_t	dataaddr;		/* initial sector of data clusters */
+	int32_t	freeptr;		/* next free cluster candidate */
+	int32_t	freeclusters;		/* count of free clusters, for fat32 */
 	int	fatinfo;		/* fat info sector location; 0 => none */
 };
 
@@ -150,23 +150,23 @@ enum
 {
 	DOSDIRSIZE	= 32,
 	DOSEMPTY	= 0xe5,			/* first char in name if entry is unused */
-	DOSRUNE		= 13,			/* runes per dosdir in a long file name */
+	DOSRUNE		= 13,			/* runes per dosdir in a int32_t file name */
 	DOSNAMELEN	= 261			/* max dos file name length */
 };
 
 struct Dosdir{
-	uchar	name[8];
-	uchar	ext[3];
-	uchar	attr;
-	uchar	reserved[1];
-	uchar	ctime[3];		/* creation time */
-	uchar	cdate[2];		/* creation date */
-	uchar	adate[2];		/* last access date */
-	uchar	hstart[2];		/* high bits of start for fat32 */
-	uchar	time[2];		/* last modified time */
-	uchar	date[2];		/* last modified date */
-	uchar	start[2];
-	uchar	length[4];
+	unsigned char	name[8];
+	unsigned char	ext[3];
+	unsigned char	attr;
+	unsigned char	reserved[1];
+	unsigned char	ctime[3];		/* creation time */
+	unsigned char	cdate[2];		/* creation date */
+	unsigned char	adate[2];		/* last access date */
+	unsigned char	hstart[2];		/* high bits of start for fat32 */
+	unsigned char	time[2];		/* last modified time */
+	unsigned char	date[2];		/* last modified date */
+	unsigned char	start[2];
+	unsigned char	length[4];
 };
 
 enum
@@ -180,7 +180,7 @@ enum
 };
 
 #define	GSHORT(p)	(((p)[0])|(p)[1]<<8)
-#define	GLONG(p)	(((long)(p)[0])|(p)[1]<<8|(p)[2]<<16|(p)[3]<<24)
+#define	GLONG(p)	(((int32_t)(p)[0])|(p)[1]<<8|(p)[2]<<16|(p)[3]<<24)
 #define PSHORT(p,v)	((p)[0]=(v),(p)[1]=(v)>>8)
 #define PLONG(p,v)	((p)[0]=(v),(p)[1]=(v)>>8,(p)[2]=(v)>>16,(p)[3]=(v)>>24)
 
@@ -205,18 +205,18 @@ struct Xfs{
 	int omode;		/* of file containing external fs */
 	char	*name;		/* of file containing external f.s. */
 	Qid	qid;		/* of file containing external f.s. */
-	long	ref;		/* attach count */
+	int32_t	ref;		/* attach count */
 	Qid	rootqid;	/* of plan9 constructed root directory */
-	uchar	isfat32;	/* is a fat 32 file system? */
+	unsigned char	isfat32;	/* is a fat 32 file system? */
 	short	dev;
 	short	fmt;
-	long	offset;
+	int32_t	offset;
 	void	*ptr;
 };
 
 struct Xfile{
 	Xfile	*next;		/* in hash bucket */
-	long	fid;
+	int32_t	fid;
 	uint32_t	flags;
 	Qid	qid;
 	Xfs	*xf;

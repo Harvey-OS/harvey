@@ -46,9 +46,9 @@ void
 main(int argc, char **argv)
 {
 	int fix;
-	ulong block, newnull, cblock;
-	vlong maxsize;
-	uvlong length, clength;
+	uint32_t block, newnull, cblock;
+	int64_t maxsize;
+	uint64_t length, clength;
 	char buf[256], *dumpname, *proto, *s, *src, *status;
 	Cdimg *cd;
 	Cdinfo info;
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 		usage();
 
 	if(now == 0)
-		now = (ulong)time(0);
+		now = (uint32_t)time(0);
 	if(mk9660){
 		if((cd = createcd(argv[0], info)) == nil)
 			sysfatal("cannot create '%s': %r", argv[0]);
@@ -199,7 +199,7 @@ main(int argc, char **argv)
 			dumpname = nil;
 			cd->nextblock = cd->nulldump+1;
 			cd->nulldump = 0;
-			Cwseek(cd, (vlong)cd->nextblock * Blocksize);
+			Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
 			goto Dofix;
 		}
 	
@@ -219,9 +219,9 @@ main(int argc, char **argv)
  	 * Must be done before creation of the Joliet tree so that
  	 * blocks and lengths are correct.
 	 */
-	if(dataoffset > (vlong)cd->nextblock * Blocksize)
+	if(dataoffset > (int64_t)cd->nextblock * Blocksize)
 		cd->nextblock = (dataoffset+Blocksize-1)/Blocksize;
-	Cwseek(cd, (vlong)cd->nextblock * Blocksize);
+	Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
 	writefiles(dump, cd, &iroot);
 
 	if(cd->bootimage){
@@ -387,7 +387,7 @@ Dofix:
 	
 			cd->nextblock = cd->nulldump+1;
 			cd->nulldump = 0;
-			Cwseek(cd, (vlong)cd->nextblock * Blocksize);
+			Cwseek(cd, (int64_t)cd->nextblock * Blocksize);
 			goto Dofix;
 		}
 	
@@ -395,7 +395,7 @@ Dofix:
 		 * Write old null header block; this commits all our changes.
 		 */
 		if(cd->nulldump){
-			Cwseek(cd, (vlong)cd->nulldump * Blocksize);
+			Cwseek(cd, (int64_t)cd->nulldump * Blocksize);
 			sprint(buf, "plan 9 dump cd\n");
 			sprint(buf+strlen(buf), "%s %lud %lud %lud %llud %lud %lud",
 				dumpname, now, newnull, cblock, clength,
@@ -409,7 +409,7 @@ Dofix:
 			Cwflush(cd);
 		}
 	}
-	fdtruncate(cd->fd, (vlong)cd->nextblock * Blocksize);
+	fdtruncate(cd->fd, (int64_t)cd->nextblock * Blocksize);
 	exits(status);
 }
 

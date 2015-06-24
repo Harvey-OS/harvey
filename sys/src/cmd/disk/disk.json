@@ -1,0 +1,33 @@
+{
+    "Name": "disk",
+    "Programs": [
+    "exsort",
+    "format",
+    "mbr",
+    "mkext",
+    "mkfs",
+    "partfs"
+    ],
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "Projects": [
+    "9660/9660.json"
+    ],
+    "SourceFilesCmd": [
+    "exsort.c",
+    "format.c",
+    "mbr.c",
+    "mkext.c",
+    "mkfs.c",
+    "partfs.c"
+	],
+	"Post": [
+    "mv exsort $HARVEY/amd64/bin/",
+    "mv format $HARVEY/amd64/bin/",
+    "mv mbr $HARVEY/amd64/bin/",
+    "mv mkext $HARVEY/amd64/bin/",
+    "mv mkfs $HARVEY/amd64/bin/",
+    "mv partfs $HARVEY/amd64/bin/"
+	]
+}
