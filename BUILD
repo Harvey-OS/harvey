@@ -127,6 +127,9 @@ then
 	show_help
 	exit 1
 else
+	# We need our binary dir
+	mkdir -p $BIN_DIR
+
 	#BUILD_DEBUG=
 	#Until we have a stable kernel, debug mode is the default.
 	BUILD_DEBUG="$CFLAGS_DEBUG"
