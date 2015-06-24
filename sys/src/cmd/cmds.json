@@ -296,7 +296,7 @@
 	"mv iconv $HARVEY/amd64/bin/",
 	"mv idiff $HARVEY/amd64/bin/",
 	"mv import $HARVEY/amd64/bin/",
-	"mv init $HARVEY/amd64/bin/",
+	"mv init $HARVEY/amd64/",
 	"mv join $HARVEY/amd64/bin/",
 	"mv kbmap $HARVEY/amd64/bin/",
 	"mv kprof $HARVEY/amd64/bin/",

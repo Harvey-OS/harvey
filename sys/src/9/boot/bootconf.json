@@ -3,6 +3,7 @@
     "Program": "bootk8cpu.elf.out",
     "Projects": ["boot.json"],
 	"Pre": [
+	"[ ! -f bootk8cpu.elf.out ] || rm *.elf.out",
 	"awk -f ../mk/parse -- -mkbootconf ../k10/k8cpu > bootk8cpu.c"
 	],
     "SourceFiles": [
@@ -28,9 +29,7 @@
 	"-static"
 	],
 	"Post": [
-	"strip bootk8cpu.elf.out",
-	"data2c bootk8cpu_out bootk8cpu.elf.out >> ../k10/k8cpu.root.c",
-	"rm *.o *.a *.elf.out"
+	"rm *.o *.a"
 	],
 	"Libs": [
 	"libboot.a",
