@@ -32,7 +32,6 @@
 	"-lhtml",
 	"-lhttpd",
 	"-lip",
-	"-ll",
 	"-llex",
 	"-lmemdraw",
 	"-lmemlayer",

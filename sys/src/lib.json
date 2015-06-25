@@ -1,6 +1,8 @@
 {
     "Name": "Libs",
     "Pre": [
+    "mkdir -p $HARVEY/amd64/bin",
+	"mkdir -p $HARVEY/amd64/lib",
 	"rm -f *.o *.tag.*"
     ],
     "Cflags": [

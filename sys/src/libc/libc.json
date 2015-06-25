@@ -268,6 +268,7 @@
 	"amd64/main9.S"
 	],
 	"Post": [
+	"rm 9syscall/*.s",
 	"ar rv $HARVEY/amd64/lib/libc.a *.o"
 	]
 }

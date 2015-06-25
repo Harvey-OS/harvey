@@ -125,7 +125,7 @@
 	"Projects": [
 	"9660srv/9660srv.json",
 	"9nfs/9nfs.json",
-	"astro/astro.json"
+	"astro/astro.json",
 	"aux/aux.json",
 	"bzip2/bzip2.json",
 	"cb/cb.json",
@@ -263,7 +263,6 @@
 	"yacc.c"
 	],
 	"Post": [
-	"[ -d $HARVEY/amd64/bin ] || mkdir $HARVEY/amd64/bin",
 	"mv aan $HARVEY/amd64/bin/",
 	"mv archfs $HARVEY/amd64/bin/",
 	"mv ascii $HARVEY/amd64/bin/",
