@@ -15,6 +15,8 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+#include "io.h"
+#include "ureg.h"
 #include "../port/error.h"
 
 #include "../port/sd.h"
@@ -79,7 +81,7 @@ enum {
 					 ((p)<<PartSHIFT)|((t)<<TypeSHIFT))
 
 
-static void
+void
 sdaddpart(SDunit* unit, char* name, uint64_t start, uint64_t end)
 {
 	SDpart *pp;
@@ -145,9 +147,11 @@ sdaddpart(SDunit* unit, char* name, uint64_t start, uint64_t end)
 static void
 sddelpart(SDunit* unit, char* name)
 {
+	Mach *m;
 	int i;
 	SDpart *pp;
 
+	m = machp();
 	/*
 	 * Look for the partition to delete.
 	 * Can't delete if someone still has it open.
@@ -167,7 +171,7 @@ sddelpart(SDunit* unit, char* name)
 }
 
 static void
-sdincvers(SDunit* unit)
+sdincvers(SDunit *unit)
 {
 	int i;
 
@@ -183,22 +187,27 @@ sdincvers(SDunit* unit)
 static int
 sdinitpart(SDunit* unit)
 {
+#if 0
+	Mach *m;
 	int nf;
 	uint64_t start, end;
 	char *f[4], *p, *q, buf[10];
 
+	m = machp();
+#endif
 	if(unit->sectors > 0){
 		unit->sectors = unit->secsize = 0;
 		sdincvers(unit);
 	}
 
-	if(unit->inquiry[0] & 0xC0)
+	/* device must be connected or not; other values are trouble */
+	if(unit->inquiry[0] & 0xC0)	/* see SDinq0periphqual */
 		return 0;
-	switch(unit->inquiry[0] & 0x1F){
-	case 0x00:			/* DA */
-	case 0x04:			/* WORM */
-	case 0x05:			/* CD-ROM */
-	case 0x07:			/* MO */
+	switch(unit->inquiry[0] & SDinq0periphtype){
+	case SDperdisk:
+	case SDperworm:
+	case SDpercd:
+	case SDpermo:
 		break;
 	default:
 		return 0;
@@ -218,6 +227,7 @@ sdinitpart(SDunit* unit)
 		 * partitions will have the null-string for user.
 		 * The gen functions patch it up.
 		 */
+#if 0
 		snprint(buf, sizeof buf, "%spart", unit->name);
 		for(p = getconf(buf); p != nil; p = q){
 			if(q = strchr(p, '/'))
@@ -233,6 +243,7 @@ sdinitpart(SDunit* unit)
 				poperror();
 			}
 		}
+#endif
 	}
 
 	return 1;
@@ -385,11 +396,32 @@ sdadddevs(SDev *sdev)
 	}
 }
 
+// void
+// sdrmdevs(SDev *sdev)
+// {
+// 	char buf[2];
+//
+// 	snprint(buf, sizeof buf, "%c", sdev->idno);
+// 	unconfigure(buf);
+// }
+
+void
+sdaddallconfs(void (*addconf)(SDunit *))
+{
+	int i, u;
+	SDev *sdev;
+
+	for(i = 0; i < nelem(devs); i++)		/* each controller */
+		for(sdev = devs[i]; sdev; sdev = sdev->next)
+			for(u = 0; u < sdev->nunit; u++)	/* each drive */
+				(*addconf)(sdev->unit[u]);
+}
+
 static int
 sd2gen(Chan* c, int i, Dir* dp)
 {
 	Qid q;
-	int64_t l;
+	uint64_t l;
 	SDpart *pp;
 	SDperm *perm;
 	SDunit *unit;
@@ -408,7 +440,7 @@ sd2gen(Chan* c, int i, Dir* dp)
 		perm = &unit->ctlperm;
 		if(emptystr(perm->user)){
 			kstrdup(&perm->user, eve);
-			perm->perm = 0640;
+			perm->perm = 0644;	/* nothing secret in ctl */
 		}
 		devdir(c, q, "ctl", 0, perm->user, perm->perm, dp);
 		rv = 1;
@@ -428,7 +460,7 @@ sd2gen(Chan* c, int i, Dir* dp)
 
 	case Qpart:
 		pp = &unit->part[PART(c->qid)];
-		l = (pp->end - pp->start) * (int64_t)unit->secsize;
+		l = (pp->end - pp->start) * unit->secsize;
 		mkqid(&q, QID(DEV(c->qid), UNIT(c->qid), PART(c->qid), Qpart),
 			unit->vers+pp->vers, QTFILE);
 		if(emptystr(pp->user))
@@ -450,7 +482,7 @@ sd1gen(Chan* c, int i, Dir* dp)
 	switch(i){
 	case Qtopctl:
 		mkqid(&q, QID(0, 0, 0, Qtopctl), 0, QTFILE);
-		devdir(c, q, "sdctl", 0, eve, 0640, dp);
+		devdir(c, q, "sdctl", 0, eve, 0644, dp);	/* no secrets */
 		return 1;
 	}
 	return -1;
@@ -459,6 +491,7 @@ sd1gen(Chan* c, int i, Dir* dp)
 static int
 sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 {
+	Mach *m;
 	Qid q;
 	int64_t l;
 	int i, r;
@@ -466,6 +499,7 @@ sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 	SDunit *unit;
 	SDev *sdev;
 
+	m = machp();
 	switch(TYPE(c->qid)){
 	case Qtopdir:
 		if(s == DEVDOTDOT){
@@ -561,7 +595,7 @@ sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 			decref(&sdev->r);
 			return 0;
 		}
-		l = (pp->end - pp->start) * unit->secsize;
+		l = (pp->end - pp->start) * (int64_t)unit->secsize;
 		mkqid(&q, QID(DEV(c->qid), UNIT(c->qid), i, Qpart),
 			unit->vers+pp->vers, QTFILE);
 		if(emptystr(pp->user))
@@ -642,11 +676,13 @@ sdstat(Chan* c, uint8_t* db, int32_t n)
 static Chan*
 sdopen(Chan* c, int omode)
 {
+	Mach *m;
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
 	uint8_t tp;
 
+	m = machp();
 	c = devopen(c, omode, 0, 0, sdgen);
 	if((tp = TYPE(c->qid)) != Qctl && tp != Qraw && tp != Qpart)
 		return c;
@@ -716,6 +752,7 @@ sdclose(Chan* c)
 static int32_t
 sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 {
+	Mach *m;
 	int nchange;
 	uint8_t *b;
 	SDpart *pp;
@@ -724,6 +761,7 @@ sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 	int64_t bno;
 	int32_t l, max, nb, offset;
 
+	m = machp();
 	sdev = sdgetdev(DEV(c->qid));
 	if(sdev == nil){
 		decref(&sdev->r);
@@ -777,7 +815,7 @@ sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 		poperror();
 		return 0;
 	}
-	if(!(unit->inquiry[1] & 0x80)){
+	if(!(unit->inquiry[1] & SDinq1removable)){
 		qunlock(&unit->ctl);
 		poperror();
 	}
@@ -787,7 +825,7 @@ sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 		error(Enomem);
 	if(waserror()){
 		sdfree(b);
-		if(!(unit->inquiry[1] & 0x80))
+		if(!(unit->inquiry[1] & SDinq1removable))
 			decref(&sdev->r);		/* gadverdamme! */
 		nexterror();
 	}
@@ -829,7 +867,7 @@ sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 	sdfree(b);
 	poperror();
 
-	if(unit->inquiry[1] & 0x80){
+	if(unit->inquiry[1] & SDinq1removable){
 		qunlock(&unit->ctl);
 		poperror();
 	}
@@ -841,8 +879,10 @@ sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 static int32_t
 sdrio(SDreq* r, void* a, int32_t n)
 {
+	Mach *m;
 	void *data;
 
+	m = machp();
 	if(n >= SDmaxio || n < 0)
 		error(Etoobig);
 
@@ -1069,22 +1109,25 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 static int32_t
 sdread(Chan *c, void *a, int32_t n, int64_t off)
 {
+	Mach *m;
 	char *p, *e, *buf;
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
 	int32_t offset;
-	int i, l, m, status;
+	int i, l, mm, status;
 
+	m = machp();
 	offset = off;
 	switch(TYPE(c->qid)){
 	default:
 		error(Eperm);
 	case Qtopctl:
-		m = 64*1024;	/* room for register dumps */
-		p = buf = malloc(m);
-		assert(p);
-		e = p + m;
+		mm = 64*1024;	/* room for register dumps */
+		p = buf = malloc(mm);
+		if(p == nil)
+			error(Enomem);
+		e = p + mm;
 		qlock(&devslock);
 		for(i = 0; i < nelem(devs); i++){
 			sdev = devs[i];
@@ -1106,9 +1149,11 @@ sdread(Chan *c, void *a, int32_t n, int64_t off)
 			error(Enonexist);
 
 		unit = sdev->unit[UNIT(c->qid)];
-		m = 16*1024;	/* room for register dumps */
-		p = malloc(m);
-		l = snprint(p, m, "inquiry %.48s\n",
+		mm = 16*1024;	/* room for register dumps */
+		p = malloc(mm);
+		if(p == nil)
+			error(Enomem);
+		l = snprint(p, mm, "inquiry %.48s\n",
 			(char*)unit->inquiry+8);
 		qlock(&unit->ctl);
 		/*
@@ -1117,18 +1162,18 @@ sdread(Chan *c, void *a, int32_t n, int64_t off)
 		 * and the garscadden trains.
 		 */
 		if(unit->dev->ifc->rctl)
-			l += unit->dev->ifc->rctl(unit, p+l, m-l);
+			l += unit->dev->ifc->rctl(unit, p+l, mm-l);
 		if(unit->sectors == 0)
 			sdinitpart(unit);
 		if(unit->sectors){
 			if(unit->dev->ifc->rctl == nil)
-				l += snprint(p+l, m-l,
+				l += snprint(p+l, mm-l,
 					"geometry %llud %lud\n",
 					unit->sectors, unit->secsize);
 			pp = unit->part;
 			for(i = 0; i < unit->npart; i++){
 				if(pp->valid)
-					l += snprint(p+l, m-l,
+					l += snprint(p+l, mm-l,
 						"part %s %llud %llud\n",
 						pp->name, pp->start, pp->end);
 				pp++;
@@ -1179,15 +1224,17 @@ static void legacytopctl(Cmdbuf*);
 static int32_t
 sdwrite(Chan* c, void* a, int32_t n, int64_t off)
 {
+	Mach *m;
 	char *f0;
 	int i;
+	uint64_t end, start;
 	Cmdbuf *cb;
 	SDifc *ifc;
 	SDreq *req;
 	SDunit *unit;
 	SDev *sdev;
-	uint64_t end, start;
 
+	m = machp();
 	switch(TYPE(c->qid)){
 	default:
 		error(Eperm);
@@ -1247,7 +1294,8 @@ sdwrite(Chan* c, void* a, int32_t n, int64_t off)
 			error(Ebadctl);
 		poperror();
 		poperror();
-		decref(&sdev->r);
+		if (sdev)
+			decref(&sdev->r);
 		free(cb);
 		break;
 
@@ -1346,12 +1394,14 @@ sdwrite(Chan* c, void* a, int32_t n, int64_t off)
 static int32_t
 sdwstat(Chan* c, uint8_t* dp, int32_t n)
 {
+	Mach *m;
 	Dir *d;
 	SDpart *pp;
 	SDperm *perm;
 	SDunit *unit;
 	SDev *sdev;
 
+	m = machp();
 	if(c->qid.type & QTDIR)
 		error(Eperm);
 
@@ -1503,7 +1553,7 @@ Dev sddevtab = {
 	devremove,
 	sdwstat,
 	devpower,
-	sdconfig,
+	sdconfig,	/* probe; only called for pcmcia-like devices */
 };
 
 /*
@@ -1541,6 +1591,8 @@ getnewport(DevConf* dc)
 	Devport *p;
 
 	p = (Devport *)malloc((dc->nports + 1) * sizeof(Devport));
+	if(p == nil)
+		error(Enomem);
 	if(dc->nports > 0){
 		memmove(p, dc->ports, dc->nports * sizeof(Devport));
 		free(dc->ports);

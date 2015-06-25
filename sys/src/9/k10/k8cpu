@@ -22,6 +22,8 @@ dev +dev
 # DON'T YET. It's borked.
 #	cec
 
+	sd
+
 	ether	netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
 
@@ -64,6 +66,9 @@ link +dev
 	netdevmedium
 
 #	ht
+
+sd +dev
+	sdiahci		pci sdscsi
 
 misc +dev
 #	cache

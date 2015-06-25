@@ -12,6 +12,8 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+#include "io.h"
+#include "ureg.h"
 #include "../port/error.h"
 
 #include "../port/sd.h"
@@ -100,7 +102,7 @@ scsiverify(SDunit* unit)
 		 * Try to ensure a direct-access device is spinning.
 		 * Don't wait for completion, ignore the result.
 		 */
-		if((unit->inquiry[0] & 0x1F) == 0){
+		if((unit->inquiry[0] & SDinq0periphtype) == SDperdisk){
 			memset(r->cmd, 0, sizeof(r->cmd));
 			r->write = 0;
 			r->cmd[0] = 0x1B;
@@ -313,7 +315,7 @@ scsiexec(SDunit* unit, int write, uint8_t* cmd, int clen, void* data,
 }
 
 static void
-scsifmt10(SDreq *r, int write, int lun, int32_t nb, int64_t bno)
+scsifmt10(SDreq *r, int write, int lun, uint32_t nb, uint64_t bno)
 {
 	uint8_t *c;
 
@@ -336,7 +338,7 @@ scsifmt10(SDreq *r, int write, int lun, int32_t nb, int64_t bno)
 }
 
 static void
-scsifmt16(SDreq *r, int write, int lun, int32_t nb, int64_t bno)
+scsifmt16(SDreq *r, int write, int lun, uint32_t nb, uint64_t bno)
 {
 	uint8_t *c;
 
@@ -366,7 +368,7 @@ scsifmt16(SDreq *r, int write, int lun, int32_t nb, int64_t bno)
 
 int32_t
 scsibio(SDunit* unit, int lun, int write, void* data, int32_t nb,
-	int64_t bno)
+	uint64_t bno)
 {
 	SDreq *r;
 	int32_t rlen;
@@ -413,7 +415,7 @@ again:
 			 */
 			if(r->sense[12] != 0x28 || r->sense[13] != 0)
 				break;
-			if(unit->inquiry[1] & 0x80)
+			if(unit->inquiry[1] & SDinq1removable)
 				unit->sectors = 0;
 			break;
 		case 0x02:		/* not ready */

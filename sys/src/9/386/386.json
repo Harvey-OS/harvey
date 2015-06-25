@@ -10,6 +10,7 @@
 	"../386/kbd.c",
 	"../386/pci.c",
 	"../386/random.c",
+	"../386/sdiahci.c",
 	"../386/uarti8250.c",
 	"../386/uartpci.c"
     ]
