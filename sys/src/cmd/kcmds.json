@@ -1,13 +1,5 @@
 {
 	"Name": "Kcmds",
-	"Programs": [
-	"bind",
-	"mount",
-	"date",
-	"srv",
-	"echo",
-	"ls"
-	],
 	"Projects": [
 	"/sys/src/cmd/rc/rc.json",
 	"/sys/src/cmd/ip/ipconfig/ipconfig.json",

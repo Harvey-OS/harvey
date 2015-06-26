@@ -1,11 +1,5 @@
 {
     "Name": "dial",
-    "Programs": [
-    "at",
-    "drain",
-    "expect",
-    "pass"
-    ],
     "Include": ["../cmd.json"],
     "Pre": [
 	],

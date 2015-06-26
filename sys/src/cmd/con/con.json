@@ -1,11 +1,5 @@
 {
     "Name": "con",
-    "Programs": [
-    "con",
-    "xms",
-    "xmr",
-    "hayes"
-    ],
     "Include": ["../cmd.json"],
     "Pre": [
 	],

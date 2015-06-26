@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 )
 
 type build struct {
@@ -31,7 +32,6 @@ type build struct {
 	Libs        []string
 	Env         []string
 	// cmd's
-	Programs	[]string
 	SourceFilesCmd []string
 	// Targets.
 	Program string
@@ -77,7 +77,6 @@ func process(f string, b *build) {
 	b.Libs = append(b.Libs, adjust(build.Libs)...)
 	b.Projects = append(b.Projects, adjust(build.Projects)...)
 	b.Env = append(b.Env, build.Env...)
-	b.Programs = append(b.Programs, adjust(build.Programs)...)
 	b.SourceFilesCmd = append(b.SourceFilesCmd, build.SourceFilesCmd...)
 	b.Program += build.Program
 	b.Library += build.Library
@@ -138,8 +137,15 @@ func compile(b *build) {
 }
 
 func link(b *build) {
-	if len(b.Programs) > 0 {
-		for _, n := range b.Programs {
+	if len(b.SourceFilesCmd) > 0 {
+		for _, n := range b.SourceFilesCmd {
+			// Split off the last element of the file
+			var ext = filepath.Ext(n)
+			if len(ext) == 0 {
+				log.Fatalf("refusing to overwrite extension-less source file %v", n)
+				continue
+			}
+			n = n[0:len(n)-len(ext)]
 			args := []string{"-o", n}
 			f := path.Base(n)
 			o := f[:len(f)] + ".o"
@@ -226,7 +232,7 @@ func project(root string) {
 		//library(b)
 		log.Printf("\n\n*** Building %v ***\n\n", b.Library)
 	}
-	if len(b.Programs ) > 0 {
+	if len(b.SourceFilesCmd ) > 0 {
 		link(b)
 	}
 	run(b, b.Post)

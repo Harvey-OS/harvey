@@ -1,9 +1,5 @@
 {
     "Name": "bzip2",
-    "Programs": [
-    "bunzip2",
-    "bzip2"
-    ],
     "Include": ["../cmd.json"],
     "Pre": [
 	],

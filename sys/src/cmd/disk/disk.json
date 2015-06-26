@@ -1,13 +1,5 @@
 {
     "Name": "disk",
-    "Programs": [
-    "exsort",
-    "format",
-    "mbr",
-    "mkext",
-    "mkfs",
-    "partfs"
-    ],
     "Include": ["../cmd.json"],
     "Pre": [
 	],
