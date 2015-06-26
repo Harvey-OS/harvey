@@ -36,6 +36,7 @@ type build struct {
 	// Targets.
 	Program string
 	Library string
+	Install string // where to place the resulting binary/lib
 }
 
 var (
@@ -80,6 +81,7 @@ func process(f string, b *build) {
 	b.SourceFilesCmd = append(b.SourceFilesCmd, build.SourceFilesCmd...)
 	b.Program += build.Program
 	b.Library += build.Library
+	b.Install += build.Install
 	// For each source file, assume we create an object file with the last char replaced
 	// with 'o'. We can get smarter later.
 
@@ -145,7 +147,7 @@ func link(b *build) {
 				log.Fatalf("refusing to overwrite extension-less source file %v", n)
 				continue
 			}
-			n = n[0:len(n)-len(ext)]
+			n = n[0 : len(n)-len(ext)]
 			args := []string{"-o", n}
 			f := path.Base(n)
 			o := f[:len(f)] + ".o"
@@ -183,6 +185,52 @@ func link(b *build) {
 			log.Fatalf("%v\n", err)
 		}
 	}
+}
+
+func install(b *build) {
+	if b.Install == "" {
+		return
+	}
+	installpath := adjust([]string{os.ExpandEnv(b.Install)})
+
+	if len(b.SourceFilesCmd) > 0 {
+		for _, n := range b.SourceFilesCmd {
+			// Split off the last element of the file
+			var ext = filepath.Ext(n)
+			if len(ext) == 0 {
+				log.Fatalf("refusing to overwrite extension-less source file %v", n)
+				continue
+			}
+			n = n[0 : len(n)-len(ext)]
+			args := []string{n}
+			args = append(args, installpath...)
+
+			cmd := exec.Command("mv", args...)
+
+			cmd.Stdin = os.Stdin
+			cmd.Stderr = os.Stderr
+			cmd.Stdout = os.Stdout
+			log.Printf("%v", cmd.Args)
+			err := cmd.Run()
+			if err != nil {
+				log.Fatalf("%v\n", err)
+			}
+		}
+	} else {
+		args := []string{b.Program}
+		args = append(args, installpath...)
+		cmd := exec.Command("mv", args...)
+
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		log.Printf("%v", cmd.Args)
+		err := cmd.Run()
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
+	}
+
 }
 
 func run(b *build, cmd []string) {
@@ -232,9 +280,10 @@ func project(root string) {
 		//library(b)
 		log.Printf("\n\n*** Building %v ***\n\n", b.Library)
 	}
-	if len(b.SourceFilesCmd ) > 0 {
+	if len(b.SourceFilesCmd) > 0 {
 		link(b)
 	}
+	install(b)
 	run(b, b.Post)
 }
 
