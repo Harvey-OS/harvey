@@ -4,6 +4,7 @@
 	"../port/alarm.c",
 	"../port/allocb.c",
 	"../port/cache.c",
+	"../port/devcec.c",
 	"../port/chan.c",
 	"../port/cpu_buffer.c",
 	"../port/devaoe.c",

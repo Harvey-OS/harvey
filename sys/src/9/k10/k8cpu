@@ -18,9 +18,7 @@ dev +dev
 	zp
 	ws
 
-# add to get cec in the kernel
-# DON'T YET. It's borked.
-#	cec
+	cec
 
 	sd
 
