@@ -21,7 +21,5 @@
 	"uid.c",
 	"util.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/lib9p.a *.o"
-	]
+	"Install": "/$ARCH/lib/lib9p.a"
 }

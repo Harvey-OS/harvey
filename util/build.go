@@ -216,7 +216,7 @@ func install(b *build) {
 				log.Fatalf("%v\n", err)
 			}
 		}
-	} else {
+	} else if len(b.Program) > 0 {
 		args := []string{b.Program}
 		args = append(args, installpath...)
 		cmd := exec.Command("mv", args...)
@@ -226,6 +226,25 @@ func install(b *build) {
 		cmd.Stdout = os.Stdout
 		log.Printf("%v", cmd.Args)
 		err := cmd.Run()
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
+	} else if len(b.Library) > 0 {
+		args := []string{"rv"}
+		args = append(args, installpath[0] + b.Program)
+		files, err := filepath.Glob("*.o")
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
+		args = append(args, files...)
+		cmd := exec.Command("ar", args...)
+
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		log.Printf("**********INSTALLING A LIBRARY!!!!*************")
+		log.Printf("%v", cmd.Args)
+		err = cmd.Run()
 		if err != nil {
 			log.Fatalf("%v\n", err)
 		}
