@@ -40,7 +40,7 @@ main(int argc, char **argv)
 	int isnew;
 	char *id, buf[Maxmsg], home[Maxmsg], prompt[100], *hexHi;
 	char *pass, *passck;
-	long expsecs;
+	uint32_t expsecs;
 	mpint *H = mpnew(0), *Hi = mpnew(0);
 	PW *pw;
 	Tm *tm;

@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 {
 	char *u, key[DESKEYLEN], answer[32], p9pass[32];
 	int which, i, newkey, newbio, dosecret;
-	long t;
+	int32_t t;
 	Acctbio a;
 	Fs *f;
 

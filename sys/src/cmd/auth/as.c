@@ -23,7 +23,7 @@ int	debug;
 
 int	becomeuser(char*);
 void	createuser(void);
-void	*emalloc(ulong);
+void	*emalloc(uint32_t);
 void	*erealloc(void*, uint32_t);
 void	initcap(void);
 int	mkcmd(char*, char*, int);

@@ -1,0 +1,14 @@
+{
+    "Name": "aescbc",
+    "Program": "aescbc",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "aescbc.c",
+    "util.c"
+	],
+	"Post": [
+    "mv aescbc $HARVEY/amd64/bin/auth/"
+	]
+}

@@ -48,8 +48,8 @@ main(int argc, char **argv)
 	int encrypt = 0;  /* 0=decrypt, 1=encrypt */
 	int n, nkey, pass_stdin = 0, pass_nvram = 0;
 	char *pass;
-	uchar key[AESmaxkey], key2[SHA1dlen];
-	uchar buf[BUF+SHA1dlen];    /* assumption: CHK <= SHA1dlen */
+	unsigned char key[AESmaxkey], key2[SHA1dlen];
+	unsigned char buf[BUF+SHA1dlen];    /* assumption: CHK <= SHA1dlen */
 	AESstate aes;
 	DigestState *dstate;
 	Nvrsafe nvr;
@@ -96,7 +96,7 @@ main(int argc, char **argv)
 	}
 	if(n <= 0)
 		sysfatal("no key");
-	dstate = sha1((uchar*)"aescbc file", 11, nil, nil);
+	dstate = sha1((unsigned char*)"aescbc file", 11, nil, nil);
 	sha1(buf, n, key2, dstate);
 	memcpy(key, key2, 16);
 	nkey = 16;

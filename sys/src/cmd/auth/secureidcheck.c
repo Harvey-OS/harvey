@@ -123,7 +123,7 @@ freePacket(Packet *p)
 }
 
 int
-ding(void*, char *msg)
+ding(void *v, char *msg)
 {
 	syslog(0, AUTHLOG, "ding %s", msg);
 	if(strstr(msg, "alarm"))

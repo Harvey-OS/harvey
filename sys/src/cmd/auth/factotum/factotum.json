@@ -1,0 +1,28 @@
+{
+    "Name": "factotum",
+    "Program": "factotum",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "apop.c",
+    "chap.c",
+    "confirm.c",
+    "fs.c",
+    "httpdigest.c",
+    "log.c",
+    "p9any.c",
+    "p9cr.c",
+    "p9sk1.c",
+    "pass.c",
+    "rpc.c",
+    "rsa.c",
+    "secstore.c",
+    "util.c",
+    "wep.c"
+	],
+	"Post": [
+    "mkdir -p $HARVEY/amd64/bin/auth",
+    "mv factotum $HARVEY/amd64/bin/auth/"
+	]
+}

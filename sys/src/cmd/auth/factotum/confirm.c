@@ -25,7 +25,7 @@ confirmflush(Req *r)
 {
 	Req **l;
 
-	for(l=&cusewait; *l; l=&(*l)->aux){
+	for(l=(Req **)cusewait; *l; l=(Req **)(*l)->aux){
 		if(*l == r){
 			*l = r->aux;
 			if(r->aux == nil)
@@ -84,7 +84,7 @@ confirmwrite(char *s)
 	}
 	r = nil;
 	tagoff = -1;
-	for(l=&cusewait; *l; l=&(*l)->aux){
+	for(l=(Req **)cusewait; *l; l=(Req **)(*l)->aux){
 		r = *l;
 		if(hastag(r->fid->aux, tag, &tagoff)){
 			*l = r->aux;
@@ -127,7 +127,7 @@ confirmqueue(Req *r, Fsstate *fss)
 	}
 	*cuselast = r;
 	r->aux = nil;
-	cuselast = &r->aux;
+	cuselast = (Req **)r->aux;
 }
 
 /* Yes, I am unhappy that the code below is a copy of the code above. */
@@ -147,7 +147,7 @@ needkeyflush(Req *r)
 {
 	Req **l;
 
-	for(l=&needwait; *l; l=&(*l)->aux){
+	for(l=(Req **)needwait; *l; l=(Req **)(*l)->aux){
 		if(*l == r){
 			*l = r->aux;
 			if(r->aux == nil)
@@ -178,7 +178,7 @@ needkeywrite(char *s)
 	}
 	tag = strtoul(t, 0, 0);
 	r = nil;
-	for(l=&needwait; *l; l=&(*l)->aux){
+	for(l=(Req **)needwait; *l; l=(Req **)(*l)->aux){
 		r = *l;
 		if(r->tag == tag){
 			*l = r->aux;
@@ -207,7 +207,7 @@ needkeyqueue(Req *r, Fsstate *fss)
 	logbufappend(&needkeybuf, msg);
 	*needlast = r;
 	r->aux = nil;
-	needlast = &r->aux;
+	needlast = (Req **)r->aux;
 	return 0;
 }
 

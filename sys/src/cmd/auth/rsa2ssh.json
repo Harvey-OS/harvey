@@ -1,0 +1,17 @@
+{
+    "Name": "rsa2ssh",
+    "Program": "rsa2ssh",
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "rsa2ssh.c",
+    "rsa2any.c"
+	],
+    "Oflags": [
+    "lib/libauthcmd.a"
+    ],
+	"Post": [
+    "mv rsa2ssh $HARVEY/amd64/bin/auth/"
+	]
+}

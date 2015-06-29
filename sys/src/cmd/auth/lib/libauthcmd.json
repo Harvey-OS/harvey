@@ -1,0 +1,30 @@
+{
+	"Name": "libauthcmd",
+	"Library": "libauthcmd.a",
+	"Include": ["../../../lib.json"],
+	"Pre": [
+	"rm *.a"
+	],
+    "SourceFiles": [
+	"keyfmt.c",
+	"netcheck.c",
+	"okpasswd.c",
+	"readwrite.c",
+	"readarg.c",
+	"readln.c",
+	"getauthkey.c",
+	"log.c",
+	"error.c",
+	"fs.c",
+	"rdbio.c",
+	"querybio.c",
+	"wrbio.c",
+	"getexpiration.c"
+	],
+	"Cflags": [
+    "-I../"
+    ],
+	"Post": [
+	"ar rv $HARVEY/sys/src/cmd/auth/lib/libauthcmd.a *.o"
+	]
+}

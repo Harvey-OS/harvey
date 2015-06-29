@@ -158,7 +158,7 @@ main(int argc, char *argv[])
 	Job *j;
 	Tm tm;
 	Time t;
-	ulong now, last;		/* in seconds */
+	uint32_t now, last;		/* in seconds */
 	int i, lock;
 
 	debug = 0;

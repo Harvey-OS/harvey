@@ -1,0 +1,17 @@
+{
+    "Name": "guard.srv",
+    "Program": "guard.srv",
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "guard.srv.c",
+    "secureidcheck.c"
+	],
+    "Oflags": [
+    "lib/libauthcmd.a"
+    ],
+	"Post": [
+    "mv guard.srv $HARVEY/amd64/bin/auth/"
+	]
+}

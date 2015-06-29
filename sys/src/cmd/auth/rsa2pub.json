@@ -1,0 +1,17 @@
+{
+    "Name": "rsa2pub",
+    "Program": "rsa2pub",
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "rsa2pub.c",
+    "rsa2any.c"
+	],
+    "Oflags": [
+    "lib/libauthcmd.a"
+    ],
+	"Post": [
+    "mv rsa2pub $HARVEY/amd64/bin/auth/"
+	]
+}

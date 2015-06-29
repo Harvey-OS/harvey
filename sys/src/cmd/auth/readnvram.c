@@ -14,7 +14,7 @@
 #include <authsrv.h>
 
 void
-main(int, char **)
+main(int n, char **g)
 {
 	int i;
 	Nvrsafe safe;

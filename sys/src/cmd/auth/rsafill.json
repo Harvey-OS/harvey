@@ -1,0 +1,17 @@
+{
+    "Name": "rsafill",
+    "Program": "rsafill",
+    "Include": ["../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "rsafill.c",
+    "rsa2any.c"
+	],
+    "Oflags": [
+    "lib/libauthcmd.a"
+    ],
+	"Post": [
+    "mv rsafill $HARVEY/amd64/bin/auth/"
+	]
+}

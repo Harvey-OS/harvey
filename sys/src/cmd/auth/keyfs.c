@@ -22,7 +22,7 @@
 
 #pragma	varargck	type	"W"	char*
 
-int8_t authkey[8];
+char authkey[8];
 
 typedef struct Fid	Fid;
 typedef struct User	User;
@@ -208,7 +208,7 @@ Flush(Fid *f)
 }
 
 char *
-Auth(Fid *)
+Auth(Fid *f)
 {
 	return "keyfs: authentication not required";
 }
@@ -226,7 +226,7 @@ Attach(Fid *f)
 }
 
 char*
-Version(Fid*)
+Version(Fid *g)
 {
 	Fid *f;
 
