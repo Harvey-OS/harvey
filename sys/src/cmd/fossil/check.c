@@ -788,22 +788,22 @@ warn(Fsck *chk, char *fmt, ...)
 }
 
 static void
-clrenop(Fsck*, Block*, int)
+clrenop(Fsck *f, Block *b, int i)
 {
 }
 
 static void
-closenop(Fsck*, Block*, uint32_t)
+closenop(Fsck *f, Block *b, uint32_t u)
 {
 }
 
 static void
-clrinop(Fsck*, char*, MetaBlock*, int, Block*)
+clrinop(Fsck *f, char *c, MetaBlock *m, int i, Block *b)
 {
 }
 
 static int
-printnop(char*, ...)
+printnop(char *c, ...)
 {
 	return 0;
 }

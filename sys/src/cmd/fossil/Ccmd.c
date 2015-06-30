@@ -23,7 +23,7 @@ static uint32_t
 cmd9pStrtoul(char* s)
 {
 	if(strcmp(s, "~0") == 0)
-		return ~0UL;
+		return (int64_t)~0UL;
 	return strtoul(s, 0, 0);
 }
 
@@ -36,7 +36,7 @@ cmd9pStrtoull(char* s)
 }
 
 static int
-cmd9pTag(Fcall*, int, char **argv)
+cmd9pTag(Fcall *f, int i, char **argv)
 {
 	cbox.tag = strtoul(argv[0], 0, 0)-1;
 
@@ -44,7 +44,7 @@ cmd9pTag(Fcall*, int, char **argv)
 }
 
 static int
-cmd9pTwstat(Fcall* f, int, char **argv)
+cmd9pTwstat(Fcall* f, int i, char **argv)
 {
 	Dir d;
 	static uint8_t buf[DIRMAX];
@@ -70,7 +70,7 @@ cmd9pTwstat(Fcall* f, int, char **argv)
 }
 
 static int
-cmd9pTstat(Fcall* f, int, char** argv)
+cmd9pTstat(Fcall* f, int i, char** argv)
 {
 	f->fid = strtol(argv[0], 0, 0);
 
@@ -78,7 +78,7 @@ cmd9pTstat(Fcall* f, int, char** argv)
 }
 
 static int
-cmd9pTremove(Fcall* f, int, char** argv)
+cmd9pTremove(Fcall* f, int i, char** argv)
 {
 	f->fid = strtol(argv[0], 0, 0);
 
@@ -86,7 +86,7 @@ cmd9pTremove(Fcall* f, int, char** argv)
 }
 
 static int
-cmd9pTclunk(Fcall* f, int, char** argv)
+cmd9pTclunk(Fcall* f, int i, char** argv)
 {
 	f->fid = strtol(argv[0], 0, 0);
 
@@ -94,7 +94,7 @@ cmd9pTclunk(Fcall* f, int, char** argv)
 }
 
 static int
-cmd9pTwrite(Fcall* f, int, char** argv)
+cmd9pTwrite(Fcall* f, int i, char** argv)
 {
 	f->fid = strtol(argv[0], 0, 0);
 	f->offset = strtoll(argv[1], 0, 0);
@@ -105,7 +105,7 @@ cmd9pTwrite(Fcall* f, int, char** argv)
 }
 
 static int
-cmd9pTread(Fcall* f, int, char** argv)
+cmd9pTread(Fcall* f, int i, char** argv)
 {
 	f->fid = strtol(argv[0], 0, 0);
 	f->offset = strtoll(argv[1], 0, 0);
@@ -115,7 +115,7 @@ cmd9pTread(Fcall* f, int, char** argv)
 }
 
 static int
-cmd9pTcreate(Fcall* f, int, char** argv)
+cmd9pTcreate(Fcall* f, int i, char** argv)
 {
 	f->fid = strtol(argv[0], 0, 0);
 	f->name = argv[1];
@@ -126,7 +126,7 @@ cmd9pTcreate(Fcall* f, int, char** argv)
 }
 
 static int
-cmd9pTopen(Fcall* f, int, char** argv)
+cmd9pTopen(Fcall* f, int i, char** argv)
 {
 	f->fid = strtol(argv[0], 0, 0);
 	f->mode = strtol(argv[1], 0, 0);
@@ -157,7 +157,7 @@ cmd9pTwalk(Fcall* f, int argc, char** argv)
 }
 
 static int
-cmd9pTflush(Fcall* f, int, char** argv)
+cmd9pTflush(Fcall* f, int i, char** argv)
 {
 	f->oldtag = strtol(argv[0], 0, 0);
 
@@ -165,7 +165,7 @@ cmd9pTflush(Fcall* f, int, char** argv)
 }
 
 static int
-cmd9pTattach(Fcall* f, int, char** argv)
+cmd9pTattach(Fcall* f, int i, char** argv)
 {
 	f->fid = strtol(argv[0], 0, 0);
 	f->afid = strtol(argv[1], 0, 0);
@@ -176,7 +176,7 @@ cmd9pTattach(Fcall* f, int, char** argv)
 }
 
 static int
-cmd9pTauth(Fcall* f, int, char** argv)
+cmd9pTauth(Fcall* f, int i, char** argv)
 {
 	f->afid = strtol(argv[0], 0, 0);
 	f->uname = argv[1];
@@ -186,7 +186,7 @@ cmd9pTauth(Fcall* f, int, char** argv)
 }
 
 static int
-cmd9pTversion(Fcall* f, int, char** argv)
+cmd9pTversion(Fcall* f, int i, char** argv)
 {
 	f->msize = strtoul(argv[0], 0, 0);
 	if(f->msize > cbox.con->msize){
@@ -204,7 +204,7 @@ struct Cmd9p {
 	int	type;
 	int	argc;
 	char*	usage;
-	int	(*f)(Fcall*, int, char**);
+	int	(*f)(Fcall*, int i, char**);
 };
 
 static Cmd9p cmd9pTmsg[] = {
@@ -229,9 +229,9 @@ cmd9p(int argc, char* argv[])
 {
 	int i, n;
 	Fcall f, t;
-	uchar *buf;
+	unsigned char *buf;
 	char *usage;
-	u32int msize;
+	uint32_t msize;
 
 	usage = "usage: 9p T-message ...";
 
@@ -298,10 +298,10 @@ cmd9p(int argc, char* argv[])
 static int
 cmdDot(int argc, char* argv[])
 {
-	long l;
+	int32_t l;
 	Dir *dir;
 	int fd, r;
-	vlong length;
+	int64_t length;
 	char *f, *p, *s, *usage;
 
 	usage = "usage: . file";
@@ -407,7 +407,7 @@ cmdEcho(int argc, char* argv[])
 static int
 cmdBind(int argc, char* argv[])
 {
-	ulong flag = 0;
+	uint32_t flag = 0;
 	char *usage;
 
 	usage = "usage: bind [-b|-a|-c|-bc|-ac] new old";

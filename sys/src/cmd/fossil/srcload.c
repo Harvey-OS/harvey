@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 	int i;
 	Fs *fs;
 	int csize = 1000;
-	ulong t;
+	uint32_t t;
 	Source *r;
 
 	ARGBEGIN{

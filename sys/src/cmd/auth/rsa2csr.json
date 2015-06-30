@@ -11,7 +11,5 @@
     "Oflags": [
     "lib/libauthcmd.a"
     ],
-	"Post": [
-    "mv rsa2csr $HARVEY/amd64/bin/auth/"
-	]
+	"Install": "/$ARCH/bin/auth/"
 }

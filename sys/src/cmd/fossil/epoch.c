@@ -43,7 +43,7 @@ main(int argc, char **argv)
 	if(!headerUnpack(&h, buf))
 		sysfatal("unpacking header: %r");
 
-	if(pread(fd, buf, h.blockSize, (vlong)h.super*h.blockSize) != h.blockSize)
+	if(pread(fd, buf, h.blockSize, (int64_t)h.super*h.blockSize) != h.blockSize)
 		sysfatal("reading super block: %r");
 
 	if(!superUnpack(&s, buf))
@@ -53,7 +53,7 @@ main(int argc, char **argv)
 	if(argc == 2){
 		s.epochLow = strtoul(argv[1], 0, 0);
 		superPack(&s, buf);
-		if(pwrite(fd, buf, h.blockSize, (vlong)h.super*h.blockSize) != h.blockSize)
+		if(pwrite(fd, buf, h.blockSize, (int64_t)h.super*h.blockSize) != h.blockSize)
 			sysfatal("writing super block: %r");
 	}
 	exits(0);

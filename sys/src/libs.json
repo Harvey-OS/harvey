@@ -26,6 +26,7 @@
 	"/sys/src/libmemlayer/libmemlayer.json",
 	"/sys/src/libmp/libmp.json",
 	"/sys/src/libndb/libndb.json",
+	"/sys/src/liboventi/liboventi.json",
 	"/sys/src/libplumb/libplumb.json",
 	"/sys/src/libregexp/libregexp.json",
 	"/sys/src/libsec/libsec.json",

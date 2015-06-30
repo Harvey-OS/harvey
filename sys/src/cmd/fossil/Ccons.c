@@ -233,7 +233,7 @@ qAlloc(void)
 }
 
 static void
-consProc(void*)
+consProc(void *v)
 {
 	Q *q;
 	int argc, i, n, r;

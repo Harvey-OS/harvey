@@ -667,7 +667,7 @@ if(0)fprint(2, "%s: cacheGlobal %V %d\n", argv0, score, type);
 		b = cacheBumpBlock(c);
 
 		b->part = PartVenti;
-		b->addr = NilBlock;
+		b->addr = (int64_t)NilBlock;
 		b->l.type = type;
 		memmove(b->score, score, VtScoreSize);
 

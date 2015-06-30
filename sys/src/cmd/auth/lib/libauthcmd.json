@@ -2,9 +2,6 @@
 	"Name": "libauthcmd",
 	"Library": "libauthcmd.a",
 	"Include": ["../../../lib.json"],
-	"Pre": [
-	"rm *.a"
-	],
     "SourceFiles": [
 	"keyfmt.c",
 	"netcheck.c",
@@ -24,7 +21,5 @@
 	"Cflags": [
     "-I../"
     ],
-	"Post": [
-	"ar rv $HARVEY/sys/src/cmd/auth/lib/libauthcmd.a *.o"
-	]
+    "Install": "/sys/src/cmd/auth/lib/libauthcmd.a"
 }

@@ -11,6 +11,8 @@
 
 #include "9.h"
 
+int Dflag = 0;
+
 enum {
 	OMODE		= 0x7,		/* Topen/Tcreate mode */
 };

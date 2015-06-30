@@ -26,8 +26,8 @@ typedef struct Msg Msg;
 #pragma incomplete Fsys
 
 struct Msg {
-	uchar*	data;
-	u32int	msize;			/* actual size of data */
+	unsigned char*	data;
+	uint32_t	msize;			/* actual size of data */
 	Fcall	t;
 	Fcall	r;
 	Con*	con;
@@ -62,7 +62,7 @@ enum {
 };
 struct Con {
 	char*	name;
-	uchar*	data;			/* max, not negotiated */
+	unsigned char*	data;			/* max, not negotiated */
 	int	isconsole;		/* immutable */
 	int	flags;			/* immutable */
 	char	remote[128];		/* immutable */
@@ -70,7 +70,7 @@ struct Con {
 	int	state;
 	int	fd;
 	Msg*	version;
-	u32int	msize;			/* negotiated with Tversion */
+	uint32_t	msize;			/* negotiated with Tversion */
 	VtRendez* rendez;
 
 	Con*	anext;			/* alloc */
@@ -109,7 +109,7 @@ enum {
 struct Fid {
 	VtLock*	lock;
 	Con*	con;
-	u32int	fidno;
+	uint32_t	fidno;
 	int	ref;			/* inc/dec under Con.fidlock */
 	int	flags;
 
@@ -161,8 +161,8 @@ extern int authWrite(Fid*, void*, int);
  * 9dir.c
  */
 extern void dirBufFree(DirBuf*);
-extern int dirDe2M(DirEntry*, uchar*, int);
-extern int dirRead(Fid*, uchar*, int, vlong);
+extern int dirDe2M(DirEntry*, unsigned char*, int);
+extern int dirRead(Fid*, unsigned char*, int, int64_t);
 
 /*
  * 9excl.c
@@ -177,7 +177,7 @@ extern int exclUpdate(Fid*);
  */
 extern void fidClunk(Fid*);
 extern void fidClunkAll(Con*);
-extern Fid* fidGet(Con*, u32int, int);
+extern Fid* fidGet(Con*, uint32_t, int);
 extern void fidInit(void);
 extern void fidPut(Fid*);
 
@@ -265,3 +265,4 @@ extern int consVPrint(char*, va_list);
  * fossil.c
  */
 extern int Dflag;
+

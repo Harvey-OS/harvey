@@ -59,12 +59,12 @@ main(int argc, char *argv[])
 {
 	int fd, force;
 	Header h;
-	ulong bn;
+	uint32_t bn;
 	Entry e;
 	char *label = "vfs";
 	char *host = nil;
 	char *score = nil;
-	u32int root;
+	uint32_t root;
 	Dir *d;
 
 	force = 0;
@@ -375,8 +375,8 @@ superInit(char *label, uint32_t root, uint8_t score[VtScoreSize])
 	s.epochHigh = 1;
 	s.qid = qid;
 	s.active = root;
-	s.next = NilBlock;
-	s.current = NilBlock;
+	s.next = (int64_t)NilBlock;
+	s.current = (int64_t)NilBlock;
 	strecpy(s.name, s.name+sizeof(s.name), label);
 	memmove(s.last, score, VtScoreSize);
 

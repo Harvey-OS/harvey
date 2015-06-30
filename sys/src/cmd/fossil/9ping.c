@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-typedef uint64_t u64int;
+typedef uint64_t uint64_t;
 
 #define TWID64	((uint64_t)~(uint64_t)0)
 
@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 	int n = 1000, m;
 	int s = 1;
 	double *t, t0, t1;
-	uchar *buf;	
+	unsigned char *buf;	
 	double a, d, max, min;
 
 	m = OREAD;

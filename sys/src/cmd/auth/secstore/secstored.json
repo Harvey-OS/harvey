@@ -13,7 +13,5 @@
     "../secureidcheck.c",
     "util.c"
 	],
-	"Post": [
-    "mv secstored $HARVEY/amd64/bin/auth/"
-	]
+	"Install": "/$ARCH/bin/auth/"
 }

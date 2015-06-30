@@ -2,8 +2,6 @@
     "Name": "authsrv",
     "Program": "authsrv",
     "Include": ["../cmd.json"],
-    "Pre": [
-	],
     "SourceFiles": [
     "authsrv.c",
     "secureidcheck.c"
@@ -11,7 +9,5 @@
     "Oflags": [
     "lib/libauthcmd.a"
     ],
-	"Post": [
-    "mv authsrv $HARVEY/amd64/bin/auth/"
-	]
+	"Install": "/$ARCH/bin/auth/"
 }

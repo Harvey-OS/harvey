@@ -13,6 +13,8 @@
 #include "fns.h"
 #include "9.h"
 
+char *foptname;
+
 struct Fsys {
 	VtLock* lock;
 
@@ -358,7 +360,7 @@ fsysClose(Fsys* fsys, int argc, char* argv[])
 static int
 fsysVac(Fsys* fsys, int argc, char* argv[])
 {
-	uchar score[VtScoreSize];
+	unsigned char score[VtScoreSize];
 	char *usage = "usage: [fsys name] vac path";
 
 	ARGBEGIN{
@@ -412,7 +414,7 @@ fsysSnap(Fsys* fsys, int argc, char* argv[])
 static int
 fsysSnapClean(Fsys *fsys, int argc, char* argv[])
 {
-	u32int arch, snap, life;
+	uint32_t arch, snap, life;
 	char *usage = "usage: [fsys name] snapclean [maxminutes]\n";
 
 	ARGBEGIN{
@@ -436,7 +438,7 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 {
 	char buf[128], *x;
 	int hh, mm, changed;
-	u32int arch, snap, life;
+	uint32_t arch, snap, life;
 	char *usage = "usage: [fsys name] snaptime [-a hhmm] [-s snapminutes] [-t maxminutes]";
 
 	changed = 0;
@@ -448,7 +450,7 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		if(x == nil)
 			return cliError(usage);
 		if(strcmp(x, "none") == 0){
-			arch = ~(u32int)0;
+			arch = ~(uint32_t)0;
 			break;
 		}
 		if(strlen(x) != 4 || strspn(x, "0123456789") != 4)
@@ -465,7 +467,7 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		if(x == nil)
 			return cliError(usage);
 		if(strcmp(x, "none") == 0){
-			snap = ~(u32int)0;
+			snap = ~(uint32_t)0;
 			break;
 		}
 		snap = atoi(x);
@@ -476,7 +478,7 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		if(x == nil)
 			return cliError(usage);
 		if(strcmp(x, "none") == 0){
-			life = ~(u32int)0;
+			life = ~(uint32_t)0;
 			break;
 		}
 		life = atoi(x);
@@ -492,15 +494,15 @@ fsysSnapTime(Fsys* fsys, int argc, char* argv[])
 		return 1;
 	}
 	snapGetTimes(fsys->fs->snap, &arch, &snap, &life);
-	if(arch != ~(u32int)0)
+	if(arch != ~(uint32_t)0)
 		sprint(buf, "-a %02d%02d", arch/60, arch%60);
 	else
 		sprint(buf, "-a none");
-	if(snap != ~(u32int)0)
+	if(snap != ~(uint32_t)0)
 		sprint(buf+strlen(buf), " -s %d", snap);
 	else
 		sprint(buf+strlen(buf), " -s none");
-	if(life != ~(u32int)0)
+	if(life != ~(uint32_t)0)
 		sprint(buf+strlen(buf), " -t %ud", life);
 	else
 		sprint(buf+strlen(buf), " -t none");
@@ -625,7 +627,7 @@ fsysLabel(Fsys* fsys, int argc, char* argv[])
 	Fs *fs;
 	Label l;
 	int n, r;
-	u32int addr;
+	uint32_t addr;
 	Block *b, *bb;
 	char *usage = "usage: [fsys name] label addr [type state epoch epochClose tag]";
 
@@ -703,8 +705,8 @@ fsysBlock(Fsys* fsys, int argc, char* argv[])
 	Fs *fs;
 	char *s;
 	Block *b;
-	uchar *buf;
-	u32int addr;
+	unsigned char *buf;
+	uint32_t addr;
 	int c, count, i, offset;
 	char *usage = "usage: [fsys name] block addr offset [count [data]]";
 
@@ -787,7 +789,7 @@ fsysBfree(Fsys* fsys, int argc, char* argv[])
 	Label l;
 	char *p;
 	Block *b;
-	u32int addr;
+	uint32_t addr;
 	char *usage = "usage: [fsys name] bfree addr ...";
 
 	ARGBEGIN{
@@ -839,7 +841,7 @@ static int
 fsysDf(Fsys *fsys, int argc, char* argv[])
 {
 	char *usage = "usage: [fsys name] df";
-	u32int used, tot, bsize;
+	uint32_t used, tot, bsize;
 	Fs *fs;
 
 	ARGBEGIN{
@@ -852,8 +854,8 @@ fsysDf(Fsys *fsys, int argc, char* argv[])
 	fs = fsys->fs;
 	cacheCountUsed(fs->cache, fs->elo, &used, &tot, &bsize);
 	consPrint("\t%s: %,llud used + %,llud free = %,llud (%.1f%% used)\n",
-		fsys->name, used*(vlong)bsize, (tot-used)*(vlong)bsize,
-		tot*(vlong)bsize, used*100.0/tot);
+		fsys->name, used*(int64_t)bsize, (tot-used)*(int64_t)bsize,
+		tot*(int64_t)bsize, used*100.0/tot);
 	return 1;
 }
 
@@ -866,9 +868,9 @@ fsysClrep(Fsys* fsys, int argc, char* argv[], int ch)
 	Fs *fs;
 	Entry e;
 	Block *b;
-	u32int addr;
+	uint32_t addr;
 	int i, max, offset, sz;
-	uchar zero[VtEntrySize];
+	unsigned char zero[VtEntrySize];
 	char *usage = "usage: [fsys name] clr%c addr offset ...";
 
 	ARGBEGIN{
@@ -1028,7 +1030,7 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 {
 	Fs *fs;
 	int force, n, remove;
-	u32int low, old;
+	uint32_t low, old;
 	char *usage = "usage: [fsys name] epoch [[-ry] low]";
 
 	force = 0;
@@ -1048,7 +1050,7 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 	if(argc > 0)
 		low = strtoul(argv[0], 0, 0);
 	else
-		low = ~(u32int)0;
+		low = ~(uint32_t)0;
 
 	if(low == 0)
 		return cliError("low epoch cannot be zero");
@@ -1057,7 +1059,7 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 
 	vtRLock(fs->elk);
 	consPrint("\tlow %ud hi %ud\n", fs->elo, fs->ehi);
-	if(low == ~(u32int)0){
+	if(low == ~(uint32_t)0){
 		vtRUnlock(fs->elk);
 		return 1;
 	}
@@ -1096,7 +1098,7 @@ static int
 fsysCreate(Fsys* fsys, int argc, char* argv[])
 {
 	int r;
-	ulong mode;
+	uint32_t mode;
 	char *elem, *p, *path;
 	char *usage = "usage: [fsys name] create path uid gid perm";
 	DirEntry de;
@@ -1277,7 +1279,7 @@ fsysWstat(Fsys *fsys, int argc, char* argv[])
 	}
 	if(strcmp(argv[5], "-") != 0){
 		de.size = strtoull(argv[5], &p, 0);
-		if(argv[5][0] == '\0' || *p != '\0' || (vlong)de.size < 0){
+		if(argv[5][0] == '\0' || *p != '\0' || (int64_t)de.size < 0){
 			vtSetError("console wstat - bad length");
 			goto error;
 		}
@@ -1551,7 +1553,7 @@ fsysOpen(char* name, int argc, char* argv[])
 	char *p, *host;
 	Fsys *fsys;
 	int noauth, noventi, noperm, rflag, wstatallow, noatimeupd;
-	long ncache;
+	int32_t ncache;
 	char *usage = "usage: fsys name open [-APVWr] [-c ncache]";
 
 	ncache = 1000;
@@ -1597,7 +1599,7 @@ fsysOpen(char* name, int argc, char* argv[])
 	/* automatic memory sizing? */
 	if(mempcnt > 0) {
 		/* TODO: 8K is a hack; use the actual block size */
-		ncache = (((vlong)freemem() * mempcnt) / 100) / (8*1024);
+		ncache = (((int64_t)freemem() * mempcnt) / 100) / (8*1024);
 		if (ncache < 100)
 			ncache = 100;
 	}

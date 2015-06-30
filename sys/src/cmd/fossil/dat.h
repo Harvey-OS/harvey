@@ -70,14 +70,14 @@ enum {
 };
 
 struct Super {
-	u16int version;
-	u32int epochLow;
-	u32int epochHigh;
-	u64int qid;			/* next qid */
-	u32int active;			/* root of active file system */
-	u32int next;			/* root of next snapshot to archive */
-	u32int current;			/* root of snapshot currently archiving */
-	uchar last[VtScoreSize];	/* last snapshot successfully archived */
+	uint16_t version;
+	uint32_t epochLow;
+	uint32_t epochHigh;
+	uint64_t qid;			/* next qid */
+	uint32_t active;			/* root of active file system */
+	uint32_t next;			/* root of next snapshot to archive */
+	uint32_t current;			/* root of snapshot currently archiving */
+	unsigned char last[VtScoreSize];	/* last snapshot successfully archived */
 	char name[128];			/* label */
 };
 
@@ -104,8 +104,8 @@ struct Fs {
 	 * ensuring no file operations are occurring concurrently.
 	 */
 	VtLock	*elk;		/* epoch lock */
-	u32int	ehi;		/* epoch high */
-	u32int	elo;		/* epoch low */
+	uint32_t	ehi;		/* epoch high */
+	uint32_t	elo;		/* epoch low */
 
 	int	halted;	/* epoch lock is held to halt (console initiated) */
 
@@ -118,16 +118,16 @@ struct Fs {
  * there are extra fields when stored locally
  */
 struct Entry {
-	u32int	gen;			/* generation number */
-	ushort	psize;			/* pointer block size */
-	ushort	dsize;			/* data block size */
-	uchar	depth;			/* unpacked from flags */
-	uchar	flags;
-	uvlong	size;
-	uchar	score[VtScoreSize];
-	u32int	tag;	/* tag for local blocks: zero if stored on Venti */
-	u32int	snap;	/* non-zero -> entering snapshot of given epoch */
-	uchar	archive; /* archive this snapshot: only valid for snap != 0 */
+	uint32_t	gen;			/* generation number */
+	uint8_t	psize;			/* pointer block size */
+	uint8_t	dsize;			/* data block size */
+	unsigned char	depth;			/* unpacked from flags */
+	unsigned char	flags;
+	uint64_t	size;
+	unsigned char	score[VtScoreSize];
+	uint32_t	tag;	/* tag for local blocks: zero if stored on Venti */
+	uint32_t	snap;	/* non-zero -> entering snapshot of given epoch */
+	unsigned char	archive; /* archive this snapshot: only valid for snap != 0 */
 };
 
 /*
@@ -138,7 +138,7 @@ struct Source {
 	Fs	*fs;		/* immutable */
 	int	mode;		/* immutable */
 	int	issnapshot;	/* immutable */
-	u32int	gen;		/* immutable */
+	uint32_t	gen;		/* immutable */
 	int	dsize;		/* immutable */
 	int	dir;		/* immutable */
 
@@ -156,19 +156,19 @@ struct Source {
 	 * sources that have become invalid because they belong to an old
 	 * snapshot.
 	 */
-	u32int	epoch;
+	uint32_t	epoch;
 	Block	*b;		/* block containing this source */
-	uchar	score[VtScoreSize]; /* score of block containing this source */
-	u32int	scoreEpoch;	/* epoch of block containing this source */
+	unsigned char	score[VtScoreSize]; /* score of block containing this source */
+	uint32_t	scoreEpoch;	/* epoch of block containing this source */
 	int	epb;		/* immutable: entries per block in parent */
-	u32int	tag;		/* immutable: tag of parent */
-	u32int	offset; 	/* immutable: entry offset in parent */
+	uint32_t	tag;		/* immutable: tag of parent */
+	uint32_t	offset; 	/* immutable: entry offset in parent */
 };
 
 
 struct Header {
-	ushort version;
-	ushort blockSize;
+	uint8_t version;
+	uint8_t blockSize;
 	uint32_t super;	/* super blocks */
 	uint32_t label;	/* start of labels */
 	uint32_t data;	/* end of labels - start of data blocks */
@@ -183,7 +183,7 @@ struct Header {
 struct DirEntryEnum {
 	File	*file;
 
-	u32int	boff; 		/* block offset */
+	uint32_t	boff; 		/* block offset */
 
 	int	i, n;
 	DirEntry *buf;
@@ -229,11 +229,11 @@ enum {
 };
 
 struct Label {
-	uchar type;
-	uchar state;
-	u32int tag;
-	u32int epoch;
-	u32int epochClose;
+	unsigned char type;
+	unsigned char state;
+	uint32_t tag;
+	uint32_t epoch;
+	uint32_t epochClose;
 };
 
 struct Block {
@@ -245,22 +245,22 @@ struct Block {
 	VtLock	*lk;
 
 	int 	part;
-	u32int	addr;
-	uchar	score[VtScoreSize];	/* score */
+	uint32_t	addr;
+	unsigned char	score[VtScoreSize];	/* score */
 	Label	l;
 
-	uchar	*dmap;
+	unsigned char	*dmap;
 
-	uchar 	*data;
+	unsigned char 	*data;
 
 	/* the following is private; used by cache */
 
 	Block	*next;			/* doubly linked hash chains */
 	Block	**prev;
-	u32int	heap;			/* index in heap table */
-	u32int	used;			/* last reference times */
+	uint32_t	heap;			/* index in heap table */
+	uint32_t	used;			/* last reference times */
 
-	u32int	vers;			/* version of dirty flag */
+	uint32_t	vers;			/* version of dirty flag */
 
 	BList	*uhead;	/* blocks to unlink when this block is written */
 	BList	*utail;
@@ -276,13 +276,13 @@ struct Block {
 /* tree walker, for gc and archiver */
 struct WalkPtr
 {
-	uchar	*data;
+	unsigned char	*data;
 	int	isEntry;
 	int	n;
 	int	m;
 	Entry	e;
-	uchar	type;
-	u32int	tag;
+	unsigned char	type;
+	uint32_t	tag;
 };
 
 enum
@@ -307,20 +307,20 @@ struct Fsck
 	int	(*print)(char*, ...);
 	void	(*clre)(Fsck*, Block*, int);
 	void	(*clrp)(Fsck*, Block*, int);
-	void	(*close)(Fsck*, Block*, u32int);
+	void	(*close)(Fsck*, Block*, uint32_t);
 	void	(*clri)(Fsck*, char*, MetaBlock*, int, Block*);
 
 	/* used internally */
 	Cache	*cache;
-	uchar	*amap;	/* all blocks seen so far */
-	uchar	*emap;	/* all blocks seen in this epoch */
-	uchar	*xmap;	/* all blocks in this epoch with parents in this epoch */
-	uchar	*errmap;	/* blocks with errors */
-	uchar	*smap;		/* walked sources */
+	unsigned char	*amap;	/* all blocks seen so far */
+	unsigned char	*emap;	/* all blocks seen in this epoch */
+	unsigned char	*xmap;	/* all blocks in this epoch with parents in this epoch */
+	unsigned char	*errmap;	/* blocks with errors */
+	unsigned char	*smap;		/* walked sources */
 	int	nblocks;
 	int	bsize;
 	int	walkdepth;
-	u32int	hint;		/* where the next root probably is */
+	uint32_t	hint;		/* where the next root probably is */
 	int	nseen;
 	int	quantum;
 	int	nclre;
@@ -338,4 +338,4 @@ enum {
 	PartVenti,	/* fake partition */
 };
 
-extern vtType[BtMax];
+extern int vtType[BtMax];

@@ -16,7 +16,5 @@
     "SConn.c",
     "util.c"
 	],
-	"Post": [
-    "mv secstore $HARVEY/amd64/bin/auth/"
-	]
+	"Install": "/$ARCH/bin/auth/"
 }

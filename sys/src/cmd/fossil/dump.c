@@ -36,7 +36,7 @@ void
 main(int argc, char **argv)
 {
 	int onlyarchive, cons, s;
-	ulong t, i;
+	uint32_t t, i;
 	char *name;
 
 	name = "main";

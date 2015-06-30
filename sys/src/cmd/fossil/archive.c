@@ -373,7 +373,7 @@ archThread(void *v)
 		addr = super.next;
 		if(addr != NilBlock && super.current == NilBlock){
 			super.current = addr;
-			super.next = NilBlock;
+			super.next = (int64_t)NilBlock;
 			superPack(&super, b->data);
 			blockDirty(b);
 		}else
@@ -446,7 +446,7 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 			sleep(60*1000);
 			continue;
 		}
-		super.current = NilBlock;
+		super.current = (int64_t)NilBlock;
 		memmove(super.last, p.score, VtScoreSize);
 		superPack(&super, b->data);
 		blockDirty(b);

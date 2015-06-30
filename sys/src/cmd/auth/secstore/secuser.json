@@ -11,7 +11,5 @@
     "secuser.c",
     "util.c"
 	],
-	"Post": [
-    "mv secuser $HARVEY/amd64/bin/auth/"
-	]
+	"Install": "/$ARCH/bin/auth/"
 }

@@ -23,7 +23,8 @@
 
 #define	U8PUT(p,v)	(p)[0]=(v)
 #define	U16PUT(p,v)	(p)[0]=(v)>>8;(p)[1]=(v)
-#define	U32PUT(p,v)	(p)[0]=(v)>>24;(p)[1]=(v)>>16;(p)[2]=(v)>>8;(p)[3]=(v)
+//#define	U32PUT(p,v)	(p)[0]=(v)>>24;(p)[1]=(v)>>16;(p)[2]=(v)>>8;(p)[3]=(v)
+#define U32PUT(p,v)	(p)[0]=((v)>>24)&0xFF;(p)[1]=((v)>>16)&0xFF;(p)[2]=((v)>>8)&0xFF;(p)[3]=(v)&0xFF
 #define	U48PUT(p,v,t32)	t32=(v)>>32;U16PUT(p,t32);t32=(v);U32PUT((p)+2,t32)
 #define	U64PUT(p,v,t32)	t32=(v)>>32;U32PUT(p,t32);t32=(v);U32PUT((p)+4,t32)
 
@@ -110,7 +111,7 @@ globalToLocal(uint8_t score[VtScoreSize])
 
 	for(i=0; i<VtScoreSize-4; i++)
 		if(score[i] != 0)
-			return NilBlock;
+			return (int64_t)NilBlock;
 
 	return U32GET(score+VtScoreSize-4);
 }

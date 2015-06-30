@@ -60,8 +60,8 @@ struct DirEntry {
 	uint32_t gen;		/* generation of data entry */
 	uint32_t mentry;		/* entry in directory for meta */
 	uint32_t mgen;		/* generation of meta entry */
-	uvlong size;		/* size of file */
-	uvlong qid;		/* unique file id */
+	uint64_t size;		/* size of file */
+	uint64_t qid;		/* unique file id */
 
 	char *uid;		/* owner id */
 	char *gid;		/* group id */
@@ -74,18 +74,18 @@ struct DirEntry {
 
 	/* plan 9 */
 	int plan9;
-	uvlong p9path;
+	uint64_t p9path;
 	uint32_t p9version;
 
 	/* sub space of qid */
 	int qidSpace;
-	uvlong qidOffset;	/* qid offset */
-	uvlong qidMax;		/* qid maximum */
+	uint64_t qidOffset;	/* qid offset */
+	uint64_t qidMax;		/* qid maximum */
 };
 
 struct MetaEntry {
-	uchar *p;
-	ushort size;
+	unsigned char *p;
+	uint8_t size;
 };
 
 struct MetaBlock {
@@ -95,7 +95,7 @@ struct MetaBlock {
 	int maxindex;		/* entries allocated for table */
 	int nindex;		/* amount of table used */
 	int botch;		/* compensate for my stupidity */
-	uchar *buf;
+	unsigned char *buf;
 };
 
 void	deCleanup(DirEntry*);
@@ -104,12 +104,12 @@ int	deSize(DirEntry*);
 void	dePack(DirEntry*, MetaEntry*);
 int	deUnpack(DirEntry*, MetaEntry*);
 
-void	mbInit(MetaBlock*, uchar*, int, int);
-int	mbUnpack(MetaBlock*, uchar*, int);
+void	mbInit(MetaBlock*, unsigned char*, int, int);
+int	mbUnpack(MetaBlock*, unsigned char*, int);
 void	mbInsert(MetaBlock*, int, MetaEntry*);
 void	mbDelete(MetaBlock*, int);
 void	mbPack(MetaBlock*);
-uchar	*mbAlloc(MetaBlock*, int);
+unsigned char	*mbAlloc(MetaBlock*, int);
 int	mbResize(MetaBlock*, MetaEntry*, int);
 int	mbSearch(MetaBlock*, char*, int*, MetaEntry*);
 

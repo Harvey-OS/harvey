@@ -14,7 +14,8 @@
 	"dial/dial.json",
 	"diff/diff.json",
 	"disk/disk.json",
-	"dossrv/dossrv.json"
+	"dossrv/dossrv.json",
+	"fossil/fossil.json"
 	],
 	"Include": ["cmd.json"],
 	"Pre": [

@@ -64,7 +64,7 @@ fileAlloc(Fs *fs)
 	f->lk = vtLockAlloc();
 	f->ref = 1;
 	f->fs = fs;
-	f->boff = NilBlock;
+	f->boff = (int64_t)NilBlock;
 	f->mode = fs->mode;
 	return f;
 }
@@ -1182,7 +1182,7 @@ fprint(2, "S\n");
 	blockPut(b);
 
 	f->removed = 1;
-	f->boff = NilBlock;
+	f->boff = (int64_t)NilBlock;
 	f->dirty = 0;
 
 	fileMetaUnlock(f);
@@ -1616,7 +1616,7 @@ fileMetaAlloc(File *f, DirEntry *dir, uint32_t start)
 	return bo;
 Err:
 	blockPut(b);
-	return NilBlock;
+	return (int64_t)NilBlock;
 }
 
 static int

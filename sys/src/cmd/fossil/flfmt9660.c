@@ -33,12 +33,12 @@ enum{
 	Blocksize = 2048,
 };
 
-#pragma varargck type "s" uchar*
-#pragma varargck type "L" uchar*
-#pragma varargck type "B" uchar*
-#pragma varargck type "N" uchar*
-#pragma varargck type "T" uchar*
-#pragma varargck type "D" uchar*
+#pragma varargck type "s" unsigned char*
+#pragma varargck type "L" unsigned char*
+#pragma varargck type "B" unsigned char*
+#pragma varargck type "N" unsigned char*
+#pragma varargck type "T" unsigned char*
+#pragma varargck type "D" unsigned char*
 
 typedef struct Voldesc Voldesc;
 struct Voldesc {
@@ -314,7 +314,7 @@ iso9660init(int xfd, Header *xh, char *xfile9660, int xoff9660)
 	ascii();
 
 	v = (Voldesc*)root;
-	if(memcmp(v->magic, "\x01CD001\x01\x00", 8) != 0)
+	if(memcmp(v->magic, "\001CD001\001\000", 8) != 0)
 		vtFatal("%s not a cd image", file9660);
 
 	startoff = iso9660start((Cdir*)v->rootdir)*Blocksize;

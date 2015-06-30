@@ -8,7 +8,5 @@
     "aescbc.c",
     "util.c"
 	],
-	"Post": [
-    "mv aescbc $HARVEY/amd64/bin/auth/"
-	]
+	"Install": "/$ARCH/bin/auth"
 }
