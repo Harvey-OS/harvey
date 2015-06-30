@@ -1,0 +1,19 @@
+{
+    "Name": "secstored",
+    "Program": "secstored",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "dirls.c",
+    "pak.c",
+    "password.c",
+    "SConn.c",
+    "secstored.c",
+    "../secureidcheck.c",
+    "util.c"
+	],
+	"Post": [
+    "mv secstored $HARVEY/amd64/bin/auth/"
+	]
+}

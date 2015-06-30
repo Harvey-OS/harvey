@@ -26,7 +26,7 @@ main(int argc, char **argv)
 {
 	DSApriv *k;
 	char *comment;
-	uchar buf[8192], *p;
+	unsigned char buf[8192], *p;
 	
 	fmtinstall('B', mpfmt);
 	fmtinstall('[', encodefmt);

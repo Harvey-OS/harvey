@@ -24,9 +24,9 @@ void
 main(int argc, char **argv)
 {
 	char *s;
-	uchar *buf;
+	unsigned char *buf;
 	int fd;
-	long n, tot;
+	int32_t n, tot;
 	char *tag, *file;
 	RSApriv *key;
 

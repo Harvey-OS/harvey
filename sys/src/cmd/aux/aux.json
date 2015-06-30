@@ -47,7 +47,7 @@
 	"zerotrunc.c"
 	],
 	"Post": [
-	"[ -d $HARVEY/amd64/bin/aux ] || mkdir $HARVEY/amd64/bin/aux",
+	"mkdir -p $HARVEY/amd64/bin/aux",
 	"mv 9pcon $HARVEY/amd64/bin/aux/",
 	"mv accupoint $HARVEY/amd64/bin/aux/",
 	"mv acidleak $HARVEY/amd64/bin/aux/",

@@ -1,0 +1,17 @@
+{
+    "Name": "secuser",
+    "Program": "secuser",
+    "Include": ["../../cmd.json"],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "pak.c",
+    "password.c",
+    "SConn.c",
+    "secuser.c",
+    "util.c"
+	],
+	"Post": [
+    "mv secuser $HARVEY/amd64/bin/auth/"
+	]
+}

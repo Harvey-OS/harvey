@@ -26,7 +26,7 @@ void
 main(int argc, char **argv)
 {
 	int len;
-	uchar *cert;
+	unsigned char *cert;
 	RSApriv *key;
 
 	fmtinstall('B', mpfmt);

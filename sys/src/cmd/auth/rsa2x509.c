@@ -26,8 +26,8 @@ void
 main(int argc, char **argv)
 {
 	int len;
-	uchar *cert;
-	ulong valid[2];
+	unsigned char *cert;
+	uint32_t valid[2];
 	RSApriv *key;
 
 	fmtinstall('B', mpfmt);

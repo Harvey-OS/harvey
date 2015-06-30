@@ -24,9 +24,9 @@ void
 main(int argc, char **argv)
 {
 	char *buf;
-	uchar *bin;
+	unsigned char *bin;
 	int fd;
-	long n, tot;
+	int32_t n, tot;
 	int len;
 	char *tag, *file;
 

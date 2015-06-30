@@ -57,6 +57,7 @@
 	"port/sha2block128.c",
 	"port/sha2block64.c",
 	"port/smallprimes.c",
+	"port/smallprimetest.c",
 	"port/thumb.c",
 	"port/tlshand.c",
 	"port/x509.c"

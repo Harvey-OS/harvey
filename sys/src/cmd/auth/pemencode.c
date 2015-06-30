@@ -25,7 +25,7 @@ main(int argc, char **argv)
 {
 	char *buf, *cbuf;
 	int fd;
-	long n, tot;
+	int32_t n, tot;
 	int len;
 	char *tag, *file;
 
@@ -61,7 +61,7 @@ main(int argc, char **argv)
 	cbuf = malloc(2*tot);
 	if(cbuf == nil)
 		sysfatal("malloc: %r");
-	len = enc64(cbuf, 2*tot, (uchar*)buf, tot);
+	len = enc64(cbuf, 2*tot, (unsigned char*)buf, tot);
 	print("-----BEGIN %s-----\n", tag);
 	while(len > 0){
 		print("%.64s\n", cbuf);

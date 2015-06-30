@@ -16,9 +16,9 @@ typedef struct SConn SConn;
 struct SConn {
 	void 	*chan;
 	int 	secretlen;
-	int 	(*secret)(SConn*, uchar*, int);
-	int 	(*read)(SConn*, uchar*, int); /* <0 if error; errmess in buffer */
-	int	(*write)(SConn*, uchar*, int);
+	int 	(*secret)(SConn*, unsigned char*, int);
+	int 	(*read)(SConn*, unsigned char*, int); /* <0 if error; errmess in buffer */
+	int	(*write)(SConn*, unsigned char*, int);
 	void	(*free)(SConn*);	/* also closes file descriptor */
 };
 
@@ -39,6 +39,6 @@ void	writerr(SConn*, char*);
  */
 int	readstr(SConn*, char*);
 
-void	*emalloc(ulong);		/* dies on failure; clears memory */
+void	*emalloc(uint32_t);		/* dies on failure; clears memory */
 void	*erealloc(void*, uint32_t);
 char	*estrdup(char*);

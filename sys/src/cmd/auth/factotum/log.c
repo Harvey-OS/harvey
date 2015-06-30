@@ -55,7 +55,7 @@ logbufread(Logbuf *lb, Req *r)
 	if(lb->waitlast == nil)
 		lb->waitlast = &lb->wait;
 	*(lb->waitlast) = r;
-	lb->waitlast = &r->aux;
+	lb->waitlast = (Req **)r->aux;
 	r->aux = nil;
 	logbufproc(lb);
 }
@@ -65,7 +65,7 @@ logbufflush(Logbuf *lb, Req *r)
 {
 	Req **l;
 
-	for(l=&lb->wait; *l; l=&(*l)->aux){
+	for(l=(Req **)lb->wait; *l; l=(Req **)(*l)->aux){
 		if(*l == r){
 			*l = r->aux;
 			r->aux = nil;

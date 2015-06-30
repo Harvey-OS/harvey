@@ -1,0 +1,22 @@
+{
+    "Name": "secstore",
+    "Program": "secstore",
+    "Include": ["../../cmd.json"],
+    "Projects": [
+    "aescbc.json",
+    "secstored.json",
+    "secuser.json"
+    ],
+    "Pre": [
+	],
+    "SourceFiles": [
+    "pak.c",
+    "password.c",
+    "secstore.c",
+    "SConn.c",
+    "util.c"
+	],
+	"Post": [
+    "mv secstore $HARVEY/amd64/bin/auth/"
+	]
+}
