@@ -1,0 +1,28 @@
+{
+	"Name": "liboventi",
+	"Library": "liboventi.a",
+	"Include": ["../lib.json"],
+	"Pre": [
+	],
+    "SourceFiles": [
+	"client.c",
+	"debug.c",
+	"errfmt.c",
+	"fatal.c",
+	"pack.c",
+	"packet.c",
+	"parsescore.c",
+	"readfully.c",
+	"rpc.c",
+	"scorefmt.c",
+	"server.c",
+	"strdup.c",
+	"zero.c",
+	"plan9-io.c",
+	"plan9-sha1.c",
+	"plan9-thread.c"
+	],
+	"Post": [
+	"ar rv $HARVEY/amd64/lib/liboventi.a *.o"
+	]
+}
