@@ -31,7 +31,5 @@
 	"rendez.c",
 	"sched.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libthread.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

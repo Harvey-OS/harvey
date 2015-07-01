@@ -23,7 +23,5 @@
 	"urlfmt.c",
 	"urlunesc.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libhttpd.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

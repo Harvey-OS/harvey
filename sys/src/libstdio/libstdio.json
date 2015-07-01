@@ -55,7 +55,5 @@
 	"vsnprintf.c",
 	"vsprintf.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libstdio.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

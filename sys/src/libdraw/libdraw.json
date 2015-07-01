@@ -62,7 +62,5 @@
 	"writeimage.c",
 	"writesubfont.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libdraw.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

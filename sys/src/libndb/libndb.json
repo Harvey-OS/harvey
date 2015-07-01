@@ -25,7 +25,5 @@
 	"ndbreorder.c",
 	"ndbsubstitute.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libndb.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

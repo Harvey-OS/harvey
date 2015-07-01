@@ -17,7 +17,5 @@
 	"crc.c",
 	"adler.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libflate.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

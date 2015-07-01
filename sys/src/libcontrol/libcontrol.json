@@ -22,7 +22,5 @@
 	"textbutton.c",
 	"textbutton3.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libcontrol.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

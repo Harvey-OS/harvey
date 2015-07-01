@@ -23,7 +23,5 @@
 	"bwrite.c",
 	"bvprint.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libbio.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

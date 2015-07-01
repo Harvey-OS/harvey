@@ -17,7 +17,5 @@
 	"ipaux.c",
 	"ptclbsum.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libip.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

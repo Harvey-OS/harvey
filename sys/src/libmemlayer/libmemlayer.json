@@ -18,7 +18,5 @@
 	"ltorear.c",
 	"unload.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libmemlayer.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

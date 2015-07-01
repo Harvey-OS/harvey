@@ -9,7 +9,5 @@
 	"mesg.c",
 	"plumbsendtext.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libplumb.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

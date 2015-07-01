@@ -12,7 +12,5 @@
 	"transform.c",
 	"tstack.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libgeometry.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

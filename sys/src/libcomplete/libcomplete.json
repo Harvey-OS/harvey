@@ -7,7 +7,5 @@
     "SourceFiles": [
 	"complete.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libcomplete.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

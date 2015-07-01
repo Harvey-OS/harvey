@@ -7,7 +7,5 @@
     "SourceFiles": [
 	"bin.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libbin.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

@@ -23,7 +23,5 @@
 	"s_tolower.c",
 	"s_unique.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libString.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

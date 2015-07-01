@@ -7,7 +7,5 @@
     "SourceFiles": [
 	"avl.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libavl.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

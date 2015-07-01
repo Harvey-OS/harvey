@@ -62,7 +62,5 @@
 	"port/tlshand.c",
 	"port/x509.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libsec.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

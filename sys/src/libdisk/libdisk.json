@@ -9,7 +9,5 @@
 	"proto.c",
 	"scsi.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libdisk.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

@@ -17,7 +17,5 @@
 	"swap.c",
 	"sym.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libmach.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

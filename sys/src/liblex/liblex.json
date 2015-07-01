@@ -11,7 +11,5 @@
 	"yyless.c",
 	"yywrap.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/liblex.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

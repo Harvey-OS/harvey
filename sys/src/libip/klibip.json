@@ -17,7 +17,5 @@
 	"ipaux.c",
 	"ptclbsum.c"
 	],
-	"Post": [
-	"ar rv ../../../amd64/lib/klibip.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

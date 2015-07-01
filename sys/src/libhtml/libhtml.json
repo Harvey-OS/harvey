@@ -10,7 +10,5 @@
 	"strinttab.c",
 	"utils.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libhtml.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

@@ -13,7 +13,5 @@
 	"rregexec.c",
 	"rregsub.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libregexp.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

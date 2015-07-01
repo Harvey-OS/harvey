@@ -21,7 +21,5 @@
 	"suncall.c",
 	"udp.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libsunrpc.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

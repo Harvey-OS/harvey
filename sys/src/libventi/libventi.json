@@ -34,7 +34,5 @@
 	"zero.c",
 	"zeroscore.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libventi.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

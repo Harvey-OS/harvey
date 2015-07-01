@@ -24,7 +24,5 @@
 	"Cflags": [
     "-DPLAN9"
     ],
-	"Post": [
-	"ar rv $HARVEY/sys/src/cmd/bzip2/lib/libbzip2.a *.o"
-	]
+	"Install": "/sys/src/cmd/bzip2/lib/"
 }

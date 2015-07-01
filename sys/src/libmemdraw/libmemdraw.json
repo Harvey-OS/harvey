@@ -26,7 +26,5 @@
 	"unload.c",
 	"write.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libmemdraw.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

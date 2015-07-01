@@ -62,7 +62,5 @@
 	"writeimage.c",
 	"writesubfont.c"
 	],
-	"Post": [
-	"ar rv ../../../amd64/lib/klibdraw.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

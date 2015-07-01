@@ -38,7 +38,5 @@
 	"port/mpvecsub.c",
 	"port/strtomp.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libmp.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

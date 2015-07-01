@@ -15,7 +15,5 @@
 	"frstr.c",
 	"frutil.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libframe.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

@@ -21,7 +21,5 @@
 	"passtokey.c",
 	"readnvram.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libauthsrv.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

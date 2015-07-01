@@ -22,7 +22,5 @@
 	"newns.c",
 	"noworld.c"
 	],
-	"Post": [
-	"ar rv $HARVEY/amd64/lib/libauth.a *.o"
-	]
+	"Install": "/$ARCH/lib/"
 }

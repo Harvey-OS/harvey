@@ -231,12 +231,20 @@ func install(b *build) {
 		}
 	} else if len(b.Library) > 0 {
 		args := []string{"rv"}
-		args = append(args, installpath[0] + b.Program)
-		files, err := filepath.Glob("*.o")
-		if err != nil {
-			log.Fatalf("%v\n", err)
+		args = append(args, installpath[0]+"/"+b.Library)
+		for _, n := range b.SourceFiles {
+			// All .o files end up in the top-level directory
+			n = filepath.Base(n)
+			// Split off the last element of the file
+			var ext = filepath.Ext(n)
+			if len(ext) == 0 {
+				log.Fatalf("confused by extension-less file %v", n)
+				continue
+			}
+			n = n[0 : len(n)-len(ext)]
+			n = n + ".o"
+			args = append(args, n)
 		}
-		args = append(args, files...)
 		cmd := exec.Command("ar", args...)
 
 		cmd.Stdin = os.Stdin
@@ -244,7 +252,7 @@ func install(b *build) {
 		cmd.Stdout = os.Stdout
 		log.Printf("**********INSTALLING A LIBRARY!!!!*************")
 		log.Printf("%v", cmd.Args)
-		err = cmd.Run()
+		err := cmd.Run()
 		if err != nil {
 			log.Fatalf("%v\n", err)
 		}
