@@ -250,7 +250,7 @@ func install(b *build) {
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
-		log.Printf("**********INSTALLING A LIBRARY!!!!*************")
+		log.Printf("*** Installing %v ***", b.Library)
 		log.Printf("%v", cmd.Args)
 		err := cmd.Run()
 		if err != nil {
