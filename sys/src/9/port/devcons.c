@@ -1073,6 +1073,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 	Cmdtab *ct;
 	a = va;
 	offset = off;
+	extern int printallsyscalls;
 
 	switch((uint32_t)c->qid.path){
 	case Qcons:
@@ -1092,6 +1093,7 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 		break;
 
 	case Qconsctl:
+		print("consctl\n");
 		if(n >= sizeof(buf))
 			n = sizeof(buf)-1;
 		strncpy(buf, a, n);
@@ -1109,6 +1111,10 @@ conswrite(Chan *c, void *va, int32_t n, int64_t off)
 				kbd.ctlpoff = 0;
 			else if(strncmp(a, "ctlpoff", 7) == 0)
 				kbd.ctlpoff = 1;
+			else if(strncmp(a, "sys", 3) == 0) {
+				printallsyscalls = ! printallsyscalls;
+				print("%sracing syscalls\n", printallsyscalls ? "T" : "Not t");
+			}
 			if(a = strchr(a, ' '))
 				a++;
 		}

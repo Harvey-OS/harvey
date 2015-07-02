@@ -234,6 +234,7 @@ noerrorsleft(void)
 	}
 }
 
+int printallsyscalls;
 /* it should be unsigned. FIXME */
 void
 syscall(int badscallnr, Ureg *ureg)
@@ -252,16 +253,10 @@ syscall(int badscallnr, Ureg *ureg)
 	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4);
 	char *e;
 	uintptr_t	sp;
-	int s, printallsyscalls;
+	int s;
 	int64_t startns, stopns;
 	Ar0 ar0;
 	static Ar0 zar0;
-
-	/* Do you want to print syscalls for debugging? */
-	if(nosmp)
-		printallsyscalls = 1;
-	else
-		printallsyscalls = 0;
 
 	if(!userureg(ureg))
 		panic("syscall: cs %#llux\n", ureg->cs);
@@ -280,7 +275,7 @@ syscall(int badscallnr, Ureg *ureg)
 	if (printallsyscalls) {
 		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
-			if(1) iprint("E %s\n", m->externup->syscalltrace);
+			print("E %s\n", m->externup->syscalltrace);
 			free(m->externup->syscalltrace);
 			m->externup->syscalltrace = nil;
 		}
@@ -373,7 +368,7 @@ syscall(int badscallnr, Ureg *ureg)
 		stopns = todget(nil);
 		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		if(m->externup->syscalltrace) {
-			if (1) iprint("X %s\n", m->externup->syscalltrace);
+			print("X %s\n", m->externup->syscalltrace);
 			free(m->externup->syscalltrace);
 			m->externup->syscalltrace = nil;
 		}
