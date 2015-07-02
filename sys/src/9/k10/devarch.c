@@ -56,9 +56,10 @@ static Rdwrfn *writefn[Qmax];
 static Dirtab archdir[Qmax] = {
 	".",		{ Qdir, 0, QTDIR },	0,	0555,
 	"ioalloc",	{ Qioalloc, 0 },	0,	0444,
-	"iob",		{ Qiob, 0 },		0,	0660,
-	"iow",		{ Qiow, 0 },		0,	0660,
-	"iol",		{ Qiol, 0 },		0,	0660,
+	/* NOTE: kludge until we have real permissions. */
+	"iob",		{ Qiob, 0 },		0,	0660 | 6,
+	"iow",		{ Qiow, 0 },		0,	0660 | 6,
+	"iol",		{ Qiol, 0 },		0,	0660 | 6,
 	"mapram",	{ Qmapram, 0 },	0,	0444,
 };
 Lock archwlock;	/* the lock is only for changing archdir */
