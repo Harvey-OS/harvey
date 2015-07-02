@@ -141,4 +141,5 @@ sysrforkret:
 //	CALL	linuxclonefinish(SB)
 	// DEBUG
 	MOVQ	$0, %rAX
+	MOVQ	%rax, 0(%rsp)
 	JMP	syscallreturn
