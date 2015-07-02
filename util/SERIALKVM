@@ -4,7 +4,7 @@ sudo qemu-system-x86_64 -s -cpu kvm64,+vmx -smp 8 -m 2048  \
 -net nic,model=rtl8139 \
 -net user,hostfwd=tcp::5555-:23 \
  -nographic \
--kernel 9k.32bit $*
+-kernel 9k8cpu.32bit $*
 
 #-S -gdb tcp::1234 \
 # -nographic \

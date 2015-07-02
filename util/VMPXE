@@ -1,6 +1,6 @@
 #!/bin/bash
 ./BUILD kernel && \
-sudo cp sys/src/9/k10/9k.32bit /var/lib/tftpboot/akaros && \
+sudo cp sys/src/9/k10/9k8cpu.32bit /var/lib/tftpboot/akaros && \
 	sudo service isc-dhcp-server restart && echo "OK" && exit
 
 
