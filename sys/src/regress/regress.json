@@ -3,7 +3,8 @@
     "Pre": ["mkdir -p $HARVEY/amd64/bin/regress"],
     "Include": ["/sys/src/cmd/cmd.json"],
     "SourceFilesCmd": [
-	"iphash.c"
+	"iphash.c",
+	"fork.c"
     ],
     "Install": "/$ARCH/bin/regress"
 }
