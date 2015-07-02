@@ -93,10 +93,13 @@ func process(f string, b *build) {
 
 	b.ObjectFiles = append(b.ObjectFiles, adjust(build.ObjectFiles)...)
 
-	for _, v := range build.Include {
-		wd := path.Dir(f)
-		f := path.Join(wd, v)
-		process(f, b)
+	includes := adjust(build.Include)
+	for _, v := range includes {
+		if !path.IsAbs(v) {
+			wd := path.Dir(f)
+			v = path.Join(wd, v)
+		}
+		process(v, b)
 	}
 }
 
