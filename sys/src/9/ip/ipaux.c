@@ -247,7 +247,14 @@ parsemac(uint8_t *to, char *from, int len)
 uint32_t
 iphash(uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp)
 {
+	uint32_t kludge;
+	kludge = ((sa[IPaddrlen-1]<<24) ^ (sp << 16) ^ (da[IPaddrlen-1]<<8) ^ dp );
+	return kludge % Nipht;
+#if 0
+	somebody please figure this out.
+	This can return a negative number.
 	return ((sa[IPaddrlen-1]<<24) ^ (sp << 16) ^ (da[IPaddrlen-1]<<8) ^ dp ) % Nipht;
+#endif
 }
 
 void
