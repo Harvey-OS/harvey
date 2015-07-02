@@ -1,0 +1,9 @@
+{
+    "Name": "Regress",
+    "Pre": ["mkdir -p $HARVEY/amd64/bin/regress"],
+    "Include": ["/sys/src/cmd/cmd.json"],
+    "SourceFilesCmd": [
+	"iphash.c"
+    ],
+    "Install": "/$ARCH/bin/regress"
+}
