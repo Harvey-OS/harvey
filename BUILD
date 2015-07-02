@@ -113,6 +113,7 @@ show_help()
 	printf "  cmd <cmdname>\tBuild cmd named <cmdname>\n"
 	printf "  cleancmd   \tClean the cmds\n"
 	printf "  kernel     \tBuild kernel\n"
+	printf "  qrun       \tRun kernel using utils/QRUN\n"
 	printf "  cleankernel\tClean kernel\n"
 	printf "\nFLAGS:\n"
 	printf "  -g        \tCompile with debugs flags\n"
@@ -129,6 +130,10 @@ then
 else
 	# We need our binary dir
 	mkdir -p $BIN_DIR
+	for binsub in auth aux fossil ip; do
+		mkdir -p $BIN_DIR/$binsub
+	done
+	
 
 	#BUILD_DEBUG=
 	#Until we have a stable kernel, debug mode is the default.
@@ -183,6 +188,11 @@ else
 					;;
 			"kernel")
 					build_kernel
+					;;
+			"qrun")
+					cd sys/src/9/k10
+					sh ../../../../util/QRUN 
+					exit 0
 					;;
 			*)
 				echo "Invalid option <$1>"
