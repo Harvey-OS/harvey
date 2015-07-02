@@ -31,7 +31,10 @@
 	"data2c _amd64_bin_date date.elf.out>> k8cpu.root.c",
 	"cp $HARVEY/amd64/bin/ls ls.elf.out",
 	"strip ls.elf.out",
-	"data2c _amd64_bin_ls ls.elf.out>> k8cpu.root.c"
+	"data2c _amd64_bin_ls ls.elf.out>> k8cpu.root.c",
+	"cp $HARVEY/amd64/bin/cat cat.elf.out",
+	"strip cat.elf.out",
+	"data2c _amd64_bin_cat cat.elf.out>> k8cpu.root.c"
     ],
     "SourceFiles":[
 	"cga.c",
