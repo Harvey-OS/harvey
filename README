@@ -2,6 +2,7 @@ This is Plan 9 for amd64 built with gcc (and soon, I hope, clang).
 
 This file is a quick list of instructions to get you started quickly.
 
+
 Prerequisites
 =============
 
@@ -10,6 +11,7 @@ binutils and bison installed. On a Debian, Ubuntu or other .deb system,
 you should be able to get going with
 
 	sudo aptitude install git golang build-essential bison qemu-system
+
 
 GERRIT
 ======
@@ -73,6 +75,39 @@ amend the change list as follows
 	git push
 
 More information on using Gerrit can be found on the gerrithub.io website.
+
+
+Getting go9p to serve your files
+================================
+
+The currently recommended way of doing this is to run go9p/ufs as the file
+server for harvey. You can get go9p/ufs in the following way
+
+	cd util
+	mkdir go
+	cd go
+	export GOPATH=$(pwd)
+	go get github.com/rminnich/go9p
+	go get github.com/rminnich/go9p/ufs
+	go get github.com/rminnich/go9p
+	go install github.com/rminnich/go9p/ufs
+	cp bin/ufs ..
+
+After these, you have util/ufs, and you can use
+
+	(export HARVEY=$(pwd) && cd sys/src/9/k10 && sh ../../../../util/GO9PRUN)
+
+to boot with ufs serving the harvey directory for your harvey instance. Once
+harvey is up, you can telnet onto it with
+
+	util/telnet localhost:5555
+
+Where 5555 is forwarded to the harvey instance. This gives you a prompt 
+without any security. Once you have the prompt, you can mount the harvey
+directory as your root like this (10.0.2.2 is what qemu has as the host)
+
+	srv tcp!10.0.2.2!5640 k
+	mount -a /srv/k /
 
 <a href="https://scan.coverity.com/projects/5328">
   <img alt="Coverity Scan Build Status"
