@@ -31,4 +31,5 @@ int main()
 		print("FAIL\n");
 		exits("FAIL");
 	}
+	return 0;
 }

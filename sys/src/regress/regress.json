@@ -4,7 +4,9 @@
     "Include": ["/sys/src/cmd/cmd.json"],
     "SourceFilesCmd": [
 	"iphash.c",
+	"privates.c",
 	"fork.c"
+
     ],
     "Install": "/$ARCH/bin/regress"
 }
