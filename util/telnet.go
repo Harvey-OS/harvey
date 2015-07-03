@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
+	"os/signal"
+	"strings"
 	"syscall"
 	"unsafe"
 )
@@ -59,6 +62,8 @@ const (
 	i_TIOCGWINSZ = 0x5413
 	i_TIOCSWINSZ = 0x5414
 )
+
+var unrawterm termios
 
 func getTermios(fd uintptr) (*termios, error) {
 	term := new(termios)
@@ -142,9 +147,14 @@ func raw() {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+	unrawterm = *t
 	if err = t.setRaw(1); err != nil {
 		log.Fatalf(err.Error())
 	}
+}
+
+func unraw() {
+	unrawterm.set(1)
 }
 
 // Copyright 2012 the u-root Authors. All rights reserved
@@ -161,22 +171,69 @@ func main() {
 	}
 
 	port := "1522"
+	if !strings.Contains(a[1], ":") {
+		a[1] = a[1] + ":" + port
+	}
 
-	c, err := net.Dial("tcp", a[1]+":"+port)
+	tcpdst, err := net.ResolveTCPAddr("tcp", a[1])
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
+	}
+
+	c, err := net.DialTCP("tcp", nil, tcpdst)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		os.Exit(1)
 	}
 
 	raw()
+	defer unraw()
+
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc, os.Interrupt, os.Kill, syscall.SIGTERM)
+	go func() {
+		for _ = range sigc {
+			unraw()
+			os.Exit(1)
+		}
+	}()
 
 	go func() {
 		b := make([]byte, 512)
 		for {
+			n, err := os.Stdin.Read(b)
+			if err != nil {
+				if err != io.EOF {
+					fmt.Printf("%v\n", err)
+				}
+				c.CloseWrite() // I know, I know.. but it is handy sometimes.
+				break
+			}
+			for i := range b[:n] {
+				fmt.Printf("%s", string(b[i]))
+				if b[i] == '\r' {
+					b[i] = '\n'
+					fmt.Printf("\n")
+				}
+			}
+			if _, err := c.Write(b[:n]); err != nil {
+				fmt.Printf("%v\n", err)
+				break
+			}
+		}
+	}()
+
+	func() {
+		b := make([]byte, 512)
+		for {
 			n, err := c.Read(b)
 			if err != nil {
-				fmt.Printf("%v\n", err)
-				os.Exit(0)
+				if err != io.EOF {
+					fmt.Printf("%v\n", err)
+				}
+				c.Close()
+				break
 			}
 			if n == 0 {
 				continue
@@ -191,25 +248,5 @@ func main() {
 			fmt.Printf("%s", string(out))
 		}
 	}()
-
-	for {
-		b := make([]byte, 512)
-		n, err := os.Stdin.Read(b)
-		if err != nil {
-			fmt.Printf("%v\n", err)
-			break
-		}
-		for i := range b[:n] {
-			fmt.Printf("%s", string(b[i]))
-			if b[i] == '\r' {
-				b[i] = '\n'
-				fmt.Printf("\n")
-			}
-		}
-		if _, err := c.Write(b[:n]); err != nil {
-			fmt.Printf("%v\n", err)
-			break
-		}
-	}
 
 }
