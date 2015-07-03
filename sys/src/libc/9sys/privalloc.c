@@ -11,7 +11,7 @@
 #include <libc.h>
 
 static Lock	privlock;
-static int	privinit;
+static int	privinit = 0;
 static void	**privs;
 
 extern void	**_privates;
@@ -22,7 +22,6 @@ privalloc(void)
 {
 	void **p;
 	int i;
-
 	lock(&privlock);
 	if(!privinit){
 		privinit = 1;
@@ -39,6 +38,7 @@ privalloc(void)
 		*p = nil;
 	}
 	unlock(&privlock);
+
 	return p;
 }
 
