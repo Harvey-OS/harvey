@@ -32,23 +32,25 @@ up for code-review:
 	chmod u+x .git/hooks/commit-msg
 	git config remote.origin.push HEAD:refs/for/master
 
-You're now all set, before the first build you may need to create some
-directories that the build system expects to be there, but arent in the
-repository. Create those with
-
-	for dir in aux auth ip fossil; do mkdir -p amd64/bin/$dir; done
-
-after which you can build the whole thing just by running
+You're now all set, you can build the whole thing just by running
 
 	./BUILD all
 
-which should take maybe a minute. Once building is complete, you can try
-booting the kernel with qemu
+which should take maybe a minute.
+
+Once building is complete, you can try booting the kernel with qemu
 
 	(cd sys/src/9/k10 && sh ../../../../util/QRUN)
 
-Next you should find a bug somewhere in harvey and fix it. Let's say the files
-you needed to change were sys/src/9/ip/tcp.c and sys/src/9/ip/ipaux.c. You do
+Next you should find a bug somewhere in harvey and fix it. In general, the
+util/build tool "just works" in any subdirectory, so you can also build just
+the stuff you are looking at, too, eg.
+
+	cd sys/src/cmd/aux
+	build aux.json
+
+Let's say you found a bug and the files you needed to change were
+sys/src/9/ip/tcp.c and sys/src/9/ip/ipaux.c. To submit this for review, you do
 
 	git add sys/src/9/ip/tcp.c
 	git add sys/src/9/ip/ipaux.c
