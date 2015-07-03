@@ -12,7 +12,5 @@
     "devfs.c",
     "utils.c"
 	],
-	"Post": [
-    "mv dummyfs $HARVEY/amd64/bin/aux/"
-	]
+    "Install": "/$ARCH/bin/aux"
 }

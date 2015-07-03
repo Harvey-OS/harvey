@@ -9,7 +9,5 @@
     "devfs.c",
     "utils.c"
 	],
-	"Post": [
-    "mv mkflashfs $HARVEY/amd64/bin/aux/"
-	]
+    "Install": "/$ARCH/bin/aux"
 }

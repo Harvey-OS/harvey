@@ -13,7 +13,5 @@
     "conv.c",
     "utils.c"
 	],
-	"Post": [
-    "mv testldfs $HARVEY/amd64/bin/aux/"
-	]
+    "Install": "/$ARCH/bin/aux"
 }

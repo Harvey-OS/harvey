@@ -18,8 +18,6 @@
 	"fossil/fossil.json"
 	],
 	"Include": ["cmd.json"],
-	"Pre": [
-	],
 	"SourceFilesCmd": [
 	"aan.c",
 	"archfs.c",
@@ -141,8 +139,6 @@
 	"winwatch.c",
 	"xd.c",
 	"yacc.c"
-	],
-	"Post": [
 	],
 	"Install": "/$ARCH/bin/"
 }

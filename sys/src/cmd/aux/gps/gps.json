@@ -11,7 +11,5 @@
     "util.c",
     "gpsfs.c"
 	],
-	"Post": [
-    "mv gpsfs $HARVEY/amd64/bin/aux/"
-	]
+    "Install": "/$ARCH/bin/aux"
 }

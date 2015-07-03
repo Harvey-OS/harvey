@@ -7,8 +7,6 @@
 	"vga/vga.json"
 	],
 	"Include": ["../cmd.json"],
-	"Pre": [
-	],
 	"SourceFilesCmd": [
 	"9pcon.c",
 	"accupoint.c",
@@ -46,42 +44,5 @@
 	"write.c",
 	"zerotrunc.c"
 	],
-	"Post": [
-	"mkdir -p $HARVEY/amd64/bin/aux",
-	"mv 9pcon $HARVEY/amd64/bin/aux/",
-	"mv accupoint $HARVEY/amd64/bin/aux/",
-	"mv acidleak $HARVEY/amd64/bin/aux/",
-	"mv apm $HARVEY/amd64/bin/aux/",
-	"mv astarld $HARVEY/amd64/bin/aux/",
-	"mv cddb $HARVEY/amd64/bin/aux/",
-	"mv clog $HARVEY/amd64/bin/aux/",
-	"mv consolefs $HARVEY/amd64/bin/aux/",
-	"mv data2s $HARVEY/amd64/bin/aux/",
-	"mv depend $HARVEY/amd64/bin/aux/",
-	"mv disksim $HARVEY/amd64/bin/aux/",
-	"mv getflags $HARVEY/amd64/bin/aux/",
-	"mv lines $HARVEY/amd64/bin/aux/",
-	"mv listen $HARVEY/amd64/bin/aux/",
-	"mv listen1 $HARVEY/amd64/bin/aux/",
-	"mv mklatinkbd $HARVEY/amd64/bin/aux/",
-	"mv ms2 $HARVEY/amd64/bin/aux/",
-	"mv msexceltables $HARVEY/amd64/bin/aux/",
-	"mv mswordstrings $HARVEY/amd64/bin/aux/",
-	"mv mouse $HARVEY/amd64/bin/aux/",
-	"mv nfsmount $HARVEY/amd64/bin/aux/",
-	"mv olefs $HARVEY/amd64/bin/aux/",
-	"mv pcmcia $HARVEY/amd64/bin/aux/",
-	"mv portmap $HARVEY/amd64/bin/aux/",
-	"mv rdwr $HARVEY/amd64/bin/aux/",
-	"mv reboot $HARVEY/amd64/bin/aux/",
-	"mv searchfs $HARVEY/amd64/bin/aux/",
-	"mv statusbar $HARVEY/amd64/bin/aux/",
-	"mv stub $HARVEY/amd64/bin/aux/",
-	"mv timesync $HARVEY/amd64/bin/aux/",
-	"mv trampoline $HARVEY/amd64/bin/aux/",
-	"mv usage $HARVEY/amd64/bin/aux/",
-	"mv watchdog $HARVEY/amd64/bin/aux/",
-	"mv write $HARVEY/amd64/bin/aux/",
-	"mv zerotrunc $HARVEY/amd64/bin/aux/"
-	]
+	"Install": "/$ARCH/bin/aux"
 }

@@ -65,7 +65,5 @@
     "vesadb.c",
     "vision964.c"
 	],
-	"Post": [
-    "mv vga $HARVEY/amd64/bin/aux/"
-	]
+    "Install": "/$ARCH/bin/aux"
 }
