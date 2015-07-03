@@ -195,6 +195,12 @@ func install(b *build) {
 		return
 	}
 	installpath := adjust([]string{os.ExpandEnv(b.Install)})
+	// Make sure they're all there.
+	for _, v := range installpath {
+		if err := os.MkdirAll(v, 0755); err != nil {
+			log.Fatalf("%v", err)
+		}
+	}
 
 	if len(b.SourceFilesCmd) > 0 {
 		for _, n := range b.SourceFilesCmd {

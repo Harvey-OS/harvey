@@ -8,7 +8,5 @@
     "util.c",
     "gpsevermore.c"
 	],
-	"Post": [
-    "mv gpsevermore $HARVEY/amd64/bin/aux/"
-	]
+    "Install": "/$ARCH/bin/aux"
 }
