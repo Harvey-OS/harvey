@@ -14,7 +14,7 @@
 
 /* first argument goes in a register; simplest just to ignore it */
 static void
-launcheramd64(int i, void (*f)(void *arg), void *arg)
+launcheramd64(void (*f)(void *arg), void *arg)
 {
 	(*f)(arg);
 	threadexits(nil);
@@ -28,8 +28,10 @@ _threadinitstack(Thread *t, void (*f)(void*), void *arg)
 	tos = (uint64_t*)&t->stk[t->stksize&~7];
 	*--tos = (uint64_t)arg;
 	*--tos = (uint64_t)f;
-	*--tos = 0;	/* first arg to launcheramd64 */
 	t->sched[JMPBUFPC] = (uint64_t)launcheramd64+JMPBUFDPC;
+	//t->sched[JMPBUFSP] = (uint64_t)tos - 2*8;		/* old PC and new PC */
 	t->sched[JMPBUFSP] = (uint64_t)tos - 2*8;		/* old PC and new PC */
+	t->sched[JMPBUFARG1] = (uint64_t)f;		/* old PC and new PC */
+	t->sched[JMPBUFARG2] = (uint64_t)arg;		/* old PC and new PC */
 }
 

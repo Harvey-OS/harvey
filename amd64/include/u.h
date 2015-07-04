@@ -23,9 +23,13 @@ typedef uint32_t	usize;
 typedef int64_t size_t;
 typedef	uint32_t		Rune;
 typedef union FPdbleword FPdbleword;
-typedef uintptr		jmp_buf[2];
-#define	JMPBUFSP	0
-#define	JMPBUFPC	1
+typedef uintptr		jmp_buf[10]; // for registers.
+
+#define	JMPBUFSP	6
+#define	JMPBUFPC	7
+#define	JMPBUFARG1	8
+#define	JMPBUFARG2	9
+
 #define	JMPBUFDPC	0
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
 

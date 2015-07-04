@@ -2,20 +2,25 @@
 
 .globl longjmp
 longjmp:
-        movq    0(%rdi), %rbx
-        movq    8(%rdi), %r12
-        movq    16(%rdi), %r13
-        movq    24(%rdi), %r14
-        movq    32(%rdi), %r15
-        movq    40(%rdi), %rbp
-        movq    48(%rdi), %rsp
+        movq    %rdi, %r9
+        movq    0(%r9), %rbx
+        movq    8(%r9), %r12
+        movq    16(%r9), %r13
+        movq    24(%r9), %r14
+        movq    32(%r9), %r15
+        movq    40(%r9), %rbp
+        movq    48(%r9), %rsp
         movl    %esi, %eax
         test    %eax, %eax      /* if val != 0          */
         jnz     1f              /*      return val      */
         incl    %eax            /* else return 1        */
 1:
-        movq    56(%rdi), %rdx  /* return to caller of setjmp */
-        jmp     *%rdx
+        movq    56(%r9), %r8  /* return to caller of setjmp */
+
+        movq	64(%r9), %rdi /* 1st function argument */
+        movq	72(%r9), %rsi /* 2nd function argument */
+
+        jmp     *%r8 
 
 .globl setjmp
 setjmp:
@@ -28,5 +33,7 @@ setjmp:
         popq    %rdx            /* return address */
         movq    %rsp, 48(%rdi)
         movq    %rdx, 56(%rdi)
+
+
         xorl    %eax, %eax      /* return 0 */
         jmp     *%rdx
