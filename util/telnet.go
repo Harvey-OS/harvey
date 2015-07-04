@@ -166,25 +166,30 @@ Wget reads one file from the argument and writes it on the standard output.
 */
 func main() {
 	a := os.Args
+
 	if len(a) < 2 {
 		os.Exit(1)
 	}
 
-	port := "1522"
-	if !strings.Contains(a[1], ":") {
-		a[1] = a[1] + ":" + port
-	}
+	var tcpc []*net.TCPConn
+	for _, a := range os.Args[1:] {
+		port := "1522"
+		if !strings.Contains(a, ":") {
+			a = a + ":" + port
+		}
 
-	tcpdst, err := net.ResolveTCPAddr("tcp", a[1])
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
-	}
+		tcpdst, err := net.ResolveTCPAddr("tcp", a)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
 
-	c, err := net.DialTCP("tcp", nil, tcpdst)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
+		c, err := net.DialTCP("tcp", nil, tcpdst)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+		tcpc = append(tcpc, c)
 	}
 
 	raw()
@@ -200,14 +205,16 @@ func main() {
 	}()
 
 	go func() {
-		b := make([]byte, 512)
+		b := make([]byte, 1024)
 		for {
 			n, err := os.Stdin.Read(b)
 			if err != nil {
 				if err != io.EOF {
 					fmt.Printf("%v\n", err)
 				}
-				c.CloseWrite() // I know, I know.. but it is handy sometimes.
+				for _, c := range tcpc {
+					c.CloseWrite() // I know, I know.. but it is handy sometimes.
+				}
 				break
 			}
 			for i := range b[:n] {
@@ -217,36 +224,55 @@ func main() {
 					fmt.Printf("\n")
 				}
 			}
-			if _, err := c.Write(b[:n]); err != nil {
-				fmt.Printf("%v\n", err)
-				break
-			}
-		}
-	}()
 
-	func() {
-		b := make([]byte, 512)
-		for {
-			n, err := c.Read(b)
-			if err != nil {
-				if err != io.EOF {
+			for _, c := range tcpc {
+				if _, err := c.Write(b[:n]); err != nil {
 					fmt.Printf("%v\n", err)
-				}
-				c.Close()
-				break
-			}
-			if n == 0 {
-				continue
-			}
-			out := []byte{}
-			for _, v := range b[:n] {
-				out = append(out, v)
-				if v == '\n' {
-					out = append(out, '\r')
+					break
 				}
 			}
-			fmt.Printf("%s", string(out))
+
 		}
 	}()
 
+	xchan := make(chan int)
+	outchan := make(chan string)
+	for i, c := range tcpc {
+		go func(i int, c *net.TCPConn) {
+
+			b := make([]byte, 256)
+			var out []byte
+			for {
+				n, err := c.Read(b)
+				if err != nil {
+					if err != io.EOF {
+						fmt.Printf("%v\n", err)
+					}
+					c.Close()
+					xchan <- 1
+					break
+				}
+				if n == 0 {
+					continue
+				}
+				for _, v := range b[:n] {
+					out = append(out, v)
+					if v == '\n' {
+						outchan <- fmt.Sprintf("[%d]:%s\r", i, out)
+						out = nil
+					}
+				}
+			}
+		}(i, c)
+	}
+	go func() {
+		for {
+			line := <-outchan
+			fmt.Printf("%s", line)
+		}
+	}()
+
+	for _ = range tcpc {
+		<-xchan
+	}
 }
