@@ -15,7 +15,8 @@
 	"diff/diff.json",
 	"disk/disk.json",
 	"dossrv/dossrv.json",
-	"fossil/fossil.json"
+	"fossil/fossil.json",
+	"ip/ip.json"
 	],
 	"Include": ["cmd.json"],
 	"SourceFilesCmd": [

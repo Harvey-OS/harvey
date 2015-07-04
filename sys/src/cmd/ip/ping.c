@@ -21,8 +21,10 @@ enum {
 	SLEEPMS		= 1000,
 
 	SECOND		= 1000000000LL,
-	MINUTE		= 60*SECOND,
 };
+
+// dumb gcc enum.
+#define MINUTE (60LL*SECOND)
 
 typedef struct Req Req;
 struct Req
