@@ -1,13 +1,13 @@
 {
-    "Name": "mkflashfs",
-    "Program": "mkflashfs",
-    "Include": ["../../cmd.json"],
-    "Pre": [
+	"Include": [
+		"../../cmd.json"
 	],
-    "SourceFiles": [
-    "mkfs.c",
-    "devfs.c",
-    "utils.c"
-	],
-    "Install": "/$ARCH/bin/aux"
+	"Install": "/$ARCH/bin/aux",
+	"Name": "mkflashfs",
+	"Program": "mkflashfs",
+	"SourceFiles": [
+		"mkfs.c",
+		"devfs.c",
+		"utils.c"
+	]
 }

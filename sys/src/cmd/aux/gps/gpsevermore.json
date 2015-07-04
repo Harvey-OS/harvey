@@ -1,12 +1,12 @@
 {
-    "Name": "gpsevermore",
-    "Include": ["../../cmd.json"],
-    "Program": "gpsevermore",
-    "Pre": [
+	"Include": [
+		"../../cmd.json"
 	],
-    "SourceFiles": [
-    "util.c",
-    "gpsevermore.c"
-	],
-    "Install": "/$ARCH/bin/aux"
+	"Install": "/$ARCH/bin/aux",
+	"Name": "gpsevermore",
+	"Program": "gpsevermore",
+	"SourceFiles": [
+		"util.c",
+		"gpsevermore.c"
+	]
 }

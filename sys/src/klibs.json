@@ -1,9 +1,8 @@
 {
-	"Name":"klibs",
-	"Include":[], 
+	"Name": "klibs",
 	"Projects": [
-	"/sys/src/libc/klibc.json",
-	"/sys/src/libip/klibip.json",
-	"/sys/src/libdraw/klibdraw.json"
+		"/sys/src/libc/klibc.json",
+		"/sys/src/libip/klibip.json",
+		"/sys/src/libdraw/klibdraw.json"
 	]
 }

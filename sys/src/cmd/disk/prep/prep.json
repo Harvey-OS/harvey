@@ -1,18 +1,20 @@
 {
-    "Name": "prep",
-    "Program": "prep",
-    "Include": ["../../cmd.json"],
-    "Pre": [
-    "yacc -d calc.y"
+	"Include": [
+		"../../cmd.json"
 	],
-    "Projects": [
-    "fdisk.json"
-    ],
-    "SourceFiles": [
-    "prep.c",
-    "edit.c"
-	],
+	"Name": "prep",
 	"Post": [
-    "mv prep $HARVEY/amd64/bin/"
+		"mv prep $HARVEY/amd64/bin/"
+	],
+	"Pre": [
+		"yacc -d calc.y"
+	],
+	"Program": "prep",
+	"Projects": [
+		"fdisk.json"
+	],
+	"SourceFiles": [
+		"prep.c",
+		"edit.c"
 	]
 }

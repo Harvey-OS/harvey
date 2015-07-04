@@ -1,17 +1,17 @@
 {
-    "Name": "9660srv",
-    "Program": "9660srv",
-    "Include": ["../cmd.json"],
-    "Pre": [
+	"Include": [
+		"../cmd.json"
 	],
-    "SourceFiles": [
-	"9660srv.c",
-	"data.c",
-	"iobuf.c",
-	"main.c",
-	"xfile.c"
-	],
+	"Name": "9660srv",
 	"Post": [
-	"mv 9660srv $HARVEY/amd64/bin/"
+		"mv 9660srv $HARVEY/amd64/bin/"
+	],
+	"Program": "9660srv",
+	"SourceFiles": [
+		"9660srv.c",
+		"data.c",
+		"iobuf.c",
+		"main.c",
+		"xfile.c"
 	]
 }

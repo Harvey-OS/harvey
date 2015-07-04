@@ -1,20 +1,20 @@
 {
-    "Name": "dossrv",
-    "Program": "dossrv",
-    "Include": ["../cmd.json"],
-    "Pre": [
+	"Include": [
+		"../cmd.json"
 	],
-    "SourceFiles": [
-	"xfssrv.c",
-	"xfile.c",
-	"dosfs.c",
-	"dossubs.c",
-	"iotrack.c",
-	"lock.c",
-	"chat.c",
-	"devio.c"
-	],
+	"Name": "dossrv",
 	"Post": [
-	"mv dossrv $HARVEY/amd64/bin/"
+		"mv dossrv $HARVEY/amd64/bin/"
+	],
+	"Program": "dossrv",
+	"SourceFiles": [
+		"xfssrv.c",
+		"xfile.c",
+		"dosfs.c",
+		"dossubs.c",
+		"iotrack.c",
+		"lock.c",
+		"chat.c",
+		"devio.c"
 	]
 }

@@ -1,21 +1,21 @@
 {
-	"Name": "Libip",
+	"Include": [
+		"../lib.json"
+	],
+	"Install": "/$ARCH/lib/",
 	"Library": "libip.a",
-	"Include": ["../lib.json"],
-	"Pre": [
-	],
-    "SourceFiles": [
-	"eipfmt.c",
-	"equivip.c",
-	"parseip.c",
-	"parseether.c",
-	"myetheraddr.c",
-	"myipaddr.c",
-	"classmask.c",
-	"bo.c",
-	"readipifc.c",
-	"ipaux.c",
-	"ptclbsum.c"
-	],
-	"Install": "/$ARCH/lib/"
+	"Name": "Libip",
+	"SourceFiles": [
+		"eipfmt.c",
+		"equivip.c",
+		"parseip.c",
+		"parseether.c",
+		"myetheraddr.c",
+		"myipaddr.c",
+		"classmask.c",
+		"bo.c",
+		"readipifc.c",
+		"ipaux.c",
+		"ptclbsum.c"
+	]
 }

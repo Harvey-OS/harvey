@@ -1,12 +1,12 @@
 {
-    "Name": "aescbc",
-    "Program": "aescbc",
-    "Include": ["../../cmd.json"],
-    "Pre": [
+	"Include": [
+		"../../cmd.json"
 	],
-    "SourceFiles": [
-    "aescbc.c",
-    "util.c"
-	],
-	"Install": "/$ARCH/bin/auth"
+	"Install": "/$ARCH/bin/auth",
+	"Name": "aescbc",
+	"Program": "aescbc",
+	"SourceFiles": [
+		"aescbc.c",
+		"util.c"
+	]
 }

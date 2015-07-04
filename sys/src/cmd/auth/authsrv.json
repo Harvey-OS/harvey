@@ -1,13 +1,15 @@
 {
-    "Name": "authsrv",
-    "Program": "authsrv",
-    "Include": ["../cmd.json"],
-    "SourceFiles": [
-    "authsrv.c",
-    "secureidcheck.c"
+	"Include": [
+		"../cmd.json"
 	],
-    "Oflags": [
-    "lib/libauthcmd.a"
-    ],
-	"Install": "/$ARCH/bin/auth/"
+	"Install": "/$ARCH/bin/auth/",
+	"Name": "authsrv",
+	"Oflags": [
+		"lib/libauthcmd.a"
+	],
+	"Program": "authsrv",
+	"SourceFiles": [
+		"authsrv.c",
+		"secureidcheck.c"
+	]
 }

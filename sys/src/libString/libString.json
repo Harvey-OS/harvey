@@ -1,27 +1,27 @@
 {
-	"Name": "libString",
+	"Include": [
+		"../lib.json"
+	],
+	"Install": "/$ARCH/lib/",
 	"Library": "libString.a",
-	"Include": ["../lib.json"],
-	"Pre": [
-	],
-    "SourceFiles": [
-	"s_alloc.c",
-	"s_append.c",
-	"s_array.c",
-	"s_copy.c",
-	"s_getline.c",
-	"s_grow.c",
-	"s_memappend.c",
-	"s_nappend.c",
-	"s_parse.c",
-	"s_putc.c",
-	"s_rdinstack.c",
-	"s_read.c",
-	"s_read_line.c",
-	"s_reset.c",
-	"s_terminate.c",
-	"s_tolower.c",
-	"s_unique.c"
-	],
-	"Install": "/$ARCH/lib/"
+	"Name": "libString",
+	"SourceFiles": [
+		"s_alloc.c",
+		"s_append.c",
+		"s_array.c",
+		"s_copy.c",
+		"s_getline.c",
+		"s_grow.c",
+		"s_memappend.c",
+		"s_nappend.c",
+		"s_parse.c",
+		"s_putc.c",
+		"s_rdinstack.c",
+		"s_read.c",
+		"s_read_line.c",
+		"s_reset.c",
+		"s_terminate.c",
+		"s_tolower.c",
+		"s_unique.c"
+	]
 }

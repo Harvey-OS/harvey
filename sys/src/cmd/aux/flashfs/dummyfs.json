@@ -1,16 +1,16 @@
 {
-    "Name": "dummyfs",
-    "Program": "dummyfs",
-    "Include": ["../../cmd.json"],
-    "Pre": [
+	"Include": [
+		"../../cmd.json"
 	],
-    "SourceFiles": [
-    "dummy.c",
-    "dreq.c",
-    "entry.c",
-    "errors.c",
-    "devfs.c",
-    "utils.c"
-	],
-    "Install": "/$ARCH/bin/aux"
+	"Install": "/$ARCH/bin/aux",
+	"Name": "dummyfs",
+	"Program": "dummyfs",
+	"SourceFiles": [
+		"dummy.c",
+		"dreq.c",
+		"entry.c",
+		"errors.c",
+		"devfs.c",
+		"utils.c"
+	]
 }

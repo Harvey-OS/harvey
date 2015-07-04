@@ -1,13 +1,13 @@
 {
-	"Name": "libdisk",
+	"Include": [
+		"../lib.json"
+	],
+	"Install": "/$ARCH/lib/",
 	"Library": "libdisk.a",
-	"Include": ["../lib.json"],
-	"Pre": [
-	],
-    "SourceFiles": [
-	"disk.c",
-	"proto.c",
-	"scsi.c"
-	],
-	"Install": "/$ARCH/lib/"
+	"Name": "libdisk",
+	"SourceFiles": [
+		"disk.c",
+		"proto.c",
+		"scsi.c"
+	]
 }

@@ -1,15 +1,15 @@
 {
-    "Name": "rsa2x509",
-    "Program": "rsa2x509",
-    "Include": ["../cmd.json"],
-    "Pre": [
+	"Include": [
+		"../cmd.json"
 	],
-    "SourceFiles": [
-    "rsa2x509.c",
-    "rsa2any.c"
+	"Install": "/$ARCH/bin/auth/",
+	"Name": "rsa2x509",
+	"Oflags": [
+		"lib/libauthcmd.a"
 	],
-    "Oflags": [
-    "lib/libauthcmd.a"
-    ],
-	"Install": "/$ARCH/bin/auth/"
+	"Program": "rsa2x509",
+	"SourceFiles": [
+		"rsa2x509.c",
+		"rsa2any.c"
+	]
 }

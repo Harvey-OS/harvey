@@ -1,17 +1,19 @@
 {
-    "Name": "fdisk",
-    "Program": "fdisk",
-    "Include": ["../../cmd.json"],
-    "Pre": [
-    "yacc -d calc.y"
-    ],
-    "SourceFiles": [
-    "fdisk.c",
-    "edit.c",
-    "y.tab.c"
+	"Include": [
+		"../../cmd.json"
 	],
+	"Name": "fdisk",
 	"Post": [
-    "mv fdisk $HARVEY/amd64/bin/",
-    "rm y.tab*"
+		"mv fdisk $HARVEY/amd64/bin/",
+		"rm y.tab*"
+	],
+	"Pre": [
+		"yacc -d calc.y"
+	],
+	"Program": "fdisk",
+	"SourceFiles": [
+		"fdisk.c",
+		"edit.c",
+		"y.tab.c"
 	]
 }

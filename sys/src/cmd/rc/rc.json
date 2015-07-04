@@ -1,32 +1,34 @@
 {
-    "Name": "rc",
-    "Program": "rc",
-    "Include": ["../kernel.json"],
-    "Pre": [
-	"yacc -d syn.y",
-	"cp y.tab.h x.tab.h"
+	"Include": [
+		"../kernel.json"
 	],
-    "SourceFiles": [
-	"code.c",
-	"exec.c",
-	"getflags.c",
-	"glob.c",
-	"havefork.c",
-	"here.c",
-	"io.c",
-	"lex.c",
-	"pcmd.c",
-	"pfnc.c",
-	"plan9.c",
-	"simple.c",
-	"subr.c",
-	"trap.c",
-	"tree.c",
-	"var.c",
-	"y.tab.c"
+	"Name": "rc",
+	"Post": [
+		"mv rc $HARVEY/amd64/bin/",
+		"rm y.tab* x.tab*"
 	],
-	"Post":[
-	"mv rc $HARVEY/amd64/bin/",
-	"rm y.tab* x.tab*"
+	"Pre": [
+		"yacc -d syn.y",
+		"cp y.tab.h x.tab.h"
+	],
+	"Program": "rc",
+	"SourceFiles": [
+		"code.c",
+		"exec.c",
+		"getflags.c",
+		"glob.c",
+		"havefork.c",
+		"here.c",
+		"io.c",
+		"lex.c",
+		"pcmd.c",
+		"pfnc.c",
+		"plan9.c",
+		"simple.c",
+		"subr.c",
+		"trap.c",
+		"tree.c",
+		"var.c",
+		"y.tab.c"
 	]
 }

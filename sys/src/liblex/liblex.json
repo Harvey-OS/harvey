@@ -1,15 +1,15 @@
 {
-	"Name": "liblex",
+	"Include": [
+		"../lib.json"
+	],
+	"Install": "/$ARCH/lib/",
 	"Library": "liblex.a",
-	"Include": ["../lib.json"],
-	"Pre": [
-	],
-    "SourceFiles": [
-	"allprint.c",
-	"main.c",
-	"reject.c",
-	"yyless.c",
-	"yywrap.c"
-	],
-	"Install": "/$ARCH/lib/"
+	"Name": "liblex",
+	"SourceFiles": [
+		"allprint.c",
+		"main.c",
+		"reject.c",
+		"yyless.c",
+		"yywrap.c"
+	]
 }

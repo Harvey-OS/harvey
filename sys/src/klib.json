@@ -1,28 +1,26 @@
 {
-    "Name": "KernelLibs",
-    "Pre": [
-	"rm -f *.o *.tag.*"
-    ],
-    "Cflags": [
-	"-mcmodel=kernel",
-	"-O0",
-	"-fplan9-extensions",
-	"-ffreestanding",
-	"-fno-builtin",
-	"-Wall",
-	"-Wno-missing-braces",
-	"-Wno-parentheses",
-	"-Wno-unknown-pragmas",
-	"-Wuninitialized",
-	"-Wmaybe-uninitialized",
-	"-g"
-    ],
-    "Oflags": [
-	"-static"
-    ],
+	"Cflags": [
+		"-mcmodel=kernel",
+		"-O0",
+		"-fplan9-extensions",
+		"-ffreestanding",
+		"-fno-builtin",
+		"-Wall",
+		"-Wno-missing-braces",
+		"-Wno-parentheses",
+		"-Wno-unknown-pragmas",
+		"-Wuninitialized",
+		"-Wmaybe-uninitialized",
+		"-g"
+	],
+	"Name": "KernelLibs",
+	"Oflags": [
+		"-static"
+	],
 	"Post": [
-	"rm *.o"
-    ],
-    "Libs": [
-    ]
+		"rm *.o"
+	],
+	"Pre": [
+		"rm -f *.o *.tag.*"
+	]
 }

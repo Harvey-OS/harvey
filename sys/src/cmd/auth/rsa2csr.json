@@ -1,15 +1,15 @@
 {
-    "Name": "rsa2csr",
-    "Program": "rsa2csr",
-    "Include": ["../cmd.json"],
-    "Pre": [
+	"Include": [
+		"../cmd.json"
 	],
-    "SourceFiles": [
-    "rsa2csr.c",
-    "rsa2any.c"
+	"Install": "/$ARCH/bin/auth/",
+	"Name": "rsa2csr",
+	"Oflags": [
+		"lib/libauthcmd.a"
 	],
-    "Oflags": [
-    "lib/libauthcmd.a"
-    ],
-	"Install": "/$ARCH/bin/auth/"
+	"Program": "rsa2csr",
+	"SourceFiles": [
+		"rsa2csr.c",
+		"rsa2any.c"
+	]
 }

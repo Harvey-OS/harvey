@@ -1,25 +1,27 @@
 {
-	"Name": "libauthcmd",
-	"Library": "libauthcmd.a",
-	"Include": ["../../../lib.json"],
-    "SourceFiles": [
-	"keyfmt.c",
-	"netcheck.c",
-	"okpasswd.c",
-	"readwrite.c",
-	"readarg.c",
-	"readln.c",
-	"getauthkey.c",
-	"log.c",
-	"error.c",
-	"fs.c",
-	"rdbio.c",
-	"querybio.c",
-	"wrbio.c",
-	"getexpiration.c"
-	],
 	"Cflags": [
-    "-I../"
-    ],
-    "Install": "/sys/src/cmd/auth/lib/"
+		"-I../"
+	],
+	"Include": [
+		"../../../lib.json"
+	],
+	"Install": "/sys/src/cmd/auth/lib/",
+	"Library": "libauthcmd.a",
+	"Name": "libauthcmd",
+	"SourceFiles": [
+		"keyfmt.c",
+		"netcheck.c",
+		"okpasswd.c",
+		"readwrite.c",
+		"readarg.c",
+		"readln.c",
+		"getauthkey.c",
+		"log.c",
+		"error.c",
+		"fs.c",
+		"rdbio.c",
+		"querybio.c",
+		"wrbio.c",
+		"getexpiration.c"
+	]
 }

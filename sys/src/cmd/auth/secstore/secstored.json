@@ -1,17 +1,17 @@
 {
-    "Name": "secstored",
-    "Program": "secstored",
-    "Include": ["../../cmd.json"],
-    "Pre": [
+	"Include": [
+		"../../cmd.json"
 	],
-    "SourceFiles": [
-    "dirls.c",
-    "pak.c",
-    "password.c",
-    "SConn.c",
-    "secstored.c",
-    "../secureidcheck.c",
-    "util.c"
-	],
-	"Install": "/$ARCH/bin/auth/"
+	"Install": "/$ARCH/bin/auth/",
+	"Name": "secstored",
+	"Program": "secstored",
+	"SourceFiles": [
+		"dirls.c",
+		"pak.c",
+		"password.c",
+		"SConn.c",
+		"secstored.c",
+		"../secureidcheck.c",
+		"util.c"
+	]
 }

@@ -1,22 +1,22 @@
 {
-	"Name": "libmemlayer",
+	"Include": [
+		"../lib.json"
+	],
+	"Install": "/$ARCH/lib/",
 	"Library": "libmemlayer.a",
-	"Include": ["../lib.json"],
-	"Pre": [
-	],
-    "SourceFiles": [
-	"draw.c",
-	"lalloc.c",
-	"layerop.c",
-	"ldelete.c",
-	"lhide.c",
-	"line.c",
-	"load.c",
-	"lorigin.c",
-	"lsetrefresh.c",
-	"ltofront.c",
-	"ltorear.c",
-	"unload.c"
-	],
-	"Install": "/$ARCH/lib/"
+	"Name": "libmemlayer",
+	"SourceFiles": [
+		"draw.c",
+		"lalloc.c",
+		"layerop.c",
+		"ldelete.c",
+		"lhide.c",
+		"line.c",
+		"load.c",
+		"lorigin.c",
+		"lsetrefresh.c",
+		"ltofront.c",
+		"ltorear.c",
+		"unload.c"
+	]
 }

@@ -1,13 +1,13 @@
 {
-    "Name": "dhcpclient",
-    "Program": "dhcpclient",
-    "Include": ["../kernel.json"],
-    "Pre": [
+	"Include": [
+		"../kernel.json"
 	],
-    "SourceFiles": [
-	"dhcpclient.c"
-	],
+	"Name": "dhcpclient",
 	"Post": [
-	"mv dhcpclient $HARVEY/amd64/bin/ip/"
+		"mv dhcpclient $HARVEY/amd64/bin/ip/"
+	],
+	"Program": "dhcpclient",
+	"SourceFiles": [
+		"dhcpclient.c"
 	]
 }

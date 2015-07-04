@@ -1,29 +1,27 @@
 {
-    "Name": "Libs",
-    "Pre": [
-    "mkdir -p $HARVEY/amd64/bin",
-	"mkdir -p $HARVEY/amd64/lib",
-	"rm -f *.o *.tag.*"
-    ],
-    "Cflags": [
-	"-O0",
-	"-fplan9-extensions",
-	"-ffreestanding",
-	"-fno-builtin",
-	"-Wall",
-	"-Wno-missing-braces",
-	"-Wno-parentheses",
-	"-Wno-unknown-pragmas",
-	"-Wuninitialized",
-	"-Wmaybe-uninitialized",
-	"-g"
-    ],
-    "Oflags": [
-	"-static"
-    ],
+	"Cflags": [
+		"-O0",
+		"-fplan9-extensions",
+		"-ffreestanding",
+		"-fno-builtin",
+		"-Wall",
+		"-Wno-missing-braces",
+		"-Wno-parentheses",
+		"-Wno-unknown-pragmas",
+		"-Wuninitialized",
+		"-Wmaybe-uninitialized",
+		"-g"
+	],
+	"Name": "Libs",
+	"Oflags": [
+		"-static"
+	],
 	"Post": [
-	"rm *.o"
-    ],
-    "Libs": [
-    ]
+		"rm *.o"
+	],
+	"Pre": [
+		"mkdir -p $HARVEY/amd64/bin",
+		"mkdir -p $HARVEY/amd64/lib",
+		"rm -f *.o *.tag.*"
+	]
 }

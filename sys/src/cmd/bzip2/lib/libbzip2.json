@@ -1,28 +1,28 @@
 {
-	"Name": "libbzip2",
-	"Library": "libbzip2.a",
-	"Include": ["../../../lib.json"],
-	"Pre": [
-	],
-    "SourceFiles": [
-	"blocksort.c",
-	"bzassert.c",
-	"bzcompress.c",
-	"bzdecompress.c",
-	"bzfeof.c",
-	"bzlib.c",
-	"bzread.c",
-	"bzversion.c",
-	"bzwrite.c",
-	"bzzlib.c",
-	"compress.c",
-	"crctable.c",
-	"decompress.c",
-	"huffman.c",
-	"randtable.c"
-	],
 	"Cflags": [
-    "-DPLAN9"
-    ],
-	"Install": "/sys/src/cmd/bzip2/lib/"
+		"-DPLAN9"
+	],
+	"Include": [
+		"../../../lib.json"
+	],
+	"Install": "/sys/src/cmd/bzip2/lib/",
+	"Library": "libbzip2.a",
+	"Name": "libbzip2",
+	"SourceFiles": [
+		"blocksort.c",
+		"bzassert.c",
+		"bzcompress.c",
+		"bzdecompress.c",
+		"bzfeof.c",
+		"bzlib.c",
+		"bzread.c",
+		"bzversion.c",
+		"bzwrite.c",
+		"bzzlib.c",
+		"compress.c",
+		"crctable.c",
+		"decompress.c",
+		"huffman.c",
+		"randtable.c"
+	]
 }

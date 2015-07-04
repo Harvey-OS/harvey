@@ -1,15 +1,15 @@
 {
-    "Name": "secuser",
-    "Program": "secuser",
-    "Include": ["../../cmd.json"],
-    "Pre": [
+	"Include": [
+		"../../cmd.json"
 	],
-    "SourceFiles": [
-    "pak.c",
-    "password.c",
-    "SConn.c",
-    "secuser.c",
-    "util.c"
-	],
-	"Install": "/$ARCH/bin/auth/"
+	"Install": "/$ARCH/bin/auth/",
+	"Name": "secuser",
+	"Program": "secuser",
+	"SourceFiles": [
+		"pak.c",
+		"password.c",
+		"SConn.c",
+		"secuser.c",
+		"util.c"
+	]
 }

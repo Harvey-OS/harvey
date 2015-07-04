@@ -1,15 +1,15 @@
 {
-    "Name": "rsa2pub",
-    "Program": "rsa2pub",
-    "Include": ["../cmd.json"],
-    "Pre": [
+	"Include": [
+		"../cmd.json"
 	],
-    "SourceFiles": [
-    "rsa2pub.c",
-    "rsa2any.c"
+	"Install": "/$ARCH/bin/auth/",
+	"Name": "rsa2pub",
+	"Oflags": [
+		"lib/libauthcmd.a"
 	],
-    "Oflags": [
-    "lib/libauthcmd.a"
-    ],
-	"Install": "/$ARCH/bin/auth/"
+	"Program": "rsa2pub",
+	"SourceFiles": [
+		"rsa2pub.c",
+		"rsa2any.c"
+	]
 }

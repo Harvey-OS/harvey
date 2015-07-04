@@ -1,16 +1,16 @@
 {
-    "Name": "ipconfig",
-    "Program": "ipconfig",
-    "Include": ["../../kernel.json"],
-    "Pre": [
+	"Include": [
+		"../../kernel.json"
 	],
-    "SourceFiles": [
-	"ipv6.c",
-	"main.c",
-	"ppp.c"
-	],
+	"Name": "ipconfig",
 	"Post": [
-	"[ -d $HARVEY/amd64/bin/ip ] || mkdir $HARVEY/amd64/bin/ip",
-	"mv ipconfig $HARVEY/amd64/bin/ip/ipconfig"
+		"[ -d $HARVEY/amd64/bin/ip ] || mkdir $HARVEY/amd64/bin/ip",
+		"mv ipconfig $HARVEY/amd64/bin/ip/ipconfig"
+	],
+	"Program": "ipconfig",
+	"SourceFiles": [
+		"ipv6.c",
+		"main.c",
+		"ppp.c"
 	]
 }

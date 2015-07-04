@@ -1,13 +1,17 @@
 {
-    "Name": "Regress",
-    "Pre": ["mkdir -p $HARVEY/amd64/bin/regress"],
-    "Include": ["/sys/src/cmd/cmd.json"],
-    "SourceFilesCmd": [
-	"iphash.c",
-	"privates.c",
-	"fork.c",
-	"thread.c",
-	"longjmp.c"
-    ],
-    "Install": "/$ARCH/bin/regress"
+	"Include": [
+		"/sys/src/cmd/cmd.json"
+	],
+	"Install": "/$ARCH/bin/regress",
+	"Name": "Regress",
+	"Pre": [
+		"mkdir -p $HARVEY/amd64/bin/regress"
+	],
+	"SourceFilesCmd": [
+		"iphash.c",
+		"privates.c",
+		"fork.c",
+		"thread.c",
+		"longjmp.c"
+	]
 }

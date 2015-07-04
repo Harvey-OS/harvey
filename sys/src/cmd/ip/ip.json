@@ -1,9 +1,11 @@
 {
-	"Name": "ipcmds",
-	"Include": ["/sys/src/cmd/cmd.json"],
-	"SourceFilesCmd": [
-	"ping.c",
-	"dhcpclient.c"
+	"Include": [
+		"/sys/src/cmd/cmd.json"
 	],
-	"Install": "/$ARCH/bin/ip"
+	"Install": "/$ARCH/bin/ip",
+	"Name": "ipcmds",
+	"SourceFilesCmd": [
+		"ping.c",
+		"dhcpclient.c"
+	]
 }

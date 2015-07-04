@@ -1,40 +1,37 @@
 {
-    "Name": "Libboot",
+	"Cflags": [
+		"-g",
+		"-Wall",
+		"-Wno-missing-braces",
+		"-Wno-parentheses",
+		"-Wno-unknown-pragmas",
+		"-Wuninitialized",
+		"-Wmaybe-uninitialized",
+		"-O0",
+		"-static",
+		"-fplan9-extensions",
+		"-ffreestanding",
+		"-fno-builtin",
+		"-mcmodel=small"
+	],
 	"Library": "libboot.a",
-    "SourceFiles": [
-	"aux.c",
-	"bootauth.c",
-	"boot.c",
-	"bootcache.c",
-	"bootip.c",
-	"embed.c",
-	"local.c",
-	"paq.c",
-	"sac.c",
-	"settime.c"
-    ],
-    "Cflags": [
-	"-g","-Wall",
-	"-Wno-missing-braces",
-	"-Wno-parentheses",
-	"-Wno-unknown-pragmas",
-	"-Wuninitialized",
-	"-Wmaybe-uninitialized",
-	"-O0",
-	"-static",
-	"-fplan9-extensions",
-	"-ffreestanding",
-	"-fno-builtin",
-	"-mcmodel=small"
-    ],
-    "Oflags": [
-	"-static"
-    ],
-    "Post": [
-	"ar rv libboot.a *.o"
-    ],
-    "Libs": [
-    ]
-
+	"Name": "Libboot",
+	"Oflags": [
+		"-static"
+	],
+	"Post": [
+		"ar rv libboot.a *.o"
+	],
+	"SourceFiles": [
+		"aux.c",
+		"bootauth.c",
+		"boot.c",
+		"bootcache.c",
+		"bootip.c",
+		"embed.c",
+		"local.c",
+		"paq.c",
+		"sac.c",
+		"settime.c"
+	]
 }
-	
