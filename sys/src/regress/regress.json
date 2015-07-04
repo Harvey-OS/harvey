@@ -5,8 +5,9 @@
     "SourceFilesCmd": [
 	"iphash.c",
 	"privates.c",
-	"fork.c"
-
+	"fork.c",
+	"thread.c",
+	"longjmp.c"
     ],
     "Install": "/$ARCH/bin/regress"
 }
