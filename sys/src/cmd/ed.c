@@ -1574,7 +1574,7 @@ mktemp(char *as)
 	int i;
 
 	pid = getpid();
-	s = as;
+	s = strdup(as);
 	while(*s++)
 		;
 	s--;
