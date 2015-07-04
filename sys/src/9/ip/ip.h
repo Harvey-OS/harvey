@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -8,10 +8,14 @@
  */
 
 typedef struct	Conv	Conv;
+typedef struct	Fragment4 Fragment4;
+typedef struct	Fragment6 Fragment6;
 typedef struct	Fs	Fs;
 typedef union	Hwaddr	Hwaddr;
 typedef struct	IP	IP;
 typedef struct	IPaux	IPaux;
+typedef struct	Ip4hdr	Ip4hdr;
+typedef struct	Ipfrag	Ipfrag;
 typedef struct	Ipself	Ipself;
 typedef struct	Ipselftab	Ipselftab;
 typedef struct	Iplink	Iplink;
@@ -43,9 +47,9 @@ enum
 	Addrlen=	64,
 	Maxproto=	20,
 	Nhash=		64,
-	Maxincall=	128,
+	Maxincall=	64,	/* max. conn.s in listen q not accepted yet */
 	Nchans=		1024,
-	MAClen=		16,		/* longest mac address */
+	MAClen=		16,		/* int32_test mac address */
 
 	MAXTTL=		255,
 	DFLTTOS=	0,
@@ -60,6 +64,11 @@ enum
 	V6=		6,
 	IP_VER4= 	0x40,
 	IP_VER6=	0x60,
+	IP_HLEN4=	5,		/* v4: Header length in words */
+	IP_DF=		0x4000,		/* v4: Don't fragment */
+	IP_MF=		0x2000,		/* v4: More fragments */
+	IP4HDR=		20,		/* sizeof(Ip4hdr) */
+	IP_MAX=		64*1024,	/* Max. Internet packet size, v4 & v6 */
 
 	/* 2^Lroot trees in the root table */
 	Lroot=		10,
@@ -74,6 +83,95 @@ enum
 	Announced=	2,
 	Connecting=	3,
 	Connected=	4,
+};
+
+/* MIB II counters */
+enum
+{
+	Forwarding,
+	DefaultTTL,
+	InReceives,
+	InHdrErrors,
+	InAddrErrors,
+	ForwDatagrams,
+	InUnknownProtos,
+	InDiscards,
+	InDelivers,
+	OutRequests,
+	OutDiscards,
+	OutNoRoutes,
+	ReasmTimeout,
+	ReasmReqds,
+	ReasmOKs,
+	ReasmFails,
+	FragOKs,
+	FragFails,
+	FragCreates,
+
+	Nipstats,
+};
+
+struct Fragment4
+{
+	Block*	blist;
+	Fragment4*	next;
+	uint32_t 	src;
+	uint32_t 	dst;
+	uint16_t	id;
+	uint32_t 	age;
+};
+
+struct Fragment6
+{
+	Block*	blist;
+	Fragment6*	next;
+	uint8_t 	src[IPaddrlen];
+	uint8_t 	dst[IPaddrlen];
+	uint	id;
+	uint32_t 	age;
+};
+
+struct Ipfrag
+{
+	uint16_t	foff;
+	uint16_t	flen;
+
+	uint8_t	payload[];
+};
+
+#define IPFRAGSZ offsetof(Ipfrag, payload[0])
+
+/* an instance of IP */
+struct IP
+{
+	uint64_t		stats[Nipstats];
+
+	QLock		fraglock4;
+	Fragment4*	flisthead4;
+	Fragment4*	fragfree4;
+	Ref		id4;
+
+	QLock		fraglock6;
+	Fragment6*	flisthead6;
+	Fragment6*	fragfree6;
+	Ref		id6;
+
+	int		iprouting;	/* true if we route like a gateway */
+};
+
+/* on the wire packet header */
+struct Ip4hdr
+{
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* ip->identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	ttl;      	/* Time to live */
+	uint8_t	proto;		/* Protocol */
+	uint8_t	cksum[2];	/* Header checksum */
+	uint8_t	src[4];		/* IP source */
+	uint8_t	dst[4];		/* IP destination */
 };
 
 /*
@@ -102,6 +200,8 @@ struct Conv
 	int	inuse;			/* opens of listen/data/ctl */
 	int	length;
 	int	state;
+
+	int	maxfragsize;		/* If set, used for fragmentation */
 
 	/* udp specific */
 	int	headers;		/* data src/dst headers in udp */
@@ -137,7 +237,7 @@ struct Medium
 	int	hsize;		/* medium header size */
 	int	mintu;		/* default min mtu */
 	int	maxtu;		/* default max mtu */
-	int	maclen;		/* mac address length */
+	int	maclen;		/* mac address length  */
 	void	(*bind)(Ipifc*, int, char**);
 	void	(*unbind)(Ipifc*);
 	void	(*bwrite)(Ipifc *ifc, Block *b, int version, uint8_t *ip);
@@ -150,8 +250,7 @@ struct Medium
 	void	(*pktin)(Fs *f, Ipifc *ifc, Block *bp);
 
 	/* routes for router boards */
-	void	(*addroute)(Ipifc *ifc, int, uint8_t*, uint8_t*,
-				uint8_t*, int);
+	void	(*addroute)(Ipifc *ifc, int, uint8_t*, uint8_t*, uint8_t*, int);
 	void	(*remroute)(Ipifc *ifc, int, uint8_t*, uint8_t*);
 	void	(*flushroutes)(Ipifc *ifc);
 
@@ -286,8 +385,7 @@ struct Ipht
 };
 void iphtadd(Ipht*, Conv*);
 void iphtrem(Ipht*, Conv*);
-Conv* iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da,
-	       uint16_t dp);
+Conv* iphtlook(Ipht *ht, uint8_t *sa, uint16_t sp, uint8_t *da, uint16_t dp);
 
 /*
  *  one per multiplexed protocol
@@ -320,7 +418,6 @@ struct Proto
 	int		nc;		/* number of conversations */
 	int		ac;
 	Qid		qid;		/* qid for protocol directory */
-	uint16_t		nextport;
 	uint16_t		nextrport;
 
 	void		*priv;
@@ -354,7 +451,7 @@ struct Fs
 
 	char	ndb[1024];		/* an ndb entry for this interface */
 	int	ndbvers;
-	long	ndbmtime;
+	int32_t	ndbmtime;
 };
 
 /* one per default router known to host */
@@ -378,8 +475,7 @@ struct v6params
 
 
 int	Fsconnected(Conv*, char*);
-Conv*	Fsnewcall(Conv*, uint8_t*, uint16_t, uint8_t*, uint16_t,
-		       uint8_t);
+Conv*	Fsnewcall(Conv*, uint8_t*, uint16_t, uint8_t*, uint16_t, uint8_t);
 int	Fspcolstats(char*, int);
 int	Fsproto(Fs*, Proto*);
 int	Fsbuiltinproto(Fs*, uint8_t);
@@ -399,11 +495,9 @@ enum
 	Logip=		1<<1,
 	Logtcp=		1<<2,
 	Logfs=		1<<3,
-	Logil=		1<<4,
 	Logicmp=	1<<5,
 	Logudp=		1<<6,
 	Logcompress=	1<<7,
-	Logilmsg=	1<<8,
 	Loggre=		1<<9,
 	Logppp=		1<<10,
 	Logtcprxmt=	1<<11,
@@ -427,6 +521,8 @@ int32_t	ifclogread(Fs*, Chan *,void*, uint32_t, int32_t);
 void	ifclog(Fs*, uint8_t *, int);
 void	ifclogopen(Fs*, Chan*);
 void	ifclogclose(Fs*, Chan*);
+
+#pragma varargck argpos netlog	3
 
 /*
  *  iproute.c
@@ -495,10 +591,8 @@ struct Route
 		V4route v4;
 	};
 };
-extern void	v4addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask,
-			      uint8_t *gate, int type);
-extern void	v6addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask,
-			      uint8_t *gate, int type);
+extern void	v4addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask, uint8_t *gate, int type);
+extern void	v6addroute(Fs *f, char *tag, uint8_t *a, uint8_t *mask, uint8_t *gate, int type);
 extern void	v4delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock);
 extern void	v6delroute(Fs *f, uint8_t *a, uint8_t *mask, int dolock);
 extern Route*	v4lookup(Fs *f, uint8_t *a, Conv *c);
@@ -507,8 +601,7 @@ extern int32_t	routeread(Fs *f, char*, uint32_t, int);
 extern int32_t	routewrite(Fs *f, Chan*, char*, int);
 extern void	routetype(int, char*);
 extern void	ipwalkroutes(Fs*, Routewalk*);
-extern void	convroute(Route*, uint8_t*, uint8_t*, uint8_t*, char*,
-			     int*);
+extern void	convroute(Route*, uint8_t*, uint8_t*, uint8_t*, char*, int*);
 
 /*
  *  devip.c
@@ -550,12 +643,10 @@ struct Arpent
 extern void	arpinit(Fs*);
 extern int	arpread(Arp*, char*, uint32_t, int);
 extern int	arpwrite(Fs*, char*, int);
-extern Arpent*	arpget(Arp*, Block *bp, int version, Ipifc *ifc,
-			     uint8_t *ip, uint8_t *h);
+extern Arpent*	arpget(Arp*, Block *bp, int version, Ipifc *ifc, uint8_t *ip, uint8_t *h);
 extern void	arprelease(Arp*, Arpent *a);
 extern Block*	arpresolve(Arp*, Arpent *a, Medium *type, uint8_t *mac);
-extern void	arpenter(Fs*, int version, uint8_t *ip, uint8_t *mac,
-			    int len, int norefresh);
+extern void	arpenter(Fs*, int version, uint8_t *ip, uint8_t *mac, int len, int norefresh);
 
 /*
  * ipaux.c
@@ -614,8 +705,7 @@ extern int	ipisbooting(void);
 extern int	ipifccheckin(Ipifc *ifc, Medium *med);
 extern void	ipifccheckout(Ipifc *ifc);
 extern int	ipifcgrab(Ipifc *ifc);
-extern void	ipifcaddroute(Fs*, int, uint8_t*, uint8_t*, uint8_t*,
-				 int);
+extern void	ipifcaddroute(Fs*, int, uint8_t*, uint8_t*, uint8_t*, int);
 extern void	ipifcremroute(Fs*, int, uint8_t*, uint8_t*);
 extern void	ipifcremmulti(Conv *c, uint8_t *ma, uint8_t *ia);
 extern void	ipifcaddmulti(Conv *c, uint8_t *ma, uint8_t *ia);
@@ -639,16 +729,16 @@ extern int	ipstats(Fs*, char*, int);
 extern uint16_t	ptclbsum(uint8_t*, int);
 extern uint16_t	ptclcsum(Block*, int, int);
 extern void	ip_init(Fs*);
+extern void	update_mtucache(uint8_t*, uint32_t);
+extern uint32_t	restrict_mtu(uint8_t*, uint32_t);
 /*
  * bootp.c
  */
-extern char*	bootp(Ipifc*);
 extern int	bootpread(char*, uint32_t, int);
 
 /*
  *  resolving inferno/plan9 differences
  */
-Chan*		commonfdtochan(int, int, int, int);
 char*		commonuser(void);
 char*		commonerror(void);
 

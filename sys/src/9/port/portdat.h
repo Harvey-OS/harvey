@@ -195,6 +195,7 @@ enum
 
 struct Block
 {
+	int32_t	ref;
 	Block*	next;
 	Block*	list;
 	unsigned char*	rp;			/* first unconsumed byte */
@@ -204,6 +205,7 @@ struct Block
 	void	(*free)(Block*);
 	uint16_t	flag;
 	uint16_t	checksum;		/* IP checksum of complete packet (minus media header) */
+	uint32_t	magic;
 };
 #define BLEN(s)	((s)->wp - (s)->rp)
 #define BALLOC(s) ((s)->lim - (s)->base)

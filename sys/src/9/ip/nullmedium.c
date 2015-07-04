@@ -17,18 +17,18 @@
 #include "ip.h"
 
 static void
-nullbind(Ipifc* i, int n, char** c)
+nullbind(Ipifc *ipifc, int i, char **argv)
 {
 	error("cannot bind null device");
 }
 
 static void
-nullunbind(Ipifc* i)
+nullunbind(Ipifc *ipifc)
 {
 }
 
 static void
-nullbwrite(Ipifc* i, Block* b, int n, uint8_t* m)
+nullbwrite(Ipifc *ipifc, Block *block, int i, uint8_t *c)
 {
 	error("nullbwrite");
 }

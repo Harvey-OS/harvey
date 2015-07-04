@@ -18,8 +18,7 @@
 
 static void	netdevbind(Ipifc *ifc, int argc, char **argv);
 static void	netdevunbind(Ipifc *ifc);
-static void	netdevbwrite(Ipifc *ifc, Block *bp, int version,
-				uint8_t *ip);
+static void	netdevbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip);
 static void	netdevread(void *a);
 
 typedef struct	Netdevrock Netdevrock;
@@ -77,7 +76,7 @@ netdevunbind(Ipifc *ifc)
 	Netdevrock *er = ifc->arg;
 
 	if(er->readp != nil)
-		postnote(er->readp, 1, "unbind", NUser);
+		postnote(er->readp, 1, "unbind", 0);
 
 	/* wait for readers to die */
 	while(er->readp != nil)
@@ -93,7 +92,7 @@ netdevunbind(Ipifc *ifc)
  *  called by ipoput with a single block to write
  */
 static void
-netdevbwrite(Ipifc *ifc, Block *bp, int i, uint8_t* n)
+netdevbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
 {
 	Netdevrock *er = ifc->arg;
 

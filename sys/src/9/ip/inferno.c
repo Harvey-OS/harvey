@@ -13,7 +13,6 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
-#include	"ip.h"
 
 /*
  *  some hacks for commonality twixt inferno and plan9
@@ -26,12 +25,6 @@ commonuser(void)
 	return m->externup->user;
 }
 
-Chan*
-commonfdtochan(int fd, int mode, int a, int b)
-{
-	return fdtochan(fd, mode, a, b);
-}
-
 char*
 commonerror(void)
 {
@@ -39,14 +32,8 @@ commonerror(void)
 	return m->externup->errstr;
 }
 
-char*
-bootp(Ipifc* i)
-{
-	return "unimplmented";
-}
-
 int
-bootpread(char* c, uint32_t n, int i)
+bootpread(char *c, uint32_t u, int i)
 {
 	return	0;
 }

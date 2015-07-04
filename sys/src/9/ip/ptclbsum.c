@@ -15,7 +15,7 @@
 #include	"../port/error.h"
 #include	"ip.h"
 
-static	int16_t	endian	= 1;
+static	short	endian	= 1;
 static	uint8_t*	aendian	= (uint8_t*)&endian;
 #define	LITTLE	*aendian
 

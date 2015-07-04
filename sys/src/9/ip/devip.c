@@ -181,6 +181,7 @@ ip1gen(Chan *c, int i, Dir *dp)
 
 static int
 ipgen(Chan *c, char* j, Dirtab* dir, int mm, int s, Dir *dp)
+
 {
 	Mach *m = machp();
 	Qid q;
@@ -193,7 +194,7 @@ ipgen(Chan *c, char* j, Dirtab* dir, int mm, int s, Dir *dp)
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, Qtopdir), 0, QTDIR);
-			sprint(m->externup->genbuf, "#I%ud", c->devno);
+			snprint(m->externup->genbuf, sizeof m->externup->genbuf, "#I%lud", c->dev);
 			devdir(c, q, m->externup->genbuf, 0, network, 0555, dp);
 			return 1;
 		}
@@ -216,13 +217,13 @@ ipgen(Chan *c, char* j, Dirtab* dir, int mm, int s, Dir *dp)
 	case Qprotodir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, Qtopdir), 0, QTDIR);
-			sprint(m->externup->genbuf, "#I%ud", c->devno);
+			snprint(m->externup->genbuf, sizeof m->externup->genbuf, "#I%lud", c->dev);
 			devdir(c, q, m->externup->genbuf, 0, network, 0555, dp);
 			return 1;
 		}
 		if(s < f->p[PROTO(c->qid)]->ac) {
 			cv = f->p[PROTO(c->qid)]->conv[s];
-			sprint(m->externup->genbuf, "%d", s);
+			snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%d", s);
 			mkqid(&q, QID(PROTO(c->qid), s, Qconvdir), 0, QTDIR);
 			devdir(c, q, m->externup->genbuf, 0, cv->owner, 0555, dp);
 			return 1;
@@ -342,8 +343,9 @@ ipwalk(Chan* c, Chan *nc, char **name, int nname)
 	return w;
 }
 
-static int32_t
-ipstat(Chan* c, uint8_t* db, int32_t n)
+
+static int
+ipstat(Chan* c, uint8_t* db, int n)
 {
 	return devstat(c, db, n, nil, 0, ipgen);
 }
@@ -523,13 +525,13 @@ ipcreate(Chan* c, char* n, int i, int m)
 }
 
 static void
-ipremove(Chan* c)
+ipremove(Chan *c)
 {
 	error(Eperm);
 }
 
-static int32_t
-ipwstat(Chan *c, uint8_t *dp, int32_t n)
+static int
+ipwstat(Chan *c, uint8_t *dp, int n)
 {
 	Dir d;
 	Conv *cv;
@@ -631,13 +633,13 @@ ipread(Chan *ch, void *a, int32_t n, int64_t off)
 	Conv *c;
 	Proto *x;
 	char *buf, *p;
-	int32_t offset, rv;
+	int32_t rv;
 	Fs *f;
+	uint32_t offset = off;
 
 	f = ipfs[ch->devno];
 
 	p = a;
-	offset = off;
 	switch(TYPE(ch->qid)) {
 	default:
 		error(Eperm);
@@ -659,7 +661,7 @@ ipread(Chan *ch, void *a, int32_t n, int64_t off)
 		return netlogread(f, a, offset, n);
 	case Qctl:
 		buf = smalloc(16);
-		sprint(buf, "%lud", CONV(ch->qid));
+		snprint(buf, 16, "%lud", CONV(ch->qid));
 		rv = readstr(offset, p, n, buf);
 		free(buf);
 		return rv;
@@ -668,7 +670,7 @@ ipread(Chan *ch, void *a, int32_t n, int64_t off)
 		x = f->p[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
 		if(x->remote == nil) {
-			sprint(buf, "%I!%d\n", c->raddr, c->rport);
+			snprint(buf, Statelen, "%I!%d\n", c->raddr, c->rport);
 		} else {
 			(*x->remote)(c, buf, Statelen-2);
 		}
@@ -680,7 +682,7 @@ ipread(Chan *ch, void *a, int32_t n, int64_t off)
 		x = f->p[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
 		if(x->local == nil) {
-			sprint(buf, "%I!%d\n", c->laddr, c->lport);
+			snprint(buf, Statelen, "%I!%d\n", c->laddr, c->lport);
 		} else {
 			(*x->local)(c, buf, Statelen-2);
 		}
@@ -776,53 +778,70 @@ setluniqueport(Conv* c, int lport)
 	return nil;
 }
 
+/*
+ * is lport in use by anyone?
+ */
+static int
+lportinuse(Proto *p, uint16_t lport)
+{
+	int x;
+
+	for(x = 0; x < p->nc && p->conv[x]; x++)
+		if(p->conv[x]->lport == lport)
+			return 1;
+	return 0;
+}
 
 /*
  *  pick a local port and set it
  */
-void
+char *
 setlport(Conv* c)
 {
 	Proto *p;
-	uint16_t *pp;
-	int x, found;
+	int i, port;
 
 	p = c->p;
-	if(c->restricted)
-		pp = &p->nextrport;
-	else
-		pp = &p->nextport;
 	qlock(p);
-	for(;;(*pp)++){
+	if(c->restricted){
+		/* Restricted ports cycle between 600 and 1024. */
+		for(i=0; i<1024-600; i++){
+			if(p->nextrport >= 1024 || p->nextrport < 600)
+				p->nextrport = 600;
+			port = p->nextrport++;
+			if(!lportinuse(p, port))
+				goto chosen;
+		}
+	}else{
 		/*
-		 * Fsproto initialises p->nextport to 0 and the restricted
-		 * ports (p->nextrport) to 600.
-		 * Restricted ports must lie between 600 and 1024.
-		 * For the initial condition or if the unrestricted port number
-		 * has wrapped round, select a random port between 5000 and 1<<15
-		 * to start at.
+		 * Unrestricted ports are chosen randomly
+		 * between 2^15 and 2^16.  There are at most
+		 * 4*Nchan = 4096 ports in use at any given time,
+		 * so even in the worst case, a random probe has a
+		 * 1 - 4096/2^15 = 87% chance of success.
+		 * If 64 successive probes fail, there is a bug somewhere
+		 * (or a once in 10^58 event has happened, but that's
+		 * less likely than a venti collision).
 		 */
-		if(c->restricted){
-			if(*pp >= 1024)
-				*pp = 600;
+		for(i=0; i<64; i++){
+			port = (1<<15) + nrand(1<<15);
+			if(!lportinuse(p, port))
+				goto chosen;
 		}
-		else while(*pp < 5000)
-			*pp = nrand(1<<15);
-
-		found = 0;
-		for(x = 0; x < p->nc; x++){
-			if(p->conv[x] == nil)
-				break;
-			if(p->conv[x]->lport == *pp){
-				found = 1;
-				break;
-			}
-		}
-		if(!found)
-			break;
 	}
-	c->lport = (*pp)++;
 	qunlock(p);
+	/*
+	 * debugging: let's see if we ever get this.
+	 * if we do (and we're a cpu server), we might as well restart
+	 * since we're now unable to service new connections.
+	 */
+	panic("setlport: out of ports");
+	return "no ports available";
+
+chosen:
+	c->lport = port;
+	qunlock(p);
+	return nil;
 }
 
 /*
@@ -836,8 +855,6 @@ setladdrport(Conv* c, char* str, int announcing)
 	char *rv;
 	uint16_t lport;
 	uint8_t addr[IPaddrlen];
-
-	rv = nil;
 
 	/*
 	 *  ignore restricted part if it exists.  it's
@@ -861,7 +878,8 @@ setladdrport(Conv* c, char* str, int announcing)
 		if(strcmp(str, "*") == 0)
 			ipmove(c->laddr, IPnoaddr);
 		else {
-			parseip(addr, str);
+			if(parseip(addr, str) == -1)
+				return Ebadip;
 			if(ipforme(c->p->f, addr))
 				ipmove(c->laddr, addr);
 			else
@@ -878,7 +896,7 @@ setladdrport(Conv* c, char* str, int announcing)
 
 	lport = atoi(p);
 	if(lport <= 0)
-		setlport(c);
+		rv = setlport(c);
 	else
 		rv = setluniqueport(c, lport);
 	return rv;
@@ -893,7 +911,8 @@ setraddrport(Conv* c, char* str)
 	if(p == nil)
 		return "malformed address";
 	*p++ = 0;
-	parseip(c->raddr, str);
+	if (parseip(c->raddr, str) == -1)
+		return Ebadip;
 	c->rport = atoi(p);
 	p = strchr(p, '!');
 	if(p){
@@ -919,7 +938,9 @@ Fsstdconnect(Conv *c, char *argv[], int argc)
 		if(p != nil)
 			return p;
 		setladdr(c);
-		setlport(c);
+		p = setlport(c);
+		if (p != nil)
+			return p;
 		break;
 	case 3:
 		p = setraddrport(c, argv[1]);
@@ -1145,13 +1166,15 @@ ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 			if(cb->nf == 2){
 				if(!ipismulticast(c->raddr))
 					error("addmulti for a non multicast address");
-				parseip(ia, cb->f[1]);
+				if (parseip(ia, cb->f[1]) == -1)
+					error(Ebadip);
 				ipifcaddmulti(c, c->raddr, ia);
 			} else {
-				parseip(ma, cb->f[2]);
+				if (parseip(ia, cb->f[1]) == -1 ||
+				    parseip(ma, cb->f[2]) == -1)
+					error(Ebadip);
 				if(!ipismulticast(ma))
 					error("addmulti for a non multicast address");
-				parseip(ia, cb->f[1]);
 				ipifcaddmulti(c, ma, ia);
 			}
 		} else if(strcmp(cb->f[0], "remmulti") == 0){
@@ -1159,8 +1182,15 @@ ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 				error("remmulti needs interface address");
 			if(!ipismulticast(c->raddr))
 				error("remmulti for a non multicast address");
-			parseip(ia, cb->f[1]);
+			if (parseip(ia, cb->f[1]) == -1)
+				error(Ebadip);
 			ipifcremmulti(c, c->raddr, ia);
+		} else if(strcmp(cb->f[0], "maxfragsize") == 0){
+			if(cb->nf < 2)
+				error("maxfragsize needs size");
+
+			c->maxfragsize = (int)strtol(cb->f[1], nil, 0);
+
 		} else if(x->ctl != nil) {
 			p = x->ctl(c, cb->f, cb->nf);
 			if(p != nil)
@@ -1243,7 +1273,6 @@ Fsproto(Fs *f, Proto *p)
 		panic("Fsproto");
 
 	p->x = f->np;
-	p->nextport = 0;
 	p->nextrport = 600;
 	f->p[f->np++] = p;
 
@@ -1305,8 +1334,13 @@ retry:
 		}
 	}
 	if(pp >= ep) {
+		if(p->gc)
+			print("Fsprotoclone: garbage collecting Convs\n");
 		if(p->gc != nil && (*p->gc)(p))
 			goto retry;
+		/* debugging: do we ever get here? */
+		if (cpuserver)
+			panic("Fsprotoclone: all conversations in use");
 		return nil;
 	}
 
@@ -1321,6 +1355,7 @@ retry:
 	c->lport = 0;
 	c->rport = 0;
 	c->restricted = 0;
+	c->maxfragsize = 0;
 	c->ttl = MAXTTL;
 	qreopen(c->rq);
 	qreopen(c->wq);
@@ -1370,8 +1405,7 @@ Fsrcvpcolx(Fs *f, uint8_t proto)
  *  called with protocol locked
  */
 Conv*
-Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr,
-	  uint16_t lport, uint8_t version)
+Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr, uint16_t lport, uint8_t version)
 {
 	Conv *nc;
 	Conv **l;
@@ -1382,7 +1416,14 @@ Fsnewcall(Conv *c, uint8_t *raddr, uint16_t rport, uint8_t *laddr,
 	for(l = &c->incall; *l; l = &(*l)->next)
 		i++;
 	if(i >= Maxincall) {
+		static int beenhere;
+
 		qunlock(c);
+		if (!beenhere) {
+			beenhere = 1;
+			print("Fsnewcall: incall queue full (%d) on port %d\n",
+				i, c->lport);
+		}
 		return nil;
 	}
 

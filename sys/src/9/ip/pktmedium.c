@@ -33,7 +33,6 @@ Medium pktmedium =
 .unbind=	pktunbind,
 .bwrite=	pktbwrite,
 .pktin=		pktin,
-.unbindonclose=	1,
 };
 
 /*
@@ -41,15 +40,16 @@ Medium pktmedium =
  *  called with ifc wlock'd
  */
 static void
-pktbind(Ipifc* i, int n, char** c)
+pktbind(Ipifc *ipifc, int argc, char **argv)
 {
+	USED(argc); USED(argv);
 }
 
 /*
  *  called with ifc wlock'd
  */
 static void
-pktunbind(Ipifc* i)
+pktunbind(Ipifc *ipifc)
 {
 }
 
@@ -57,7 +57,7 @@ pktunbind(Ipifc* i)
  *  called by ipoput with a single packet to write
  */
 static void
-pktbwrite(Ipifc *ifc, Block *bp, int i, uint8_t* m)
+pktbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
 {
 	/* enqueue onto the conversation's rq */
 	bp = concatblock(bp);

@@ -57,6 +57,7 @@ char *Ebadarp = "bad arp";
 #define haship(s) ((s)[IPaddrlen-1]%NHASH)
 
 int 	ReTransTimer = RETRANS_TIMER;
+
 static void 	rxmitproc(void *v);
 
 void
@@ -78,6 +79,7 @@ newarp6(Arp *arp, uint8_t *ip, Ipifc *ifc, int addrxt)
 	uint t;
 	Block *next, *xp;
 	Arpent *a, *e, *f, **l;
+	Medium *medium = ifc->medium;
 	int empty;
 
 	/* find oldest entry */
@@ -134,7 +136,7 @@ newarp6(Arp *arp, uint8_t *ip, Ipifc *ifc, int addrxt)
 	memmove(a->ip, ip, sizeof(a->ip));
 	a->utime = NOW;
 	a->ctime = 0;
-	a->type = ifc->medium;
+	a->type = medium;
 
 	a->rtime = NOW + ReTransTimer;
 	a->rxtsrem = MAX_MULTICAST_SOLICIT;
@@ -211,12 +213,11 @@ cleanarpent(Arp *arp, Arpent *a)
  *  waiting for ip->mac to be resolved.
  */
 Arpent*
-arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip,
-       uint8_t *mac)
+arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip, uint8_t *mac)
 {
 	int hash;
 	Arpent *a;
-	Medium *type;
+	Medium *type = ifc->medium;
 	uint8_t v6ip[IPaddrlen];
 
 	if(version == V4){
@@ -226,7 +227,6 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip,
 
 	qlock(arp);
 	hash = haship(ip);
-	type = ifc->medium;
 	for(a = arp->hash[hash]; a; a = a->hash){
 		if(memcmp(ip, a->ip, sizeof(a->ip)) == 0)
 		if(type == a->type)
@@ -264,7 +264,7 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uint8_t *ip,
  * called with arp locked
  */
 void
-arprelease(Arp *arp, Arpent* arpen)
+arprelease(Arp *arp, Arpent *arpen)
 {
 	qunlock(arp);
 }
@@ -304,8 +304,7 @@ arpresolve(Arp *arp, Arpent *a, Medium *type, uint8_t *mac)
 }
 
 void
-arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n,
-	 int refresh)
+arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 {
 	Mach *m = machp();
 	Arp *arp;
@@ -417,7 +416,7 @@ arpwrite(Fs *fs, char *s, int len)
 	Arp *arp;
 	Block *bp;
 	Arpent *a, *fl, **l;
-	Medium *type;
+	Medium *medium;
 	char *f[4], buf[256];
 	uint8_t ip[IPaddrlen], mac[MAClen];
 
@@ -458,34 +457,37 @@ arpwrite(Fs *fs, char *s, int len)
 		default:
 			error(Ebadarg);
 		case 3:
-			parseip(ip, f[1]);
+			if (parseip(ip, f[1]) == -1)
+				error(Ebadip);
 			if(isv4(ip))
 				r = v4lookup(fs, ip+IPv4off, nil);
 			else
 				r = v6lookup(fs, ip, nil);
 			if(r == nil)
 				error("Destination unreachable");
-			type = r->ifc->medium;
-			n = parsemac(mac, f[2], type->maclen);
+			medium = r->ifc->medium;
+			n = parsemac(mac, f[2], medium->maclen);
 			break;
 		case 4:
-			type = ipfindmedium(f[1]);
-			if(type == nil)
+			medium = ipfindmedium(f[1]);
+			if(medium == nil)
 				error(Ebadarp);
-			parseip(ip, f[2]);
-			n = parsemac(mac, f[3], type->maclen);
+			if (parseip(ip, f[2]) == -1)
+				error(Ebadip);
+			n = parsemac(mac, f[3], medium->maclen);
 			break;
 		}
 
-		if(type->ares == nil)
+		if(medium->ares == nil)
 			error(Ebadarp);
 
-		type->ares(fs, V6, ip, mac, n, 0);
+		medium->ares(fs, V6, ip, mac, n, 0);
 	} else if(strcmp(f[0], "del") == 0){
 		if(n != 2)
 			error(Ebadarg);
 
-		parseip(ip, f[1]);
+		if (parseip(ip, f[1]) == -1)
+			error(Ebadip);
 		qlock(arp);
 
 		l = &arp->hash[haship(ip)];
@@ -531,10 +533,10 @@ enum
 char *aformat = "%-6.6s %-8.8s %-40.40I %-32.32s\n";
 
 static void
-convmac(char *p, uint8_t *mac, int n)
+convmac(char *p, char *ep, uint8_t *mac, int n)
 {
 	while(n-- > 0)
-		p += sprint(p, "%2.2ux", *mac++);
+		p = seprint(p, ep, "%2.2ux", *mac++);
 }
 
 int
@@ -560,8 +562,9 @@ arpread(Arp *arp, char *p, uint32_t offset, int len)
 		}
 		len--;
 		qlock(arp);
-		convmac(mac, a->mac, a->type->maclen);
-		n += sprint(p+n, aformat, a->type->name, arpstate[a->state], a->ip, mac);
+		convmac(mac, &mac[sizeof mac], a->mac, a->type->maclen);
+		n += snprint(p+n, Alinelen+1, aformat, a->type->name,
+			arpstate[a->state], a->ip, mac);	/* +1 for NUL */
 		qunlock(arp);
 	}
 
@@ -613,6 +616,7 @@ rxmitsols(Arp *arp)
 	if(a == nil)
 		goto dodrops;
 
+
 	qunlock(arp);	/* for icmpns */
 	if((sflag = ipv6anylocal(ifc, ipsrc)) != SRC_UNSPEC)
 		icmpns(f, ipsrc, sflag, a->ip, TARG_MULTI, ifc->mac);
@@ -651,7 +655,7 @@ dodrops:
 
 	for(; xp; xp = next){
 		next = xp->list;
-		icmphostunr(f, ifc, xp, icmp6_adr_unreach, 1);
+		icmphostunr(f, ifc, xp, Icmp6_adr_unreach, 1);
 	}
 
 	return nrxt;

@@ -12,6 +12,7 @@
 	"../ip/ipaux.c",
 	"../ip/ip.c",
 	"../ip/ipifc.c",
+	"../ip/ipmux.c",
 	"../ip/iproute.c",
 	"../ip/ipv6.c",
 	"../ip/loopbackmedium.c",
@@ -20,6 +21,7 @@
 	"../ip/nullmedium.c",
 	"../ip/pktmedium.c",
 	"../ip/ptclbsum.c",
+	"../ip/rudp.c",
 	"../ip/tcp.c",
 	"../ip/udp.c"
     ]

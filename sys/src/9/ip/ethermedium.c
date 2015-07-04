@@ -14,6 +14,7 @@
 #include "fns.h"
 #include "../port/error.h"
 
+#include "../port/netif.h"
 #include "ip.h"
 #include "ipv6.h"
 
@@ -38,8 +39,7 @@ static void	etherread4(void *a);
 static void	etherread6(void *a);
 static void	etherbind(Ipifc *ifc, int argc, char **argv);
 static void	etherunbind(Ipifc *ifc);
-static void	etherbwrite(Ipifc *ifc, Block *bp, int version,
-			       uint8_t *ip);
+static void	etherbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip);
 static void	etheraddmulti(Ipifc *ifc, uint8_t *a, uint8_t *ia);
 static void	etherremmulti(Ipifc *ifc, uint8_t *a, uint8_t *ia);
 static Block*	multicastarp(Fs *f, Arpent *a, Medium*, uint8_t *mac);
@@ -56,23 +56,6 @@ Medium ethermedium =
 .hsize=		14,
 .mintu=		60,
 .maxtu=		1514,
-.maclen=	6,
-.bind=		etherbind,
-.unbind=	etherunbind,
-.bwrite=	etherbwrite,
-.addmulti=	etheraddmulti,
-.remmulti=	etherremmulti,
-.ares=		arpenter,
-.areg=		sendgarp,
-.pref2addr=	etherpref2addr,
-};
-
-Medium fbemedium =
-{
-.name=		"fbe",
-.hsize=		14,
-.mintu=		60,
-.maxtu=		4000,
 .maclen=	6,
 .bind=		etherbind,
 .unbind=	etherunbind,
@@ -120,9 +103,6 @@ struct Etherrock
  */
 enum
 {
-	ETARP		= 0x0806,
-	ETIP4		= 0x0800,
-	ETIP6		= 0x86DD,
 	ARPREQUEST	= 1,
 	ARPREPLY	= 2,
 };
@@ -184,12 +164,12 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	}
 
 	/*
-	 *  open ipv4 converstation
+	 *  open ipv4 conversation
 	 *
 	 *  the dial will fail if the type is already open on
 	 *  this device.
 	 */
-	snprint(addr, sizeof(addr), "%s!0x800", argv[2]);
+	snprint(addr, sizeof(addr), "%s!0x800", argv[2]);	/* ETIP4 */
 	mchan4 = chandial(addr, nil, dir, &cchan4);
 
 	/*
@@ -228,7 +208,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	/*
  	 *  open arp conversation
 	 */
-	snprint(addr, sizeof(addr), "%s!0x806", argv[2]);
+	snprint(addr, sizeof(addr), "%s!0x806", argv[2]);	/* ETARP */
 	achan = chandial(addr, nil, nil, nil);
 
 	/*
@@ -237,7 +217,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	 *  the dial will fail if the type is already open on
 	 *  this device.
 	 */
-	snprint(addr, sizeof(addr), "%s!0x86DD", argv[2]);
+	snprint(addr, sizeof(addr), "%s!0x86DD", argv[2]);	/* ETIP6 */
 	mchan6 = chandial(addr, nil, dir, &cchan6);
 
 	/*
@@ -272,11 +252,11 @@ etherunbind(Ipifc *ifc)
 	Etherrock *er = ifc->arg;
 
 	if(er->read4p)
-		postnote(er->read4p, 1, "unbind", NUser);
+		postnote(er->read4p, 1, "unbind", 0);
 	if(er->read6p)
-		postnote(er->read6p, 1, "unbind", NUser);
+		postnote(er->read6p, 1, "unbind", 0);
 	if(er->arpp)
-		postnote(er->arpp, 1, "unbind", NUser);
+		postnote(er->arpp, 1, "unbind", 0);
 
 	/* wait for readers to die */
 	while(er->arpp != 0 || er->read4p != 0 || er->read6p != 0)
@@ -445,7 +425,7 @@ etheraddmulti(Ipifc *ifc, uint8_t *a, uint8_t *b)
 	int version;
 
 	version = multicastea(mac, a);
-	sprint(buf, "addmulti %E", mac);
+	snprint(buf, sizeof buf, "addmulti %E", mac);
 	switch(version){
 	case V4:
 		er->cchan4->dev->write(er->cchan4, buf, strlen(buf), 0);
@@ -467,7 +447,7 @@ etherremmulti(Ipifc *ifc, uint8_t *a, uint8_t *b)
 	int version;
 
 	version = multicastea(mac, a);
-	sprint(buf, "remmulti %E", mac);
+	snprint(buf, sizeof buf, "remmulti %E", mac);
 	switch(version){
 	case V4:
 		er->cchan4->dev->write(er->cchan4, buf, strlen(buf), 0);
@@ -781,7 +761,6 @@ void
 ethermediumlink(void)
 {
 	addipmedium(&ethermedium);
-	addipmedium(&fbemedium);
 	addipmedium(&gbemedium);
 }
 
