@@ -411,11 +411,12 @@ static void*
 edalloc(void)
 {
 	Ed *ed, *pool;
-	int i;
+	int i, sz;
 
+	sz = ROUNDUP(sizeof *ed, 16);
 	lock(&edpool);
 	if(edpool.free == nil){
-		pool = xspanalloc(Incr*sizeof(Ed), Align, 0);
+		pool = mallocalign(Incr*sz, Align, 0, 0);
 		if(pool == nil)
 			panic("edalloc");
 		for(i=Incr; --i>=0;){
@@ -3171,7 +3172,7 @@ ehcimeminit(Ctlr *ctlr)
 	opio = ctlr->opio;
 	frsize = ctlr->nframes * sizeof(uint32_t);
 	assert((frsize & 0xFFF) == 0);		/* must be 4k aligned */
-	ctlr->frames = xspanalloc(frsize, frsize, 0);
+	mallocalign(frsize, frsize, 0, 0);
 	if(ctlr->frames == nil)
 		panic("ehci reset: no memory");
 

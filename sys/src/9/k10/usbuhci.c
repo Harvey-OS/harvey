@@ -56,7 +56,7 @@ enum
 	 * HW constants
 	 */
 
-	Nframes		= 1024,		/* 2ⁿ for xspanalloc; max 1024 */
+	Nframes		= 1024,		/* 2ⁿ for mallocalign; max 1024 */
 	Align		= 16,		/* for data structures */
 
 	/* Size of small buffer kept within Tds. (software) */
@@ -585,14 +585,15 @@ dump(Hci *hp)
 static Td*
 tdalloc(void)
 {
-	int i;
+	int i, sz;
 	Td *td;
 	Td *pool;
 
+	sz = ROUNDUP(sizeof *td, 16);
 	lock(&tdpool);
 	if(tdpool.free == nil){
 		ddprint("uhci: tdalloc %d Tds\n", Incr);
-		pool = xspanalloc(Incr*sizeof(Td), Align, 0);
+		pool = mallocalign(Incr*sz, Align, 0, 0);
 		if(pool == nil)
 			panic("tdalloc");
 		for(i=Incr; --i>=0;){
@@ -665,14 +666,15 @@ tdlinktd(Td *td, Td *next)
 static Qh*
 qhalloc(Ctlr *ctlr, Qh *prev, Qio *io, char *tag)
 {
-	int i;
+	int i, sz;
 	Qh *qh;
 	Qh *pool;
 
+	sz = ROUNDUP(sizeof *qh, 16);
 	lock(&qhpool);
 	if(qhpool.free == nil){
 		ddprint("uhci: qhalloc %d Qhs\n", Incr);
-		pool = xspanalloc(Incr*sizeof(Qh), Align, 0);
+		pool = mallocalign(Incr*sz, Align, 0, 0);
 		if(pool == nil)
 			panic("qhalloc");
 		for(i=Incr; --i>=0;){
@@ -2174,7 +2176,7 @@ uhcimeminit(Ctlr *ctlr)
 	qh->link = PCIWADDR(ctlr->qhs);
 
 	frsize = Nframes*sizeof(uint32_t);
-	ctlr->frames = xspanalloc(frsize, frsize, 0);
+	ctlr->frames = mallocalign(frsize, frsize, 0, 0);
 	if(ctlr->frames == nil)
 		panic("uhci reset: no memory");
 

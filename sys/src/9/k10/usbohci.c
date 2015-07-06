@@ -594,12 +594,13 @@ tdalloc(void)
 {
 	Td *td;
 	Td *pool;
-	int i;
+	int i, sz;
 
+	sz = ROUNDUP(sizeof *td, 16);
 	lock(&tdpool);
 	if(tdpool.free == nil){
 		ddprint("ohci: tdalloc %d Tds\n", Incr);
-		pool = xspanalloc(Incr*sizeof(Td), Align, 0);
+		pool = mallocalign(Incr*sz, Align, 0, 0);
 		if(pool == nil)
 			panic("tdalloc");
 		for(i=Incr; --i>=0;){
@@ -642,12 +643,13 @@ static Ed*
 edalloc(void)
 {
 	Ed *ed, *pool;
-	int i;
+	int i, sz;
 
+	sz = ROUNDUP(sizeof *ed, 16);
 	lock(&edpool);
 	if(edpool.free == nil){
 		ddprint("ohci: edalloc %d Eds\n", Incr);
-		pool = xspanalloc(Incr*sizeof(Ed), Align, 0);
+		pool = mallocalign(Incr*sz, Align, 0, 0);
 		if(pool == nil)
 			panic("edalloc");
 		for(i=Incr; --i>=0;){
@@ -2481,7 +2483,7 @@ ohcimeminit(Ctlr *ctlr)
 	edfree(edalloc());	/* allocate pools now */
 	tdfree(tdalloc());
 
-	hcca = xspanalloc(sizeof(Hcca), 256, 0);
+	hcca = mallocalign(sizeof(Hcca), 256, 0, 0);
 	if(hcca == nil)
 		panic("usbhreset: no memory for Hcca");
 	memset(hcca, 0, sizeof(*hcca));
