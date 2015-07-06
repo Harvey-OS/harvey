@@ -76,13 +76,13 @@ enum {						/* PFPU.state */
 };
 
 extern void _clts(void);
-extern void _fldcw(uint16_t);
+extern void _fldcw(uint16_t*);
 extern void _fnclex(void);
 extern void _fninit(void);
 extern void _fxrstor(Fxsave*);
 extern void _fxsave(Fxsave*);
 extern void _fwait(void);
-extern void _ldmxcsr(uint32_t);
+extern void _ldmxcsr(uint32_t*);
 extern void _stts(void);
 
 int
@@ -468,8 +468,8 @@ xfpunm(Ureg* ureg, void* v)
 		_clts();
 		_fninit();
 		_fwait();
-		_fldcw(m->fcw);
-		_ldmxcsr(m->mxcsr);
+		_fldcw(&m->fcw);
+		_ldmxcsr(&m->mxcsr);
 		m->externup->fpusave = (void*)((PTR2UINT(m->externup->fxsave) + 15) & ~15);
 		m->externup->fpustate = Busy;
 		break;
