@@ -435,6 +435,7 @@ sysexecregs(uintptr_t entry, uint32_t ssize, void *argv, uint32_t nargs, void *t
 	uintptr_t *sp;
 	Ureg *ureg;
 
+	ssize = (ssize + 15) & ~15; /* userland (fpu) needs %rsp to be 16-aligned */
 	sp = (uintptr_t*)(USTKTOP - ssize);
 
 	ureg = m->externup->dbgreg;
