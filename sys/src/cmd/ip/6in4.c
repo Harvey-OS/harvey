@@ -48,8 +48,8 @@ struct Iphdr
 	uint8_t	ttl;		/* Time to live */
 	uint8_t	proto;		/* Protocol */
 	uint8_t	cksum[2];	/* Header checksum */
-	uint8_t	src[4];		/* Ip source (uchar ordering unimportant) */
-	uint8_t	dst[4];		/* Ip destination (uchar ordering unimportant) */
+	uint8_t	src[4];		/* Ip source (uint8_t ordering unimportant) */
+	uint8_t	dst[4];		/* Ip destination (uint8_t ordering unimportant) */
 	uint8_t	payload[];
 };
 

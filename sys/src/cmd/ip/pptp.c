@@ -196,7 +196,7 @@ sendecho(void)
 }
 
 void
-pptpctlproc(void*)
+pptpctlproc(void *v)
 {
 	uint8_t pkt[1600], *p;
 	int len;
@@ -256,7 +256,7 @@ enum {
 };
 
 void
-grereadproc(void*)
+grereadproc(void *v)
 {
 	int datoff, flags, len, n, pass;
 	uint8_t pkt[1600];
@@ -313,7 +313,7 @@ grereadproc(void*)
 }
 
 void
-pppreadproc(void*)
+pppreadproc(void *v)
 {
 	int n, myrseq;
 	uint8_t pkt[1600];
@@ -406,7 +406,7 @@ schedack(int n, uint8_t *dat, int len)
 }
 
 void
-gretimeoutproc(void*)
+gretimeoutproc(void *v)
 {
 	for(;;){
 		sleep(Tick);
@@ -521,7 +521,7 @@ tcallout(void)
 void
 tcallreq(void)
 {
-	uchar pkt[200], *rpkt;
+	uint8_t pkt[200], *rpkt;
 
 	pid = getpid();
 
@@ -552,7 +552,7 @@ tcallreq(void)
 void
 acallcon(void)
 {
-	uchar pkt[200];
+	uint8_t pkt[200];
 
 	memset(pkt, 0, sizeof pkt);
 	hnputs(pkt+0, 28);

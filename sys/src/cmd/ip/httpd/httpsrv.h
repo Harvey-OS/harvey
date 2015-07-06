@@ -40,13 +40,13 @@ extern	char*		netdir;
 
 /* emem.c */
 char			*estrdup(char*);
-void*			ezalloc(ulong);
+void*			ezalloc(uint32_t);
 
 /* sendfd.c */
 int			authcheck(HConnect *c);
-int			checkreq(HConnect *c, HContent *type, HContent *enc, long mtime, char *etag);
+int			checkreq(HConnect *c, HContent *type, HContent *enc, int32_t mtime, char *etag);
 int			etagmatch(int, HETag*, char*);
-HRange			*fixrange(HRange *h, long length);
+HRange			*fixrange(HRange *h, int32_t length);
 int			sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc);
 
 /* content.c */
@@ -67,7 +67,7 @@ void			urlinit(void);
 /* init.c */
 HConnect*		init(int, char**);
 
-vlong			Bfilelen(void*);
+int64_t			Bfilelen(void*);
 
 /* redirect.c */
 void			redirectinit(void);

@@ -182,7 +182,7 @@ readfrom(Req *r, Block *b)
 }
 
 void
-hangupclient(Srv*)
+hangupclient(Srv *s)
 {
 	if(debug)
 		print("Hangup.\n");
@@ -309,7 +309,7 @@ getrange(Block *b)
 }
 
 void
-httpfilereadproc(void*)
+httpfilereadproc(void *v)
 {
 	Block *b;
 
@@ -377,7 +377,7 @@ fsstat(Req *r)
 }
 
 static int
-rootgen(int i, Dir *d, void*)
+rootgen(int i, Dir *d, void *v)
 {
 	i += Qroot + 1;
 	if(i <= Qfile){
@@ -483,7 +483,7 @@ fsopen(Req *r)
 }
 
 void
-finishthread(void*)
+finishthread(void *v)
 {
 	Block *b;
 	Req *r, *nextr;
@@ -509,7 +509,7 @@ finishthread(void*)
 }
 
 void
-fsnetproc(void*)
+fsnetproc(void *v)
 {
 	Req *r;
 	Block *b;

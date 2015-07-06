@@ -93,7 +93,7 @@ static char *snames[] =
 static	void		authtimer(PPP*);
 static	void		chapinit(PPP*);
 static	void		config(PPP*, Pstate*, int);
-static	uint8_t*		escapeuchar(PPP*, uint32_t, uint8_t*,
+static	uint8_t*		escapeuint8_t(PPP*, uint32_t, uint8_t*,
 						uint16_t*);
 static	void		getchap(PPP*, Block*);
 static	Block*		getframe(PPP*, int*);
@@ -414,7 +414,7 @@ getframe(PPP *ppp, int *protop)
 			return nil;
 		}
 
-		ppp->in.uchars += n;
+		ppp->in.uint8_ts += n;
 		ppp->in.packets++;
 		*protop = proto;
 		netlog("getframe 0x%x\n", proto);
@@ -423,7 +423,7 @@ getframe(PPP *ppp, int *protop)
 
 	buf = ppp->inbuf;
 	for(;;){
-		/* read till we hit a frame uchar or run out of room */
+		/* read till we hit a frame uint8_t or run out of room */
 		for(p = buf->rptr; buf->wptr < buf->lim;){
 			for(; p < buf->wptr; p++)
 				if(*p == HDLC_frame)
@@ -473,7 +473,7 @@ getframe(PPP *ppp, int *protop)
 			if((proto & 0x1) == 0)
 				proto = (proto<<8) | *b->rptr++;
 			if(b->rptr < b->wptr){
-				ppp->in.uchars += n;
+				ppp->in.uint8_ts += n;
 				ppp->in.packets++;
 				*protop = proto;
 				netlog("getframe 0x%x\n", proto);
@@ -590,7 +590,7 @@ putframe(PPP *ppp, int proto, Block *b)
 		qunlock(&ppp->outlock);
 		return -1;
 	}
-	ppp->out.uchars += BLEN(buf);
+	ppp->out.uint8_ts += BLEN(buf);
 
 	qunlock(&ppp->outlock);
 	return 0;
@@ -1674,7 +1674,7 @@ Again:
 				break;
 			ppp->stat.uncompin += len;
 			ppp->stat.uncompout += BLEN(b);
-/* netlog("ppp: uncompressed frame %ux %d %d (%d uchars)\n", proto, b->rptr[0], b->rptr[1], BLEN(b)); /* */
+/* netlog("ppp: uncompressed frame %ux %d %d (%d uint8_ts)\n", proto, b->rptr[0], b->rptr[1], BLEN(b)); */
 			goto Again;	
 		default:
 			syslog(0, LOG, "unknown proto %ux", proto);
@@ -1775,8 +1775,8 @@ struct Iphdr
 	uint8_t	ttl;		/* Time to live */
 	uint8_t	proto;		/* Protocol */
 	uint8_t	cksum[2];	/* Header checksum */
-	uint8_t	src[4];		/* Ip source (uchar ordering unimportant) */
-	uint8_t	dst[4];		/* Ip destination (uchar ordering unimportant) */
+	uint8_t	src[4];		/* Ip source (uint8_t ordering unimportant) */
+	uint8_t	dst[4];		/* Ip destination (uint8_t ordering unimportant) */
 };
 
 static void
@@ -1806,7 +1806,7 @@ ipinproc(PPP *ppp)
 }
 
 static void
-catchdie(void*, char *msg)
+catchdie(void *v, char *msg)
 {
 	if(strstr(msg, "die") != nil)
 		noted(NCONT);
@@ -1882,8 +1882,8 @@ mediainproc(PPP *ppp)
 	netlog(": remote=%I: ppp shutting down\n", ppp->remote);
 	syslog(0, LOG, ": remote=%I: ppp shutting down", ppp->remote);
 	syslog(0, LOG, "\t\tppp send = %lud/%lud recv= %lud/%lud",
-		ppp->out.packets, ppp->out.uchars,
-		ppp->in.packets, ppp->in.uchars);
+		ppp->out.packets, ppp->out.uint8_ts,
+		ppp->in.packets, ppp->in.uint8_ts);
 	syslog(0, LOG, "\t\tip send=%lud", ppp->stat.ipsend);
 	syslog(0, LOG, "\t\tip recv=%lud notup=%lud badsrc=%lud",
 		ppp->stat.iprecv, ppp->stat.iprecvnotup, ppp->stat.iprecvbadsrc);
@@ -1909,12 +1909,12 @@ getlqm(PPP *ppp, Block *b)
 		ppp->in.reports++;
 		ppp->pout.reports = nhgetl(p->peeroutreports);
 		ppp->pout.packets = nhgetl(p->peeroutpackets);
-		ppp->pout.uchars = nhgetl(p->peeroutuchars);
+		ppp->pout.uint8_ts = nhgetl(p->peeroutuint8_ts);
 		ppp->pin.reports = nhgetl(p->peerinreports);
 		ppp->pin.packets = nhgetl(p->peerinpackets);
 		ppp->pin.discards = nhgetl(p->peerindiscards);
 		ppp->pin.errors = nhgetl(p->peerinerrors);
-		ppp->pin.uchars = nhgetl(p->peerinuchars);
+		ppp->pin.uint8_ts = nhgetl(p->peerinuint8_ts);
 
 		/* save our numbers at time of reception */
 		memmove(&ppp->sin, &ppp->in, sizeof(Qualstats));
@@ -1940,19 +1940,19 @@ putlqm(PPP *ppp)
 	/* heresay (what he last told us) */
 	hnputl(p->lastoutreports, ppp->pout.reports);
 	hnputl(p->lastoutpackets, ppp->pout.packets);
-	hnputl(p->lastoutuchars, ppp->pout.uchars);
+	hnputl(p->lastoutuint8_ts, ppp->pout.uint8_ts);
 
 	/* our numbers at time of last reception */
 	hnputl(p->peerinreports, ppp->sin.reports);
 	hnputl(p->peerinpackets, ppp->sin.packets);
 	hnputl(p->peerindiscards, ppp->sin.discards);
 	hnputl(p->peerinerrors, ppp->sin.errors);
-	hnputl(p->peerinuchars, ppp->sin.uchars);
+	hnputl(p->peerinuint8_ts, ppp->sin.uint8_ts);
 
 	/* our numbers now */
 	hnputl(p->peeroutreports, ppp->out.reports+1);
 	hnputl(p->peeroutpackets, ppp->out.packets+1);
-	hnputl(p->peeroutuchars, ppp->out.uchars+53/*hack*/);
+	hnputl(p->peeroutuint8_ts, ppp->out.uint8_ts+53/*hack*/);
 
 	putframe(ppp, Plqm, b);
 	freeb(b);

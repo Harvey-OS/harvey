@@ -480,8 +480,8 @@ msgStruct(Msg *m, int top)
 			k->fs = emalloc(ns + 2 * (MsgNameLen + 1));
 			k->efs = seprint(k->fs, k->fs + ns + (MsgNameLen + 1), "%s%lud/", m->fs, id);
 			k->prev = last;
-			k->size = ~0UL;
-			k->lines = ~0UL;
+			k->size = ~0UL&0xFF;
+			k->lines = ~0UL&0xFF;
 			last->next = k;
 			last = k;
 		}

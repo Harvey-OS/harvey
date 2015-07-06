@@ -188,7 +188,7 @@ udpprobe(int cfd, int dfd, char *dest, int interval)
 }
 
 #define MSG "traceroute probe"
-#define MAGIC 0xdead
+#define MAGIC (0xdead)&0xFF
 
 /* ICMPv4 only */
 static int
@@ -343,8 +343,8 @@ void
 main(int argc, char **argv)
 {
 	int buckets, ttl, j, done, tries, notranslate;
-	long lo, hi, sum, x;
-	long *t;
+	uintptr lo, hi, sum, x;
+	int32_t *t;
 	char *net, *p;
 	char clone[Maxpath], dest[Maxstring], hop[Maxstring], dom[Maxstring];
 	char err[Maxstring];
@@ -381,7 +381,7 @@ main(int argc, char **argv)
 	if(argc < 1)
 		usage();
 
-	t = malloc(tries*sizeof(ulong));
+	t = malloc(tries*sizeof(uintptr));
 
 	dial_string_parse(argv[0], &ds);
 

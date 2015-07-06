@@ -16,26 +16,26 @@ typedef struct Arpstats	Arpstats;
 
 /* Format of ethernet arp request */
 struct Arppkt {
-	uchar	d[6];
-	uchar	s[6];
-	uchar	type[2];
-	uchar	hrd[2];
-	uchar	pro[2];
-	uchar	hln;
-	uchar	pln;
-	uchar	op[2];
-	uchar	sha[6];
-	uchar	spa[4];
-	uchar	tha[6];
-	uchar	tpa[4];
+	uint8_t	d[6];
+	uint8_t	s[6];
+	uint8_t	type[2];
+	uint8_t	hrd[2];
+	uint8_t	pro[2];
+	uint8_t	hln;
+	uint8_t	pln;
+	uint8_t	op[2];
+	uint8_t	sha[6];
+	uint8_t	spa[4];
+	uint8_t	tha[6];
+	uint8_t	tpa[4];
 	};
 
 #define ARPSIZE		42
 
 /* Format of request from starp to user level arpd */
 struct Arpentry {
-	uchar	etaddr[6];
-	uchar	ipaddr[4];
+	uint8_t	etaddr[6];
+	uint8_t	ipaddr[4];
 	};
 
 /* Arp cache statistics */

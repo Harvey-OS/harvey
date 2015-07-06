@@ -52,7 +52,7 @@ int	xlocchange(Biobuf*, int);
 int	xlocsub(Biobuf*, uint8_t*, int);
 int	challuser(char*);
 int	noworldlogin(char*);
-void*	share(ulong);
+void*	share(uint32_t);
 int	doauth(char*);
 
 #define TELNETLOG "telnet"

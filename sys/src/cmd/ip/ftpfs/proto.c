@@ -541,9 +541,9 @@ crackdir(char *p, String **remname)
 		d.length = 0;
 		d.atime = 0;
 		break;
-	case OS½:
+	case OS2:
 		s = s_copy(field[n-1]);
-		d.uid = "OS½";
+		d.uid = "OS2";
 		d.gid = d.uid;
 		d.mode = 0666;
 		switch(n){

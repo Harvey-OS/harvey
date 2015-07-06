@@ -103,9 +103,9 @@ main(int argc, char *argv[])
 	int ts, len, t;
 	long start;
 	int delta;
-	uchar target[6];
+	uint8_t target[6];
 	char buf[256];
-	ulong samples;
+	uintptr samples;
 
 	samples = -1;
 	ARGBEGIN{

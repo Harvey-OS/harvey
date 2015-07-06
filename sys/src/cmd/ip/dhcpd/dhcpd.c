@@ -227,7 +227,7 @@ void
 main(int argc, char **argv)
 {
 	int i, n, fd;
-	uchar ip[IPaddrlen];
+	uint8_t ip[IPaddrlen];
 	Req r;
 
 	setnetmtpt(net, sizeof net, nil);
@@ -1676,7 +1676,7 @@ logdhcpout(Req *rp, char *type)
  *  So dump all but the last message in the queue.
  */
 void
-ding(void*, char *msg)
+ding(void *v, char *msg)
 {
 	if(strstr(msg, "alarm"))
 		noted(NCONT);

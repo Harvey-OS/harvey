@@ -59,9 +59,9 @@ main(int argc, char* argv[])
 {
 	int fd, nw;
 	char *argmac, *pass, *address;
-	uchar mac[Eaddrlen];
+	uint8_t mac[Eaddrlen];
 	static Wolpack w = {
-		.magic { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, }
+		.magic = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, }
 	};
 
 	address = pass = nil;

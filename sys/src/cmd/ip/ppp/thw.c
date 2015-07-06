@@ -73,7 +73,7 @@ Uncomptype uncthwack = {
 };
 
 static void *
-compinit(PPP *)
+compinit(PPP *p)
 {
 	Cstate *cs;
 
@@ -205,7 +205,7 @@ comp(PPP *ppp, uint16_t proto, Block *b, int *protop)
 }
 
 static	void *
-uncinit(PPP *)
+uncinit(PPP *p)
 {
 	Uncstate *s;
 

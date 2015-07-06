@@ -69,15 +69,15 @@ struct Machine
 	int	nproc;
 
 	int	rttmsgs;
-	ulong	rttsum;
-	ulong	lastrtt;
+	uintptr	rttsum;
+	uintptr	lastrtt;
 
 	int	lostmsgs;
 	int	rcvdmsgs;
-	ulong	lostavg;
+	uintptr	lostavg;
 	int	unreachable;
 
-	ushort	seq;
+	uint16_t	seq;
 	Req	*first;
 	Req	*last;
 	Req	*rcvd;
@@ -448,7 +448,7 @@ update1(Graph *g, int32_t v, int32_t vmax, int32_t mark)
 }
 
 void
-pinglost(Machine *m, Req*)
+pinglost(Machine *m, Req *r)
 {
 	m->lostmsgs++;
 }
@@ -466,7 +466,7 @@ pingreply(Machine *m, Req *r)
 
 
 void
-pingclean(Machine *m, uint16_t seq, int64_t now, int)
+pingclean(Machine *m, uint16_t seq, int64_t now, int i)
 {
 	Req **l, *r;
 	int64_t x, y;
@@ -957,7 +957,7 @@ dobutton1(Mouse *m)
 }
 
 void
-mouseproc(void*)
+mouseproc(void *v)
 {
 	Mouse mouse;
 
@@ -996,7 +996,7 @@ void
 main(int argc, char *argv[])
 {
 	int i, j;
-	long v, vmax, mark;
+	int32_t v, vmax, mark;
 	char flags[10], *f, *p;
 
 	fmtinstall('V', eipfmt);
