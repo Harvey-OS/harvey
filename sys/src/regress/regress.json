@@ -12,6 +12,7 @@
 		"longjmp.c",
 		"psx.c",
 		"args.c",
-		"syscall.c"
+		"syscall.c",
+		"execl.c"
 	]
 }
