@@ -1,0 +1,3 @@
+[submodule "util/third_party/src/github.com/rminnich/go9p"]
+	path = util/third_party/src/github.com/rminnich/go9p
+	url = git@github.com:rminnich/go9p.git
