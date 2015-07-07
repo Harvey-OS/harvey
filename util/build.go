@@ -324,12 +324,21 @@ func project(root string) {
 }
 
 func main() {
+	var badsetup bool
 	var err error
 	cwd, err = os.Getwd()
 	fail(err)
 	harvey = os.Getenv("HARVEY")
 	if harvey == "" {
-		log.Fatalf("You need to set the HARVEY environment variable")
+		log.Printf("You need to set the HARVEY environment variable")
+		badsetup = true
+	}
+	if os.Getenv("ARCH") == "" {
+		log.Printf("You need to set the ARCH environment variable")
+		badsetup = true
+	}
+	if badsetup {
+		os.Exit(1)
 	}
 	f := path.Join(cwd, os.Args[1])
 	project(f)
