@@ -4,14 +4,12 @@
 	],
 	"Install": "/$ARCH/bin/regress",
 	"Name": "Regress",
-	"Pre": [
-		"mkdir -p $HARVEY/amd64/bin/regress"
-	],
 	"SourceFilesCmd": [
 		"iphash.c",
 		"privates.c",
 		"fork.c",
 		"thread.c",
-		"longjmp.c"
+		"longjmp.c",
+		"psx.c"
 	]
 }
