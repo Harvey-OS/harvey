@@ -159,6 +159,9 @@ vfprintf(FILE *f, const char *s, va_list args)
 {
 	int flags, width, precision;
 
+	va_list vargs;
+	va_copy(vargs, args);
+
 	qlock(&_stdiolk);
 
 	nprint = 0;
@@ -197,7 +200,7 @@ vfprintf(FILE *f, const char *s, va_list args)
 		else
 			precision = -1;
 		while(tflag[*s&_IO_CHMASK]) flags |= tflag[*s++&_IO_CHMASK];
-		if(ocvt[*s]) nprint += (*ocvt[*s++])(f, &args, flags, width, precision);
+		if(ocvt[(int)*s]) nprint += (*ocvt[(int)*s++])(f, &vargs, flags, width, precision);
 		else if(*s){
 			putc(*s++, f);
 			nprint++;
@@ -302,8 +305,8 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 	int nout, npad, nlzero;
 
 	if(sgned){
-		if(flags&PTR) snum = (int32_t)va_arg(*args, void *);
-		else if(flags&SHORT) snum = va_arg(*args, int16_t);
+		if(flags&PTR) snum = (int64_t)va_arg(*args, void *);
+		else if(flags&SHORT) snum = va_arg(*args, int);
 		else if(flags&LONG) snum = va_arg(*args, int32_t);
 		else snum = va_arg(*args, int);
 		if(snum < 0){
@@ -317,9 +320,9 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 		}
 	} else {
 		sign = "";
-		if(flags&PTR) num = (int32_t)va_arg(*args, void *);
-		else if(flags&SHORT) num = va_arg(*args, unsigned short);
-		else if(flags&LONG) num = va_arg(*args, unsigned long);
+		if(flags&PTR) num = (int64_t)va_arg(*args, void *);
+		else if(flags&SHORT) num = va_arg(*args, uint);
+		else if(flags&LONG) num = va_arg(*args, uint32_t);
 		else num = va_arg(*args, unsigned int);
 	}
 	if(num == 0) prefix = "";

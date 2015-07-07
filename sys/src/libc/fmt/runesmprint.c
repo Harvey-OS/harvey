@@ -13,10 +13,12 @@
 Rune*
 runesmprint(char *fmt, ...)
 {
-	va_list args;
+	va_list va, args;
 	Rune *p;
 
-	va_start(args, fmt);
+	va_start(va, fmt);
+	va_copy(args, va);
+	va_end(va);
 	p = runevsmprint(fmt, args);
 	va_end(args);
 	return p;

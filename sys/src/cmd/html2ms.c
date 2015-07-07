@@ -167,7 +167,7 @@ Entity pl_entity[]=
 };
 
 int
-cistrcmp(char *a, char *b)
+cistrcmp(const char *a, const char *b)
 {
 	int c, d;
 

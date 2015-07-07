@@ -13,10 +13,12 @@
 char*
 seprint(char *buf, char *e, char *fmt, ...)
 {
+	va_list va, args;
 	char *p;
-	va_list args;
 
-	va_start(args, fmt);
+	va_start(va, fmt);
+	va_copy(args, va);
+	va_end(va);
 	p = vseprint(buf, e, fmt, args);
 	va_end(args);
 	return p;

@@ -192,7 +192,7 @@ vtlogvprint(VtLog *l, char *fmt, ...)
 	char *p;
 	VtLogChunk *c;
 	static int first = 1;
-	va_list arg;
+	va_list va, arg;
 
 	if(l == nil)
 		return;
@@ -213,7 +213,9 @@ vtlogvprint(VtLog *l, char *fmt, ...)
 		c->wp = c->p;
 		l->w = c;
 	}
-	va_start(arg, fmt);
+	va_start(va, fmt);
+	va_copy(arg, va);
+	va_end(va);
 	p = vseprint(c->wp, c->ep, fmt, arg);
 	va_end(arg);
 	if(p)
@@ -224,12 +226,14 @@ vtlogvprint(VtLog *l, char *fmt, ...)
 void
 vtlogprint(VtLog *l, char *fmt, ...)
 {
-	va_list arg;
+	va_list va, arg;
 	
 	if(l == nil)
 		return;
 		
-	va_start(arg, fmt);
+	va_start(va, fmt);
+	va_copy(arg, va);
+	va_end(va);
 	vtlogvprint(l, fmt, arg);
 	va_end(arg);
 }
@@ -238,12 +242,14 @@ void
 vtlog(char *name, char *fmt, ...)
 {
 	VtLog *l;
-	va_list arg;
+	va_list va, arg;
 
 	l = vtlogopen(name, LogSize);
 	if(l == nil)
 		return;
-	va_start(arg, fmt);
+	va_start(va, fmt);
+	va_copy(arg, va);
+	va_end(va);
 	vtlogvprint(l, fmt, arg);
 	va_end(arg);
 	vtlogclose(l);

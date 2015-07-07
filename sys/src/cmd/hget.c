@@ -74,8 +74,8 @@ Range*	crackrange(char*);
 int	getheader(int, char*, int);
 int	httpheaders(int, int, URL*, Range*);
 int	httprcode(int);
-int	cistrncmp(char*, char*, int);
-int	cistrcmp(char*, char*);
+int	cistrncmp(const char*, const char*, int);
+int	cistrcmp(const char*, const char*);
 void	initibuf(void);
 int	readline(int, char*, int);
 int	readibuf(int, char*, int);
@@ -1249,7 +1249,7 @@ terminateftp(int ctl, int rv)
  * case insensitive strcmp (why aren't these in libc?)
  */
 int
-cistrncmp(char *a, char *b, int n)
+cistrncmp(const char *a, const char *b, int n)
 {
 	while(n-- > 0){
 		if(tolower(*a++) != tolower(*b++))
@@ -1259,7 +1259,7 @@ cistrncmp(char *a, char *b, int n)
 }
 
 int
-cistrcmp(char *a, char *b)
+cistrcmp(const char *a, const char *b)
 {
 	while(*a || *b)
 		if(tolower(*a++) != tolower(*b++))

@@ -13,10 +13,12 @@
 void
 werrstr(char *fmt, ...)
 {
-	va_list arg;
+	va_list va, arg;
 	char buf[ERRMAX];
 
-	va_start(arg, fmt);
+	va_start(va, fmt);
+	va_copy(arg, va);
+	va_end(va);
 	vseprint(buf, buf+ERRMAX, fmt, arg);
 	va_end(arg);
 	errstr(buf, ERRMAX);

@@ -84,6 +84,26 @@ procexec(Channel *pidc, char *prog, char *args[])
 void
 procexecl(Channel *pidc, char *f, ...)
 {
-	procexec(pidc, f, &f+1);
+	va_list va, va2;
+	char *arg;
+	int n;
+
+	va_start(va, f);
+	va_copy(va2, va);
+
+	n = 0;
+	while((arg = va_arg(va, char *)) != nil)
+		n++;
+
+	char *args[n+1];
+
+	n = 0;
+	while((arg = va_arg(va2, char *)) != nil)
+		args[n++] = arg;
+	args[n] = nil;
+
+	va_end(va);
+	va_end(va2);
+	procexec(pidc, f, args);
 }
 

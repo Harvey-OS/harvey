@@ -13,7 +13,7 @@
 #define	N	256
 
 char*
-strtok(char *s, char *b)
+strtok(char *s, const char *b)
 {
 	static char *under_rock;
 	char map[N], *os;
