@@ -10,6 +10,8 @@
 		"fork.c",
 		"thread.c",
 		"longjmp.c",
-		"psx.c"
+		"psx.c",
+		"args.c",
+		"syscall.c"
 	]
 }
