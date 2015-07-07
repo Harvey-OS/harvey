@@ -17,7 +17,7 @@ int
 main(void)
 {
 	unsigned char buf[512];
-	int i, fail = 0;
+	uint64_t i, fail = 0;
 
 	if (_privates == nil) {
 		fprint(2, "_privates is nil\n");

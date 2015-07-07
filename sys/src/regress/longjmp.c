@@ -25,11 +25,11 @@ main(void)
 
 	if(njmp != Njmps)
 		fail++;
-	if(label[JMPBUFPC] < main)
+	if(label[JMPBUFPC] < (uintptr_t)main)
 		fail++;
-	if(label[JMPBUFPC] > foo)
+	if(label[JMPBUFPC] > (uintptr_t)foo)
 		fail++;
-	if(label[JMPBUFSP] > &label[nelem(label)])
+	if(label[JMPBUFSP] > (uintptr_t)&label[nelem(label)])
 		fail++;
 	if(label[JMPBUFSP] < 0x7fffffd00000)
 		fail++;
@@ -40,6 +40,7 @@ main(void)
 	}
 	print("FAIL\n");
 	exits("FAIL");
+	return 0;
 }
 
 void
