@@ -1,6 +1,6 @@
 {
 	"Include": [
-		"../../cmd.json"
+		"../../kernel.json"
 	],
 	"Install": "/$ARCH/bin/ip",
 	"Name": "ipconfig",

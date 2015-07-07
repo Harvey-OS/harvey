@@ -19,7 +19,7 @@ typedef struct Lcpopt Lcpopt;
 typedef struct Qualpkt Qualpkt;
 typedef struct Block Block;
 
-typedef uchar Ipaddr[IPaddrlen];	
+typedef uint8_t Ipaddr[IPaddrlen];	
 
 #pragma incomplete Tcpc
 
@@ -31,11 +31,11 @@ struct Block
 	Block	*next;
 	Block	*flist;
 	Block	*list;			/* chain of block lists */
-	uchar	*rptr;			/* first unconsumed uchar */
-	uchar	*wptr;			/* first empty uchar */
-	uchar	*lim;			/* 1 past the end of the buffer */
-	uchar	*base;			/* start of the buffer */
-	uchar	flags;
+	uint8_t	*rptr;			/* first unconsumed uint8_t */
+	uint8_t	*wptr;			/* first empty uint8_t */
+	uint8_t	*lim;			/* 1 past the end of the buffer */
+	uint8_t	*base;			/* start of the buffer */
+	uint8_t	flags;
 	void	*flow;
 	uint32_t	pc;
 	uint32_t	bsz;
@@ -213,11 +213,11 @@ struct Pstate
 	int	timeout;	/* for current state */
 	int	rxtimeout;	/* for current retransmit */
 	uint32_t	flags;		/* options received */
-	uchar	id;		/* id of current message */
-	uchar	confid;		/* id of current config message */
-	uchar	termid;		/* id of current termination message */
-	uchar	rcvdconfid;	/* id of last conf message received */
-	uchar	state;		/* PPP link state */
+	uint8_t	id;		/* id of current message */
+	uint8_t	confid;		/* id of current config message */
+	uint8_t	termid;		/* id of current termination message */
+	uint8_t	rcvdconfid;	/* id of last conf message received */
+	uint8_t	state;		/* PPP link state */
 	uint32_t	optmask;	/* which options to request */
 	int	echoack;	/* recieved echo ack */
 	int	echotimeout;	/* echo timeout */
@@ -228,7 +228,7 @@ struct Chap
 {
 	int	proto;		/* chap proto */
 	int	state;		/* chap state */
-	uchar	id;		/* id of current message */
+	uint8_t	id;		/* id of current message */
 	int	timeout;	/* for current state */
 	Chalstate *cs;
 };
@@ -237,7 +237,7 @@ struct Qualstats
 {
 	uint32_t	reports;
 	uint32_t	packets;
-	uint32_t	uchars;
+	uint32_t	uint8_ts;
 	uint32_t	discards;
 	uint32_t	errors;
 };
@@ -245,7 +245,7 @@ struct Qualstats
 struct Comptype
 {
 	void*		(*init)(PPP*);
-	Block*		(*compress)(PPP*, ushort, Block*, int*);
+	Block*		(*compress)(PPP*, uint16_t, Block*, int*);
 	Block*		(*resetreq)(void*, Block*);
 	void		(*fini)(void*);
 };
@@ -281,17 +281,17 @@ struct PPP
 	Block*		inbuf;		/* input buffer */
 	Block*		outbuf;		/* output buffer */
 	QLock		outlock;	/*  and its lock */
-	ulong		magic;		/* magic number to detect loop backs */
-	ulong		rctlmap;	/* map of chars to ignore in rcvr */
-	ulong		xctlmap;	/* map of chars to excape in xmit */
+	uint32_t		magic;		/* magic number to detect loop backs */
+	uint32_t		rctlmap;	/* map of chars to ignore in rcvr */
+	uint32_t		xctlmap;	/* map of chars to excape in xmit */
 	int		phase;		/* PPP phase */
 	Pstate*		lcp;		/* lcp state */
 	Pstate*		ccp;		/* ccp state */
 	Pstate*		ipcp;		/* ipcp state */
 	Chap*		chap;		/* chap state */
 	Tcpc*		ctcp;		/* tcp compression state */
-	ulong		mtu;		/* maximum xmit size */
-	ulong		mru;		/* maximum recv size */
+	uint32_t		mtu;		/* maximum xmit size */
+	uint32_t		mru;		/* maximum recv size */
 
 	/* data compression */
 	int		ctries;		/* number of negotiation tries */
@@ -301,7 +301,7 @@ struct PPP
 	void		*uncstate;	/* uncompression state */
 	
 	/* encryption key */
-	uchar		key[16];
+	uint8_t		key[16];
 	int		sendencrypted;
 
 	/* authentication */
@@ -318,21 +318,21 @@ struct PPP
 	Qualstats	sin;	/* saved */
 
 	struct {
-		ulong	ipsend;
-		ulong	iprecv;
-		ulong	iprecvbadsrc;
-		ulong	iprecvnotup;
-		ulong	comp;
-		ulong	compin;
-		ulong	compout;
-		ulong	compreset;
-		ulong	uncomp;
-		ulong	uncompin;
-		ulong	uncompout;
-		ulong	uncompreset;
-		ulong	vjin;
-		ulong	vjout;
-		ulong	vjfail;
+		uint32_t	ipsend;
+		uint32_t	iprecv;
+		uint32_t	iprecvbadsrc;
+		uint32_t	iprecvnotup;
+		uint32_t	comp;
+		uint32_t	compin;
+		uint32_t	compout;
+		uint32_t	compreset;
+		uint32_t	uncomp;
+		uint32_t	uncompin;
+		uint32_t	uncompout;
+		uint32_t	uncompreset;
+		uint32_t	vjin;
+		uint32_t	vjout;
+		uint32_t	vjfail;
 	} stat;
 };
 
@@ -342,46 +342,46 @@ extern void	pppopen(PPP*, int, int, char*, Ipaddr, Ipaddr, int, int);
 
 struct Lcpmsg
 {
-	uchar	code;
-	uchar	id;
-	uchar	len[2];
-	uchar	data[1];
+	uint8_t	code;
+	uint8_t	id;
+	uint8_t	len[2];
+	uint8_t	data[1];
 };
 
 struct Lcpopt
 {
-	uchar	type;
-	uchar	len;
-	uchar	data[1];
+	uint8_t	type;
+	uint8_t	len;
+	uint8_t	data[1];
 };
 
 struct Qualpkt
 {
-	uchar	magic[4];
+	uint8_t	magic[4];
 
-	uchar	lastoutreports[4];
-	uchar	lastoutpackets[4];
-	uchar	lastoutuchars[4];
-	uchar	peerinreports[4];
-	uchar	peerinpackets[4];
-	uchar	peerindiscards[4];
-	uchar	peerinerrors[4];
-	uchar	peerinuchars[4];
-	uchar	peeroutreports[4];
-	uchar	peeroutpackets[4];
-	uchar	peeroutuchars[4];
+	uint8_t	lastoutreports[4];
+	uint8_t	lastoutpackets[4];
+	uint8_t	lastoutuint8_ts[4];
+	uint8_t	peerinreports[4];
+	uint8_t	peerinpackets[4];
+	uint8_t	peerindiscards[4];
+	uint8_t	peerinerrors[4];
+	uint8_t	peerinuint8_ts[4];
+	uint8_t	peeroutreports[4];
+	uint8_t	peeroutpackets[4];
+	uint8_t	peeroutuint8_ts[4];
 };
 
 extern Block*	compress(Tcpc*, Block*, int*);
 extern void	compress_error(Tcpc*);
 extern Tcpc*	compress_init(Tcpc*);
-extern int	compress_negotiate(Tcpc*, uchar*);
+extern int	compress_negotiate(Tcpc*, uint8_t*);
 extern Block*	tcpcompress(Tcpc*, Block*, int*);
 extern Block*	tcpuncompress(Tcpc*, Block*, int);
 extern Block*	alloclcp(int, int, int, Lcpmsg**);
-extern ushort	ptclcsum(Block*, int, int);
-extern ushort	ptclbsum(uchar*, int);
-extern ushort	ipcsum(uchar*);
+extern uint16_t	ptclcsum(Block*, int, int);
+extern uint16_t	ptclbsum(uint8_t*, int);
+extern uint16_t	ipcsum(uint8_t*);
 
 extern	Comptype	cmppc;
 extern	Uncomptype	uncmppc;

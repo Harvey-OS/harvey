@@ -161,7 +161,7 @@ double	drop;
 
 void	myfatal(char *fmt, ...);
 
-#define	PSHORT(p, v)		((p)[0]=((v)>>8), (p)[1]=(v))
+#define	PSHORT(p, v)		((p)[0]=(((v)>>8)&0xFF), (p)[1]=((v)&0xFF))
 #define	PLONG(p, v)		(PSHORT(p, (v)>>16), PSHORT(p+2, (v)))
 #define	PSTRING(d,s,n)		strncpy((char*)(d), s, n)
 #define	GSHORT(p)		(((p)[0]<<8) | ((p)[1]<<0))
@@ -342,11 +342,11 @@ serve(void)
 }
 
 int
-sstart(uchar *p, int n)
+sstart(uint8_t *p, int n)
 {
 	int ver, frame, bearer, maxchan, firm;
 	char host[64], vendor[64], *sysname;
-	uchar buf[156];
+	uint8_t buf[156];
 
 	if(n < 156)
 		return 0;
@@ -398,10 +398,10 @@ sstart(uchar *p, int n)
 }
 
 int
-sstop(uchar *p, int n)
+sstop(uint8_t *p, int n)
 {
 	int reason;
-	uchar buf[16];
+	uint8_t buf[16];
 
 	if(n < 16)
 		return 0;
@@ -423,10 +423,10 @@ sstop(uchar *p, int n)
 }
 
 int
-secho(uchar *p, int n)
+secho(uint8_t *p, int n)
 {
 	int id;
-	uchar buf[20];
+	uint8_t buf[20];
 
 	if(n < 16)
 		return 0;
@@ -449,7 +449,7 @@ secho(uchar *p, int n)
 }
 
 int
-scallout(uchar *p, int n)
+scallout(uint8_t *p, int n)
 {
 	int id, serial;
 	int minbps, maxbps, bearer, frame;
@@ -525,11 +525,11 @@ scallcon(uint8_t *p, int n)
 }
 
 int
-scallclear(uchar *p, int n)
+scallclear(uint8_t *p, int n)
 {
 	Call *c;
 	int id;
-	uchar buf[148];
+	uint8_t buf[148];
 
 	if(n < 16)
 		return 0;
@@ -557,7 +557,7 @@ scallclear(uchar *p, int n)
 }
 
 int
-scalldis(uchar *p, int n)
+scalldis(uint8_t *p, int n)
 {
 	Call *c;
 	int id, res;
@@ -578,7 +578,7 @@ scalldis(uchar *p, int n)
 }
 
 int
-swaninfo(uchar *p, int n)
+swaninfo(uint8_t *p, int n)
 {
 	Call *c;
 	int id;
@@ -606,7 +606,7 @@ swaninfo(uchar *p, int n)
 }
 
 int
-slinkinfo(uchar *p, int n)
+slinkinfo(uint8_t *p, int n)
 {
 	Call *c;
 	int id;
@@ -845,12 +845,12 @@ greinit(void)
 }
 
 void
-greread(void *)
+greread(void *v)
 {
-	uchar buf[Pktsize], *p;
+	uint8_t buf[Pktsize], *p;
 	int n, i;
 	int flag, prot, len, callid;
-	uchar src[IPaddrlen], dst[IPaddrlen];
+	uint8_t src[IPaddrlen], dst[IPaddrlen];
 	uint rseq, ack;
 	Call *c;
 	static double t, last;
@@ -979,7 +979,7 @@ srv.remote, realtime(), c->id, rseq, len EDB
 void
 greack(Call *c)
 {
-	uchar buf[20];
+	uint8_t buf[20];
 
 	c->stat.sendack++;
 
@@ -1022,9 +1022,9 @@ void
 pppread(void *a)
 {
 	Call *c;
-	uchar buf[2000], *p;
+	uint8_t buf[2000], *p;
 	int n;
-	ulong tick;
+	uintptr tick;
 
 	c = a;
 	for(;;) {
@@ -1081,7 +1081,7 @@ SDB "%I: %.3f: gre %d: send s=%ux a=%ux len=%d\n", srv.remote, realtime(),
 }
 
 void
-timeoutthread(void*)
+timeoutthread(void *v)
 {
 	for(;;) {
 		sleep(30*1000);
@@ -1100,7 +1100,7 @@ myfatal(char *fmt, ...)
 {
 	char sbuf[512];
 	va_list arg;
-	uchar buf[16];
+	uint8_t buf[16];
 
 	/* NT don't seem to like us just going away */
 	memset(buf, 0, sizeof(buf));

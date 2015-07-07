@@ -267,8 +267,8 @@ readBox(Box *box)
 			m->fsDir = box->fsDir;
 			m->fs = emalloc(2 * (MsgNameLen + 1));
 			m->efs = seprint(m->fs, m->fs + (MsgNameLen + 1), "%lud/", id);
-			m->size = ~0UL;
-			m->lines = ~0UL;
+			m->size = ~0UL&0xFF;
+			m->lines = ~0UL&0xFF;
 			m->prev = last;
 			m->flags = MRecent;
 			if(!msgInfo(m))

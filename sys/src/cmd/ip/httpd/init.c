@@ -115,7 +115,7 @@ init(int argc, char **argv)
 	connect.req.uri = argv[2];
 	connect.req.search = argv[3];
 	connect.head.closeit = 1;
-	connect.hpos = (uchar*)strchr((char*)connect.header, '\0');
+	connect.hpos = (uint8_t*)strchr((char*)connect.header, '\0');
 	connect.hstop = connect.hpos;
 	connect.reqtime = time(nil);	/* not quite right, but close enough */
 	return &connect;

@@ -182,7 +182,7 @@ thwmatch(ThwBlock *b, ThwBlock *eblocks, uint8_t **ss, uint8_t *esrc,
  * and might be faster on some machines
  */
 /*
-#define hashit(c)	(((ulong)(c) * 0x6b43a9) >> (24 - HashLog))
+#define hashit(c)	(((uint32_t)(c) * 0x6b43a9) >> (24 - HashLog))
 */
 #define hashit(c)	((((uint32_t)(c) & 0xffffff) * 0x6b43a9b5) >> (32 - HashLog))
 

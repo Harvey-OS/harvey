@@ -14,8 +14,7 @@
 	],
 	"Projects": [
 		"/sys/src/cmd/rc/rc.json",
-		"/sys/src/cmd/ip/ipconfig/ipconfig.json",
-		"/sys/src/cmd/ip/dhcpclient.json"
+		"/sys/src/cmd/ip/ipconfig/kipconfig.json"
 	],
 	"SourceFilesCmd": [
 		"bind.c",

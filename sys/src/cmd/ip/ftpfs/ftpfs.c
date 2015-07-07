@@ -81,7 +81,7 @@ OS oslist[] = {
 	{ MVS,		"MVS", },
 	{ NetWare,	"NetWare", },
 	{ NetWare,	"NETWARE", },
-	{ OS½,		"OS/2", },
+	{ OS2,		"OS/2", },
 	{ TSO,		"TSO", },
 	{ NT,		"Windows_NT", },	/* DOS like interface */
 	{ NT,		"WINDOWS_NT", },	/* Unix like interface */
@@ -311,7 +311,7 @@ rnop(Fid *f)
 }
 
 char*
-rversion(Fid*)
+rversion(Fid *f)
 {
 	if(thdr.msize > sizeof(mdata))
 		rhdr.msize = messagesize;
@@ -326,13 +326,13 @@ rversion(Fid*)
 }
 
 char*
-rflush(Fid*)
+rflush(Fid *f)
 {
 	return 0;
 }
 
 char*
-rauth(Fid*)
+rauth(Fid *f)
 {
 	return "auth unimplemented";
 }

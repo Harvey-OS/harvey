@@ -36,7 +36,7 @@ struct Cstate
 	int	count;
 	int	reset;		/* compressor has been reset */
 	int	front;		/* move to begining of history */
-	ulong	sreg;		/* output shift reg */
+	uint32_t	sreg;		/* output shift reg */
 	int	bits;		/* number of bits in sreg */
 	Block	*b; 		/* output block */
 
@@ -46,14 +46,14 @@ struct Cstate
 	Carena	arenas[2];
 	Carena	*hist;
 	Carena	*ohist;
-	ulong	hash[Cnhash];
+	uint32_t	hash[Cnhash];
 	int	h;
-	ulong	me;
-	ulong	split;
+	uint32_t	me;
+	uint32_t	split;
 
 	int	encrypt;
-	uchar	startkey[16];
-	uchar	key[16];
+	uint8_t	startkey[16];
+	uint8_t	key[16];
 	RC4state rc4key;
 };
 
@@ -725,7 +725,7 @@ netlog("*****bad history\n");
 }
 
 static	void
-uncresetack(void*, Block*)
+uncresetack(void *v, Block *b)
 {
 }
 

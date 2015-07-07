@@ -1879,7 +1879,7 @@ seqNo(void)
 {
 	if(peekc() == '*'){
 		getc();
-		return ~0UL;
+		return ~0UL&0xFF;
 	}
 	return number(1);
 }
@@ -1889,7 +1889,7 @@ uidNo(void)
 {
 	if(peekc() == '*'){
 		getc();
-		return ~0UL;
+		return ~0UL&0xFF;
 	}
 	return number(0);
 }

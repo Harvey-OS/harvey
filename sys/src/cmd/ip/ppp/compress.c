@@ -16,41 +16,41 @@
 typedef struct Iphdr Iphdr;
 struct Iphdr
 {
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	cksum[2];	/* Header checksum */
-	uint32_t	src;		/* Ip source (uchar ordering unimportant) */
-	uint32_t	dst;		/* Ip destination (uchar ordering unimportant) */
+	uint8_t	vihl;		/* Version and header length */
+	uint8_t	tos;		/* Type of service */
+	uint8_t	length[2];	/* packet length */
+	uint8_t	id[2];		/* Identification */
+	uint8_t	frag[2];	/* Fragment information */
+	uint8_t	ttl;		/* Time to live */
+	uint8_t	proto;		/* Protocol */
+	uint8_t	cksum[2];	/* Header checksum */
+	uint32_t	src;		/* Ip source (uint8_t ordering unimportant) */
+	uint32_t	dst;		/* Ip destination (uint8_t ordering unimportant) */
 };
 
 typedef struct Tcphdr Tcphdr;
 struct Tcphdr
 {
-	uint32_t	ports;		/* defined as a ulong to make comparisons easier */
-	uchar	seq[4];
-	uchar	ack[4];
-	uchar	flag[2];
-	uchar	win[2];
-	uchar	cksum[2];
-	uchar	urg[2];
+	uint32_t	ports;		/* defined as a uint32_t to make comparisons easier */
+	uint8_t	seq[4];
+	uint8_t	ack[4];
+	uint8_t	flag[2];
+	uint8_t	win[2];
+	uint8_t	cksum[2];
+	uint8_t	urg[2];
 };
 
 typedef struct Ilhdr Ilhdr;
 struct Ilhdr
 {
-	uchar	sum[2];	/* Checksum including header */
-	uchar	len[2];	/* Packet length */
-	uchar	type;		/* Packet type */
-	uchar	spec;		/* Special */
-	uchar	src[2];	/* Src port */
-	uchar	dst[2];	/* Dst port */
-	uchar	id[4];	/* Sequence id */
-	uchar	ack[4];	/* Acked sequence */
+	uint8_t	sum[2];	/* Checksum including header */
+	uint8_t	len[2];	/* Packet length */
+	uint8_t	type;		/* Packet type */
+	uint8_t	spec;		/* Special */
+	uint8_t	src[2];	/* Src port */
+	uint8_t	dst[2];	/* Dst port */
+	uint8_t	id[4];	/* Sequence id */
+	uint8_t	ack[4];	/* Acked sequence */
 };
 
 enum
@@ -72,7 +72,7 @@ enum
 typedef struct Hdr Hdr;
 struct Hdr
 {
-	uchar	buf[128];
+	uint8_t	buf[128];
 	Iphdr	*ip;
 	Tcphdr	*tcp;
 	int	len;
@@ -81,11 +81,11 @@ struct Hdr
 typedef struct Tcpc Tcpc;
 struct Tcpc
 {
-	uchar	lastrecv;
-	uchar	lastxmit;
-	uchar	basexmit;
-	uchar	err;
-	uchar	compressid;
+	uint8_t	lastrecv;
+	uint8_t	lastxmit;
+	uint8_t	basexmit;
+	uint8_t	err;
+	uint8_t	compressid;
 	Hdr	t[MAX_STATES];
 	Hdr	r[MAX_STATES];
 };
@@ -111,7 +111,7 @@ enum
 int
 encode(void *p, uint32_t n)
 {
-	uchar	*cp;
+	uint8_t	*cp;
 
 	cp = p;
 	if(n >= 256 || n == 0) {
@@ -146,11 +146,11 @@ tcpcompress(Tcpc *comp, Block *b, int *protop)
 {
 	Iphdr	*ip;		/* current packet */
 	Tcphdr	*tcp;		/* current pkt */
-	uint32_t 	iplen, tcplen, hlen;	/* header length in uchars */
+	uint32_t 	iplen, tcplen, hlen;	/* header length in uint8_ts */
 	uint32_t 	deltaS, deltaA;	/* general purpose temporaries */
 	uint32_t 	changes;	/* change mask */
-	uchar 	new_seq[16];	/* changes from last to current */
-	uchar 	*cp;
+	uint8_t 	new_seq[16];	/* changes from last to current */
+	uint8_t 	*cp;
 	Hdr	*h;		/* last packet */
 	int 	i, j;
 
@@ -286,10 +286,10 @@ found:
 
 	/*
 	 * We want to use the original packet as our compressed packet. (cp -
-	 * new_seq) is the number of uchars we need for compressed sequence
-	 * numbers. In addition we need one uchar for the change mask, one
+	 * new_seq) is the number of uint8_ts we need for compressed sequence
+	 * numbers. In addition we need one uint8_t for the change mask, one
 	 * for the connection id and two for the tcp checksum. So, (cp -
-	 * new_seq) + 4 uchars of header are needed. hlen is how many uchars
+	 * new_seq) + 4 uint8_ts of header are needed. hlen is how many uint8_ts
 	 * of the original packet to toss so subtract the two to get the new
 	 * packet size. The temporaries are gross -egs.
 	 */
@@ -329,7 +329,7 @@ rescue:
 Block*
 tcpuncompress(Tcpc *comp, Block *b, int type)
 {
-	uchar	*cp, changes;
+	uint8_t	*cp, changes;
 	int	i;
 	int	iplen, len;
 	Iphdr	*ip;
@@ -442,11 +442,11 @@ tcpuncompress(Tcpc *comp, Block *b, int type)
 		hnputs(ip->id, nhgets(ip->id) + 1);
 
 	/*
-	 *  At this point, cp points to the first uchar of data in the packet.
+	 *  At this point, cp points to the first uint8_t of data in the packet.
 	 *  Back up cp by the TCP/IP header length to make room for the
 	 *  reconstructed header.
 	 *  We assume the packet we were handed has enough space to prepend
-	 *  up to 128 uchars of header.
+	 *  up to 128 uint8_ts of header.
 	 */
 	b->rptr = cp;
 	if(b->rptr - b->base < len){
@@ -519,7 +519,7 @@ compress(Tcpc *tcp, Block *b, int *protop)
 }
 
 int
-compress_negotiate(Tcpc *tcp, uchar *data)
+compress_negotiate(Tcpc *tcp, uint8_t *data)
 {
 	if(data[0] != MAX_STATES - 1)
 		return -1;

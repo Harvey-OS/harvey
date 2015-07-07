@@ -214,7 +214,7 @@ main(int argc, char *argv[])
 	long diff;
 	char *p;
 	char buf[2*1024];
-	uchar raddr[Pasize];
+	uint8_t raddr[Pasize];
 	Bnet *bn, **l;
 	Udphdr *up;
 	Rip *r;

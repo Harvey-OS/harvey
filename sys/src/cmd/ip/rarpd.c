@@ -61,7 +61,7 @@ void
 main(int argc, char *argv[])
 {
 	int edata, ectl;
-	uchar buf[2048];
+	uint8_t buf[2048];
 	long n;
 	Rarp *rp;
 	char ebuf[16];
@@ -95,7 +95,7 @@ main(int argc, char *argv[])
 		setnetmtpt(net, sizeof(net), p);
 		break;
 	}ARGEND
-	USED(argc, argv);
+	USED(argc); USED(argv);
 
 	fmtinstall('E', eipfmt);
 	fmtinstall('I', eipfmt);

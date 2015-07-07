@@ -60,9 +60,9 @@ struct Box
 	char	*fs;		/* fs name of mailbox */
 	char	*fsDir;		/* /mail/fs/box->fs */
 	char	*imp;		/* path name of .imp file */
-	uchar	writable;	/* can write back messages? */
-	uchar	dirtyImp;	/* .imp file needs to be written? */
-	uchar	sendFlags;	/* need flags update */
+	uint8_t	writable;	/* can write back messages? */
+	uint8_t	dirtyImp;	/* .imp file needs to be written? */
+	uint8_t	sendFlags;	/* need flags update */
 	Qid	qid;		/* qid of fs mailbox */
 	Qid	impQid;		/* qid of .imp when last synched */
 	long	mtime;		/* file mtime when last read */
@@ -131,10 +131,10 @@ struct Msg
 	Header	head;		/* message header */
 	Header	mime;		/* mime header from enclosing multipart spec */
 	int	flags;
-	uchar	sendFlags;	/* flags value needs to be sent to client */
-	uchar	expunged;	/* message actually expunged, but not yet reported to client */
-	uchar	matched;	/* search succeeded? */
-	uchar	bogus;		/* implies the message is invalid, ie contains nulls; see flags above */
+	uint8_t	sendFlags;	/* flags value needs to be sent to client */
+	uint8_t	expunged;	/* message actually expunged, but not yet reported to client */
+	uint8_t	matched;	/* search succeeded? */
+	uint8_t	bogus;		/* implies the message is invalid, ie contains nulls; see flags above */
 	uint32_t	uid;		/* imap unique identifier */
 	uint32_t	seq;		/* position in box; 1 is oldest */
 	uint32_t	id;		/* number of message directory in upas/fs */
@@ -244,9 +244,9 @@ enum
 
 struct Fetch
 {
-	uchar	op;		/* F.* operator */
-	uchar	part;		/* FP.* subpart for body[] & body.peek[]*/
-	uchar	partial;	/* partial fetch? */
+	uint8_t	op;		/* F.* operator */
+	uint8_t	part;		/* FP.* subpart for body[] & body.peek[]*/
+	uint8_t	partial;	/* partial fetch? */
 	long	start;		/* partial fetch amounts */
 	long	size;
 	NList	*sect;
@@ -278,8 +278,8 @@ enum
 
 struct Store
 {
-	uchar	sign;
-	uchar	op;
+	uint8_t	sign;
+	uint8_t	op;
 	int	flags;
 };
 

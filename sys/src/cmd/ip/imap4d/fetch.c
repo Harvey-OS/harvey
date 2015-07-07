@@ -61,7 +61,7 @@ breakout:
  *	body[id] === body[id.header] + body[id.text]
 */
 int
-fetchMsg(Box *, Msg *m, int uids, void *vf)
+fetchMsg(Box *b, Msg *m, int uids, void *vf)
 {
 	Tm tm;
 	Fetch *f;
@@ -412,7 +412,7 @@ findMsgSect(Msg *m, NList *sect)
 				break;
 		}
 		/* end of HACK */
-#endif HACK
+#endif
 		for(m = m->kids; m != nil; m = m->next)
 			if(m->id == id)
 				break;

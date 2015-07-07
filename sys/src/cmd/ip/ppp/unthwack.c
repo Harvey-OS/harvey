@@ -73,7 +73,7 @@ unthwackstate(Unthwack *ut, uint8_t *mask)
 	uint32_t bseq, seq;
 	int slot, m;
 
-	seq = ~0UL;
+	seq = ~0UL&0xFF;
 	m = 0;
 	slot = ut->slot;
 	for(;;){
@@ -127,7 +127,7 @@ unthwackinsert(Unthwack *ut, int len, uint32_t seq)
 	if(ut->slot >= DWinBlocks)
 		ut->slot = 0;
 
-	ut->blocks[ut->slot].seq = ~0UL;
+	ut->blocks[ut->slot].seq = ~0UL&0xFF;
 	ut->blocks[ut->slot].maxoff = 0;
 
 	return tslot;

@@ -42,7 +42,7 @@ enum
 	VMS=		5,
 	MVS=		6,
 	NetWare=	7,
-	OS½=		8,
+	OS2=		8,
 	TSO=		9,
 	NT=		10,
 	Unknown=	11,
@@ -57,8 +57,8 @@ extern OS oslist[];
 
 /* temporary files */
 void	filefree(Node*);
-int	fileread(Node*, char*, long, int);
-int	filewrite(Node*, char*, long, int);
+int	fileread(Node*, char*, int32_t, int);
+int	filewrite(Node*, char*, int32_t, int);
 void	filedirty(Node*);
 void	fileclean(Node*);
 int	fileisdirty(Node*);

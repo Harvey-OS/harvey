@@ -270,7 +270,7 @@ main(int argc, char **argv)
 		/*
 		 *  get rid of telnet control sequences (we don't need them)
 		 */
-		while(*cmd && (uchar)*cmd == Iac){
+		while(*cmd && (uint8_t)*cmd == Iac){
 			cmd++;
 			if(*cmd)
 				cmd++;
@@ -1027,7 +1027,7 @@ list(char *arg, int lflag)
 	char *alist[Narg];
 	char **argv;
 	Biobufhdr bh;
-	uchar buf[512];
+	uint8_t buf[512];
 	char *p, *s;
 
 	if(arg == 0)

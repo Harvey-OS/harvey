@@ -40,12 +40,12 @@ enum
 struct ThwBlock
 {
 	uint32_t	seq;			/* sequence number for this data */
-	uchar	acked;			/* ok to use this block; the decoder has it */
-	ushort	begin;			/* time of first byte in hash */
-	uchar	*edata;			/* last byte of valid data */
-	ushort	maxoff;			/* time of last valid hash entry */
-	ushort	*hash;
-	uchar	*data;
+	uint8_t	acked;			/* ok to use this block; the decoder has it */
+	uint16_t	begin;			/* time of first byte in hash */
+	uint8_t	*edata;			/* last byte of valid data */
+	uint16_t	maxoff;			/* time of last valid hash entry */
+	uint16_t	*hash;
+	uint8_t	*data;
 };
 
 struct Thwack
@@ -53,15 +53,15 @@ struct Thwack
 	QLock		acklock;	/* locks slot, blocks[].(acked|seq) */
 	int		slot;		/* next block to use */
 	ThwBlock	blocks[EWinBlocks];
-	ushort		hash[EWinBlocks][HashSize];
+	uint16_t		hash[EWinBlocks][HashSize];
 	Block		*data[EWinBlocks];
 };
 
 struct UnthwBlock
 {
 	uint32_t	seq;			/* sequence number for this data */
-	ushort	maxoff;			/* valid data in each block */
-	uchar	*data;
+	uint16_t	maxoff;			/* valid data in each block */
+	uint8_t	*data;
 };
 
 struct Unthwack
@@ -69,16 +69,16 @@ struct Unthwack
 	int		slot;		/* next block to use */
 	char		err[ThwErrLen];
 	UnthwBlock	blocks[DWinBlocks];
-	uchar		data[DWinBlocks][ThwMaxBlock];
+	uint8_t		data[DWinBlocks][ThwMaxBlock];
 };
 
 void	thwackinit(Thwack*);
 void	thwackcleanup(Thwack *tw);
 void	unthwackinit(Unthwack*);
-int	thwack(Thwack*, int mustadd, uchar *dst, int ndst, Block *bsrc,
+int	thwack(Thwack*, int mustadd, uint8_t *dst, int ndst, Block *bsrc,
 		  uint32_t seq, uint32_t stats[ThwStats]);
 void	thwackack(Thwack*, uint32_t seq, uint32_t mask);
-int	unthwack(Unthwack*, uchar *dst, int ndst, uchar *src, int nsrc,
+int	unthwack(Unthwack*, uint8_t *dst, int ndst, uint8_t *src, int nsrc,
 		    uint32_t seq);
-uint32_t	unthwackstate(Unthwack *ut, uchar *mask);
-int	unthwackadd(Unthwack *ut, uchar *src, int nsrc, uint32_t seq);
+uint32_t	unthwackstate(Unthwack *ut, uint8_t *mask);
+int	unthwackadd(Unthwack *ut, uint8_t *src, int nsrc, uint32_t seq);
