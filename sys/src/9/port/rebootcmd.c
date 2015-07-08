@@ -64,7 +64,6 @@ setbootcmd(int argc, char *argv[])
 void
 rebootcmd(int argc, char *argv[])
 {
-	panic("not supported yet");
 	Mach *m = machp();
 	Chan *c;
 	Exec exec;
@@ -74,6 +73,7 @@ rebootcmd(int argc, char *argv[])
 	if(argc == 0)
 		exit(0);
 
+	panic("Reboot with a file is not supported yet");
 	c = namec(argv[0], Aopen, OEXEC, 0);
 	if(waserror()){
 		cclose(c);
