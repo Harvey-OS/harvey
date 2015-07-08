@@ -161,24 +161,6 @@ schedinit(void)		/* never returns */
 }
 
 /*
- * Check if the stack has more than 4*KiB free.
- * Do not call panic, the stack is gigantic.
- */
-static void
-stackok(void)
-{
-	Mach *m = machp();
-	char dummy;
-	// this check is probably bogus. Don't bother.
-	return;
-
-	if(&dummy < (char*)m->externup->kstack + 4*KiB){
-		print("tc kernel stack overflow, cpu%d stopped\n", m->machno);
-		DONE();
-	}
-}
-
-/*
  *  If changing this routine, look also at sleep().  It
  *  contains a copy of the guts of sched().
  */
@@ -196,6 +178,7 @@ sched(void)
 			(m->externup && m->externup->lastilock)? m->externup->lastilock->_pc: 0,
 			getcallerpc(&p+2));
 
+	kstackok();
 	if(m->externup){
 		/*
 		 * Delay the sched until the process gives up the locks
@@ -227,8 +210,6 @@ sched(void)
 		if(m->externup->nqtrap == 0 && m->externup->nqsyscall == 0)
 			m->externup->nfullq++;
 		m->cs++;
-
-		stackok();
 
 		procsave(m->externup);
 		mmuflushtlb(m->pml4->pa);
@@ -1069,8 +1050,10 @@ newproc(void)
 	p->noteid = incref(&noteidalloc);
 	if(p->pid <= 0 || p->noteid <= 0)
 		panic("pidalloc");
-	if(p->kstack == 0)
+	if(p->kstack == 0){
 		p->kstack = smalloc(KSTACK);
+		*(uintptr_t*)p->kstack = STACKGUARD;
+	}
 
 	/* sched params */
 	p->mp = 0;

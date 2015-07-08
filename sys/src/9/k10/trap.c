@@ -321,9 +321,26 @@ kexit(Ureg* u)
 }
 
 void
+kstackok(void)
+{
+	Mach *m = machp();
+
+	if(m->externup == nil){
+		uintptr_t *stk = (uintptr_t*)m->stack;
+		if(*stk != STACKGUARD)
+			panic("trap: mach %d machstk went through bottom %p\n", m->machno, m->stack);
+	} else {
+		uintptr_t *stk = (uintptr_t*)m->externup->kstack;
+		if(*stk != STACKGUARD)
+			panic("trap: proc %d kstack went through bottom %p\n", m->externup->pid, m->externup->kstack);
+	}
+}
+
+void
 _trap(Ureg *ureg)
 {
 	Mach *m = machp();
+
 	/*
 	 * If it's a real trap in this core, then we want to
 	 * use the hardware cr2 register.

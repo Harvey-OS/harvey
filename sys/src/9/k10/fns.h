@@ -147,6 +147,7 @@ uint64_t	splhi(void);
 uint64_t	spllo(void);
 void	splx(uint64_t);
 void	splxpc(uint64_t);
+void	kstackok(void); /* panic if kstack guards garbaged, works with and without externup */
 void	stopac(void);
 void	syncclock(void);
 void	syscall(int scallnr, Ureg *ureg);
