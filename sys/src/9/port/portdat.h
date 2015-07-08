@@ -34,7 +34,6 @@ typedef struct Mntwalk	Mntwalk;
 typedef struct Mount	Mount;
 typedef struct Note	Note;
 typedef struct Page	Page;
-typedef struct Pallocmem	Pallocmem;
 typedef struct Path	Path;
 typedef struct Perf	Perf;
 typedef struct Pgalloc Pgalloc;
@@ -601,12 +600,6 @@ struct Fgrp
 enum
 {
 	DELTAFD	= 20		/* incremental increase in Fgrp.fd's */
-};
-
-struct Pallocmem
-{
-	uintmem	base;
-	uint32_t	npage;
 };
 
 struct Pgsza
