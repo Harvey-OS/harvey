@@ -1,8 +1,11 @@
+/* This is going to use linux amd64 numbering. At some point sys.h should move
+ * into architecture-dependent directories.
+ */
 #define	SYSR1		4096+0
 #define	_ERRSTR		4096+1
 #define	BIND		4096+2
 #define	CHDIR		4096+3
-#define	CLOSE		4096+4
+#define	CLOSE		3
 #define	DUP		4096+5
 #define	ALARM		4096+6
 #define	EXEC		4096+7
@@ -12,7 +15,7 @@
 #define	_FSTAT		4096+11
 #define	SEGBRK		4096+12
 #define	_MOUNT		4096+13
-#define	OPEN		4096+14
+#define	OPEN		2
 #define	_READ		4096+15
 #define	OSEEK		4096+16
 #define	SLEEP		4096+17
@@ -46,8 +49,8 @@
 #define	FWSTAT		4096+45
 #define	MOUNT		4096+46
 #define	AWAIT		4096+47
-#define	PREAD		4096+50
-#define	PWRITE		4096+51
+#define	PREAD		0x11
+#define	PWRITE		0x12
 #define	TSEMACQUIRE	4096+52
 #define NSEC		4096+53
 #define	SEMSLEEP	4096+54

@@ -71,8 +71,8 @@ syscallentry:
 #endif
 
 	MOVQ	%rsp, %rsi 				/* Ureg* */
-	// system call number is in %r9
-	movq	%r9, %rdi
+	// system call number is in %rax, as per linux.
+	movq	%rax, %rdi
 	CALL	syscall
 
 	.globl	syscallreturn
