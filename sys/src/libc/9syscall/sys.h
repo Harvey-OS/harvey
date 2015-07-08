@@ -6,7 +6,8 @@
 #define	BIND		4096+2
 #define	CHDIR		4096+3
 #define	CLOSE		3
-#define	DUP		4096+5
+/* This is Linux dup2. There is no dup on Plan 9. */
+#define	DUP		21
 #define	ALARM		4096+6
 #define	EXEC		4096+7
 #define	EXITS		4096+8
@@ -16,12 +17,12 @@
 #define	SEGBRK		4096+12
 #define	_MOUNT		4096+13
 #define	OPEN		2
-#define	_READ		4096+15
+#define	READ		0
 #define	OSEEK		4096+16
 #define	SLEEP		4096+17
 #define	_STAT		4096+18
 #define	RFORK		4096+19
-#define	_WRITE		4096+20
+#define	WRITE		1
 #define	PIPE		4096+21
 #define	CREATE		4096+22
 #define	FD2PATH		4096+23
