@@ -15,14 +15,15 @@
  * 0 if none
  */
 char*
-strstr(char *s1, char *s2)
+strstr(const char *s1, const char *s2)
 {
-	char *p, *pa, *pb;
+	char *p, *pa;
+	const char *pb;
 	int c0, c;
 
 	c0 = *s2;
 	if(c0 == 0)
-		return s1;
+		return (char*)s1;
 	s2++;
 	for(p=strchr(s1, c0); p; p=strchr(p+1, c0)) {
 		pa = p;

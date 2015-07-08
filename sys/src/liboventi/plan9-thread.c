@@ -142,11 +142,13 @@ vtSetError(char* fmt, ...)
 {
 	Thread *p;
 	char *s;
-	va_list args;
+	va_list va, args;
 
 	p = threadLookup();
 
-	va_start(args, fmt);
+	va_start(va, fmt);
+	va_copy(args, va);
+	va_end(va);
 	s = vsmprint(fmt, args);
 	vtMemFree(p->error);
 	p->error = s;

@@ -53,7 +53,7 @@ syslog(int cons, char *logname, char *fmt, ...)
 {
 	char buf[1024];
 	char *ctim, *p;
-	va_list arg;
+	va_list va, arg;
 	int n;
 	Dir *d;
 	char err[ERRMAX];
@@ -107,7 +107,9 @@ syslog(int cons, char *logname, char *fmt, ...)
 	p += 15;
 	*p++ = ' ';
 	errstr(err, sizeof err);
-	va_start(arg, fmt);
+	va_start(va, fmt);
+	va_copy(arg, va);
+	va_end(va);
 	p = vseprint(p, buf+sizeof(buf)-1, fmt, arg);
 	va_end(arg);
 	*p++ = '\n';

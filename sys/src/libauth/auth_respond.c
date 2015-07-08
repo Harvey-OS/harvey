@@ -37,7 +37,7 @@ auth_respond(void *chal, uint nchal, char *user, uint nuser, void *resp,
 	     uint nresp, AuthGetkey *getkey, char *fmt, ...)
 {
 	char *p, *s;
-	va_list arg;
+	va_list va, arg;
 	int afd;
 	AuthRpc *rpc;
 	Attr *a;
@@ -51,7 +51,9 @@ auth_respond(void *chal, uint nchal, char *user, uint nuser, void *resp,
 	}
 
 	quotefmtinstall();	/* just in case */
-	va_start(arg, fmt);
+	va_start(va, fmt);
+	va_copy(arg, va);
+	va_end(va);
 	p = vsmprint(fmt, arg);
 	va_end(arg);
 

@@ -14,7 +14,7 @@ void	bootsecdump32(int fd, Xfs *xf, Dosboot32 *b32);
 int	cfalloc(Xfile*);
 void	chat(char*, ...);
 #pragma	varargck	argpos	chat	1
-int	cistrcmp(char*, char*);
+int	cistrcmp(const char*, const char*);
 int	classifyname(char*);
 Xfile	*clean(Xfile*);
 int32_t	clust2sect(Dosbpb*, int32_t);

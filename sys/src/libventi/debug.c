@@ -14,12 +14,14 @@
 void
 vtdebug(VtConn *z, char *fmt, ...)
 {
-	va_list arg;
+	va_list va, arg;
 
 	if(z->debug == 0)
 		return;
 
-	va_start(arg, fmt);
+	va_start(va, fmt);
+	va_copy(arg, va);
+	va_end(va);
 	vfprint(2, fmt, arg);
 	va_end(arg);
 }

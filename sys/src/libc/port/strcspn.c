@@ -13,9 +13,10 @@
 #define	N	256
 
 int32_t
-strcspn(char *s, char *b)
+strcspn(const char *s, const char *b)
 {
-	char map[N], *os;
+	char map[N];
+	const char *os;
 
 	memset(map, 0, N);
 	for(;;) {

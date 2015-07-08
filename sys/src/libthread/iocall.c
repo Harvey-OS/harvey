@@ -17,6 +17,7 @@ iocall(Ioproc *io, int32_t (*op)(va_list*), ...)
 {
 	int ret, inted;
 	Ioproc *msg;
+	va_list va;
 
 	if(send(io->c, &io) == -1){
 		werrstr("interrupted");
@@ -25,7 +26,8 @@ iocall(Ioproc *io, int32_t (*op)(va_list*), ...)
 	assert(!io->inuse);
 	io->inuse = 1;
 	io->op = op;
-	va_start(io->arg, op);
+	va_start(va, op);
+	va_copy(io->arg, va);
 	msg = io;
 	inted = 0;
 	while(send(io->creply, &msg) == -1){
@@ -48,7 +50,7 @@ iocall(Ioproc *io, int32_t (*op)(va_list*), ...)
 		iointerrupt(io);
 	}
 	USED(inted);
-	va_end(io->arg);
+	va_end(va);
 	ret = io->ret;
 	if(ret < 0)
 		errstr(io->err, sizeof io->err);

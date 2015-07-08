@@ -13,8 +13,10 @@
 #include "iolib.h"
 int scanf(const char *fmt, ...){
 	int n;
-	va_list args;
-	va_start(args, fmt);
+	va_list va, args;
+	va_start(va, fmt);
+	va_copy(args, va);
+	va_end(va);
 	n=vfscanf(stdin, fmt, args);
 	va_end(args);
 	return n;

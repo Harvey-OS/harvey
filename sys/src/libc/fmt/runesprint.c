@@ -13,11 +13,13 @@
 int
 runesprint(Rune *buf, char *fmt, ...)
 {
+	va_list va, args;
 	int n;
-	va_list args;
 
-	va_start(args, fmt);
+	va_start(va, fmt);
+	va_copy(args, va);
 	n = runevsnprint(buf, 256, fmt, args);
+	va_end(va);
 	va_end(args);
 	return n;
 }

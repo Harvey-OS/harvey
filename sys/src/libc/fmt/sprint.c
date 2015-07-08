@@ -13,10 +13,12 @@
 int
 sprint(char *buf, char *fmt, ...)
 {
+	va_list va, args;
 	int n;
-	va_list args;
 
-	va_start(args, fmt);
+	va_start(va, fmt);
+	va_copy(args, va);
+	va_end(va);
 	n = vsnprint(buf, 65536, fmt, args);	/* big number, but sprint is deprecated anyway */
 	va_end(args);
 	return n;
