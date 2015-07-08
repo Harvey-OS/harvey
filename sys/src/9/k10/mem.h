@@ -63,6 +63,8 @@
 #define KSTACK		(16*1024)		/* Size of Proc kernel stack */
 #define STACKALIGN(sp)	((sp) & ~(BY2SE-1))	/* bug: assure with alloc */
 
+#define STACKGUARD	0xdeadbeefcafebabeULL /* magic number we keep at stack bottom and check on traps */
+
 /*
  * 2M pages
  * these defines must go.

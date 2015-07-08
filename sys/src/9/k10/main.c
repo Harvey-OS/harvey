@@ -445,6 +445,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	m->nixtype = NIXTC;
 	sys->machptr[m->machno] = &sys->mach;
 	m->stack = PTR2UINT(sys->machstk);
+	*(uintptr_t*)m->stack = STACKGUARD;
 	m->vsvm = sys->vsvmpage;
 	m->externup = (void *)0;
 	active.nonline = 1;
@@ -475,7 +476,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	sys->nmach = 1;	
 	
 	fmtinit();
-	print("\nHarvey\n");		
+	print("\nHarvey\n");
 
 	if(vflag){
 		multiboot(mbmagic, mbaddress, vflag);

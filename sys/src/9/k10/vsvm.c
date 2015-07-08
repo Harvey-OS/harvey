@@ -174,6 +174,7 @@ vsvminit(int size, int nixtype, Mach *m)
 
 	sd = &((Sd*)m->gdt)[SiTSS];
 	*sd = mksd(PTR2UINT(m->tss), sizeof(Tss)-1, SdP|SdDPL0|SdaTSS, sd+1);
+	*(uintptr_t*)m->stack = STACKGUARD;
 	tssinit(m, m->stack+size);
 	gdtput(sizeof(gdt64)-1, PTR2UINT(m->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
 
