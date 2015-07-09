@@ -1,7 +1,7 @@
 %{
 #include <u.h>
 #include <libc.h>
-#define _STDLIB_H 1
+#define YYSIZE_T size_t
 
 void yyerror(char* s);	/* report compile-time error */
 int yylex(void);		/* hoc6 */
