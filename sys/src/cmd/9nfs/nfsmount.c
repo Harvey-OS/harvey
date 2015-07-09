@@ -154,7 +154,7 @@ srvinit(int fd, char *file, char *addr)
 	chat("attach as none...");
 	f = newfid(s);
 	s->f.fid = f - s->fids;
-	s->f.afid = ~0x0UL&0xFF;
+	s->f.afid = (int64_t)~0x0UL;
 	s->f.uname = "none";
 	s->f.aname = s->spec;
 	if(xmesg(s, Tattach)){

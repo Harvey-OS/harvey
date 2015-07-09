@@ -11,9 +11,9 @@
 #include	<libc.h>
 
 int
-memcmp(void *a1, void *a2, uint32_t n)
+memcmp(const void *a1, const void *a2, uint32_t n)
 {
-	uint8_t *s1, *s2;
+	const char *s1, *s2;
 	uint c1, c2;
 
 	s1 = a1;
