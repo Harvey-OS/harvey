@@ -13,6 +13,7 @@
 		"psx.c",
 		"args.c",
 		"syscall.c",
+		"sysfatal.c",
 		"execl.c"
 	]
 }
