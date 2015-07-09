@@ -1,0 +1,6 @@
+label 9k8cpu.32bit 
+	kernel mboot.c32
+	append 9k8cpu.32bit
+
+default 9k8cpu.32bit
+      

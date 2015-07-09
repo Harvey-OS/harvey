@@ -29,8 +29,7 @@ you'll need to run a few commands inside the top-level directory to get set
 up for code-review:
 
 	cd harvey
-	curl -Lo .git/hooks/commit-msg
-	http://review.gerrithub.io/tools/hooks/commit-msg
+	curl -Lo .git/hooks/commit-msg http://review.gerrithub.io/tools/hooks/commit-msg
 	chmod u+x .git/hooks/commit-msg
 	git config remote.origin.push HEAD:refs/for/master
 
