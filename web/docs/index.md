@@ -13,9 +13,6 @@ Our aim is to provide a modern, distributed, 64 bit operating system that does a
 
 ## News & events
 
-* <a href="#">Harvey at Usenix</a>
-* <a href="#">Getting ready for RC1</a>
-* <a href="#">Progress on boot</a>
-* <a href="#">Plan 9 Go</a>
+* <a href="/usenix/">Harvey at Usenix</a>
 
 
