@@ -55,6 +55,8 @@ struct Fndefn {	/* formal parameter */
 	int	nargs;
 };
 
+extern int indef;
+
 extern	Formal *formallist(Symbol*, Formal*);
 extern	double Fgetd(int);
 extern	int moreinput(void);

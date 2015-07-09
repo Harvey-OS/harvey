@@ -1,4 +1,14 @@
 %{
+#include <u.h>
+#include <libc.h>
+#define _STDLIB_H 1
+
+void yyerror(char* s);	/* report compile-time error */
+int yylex(void);		/* hoc6 */
+int	backslash(int), follow(int, int, int);
+void	defnonly(char*), run(void);
+void	warning(char*, char*);
+
 #include "hoc.h"
 #define	code2(c1,c2)	code(c1); code(c2)
 #define	code3(c1,c2,c3)	code(c1); code(c2); code(c3)
@@ -133,8 +143,6 @@ arglist:  /* nothing */ 	{ $$ = 0; }
 	;
 %%
 	/* end of grammar */
-#include <u.h>
-#include <libc.h>
 #include <bio.h>
 #include <ctype.h>
 char	*progname;
@@ -146,13 +154,12 @@ Biobuf	*bin;		/* input file descriptor */
 Biobuf	binbuf;
 char	**gargv;	/* global argument list */
 int	gargc;
+int	yydebug;
 
 int c = '\n';	/* global for use by warning() */
 
-int	backslash(int), follow(int, int, int);
-void	defnonly(char*), run(void);
-void	warning(char*, char*);
 
+int
 yylex(void)		/* hoc6 */
 {
 	while ((c=Bgetc(bin)) == ' ' || c == '\t')
@@ -230,6 +237,7 @@ yylex(void)		/* hoc6 */
 	}
 }
 
+int
 backslash(int c)	/* get next char with \'s interpreted */
 {
 	static char transtab[] = "b\bf\fn\nr\rt\t";
@@ -241,6 +249,7 @@ backslash(int c)	/* get next char with \'s interpreted */
 	return c;
 }
 
+int
 follow(int expect, int ifyes, int ifno)	/* look ahead for >=, etc. */
 {
 	int c = Bgetc(bin);
@@ -317,6 +326,7 @@ main(int argc, char* argv[])	/* hoc6 */
 	exits(0);
 }
 
+int
 moreinput(void)
 {
 	char *expr;
