@@ -20,7 +20,8 @@
 		"disk/disk.json",
 		"dossrv/dossrv.json",
 		"fossil/fossil.json",
-		"ip/ip.json"
+		"ip/ip.json",
+		"hoc/hoc.json"
 	],
 	"SourceFilesCmd": [
 		"aan.c",
