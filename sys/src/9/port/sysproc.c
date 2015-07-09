@@ -18,7 +18,8 @@
 #include	"../port/edf.h"
 #include	<a.out.h>
 #include 	<trace.h>
-
+#undef DBG
+#define DBG print
 /* this is ugly but we need libmach in the kernel. So this is a first pass.
  * FIX ME.
  */
@@ -1184,6 +1185,12 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 */
 	s = m->externup->seg[ESEG];
 	m->externup->seg[ESEG] = nil;
+
+	/* MMAP region. Put it at 512GiB for now. */
+	m->externup->seg[ESEG] = newseg(SG_MMAP, 512 * GiB, 1);
+	print("mmap ESEG is %p\n", m->externup->seg);
+	m->externup->seg[ESEG]->color= m->externup->color;
+
 	m->externup->seg[SSEG] = s;
 	/* the color of the stack was decided when we created it before,
 	 * it may have nothing to do with the color of other segments.

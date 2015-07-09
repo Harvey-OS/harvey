@@ -143,10 +143,24 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 		}
 		goto common;
 
+	case SG_MMAP:
+		print("MMAP fault: req is %p, \n", m->externup->req);
+		if(pagedout(*pg) && m->externup->req) {
+			print("Fault in mmap'ed page\n");
+			// hazardous.
+			char f[34];
+			snprint(f, sizeof(f), "W%016x%016x", addr, pgsz);
+			if (qwrite(m->externup->req, f, sizeof(f)) != sizeof(f))
+				error("can't write mmap request");
+			/* read in answer here. */
+			error("not reading answer yet");
+		}
+			error("No mmap support yet");
+		goto common;
 	case SG_DATA:
-	common:			/* Demand load/pagein/copy on write */
 		if(pagedout(*pg))
 			pio(s, addr, soff, pg, color);
+	common:			/* Demand load/pagein/copy on write */
 
 		/*
 		 *  It's only possible to copy on write if

@@ -186,6 +186,7 @@ dupseg(Segment **seg, int segno, int share)
 	case SG_TEXT:		/* New segment shares pte set */
 	case SG_SHARED:
 	case SG_PHYSICAL:
+	case SG_MMAP:
 		goto sameseg;
 
 	case SG_STACK:

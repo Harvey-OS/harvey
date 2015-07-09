@@ -43,6 +43,7 @@ enum
 	Qprofile,
 	Qsyscall,
 	Qcore,
+	Qmmap,
 };
 
 enum
@@ -112,6 +113,7 @@ Dirtab procdir[] =
 	"profile",	{Qprofile},	0,			0400,
 	"syscall",	{Qsyscall},	0,			0400,	
 	"core",		{Qcore},	0,			0444,
+	"mmap",		{Qmmap},	0,			0600,
 };
 
 static
@@ -505,6 +507,16 @@ procopen(Chan *c, int omode)
 		nonone(p);
 		break;
 
+	case Qmmap:
+		//nonone(p);
+		if (! p->resp) { /* XXX need to do single reader/writer but that's later. */
+			p->resp = qopen(1024, Qmsg, nil, 0);
+			p->req = qopen(1024, Qmsg, nil, 0);
+		}
+		print("p %d sets resp %p req %p\n", p->pid, p->resp, p->req);
+		c->aux = p;
+		break;
+
 	case Qns:
 		if(omode != OREAD)
 			error(Eperm);
@@ -708,6 +720,9 @@ procclose(Chan * c)
 			proctrace = notrace;
 		unlock(&tlock);
 	}
+	if(QID(c->qid) == Qmmap){
+		// fix me. Find proc for this file. p->mmap = nil;
+	}
 	if(QID(c->qid) == Qns && c->aux != 0)
 		free(c->aux);
 }
@@ -850,6 +865,12 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 			i = wired->machno;
 		snprint(statbuf, sizeof statbuf, "%d\n", i);
 		return readstr(offset, va, n, statbuf);
+
+	case Qmmap:
+		p = c->aux;
+		n = qread(p->req, va, n);
+		print("read mmap: %p\n", n);
+		break;
 
 	case Qmem:
 		if(offset < KZERO
@@ -1019,6 +1040,13 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		readnum(0, statbuf+j+NUMSIZE*12, NUMSIZE, p->nicc, NUMSIZE);
 		readnum(0, statbuf+j+NUMSIZE*13, NUMSIZE, p->nactrap, NUMSIZE);
 		readnum(0, statbuf+j+NUMSIZE*14, NUMSIZE, p->nacsyscall, NUMSIZE);
+
+		/*
+		 * mmap support, random stuff.
+		 */
+		print("qstatus p %p pid %d req %p\n", p, p->pid, p->req);
+		readnum(0,statbuf+j+NUMSIZE*15, NUMSIZE, p->req ? 1 : 0, NUMSIZE);
+		readnum(0,statbuf+j+NUMSIZE*16, NUMSIZE, p->resp ? 1 : 0, NUMSIZE);
 		memmove(va, statbuf+offset, n);
 		psdecref(p);
 		return n;
@@ -1286,6 +1314,12 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 		if(p->noteid != id)
 			error(Ebadarg);
 		break;
+
+	case Qmmap:
+		p = c->aux;
+		n = qwrite(p->resp, va, n);
+		break;
+
 	default:
 		poperror();
 		qunlock(&p->debug);

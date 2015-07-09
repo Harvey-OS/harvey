@@ -438,6 +438,7 @@ enum
 	SG_STACK	= 03,
 	SG_SHARED	= 04,
 	SG_PHYSICAL	= 05,
+	SG_MMAP		= 06,
 
 	SG_CACHED	= 0020,		/* Physseg can be cached */
 	SG_RONLY	= 0040,		/* Segment is read only */
@@ -927,6 +928,15 @@ struct Proc
 	PFPU;
 	PMMU;
 	PNOTIFY;
+
+	/*
+	 * mmap support.
+	 * For addresses that we reference that don't have a mapping,
+	 * if this queue is not NULL, we will send a message on it to be
+	 * handled by some other proc (not ourselves) and block on reading
+	 * a result back.
+	 */
+	Queue *req, *resp;
 };
 
 struct Procalloc
