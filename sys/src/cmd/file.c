@@ -147,7 +147,7 @@ enum
 } guess;
 
 void	bump_utf_count(Rune);
-int	cistrncmp(const char*, const char*, int);
+int	cistrncmp(char*, char*, int);
 void	filetype(int);
 int	getfontnum(uint8_t*, uint8_t**);
 int	isas(void);
@@ -1157,17 +1157,17 @@ isenglish(void)
 
 	vow = 0;
 	for(p="AEIOU"; *p; p++) {
-		vow += cfreq[(int)*p];
+		vow += cfreq[*p];
 		vow += cfreq[tolower(*p)];
 	}
 	comm = 0;
 	for(p="ETAION"; *p; p++) {
-		comm += cfreq[(int)*p];
+		comm += cfreq[*p];
 		comm += cfreq[tolower(*p)];
 	}
 	rare = 0;
 	for(p="VJKQXZ"; *p; p++) {
-		rare += cfreq[(int)*p];
+		rare += cfreq[*p];
 		rare += cfreq[tolower(*p)];
 	}
 	if(vow*5 >= nbuf-cfreq[' '] && comm >= 10*rare) {

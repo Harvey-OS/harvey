@@ -37,7 +37,7 @@ auth_getuserpasswd(AuthGetkey *getkey, char *fmt, ...)
 	AuthRpc *rpc;
 	char *f[3], *p, *params;
 	int fd;
-	va_list va, arg;
+	va_list arg;
 	UserPasswd *up;
 
 	up = nil;
@@ -51,9 +51,7 @@ auth_getuserpasswd(AuthGetkey *getkey, char *fmt, ...)
 	if(rpc == nil)
 		goto out;
 	quotefmtinstall();	/* just in case */
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	params = vsmprint(fmt, arg);
 	va_end(arg);
 	if(params == nil)

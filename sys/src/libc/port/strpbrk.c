@@ -12,7 +12,7 @@
 #define	N	256
 
 char*
-strpbrk(const char *cs, const char *cb)
+strpbrk(char *cs, char *cb)
 {
 	char map[N];
 	uint8_t *s=(uint8_t*)cs, *b=(uint8_t*)cb;

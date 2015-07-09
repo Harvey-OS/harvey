@@ -14,11 +14,9 @@
 void
 vtFatal(char *fmt, ...)
 {
-	va_list va, arg;
+	va_list arg;
 
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	fprint(2, "fatal error: ");
 	vfprint(2, fmt, arg);
 	fprint(2, "\n");

@@ -17,14 +17,12 @@ void vtDumpSome(Packet*);
 void
 vtDebug(VtSession *s, char *fmt, ...)
 {
-	va_list va, arg;
+	va_list arg;
 
 	if(!s->debug)
 		return;
 
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	vfprint(2, fmt, arg);
 	va_end(arg);
 }

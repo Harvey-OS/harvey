@@ -11,7 +11,7 @@
 #include <libc.h>
 
 int
-cistrncmp(const char *s1, const char *s2, int n)
+cistrncmp(char *s1, char *s2, int n)
 {
 	int c1, c2;
 

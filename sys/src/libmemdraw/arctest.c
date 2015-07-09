@@ -61,12 +61,10 @@ int
 iprint(char *fmt, ...)
 {
 	int n;	
-	va_list va, va2;
+	va_list va;
 	char buf[1024];
 
 	va_start(va, fmt);
-	va_copy(va2, va);
-	va_end(va2);
 	n = vseprint(buf, buf+sizeof buf, fmt, va) - buf;
 	va_end(va);
 

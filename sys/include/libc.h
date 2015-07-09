@@ -17,7 +17,7 @@
 /*
  * mem routines
  */
-extern	void*	memccpy(void*, const void*, int, uint32_t);
+extern	void*	memccpy(void*, void*, int, uint32_t);
 extern	void*	memset(void*, int, uint32_t);
 extern	int	memcmp(const void*, const void*, uint32_t);
 extern	void*	memcpy(void*, const void*, size_t);
@@ -27,25 +27,25 @@ extern	void*	memchr(const void*, int, uint32_t);
 /*
  * string routines
  */
-extern	char*	strcat(char*, const char*);
-extern	char*	strchr(const char*, int);
-extern	int	strcmp(const char*, const char*);
-extern	char*	strcpy(char*, const char*);
+extern	char*	strcat(char*, char*);
+extern	char*	strchr(char*, int);
+extern	int	strcmp(char*, char*);
+extern	char*	strcpy(char*, char*);
 extern	char*	strecpy(char*, char*, char*);
-extern	char*	strdup(const char*);
-extern	char*	strncat(char*, const char*, int32_t);
-extern	char*	strncpy(char*, const char*, uint32_t);
-extern	int	strncmp(const char*, const char*, int32_t);
-extern	char*	strpbrk(const char*, const char*);
-extern	char*	strrchr(const char*, int);
-extern	char*	strtok(char*, const char*);
-extern	int32_t	strlen(const char*);
-extern	int32_t	strspn(const char*, const char*);
-extern	int32_t	strcspn(const char*, const char*);
-extern	char*	strstr(const char*, const char*);
-extern	int	cistrncmp(const char*, const char*, int);
-extern	int	cistrcmp(const char*, const char*);
-extern	char*	cistrstr(const char*, const char*);
+extern	char*	strdup(char*);
+extern	char*	strncat(char*, char*, int32_t);
+extern	char*	strncpy(char*, char*, uint32_t);
+extern	int	strncmp(char*, char*, int32_t);
+extern	char*	strpbrk(char*, char*);
+extern	char*	strrchr(char*, int);
+extern	char*	strtok(char*, char*);
+extern	int32_t	strlen(char*);
+extern	int32_t	strspn(char*, char*);
+extern	int32_t	strcspn(char*, char*);
+extern	char*	strstr(char*, char*);
+extern	int	cistrncmp(char*, char*, int);
+extern	int	cistrcmp(char*, char*);
+extern	char*	cistrstr(char*, char*);
 extern	int	tokenize(char*, char**, int);
 
 enum
@@ -665,7 +665,7 @@ extern	int	bind(char*, char*, int);
 extern	int	brk(void*);
 extern	int	chdir(char*);
 extern	int	close(int);
-extern	int	create(const char*, int, uint32_t);
+extern	int	create(char*, int, uint32_t);
 extern	int	dup(int, int);
 extern	int	errstr(char*, uint);
 extern	int	exec(char*, char*[]);
@@ -680,7 +680,7 @@ extern	int	mount(int, int, char*, int, char*);
 extern	int	unmount(char*, char*);
 extern	int	noted(int);
 extern	int	notify(void(*)(void*, char*));
-extern	int	open(const char*, int);
+extern	int	open(char*, int);
 extern	int	fd2path(int, char*, int);
 // extern	int	fdflush(int);
 extern	int	pipe(int*);

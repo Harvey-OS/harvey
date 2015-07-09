@@ -56,7 +56,7 @@ void	printfile(File*);
 void	setnames(File*);
 void	setusers(void);
 void	skipdir(void);
-char*	strdup(const char*);
+char*	strdup(char*);
 int	uptodate(Dir*, char*);
 void	usage(void);
 void	warn(char *, ...);
@@ -500,7 +500,7 @@ mkpath(char *prefix, char *elem)
 }
 
 char *
-strdup(const char *s)
+strdup(char *s)
 {
 	char *t;
 

@@ -69,7 +69,7 @@ threadsetname(char *fmt, ...)
 {
 	int fd;
 	char buf[128];
-	va_list va, arg;
+	va_list arg;
 	Proc *p;
 	Thread *t;
 
@@ -77,9 +77,7 @@ threadsetname(char *fmt, ...)
 	t = p->thread;
 	if (t->cmdname)
 		free(t->cmdname);
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	t->cmdname = vsmprint(fmt, arg);
 	va_end(arg);
 	if(t->cmdname && p->nthreads == 1){

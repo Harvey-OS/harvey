@@ -30,7 +30,7 @@ void	usage(void);
 
 Biobufhdr bin;
 unsigned char	binbuf[2*LEN];
-char	linebuf[LEN];
+int8_t	linebuf[LEN];
 int	uflag;
 int	hflag;
 int	vflag;

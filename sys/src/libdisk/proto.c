@@ -504,11 +504,9 @@ static void
 warn(Mkaux *mkaux, char *fmt, ...)
 {
 	char buf[256];
-	va_list va, va2;
+	va_list va;
 
 	va_start(va, fmt);
-	va_copy(va2, va);
-	va_end(va2);
 	vseprint(buf, buf+sizeof(buf), fmt, va);
 	va_end(va);
 
