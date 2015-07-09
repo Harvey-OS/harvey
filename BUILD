@@ -56,7 +56,7 @@ build_go_utils()
 			exit 1
 		fi
 	done
-	GOPATH="$UTIL_DIR/third_party" go install github.com/rminnich/go9p
+	GOPATH="$UTIL_DIR/third_party" go install github.com/rminnich/go9p/ufs
 	cp $UTIL_DIR/third_party/bin/* $UTIL_DIR/
 	cd - > /dev/null
 }
