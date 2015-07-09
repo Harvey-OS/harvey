@@ -1,0 +1,34 @@
+
+trap : 2
+
+$HARVEY/util/ufs -root=$HARVEY &
+pids=$!
+
+if [ "$(uname)" = "Linux" ] && ([ -O /dev/kvm ] || [ -G /dev/kvm ]); then
+	kvmflag='-enable-kvm'
+else
+	kvmflag=''
+fi
+
+(
+	sleep 5
+	$HARVEY/util/telnet localhost:5555 <<-EOF
+		srv tcp!10.0.2.2!5640 k
+		mount -a /srv/k /
+		cd /amd64/bin/regress
+		for(f in *){ echo \$f; ./\$f }
+		exit
+	EOF
+)&
+pids="$pids $!"
+
+qemu-system-x86_64 -s -cpu Opteron_G1 -smp 1 -m 2048  \
+$kvmflag \
+-serial stdio \
+--machine pc \
+-net nic,model=rtl8139 \
+-net user,hostfwd=tcp::5555-:1522 \
+-kernel $HARVEY/sys/src/9/k10/9k8cpu.32bit $* 
+
+kill $pids
+wait

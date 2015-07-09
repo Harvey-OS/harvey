@@ -100,6 +100,15 @@ build_cmds()
 	cd "$PATH_ORI" > /dev/null
 }
 
+build_regress()
+{
+	export HARVEY="$_BUILD_DIR"
+	rm -rf $HARVEY/amd64/bin/regress
+	cd "$SRC_DIR"/regress
+	$HARVEY/util/build regress.json
+	cd "$PATH_ORI" > /dev/null
+}
+
 show_help()
 {
 	printf "\n\nBUILD script for Harvey\n\n"
@@ -115,6 +124,7 @@ show_help()
 	printf "  utils     \tBuild go utils\n"
 	printf "  cmd       \tBuild all cmds \n"
 	printf "  cmd <cmdname>\tBuild cmd named <cmdname>\n"
+	printf "  regress	Build all regression tests\n"
 	printf "  cleancmd   \tClean the cmds\n"
 	printf "  kernel     \tBuild kernel\n"
 	printf "  cleankernel\tClean kernel\n"
@@ -167,6 +177,7 @@ else
 					build_klibs
 					build_cmds
 					build_kernel
+					build_regress
 					printf "\n\nALL COMPONENTS COMPILED\n\n"
 					;;
 			"libs")
@@ -181,6 +192,9 @@ else
 					;;
 			"cmd")
 					build_cmds
+					;;
+			"regress")
+					build_regress
 					;;
 			"cleanall"|"cleancmd"|"cleankernel"|"cleanklibs"|"cleanlibs")
 					printf "\n\nALL COMPONENTS ARE CLEANED AT BUILD TIME\n\n"
