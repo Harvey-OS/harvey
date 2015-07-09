@@ -1,0 +1,19 @@
+site_name: Harvey OS
+site_description: A 64 bit Operating System based on Plan 9 from Bell Labs and NIX, under GPL 
+site_url: http://harvey-os.org
+site_favicon: img/favicon.png
+# copyright
+# google_analytics
+pages:
+  - Home: index.md
+  - About: about.md 
+  - Download: download.md
+  - Documentation: 
+    - FAQ: docs/faq.md
+    - Getting started: docs/getting-started.md
+    - Manual: docs/manual.md
+ 
+  - Community: community.md
+theme: journal 
+theme_dir: harvey-theme 
+repo_url: https://github.com/elbing/harvey
