@@ -74,6 +74,7 @@ check_utils()
 build_libs()
 {
 	export HARVEY="$_BUILD_DIR"
+	rm -rf $HARVEY/amd64/lib/*
 	cd "$SRC_DIR"
 	$HARVEY/util/build libs.json
 	cd "$PATH_ORI" > /dev/null
@@ -92,6 +93,7 @@ build_klibs()
 build_cmds()
 {
 	export HARVEY="$_BUILD_DIR"
+	rm -rf $HARVEY/amd64/bin/*
 	cd "$CMD_DIR"
 	$HARVEY/util/build cmds.json
 	$HARVEY/util/build kcmds.json
