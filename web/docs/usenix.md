@@ -12,13 +12,13 @@ Of course, the docs note it comes with a serial port. Sadly, the cable to connec
 
 The AMD stack, with three coreboot nodes, worked better. The only thing that went wrong is that two nodes have AMI BIOS and that seems to give pxelinux.0 fits -- pxelinux.0 loads and gets to some point, instant reset. Ah well. ﻿
 
-Harvey mini-cluster ready to fire up (or catch fire)
 ![mini cluster](img/usenix2015/mini-cluster.jpg)
+Harvey mini-cluster ready to fire up (or catch fire)
 
+![boffins to blame](img/usenix2015/boffins-to-blame.jpg)
 John on the floor, trying to make the minnowmax boot
 Harvey, Aki on the chair making Harvey build on a mac and boot off of one.
-![boffins to blame](img/usenix2015/boffins-to-blame.jpg)
 
+![video of error](img/usenix2015/video-of-error.jpg)
 John decided taking a video of the boot sequence would
 be the best way to capture the sub-second error message.
-![video of error](img/usenix2015/video-of-error.jpg)
