@@ -1,5 +1,7 @@
 %{
 #include	"grep.h"
+#define YYSIZE_T size_t
+	long yylex(void);
 %}
 
 %union
