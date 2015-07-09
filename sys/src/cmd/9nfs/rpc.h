@@ -82,9 +82,9 @@ enum
 	IPPROTO_UDP	= 17	/* protocol number for UDP/IP */
 };
 
-#define	ROUNDUP(n)	((n) + ((-(n))&3))	
+#define	ROUNDUP(n)	((n) + ((-(n))&3))
 
-#define	PLONG(x)	(dataptr[3] = ((uint32_t)(x)&0xFF), dataptr[2] = ((uint32_t)(x))>>8&0xFF, dataptr[1] = ((uint32_t)(x))>>16&0xFF, dataptr[0] = ((uint32_t)(x))>>24&0xFF, dataptr += 4)
+#define	PLONG(x)	(dataptr[3] = ((uint8_t)(x)), dataptr[2] = ((uint8_t)(x))>>8, dataptr[1] = ((uint8_t)(x))>>16, dataptr[0] = ((uint8_t)(x))>>24, dataptr += 4)
 #define	PPTR(x, n)	(memmove(dataptr, (x), n), dataptr += ROUNDUP(n))
 #define	PBYTE(x)	(*dataptr++ = (x))
 

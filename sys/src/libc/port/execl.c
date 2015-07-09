@@ -16,7 +16,7 @@ execl(char *f, ...)
 {
 	va_list va, va2;
 	char *arg;
-	int n, ret;
+	int n;
 
 	va_start(va, f);
 	va_copy(va2, va);

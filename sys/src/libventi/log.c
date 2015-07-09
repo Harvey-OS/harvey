@@ -56,7 +56,7 @@ vtlognames(int *pn)
 		nname++;
 		size += strlen(l->name)+1;
 	}
-	
+
 	s = vtmalloc(nname*sizeof(char*)+size);
 	a = (char*)(s+nname);
 	e = (char*)s+nname*sizeof(char*)+size;
@@ -122,12 +122,12 @@ vtlogopen(char *name, uint size)
 	}
 	strcpy(p, name);
 	l->name = p;
-	
+
 	/* insert */
 	l->next = vl.hash[h];
 	vl.hash[h] = l;
 	l->ref++;
-	
+
 	l->ref++;
 	qunlock(&vl.lk);
 	return l;
@@ -196,13 +196,12 @@ vtlogvprint(VtLog *l, char *fmt, ...)
 
 	if(l == nil)
 		return;
-		
+
 	if(first){
 		fmtinstall('T', timefmt);
 		first = 0;
 	}
-		
-	
+
 	qlock(&l->lk);
 	c = l->w;
 	n = c->ep - c->wp;
@@ -227,10 +226,10 @@ void
 vtlogprint(VtLog *l, char *fmt, ...)
 {
 	va_list va, arg;
-	
+
 	if(l == nil)
 		return;
-		
+
 	va_start(va, fmt);
 	va_copy(arg, va);
 	va_end(va);
@@ -263,7 +262,7 @@ vtlogdump(int fd, VtLog *l)
 
 	if(l == nil)
 		return;
-		
+
 	c = l->w;
 	for(i=0; i<l->nchunk; i++){
 		if(++c == l->chunk+l->nchunk)

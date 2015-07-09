@@ -11,15 +11,15 @@
 #include	<libc.h>
 
 void*
-memchr(void *ap, int c, uint32_t n)
+memchr(const void *ap, int c, uint32_t n)
 {
-	uint8_t *sp;
+	const char *sp;
 
 	sp = ap;
 	c &= 0xFF;
 	while(n > 0) {
 		if(*sp++ == c)
-			return sp-1;
+			return (char *)sp-1;
 		n--;
 	}
 	return 0;

@@ -1885,20 +1885,20 @@ dirdump(void *vdbuf)
 		seprint(buf, ebuf, "\"%s\" %2.2x %2.2ux %2.2ux %d", name, dbuf[0], dbuf[12], dbuf[13], GSHORT(d->start));
 	}else{
 		s = seprint(buf, ebuf, "\"%.8s.%.3s\" ", (char*)d->name,
-			    (char*)d->ext);
+				(char*)d->ext);
 		for(i=7; i>=0; i--)
 			*s++ = d->attr&(1<<i) ? attrchar[i] : '-';
-	
+
 		i = GSHORT(d->time);
 		s = seprint(s, ebuf, " %2.2d:%2.2d:%2.2d", i>>11, (i>>5)&63, (i&31)<<1);
 		i = GSHORT(d->date);
 		s = seprint(s, ebuf, " %2.2d.%2.2d.%2.2d", 80+(i>>9), (i>>5)&15, i&31);
-	
+
 		i = GSHORT(d->ctime);
 		s = seprint(s, ebuf, " %2.2d:%2.2d:%2.2d", i>>11, (i>>5)&63, (i&31)<<1);
 		i = GSHORT(d->cdate);
 		s = seprint(s, ebuf, " %2.2d.%2.2d.%2.2d", 80+(i>>9), (i>>5)&15, i&31);
-	
+
 		i = GSHORT(d->adate);
 		s = seprint(s, ebuf, " %2.2d.%2.2d.%2.2d", 80+(i>>9), (i>>5)&15, i&31);
 

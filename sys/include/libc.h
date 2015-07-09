@@ -19,10 +19,10 @@
  */
 extern	void*	memccpy(void*, const void*, int, uint32_t);
 extern	void*	memset(void*, int, uint32_t);
-extern	int	memcmp(void*, void*, uint32_t);
-extern	void*	memcpy(void*, void*, size_t);
-extern	void*	memmove(void*, void*, size_t);
-extern	void*	memchr(void*, int, uint32_t);
+extern	int	memcmp(const void*, const void*, uint32_t);
+extern	void*	memcpy(void*, const void*, size_t);
+extern	void*	memmove(void*, const void*, size_t);
+extern	void*	memchr(const void*, int, uint32_t);
 
 /*
  * string routines
