@@ -76,14 +76,12 @@ void
 respondcmderror(Req *r, Cmdbuf *cb, char *fmt, ...)
 {
 	int i;
-	va_list va, arg;
+	va_list arg;
 	char *p, *e;
 	char err[ERRMAX];
 	
 	e = err+ERRMAX-10;
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	p = vseprint(err, e, fmt, arg);
 	va_end(arg);
 	p = seprint(p, e, ": \"");

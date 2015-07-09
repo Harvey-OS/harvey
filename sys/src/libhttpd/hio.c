@@ -395,11 +395,9 @@ int
 hprint(Hio *h, char *fmt, ...)
 {
 	int n;
-	va_list va, arg;
+	va_list arg;
 
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	n = hvprint(h, fmt, arg);
 	va_end(arg);
 	return n;

@@ -60,14 +60,12 @@ hfail(HConnect *c, int reason, ...)
 {
 	Hio *hout;
 	char makeup[HBufSize], err[ERRMAX];
-	va_list va, arg;
+	va_list arg;
 	int n;
 
 	rerrstr(err, sizeof err);
 	hout = &c->hout;
-	va_start(va, reason);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, reason);
 	vseprint(makeup, makeup+HBufSize, errormsg[reason].verbose, arg);
 	va_end(arg);
 	/*

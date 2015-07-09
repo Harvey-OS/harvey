@@ -127,7 +127,7 @@ checkenv(void)
 static void
 pprint(Pool *p, char *fmt, ...)
 {
-	va_list va, v;
+	va_list v;
 	Private *pv;
 
 	pv = p->private;
@@ -137,9 +137,7 @@ pprint(Pool *p, char *fmt, ...)
 	if(pv->printfd <= 0)
 		pv->printfd = 2;
 
-	va_start(va, fmt);
-	va_copy(v, va);
-	va_end(va);
+	va_start(v, fmt);
 	vfprint(pv->printfd, fmt, v);
 	va_end(v);
 }
@@ -148,7 +146,7 @@ static char panicbuf[256];
 static void
 ppanic(Pool *p, char *fmt, ...) 
 {
-	va_list va, v;
+	va_list v;
 	int n;
 	char *msg;
 	Private *pv;
@@ -162,9 +160,7 @@ ppanic(Pool *p, char *fmt, ...)
 		pv->printfd = 2;
 
 	msg = panicbuf;
-	va_start(va, fmt);
-	va_copy(v, va);
-	va_end(va);
+	va_start(v, fmt);
 	n = vseprint(msg, msg+sizeof panicbuf, fmt, v) - msg;
 	write(2, "panic: ", 7);
 	write(2, msg, n);

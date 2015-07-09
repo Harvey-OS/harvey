@@ -11,7 +11,7 @@
 #include <libc.h>
 
 char*
-strdup(const char *s) 
+strdup(char *s) 
 {  
 	char *ns;
 

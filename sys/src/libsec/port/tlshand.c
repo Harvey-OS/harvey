@@ -1393,11 +1393,9 @@ static void
 tlsError(TlsConnection *c, int err, char *fmt, ...)
 {
 	char msg[512];
-	va_list va, arg;
+	va_list arg;
 
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	vseprint(msg, msg+sizeof(msg), fmt, arg);
 	va_end(arg);
 	if(c->trace)

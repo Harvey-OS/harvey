@@ -21,7 +21,7 @@ auth_wep(char *dev, char *fmt, ...)
 	AuthRpc *rpc;
 	char *params, *p;
 	int fd;
-	va_list va, arg;
+	va_list arg;
 	int rv;
 
 	rv = -1;
@@ -38,9 +38,6 @@ auth_wep(char *dev, char *fmt, ...)
 	rpc = auth_allocrpc(fd);
 	if(rpc != nil){
 		quotefmtinstall();	/* just in case */
-		va_start(va, fmt);
-		va_copy(arg, va);
-		va_end(va);
 		va_start(arg, fmt);
 		params = vsmprint(fmt, arg);
 		va_end(arg);

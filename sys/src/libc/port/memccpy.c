@@ -11,10 +11,9 @@
 #include	<libc.h>
 
 void*
-memccpy(void *a1, const void *a2, int c, uint32_t n)
+memccpy(void *a1, void *a2, int c, uint32_t n)
 {
-	uint8_t *s1; 
-	const char*s2;
+	uint8_t *s1, *s2;
 
 	s1 = a1;
 	s2 = a2;

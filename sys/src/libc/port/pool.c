@@ -396,7 +396,7 @@ pooladd(Pool *p, Alloc *anode)
 
 	node = (Free*)anode;
 	node->magic = FREE_MAGIC;
-	parent = ltreewalk((Free **)&p->freeroot, node->size);
+	parent = ltreewalk(&p->freeroot, node->size);
 	olst = *parent;
 	lst = listadd(olst, node);
 	if(olst != lst)	/* need to update tree */
@@ -412,7 +412,7 @@ pooldel(Pool *p, Free *node)
 	Free *lst, *olst;
 	Free **parent;
 
-	parent = ltreewalk((Free **)&p->freeroot, node->size);
+	parent = ltreewalk(&p->freeroot, node->size);
 	olst = *parent;
 	assert(olst != nil /* pooldel */);
 
@@ -474,7 +474,7 @@ blockmerge(Pool *pool, Bhdr *a, Bhdr *b)
 		pooldel(pool, (Free*)b);
 
 	t = B2T(a);
-	t->size = (uint64_t)Poison;
+	t->size = (uint32_t)Poison;
 	t->magic0 = (uint8_t)NOT_MAGIC;
 	t->magic1 = (uint8_t)NOT_MAGIC;
 	PSHORT(t->datasize, NOT_MAGIC);

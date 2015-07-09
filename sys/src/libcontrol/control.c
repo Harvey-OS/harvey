@@ -72,13 +72,11 @@ static char*
 _mkctlcmd(Control *c, char *fmt, va_list arg)
 {
 	char *name, *p, *both;
-	va_list va;
 
 	name = quotestrdup(c->name);
 	if(name == nil)
 		ctlerror("quotestrdup in ctlprint failed");
-	va_copy(arg, va);
-	p = vsmprint(fmt, va);
+	p = vsmprint(fmt, arg);
 	if(p == nil){
 		free(name);
 		ctlerror("vsmprint1 in ctlprint failed");
@@ -97,11 +95,9 @@ ctlprint(Control *c, char *fmt, ...)
 {
 	int n;
 	char *p;
-	va_list va, arg;
+	va_list arg;
 
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	p = _mkctlcmd(c, fmt, arg);
 	va_end(arg);
 	n = sendp(c->controlset->ctl, p);
@@ -113,11 +109,9 @@ void
 _ctlprint(Control *c, char *fmt, ...)
 {
 	char *p;
-	va_list va, arg;
+	va_list arg;
 
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	p = _mkctlcmd(c, fmt, arg);
 	va_end(arg);
 	_ctlcmd(c->controlset, p);
@@ -333,12 +327,10 @@ controlcalled(char *name)
 void
 ctlerror(char *fmt, ...)
 {
-	va_list va, arg;
+	va_list arg;
 	char buf[256];
 
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	vfprint(2, fmt, arg);
 	va_end(arg);
 	write(2, "\n", 1);

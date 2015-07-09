@@ -197,14 +197,13 @@ auth_proxy(int fd, AuthGetkey *getkey, char *fmt, ...)
 {
 	int afd;
 	char *p;
-	va_list va, arg;
+	va_list arg;
 	AuthInfo *ai;
 	AuthRpc *rpc;
 
 	quotefmtinstall();	/* just in case */
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);	p = vsmprint(fmt, arg);
+	va_start(arg, fmt);
+	p = vsmprint(fmt, arg);
 	va_end(arg);
 
 	ai = nil;

@@ -13,12 +13,10 @@
 char*
 smprint(char *fmt, ...)
 {
-	va_list va, args;
+	va_list args;
 	char *p;
 
-	va_start(va, fmt);
-	va_copy(args, va);
-	va_end(va);
+	va_start(args, fmt);
 	p = vsmprint(fmt, args);
 	va_end(args);
 	setmalloctag(p, getcallerpc(&fmt));

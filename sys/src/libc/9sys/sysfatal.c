@@ -15,11 +15,8 @@ static void
 _sysfatalimpl(char *fmt, va_list arg)
 {
 	char buf[1024];
-	va_list va;
 
-	va_copy(arg, va);
-
-	vseprint(buf, buf+sizeof(buf), fmt, va);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	if(argv0)
 		fprint(2, "%s: %s\n", argv0, buf);
 	else
@@ -32,11 +29,9 @@ void (*_sysfatal)(char *fmt, va_list arg) = _sysfatalimpl;
 void
 sysfatal(char *fmt, ...)
 {
-	va_list va, arg;
+	va_list arg;
 
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	(*_sysfatal)(fmt, arg);
 	va_end(arg);
 }

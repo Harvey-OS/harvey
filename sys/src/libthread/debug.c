@@ -18,7 +18,7 @@ void
 _threaddebug(uint32_t flag, char *fmt, ...)
 {
 	char buf[128];
-	va_list va, arg;
+	va_list arg;
 	Fmt f;
 	Proc *p;
 
@@ -35,9 +35,7 @@ _threaddebug(uint32_t flag, char *fmt, ...)
 	else
 		fmtprint(&f, "%d._ ", p->pid);
 
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	fmtvprint(&f, fmt, arg);
 	va_end(arg);
 	fmtprint(&f, "\n");

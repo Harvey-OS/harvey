@@ -13,10 +13,8 @@
 #include "iolib.h"
 int fprintf(FILE *f, const char *fmt, ...){
 	int n;
-	va_list va, args;
-	va_start(va, fmt);
-	va_copy(args, va);
-	va_end(va);
+	va_list args;
+	va_start(args, fmt);
 	n=vfprintf(f, fmt, args);
 	va_end(args);
 	return n;

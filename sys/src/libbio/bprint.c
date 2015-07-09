@@ -14,12 +14,10 @@
 int
 Bprint(Biobufhdr *bp, char *fmt, ...)
 {
-	va_list va, arg;
+	va_list arg;
 	int n;
 
-	va_start(va, fmt);
-	va_copy(arg, va);
-	va_end(va);
+	va_start(arg, fmt);
 	n = Bvprint(bp, fmt, arg);
 	va_end(arg);
 	return n;

@@ -19,14 +19,12 @@
 int
 fmtprint(Fmt *f, char *fmt, ...)
 {
-	va_list va, args;
+	va_list va;
 	int n;
 
 	va_start(va, fmt);
-	va_copy(args, va);
+	n = fmtvprint(f, fmt, va);
 	va_end(va);
-	n = fmtvprint(f, fmt, args);
-	va_end(args);
 	return n;
 }
 
