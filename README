@@ -35,14 +35,22 @@ up for code-review:
 
 One last thing, we need to initialize any submodules:
 
-    	git submodule init
+	git submodule init
 	git submodule update
 
-You're now all set, you can build the whole thing just by running
 
+If you are on a Mac, you should install macports (https://www.macports.org/) and do
+
+	port install x86_64-elf-gcc
+	port install x86_64-elf-binutils
+	port install qemu
+	export TOOLPREFIX=x86_64-elf-
+
+and you're now all set, you can build the whole thing just by running
+
+	export HARVEY=$(pwd)
+	export ARCH=amd64
 	./BUILD all
-
-which should take maybe a minute.
 
 Once building is complete, you can try booting the kernel with qemu
 
