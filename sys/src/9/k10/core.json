@@ -33,13 +33,13 @@
 		"kernel.ld"
 	],
 	"Post": [
-		"objcopy -I elf64-x86-64 -O elf32-i386 9$CONF 9$CONF.32bit",
-		"objdump -S 9$CONF \u003e 9$CONF.asm"
+		"${TOOLPREFIX}objcopy -I elf64-x86-64 -O elf32-i386 9$CONF 9$CONF.32bit",
+		"${TOOLPREFIX}objdump -S 9$CONF \u003e 9$CONF.asm"
 	],
 	"Pre": [
 		"awk -v objtype=amd64 -f ../mk/parse -- -mkdevc $CONF \u003e $CONF.c",
 		"awk -f ../mk/mkenumb amd64.h \u003e amd64l.h",
-		"strip ../boot/boot${CONF}.elf.out",
+		"${TOOLPREFIX}strip ../boot/boot${CONF}.elf.out",
 		"data2c boot${CONF}_out ../boot/boot${CONF}.elf.out \u003e\u003e $CONF.root.c",
 		"data2c boot_fs boot.fs \u003e\u003e $CONF.root.c",
 		"awk -f ../mk/parse -- -mksystab ../../libc/9syscall/sys.h $CONF \u003e systab.c",

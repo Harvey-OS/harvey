@@ -33,8 +33,8 @@
 		"kernel.ld"
 	],
 	"Post": [
-		"objcopy -I elf64-x86-64 -O elf32-i386 9$CONF 9$CONF.32bit",
-		"objdump -S 9$CONF \u003e 9$CONF.asm"
+		"${TOOLPREFIX}objcopy -I elf64-x86-64 -O elf32-i386 9$CONF 9$CONF.32bit",
+		"${TOOLPREFIX}objdump -S 9$CONF \u003e 9$CONF.asm"
 	],
 	"Pre": [
 		"awk -v objtype=amd64 -f ../mk/parse -- -mkdevc $CONF \u003e $CONF.c",

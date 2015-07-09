@@ -15,13 +15,11 @@
 		"-fno-builtin",
 		"-mcmodel=small"
 	],
+	"Install": "/sys/src/9/boot",
 	"Library": "libboot.a",
 	"Name": "Libboot",
 	"Oflags": [
 		"-static"
-	],
-	"Post": [
-		"ar rv libboot.a *.o"
 	],
 	"SourceFiles": [
 		"aux.c",

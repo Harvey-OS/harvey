@@ -40,8 +40,9 @@ type build struct {
 }
 
 var (
-	cwd    string
-	harvey string
+	cwd        string
+	harvey     string
+	toolprefix string
 )
 
 func fail(err error) {
@@ -113,7 +114,7 @@ func compile(b *build) {
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
 			argscmd := append(args, []string{i}...)
-			cmd := exec.Command("gcc", argscmd...)
+			cmd := exec.Command(toolprefix+"gcc", argscmd...)
 			cmd.Env = append(os.Environ(), b.Env...)
 			cmd.Stdin = os.Stdin
 			cmd.Stderr = os.Stderr
@@ -127,7 +128,7 @@ func compile(b *build) {
 		}
 	} else {
 		args = append(args, b.SourceFiles...)
-		cmd := exec.Command("gcc", args...)
+		cmd := exec.Command(toolprefix+"gcc", args...)
 		cmd.Env = append(os.Environ(), b.Env...)
 
 		cmd.Stdin = os.Stdin
@@ -158,7 +159,7 @@ func link(b *build) {
 			args = append(args, b.Oflags...)
 			args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
 			args = append(args, b.Libs...)
-			cmd := exec.Command("ld", args...)
+			cmd := exec.Command(toolprefix+"ld", args...)
 			cmd.Env = append(os.Environ(), b.Env...)
 
 			cmd.Stdin = os.Stdin
@@ -176,7 +177,7 @@ func link(b *build) {
 		args = append(args, b.Oflags...)
 		args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
 		args = append(args, b.Libs...)
-		cmd := exec.Command("ld", args...)
+		cmd := exec.Command(toolprefix+"ld", args...)
 		cmd.Env = append(os.Environ(), b.Env...)
 
 		cmd.Stdin = os.Stdin
@@ -239,8 +240,9 @@ func install(b *build) {
 			log.Fatalf("%v\n", err)
 		}
 	} else if len(b.Library) > 0 {
-		args := []string{"rv"}
-		args = append(args, installpath[0]+"/"+b.Library)
+		args := []string{"-rvs"}
+		libpath := installpath[0] + "/" + b.Library
+		args = append(args, libpath)
 		for _, n := range b.SourceFiles {
 			// All .o files end up in the top-level directory
 			n = filepath.Base(n)
@@ -254,7 +256,7 @@ func install(b *build) {
 			n = n + ".o"
 			args = append(args, n)
 		}
-		cmd := exec.Command("ar", args...)
+		cmd := exec.Command(toolprefix+"ar", args...)
 
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
@@ -262,6 +264,12 @@ func install(b *build) {
 		log.Printf("*** Installing %v ***", b.Library)
 		log.Printf("%v", cmd.Args)
 		err := cmd.Run()
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
+
+		cmd = exec.Command(toolprefix+"ranlib", libpath)
+		err = cmd.Run()
 		if err != nil {
 			log.Fatalf("%v\n", err)
 		}
@@ -329,6 +337,7 @@ func main() {
 	cwd, err = os.Getwd()
 	fail(err)
 	harvey = os.Getenv("HARVEY")
+	toolprefix = os.Getenv("TOOLPREFIX")
 	if harvey == "" {
 		log.Printf("You need to set the HARVEY environment variable")
 		badsetup = true
