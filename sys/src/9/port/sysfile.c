@@ -796,7 +796,7 @@ read(int ispread, int fd, void *p, int32_t n, int64_t off)
 }
 
 void
-sys_read(Ar0* ar0, ...)
+sysread(Ar0* ar0, ...)
 {
 	int fd;
 	void *p;
@@ -883,7 +883,7 @@ write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 }
 
 void
-sys_write(Ar0* ar0, ...)
+syswrite(Ar0* ar0, ...)
 {
 	va_list list;
 	va_start(list, ar0);

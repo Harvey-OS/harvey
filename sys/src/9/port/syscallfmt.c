@@ -314,7 +314,7 @@ iprint("%d: %d nsyscall %d\n", m->externup->pid, syscallno, nsyscall);
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
 		break;
-	case _READ:					/* deprecated */
+	case READ:					/* deprecated */
 	case PREAD:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void*);
@@ -325,7 +325,7 @@ iprint("%d: %d nsyscall %d\n", m->externup->pid, syscallno, nsyscall);
 			fmtprint(&fmt, " %lld", vl);
 		}
 		break;
-	case _WRITE:					/* deprecated */
+	case WRITE:					/* deprecated */
 	case PWRITE:
 		i[0] = va_arg(list, int);
 		v = va_arg(list, void*);
@@ -391,7 +391,7 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		fmtprint(&fmt, " = %d", ar0->i);
 		break;
 	case ALARM:
-	case _WRITE:
+	case WRITE:
 	case PWRITE:
 		if(ar0->l == -1)
 			errstr = m->externup->errstr;
@@ -448,7 +448,7 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 			errstr = m->externup->errstr;
 		}
 		break;
-	case _READ:
+	case READ:
 	case PREAD:
 		i = va_arg(list, int);
 		USED(i);

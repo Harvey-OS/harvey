@@ -765,7 +765,7 @@ shutdown(int ispanic)
 void
 reboot(void* v, void* w, int32_t i)
 {
-	panic("reboot\n");
+	panic("Somebody called reboot()");
 }
 
 void
