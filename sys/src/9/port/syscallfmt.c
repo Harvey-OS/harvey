@@ -44,7 +44,7 @@ fmtrwdata(Fmt* f, char* a, int n, char* suffix)
 static void
 fmtuserstring(Fmt* f, char* a, char* suffix)
 {
-	int n;
+	int len;
 	char *t;
 
 	if(a == nil){
@@ -52,10 +52,10 @@ fmtuserstring(Fmt* f, char* a, char* suffix)
 		return;
 	}
 	a = validaddr(a, 1, 0);
-	n = ((char*)vmemchr(a, 0, 0x7fffffff) - a) + 1;
-	t = smalloc(n);
-	memmove(t, a, n);
-	t[n] = 0;
+	len = ((char*)vmemchr(a, 0, 0x7fffffff) - a);
+	t = smalloc(len+1);
+	memmove(t, a, len);
+	t[len] = 0;
 	fmtprint(f, "%#p/\"%s\"%s", a, t, suffix);
 	free(t);
 }
