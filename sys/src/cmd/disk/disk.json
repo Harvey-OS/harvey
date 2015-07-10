@@ -2,17 +2,12 @@
 	"Include": [
 		"../cmd.json"
 	],
+	"Install": "/$ARCH/bin/disk",
 	"Name": "disk",
-	"Post": [
-		"mv exsort $HARVEY/amd64/bin/",
-		"mv format $HARVEY/amd64/bin/",
-		"mv mbr $HARVEY/amd64/bin/",
-		"mv mkext $HARVEY/amd64/bin/",
-		"mv mkfs $HARVEY/amd64/bin/",
-		"mv partfs $HARVEY/amd64/bin/"
-	],
 	"Projects": [
-		"9660/9660.json"
+		"9660/9660.json",
+		"prep/fdisk.json",
+		"prep/prep.json"
 	],
 	"SourceFilesCmd": [
 		"exsort.c",

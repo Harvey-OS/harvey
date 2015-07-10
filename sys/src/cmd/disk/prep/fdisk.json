@@ -2,10 +2,10 @@
 	"Include": [
 		"../../cmd.json"
 	],
+	"Install": "/$ARCH/bin/disk",
 	"Name": "fdisk",
 	"Post": [
-		"mv fdisk $HARVEY/amd64/bin/",
-		"rm y.tab*"
+		"rm y.tab.[ch]"
 	],
 	"Pre": [
 		"yacc -d calc.y"

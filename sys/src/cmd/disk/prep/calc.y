@@ -1,4 +1,8 @@
 %{
+#include <u.h>
+
+#define YYSIZE_T size_t
+
 typedef struct Exp Exp;
 enum {
 	NUM,
@@ -22,6 +26,12 @@ struct Exp {
 typedef Exp* Expptr;
 #define YYSTYPE Expptr
 Exp *yyexp;
+
+static Exp* mkOP(int ty, Exp *e1, Exp *e2);
+static Exp* mkNUM(int64_t x);
+static int yylex(void);
+static void yyerror(char *s);
+
 %}
 
 %token NUMBER
@@ -46,14 +56,14 @@ expr:	NUMBER
 
 %%
 
-#include <u.h>
 #include <libc.h>
 #include <ctype.h>
 #include "disk.h"
 #include "edit.h"
 
+
 static Exp*
-mkNUM(vlong x)
+mkNUM(int64_t x)
 {
 	Exp *n;
 
@@ -79,14 +89,14 @@ mkOP(int ty, Exp *e1, Exp *e2)
 
 static char *inp;
 static jmp_buf jmp;
-static vlong dot, size, dollar;
+static int64_t dot, size, dollar;
 static char** errp;
 
 static int
 yylex(void)
 {
 	int c;
-	uvlong n;
+	uint64_t n;
 
 	while(isspace(*inp))
 		inp++;
@@ -129,10 +139,10 @@ yyerror(char *s)
 	longjmp(jmp, 1);
 }
 
-static vlong
+static int64_t
 eval(Exp *e)
 {
-	vlong i;
+	int64_t i;
 
 	switch(e->ty) {
 	case NUM:
@@ -164,7 +174,7 @@ eval(Exp *e)
 int yyparse(void);
 
 char*
-parseexpr(char *s, vlong xdot, vlong xdollar, vlong xsize, vlong *result)
+parseexpr(char *s, int64_t xdot, int64_t xdollar, int64_t xsize, int64_t *result)
 {
 	char *err;
 
@@ -188,7 +198,7 @@ void
 main(int argc, char **argv)
 {
 	int i;
-	vlong r;
+	int64_t r;
 	char *e;
 
 	for(i=1; i<argc; i++)
