@@ -127,6 +127,7 @@ rootdir
 	/amd64/bin/echo
 	/amd64/bin/cat
 	/amd64/bin/aux/listen1
+	/amd64/bin/aux/tty
 	/amd64/bin/ls
 #	/amd64/bin/cp
 #	/amd64/bin/ps

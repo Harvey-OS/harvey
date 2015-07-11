@@ -9,6 +9,6 @@ bind -a '#l0' /net
 bind -a '#p' /proc
 bind -a '#s' /srv
 ipconfig
-/boot/listen1 -t -v tcp!*!1522  /boot/rc -m /boot/rcmain -i &
+/boot/listen1 -t -v tcp!*!1522  /boot/tty /boot/rc -m /boot/rcmain -i &
 exec /boot/rc -m/boot/rcmain -i
 
