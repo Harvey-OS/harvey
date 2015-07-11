@@ -21,7 +21,8 @@
 		"dossrv/dossrv.json",
 		"fossil/fossil.json",
 		"ip/ip.json",
-		"hoc/hoc.json"
+		"hoc/hoc.json",
+		"grep/grep.json"
 	],
 	"SourceFilesCmd": [
 		"aan.c",
