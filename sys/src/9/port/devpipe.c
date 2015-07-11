@@ -322,8 +322,9 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
 	Mach *m = machp();
 	Pipe *p;
 
-	if(!islo())
-		print("pipewrite hi %#p\n", getcallerpc(&c));
+	if(0)if(!islo())
+		print("pipewrite hi %#p\n", getcallerpc(&c)); // devmnt?
+
 	if(waserror()) {
 		/* avoid notes when pipe is a mounted queue */
 		if((c->flag & CMSG) == 0)
