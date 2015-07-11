@@ -51,3 +51,8 @@ tools/mpfr-3.1.2-p9
 tools/mpfr-3.1.2.tar.bz2
 tools/share
 /tmp
+
+cfg/pxe/tftpboot
+util/third_party/bin
+util/third_party/src/golang.org
+

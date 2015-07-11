@@ -349,6 +349,9 @@ func main() {
 	if badsetup {
 		os.Exit(1)
 	}
-	f := path.Join(cwd, os.Args[1])
-	project(f)
+	dir := path.Dir(os.Args[1])
+	file := path.Base(os.Args[1])
+	err = os.Chdir(dir)
+	fail(err)
+	project(file)
 }

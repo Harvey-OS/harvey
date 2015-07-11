@@ -47,17 +47,18 @@ build_kernel()
 build_go_utils()
 {
 	cd "${UTIL_DIR}"
+	GOPATH="$UTIL_DIR/third_party" go get
+	GOPATH="$UTIL_DIR/third_party" go install github.com/rminnich/go9p/ufs
+	cp $UTIL_DIR/third_party/bin/* $UTIL_DIR/
 	for i in `ls *.go`
 	do
-		go build $i
+		GOPATH="$UTIL_DIR/third_party" go build $i
 		if [ $? -ne 0 ]
 		then
 			printf "\nERROR compiling $i \n"
 			exit 1
 		fi
 	done
-	GOPATH="$UTIL_DIR/third_party" go install github.com/rminnich/go9p/ufs
-	cp $UTIL_DIR/third_party/bin/* $UTIL_DIR/
 	cd - > /dev/null
 }
 
