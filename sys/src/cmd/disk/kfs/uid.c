@@ -211,7 +211,7 @@ uskip:
 		c = fname(name);
 		goto uskip;
 	}
-/*	cprint("%d uids read\n", u);/**/
+/*	cprint("%d uids read\n", u);*/
 	qsort(uid, u, sizeof(uid[0]), byuid);
 	for(c=u-1; c>0; c--)
 		if(uid[c].uid == uid[c-1].uid) {

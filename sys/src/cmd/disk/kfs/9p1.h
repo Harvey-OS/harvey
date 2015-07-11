@@ -16,7 +16,7 @@ typedef	struct	Oldfcall	Oldfcall;
 struct	Oldfcall
 {
 	char	type;
-	ushort	fid;
+	uint16_t	fid;
 	short	err;
 	short	tag;
 	union
@@ -46,14 +46,14 @@ struct	Oldfcall
 		struct
 		{
 			char	name[NAMELEN];	/* T-Walk, T-Clwalk, T-Create, T-Remove */
-			long	perm;		/* T-Create */
-			ushort	newfid;		/* T-Clone, T-Clwalk */
+			int32_t	perm;		/* T-Create */
+			uint16_t	newfid;		/* T-Clone, T-Clwalk */
 			char	mode;		/* T-Create, T-Open */
 		};
 		struct
 		{
-			long	offset;		/* T-Read, T-Write */
-			long	count;		/* T-Read, T-Write, R-Read */
+			int32_t	offset;		/* T-Read, T-Write */
+			int32_t	count;		/* T-Read, T-Write, R-Read */
 			char*	data;		/* T-Write, R-Read */
 		};
 		struct
@@ -112,8 +112,8 @@ enum
 
 int	convD2M9p1(Dentry*, char*);
 int	convM2D9p1(char*, Dentry*);
-int	convM2S9p1(uchar*, Oldfcall*, int);
-int	convS2M9p1(Oldfcall*, uchar*);
+int	convM2S9p1(uint8_t*, Oldfcall*, int);
+int	convS2M9p1(Oldfcall*, uint8_t*);
 void	fcall9p1(Chan*, Oldfcall*, Oldfcall*);
 int	authorize(Chan*, Oldfcall*, Oldfcall*);
 

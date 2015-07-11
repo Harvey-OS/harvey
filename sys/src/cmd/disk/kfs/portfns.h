@@ -9,36 +9,36 @@
 
 void	accessdir(Iobuf*, Dentry*, int);
 void	authfree(File*);
-void	addfree(Device, long, Superb*);
-long	balloc(Device, int, long);
-void	bfree(Device, long, int);
+void	addfree(Device, int32_t, Superb*);
+int32_t	balloc(Device, int, int32_t);
+void	bfree(Device, int32_t, int);
 int	byname(void*, void*);
 int	byuid(void*, void*);
 int	checkname(char*);
-int	checktag(Iobuf*, int, long);
+int	checktag(Iobuf*, int, int32_t);
 void 	cmd_user(void);
 char*	cname(char*);
 int	con_attach(int, char*, char*);
 int	con_clone(int, int);
-int	con_create(int, char*, int, int, long, int);
+int	con_create(int, char*, int, int, int32_t, int);
 int	con_open(int, int);
 int	con_path(int, char*);
-int	con_read(int, char*, long, int);
+int	con_read(int, char*, int32_t, int);
 int	con_remove(int);
 int	con_stat(int, char*);
 int	con_swap(int, int);
 int	con_clri(int);
 int	con_session(void);
 int	con_walk(int, char*);
-int	con_write(int, char*, long, int);
+int	con_write(int, char*, int32_t, int);
 int	con_wstat(int, char*);
 void	cprint(char*, ...);
-void	datestr(char*, long);
-void	dbufread(Iobuf*, Dentry*, long);
+void	datestr(char*, int32_t);
+void	dbufread(Iobuf*, Dentry*, int32_t);
 Qid	dentryqid(Dentry*);
 int	devcmp(Device, Device);
-Iobuf*	dnodebuf(Iobuf*, Dentry*, long, int);
-Iobuf*	dnodebuf1(Iobuf*, Dentry*, long, int);
+Iobuf*	dnodebuf(Iobuf*, Dentry*, int32_t, int);
+Iobuf*	dnodebuf1(Iobuf*, Dentry*, int32_t, int);
 void	dofilter(Filter*);
 int	doremove(File *, int);
 void	dtrunc(Iobuf*, Dentry*);
@@ -54,13 +54,13 @@ void	formatinit(void);
 void	freefp(File*);
 void	freewp(Wpath*);
 Filsys*	fsstr(char*);
-Iobuf*	getbuf(Device, long, int);
+Iobuf*	getbuf(Device, int32_t, int);
 Dentry*	getdir(Iobuf*, int);
-long	getraddr(Device);
+int32_t	getraddr(Device);
 Wpath*	getwp(Wpath*);
 void	hexdump(void*, int);
 int	iaccess(File*, Dentry*, int);
-long	indfetch(Iobuf*, Dentry*, long, long , int, int);
+int32_t	indfetch(Iobuf*, Dentry*, int32_t, int32_t , int, int);
 int	ingroup(int, int);
 void	iobufinit(void);
 int	leadgroup(int, int);
@@ -78,20 +78,20 @@ int	oconvD2M(Dentry*, void*);
 int	oconvM2D(void*, Dentry*);
 int	ofcallfmt(Fmt*);
 void	panic(char*, ...);
-int	prime(long);
+int	prime(int32_t);
 void	putbuf(Iobuf*);
 void	putwp(Wpath*);
-long	qidpathgen(Device*);
-void	rootream(Device, long);
-void	settag(Iobuf*, int, long);
+int32_t	qidpathgen(Device*);
+void	rootream(Device, int32_t);
+void	settag(Iobuf*, int, int32_t);
 void serve(Chan*);
-void	serve9p1(Chan*, uchar*, int);
-void	serve9p2(Chan*, uchar*, int);
+void	serve9p1(Chan*, uint8_t*, int);
+void	serve9p2(Chan*, uint8_t*, int);
 void	strrand(void*, int);
 int	strtouid(char*);
 int	strtouid1(char*);
-int	superok(Device, long, int);
-void	superream(Device, long);
+int	superok(Device, int32_t, int);
+void	superream(Device, int32_t);
 void	sync(char*);
 int	syncblock(void);
 int	Tfmt(Fmt*);
@@ -106,7 +106,7 @@ void	uidtostr1(char*,int);
 #pragma varargck	type	"D"	Device
 #pragma varargck	type 	"A"	Filta
 #pragma varargck	type	"G"	int
-#pragma varargck	type	"T"	long
+#pragma varargck	type	"T"	int32_t
 #pragma varargck	type	"F"	Fcall*
 
 typedef struct Oldfcall Oldfcall;	/* needed for pragma */

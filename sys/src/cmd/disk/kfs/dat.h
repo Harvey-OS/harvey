@@ -23,7 +23,7 @@ struct	Chan
 	QLock rlock, wlock;		/* lock for reading/writing messages on chan */
 	int	type;
 	int	flags;
-	long	whotime;
+	int32_t	whotime;
 	File*	flist;			/* base of file structures */
 	Lock	flock;			/* manipulate flist */
 	RWLock	reflock;		/* lock for Tflush */
@@ -31,8 +31,8 @@ struct	Chan
 	int	authed;		/* someone other than ``none'' has authed */
 
 /* 9p1 auth */
-	uchar	chal[8];
-	uchar	rchal[8];
+	uint8_t	chal[8];
+	uint8_t	rchal[8];
 	int	idoffset;
 	int	idvec;
 	Lock	idlock;
@@ -54,7 +54,7 @@ struct	Cons
 	int	uid;		/* botch -- used to get uid on cons_create */
 	int	gid;		/* botch -- used to get gid on cons_create */
 	int	allow;		/* no-protection flag */
-	long	offset;		/* used to read files, c.f. fchar */
+	int32_t	offset;		/* used to read files, c.f. fchar */
 	char*	arg;		/* pointer to remaining line */
 
 	Chan	*chan;	/* console channel */
@@ -92,11 +92,11 @@ struct Devcall
 	void	(*init)(Device);
 	void	(*ream)(Device);
 	int	(*check)(Device);
-	long	(*super)(Device);
-	long	(*root)(Device);
-	long	(*size)(Device);
-	int	(*read)(Device, long, void*);
-	int	(*write)(Device, long, void*);
+	int32_t	(*super)(Device);
+	int32_t	(*root)(Device);
+	int32_t	(*size)(Device);
+	int	(*read)(Device, int32_t, void*);
+	int	(*write)(Device, int32_t, void*);
 };
 
 /*
@@ -153,7 +153,7 @@ extern	short*	gidspace;
 extern	char*	errstring[MAXERR];
 extern	Chan*	chans;
 extern	RWLock	mainlock;
-extern	long	boottime;
+extern	int32_t	boottime;
 extern	Tlock	*tlocks;
 extern	Device	devnone;
 extern	Filsys	filesys[];
@@ -166,8 +166,8 @@ extern	Chan	*chan;
 extern	Devcall	devcall[];
 extern	char	*progname;
 extern	char	*procname;
-extern	long	niob;
-extern	long	nhiob;
+extern	int32_t	niob;
+extern	int32_t	nhiob;
 extern	Hiob	*hiob;
 extern	int	chat;
 extern	int	writeallow;

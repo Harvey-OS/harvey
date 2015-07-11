@@ -21,7 +21,7 @@ typedef struct Wren	Wren;
 struct Wren{
 	QLock;
 	Device	dev;
-	ulong	nblocks;
+	uint32_t	nblocks;
 	int	fd;
 };
 

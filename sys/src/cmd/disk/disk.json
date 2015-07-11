@@ -15,6 +15,7 @@
 		"mbr.c",
 		"mkext.c",
 		"mkfs.c",
-		"partfs.c"
+		"partfs.c",
+		"kfscmd.c"
 	]
 }

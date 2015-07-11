@@ -44,7 +44,9 @@ accessdir(Iobuf *p, Dentry *d, int f)
 void
 dbufread(Iobuf *p, Dentry *d, int32_t a)
 {
-	USED(p, d, a);
+	USED(p);
+	USED(d);
+	USED(a);
 }
 
 int32_t

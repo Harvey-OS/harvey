@@ -44,8 +44,8 @@ typedef struct	AuthRpc	AuthRpc;
 /* DONT TOUCH, this is the disk structure */
 struct	Qid9p1
 {
-	long	path;
-	long	version;
+	int32_t	path;
+	int32_t	version;
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -54,7 +54,7 @@ struct	Dentry
 	char	name[NAMELEN];
 	short	uid;
 	short	gid;
-	ushort	mode;
+	uint16_t	mode;
 		#define	DALLOC	0x8000
 		#define	DDIR	0x4000
 		#define	DAPND	0x2000
@@ -63,12 +63,12 @@ struct	Dentry
 		#define	DWRITE	0x2
 		#define	DEXEC	0x1
 	Qid9p1	qid;
-	long	size;
-	long	dblock[NDBLOCK];
-	long	iblock;
-	long	diblock;
-	long	atime;
-	long	mtime;
+	int32_t	size;
+	int32_t	dblock[NDBLOCK];
+	int32_t	iblock;
+	int32_t	diblock;
+	int32_t	atime;
+	int32_t	mtime;
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -76,32 +76,32 @@ struct	Tag
 {
 	short	pad;
 	short	tag;
-	long	path;
+	int32_t	path;
 };
 
 /* DONT TOUCH, this is the disk structure */
 struct	Super1
 {
-	long	fstart;
-	long	fsize;
-	long	tfree;
-	long	qidgen;		/* generator for unique ids */
+	int32_t	fstart;
+	int32_t	fsize;
+	int32_t	tfree;
+	int32_t	qidgen;		/* generator for unique ids */
 
-	long	fsok;		/* file system ok */
+	int32_t	fsok;		/* file system ok */
 
 	/*
 	 * garbage for WWC device
 	 */
-	long	roraddr;	/* dump root addr */
-	long	last;		/* last super block addr */
-	long	next;		/* next super block addr */
+	int32_t	roraddr;	/* dump root addr */
+	int32_t	last;		/* last super block addr */
+	int32_t	next;		/* next super block addr */
 };
 
 /* DONT TOUCH, this is the disk structure */
 struct	Fbuf
 {
-	long	nfree;
-	long	free[1];		/* changes based on BUFSIZE */
+	int32_t	nfree;
+	int32_t	free[1];		/* changes based on BUFSIZE */
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -141,8 +141,8 @@ struct	Filta
 struct	Tlock
 {
 	Device	dev;
-	long	time;
-	long	qpath;
+	int32_t	time;
+	int32_t	qpath;
 	File*	file;
 };
 
@@ -156,9 +156,9 @@ struct	File
 	File*	next;		/* in cp->flist */
 	File*	list;		/* in list of free files */
 	Filsys*	fs;
-	long	addr;
-	long	slot;
-	long	lastra;		/* read ahead address */
+	int32_t	addr;
+	int32_t	slot;
+	int32_t	lastra;		/* read ahead address */
 	short	fid;
 	short	uid;
 	char	open;
@@ -166,9 +166,9 @@ struct	File
 		#define	FWRITE	2
 		#define	FREMOV	4
 		#define	FWSTAT	8
-	long	doffset;	/* directory reading */
-	ulong	dvers;
-	long	dslot;
+	int32_t	doffset;	/* directory reading */
+	uint32_t	dvers;
+	int32_t	dslot;
 
 	/* for network authentication */
 	AuthRpc	*rpc;
@@ -199,14 +199,14 @@ struct	Iobuf
 	Iobuf	*back;		/* for lru */
 	char	*iobuf;		/* only active while locked */
 	char	*xiobuf;	/* "real" buffer pointer */
-	long	addr;
+	int32_t	addr;
 	int	flags;
 };
 
 struct	P9call
 {
-	uchar	calln;
-	uchar	rxflag;
+	uint8_t	calln;
+	uint8_t	rxflag;
 	short	msize;
 	void	(*func)(Chan*, int);
 };
@@ -236,8 +236,8 @@ struct	Wpath
 {
 	Wpath	*up;		/* pointer upwards in path */
 	Wpath	*list;		/* link in free chain */
-	long	addr;		/* directory entry addr of parent */
-	long	slot;		/* directory entry slot of parent */
+	int32_t	addr;		/* directory entry addr of parent */
+	int32_t	slot;		/* directory entry slot of parent */
 	short	refs;		/* number of files using this structure */
 };
 

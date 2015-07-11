@@ -51,8 +51,8 @@ static	int	amark(int32_t);
 static	int	fmark(int32_t);
 static	void	missing(void);
 static	void	qmark(int32_t);
-static	void*	zalloc(ulong);
-static	void*	dalloc(ulong);
+static	void*	zalloc(uint32_t);
+static	void*	dalloc(uint32_t);
 static	Iobuf*	xtag(int32_t, int, int32_t);
 
 static
