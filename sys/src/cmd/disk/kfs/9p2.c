@@ -329,7 +329,7 @@ out:
 }
 
 static int
-fsflush(Chan* chan, Fcall*, Fcall*)
+fsflush(Chan* chan, Fcall* f, Fcall* r)
 {
 	runlock(&chan->reflock);
 	wlock(&chan->reflock);
@@ -1343,7 +1343,7 @@ _clunk(File* file, int remove, int wok)
 }
 
 static int
-fsclunk(Chan* chan, Fcall* f, Fcall*)
+fsclunk(Chan* chan, Fcall* f, Fcall* r)
 {
 	File *file;
 
@@ -1355,7 +1355,7 @@ fsclunk(Chan* chan, Fcall* f, Fcall*)
 }
 
 static int
-fsremove(Chan* chan, Fcall* f, Fcall*)
+fsremove(Chan* chan, Fcall* f, Fcall* r)
 {
 	File *file;
 
@@ -1409,7 +1409,7 @@ out:
 }
 
 static int
-fswstat(Chan* chan, Fcall* f, Fcall*, char *strs)
+fswstat(Chan* chan, Fcall* f, Fcall* r, char *strs)
 {
 	Iobuf *p, *p1;
 	Dentry *d, *d1, xd;

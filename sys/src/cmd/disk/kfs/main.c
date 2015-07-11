@@ -171,7 +171,8 @@ int alarmed;
 void
 catchalarm(void *regs, char *msg)
 {
-	USED(regs, msg);
+	USED(regs);
+	USED(msg);
 	if(strcmp(msg, "alarm") == 0){
 		alarmed = 1;
 		noted(NCONT);

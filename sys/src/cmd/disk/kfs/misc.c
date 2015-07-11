@@ -37,7 +37,7 @@ fdf(Float a, int d)
 }
 
 int32_t
-belong(char *s)
+beint32(char *s)
 {
 	uint8_t *x;
 

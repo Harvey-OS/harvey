@@ -20,7 +20,7 @@ typedef struct Wren	Wren;
 struct Wren{
 	QLock;
 	Device	dev;
-	uvlong	size;
+	uint64_t	size;
 	int	fd;
 };
 
