@@ -43,7 +43,10 @@
 		"data2c _amd64_bin_cat cat.elf.out\u003e\u003e k8cpu.root.c",
 		"cp $HARVEY/amd64/bin/aux/listen1 listen1.elf.out",
 		"${TOOLPREFIX}strip listen1.elf.out",
-		"data2c _amd64_bin_aux_listen1 listen1.elf.out\u003e\u003e k8cpu.root.c"
+		"data2c _amd64_bin_aux_listen1 listen1.elf.out\u003e\u003e k8cpu.root.c",
+		"cp $HARVEY/amd64/bin/aux/tty tty.elf.out",
+		"${TOOLPREFIX}strip tty.elf.out",
+		"data2c _amd64_bin_aux_tty tty.elf.out\u003e\u003e k8cpu.root.c"
 	],
 	"Program": "9k8cpu",
 	"Projects": [

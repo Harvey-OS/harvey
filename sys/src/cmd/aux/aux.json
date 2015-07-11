@@ -45,6 +45,7 @@
 		"usage.c",
 		"watchdog.c",
 		"write.c",
-		"zerotrunc.c"
+		"zerotrunc.c",
+		"tty.c"
 	]
 }
