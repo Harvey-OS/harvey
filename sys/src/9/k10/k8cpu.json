@@ -58,6 +58,7 @@
 		"ether82563.c",
 		"k8cpu.c",
 		"k8cpu.root.c",
+		"sdata.c",
 		"usbehcipc.c",
 		"usbohci.c",
 		"usbuhci.c"
