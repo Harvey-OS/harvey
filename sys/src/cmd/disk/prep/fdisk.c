@@ -166,16 +166,16 @@ main(int argc, char **argv)
 		autopart(&edit);
 
 	if(dowrite)
-		runcmd(&edit, "w");
+		runcmd(&edit, (char[]){"w"});
 
 	if(printflag)
-		runcmd(&edit, "P");
+		runcmd(&edit, (char[]){"P"});
 
 	if(dowrite || printflag)
 		exits(0);
 
 	fprint(2, "cylinder = %lld bytes\n", sec2cyl*edit.disk->secsize);
-	runcmd(&edit, "p");
+	runcmd(&edit, (char[]){"p"});
 	for(;;) {
 		fprint(2, ">>> ");
 		runcmd(&edit, getline(&edit));
