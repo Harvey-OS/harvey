@@ -185,7 +185,7 @@ main(int argc, char **argv)
 	nopart = edit.npart;
 
 	if(printflag) {
-		runcmd(&edit, "P");
+		runcmd(&edit, (char[]){"P"});
 		exits(0);
 	}
 
@@ -193,11 +193,11 @@ main(int argc, char **argv)
 		autoxpart(&edit);
 
 	if(dowrite) {
-		runcmd(&edit, "w");
+		runcmd(&edit, (char[]){"w"});
 		exits(0);
 	}
 
-	runcmd(&edit, "p");
+	runcmd(&edit, (char[]){"p"});
 	for(;;) {
 		fprint(2, ">>> ");
 		runcmd(&edit, getline(&edit));
