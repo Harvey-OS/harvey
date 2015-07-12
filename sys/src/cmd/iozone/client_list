@@ -1,0 +1,36 @@
+#
+# Lines that start with # in column 0 are comments.
+#
+# There are now two formats supported.
+# Format:  3 fields, space delimited.
+# Format:  4 fields, space delimited.
+#
+# Format:  3 fields, space delimited.
+#   client_name  working_dir_on_client  path_to_iozone_on_client
+# Format:  4 fields, space delimited.
+#  client_name  working_dir_on_client path_to_iozone_on_client path_to_testfile
+#
+# Example: With two clients  (format 3 fields)
+#
+# client1  /home/user/tmp /home/user/tmp/iozone
+# client2  /home/user/tmp /home/user/tmp/iozone
+#
+#
+# Example: With two copies of Iozone on each of the two clients 
+# (format 3 fields)
+#
+# client1  /home/user/tmp /home/user/tmp/iozone
+# client1  /home/user/tmp /home/user/tmp/iozone
+# client2  /home/user/tmp /home/user/tmp/iozone
+# client2  /home/user/tmp /home/user/tmp/iozone
+#
+# Example: With two clients (format 4 fields)
+# client1  /home/user/tmp /home/user/tmp/iozone /tmp/foo1
+# client2  /home/user/tmp /home/user/tmp/iozone /tmp/foo2
+#
+# Example: With two copies of Iozone on each of the two clients 
+# (format 4 fields)
+# client1  /home/user/tmp /home/user/tmp/iozone /tmp/foo1
+# client1  /home/user/tmp /home/user/tmp/iozone /tmp/foo2
+# client2  /home/user/tmp /home/user/tmp/iozone /tmp/foo3
+# client2  /home/user/tmp /home/user/tmp/iozone /tmp/foo4

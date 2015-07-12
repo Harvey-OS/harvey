@@ -1,0 +1,63 @@
+#
+# $Id: Plot of latency versus offset in a file
+#
+# Requires data file "wol.dat" from this directory,
+# so change current working directory to this directory before running.
+#
+
+set title "File system write latency "
+set terminal postscript
+set output "gnu_wol.ps"
+set autoscale x
+set xtics
+set xlabel "Offset in file (KB)"
+set ylabel "Latency in Microseconds"
+plot 'wol.dat' using 1:2 title "Latency Plot" with lines
+#
+# $Id: Plot of latency versus offset in a file
+#
+# Requires data file "rwol.dat" from this directory,
+# so change current working directory to this directory before running.
+#
+
+set title "File system re-write latency "
+set terminal postscript
+set output "gnu_rwol.ps"
+set autoscale x
+set xtics
+set xlabel "Offset in file (KB)"
+set ylabel "Latency in Microseconds"
+plot 'rwol.dat' using 1:2 title "Latency Plot" with lines
+
+#
+# $Id: Plot of latency versus offset in a file
+#
+# Requires data file "rol.dat" from this directory,
+# so change current working directory to this directory before running.
+#
+
+set title "File system read latency "
+set autoscale x
+set xtics
+set xlabel "Offset in file (KB)"
+set ylabel "Latency in Microseconds"
+set terminal postscript
+set output "gnu_rol.ps"
+plot 'rol.dat' using 1:2 title "Latency Plot" with lines
+
+#
+# $Id: Plot of latency versus offset in a file
+#
+# Requires data file "rrol.dat" from this directory,
+# so change current working directory to this directory before running.
+#
+
+set title "File system re-read latency "
+set terminal postscript
+set output "gnu_rrol.ps"
+set autoscale x
+set xtics
+set xlabel "Offset in file (KB)"
+set ylabel "Latency in Microseconds"
+plot 'rrol.dat' using 1:2 title "Latency Plot" with lines
+
