@@ -14,6 +14,7 @@
 		"args.c",
 		"syscall.c",
 		"sysfatal.c",
-		"execl.c"
+		"execl.c",
+		"va_copy.c"
 	]
 }
