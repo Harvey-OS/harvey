@@ -1,0 +1,32 @@
+#
+# This script will create the Iozone graphs using
+# gnuplot. 
+#
+#
+#
+# ------------------------------------------------
+# YOU MUST PROVIDE A FILE NAME FOR IT TO PROCESS.
+# This filename is the name of the file where you 
+# sent Iozone's output.
+# ------------------------------------------------
+
+# Generate data base for all of the operation types.
+
+./gengnuplot.sh $1 write
+./gengnuplot.sh $1 rewrite
+./gengnuplot.sh $1 read
+./gengnuplot.sh $1 reread
+./gengnuplot.sh $1 randread
+./gengnuplot.sh $1 randwrite
+./gengnuplot.sh $1 bkwdread
+./gengnuplot.sh $1 recrewrite
+./gengnuplot.sh $1 strideread
+./gengnuplot.sh $1 fwrite
+./gengnuplot.sh $1 frewrite
+./gengnuplot.sh $1 fread
+./gengnuplot.sh $1 freread
+
+# Produce graphs and postscript results.
+gnuplot gnu3d.dem
+
+

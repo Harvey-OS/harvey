@@ -1,0 +1,29 @@
+#
+#
+# The format is:
+#
+# 	All fields are space delimited.
+# 	A # symbol in column 1 indicates a comment.
+#	First field: Byte offset within the file.
+#	Second field: Size in bytes of the I/O operation.
+#	Third field: Number of milliseconds to delay before I/O operation.
+#
+# This is an example of sequential 64k reader with 2 milliseconds
+# before each read.
+#
+0 65536 2
+65536 65536 2
+131072 65536 2
+196608 65536 2
+262144 65536 2
+327680 65536 2
+393216 65536 2
+458752 65536 2
+524288 65536 2
+589824 65536 2
+655360 65536 2
+720896 65536 2
+786432 65536 2
+851968 65536 2
+917504 65536 2
+983040 65536 2

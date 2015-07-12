@@ -1,0 +1,23 @@
+The script Generate_Graphs will create the 3D surface plots
+and display them.  It will also produce postscript outputs
+for each test and leave them in their respective sub-directory.
+
+It processes the output from an Iozone run. The output from
+Iozone that it is expecting is the text output from
+the iozone default behavior. (iozone -a, or iozone -az)
+
+How to produce graphs:
+
+   Generate_Graphs iozone.out
+
+The gen_graphs script will:
+1. Create the databases for each type of operation 
+   and then processes them with Gnuplot.
+2. It will display each result on the X11 screen, and
+   also save a copy in postscript in the test sub-directory.
+
+
+Thanks to Yves Rougy for providing the nifty scripts to help
+with the plots.
+
+

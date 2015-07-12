@@ -1,0 +1,146 @@
+#
+# $Id: 3D plot of performance
+#
+# Processes files that were created by Generate_Graphs
+# and displays the results. Also, saves a postscript copy.
+#
+# Don Capps
+
+dirs = "write rewrite read reread randread randwrite bkwdread recrewrite strideread fwrite frewrite fread freread"
+titles = "Write ReWrite Read Reread Random_read Random_write Read_Backwards Record_rewrite Stride_read Fwrite Frewrite Fread Freread"
+
+file(n) = sprintf("%s/iozone_gen_out.gnuplot", word(dirs,n))
+outfile(n) = sprintf("%s/%s.ps", word(dirs,n), word(dirs,n))
+title(n) = word(titles,n)
+
+set title "Iozone performance"
+set grid lt 2 lw 1
+set surface
+set parametric
+set xtics
+set ytics
+set logscale x 2
+set logscale y 2
+set xlabel "File size in 2^n KBytes"
+set ylabel "Record size in 2^n Kbytes"
+set zlabel "Kbytes/sec"
+set style data lines
+set dgrid3d 80,80,3
+
+i = 1
+set terminal x11
+set output
+splot file(i) title title(i)
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 2
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 3
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 4
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 5
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 6
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 7
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 8
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 9
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 10
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 11
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 12
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+
+i = 13
+set terminal x11
+set output
+replot
+pause -1 "Hit return to continue"
+set terminal postscript color
+set output outfile(i)
+replot
+

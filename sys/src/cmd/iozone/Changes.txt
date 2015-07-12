@@ -1,0 +1,2518 @@
+V1.0 (capps):
+Capps:
+	Beginning of the code base.
+Isom:
+	Added reread
+	Added rewrite
+	Added read backwards
+	Added lseek+read
+	Added lseek+reread
+
+Capps:
+	Added more accurate time collection method.
+	Added alignment in the on chip Cache code.
+	Added change step when passing 16 Meg size file.
+
+Capps:
+	Added auto+ to purge on chip cache.
+
+kcollins:
+	replaced the lseek+read &reread test with random reads and writes
+
+Capps:
+	Replaced reverse re-read with record rewrite. This gives
+	both source and destination on chip cache hits.
+
+Capps:
+	added auto+multi
+	Support for multiple buffers in the iozone.
+
+Capps:
+	Removed the recursion through main().
+	Cleaned up the printout when not in auto mode.
+	Added support for stride-read. ( Manual mode only )
+
+Capps:
+	Cleanup so it will build for bsd4_2 ( C series machines )
+
+Capps:
+	Cleanup on frontend. Now uses getopt() and has a real parser.
+	Cleanup on error handling.
+	Added throughput tests.
+	Eliminated page faults in the throughput tests.
+
+Capps:
+	Made all perf tests table driven.
+	Add back Bill's Copyright.
+	ansify, prototypes, scope limitations.
+
+V2.1 (kcollins):
+	Simplified auto mode logic.  auto test now runs from
+	MEGABYTES_START to MEGABYTES_END and from RECLEN_START
+	to RECLEN_END with values multiplied by MULTIPLIER 
+	each iteration.  Range set to (4K...16M) for RECLEN
+	and (1M...512M) for MEGABYTES.  (the physical I/O
+	tests for RECLEN <4K take several hours on a 1200).
+
+	Enlarged MAXBUFFERSIZE to 16MB for large record tests.
+
+	Added error checking for mallocs (!-).
+
+	Changed multibuffer code to use all of MAXBUFFERSIZE
+	as a circular buffer, with the number of buffers
+	varying as MAXBUFFERSIZE/reclen.  This corrects 
+	problems where MAXBUFFERSIZE*MAXBUFFERS was very large.
+	Also modified auto mode so that tests where
+	reclen>filesize are skipped.
+
+	Modified preadv code to vary the number of buffers as
+	necessary such that they will fit in min(MAXBUFFERSIZE,filesize).
+	This fixes problems where the number of buffers in
+	the i/o vector exceeded the size of mainbuffer.
+
+	Added bzero for buffer when it is first malloc'd.  This
+	ensures that it is initialized before use.
+
+	Created a script (profile.fs) that runs a series of tests
+	to generate a "box" around common application variables
+	such as filesize, buffer size, buffer encachement, and
+	number of concurrent processes.  This is intended to serve
+	as the "standard" filesystem profile.
+
+	buffer reset to mainbuffer before each test loop
+
+V2.3 (kcollins):
+
+	added -F option to write to specify pathnames for throughput
+	tests (allowing throughput tests to multiple filesystems).
+
+V2.4 (capps):
+	Changed preadv/pwritev to use a non-sequential access pattern.
+	Changed the version number.
+	Moved all user interface values to KB. This simplifies
+	the user interface. (consistant scaling) and it also
+	allows one to start with 512kb file. This is very important
+	since the first indirect block causes a significant
+	slowdown in the initial write cases.
+
+V2.5 (capps):
+	Re-structure and cleanup.
+
+V2.6 (kcollins)
+	Bug fix for the throughput tests.
+
+V2.7 (capps):
+	Added -o flag. This makes all file opens for writes
+	have the O_SYNC flag set. This makes all writes go
+	to disk before competion. This is useful for seeing
+	what the media can do without the buffer cache helping.
+
+V2.8 (capps):
+	Added -V flag. This turns on pattern verification. If
+	the user were to type:
+	-V 165
+	Then bit pattern 0xa5 would be placed in every byte in the
+	buffer and when read back from buffer cache, or disk, 
+	it will be verified to be correct. If it fails then
+	the error handler will specify the byte location of the
+	miscompare.
+
+V2.9 (capps):
+	Added fread/re-fread, fwrite/re-fwrite to list of tests.
+	Added -E to allow the user to run pread and friends as an option.
+
+V2.10 (capps):
+	Added -R. This will generate Excel compatible files that
+	can then be imported into Excel and graphed.
+	Added support for 5 targets to the makefile.
+	Added -M  This prints out the uname -a stuff about a machine.
+	Added -O  This gives all results in operations/sec instead of KB/sec.
+	More code cleanup. Update comments.
+
+V2.11 (kcollins)
+	added -A.  Auto mode with no crossover and read/write tests only
+	changed default record size to 64KB (from 512 bytes)
+
+V2.12 (capps)
+	Added shared memory barrier sync for throughput mode. This
+	provides much finer control over the actual timeing 
+	of the children.
+	Added mmap() for BSD (Convex) machines that do not 
+	have System V shared memory.
+	Added two ways of showing throughput results. The second
+	method takes into consideration children that lag behind
+	due to slow devices, and gives results that are more accurate.
+	Cleanup of some tab problems in throughput results.
+	Cleanup of floating point output taking to much space.
+	Added -d to allow a variable delay comming out of the barrier 
+	in the throughput tests.
+V2.12	(kcollins)
+	added declaration for create_list to make ansi c compiles work
+	several fixes to some of the SPPUX 5.x make targets
+	added date run to banner (hope this doesn't break your scripts $-)
+
+V2.13	(capps)
+	Added "stone walling". During throughput tests, if one process
+	finishes then all others are sent a signal to tell them 
+	to stop. (The parallel region has finished). This provides 
+	better numbers for throughput.  
+	Only bzero or fill min(reclen,CACHE_SIZE) this saves a bunch
+	of paging on workstations with small memory systems.
+	Fixed broken target in the makefile.
+	Note: use of -d is not advised. It makes the children not run 
+	in parallel.
+V2.14   (capps)
+	Bug fix to avoid anomaly in SPP-UX. In SPP-UX the filesystem
+	code preallocates meta-data to improve initial file writes.
+	The first indirect block allocation was causing a block 
+	of zeros to be written syncronously. In SPP-UX the filesytem
+	code preallocates zero filled blocks when the first writer
+	touches a filesystem after a sync. A pool of on disk zero'd 
+	blocks are created asynchronously and handed out to writers
+	when they cross the boundry into the first level indirect
+	and would have had to stop and wait for the zero filled 
+	block to be written. Iozone's testing methodology was not
+	allowing the OS to have any time to complete the async
+	pre-allocation and was not showing the speed up that real
+	applications would see.
+
+V2.15   (capps)
+	Improve throughput testing mode.
+
+V2.16	(capps)
+	Added -U option. This allows the filesystem to be unmounted
+	and remounted between tests. This guarentees that the buffer
+	cache is cold.
+
+V2.17	(capps)
+	Added -T option. This makes the throughput tests use 
+	threads instead of processes.  Currently using pthread_create(),
+	pthread_self(), and pthread_exit(). 
+	Cleaned up file cleanup mechanism. Control C will now cause
+	all temp files to be deleted.  Removed all signals used to
+	control sub-processes.
+
+V2.18	(capps)
+	Cleanup. Added read stride, read backwards to the throughput
+	tests. Various bug fixes
+
+V2.19	(capps)
+	Removed all calls to malloc() and all use of system V shared 
+	memory. mmap() is much easier to deal with. As for malloc()
+	HP programs are very limited on the ammount of malloc() space
+	and not nearly so constrained on mmap() memory. It was necessary
+	to move to mmap() since multiple threads all need buffers in
+	the processes address space. 
+	Removed dependency on first thread being number 2. Iozone now
+	probes to find out what the thread library will return for 
+	the first thread.  This makes the switching thread libraries
+	much easier.
+
+V2.20	(capps)
+	Children now set stop_flag and shutdown all other children.There
+	is no further need to tell the parent to distribute the stop_flag.
+	verify, purge, and osync are now supported in the throughput
+	tests. Fixed bug where pthreads stack size was causing 
+	segmentation violation when purgeit() was called for buffer
+	that were greater than 256kb.
+
+V2.21	(capps)
+	Enhanced throughput reporting. Now provides:
+	Child throughput, Parent throughput, Minimum throughput for
+	any child in the group, Maximum throughput for any child in the 
+	group, and Minimum transfer count. Due to stone walling
+	not all children write the full requested size. This 
+	minimum transfer count provides the user with knowledge of 
+	how much work was performed by the slowest child. 
+	Added -C flag. This allows the user to see all of the transfer
+	counts for each child. Had to add system 5 shared memory back.
+	Linux does not support mmap(MAP_ANONYMOUS|MAP_SHARED). So it
+	must use SYSV shared memory get get sharing working.
+
+V2.22	(capps)
+	Made changes to make iozone work correctly on Linux on a 
+	PC. Changes are just scaling down the test to fit on a 
+	pc, and scaling down shared segments to < 16 Meg so it
+	can run on an Intel 386 class machine.
+	Added: -L #   Set the processor cache line size in bytes.
+	Added: -S #   Set the processor cache size in kbytes.
+	Removed spin wait in parent waiting for threads to 
+	finish each throughput test. Code not uses thread_join().
+	Fixed -O (operations/sec) mode to work in throughput tests.
+
+V2.23	(capps)
+	Close small timing hole where thread/process has set stop flag
+	and others are in a system call. The hole allowed threads/processes
+	to continue to increment work done after one had finished and
+	told the others to stop. The result was that the children would
+	report slightly high numbers as they were not truely parallel
+	at the finish line. Added random read throughput test.
+	Fixes for VxFS small extents being created by prime_zb() functions.
+	Provides more details about the throughput run.
+
+V2.24	(capps)
+	Added support for -R (Excell chart generation) to the throughput
+	tests. Also added support for the -O (ops/sec) to the throughput
+	Excell chart.
+
+V2.25	(capps)
+	Added support for selecting which test to run. -i #
+	-i 0 -i 3 
+	will run write and read-backwards tests only. For a list
+	of the test numbers type iozone -h.
+V2.26	(capps)
+	Added support for LARGE_FILES for the hpux-11.0 target.
+	
+
+V2.27	(capps)
+	All tests now verify one long word of data from each page
+	written/read to/from the file. This is to level the 
+	playing field with systems that do not move data 
+	when "read" or "write" is called, but instead just
+	map the file and perform the I/O when the address space
+	is touched. Benchmarks that do not validate the data
+	,at least touch each page, do not measure the read/write
+	times just the map times.
+	Note: The -V option still verifies each byte of the buffer,
+	the default is now to verify one long from each page.
+
+V2.28	(capps)
+	Added support for benchmarking mmap() files.
+	Added more command line options. -B -G -D
+		B = Use mmap() files for the benchmark.
+		G = Use msync(MS_SYNC) for mmap files.
+		D = Use msync(MS_ASYNC) for mmap files.
+
+V2.29	(capps)
+	Bug fixes for:
+		Combination of running individual tests and mmap() files support.
+		Stride read bug that caused only portions of the total file to be 
+		examined.
+	
+V2.30	(capps)
+	Fixups for build under SPP-UX
+
+V2.31	(capps)
+	Fixups for build under Linux.
+	Added -j ### to support user setting the stride size for the 
+	stride read benchmark.
+
+V2.32 	(capps)
+	Add support for IRIX and IRIX64.
+
+V2.33 	(capps)
+	Add support for POSIX async I/O benchmarking. Uses a library
+	to interface to POSIX async I/O model. The library provides
+	and extended async_read() interface. It takes the standard
+	calling options of read() but also allows the application to
+	perform read-ahead with a stride. (positive or negative)
+	and allows the user to specify how much read ahead to 
+	perform. 
+	Tested on HP-UX 11.0, Linux, SGI Origin.
+
+V2.34 	(capps)
+	Added -k. This allows POSIX async I/O to utilize the buffer
+	specified and not to perform any bcopys. Fixes to make
+	multi-threadedness work on SGI Origin.
+
+V2.34 	(capps)
+	Added [-k #]. This allows POSIX async I/O to utilize the buffer
+	specified and not to perform any bcopys. Fixes to make
+	multi-threadedness work on SGI Origin.
+
+V2.36 	(capps)
+	Iozone is now a 64 bit application. It may be compiled for either
+	64 bit or 32 bit machines. The makefile supports 64 and 32 bit
+	targets for machines that support 32 & 64 bit targets.
+	All version numbers are now automatically generated by
+	RCS. This is the last time we have to bump the version
+	number by hand.
+
+
+-----------------------------------------------------------------------------------
+Changed over to RCS source control here:
+Version Numbers are reset at this point back to Version 1.1.
+-----------------------------------------------------------------------------------
+
+
+RCS file:        iozone.c,v;   Working file:    iozone.c
+head:            1.94
+locks:           ;  strict
+access list:   
+symbolic names:
+comment leader:  " * "
+total revisions: 94;    selected revisions: 94
+description:
+Initial rcs version of Iozone
+----------------------------
+Revision 1.94        
+date: 99/01/18 13:02:57;  author: capps;  state: Exp;  lines added/del: 7/2
+Call msync if writer wants sync in timing and terminates early in multi thread test case.
+----------------------------
+Revision 1.93        
+date: 99/01/18 11:46:11;  author: capps;  state: Exp;  lines added/del: 309/126
+Cleanup for include_flush and include_close for single and multi threaded operations.
+----------------------------
+Revision 1.92        
+date: 99/01/15 10:53:58;  author: capps;  state: Exp;  lines added/del: 40/11
+Add include_close support for throughput testing
+----------------------------
+Revision 1.91        
+date: 98/12/07 09:26:22;  author: capps;  state: Exp;  lines added/del: 43/24
+For Windows: Use the high resolution timers instead of timeofday();
+Fix a few casting problems.
+----------------------------
+Revision 1.90        
+date: 98/11/30 14:49:46;  author: capps;  state: Exp;  lines added/del: 24/17
+Update the copyright and names and places
+----------------------------
+Revision 1.89        
+date: 98/10/30 09:04:51;  author: capps;  state: Exp;  lines added/del: 1/2
+An extra close(fd) causes HP-UX to fail future unmounts... 
+----------------------------
+Revision 1.88        
+date: 98/10/29 09:47:25;  author: capps;  state: Exp;  lines added/del: 17/17
+Cleanup the help screen
+----------------------------
+Revision 1.87        
+date: 98/10/28 23:31:11;  author: capps;  state: Exp;  lines added/del: 7/6
+Spelling error fix.
+----------------------------
+Revision 1.86        
+date: 98/10/14 11:21:50;  author: capps;  state: Exp;  lines added/del: 23/68
+Unified the time method to only have 2 ways to get time.
+----------------------------
+Revision 1.85        
+date: 98/10/14 09:22:09;  author: capps;  state: Exp;  lines added/del: 91/91
+Added code to remove the latency of gettimeofday() from the file performance measurements.
+----------------------------
+Revision 1.84        
+date: 98/10/12 11:44:50;  author: capps;  state: Exp;  lines added/del: 107/8
+Add time resolution output, and fix the divide by zero when the time in
+a system call turns out to be Zero. This will introduce distortion for machines
+that have very fast system calls and very poor time resolution. Windows 
+has a 50 Milli second resolution on gettimeofday(). So... to fix it 
+all calls that take less than 50 Milli seconds will be rounded up to 
+cost 50 milliseconds.
+----------------------------
+Revision 1.83        
+date: 98/10/06 09:58:16;  author: capps;  state: Exp;  lines added/del: 46/2
+Add support for Windows build
+----------------------------
+Revision 1.82        
+date: 98/09/23 09:48:02;  author: capps;  state: Exp;  lines added/del: 2/2
+Fix bug where -i # was leaving tmp files after throughput test.
+----------------------------
+Revision 1.81        
+date: 98/09/23 09:41:12;  author: capps;  state: Exp;  lines added/del: 1/3
+Remove debug printf
+----------------------------
+Revision 1.80        
+date: 98/09/23 09:29:01;  author: capps;  state: Exp;  lines added/del: 23/1
+Add my_nap(). This allows the threads to switch processors to their
+new bound processor before performing any work.
+----------------------------
+Revision 1.79        
+date: 98/09/22 11:57:20;  author: capps;  state: Exp;  lines added/del: 8/8
+Change xx back into an int so the modulo will work better.
+----------------------------
+Revision 1.78        
+date: 98/09/18 16:27:05;  author: capps;  state: Exp;  lines added/del: 18/15
+Remove create in rewrite path.
+----------------------------
+Revision 1.77        
+date: 98/08/17 16:44:06;  author: capps;  state: Exp;  lines added/del: 23/1
+Fixes for Solaris and the new processor bind feature.
+----------------------------
+Revision 1.76        
+date: 98/08/17 16:17:45;  author: capps;  state: Exp;  lines added/del: 1/2
+Remove debug code.
+----------------------------
+Revision 1.75        
+date: 98/08/17 16:16:15;  author: capps;  state: Exp;  lines added/del: 92/5
+Add support for binding procs/threads to cpus.
+----------------------------
+Revision 1.74        
+date: 98/08/07 16:51:41;  author: capps;  state: Exp;  lines added/del: 4/3
+Add fsync to the fwrite test case when the user specifies -e
+----------------------------
+Revision 1.73        
+date: 98/08/07 16:47:38;  author: capps;  state: Exp;  lines added/del: 178/208
+Add -c and -e to allow closes and fsyncs to be inside the timing calculations.
+----------------------------
+Revision 1.72        
+date: 98/08/06 22:40:15;  author: capps;  state: Exp;  lines added/del: 9/1
+Add setvbuf to fwrite and fread tests so that the internal fwrite and fread
+buffer size is the same as the record size. This is what a well tuned application 
+would do.
+----------------------------
+Revision 1.71        
+date: 98/08/06 09:03:06;  author: capps;  state: Exp;  lines added/del: 2/3
+Fix fsync filename problem in fwrite_perf_test
+----------------------------
+Revision 1.70        
+date: 98/08/05 18:06:41;  author: capps;  state: Exp;  lines added/del: 6/2
+Add fsync after fwrite test case so the fread will start with a 
+clean buffer cache and no writes in progress.
+----------------------------
+Revision 1.69        
+date: 98/08/03 10:45:49;  author: capps;  state: Exp;  lines added/del: 3/3
+Bug fix for -V option not filling the entire buffer.
+----------------------------
+Revision 1.68        
+date: 98/07/30 22:11:11;  author: capps;  state: Exp;  lines added/del: 2/3
+Fix for solaris
+----------------------------
+Revision 1.67        
+date: 98/07/30 22:08:19;  author: capps;  state: Exp;  lines added/del: 2/2
+Fix for solaris
+----------------------------
+Revision 1.66        
+date: 98/07/30 22:05:02;  author: capps;  state: Exp;  lines added/del: 43/15
+Add support for Solaris
+----------------------------
+Revision 1.65        
+date: 98/07/01 14:19:19;  author: capps;  state: Exp;  lines added/del: 80/82
+Move end_async inside the timing loops as in async I/O it counts.
+----------------------------
+Revision 1.64        
+date: 98/06/16 17:04:36;  author: capps;  state: Exp;  lines added/del: 13/2
+Correct problem where user specifies pread tests on hpux... which does not 
+support these operations. The test now prints an error message and exits.
+----------------------------
+Revision 1.63        
+date: 98/06/16 16:54:22;  author: capps;  state: Exp;  lines added/del: 1/2
+Remove exit from auto_test. This allows the message "iozone test complete" to 
+be printed when in auto test mode.
+----------------------------
+Revision 1.62        
+date: 98/06/10 10:54:28;  author: capps;  state: Exp;  lines added/del: 175/173
+All exit()s now have a unique exit value.
+----------------------------
+Revision 1.61        
+date: 98/05/18 13:34:03;  author: capps;  state: Exp;  lines added/del: 17/18
+Move .dat file descriptors to global data. Needed to prevent re-opens.
+----------------------------
+Revision 1.60        
+date: 98/05/18 13:24:22;  author: capps;  state: Exp;  lines added/del: 6/3
+Bug fix. Prevents re-opending .dat files when in auto mode.
+----------------------------
+Revision 1.59        
+date: 98/05/08 13:03:02;  author: capps;  state: Exp;  lines added/del: 21/3
+Enhance throughput tests to follow the -i test number to run options.
+----------------------------
+Revision 1.58        
+date: 98/05/07 14:15:49;  author: capps;  state: Exp;  lines added/del: 109/39
+Make VXFS a define in the make command. This makes moving to other targets
+easier. It removes the binding of HPUX and VXFS.
+Also, Added -Q to support offset/latency file generation for later use
+as inputs to plot program.
+----------------------------
+Revision 1.57        
+date: 98/05/06 15:09:43;  author: capps;  state: Exp;  lines added/del: 100/27
+Add -N to provide results in microseconds per operation.
+----------------------------
+Revision 1.56        
+date: 98/05/05 13:23:29;  author: capps;  state: Exp;  lines added/del: 3/10
+If the user specifies -i 0 then run both write and rewrite tests.
+----------------------------
+Revision 1.55        
+date: 98/04/30 15:19:02;  author: capps;  state: Exp;  lines added/del: 1/1
+No change
+----------------------------
+Revision 1.54        
+date: 98/04/30 15:09:58;  author: capps;  state: Exp;  lines added/del: 2/2
+Unlink the vxfstest when the test fails.
+----------------------------
+Revision 1.53        
+date: 98/04/30 13:07:21;  author: capps;  state: Exp;  lines added/del: 7/5
+Cleanup help output.
+----------------------------
+Revision 1.52        
+date: 98/04/30 12:58:29;  author: capps;  state: Exp;  lines added/del: 21/4
+Add async I/O with no bcopy to throughput tests.
+----------------------------
+Revision 1.51        
+date: 98/04/29 15:29:29;  author: capps;  state: Exp;  lines added/del: 5/1
+Fixes so it will compile on the SGI Origin.
+----------------------------
+Revision 1.50        
+date: 98/04/29 11:57:58;  author: capps;  state: Exp;  lines added/del: 5/1
+Do not need to limit async ops. Fix is in libasync.c
+----------------------------
+Revision 1.49        
+date: 98/04/29 10:45:19;  author: capps;  state: Exp;  lines added/del: 61/3
+Add async I/O to throughput testing for writes
+----------------------------
+Revision 1.48        
+date: 98/04/28 11:57:13;  author: capps;  state: Exp;  lines added/del: 5/1
+Limit max async operations to 60. Beyond this there be dragons.
+----------------------------
+Revision 1.47        
+date: 98/04/28 10:16:09;  author: capps;  state: Exp;  lines added/del: 108/21
+Completed support for no_bcopy POSIX async I/O in the async_write_no_copy path.
+This allows write tests to perform async I/O with buffers released when 
+the write is completed.
+----------------------------
+Revision 1.46        
+date: 98/04/27 16:58:38;  author: capps;  state: Exp;  lines added/del: 43/10
+Add aio_write() to the write and re-write tests. This provides
+POSIX async I/O for the those tests.
+----------------------------
+Revision 1.45        
+date: 98/04/25 09:53:39;  author: capps;  state: Exp;  lines added/del: 3/2
+direct_flag is an int. Was a char in one place and
+an int in another.
+----------------------------
+Revision 1.44        
+date: 98/04/25 09:17:42;  author: capps;  state: Exp;  lines added/del: 27/15
+More support for vx_direct support in the write path
+----------------------------
+Revision 1.43        
+date: 98/04/24 16:33:44;  author: capps;  state: Exp;  lines added/del: 115/77
+Move VX_DIRECT to libasync. But keep the VX_DIRECT support also
+in iozone. So one can use VX_DIRECT with and without async I/O
+----------------------------
+Revision 1.42        
+date: 98/04/24 16:20:34;  author: capps;  state: Exp;  lines added/del: 127/60
+Move VX_DIRECT to the libasync module.
+----------------------------
+Revision 1.41        
+date: 98/04/24 15:50:54;  author: capps;  state: Exp;  lines added/del: 190/7
+Add support for VxFS VX_DIRECT 
+Idea is to use VX_DIRECT and POSIX async I/O together
+----------------------------
+Revision 1.40        
+date: 98/04/22 16:38:25;  author: capps;  state: Exp;  lines added/del: 5/5
+Sppux wants ail_gettimeofday variables to be unsigned int. 
+----------------------------
+Revision 1.39        
+date: 98/04/22 16:19:50;  author: capps;  state: Exp;  lines added/del: 7/3
+Fix -M option not printing cleanly
+Fix -R in 32 bit mode printing garbage.
+----------------------------
+Revision 1.38        
+date: 98/04/22 15:56:02;  author: capps;  state: Exp;  lines added/del: 1/1
+Change to only disply revision not full header.
+----------------------------
+Revision 1.37        
+date: 98/04/22 15:52:19;  author: capps;  state: Exp;  lines added/del: 1/1
+Add RCS Header to support versioning.
+----------------------------
+Revision 1.36        
+date: 98/04/22 15:38:26;  author: capps;  state: Exp;  lines added/del: 1/1
+fix to bcopy() third arg needs to be size_t for 32 bit mode.
+----------------------------
+Revision 1.35        
+date: 98/04/22 09:09:24;  author: capps;  state: Exp;  lines added/del: 17/17
+Bug fixes for 64 bit mode on IRIX, and addition 
+on the internal inuse queue to insure that the
+internal struct_cache_ent structures are not released
+too early when doing direct I/O (async_read_no_copy).
+----------------------------
+Revision 1.34        
+date: 98/04/21 09:31:02;  author: capps;  state: Exp;  lines added/del: 4/0
+Fix to eliminate hidden (dot) files that iozone was creating
+in throughput mode. All files are now visible with ls.
+----------------------------
+Revision 1.33        
+date: 98/04/21 08:30:35;  author: capps;  state: Exp;  lines added/del: 7/1
+Have Iozone print the compile model used.
+----------------------------
+Revision 1.32        
+date: 98/04/20 18:46:02;  author: capps;  state: Exp;  lines added/del: 49/20
+Fixes for 32 bit mode. 
+----------------------------
+Revision 1.31        
+date: 98/04/20 16:57:29;  author: capps;  state: Exp;  lines added/del: 8/8
+make sure malloc is called with (size_t) parameter.
+----------------------------
+Revision 1.30        
+date: 98/04/20 16:05:08;  author: capps;  state: Exp;  lines added/del: 933/757
+Iozone now 64 bit application
+----------------------------
+Revision 1.29        
+date: 98/04/20 12:32:25;  author: capps;  state: Exp;  lines added/del: 4/4
+Move msync to before munmap so file gets written.
+----------------------------
+Revision 1.28        
+date: 98/04/20 10:21:30;  author: capps;  state: Exp;  lines added/del: 2/2
+Minor fix for -O flag and -B not working smoothly together.
+----------------------------
+Revision 1.27        
+date: 98/04/20 10:17:19;  author: capps;  state: Exp;  lines added/del: 0/0
+No change
+
+----------------------------
+Revision 1.26        
+date: 98/04/19 15:11:07;  author: capps;  state: Exp;  lines added/del: 5/5
+Remove prime_zbfill. It causes problems with mmap files.
+----------------------------
+Revision 1.25        
+date: 98/04/16 15:24:50;  author: capps;  state: Exp;  lines added/del: 228/70
+-H is Nastran async I/O with bcopy
+-k is async I/O without any bcopys
+----------------------------
+Revision 1.24        
+date: 98/04/15 16:48:30;  author: capps;  state: Exp;  lines added/del: 22/4
+fix to make build on 9.05 and 10.1
+----------------------------
+Revision 1.23        
+date: 98/04/15 15:36:55;  author: capps;  state: Exp;  lines added/del: 9/9
+Cleanup some compiler warnings about un-initialized variables. They
+are not really un-initialized and used but it does generate 
+compiler warnings on some machines.
+----------------------------
+Revision 1.22        
+date: 98/04/15 15:32:56;  author: capps;  state: Exp;  lines added/del: 7/7
+Need to free the dummyname space a bit later.
+----------------------------
+Revision 1.21        
+date: 98/04/15 14:37:05;  author: capps;  state: Exp;  lines added/del: 27/13
+Fix to use smaller stack size in thread_ routines. It was causing
+the SGI to drop core in throughput tests.
+----------------------------
+Revision 1.20        
+date: 98/04/14 17:01:19;  author: capps;  state: Exp;  lines added/del: 27/16
+Fix a memory leak. In multi_throughput testing shmalloc was getting called
+for each iteration. This is not needed and causes much to much 
+shm to be allocated. Not broken but definately a pig.
+----------------------------
+Revision 1.19        
+date: 98/04/14 15:19:15;  author: capps;  state: Exp;  lines added/del: 2/0
+When -k is specified alone this will turn on the POSIX async I/O and 
+set depth to 0.
+----------------------------
+Revision 1.18        
+date: 98/04/14 15:00:18;  author: capps;  state: Exp;  lines added/del: 21/20
+Fixes to make multi-threaded version run on the SGI Origin.
+----------------------------
+Revision 1.17        
+date: 98/04/14 11:55:44;  author: capps;  state: Exp;  lines added/del: 17/11
+Add support for -k. When using POSIX async I/O use the 
+buffer specified and do not perform any bcopys.
+----------------------------
+Revision 1.16        
+date: 98/04/13 10:22:18;  author: capps;  state: Exp;  lines added/del: 27/380
+Add libasync library support
+----------------------------
+Revision 1.15        
+date: 98/04/11 12:09:25;  author: capps;  state: Exp;  lines added/del: 1/0
+Fix memory leak. Now calls del_cache when ever any calls to async_end happen.
+This will ensure that there are no outstanding I/Os on the cache that 
+ha ve not been canceled .
+----------------------------
+Revision 1.14        
+date: 98/04/11 11:57:10;  author: capps;  state: Exp;  lines added/del: 632/47
+Add support for POSIX async I/O testing
+----------------------------
+Revision 1.13        
+date: 98/03/31 14:30:15;  author: capps;  state: Exp;  lines added/del: 44/6
+Fix support for bsd4_2 and ConvexOS
+----------------------------
+Revision 1.12        
+date: 98/03/31 11:26:34;  author: capps;  state: Exp;  lines added/del: 2/2
+Bump version number to 2.32
+----------------------------
+Revision 1.11        
+date: 98/03/31 11:20:51;  author: capps;  state: Exp;  lines added/del: 70/6
+Add support for SGI IRIX and SGI IRIX64
+----------------------------
+Revision 1.10        
+date: 98/03/27 14:00:47;  author: capps;  state: Exp;  lines added/del: 15/20
+Put the bcopy back. It is more represenative
+of what the real application will do.
+----------------------------
+Revision 1.9        
+date: 98/03/27 13:25:02;  author: capps;  state: Exp;  lines added/del: 40/14
+Improved mmap file support. Now only have 1 long word from
+each page touched. This eliminates the overhead of bcopy
+dominating the results. It also is performing the same 
+work that the non-mmap version does with verify().
+----------------------------
+Revision 1.8        
+date: 98/03/27 10:41:13;  author: capps;  state: Exp;  lines added/del: 10/4
+Bug fix. Frewrite was truncating the file. This fix
+ensures that the Frewrite test opens without trunc.
+----------------------------
+Revision 1.7        
+date: 98/03/27 10:16:41;  author: capps;  state: Exp;  lines added/del: 3/3
+Fix report to specify stride size as a function of reclen.
+It did not make sense to output kbytes as the value changes
+when in auto mode to match the current record length.
+----------------------------
+Revision 1.6        
+date: 98/03/26 15:28:15;  author: capps;  state: Exp;  lines added/del: 16/8
+Add support for -j option. This 
+allows the user to specify the stride size for 
+the strided file access benchmark.
+----------------------------
+Revision 1.5        
+date: 98/03/25 15:27:01;  author: capps;  state: Exp;  lines added/del: 1/1
+Fixup help screen to reflect new options
+----------------------------
+Revision 1.4        
+date: 98/03/25 15:21:23;  author: capps;  state: Exp;  lines added/del: 1/1
+Change the revision number
+----------------------------
+Revision 1.3        
+date: 98/03/25 15:20:28;  author: capps;  state: Exp;  lines added/del: 16/1
+Fixup support for Linux
+----------------------------
+Revision 1.2        
+date: 98/03/25 13:58:05;  author: capps;  state: Exp;  lines added/del: 16/3
+Bug fixes for SPP-UX
+----------------------------
+Revision 1.1        
+date: 98/03/25 10:43:45;  author: capps;  state: Exp;  
+Initial revision
+=============================================================================
+
+RCS file:        libasync.c,v;   Working file:    libasync.c
+head:            1.39
+locks:           ;  strict
+access list:   
+symbolic names:
+comment leader:  " * "
+total revisions: 39;    selected revisions: 39
+description:
+Initial version of POSIX async I/O library interface.
+----------------------------
+Revision 1.39        
+date: 98/07/30 22:05:21;  author: capps;  state: Exp;  lines added/del: 3/1
+Add support for Solaris
+----------------------------
+Revision 1.38        
+date: 98/07/07 13:00:39;  author: capps;  state: Exp;  lines added/del: 1/11
+Remove extra bcopy in the async_write_no_bcopy path.
+----------------------------
+Revision 1.37        
+date: 98/06/11 09:47:58;  author: capps;  state: Exp;  lines added/del: 3/3
+Fix syntax error for IRIX 
+----------------------------
+Revision 1.36        
+date: 98/06/10 10:56:55;  author: capps;  state: Exp;  lines added/del: 10/10
+All exit()s now have a unique exit value.
+----------------------------
+Revision 1.35        
+date: 98/05/07 14:17:20;  author: capps;  state: Exp;  lines added/del: 2/2
+Make VXFS a define in the make command. This makes moving to other targets
+easier. It removes the binding of HPUX and VXFS.
+Also, Added -Q to support offset/latency file generation for later use
+as inputs to plot program.
+----------------------------
+Revision 1.34        
+date: 98/04/30 15:19:54;  author: capps;  state: Exp;  lines added/del: 1/3
+Remove debug code that breaks 64 bit mode compiled code.
+----------------------------
+Revision 1.33        
+date: 98/04/30 13:09:13;  author: capps;  state: Exp;  lines added/del: 2/2
+Make retval an int so it can be checked for less than zero.
+----------------------------
+Revision 1.32        
+date: 98/04/29 16:49:34;  author: capps;  state: Exp;  lines added/del: 5/11
+If overshooting on number of asyncs then terminate the loop and
+let the next time through pick up the I/O.
+----------------------------
+Revision 1.31        
+date: 98/04/29 16:37:49;  author: capps;  state: Exp;  lines added/del: 3/3
+Remove debug code
+----------------------------
+Revision 1.30        
+date: 98/04/29 15:29:48;  author: capps;  state: Exp;  lines added/del: 3/1
+Fixes so it will compile on the SGI Origin.
+----------------------------
+Revision 1.29        
+date: 98/04/29 11:56:27;  author: capps;  state: Exp;  lines added/del: 36/10
+Work around for bug in POSIX async I/O library
+----------------------------
+Revision 1.28        
+date: 98/04/29 11:04:26;  author: capps;  state: Exp;  lines added/del: 1/2
+Remove debug code
+----------------------------
+Revision 1.27        
+date: 98/04/29 11:02:54;  author: capps;  state: Exp;  lines added/del: 54/27
+Added resource shortage paths.
+----------------------------
+Revision 1.26        
+date: 98/04/28 18:12:51;  author: capps;  state: Exp;  lines added/del: 1/3
+Add async I/O to the throughput tests
+----------------------------
+Revision 1.25        
+date: 98/04/28 17:12:40;  author: capps;  state: Exp;  lines added/del: 3/1
+fix wait_for_ routine to reset w_tail if item being removed is also the tail.
+----------------------------
+Revision 1.24        
+date: 98/04/28 16:14:06;  author: capps;  state: Exp;  lines added/del: 1/3
+bug fix. 2 calls to malloc for aligned memory.
+----------------------------
+Revision 1.23        
+date: 98/04/28 11:57:39;  author: capps;  state: Exp;  lines added/del: 37/13
+Limit max async operations to 60. Beyond this there be dragons.
+----------------------------
+Revision 1.22        
+date: 98/04/28 10:17:22;  author: capps;  state: Exp;  lines added/del: 127/42
+Completed support for no_bcopy POSIX async I/O in the async_write_no_copy path.
+This allows write tests to perform async I/O with buffers released when 
+the write is completed.
+----------------------------
+Revision 1.21        
+date: 98/04/27 16:59:14;  author: capps;  state: Exp;  lines added/del: 246/9
+Add aio_write() to the write and re-write tests. This provides
+POSIX async I/O for the those tests.
+----------------------------
+Revision 1.20        
+date: 98/04/24 16:20:55;  author: capps;  state: Exp;  lines added/del: 15/3
+Move VX_DIRECT to the libasync module.
+----------------------------
+Revision 1.19        
+date: 98/04/24 15:50:13;  author: capps;  state: Exp;  lines added/del: 42/11
+Add support for VxFS VX_DIRECT 
+Idea is to use VX_DIRECT and POSIX async I/O together
+----------------------------
+Revision 1.18        
+date: 98/04/24 12:36:42;  author: capps;  state: Exp;  lines added/del: 13/5
+Fix some error printfs to match the size of the off_t.
+----------------------------
+Revision 1.17        
+date: 98/04/24 12:18:11;  author: capps;  state: Exp;  lines added/del: 7/7
+Fixes for LP64 mode. off_t changed to off64_t 
+----------------------------
+Revision 1.16        
+date: 98/04/24 09:33:32;  author: capps;  state: Exp;  lines added/del: 275/35
+Add comments and fix for LP64 model on hpux.
+----------------------------
+Revision 1.15        
+date: 98/04/23 16:58:06;  author: capps;  state: Exp;  lines added/del: 167/13
+Make libasync large file aware.
+----------------------------
+Revision 1.14        
+date: 98/04/22 15:58:45;  author: capps;  state: Exp;  lines added/del: 1/1
+Change version to only display rcs version id.
+----------------------------
+Revision 1.13        
+date: 98/04/22 15:52:54;  author: capps;  state: Exp;  lines added/del: 1/2
+Add RCS version support
+----------------------------
+Revision 1.12        
+date: 98/04/22 11:39:35;  author: capps;  state: Exp;  lines added/del: 52/8
+Add firewall to prevent in flight changes to the aiocb structure.
+----------------------------
+Revision 1.11        
+date: 98/04/22 09:10:36;  author: capps;  state: Exp;  lines added/del: 57/19
+Bug fixes for 64 bit mode on IRIX, and addition 
+on the internal inuse queue to insure that the
+internal struct_cache_ent structures are not released
+too early when doing direct I/O (async_read_no_copy).
+----------------------------
+Revision 1.10        
+date: 98/04/21 09:34:14;  author: capps;  state: Exp;  lines added/del: 18/10
+Improve error messages.
+----------------------------
+Revision 1.9        
+date: 98/04/20 16:06:21;  author: capps;  state: Exp;  lines added/del: 53/50
+Iozone now 64 bit application
+----------------------------
+Revision 1.8        
+date: 98/04/20 10:17:59;  author: capps;  state: Exp;  lines added/del: 0/0
+no change
+----------------------------
+Revision 1.7        
+date: 98/04/17 08:49:16;  author: capps;  state: Exp;  lines added/del: 15/2
+Optimization on async operations. Just add one to the end
+of the list if the list already has more than one item.
+----------------------------
+Revision 1.6        
+date: 98/04/17 00:00:30;  author: capps;  state: Exp;  lines added/del: 10/2
+Make cancel keep trying until it succeeds. Otherwise transfers after the buffer
+is freed can occur.
+----------------------------
+Revision 1.5        
+date: 98/04/16 16:49:28;  author: capps;  state: Exp;  lines added/del: 49/4
+Improve error handling when running machine out of memory.
+----------------------------
+Revision 1.4        
+date: 98/04/16 15:26:41;  author: capps;  state: Exp;  lines added/del: 118/28
+added async_read_no_copy(). This allows the application to let the 
+library specify the destination buffer and perform the async I/O
+without unwanted bcopys.
+----------------------------
+Revision 1.3        
+date: 98/04/14 11:56:23;  author: capps;  state: Exp;  lines added/del: 36/10
+Add supporf for -k. When using POSIX async I/O use
+the buffer specified and do not perform any bcopys.
+----------------------------
+Revision 1.2        
+date: 98/04/13 10:35:20;  author: capps;  state: Exp;  lines added/del: 5/7
+Fixup for error path to propagate any small transfers.
+----------------------------
+Revision 1.1        
+date: 98/04/13 10:21:23;  author: capps;  state: Exp;  
+Initial revision
+=============================================================================
+
+RCS file:        makefile,v;   Working file:    makefile
+head:            1.20
+locks:           ;  strict
+access list:   
+symbolic names:
+comment leader:  "# "
+total revisions: 20;    selected revisions: 20
+description:
+Initial version of makefile
+----------------------------
+Revision 1.20        
+date: 98/10/06 10:36:22;  author: capps;  state: Exp;  lines added/del: 87/28
+Add comments to describe each targets capabilities.
+----------------------------
+Revision 1.19        
+date: 98/10/06 09:59:18;  author: capps;  state: Exp;  lines added/del: 3/3
+Fix spelling error
+----------------------------
+Revision 1.18        
+date: 98/10/06 09:58:29;  author: capps;  state: Exp;  lines added/del: 18/3
+Add support for Windows build
+----------------------------
+Revision 1.17        
+date: 98/08/17 16:44:56;  author: capps;  state: Exp;  lines added/del: 2/2
+Fixes for Solaris
+----------------------------
+Revision 1.16        
+date: 98/07/30 22:05:33;  author: capps;  state: Exp;  lines added/del: 20/1
+Add support for Solaris
+----------------------------
+Revision 1.15        
+date: 98/05/07 14:17:26;  author: capps;  state: Exp;  lines added/del: 13/13
+Make VXFS a define in the make command. This makes moving to other targets
+easier. It removes the binding of HPUX and VXFS.
+Also, Added -Q to support offset/latency file generation for later use
+as inputs to plot program.
+----------------------------
+Revision 1.14        
+date: 98/04/22 16:02:42;  author: capps;  state: Exp;  lines added/del: 2/0
+Add RCS version ids.
+----------------------------
+Revision 1.13        
+date: 98/04/22 13:58:54;  author: capps;  state: Exp;  lines added/del: 6/6
+For now only build the SGI targets in 32 bit mode. 
+There is some problem with POSIX async I/O and 64 bit apps.
+----------------------------
+Revision 1.12        
+date: 98/04/22 12:08:25;  author: capps;  state: Exp;  lines added/del: 3/3
+Let the IRIX64 target default to its default compile mode.
+----------------------------
+Revision 1.11        
+date: 98/04/22 09:10:54;  author: capps;  state: Exp;  lines added/del: 3/3
+Bug fixes for 64 bit mode on IRIX, and addition 
+on the internal inuse queue to insure that the
+internal struct_cache_ent structures are not released
+too early when doing direct I/O (async_read_no_copy).
+----------------------------
+Revision 1.10        
+date: 98/04/21 09:29:57;  author: capps;  state: Exp;  lines added/del: 17/17
+Improve dependencies
+----------------------------
+Revision 1.9        
+date: 98/04/20 16:05:48;  author: capps;  state: Exp;  lines added/del: 58/29
+Iozone now 64 bit application
+----------------------------
+Revision 1.8        
+date: 98/04/20 10:17:44;  author: capps;  state: Exp;  lines added/del: 0/0
+*** empty log message ***
+----------------------------
+Revision 1.7        
+date: 98/04/16 16:50:11;  author: capps;  state: Exp;  lines added/del: 6/6
+Have the SGI build 32 bit app too.
+----------------------------
+Revision 1.6        
+date: 98/04/15 16:48:09;  author: capps;  state: Exp;  lines added/del: 5/5
+Fix to make build on 9.05 and 10.1
+----------------------------
+Revision 1.5        
+date: 98/04/13 10:22:34;  author: capps;  state: Exp;  lines added/del: 14/6
+Add support for libasync library.
+----------------------------
+Revision 1.4        
+date: 98/04/11 11:57:34;  author: capps;  state: Exp;  lines added/del: 10/10
+AAdd support for POSIX async I/O testing
+----------------------------
+Revision 1.3        
+date: 98/03/31 11:21:34;  author: capps;  state: Exp;  lines added/del: 24/0
+Add support for SGI IRIX and SGI IRIX64
+----------------------------
+Revision 1.2        
+date: 98/03/25 13:59:18;  author: capps;  state: Exp;  lines added/del: 21/9
+Fixes for SPP-UX
+----------------------------
+Revision 1.1        
+date: 98/03/25 10:48:21;  author: capps;  state: Exp;  
+Initial revision
+=============================================================================
+Added support for BIFF file output. Iozone can now write Excel spreadsheet 
+format. This allows one to directly access the Excel spreadsheet without 
+needing to import with tab and space delimited method.
+
+Added support for large files and threads for Solaris.
+
+Add support for FreeBSD
+
+Change default stride value to avoid nodalization with various spindle counts.
+=============================================================================
+Version 3.3:
+Changed name of processor_bind to ioz_processor_bind to avoid collision
+with SVR5.4.MP shared library.
+Removed leading tab on an #ifdef that caused some compilers to get sick.
+=============================================================================
+Version 3.4:
+Add support for OpenBSD
+=============================================================================
+Version 3.6:
+Lots of code cleanup. 
+Added support for OSF1 on the DEC Alpha.
+=============================================================================
+Version 3.7:
+Add support for OSF Version 4.
+Add timer resolution problem detection.
+
+=============================================================================
+Add support for OSF Version 5.
+=============================================================================
+Version 3.13:
+Add support for Linux to use pthreads.
+
+=============================================================================
+Version 3.16:
+=============================================================================
+Add support for Netbsd 
+Add support for Largefiles and Async I/O to Linux target
+=============================================================================
+Version 3.17:
+=============================================================================
+Removed small model for Linux. In the past Iozone was forced to 
+use a small model for testing Linux as the normal load caused
+Redhat to panic. Redhat users have told me that the system now
+works fine with the normal load. They have tested Redhat 6.1 and
+it no longer panics.
+=============================================================================
+Version 3.18:
+=============================================================================
+Add support for BSDI. Base, largefiles, pthread. No async I/O
+=============================================================================
+Revision 3.19        
+=============================================================================
+date: 2000/03/08 14:47:21;  author: capps;  state: Exp;  lines added/del: 4/1
+Add support for getpagesize. This is used when available.
+=============================================================================
+Revision 3.20        
+=============================================================================
+date: 00/04/01 11:04:59;  author: capps;  state: Exp;  lines added/del: 2/2
+Fix for multiple filenames and range of threads being used.
+=============================================================================
+Revision 3.21        
+=============================================================================
+date: 00/04/01 11:10:54;  author: capps;  state: Exp;  lines added/del: 3/1
+SPPUX does not have getpagesize... 
+=============================================================================
+Revision 3.22        
+=============================================================================
+Add support for Linux-ia64
+Add support for mmap & normal file I/O mixing.
+=============================================================================
+Revision 3.23        
+Fixups for IBM AIX.
+=============================================================================
+Revision 3.24        
+Fixups for BSD 2.7  (New release of BSD that supports O_SYNC)
+=============================================================================
+Revision 3.27        
+Fixups for Cygnus compiler changes. (Windows targets). With this
+change Iozone will compile with at least 2 versions of the Cygnus
+compilers.
+=============================================================================
+Revision 3.28        
+=============================================================================
+Add support for reading and writing while holding lockf() on the file.
+This turns out to be important aspect of NFS benchmarking.
+=============================================================================
+Revision 3.29        
+=============================================================================
+Change calls to lockf() to calls to fcntl(). This is more portable.
+=============================================================================
+Revision 3.30        
+=============================================================================
+Add support for variable compute cycle time before each I/O
+operation. This allows one to more accuratly represent
+a specific application that is doing compute/read/compute/read 
+style operations.
+=============================================================================
+Revision 3.30 through 3.37
+=============================================================================
+Add support for read and write telemetry files.
+=============================================================================
+Revision 3.40 
+=============================================================================
+Code cleanup for popen() usage in -M path.
+=============================================================================
+Revision 3.41 
+=============================================================================
+Bug fix for ops/sec in rewrite throughput testing.
+Added average throughput to output in throughput mode.
+=============================================================================
+Revision 3.42 
+=============================================================================
+Bug fix for read and re-read. Usage of un-initialized variable that
+caused results to be wrong.
+=============================================================================
+Revision 3.43 
+=============================================================================
+Add support for latency plot data for throughput testing.
+Each child thread/process gets its own data file.
+=============================================================================
+Revision 3.44 
+=============================================================================
+Enhance compatibility of multi-thread/proc latency offsets with 
+telemetry file support.
+=============================================================================
+Revision 3.45 through 3.48
+=============================================================================
+Added latency/offset plot data files for all throughput tests.
+=============================================================================
+Revision 3.49
+=============================================================================
+Fixed compile warning for Linux off64_t redefinition.
+Add Solaris2.6 target with simple build.
+=============================================================================
+Revision 3.50
+=============================================================================
+Added support for openbsd-threads
+Cleanup for page size foo.
+=============================================================================
+Revision 3.51, 3.52, 3.53
+=============================================================================
+Cleanup for new random write testing in throughput mode.
+Improve perror handling.
+=============================================================================
+Revision 3.54
+=============================================================================
+Add -g maxfilesize so people will not have to edit the source to 
+test files bigger than 512 Mbytes.
+=============================================================================
+Revision 3.55
+=============================================================================
+Supports -n and -g to set the min and max file sizes to be used for 
+an auto mode run.
+=============================================================================
+Revision 3.56
+=============================================================================
+Added support for SCO Unixware SVR5 with gcc compiler
+=============================================================================
+Revision 3.57
+=============================================================================
+Fixed bug where file locking was not being used when
+_LARGE_FILE64_SOURCE was defined in read_perf_test.
+=============================================================================
+Revision 3.58
+=============================================================================
+Added -z option. This is to be used with the -a option. It
+provides more complete testing for small record sizes 
+when the file sizes are very large.
+Fixed -a so that the cross-over mechanism works correctly.
+=============================================================================
+Revision 3.59
+=============================================================================
+Fix a bug where the user specified -R -s but did not specify
+-a or -r. This caused the Excel report to print a bunch
+of zeros.
+=============================================================================
+Revision 3.60
+=============================================================================
+Fix headers in the Excel output when cross over kicks in.
+=============================================================================
+Revision 3.61
+=============================================================================
+Added -y and -q to set record size range
+Added command line to output
+=============================================================================
+Revision 3.62
+=============================================================================
+Put auto cross over back to 16 Meg
+=============================================================================
+Revision 3.63
+=============================================================================
+Minor code cleanups for error messages
+=============================================================================
+Revision 3.64
+=============================================================================
+Re-organize the help listing.
+=============================================================================
+Revision 3.65
+=============================================================================
+Add labels to the latency/offset output files.
+=============================================================================
+Revision 3.66
+=============================================================================
+Added Randy Dunlap to the list of contributors. Thanks Randy !!
+=============================================================================
+Revision 3.67
+=============================================================================
+Fix labels when using -R and -i options together.
+=============================================================================
+Revision 3.68
+=============================================================================
+Code cleanup. No functionality changes.
+=============================================================================
+Revision 3.69
+=============================================================================
+Prevent mixed modes. Auto and throughput.
+Added support for the Plus extended options.
+=============================================================================
+Revision 3.70
+=============================================================================
+Added support for -+u option. Cpu utilization.
+=============================================================================
+Revision 3.71
+=============================================================================
+Added comment for the support for -+u option. Cpu utilization.
+=============================================================================
+Revision 3.72
+=============================================================================
+Added network testing mode. -+m  (Experimental) Tested: Linux, HP-UX
+=============================================================================
+Revision 3.73
+=============================================================================
+Added -xflag support for distributed mode.
+Handle interrupts when in distributed mode.
+=============================================================================
+Revision 3.74
+=============================================================================
+Add default for REMOTE_SHELL
+=============================================================================
+Revision 3.75
+=============================================================================
+Code cleanup. 
+=============================================================================
+Revision 3.76
+=============================================================================
+Portability change for shmat().
+Added and example of client_list file to the distribution.
+=============================================================================
+Revision 3.77
+=============================================================================
+Disable CPU utilization in distributed mode.
+Bug fix for CPU utilization in normal mode.
+=============================================================================
+Revision 3.78
+=============================================================================
+Fix compatibility with AIX for shmat()
+=============================================================================
+Revision 3.79
+=============================================================================
+Fix throughput labels when user is selecting specific tests with -i option.
+=============================================================================
+Revision 3.80
+=============================================================================
+Remove dependency on min() and max(). They are not portable.
+=============================================================================
+Revision 3.81
+=============================================================================
+Changes for 64bit architectures. Brad Smith. OpenBSD.
+=============================================================================
+Revision 3.83
+=============================================================================
+Add -+m cluster option to the help list and the list of options.
+=============================================================================
+Revision 3.84 -> 3.88
+=============================================================================
+Fix file descriptor leak in cluster mode.
+=============================================================================
+Revision 3.89 -> 3.91
+=============================================================================
+Support for heterogeneous clusters, bug fix for -C 
+=============================================================================
+Revision 3.92 
+=============================================================================
+Add a small sleep in the client so the master's terminate message 
+can arrive before the client exits and closes the channel.
+=============================================================================
+Revision 3.93 
+=============================================================================
+Add support for UWIN (Unix for Windows)
+=============================================================================
+Revision 3.94 
+=============================================================================
+Bug fix for client's working dir in cluster mode.
+=============================================================================
+Revision 3.95 
+=============================================================================
+Enable more options in Cluster mode.
+=============================================================================
+Revision 3.96 
+=============================================================================
+Add support for Solaris 8 in 64-bit mode.
+=============================================================================
+Revision 3.97 
+=============================================================================
+Linux demands a function proto for functions that take floats as args.
+=============================================================================
+Revision 3.98 
+=============================================================================
+Changes for Solaris to make their silly compiler eat reasonable 
+function prototypes. (yech !!)
+=============================================================================
+Revision 3.99 
+=============================================================================
+Add protocol version checking for distributed messages.
+Add support for AIX 5.2
+=============================================================================
+Revision 3.100 
+=============================================================================
+Fixes for socket ports. Needed to be in network format.
+=============================================================================
+Revision 3.101 
+=============================================================================
+Add support for RSH environment override.
+=============================================================================
+Revision 3.102 
+=============================================================================
+Improve O_DIRECT and VX_DIRECT so that testing is done
+on the correct file on the correct client.
+=============================================================================
+Revision 3.103 
+=============================================================================
+Code cleanup.
+=============================================================================
+Revision 3.104 
+=============================================================================
+Code cleanup. Bug fix for O_DIRECT in read_perf_test.
+=============================================================================
+Revision 3.105 
+=============================================================================
+Bug fix for TRU64 and OSF where reclen was not getting displayed.
+=============================================================================
+Revision 3.106 
+=============================================================================
+Add -+d file I/O diagnostic mode.
+=============================================================================
+Revision 3.107 
+=============================================================================
+Fixes for the awesome Diagnostics mode.
+=============================================================================
+Revision 3.108 
+=============================================================================
+turn off cdebug
+Switch child comm to SOCK_STREAM. Avoid UDP fragment problems.
+=============================================================================
+Revision 3.109 
+=============================================================================
+Fix for "disrupt" and Direct I/O. Needs to be page size and aligned.
+=============================================================================
+Revision 3.110 
+=============================================================================
+Cleanup for -Wall to all source files.
+=============================================================================
+Revision 3.111 
+=============================================================================
+Fixes for UWIN compile warnings.
+=============================================================================
+Revision 3.112 
+=============================================================================
+Fixes for Windows compile warnings. do_compute() proto.
+=============================================================================
+Revision 3.113 
+=============================================================================
+Add definition char *dumb for Solaris to alloc_mem()
+=============================================================================
+Revision 3.114 
+=============================================================================
+Code cleanup for AIX. No async support caused warnings.
+=============================================================================
+Revision 3.115 
+=============================================================================
+Fix for Solaris returning short reads() from socket to child_listen.
+=============================================================================
+Revision 3.116 
+=============================================================================
+Add support for Mac OS X
+=============================================================================
+Revision 3.117 
+=============================================================================
+Add code to set the socket buffer window size. Solaris needs this.
+=============================================================================
+Revision 3.118 
+=============================================================================
+Add O_Direct for AIX
+=============================================================================
+Revision 3.119-> 3.120 
+=============================================================================
+Fix some compiler warnings and implement the -+x option for 
+setting the multiplier used for file and record size incrementing.
+=============================================================================
+Revision 3.121 
+=============================================================================
+Add changes from Debian. Add powerpc and sparc.
+Add changes to fix warning on Irix and Irix64
+=============================================================================
+Revision 3.122 
+=============================================================================
+Bug fix for cluster mode. Need to bzero buffers before sprintf or sscanf
+=============================================================================
+Revision 3.123 
+=============================================================================
+Bug fix for handling all chars that are transported over messaging.
+=============================================================================
+Revision 3.124 
+=============================================================================
+Simplify the child's debug output mechanism.
+=============================================================================
+Revision 3.125 
+=============================================================================
+Fix for stonewall in cluster mode.
+=============================================================================
+Revision 3.126 
+=============================================================================
+Shrink the client_neutral_command structure so it fits in a single
+UDP packet. 
+=============================================================================
+Revision 3.127 
+=============================================================================
+Improve debug code for cluster mode.
+=============================================================================
+Revision 3.128 
+=============================================================================
+Reduce the message traffic due to master's distribution of STOP. Only 
+one STOP distribution is needed. More can lead to socket buffer overflows.
+=============================================================================
+Revision 3.129 
+=============================================================================
+Bzero structures on the stack before using. No problem seen but it
+is a possible hole.
+=============================================================================
+Revision 3.130 
+=============================================================================
+Add error checking for the client file contents.
+=============================================================================
+Revision 3.131 
+=============================================================================
+Use prealloc() for HP-UX to create file for use with mmap.
+=============================================================================
+Revision 3.132 
+=============================================================================
+Add random mix mode.
+=============================================================================
+Revision 3.133 
+=============================================================================
+Make a better 32 bit random offset from calling rand()<<16||rand()
+=============================================================================
+Revision 3.134 
+=============================================================================
+Add -+p percentage read option.
+=============================================================================
+Revision 3.135 
+=============================================================================
+Improve the mixed mode distribution algorithm.
+=============================================================================
+Revision 3.136 
+=============================================================================
+Fix auto bug introduced by mixed mode testing.
+Introduce -+r for O_RSYNC.
+=============================================================================
+Revision 3.137 
+=============================================================================
+Code cleanup for some warnings on IA-64 systems.
+=============================================================================
+Revision 3.138 
+=============================================================================
+Fixes for FreeBSD
+=============================================================================
+Revision 3.139 
+=============================================================================
+Add support for multiple -r and -s options.
+=============================================================================
+Revision 3.140 
+=============================================================================
+Code cleanup for non-ansi builds
+Add target build to output.
+=============================================================================
+Revision 3.141 
+=============================================================================
+Add speed check code.
+=============================================================================
+Revision 3.142 
+=============================================================================
+Increase maximum threads/procs to 256
+=============================================================================
+Revision 3.143 
+=============================================================================
+Add contribs and -+t to help splash screen.
+=============================================================================
+Revision 3.144 
+=============================================================================
+Bug fix for Redhat.
+=============================================================================
+Revision 3.145 
+=============================================================================
+Bug fix for when user used -l but failed to use -u too.
+=============================================================================
+Revision 3.146 
+=============================================================================
+Add void to speed_main() for non-ansi compiles.
+=============================================================================
+Revision 3.147 
+=============================================================================
+Add "Test running" So users will know the test is running
+and not to hit control 'c' too soon.
+Bug fix in libbif.c do_float()
+=============================================================================
+Revision 3.148 
+=============================================================================
+Turn off some child debug code.
+=============================================================================
+Revision 3.149 
+=============================================================================
+Disable fread and fwrite testing if mmap or async is in use.
+=============================================================================
+Revision 3.150 
+=============================================================================
+Add pread/pwrite to Linux
+=============================================================================
+Revision 3.151 
+=============================================================================
+Handle -EB
+=============================================================================
+Revision 3.152 
+=============================================================================
+Add pread/pwrite throughput testing
+=============================================================================
+Revision 3.153 
+=============================================================================
+Changed second parameter to mmap() to be size_t. AIX needs this.
+=============================================================================
+Revision 3.154 
+=============================================================================
+Add support for madvise().
+=============================================================================
+Revision 3.155 
+=============================================================================
+Code cleanup.
+=============================================================================
+Revision 3.156 
+=============================================================================
+Fixes for -w -t -R from Veritas
+=============================================================================
+Revision 3.157 
+=============================================================================
+Make madvise() go away for windows. 
+=============================================================================
+Revision 3.158 
+=============================================================================
+Permit smaller values for -n and -g
+=============================================================================
+Revision 3.159 
+=============================================================================
+Make initial write in initfile() a page size request.
+=============================================================================
+Revision 3.160 
+=============================================================================
+Stop test if file can not be written.
+=============================================================================
+Revision 3.161 
+=============================================================================
+Special handling for mmap of a file that is opened (O_DIRECT)
+=============================================================================
+Revision 3.162 
+=============================================================================
+Fixup for systems that do not have O_DIRECT.
+=============================================================================
+Revision 3.163 
+=============================================================================
+Simplify the prototype for do_compute()
+=============================================================================
+Revision 3.164 
+=============================================================================
+Zero compute_val inside of loops.
+=============================================================================
+Revision 3.165 
+=============================================================================
+Add support for O_DIRECT for IRIX and IRIX64
+=============================================================================
+Revision 3.166 
+=============================================================================
+Improve macros and add prototypes.
+=============================================================================
+Revision 3.167 
+=============================================================================
+Improve resolution of get_resolution().
+=============================================================================
+Revision 3.168 
+=============================================================================
+Changes to support RedHat 9.0.
+=============================================================================
+Revision 3.169 
+=============================================================================
+Special handling of NAME for broken frontend in Cygwin/Windows env.
+=============================================================================
+Revision 3.170 
+=============================================================================
+Add support for the CrayX1
+=============================================================================
+Revision 3.171 
+=============================================================================
+Remove reference to PAGE_SIZE for linux. This causes problems
+with SuSe 8.
+=============================================================================
+Revision 3.172 
+=============================================================================
+Fixup for SCO build.
+=============================================================================
+Revision 3.173 
+=============================================================================
+Add -DHAVE_PREAD for Solaris8-64 target.
+=============================================================================
+Revision 3.174 
+=============================================================================
+Code cleanup for Linux
+=============================================================================
+Revision 3.177 
+=============================================================================
+Improve -+d so that each byte is more unique.
+Improve byte level validation.
+=============================================================================
+Revision 3.178 
+=============================================================================
+Provide byte level error detection with Found char and Expecting Char in
+  -+d mode.
+=============================================================================
+Revision 3.179 
+=============================================================================
+Improve speed of -+d without losing uniqueness of bytes.
+=============================================================================
+Revision 3.180 
+=============================================================================
+Fix so that Windows can use multiple processes. Needed mmap like SCO.
+=============================================================================
+Revision 3.181 
+=============================================================================
+Use malloc() instead of mmap() for threads memory, instead of mmap.
+=============================================================================
+Revision 3.182 
+=============================================================================
+Make CPU utilization use doubles everywhere.
+=============================================================================
+Revision 3.183 
+=============================================================================
+Add support for CPU utilization while in distributed mode.
+=============================================================================
+Revision 3.184 
+=============================================================================
+Make all times relative so multi node can do CPU usage.
+=============================================================================
+Revision 3.185 
+=============================================================================
+Remove unused variables.
+=============================================================================
+Revision 3.186 
+=============================================================================
+Add -+n option to disable re-testing.
+=============================================================================
+Revision 3.187 
+=============================================================================
+Fixup -+n for throughput mode.
+=============================================================================
+Revision 3.188 
+=============================================================================
+Fix Excel output when -+n is used.
+=============================================================================
+Revision 3.189 
+=============================================================================
+Add support for the IBM S390 running Linux.
+=============================================================================
+Revision 3.190 
+=============================================================================
+Cleanup naming conventions for the S390 and fixup a #define.
+=============================================================================
+Revision 3.191 
+=============================================================================
+Add 64 bit compiles for s390x
+Move BIG_ENDIAN to ZBIG_ENDIAN to avoid header conflicts.
+=============================================================================
+Revision 3.192 
+=============================================================================
+Make random offsets always based on 48 bit random values.
+=============================================================================
+Revision 3.193 
+=============================================================================
+Addition for make random offsets always based on 48 bit random values.
+=============================================================================
+Revision 3.194 
+=============================================================================
+Make rands long longs.
+=============================================================================
+Revision 3.195 
+=============================================================================
+Bug fix for 48 bit rands in bsd4_2 and Windows.
+=============================================================================
+Revision 3.196 
+=============================================================================
+Make big_rand a long long.
+=============================================================================
+Revision 3.197
+=============================================================================
+Inject Erik's changes for Multi-client Windows.
+=============================================================================
+Revision 3.198
+=============================================================================
+Change proto version due to changes in Windows -+m support.
+Add Eric to the contributors list.
+=============================================================================
+Revision 3.199
+=============================================================================
+Add more Windows support.
+=============================================================================
+Revision 3.200
+=============================================================================
+Spelling error.
+=============================================================================
+Revision 3.201
+=============================================================================
+Bug fixes from Erik H.
+=============================================================================
+Revision 3.202
+=============================================================================
+Reduce usage of shared memory.
+=============================================================================
+Revision 3.203
+=============================================================================
+Eliminate STUPID warning from the silly compiler.
+=============================================================================
+Revision 3.204
+=============================================================================
+Changes to remove warnings on BSD. Thanks to Christian Weisgerber
+=============================================================================
+Revision 3.205
+=============================================================================
+Support for the AMD64
+=============================================================================
+Revision 3.206
+=============================================================================
+Add -+k for constant aggregate data set size in throughput mode.
+=============================================================================
+Revision 3.207
+=============================================================================
+Add pread support for the TRU64 target. Department of Defense in Canada.
+Add -+q for delay in seconds between tests.
+=============================================================================
+Revision 3.208
+=============================================================================
+Move variable up, GCC on Solaris was getting a bogus parse error
+=============================================================================
+Revision 3.209
+=============================================================================
+Add support for -+D (O_DSYNC) mode testing.
+=============================================================================
+Revision 3.210
+=============================================================================
+Make O_DSYNC conditional.
+=============================================================================
+Revision 3.211
+=============================================================================
+Add telemetry support for pread/pwrite
+=============================================================================
+Revision 3.212
+=============================================================================
+Add record locking
+Add single file, file sharing.
+=============================================================================
+Revision 3.213
+=============================================================================
+Enhance fill/verify (diag mode) for shared file.
+=============================================================================
+Revision 3.214
+=============================================================================
+Remove warnings.
+=============================================================================
+Revision 3.215
+=============================================================================
+Add prototype for mylockr()
+=============================================================================
+Revision 3.216
+=============================================================================
+Fix prototype for mylockr
+=============================================================================
+Revision 3.217
+=============================================================================
+Enable options for Windows systems.
+=============================================================================
+Revision 3.218
+=============================================================================
+Add label to Excel spreadsheet that describes the rows and columns.
+Add support for Solaris64 with VxFS.
+Add support for Linux-arm
+=============================================================================
+Revision 3.219
+=============================================================================
+Add sleep to permit child to get connection up before master does connect.
+=============================================================================
+Revision 3.220
+=============================================================================
+Improve master connect to child, without delays.
+=============================================================================
+Revision 3.221
+=============================================================================
+Add -+B Mixed sequential testing. BlueArc request.
+=============================================================================
+Revision 3.222
+=============================================================================
+Workaround for bug in Cygwin's sscanf
+=============================================================================
+Revision 3.223
+=============================================================================
+Add transfer size to the output from -Q
+=============================================================================
+Revision 3.224
+=============================================================================
+Work around for TCP_WAIT in Windows.
+=============================================================================
+Revision 3.225
+=============================================================================
+Fix for broken rsh on Windows.
+=============================================================================
+Revision 3.226
+=============================================================================
+Workaround for gcc 3.4. From the folks at Gentoo.org.
+=============================================================================
+Revision 3.227
+=============================================================================
+Enable -+m and telemetry files.
+=============================================================================
+Revision 3.228
+=============================================================================
+Make more unique file names for mmap files.
+=============================================================================
+Revision 3.229
+=============================================================================
+Add -+T time stamps.
+=============================================================================
+Revision 3.230
+=============================================================================
+Bug fix for -m and validation code.
+=============================================================================
+Revision 3.231
+=============================================================================
+Add a space to the throughput output dump.
+=============================================================================
+Revision 3.232
+=============================================================================
+Add another space to the throughput output dump.
+=============================================================================
+Revision 3.233
+=============================================================================
+Enable shared file with no locking
+=============================================================================
+Revision 3.234
+=============================================================================
+Add sanity check to validate that open(name, O_CREAT | O_WRONLY | O_TRUNC, 0)
+does work correctly. This is an NFS client test that
+detects if the NFS server's local filesystem is broken and
+fails to support the sequence above correctly. 
+=============================================================================
+Revision 3.235
+=============================================================================
+add a close(fd) to the sanity test.
+=============================================================================
+Revision 3.237
+=============================================================================
+Transport the -o flag to remote clients.
+=============================================================================
+Revision 3.238
+=============================================================================
+Fix hang when using HP-UX master, Linux client, ssh buildup.
+=============================================================================
+Revision 3.239
+=============================================================================
+Add -+h hostname. Permits one to manually set the hostname. For systems
+with multiple names/NICs.
+=============================================================================
+Revision 3.241
+=============================================================================
+Add -+h, set hostname, and fix Solaris hang.
+=============================================================================
+Revision 3.242
+=============================================================================
+Remove the side effect of no-rereads when using -w. Now use -+n for
+consistancy.
+=============================================================================
+Revision 3.243
+=============================================================================
+Bug fix for -+k option.
+=============================================================================
+Revision 3.246
+=============================================================================
+Add the -+U for WIN32 API calls .. Unbuffered I/O. Sony studios.
+=============================================================================
+Revision 3.247
+=============================================================================
+Add support for -+U with -K (WIN32API calls + Jitter)
+=============================================================================
+Revision 3.248
+=============================================================================
+Bug fix. -J with -+m not passing compute delay correctly.
+=============================================================================
+Revision 3.249
+=============================================================================
+Add support for -i 8 when used with -+B (sequential mix)
+=============================================================================
+Revision 3.250
+=============================================================================
+Change the default pattern. Samba is trying to cheat by 
+special casing IOZONE.tmp, and the pattern of 0xA5.
+=============================================================================
+Revision 3.251
+=============================================================================
+Make the default pattern random, and based on Iozone version.
+This is to prevent the hack from Richard Sharpe (in Samba)
+from special casing Iozone, and lying to the user.
+=============================================================================
+Revision 3.252
+=============================================================================
+bug fix in pattern gen.
+=============================================================================
+Revision 3.253
+=============================================================================
+Add -+Z  old data set mode.
+Add -+X  constant data for short circuit testing only.
+=============================================================================
+Revision 3.254
+=============================================================================
+ Multi-node changes for new options. (-+Z and -+X)
+=============================================================================
+Revision 3.255
+=============================================================================
+Add -+K flag for Sony.
+=============================================================================
+Revision 3.256
+=============================================================================
+Move -+K outside of Windows only.
+=============================================================================
+Revision 3.257
+=============================================================================
+Simplify percentage calculation
+=============================================================================
+Revision 3.258
+=============================================================================
+Add error checking for -f and -F in the wrong modes.
+=============================================================================
+Revision 3.259
+=============================================================================
+Bug fix for pbuffer allocation on remote clients.
+=============================================================================
+Revision 3.260
+=============================================================================
+Check for max_rec_size when using ranges. -r -r -r
+=============================================================================
+Revision 3.261
+=============================================================================
+Fix for Debian user bug. -r 1m -n 1m -g 2m gave bogus error.
+=============================================================================
+Revision 3.262
+=============================================================================
+Bug fix for -k used in conjunction with -t and content validation.
+=============================================================================
+Revision 3.263
+=============================================================================
+Bug fix for -k used in conjunction with -t and content validation.
+=============================================================================
+Revision 3.264
+=============================================================================
+Add DragonFly target.
+=============================================================================
+Revision 3.265
+=============================================================================
+Put PER_VECTOR_OFFSET in for HP-UX
+=============================================================================
+Revision 3.266
+=============================================================================
+Fix compiler warning messages
+=============================================================================
+Revision 3.267
+=============================================================================
+Enforce minimum file size of page_size
+=============================================================================
+Revision 3.268
+=============================================================================
+Minor fixes.
+=============================================================================
+Revision 3.269
+=============================================================================
+Check fsync and close for errors.
+=============================================================================
+Revision 3.270
+=============================================================================
+Adding support for testing block devices. Will be done is phases. This is 
+phase 1. (Single threaded mode only)
+=============================================================================
+Revision 3.271
+=============================================================================
+Adding 4 token support to client_list. Each entry may now contain 4 tokens
+and the new one is the absolute path to the temp file for testing.
+=============================================================================
+Revision 3.272
+Editorial change.
+=============================================================================
+Revision 3.273
+Add support for external monitor start & stop for throughput tests.
+IMON_START and IMON_STOP environmental variables used.
+=============================================================================
+Revision 3.274
+=============================================================================
+minor change.
+=============================================================================
+Revision 3.275
+Bug fix for systems without O_DIRECT. Fall through in switch statement.
+=============================================================================
+Revision 3.276
+Fix for -c -t over NFS and initial writer close() when told by another to stop
+=============================================================================
+Revision 3.277
+Add Benny Halevy to contributors list.
+=============================================================================
+Revision 3.278
+Fix for Cygwin environment.
+=============================================================================
+Revision 3.279
+Code cleanup, and add arg to external trigger.
+=============================================================================
+Revision 3.280
+Code fixes for macosx
+=============================================================================
+=============================================================================
+Revision 3.281
+Add support for building with Sun's Studio 11 compiler
+=============================================================================
+Revision 3.283
+Bug fix for fread/fwrite with > 2Gig files.
+=============================================================================
+Revision 3.287
+Add O_DIRECT for Windows
+=============================================================================
+Revision 3.288
+Add -+w dedup testing mode.
+=============================================================================
+Revision 3.289
+Make remaining non-dedup data unique.
+=============================================================================
+Revision 3.290
+Make non-dedupable more unique.
+=============================================================================
+Revision 3.291
+Bug fix for non-dedup.
+=============================================================================
+Revision 3.292
+Make random offsets unique, using Knuth shuffle.
+=============================================================================
+Revision 3.292
+free memory used for random offset uniqueness.
+=============================================================================
+Revision 3.294
+Make unique/random offsets 64bits.
+=============================================================================
+Revision 3.295
+Add fallback for random/unique.
+=============================================================================
+Revision 3.296
+Make non-dedup region more unique
+=============================================================================
+Revision 3.297
+Add -+y ## to set percentage of interior dedup.
+=============================================================================
+Revision 3.298
+Add -+y ## to set percentage of interior dedup.
+=============================================================================
+Revision 3.299
+Bug fixes for -+w and -+y
+=============================================================================
+Revision 3.300
+Minor fix for dedup
+=============================================================================
+Revision 3.302
+Adding -+C to set percent of dedupable within a file.
+=============================================================================
+Revision 3.303
+bug fix
+=============================================================================
+Revision 3.304
+Add solaris to read sync O_RSYNC
+=============================================================================
+Revision 3.305
+Add space to avoid field output touching each other.
+=============================================================================
+Revision 3.306
+Add check for config file exceeding MAXSTREAMS.
+=============================================================================
+Revision 3.307
+Add new contributor's name.
+=============================================================================
+Revision 3.308
+Fix type-oh
+=============================================================================
+Revision 3.309
+Bug fix. rewrite_rec needed to fill entire buffer, or later stride read will
+fail.
+=============================================================================
+Revision 3.310
+=============================================================================
+Add ability for remote clients to return errors to the master and
+have the master display on output.
+=============================================================================
+Revision 3.311
+=============================================================================
+fix double reporting of client errors 
+=============================================================================
+Revision 3.312
+=============================================================================
+Eliminate extra file descriptor in fwrite test.
+=============================================================================
+Revision 3.312
+=============================================================================
+bug fix for barray allocation in -T mode
+=============================================================================
+Revision 3.313
+Revision 3.314
+Revision 3.315
+=============================================================================
+Changes from Debian: Retry umount, add fileop for linux-sparc, and
+fix column width in fileop for faster boxes.
+=============================================================================
+Revision 3.316
+Add O_DIRECT support to FreeBSD
+=============================================================================
+Revision 3.317
+Fix for defines in FreeBSD
+=============================================================================
+Revision 3.318
+Add IMON_SYNC to enable monitor scripts to be run sync.
+=============================================================================
+Revision 3.319
+Add directio() for Solaris
+=============================================================================
+Revision 3.320
+Add fixes for unresolved references in directio() for Solaris
+=============================================================================
+Revision 3.321
+Fix type oh.
+=============================================================================
+Revision 3.322
+Fix c++ style comment back to 'C' style comment.
+=============================================================================
+Revision 3.323
+Bug fix for check_filenames and large files
+=============================================================================
+Revision 3.324
+Replace tripple rand() calls with 64 bit Mersene twister.
+=============================================================================
+Revision 3.325
+Add read-only, external file, with no-verify. -+E
+=============================================================================
+Revision 3.325
+Permit -+E on dedup files.
+=============================================================================
+Revision 3.327
+Permit -+E on random read only testing, on existing file.
+=============================================================================
+Revision 3.328
+Add passing master listener's port to remote children if it is not
+HOST_LIST_PORT
+=============================================================================
+Revision 3.329
+Adding Dave Boone's notruncate option -+N
+=============================================================================
+Revision 3.330
+Bug fix for Dave's code.
+=============================================================================
+Revision 3.331
+Add multi -t ops. Fabrice 
+=============================================================================
+Revision 3.332
+Added Li Qin's multi dedup set support. -+S #
+=============================================================================
+Revision 3.333
+Bug fix for -+S dedup_mseed needs to be an integer
+=============================================================================
+Revision 3.334
+Make -+S generate more uniqueness
+=============================================================================
+Revision 3.335
+Make -+S generate more uniqueness
+=============================================================================
+Revision 3.336
+Make -+S generate more uniqueness
+=============================================================================
+Revision 3.337
+Bug fix for -+S
+=============================================================================
+Revision 3.338
+Make umount/remount more robust, in the face of server errors.
+=============================================================================
+Revision 3.339
+Improve the help string for the -+S option.
+=============================================================================
+Revision 3.340
+Add new contributor name.
+=============================================================================
+Revision 3.342
+Add support for the programmable interdimensional timer.
+=============================================================================
+Revision 3.343
+Bug fix for PIT on remote clients.
+=============================================================================
+Revision 3.344
+Bug fix for PIT on remote clients.
+=============================================================================
+Revision 3.345
+Have children re-acquire get_resolution.
+=============================================================================
+Revision 3.346
+Bug fix for t_range addition.
+=============================================================================
+Revision 3.347
+Get rid of a warning. ( An invalid warning, but none the less )
+=============================================================================
+Revision 3.348
+Add more words to the usage warnings and license 
+=============================================================================
+Revision 3.349
+Remove Ascii dependency for IBM's Z/OS that speaks EBCDIC.
+=============================================================================
+Revision 3.353
+Add support for SUA
+=============================================================================
+Revision 3.354
+Remove Sanity check so that SMB on Windows, under SUA, works
+=============================================================================
+Revision 3.355
+Cache the getaddrinfo call. 
+=============================================================================
+Revision 3.356
+delete optimization.. bad...Cache the getaddrinfo call. 
+=============================================================================
+Revision 3.358
+Change pit to use unsigned long longs
+=============================================================================
+Revision 3.359
+Add Linux processor affinity
+=============================================================================
+Revision 3.360
+Remove UDP usage
+=============================================================================
+Revision 3.361
+Increment protocol_version to catch incompat versions.
+=============================================================================
+Revision 3.362
+Fixup for new include needed by Solaris10
+=============================================================================
+Revision 3.363
+Patch for Mac errno
+=============================================================================
+Revision 3.364
+Patch for Mac printf's
+=============================================================================
+Revision 3.365
+Fix Josh's introduction of new Linux warnings.
+=============================================================================
+Revision 3.366
+Take sleep(1) out put path, deal with it in error/retry path
+=============================================================================
+Revision 3.367
+Add -+z latency histogram logging.
+=============================================================================
+Revision 3.368
+Format change for the -+z latency histogram logging.
+=============================================================================
+Revision 3.369
+Added -+O Op_rate control.
+=============================================================================
+Revision 3.370
+Close race condition with master closing socket to child async reader
+=============================================================================
+Revision 3.371
+Add "mygen" generation to the remote children protocol.
+This prevents zombies from coming back to life and killing future masters.
+=============================================================================
+Revision 3.372
+Set Listen(s,100) to Listen(s,MAXSTREAMS)
+=============================================================================
+Revision 3.373
+Move lable "again" to outside of cdebug.
+=============================================================================
+Revision 3.374
+More fixes for busted crap in Solaris !!!
+=============================================================================
+Revision 3.376
+AIX update. They now have errno.h
+=============================================================================
+Revision 3.377
+Need errno.h for FreeBSD
+=============================================================================
+Revision 3.379
+Need to include errno.h for Cygwin
+=============================================================================
+Revision 3.381
+Add SO_LINGER for master_listen and child_listen, so that wind-blows
+will work like all other systems on the planet.
+=============================================================================
+Revision 3.382
+Fix for linger addition
+=============================================================================
+Revision 3.383
+Fix for linger addition
+=============================================================================
+Revision 3.384
+Fix for linger addition
+=============================================================================
+Revision 3.385
+Make linger for all
+=============================================================================
+Revision 3.387
+Change sleep() calls, that help connect() to nanosleep() calls.
+=============================================================================
+Revision 3.388
+Fixup remainder for nanosleep()
+=============================================================================
+Revision 3.389
+Fixup remainder for nanosleep()
+=============================================================================
+Revision 3.390
+Add code for pread/pwrite from Ben England (Redhat)
+=============================================================================
+Revision 3.391
+Add code for MDEBUG and CDEBUG from Bob England (Redhat)
+=============================================================================
+Revision 3.392
+Add code for building HPUX. Errno.h
+=============================================================================
+Revision 3.393
+Fixes for Windows (nanosleep doesn't always work )
+=============================================================================
+Revision 3.394
+Fixes for preadv and pwritev from RedHat (Ben Englanc)
+=============================================================================
+Revision 3.395
+Add warnings for default switch cases, and exit with value for unknowns.
+=============================================================================
+Revision 3.396
+Fix warnings from RedHat patches
+=============================================================================
+Revision 3.397
+Bug fix for getopt default case, with bad parameter handed in.
+=============================================================================
+Revision 3.398
+Adding thread_read_test and thread_write_test.
+=============================================================================
+Revision 3.401
+bug fix for re-write rec.
+=============================================================================
+Revision 3.402
+Mods for DragonFly support.
+=============================================================================
+Revision 3.403
+Add -+W to permit chid_skew. This permits adding files, and continuing
+the proper sharing/dedup within each quadrant, within same seed group 
+and with previously existing files that were created with a different
+number of threads.
+=============================================================================
+Revision 3.404
+Fix type-oh in usage message.
+=============================================================================
+Revision 3.405
+Reduce CPU consumption in the op_rate control mechanism.
+=============================================================================
+Revision 3.406
+Increase buffer size for configuration lines. They might be 700 chars long.
+=============================================================================
+Revision 3.407
+Work around for cache_line_size suddenly becoming zero and breaking fetchit()
+=============================================================================
+Revision 3.408
+Bug fix for clobbering of buffer. "tfile" needed to be bigger, as its 
+address was loaded into filearray[] and then that was overwritten 
+by the mfflag causing parsed names to get loaded.
+=============================================================================
+Revision 3.409
+=============================================================================
+Bug fix for using -m in combination with -+d
+=============================================================================
+Revision 3.410
+=============================================================================
+Bug fix: Improve consistency of use_thread in thread_fread and thread_fwrite.
+=============================================================================
+Revision 3.411
+=============================================================================
+Compat fix: Move from using macosx to IOZ_macosx, because APPLE started
+using macosx in Mountain Lion.
+=============================================================================
+Revision 3.412
+=============================================================================
+Adding -+F flag for trunc before thread_write. Needed by Vangel for
+thread_mix_test.
+=============================================================================
+Revision 3.413
+=============================================================================
+Bug fix for -+F flag.
+=============================================================================
+Revision 3.414
+=============================================================================
+Add Vangel to the contributors list
+=============================================================================
+Revision 3.415
+=============================================================================
+Minor bug fix for -J option (think time) in the thread_pread_test()
+=============================================================================
+Revision 3.417
+=============================================================================
+Add -+J option. Include think time (-j #) in throughput calculation
+=============================================================================
+Revision 3.419
+=============================================================================
+Add better handling of exit values.
+=============================================================================
+Revision 3.420
+=============================================================================
+Add new contributor to list. 
+=============================================================================
+Revision 3.421
+=============================================================================
+Bug fix from Alp Aker:
+Patch for a minor issue in IOzone's signal_handler() function:
+the no_unlink option is respected only for the first member of the dummyfile[]
+array; the rest of the dummy files are unconditionally deleted, whether or not
+the '+w' flag has been passed to the program. 
+=============================================================================
+Revision 3.422
+=============================================================================
+Code cleanup. No functional changes.
+=============================================================================
+Revision 3.423
+=============================================================================
+Improve consistency of Kbytes instead of kbytes, KBytes, kBytes... 
+=============================================================================
+Revision 3.424
+=============================================================================
+Fix for 64 bit and touch_dedup.
+=============================================================================
+Revision 3.425
+=============================================================================
+Fix for 64 bit and gen_new_buf
+=============================================================================
+Revision 3.427
+Adjust formatting so fields don't run together.
+=============================================================================
+Revision 3.428
+Adjust formatting so fields don't run together.
+=============================================================================
+Revision 3.429
+Add two more characters to array my_port_num.
+=============================================================================
+=============================================================================
+Revision 3.430
+Adding -+b option for bursty operations. 
+Donated by: Avi Shchislowski <Avi.Shchislowski@sandisk.com>
+=============================================================================
