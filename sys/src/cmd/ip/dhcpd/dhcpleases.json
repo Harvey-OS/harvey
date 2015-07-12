@@ -6,8 +6,8 @@
 	"Name": "dhcpleases",
 	"Program": "dhcpleases",
 	"SourceFiles": [
-		"dhcpleases.c",
 		"db.c",
+		"dhcpleases.c",
 		"ping.c"
 	]
 }

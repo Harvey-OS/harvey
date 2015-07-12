@@ -10,17 +10,17 @@
 		"copy.c",
 		"csquery.c",
 		"date.c",
+		"debug.c",
 		"fetch.c",
+		"folder.c",
 		"imap4d.c",
 		"list.c",
 		"mbox.c",
 		"msg.c",
 		"mutf7.c",
 		"nodes.c",
-		"folder.c",
 		"search.c",
 		"store.c",
-		"utils.c",
-		"debug.c"
+		"utils.c"
 	]
 }

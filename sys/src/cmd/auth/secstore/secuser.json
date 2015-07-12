@@ -6,9 +6,9 @@
 	"Name": "secuser",
 	"Program": "secuser",
 	"SourceFiles": [
+		"SConn.c",
 		"pak.c",
 		"password.c",
-		"SConn.c",
 		"secuser.c",
 		"util.c"
 	]

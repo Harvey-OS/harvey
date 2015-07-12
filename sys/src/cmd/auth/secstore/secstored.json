@@ -6,12 +6,12 @@
 	"Name": "secstored",
 	"Program": "secstored",
 	"SourceFiles": [
+		"../secureidcheck.c",
+		"SConn.c",
 		"dirls.c",
 		"pak.c",
 		"password.c",
-		"SConn.c",
 		"secstored.c",
-		"../secureidcheck.c",
 		"util.c"
 	]
 }

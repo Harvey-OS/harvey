@@ -23,8 +23,8 @@
 	],
 	"SourceFiles": [
 		"aux.c",
-		"bootauth.c",
 		"boot.c",
+		"bootauth.c",
 		"bootcache.c",
 		"bootip.c",
 		"embed.c",

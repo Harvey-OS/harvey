@@ -7,13 +7,13 @@
 	"Name": "libhttps",
 	"SourceFiles": [
 		"anonymous.c",
+		"authorize.c",
 		"content.c",
 		"emem.c",
 		"hints.c",
 		"init.c",
 		"log.c",
 		"redirect.c",
-		"sendfd.c",
-		"authorize.c"
+		"sendfd.c"
 	]
 }

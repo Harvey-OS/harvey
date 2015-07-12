@@ -12,8 +12,8 @@
 	],
 	"Program": "fdisk",
 	"SourceFiles": [
-		"fdisk.c",
 		"edit.c",
+		"fdisk.c",
 		"y.tab.c"
 	]
 }

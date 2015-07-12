@@ -6,8 +6,8 @@
 	"Name": "mkflashfs",
 	"Program": "mkflashfs",
 	"SourceFiles": [
-		"mkfs.c",
 		"devfs.c",
+		"mkfs.c",
 		"utils.c"
 	]
 }

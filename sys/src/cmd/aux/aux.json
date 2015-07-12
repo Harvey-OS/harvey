@@ -27,10 +27,10 @@
 		"listen.c",
 		"listen1.c",
 		"mklatinkbd.c",
+		"mouse.c",
 		"ms2.c",
 		"msexceltables.c",
 		"mswordstrings.c",
-		"mouse.c",
 		"nfsmount.c",
 		"olefs.c",
 		"pcmcia.c",
@@ -42,10 +42,10 @@
 		"stub.c",
 		"timesync.c",
 		"trampoline.c",
+		"tty.c",
 		"usage.c",
 		"watchdog.c",
 		"write.c",
-		"zerotrunc.c",
-		"tty.c"
+		"zerotrunc.c"
 	]
 }

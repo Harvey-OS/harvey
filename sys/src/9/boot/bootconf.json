@@ -38,7 +38,7 @@
 		"boot.json"
 	],
 	"SourceFiles": [
-		"printstub.c",
-		"bootk8cpu.c"
+		"bootk8cpu.c",
+		"printstub.c"
 	]
 }

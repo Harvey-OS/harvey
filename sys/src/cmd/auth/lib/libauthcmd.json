@@ -9,19 +9,19 @@
 	"Library": "libauthcmd.a",
 	"Name": "libauthcmd",
 	"SourceFiles": [
-		"keyfmt.c",
-		"netcheck.c",
-		"okpasswd.c",
-		"readwrite.c",
-		"readarg.c",
-		"readln.c",
-		"getauthkey.c",
-		"log.c",
 		"error.c",
 		"fs.c",
-		"rdbio.c",
+		"getauthkey.c",
+		"getexpiration.c",
+		"keyfmt.c",
+		"log.c",
+		"netcheck.c",
+		"okpasswd.c",
 		"querybio.c",
-		"wrbio.c",
-		"getexpiration.c"
+		"rdbio.c",
+		"readarg.c",
+		"readln.c",
+		"readwrite.c",
+		"wrbio.c"
 	]
 }

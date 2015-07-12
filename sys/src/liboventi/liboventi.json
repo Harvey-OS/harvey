@@ -13,14 +13,14 @@
 		"pack.c",
 		"packet.c",
 		"parsescore.c",
+		"plan9-io.c",
+		"plan9-sha1.c",
+		"plan9-thread.c",
 		"readfully.c",
 		"rpc.c",
 		"scorefmt.c",
 		"server.c",
 		"strdup.c",
-		"zero.c",
-		"plan9-io.c",
-		"plan9-sha1.c",
-		"plan9-thread.c"
+		"zero.c"
 	]
 }
