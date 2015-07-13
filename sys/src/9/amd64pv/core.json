@@ -48,26 +48,25 @@
 		"inith.json"
 	],
 	"SourceFiles": [
-		"entry.S",
-		"vsvm.c",
-		"l64v.S",
-		"l64fpu.S",
-		"cpuidamd64.S",
-		"l64acidt.S",
-		"l64idt.S",
-		"l64vsyscall.S",
 		"acore.c",
 		"apic.c",
 		"arch.c",
 		"archk10.c",
 		"asm.c",
 		"backtrace.c",
+		"cpuidamd64.S",
 		"ctype.c",
 		"devarch.c",
+		"entry.S",
 		"fpu.c",
 		"i8254.c",
 		"i8259.c",
 		"ioapic.c",
+		"l64acidt.S",
+		"l64fpu.S",
+		"l64idt.S",
+		"l64v.S",
+		"l64vsyscall.S",
 		"main.c",
 		"map.c",
 		"memory.c",
@@ -82,6 +81,7 @@
 		"syscall.c",
 		"systab.c",
 		"tcore.c",
-		"trap.c"
+		"trap.c",
+		"vsvm.c"
 	]
 }

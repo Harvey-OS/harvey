@@ -6,11 +6,11 @@
 	"Library": "libregexp.a",
 	"Name": "libregexp",
 	"SourceFiles": [
+		"regaux.c",
 		"regcomp.c",
 		"regerror.c",
 		"regexec.c",
 		"regsub.c",
-		"regaux.c",
 		"rregexec.c",
 		"rregsub.c"
 	]

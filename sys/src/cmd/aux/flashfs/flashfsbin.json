@@ -6,13 +6,13 @@
 	"Name": "flashfsbin",
 	"Program": "flashfs",
 	"SourceFiles": [
-		"flash.c",
-		"journal.c",
+		"conv.c",
+		"devfs.c",
 		"entry.c",
 		"errors.c",
+		"flash.c",
+		"journal.c",
 		"request.c",
-		"devfs.c",
-		"conv.c",
 		"utils.c"
 	]
 }

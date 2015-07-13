@@ -7,8 +7,8 @@
 	"Name": "libframe",
 	"SourceFiles": [
 		"frbox.c",
-		"frdraw.c",
 		"frdelete.c",
+		"frdraw.c",
 		"frinit.c",
 		"frinsert.c",
 		"frptofchar.c",

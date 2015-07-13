@@ -6,16 +6,16 @@
 	"Library": "libip.a",
 	"Name": "Libip",
 	"SourceFiles": [
+		"bo.c",
+		"classmask.c",
 		"eipfmt.c",
 		"equivip.c",
-		"parseip.c",
-		"parseether.c",
+		"ipaux.c",
 		"myetheraddr.c",
 		"myipaddr.c",
-		"classmask.c",
-		"bo.c",
-		"readipifc.c",
-		"ipaux.c",
-		"ptclbsum.c"
+		"parseether.c",
+		"parseip.c",
+		"ptclbsum.c",
+		"readipifc.c"
 	]
 }

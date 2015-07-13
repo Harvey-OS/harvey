@@ -6,8 +6,8 @@
 	"Name": "ftpfs",
 	"Program": "ftpfs",
 	"SourceFiles": [
+		"file.c",
 		"ftpfs.c",
-		"proto.c",
-		"file.c"
+		"proto.c"
 	]
 }
