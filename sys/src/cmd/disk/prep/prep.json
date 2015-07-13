@@ -12,8 +12,8 @@
 	],
 	"Program": "prep",
 	"SourceFiles": [
-		"edit.c",
 		"prep.c",
+		"edit.c",
 		"y.tab.c"
 	]
 }

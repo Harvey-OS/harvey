@@ -9,7 +9,7 @@
 	],
 	"Program": "rsa2ssh",
 	"SourceFiles": [
-		"rsa2any.c",
-		"rsa2ssh.c"
+		"rsa2ssh.c",
+		"rsa2any.c"
 	]
 }

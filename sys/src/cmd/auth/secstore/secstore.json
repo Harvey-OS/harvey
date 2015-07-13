@@ -11,10 +11,10 @@
 		"secuser.json"
 	],
 	"SourceFiles": [
-		"SConn.c",
 		"pak.c",
 		"password.c",
 		"secstore.c",
+		"SConn.c",
 		"util.c"
 	]
 }

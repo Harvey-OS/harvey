@@ -12,10 +12,10 @@
 	"SourceFilesCmd": [
 		"exsort.c",
 		"format.c",
-		"kfscmd.c",
 		"mbr.c",
 		"mkext.c",
 		"mkfs.c",
-		"partfs.c"
+		"partfs.c",
+		"kfscmd.c"
 	]
 }

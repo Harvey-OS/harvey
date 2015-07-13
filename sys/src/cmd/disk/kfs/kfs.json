@@ -2,28 +2,29 @@
 	"Include": [
 		"../../cmd.json"
 	],
-	"Install": "/$ARCH/bin/disk",
 	"Name": "kfs",
+	"Install": "/$ARCH/bin/disk",
 	"Program": "kfs",
 	"SourceFiles": [
 		"9p1.c",
-		"9p12.c",
 		"9p1lib.c",
 		"9p2.c",
+		"9p12.c",
 		"auth.c",
 		"chk.c",
 		"con.c",
 		"console.c",
 		"dat.c",
 		"dentry.c",
-		"devwren.c",
 		"ialloc.c",
 		"iobuf.c",
 		"main.c",
 		"misc.c",
-		"ofcallfmt.c",
 		"porttime.c",
 		"sub.c",
-		"uid.c"
+		"uid.c",
+		"ofcallfmt.c",
+		"devwren.c"
 	]
 }
+

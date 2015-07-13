@@ -16,17 +16,17 @@
 		"9p.c",
 		"auth.c",
 		"authhostowner.c",
-		"chat.c",
-		"listalloc.c",
 		"nfs.c",
 		"nfsmount.c",
 		"nfsserver.c",
+		"xfile.c",
+		"chat.c",
 		"rpc.c",
-		"server.c",
 		"string.c",
 		"strparse.c",
 		"system.c",
-		"unixnames.c",
-		"xfile.c"
+		"listalloc.c",
+		"server.c",
+		"unixnames.c"
 	]
 }

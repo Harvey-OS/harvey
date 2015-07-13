@@ -6,12 +6,12 @@
 	"Name": "testldfs",
 	"Program": "testldfs",
 	"SourceFiles": [
-		"conv.c",
-		"devfs.c",
+		"testld.c",
+		"journal.c",
 		"entry.c",
 		"errors.c",
-		"journal.c",
-		"testld.c",
+		"devfs.c",
+		"conv.c",
 		"utils.c"
 	]
 }

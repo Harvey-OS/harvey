@@ -5,16 +5,16 @@
 	"Install": "/$ARCH/bin/regress",
 	"Name": "Regress",
 	"SourceFilesCmd": [
-		"args.c",
-		"execl.c",
-		"fork.c",
 		"iphash.c",
-		"longjmp.c",
 		"privates.c",
+		"fork.c",
+		"thread.c",
+		"longjmp.c",
 		"psx.c",
+		"args.c",
 		"syscall.c",
 		"sysfatal.c",
-		"thread.c",
+		"execl.c",
 		"va_copy.c"
 	]
 }

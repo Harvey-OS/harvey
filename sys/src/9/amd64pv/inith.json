@@ -30,7 +30,7 @@
 		"elf2c init \u003e init.h"
 	],
 	"SourceFiles": [
-		"../port/initcode.c",
-		"init9.c"
+		"init9.c",
+		"../port/initcode.c"
 	]
 }

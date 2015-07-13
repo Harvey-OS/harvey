@@ -8,13 +8,13 @@
 	],
 	"Program": "dossrv",
 	"SourceFiles": [
-		"chat.c",
-		"devio.c",
+		"xfssrv.c",
+		"xfile.c",
 		"dosfs.c",
 		"dossubs.c",
 		"iotrack.c",
 		"lock.c",
-		"xfile.c",
-		"xfssrv.c"
+		"chat.c",
+		"devio.c"
 	]
 }

@@ -6,11 +6,11 @@
 	"Name": "ppp",
 	"Program": "ppp",
 	"SourceFiles": [
-		"block.c",
-		"compress.c",
-		"ipaux.c",
-		"mppc.c",
 		"ppp.c",
+		"compress.c",
+		"block.c",
+		"mppc.c",
+		"ipaux.c",
 		"thw.c",
 		"thwack.c",
 		"unthwack.c"

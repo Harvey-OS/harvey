@@ -9,7 +9,7 @@
 		"gpsevermore.json"
 	],
 	"SourceFiles": [
-		"gpsfs.c",
-		"util.c"
+		"util.c",
+		"gpsfs.c"
 	]
 }

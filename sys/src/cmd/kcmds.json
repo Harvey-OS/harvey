@@ -18,10 +18,10 @@
 	],
 	"SourceFilesCmd": [
 		"bind.c",
-		"date.c",
-		"echo.c",
-		"ls.c",
 		"mount.c",
-		"srv.c"
+		"date.c",
+		"srv.c",
+		"echo.c",
+		"ls.c"
 	]
 }
