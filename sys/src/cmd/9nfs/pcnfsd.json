@@ -9,14 +9,14 @@
 	],
 	"Program": "pcnfsd",
 	"SourceFiles": [
-		"chat.c",
-		"listalloc.c",
 		"pcnfsd.c",
+		"unixnames.c",
+		"chat.c",
 		"rpc.c",
 		"server.c",
 		"string.c",
+		"listalloc.c",
 		"strparse.c",
-		"system.c",
-		"unixnames.c"
+		"system.c"
 	]
 }

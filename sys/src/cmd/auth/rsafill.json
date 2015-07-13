@@ -9,7 +9,7 @@
 	],
 	"Program": "rsafill",
 	"SourceFiles": [
-		"rsa2any.c",
-		"rsafill.c"
+		"rsafill.c",
+		"rsa2any.c"
 	]
 }

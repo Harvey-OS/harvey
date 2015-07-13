@@ -29,7 +29,7 @@
 	],
 	"Program": "init",
 	"SourceFiles": [
-		"../port/initcode.c",
-		"init9.c"
+		"init9.c",
+		"../port/initcode.c"
 	]
 }

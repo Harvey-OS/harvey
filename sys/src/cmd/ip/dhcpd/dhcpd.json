@@ -6,8 +6,8 @@
 	"Name": "dhcpd",
 	"Program": "dhcpd",
 	"SourceFiles": [
-		"db.c",
 		"dhcpd.c",
+		"db.c",
 		"ndb.c",
 		"ping.c"
 	]

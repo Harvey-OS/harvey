@@ -11,8 +11,8 @@
 	],
 	"SourceFilesCmd": [
 		"con.c",
-		"hayes.c",
+		"xms.c",
 		"xmr.c",
-		"xms.c"
+		"hayes.c"
 	]
 }

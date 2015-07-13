@@ -9,9 +9,9 @@
 	],
 	"Program": "portmapper",
 	"SourceFiles": [
-		"chat.c",
 		"portmapper.c",
 		"rpc.c",
+		"chat.c",
 		"server.c",
 		"string.c"
 	]

@@ -6,16 +6,16 @@
 	"Library": "libflate.a",
 	"Name": "libflate",
 	"SourceFiles": [
-		"adler.c",
-		"crc.c",
 		"deflate.c",
-		"deflateblock.c",
 		"deflatezlib.c",
+		"deflateblock.c",
 		"deflatezlibblock.c",
-		"flateerr.c",
 		"inflate.c",
-		"inflateblock.c",
 		"inflatezlib.c",
-		"inflatezlibblock.c"
+		"inflateblock.c",
+		"inflatezlibblock.c",
+		"flateerr.c",
+		"crc.c",
+		"adler.c"
 	]
 }

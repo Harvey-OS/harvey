@@ -6,7 +6,7 @@
 	"Name": "gpsevermore",
 	"Program": "gpsevermore",
 	"SourceFiles": [
-		"gpsevermore.c",
-		"util.c"
+		"util.c",
+		"gpsevermore.c"
 	]
 }

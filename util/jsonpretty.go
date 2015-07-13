@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sort"
-	"strings"
 )
 
 func main() {
@@ -36,19 +34,6 @@ func main() {
 		case []interface{}:
 			if len(tval) == 0 {
 				delete(jsmap, key)
-			} else if strings.Contains(key, "SourceFiles") {
-				var stuff []string
-				for _, el := range tval {
-					switch eval := el.(type) {
-					case string:
-						stuff = append(stuff, eval)
-					default:
-						fmt.Printf("jsonpretty: non-string array member in %v\n", key)
-						os.Exit(1)
-					}
-				}
-				sort.Strings(stuff)
-				jsmap[key] = stuff
 			}
 		}
 	}
