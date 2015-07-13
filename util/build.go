@@ -5,19 +5,38 @@
 package main
 
 import (
-	//	"fmt"
+	"bytes"
+	"debug/elf"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"text/template"
 )
+
+type kernconfig struct {
+	Code []string
+	Dev  []string
+	Ip   []string
+	Link []string
+	Sd   []string
+	Uart []string
+}
+
+type kernel struct {
+	Systab   string
+	Config   kernconfig
+	Ramfiles map[string]string
+}
 
 type build struct {
 	// jsons is unexported so can not be set in a .json file
 	jsons map[string]bool
+	path  string
 	Name  string
 	// Projects name a whole subproject which is built independently of
 	// this one. We'll need to be able to use environment variables at some point.
@@ -37,6 +56,7 @@ type build struct {
 	Program string
 	Library string
 	Install string // where to place the resulting binary/lib
+	Kernel  *kernel
 }
 
 var (
@@ -51,12 +71,16 @@ func fail(err error) {
 	}
 }
 
+func adjust1(s string) string {
+	if path.IsAbs(s) {
+		return path.Join(harvey, s)
+	}
+	return s
+}
+
 func adjust(s []string) (r []string) {
 	for _, v := range s {
-		if path.IsAbs(v) {
-			v = path.Join(harvey, v)
-		}
-		r = append(r, v)
+		r = append(r, adjust1(v))
 	}
 	return
 }
@@ -71,6 +95,17 @@ func process(f string, b *build) {
 	err = json.Unmarshal(d, &build)
 	fail(err)
 	b.jsons[f] = true
+
+	if len(b.jsons) == 1 {
+		cwd, err := os.Getwd()
+		if err != nil {
+			log.Fatalf("%v", err)
+		}
+		b.path = path.Join(cwd, f)
+		b.Name = build.Name
+		b.Kernel = build.Kernel
+	}
+
 	b.SourceFiles = append(b.SourceFiles, build.SourceFiles...)
 	b.Cflags = append(b.Cflags, build.Cflags...)
 	b.Oflags = append(b.Oflags, build.Oflags...)
@@ -83,6 +118,7 @@ func process(f string, b *build) {
 	b.Program += build.Program
 	b.Library += build.Library
 	b.Install += build.Install
+
 	// For each source file, assume we create an object file with the last char replaced
 	// with 'o'. We can get smarter later.
 
@@ -303,6 +339,203 @@ func projects(b *build) {
 	}
 }
 
+func data2c(name string, path string) (string, error) {
+	var out []byte
+	var in []byte
+
+	if elf, err := elf.Open(path); err == nil {
+		elf.Close()
+		cwd, err := os.Getwd()
+		tmpf, err := ioutil.TempFile(cwd, name)
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
+		args := []string{"-o", tmpf.Name(), path}
+		cmd := exec.Command(toolprefix+"strip", args...)
+		cmd.Env = nil
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		log.Printf("%v", cmd.Args)
+		err = cmd.Run()
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
+
+		in, err = ioutil.ReadAll(tmpf)
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
+		tmpf.Close()
+		os.Remove(tmpf.Name())
+	} else {
+		var file *os.File
+		var err error
+		if file, err = os.Open(path); err != nil {
+			log.Fatalf("%v", err)
+		}
+		in, err = ioutil.ReadAll(file)
+		if err != nil {
+			log.Fatalf("%v\n", err)
+		}
+		file.Close()
+	}
+
+	total := len(in)
+
+	out = []byte(fmt.Sprintf("static unsigned char ramfs_%s_code[] = {\n", name))
+	for len(in) > 0 {
+		for j := 0; j < 16 && len(in) > 0; j++ {
+			out = append(out, []byte(fmt.Sprintf("0x%02x, ", in[0]))...)
+			in = in[1:]
+		}
+		out = append(out, '\n')
+	}
+
+	out = append(out, []byte(fmt.Sprintf("0,\n};\nint ramfs_%s_len = %v;\n", name, total))...)
+
+	return string(out), nil
+}
+
+func confcode(path string, kern *kernel) []byte {
+	var rootcodes []string
+	var rootnames []string
+	if kern.Ramfiles != nil {
+		for name, path := range kern.Ramfiles {
+			code, err := data2c(name, adjust1(path))
+			if err != nil {
+				log.Fatalf("%v\n", err)
+			}
+			rootcodes = append(rootcodes, code)
+			rootnames = append(rootnames, name)
+		}
+	}
+
+	vars := struct {
+		Path      string
+		Config    kernconfig
+		Rootnames []string
+		Rootcodes []string
+	}{
+		path,
+		kern.Config,
+		rootnames,
+		rootcodes,
+	}
+	tmpl, err := template.New("kernconf").Parse(`
+#include "u.h"
+#include "../port/lib.h"
+#include "mem.h"
+#include "dat.h"
+#include "fns.h"
+#include "../port/error.h"
+#include "io.h"
+
+void
+rdb(void)
+{
+	splhi();
+	iprint("rdb...not installed\n");
+	for(;;);
+}
+
+{{ range .Rootcodes }}
+{{ . }}
+{{ end }}
+
+{{ range .Config.Dev }}extern Dev {{ . }}devtab;
+{{ end }}
+Dev *devtab[] = {
+{{ range .Config.Dev }}
+	&{{ . }}devtab,
+{{ end }}
+	nil,
+};
+
+{{ range .Config.Link }}extern void {{ . }}link(void);
+{{ end }}
+void
+links(void)
+{
+{{ range .Rootnames }}addbootfile("{{ . }}", ramfs_{{ . }}_code, ramfs_{{ . }}_len);
+{{ end }}
+{{ range .Config.Link }}{{ . }}link();
+{{ end }}
+}
+
+#include "../ip/ip.h"
+{{ range .Config.Ip }}extern void {{ . }}init(Fs*);
+{{ end }}
+void (*ipprotoinit[])(Fs*) = {
+{{ range .Config.Ip }}	{{ . }}init,
+{{ end }}
+	nil,
+};
+
+#include "../port/sd.h"
+{{ range .Config.Sd }}extern SDifc {{ . }}ifc;
+{{ end }}
+SDifc* sdifc[] = {
+{{ range .Config.Sd }}	&{{ . }}ifc,
+{{ end }}
+	nil,
+};
+
+{{ range .Config.Uart }}extern PhysUart {{ . }}physuart;
+{{ end }}
+PhysUart* physuart[] = {
+{{ range .Config.Uart }}	&{{ . }}physuart,
+{{ end }}
+	nil,
+};
+
+Physseg physseg[8] = {
+	{
+		.attr = SG_SHARED,
+		.name = "shared",
+		.size = SEGMAXPG,
+	},
+	{
+		.attr = SG_BSS,
+		.name = "memory",
+		.size = SEGMAXPG,
+	},
+};
+int nphysseg = 8;
+
+{{ range .Config.Code }}{{ . }}
+{{ end }}
+
+char* conffile = "{{ .Path }}";
+
+`)
+
+	codebuf := bytes.NewBuffer(nil)
+	if err != nil {
+		log.Fatalf("%v\n", err)
+	}
+	err = tmpl.Execute(codebuf, vars)
+	if err != nil {
+		log.Fatalf("%v\n", err)
+	}
+
+	return codebuf.Bytes()
+}
+
+func buildkernel(b *build) {
+
+	if b.Kernel == nil {
+		return
+	}
+
+	codebuf := confcode(b.path, b.Kernel)
+
+	if err := ioutil.WriteFile(b.Name+".c", codebuf, 0666); err != nil {
+		log.Fatalf("Writing %s.c: %v", b.Name, err)
+	}
+
+}
+
 // assumes we are in the wd of the project.
 func project(root string) {
 	b := &build{}
@@ -310,6 +543,7 @@ func project(root string) {
 	process(root, b)
 	projects(b)
 	run(b, b.Pre)
+	buildkernel(b)
 	if len(b.SourceFiles) > 0 {
 		compile(b)
 	}

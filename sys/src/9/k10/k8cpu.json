@@ -8,51 +8,81 @@
 		"../ip/ip.json",
 		"../port/port.json"
 	],
+	"Kernel": {
+		"Config": {
+			"Code": [
+				"int cpuserver = 1;",
+				"uint32_t kerndate = 1;"
+			],
+			"Dev": [
+				"root",
+				"cons",
+				"arch",
+				"env",
+				"pipe",
+				"proc",
+				"mnt",
+				"srv",
+				"dup",
+				"rtc",
+				"kprof",
+				"pmc",
+				"segment",
+				"acpi",
+				"zp",
+				"ws",
+				"cec",
+				"sd",
+				"ether",
+				"ip",
+				"pci",
+				"uart"
+			],
+			"Ip": [
+				"tcp",
+				"udp",
+				"ipifc",
+				"icmp",
+				"icmp6",
+				"gre"
+			],
+			"Link": [
+				"ether8169",
+				"ether82557",
+				"ether82563",
+				"etherigbe",
+				"ether8139",
+				"ethermedium",
+				"loopbackmedium",
+				"netdevmedium"
+			],
+			"Sd": [
+				"sdiahci"
+			],
+			"Systab": "/sys/src/libc/9syscall/sys.h",
+			"Uart": [
+				"i8250",
+				"pci"
+			]
+		},
+		"Ramfiles": {
+			"bind": "/amd64/bin/bind",
+			"boot": "boot.fs",
+			"cat": "/amd64/bin/cat",
+			"date": "/amd64/bin/date",
+			"echo": "/amd64/bin/echo",
+			"ipconfig": "/amd64/bin/ip/ipconfig",
+			"listen1": "/amd64/bin/aux/listen1",
+			"ls": "/amd64/bin/ls",
+			"mount": "/amd64/bin/mount",
+			"rc": "/amd64/bin/rc",
+			"rcmain": "/rc/lib/rcmain",
+			"srv": "/amd64/bin/srv",
+			"tty": "/amd64/bin/aux/tty"
+		}
+	},
 	"Name": "k8cpu",
-	"Post": [
-		"rm *.elf.out"
-	],
-	"Pre": [
-		"data2c _rc_lib_rcmain ../../../../rc/lib/rcmain \u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/rc rc.elf.out",
-		"${TOOLPREFIX}strip rc.elf.out",
-		"data2c _amd64_bin_rc rc.elf.out \u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/bind bind.elf.out",
-		"${TOOLPREFIX}strip bind.elf.out",
-		"data2c _amd64_bin_bind bind.elf.out\u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/mount mount.elf.out",
-		"${TOOLPREFIX}strip mount.elf.out",
-		"data2c _amd64_bin_mount mount.elf.out\u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/echo echo.elf.out",
-		"${TOOLPREFIX}strip echo.elf.out",
-		"data2c _amd64_bin_echo echo.elf.out\u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/ip/ipconfig ipconfig.elf.out",
-		"${TOOLPREFIX}strip ipconfig.elf.out",
-		"data2c _amd64_bin_ipconfig ipconfig.elf.out\u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/srv srv.elf.out",
-		"${TOOLPREFIX}strip srv.elf.out",
-		"data2c _amd64_bin_srv srv.elf.out\u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/date date.elf.out",
-		"${TOOLPREFIX}strip date.elf.out",
-		"data2c _amd64_bin_date date.elf.out\u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/ls ls.elf.out",
-		"${TOOLPREFIX}strip ls.elf.out",
-		"data2c _amd64_bin_ls ls.elf.out\u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/cat cat.elf.out",
-		"${TOOLPREFIX}strip cat.elf.out",
-		"data2c _amd64_bin_cat cat.elf.out\u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/aux/listen1 listen1.elf.out",
-		"${TOOLPREFIX}strip listen1.elf.out",
-		"data2c _amd64_bin_aux_listen1 listen1.elf.out\u003e\u003e k8cpu.root.c",
-		"cp $HARVEY/amd64/bin/aux/tty tty.elf.out",
-		"${TOOLPREFIX}strip tty.elf.out",
-		"data2c _amd64_bin_aux_tty tty.elf.out\u003e\u003e k8cpu.root.c"
-	],
 	"Program": "9k8cpu",
-	"Projects": [
-		"../boot/bootconf.json",
-		"/sys/src/cmd/kcmds.json"
-	],
 	"SourceFiles": [
 		"cga.c",
 		"devacpi.c",
@@ -60,7 +90,6 @@
 		"ether8139.c",
 		"ether82563.c",
 		"k8cpu.c",
-		"k8cpu.root.c",
 		"sdata.c",
 		"usbehcipc.c",
 		"usbohci.c",
