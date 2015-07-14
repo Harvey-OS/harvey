@@ -131,35 +131,6 @@ uartdisable(Uart *p)
 	unlock(&uartalloc);
 }
 
-Uart*
-uartconsole(int i, char *cmd)
-{
-	Uart *p;
-
-	if(i >= uartnuart || (p = uart[i]) == nil)
-		return nil;
-
-	qlock(p);
-	if(!p->console){
-		if(p->opens == 0 && uartenable(p) == nil){
-			qunlock(p);
-			return nil;
-		}
-		p->opens++;
-
-		addkbdq(p->iq, -1);
-		addconsdev(p->oq, uartputs, 2, 0);
-		p->putc = kbdcr2nl;
-		if(cmd != nil && *cmd != '\0')
-			uartctl(p, cmd);
-
-		p->console = 1;
-	}
-	qunlock(p);
-
-	return p;
-}
-
 static void
 uartsetlength(int i)
 {
@@ -232,19 +203,6 @@ uartreset(void)
 
 		uart[i] = p;
 		p->dev = i;
-		if(p->console || p->special){
-			/*
-			 * No qlock here, only called at boot time.
-			 */
-			if(uartenable(p) != nil){
-				if(p->console){
-					addkbdq(p->iq, -1);
-					addconsdev(p->oq, uartputs, 2, 0);
-					p->putc = kbdcr2nl;
-				}
-				p->opens++;
-			}
-		}
 		p = p->next;
 	}
 
@@ -765,42 +723,4 @@ uartclock(void)
 		}
 	}
 	unlock(&uartalloc);
-}
-
-/*
- * polling console input, output
- */
-
-Uart* consuart;
-
-int
-uartgetc(void)
-{
-	if(consuart == nil || consuart->phys->getc == nil)
-		return -1;
-	return consuart->phys->getc(consuart);
-}
-
-void
-uartputc(int c)
-{
-	if(consuart == nil || consuart->phys->putc == nil)
-		return;
-	consuart->phys->putc(consuart, c);
-}
-
-void
-uartputs(char *s, int n)
-{
-	char *e;
-
-	if(consuart == nil || consuart->phys->putc == nil)
-		return;
-
-	e = s+n;
-	for(; s<e; s++){
-		if(*s == '\n')
-			consuart->phys->putc(consuart, '\r');
-		consuart->phys->putc(consuart, *s);
-	}
 }
