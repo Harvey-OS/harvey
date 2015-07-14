@@ -1,4 +1,7 @@
 {
+	"#SourceFiles": [
+		"../port/devcec.c"
+	],
 	"Name": "port",
 	"Pre": [
 		"mksys -o ../port/error.h -mode=error.h $HARVEY/sys/src/sysconf.json"
@@ -7,7 +10,6 @@
 		"../port/alarm.c",
 		"../port/allocb.c",
 		"../port/cache.c",
-		"../port/devcec.c",
 		"../port/chan.c",
 		"../port/cpu_buffer.c",
 		"../port/devaoe.c",

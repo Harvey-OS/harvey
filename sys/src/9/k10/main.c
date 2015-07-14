@@ -260,7 +260,7 @@ void
 DONE(void)
 {
 	print("DONE\n");
-	prflush();
+	//prflush();
 	delay(10000);
 	ndnr();
 }
@@ -269,7 +269,7 @@ void
 HERE(void)
 {
 	print("here\n");
-	prflush();
+	//prflush();
 	delay(5000);
 }
 
@@ -499,7 +499,6 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	mmuinit();
 
 	ioinit();
-	kbdinit();
 	meminit();
 	confinit();
 	archinit();
@@ -528,7 +527,6 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	
 	umeminit();
 	trapinit();
-	printinit();
 
 	/*
 	 * This is necessary with GRUB and QEMU.
@@ -537,6 +535,7 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	 * havoc. Do it before any APIC initialisation.
 	 */
 	i8259init(32);
+
 
 	procinit0();
 	mpsinit(maxcores);
@@ -547,11 +546,15 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	}
 	teardownidmap(m);
 	timersinit();
-	kbdenable();
 	fpuinit();
 	psinit(conf.nproc);
 	initimage();
 	links();
+
+	keybinit();
+	keybenable();
+	mouseenable();
+
 	devtabreset();
 	pageinit();
 	swapinit();
@@ -760,7 +763,7 @@ shutdown(int ispanic)
 	spllo();
 	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
 		delay(TK2MS(2));
-		if(active.nonline == 0 && consactive() == 0)
+		if(active.nonline == 0)
 			break;
 	}
 
