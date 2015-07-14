@@ -1,0 +1,569 @@
+{
+	"Syscalls": [
+		{
+			"Args": [ "int32" ],
+			"Name": "sysr1",
+			"Sysname": "sysr1",
+			"Id": 0
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "_errstr",
+			"Id": 1
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "bind",
+			"Id": 2
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "chdir",
+			"Id": 3
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "close",
+			"Id": 4
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "dup",
+			"Id": 5
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "alarm",
+			"Id": 6
+		},
+		{
+			"Args": [ "void*" ],
+			"Name": "exec",
+			"Id": 7
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "exits",
+			"Libname": "_exits",
+			"Id": 8
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "_fsession",
+			"Id": 9
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "fauth",
+			"Id": 10
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "_fstat",
+			"Id": 11
+		},
+		{
+			"Args": [ "void*" ],
+			"Name": "segbrk",
+			"Id": 12
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "_mount",
+			"Id": 13
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "open",
+			"Id": 14
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "read",
+			"Id": 15
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "oseek",
+			"Id": 16
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "sleep",
+			"Id": 17
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "_stat",
+			"Id": 18
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "rfork",
+			"Id": 19
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "write",
+			"Id": 20
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "pipe",
+			"Id": 21
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "create",
+			"Id": 22
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "fd2path",
+			"Id": 23
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "brk_",
+			"Id": 24
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "remove",
+			"Id": 25
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "_wstat",
+			"Id": 26
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "_fwstat",
+			"Id": 27
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "notify",
+			"Id": 28
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "noted",
+			"Id": 29
+		},
+		{
+			"Args": [ "void*" ],
+			"Name": "segattach",
+			"Id": 30
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "segdetach",
+			"Id": 31
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "segfree",
+			"Id": 32
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "segflush",
+			"Id": 33
+		},
+		{
+			"Args": [ "void*" ],
+			"Name": "rendezvous",
+			"Id": 34
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "unmount",
+			"Id": 35
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "_wait",
+			"Id": 36
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "semacquire",
+			"Id": 37
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "semrelease",
+			"Id": 38
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "seek",
+			"Libname": "_seek",
+			"Id": 39
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "fversion",
+			"Id": 40
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "errstr",
+			"Id": 41
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "stat",
+			"Id": 42
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "fstat",
+			"Id": 43
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "wstat",
+			"Id": 44
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "fwstat",
+			"Id": 45
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "mount",
+			"Id": 46
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "await",
+			"Id": 47
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "pread",
+			"Id": 48
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "pwrite",
+			"Id": 49
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "tsemacquire",
+			"Id": 52
+		},
+		{
+			"Args": [ "int64" ],
+			"Name": "nsec",
+			"Id": 53
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "semsleep",
+			"Id": 54
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "semwakeup",
+			"Id": 55
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "semalt",
+			"Id": 56
+		},
+		{
+			"Args": [ "void*" ],
+			"Name": "execac",
+			"Id": 57
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "nixsyscall",
+			"Id": 58
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "ziopread",
+			"Id": 59
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "ziopwrite",
+			"Id": 60
+		},
+		{
+			"Args": [ "int32" ],
+			"Name": "ziofree",
+			"Id": 61
+		}
+	],
+	"Syserrors": [
+		{
+			"Name": "Ebadarg",
+			"Id": 0,
+			"String": "bad arg in system call"
+		},
+		{
+			"Name": "Ebadchar",
+			"Id": 1,
+			"String": "bad character in file name"
+		},
+		{
+			"Name": "Ebadctl",
+			"Id": 2,
+			"String": "bad process or channel control request"
+		},
+		{
+			"Name": "Ebadexec",
+			"Id": 3,
+			"String": "exec header invalid"
+		},
+		{
+			"Name": "Ebadfd",
+			"Id": 4,
+			"String": "fd out of range or not open"
+		},
+		{
+			"Name": "Ebadip",
+			"Id": 5,
+			"String": "bad ip address syntax"
+		},
+		{
+			"Name": "Ebadsharp",
+			"Id": 6,
+			"String": "unknown device in # filename"
+		},
+		{
+			"Name": "Ebadspec",
+			"Id": 7,
+			"String": "bad attach specifier"
+		},
+		{
+			"Name": "Ebadstat",
+			"Id": 8,
+			"String": "malformed stat buffer"
+		},
+		{
+			"Name": "Ebadusefd",
+			"Id": 9,
+			"String": "inappropriate use of fd"
+		},
+		{
+			"Name": "Ecmdargs",
+			"Id": 10,
+			"String": "wrong #args in control message"
+		},
+		{
+			"Name": "Econinuse",
+			"Id": 11,
+			"String": "connection in use"
+		},
+		{
+			"Name": "Econrefused",
+			"Id": 12,
+			"String": "connection refused"
+		},
+		{
+			"Name": "Edirseek",
+			"Id": 13,
+			"String": "seek in directory"
+		},
+		{
+			"Name": "Eexist",
+			"Id": 14,
+			"String": "file already exists"
+		},
+		{
+			"Name": "Efilename",
+			"Id": 15,
+			"String": "file name syntax"
+		},
+		{
+			"Name": "Egreg",
+			"Id": 16,
+			"String": "ken has left the building"
+		},
+		{
+			"Name": "Ehungup",
+			"Id": 17,
+			"String": "i/o on hungup channel"
+		},
+		{
+			"Name": "Eintr",
+			"Id": 18,
+			"String": "interrupted"
+		},
+		{
+			"Name": "Einuse",
+			"Id": 19,
+			"String": "device or object already in use"
+		},
+		{
+			"Name": "Eio",
+			"Id": 20,
+			"String": "i/o error"
+		},
+		{
+			"Name": "Eioload",
+			"Id": 21,
+			"String": "i/o error in demand load"
+		},
+		{
+			"Name": "Eisdir",
+			"Id": 22,
+			"String": "file is a directory"
+		},
+		{
+			"Name": "Eismtpt",
+			"Id": 23,
+			"String": "is a mount point"
+		},
+		{
+			"Name": "Eisstream",
+			"Id": 24,
+			"String": "seek on a stream"
+		},
+		{
+			"Name": "Emount",
+			"Id": 25,
+			"String": "inconsistent mount"
+		},
+		{
+			"Name": "Emountrpc",
+			"Id": 26,
+			"String": "mount rpc error"
+		},
+		{
+			"Name": "Enegoff",
+			"Id": 27,
+			"String": "negative i/o offset"
+		},
+		{
+			"Name": "Enoattach",
+			"Id": 28,
+			"String": "mount/attach disallowed"
+		},
+		{
+			"Name": "Enochild",
+			"Id": 29,
+			"String": "no living children"
+		},
+		{
+			"Name": "Enocreate",
+			"Id": 30,
+			"String": "mounted directory forbids creation"
+		},
+		{
+			"Name": "Enodev",
+			"Id": 31,
+			"String": "no free devices"
+		},
+		{
+			"Name": "Enoerror",
+			"Id": 32,
+			"String": "no error"
+		},
+		{
+			"Name": "Enofd",
+			"Id": 33,
+			"String": "no free file descriptors"
+		},
+		{
+			"Name": "Enomem",
+			"Id": 34,
+			"String": "kernel allocate failed"
+		},
+		{
+			"Name": "Enonexist",
+			"Id": 35,
+			"String": "file does not exist"
+		},
+		{
+			"Name": "Enoport",
+			"Id": 36,
+			"String": "network port not available"
+		},
+		{
+			"Name": "Enoreg",
+			"Id": 37,
+			"String": "process has no saved registers"
+		},
+		{
+			"Name": "Enoswap",
+			"Id": 38,
+			"String": "swap space full"
+		},
+		{
+			"Name": "Enotdir",
+			"Id": 39,
+			"String": "not a directory"
+		},
+		{
+			"Name": "Enovmem",
+			"Id": 40,
+			"String": "virtual memory allocation failed"
+		},
+		{
+			"Name": "Eperm",
+			"Id": 41,
+			"String": "permission denied"
+		},
+		{
+			"Name": "Eprocdied",
+			"Id": 42,
+			"String": "process exited"
+		},
+		{
+			"Name": "Eshort",
+			"Id": 43,
+			"String": "i/o count too small"
+		},
+		{
+			"Name": "Eshortstat",
+			"Id": 44,
+			"String": "stat buffer too small"
+		},
+		{
+			"Name": "Eshutdown",
+			"Id": 45,
+			"String": "device shut down"
+		},
+		{
+			"Name": "Esoverlap",
+			"Id": 46,
+			"String": "segments overlap"
+		},
+		{
+			"Name": "Etimedout",
+			"Id": 47,
+			"String": "connection timed out"
+		},
+		{
+			"Name": "Etoobig",
+			"Id": 48,
+			"String": "read or write too large"
+		},
+		{
+			"Name": "Etoosmall",
+			"Id": 49,
+			"String": "read or write too small"
+		},
+		{
+			"Name": "Eunion",
+			"Id": 50,
+			"String": "not in union"
+		},
+		{
+			"Name": "Eunmount",
+			"Id": 51,
+			"String": "not mounted"
+		}
+	]
+}

@@ -42,9 +42,8 @@
 		"${TOOLPREFIX}objdump -S 9$CONF \u003e 9$CONF.asm"
 	],
 	"Pre": [
-		"awk -f ../mk/parse -- -mksystab ../../libc/9syscall/sys.h $CONF \u003e systab.c",
-		"awk -f ../mk/mkenumb amd64.h \u003e amd64l.h",
-		"awk -f ../mk/parse -- -mkerrstr $CONF \u003e errstr.h"
+		"mksys -o systab.c -mode=systab.c $HARVEY/sys/src/sysconf.json",
+		"mksys -o errstr.h -mode=errstr.h $HARVEY/sys/src/sysconf.json"
 	],
 	"Projects": [
 		"clean.json",

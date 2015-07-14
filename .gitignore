@@ -12,8 +12,11 @@ amd64/bin
 amd64/init
 amd64/lib
 
+sys/src/libc/9syscall/sys.h
+sys/src/9/k10/errstr.h
 sys/src/9/k10/sipi.h
-sys/src/9/port/systab.c
+sys/src/9/port/error.h
+sys/src/9/k10/systab.c
 sys/src/9/root/nvram
 
 *.orig
