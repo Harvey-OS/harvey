@@ -39,6 +39,8 @@ enum {
 	Poststrlen	= 0,
 	Postcodelen	= 2,
 	Postlen		= Poststrlen+Postcodelen,
+
+	Cgasize		= 16384,
 };
 
 #define CGA		(BIOSSEG(0xb800))
@@ -59,6 +61,12 @@ cgaregw(int index, int data)
 {
 	outb(Index, index);
 	outb(Data, data);
+}
+
+static void
+cgablinkoff(void)
+{
+	cgaregw(0x0a, 1<<5);
 }
 
 static void
@@ -160,13 +168,48 @@ cgapost(int code)
 	cga[Width*Height-Postcodelen*2+3] = Attr;
 }
 
+static int32_t
+cgaread(Chan* c, void *vbuf, int32_t len, int64_t off)
+{
+	uint8_t *cga;
+	extern int panicking;
+	if(panicking)
+		error("cgaread: kernel panic");
+	if(off < 0 || off > Cgasize)
+		error("cgaread: offset out of bounds");
+	if(off+len > Cgasize)
+		len = Cgasize - off;
+	cga = CGA;
+	memmove(vbuf, cga + off, len);
+	return len;
+}
+
+static int32_t
+cgawrite(Chan* c, void *vbuf, int32_t len, int64_t off)
+{
+	uint8_t *cga;
+	extern int panicking;
+	if(panicking)
+		error("cgawrite: kernel panic");
+	if(off < 0 || off > Cgasize)
+		error("cgawrite: offset out of bounds");
+	if(off+len > Cgasize)
+		len = Cgasize - off;
+	cga = CGA;
+	memmove(cga + off, vbuf, len);
+	return len;
+}
+
 void
 cgainit(void)
 {
 	ilock(&cgalock);
+
 	cgapos = cgaregr(0x0e)<<8;
 	cgapos |= cgaregr(0x0f);
 	cgapos *= 2;
+	cgablinkoff();
 	cgainitdone = 1;
 	iunlock(&cgalock);
+	addarchfile("cgamem", 0666, cgaread, cgawrite);
 }

@@ -171,6 +171,10 @@ func main() {
 			id := chunk.id
 			for _, b := range chunk.buf {
 				act[id] = append(act[id], b)
+				if false && b == '\b' {
+					act[id] = append(act[id], ' ')
+					act[id] = append(act[id], '\b')
+				}
 			}
 
 			/* streams agree, so spit out all they agree on */
