@@ -1,8 +1,9 @@
 {
 	"Name": "All",
 	"Projects": [
-		"libs.json",
 		"klibs.json",
+		"libs.json",
+		"cmd/kcmds.json",
 		"cmd/cmds.json",
 		"9/k10/k8cpu.json"
 	]
