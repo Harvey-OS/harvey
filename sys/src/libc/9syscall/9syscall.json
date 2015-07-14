@@ -2,6 +2,7 @@
 	"Library": "klibc.a",
 	"Name": "KernelLibc",
 	"Pre": [
-		"../../../../util/mksys amd64"
+		"mksys -o sys.h -mode=sys.h $HARVEY/sys/src/sysconf.json",
+		"mksys -o . -mode=syscallfiles $HARVEY/sys/src/sysconf.json"
 	]
 }

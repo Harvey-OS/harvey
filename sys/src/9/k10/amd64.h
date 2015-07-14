@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -7,199 +7,173 @@
  * in the LICENSE file.
  */
 
-enum {						/* Cr0 */
-	Pe		= 0x00000001,		/* Protected Mode Enable */
-	Mp		= 0x00000002,		/* Monitor Coprocessor */
-	Em		= 0x00000004,		/* Emulate Coprocessor */
-	Ts		= 0x00000008,		/* Task Switched */
-	Et		= 0x00000010,		/* Extension Type */
-	Ne		= 0x00000020,		/* Numeric Error  */
-	Wp		= 0x00010000,		/* Write Protect */
-	Am		= 0x00040000,		/* Alignment Mask */
-	Nw		= 0x20000000,		/* Not Writethrough */
-	Cd		= 0x40000000,		/* Cache Disable */
-	Pg		= 0x80000000,		/* Paging Enable */
-};
+/* Cr0 */
+#define Pe		0x00000001		/* Protected Mode Enable */
+#define Mp		0x00000002		/* Monitor Coprocessor */
+#define Em		0x00000004		/* Emulate Coprocessor */
+#define Ts		0x00000008		/* Task Switched */
+#define Et		0x00000010		/* Extension Type */
+#define Ne		0x00000020		/* Numeric Error  */
+#define Wp		0x00010000		/* Write Protect */
+#define Am		0x00040000		/* Alignment Mask */
+#define Nw		0x20000000		/* Not Writethrough */
+#define Cd		0x40000000		/* Cache Disable */
+#define Pg		0x80000000		/* Paging Enable */
 
-enum {						/* Cr3 */
-	Pwt		= 0x00000008,		/* Page-Level Writethrough */
-	Pcd		= 0x00000010,		/* Page-Level Cache Disable */
-};
+/* Cr3 */
+#define Pwt		0x00000008		/* Page-Level Writethrough */
+#define Pcd		0x00000010		/* Page-Level Cache Disable */
 
-enum {						/* Cr4 */
-	Vme		= 0x00000001,		/* Virtual-8086 Mode Extensions */
-	Pvi		= 0x00000002,		/* Protected Mode Virtual Interrupts */
-	Tsd		= 0x00000004,		/* Time-Stamp Disable */
-	De		= 0x00000008,		/* Debugging Extensions */
-	Pse		= 0x00000010,		/* Page-Size Extensions */
-	Pae		= 0x00000020,		/* Physical Address Extension */
-	Mce		= 0x00000040,		/* Machine Check Enable */
-	Pge		= 0x00000080,		/* Page-Global Enable */
-	Pce		= 0x00000100,		/* Performance Monitoring Counter Enable */
-	Osfxsr		= 0x00000200,		/* FXSAVE/FXRSTOR Support */
-	Osxmmexcpt	= 0x00000400,		/* Unmasked Exception Support */
-};
+/* Cr4 */
+#define Vme		0x00000001		/* Virtual-8086 Mode Extensions */
+#define Pvi		0x00000002		/* Protected Mode Virtual Interrupts */
+#define Tsd		0x00000004		/* Time-Stamp Disable */
+#define De		0x00000008		/* Debugging Extensions */
+#define Pse		0x00000010		/* Page-Size Extensions */
+#define Pae		0x00000020		/* Physical Address Extension */
+#define Mce		0x00000040		/* Machine Check Enable */
+#define Pge		0x00000080		/* Page-Global Enable */
+#define Pce		0x00000100		/* Performance Monitoring Counter Enable */
+#define Osfxsr		0x00000200		/* FXSAVE/FXRSTOR Support */
+#define Osxmmexcpt	0x00000400		/* Unmasked Exception Support */
 
-enum {						/* Rflags */
-	Cf		= 0x00000001,		/* Carry Flag */
-	Pf		= 0x00000004,		/* Parity Flag */
-	Af		= 0x00000010,		/* Auxiliary Flag */
-	Zf		= 0x00000040,		/* Zero Flag */
-	Sf		= 0x00000080,		/* Sign Flag */
-	Tf		= 0x00000100,		/* Trap Flag */
-	If		= 0x00000200,		/* Interrupt Flag */
-	Df		= 0x00000400,		/* Direction Flag */
-	Of		= 0x00000800,		/* Overflow Flag */
-	Iopl0		= 0x00000000,		/* I/O Privilege Level */
-	Iopl1		= 0x00001000,
-	Iopl2		= 0x00002000,
-	Iopl3		= 0x00003000,
-	Nt		= 0x00004000,		/* Nested Task */
-	Rf		= 0x00010000,		/* Resume Flag */
-	Vm		= 0x00020000,		/* Virtual-8086 Mode */
-	Ac		= 0x00040000,		/* Alignment Check */
-	Vif		= 0x00080000,		/* Virtual Interrupt Flag */
-	Vip		= 0x00100000,		/* Virtual Interrupt Pending */
-	Id		= 0x00200000,		/* ID Flag */
-};
+/* Rflags */
+#define Cf		0x00000001		/* Carry Flag */
+#define Pf		0x00000004		/* Parity Flag */
+#define Af		0x00000010		/* Auxiliary Flag */
+#define Zf		0x00000040		/* Zero Flag */
+#define Sf		0x00000080		/* Sign Flag */
+#define Tf		0x00000100		/* Trap Flag */
+#define If		0x00000200		/* Interrupt Flag */
+#define Df		0x00000400		/* Direction Flag */
+#define Of		0x00000800		/* Overflow Flag */
+#define Iopl0		0x00000000		/* I/O Privilege Level */
+#define Iopl1		0x00001000
+#define Iopl2		0x00002000
+#define Iopl3		0x00003000
+#define Nt		0x00004000		/* Nested Task */
+#define Rf		0x00010000		/* Resume Flag */
+#define Vm		0x00020000		/* Virtual-8086 Mode */
+#define Ac		0x00040000		/* Alignment Check */
+#define Vif		0x00080000		/* Virtual Interrupt Flag */
+#define Vip		0x00100000		/* Virtual Interrupt Pending */
+#define Id		0x00200000		/* ID Flag */
 
-enum {						/* MSRs */
-	PerfEvtbase	= 0xc0010000,		/* Performance Event Select */
-	PerfCtrbase	= 0xc0010004,		/* Performance Counters */
+/* MSRs */
+#define PerfEvtbase	0xc0010000		/* Performance Event Select */
+#define PerfCtrbase	0xc0010004		/* Performance Counters */
 
-	Efer		= 0xc0000080,		/* Extended Feature Enable */
-	Star		= 0xc0000081,		/* Legacy Target IP and [CS]S */
-	Lstar		= 0xc0000082,		/* Long Mode Target IP */
-	Cstar		= 0xc0000083,		/* Compatibility Target IP */
-	Sfmask		= 0xc0000084,		/* SYSCALL Flags Mask */
-	FSbase		= 0xc0000100,		/* 64-bit FS Base Address */
-	GSbase		= 0xc0000101,		/* 64-bit GS Base Address */
-	KernelGSbase	= 0xc0000102,		/* SWAPGS instruction */
-};
+#define Efer		0xc0000080		/* Extended Feature Enable */
+#define Star		0xc0000081		/* Legacy Target IP and [CS]S */
+#define Lstar		0xc0000082		/* Long Mode Target IP */
+#define Cstar		0xc0000083		/* Compatibility Target IP */
+#define Sfmask		0xc0000084		/* SYSCALL Flags Mask */
+#define FSbase		0xc0000100		/* 64-bit FS Base Address */
+#define GSbase		0xc0000101		/* 64-bit GS Base Address */
+#define KernelGSbase	0xc0000102		/* SWAPGS instruction */
 
-enum {						/* Efer */
-	Sce		= 0x00000001,		/* System Call Extension */
-	Lme		= 0x00000100,		/* Long Mode Enable */
-	Lma		= 0x00000400,		/* Long Mode Active */
-	Nxe		= 0x00000800,		/* No-Execute Enable */
-	Svme		= 0x00001000,		/* SVM Extension Enable */
-	Ffxsr		= 0x00004000,		/* Fast FXSAVE/FXRSTOR */
-};
+/* Efer */
+#define Sce		0x00000001		/* System Call Extension */
+#define Lme		0x00000100		/* Long Mode Enable */
+#define Lma		0x00000400		/* Long Mode Active */
+#define Nxe		0x00000800		/* No-Execute Enable */
+#define Svme		0x00001000		/* SVM Extension Enable */
+#define Ffxsr		0x00004000		/* Fast FXSAVE/FXRSTOR */
 
-enum {						/* PML4E/PDPE/PDE/PTE */
-	PteP		= 0x0000000000000001ull,/* Present */
-	PteRW		= 0x0000000000000002ull,/* Read/Write */
-	PteU		= 0x0000000000000004ull,/* User/Supervisor */
-	PtePWT		= 0x0000000000000008ull,/* Page-Level Write Through */
-	PtePCD		= 0x0000000000000010ull,/* Page Level Cache Disable */
-	PteA		= 0x0000000000000020ull,/* Accessed */
-	PteD		= 0x0000000000000040ull,/* Dirty */
-	PtePS		= 0x0000000000000080ull,/* Page Size */
-	Pte4KPAT	= PtePS,		/* PTE PAT */
-	PteG		= 0x0000000000000100ull,/* Global */
-	Pte2MPAT	= 0x0000000000001000ull,/* PDE PAT */
-	Pte1GPAT	= Pte2MPAT,		/* PDPE PAT */
-	PteNX		= 0x8000000000000000ull,/* No Execute */
-};
+/* PML4E/PDPE/PDE/PTE */
+#define PteP		0x0000000000000001	/* Present */
+#define PteRW		0x0000000000000002	/* Read/Write */
+#define PteU		0x0000000000000004	/* User/Supervisor */
+#define PtePWT		0x0000000000000008	/* Page-Level Write Through */
+#define PtePCD		0x0000000000000010	/* Page Level Cache Disable */
+#define PteA		0x0000000000000020	/* Accessed */
+#define PteD		0x0000000000000040	/* Dirty */
+#define PtePS		0x0000000000000080	/* Page Size */
+#define Pte4KPAT	PtePS			/* PTE PAT */
+#define PteG		0x0000000000000100	/* Global */
+#define Pte2MPAT	0x0000000000001000	/* PDE PAT */
+#define Pte1GPAT	Pte2MPAT		/* PDPE PAT */
+#define PteNX		0x8000000000000000	/* No Execute */
 
-enum {						/* Exceptions */
-	IdtDE		= 0,			/* Divide-by-Zero Error */
-	IdtDB		= 1,			/* Debug */
-	IdtNMI		= 2,			/* Non-Maskable-Interrupt */
-	IdtBP		= 3,			/* Breakpoint */
-	IdtOF		= 4,			/* Overflow */
-	IdtBR		= 5,			/* Bound-Range */
-	IdtUD		= 6,			/* Invalid-Opcode */
-	IdtNM		= 7,			/* Device-Not-Available */
-	IdtDF		= 8,			/* Double-Fault */
-	Idt09		= 9,			/* unsupported */
-	IdtTS		= 10,			/* Invalid-TSS */
-	IdtNP		= 11,			/* Segment-Not-Present */
-	IdtSS		= 12,			/* Stack */
-	IdtGP		= 13,			/* General-Protection */
-	IdtPF		= 14,			/* Page-Fault */
-	Idt0F		= 15,			/* reserved */
-	IdtMF		= 16,			/* x87 FPE-Pending */
-	IdtAC		= 17,			/* Alignment-Check */
-	IdtMC		= 18,			/* Machine-Check */
-	IdtXF		= 19,			/* SIMD Floating-Point */
-};
+/* Exceptions */
+#define IdtDE		0			/* Divide-by-Zero Error */
+#define IdtDB		1			/* Debug */
+#define IdtNMI		2			/* Non-Maskable-Interrupt */
+#define IdtBP		3			/* Breakpoint */
+#define IdtOF		4			/* Overflow */
+#define IdtBR		5			/* Bound-Range */
+#define IdtUD		6			/* Invalid-Opcode */
+#define IdtNM		7			/* Device-Not-Available */
+#define IdtDF		8			/* Double-Fault */
+#define Idt09		9			/* unsupported */
+#define IdtTS		10			/* Invalid-TSS */
+#define IdtNP		11			/* Segment-Not-Present */
+#define IdtSS		12			/* Stack */
+#define IdtGP		13			/* General-Protection */
+#define IdtPF		14			/* Page-Fault */
+#define Idt0F		15			/* reserved */
+#define IdtMF		16			/* x87 FPE-Pending */
+#define IdtAC		17			/* Alignment-Check */
+#define IdtMC		18			/* Machine-Check */
+#define IdtXF		19			/* SIMD Floating-Point */
 
-/*
- * Vestigial Segmented Virtual Memory.
- */
-enum {						/* Segment Descriptor */
-	SdISTM		= 0x0000000700000000ull,/* Interrupt Stack Table Mask */
-	SdA		= 0x0000010000000000ull,/* Accessed */
-	SdR		= 0x0000020000000000ull,/* Readable (Code) */
-	SdW		= 0x0000020000000000ull,/* Writeable (Data) */
-	SdE		= 0x0000040000000000ull,/* Expand Down */
-	SdaTSS		= 0x0000090000000000ull,/* Available TSS */
-	SdbTSS		= 0x00000b0000000000ull,/* Busy TSS */
-	SdCG		= 0x00000c0000000000ull,/* Call Gate */
-	SdIG		= 0x00000e0000000000ull,/* Interrupt Gate */
-	SdTG		= 0x00000f0000000000ull,/* Trap Gate */
-	SdCODE		= 0x0000080000000000ull,/* Code/Data */
-	SdS		= 0x0000100000000000ull,/* System/User */
-	SdDPL0		= 0x0000000000000000ull,/* Descriptor Privilege Level */
-	SdDPL1		= 0x0000200000000000ull,
-	SdDPL2		= 0x0000400000000000ull,
-	SdDPL3		= 0x0000600000000000ull,
-	SdP		= 0x0000800000000000ull,/* Present */
-	Sd4G		= 0x000f00000000ffffull,/* 4G Limit */
-	SdL		= 0x0020000000000000ull,/* Long Attribute */
-	SdD		= 0x0040000000000000ull,/* Default Operand Size */
-	SdG		= 0x0080000000000000ull,/* Granularity */
-};
+/* Vestigial Segmented Virtual Memory */
+#define SdISTM		0x0000000700000000	/* Interrupt Stack Table Mask */
+#define SdA		0x0000010000000000	/* Accessed */
+#define SdR		0x0000020000000000	/* Readable (Code) */
+#define SdW		0x0000020000000000	/* Writeable (Data) */
+#define SdE		0x0000040000000000	/* Expand Down */
+#define SdaTSS		0x0000090000000000	/* Available TSS */
+#define SdbTSS		0x00000b0000000000	/* Busy TSS */
+#define SdCG		0x00000c0000000000	/* Call Gate */
+#define SdIG		0x00000e0000000000	/* Interrupt Gate */
+#define SdTG		0x00000f0000000000	/* Trap Gate */
+#define SdCODE		0x0000080000000000	/* Code/Data */
+#define SdS		0x0000100000000000	/* System/User */
+#define SdDPL0		0x0000000000000000	/* Descriptor Privilege Level */
+#define SdDPL1		0x0000200000000000
+#define SdDPL2		0x0000400000000000
+#define SdDPL3		0x0000600000000000
+#define SdP		0x0000800000000000	/* Present */
+#define Sd4G		0x000f00000000ffff	/* 4G Limit */
+#define SdL		0x0020000000000000	/* Long Attribute */
+#define SdD		0x0040000000000000	/* Default Operand Size */
+#define SdG		0x0080000000000000	/* Granularity */
 
-/*
- * Performance Counter Configuration
- */
-enum {						/* Performance Event Selector */
-    				 
-	PeHo		= 0x0000020000000000ull,/* Host only */
-	PeGo		= 0x0000010000000000ull,/* Guest only */
-	PeEvMskH	= 0x0000000f00000000ull,/* Event mask H */
-	PeCtMsk		= 0x00000000ff000000ull,/* Counter mask */
-	PeInMsk		= 0x0000000000800000ull,/* Invert mask */
-	PeCtEna		= 0x0000000000400000ull,/* Counter enable */
-	PeInEna		= 0x0000000000100000ull,/* Interrupt enable */
-	PePnCtl		= 0x0000000000080000ull,/* Pin control */
-	PeEdg		= 0x0000000000040000ull,/* Edge detect */
-	PeOS		= 0x0000000000020000ull,/* OS mode */
-	PeUsr		= 0x0000000000010000ull,/* User mode */
-	PeUnMsk		= 0x000000000000ff00ull,/* Unit Mask */
-	PeEvMskL	= 0x00000000000000ffull,/* Event Mask L */
+/* Performance Counter Configuration */
+#define PeHo		0x0000020000000000	/* Host only */
+#define PeGo		0x0000010000000000	/* Guest only */
+#define PeEvMskH	0x0000000f00000000	/* Event mask H */
+#define PeCtMsk		0x00000000ff000000	/* Counter mask */
+#define PeInMsk		0x0000000000800000	/* Invert mask */
+#define PeCtEna		0x0000000000400000	/* Counter enable */
+#define PeInEna		0x0000000000100000	/* Interrupt enable */
+#define PePnCtl		0x0000000000080000	/* Pin control */
+#define PeEdg		0x0000000000040000	/* Edge detect */
+#define PeOS		0x0000000000020000	/* OS mode */
+#define PeUsr		0x0000000000010000	/* User mode */
+#define PeUnMsk		0x000000000000ff00	/* Unit Mask */
+#define PeEvMskL	0x00000000000000ff	/* Event Mask L */
 
-	PeEvMsksh	= 32ull,		/* Event mask shift */
-};
+#define PeEvMsksh	32			/* Event mask shift */
 
-enum {						/* Segment Selector */
-	SsRPL0		= 0x0000,		/* Requestor Privilege Level */
-	SsRPL1		= 0x0001,
-	SsRPL2		= 0x0002,
-	SsRPL3		= 0x0003,
-	SsTIGDT		= 0x0000,		/* GDT Table Indicator  */
-	SsTILDT		= 0x0004,		/* LDT Table Indicator */
-	SsSIM		= 0xfff8,		/* Selector Index Mask */
-};
+/* Segment Selector */
+#define SsRPL0		0x0000			/* Requestor Privilege Level */
+#define SsRPL1		0x0001
+#define SsRPL2		0x0002
+#define SsRPL3		0x0003
+#define SsTIGDT		0x0000			/* GDT Table Indicator  */
+#define SsTILDT		0x0004			/* LDT Table Indicator */
+#define SsSIM		0xfff8			/* Selector Index Mask */
 
 #define SSEL(si, tirpl)	(((si)<<3)|(tirpl))	/* Segment Selector */
 
-enum {
-	SiNULL		= 0,			/* NULL selector index */
-	SiCS		= 1,			/* CS selector index */
-	SiDS		= 2,			/* DS selector index */
-	SiU32CS		= 3,			/* User CS selector index */
-	SiUDS		= 4,			/* User DS selector index */
-	SiUCS		= 5,			/* User CS selector index */
-	SiFS		= 6,			/* FS selector index */
-	SiGS		= 7,			/* GS selector index */
-	SiTSS		= 8,			/* TSS selector index */
-};
-
-/*
- * Extern registers.
- */
-#define RMACH		R15			/* m-> */
-#define RUSER		R14			/* m->externup-> */
+#define SiNULL		0			/* NULL selector index */
+#define SiCS		1			/* CS selector index */
+#define SiDS		2			/* DS selector index */
+#define SiU32CS		3			/* User CS selector index */
+#define SiUDS		4			/* User DS selector index */
+#define SiUCS		5			/* User CS selector index */
+#define SiFS		6			/* FS selector index */
+#define SiGS		7			/* GS selector index */
+#define SiTSS		8			/* TSS selector index */

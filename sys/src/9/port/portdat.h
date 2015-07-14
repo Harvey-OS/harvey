@@ -975,12 +975,15 @@ extern	Procalloc	procalloc;
 extern	uint	qiomaxatomic;
 extern	char*	statename[];
 extern	char*	sysname;
-typedef	struct {
+
+typedef	struct Systab Systab;
+struct Systab {
 	char*	n;
 	void (*f)(Ar0*, ...);
 	Ar0	r;
-} systab_t[];
-extern systab_t systab;
+};
+
+extern Systab systab[];
 
 enum
 {
