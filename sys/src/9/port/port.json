@@ -1,5 +1,8 @@
 {
 	"Name": "port",
+	"Pre": [
+		"mksys -o ../port/error.h -mode=error.h $HARVEY/sys/src/sysconf.json"
+	],
 	"SourceFiles": [
 		"../port/alarm.c",
 		"../port/allocb.c",
