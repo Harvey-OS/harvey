@@ -18,8 +18,10 @@
 #include	"../port/edf.h"
 #include	<a.out.h>
 #include 	<trace.h>
+
 #undef DBG
-#define DBG print
+#define DBG if(0) print
+
 /* this is ugly but we need libmach in the kernel. So this is a first pass.
  * FIX ME.
  */
@@ -1188,7 +1190,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 
 	/* MMAP region. Put it at 512GiB for now. */
 	m->externup->seg[ESEG] = newseg(SG_MMAP, 512 * GiB, 1);
-	print("mmap ESEG is %p\n", m->externup->seg);
+	if (0) print("mmap ESEG is %p\n", m->externup->seg);
 	m->externup->seg[ESEG]->color= m->externup->color;
 
 	m->externup->seg[SSEG] = s;
