@@ -18,8 +18,12 @@
 #include	"../port/edf.h"
 #include	<a.out.h>
 #include 	<trace.h>
+
 #undef DBG
 #define DBG print
+
+extern int nosmp;
+
 /* this is ugly but we need libmach in the kernel. So this is a first pass.
  * FIX ME.
  */
@@ -891,7 +895,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 */
 	argc = 0;
 	file = validnamedup(ufile, 1);
-	DBG("execac: up %#p file %s\n", m->externup, file);
+	if(nosmp) DBG("execac: up %#p file %s\n", m->externup, file);
 	if(m->externup->trace)
 		proctracepid(m->externup);
 	ichan = namec(file, Aopen, OEXEC, 0);
@@ -1188,7 +1192,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 
 	/* MMAP region. Put it at 512GiB for now. */
 	m->externup->seg[ESEG] = newseg(SG_MMAP, 512 * GiB, 1);
-	print("mmap ESEG is %p\n", m->externup->seg);
+	if (nosmp) print("mmap ESEG is %p\n", m->externup->seg);
 	m->externup->seg[ESEG]->color= m->externup->color;
 
 	m->externup->seg[SSEG] = s;
@@ -1236,7 +1240,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		m->externup->prepagemem = 1;
 	}
 
-	DBG("execac up %#p done\n"
+	if(nosmp) DBG("execac up %#p done\n"
 		"textsz %lx datasz %lx bsssz %lx hdrsz %lx\n"
 		"textlim %ullx datalim %ullx bsslim %ullx\n", m->externup,
 		textsz, datasz, bsssz, hdrsz, textlim, datalim, bsslim);
