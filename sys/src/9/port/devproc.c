@@ -1044,7 +1044,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		/*
 		 * mmap support, random stuff.
 		 */
-		print("qstatus p %p pid %d req %p\n", p, p->pid, p->req);
+		if (0) print("qstatus p %p pid %d req %p\n", p, p->pid, p->req);
 		readnum(0,statbuf+j+NUMSIZE*15, NUMSIZE, p->req ? 1 : 0, NUMSIZE);
 		readnum(0,statbuf+j+NUMSIZE*16, NUMSIZE, p->resp ? 1 : 0, NUMSIZE);
 		memmove(va, statbuf+offset, n);
