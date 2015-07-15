@@ -160,8 +160,61 @@ footer p  {
 
 .bs-sidebar { display: none; }
 
+
+
+/* Changes default Boostrap3 breakpoint at 768px  */
+/* (harvey-os.org menu uses quite a bit of space: screens < 992px get the mobile one) */
+@media (min-width: 768px) and (max-width: 992px) { 
+
+    .container {
+    padding-right: 0;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    width: inherit;
+    }
+   .navbar-header {
+        float: none;
+    }   
+    .navbar-left,.navbar-right {
+        float: none !important;
+    } 
+
+    .navbar-toggle {
+        display: block;
+    }
+    .navbar-collapse {
+        border-top: 1px solid transparent;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .navbar-fixed-top {
+    top: 0;
+    border-width: 0 0 1px;
+    }  
+    .navbar-collapse.collapse {
+        display: none!important;
+    }
+    .navbar-nav {
+        float: none!important;
+    margin-top: 7.5px;
+  }
+  .navbar-nav>li {
+        float: none;
+    }
+    .navbar-nav>li>a {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .collapse.in{
+      display:block !important;
+  }
+
+
+}
+
 /* Show and affix the side nav when space allows it */
-@media (min-width: 992px) {
+@media (min-width: 992px) { 
+
 
     .bs-sidebar { display: block; }
 
