@@ -20,12 +20,12 @@ GERRIT
 
 We use gerrithub.io for code-review. If you want to submit changes, go to
 
-	https://review.gerrithub.io/#/admin/projects/elbing/harvey
+	https://review.gerrithub.io/#/admin/projects/Harvey-OS/harvey
 
 and check out the repository from gerrithub rather than github. The clone
 command will probably look something like this:
 
-	git clone ssh://USERNAME@review.gerrithub.io:29418/elbing/harvey
+	git clone ssh://USERNAME@review.gerrithub.io:29418/Harvey-OS/harvey
 
 you'll need to run a few commands inside the top-level directory to get set
 up for code-review:
@@ -109,6 +109,5 @@ directory as your root like this (10.0.2.2 is what qemu has as the host)
 
 	srv tcp!10.0.2.2!5640 k
 	mount -a /srv/k /
-
 
 

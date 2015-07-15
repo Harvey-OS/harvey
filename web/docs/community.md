@@ -7,4 +7,4 @@
 
 ## Wiki 
 
-* <a href="https://github.com/elbing/harvey/wiki">Harvey wiki</a>
+* <a href="https://github.com/Harvey-OS/harvey/wiki">Harvey wiki</a>

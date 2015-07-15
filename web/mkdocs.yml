@@ -16,4 +16,4 @@ pages:
 #    - Manual: docs/manual.md
 theme: journal 
 theme_dir: harvey-theme 
-repo_url: https://github.com/elbing/harvey
+repo_url: https://github.com/Harvey-OS/harvey
