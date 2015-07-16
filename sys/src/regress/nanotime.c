@@ -6,7 +6,7 @@ void
 main(void)
 {
 	int ret = 0; // success
-	vlong start, end;
+	uint64_t start, end;
 	char *msg;
 
 	start = nsec();

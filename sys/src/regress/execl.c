@@ -4,7 +4,6 @@
 void
 main(int argc, char *argv[])
 {
-	char buf[512];
 	Waitmsg *w;
 	int i;
 
