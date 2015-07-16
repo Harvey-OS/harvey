@@ -22,6 +22,7 @@
 		"../port/devpipe.c",
 		"../port/devpmc.c",
 		"../port/devproc.c",
+		"../port/devregress.c",
 		"../port/devroot.c",
 		"../port/devsd.c",
 		"../port/devsegment.c",

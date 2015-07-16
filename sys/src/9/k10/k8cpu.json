@@ -27,6 +27,7 @@
 				"rtc",
 				"kprof",
 				"pmc",
+			        "regress",
 				"segment",
 				"acpi",
 				"zp",
