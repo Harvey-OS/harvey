@@ -706,7 +706,7 @@ userinit(void)
 	segpage(s, pg);
 	k = kmap(s->map[0]->pages[0]);
 	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
-	memmove(UINT2PTR(VA(k)), init_code_out, sizeof(init_code_out));
+	memmove(UINT2PTR(VA(k) + init_code_start - UTZERO), init_code_out, sizeof(init_code_out));
 	kunmap(k);
 
 	/*
@@ -720,7 +720,7 @@ userinit(void)
 	segpage(s, pg);
 	k = kmap(s->map[0]->pages[0]);
 	//memmove(UINT2PTR(VA(k)), initcode, sizeof(initcode));
-	memmove(UINT2PTR(VA(k)), init_data_out, sizeof(init_data_out));
+	memmove(UINT2PTR(VA(k) + init_data_start - (UTZERO + BIGPGSZ)), init_data_out, sizeof(init_data_out));
 	kunmap(k);
 	ready(p);
 }
