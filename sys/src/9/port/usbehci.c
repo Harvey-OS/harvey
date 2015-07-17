@@ -343,12 +343,17 @@ struct Qh
 	uint32_t	xbuffer[5];	/* high 32 bits of buffer for 64-bits */
 
 	/* software */
+	// 68
+	uint32_t	state;		/* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
+	uint32_t	sched;		/* slot for for intr. Qhs */
+	uint32_t	_pad0[5];
+	// 96
 	Qh*	next;		/* in controller list/tree of Qhs */
-	int	state;		/* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
 	Qio*	io;		/* for this queue */
 	Td*	tds;		/* for this queue */
-	int	sched;		/* slot for for intr. Qhs */
 	Qh*	inext;		/* next in list of intr. qhs */
+	void *_pad1[4];
+	// 128 or 160
 };
 
 /*
@@ -434,7 +439,9 @@ edalloc(void)
 	unlock(&edpool);
 
 	memset(ed, 0, sizeof(Ed));	/* safety */
-	assert(((uint64_t)ed & 0xF) == 0);
+	if(((uint64_t)ed & 0xF) != 0)
+		panic("usbehci: tdalloc ed 0x%p (not 16-aligned)", ed);
+
 	return ed;
 }
 
