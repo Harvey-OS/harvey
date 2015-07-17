@@ -243,14 +243,17 @@ struct Td
 	uint32_t	be;
 	uint16_t	offsets[8];	/* used by Iso Tds only */
 
+	uint32_t	nbytes;		/* bytes in this Td */
+	uint32_t	cbp0;		/* initial value for cbp */
+	uint32_t	last;		/* true for last Td in Qio */
+	uint32_t	_pad1[5];
+
 	Td*	next;		/* in free or Ed tds list */
 	Td*	anext;		/* in avail td list (iso) */
 	Ep*	ep;		/* using this Td for I/O */
 	Qio*	io;		/* using this Td for I/O */
 	Block*	bp;		/* data for this Td */
-	uint32_t	nbytes;		/* bytes in this Td */
-	uint32_t	cbp0;		/* initial value for cbp */
-	uint32_t	last;		/* true for last Td in Qio */
+	void *_pad2[3];
 };
 
 /*
@@ -617,7 +620,8 @@ tdalloc(void)
 	memset(td, 0, sizeof(Td));
 	unlock(&tdpool);
 
-	assert(((uintptr)td & 0xF) == 0);
+	if(((uint64_t)td & 0xF) != 0)
+		panic("usbohci: tdalloc td 0x%p (not 16-aligned)", td);
 	return td;
 }
 
