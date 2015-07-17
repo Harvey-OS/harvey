@@ -269,7 +269,7 @@ struct Itd
 	uint32_t	buffer[7];	/* buffer pointers, addrs, maxsz */
 	uint32_t	xbuffer[7];	/* high 32 bits of buffer for 64-bits */
 
-	uint32_t	_pad0;		/* pad to next cache line */
+	uint32_t	_32;		/* pad to next cache line */
 	/* cache-line boundary here */
 
 	/* software */
@@ -343,11 +343,12 @@ struct Qh
 	uint32_t	xbuffer[5];	/* high 32 bits of buffer for 64-bits */
 
 	/* software */
+	int32_t	state;		/* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
+	int32_t	sched;		/* slot for for intr. Qhs */
+	// 96
 	Qh*	next;		/* in controller list/tree of Qhs */
-	int	state;		/* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
 	Qio*	io;		/* for this queue */
 	Td*	tds;		/* for this queue */
-	int	sched;		/* slot for for intr. Qhs */
 	Qh*	inext;		/* next in list of intr. qhs */
 };
 
@@ -434,7 +435,9 @@ edalloc(void)
 	unlock(&edpool);
 
 	memset(ed, 0, sizeof(Ed));	/* safety */
-	assert(((uint64_t)ed & 0xF) == 0);
+	if(((uint64_t)ed & 0xF) != 0)
+		panic("usbehci: tdalloc ed 0x%p (not 16-aligned)", ed);
+
 	return ed;
 }
 
@@ -3172,7 +3175,7 @@ ehcimeminit(Ctlr *ctlr)
 	opio = ctlr->opio;
 	frsize = ctlr->nframes * sizeof(uint32_t);
 	assert((frsize & 0xFFF) == 0);		/* must be 4k aligned */
-	mallocalign(frsize, frsize, 0, 0);
+	ctlr->frames = mallocalign(frsize, frsize, 0, 0);
 	if(ctlr->frames == nil)
 		panic("ehci reset: no memory");
 
@@ -3188,6 +3191,12 @@ ehcimeminit(Ctlr *ctlr)
 
 	dprint("ehci %#p flb %#lux frno %#lux\n",
 		ctlr->capio, opio->frbase, opio->frno);
+
+	print("sizeof(Itd) %d\n", sizeof(Itd));
+	print("sizeof(Sitd) %d\n", sizeof(Sitd));
+	print("sizeof(Td) %d\n", sizeof(Td));
+	print("sizeof(Qh) %d\n", sizeof(Qh));
+
 }
 
 static void
