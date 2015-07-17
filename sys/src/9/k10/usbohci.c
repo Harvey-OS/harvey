@@ -243,14 +243,17 @@ struct Td
 	uint32_t	be;
 	uint16_t	offsets[8];	/* used by Iso Tds only */
 
+	uint32_t	nbytes;		/* bytes in this Td */
+	uint32_t	cbp0;		/* initial value for cbp */
+	uint32_t	last;		/* true for last Td in Qio */
+	uint32_t	_160[5];
+
 	Td*	next;		/* in free or Ed tds list */
 	Td*	anext;		/* in avail td list (iso) */
 	Ep*	ep;		/* using this Td for I/O */
 	Qio*	io;		/* using this Td for I/O */
 	Block*	bp;		/* data for this Td */
-	uint32_t	nbytes;		/* bytes in this Td */
-	uint32_t	cbp0;		/* initial value for cbp */
-	uint32_t	last;		/* true for last Td in Qio */
+	uint64_t _64[3];
 };
 
 /*
@@ -260,7 +263,7 @@ struct Hcca
 {
 	uint32_t	intrtable[32];
 	uint16_t	framenumber;
-	uint16_t	pad1;
+	uint16_t	_16;
 	uint32_t	donehead;
 	unsigned char	reserved[116];
 };
@@ -299,16 +302,16 @@ struct Ohci
 	uint32_t	rhdescb;		/*4c*/
 	uint32_t	rhsts;			/*50*/
 	uint32_t	rhportsts[15];		/*54*/
-	uint32_t	pad25[20];		/*90*/
+	uint32_t	_640[20];		/*90*/
 
 	/* unknown */
 	uint32_t	hostueaddr;		/*e0*/
 	uint32_t	hostuests;		/*e4*/
 	uint32_t	hosttimeoutctrl;		/*e8*/
-	uint32_t	pad59;			/*ec*/
-	uint32_t	pad60;			/*f0*/
+	uint32_t	_32_1;			/*ec*/
+	uint32_t	_32_2;			/*f0*/
 	uint32_t	hostrevision;		/*f4*/
-	uint32_t	pad62[2];
+	uint32_t	_64[2];
 					/*100*/
 };
 
@@ -617,7 +620,8 @@ tdalloc(void)
 	memset(td, 0, sizeof(Td));
 	unlock(&tdpool);
 
-	assert(((uintptr)td & 0xF) == 0);
+	if(((uint64_t)td & 0xF) != 0)
+		panic("usbohci: tdalloc td 0x%p (not 16-aligned)", td);
 	return td;
 }
 

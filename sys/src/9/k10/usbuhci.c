@@ -248,12 +248,13 @@ struct Qh
 	uint32_t	elink;		/* link to element (eg. Td; updated by hw) */
 
 	uint32_t	state;		/* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
-	Qio*	io;		/* for this queue */
+	uint32_t	_32;
 
+	Qio*	io;		/* for this queue */
 	Qh*	next;		/* in active or free list */
+
 	Td*	tds;		/* Td list in this Qh (initially, elink) */
 	char*	tag;		/* debug and align, mostly */
-	uint32_t	align;
 };
 
 /*
@@ -706,7 +707,8 @@ qhalloc(Ctlr *ctlr, Qh *prev, Qio *io, char *tag)
 		iunlock(ctlr);
 	}
 
-	assert(((uint64_t)qh & 0xF) == 0);
+	if(((uint64_t)qh & 0xF) != 0)
+		panic("usbuhci: qhalloc qh 0x%p (not 16-aligned)", qh);
 	return qh;
 }
 

@@ -27,7 +27,7 @@
 				"rtc",
 				"kprof",
 				"pmc",
-			        "regress",
+				"regress",
 				"segment",
 				"acpi",
 				"zp",
@@ -36,7 +36,8 @@
 				"ether",
 				"ip",
 				"pci",
-				"uart"
+				"uart",
+				"usb"
 			],
 			"Ip": [
 				"tcp",
@@ -54,7 +55,10 @@
 				"ether8139",
 				"ethermedium",
 				"loopbackmedium",
-				"netdevmedium"
+				"netdevmedium",
+				"usbuhci",
+				"usbohci",
+				"usbehci"
 			],
 			"Sd": [
 				"sdiahci"
