@@ -11,6 +11,7 @@ enum {
 	Qdir = 0,
 	Qctl = 1,
 	Qmalloc,
+	Qtsleep,
 	Qmax,
 };
 
@@ -18,6 +19,7 @@ static Dirtab regressdir[Qmax] = {
 	".",		{ Qdir, 0, QTDIR },	0,	0555,
 	"regressctl",	{ Qctl, 0 },	0,	0666,
 	"malloc",	{ Qmalloc, 0 },	0,	0666,
+	"tsleep",	{ Qtsleep, 0 },	0,	0666,
 };
 
 int verbose = 0;
@@ -60,6 +62,7 @@ regressread(Chan *c, void *a, int32_t n, int64_t offset)
 		return devdirread(c, a, n, regressdir, Qmax, devgen);
 
 	case Qmalloc:
+	case Qtlseep:
 		break;
 
 	default:
@@ -89,6 +92,16 @@ regresswrite(Chan *c, void *a, int32_t n, int64_t offset)
 		free(p);
 		if (verbose)
 			print("Freed %p\n", p);
+		return n;
+
+	case Qtsleep:
+		p = a;
+		amt = strtoull(p, 0, 0);
+		if (verbose)
+			print("tsleep %d\n", amt);
+		tsleep(&m->externup->sleep, return0, 0, amt);
+		if (verbose)
+			print("done tsleep\n");
 		return n;
 
 	case Qctl:
