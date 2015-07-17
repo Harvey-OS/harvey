@@ -154,7 +154,7 @@ keybscan(uint8_t code, char *out, int len)
 {
 	Rune c;
 	int keyup;
-	int i, off;
+	int off;
 
 	c = code;
 	off = 0;
@@ -355,11 +355,16 @@ cgaputc(int c)
 }
 
 static void
-cgawrite(int fd, uint8_t *buf, int len)
+cgawrite(uint8_t *buf, int len)
 {
 	int i;
 	for(i = 0; i < len; i++)
 		cgaputc(buf[i]);
+}
+
+static void
+cgaflush(int fd)
+{
 	pwrite(fd, CGA, Width*Height, 0);
 }
 
@@ -444,8 +449,17 @@ main(int argc, char *argv[])
 		close(ps2fd);
 		close(tochld[0]);
 		while((n = read(frchld[1], buf, sizeof buf)) >= 0){
-			if(n > 0)
-				cgawrite(cgafd, buf, n);
+			Dir *dirp;
+			if(n > 0){
+				cgawrite(buf, n);
+			}
+			if((dirp = dirfstat(frchld[1])) != nil){
+				if(dirp->length == 0)
+					cgaflush(cgafd);
+				free(dirp);
+			} else {
+				cgaflush(cgafd);
+			}
 		}
 		if(len == -1){
 			errstr(buf, sizeof buf);
