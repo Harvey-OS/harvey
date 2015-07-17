@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <stdio.h>
 
-int
+void
 main(){
 	char *correct="0.987650\n";
 	static char result[128];
