@@ -422,7 +422,7 @@ netifwstat(Netif *nif, Chan *c, uint8_t *db, int32_t n)
 	}
 	if(!emptystr(dir[0].uid))
 		strncpy(f->owner, dir[0].uid, KNAMELEN);
-	if(dir[0].mode != ~0UL)
+	if(dir[0].mode != (uint32_t)~0UL)
 		f->mode = dir[0].mode;
 	free(dir);
 	return l;

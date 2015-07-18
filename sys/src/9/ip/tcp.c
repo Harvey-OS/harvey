@@ -1004,6 +1004,7 @@ tcpstart(Conv *s, int mode)
 	}
 }
 
+#if 0
 static char*
 tcpflag(char *buf, char *e, uint16_t flag)
 {
@@ -1025,6 +1026,7 @@ tcpflag(char *buf, char *e, uint16_t flag)
 	USED(p);
 	return buf;
 }
+#endif
 
 static Block*
 htontcp6(Tcp *tcph, Block *data, Tcp6hdr *ph, Tcpctl *tcb)

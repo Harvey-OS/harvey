@@ -133,8 +133,6 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 		v = VERSION9P;
 
 	/* validity */
-	if(msize < 0)
-		error("bad iounit in version call");
 	if(strncmp(v, VERSION9P, strlen(VERSION9P)) != 0)
 		error("bad 9P version specification");
 
@@ -1045,9 +1043,9 @@ alloctag(void)
 
 	for(i = 0; i < NMASK; i++){
 		v = mntalloc.tagmask[i];
-		if(v == ~0UL)
+		if(v == (uint32_t)~0UL)
 			continue;
-		for(j = 0; j < 1<<TAGSHIFT; j++)
+		for(j = 0; j < (1<<TAGSHIFT); j++)
 			if((v & (1<<j)) == 0){
 				mntalloc.tagmask[i] |= 1<<j;
 				return (i<<TAGSHIFT) + j;

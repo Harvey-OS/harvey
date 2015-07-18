@@ -622,7 +622,7 @@ segmentwstat(Chan *c, uint8_t *dp, int32_t n)
 	n = convM2D(dp, n, &d[0], (char*)&d[1]);
 	if(!emptystr(d->uid) && strcmp(d->uid, g->uid) != 0)
 		kstrdup(&g->uid, d->uid);
-	if(d->mode != ~0UL)
+	if(d->mode != (uint32_t)~0UL)
 		g->perm = d->mode & 0777;
 	poperror();
 	free(d);

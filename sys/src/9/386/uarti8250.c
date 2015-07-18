@@ -776,7 +776,7 @@ i8250console(char* cfg)
 	}
 	switch(i){
 	default:
-		return nil;
+		return;
 	case 0:
 		uart = &i8250uart[0];
 		break;

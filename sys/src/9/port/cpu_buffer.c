@@ -65,7 +65,6 @@ static inline
 	int op_cpu_buffer_add_data(struct op_entry *entry, unsigned long val)
 {
 	//print_func_entry();
-	assert(entry->size >= 0);
 	if (!entry->size) {
 		//print_func_exit();
 		return 0;

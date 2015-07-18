@@ -1444,7 +1444,7 @@ sdwstat(Chan* c, uint8_t* dp, int32_t n)
 		error(Eshortstat);
 	if(!emptystr(d[0].uid))
 		kstrdup(&perm->user, d[0].uid);
-	if(d[0].mode != ~0UL)
+	if(d[0].mode != (uint32_t)~0UL)
 		perm->perm = (perm->perm & ~0777) | (d[0].mode & 0777);
 
 	free(d);

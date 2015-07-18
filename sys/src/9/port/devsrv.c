@@ -272,7 +272,7 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 	n = convM2D(dp, n, &d, strs);
 	if(n == 0)
 		error(Eshortstat);
-	if(d.mode != ~0UL)
+	if(d.mode != (uint32_t)~0UL)
 		sp->perm = d.mode & 0777;
 	if(d.uid && *d.uid)
 		kstrdup(&sp->owner, d.uid);

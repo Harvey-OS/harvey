@@ -600,7 +600,7 @@ procwstat(Chan *c, uint8_t *db, int32_t n)
 		else
 			kstrdup(&p->user, d->uid);
 	}
-	if(d->mode != ~0UL)
+	if(d->mode != (uint32_t)~0UL)
 		p->procmode = d->mode&0777;
 
 	poperror();
