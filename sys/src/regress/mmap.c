@@ -24,7 +24,7 @@ main(int argc, char *argv[])
 	if (pid == 0) {
 		char w[1];
 		read(p[0], w, 1);
-		*c = 0;
+		//*c = 0;
 		print("PASS\n");
 		exits("PASS");
 	}
