@@ -1,8 +1,9 @@
-# UUID       	Group Name
+# UUID                   	Group Name
 #
-user:0intro  	user/David du Colombier (0intro)
-user:aki5    	user/Aki Nyrhinen (aki5)
-user:elbing  	user/Álvaro Jurado (elbing)
-user:floren  	user/John Floren (floren)
-user:fuchicar	user/Rafa (fuchicar)
-user:rminnich	user/ron minnich (rminnich)
+github:Harvey-OS/Everyone	github/Harvey-OS/Everyone
+user:0intro              	user/David du Colombier (0intro)
+user:aki5                	user/Aki Nyrhinen (aki5)
+user:elbing              	user/Álvaro Jurado (elbing)
+user:floren              	user/John Floren (floren)
+user:fuchicar            	user/Rafa (fuchicar)
+user:rminnich            	user/ron minnich (rminnich)
