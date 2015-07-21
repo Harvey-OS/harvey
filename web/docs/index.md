@@ -13,6 +13,8 @@ Our aim is to provide a modern, distributed, 64 bit operating system that does a
 
 ## News & events
 
-* <a href="/usenix/">Harvey at Usenix</a>
+* [USENIX presentation slides available](news#usenix-2015-materials)
+* [Developers wanted!](news#developers-wanted)
+* [Harvey at USENIX](news#usenix-2015)
 
 

@@ -1,4 +1,33 @@
-# Harvey at USENIX 2015
+#News & events
+
+<a name="usenix-2015-materials"></a>
+## USENIX presentation slides available 
+20th July 2015
+
+Here are Harvey's [presentation slides](docs/Harvey-Usenix-2015-ATC-BOF-slides.pdf) at USENIX 2015 ATC BOF.
+
+We will update this note when we can link to a video of the talk.
+
+---
+
+<a name="developers-wanted"></a>
+## Looking for developers!
+15th July 2015
+
+For the next couple of months, the project is looking for developers to step up and help get Harvey ready for prime time.
+
+> "I think the big goal for the next two months, the single most important goal, is to move a needle: we want more people contributing"
+
+There still exist areas for continued development, and YOU can make a difference. This experience can make for an ideal project for Operating System courses and the like. Please talk to us!
+
+> "For new people: we have troubles with sdiahci.c, ahci driver. So we haven't local disk for now. It's not blocking at all, but other improvements depends on it. But, what would you like to do with Harvey meanwhile?"
+
+---
+
+<a name="usenix-2015"></a>
+##Harvey at USENIX 2015
+08th July 2015
+
 
 It's usenix and we have a BOF tomorrow night, so we have to get the
 minicluster going. Five AMD Persimmon boards in a stack and 1 Minnow

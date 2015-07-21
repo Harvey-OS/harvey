@@ -7,7 +7,8 @@ site_favicon: img/favicon.png
 pages:
   - Home: index.md
   - About: about.md 
-  - Usenix: usenix.md
+#  - Usenix: usenix.md
+  - News: news.md
   - Download: download.md
   - Community: community.md
 #  - Documentation: 
