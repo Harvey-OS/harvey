@@ -1084,7 +1084,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 */
 	a = p = UINT2PTR(stack);
 	stack = sysexecstack(stack, argc);
-	if(stack-(argc+1)*sizeof(char**)-BIGPGSZ < TSTKTOP-USTKSIZE) {
+	if(stack-(argc+2)*sizeof(char**)-BIGPGSZ < TSTKTOP-USTKSIZE) {
 		//iprint("stck too small?\n");
 		error(Ebadexec);
 	}
@@ -1095,6 +1095,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		*--argv = p + (USTKTOP-TSTKTOP);
 		p += strlen(p) + 1;
 	}
+	*--argv = (void *)(uintptr_t) argc;
 
 	/*
 	 * Make a good faith copy of the args in m->externup->args using the strings
@@ -1231,7 +1232,8 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	if(m->externup->hang)
 		m->externup->procctl = Proc_stopme;
 
-	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), argv + (USTKTOP-TSTKTOP)/sizeof(void *), argc, ((void *)tos) + (USTKTOP-TSTKTOP)/sizeof(void *));
+	/* we need to compte the value of &argv in user mode and then push that. */
+	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), argv + (USTKTOP-TSTKTOP)/sizeof(char **), argc, ((void *)tos) + (USTKTOP-TSTKTOP)/sizeof(void *));
 
 	if(flags == EXAC){
 		m->externup->procctl = Proc_toac;

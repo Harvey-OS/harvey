@@ -149,7 +149,7 @@ void	kstackok(void); /* panic if kstack guards garbaged, works with and without 
 void	stopac(void);
 void	syncclock(void);
 void	syscall(int scallnr, Ureg *ureg);
-void*	sysexecregs(uintptr_t, uint32_t, void *, uint32_t, void*);
+void*	sysexecregs(uintptr_t, uint32_t, char **, uint32_t, void*);
 uintptr_t	sysexecstack(uintptr_t, int);
 void	sysprocsetup(Proc*);
 void	tssrsp0(Mach *, uint64_t);

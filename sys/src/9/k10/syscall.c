@@ -411,6 +411,7 @@ syscall(int badscallnr, Ureg *ureg)
 uintptr_t
 sysexecstack(uintptr_t stack, int argc)
 {
+	uintptr_t sp;
 	/*
 	 * Given a current bottom-of-stack and a count
 	 * of pointer arguments to be pushed onto it followed
@@ -425,25 +426,40 @@ sysexecstack(uintptr_t stack, int argc)
 	 */
 	USED(argc);
 
-	return STACKALIGN(stack);
+	sp = STACKALIGN(stack);
+	/* but we need to align the stack to 16 bytes, not 8, once
+	 * nil
+	 * argv
+	 * argc
+	 * are pushed. So if we have odd arguments, we need an odd-8-byte
+	 * aligned stack; else, an even aligned stack.
+	 */
+	if (argc & 1)
+		sp -= sp & 8 ? 0 : 8;
+	else
+		sp -= sp & 8 ? 8 : 0;
+	//print("For %d args, sp is now %p\n", argc, sp);
+	return sp;
 }
 
 void*
-sysexecregs(uintptr_t entry, uint32_t ssize, void *argv, uint32_t nargs, void *tos)
+sysexecregs(uintptr_t entry, uint32_t ssize, char **argv, uint32_t nargs, void *tos)
 {
 	Mach *m = machp();
 	uintptr_t *sp;
 	Ureg *ureg;
 
-	ssize = (ssize + 15) & ~15; /* userland (fpu) needs %rsp to be 16-aligned */
+	// We made sure it was correctly aligned in sysexecstack, above.
+	if (ssize & 0xf) {
+		print("your stack is wrong: stacksize is not 16-byte aligned: %d\n", ssize);
+		panic("misaligned stack in sysexecregs");
+	}
 	sp = (uintptr_t*)(USTKTOP - ssize);
 
 	ureg = m->externup->dbgreg;
 	ureg->sp = PTR2UINT(sp);
 	ureg->ip = entry;
 	ureg->type = 64;			/* fiction for acid */
-	ureg->di = nargs;
-	ureg->si = (uintptr_t)argv;
 	ureg->dx = (uintptr_t)tos;
 
 	/*
