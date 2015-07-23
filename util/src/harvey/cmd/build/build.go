@@ -1,7 +1,18 @@
 // Build builds code as directed by json files.
 // We slurp in the JSON, and recursively process includes.
-// At the end, we issue a single gcc command for all the files.
+// At the end, we issue a single cc command for all the files.
 // Compilers are fast.
+//
+// ENVIRONMENT
+//
+// Needed: HARVEY, ARCH
+//
+// Currently only "amd64" is a valid ARCH. HARVEY should point to a harvey root.
+//
+// Optional: CC, AR, LD, RANLIB, STRIP, TOOLPREFIX
+//
+// These all control how the needed tools are found.
+//
 package main
 
 import (
@@ -15,6 +26,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strings"
 	"text/template"
 )
 
@@ -60,9 +72,18 @@ type build struct {
 }
 
 var (
-	cwd        string
-	harvey     string
-	toolprefix string
+	cwd    string
+	harvey string
+
+	// findTools looks at all env vars and absolutizes these paths
+	// also respects TOOLPREFIX
+	tools = map[string]string{
+		"cc":     "gcc",
+		"ar":     "ar",
+		"ld":     "ld",
+		"ranlib": "ranlib",
+		"strip":  "strip",
+	}
 )
 
 func fail(err error) {
@@ -150,7 +171,7 @@ func compile(b *build) {
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
 			argscmd := append(args, []string{i}...)
-			cmd := exec.Command(toolprefix+"gcc", argscmd...)
+			cmd := exec.Command(tools["cc"], argscmd...)
 			cmd.Env = append(os.Environ(), b.Env...)
 			cmd.Stdin = os.Stdin
 			cmd.Stderr = os.Stderr
@@ -164,7 +185,7 @@ func compile(b *build) {
 		}
 	} else {
 		args = append(args, b.SourceFiles...)
-		cmd := exec.Command(toolprefix+"gcc", args...)
+		cmd := exec.Command(tools["cc"], args...)
 		cmd.Env = append(os.Environ(), b.Env...)
 
 		cmd.Stdin = os.Stdin
@@ -195,7 +216,7 @@ func link(b *build) {
 			args = append(args, b.Oflags...)
 			args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
 			args = append(args, b.Libs...)
-			cmd := exec.Command(toolprefix+"ld", args...)
+			cmd := exec.Command(tools["ld"], args...)
 			cmd.Env = append(os.Environ(), b.Env...)
 
 			cmd.Stdin = os.Stdin
@@ -213,7 +234,7 @@ func link(b *build) {
 		args = append(args, b.Oflags...)
 		args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
 		args = append(args, b.Libs...)
-		cmd := exec.Command(toolprefix+"ld", args...)
+		cmd := exec.Command(tools["ld"], args...)
 		cmd.Env = append(os.Environ(), b.Env...)
 
 		cmd.Stdin = os.Stdin
@@ -292,7 +313,7 @@ func install(b *build) {
 			n = n + ".o"
 			args = append(args, n)
 		}
-		cmd := exec.Command(toolprefix+"ar", args...)
+		cmd := exec.Command(tools["ar"], args...)
 
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
@@ -304,7 +325,7 @@ func install(b *build) {
 			log.Fatalf("%v\n", err)
 		}
 
-		cmd = exec.Command(toolprefix+"ranlib", libpath)
+		cmd = exec.Command(tools["ranlib"], libpath)
 		err = cmd.Run()
 		if err != nil {
 			log.Fatalf("%v\n", err)
@@ -351,7 +372,7 @@ func data2c(name string, path string) (string, error) {
 			log.Fatalf("%v\n", err)
 		}
 		args := []string{"-o", tmpf.Name(), path}
-		cmd := exec.Command(toolprefix+"strip", args...)
+		cmd := exec.Command(tools["strip"], args...)
 		cmd.Env = nil
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
@@ -571,7 +592,9 @@ func main() {
 	cwd, err = os.Getwd()
 	fail(err)
 	harvey = os.Getenv("HARVEY")
-	toolprefix = os.Getenv("TOOLPREFIX")
+	if err := findTools(os.Getenv("TOOLPREFIX")); err != nil {
+		fail(err)
+	}
 	if harvey == "" {
 		log.Printf("You need to set the HARVEY environment variable")
 		badsetup = true
@@ -588,4 +611,19 @@ func main() {
 	err = os.Chdir(dir)
 	fail(err)
 	project(file)
+}
+
+func findTools(toolprefix string) (err error) {
+	for k, v := range tools {
+		if x := os.Getenv(strings.ToUpper(k)); x != "" {
+			v = x
+		}
+		v = toolprefix + v
+		v, err = exec.LookPath(v)
+		if err != nil {
+			return err
+		}
+		tools[k] = v
+	}
+	return nil
 }
