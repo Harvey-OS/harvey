@@ -1,13 +1,27 @@
 // Build builds code as directed by json files.
 // We slurp in the JSON, and recursively process includes.
-// At the end, we issue a single gcc command for all the files.
+// At the end, we issue a single cc command for all the files.
 // Compilers are fast.
+//
+// ENVIRONMENT
+//
+// Needed: HARVEY, ARCH
+//
+// Currently only "amd64" is a valid ARCH. HARVEY should point to a harvey root.
+// These will be guessed if not set. Set them explicitly if the builds seem to
+// be failing.
+//
+// Optional: CC, AR, LD, RANLIB, STRIP, TOOLPREFIX
+//
+// These all control how the needed tools are found.
+//
 package main
 
 import (
 	"bytes"
 	"debug/elf"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -15,8 +29,12 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"text/template"
 )
+
+var verbose = flag.Bool("v", false, "be verbose (always on, for now)")
 
 type kernconfig struct {
 	Code []string
@@ -60,14 +78,24 @@ type build struct {
 }
 
 var (
-	cwd        string
-	harvey     string
-	toolprefix string
+	cwd    string
+	harvey string
+	arch   string
+
+	// findTools looks at all env vars and absolutizes these paths
+	// also respects TOOLPREFIX
+	tools = map[string]string{
+		"cc":     "gcc",
+		"ar":     "ar",
+		"ld":     "ld",
+		"ranlib": "ranlib",
+		"strip":  "strip",
+	}
 )
 
 func fail(err error) {
 	if err != nil {
-		log.Fatalf("%v", err)
+		log.Fatalln(err)
 	}
 }
 
@@ -84,6 +112,7 @@ func adjust(s []string) (r []string) {
 	}
 	return
 }
+
 func process(f string, b *build) {
 	if b.jsons[f] {
 		return
@@ -95,12 +124,13 @@ func process(f string, b *build) {
 	err = json.Unmarshal(d, &build)
 	fail(err)
 	b.jsons[f] = true
+	for i, v := range build.Env {
+		build.Env[i] = os.ExpandEnv(v)
+	}
 
 	if len(b.jsons) == 1 {
 		cwd, err := os.Getwd()
-		if err != nil {
-			log.Fatalf("%v", err)
-		}
+		fail(err)
 		b.path = path.Join(cwd, f)
 		b.Name = build.Name
 		b.Kernel = build.Kernel
@@ -150,31 +180,25 @@ func compile(b *build) {
 	if len(b.SourceFilesCmd) > 0 {
 		for _, i := range b.SourceFilesCmd {
 			argscmd := append(args, []string{i}...)
-			cmd := exec.Command(toolprefix+"gcc", argscmd...)
+			cmd := exec.Command(tools["cc"], argscmd...)
 			cmd.Env = append(os.Environ(), b.Env...)
 			cmd.Stdin = os.Stdin
 			cmd.Stderr = os.Stderr
 			cmd.Stdout = os.Stdout
 			log.Printf("%v", cmd.Args)
-			err := cmd.Run()
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			fail(cmd.Run())
 			argscmd = args
 		}
 	} else {
 		args = append(args, b.SourceFiles...)
-		cmd := exec.Command(toolprefix+"gcc", args...)
+		cmd := exec.Command(tools["cc"], args...)
 		cmd.Env = append(os.Environ(), b.Env...)
 
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
 		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		fail(cmd.Run())
 	}
 }
 
@@ -183,9 +207,8 @@ func link(b *build) {
 		for _, n := range b.SourceFilesCmd {
 			// Split off the last element of the file
 			var ext = filepath.Ext(n)
-			if len(ext) == 0 {
+			if ext == "" {
 				log.Fatalf("refusing to overwrite extension-less source file %v", n)
-				continue
 			}
 			n = n[0 : len(n)-len(ext)]
 			args := []string{"-o", n}
@@ -195,17 +218,14 @@ func link(b *build) {
 			args = append(args, b.Oflags...)
 			args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
 			args = append(args, b.Libs...)
-			cmd := exec.Command(toolprefix+"ld", args...)
+			cmd := exec.Command(tools["ld"], args...)
 			cmd.Env = append(os.Environ(), b.Env...)
 
 			cmd.Stdin = os.Stdin
 			cmd.Stderr = os.Stderr
 			cmd.Stdout = os.Stdout
 			log.Printf("%v", cmd.Args)
-			err := cmd.Run()
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			fail(cmd.Run())
 		}
 	} else {
 		args := []string{"-o", b.Program}
@@ -213,17 +233,14 @@ func link(b *build) {
 		args = append(args, b.Oflags...)
 		args = append(args, adjust([]string{"-L", "/amd64/lib"})...)
 		args = append(args, b.Libs...)
-		cmd := exec.Command(toolprefix+"ld", args...)
+		cmd := exec.Command(tools["ld"], args...)
 		cmd.Env = append(os.Environ(), b.Env...)
 
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
 		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		fail(cmd.Run())
 	}
 }
 
@@ -231,84 +248,47 @@ func install(b *build) {
 	if b.Install == "" {
 		return
 	}
-	installpath := adjust([]string{os.ExpandEnv(b.Install)})
-	// Make sure they're all there.
-	for _, v := range installpath {
-		if err := os.MkdirAll(v, 0755); err != nil {
-			log.Fatalf("%v", err)
-		}
-	}
+	installpath := adjust1(os.ExpandEnv(b.Install))
+	fail(os.MkdirAll(installpath, 0755))
 
-	if len(b.SourceFilesCmd) > 0 {
+	switch {
+	case len(b.SourceFilesCmd) > 0:
 		for _, n := range b.SourceFilesCmd {
 			// Split off the last element of the file
 			var ext = filepath.Ext(n)
-			if len(ext) == 0 {
+			if ext == "" {
 				log.Fatalf("refusing to overwrite extension-less source file %v", n)
-				continue
 			}
-			n = n[0 : len(n)-len(ext)]
-			args := []string{n}
-			args = append(args, installpath...)
-
-			cmd := exec.Command("mv", args...)
-
-			cmd.Stdin = os.Stdin
-			cmd.Stderr = os.Stderr
-			cmd.Stdout = os.Stdout
-			log.Printf("%v", cmd.Args)
-			err := cmd.Run()
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			n = n[:len(n)-len(ext)]
+			fail(mv(n, installpath))
 		}
-	} else if len(b.Program) > 0 {
-		args := []string{b.Program}
-		args = append(args, installpath...)
-		cmd := exec.Command("mv", args...)
-
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
-	} else if len(b.Library) > 0 {
-		args := []string{"-rvs"}
-		libpath := installpath[0] + "/" + b.Library
-		args = append(args, libpath)
+	case b.Program != "":
+		fail(mv(b.Program, installpath))
+	case b.Library != "":
+		libpath := filepath.Join(installpath, b.Library)
+		args := []string{"-rvs", libpath}
 		for _, n := range b.SourceFiles {
 			// All .o files end up in the top-level directory
 			n = filepath.Base(n)
 			// Split off the last element of the file
 			var ext = filepath.Ext(n)
-			if len(ext) == 0 {
+			if ext == "" {
 				log.Fatalf("confused by extension-less file %v", n)
-				continue
 			}
-			n = n[0 : len(n)-len(ext)]
-			n = n + ".o"
+			// replace extension
+			n = n[:len(n)-len(ext)] + ".o"
 			args = append(args, n)
 		}
-		cmd := exec.Command(toolprefix+"ar", args...)
-
+		cmd := exec.Command(tools["ar"], args...)
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
-		log.Printf("*** Installing %v ***", b.Library)
+		fmt.Printf("Installing %v\n", b.Library)
 		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		fail(cmd.Run())
 
-		cmd = exec.Command(toolprefix+"ranlib", libpath)
-		err = cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		cmd = exec.Command(tools["ranlib"], libpath)
+		fail(cmd.Run())
 	}
 
 }
@@ -320,22 +300,19 @@ func run(b *build, cmd []string) {
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
 		log.Printf("%v", cmd.Args)
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		fail(cmd.Run())
 	}
 }
 
 func projects(b *build) {
+	sd, err := os.Getwd()
+	fail(err)
 	for _, v := range b.Projects {
 		wd := path.Dir(v)
 		f := path.Base(v)
-		cwd, err := os.Getwd()
-		fail(err)
-		os.Chdir(wd)
+		fail(os.Chdir(wd))
 		project(f)
-		os.Chdir(cwd)
+		fail(os.Chdir(sd))
 	}
 }
 
@@ -347,37 +324,25 @@ func data2c(name string, path string) (string, error) {
 		elf.Close()
 		cwd, err := os.Getwd()
 		tmpf, err := ioutil.TempFile(cwd, name)
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		fail(err)
 		args := []string{"-o", tmpf.Name(), path}
-		cmd := exec.Command(toolprefix+"strip", args...)
+		cmd := exec.Command(tools["strip"], args...)
 		cmd.Env = nil
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
 		log.Printf("%v", cmd.Args)
-		err = cmd.Run()
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		fail(cmd.Run())
 
 		in, err = ioutil.ReadAll(tmpf)
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		fail(err)
 		tmpf.Close()
 		os.Remove(tmpf.Name())
 	} else {
-		var file *os.File
-		var err error
-		if file, err = os.Open(path); err != nil {
-			log.Fatalf("%v", err)
-		}
+		file, err := os.Open(path)
+		fail(err)
 		in, err = ioutil.ReadAll(file)
-		if err != nil {
-			log.Fatalf("%v\n", err)
-		}
+		fail(err)
 		file.Close()
 	}
 
@@ -403,9 +368,7 @@ func confcode(path string, kern *kernel) []byte {
 	if kern.Ramfiles != nil {
 		for name, path := range kern.Ramfiles {
 			code, err := data2c(name, adjust1(path))
-			if err != nil {
-				log.Fatalf("%v\n", err)
-			}
+			fail(err)
 			rootcodes = append(rootcodes, code)
 			rootnames = append(rootnames, name)
 		}
@@ -511,29 +474,21 @@ char* conffile = "{{ .Path }}";
 `)
 
 	codebuf := bytes.NewBuffer(nil)
-	if err != nil {
-		log.Fatalf("%v\n", err)
-	}
-	err = tmpl.Execute(codebuf, vars)
-	if err != nil {
-		log.Fatalf("%v\n", err)
-	}
+	fail(err)
+	fail(tmpl.Execute(codebuf, vars))
 
 	return codebuf.Bytes()
 }
 
 func buildkernel(b *build) {
-
 	if b.Kernel == nil {
 		return
 	}
 
 	codebuf := confcode(b.path, b.Kernel)
-
 	if err := ioutil.WriteFile(b.Name+".c", codebuf, 0666); err != nil {
 		log.Fatalf("Writing %s.c: %v", b.Name, err)
 	}
-
 }
 
 // assumes we are in the wd of the project.
@@ -556,7 +511,7 @@ func project(root string) {
 	}
 	if b.Library != "" {
 		//library(b)
-		log.Printf("\n\n*** Building %v ***\n\n", b.Library)
+		fmt.Printf("Building %v\n", b.Library)
 	}
 	if len(b.SourceFilesCmd) > 0 {
 		link(b)
@@ -566,26 +521,80 @@ func project(root string) {
 }
 
 func main() {
-	var badsetup bool
-	var err error
-	cwd, err = os.Getwd()
+	flag.Parse()
+	*verbose = true
+	if *verbose {
+		log.SetFlags(log.Lshortfile | log.LstdFlags)
+	}
+	cwd, err := os.Getwd()
 	fail(err)
 	harvey = os.Getenv("HARVEY")
-	toolprefix = os.Getenv("TOOLPREFIX")
 	if harvey == "" {
-		log.Printf("You need to set the HARVEY environment variable")
-		badsetup = true
+		tl, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+		fail(err)
+		harvey = strings.TrimSpace(string(tl))
+		fail(os.Setenv("HARVEY", harvey))
+		if *verbose {
+			log.Printf("guessing at harvey root, set HARVEY to be explicit (%s)", harvey)
+		}
 	}
+	fail(findTools(os.Getenv("TOOLPREFIX")))
 	if os.Getenv("ARCH") == "" {
-		log.Printf("You need to set the ARCH environment variable")
-		badsetup = true
+		arch = runtime.GOARCH
+		fail(os.Setenv("ARCH", arch))
+		if *verbose {
+			log.Printf("guessing at target arch, set ARCH to be explicit (%s)", arch)
+		}
 	}
-	if badsetup {
-		os.Exit(1)
+	fail(os.Setenv("PATH", os.ExpandEnv("${HARVEY}/util:${PATH}")))
+	targets := os.Args[1:]
+	for i, v := range targets {
+		switch v {
+		case "utils", "util":
+			targets[i] = filepath.Join(harvey, "util/util.json")
+		case "kernel":
+			targets[i] = filepath.Join(harvey, "sys/src/9/k10/k8cpu.json")
+		case "regress":
+			targets[i] = filepath.Join(harvey, "sys/src/regress/regress.json")
+		case "cmds":
+			targets[i] = filepath.Join(harvey, "sys/src/cmd/cmds.json")
+		case "libs":
+			targets[i] = filepath.Join(harvey, "sys/src/libs.json")
+		case "klibs":
+			targets[i] = filepath.Join(harvey, "sys/src/klibs.json")
+		case "all":
+			targets = []string{
+				filepath.Join(harvey, "util/util.json"),
+				filepath.Join(harvey, "sys/src/libs.json"),
+				filepath.Join(harvey, "sys/src/klibs.json"),
+				filepath.Join(harvey, "sys/src/cmd/cmds.json"),
+				filepath.Join(harvey, "sys/src/9/k10/k8cpu.json"),
+				filepath.Join(harvey, "sys/src/regress/regress.json"),
+			}
+			break
+		}
 	}
-	dir := path.Dir(os.Args[1])
-	file := path.Base(os.Args[1])
-	err = os.Chdir(dir)
-	fail(err)
-	project(file)
+
+	for _, tgt := range targets {
+		dir := path.Dir(tgt)
+		file := path.Base(tgt)
+		fail(os.Chdir(dir))
+		project(file)
+	}
+	fail(os.Chdir(cwd))
+}
+
+func findTools(toolprefix string) (err error) {
+	for k, v := range tools {
+		if x := os.Getenv(strings.ToUpper(k)); x != "" {
+			v = x
+		}
+		v = toolprefix + v
+		v, err = exec.LookPath(v)
+		if err != nil {
+			return err
+		}
+		tools[k] = v
+	}
+	return nil
 }
