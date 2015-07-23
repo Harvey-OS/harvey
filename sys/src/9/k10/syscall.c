@@ -443,7 +443,7 @@ sysexecstack(uintptr_t stack, int argc)
 }
 
 void*
-sysexecregs(uintptr_t entry, uint32_t ssize, char **argv, uint32_t nargs, void *tos)
+sysexecregs(uintptr_t entry, uint32_t ssize, void *tos)
 {
 	Mach *m = machp();
 	uintptr_t *sp;
