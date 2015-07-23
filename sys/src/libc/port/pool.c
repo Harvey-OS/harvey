@@ -132,7 +132,8 @@ enum {
 
 static uint8_t datamagic[] = { 0xFE, 0xF1, 0xF0, 0xFA };
 
-#define	Poison	(void*)0xCafeBabe
+#define	IntPoison 0xCafeBabe
+#define	Poison	(void*)IntPoison
 
 #define _B2D(a)	((void*)((uint8_t*)a+sizeof(Bhdr)))
 #define _D2B(v)	((Alloc*)((uint8_t*)v-sizeof(Bhdr)))
@@ -151,7 +152,6 @@ static uint32_t	dsize2bsize(Pool*, uint32_t);
 static uint32_t	getdsize(Alloc*);
 static Alloc*	trim(Pool*, Alloc*, uint32_t);
 static Free*	listadd(Free*, Free*);
-static void		logstack(Pool*);
 static Free**	ltreewalk(Free**, uint32_t);
 static void		memmark(void*, int, uint32_t);
 static Free*	pooladd(Pool*, Alloc*);
@@ -167,7 +167,6 @@ static void		poolnewarena(Pool*, uint32_t);
 static void*	poolreallocl(Pool*, void*, uint32_t);
 static Free*	treedelete(Free*, Free*);
 static Free*	treeinsert(Free*, Free*);
-static Free*	treelookup(Free*, uint32_t);
 static Free*	treelookupgt(Free*, uint32_t);
 
 /*
@@ -253,13 +252,6 @@ ltreewalk(Free **t, uint32_t size)
 		else
 			t = &(*t)->right;
 	}
-}
-
-/* treelookup: find node in tree with size == size */
-static Free*
-treelookup(Free *t, uint32_t size)
-{
-	return *ltreewalk(&t, size);
 }
 
 /* treeinsert: insert node into tree */
@@ -396,7 +388,7 @@ pooladd(Pool *p, Alloc *anode)
 
 	node = (Free*)anode;
 	node->magic = FREE_MAGIC;
-	parent = ltreewalk(&p->freeroot, node->size);
+	parent = ltreewalk((Free **)&p->freeroot, node->size);
 	olst = *parent;
 	lst = listadd(olst, node);
 	if(olst != lst)	/* need to update tree */
@@ -412,7 +404,7 @@ pooldel(Pool *p, Free *node)
 	Free *lst, *olst;
 	Free **parent;
 
-	parent = ltreewalk(&p->freeroot, node->size);
+	parent = ltreewalk((Free **)&p->freeroot, node->size);
 	olst = *parent;
 	assert(olst != nil /* pooldel */);
 
@@ -474,7 +466,7 @@ blockmerge(Pool *pool, Bhdr *a, Bhdr *b)
 		pooldel(pool, (Free*)b);
 
 	t = B2T(a);
-	t->size = (uint32_t)Poison;
+	t->size = IntPoison;
 	t->magic0 = (uint8_t)NOT_MAGIC;
 	t->magic1 = (uint8_t)NOT_MAGIC;
 	PSHORT(t->datasize, NOT_MAGIC);
@@ -1470,8 +1462,10 @@ memmark(void *v, int sig, uint32_t size)
 	uint32_t *lp, *elp;
 	lp = v;
 	elp = lp+size/4;
-	while(lp < elp)
-		*lp++ = (sig<<24) ^ ((uintptr)lp-(uintptr)v);
+	while(lp < elp) {
+		*lp = (sig<<24) ^ ((uintptr)lp-(uintptr)v);
+		lp++;
+	}
 	p = (uint8_t*)lp;
 	ep = (uint8_t*)v+size;
 	while(p<ep)

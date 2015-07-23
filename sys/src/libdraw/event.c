@@ -268,6 +268,9 @@ einit(uint32_t keys)
 		for(Skeyboard=0; Ekeyboard & ~(1<<Skeyboard); Skeyboard++)
 			;
 		ekeyslave(fd);
+		if (ctl > 0) {
+			close(ctl);
+		}
 	}
 	if(keys&Emouse){
 		estart(Emouse, mousefd, 1+4*12);
