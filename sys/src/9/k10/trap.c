@@ -318,6 +318,8 @@ kexit(Ureg* u)
 	 * Be sure it has the right cyclefreq.
 	 */
 	tos->cyclefreq = mp->cyclefreq;
+	/* thread local storage */
+	wrmsr(FSbase, m->externup->tls);
 }
 
 void

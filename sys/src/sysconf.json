@@ -82,7 +82,7 @@
 			"#Id": 7,
 			"Args": [
 				"char*",
-				"char*[]"
+				"char**"
 			],
 			"Id": 4103,
 			"Name": "exec",
@@ -277,9 +277,12 @@
 		{
 			"#Id": 24,
 			"Id": 4120,
+			"Args": [
+				"void*"
+			],
 			"Name": "brk_",
 			"Ret": [
-				"int32_t"
+				"void*"
 			]
 		},
 		{
@@ -611,7 +614,7 @@
 			"Args": [
 				"uint32_t",
 				"char*",
-				"char*[]"
+				"char**"
 			],
 			"Id": 4153,
 			"Name": "execac",
