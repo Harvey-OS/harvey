@@ -7,6 +7,8 @@
 .globl	_main
 _main:
 
+	movq	0(%rsp), %rdi
+	leaq	8(%rsp), %rsi
 	movq	%rdx, _tos
 	movq 	$-128, _privates
 	addq	%rsp, _privates
