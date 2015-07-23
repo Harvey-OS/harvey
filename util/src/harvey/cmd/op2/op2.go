@@ -9,23 +9,23 @@ import (
 
 /*
 first word
-high 8 bits is ee, which is an invalid address on amd64. 
+high 8 bits is ee, which is an invalid address on amd64.
 next 8 bits is protocol version
-next 16 bits is unused, MBZ. Later, we can make it a packet type. 
+next 16 bits is unused, MBZ. Later, we can make it a packet type.
 next 16 bits is core id
 next 8 bits is unused
 next 8 bits is # words following.
 
 second word is time in ns. (soon to be tsc ticks)
 
-Third and following words are PCs, there must be at least one of them. 
- */
+Third and following words are PCs, there must be at least one of them.
+*/
 type sample struct {
-	Wordcount,_ uint8
-	Coreid uint16
-	_ uint16
+	Wordcount, _    uint8
+	Coreid          uint16
+	_               uint16
 	Version, Marker uint8
-	Ns uint64
+	Ns              uint64
 }
 
 type backtrace struct {
@@ -39,7 +39,7 @@ type hdr struct {
 
 type record struct {
 	Count, Size uint64
-	Pcs []uint64
+	Pcs         []uint64
 }
 
 type trailer struct {
@@ -48,18 +48,18 @@ type trailer struct {
 
 func main() {
 	var s sample
-	
+
 	r := io.Reader(os.Stdin)
 	w := io.Writer(os.Stdout)
 
 	records := make(map[string]uint64, 16384)
-	backtraces := make(map[string][]uint64,1024)
+	backtraces := make(map[string][]uint64, 1024)
 
 	/* ignore the documentation, it's wrong, first word must be zero.
 	 * the perl code that figures word length depends on it.
 	 */
-	hdr := hdr{0,3,0,10000,0}
-	trailer := trailer{0,1,0}
+	hdr := hdr{0, 3, 0, 10000, 0}
+	trailer := trailer{0, 1, 0}
 	start := uint64(0)
 	end := start
 	nsamples := end
@@ -73,9 +73,9 @@ func main() {
 		 * N.B. The fact that we have to mess with the bt values
 		 * is the reason we did not write a stringer for bt.
 		 */
-		for i := range(bt) {
-			bt[i] = bt[i] & ((uint64(1)<<32)-1)
-			record = record + fmt.Sprintf("0x%x ",bt[i])
+		for i := range bt {
+			bt[i] = bt[i] & ((uint64(1) << 32) - 1)
+			record = record + fmt.Sprintf("0x%x ", bt[i])
 		}
 		records[record]++
 		backtraces[record] = bt
@@ -85,7 +85,7 @@ func main() {
 			start = s.Ns
 		}
 		end = s.Ns
-		nsamples ++
+		nsamples++
 	}
 	/* we'll need to fix this once we go to ticks. */
 	hdr.Period = (end - start) / nsamples
@@ -94,7 +94,7 @@ func main() {
 	binary.Write(w, binary.LittleEndian, &hdr)
 	out := make([]uint64, 2)
 	/* note that the backtrace length varies. But we're good with that. */
-	for key, v := range(records) {
+	for key, v := range records {
 		bt := backtraces[key]
 		out[0] = v
 		out[1] = uint64(len(bt))
