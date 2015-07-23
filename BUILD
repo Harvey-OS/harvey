@@ -21,22 +21,23 @@
 #
 
 #Search for config:
-_BUILD_DIR=`dirname $0`
+_BUILD_DIR="$(dirname "$0")"
 export _BUILD_DIR=$(cd "$_BUILD_DIR"; pwd)
-. ${_BUILD_DIR}/BUILD.conf
+. "${_BUILD_DIR}/BUILD.conf"
+export HARVEY="$_BUILD_DIR"
 
 compile_kernel()
 {
-	export HARVEY="$_BUILD_DIR"
 	cd "$KRL_DIR"
-	$HARVEY/util/build $KERNEL_CONF.json
+	build "$KERNEL_CONF.json"
 	cd "$PATH_ORI" > /dev/null
 }
 
 build_kernel()
 {
 	compile_kernel
-	if [ $? -ne 0 ]; then
+	if [ $? -ne 0 ]
+	then
 		echo "SOMETHING WENT WRONG!"
 	else
 		echo "KERNEL COMPILED OK"
@@ -45,22 +46,14 @@ build_kernel()
 
 
 build_go_utils()
-{
-	cd "${UTIL_DIR}"
-	GOPATH="$UTIL_DIR/third_party" go get
-	GOPATH="$UTIL_DIR/third_party" go install github.com/rminnich/go9p/ufs
-	cp $UTIL_DIR/third_party/bin/* $UTIL_DIR/
-	for i in `ls *.go`
-	do
-		GOPATH="$UTIL_DIR/third_party" go build $i
-		if [ $? -ne 0 ]
-		then
-			printf "\nERROR compiling $i \n"
-			exit 1
-		fi
-	done
-	cd - > /dev/null
-}
+{ (
+	# this is run in a subshell, so environment modifications are local only
+	set -e
+	export GOBIN="${UTIL_DIR}"
+	export GOPATH="${UTIL_DIR}/third_party:${UTIL_DIR}"
+	go get -d all # should really vendor these bits
+	go install github.com/rminnich/go9p/ufs harvey/cmd/...
+) }
 
 check_utils()
 {
@@ -74,66 +67,66 @@ check_utils()
 
 build_libs()
 {
-	export HARVEY="$_BUILD_DIR"
-	rm -rf $HARVEY/amd64/lib/*
+	rm -rf "$HARVEY/amd64/lib/"*
 	cd "$SRC_DIR"
-	$HARVEY/util/build libs.json
+	build libs.json
 	cd "$PATH_ORI" > /dev/null
 }
 
 
 build_klibs()
 {
-	export HARVEY="$_BUILD_DIR"
 	cd "$SRC_DIR"
-	$HARVEY/util/build klibs.json
+	build klibs.json
 	cd "$PATH_ORI" > /dev/null
 
 }
 
 build_cmds()
 {
-	export HARVEY="$_BUILD_DIR"
-	rm -rf $HARVEY/amd64/bin/*
+	rm -rf "$HARVEY/amd64/bin/"*
 	cd "$CMD_DIR"
-	$HARVEY/util/build cmds.json
-	$HARVEY/util/build kcmds.json
+	build cmds.json
+	build kcmds.json
 	cd "$PATH_ORI" > /dev/null
 }
 
 build_regress()
 {
-	export HARVEY="$_BUILD_DIR"
-	rm -rf $HARVEY/amd64/bin/regress
+	rm -rf "$HARVEY/amd64/bin/regress"
 	cd "$SRC_DIR"/regress
-	$HARVEY/util/build regress.json
+	build regress.json
 	cd "$PATH_ORI" > /dev/null
 }
 
 show_help()
 {
-	printf "\n\nBUILD script for Harvey\n\n"
-	printf "OPTIONS:\n"
-	printf "  all        \tBuild all components\n"
-	printf "  cleanall     \tClean all components\n"
-	printf "  libs       \tBuild the libraries\n"
-	printf "  libs <libname>\tBuild the library <libname>\n"
-	printf "  cleanlibs\tClean the libraries\n"
-	printf "  klibs       \tBuild the Klibraries\n"
-	printf "  klibs <libname>\tBuild the Klibrary <libname>\n"
-	printf "  cleanklibs\tClean the Klibraries\n"
-	printf "  utils     \tBuild go utils\n"
-	printf "  cmd       \tBuild all cmds \n"
-	printf "  cmd <cmdname>\tBuild cmd named <cmdname>\n"
-	printf "  regress	Build all regression tests\n"
-	printf "  cleancmd   \tClean the cmds\n"
-	printf "  kernel     \tBuild kernel\n"
-	printf "  cleankernel\tClean kernel\n"
-	printf "\nFLAGS:\n"
-	printf "  -g        \tCompile with debugs flags\n"
-	printf "  -t <test> \tCompile <test> app and package it with the kernel"
-	printf "\n"
+cat <<end
 
+BUILD script for Harvey
+
+OPTIONS:
+  all                Build all components
+  cleanall           Clean all components
+  libs               Build the libraries
+  libs <libname>     Build the library <libname>
+  cleanlibs          Clean the libraries
+  klibs              Build the Klibraries
+  klibs <libname>    Build the Klibrary <libname>
+  cleanklibs         Clean the Klibraries
+  utils              Build go utils
+  cmd                Build all cmds
+  cmd <cmdname>      Build cmd named <cmdname>
+  regress            Build all regression tests
+  cleancmd           Clean the cmds
+  kernel             Build kernel
+  cleankernel        Clean kernel
+
+FLAGS:
+  -g                 Compile with debugs flags
+  -t <test>          Compile <test> app and package it with the kernel
+
+end
 }
 
 ### MAIN SCRIPT ####
@@ -143,17 +136,17 @@ then
 	exit 1
 else
 	# We need our binary dir
-	mkdir -p $BIN_DIR
+	mkdir -p "$BIN_DIR"
 
 	#BUILD_DEBUG=
 	#Until we have a stable kernel, debug mode is the default.
-	BUILD_DEBUG="$CFLAGS_DEBUG"
+	export BUILD_DEBUG="$CFLAGS_DEBUG"
 	TEST_APP=
 	while [ -n "$1" ]
 	do
 		case "$1" in
 			"-g")
-					BUILD_DEBUG="$CFLAGS_DEBUG"
+					export BUILD_DEBUG="$CFLAGS_DEBUG"
 					;;
 			"-t"*)
 					#is -tSomething?
@@ -211,5 +204,3 @@ else
 		shift
 	done
 fi
-
-
