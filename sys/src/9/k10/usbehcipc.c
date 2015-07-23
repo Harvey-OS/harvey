@@ -24,7 +24,7 @@
 #include	"../port/portusbehci.h"
 #include	"usbehci.h"
 
-static Ctlr* ctlrs[Nhcis];
+static Ctlr* ctlrs[Nhcis + 1];
 static int maxehci = Nhcis;
 
 /* Isn't this cap list search in a helper function? */

@@ -10,8 +10,6 @@
 #include <u.h>
 #include <libc.h>
 
-static char *nsgetwd(char*, int);
-
 char*
 getwd(char *buf, int nbuf)
 {
