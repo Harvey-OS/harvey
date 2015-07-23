@@ -862,7 +862,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	char line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
 	int32_t hdrsz, textsz, datasz, bsssz;
 	uintptr_t textlim, datalim, bsslim, entry, stack;
-	uintptr_t textaddr; //, dataaddr;
+	uintptr_t textaddr, dataddr;
 	//	static int colorgen;
 
 
@@ -956,16 +956,25 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 
 	crackhdr(ar0, chan, &f, &d);
 
-	textsz = f.txtsz;
-	datasz =f.datsz;
+	if((f.txtaddr&(BIGPGSZ-1)) != (f.txtoff&(BIGPGSZ-1))){
+		print("exec: text offset %p not page-aligned with file offset %p\n", f.txtaddr, f.txtoff);
+		error(Ebadexec);
+	}
+	if((f.dataddr&(BIGPGSZ-1)) != (f.datoff&(BIGPGSZ-1))){
+		print("exec: data offset %p not page-aligned with file offset %p\n", f.txtaddr, f.txtoff);
+		error(Ebadexec);
+	}
+
+	textsz = f.txtsz + (f.txtoff&(BIGPGSZ-1));
+	datasz = f.datsz + (f.datoff&(BIGPGSZ-1));
 	bsssz = f.bsssz;
 	entry = f.entry;
-	textaddr = f.txtaddr;
-	//dataaddr = f.dataaddr;
+	textaddr = f.txtaddr - (f.txtoff&(BIGPGSZ-1));
+	dataddr = f.dataddr - (f.datoff&(BIGPGSZ-1));
 
-	textlim = UTROUND(textaddr+hdrsz+textsz);
-	datalim = BIGPGROUND(textlim+datasz);
-	bsslim = BIGPGROUND(textlim+datasz+bsssz);
+	textlim = BIGPGROUND(textaddr+textsz);
+	datalim = BIGPGROUND(dataddr+datasz);
+	bsslim = BIGPGROUND(dataddr+datasz+bsssz);
 
 	/*
 	 * Check the binary header for consistency,
@@ -1154,6 +1163,16 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		}
 	}
 
+DBG(
+	"exec: text: 0x%p textlim: 0x%p data: 0x%p datalim 0x%p brk: 0x%p\n"
+	"	txtaddr 0x%p txtoff 0x%p txtsz 0x%x\n"
+	"	dataddr 0x%p datoff 0x%p datsz 0x%x\n"
+	"	bssaddr 0x%p bsssz 0x%x\n",
+	textaddr, textlim, dataddr, datalim, bsslim,
+	f.txtaddr, f.txtoff, f.txtsz,
+	f.dataddr, f.datoff, f.datsz,
+	f.dataddr+f.datsz, f.bsssz
+);
 	/* Text.  Shared. Attaches to cache image if possible
 	 * but prepaged if EXAC
 	 */
@@ -1169,7 +1188,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	unlock(img);
 
 	/* Data. Shared. */
-	s = newseg(SG_DATA, textlim, (datalim-textlim)/BIGPGSZ);
+	s = newseg(SG_DATA, dataddr, (datalim-dataddr)/BIGPGSZ);
 	m->externup->seg[DSEG] = s;
 	s->color = m->externup->color;
 
@@ -1237,11 +1256,12 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		m->externup->procctl = Proc_toac;
 		m->externup->prepagemem = 1;
 	}
-
-	DBG("execac up %#p done\n"
-		"textsz %lx datasz %lx bsssz %lx hdrsz %lx\n"
-		"textlim %ullx datalim %ullx bsslim %ullx\n", m->externup,
-		textsz, datasz, bsssz, hdrsz, textlim, datalim, bsslim);
+DBG(
+	"execac up %#p done\n"
+	"	textsz %lx datasz %lx bsssz %lx hdrsz %lx\n"
+	"	textlim %ullx datalim %ullx bsslim %ullx\n",
+	m->externup, textsz, datasz, bsssz, hdrsz, textlim, datalim, bsslim
+);
 }
 
 void

@@ -310,14 +310,16 @@ kexit(Ureg* u)
 		mp = m->externup->ac;
 	else
 		mp = m;
-	tos->core = mp->machno;	
+	tos->core = mp->machno;
 	tos->nixtype = mp->nixtype;
-	//_pmcupdate(m);	
+	//_pmcupdate(m);
 	/*
 	 * The process may change its core.
 	 * Be sure it has the right cyclefreq.
 	 */
 	tos->cyclefreq = mp->cyclefreq;
+	/* thread local storage */
+	wrmsr(FSbase, m->externup->tls);
 }
 
 void
@@ -374,7 +376,7 @@ trap(Ureg* ureg)
 	if (vno == 8) {
 		iprint("Lstar is %p\n", (void *)rdmsr(Lstar));
 		iprint("GSbase is %p\n", (void *)gsbase);
-		iprint("ire %d irx %d sce %d scx %d lastvno %d\n", 
+		iprint("ire %d irx %d sce %d scx %d lastvno %d\n",
 			ire, irx, sce, scx, lastvno);
 		iprint("irxe %d \n",
 			irxe);
@@ -733,7 +735,7 @@ userpc(Ureg* ureg)
 
 /* This routine must save the values of registers the user is not permitted
  * to write from devproc and then restore the saved values before returning.
- * TODO: fix this because the segment registers are wrong for 64-bit mode. 
+ * TODO: fix this because the segment registers are wrong for 64-bit mode.
  */
 void
 setregisters(Ureg* ureg, char* pureg, char* uva, int n)
