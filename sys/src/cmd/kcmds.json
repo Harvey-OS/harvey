@@ -10,11 +10,13 @@
 		"mv date $HARVEY/amd64/bin/",
 		"mv srv $HARVEY/amd64/bin/",
 		"mv echo $HARVEY/amd64/bin/",
-		"mv ls $HARVEY/amd64/bin/"
+		"mv ls $HARVEY/amd64/bin/",
+		"mv cat $HARVEY/amd64/bin/"
 	],
 	"Projects": [
 		"/sys/src/cmd/rc/rc.json",
-		"/sys/src/cmd/ip/ipconfig/kipconfig.json"
+		"/sys/src/cmd/ip/ipconfig/kipconfig.json",
+		"/sys/src/cmd/aux/aux.json"
 	],
 	"SourceFilesCmd": [
 		"bind.c",
@@ -22,6 +24,7 @@
 		"date.c",
 		"srv.c",
 		"echo.c",
-		"ls.c"
+		"ls.c",
+		"cat.c"
 	]
 }
