@@ -936,7 +936,10 @@ struct Proc
 	 * handled by some other proc (not ourselves) and block on reading
 	 * a result back.
 	 */
-	Queue *req, *resp;
+	// Let's just try a pipe. It has the properties we want.
+	// fd 0 will be read and fd1 will be write.
+	int mmap[2];
+	//Queue *req, *resp;
 };
 
 struct Procalloc

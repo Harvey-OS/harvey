@@ -183,6 +183,9 @@ static int tproduced, tconsumed;
 static void notrace(Proc*, int, int64_t);
 
 void (*proctrace)(Proc*, int, int64_t) = notrace;
+int pipe(int fd[2]);
+int32_t	read(int ispread, int fd, void *p, int32_t n, int64_t off);
+int32_t	write(int fd, void *p, int32_t n, int64_t off, int ispwrite);
 
 static void
 profclock(Ureg *ur, Timer *ti)
@@ -508,12 +511,10 @@ procopen(Chan *c, int omode)
 		break;
 
 	case Qmmap:
+
 		//nonone(p);
-		if (! p->resp) { /* XXX need to do single reader/writer but that's later. */
-			p->resp = qopen(1024, Qmsg, nil, 0);
-			p->req = qopen(1024, Qmsg, nil, 0);
-		}
-		print("p %d sets resp %p req %p\n", p->pid, p->resp, p->req);
+		pipe(p->mmap);
+		print("p %d sets [%d,%d]\n", p->pid, p->mmap[0], p->mmap[1]);
 		c->aux = p;
 		break;
 
@@ -867,8 +868,9 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		return readstr(offset, va, n, statbuf);
 
 	case Qmmap:
+
 		p = c->aux;
-		n = qread(p->req, va, n);
+		n = read(0, p->mmap[0], va, n, (uint64_t)-1ULL);
 		print("read mmap: %p\n", n);
 		break;
 
@@ -1044,9 +1046,8 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		/*
 		 * mmap support, random stuff.
 		 */
-		if (0) print("qstatus p %p pid %d req %p\n", p, p->pid, p->req);
-		readnum(0,statbuf+j+NUMSIZE*15, NUMSIZE, p->req ? 1 : 0, NUMSIZE);
-		readnum(0,statbuf+j+NUMSIZE*16, NUMSIZE, p->resp ? 1 : 0, NUMSIZE);
+		readnum(0,statbuf+j+NUMSIZE*15, NUMSIZE, p->mmap[0], NUMSIZE);
+		readnum(0,statbuf+j+NUMSIZE*16, NUMSIZE, p->mmap[1], NUMSIZE);
 		memmove(va, statbuf+offset, n);
 		psdecref(p);
 		return n;
@@ -1317,7 +1318,7 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 
 	case Qmmap:
 		p = c->aux;
-		n = qwrite(p->resp, va, n);
+		n = write(p->mmap[1], va, n, (uint64_t)-1ULL, 0);
 		break;
 
 	default:
