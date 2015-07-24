@@ -210,24 +210,11 @@ sysfd2path(Ar0* ar0, ...)
 	ar0->i = 0;
 }
 
-void
-syspipe(Ar0* ar0, ...)
+int pipe(int fd[2])
 {
 	Mach *m = machp();
-	int *a, fd[2];
 	Chan *c[2];
 	static char *datastr[] = {"data", "data1"};
-	va_list list;
-	va_start(list, ar0);
-
-	/*
-	 * int pipe(int fd[2]);
-	 */
-	a = va_arg(list, int*);
-	va_end(list);
-	a = validaddr(a, sizeof(fd), 1);
-	evenaddr(PTR2UINT(a));
-
 	c[0] = namec("#|", Atodir, 0, 0);
 	c[1] = nil;
 	fd[0] = -1;
@@ -249,7 +236,25 @@ syspipe(Ar0* ar0, ...)
 	if(newfd2(fd, c) < 0)
 		error(Enofd);
 	poperror();
+	return 0;
+}
 
+void
+syspipe(Ar0* ar0, ...)
+{
+	int *a;
+	int fd[2];
+	va_list list;
+	va_start(list, ar0);
+
+	/*
+	 * int pipe(int fd[2]);
+	 */
+	a = va_arg(list, int*);
+	va_end(list);
+	a = validaddr(a, sizeof(fd), 1);
+	evenaddr(PTR2UINT(a));
+	pipe(fd);
 	a[0] = fd[0];
 	a[1] = fd[1];
 
@@ -717,7 +722,7 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 	return e-op;
 }
 
-static int32_t
+int32_t
 read(int ispread, int fd, void *p, int32_t n, int64_t off)
 {
 	Mach *m = machp();
@@ -834,7 +839,7 @@ syspread(Ar0* ar0, ...)
 	ar0->l = read(1, fd, p, n, off);
 }
 
-static int32_t
+int32_t
 write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 {
 	Mach *m = machp();

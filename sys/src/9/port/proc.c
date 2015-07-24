@@ -1073,8 +1073,7 @@ newproc(void)
 	p->tctime = 0ULL;
 	p->ac = nil;
 	p->nfullq = 0;
-	p->req = nil;
-	p->resp = nil;
+	p->mmap[0] = p->mmap[1] = -1;
 	memset(&p->PMMU, 0, sizeof p->PMMU);
 	return p;
 }
