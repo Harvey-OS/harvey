@@ -1,0 +1,100 @@
+{
+	"Env": [
+		"CONF=somekindakernel"
+	],
+	"Include": [
+		"core.json",
+		"../386/386.json",
+		"../ip/ip.json",
+		"../port/port.json"
+	],
+	"Kernel": {
+		"Config": {
+			"Code": [
+				"int cpuserver = 1;",
+				"uint32_t kerndate = 1;"
+			],
+			"Dev": [
+				"root",
+				"cons",
+				"arch",
+				"env",
+				"pipe",
+				"proc",
+				"mnt",
+				"srv",
+				"dup",
+				"rtc",
+				"kprof",
+				"pmc",
+			        "regress",
+				"segment",
+				"acpi",
+				"zp",
+				"ws",
+				"sd",
+				"ether",
+				"ip",
+				"pci",
+				"uart"
+			],
+			"Ip": [
+				"tcp",
+				"udp",
+				"ipifc",
+				"icmp",
+				"icmp6",
+				"gre"
+			],
+			"Link": [
+				"ether8169",
+				"ether82557",
+				"ether82563",
+				"etherigbe",
+				"ether8139",
+				"ethermedium",
+				"loopbackmedium",
+				"netdevmedium"
+			],
+			"Sd": [
+				"sdiahci"
+			],
+			"Systab": "/sys/src/libc/9syscall/sys.h",
+			"Uart": [
+				"i8250",
+				"pci"
+			]
+		},
+		"Ramfiles": {
+			"bind": "/amd64/bin/bind",
+			"boot": "boot.fs",
+			"cat": "/amd64/bin/cat",
+			"dd": "/amd64/bin/dd",
+			"date": "/amd64/bin/date",
+			"echo": "/amd64/bin/echo",
+			"ipconfig": "/amd64/bin/ip/ipconfig",
+			"listen1": "/amd64/bin/aux/listen1",
+			"ls": "/amd64/bin/ls",
+			"mount": "/amd64/bin/mount",
+			"rc": "/amd64/bin/rc",
+			"rcmain": "/rc/lib/rcmain",
+			"srv": "/amd64/bin/srv",
+			"tty": "/amd64/bin/aux/tty",
+			"console": "/amd64/bin/aux/console"
+		}
+	},
+	"Name": "k8cpu",
+	"Program": "9somekindakernel",
+	"SourceFiles": [
+		"cga.c",
+		"devacpi.c",
+		"devusb.c",
+		"ether8139.c",
+		"ether82563.c",
+		"k8cpu.c",
+		"sdata.c",
+		"usbehcipc.c",
+		"usbohci.c",
+		"usbuhci.c"
+	]
+}
