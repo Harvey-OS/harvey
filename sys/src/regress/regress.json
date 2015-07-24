@@ -22,6 +22,7 @@
 		"sysfatal.c",
 		"sysstatread.c",
 		"thread.c",
-		"va_copy.c"
+		"va_copy.c",
+		"tls.c"
 	]
 }

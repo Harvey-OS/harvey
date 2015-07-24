@@ -26,3 +26,7 @@ _exits:
 	.ascii	"main"
 
 
+.globl gettls0
+gettls0:
+	movq %fs:0, %rax
+	ret

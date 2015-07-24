@@ -44,6 +44,7 @@ enum
 	Qsyscall,
 	Qcore,
 	Qmmap,
+	Qtls,
 };
 
 enum
@@ -114,6 +115,8 @@ Dirtab procdir[] =
 	"syscall",	{Qsyscall},	0,			0400,	
 	"core",		{Qcore},	0,			0444,
 	"mmap",		{Qmmap},	0,			0600,
+	"tls",		{Qtls},	0,			0600,
+
 };
 
 static
@@ -492,6 +495,12 @@ procopen(Chan *c, int omode)
 	case Qmem:
 	case Qctl:
 		if(p->privatemem)
+			error(Eperm);
+		nonone(p);
+		break;
+
+	case Qtls:
+		if(p->pid != m->externup->pid)
 			error(Eperm);
 		nonone(p);
 		break;
@@ -1161,6 +1170,15 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		r = procfds(p, va, n, offset);
 		psdecref(p);
 		return r;
+	case Qtls:
+		j = snprint(statbuf, sizeof statbuf, "tls 0x%p\n", p->tls);
+		psdecref(p);
+		if(offset >= j)
+			return 0;
+		if(offset+n > j)
+			n = j-offset;
+		memmove(va, statbuf+offset, n);
+		return n;
 	}
 	error(Egreg);
 	return 0;			/* not reached */
@@ -1319,6 +1337,25 @@ procwrite(Chan *c, void *va, int32_t n, int64_t off)
 		p = c->aux;
 		n = qwrite(p->resp, va, n);
 		break;
+
+	case Qtls:
+		if(n >= sizeof buf)
+			error(Etoobig);
+		memmove(buf, va, n);
+		buf[n] = '\0';
+		if(memcmp(buf, "tls ", 4) == 0){
+			char *s;
+			for(s = buf; *s != '\0' && (*s < '0' || *s > '9'); s++)
+				;
+			if(*s >= '0' && *s <= '9'){
+				p->tls = (uintptr_t)strtoull(s, nil, 0); // a-tol-whex! a-tol-whex!
+				poperror();
+				qunlock(&p->debug);
+				psdecref(p);
+				return n;
+			}
+		}
+		error(Ebadarg);
 
 	default:
 		poperror();
