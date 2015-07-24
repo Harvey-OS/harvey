@@ -218,11 +218,6 @@ mpparse(PCMP* pcmp, int maxcores)
 		break;
 	case 1:					/* bus */
 		DBG("mpparse: bus: %d type %6.6s\n", p[1], (char*)p+2);
-		if(Nbus < 256 && p[1] >= Nbus){
-			print("mpparse: bus %d out of range\n", p[1]);
-			p += 8;
-			break;
-		}
 		if(mpbus[p[1]] != nil){
 			print("mpparse: bus %d already allocated\n", p[1]);
 			p += 8;
