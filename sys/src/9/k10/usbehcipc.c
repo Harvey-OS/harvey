@@ -25,7 +25,6 @@
 #include	"usbehci.h"
 
 static Ctlr* ctlrs[Nhcis];
-static int maxehci = Nhcis;
 
 /* Isn't this cap list search in a helper function? */
 static void
@@ -213,16 +212,6 @@ scanpci(void)
 		if(i >= Nhcis)
 			print("ehci: bug: more than %d controllers\n", Nhcis);
 
-		/*
-		 * currently, if we enable a second ehci controller on zt
-		 * systems w x58m motherboard, we'll wedge solid after iunlock
-		 * in init for the second one.
-		 */
-		if (i >= maxehci) {
-			print("usbehci: ignoring controllers after first %d, "
-				"at %#p\n", maxehci, io);
-			ctlrs[i] = nil;
-		}
 	}
 }
 
@@ -235,14 +224,6 @@ reset(Hci *hp)
 	Ecapio *capio;
 	Pcidev *p;
 	static Lock resetlck;
-
-	/* no longer
-	s = getconf("*maxehci");
-	if (s != nil && s[0] >= '0' && s[0] <= '9')
-		maxehci = atoi(s);
-	if(maxehci == 0 || getconf("*nousbehci"))
-		return -1;
-	*/
 
 	ilock(&resetlck);
 	scanpci();
