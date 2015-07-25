@@ -392,29 +392,17 @@ fas64:
 	//LOCK; XCHGQ	%eax, (%rdi)			/*  */
 	RET
 
+// %rdi:&key, %esi:old, %edx:new
+// int	cas32(void* %rdi, uint32_t %esi, uint32_t %edx);
 .global cas32
 cas32:
-	MOVL	%edi, %eax
-	MOVL	%esi, %ebx
-	LOCK; CMPXCHGL %ebx, (%rdi)
-	MOVL	$1, %eax				/* use CMOVLEQ etc. here? */
+	movl	%esi, %eax
+	lock; cmpxchgl %edx, (%rdi)
+	MOVL	$1, %eax
 	JNZ	_cas32r0
 _cas32r1:
 	RET
 _cas32r0:
-	DECL	%eax
-	RET
-
-.global cas64
-cas64:
-	MOVQ	%rdi, %rax
-	MOVQ	%rsi, %rbx
-	LOCK; CMPXCHGQ %rbx, (%rdi)
-	MOVL	$1, %eax				/* use CMOVLEQ etc. here? */
-	JNZ	_cas64r0
-_cas64r1:
-	RET
-_cas64r0:
 	DECL	%eax
 	RET
 
