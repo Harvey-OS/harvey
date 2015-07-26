@@ -28,6 +28,7 @@ segppn(Segment *s, uintmem pa)
 /*
  * Sizes are given in multiples of BIGPGSZ.
  * The actual page size used is either BIGPGSZ or 1*GiB
+ * 1G is disabled for now. RGM.
  * if base is aligned to 1G and size is >= 1G and we support 1G pages.
  */
 Segment *
@@ -41,6 +42,7 @@ newseg(int type, uintptr_t base, uint64_t size)
 		error(Enovmem);
 
 	pgsz = BIGPGSZ;
+	if (0) // TODO: re enable this on a per-process basis via a write to /proc/pid/ctl.
 	if(size*BIGPGSZ >= 1*GiB && getpgszi(1*GiB) >= 0 &&
 	   (base&(1ULL*GiB-1)) == 0 && ((size*BIGPGSZ)&(1ULL*GiB-1)) == 0){
 		DBG("newseg: using 1G pages\n");
