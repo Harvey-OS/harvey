@@ -109,7 +109,7 @@ swapdata(Data *dp)
 }
 
 int
-acmp(void *va, void *vb)
+acmp(const void *va, const void *vb)
 {
 	Acc *a, *b;
 	uint32_t ua, ub;

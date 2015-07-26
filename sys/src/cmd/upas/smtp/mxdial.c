@@ -300,7 +300,7 @@ mxlookup1(DS *ds, char *domain)
 }
 
 static int
-compar(void *a, void *b)
+compar(const void *a, const void *b)
 {
 	return ((Mx*)a)->pref - ((Mx*)b)->pref;
 }

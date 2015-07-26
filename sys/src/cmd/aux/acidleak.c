@@ -74,7 +74,7 @@ uint ndata;
 uint adata;
 
 int
-addrcmp(void *va, void *vb)
+addrcmp(const void *va, const void *vb)
 {
 	uint32_t *a, *b;
 

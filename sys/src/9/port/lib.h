@@ -191,7 +191,7 @@ extern	uint32_t	strtoul(char*, char**, int);
 extern	int64_t	strtoll(char*, char**, int);
 extern	uint64_t	strtoull(char*, char**, int);
 extern	void	qsort(void*, int32_t, int32_t,
-				int (*)(void*, void*));
+				int (*)(const void*, const void*));
 /*
  * Syscall data structures
  */

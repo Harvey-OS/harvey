@@ -239,7 +239,7 @@ ntohs(int h)
 }
 
 int
-tcmp(void *a, void *b)
+tcmp(const void *a, const void *b)
 {
 	Shelf *s, *t;
 	int d;

@@ -56,7 +56,7 @@ sha1file(char *pfx, char *nm)
 }
 
 static int
-compare(Dir *a, Dir *b)
+compare(const Dir *a, const Dir *b)
 {
 	return strcmp(a->name, b->name);
 }
@@ -73,7 +73,7 @@ dirls(char *path)
 	if(path==nil || (ndir = ls(path, &dirbuf)) < 0)
 		return nil;
 
-	qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(void *, void *))compare);
+	qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(const void *, const void *))compare);
 	for(nmwid=lenwid=i=0; i<ndir; i++){
 		if((m = strlen(dirbuf[i].name)) > nmwid)
 			nmwid = m;

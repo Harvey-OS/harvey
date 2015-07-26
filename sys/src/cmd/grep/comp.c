@@ -72,7 +72,7 @@ cont:	;
 }
 
 int
-fcmp(void *va, void *vb)
+fcmp(const void *va, const void *vb)
 {
 	Re **aa, **bb;
 	Re *a, *b;
@@ -196,7 +196,7 @@ rclass(Rune p0, Rune p1)
 }
 
 int
-pcmp(void *va, void *vb)
+pcmp(const void *va, const void *vb)
 {
 	int n;
 	Rune *a, *b;

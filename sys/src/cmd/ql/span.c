@@ -448,7 +448,7 @@ cmp(int a, int b)
 }
 
 int
-ocmp(void *a1, void *a2)
+ocmp(const void *a1, const void *a2)
 {
 	Optab *p1, *p2;
 	int n;

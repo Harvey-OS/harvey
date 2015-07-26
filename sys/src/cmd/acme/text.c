@@ -117,7 +117,7 @@ textclose(Text *t)
 }
 
 int
-dircmp(void *a, void *b)
+dircmp(const void *a, const void *b)
 {
 	Dirlist *da, *db;
 	int i, n;

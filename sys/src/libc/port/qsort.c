@@ -16,7 +16,7 @@
 typedef
 struct
 {
-	int	(*cmp)(void*, void*);
+	int	(*cmp)(const void*, const void*);
 	void	(*swap)(char*, char*, int32_t);
 	int32_t	es;
 } Sort;
@@ -120,7 +120,7 @@ qsorts(char *a, int32_t n, Sort *p)
 }
 
 void
-qsort(void *va, int32_t n, int32_t es, int (*cmp)(void*, void*))
+qsort(void *va, int32_t n, int32_t es, int (*cmp)(const void*, const void*))
 {
 	Sort s;
 

@@ -39,7 +39,7 @@ struct dirdata
   char *data;	/* Allocated storage for file names.  */
 };
 
-static int compare_names PARAMS((void const *, void const *));
+static int compare_names PARAMS((const void *, const void *));
 static int dir_sort PARAMS((struct file_data const *, struct dirdata *));
 
 static int
@@ -134,8 +134,7 @@ dir_sort (dir, dirdata)
 /* Sort the files now in the table.  */
 
 static int
-compare_names (file1, file2)
-     void const *file1, *file2;
+compare_names (const void *file1, const void *file2)
 {
   return filename_cmp (* (char const *const *) file1,
 		       * (char const *const *) file2);
