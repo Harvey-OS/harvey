@@ -40,7 +40,9 @@ static int	showdrec(int, int, void*);
 static int32_t	gtime(uint8_t*);
 static int32_t	l16(void*);
 static int32_t	l32(void*);
+#ifdef L64
 static int64_t	l64(void *);
+#endif
 static void	newdrec(Xfile*, Drec*);
 static int	rzdir(Xfs*, Dir*, int, Drec*);
 
@@ -886,6 +888,7 @@ l32(void *arg)
 
 #undef	p
 
+#ifdef L64
 static int64_t
 l64(void *arg)
 {
@@ -894,3 +897,4 @@ l64(void *arg)
 	p = arg;
 	return (int64_t)l32(p+4) << 32 | (uint32_t)l32(p);
 }
+#endif
