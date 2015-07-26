@@ -785,9 +785,9 @@ dumpslit(Slit *sl)
 }
 
 static int
-cmpslitent(void* v1, void* v2)
+cmpslitent(const void* v1, const void* v2)
 {
-	SlEntry *se1, *se2;
+	const SlEntry *se1, *se2;
 
 	se1 = v1;
 	se2 = v2;

@@ -211,7 +211,7 @@ readpbmessage(Mailbox *mb, char *msg, int doplumb)
 }
 
 static int
-dcmp(Dir *a, Dir *b)
+dcmp(const Dir *a, const Dir *b)
 {
 	char *an, *bn;
 

@@ -51,6 +51,7 @@ main(int argc, char **argv)
 	exits(0);
 }
 
+int
 touch(int nocreate, char *name)
 {
 	Dir stbuff;

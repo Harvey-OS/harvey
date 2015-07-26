@@ -1930,7 +1930,7 @@ unlinkThread(void *a)
 }
 
 static int
-baddrCmp(void *a0, void *a1)
+baddrCmp(const void *a0, const void *a1)
 {
 	BAddr *b0, *b1;
 	b0 = a0;
