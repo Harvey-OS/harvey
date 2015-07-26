@@ -435,6 +435,7 @@ struct Namecache {
 
 Namecache *dnscache;
 
+#ifdef DOMLOOKUP
 static Namecache*
 domlookupl(void *name, int len)
 {
@@ -459,6 +460,7 @@ domlookup(void *name)
 {
 	return domlookupl(name, strlen(name));
 }
+#endif /* DOMLOOKUP */
 
 static Namecache*
 iplookup(uint32_t ip)

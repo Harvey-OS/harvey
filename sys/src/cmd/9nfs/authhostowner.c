@@ -13,6 +13,9 @@ enum {
 	ARgiveup = 100,
 };
 
+/* following three functions of unknown use and purpose */
+
+/*
 static uint8_t*
 gstring(uint8_t *p, uint8_t *ep, char **s)
 {
@@ -75,6 +78,7 @@ convM2AI(uint8_t *p, int n, AuthInfo **aip)
 		*aip = ai;
 	return p;
 }
+*/
 
 static int
 dorpc(AuthRpc *rpc, char *verb, char *val, int len, AuthGetkey *getkey)
