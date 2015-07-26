@@ -303,7 +303,7 @@ nntpxcmdprobe(Netbuf *n)
 
 /* XXX: searching, lazy evaluation */
 static int
-overcmp(void *v1, void *v2)
+overcmp(const void *v1, const void *v2)
 {
 	int a, b;
 

@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 void
 add(char *a, ...)
 {
-	static beenhere=0;
+	static int beenhere=0;
 	va_list arg;
 
 	if(beenhere)

@@ -370,7 +370,7 @@ ipinsert(Node *np, char *cp)
 }
 
 int
-ipcomp(void *a, void *b)
+ipcomp(const void *a, const void *b)
 {
 	uint32_t aip, bip;
 

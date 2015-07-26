@@ -673,7 +673,7 @@ cull(char *s, int keep, int dobbox)
 }
 
 int
-compar(void *va, void *vb)
+compar(const void *va, const void *vb)
 {
 	Record *a=va, *b=vb;
 

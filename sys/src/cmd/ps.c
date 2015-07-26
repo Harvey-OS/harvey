@@ -13,7 +13,7 @@
 
 void	ps(char*);
 void	error(char*);
-int	cmp(void *c, void*);
+int	cmp(const void *c, const void*);
 
 Biobuf	bout;
 int	pflag;
@@ -162,7 +162,7 @@ error(char *s)
 }
 
 int
-cmp(void *va, void *vb)
+cmp(const void *va, const void *vb)
 {
 	Dir **a, **b;
 

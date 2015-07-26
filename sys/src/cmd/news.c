@@ -44,7 +44,7 @@ int	n_count;
 int	n_items;
 Biobuf	bout;
 
-int	fcmp(void *a, void *b);
+int	fcmp(const void *a, const void *b);
 void	read_dir(int update);
 void	print_item(char *f);
 void	eachitem(void (*emit)(char*), int all, int update);
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 }
 
 int
-fcmp(void *a, void *b)
+fcmp(const void *a, const void *b)
 {
 	int32_t x;
 

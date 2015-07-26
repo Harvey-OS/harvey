@@ -164,7 +164,7 @@ struct Prof
 Prof	prof[5000];
 
 int
-profcmp(void *a, void *b)
+profcmp(const void *a, const void *b)
 {
 	return ((Prof*)b)->count - ((Prof*)a)->count;
 }

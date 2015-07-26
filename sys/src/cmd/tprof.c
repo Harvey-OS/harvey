@@ -33,7 +33,7 @@ error(int perr, char *s)
 }
 
 int
-compar(void *va, void *vb)
+compar(const void *va, const void *vb)
 {
 	struct COUNTER *a, *b;
 
