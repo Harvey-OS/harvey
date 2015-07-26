@@ -353,7 +353,7 @@ main(int argc, char **argv)
  * read the device.
  */
 int
-rbcmp(void *va, void *vb)
+rbcmp(const void *va, const void *vb)
 {
 	Rabuf *ra, *rb;
 

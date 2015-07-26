@@ -546,7 +546,7 @@ leadgroup(int ui, int gi)
 }
 
 int
-byuid(void *a1, void *a2)
+byuid(const void *a1, const void *a2)
 {
 	Uid *u1, *u2;
 

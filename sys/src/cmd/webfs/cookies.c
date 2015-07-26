@@ -146,7 +146,7 @@ cookiefmt(Fmt *fp)
  *	- longer paths first, then alpha by path (RFC2109 4.3.4)
  */
 static int
-cookiecmp(Cookie *a, Cookie *b)
+cookiecmp(const Cookie *a, const Cookie *b)
 {
 	int i;
 
@@ -162,7 +162,7 @@ cookiecmp(Cookie *a, Cookie *b)
 }
 
 static int
-exactcookiecmp(Cookie *a, Cookie *b)
+exactcookiecmp(const Cookie *a, const Cookie *b)
 {
 	int i;
 
@@ -605,7 +605,7 @@ cookiesearch(Jar *jar, char *dom, char *path, int issecure)
 		werrstr("no cookies found");
 		return nil;
 	}
-	qsort(j->c, j->nc, sizeof(j->c[0]), (int(*)(void*, void*))cookiecmp);
+	qsort(j->c, j->nc, sizeof(j->c[0]), cookiecmp);
 	return j;
 }
 

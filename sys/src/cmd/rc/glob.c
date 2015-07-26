@@ -29,7 +29,7 @@ deglob(void *as)
 }
 
 int
-globcmp(void *s, void *t)
+globcmp(const void *s, const void *t)
 {
 	return strcmp(*(char**)s, *(char**)t);
 }

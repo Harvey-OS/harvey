@@ -947,7 +947,7 @@ listfile(Biobufhdr *b, char *name, int lflag, char *dname)
 	free(d);
 }
 int
-dircomp(void *va, void *vb)
+dircomp(const void *va, const void *vb)
 {
 	int rv;
 	Dir *a, *b;

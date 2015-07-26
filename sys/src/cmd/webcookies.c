@@ -148,7 +148,7 @@ cookiefmt(Fmt *fmt)
  *	- longer paths first, then alpha by path (RFC2109 4.3.4)
  */
 int
-cookiecmp(Cookie *a, Cookie *b)
+cookiecmp(const Cookie *a, const Cookie *b)
 {
 	int i;
 

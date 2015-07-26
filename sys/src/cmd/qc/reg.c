@@ -25,7 +25,7 @@ rega(void)
 }
 
 int
-rcmp(void *a1, void *a2)
+rcmp(const void *a1, const void *a2)
 {
 	Rgn *p1, *p2;
 	int c1, c2;

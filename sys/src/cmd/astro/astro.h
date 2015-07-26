@@ -159,7 +159,7 @@ extern	double	cosx(double, int, int, int, int, double);
 extern	double	dist(Obj1*, Obj1*);
 extern	double	dsrc(double, Tim*, int);
 extern	void	dtsetup(double, Tim*);
-extern	int	evcomp(void*, void*);
+extern	int	evcomp(const void*, const void*);
 extern	void	event(char*, char*, char*, double, int);
 extern	void	evflush(void);
 extern	double	fmod(double, double);

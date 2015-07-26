@@ -151,7 +151,7 @@ int	sflag;				/* Set when substitution done */
 int	jflag;				/* Set when jump required */
 int	delflag;			/* Delete current line when set */
 
-int32_t	lnum = 0;			/* Input line count */
+int64_t	lnum = 0;			/* Input line count */
 
 char	fname[MAXFILES][40];		/* File name cache */
 Biobuf	*fcode[MAXFILES];		/* File ID cache */
@@ -778,6 +778,7 @@ address(Addr *ap)
 	}
 }
 
+int
 cmp(char *a, char *b)		/* compare characters */
 {
 	while(*a == *b++)
@@ -787,6 +788,8 @@ cmp(char *a, char *b)		/* compare characters */
 			a++;
 	return 1;
 }
+
+int
 rcmp(Rune *a, Rune *b)		/* compare runes */
 {
 	while(*a == *b++)
@@ -1328,6 +1331,8 @@ putline(Biobuf *bp, Rune *buf, int n)
 		Bputrune(bp, *buf++);
 	Bputc(bp, '\n');
 }
+
+int
 ecmp(Rune *a, Rune *b, int count)
 {
 	while(count--)

@@ -165,7 +165,7 @@ struct Prof
 Prof	prof[5000];
 
 int
-profcmp(void *va, void *vb)
+profcmp(const void *va, const void *vb)
 {
 	Prof *a, *b;
 

@@ -37,7 +37,7 @@ int	ndirbuf;
 int	ndir;
 NDir*	dirbuf;
 int	ls(char*, int);
-int	compar(NDir*, NDir*);
+int	compar(const NDir*, const NDir*);
 char*	asciitime(int32_t);
 char*	darwx(int32_t);
 void	rwx(int32_t, char*);
@@ -149,7 +149,7 @@ output(void)
 	char *s;
 
 	if(!nflag)
-		qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(void *c, void*))compar);
+		qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(const void *, const void*))compar);
 	for(i=0; i<ndir; i++)
 		dowidths(dirbuf[i].d);
 	for(i=0; i<ndir; i++) {
@@ -260,7 +260,7 @@ growto(int32_t n)
 }
 
 int
-compar(NDir *a, NDir *b)
+compar(const NDir *a, const NDir *b)
 {
 	int32_t i;
 	Dir *ad, *bd;

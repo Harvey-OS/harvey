@@ -152,7 +152,7 @@ allowed(char *dir)
  * Comparison routine for sorting the directory.
  */
 static int
-compar(Dir *a, Dir *b)
+compar(const Dir *a, const Dir *b)
 {
 	return(strcmp(a->name, b->name));
 }
@@ -245,7 +245,7 @@ dols(char *dir)
 	n = dirreadall(fd, &d);
 	close(fd);
 	maxwidths(d, n);
-	qsort(d, n, sizeof(Dir), (int (*)(void *, void *))compar);
+	qsort(d, n, sizeof(Dir), (int (*)(const void *, const void *))compar);
 	hprint(hout, "<pre>\n");
 	for (i = 0; i < n; i++) {
 		f = smprint("%s/%s", dir, d[i].name);

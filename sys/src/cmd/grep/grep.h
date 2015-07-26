@@ -105,7 +105,7 @@ EXTERN Re2 topre;
 extern Re *addcase(Re *);
 extern void appendnext(Re *, Re *);
 extern void error(char *);
-extern int fcmp(void *, void *);	/* (Re**, Re**) */
+extern int fcmp(const void *, const void *);	/* (Re**, Re**) */
 extern void fol1(Re *, int);
 extern int getrec(void);
 extern void increment(State *, int);

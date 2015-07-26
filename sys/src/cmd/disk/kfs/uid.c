@@ -18,7 +18,7 @@ struct
 } uidgc;
 
 int
-byuid(void *a1, void *a2)
+byuid(const void *a1, const void *a2)
 {
 	Uid *u1, *u2;
 
@@ -28,7 +28,7 @@ byuid(void *a1, void *a2)
 }
 
 int
-byname(void *a1, void *a2)
+byname(const void *a1, const void *a2)
 {
 	Uid *u1, *u2;
 

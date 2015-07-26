@@ -221,10 +221,10 @@ evflush(void)
 }
 
 int
-evcomp(void *a1, void *a2)
+evcomp(const void *a1, const void *a2)
 {
 	double t1, t2;
-	Event *p1, *p2;
+	const Event *p1, *p2;
 
 	p1 = a1;
 	p2 = a2;
