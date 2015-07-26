@@ -38,7 +38,7 @@ freecompletion(Completion *c)
 }
 
 static int
-strpcmp(const void *va, const void *vb)
+strpcmp(void *va, void *vb)
 {
 	char *a, *b;
 

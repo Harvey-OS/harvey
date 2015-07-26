@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-static int
+static void
 catch(void *p, char *s)
 {
 	print("catch %p %s\n", p, s);

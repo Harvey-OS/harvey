@@ -562,7 +562,7 @@ cookiesearch(Jar *jar, char *dom, char *path, int issecure)
 		werrstr("no cookies found");
 		return nil;
 	}
-	qsort(j->c, j->nc, sizeof(j->c[0]), (int(*)(const void*, const void*))cookiecmp);
+	qsort(j->c, j->nc, sizeof(j->c[0]), (int(*)(void*, void*))cookiecmp);
 	return j;
 }
 

@@ -367,7 +367,7 @@ fswrite(Req *r)
 
 struct {
 	char *s;
-	int id;
+	long id;
 	int mode;
 } tab[] = {
 	"ctl",		Xctl,		0222,
