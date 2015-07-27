@@ -725,8 +725,9 @@ segmentkproc(void *arg)
 	int done;
 	int sno;
 
+	qlock(&m->externup->seglock);
 	for(sno = 0; sno < NSEG; sno++)
-		if(m->externup->seg[sno] == nil && sno != ESEG)
+		if(m->externup->seg[sno] == nil)
 			break;
 	if(sno == NSEG)
 		panic("segmentkproc");
@@ -734,6 +735,7 @@ segmentkproc(void *arg)
 
 	incref(g->s);
 	m->externup->seg[sno] = g->s;
+	qunlock(&m->externup->seglock);
 
 	for(done = 0; !done;){
 		sleep(&g->cmdwait, cmdready, g);
