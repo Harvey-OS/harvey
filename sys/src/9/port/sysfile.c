@@ -1162,9 +1162,28 @@ syschdir(Ar0* ar0, ...)
 	ar0->i = 0;
 }
 
+/* white list of devices we allow mounting on.
+ * At some point we can have build generate this if we ever
+ * really start using it.
+ */
+
+static int dcok[] =  {
+	'M'
+};
+static int checkdc(int dc)
+{
+	int i;
+	/* we check for non-zero in case somebody ever puts a ,
+	 * after the last element and we end up with 0 as the last thing ...
+	 */
+	for(i = 0; (i < nelem(dcok)) && dcok[i]; i++)
+		if (dcok[i] == dc)
+			return 1;
+	return 0;
+}
+/* if dc is non-zero, it means we're doing a mount and dc is the mount device to use. */
 static int
-bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
-	  int flag, char* spec)
+bindmount(int dc, int fd, int afd, char* arg0, char* arg1, int flag, char* spec)
 {
 	Mach *m = machp();
 	int i;
@@ -1182,7 +1201,10 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
 
 	bogus.flags = flag & MCACHE;
 
-	if(ismount){
+	if(dc){
+		if (! checkdc(dc))
+			error(Ebadarg);
+
 		if(m->externup->pgrp->noattach)
 			error(Enoattach);
 
@@ -1212,7 +1234,7 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
 			nexterror();
 		}
 
-		dev = devtabget('M', 0);		//XDYNX
+		dev = devtabget(dc, 0);		//XDYNX
 		if(waserror()){
 			//devtabdecr(dev);
 			nexterror();
@@ -1249,7 +1271,7 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1,
 	cclose(c1);
 	poperror();
 	cclose(c0);
-	if(ismount)
+	if(dc)
 		fdclose(fd, 0);
 
 	return i;
@@ -1281,6 +1303,7 @@ sysmount(Ar0* ar0, ...)
 {
 	int afd, fd, flag;
 	char *aname, *old;
+	int dc = 'M';
 	va_list list;
 	va_start(list, ar0);
 
@@ -1296,7 +1319,7 @@ sysmount(Ar0* ar0, ...)
 	aname = va_arg(list, char*);
 	va_end(list);
 
-	ar0->i = bindmount(1, fd, afd, nil, old, flag, aname);
+	ar0->i = bindmount(dc, fd, afd, nil, old, flag, aname);
 }
 
 void
