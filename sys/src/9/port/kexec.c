@@ -68,6 +68,8 @@ setupseg(int core)
 	uintptr_t  ka;
 	Proc *p;
 	static Pgrp *kpgrp;
+	Segment *tseg;
+	int sno;
 
 	// XXX: we're going to need this for locality domains.
 	USED(core);
@@ -113,28 +115,32 @@ setupseg(int core)
 	  * we create the color and core at allocation time, not execution.  This
 	  *  is probably not the best idea but it's a start.
 	  */
-	  
+
+	sno = 0;
+
 	// XXX: now that we are asmalloc we are no long proc. 
+	/* Stack */
+	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
+	tseg = newseg(SG_STACK|SG_READ|SG_WRITE, ka, 1);
+	tseg = p->seg[sno++];
 
 	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
-	s = newseg(SG_TEXT|SG_RONLY, ka, 1);
-	p->seg[TSEG] = s;
+	s = newseg(SG_TEXT|SG_READ|SG_EXEC, ka, 1);
+	p->seg[sno++] = s;
 //	s->color = acpicorecolor(core);
 
 	/* Data. Shared. */
 	// XXX; Now that the address space is all funky how are we going to handle shared data segments?
 	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 2));
-	s = newseg(SG_DATA, ka, 1);
-	p->seg[DSEG] = s;
-	s->color = p->seg[TSEG]->color;
+	s = newseg(SG_DATA|SG_READ|SG_WRITE, ka, 1);
+	p->seg[sno++] = s;
+	s->color = tseg->color;
 
 	/* BSS. Uses asm from data map. */
-	p->seg[BSEG] = newseg(SG_BSS, ka+BIGPGSZ, 1);
-	p->seg[BSEG]->color= m->externup->seg[TSEG]->color;
+	p->seg[sno++] = newseg(SG_BSS|SG_READ|SG_WRITE, ka+BIGPGSZ, 1);
+	p->seg[sno++]->color= tseg->color;
 
-	/* Stack */
-	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
-	p->seg[SSEG] = newseg(SG_STACK, ka, 1);
+
 	nixprepage(-1);
 	
 	return p;
@@ -147,7 +153,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	Khdr hdr;
 	Tos *tos;
 	Chan *chan;
-	int argc, i, n;
+	int argc, i, n, sno;
 	char *a, *elem, *file, *args;
 	int32_t hdrsz, magic, textsz, datasz, bsssz;
 	uintptr_t textlim, datalim, bsslim, entry, tbase, tsize, dbase, dsize, bbase, bsize, sbase, ssize, stack;
@@ -200,7 +206,13 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 			error(Ebadexec);
 	}else{
 		/* somebody already wrote in our text segment */
-		hdr = *(Khdr*)p->seg[TSEG]->base;
+		for(sno = 0; sno < NSEG; sno++)
+			if(p->seg[sno] != nil)
+				if((p->seg[sno]->type & SG_EXEC) != 0)
+					break;
+		if(sno == NSEG)
+			error("kforkexecac: no text segment!");
+		hdr = *(Khdr*)p->seg[sno]->base;
 		hdrsz = sizeof(Khdr);
 	}
 
@@ -223,6 +235,8 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	datasz = l2be(hdr.data);
 	bsssz = l2be(hdr.bss);
 
+	panic("aki broke it before it even got working.");
+/* TODO(aki): figure out what to do with this.
 	tbase = p->seg[TSEG]->base;
 	tsize = tbase - p->seg[TSEG]->top;
 	dbase = p->seg[DSEG]->base;
@@ -231,6 +245,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	bsize = bbase - p->seg[BSEG]->top;
 	sbase = p->seg[SSEG]->base;
 	ssize = sbase - p->seg[SSEG]->top;
+*/
 
 	// XXX: we are no longer contiguous.
 	textlim = ROUNDUP(hdrsz+textsz, BIGPGSZ);
