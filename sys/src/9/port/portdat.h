@@ -431,21 +431,29 @@ struct Pte
 /* Segment types */
 enum
 {
-	SG_TYPE		= 07,		/* Mask type of segment */
-	SG_TEXT		= 00,
-	SG_DATA		= 01,
-	SG_BSS		= 02,
-	SG_STACK	= 03,
-	SG_SHARED	= 04,
-	SG_PHYSICAL	= 05,
-	SG_MMAP		= 06,
+	/* TODO(aki): these types are going to go */
+	SG_TYPE		= 0xf,		/* Mask type of segment */
+	SG_BAD0		= 0x0,
+	SG_TEXT		= 0x1,
+	SG_DATA		= 0x2,
+	SG_BSS		= 0x3,
+	SG_STACK	= 0x4,
+	SG_SHARED	= 0x5,
+	SG_PHYSICAL	= 0x6,
+	SG_MMAP		= 0x7,
 
-	SG_CACHED	= 0020,		/* Physseg can be cached */
-	SG_RONLY	= 0040,		/* Segment is read only */
-	SG_CEXEC	= 0100,		/* Detach at exec */
-	SG_ZIO		= 0200,		/* used for zero copy */
-	SG_KZIO		= 0400,  	/* kernel zero copy segment */
+	SG_PERM		= 0xf0,
+	SG_READ		= 0x10,
+	SG_WRITE	= 0x20,
+	SG_EXEC		= 0x40,
+
+	SG_FLAG		= 0xf00,
+	SG_CACHED	= 0x100,	/* Physseg can be cached */
+	SG_CEXEC	= 0x200,	/* Detach at exec */
+	SG_ZIO		= 0x400,	/* used for zero copy */
+	SG_KZIO		= 0x800,  	/* kernel zero copy segment */
 };
+extern char *segtypes[]; /* port/segment.c */
 
 #define PG_ONSWAP	1
 #define onswap(s)	(PTR2UINT(s) & PG_ONSWAP)
@@ -681,12 +689,10 @@ enum
 
 
 /*
- *  process memory segments - NSEG always last !
- *  HSEG is a potentially huge bss segment.
+ *  Maximum number of process memory segments
  */
-enum
-{
-	SSEG, TSEG, DSEG, BSEG, HSEG, ESEG, LSEG, SEG1, SEG2, SEG3, SEG4, NSEG
+enum {
+	NSEG = 12
 };
 
 enum
