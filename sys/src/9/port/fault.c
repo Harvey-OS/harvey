@@ -14,6 +14,9 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+
+#define debug if(0)print
+
 /*
  * Fault calls fixfault which ends up calling newpage, which
  * might fail to allocate a page for the right color. So, we
@@ -45,7 +48,7 @@ if(m->externup->nlocks) print("fault nlocks %d\n", m->externup->nlocks);
 			return -1;
 		}
 
-		if(!read && (s->type&SG_RONLY)) {
+		if(!read && (s->type&SG_WRITE) == 0) {
 			qunlock(&s->lk);
 			m->externup->psstate = sps;
 			return -1;
@@ -80,13 +83,14 @@ faulterror(char *s, Chan *c, int freemem)
 		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, m->externup->errstr);
 		s = buf;
 	}
+
 	if(m->externup->nerrlab) {
 		postnote(m->externup, 1, s, NDebug);
 		error(s);
 	}
+
 	pexit(s, freemem);
 }
-
 
 int
 fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
@@ -123,13 +127,6 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 		panic("fault");
 		break;
 
-	case SG_TEXT: 			/* Demand load */
-		if(pagedout(*pg))
-			pio(s, addr, soff, pg, color);
-
-		mmuattr = PTERONLY|PTEVALID;
-		(*pg)->modref = PG_REF;
-		break;
 
 	case SG_BSS:
 	case SG_SHARED:			/* Zero fill on demand */
@@ -157,45 +154,72 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 		}
 			error("No mmap support yet");
 		goto common;
+
 	case SG_DATA:
+	case SG_TEXT: 			/* Demand load */
 		if(pagedout(*pg))
 			pio(s, addr, soff, pg, color);
+
 	common:			/* Demand load/pagein/copy on write */
 
-		/*
-		 *  It's only possible to copy on write if
-		 *  we're the only user of the segment.
-		 */
-		if(read && conf.copymode == 0 && s->ref == 1) {
-			mmuattr = PTERONLY|PTEVALID;
-			(*pg)->modref |= PG_REF;
-			break;
+		if(read){
+			/* never copy a non-writeable seg */
+			if((s->type & SG_WRITE) == 0){
+				mmuattr = PTERONLY|PTEVALID;
+				(*pg)->modref = PG_REF;
+				break;
+			}
+
+			/* delay copy if we are the only user (copy on write when it happens) */
+			if(conf.copymode == 0 && s->ref == 1) {
+
+				mmuattr = PTERONLY|PTEVALID;
+				(*pg)->modref |= PG_REF;
+				break;
+			}
 		}
 
-		lkp = *pg;
-		lock(lkp);
+		if((s->type & SG_WRITE) == 0)
+			error("fixfault: write on read-only\n");
 
-		ref = lkp->ref;
-		if(ref > 1) {
-			unlock(lkp);
+		if((s->type & SG_TYPE) != SG_SHARED){
 
-			// No need to zero here as it is copied
-			// over.
-			new = newpage(0, &s, addr, pgsz, color);
-			if(s == 0)
-				return -1;
-			*pg = new;
-			copypage(lkp, *pg);
-			putpage(lkp);
+			lkp = *pg;
+			lock(lkp);
+
+			ref = lkp->ref;
+
+			if(ref > 1) {	/* page is shared but segment is not: copy for write */
+				int pgref = lkp->ref;
+				unlock(lkp);
+
+				debug("fixfault %d: copy on %s, %s(%c%c%c) 0x%p segref %d pgref %d\n",
+					m->externup->pid,
+					read ? "read " : "write",
+					segtypes[s->type & SG_TYPE],
+					(s->type & SG_READ) != 0 ? 'r' : '-',
+					(s->type & SG_WRITE) != 0 ? 'w' : '-',
+					(s->type & SG_EXEC) != 0 ? 'x' : '-',
+					addr,
+					s->ref,
+					pgref
+				);
+				// No need to zero here as it is copied
+				// over.
+				new = newpage(0, &s, addr, pgsz, color);
+				if(s == 0)
+					return -1;
+				*pg = new;
+				copypage(lkp, *pg);
+				putpage(lkp);
+			} else {	/* write: don't dirty the image cache */
+				if(lkp->image != nil)
+					duppage(lkp);
+
+				unlock(lkp);
+			}
 		}
-		else {
-			/* save a copy of the original for the image cache */
-			if(lkp->image != nil)
-				duppage(lkp);
-
-			unlock(lkp);
-		}
-		mmuattr = PTEWRITE|PTEVALID;
+		mmuattr = PTEVALID|PTEWRITE;
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
 
@@ -215,7 +239,7 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 		}
 
 		mmuattr = PTEVALID;
-		if((s->pseg->attr & SG_RONLY) == 0)
+		if((s->pseg->attr & SG_WRITE) != 0)
 			mmuattr |= PTEWRITE;
 		if((s->pseg->attr & SG_CACHED) == 0)
 			mmuattr |= PTEUNCACHED;
@@ -235,13 +259,13 @@ void
 pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 {
 	Mach *m = machp();
-	Page *new;
+	Page *newpg;
 	KMap *k;
 	Chan *c;
 	int n, ask;
 	uintmem pgsz;
 	char *kaddr;
-	uint32_t daddr;
+	uint32_t daddr, doff;
 	Page *loadrec;
 
 	loadrec = *p;
@@ -249,20 +273,27 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	c = nil;
 	pgsz = m->pgsz[s->pgszi];
 	if(loadrec == nil) {	/* from a text/data image */
-		daddr = s->ph.offset+soff;
-		new = lookpage(s->image, daddr);
-		if(new != nil) {
-			*p = new;
-			return;
-		}
-
-		c = s->image->c;
-		ask = s->ph.filesz-soff;
+		// where page begins in file
+		daddr = (s->ph.offset + soff) & ~(pgsz-1);
+		// where segment begins on the page
+		doff = s->ph.offset & (pgsz-1);
+		// how much more to read?
+		ask = doff+s->ph.filesz - soff;
 		if(ask > pgsz)
 			ask = pgsz;
-	}
-	else
+		// read offset only if it is the first page
+		if(soff > 0)
+			doff = 0;
+
+		newpg = lookpage(s->image, daddr);
+		if(newpg != nil) {
+			*p = newpg;
+			return;
+		}
+		c = s->image->c;
+	} else {
 		panic("no swap");
+	}
 
 	qunlock(&s->lk);
 
@@ -271,32 +302,30 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	// of newpage here was 0 -- "don't zero".
 	// It is now 1 -- "do zero" because ELF only covers
 	// part of the page.
-	new = newpage(1, 0, addr, pgsz, color);
-	k = kmap(new);
+	newpg = newpage(1, 0, addr, pgsz, color);
+	k = kmap(newpg);
 	kaddr = (char*)VA(k);
 
 	while(waserror()) {
 		if(strcmp(m->externup->errstr, Eintr) == 0)
 			continue;
 		kunmap(k);
-		putpage(new);
+		putpage(newpg);
 		faulterror(Eioload, c, 0);
 	}
 
-	// kaddr needs to be offset by the start of the memory address.
-	int off = s->ph.vaddr & 0x1fffff;
-	//iprint("pio chan %c kaddr %p kaddr+off %p ask 0x%x daddr 0x%lx\n",
-	       //c, kaddr, kaddr+off, ask, daddr);
-	n = c->dev->read(c, kaddr+off, ask, daddr);
-	//hexdump(kaddr+off, n);
-	if(n != ask)
+	static char *segtypes[]={ "Bad0", "Text", "Data", "Bss", "Stack", "Shared", "Phys" };
+	debug(
+		"pio %d %s(%c%c%c) addr+doff 0x%p daddr+doff 0x%x ask-doff %d\n",
+		m->externup->pid, segtypes[s->type & SG_TYPE],
+		(s->type & SG_READ) != 0 ? 'r' : '-',
+		(s->type & SG_WRITE) != 0 ? 'w' : '-',
+		(s->type & SG_EXEC) != 0 ? 'x' : '-',
+		addr+doff, daddr+doff, ask-doff
+	);
+	n = c->dev->read(c, kaddr+doff, ask-doff, daddr+doff);
+	if(n != ask-doff)
 		faulterror(Eioload, c, 0);
-	// There's no need to do this; we did a request to
-	// clear the page, above. Save this code for now;
-	// at some future time we might want to revive it for
-	// performance measurement.
-	if(0 && ask < pgsz)
-		memset(kaddr+ask, 0, pgsz-ask);
 
 	poperror();
 	kunmap(k);
@@ -308,15 +337,17 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		 *  s->lk was unlocked
 		 */
 		if(*p == nil) {
-			new->daddr = daddr;
-			cachepage(new, s->image);
-			*p = new;
+			newpg->daddr = daddr;
+			cachepage(newpg, s->image);
+			*p = newpg;
+		} else {
+			print("racing on demand load\n");
+			putpage(newpg);
 		}
-		else
-			putpage(new);
-	}
-	else
+
+	} else {
 		panic("no swap");
+	}
 
 	if(s->flushme)
 		memset((*p)->cachectl, PG_TXTFLUSH, sizeof((*p)->cachectl));
@@ -334,7 +365,7 @@ okaddr(uintptr_t addr, int32_t len, int write)
 	if(len >= 0) {
 		for(;;) {
 			s = seg(m->externup, addr, 0);
-			if(s == 0 || (write && (s->type&SG_RONLY)))
+			if(s == 0 || (write && (s->type&SG_WRITE) == 0))
 				break;
 
 			if(addr+len > s->top) {

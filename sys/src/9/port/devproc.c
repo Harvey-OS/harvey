@@ -85,8 +85,7 @@ enum{
 	Ntracedpids = 1024,
 };
 
-/* + 6 * 12 for extra NIX counters. */
-#define STATSIZE	(2*KNAMELEN+12+9*12 +6*12)
+#define STATSIZE	(2*KNAMELEN+NUMSIZE + 9*NUMSIZE + 6*NUMSIZE + 2*NUMSIZE + 1)
 
 /*
  * Status, fd, and ns are left fully readable (0444) because of their use in debugging,
@@ -112,7 +111,7 @@ Dirtab procdir[] =
 	"text",		{Qtext},	0,			0000,
 	"wait",		{Qwait},	0,			0400,
 	"profile",	{Qprofile},	0,			0400,
-	"syscall",	{Qsyscall},	0,			0400,	
+	"syscall",	{Qsyscall},	0,			0400,
 	"core",		{Qcore},	0,			0444,
 	"mmap",		{Qmmap},	0,			0600,
 	"tls",		{Qtls},	0,			0600,
@@ -149,9 +148,6 @@ Cmdtab proccmd[] = {
 	CMevent,		"event",		1,
 	CMcore,			"core",			2,
 };
-
-/* Segment type from portdat.h */
-static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
 
 /*
  * Qids are, in path:
@@ -211,8 +207,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 	Qid qid;
 	Proc *p;
 	char *ename;
-	Segment *q;
-	int pid;
+	int pid, sno;
 	uint32_t path, perm, len;
 
 	if(s == DEVDOTDOT){
@@ -294,11 +289,15 @@ procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 	case Qwait:
 		len = p->nwait;	/* incorrect size, but >0 means there's something to read */
 		break;
-	case Qprofile:
-		q = p->seg[TSEG];
-		if(q && q->profile) {
-			len = (q->top-q->base)>>LRESPROF;
-			len *= sizeof(*q->profile);
+	case Qprofile: /* TODO(aki): test this */
+		len = 0;
+		for(sno = 0; sno < NSEG; sno++){
+			if(p->seg[sno] != nil && (p->seg[sno]->type & SG_EXEC) != 0){
+				Segment *s;
+				s = p->seg[sno];
+				if(s->profile)
+					len += ((s->top-s->base)>>LRESPROF) * sizeof s->profile[0];
+			}
 		}
 		break;
 	}
@@ -351,7 +350,7 @@ proctracepid(Proc *p)
 		iunlock(&tlck);
 	}
 }
-	
+
 static void
 procinit(void)
 {
@@ -800,9 +799,9 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 	Confmem *cm;
 	Mntwalk *mw;
 	Segment *sg, *s;
-	int i, j, navail, pid, rsize;
-	char flag[10], *sps, *srv, statbuf[NSEG*64];
-	uintptr_t offset, u;
+	int i, j, navail, pid, rsize, sno;
+	char flag[10], *sps, *srv, *statbuf;
+	uintptr_t offset, profoff, u;
 	int tesz;
 
 	if(c->qid.type & QTDIR)
@@ -872,8 +871,11 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 			i = ac->machno;
 		else if(wired != nil)
 			i = wired->machno;
-		snprint(statbuf, sizeof statbuf, "%d\n", i);
-		return readstr(offset, va, n, statbuf);
+		statbuf = smalloc(STATSIZE);
+		snprint(statbuf, STATSIZE, "%d\n", i);
+		n = readstr(offset, va, n, statbuf);
+		free(statbuf);
+		return n;
 
 	case Qmmap:
 		p = c->aux;
@@ -882,8 +884,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		break;
 
 	case Qmem:
-		if(offset < KZERO
-		|| (offset >= USTKTOP-USTKSIZE && offset < USTKTOP)){
+		if(offset < KZERO || (offset >= USTKTOP-USTKSIZE && offset < USTKTOP)){
 			r = procctlmemio(p, offset, n, va, 1);
 			psdecref(p);
 			return r;
@@ -917,20 +918,30 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		error(Ebadarg);
 
 	case Qprofile:
-		s = p->seg[TSEG];
-		if(s == 0 || s->profile == 0)
-			error("profile is off");
-		i = (s->top-s->base)>>LRESPROF;
-		i *= sizeof(*s->profile);
-		if(offset >= i){
+		profoff = 0;
+		for(sno = 0; sno < NSEG; sno++){
+			if(p->seg[sno] == nil)
+				continue;
+			if((p->seg[sno]->type & SG_EXEC) == 0)
+				continue;
+			if(p->seg[sno]->profile == nil)
+				continue;
+			s = p->seg[sno];
+			i = ((s->top-s->base)>>LRESPROF) * sizeof s->profile[0];
+			if(offset >= profoff+i){
+				profoff += i;
+				continue;
+			}
+			if(offset+n > profoff+i)
+				n = profoff+i - offset;
+			memmove(va, ((char*)s->profile)+(offset-profoff), n);
 			psdecref(p);
-			return 0;
+			return n;
 		}
-		if(offset+n > i)
-			n = i - offset;
-		memmove(va, ((char*)s->profile)+offset, n);
 		psdecref(p);
-		return n;
+		if(sno == NSEG)
+			error("profile is off");
+		return 0;
 
 	case Qnote:
 		qlock(&p->debug);
@@ -1015,7 +1026,8 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		sps = p->psstate;
 		if(sps == 0)
 			sps = statename[p->state];
-		memset(statbuf, ' ', sizeof statbuf);
+		statbuf = smalloc(STATSIZE);
+		memset(statbuf, ' ', STATSIZE);
 		sprint(statbuf, "%-*.*s%-*.*s%-12.11s",
 			KNAMELEN, KNAMELEN-1, p->text,
 			KNAMELEN, KNAMELEN-1, p->user,
@@ -1029,11 +1041,11 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 			l = TK2MS(l);
 			readnum(0, statbuf+j+NUMSIZE*i, NUMSIZE, l, NUMSIZE);
 		}
-		/* ignore stack, which is mostly non-existent */
+		/* ignore stacks, which are typically not faulted in */
 		u = 0;
-		for(i=1; i<NSEG; i++){
+		for(i=0; i<NSEG; i++){
 			s = p->seg[i];
-			if(s)
+			if(s != nil && (s->type&SG_TYPE) != SG_STACK)
 				u += s->top - s->base;
 		}
 		readnum(0, statbuf+j+NUMSIZE*6, NUMSIZE, u>>10u, NUMSIZE);	/* wrong size */
@@ -1056,30 +1068,43 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		if (0) print("qstatus p %p pid %d req %p\n", p, p->pid, p->req);
 		readnum(0,statbuf+j+NUMSIZE*15, NUMSIZE, p->req ? 1 : 0, NUMSIZE);
 		readnum(0,statbuf+j+NUMSIZE*16, NUMSIZE, p->resp ? 1 : 0, NUMSIZE);
+		statbuf[j+NUMSIZE*17] = '\n';
+		if(offset+n > j+NUMSIZE*17+1)
+			n = j+NUMSIZE*17+1-offset;
+
 		memmove(va, statbuf+offset, n);
+		free(statbuf);
 		psdecref(p);
 		return n;
 
 	case Qsegment:
 		j = 0;
+		statbuf = smalloc(STATSIZE);
 		for(i = 0; i < NSEG; i++) {
 			sg = p->seg[i];
 			if(sg == 0)
 				continue;
-			j += sprint(statbuf+j, "%-6s %c%c %p %p %4d\n",
-				sname[sg->type&SG_TYPE],
-				sg->type&SG_RONLY ? 'R' : ' ',
+			j += sprint(statbuf+j, "%-6s %c%c%c %c %p %p %4d\n",
+				segtypes[sg->type&SG_TYPE],
+				(sg->type&SG_READ) != 0 ? 'r' : '-',
+				(sg->type&SG_WRITE) != 0 ? 'w' : '-',
+				(sg->type&SG_EXEC) != 0 ? 'x' : '-',
 				sg->profile ? 'P' : ' ',
 				sg->base, sg->top, sg->ref);
 		}
 		psdecref(p);
-		if(offset >= j)
+		if(offset >= j){
+			free(statbuf);
 			return 0;
+		}
 		if(offset+n > j)
 			n = j-offset;
-		if(n == 0 && offset == 0)
+		if(n == 0 && offset == 0){
+			free(statbuf);
 			exhausted("segments");
-		memmove(va, &statbuf[offset], n);
+		}
+		memmove(va, statbuf+offset, n);
+		free(statbuf);
 		return n;
 
 	case Qwait:
@@ -1171,13 +1196,17 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		psdecref(p);
 		return r;
 	case Qtls:
-		j = snprint(statbuf, sizeof statbuf, "tls 0x%p\n", p->tls);
+		statbuf = smalloc(STATSIZE);
+		j = snprint(statbuf, STATSIZE, "tls 0x%p\n", p->tls);
 		psdecref(p);
-		if(offset >= j)
+		if(offset >= j){
+			free(statbuf);
 			return 0;
+		}
 		if(offset+n > j)
 			n = j-offset;
 		memmove(va, statbuf+offset, n);
+		free(statbuf);
 		return n;
 	}
 	error(Egreg);
@@ -1398,10 +1427,16 @@ proctext(Chan *c, Proc *p)
 	Chan *tc;
 	Image *i;
 	Segment *s;
+	int sno;
 
-	s = p->seg[TSEG];
-	if(s == 0)
+	for(sno = 0; sno < NSEG; sno++)
+		if(p->seg[sno] != nil)
+			if((p->seg[sno]->type & SG_EXEC) != 0)
+				break;
+	if(sno == NSEG)
 		error(Enonexist);
+	s = p->seg[sno];
+
 	if(p->state==Dead)
 		error(Eprocdied);
 
@@ -1543,7 +1578,7 @@ procctlreq(Proc *p, char *va, int n)
 {
 	Mach *m = machp();
 	Segment *s;
-	int npc, pri, core;
+	int npc, pri, core, sno;
 	Cmdbuf *cb;
 	Cmdtab *ct;
 	int64_t time;
@@ -1608,15 +1643,17 @@ procctlreq(Proc *p, char *va, int n)
 		p->privatemem = 1;
 		break;
 	case CMprofile:
-		s = p->seg[TSEG];
-		if(s == 0 || (s->type&SG_TYPE) != SG_TEXT)
-			error(Ebadctl);
-		if(s->profile != 0)
-			free(s->profile);
-		npc = (s->top-s->base)>>LRESPROF;
-		s->profile = malloc(npc*sizeof(*s->profile));
-		if(s->profile == 0)
-			error(Enomem);
+		for(sno = 0; sno < NSEG; sno++){
+			if(p->seg[sno] != nil && (p->seg[sno]->type & SG_EXEC) != 0){
+				s = p->seg[sno];
+				if(s->profile != 0)
+					free(s->profile);
+				npc = (s->top-s->base)>>LRESPROF;
+				s->profile = malloc(npc * sizeof s->profile[0]);
+				if(s->profile == 0)
+					error(Enomem);
+			}
+		}
 		break;
 	case CMstart:
 		if(p->state != Stopped)

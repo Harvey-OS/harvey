@@ -14,6 +14,18 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+/* Segment type from portdat.h */
+char *segtypes[SG_TYPE]={
+	[SG_BAD0] "Bad0",
+	[SG_TEXT] "Text",
+	[SG_DATA] "Data",
+	[SG_BSS] "Bss",
+	[SG_STACK] "Stack",
+	[SG_SHARED] "Shared",
+	[SG_PHYSICAL] "Phys"
+};
+
+
 uintmem
 segppn(Segment *s, uintmem pa)
 {
@@ -202,7 +214,7 @@ dupseg(Segment **seg, int segno, int share)
 		break;
 
 	case SG_DATA:		/* Copy on write plus demand load info */
-		if(segno == TSEG){
+		if((s->type & SG_EXEC) != 0){
 			poperror();
 			qunlock(&s->lk);
 			return data2txt(s);
@@ -364,15 +376,19 @@ segclock(uintptr_t pc)
 {
 	Mach *m = machp();
 	Segment *s;
+	int sno;
 
-	s = m->externup->seg[TSEG];
-	if(s == 0 || s->profile == 0)
-		return;
-
-	s->profile[0] += TK2MS(1);
-	if(pc >= s->base && pc < s->top) {
-		pc -= s->base;
-		s->profile[pc>>LRESPROF] += TK2MS(1);
+	for(sno = 0; sno < NSEG; sno++){
+		s = m->externup->seg[sno];
+		if(s == nil)
+			continue;
+		if((s->type & SG_EXEC) == 0 || s->profile == 0)
+			continue;
+		s->profile[0] += TK2MS(1);
+		if(pc >= s->base && pc < s->top) {
+			pc -= s->base;
+			s->profile[pc>>LRESPROF] += TK2MS(1);
+		}
 	}
 }
 
@@ -389,7 +405,7 @@ prepageseg(int i)
 	DBG("prepage: base %#p top %#p\n", s->base, s->top);
 	pgsz = m->pgsz[s->pgszi];
 	for(addr = s->base; addr < s->top; addr += pgsz)
-		fault(addr, i == TSEG);
+		fault(addr, (s->type & SG_EXEC) != 0);
 }
 
 /*
