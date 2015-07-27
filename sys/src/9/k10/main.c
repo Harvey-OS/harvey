@@ -657,6 +657,7 @@ userinit(void)
 	Segment *s;
 	KMap *k;
 	Page *pg;
+	int sno;
 
 	p = newproc();
 	p->pgrp = newpgrp();
@@ -690,8 +691,9 @@ userinit(void)
 	 * try to sleep if there are no pages available, but that
 	 * shouldn't be the case here.
 	 */
-	s = newseg(SG_STACK, USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
-	p->seg[SSEG] = s;
+	sno = 0;
+	s = newseg(SG_STACK|SG_READ|SG_WRITE, USTKTOP-USTKSIZE, USTKSIZE/ BIGPGSZ);
+	p->seg[sno++] = s;
 	pg = newpage(1, 0, USTKTOP-BIGPGSZ, BIGPGSZ, -1);
 	segpage(s, pg);
 	k = kmap(pg);
@@ -701,9 +703,9 @@ userinit(void)
 	/*
 	 * Text
 	 */
-	s = newseg(SG_TEXT, UTZERO, 1);
+	s = newseg(SG_TEXT|SG_READ|SG_EXEC, UTZERO, 1);
 	s->flushme++;
-	p->seg[TSEG] = s;
+	p->seg[sno++] = s;
 	pg = newpage(1, 0, UTZERO, BIGPGSZ, -1);
 	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 	segpage(s, pg);
@@ -715,9 +717,9 @@ userinit(void)
 	/*
 	 * Data
 	 */
-	s = newseg(SG_DATA, UTZERO + BIGPGSZ, 1);
+	s = newseg(SG_DATA|SG_READ|SG_WRITE, UTZERO + BIGPGSZ, 1);
 	s->flushme++;
-	p->seg[DSEG] = s;
+	p->seg[sno++] = s;
 	pg = newpage(1, 0, UTZERO + BIGPGSZ, BIGPGSZ, -1);
 	memset(pg->cachectl, PG_TXTFLUSH, sizeof(pg->cachectl));
 	segpage(s, pg);
