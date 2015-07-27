@@ -1007,16 +1007,24 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 * will also push a count of the argument array onto the stack (argc).
 	 */
 	qlock(&m->externup->seglock);
+	int sno = -1;
 	if(waserror()){
-		if(m->externup->seg[ESEG] != nil){
-			putseg(m->externup->seg[ESEG]);
-			m->externup->seg[ESEG] = nil;
+		if(sno != -1 && m->externup->seg[sno] != nil){
+			putseg(m->externup->seg[sno]);
+			m->externup->seg[sno] = nil;
 		}
 		qunlock(&m->externup->seglock);
 		nexterror();
 	}
-	m->externup->seg[ESEG] = newseg(SG_STACK, TSTKTOP-USTKSIZE, USTKSIZE/BIGPGSZ);
-	m->externup->seg[ESEG]->color = m->externup->color;
+
+	for(i = 0; i < NSEG; i++)
+		if(m->externup->seg[i] == nil)
+			break;
+	if(i == NSEG)
+		error("exeac: no free segment slots");
+	sno = i;
+	m->externup->seg[sno] = newseg(SG_STACK|SG_READ|SG_WRITE, TSTKTOP-USTKSIZE, USTKSIZE/BIGPGSZ);
+	m->externup->seg[sno]->color = m->externup->color;
 
 	/*
 	 * Stack is a pointer into the temporary stack
@@ -1149,20 +1157,21 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		fdclose(i, CCEXEC);
 
 	/*
-	 * Free old memory.
-	 * Special segments maintained across exec.
+	 * Free old memory, except for the temp stack (obviously)
 	 */
-	for(i = SSEG; i <= HSEG; i++) {
-		putseg(m->externup->seg[i]);
-		m->externup->seg[i] = nil;		/* in case of error */
+	s = m->externup->seg[sno];
+	for(i = 0; i < NSEG; i++) {
+		if(m->externup->seg[i] != s)
+			putseg(m->externup->seg[i]);
+		m->externup->seg[i] = nil;
 	}
-	for(i = HSEG+1; i< NSEG; i++) {
-		s = m->externup->seg[i];
-		if(s && (s->type&SG_CEXEC)) {
-			putseg(s);
-			m->externup->seg[i] = nil;
-		}
-	}
+
+	/* put the stack in first */
+	sno = 0;
+	m->externup->seg[sno++] = s;
+	s->base = USTKTOP-USTKSIZE;
+	s->top = USTKTOP;
+	relocateseg(s, USTKTOP-TSTKTOP);
 
 DBG(
 	"exec: text: 0x%p textlim: 0x%p data: 0x%p datalim 0x%p brk: 0x%p\n"
@@ -1178,19 +1187,22 @@ DBG(
 	 * but prepaged if EXAC
 	 */
 	// TODO: Just use the program header instead of these other things.
-	img = attachimage(SG_TEXT|SG_RONLY, chan, m->externup->color, textaddr, (dataddr-textaddr)/BIGPGSZ);
+	img = attachimage(SG_TEXT|SG_EXEC|SG_READ, chan, m->externup->color, textaddr, (dataddr-textaddr)/BIGPGSZ);
 	s = img->s;
 	s->ph = d.e.ph[f.it];
-	m->externup->seg[TSEG] = s;
+
+	// TODO(aki): this stupid hack really needs to go.
+	s->ph.filesz = f.datoff+f.datsz-f.txtoff;
+
+	m->externup->seg[sno++] = s;
 	s->flushme = 1;
- 	if(img->color != m->externup->color){
- 		m->externup->color = img->color;
- 	}
+	if(img->color != m->externup->color)
+		m->externup->color = img->color;
 	unlock(img);
 
 	/* Data. Shared. */
-	s = newseg(SG_DATA, dataddr, (datalim-dataddr)/BIGPGSZ);
-	m->externup->seg[DSEG] = s;
+	s = newseg(SG_DATA|SG_READ|SG_WRITE, dataddr, (datalim-dataddr)/BIGPGSZ);
+	m->externup->seg[sno++] = s;
 	s->color = m->externup->color;
 
 	/* Attached by hand */
@@ -1199,37 +1211,33 @@ DBG(
 	s->ph = d.e.ph[f.id];
 
 	/* BSS. Zero fill on demand for TS */
-	m->externup->seg[BSEG] = newseg(SG_BSS, datalim, (bsslim-datalim)/BIGPGSZ);
-	m->externup->seg[BSEG]->color= m->externup->color;
-
-	/*
-	 * Move the stack
-	 */
-	s = m->externup->seg[ESEG];
-	m->externup->seg[ESEG] = nil;
+	s = newseg(SG_BSS|SG_READ|SG_WRITE, datalim, (bsslim-datalim)/BIGPGSZ);
+	m->externup->seg[sno++] = s;
+	s->color= m->externup->color;
 
 	/* MMAP region. Put it at 512GiB for now. 
-	m->externup->seg[ESEG] = newseg(SG_MMAP, 512 * GiB, 1);
-	if (0) print("mmap ESEG is %p\n", m->externup->seg);
-	m->externup->seg[ESEG]->color= m->externup->color;
-*/
-	m->externup->seg[SSEG] = s;
+	s = newseg(SG_MMAP, 512 * GiB, 1);
+	m->externup->seg[sno++] = s;
+	if (0) print("mmap seg[%d] is %p\n", sno, m->externup->seg);
+	s->color= m->externup->color;
+	*/
+
 	/* the color of the stack was decided when we created it before,
 	 * it may have nothing to do with the color of other segments.
 	 */
 	qunlock(&m->externup->seglock);
 	poperror();				/* seglock */
 
-	s->base = USTKTOP-USTKSIZE;
-	s->top = USTKTOP;
-	relocateseg(s, USTKTOP-TSTKTOP);
 
 	/*
-	 *  '/' processes are higher priority.
+	 *  '/' processes are higher priority
+	 *		aki: why bother?
+	 *
+	 *	if(chan->dev->dc == L'/')
+	 *		m->externup->basepri = PriRoot;
 	 */
-	if(chan->dev->dc == L'/')
-		m->externup->basepri = PriRoot;
 	m->externup->priority = m->externup->basepri;
+
 	poperror();				/* chan, elem, file */
 	cclose(chan);
 	free(file);
