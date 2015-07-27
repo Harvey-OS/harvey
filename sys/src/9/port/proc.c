@@ -1678,15 +1678,15 @@ dumpaproc(Proc *p)
 {
 	uintptr_t bss;
 	char *s;
+	int sno;
 
 	if(p == 0)
 		return;
 
 	bss = 0;
-	if(p->seg[HSEG])
-		bss = p->seg[HSEG]->top;
-	else if(p->seg[BSEG])
-		bss = p->seg[BSEG]->top;
+	for(sno = 0; sno < NSEG; sno++)
+		if(p->seg[sno] != nil && (p->seg[sno]->type & SG_TYPE) == SG_BSS)
+			bss = p->seg[sno]->top;
 
 	s = p->psstate;
 	if(s == 0)
@@ -1939,7 +1939,7 @@ killbig(char *why)
 {
 	int i, x;
 	Segment *s;
-	uint32_t l, max;
+	uintptr_t l, max;
 	Proc *p, *kp;
 
 	max = 0;
@@ -1973,8 +1973,10 @@ killbig(char *why)
 			psdecref(p);
 			continue;
 		}
+		/* TODO(aki): figure out what this was for. the oom killer is broken anyway though?
 		if(p != kp && p->seg[BSEG] && p->seg[BSEG] == kp->seg[BSEG])
 			p->procctl = Proc_exitbig;
+		*/
 		psdecref(p);
 	}
 

@@ -93,17 +93,11 @@ ibrk(uintptr_t addr, int seg)
 	}
 
 	/* We may start with the bss overlapping the data */
-	if(addr < s->base) {
-		if(seg != BSEG || m->externup->seg[DSEG] == 0 || addr < m->externup->seg[DSEG]->base) 
-			error(Enovmem);
+	if(addr < s->base)
 		addr = s->base;
-	}
 
 	pgsz = m->pgsz[s->pgszi];
-	if(seg == BSEG && addr >= ROUNDUP(s->top, 1*GiB) + 1*GiB)
-		newtop = ROUNDUP(addr, 1*GiB);
-	else
-		newtop = ROUNDUP(addr, pgsz);
+	newtop = ROUNDUP(addr, pgsz);
 	newsize = (newtop-s->base)/pgsz;
 	if(newtop < s->top) {
 		mfreeseg(s, newtop, (s->top-newtop)/pgsz);
@@ -125,26 +119,13 @@ ibrk(uintptr_t addr, int seg)
 			error(Esoverlap);
 	}
 
-	if(seg == BSEG && newtop >= ROUNDUP(s->top, 1*GiB) + 1*GiB){
-		DBG("segment using 1G pages\n");
-		/*
-		 * brk the bss up to the 1G boundary, and create
-		 * a segment placed at that boundary, using 1G pages if it can.
-		 * This is both back compatible, transparent,
-		 * and permits using 1G pages.
-		 */
-		rtop = ROUNDUP(newtop,1*GiB);
-		newtop = ROUNDUP(s->top, 1*GiB);
-		newsize -= (rtop-newtop)/BIGPGSZ;
-assert(newsize >= 0);
-		DBG("ibrk: newseg %#ullx %ullx\n", newtop, (rtop-newtop)/BIGPGSZ);
-		ns = newseg(SG_BSS, newtop, (rtop-newtop)/BIGPGSZ);
-		ns->color= s->color;
-		m->externup->seg[HSEG] = ns;
-		DBG("ibrk: newtop %#ullx newsize %#ulx \n", newtop, newsize);
-		/* now extend the bss up to newtop */
-	}else
-		rtop = newtop;
+	/*
+	 * TODO(aki): reintroduce 1G page support:
+	 * brk the bss up to the 1G boundary, and create
+	 * a segment placed at that boundary, using 1G pages if it can.
+	 * This is both back compatible, transparent, and permits using 1G pages.
+	 */
+	rtop = newtop;
 
 
 	mapsize = HOWMANY(newsize, s->ptepertab);
@@ -182,10 +163,12 @@ syssegbrk(Ar0* ar0, ...)
 	 */
 	addr = PTR2UINT(va_arg(list, void*));
 	if(addr == 0){
-		if(m->externup->seg[HSEG])
-			ar0->v = UINT2PTR(m->externup->seg[HSEG]->top);
-		else
-			ar0->v = UINT2PTR(m->externup->seg[BSEG]->top);
+		for(i = 0; i < NSEG; i++){
+			if(m->externup->seg[i] != nil && (m->externup->seg[i]->type&SG_TYPE) == SG_BSS){
+				ar0->v = UINT2PTR(m->externup->seg[i]->top);
+				return;
+			}
+		}
 		return;
 	}
 	for(i = 0; i < NSEG; i++) {
@@ -215,9 +198,11 @@ syssegbrk(Ar0* ar0, ...)
 void
 sysbrk_(Ar0* ar0, ...)
 {
+	Mach *m = machp();
 	uintptr_t addr;
 	va_list list;
 	va_start(list, ar0);
+	int i;
 
 	/*
 	 * int brk(void*);
@@ -227,9 +212,14 @@ sysbrk_(Ar0* ar0, ...)
 	addr = PTR2UINT(va_arg(list, void*));
 	va_end(list);
 
-	ibrk(addr, BSEG);
-
-	ar0->i = 0;
+	for(i = 0; i < NSEG; i++){
+		if(m->externup->seg[i] != nil && (m->externup->seg[i]->type&SG_TYPE) == SG_BSS){
+			ibrk(addr, i);
+			ar0->i = 0;
+			return;
+		}
+	}
+	ar0->i = -1;
 }
 
 static uintptr_t
@@ -246,10 +236,14 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 
 	vmemchr(name, 0, ~0);
 
+	qlock(&p->seglock);
+	if(waserror()){
+		qunlock(&p->seglock);
+		nexterror();
+	}
 	for(sno = 0; sno < NSEG; sno++)
-		if(p->seg[sno] == nil && sno != ESEG)
+		if(p->seg[sno] == nil)
 			break;
-
 	if(sno == NSEG)
 		error("too many segments in process");
 
@@ -263,7 +257,8 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 			p->seg[sno] = s;
 			if(p == m->externup && m->externup->prepagemem)
 				nixprepage(sno);
-			return s->base;
+			va = s->base;
+			goto clean_out;
 		}
 	}
 
@@ -288,13 +283,13 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 
 	/*
 	 * Find a hole in the address space.
-	 * Starting at the lowest possible stack address - len,
+	 * Starting at the highest possible stack address - len,
 	 * check for an overlapping segment, and repeat at the
 	 * base of that segment - len until either a hole is found
 	 * or the address space is exhausted.
 	 */
 	if(va == 0) {
-		va = p->seg[SSEG]->base - len;
+		va = USTKTOP-len;
 		for(;;) {
 			os = isoverlap(p, va, len);
 			if(os == nil)
@@ -323,6 +318,9 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 	if(p == m->externup && m->externup->prepagemem)
 		nixprepage(sno);
 
+clean_out:
+	poperror();
+	qunlock(&p->seglock);
 	return va;
 }
 
@@ -389,9 +387,10 @@ found:
 	/*
 	 * Can't detach the initial stack segment
 	 * because the clock writes profiling info
-	 * there.
+	 * there. So let's not detach any stacks.
+	 * TODO(aki): does it really?
 	 */
-	if(s == m->externup->seg[SSEG]){
+	if((s->type & SG_TYPE) == SG_STACK){
 		qunlock(&s->lk);
 		error(Ebadarg);
 	}
