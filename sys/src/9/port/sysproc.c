@@ -1181,11 +1181,15 @@ DBG(
 	img = attachimage(SG_TEXT|SG_RONLY, chan, m->externup->color, textaddr, (dataddr-textaddr)/BIGPGSZ);
 	s = img->s;
 	s->ph = d.e.ph[f.it];
+
+	// TODO(aki): this stupid hack really needs to go.
+	s->ph.filesz = f.datoff+f.datsz-f.txtoff;
+
 	m->externup->seg[TSEG] = s;
 	s->flushme = 1;
- 	if(img->color != m->externup->color){
- 		m->externup->color = img->color;
- 	}
+	if(img->color != m->externup->color){
+		m->externup->color = img->color;
+	}
 	unlock(img);
 
 	/* Data. Shared. */

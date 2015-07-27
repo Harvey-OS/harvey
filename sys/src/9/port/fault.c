@@ -14,6 +14,9 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+
+#define debug if(0)print
+
 /*
  * Fault calls fixfault which ends up calling newpage, which
  * might fail to allocate a page for the right color. So, we
@@ -235,13 +238,13 @@ void
 pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 {
 	Mach *m = machp();
-	Page *new;
+	Page *newpg;
 	KMap *k;
 	Chan *c;
 	int n, ask;
 	uintmem pgsz;
 	char *kaddr;
-	uint32_t daddr;
+	uint32_t daddr, doff;
 	Page *loadrec;
 
 	loadrec = *p;
@@ -249,20 +252,27 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	c = nil;
 	pgsz = m->pgsz[s->pgszi];
 	if(loadrec == nil) {	/* from a text/data image */
-		daddr = s->ph.offset+soff;
-		new = lookpage(s->image, daddr);
-		if(new != nil) {
-			*p = new;
-			return;
-		}
-
-		c = s->image->c;
-		ask = s->ph.filesz-soff;
+		// where page begins in file
+		daddr = (s->ph.offset + soff) & ~(pgsz-1);
+		// where segment begins on the page
+		doff = s->ph.offset & (pgsz-1);
+		// how much more to read? 
+		ask = doff+s->ph.filesz - soff;
 		if(ask > pgsz)
 			ask = pgsz;
-	}
-	else
+		// read offset only if it is the first page
+		if(soff > 0)
+			doff = 0;
+
+		newpg = lookpage(s->image, daddr);
+		if(newpg != nil) {
+			*p = newpg;
+			return;
+		}
+		c = s->image->c;
+	} else {
 		panic("no swap");
+	}
 
 	qunlock(&s->lk);
 
@@ -271,32 +281,28 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	// of newpage here was 0 -- "don't zero".
 	// It is now 1 -- "do zero" because ELF only covers
 	// part of the page.
-	new = newpage(1, 0, addr, pgsz, color);
-	k = kmap(new);
+	newpg = newpage(1, 0, addr, pgsz, color);
+	k = kmap(newpg);
 	kaddr = (char*)VA(k);
 
 	while(waserror()) {
 		if(strcmp(m->externup->errstr, Eintr) == 0)
 			continue;
 		kunmap(k);
-		putpage(new);
+		putpage(newpg);
 		faulterror(Eioload, c, 0);
 	}
 
-	// kaddr needs to be offset by the start of the memory address.
-	int off = s->ph.vaddr & 0x1fffff;
-	//iprint("pio chan %c kaddr %p kaddr+off %p ask 0x%x daddr 0x%lx\n",
-	       //c, kaddr, kaddr+off, ask, daddr);
-	n = c->dev->read(c, kaddr+off, ask, daddr);
-	//hexdump(kaddr+off, n);
-	if(n != ask)
+	debug("pid %d %s pio soff 0x%06p doff 0x%06p daddr+doff 0x%06p kaddr+doff 0x%016p ask-doff 0x%06p \n",
+		m->externup->pid,
+		(s->type & SG_DATA) ? "rw" :
+			(s->type & SG_RONLY) ? "ro" :
+			"XX",
+		soff, doff, daddr+doff, kaddr+doff, ask-doff
+	);
+	n = c->dev->read(c, kaddr+doff, ask-doff, daddr+doff);
+	if(n != ask-doff)
 		faulterror(Eioload, c, 0);
-	// There's no need to do this; we did a request to
-	// clear the page, above. Save this code for now;
-	// at some future time we might want to revive it for
-	// performance measurement.
-	if(0 && ask < pgsz)
-		memset(kaddr+ask, 0, pgsz-ask);
 
 	poperror();
 	kunmap(k);
@@ -308,15 +314,17 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		 *  s->lk was unlocked
 		 */
 		if(*p == nil) {
-			new->daddr = daddr;
-			cachepage(new, s->image);
-			*p = new;
+			newpg->daddr = daddr;
+			cachepage(newpg, s->image);
+			*p = newpg;
+		} else {
+			print("racing on demand load\n");
+			putpage(newpg);
 		}
-		else
-			putpage(new);
-	}
-	else
+
+	} else {
 		panic("no swap");
+	}
 
 	if(s->flushme)
 		memset((*p)->cachectl, PG_TXTFLUSH, sizeof((*p)->cachectl));
