@@ -68,6 +68,8 @@ setupseg(int core)
 	uintptr_t  ka;
 	Proc *p;
 	static Pgrp *kpgrp;
+	Segment *tseg;
+	int sno;
 
 	// XXX: we're going to need this for locality domains.
 	USED(core);
@@ -108,35 +110,39 @@ setupseg(int core)
 
 	// XXX: kluge 4 pages of address space for this.
 	// how will it expand up? gives us <50 kprocs as is.
-	
+
 	/*
 	  * we create the color and core at allocation time, not execution.  This
 	  *  is probably not the best idea but it's a start.
 	  */
-	  
-	// XXX: now that we are asmalloc we are no long proc. 
+
+	sno = 0;
+
+	// XXX: now that we are asmalloc we are no long proc.
+	/* Stack */
+	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
+	tseg = newseg(SG_STACK|SG_READ|SG_WRITE, ka, 1);
+	tseg = p->seg[sno++];
 
 	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
-	s = newseg(SG_TEXT|SG_RONLY, ka, 1);
-	p->seg[TSEG] = s;
+	s = newseg(SG_TEXT|SG_READ|SG_EXEC, ka, 1);
+	p->seg[sno++] = s;
 //	s->color = acpicorecolor(core);
 
 	/* Data. Shared. */
 	// XXX; Now that the address space is all funky how are we going to handle shared data segments?
 	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 2));
-	s = newseg(SG_DATA, ka, 1);
-	p->seg[DSEG] = s;
-	s->color = p->seg[TSEG]->color;
+	s = newseg(SG_DATA|SG_READ|SG_WRITE, ka, 1);
+	p->seg[sno++] = s;
+	s->color = tseg->color;
 
 	/* BSS. Uses asm from data map. */
-	p->seg[BSEG] = newseg(SG_BSS, ka+BIGPGSZ, 1);
-	p->seg[BSEG]->color= m->externup->seg[TSEG]->color;
+	p->seg[sno++] = newseg(SG_BSS|SG_READ|SG_WRITE, ka+BIGPGSZ, 1);
+	p->seg[sno++]->color= tseg->color;
 
-	/* Stack */
-	ka = (uintptr_t)KADDR(asmalloc(0, BIGPGSZ, AsmMEMORY, 1));
-	p->seg[SSEG] = newseg(SG_STACK, ka, 1);
+
 	nixprepage(-1);
-	
+
 	return p;
 }
 
@@ -147,13 +153,13 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	Khdr hdr;
 	Tos *tos;
 	Chan *chan;
-	int argc, i, n;
+	int argc, i, n, sno;
 	char *a, *elem, *file, *args;
 	int32_t hdrsz, magic, textsz, datasz, bsssz;
 	uintptr_t textlim, datalim, bsslim, entry, tbase, tsize, dbase, dsize, bbase, bsize, sbase, ssize, stack;
 	Mach *mp;
 	//	static Pgrp *kpgrp;
-	
+
 	DBG("kexec on core %d\n", core);
 	// XXX: since this is kernel code we can't do attachimage,
 	// we should be reading the file into kernel memory.
@@ -164,7 +170,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	elem = nil;
 	chan = nil;
 	mp = nil;
-	
+
 	USED(chan);
 
 	if(waserror()){
@@ -192,7 +198,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 		DBG("kforkexecac: up %#p file %s\n", m->externup, file);
 		chan = namec(file, Aopen, OEXEC, 0);
 		kstrdup(&elem, m->externup->genbuf);
-	
+
 		hdrsz = chan->dev->read(chan, &hdr, sizeof(Khdr), 0);
 		DBG("wrote ufile\n");
 
@@ -200,14 +206,20 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 			error(Ebadexec);
 	}else{
 		/* somebody already wrote in our text segment */
-		hdr = *(Khdr*)p->seg[TSEG]->base;
+		for(sno = 0; sno < NSEG; sno++)
+			if(p->seg[sno] != nil)
+				if((p->seg[sno]->type & SG_EXEC) != 0)
+					break;
+		if(sno == NSEG)
+			error("kforkexecac: no text segment!");
+		hdr = *(Khdr*)p->seg[sno]->base;
 		hdrsz = sizeof(Khdr);
 	}
 
 //	p = (char*)&hdr;
 	magic = l2be(hdr.magic);
 	DBG("badexec3\n");
-	
+
 	if(hdrsz != sizeof(Khdr) || magic != AOUT_MAGIC)
 		error(Ebadexec);
 	if(magic & HDR_MAGIC){
@@ -223,6 +235,8 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	datasz = l2be(hdr.data);
 	bsssz = l2be(hdr.bss);
 
+	panic("aki broke it before it even got working.");
+/* TODO(aki): figure out what to do with this.
 	tbase = p->seg[TSEG]->base;
 	tsize = tbase - p->seg[TSEG]->top;
 	dbase = p->seg[DSEG]->base;
@@ -231,6 +245,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	bsize = bbase - p->seg[BSEG]->top;
 	sbase = p->seg[SSEG]->base;
 	ssize = sbase - p->seg[SSEG]->top;
+*/
 
 	// XXX: we are no longer contiguous.
 	textlim = ROUNDUP(hdrsz+textsz, BIGPGSZ);
@@ -248,14 +263,14 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	 * the segments don't overlap each other.
 	 */
 	// XXX: max instruction size on amd64 is 15 bytes provide a check for consistency.
-	DBG("kexec: entry %#p tbase %#p hdrsz %ld  textsz %ld\n", entry, tbase, hdrsz, textsz);	
+	DBG("kexec: entry %#p tbase %#p hdrsz %ld  textsz %ld\n", entry, tbase, hdrsz, textsz);
 	if(entry < tbase+hdrsz || entry >= tbase+hdrsz+textsz)
 		error(Ebadexec);
 	// XXX: what about the kernel stack we are making here?
-	DBG("kexec: testing if sizes overflow limits\n");	
+	DBG("kexec: testing if sizes overflow limits\n");
 	if(textsz >= textlim || datasz > datalim || bsssz > bsslim)
 		error(Ebadexec);
-	DBG("kexec: do the top of the segments overflow limits?\n");	
+	DBG("kexec: do the top of the segments overflow limits?\n");
 	if(textlim >= tbase+tsize || datalim >= dbase+dsize || bsslim >= bbase+bsize)
 		error(Ebadexec);
 
@@ -270,7 +285,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	top of that.  This will lower external fragmentation and allow
 	a bunch of communicating shared memory processes (ie.  go) in
 	kernel space.
-	
+
 	Fundamentally this means that the allocation of the text and
 	the data should be separate from the bss and the stack.  This
 	will require that you change the linkers as well to allow the
@@ -281,7 +296,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	 * Stack is a pointer into the temporary stack
 	 * segment, and will move as items are pushed.
 	 */
-	 
+
 	 // need to work something out here with the stack.
 	stack = sbase+ssize-sizeof(Tos);
 
@@ -448,9 +463,8 @@ syskforkexecac(Ar0* ar0, ...)
 //	evenaddr(PTR2UINT(argv));
 	// XXX: going to need to setup segs here.
 	//kforkexecac(p, core, file, argv);
-	// this is not going to work. I need to think about it. 
+	// this is not going to work. I need to think about it.
 	// ar0->v = sysexecregs(entry, stack - PTR2UINT(argv), argc);
-	
 }
 
 
