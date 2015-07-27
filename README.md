@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/Harvey-OS/harvey.svg?branch=master)](https://travis-ci.org/Harvey-OS/harvey)
+[![Coverity Badge](https://scan.coverity.com/projects/5328/badge.svg)](https://scan.coverity.com/projects/5328)
+
 This is Plan 9 for amd64 built with gcc (and soon, I hope, clang).
 
 This file is a quick list of instructions to get you started quickly.
@@ -23,7 +26,7 @@ We use gerrithub.io for code-review. If you want to submit changes, go to
 and check out the repository from gerrithub rather than github. The clone
 command will probably look something like this:
 
-	git clone ssh://USERNAME@review.gerrithub.io:29418/Harvey-OS/harvey
+	git clone https://USERNAME@review.gerrithub.io/Harvey-OS/harvey
 
 you'll need to run a few commands inside the top-level directory to get set
 up for code-review:
@@ -113,8 +116,4 @@ directory as your root like this (10.0.2.2 is what qemu has as the host)
 	srv tcp!10.0.2.2!5640 k
 	mount -a /srv/k /
 
-<a href="https://scan.coverity.com/projects/5328">
-  <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/5328/badge.svg"/>
-</a>
 
