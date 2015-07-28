@@ -15,6 +15,7 @@ main(int argc, char *argv[])
 		exits("FAIL");
 	}
 
+	print("p[%d,%d]; c is %p\n", p[0], p[1], c);
 	pid = fork();
 	if (pid < 0) {
 		print("FAIL\n");
@@ -23,19 +24,26 @@ main(int argc, char *argv[])
 
 	if (pid == 0) {
 		char w[1];
-		read(p[0], w, 1);
-		//*c = 0;
+		print("KID: WAIT\n");
+		read(p[1], w, 1);
+		print("KID: CONTINUE\n");
+//w		*c = 0;
+		print("KID: LOOP FOREVER");
 		print("PASS\n");
 		exits("PASS");
 	}
 	name = smprint("/proc/%d/mmap", pid);
 	mfd = open(name, ORDWR);
 	amt = write(p[0], "R", sizeof("R"));
+	close(p[0]);
+	close(p[1]);
+	print("DONE WITH PIPES amt %d\n", amt);
 	if (amt < 0) {
 		print("FAIL\n");
 		exits("FAIL");
 	}
 	amt = read(mfd, data, sizeof(data));
+	print("read from mfd %d\n", amt);
 	if (amt < 0) {
 		print("FAIL\n");
 		exits("FAIL");
