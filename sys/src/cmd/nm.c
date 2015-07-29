@@ -37,7 +37,7 @@ Sym	**symptr;
 int	nsym;
 Biobuf	bout;
 
-int	cmp(void *c, void*);
+int	cmp(const void *c, const void*);
 void	error(char*, ...);
 void	execsyms(int);
 void	psym(Sym*, void*);
@@ -156,7 +156,7 @@ dofile(Biobuf *bp)
  *	this screws up on 'z' records when aflag == 1
  */
 int
-cmp(void *vs, void *vt)
+cmp(const void *vs, const void *vt)
 {
 	Sym **s, **t;
 

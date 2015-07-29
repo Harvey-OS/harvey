@@ -200,7 +200,7 @@ int 	gmatch		ARGS((const char *s, const char *p, int isfile));
 int	has_globbing	ARGS((const char *xp, const char *xpe));
 const unsigned char *pat_scan ARGS((const unsigned char *p,
 				const unsigned char *pe, int match_sep));
-void 	qsortp		ARGS((void **base, size_t n, int (*f)(void *, void *)));
+void 	qsortp		ARGS((void **base, size_t n, int (*f)(const void *, const void *)));
 int 	xstrcmp		ARGS((void *p1, void *p2));
 void	ksh_getopt_reset ARGS((Getopt *go, int));
 int	ksh_getopt	ARGS((char **argv, Getopt *go, const char *options));

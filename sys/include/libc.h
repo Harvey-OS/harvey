@@ -394,7 +394,7 @@ extern	int	postnote(int, int, char *);
 extern	double	pow10(int);
 extern	int	putenv(char*, char*);
 extern	void	qsort(void*, int32_t, int32_t,
-				int (*)(void*, void*));
+				int (*)(const void*, const void*));
 extern	int	setjmp(jmp_buf);
 extern	double	strtod(char*, char**);
 extern	int32_t	strtol(char*, char**, int);

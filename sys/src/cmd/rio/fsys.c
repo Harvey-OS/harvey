@@ -520,7 +520,7 @@ filsyscreate(Filsys *fs, Xfid *x, Fid*f)
 
 static
 int
-idcmp(void *a, void *b)
+idcmp(const void *a, const void *b)
 {
 	return *(int*)a - *(int*)b;
 }

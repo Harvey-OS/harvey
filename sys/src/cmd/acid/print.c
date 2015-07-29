@@ -49,7 +49,7 @@ char *typenames[] =
 };
 
 int
-cmp(void *va, void *vb)
+cmp(const void *va, const void *vb)
 {
 	char **a = va;
 	char **b = vb;

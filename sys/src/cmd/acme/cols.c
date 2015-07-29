@@ -224,7 +224,7 @@ colresize(Column *c, Rectangle r)
 
 static
 int
-colcmp(void *a, void *b)
+colcmp(const void *a, const void *b)
 {
 	Rune *r1, *r2;
 	int i, nr1, nr2;

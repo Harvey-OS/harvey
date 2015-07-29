@@ -587,7 +587,7 @@ fsyscreate(Xfid *x, Fid*)
 
 static
 int
-idcmp(void *a, void *b)
+idcmp(const void *a, const void *b)
 {
 	return *(int*)a - *(int*)b;
 }

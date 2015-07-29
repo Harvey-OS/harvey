@@ -59,7 +59,7 @@ consserve1(void *)
 }
 
 static int
-cmdcmp(void *va, void *vb)
+cmdcmp(const void *va, const void *vb)
 {
 	Command *a, *b;
 
@@ -220,7 +220,7 @@ cmd_stata(int, char *[])
 }
 
 static int
-flagcmp(void *va, void *vb)
+flagcmp(const void *va, const void *vb)
 {
 	Flag *a, *b;
 

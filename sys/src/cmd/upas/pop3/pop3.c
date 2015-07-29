@@ -167,7 +167,7 @@ main(int argc, char **argv)
 
 /* sort directories in increasing message number order */
 static int
-dircmp(void *a, void *b)
+dircmp(const void *a, const void *b)
 {
 	return atoi(((Dir*)a)->name) - atoi(((Dir*)b)->name);
 }

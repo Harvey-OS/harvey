@@ -77,10 +77,10 @@ static int	hcomp(Hist*, int16_t*);
 static int	hline(File*, int16_t*, int32_t*);
 static void	printhist(char*, Hist*, int);
 static int	buildtbls(void);
-static int	symcomp(void*, void*);
+static int	symcomp(const void*, const void*);
 static int	symerrmsg(int, char*);
-static int	txtcomp(void*, void*);
-static int	filecomp(void*, void*);
+static int	txtcomp(const void*, const void*);
+static int	filecomp(const void*, const void*);
 
 /*
  *	initialize the symbol tables
@@ -1145,7 +1145,7 @@ fileelem(Sym **fp, uint8_t *cp, char *buf, int n)
  *	compare the values of two symbol table entries.
  */
 static int
-symcomp(void *a, void *b)
+symcomp(const void *a, const void *b)
 {
 	int i;
 
@@ -1159,7 +1159,7 @@ symcomp(void *a, void *b)
  *	compare the values of the symbols referenced by two text table entries
  */
 static int
-txtcomp(void *a, void *b)
+txtcomp(const void *a, const void *b)
 {
 	return ((Txtsym*)a)->sym->value - ((Txtsym*)b)->sym->value;
 }
@@ -1168,7 +1168,7 @@ txtcomp(void *a, void *b)
  *	compare the values of the symbols referenced by two file table entries
  */
 static int
-filecomp(void *a, void *b)
+filecomp(const void *a, const void *b)
 {
 	return ((File*)a)->addr - ((File*)b)->addr;
 }

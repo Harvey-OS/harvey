@@ -10,7 +10,7 @@
 #include	<u.h>
 #include	<libc.h>
 
-int	ulcmp(void*, void*);
+int	ulcmp(const void*, const void*);
 void	swapem(uint32_t*, int32_t);
 
 enum
@@ -114,7 +114,7 @@ main(int argc, char *argv[])
 }
 
 int
-ulcmp(void *va, void *vb)
+ulcmp(const void *va, const void *vb)
 {
 	uint32_t *a, *b;
 

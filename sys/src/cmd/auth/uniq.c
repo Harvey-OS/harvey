@@ -19,7 +19,7 @@ struct Who
 	char *name;
 };
 
-int cmp(void *arg1, void *arg2)
+int cmp(const void *arg1, const void *arg2)
 {
 	Who **a = arg1, **b = arg2;
 

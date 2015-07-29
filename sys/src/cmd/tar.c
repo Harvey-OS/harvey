@@ -135,7 +135,6 @@ typedef struct {
 
 #define OTHER(rdwr) ((rdwr) == Rd? Wr: Rd)
 
-static int debug;
 static int fixednblock;
 static int verb;
 static int posix = 1;
