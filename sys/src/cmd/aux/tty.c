@@ -2,12 +2,13 @@
 #include <libc.h>
 
 int echo = 1;
-int raw = 0;
+int raw;
+int ctrlp;
 
 void
 usage(void)
 {
-	fprint(2, "usage: aux/tty [-f comfile] cmd args...\n");
+	fprint(2, "usage: aux/tty [-p] [-f comfile] cmd args...\n");
 	exits("usage");
 }
 
@@ -23,9 +24,12 @@ main(int argc, char *argv[])
 	file = nil;
 
 	ARGBEGIN{
+	case 'p':
+		ctrlp++;
+		break;
 	case 'f':
 		file = EARGF(usage());
-		break;		
+		break;
 	}ARGEND
 
 	if(file != nil){
@@ -84,7 +88,7 @@ main(int argc, char *argv[])
 					write(1, "\r\n", 2);
 				} else {
 					buf[j++] = buf[i];
-				} 
+				}
 			}
 
 			if(write(1, buf, j) != j)
@@ -109,6 +113,22 @@ main(int argc, char *argv[])
 						write(1, obuf+oldj, j-oldj);
 					}
 					j = 0;
+				} else if(ctrlp && buf[i] == '\x10'){ // ctrl-p
+					if(j > 0){
+						if(echo)write(1, obuf+oldj, j-oldj);
+						write(tochld[0], obuf, j);
+						j = 0;
+					}
+					int fd;
+					fd = open("/dev/reboot", OWRITE);
+					if(fd != -1){
+						fprint(1, "aux/tty: rebooting the system\n");
+						sleep(2000);
+						write(fd, "reboot", 6);
+						close(fd);
+					} else {
+						fprint(1, "aux/tty: open /dev/reboot: %r\n");
+					}
 				} else if(buf[i] == '\003'){ // ctrl-c
 					if(j > 0){
 						if(echo)write(1, obuf+oldj, j-oldj);
@@ -117,6 +137,15 @@ main(int argc, char *argv[])
 					}
 					fprint(1, "aux/tty: sent interrupt to %d\n", pid);
 					postnote(PNGROUP, pid, "interrupt");
+					continue;
+				} else if(buf[i] == '\x1d' ){ // ctrl-]
+					if(j > 0){
+						if(echo)write(1, obuf+oldj, j-oldj);
+						write(tochld[0], obuf, j);
+						j = 0;
+					}
+					fprint(1, "aux/tty: sent interrupt to %d\n", pid);
+					postnote(PNGROUP, pid, "term");
 					continue;
 				} else if(buf[i] == '\004'){ // ctrl-d
 					if(j > 0){
