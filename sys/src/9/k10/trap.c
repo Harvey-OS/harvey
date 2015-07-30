@@ -666,7 +666,7 @@ faultamd64(Ureg* ureg, void* v)
 {
 	Proc *up = machp()->externup;
 	uint64_t addr;
-	int read, user, insyscall;
+	int ftype, user, insyscall;
 	char buf[ERRMAX];
 
 	addr = machp()->cr2;
@@ -683,7 +683,8 @@ faultamd64(Ureg* ureg, void* v)
 		panic("fault with up == nil; pc %#llux addr %#llux\n",
 			ureg->ip, addr);
 	}
-	read = !(ureg->error & 2);
+
+	ftype = (ureg->error&2) ? FT_WRITE : (ureg->error&16) ? FT_EXEC : FT_READ;
 /*
 if (read) hi("read fault\n"); else hi("write fault\n");
 hi("addr "); put64(addr); hi("\n");
@@ -693,8 +694,8 @@ hi("addr "); put64(addr); hi("\n");
 	up->insyscall = 1;
 	if (0)hi("call fault\n");
 
-	if(fault(addr, read) < 0){
-iprint("could not fault %p\n", addr);
+	if(fault(addr, ureg->ip, ftype) < 0){
+iprint("could not %s fault %p\n", faulttypes[ftype], addr);
 	if (! user)
 		panic("fault went bad in kernel\n");
 	else
@@ -713,7 +714,7 @@ iprint("could not fault %p\n", addr);
 		if(!user && (!insyscall || up->nerrlab == 0))
 			panic("fault: %#llux\n", addr);
 		sprint(buf, "sys: trap: fault %s addr=%#llux",
-			read? "read": "write", addr);
+			faulttypes[ftype], addr);
 		postnote(up, 1, buf, NDebug);
 		if(insyscall)
 			error(buf);

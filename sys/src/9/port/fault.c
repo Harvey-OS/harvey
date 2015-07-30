@@ -17,6 +17,12 @@
 #undef DBG
 #define DBG if(0)print
 
+char *faulttypes[] = {
+	[FT_WRITE] "write",
+	[FT_READ] "read",
+	[FT_EXEC] "exec"
+};
+
 
 /*
  * Fault calls fixfault which ends up calling newpage, which
@@ -26,7 +32,7 @@
  * other one, if we failed for some time.
  */
 int
-fault(uintptr_t addr, int read)
+fault(uintptr_t addr, uintptr_t pc, int ftype)
 {
 	Proc *up = machp()->externup;
 	Segment *s;
@@ -34,10 +40,10 @@ fault(uintptr_t addr, int read)
 	int i, color;
 
 	if(up->nlocks)
-		print("%s fault nlocks %d addr %p\n",
-			read ? "read" : "write",
+		print("%s fault nlocks %d addr %p pc %p\n",
+			faulttypes[ftype],
 			up->nlocks,
-			addr);
+			addr, pc);
 
 	sps = up->psstate;
 	up->psstate = "Fault";
@@ -46,23 +52,20 @@ fault(uintptr_t addr, int read)
 	machp()->pfault++;
 	for(i = 0;; i++) {
 		s = seg(up, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
-		//iprint("seg for %p is %p base %p top %p\n", addr, s, s->base, s->top);
-		if(s == 0) {
-			//iprint("fault: no seg for %p\n", addr);
-			up->psstate = sps;
-			return -1;
-		}
-
-		if(!read && (s->type&SG_WRITE) == 0) {
-			qunlock(&s->lk);
-			up->psstate = sps;
-			return -1;
-		}
+		//print("%s fault seg for %p is %p base %p top %p\n", faulttypes[ftype], addr, s, s->base, s->top);
+		if(s == nil)
+			goto fail;
+		if(ftype == FT_READ && (s->type&SG_READ) == 0)
+			goto fail;
+		if(ftype == FT_WRITE && (s->type&SG_WRITE) == 0)
+			goto fail;
+		if(ftype == FT_EXEC && (s->type&SG_EXEC) == 0)
+			goto fail;
 
 		color = s->color;
 		if(i > 3)
 			color = -1;
-		if(fixfault(s, addr, read, 1, color) == 0)
+		if(fixfault(s, addr, ftype, 1, color) == 0)
 			break;
 
 		/*
@@ -76,6 +79,23 @@ fault(uintptr_t addr, int read)
 
 	up->psstate = sps;
 	return 0;
+fail:
+	if(s != nil){
+		qunlock(&s->lk);
+		print("%s fault fail %s(%c%c%c) pid %d addr 0x%p pc 0x%p\n",
+			faulttypes[ftype],
+			segtypes[s->type & SG_TYPE],
+			(s->type & SG_READ) != 0 ? 'r' : '-',
+			(s->type & SG_WRITE) != 0 ? 'w' : '-',
+			(s->type & SG_EXEC) != 0 ? 'x' : '-',
+			up->pid, addr, pc);
+	} else {
+		print("%s fault fail, no segment, pid %d addr 0x%p pc 0x%p\n",
+			faulttypes[ftype],
+			up->pid, addr, pc);
+	}
+	up->psstate = sps;
+	return -1;
 }
 
 static void
@@ -98,10 +118,10 @@ faulterror(char *s, Chan *c, int freemem)
 }
 
 int
-fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
+fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 {
 	Proc *up = machp()->externup;
-	int type;
+	int stype;
 	int ref;
 	Pte **p, *etp;
 	uintptr_t soff;
@@ -119,7 +139,7 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 
 	etp = *p;
 	pg = &etp->pages[(soff&(PTEMAPMEM-1))/pgsz];
-	type = s->type&SG_TYPE;
+	stype = s->type&SG_TYPE;
 
 	if(pg < etp->first)
 		etp->first = pg;
@@ -127,7 +147,7 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 		etp->last = pg;
 
 	mmuattr = 0;
-	switch(type) {
+	switch(stype) {
 	default:
 		panic("fault");
 		break;
@@ -168,18 +188,21 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 
 	common:			/* Demand load/pagein/copy on write */
 
-		if(read){
+		if(ftype != FT_WRITE){
 			/* never copy a non-writeable seg */
 			if((s->type & SG_WRITE) == 0){
 				mmuattr = PTERONLY|PTEVALID;
+				if((s->type & SG_EXEC) == 0)
+					mmuattr |= PTENOEXEC;
 				(*pg)->modref = PG_REF;
 				break;
 			}
 
 			/* delay copy if we are the only user (copy on write when it happens) */
 			if(conf.copymode == 0 && s->ref == 1) {
-
 				mmuattr = PTERONLY|PTEVALID;
+				if((s->type & SG_EXEC) == 0)
+					mmuattr |= PTENOEXEC;
 				(*pg)->modref |= PG_REF;
 				break;
 			}
@@ -201,8 +224,8 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 
 				DBG("fixfault %d: copy on %s, %s(%c%c%c) 0x%p segref %d pgref %d\n",
 					up->pid,
-					read ? "read " : "write",
-					segtypes[s->type & SG_TYPE],
+					faulttypes[ftype],
+					segtypes[stype],
 					(s->type & SG_READ) != 0 ? 'r' : '-',
 					(s->type & SG_WRITE) != 0 ? 'w' : '-',
 					(s->type & SG_EXEC) != 0 ? 'x' : '-',
@@ -226,6 +249,8 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 			}
 		}
 		mmuattr = PTEVALID|PTEWRITE;
+		if((s->type & SG_EXEC) == 0)
+			mmuattr |= PTENOEXEC;
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
 
@@ -249,6 +274,8 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 			mmuattr |= PTEWRITE;
 		if((s->pseg->attr & SG_CACHED) == 0)
 			mmuattr |= PTEUNCACHED;
+		if((s->type & SG_EXEC) == 0)
+			mmuattr |= PTENOEXEC;
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
 	}
