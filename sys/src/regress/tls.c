@@ -15,7 +15,7 @@ copier(int in, int out, int count)
 	char buf[32];
 	char buf2[32];
 	int tlsfd;
-	int i, off, n;
+	int i, n;
 	uint64_t *ptr;
 	uint64_t v;
 	char c;
