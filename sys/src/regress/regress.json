@@ -16,6 +16,7 @@
 		"mixedfloat.c",
 		"mmap.c",
 		"nanotime.c",
+		"nx.c",
 		"privates.c",
 		"psx.c",
 		"syscall.c",
