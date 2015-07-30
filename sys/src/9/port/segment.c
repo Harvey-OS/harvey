@@ -22,7 +22,8 @@ char *segtypes[SG_TYPE]={
 	[SG_BSS] "Bss",
 	[SG_STACK] "Stack",
 	[SG_SHARED] "Shared",
-	[SG_PHYSICAL] "Phys"
+	[SG_PHYSICAL] "Phys",
+	[SG_LOAD] "Load"
 };
 
 
@@ -213,6 +214,9 @@ dupseg(Segment **seg, int segno, int share)
 		n = newseg(s->type, s->base, s->size);
 		break;
 
+	case SG_LOAD:
+		if((s->type & SG_EXEC) != 0 && (s->type & SG_WRITE) == 0)
+			goto sameseg;
 	case SG_DATA:		/* Copy on write plus demand load info */
 		if((s->type & SG_EXEC) != 0){
 			poperror();
@@ -226,7 +230,7 @@ dupseg(Segment **seg, int segno, int share)
 
 		incref(s->image);
 		n->image = s->image;
-		n->ph = s->ph;
+		n->ldseg = s->ldseg;
 		n->pgszi = s->pgszi;
 		n->color = s->color;
 		n->ptepertab = s->ptepertab;
