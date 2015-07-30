@@ -22,563 +22,6 @@
 #undef DBG
 #define DBG if(0) print
 
-/* this is ugly but we need libmach in the kernel. So this is a first pass.
- * FIX ME.
- */
-
-#include "ureg.h"  /* for Elfmach struct */
-
-typedef struct Fhdr Fhdr;
-typedef struct Fhdr
-{
-	char *name;			/* identifier of executable */
-	uint8_t	type;		/* file type - see codes above */
-	uint8_t	hdrsz;		/* header size */
-	uint8_t	_magic;		/* _MAGIC() magic */
-	uint8_t	spare;
-	int32_t	magic;		/* magic number */
-	uint64_t txtaddr;	/* text address */
-	int64_t	txtoff;		/* start of text in file */
-	uint64_t dataddr;	/* start of data segment */
-	int64_t	datoff;		/* offset to data seg in file */
-	int64_t	symoff;		/* offset of symbol table in file */
-	uint64_t entry;		/* entry point */
-	int64_t	sppcoff;	/* offset of sp-pc table in file */
-	int64_t	lnpcoff;	/* offset of line number-pc table in file */
-	int32_t	txtsz;		/* text size */
-	int32_t	datsz;		/* size of data seg */
-	int32_t	bsssz;		/* size of bss */
-	int32_t	symsz;		/* size of symbol table */
-	int32_t	sppcsz;		/* size of sp-pc table */
-	int32_t	lnpcsz;		/* size of line number-pc table */
-	/* add the indexes of the ELF text and data segments. This is one awful hack
-	 * but we want to get this plane off the ground. We can fix it better later.
-	 */
-	int it, id;
-} Fhdr;
-
-/*
- *	Common a.out header describing all architectures
- */
-typedef struct {
-	union{
-		struct {
-			Exec;			/* a.out.h */
-			uint64_t hdr[1];
-		};
-		E64hdr;				/* elf.h */
-	} e;
-	int32_t dummy;			/* padding to ensure extra long */
-} ExecHdr;
-
-typedef struct Elfmach
-{
-	char *name;
-	int mtype;				/* machine type code */
-	int32_t regsize;		/* sizeof registers in bytes */
-	int32_t fpregsize;		/* sizeof fp registers in bytes */
-	char *pc;				/* pc name */
-	char *sp;				/* sp name */
-	char *link;				/* link register name */
-	char *sbreg;			/* static base register name */
-	uint64_t sb;			/* static base register value */
-	int pgsize;				/* page size */
-	uint64_t kbase;			/* kernel base address */
-	uint64_t ktmask;		/* ktzero = kbase & ~ktmask */
-	uint64_t utop;			/* user stack top */
-	int pcquant;			/* quantization of pc */
-	int szaddr;				/* sizeof(void*) */
-	int szreg;				/* sizeof(register) */
-	int szfloat;			/* sizeof(float) */
-	int szdouble;			/* sizeof(double) */
-} Elfmach;
-
-enum {
-	MAMD64,
-	FAMD64,
-	FAMD64B,
-};
-
-#define REGSIZE	sizeof(struct Ureg)
-#define FPREGSIZE	512		/* TO DO? currently only 0x1A0 used */
-
-Elfmach mamd64=
-{
-	"amd64",
-	MAMD64,					/* machine type */
-	REGSIZE,				/* size of registers in bytes */
-	FPREGSIZE,				/* size of fp registers in bytes */
-	"PC",					/* name of PC */
-	"SP",					/* name of SP */
-	0,						/* link register */
-	"setSB",				/* static base register name (bogus anyways) */
-	0,						/* static base register value */
-	0x200000,				/* page size */
-	0xfffffffff0110000ull,	/* kernel base */
-	0xffff800000000000ull,	/* kernel text mask */
-	0x00007ffffffff000ull,	/* user stack top */
-	1,						/* quantization of pc */
-	8,						/* szaddr */
-	4,						/* szreg */
-	4,						/* szfloat */
-	8,						/* szdouble */
-};
-
-/* definition of per-executable file type structures */
-Elfmach *elfmach;
-Elfmach *machkind = &mamd64;
-
-typedef struct Exectable{
-	int32_t	magic;			/* big-endian magic number of file */
-	char *name;				/* executable identifier */
-	char *dlmname;			/* dynamically loadable module identifier */
-	uint8_t	type;			/* Internal code */
-	uint8_t	_magic;			/* _MAGIC() magic */
-	Elfmach	*elfmach;		/* Per-machine data */
-	int32_t	hsize;			/* header size */
-	uint32_t (*swal)(uint32_t);		/* beswal or leswal */
-	int	(*hparse)(Ar0*, Chan*, Fhdr*, ExecHdr*);
-} ExecTable;
-
-/* Map from mach.h */
-
-/* Structure to map a segment to a position in a file */
-
-typedef struct Map {
-		int     nsegs;		/* number of segments */
-		struct segment {	/* per-segment map */
-			char *name;		/* the segment name */
-			int fd;			/* file descriptor */
-			int inuse;		/* in use - not in use */
-			int cache;		/* should cache reads? */
-			uint64_t b;		/* base */
-			uint64_t e;		/* end */
-			int64_t f;		/* offset within file */
-		} seg[1];			/* actually n of these */
-} Map;
-
-static int crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *d);
-/* Trying seek */
-
-static int64_t
-chanseek(Ar0 *ar0, Chan *c, int64_t offset, int whence)
-{
-	uint8_t buf[sizeof(Dir)+100];
-	Dir dir;
-	int n;
-
-	if(c->dev->dc == '|')
-		error(Eisstream);
-
-	switch(whence){
-	case 0:
-		if((c->qid.type & QTDIR) && offset != 0LL)
-			error(Eisdir);
-		c->offset = offset;
-		break;
-
-	case 1:
-		if(c->qid.type & QTDIR)
-			error(Eisdir);
-		lock(c);	/* lock for read/write update */
-		offset += c->offset;
-		c->offset = offset;
-		unlock(c);
-		break;
-
-	case 2:
-		if(c->qid.type & QTDIR)
-			error(Eisdir);
-		n = c->dev->stat(c, buf, sizeof buf);
-		if(convM2D(buf, n, &dir, nil) == 0)
-			error("internal error: stat error in seek");
-		offset += dir.length;
-		c->offset = offset;
-		break;
-
-	default:
-		error(Ebadarg);
-	}
-	c->uri = 0;
-	c->dri = 0;
-	if (0) // FIX ME: this cclose is needed later.
-	cclose(c);
-
-	return offset;
-}
-
-/* libmach swap.c */
-
-/*
- * big-endian int8_t
- */
-uint16_t
-beswab(uint16_t s)
-{
-	uint8_t *p;
-
-	p = (uint8_t*)&s;
-	return (p[0]<<8) | p[1];
-}
-
-/* big-endian int32_t */
-
-uint32_t
-beswal(uint32_t l)
-{
-	uint8_t *p;
-
-	p = (uint8_t*)&l;
-	return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
-}
-
-/* big-endian int64_t */
-
-uint64_t
-beswav(uint64_t v)
-{
-	uint8_t *p;
-
-	p = (uint8_t*)&v;
-	return ((uint64_t)p[0]<<56) | ((uint64_t)p[1]<<48) | ((uint64_t)p[2]<<40)
-				  | ((uint64_t)p[3]<<32) | ((uint64_t)p[4]<<24)
-				  | ((uint64_t)p[5]<<16) | ((uint64_t)p[6]<<8)
-				  | (uint64_t)p[7];
-}
-
-/*
- * little-endian int8_t (short)
- */
-uint16_t
-leswab(uint16_t s)
-{
-	uint8_t *p;
-
-	p = (uint8_t*)&s;
-	return (p[1]<<8) | p[0];
-}
-
-/*
- * little-endian int32_t
- */
-uint32_t
-leswal(uint32_t l)
-{
-	uint8_t *p;
-
-	p = (uint8_t*)&l;
-	return (p[3]<<24) | (p[2]<<16) | (p[1]<<8) | p[0];
-}
-
-/*
- * little-endian int64_t
- */
-uint64_t
-leswav(uint64_t v)
-{
-	uint8_t *p;
-
-	p = (uint8_t*)&v;
-	return ((uint64_t)p[7]<<56) | ((uint64_t)p[6]<<48) | ((uint64_t)p[5]<<40)
-				  | ((uint64_t)p[4]<<32) | ((uint64_t)p[3]<<24)
-				  | ((uint64_t)p[2]<<16) | ((uint64_t)p[1]<<8)
-				  | (uint64_t)p[0];
-}
-
-/* Atomics */
-
-static void
-settext(Fhdr *fp, uint64_t e, uint64_t a, int32_t s, int64_t off)
-{
-	fp->txtaddr = a;
-	fp->entry = e;
-	fp->txtsz = s;
-	fp->txtoff = off;
-}
-
-static void
-setdata(Fhdr *fp, uint64_t a, int32_t s, int64_t off, int32_t bss)
-{
-	fp->dataddr = a;
-	fp->datsz = s;
-	fp->datoff = off;
-	fp->bsssz = bss;
-}
-
-static void
-setsym(Fhdr *fp, int32_t symsz, int32_t sppcsz, int32_t lnpcsz,
-       int64_t symoff)
-{
-	fp->symsz = symsz;
-	fp->symoff = symoff;
-	fp->sppcsz = sppcsz;
-	fp->sppcoff = fp->symoff+fp->symsz;
-	fp->lnpcsz = lnpcsz;
-	fp->lnpcoff = fp->sppcoff+fp->sppcsz;
-}
-
-#if 0
-static uint64_t
-_round(uint64_t a, uint32_t b)
-{
-	uint64_t w;
-
-	w = (a/b)*b;
-	if (a!=w)
-		w += b;
-	return(w);
-}
-#endif
-/*  Convert header to canonical form */
-static void
-hswal(void *v, int n, uint32_t (*swap)(uint32_t))
-{
-	uint32_t *ulp;
-
-	for(ulp = v; n--; ulp++)
-		*ulp = (*swap)(*ulp);
-}
-
-/* map.c */
-
-int
-findseg(Map *map, char *name)
-{
-	int i;
-
-	if (!map)
-		return -1;
-	for (i = 0; i < map->nsegs; i++)
-		if (map->seg[i].inuse && !strcmp(map->seg[i].name, name))
-			return i;
-	return -1;
-}
-
-Map *
-newmap(Map *map, int n)
-{
-	int size;
-
-	size = sizeof(Map)+(n-1)*sizeof(struct segment);
-	if (map == 0)
-		map = malloc(size);
-	else
-		map = realloc(map, size);
-	if (map == 0) {
-		error("out of memory: %r");
-		return 0;
-	}
-	memset(map, 0, size);
-	map->nsegs = n;
-	return map;
-}
-
-Map*
-loadmap(Map *map, int fd, Fhdr *fp)
-{
-	map = newmap(map, 2);
-	if (map == 0)
-		return 0;
-
-	map->seg[0].b = fp->txtaddr;
-	map->seg[0].e = fp->txtaddr+fp->txtsz;
-	map->seg[0].f = fp->txtoff;
-	map->seg[0].fd = fd;
-	map->seg[0].inuse = 1;
-	map->seg[0].name = "text";
-	map->seg[1].b = fp->dataddr;
-	map->seg[1].e = fp->dataddr+fp->datsz;
-	map->seg[1].f = fp->datoff;
-	map->seg[1].fd = fd;
-	map->seg[1].inuse = 1;
-	map->seg[1].name = "data";
-	return map;
-}
-
-/* commons */
-#if 0
-static void
-commonboot(Fhdr *fp)
-{
-	switch(fp->type) {				/* boot image */
-	case FAMD64:
-		fp->type = FAMD64B;
-		fp->txtaddr = fp->entry;
-		fp->name = "amd64 plan 9 boot image";
-		fp->dataddr = _round(fp->txtaddr+fp->txtsz, 4096);
-		break;
-	default:
-		return;
-	}
-	fp->hdrsz = 0;			/* header stripped */
-}
-
-static int
-commonllp64(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
-{
-	int32_t pgsize;
-	uint64_t entry;
-
-	hswal(&hp->e, sizeof(Exec)/sizeof(int32_t), beswal);
-	if(!(hp->e.magic & HDR_MAGIC))
-		return 0;
-
-	/*
-	 * There can be more magic here if the
-	 * header ever needs more expansion.
-	 * For now just catch use of any of the
-	 * unused bits.
-	 */
-	if((hp->e.magic & ~DYN_MAGIC)>>16)
-		return 0;
-	entry = beswav(hp->e.hdr[0]);
-
-	pgsize = elfmach->pgsize;
-	settext(fp, entry, pgsize+fp->hdrsz, hp->e.text, fp->hdrsz);
-	setdata(fp, _round(pgsize+fp->txtsz+fp->hdrsz, pgsize),
-		hp->e.data, fp->txtsz+fp->hdrsz, hp->e.bss);
-	setsym(fp, hp->e.syms, hp->e.spsz, hp->e.pcsz, fp->datoff+fp->datsz);
-
-	if(hp->e.magic & DYN_MAGIC) {
-		fp->txtaddr = 0;
-		fp->dataddr = fp->txtsz;
-		return 1;
-	}
-	commonboot(fp);
-	return 1;
-}
-#endif
-/* ELF */
-
-static int
-elf64dotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
-{
-	E64hdr *ep;
-
-	uint16_t (*swab)(uint16_t);
-	uint32_t (*swal)(uint32_t);
-	uint64_t (*swav)(uint64_t);
-	int i, is, phsz;
-	uint64_t uvl;
-
-	ep = &hp->e;
-	if(ep->ident[DATA] == ELFDATA2LSB) {
-		swab = leswab;
-		swal = leswal;
-		swav = leswav;
-	} else if(ep->ident[DATA] == ELFDATA2MSB) {
-		swab = beswab;
-		swal = beswal;
-		swav = beswav;
-	} else {
-		error("bad ELF64 encoding - not big or little endian");
-		return 0;
-	}
-
-	ep->type = swab(ep->type);
-	ep->machine = swab(ep->machine);
-	ep->version = swal(ep->version);
-	if(ep->type != EXEC || ep->version != CURRENT)
-		return 0;
-	ep->elfentry = swav(ep->elfentry);
-	ep->phoff = swav(ep->phoff);
-	ep->shoff = swav(ep->shoff);
-	ep->flags = swal(ep->flags);
-	ep->ehsize = swab(ep->ehsize);
-	ep->phentsize = swab(ep->phentsize);
-	ep->phnum = swab(ep->phnum);
-	ep->shentsize = swab(ep->shentsize);
-	ep->shnum = swab(ep->shnum);
-	ep->shstrndx = swab(ep->shstrndx);
-
-	fp->magic = ELF_MAG;
-	fp->hdrsz = (ep->ehsize+ep->phnum*ep->phentsize+16)&~15;
-	elfmach = &mamd64;
-	fp->type = FAMD64;
-	fp->name = "amd64 ELF64 executable";
-
-	if(ep->phentsize != sizeof(P64hdr)) {
-		error("bad ELF64 header size");
-		return 0;
-	}
-	phsz = sizeof(P64hdr)*ep->phnum;
-	hp->e.ph = malloc(phsz);
-	if(hp->e.ph == nil)
-		return 0;
-	chanseek(ar0, c, ep->phoff, 0);
-	if(c->dev->read(c, hp->e.ph, phsz, c->offset) < 0){
-		free(hp->e.ph);
-		return 0;
-	}
-	for(i = 0; i < ep->phnum; i++) {
-		hp->e.ph[i].type = swal(hp->e.ph[i].type);
-		hp->e.ph[i].flags = swal(hp->e.ph[i].flags);
-		hp->e.ph[i].offset = swav(hp->e.ph[i].offset);
-		hp->e.ph[i].vaddr = swav(hp->e.ph[i].vaddr);
-		hp->e.ph[i].paddr = swav(hp->e.ph[i].paddr);
-		hp->e.ph[i].filesz = swav(hp->e.ph[i].filesz);
-		hp->e.ph[i].memsz = swav(hp->e.ph[i].memsz);
-		hp->e.ph[i].align = swav(hp->e.ph[i].align);
-	}
-
-	/* find text, data and symbols and install them */
-	fp->it = fp->id = is = -1;
-	for(i = 0; i < ep->phnum; i++) {
-		if(hp->e.ph[i].type == LOAD
-		&& (hp->e.ph[i].flags & (R|X)) == (R|X) && fp->it == -1)
-			fp->it = i;
-		else if(hp->e.ph[i].type == LOAD
-		&& (hp->e.ph[i].flags & (R|W)) == (R|W) && fp->id == -1)
-			fp->id = i;
-		else if(hp->e.ph[i].type == NOPTYPE && is == -1)
-			is = i;
-	}
-	if(fp->it == -1 || fp->id == -1) {
-		error("No ELF64 TEXT or DATA sections");
-		free(hp->e.ph);
-		return 0;
-	}
-
-	settext(fp, ep->elfentry, hp->e.ph[fp->it].vaddr, hp->e.ph[fp->it].memsz, hp->e.ph[fp->it].offset);
-	/* note: this comment refers to a bug in 8c. Who cares? We need to move on. */
-	/* 8c: out of fixed registers */
-	uvl = hp->e.ph[fp->id].memsz - hp->e.ph[fp->id].filesz;
-	setdata(fp, hp->e.ph[fp->id].vaddr, hp->e.ph[fp->id].filesz, hp->e.ph[fp->id].offset, uvl);
-	if(is != -1)
-		setsym(fp, hp->e.ph[is].filesz, 0, hp->e.ph[is].memsz, hp->e.ph[is].offset);
-	return 1;
-}
-
-static int
-elfdotout(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *hp)
-{
-	E64hdr *ep;
-
-	/* bitswap the header according to the DATA format */
-	ep = &hp->e;
-
-	if(ep->ident[CLASS] == ELFCLASS64)
-		return elf64dotout(ar0, c, fp, hp);
-
-	error("bad ELF class - not 64-bit");
-	return 0;
-}
-
-ExecTable exectab[] =
-{
-	{ ELF_MAG,			/* any ELF */
-		"elf executable",
-		nil,
-		0,				/* FNONE */
-		0,
-		&mamd64,		/* Mach* type */
-		sizeof(E64hdr),
-		nil,
-		elfdotout },
-	{ 0 },
-};
-
-/* End of libmach */
 
 void
 sysrfork(Ar0* ar0, ...)
@@ -848,8 +291,6 @@ typedef struct {
 static void
 execac(Ar0* ar0, int flags, char *ufile, char **argv)
 {
-	ExecHdr d;
-	Fhdr f;
 	Mach *m = machp();
 	Hdr hdr;
 	Fgrp *fg;
@@ -857,13 +298,12 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	Chan *chan, *ichan;
 	Image *img;
 	Segment *s;
-	int argc, i, n;
+	Ldseg *ldseg;
+	int argc, i, n, nldseg;
 	char *a, *elem, *file, *p;
 	char line[sizeof(Exec)], *progarg[sizeof(Exec)/2+1];
 	int32_t hdrsz, textsz, datasz, bsssz;
-	uintptr_t textlim, datalim, bsslim, entry, stack;
-	uintptr_t textaddr, dataddr;
-	//	static int colorgen;
+	uintptr_t entry, stack;
 
 
 	file = nil;
@@ -948,46 +388,15 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	cclose(ichan);
 	poperror();
 
-	/* start over. */
-	chanseek(ar0, chan, 0, 0);
 	/*
 	 * #! has had its chance, now we need a real binary.
 	 */
 
-	crackhdr(ar0, chan, &f, &d);
-
-	if((f.txtaddr&(BIGPGSZ-1)) != (f.txtoff&(BIGPGSZ-1))){
-		print("exec: text offset %p not page-aligned with file offset %p\n", f.txtaddr, f.txtoff);
+	nldseg = elf64ldseg(chan, &entry, &ldseg);
+	if(nldseg <= 0){
+		print("failed to parse elf\n");
 		error(Ebadexec);
 	}
-	if((f.dataddr&(BIGPGSZ-1)) != (f.datoff&(BIGPGSZ-1))){
-		print("exec: data offset %p not page-aligned with file offset %p\n", f.txtaddr, f.txtoff);
-		error(Ebadexec);
-	}
-
-	textsz = f.txtsz + (f.txtoff&(BIGPGSZ-1));
-	datasz = f.datsz + (f.datoff&(BIGPGSZ-1));
-	bsssz = f.bsssz;
-	entry = f.entry;
-	textaddr = f.txtaddr - (f.txtoff&(BIGPGSZ-1));
-	dataddr = f.dataddr - (f.datoff&(BIGPGSZ-1));
-
-	textlim = BIGPGROUND(textaddr+textsz);
-	datalim = BIGPGROUND(dataddr+datasz);
-	bsslim = BIGPGROUND(dataddr+datasz+bsssz);
-
-	/*
-	 * Check the binary header for consistency,
-	 * e.g. the entry point is within the text segment and
-	 * the segments don't overlap each other.
-	 */
-	if(entry < textaddr+hdrsz || entry >= textaddr+hdrsz+textsz)
-		error(Ebadexec);
-
-	if(textsz >= textlim || datasz > datalim || bsssz > bsslim
-	|| textlim >= USTKTOP || datalim >= USTKTOP || bsslim >= USTKTOP
-	|| datalim < textlim || bsslim < datalim)
-		error(Ebadexec);
 
 	if(m->externup->ac != nil && m->externup->ac != m)
 		m->externup->color = corecolor(m->externup->ac->machno);
@@ -1173,45 +582,38 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	s->top = USTKTOP;
 	relocateseg(s, USTKTOP-TSTKTOP);
 
-DBG(
-	"exec: text: 0x%p textlim: 0x%p data: 0x%p datalim 0x%p brk: 0x%p\n"
-	"	txtaddr 0x%p txtoff 0x%p txtsz 0x%x\n"
-	"	dataddr 0x%p datoff 0x%p datsz 0x%x\n"
-	"	bssaddr 0x%p bsssz 0x%x\n",
-	textaddr, textlim, dataddr, datalim, bsslim,
-	f.txtaddr, f.txtoff, f.txtsz,
-	f.dataddr, f.datoff, f.datsz,
-	f.dataddr+f.datsz, f.bsssz
+	img = nil;
+	uintptr_t datalim;
+	datalim = 0;
+	for(i = 0; i < nldseg; i++){
+print(
+"ldseg[%d] = vaddr %p faddr %p filesz %x memsz %x off %x\n", i,
+ldseg[i].pg0vaddr, ldseg[i].pg0faddr, ldseg[i].filesz, ldseg[i].memsz, ldseg[i].pg0off
 );
-	/* Text.  Shared. Attaches to cache image if possible
-	 * but prepaged if EXAC
-	 */
-	// TODO: Just use the program header instead of these other things.
-	img = attachimage(SG_TEXT|SG_EXEC|SG_READ, chan, m->externup->color, textaddr, (dataddr-textaddr)/BIGPGSZ);
-	s = img->s;
-	s->ph = d.e.ph[f.it];
-
-	// TODO(aki): this stupid hack really needs to go.
-	s->ph.filesz = f.datoff+f.datsz-f.txtoff;
-
-	m->externup->seg[sno++] = s;
-	s->flushme = 1;
-	if(img->color != m->externup->color)
-		m->externup->color = img->color;
-	unlock(img);
-
-	/* Data. Shared. */
-	s = newseg(SG_DATA|SG_READ|SG_WRITE, dataddr, (datalim-dataddr)/BIGPGSZ);
-	m->externup->seg[sno++] = s;
-	s->color = m->externup->color;
-
-	/* Attached by hand */
-	incref(img);
-	s->image = img;
-	s->ph = d.e.ph[f.id];
+		if(img == nil){
+			img = attachimage(ldseg[i].type, chan, m->externup->color,
+				ldseg[i].pg0vaddr,
+				(ldseg[i].memsz + BIGPGSZ-1)/BIGPGSZ
+			);
+			s = img->s;
+			s->flushme = 1;
+			if(img->color != m->externup->color)
+				m->externup->color = img->color;
+			unlock(img);
+		} else {
+			s = newseg(ldseg[i].type, ldseg[i].pg0vaddr, (ldseg[i].memsz + BIGPGSZ-1)/BIGPGSZ);
+			s->color = m->externup->color;
+			incref(img);
+			s->image = img;
+		}
+		s->ldseg = ldseg[i];
+		m->externup->seg[sno++] = s;
+		if(datalim < ldseg[i].pg0vaddr+ldseg[i].memsz)
+			datalim = ldseg[i].pg0vaddr+ldseg[i].memsz;
+	}
 
 	/* BSS. Zero fill on demand for TS */
-	s = newseg(SG_BSS|SG_READ|SG_WRITE, datalim, (bsslim-datalim)/BIGPGSZ);
+	s = newseg(SG_BSS|SG_READ|SG_WRITE, datalim, 1);
 	m->externup->seg[sno++] = s;
 	s->color= m->externup->color;
 
@@ -1266,12 +668,6 @@ DBG(
 		m->externup->procctl = Proc_toac;
 		m->externup->prepagemem = 1;
 	}
-DBG(
-	"execac up %#p done\n"
-	"	textsz %lx datasz %lx bsssz %lx hdrsz %lx\n"
-	"	textlim %ullx datalim %ullx bsslim %ullx\n",
-	m->externup, textsz, datasz, bsssz, hdrsz, textlim, datalim, bsslim
-);
 }
 
 void
@@ -1293,67 +689,6 @@ sysexecac(Ar0* ar0, ...)
 	va_end(list);
 	evenaddr(PTR2UINT(argv));
 	execac(ar0, flags, file, argv);
-}
-
-static int
-crackhdr(Ar0 *ar0, Chan *c, Fhdr *fp, ExecHdr *d)
-{
-	ExecTable *mp;
-	int nb, ret;
-	uint32_t magic;
-
-	fp->type = 0; /* FNONE */
-	nb = c->dev->read(c, (char *)&d->e, sizeof(d->e), c->offset);
-	if (nb <= 0)
-		error("crackhdr: header read failed");
-
-	ret = 0;
-	magic = beswal(d->e.magic);		/* big-endian */
-	for (mp = exectab; mp->magic; mp++) {
-		if (nb < mp->hsize) {
-			continue;
-		}
-
-		/*
-		 * The magic number has morphed into something
-		 * with fields (the straw was DYN_MAGIC) so now
-		 * a flag is needed in Fhdr to distinguish _MAGIC()
-		 * magic numbers from foreign magic numbers.
-		 *
-		 * This code is creaking a bit and if it has to
-		 * be modified/extended much more it's probably
-		 * time to step back and redo it all.
-		 */
-		if(mp->_magic){
-			if(mp->magic != (magic & ~DYN_MAGIC))
-				continue;
-
-			if ((magic & DYN_MAGIC) && mp->dlmname != nil)
-				fp->name = mp->dlmname;
-			else
-				fp->name = mp->name;
-		}
-		else{
-			if(mp->magic != magic)
-				continue;
-			fp->name = mp->name;
-		}
-		fp->type = mp->type;
-		fp->hdrsz = mp->hsize;		/* will be zero on bootables */
-		fp->_magic = mp->_magic;
-		fp->magic = magic;
-
-		machkind = mp->elfmach;
-		if(mp->swal != nil)
-			hswal(d, sizeof(d->e)/sizeof(uint32_t), mp->swal);
-		ret = mp->hparse(ar0, c, fp, d);
-		chanseek(ar0, c, mp->hsize, 0);		/* seek to end of header */
-		break;
-	}
-	if(mp->magic == 0) {
-		error("Sysproc: unknown header type");
-	}
-	return ret;
 }
 
 void

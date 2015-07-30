@@ -1869,7 +1869,7 @@ txt2data(Proc *p, Segment *s)
 	ps = newseg(SG_DATA, s->base, s->size);
 	ps->image = s->image;
 	incref(ps->image);
-	ps->ph = s->ph;
+	ps->ldseg = s->ldseg;
 	ps->flushme = 1;
 
 	qlock(&p->seglock);
@@ -1896,7 +1896,7 @@ data2txt(Segment *s)
 	ps = newseg(SG_TEXT, s->base, s->size);
 	ps->image = s->image;
 	incref(ps->image);
-	ps->ph = s->ph;
+	ps->ldseg = s->ldseg;
 	ps->flushme = 1;
 
 	return ps;

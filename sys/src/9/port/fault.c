@@ -14,8 +14,8 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+#define debug if(1)print
 
-#define debug if(0)print
 
 /*
  * Fault calls fixfault which ends up calling newpage, which
@@ -155,6 +155,7 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 			error("No mmap support yet");
 		goto common;
 
+	case SG_LOAD:
 	case SG_DATA:
 	case SG_TEXT: 			/* Demand load */
 		if(pagedout(*pg))
@@ -274,19 +275,27 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	pgsz = m->pgsz[s->pgszi];
 	if(loadrec == nil) {	/* from a text/data image */
 		// where page begins in file
-		daddr = (s->ph.offset + soff) & ~(pgsz-1);
+		daddr = s->ldseg.pg0faddr + soff;
 		// where segment begins on the page
-		doff = s->ph.offset & (pgsz-1);
+		doff = s->ldseg.pg0off;
 		// how much more to read?
-		ask = doff+s->ph.filesz - soff;
+		ask = doff + s->ldseg.filesz - soff;
 		if(ask > pgsz)
 			ask = pgsz;
 		// read offset only if it is the first page
 		if(soff > 0)
 			doff = 0;
 
-		newpg = lookpage(s->image, daddr);
+		newpg = lookpage(s->image, daddr+doff);
 		if(newpg != nil) {
+	debug(
+		"pio cache %d %s(%c%c%c) addr+doff 0x%p daddr+doff 0x%x ask-doff %d\n",
+		m->externup->pid, segtypes[s->type & SG_TYPE],
+		(s->type & SG_READ) != 0 ? 'r' : '-',
+		(s->type & SG_WRITE) != 0 ? 'w' : '-',
+		(s->type & SG_EXEC) != 0 ? 'x' : '-',
+		addr+doff, daddr+doff, ask-doff
+	);
 			*p = newpg;
 			return;
 		}
@@ -314,7 +323,6 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		faulterror(Eioload, c, 0);
 	}
 
-	static char *segtypes[]={ "Bad0", "Text", "Data", "Bss", "Stack", "Shared", "Phys" };
 	debug(
 		"pio %d %s(%c%c%c) addr+doff 0x%p daddr+doff 0x%x ask-doff %d\n",
 		m->externup->pid, segtypes[s->type & SG_TYPE],
@@ -337,7 +345,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		 *  s->lk was unlocked
 		 */
 		if(*p == nil) {
-			newpg->daddr = daddr;
+			newpg->daddr = daddr+doff;
 			cachepage(newpg, s->image);
 			*p = newpg;
 		} else {

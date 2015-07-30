@@ -23,6 +23,7 @@ typedef struct Fastcall Fastcall;
 typedef struct Fgrp	Fgrp;
 typedef struct Image	Image;
 typedef struct Kzio 	Kzio;
+typedef struct Ldseg	Ldseg;
 typedef struct Log	Log;
 typedef struct Logflag	Logflag;
 typedef struct Lockstats Lockstats;
@@ -441,6 +442,7 @@ enum
 	SG_SHARED	= 0x5,
 	SG_PHYSICAL	= 0x6,
 	SG_MMAP		= 0x7,
+	SG_LOAD		= 0x8,	/* replaces SG_TEXT, SG_DATA */
 
 	SG_PERM		= 0xf0,
 	SG_READ		= 0x10,
@@ -512,6 +514,17 @@ struct Zseg
 
 #define NOCOLOR -1
 
+/* demand loading params of a segment */
+struct Ldseg {
+	int64_t	memsz;
+	int64_t	filesz;
+	int64_t	pg0faddr;
+	uintptr_t	pg0vaddr;
+	uint32_t	pg0off;
+	uint32_t	pgsz;
+	uint16_t	type;
+};
+
 struct Segment
 {
 	Ref;
@@ -524,12 +537,11 @@ struct Segment
 	uintptr_t	base;		/* virtual base */
 	uintptr_t	top;		/* virtual top */
 	usize	size;		/* size in pages */
-	/* We will be using the ELF ProgHdr for getting file contents into the segment. */
-	ProgHdr ph;
+	Ldseg	ldseg;
 	int	flushme;	/* maintain icache for this segment */
 	Image	*image;		/* text in file attached to this segment */
 	Physseg *pseg;
-	uint32_t*	profile;	/* Tick profile area */
+	uint32_t	*profile;	/* Tick profile area */
 	Pte	**map;
 	int	mapsize;
 	Pte	*ssegmap[SSEGMAPSIZE];
@@ -538,6 +550,7 @@ struct Segment
 	Sems	sems;
 	Zseg	zseg;
 };
+
 
 /*
  * NIX zero-copy IO structure.
