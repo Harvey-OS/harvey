@@ -405,7 +405,7 @@ prepageseg(int i)
 	DBG("prepage: base %#p top %#p\n", s->base, s->top);
 	pgsz = machp()->pgsz[s->pgszi];
 	for(addr = s->base; addr < s->top; addr += pgsz)
-		fault(addr, (s->type & SG_EXEC) != 0);
+		fault(addr, -1, (s->type & SG_WRITE) ? FT_WRITE : FT_READ);
 }
 
 /*

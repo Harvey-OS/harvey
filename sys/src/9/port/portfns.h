@@ -122,7 +122,7 @@ void		exit(int);
 uint64_t		fastticks(uint64_t*);
 uint64_t		fastticks2ns(uint64_t);
 uint64_t		fastticks2us(uint64_t);
-int		fault(uintptr_t, int);
+int		fault(uintptr_t, uintptr_t, int);
 void		fdclose(int, int);
 Chan*		fdtochan(int, int, int, int);
 int		findmount(Chan**, Mhead**, int, uint, Qid);
