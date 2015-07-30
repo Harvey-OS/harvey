@@ -110,6 +110,7 @@ void		edfrecord(Proc*);
 void		edfrun(Proc*, int);
 void		edfstop(Proc*);
 void		edfyield(void);
+int		elf64ldseg(Chan *c, uintptr_t *entryp, Ldseg **rp, char *mach, uint32_t minpgsz);
 int		emptystr(char*);
 int		encrypt(void*, void*, int);
 void		envcpy(Egrp*, Egrp*);

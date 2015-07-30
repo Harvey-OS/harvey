@@ -41,6 +41,7 @@ Mach *entrym;
  * Optionsinit() is called from multiboot() to
  * set it all up.
  */
+char *cputype = "amd64";
 static int64_t oargc;
 static char* oargv[20];
 static char oargb[128];
@@ -599,7 +600,7 @@ init0(void)
 	if(!waserror()){
 		snprint(buf, sizeof(buf), "%s %s", "AMD64", conffile);
 		ksetenv("terminal", buf, 0);
-		ksetenv("cputype", "amd64", 0);
+		ksetenv("cputype", cputype, 0);
 		if(cpuserver)
 			ksetenv("service", "cpu", 0);
 		else
