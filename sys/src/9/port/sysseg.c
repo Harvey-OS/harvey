@@ -181,6 +181,7 @@ syssegbrk(Ar0* ar0, ...)
 		if(addr == s->top && (s->base < s->top))
 			continue;
 		switch(s->type&SG_TYPE) {
+		case SG_LOAD:
 		case SG_TEXT:
 		case SG_DATA:
 		case SG_STACK:

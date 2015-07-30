@@ -14,8 +14,9 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+#undef DBG
+#define DBG if(0)print
 
-#define debug if(0)print
 
 /*
  * Fault calls fixfault which ends up calling newpage, which
@@ -32,7 +33,11 @@ fault(uintptr_t addr, int read)
 	char *sps;
 	int i, color;
 
-if(m->externup->nlocks) print("fault nlocks %d\n", m->externup->nlocks);
+	if(m->externup->nlocks)
+		print("%s fault nlocks %d addr %p\n",
+			read ? "read" : "write",
+			m->externup->nlocks,
+			addr);
 
 	sps = m->externup->psstate;
 	m->externup->psstate = "Fault";
@@ -155,6 +160,7 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 			error("No mmap support yet");
 		goto common;
 
+	case SG_LOAD:
 	case SG_DATA:
 	case SG_TEXT: 			/* Demand load */
 		if(pagedout(*pg))
@@ -193,7 +199,7 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 				int pgref = lkp->ref;
 				unlock(lkp);
 
-				debug("fixfault %d: copy on %s, %s(%c%c%c) 0x%p segref %d pgref %d\n",
+				DBG("fixfault %d: copy on %s, %s(%c%c%c) 0x%p segref %d pgref %d\n",
 					m->externup->pid,
 					read ? "read " : "write",
 					segtypes[s->type & SG_TYPE],
@@ -273,23 +279,27 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	c = nil;
 	pgsz = m->pgsz[s->pgszi];
 	if(loadrec == nil) {	/* from a text/data image */
-		// where page begins in file
-		daddr = (s->ph.offset + soff) & ~(pgsz-1);
-		// where segment begins on the page
-		doff = s->ph.offset & (pgsz-1);
-		// how much more to read?
-		ask = doff+s->ph.filesz - soff;
-		if(ask > pgsz)
-			ask = pgsz;
-		// read offset only if it is the first page
-		if(soff > 0)
-			doff = 0;
+		daddr = s->ldseg.pg0fileoff + soff;
+		doff = s->ldseg.pg0off;
 
-		newpg = lookpage(s->image, daddr);
-		if(newpg != nil) {
-			*p = newpg;
-			return;
+		if(soff < doff+s->ldseg.filesz){
+			ask = doff+s->ldseg.filesz - soff;
+			if(ask > pgsz)
+				ask = pgsz;
+			if(soff > 0)
+				doff = 0;
+
+			newpg = lookpage(s->image, daddr+doff);
+			if(newpg != nil) {
+				*p = newpg;
+				return;
+			}
+		} else {
+			// zero fill
+			ask = 0;
+			doff = 0;
 		}
+
 		c = s->image->c;
 	} else {
 		panic("no swap");
@@ -302,33 +312,35 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	// of newpage here was 0 -- "don't zero".
 	// It is now 1 -- "do zero" because ELF only covers
 	// part of the page.
-	newpg = newpage(1, 0, addr, pgsz, color);
-	k = kmap(newpg);
-	kaddr = (char*)VA(k);
+	newpg = newpage(1, nil, addr, pgsz, color);
 
-	while(waserror()) {
-		if(strcmp(m->externup->errstr, Eintr) == 0)
-			continue;
+	if(ask > doff){
+		k = kmap(newpg);
+		kaddr = (char*)VA(k);
+
+		while(waserror()) {
+			if(strcmp(m->externup->errstr, Eintr) == 0)
+				continue;
+			kunmap(k);
+			putpage(newpg);
+			faulterror(Eioload, c, 0);
+		}
+
+		DBG(
+			"pio %d %s(%c%c%c) addr+doff 0x%p daddr+doff 0x%x ask-doff %d\n",
+			m->externup->pid, segtypes[s->type & SG_TYPE],
+			(s->type & SG_READ) != 0 ? 'r' : '-',
+			(s->type & SG_WRITE) != 0 ? 'w' : '-',
+			(s->type & SG_EXEC) != 0 ? 'x' : '-',
+			addr+doff, daddr+doff, ask-doff
+		);
+
+		n = c->dev->read(c, kaddr+doff, ask-doff, daddr+doff);
+		if(n != ask-doff)
+			faulterror(Eioload, c, 0);
+		poperror();
 		kunmap(k);
-		putpage(newpg);
-		faulterror(Eioload, c, 0);
 	}
-
-	static char *segtypes[]={ "Bad0", "Text", "Data", "Bss", "Stack", "Shared", "Phys" };
-	debug(
-		"pio %d %s(%c%c%c) addr+doff 0x%p daddr+doff 0x%x ask-doff %d\n",
-		m->externup->pid, segtypes[s->type & SG_TYPE],
-		(s->type & SG_READ) != 0 ? 'r' : '-',
-		(s->type & SG_WRITE) != 0 ? 'w' : '-',
-		(s->type & SG_EXEC) != 0 ? 'x' : '-',
-		addr+doff, daddr+doff, ask-doff
-	);
-	n = c->dev->read(c, kaddr+doff, ask-doff, daddr+doff);
-	if(n != ask-doff)
-		faulterror(Eioload, c, 0);
-
-	poperror();
-	kunmap(k);
 
 	qlock(&s->lk);
 	if(loadrec == nil) {	/* This is demand load */
@@ -337,8 +349,11 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		 *  s->lk was unlocked
 		 */
 		if(*p == nil) {
-			newpg->daddr = daddr;
-			cachepage(newpg, s->image);
+			// put it to page cache if there was i/o for it
+			if(ask > doff){
+				newpg->daddr = daddr+doff;
+				cachepage(newpg, s->image);
+			}
 			*p = newpg;
 		} else {
 			print("racing on demand load\n");
