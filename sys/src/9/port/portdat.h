@@ -415,10 +415,11 @@ struct Image
 /*
  * Interface between fixfault and mmuput.
  */
-#define PTEVALID		(1<<0)
-#define PTEWRITE		(1<<1)
-#define PTERONLY		(0<<1)
-#define PTEUSER		(1<<2)
+#define PTEVALID	(1<<0)
+#define PTEWRITE	(1<<1)
+#define PTERONLY	(0<<1)
+#define PTEUSER	(1<<2)
+#define PTENOEXEC	(1<<3)
 #define PTEUNCACHED	(1<<4)
 
 struct Pte

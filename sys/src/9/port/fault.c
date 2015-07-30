@@ -166,14 +166,17 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 			/* never copy a non-writeable seg */
 			if((s->type & SG_WRITE) == 0){
 				mmuattr = PTERONLY|PTEVALID;
+				if((s->type & SG_EXEC) == 0)
+					mmuattr |= PTENOEXEC;
 				(*pg)->modref = PG_REF;
 				break;
 			}
 
 			/* delay copy if we are the only user (copy on write when it happens) */
 			if(conf.copymode == 0 && s->ref == 1) {
-
 				mmuattr = PTERONLY|PTEVALID;
+				if((s->type & SG_EXEC) == 0)
+					mmuattr |= PTENOEXEC;
 				(*pg)->modref |= PG_REF;
 				break;
 			}
@@ -220,6 +223,8 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 			}
 		}
 		mmuattr = PTEVALID|PTEWRITE;
+		if((s->type & SG_EXEC) == 0)
+			mmuattr |= PTENOEXEC;
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
 
@@ -243,6 +248,8 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 			mmuattr |= PTEWRITE;
 		if((s->pseg->attr & SG_CACHED) == 0)
 			mmuattr |= PTEUNCACHED;
+		if((s->type & SG_EXEC) == 0)
+			mmuattr |= PTENOEXEC;
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
 	}

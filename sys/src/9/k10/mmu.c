@@ -367,7 +367,7 @@ pteflags(uint attr)
 	uint flags;
 
 	flags = 0;
-	if(attr & ~(PTEVALID|PTEWRITE|PTERONLY|PTEUSER|PTEUNCACHED))
+	if(attr & ~(PTEVALID|PTEWRITE|PTERONLY|PTEUSER|PTEUNCACHED|PTENOEXEC))
 		panic("mmuput: wrong attr bits: %#ux\n", attr);
 	if(attr&PTEVALID)
 		flags |= PteP;
@@ -377,6 +377,8 @@ pteflags(uint attr)
 		flags |= PteU;
 	if(attr&PTEUNCACHED)
 		flags |= PtePCD;
+	if(attr&PTENOEXEC)
+		flags |= PteNX;
 	return flags;
 }
 
