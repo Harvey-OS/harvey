@@ -96,7 +96,7 @@ pageout(Proc *p, Segment *s)
 	Pte *l;
 	Page **pg, *entry;
 
-	if((s->type&SG_TYPE) != SG_TEXT)
+	if((s->type&SG_TYPE) != SG_LOAD && (s->type&SG_TYPE) != SG_TEXT)
 		panic("pageout");
 
 	if(!canqlock(&s->lk))	/* We cannot afford to wait, we will surely deadlock */
