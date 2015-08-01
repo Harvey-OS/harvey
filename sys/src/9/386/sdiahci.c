@@ -272,7 +272,7 @@ esleep(int ms)
 	m = machp();
 	if(waserror())
 		return;
-	tsleep(&m->externup->sleep, return0, 0, ms);
+	tsleep(&up->sleep, return0, 0, ms);
 	poperror();
 }
 
@@ -388,7 +388,7 @@ asleep(int ms)
 	Mach *m;
 
 	m = machp();
-	if(m->externup == nil)
+	if(up == nil)
 		delay(ms);
 	else
 		esleep(ms);
@@ -1312,7 +1312,7 @@ satakproc(void *v)
 
 	m = machp();
 	for(;;){
-		tsleep(&m->externup->sleep, return0, 0, Nms);
+		tsleep(&up->sleep, return0, 0, Nms);
 		for(i = 0; i < niadrive; i++)
 			if(iadrive[i] != nil)
 				checkdrive(iadrive[i], i);

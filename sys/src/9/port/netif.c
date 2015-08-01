@@ -44,7 +44,7 @@ netifinit(Netif *nif, char *name, int nfile, uint32_t limit)
 static int
 netifgen(Chan *c, char* j, Dirtab *vp, int n, int i, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Qid q;
 	Netif *nif = (Netif*)vp;
 	Netfile *f;
@@ -66,8 +66,8 @@ netifgen(Chan *c, char* j, Dirtab *vp, int n, int i, Dir *dp)
 		case 0:
 			q.path = N2ndqid;
 			q.type = QTDIR;
-			strcpy(m->externup->genbuf, nif->name);
-			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
+			strcpy(up->genbuf, nif->name);
+			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			break;
 		default:
 			return -1;
@@ -113,8 +113,8 @@ netifgen(Chan *c, char* j, Dirtab *vp, int n, int i, Dir *dp)
 				return 0;
 			q.type = QTDIR;
 			q.path = NETQID(i, N3rdqid);
-			snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%d", i);
-			devdir(c, q, m->externup->genbuf, 0, eve, DMDIR|0555, dp);
+			snprint(up->genbuf, sizeof up->genbuf, "%d", i);
+			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
 			break;
 		}
 		return 1;
@@ -135,8 +135,8 @@ netifgen(Chan *c, char* j, Dirtab *vp, int n, int i, Dir *dp)
 	case DEVDOTDOT:
 		q.type = QTDIR;
 		q.path = N2ndqid;
-		strcpy(m->externup->genbuf, nif->name);
-		devdir(c, q, m->externup->genbuf, 0, eve, DMDIR|0555, dp);
+		strcpy(up->genbuf, nif->name);
+		devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
 		break;
 	case 0:
 		q.path = NETQID(NETID(c->qid.path), Ndataqid);
@@ -173,7 +173,7 @@ netifwalk(Netif *nif, Chan *c, Chan *nc, char **name, int nname)
 Chan*
 netifopen(Netif *nif, Chan *c, int omode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int id;
 	Netfile *f;
 
@@ -200,7 +200,7 @@ netifopen(Netif *nif, Chan *c, int omode)
 		case Ndataqid:
 		case Nctlqid:
 			f = nif->f[id];
-			if(netown(f, m->externup->user, omode&7) < 0){
+			if(netown(f, up->user, omode&7) < 0){
 				netifclose(nif, c);
 				error(Eperm);
 			}
@@ -217,7 +217,7 @@ netifopen(Netif *nif, Chan *c, int omode)
 int32_t
 netifread(Netif *nif, Chan *c, void *a, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, j;
 	Netfile *f;
 	char *p;
@@ -269,8 +269,8 @@ netifread(Netif *nif, Chan *c, void *a, int32_t n, int64_t off)
 	case Nifstatqid:
 		return 0;
 	case Nmtuqid:
-		snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%11.ud %11.ud %11.ud\n", nif->minmtu, nif->mtu, nif->maxmtu);
-		return readstr(offset, a, n, m->externup->genbuf);
+		snprint(up->genbuf, sizeof up->genbuf, "%11.ud %11.ud %11.ud\n", nif->minmtu, nif->mtu, nif->maxmtu);
+		return readstr(offset, a, n, up->genbuf);
 	}
 	error(Ebadarg);
 	return -1;	/* not reached */
@@ -313,7 +313,7 @@ typeinuse(Netif *nif, int type)
 int32_t
 netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Netfile *f;
 	int type, mtu;
 	char *p, buf[64];
@@ -402,7 +402,7 @@ netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 int32_t
 netifwstat(Netif *nif, Chan *c, uint8_t *db, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Dir *dir;
 	Netfile *f;
 	int l;
@@ -411,7 +411,7 @@ netifwstat(Netif *nif, Chan *c, uint8_t *db, int32_t n)
 	if(f == 0)
 		error(Enonexist);
 
-	if(netown(f, m->externup->user, OWRITE) < 0)
+	if(netown(f, up->user, OWRITE) < 0)
 		error(Eperm);
 
 	dir = smalloc(sizeof(Dir)+n);
@@ -530,7 +530,7 @@ netown(Netfile *p, char *o, int omode)
 static int
 openfile(Netif *nif, int id)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Netfile *f, **fp, **efp;
 
 	if(id >= 0){
@@ -572,7 +572,7 @@ openfile(Netif *nif, int id)
 		}
 		f->inuse = 1;
 		qreopen(f->iq);
-		netown(f, m->externup->user, 0);
+		netown(f, up->user, 0);
 		qunlock(f);
 		qunlock(nif);
 		poperror();

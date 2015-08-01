@@ -116,7 +116,7 @@ getclust(Dos *dos, int32_t sector)
 	 */
 	for(p = bio; p < &bio[Nbio]; p++){
 		if(sector == p->sector && dos == p->dos){
-			p->age = m->ticks;
+			p->age = machp()->ticks;
 			chat("getclust %ld in cache\n", sector);
 			return p;
 		}
@@ -156,7 +156,7 @@ getclust(Dos *dos, int32_t sector)
 		return 0;
 	}
 
-	p->age = m->ticks;
+	p->age = machp()->ticks;
 	p->dos = dos;
 	p->sector = sector;
 	chat("getclust %ld read\n", sector);

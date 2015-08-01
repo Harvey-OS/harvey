@@ -349,7 +349,7 @@ newpl(void)
 void
 tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 {
-	Mach *m = machp();	
+	Proc *up = machp()->externup;	
 	struct Tracelog *pl;
 
 	/* if we are here, tracing is active. Turn it off. */
@@ -362,7 +362,7 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 	ainc((int *)&traceinhits);
 	/* Continue if we are watching this pid or we're not watching any */
 	if (!all)
-		if (!m->externup || !watchingpid(m->externup->pid)){
+		if (!up || !watchingpid(up->pid)){
 			traceactive = 1;
 			return;
 	}
@@ -378,8 +378,8 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 	cycles(&pl->ticks);
 
 	pl->pc = (uintptr_t)pc;
-	if (m->externup)
-		pl->dat[0] = m->externup->pid;
+	if (up)
+		pl->dat[0] = up->pid;
 	else
 		pl->dat[0] = (unsigned long)-1;
 
@@ -389,7 +389,7 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 	pl->dat[4] = a4;
 
 	pl->info = TraceEntry;
-	pl->machno = m->machno;
+	pl->machno = machp()->machno;
 	traceactive = 1;
 }
 
@@ -397,7 +397,7 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 void
 traceout(void* pc, uintptr_t retval)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	struct Tracelog *pl;
 	/* if we are here, tracing is active. Turn it off. */
 	traceactive = 0;
@@ -407,7 +407,7 @@ traceout(void* pc, uintptr_t retval)
 	}
 		
 	if (!all)
-		if (!m->externup || !watchingpid(m->externup->pid)){
+		if (!up || !watchingpid(up->pid)){
 			traceactive = 1;
 			return;
 		}
@@ -421,8 +421,8 @@ traceout(void* pc, uintptr_t retval)
 	cycles(&pl->ticks);
 
 	pl->pc = (uintptr_t)pc;
-	if (m->externup)
-		pl->dat[0] = m->externup->pid;
+	if (up)
+		pl->dat[0] = up->pid;
 	else
 		pl->dat[0] = (unsigned long)-1;
 
@@ -431,7 +431,7 @@ traceout(void* pc, uintptr_t retval)
 	pl->dat[3] = 0;
 
 	pl->info = TraceExit;
-	pl->machno = m->machno;
+	pl->machno = machp()->machno;
 	traceactive = 1;
 }
 
@@ -514,7 +514,7 @@ traceclose(Chan *c)
 static int32_t
 traceread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *buf;
 	char *cp = a;
 	struct Tracelog *pl;
@@ -666,7 +666,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 static int32_t
 tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *tok[6]; //changed this so "tracein" works with the new 4th arg
 	char *ep, *s = nil;
 	Trace *p, **pp, *foo;

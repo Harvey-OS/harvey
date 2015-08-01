@@ -334,7 +334,7 @@ pmcgetctr(uint32_t coreno, uint32_t regno)
 	Mach *mp;
 	uint64_t v;
 
-	if(coreno == m->machno){
+	if(coreno == machp()->machno){
 		v = getctr(regno);
 		if (pmcdebug) {
 			print("int getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
@@ -365,7 +365,7 @@ pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno)
 	PmcCtr *p;
 	Mach *mp;
 
-	if(coreno == m->machno){
+	if(coreno == machp()->machno){
 		if (pmcdebug) {
 			print("int getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
 		}
@@ -409,7 +409,7 @@ pmcsetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 	PmcCtr *p;
 	Mach *mp;
 
-	if(coreno == m->machno)
+	if(coreno == machp()->machno)
 		return setctl(pctl, regno);
 
 	mp = sys->machptr[coreno];
@@ -431,7 +431,7 @@ pmcgetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 	PmcCtr *p;
 	Mach *mp;
 
-	if(coreno == m->machno)
+	if(coreno == machp()->machno)
 		return getctl(pctl, regno);
 
 	mp = sys->machptr[coreno];

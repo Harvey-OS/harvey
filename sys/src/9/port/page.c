@@ -40,15 +40,15 @@ Pgalloc pga;		/* new allocator */
 char*
 seprintpagestats(char *s, char *e)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 
 	lock(&pga);
 	for(i = 0; i < m->npgsz; i++)
-		if(m->pgsz[i] != 0)
+		if(machp()->pgsz[i] != 0)
 			s = seprint(s, e, "%uld/%d %dK user pages avail\n",
 				pga.pgsza[i].freecount,
-				pga.pgsza[i].npages.ref, m->pgsz[i]/KiB);
+				pga.pgsza[i].npages.ref, machp()->pgsz[i]/KiB);
 	unlock(&pga);
 	return s;
 }
@@ -61,7 +61,7 @@ seprintpagestats(char *s, char *e)
 void
 pageinit(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int si, i, color;
 	Page *pg;
 
@@ -76,13 +76,13 @@ pageinit(void)
 				color = -1;
 			else
 				color = i;
-			pg = pgalloc(m->pgsz[si], color);
+			pg = pgalloc(machp()->pgsz[si], color);
 			if(pg == nil){
 				DBG("pageinit: pgalloc failed. breaking.\n");
 				break;	/* don't consume more memory */
 			}
 			DBG("pageinit: alloced pa %#P sz %#ux color %d\n",
-				pg->pa, m->pgsz[si], pg->color);
+				pg->pa, machp()->pgsz[si], pg->color);
 			lock(&pga);
 			pg->ref = 0;
 			pagechainhead(pg);
@@ -96,11 +96,11 @@ pageinit(void)
 int
 getpgszi(usize size)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int si;
 
 	for(si = 0; si < m->npgsz; si++)
-		if(size == m->pgsz[si])
+		if(size == machp()->pgsz[si])
 			return si;
 	print("getpgszi: size %#ulx not found\n", size);
 	return -1;
@@ -132,9 +132,9 @@ pgalloc(usize size, int color)
 void
 pgfree(Page* pg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	decref(&pga.pgsza[pg->pgszi].npages);
-	physfree(pg->pa, m->pgsz[pg->pgszi]);
+	physfree(pg->pa, machp()->pgsz[pg->pgszi]);
 	free(pg);
 }
 
@@ -217,7 +217,7 @@ int trip;
 Page*
 newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Page *p;
 	KMap *k;
 	uint8_t ct;
@@ -311,20 +311,20 @@ if (VA(k) == 0xfffffe007d800000ULL) trip++;
 		// This will frequently die if we use 3K-1 (3071 -- 0xbff)
 		// it will not if we use 3070.	
 		// The fault is a null pointer deref.
-		//memset((void*)VA(k), 0, m->pgsz[p->pgszi]);
+		//memset((void*)VA(k), 0, machp()->pgsz[p->pgszi]);
 		// thinking about it, using memset is stupid.
 		// Don't get upset about this loop;
 		// we make it readable, compilers optimize it.
 		int i;
 		uint64_t *v = (void *)VA(k);
 		if (1)
-		for(i = 0; i < m->pgsz[p->pgszi]/sizeof(*v); i++)
+		for(i = 0; i < machp()->pgsz[p->pgszi]/sizeof(*v); i++)
 			v[i] = 0;
 //if (trip) die("trip");
 		kunmap(k);
 	}
 	DBG("newpage: va %#p pa %#ullx pgsz %#ux color %d\n",
-		p->va, p->pa, m->pgsz[p->pgszi], p->color);
+		p->va, p->pa, machp()->pgsz[p->pgszi], p->color);
 
 	return p;
 }
@@ -405,7 +405,7 @@ static int dupretries = 15000;
 int
 duppage(Page *p)				/* Always call with p locked */
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Pgsza *pa;
 	Page *np;
 	int color;
@@ -415,7 +415,7 @@ duppage(Page *p)				/* Always call with p locked */
 retry:
 
 	if(retries++ > dupretries){
-		print("duppage %d, up %#p\n", retries, m->externup);
+		print("duppage %d, up %#p\n", retries, up);
 		dupretries += 100;
 		if(dupretries > 100000)
 			panic("duppage\n");
@@ -436,7 +436,7 @@ retry:
 	 */
 	if(!canlock(&pga)){
 		unlock(p);
-		if(m->externup)
+		if(up)
 			sched();
 		lock(p);
 		goto retry;
@@ -497,14 +497,14 @@ retry:
 void
 copypage(Page *f, Page *t)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	KMap *ks, *kd;
 
 	if(f->pgszi != t->pgszi || t->pgszi < 0)
 		panic("copypage");
 	ks = kmap(f);
 	kd = kmap(t);
-	memmove((void*)VA(kd), (void*)VA(ks), m->pgsz[t->pgszi]);
+	memmove((void*)VA(kd), (void*)VA(ks), machp()->pgsz[t->pgszi]);
 	kunmap(ks);
 	kunmap(kd);
 }

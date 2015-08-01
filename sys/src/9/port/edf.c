@@ -139,7 +139,7 @@ edfinit(Proc*p)
 static void
 deadlineintr(Ureg* ureg, Timer *t)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	/* Proc reached deadline */
 	extern int panicking;
 	Sched *sch;
@@ -158,11 +158,11 @@ deadlineintr(Ureg* ureg, Timer *t)
 	 * Instead, we cause the resched to happen when the interrupted proc
 	 * returns to user space
 	 */
-	if(p == m->externup){
-		if(m->externup->trace)
-			proctrace(m->externup, SInts, 0);
-		m->externup->delaysched++;
-		sch = procsched(m->externup);
+	if(p == up){
+		if(up->trace)
+			proctrace(up, SInts, 0);
+		up->delaysched++;
+		sch = procsched(up);
  		sch->delayedscheds++;
 	}
 }
@@ -216,7 +216,7 @@ release(Proc *p)
 static void
 releaseintr(Ureg* ureg, Timer *t)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	extern int panicking;
 	Sched *sch;
@@ -252,8 +252,8 @@ releaseintr(Ureg* ureg, Timer *t)
 			iprint("releaseintr: wakeme\n");
 		}
 		ready(p);
-		if(m->externup){
-			m->externup->delaysched++;
+		if(up){
+			up->delaysched++;
 			sch->delayedscheds++;
 		}
 		return;
@@ -267,8 +267,8 @@ releaseintr(Ureg* ureg, Timer *t)
 		if(p->trend)
 			wakeup(p->trend);
 		p->trend = nil;
-		if(m->externup){
-			m->externup->delaysched++;
+		if(up){
+			up->delaysched++;
 			sch->delayedscheds++;
 		}
 		return;
@@ -349,7 +349,7 @@ edfrun(Proc *p, int edfpri)
 char *
 edfadmit(Proc *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *err;
 	Edf *e;
 	int i;
@@ -402,7 +402,7 @@ edfadmit(Proc *p)
 		e->t = now;
 		e->d = 0;
 		release(p);
-		if (p == m->externup){
+		if (p == up){
 			DPRINT("%lud edfadmit self %d[%s], release now: r=%lud d=%lud t=%lud\n",
 				now, p->pid, statename[p->state], e->r, e->d, e->t);
 			/* We're already running */
@@ -421,7 +421,7 @@ edfadmit(Proc *p)
 		/* Release in synch to something else */
 		e->t = r->edf->t;
 		psdecref(r);
-		if (p == m->externup){
+		if (p == up){
 			DPRINT("%lud edfadmit self %d[%s], release at %lud\n",
 				now, p->pid, statename[p->state], e->t);
 		}else{
@@ -463,23 +463,23 @@ edfstop(Proc *p)
 static int
 yfn(void *v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	now = ms();
-	return m->externup->trend == nil || now - m->externup->edf->r >= 0;
+	return up->trend == nil || now - up->edf->r >= 0;
 }
 
 void
 edfyield(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	/* sleep until next release */
 	Edf *e;
 	int32_t n;
 
-	if((e = edflock(m->externup)) == nil)
+	if((e = edflock(up)) == nil)
 		return;
-	if(m->externup->trace)
-		proctrace(m->externup, SYield, 0);
+	if(up->trace)
+		proctrace(up, SYield, 0);
 	if((n = now - e->t) > 0){
 		if(n < e->T)
 			e->t += e->T;
@@ -489,26 +489,26 @@ edfyield(void)
 	e->r = e->t;
 	e->flags |= Yield;
 	e->d = now;
-	if (m->externup->tt == nil){
+	if (up->tt == nil){
 		n = e->t - now;
 		if(n < 20)
 			n = 20;
-		m->externup->tns = 1000LL * n;
-		m->externup->tf = releaseintr;
-		m->externup->tmode = Trelative;
-		m->externup->ta = m->externup;
-		m->externup->trend = &m->externup->sleep;
-		timeradd(m->externup);
-	}else if(m->externup->tf != releaseintr)
-		print("edfyield: surprise! %#p\n", m->externup->tf);
+		up->tns = 1000LL * n;
+		up->tf = releaseintr;
+		up->tmode = Trelative;
+		up->ta = up;
+		up->trend = &up->sleep;
+		timeradd(up);
+	}else if(up->tf != releaseintr)
+		print("edfyield: surprise! %#p\n", up->tf);
 	edfunlock();
-	sleep(&m->externup->sleep, yfn, nil);
+	sleep(&up->sleep, yfn, nil);
 }
 
 int
 edfready(Proc *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Edf *e;
 	Sched *sch;
 	Schedq *rq;
@@ -594,7 +594,7 @@ edfready(Proc *p)
 	sch->nrdy++;
 	sch->runvec |= 1 << PriEdf;
 	p->priority = PriEdf;
-	p->readytime = m->ticks;
+	p->readytime = machp()->ticks;
 	p->state = Ready;
 	unlock(sch);
 	if(p->trace)

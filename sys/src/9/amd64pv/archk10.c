@@ -254,7 +254,7 @@ archhz(void)
 	}
 
 	hz = cpuidhz(info0, info1);
-	if(hz != 0 || m->machno != 0)
+	if(hz != 0 || machp()->machno != 0)
 		return hz;
 
 	iprint("arch hz, cpuidhz failed, going to i8254hz\n");
@@ -268,7 +268,7 @@ archmmu(void)
 	uint32_t info[4];
 
 	/*
-	 * Should the check for m->machno != 0 be here
+	 * Should the check for machp()->machno != 0 be here
 	 * or in the caller (mmuinit)?
 	 *
 	 * To do here:
@@ -283,9 +283,9 @@ archmmu(void)
 	 */
 	assert(PGSZ == 4*KiB);
 
-	m->pgszlg2[0] = 12;
-	m->pgszmask[0] = (1<<12)-1;
-	m->pgsz[0] = 1<<12;
+	machp()->pgszlg2[0] = 12;
+	machp()->pgszmask[0] = (1<<12)-1;
+	machp()->pgsz[0] = 1<<12;
 	m->npgsz = 1;
 	if(m->ncpuinfos == 0 && cpuidinit() == 0)
 		return 1;
@@ -296,18 +296,18 @@ archmmu(void)
 	 */
 	if(!(m->cpuinfo[1][3] & 0x00000008))
 		return 1;
-	m->pgszlg2[1] = 21;
-	m->pgszmask[1] = (1<<21)-1;
-	m->pgsz[1] = 1<<21;
+	machp()->pgszlg2[1] = 21;
+	machp()->pgszmask[1] = (1<<21)-1;
+	machp()->pgsz[1] = 1<<21;
 	m->npgsz = 2;
 
 	/*
 	 * Check the Page1GB bit in function 0x80000001 DX for 1*GiB support.
 	 */
 	if(cpuidinfo(0x80000001, 0, info) && (info[3] & 0x04000000)){
-		m->pgszlg2[2] = 30;
-		m->pgszmask[2] = (1<<30)-1;
-		m->pgsz[2] = 1<<30;
+		machp()->pgszlg2[2] = 30;
+		machp()->pgszmask[2] = (1<<30)-1;
+		machp()->pgsz[2] = 1<<30;
 		m->npgsz = 3;
 	}
 

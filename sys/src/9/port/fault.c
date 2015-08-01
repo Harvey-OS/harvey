@@ -28,34 +28,34 @@
 int
 fault(uintptr_t addr, int read)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	char *sps;
 	int i, color;
 
-	if(m->externup->nlocks)
+	if(up->nlocks)
 		print("%s fault nlocks %d addr %p\n",
 			read ? "read" : "write",
-			m->externup->nlocks,
+			up->nlocks,
 			addr);
 
-	sps = m->externup->psstate;
-	m->externup->psstate = "Fault";
+	sps = up->psstate;
+	up->psstate = "Fault";
 	spllo();
 
 	m->pfault++;
 	for(i = 0;; i++) {
-		s = seg(m->externup, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
+		s = seg(up, addr, 1);	 /* leaves s->lk qlocked if seg != nil */
 		//iprint("seg for %p is %p base %p top %p\n", addr, s, s->base, s->top);
 		if(s == 0) {
 			//iprint("fault: no seg for %p\n", addr);
-			m->externup->psstate = sps;
+			up->psstate = sps;
 			return -1;
 		}
 
 		if(!read && (s->type&SG_WRITE) == 0) {
 			qunlock(&s->lk);
-			m->externup->psstate = sps;
+			up->psstate = sps;
 			return -1;
 		}
 
@@ -74,23 +74,23 @@ fault(uintptr_t addr, int read)
 			print("fault: tried %d times\n", i);
 	}
 
-	m->externup->psstate = sps;
+	up->psstate = sps;
 	return 0;
 }
 
 static void
 faulterror(char *s, Chan *c, int freemem)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[ERRMAX];
 
 	if(c && c->path){
-		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, m->externup->errstr);
+		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, up->errstr);
 		s = buf;
 	}
 
-	if(m->externup->nerrlab) {
-		postnote(m->externup, 1, s, NDebug);
+	if(up->nerrlab) {
+		postnote(up, 1, s, NDebug);
 		error(s);
 	}
 
@@ -100,7 +100,7 @@ faulterror(char *s, Chan *c, int freemem)
 int
 fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int type;
 	int ref;
 	Pte **p, *etp;
@@ -110,7 +110,7 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 	Page **pg, *lkp, *new;
 	Page *(*fn)(Segment*, uintptr_t);
 
-	pgsz = m->pgsz[s->pgszi];
+	pgsz = machp()->pgsz[s->pgszi];
 	addr &= ~(pgsz-1);
 	soff = addr-s->base;
 	p = &s->map[soff/PTEMAPMEM];
@@ -146,13 +146,13 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 		goto common;
 
 	case SG_MMAP:
-		print("MMAP fault: req is %p, \n", m->externup->req);
-		if(pagedout(*pg) && m->externup->req) {
+		print("MMAP fault: req is %p, \n", up->req);
+		if(pagedout(*pg) && up->req) {
 			print("Fault in mmap'ed page\n");
 			// hazardous.
 			char f[34];
 			snprint(f, sizeof(f), "W%016x%016x", addr, pgsz);
-			if (qwrite(m->externup->req, f, sizeof(f)) != sizeof(f))
+			if (qwrite(up->req, f, sizeof(f)) != sizeof(f))
 				error("can't write mmap request");
 			/* read in answer here. */
 			error("not reading answer yet");
@@ -200,7 +200,7 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 				unlock(lkp);
 
 				DBG("fixfault %d: copy on %s, %s(%c%c%c) 0x%p segref %d pgref %d\n",
-					m->externup->pid,
+					up->pid,
 					read ? "read " : "write",
 					segtypes[s->type & SG_TYPE],
 					(s->type & SG_READ) != 0 ? 'r' : '-',
@@ -264,7 +264,7 @@ fixfault(Segment *s, uintptr_t addr, int read, int dommuput, int color)
 void
 pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Page *newpg;
 	KMap *k;
 	Chan *c;
@@ -277,7 +277,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 	loadrec = *p;
 	daddr = ask = 0;
 	c = nil;
-	pgsz = m->pgsz[s->pgszi];
+	pgsz = machp()->pgsz[s->pgszi];
 	if(loadrec == nil) {	/* from a text/data image */
 		daddr = s->ldseg.pg0fileoff + soff;
 		doff = s->ldseg.pg0off;
@@ -319,7 +319,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 		kaddr = (char*)VA(k);
 
 		while(waserror()) {
-			if(strcmp(m->externup->errstr, Eintr) == 0)
+			if(strcmp(up->errstr, Eintr) == 0)
 				continue;
 			kunmap(k);
 			putpage(newpg);
@@ -328,7 +328,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 
 		DBG(
 			"pio %d %s(%c%c%c) addr+doff 0x%p daddr+doff 0x%x ask-doff %d\n",
-			m->externup->pid, segtypes[s->type & SG_TYPE],
+			up->pid, segtypes[s->type & SG_TYPE],
 			(s->type & SG_READ) != 0 ? 'r' : '-',
 			(s->type & SG_WRITE) != 0 ? 'w' : '-',
 			(s->type & SG_EXEC) != 0 ? 'x' : '-',
@@ -374,12 +374,12 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 int
 okaddr(uintptr_t addr, int32_t len, int write)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 
 	if(len >= 0) {
 		for(;;) {
-			s = seg(m->externup, addr, 0);
+			s = seg(up, addr, 0);
 			if(s == 0 || (write && (s->type&SG_WRITE) == 0))
 				break;
 

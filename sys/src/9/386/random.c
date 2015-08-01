@@ -50,9 +50,9 @@ rbnotempty(void* v)
 static void
 genrandom(void* v)
 {
-	Mach *m = machp();
-	m->externup->basepri = PriNormal;
-	m->externup->priority = m->externup->basepri;
+	Proc *up = machp()->externup;
+	up->basepri = PriNormal;
+	up->priority = up->basepri;
 
 	for(;;){
 		for(;;)
@@ -109,7 +109,7 @@ uint32_t
 randomread(void *xp, uint32_t n)
 {
 
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint8_t *e, *p;
 	uint32_t x;
 
@@ -167,7 +167,7 @@ randomread(void *xp, uint32_t n)
 uint32_t
 urandomread(void *xp, uint32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint64_t seed[16];
 	uint8_t *e, *p;
 	uint32_t x=0;

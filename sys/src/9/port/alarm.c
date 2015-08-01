@@ -19,7 +19,7 @@ static Rendez	alarmr;
 void
 alarmkproc(void* v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *rp;
 	uint32_t now;
 
@@ -65,16 +65,16 @@ checkalarms(void)
 uint32_t
 procalarm(uint32_t time)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc **l, *f;
 	uint32_t when, old;
 
-	if(m->externup->alarm)
-		old = tk2ms(m->externup->alarm - sys->ticks);
+	if(up->alarm)
+		old = tk2ms(up->alarm - sys->ticks);
 	else
 		old = 0;
 	if(time == 0) {
-		m->externup->alarm = 0;
+		up->alarm = 0;
 		return old;
 	}
 	when = ms2tk(time)+sys->ticks;
@@ -82,30 +82,30 @@ procalarm(uint32_t time)
 	qlock(&alarms);
 	l = &alarms._head;
 	for(f = *l; f; f = f->palarm) {
-		if(m->externup == f){
+		if(up == f){
 			*l = f->palarm;
 			break;
 		}
 		l = &f->palarm;
 	}
 
-	m->externup->palarm = 0;
+	up->palarm = 0;
 	if(alarms._head) {
 		l = &alarms._head;
 		for(f = *l; f; f = f->palarm) {
 			if(f->alarm > when) {
-				m->externup->palarm = f;
-				*l = m->externup;
+				up->palarm = f;
+				*l = up;
 				goto done;
 			}
 			l = &f->palarm;
 		}
-		*l = m->externup;
+		*l = up;
 	}
 	else
-		alarms._head = m->externup;
+		alarms._head = up;
 done:
-	m->externup->alarm = when;
+	up->alarm = when;
 	qunlock(&alarms);
 
 	return old;
