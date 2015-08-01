@@ -28,7 +28,7 @@
 #pragma	varargck argpos	eventlog	1
 
 #define dprint(...)	if(debug) eventlog(__VA_ARGS__); else USED(debug);
-#define uprint(...)	snprint(m->externup->genbuf, sizeof m->externup->genbuf, __VA_ARGS__);
+#define uprint(...)	snprint(up->genbuf, sizeof up->genbuf, __VA_ARGS__);
 
 enum {
 	Maxunits	= 0xff,
@@ -312,9 +312,9 @@ frameerror(Aoedev *d, Frame *f, char *s)
 static char*
 unitname(Aoedev *d)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uprint("%d.%d", d->major, d->minor);
-	return m->externup->genbuf;
+	return up->genbuf;
 }
 
 #if 0
@@ -328,7 +328,7 @@ eventlogready(void* v)
 static int32_t
 eventlogread(void *a, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int len;
 	char *p, *buf;
 
@@ -536,7 +536,7 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 static int
 resend(Aoedev *d, Frame *f)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t n;
 	Aoeata *a;
 
@@ -562,7 +562,7 @@ resend(Aoedev *d, Frame *f)
 static void
 discover(int major, int minor)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Aoehdr *h;
 	Block *b;
 	Netlink *nl, *e;
@@ -600,7 +600,7 @@ discover(int major, int minor)
 static void
 aoesweepproc(void* v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t i, tx, timeout, nbc;
 	int64_t starttick;
 	enum { Nms = 100, Nbcms = 30*1000, };
@@ -670,7 +670,7 @@ loop:
 	runlock(&devs);
 	i = Nms - TK2MS(sys->ticks - starttick);
 	if(i > 0)
-		tsleep(&m->externup->sleep, return0, 0, i);
+		tsleep(&up->sleep, return0, 0, i);
 	goto loop;
 }
 
@@ -690,7 +690,7 @@ static void netbind(char *path);
 static void
 aoecfg(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int n, i;
 	char *p, *f[32], buf[24];
 
@@ -746,7 +746,7 @@ aoeattach(char *spec)
 static Aoedev*
 unit2dev(uint32_t unit)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	Aoedev *d;
 
@@ -759,7 +759,7 @@ unit2dev(uint32_t unit)
 		}
 	runlock(&devs);
 	uprint("unit lookup failure: %lux pc %p", unit, getcallerpc(&unit));
-	error(m->externup->genbuf);
+	error(up->genbuf);
 	return nil;
 }
 
@@ -842,7 +842,7 @@ topgen(Chan *c, uint32_t type, Dir *d)
 static int
 aoegen(Chan *c, char *e, Dirtab *dir, int j, int s, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	Aoedev *d;
 	Qid q;
@@ -890,7 +890,7 @@ aoegen(Chan *c, char *e, Dirtab *dir, int j, int s, Dir *dp)
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, Qtopdir), 0, QTDIR);
 			uprint("%uld", UNIT(c->qid));
-			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
+			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
 		return unitgen(c, Qunitbase+s, dp);
@@ -913,12 +913,12 @@ aoegen(Chan *c, char *e, Dirtab *dir, int j, int s, Dir *dp)
 			return -1;
 		uprint("%d", s);
 		mkqid(&q, Q3(s, i, Qdevlink), 0, QTFILE);
-		devdir(c, q, m->externup->genbuf, 0, eve, 0755, dp);
+		devdir(c, q, up->genbuf, 0, eve, 0755, dp);
 		return 1;
 	case Qdevlink:
 		uprint("%d", s);
 		mkqid(&q, Q3(s, UNIT(c->qid), Qdevlink), 0, QTFILE);
-		devdir(c, q, m->externup->genbuf, 0, eve, 0755, dp);
+		devdir(c, q, up->genbuf, 0, eve, 0755, dp);
 		return 1;
 	}
 }
@@ -938,7 +938,7 @@ aoestat(Chan *c, uint8_t *db, int32_t n)
 static Chan*
 aoeopen(Chan *c, int omode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Aoedev *d;
 
 	if(TYPE(c->qid) != Qdata)
@@ -962,7 +962,7 @@ aoeopen(Chan *c, int omode)
 static void
 aoeclose(Chan *c)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Aoedev *d;
 
 	if(TYPE(c->qid) != Qdata || (c->flag&COPEN) == 0)
@@ -980,7 +980,7 @@ aoeclose(Chan *c)
 static void
 atarw(Aoedev *d, Frame *f)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t bcnt;
 	char extbit, writebit;
 	Aoeata *ah;
@@ -1134,7 +1134,7 @@ work(Aoedev *d)
 static void
 strategy(Aoedev *d, Srb *srb)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	qlock(d);
 	if(waserror()){
 		qunlock(d);
@@ -1161,7 +1161,7 @@ strategy(Aoedev *d, Srb *srb)
 static int32_t
 rw(Aoedev *d, int write, uint8_t *db, int32_t len, uint64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int32_t n, nlen, copy;
 	enum { Srbsz = 1<<18, };
 	Srb *srb;
@@ -1391,7 +1391,7 @@ aoeread(Chan *c, void *db, int32_t n, int64_t off)
 static int32_t
 configwrite(Aoedev *d, void *db, int32_t len)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *s;
 	Aoeqc *ch;
 	Frame *f;
@@ -1422,7 +1422,7 @@ configwrite(Aoedev *d, void *db, int32_t len)
 		qunlock(d);
 		if(waserror())
 			nexterror();
-		tsleep(&m->externup->sleep, return0, 0, 100);
+		tsleep(&up->sleep, return0, 0, 100);
 		poperror();
 	}
 	f->nhdr = AOEQCSZ;
@@ -1506,7 +1506,7 @@ static void ataident(Aoedev*);
 static int32_t
 unitctlwrite(Aoedev *d, void *db, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint maxbcnt, mm;
 	uint64_t bsize;
 	enum {
@@ -1624,7 +1624,7 @@ unitwrite(Chan *c, void *db, int32_t n, int64_t off)
 static Netlink*
 addnet(char *path, Chan *cc, Chan *dc, Chan *mtu, uint8_t *ea)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Netlink *nl, *e;
 
 	lock(&netlinks);
@@ -1726,7 +1726,7 @@ mm2dev(int major, int minor)
 static Aoedev*
 getdev(int32_t major, int32_t minor, int n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Aoedev *d;
 
 	wlock(&devs);
@@ -1808,7 +1808,7 @@ ataident(Aoedev *d)
 static int
 getmtu(Chan *mm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int n, mtu;
 	char buf[36];
 
@@ -1888,7 +1888,7 @@ errrsp(Block *b, char *s)
 static void
 qcfgrsp(Block *b, Netlink *nl)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int major, cmd, cslen, blen;
 	unsigned n;
 	Aoedev *d;
@@ -1940,7 +1940,7 @@ qcfgrsp(Block *b, Netlink *nl)
 		n = Maxframes;
 
 	if(waserror()){
-		eventlog("getdev: %d.%d ignored: %s\n", major, ch->minor, m->externup->errstr);
+		eventlog("getdev: %d.%d ignored: %s\n", major, ch->minor, up->errstr);
 		return;
 	}
 	d = getdev(major, ch->minor, n);
@@ -1949,7 +1949,7 @@ qcfgrsp(Block *b, Netlink *nl)
 	qlock(d);
 	if(waserror()){
 		qunlock(d);
-		eventlog("%æ: %s\n", d, m->externup->errstr);
+		eventlog("%æ: %s\n", d, up->errstr);
 		nexterror();
 	}
 
@@ -2075,7 +2075,7 @@ identify(Aoedev *d, uint16_t *id)
 static void
 atarsp(Block *b)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	unsigned n;
 	int16_t major;
 	Aoeata *ahin, *ahout;
@@ -2159,7 +2159,7 @@ bail:
 static void
 netrdaoeproc(void *v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int idx;
 	char name[Maxpath+1], *s;
 	Aoehdr *h;
@@ -2172,29 +2172,29 @@ netrdaoeproc(void *v)
 	kstrcpy(name, nl->path, Maxpath);
 
 	if(waserror()){
-		eventlog("netrdaoe exiting: %s\n", m->externup->errstr);
+		eventlog("netrdaoe exiting: %s\n", up->errstr);
 		netlinks.reader[idx] = 0;
 		wakeup(netlinks.rendez + idx);
-		pexit(m->externup->errstr, 1);
+		pexit(up->errstr, 1);
 	}
 	if(autodiscover)
 		discover(0xffff, 0xff);
 	for (;;) {
 		if(!(nl->flag & Dup)) {
 			uprint("%s: netlink is down", name);
-			error(m->externup->genbuf);
+			error(up->genbuf);
 		}
 		if (nl->dc == nil)
 			panic("netrdaoe: nl->dc == nil");
 		b = nl->dc->dev->bread(nl->dc, 1<<16, 0);
 		if(b == nil) {
 			uprint("%s: nil read from network", name);
-			error(m->externup->genbuf);
+			error(up->genbuf);
 		}
 		h = (Aoehdr*)b->rp;
 		if(h->verflag & AFrsp)
 			if(s = aoeerror(h)){
-				eventlog("%s: %s\n", nl->path, m->externup->errstr);
+				eventlog("%s: %s\n", nl->path, up->errstr);
 				errrsp(b, s);
 			}else
 				switch(h->cmd){
@@ -2216,14 +2216,14 @@ netrdaoeproc(void *v)
 static void
 getaddr(char *path, uint8_t *ea)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int n;
 	char buf[2*Eaddrlen+1];
 	Chan *c;
 	extern int parseether(uint8_t*, char*);
 
 	uprint("%s/addr", path);
-	c = namec(m->externup->genbuf, Aopen, OREAD, 0);
+	c = namec(up->genbuf, Aopen, OREAD, 0);
 	if(waserror()) {
 		cclose(c);
 		nexterror();
@@ -2241,7 +2241,7 @@ getaddr(char *path, uint8_t *ea)
 static void
 netbind(char *path)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char addr[Maxpath];
 	uint8_t ea[2*Eaddrlen+1];
 	Chan *dc, *cc, *mtu;
@@ -2282,7 +2282,7 @@ unbound(void *v)
 static void
 netunbind(char *path)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, idx;
 	Aoedev *d, *p, *next;
 	Chan *dc, *cc;
@@ -2439,7 +2439,7 @@ discoverstr(char *f)
 static int32_t
 topctlwrite(void *db, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	enum {
 		Autodiscover,
 		Bind,

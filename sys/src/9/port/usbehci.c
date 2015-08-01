@@ -744,7 +744,7 @@ qhadvanced(void *a)
 static void
 qhcoherency(Ctlr *ctlr)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 
 	qlock(&ctlr->portlck);
@@ -1581,7 +1581,7 @@ interrupt(Ureg *ureg, void* a)
 static int
 portenable(Hci *hp, int port, int on)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 	Eopio *opio;
 	int s;
@@ -1606,7 +1606,7 @@ portenable(Hci *hp, int port, int on)
 	coherence();
 	microdelay(64);
 	iunlock(ctlr);
-	tsleep(&m->externup->sleep, return0, 0, Enabledelay);
+	tsleep(&up->sleep, return0, 0, Enabledelay);
 	dprint("ehci %#p port %d enable=%d: sts %#lux\n",
 		ctlr->capio, port, on, opio->portsc[port-1]);
 	qunlock(&ctlr->portlck);
@@ -1640,7 +1640,7 @@ portlend(Ctlr *ctlr, int port, char *ss)
 static int
 portreset(Hci *hp, int port, int on)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t *portscp;
 	Eopio *opio;
 	Ctlr *ctlr;
@@ -1694,7 +1694,7 @@ portreset(Hci *hp, int port, int on)
 static int
 portstatus(Hci *hp, int port)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int s, r;
 	Eopio *opio;
 	Ctlr *ctlr;
@@ -1913,7 +1913,7 @@ episofscpy(Ctlr *ctlr, Ep *ep, Isoio* iso, unsigned char *b, int32_t count)
 static int32_t
 episoread(Ep *ep, Isoio *iso, void *a, int32_t count)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 	unsigned char *b;
 	int32_t tot;
@@ -2016,7 +2016,7 @@ putsamples(Isoio *iso, unsigned char *b, int32_t count)
 static int32_t
 episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 	unsigned char *b;
 	int tot, nw;
@@ -2171,7 +2171,7 @@ workpending(void *a)
 static void
 ehcipoll(void* a)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Hci *hp;
 	Ctlr *ctlr;
 	Poll *poll;
@@ -2190,7 +2190,7 @@ ehcipoll(void* a)
 			if(ehciintr(hp) == 0)
 				 break;
 		do{
-			tsleep(&m->externup->sleep, return0, 0, 1);
+			tsleep(&up->sleep, return0, 0, 1);
 			ehciintr(hp);
 		}while(ctlr->nreqs > 0);
 	}
@@ -2228,7 +2228,7 @@ epiodone(void *a)
 static void
 epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Qh *qh;
 	int timedout;
 	Ctlr *ctlr;
@@ -2275,7 +2275,7 @@ epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
 		io->err = "request timed out";
 		iunlock(ctlr);
 		if(!waserror()){
-			tsleep(&m->externup->sleep, return0, 0, Abortdelay);
+			tsleep(&up->sleep, return0, 0, Abortdelay);
 			poperror();
 		}
 		ilock(ctlr);
@@ -2297,7 +2297,7 @@ epiowait(Hci *hp, Qio *io, int tmout, uint32_t load)
 static int32_t
 epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int saved, ntds, tmout;
 	int32_t n, tot;
 	uint32_t load;
@@ -2434,7 +2434,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 static int32_t
 epread(Ep *ep, void *a, int32_t count)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlio *cio;
 	Qio *io;
 	Isoio *iso;
@@ -2487,7 +2487,7 @@ epread(Ep *ep, void *a, int32_t count)
 		io = ep->aux;
 		delta = TK2MS(m->ticks) - io[OREAD].iotime + 1;
 		if(delta < ep->pollival / 2)
-			tsleep(&m->externup->sleep, return0, 0, ep->pollival/2 - delta);
+			tsleep(&up->sleep, return0, 0, ep->pollival/2 - delta);
 		if(ep->clrhalt)
 			clrhalt(ep);
 		return epio(ep, &io[OREAD], a, count, 1);
@@ -2514,7 +2514,7 @@ epread(Ep *ep, void *a, int32_t count)
 static int32_t
 epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	unsigned char *c;
 	int32_t len;
 
@@ -2597,7 +2597,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 static int32_t
 epwrite(Ep *ep, void *a, int32_t count)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Qio *io;
 	Ctlio *cio;
 	Isoio *iso;
@@ -2621,7 +2621,7 @@ epwrite(Ep *ep, void *a, int32_t count)
 		io = ep->aux;
 		delta = TK2MS(m->ticks) - io[OWRITE].iotime + 1;
 		if(delta < ep->pollival)
-			tsleep(&m->externup->sleep, return0, 0, ep->pollival - delta);
+			tsleep(&up->sleep, return0, 0, ep->pollival - delta);
 		if(ep->clrhalt)
 			clrhalt(ep);
 		return epio(ep, &io[OWRITE], a, count, 1);
@@ -2849,7 +2849,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 static void
 epopen(Ep *ep)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 	Ctlio *cio;
 	Qio *io;
@@ -2920,7 +2920,7 @@ epopen(Ep *ep)
 static void
 cancelio(Ctlr *ctlr, Qio *io)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Qh *qh;
 
 	ilock(ctlr);
@@ -2935,7 +2935,7 @@ cancelio(Ctlr *ctlr, Qio *io)
 	qh->state = Qclose;
 	iunlock(ctlr);
 	if(!waserror()){
-		tsleep(&m->externup->sleep, return0, 0, Abortdelay);
+		tsleep(&up->sleep, return0, 0, Abortdelay);
 		poperror();
 	}
 	wakeup(io);
@@ -2950,7 +2950,7 @@ cancelio(Ctlr *ctlr, Qio *io)
 static void
 cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int frno, i, n, t, w, woff;
 	uint32_t *lp, *tp;
 	Isoio **il;
@@ -3020,7 +3020,7 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, uint32_t load)
 	 */
 	wakeup(iso);
 	diprint("cancelisoio iso %#p waiting for I/O to cease\n", iso);
-	tsleep(&m->externup->sleep, return0, 0, 5);
+	tsleep(&up->sleep, return0, 0, 5);
 	qlock(iso);
 	qunlock(iso);
 	diprint("cancelisoio iso %#p releasing iso\n", iso);

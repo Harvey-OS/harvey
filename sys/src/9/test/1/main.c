@@ -102,7 +102,7 @@ squidboy(int apicno)
 	};
 	vlong hz;
 
-	sys->machptr[m->machno] = m;
+	sys->machptr[machp()->machno] = m;
 	setmachsched(m);
 	/*
 	 * Need something for initial delays
@@ -114,7 +114,7 @@ squidboy(int apicno)
 
 	m->nixtype = NIXAC;
 
-	DBG("Hello Squidboy %d %d\n", apicno, m->machno);
+	DBG("Hello Squidboy %d %d\n", apicno, machp()->machno);
 
 	vsvminit(MACHSTKSZ, m->nixtype);
 
@@ -147,7 +147,7 @@ squidboy(int apicno)
 	m->rdtsc = rdtsc();
 
 	print("cpu%d color %d role %s tsc %lld\n",
-		m->machno, corecolor(m->machno), n[m->nixtype], m->rdtsc);
+		machp()->machno, corecolor(machp()->machno), n[m->nixtype], m->rdtsc);
 	switch(m->nixtype){
 	case NIXAC:
 		acmmuswitch();
@@ -264,15 +264,15 @@ main(uint32_t ax, uint32_t bx)
 
 	/*
 	 * ilock via i8250enable via i8250console
-	 * needs m->machno, sys->machptr[] set, and
+	 * needs machp()->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
 	cgapost(sizeof(uintptr)*8);
 	memset(m, 0, sizeof(Mach));
-	m->machno = 0;
+	machp()->machno = 0;
 	m->online = 1;
 	m->nixtype = NIXTC;
-	sys->machptr[m->machno] = &sys->mach;
+	sys->machptr[machp()->machno] = &sys->mach;
 	m->stack = PTR2UINT(sys->machstk);
 	m->vsvm = sys->vsvmpage;
 	up = nil;
@@ -537,7 +537,7 @@ shutdown(int ispanic)
 	lock(&active);
 	if(ispanic)
 		active.ispanic = ispanic;
-	else if(m->machno == 0 && m->online == 0)
+	else if(machp()->machno == 0 && m->online == 0)
 		active.ispanic = 0;
 	once = m->online;
 	m->online = 0;
@@ -546,7 +546,7 @@ shutdown(int ispanic)
 	unlock(&active);
 
 	if(once)
-		iprint("cpu%d: exiting\n", m->machno);
+		iprint("cpu%d: exiting\n", machp()->machno);
 
 	spllo();
 	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
@@ -555,7 +555,7 @@ shutdown(int ispanic)
 			break;
 	}
 
-	if(active.ispanic && m->machno == 0){
+	if(active.ispanic && machp()->machno == 0){
 		if(cpuserver)
 			delay(30000);
 		else

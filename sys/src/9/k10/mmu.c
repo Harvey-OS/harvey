@@ -31,7 +31,7 @@
 void
 mmuflushtlb(uint64_t u)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 
 	m->tlbpurge++;
 	if(m->pml4->daddr){
@@ -44,19 +44,19 @@ mmuflushtlb(uint64_t u)
 void
 mmuflush(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mpl pl;
 
 	pl = splhi();
-	m->externup->newtlb = 1;
-	mmuswitch(m->externup);
+	up->newtlb = 1;
+	mmuswitch(up);
 	splx(pl);
 }
 
 static void
 mmuptpfree(Proc* proc, int clear)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int l;
 	PTE *pte;
 	Page **last, *page;
@@ -117,7 +117,7 @@ dumpptepg(int lvl, uintptr_t pa)
 void
 dumpmmu(Proc *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	Page *pg;
 
@@ -136,19 +136,19 @@ dumpmmu(Proc *p)
 void
 dumpmmuwalk(uint64_t addr)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int l;
 	PTE *pte, *pml4;
 
 	pml4 = UINT2PTR(m->pml4->va);
 	if((l = mmuwalk(pml4, addr, 3, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llux\n", m->machno, l, pte, *pte);
+		print("cpu%d: mmu l%d pte %#p = %llux\n", machp()->machno, l, pte, *pte);
 	if((l = mmuwalk(pml4, addr, 2, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llux\n", m->machno, l, pte, *pte);
+		print("cpu%d: mmu l%d pte %#p = %llux\n", machp()->machno, l, pte, *pte);
 	if((l = mmuwalk(pml4, addr, 1, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llux\n", m->machno, l, pte, *pte);
+		print("cpu%d: mmu l%d pte %#p = %llux\n", machp()->machno, l, pte, *pte);
 	if((l = mmuwalk(pml4, addr, 0, &pte, nil)) >= 0)
-		print("cpu%d: mmu l%d pte %#p = %llux\n", m->machno, l, pte, *pte);
+		print("cpu%d: mmu l%d pte %#p = %llux\n", machp()->machno, l, pte, *pte);
 }
 
 static Page mmuptpfreelist;
@@ -206,7 +206,7 @@ mmuptpalloc(void)
 void
 mmuswitch(Proc* proc)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	PTE *pte;
 	Page *page;
 	Mpl pl;
@@ -243,7 +243,7 @@ mmuswitch(Proc* proc)
 void
 mmurelease(Proc* proc)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Page *page, *next;
 
 	mmuptpfree(proc, 0);
@@ -270,7 +270,7 @@ mmurelease(Proc* proc)
 static void
 checkpte(uintmem ppn, void *a)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int l;
 	PTE *pte, *pml4;
 	uint64_t addr;
@@ -315,7 +315,7 @@ Panic:
 static void
 mmuptpcheck(Proc *proc)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int lvl, npgs, i;
 	Page *lp, *p, *pgs[16], *fp;
 	uint idx[16];
@@ -389,7 +389,7 @@ pteflags(uint attr)
 void
 mmuput(uintptr_t va, Page *pg, uint attr)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int lvl, user, x, pgsz;
 	PTE *pte;
 	Page *page, *prev;
@@ -404,7 +404,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 
 	if(DBGFLG){
 		snprint(buf, sizeof buf, "cpu%d: up %#p mmuput %#p %#P %#ux\n", 
-			m->machno, m->externup, va, pa, attr);
+			machp()->machno, up, va, pa, attr);
 		print("%s", buf);
 	}
 	assert(pg->pgszi >= 0);
@@ -415,7 +415,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 
 	pl = splhi();
 	if(DBGFLG)
-		mmuptpcheck(m->externup);
+		mmuptpcheck(up);
 	user = (va < KZERO);
 	x = PTLX(va, 3);
 
@@ -430,7 +430,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			if(pgsz == 1ull*GiB && lvl == 2)	/* use 1G */
 				break;
 		}
-		for(page = m->externup->mmuptp[lvl]; page != nil; page = page->next)
+		for(page = up->mmuptp[lvl]; page != nil; page = page->next)
 			if(page->prev == prev && page->daddr == x){
 				if(*pte == 0){
 					print("mmu: jmk and nemo had fun\n");
@@ -440,15 +440,15 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 			}
 
 		if(page == nil){
-			if(m->externup->mmuptp[0] == nil)
+			if(up->mmuptp[0] == nil)
 				page = mmuptpalloc();
 			else {
-				page = m->externup->mmuptp[0];
-				m->externup->mmuptp[0] = page->next;
+				page = up->mmuptp[0];
+				up->mmuptp[0] = page->next;
 			}
 			page->daddr = x;
-			page->next = m->externup->mmuptp[lvl];
-			m->externup->mmuptp[lvl] = page;
+			page->next = up->mmuptp[lvl];
+			up->mmuptp[lvl] = page;
 			page->prev = prev;
 			*pte = PPN(page->pa)|PteU|PteRW|PteP;
 			if(lvl == 3 && x >= m->pml4->daddr)
@@ -482,7 +482,7 @@ mmuput(uintptr_t va, Page *pg, uint attr)
 
 	if(DBGFLG){
 		snprint(buf, sizeof buf, "cpu%d: up %#p new pte %#p = %#llux\n", 
-			m->machno, m->externup, pte, pte?*pte:~0);
+			machp()->machno, up, pte, pte?*pte:~0);
 		print("%s", buf);
 	}
 
@@ -649,13 +649,13 @@ vmapalloc(usize size)
 void*
 vmap(uintptr_t pa, usize size)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintptr_t va;
 	usize o, sz;
 
 	DBG("vmap(%#p, %lud) pc=%#p\n", pa, size, getcallerpc(&pa));
 
-	if(m->machno != 0)
+	if(machp()->machno != 0)
 		panic("vmap");
 
 	/*
@@ -702,12 +702,12 @@ vmap(uintptr_t pa, usize size)
 void
 vunmap(void* v, usize size)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintptr_t va;
 
 	DBG("vunmap(%#p, %lud)\n", v, size);
 
-	if(m->machno != 0)
+	if(machp()->machno != 0)
 		panic("vunmap");
 
 	/*
@@ -729,7 +729,7 @@ int
 mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 	uint64_t (*alloc)(usize))
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int l;
 	uintmem pa;
 	PTE *pte;
@@ -738,7 +738,7 @@ mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 
 	pl = splhi();
 	if(DBGFLG > 1)
-		DBG("mmuwalk%d: va %#p level %d\n", m->machno, va, level);
+		DBG("mmuwalk%d: va %#p level %d\n", machp()->machno, va, level);
 	pte = &pml4[PTLX(va, 3)];
 	for(l = 3; l >= 0; l--){
 		if(l == level)
@@ -765,7 +765,7 @@ mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 uintmem
 mmuphysaddr(uintptr_t va)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int l;
 	PTE *pte;
 	uintmem mask, pa;
@@ -794,15 +794,15 @@ Page mach0pml4;
 void
 mmuinit(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint8_t *p;
 	Page *page;
 	uint64_t o, pa, r, sz;
 
 	archmmu();
-	DBG("mach%d: %#p pml4 %#p npgsz %d\n", m->machno, m, m->pml4, m->npgsz);
+	DBG("mach%d: %#p pml4 %#p npgsz %d\n", machp()->machno, m, m->pml4, m->npgsz);
 
-	if(m->machno != 0){
+	if(machp()->machno != 0){
 		/* NIX: KLUDGE: Has to go when each mach is using
 		 * its own page table
 		 */

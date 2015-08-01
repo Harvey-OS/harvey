@@ -463,7 +463,7 @@ fpuinit(void)
 	m->mxcsr = (Rn|Pm|Um|Dm) & m->mxcsrmask;
 	_stts();
 
-	if(m->machno != 0)
+	if(machp()->machno != 0)
 		return;
 
 	/*

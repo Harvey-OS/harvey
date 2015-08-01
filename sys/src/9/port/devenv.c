@@ -41,7 +41,7 @@ envlookup(Egrp *eg, char *name, uint32_t qidpath)
 static int
 envgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Egrp *eg;
 	Evalue *e;
 
@@ -64,8 +64,8 @@ envgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 	}
 
 	/* make sure name string continues to exist after we release lock */
-	kstrcpy(m->externup->genbuf, e->name, sizeof m->externup->genbuf);
-	devdir(c, e->qid, m->externup->genbuf, e->len, eve, 0666, dp);
+	kstrcpy(up->genbuf, e->name, sizeof up->genbuf);
+	devdir(c, e->qid, up->genbuf, e->len, eve, 0666, dp);
 	runlock(eg);
 	return 1;
 }
@@ -150,7 +150,7 @@ envopen(Chan *c, int omode)
 static void
 envcreate(Chan *c, char *name, int omode, int i)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Egrp *eg;
 	Evalue *e;
 	Evalue **ent;
@@ -378,9 +378,9 @@ closeegrp(Egrp *eg)
 static Egrp*
 envgrp(Chan *c)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(c->aux == nil)
-		return m->externup->egrp;
+		return up->egrp;
 	return c->aux;
 }
 
@@ -413,7 +413,7 @@ ksetenv(char *ename, char *eval, int conf)
 char *
 getconfenv(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Egrp *eg = &confegrp;
 	Evalue *e;
 	char *p, *q;

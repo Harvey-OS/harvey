@@ -595,7 +595,7 @@ tcpclose(Conv *c)
 static void
 tcpkick(void *x)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Conv *s = x;
 	Tcpctl *tcb;
 
@@ -654,7 +654,7 @@ tcprcvwin(Conv *s)				/* Call with tcb locked */
 static void
 tcpacktimer(void *v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Tcpctl *tcb;
 	Conv *s;
 
@@ -757,7 +757,7 @@ timerstate(Tcppriv *priv, Tcptimer *t, int newstate)
 static void
 tcpackproc(void *a)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Tcptimer *t, *tp, *timeo;
 	Proto *tcp;
 	Tcppriv *priv;
@@ -767,7 +767,7 @@ tcpackproc(void *a)
 	priv = tcp->priv;
 
 	for(;;) {
-		tsleep(&m->externup->sleep, return0, 0, MSPTICK);
+		tsleep(&up->sleep, return0, 0, MSPTICK);
 
 		qlock(&priv->tl);
 		timeo = nil;
@@ -1430,7 +1430,7 @@ sndrst(Proto *tcp, uint8_t *source, uint8_t *dest, uint16_t length, Tcp *seg, ui
 static char*
 tcphangup(Conv *s)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Tcp seg;
 	Tcpctl *tcb;
 	Block *hbp;
@@ -2084,7 +2084,7 @@ done:
 static void
 tcpiput(Proto *tcp, Ipifc *ipifc, Block *bp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Tcp seg;
 	Tcp4hdr *h4;
 	Tcp6hdr *h6;
@@ -2872,7 +2872,7 @@ tcpsetkacounter(Tcpctl *tcb)
 static void
 tcpkeepalive(void *v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Tcpctl *tcb;
 	Conv *s;
 
@@ -2966,7 +2966,7 @@ tcprxmit(Conv *s)
 static void
 tcptimeout(void *arg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Conv *s;
 	Tcpctl *tcb;
 	int maxback;

@@ -276,7 +276,7 @@ addhcitype(char* t, int (*r)(Hci*))
 static char*
 seprintep(char *s, char *se, Ep *ep, int all)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	static char* dsnames[] = { "config", "enabled", "detached", "reset" };
 	Udev *d;
 	int i;
@@ -410,7 +410,7 @@ putep(Ep *ep)
 static void
 dumpeps(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	static char buf[512];
 	char *s;
@@ -547,7 +547,7 @@ epdataperm(int mode)
 static int
 usbgen(Chan *c, char *l, Dirtab *d, int n, int s, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Qid q;
 	Dirtab *dir;
 	int perm;
@@ -619,12 +619,12 @@ usbgen(Chan *c, char *l, Dirtab *d, int n, int s, Dir *dp)
 			putep(ep);
 			nexterror();
 		}
-		se = m->externup->genbuf+sizeof(m->externup->genbuf);
-		seprint(m->externup->genbuf, se, "ep%d.%d", ep->dev->nb, ep->nb);
+		se = up->genbuf+sizeof(up->genbuf);
+		seprint(up->genbuf, se, "ep%d.%d", ep->dev->nb, ep->nb);
 		mkqid(&q, Qep0dir+4*s, 0, QTDIR);
 		putep(ep);
 		poperror();
-		devdir(c, q, m->externup->genbuf, 0, eve, 0755, dp);
+		devdir(c, q, up->genbuf, 0, eve, 0755, dp);
 		if(0)ddprint("ok\n");
 		return 1;
 
@@ -835,7 +835,7 @@ usbload(int speed, int maxpkt)
 static Chan*
 usbopen(Chan *c, int omode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int q;
 	Ep *ep;
 	int mode;
@@ -892,7 +892,7 @@ usbopen(Chan *c, int omode)
 static void
 epclose(Ep *ep)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	qlock(ep);
 	if(waserror()){
 		qunlock(ep);
@@ -909,7 +909,7 @@ epclose(Ep *ep)
 static void
 usbclose(Chan *c)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int q;
 	Ep *ep;
 
@@ -939,7 +939,7 @@ usbclose(Chan *c)
 static int32_t
 ctlread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int q;
 	char *s;
 	char *us;
@@ -1056,7 +1056,7 @@ rhubwrite(Ep *ep, void *a, int32_t n)
 static int32_t
 usbread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int q;
 	Ep *ep;
 	int nr;
@@ -1134,7 +1134,7 @@ setmaxpkt(Ep *ep, char* s)
 static int32_t
 epctl(Ep *ep, Chan *c, void *a, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, l, mode, nb, tt;
 	char *b, *s;
 	Cmdbuf *cb;
@@ -1190,9 +1190,9 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 		/* next read request will read
 		 * the name for the new endpoint
 		 */
-		l = sizeof(m->externup->genbuf);
-		snprint(m->externup->genbuf, l, "ep%d.%d", nep->dev->nb, nep->nb);
-		kstrdup((char**)&c->aux, m->externup->genbuf);
+		l = sizeof(up->genbuf);
+		snprint(up->genbuf, l, "ep%d.%d", nep->dev->nb, nep->nb);
+		kstrdup((char**)&c->aux, up->genbuf);
 		break;
 	case CMhub:
 		deprint("usb epctl %s\n", cb->f[0]);
@@ -1348,7 +1348,7 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 static int32_t
 usbctl(void *a, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Cmdtab *ct;
 	Cmdbuf *cb;
 	Ep *ep;
@@ -1388,7 +1388,7 @@ usbctl(void *a, int32_t n)
 static int32_t
 ctlwrite(Chan *c, void *a, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int q;
 	Ep *ep;
 
@@ -1420,7 +1420,7 @@ ctlwrite(Chan *c, void *a, int32_t n)
 static int32_t
 usbwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int nr, q;
 	Ep *ep;
 

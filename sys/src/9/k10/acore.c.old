@@ -63,7 +63,7 @@ actouser(void)
 
 	memmove(&sp, m->icc->data, sizeof(sp));
 	u = m->proc->dbgreg;
-	DBG("cpu%d: touser usp = %#p entry %#p\n", m->machno, sp, u->ip);
+	DBG("cpu%d: touser usp = %#p entry %#p\n", machp()->machno, sp, u->ip);
 
 
 	/*
@@ -96,7 +96,7 @@ actrap(Ureg *u)
 	switch(u->type){
 	case IdtIPI:
 		m->intr++;
-		print("actrap: cpu%d: IPI\n", m->machno);
+		print("actrap: cpu%d: IPI\n", machp()->machno);
 		/*
 		 * Beware: BUG: we can get now IPIs while in kernel mode,
 		 * after declaring the end of the interrupt.
@@ -106,10 +106,10 @@ actrap(Ureg *u)
 		break;
 	case IdtPF:
 		m->pfault++;
-		print("actrap: cpu%d: PF\n", m->machno);
+		print("actrap: cpu%d: PF\n", machp()->machno);
 		break;
 	default:
-		print("actrap: cpu%d: %ulld\n", m->machno, u->type);
+		print("actrap: cpu%d: %ulld\n", machp()->machno, u->type);
 	}
 	m->icc->rc = ICCTRAP;
 	m->cr2 = cr2get();
@@ -137,7 +137,7 @@ acsyscall(void)
 	 * There's nothing else we have to do.
 	 * Otherwise, we should m->proc->dbgregs = u;
 	 */
-	DBG("acsyscall: cpu%d\n", m->machno);
+	DBG("acsyscall: cpu%d\n", machp()->machno);
 	m->syscall++;	/* would also count it in the TS core */
 	m->icc->rc = ICCSYSCALL;
 	m->cr2 = cr2get();

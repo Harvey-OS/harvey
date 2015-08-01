@@ -91,7 +91,7 @@ canflush(Proc *p, Segment *s)
 static int
 pageout(Proc *p, Segment *s)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, size, n;
 	Pte *l;
 	Page **pg, *entry;
@@ -196,7 +196,7 @@ Again:
 static void
 freepages(int si, int once)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Pgsza *pa;
 	Page *p;
 
@@ -204,7 +204,7 @@ freepages(int si, int once)
 		pa = &pga.pgsza[si];
 		if(pa->freecount > 0){
 			DBG("kickpager() up %#p: releasing %udK pages\n",
-				m->externup, m->pgsz[si]/KiB);
+				up, m->pgsz[si]/KiB);
 			lock(&pga);
 			if(pa->freecount == 0){
 				unlock(&pga);
@@ -225,7 +225,7 @@ freepages(int si, int once)
 static int
 tryalloc(int pgszi, int color)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Page *p;
 
 	p = pgalloc(m->pgsz[pgszi], color);
@@ -263,11 +263,11 @@ hascolor(Page *pl, int color)
 void
 kickpager(int pgszi, int color)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Pgsza *pa;
 
 	if(DBGFLG>1)
-		DBG("kickpager() %#p\n", m->externup);
+		DBG("kickpager() %#p\n", up);
 	if(waserror())
 		panic("error in kickpager");
 	qlock(&pagerlck);
@@ -291,7 +291,7 @@ kickpager(int pgszi, int color)
 	 */
 	if(m->pgsz[pgszi] <= 2*MiB){
 		pstats.ntext++;
-		DBG("kickpager() up %#p: reclaiming text pages\n", m->externup);
+		DBG("kickpager() up %#p: reclaiming text pages\n", up);
 		pageouttext(pgszi, color);
 		tryalloc(pgszi, color);
 		if(hascolor(pa->head, color)){
@@ -315,7 +315,7 @@ kickpager(int pgszi, int color)
 	 * Really the last resort. Try releasing memory from all pages.
 	 */
 	pstats.nall++;
-	DBG("kickpager() up %#p: releasing all pages\n", m->externup);
+	DBG("kickpager() up %#p: releasing all pages\n", up);
 	freepages(0, 0);
 	tryalloc(pgszi, color);
 	if(pa->freecount > 0){
@@ -336,7 +336,7 @@ Done:
 	poperror();
 	qunlock(&pagerlck);
 	if(DBGFLG>1)
-		DBG("kickpager() done %#p\n", m->externup);
+		DBG("kickpager() done %#p\n", up);
 }
 
 void

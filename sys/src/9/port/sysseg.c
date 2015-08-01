@@ -71,7 +71,7 @@ isphysseg(char *name)
 uintptr_t
 ibrk(uintptr_t addr, int seg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s, *ns;
 	uintptr_t newtop, rtop;
 	int32_t newsize;
@@ -79,7 +79,7 @@ ibrk(uintptr_t addr, int seg)
 	Pte **map;
 	uintmem pgsz;
 
-	s = m->externup->seg[seg];
+	s = up->seg[seg];
 	if(s == 0)
 		error(Ebadarg);
 
@@ -112,7 +112,7 @@ ibrk(uintptr_t addr, int seg)
 		error(Enovmem);
 
 	for(i = 0; i < NSEG; i++) {
-		ns = m->externup->seg[i];
+		ns = up->seg[i];
 		if(ns == 0 || ns == s)
 			continue;
 		if(newtop >= ns->base && newtop < ns->top)
@@ -149,7 +149,7 @@ ibrk(uintptr_t addr, int seg)
 void
 syssegbrk(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	uintptr_t addr;
 	Segment *s;
@@ -164,15 +164,15 @@ syssegbrk(Ar0* ar0, ...)
 	addr = PTR2UINT(va_arg(list, void*));
 	if(addr == 0){
 		for(i = 0; i < NSEG; i++){
-			if(m->externup->seg[i] != nil && (m->externup->seg[i]->type&SG_TYPE) == SG_BSS){
-				ar0->v = UINT2PTR(m->externup->seg[i]->top);
+			if(up->seg[i] != nil && (up->seg[i]->type&SG_TYPE) == SG_BSS){
+				ar0->v = UINT2PTR(up->seg[i]->top);
 				return;
 			}
 		}
 		return;
 	}
 	for(i = 0; i < NSEG; i++) {
-		s = m->externup->seg[i];
+		s = up->seg[i];
 		if(s == nil)
 			continue;
 		/* Ok to extend an empty segment */
@@ -199,7 +199,7 @@ syssegbrk(Ar0* ar0, ...)
 void
 sysbrk_(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintptr_t addr;
 	va_list list;
 	va_start(list, ar0);
@@ -214,7 +214,7 @@ sysbrk_(Ar0* ar0, ...)
 	va_end(list);
 
 	for(i = 0; i < NSEG; i++){
-		if(m->externup->seg[i] != nil && (m->externup->seg[i]->type&SG_TYPE) == SG_BSS){
+		if(up->seg[i] != nil && (up->seg[i]->type&SG_TYPE) == SG_BSS){
 			ibrk(addr, i);
 			ar0->i = 0;
 			return;
@@ -226,7 +226,7 @@ sysbrk_(Ar0* ar0, ...)
 static uintptr_t
 segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int sno;
 	Segment *s, *os;
 	Physseg *ps;
@@ -256,7 +256,7 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 		s = (*_globalsegattach)(p, name);
 		if(s != nil){
 			p->seg[sno] = s;
-			if(p == m->externup && m->externup->prepagemem)
+			if(p == up && up->prepagemem)
 				nixprepage(sno);
 			va = s->base;
 			goto clean_out;
@@ -316,7 +316,7 @@ segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 	s->pseg = ps;
 	p->seg[sno] = s;
 
-	if(p == m->externup && m->externup->prepagemem)
+	if(p == up && up->prepagemem)
 		nixprepage(sno);
 
 clean_out:
@@ -328,7 +328,7 @@ clean_out:
 void
 syssegattach(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int attr;
 	char *name;
 	uintptr_t va;
@@ -347,13 +347,13 @@ syssegattach(Ar0* ar0, ...)
 	len = va_arg(list, usize);
 	va_end(list);
 
-	ar0->v = UINT2PTR(segattach(m->externup, attr, validaddr(name, 1, 0), va, len));
+	ar0->v = UINT2PTR(segattach(up, attr, validaddr(name, 1, 0), va, len));
 }
 
 void
 syssegdetach(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	uintptr_t addr;
 	Segment *s;
@@ -366,15 +366,15 @@ syssegdetach(Ar0* ar0, ...)
 	addr = PTR2UINT(va_arg(list, void*));
 	va_end(list);
 
-	qlock(&m->externup->seglock);
+	qlock(&up->seglock);
 	if(waserror()){
-		qunlock(&m->externup->seglock);
+		qunlock(&up->seglock);
 		nexterror();
 	}
 
 	s = 0;
 	for(i = 0; i < NSEG; i++)
-		if(s = m->externup->seg[i]) {
+		if(s = up->seg[i]) {
 			qlock(&s->lk);
 			if((addr >= s->base && addr < s->top) ||
 			   (s->top == s->base && addr == s->base))
@@ -395,10 +395,10 @@ found:
 		qunlock(&s->lk);
 		error(Ebadarg);
 	}
-	m->externup->seg[i] = 0;
+	up->seg[i] = 0;
 	qunlock(&s->lk);
 	putseg(s);
-	qunlock(&m->externup->seglock);
+	qunlock(&up->seglock);
 	poperror();
 
 	/* Ensure we flush any entries from the lost segment */
@@ -410,7 +410,7 @@ found:
 void
 syssegfree(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	uintptr_t from, to;
 	usize len;
@@ -423,7 +423,7 @@ syssegfree(Ar0* ar0, ...)
 	 * int segfree(void*, usize);
 	 */
 	from = PTR2UINT(va_arg(list, void*));
-	s = seg(m->externup, from, 1);
+	s = seg(up, from, 1);
 	if(s == nil)
 		error(Ebadarg);
 	len = va_arg(list, usize);
@@ -458,7 +458,7 @@ pteflush(Pte *pte, int s, int e)
 void
 syssegflush(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	uintptr_t addr;
 	Pte *pte;
@@ -476,7 +476,7 @@ syssegflush(Ar0* ar0, ...)
 	va_end(list);
 
 	while(len > 0) {
-		s = seg(m->externup, addr, 1);
+		s = seg(up, addr, 1);
 		if(s == nil)
 			error(Ebadarg);
 

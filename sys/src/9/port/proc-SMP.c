@@ -93,23 +93,23 @@ schedinit(void)		/* never returns */
 
 	setlabel(&m->sched);
 	if(up) {
-		if((e = m->externup->edf) && (e->flags & Admitted))
+		if((e = up->edf) && (e->flags & Admitted))
 			edfrecord(up);
 		m->qstart = 0;
 		m->qexpired = 0;
 		coherence();
 		m->proc = 0;
-		switch(m->externup->state) {
+		switch(up->state) {
 		case Running:
 			ready(up);
 			break;
 		case Moribund:
-			m->externup->state = Dead;
+			up->state = Dead;
 			stopac();
 			edfstop(up);
-			if (m->externup->edf)
-				free(m->externup->edf);
-			m->externup->edf = nil;
+			if (up->edf)
+				free(up->edf);
+			up->edf = nil;
 
 			/*
 			 * Holding locks from pexit:
@@ -123,7 +123,7 @@ schedinit(void)		/* never returns */
 			unlock(&procalloc);
 			break;
 		}
-		m->externup->mach = nil;
+		up->mach = nil;
 		updatecpu(up);
 		up = nil;
 	}
@@ -139,8 +139,8 @@ stackok(void)
 {
 	char dummy;
 
-	if(&dummy < (char*)m->externup->kstack + 4*KiB){
-		print("tc kernel stack overflow, cpu%d stopped\n", m->machno);
+	if(&dummy < (char*)up->kstack + 4*KiB){
+		print("tc kernel stack overflow, cpu%d stopped\n", machp()->machno);
 		DONE();
 	}
 }
@@ -156,10 +156,10 @@ sched(void)
 
 	if(m->ilockdepth)
 		panic("cpu%d: ilockdepth %d, last lock %#p at %#p, sched called from %#p",
-			m->machno,
+			machp()->machno,
 			m->ilockdepth,
-			up? m->externup->lastilock: nil,
-			(up && m->externup->lastilock)? up->lastilock->_pc: 0,
+			up? up->lastilock: nil,
+			(up && up->lastilock)? up->lastilock->_pc: 0,
 			getcallerpc(&p+2));
 
 	if(up){
@@ -177,28 +177,28 @@ sched(void)
 		 * instructions in the middle of taslock when a process
 		 * holds a lock but Lock.p has not yet been initialized.
 		 */
-		if(m->externup->nlocks)
-		if(m->externup->state != Moribund)
-		if(m->externup->delaysched < 20
+		if(up->nlocks)
+		if(up->state != Moribund)
+		if(up->delaysched < 20
 		|| pga.Lock.p == up
 		|| procalloc.Lock.p == up){
-			m->externup->delaysched++;
+			up->delaysched++;
  			run.delayedscheds++;
 			return;
 		}
-		m->externup->delaysched = 0;
+		up->delaysched = 0;
 
 		splhi();
 		/* statistics */
-		if(m->externup->nqtrap == 0 && up->nqsyscall == 0)
-			m->externup->nfullq++;
+		if(up->nqtrap == 0 && up->nqsyscall == 0)
+			up->nfullq++;
 		m->cs++;
 
 		stackok();
 
 		procsave(up);
 		mmuflushtlb(m->pml4->pa);
-		if(setlabel(&m->externup->sched)){
+		if(setlabel(&up->sched)){
 			procrestore(up);
 			spllo();
 			return;
@@ -216,15 +216,15 @@ sched(void)
 	}
 	up = p;
 	m->qstart = m->ticks;
-	m->externup->nqtrap = 0;
-	m->externup->nqsyscall = 0;
-	m->externup->state = Running;
-	m->externup->mach = m;
+	up->nqtrap = 0;
+	up->nqsyscall = 0;
+	up->state = Running;
+	up->mach = m;
 	m->proc = up;
 	mmuswitch(up);
 
-	assert(!m->externup->wired || up->wired == m);
-	gotolabel(&m->externup->sched);
+	assert(!up->wired || up->wired == m);
+	gotolabel(&up->sched);
 }
 
 int
@@ -236,7 +236,7 @@ anyready(void)
 int
 anyhigher(void)
 {
-	return run.runvec & ~((1<<(m->externup->priority+1))-1);
+	return run.runvec & ~((1<<(up->priority+1))-1);
 }
 
 /*
@@ -247,7 +247,7 @@ void
 hzsched(void)
 {
 	/* once a second, rebalance will reprioritize ready procs */
-	if(m->machno == 0){
+	if(machp()->machno == 0){
 		rebalance();
 		return;
 	}
@@ -259,7 +259,7 @@ hzsched(void)
 
 	/* unless preempted, get to run */
 	if(m->qexpired && anyready())
-		m->externup->delaysched++;
+		up->delaysched++;
 }
 
 /*
@@ -269,8 +269,8 @@ hzsched(void)
 int
 preempted(void)
 {
-	if(up && m->externup->state == Running)
-	if(m->externup->preempted == 0)
+	if(up && up->state == Running)
+	if(up->preempted == 0)
 	if(anyhigher())
 	if(!active.exiting){
 		/*  Core 0 is dispatching all interrupts, so no core
@@ -280,10 +280,10 @@ preempted(void)
 		panic("preemted used");
 		 */
 
-		m->externup->preempted = 1;
+		up->preempted = 1;
 		sched();
 		splhi();
-		m->externup->preempted = 0;
+		up->preempted = 0;
 		return 1;
 	}
 	return 0;
@@ -511,7 +511,7 @@ yield(void)
 {
 	if(anyready()){
 		/* pretend we just used 1/2 tick */
-		m->externup->lastupdate -= Scaling/2;
+		up->lastupdate -= Scaling/2;
 		sched();
 	}
 }
@@ -566,13 +566,13 @@ another:
 static void
 preemptfor(Proc *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t delta;
 	uint i, j, rr;
 	Proc *mup;
 	Mach *mp;
 
-	assert(m->machno == 0);
+	assert(machp()->machno == 0);
 	/*
 	 * try to preempt a lower priority process first, default back to
 	 * round robin otherwise.
@@ -590,11 +590,11 @@ preemptfor(Proc *p)
 				if(mup == nil)		/* one got idle */
 					return;
 				delta = mp->ticks - mp->qstart;
-				if(mm->externup->priority < p->priority){
+				if(mup->priority < p->priority){
 					mp->qexpired = 1;
 					return;
 				}
-				if(rr && mm->externup->priority == p->priority && delta > HZ/10){
+				if(rr && mup->priority == p->priority && delta > HZ/10){
 					mp->qexpired = 1;
 					return;
 				}
@@ -619,7 +619,7 @@ mach0sched(void)
 	uint32_t start, now;
 	int n, i, j;
 
-	assert(m->machno == 0);
+	assert(machp()->machno == 0);
 	acmodeset(NIXKC);		/* we don't time share any more */
 	n = 0;
 	start = perfticks();
@@ -656,7 +656,7 @@ loop:
 	goto loop;
 
 found:
-	assert(m->machno == 0);
+	assert(machp()->machno == 0);
 	splhi();
 	/*
 	 * find a core for this process, but honor wiring.
@@ -721,7 +721,7 @@ loop:
 		 */
 		for(rq = &run.runq[Nrq-1]; rq >= run.runq; rq--){
 			for(p = rq->head; p; p = p->rnext){
-				if(p->mp == nil || p->mp == sys->machptr[m->machno]
+				if(p->mp == nil || p->mp == sys->machptr[machp()->machno]
 				|| (!p->wired && i > 0))
 					goto found;
 			}
@@ -742,7 +742,7 @@ found:
 		goto loop;
 
 	p->state = Scheding;
-	p->mp = sys->machptr[m->machno];
+	p->mp = sys->machptr[machp()->machno];
 
 	if(edflock(p)){
 		edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
@@ -775,7 +775,7 @@ runproc(void)
 	start = perfticks();
 	run.preempts++;
 	rq = nil;
-	if(m->machno != 0){
+	if(machp()->machno != 0){
 		do{
 			spllo();
 			while(m->proc == nil)
@@ -787,7 +787,7 @@ runproc(void)
 			p = m->proc;
 		}while(p == nil);
 		p->state = Scheding;
-		p->mp = sys->machptr[m->machno];
+		p->mp = sys->machptr[machp()->machno];
 	
 		if(edflock(p)){
 			edfrun(p, rq == &run.runq[PriEdf]);	/* start deadline timer and do admin */
@@ -845,7 +845,7 @@ newproc(void)
 	p->rgrp = 0;
 	p->pdbg = 0;
 	p->kp = 0;
-	if(up != nil && m->externup->procctl == Proc_tracesyscall)
+	if(up != nil && up->procctl == Proc_tracesyscall)
 		p->procctl = Proc_tracesyscall;
 	else
 		p->procctl = 0;
@@ -903,7 +903,7 @@ newproc(void)
 void
 procwired(Proc *p, int bm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *pp;
 	int i;
 	char nwired[MACHMAX];
@@ -916,7 +916,7 @@ procwired(Proc *p, int bm)
 		for(i=0; (pp = psincref(i)) != nil; i++){
 			wm = pp->wired;
 			if(wm && pp->pid)
-				nwired[wm->machno]++;
+				nwired[wmachp()->machno]++;
 			psdecref(pp);
 		}
 		bm = 0;
@@ -936,12 +936,12 @@ procwired(Proc *p, int bm)
 	 */
 	if(up == nil || p != up)
 		return;
-	m->externup->color = corecolor(up->mp->machno);
-	qlock(&m->externup->seglock);
+	up->color = corecolor(up->mp->machno);
+	qlock(&up->seglock);
 	for(i = 0; i < NSEG; i++)
-		if(m->externup->seg[i])
-			m->externup->seg[i]->color = up->color;
-	qunlock(&m->externup->seglock);
+		if(up->seg[i])
+			up->seg[i]->color = up->color;
+	qunlock(&up->seglock);
 }
 
 void
@@ -975,14 +975,14 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 
 	pl = splhi();
 
-	if(m->externup->nlocks)
+	if(up->nlocks)
 		print("process %d sleeps with %d locks held, last lock %#p locked at pc %#p, sleep called from %#p\n",
-			m->externup->pid, up->nlocks, up->lastlock, up->lastlock->_pc, getcallerpc(&r));
+			up->pid, up->nlocks, up->lastlock, up->lastlock->_pc, getcallerpc(&r));
 	lock(r);
-	lock(&m->externup->rlock);
+	lock(&up->rlock);
 	if(r->p){
 		print("double sleep called from %#p, %d %d\n",
-			getcallerpc(&r), r->p->pid, m->externup->pid);
+			getcallerpc(&r), r->p->pid, up->pid);
 		dumpstack();
 	}
 
@@ -994,30 +994,30 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	 */
 	r->p = up;
 
-	if((*f)(arg) || m->externup->notepending){
+	if((*f)(arg) || up->notepending){
 		/*
 		 *  if condition happened or a note is pending
 		 *  never mind
 		 */
 		r->p = nil;
-		unlock(&m->externup->rlock);
+		unlock(&up->rlock);
 		unlock(r);
 	} else {
 		/*
 		 *  now we are committed to
 		 *  change state and call scheduler
 		 */
-		if(m->externup->trace)
+		if(up->trace)
 			proctrace(up, SSleep, 0);
-		m->externup->state = Wakeme;
-		m->externup->r = r;
+		up->state = Wakeme;
+		up->r = r;
 
 		/* statistics */
 		m->cs++;
 
 		procsave(up);
 		mmuflushtlb(m->pml4->pa);
-		if(setlabel(&m->externup->sched)) {
+		if(setlabel(&up->sched)) {
 			/*
 			 *  here when the process is awakened
 			 */
@@ -1027,16 +1027,16 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 			/*
 			 *  here to go to sleep (i.e. stop Running)
 			 */
-			unlock(&m->externup->rlock);
+			unlock(&up->rlock);
 			unlock(r);
 			gotolabel(&m->sched);
 		}
 	}
 
-	if(m->externup->notepending) {
-		m->externup->notepending = 0;
+	if(up->notepending) {
+		up->notepending = 0;
 		splx(pl);
-		if(m->externup->procctl == Proc_exitme && up->closingfgrp)
+		if(up->procctl == Proc_exitme && up->closingfgrp)
 			forceclosefgrp();
 		error(Eintr);
 	}
@@ -1047,7 +1047,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 static int
 tfn(void *arg)
 {
-	return m->externup->trend == nil || up->tfn(arg);
+	return up->trend == nil || up->tfn(arg);
 }
 
 void
@@ -1066,17 +1066,17 @@ twakeup(Ureg* ureg, Timer *t)
 void
 tsleep(Rendez *r, int (*fn)(void*), void *arg, int32_t ms)
 {
-	if (m->externup->tt){
+	if (up->tt){
 		print("tsleep: timer active: mode %d, tf %#p\n",
-			m->externup->tmode, up->tf);
+			up->tmode, up->tf);
 		timerdel(up);
 	}
-	m->externup->tns = MS2NS(ms);
-	m->externup->tf = twakeup;
-	m->externup->tmode = Trelative;
-	m->externup->ta = up;
-	m->externup->trend = r;
-	m->externup->tfn = fn;
+	up->tns = MS2NS(ms);
+	up->tf = twakeup;
+	up->tmode = Trelative;
+	up->ta = up;
+	up->trend = r;
+	up->tfn = fn;
 	timeradd(up);
 
 	if(waserror()){
@@ -1084,9 +1084,9 @@ tsleep(Rendez *r, int (*fn)(void*), void *arg, int32_t ms)
 		nexterror();
 	}
 	sleep(r, tfn, arg);
-	if (m->externup->tt)
+	if (up->tt)
 		timerdel(up);
-	m->externup->twhen = 0;
+	up->twhen = 0;
 	poperror();
 }
 
@@ -1293,34 +1293,34 @@ pexit(char *exitstr, int freemem)
 	Pgrp *pgrp;
 	Chan *dot;
 
-	if(0 && m->externup->nfullq > 0)
-		iprint(" %s=%d", m->externup->text, up->nfullq);
-	if(0 && m->externup->nicc > 0)
+	if(0 && up->nfullq > 0)
+		iprint(" %s=%d", up->text, up->nfullq);
+	if(0 && up->nicc > 0)
 		iprint(" [%s nicc %ud tctime %ulld actime %ulld]\n",
-			m->externup->text, up->nicc, up->tctime, up->actime);
-	if(m->externup->syscalltrace != nil)
-		free(m->externup->syscalltrace);
-	m->externup->syscalltrace = nil;
-	m->externup->alarm = 0;
+			up->text, up->nicc, up->tctime, up->actime);
+	if(up->syscalltrace != nil)
+		free(up->syscalltrace);
+	up->syscalltrace = nil;
+	up->alarm = 0;
 
-	if (m->externup->tt)
+	if (up->tt)
 		timerdel(up);
-	if(m->externup->trace)
+	if(up->trace)
 		proctrace(up, SDead, 0);
 
 	/* nil out all the resources under lock (free later) */
-	qlock(&m->externup->debug);
-	fgrp = m->externup->fgrp;
-	m->externup->fgrp = nil;
-	egrp = m->externup->egrp;
-	m->externup->egrp = nil;
-	rgrp = m->externup->rgrp;
-	m->externup->rgrp = nil;
-	pgrp = m->externup->pgrp;
-	m->externup->pgrp = nil;
-	dot = m->externup->dot;
-	m->externup->dot = nil;
-	qunlock(&m->externup->debug);
+	qlock(&up->debug);
+	fgrp = up->fgrp;
+	up->fgrp = nil;
+	egrp = up->egrp;
+	up->egrp = nil;
+	rgrp = up->rgrp;
+	up->rgrp = nil;
+	pgrp = up->pgrp;
+	up->pgrp = nil;
+	dot = up->dot;
+	up->dot = nil;
+	qunlock(&up->debug);
 
 
 	if(fgrp)
@@ -1338,8 +1338,8 @@ pexit(char *exitstr, int freemem)
 	 * if not a kernel process and have a parent,
 	 * do some housekeeping.
 	 */
-	if(m->externup->kp == 0) {
-		p = m->externup->parent;
+	if(up->kp == 0) {
+		p = up->parent;
 		if(p == 0) {
 			if(exitstr == 0)
 				exitstr = "unknown";
@@ -1352,15 +1352,15 @@ pexit(char *exitstr, int freemem)
 		wq = smalloc(sizeof(Waitq));
 		poperror();
 
-		wq->w.pid = m->externup->pid;
-		utime = m->externup->time[TUser] + up->time[TCUser];
-		stime = m->externup->time[TSys] + up->time[TCSys];
+		wq->w.pid = up->pid;
+		utime = up->time[TUser] + up->time[TCUser];
+		stime = up->time[TSys] + up->time[TCSys];
 		wq->w.time[TUser] = tk2ms(utime);
 		wq->w.time[TSys] = tk2ms(stime);
-		wq->w.time[TReal] = tk2ms(sys->ticks - m->externup->time[TReal]);
+		wq->w.time[TReal] = tk2ms(sys->ticks - up->time[TReal]);
 		if(exitstr && exitstr[0])
 			snprint(wq->w.msg, sizeof(wq->w.msg), "%s %d: %s",
-				m->externup->text, up->pid, exitstr);
+				up->text, up->pid, exitstr);
 		else
 			wq->w.msg[0] = '\0';
 
@@ -1368,7 +1368,7 @@ pexit(char *exitstr, int freemem)
 		/*
 		 * Check that parent is still alive.
 		 */
-		if(p->pid == m->externup->parentpid && p->state != Broken) {
+		if(p->pid == up->parentpid && p->state != Broken) {
 			p->nchild--;
 			p->time[TCUser] += utime;
 			p->time[TCSys] += stime;
@@ -1395,34 +1395,34 @@ pexit(char *exitstr, int freemem)
 	if(!freemem)
 		addbroken(up);
 
-	qlock(&m->externup->seglock);
-	es = &m->externup->seg[NSEG];
-	for(s = m->externup->seg; s < es; s++) {
+	qlock(&up->seglock);
+	es = &up->seg[NSEG];
+	for(s = up->seg; s < es; s++) {
 		if(*s) {
 			putseg(*s);
 			*s = 0;
 		}
 	}
-	qunlock(&m->externup->seglock);
+	qunlock(&up->seglock);
 
-	lock(&m->externup->exl);		/* Prevent my children from leaving waits */
+	lock(&up->exl);		/* Prevent my children from leaving waits */
 	psunhash(up);
-	m->externup->pid = 0;
-	wakeup(&m->externup->waitr);
-	unlock(&m->externup->exl);
+	up->pid = 0;
+	wakeup(&up->waitr);
+	unlock(&up->exl);
 
-	for(f = m->externup->waitq; f; f = next) {
+	for(f = up->waitq; f; f = next) {
 		next = f->next;
 		free(f);
 	}
 
 	/* release debuggers */
-	qlock(&m->externup->debug);
-	if(m->externup->pdbg) {
-		wakeup(&m->externup->pdbg->sleep);
-		m->externup->pdbg = 0;
+	qlock(&up->debug);
+	if(up->pdbg) {
+		wakeup(&up->pdbg->sleep);
+		up->pdbg = 0;
 	}
-	qunlock(&m->externup->debug);
+	qunlock(&up->debug);
 
 	/* Sched must not loop for these locks */
 	lock(&procalloc);
@@ -1430,7 +1430,7 @@ pexit(char *exitstr, int freemem)
 
 	stopac();
 	edfstop(up);
-	m->externup->state = Moribund;
+	up->state = Moribund;
 	sched();
 	panic("pexit");
 }
@@ -1450,30 +1450,30 @@ pwait(Waitmsg *w)
 	int cpid;
 	Waitq *wq;
 
-	if(!canqlock(&m->externup->qwaitr))
+	if(!canqlock(&up->qwaitr))
 		error(Einuse);
 
 	if(waserror()) {
-		qunlock(&m->externup->qwaitr);
+		qunlock(&up->qwaitr);
 		nexterror();
 	}
 
-	lock(&m->externup->exl);
-	if(m->externup->nchild == 0 && up->waitq == 0) {
-		unlock(&m->externup->exl);
+	lock(&up->exl);
+	if(up->nchild == 0 && up->waitq == 0) {
+		unlock(&up->exl);
 		error(Enochild);
 	}
-	unlock(&m->externup->exl);
+	unlock(&up->exl);
 
-	sleep(&m->externup->waitr, haswaitq, up);
+	sleep(&up->waitr, haswaitq, up);
 
-	lock(&m->externup->exl);
-	wq = m->externup->waitq;
-	m->externup->waitq = wq->next;
-	m->externup->nwait--;
-	unlock(&m->externup->exl);
+	lock(&up->exl);
+	wq = up->waitq;
+	up->waitq = wq->next;
+	up->nwait--;
+	unlock(&up->exl);
 
-	qunlock(&m->externup->qwaitr);
+	qunlock(&up->qwaitr);
 	poperror();
 
 	if(w)
@@ -1515,7 +1515,7 @@ procdump(void)
 	Proc *p;
 
 	if(up)
-		print("up %d\n", m->externup->pid);
+		print("up %d\n", up->pid);
 	else
 		print("no current process\n");
 	for(i=0; (p = psincref(i)) != nil; i++) {
@@ -1532,7 +1532,7 @@ procdump(void)
 void
 procflushseg(Segment *s)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, ns, nm, nwait;
 	Proc *p;
 	Mach *mp;
@@ -1609,19 +1609,19 @@ kproc(char *name, void (*func)(void *), void *arg)
 	p->kp = 1;
 	p->noswap = 1;
 
-	p->scallnr = m->externup->scallnr;
-	memmove(p->arg, m->externup->arg, sizeof(up->arg));
+	p->scallnr = up->scallnr;
+	memmove(p->arg, up->arg, sizeof(up->arg));
 	p->nerrlab = 0;
-	p->slash = m->externup->slash;
-	p->dot = m->externup->dot;
+	p->slash = up->slash;
+	p->dot = up->dot;
 	if(p->dot)
 		incref(p->dot);
 
-	memmove(p->note, m->externup->note, sizeof(p->note));
-	p->nnote = m->externup->nnote;
+	memmove(p->note, up->note, sizeof(p->note));
+	p->nnote = up->nnote;
 	p->notified = 0;
-	p->lastnote = m->externup->lastnote;
-	p->notify = m->externup->notify;
+	p->lastnote = up->lastnote;
+	p->notify = up->notify;
 	p->ureg = 0;
 	p->dbgreg = 0;
 
@@ -1717,16 +1717,16 @@ error(char *err)
 {
 	spllo();
 
-	assert(m->externup->nerrlab < NERR);
-	kstrcpy(m->externup->errstr, err, ERRMAX);
-	setlabel(&m->externup->errlab[NERR-1]);
+	assert(up->nerrlab < NERR);
+	kstrcpy(up->errstr, err, ERRMAX);
+	setlabel(&up->errlab[NERR-1]);
 	nexterror();
 }
 
 void
 nexterror(void)
 {
-	gotolabel(&m->externup->errlab[--up->nerrlab]);
+	gotolabel(&up->errlab[--up->nerrlab]);
 }
 
 void
@@ -1824,7 +1824,7 @@ accounttime(void)
 
 	p = m->proc;
 	if(p) {
-		if(m->machno == 1)
+		if(machp()->machno == 1)
 			run.nrun++;
 		p->time[p->insyscall]++;
 	}
@@ -1846,7 +1846,7 @@ accounttime(void)
 	/* only one processor gets to compute system load averages.
 	 * it has to be mach 1 when we use AMP.
 	 */
-	if(sys->nmach > 1 && m->machno != 1)
+	if(sys->nmach > 1 && machp()->machno != 1)
 		return;
 
 	/*

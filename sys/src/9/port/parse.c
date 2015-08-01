@@ -45,7 +45,7 @@ ncmdfield(char *p, int n)
 Cmdbuf*
 parsecmd(char *p, int n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Cmdbuf *volatile cb;
 	int nf;
 	char *sp;
@@ -58,12 +58,12 @@ parsecmd(char *p, int n)
 	cb->f = (char**)(&cb[1]);
 	cb->buf = (char*)(&cb->f[nf]);
 
-	if(m->externup!=nil && waserror()){
+	if(up!=nil && waserror()){
 		free(cb);
 		nexterror();
 	}
 	memmove(cb->buf, p, n);
-	if(m->externup != nil)
+	if(up != nil)
 		poperror();
 
 	/* dump new line and null terminate */
@@ -83,11 +83,11 @@ parsecmd(char *p, int n)
 void
 cmderror(Cmdbuf *cb, char *s)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	char *p, *e;
 
-	p = m->externup->genbuf;
+	p = up->genbuf;
 	e = p+ERRMAX-10;
 	p = seprint(p, e, "%s \"", s);
 	for(i=0; i<cb->nf; i++){
@@ -96,7 +96,7 @@ cmderror(Cmdbuf *cb, char *s)
 		p = seprint(p, e, "%q", cb->f[i]);
 	}
 	strcpy(p, "\"");
-	error(m->externup->genbuf);
+	error(up->genbuf);
 }
 
 /*
