@@ -10,7 +10,7 @@
  * starting the user program up. First time.
  */
 	.globl touser
-touser:	
+touser:
 	CLI
 	SWAPGS
 	// we should be able to skip this step. We'll see.
@@ -34,7 +34,7 @@ touser:
 .global syscallentry
 syscallentry:
 	incq	sce
-	SWAPGS	
+	SWAPGS
 	movq	%gs:0, %r15
 	movq	16(%r15), %r15			/* m->proc */
 	// NOTE! This assumes sizeof(Label) == 16!
@@ -76,7 +76,7 @@ syscallentry:
 	CALL	syscall
 
 	.globl	syscallreturn
-syscallreturn:	
+syscallreturn:
 #ifdef NOTNOW
 	/* we do the TLS setup in linuxsyscall.c.
 	 * Leave this here in case we ever think it should be done
@@ -125,7 +125,7 @@ _linuxsyscallreturn:
 	MOVW	4(%rsp), FS
 	*/
 	MOVW	6(%rsp), GS
-#endif	
+#endif
 
 	MOVQ	0(%rsp), %rCX			/* ip */
 	MOVQ	16(%rsp), %r11			/* flags */
@@ -137,7 +137,7 @@ _linuxsyscallreturn:
 //	BYTE $0x48; SYSRET			/* SYSRETQ */
 
 	.globl sysrforkret
-sysrforkret:	
+sysrforkret:
 //	CALL	linuxclonefinish(SB)
 	// DEBUG
 	MOVQ	$0, %rAX

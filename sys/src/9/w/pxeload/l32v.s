@@ -23,7 +23,7 @@ TEXT _start32v(SB),$0
 	ADDL	$(3*BY2PG), AX
 	MOVL	AX, mach0m(SB)
 	MOVL	AX, m(SB)		/* initialise global Mach pointer */
-	MOVL	$0, 0(AX)		/* initialise m->machno */
+	MOVL	$0, 0(AX)		/* initialise machp()->machno */
 	ADDL	$MACHSIZE, AX
 	MOVL	AX, SP			/* initialise stack */
 	MOVL	AX, mach0gdt(SB)

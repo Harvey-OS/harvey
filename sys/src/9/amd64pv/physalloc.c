@@ -530,7 +530,7 @@ physinit(uintmem a, uint64_t size)
 				b->size = (addr-b->base) + len;
 			for(i = 0; i < Ndoms; i++)
 				if(bal[i].kmin && &bal[i] != b)
-				if(bal[i].base < b->base + b->size && 
+				if(bal[i].base < b->base + b->size &&
 				   bal[i].base + bal[i].size > b->base + b->size)
 					panic("physinit: doms overlap");
 		}

@@ -83,11 +83,11 @@ findfreefd(Fgrp *f, int start)
 int
 newfd(Chan *c)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int fd;
 	Fgrp *f;
 
-	f = m->externup->fgrp;
+	f = up->fgrp;
 	lock(f);
 	fd = findfreefd(f, 0);
 	if(fd < 0){
@@ -104,10 +104,10 @@ newfd(Chan *c)
 static int
 newfd2(int fd[2], Chan *c[2])
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Fgrp *f;
 
-	f = m->externup->fgrp;
+	f = up->fgrp;
 	lock(f);
 	fd[0] = findfreefd(f, 0);
 	if(fd[0] < 0){
@@ -131,12 +131,12 @@ newfd2(int fd[2], Chan *c[2])
 Chan*
 fdtochan(int fd, int mode, int chkmnt, int iref)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *c;
 	Fgrp *f;
 
 	c = nil;
-	f = m->externup->fgrp;
+	f = up->fgrp;
 
 	lock(f);
 	if(fd<0 || f->nfd<=fd || (c = f->fd[fd])==0) {
@@ -213,7 +213,7 @@ sysfd2path(Ar0* ar0, ...)
 void
 syspipe(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int *a, fd[2];
 	Chan *c[2];
 	static char *datastr[] = {"data", "data1"};
@@ -259,7 +259,7 @@ syspipe(Ar0* ar0, ...)
 void
 sysdup(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int nfd, ofd;
 	Chan *nc, *oc;
 	Fgrp *f;
@@ -277,7 +277,7 @@ sysdup(Ar0* ar0, ...)
 	va_end(list);
 
 	if(nfd != -1){
-		f = m->externup->fgrp;
+		f = up->fgrp;
 		lock(f);
 		if(nfd < 0 || growfd(f, nfd) < 0) {
 			unlockfgrp(f);
@@ -309,7 +309,7 @@ sysdup(Ar0* ar0, ...)
 void
 sysopen(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	va_list list;
 	char *aname;
 	int fd, omode;
@@ -355,12 +355,12 @@ sysnsec(Ar0* ar0, ...)
 void
 fdclose(int fd, int flag)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	Chan *c;
 	Fgrp *f;
 
-	f = m->externup->fgrp;
+	f = up->fgrp;
 	lock(f);
 	c = f->fd[fd];
 	if(c == nil){
@@ -405,7 +405,7 @@ sysclose(Ar0* ar0, ...)
 static int32_t
 unionread(Chan *c, void *va, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	int32_t nr;
 	Mhead *mh;
@@ -628,7 +628,7 @@ mountrewind(Chan *c)
 static int32_t
 mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *name;
 	int nbuf;
 	Chan *nc;
@@ -720,7 +720,7 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 static int32_t
 read(int ispread, int fd, void *p, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int32_t nn, nnn;
 	Chan *c;
 
@@ -837,7 +837,7 @@ syspread(Ar0* ar0, ...)
 static int32_t
 write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int32_t r;
 	Chan *c;
 
@@ -889,7 +889,7 @@ syswrite(Ar0* ar0, ...)
 	va_start(list, ar0);
 	int fd = va_arg(list, int);
 	void *buf = va_arg(list, void *);
-	long nbytes = va_arg(list, long);	
+	long nbytes = va_arg(list, long);
 	int64_t offset = -1ULL;
 	va_end(list);
 	/*
@@ -905,7 +905,7 @@ syspwrite(Ar0* ar0, ...)
 	va_start(list, ar0);
 	int fd = va_arg(list, int);
 	void *buf = va_arg(list, void *);
-	long nbytes = va_arg(list, long);	
+	long nbytes = va_arg(list, long);
 	int64_t offset = va_arg(list, int64_t);
 	va_end(list);
 	/*
@@ -917,7 +917,7 @@ syspwrite(Ar0* ar0, ...)
 static int64_t
 sseek(int fd, int64_t offset, int whence)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *c;
 	uint8_t buf[sizeof(Dir)+100];
 	Dir dir;
@@ -1063,7 +1063,7 @@ pathlast(Path *p)
 void
 sysfstat(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int fd;
 	Chan *c;
 	usize n;
@@ -1100,7 +1100,7 @@ sysfstat(Ar0* ar0, ...)
 void
 sysstat(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *aname;
 	Chan *c;
 	usize n;
@@ -1142,7 +1142,7 @@ sysstat(Ar0* ar0, ...)
 void
 syschdir(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *c;
 	char *aname;
 	va_list list;
@@ -1156,8 +1156,8 @@ syschdir(Ar0* ar0, ...)
 	va_end(list);
 
 	c = namec(aname, Atodir, 0, 0);
-	cclose(m->externup->dot);
-	m->externup->dot = c;
+	cclose(up->dot);
+	up->dot = c;
 
 	ar0->i = 0;
 }
@@ -1185,7 +1185,7 @@ static int checkdc(int dc)
 static int
 bindmount(int dc, int fd, int afd, char* arg0, char* arg1, int flag, char* spec)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	Dev *dev;
 	Chan *c0, *c1, *ac, *bc;
@@ -1205,7 +1205,7 @@ bindmount(int dc, int fd, int afd, char* arg0, char* arg1, int flag, char* spec)
 		if (! checkdc(dc))
 			error(Ebadarg);
 
-		if(m->externup->pgrp->noattach)
+		if(up->pgrp->noattach)
 			error(Enoattach);
 
 		ac = nil;
@@ -1349,7 +1349,7 @@ sys_mount(Ar0* ar0, ...)
 void
 sysunmount(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *name, *old;
 	Chan *cmount, *cmounted;
 	va_list list;
@@ -1399,7 +1399,7 @@ sysunmount(Ar0* ar0, ...)
 void
 syscreate(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *aname;
 	int fd, omode, perm;
 	Chan *c;
@@ -1435,7 +1435,7 @@ syscreate(Ar0* ar0, ...)
 void
 sysremove(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *c;
 	char *aname;
 	va_list list;
@@ -1478,7 +1478,7 @@ Not sure this dicking around is right for Dev ref counts.
 static int32_t
 wstat(Chan* c, uint8_t* p, usize n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int32_t l;
 	usize namelen;
 
@@ -1598,7 +1598,7 @@ packoldstat(uint8_t *buf, Dir *d)
 void
 sys_stat(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *c;
 	int32_t l;
 	uint8_t buf[128], *p;
@@ -1624,7 +1624,7 @@ sys_stat(Ar0* ar0, ...)
 	 * for the buffer sizes.
 	 */
 	p = validaddr(p, 116, 1);
-	
+
 	c = namec(validaddr(aname, 1, 0), Aaccess, 0, 0);
 	if(waserror()){
 		cclose(c);
@@ -1656,7 +1656,7 @@ sys_stat(Ar0* ar0, ...)
 void
 sys_fstat(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *c;
 	char *name;
 	int32_t l;

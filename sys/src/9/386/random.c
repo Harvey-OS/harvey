@@ -50,9 +50,9 @@ rbnotempty(void* v)
 static void
 genrandom(void* v)
 {
-	Mach *m = machp();
-	m->externup->basepri = PriNormal;
-	m->externup->priority = m->externup->basepri;
+	Proc *up = machp()->externup;
+	up->basepri = PriNormal;
+	up->priority = up->basepri;
 
 	for(;;){
 		for(;;)
@@ -109,7 +109,7 @@ uint32_t
 randomread(void *xp, uint32_t n)
 {
 
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint8_t *e, *p;
 	uint32_t x;
 
@@ -121,7 +121,7 @@ randomread(void *xp, uint32_t n)
 	}
 
 	qlock(&rb);
-	
+
 	/** WORKAROUND **/
 	for(e = p + n; p < e; ){
 		x = (2 * rb.randn +1)%1103515245;
@@ -167,19 +167,19 @@ randomread(void *xp, uint32_t n)
 uint32_t
 urandomread(void *xp, uint32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint64_t seed[16];
 	uint8_t *e, *p;
 	uint32_t x=0;
 	uint64_t s0;
 	uint64_t s1;
-	
+
 	if(waserror()){
 		nexterror();
 	}
 	//The initial seed is from a good random pool.
 	randomread(seed, sizeof(seed));
-	
+
 	p = xp;
 	for(e = p + n; p < e; ){
 		s0 = seed[ x ];

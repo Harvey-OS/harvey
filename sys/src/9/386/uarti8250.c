@@ -185,7 +185,7 @@ i8250status(Uart* uart, void* buf, int32_t n, int32_t offset)
 		(msr & Dsr) != 0,
 		uart->hup_dsr,
 		(lcr & WlsMASK) + 5,
-		(ier & Ems) != 0, 
+		(ier & Ems) != 0,
 		(lcr & Pen) ? ((lcr & Eps) ? 'e': 'o'): 'n',
 		(mcr & Rts) != 0,
 		(lcr & Stb) ? 2: 1,
@@ -430,7 +430,7 @@ i8250baud(Uart* uart, int baud)
 static void
 i8250break(Uart* uart, int ms)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 
 	/*
@@ -441,7 +441,7 @@ i8250break(Uart* uart, int ms)
 
 	ctlr = uart->regs;
 	csr8w(ctlr, Lcr, Brk);
-	tsleep(&m->externup->sleep, return0, 0, ms);
+	tsleep(&up->sleep, return0, 0, ms);
 	csr8w(ctlr, Lcr, 0);
 }
 
@@ -782,7 +782,7 @@ i8250console(char* cfg)
 		break;
 	case 1:
 		uart = &i8250uart[1];
-		break;	
+		break;
 	}
 
 	/*

@@ -267,12 +267,10 @@ dreg(char *s, Aport *p)
 static void
 esleep(int ms)
 {
-	Mach *m;
-
-	m = machp();
+	Proc *up = machp()->externup;
 	if(waserror())
 		return;
-	tsleep(&m->externup->sleep, return0, 0, ms);
+	tsleep(&up->sleep, return0, 0, ms);
 	poperror();
 }
 
@@ -288,9 +286,6 @@ ahciclear(void *v)
 static void
 aesleep(Aportm *pm, Asleep *a, int ms)
 {
-	Mach *m;
-
-	m = machp();
 	if(waserror())
 		return;
 	tsleep(pm, ahciclear, a, ms);
@@ -385,10 +380,8 @@ setudmamode(Aportc *pc, unsigned char f)
 static void
 asleep(int ms)
 {
-	Mach *m;
-
-	m = machp();
-	if(m->externup == nil)
+	Proc *up = machp()->externup;
+	if(up == nil)
 		delay(ms);
 	else
 		esleep(ms);
@@ -1307,12 +1300,10 @@ portreset:
 static void
 satakproc(void *v)
 {
-	Mach *m;
+	Proc *up = machp()->externup;
 	int i;
-
-	m = machp();
 	for(;;){
-		tsleep(&m->externup->sleep, return0, 0, Nms);
+		tsleep(&up->sleep, return0, 0, Nms);
 		for(i = 0; i < niadrive; i++)
 			if(iadrive[i] != nil)
 				checkdrive(iadrive[i], i);

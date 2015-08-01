@@ -49,7 +49,7 @@ loopbackbind(Ipifc *ifc, int i, char**argv)
 static void
 loopbackunbind(Ipifc *ifc)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	LB *lb = ifc->arg;
 
 	if(lb->readp)
@@ -57,7 +57,7 @@ loopbackunbind(Ipifc *ifc)
 
 	/* wait for reader to die */
 	while(lb->readp != 0)
-		tsleep(&m->externup->sleep, return0, 0, 300);
+		tsleep(&up->sleep, return0, 0, 300);
 
 	/* clean up */
 	qfree(lb->q);
@@ -78,14 +78,14 @@ loopbackbwrite(Ipifc *ifc, Block *bp, int i, uint8_t *c)
 static void
 loopbackread(void *a)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ipifc *ifc;
 	Block *bp;
 	LB *lb;
 
 	ifc = a;
 	lb = ifc->arg;
-	lb->readp = m->externup;	/* hide identity under a rock for unbind */
+	lb->readp = up;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		lb->readp = 0;
 		pexit("hangup", 1);

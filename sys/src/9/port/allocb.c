@@ -59,14 +59,14 @@ _allocb(int size)
 Block*
 allocb(int size)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Block *b;
 
 	/*
 	 * Check in a process and wait until successful.
 	 * Can still error out of here, though.
 	 */
-	if(m->externup == nil)
+	if(up == nil)
 		panic("allocb without up: %#p\n", getcallerpc(&size));
 	if((b = _allocb(size)) == nil){
 		mallocsummary();

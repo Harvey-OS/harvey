@@ -50,15 +50,15 @@ extern void _actrapret(void);
 
 ACVctl *acvctl[256];
 
-/* 
+/*
  * Test inter core calls by calling a cores to print something, and then
  * waiting for it to complete.
  */
 static void
 testiccfn(void)
 {
-	Mach *m = machp();
-	print("called: %s\n", ( char *)m->icc->data);
+	Proc *up = machp()->externup;
+	print("called: %s\n", ( char *)machp()->icc->data);
 }
 
 void
@@ -87,13 +87,13 @@ testicc(int i)
 static void
 acstackok(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char dummy;
 	char *sstart;
 
-	sstart = (char *)m - PGSZ - 4*PTSZ - MACHSTKSZ;
+	sstart = (char *)machp() - PGSZ - 4*PTSZ - MACHSTKSZ;
 	if(&dummy < sstart + 4*KiB){
-		print("ac kernel stack overflow, cpu%d stopped\n", m->machno);
+		print("ac kernel stack overflow, cpu%d stopped\n", machp()->machno);
 		DONE();
 	}
 }
@@ -109,31 +109,31 @@ acstackok(void)
 void
 acsched(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	acmmuswitch();
 	for(;;){
 		acstackok();
-		mwait(&m->icc->fn);
-		if(m->icc->flushtlb)
+		mwait(&machp()->icc->fn);
+		if(machp()->icc->flushtlb)
 			acmmuswitch();
-		DBG("acsched: cpu%d: fn %#p\n", m->machno, m->icc->fn);
-		m->icc->fn();
-		DBG("acsched: cpu%d: idle\n", m->machno);
+		DBG("acsched: cpu%d: fn %#p\n", machp()->machno, machp()->icc->fn);
+		machp()->icc->fn();
+		DBG("acsched: cpu%d: idle\n", machp()->machno);
 		mfence();
-		m->icc->fn = nil;
+		machp()->icc->fn = nil;
 	}
 }
 
 void
 acmmuswitch(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	extern Page mach0pml4;
 
-	DBG("acmmuswitch mpl4 %#p mach0pml4 %#p m0pml4 %#p\n", m->pml4->pa, mach0pml4.pa, sys->machptr[0]->pml4->pa);
+	DBG("acmmuswitch mpl4 %#p mach0pml4 %#p m0pml4 %#p\n", machp()->pml4->pa, mach0pml4.pa, sys->machptr[0]->pml4->pa);
 
 
-	cr3put(m->pml4->pa);
+	cr3put(machp()->pml4->pa);
 }
 
 /*
@@ -149,7 +149,7 @@ actouser(void)
 	acfpusysprocsetup(m->proc);
 
 	u = m->proc->dbgreg;
-	DBG("cpu%d: touser usp = %#p entry %#p\n", m->machno, u->sp, u->ip);
+	DBG("cpu%d: touser usp = %#p entry %#p\n", machp()->machno, u->sp, u->ip);
 	xactouser(u->sp);
 #endif
 	panic("actouser");
@@ -163,12 +163,12 @@ actrapret(void)
 
 /*
  * Entered in AP core context, upon traps (system calls go through acsyscall)
- * using m->externup->dbgreg means cores MUST be homogeneous.
+ * using up->dbgreg means cores MUST be homogeneous.
  *
  * BUG: We should setup some trapenable() mechanism for the AC,
  * so that code like fpu.c could arrange for handlers specific for
  * the AC, instead of doint that by hand here.
- * 
+ *
  * All interrupts are masked while in the "kernel"
  */
 void
@@ -189,7 +189,7 @@ actrap(Ureg *u)
 	if(u->type < nelem(acvctl)){
 		v = acvctl[u->type];
 		if(v != nil){
-			DBG("actrap: cpu%d: %ulld\n", m->machno, u->type);
+			DBG("actrap: cpu%d: %ulld\n", machp()->machno, u->type);
 			n = v->f(u, v->a);
 			if(n != nil)
 				goto Post;
@@ -203,7 +203,7 @@ actrap(Ureg *u)
 		ndnr();
 	case IdtIPI:
 		m->intr++;
-		DBG("actrap: cpu%d: IPI\n", m->machno);
+		DBG("actrap: cpu%d: IPI\n", machp()->machno);
 		apiceoi(IdtIPI);
 		break;
 	case IdtTIMER:
@@ -213,10 +213,10 @@ actrap(Ureg *u)
 	case IdtPF:
 		/* this case is here for debug only */
 		m->pfault++;
-		DBG("actrap: cpu%d: PF cr2 %#ullx\n", m->machno, cr2get());
+		DBG("actrap: cpu%d: PF cr2 %#ullx\n", machp()->machno, cr2get());
 		break;
 	default:
-		print("actrap: cpu%d: %ulld\n", m->machno, u->type);
+		print("actrap: cpu%d: %ulld\n", machp()->machno, u->type);
 	}
 Post:
 	m->icc->rc = ICCTRAP;
@@ -254,7 +254,7 @@ acsyscall(void)
 	 * There's nothing else we have to do.
 	 * Otherwise, we should m->proc->dbgregs = u;
 	 */
-	DBG("acsyscall: cpu%d\n", m->machno);
+	DBG("acsyscall: cpu%d\n", machp()->machno);
 
 	_pmcupdate(m);
 	p = m->proc;
@@ -299,7 +299,7 @@ dumpreg(void *u)
 	ndnr();
 }
 
-char *rolename[] = 
+char *rolename[] =
 {
 	[NIXAC]	"AC",
 	[NIXTC]	"TC",
@@ -310,7 +310,7 @@ char *rolename[] =
 void
 acmodeset(int mode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	switch(mode){
 	case NIXAC:
 	case NIXKC:
@@ -320,7 +320,7 @@ acmodeset(int mode)
 	default:
 		panic("acmodeset: bad mode %d", mode);
 	}
-	m->nixtype = mode;
+	machp()->nixtype = mode;
 }
 
 void

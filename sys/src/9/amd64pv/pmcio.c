@@ -21,7 +21,7 @@
 #include	"../port/pmc.h"
 
 
-/* non portable, for intel will be CPUID.0AH.EDX 
+/* non portable, for intel will be CPUID.0AH.EDX
  */
 
 enum {
@@ -38,7 +38,7 @@ pmcnregs(void)
 }
 
 //PeHo|PeGo
-#define PeAll	(PeOS|PeUsr)	
+#define PeAll	(PeOS|PeUsr)
 #define SetEvMsk(v, e) ((v)|(((e)&PeEvMskL)|(((e)<<(PeEvMsksh-8))&PeEvMskH)))
 #define SetUMsk(v, u) ((v)|(((u)<<8ull)&PeUnMsk))
 
@@ -203,16 +203,16 @@ pmcctlstr(char *str, int nstr, PmcCtl *p)
 		ns += snprint(str + ns, nstr - ns, "enable\n");
 	else
 		ns += snprint(str + ns, nstr - ns, "disable\n");
-		
+
 	if (p->user && p->user != PmcCtlNullval)
 		ns += snprint(str + ns, nstr - ns, "user\n");
 	if (p->os && p->user != PmcCtlNullval)
 		ns += snprint(str + ns, nstr - ns, "os\n");
-	
+
 	//TODO, inverse pmctrans?
 	if(!p->nodesc)
 		ns += snprint(str + ns, nstr - ns, "%s\n", p->descstr);
-	else 
+	else
 		ns += snprint(str + ns, nstr - ns, "no desc\n");
 	return ns;
 }
@@ -281,7 +281,7 @@ pmcwclose(PmcWait *w)
 static void
 waitnotstale(Mach *mp, PmcCtr *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	PmcWait *w;
 
 	p->stale = 1;
@@ -329,12 +329,12 @@ shouldipi(Mach *mp)
 uint64_t
 pmcgetctr(uint32_t coreno, uint32_t regno)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	PmcCtr *p;
 	Mach *mp;
 	uint64_t v;
 
-	if(coreno == m->machno){
+	if(coreno == machp()->machno){
 		v = getctr(regno);
 		if (pmcdebug) {
 			print("int getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
@@ -361,11 +361,11 @@ pmcgetctr(uint32_t coreno, uint32_t regno)
 int
 pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	PmcCtr *p;
 	Mach *mp;
 
-	if(coreno == m->machno){
+	if(coreno == machp()->machno){
 		if (pmcdebug) {
 			print("int getctr[%#ux, %#ux] = %#llux\n", regno, coreno, v);
 		}
@@ -405,11 +405,11 @@ ctl2ctl(PmcCtl *dctl, PmcCtl *sctl)
 int
 pmcsetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	PmcCtr *p;
 	Mach *mp;
 
-	if(coreno == m->machno)
+	if(coreno == machp()->machno)
 		return setctl(pctl, regno);
 
 	mp = sys->machptr[coreno];
@@ -427,11 +427,11 @@ pmcsetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 int
 pmcgetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	PmcCtr *p;
 	Mach *mp;
 
-	if(coreno == m->machno)
+	if(coreno == machp()->machno)
 		return getctl(pctl, regno);
 
 	mp = sys->machptr[coreno];

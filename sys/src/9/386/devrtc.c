@@ -76,13 +76,13 @@ rtcattach(char* spec)
 	return devattach('r', spec);
 }
 
-static Walkqid*	 
+static Walkqid*
 rtcwalk(Chan* c, Chan *nc, char** name, int nname)
 {
 	return devwalk(c, nc, name, nname, rtcdir, nelem(rtcdir), devgen);
 }
 
-static int32_t	 
+static int32_t
 rtcstat(Chan* c, uint8_t* dp, int32_t n)
 {
 	return devstat(c, dp, n, rtcdir, nelem(rtcdir), devgen);
@@ -91,28 +91,28 @@ rtcstat(Chan* c, uint8_t* dp, int32_t n)
 static Chan*
 rtcopen(Chan* c, int omode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	omode = openmode(omode);
 	switch((uint32_t)c->qid.path){
 	case Qrtc:
-		if(strcmp(m->externup->user, eve)!=0 && omode!=OREAD)
+		if(strcmp(up->user, eve)!=0 && omode!=OREAD)
 			error(Eperm);
 		break;
 	case Qnvram:
-		if(strcmp(m->externup->user, eve)!=0)
+		if(strcmp(up->user, eve)!=0)
 			error(Eperm);
 	}
 	return devopen(c, omode, rtcdir, nelem(rtcdir), devgen);
 }
 
-static void	 
+static void
 rtcclose(Chan* c)
 {
 }
 
 #define GETBCD(o) ((bcdclock[o]&0xf) + 10*(bcdclock[o]>>4))
 
-static int32_t	 
+static int32_t
 rtcextract(void)
 {
 	uint8_t bcdclock[Nbcd];
@@ -182,10 +182,10 @@ rtctime(void)
 	return t;
 }
 
-static int32_t	 
+static int32_t
 rtcread(Chan* c, void* buf, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t t;
 	char *a, *start;
 	uint32_t offset = off;
@@ -230,10 +230,10 @@ rtcread(Chan* c, void* buf, int32_t n, int64_t off)
 
 #define PUTBCD(n,o) bcdclock[o] = (n % 10) | (((n / 10) % 10)<<4)
 
-static int32_t	 
+static int32_t
 rtcwrite(Chan* c, void* buf, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int t;
 	char *a, *start;
 	Rtc rtc;
@@ -288,7 +288,7 @@ rtcwrite(Chan* c, void* buf, int32_t n, int64_t off)
 			return 0;
 		if(n > Nvsize)
 			n = Nvsize;
-	
+
 		start = a = smalloc(n);
 		if(waserror()){
 			free(start);

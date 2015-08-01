@@ -62,7 +62,7 @@ struct Globalseg
 	char	*data;
 	long	off;
 	int	dlen;
-	int	cmd;	
+	int	cmd;
 	char	err[64];
 };
 
@@ -117,7 +117,7 @@ putgseg(Globalseg *g)
 static int
 segmentgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Qid q;
 	Globalseg *g;
 	uint32_t size;
@@ -232,7 +232,7 @@ cmddone(void *arg)
 static Chan*
 segmentopen(Chan *c, int omode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Globalseg *g;
 
 	switch(TYPE(c)){
@@ -300,7 +300,7 @@ segmentclose(Chan *c)
 static void
 segmentcreate(Chan *c, char *name, int omode, int perm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int x, xfree;
 	Globalseg *g;
 	char *ep;
@@ -349,8 +349,8 @@ segmentcreate(Chan *c, char *name, int omode, int perm)
 	g = smalloc(sizeof(Globalseg));
 	g->ref = 1;
 	kstrdup(&g->name, name);
-	kstrdup(&g->uid, m->externup->user);
-	g->perm = 0660; 
+	kstrdup(&g->uid, up->user);
+	g->perm = 0660;
 	globalseg[xfree] = g;
 	unlock(&globalseglock);
 	poperror();
@@ -387,7 +387,7 @@ znotempty(void *x)
 static int32_t
 segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Globalseg *g;
 	Zseg *zs;
 	uintptr_t va;
@@ -497,7 +497,7 @@ placeseg(uintptr_t len)
 static int32_t
 segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Cmdbuf *cb;
 	Globalseg *g;
 	uintptr_t va, len, top;
@@ -599,7 +599,7 @@ segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 static int32_t
 segmentwstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Globalseg *g;
 	Dir *d;
 
@@ -612,7 +612,7 @@ segmentwstat(Chan *c, uint8_t *dp, int32_t n)
 		nexterror();
 	}
 
-	if(strcmp(g->uid, m->externup->user)!=0 && !iseve())
+	if(strcmp(g->uid, up->user)!=0 && !iseve())
 		error(Eperm);
 	d = smalloc(sizeof(Dir)+n);
 	if(waserror()){
@@ -656,7 +656,7 @@ segmentremove(Chan *c)
 static Segment*
 globalsegattach(Proc *p, char *name)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int x;
 	Globalseg *g;
 	Segment *s;
@@ -692,7 +692,7 @@ globalsegattach(Proc *p, char *name)
 static void
 docmd(Globalseg *g, int cmd)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	g->err[0] = 0;
 	g->cmd = cmd;
 	wakeup(&g->cmdwait);
@@ -720,27 +720,27 @@ cmdready(void *arg)
 static void
 segmentkproc(void *arg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Globalseg *g = arg;
 	int done;
 	int sno;
 
-	qlock(&m->externup->seglock);
+	qlock(&up->seglock);
 	for(sno = 0; sno < NSEG; sno++)
-		if(m->externup->seg[sno] == nil)
+		if(up->seg[sno] == nil)
 			break;
 	if(sno == NSEG)
 		panic("segmentkproc");
-	g->kproc = m->externup;
+	g->kproc = up;
 
 	incref(g->s);
-	m->externup->seg[sno] = g->s;
-	qunlock(&m->externup->seglock);
+	up->seg[sno] = g->s;
+	qunlock(&up->seglock);
 
 	for(done = 0; !done;){
 		sleep(&g->cmdwait, cmdready, g);
 		if(waserror()){
-			strncpy(g->err, m->externup->errstr, sizeof(g->err));
+			strncpy(g->err, up->errstr, sizeof(g->err));
 		} else {
 			switch(g->cmd){
 			case Cstart:

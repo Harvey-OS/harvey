@@ -48,7 +48,7 @@ kexeclookup(Kexecgrp *kg, uintptr_t addr, uint32_t qidpath)
 static int
 kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Kexecgrp *kg;
 	Kvalue *e;
 	uintptr_t addr;
@@ -60,7 +60,7 @@ kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 		return 1;
 	}
 	print("getting kg name %s\n", name);
-	
+
 	kg = kexecgrp(c);
 	rlock(kg);
 	e = 0;
@@ -79,14 +79,14 @@ kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 
 	/* make sure name string continues to exist after we release lock */
 	// how will we free this?
-	snprint(m->externup->genbuf, sizeof m->externup->genbuf, "0x%p", addr);
-	print("m->externup->genbuf %s e 0x%p\n", m->externup->genbuf, e);
+	snprint(up->genbuf, sizeof up->genbuf, "0x%p", addr);
+	print("up->genbuf %s e 0x%p\n", up->genbuf, e);
 	print("e qid %d e->addr 0x%p size %ld len %ld\n", e->qid, e->addr, e->size, e->len);
 
-	devdir(c, e->qid, m->externup->genbuf, e->len, eve, 0666, dp);
+	devdir(c, e->qid, up->genbuf, e->len, eve, 0666, dp);
 	runlock(kg);
 	print("finished gen\n");
-	
+
 	return 1;
 }
 
@@ -98,7 +98,7 @@ kexecattach(char *spec)
 	Chan *c;
 //	Kexecgrp *kgrp = nil;
 //        Qid qid;
-	
+
 
 	c = devattach(L'§', spec);
 	c->aux = &kgrp;
@@ -170,7 +170,7 @@ kexecopen(Chan *c, int omode)
 static void
 kexeccreate(Chan *c, char *name, int omode, int i)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Kexecgrp *kg;
 	Kvalue *e;
 	Kvalue **ent;
@@ -293,24 +293,24 @@ kexecread(Chan *c, void *a, int32_t n, int64_t off)
 
 need to make slots. the slots themselves can be set somewhere else.
 
-need make the writes 
+need make the writes
 
 open will handle the parsing of the hex numbers.
 
-no, do it the other way around. just define the slots. 
-can work on the interface later. 
+no, do it the other way around. just define the slots.
+can work on the interface later.
 
-kmap the space where the values need to stay safe. 
+kmap the space where the values need to stay safe.
 
-then when that is correct you can do it the other. 
+then when that is correct you can do it the other.
 
 kmap address range
-put it in 
+put it in
 
 
-write is going to be significantly different. 
+write is going to be significantly different.
 
-the first thing to do is to make this just work. 
+the first thing to do is to make this just work.
 	add to the kernel cfg.
 
 */

@@ -76,7 +76,7 @@ regressread(Chan *c, void *a, int32_t n, int64_t offset)
 static int32_t
 regresswrite(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *p;
 	unsigned long amt;
 
@@ -100,7 +100,7 @@ regresswrite(Chan *c, void *a, int32_t n, int64_t offset)
 		amt = strtoull(p, 0, 0);
 		if (verbose)
 			print("tsleep %d\n", amt);
-		tsleep(&m->externup->sleep, return0, 0, amt);
+		tsleep(&up->sleep, return0, 0, amt);
 		if (verbose)
 			print("done tsleep\n");
 		return n;
@@ -115,7 +115,7 @@ regresswrite(Chan *c, void *a, int32_t n, int64_t offset)
 		else
 			error("Only v or V");
 		return n;
-		
+
 	default:
 		error(Eperm);
 		break;

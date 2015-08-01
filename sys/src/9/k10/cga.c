@@ -124,6 +124,40 @@ cgaputc(int c)
 	cgacursor();
 }
 
+int
+cgaprint(int off, char *fmt, ...)
+{
+	va_list va;
+	char buf[128];
+	uint8_t *cga;
+	int i, n;
+
+	va_start(va, fmt);
+	n = vsnprint(buf, sizeof buf, fmt, va);
+	va_end(va);
+
+	cga = CGA;
+	for(i = 0; (2*(i+off))+1 < Cgasize && i < n; i++){
+		cga[2*(i+off)+0] = buf[i];
+		cga[2*(i+off)+1] = Attr;
+	}
+	return n;
+}
+
+int
+cgaclearln(int off, int c)
+{
+	uint8_t  *cga;
+	int i;
+
+	cga = CGA;
+	for(i = off; (2*i)+1 < Cgasize && i%80 != 0; i++){
+		cga[2*i+0] = c;
+		cga[2*i+1] = Attr;
+	}
+	return i-off;
+}
+
 /*
  * debug
  */

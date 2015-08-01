@@ -20,7 +20,7 @@
 	* EIP of interrupted code 8(%rsp)
 	* EIP from the call from the idthandlers. (%rsp)
 	* We, finally, need to push the error code and type.,
-	* then the registers. 
+	* then the registers.
 	* Why the call from IDThandlers? So we can get a way to point
 	* to the type. We don't need to save 0(%rsp), we just need
 	* it to get the type. We can pop it and throw it away when
@@ -37,14 +37,14 @@
 	* is on the stack. For others, it's not. To make the stacks
 	* look identical for the common code and exit we save %rax and line things up.
 	*/
-	
+
 .globl ire
 .globl irx
 .globl irxe
-// When we enter: 
+// When we enter:
 // registers are NOT saved. We need to save them all.
 // return PC is on the stat8(%rsp). It should be left there.
-// @ (%rsp) is the PC from the vector table. 
+// @ (%rsp) is the PC from the vector table.
 // So indirecting on that will get us the interrupt #.
 // We need to get what the return PC is pointing to into %rdi.
 // We no longer need to make the stack look the same as in Plan 9
@@ -58,8 +58,8 @@ _intrp:
 	// Now %rax points to the vector number.
 	JMP	_intrcommon
 
-// For intre, error is at top of stack on trap. But then we call here 
-// from the interrupt vectors so error is at 8(%rsp). 
+// For intre, error is at top of stack on trap. But then we call here
+// from the interrupt vectors so error is at 8(%rsp).
 // I just realized I think intre means interrupt exception, e.g. page fault.
 .globl _intre
 _intre:
@@ -69,7 +69,7 @@ _intre:
 	XCHGQ	%rax, (%rsp)
 	// Now %rax points to the vector number.
 
-// When we get here: 
+// When we get here:
 // %RAX points to our vector number, i.e. "return" pc from calls below.
 // For intrp, (%rsp) is bogus code, 8(%rsp) is pointer to vno
 // for intre, (%rsp) is pointer to vno, 8(%rsp) is error code.

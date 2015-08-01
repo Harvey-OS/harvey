@@ -31,15 +31,15 @@ slockstat(uintptr_t pc, uint64_t w)
 void
 qlock(QLock *q)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	uint64_t t0;
 
 	cycles(&t0);
-	if(m->ilockdepth != 0)
-		print("qlock: %#p: ilockdepth %d", getcallerpc(&q), m->ilockdepth);
-	if(m->externup != nil && m->externup->nlocks)
-		print("qlock: %#p: nlocks %d", getcallerpc(&q), m->externup->nlocks);
+	if(machp()->ilockdepth != 0)
+		print("qlock: %#p: ilockdepth %d", getcallerpc(&q), machp()->ilockdepth);
+	if(up != nil && up->nlocks)
+		print("qlock: %#p: nlocks %d", getcallerpc(&q), up->nlocks);
 
 	if(!canlock(&q->use)){
 		lock(&q->use);
@@ -52,20 +52,20 @@ qlock(QLock *q)
 		unlock(&q->use);
 		return;
 	}
-	if(m->externup == nil)
+	if(up == nil)
 		panic("qlock");
 	qlockstats.qlockq++;
 	p = q->tail;
 	if(p == 0)
-		q->head = m->externup;
+		q->head = up;
 	else
-		p->qnext = m->externup;
-	q->tail = m->externup;
-	m->externup->qnext = 0;
-	m->externup->state = Queueing;
-	m->externup->qpc = getcallerpc(&q);
-	if(m->externup->trace)
-		proctrace(m->externup, SLock, 0);
+		p->qnext = up;
+	q->tail = up;
+	up->qnext = 0;
+	up->state = Queueing;
+	up->qpc = getcallerpc(&q);
+	if(up->trace)
+		proctrace(up, SLock, 0);
 	unlock(&q->use);
 	sched();
 	lockstat(getcallerpc(&q), t0);
@@ -119,7 +119,7 @@ qunlock(QLock *q)
 void
 rlock(RWlock *q)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	uint64_t t0;
 
@@ -138,17 +138,17 @@ rlock(RWlock *q)
 
 	qlockstats.rlockq++;
 	p = q->tail;
-	if(m->externup == nil)
+	if(up == nil)
 		panic("rlock");
 	if(p == 0)
-		q->head = m->externup;
+		q->head = up;
 	else
-		p->qnext = m->externup;
-	q->tail = m->externup;
-	m->externup->qnext = 0;
-	m->externup->state = QueueingR;
-	if(m->externup->trace)
-		proctrace(m->externup, SLock, 0);
+		p->qnext = up;
+	q->tail = up;
+	up->qnext = 0;
+	up->state = QueueingR;
+	if(up->trace)
+		proctrace(up, SLock, 0);
 	unlock(&q->use);
 	sched();
 	lockstat(getcallerpc(&q), t0);
@@ -185,7 +185,7 @@ runlock(RWlock *q)
 void
 wlock(RWlock *q)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	uint64_t t0;
 
@@ -198,7 +198,7 @@ wlock(RWlock *q)
 	if(q->readers == 0 && q->writer == 0){
 		/* noone waiting, go for it */
 		q->wpc = getcallerpc(&q);
-		q->wproc = m->externup;
+		q->wproc = up;
 		q->writer = 1;
 		unlock(&q->use);
 		return;
@@ -207,17 +207,17 @@ wlock(RWlock *q)
 	/* wait */
 	qlockstats.wlockq++;
 	p = q->tail;
-	if(m->externup == nil)
+	if(up == nil)
 		panic("wlock");
 	if(p == nil)
-		q->head = m->externup;
+		q->head = up;
 	else
-		p->qnext = m->externup;
-	q->tail = m->externup;
-	m->externup->qnext = 0;
-	m->externup->state = QueueingW;
-	if(m->externup->trace)
-		proctrace(m->externup, SLock, 0);
+		p->qnext = up;
+	q->tail = up;
+	up->qnext = 0;
+	up->state = QueueingW;
+	if(up->trace)
+		proctrace(up, SLock, 0);
 	unlock(&q->use);
 	sched();
 	lockstat(getcallerpc(&q), t0);

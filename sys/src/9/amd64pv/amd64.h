@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -156,7 +156,7 @@ enum {						/* Segment Descriptor */
  * Performance Counter Configuration
  */
 enum {						/* Performance Event Selector */
-    				 
+
 	PeHo		= 0x0000020000000000ull,/* Host only */
 	PeGo		= 0x0000010000000000ull,/* Guest only */
 	PeEvMskH	= 0x0000000f00000000ull,/* Event mask H */
@@ -202,4 +202,4 @@ enum {
  * Extern registers.
  */
 #define RMACH		R15			/* m-> */
-#define RUSER		R14			/* m->externup-> */
+#define RUSER		R14			/* up-> */

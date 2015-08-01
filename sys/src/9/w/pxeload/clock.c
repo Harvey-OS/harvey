@@ -47,7 +47,7 @@ extern void wrmsr(int, int64_t);
 static void
 clockintr(Ureg*, void*)
 {
-	m->ticks++;
+	machp()->ticks++;
 	checkalarms();
 }
 

@@ -147,11 +147,9 @@ sdaddpart(SDunit* unit, char* name, uint64_t start, uint64_t end)
 static void
 sddelpart(SDunit* unit, char* name)
 {
-	Mach *m;
+	Proc *up = machp()->externup;
 	int i;
 	SDpart *pp;
-
-	m = machp();
 	/*
 	 * Look for the partition to delete.
 	 * Can't delete if someone still has it open.
@@ -164,7 +162,7 @@ sddelpart(SDunit* unit, char* name)
 	}
 	if(i >= unit->npart)
 		error(Ebadctl);
-	if(strcmp(m->externup->user, pp->user) && !iseve())
+	if(strcmp(up->user, pp->user) && !iseve())
 		error(Eperm);
 	pp->valid = 0;
 	pp->vers++;
@@ -491,7 +489,7 @@ sd1gen(Chan* c, int i, Dir* dp)
 static int
 sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 {
-	Mach *m;
+	Proc *up = machp()->externup;
 	Qid q;
 	int64_t l;
 	int i, r;
@@ -499,13 +497,12 @@ sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 	SDunit *unit;
 	SDev *sdev;
 
-	m = machp();
 	switch(TYPE(c->qid)){
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, 0, Qtopdir), 0, QTDIR);
-			sprint(m->externup->genbuf, "#%C", sddevtab.dc);
-			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
+			sprint(up->genbuf, "#%C", sddevtab.dc);
+			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
 
@@ -552,8 +549,8 @@ sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 	case Qunitdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, 0, Qtopdir), 0, QTDIR);
-			sprint(m->externup->genbuf, "#%C", sddevtab.dc);
-			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
+			sprint(up->genbuf, "#%C", sddevtab.dc);
+			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
 
@@ -752,7 +749,7 @@ sdclose(Chan* c)
 static int32_t
 sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 {
-	Mach *m;
+	Proc *up = machp()->externup;
 	int nchange;
 	uint8_t *b;
 	SDpart *pp;
@@ -761,7 +758,6 @@ sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 	int64_t bno;
 	int32_t l, max, nb, offset;
 
-	m = machp();
 	sdev = sdgetdev(DEV(c->qid));
 	if(sdev == nil){
 		decref(&sdev->r);
@@ -775,7 +771,7 @@ sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 	qlock(&unit->ctl);
 	while(waserror()){
 		/* notification of media change; go around again */
-		if(strcmp(m->externup->errstr, Eio) == 0 && unit->sectors == 0 && nchange++ == 0){
+		if(strcmp(up->errstr, Eio) == 0 && unit->sectors == 0 && nchange++ == 0){
 			sdinitpart(unit);
 			continue;
 		}
@@ -1394,14 +1390,13 @@ sdwrite(Chan* c, void* a, int32_t n, int64_t off)
 static int32_t
 sdwstat(Chan* c, uint8_t* dp, int32_t n)
 {
-	Mach *m;
+	Proc *up = machp()->externup;
 	Dir *d;
 	SDpart *pp;
 	SDperm *perm;
 	SDunit *unit;
 	SDev *sdev;
 
-	m = machp();
 	if(c->qid.type & QTDIR)
 		error(Eperm);
 
@@ -1435,7 +1430,7 @@ sdwstat(Chan* c, uint8_t* dp, int32_t n)
 		break;
 	}
 
-	if(strcmp(m->externup->user, perm->user) && !iseve())
+	if(strcmp(up->user, perm->user) && !iseve())
 		error(Eperm);
 
 	d = smalloc(sizeof(Dir)+n);

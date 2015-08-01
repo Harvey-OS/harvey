@@ -113,7 +113,7 @@ tdel(Timer *dt)
 void
 timeradd(Timer *nt)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Timers *tt;
 	int64_t when;
 
@@ -124,7 +124,7 @@ timeradd(Timer *nt)
 		tdel(nt);
 		iunlock(tt);
 	}
-	tt = &timers[m->machno];
+	tt = &timers[machp()->machno];
 	ilock(tt);
 	when = tadd(tt, nt);
 	if(when)
@@ -137,7 +137,7 @@ timeradd(Timer *nt)
 void
 timerdel(Timer *dt)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Timers *tt;
 	int64_t when;
 
@@ -145,7 +145,7 @@ timerdel(Timer *dt)
 	if(tt = dt->tt){
 		ilock(tt);
 		when = tdel(dt);
-		if(when && tt == &timers[m->machno])
+		if(when && tt == &timers[machp()->machno])
 			timerset(tt->head->twhen);
 		iunlock(tt);
 	}
@@ -155,21 +155,21 @@ timerdel(Timer *dt)
 void
 hzclock(Ureg *ur)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintptr_t pc;
 
-	m->ticks++;
-	if(m->machno == 0)
-		sys->ticks = m->ticks;
+	machp()->ticks++;
+	if(machp()->machno == 0)
+		sys->ticks = machp()->ticks;
 
 	pc = userpc(ur);
-	if(m->proc)
-		m->proc->pc = pc;
+	if(machp()->proc)
+		machp()->proc->pc = pc;
 
-	if(m->mmuflush){
-		if(m->externup)
+	if(machp()->mmuflush){
+		if(up)
 			mmuflush();
-		m->mmuflush = 0;
+		machp()->mmuflush = 0;
 	}
 
 	accounttime();
@@ -179,7 +179,7 @@ hzclock(Ureg *ur)
 		kproftimer(pc);
 	oprof_alarm_handler(ur);
 
-	if(m->online == 0)
+	if(machp()->online == 0)
 		return;
 
 	if(active.exiting) {
@@ -189,22 +189,22 @@ hzclock(Ureg *ur)
 
 	checkalarms();
 
-	if(m->externup && m->externup->state == Running)
+	if(up && up->state == Running)
 		hzsched();	/* in proc.c */
 }
 
 void
 timerintr(Ureg *u, int64_t j)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Timer *t;
 	Timers *tt;
 	int64_t when, now;
 	int callhzclock;
 
-	intrcount[m->machno]++;
+	intrcount[machp()->machno]++;
 	callhzclock = 0;
-	tt = &timers[m->machno];
+	tt = &timers[machp()->machno];
 	now = fastticks(nil);
 	ilock(tt);
 	while(t = tt->head){
@@ -225,7 +225,7 @@ timerintr(Ureg *u, int64_t j)
 		tt->head = t->tnext;
 		assert(t->tt == tt);
 		t->tt = nil;
-		fcallcount[m->machno]++;
+		fcallcount[machp()->machno]++;
 		iunlock(tt);
 		if(t->tf)
 			(*t->tf)(u, t);

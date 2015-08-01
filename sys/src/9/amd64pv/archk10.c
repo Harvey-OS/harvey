@@ -19,7 +19,7 @@
 static int
 cpuidinit(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t eax, info[4];
 
 	/*
@@ -43,7 +43,7 @@ cpuidinit(void)
 
 	/* is mnonitor supported? */
 	if (m->cpuinfo[1][2] & 8) {
-		cpuid(5, 0, m->cpuinfo[2]);	
+		cpuid(5, 0, m->cpuinfo[2]);
 		mwait = k10mwait;
 	}
 
@@ -53,7 +53,7 @@ cpuidinit(void)
 static int
 cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(m->ncpuinfos == 0 && cpuidinit() == 0)
 		return 0;
 
@@ -214,7 +214,7 @@ print("\n");*/
 void
 cpuiddump(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	uint32_t info[4];
 
@@ -239,7 +239,7 @@ cpuiddump(void)
 int64_t
 archhz(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int64_t hz;
 	uint32_t info0[4], info1[4];
 
@@ -254,7 +254,7 @@ archhz(void)
 	}
 
 	hz = cpuidhz(info0, info1);
-	if(hz != 0 || m->machno != 0)
+	if(hz != 0 || machp()->machno != 0)
 		return hz;
 
 	iprint("arch hz, cpuidhz failed, going to i8254hz\n");
@@ -264,11 +264,11 @@ archhz(void)
 int
 archmmu(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t info[4];
 
 	/*
-	 * Should the check for m->machno != 0 be here
+	 * Should the check for machp()->machno != 0 be here
 	 * or in the caller (mmuinit)?
 	 *
 	 * To do here:
@@ -283,9 +283,9 @@ archmmu(void)
 	 */
 	assert(PGSZ == 4*KiB);
 
-	m->pgszlg2[0] = 12;
-	m->pgszmask[0] = (1<<12)-1;
-	m->pgsz[0] = 1<<12;
+	machp()->pgszlg2[0] = 12;
+	machp()->pgszmask[0] = (1<<12)-1;
+	machp()->pgsz[0] = 1<<12;
 	m->npgsz = 1;
 	if(m->ncpuinfos == 0 && cpuidinit() == 0)
 		return 1;
@@ -296,18 +296,18 @@ archmmu(void)
 	 */
 	if(!(m->cpuinfo[1][3] & 0x00000008))
 		return 1;
-	m->pgszlg2[1] = 21;
-	m->pgszmask[1] = (1<<21)-1;
-	m->pgsz[1] = 1<<21;
+	machp()->pgszlg2[1] = 21;
+	machp()->pgszmask[1] = (1<<21)-1;
+	machp()->pgsz[1] = 1<<21;
 	m->npgsz = 2;
 
 	/*
 	 * Check the Page1GB bit in function 0x80000001 DX for 1*GiB support.
 	 */
 	if(cpuidinfo(0x80000001, 0, info) && (info[3] & 0x04000000)){
-		m->pgszlg2[2] = 30;
-		m->pgszmask[2] = (1<<30)-1;
-		m->pgsz[2] = 1<<30;
+		machp()->pgszlg2[2] = 30;
+		machp()->pgszmask[2] = (1<<30)-1;
+		machp()->pgsz[2] = 1<<30;
 		m->npgsz = 3;
 	}
 
@@ -357,7 +357,7 @@ fmtW(Fmt *f)
 	return fmtprint(f, "%#ullx=0x[%ullx][%ullx][%ullx][%ullx][%ullx]", va,
 		PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
 		va & ((1<<PGSHFT)-1));
-		
+
 }
 
 void
@@ -389,7 +389,7 @@ archidle(void)
 void
 microdelay(int microsecs)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint64_t r, t;
 
 	r = rdtsc();
@@ -400,7 +400,7 @@ microdelay(int microsecs)
 void
 millidelay(int millisecs)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint64_t r, t;
 
 	r = rdtsc();

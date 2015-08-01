@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -386,7 +386,7 @@ struct Page
 	Page	*next;			/* Lru free list */
 	Page	*prev;
 	Page	*hash;			/* Image hash chains */
-	int	pgszi;			/* size index in m->pgsz[] */
+	int	pgszi;			/* size index in machp()->pgsz[] */
 };
 
 struct Image

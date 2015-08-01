@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -151,7 +151,7 @@ struct Reg
 	int	accsz;		/* access size */
 };
 
-/* Generic address structure. 
+/* Generic address structure.
  */
 struct Gas
 {
@@ -321,7 +321,7 @@ struct Srat
 			uint64_t	addr;	/* base address */
 			uint64_t	len;
 			int	hplug;	/* hot pluggable */
-			int	nvram;	/* non volatile */	
+			int	nvram;	/* non volatile */
 		} mem;
 		struct{
 			int	dom;	/* proximity domain */

@@ -49,7 +49,7 @@ void oprof_alarm_handler(Ureg *u)
 	//int coreid = machp()->machno;
 	if (u->ip > KTZERO)
 		oprofile_add_backtrace(u->ip, u->bp);
-	else 
+	else
 		oprofile_add_userpc(u->ip);
 }
 
@@ -70,7 +70,7 @@ kprofattach(char *spec)
 	}
 	kproftab[1].length = n;
 	alloc_cpu_buffers();
-	print("Kprof attached. Buf is %p, %d bytes, minpc %p maxpc %p\n", 
+	print("Kprof attached. Buf is %p, %d bytes, minpc %p maxpc %p\n",
 			kprof.buf, n, (void *)kprof.minpc, (void *)kprof.maxpc);
 	return devattach('K', spec);
 }
@@ -78,7 +78,7 @@ kprofattach(char *spec)
 static void
 _kproftimer(uintptr_t pc)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(kprof.time == 0)
 		return;
 
@@ -92,7 +92,7 @@ _kproftimer(uintptr_t pc)
 	 *  use the pc saved when we went splhi.
 	 */
 	if(pc>=PTR2UINT(spllo) && pc<=PTR2UINT(spldone))
-		pc = m->splpc;
+		pc = machp()->splpc;
 
 	ilock(&kprof.l);
 	kprof.buf[0] += TK2MS(1);
