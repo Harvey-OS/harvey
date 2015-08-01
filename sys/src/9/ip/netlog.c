@@ -86,7 +86,7 @@ netloginit(Fs *f)
 void
 netlogopen(Fs *f)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	lock(f->alog);
 	if(waserror()){
 		unlock(f->alog);
@@ -108,7 +108,7 @@ netlogopen(Fs *f)
 void
 netlogclose(Fs *f)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	lock(f->alog);
 	if(waserror()){
 		unlock(f->alog);
@@ -134,7 +134,7 @@ netlogready(void *a)
 int32_t
 netlogread(Fs *f, void *a, uint32_t u, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, d;
 	char *p, *rptr;
 
@@ -180,7 +180,7 @@ netlogread(Fs *f, void *a, uint32_t u, int32_t n)
 void
 netlogctl(Fs *f, char* s, int n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, set;
 	Netlogflag *fp;
 	Cmdbuf *cb;

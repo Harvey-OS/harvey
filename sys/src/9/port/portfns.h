@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -255,7 +255,7 @@ void		physfree(uintmem, uint64_t);
 void		physinit(uintmem, uint64_t);
 void*		phystag(uintmem);
 void		pio(Segment*, uintptr_t, uint32_t, Page**, int);
-#define		poperror()		m->externup->nerrlab--
+#define		poperror()		machp()->externup->nerrlab--
 void		portmwait(void*);
 int		postnote(Proc*, int, char*, int);
 int		pprint(char*, ...);

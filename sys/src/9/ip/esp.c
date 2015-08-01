@@ -459,7 +459,7 @@ espkick(void *x)
 void
 espiput(Proto *esp, Ipifc *ipifc, Block *bp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int payload, nexthdr;
 	uint8_t *auth, *espspi;
 	Conv *c;
@@ -534,9 +534,9 @@ print("esp: bad auth %I -> %I!%ld\n", vers.raddr, vers.laddr, vers.spi);
 	/* decrypt payload */
 	if(!ecb->cipher(ecb, bp->rp + vers.hdrlen, payload)) {
 		qunlock(c);
-print("esp: cipher failed %I -> %I!%ld: %s\n", vers.raddr, vers.laddr, vers.spi, m->externup->errstr);
+print("esp: cipher failed %I -> %I!%ld: %s\n", vers.raddr, vers.laddr, vers.spi, up->errstr);
 		netlog(f, Logesp, "esp: cipher failed %I -> %I!%lud: %s\n",
-			vers.raddr, vers.laddr, vers.spi, m->externup->errstr);
+			vers.raddr, vers.laddr, vers.spi, up->errstr);
 		freeb(bp);
 		return;
 	}

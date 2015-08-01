@@ -10,8 +10,8 @@
 
 /*
  * Ticket locks.
- * D. P. Reed and R. K. Kanodia. 
- * Synchronization with Eventcounts and Sequencers. 
+ * D. P. Reed and R. K. Kanodia.
+ * Synchronization with Eventcounts and Sequencers.
  * Communications of the ACM, 22(2):115–23, Feb. 1979.
  *
  * A variant is used in Linux.
@@ -155,7 +155,7 @@ incticket(uint32_t *key)
 
 	do{
 		old = *key;
-		
+
 		new = ((old+0x10000)&0xFFFF0000) | (old&0xFFFF);
 	}while(!cas32(key, old, new));
 	return getticket(new);
@@ -178,23 +178,23 @@ lock(Lock *l)
 	pc = getcallerpc(&l);
 	lockstats.locks++;
 	if(up)
-		ainc(&m->externup->nlocks);	/* prevent being scheded */
+		ainc(&up->nlocks);	/* prevent being scheded */
 	cycles(&t0);
 	user = incuser(&l->key);
 	if(getticket(l->key) != myticket(user)){
 		if(up)
-			adec(&m->externup->nlocks);
+			adec(&up->nlocks);
 		lockstats.glare++;
 		i = 0;
 		while(getticket(l->key) != myticket(user)){
-			if(conf.nmach < 2 && up && m->externup->edf && (up->edf->flags & Admitted)){
+			if(conf.nmach < 2 && up && up->edf && (up->edf->flags & Admitted)){
 				/*
 				 * Priority inversion, yield on a uniprocessor; on a
 				 * multiprocessor, the other processor will unlock
 				 */
 				print("inversion %#p pc %#p proc %d held by pc %#p proc %d\n",
-					l, pc, up ? m->externup->pid : 0, l->pc, l->p ? l->p->pid : 0);
-				m->externup->edf->d = todget(nil);	/* yield to process with lock */
+					l, pc, up ? up->pid : 0, l->pc, l->p ? l->p->pid : 0);
+				up->edf->d = todget(nil);	/* yield to process with lock */
 			}
 			if(i++ > 100000000){
 				i = 0;
@@ -202,14 +202,14 @@ lock(Lock *l)
 			}
 		}
 		if(up)
-			ainc(&m->externup->nlocks);
+			ainc(&up->nlocks);
 	}
 	l->pc = pc;
 	l->p = up;
 	l->m = m;
 	l->isilock = 0;
 	if(up)
-		m->externup->lastlock = l;
+		up->lastlock = l;
 	if(l != &waitstatslk)
 		addwaitstat(pc, t0, WSlock);
 	return 0;
@@ -238,7 +238,7 @@ ilock(Lock *l)
 	}
 	m->ilockdepth++;
 	if(up)
-		m->externup->lastilock = l;
+		up->lastilock = l;
 	l->pl = pl;
 	l->pc = pc;
 	l->p = up;
@@ -259,14 +259,14 @@ canlock(Lock *l)
 
 	lockstats.locks++;
 	if(up)
-		ainc(&m->externup->nlocks);	/* prevent being scheded */
+		ainc(&up->nlocks);	/* prevent being scheded */
 	cycles(&t0);
 
 	try = *l;
 	if(getuser(try.key) != getticket(try.key)){
 	Cant:
 		if(up)
-			adec(&m->externup->nlocks);
+			adec(&up->nlocks);
 		return 0;
 	}
 	new = try;
@@ -277,7 +277,7 @@ canlock(Lock *l)
 	l->p = up;
 	l->m = m;
 	if(up)
-		m->externup->lastlock = l;
+		up->lastlock = l;
 	l->isilock = 0;
 	return 1;
 }
@@ -295,7 +295,7 @@ unlock(Lock *l)
 	l->m = nil;
 	incticket(&l->key);
 
-	if(up && adec(&m->externup->nlocks) == 0 && up->delaysched && islo()){
+	if(up && adec(&up->nlocks) == 0 && up->delaysched && islo()){
 		/*
 		 * Call sched if the need arose while locks were held
 		 * But, don't do it from interrupt routines, hence the islo() test
@@ -317,7 +317,7 @@ iunlock(Lock *l)
 		print("iunlock while lo: pc %#p, held by %#p\n", getcallerpc(&l), l->pc);
 	if(l->m != m){
 		print("iunlock by cpu%d, locked by cpu%d: pc %#p, held by %#p\n",
-			m->machno, l->m->machno, getcallerpc(&l), l->pc);
+			machp()->machno, l->machp()->machno, getcallerpc(&l), l->pc);
 	}
 
 	pl = l->pl;
@@ -325,7 +325,7 @@ iunlock(Lock *l)
 	incticket(&l->key);
 	m->ilockdepth--;
 	if(up)
-		m->externup->lastilock = nil;
+		up->lastilock = nil;
 	splx(pl);
 }
 

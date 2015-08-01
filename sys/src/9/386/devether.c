@@ -23,7 +23,7 @@ static Ether *etherxx[MaxEther];
 Chan*
 etherattach(char* spec)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t ctlrno;
 	char *p;
 	Chan *chan;
@@ -253,7 +253,7 @@ etheroq(Ether* ether, Block* bp)
 static int32_t
 etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ether *ether;
 	Block *bp;
 	int nn, onoff;
@@ -303,7 +303,7 @@ etherwrite(Chan* chan, void* buf, int32_t n, int64_t mm)
 static int32_t
 etherbwrite(Chan* chan, Block* bp, int64_t mm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ether *ether;
 	int32_t n;
 

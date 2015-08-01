@@ -164,7 +164,7 @@ vsvminit(int size, int nixtype, Mach *m)
 {
 	Sd *sd;
 	uint64_t r;
-	if(m->machno == 0){
+	if(machp()->machno == 0){
 		idtinit(idt64, PTR2UINT(idthandlers));
 		idtinit(acidt64, PTR2UINT(acidthandlers));
 	}
@@ -190,7 +190,7 @@ vsvminit(int size, int nixtype, Mach *m)
 	asm volatile("ltr %w0"::"q" (SSEL(SiTSS, SsTIGDT|SsRPL0)));
 
 	wrmsr(FSbase, 0ull);
-	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
+	wrmsr(GSbase, PTR2UINT(&sys->machptr[machp()->machno]));
 	wrmsr(KernelGSbase, 0ull);
 
 	r = rdmsr(Efer);

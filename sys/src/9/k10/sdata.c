@@ -721,7 +721,7 @@ retry:
 			drive->sectors = drive->c*drive->h*drive->s;
 		atarwmmode(drive, cmdport, ctlport, dev);
 	}
-	atadmamode(drive);	
+	atadmamode(drive);
 
 	if(DEBUG & DbgCONFIG){
 		print("dev %2.2uX port %uX config %4.4uX capabilities %4.4uX",
@@ -762,7 +762,7 @@ ataprobe(int cmdport, int ctlport, int irq)
 	Drive *drive;
 	int dev, error, rhi, rlo;
 	static int nonlegacy = 'C';
-	
+
 	if(cmdport == 0) {
 		print("ataprobe: cmdport is 0\n");
 		return nil;
@@ -909,7 +909,7 @@ tryedd1:
 	ctlr->irq = irq;
 	ctlr->tbdf = BUSUNKNOWN;
 	ctlr->command = Cedd;		/* debugging */
-	
+
 	switch(cmdport){
 	default:
 		sdev->idno = nonlegacy;
@@ -970,7 +970,7 @@ ataprobew(DevConf *cf)
 {
 	//char *p;
 	ISAConf isa;
-	
+
 	if (cf->nports != 2)
 		error(Ebadarg);
 
@@ -1028,7 +1028,7 @@ atamodesense(Drive* drive, uint8_t* cmd)
 static int
 atastandby(Drive* drive, int period)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr* ctlr;
 	int cmdport, done;
 
@@ -1277,7 +1277,7 @@ atapktinterrupt(Drive* drive)
 static int
 atapktio(Drive* drive, uint8_t* cmd, int clen)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 	int as, cmdport, ctlport, len, r, timeo;
 
@@ -1505,7 +1505,7 @@ atagenioretry(Drive* drive)
 static int
 atagenio(Drive* drive, uint8_t* cmd, int clen)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint8_t *p;
 	Ctlr *ctlr;
 	int64_t lba, len;
@@ -2163,7 +2163,7 @@ if(0){
 	 * /
 	memset(&isa, 0, sizeof(isa));
 	isa.port = 0x180;		/ * change this for your machine * /
-	isa.irq = 11;			/ * change this for your machine * / 
+	isa.irq = 11;			/ * change this for your machine * /
 
 	port = isa.port+0x0C;
 	channel = pcmspecial("MK2001MPL", &isa);
@@ -2285,7 +2285,7 @@ atarctl(SDunit* unit, char* p, int l)
 static int
 atawctl(SDunit* unit, Cmdbuf* cb)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int period;
 	Ctlr *ctlr;
 	Drive *drive;

@@ -115,10 +115,10 @@ static	Lock		mainlock;
  * Experiment: per-core quick lists.
  * change quicklist to be
  * static	Qlist	quicklist[MACHMAX][NQUICK+1];
- * and define QLIST to be quicklist[m->machno]
+ * and define QLIST to be quicklist[machp()->machno]
  *
- * using quicklist[m->machno] runs out of memory soon.
- * using quicklist[m->machno%4] yields times worse than using quicklist!
+ * using quicklist[machp()->machno] runs out of memory soon.
+ * using quicklist[machp()->machno%4] yields times worse than using quicklist!
  */
 #define QLIST	quicklist
 
@@ -549,11 +549,11 @@ mallocalign(uint32_t nbytes, uint32_t align, int32_t offset, uint32_t span)
 void*
 smalloc(uint32_t size)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	void *v;
 
 	while((v = malloc(size)) == nil)
-		tsleep(&m->externup->sleep, return0, 0, 100);
+		tsleep(&up->sleep, return0, 0, 100);
 	memset(v, 0, size);
 
 	return v;

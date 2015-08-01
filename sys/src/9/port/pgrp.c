@@ -20,7 +20,7 @@ static Ref mountid;
 void
 pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	Proc *p;
 	char buf[ERRMAX];
@@ -31,7 +31,7 @@ pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 	memmove(buf, a, n);
 	buf[n] = 0;
 	for(i = 0; (p = psincref(i)) != nil; i++){
-		if(p == m->externup || p->state == Dead || p->noteid != noteid || p->kp){
+		if(p == up || p->state == Dead || p->noteid != noteid || p->kp){
 			psdecref(p);
 			continue;
 		}
@@ -213,7 +213,7 @@ dupfgrp(Fgrp *f)
 void
 closefgrp(Fgrp *f)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	Chan *c;
 
@@ -227,14 +227,14 @@ closefgrp(Fgrp *f)
 	 * If we get into trouble, forceclosefgrp
 	 * will bail us out.
 	 */
-	m->externup->closingfgrp = f;
+	up->closingfgrp = f;
 	for(i = 0; i <= f->maxfd; i++){
 		if(c = f->fd[i]){
 			f->fd[i] = nil;
 			cclose(c);
 		}
 	}
-	m->externup->closingfgrp = nil;
+	up->closingfgrp = nil;
 
 	free(f->fd);
 	free(f);
@@ -253,17 +253,17 @@ closefgrp(Fgrp *f)
 void
 forceclosefgrp(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	Chan *c;
 	Fgrp *f;
 
-	if(m->externup->procctl != Proc_exitme || m->externup->closingfgrp == nil){
+	if(up->procctl != Proc_exitme || up->closingfgrp == nil){
 		print("bad forceclosefgrp call");
 		return;
 	}
 
-	f = m->externup->closingfgrp;
+	f = up->closingfgrp;
 	for(i = 0; i <= f->maxfd; i++){
 		if(c = f->fd[i]){
 			f->fd[i] = nil;
@@ -307,18 +307,18 @@ mountfree(Mount *mount)
 void
 resrcwait(char *reason)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *p;
 
-	if(m->externup == nil)
+	if(up == nil)
 		panic("resrcwait");
 
-	p = m->externup->psstate;
+	p = up->psstate;
 	if(reason) {
-		m->externup->psstate = reason;
+		up->psstate = reason;
 		print("%s\n", reason);
 	}
 
-	tsleep(&m->externup->sleep, return0, 0, 300);
-	m->externup->psstate = p;
+	tsleep(&up->sleep, return0, 0, 300);
+	up->psstate = p;
 }

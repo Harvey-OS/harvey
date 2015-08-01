@@ -63,7 +63,7 @@ enum {
 Proc*
 setupseg(int core)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	uintptr_t  ka;
 	Proc *p;
@@ -80,19 +80,19 @@ setupseg(int core)
 	p->kp = 1;
 	p->noswap = 1;
 
-	p->scallnr = m->externup->scallnr;
-	memmove(p->arg, m->externup->arg, sizeof(m->externup->arg));
+	p->scallnr = up->scallnr;
+	memmove(p->arg, up->arg, sizeof(up->arg));
 	p->nerrlab = 0;
-	p->slash = m->externup->slash;
-	p->dot = m->externup->dot;
+	p->slash = up->slash;
+	p->dot = up->dot;
 	if(p->dot)
 		incref(p->dot);
 
-	memmove(p->note, m->externup->note, sizeof(p->note));
-	p->nnote = m->externup->nnote;
+	memmove(p->note, up->note, sizeof(p->note));
+	p->nnote = up->nnote;
 	p->notified = 0;
-	p->lastnote = m->externup->lastnote;
-	p->notify = m->externup->notify;
+	p->lastnote = up->lastnote;
+	p->notify = up->notify;
 	p->ureg = 0;
 	p->dbgreg = 0;
 
@@ -149,7 +149,7 @@ setupseg(int core)
 void
 kforkexecac(Proc *p, int core, char *ufile, char **argv)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Khdr hdr;
 	Tos *tos;
 	Chan *chan;
@@ -174,7 +174,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	USED(chan);
 
 	if(waserror()){
-		DBG("kforkexecac: failing: %s\n", m->externup->errstr);
+		DBG("kforkexecac: failing: %s\n", up->errstr);
 		if(file)
 			free(file);
 		if(elem)
@@ -195,9 +195,9 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	if(ufile != nil){
 		panic("ufile not implemented yet");
 		file = validnamedup(ufile, 1);
-		DBG("kforkexecac: up %#p file %s\n", m->externup, file);
+		DBG("kforkexecac: up %#p file %s\n", up, file);
 		chan = namec(file, Aopen, OEXEC, 0);
-		kstrdup(&elem, m->externup->genbuf);
+		kstrdup(&elem, up->genbuf);
 
 		hdrsz = chan->dev->read(chan, &hdr, sizeof(Khdr), 0);
 		DBG("wrote ufile\n");
@@ -305,7 +305,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	  * XXX: When we are linking this how do we set the tos? We will need to change trap right?
 	  */
 	tos = (Tos*)stack;
-	tos->cyclefreq = m->cyclefreq;
+	tos->cyclefreq = machp()->cyclefreq;
 	cycles((uint64_t*)&tos->pcycles);
 	tos->pcycles = -tos->pcycles;
 	tos->kcycles = tos->pcycles;
@@ -382,7 +382,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 //	elem = nil;
 //	p->args = args;
 //	p->nargs = n;
-	poperror();				/* p (m->externup->args) */
+	poperror();				/* p (up->args) */
 
 
 
@@ -433,7 +433,7 @@ kforkexecac(Proc *p, int core, char *ufile, char **argv)
 	}
 	DBG("kforkexecac up %#p done\n"
 		"textsz %lx datasz %lx bsssz %lx hdrsz %lx\n"
-		"textlim %ullx datalim %ullx bsslim %ullx\n", m->externup,
+		"textlim %ullx datalim %ullx bsslim %ullx\n", up,
 		textsz, datasz, bsssz, hdrsz, textlim, datalim, bsslim);
 }
 

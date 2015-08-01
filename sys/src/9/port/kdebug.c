@@ -16,13 +16,13 @@ static int tab_depth = 0;
 
 static void __iprint_hdr(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 //	struct per_cpu_info *pcpui = &per_cpu_info[core_id()];
 	iprint("Core %2d ", 0); //core_id());	/* may help with multicore output */
 	if (! islo()) {
 		iprint("IRQ       :");
-	} else if (m->externup) {
-		iprint("%d: ", m->externup->pid);
+	} else if (up) {
+		iprint("%d: ", up->pid);
 	}
 }
 

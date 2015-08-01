@@ -317,7 +317,7 @@ asmwalkalloc(usize size)
 void
 asmmeminit(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, l;
 	Asm* assem;
 	PTE *pte, *pml4;
@@ -327,7 +327,7 @@ asmmeminit(void)
 	int cx;
 #endif /* ConfCrap */
 
-	assert(!((sys->vmunmapped|sys->vmend) & m->pgszmask[1]));
+	assert(!((sys->vmunmapped|sys->vmend) & machp()->pgszmask[1]));
 
 	if((pa = mmuphysaddr(sys->vmunused)) == ~0)
 		panic("asmmeminit 1");
@@ -339,7 +339,7 @@ asmmeminit(void)
 
 	/* assume already 2MiB aligned*/
 	assert(ALIGNED(sys->vmunmapped, 2*MiB));
-	pml4 = UINT2PTR(m->pml4->va);
+	pml4 = UINT2PTR(machp()->pml4->va);
 	while(sys->vmunmapped < sys->vmend){
 		l = mmuwalk(pml4, sys->vmunmapped, 1, &pte, asmwalkalloc);
 		DBG("%#p l %d\n", sys->vmunmapped, l);
@@ -363,11 +363,11 @@ asmmeminit(void)
 		hi = assem->addr+assem->size;
 		/* Convert a range into pages */
 		for(mem = lo; mem < hi; mem = nextmem){
-			nextmem = (mem + PGLSZ(0)) & ~m->pgszmask[0];
+			nextmem = (mem + PGLSZ(0)) & ~machp()->pgszmask[0];
 
 			/* Try large pages first */
 			for(i = m->npgsz - 1; i >= 0; i--){
-				if((mem & m->pgszmask[i]) != 0)
+				if((mem & machp()->pgszmask[i]) != 0)
 					continue;
 				if(mem + PGLSZ(i) > hi)
 					continue;

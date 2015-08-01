@@ -118,7 +118,7 @@ apicisr(int vecno)
 void
 apicinit(int apicno, uintmem pa, int isbp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Apic *apic;
 
 	/*
@@ -198,7 +198,7 @@ apictimer(Ureg* ureg, void* v)
 int
 apiconline(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Apic *apic;
 	uint64_t tsc;
 	uint32_t dfr, ver;
@@ -275,7 +275,7 @@ apiconline(void)
 	apic->min = apic->hz/(100*HZ);
 	apic->div = ((m->cpuhz/apic->max)+HZ/2)/HZ;
 
-	if(m->machno == 0 || DBGFLG){
+	if(machp()->machno == 0 || DBGFLG){
 		print("apic%d: hz %lld max %lld min %lld div %lld\n", apicno,
 			apic->hz, apic->max, apic->min, apic->div);
 	}
@@ -319,7 +319,7 @@ apiconline(void)
 	 * then lower the task priority to allow interrupts to be
 	 * accepted by the APIC.
 	 */
-	microdelay((TK2MS(1)*1000/apmachno) * m->machno);
+	microdelay((TK2MS(1)*1000/apmachno) * machp()->machno);
 
 	if(apic->machno == 0){
 		apicrput(Tic, apic->max);
@@ -327,7 +327,7 @@ apiconline(void)
 		apicrput(Tlvt, Periodic|IrqTIMER);
 	}
 
-	if(m->machno == 0)
+	if(machp()->machno == 0)
 		apicrput(Tp, 0);
 
 	xlapicmachptr[apicno] = m;
@@ -352,7 +352,7 @@ apictimerenab(void)
 void
 apictimerset(uint64_t next)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mpl pl;
 	Apic *apic;
 	int64_t period;

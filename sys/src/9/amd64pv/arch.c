@@ -21,11 +21,11 @@
 #include "../port/error.h"
 
 /* the rules are different for different compilers. We need to define up. */
-// Initialize it to force it into data. 
+// Initialize it to force it into data.
 // That way, if we set them in assembly, they won't get zero'd by the bss init in main
 // N.B. There was an interesting hack in plan 9 c. You could grab up to two registers for your
 // program. In the case of Plan 9, m was r15, and up was r14. Very slick, and if there is a way to do
-// this in gcc or clang I don't know it. This also nicely handled per cpu info; R15/14 were always right for 
+// this in gcc or clang I don't know it. This also nicely handled per cpu info; R15/14 were always right for
 // your core and context.
 //Mach *m = (void *)0;
 
@@ -87,9 +87,9 @@ procsave(Proc *p)
 static void
 linkproc(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	spllo();
-	m->externup->kpfun(m->externup->kparg);
+	up->kpfun(up->kparg);
 	pexit("kproc dying", 0);
 }
 
@@ -119,12 +119,12 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 void
 idlehands(void)
 {
-Mach *m = machp();
+Proc *up = machp()->externup;
 if(sys->nmach <= 1)
 {
 	halt();
 }
 if(0)
-	if(m->machno != 0)
+	if(machp()->machno != 0)
 		halt();
 }
