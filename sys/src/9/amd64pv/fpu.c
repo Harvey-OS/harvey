@@ -120,7 +120,7 @@ fpudevprocio(Proc* proc, void* a, int32_t n, uintptr_t offset, int write)
 void
 fpunotify(Ureg* u)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	/*
 	 * Called when a note is about to be delivered to a
 	 * user process, usually at the end of a system call.
@@ -128,55 +128,55 @@ fpunotify(Ureg* u)
 	 * the state is marked (after saving if necessary) and
 	 * checked in the Device Not Available handler.
 	 */
-	if(m->externup->fpustate == Busy){
-		_fxsave(m->externup->fpusave);
+	if(up->fpustate == Busy){
+		_fxsave(up->fpusave);
 		_stts();
-		m->externup->fpustate = Idle;
+		up->fpustate = Idle;
 	}
-	m->externup->fpustate |= Hold;
+	up->fpustate |= Hold;
 }
 
 void
 fpunoted(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	/*
 	 * Called from sysnoted() via the machine-dependent
 	 * noted() routine.
 	 * Clear the flag set above in fpunotify().
 	 */
-	m->externup->fpustate &= ~Hold;
+	up->fpustate &= ~Hold;
 }
 
 void
 fpusysrfork(Ureg* u)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	/*
 	 * Called early in the non-interruptible path of
 	 * sysrfork() via the machine-dependent syscall() routine.
 	 * Save the state so that it can be easily copied
 	 * to the child process later.
 	 */
-	if(m->externup->fpustate != Busy)
+	if(up->fpustate != Busy)
 		return;
 
-	_fxsave(m->externup->fpusave);
+	_fxsave(up->fpusave);
 	_stts();
-	m->externup->fpustate = Idle;
+	up->fpustate = Idle;
 }
 
 void
 fpusysrforkchild(Proc* child, Proc* parent)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	/*
 	 * Called later in sysrfork() via the machine-dependent
 	 * sysrforkchild() routine.
 	 * Copy the parent FPU state to the child.
 	 */
 	child->fpustate = parent->fpustate;
-	child->fpusave = (void*)((PTR2UINT(m->externup->fxsave) + 15) & ~15);
+	child->fpusave = (void*)((PTR2UINT(up->fxsave) + 15) & ~15);
 	if(child->fpustate == Init)
 		return;
 
@@ -212,7 +212,7 @@ fpuprocsave(Proc* p)
 	/*
 	 * Save the FPU state without handling pending
 	 * unmasked exceptions and disable. Postnote() can't
-	 * be called here as sleep() already has m->externup->rlock,
+	 * be called here as sleep() already has up->rlock,
 	 * so the handling of pending exceptions is delayed
 	 * until the process runs again and generates a
 	 * Device Not Available exception fault to activate
@@ -266,7 +266,7 @@ acfpusysprocsetup(Proc *p)
 static char*
 fpunote(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint16_t fsw;
 	Fxsave *fpusave;
 	char *cm;
@@ -276,7 +276,7 @@ fpunote(void)
 	 * cleared or there's no way to tell if the exception was an
 	 * invalid operation or a stack fault.
 	 */
-	fpusave = m->externup->fpusave;
+	fpusave = up->fpusave;
 	fsw = (fpusave->fsw & ~fpusave->fcw) & (Sff|P|U|O|Z|D|I);
 	if(fsw & I){
 		if(fsw & Sff){
@@ -301,16 +301,16 @@ fpunote(void)
 	else
 		cm =  "Unknown";
 
-	snprint(m->externup->genbuf, sizeof(m->externup->genbuf),
+	snprint(up->genbuf, sizeof(up->genbuf),
 		"sys: fp: %s Exception ipo=%#llux fsw=%#ux",
 		cm, fpusave->rip, fsw);
-	return m->externup->genbuf;
+	return up->genbuf;
 }
 
 char*
 xfpuxf(Ureg* ureg, void* v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t mxcsr;
 	Fxsave *fpusave;
 	char *cm;
@@ -322,10 +322,10 @@ xfpuxf(Ureg* ureg, void* v)
 	/*
 	 * Save FPU state to check out the error.
 	 */
-	fpusave = m->externup->fpusave;
+	fpusave = up->fpusave;
 	_fxsave(fpusave);
 	_stts();
-	m->externup->fpustate = Idle;
+	up->fpustate = Idle;
 
 	if(ureg->ip & KZERO)
 		panic("#MF: ip=%#p", ureg->ip);
@@ -352,20 +352,20 @@ xfpuxf(Ureg* ureg, void* v)
 	else
 		cm =  "Unknown";
 
-	snprint(m->externup->genbuf, sizeof(m->externup->genbuf),
+	snprint(up->genbuf, sizeof(up->genbuf),
 		"sys: fp: %s Exception mxcsr=%#ux", cm, mxcsr);
-	return m->externup->genbuf;
+	return up->genbuf;
 }
 
 void
 fpuxf(Ureg *ureg, void *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *n;
 
 	n = xfpuxf(ureg, p);
 	if(n != nil)
-		postnote(m->externup, 1, n, NDebug);
+		postnote(up, 1, n, NDebug);
 }
 
 char*
@@ -377,7 +377,7 @@ acfpuxf(Ureg *ureg, void *p)
 static char*
 xfpumf(Ureg* ureg, void* v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Fxsave *fpusave;
 
 	/*
@@ -387,10 +387,10 @@ xfpumf(Ureg* ureg, void* v)
 	/*
 	 * Save FPU state to check out the error.
 	 */
-	fpusave = m->externup->fpusave;
+	fpusave = up->fpusave;
 	_fxsave(fpusave);
 	_stts();
-	m->externup->fpustate = Idle;
+	up->fpustate = Idle;
 
 	if(ureg->ip & KZERO)
 		panic("#MF: ip=%#p rip=%#p", ureg->ip, fpusave->rip);
@@ -414,12 +414,12 @@ xfpumf(Ureg* ureg, void* v)
 void
 fpumf(Ureg *ureg, void *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *n;
 
 	n = xfpumf(ureg, p);
 	if(n != nil)
-		postnote(m->externup, 1, n, NDebug);
+		postnote(up, 1, n, NDebug);
 }
 
 char*
@@ -431,30 +431,30 @@ acfpumf(Ureg *ureg, void *p)
 static char*
 xfpunm(Ureg* ureg, void* v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Fxsave *fpusave;
 
 	/*
 	 * #NM - Device Not Available (Vector 7).
 	 */
-	if(m->externup == nil)
+	if(up == nil)
 		panic("#NM: fpu in kernel: ip %#p\n", ureg->ip);
 
 	/*
 	 * Someone tried to use the FPU in a note handler.
 	 * That's a no-no.
 	 */
-	if(m->externup->fpustate & Hold)
+	if(up->fpustate & Hold)
 		return "sys: floating point in note handler";
 
 	if(ureg->ip & KZERO)
 		panic("#NM: proc %d %s state %d ip %#p\n",
-			m->externup->pid, m->externup->text, m->externup->fpustate, ureg->ip);
+			up->pid, up->text, up->fpustate, ureg->ip);
 
-	switch(m->externup->fpustate){
+	switch(up->fpustate){
 	case Busy:
 	default:
-		panic("#NM: state %d ip %#p\n", m->externup->fpustate, ureg->ip);
+		panic("#NM: state %d ip %#p\n", up->fpustate, ureg->ip);
 		break;
 	case Init:
 		/*
@@ -470,8 +470,8 @@ xfpunm(Ureg* ureg, void* v)
 		_fwait();
 		_fldcw(m->fcw);
 		_ldmxcsr(m->mxcsr);
-		m->externup->fpusave = (void*)((PTR2UINT(m->externup->fxsave) + 15) & ~15);
-		m->externup->fpustate = Busy;
+		up->fpusave = (void*)((PTR2UINT(up->fxsave) + 15) & ~15);
+		up->fpustate = Busy;
 		break;
 	case Idle:
 		/*
@@ -479,7 +479,7 @@ xfpunm(Ureg* ureg, void* v)
 		 * exceptions, there's no way to restore the state without
 		 * generating an unmasked exception.
 		 */
-		fpusave = m->externup->fpusave;
+		fpusave = up->fpusave;
 		if((fpusave->fsw & ~fpusave->fcw) & (Sff|P|U|O|Z|D|I))
 			return fpunote();
 
@@ -489,7 +489,7 @@ xfpunm(Ureg* ureg, void* v)
 		fpusave->fcw &= ~Sff;
 		_clts();
 		_fxrstor(fpusave);
-		m->externup->fpustate = Busy;
+		up->fpustate = Busy;
 		break;
 	}
 	return nil;
@@ -498,12 +498,12 @@ xfpunm(Ureg* ureg, void* v)
 void
 fpunm(Ureg *ureg, void *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *n;
 
 	n = xfpunm(ureg, p);
 	if(n != nil)
-		postnote(m->externup, 1, n, NDebug);
+		postnote(up, 1, n, NDebug);
 }
 
 char*
@@ -515,7 +515,7 @@ acfpunm(Ureg *ureg, void *p)
 void
 fpuinit(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint64_t r;
 	Fxsave *fxsave;
 	uint8_t buf[sizeof(Fxsave)+15];

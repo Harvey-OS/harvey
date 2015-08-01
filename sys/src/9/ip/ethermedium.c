@@ -133,7 +133,7 @@ static char *nbmsg = "nonblocking";
 static void
 etherbind(Ipifc *ifc, int argc, char **argv)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *mchan4, *cchan4, *achan, *mchan6, *cchan6, *schan;
 	char addr[Maxpath];	//char addr[2*KNAMELEN];
 	char dir[Maxpath];	//char dir[2*KNAMELEN];
@@ -248,7 +248,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 static void
 etherunbind(Ipifc *ifc)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Etherrock *er = ifc->arg;
 
 	if(er->read4p)
@@ -260,7 +260,7 @@ etherunbind(Ipifc *ifc)
 
 	/* wait for readers to die */
 	while(er->arpp != 0 || er->read4p != 0 || er->read6p != 0)
-		tsleep(&m->externup->sleep, return0, 0, 300);
+		tsleep(&up->sleep, return0, 0, 300);
 
 	if(er->mchan4 != nil)
 		cclose(er->mchan4);
@@ -343,14 +343,14 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip)
 static void
 etherread4(void *a)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ipifc *ifc;
 	Block *bp;
 	Etherrock *er;
 
 	ifc = a;
 	er = ifc->arg;
-	er->read4p = m->externup;	/* hide identity under a rock for unbind */
+	er->read4p = up;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		er->read4p = 0;
 		pexit("hangup", 1);
@@ -383,14 +383,14 @@ etherread4(void *a)
 static void
 etherread6(void *a)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ipifc *ifc;
 	Block *bp;
 	Etherrock *er;
 
 	ifc = a;
 	er = ifc->arg;
-	er->read6p = m->externup;	/* hide identity under a rock for unbind */
+	er->read6p = up;	/* hide identity under a rock for unbind */
 	if(waserror()){
 		er->read6p = 0;
 		pexit("hangup", 1);
@@ -688,11 +688,11 @@ recvarp(Ipifc *ifc)
 static void
 recvarpproc(void *v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ipifc *ifc = v;
 	Etherrock *er = ifc->arg;
 
-	er->arpp = m->externup;
+	er->arpp = up;
 	if(waserror()){
 		er->arpp = 0;
 		pexit("hangup", 1);

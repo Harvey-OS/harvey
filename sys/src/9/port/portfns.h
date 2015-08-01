@@ -255,7 +255,7 @@ void		physfree(uintmem, uint64_t);
 void		physinit(uintmem, uint64_t);
 void*		phystag(uintmem);
 void		pio(Segment*, uintptr_t, uint32_t, Page**, int);
-#define		poperror()		m->externup->nerrlab--
+#define		poperror()		up->nerrlab--
 void		portmwait(void*);
 int		postnote(Proc*, int, char*, int);
 int		pprint(char*, ...);

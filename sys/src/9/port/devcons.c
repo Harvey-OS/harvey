@@ -161,7 +161,7 @@ static Lock iprintlock;
 static int
 iprintcanlock(Lock *l)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 
 	for(i=0; i<1000; i++){
@@ -205,7 +205,7 @@ iprint(char *fmt, ...)
 void
 panic(char *fmt, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int n;
 	Mpl pl;
 	va_list arg;
@@ -257,19 +257,19 @@ _assert(char *fmt)
 int
 pprint(char *fmt, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int n;
 	Chan *c;
 	va_list arg;
 	char buf[2*PRINTSIZE];
 
-	if(m->externup == nil || m->externup->fgrp == nil)
+	if(up == nil || up->fgrp == nil)
 		return 0;
 
-	c = m->externup->fgrp->fd[2];
+	c = up->fgrp->fd[2];
 	if(c==0 || (c->mode!=OWRITE && c->mode!=ORDWR))
 		return 0;
-	n = snprint(buf, sizeof buf, "%s %d: ", m->externup->text, m->externup->pid);
+	n = snprint(buf, sizeof buf, "%s %d: ", up->text, up->pid);
 	va_start(arg, fmt);
 	n = vseprint(buf+n, buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
@@ -424,7 +424,7 @@ consclose(Chan *c)
 static int32_t
 consread(Chan *c, void *buf, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t l;
 	Mach *mp;
 	char *b, *bp, *s, *e;
@@ -452,7 +452,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 			n = 6*NUMSIZE - k;
 		/* easiest to format in a separate buffer and copy out */
 		for(i=0; i<6 && NUMSIZE*i<k+n; i++){
-			l = m->externup->time[i];
+			l = up->time[i];
 			if(i == TReal)
 				l = sys->ticks - l;
 			l = TK2MS(l);
@@ -481,13 +481,13 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		error(Egreg);
 
 	case Qpgrpid:
-		return readnum(offset, buf, n, m->externup->pgrp->pgrpid, NUMSIZE);
+		return readnum(offset, buf, n, up->pgrp->pgrpid, NUMSIZE);
 
 	case Qpid:
-		return readnum(offset, buf, n, m->externup->pid, NUMSIZE);
+		return readnum(offset, buf, n, up->pid, NUMSIZE);
 
 	case Qppid:
-		return readnum(offset, buf, n, m->externup->parentpid, NUMSIZE);
+		return readnum(offset, buf, n, up->parentpid, NUMSIZE);
 
 	case Qtime:
 		return readtime(offset, buf, n);
@@ -502,7 +502,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 		return readstr(offset, buf, n, hostdomain);
 
 	case Quser:
-		return readstr(offset, buf, n, m->externup->user);
+		return readstr(offset, buf, n, up->user);
 
 	case Qnull:
 		return 0;
@@ -609,7 +609,7 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 static int32_t
 conswrite(Chan *c, void *va, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[256];
 	int32_t l, bp;
 	char *a;
@@ -784,7 +784,7 @@ static	uint32_t	randn;
 static void
 seedrand(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(!waserror()){
 		randomread((void*)&randn, sizeof(randn));
 		poperror();

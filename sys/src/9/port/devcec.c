@@ -168,13 +168,13 @@ cecprint(char *fmt, ...)
 static void
 getaddr(char *path, uint8_t *ea)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[6*2];
 	int n;
 	Chan *c;
 
-	snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%s/addr", path);
-	c = namec(m->externup->genbuf, Aopen, OREAD, 0);
+	snprint(up->genbuf, sizeof up->genbuf, "%s/addr", path);
+	c = namec(up->genbuf, Aopen, OREAD, 0);
 	if(waserror()) {
 		cclose(c);
 		nexterror();
@@ -574,7 +574,7 @@ inita(Conn *ncp, If *ifc, Pkt *p)
 static void
 cecrdr(void *vp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Block *bp;
 	Conn *cp;
 	If *ifc;
@@ -770,7 +770,7 @@ cecfixup(void)
 static void
 cecon(char *path)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[64];
 	uint8_t ea[6];
 	Chan *dc, *cc;
@@ -794,16 +794,16 @@ cecon(char *path)
 			cclose(cc);
 		if (dc)
 			cclose(dc);
-		snprint(m->externup->genbuf, sizeof m->externup->genbuf, "can't dial %s", buf);
-		error(m->externup->genbuf);
+		snprint(up->genbuf, sizeof up->genbuf, "can't dial %s", buf);
+		error(up->genbuf);
 	}
 	ifc->d = cc->dev;
 	ifc->cc = cc;
 	ifc->dc = dc;
 	strncpy(ifc->path, path, sizeof ifc->path);
 	memmove(ifc->ea, ea, 6);
-	snprint(m->externup->genbuf, sizeof m->externup->genbuf, "cec:%s", path);
-	kproc(m->externup->genbuf, cecrdr, ifc);
+	snprint(up->genbuf, sizeof up->genbuf, "cec:%s", path);
+	kproc(up->genbuf, cecrdr, ifc);
 }
 
 static void
@@ -842,7 +842,7 @@ rst(Conn *c)
 static int32_t
 cecwrite(Chan *c, void *a, int32_t n, int64_t mm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Cmdbuf *cb;
 	Cmdtab *cp;
 

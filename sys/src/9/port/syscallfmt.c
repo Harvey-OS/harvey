@@ -65,7 +65,7 @@ fmtuserstring(Fmt* f, char* a, char* suffix)
 void
 syscallfmt(int syscallno, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	va_list list;
 	int32_t l;
 	uint32_t ul;
@@ -76,18 +76,18 @@ syscallfmt(int syscallno, ...)
 	int i[2], len, **ip;
 	char *a, **argv;
 	va_start(list, syscallno);
-iprint("%d: %d nsyscall %d\n", m->externup->pid, syscallno, nsyscall);
+iprint("%d: %d nsyscall %d\n", up->pid, syscallno, nsyscall);
 	fmtstrinit(&fmt);
-	fmtprint(&fmt, "%d %s ", m->externup->pid, m->externup->text);
+	fmtprint(&fmt, "%d %s ", up->pid, up->text);
 
 	if(syscallno > nsyscall)
 		fmtprint(&fmt, " %d ", syscallno);
 	else
 		fmtprint(&fmt, "%s ", systab[syscallno].n);
 
-	if(m->externup->syscalltrace != nil)
-		free(m->externup->syscalltrace);
-	m->externup->syscalltrace = nil;
+	if(up->syscalltrace != nil)
+		free(up->syscalltrace);
+	up->syscalltrace = nil;
 
 	switch(syscallno){
 	case SYSR1:
@@ -361,14 +361,14 @@ iprint("%d: %d nsyscall %d\n", m->externup->pid, syscallno, nsyscall);
 	case NIXSYSCALL:
 		break;
 	}
-	m->externup->syscalltrace = fmtstrflush(&fmt);
+	up->syscalltrace = fmtstrflush(&fmt);
 }
 
 void
 sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 	  uint64_t stop, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	va_list list;
 	int32_t l;
 	void* v;
@@ -379,22 +379,22 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 
 	fmtstrinit(&fmt);
 	va_start(list, stop);
-	if(m->externup->syscalltrace)
-		free(m->externup->syscalltrace);
-	m->externup->syscalltrace = nil;
+	if(up->syscalltrace)
+		free(up->syscalltrace);
+	up->syscalltrace = nil;
 
 	errstr = "\"\"";
 	switch(syscallno){
 	default:
 		if(ar0->i == -1)
-			errstr = m->externup->errstr;
+			errstr = up->errstr;
 		fmtprint(&fmt, " = %d", ar0->i);
 		break;
 	case ALARM:
 	case WRITE:
 	case PWRITE:
 		if(ar0->l == -1)
-			errstr = m->externup->errstr;
+			errstr = up->errstr;
 		fmtprint(&fmt, " = %ld", ar0->l);
 		break;
 	case EXEC:
@@ -403,7 +403,7 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 	case SEGATTACH:
 	case RENDEZVOUS:
 		if(ar0->v == (void*)-1)
-			errstr = m->externup->errstr;
+			errstr = up->errstr;
 		fmtprint(&fmt, " = %#p", ar0->v);
 		break;
 	case AWAIT:
@@ -415,7 +415,7 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		}
 		else{
 			fmtprint(&fmt, "%#p/\"\" %lud = %d", a, l, ar0->i);
-			errstr = m->externup->errstr;
+			errstr = up->errstr;
 		}
 		break;
 	case _ERRSTR:
@@ -431,7 +431,7 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		}
 		else{
 			fmtprint(&fmt, "\"\" %lud = %d", l, ar0->i);
-			errstr = m->externup->errstr;
+			errstr = up->errstr;
 		}
 		break;
 	case FD2PATH:
@@ -445,7 +445,7 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		}
 		else{
 			fmtprint(&fmt, "\"\" %lud = %d", l, ar0->i);
-			errstr = m->externup->errstr;
+			errstr = up->errstr;
 		}
 		break;
 	case READ:
@@ -460,7 +460,7 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 		}
 		else{
 			fmtprint(&fmt, "/\"\"");
-			errstr = m->externup->errstr;
+			errstr = up->errstr;
 		}
 		fmtprint(&fmt, " %ld", l);
 		if(syscallno == PREAD){
@@ -472,5 +472,5 @@ sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 	}
 	fmtprint(&fmt, " %s %#llud %#llud\n", errstr, start, stop);
 
-	m->externup->syscalltrace = fmtstrflush(&fmt);
+	up->syscalltrace = fmtstrflush(&fmt);
 }

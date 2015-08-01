@@ -214,7 +214,7 @@ testiccs(void)
 static void
 nixsquids(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mach *mp;
 	int i;
 	uint64_t now, start;
@@ -341,7 +341,7 @@ void put64(uint64_t v)
 
 void debugtouser(void *va)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintptr_t uva = (uintptr_t) va;
 	PTE *pte, *pml4;
 
@@ -440,7 +440,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	sys->machptr[m->machno] = &sys->mach;
 	m->stack = PTR2UINT(sys->machstk);
 	m->vsvm = sys->vsvmpage;
-	m->externup = (void *)0;
+	up = (void *)0;
 	active.nonline = 1;
 	active.exiting = 0;
 	active.nbooting = 0;
@@ -558,10 +558,10 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 void
 init0(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[2*KNAMELEN];
 
-	m->externup->nerrlab = 0;
+	up->nerrlab = 0;
 
 	/*
 	 * if(consuart == nil)
@@ -573,10 +573,10 @@ init0(void)
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
-	m->externup->slash = namec("#/", Atodir, 0, 0);
-	pathclose(m->externup->slash->path);
-	m->externup->slash->path = newpath("/");
-	m->externup->dot = cclone(m->externup->slash);
+	up->slash = namec("#/", Atodir, 0, 0);
+	pathclose(up->slash->path);
+	up->slash->path = newpath("/");
+	up->dot = cclone(up->slash);
 
 	devtabinit();
 
@@ -608,10 +608,10 @@ bootargs(uintptr_t base)
 	 * Push the boot args onto the stack.
 	 * Make sure the validaddr check in syscall won't fail
 	 * because there are fewer than the maximum number of
-	 * args by subtracting sizeof(m->externup->arg).
+	 * args by subtracting sizeof(up->arg).
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(entrym->externup->arg) - i));
+	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(entryup->arg) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -636,7 +636,7 @@ bootargs(uintptr_t base)
 void
 userinit(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	Segment *s;
 	KMap *k;
@@ -663,7 +663,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(m->externup->arg)-sizeof(uintptr_t));
+	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr_t));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*
@@ -727,7 +727,7 @@ confinit(void)
 static void
 shutdown(int ispanic)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int ms, once;
 
 	lock(&active);

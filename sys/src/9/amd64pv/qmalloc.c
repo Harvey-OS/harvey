@@ -549,11 +549,11 @@ mallocalign(uint32_t nbytes, uint32_t align, int32_t offset, uint32_t span)
 void*
 smalloc(uint32_t size)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	void *v;
 
 	while((v = malloc(size)) == nil)
-		tsleep(&m->externup->sleep, return0, 0, 100);
+		tsleep(&up->sleep, return0, 0, 100);
 	memset(v, 0, size);
 
 	return v;

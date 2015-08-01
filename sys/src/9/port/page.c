@@ -40,7 +40,7 @@ Pgalloc pga;		/* new allocator */
 char*
 seprintpagestats(char *s, char *e)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 
 	lock(&pga);
@@ -61,7 +61,7 @@ seprintpagestats(char *s, char *e)
 void
 pageinit(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int si, i, color;
 	Page *pg;
 
@@ -96,7 +96,7 @@ pageinit(void)
 int
 getpgszi(usize size)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int si;
 
 	for(si = 0; si < m->npgsz; si++)
@@ -132,7 +132,7 @@ pgalloc(usize size, int color)
 void
 pgfree(Page* pg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	decref(&pga.pgsza[pg->pgszi].npages);
 	physfree(pg->pa, m->pgsz[pg->pgszi]);
 	free(pg);
@@ -217,7 +217,7 @@ int trip;
 Page*
 newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Page *p;
 	KMap *k;
 	uint8_t ct;
@@ -405,7 +405,7 @@ static int dupretries = 15000;
 int
 duppage(Page *p)				/* Always call with p locked */
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Pgsza *pa;
 	Page *np;
 	int color;
@@ -415,7 +415,7 @@ duppage(Page *p)				/* Always call with p locked */
 retry:
 
 	if(retries++ > dupretries){
-		print("duppage %d, up %#p\n", retries, m->externup);
+		print("duppage %d, up %#p\n", retries, up);
 		dupretries += 100;
 		if(dupretries > 100000)
 			panic("duppage\n");
@@ -436,7 +436,7 @@ retry:
 	 */
 	if(!canlock(&pga)){
 		unlock(p);
-		if(m->externup)
+		if(up)
 			sched();
 		lock(p);
 		goto retry;
@@ -497,7 +497,7 @@ retry:
 void
 copypage(Page *f, Page *t)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	KMap *ks, *kd;
 
 	if(f->pgszi != t->pgszi || t->pgszi < 0)

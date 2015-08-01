@@ -33,7 +33,7 @@ static int	qidpath;
 static int
 srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Srv *sp;
 	Qid q;
 
@@ -53,8 +53,8 @@ srvgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 
 	mkqid(&q, sp->path, 0, QTFILE);
 	/* make sure name string continues to exist after we release lock */
-	kstrcpy(m->externup->genbuf, sp->name, sizeof m->externup->genbuf);
-	devdir(c, q, m->externup->genbuf, 0, sp->owner, sp->perm, dp);
+	kstrcpy(up->genbuf, sp->name, sizeof up->genbuf);
+	devdir(c, q, up->genbuf, 0, sp->owner, sp->perm, dp);
 	qunlock(&srvlk);
 	return 1;
 }
@@ -111,7 +111,7 @@ srvname(Chan *c)
 static Chan*
 srvopen(Chan *c, int omode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Srv *sp;
 
 	if(c->qid.type == QTDIR){
@@ -150,7 +150,7 @@ srvopen(Chan *c, int omode)
 static void
 srvcreate(Chan *c, char *name, int omode, int perm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Srv *sp;
 	char *sname;
 
@@ -185,7 +185,7 @@ srvcreate(Chan *c, char *name, int omode, int perm)
 	qunlock(&srvlk);
 	poperror();
 
-	kstrdup(&sp->owner, m->externup->user);
+	kstrdup(&sp->owner, up->user);
 	sp->perm = perm&0777;
 
 	c->flag |= COPEN;
@@ -195,7 +195,7 @@ srvcreate(Chan *c, char *name, int omode, int perm)
 static void
 srvremove(Chan *c)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Srv *sp, **l;
 
 	if(c->qid.type == QTDIR)
@@ -228,7 +228,7 @@ srvremove(Chan *c)
 	/*
 	 * No removing personal services.
 	 */
-	if((sp->perm&7) != 7 && strcmp(sp->owner, m->externup->user) && !iseve())
+	if((sp->perm&7) != 7 && strcmp(sp->owner, up->user) && !iseve())
 		error(Eperm);
 
 	*l = sp->link;
@@ -245,7 +245,7 @@ srvremove(Chan *c)
 static int32_t
 srvwstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Dir d;
 	Srv *sp;
 	char *strs;
@@ -265,7 +265,7 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 	if(sp == 0)
 		error(Enonexist);
 
-	if(strcmp(sp->owner, m->externup->user) != 0 && !iseve())
+	if(strcmp(sp->owner, up->user) != 0 && !iseve())
 		error(Eperm);
 
 	strs = smalloc(n);
@@ -291,7 +291,7 @@ srvwstat(Chan *c, uint8_t *dp, int32_t n)
 static void
 srvclose(Chan *c)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	/*
 	 * in theory we need to override any changes in removability
 	 * since open, but since all that's checked is the owner,
@@ -315,7 +315,7 @@ srvread(Chan *c, void *va, int32_t n, int64_t m)
 static int32_t
 srvwrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Srv *sp;
 	Chan *c1;
 	int fd;

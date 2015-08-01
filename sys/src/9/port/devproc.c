@@ -186,10 +186,10 @@ void (*proctrace)(Proc*, int, int64_t) = notrace;
 static void
 profclock(Ureg *ur, Timer *ti)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Tos *tos;
 
-	if(m->externup == nil || m->externup->state != Running)
+	if(up == nil || up->state != Running)
 		return;
 
 	/* user profiling clock */
@@ -203,7 +203,7 @@ profclock(Ureg *ur, Timer *ti)
 static int
 procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Qid qid;
 	Proc *p;
 	char *ename;
@@ -218,15 +218,15 @@ procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 
 	if(c->qid.path == Qdir){
 		if(s == 0){
-			strcpy(m->externup->genbuf, "trace");
+			strcpy(up->genbuf, "trace");
 			mkqid(&qid, Qtrace, -1, QTFILE);
-			devdir(c, qid, m->externup->genbuf, 0, eve, 0444, dp);
+			devdir(c, qid, up->genbuf, 0, eve, 0444, dp);
 			return 1;
 		}
 		if(s == 1){
-			strcpy(m->externup->genbuf, "tracepids");
+			strcpy(up->genbuf, "tracepids");
 			mkqid(&qid, Qtracepids, -1, QTFILE);
-			devdir(c, qid, m->externup->genbuf, 0, eve, 0444, dp);
+			devdir(c, qid, up->genbuf, 0, eve, 0444, dp);
 			return 1;
 		}
 		s -= 2;
@@ -244,28 +244,28 @@ procgen(Chan *c, char *name, Dirtab *tab, int j, int s, Dir *dp)
 
 		if((p = psincref(s)) == nil || (pid = p->pid) == 0)
 			return 0;
-		snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%ud", pid);
+		snprint(up->genbuf, sizeof up->genbuf, "%ud", pid);
 		/*
 		 * String comparison is done in devwalk so
 		 * name must match its formatted pid.
 		 */
-		if(name != nil && strcmp(name, m->externup->genbuf) != 0)
+		if(name != nil && strcmp(name, up->genbuf) != 0)
 			return -1;
 		mkqid(&qid, (s+1)<<QSHIFT, pid, QTDIR);
-		devdir(c, qid, m->externup->genbuf, 0, p->user, DMDIR|0555, dp);
+		devdir(c, qid, up->genbuf, 0, p->user, DMDIR|0555, dp);
 		psdecref(p);
 		return 1;
 	}
 	if(c->qid.path == Qtrace){
-		strcpy(m->externup->genbuf, "trace");
+		strcpy(up->genbuf, "trace");
 		mkqid(&qid, Qtrace, -1, QTFILE);
-		devdir(c, qid, m->externup->genbuf, 0, eve, 0444, dp);
+		devdir(c, qid, up->genbuf, 0, eve, 0444, dp);
 		return 1;
 	}
 	if(c->qid.path == Qtracepids){
-		strcpy(m->externup->genbuf, "tracepids");
+		strcpy(up->genbuf, "tracepids");
 		mkqid(&qid, Qtrace, -1, QTFILE);
-		devdir(c, qid, m->externup->genbuf, 0, eve, 0444, dp);
+		devdir(c, qid, up->genbuf, 0, eve, 0444, dp);
 		return 1;
 	}
 	if(s >= nelem(procdir))
@@ -317,7 +317,7 @@ static Lock tlck;
 static void
 _proctrace(Proc* p, int etype, int64_t ts)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Traceevent *te;
 	int tp;
 
@@ -386,10 +386,10 @@ procstat(Chan *c, uint8_t *db, int32_t n)
 static void
 nonone(Proc *p)
 {
-	Mach *m = machp();
-	if(p == m->externup)
+	Proc *up = machp()->externup;
+	if(p == up)
 		return;
-	if(strcmp(m->externup->user, "none") != 0)
+	if(strcmp(up->user, "none") != 0)
 		return;
 	if(iseve())
 		return;
@@ -399,7 +399,7 @@ nonone(Proc *p)
 static Chan*
 procopen(Chan *c, int omode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	Pgrp *pg;
 	Chan *tc;
@@ -499,7 +499,7 @@ procopen(Chan *c, int omode)
 		break;
 
 	case Qtls:
-		if(p->pid != m->externup->pid)
+		if(p->pid != up->pid)
 			error(Eperm);
 		nonone(p);
 		break;
@@ -570,7 +570,7 @@ procopen(Chan *c, int omode)
 static int32_t
 procwstat(Chan *c, uint8_t *db, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	Dir *d;
 
@@ -595,7 +595,7 @@ procwstat(Chan *c, uint8_t *db, int32_t n)
 	if(p->pid != PID(c->qid))
 		error(Eprocdied);
 
-	if(strcmp(m->externup->user, p->user) != 0 && strcmp(m->externup->user, eve) != 0)
+	if(strcmp(up->user, p->user) != 0 && strcmp(up->user, eve) != 0)
 		error(Eperm);
 
 	d = smalloc(sizeof(Dir)+n);
@@ -603,7 +603,7 @@ procwstat(Chan *c, uint8_t *db, int32_t n)
 	if(n == 0)
 		error(Eshortstat);
 	if(!emptystr(d->uid) && strcmp(d->uid, p->user) != 0){
-		if(strcmp(m->externup->user, eve) != 0)
+		if(strcmp(up->user, eve) != 0)
 			error(Eperm);
 		else
 			kstrdup(&p->user, d->uid);
@@ -662,7 +662,7 @@ procfdprint(Chan *c, int fd, int w, char *s, int ns)
 static int
 procfds(Proc *p, char *va, int count, int32_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Fgrp *f;
 	Chan *c;
 	char buf[256];
@@ -789,7 +789,7 @@ eventsavailable(void *v)
 static int32_t
 procread(Chan *c, void *va, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	Mach *ac, *wired;
 	int32_t l, r;
@@ -848,14 +848,14 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		break;
 	case Qargs:
 		qlock(&p->debug);
-		j = procargs(p, m->externup->genbuf, sizeof m->externup->genbuf);
+		j = procargs(p, up->genbuf, sizeof up->genbuf);
 		qunlock(&p->debug);
 		psdecref(p);
 		if(offset >= j)
 			return 0;
 		if(offset+n > j)
 			n = j-offset;
-		memmove(va, &m->externup->genbuf[offset], n);
+		memmove(va, &up->genbuf[offset], n);
 		return n;
 
 	case Qsyscall:
@@ -1120,7 +1120,7 @@ procread(Chan *c, void *va, int32_t n, int64_t off)
 		}
 
 		lock(&p->exl);
-		if(m->externup == p && p->nchild == 0 && p->waitq == 0) {
+		if(up == p && p->nchild == 0 && p->waitq == 0) {
 			unlock(&p->exl);
 			error(Enochild);
 		}
@@ -1253,7 +1253,7 @@ mntscan(Mntwalk *mw, Proc *p)
 static int32_t
 procwrite(Chan *c, void *va, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p, *t;
 	int i, id, l;
 	char *args, buf[ERRMAX];
@@ -1423,7 +1423,7 @@ Dev procdevtab = {
 static Chan*
 proctext(Chan *c, Proc *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *tc;
 	Image *i;
 	Segment *s;
@@ -1477,7 +1477,7 @@ proctext(Chan *c, Proc *p)
 void
 procstopwait(Proc *p, int ctl)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int pid;
 
 	if(p->pdbg)
@@ -1487,16 +1487,16 @@ procstopwait(Proc *p, int ctl)
 
 	if(ctl != 0)
 		p->procctl = ctl;
-	p->pdbg = m->externup;
+	p->pdbg = up;
 	pid = p->pid;
 	qunlock(&p->debug);
-	m->externup->psstate = "Stopwait";
+	up->psstate = "Stopwait";
 	if(waserror()) {
 		p->pdbg = 0;
 		qlock(&p->debug);
 		nexterror();
 	}
-	sleep(&m->externup->sleep, procstopped, p);
+	sleep(&up->sleep, procstopped, p);
 	poperror();
 	qlock(&p->debug);
 	if(p->pid != pid)
@@ -1576,7 +1576,7 @@ parsetime(int64_t *rt, char *s)
 static void
 procctlreq(Proc *p, char *va, int n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	int npc, pri, core, sno;
 	Cmdbuf *cb;
@@ -1748,8 +1748,8 @@ procctlreq(Proc *p, char *va, int n)
 			edfstop(p);
 		break;
 	case CMevent:
-		if(m->externup->trace)
-			proctrace(m->externup, SUser, 0);
+		if(up->trace)
+			proctrace(up, SUser, 0);
 		break;
 	case CMcore:
 		core = atoi(cb->f[1]);
@@ -1759,7 +1759,7 @@ procctlreq(Proc *p, char *va, int n)
 			if(p->ac == nil)
 				error("not running in an ac");
 			p->procctl = Proc_totc;
-			if(p != m->externup && p->state == Exotic){
+			if(p != up && p->state == Exotic){
 				/* see the comment in postnote */
 				intrac(p);
 			}
@@ -1789,7 +1789,7 @@ procstopped(void *a)
 static int
 procctlmemio(Proc *p, uintptr_t offset, int n, void *va, int read)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	KMap *k;
 	Pte *pte;
 	Page *pg;

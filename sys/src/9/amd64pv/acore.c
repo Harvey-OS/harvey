@@ -57,7 +57,7 @@ ACVctl *acvctl[256];
 static void
 testiccfn(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	print("called: %s\n", ( char *)m->icc->data);
 }
 
@@ -87,7 +87,7 @@ testicc(int i)
 static void
 acstackok(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char dummy;
 	char *sstart;
 
@@ -109,7 +109,7 @@ acstackok(void)
 void
 acsched(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	acmmuswitch();
 	for(;;){
 		acstackok();
@@ -127,7 +127,7 @@ acsched(void)
 void
 acmmuswitch(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	extern Page mach0pml4;
 
 	DBG("acmmuswitch mpl4 %#p mach0pml4 %#p m0pml4 %#p\n", m->pml4->pa, mach0pml4.pa, sys->machptr[0]->pml4->pa);
@@ -163,7 +163,7 @@ actrapret(void)
 
 /*
  * Entered in AP core context, upon traps (system calls go through acsyscall)
- * using m->externup->dbgreg means cores MUST be homogeneous.
+ * using up->dbgreg means cores MUST be homogeneous.
  *
  * BUG: We should setup some trapenable() mechanism for the AC,
  * so that code like fpu.c could arrange for handlers specific for
@@ -310,7 +310,7 @@ char *rolename[] =
 void
 acmodeset(int mode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	switch(mode){
 	case NIXAC:
 	case NIXKC:

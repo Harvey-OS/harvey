@@ -113,7 +113,7 @@ tdel(Timer *dt)
 void
 timeradd(Timer *nt)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Timers *tt;
 	int64_t when;
 
@@ -137,7 +137,7 @@ timeradd(Timer *nt)
 void
 timerdel(Timer *dt)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Timers *tt;
 	int64_t when;
 
@@ -155,7 +155,7 @@ timerdel(Timer *dt)
 void
 hzclock(Ureg *ur)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintptr_t pc;
 
 	m->ticks++;
@@ -167,7 +167,7 @@ hzclock(Ureg *ur)
 		m->proc->pc = pc;
 
 	if(m->mmuflush){
-		if(m->externup)
+		if(up)
 			mmuflush();
 		m->mmuflush = 0;
 	}
@@ -189,14 +189,14 @@ hzclock(Ureg *ur)
 
 	checkalarms();
 
-	if(m->externup && m->externup->state == Running)
+	if(up && up->state == Running)
 		hzsched();	/* in proc.c */
 }
 
 void
 timerintr(Ureg *u, int64_t j)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Timer *t;
 	Timers *tt;
 	int64_t when, now;

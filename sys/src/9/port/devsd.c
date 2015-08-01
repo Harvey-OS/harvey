@@ -164,7 +164,7 @@ sddelpart(SDunit* unit, char* name)
 	}
 	if(i >= unit->npart)
 		error(Ebadctl);
-	if(strcmp(m->externup->user, pp->user) && !iseve())
+	if(strcmp(up->user, pp->user) && !iseve())
 		error(Eperm);
 	pp->valid = 0;
 	pp->vers++;
@@ -504,8 +504,8 @@ sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, 0, Qtopdir), 0, QTDIR);
-			sprint(m->externup->genbuf, "#%C", sddevtab.dc);
-			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
+			sprint(up->genbuf, "#%C", sddevtab.dc);
+			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
 
@@ -552,8 +552,8 @@ sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 	case Qunitdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, 0, Qtopdir), 0, QTDIR);
-			sprint(m->externup->genbuf, "#%C", sddevtab.dc);
-			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
+			sprint(up->genbuf, "#%C", sddevtab.dc);
+			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
 
@@ -775,7 +775,7 @@ sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 	qlock(&unit->ctl);
 	while(waserror()){
 		/* notification of media change; go around again */
-		if(strcmp(m->externup->errstr, Eio) == 0 && unit->sectors == 0 && nchange++ == 0){
+		if(strcmp(up->errstr, Eio) == 0 && unit->sectors == 0 && nchange++ == 0){
 			sdinitpart(unit);
 			continue;
 		}
@@ -1435,7 +1435,7 @@ sdwstat(Chan* c, uint8_t* dp, int32_t n)
 		break;
 	}
 
-	if(strcmp(m->externup->user, perm->user) && !iseve())
+	if(strcmp(up->user, perm->user) && !iseve())
 		error(Eperm);
 
 	d = smalloc(sizeof(Dir)+n);
