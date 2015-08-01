@@ -271,7 +271,7 @@ archhz(void)
 	}
 
 	hz = cpuidhz(info0, info1);
-	if(hz != 0 || m->machno != 0)
+	if(hz != 0 || machp()->machno != 0)
 		return hz;
 
 	iprint("archhz, cpuidhz failed, going to i8254hz\n");
@@ -285,7 +285,7 @@ archmmu(void)
 	uint32_t info[4];
 
 	/*
-	 * Should the check for m->machno != 0 be here
+	 * Should the check for machp()->machno != 0 be here
 	 * or in the caller (mmuinit)?
 	 *
 	 * To do here:

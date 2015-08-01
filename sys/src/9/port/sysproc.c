@@ -25,7 +25,7 @@
 void
 sysrfork(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	int flag, i, n, pid;
 	Fgrp *ofg;
@@ -53,56 +53,56 @@ sysrfork(Ar0* ar0, ...)
 		error(Ebadarg);
 	if((flag & (RFCORE|RFCCORE)) == (RFCORE|RFCCORE))
 		error(Ebadarg);
-	if(flag & RFCORE && m->externup->wired != nil)
+	if(flag & RFCORE && up->wired != nil)
 		error("wired proc cannot move to ac");
 
 	if((flag&RFPROC) == 0) {
 		if(flag & (RFMEM|RFNOWAIT))
 			error(Ebadarg);
 		if(flag & (RFFDG|RFCFDG)) {
-			ofg = m->externup->fgrp;
+			ofg = up->fgrp;
 			if(flag & RFFDG)
-				m->externup->fgrp = dupfgrp(ofg);
+				up->fgrp = dupfgrp(ofg);
 			else
-				m->externup->fgrp = dupfgrp(nil);
+				up->fgrp = dupfgrp(nil);
 			closefgrp(ofg);
 		}
 		if(flag & (RFNAMEG|RFCNAMEG)) {
-			opg = m->externup->pgrp;
-			m->externup->pgrp = newpgrp();
+			opg = up->pgrp;
+			up->pgrp = newpgrp();
 			if(flag & RFNAMEG)
-				pgrpcpy(m->externup->pgrp, opg);
+				pgrpcpy(up->pgrp, opg);
 			/* inherit noattach */
-			m->externup->pgrp->noattach = opg->noattach;
+			up->pgrp->noattach = opg->noattach;
 			closepgrp(opg);
 		}
 		if(flag & RFNOMNT)
-			m->externup->pgrp->noattach = 1;
+			up->pgrp->noattach = 1;
 		if(flag & RFREND) {
-			org = m->externup->rgrp;
-			m->externup->rgrp = newrgrp();
+			org = up->rgrp;
+			up->rgrp = newrgrp();
 			closergrp(org);
 		}
 		if(flag & (RFENVG|RFCENVG)) {
-			oeg = m->externup->egrp;
-			m->externup->egrp = smalloc(sizeof(Egrp));
-			m->externup->egrp->ref = 1;
+			oeg = up->egrp;
+			up->egrp = smalloc(sizeof(Egrp));
+			up->egrp->ref = 1;
 			if(flag & RFENVG)
-				envcpy(m->externup->egrp, oeg);
+				envcpy(up->egrp, oeg);
 			closeegrp(oeg);
 		}
 		if(flag & RFNOTEG)
-			m->externup->noteid = incref(&noteidalloc);
+			up->noteid = incref(&noteidalloc);
 		if(flag & (RFPREPAGE|RFCPREPAGE)){
-			m->externup->prepagemem = flag&RFPREPAGE;
+			up->prepagemem = flag&RFPREPAGE;
 			nixprepage(-1);
 		}
 		if(flag & RFCORE){
-			m->externup->ac = getac(m->externup, -1);
-			m->externup->procctl = Proc_toac;
+			up->ac = getac(up, -1);
+			up->procctl = Proc_toac;
 		}else if(flag & RFCCORE){
-			if(m->externup->ac != nil)
-				m->externup->procctl = Proc_totc;
+			if(up->ac != nil)
+				up->procctl = Proc_totc;
 		}
 
 		ar0->i = 0;
@@ -122,24 +122,24 @@ sysrfork(Ar0* ar0, ...)
 		}
 	}
 
-	if(m->externup->trace)
+	if(up->trace)
 		p->trace = 1;
-	p->scallnr = m->externup->scallnr;
-	memmove(p->arg, m->externup->arg, sizeof(m->externup->arg));
+	p->scallnr = up->scallnr;
+	memmove(p->arg, up->arg, sizeof(up->arg));
 	p->nerrlab = 0;
-	p->slash = m->externup->slash;
-	p->dot = m->externup->dot;
+	p->slash = up->slash;
+	p->dot = up->dot;
 	incref(p->dot);
 
-	memmove(p->note, m->externup->note, sizeof(p->note));
-	p->privatemem = m->externup->privatemem;
-	p->noswap = m->externup->noswap;
-	p->nnote = m->externup->nnote;
+	memmove(p->note, up->note, sizeof(p->note));
+	p->privatemem = up->privatemem;
+	p->noswap = up->noswap;
+	p->nnote = up->nnote;
 	p->notified = 0;
-	p->lastnote = m->externup->lastnote;
-	p->notify = m->externup->notify;
-	p->ureg = m->externup->ureg;
-	p->prepagemem = m->externup->prepagemem;
+	p->lastnote = up->lastnote;
+	p->notify = up->notify;
+	p->ureg = up->ureg;
+	p->prepagemem = up->prepagemem;
 	p->dbgreg = 0;
 
 	/* Make a new set of memory segments */
@@ -150,20 +150,20 @@ sysrfork(Ar0* ar0, ...)
 		nexterror();
 	}
 	for(i = 0; i < NSEG; i++)
-		if(m->externup->seg[i])
-			p->seg[i] = dupseg(m->externup->seg, i, n);
+		if(up->seg[i])
+			p->seg[i] = dupseg(up->seg, i, n);
 	qunlock(&p->seglock);
 	poperror();
 
 	/* File descriptors */
 	if(flag & (RFFDG|RFCFDG)) {
 		if(flag & RFFDG)
-			p->fgrp = dupfgrp(m->externup->fgrp);
+			p->fgrp = dupfgrp(up->fgrp);
 		else
 			p->fgrp = dupfgrp(nil);
 	}
 	else {
-		p->fgrp = m->externup->fgrp;
+		p->fgrp = up->fgrp;
 		incref(p->fgrp);
 	}
 
@@ -171,22 +171,22 @@ sysrfork(Ar0* ar0, ...)
 	if(flag & (RFNAMEG|RFCNAMEG)) {
 		p->pgrp = newpgrp();
 		if(flag & RFNAMEG)
-			pgrpcpy(p->pgrp, m->externup->pgrp);
+			pgrpcpy(p->pgrp, up->pgrp);
 		/* inherit noattach */
-		p->pgrp->noattach = m->externup->pgrp->noattach;
+		p->pgrp->noattach = up->pgrp->noattach;
 	}
 	else {
-		p->pgrp = m->externup->pgrp;
+		p->pgrp = up->pgrp;
 		incref(p->pgrp);
 	}
 	if(flag & RFNOMNT)
-		m->externup->pgrp->noattach = 1;
+		up->pgrp->noattach = 1;
 
 	if(flag & RFREND)
 		p->rgrp = newrgrp();
 	else {
-		incref(m->externup->rgrp);
-		p->rgrp = m->externup->rgrp;
+		incref(up->rgrp);
+		p->rgrp = up->rgrp;
 	}
 
 	/* Environment group */
@@ -194,31 +194,31 @@ sysrfork(Ar0* ar0, ...)
 		p->egrp = smalloc(sizeof(Egrp));
 		p->egrp->ref = 1;
 		if(flag & RFENVG)
-			envcpy(p->egrp, m->externup->egrp);
+			envcpy(p->egrp, up->egrp);
 	}
 	else {
-		p->egrp = m->externup->egrp;
+		p->egrp = up->egrp;
 		incref(p->egrp);
 	}
-	p->hang = m->externup->hang;
-	p->procmode = m->externup->procmode;
+	p->hang = up->hang;
+	p->procmode = up->procmode;
 
 	/* Craft a return frame which will cause the child to pop out of
 	 * the scheduler in user mode with the return register zero
 	 */
-	sysrforkchild(p, m->externup);
+	sysrforkchild(p, up);
 
-	p->parent = m->externup;
-	p->parentpid = m->externup->pid;
+	p->parent = up;
+	p->parentpid = up->pid;
 	if(flag&RFNOWAIT)
 		p->parentpid = 0;
 	else {
-		lock(&m->externup->exl);
-		m->externup->nchild++;
-		unlock(&m->externup->exl);
+		lock(&up->exl);
+		up->nchild++;
+		unlock(&up->exl);
 	}
 	if((flag&RFNOTEG) == 0)
-		p->noteid = m->externup->noteid;
+		p->noteid = up->noteid;
 
 	pid = p->pid;
 	memset(p->time, 0, sizeof(p->time));
@@ -234,23 +234,23 @@ sysrfork(Ar0* ar0, ...)
 		nixprepage(-1);
 	}
 
-	kstrdup(&p->text, m->externup->text);
-	kstrdup(&p->user, m->externup->user);
+	kstrdup(&p->text, up->text);
+	kstrdup(&p->user, up->user);
 	/*
 	 *  since the bss/data segments are now shareable,
 	 *  any mmu info about this process is now stale
 	 *  (i.e. has bad properties) and has to be discarded.
 	 */
 	mmuflush();
-	p->basepri = m->externup->basepri;
-	p->priority = m->externup->basepri;
-	p->fixedpri = m->externup->fixedpri;
-	p->mp = m->externup->mp;
+	p->basepri = up->basepri;
+	p->priority = up->basepri;
+	p->fixedpri = up->fixedpri;
+	p->mp = up->mp;
 
-	wm = m->externup->wired;
+	wm = up->wired;
 	if(wm)
-		procwired(p, wm->machno);
-	p->color = m->externup->color;
+		procwired(p, wmachp()->machno);
+	p->color = up->color;
 	ready(p);
 	sched();
 
@@ -285,7 +285,7 @@ l2be(int32_t l)
 static void
 execac(Ar0* ar0, int flags, char *ufile, char **argv)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Fgrp *fg;
 	Tos *tos;
 	Chan *chan, *ichan;
@@ -306,18 +306,18 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	case EXXC:
 		break;
 	case EXAC:
-		m->externup->ac = getac(m->externup, -1);
+		up->ac = getac(up, -1);
 		break;
 	default:
 		error("unknown execac flag");
 	}
 	if(waserror()){
-		DBG("execac: failing: %s\n", m->externup->errstr);
+		DBG("execac: failing: %s\n", up->errstr);
 		free(file);
 		free(elem);
-		if(flags == EXAC && m->externup->ac != nil)
-			m->externup->ac->proc = nil;
-		m->externup->ac = nil;
+		if(flags == EXAC && up->ac != nil)
+			up->ac->proc = nil;
+		up->ac = nil;
 		nexterror();
 	}
 
@@ -326,16 +326,16 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 */
 	argc = 0;
 	file = validnamedup(ufile, 1);
-	DBG("execac: up %#p file %s\n", m->externup, file);
-	if(m->externup->trace)
-		proctracepid(m->externup);
+	DBG("execac: up %#p file %s\n", up, file);
+	if(up->trace)
+		proctracepid(up);
 	ichan = namec(file, Aopen, OEXEC, 0);
 	if(waserror()){
 		iprint("ERROR ON OPEN\n");
 		cclose(ichan);
 		nexterror();
 	}
-	kstrdup(&elem, m->externup->genbuf);
+	kstrdup(&elem, up->genbuf);
 
 	/*
 	 * Read the header.
@@ -386,10 +386,10 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		error(Ebadexec);
 	}
 
-	if(m->externup->ac != nil && m->externup->ac != m)
-		m->externup->color = corecolor(m->externup->ac->machno);
+	if(up->ac != nil && up->ac != m)
+		up->color = corecolor(up->ac->machno);
 	else
-		m->externup->color = corecolor(m->machno);
+		up->color = corecolor(machp()->machno);
 
 	/*
 	 * The new stack is temporarily mapped elsewhere.
@@ -403,25 +403,25 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 * The architecture-dependent code which jumps to the new image
 	 * will also push a count of the argument array onto the stack (argc).
 	 */
-	qlock(&m->externup->seglock);
+	qlock(&up->seglock);
 	int sno = -1;
 	if(waserror()){
-		if(sno != -1 && m->externup->seg[sno] != nil){
-			putseg(m->externup->seg[sno]);
-			m->externup->seg[sno] = nil;
+		if(sno != -1 && up->seg[sno] != nil){
+			putseg(up->seg[sno]);
+			up->seg[sno] = nil;
 		}
-		qunlock(&m->externup->seglock);
+		qunlock(&up->seglock);
 		nexterror();
 	}
 
 	for(i = 0; i < NSEG; i++)
-		if(m->externup->seg[i] == nil)
+		if(up->seg[i] == nil)
 			break;
 	if(i == NSEG)
 		error("exeac: no free segment slots");
 	sno = i;
-	m->externup->seg[sno] = newseg(SG_STACK|SG_READ|SG_WRITE, TSTKTOP-USTKSIZE, USTKSIZE/BIGPGSZ);
-	m->externup->seg[sno]->color = m->externup->color;
+	up->seg[sno] = newseg(SG_STACK|SG_READ|SG_WRITE, TSTKTOP-USTKSIZE, USTKSIZE/BIGPGSZ);
+	up->seg[sno]->color = up->color;
 
 	/*
 	 * Stack is a pointer into the temporary stack
@@ -492,7 +492,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 * of slop, it is an overestimate, but why not).
 	 * Sysexecstack does any architecture-dependent stack alignment.
 	 * Keep a copy of the start of the argument strings before alignment
-	 * so m->externup->args can be created later.
+	 * so up->args can be created later.
 	 * Although the argument vectors are being pushed onto the stack in
 	 * the temporary segment, the values must be adjusted to reflect
 	 * the segment address after it replaces the current SSEG.
@@ -513,7 +513,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	*--argv = (void *)(uintptr_t) argc;
 
 	/*
-	 * Make a good faith copy of the args in m->externup->args using the strings
+	 * Make a good faith copy of the args in up->args using the strings
 	 * in the temporary stack segment. The length must be > 0 as it
 	 * includes the \0 on the last argument and argc was checked earlier
 	 * to be > 0. After the memmove, compensate for any UTF character
@@ -539,34 +539,34 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/*
 	 * All the argument processing is now done, ready to commit.
 	 */
-	free(m->externup->text);
-	m->externup->text = elem;
+	free(up->text);
+	up->text = elem;
 	elem = nil;
-	free(m->externup->args);
-	m->externup->args = p;
-	m->externup->nargs = n;
-	poperror();				/* p (m->externup->args) */
+	free(up->args);
+	up->args = p;
+	up->nargs = n;
+	poperror();				/* p (up->args) */
 
 	/*
 	 * Close on exec
 	 */
-	fg = m->externup->fgrp;
+	fg = up->fgrp;
 	for(i=0; i<=fg->maxfd; i++)
 		fdclose(i, CCEXEC);
 
 	/*
 	 * Free old memory, except for the temp stack (obviously)
 	 */
-	s = m->externup->seg[sno];
+	s = up->seg[sno];
 	for(i = 0; i < NSEG; i++) {
-		if(m->externup->seg[i] != s)
-			putseg(m->externup->seg[i]);
-		m->externup->seg[i] = nil;
+		if(up->seg[i] != s)
+			putseg(up->seg[i]);
+		up->seg[i] = nil;
 	}
 
 	/* put the stack in first */
 	sno = 0;
-	m->externup->seg[sno++] = s;
+	up->seg[sno++] = s;
 	s->base = USTKTOP-USTKSIZE;
 	s->top = USTKTOP;
 	relocateseg(s, USTKTOP-TSTKTOP);
@@ -577,38 +577,38 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	for(i = 0; i < nldseg; i++){
 
 		if(img == nil){
-			img = attachimage(ldseg[i].type, chan, m->externup->color,
+			img = attachimage(ldseg[i].type, chan, up->color,
 				ldseg[i].pg0vaddr,
 				(ldseg[i].pg0off+ldseg[i].memsz+BIGPGSZ-1)/BIGPGSZ
 			);
 			s = img->s;
 			s->flushme = 1;
-			if(img->color != m->externup->color)
-				m->externup->color = img->color;
+			if(img->color != up->color)
+				up->color = img->color;
 			unlock(img);
 		} else {
 			s = newseg(ldseg[i].type, ldseg[i].pg0vaddr, (ldseg[i].pg0off+ldseg[i].memsz+BIGPGSZ-1)/BIGPGSZ);
-			s->color = m->externup->color;
+			s->color = up->color;
 			incref(img);
 			s->image = img;
 		}
 
 		s->ldseg = ldseg[i];
-		m->externup->seg[sno++] = s;
+		up->seg[sno++] = s;
 		if(datalim < ldseg[i].pg0vaddr+ldseg[i].memsz)
 			datalim = ldseg[i].pg0vaddr+ldseg[i].memsz;
 	}
 
 	/* BSS. Zero fill on demand for TS */
 	s = newseg(SG_BSS|SG_READ|SG_WRITE, (datalim + BIGPGSZ-1) & ~(BIGPGSZ-1), 0);
-	m->externup->seg[sno++] = s;
-	s->color= m->externup->color;
+	up->seg[sno++] = s;
+	s->color= up->color;
 
 	for(i = 0; i < sno; i++){
-		s = m->externup->seg[i];
+		s = up->seg[i];
 		DBG(
 			"execac %d %s(%c%c%c) %p:%p va %p off %p fsz %d msz %d\n",
-			m->externup->pid, segtypes[s->type & SG_TYPE],
+			up->pid, segtypes[s->type & SG_TYPE],
 			(s->type & SG_READ) != 0 ? 'r' : '-',
 			(s->type & SG_WRITE) != 0 ? 'w' : '-',
 			(s->type & SG_EXEC) != 0 ? 'x' : '-',
@@ -623,7 +623,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	/* the color of the stack was decided when we created it before,
 	 * it may have nothing to do with the color of other segments.
 	 */
-	qunlock(&m->externup->seglock);
+	qunlock(&up->seglock);
 	poperror();				/* seglock */
 
 
@@ -632,9 +632,9 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 *		aki: why bother?
 	 *
 	 *	if(chan->dev->dc == L'/')
-	 *		m->externup->basepri = PriRoot;
+	 *		up->basepri = PriRoot;
 	 */
-	m->externup->priority = m->externup->basepri;
+	up->priority = up->basepri;
 
 	poperror();				/* chan, elem, file */
 	cclose(chan);
@@ -645,24 +645,24 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	 *  space and needs to be flushed
 	 */
 	mmuflush();
-	if(m->externup->prepagemem || flags == EXAC)
+	if(up->prepagemem || flags == EXAC)
 		nixprepage(-1);
-	qlock(&m->externup->debug);
-	m->externup->nnote = 0;
-	m->externup->notify = 0;
-	m->externup->notified = 0;
-	m->externup->privatemem = 0;
-	sysprocsetup(m->externup);
-	qunlock(&m->externup->debug);
-	if(m->externup->hang)
-		m->externup->procctl = Proc_stopme;
+	qlock(&up->debug);
+	up->nnote = 0;
+	up->notify = 0;
+	up->notified = 0;
+	up->privatemem = 0;
+	sysprocsetup(up);
+	qunlock(&up->debug);
+	if(up->hang)
+		up->procctl = Proc_stopme;
 
 	/* we need to compte the value of &argv in user mode and then push that. */
 	ar0->v = sysexecregs(entry, TSTKTOP - PTR2UINT(argv), ((void *)tos) + (USTKTOP-TSTKTOP)/sizeof(void *));
 
 	if(flags == EXAC){
-		m->externup->procctl = Proc_toac;
-		m->externup->prepagemem = 1;
+		up->procctl = Proc_toac;
+		up->prepagemem = 1;
 	}
 }
 
@@ -727,7 +727,7 @@ return0(void* v)
 void
 syssleep(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int32_t ms;
 	va_list list;
 	va_start(list, ar0);
@@ -740,7 +740,7 @@ syssleep(Ar0* ar0, ...)
 
 	ar0->i = 0;
 	if(ms <= 0) {
-		if (m->externup->edf && (m->externup->edf->flags & Admitted))
+		if (up->edf && (up->edf->flags & Admitted))
 			edfyield();
 		else
 			yield();
@@ -748,7 +748,7 @@ syssleep(Ar0* ar0, ...)
 	}
 	if(ms < TK2MS(1))
 		ms = TK2MS(1);
-	tsleep(&m->externup->sleep, return0, 0, ms);
+	tsleep(&up->sleep, return0, 0, ms);
 }
 
 void
@@ -771,7 +771,7 @@ sysalarm(Ar0* ar0, ...)
 void
 sysexits(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *status;
 	char *inval = "invalid exit string";
 	char buf[ERRMAX];
@@ -874,21 +874,21 @@ sysawait(Ar0* ar0, ...)
 void
 werrstr(char *fmt, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	va_list va;
 
-	if(m->externup == nil)
+	if(up == nil)
 		return;
 
 	va_start(va, fmt);
-	vseprint(m->externup->syserrstr, m->externup->syserrstr+ERRMAX, fmt, va);
+	vseprint(up->syserrstr, up->syserrstr+ERRMAX, fmt, va);
 	va_end(va);
 }
 
 static void
 generrstr(char *buf, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *p, tmp[ERRMAX];
 
 	if(n <= 0)
@@ -900,9 +900,9 @@ generrstr(char *buf, int32_t n)
 
 	/* make sure it's NUL-terminated */
 	tmp[n-1] = '\0';
-	memmove(p, m->externup->syserrstr, n);
+	memmove(p, up->syserrstr, n);
 	p[n-1] = '\0';
-	memmove(m->externup->syserrstr, tmp, n);
+	memmove(up->syserrstr, tmp, n);
 }
 
 void
@@ -949,7 +949,7 @@ sys_errstr(Ar0* ar0, ...)
 void
 sysnotify(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	void (*f)(void*, char*);
 	va_list list;
 	va_start(list, ar0);
@@ -962,7 +962,7 @@ sysnotify(Ar0* ar0, ...)
 
 	if(f != nil)
 		validaddr(f, sizeof(void (*)(void*, char*)), 0);
-	m->externup->notify = f;
+	up->notify = f;
 
 	ar0->i = 0;
 }
@@ -970,7 +970,7 @@ sysnotify(Ar0* ar0, ...)
 void
 sysnoted(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int v;
 	va_list list;
 	va_start(list, ar0);
@@ -981,7 +981,7 @@ sysnoted(Ar0* ar0, ...)
 	v = va_arg(list, int);
 	va_end(list);
 
-	if(v != NRSTR && !m->externup->notified)
+	if(v != NRSTR && !up->notified)
 		error(Egreg);
 
 	ar0->i = 0;
@@ -990,7 +990,7 @@ sysnoted(Ar0* ar0, ...)
 void
 sysrendezvous(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p, **l;
 	uintptr_t tag, val;
 	va_list list;
@@ -1001,10 +1001,10 @@ sysrendezvous(Ar0* ar0, ...)
 	 */
 	tag = PTR2UINT(va_arg(list, void*));
 
-	l = &REND(m->externup->rgrp, tag);
-	m->externup->rendval = ~0;
+	l = &REND(up->rgrp, tag);
+	up->rendval = ~0;
 
-	lock(m->externup->rgrp);
+	lock(up->rgrp);
 	for(p = *l; p; p = p->rendhash) {
 		if(p->rendtag == tag) {
 			*l = p->rendhash;
@@ -1014,7 +1014,7 @@ sysrendezvous(Ar0* ar0, ...)
 			while(p->mach != 0)
 				;
 			ready(p);
-			unlock(m->externup->rgrp);
+			unlock(up->rgrp);
 
 			ar0->v = UINT2PTR(val);
 			return;
@@ -1023,19 +1023,19 @@ sysrendezvous(Ar0* ar0, ...)
 	}
 
 	/* Going to sleep here */
-	m->externup->rendtag = tag;
-	m->externup->rendval = PTR2UINT(va_arg(list, void*));
+	up->rendtag = tag;
+	up->rendval = PTR2UINT(va_arg(list, void*));
 	va_end(list);
-	m->externup->rendhash = *l;
-	*l = m->externup;
-	m->externup->state = Rendezvous;
-	if(m->externup->trace)
-		proctrace(m->externup, SLock, 0);
-	unlock(m->externup->rgrp);
+	up->rendhash = *l;
+	*l = up;
+	up->state = Rendezvous;
+	if(up->trace)
+		proctrace(up, SLock, 0);
+	unlock(up->rgrp);
 
 	sched();
 
-	ar0->v = UINT2PTR(m->externup->rendval);
+	ar0->v = UINT2PTR(up->rendval);
 }
 
 /*
@@ -1054,7 +1054,7 @@ sysrendezvous(Ar0* ar0, ...)
  * Thus, we can access the list only when holding the lock, and
  * we can access the semaphore only when not holding the lock.
  * This makes things interesting.  Note that sleep's condition function
- * is called while holding two locks - r and m->externup->rlock - so it cannot
+ * is called while holding two locks - r and up->rlock - so it cannot
  * access the semaphore value either.
  *
  * An acquirer announces its intention to try for the semaphore
@@ -1205,7 +1205,7 @@ semawoke(void* p)
 static int
 semacquire(Segment* s, int* addr, int block)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int acquired;
 	Sema phore;
 
@@ -1242,7 +1242,7 @@ semacquire(Segment* s, int* addr, int block)
 static int
 tsemacquire(Segment* s, int* addr, int32_t ms)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int acquired;
 	uint32_t t;
 	Sema phore;
@@ -1284,7 +1284,7 @@ tsemacquire(Segment* s, int* addr, int32_t ms)
 void
 syssemacquire(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	int *addr, block;
 	va_list list;
@@ -1301,7 +1301,7 @@ syssemacquire(Ar0* ar0, ...)
 	block = va_arg(list, int);
 	va_end(list);
 
-	if((s = seg(m->externup, PTR2UINT(addr), 0)) == nil)
+	if((s = seg(up, PTR2UINT(addr), 0)) == nil)
 		error(Ebadarg);
 	if(*addr < 0)
 		error(Ebadarg);
@@ -1312,7 +1312,7 @@ syssemacquire(Ar0* ar0, ...)
 void
 systsemacquire(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	int *addr, ms;
 	va_list list;
@@ -1329,7 +1329,7 @@ systsemacquire(Ar0* ar0, ...)
 	ms = va_arg(list, uint32_t);
 	va_end(list);
 
-	if((s = seg(m->externup, PTR2UINT(addr), 0)) == nil)
+	if((s = seg(up, PTR2UINT(addr), 0)) == nil)
 		error(Ebadarg);
 	if(*addr < 0)
 		error(Ebadarg);
@@ -1340,7 +1340,7 @@ systsemacquire(Ar0* ar0, ...)
 void
 syssemrelease(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	int *addr, delta;
 	va_list list;
@@ -1357,7 +1357,7 @@ syssemrelease(Ar0* ar0, ...)
 	delta = va_arg(list, int);
 	va_end(list);
 
-	if((s = seg(m->externup, PTR2UINT(addr), 0)) == nil)
+	if((s = seg(up, PTR2UINT(addr), 0)) == nil)
 		error(Ebadarg);
 	if(delta < 0 || *addr < 0)
 		error(Ebadarg);

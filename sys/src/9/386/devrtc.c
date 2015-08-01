@@ -91,15 +91,15 @@ rtcstat(Chan* c, uint8_t* dp, int32_t n)
 static Chan*
 rtcopen(Chan* c, int omode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	omode = openmode(omode);
 	switch((uint32_t)c->qid.path){
 	case Qrtc:
-		if(strcmp(m->externup->user, eve)!=0 && omode!=OREAD)
+		if(strcmp(up->user, eve)!=0 && omode!=OREAD)
 			error(Eperm);
 		break;
 	case Qnvram:
-		if(strcmp(m->externup->user, eve)!=0)
+		if(strcmp(up->user, eve)!=0)
 			error(Eperm);
 	}
 	return devopen(c, omode, rtcdir, nelem(rtcdir), devgen);
@@ -185,7 +185,7 @@ rtctime(void)
 static int32_t	 
 rtcread(Chan* c, void* buf, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t t;
 	char *a, *start;
 	uint32_t offset = off;
@@ -233,7 +233,7 @@ rtcread(Chan* c, void* buf, int32_t n, int64_t off)
 static int32_t	 
 rtcwrite(Chan* c, void* buf, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int t;
 	char *a, *start;
 	Rtc rtc;

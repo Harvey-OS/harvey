@@ -354,14 +354,14 @@ static void txstart(Ether*);
 static void
 watchdog(void* arg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ether *ether;
 	Ctlr *ctlr;
 	//static void txstart(Ether*);
 
 	ether = arg;
 	for(;;){
-		tsleep(&m->externup->sleep, return0, 0, 4000);
+		tsleep(&up->sleep, return0, 0, 4000);
 
 		/*
 		 * Hmmm. This doesn't seem right. Currently
@@ -370,7 +370,7 @@ watchdog(void* arg)
 		 */
 		ctlr = ether->ctlr;
 		if(ctlr == nil || ctlr->state == 0){
-			print("%s: exiting\n", m->externup->text);
+			print("%s: exiting\n", up->text);
 			pexit("disabled", 0);
 		}
 

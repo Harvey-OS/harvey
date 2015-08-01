@@ -251,9 +251,9 @@ udprecv(int ctlrno, Netaddr *a, void *data, int dlen)
 		timo = 1000;
 	else
 		timo = Timeout;
-	timo += TK2MS(m->ticks);
-	while(timo > TK2MS(m->ticks)){
-		n = etherrxpkt(ctlrno, &pkt, timo-TK2MS(m->ticks));
+	timo += TK2MS(machp()->ticks);
+	while(timo > TK2MS(machp()->ticks)){
+		n = etherrxpkt(ctlrno, &pkt, timo-TK2MS(machp()->ticks));
 		if(n <= 0)
 			continue;
 

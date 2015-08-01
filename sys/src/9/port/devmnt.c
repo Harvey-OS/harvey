@@ -107,7 +107,7 @@ mntreset(void)
 usize
 mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Fcall f;
 	uint8_t *msg;
 	Mnt *mnt;
@@ -258,7 +258,7 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 Chan*
 mntauth(Chan *c, char *spec)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -289,7 +289,7 @@ mntauth(Chan *c, char *spec)
 
 	r->request.type = Tauth;
 	r->request.afid = c->fid;
-	r->request.uname = m->externup->user;
+	r->request.uname = up->user;
 	r->request.aname = spec;
 	mountrpc(mnt, r);
 
@@ -311,7 +311,7 @@ mntauth(Chan *c, char *spec)
 static Chan*
 mntattach(char *muxattach)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mnt *mnt;
 	Chan *c;
 	Mntrpc *r;
@@ -356,7 +356,7 @@ mntattach(char *muxattach)
 		r->request.afid = NOFID;
 	else
 		r->request.afid = bogus.authchan->fid;
-	r->request.uname = m->externup->user;
+	r->request.uname = up->user;
 	r->request.aname = bogus.spec;
 	mountrpc(mnt, r);
 
@@ -393,7 +393,7 @@ mntchan(void)
 static Walkqid*
 mntwalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, alloc;
 	Mnt *mnt;
 	Mntrpc *r;
@@ -477,7 +477,7 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 static int32_t
 mntstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mnt *mnt;
 	Mntrpc *r;
 	usize nstat;
@@ -512,7 +512,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 static Chan*
 mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -562,7 +562,7 @@ mntcreate(Chan *c, char *name, int omode, int perm)
 static void
 mntclunk(Chan *c, int t)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -633,7 +633,7 @@ mntremove(Chan *c)
 static int32_t
 mntwstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -706,7 +706,7 @@ mntwrite(Chan *c, void *buf, int32_t n, int64_t off)
 int32_t
 mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mnt *mnt;
  	Mntrpc *r;
 	char *uba;
@@ -750,7 +750,7 @@ mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 		uba += nr;
 		cnt += nr;
 		n -= nr;
-		if(nr != nreq || n == 0 || m->externup->nnote)
+		if(nr != nreq || n == 0 || up->nnote)
 			break;
 	}
 	return cnt;
@@ -759,7 +759,7 @@ mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 void
 mountrpc(Mnt *mnt, Mntrpc *r)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *sn, *cn;
 	int t;
 
@@ -784,7 +784,7 @@ mountrpc(Mnt *mnt, Mntrpc *r)
 		if(r->c != nil && r->c->path != nil)
 			cn = r->c->path->s;
 		print("mnt: proc %s %d: mismatch from %s %s rep %#p tag %d fid %d T%d R%d rp %d\n",
-			m->externup->text, m->externup->pid, sn, cn,
+			up->text, up->pid, sn, cn,
 			r, r->request.tag, r->request.fid, r->request.type,
 			r->reply.type, r->reply.tag);
 		error(Emountrpc);
@@ -794,13 +794,13 @@ mountrpc(Mnt *mnt, Mntrpc *r)
 void
 mountio(Mnt *mnt, Mntrpc *r)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int n;
 
 	while(waserror()) {
-		if(mnt->rip == m->externup)
+		if(mnt->rip == up)
 			mntgate(mnt);
-		if(strcmp(m->externup->errstr, Eintr) != 0){
+		if(strcmp(up->errstr, Eintr) != 0){
 			mntflushfree(mnt, r);
 			nexterror();
 		}
@@ -837,7 +837,7 @@ mountio(Mnt *mnt, Mntrpc *r)
 			return;
 		}
 	}
-	mnt->rip = m->externup;
+	mnt->rip = up;
 	unlock(mnt);
 	while(r->done == 0) {
 		if(mntrpcread(mnt, r) < 0)

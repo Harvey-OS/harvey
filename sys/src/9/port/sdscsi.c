@@ -127,7 +127,7 @@ scsiverify(SDunit* unit)
 static int
 scsirio(SDreq* r)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	/*
 	 * Perform an I/O request, returning
 	 *	-1	failure
@@ -171,7 +171,7 @@ scsirio(SDreq* r)
 
 			while(waserror())
 				;
-			tsleep(&m->externup->sleep, return0, 0, 500);
+			tsleep(&up->sleep, return0, 0, 500);
 			poperror();
 			scsitest(r);
 			return 2;

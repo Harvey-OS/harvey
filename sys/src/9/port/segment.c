@@ -30,7 +30,7 @@ char *segtypes[SG_TYPE]={
 uintmem
 segppn(Segment *s, uintmem pa)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintmem pgsz;
 
 	pgsz = m->pgsz[s->pgszi];
@@ -184,7 +184,7 @@ relocateseg(Segment *s, uintptr_t offset)
 Segment*
 dupseg(Segment **seg, int segno, int share)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, size;
 	Pte *pte;
 	Segment *n, *s;
@@ -258,7 +258,7 @@ sameseg:
 void
 segpage(Segment *s, Page *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Pte **pte;
 	uintptr_t soff;
 	uintmem pgsz;
@@ -295,7 +295,7 @@ segpage(Segment *s, Page *p)
 void
 mfreeseg(Segment *s, uintptr_t start, int pages)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, j, size;
 	uintptr_t soff;
 	uintmem pgsz;
@@ -378,12 +378,12 @@ isoverlap(Proc* p, uintptr_t va, usize len)
 void
 segclock(uintptr_t pc)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	int sno;
 
 	for(sno = 0; sno < NSEG; sno++){
-		s = m->externup->seg[sno];
+		s = up->seg[sno];
 		if(s == nil)
 			continue;
 		if((s->type & SG_EXEC) == 0 || s->profile == 0)
@@ -399,11 +399,11 @@ segclock(uintptr_t pc)
 static void
 prepageseg(int i)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	uintptr_t addr, pgsz;
 
-	s = m->externup->seg[i];
+	s = up->seg[i];
 	if(s == nil)
 		return;
 	DBG("prepage: base %#p top %#p\n", s->base, s->top);
@@ -414,7 +414,7 @@ prepageseg(int i)
 
 /*
  * BUG: should depend only in segment attributes, not in
- * the slot used in m->externup->seg.
+ * the slot used in up->seg.
  */
 void
 nixprepage(int i)

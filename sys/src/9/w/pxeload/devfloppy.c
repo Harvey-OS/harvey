@@ -115,7 +115,7 @@ floppyalarm(Alarm* a)
 	FDrive *dp;
 
 	for(dp = fl.d; dp < &fl.d[fl.ndrive]; dp++){
-		if((fl.motor&MOTORBIT(dp->dev)) && TK2SEC(m->ticks - dp->lasttouched) > 5)
+		if((fl.motor&MOTORBIT(dp->dev)) && TK2SEC(machp()->ticks - dp->lasttouched) > 5)
 			floppyoff(dp);
 	}
 
@@ -407,8 +407,8 @@ timedsleep(int (*f)(void*), void* arg, int ms)
 	int s;
 	uint32_t end;
 
-	end = m->ticks + 1 + MS2TK(ms);
-	while(m->ticks < end && !(*f)(arg)){
+	end = machp()->ticks + 1 + MS2TK(ms);
+	while(machp()->ticks < end && !(*f)(arg)){
 		s = spllo();
 		delay(10);
 		splx(s);
@@ -428,7 +428,7 @@ floppyon(FDrive *dp)
 		floppyrevive();
 
 	/* start motor and select drive */
-	dp->lasttouched = m->ticks;
+	dp->lasttouched = machp()->ticks;
 	alreadyon = fl.motor & MOTORBIT(dp->dev);
 	if(!alreadyon){
 		fl.motor |= MOTORBIT(dp->dev);
@@ -451,7 +451,7 @@ floppyon(FDrive *dp)
 		for(tries = 0; tries < 4; tries++)
 			if(floppyrecal(dp) >= 0)
 				break;
-	dp->lasttouched = m->ticks;
+	dp->lasttouched = machp()->ticks;
 	fl.selected = dp;
 	if(dp->confused)
 		return -1;
@@ -810,7 +810,7 @@ floppyxfer(FDrive *dp, int cmd, void *a, int32_t off, int32_t n)
 			continue;
 		}
 
-		dp->lasttouched = m->ticks;
+		dp->lasttouched = machp()->ticks;
 		dp->maxtries = 20;
 		return dp->len;
 	}

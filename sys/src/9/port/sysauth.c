@@ -25,14 +25,14 @@ char	hostdomain[DOMLEN];
 int
 iseve(void)
 {
-	Mach *m = machp();
-	return strcmp(eve, m->externup->user) == 0;
+	Proc *up = machp()->externup;
+	return strcmp(eve, up->user) == 0;
 }
 
 void
 sysfversion(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *c;
 	char *version;
 	int fd;
@@ -95,7 +95,7 @@ sys_fsession(Ar0* ar0, ...)
 void
 sysfauth(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *c, *ac;
 	char *aname;
 	int fd;
@@ -152,11 +152,11 @@ sysfauth(Ar0* ar0, ...)
 int32_t
 userwrite(char* a, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(n != 4 || strncmp(a, "none", 4) != 0)
 		error(Eperm);
-	kstrdup(&m->externup->user, "none");
-	m->externup->basepri = PriNormal;
+	kstrdup(&up->user, "none");
+	up->basepri = PriNormal;
 
 	return n;
 }
@@ -169,7 +169,7 @@ userwrite(char* a, int32_t n)
 int32_t
 hostownerwrite(char* a, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[128];
 
 	if(!iseve())
@@ -181,8 +181,8 @@ hostownerwrite(char* a, int32_t n)
 
 	renameuser(eve, buf);
 	kstrdup(&eve, buf);
-	kstrdup(&m->externup->user, buf);
-	m->externup->basepri = PriNormal;
+	kstrdup(&up->user, buf);
+	up->basepri = PriNormal;
 
 	return n;
 }

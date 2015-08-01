@@ -275,7 +275,7 @@ apiconline(void)
 	apic->min = apic->hz/(100*HZ);
 	apic->div = ((m->cpuhz/apic->max)+HZ/2)/HZ;
 
-	if(m->machno == 0 || DBGFLG){
+	if(machp()->machno == 0 || DBGFLG){
 		print("apic%d: hz %lld max %lld min %lld div %lld\n", apicno,
 			apic->hz, apic->max, apic->min, apic->div);
 	}
@@ -319,7 +319,7 @@ apiconline(void)
 	 * then lower the task priority to allow interrupts to be
 	 * accepted by the APIC.
 	 */
-	microdelay((TK2MS(1)*1000/apmachno) * m->machno);
+	microdelay((TK2MS(1)*1000/apmachno) * machp()->machno);
 
 	if(apic->machno == 0){
 		apicrput(Tic, apic->max);
@@ -327,7 +327,7 @@ apiconline(void)
 		apicrput(Tlvt, Periodic|IrqTIMER);
 	}
 
-	if(m->machno == 0)
+	if(machp()->machno == 0)
 		apicrput(Tp, 0);
 
 	xlapicmachptr[apicno] = m;

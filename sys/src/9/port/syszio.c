@@ -216,21 +216,21 @@ alloczio(Segment *s, int32_t len)
 Segment*
 getzkseg(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 	int i;
 
-	qlock(&m->externup->seglock);
+	qlock(&up->seglock);
 	for(i = 0; i < NSEG; i++){
-		s = m->externup->seg[i];
+		s = up->seg[i];
 		if(s != nil && (s->type&SG_KZIO) != 0){
 			incref(s);
-			qunlock(&m->externup->seglock);
+			qunlock(&up->seglock);
 			DBG("getzkseg: %#p\n", s);
 			return s;
 		}
 	}
-	qunlock(&m->externup->seglock);
+	qunlock(&up->seglock);
 	DBG("getzkseg: nil\n");
 	return nil;
 }
@@ -269,7 +269,7 @@ readzio(Kzio *io, int nio, void *a, int32_t count)
 int
 devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Segment *s;
 
 	DBG("devzread %#p[%d]\n", io, nio);
@@ -294,7 +294,7 @@ devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
 int
 devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, j;
 	int32_t tot;
 	Block *bp;
@@ -379,7 +379,7 @@ kernzio(Kzio *io)
 static int
 ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, n, isprw;
 	Kzio *kio, skio[16];
 	Chan *c;
@@ -422,7 +422,7 @@ ziorw(int fd, Zio *io, int nio, usize count, int64_t offset, int iswrite)
 	for(i = 0; i < nio; i++){
 		kio[i].Zio = io[i];
 		if(iswrite){
-			kio[i].seg = seg(m->externup, PTR2UINT(io[i].data), 1);
+			kio[i].seg = seg(up, PTR2UINT(io[i].data), 1);
 			if(kio[i].seg == nil)
 				error("invalid address in zio");
 			incref(kio[i].seg);
@@ -520,7 +520,7 @@ sysziopwrite(Ar0 *ar0, ...)
 void
 sysziofree(Ar0 *ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Zio *io;
 	int nio, i;
 	Segment *s;
@@ -535,7 +535,7 @@ sysziofree(Ar0 *ar0, ...)
 	va_end(list);
 	io = validaddr(io, sizeof io[0] * nio, 1);
 	for(i = 0; i < nio; i++){
-		s = seg(m->externup, PTR2UINT(io[i].data), 1);
+		s = seg(up, PTR2UINT(io[i].data), 1);
 		if(s == nil)
 			error("invalid address in zio");
 		if((s->type&SG_ZIO) == 0){
@@ -582,7 +582,7 @@ newzmap(Segment *s)
 static void
 zmapfree(ZMap* rmap, uintptr_t addr)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Map *mp, *prev, *next;
 
 	lock(rmap);
@@ -624,7 +624,7 @@ zmapfree(ZMap* rmap, uintptr_t addr)
 static uintptr_t
 zmapalloc(ZMap* rmap, usize size)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Map *mp, *nmp;
 
 	lock(rmap);
