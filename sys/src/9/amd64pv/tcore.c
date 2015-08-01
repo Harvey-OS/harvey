@@ -31,7 +31,7 @@ extern void acsysret(void);
 Mach*
 getac(Proc *p, int core)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	Mach *mp;
 
@@ -101,22 +101,22 @@ putac(Mach *m)
 void
 stopac(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mach *mp;
 
-	mp = m->externup->ac;
+	mp = up->ac;
 	if(mp == nil)
 		return;
-	if(mp->proc != m->externup)
+	if(mp->proc != up)
 		panic("stopac");
 
 	lock(&nixaclock);
-	m->externup->ac = nil;
+	up->ac = nil;
 	mp->proc = nil;
 	unlock(&nixaclock);
 
 	/* TODO:
-	 * send sipi to m->externup->ac, it would rerun squidboy(), and
+	 * send sipi to up->ac, it would rerun squidboy(), and
 	 * wait for us to give it a function to run.
 	 */
 }
@@ -140,7 +140,7 @@ extern int notify(Ureg*);
 int
 runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint8_t *dpg, *spg;
 
 	if (n > sizeof(mp->icc->data))
@@ -148,21 +148,21 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 
 	if(mp->online == 0)
 		panic("Bad core");
-	if(mp->proc != nil && mp->proc != m->externup)
+	if(mp->proc != nil && mp->proc != up)
 		panic("runapfunc: mach is busy with another proc?");
 
 	memmove(mp->icc->data, a, n);
 	if(flushtlb){
-		DBG("runac flushtlb: cppml4 %#p %#p\n", mp->pml4->pa, m->pml4->pa);
+		DBG("runac flushtlb: cppml4 %#p %#p\n", mp->pml4->pa, machp()->pml4->pa);
 		dpg = UINT2PTR(mp->pml4->va);
-		spg = UINT2PTR(m->pml4->va);
+		spg = UINT2PTR(machp()->pml4->va);
 		/* We should copy less:
-		 *	memmove(dgp, spg, m->pml4->daddr * sizeof(PTE));
+		 *	memmove(dgp, spg, machp()->pml4->daddr * sizeof(PTE));
 		 */
 		memmove(dpg, spg, PTSZ);
 		if(0){
-			print("runac: upac pml4 %#p\n", m->externup->ac->pml4->pa);
-			dumpptepg(4, m->externup->ac->pml4->pa);
+			print("runac: upac pml4 %#p\n", up->ac->pml4->pa);
+			dumpptepg(4, up->ac->pml4->pa);
 		}
 	}
 	mp->icc->flushtlb = flushtlb;
@@ -170,14 +170,14 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 
 	DBG("runac: exotic proc on cpu%d\n", mp->machno);
 	if(waserror()){
-		qunlock(&m->externup->debug);
+		qunlock(&up->debug);
 		nexterror();
 	}
-	qlock(&m->externup->debug);
-	m->externup->nicc++;
-	m->externup->state = Exotic;
-	m->externup->psstate = 0;
-	qunlock(&m->externup->debug);
+	qlock(&up->debug);
+	up->nicc++;
+	up->state = Exotic;
+	up->psstate = 0;
+	qunlock(&up->debug);
 	poperror();
 	mfence();
 	mp->icc->fn = func;
@@ -193,20 +193,20 @@ runac(Mach *mp, APfunc func, int flushtlb, void *a, int32_t n)
 static void
 fakeretfromsyscall(Ureg *ureg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int s;
 
 	poperror();	/* as syscall() would do if we would return */
-	if(m->externup->procctl == Proc_tracesyscall){	/* Would this work? */
-		m->externup->procctl = Proc_stopme;
+	if(up->procctl == Proc_tracesyscall){	/* Would this work? */
+		up->procctl = Proc_stopme;
 		s = splhi();
-		procctl(m->externup);
+		procctl(up);
 		splx(s);
 	}
 
-	m->externup->insyscall = 0;
+	up->insyscall = 0;
 	/* if we delayed sched because we held a lock, sched now */
-	if(m->externup->delaysched){
+	if(up->delaysched){
 		sched();
 		splhi();
 	}
@@ -236,7 +236,7 @@ fakeretfromsyscall(Ureg *ureg)
 void
 runacore(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ureg *ureg;
 	void (*fn)(void);
 	int rc, flush, s;
@@ -244,14 +244,14 @@ runacore(void)
 	uint64_t t1;
 
 	if(waserror())
-		panic("runacore: error: %s\n", m->externup->errstr);
-	ureg = m->externup->dbgreg;
+		panic("runacore: error: %s\n", up->errstr);
+	ureg = up->dbgreg;
 	fakeretfromsyscall(ureg);
 	fpusysrfork(ureg);
 
-	procpriority(m->externup, PriKproc, 1);
-	rc = runac(m->externup->ac, actouser, 1, nil, 0);
-	procpriority(m->externup, PriNormal, 0);
+	procpriority(up, PriKproc, 1);
+	rc = runac(up->ac, actouser, 1, nil, 0);
+	procpriority(up, PriNormal, 0);
 	for(;;){
 		t1 = fastticks(nil);
 		flush = 0;
@@ -259,16 +259,16 @@ runacore(void)
 		switch(rc){
 		case ICCTRAP:
 			s = splhi();
-			m->cr2 = m->externup->ac->cr2;
+			m->cr2 = up->ac->cr2;
 			DBG("runacore: trap %ulld cr2 %#ullx ureg %#p\n",
 				ureg->type, m->cr2, ureg);
 			switch(ureg->type){
 			case IdtIPI:
-				if(m->externup->procctl || m->externup->nnote)
-					notify(m->externup->dbgreg);
-				if(m->externup->ac == nil)
+				if(up->procctl || up->nnote)
+					notify(up->dbgreg);
+				if(up->ac == nil)
 					goto ToTC;
-				kexit(m->externup->dbgreg);
+				kexit(up->dbgreg);
 				break;
 			case IdtNM:
 			case IdtMF:
@@ -278,19 +278,19 @@ runacore(void)
 				 * a note to be posted to the process.
 				 * Post it, and make the vector a NOP.
 				 */
-				n = m->externup->ac->icc->note;
+				n = up->ac->icc->note;
 				if(n != nil)
-					postnote(m->externup, 1, n, NDebug);
+					postnote(up, 1, n, NDebug);
 				ureg->type = IdtIPI;		/* NOP */
 				break;
 			default:
-				cr3put(m->pml4->pa);
+				cr3put(machp()->pml4->pa);
 				if(0 && ureg->type == IdtPF){
 					print("before PF:\n");
 					print("AC:\n");
-					dumpptepg(4, m->externup->ac->pml4->pa);
+					dumpptepg(4, up->ac->pml4->pa);
 					print("\n%s:\n", rolename[NIXTC]);
-					dumpptepg(4, m->pml4->pa);
+					dumpptepg(4, machp()->pml4->pa);
 				}
 				trap(ureg);
 			}
@@ -301,30 +301,30 @@ runacore(void)
 		case ICCSYSCALL:
 			DBG("runacore: syscall ax %#ullx ureg %#p\n",
 				ureg->ax, ureg);
-			cr3put(m->pml4->pa);
+			cr3put(machp()->pml4->pa);
 			//syscall(ureg->ax, ureg);
 			flush = 1;
 			fn = acsysret;
 			if(0)
-			if(m->externup->nqtrap > 2 || m->externup->nsyscall > 1)
+			if(up->nqtrap > 2 || up->nsyscall > 1)
 				goto ToTC;
-			if(m->externup->ac == nil)
+			if(up->ac == nil)
 				goto ToTC;
 			break;
 		default:
 			panic("runacore: unexpected rc = %d", rc);
 		}
-		m->externup->tctime += fastticks2us(fastticks(nil) - t1);
-		procpriority(m->externup, PriExtra, 1);
-		rc = runac(m->externup->ac, fn, flush, nil, 0);
-		procpriority(m->externup, PriNormal, 0);
+		up->tctime += fastticks2us(fastticks(nil) - t1);
+		procpriority(up, PriExtra, 1);
+		rc = runac(up->ac, fn, flush, nil, 0);
+		procpriority(up, PriNormal, 0);
 	}
 ToTC:
 	/*
 	 *  to procctl, then syscall,  to 
 	 *  be back in the TC
 	 */
-	DBG("runacore: up %#p: return\n", m->externup);
+	DBG("runacore: up %#p: return\n", up);
 }
 
 extern ACVctl *acvctl[];

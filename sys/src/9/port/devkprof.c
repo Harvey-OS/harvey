@@ -78,7 +78,7 @@ kprofattach(char *spec)
 static void
 _kproftimer(uintptr_t pc)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(kprof.time == 0)
 		return;
 
@@ -92,7 +92,7 @@ _kproftimer(uintptr_t pc)
 	 *  use the pc saved when we went splhi.
 	 */
 	if(pc>=PTR2UINT(spllo) && pc<=PTR2UINT(spldone))
-		pc = m->splpc;
+		pc = machp()->splpc;
 
 	ilock(&kprof.l);
 	kprof.buf[0] += TK2MS(1);

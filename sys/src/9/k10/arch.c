@@ -87,9 +87,9 @@ procsave(Proc *p)
 static void
 linkproc(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	spllo();
-	m->externup->kpfun(m->externup->kparg);
+	up->kpfun(up->kparg);
 	pexit("kproc dying", 0);
 }
 
@@ -119,7 +119,7 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 void
 idlehands(void)
 {
-	Mach *m = machp();
-	if(m->nixtype != NIXAC)
+	Proc *up = machp()->externup;
+	if(machp()->nixtype != NIXAC)
  		halt();
 }

@@ -525,7 +525,7 @@ void (*coherence)(void) = mfence;
 static int32_t
 cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[512], *s, *e;
 	int i, k;
 
@@ -576,7 +576,7 @@ archreset(void)
 uint64_t
 fastticks(uint64_t* hz)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(hz != nil)
 		*hz = m->cpuhz;
 	return rdtsc();
@@ -608,7 +608,7 @@ cycles(uint64_t* t)
 void
 delay(int millisecs)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint64_t r, t;
 
 	if(millisecs <= 0)

@@ -386,7 +386,7 @@ struct Page
 	Page	*next;			/* Lru free list */
 	Page	*prev;
 	Page	*hash;			/* Image hash chains */
-	int	pgszi;			/* size index in m->pgsz[] */
+	int	pgszi;			/* size index in machp()->pgsz[] */
 };
 
 struct Image

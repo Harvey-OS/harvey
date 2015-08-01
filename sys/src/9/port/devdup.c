@@ -19,8 +19,8 @@
 static int
 dupgen(Chan *c, char *d, Dirtab* dir, int mm, int s, Dir *dp)
 {
-	Mach *m = machp();
-	Fgrp *fgrp = m->externup->fgrp;
+	Proc *up = machp()->externup;
+	Fgrp *fgrp = up->fgrp;
 	Chan *f;
 	static int perm[] = { 0400, 0200, 0600, 0 };
 	int p;
@@ -39,13 +39,13 @@ dupgen(Chan *c, char *d, Dirtab* dir, int mm, int s, Dir *dp)
 		return 0;
 	if(s & 1){
 		p = 0400;
-		sprint(m->externup->genbuf, "%dctl", s/2);
+		sprint(up->genbuf, "%dctl", s/2);
 	}else{
 		p = perm[f->mode&3];
-		sprint(m->externup->genbuf, "%d", s/2);
+		sprint(up->genbuf, "%d", s/2);
 	}
 	mkqid(&q, s+1, 0, QTFILE);
-	devdir(c, q, m->externup->genbuf, 0, eve, p, dp);
+	devdir(c, q, up->genbuf, 0, eve, p, dp);
 	return 1;
 }
 

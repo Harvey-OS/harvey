@@ -846,7 +846,7 @@ acpimblocksize(uintmem addr, int *dom)
 int
 corecolor(int core)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Srat *sl;
 	static int colors[32];
 
@@ -1630,7 +1630,7 @@ acpiread(Chan *c, void *a, int32_t n, int64_t off)
 static int32_t
 acpiwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Cmdtab *ct;
 	Cmdbuf *cb;
 	Reg *r;

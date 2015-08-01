@@ -48,7 +48,7 @@ kexeclookup(Kexecgrp *kg, uintptr_t addr, uint32_t qidpath)
 static int
 kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Kexecgrp *kg;
 	Kvalue *e;
 	uintptr_t addr;
@@ -79,11 +79,11 @@ kexecgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 
 	/* make sure name string continues to exist after we release lock */
 	// how will we free this?
-	snprint(m->externup->genbuf, sizeof m->externup->genbuf, "0x%p", addr);
-	print("m->externup->genbuf %s e 0x%p\n", m->externup->genbuf, e);
+	snprint(up->genbuf, sizeof up->genbuf, "0x%p", addr);
+	print("up->genbuf %s e 0x%p\n", up->genbuf, e);
 	print("e qid %d e->addr 0x%p size %ld len %ld\n", e->qid, e->addr, e->size, e->len);
 
-	devdir(c, e->qid, m->externup->genbuf, e->len, eve, 0666, dp);
+	devdir(c, e->qid, up->genbuf, e->len, eve, 0666, dp);
 	runlock(kg);
 	print("finished gen\n");
 	
@@ -170,7 +170,7 @@ kexecopen(Chan *c, int omode)
 static void
 kexeccreate(Chan *c, char *name, int omode, int i)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Kexecgrp *kg;
 	Kvalue *e;
 	Kvalue **ent;

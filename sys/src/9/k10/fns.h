@@ -35,6 +35,8 @@ void	noerrorsleft(void);
 void	archinit(void);
 void	archreset(void);
 int64_t	archhz(void);
+int	cgaprint(int off, char *fmt, ...);
+int	cgaclearln(int off, int c);
 void	cgaconsputs(char*, int);
 void	cgainit(void);
 void	cgapost(int);
@@ -204,7 +206,7 @@ void	acsyscallentry(void);
 void	syscallreturn(void);
 void	sysrforkret(void);
 
-#define	waserror()	(m->externup->nerrlab++, setlabel(&m->externup->errlab[m->externup->nerrlab-1]))
+#define	waserror()	(machp()->externup->nerrlab++, setlabel(&machp()->externup->errlab[machp()->externup->nerrlab-1]))
 
 #define	dcflush(a, b)
 

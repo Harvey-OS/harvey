@@ -106,7 +106,7 @@ squidboy(int apicno, Mach *m)
 {
 	// FIX QEMU. extern int64_t hz;
 	int64_t hz;
-	sys->machptr[m->machno] = m;
+	sys->machptr[machp()->machno] = m;
 	/*
 	 * Need something for initial delays
 	 * until a timebase is worked out.
@@ -123,7 +123,7 @@ squidboy(int apicno, Mach *m)
 	// PRINT WILL PANIC. So wait.
 	vsvminit(MACHSTKSZ, m->nixtype, m);
 
-	DBG("Hello Squidboy %d %d\n", apicno, m->machno);
+	DBG("Hello Squidboy %d %d\n", apicno, machp()->machno);
 
 
 	/*
@@ -156,7 +156,7 @@ squidboy(int apicno, Mach *m)
 	m->rdtsc = rdtsc();
 
 	print("cpu%d color %d role %s tsc %lld\n",
-		m->machno, corecolor(m->machno), rolename[m->nixtype], m->rdtsc);
+		machp()->machno, corecolor(machp()->machno), rolename[m->nixtype], m->rdtsc);
 	switch(m->nixtype){
 	case NIXAC:
 		acmmuswitch();
@@ -214,7 +214,7 @@ testiccs(void)
 static void
 nixsquids(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Mach *mp;
 	int i;
 	uint64_t now, start;
@@ -341,14 +341,14 @@ void put64(uint64_t v)
 
 void debugtouser(void *va)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintptr_t uva = (uintptr_t) va;
 	PTE *pte, *pml4;
 
-	pml4 = UINT2PTR(m->pml4->va);
+	pml4 = UINT2PTR(machp()->pml4->va);
 	mmuwalk(pml4, uva, 0, &pte, nil);
-	iprint("va %p m %p m>pml4 %p m->pml4->va %p pml4 %p PTE 0x%lx\n", va,
-			m, m->pml4, m->pml4->va, (void *)pml4, *pte);
+	iprint("va %p m %p m>pml4 %p machp()->pml4->va %p pml4 %p PTE 0x%lx\n", va,
+			m, machp()->pml4, machp()->pml4->va, (void *)pml4, *pte);
 }
 
 /*
@@ -381,7 +381,7 @@ teardownidmap(Mach *m)
 	 * report if there were that many, as that is odd.
 	 */
 	for(i = 0; i < 512; i++, va += BIGPGSZ) {
-		if (mmuwalk(UINT2PTR(m->pml4->va), va, 1, &p, nil) != 1)
+		if (mmuwalk(UINT2PTR(machp()->pml4->va), va, 1, &p, nil) != 1)
 			break;
 		if (! *p)
 			break;
@@ -391,7 +391,7 @@ teardownidmap(Mach *m)
 	iprint("Teardown: zapped %d PML1 entries\n", i);
 
 	for(i = 2; i < 4; i++) {
-		if (mmuwalk(UINT2PTR(m->pml4->va), 0, i, &p, nil) != i) {
+		if (mmuwalk(UINT2PTR(machp()->pml4->va), 0, i, &p, nil) != i) {
 			iprint("weird; 0 not mapped at %d\n", i);
 			continue;
 		}
@@ -407,10 +407,10 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 {
 	Mach *m = entrym;
 	/* when we get here, entrym is set to core0 mach. */
-	sys->machptr[m->machno] = m;
+	sys->machptr[machp()->machno] = m;
 	// Very special case for BSP only. Too many things
 	// assume this is set.
-	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
+	wrmsr(GSbase, PTR2UINT(&sys->machptr[machp()->machno]));
 	if (machp() != m)
 		panic("m and machp() are different!!\n");
 	assert(sizeof(Mach) <= PGSZ);
@@ -428,19 +428,19 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 	/*
 	 * ilock via i8250enable via i8250console
-	 * needs m->machno, sys->machptr[] set, and
+	 * needs machp()->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
 	cgapost(sizeof(uintptr_t)*8);
 	memset(m, 0, sizeof(Mach));
 
-	m->machno = 0;
+	machp()->machno = 0;
 	m->online = 1;
 	m->nixtype = NIXTC;
-	sys->machptr[m->machno] = &sys->mach;
+	sys->machptr[machp()->machno] = &sys->mach;
 	m->stack = PTR2UINT(sys->machstk);
 	m->vsvm = sys->vsvmpage;
-	m->externup = (void *)0;
+	up = (void *)0;
 	active.nonline = 1;
 	active.exiting = 0;
 	active.nbooting = 0;
@@ -484,7 +484,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 	/*
 	 * Mmuinit before meminit because it
-	 * flushes the TLB via m->pml4->pa.
+	 * flushes the TLB via machp()->pml4->pa.
 	 */
 	mmuinit();
 	ioinit();
@@ -558,10 +558,10 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 void
 init0(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[2*KNAMELEN];
 
-	m->externup->nerrlab = 0;
+	up->nerrlab = 0;
 
 	/*
 	 * if(consuart == nil)
@@ -573,10 +573,10 @@ init0(void)
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
-	m->externup->slash = namec("#/", Atodir, 0, 0);
-	pathclose(m->externup->slash->path);
-	m->externup->slash->path = newpath("/");
-	m->externup->dot = cclone(m->externup->slash);
+	up->slash = namec("#/", Atodir, 0, 0);
+	pathclose(up->slash->path);
+	up->slash->path = newpath("/");
+	up->dot = cclone(up->slash);
 
 	devtabinit();
 
@@ -608,10 +608,10 @@ bootargs(uintptr_t base)
 	 * Push the boot args onto the stack.
 	 * Make sure the validaddr check in syscall won't fail
 	 * because there are fewer than the maximum number of
-	 * args by subtracting sizeof(m->externup->arg).
+	 * args by subtracting sizeof(up->arg).
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(entrym->externup->arg) - i));
+	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(entryup->arg) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -636,7 +636,7 @@ bootargs(uintptr_t base)
 void
 userinit(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	Segment *s;
 	KMap *k;
@@ -663,7 +663,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(m->externup->arg)-sizeof(uintptr_t));
+	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr_t));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*
@@ -727,13 +727,13 @@ confinit(void)
 static void
 shutdown(int ispanic)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int ms, once;
 
 	lock(&active);
 	if(ispanic)
 		active.ispanic = ispanic;
-	else if(m->machno == 0 && m->online == 0)
+	else if(machp()->machno == 0 && m->online == 0)
 		active.ispanic = 0;
 	once = m->online;
 	m->online = 0;
@@ -742,7 +742,7 @@ shutdown(int ispanic)
 	unlock(&active);
 
 	if(once)
-		iprint("cpu%d: exiting\n", m->machno);
+		iprint("cpu%d: exiting\n", machp()->machno);
 
 	spllo();
 	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
@@ -751,7 +751,7 @@ shutdown(int ispanic)
 			break;
 	}
 
-	if(active.ispanic && m->machno == 0){
+	if(active.ispanic && machp()->machno == 0){
 		if(cpuserver)
 			delay(30000);
 		else

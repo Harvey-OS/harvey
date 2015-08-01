@@ -430,7 +430,7 @@ i8250baud(Uart* uart, int baud)
 static void
 i8250break(Uart* uart, int ms)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 
 	/*
@@ -441,7 +441,7 @@ i8250break(Uart* uart, int ms)
 
 	ctlr = uart->regs;
 	csr8w(ctlr, Lcr, Brk);
-	tsleep(&m->externup->sleep, return0, 0, ms);
+	tsleep(&up->sleep, return0, 0, ms);
 	csr8w(ctlr, Lcr, 0);
 }
 

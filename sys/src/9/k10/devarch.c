@@ -435,6 +435,7 @@ archread(Chan *c, void *a, int32_t n, int64_t offset)
 				pa = mp->addr;
 				size = mp->size;
 			}
+		}
 #endif
 		error("Not yet");
 	
@@ -526,19 +527,19 @@ void (*coherence)(void) = mfence;
 static int32_t
 cputyperead(Chan* c, void *a, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[512], *s, *e;
 	int i, k;
 
 	e = buf+sizeof buf;
-	s = seprint(buf, e, "%s %ud\n", "AMD64", m->cpumhz);
-	k = m->ncpuinfoe - m->ncpuinfos;
+	s = seprint(buf, e, "%s %ud\n", "AMD64", machp()->cpumhz);
+	k = machp()->ncpuinfoe - machp()->ncpuinfos;
 	if(k > 4)
 		k = 4;
 	for(i = 0; i < k; i++)
 		s = seprint(s, e, "%#8.8ux %#8.8ux %#8.8ux %#8.8ux\n",
-			m->cpuinfo[i][0], m->cpuinfo[i][1],
-			m->cpuinfo[i][2], m->cpuinfo[i][3]);
+			machp()->cpuinfo[i][0], machp()->cpuinfo[i][1],
+			machp()->cpuinfo[i][2], machp()->cpuinfo[i][3]);
 	return readstr(off, a, n, buf);
 }
 
@@ -577,9 +578,9 @@ archreset(void)
 uint64_t
 fastticks(uint64_t* hz)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(hz != nil)
-		*hz = m->cpuhz;
+		*hz = machp()->cpuhz;
 	return rdtsc();
 }
 
@@ -609,13 +610,13 @@ cycles(uint64_t* t)
 void
 delay(int millisecs)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint64_t r, t;
 
 	if(millisecs <= 0)
 		millisecs = 1;
 	r = rdtsc();
-	for(t = r + m->cpumhz*1000ull*millisecs; r < t; r = rdtsc())
+	for(t = r + machp()->cpumhz*1000ull*millisecs; r < t; r = rdtsc())
 		;
 }
 

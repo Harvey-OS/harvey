@@ -183,7 +183,7 @@ static int
 ipgen(Chan *c, char* j, Dirtab* dir, int mm, int s, Dir *dp)
 
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Qid q;
 	Conv *cv;
 	Fs *f;
@@ -194,8 +194,8 @@ ipgen(Chan *c, char* j, Dirtab* dir, int mm, int s, Dir *dp)
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, Qtopdir), 0, QTDIR);
-			snprint(m->externup->genbuf, sizeof m->externup->genbuf, "#I%lud", c->dev);
-			devdir(c, q, m->externup->genbuf, 0, network, 0555, dp);
+			snprint(up->genbuf, sizeof up->genbuf, "#I%lud", c->dev);
+			devdir(c, q, up->genbuf, 0, network, 0555, dp);
 			return 1;
 		}
 		if(s < f->np) {
@@ -217,15 +217,15 @@ ipgen(Chan *c, char* j, Dirtab* dir, int mm, int s, Dir *dp)
 	case Qprotodir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, Qtopdir), 0, QTDIR);
-			snprint(m->externup->genbuf, sizeof m->externup->genbuf, "#I%lud", c->dev);
-			devdir(c, q, m->externup->genbuf, 0, network, 0555, dp);
+			snprint(up->genbuf, sizeof up->genbuf, "#I%lud", c->dev);
+			devdir(c, q, up->genbuf, 0, network, 0555, dp);
 			return 1;
 		}
 		if(s < f->p[PROTO(c->qid)]->ac) {
 			cv = f->p[PROTO(c->qid)]->conv[s];
-			snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%d", s);
+			snprint(up->genbuf, sizeof up->genbuf, "%d", s);
 			mkqid(&q, QID(PROTO(c->qid), s, Qconvdir), 0, QTDIR);
-			devdir(c, q, m->externup->genbuf, 0, cv->owner, 0555, dp);
+			devdir(c, q, up->genbuf, 0, cv->owner, 0555, dp);
 			return 1;
 		}
 		s -= f->p[PROTO(c->qid)]->ac;
@@ -368,7 +368,7 @@ static int m2p[] = {
 static Chan*
 ipopen(Chan* c, int omode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Conv *cv, *nc;
 	Proto *p;
 	int perm;
@@ -971,7 +971,7 @@ connected(void* a)
 static void
 connectctlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *p;
 
 	if(c->state != 0)
@@ -1025,7 +1025,7 @@ announced(void* a)
 static void
 announcectlmsg(Proto *x, Conv *c, Cmdbuf *cb)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *p;
 
 	if(c->state != 0)
@@ -1100,7 +1100,7 @@ ttlctlmsg(Conv *c, Cmdbuf *cb)
 static int32_t
 ipwrite(Chan* ch, void *v, int32_t n, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Conv *c;
 	Proto *x;
 	char *p;

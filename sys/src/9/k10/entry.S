@@ -340,7 +340,7 @@ _zap0done:
 
 	addq	$(2*PTSZ+4*KiB), %rax		/* PD+PT+vsvm */
 	movq	%rax, entrym
-	movq	$0, (%rax) 				/* m->machno = 0 */
+	movq	$0, (%rax) 				/* machp()->machno = 0 */
 
 	PUSHQ	%rdx				/* clear flags */
 	POPFQ

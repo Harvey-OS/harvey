@@ -120,10 +120,10 @@ getline(char *buf, int size, int timeout)
 	char echo;
 
 	for (;;) {
-		start = m->ticks;
+		start = machp()->ticks;
 		do{
 			/* timeout seconds to first char */
-			if(timeout && ((m->ticks - start) > timeout*HZ))
+			if(timeout && ((machp()->ticks - start) > timeout*HZ))
 				return -2;
 			c = consiq.getc(&consiq);
 		}while(c == -1);

@@ -485,7 +485,7 @@ prepcmd(uint *cmd, int i)
 uint32_t
 cmd(Ctlr *c, int type, uint64_t data)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t buf[16], i;
 	Cmd *cmd;
 
@@ -513,7 +513,7 @@ cmd(Ctlr *c, int type, uint64_t data)
 				dprint("[%ux]", i);
 			return i;
 		}
-		tsleep(&m->externup->sleep, return0, 0, 1);
+		tsleep(&up->sleep, return0, 0, 1);
 	}
 	qunlock(&c->cmdl);
 	iprint("m10g: cmd timeout [%ux %ux] cmd=%d\n",
@@ -525,7 +525,7 @@ cmd(Ctlr *c, int type, uint64_t data)
 uint32_t
 maccmd(Ctlr *c, int type, uint8_t *mac)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t buf[16], i;
 	Cmd *cmd;
 
@@ -553,7 +553,7 @@ maccmd(Ctlr *c, int type, uint8_t *mac)
 				dprint("[%ux]", i);
 			return i;
 		}
-		tsleep(&m->externup->sleep, return0, 0, 1);
+		tsleep(&up->sleep, return0, 0, 1);
 	}
 	qunlock(&c->cmdl);
 	iprint("m10g: maccmd timeout [%ux %ux] cmd=%d\n",
@@ -571,7 +571,7 @@ enum {
 uint32_t
 dmatestcmd(Ctlr *c, int type, uint64_t addr, int len)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t buf[16], i;
 
 	memset(buf, 0, sizeof buf);
@@ -596,7 +596,7 @@ dmatestcmd(Ctlr *c, int type, uint64_t addr, int len)
 			poperror();
 			return i;
 		}
-		tsleep(&m->externup->sleep, return0, 0, 5);
+		tsleep(&up->sleep, return0, 0, 5);
 	}
 	error(Etimeout);
 	return ~0;			/* silence! */
@@ -605,7 +605,7 @@ dmatestcmd(Ctlr *c, int type, uint64_t addr, int len)
 uint32_t
 rdmacmd(Ctlr *c, int on)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t buf[16], i;
 
 	memset(buf, 0, sizeof buf);
@@ -627,7 +627,7 @@ rdmacmd(Ctlr *c, int on)
 			poperror();
 			return gbit32(c->cmd->c);
 		}
-		tsleep(&m->externup->sleep, return0, 0, 1);
+		tsleep(&up->sleep, return0, 0, 1);
 	}
 	error(Etimeout);
 	iprint("m10g: rdmacmd timeout\n");
@@ -775,7 +775,7 @@ chkfw(Ctlr *c)
 static int
 reset(Ether *e, Ctlr *c)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t i, sz;
 
 	if(waserror()){
@@ -1339,7 +1339,7 @@ m10ginterrupt(Ureg *ureg, void *v)
 static void
 m10gattach(Ether *e)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *c;
 	char name[12];
 
@@ -1499,7 +1499,7 @@ static Cmdtab ctab[] = {
 static int32_t
 m10gctl(Ether *e, void *v, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	Cmdbuf *c;
 	Cmdtab *t;

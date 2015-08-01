@@ -274,7 +274,7 @@ uartdrained(void* arg)
 static void
 uartdrainoutput(Uart *p)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(!p->enabled)
 		return;
 
@@ -290,7 +290,7 @@ uartdrainoutput(Uart *p)
 static void
 uartclose(Chan *c)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Uart *p;
 
 	if(c->qid.type & QTDIR)
@@ -466,7 +466,7 @@ uartctl(Uart *p, char *cmd)
 static int32_t
 uartwrite(Chan *c, void *buf, int32_t n, int64_t mm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Uart *p;
 	char *cmd;
 

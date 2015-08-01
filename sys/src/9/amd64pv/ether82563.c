@@ -1423,7 +1423,7 @@ i82563tproc(void *v)
 static void
 i82563attach(Ether* edev)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char name[KNAMELEN];
 	Block *bp;
 	Ctlr *ctlr;
@@ -1809,7 +1809,7 @@ static Cmdtab i82563ctlmsg[] = {
 static int32_t
 i82563ctl(Ether *edev, void *buf, int32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *p;
 	uint32_t v;
 	Ctlr *ctlr;

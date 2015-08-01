@@ -39,25 +39,25 @@ typedef struct {
 void
 noted(Ureg* cur, uintptr_t arg0)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	NFrame *nf;
 	Note note;
 	Ureg *nur;
 
-	qlock(&m->externup->debug);
-	if(arg0 != NRSTR && !m->externup->notified){
-		qunlock(&m->externup->debug);
+	qlock(&up->debug);
+	if(arg0 != NRSTR && !up->notified){
+		qunlock(&up->debug);
 		pprint("suicide: call to noted when not notified\n");
 		pexit("Suicide", 0);
 	}
-	m->externup->notified = 0;
+	up->notified = 0;
 	fpunoted();
 
-	nf = m->externup->ureg;
+	nf = up->ureg;
 
 	/* sanity clause */
 	if(!okaddr(PTR2UINT(nf), sizeof(NFrame), 0)){
-		qunlock(&m->externup->debug);
+		qunlock(&up->debug);
 		pprint("suicide: bad ureg %#p in noted\n", nf);
 		pexit("Suicide", 0);
 	}
@@ -67,7 +67,7 @@ noted(Ureg* cur, uintptr_t arg0)
 	 */
 	nur = &nf->ureg;
 	if(nur->cs != SSEL(SiUCS, SsRPL3) || nur->ss != SSEL(SiUDS, SsRPL3)) {
-		qunlock(&m->externup->debug);
+		qunlock(&up->debug);
 		pprint("suicide: bad segment selector in noted\n");
 		pexit("Suicide", 0);
 	}
@@ -82,22 +82,22 @@ noted(Ureg* cur, uintptr_t arg0)
 	case NCONT:
 	case NRSTR:
 		if(!okaddr(nur->ip, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
-			qunlock(&m->externup->debug);
+			qunlock(&up->debug);
 			pprint("suicide: trap in noted pc=%#p sp=%#p\n",
 				nur->ip, nur->sp);
 			pexit("Suicide", 0);
 		}
-		m->externup->ureg = nf->old;
-		qunlock(&m->externup->debug);
+		up->ureg = nf->old;
+		qunlock(&up->debug);
 		break;
 	case NSAVE:
 		if(!okaddr(nur->ip, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
-			qunlock(&m->externup->debug);
+			qunlock(&up->debug);
 			pprint("suicide: trap in noted pc=%#p sp=%#p\n",
 				nur->ip, nur->sp);
 			pexit("Suicide", 0);
 		}
-		qunlock(&m->externup->debug);
+		qunlock(&up->debug);
 
 		splhi();
 		nf->arg1 = nf->msg;
@@ -107,14 +107,14 @@ noted(Ureg* cur, uintptr_t arg0)
 		cur->sp = PTR2UINT(nf);
 		break;
 	default:
-		memmove(&note, &m->externup->lastnote, sizeof(Note));
-		qunlock(&m->externup->debug);
+		memmove(&note, &up->lastnote, sizeof(Note));
+		qunlock(&up->debug);
 		pprint("suicide: bad arg %#p in noted: %s\n", arg0, note.msg);
 		pexit(note.msg, 0);
 		break;
 	case NDFLT:
-		memmove(&note, &m->externup->lastnote, sizeof(Note));
-		qunlock(&m->externup->debug);
+		memmove(&note, &up->lastnote, sizeof(Note));
+		qunlock(&up->debug);
 		if(note.flag == NDebug)
 			pprint("suicide: %s\n", note.msg);
 		pexit(note.msg, note.flag != NDebug);
@@ -129,7 +129,7 @@ noted(Ureg* cur, uintptr_t arg0)
 int
 notify(Ureg* ureg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int l;
 	Mpl pl;
 	Note note;
@@ -139,18 +139,18 @@ notify(Ureg* ureg)
 	/*
 	 * Calls procctl splhi, see comment in procctl for the reasoning.
 	 */
-	if(m->externup->procctl)
-		procctl(m->externup);
-	if(m->externup->nnote == 0)
+	if(up->procctl)
+		procctl(up);
+	if(up->nnote == 0)
 		return 0;
 
 	fpunotify(ureg);
 
 	pl = spllo();
-	qlock(&m->externup->debug);
+	qlock(&up->debug);
 
-	m->externup->notepending = 0;
-	memmove(&note, &m->externup->note[0], sizeof(Note));
+	up->notepending = 0;
+	memmove(&note, &up->note[0], sizeof(Note));
 	if(strncmp(note.msg, "sys:", 4) == 0){
 		l = strlen(note.msg);
 		if(l > ERRMAX-sizeof(" pc=0x0123456789abcdef"))
@@ -158,41 +158,41 @@ notify(Ureg* ureg)
 		sprint(note.msg+l, " pc=%#p", ureg->ip);
 	}
 
-	if(note.flag != NUser && (m->externup->notified || m->externup->notify == nil)){
-		qunlock(&m->externup->debug);
+	if(note.flag != NUser && (up->notified || up->notify == nil)){
+		qunlock(&up->debug);
 		if(note.flag == NDebug)
 			pprint("suicide: %s\n", note.msg);
 		pexit(note.msg, note.flag != NDebug);
 	}
 
-	if(m->externup->notified){
-		qunlock(&m->externup->debug);
+	if(up->notified){
+		qunlock(&up->debug);
 		splhi();
 		return 0;
 	}
 
-	if(m->externup->notify == nil){
-		qunlock(&m->externup->debug);
+	if(up->notify == nil){
+		qunlock(&up->debug);
 		pexit(note.msg, note.flag != NDebug);
 	}
-	if(!okaddr(PTR2UINT(m->externup->notify), sizeof(ureg->ip), 0)){
-		qunlock(&m->externup->debug);
+	if(!okaddr(PTR2UINT(up->notify), sizeof(ureg->ip), 0)){
+		qunlock(&up->debug);
 		pprint("suicide: bad function address %#p in notify\n",
-			m->externup->notify);
+			up->notify);
 		pexit("Suicide", 0);
 	}
 
 	sp = ureg->sp - sizeof(NFrame);
 	if(!okaddr(sp, sizeof(NFrame), 1)){
-		qunlock(&m->externup->debug);
+		qunlock(&up->debug);
 		pprint("suicide: bad stack address %#p in notify\n", sp);
 		pexit("Suicide", 0);
 	}
 
 	nf = UINT2PTR(sp);
 	memmove(&nf->ureg, ureg, sizeof(Ureg));
-	nf->old = m->externup->ureg;
-	m->externup->ureg = nf;	/* actually the NFrame, for noted */
+	nf->old = up->ureg;
+	up->ureg = nf;	/* actually the NFrame, for noted */
 	memmove(nf->msg, note.msg, ERRMAX);
 	nf->arg1 = nf->msg;
 	nf->arg0 = &nf->ureg;
@@ -203,13 +203,13 @@ notify(Ureg* ureg)
 	nf->ip = 0;
 
 	ureg->sp = sp;
-	ureg->ip = PTR2UINT(m->externup->notify);
-	m->externup->notified = 1;
-	m->externup->nnote--;
-	memmove(&m->externup->lastnote, &note, sizeof(Note));
-	memmove(&m->externup->note[0], &m->externup->note[1], m->externup->nnote*sizeof(Note));
+	ureg->ip = PTR2UINT(up->notify);
+	up->notified = 1;
+	up->nnote--;
+	memmove(&up->lastnote, &note, sizeof(Note));
+	memmove(&up->note[0], &up->note[1], up->nnote*sizeof(Note));
 
-	qunlock(&m->externup->debug);
+	qunlock(&up->debug);
 	splx(pl);
 
 	return 1;
@@ -218,18 +218,18 @@ notify(Ureg* ureg)
 void
 noerrorsleft(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 
-	if(m->externup->nerrlab){
+	if(up->nerrlab){
 		/* NIX processes will have a waserror in their handler */
-		if(m->externup->ac != nil && m->externup->nerrlab == 1)
+		if(up->ac != nil && up->nerrlab == 1)
 			return;
 
-		print("bad errstack: %d extra\n", m->externup->nerrlab);
+		print("bad errstack: %d extra\n", up->nerrlab);
 		for(i = 0; i < NERR; i++)
 			print("sp=%#p pc=%#p\n",
-				m->externup->errlab[i].sp, m->externup->errlab[i].pc);
+				up->errlab[i].sp, up->errlab[i].pc);
 		panic("error stack");
 	}
 }
@@ -247,7 +247,7 @@ syscall(int badscallnr, Ureg *ureg)
 	a2 = ureg->dx;
 	a3 = ureg->r10;
 	a4 = ureg->r8;
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	unsigned int scallnr = (unsigned int) badscallnr;
 	if (0) iprint("Syscall %d, %lx, %lx, %lx %lx %lx\n", scallnr, a0, a1, a2, a3, a4);
 	char *e;
@@ -266,27 +266,27 @@ syscall(int badscallnr, Ureg *ureg)
 	if(!userureg(ureg))
 		panic("syscall: cs %#llux\n", ureg->cs);
 
-	cycles(&m->externup->kentry);
+	cycles(&up->kentry);
 
 	m->syscall++;
-	m->externup->nsyscall++;
-	m->externup->nqsyscall++;
-	m->externup->insyscall = 1;
-	m->externup->pc = ureg->ip;
-	m->externup->dbgreg = ureg;
+	up->nsyscall++;
+	up->nqsyscall++;
+	up->insyscall = 1;
+	up->pc = ureg->ip;
+	up->dbgreg = ureg;
 	sp = ureg->sp;
 	startns = 0;
 	if (0) hi("so far syscall!\n");
 	if (printallsyscalls) {
 		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
-		if(m->externup->syscalltrace) {
-			if(1) iprint("E %s\n", m->externup->syscalltrace);
-			free(m->externup->syscalltrace);
-			m->externup->syscalltrace = nil;
+		if(up->syscalltrace) {
+			if(1) iprint("E %s\n", up->syscalltrace);
+			free(up->syscalltrace);
+			up->syscalltrace = nil;
 		}
 	}
 
-	if(m->externup->procctl == Proc_tracesyscall){
+	if(up->procctl == Proc_tracesyscall){
 		/*
 		 * Redundant validaddr.  Do we care?
 		 * Tracing syscalls is not exactly a fast path...
@@ -294,39 +294,39 @@ syscall(int badscallnr, Ureg *ureg)
 		 * than an error if there's a problem; that might
 		 * change in the future.
 		 */
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(m->externup->arg)-BY2SE))
-			validaddr(UINT2PTR(sp), sizeof(m->externup->arg)+BY2SE, 0);
+		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
+			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
 
 		syscallfmt(scallnr, a0, a1, a2, a3, a4, a5);
-		m->externup->procctl = Proc_stopme;
-		procctl(m->externup);
-		if(m->externup->syscalltrace)
-			free(m->externup->syscalltrace);
-		m->externup->syscalltrace = nil;
+		up->procctl = Proc_stopme;
+		procctl(up);
+		if(up->syscalltrace)
+			free(up->syscalltrace);
+		up->syscalltrace = nil;
 		startns = todget(nil);
 	}
 	if (0) hi("more syscall!\n");
-	m->externup->scallnr = scallnr;
+	up->scallnr = scallnr;
 	if(scallnr == RFORK)
 		fpusysrfork(ureg);
 	spllo();
 
 	sp = ureg->sp;
-	m->externup->nerrlab = 0;
+	up->nerrlab = 0;
 	ar0 = zar0;
 	if(!waserror()){
 		if(scallnr >= nsyscall || systab[scallnr].f == nil){
 			pprint("bad sys call number %d pc %#llux\n",
 				scallnr, ureg->ip);
-			postnote(m->externup, 1, "sys: bad sys call", NDebug);
+			postnote(up, 1, "sys: bad sys call", NDebug);
 			error(Ebadarg);
 		}
 
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(m->externup->arg)-BY2SE))
-			validaddr(UINT2PTR(sp), sizeof(m->externup->arg)+BY2SE, 0);
+		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
+			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
 
-		memmove(m->externup->arg, UINT2PTR(sp+BY2SE), sizeof(m->externup->arg));
-		m->externup->psstate = systab[scallnr].n;
+		memmove(up->arg, UINT2PTR(sp+BY2SE), sizeof(up->arg));
+		up->psstate = systab[scallnr].n;
 	if (0) hi("call syscall!\n");
 		systab[scallnr].f(&ar0, a0, a1, a2, a3, a4, a5);
 	if (0) hi("it returned!\n");
@@ -339,7 +339,7 @@ syscall(int badscallnr, Ureg *ureg)
 			 * already return from the system call, when dispatching
 			 * the user code to the AC. The only thing left is to
 			 * return. The user registers should be ok, because
-			 * m->externup->dbgreg has been the user context for the process.
+			 * up->dbgreg has been the user context for the process.
 			 */
 			return;
 		}
@@ -347,12 +347,12 @@ syscall(int badscallnr, Ureg *ureg)
 	}
 	else{
 		/* failure: save the error buffer for errstr */
-		e = m->externup->syserrstr;
-		m->externup->syserrstr = m->externup->errstr;
-		m->externup->errstr = e;
-		if(DBGFLG && m->externup->pid == 1)
+		e = up->syserrstr;
+		up->syserrstr = up->errstr;
+		up->errstr = e;
+		if(DBGFLG && up->pid == 1)
 			iprint("%s: syscall %s error %s\n",
-				m->externup->text, systab[scallnr].n, m->externup->syserrstr);
+				up->text, systab[scallnr].n, up->syserrstr);
 		ar0 = systab[scallnr].r;
 	}
 
@@ -372,40 +372,40 @@ syscall(int badscallnr, Ureg *ureg)
 	if (printallsyscalls) {
 		stopns = todget(nil);
 		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
-		if(m->externup->syscalltrace) {
-			if (1) iprint("X %s\n", m->externup->syscalltrace);
-			free(m->externup->syscalltrace);
-			m->externup->syscalltrace = nil;
+		if(up->syscalltrace) {
+			if (1) iprint("X %s\n", up->syscalltrace);
+			free(up->syscalltrace);
+			up->syscalltrace = nil;
 		}
 	}
 
-	if(m->externup->procctl == Proc_tracesyscall){
+	if(up->procctl == Proc_tracesyscall){
 		stopns = todget(nil);
-		m->externup->procctl = Proc_stopme;
+		up->procctl = Proc_stopme;
 		sysretfmt(scallnr, &ar0, startns, stopns, a0, a1, a2, a3, a4, a5);
 		s = splhi();
-		procctl(m->externup);
+		procctl(up);
 		splx(s);
-		if(m->externup->syscalltrace)
-			free(m->externup->syscalltrace);
-		m->externup->syscalltrace = nil;
-	}else if(m->externup->procctl == Proc_totc || m->externup->procctl == Proc_toac)
-		procctl(m->externup);
+		if(up->syscalltrace)
+			free(up->syscalltrace);
+		up->syscalltrace = nil;
+	}else if(up->procctl == Proc_totc || up->procctl == Proc_toac)
+		procctl(up);
 
 	if (0) hi("past sysretfmt\n");
-	m->externup->insyscall = 0;
-	m->externup->psstate = 0;
+	up->insyscall = 0;
+	up->psstate = 0;
 
 	if(scallnr == NOTED)
 		noted(ureg, a0);
 
 	if (0) hi("now to splihi\n");
 	splhi();
-	if(scallnr != RFORK && (m->externup->procctl || m->externup->nnote))
+	if(scallnr != RFORK && (up->procctl || up->nnote))
 		notify(ureg);
 
 	/* if we delayed sched because we held a lock, sched now */
-	if(m->externup->delaysched){
+	if(up->delaysched){
 		sched();
 		splhi();
 	}
@@ -436,13 +436,13 @@ sysexecstack(uintptr_t stack, int argc)
 void*
 sysexecregs(uintptr_t entry, uint32_t ssize, void *argv, uint32_t nargs, void *tos)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintptr_t *sp;
 	Ureg *ureg;
 
 	sp = (uintptr_t*)(USTKTOP - ssize);
 
-	ureg = m->externup->dbgreg;
+	ureg = up->dbgreg;
 	ureg->sp = PTR2UINT(sp);
 	ureg->ip = entry;
 	ureg->type = 64;			/* fiction for acid */

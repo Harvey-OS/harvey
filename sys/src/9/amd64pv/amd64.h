@@ -202,4 +202,4 @@ enum {
  * Extern registers.
  */
 #define RMACH		R15			/* m-> */
-#define RUSER		R14			/* m->externup-> */
+#define RUSER		R14			/* up-> */

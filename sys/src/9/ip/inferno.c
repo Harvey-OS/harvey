@@ -21,15 +21,15 @@
 char*
 commonuser(void)
 {
-	Mach *m = machp();
-	return m->externup->user;
+	Proc *up = machp()->externup;
+	return up->user;
 }
 
 char*
 commonerror(void)
 {
-	Mach *m = machp();
-	return m->externup->errstr;
+	Proc *up = machp()->externup;
+	return up->errstr;
 }
 
 int

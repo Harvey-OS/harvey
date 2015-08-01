@@ -53,7 +53,7 @@ static int numtcs = 32;		/* initial # of TCs */
 char dbgflg[256];
 static int vflag = 1;
 
-int nosmp = 0;
+int nosmp = 1;
 
 void
 optionsinit(char* s)
@@ -103,28 +103,30 @@ options(int argc, char* argv[])
 }
 
 void
-squidboy(int apicno, Mach *m)
+squidboy(int apicno, Mach *mach)
 {
 	// FIX QEMU. extern int64_t hz;
 	int64_t hz;
-	sys->machptr[m->machno] = m;
+	sys->machptr[mach->machno] = mach;
 	/*
 	 * Need something for initial delays
 	 * until a timebase is worked out.
 	 */
-	m->cpuhz = 2000000000ll;
-	m->cpumhz = 2000;
-	m->perf.period = 1;
+	mach->cpuhz = 2000000000ll;
+	mach->cpumhz = 2000;
+	mach->perf.period = 1;
 
-	m->nixtype = NIXAC;
+	mach->nixtype = NIXAC;
 	// no NIXAC for now.
-	m->nixtype = NIXTC;
+	mach->nixtype = NIXTC;
+
 
 	// NOTE: you can't do ANYTHING here before vsvminit.
 	// PRINT WILL PANIC. So wait.
-	vsvminit(MACHSTKSZ, m->nixtype, m);
 
-	//DBG("Hello squidboy %d %d\n", apicno, m->machno);
+	vsvminit(MACHSTKSZ, mach->nixtype, mach);
+
+	//DBG("Hello squidboy %d %d\n", apicno, machp()->machno);
 
 	/*
 	 * Beware the Curse of The Non-Interruptable Were-Temporary.
@@ -133,18 +135,19 @@ squidboy(int apicno, Mach *m)
 	/* Intel cpu's in archk10 must be reviewed */
 	if(hz == 0)
 		hz = 2000000000ll;
-	m->cpuhz = hz;
-	m->cyclefreq = hz;
-	m->cpumhz = hz/1000000ll;
+	mach->cpuhz = hz;
+	mach->cyclefreq = hz;
+	mach->cpumhz = hz/1000000ll;
+
 
 	mmuinit();
 	if(!apiconline())
 		ndnr();
 	fpuinit();
 
-	acmodeset(m->nixtype);
-	m->splpc = 0;
-	m->online = 1;
+	acmodeset(mach->nixtype);
+	mach->splpc = 0;
+	mach->online = 1;
 
 	/*
 	 * CAUTION: no time sync done, etc.
@@ -155,11 +158,11 @@ squidboy(int apicno, Mach *m)
 	while(!active.thunderbirdsarego)
 		;
 	wrmsr(0x10, sys->epoch);
-	m->rdtsc = rdtsc();
+	mach->rdtsc = rdtsc();
 
 	print("cpu%d color %d role %s tsc %lld\n",
-		m->machno, corecolor(m->machno), rolename[m->nixtype], m->rdtsc);
-	switch(m->nixtype){
+		mach->machno, corecolor(mach->machno), rolename[mach->nixtype], mach->rdtsc);
+	switch(mach->nixtype){
 	case NIXAC:
 		acmmuswitch();
 		acinit();
@@ -174,7 +177,7 @@ squidboy(int apicno, Mach *m)
 		 * At boot time the boot processor might set our role after
 		 * we have decided to become an AC.
 		 */
-		vsvminit(MACHSTKSZ, NIXTC, m);
+		vsvminit(MACHSTKSZ, NIXTC, mach);
 
 		/*
 		 * Enable the timer interrupt.
@@ -187,24 +190,24 @@ squidboy(int apicno, Mach *m)
 		ainc(&active.nonline);
 
 		/* Ready? steady? going to timer */
-		ndnr();
+		//ndnr();
 
 		schedinit();
 		break;
 	}
-	panic("squidboy returns (type %d)", m->nixtype);
+	panic("squidboy returns (type %d)", mach->nixtype);
 }
 
 static void
 testiccs(void)
 {
 	int i;
-	Mach *mp;
+	Mach *mach;
 	extern void testicc(int);
 
 	/* setup arguments for all */
 	for(i = 0; i < MACHMAX; i++)
-		if((mp = sys->machptr[i]) != nil && mp->online && mp->nixtype == NIXAC)
+		if((mach = sys->machptr[i]) != nil && mach->online && mach->nixtype == NIXAC)
 			testicc(i);
 	print("bootcore: all cores done\n");
 }
@@ -219,24 +222,24 @@ testiccs(void)
 static void
 nixsquids(void)
 {
-	Mach *m = machp();
-	Mach *mp;
+	Proc *up = machp()->externup;
+	Mach *mach;
 	int i;
 	uint64_t now, start;
 
 	/* Not AC for now :-) */
 	for(i = 1; i <= MACHMAX; i++)
 	//for(i = 1; i < MACHMAX; i++)
-		if((mp = sys->machptr[i]) != nil && mp->online){
+		if((mach = sys->machptr[i]) != nil && mach->online){
 			/*
 			 * Inter-core calls. A ensure *mp->iccall and mp->icargs
 			 * go into different cache lines.
 			 */
-			mp->icc = mallocalign(sizeof *m->icc, ICCLNSZ, 0, 0);
-			mp->icc->fn = nil;
+			mach->icc = mallocalign(sizeof *machp()->icc, ICCLNSZ, 0, 0);
+			mach->icc->fn = nil;
 			if(i < numtcs){
 				sys->nmach++;
-				mp->nixtype = NIXTC;
+				mach->nixtype = NIXTC;
 				sys->nc[NIXTC]++;
 			}//else
 				//sys->nc[NIXAC]++;
@@ -245,7 +248,7 @@ nixsquids(void)
 	sys->epoch = rdtsc();
 	mfence();
 	wrmsr(0x10, sys->epoch);
-	m->rdtsc = rdtsc();
+	machp()->rdtsc = rdtsc();
 	active.thunderbirdsarego = 1;
 	start = fastticks2us(fastticks(nil));
 	do{
@@ -348,14 +351,14 @@ void put64(uint64_t v)
 
 void debugtouser(void *va)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintptr_t uva = (uintptr_t) va;
 	PTE *pte, *pml4;
 
-	pml4 = UINT2PTR(m->pml4->va);
+	pml4 = UINT2PTR(machp()->pml4->va);
 	mmuwalk(pml4, uva, 0, &pte, nil);
-	iprint("va %p m %p m>pml4 %p m->pml4->va %p pml4 %p PTE 0x%lx\n", va,
-			m, m->pml4, m->pml4->va, (void *)pml4, *pte);
+	iprint("va %p m %p m>pml4 %p machp()->pml4->va %p pml4 %p PTE 0x%lx\n", va,
+			machp(), machp()->pml4, machp()->pml4->va, (void *)pml4, *pte);
 }
 
 /*
@@ -378,7 +381,7 @@ static int x = 0x123456;
  * you create address spaces for procs, i.e. userinit()
  */
 static void
-teardownidmap(Mach *m)
+teardownidmap(Mach *mach)
 {
 	int i;
 	uintptr_t va = 0;
@@ -388,7 +391,7 @@ teardownidmap(Mach *m)
 	 * report if there were that many, as that is odd.
 	 */
 	for(i = 0; i < 512; i++, va += BIGPGSZ) {
-		if (mmuwalk(UINT2PTR(m->pml4->va), va, 1, &p, nil) != 1)
+		if (mmuwalk(UINT2PTR(mach->pml4->va), va, 1, &p, nil) != 1)
 			break;
 		if (! *p)
 			break;
@@ -398,7 +401,7 @@ teardownidmap(Mach *m)
 	iprint("Teardown: zapped %d PML1 entries\n", i);
 
 	for(i = 2; i < 4; i++) {
-		if (mmuwalk(UINT2PTR(m->pml4->va), 0, i, &p, nil) != i) {
+		if (mmuwalk(UINT2PTR(mach->pml4->va), 0, i, &p, nil) != i) {
 			iprint("weird; 0 not mapped at %d\n", i);
 			continue;
 		}
@@ -412,43 +415,47 @@ teardownidmap(Mach *m)
 void
 main(uint32_t mbmagic, uint32_t mbaddress)
 {
-	Mach *m = entrym;
+	Mach *mach = entrym;
 	/* when we get here, entrym is set to core0 mach. */
-	sys->machptr[m->machno] = m;
+	sys->machptr[mach->machno] = entrym;
 	// Very special case for BSP only. Too many things
 	// assume this is set.
-	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
-	if (machp() != m)
-		panic("m and machp() are different!!\n");
+	wrmsr(GSbase, PTR2UINT(&sys->machptr[mach->machno]));
+	if (machp() != mach)
+		panic("mach and machp() are different!!\n");
 	assert(sizeof(Mach) <= PGSZ);
 
 	/*
 	 * Check that our data is on the right boundaries.
 	 * This works because the immediate value is in code.
 	 */
+	//cgaprint(800, "hello harvey\n");
+	//for(;;);
 	if (x != 0x123456) 
 		panic("Data is not set up correctly\n");
 	memset(edata, 0, end - edata);
 
-	m = (void *) (KZERO + 1048576 + 11*4096);
+// TODO(aki): figure this out.
+	mach = (void *) (KZERO + 1048576 + 11*4096);
+	if(mach != machp()){ cgapost(0x01);for(;;); }
 	sys = (void *) (KZERO + 1048576);
+
 
 	/*
 	 * ilock via i8250enable via i8250console
-	 * needs m->machno, sys->machptr[] set, and
+	 * needs machp()->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
 	cgapost(sizeof(uintptr_t)*8);
-	memset(m, 0, sizeof(Mach));
+	memset(mach, 0, sizeof(Mach));
 
-	m->machno = 0;
-	m->online = 1;
-	m->nixtype = NIXTC;
-	sys->machptr[m->machno] = &sys->mach;
-	m->stack = PTR2UINT(sys->machstk);
-	*(uintptr_t*)m->stack = STACKGUARD;
-	m->vsvm = sys->vsvmpage;
-	m->externup = (void *)0;
+	mach->machno = 0;
+	mach->online = 1;
+	mach->nixtype = NIXTC;
+	mach->stack = PTR2UINT(sys->machstk);
+	*(uintptr_t*)mach->stack = STACKGUARD;
+	mach->vsvm = sys->vsvmpage;
+	mach->externup = (void *)0;
 	active.nonline = 1;
 	active.exiting = 0;
 	active.nbooting = 0;
@@ -461,8 +468,8 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	 * Need something for initial delays
 	 * until a timebase is worked out.
 	 */
-	m->cpuhz = 2000000000ll;
-	m->cpumhz = 2000;
+	mach->cpuhz = 2000000000ll;
+	mach->cpumhz = 2000;
 
 	cgainit();
 	i8250console("0");
@@ -470,8 +477,8 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	consputs = cgaconsputs;
 
 	/* It all ends here. */
-	vsvminit(MACHSTKSZ, NIXTC, m);
-	if (machp() != m)
+	vsvminit(MACHSTKSZ, NIXTC, mach);
+	if (machp() != mach)
 		panic("After vsvminit, m and machp() are different");
 
 	sys->nmach = 1;	
@@ -483,11 +490,11 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 		multiboot(mbmagic, mbaddress, vflag);
 	}
 
-	m->perf.period = 1;
+	mach->perf.period = 1;
 	if((hz = archhz()) != 0ll){
-		m->cpuhz = hz;
-		m->cyclefreq = hz;
-		m->cpumhz = hz/1000000ll;
+		mach->cpuhz = hz;
+		mach->cyclefreq = hz;
+		mach->cpumhz = hz/1000000ll;
 	}
 	//iprint("archhz returns 0x%lld\n", hz);
 	//iprint("NOTE: if cpuidhz runs too fast, we get die early with a NULL pointer\n");
@@ -495,7 +502,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 
 	/*
 	 * Mmuinit before meminit because it
-	 * flushes the TLB via m->pml4->pa.
+	 * flushes the TLB via machp()->pml4->pa.
 	 */
 	mmuinit();
 
@@ -545,7 +552,8 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 	if(!nosmp) {
 		sipi();
 	}
-	teardownidmap(m);
+//working.
+	teardownidmap(mach);
 	timersinit();
 	fpuinit();
 	psinit(conf.nproc);
@@ -566,19 +574,20 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 		testiccs();
 	}
 
-	print("CPU Freq. %dMHz\n", m->cpumhz);
+	print("CPU Freq. %dMHz\n", mach->cpumhz);
 
 	print("schedinit...\n");
+
 	schedinit();
 }
 
 void
 init0(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[2*KNAMELEN];
 
-	m->externup->nerrlab = 0;
+	up->nerrlab = 0;
 
 	/*
 	 * if(consuart == nil)
@@ -590,10 +599,10 @@ init0(void)
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
-	m->externup->slash = namec("#/", Atodir, 0, 0);
-	pathclose(m->externup->slash->path);
-	m->externup->slash->path = newpath("/");
-	m->externup->dot = cclone(m->externup->slash);
+	up->slash = namec("#/", Atodir, 0, 0);
+	pathclose(up->slash->path);
+	up->slash->path = newpath("/");
+	up->dot = cclone(up->slash);
 
 	devtabinit();
 
@@ -625,10 +634,10 @@ bootargs(uintptr_t base)
 	 * Push the boot args onto the stack.
 	 * Make sure the validaddr check in syscall won't fail
 	 * because there are fewer than the maximum number of
-	 * args by subtracting sizeof(m->externup->arg).
+	 * args by subtracting sizeof(up->arg).
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(entrym->externup->arg) - i));
+	p = UINT2PTR(STACKALIGN(base + BIGPGSZ - sizeof(((Proc*)0)->arg) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -653,7 +662,7 @@ bootargs(uintptr_t base)
 void
 userinit(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 	Segment *s;
 	KMap *k;
@@ -681,7 +690,7 @@ userinit(void)
 	 * AMD64 stack must be quad-aligned.
 	 */
 	p->sched.pc = PTR2UINT(init0);
-	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(m->externup->arg)-sizeof(uintptr_t));
+	p->sched.sp = PTR2UINT(p->kstack+KSTACK-sizeof(up->arg)-sizeof(uintptr_t));
 	p->sched.sp = STACKALIGN(p->sched.sp);
 
 	/*
@@ -746,22 +755,22 @@ confinit(void)
 static void
 shutdown(int ispanic)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int ms, once;
 
 	lock(&active);
 	if(ispanic)
 		active.ispanic = ispanic;
-	else if(m->machno == 0 && m->online == 0)
+	else if(machp()->machno == 0 && machp()->online == 0)
 		active.ispanic = 0;
-	once = m->online;
-	m->online = 0;
+	once = machp()->online;
+	machp()->online = 0;
 	adec(&active.nonline);
 	active.exiting = 1;
 	unlock(&active);
 
 	if(once)
-		iprint("cpu%d: exiting\n", m->machno);
+		iprint("cpu%d: exiting\n", machp()->machno);
 
 	spllo();
 	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
@@ -770,7 +779,7 @@ shutdown(int ispanic)
 			break;
 	}
 
-	if(active.ispanic && m->machno == 0){
+	if(active.ispanic && machp()->machno == 0){
 		if(cpuserver)
 			delay(30000);
 		else
