@@ -253,7 +253,7 @@ pcilscan(int bno, Pcidev** list)
 	return maxubn;
 }
 
-static uint8_t 
+static uint8_t
 pIIxget(Pcidev *router, uint8_t link)
 {
 	uint8_t pirq;
@@ -263,13 +263,13 @@ pIIxget(Pcidev *router, uint8_t link)
 	return (pirq < 16)? pirq: 0;
 }
 
-static void 
+static void
 pIIxset(Pcidev *router, uint8_t link, uint8_t irq)
 {
 	pcicfgw8(router, link, irq);
 }
 
-static uint8_t 
+static uint8_t
 viaget(Pcidev *router, uint8_t link)
 {
 	uint8_t pirq;
@@ -280,7 +280,7 @@ viaget(Pcidev *router, uint8_t link)
 	return (link & 1)? (pirq >> 4): (pirq & 15);
 }
 
-static void 
+static void
 viaset(Pcidev *router, uint8_t link, uint8_t irq)
 {
 	uint8_t pirq;
@@ -297,7 +297,7 @@ struct Bridge
 	uint16_t	vid;
 	uint16_t	did;
 	uint8_t	(*get)(Pcidev *, uint8_t);
-	void	(*set)(Pcidev *, uint8_t, uint8_t);	
+	void	(*set)(Pcidev *, uint8_t, uint8_t);
 };
 
 static Bridge southbridges[] = {
@@ -396,7 +396,7 @@ pcirouting(void)
 			if(pci == nil)
 				continue;
 			pin = pcicfgr8(pci, PciINTP);
-			if(pin == 0 || pin == 0xff) 
+			if(pin == 0 || pin == 0xff)
 				continue;
 
 			map = &e->maps[(pin - 1) * 3];
@@ -422,7 +422,7 @@ pcireservemem(void)
 {
 	int i;
 	Pcidev *p;
-	
+
 	for(p = nil; p = pcimatch(p, 0, 0); )
 		for(i=0; i<nelem(p->mem); i++)
 			if(p->mem[i].bar && (p->mem[i].bar&1) == 0)
@@ -458,7 +458,7 @@ pcicfginit(void)
 			pcicfgmode = 1;
 	}
 	outl(PciADDR, n);
-	
+
 	if(pcicfgmode < 0){
 		unlock(&pcicfginitlock);
 		return;
@@ -475,7 +475,7 @@ pcicfginit(void)
 			continue;
 		/*
 		 * If we have found a PCI-to-Cardbus bridge, make sure
-		 * it has no valid mappings anymore.  
+		 * it has no valid mappings anymore.
 		 */
 		for(p = pciroot; p != nil; p = p->link){
 			if (p->ccrb == 6 && p->ccru == 7) {
@@ -486,7 +486,7 @@ pcicfginit(void)
 		}
 	}
 
-	// no longer. 
+	// no longer.
 	//if(pciroot != nil && getconf("*nopcirouting") == nil)
 	pcirouting();
 	pcireservemem();
@@ -692,7 +692,7 @@ pcicap(Pcidev *p, int cap)
 
 	/* status register bit 4 has capabilities */
 	if((pcicfgr16(p, PciPSR) & 1<<4) == 0)
-		return -1;	
+		return -1;
 	switch(pcicfgr8(p, PciHDT) & 0x7f){
 	default:
 		return -1;

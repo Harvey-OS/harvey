@@ -36,20 +36,20 @@ extern Dev pcidevtab;
 static int
 pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Qid q;
 
 	q = (Qid){BUSBDF(tbdf)|t, 0, 0};
 	switch(t) {
 	case Qpcictl:
-		snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%d.%d.%dctl",
+		snprint(up->genbuf, sizeof up->genbuf, "%d.%d.%dctl",
 			BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
-		devdir(c, q, m->externup->genbuf, 0, eve, 0444, dp);
+		devdir(c, q, up->genbuf, 0, eve, 0444, dp);
 		return 1;
 	case Qpciraw:
-		snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%d.%d.%draw",
+		snprint(up->genbuf, sizeof up->genbuf, "%d.%d.%draw",
 			BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
-		devdir(c, q, m->externup->genbuf, 128, eve, 0664, dp);
+		devdir(c, q, up->genbuf, 128, eve, 0664, dp);
 		return 1;
 	}
 	return -1;
@@ -58,7 +58,7 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 static int
 pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int tbdf;
 	Pcidev *p;
 	Qid q;
@@ -67,16 +67,16 @@ pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
-			snprint(m->externup->genbuf, sizeof m->externup->genbuf, "#%C", pcidevtab.dc);
-			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", pcidevtab.dc);
+			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
 		return devgen(c, nil, topdir, nelem(topdir), s, dp);
 	case Qpcidir:
 		if(s == DEVDOTDOT){
 			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
-			snprint(m->externup->genbuf, sizeof m->externup->genbuf, "#%C", pcidevtab.dc);
-			devdir(c, q, m->externup->genbuf, 0, eve, 0555, dp);
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", pcidevtab.dc);
+			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
 		p = pcimatch(nil, 0, 0);

@@ -276,7 +276,7 @@ cdev(Mntcache *mc, Chan *c)
 int
 cread(Chan *c, uint8_t *buf, int len, int64_t off)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	KMap *k;
 	Page *p;
 	Mntcache *mc;
@@ -357,7 +357,7 @@ cread(Chan *c, uint8_t *buf, int len, int64_t off)
 Extent*
 cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int l;
 	Page *p;
 	KMap *k;
@@ -425,7 +425,7 @@ cchain(uint8_t *buf, uint32_t offset, int len, Extent **tail)
 int
 cpgmove(Extent *e, uint8_t *buf, int boff, int len)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Page *p;
 	KMap *k;
 

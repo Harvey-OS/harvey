@@ -35,7 +35,7 @@ enum {
 };
 
 enum {
-	TraceEntry = 1, 
+	TraceEntry = 1,
 	TraceExit,
 };
 
@@ -64,8 +64,8 @@ static Trace *traces; /* This stores all the traces */
 //static Lock loglk;
 static Tracelog *tracelog = nil;
 int traceactive = 0;
-/* trace indices. These are just unsigned longs. You mask them 
- * to get an index. This makes fifo empty/full etc. trivial. 
+/* trace indices. These are just unsigned longs. You mask them
+ * to get an index. This makes fifo empty/full etc. trivial.
  */
 static uint pw = 0, pr = 0;
 static int tracesactive = 0;
@@ -93,7 +93,7 @@ static char eventname[] = {
 	[TraceEntry] = 'E',
 	[TraceExit] = 'X',
 };
-	
+
 static Dirtab tracedir[]={
 	".",		{Qdir, 0, QTDIR},	0,		DMDIR|0555,
 	"tracectl",	{Qctl},		0,		0664,
@@ -171,7 +171,7 @@ logfull(void)
 }
 #endif
 
-static uint64_t 
+static uint64_t
 idx(uint64_t f)
 {
 	return f & logmask;
@@ -237,7 +237,7 @@ traced(char *pc, int dopanic)
 	struct Trace **p;
 
 	p = traceslot(pc, dopanic);
-	
+
 	if (p == nil)
 		return nil;
 
@@ -252,10 +252,10 @@ traced(char *pc, int dopanic)
 int
 watchingpid(int pid) {
 	int i;
-	
+
 	if (pidwatch[0] == 0)
 		return 1;
-	
+
 	for (i = 0; i < numpids; i++) {
 		if (pidwatch[i] == pid)
 			return 1;
@@ -278,7 +278,7 @@ removetrace(Trace *p) {
 		*slot = nil;
 
 	curr = traces;
-	
+
 	if (curr == p) {
 		if (curr->next) {
 			traces = curr->next;
@@ -337,7 +337,7 @@ static struct Tracelog *
 newpl(void)
 {
 	uint index;
-	
+
 	index = ainc((int *)&pw);
 
 	return &tracelog[idx(index)];
@@ -349,20 +349,20 @@ newpl(void)
 void
 tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 {
-	Mach *m = machp();	
+	Proc *up = machp()->externup;
 	struct Tracelog *pl;
 
 	/* if we are here, tracing is active. Turn it off. */
 	traceactive = 0;
 	if (! traced(pc, 1)){
 		traceactive = 1;
-		return; 
+		return;
 	}
-		
+
 	ainc((int *)&traceinhits);
 	/* Continue if we are watching this pid or we're not watching any */
 	if (!all)
-		if (!m->externup || !watchingpid(m->externup->pid)){
+		if (!up || !watchingpid(up->pid)){
 			traceactive = 1;
 			return;
 	}
@@ -378,8 +378,8 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 	cycles(&pl->ticks);
 
 	pl->pc = (uintptr_t)pc;
-	if (m->externup)
-		pl->dat[0] = m->externup->pid;
+	if (up)
+		pl->dat[0] = up->pid;
 	else
 		pl->dat[0] = (unsigned long)-1;
 
@@ -389,7 +389,7 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 	pl->dat[4] = a4;
 
 	pl->info = TraceEntry;
-	pl->machno = m->machno;
+	pl->machno = machp()->machno;
 	traceactive = 1;
 }
 
@@ -397,17 +397,17 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 void
 traceout(void* pc, uintptr_t retval)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	struct Tracelog *pl;
 	/* if we are here, tracing is active. Turn it off. */
 	traceactive = 0;
 	if (! traced(pc, 1)){
 		traceactive = 1;
-		return; 
+		return;
 	}
-		
+
 	if (!all)
-		if (!m->externup || !watchingpid(m->externup->pid)){
+		if (!up || !watchingpid(up->pid)){
 			traceactive = 1;
 			return;
 		}
@@ -421,8 +421,8 @@ traceout(void* pc, uintptr_t retval)
 	cycles(&pl->ticks);
 
 	pl->pc = (uintptr_t)pc;
-	if (m->externup)
-		pl->dat[0] = m->externup->pid;
+	if (up)
+		pl->dat[0] = up->pid;
 	else
 		pl->dat[0] = (unsigned long)-1;
 
@@ -431,7 +431,7 @@ traceout(void* pc, uintptr_t retval)
 	pl->dat[3] = 0;
 
 	pl->info = TraceExit;
-	pl->machno = m->machno;
+	pl->machno = machp()->machno;
 	traceactive = 1;
 }
 
@@ -479,7 +479,7 @@ traceopen(Chan *c, int omode)
 {
 
 	/* if there is no tracelog, allocate one. Open always fails
-	 * if the basic alloc fails. You can resize it later. 
+	 * if the basic alloc fails. You can resize it later.
 	 */
 
 	codesize = (uintptr_t)etext - (uintptr_t)KTZERO;
@@ -514,7 +514,7 @@ traceclose(Chan *c)
 static int32_t
 traceread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *buf;
 	char *cp = a;
 	struct Tracelog *pl;
@@ -543,7 +543,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 		i = 0;
 		qlock(&traceslock);
 		buf = malloc(READSTR);
-		i += snprint(buf + i, READSTR - i, "logsize %lud\n", logsize); 
+		i += snprint(buf + i, READSTR - i, "logsize %lud\n", logsize);
 		for(p = traces; p != nil; p = p->next)
 			i += snprint(buf + i, READSTR - i, "trace %p %p new %s\n",
 				p->start, p->end, p->name);
@@ -556,8 +556,8 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 			if (p->enabled)
 				i += snprint(buf + i, READSTR - i, "trace %s on\n",
 				p->name);
-		i += snprint(buf + i, READSTR - i, "#tracehits %d, in queue %d\n", 
-				pw, pw-pr); 
+		i += snprint(buf + i, READSTR - i, "#tracehits %d, in queue %d\n",
+				pw, pw-pr);
 		i += snprint(buf + i, READSTR - i, "#tracelog %p\n", tracelog);
 		i += snprint(buf + i, READSTR - i, "#traceactive %d\n", saveactive);
 		i += snprint(buf + i, READSTR - i, "#slothits %d\n", slothits);
@@ -666,7 +666,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 static int32_t
 tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *tok[6]; //changed this so "tracein" works with the new 4th arg
 	char *ep, *s = nil;
 	Trace *p, **pp, *foo;
@@ -718,7 +718,7 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 				if(*ep) {
 					error("devtrace: end address not in recognized format");
 				}
-				
+
 				if (start > end || start > etext || end > etext)
 					error("devtrace: invalid address range");
 
@@ -763,7 +763,7 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 					traceon(p);
 				}
 			} else if(!strcmp(tok[2], "off")){
-				if (ntok != 3) 
+				if (ntok != 3)
 					error("devtrace: usage: trace <name> off");
 				if(p == nil) {
 					error("devtrace: trace not found");
@@ -791,10 +791,10 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 		} else if(!strcmp(tok[0], "size")){
 			int l, size;
 			struct Tracelog *newtracelog;
-			
+
 			if (ntok != 2)
 				error("devtrace: usage: size <exponent>");
-				
+
 			l = strtoul(tok[1], &ep, 0);
 			if(*ep) {
 				error("devtrace: size not in recognized format");
@@ -828,7 +828,7 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 			a2 = (uintptr_t)strtoul(tok[3], &ep, 16);
 			a3 = (uintptr_t)strtoul(tok[4], &ep, 16);
 			a4 = (uintptr_t)strtoul(tok[5], &ep, 16);
-			
+
 			if (traced((void *)pc, 0)) {
 				x = splhi();
 				watching = 1;
@@ -839,11 +839,11 @@ tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 		} else if (!strcmp(tok[0], "watch")) {
 			/* Watch a certain PID */
 			int pid;
-			
+
 			if (ntok != 2) {
 				error("devtrace: usage: watch [0|<PID>]");
 			}
-			
+
 			pid = atoi(tok[1]);
 			if (pid == 0) {
 				pidwatch = mallocz(sizeof(int)*PIDWATCHSIZE, 1);

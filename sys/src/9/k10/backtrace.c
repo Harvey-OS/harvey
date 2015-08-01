@@ -29,7 +29,7 @@ int backtrace_list(uintptr_t pc, uintptr_t fp, uintptr_t *pcs, size_t nr_slots)
 
 #if 0
 void backtrace_frame(uintptr_t eip, uintptr_t ebp)
-{ 
+{
 	char *func_name;
 	#define MAX_BT_DEPTH 20
 	uintptr_t pcs[MAX_BT_DEPTH];

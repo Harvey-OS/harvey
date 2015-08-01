@@ -34,10 +34,10 @@ static int semtrytimes = 100;
 static void
 semwakeup(Sem *s, int didwake, int dolock)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Proc *p;
 
-	DBG("semwakeup up %#p sem %#p\n", m->externup, s->np);
+	DBG("semwakeup up %#p sem %#p\n", up, s->np);
 	if(dolock)
 		lock(s);
 	/*
@@ -50,7 +50,7 @@ semwakeup(Sem *s, int didwake, int dolock)
 		s->nq--;
 		s->q[0] = s->q[s->nq];
 		if(didwake){
-			DBG("semwakeup up %#p waking up %#p\n", m->externup, p);
+			DBG("semwakeup up %#p waking up %#p\n", up, p);
 			p->waitsem = s;
 			/*
 			 * p can be up if it's being killed, in which
@@ -61,7 +61,7 @@ semwakeup(Sem *s, int didwake, int dolock)
 			 * that other process no longer sleeps.
 			 * But we can't be put in the scheduler queue.
 			 */
-			if(p != m->externup)
+			if(p != up)
 				ready(p);
 		}
 	}
@@ -72,8 +72,8 @@ semwakeup(Sem *s, int didwake, int dolock)
 static void
 semsleep(Sem *s, int dontblock)
 {
-	Mach *m = machp();
-	DBG("semsleep up %#p sem %#p\n", m->externup, s->np);
+	Proc *up = machp()->externup;
+	DBG("semsleep up %#p sem %#p\n", up, s->np);
 	if(dontblock){
 		/*
 		 * User tried to down non-blocking, but someone else
@@ -105,15 +105,15 @@ semsleep(Sem *s, int dontblock)
 	s->q = realloc(s->q, (s->nq+1) * sizeof s->q[0]);
 	if(s->q == nil)
 		panic("semsleep: no memory");
-	s->q[s->nq++] = m->externup;
-	m->externup->waitsem = nil;
-	m->externup->state = Semdown;
+	s->q[s->nq++] = up;
+	up->waitsem = nil;
+	up->state = Semdown;
 	unlock(s);
-	DBG("semsleep up %#p blocked\n", m->externup);
+	DBG("semsleep up %#p blocked\n", up);
 	sched();
 Done:
-	DBG("semsleep up %#p awaken\n", m->externup);
-	if(m->externup->waitsem == nil){
+	DBG("semsleep up %#p awaken\n", up);
+	if(up->waitsem == nil){
 		/*
 		 * nobody did awake us, we are probably being
 		 * killed; we no longer want a ticket.
@@ -128,7 +128,7 @@ Done:
 void
 syssemsleep(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int *np;
 	int dontblock;
 	Sem *s;
@@ -143,7 +143,7 @@ syssemsleep(Ar0* ar0, ...)
 	np = validaddr(np, sizeof *np, 1);
 	evenaddr(PTR2UINT(np));
 	dontblock = va_arg(list, int);
-	if((sg = seg(m->externup, PTR2UINT(np), 0)) == nil)
+	if((sg = seg(up, PTR2UINT(np), 0)) == nil)
 		error(Ebadarg);
 	s = segmksem(sg, np);
 	semsleep(s, dontblock);
@@ -153,7 +153,7 @@ syssemsleep(Ar0* ar0, ...)
 void
 syssemwakeup(Ar0* ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int *np;
 	Sem *s;
 	Segment *sg;
@@ -166,7 +166,7 @@ syssemwakeup(Ar0* ar0, ...)
 	np = va_arg(list, int*);
 	np = validaddr(np, sizeof *np, 1);
 	evenaddr(PTR2UINT(np));
-	if((sg = seg(m->externup, PTR2UINT(np), 0)) == nil)
+	if((sg = seg(up, PTR2UINT(np), 0)) == nil)
 		error(Ebadarg);
 	s = segmksem(sg, np);
 	semwakeup(s, 1, 1);
@@ -176,13 +176,13 @@ syssemwakeup(Ar0* ar0, ...)
 static void
 semdequeue(Sem *s)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 
 	assert(s != nil);
 	lock(s);
 	for(i = 0; i < s->nq; i++)
-		if(s->q[i] == m->externup)
+		if(s->q[i] == up)
 			break;
 
 	if(i == s->nq){
@@ -207,11 +207,11 @@ semdequeue(Sem *s)
 static int
 semalt(Sem *ss[], int n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i, j, r;
 	Sem *s;
 
-	DBG("semalt up %#p ss[0] %#p\n", m->externup, ss[0]->np);
+	DBG("semalt up %#p ss[0] %#p\n", up, ss[0]->np);
 	r = -1;
 	for(i = 0; i < n; i++){
 		s = ss[i];
@@ -224,19 +224,19 @@ semalt(Sem *ss[], int n)
 		s->q = realloc(s->q, (s->nq+1) * sizeof s->q[0]);
 		if(s->q == nil)
 			panic("semalt: not enough memory");
-		s->q[s->nq++] = m->externup;
+		s->q[s->nq++] = up;
 		unlock(s);
 	}
 
-	DBG("semalt up %#p blocked\n", m->externup);
-	m->externup->state = Semdown;
+	DBG("semalt up %#p blocked\n", up);
+	up->state = Semdown;
 	sched();
 
 Done:
-	DBG("semalt up %#p awaken\n", m->externup);
+	DBG("semalt up %#p awaken\n", up);
 	for(j = 0; j < i; j++){
 		assert(ss[j] != nil);
-		if(ss[j] != m->externup->waitsem)
+		if(ss[j] != up->waitsem)
 			semdequeue(ss[j]);
 		else
 			r = j;
@@ -249,7 +249,7 @@ Done:
 void
 syssemalt(Ar0 *ar0, ...)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int **sl;
 	int i, *np, ns;
 	Segment *sg;
@@ -270,10 +270,10 @@ syssemalt(Ar0 *ar0, ...)
 		np = sl[i];
 		np = validaddr(np, sizeof(int), 1);
 		evenaddr(PTR2UINT(np));
-		if((sg = seg(m->externup, PTR2UINT(np), 0)) == nil)
+		if((sg = seg(up, PTR2UINT(np), 0)) == nil)
 			error(Ebadarg);
 		ksl[i] = segmksem(sg, np);
-	}	
+	}
 	ar0->i = semalt(ksl, ns);
 	va_end(list);
 }

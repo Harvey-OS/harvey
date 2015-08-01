@@ -186,8 +186,8 @@ wait(RingBuf* ring, uint8_t owner, int timo)
 	uint32_t start;
 	extern void hlt(void);
 
-	start = m->ticks;
-	while(TK2MS(m->ticks - start) < timo){
+	start = machp()->ticks;
+	while(TK2MS(machp()->ticks - start) < timo){
 		if(ring->owner != owner)
 			return 1;
 		hlt();

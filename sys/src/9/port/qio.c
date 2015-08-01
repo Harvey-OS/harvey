@@ -957,7 +957,7 @@ bl2mem(uint8_t *p, Block *b, int n)
 Block*
 mem2bl(uint8_t *p, int len)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int n;
 	Block *b, *first, **l;
 
@@ -973,7 +973,7 @@ mem2bl(uint8_t *p, int len)
 			n = Maxatomic;
 
 		*l = b = allocb(n);
-		setmalloctag(b, (m->externup->text[0]<<24)|(m->externup->text[1]<<16)|(m->externup->text[2]<<8)|m->externup->text[3]);
+		setmalloctag(b, (up->text[0]<<24)|(up->text[1]<<16)|(up->text[2]<<8)|up->text[3]);
 		memmove(b->wp, p, n);
 		b->wp += n;
 		p += n;
@@ -1033,7 +1033,7 @@ qwakeup_iunlock(Queue *q)
 Block*
 qbread(Queue *q, int len)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Block *b, *nb;
 	int n;
 
@@ -1089,7 +1089,7 @@ qbread(Queue *q, int len)
 int32_t
 qread(Queue *q, void *vp, int len)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Block *b, *first, **l;
 	int blen, n;
 
@@ -1185,7 +1185,7 @@ uint32_t noblockcnt;
 int32_t
 qbwrite(Queue *q, Block *b)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int n, dowakeup;
 
 	n = BLEN(b);
@@ -1319,7 +1319,7 @@ int32_t qibwrite(Queue *q, Block *b)
 int
 qwrite(Queue *q, void *vp, int len)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int n, sofar;
 	Block *b;
 	uint8_t *p = vp;
@@ -1334,7 +1334,7 @@ qwrite(Queue *q, void *vp, int len)
 			n = Maxatomic;
 
 		b = allocb(n);
-		setmalloctag(b, (m->externup->text[0]<<24)|(m->externup->text[1]<<16)|(m->externup->text[2]<<8)|m->externup->text[3]);
+		setmalloctag(b, (up->text[0]<<24)|(up->text[1]<<16)|(up->text[2]<<8)|up->text[3]);
 		if(waserror()){
 			freeb(b);
 			nexterror();

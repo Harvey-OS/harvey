@@ -64,7 +64,7 @@ isdotdot(char *p)
  * Rather than strncpy, which zeros the rest of the buffer, kstrcpy
  * truncates if necessary, always zero terminates, does not zero fill,
  * and puts ... at the end of the string if it's too long.  Usually used to
- * save a string in m->externup->genbuf;
+ * save a string in up->genbuf;
  */
 void
 kstrcpy(char *s, char *t, int ns)
@@ -108,13 +108,13 @@ emptystr(char *s)
 void
 kstrdup(char **p, char *s)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int n;
 	char *t, *prev;
 
 	n = strlen(s)+1;
 	/* if it's a user, we can wait for memory; if not, something's very wrong */
-	if(m->externup){
+	if(up){
 		t = smalloc(n);
 		setmalloctag(t, getcallerpc(&p));
 	}else{
@@ -387,7 +387,7 @@ chanfree(Chan *c)
 void
 cclose(Chan *c)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(c->flag&CFREE)
 		panic("cclose %#p", getcallerpc(&c));
 
@@ -452,7 +452,7 @@ clunkwork(void* v)
 static void
 closeproc(void* v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *c;
 
 	for(;;){
@@ -548,7 +548,7 @@ newmhead(Chan *from)
 int
 cmount(Chan **newp, Chan *old, int flag, char *spec)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int order, flg;
 	Chan *new;
 	Mhead *mhead, **l, *mh;
@@ -591,7 +591,7 @@ cmount(Chan **newp, Chan *old, int flag, char *spec)
 	&& (mh->mount->next || !(mh->mount->mflag&MCREATE)))
 		error(Emount);
 
-	pg = m->externup->pgrp;
+	pg = up->pgrp;
 	wlock(&pg->ns);
 
 	l = &MOUNTH(pg, old->qid);
@@ -667,7 +667,7 @@ cmount(Chan **newp, Chan *old, int flag, char *spec)
 void
 cunmount(Chan *mnt, Chan *mounted)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Pgrp *pg;
 	Mhead *mh, **l;
 	Mount *f, **p;
@@ -684,7 +684,7 @@ cunmount(Chan *mnt, Chan *mounted)
 	 * cclose will take care of freeing the umh.
 	 */
 
-	pg = m->externup->pgrp;
+	pg = up->pgrp;
 	wlock(&pg->ns);
 
 	l = &MOUNTH(pg, mnt->qid);
@@ -759,11 +759,11 @@ cclone(Chan *c)
 int
 findmount(Chan **cp, Mhead **mp, int dc, uint devno, Qid qid)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Pgrp *pg;
 	Mhead *mh;
 
-	pg = m->externup->pgrp;
+	pg = up->pgrp;
 	rlock(&pg->ns);
 	for(mh = MOUNTH(pg, qid); mh; mh = mh->hash){
 		rlock(&mh->lock);
@@ -854,7 +854,7 @@ undomount(Chan *c, Path *path)
 static Walkqid*
 ewalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Walkqid *wq;
 
 	if(waserror())
@@ -872,7 +872,7 @@ static char Edoesnotexist[] = "does not exist";
 int
 walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int dc, devno, didmount, dotdot, i, n, nhave, ntry;
 	Chan *c, *nc, *mtpt;
 	Path *path;
@@ -906,7 +906,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 				*nerror = nhave;
 			pathclose(path);
 			cclose(c);
-			strcpy(m->externup->errstr, Enotdir);
+			strcpy(up->errstr, Enotdir);
 			if(mh != nil)
 				putmhead(mh);
 			return -1;
@@ -987,11 +987,11 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 					if(wq->nqid==0 || (wq->qid[wq->nqid-1].type & QTDIR)){
 						if(nerror)
 							*nerror = nhave+wq->nqid+1;
-						strcpy(m->externup->errstr, Edoesnotexist);
+						strcpy(up->errstr, Edoesnotexist);
 					}else{
 						if(nerror)
 							*nerror = nhave+wq->nqid;
-						strcpy(m->externup->errstr, Enotdir);
+						strcpy(up->errstr, Enotdir);
 					}
 					free(wq);
 					if(mh != nil)
@@ -1048,7 +1048,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 Chan*
 createdir(Chan *c, Mhead *mh)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Chan *nc;
 	Mount *f;
 
@@ -1159,7 +1159,7 @@ memrchr(void *va, int c, int32_t n)
 static void
 namelenerror(char *aname, int len, char *err)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *ename, *name, *next;
 	int i, errlen;
 
@@ -1168,7 +1168,7 @@ namelenerror(char *aname, int len, char *err)
 	 */
 	errlen = strlen(err);
 	if(len < ERRMAX/3 || len+errlen < 2*ERRMAX/3)
-		snprint(m->externup->genbuf, sizeof m->externup->genbuf, "%.*s",
+		snprint(up->genbuf, sizeof up->genbuf, "%.*s",
 			utfnlen(aname, len), aname);
 	else{
 		/*
@@ -1195,10 +1195,10 @@ namelenerror(char *aname, int len, char *err)
 			for(i=0; (*name&0xC0)==0x80 && i<UTFmax; i++)
 				name++;
 		}
-		snprint(m->externup->genbuf, sizeof m->externup->genbuf, "...%.*s",
+		snprint(up->genbuf, sizeof up->genbuf, "...%.*s",
 			utfnlen(name, ename-name), name);
 	}
-	snprint(m->externup->errstr, ERRMAX, "%#q %s", m->externup->genbuf, err);
+	snprint(up->errstr, ERRMAX, "%#q %s", up->genbuf, err);
 	nexterror();
 }
 
@@ -1227,7 +1227,7 @@ nameerror(char *name, char *err)
 Chan*
 namec(char *aname, int amode, int omode, int perm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int len, n, nomount;
 	Chan *c, *cnew;
 	Path *path;
@@ -1256,20 +1256,20 @@ namec(char *aname, int amode, int omode, int perm)
 	nomount = 0;
 	switch(name[0]){
 	case '/':
-		c = m->externup->slash;
+		c = up->slash;
 		incref(c);
 		break;
 
 	case '#':
 		nomount = 1;
-		m->externup->genbuf[0] = '\0';
+		up->genbuf[0] = '\0';
 		n = 0;
 		while(*name != '\0' && (*name != '/' || n < 2)){
-			if(n >= sizeof(m->externup->genbuf)-1)
+			if(n >= sizeof(up->genbuf)-1)
 				error(Efilename);
-			m->externup->genbuf[n++] = *name++;
+			up->genbuf[n++] = *name++;
 		}
-		m->externup->genbuf[n] = '\0';
+		up->genbuf[n] = '\0';
 		/*
 		 *  noattach is sandboxing.
 		 *
@@ -1282,11 +1282,11 @@ namec(char *aname, int amode, int omode, int perm)
 		 *	p  control of your own processes (and unfortunately
 		 *	   any others left unprotected)
 		 */
-		n = chartorune(&r, m->externup->genbuf+1)+1;
+		n = chartorune(&r, up->genbuf+1)+1;
 		/* actually / is caught by parsing earlier */
 		if(utfrune("M", r))
 			error(Enoattach);
-		if(m->externup->pgrp->noattach && utfrune("|decp", r)==nil)
+		if(up->pgrp->noattach && utfrune("|decp", r)==nil)
 			error(Enoattach);
 		dev = devtabget(r, 1);			//XDYNX
 		if(dev == nil)
@@ -1295,13 +1295,13 @@ namec(char *aname, int amode, int omode, int perm)
 		//	devtabdecr(dev);
 		//	nexterror();
 		//}
-		c = dev->attach(m->externup->genbuf+n);
+		c = dev->attach(up->genbuf+n);
 		//poperror();
 		//devtabdecr(dev);
 		break;
 
 	default:
-		c = m->externup->dot;
+		c = up->dot;
 		incref(c);
 		break;
 	}
@@ -1322,7 +1322,7 @@ namec(char *aname, int amode, int omode, int perm)
 		 */
 		if(e.nerror == 0)
 			nexterror();
-		strcpy(tmperrbuf, m->externup->errstr);
+		strcpy(tmperrbuf, up->errstr);
 		if(e.off[e.nerror]==0)
 			print("nerror=%d but off=%d\n",
 				e.nerror, e.off[e.nerror]);
@@ -1561,14 +1561,14 @@ if(c->umh != nil){
 		if(omode & OEXCL)
 			nexterror();
 		/* save error */
-		createerr = m->externup->errstr;
-		m->externup->errstr = tmperrbuf;
+		createerr = up->errstr;
+		up->errstr = tmperrbuf;
 		/* note: we depend that walk does not error */
 		if(walk(&c, e.elems+e.nelems-1, 1, nomount, nil) < 0){
-			m->externup->errstr = createerr;
+			up->errstr = createerr;
 			error(createerr);	/* report true error */
 		}
-		m->externup->errstr = createerr;
+		up->errstr = createerr;
 		omode |= OTRUNC;
 		goto Open;
 
@@ -1578,9 +1578,9 @@ if(c->umh != nil){
 
 	/* place final element in genbuf for e.g. exec */
 	if(e.nelems > 0)
-		kstrcpy(m->externup->genbuf, e.elems[e.nelems-1], sizeof m->externup->genbuf);
+		kstrcpy(up->genbuf, e.elems[e.nelems-1], sizeof up->genbuf);
 	else
-		kstrcpy(m->externup->genbuf, ".", sizeof m->externup->genbuf);
+		kstrcpy(up->genbuf, ".", sizeof up->genbuf);
 	free(e.name);
 	free(e.elems);
 	free(e.off);
@@ -1629,7 +1629,7 @@ char isfrog[256]={
 static char*
 validname0(char *aname, int slashok, int dup, uintptr_t pc)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *ename, *name, *s;
 	int c, n;
 	Rune r;
@@ -1664,9 +1664,9 @@ validname0(char *aname, int slashok, int dup, uintptr_t pc)
 		else{
 			if(isfrog[c])
 				if(!slashok || c!='/'){
-					snprint(m->externup->genbuf, sizeof(m->externup->genbuf), "%s: %q", Ebadchar, aname);
+					snprint(up->genbuf, sizeof(up->genbuf), "%s: %q", Ebadchar, aname);
 					free(s);
-					error(m->externup->genbuf);
+					error(up->genbuf);
 			}
 			name++;
 		}

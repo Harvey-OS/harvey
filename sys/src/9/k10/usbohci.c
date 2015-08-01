@@ -1412,7 +1412,7 @@ epiodone(void *a)
 static void
 epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t n)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ed *ed;
 	int timedout;
 
@@ -1440,7 +1440,7 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t n)
 		io->err = "request timed out";
 		iunlock(ctlr);
 		if(!waserror()){
-			tsleep(&m->externup->sleep, return0, 0, Abortdelay);
+			tsleep(&up->sleep, return0, 0, Abortdelay);
 			poperror();
 		}
 		ilock(ctlr);
@@ -1458,7 +1458,7 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t n)
 static int32_t
 epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ed *ed;
 	Ctlr *ctlr;
 	char buf[80];
@@ -1520,7 +1520,7 @@ epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 
 	ilock(ctlr);
 	if(io->state != Qclose){
-		io->iotime = TK2MS(m->ticks);
+		io->iotime = TK2MS(machp()->ticks);
 		io->state = Qrun;
 		ed->tail = ptr2pa(ltd);
 		if(ep->ttype == Tctl)
@@ -1610,7 +1610,7 @@ clrhalt(Ep *ep)
 static int32_t
 epread(Ep *ep, void *a, int32_t count)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlio *cio;
 	Qio *io;
 	char buf[80];
@@ -1657,9 +1657,9 @@ epread(Ep *ep, void *a, int32_t count)
 		return epio(ep, &io[OREAD], a, count, 1);
 	case Tintr:
 		io = ep->aux;
-		delta = TK2MS(m->ticks) - io[OREAD].iotime + 1;
+		delta = TK2MS(machp()->ticks) - io[OREAD].iotime + 1;
 		if(delta < ep->pollival / 2)
-			tsleep(&m->externup->sleep, return0, 0, ep->pollival/2 - delta);
+			tsleep(&up->sleep, return0, 0, ep->pollival/2 - delta);
 		if(ep->clrhalt)
 			clrhalt(ep);
 		return epio(ep, &io[OREAD], a, count, 1);
@@ -1688,7 +1688,7 @@ epread(Ep *ep, void *a, int32_t count)
 static int32_t
 epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	unsigned char *c;
 	int32_t len;
 
@@ -1793,7 +1793,7 @@ putsamples(Ctlr *ctlr, Ep *ep, Isoio *iso, unsigned char *b, int32_t count)
 static int32_t
 episowrite(Ep *ep, void *a, int32_t count)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int32_t tot, nw;
 	char *err;
 	unsigned char *b;
@@ -1859,7 +1859,7 @@ episowrite(Ep *ep, void *a, int32_t count)
 static int32_t
 epwrite(Ep *ep, void *a, int32_t count)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Qio *io;
 	Ctlio *cio;
 	uint32_t delta;
@@ -1891,9 +1891,9 @@ epwrite(Ep *ep, void *a, int32_t count)
 		return tot;
 	case Tintr:
 		io = ep->aux;
-		delta = TK2MS(m->ticks) - io[OWRITE].iotime + 1;
+		delta = TK2MS(machp()->ticks) - io[OWRITE].iotime + 1;
 		if(delta < ep->pollival)
-			tsleep(&m->externup->sleep, return0, 0, ep->pollival - delta);
+			tsleep(&up->sleep, return0, 0, ep->pollival - delta);
 		if(ep->clrhalt)
 			clrhalt(ep);
 		return epio(ep, &io[OWRITE], a, count, 1);
@@ -1908,7 +1908,7 @@ epwrite(Ep *ep, void *a, int32_t count)
 static Ed*
 newed(Ctlr *ctlr, Ep *ep, Qio *io, char *c)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ed *ed;
 	Td *td;
 
@@ -2023,7 +2023,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 static void
 epopen(Ep *ep)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 	Qio *io;
 	Ctlio *cio;
@@ -2093,7 +2093,7 @@ epopen(Ep *ep)
 static void
 cancelio(Ep *ep, Qio *io)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ed *ed;
 	Ctlr *ctlr;
 
@@ -2111,7 +2111,7 @@ cancelio(Ep *ep, Qio *io)
 	aborttds(io);
 	iunlock(ctlr);
 	if(!waserror()){
-		tsleep(&m->externup->sleep, return0, 0, Abortdelay);
+		tsleep(&up->sleep, return0, 0, Abortdelay);
 		poperror();
 	}
 
@@ -2187,7 +2187,7 @@ epclose(Ep *ep)
 static int
 portreset(Hci *hp, int port, int on)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 	Ohci *ohci;
 
@@ -2223,7 +2223,7 @@ portreset(Hci *hp, int port, int on)
 static int
 portenable(Hci *hp, int port, int on)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 
 	ctlr = hp->aux;
@@ -2239,7 +2239,7 @@ portenable(Hci *hp, int port, int on)
 	else
 		ctlr->ohci->rhportsts[port - 1] = Cpe;
 	iunlock(ctlr);
-	tsleep(&m->externup->sleep, return0, 0, Enabledelay);
+	tsleep(&up->sleep, return0, 0, Enabledelay);
 	poperror();
 	qunlock(&ctlr->resetl);
 	return 0;

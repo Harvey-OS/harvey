@@ -246,7 +246,7 @@ msleep(int msec)
 {
 	ulong start;
 
-	for(start = m->ticks; TK2MS(m->ticks - start) < msec; )
+	for(start = machp()->ticks; TK2MS(machp()->ticks - start) < msec; )
 		;
 }
 */

@@ -345,7 +345,7 @@ flow(void *v)
 void
 rudpkick(void *x)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Conv *c = x;
 	Udphdr *uh;
 	uint16_t rport;
@@ -737,7 +737,7 @@ relackq(Reliable *r, Block *bp)
 void
 relackproc(void *a)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Rudpcb *ucb;
 	Proto *rudp;
 	Reliable *r;
@@ -746,7 +746,7 @@ relackproc(void *a)
 	rudp = (Proto *)a;
 
 loop:
-	tsleep(&m->externup->sleep, return0, 0, Rudptickms);
+	tsleep(&up->sleep, return0, 0, Rudptickms);
 
 	for(s = rudp->conv; *s; s++) {
 		c = *s;

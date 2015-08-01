@@ -76,7 +76,7 @@ ctrdirinit(void)
 	Dirtab *d;
 
 	nr = pmcnregs();
-		
+
 	npmctab = 1 + 2*nr;
 	pmctab = malloc(npmctab * sizeof(Dirtab));
 	if (pmctab == nil){
@@ -99,8 +99,8 @@ ctrdirinit(void)
 		snprint(d->name, KNAMELEN, "ctr%2.2udctl", i - 1);
 		mkqid(&d->qid, PMCQID(i - 1, Qctl), 0, 0);
 		d->perm = 0600;
-	}	
-	
+	}
+
 }
 
 static void
@@ -180,7 +180,7 @@ pmcgen(Chan *c, char *name, Dirtab* dir, int j, int s, Dir *dp)
 			return -1;
 
 		d = &l[i];
-		
+
 		devdir(c, d->qid, d->name, d->length, eve, d->perm, dp);
 		return 1;
 	}
@@ -216,7 +216,7 @@ pmcclose(Chan *c)
 static int32_t
 pmcread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t type, id;
 	PmcCtl p;
 	char *s;
@@ -306,13 +306,13 @@ struct AcCtrArg {
 void
 acpmcsetctl(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	AcPmcArg p;
 	Mach *mp;
 
-	mp = m->externup->ac;
+	mp = up->ac;
 	memmove(&p, mp->icc->data, sizeof(AcPmcArg));
-	
+
 	mp->icc->rc = pmcsetctl(p.coreno, &p, p.regno);
 	return;
 }
@@ -320,13 +320,13 @@ acpmcsetctl(void)
 void
 acpmcsetctr(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	AcCtrArg ctr;
 	Mach *mp;
 
-	mp = m->externup->ac;
+	mp = up->ac;
 	memmove(&ctr, mp->icc->data, sizeof(AcCtrArg));
-	
+
 	mp->icc->rc = pmcsetctr(ctr.coreno, ctr.v, ctr.regno);
 	return;
 }
@@ -335,7 +335,7 @@ acpmcsetctr(void)
 static int32_t
 pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Cmdbuf *cb;
 	Cmdtab *ct;
 	uint32_t type;
@@ -359,7 +359,7 @@ pmcwrite(Chan *c, void *a, int32_t n, int64_t mm)
 	p.regno = PMCID(c->qid.path);
 	memmove(str, a, n);
 	str[n] = '\0';
-	mp = m->externup->ac;
+	mp = up->ac;
 
 	ctr.coreno = coreno;
 	ctr.regno = p.regno;

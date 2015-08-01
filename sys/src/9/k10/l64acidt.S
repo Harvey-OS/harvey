@@ -83,7 +83,7 @@ _aciretnested:
 	iretq
 
 .globl acidthandlers
-acidthandlers:	
+acidthandlers:
 	CALL _acintrp; .byte IdtDE		/* #DE Divide-by-Zero Error */
 	CALL _acintrp; .byte IdtDB		/* #DB Debug */
 	CALL _acintrp; .byte IdtNMI		/* #NMI Borked */

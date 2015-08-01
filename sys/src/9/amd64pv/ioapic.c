@@ -266,7 +266,7 @@ ioapicintrdd(uint32_t* hi, uint32_t* lo)
 				break;
 		}
 		unlock(&dflock);
-	
+
 		*hi = i<<24;
 		break;
 	}

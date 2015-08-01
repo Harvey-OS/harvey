@@ -249,15 +249,15 @@ static uint8_t configdata[24] = {
 	0x03,				/* discard short Rx frames */
 	0x00,				/* 503/MII */
 
-	0x00,	
+	0x00,
 	0x2E,				/* normal operation, NSAI */
 	0x00,				/* linear priority */
 	0x60,				/* inter-frame spacing */
-	0x00,	
-	0xF2,	
+	0x00,
+	0xF2,
 	0xC8,				/* 503, promiscuous mode off */
-	0x00,	
-	0x40,	
+	0x00,
+	0x40,
 	0xF3,				/* transmit padding enable */
 	0x80,				/* full duplex pin enable */
 	0x3F,				/* no Multi IA */
@@ -354,14 +354,14 @@ static void txstart(Ether*);
 static void
 watchdog(void* arg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	Ether *ether;
 	Ctlr *ctlr;
 	//static void txstart(Ether*);
 
 	ether = arg;
 	for(;;){
-		tsleep(&m->externup->sleep, return0, 0, 4000);
+		tsleep(&up->sleep, return0, 0, 4000);
 
 		/*
 		 * Hmmm. This doesn't seem right. Currently
@@ -370,7 +370,7 @@ watchdog(void* arg)
 		 */
 		ctlr = ether->ctlr;
 		if(ctlr == nil || ctlr->state == 0){
-			print("%s: exiting\n", m->externup->text);
+			print("%s: exiting\n", up->text);
 			pexit("disabled", 0);
 		}
 
@@ -634,7 +634,7 @@ receive(Ether* ether)
 	for(rfd = (Rfd*)bp->rp; rfd->field & RfdC; rfd = (Rfd*)bp->rp){
 		/*
 		 * If it's an OK receive frame
-		 * 1) save the count 
+		 * 1) save the count
 		 * 2) if it's small, try to allocate a block and copy
 		 *    the data, then adjust the necessary fields for reuse;
 		 * 3) if it's big, try to allocate a new Rfd and if
@@ -1216,7 +1216,7 @@ reset(Ether* ether)
 						break;
 				}
 				miiw(ctlr, phyaddr, 0x1A, 0x2000);
-					
+
 				anar = miir(ctlr, phyaddr, 0x04);
 				anlpar = miir(ctlr, phyaddr, 0x05) & 0x03E0;
 				anar &= anlpar;
@@ -1241,7 +1241,7 @@ reset(Ether* ether)
 					medium = k;
 					break;
 				}
-		
+
 				switch(medium){
 				default:
 					break;

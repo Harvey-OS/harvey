@@ -18,7 +18,7 @@
 extern	char	Echange[];
 extern	char	Enotup[];
 
-#define uprint(...)	snprint(m->externup->genbuf, sizeof up->genbuf, __VA_ARGS__);
+#define uprint(...)	snprint(up->genbuf, sizeof up->genbuf, __VA_ARGS__);
 
 enum {
 	Nctlr	= 32,
@@ -160,12 +160,12 @@ aoeidentify(Ctlr *d, SDunit *u)
 	if(waserror()){
 		if(c)
 			cclose(c);
-		iprint("aoeidentify: %s\n", m->externup->errstr);
+		iprint("aoeidentify: %s\n", up->errstr);
 		nexterror();
 	}
 
 	uprint("%s/ident", d->path);
-	c = namec(m->externup->genbuf, Aopen, OREAD, 0);
+	c = namec(up->genbuf, Aopen, OREAD, 0);
 	c->dev->read(c, d->ident, sizeof d->ident, 0);
 
 	poperror();
@@ -261,26 +261,26 @@ aoeprobe(char *path, SDev *s)
 	uprint("%s/ctl", path);
 	*p = '/';
 
-	c = namec(m->externup->genbuf, Aopen, OWRITE, 0);
+	c = namec(up->genbuf, Aopen, OWRITE, 0);
 	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
 	n = uprint("discover %s", p+1);
-	c->dev->write(c, m->externup->genbuf, n, 0);
+	c->dev->write(c, up->genbuf, n, 0);
 	poperror();
 	cclose(c);
 
 	for(i = 0;; i += 200){
 		if(i > 8000 || waserror())
 			error(Etimedout);
-		tsleep(&m->externup->sleep, return0, 0, 200);
+		tsleep(&up->sleep, return0, 0, 200);
 		poperror();
 
 		uprint("%s/ident", path);
 		if(waserror())
 			continue;
-		c = namec(m->externup->genbuf, Aopen, OREAD, 0);
+		c = namec(up->genbuf, Aopen, OREAD, 0);
 		poperror();
 		cclose(c);
 
@@ -361,11 +361,11 @@ pnpprobe(SDev *sd)
 
 	for(j = 0;; j += 200){
 		if(j > 8000){
-			print("#æ: pnpprobe: %s: %s\n", probef[i-1], m->externup->errstr);
+			print("#æ: pnpprobe: %s: %s\n", probef[i-1], up->errstr);
 			return 0;
 		}
 		if(waserror()){
-			tsleep(&m->externup->sleep, return0, 0, 200);
+			tsleep(&up->sleep, return0, 0, 200);
 			continue;
 		}
 		sd = aoeprobe(p, sd);
@@ -405,7 +405,7 @@ aoeconnect(SDunit *u, Ctlr *c)
 		cclose(c->c);
 	c->c = 0;
 	uprint("%s/data", c->path);
-	c->c = namec(m->externup->genbuf, Aopen, ORDWR, 0);
+	c->c = namec(up->genbuf, Aopen, ORDWR, 0);
 	qunlock(c);
 	poperror();
 
@@ -508,8 +508,8 @@ aoerio(SDreq *r)
 		count = r->dlen & ~0x1ff;
 
 	if(waserror()){
-		if(strcmp(m->externup->errstr, Echange) == 0 ||
-		    strcmp(m->externup->errstr, Enotup) == 0)
+		if(strcmp(up->errstr, Echange) == 0 ||
+		    strcmp(up->errstr, Enotup) == 0)
 			unit->sectors = 0;
 		nexterror();
 	}

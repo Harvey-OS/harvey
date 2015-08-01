@@ -508,7 +508,7 @@ rtl8169multicast(void* ether, unsigned char *eaddr, int add)
 static int32_t
 rtl8169ifstat(Ether* edev, void* a, int32_t n, uint32_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char *p, *s, *e;
 	Ctlr *ctlr;
 	Dtcc *dtcc;

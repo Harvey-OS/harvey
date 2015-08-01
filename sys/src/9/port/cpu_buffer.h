@@ -15,7 +15,7 @@ void start_cpu_work(void);
 void end_cpu_work(void);
 void flush_cpu_work(void);
 
-/* CPU buffer is composed of samples. 
+/* CPU buffer is composed of samples.
  * As these are extracted from the buffer, they are encapsulated
  * in entries, which include additional info.
  */
@@ -41,7 +41,7 @@ struct oprofile_cpu_buffer {
 	Block *block;
 	/* long term plan: when we fill the block,
 	 * we write it to fullblock, and pull a
-	 * freeblock from the emptyblock queue. 
+	 * freeblock from the emptyblock queue.
 	 * The thread that pulls fullbocks and
 	 * allocates emptyblocks is timer-driven.
 	 * Or, barret will make me use his queues,
