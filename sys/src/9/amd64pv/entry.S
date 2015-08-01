@@ -6,7 +6,7 @@
 
 // It gets REALLY ugly to try  to link this at some low address and then have the rest of the
 // kernel linked high. Really, really ugly. And that defines any attempt to load at a randome
-// address. So, you have to learn to write position independent code here. 
+// address. So, you have to learn to write position independent code here.
 // It will make you stronger. Assuming you survive the training.
 .code32
 
@@ -90,7 +90,7 @@ gdt_end:
  *	cache will be reloaded.
  */
 	.align	4
-1: 
+1:
 //	jmp 1b
 .globl protected_start
 protected_start:
@@ -316,7 +316,7 @@ _start64v:
 // Don't undo this until all APs are started. Then we don't need to bother
 // having the APs remap it. Save work.
 	// OK, this part is called "we climbed up the tree on a ladder, now pull
-	// the ladder up after us.". We remove the identity mapping. 
+	// the ladder up after us.". We remove the identity mapping.
 _zap0pml4:
 	cmpq	$PML4O(KZERO), %rdx		/* KZER0 & 0x0000ff8000000000 */
 	JE	_zap0pdp
@@ -340,7 +340,7 @@ _zap0done:
 
 	addq	$(2*PTSZ+4*KiB), %rax		/* PD+PT+vsvm */
 	movq	%rax, entrym
-	movq	$0, (%rax) 				/* m->machno = 0 */
+	movq	$0, (%rax) 				/* machp()->machno = 0 */
 
 	PUSHQ	%rdx				/* clear flags */
 	POPFQ
@@ -437,7 +437,7 @@ gdtptr78:
 	.quad	0x0020980000000000		/* Long mode CS */
 gdt78_end:
 .global e1978
-e1978:	
+e1978:
 
 /*
  * Protected mode. Welcome to 1982.
@@ -467,7 +467,7 @@ e1978:
 #define PDO(v)		((PTLX((v), 1))<<3)
 #define PTO(v)		((PTLX((v), 0))<<3)
 
-_approtected:	
+_approtected:
 	MOVL	$0xfee00000, %ebp	/* apicbase */
 	MOVL	0x20(%eBP), %eBP	/* Id */
 	SHRL	$24, %eBP		/* becomes RARG later */
@@ -504,7 +504,7 @@ _approtected:
  *	make an inter-segment jump to the Long Mode code.
  * It's all in 32-bit mode until the jump is made.
  */
-aplme:	
+aplme:
 	MOVL	%CR4, %eAX
 	ANDL	$~Pse, %eAX			/* Page Size */
 	ORL	$(Pge|Pae), %eAX			/* Page Global, Phys. Address */
@@ -532,12 +532,12 @@ aplme:
  */
 .code64
 
-_apidentity:	
+_apidentity:
 	MOVQ	$_apstart64v, %rAX
 	JMP	*%rAX
 
 .section .text
-_apstart64v:	
+_apstart64v:
 	MOVQ	$_gdtptr64v, %rAX
 
 	lgdt	(%rax)
@@ -554,7 +554,7 @@ _apstart64v:
 
 	MOVQ	%rAX, %rSP			/* set stack */
 
-	// DON'T ZAP. 
+	// DON'T ZAP.
 	// DO IT LATER.
 	//MOVQ	%rDX, PML4O(0)(%rAX)		/* zap identity map */
 

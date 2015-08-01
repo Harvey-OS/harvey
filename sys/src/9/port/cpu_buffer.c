@@ -217,7 +217,7 @@ static Block *op_cpu_buffer_write_reserve(struct oprofile_cpu_buffer *cpu_buf,
 	struct op_entry *entry, int size)
 {
 	//print_func_entry();
-	// Block *b; this gets some bizarre gcc set but not used error. 
+	// Block *b; this gets some bizarre gcc set but not used error.
 
 	int totalsize = sizeof(struct op_sample) +
 		size * sizeof(entry->sample->data[0]);
@@ -252,7 +252,7 @@ static int
 op_add_code(struct oprofile_cpu_buffer *cpu_buf, unsigned long backtrace,
 			int is_kernel, Proc *proc)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	//print_func_entry();
 	// Block *b; this gets some bizarre gcc set but not used error. 	Block *b;
 	struct op_entry entry;
@@ -315,7 +315,7 @@ static inline int
 op_add_sample(struct oprofile_cpu_buffer *cpu_buf,
 			  unsigned long pc, unsigned long event)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	//print_func_entry();
 	struct op_entry entry;
 	struct op_sample *sample;
@@ -528,7 +528,7 @@ oprofile_write_reserve(struct op_entry *entry,
 		       Ureg *regs,
 		       unsigned long pc, int code, int size)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	//print_func_entry();
 	struct op_sample *sample;
 	// Block *b; this gets some bizarre gcc set but not used error. 	Block *b;
@@ -648,16 +648,16 @@ fail:
 
 /* Format for samples:
  * first word:
- * high 8 bits is ee, which is an invalid address on amd64. 
+ * high 8 bits is ee, which is an invalid address on amd64.
  * next 8 bits is protocol version
- * next 16 bits is unused, MBZ. Later, we can make it a packet type. 
+ * next 16 bits is unused, MBZ. Later, we can make it a packet type.
  * next 16 bits is core id
  * next 8 bits is unused
  * next 8 bits is # PCs following. This should be at least 1, for one EIP.
  *
  * second word is time in ns.
- * 
- * Third and following words are PCs, there must be at least one of them. 
+ *
+ * Third and following words are PCs, there must be at least one of them.
  */
 void oprofile_add_backtrace(uintptr_t pc, uintptr_t fp)
 {
@@ -707,7 +707,7 @@ void oprofile_add_userpc(uintptr_t pc)
 	struct oprofile_cpu_buffer *cpu_buf;
 	uint32_t pcoreid = machp()->machno;
 	struct op_entry entry;
-	// Block *b; this gets some bizarre gcc set but not used error. 
+	// Block *b; this gets some bizarre gcc set but not used error.
 	uint64_t descriptor = (0xee01ULL << 48) | (pcoreid << 16) | 1;
 
 	if (!op_cpu_buffer)

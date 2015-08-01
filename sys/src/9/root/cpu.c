@@ -269,7 +269,7 @@ old9p(int fd)
 		close(fd);
 		close(p[0]);
 	}
-	return p[1];	
+	return p[1];
 }
 
 /* Invoked with stdin, stdout and stderr connected to the network connection */
@@ -417,7 +417,7 @@ readstr(int fd, char *str, int len)
 
 	while(len) {
 		n = read(fd, str, 1);
-		if(n < 0) 
+		if(n < 0)
 			return -1;
 		if(*str == '\0')
 			return 0;

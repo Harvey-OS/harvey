@@ -754,7 +754,7 @@ rtl8139match(Ether* edev, int id)
 
 		if(pcigetpms(p) > 0){
 			pcisetpms(p, 0);
-	
+
 			for(i = 0; i < 6; i++)
 				pcicfgw32(p, PciBAR0+i*4, p->mem[i].bar);
 			pcicfgw8(p, PciINTL, p->intl);

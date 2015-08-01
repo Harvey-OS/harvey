@@ -19,7 +19,7 @@
 static int
 cpuidinit(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t eax, info[4];
 
 	/*
@@ -27,23 +27,23 @@ cpuidinit(void)
 	 * Functions 0 and 1 will be needed multiple times
 	 * so cache the info now.
 	 */
-	if((m->ncpuinfos = cpuid(0, 0, m->cpuinfo[0])) == 0)
+	if((machp()->ncpuinfos = cpuid(0, 0, machp()->cpuinfo[0])) == 0)
 		return 0;
-	m->ncpuinfos++;
+	machp()->ncpuinfos++;
 
-	if(memcmp(&m->cpuinfo[0][1], "GenuntelineI", 12) == 0)
-		m->isintelcpu = 1;
-	cpuid(1, 0, m->cpuinfo[1]);
+	if(memcmp(&machp()->cpuinfo[0][1], "GenuntelineI", 12) == 0)
+		machp()->isintelcpu = 1;
+	cpuid(1, 0, machp()->cpuinfo[1]);
 
 	/*
 	 * Extended CPUID functions.
 	 */
 	if((eax = cpuid(0x80000000, 0, info)) >= 0x80000000)
-		m->ncpuinfoe = (eax & ~0x80000000) + 1;
+		machp()->ncpuinfoe = (eax & ~0x80000000) + 1;
 
 	/* is mnonitor supported? */
-	if (m->cpuinfo[1][2] & 8) {
-		cpuid(5, 0, m->cpuinfo[2]);	
+	if (machp()->cpuinfo[1][2] & 8) {
+		cpuid(5, 0, machp()->cpuinfo[2]);
 		mwait = k10mwait;
 	}
 
@@ -53,15 +53,15 @@ cpuidinit(void)
 static int
 cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 {
-	Mach *m = machp();
-	if(m->ncpuinfos == 0 && cpuidinit() == 0)
+	Proc *up = machp()->externup;
+	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
 		return 0;
 
 	if(!(eax & 0x80000000)){
-		if(eax >= m->ncpuinfos)
+		if(eax >= machp()->ncpuinfos)
 			return 0;
 	}
-	else if(eax >= (0x80000000|m->ncpuinfoe))
+	else if(eax >= (0x80000000|machp()->ncpuinfoe))
 		return 0;
 
 	cpuid(eax, ecx, info);
@@ -145,7 +145,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 				r = rdmsr(0x2a) & 0x1f;
 			}
 			f = rdmsr(0xcd) & 0x07;
-//iprint("rdmsr Intel: %d\n", rdmsr(0x2a));	
+//iprint("rdmsr Intel: %d\n", rdmsr(0x2a));
 //iprint("Intel msr.lo %d\n", r);
 //iprint("Intel msr.hi %d\n", f);
 			switch(f){
@@ -231,22 +231,22 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 void
 cpuiddump(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int i;
 	uint32_t info[4];
 
 	if(!DBGFLG)
 		return;
 
-	if(m->ncpuinfos == 0 && cpuidinit() == 0)
+	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
 		return;
 
-	for(i = 0; i < m->ncpuinfos; i++){
+	for(i = 0; i < machp()->ncpuinfos; i++){
 		cpuid(i, 0, info);
 		DBG("eax = %#8.8ux: %8.8ux %8.8ux %8.8ux %8.8ux\n",
 			i, info[0], info[1], info[2], info[3]);
 	}
-	for(i = 0; i < m->ncpuinfoe; i++){
+	for(i = 0; i < machp()->ncpuinfoe; i++){
 		cpuid(0x80000000|i, 0, info);
 		DBG("eax = %#8.8ux: %8.8ux %8.8ux %8.8ux %8.8ux\n",
 			0x80000000|i, info[0], info[1], info[2], info[3]);
@@ -256,7 +256,7 @@ cpuiddump(void)
 int64_t
 archhz(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	int64_t hz;
 	uint32_t info0[4], info1[4];
 
@@ -271,7 +271,7 @@ archhz(void)
 	}
 
 	hz = cpuidhz(info0, info1);
-	if(hz != 0 || m->machno != 0)
+	if(hz != 0 || machp()->machno != 0)
 		return hz;
 
 	iprint("archhz, cpuidhz failed, going to i8254hz\n");
@@ -281,11 +281,11 @@ archhz(void)
 int
 archmmu(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t info[4];
 
 	/*
-	 * Should the check for m->machno != 0 be here
+	 * Should the check for machp()->machno != 0 be here
 	 * or in the caller (mmuinit)?
 	 *
 	 * To do here:
@@ -300,35 +300,35 @@ archmmu(void)
 	 */
 	assert(PGSZ == 4*KiB);
 
-	m->pgszlg2[0] = 12;
-	m->pgszmask[0] = (1<<12)-1;
-	m->pgsz[0] = 1<<12;
-	m->npgsz = 1;
-	if(m->ncpuinfos == 0 && cpuidinit() == 0)
+	machp()->pgszlg2[0] = 12;
+	machp()->pgszmask[0] = (1<<12)-1;
+	machp()->pgsz[0] = 1<<12;
+	machp()->npgsz = 1;
+	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
 		return 1;
 
 	/*
 	 * Check the Pse bit in function 1 DX for 2*MiB support;
 	 * if false, only 4*KiB is available.
 	 */
-	if(!(m->cpuinfo[1][3] & 0x00000008))
+	if(!(machp()->cpuinfo[1][3] & 0x00000008))
 		return 1;
-	m->pgszlg2[1] = 21;
-	m->pgszmask[1] = (1<<21)-1;
-	m->pgsz[1] = 1<<21;
-	m->npgsz = 2;
+	machp()->pgszlg2[1] = 21;
+	machp()->pgszmask[1] = (1<<21)-1;
+	machp()->pgsz[1] = 1<<21;
+	machp()->npgsz = 2;
 
 	/*
 	 * Check the Page1GB bit in function 0x80000001 DX for 1*GiB support.
 	 */
 	if(cpuidinfo(0x80000001, 0, info) && (info[3] & 0x04000000)){
-		m->pgszlg2[2] = 30;
-		m->pgszmask[2] = (1<<30)-1;
-		m->pgsz[2] = 1<<30;
-		m->npgsz = 3;
+		machp()->pgszlg2[2] = 30;
+		machp()->pgszmask[2] = (1<<30)-1;
+		machp()->pgsz[2] = 1<<30;
+		machp()->npgsz = 3;
 	}
 
-	return m->npgsz;
+	return machp()->npgsz;
 }
 
 static int
@@ -374,7 +374,7 @@ fmtW(Fmt *f)
 	return fmtprint(f, "%#ullx=0x[%ullx][%ullx][%ullx][%ullx][%ullx]", va,
 		PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
 		va & ((1<<PGSHFT)-1));
-		
+
 }
 
 void
@@ -406,21 +406,21 @@ archidle(void)
 void
 microdelay(int microsecs)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint64_t r, t;
 
 	r = rdtsc();
-	for(t = r + m->cpumhz*microsecs; r < t; r = rdtsc())
+	for(t = r + machp()->cpumhz*microsecs; r < t; r = rdtsc())
 		;
 }
 
 void
 millidelay(int millisecs)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint64_t r, t;
 
 	r = rdtsc();
-	for(t = r + m->cpumhz*1000ull*millisecs; r < t; r = rdtsc())
+	for(t = r + machp()->cpumhz*1000ull*millisecs; r < t; r = rdtsc())
 		;
 }

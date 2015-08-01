@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the UCB release of Plan 9. It is subject to the license
  * terms in the LICENSE file found in the top-level directory of this
  * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
@@ -162,7 +162,7 @@ struct MFPU
 struct NIX
 {
 	ICC*	icc;			/* inter-core call */
-	int	nixtype;	
+	int	nixtype;
 };
 
 /*
@@ -422,7 +422,7 @@ extern char*rolename[];
 /*
  * Horrid.
  */
-// HARVEY: TODO: bring this back, it's actually nice. Or do something better. 
+// HARVEY: TODO: bring this back, it's actually nice. Or do something better.
 // Talk to Ron before you condemn it.
 
 #ifdef _DBGC_

@@ -160,7 +160,7 @@ addcap(uint8_t *hash)
 	p = smalloc(sizeof *p);
 	memmove(p->hash, hash, Hashlen);
 	p->next = nil;
-	p->ticks = m->ticks;
+	p->ticks = machp()->ticks;
 
 	qlock(&capalloc);
 
@@ -253,13 +253,13 @@ capwrite(Chan *c, void *va, int32_t n, int64_t m)
 			to = from;
 		} else {
 			*to++ = 0;
-			if(strcmp(from, m->externup->user) != 0)
+			if(strcmp(from, up->user) != 0)
 				error("capability must match user");
 		}
 
 		/* set user id */
-		kstrdup(&m->externup->user, to);
-		m->externup->basepri = PriNormal;
+		kstrdup(&up->user, to);
+		up->basepri = PriNormal;
 
 		free(p);
 		free(cp);

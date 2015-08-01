@@ -203,7 +203,7 @@ Walkqid*
 devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 	Devgen *gen)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if (0) print_func_entry();
 	int i, j, alloc;
 	Walkqid *wq;
@@ -274,7 +274,7 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab,
 			Notfound:
 				if(j == 0)
 					error(Enonexist);
-				kstrcpy(m->externup->errstr, Enonexist, ERRMAX);
+				kstrcpy(up->errstr, Enonexist, ERRMAX);
 				goto Done;
 			case 0:
 				continue;
@@ -395,20 +395,20 @@ devdirread(Chan *c, char *d, int32_t n, Dirtab *tab, int ntab,
 }
 
 /*
- * error(Eperm) if open permission not granted for m->externup->user.
+ * error(Eperm) if open permission not granted for up->user.
  */
 void
 devpermcheck(char *fileuid, int perm, int omode)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if (0) print_func_entry();
 	int t;
 	static int access[] = { 0400, 0200, 0600, 0100 };
 
-	if(strcmp(m->externup->user, fileuid) == 0)
+	if(strcmp(up->user, fileuid) == 0)
 		perm <<= 0;
 	else
-	if(strcmp(m->externup->user, eve) == 0)
+	if(strcmp(up->user, eve) == 0)
 		perm <<= 3;
 	else
 		perm <<= 6;
@@ -461,7 +461,7 @@ devcreate(Chan* c, char* d, int i, int n)
 Block*
 devbread(Chan *c, int32_t n, int64_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if (0) print_func_entry();
 	Block *bp;
 
@@ -481,7 +481,7 @@ devbread(Chan *c, int32_t n, int64_t offset)
 int32_t
 devbwrite(Chan *c, Block *bp, int64_t offset)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if (0) print_func_entry();
 	int32_t n;
 

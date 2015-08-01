@@ -126,27 +126,27 @@ idtinit(Gd *gd, uintptr_t offset)
 }
 
 void
-tssrsp0(Mach *m, uintptr_t sp)
+tssrsp0(Mach *mach, uintptr_t sp)
 {
 	Tss *tss;
 
-	tss = m->tss;
+	tss = mach->tss;
 	tss->rsp0[0] = sp;
 	tss->rsp0[1] = sp>>32;
 }
 
 static void
-tssinit(Mach *m, uintptr_t sp)
+tssinit(Mach *mach, uintptr_t sp)
 {
 	int ist;
 	Tss *tss;
 
-	tss = m->tss;
+	tss = mach->tss;
 	memset(tss, 0, sizeof(Tss));
 
-	tssrsp0(m, sp);
+	tssrsp0(mach, sp);
 
-	sp = PTR2UINT(m->vsvm+PGSZ);
+	sp = PTR2UINT(mach->vsvm+PGSZ);
 	for(ist = 0; ist < 14; ist += 2){
 		tss->ist[ist] = sp;
 		tss->ist[ist+1] = sp>>32;
@@ -160,23 +160,23 @@ void acsyscallentry(void)
 }
 
 void
-vsvminit(int size, int nixtype, Mach *m)
+vsvminit(int size, int nixtype, Mach *mach)
 {
 	Sd *sd;
 	uint64_t r;
-	if(m->machno == 0){
+	if(mach->machno == 0){
 		idtinit(idt64, PTR2UINT(idthandlers));
 		idtinit(acidt64, PTR2UINT(acidthandlers));
 	}
-	m->gdt = m->vsvm;
-	memmove(m->gdt, gdt64, sizeof(gdt64));
-	m->tss = &m->vsvm[ROUNDUP(sizeof(gdt64), 16)];
+	mach->gdt = mach->vsvm;
+	memmove(mach->gdt, gdt64, sizeof(gdt64));
+	mach->tss = &mach->vsvm[ROUNDUP(sizeof(gdt64), 16)];
 
-	sd = &((Sd*)m->gdt)[SiTSS];
-	*sd = mksd(PTR2UINT(m->tss), sizeof(Tss)-1, SdP|SdDPL0|SdaTSS, sd+1);
-	*(uintptr_t*)m->stack = STACKGUARD;
-	tssinit(m, m->stack+size);
-	gdtput(sizeof(gdt64)-1, PTR2UINT(m->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
+	sd = &((Sd*)mach->gdt)[SiTSS];
+	*sd = mksd(PTR2UINT(mach->tss), sizeof(Tss)-1, SdP|SdDPL0|SdaTSS, sd+1);
+	*(uintptr_t*)mach->stack = STACKGUARD;
+	tssinit(mach, mach->stack+size);
+	gdtput(sizeof(gdt64)-1, PTR2UINT(mach->gdt), SSEL(SiCS, SsTIGDT|SsRPL0));
 
 #if 0 // NO ACs YET
 	if(nixtype != NIXAC)
@@ -191,7 +191,7 @@ vsvminit(int size, int nixtype, Mach *m)
 	asm volatile("ltr %w0"::"q" (SSEL(SiTSS, SsTIGDT|SsRPL0)));
 
 	wrmsr(FSbase, 0ull);
-	wrmsr(GSbase, PTR2UINT(&sys->machptr[m->machno]));
+	wrmsr(GSbase, PTR2UINT(&sys->machptr[mach->machno]));
 	wrmsr(KernelGSbase, 0ull);
 
 	r = rdmsr(Efer);
@@ -216,7 +216,7 @@ vsvminit(int size, int nixtype, Mach *m)
 		wrmsr(Lstar, PTR2UINT(acsyscallentry));
 
 	wrmsr(Sfmask, If);
-	if (m != machp()) {
+	if (mach != machp()) {
 		panic("vsvminit: m is not machp() at end\n");
 	}
 }

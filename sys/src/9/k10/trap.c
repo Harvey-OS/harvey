@@ -266,16 +266,16 @@ static char* excname[32] = {
 void
 intrtime(int vno)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint32_t diff, x;		/* should be uint64_t */
 
 	x = perfticks();
-	diff = x - m->perf.intrts;
-	m->perf.intrts = x;
+	diff = x - machp()->perf.intrts;
+	machp()->perf.intrts = x;
 
-	m->perf.inintr += diff;
-	if(m->externup == nil && m->perf.inidle > diff)
-		m->perf.inidle -= diff;
+	machp()->perf.inintr += diff;
+	if(up == nil && machp()->perf.inidle > diff)
+		machp()->perf.inidle -= diff;
 
 	intrtimes[vno].cycles += diff;
 	intrtimes[vno].count++;
@@ -292,7 +292,7 @@ void (*_pmcupdate)(Mach *m) = pmcnop;
 void
 kexit(Ureg* u)
 {
- 	Mach *m = machp();
+ 	Proc *up = machp()->externup;
  	uint64_t t;
 	Tos *tos;
 	Mach *mp;
@@ -303,13 +303,13 @@ kexit(Ureg* u)
 	 */
 	tos = (Tos*)(USTKTOP-sizeof(Tos));
 	cycles(&t);
-	tos->kcycles += t - m->externup->kentry;
-	tos->pcycles = m->externup->pcycles;
-	tos->pid = m->externup->pid;
-	if (m->externup->ac != nil)
-		mp = m->externup->ac;
+	tos->kcycles += t - up->kentry;
+	tos->pcycles = up->pcycles;
+	tos->pid = up->pid;
+	if (up->ac != nil)
+		mp = up->ac;
 	else
-		mp = m;
+		mp = machp();
 	tos->core = mp->machno;
 	tos->nixtype = mp->nixtype;
 	//_pmcupdate(m);
@@ -319,29 +319,29 @@ kexit(Ureg* u)
 	 */
 	tos->cyclefreq = mp->cyclefreq;
 	/* thread local storage */
-	wrmsr(FSbase, m->externup->tls);
+	wrmsr(FSbase, up->tls);
 }
 
 void
 kstackok(void)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 
-	if(m->externup == nil){
-		uintptr_t *stk = (uintptr_t*)m->stack;
+	if(up == nil){
+		uintptr_t *stk = (uintptr_t*)machp()->stack;
 		if(*stk != STACKGUARD)
-			panic("trap: mach %d machstk went through bottom %p\n", m->machno, m->stack);
+			panic("trap: mach %d machstk went through bottom %p\n", machp()->machno, machp()->stack);
 	} else {
-		uintptr_t *stk = (uintptr_t*)m->externup->kstack;
+		uintptr_t *stk = (uintptr_t*)up->kstack;
 		if(*stk != STACKGUARD)
-			panic("trap: proc %d kstack went through bottom %p\n", m->externup->pid, m->externup->kstack);
+			panic("trap: proc %d kstack went through bottom %p\n", up->pid, up->kstack);
 	}
 }
 
 void
 _trap(Ureg *ureg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 
 	/*
 	 * If it's a real trap in this core, then we want to
@@ -352,7 +352,7 @@ _trap(Ureg *ureg)
 	 * If we do this in trap(), we would overwrite that with our own cr2.
 	 */
 	if(ureg->type == VectorPF)
-		m->cr2 = cr2get();
+		machp()->cr2 = cr2get();
 	trap(ureg);
 }
 
@@ -385,34 +385,34 @@ trap(Ureg* ureg)
 	lastvno = vno;
 	if (gsbase < 1ULL<<63)
 		die("bogus gsbase");
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 
-	if (0 && m && m->externup && m->externup->pid == 6) {
+	if (0 && machp() && up && up->pid == 6) {
 		//iprint("type %x\n", ureg->type);
 		if (ureg->type != 0x49)
 			die("6\n");
 	}
-	m->perf.intrts = perfticks();
+	machp()->perf.intrts = perfticks();
 	user = userureg(ureg);
-	if(user && (m->nixtype == NIXTC)){
-		m->externup->dbgreg = ureg;
-		cycles(&m->externup->kentry);
+	if(user && (machp()->nixtype == NIXTC)){
+		up->dbgreg = ureg;
+		cycles(&up->kentry);
 	}
 
 	clockintr = 0;
 
-	//_pmcupdate(m);
+	//_pmcupdate(machp());
 
 	if(ctl = vctl[vno]){
 		if(ctl->isintr){
-			m->intr++;
+			machp()->intr++;
 			if(vno >= VectorPIC && vno != VectorSYSCALL)
-				m->lastintr = ctl->irq;
+				machp()->lastintr = ctl->irq;
 		}else
-			if(m->externup)
-				m->externup->nqtrap++;
+			if(up)
+				up->nqtrap++;
 
 		if(ctl->isr)
 			ctl->isr(vno);
@@ -427,14 +427,14 @@ trap(Ureg* ureg)
 			if(ctl->irq == IrqCLOCK || ctl->irq == IrqTIMER)
 				clockintr = 1;
 
-			if(m->externup && !clockintr)
+			if(up && !clockintr)
 				preempted();
 		}
 	}
 	else if(vno < nelem(excname) && user){
 		spllo();
 		snprint(buf, sizeof buf, "sys: trap: %s", excname[vno]);
-		postnote(m->externup, 1, buf, NDebug);
+		postnote(up, 1, buf, NDebug);
 	}
 	else if(vno >= VectorPIC && vno != VectorSYSCALL){
 		/*
@@ -450,7 +450,7 @@ trap(Ureg* ureg)
 		i8259isr(vno);
 
 		iprint("cpu%d: spurious interrupt %d, last %d\n",
-			m->machno, vno, m->lastintr);
+			machp()->machno, vno, machp()->lastintr);
 		intrtime(vno);
 		if(user)
 			kexit(ureg);
@@ -459,9 +459,9 @@ trap(Ureg* ureg)
 	else{
 		if(vno == VectorNMI){
 			nmienable();
-			if(m->machno != 0){
+			if(machp()->machno != 0){
 				iprint("cpu%d: PC %#llux\n",
-					m->machno, ureg->ip);
+					machp()->machno, ureg->ip);
 				for(;;);
 			}
 		}
@@ -477,11 +477,11 @@ trap(Ureg* ureg)
 	splhi();
 
 	/* delaysched set because we held a lock or because our quantum ended */
-	if(m->externup && m->externup->delaysched && clockintr){
+	if(up && up->delaysched && clockintr){
 		if(0)
-		if(user && m->externup->ac == nil && m->externup->nqtrap == 0 && m->externup->nqsyscall == 0){
+		if(user && up->ac == nil && up->nqtrap == 0 && up->nqsyscall == 0){
 			if(!waserror()){
-				m->externup->ac = getac(m->externup, -1);
+				up->ac = getac(up, -1);
 				poperror();
 				runacore();
 				return;
@@ -493,7 +493,7 @@ trap(Ureg* ureg)
 
 
 	if(user){
-		if(m->externup && m->externup->procctl || m->externup->nnote)
+		if(up && up->procctl || up->nnote)
 			notify(ureg);
 		kexit(ureg);
 	}
@@ -505,12 +505,12 @@ trap(Ureg* ureg)
 void
 dumpgpr(Ureg* ureg)
 {
-	Mach *m = machp();
-	if(m->externup != nil)
+	Proc *up = machp()->externup;
+	if(up != nil)
 		iprint("cpu%d: registers for %s %d\n",
-			m->machno, m->externup->text, m->externup->pid);
+			machp()->machno, up->text, up->pid);
 	else
-		iprint("cpu%d: registers for kernel\n", m->machno);
+		iprint("cpu%d: registers for kernel\n", machp()->machno);
 
 	iprint("ax\t%#16.16llux\n", ureg->ax);
 	iprint("bx\t%#16.16llux\n", ureg->bx);
@@ -538,13 +538,13 @@ dumpgpr(Ureg* ureg)
 	iprint("FS\t%#llux\n", rdmsr(FSbase));
 	iprint("GS\t%#llux\n", rdmsr(GSbase));
 
-	iprint("m\t%#16.16p\nup\t%#16.16p\n", m, m->externup);
+	iprint("m\t%#16.16p\nup\t%#16.16p\n", machp(), up);
 }
 
 void
 dumpregs(Ureg* ureg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 
 	dumpgpr(ureg);
 
@@ -556,7 +556,7 @@ dumpregs(Ureg* ureg)
 	 * check address and machine check type registers if RDMSR supported.
 	 */
 	iprint("cr0\t%#16.16llux\n", cr0get());
-	iprint("cr2\t%#16.16llux\n", m->cr2);
+	iprint("cr2\t%#16.16llux\n", machp()->cr2);
 	iprint("cr3\t%#16.16llux\n", cr3get());
 die("dumpregs");
 //	archdumpregs();
@@ -578,7 +578,7 @@ callwithureg(void (*fn)(Ureg*))
 static void
 dumpstackwithureg(Ureg* ureg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uintptr_t l, v, i, estack;
 //	extern char etext;
 	int x;
@@ -592,17 +592,17 @@ dumpstackwithureg(Ureg* ureg)
 	x = 0;
 	x += iprint("ktrace 9%s %#p %#p\n", strrchr(conffile, '/')+1, ureg->ip, ureg->sp);
 	i = 0;
-	if(m->externup != nil
-//	&& (uintptr)&l >= (uintptr)m->externup->kstack
-	&& (uintptr_t)&l <= (uintptr_t)m->externup->kstack+KSTACK)
-		estack = (uintptr_t)m->externup->kstack+KSTACK;
-	else if((uintptr_t)&l >= m->stack && (uintptr_t)&l <= m->stack+MACHSTKSZ)
-		estack = m->stack+MACHSTKSZ;
+	if(up != nil
+//	&& (uintptr)&l >= (uintptr)up->kstack
+	&& (uintptr_t)&l <= (uintptr_t)up->kstack+KSTACK)
+		estack = (uintptr_t)up->kstack+KSTACK;
+	else if((uintptr_t)&l >= machp()->stack && (uintptr_t)&l <= machp()->stack+MACHSTKSZ)
+		estack = machp()->stack+MACHSTKSZ;
 	else{
-		if(m->externup != nil)
-			iprint("&m->externup->kstack %#p &l %#p\n", m->externup->kstack, &l);
+		if(up != nil)
+			iprint("&up->kstack %#p &l %#p\n", up->kstack, &l);
 		else
-			iprint("&m %#p &l %#p\n", m, &l);
+			iprint("&m %#p &l %#p\n", machp(), &l);
 		return;
 	}
 	x += iprint("estackx %#p\n", estack);
@@ -632,15 +632,15 @@ dumpstack(void)
 static void
 debugbpt(Ureg* ureg, void* v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	char buf[ERRMAX];
 
-	if(m->externup == 0)
+	if(up == 0)
 		panic("kernel bpt");
 	/* restore pc to instruction that caused the trap */
 	ureg->ip--;
 	sprint(buf, "sys: breakpoint");
-	postnote(m->externup, 1, buf, NDebug);
+	postnote(up, 1, buf, NDebug);
 }
 
 static void
@@ -664,12 +664,12 @@ expected(Ureg* ureg, void* v)
 static void
 faultamd64(Ureg* ureg, void* v)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	uint64_t addr;
 	int read, user, insyscall;
 	char buf[ERRMAX];
 
-	addr = m->cr2;
+	addr = machp()->cr2;
 	user = userureg(ureg);
 	if(!user && mmukmapsync(addr))
 		return;
@@ -679,7 +679,7 @@ faultamd64(Ureg* ureg, void* v)
 	 * If not, the usual problem is causing a fault during
 	 * initialisation before the system is fully up.
 	 */
-	if(m->externup == nil){
+	if(up == nil){
 		panic("fault with up == nil; pc %#llux addr %#llux\n",
 			ureg->ip, addr);
 	}
@@ -689,8 +689,8 @@ if (read) hi("read fault\n"); else hi("write fault\n");
 hi("addr "); put64(addr); hi("\n");
  */
 
-	insyscall = m->externup->insyscall;
-	m->externup->insyscall = 1;
+	insyscall = up->insyscall;
+	up->insyscall = 1;
 	if (0)hi("call fault\n");
 
 	if(fault(addr, read) < 0){
@@ -707,18 +707,18 @@ iprint("could not fault %p\n", addr);
 		 * process resumes it may fault while in kernel mode.
 		 * No need to panic this case, post a note to the process
 		 * and unwind the error stack. There must be an error stack
-		 * (m->externup->nerrlab != 0) if this is a system call, if not then
+		 * (up->nerrlab != 0) if this is a system call, if not then
 		 * the game's a bogey.
 		 */
-		if(!user && (!insyscall || m->externup->nerrlab == 0))
+		if(!user && (!insyscall || up->nerrlab == 0))
 			panic("fault: %#llux\n", addr);
 		sprint(buf, "sys: trap: fault %s addr=%#llux",
 			read? "read": "write", addr);
-		postnote(m->externup, 1, buf, NDebug);
+		postnote(up, 1, buf, NDebug);
 		if(insyscall)
 			error(buf);
 	}
-	m->externup->insyscall = insyscall;
+	up->insyscall = insyscall;
 }
 
 /*
@@ -727,9 +727,9 @@ iprint("could not fault %p\n", addr);
 uintptr_t
 userpc(Ureg* ureg)
 {
-	Mach *m = machp();
+	Proc *up = machp()->externup;
 	if(ureg == nil)
-		ureg = m->externup->dbgreg;
+		ureg = up->dbgreg;
 	return ureg->ip;
 }
 
