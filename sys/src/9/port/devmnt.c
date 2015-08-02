@@ -786,7 +786,7 @@ mountrpc(Mnt *mnt, Mntrpc *r)
 }
 
 void
-mountio(Mnt *mnt, Mntrpc *r)
+mountiostart(Mnt *mnt, Mntrpc *r)
 {
 	Proc *up = machp()->externup;
 	int n;
@@ -817,7 +817,12 @@ mountio(Mnt *mnt, Mntrpc *r)
 		error(Emountrpc);
 	r->stime = fastticks(nil);
 	r->reqlen = n;
+}
 
+static void
+mountiofinish(Mnt *mnt, Mntrpc *r)
+{
+	Proc *up = machp()->externup;
 	/* Gate readers onto the mount point one at a time */
 	for(;;) {
 		lock(mnt);
@@ -841,6 +846,12 @@ mountio(Mnt *mnt, Mntrpc *r)
 	mntgate(mnt);
 	poperror();
 	mntflushfree(mnt, r);
+}
+
+void mountio(Mnt *mnt, Mntrpc *r)
+{
+	mountiostart(mnt, r);
+	mountiofinish(mnt, r);
 }
 
 static int
