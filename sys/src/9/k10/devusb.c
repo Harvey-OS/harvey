@@ -276,7 +276,6 @@ addhcitype(char* t, int (*r)(Hci*))
 static char*
 seprintep(char *s, char *se, Ep *ep, int all)
 {
-//	Proc *up = machp()->externup;
 	static char* dsnames[] = { "config", "enabled", "detached", "reset" };
 	Udev *d;
 	int i;
@@ -410,7 +409,6 @@ putep(Ep *ep)
 static void
 dumpeps(void)
 {
-//	Proc *up = machp()->externup;
 	int i;
 	static char buf[512];
 	char *s;
@@ -835,7 +833,6 @@ usbload(int speed, int maxpkt)
 static Chan*
 usbopen(Chan *c, int omode)
 {
-//	Proc *up = machp()->externup;
 	int q;
 	Ep *ep;
 	int mode;
@@ -892,7 +889,6 @@ usbopen(Chan *c, int omode)
 static void
 epclose(Ep *ep)
 {
-//	Proc *up = machp()->externup;
 	qlock(ep);
 	if(waserror()){
 		qunlock(ep);
@@ -909,7 +905,6 @@ epclose(Ep *ep)
 static void
 usbclose(Chan *c)
 {
-//	Proc *up = machp()->externup;
 	int q;
 	Ep *ep;
 
@@ -939,7 +934,6 @@ usbclose(Chan *c)
 static int32_t
 ctlread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-//	Proc *up = machp()->externup;
 	int q;
 	char *s;
 	char *us;
@@ -1056,7 +1050,6 @@ rhubwrite(Ep *ep, void *a, int32_t n)
 static int32_t
 usbread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-//	Proc *up = machp()->externup;
 	int q;
 	Ep *ep;
 	int nr;
@@ -1348,7 +1341,6 @@ epctl(Ep *ep, Chan *c, void *a, int32_t n)
 static int32_t
 usbctl(void *a, int32_t n)
 {
-//	Proc *up = machp()->externup;
 	Cmdtab *ct;
 	Cmdbuf *cb;
 	Ep *ep;
@@ -1388,7 +1380,6 @@ usbctl(void *a, int32_t n)
 static int32_t
 ctlwrite(Chan *c, void *a, int32_t n)
 {
-//	Proc *up = machp()->externup;
 	int q;
 	Ep *ep;
 
@@ -1420,7 +1411,6 @@ ctlwrite(Chan *c, void *a, int32_t n)
 static int32_t
 usbwrite(Chan *c, void *a, int32_t n, int64_t off)
 {
-//	Proc *up = machp()->externup;
 	int nr, q;
 	Ep *ep;
 

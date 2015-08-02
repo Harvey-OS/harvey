@@ -30,7 +30,6 @@ char *segtypes[SG_TYPE]={
 uintmem
 segppn(Segment *s, uintmem pa)
 {
-//	Proc *up = machp()->externup;
 	uintmem pgsz;
 
 	pgsz = machp()->pgsz[s->pgszi];
@@ -184,7 +183,6 @@ relocateseg(Segment *s, uintptr_t offset)
 Segment*
 dupseg(Segment **seg, int segno, int share)
 {
-//	Proc *up = machp()->externup;
 	int i, size;
 	Pte *pte;
 	Segment *n, *s;
@@ -258,7 +256,6 @@ sameseg:
 void
 segpage(Segment *s, Page *p)
 {
-//	Proc *up = machp()->externup;
 	Pte **pte;
 	uintptr_t soff;
 	uintmem pgsz;
@@ -295,7 +292,6 @@ segpage(Segment *s, Page *p)
 void
 mfreeseg(Segment *s, uintptr_t start, int pages)
 {
-//	Proc *up = machp()->externup;
 	int i, j, size;
 	uintptr_t soff;
 	uintmem pgsz;

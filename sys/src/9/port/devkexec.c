@@ -170,7 +170,6 @@ kexecopen(Chan *c, int omode)
 static void
 kexeccreate(Chan *c, char *name, int omode, int i)
 {
-//	Proc *up = machp()->externup;
 	Kexecgrp *kg;
 	Kvalue *e;
 	Kvalue **ent;

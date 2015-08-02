@@ -161,7 +161,6 @@ static Lock iprintlock;
 static int
 iprintcanlock(Lock *l)
 {
-//	Proc *up = machp()->externup;
 	int i;
 
 	for(i=0; i<1000; i++){
@@ -205,7 +204,6 @@ iprint(char *fmt, ...)
 void
 panic(char *fmt, ...)
 {
-//	Proc *up = machp()->externup;
 	int n;
 	Mpl pl;
 	va_list arg;
@@ -609,7 +607,6 @@ consread(Chan *c, void *buf, int32_t n, int64_t off)
 static int32_t
 conswrite(Chan *c, void *va, int32_t n, int64_t off)
 {
-//	Proc *up = machp()->externup;
 	char buf[256];
 	int32_t l, bp;
 	char *a;
@@ -784,7 +781,6 @@ static	uint32_t	randn;
 static void
 seedrand(void)
 {
-//	Proc *up = machp()->externup;
 	if(!waserror()){
 		randomread((void*)&randn, sizeof(randn));
 		poperror();
