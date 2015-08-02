@@ -252,7 +252,6 @@ static int
 op_add_code(struct oprofile_cpu_buffer *cpu_buf, unsigned long backtrace,
 			int is_kernel, Proc *proc)
 {
-//	Proc *up = machp()->externup;
 	//print_func_entry();
 	// Block *b; this gets some bizarre gcc set but not used error. 	Block *b;
 	struct op_entry entry;
@@ -315,7 +314,6 @@ static inline int
 op_add_sample(struct oprofile_cpu_buffer *cpu_buf,
 			  unsigned long pc, unsigned long event)
 {
-//	Proc *up = machp()->externup;
 	//print_func_entry();
 	struct op_entry entry;
 	struct op_sample *sample;
@@ -528,7 +526,6 @@ oprofile_write_reserve(struct op_entry *entry,
 		       Ureg *regs,
 		       unsigned long pc, int code, int size)
 {
-//	Proc *up = machp()->externup;
 	//print_func_entry();
 	struct op_sample *sample;
 	// Block *b; this gets some bizarre gcc set but not used error. 	Block *b;

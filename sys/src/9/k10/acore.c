@@ -57,7 +57,6 @@ ACVctl *acvctl[256];
 static void
 testiccfn(void)
 {
-//	Proc *up = machp()->externup;
 	print("called: %s\n", ( char *)machp()->icc->data);
 }
 
@@ -87,7 +86,6 @@ testicc(int i)
 static void
 acstackok(void)
 {
-//	Proc *up = machp()->externup;
 	char dummy;
 	char *sstart;
 
@@ -109,7 +107,6 @@ acstackok(void)
 void
 acsched(void)
 {
-//	Proc *up = machp()->externup;
 	acmmuswitch();
 	for(;;){
 		acstackok();
@@ -127,7 +124,6 @@ acsched(void)
 void
 acmmuswitch(void)
 {
-//	Proc *up = machp()->externup;
 	extern Page mach0pml4;
 
 	DBG("acmmuswitch mpl4 %#p mach0pml4 %#p m0pml4 %#p\n", machp()->pml4->pa, mach0pml4.pa, sys->machptr[0]->pml4->pa);
@@ -310,7 +306,6 @@ char *rolename[] =
 void
 acmodeset(int mode)
 {
-//	Proc *up = machp()->externup;
 	switch(mode){
 	case NIXAC:
 	case NIXKC:

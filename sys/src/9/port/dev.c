@@ -461,7 +461,6 @@ devcreate(Chan* c, char* d, int i, int n)
 Block*
 devbread(Chan *c, int32_t n, int64_t offset)
 {
-//	Proc *up = machp()->externup;
 	if (0) print_func_entry();
 	Block *bp;
 
@@ -481,7 +480,6 @@ devbread(Chan *c, int32_t n, int64_t offset)
 int32_t
 devbwrite(Chan *c, Block *bp, int64_t offset)
 {
-//	Proc *up = machp()->externup;
 	if (0) print_func_entry();
 	int32_t n;
 
