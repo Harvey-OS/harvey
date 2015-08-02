@@ -317,7 +317,6 @@ asmwalkalloc(usize size)
 void
 asmmeminit(void)
 {
-//	Proc *up = machp()->externup;
 	int i, l;
 	Asm* assem;
 	PTE *pte, *pml4;

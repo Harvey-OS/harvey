@@ -306,7 +306,6 @@ arpresolve(Arp *arp, Arpent *a, Medium *type, uint8_t *mac)
 void
 arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 {
-//	Proc *up = machp()->externup;
 	Arp *arp;
 	Route *r;
 	Arpent *a, *f, **l;

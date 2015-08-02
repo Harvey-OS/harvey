@@ -109,7 +109,6 @@ uint32_t
 randomread(void *xp, uint32_t n)
 {
 
-//	Proc *up = machp()->externup;
 	uint8_t *e, *p;
 	uint32_t x;
 
@@ -167,7 +166,6 @@ randomread(void *xp, uint32_t n)
 uint32_t
 urandomread(void *xp, uint32_t n)
 {
-//	Proc *up = machp()->externup;
 	uint64_t seed[16];
 	uint8_t *e, *p;
 	uint32_t x=0;

@@ -60,7 +60,6 @@ chandial(char *dest, char *local, char *dir, Chan **ctlp)
 static Chan*
 call(char *clone, char *dest, DS *ds)
 {
-//	Proc *up = machp()->externup;
 	int n;
 	Chan *dchan, *cchan;
 	char name[Maxpath], data[Maxpath], *p;

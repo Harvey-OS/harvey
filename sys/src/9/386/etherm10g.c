@@ -775,7 +775,6 @@ chkfw(Ctlr *c)
 static int
 reset(Ether *e, Ctlr *c)
 {
-//	Proc *up = machp()->externup;
 	uint32_t i, sz;
 
 	if(waserror()){
@@ -1339,7 +1338,6 @@ m10ginterrupt(Ureg *ureg, void *v)
 static void
 m10gattach(Ether *e)
 {
-//	Proc *up = machp()->externup;
 	Ctlr *c;
 	char name[12];
 
@@ -1499,7 +1497,6 @@ static Cmdtab ctab[] = {
 static int32_t
 m10gctl(Ether *e, void *v, int32_t n)
 {
-//	Proc *up = machp()->externup;
 	int i;
 	Cmdbuf *c;
 	Cmdtab *t;
