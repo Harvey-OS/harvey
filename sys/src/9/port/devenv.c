@@ -150,7 +150,7 @@ envopen(Chan *c, int omode)
 static void
 envcreate(Chan *c, char *name, int omode, int i)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Egrp *eg;
 	Evalue *e;
 	Evalue **ent;
@@ -413,7 +413,7 @@ ksetenv(char *ename, char *eval, int conf)
 char *
 getconfenv(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Egrp *eg = &confegrp;
 	Evalue *e;
 	char *p, *q;

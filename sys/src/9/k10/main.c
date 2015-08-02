@@ -222,7 +222,7 @@ testiccs(void)
 static void
 nixsquids(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Mach *mach;
 	int i;
 	uint64_t now, start;
@@ -351,7 +351,7 @@ void put64(uint64_t v)
 
 void debugtouser(void *va)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	uintptr_t uva = (uintptr_t) va;
 	PTE *pte, *pml4;
 
@@ -755,7 +755,7 @@ confinit(void)
 static void
 shutdown(int ispanic)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int ms, once;
 
 	lock(&active);

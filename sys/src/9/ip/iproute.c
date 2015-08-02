@@ -818,7 +818,7 @@ printroute(Route *r)
 int32_t
 routewrite(Fs *f, Chan *c, char *p, int n)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int h, changed;
 	char *tag;
 	Cmdbuf *cb;

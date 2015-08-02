@@ -133,7 +133,7 @@ static char *nbmsg = "nonblocking";
 static void
 etherbind(Ipifc *ifc, int argc, char **argv)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Chan *mchan4, *cchan4, *achan, *mchan6, *cchan6, *schan;
 	char addr[Maxpath];	//char addr[2*KNAMELEN];
 	char dir[Maxpath];	//char dir[2*KNAMELEN];

@@ -119,7 +119,7 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 void
 idlehands(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	if(machp()->nixtype != NIXAC)
  		halt();
 }

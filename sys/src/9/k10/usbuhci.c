@@ -1009,7 +1009,7 @@ putsamples(Isoio *iso, unsigned char *b, int32_t count)
 static int32_t
 episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 	unsigned char *b;
 	int tot;
@@ -1077,7 +1077,7 @@ episowrite(Ep *ep, Isoio *iso, void *a, int32_t count)
 static int32_t
 episoread(Ep *ep, Isoio *iso, void *a, int count)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 	unsigned char *b;
 	int nr;
@@ -1268,7 +1268,7 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, uint32_t load)
 static int32_t
 epio(Ep *ep, Qio *io, void *a, int32_t count, int mustlock)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Td *td, *ltd, *td0, *ntd;
 	Ctlr *ctlr;
 	Qh* qh;
@@ -1497,7 +1497,7 @@ epread(Ep *ep, void *a, int32_t count)
 static int32_t
 epctlio(Ep *ep, Ctlio *cio, void *a, int32_t count)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	unsigned char *c;
 	int32_t len;
 
@@ -1728,7 +1728,7 @@ isoopen(Ep *ep)
 static void
 epopen(Ep *ep)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Ctlr *ctlr;
 	Qh *cqh;
 	Qio *io;
@@ -2046,7 +2046,7 @@ portreset(Hci *hp, int port, int on)
 static int
 portstatus(Hci *hp, int port)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int s;
 	int r;
 	int ioport;

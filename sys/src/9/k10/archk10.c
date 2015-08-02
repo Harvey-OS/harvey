@@ -19,7 +19,7 @@
 static int
 cpuidinit(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	uint32_t eax, info[4];
 
 	/*
@@ -53,7 +53,7 @@ cpuidinit(void)
 static int
 cpuidinfo(uint32_t eax, uint32_t ecx, uint32_t info[4])
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	if(machp()->ncpuinfos == 0 && cpuidinit() == 0)
 		return 0;
 
@@ -231,7 +231,7 @@ cpuidhz(uint32_t *info0, uint32_t *info1)
 void
 cpuiddump(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int i;
 	uint32_t info[4];
 
@@ -256,7 +256,7 @@ cpuiddump(void)
 int64_t
 archhz(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int64_t hz;
 	uint32_t info0[4], info1[4];
 
@@ -281,7 +281,7 @@ archhz(void)
 int
 archmmu(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	uint32_t info[4];
 
 	/*
@@ -406,7 +406,7 @@ archidle(void)
 void
 microdelay(int microsecs)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	uint64_t r, t;
 
 	r = rdtsc();
@@ -417,7 +417,7 @@ microdelay(int microsecs)
 void
 millidelay(int millisecs)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	uint64_t r, t;
 
 	r = rdtsc();
