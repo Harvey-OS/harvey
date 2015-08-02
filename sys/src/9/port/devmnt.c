@@ -785,21 +785,10 @@ mountrpc(Mnt *mnt, Mntrpc *r)
 	}
 }
 
-void
-mountio(Mnt *mnt, Mntrpc *r)
+static void
+xmitrpc(Mnt *mnt, Mntrpc *r)
 {
-	Proc *up = machp()->externup;
 	int n;
-
-	while(waserror()) {
-		if(mnt->rip == up)
-			mntgate(mnt);
-		if(strcmp(up->errstr, Eintr) != 0){
-			mntflushfree(mnt, r);
-			nexterror();
-		}
-		r = mntflushalloc(r, mnt->msize);
-	}
 
 	lock(mnt);
 	r->m = mnt;
@@ -817,6 +806,46 @@ mountio(Mnt *mnt, Mntrpc *r)
 		error(Emountrpc);
 	r->stime = fastticks(nil);
 	r->reqlen = n;
+}
+
+/* The intent of all this is that we want to be able to batch out the T
+ * messages and then gather up the R messages. I've done this befoer with
+ * 9p but the corner cases for error handled are very, very trick.
+ */
+void
+mountiostart(Mnt *mnt, Mntrpc *r)
+{
+	Proc *up = machp()->externup;
+
+	while(waserror()) {
+		if(strcmp(up->errstr, Eintr) != 0){
+			mntflushfree(mnt, r);
+			nexterror();
+		}
+		r = mntflushalloc(r, mnt->msize);
+	}
+
+	xmitrpc(mnt, r);
+	poperror();
+}
+
+/* this is so close to the original mount, maybe we should just have a parameter to tell
+ * it not to wait for replies?
+ */
+static void
+mountiofinish(Mnt *mnt, Mntrpc *r)
+{
+	Proc *up = machp()->externup;
+	while(waserror()) {
+		if(mnt->rip == up)
+			mntgate(mnt);
+		if(strcmp(up->errstr, Eintr) != 0){
+			mntflushfree(mnt, r);
+			nexterror();
+		}
+		r = mntflushalloc(r, mnt->msize);
+		xmitrpc(mnt, r);
+	}
 
 	/* Gate readers onto the mount point one at a time */
 	for(;;) {
@@ -841,6 +870,12 @@ mountio(Mnt *mnt, Mntrpc *r)
 	mntgate(mnt);
 	poperror();
 	mntflushfree(mnt, r);
+}
+
+void mountio(Mnt *mnt, Mntrpc *r)
+{
+	mountiostart(mnt, r);
+	mountiofinish(mnt, r);
 }
 
 static int
