@@ -276,15 +276,13 @@ hzsched(void)
 {
 	Proc *up = machp()->externup;
 	/* once a second, rebalance will reprioritize ready procs */
-	if(machp()->machno == 0){
+	if(machp()->machno == 0)
 		rebalance();
-		return;
-	}
 
 	/* with <= 4 cores, we use SMP and core 0 does not set qexpired for us */
-	if(sys->nmach <= AMPmincores)
-		if(machp()->ticks - machp()->qstart >= HZ/10)
-			machp()->qexpired = 1;
+	//if(sys->nmach <= AMPmincores)
+	if(machp()->ticks - machp()->qstart >= HZ/100)
+		machp()->qexpired = 1;
 
 	/* unless preempted, get to run */
 	if(machp()->qexpired && anyready())
