@@ -25,9 +25,6 @@ static char EBigPacket[] = "packet too long";
 static char ENullString[] = "missing string";
 static char EBadVersion[] = "bad format in version string";
 
-static Packet *vtRPC(VtSession *z, int op, Packet *p);
-
-
 VtSession *
 vtAlloc(void)
 {

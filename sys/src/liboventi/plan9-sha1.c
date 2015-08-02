@@ -12,7 +12,6 @@
 #include <oventi.h>
 #include <libsec.h>
 
-static void encode(uint8_t*, uint32_t*, uint32_t);
 extern void vtSha1Block(uint32_t *s, uint8_t *p, uint32_t len);
 
 struct VtSha1

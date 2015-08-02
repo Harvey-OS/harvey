@@ -167,7 +167,7 @@ vtThreadInit(void)
 		unlock(&lk);
 		return;
 	}
-	vtRock = privalloc();
+	vtRock = (Thread **)privalloc();
 	if(vtRock == nil)
 		vtFatal("can't allocate thread-private storage");
 	unlock(&lk);
