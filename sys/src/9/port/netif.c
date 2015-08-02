@@ -313,7 +313,7 @@ typeinuse(Netif *nif, int type)
 int32_t
 netifwrite(Netif *nif, Chan *c, void *a, int32_t n)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Netfile *f;
 	int type, mtu;
 	char *p, buf[64];

@@ -40,7 +40,7 @@ Pgalloc pga;		/* new allocator */
 char*
 seprintpagestats(char *s, char *e)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int i;
 
 	lock(&pga);
@@ -61,7 +61,7 @@ seprintpagestats(char *s, char *e)
 void
 pageinit(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int si, i, color;
 	Page *pg;
 
@@ -96,7 +96,7 @@ pageinit(void)
 int
 getpgszi(usize size)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int si;
 
 	for(si = 0; si < machp()->npgsz; si++)
@@ -132,7 +132,7 @@ pgalloc(usize size, int color)
 void
 pgfree(Page* pg)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	decref(&pga.pgsza[pg->pgszi].npages);
 	physfree(pg->pa, machp()->pgsz[pg->pgszi]);
 	free(pg);
@@ -217,7 +217,7 @@ int trip;
 Page*
 newpage(int clear, Segment **s, uintptr_t va, usize size, int color)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Page *p;
 	KMap *k;
 	uint8_t ct;
@@ -497,7 +497,7 @@ retry:
 void
 copypage(Page *f, Page *t)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	KMap *ks, *kd;
 
 	if(f->pgszi != t->pgszi || t->pgszi < 0)

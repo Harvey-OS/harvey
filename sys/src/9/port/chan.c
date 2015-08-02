@@ -387,7 +387,7 @@ chanfree(Chan *c)
 void
 cclose(Chan *c)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	if(c->flag&CFREE)
 		panic("cclose %#p", getcallerpc(&c));
 
@@ -452,7 +452,7 @@ clunkwork(void* v)
 static void
 closeproc(void* v)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Chan *c;
 
 	for(;;){
@@ -854,7 +854,7 @@ undomount(Chan *c, Path *path)
 static Walkqid*
 ewalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Walkqid *wq;
 
 	if(waserror())
@@ -1048,7 +1048,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 Chan*
 createdir(Chan *c, Mhead *mh)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Chan *nc;
 	Mount *f;
 

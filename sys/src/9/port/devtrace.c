@@ -514,7 +514,7 @@ traceclose(Chan *c)
 static int32_t
 traceread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	char *buf;
 	char *cp = a;
 	struct Tracelog *pl;
@@ -666,7 +666,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 static int32_t
 tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	char *tok[6]; //changed this so "tracein" works with the new 4th arg
 	char *ep, *s = nil;
 	Trace *p, **pp, *foo;

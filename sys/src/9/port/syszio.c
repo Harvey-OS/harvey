@@ -269,7 +269,7 @@ readzio(Kzio *io, int nio, void *a, int32_t count)
 int
 devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Segment *s;
 
 	DBG("devzread %#p[%d]\n", io, nio);
@@ -294,7 +294,7 @@ devzread(Chan *c, Kzio io[], int nio, usize tot, int64_t offset)
 int
 devzwrite(Chan *c, Kzio io[], int nio, int64_t offset)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int i, j;
 	int32_t tot;
 	Block *bp;
@@ -582,7 +582,7 @@ newzmap(Segment *s)
 static void
 zmapfree(ZMap* rmap, uintptr_t addr)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Map *mp, *prev, *next;
 
 	lock(rmap);
@@ -624,7 +624,7 @@ zmapfree(ZMap* rmap, uintptr_t addr)
 static uintptr_t
 zmapalloc(ZMap* rmap, usize size)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Map *mp, *nmp;
 
 	lock(rmap);

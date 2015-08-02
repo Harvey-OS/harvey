@@ -185,7 +185,7 @@ rtctime(void)
 static int32_t
 rtcread(Chan* c, void* buf, int32_t n, int64_t off)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	uint32_t t;
 	char *a, *start;
 	uint32_t offset = off;
@@ -233,7 +233,7 @@ rtcread(Chan* c, void* buf, int32_t n, int64_t off)
 static int32_t
 rtcwrite(Chan* c, void* buf, int32_t n, int64_t off)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int t;
 	char *a, *start;
 	Rtc rtc;

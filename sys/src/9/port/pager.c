@@ -91,7 +91,7 @@ canflush(Proc *p, Segment *s)
 static int
 pageout(Proc *p, Segment *s)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int i, size, n;
 	Pte *l;
 	Page **pg, *entry;
@@ -225,7 +225,7 @@ freepages(int si, int once)
 static int
 tryalloc(int pgszi, int color)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Page *p;
 
 	p = pgalloc(machp()->pgsz[pgszi], color);

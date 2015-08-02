@@ -1706,14 +1706,12 @@ flushcache(Drive *d)
 static int
 iariopkt(SDreq *r, Drive *d)
 {
-	Mach *m;
 	int n, count, try, max, flag, task, wormwrite;
 	char *name;
 	unsigned char *cmd, *data;
 	Aport *p;
 	Asleep as;
 
-	m = machp();
 	cmd = r->cmd;
 	name = d->unit->name;
 	p = d->port;
@@ -1825,7 +1823,6 @@ retry:
 static int
 iario(SDreq *r)
 {
-	Mach *m;
 	int i, n, count, try, max, flag, task;
 	int64_t lba;
 	char *name;
@@ -1836,7 +1833,6 @@ iario(SDreq *r)
 	Drive *d;
 	SDunit *unit;
 
-	m = machp();
 	unit = r->unit;
 	c = unit->dev->ctlr;
 	d = c->drive[unit->subno];
@@ -2227,9 +2223,6 @@ forcemode(Drive *d, char *mode)
 static void
 runsmartable(Drive *d, int i)
 {
-	Mach *m;
-
-	m = machp();
 	if(waserror()){
 		qunlock(&d->portm);
 		d->smartrs = 0;
@@ -2277,13 +2270,11 @@ changemedia(SDunit *u)
 static int
 iawctl(SDunit *u, Cmdbuf *cmd)
 {
-	Mach *m;
 	char **f;
 	Ctlr *c;
 	Drive *d;
 	uint i;
 
-	m = machp();
 	c = u->dev->ctlr;
 	d = c->drive[u->subno];
 	f = cmd->f;
