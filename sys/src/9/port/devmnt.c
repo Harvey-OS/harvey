@@ -107,7 +107,7 @@ mntreset(void)
 usize
 mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Fcall f;
 	uint8_t *msg;
 	Mnt *mnt;
@@ -393,7 +393,7 @@ mntchan(void)
 static Walkqid*
 mntwalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int i, alloc;
 	Mnt *mnt;
 	Mntrpc *r;
@@ -477,7 +477,7 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 static int32_t
 mntstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Mnt *mnt;
 	Mntrpc *r;
 	usize nstat;
@@ -512,7 +512,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 static Chan*
 mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -562,7 +562,7 @@ mntcreate(Chan *c, char *name, int omode, int perm)
 static void
 mntclunk(Chan *c, int t)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -633,7 +633,7 @@ mntremove(Chan *c)
 static int32_t
 mntwstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Mnt *mnt;
 	Mntrpc *r;
 

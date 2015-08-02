@@ -673,13 +673,11 @@ sdstat(Chan* c, uint8_t* db, int32_t n)
 static Chan*
 sdopen(Chan* c, int omode)
 {
-	Mach *m;
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
 	uint8_t tp;
 
-	m = machp();
 	c = devopen(c, omode, 0, 0, sdgen);
 	if((tp = TYPE(c->qid)) != Qctl && tp != Qraw && tp != Qpart)
 		return c;
@@ -875,10 +873,8 @@ sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 static int32_t
 sdrio(SDreq* r, void* a, int32_t n)
 {
-	Mach *m;
 	void *data;
 
-	m = machp();
 	if(n >= SDmaxio || n < 0)
 		error(Etoobig);
 
@@ -1105,7 +1101,6 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 static int32_t
 sdread(Chan *c, void *a, int32_t n, int64_t off)
 {
-	Mach *m;
 	char *p, *e, *buf;
 	SDpart *pp;
 	SDunit *unit;
@@ -1113,7 +1108,6 @@ sdread(Chan *c, void *a, int32_t n, int64_t off)
 	int32_t offset;
 	int i, l, mm, status;
 
-	m = machp();
 	offset = off;
 	switch(TYPE(c->qid)){
 	default:
@@ -1220,7 +1214,6 @@ static void legacytopctl(Cmdbuf*);
 static int32_t
 sdwrite(Chan* c, void* a, int32_t n, int64_t off)
 {
-	Mach *m;
 	char *f0;
 	int i;
 	uint64_t end, start;
@@ -1230,7 +1223,6 @@ sdwrite(Chan* c, void* a, int32_t n, int64_t off)
 	SDunit *unit;
 	SDev *sdev;
 
-	m = machp();
 	switch(TYPE(c->qid)){
 	default:
 		error(Eperm);

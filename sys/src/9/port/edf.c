@@ -508,7 +508,7 @@ edfyield(void)
 int
 edfready(Proc *p)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Edf *e;
 	Sched *sch;
 	Schedq *rq;

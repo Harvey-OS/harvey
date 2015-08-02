@@ -78,7 +78,7 @@ kprofattach(char *spec)
 static void
 _kproftimer(uintptr_t pc)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	if(kprof.time == 0)
 		return;
 

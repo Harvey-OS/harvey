@@ -599,7 +599,7 @@ yield(void)
 static void
 rebalance(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Mpl pl;
 	int pri, npri, t;
 	Schedq *rq;
@@ -690,7 +690,7 @@ preemptfor(Proc *p)
 static void
 mach0sched(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Schedq *rq;
 	Proc *p;
 	Mach *mp;
@@ -779,7 +779,7 @@ found:
 static Proc*
 smprunproc(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Schedq *rq;
 	Proc *p;
 	uint32_t start, now;
@@ -843,7 +843,7 @@ found:
 static Proc*
 singlerunproc(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Schedq *rq;
 	Proc *p;
 	uint32_t start, now, skipscheds;
@@ -939,7 +939,7 @@ found:
 Proc*
 runproc(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Schedq *rq;
 	Proc *p;
 	uint32_t start, now;
@@ -1725,7 +1725,7 @@ procdump(void)
 void
 procflushseg(Segment *s)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int i, ns, nm, nwait;
 	Proc *p;
 	Mach *mp;
@@ -1775,7 +1775,7 @@ procflushseg(Segment *s)
 void
 scheddump(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Proc *p;
 	Schedq *rq;
 
@@ -2019,7 +2019,7 @@ renameuser(char *old, char *new)
 void
 accounttime(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Proc *p;
 	uint32_t n, per;
 
