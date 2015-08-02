@@ -32,7 +32,6 @@ iseve(void)
 void
 sysfversion(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	Chan *c;
 	char *version;
 	int fd;
@@ -95,7 +94,6 @@ sys_fsession(Ar0* ar0, ...)
 void
 sysfauth(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	Chan *c, *ac;
 	char *aname;
 	int fd;

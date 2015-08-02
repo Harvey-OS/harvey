@@ -117,7 +117,6 @@ putgseg(Globalseg *g)
 static int
 segmentgen(Chan *c, char* d, Dirtab* dir, int i, int s, Dir *dp)
 {
-//	Proc *up = machp()->externup;
 	Qid q;
 	Globalseg *g;
 	uint32_t size;
@@ -232,7 +231,6 @@ cmddone(void *arg)
 static Chan*
 segmentopen(Chan *c, int omode)
 {
-//	Proc *up = machp()->externup;
 	Globalseg *g;
 
 	switch(TYPE(c)){
@@ -387,7 +385,6 @@ znotempty(void *x)
 static int32_t
 segmentread(Chan *c, void *a, int32_t n, int64_t voff)
 {
-//	Proc *up = machp()->externup;
 	Globalseg *g;
 	Zseg *zs;
 	uintptr_t va;
@@ -497,7 +494,6 @@ placeseg(uintptr_t len)
 static int32_t
 segmentwrite(Chan *c, void *a, int32_t n, int64_t voff)
 {
-//	Proc *up = machp()->externup;
 	Cmdbuf *cb;
 	Globalseg *g;
 	uintptr_t va, len, top;
@@ -656,7 +652,6 @@ segmentremove(Chan *c)
 static Segment*
 globalsegattach(Proc *p, char *name)
 {
-//	Proc *up = machp()->externup;
 	int x;
 	Globalseg *g;
 	Segment *s;
@@ -692,7 +687,6 @@ globalsegattach(Proc *p, char *name)
 static void
 docmd(Globalseg *g, int cmd)
 {
-//	Proc *up = machp()->externup;
 	g->err[0] = 0;
 	g->cmd = cmd;
 	wakeup(&g->cmdwait);

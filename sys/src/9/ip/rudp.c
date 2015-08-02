@@ -345,7 +345,6 @@ flow(void *v)
 void
 rudpkick(void *x)
 {
-//	Proc *up = machp()->externup;
 	Conv *c = x;
 	Udphdr *uh;
 	uint16_t rport;

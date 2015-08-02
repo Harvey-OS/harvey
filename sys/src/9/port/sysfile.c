@@ -213,7 +213,6 @@ sysfd2path(Ar0* ar0, ...)
 void
 syspipe(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	int *a, fd[2];
 	Chan *c[2];
 	static char *datastr[] = {"data", "data1"};
@@ -309,7 +308,6 @@ sysdup(Ar0* ar0, ...)
 void
 sysopen(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	va_list list;
 	char *aname;
 	int fd, omode;
@@ -405,7 +403,6 @@ sysclose(Ar0* ar0, ...)
 static int32_t
 unionread(Chan *c, void *va, int32_t n)
 {
-//	Proc *up = machp()->externup;
 	int i;
 	int32_t nr;
 	Mhead *mh;
@@ -628,7 +625,6 @@ mountrewind(Chan *c)
 static int32_t
 mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 {
-//	Proc *up = machp()->externup;
 	char *name;
 	int nbuf;
 	Chan *nc;
@@ -720,7 +716,6 @@ mountfix(Chan *c, uint8_t *op, int32_t n, int32_t maxn)
 static int32_t
 read(int ispread, int fd, void *p, int32_t n, int64_t off)
 {
-//	Proc *up = machp()->externup;
 	int32_t nn, nnn;
 	Chan *c;
 
@@ -837,7 +832,6 @@ syspread(Ar0* ar0, ...)
 static int32_t
 write(int fd, void *p, int32_t n, int64_t off, int ispwrite)
 {
-//	Proc *up = machp()->externup;
 	int32_t r;
 	Chan *c;
 
@@ -917,7 +911,6 @@ syspwrite(Ar0* ar0, ...)
 static int64_t
 sseek(int fd, int64_t offset, int whence)
 {
-//	Proc *up = machp()->externup;
 	Chan *c;
 	uint8_t buf[sizeof(Dir)+100];
 	Dir dir;
@@ -1063,7 +1056,6 @@ pathlast(Path *p)
 void
 sysfstat(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	int fd;
 	Chan *c;
 	usize n;
@@ -1100,7 +1092,6 @@ sysfstat(Ar0* ar0, ...)
 void
 sysstat(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	char *aname;
 	Chan *c;
 	usize n;
@@ -1349,7 +1340,6 @@ sys_mount(Ar0* ar0, ...)
 void
 sysunmount(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	char *name, *old;
 	Chan *cmount, *cmounted;
 	va_list list;
@@ -1399,7 +1389,6 @@ sysunmount(Ar0* ar0, ...)
 void
 syscreate(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	char *aname;
 	int fd, omode, perm;
 	Chan *c;
@@ -1435,7 +1424,6 @@ syscreate(Ar0* ar0, ...)
 void
 sysremove(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	Chan *c;
 	char *aname;
 	va_list list;
@@ -1478,7 +1466,6 @@ Not sure this dicking around is right for Dev ref counts.
 static int32_t
 wstat(Chan* c, uint8_t* p, usize n)
 {
-//	Proc *up = machp()->externup;
 	int32_t l;
 	usize namelen;
 
@@ -1598,7 +1585,6 @@ packoldstat(uint8_t *buf, Dir *d)
 void
 sys_stat(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	Chan *c;
 	int32_t l;
 	uint8_t buf[128], *p;
@@ -1656,7 +1642,6 @@ sys_stat(Ar0* ar0, ...)
 void
 sys_fstat(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	Chan *c;
 	char *name;
 	int32_t l;

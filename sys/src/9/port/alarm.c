@@ -19,7 +19,6 @@ static Rendez	alarmr;
 void
 alarmkproc(void* v)
 {
-//	Proc *up = machp()->externup;
 	Proc *rp;
 	uint32_t now;
 

@@ -515,7 +515,6 @@ acfpunm(Ureg *ureg, void *p)
 void
 fpuinit(void)
 {
-//	Proc *up = machp()->externup;
 	uint64_t r;
 	Fxsave *fxsave;
 	uint8_t buf[sizeof(Fxsave)+15];

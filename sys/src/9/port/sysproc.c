@@ -771,7 +771,6 @@ sysalarm(Ar0* ar0, ...)
 void
 sysexits(Ar0* ar0, ...)
 {
-//	Proc *up = machp()->externup;
 	char *status;
 	char *inval = "invalid exit string";
 	char buf[ERRMAX];
@@ -1205,7 +1204,6 @@ semawoke(void* p)
 static int
 semacquire(Segment* s, int* addr, int block)
 {
-//	Proc *up = machp()->externup;
 	int acquired;
 	Sema phore;
 
@@ -1242,7 +1240,6 @@ semacquire(Segment* s, int* addr, int block)
 static int
 tsemacquire(Segment* s, int* addr, int32_t ms)
 {
-//	Proc *up = machp()->externup;
 	int acquired;
 	uint32_t t;
 	Sema phore;

@@ -281,7 +281,6 @@ pmcwclose(PmcWait *w)
 static void
 waitnotstale(Mach *mp, PmcCtr *p)
 {
-//	Proc *up = machp()->externup;
 	PmcWait *w;
 
 	p->stale = 1;
@@ -329,7 +328,6 @@ shouldipi(Mach *mp)
 uint64_t
 pmcgetctr(uint32_t coreno, uint32_t regno)
 {
-//	Proc *up = machp()->externup;
 	PmcCtr *p;
 	Mach *mp;
 	uint64_t v;
@@ -361,7 +359,6 @@ pmcgetctr(uint32_t coreno, uint32_t regno)
 int
 pmcsetctr(uint32_t coreno, uint64_t v, uint32_t regno)
 {
-//	Proc *up = machp()->externup;
 	PmcCtr *p;
 	Mach *mp;
 
@@ -405,7 +402,6 @@ ctl2ctl(PmcCtl *dctl, PmcCtl *sctl)
 int
 pmcsetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 {
-//	Proc *up = machp()->externup;
 	PmcCtr *p;
 	Mach *mp;
 
@@ -427,7 +423,6 @@ pmcsetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 int
 pmcgetctl(uint32_t coreno, PmcCtl *pctl, uint32_t regno)
 {
-//	Proc *up = machp()->externup;
 	PmcCtr *p;
 	Mach *mp;
 
