@@ -31,7 +31,7 @@ extern void acsysret(void);
 Mach*
 getac(Proc *p, int core)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int i;
 	Mach *mp;
 

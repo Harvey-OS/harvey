@@ -113,7 +113,7 @@ tdel(Timer *dt)
 void
 timeradd(Timer *nt)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Timers *tt;
 	int64_t when;
 
@@ -137,7 +137,7 @@ timeradd(Timer *nt)
 void
 timerdel(Timer *dt)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Timers *tt;
 	int64_t when;
 
@@ -196,7 +196,7 @@ hzclock(Ureg *ur)
 void
 timerintr(Ureg *u, int64_t j)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Timer *t;
 	Timers *tt;
 	int64_t when, now;

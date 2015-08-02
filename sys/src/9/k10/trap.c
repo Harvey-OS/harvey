@@ -341,7 +341,7 @@ kstackok(void)
 void
 _trap(Ureg *ureg)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 
 	/*
 	 * If it's a real trap in this core, then we want to
@@ -544,7 +544,7 @@ dumpgpr(Ureg* ureg)
 void
 dumpregs(Ureg* ureg)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 
 	dumpgpr(ureg);
 

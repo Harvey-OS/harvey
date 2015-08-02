@@ -317,7 +317,7 @@ static Lock tlck;
 static void
 _proctrace(Proc* p, int etype, int64_t ts)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Traceevent *te;
 	int tp;
 
@@ -662,7 +662,7 @@ procfdprint(Chan *c, int fd, int w, char *s, int ns)
 static int
 procfds(Proc *p, char *va, int count, int32_t offset)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Fgrp *f;
 	Chan *c;
 	char buf[256];
@@ -1253,7 +1253,7 @@ mntscan(Mntwalk *mw, Proc *p)
 static int32_t
 procwrite(Chan *c, void *va, int32_t n, int64_t off)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Proc *p, *t;
 	int i, id, l;
 	char *args, buf[ERRMAX];
@@ -1423,7 +1423,7 @@ Dev procdevtab = {
 static Chan*
 proctext(Chan *c, Proc *p)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Chan *tc;
 	Image *i;
 	Segment *s;
@@ -1789,7 +1789,7 @@ procstopped(void *a)
 static int
 procctlmemio(Proc *p, uintptr_t offset, int n, void *va, int read)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	KMap *k;
 	Pte *pte;
 	Page *pg;

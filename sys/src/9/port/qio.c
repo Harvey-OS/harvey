@@ -1033,7 +1033,7 @@ qwakeup_iunlock(Queue *q)
 Block*
 qbread(Queue *q, int len)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Block *b, *nb;
 	int n;
 
@@ -1089,7 +1089,7 @@ qbread(Queue *q, int len)
 int32_t
 qread(Queue *q, void *vp, int len)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Block *b, *first, **l;
 	int blen, n;
 
@@ -1185,7 +1185,7 @@ uint32_t noblockcnt;
 int32_t
 qbwrite(Queue *q, Block *b)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int n, dowakeup;
 
 	n = BLEN(b);

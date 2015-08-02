@@ -118,7 +118,7 @@ apicisr(int vecno)
 void
 apicinit(int apicno, uintmem pa, int isbp)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Apic *apic;
 
 	/*
@@ -198,7 +198,7 @@ apictimer(Ureg* ureg, void* v)
 int
 apiconline(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Apic *apic;
 	uint64_t tsc;
 	uint32_t dfr, ver;
@@ -352,7 +352,7 @@ apictimerenab(void)
 void
 apictimerset(uint64_t next)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Mpl pl;
 	Apic *apic;
 	int64_t period;

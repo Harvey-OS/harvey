@@ -31,7 +31,7 @@
 void
 mmuflushtlb(uint64_t u)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 
 	machp()->tlbpurge++;
 	if(machp()->pml4->daddr){
@@ -56,7 +56,7 @@ mmuflush(void)
 static void
 mmuptpfree(Proc* proc, int clear)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int l;
 	PTE *pte;
 	Page **last, *page;
@@ -117,7 +117,7 @@ dumpptepg(int lvl, uintptr_t pa)
 void
 dumpmmu(Proc *p)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int i;
 	Page *pg;
 
@@ -136,7 +136,7 @@ dumpmmu(Proc *p)
 void
 dumpmmuwalk(uint64_t addr)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int l;
 	PTE *pte, *pml4;
 
@@ -206,7 +206,7 @@ mmuptpalloc(void)
 void
 mmuswitch(Proc* proc)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	PTE *pte;
 	Page *page;
 	Mpl pl;
@@ -243,7 +243,7 @@ mmuswitch(Proc* proc)
 void
 mmurelease(Proc* proc)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	Page *page, *next;
 
 	mmuptpfree(proc, 0);
@@ -270,7 +270,7 @@ mmurelease(Proc* proc)
 static void
 checkpte(uintmem ppn, void *a)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int l;
 	PTE *pte, *pml4;
 	uint64_t addr;
@@ -315,7 +315,7 @@ Panic:
 static void
 mmuptpcheck(Proc *proc)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int lvl, npgs, i;
 	Page *lp, *p, *pgs[16], *fp;
 	uint idx[16];
@@ -649,7 +649,7 @@ vmapalloc(usize size)
 void*
 vmap(uintptr_t pa, usize size)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	uintptr_t va;
 	usize o, sz;
 
@@ -702,7 +702,7 @@ vmap(uintptr_t pa, usize size)
 void
 vunmap(void* v, usize size)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	uintptr_t va;
 
 	DBG("vunmap(%#p, %lud)\n", v, size);
@@ -729,7 +729,7 @@ int
 mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 	uint64_t (*alloc)(usize))
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int l;
 	uintmem pa;
 	PTE *pte;
@@ -765,7 +765,7 @@ mmuwalk(PTE* pml4, uintptr_t va, int level, PTE** ret,
 uintmem
 mmuphysaddr(uintptr_t va)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	int l;
 	PTE *pte;
 	uintmem mask, pa;
@@ -794,7 +794,7 @@ Page mach0pml4;
 void
 mmuinit(void)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	uint8_t *p;
 	Page *page;
 	uint64_t o, pa, r, sz;

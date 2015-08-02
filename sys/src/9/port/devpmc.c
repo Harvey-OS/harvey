@@ -216,7 +216,7 @@ pmcclose(Chan *c)
 static int32_t
 pmcread(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	Proc *up = machp()->externup;
+//	Proc *up = machp()->externup;
 	uint32_t type, id;
 	PmcCtl p;
 	char *s;
