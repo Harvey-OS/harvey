@@ -6,8 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 	"math"
+	"os"
 )
 
 const LRES = 3
@@ -46,7 +46,7 @@ func main() {
 		// array and ONE data array. So it's a matter of creating
 		// a virtual memory space with an assumed starting point of
 		// 0x200000, and filling it. We just grow that as needed.
-		
+
 		curstart := v.Vaddr
 		curend := v.Vaddr + v.Memsz
 		// magic numbers, BAH!
@@ -72,9 +72,9 @@ func main() {
 		os.Exit(1)
 	}
 	// maybe we should stop doing LRES ...
-	symname := make([]string, codeend - codestart)
+	symname := make([]string, codeend-codestart)
 	for i := range symname {
-		symname[i] = fmt.Sprintf("[0x%x]", codestart + uint64(i))
+		symname[i] = fmt.Sprintf("[0x%x]", codestart+uint64(i))
 	}
 	for _, v := range s {
 		vstart := v.Value
@@ -82,7 +82,7 @@ func main() {
 		if v.Value > codeend {
 			continue
 		}
-		if v.Value + v.Size < codestart {
+		if v.Value+v.Size < codestart {
 			continue
 		}
 		if vstart < codestart {
@@ -90,7 +90,7 @@ func main() {
 		}
 		if vend > codeend {
 			vend = codeend
-		} 
+		}
 		for i := vstart; i < vend; i++ {
 			symname[i-codestart] = v.Name
 		}
