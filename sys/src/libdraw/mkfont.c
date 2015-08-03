@@ -55,7 +55,7 @@ mkfont(Subfont *subfont, Rune min)
 	c->min = min;
 	c->max = min+subfont->n-1;
 	c->offset = 0;
-	c->name = 0;	/* noticed by freeup() and agefont() */
+	c->name = 0;	/* noticed by agefont() */
 	c->subfontname = 0;
 	font->subf[0].age = 0;
 	font->subf[0].cf = c;
