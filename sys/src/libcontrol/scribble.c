@@ -67,7 +67,6 @@ static void	scribshow(Scrib*);
 static void scribchar(Scrib*, Rune);
 
 static void	resetstroke(Scrib *w);
-static void	displaystroke(Scrib *w);
 static void	displaylast(Scrib *w);
 static void	addpoint(Scrib *w, Point p);
 
@@ -254,15 +253,6 @@ resetstroke(Scrib *w)
 
 	s->ps.npts = 0;
 	scribshow(w);
-}
-
-static void
-displaystroke(Scrib *b)
-{
-	Scribble *s = b->scrib;
-
-	poly(b->screen, s->pt, s->ps.npts, Endsquare, Endsquare, 0, b->color->image, ZP);
-	flushimage(display, 1);
 }
 
 static void

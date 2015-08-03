@@ -55,7 +55,6 @@ static char *cmds[] = {
 };
 
 static void	radioshow(Radio*);
-static void	radiofree(Radio*);
 
 static void
 radiomouse(Control *c, Mouse *m)
@@ -69,11 +68,6 @@ radiomouse(Control *c, Mouse *m)
 			(r->buttons[i]->mouse)(r->buttons[i], m);
 			break;
 		}
-}
-
-static void
-radiofree(Radio* r)
-{
 }
 
 static void
