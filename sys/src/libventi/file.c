@@ -512,7 +512,6 @@ blockwalk(VtBlock *p, int index, VtCache *c, int mode, VtEntry *e)
 	VtBlock *b;
 	int type;
 	uint8_t *score;
-	VtEntry oe;
 
 	switch(p->type){
 	case VtDataType:
@@ -541,8 +540,6 @@ blockwalk(VtBlock *p, int index, VtCache *c, int mode, VtEntry *e)
 	if(vtglobaltolocal(b->score) != NilBlock)
 		return b;
 
-	oe = *e;
-
 	/*
 	 * Copy on write.
 	 */
@@ -570,7 +567,6 @@ static int
 growdepth(VtFile *r, VtBlock *p, VtEntry *e, int depth)
 {
 	VtBlock *b, *bb;
-	VtEntry oe;
 
 	assert(ISLOCKED(r));
 	assert(depth <= VtPointerDepth);
@@ -578,8 +574,6 @@ growdepth(VtFile *r, VtBlock *p, VtEntry *e, int depth)
 	b = vtcacheglobal(r->c, e->score, e->type);
 	if(b == nil)
 		return -1;
-
-	oe = *e;
 
 	/*
 	 * Keep adding layers until we get to the right depth
@@ -609,7 +603,6 @@ static int
 shrinkdepth(VtFile *r, VtBlock *p, VtEntry *e, int depth)
 {
 	VtBlock *b, *nb, *ob, *rb;
-	VtEntry oe;
 
 	assert(ISLOCKED(r));
 	assert(depth <= VtPointerDepth);
@@ -622,7 +615,6 @@ shrinkdepth(VtFile *r, VtBlock *p, VtEntry *e, int depth)
 	 * Walk down to the new root block.
 	 * We may stop early, but something is better than nothing.
 	 */
-	oe = *e;
 
 	ob = nil;
 	b = rb;
@@ -689,7 +681,7 @@ mkindices(VtEntry *e, uint32_t bn, int *index)
 	}
 	return i;
 }
-	
+
 VtBlock *
 vtfileblock(VtFile *r, uint32_t bn, int mode)
 {
