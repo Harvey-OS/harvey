@@ -68,7 +68,10 @@ noted(Ureg* cur, uintptr_t arg0)
 	nur = &nf->ureg;
 	if(nur->cs != SSEL(SiUCS, SsRPL3) || nur->ss != SSEL(SiUDS, SsRPL3)) {
 		qunlock(&up->debug);
-		pprint("suicide: bad segment selector in noted\n");
+		pprint("suicide: bad segment selector (cs %p want %p, ss %p want %p), in noted\n",
+			nur->cs, SSEL(SiUCS, SsRPL3),
+			nur->ss, SSEL(SiUDS, SsRPL3)
+		);
 		pexit("Suicide", 0);
 	}
 
@@ -182,7 +185,7 @@ notify(Ureg* ureg)
 		pexit("Suicide", 0);
 	}
 
-	sp = ureg->sp - sizeof(NFrame);
+	sp = ureg->sp - ROUNDUP(sizeof(NFrame), 16) - 128; // amd64 red zone, also wanted by go stack traces
 	if(!okaddr(sp, sizeof(NFrame), 1)){
 		qunlock(&up->debug);
 		pprint("suicide: bad stack address %#p in notify\n", sp);
