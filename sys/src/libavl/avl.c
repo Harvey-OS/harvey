@@ -213,17 +213,6 @@ _deleteavl(Avl **tp, Avl *p, Avl *rx, int(*cmp)(Avl*,Avl*), Avl **del,
 	return -(ob != 0 && (*tp)->bal == 0);
 }
 
-static void
-checkparents(Avl *a, Avl *p)
-{
-	if(a == nil)
-		return;
-	if(a->p != p)
-		print("bad parent\n");
-	checkparents(a->n[0], a);
-	checkparents(a->n[1], a);
-}
-
 struct Avltree
 {
 	Avl	*root;
@@ -434,12 +423,3 @@ endwalk(Avlwalk *w)
 	free(w);
 }
 
-static void
-walkavl(Avl *t, void (*f)(Avl*, void*), void *v)
-{
-	if(t == nil)
-		return;
-	walkavl(t->n[0], f, v);
-	f(t, v);
-	walkavl(t->n[1], f, v);
-}
