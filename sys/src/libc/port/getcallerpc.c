@@ -10,9 +10,9 @@
 #include <u.h>
 #include <libc.h>
 
-uintptr
+uintptr_t
 getcallerpc(void* x)
 {
 	//return 0;
-	return (((uint32_t*)(x))[-1]);
+	return (uintptr_t)__builtin_return_address(2);
 }

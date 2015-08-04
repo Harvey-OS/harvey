@@ -191,16 +191,6 @@ ppanic(Pool *p, char *fmt, ...)
  * compile out function calls that would otherwise be no-ops.
  */
 
-/*	non tracing
- *
-enum {
-	Npadlong	= 0,
-	MallocOffset = 0,
-	ReallocOffset = 0,
-};
- *
- */
-
 /* tracing */
 enum {
 	Npadlong	= 2,
@@ -213,9 +203,9 @@ malloc(size_t size)
 {
 	void *v;
 
-	v = poolalloc(mainmem, size+Npadlong*sizeof(uint32_t));
+	v = poolalloc(mainmem, size+Npadlong*sizeof(uintptr_t));
 	if(Npadlong && v != nil) {
-		v = (uint32_t*)v+Npadlong;
+		v = (uintptr_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -227,9 +217,9 @@ mallocz(uint32_t size, int clr)
 {
 	void *v;
 
-	v = poolalloc(mainmem, size+Npadlong*sizeof(uint32_t));
+	v = poolalloc(mainmem, size+Npadlong*sizeof(uintptr_t));
 	if(Npadlong && v != nil){
-		v = (uint32_t*)v+Npadlong;
+		v = (uintptr_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -243,10 +233,10 @@ mallocalign(uint32_t size, uint32_t align, int32_t offset, uint32_t span)
 {
 	void *v;
 
-	v = poolallocalign(mainmem, size+Npadlong*sizeof(uint32_t), align,
-			   offset-Npadlong*sizeof(uint32_t), span);
+	v = poolallocalign(mainmem, size+Npadlong*sizeof(uintptr_t), align,
+			   offset-Npadlong*sizeof(uintptr_t), span);
 	if(Npadlong && v != nil){
-		v = (uint32_t*)v+Npadlong;
+		v = (uintptr_t*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
@@ -257,7 +247,7 @@ void
 free(void *v)
 {
 	if(v != nil)
-		poolfree(mainmem, (uint32_t*)v-Npadlong);
+		poolfree(mainmem, (uintptr_t*)v-Npadlong);
 }
 
 void*
@@ -271,11 +261,11 @@ realloc(void *v, size_t size)
 	}
 
 	if(v)
-		v = (uint32_t*)v-Npadlong;
-	size += Npadlong*sizeof(uint32_t);
+		v = (uintptr_t*)v-Npadlong;
+	size += Npadlong*sizeof(uintptr_t);
 
 	if((nv = poolrealloc(mainmem, v, size))){
-		nv = (uint32_t*)nv+Npadlong;
+		nv = (uintptr_t*)nv+Npadlong;
 		setrealloctag(nv, getcallerpc(&v));
 		if(v == nil)
 			setmalloctag(nv, getcallerpc(&v));
@@ -286,7 +276,7 @@ realloc(void *v, size_t size)
 uint32_t
 msize(void *v)
 {
-	return poolmsize(mainmem, (uint32_t*)v-Npadlong)-Npadlong*sizeof(uint32_t);
+	return poolmsize(mainmem, (uintptr_t*)v-Npadlong)-Npadlong*sizeof(uintptr_t);
 }
 
 void*
@@ -299,10 +289,9 @@ calloc(uint32_t n, size_t szelem)
 }
 
 void
-setmalloctag(void *v, uint32_t pc)
+setmalloctag(void *v, uintptr_t pc)
 {
-	uint32_t *u;
-	//USED(v, pc);
+	uintptr_t *u;
 	if(Npadlong <= MallocOffset || v == nil)
 		return;
 	u = v;
@@ -310,9 +299,9 @@ setmalloctag(void *v, uint32_t pc)
 }
 
 void
-setrealloctag(void *v, uint32_t pc)
+setrealloctag(void *v, uintptr_t pc)
 {
-	uint32_t *u;
+	uintptr_t *u;
 	//USED(v, pc);
 	if(Npadlong <= ReallocOffset || v == nil)
 		return;
@@ -320,21 +309,21 @@ setrealloctag(void *v, uint32_t pc)
 	u[-Npadlong+ReallocOffset] = pc;
 }
 
-uint32_t
+uintptr_t
 getmalloctag(void *v)
 {
 	USED(v);
 	if(Npadlong <= MallocOffset)
 		return ~0;
-	return ((uint32_t*)v)[-Npadlong+MallocOffset];
+	return ((uintptr_t*)v)[-Npadlong+MallocOffset];
 }
 
-uint32_t
+uintptr_t
 getrealloctag(void *v)
 {
 	USED(v);
 	if(Npadlong <= ReallocOffset)
-		return ((uint32_t*)v)[-Npadlong+ReallocOffset];
+		return ((uintptr_t*)v)[-Npadlong+ReallocOffset];
 	return ~0;
 }
 
@@ -344,5 +333,5 @@ malloctopoolblock(void *v)
 	if(v == nil)
 		return nil;
 
-	return &((uint32_t*)v)[-Npadlong];
+	return &((uintptr_t*)v)[-Npadlong];
 }
