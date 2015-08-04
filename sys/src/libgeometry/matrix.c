@@ -28,7 +28,7 @@ void ident(Matrix m){
 	*s++=0;*s++=0;*s++=0;*s=1;
 }
 void matmul(Matrix a, Matrix b){
-	register i, j, k;
+	register int i, j, k;
 	double sum;
 	Matrix tmp;
 	for(i=0;i!=4;i++) for(j=0;j!=4;j++){
@@ -41,7 +41,7 @@ void matmul(Matrix a, Matrix b){
 		a[i][j]=tmp[i][j];
 }
 void matmulr(Matrix a, Matrix b){
-	register i, j, k;
+	register int i, j, k;
 	double sum;
 	Matrix tmp;
 	for(i=0;i!=4;i++) for(j=0;j!=4;j++){

@@ -49,7 +49,7 @@ Space *popmat(Space *t){
 void rot(Space *t, double theta, int axis){
 	double s=sin(radians(theta)), c=cos(radians(theta));
 	Matrix m, inv;
-	register i=(axis+1)%3, j=(axis+2)%3;
+	register int i=(axis+1)%3, j=(axis+2)%3;
 	ident(m);
 	m[i][i] = c;
 	m[i][j] = -s;
