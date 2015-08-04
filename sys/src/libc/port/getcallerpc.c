@@ -10,7 +10,7 @@
 #include <u.h>
 #include <libc.h>
 
-uintptr
+uint64_t
 getcallerpc(void* x)
 {
 	//return 0;
