@@ -212,8 +212,6 @@ checklist(Free *t)
 		assert(q->size == t->size);
 		assert(q->next==nil || q->next->prev==q);
 		assert(q->prev==nil || q->prev->next==q);
-	//	assert(q->left==nil);
-	//	assert(q->right==nil);
 		assert(q->magic==FREE_MAGIC);
 	}
 }
