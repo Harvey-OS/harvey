@@ -49,6 +49,13 @@ If you are on a Mac, you should install macports (https://www.macports.org/) and
 	port install qemu
 	export TOOLPREFIX=x86_64-elf-
 
+or if you use homebrew (https://http://brew.sh/)
+
+ 	brew tap sevki/gcc_cross_compilers
+	brew install sevki/gcc_cross_compilers/x86_64-elf-gcc
+	brew install qemu
+	export TOOLPREFIX=x86_64-elf-
+
 and you're now all set, you can build the whole thing just by running
 
 	export HARVEY=$(pwd)
@@ -109,11 +116,9 @@ harvey is up, you can telnet onto it with
 
 	util/telnet localhost:5555
 
-Where 5555 is forwarded to the harvey instance. This gives you a prompt 
+Where 5555 is forwarded to the harvey instance. This gives you a prompt
 without any security. Once you have the prompt, you can mount the harvey
 directory as your root like this (10.0.2.2 is what qemu has as the host)
 
 	srv tcp!10.0.2.2!5640 k
 	mount -a /srv/k /
-
-
