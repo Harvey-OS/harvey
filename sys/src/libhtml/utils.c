@@ -13,8 +13,8 @@
 #include <html.h>
 #include "impl.h"
 
-Rune* whitespace = L" \t\n\r";
-Rune* notwhitespace = L"^ \t\n\r";
+Rune* whitespace = (Rune*)L" \t\n\r";
+Rune* notwhitespace = (Rune*)L"^ \t\n\r";
 
 // All lists start out like List structure.
 // List itself can be used as list of int.
