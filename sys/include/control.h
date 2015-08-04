@@ -218,5 +218,5 @@ Control*	createtextbutton3(Controlset*, char*);
 void		resizecontrolset(Controlset*);
 
 int		_ctlsnarffd;
-char		*alignnames[];
+char		*alignnames[Nalignments];
 int		ctldeletequits;
