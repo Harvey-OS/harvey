@@ -16,7 +16,7 @@
 
 void (*_forker)(void(*)(void*), void*, int);
 
-static char Ebadattach[] = "unknown afid in attach";
+static char Ebadattach[] = "unknown specifier in attach";
 static char Ebadoffset[] = "bad offset";
 static char Ebadcount[] = "bad count";
 static char Ebotch[] = "9P protocol botch";
@@ -224,7 +224,7 @@ sattach(Srv *srv, Req *r)
 	}
 	r->afid = nil;
 	if(r->ifcall.afid != NOFID && (r->afid = lookupfid(srv->fpool, r->ifcall.afid)) == nil){
-		respond(r, Ebadattach);
+		respond(r, Eunknownfid);
 		return;
 	}
 	r->fid->uid = estrdup9p(r->ifcall.uname);
@@ -476,7 +476,7 @@ sread(Srv *srv, Req *r)
 		return;
 	}
 	if((int)r->ifcall.count < 0){
-		respond(r, Ebadcount);
+		respond(r, Ebotch);
 		return;
 	}
 	if(r->ifcall.offset < 0
@@ -522,7 +522,7 @@ swrite(Srv *srv, Req *r)
 		return;
 	}
 	if((int)r->ifcall.count < 0){
-		respond(r, Ebadcount);
+		respond(r, Ebotch);
 		return;
 	}
 	if(r->ifcall.offset < 0){
@@ -540,7 +540,7 @@ swrite(Srv *srv, Req *r)
 	if(srv->write)
 		srv->write(r);
 	else
-		respond(r, Enowrite);
+		respond(r, "no srv->write");
 }
 static void
 rwrite(Req *r, char *error)
@@ -638,7 +638,7 @@ rstat(Req *r, char *error)
 	n = GBIT16(tmp)+BIT16SZ;
 	statbuf = emalloc9p(n);
 	if(statbuf == nil){
-		r->error = Enomem;
+		r->error = "out of memory";
 		return;
 	}
 	r->ofcall.nstat = convD2M(&r->d, statbuf, n);
