@@ -164,7 +164,8 @@ error(char *s)
 int
 cmp(const void *va, const void *vb)
 {
-	Dir **a, **b;
+	const Dir * const *a;
+	const Dir * const *b;
 
 	a = va;
 	b = vb;

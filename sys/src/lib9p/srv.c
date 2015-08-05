@@ -16,7 +16,7 @@
 
 void (*_forker)(void(*)(void*), void*, int);
 
-static char Ebadattach[] = "unknown afid in attach";
+static char Ebadattach[] = "unknown specifier in attach";
 static char Ebadoffset[] = "bad offset";
 static char Ebadcount[] = "bad count";
 static char Ebotch[] = "9P protocol botch";
@@ -28,8 +28,8 @@ static char Enocreate[] = "create prohibited";
 static char Enomem[] = "out of memory";
 static char Enoremove[] = "remove prohibited";
 static char Enostat[] = "stat prohibited";
-static char Enotfound[] = "file not found";
 static char Enowrite[] = "write prohibited";
+static char Enotfound[] = "file not found";
 static char Enowstat[] = "wstat prohibited";
 static char Eperm[] = "permission denied";
 static char Eunknownfid[] = "unknown fid";
