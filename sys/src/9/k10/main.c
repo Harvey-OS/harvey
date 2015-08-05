@@ -107,6 +107,7 @@ squidboy(int apicno, Mach *mach)
 {
 	// FIX QEMU. extern int64_t hz;
 	int64_t hz;
+	mach->self = (uintptr_t)mach;
 	sys->machptr[mach->machno] = mach;
 	/*
 	 * Need something for initial delays
@@ -447,6 +448,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	cgapost(sizeof(uintptr_t)*8);
 	memset(mach, 0, sizeof(Mach));
 
+	mach->self = (uintptr_t)mach;
 	mach->machno = 0;
 	mach->online = 1;
 	mach->nixtype = NIXTC;
