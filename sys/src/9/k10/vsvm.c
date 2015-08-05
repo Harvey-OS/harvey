@@ -191,7 +191,7 @@ vsvminit(int size, int nixtype, Mach *mach)
 	asm volatile("ltr %w0"::"q" (SSEL(SiTSS, SsTIGDT|SsRPL0)));
 
 	wrmsr(FSbase, 0ull);
-	wrmsr(GSbase, PTR2UINT(&sys->machptr[mach->machno]));
+	wrmsr(GSbase, PTR2UINT(mach));
 	wrmsr(KernelGSbase, 0ull);
 
 	r = rdmsr(Efer);
