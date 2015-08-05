@@ -87,66 +87,65 @@ enum {
 
 // These tables must be sorted
 static StringInt align_tab[] = {
-	{(Rune*)L"baseline",	ALbaseline},
-	{(Rune*)L"bottom",	ALbottom},
-	{(Rune*)L"center",	ALcenter},
-	{(Rune*)L"char",		ALchar},
-	{(Rune*)L"justify",	ALjustify},
-	{(Rune*)L"left",		ALleft},
-	{(Rune*)L"middle",	ALmiddle},
-	{(Rune*)L"right",		ALright},
-	{(Rune*)L"top",		ALtop}
+	{L"baseline",	ALbaseline},
+	{L"bottom",	ALbottom},
+	{L"center",	ALcenter},
+	{L"char",		ALchar},
+	{L"justify",	ALjustify},
+	{L"left",		ALleft},
+	{L"middle",	ALmiddle},
+	{L"right",		ALright},
+	{L"top",		ALtop}
 };
 #define NALIGNTAB (sizeof(align_tab)/sizeof(StringInt))
 
 static StringInt input_tab[] = {
-	{(Rune*)L"button",	Fbutton},
-	{(Rune*)L"checkbox",	Fcheckbox},
-	{(Rune*)L"file",		Ffile},
-	{(Rune*)L"hidden",	Fhidden},
-	{(Rune*)L"image",	Fimage},
-	{(Rune*)L"password",	Fpassword},
-	{(Rune*)L"radio",		Fradio},
-	{(Rune*)L"reset",		Freset},
-	{(Rune*)L"submit",	Fsubmit},
-	{(Rune*)L"text",		Ftext}
+	{L"button",	Fbutton},
+	{L"checkbox",	Fcheckbox},
+	{L"file",		Ffile},
+	{L"hidden",	Fhidden},
+	{L"image",	Fimage},
+	{L"password",	Fpassword},
+	{L"radio",		Fradio},
+	{L"reset",		Freset},
+	{L"submit",	Fsubmit},
+	{L"text",		Ftext}
 };
 #define NINPUTTAB (sizeof(input_tab)/sizeof(StringInt))
 
 static StringInt clear_tab[] = {
-	{(Rune*)L"all",	IFcleft|IFcright},
-	{(Rune*)L"left",	IFcleft},
-	{(Rune*)L"right",	IFcright}
+	{L"all",	IFcleft|IFcright},
+	{L"left",	IFcleft},
+	{L"right",	IFcright}
 };
 #define NCLEARTAB (sizeof(clear_tab)/sizeof(StringInt))
 
 static StringInt fscroll_tab[] = {
-	{(Rune*)L"auto",	FRhscrollauto|FRvscrollauto},
-	{(Rune*)L"no",	FRnoscroll},
-	{(Rune*)L"yes",	FRhscroll|FRvscroll},
+	{L"auto",	FRhscrollauto|FRvscrollauto},
+	{L"no",	FRnoscroll},
+	{L"yes",	FRhscroll|FRvscroll},
 };
 #define NFSCROLLTAB (sizeof(fscroll_tab)/sizeof(StringInt))
 
 static StringInt shape_tab[] = {
-	{(Rune*)L"circ",		SHcircle},
-	{(Rune*)L"circle",		SHcircle},
-	{(Rune*)L"poly",		SHpoly},
-	{(Rune*)L"polygon",	SHpoly},
-	{(Rune*)L"rect",		SHrect},
-	{(Rune*)L"rectangle",	SHrect}
+	{L"circ",		SHcircle},
+	{L"circle",		SHcircle},
+	{L"poly",		SHpoly},
+	{L"polygon",	SHpoly},
+	{L"rect",		SHrect},
+	{L"rectangle",	SHrect}
 };
 #define NSHAPETAB (sizeof(shape_tab)/sizeof(StringInt))
 
 static StringInt method_tab[] = {
-	{(Rune*)L"get",		HGet},
-	{(Rune*)L"post",		HPost}
+	{L"get",		HGet},
+	{L"post",		HPost}
 };
 #define NMETHODTAB (sizeof(method_tab)/sizeof(StringInt))
 
 static Rune* roman[15]= {
-	(Rune*)L"I", (Rune*)L"II", (Rune*)L"III", (Rune*)L"IV", (Rune*)L"V", 
-	(Rune*)L"VI", (Rune*)L"VII", (Rune*)L"VIII", (Rune*)L"IX", (Rune*)L"X",
-	(Rune*)L"XI", (Rune*)L"XII", (Rune*)L"XIII", (Rune*)L"XIV", (Rune*)L"XV"
+	L"I", L"II", L"III", L"IV", L"V", L"VI", L"VII", L"VIII", L"IX", L"X",
+	L"XI", L"XII", L"XIII", L"XIV", L"XV"
 };
 #define NROMAN 15
 
@@ -207,22 +206,22 @@ static unsigned char scriptev[Numattrs]= {
 
 // Color lookup table
 static StringInt color_tab[] = {
-	{(Rune*)L"aqua", 0x00FFFF},
-	{(Rune*)L"black",  0x000000},
-	{(Rune*)L"blue", 0x0000CC},
-	{(Rune*)L"fuchsia", 0xFF00FF},
-	{(Rune*)L"gray", 0x808080},
-	{(Rune*)L"green", 0x008000},
-	{(Rune*)L"lime", 0x00FF00},
-	{(Rune*)L"maroon", 0x800000},
-	{(Rune*)L"navy", 0x000080,},
-	{(Rune*)L"olive", 0x808000},
-	{(Rune*)L"purple", 0x800080},
-	{(Rune*)L"red", 0xFF0000},
-	{(Rune*)L"silver", 0xC0C0C0},
-	{(Rune*)L"teal", 0x008080},
-	{(Rune*)L"white", 0xFFFFFF},
-	{(Rune*)L"yellow", 0xFFFF00}
+	{L"aqua", 0x00FFFF},
+	{L"black",  0x000000},
+	{L"blue", 0x0000CC},
+	{L"fuchsia", 0xFF00FF},
+	{L"gray", 0x808080},
+	{L"green", 0x008000},
+	{L"lime", 0x00FF00},
+	{L"maroon", 0x800000},
+	{L"navy", 0x000080,},
+	{L"olive", 0x808000},
+	{L"purple", 0x800080},
+	{L"red", 0xFF0000},
+	{L"silver", 0xC0C0C0},
+	{L"teal", 0x008080},
+	{L"white", 0xFFFFFF},
+	{L"yellow", 0xFFFF00}
 };
 #define NCOLORS (sizeof(color_tab)/sizeof(StringInt))
 
@@ -284,7 +283,7 @@ static Anchor*		newanchor(int index, Rune* name, Rune* href, int target, Anchor*
 static Area*		newarea(int shape, Rune* href, int target, Area* link);
 static DestAnchor*	newdestanchor(int index, Rune* name, Item* item, DestAnchor* link);
 static Docinfo*		newdocinfo(void);
-static Genattr*		newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, SEvent* events);
+static Genattr*		newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, Attr* events);
 static Form*		newform(int formid, Rune* name, Rune* action,
 					int target, int method, Form* link);
 static Formfield*	newformfield(int ftype, int fieldid, Form* form, Rune* name,
@@ -855,9 +854,9 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			case Tfont:
 				sz = top(&ps->fntsizestk, Normal);
 				if(_tokaval(tok, Asize, &nsz, 0)) {
-					if(_prefix((Rune*)L"+", nsz))
+					if(_prefix(L"+", nsz))
 						sz = Normal + _Strtol(nsz+1, nil, 10) + ps->adjsize;
-					else if(_prefix((Rune*)L"-", nsz))
+					else if(_prefix(L"-", nsz))
 						sz = Normal - _Strtol(nsz+1, nil, 10) + ps->adjsize;
 					else if(nsz != nil)
 						sz = Normal + (_Strtol(nsz, nil, 10) - 3);
@@ -891,7 +890,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				target = atargval(tok, di->target);
 				method = atabval(tok, Amethod, method_tab, NMETHODTAB, HGet);
 				if(warn && _tokaval(tok, Aenctype, &enctype, 0) &&
-						_Strcmp(enctype, (Rune*)L"application/x-www-form-urlencoded"))
+						_Strcmp(enctype, L"application/x-www-form-urlencoded"))
 					fprint(2, "form enctype %S not handled\n", enctype);
 				frm = newform(++is->nforms, name, action, target, method, di->forms);
 				di->forms = frm;
@@ -1051,7 +1050,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				map = nil;
 				oldcuranchor = ps->curanchor;
 				if(_tokaval(tok, Ausemap, &usemap, 0)) {
-					if(!_prefix((Rune*)L"#", usemap)) {
+					if(!_prefix(L"#", usemap)) {
 						if(warn)
 							fprint(2, "warning: can't handle non-local map %S\n", usemap);
 					}
@@ -1136,7 +1135,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 						continue;
 					}
 					if(field->value == nil)
-						field->value = _Strdup((Rune*)L"1");
+						field->value = _Strdup(L"1");
 					break;
 
 				case Fradio:
@@ -1149,9 +1148,9 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 
 				case Fsubmit:
 					if(field->value == nil)
-						field->value = _Strdup((Rune*)L"Submit");
+						field->value = _Strdup(L"Submit");
 					if(field->name == nil)
-						field->name = _Strdup((Rune*)L"_no_name_submit_");
+						field->name = _Strdup(L"_no_name_submit_");
 					break;
 
 				case Fimage:
@@ -1165,7 +1164,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 					// but some people provide them and they help avoid
 					// a relayout
 					field->image = newiimage(src,
-						astrval(tok, Aalt, (Rune*)L"Submit"),
+						astrval(tok, Aalt, L"Submit"),
 						atabval(tok, Aalign, align_tab, NALIGNTAB, ALbottom),
 						auintval(tok, Awidth, 0), auintval(tok, Aheight, 0),
 						0, 0, 0, 0, nil);
@@ -1176,12 +1175,12 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 
 				case Freset:
 					if(field->value == nil)
-						field->value = _Strdup((Rune*)L"Reset");
+						field->value = _Strdup(L"Reset");
 					break;
 
 				case Fbutton:
 					if(field->value == nil)
-						field->value = _Strdup((Rune*)L" ");
+						field->value = _Strdup(L" ");
 					break;
 				}
 				ffit = newiformfield(field);
@@ -1193,7 +1192,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 			// <!ENTITY ISINDEX - O EMPTY>
 			case Tisindex:
 				ps->skipwhite = 0;
-				prompt = astrval(tok, Aprompt, (Rune*)L"Index search terms:");
+				prompt = astrval(tok, Aprompt, L"Index search terms:");
 				target = atargval(tok, di->target);
 				additem(ps, textit(ps, prompt), tok);
 				frm = newform(++is->nforms,
@@ -1206,7 +1205,7 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				ff = newformfield(Ftext,
 						1,
 						frm,
-						_Strdup((Rune*)L"_ISINDEX_"),
+						_Strdup(L"_ISINDEX_"),
 						nil,
 						50,
 						1000,
@@ -1264,13 +1263,13 @@ getitems(ItemSource* is, uint8_t* data, int datalen)
 				if(_tokaval(tok, Ahttp_equiv, &equiv, 0)) {
 					val = aval(tok, Acontent);
 					n = _Strlen(equiv);
-					if(!_Strncmpci(equiv, n, (Rune*)L"refresh"))
+					if(!_Strncmpci(equiv, n, L"refresh"))
 						di->refresh = val;
-					else if(!_Strncmpci(equiv, n, (Rune*)L"content-script-type")) {
+					else if(!_Strncmpci(equiv, n, L"content-script-type")) {
 						n = _Strlen(val);
-						if(!_Strncmpci(val, n, (Rune*)L"javascript")
-						   || !_Strncmpci(val, n, (Rune*)L"jscript1.1")
-						   || !_Strncmpci(val, n, (Rune*)L"jscript"))
+						if(!_Strncmpci(val, n, L"javascript")
+						   || !_Strncmpci(val, n, L"jscript1.1")
+						   || !_Strncmpci(val, n, L"jscript"))
 							di->scripttype = TextJavascript;
 						else {
 							if(warn)
@@ -2101,7 +2100,7 @@ addtext(Pstate* ps, Rune* s)
 					// make ss = s[j:i] + nsp spaces
 					ss = _newstr(i-j+nsp);
 					p = _Stradd(ss, s+j, i-j);
-					p = _Stradd(p, (Rune*)L"        ", nsp);
+					p = _Stradd(p, L"        ", nsp);
 					*p = 0;
 					additem(ps, textit(ps, ss), nil);
 					col += nsp;
@@ -2869,11 +2868,11 @@ listtyval(Token* tok, int dflt)
 			}
 		}
 		else {
-			if(!_Strncmpci(aval, n, (Rune*)L"circle"))
+			if(!_Strncmpci(aval, n, L"circle"))
 				ans = LTcircle;
-			else if(!_Strncmpci(aval, n, (Rune*)L"disc"))
+			else if(!_Strncmpci(aval, n, L"disc"))
 				ans = LTdisc;
-			else if(!_Strncmpci(aval, n, (Rune*)L"square"))
+			else if(!_Strncmpci(aval, n, L"square"))
 				ans = LTsquare;
 			else {
 				if(warn)
@@ -3002,11 +3001,11 @@ parsedim(Rune* s, int ns)
 
 	kind = Dnone;
 	spec = 0;
-	_splitl(s, ns, (Rune*)L"^0-9", &l, &nl, &r, &nr);
+	_splitl(s, ns, L"^0-9", &l, &nl, &r, &nr);
 	if(nl != 0) {
 		spec = 1000*_Strtol(l, nil, 10);
 		if(nr > 0 && r[0] == '.') {
-			_splitl(r+1, nr-1, (Rune*)L"^0-9", &f, &nf, &r, &nr);
+			_splitl(r+1, nr-1, L"^0-9", &f, &nf, &r, &nr);
 			if(nf != 0) {
 				mul = 100;
 				for(i = 0; i < nf; i++) {
@@ -3022,17 +3021,17 @@ parsedim(Rune* s, int ns)
 				units = r;
 				r = r+2;
 				nr -= 2;
-				if(!_Strncmpci(units, 2, (Rune*)L"pt"))
+				if(!_Strncmpci(units, 2, L"pt"))
 					spec = (spec*Tkdpi)/72;
-				else if(!_Strncmpci(units, 2, (Rune*)L"pi"))
+				else if(!_Strncmpci(units, 2, L"pi"))
 					spec = (spec*12*Tkdpi)/72;
-				else if(!_Strncmpci(units, 2, (Rune*)L"in"))
+				else if(!_Strncmpci(units, 2, L"in"))
 					spec = spec*Tkdpi;
-				else if(!_Strncmpci(units, 2, (Rune*)L"cm"))
+				else if(!_Strncmpci(units, 2, L"cm"))
 					spec = (spec*100*Tkdpi)/254;
-				else if(!_Strncmpci(units, 2, (Rune*)L"mm"))
+				else if(!_Strncmpci(units, 2, L"mm"))
 					spec = (spec*10*Tkdpi)/254;
-				else if(!_Strncmpci(units, 2, (Rune*)L"em"))
+				else if(!_Strncmpci(units, 2, L"em"))
 					spec = spec*15;
 				else {
 					if(warn)
@@ -3066,7 +3065,7 @@ setdimarray(Token* tok, int attid, Dimen** pans, int* panslen)
 	int	an[SMALLBUFSIZE];
 
 	if(_tokaval(tok, attid, &s, 0)) {
-		nc = _splitall(s, _Strlen(s), (Rune*)L", ", a, an, SMALLBUFSIZE);
+		nc = _splitall(s, _Strlen(s), L", ", a, an, SMALLBUFSIZE);
 		if(nc > 0) {
 			d = (Dimen*)emalloc(nc * sizeof(Dimen));
 			for(k = 0; k < nc; k++) {
@@ -3543,24 +3542,24 @@ Iconv(Fmt *f)
 		i = (Iimage*)it;
 		bi += snprint(buf+bi, nbuf-bi,
 			"Image src=%S, alt=%S, al=%S, w=%d, h=%d hsp=%d, vsp=%d, bd=%d, map=%S",
-			i->imsrc, i->altrep? i->altrep : (Rune*)L"", stringalign(i->align), i->imwidth, i->imheight,
-			i->hspace, i->vspace, i->border, i->map? i->map->name : (Rune*)L"");
+			i->imsrc, i->altrep? i->altrep : L"", stringalign(i->align), i->imwidth, i->imheight,
+			i->hspace, i->vspace, i->border, i->map? i->map->name : L"");
 		break;
 
 	case Iformfieldtag:
 		ff = ((Iformfield*)it)->formfield;
 		if(ff->ftype == Ftextarea)
-			ty = (Rune*)L"textarea";
+			ty = L"textarea";
 		else if(ff->ftype == Fselect)
-			ty = (Rune*)L"select";
+			ty = L"select";
 		else {
 			ty = _revlookup(input_tab, NINPUTTAB, ff->ftype);
 			if(ty == nil)
-				ty = (Rune*)L"none";
+				ty = L"none";
 		}
 		bi += snprint(buf+bi, nbuf-bi, "Formfield %S, fieldid=%d, formid=%d, name=%S, value=%S",
-			ty, ff->fieldid, ff->form->formid, ff->name? ff->name : (Rune*)L"",
-			ff->value? ff->value : (Rune*)L"");
+			ty, ff->fieldid, ff->form->formid, ff->name? ff->name : L"",
+			ff->value? ff->value : L"");
 		break;
 
 	case Itabletag:
@@ -3612,7 +3611,7 @@ stringalign(int a)
 
 	s = _revlookup(align_tab, NALIGNTAB, a);
 	if(s == nil)
-		s = (Rune*)L"none";
+		s = L"none";
 	return s;
 }
 
@@ -3648,7 +3647,7 @@ printitems(Item* items, char* msg)
 }
 
 static Genattr*
-newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, SEvent*	 events)
+newgenattr(Rune* id, Rune* class, Rune* style, Rune* title, Attr* events)
 {
 	Genattr* g;
 
@@ -3899,13 +3898,13 @@ targetmapinit(void)
 	l = targetmapsize*sizeof *targetmap;
 	targetmap = emalloc(l);
 	memset(targetmap, 0, l);
-	targetmap[0].key = _Strdup((Rune*)L"_top");
+	targetmap[0].key = _Strdup(L"_top");
 	targetmap[0].val = FTtop;
-	targetmap[1].key = _Strdup((Rune*)L"_self");
+	targetmap[1].key = _Strdup(L"_self");
 	targetmap[1].val = FTself;
-	targetmap[2].key = _Strdup((Rune*)L"_parent");
+	targetmap[2].key = _Strdup(L"_parent");
 	targetmap[2].val = FTparent;
-	targetmap[3].key = _Strdup((Rune*)L"_blank");
+	targetmap[3].key = _Strdup(L"_blank");
 	targetmap[3].val = FTblank;
 	ntargets = 4;
 }
@@ -3940,7 +3939,7 @@ targetname(int targid)
 	for(i = 0; i < ntargets; i++)
 		if(targetmap[i].val == targid)
 			return targetmap[i].key;
-	return (Rune*)L"?";
+	return L"?";
 }
 
 // Convert HTML color spec to RGB value, returning dflt if can't.
@@ -4214,7 +4213,6 @@ validptr(void* p)
 	static char c;
 
 	c = *((char*)p);
-	USED(c);
 	return 1;
 }
 
