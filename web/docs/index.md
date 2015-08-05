@@ -1,6 +1,8 @@
 # Harvey OS
 
-![Harvey OS logo](img/harvey-os-logo.png)
+<div class="lazy">
+  <img src="img/harvey-os-logo.png" alt="Harvey OS logo"></img>
+</div>
 
 ## What is Harvey?
 
@@ -8,13 +10,20 @@ Harvey is an effort to get the <a href="http://plan9.bell-labs.com/plan9/about.h
 
 Our aim is to provide a modern, distributed, 64 bit operating system that does away with Unix's wrinkles and allows for new ways of working.
 
-
-
-
 ## News & events
 
 * [USENIX presentation slides available](news#usenix-2015-materials)
 * [Developers wanted!](news#developers-wanted)
 * [Harvey at USENIX](news#usenix-2015)
 
+
+<h2>Code status</h2>
+<div class="lazy">
+  <a href="https://travis-ci.org/Harvey-OS/harvey">
+    <img alt="travis badge" src="data:image/png;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-src="https://travis-ci.org/Harvey-OS/harvey.svg?branch=master">
+  </a>
+  <a href="https://scan.coverity.com/projects/5328">
+    <img alt="coverity badge" src="data:image/png;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-src="https://scan.coverity.com/projects/5328/badge.svg">
+  </a>
+</div>
 

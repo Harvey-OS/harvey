@@ -65,6 +65,17 @@
         <script>var base_url = '{{ base_url }}';</script>
         <script data-main="{{ base_url }}/mkdocs/js/search.js" src="{{ base_url }}/mkdocs/js/require.js"></script>
         <script src="{{ base_url }}/js/base.js"></script>
+
+        <script>
+          function init() {
+            var imgDefer = document.getElementsByTagName('img');
+            for (var i=0; i<imgDefer.length; i++) {
+              if(imgDefer[i].getAttribute('data-src')) {
+                imgDefer[i].setAttribute('src',imgDefer[i].getAttribute('data-src'));
+              } } }
+          window.onload = init;
+        </script>
+
         {%- for path in extra_javascript %}
         <script src="{{ path }}"></script>
         {%- endfor %}

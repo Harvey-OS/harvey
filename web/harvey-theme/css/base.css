@@ -8,7 +8,6 @@ body > div.container {
 }
 
 body.homepage li.active { display: none; }
-/* .navbar { font-family: 'Quattrocento Sans', sans-serif; } */
 
 ul.nav li.main {
     font-weight: bold;
@@ -19,7 +18,7 @@ div.col-md-3 {
 }
 
 div.col-md-9 {
-    padding-bottom: 3em;
+    padding-bottom: 1em;
 }
 
 div.source-links {
@@ -32,10 +31,11 @@ div.col-md-9 img {
     padding: 4px;
     line-height: 1.428571429;
     background-color: #fff;
-    /* border: 1px solid #ddd; */
     border-radius: 4px;
     margin: 20px auto 30px auto;
 }
+
+div.lazy img { margin:0;}
 
 h1 { color: #000;} 
 
