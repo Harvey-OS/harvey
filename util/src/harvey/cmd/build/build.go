@@ -84,6 +84,9 @@ var (
 		"ranlib": "ranlib",
 		"strip":  "strip",
 	}
+	arch = map[string]bool{
+		"amd64": true,
+	}
 )
 
 func fail(err error) {
@@ -599,8 +602,13 @@ func main() {
 		log.Printf("You need to set the HARVEY environment variable")
 		badsetup = true
 	}
-	if os.Getenv("ARCH") == "" {
-		log.Printf("You need to set the ARCH environment variable")
+	a := os.Getenv("ARCH")
+	if a == "" || !arch[a] {
+		s := []string{}
+		for i := range arch {
+			s = append(s, i)
+		}
+		log.Printf("You need to set the ARCH environment variable from: %v", s)
 		badsetup = true
 	}
 	if badsetup {
