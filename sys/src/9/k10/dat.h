@@ -249,7 +249,7 @@ enum {
  *
  * The offsets of the first few elements may be known
  * to low-level assembly code, so do not re-order:
- *	machno	- no dependency, convention
+ *	self	- machp()
  *	splpc	- splhi, spllo, splx
  *	proc	- syscallentry
  *	stack	- acsyscall
@@ -257,12 +257,15 @@ enum {
 struct Mach
 {
 	/* WARNING! Known to assembly! */
-	uint64_t	machno;			/* physical id of processor */
+	uintptr_t	self;			/* %gs:0 still gives us a Mach* */
 	uint64_t	splpc;			/* pc of last caller to splhi */
 
 	Proc*	proc;			/* current process on this processor */
-	uintptr_t	stack;
+	uintptr_t	stack;		/* mach stack, kstack is in proc->kstack */
+	uintptr_t	rathole;	/* to save a reg in syscallentry */
 	/* end warning, I think */
+
+	int	machno;			/* physical id of processor */
 	Proc*	externup;		/* Forsyth recommends we replace the global up with this. */
 
 	int	apicno;
