@@ -115,7 +115,7 @@ main(int argc, char *argv[])
 		rlen = read(fd[i], buf, sizeof buf-1);
 		buf[rlen] = '\0';
 		len = snprint(buf2, sizeof buf2, "%d: %s", id, buf);
-			write(1, buf2, len);
+		//write(1, buf2, len);
 	}
 
 	for(i = 0; i < dim; i++)
