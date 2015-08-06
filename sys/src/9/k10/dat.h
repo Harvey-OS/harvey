@@ -253,6 +253,7 @@ enum {
  *	splpc	- splhi, spllo, splx
  *	proc	- syscallentry
  *	stack	- acsyscall
+ *	externup - externup()
  */
 struct Mach
 {
@@ -263,10 +264,10 @@ struct Mach
 	Proc*	proc;			/* current process on this processor */
 	uintptr_t	stack;		/* mach stack, kstack is in proc->kstack */
 	uintptr_t	rathole;	/* to save a reg in syscallentry */
+	Proc*	externup;		/* Forsyth recommends we replace the global up with this. */
 	/* end warning, I think */
 
 	int	machno;			/* physical id of processor */
-	Proc*	externup;		/* Forsyth recommends we replace the global up with this. */
 
 	int	apicno;
 	int	online;

@@ -306,6 +306,7 @@ arpresolve(Arp *arp, Arpent *a, Medium *type, uint8_t *mac)
 void
 arpenter(Fs *fs, int version, uint8_t *ip, uint8_t *mac, int n, int refresh)
 {
+	Proc *up = externup();
 	Arp *arp;
 	Route *r;
 	Arpent *a, *f, **l;
@@ -675,7 +676,7 @@ rxready(void *v)
 static void
 rxmitproc(void *v)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Arp *arp = v;
 	int32_t wakeupat;
 

@@ -133,6 +133,7 @@ static char *nbmsg = "nonblocking";
 static void
 etherbind(Ipifc *ifc, int argc, char **argv)
 {
+	Proc *up = externup();
 	Chan *mchan4, *cchan4, *achan, *mchan6, *cchan6, *schan;
 	char addr[Maxpath];	//char addr[2*KNAMELEN];
 	char dir[Maxpath];	//char dir[2*KNAMELEN];
@@ -247,7 +248,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 static void
 etherunbind(Ipifc *ifc)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Etherrock *er = ifc->arg;
 
 	if(er->read4p)
@@ -342,7 +343,7 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uint8_t *ip)
 static void
 etherread4(void *a)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ipifc *ifc;
 	Block *bp;
 	Etherrock *er;
@@ -382,7 +383,7 @@ etherread4(void *a)
 static void
 etherread6(void *a)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ipifc *ifc;
 	Block *bp;
 	Etherrock *er;
@@ -687,7 +688,7 @@ recvarp(Ipifc *ifc)
 static void
 recvarpproc(void *v)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ipifc *ifc = v;
 	Etherrock *er = ifc->arg;
 

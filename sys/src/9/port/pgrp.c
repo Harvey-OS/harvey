@@ -20,7 +20,7 @@ static Ref mountid;
 void
 pgrpnote(uint32_t noteid, char *a, int32_t n, int flag)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 	Proc *p;
 	char buf[ERRMAX];
@@ -213,7 +213,7 @@ dupfgrp(Fgrp *f)
 void
 closefgrp(Fgrp *f)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 	Chan *c;
 
@@ -253,7 +253,7 @@ closefgrp(Fgrp *f)
 void
 forceclosefgrp(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 	Chan *c;
 	Fgrp *f;
@@ -307,7 +307,7 @@ mountfree(Mount *mount)
 void
 resrcwait(char *reason)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char *p;
 
 	if(up == nil)

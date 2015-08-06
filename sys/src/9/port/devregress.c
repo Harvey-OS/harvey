@@ -76,7 +76,7 @@ regressread(Chan *c, void *a, int32_t n, int64_t offset)
 static int32_t
 regresswrite(Chan *c, void *a, int32_t n, int64_t offset)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char *p;
 	unsigned long amt;
 

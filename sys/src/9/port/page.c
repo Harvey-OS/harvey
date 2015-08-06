@@ -400,7 +400,7 @@ static int dupretries = 15000;
 int
 duppage(Page *p)				/* Always call with p locked */
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Pgsza *pa;
 	Page *np;
 	int color;

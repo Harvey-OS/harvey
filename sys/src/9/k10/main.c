@@ -455,7 +455,7 @@ main(uint32_t mbmagic, uint32_t mbaddress)
 	mach->stack = PTR2UINT(sys->machstk);
 	*(uintptr_t*)mach->stack = STACKGUARD;
 	mach->vsvm = sys->vsvmpage;
-	mach->externup = (void *)0;
+	mach->externup = nil;
 	active.nonline = 1;
 	active.exiting = 0;
 	active.nbooting = 0;
@@ -584,7 +584,7 @@ if (0){	acpiinit(); hi("	acpiinit();\n");}
 void
 init0(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char buf[2*KNAMELEN];
 
 	up->nerrlab = 0;
@@ -662,7 +662,7 @@ bootargs(uintptr_t base)
 void
 userinit(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	Segment *s;
 	KMap *k;

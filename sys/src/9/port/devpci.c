@@ -36,7 +36,7 @@ extern Dev pcidevtab;
 static int
 pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Qid q;
 
 	q = (Qid){BUSBDF(tbdf)|t, 0, 0};
@@ -58,7 +58,7 @@ pcidirgen(Chan *c, int t, int tbdf, Dir *dp)
 static int
 pcigen(Chan *c, char *d, Dirtab* dir, int i, int s, Dir *dp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int tbdf;
 	Pcidev *p;
 	Qid q;

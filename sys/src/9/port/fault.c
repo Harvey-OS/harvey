@@ -34,7 +34,7 @@ char *faulttypes[] = {
 int
 fault(uintptr_t addr, uintptr_t pc, int ftype)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 	char *sps;
 	int i, color;
@@ -101,7 +101,7 @@ fail:
 static void
 faulterror(char *s, Chan *c, int freemem)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char buf[ERRMAX];
 
 	if(c && c->path){
@@ -120,7 +120,7 @@ faulterror(char *s, Chan *c, int freemem)
 int
 fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int stype;
 	int ref;
 	Pte **p, *etp;
@@ -291,7 +291,7 @@ fixfault(Segment *s, uintptr_t addr, int ftype, int dommuput, int color)
 void
 pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Page *newpg;
 	KMap *k;
 	Chan *c;
@@ -401,7 +401,7 @@ pio(Segment *s, uintptr_t addr, uint32_t soff, Page **p, int color)
 int
 okaddr(uintptr_t addr, int32_t len, int write)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 
 	if(len >= 0) {

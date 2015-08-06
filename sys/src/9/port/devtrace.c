@@ -349,7 +349,7 @@ newpl(void)
 void
 tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	struct Tracelog *pl;
 
 	/* if we are here, tracing is active. Turn it off. */
@@ -397,7 +397,7 @@ tracein(void* pc, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4)
 void
 traceout(void* pc, uintptr_t retval)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	struct Tracelog *pl;
 	/* if we are here, tracing is active. Turn it off. */
 	traceactive = 0;
@@ -514,6 +514,7 @@ traceclose(Chan *c)
 static int32_t
 traceread(Chan *c, void *a, int32_t n, int64_t offset)
 {
+	Proc *up = externup();
 	char *buf;
 	char *cp = a;
 	struct Tracelog *pl;
@@ -665,6 +666,7 @@ traceread(Chan *c, void *a, int32_t n, int64_t offset)
 static int32_t
 tracewrite(Chan *c, void *a, int32_t n, int64_t mm)
 {
+	Proc *up = externup();
 	char *tok[6]; //changed this so "tracein" works with the new 4th arg
 	char *ep, *s = nil;
 	Trace *p, **pp, *foo;

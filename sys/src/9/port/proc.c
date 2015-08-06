@@ -69,7 +69,7 @@ char *statename[] =
 void
 debuggotolabel(Label *p)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(0)hi("debuggotolabel");
 	iprint("gotolabel: pid %p rip %p sp %p\n",
 		m && up? up->pid : 0,
@@ -122,7 +122,7 @@ schedinit(void)		/* never returns */
 
 	setlabel(&machp()->sched);
 
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 
 	if(up) {
 		if((e = up->edf) && (e->flags & Admitted))
@@ -169,7 +169,7 @@ schedinit(void)		/* never returns */
 void
 sched(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 
 	if(machp()->ilockdepth)
@@ -263,7 +263,7 @@ anyready(void)
 int
 anyhigher(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	return run.runvec & ~((1<<(up->priority+1))-1);
 }
 
@@ -274,7 +274,7 @@ anyhigher(void)
 void
 hzsched(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/* once a second, rebalance will reprioritize ready procs */
 	if(machp()->machno == 0)
 		rebalance();
@@ -293,7 +293,7 @@ hzsched(void)
 void
 hzsched(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/* once a second, rebalance will reprioritize ready procs */
 	if(machp()->machno == 0)
 		rebalance();
@@ -315,7 +315,7 @@ hzsched(void)
 int
 preempted(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(up && up->state == Running)
 	if(up->preempted == 0)
 	if(anyhigher())
@@ -340,7 +340,7 @@ preempted(void)
 int
 preempted(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(up && up->state == Running)
 	if(up->preempted == 0)
 	if(anyhigher())
@@ -399,7 +399,7 @@ preempted(void)
 static void
 updatecpu(Proc *p)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int D, n, t, ocpu;
 
 	if(p->edf)
@@ -581,7 +581,7 @@ ready(Proc *p)
 void
 yield(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(anyready()){
 		/* pretend we just used 1/2 tick */
 		up->lastupdate -= Scaling/2;
@@ -639,7 +639,7 @@ another:
 static void
 preemptfor(Proc *p)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint32_t delta;
 	uint i, /*j,*/ rr;
 	Proc *mup;
@@ -1000,7 +1000,7 @@ canpage(Proc *p)
 Proc*
 newproc(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 
 	p = psalloc();
@@ -1081,7 +1081,7 @@ newproc(void)
 void
 procwired(Proc *p, int bm)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *pp;
 	int i;
 	char nwired[MACHMAX];
@@ -1149,7 +1149,7 @@ procpriority(Proc *p, int pri, int fixed)
 void
 sleep(Rendez *r, int (*f)(void*), void *arg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Mpl pl;
 
 	pl = splhi();
@@ -1226,7 +1226,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 static int
 tfn(void *arg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	return up->trend == nil || up->tfn(arg);
 }
 
@@ -1246,7 +1246,7 @@ twakeup(Ureg* ureg, Timer *t)
 void
 tsleep(Rendez *r, int (*fn)(void*), void *arg, int32_t ms)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if (up->tt){
 		print("tsleep: timer active: mode %d, tf %#p\n",
 			up->tmode, up->tf);
@@ -1412,7 +1412,7 @@ struct
 void
 addbroken(Proc *p)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	qlock(&broken);
 	if(broken.n == NBROKEN) {
 		ready(broken.p[0]);
@@ -1465,7 +1465,7 @@ freebroken(void)
 void
 pexit(char *exitstr, int freemem)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	Segment **s, **es;
 	int32_t utime, stime;
@@ -1631,7 +1631,7 @@ haswaitq(void *x)
 int
 pwait(Waitmsg *w)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int cpid;
 	Waitq *wq;
 
@@ -1696,7 +1696,7 @@ dumpaproc(Proc *p)
 void
 procdump(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 	Proc *p;
 
@@ -1785,7 +1785,7 @@ scheddump(void)
 void
 kproc(char *name, void (*func)(void *), void *arg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	static Pgrp *kpgrp;
 
@@ -1841,7 +1841,7 @@ kproc(char *name, void (*func)(void *), void *arg)
 void
 procctl(Proc *p)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Mpl pl;
 	char *state;
 
@@ -1902,7 +1902,7 @@ procctl(Proc *p)
 void
 error(char *err)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	spllo();
 
 	assert(up->nerrlab < NERR);
@@ -1914,7 +1914,7 @@ error(char *err)
 void
 nexterror(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/*debug*/gotolabel(&up->errlab[--up->nerrlab]);
 }
 

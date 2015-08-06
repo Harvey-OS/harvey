@@ -147,7 +147,7 @@ sdaddpart(SDunit* unit, char* name, uint64_t start, uint64_t end)
 static void
 sddelpart(SDunit* unit, char* name)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 	SDpart *pp;
 	/*
@@ -489,7 +489,7 @@ sd1gen(Chan* c, int i, Dir* dp)
 static int
 sdgen(Chan* c, char* d, Dirtab* dir, int j, int s, Dir* dp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Qid q;
 	int64_t l;
 	int i, r;
@@ -673,6 +673,7 @@ sdstat(Chan* c, uint8_t* db, int32_t n)
 static Chan*
 sdopen(Chan* c, int omode)
 {
+	Proc *up = externup();
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
@@ -747,7 +748,7 @@ sdclose(Chan* c)
 static int32_t
 sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int nchange;
 	uint8_t *b;
 	SDpart *pp;
@@ -873,6 +874,7 @@ sdbio(Chan* c, int write, char* a, int32_t len, int64_t off)
 static int32_t
 sdrio(SDreq* r, void* a, int32_t n)
 {
+	Proc *up = externup();
 	void *data;
 
 	if(n >= SDmaxio || n < 0)
@@ -1101,6 +1103,7 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 static int32_t
 sdread(Chan *c, void *a, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	char *p, *e, *buf;
 	SDpart *pp;
 	SDunit *unit;
@@ -1214,6 +1217,7 @@ static void legacytopctl(Cmdbuf*);
 static int32_t
 sdwrite(Chan* c, void* a, int32_t n, int64_t off)
 {
+	Proc *up = externup();
 	char *f0;
 	int i;
 	uint64_t end, start;
@@ -1382,7 +1386,7 @@ sdwrite(Chan* c, void* a, int32_t n, int64_t off)
 static int32_t
 sdwstat(Chan* c, uint8_t* dp, int32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Dir *d;
 	SDpart *pp;
 	SDperm *perm;

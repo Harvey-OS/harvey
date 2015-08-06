@@ -319,7 +319,7 @@ pipebread(Chan *c, int32_t n, int64_t offset)
 static int32_t
 pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Pipe *p;
 
 	if(0)if(!islo())
@@ -354,7 +354,7 @@ pipewrite(Chan *c, void *va, int32_t n, int64_t mm)
 static int32_t
 pipebwrite(Chan *c, Block *bp, int64_t mm)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int32_t n;
 	Pipe *p;
 

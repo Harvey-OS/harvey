@@ -115,7 +115,7 @@ cmd3gen(Chan *c, int i, Dir *dp)
 static int
 cmdgen(Chan *c, char *name, Dirtab *d, int nd, int s, Dir *dp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Qid q;
 	Conv *cv;
 
@@ -218,7 +218,7 @@ cmdstat(Chan *c, uint8_t *db, int32_t n)
 static Chan *
 cmdopen(Chan *c, int omode)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int perm;
 	Conv *cv;
 	char *user;
@@ -388,7 +388,7 @@ cmdclose(Chan *c)
 static int32_t
 cmdread(Chan *ch, void *a, int32_t n, int64_t offset)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Conv *c;
 	Proc *p;
 	char *s, *cmds;
@@ -487,7 +487,7 @@ Cmdtab cmdtab[] = {
 static int32_t
 cmdwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i, r = 0;
 	Conv *c;
 	Segment *s;
@@ -589,7 +589,7 @@ cmdwrite(Chan *ch, void *a, int32_t n, int64_t offset)
 static int32_t
 cmdwstat(Chan *c, uint8_t *dp, int32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Dir *d;
 	Conv *cv;
 

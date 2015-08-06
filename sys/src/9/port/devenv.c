@@ -41,7 +41,7 @@ envlookup(Egrp *eg, char *name, uint32_t qidpath)
 static int
 envgen(Chan *c, char *name, Dirtab* dir, int i, int s, Dir *dp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Egrp *eg;
 	Evalue *e;
 
@@ -150,6 +150,7 @@ envopen(Chan *c, int omode)
 static void
 envcreate(Chan *c, char *name, int omode, int i)
 {
+	Proc *up = externup();
 	Egrp *eg;
 	Evalue *e;
 	Evalue **ent;
@@ -377,7 +378,7 @@ closeegrp(Egrp *eg)
 static Egrp*
 envgrp(Chan *c)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	if(c->aux == nil)
 		return up->egrp;
 	return c->aux;
@@ -412,6 +413,7 @@ ksetenv(char *ename, char *eval, int conf)
 char *
 getconfenv(void)
 {
+	Proc *up = externup();
 	Egrp *eg = &confegrp;
 	Evalue *e;
 	char *p, *q;
