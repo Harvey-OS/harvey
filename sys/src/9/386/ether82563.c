@@ -696,7 +696,7 @@ static Cmdtab i82563ctlmsg[] = {
 static int32_t
 i82563ctl(Ether* edev, void* buf, int32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uint32_t v;
 	char *p;
 	Ctlr *ctlr;
@@ -1222,7 +1222,7 @@ i82563tproc(void *v)
 static void
 i82563attach(Ether* edev)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Block *bp;
 	Ctlr *ctlr;
 	char name[KNAMELEN];

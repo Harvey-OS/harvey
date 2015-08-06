@@ -108,7 +108,7 @@ emptystr(char *s)
 void
 kstrdup(char **p, char *s)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int n;
 	char *t, *prev;
 
@@ -387,6 +387,7 @@ chanfree(Chan *c)
 void
 cclose(Chan *c)
 {
+	Proc *up = externup();
 	if(c->flag&CFREE)
 		panic("cclose %#p", getcallerpc(&c));
 
@@ -451,6 +452,7 @@ clunkwork(void* v)
 static void
 closeproc(void* v)
 {
+	Proc *up = externup();
 	Chan *c;
 
 	for(;;){
@@ -546,7 +548,7 @@ newmhead(Chan *from)
 int
 cmount(Chan **newp, Chan *old, int flag, char *spec)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int order, flg;
 	Chan *new;
 	Mhead *mhead, **l, *mh;
@@ -665,7 +667,7 @@ cmount(Chan **newp, Chan *old, int flag, char *spec)
 void
 cunmount(Chan *mnt, Chan *mounted)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Pgrp *pg;
 	Mhead *mh, **l;
 	Mount *f, **p;
@@ -757,7 +759,7 @@ cclone(Chan *c)
 int
 findmount(Chan **cp, Mhead **mp, int dc, uint devno, Qid qid)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Pgrp *pg;
 	Mhead *mh;
 
@@ -852,6 +854,7 @@ undomount(Chan *c, Path *path)
 static Walkqid*
 ewalk(Chan *c, Chan *nc, char **name, int nname)
 {
+	Proc *up = externup();
 	Walkqid *wq;
 
 	if(waserror())
@@ -869,7 +872,7 @@ static char Edoesnotexist[] = "does not exist";
 int
 walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int dc, devno, didmount, dotdot, i, n, nhave, ntry;
 	Chan *c, *nc, *mtpt;
 	Path *path;
@@ -1045,6 +1048,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 Chan*
 createdir(Chan *c, Mhead *mh)
 {
+	Proc *up = externup();
 	Chan *nc;
 	Mount *f;
 
@@ -1155,7 +1159,7 @@ memrchr(void *va, int c, int32_t n)
 static void
 namelenerror(char *aname, int len, char *err)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char *ename, *name, *next;
 	int i, errlen;
 
@@ -1223,7 +1227,7 @@ nameerror(char *name, char *err)
 Chan*
 namec(char *aname, int amode, int omode, int perm)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int len, n, nomount;
 	Chan *c, *cnew;
 	Path *path;
@@ -1625,7 +1629,7 @@ char isfrog[256]={
 static char*
 validname0(char *aname, int slashok, int dup, uintptr_t pc)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char *ename, *name, *s;
 	int c, n;
 	Rune r;

@@ -354,7 +354,7 @@ static void txstart(Ether*);
 static void
 watchdog(void* arg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Ether *ether;
 	Ctlr *ctlr;
 	//static void txstart(Ether*);

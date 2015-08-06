@@ -59,7 +59,7 @@ _allocb(int size)
 Block*
 allocb(int size)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Block *b;
 
 	/*

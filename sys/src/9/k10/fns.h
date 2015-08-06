@@ -206,7 +206,7 @@ void	acsyscallentry(void);
 void	syscallreturn(void);
 void	sysrforkret(void);
 
-#define	waserror()	(machp()->externup->nerrlab++, setlabel(&machp()->externup->errlab[machp()->externup->nerrlab-1]))
+#define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
 
 #define	dcflush(a, b)
 
@@ -271,6 +271,7 @@ void put16(uint16_t);
 void put8(uint8_t);
 
 Mach *machp(void);
+Proc *externup(void);
 
 /* temporary. */
 void die(char *);

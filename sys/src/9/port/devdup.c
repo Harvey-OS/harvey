@@ -19,7 +19,7 @@
 static int
 dupgen(Chan *c, char *d, Dirtab* dir, int mm, int s, Dir *dp)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Fgrp *fgrp = up->fgrp;
 	Chan *f;
 	static int perm[] = { 0400, 0200, 0600, 0 };

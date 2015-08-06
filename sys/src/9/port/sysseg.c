@@ -71,7 +71,7 @@ isphysseg(char *name)
 uintptr_t
 ibrk(uintptr_t addr, int seg)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s, *ns;
 	uintptr_t newtop, rtop;
 	int32_t newsize;
@@ -149,7 +149,7 @@ ibrk(uintptr_t addr, int seg)
 void
 syssegbrk(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 	uintptr_t addr;
 	Segment *s;
@@ -199,7 +199,7 @@ syssegbrk(Ar0* ar0, ...)
 void
 sysbrk_(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	uintptr_t addr;
 	va_list list;
 	va_start(list, ar0);
@@ -226,7 +226,7 @@ sysbrk_(Ar0* ar0, ...)
 static uintptr_t
 segattach(Proc* p, int attr, char* name, uintptr_t va, usize len)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int sno;
 	Segment *s, *os;
 	Physseg *ps;
@@ -328,7 +328,7 @@ clean_out:
 void
 syssegattach(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int attr;
 	char *name;
 	uintptr_t va;
@@ -353,7 +353,7 @@ syssegattach(Ar0* ar0, ...)
 void
 syssegdetach(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int i;
 	uintptr_t addr;
 	Segment *s;
@@ -410,7 +410,7 @@ found:
 void
 syssegfree(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 	uintptr_t from, to;
 	usize len;
@@ -458,7 +458,7 @@ pteflush(Pte *pte, int s, int e)
 void
 syssegflush(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 	uintptr_t addr;
 	Pte *pte;

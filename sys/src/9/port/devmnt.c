@@ -107,6 +107,7 @@ mntreset(void)
 usize
 mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 {
+	Proc *up = externup();
 	Fcall f;
 	uint8_t *msg;
 	Mnt *mnt;
@@ -257,7 +258,7 @@ mntversion(Chan *c, uint32_t msize, char *version, usize returnlen)
 Chan*
 mntauth(Chan *c, char *spec)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -310,7 +311,7 @@ mntauth(Chan *c, char *spec)
 static Chan*
 mntattach(char *muxattach)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Mnt *mnt;
 	Chan *c;
 	Mntrpc *r;
@@ -392,6 +393,7 @@ mntchan(void)
 static Walkqid*
 mntwalk(Chan *c, Chan *nc, char **name, int nname)
 {
+	Proc *up = externup();
 	int i, alloc;
 	Mnt *mnt;
 	Mntrpc *r;
@@ -475,6 +477,7 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 static int32_t
 mntstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Proc *up = externup();
 	Mnt *mnt;
 	Mntrpc *r;
 	usize nstat;
@@ -509,6 +512,7 @@ mntstat(Chan *c, uint8_t *dp, int32_t n)
 static Chan*
 mntopencreate(int type, Chan *c, char *name, int omode, int perm)
 {
+	Proc *up = externup();
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -558,6 +562,7 @@ mntcreate(Chan *c, char *name, int omode, int perm)
 static void
 mntclunk(Chan *c, int t)
 {
+	Proc *up = externup();
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -628,6 +633,7 @@ mntremove(Chan *c)
 static int32_t
 mntwstat(Chan *c, uint8_t *dp, int32_t n)
 {
+	Proc *up = externup();
 	Mnt *mnt;
 	Mntrpc *r;
 
@@ -700,7 +706,7 @@ mntwrite(Chan *c, void *buf, int32_t n, int64_t off)
 int32_t
 mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Mnt *mnt;
  	Mntrpc *r;
 	char *uba;
@@ -753,7 +759,7 @@ mntrdwr(int type, Chan *c, void *buf, int32_t n, int64_t off)
 static void
 mntvalidreply(Mnt *mnt, Mntrpc *r)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char *sn, *cn;
 	int t;
 
@@ -806,7 +812,7 @@ xmitrpc(Mnt *mnt, Mntrpc *r)
 static void
 recvrpc(Mnt *mnt, Mntrpc *r)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/* Gate readers onto the mount point one at a time */
 	for(;;) {
 		lock(mnt);
@@ -834,7 +840,7 @@ recvrpc(Mnt *mnt, Mntrpc *r)
 void
 mountiostart(Mnt *mnt, Mntrpc *r)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int gotintr;
 
 	r->reply.tag = 0;
@@ -864,7 +870,7 @@ mountiostart(Mnt *mnt, Mntrpc *r)
 void
 mountiofinish(Mnt *mnt, Mntrpc *r)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int gotintr;
 
 	gotintr = 0;

@@ -91,6 +91,7 @@ canflush(Proc *p, Segment *s)
 static int
 pageout(Proc *p, Segment *s)
 {
+	Proc *up = externup();
 	int i, size, n;
 	Pte *l;
 	Page **pg, *entry;
@@ -195,7 +196,7 @@ Again:
 static void
 freepages(int si, int once)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Pgsza *pa;
 	Page *p;
 
@@ -261,7 +262,7 @@ hascolor(Page *pl, int color)
 void
 kickpager(int pgszi, int color)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Pgsza *pa;
 
 	if(DBGFLG>1)

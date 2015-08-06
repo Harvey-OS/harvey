@@ -112,6 +112,7 @@ ipfindmedium(char *name)
 static char*
 ipifcbind(Conv *c, char **argv, int argc)
 {
+	Proc *up = externup();
 	Ipifc *ifc;
 	Medium *medium;
 
@@ -182,6 +183,7 @@ ipifcbind(Conv *c, char **argv, int argc)
 static char*
 ipifcunbind(Ipifc *ifc)
 {
+	Proc *up = externup();
 	char *err;
 
 	if(waserror()){
@@ -292,6 +294,7 @@ ipifcinuse(Conv *c)
 static void
 ipifckick(void *x)
 {
+	Proc *up = externup();
 	Conv *c = x;
 	Block *bp;
 	Ipifc *ifc;
@@ -678,6 +681,7 @@ ipifcremroute(Fs *f, int vers, uint8_t *addr, uint8_t *mask)
 static char*
 ipifcconnect(Conv* c, char **argv, int argc)
 {
+	Proc *up = externup();
 	char *err;
 	Ipifc *ifc;
 
@@ -1435,6 +1439,7 @@ ipisbm(uint8_t *ip)
 void
 ipifcaddmulti(Conv *c, uint8_t *ma, uint8_t *ia)
 {
+	Proc *up = externup();
 	Ipifc *ifc;
 	Iplifc *lifc;
 	Conv **p;
@@ -1476,6 +1481,7 @@ ipifcaddmulti(Conv *c, uint8_t *ma, uint8_t *ia)
 void
 ipifcremmulti(Conv *c, uint8_t *ma, uint8_t *ia)
 {
+	Proc *up = externup();
 	Ipmulti *multi, **l;
 	Iplifc *lifc;
 	Conv **p;

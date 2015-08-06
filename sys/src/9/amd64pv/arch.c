@@ -87,7 +87,7 @@ procsave(Proc *p)
 static void
 linkproc(void)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	spllo();
 	up->kpfun(up->kparg);
 	pexit("kproc dying", 0);
@@ -119,7 +119,7 @@ kprocchild(Proc* p, void (*func)(void*), void* arg)
 void
 idlehands(void)
 {
-Proc *up = machp()->externup;
+Proc *up = externup();
 if(sys->nmach <= 1)
 {
 	halt();

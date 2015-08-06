@@ -127,7 +127,7 @@ scsiverify(SDunit* unit)
 static int
 scsirio(SDreq* r)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	/*
 	 * Perform an I/O request, returning
 	 *	-1	failure

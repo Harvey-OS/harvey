@@ -65,7 +65,7 @@ fmtuserstring(Fmt* f, char* a, char* suffix)
 void
 syscallfmt(int syscallno, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	va_list list;
 	int32_t l;
 	uint32_t ul;
@@ -368,7 +368,7 @@ void
 sysretfmt(int syscallno, Ar0* ar0, uint64_t start,
 	  uint64_t stop, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	va_list list;
 	int32_t l;
 	void* v;

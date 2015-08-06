@@ -25,7 +25,7 @@
 void
 sysrfork(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p;
 	int flag, i, n, pid;
 	Fgrp *ofg;
@@ -285,7 +285,7 @@ l2be(int32_t l)
 static void
 execac(Ar0* ar0, int flags, char *ufile, char **argv)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Fgrp *fg;
 	Tos *tos;
 	Chan *chan, *ichan;
@@ -727,7 +727,7 @@ return0(void* v)
 void
 syssleep(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int32_t ms;
 	va_list list;
 	va_start(list, ar0);
@@ -771,6 +771,7 @@ sysalarm(Ar0* ar0, ...)
 void
 sysexits(Ar0* ar0, ...)
 {
+	Proc *up = externup();
 	char *status;
 	char *inval = "invalid exit string";
 	char buf[ERRMAX];
@@ -873,7 +874,7 @@ sysawait(Ar0* ar0, ...)
 void
 werrstr(char *fmt, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	va_list va;
 
 	if(up == nil)
@@ -887,7 +888,7 @@ werrstr(char *fmt, ...)
 static void
 generrstr(char *buf, int32_t n)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	char *p, tmp[ERRMAX];
 
 	if(n <= 0)
@@ -948,7 +949,7 @@ sys_errstr(Ar0* ar0, ...)
 void
 sysnotify(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	void (*f)(void*, char*);
 	va_list list;
 	va_start(list, ar0);
@@ -969,7 +970,7 @@ sysnotify(Ar0* ar0, ...)
 void
 sysnoted(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	int v;
 	va_list list;
 	va_start(list, ar0);
@@ -989,7 +990,7 @@ sysnoted(Ar0* ar0, ...)
 void
 sysrendezvous(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Proc *p, **l;
 	uintptr_t tag, val;
 	va_list list;
@@ -1204,6 +1205,7 @@ semawoke(void* p)
 static int
 semacquire(Segment* s, int* addr, int block)
 {
+	Proc *up = externup();
 	int acquired;
 	Sema phore;
 
@@ -1240,6 +1242,7 @@ semacquire(Segment* s, int* addr, int block)
 static int
 tsemacquire(Segment* s, int* addr, int32_t ms)
 {
+	Proc *up = externup();
 	int acquired;
 	uint32_t t;
 	Sema phore;
@@ -1281,7 +1284,7 @@ tsemacquire(Segment* s, int* addr, int32_t ms)
 void
 syssemacquire(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 	int *addr, block;
 	va_list list;
@@ -1309,7 +1312,7 @@ syssemacquire(Ar0* ar0, ...)
 void
 systsemacquire(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 	int *addr, ms;
 	va_list list;
@@ -1337,7 +1340,7 @@ systsemacquire(Ar0* ar0, ...)
 void
 syssemrelease(Ar0* ar0, ...)
 {
-	Proc *up = machp()->externup;
+	Proc *up = externup();
 	Segment *s;
 	int *addr, delta;
 	va_list list;
